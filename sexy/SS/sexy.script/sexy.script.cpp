@@ -317,7 +317,7 @@ namespace Rococo
 			if (!splitter.SplitTail(OUT body, OUT publicName))
 			{
 				char fullError[2048];
-            SafeFormat(fullError, 2048, ("%s: Expecting fully qualified name A.B.C.D."), nf.Archetype.c_str());
+				SafeFormat(fullError, 2048, ("%s: Expecting fully qualified name A.B.C.D."), nf.Archetype.c_str());
 				ParseException nativeError(Vec2i{ 0,0 }, Vec2i{ 0,0 }, NativeModuleSrc, fullError, (""), NULL);
 				Throw(nativeError);
 			}
@@ -330,7 +330,7 @@ namespace Rococo
 			if (!f->TryResolveArguments())
 			{
 				char fullError[2048];
-            SafeFormat(fullError, 2048, ("%s: Could not resolve all arguments. Check the log."), nf.Archetype.c_str());
+				SafeFormat(fullError, 2048, ("%s: Could not resolve all arguments. Check the log."), nf.Archetype.c_str());
 				ParseException nativeError(Vec2i{ 0,0 }, Vec2i{ 0,0 }, NativeModuleSrc, fullError, (""), NULL);
 				Throw(nativeError);
 			}
@@ -449,9 +449,8 @@ namespace Rococo
 	class CScriptSystem : public IScriptSystem
 	{
 	private:
-		TStringBuilders stringBuilders;
 		TMemoAllocator memoAllocator;
-		CProgramObjectProxy progObjProxy;
+		AutoFree<IProgramObject> progObjProxy;
 		Auto<ISParser> sexParserProxy;
 		CScripts* scripts;
 		ScriptCallbacks callbacks;
@@ -483,7 +482,7 @@ namespace Rococo
 
 		void InstallNullFunction()
 		{
-			IFunctionBuilder& nullFunction = progObjProxy().IntrinsicModule().DeclareFunction(FunctionPrototype(("_nothing"), false), NULL);
+			IFunctionBuilder& nullFunction = progObjProxy->IntrinsicModule().DeclareFunction(FunctionPrototype(("_nothing"), false), NULL);
 			nullFunction.Builder().Begin();
 			nullFunction.Builder().End();
 			nullFunction.Builder().Assembler().Clear();
@@ -493,12 +492,12 @@ namespace Rococo
 
 		IModuleBuilder& ReflectionModule()
 		{
-			return this->progObjProxy().GetModule(3);
+			return this->progObjProxy->GetModule(3);
 		}
 
 		IModule& SysTypeMemoModule()
 		{
-			return this->progObjProxy().GetModule(0);
+			return this->progObjProxy->GetModule(0);
 		}
 
 		typedef std::unordered_map<cstr, CStringConstant*> TReflectedStrings;
@@ -523,7 +522,7 @@ namespace Rococo
 		int nextId;
 	public:
 		CScriptSystem(TMapNameToSTree& _nativeSources, const ProgramInitParameters& pip, ILog& _logger, IAllocator& _allocator) :
-			allocator(_allocator), progObjProxy(pip, _logger), nativeCallIndex(1), stringConstantStruct(NULL),
+			allocator(_allocator), progObjProxy(CreateProgramObject_1_0_0_0(pip, _logger)), nativeCallIndex(1), stringConstantStruct(NULL),
 			reflectionRoot(NULL), nextId(0), nativeSources(_nativeSources), sexParserProxy(Sexy_CreateSexParser_2_0(_allocator))
 		{
 			try
@@ -551,14 +550,14 @@ namespace Rococo
 				Rococo::Throw(innerEx.ErrorCode(), ("%s"), message);
 			}
 
-			scripts = new CScripts(progObjProxy(), *this);
+			scripts = new CScripts(*progObjProxy, *this);
 
-			nativeInt32 = &progObjProxy().AddIntrinsicStruct("Int32", sizeof(int32), VARTYPE_Int32, NULL);
-			nativeInt64 = &progObjProxy().AddIntrinsicStruct("Int64", sizeof(int64), VARTYPE_Int64, NULL);
-			nativeFloat32 = &progObjProxy().AddIntrinsicStruct("Float32", sizeof(float32), VARTYPE_Float32, NULL);
-			nativeFloat64 = &progObjProxy().AddIntrinsicStruct("Float64", sizeof(float64), VARTYPE_Float64, NULL);
-			nativeBool = &progObjProxy().AddIntrinsicStruct("Bool", sizeof(int32), VARTYPE_Bool, NULL);
-			nativePtr = &progObjProxy().AddIntrinsicStruct("Pointer", sizeof(size_t), VARTYPE_Pointer, NULL);
+			nativeInt32 = &progObjProxy->AddIntrinsicStruct("Int32", sizeof(int32), VARTYPE_Int32, NULL);
+			nativeInt64 = &progObjProxy->AddIntrinsicStruct("Int64", sizeof(int64), VARTYPE_Int64, NULL);
+			nativeFloat32 = &progObjProxy->AddIntrinsicStruct("Float32", sizeof(float32), VARTYPE_Float32, NULL);
+			nativeFloat64 = &progObjProxy->AddIntrinsicStruct("Float64", sizeof(float64), VARTYPE_Float64, NULL);
+			nativeBool = &progObjProxy->AddIntrinsicStruct("Bool", sizeof(int32), VARTYPE_Bool, NULL);
+			nativePtr = &progObjProxy->AddIntrinsicStruct("Pointer", sizeof(size_t), VARTYPE_Pointer, NULL);
 
 			try
 			{
@@ -590,7 +589,7 @@ namespace Rococo
 				throw;
 			}
 
-			auto& core = progObjProxy().VirtualMachine().Core();
+			auto& core = progObjProxy->VirtualMachine().Core();
 
 			jitId = core.RegisterCallback(OnJITRoutineNeedsCompiling, this, ("OnJITRoutineNeedsCompiling"));
 
@@ -701,6 +700,21 @@ namespace Rococo
 			}
 
 			delete scripts;
+
+			progObjProxy = nullptr;
+			if (stringPool) stringPool->Free();
+		}
+
+		IStringPool* stringPool = nullptr;
+
+		IStringPool& StringPool()
+		{
+			return *stringPool;
+		}
+
+		const IStructure* GetStringBuilderType() const
+		{
+			return stringPool->FastStringBuilderType();
 		}
 
 		cstr GetPersistentString(cstr txt) override
@@ -788,13 +802,13 @@ namespace Rococo
 			{
 				if (st.InterfaceCount() != 1)
 				{
-					LogError(progObjProxy().Log(), ("The structure '%s' must implement one and only one interface to reflect a native object"), st.Name());
+					LogError(progObjProxy->Log(), ("The structure '%s' must implement one and only one interface to reflect a native object"), st.Name());
 					return NULL;
 				}
 
 				if (IsNullType(st))
 				{
-					LogError(progObjProxy().Log(), ("Null structures, including '%s', cannot be used to reflect a native object"), st.Name());
+					LogError(progObjProxy->Log(), ("Null structures, including '%s', cannot be used to reflect a native object"), st.Name());
 					return NULL;
 				}
 
@@ -891,7 +905,7 @@ namespace Rococo
 
 		void SetGlobalVariablesToDefaults() override
 		{
-			auto& vm = progObjProxy().VirtualMachine();
+			auto& vm = progObjProxy->VirtualMachine();
 			scripts->SetGlobalVariablesToDefaults(vm);
 		}
 
@@ -956,8 +970,8 @@ namespace Rococo
 			}
 			else
 			{
-				progObjProxy().Log().Write(("Sys.Native.FreeAligned(...) was passed a pointer that is not currently defined in the aligned heap"));
-				progObjProxy().VirtualMachine().Throw();
+				progObjProxy->Log().Write(("Sys.Native.FreeAligned(...) was passed a pointer that is not currently defined in the aligned heap"));
+				progObjProxy->VirtualMachine().Throw();
 			}
 		}
 
@@ -999,7 +1013,7 @@ namespace Rococo
 			{
 				TokenBuffer token;
 				StringPrint(token, ("Cannot find %s in module %s"), className, module.Name());
-				progObjProxy().Log().Write(token);
+				progObjProxy->Log().Write(token);
 				return NULL;
 			}
 			return s;
@@ -1013,7 +1027,7 @@ namespace Rococo
 			{
 				TokenBuffer token;
 				StringPrint(token, ("%s in reflection module is not equivalent to CReflectedClass"), className);
-				progObjProxy().Log().Write(token);
+				progObjProxy->Log().Write(token);
 				return NULL;
 			}
 
@@ -1137,12 +1151,12 @@ namespace Rococo
 
 		IProgramObject& ProgramObject() override
 		{
-			return progObjProxy();
+			return  *progObjProxy;
 		}
 
 		IPublicProgramObject& PublicProgramObject() override
 		{
-			return progObjProxy();
+			return *progObjProxy;
 		}
 
 		Sex::ISParser& SParser() override
@@ -1175,39 +1189,39 @@ namespace Rococo
 
 		const INamespace& AddNativeNamespace(cstr name) override
 		{
-			return progObjProxy().GetRootNamespace().AddNamespace(name, Compiler::ADDNAMESPACEFLAGS_CREATE_ROOTS);
+			return progObjProxy->GetRootNamespace().AddNamespace(name, Compiler::ADDNAMESPACEFLAGS_CREATE_ROOTS);
 		}
 
 		void DefineSysNative(const INamespace& sysNative)
 		{
+			AddNativeCall(sysNative, NewStringBuilder, stringPool, "NewStringBuilder (Int32 capacity) -> (Sys.Type.IStringBuilder sb)", false);
+			AddNativeCall(sysNative, DestructStringBuilder, stringPool, "DestructStringBuilder (Sys.Type.IStringBuilder sb)->", false);
 			AddNativeCall(sysNative, CreateMemoString, &memoAllocator, ("CreateMemoString (Pointer src) (Int32 srcLen) -> (Pointer dest) (Int32 destLength)"), false);
 			AddNativeCall(sysNative, FreeMemoString, &memoAllocator, ("FreeMemoString (Pointer src) ->"), false);
-			AddNativeCall(sysNative, DynamicCast, &stringBuilders, ("_DynamicCast (Pointer interface) (Pointer instanceRef) ->"), false);
-			AddNativeCall(sysNative, CreateStringBuilder, &stringBuilders, ("CreateStringBuilder (Int32 capacity) -> (Pointer sbHandle)"), false);
-			AddNativeCall(sysNative, FreeStringBuilder, &stringBuilders, ("FreeStringBuilder (Pointer sbHandle) ->"), false);
-			AddNativeCall(sysNative, StringBuilderAppendIString, &stringBuilders, ("StringBuilderAppendIString (Pointer buffer) (Pointer src) (Int32 srclength) -> (Int32 newLength)"), false);
-			AddNativeCall(sysNative, StringBuilderAppendChar, &stringBuilders, ("StringBuilderAppendChar (Pointer buffer) (Int32 asciiValue) -> (Int32 newLength)"), false);
-			AddNativeCall(sysNative, StringBuilderAppendInt32, &stringBuilders, ("StringBuilderAppendInt32 (Pointer buffer) (Int32 x) -> (Int32 newLength)"), false);
-			AddNativeCall(sysNative, StringBuilderAppendInt64, &stringBuilders, ("StringBuilderAppendInt64 (Pointer buffer) (Int64 x) -> (Int32 newLength)"), false);
-			AddNativeCall(sysNative, StringBuilderAppendFloat32, &stringBuilders, ("StringBuilderAppendFloat32 (Pointer buffer) (Float32 x) -> (Int32 newLength)"), false);
-			AddNativeCall(sysNative, StringBuilderAppendFloat64, &stringBuilders, ("StringBuilderAppendFloat64 (Pointer buffer) (Float64 x) -> (Int32 newLength)"), false);
-			AddNativeCall(sysNative, StringBuilderAppendBool, &stringBuilders, ("StringBuilderAppendBool (Pointer buffer) (Bool x) -> (Int32 newLength)"), false);
-			AddNativeCall(sysNative, StringBuilderAppendPointer, &stringBuilders, ("StringBuilderAppendPointer (Pointer buffer) (Pointer x) -> (Int32 newLength)"), false);
-			AddNativeCall(sysNative, StringBuilderClear, &stringBuilders, ("StringBuilderClear (Pointer buffer) ->"), false);
-			AddNativeCall(sysNative, StringBuilderAppendAsDecimal, &stringBuilders, ("StringBuilderAppendAsDecimal (Pointer buffer) ->"), false);
-			AddNativeCall(sysNative, StringBuilderAppendAsHex, &stringBuilders, ("StringBuilderAppendAsHex (Pointer buffer) -> "), false);
-			AddNativeCall(sysNative, StringBuilderAppendAsSpec, &stringBuilders, ("StringBuilderAppendAsSpec (Pointer buffer) (Int32 type) -> "), false);
-			AddNativeCall(sysNative, StringBuilderSetFormat, &stringBuilders, ("StringBuilderSetFormat  (Pointer buffer) (Int32 precision) (Int32 width) (Bool isZeroPrefixed) (Bool isRightAligned)->"), false);
+			AddNativeCall(sysNative, DynamicCast, nullptr, ("_DynamicCast (Pointer interface) (Pointer instanceRef) ->"), false);
 			AddNativeCall(sysNative, StringCompare, NULL, ("StringCompare  (Pointer s) (Pointer t) -> (Int32 diff)"), false);
 			AddNativeCall(sysNative, StringCompareI, NULL, ("StringCompareI  (Pointer s) (Pointer t) -> (Int32 diff)"), false);
 			AddNativeCall(sysNative, StringFindLeft, NULL, ("StringFindLeft (Pointer containerBuffer) (Int32 containerLength) (Int32 startPos) (Pointer substringBuffer) (Int32 substringLength) (Bool caseIndependent)-> (Int32 position)"), false);
 			AddNativeCall(sysNative, StringFindRight, NULL, ("StringFindRight (Pointer containerBuffer) (Int32 containerLength) (Int32 rightPos) (Pointer substringBuffer) (Int32 substringLength) (Bool caseIndependent)-> (Int32 position)"), false);
-			AddNativeCall(sysNative, StringBuilderAppendSubstring, NULL, ("StringBuilderAppendSubstring (Pointer builder) (Pointer s) (Int32 sLen) (Int32 startPos) (Int32 charsToAppend) -> (Int32 length)"), false);
-			AddNativeCall(sysNative, StringBuilderSetLength, NULL, ("StringBuilderSetLength (Pointer builder) (Int32 length) -> (Int32 newlength)"), false);
-			AddNativeCall(sysNative, StringBuilderSetCase, NULL, ("StringBuilderSetCase (Pointer builder) (Int32 start) (Int32 end) (Bool toUpper)->"), false);
 			AddNativeCall(sysNative, ::AlignedMalloc, this, ("AlignedMalloc (Int32 capacity) (Int32 alignment)-> (Pointer data)"), false);
 			AddNativeCall(sysNative, ::AlignedFree, this, ("AlignedFree (Pointer data)->"), false);
 			AddNativeCall(sysNative, CScriptSystem::_PublishAPI, this, "PublishAPI ->", false);
+			AddNativeCall(sysNative, FastStringBuilderAppendIString, stringPool, ("FastStringBuilderAppendIString (Sys.Type.IStringBuilder sb) (Pointer src) (Int32 srclength) ->"), false);
+			AddNativeCall(sysNative, FastStringBuilderAppendChar, stringPool, ("FastStringBuilderAppendChar (Sys.Type.IStringBuilder sb) (Int32 asciiValue) ->"), false);
+			AddNativeCall(sysNative, FastStringBuilderAppendInt32, stringPool, ("FastStringBuilderAppendInt32 (Sys.Type.IStringBuilder sb) (Int32 x) ->"), false);
+			AddNativeCall(sysNative, FastStringBuilderAppendInt64, stringPool, ("FastStringBuilderAppendInt64 (Sys.Type.IStringBuilder sb) (Int64 x) ->"), false);
+			AddNativeCall(sysNative, FastStringBuilderAppendFloat32, stringPool, ("FastStringBuilderAppendFloat32 (Sys.Type.IStringBuilder sb) (Float32 x) ->"), false);
+			AddNativeCall(sysNative, FastStringBuilderAppendFloat64, stringPool, ("FastStringBuilderAppendFloat64 (Sys.Type.IStringBuilder sb) (Float64 x) ->"), false);
+			AddNativeCall(sysNative, FastStringBuilderAppendBool, stringPool, ("FastStringBuilderAppendBool (Sys.Type.IStringBuilder sb) (Bool x) ->"), false);
+			AddNativeCall(sysNative, FastStringBuilderAppendPointer, stringPool, ("FastStringBuilderAppendPointer (Sys.Type.IStringBuilder sb) (Pointer x) ->"), false);
+			AddNativeCall(sysNative, FastStringBuilderClear, stringPool, ("FastStringBuilderClear (Sys.Type.IStringBuilder sb) ->"), false);
+			AddNativeCall(sysNative, FastStringBuilderAppendAsDecimal, stringPool, ("FastStringBuilderAppendAsDecimal (Sys.Type.IStringBuilder sb) ->"), false);
+			AddNativeCall(sysNative, FastStringBuilderAppendAsHex, stringPool, ("FastStringBuilderAppendAsHex (Sys.Type.IStringBuilder sb) -> "), false);
+			AddNativeCall(sysNative, FastStringBuilderAppendAsSpec, stringPool, ("FastStringBuilderAppendAsSpec (Sys.Type.IStringBuilder sb) (Int32 type) -> "), false);
+			AddNativeCall(sysNative, FastStringBuilderSetFormat, stringPool, ("FastStringBuilderSetFormat  (Sys.Type.IStringBuilder sb) (Int32 precision) (Int32 width) (Bool isZeroPrefixed) (Bool isRightAligned)->"), false);
+			AddNativeCall(sysNative, FastStringBuilderAppendSubstring, stringPool, ("FastStringBuilderAppendSubstring (Sys.Type.IStringBuilder sb) (Pointer s) (Int32 sLen) (Int32 startPos) (Int32 charsToAppend) ->"), false);
+			AddNativeCall(sysNative, FastStringBuilderSetLength, stringPool, ("FastStringBuilderSetLength (Sys.Type.IStringBuilder sb)(Int32 length) ->"), false);
+			AddNativeCall(sysNative, FastStringBuilderSetCase, stringPool, ("FastStringBuilderSetCase (Sys.Type.IStringBuilder sb) (Int32 start) (Int32 end) (Bool toUpper)->"), false);
 		}
 
 		static void _PublishAPI(NativeCallEnvironment& nce)
@@ -1218,7 +1232,7 @@ namespace Rococo
 
 		void PublishAPI(NativeCallEnvironment& nce)
 		{
-			auto& nsRoot = progObjProxy().GetRootNamespace();
+			auto& nsRoot = progObjProxy->GetRootNamespace();
 
 			AutoFree<IStringBuilder> sbc ( CreateDynamicStringBuilder(65536) );
 
@@ -1450,7 +1464,7 @@ namespace Rococo
 			sb.AppendFormat("<tr><td><a href=\"index.html\"><b>Home</b></a></td></tr>");
 
 			auto* parent = ((INamespaceBuilder&)ns).Parent();
-			if (parent != &this->progObjProxy().GetRootNamespace())
+			if (parent != &this->progObjProxy->GetRootNamespace())
 			{
 				sb.AppendFormat("<tr><td><a href=\"%s.html\"><b>%s (parent)</b></a></td></tr>", parent->FullName()->Buffer, parent->FullName()->Buffer);
 			}
@@ -1488,9 +1502,9 @@ namespace Rococo
 
 		void BuildExtraSymbols()
 		{
-			for (int j = 0; j < progObjProxy().ModuleCount(); ++j)
+			for (int j = 0; j < progObjProxy->ModuleCount(); ++j)
 			{
-				IModuleBuilder& module = progObjProxy().GetModule(j);
+				IModuleBuilder& module = progObjProxy->GetModule(j);
 				for (int i = 0; i < module.StructCount(); ++i)
 				{
 					char symbol[256];
@@ -1516,11 +1530,10 @@ namespace Rococo
 		void Clear()
 		{
 			symbols.clear();
-			::Clear(stringBuilders);
 
 			scripts->ExceptionLogic().Clear();
-			progObjProxy().GetRootNamespace().Clear();
-			progObjProxy().ClearCustomAllocators();
+			progObjProxy->GetRootNamespace().Clear();
+			progObjProxy->ClearCustomAllocators();
 
 			for (auto i = reflectedStrings.begin(); i != reflectedStrings.end(); ++i)
 			{
@@ -1556,25 +1569,32 @@ namespace Rococo
 				INativeLib* lib = *i;
 				lib->ClearResources();
 			}
+
+			if (stringPool)
+			{
+				stringPool->Free();
+			}
 		}
 
 		void Compile() override
 		{
 			Clear();
 
-			INamespaceBuilder& sysOS = progObjProxy().GetRootNamespace().AddNamespace("Sys.OS", ADDNAMESPACEFLAGS_CREATE_ROOTS);
+			stringPool = NewStringPool();
+
+			INamespaceBuilder& sysOS = progObjProxy->GetRootNamespace().AddNamespace("Sys.OS", ADDNAMESPACEFLAGS_CREATE_ROOTS);
 			AddNativeCall(sysOS, NativeAppendCTime, NULL, "AppendCTime (Sys.Type.IStringBuilder sb)->(Int32 nChars)", false);
 
-			INamespaceBuilder& sysTypes = progObjProxy().GetRootNamespace().AddNamespace("Sys.Type", ADDNAMESPACEFLAGS_CREATE_ROOTS);
+			INamespaceBuilder& sysTypes = progObjProxy->GetRootNamespace().AddNamespace("Sys.Type", ADDNAMESPACEFLAGS_CREATE_ROOTS);
 			DefinePrimitives(sysTypes);
 
-			INamespaceBuilder& sysNative = progObjProxy().GetRootNamespace().AddNamespace("Sys.Native", ADDNAMESPACEFLAGS_CREATE_ROOTS);
+			INamespaceBuilder& sysNative = progObjProxy->GetRootNamespace().AddNamespace("Sys.Native", ADDNAMESPACEFLAGS_CREATE_ROOTS);
 			DefineSysNative(sysNative);
 
 			AddNativeCall(sysOS, NativeSysOSClockHz, nullptr, "ClockHz -> (Int64 hz)", false);
 			AddNativeCall(sysOS, NativeSysOSClockTicks, nullptr, "ClockTicks -> (Int64 tickCount)", false);
 
-			progObjProxy().ResolveNativeTypes();
+			progObjProxy->ResolveNativeTypes();
 
 			scripts->ExceptionLogic().InstallThrowHandler();
 
@@ -1595,7 +1615,13 @@ namespace Rococo
 
 			BuildExtraSymbols();
 
-			scripts->SetGlobalVariablesToDefaults(this->progObjProxy().VirtualMachine());
+			scripts->SetGlobalVariablesToDefaults(this->progObjProxy->VirtualMachine());
+
+			auto* typeFSB = progObjProxy->GetModule(0).FindStructure("FastStringBuilder");
+			if (typeFSB == nullptr) Throw(0, "Cannot find FastStringBuilder in module 0");
+			stringPool->SetStringBuilderType(typeFSB);
+
+			progObjProxy->AllocatorMap().SetAllocator(typeFSB, stringPool->GetBinding());
 		}
 
 		void Free() override
@@ -1715,8 +1741,8 @@ namespace Rococo
 		{
 			sexstringstream<1024> streamer;
 			streamer.sb << ("Native Error (") << source << ("): ") << message;
-			progObjProxy().Log().Write(*streamer.sb);
-			progObjProxy().VirtualMachine().Throw();
+			progObjProxy->Log().Write(*streamer.sb);
+			progObjProxy->VirtualMachine().Throw();
 		}
 	};
 

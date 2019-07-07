@@ -114,6 +114,35 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "s-parser.2", "s-parser.2\s-
 		{E1E12DF3-EF6B-4044-80DB-46CEF55AD628} = {E1E12DF3-EF6B-4044-80DB-46CEF55AD628}
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{5F403F1A-5F75-4CC5-89DE-387614FB31AA}"
+	ProjectSection(SolutionItems) = preProject
+		docs\arithmetic.htm = docs\arithmetic.htm
+		docs\array.htm = docs\array.htm
+		docs\benny.hill.htm = docs\benny.hill.htm
+		docs\closures.htm = docs\closures.htm
+		docs\comparison.htm = docs\comparison.htm
+		docs\coroutines.htm = docs\coroutines.htm
+		docs\derivatives2.htm = docs\derivatives2.htm
+		docs\derivatives2_2.htm = docs\derivatives2_2.htm
+		docs\derivatives2_3.htm = docs\derivatives2_3.htm
+		docs\exceptions.htm = docs\exceptions.htm
+		docs\flow.htm = docs\flow.htm
+		docs\functions.htm = docs\functions.htm
+		docs\globals.htm = docs\globals.htm
+		docs\ide.htm = docs\ide.htm
+		docs\list.htm = docs\list.htm
+		docs\macros.htm = docs\macros.htm
+		docs\map.htm = docs\map.htm
+		docs\mhost.htm = docs\mhost.htm
+		docs\namespaces.htm = docs\namespaces.htm
+		docs\overloading.htm = docs\overloading.htm
+		docs\primitives.htm = docs\primitives.htm
+		docs\s-expressions.htm = docs\s-expressions.htm
+		docs\start.htm = docs\start.htm
+		docs\strings.htm = docs\strings.htm
+		docs\structs.htm = docs\structs.htm
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Mixed Platforms = Debug|Mixed Platforms

@@ -19,6 +19,7 @@
 	"!scripts/mhost/rpg/controls/tooltip.sxy"
 	"!scripts/mhost/rpg/controls/toggle.label.sxy"
 	"!scripts/mhost/rpg/controls/label.button.sxy"
+	"!scripts/mhost/rpg/controls/new.game.screen.sxy"
 )
 
 (namespace EntryPoint)
@@ -145,13 +146,17 @@
 )
 
 (method OpeningScreen.OnMenuSelect (MenuSelectArgs args)-> :
-	(if (args.menuIndex == 3)
-		(this.uistack.AddTopLevelControl this.credits "credits")
-		(this.credits.BeginScroll)
+	(if (args.menuIndex == 0)
+		(this.bundle.SetActiveScreen (#IdScreenNewGame))
 	)
 	
 	(if (args.menuIndex == 1)
 		(this.bundle.SetActiveScreen (#IdScreenAddCharacter))
+	)
+	
+	(if (args.menuIndex == 3)
+		(this.uistack.AddTopLevelControl this.credits "credits")
+		(this.credits.BeginScroll)
 	)
 	
 	(if (args.menuIndex == 4)
@@ -221,6 +226,7 @@
 	(construct OpeningScreen engine bundle)
 )
 
+(macro RPG.IdScreenNewGame in out (out.AddAtomic "0"))
 (macro RPG.IdScreenOpening in out (out.AddAtomic "1"))
 (macro RPG.IdScreenAddCharacter in out (out.AddAtomic "2"))
 
@@ -233,6 +239,7 @@
 	(IScreen openingScreen)
 	(IScreen addCharacterScreen)
 	(IScreen activeScreen)
+	(IScreen newGameScreen)
 )
 
 (method GameBundle.Construct : 
@@ -251,6 +258,7 @@
 	
 	(this.openingScreen = (NewOpeningScreen this.engine this))
 	(this.addCharacterScreen = (NewAddCharacterScreen this))
+	(this.newGameScreen = (NewNewGameScreen this))
 )
 
 (method GameBundle.Engine -> (IEngine engine):
@@ -289,13 +297,17 @@
 (method GameBundle.SetActiveScreen (Int32 idScreen)-> :
 	(IScreen screen)
 	
-	(if (idScreen == (#IdScreenOpening))
-		(screen = this.openingScreen)
+	(if (idScreen == (#IdScreenNewGame))
+		(screen = this.newGameScreen)
 	else 
-		(if (idScreen == (#IdScreenAddCharacter))
-			(screen = this.addCharacterScreen)
-		else
-			(Sys.Throw 0 "Bad screen id")
+		(if (idScreen == (#IdScreenOpening))
+			(screen = this.openingScreen)
+		else 
+			(if (idScreen == (#IdScreenAddCharacter))
+				(screen = this.addCharacterScreen)
+			else
+				(Sys.Throw 0 "Bad screen id")
+			)
 		)
 	)
 	

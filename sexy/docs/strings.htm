@@ -12,7 +12,7 @@ table, th, td {
 </head>
 
 <body>
-	<h1>Sexy Scripting Language - Strings &amp; Bulders</h1>
+	<h1>Sexy Scripting Language - Strings &amp; Builders</h1>
 
 No modern language would be complete without support for strings. Sexy does things a little difference from most languages,
 in that strings are interfaces, rather than special types. The base interface is <b>Sys.Type.IString</b> that supports only
@@ -30,6 +30,16 @@ IString interface can be constructed directly from string literals, where they a
 </pre></code>
 
 String constants are immutable.<p>
+One can access the individual characters of a string by using the index semantic:
+
+<pre><code>
+	(IString hw = "Hello World!")
+	(Int32 c = (hw 1)) // index semantic here evaluates the 1st character of hw and assigns it to c. c is now ascii 'e'
+</pre></code>
+
+Note that index semantic can take Int32 variables as well as numeric literals. The semantic only works on the IString interface,
+not on any derived interface. If you wish to use it on a derived interface, cast the interface to IString. 
+
 Any class that implements an IString can only have one interface and its first member is <b>(Int32 length)</b>, and its 
 second member is <b>(Pointer buffer)</b>. <b>(Length -> (Int32 length))</b> must return <b>this.length</b> while <b>(Buffer ->
 (Pointer buffer))</b> returns <b>this.buffer</b>. This allows the sexy compiler optimize all string interfaces as member offsets

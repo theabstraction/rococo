@@ -43,8 +43,8 @@
 (method LineEditor.Construct (Int32 maxTextLength)(IEventHandler subscriber) -> : 
 	(this.outerRect = -1 -1 -1 -1)
 	(this.fontIndex = -1)
-	(this.text = (StringBuilder maxTextLength))
-	(this.fontName = (StringBuilder 64))
+	(this.text = (NewStringBuilder maxTextLength))
+	(this.fontName = NewTokenBuilder)
 	(this.hasFocus = false)
 	(this.isEnabled = true)
 	(this.isGlowing = false)

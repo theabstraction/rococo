@@ -105,112 +105,124 @@
 
 (using Sys.Type.Formatters)
 
-(class StringBuilder 
+(class FastStringBuilder 
 	(implements IStringBuilder)
-
 	(Int32 length)
 	(Pointer buffer)
 	(Int32 capacity)
 )
 
-(method StringBuilder.Construct (Int32 capacity) -> :
-	(this.length = 0)
-	(this.capacity = capacity)
-	(Sys.Native.CreateStringBuilder capacity -> this.buffer)
-	(ValidateNativePointer this.buffer)
+(function NewTokenBuilder -> (IStringBuilder sb):
+	(Sys.Native.NewStringBuilder 64 -> sb)
 )
 
-(method StringBuilder.AppendIString  (IString s) -> :
-	(Sys.Native.StringBuilderAppendIString this.buffer s.Buffer s.Length -> this.length)
+(function NewPathBuilder -> (IStringBuilder sb):
+	(Sys.Native.NewStringBuilder 260 -> sb)
 )
 
-(method StringBuilder.AppendChar  (Int32 asciiValue) -> :
-	(Sys.Native.StringBuilderAppendChar this.buffer asciiValue -> this.length)
+(function NewParagraphBuilder -> (IStringBuilder sb):
+	(Sys.Native.NewStringBuilder 1024 -> sb)
 )
 
-(method StringBuilder.AppendInt32  (Int32 x) -> :
-	(Sys.Native.StringBuilderAppendInt32 this.buffer x -> this.length)
+(function NewStringBuilder (Int32 capacity) -> (IStringBuilder sb):
+	(Sys.Native.NewStringBuilder capacity -> sb)
 )
 
-(method StringBuilder.AppendInt64  (Int64 x) -> :
-	(Sys.Native.StringBuilderAppendInt64 this.buffer x -> this.length)
+(alias NewTokenBuilder     Sys.Type.NewTokenBuilder)
+(alias NewPathBuilder      Sys.Type.NewPathBuilder)
+(alias NewParagraphBuilder Sys.Type.NewParagraphBuilder)
+(alias NewStringBuilder    Sys.Type.NewStringBuilder)
+
+(method FastStringBuilder.Destruct -> :
+	(Sys.Native.DestructStringBuilder this)
 )
 
-(method StringBuilder.AppendFloat32  (Float32 x) -> :
-	(Sys.Native.StringBuilderAppendFloat32 this.buffer x -> this.length)
+(method FastStringBuilder.AppendIString  (IString s) -> :
+	(Sys.Native.FastStringBuilderAppendIString this s.Buffer s.Length)
 )
 
-(method StringBuilder.AppendFloat64  (Float64 x) -> :
-	(Sys.Native.StringBuilderAppendFloat64 this.buffer x -> this.length)
+(method FastStringBuilder.AppendChar  (Int32 asciiValue) -> :
+	(Sys.Native.FastStringBuilderAppendChar this asciiValue)
 )
 
-(method StringBuilder.AppendBool  (Bool x) -> :
-	(Sys.Native.StringBuilderAppendBool this.buffer x -> this.length)
+(method FastStringBuilder.AppendInt32  (Int32 x) -> :
+	(Sys.Native.FastStringBuilderAppendInt32 this x)
 )
 
-(method StringBuilder.AppendPointer (Pointer x) -> :
-	(Sys.Native.StringBuilderAppendPointer this.buffer x -> this.length)
+(method FastStringBuilder.AppendInt64  (Int64 x) -> :
+	(Sys.Native.FastStringBuilderAppendInt64 this x)
 )
 
-(method StringBuilder.AppendAsDecimal (Sys.Type.Formatters.AsDecimal x) -> :
-	(Sys.Native.StringBuilderAppendAsDecimal this.buffer ->)
+(method FastStringBuilder.AppendFloat32  (Float32 x) -> :
+	(Sys.Native.FastStringBuilderAppendFloat32 this x)
 )
 
-(method StringBuilder.AppendAsHex (Sys.Type.Formatters.AsHex x) -> :
-	(Sys.Native.StringBuilderAppendAsHex this.buffer ->)
+(method FastStringBuilder.AppendFloat64  (Float64 x) -> :
+	(Sys.Native.FastStringBuilderAppendFloat64 this x)
 )
 
-(method StringBuilder.AppendAsSpecE (Sys.Type.Formatters.AsSpecE null) -> :
-	(Sys.Native.StringBuilderAppendAsSpec this.buffer 1 ->)
+(method FastStringBuilder.AppendBool  (Bool x) -> :
+	(Sys.Native.FastStringBuilderAppendBool this x)
 )
 
-(method StringBuilder.AppendAsSpecF (Sys.Type.Formatters.AsSpecF null) -> :
-	(Sys.Native.StringBuilderAppendAsSpec this.buffer 2 ->)
+(method FastStringBuilder.AppendPointer (Pointer x) -> :
+	(Sys.Native.FastStringBuilderAppendPointer this x)
 )
 
-(method StringBuilder.AppendAsSpecG (Sys.Type.Formatters.AsSpecG null) -> :
-	(Sys.Native.StringBuilderAppendAsSpec this.buffer 3 ->)
+(method FastStringBuilder.AppendAsDecimal (Sys.Type.Formatters.AsDecimal x) -> :
+	(Sys.Native.FastStringBuilderAppendAsDecimal this)
 )
 
-(method StringBuilder.AppendAsNewLine (Sys.Type.Formatters.AsNewLine null) -> :
+(method FastStringBuilder.AppendAsHex (Sys.Type.Formatters.AsHex x) -> :
+	(Sys.Native.FastStringBuilderAppendAsHex this)
+)
+
+(method FastStringBuilder.AppendAsSpecE (Sys.Type.Formatters.AsSpecE null) -> :
+	(Sys.Native.FastStringBuilderAppendAsSpec this 1)
+)
+
+(method FastStringBuilder.AppendAsSpecF (Sys.Type.Formatters.AsSpecF null) -> :
+	(Sys.Native.FastStringBuilderAppendAsSpec this 2)
+)
+
+(method FastStringBuilder.AppendAsSpecG (Sys.Type.Formatters.AsSpecG null) -> :
+	(Sys.Native.FastStringBuilderAppendAsSpec this 3)
+)
+
+(method FastStringBuilder.AppendAsNewLine (Sys.Type.Formatters.AsNewLine null) -> :
 	(this.AppendIString "&r&n")
 )
 
-(method StringBuilder.SetLength (Int32 length) -> :
-	(Sys.Native.StringBuilderSetLength this.buffer length -> this.length)
+(method FastStringBuilder.SetLength (Int32 length) -> :
+	(Sys.Native.FastStringBuilderSetLength this length)
 )
 
-(method StringBuilder.SetFormat (Sys.Type.Int32 precision) (Sys.Type.Int32 width) (Sys.Type.Bool isZeroPrefixed) (Sys.Type.Bool isRightAligned) -> :
-	(Sys.Native.StringBuilderSetFormat this.buffer precision width isZeroPrefixed isRightAligned)
+(method FastStringBuilder.SetFormat (Sys.Type.Int32 precision) (Sys.Type.Int32 width) (Sys.Type.Bool isZeroPrefixed) (Sys.Type.Bool isRightAligned) -> :
+	(Sys.Native.FastStringBuilderSetFormat this precision width isZeroPrefixed isRightAligned)
 )
 
-(method StringBuilder.Clear -> :
-	(this.length = 0)
-	(Sys.Native.StringBuilderClear this.buffer ->)	
+(method FastStringBuilder.Clear -> :
+	(Sys.Native.FastStringBuilderClear this)	
 )
 
-(method StringBuilder.Buffer -> (Sys.Type.Pointer buffer):
+(method FastStringBuilder.Buffer -> (Sys.Type.Pointer buffer):
 	(buffer = this.buffer)
 )
 
-(method StringBuilder.Length -> (Sys.Type.Int32 length):
+(method FastStringBuilder.Length -> (Sys.Type.Int32 length):
 	(length = this.length)
 )
 
-(method StringBuilder.Destruct -> :
-    (Sys.Native.FreeStringBuilder (this.buffer))
+(method FastStringBuilder.AppendSubstring (IString s) (Int32 startPos) (Int32 numberOfChars) -> :
+	(Sys.Native.FastStringBuilderAppendSubstring this s.Buffer s.Length startPos numberOfChars)
 )
 
-(method StringBuilder.AppendSubstring (IString s) (Int32 startPos) (Int32 numberOfChars) -> :
-	(Sys.Native.StringBuilderAppendSubstring this.buffer s.Buffer s.Length startPos numberOfChars -> this.length)
+(method FastStringBuilder.ToUpper (Int32 start) (Int32 end) -> :
+	(Sys.Native.FastStringBuilderSetCase this start end true)
 )
 
-(method StringBuilder.ToUpper (Int32 start) (Int32 end) -> :
-	(Sys.Native.StringBuilderSetCase this.buffer start end true)
-)
-
-(method StringBuilder.ToLower (Int32 start) (Int32 end) -> :
-	(Sys.Native.StringBuilderSetCase this.buffer start end false)
+(method FastStringBuilder.ToLower (Int32 start) (Int32 end) -> :
+	(Sys.Native.FastStringBuilderSetCase this start end false)
 )
 
 (function StringCompare (IString s) (IString t) -> (Int32 diff):
@@ -305,10 +317,6 @@
 	(alias FormatSpecF Sys.Type.Formatters.SpecF)
 	(alias FormatSpecG Sys.Type.Formatters.SpecG)
 	(alias FormatNewLine Sys.Type.Formatters.NewLine)
-
-(factory Sys.Type.StringBuilder IStringBuilder (Int32 capacity):
-	(construct StringBuilder capacity)
-)
 
 (factory Sys.Type.Memo IString (IString s):
 	(construct MemoImpl s)

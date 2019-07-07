@@ -194,6 +194,24 @@ namespace Rococo {
 			enum : int64 { NO_REF_COUNT = 0x4000000000000000 };
 		};
 
+		enum SPEC
+		{
+			SPEC_E = 1,
+			SPEC_F = 2,
+			SPEC_G = 3,
+		};
+
+		struct FastStringBuilder
+		{
+			ObjectStub stub;
+			int32 length;
+			char* buffer;
+			int32 capacity;
+			int formatBase;
+			char prefix[12];
+			SPEC spec;
+		};
+
 		inline int GetInstanceToInterfaceOffset(int interfaceIndex)
 		{
 			int stubsize = sizeof(ObjectStub);
@@ -458,11 +476,13 @@ namespace Rococo {
 		{
 			IScriptObjectAllocator* memoryAllocator;
 			const IStructure* associatedStructure;
+			bool standardDestruct = true;
 		};
 
 		struct IAllocatorMap
 		{
 			virtual AllocatorBinding* GetAllocator(const IStructure& s) = 0;
+			virtual void SetAllocator(const IStructure* s, AllocatorBinding* binding) = 0;
 		};
 
 		ROCOCOAPI IPublicProgramObject

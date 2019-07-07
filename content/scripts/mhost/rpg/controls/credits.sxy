@@ -42,7 +42,7 @@
 	(this.creditLines.Push "")
 	(this.creditLines.Push "Graphics")
 	(this.creditLines.Push "Leondardo da Vinci")
-	(this.lastFontName = (StringBuilder 128))
+	(this.lastFontName = NewTokenBuilder)
 )
 
 (factory MHost.Graphics.NewCredits ICreditsControl (IUIStack uistack): (construct Credits uistack))

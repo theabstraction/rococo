@@ -4307,7 +4307,7 @@ namespace
 			"(using Sys.Type)"
 			""
 			"(function Main -> (Int32 result):"
-			"  (IStringBuilder sb (StringBuilder 128))"
+			"  (IStringBuilder sb = NewPathBuilder)"
 			"  (#build sb \"Hello World\")"
 			"  (IString text = sb)"
 			"  (Sys.Print text -> result)"
@@ -5220,7 +5220,7 @@ namespace
 
 			"(function Main -> (Int32 result):"
 			"	(IExpression s = ' (Hello \" \" world))"
-			"   (IStringBuilder sb (StringBuilder 64))"
+			"   (IStringBuilder sb = NewTokenBuilder)"
 			"	(#for  (Int32 i = 0)   (i < s.ChildCount)  (i += 1)" 
 			"       (IExpression child = (s i))"
 			"		(child.AppendTextTo sb)"
@@ -5254,7 +5254,7 @@ namespace
 
 			"(class Apple (defines Sys.IApple)(IStringBuilder sb))"
 			"(method Apple.Construct : "
-			"	(this.sb = (StringBuilder 64))"
+			"	(this.sb = NewTokenBuilder)"
 			"	(#build this.sb \"12345678!\")"
 			")"
 
@@ -5438,7 +5438,7 @@ namespace
 		"(using Sys.Type.Formatters)"
   
 		"(function Main -> (Int32 result):"
-		"	(Sys.Type.IStringBuilder s (Sys.Type.StringBuilder 256))"
+		"	(Sys.Type.IStringBuilder s = NewPathBuilder)"
 		"	(s.AppendIString \"Hello World!*\")"
 		"	(Sys.Print s -> result)"
 		")";
@@ -5469,7 +5469,7 @@ namespace
 		"(using Sys.Type.Formatters)"
   
 		"(function Main -> (Int32 result):"
-		"	(Sys.Type.IStringBuilder s (Sys.Type.StringBuilder 256))"
+		"	(Sys.Type.IStringBuilder s = NewPathBuilder)"
 		"	(#Sys.Type.build  s \"Hello World![] \" NewLine)"
 //		"	(#Sys.Type.build  s \"Decimal: \" Decimal 1234 \". Hex: 0x\" Hex 1234 NewLine)"
 //		"	(#Sys.Type.build  s \"E form: \" SpecE 3.e-2 \". F form: \" SpecF 3.e-2 \". G form: \" SpecG 3.e-2 NewLine)"
@@ -5519,7 +5519,7 @@ namespace
 		")"
   
 		"(function Main -> (Int32 result):"
-		"	(Sys.Type.IStringBuilder s (Sys.Type.StringBuilder 256))"
+		"	(Sys.Type.IStringBuilder s = Sys.Type.NewPathBuilder)"
 		"	(#Sys.Type.build  s \"Hello World!(@) \" NewLine)"
 		"	(GoPrint s)(result = 12)"
 		")";
@@ -5857,7 +5857,7 @@ namespace
 		"(using Sys.Type)"
   
 		"(function Main -> (Int32 result):"
-		"	(Sys.Type.IStringBuilder s (Sys.Type.StringBuilder 256))"
+		"	(Sys.Type.IStringBuilder s = NewPathBuilder)"
 		"	(s.AppendSubstring \"The Magic Flute\" 4 5)"
 		"	(s.AppendSubstring \"The Magic Flute\" 3 -1)"
 		"	(s.AppendSubstring \"The Magic Flute\" 11 10)"
@@ -5890,7 +5890,7 @@ namespace
 		"(using Sys.Type)"
   
 		"(function Main -> (Int32 result):"
-		"	(Sys.Type.IStringBuilder s (Sys.Type.StringBuilder 256))"
+		"	(Sys.Type.IStringBuilder s = NewPathBuilder)"
 		"	(s \"The Magic Flute\")"
 		"	(s.SetLength 8)"
 		"	(Sys.Print s -> result)"
@@ -5922,7 +5922,7 @@ namespace
 		"(using Sys.Type)"
   
 		"(function Main -> (Int32 result):"
-		"	(Sys.Type.IStringBuilder s (Sys.Type.StringBuilder 256))"
+		"	(Sys.Type.IStringBuilder s = NewPathBuilder)"
 		"	(s \"The Magic Flute\")"
 		"	(s.ToUpper 0 9)"
 		"	(s.ToLower 10 15)"
@@ -5956,7 +5956,7 @@ namespace
   
 		"(function Main -> (Int32 result):"
 		"	(Int32 len = 0)"
-		"	(IStringBuilder sb (StringBuilder 256))"
+		"	(IStringBuilder sb = NewPathBuilder)"
 		"	(Strings.ForEachSubstring f = "
 		"		(closure (IStringBuilder sb)(Int32 index) -> :"
 		"			(len = (len + (Sys.Print sb)))"
@@ -6299,8 +6299,9 @@ namespace
 		"(function Main -> (Int32 result):"
 		"	(array Float64 a 4)"
 		"	(a.Push 2492.7)"
-		"	(Sys.Type.IStringBuilder sb(StringBuilder 32))"
-		"	(sb Formatters.SpecG)"
+		"	(Sys.Type.IStringBuilder sb = NewTokenBuilder)"
+		"   (sb.SetFormat 1 4 false false)"
+		"	(sb Formatters.SpecF)"
 		"	(sb (a 0))"
 		"	(Sys.Print sb)"
 		"	(result = sb.Length)"
@@ -11182,7 +11183,7 @@ namespace
 			"			(0.000000 0.000000 0.000000 1.000000)"
 			"		)"
 			"	)"
-			"	(Sys.Type.IStringBuilder s (Sys.Type.StringBuilder 256))"
+			"	(Sys.Type.IStringBuilder s = Sys.Type.NewPathBuilder)"
 			"	(Pointer pName = instance.name.Buffer)"
 			"	(#Sys.Type.build s \"Hello World!\" pName NewLine)"
 			"	(Sys.Print s)"
@@ -11193,7 +11194,7 @@ namespace
 			"	(PrintString instance -> result)"
 			")"	
 			"(function PrintString (MeshInstance instance) -> (Int32 result):"	
-			"	(Sys.Type.IStringBuilder s (Sys.Type.StringBuilder 256))"
+			"	(Sys.Type.IStringBuilder s = Sys.Type.NewPathBuilder)"
 			"	(Pointer pName = instance.name.Buffer)"
 			"	(#Sys.Type.build s \"Hello World!\" pName NewLine)"
 			"	(Sys.Print s)"
@@ -13242,6 +13243,13 @@ namespace
 	{
 		validate(true);
 
+		TEST(TestArrayFloat64);
+
+		TEST(TestStringSplit);
+		TEST(TestSearchSubstring);
+		TEST(TestRightSearchSubstring);
+		TEST(TestSetCase);
+
 		TEST(TestStringToChar);
 		TEST(TestStringToCharFail);
 		TEST(TestCallPrivateMethodviaDispatch);
@@ -13470,11 +13478,6 @@ namespace
 		TEST(TestAssignDerivatives);
 
 		TEST(TestStringMember3);
-
-		TEST(TestStringSplit);
-		TEST(TestSearchSubstring);
-		TEST(TestRightSearchSubstring);
-		TEST(TestSetCase);
 
 		TEST(TestClassInstance);
 

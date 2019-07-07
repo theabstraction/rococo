@@ -83,7 +83,7 @@
 	)
 	
 	(if (this.fontIndex == -1)
-		(IStringBuilder msg (StringBuilder 256))
+		(IStringBuilder msg = NewPathBuilder)
 		(msg.SetFormat 0 0 false false)
 		(#build msg "LayoutFixedRect(VerticamMenu...): could not find a font small enough for the job&n")
 		(#build msg "Rect: (" rect.left " " rect.top " " rect.right " " rect.bottom ")&n")
@@ -91,7 +91,7 @@
 		(Sys.Throw 0 msg)
 	)
 	
-	(IStringBuilder unused (StringBuilder 128))
+	(IStringBuilder unused = NewTokenBuilder)
 	(FontDesc fd)
 	(g.GetFontDescription this.fontIndex unused fd)
 	

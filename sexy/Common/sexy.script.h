@@ -52,6 +52,8 @@
 # endif
 #endif
 
+// #define SEXY_ENABLE_EXTRA_STRING_SECURITY // uncomment to add in extra security code, which slows some strings ops down a bit
+
 namespace Rococo
 {
 	struct ILog;
@@ -232,6 +234,7 @@ namespace Rococo {
 			virtual int32 GetIntrinsicModuleCount() const = 0;
 			virtual bool ValidateMemory() = 0;
 			virtual void SetGlobalVariablesToDefaults() = 0;
+			virtual const IStructure* GetStringBuilderType() const = 0;
 
 			virtual void CancelRepresentation(void* pSourceInstance) = 0;
 			virtual void EnumRepresentations(IRepresentationEnumeratorCallback& callback) = 0;
@@ -337,9 +340,9 @@ namespace Rococo {
    {
       class StringPopulator : public IStringPopulator
       {
-         Script::CClassSysTypeStringBuilder* builder;
+         Rococo::Compiler::FastStringBuilder* builder;
       public:
-         StringPopulator(Script::NativeCallEnvironment& _nce, Compiler::VirtualTable** vTableBuilder);
+         StringPopulator(Script::NativeCallEnvironment& _nce, Compiler::InterfacePointer pInterface);
          void Populate(cstr text) override;
       };
       const Compiler::IStructure& GetDefaultProxy(cstr fqNS, cstr interfaceName, cstr proxyName, Script::IPublicScriptSystem& ss);

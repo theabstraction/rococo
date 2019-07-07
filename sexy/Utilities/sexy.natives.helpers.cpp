@@ -5,6 +5,7 @@
 #include <sexy.debug.types.h>
 #include <sexy.vm.cpu.h>
 #include <sexy.script.h>
+#include <Sexy.Compiler.h>
 
 namespace Rococo
 {
@@ -15,16 +16,17 @@ namespace Rococo
       using namespace Rococo::Script;
       using namespace Rococo::Compiler;
      
-      StringPopulator::StringPopulator(NativeCallEnvironment& _nce, VirtualTable** vTableBuilder)
-      {
-         char* _instance = ((char*)vTableBuilder) + (*vTableBuilder)->OffsetToInstance;
-         auto* sb = reinterpret_cast<CClassSysTypeStringBuilder*>(_instance);
-         if (sb->header.Desc->TypeInfo != _nce.ss.PublicProgramObject().GetSysType(SEXY_CLASS_ID_STRINGBUILDER))
-         {
-            _nce.ss.ThrowFromNativeCode(0, ("Builder was not a Sys.Type.StringBuilder"));
-         }
-         builder = sb;
-      }
+	  StringPopulator::StringPopulator(NativeCallEnvironment& _nce, InterfacePointer pInterface)
+	  {
+		  auto* stub = InterfaceToInstance(pInterface);
+		  auto* fsb = (FastStringBuilder*)stub;
+
+		  if (fsb->stub.Desc->TypeInfo != _nce.ss.GetStringBuilderType())
+		  {
+			  _nce.ss.ThrowFromNativeCode(0, "Builder was not allocated using NewTokenBuilder, NewPathBuilder, NewParagraphBuilder or NewStringBuilder");
+		  }
+		  builder = fsb;
+	  }
    
       void StringPopulator::Populate(cstr text)
       {

@@ -49,7 +49,7 @@
 	(this.cells.Push ego)
 	(this.cells.Push maths)
 	
-	(this.tempSB = (StringBuilder 64))
+	(this.tempSB = NewTokenBuilder)
 	
 	(this.fontIndex = -1)
 )

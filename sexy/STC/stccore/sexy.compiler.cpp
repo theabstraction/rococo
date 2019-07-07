@@ -383,7 +383,10 @@ namespace Anon
 					i.second->memoryAllocator->ReleaseRef();
 				}
 
-				delete i.second;
+				if (i.second->standardDestruct)
+				{
+					delete i.second;
+				}
 			}
 
 			allocators.clear();
@@ -420,12 +423,12 @@ namespace Anon
 
 		size_t FreeLeakedObjects(IEventCallback<LeakArgs>* leakCallback) override
 		{
-			size_t count = 0;
-			for (auto& a : allocators)
-			{
-				count += a.second->memoryAllocator->FreeAll(leakCallback);
-			}
-			return count;
+			return 0;
+		}
+
+		void SetAllocator(const IStructure* s, AllocatorBinding* binding) override
+		{
+			allocators[s] = binding;
 		}
 
 		AllocatorBinding* GetAllocator(const IStructure& s) override

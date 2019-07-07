@@ -133,6 +133,12 @@ definition, that causes all null methods to issue an error exception.
 )
 </code></pre>
 
+One can test to see if an interface refers to a null object by use of the ? Bool semantic:
+
+<code><pre>
+(IString s) 
+(if (s ?) (Sys.Print "The string was not blank!"))
+</code></pre>
 
 <code><pre>
 (IInt32Stream s (Sys.Type.NewOneItemMemoryInt32Stream))

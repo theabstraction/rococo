@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+table, th, td {
+  border: 1px solid black;
+}
+</style>
+</style>
+<meta charset="UTF-8">
+<title>Sexy Scripting Language - Raw S-Expression</title>
+</head>
+
+<body>
+	<h1>Sexy Scripting Language - Raw S-Expression</h1>
+	
+	It is possible to store arbitrary data within a Sexy file, and use it as a data repository, something similar to an XML file.
+	This is done with the apostrophe '.
+	
+	<p>Any compound expression with first character apostrophe is ignored by the Sexy compiler, as in the example below:
+	
+<pre><code>
+	(' this is raw data)
+</code></pre>
+
+	In the MPlatform environment, Sexy supports a very limited pre-processor set. In fact, just one pre-processor command. This has
+	the format (' #include &lt;file1&gt; &lt;file2&gt; ... &lt;fileN&gt;). This command is only parsed for the main script file
+	and adds all files in the include statement to the source bundle for compilation. The same technique can be used to add any
+	meta data to a file for use by third-party parsers.
+	
+	<p>
+	In addition it is possible to define an expression variable as exampled by the following syntax:
+	
+	<pre><code>
+	(IExpression s = ' (this is raw data))
+	</code></pre>
+	
+	As we can see <b>s</b> is a variable of type <b>Sys.Type.IExpression</b> which is initialized to an expression (this is raw data). The various methods
+	of IExpression can be used to pull out the tokens. This allows you to embed arbitrary data in a program, create a reference
+	to it and then process that data, which saves having to load a separate file and write a parser for it.
+
+	<h3><a href="start.htm">Contents</a></h3>
+</body>

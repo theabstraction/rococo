@@ -1,0 +1,55 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<style>
+table, th, td {
+  border: 1px solid black;
+}
+</style>
+</style>
+<meta charset="UTF-8">
+<title>Sexy Scripting Language - Namespaces</title>
+</head>
+
+<body>
+	<h1>Sexy Scripting Language - Namespaces</h1>
+	
+	In Sexy namespaces are created using the (namespace ...) directive, exampled so:
+	
+	<pre><code>(namespace Sys.Type.Weather)</code></pre>
+	
+	Namespaces are sequences of tokens separated by the dot character '.'. Each token begins with a capital letter and is 
+	followed by a sequence of any alphanumeric characters. Tokens to the right of a dot are called subspaces of the names to 
+	the left, so that in the example, <i>Weather</i> is a subspace of <i>Sys.Type</i>, and <i>Type</i> is a subspace of <i>Sys</i>.
+	
+	<p>Namespaces serve to distiniguish entities by placing them in a category. The namespace <b>Sys</b> and its subspaces
+	are reserved for any entity defined by the Sexy compiler system, its DLLs and native source files.
+	
+	<p>Types and functions can all be given a namespace name by use of the alias command:
+	
+	<pre><code>(alias Float32 Sys.Maths.SI.Watts)</code></pre>
+	
+	In the above example we created an alternative name for Float32, that is Sys.Maths.SI.Watts. In any source files
+	one can add a number of <b>(using ...)</b> directives, each of which specifies a namespace prefix. The Sexy
+	compiler will use these to prepend to any name it does not recognize to to try to identify the correct entity:
+	
+	<pre><code>
+	(using Sys)
+	
+	(function Welcome -> :
+		(Print "Hello World")
+	)
+	</code></pre>
+	
+	In this example code Print is part of the Sys namespace, otherwise known as Sys.Print, but since we specified
+	<b>(using Sys)</b> the compiler will try prepending 'Sys.' to 'Print' to create 'Sys.Print' and thus identify 
+	the correct function.
+	
+	Any name that specifies its absolute namespace name is called a fully-qualified-name. 
+	Interfaces, archetypes and factories must all be created with a fully-qualified-name, thus require no aliasing.
+	
+	A namespace is visible throughout the entire set of code modules for a script program, thus allows one to expose
+	entities defined in one module to other modules. Aliasing is thus a way of making things <i>public</i>.
+
+	<h3><a href="start.htm">Contents</a></h3>
+</body>

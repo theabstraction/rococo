@@ -20,7 +20,7 @@ table, th, td {
 	perdiodically advance counters and activate callback mechanisms for a sections of code. It all gets difficult to maintain.
 	With Sexy the problem is largely solved with <i>coroutines</i>.  In a coroutine, a small section 
 	of code advances its code and then performs a co-operative yield. Other coroutines can then get a chance to execute until 
-	they yield. Each yield is chosen to be timed to minimize conflicts with other co-routones. The switching cost between 
+	they yield. Each yield is chosen to be timed to minimize conflicts with other co-routines. The switching cost between 
 	coroutines allows many yields per microsecond, enabling thousands of time-dependent algorithms to advance execution
 	turn by turn.
 	

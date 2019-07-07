@@ -101,6 +101,16 @@ namespace Rococo
       void AddMember(IStructureBuilder& s, cr_sex field);
       IInterfaceBuilder* MatchInterface(cr_sex typeExpr, IModuleBuilder& module);
 
+	  struct IStringPool
+	  {
+		  virtual void Free() = 0;
+		  virtual AllocatorBinding* GetBinding() = 0;
+		  virtual void SetStringBuilderType(const IStructure* typeFastStringBuilder) = 0;
+		  virtual const IStructure* FastStringBuilderType() const = 0;
+	  };
+
+	  IStringPool* NewStringPool();
+
       class CCompileEnvironment
       {
       private:

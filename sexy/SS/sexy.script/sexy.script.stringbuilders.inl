@@ -144,163 +144,296 @@ namespace
 		allocator.free((TMemo*)vSrc);
 	}
 
-	enum SPEC
-	{
-		SPEC_E = 1,
-		SPEC_F = 2,
-		SPEC_G = 3,
-	};
-
 #pragma pack(push,1)
-	struct CStringBuilderHeader
+	struct FastStringBuilder_64
 	{
-		int capacity;
-		int length;
-		int formatBase;
-		SPEC spec;
-		char prefix[16];
-
-		CStringBuilderHeader(int _capacity): capacity(_capacity), length(0), formatBase(10), spec(SPEC_F)
-		{
-			prefix[0] = '%';
-			prefix[1] = 0;
-		}
+		FastStringBuilder header;
+		char rawData[64];
 	};
 
-	struct CStringBuilder
-	{		
-		CStringBuilderHeader Header;
-		CStringBuilder(int capacity): Header(capacity)
-		{
-			buffer[0] = 0;
-		}
+	struct FastStringBuilder_260
+	{
+		FastStringBuilder header;
+		char rawData[260];
+	};
 
-		char buffer[4];
+	struct FastStringBuilder_1024
+	{
+		FastStringBuilder header;
+		char rawData[1024];
 	};
 #pragma pack(pop)
-	void MergeFormats(char* format, const CStringBuilder& sb, cstr suffix)
+
+	void MergeFormats(char* format, const FastStringBuilder& sb, cstr suffix)
 	{
-		CopyString(format, 16, sb.Header.prefix);
+		CopyString(format, 16, sb.prefix);
 		StringCat(format, suffix, 16);
 	}
 
-	typedef std::unordered_map<CStringBuilder*,int> TStringBuilders;
-
-	void Clear(TStringBuilders& z)
+	struct NullAllocator: public IScriptObjectAllocator
 	{
-		for(auto i = z.begin(); i != z.end(); ++i)
+		void* AllocateObject(size_t nBytes) override
 		{
-			delete i->first;
+			return nullptr;
 		}
 
-		z.clear();
-	}
+		void FreeObject(void* pMemory) override
+		{
+			
+		}
 
-	void CreateStringBuilder(NativeCallEnvironment& e)
+		refcount_t AddRef() override
+		{
+			return 0;
+		}
+
+		refcount_t ReleaseRef() override
+		{
+			return 0;
+		}
+
+		size_t FreeAll(IEventCallback<LeakArgs>* leakCallback) override
+		{
+			return 0;
+		}
+	};
+
+	// String pools can massively increase alloc and free speed when capacity is in one of the sweet spots.
+	struct StringPool: IStringPool
 	{
-		
-		TStringBuilders& sbStore = *(TStringBuilders*) e.context;
+		AllocatorBinding binding;
+		NullAllocator nullAllocator;
+
+		StringPool()
+		{
+			binding.associatedStructure = nullptr;
+			binding.memoryAllocator = &nullAllocator;
+			binding.standardDestruct = false;
+		}
+
+		const IStructure* typeFastStringBuilder;
+
+		std::vector<FastStringBuilder_64*> freeList_64; // For tokens and such. Could be smaller, but then dwarfed by the FastStringBuilder object
+		std::vector<FastStringBuilder_260*> freeList_260; // For file paths and whatever
+		std::vector<FastStringBuilder_1024*> freeList_1024; // Paragraphs
+		std::unordered_map<char*,uint32> allocList;
+
+		void SetStringBuilderType(const IStructure* typeFastStringBuilder) override
+		{
+			binding.associatedStructure = typeFastStringBuilder;
+			this->typeFastStringBuilder = typeFastStringBuilder;
+		}
+
+		const IStructure* FastStringBuilderType() const override
+		{
+			return typeFastStringBuilder;
+		}
+
+		AllocatorBinding* GetBinding()
+		{
+			// StringPool memory allocators manage memory in the creation methods and the Destruct methods manually so use null allocators
+			return &binding;
+		}
+
+		void Free() override
+		{
+			for (auto i : allocList)
+			{
+				delete[] i.first;
+			}
+			delete this;
+		}
+	};
+
+	void NewStringBuilder(NativeCallEnvironment& e)
+	{
+		StringPool& pool = *(StringPool*)e.context;
 
 		int32 capacity;
 		ReadInput(0, capacity, e);
 
-		char* pData = new char[capacity + sizeof(CStringBuilderHeader)];
-		CStringBuilder* sb = new (pData) CStringBuilder(std::max(capacity, 4));
-		sbStore.insert(std::make_pair(sb, 0));
+		if (capacity <= 0) Throw(0, "NewStringBuilder failed. Capacity needs to be positive");
+		if (capacity > 1024_megabytes) Throw(0, "NewStringBuilder failed. Capacity needs to be less than 1 gigabyte");
 
-		WriteOutput(0, (void*) sb->buffer, e);
+		FastStringBuilder* sb;
+
+		if (capacity == 64)
+		{
+			if (pool.freeList_64.empty())
+			{
+				auto* sb64 = new FastStringBuilder_64();
+				pool.allocList[(char*)sb64] = 0;
+				sb = &sb64->header;
+			}
+			else
+			{
+				auto* tail = pool.freeList_64.back();
+				pool.freeList_64.pop_back();
+				sb = &tail->header;
+			}
+		}
+		else if (capacity == 260)
+		{
+			if (pool.freeList_260.empty())
+			{
+				auto* sb260 = new FastStringBuilder_260();
+				pool.allocList[(char*)sb260] = 0;
+				sb = &sb260->header;
+			}
+			else
+			{
+				auto* tail = pool.freeList_260.back();
+				pool.freeList_260.pop_back();
+				sb = &tail->header;
+			}
+		}
+		else if(capacity == 1024)
+		{
+			if (pool.freeList_1024.empty())
+			{
+				auto* sb1024 = new FastStringBuilder_1024();
+				pool.allocList[(char*)sb1024] = 0;
+				sb = &sb1024->header;
+			}
+			else
+			{
+				auto* tail = pool.freeList_1024.back();
+				pool.freeList_1024.pop_back();
+				sb = &tail->header;
+			}
+		}
+		else
+		{
+			sb = (FastStringBuilder*) new char[sizeof(FastStringBuilder) + capacity];
+			pool.allocList[(char*) sb] = 0;
+		}
+
+		sb->buffer = ((char*) sb) + sizeof(FastStringBuilder);
+		sb->capacity = capacity;
+		sb->length = 0;
+		sb->formatBase = 10;
+		sb->spec = SPEC_F;
+		sb->stub.Desc = (ObjectDesc*)pool.typeFastStringBuilder->GetVirtualTable(0);
+		sb->stub.refCount = 1;
+		sb->stub.pVTables[0] = (VirtualTable*) pool.typeFastStringBuilder->GetVirtualTable(1);
+		SafeFormat(sb->prefix, 8, "%s", "%4.4");
+
+		WriteOutput(0, (void*)&sb->stub.pVTables[0], e);
 	}
 
-	CStringBuilder* ReadStringBuilder(NativeCallEnvironment& e, int input)
+	void DestructStringBuilder(NativeCallEnvironment& e)
 	{
-		uint8* buffer;
-		ReadInput(0, (void*&) buffer, e);
-		CStringBuilder* sb = (CStringBuilder*) (buffer - sizeof(CStringBuilderHeader));
-		return sb;
-	}
+		StringPool& pool = *(StringPool*)e.context;
 
-	void FreeStringBuilder(NativeCallEnvironment& e)
-	{
+		InterfacePointer p;
+		ReadInput(0, p, e);
+
+		auto* stub = InterfaceToInstance(p);
+		auto* sb = (FastStringBuilder*) stub;
+
+		sb->buffer[0] = 0;
+		sb->length = 0;
+
+#ifdef SEXY_ENABLE_EXTRA_STRING_SECURITY
+		memset(sb->buffer, 0, sb->capacity); // For security we could erase buffer, to stop re-use exposing old contents
+#endif
+
+		sb->spec = SPEC_F;
+		sb->formatBase = 10;
 		
-		TStringBuilders& sbStore = *(TStringBuilders*) e.context;
-
-		CStringBuilder* sb = ReadStringBuilder(e, 0);
-		delete (char*) sb;
-
-		sbStore.erase(sb);
+		switch (sb->capacity)
+		{
+		case 64:
+			pool.freeList_64.push_back((FastStringBuilder_64*) sb);
+			break;
+		case 260:
+			pool.freeList_260.push_back((FastStringBuilder_260*)sb);
+			break;
+		case 1024:
+			pool.freeList_1024.push_back((FastStringBuilder_1024*)sb);
+			break;
+		default:
+			delete[](char*) sb;
+			pool.allocList.erase((char*)sb);
+			break;
+		}
 	}
 
-	void AppendString(CStringBuilder& sb, cstr src, int length)
+	FastStringBuilder& ReadBuilder(NativeCallEnvironment& e)
 	{
-		int maxLength = sb.Header.capacity-1;
+		InterfacePointer p;
+		ReadInput(0, (void*&) p, e);
 
-		int nextLength = sb.Header.length + length;
+		auto* stub = InterfaceToInstance(p);
+		auto* sb = (FastStringBuilder*)stub;
+		return *sb;
+	}
+
+	void AppendString(FastStringBuilder& sb, const char* src, int32 srcLen)
+	{
+		int maxLength = sb.capacity - 1;
+
+		int nextLength = sb.length + srcLen;
 		if (nextLength > maxLength)
 		{
 			int overrun = nextLength - maxLength;
-			length -= overrun;			
+			srcLen -= overrun;
 		}
 
-		if (length > 0)
+		if (srcLen > 0)
 		{
-			char* target = sb.buffer + sb.Header.length;
+			char* target = sb.buffer + sb.length;
 
 			int i;
-			for(i = 0; i < length; ++i)
+			for (i = 0; i < srcLen; ++i)
 			{
 				target[i] = src[i];
 			}
 
 			target[i] = 0;
 
-			sb.Header.length += length;
+			sb.length += srcLen;
 		}
 	}
 
-	void StringBuilderAppendIString(NativeCallEnvironment& e)
+	void FastStringBuilderAppendIString(NativeCallEnvironment& e)
 	{
-		CStringBuilder* sb = ReadStringBuilder(e, 0);
+		FastStringBuilder& sb = ReadBuilder(e);
 
-		cstr src;
-		ReadInput(1, (void*&) src, e);
+		const char* srcBuffer;
+		ReadInput(1, srcBuffer, e);
 
 		int32 srcLength;
 		ReadInput(2, srcLength, e);
 
-		if (src == NULL) { src = ("<null>"); srcLength = 6; }
-
-		if (srcLength > 0) AppendString(*sb, src, srcLength);
-
-		WriteOutput(0, sb->Header.length, e);
+		if (srcBuffer != NULL && srcLength > 0)
+		{
+			AppendString(sb, srcBuffer, srcLength);
+		}
 	}
 
-	void StringBuilderClear(NativeCallEnvironment& e)
+	void FastStringBuilderClear(NativeCallEnvironment& e)
 	{
-		CStringBuilder* sb = ReadStringBuilder(e, 0);
-
-		sb->Header.length = 0;
-		sb->buffer[0] = 0;
+		FastStringBuilder& sb = ReadBuilder(e);
+		sb.length = 0;
+		sb.buffer[0] = 0;
 	}
 
-	void StringBuilderAppendAsDecimal(NativeCallEnvironment& e)
+	void FastStringBuilderAppendAsDecimal(NativeCallEnvironment& e)
 	{
-		CStringBuilder* sb = ReadStringBuilder(e, 0);
-
-		sb->Header.formatBase = 10;
+		FastStringBuilder& sb = ReadBuilder(e);
+		sb.formatBase = 10;
 	}
 
-	void StringBuilderAppendAsHex(NativeCallEnvironment& e)
+	void FastStringBuilderAppendAsHex(NativeCallEnvironment& e)
 	{
-		
-		CStringBuilder* sb = ReadStringBuilder(e, 0);
-
-		sb->Header.formatBase = 16;
+		FastStringBuilder& sb = ReadBuilder(e);
+		sb.formatBase = 16;
 	}
 
-	void StringBuilderSetCase(NativeCallEnvironment& e)
+	void FastStringBuilderSetCase(NativeCallEnvironment& e)
 	{
-		
-		CStringBuilder* sb = ReadStringBuilder(e, 0);
+		FastStringBuilder& sb = ReadBuilder(e);
 
 		int32 start, end;
 		ReadInput(1, start, e);
@@ -310,24 +443,24 @@ namespace
 		ReadInput(3, isUpper, e);
 
 		if (end < 0) return;
-		if (start >= sb->Header.length) return;
+		if (start >= sb.length) return;
 		if (start < 0) start = 0;
-		if (end >= sb->Header.length) end = sb->Header.length-1;
+		if (end >= sb.length) end = sb.length - 1;
 
 		if (isUpper != 0)
 		{
-			for(int i = start; i <= end; ++i)
+			for (int i = start; i <= end; ++i)
 			{
-				sb->buffer[i] = toupper(sb->buffer[i]);
+				sb.buffer[i] = toupper(sb.buffer[i]);
 			}
 		}
 		else
 		{
-			for(int i = start; i <= end; ++i)
+			for (int i = start; i <= end; ++i)
 			{
-				sb->buffer[i] = tolower(sb->buffer[i]);
+				sb.buffer[i] = tolower(sb.buffer[i]);
 			}
-		}		
+		}
 	}
 
 	void AlignedMalloc(NativeCallEnvironment& e)
@@ -348,8 +481,7 @@ namespace
 	}
 
 	void AlignedFree(NativeCallEnvironment& e)
-	{
-		
+	{	
 		IScriptSystem& ss = *(IScriptSystem*) e.context;
 
 		void* alignedData;
@@ -360,36 +492,32 @@ namespace
 		ss.AlignedFree(alignedData);
 	}
 
-	void StringBuilderSetLength(NativeCallEnvironment& e)
-	{
-		
-		CStringBuilder* sb = ReadStringBuilder(e, 0);
+	void FastStringBuilderSetLength(NativeCallEnvironment& e)
+	{	
+		FastStringBuilder& sb = ReadBuilder(e);
 
 		int32 length;
 		ReadInput(1, length, e);
 
-		if (length > sb->Header.length)
+		if (length > sb.length)
 		{
-			WriteOutput(0, sb->Header.length, e);
+			WriteOutput(0, sb.length, e);
 		}
 		else if (length >= 0)
 		{
-			sb->buffer[length] = 0;
-			sb->Header.length = length;
+			sb.buffer[length] = 0;
+			sb.length = length;
 		}
 		else
 		{
-			sb->buffer[0] = 0;
-			sb->Header.length = 0;
+			sb.buffer[0] = 0;
+			sb.length = 0;
 		}
-
-		WriteOutput(0, sb->Header.length, e);
 	}
 
-	void StringBuilderAppendSubstring(NativeCallEnvironment& e)
-	{
-		
-		CStringBuilder* sb = ReadStringBuilder(e, 0);
+	void FastStringBuilderAppendSubstring(NativeCallEnvironment& e)
+	{	
+		FastStringBuilder& sb = ReadBuilder(e);
 
 		cstr s;
 		ReadInput(1, (void*&) s, e);
@@ -412,29 +540,25 @@ namespace
 			if (charsToAppend < 0) charsToAppend = 0;
 		}
 
-		if (s == NULL && charsToAppend > 0) AppendString(*sb, ("<null>"), 6);
-		else if (charsToAppend > 0)
+		if (s != NULL && charsToAppend > 0)
 		{
-			AppendString(*sb, s + startPos, charsToAppend);
+			AppendString(sb, s + startPos, charsToAppend);
 		}
-
-		WriteOutput(0, sb->Header.length, e);
 	}
 
-	void StringBuilderAppendAsSpec(NativeCallEnvironment& e)
-	{
-		
-		CStringBuilder* sb = ReadStringBuilder(e, 0);
+	void FastStringBuilderAppendAsSpec(NativeCallEnvironment& e)
+	{	
+		FastStringBuilder& sb = ReadBuilder(e);
 
 		int32 value;
 		ReadInput(1, value, e);
 
-		sb->Header.spec = (SPEC) value;
+		sb.spec = (SPEC) value;
 	}
 
-	void StringBuilderAppendChar(NativeCallEnvironment& e)
+	void FastStringBuilderAppendChar(NativeCallEnvironment& e)
 	{
-		CStringBuilder* sb = ReadStringBuilder(e, 0);
+		FastStringBuilder& sb = ReadBuilder(e);
 
 		int32 asciiValue;
 		ReadInput(1, asciiValue, e);
@@ -444,145 +568,128 @@ namespace
 			char data[2];
 			data[0] = asciiValue;
 			data[1] = 0;
-			AppendString(*sb, data, 1);
+			AppendString(sb, data, 1);
 		}
-
-		WriteOutput(0, sb->Header.length, e);
 	}
 
-	void StringBuilderAppendInt32(NativeCallEnvironment& e)
+	void FastStringBuilderAppendInt32(NativeCallEnvironment& e)
 	{
-		
-		CStringBuilder* sb = ReadStringBuilder(e, 0);
+		FastStringBuilder& sb = ReadBuilder(e);
 
 		int32 value;
 		ReadInput(1, value, e);
 
-		cstr suffix = sb->Header.formatBase == 10 ? ("d") : ("X");
+		cstr suffix = sb.formatBase == 10 ? "d" : "X";
 
 		char format[16];
-		MergeFormats(format, *sb, suffix);
+		MergeFormats(format, sb, suffix);
 
 		char rep[32];
 		int nChars = SafeFormat(rep, 32, format, value);
-		AppendString(*sb, rep, nChars);
-		WriteOutput(0, sb->Header.length, e);
+		AppendString(sb, rep, nChars);
 	}
 
-	void StringBuilderAppendInt64(NativeCallEnvironment& e)
+	void FastStringBuilderAppendInt64(NativeCallEnvironment& e)
 	{
-		
-		CStringBuilder* sb = ReadStringBuilder(e, 0);
+		FastStringBuilder& sb = ReadBuilder(e);
 
 		int64 value;
 		ReadInput(1, value, e);
 
-		cstr suffix = sb->Header.formatBase == 10 ? ("I64d") : ("I64X");
+		cstr suffix = sb.formatBase == 10 ? "I64d" : "I64X";
 
 		char format[16];
-		MergeFormats(format, *sb, suffix);
+		MergeFormats(format, sb, suffix);
 
 		char rep[64];
 		int nChars = SafeFormat(rep, 64, format, value);
-		AppendString(*sb, rep, nChars);
-		WriteOutput(0, sb->Header.length, e);
+		AppendString(sb, rep, nChars);
 	}
 
-	void StringBuilderAppendFloat32(NativeCallEnvironment& e)
+	void FastStringBuilderAppendFloat32(NativeCallEnvironment& e)
 	{
-		
-		CStringBuilder* sb = ReadStringBuilder(e, 0);
+		FastStringBuilder& sb = ReadBuilder(e);
 
 		float32 value;
 		ReadInput(1, value, e);
 
 		cstr suffix;
-		switch(sb->Header.spec)
+		switch(sb.spec)
 		{
 		case SPEC_E:
-			suffix = ("e");
+			suffix = "e";
 			break;
 		case SPEC_G:
-			suffix = ("g");
+			suffix = "g";
 			break;
 		default: // F
-			suffix = ("f");
+			suffix = "f";
 			break;
 		}
 
 		char format[16];
-		MergeFormats(format, *sb, suffix);
+		MergeFormats(format, sb, suffix);
 
 		char rep[32];
 		int nChars = SafeFormat(rep, 32, format, value);
-		AppendString(*sb, rep, nChars);
-		WriteOutput(0, sb->Header.length, e);
+		AppendString(sb, rep, nChars);
 	}
 
-	void StringBuilderAppendFloat64(NativeCallEnvironment& e)
+	void FastStringBuilderAppendFloat64(NativeCallEnvironment& e)
 	{
-		
-		CStringBuilder* sb = ReadStringBuilder(e, 0);
+		FastStringBuilder& sb = ReadBuilder(e);
 
 		float64 value;
 		ReadInput(1, value, e);
 
 		cstr suffix;
-		switch(sb->Header.spec)
+		switch(sb.spec)
 		{
 		case SPEC_E:
-			suffix = ("le");
+			suffix = "e";
 			break;
 		case SPEC_G:
-			suffix = ("lg");
+			suffix = "g";
 			break;
 		default: // F
-			suffix = ("lf");
+			suffix = "f";
 			break;
 		}
 
 		char format[16];
-		MergeFormats(format, *sb, suffix);
+		MergeFormats(format, sb, suffix);
 
 		char rep[64];
 		int nChars = SafeFormat(rep, 64, format, value);
-		AppendString(*sb, rep, nChars);
-		WriteOutput(0, sb->Header.length, e);
+		AppendString(sb, rep, nChars);
 	}
 
-	void StringBuilderAppendBool(NativeCallEnvironment& e)
+	void FastStringBuilderAppendBool(NativeCallEnvironment& e)
 	{
-		
-		CStringBuilder* sb = ReadStringBuilder(e, 0);
+		FastStringBuilder& sb = ReadBuilder(e);
 
 		int32 value;
 		ReadInput(1, value, e);
 
-		if (value != 0) AppendString(*sb, ("true"), 4);
-		else			AppendString(*sb, ("false"), 5);
-
-		WriteOutput(0, sb->Header.length, e);
+		if (value != 0) AppendString(sb, "true", 4);
+		else			AppendString(sb, "false", 5);
 	}
 
-	void StringBuilderAppendPointer(NativeCallEnvironment& e)
+	void FastStringBuilderAppendPointer(NativeCallEnvironment& e)
 	{
-		
-		CStringBuilder* sb = ReadStringBuilder(e, 0);
+		FastStringBuilder& sb = ReadBuilder(e);
 
 		void* value;
 		ReadInput(1, value, e);
 
 		char rep[64];
-		int nChars = SafeFormat(rep, 64, ("0x%X"), value);
-		AppendString(*sb, rep, nChars);
-		
-		WriteOutput(0, sb->Header.length, e);
+		int nChars = SafeFormat(rep, 64, "0x%X", value);
+		AppendString(sb, rep, nChars);
 	}
 
-	void StringBuilderSetFormat(NativeCallEnvironment& e)
+	void FastStringBuilderSetFormat(NativeCallEnvironment& e)
 	{
-		
-		CStringBuilder* sb = ReadStringBuilder(e, 0);
+		FastStringBuilder& sb = ReadBuilder(e);
 
 		int precision;
 		ReadInput(1, precision, e);
@@ -600,7 +707,7 @@ namespace
 		int isRightAligned;
 		ReadInput(4, isRightAligned, e);
 
-		char *t = sb->Header.prefix;
+		char *t = sb.prefix;
 
 		*t++ = '%';
 
@@ -778,5 +885,16 @@ namespace
 		}
 		
 		WriteOutput(0, position, e);
+	}
+}
+
+namespace Rococo
+{
+	namespace Script
+	{
+		IStringPool* NewStringPool()
+		{
+			return new StringPool();
+		}
 	}
 }

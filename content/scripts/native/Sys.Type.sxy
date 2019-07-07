@@ -138,3 +138,22 @@
 )
 
 // Coroutines end here
+
+// initializer lists Sexy style // Usage (#PushStructArray <array-name> <element-type>  element0 ... elementN)
+(macro Sys.PushStructArray in out
+	(IStringBuilder sb = NewPathBuilder)
+	(Int32 nInputChildren = ((in.ChildCount) - 3))
+	(IExpression arrayName = (in 1))
+	(IExpression elementType = (in 2))
+	
+	(#for (Int32 j = 3)(j < nInputChildren)(j += 1)
+		(sb.Clear)
+		(arrayName.AppendTextTo sb)
+		(sb ".Push")
+		(IExpressionBuilder pushExpression = out.AddCompound)
+		(pushExpression.AddAtomic sb) 
+		(pushExpression.Copy elementType) // jth statement is (<array-name>.Push <element_type>
+		(Int32 memberwiseIndex = j)
+		(pushExpression.Copy (in memberwiseIndex)) // jth statement is (<array-name>.Push <element_type> <construct args>)
+	)
+)
