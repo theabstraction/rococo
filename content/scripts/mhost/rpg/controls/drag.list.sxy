@@ -1,0 +1,47 @@
+(using Sys)
+(using Sys.Maths)
+(using Sys.Maths.F32)
+(using Sys.Type)
+(using Sys.MPlat)
+(using Sys.Random)
+(using Sys.Reflection)
+(using Sys.Type.Strings)
+(using MHost)
+(using MHost.OS)
+(using MHost.Graphics)
+(using Rococo)
+(using Rococo.Graphics)
+(using Rococo.Audio)
+
+(interface MHost.Graphics.IDragList
+	(extends MHost.Graphics.IControl)
+	(SetRect (Rectf rect)(IGui g) -> )
+)
+
+(class DragList
+	(implements MHost.Graphics.IDragList)
+	(Rectf outerRect)
+) 
+
+(method DragList.Construct :
+	(this.outerRect = -1 -1 -1 -1)
+)
+
+(method DragList.GetRect (Rectf rect)-> :
+	(rect = this.outerRect)
+)
+
+(method DragList.GetEventHandler ->(IEventHandler evHandler):
+)
+
+(factory MHost.Graphics.NewDragList MHost.Graphics.IDragList :
+	(construct DragList)
+)
+
+(method DragList.SetRect (Rectf rect)(IGui g) -> :
+	(this.outerRect = rect)
+)
+
+(method DragList.Render (IGui g)-> :
+	(g.DrawBorder this.outerRect 4 0xFFFFFFFF 0xFFAFAFAF 0xFF8F8F8F 0xFF5F5F5F)
+)

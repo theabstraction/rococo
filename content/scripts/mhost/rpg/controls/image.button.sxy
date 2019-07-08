@@ -1,0 +1,64 @@
+(using Sys)
+(using Sys.Maths)
+(using Sys.Maths.F32)
+(using Sys.Type)
+(using Sys.MPlat)
+(using Sys.Random)
+(using Sys.Reflection)
+(using Sys.Type.Strings)
+(using MHost)
+(using MHost.OS)
+(using MHost.Graphics)
+(using Rococo)
+(using Rococo.Graphics)
+(using Rococo.Audio)
+
+(interface MHost.Graphics.IImageButton
+	(extends MHost.Graphics.IControl)
+	(SetRect (Rectf rect)(IGui g) -> )
+	(SetImage (Sys.MPlat.BitmapLocation imgLoc)->)
+)
+
+(class ImageButton
+	(implements MHost.Graphics.IImageButton)
+	(implements IEventHandler)
+	(Rectf outerRect)
+	(Sys.MPlat.BitmapLocation imgLoc)
+) 
+
+(method ImageButton.Construct :
+	(this.outerRect = -1 -1 -1 -1)
+	(this.imgLoc = (-1 -1 -1 -1) -1)
+)
+
+(method ImageButton.GetRect (Rectf rect)-> :
+	(rect = this.outerRect)
+)
+
+(method ImageButton.SetImage (Sys.MPlat.BitmapLocation imgLoc)-> :
+	(this.imgLoc = imgLoc)
+)
+
+(method ImageButton.GetEventHandler ->(IEventHandler evHandler):
+	(evHandler = this)
+)
+
+(factory MHost.Graphics.NewImageButton MHost.Graphics.IImageButton :
+	(construct ImageButton)
+)
+
+(method ImageButton.SetRect (Rectf rect)(IGui g) -> :
+	(this.outerRect = rect)
+)
+
+(method ImageButton.Render (IGui g)-> :
+	(if (this.imgLoc.arrayIndex >= 0) 
+		(g.StretchSprite this.outerRect this.imgLoc)
+	)
+	(g.DrawBorder this.outerRect 2 0xFFFFFFFF 0xFFAFAFAF 0xFF8F8F8F 0xFF5F5F5F)
+)
+
+(method ImageButton.OnMouseUp (MouseClickArgs args)-> :
+	(ButtonClickArgs buttonArgs = "ImageButton" this)
+	(args.eventHandler.OnButtonUp buttonArgs)
+)

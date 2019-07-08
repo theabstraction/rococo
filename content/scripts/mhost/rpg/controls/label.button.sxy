@@ -62,13 +62,6 @@
 	(GetLargestFontOfFamilyLessThanHeight g fontName dy -> this.fontIndex)
 )
 
-(struct ButtonClickArgs
-	(IString text)
-	(ILabelButton button)
-)
-
-(alias ButtonClickArgs MHost.Graphics.ButtonClickArgs)
-
 (method LabelButton.OnMouseDown (MouseClickArgs args)-> :
 	(if (this.isEnabled)
 		(ButtonClickArgs buttonArgs = this.text this)

@@ -48,6 +48,10 @@
 	
 	(IExpression sMale)
 	(IExpression sFemale)
+	
+	(IImageButton portraitButton)
+	
+	(Int32 portraitIndex)
 )
 
 (archetype Sys.Reflection.CallbackWithExpression (IExpression expression) ->)
@@ -83,7 +87,7 @@
 )
 
 (function AppendTimestampForFile (IStringBuilder sb) -> :
-	(IStringBuilder rawTime (StringBuilder 64))
+	(IStringBuilder rawTime = NewTokenBuilder)
 	(Sys.OS.AppendCTime rawTime)
 	(IString rawTimeString = rawTime)
 	
@@ -107,7 +111,7 @@
 	(IStringBuilder nameBuilder = this.nameEditor.GetBuilder)
 	(s.AddString "Name" nameBuilder)
 	
-	(IStringBuilder filename (StringBuilder 256))
+	(IStringBuilder filename = NewPathBuilder)
 	(#build filename "#chaps/")
 	(AppendSantitizedNameToPath filename nameBuilder)
 	(#build filename "@")
@@ -208,7 +212,11 @@
 	(this.nameEditor = (NewLineEditor 30 this))
 	(this.uistack.AddTopLevelControl this.nameEditor "name")
 	
+	(this.portraitButton = (NewImageButton))
+	(this.uistack.AddTopLevelControl this.portraitButton "portrait")
+	
 	(this.sysFont = -1)
+	(this.portraitIndex = -1)
 	
 	(IDropValueMenu classEditor (NewDropValueMenu 7 this))
 	
@@ -495,7 +503,7 @@
 	(Int32 nElements = args.s.ChildCount)
 	(IExpression s = args.s)
 	
-	(IStringBuilder sb (StringBuilder 128))
+	(IStringBuilder sb = NewPathBuilder)
 	(Int32 i = args.startIndex)
 	(while (i < nElements)
 		(IExpression c = (s i))
@@ -524,7 +532,7 @@
 
 (function AssertChildCount (IExpression s)(Int32 count)-> :
 	(if (count != s.ChildCount)
-		(IStringBuilder sb (StringBuilder 256))
+		(IStringBuilder sb = NewPathBuilder)
 		(#build sb "AssertChildCount: Expecting " count " children")
 		(s.Throw 0 sb)
 	)
@@ -590,9 +598,52 @@
 			(if (args.button == this.saveButton)
 				(this.Save)
 				(this.bundle.SetActiveScreen (#IdScreenOpening))
+			else 
+				(if (args.button == this.portraitButton)
+					(this.AdvancePortrait)
+				)
 			)
 		)
 	)
+)
+
+(method AddCharacterScreen.AdvancePortrait -> :
+	(this.portraitIndex += 1)
+	(this.UpdatePortrait)
+)
+
+(method AddCharacterScreen.UpdatePortrait -> :
+	(IEngine engine = this.bundle.Engine)
+	
+	(IExpression femaleFaces = '(
+		lady.asian.1.jpg	lady.black.1.jpg	lady.spanish.1.jpg 
+		lady.white.1.jpg	lady.white.2.jpg	lady.white.3.jpg 
+	))
+	
+	(IExpression maleFaces = '(
+		male.white.1.jpg	male.white.2.jpg	male.white.3.jpg 
+	))
+	
+	(IStringBuilder fullImageName = NewPathBuilder)
+	
+	(IExpression s = this.sexButton.GetSelectedValue)
+	(if (s == this.sFemale)
+		(fullImageName "!textures/faces/female/")
+		(Int32 index = (Sys.Maths.I32.Mod this.portraitIndex femaleFaces.ChildCount))
+		(IExpression name = (femaleFaces index))
+		(this.portraitIndex = index)
+		(name.AppendTextTo fullImageName)
+	else
+		(fullImageName "!textures/faces/male/")
+		(Int32 index = (Sys.Maths.I32.Mod this.portraitIndex maleFaces.ChildCount))
+		(IExpression name = (maleFaces index))
+		(this.portraitIndex = index)
+		(name.AppendTextTo fullImageName)
+	)
+	
+	(Sys.MPlat.BitmapLocation img)
+	(engine.GetSpriteSpec fullImageName img)
+	(this.portraitButton.SetImage img)
 )
 
 (method AddCharacterScreen.SetKeyboardFocus (PassEventHandlerArgs args) -> :
@@ -644,7 +695,7 @@
 		(this.nameEditor.GetRect nameRect)
 		
 		(if (IsPointInRect pos nameRect)
-			(IStringBuilder newName (StringBuilder 128))
+			(IStringBuilder newName = NewPathBuilder)
 			
 			(IExpression s = (this.sexButton.GetSelectedValue))
 			(if (s == this.sFemale)
@@ -713,6 +764,17 @@
 	(nameRect.right = (span.x - 10))
 	(nameRect.bottom = (nameRect.top + 50))
 	(this.nameEditor.SetRect "Tahoma" nameRect)
+	
+	(Rectf portraitRect)
+	(portraitRect.left = (rollRect.right + 10))
+	(portraitRect.right = (nameRect.left - 10))
+	(portraitRect.top = rollRect.top)
+	(portraitRect.bottom = (rollRect.top + 256))
+	
+	(this.portraitButton.SetRect portraitRect g)
+	
+	(this.portraitIndex = -1)
+	(this.AdvancePortrait)
 	
 	(Rectf overlayRect)
 	(overlayRect.left = (span.x - 355))

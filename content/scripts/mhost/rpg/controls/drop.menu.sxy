@@ -230,7 +230,7 @@
 	(this.textRect = this.innerRect)
 	(this.textRect.left = (this.outerRect.left + (0.25 * dy)))
 	
-	(IStringBuilder fontName (StringBuilder 64))
+	(IStringBuilder fontName = NewTokenBuilder)
 	(g.GetFontDescription this.fontIndex fontName this.fontDesc)
 )
 

@@ -77,6 +77,13 @@
 
 (alias MenuSelectArgs MHost.Graphics.MenuSelectArgs)
 
+(struct ButtonClickArgs
+	(IString text)
+	(IControl button)
+)
+
+(alias ButtonClickArgs MHost.Graphics.ButtonClickArgs)
+
 (struct MouseClickArgs
 	(Vec2 pos)
 	(IEventHandler eventHandler)

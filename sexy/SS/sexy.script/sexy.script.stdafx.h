@@ -456,32 +456,33 @@ namespace Rococo
 
       GlobalValue* GetGlobalValue(CScript& script, cstr buffer);
 
-      struct ArrayCallbacks
-      {
-         ID_API_CALLBACK ArrayPushAndGetRef;
-         ID_API_CALLBACK ArrayPush32;
-         ID_API_CALLBACK ArrayPush64;
-		 ID_API_CALLBACK ArrayPushInterface;
-         ID_API_CALLBACK ArrayPushByRef;
-         ID_API_CALLBACK ArrayGet32;
-         ID_API_CALLBACK ArrayGet64;
-         ID_API_CALLBACK ArrayGetMember32;
-         ID_API_CALLBACK ArrayGetMember64;
-         ID_API_CALLBACK ArrayGetByRef;
-         ID_API_CALLBACK ArraySet32;
-         ID_API_CALLBACK ArraySet64;
-         ID_API_CALLBACK ArraySetByRef;
-         ID_API_CALLBACK ArrayInit;
-         ID_API_CALLBACK ArrayDelete;
-         ID_API_CALLBACK ArrayPop;
-         ID_API_CALLBACK ArrayPopOut32;
-         ID_API_CALLBACK ArrayPopOut64;
-         ID_API_CALLBACK ArrayLock;
-         ID_API_CALLBACK ArrayUnlock;
-         ID_API_CALLBACK ArrayGetRefUnchecked;
-         ID_API_CALLBACK ArrayDestructElements;
-		 ID_API_CALLBACK ArrayGetInterfaceUnchecked;
-      };
+	  struct ArrayCallbacks
+	  {
+		  ID_API_CALLBACK ArrayClear;
+		  ID_API_CALLBACK ArrayPushAndGetRef;
+		  ID_API_CALLBACK ArrayPush32;
+		  ID_API_CALLBACK ArrayPush64;
+		  ID_API_CALLBACK ArrayPushInterface;
+		  ID_API_CALLBACK ArrayPushByRef;
+		  ID_API_CALLBACK ArrayGet32;
+		  ID_API_CALLBACK ArrayGet64;
+		  ID_API_CALLBACK ArrayGetMember32;
+		  ID_API_CALLBACK ArrayGetMember64;
+		  ID_API_CALLBACK ArrayGetByRef;
+		  ID_API_CALLBACK ArraySet32;
+		  ID_API_CALLBACK ArraySet64;
+		  ID_API_CALLBACK ArraySetByRef;
+		  ID_API_CALLBACK ArrayInit;
+		  ID_API_CALLBACK ArrayDelete;
+		  ID_API_CALLBACK ArrayPop;
+		  ID_API_CALLBACK ArrayPopOut32;
+		  ID_API_CALLBACK ArrayPopOut64;
+		  ID_API_CALLBACK ArrayLock;
+		  ID_API_CALLBACK ArrayUnlock;
+		  ID_API_CALLBACK ArrayGetRefUnchecked;
+		  ID_API_CALLBACK ArrayDestructElements;
+		  ID_API_CALLBACK ArrayGetInterfaceUnchecked;
+	  };
 
       struct ListCallbacks
       {

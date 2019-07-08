@@ -184,24 +184,14 @@ void NativeAppendCTime(NativeCallEnvironment& _nce)
 	auto* stub = InterfaceToInstance(interfacePtr);
 	auto& ss = (IScriptSystem&)_nce.ss;
 
-	auto* sbType = ss.ProgramObject().GetModule(0).FindStructure("StringBuilder");
+	auto* sbType = ss.ProgramObject().GetModule(0).FindStructure("FastStringBuilder");
 
 	if (stub->Desc->TypeInfo != sbType)
 	{
-		Throw(0, "NativeSysOSClockTicks -> The string builder must be Sys.Type.StringBuilder");
+		Throw(0, "NativeAppendCTime -> The string builder must be a FastStringBuilder");
 	}
 
-#pragma pack(push,1)
-	struct SysMathsStringBuilder
-	{
-		ObjectStub stub;
-		int32 length;
-		char* buffer;
-		int32 capacity;
-	};
-#pragma pack(pop)
-
-	auto& sb = *(SysMathsStringBuilder*)stub;
+	auto& sb = *(FastStringBuilder*)stub;
 
 	char timestamp[26];
 	Rococo::GetTimestamp(timestamp);
@@ -596,6 +586,7 @@ namespace Rococo
 			arrayCallbacks.ArrayGetRefUnchecked = core.RegisterCallback(OnInvokeArrayGetRefUnchecked, this, ("ArrayGetRefUnchecked"));
 			arrayCallbacks.ArrayLock = core.RegisterCallback(OnInvokeArrayLock, this, ("ArrayLock"));
 			arrayCallbacks.ArrayUnlock = core.RegisterCallback(OnInvokeArrayUnlock, this, ("ArrayUnlock"));
+			arrayCallbacks.ArrayClear = core.RegisterCallback(OnInvokeArrayClear, this, "ArrayClear");
 			arrayCallbacks.ArrayPushAndGetRef = core.RegisterCallback(OnInvokeArrayPushAndGetRef, this, ("ArrayPushAndGetRef"));
 			arrayCallbacks.ArrayPushByRef = core.RegisterCallback(OnInvokeArrayPushByRef, this, ("ArrayPushByRef"));
 			arrayCallbacks.ArrayPush32 = core.RegisterCallback(OnInvokeArrayPush32, this, ("ArrayPush32"));

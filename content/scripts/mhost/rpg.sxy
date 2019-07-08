@@ -20,6 +20,8 @@
 	"!scripts/mhost/rpg/controls/toggle.label.sxy"
 	"!scripts/mhost/rpg/controls/label.button.sxy"
 	"!scripts/mhost/rpg/controls/new.game.screen.sxy"
+	"!scripts/mhost/rpg/controls/drag.list.sxy"
+	"!scripts/mhost/rpg/controls/image.button.sxy"
 )
 
 (namespace EntryPoint)
@@ -245,6 +247,8 @@
 (method GameBundle.Construct : 
 	(ISprites sprites (Sprites))
 	(sprites.AddEachSpriteInDirectory "!textures/mhost/rpg")
+	(sprites.AddEachSpriteInDirectory "!textures/faces/male")
+	(sprites.AddEachSpriteInDirectory "!textures/faces/female")
 	(sprites.LoadAllSprites)
 	(this.sprites = sprites)
 	

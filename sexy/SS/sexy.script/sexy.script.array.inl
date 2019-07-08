@@ -281,13 +281,33 @@ namespace Rococo
 
 	   bool IsLocked(const ArrayImage& a) { return a.LockNumber != 0; }
 
+	   void ReleaseElement(ArrayImage& a, int32 index, IScriptSystem& ss)
+	   {
+		   if (a.ElementType->InterfaceCount() > 0)
+		   {
+			   auto& obj = ss.ProgramObject();
+
+			   int offset = sizeof(InterfacePointer) * index;
+
+			   uint8* item = (uint8*)a.Start + offset;
+			   InterfacePointer pInterface = *(InterfacePointer*)item;
+			   obj.DecrementRefCount(pInterface);
+		   }
+		   else if (a.ElementType->VarType() == VARTYPE_Derivative)
+		   {
+			   uint8* item = (uint8*)a.Start + index * a.ElementLength;
+			   DeleteMembers(ss, *a.ElementType, item);
+		   }
+	   }
+
 	   VM_CALLBACK(ArrayPop)
 	   {
 		   ArrayImage* a = (ArrayImage*) registers[VM::REGISTER_D7].vPtrValue;
 
+		   IScriptSystem& ss = *(IScriptSystem*)context;
+
 		   if (IsLocked(*a))
 		   {
-			   IScriptSystem& ss = *(IScriptSystem*) context;
 			   ss.ThrowFromNativeCode(ERANGE, ("Array.PopOut failed: the array was locked for enumeration"));
 			   return;
 		   }
@@ -295,12 +315,30 @@ namespace Rococo
 		   if (a->NumberOfElements > 0)
 		   {
 			   a->NumberOfElements--;
+			   ReleaseElement(*a, a->NumberOfElements, ss);
 		   }
 		   else
 		   {
-			   IScriptSystem& ss = *(IScriptSystem*) context;
 			   ss.ThrowFromNativeCode(ERANGE, ("Array.Pop failed: the array was empty"));
 			   return;
+		   }
+	   }
+
+	   VM_CALLBACK(ArrayClear)
+	   {
+		   ArrayImage* a = (ArrayImage*)registers[VM::REGISTER_D7].vPtrValue;
+		   IScriptSystem& ss = *(IScriptSystem*)context;
+
+		   if (IsLocked(*a))
+		   {
+			   ss.ThrowFromNativeCode(ERANGE, "Array.Clear failed: the array was locked for enumeration");
+			   return;
+		   }
+
+		   while(a->NumberOfElements > 0)
+		   {
+			   a->NumberOfElements--;
+			   ReleaseElement(*a, a->NumberOfElements, ss);
 		   }
 	   }
 
@@ -691,6 +729,17 @@ namespace Rococo
 		   ce.Builder.Assembler().Append_Invoke(callbacks.ArrayPop);
 	   }
 
+	   void CompileAsClearArray(CCompileEnvironment& ce, cr_sex s, cstr instanceName)
+	   {
+		   AssertNotTooFewElements(s, 1);
+		   AssertNotTooManyElements(s, 1);
+
+		   ce.Builder.AssignVariableRefToTemp(instanceName, Rococo::ROOT_TEMPDEPTH, 0); // array goes to D7
+
+		   const ArrayCallbacks& callbacks = GetArrayCallbacks(ce);
+		   ce.Builder.Assembler().Append_Invoke(callbacks.ArrayClear);
+	   }
+
 	   void CompileAsPopOutFromArray(CCompileEnvironment& ce, cr_sex s, cstr instanceName, VARTYPE requiredType)
 	   {
 		   const IStructure& elementType = GetArrayDef(ce, s, instanceName);
@@ -818,7 +867,7 @@ namespace Rococo
 
 	   bool TryCompileAsArrayCall(CCompileEnvironment& ce, cr_sex s, cstr instanceName, cstr methodName)
 	   {
-		   if (AreEqual(methodName, ("Push")))
+ 		   if (AreEqual(methodName, ("Push")))
 		   {
 			   CompileAsPushToArray(ce, s, instanceName);
 			   return true;
@@ -833,7 +882,11 @@ namespace Rococo
 			   CompileAsPopOutFromArrayToVariable(ce, s, instanceName);
 			   return true;
 		   }
-
+		   else if (AreEqual(methodName, ("Clear")))
+		   {
+			   CompileAsClearArray(ce, s, instanceName);
+			   return true;
+		   }
 		   return false;
 	   }
 

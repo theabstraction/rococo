@@ -62,7 +62,7 @@
 		)
 	)
 	
-	(IStringBuilder msg (StringBuilder 128))
+	(IStringBuilder msg = NewParagraphBuilder)
 	(#build msg "Could not find attribute [" name "] in attribute control")
 	(Sys.Throw 0 msg)
 )
@@ -75,7 +75,7 @@
 		)
 	)
 	
-	(IStringBuilder sb (StringBuilder 512))
+	(IStringBuilder sb = NewParagraphBuilder)
 	(#build sb 
 		"AttributeControl.SetAttributeByName: Could not find attribute named '" name "'&n"
 		"Known attributes: Strength, Agility, Wellness, Psyche, Ego, Maths")
@@ -90,7 +90,7 @@
 		)
 	)
 	
-	(IStringBuilder sb (StringBuilder 512))
+	(IStringBuilder sb = NewParagraphBuilder)
 	(#build sb 
 		"AttributeControl.SetAttributeByName: Could not find attribute named '" name "'&n"
 		"Known attributes: Strength, Agility, Wellness, Psyche, Ego, Maths")

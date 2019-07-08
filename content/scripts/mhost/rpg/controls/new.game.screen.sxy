@@ -29,6 +29,9 @@
 	(Vec2 cursorPos)
 	
 	(array Slot slots) 
+
+	
+	(IDragList roster)
 )
 
 (method NewGameScreen.Construct (IBundle bundle) -> (construct slots 5): 
@@ -36,14 +39,9 @@
 	(this.uistack = (MHost.Graphics.NewUIStack))
 	(this.screenSpan = -1 -1)
 	(this.cursorPos = -1 -1)
-	
-	(#PushStructArray this.slots Slot
-		((-1 -1 -1 -1))
-		((-1 -1 -1 -1))
-		((-1 -1 -1 -1))
-		((-1 -1 -1 -1))
-		((-1 -1 -1 -1))
-	)
+	(this.uistack = (MHost.Graphics.NewUIStack))
+	(this.roster = (NewDragList))
+	(this.uistack.AddTopLevelControl this.roster "roster")
 )
 
 (factory RPG.NewNewGameScreen MHost.IScreen (IBundle bundle):
@@ -51,8 +49,39 @@
 )
 
 (method NewGameScreen.Layout (IGui g) -> :
-	(Slot slot0 = (this.slots 0))
-	(slot0.rect = 10 10 74 74)
+	(Vec2 ds)
+	(g.GetScreenSpan ds)
+	
+	(Vec2 portraitSpan = 80 80)
+	(Float32 border = 10)
+	
+	(Float32 xLeftFar = border)
+	(Float32 xLeftNear = (border + portraitSpan.x))
+	(Float32 xRightFar = (ds.x - border))
+	(Float32 xRightNear = (xRightNear - portraitSpan.x))
+	(Float32 yTopFar = border)
+	(Float32 yTopNear = (border + portraitSpan.y))
+	(Float32 yBottomFar = (ds.y - border))
+	(Float32 yBottomNear = (yBottomFar - portraitSpan.y))
+	
+	(Float32 centreX = (ds.x / 2))
+	(Float32 centreXleft = (centreX - (portraitSpan.x / 2)))
+	(Float32 centreXright = (centreX + (portraitSpan.x / 2)))
+	
+	(this.slots.Clear)
+	(this.slots.Push Slot ((centreXleft yTopFar centreXright yTopNear)))
+	(this.slots.Push Slot ((xLeftFar yTopFar xLeftNear yTopNear)))
+	(this.slots.Push Slot ((xRightFar yTopFar xRightNear yTopNear)))
+	(this.slots.Push Slot ((xLeftFar yBottomNear xLeftNear yBottomFar)))
+	(this.slots.Push Slot ((xRightFar yBottomNear xRightNear yBottomFar)))
+	
+	(Rectf rosterRect)
+	(rosterRect.left = 128)
+	(rosterRect.top = 128)
+	(rosterRect.right = (ds.x - 128))
+	(rosterRect.bottom = (rosterRect.top + 320))
+	
+	(this.roster.SetRect rosterRect g)
 )
 
 (method NewGameScreen.RenderGui (IGui g) -> :
@@ -74,6 +103,10 @@
 	(g.DrawLeftAligned hintRect "Drag and drop portraits to character slots to build a party." 2 0xFFFFFFFF 50 120)
 	
 	(RenderTree this.uistack g)
+	
+	(foreach slot # this.slots
+		(g.DrawBorder slot.rect 1 0xFFFFFFFF 0xFFAFAFAF 0xFF8F8F8F 0xFF5F5F5F)
+	)
 )
 
 (method NewGameScreen.OnMouseDown (Int32 button) (Float32 x)(Float32 y) -> :
@@ -111,6 +144,6 @@
 (method NewGameScreen.OnAsciiChar (Int32 asciiValue)-> :
 )
 
-
 (method NewGameScreen.OnSysKey (Bool isUp)(Int32 virtualKeyCode)-> :
 )
+

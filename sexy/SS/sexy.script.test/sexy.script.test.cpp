@@ -6768,6 +6768,35 @@ namespace
 		validate(x == 1812);
 	}
 
+	void TestArrayClear(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Type)"
+
+			"(function Main -> (Int32 result):"
+			"	(array Int32 ids 4)"
+			"	(ids.Push 1812)"
+			"	(ids.Clear)"
+			"   (result = ids.Length)"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		int32 x = vm.PopInt32();
+		validate(x == 0);
+	}
+
 	void TestArrayInStruct2(IPublicScriptSystem& ss)
 	{
 		cstr srcCode = 
@@ -13243,7 +13272,7 @@ namespace
 	{
 		validate(true);
 
-		TEST(TestArrayFloat64);
+		TEST(TestArrayClear);
 
 		TEST(TestStringSplit);
 		TEST(TestSearchSubstring);
