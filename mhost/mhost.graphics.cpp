@@ -133,14 +133,14 @@ private:
 	cstr text;
 	FontColour colour;
 	int fontIndex;
-	float lastCellHeight;
+	int fontHeight;
 	IEventCallback<GlyphArgs>* cb;
 	int count = 0;
 public:
 	GuiRectf target;
 
-	BasicTextJob(int _fontIndex, cstr _text, RGBAb _colour, IEventCallback<GlyphArgs>* _cb = nullptr) :
-		text(_text),  colour((FontColour&)_colour), fontIndex(_fontIndex), lastCellHeight(10.0f), cb(_cb)
+	BasicTextJob(int _fontIndex, cstr _text, RGBAb _colour, int _fontHeight, IEventCallback<GlyphArgs>* _cb = nullptr) :
+		text(_text),  colour((FontColour&)_colour), fontIndex(_fontIndex), fontHeight(_fontHeight), cb(_cb)
 	{
 		float minFloat = std::numeric_limits<float>::min();
 		float maxFloat = std::numeric_limits<float>::max();
@@ -166,8 +166,6 @@ public:
 			cb->OnEvent(args);
 		}
 
-		lastCellHeight = outputRect.bottom - outputRect.top;
-
 		if (outputRect.left < target.left) target.left = outputRect.left;
 		if (outputRect.right > target.right) target.right = outputRect.right;
 		if (outputRect.bottom > target.bottom) target.bottom = outputRect.bottom;
@@ -179,6 +177,7 @@ public:
 		builder.SetTextColour(colour);
 		builder.SetShadow(false);
 		builder.SetFontIndex(fontIndex);
+		builder.SetFontHeight(fontHeight);
 
 		Vec2 firstGlyphPos = builder.GetCursor();
 
@@ -198,7 +197,7 @@ public:
 			else if (c == '\n')
 			{
 				Vec2 nextGlyphPos = builder.GetCursor();
-				builder.SetCursor(Vec2{ firstGlyphPos.x, nextGlyphPos.y + lastCellHeight });
+				builder.SetCursor(Vec2{ firstGlyphPos.x, nextGlyphPos.y + fontHeight });
 			}
 			else
 			{
@@ -214,7 +213,7 @@ private:
 	cstr text;
 	FontColour colour;
 	int fontIndex;
-	float lastCellHeight;
+	int fontHeight;
 	IEventCallback<GlyphArgs>* cb;
 	int count = 0;
 	GuiRectf bounds;
@@ -224,8 +223,8 @@ private:
 public:
 	GuiRectf target;
 
-	LeftAlignedTextJob(int _fontIndex, float hardRightEdge, float softRightEdge, cstr _text, RGBAb _colour, const GuiRectf& _bounds, IEventCallback<GlyphArgs>* _cb = nullptr) :
-		text(_text), colour((FontColour&)_colour), fontIndex(_fontIndex), lastCellHeight(10.0f), cb(_cb), bounds(_bounds)
+	LeftAlignedTextJob(int _fontIndex, float hardRightEdge, float softRightEdge, cstr _text, RGBAb _colour, const GuiRectf& _bounds, int32 _fontHeight, IEventCallback<GlyphArgs>* _cb = nullptr) :
+		text(_text), colour((FontColour&)_colour), fontIndex(_fontIndex), fontHeight(_fontHeight), cb(_cb), bounds(_bounds)
 	{
 		float minFloat = std::numeric_limits<float>::min();
 		float maxFloat = std::numeric_limits<float>::max();
@@ -253,8 +252,6 @@ public:
 			cb->OnEvent(args);
 		}
 
-		lastCellHeight = outputRect.bottom - outputRect.top;
-
 		if (outputRect.left < target.left) target.left = outputRect.left;
 		if (outputRect.right > target.right) target.right = outputRect.right;
 		if (outputRect.bottom > target.bottom) target.bottom = outputRect.bottom;
@@ -266,6 +263,7 @@ public:
 		builder.SetTextColour(colour);
 		builder.SetShadow(false);
 		builder.SetFontIndex(fontIndex);
+		builder.SetFontHeight(fontHeight);
 
 		Vec2 firstGlyphPos = builder.GetCursor();
 
@@ -282,14 +280,14 @@ public:
 				if (c <= 32)
 				{
 					pos.x = bounds.left;
-					pos.y += lastCellHeight;
+					pos.y += (float) fontHeight;
 					builder.SetCursor(pos);
 					continue;
 				}
 				else if (pos.x >= rightMaxReturnX)
 				{
 					pos.x = bounds.left;
-					pos.y += lastCellHeight;
+					pos.y += (float)fontHeight;
 					builder.SetCursor(pos);
 				}
 			}
@@ -306,14 +304,14 @@ public:
 				if (pos.x >= rightAlignX)
 				{
 					pos.x = bounds.left;
-					pos.y += lastCellHeight;
+					pos.y += (float)fontHeight;
 					builder.SetCursor(pos);
 				}
 			}
 			else if (c == '\n')
 			{
 				pos.x = bounds.left;
-				pos.y += lastCellHeight;
+				pos.y += (float)fontHeight;
 				builder.SetCursor(pos);
 			}
 			else
@@ -491,7 +489,7 @@ struct Gui : public MHost::IGui
 		GuiRect iRect{ (int32)rect.left, (int32)rect.top, (int32)rect.right, (int32)rect.bottom };
 		if (text.length)
 		{
-			BasicTextJob job(fontIndex, text, colour);
+			BasicTextJob job(fontIndex, text, colour, Height(iRect));
 			Vec2i span = gc.EvalSpan({ 0,0 }, job);
 			Vec2i topLeft = GetTopLeftPos(iRect, span, alignmentFlags);
 
@@ -524,7 +522,7 @@ struct Gui : public MHost::IGui
 
 		onGlyph.caretPos = caretPos;
 
-		BasicTextJob job(fontIndex, text, colour, &onGlyph);
+		BasicTextJob job(fontIndex, text, colour, Height(iRect), &onGlyph);
 		Vec2i span = gc.EvalSpan({ 0,0 }, job);
 
 		job.Reset(&onGlyph);
@@ -566,12 +564,12 @@ struct Gui : public MHost::IGui
 		}
 	}
 
-	void DrawLeftAligned(const Rococo::GuiRectf& rect, const fstring& text, int32 fontIndex, RGBAb colour, float32 softRightEdge, float32 hardRightEdge) override
+	void DrawLeftAligned(const Rococo::GuiRectf& rect, const fstring& text, int32 fontIndex, int32 fontHeight, RGBAb colour, float32 softRightEdge, float32 hardRightEdge) override
 	{
 		GuiRect iRect{ (int32)rect.left, (int32)rect.top, (int32)rect.right, (int32)rect.bottom };
 		if (text.length)
 		{
-			LeftAlignedTextJob job(fontIndex, softRightEdge, hardRightEdge, text, colour, rect);
+			LeftAlignedTextJob job(fontIndex, softRightEdge, hardRightEdge, text, colour, rect, fontHeight);
 
 			Vec2i topLeft = { iRect.left, iRect.top };
 			gc.RenderText(topLeft, job, &iRect);
@@ -583,7 +581,7 @@ struct Gui : public MHost::IGui
 		GuiRect iRect{ (int32)rect.left, (int32)rect.top, (int32)rect.right, (int32)rect.bottom };
 		if (text.length)
 		{
-			BasicTextJob job(fontIndex, text, colour);
+			BasicTextJob job(fontIndex, text, colour, (int) Height(rect));
 			Vec2i span = gc.EvalSpan({ 0,0 }, job);
 			Vec2i topLeft = GetTopLeftPos(iRect, span, alignmentFlags);
 
@@ -652,9 +650,9 @@ struct Gui : public MHost::IGui
 		DrawQuad(right);
 	}
 
-	void EvalTextSpan(const fstring& text, int32 fontIndex, Vec2& pixelSpan) override
+	void EvalTextSpan(const fstring& text, int32 fontIndex, int fontHeight, Vec2& pixelSpan) override
 	{
-		BasicTextJob job(fontIndex, text, 0xFFFFFFFF);
+		BasicTextJob job(fontIndex, text, 0xFFFFFFFF, (int) pixelSpan.y);
 		auto iSpan = gc.EvalSpan({ 0,0 }, job);
 		pixelSpan.x = (float)iSpan.x;
 		pixelSpan.y = (float)iSpan.y;

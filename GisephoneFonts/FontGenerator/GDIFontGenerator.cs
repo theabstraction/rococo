@@ -91,6 +91,76 @@ namespace Gisephone.Fonts.Generator
             return descriptors;
         }
 
+        private static float ComputeNearestDistanceToBlack(int targetX, int targetY, int width, int height, byte[] pixels, int x0, int x1, int y0, int y1)
+        {
+            double minRadiusSq = float.MaxValue;
+
+            for (int j = y0; j < y1; ++j)
+            {
+                for (int i = x0; i < x1; ++i)
+                {
+                    byte intensity = pixels[i + j * width];
+                    if (intensity > 0)
+                    {
+                        double dX = (double)(i - targetX);
+                        double dY = (double)(j - targetY);
+
+                        double radiusSq = dX * dX + dY * dY + (255 - intensity) / 255.0;
+
+                        if (radiusSq < minRadiusSq) minRadiusSq = radiusSq;
+                    }
+                }
+            }
+
+            return (float) (8.0f * System.Math.Sqrt(minRadiusSq));
+        }
+
+        private static void ComputeDistanceGlyphs(Glyph glyph, int fontHeight, byte[] distanceMap, int width, int height, byte[] pixels)
+        {
+            int x0 = glyph.X + glyph.A;
+            int x1 = x0 + glyph.B;
+            int y0 = glyph.Y;
+            int y1 = y0 + fontHeight;
+
+            if (y1 > height) return;
+
+            for(int j = y0; j < y1; ++j)
+            {
+                for (int i = x0; i < x1; ++i)
+                {
+                    float dist = ComputeNearestDistanceToBlack(i, j, width, height, pixels, x0, x1, y0, y1);
+                    distanceMap[i + j * width] = (dist > 254) ? (byte)255 : (byte)(int)dist;
+                }
+            }
+        }
+
+        public static byte[] GenerateDistanceMap(int width, int height, byte[] pixels, Font[] fonts, FontDescriptors[] fd)
+        {
+            byte maxValue = 255;
+
+            byte[] cells = new byte[pixels.Length];
+            for(int i = 0; i < cells.Length; ++i)
+            {
+                cells[i] = maxValue;
+            }
+
+            if (fonts != null)
+            {
+                for (int i = 0; i < fonts.Length; ++i)
+                {
+                    var desc = fd[i];
+                    var font = fonts[i];
+                    foreach (var c in desc.GlyphCharacters)
+                    {
+                        var glyph = desc[c];
+                        ComputeDistanceGlyphs(glyph, font.Height, cells, width, height, pixels);
+                    }
+                }
+            }
+           
+            return cells;
+        }
+
         unsafe private static void CopyBmpDataToArray(byte[] pixels, int width, int height, Bitmap bmp)
         {
             BitmapData bmpData = bmp.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
@@ -146,8 +216,10 @@ namespace Gisephone.Fonts.Generator
 
         private static FontDescriptors[] DrawFonts(Graphics g, int width, int height, Font[] fonts)
         {
+            float hborder = 4.0f;
+            float safetyMargin = 2.0f * hborder;
             float y = 0;
-            float LHS = 0.0f;
+            float LHS = safetyMargin;
             float x = LHS;
 
             var descriptors = new FontDescriptors[fonts.Length];
@@ -155,7 +227,7 @@ namespace Gisephone.Fonts.Generator
             float lastHeight = -1.0f;
             float nextRowHeight = -1.0f;
 
-            for(int i = 0; i < fonts.Length; i++)
+            for (int i = 0; i < fonts.Length; i++)
             {
                 Font f = fonts[i];
                 
@@ -196,9 +268,9 @@ namespace Gisephone.Fonts.Generator
 
                     string s = new string(c, 1);
                        
-                    int A = metrics.GetA(c);
-                    int B = metrics.GetB(c);
-                    int C = metrics.GetC(c);
+                    int A = metrics.GetA(c) - (int) hborder;
+                    int B = metrics.GetB(c) + (int) safetyMargin;
+                    int C = metrics.GetC(c) - (int)hborder;
 
                     float dx = (float)(B);
                     if (x + dx >= width)
@@ -225,7 +297,6 @@ namespace Gisephone.Fonts.Generator
 
                 //    g.DrawString(s, f, Brushes.White, new PointF(Tx, y), sf);
 
-                    float safetyMargin = 1.0f;
                     x += dx + safetyMargin;
                 }
             }

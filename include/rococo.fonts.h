@@ -13,12 +13,12 @@ namespace Rococo
 
 		struct IGlyphClipper
 		{
-			virtual void ClipGlyph(const GuiRectf& glyphClipRect, const Vec2& p, const Vec2& t0, const Vec2& t1, FontColour colour) = 0;
+			virtual void ClipGlyph(const GuiRectf& glyphClipRect, cr_vec2 p, cr_vec2 topLeft, cr_vec2 bottomRight, float scale, FontColour colour) = 0;
 		};
 
 		struct IGlyphRenderer
 		{
-			virtual void DrawGlyph(const Vec2& uvTopLeft, const Vec2& posTopLeft, float dx, float dy, Fonts::FontColour fcolour) = 0;
+			virtual void DrawGlyph(cr_vec2 glyphTopLeft, cr_vec2 glyphBottomRight, cr_vec2 posTopLeft, cr_vec2 posBottomRight, Fonts::FontColour fcolour) = 0;
 		};
 
 		struct IGlyphRenderPipeline : public IGlyphClipper
@@ -37,6 +37,7 @@ namespace Rococo
 			virtual void SetFirstColumnIndex(int index) = 0;
 			virtual void SetTextColour(FontColour colour) = 0;
 			virtual void SetShadow(bool isEnabled) = 0;
+			virtual void SetFontHeight(int fontHeightPixels) = 0;
 			virtual float SetFontIndex(int fontIndex) = 0; // Sets the font contained in the font set, and returns the font height
 			virtual void SetSpacesPerTab(int spacesPerTab) = 0;
 		};

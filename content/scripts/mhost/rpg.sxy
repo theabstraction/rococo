@@ -320,6 +320,16 @@
 )
 
 (function Main (Int32 id) -> (Int32 exitCode):
+	(IRendererConfig rc (RendererConfig))
+	
+	(SampleStateDef fontDef)
+	(fontDef.method = (#SampleMethodLinear))
+	(fontDef.u = (#SampleFilterBorder))
+	(fontDef.v = (#SampleFilterBorder))
+	(fontDef.w = (#SampleFilterBorder))
+	(fontDef.borderColour =	0 0 0 0)
+	(rc.SetSampler fontDef (#SampleIndexFonts))
+	
 	(Sys.Random.Seed 0)
 	(IBundle bundle (NewGameBundle))
 	(bundle.SetActiveScreen (#IdScreenOpening))

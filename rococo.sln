@@ -100,6 +100,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.fonts", "rococo.font
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.widgets", "rococo.widgets\rococo.widgets.vcxproj", "{673E7B16-B3C8-48D9-915B-A8E82900691C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FontGenerator", "GisephoneFonts\FontGenerator\FontGenerator.csproj", "{1658528C-598E-438A-AC72-75E16A47CBF4}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WindowFontAPI", "GisephoneFonts\WindowFontAPI\WindowFontAPI.vcxproj", "{6D76C0BE-96B8-4C1F-8B7A-FEBAB295AE96}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -204,6 +208,18 @@ Global
 		{673E7B16-B3C8-48D9-915B-A8E82900691C}.Release|Any CPU.ActiveCfg = Release|x64
 		{673E7B16-B3C8-48D9-915B-A8E82900691C}.Release|x64.ActiveCfg = Release|x64
 		{673E7B16-B3C8-48D9-915B-A8E82900691C}.Release|x64.Build.0 = Release|x64
+		{1658528C-598E-438A-AC72-75E16A47CBF4}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{1658528C-598E-438A-AC72-75E16A47CBF4}.Debug|x64.ActiveCfg = Debug|x64
+		{1658528C-598E-438A-AC72-75E16A47CBF4}.Debug|x64.Build.0 = Debug|x64
+		{1658528C-598E-438A-AC72-75E16A47CBF4}.Release|Any CPU.ActiveCfg = Release|x64
+		{1658528C-598E-438A-AC72-75E16A47CBF4}.Release|x64.ActiveCfg = Release|x64
+		{1658528C-598E-438A-AC72-75E16A47CBF4}.Release|x64.Build.0 = Release|x64
+		{6D76C0BE-96B8-4C1F-8B7A-FEBAB295AE96}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{6D76C0BE-96B8-4C1F-8B7A-FEBAB295AE96}.Debug|x64.ActiveCfg = Debug|x64
+		{6D76C0BE-96B8-4C1F-8B7A-FEBAB295AE96}.Debug|x64.Build.0 = Debug|x64
+		{6D76C0BE-96B8-4C1F-8B7A-FEBAB295AE96}.Release|Any CPU.ActiveCfg = Release|x64
+		{6D76C0BE-96B8-4C1F-8B7A-FEBAB295AE96}.Release|x64.ActiveCfg = Release|x64
+		{6D76C0BE-96B8-4C1F-8B7A-FEBAB295AE96}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

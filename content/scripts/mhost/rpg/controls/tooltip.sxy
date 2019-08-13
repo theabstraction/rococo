@@ -65,6 +65,6 @@
 (method Tooltip.GetEventHandler -> (IEventHandler handler) : )
 
 (method Tooltip.Render (IGui g)-> :
-	(g.DrawLeftAligned this.innerRect this.text this.fontIndex 0xFFFFFFFF 20 100)
+	(g.DrawLeftAligned this.innerRect this.text this.fontIndex 32 0xFFFFFFFF 20 100)
 	(DrawStandardControlBorder g this.outerRect true false)
 )

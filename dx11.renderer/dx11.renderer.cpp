@@ -88,10 +88,10 @@ namespace ANON
 
 		}
 
-		virtual void DrawGlyph(const Vec2& t0, const Vec2& p, float dx, float dy, Fonts::FontColour colour)
+		void DrawGlyph(cr_vec2 t0, cr_vec2 t1, cr_vec2 p0, cr_vec2 p1, Fonts::FontColour colour) override
 		{
-			ExpandZoneToContain(renderZone, Vec2{ p.x, p.y });
-			ExpandZoneToContain(renderZone, Vec2{ p.x + dx, p.y + dy });
+			ExpandZoneToContain(renderZone, p0 );
+			ExpandZoneToContain(renderZone, p1 );
 		}
 
 		Vec2 Span() const
@@ -2420,21 +2420,28 @@ namespace ANON
 		   return *pCol;
 	   }
 
-	   virtual void DrawGlyph(const Vec2& uvTopLeft, const Vec2& posTopLeft, float dx, float dy, Fonts::FontColour fcolour)
+	   virtual void DrawGlyph(cr_vec2 uvTopLeft, cr_vec2 uvBottomRight, cr_vec2 posTopLeft, cr_vec2 posBottomRight, Fonts::FontColour fcolour)
 	   {
-		   float x = posTopLeft.x;
-		   float y = posTopLeft.y;
+		   float x0 = posTopLeft.x;
+		   float y0 = posTopLeft.y;
+		   float x1 = posBottomRight.x;
+		   float y1 = posBottomRight.y;
+
+		   float u0 = uvTopLeft.x;
+		   float v0 = uvTopLeft.y;
+		   float u1 = uvBottomRight.x;
+		   float v1 = uvBottomRight.y;
 
 		   RGBAb colour = FontColourToSysColour(fcolour);
 
 		   SpriteVertexData drawFont{ 1.0f, 0.0f, 0.0f, 1.0f };
 
-		   guiVertices.push_back(GuiVertex{ {x,           y}, {{ uvTopLeft.x,      uvTopLeft.y},      1 }, drawFont, (RGBAb)colour }); // topLeft
-		   guiVertices.push_back(GuiVertex{ {x,      y + dy}, {{ uvTopLeft.x,      uvTopLeft.y + dy}, 1 }, drawFont, (RGBAb)colour }); // bottomLeft
-		   guiVertices.push_back(GuiVertex{ {x + dx, y + dy}, {{ uvTopLeft.x + dx, uvTopLeft.y + dy}, 1 }, drawFont, (RGBAb)colour }); // bottomRigh
-		   guiVertices.push_back(GuiVertex{ {x,           y}, {{ uvTopLeft.x,      uvTopLeft.y},      1 }, drawFont, (RGBAb)colour }); // topLeft
-		   guiVertices.push_back(GuiVertex{ {x + dx,      y}, {{ uvTopLeft.x + dx, uvTopLeft.y},      1 }, drawFont, (RGBAb)colour }); // TopRight
-		   guiVertices.push_back(GuiVertex{ {x + dx, y + dy}, {{ uvTopLeft.x + dx, uvTopLeft.y + dy}, 1 }, drawFont, (RGBAb)colour }); // bottomRight
+		   guiVertices.push_back(GuiVertex{ {x0, y0}, {{ u0, v0}, 1 }, drawFont, (RGBAb)colour }); // topLeft
+		   guiVertices.push_back(GuiVertex{ {x0, y1}, {{ u0, v1}, 1 }, drawFont, (RGBAb)colour }); // bottomLeft
+		   guiVertices.push_back(GuiVertex{ {x1, y1}, {{ u1, v1}, 1 }, drawFont, (RGBAb)colour }); // bottomRigh
+		   guiVertices.push_back(GuiVertex{ {x0, y0}, {{ u0, v0}, 1 }, drawFont, (RGBAb)colour }); // topLeft
+		   guiVertices.push_back(GuiVertex{ {x1, y0}, {{ u1, v0}, 1 }, drawFont, (RGBAb)colour }); // TopRight
+		   guiVertices.push_back(GuiVertex{ {x1, y1}, {{ u1, v1}, 1 }, drawFont, (RGBAb)colour }); // bottomRight
 	   }
 
 	   void FlushLayer()

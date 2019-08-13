@@ -72,11 +72,7 @@
 	(Float32 y = (innerRect.bottom - this.scrollHeight))
 	(y -=  4)
 	
-	(Int32 font = 0)
-	(FontDesc desc)
-	(gui.GetFontDescription font this.lastFontName desc)
-	
-	(Float32 dy = desc.height)
+	(Float32 dy = 72)
 	
 	(Int32 visibleCount = 0)
 	
@@ -85,7 +81,7 @@
 		(Rectf lineRect = innerRect.left y innerRect.right y1)
 		(if (line.Length != 0)
 			(if ((y1 > innerRect.top) and (y < innerRect.bottom))
-				(gui.DrawClippedText lineRect 0 line font 0xFFFFFFFF innerRect)
+				(gui.DrawClippedText lineRect 0 line 0 0xFFFFFFFF innerRect)
 				(visibleCount += 1)
 			)
 			(y += dy)

@@ -73,44 +73,11 @@
 	(Float32 nItemsF32 = (Sys.Maths.I32.ToFloat32 nItems))
 	
 	(Float32 pxHeightPerRow = (Floor (span.y / nItemsF32)))
-	
-	(Float32 minHeight = (pxHeightPerRow - 2))
 
-	(this.fontIndex = (GetLargestFontOfFamilyLessThanHeight g this.fontFamily minHeight))
-		
-	(if (this.fontIndex == -1)
-		(this.fontIndex = (GetLargestFontOfFamilyLessThanHeight g "Courier New" minHeight))
-	)
+	(this.fontIndex = 0)
 	
-	(if (this.fontIndex == -1)
-		(IStringBuilder msg = NewPathBuilder)
-		(msg.SetFormat 0 0 false false)
-		(#build msg "LayoutFixedRect(VerticamMenu...): could not find a font small enough for the job&n")
-		(#build msg "Rect: (" rect.left " " rect.top " " rect.right " " rect.bottom ")&n")
-		(#build msg "MinHeight: " minHeight " pixels.&n")
-		(Sys.Throw 0 msg)
-	)
-	
-	(IStringBuilder unused = NewTokenBuilder)
-	(FontDesc fd)
-	(g.GetFontDescription this.fontIndex unused fd)
-	
-	(Float32 interalYSpan = (fd.height * nItemsF32))
-	
-	(Float32 idealButtonHeight = (1.25 * fd.height))
-	
-	(Float32 buttonYHeight)
-	(Float32 buttonYBorder)
-	
-	(if (idealButtonHeight > pxHeightPerRow)
-		(buttonYHeight = pxHeightPerRow)
-		(buttonYBorder = 1)
-	else
-		(buttonYHeight = idealButtonHeight)
-		(Float32 idealTotalYSpan = (idealButtonHeight * nItemsF32))
-		(Float32 borderYSpan = (span.y - idealTotalYSpan))
-		(buttonYBorder = ((borderYSpan / (nItemsF32 + 1))))
-	)
+	(Float32 buttonYHeight = pxHeightPerRow)
+	(Float32 buttonYBorder = 1)
 	
 	(Float32 y = (rect.top + buttonYBorder))
 	
@@ -160,6 +127,8 @@
 	(g.FillRect this.outerRect colours.backColour)
 	(g.DrawBorder this.outerRect this.borderThickness colours.tl colours.tr colours.bl colours.br)
 	
+	(Float32 halfFontHeight = 50)
+	
 	(foreach item # this.items
 		(if (IsPointInRect this.cursorPos item.rect)
 			(colours = this.coloursHigh)
@@ -168,6 +137,16 @@
 		)
 		
 		(g.DrawBorder item.rect 1 colours.tl colours.tr colours.bl colours.br)
-		(g.DrawText item.rect this.alignment item.text this.fontIndex colours.fontColour)
+		
+		(Rectf textRect)
+		(textRect.left = item.rect.left)
+		(textRect.right = item.rect.right)
+		
+		(Float32 vCentre = (0.5 * (item.rect.top + item.rect.bottom)))
+		
+		(textRect.top = (vCentre - halfFontHeight))
+		(textRect.bottom = (vCentre + halfFontHeight))
+		
+		(g.DrawText textRect this.alignment item.text this.fontIndex colours.fontColour)
 	)
 )

@@ -29,7 +29,10 @@ float4 main(GuiPixelVertex p) : SV_TARGET
 	float4 spriteTexel = tx_BitmapSprite.Sample(spriteSampler, float3(base.uv.x, base.uv.y, svd.spriteIndex));
 	float4 materialTexel = tx_materials.Sample(matSampler, float3(base.uv.x, base.uv.y, svd.matIndex));
 	float4 imageColour = lerp(spriteTexel, materialTexel, svd.spriteToMatLerpFactor);
-	float fontAlpha = tx_FontSprite.Sample(fontSampler, base.uv).x;
-	p.colour.w = lerp(p.colour.w, fontAlpha * p.colour.w, base.fontBlend);
+	float fontDistance = tx_FontSprite.Sample(fontSampler, base.uv).x * 255.0;
+
+	float q = max(10.0 - fontDistance, 0) / 10.0;
+
+	p.colour.w = lerp(p.colour.w, q * p.colour.w, base.fontBlend);
 	return lerp(imageColour, p.colour, svd.lerpBitmapToColour);
 }

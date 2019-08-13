@@ -55,7 +55,7 @@ namespace ANON
 			RouteDrawTextBasic(pos, job, font, *pipeline, qrect);
 		}
 
-		void DrawGlyph(const Vec2& uvTopLeft, const Vec2& posTopLeft, float dx, float dy, Fonts::FontColour fcolour) override
+		void DrawGlyph(cr_vec2 uvTopLeft, cr_vec2 uvBottomRight, cr_vec2 posTopLeft, cr_vec2 posBottomRight, Fonts::FontColour fcolour) override
 		{
 			QuadVertices q = { 0 };
 			q.normals.a = normal;
@@ -64,14 +64,14 @@ namespace ANON
 
 			float u0 = ooFontWidth * (uvTopLeft.x + 0.5f);
 			float v1 = ooFontWidth * (uvTopLeft.y + 0.5f);
-			float u1 = ooFontWidth * (uvTopLeft.x + dx - 0.5f);
-			float v0 = ooFontWidth * (uvTopLeft.y + dy - 0.5f);
+			float u1 = ooFontWidth * (uvBottomRight.x - 0.5f);
+			float v0 = ooFontWidth * (uvBottomRight.y - 0.5f);
 			q.uv = { u0, v1, u1, v0 };
 			
 			float32 t0 = posTopLeft.x;
-			float32 t1 = t0 + dx;
+			float32 t1 = posBottomRight.x;
 			float32 s1 = virtualPixelsPerQuad - posTopLeft.y;
-			float32 s0 = s1 - dy;
+			float32 s0 = posBottomRight.y;
 			
 			q.positions.a = formatQuad.d + (t0 * tangent + s1 * vertical) * scale;
 			q.positions.b = formatQuad.d + (t1 * tangent + s1 * vertical) * scale;

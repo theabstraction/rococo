@@ -19,6 +19,7 @@ namespace Gisephone.Fonts.Generator
         private Font[] fonts = null;
         private BitmapSource bitmap = null;
         private FontDescriptors[] decriptors = null;
+        private BitmapSource distanceMap = null;
 
         public IEnumerable<Font> Fonts
         {
@@ -95,6 +96,19 @@ namespace Gisephone.Fonts.Generator
                     encoder.Save(fs);
                 }
             }
+
+            if (distanceMap != null)
+            {
+                string target = Path.GetFileNameWithoutExtension(filename) + ".dist.tif";
+                string dir = Path.GetDirectoryName(filename);
+                string fullfilename = dir + Path.DirectorySeparatorChar + target;
+                using (var fs = File.Create(fullfilename))
+                {
+                    var encoder = new TiffBitmapEncoder();
+                    encoder.Frames.Add(BitmapFrame.Create(distanceMap));
+                    encoder.Save(fs);
+                }
+            }
         }
         
         public void Render(DrawingContext dc, Rect rect)
@@ -112,6 +126,9 @@ namespace Gisephone.Fonts.Generator
             PixelFormat pf = PixelFormats.Gray8;
             int dpi = 96;
             bitmap = BitmapSource.Create(Width, Height, dpi, dpi, pf, null, pixels, Width);
+
+            var distanceCells = GDIFontGenerator.GenerateDistanceMap(Width, Height, pixels, fonts, decriptors);
+            distanceMap = BitmapSource.Create(Width, Height, dpi, dpi, pf, null, distanceCells, Width);
         }       
     }
 }

@@ -74,7 +74,7 @@
 (interface MHost.Graphics.IDropValueMenu
 	(extends MHost.Graphics.IControl)
 	(AddItem (IString text)(IExpression value)->)
-	(SetLine (IString fontFamily)(Rectf rect)(IGui g)->)
+	(SetLine (Rectf rect)(IGui g)->)
 	(SetUndefinedText (IString text)->)
 	(Select (Int32 index)-> )
 	(SetOverlay (IOverlayControl overlay)->)
@@ -96,7 +96,7 @@
 	(Int32 selection)
 	(Int32 fontIndex)
 	(IOverlayControl overlay)
-	(FontDesc fontDesc)
+	(Float32 fontHeight)
 	(Bool isActive)
 	(IString undefinedText)
 	(Bool isEnabled)
@@ -126,6 +126,7 @@
 	(this.outerRect = -1 -1 -1 -1)
 	(this.selection = -1)
 	(this.fontIndex = 0)
+	(this.fontHeight = 32)
 	(this.isActive = false)
 	(this.isEnabled = true)
 	(this.isGlowing = false)
@@ -160,19 +161,19 @@
 	)
 )
 
-(function DrawSelectedItem (DropValueMenu menu)(IGui g)(Bool isEnabled)-> :
-	(Int32 length = menu.items.Length)
+(method DropValueMenu.DrawSelectedItem (IGui g)(Bool isEnabled)-> :
+	(Int32 length = this.items.Length)
 	
 	(IString text)
-	(if ((menu.selection < length) and (menu.selection >= 0))
-		(text = (menu.items menu.selection text))
+	(if ((this.selection < length) and (this.selection >= 0))
+		(text = (this.items this.selection text))
 	else
-		(text = menu.undefinedText)
+		(text = this.undefinedText)
 	)
 	
-	(Int32 textColour = (GetTextColour menu.outerRect g menu.isEnabled))
+	(Int32 textColour = (GetTextColour this.outerRect g this.isEnabled))
 	
-	(g.DrawClippedText menu.textRect (#AlignmentFlagsLeft) text menu.fontIndex textColour menu.outerRect)
+	(g.DrawClippedText this.textRect (#AlignmentFlagsLeft) text this.fontIndex textColour this.outerRect)
 )
 
 (method DropValueMenu.RenderOverlay (OverlayProxyArgs args)-> :
@@ -181,7 +182,7 @@
 		(DrawStandardControlBorder args.g args.rect this.isEnabled this.isGlowing)
 		
 		(args.g.FillRect this.innerRect 0xFF000030)
-		(DrawSelectedItem this args.g this.isEnabled)
+		(this.DrawSelectedItem args.g this.isEnabled)
 	
 		(Rectf overlayInnerRect)
 		(ShrinkRectf args.rect overlayInnerRect 8)
@@ -192,16 +193,16 @@
 		
 		(foreach item # this.items
 			(Rectf itemRect)
-			(itemRect.left = (overlayInnerRect.left + (this.fontDesc.height * 0.25)))
-			(itemRect.right = (overlayInnerRect.right - (this.fontDesc.height * 0.25)))
+			(itemRect.left = (overlayInnerRect.left + (this.fontHeight * 0.25)))
+			(itemRect.right = (overlayInnerRect.right - (this.fontHeight * 0.25)))
 			(itemRect.top = y)
 			
-			(Float32 y1 = (y + this.fontDesc.height))
+			(Float32 y1 = (y + this.fontHeight))
 			(itemRect.bottom = y1)
 			(y = y1)
 			
 			(Int32 textColour = (GetTextColour itemRect args.g this.isEnabled))
-			(args.g.DrawClippedText itemRect (#AlignmentFlagsLeft) item.text this.fontIndex textColour itemRect)
+			(args.g.DrawText itemRect (#AlignmentFlagsLeft) item.text 0 textColour)
 		)
 	)
 )
@@ -214,11 +215,10 @@
 	(handler = this)
 )
 
-(method DropValueMenu.SetLine (IString fontName) (Rectf rect)(IGui g) -> :
+(method DropValueMenu.SetLine (Rectf rect)(IGui g) -> :
 	(this.outerRect = rect)
 	
 	(Float32 dy = (this.outerRect.bottom - this.outerRect.top))
-	(GetLargestFontOfFamilyLessThanHeight g fontName dy -> this.fontIndex)
 	
 	(Float32 x = (this.outerRect.left + 2))
 	(Float32 x1 = (this.outerRect.right -  2))
@@ -229,9 +229,6 @@
 	
 	(this.textRect = this.innerRect)
 	(this.textRect.left = (this.outerRect.left + (0.25 * dy)))
-	
-	(IStringBuilder fontName = NewTokenBuilder)
-	(g.GetFontDescription this.fontIndex fontName this.fontDesc)
 )
 
 (method DropValueMenu.OnMouseUpInOverlay (MouseClickArgs args)-> :
@@ -245,11 +242,11 @@
 		
 	(foreach i item # this.items
 		(Rectf itemRect)
-		(itemRect.left = (overlayInnerRect.left + (this.fontDesc.height * 0.25)))
-		(itemRect.right = (overlayInnerRect.right - (this.fontDesc.height * 0.25)))
+		(itemRect.left = (overlayInnerRect.left + (this.fontHeight * 0.25)))
+		(itemRect.right = (overlayInnerRect.right - (this.fontHeight * 0.25)))
 		(itemRect.top = y)
 		
-		(Float32 y1 = (y + this.fontDesc.height))
+		(Float32 y1 = (y + this.fontHeight))
 		(itemRect.bottom = y1)
 		(y = y1)
 		
@@ -274,7 +271,7 @@
 )
 
 (method DropValueMenu.Render (IGui g)-> :
-	(DrawSelectedItem this g this.isEnabled)
+	(this.DrawSelectedItem g this.isEnabled)
 	(DrawStandardControlBorder g this.outerRect this.isEnabled this.isGlowing)
 )
 

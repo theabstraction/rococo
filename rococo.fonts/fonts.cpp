@@ -28,7 +28,7 @@ namespace
 		}
 	}
 
-	class GlyphSet: public IGlyphSet
+	class GlyphSet : public IGlyphSet
 	{
 	private:
 		enum { MAX_INDEX = 255 };
@@ -45,7 +45,7 @@ namespace
 			this->specIndex = specIndex;
 
 			int charsInSet;
-         StringBuffer specCapture(specName, 64);
+			StringBuffer specCapture(specName, 64);
 			csv >> specCapture;
 			csv >> fontHeight;
 			csv >> fontAscent;
@@ -75,7 +75,7 @@ namespace
 				}
 
 				Glyph& g = glyphs[charValue];
-            ValidateItem vABC("ABC");
+				ValidateItem vABC("ABC");
 				csv >> vABC;
 				csv >> g.A;
 				csv >> g.B;
@@ -95,10 +95,10 @@ namespace
 			}
 		}
 
-		virtual const char* Name() const { return specName; }
-		virtual float FontHeight() const { return fontHeight; }
-		virtual int FontAscent() const { return fontAscent; }
-		virtual const Glyph& operator[](unsigned char index) const { return index < MAX_INDEX ? glyphs[index] : glyphs[defaultChar]; }
+		const char* Name() const override { return specName; }
+		float FontHeight() const override { return fontHeight; }
+		int FontAscent() const override { return fontAscent; }
+		const Glyph& operator[](unsigned char index) const override { return index < MAX_INDEX ? glyphs[index] : glyphs[defaultChar]; }
 	};
 
 	class GlyphsSpecSets : public IFontSupervisor
@@ -115,7 +115,7 @@ namespace
 
 			int32 width, height;
 
-         ValidateItem vSpecs("NumberOfSpecs");
+			ValidateItem vSpecs("NumberOfSpecs");
 			csv >> vSpecs >> numberOfGlyphSets >> width >> height;
 
 			scale.x = (float)width;
@@ -129,7 +129,7 @@ namespace
 			{
 				csv.AdvanceToNextLine();
 				int specIndex;
-            ValidateItem vSpec("Spec");
+				ValidateItem vSpec("Spec");
 				csv >> vSpec >> specIndex;
 
 				if (specIndex != j) Throw(0, "Spec index %d did not match j = %d in %s", specIndex, j, sourceName);
@@ -154,17 +154,17 @@ namespace
 			delete[] glyphsets;
 		}
 
-		virtual void Free()
+		void Free() override
 		{
 			delete this;
 		}
 
-		virtual int NumberOfGlyphSets() const 
+		int NumberOfGlyphSets() const override
 		{ 
 			return numberOfGlyphSets;
 		}
 
-		virtual const IGlyphSet& operator[](int index) const
+		const IGlyphSet& operator[](int index) const override
 		{
 			if (index < 0 || index >= numberOfGlyphSets)
 			{
@@ -173,7 +173,7 @@ namespace
 			return *glyphsets[index]; 
 		}
 
-		virtual const Vec4& TextureSpan() const 
+		const Vec4& TextureSpan() const override
 		{
 			return scale;
 		}
@@ -181,7 +181,7 @@ namespace
 
 	struct IGlyphCallback
 	{
-		virtual void OnGlyph(int column, const GuiRectf* clippingRect, const Glyph& g, float height, FontColour colour, bool isShadowed, GuiRectf& outputRect) = 0;
+		virtual void OnGlyph(int column, const GuiRectf* clippingRect, const Glyph& g, float scale, float targetHeight, FontColour colour, bool isShadowed, GuiRectf& outputRect) = 0;
 		virtual void OnNewLine() = 0;
 	};
 
@@ -191,6 +191,7 @@ namespace
 		FontColour colour;
 		bool shadow;
 		int fontIndex;
+		int fontHeight;
 		int spacesPerTab;
 		Vec2 cursor;
 		GuiRectf clipRect;
@@ -206,14 +207,22 @@ namespace
 			spacesPerTab(4),
 			clipRect(0, 0, 0, 0),
 			glyphCallback(_glyphCallback),
-			column(0)
+			column(0),
+			fontHeight(10)
 		{
 		}
 
-		virtual void AppendChar(char c, GuiRectf& outputRect)
+		void SetFontHeight(int _fontHeight) override
+		{
+			fontHeight = _fontHeight;
+		}
+
+		void AppendChar(char c, GuiRectf& outputRect) override
 		{
 			float specHeight = fg[fontIndex].FontHeight();
 			const Glyph& g = fg[fontIndex][c];
+
+			float scale = fontHeight / specHeight;
 
 			column++;
 			if (c == L'\t')
@@ -221,57 +230,57 @@ namespace
 				const Glyph& space = fg[fontIndex][' '];
 				for (int i = 0; i < spacesPerTab; ++i)
 				{
-					glyphCallback.OnGlyph(column, Width(clipRect) != 0 ? &clipRect : NULL, space, specHeight, colour, shadow, outputRect);
+					glyphCallback.OnGlyph(column, Width(clipRect) != 0 ? &clipRect : NULL, space, scale, (float) fontHeight, colour, shadow, outputRect);
 				}
 			}
 			else
 			{
-				glyphCallback.OnGlyph(column, Width(clipRect) != 0 ? &clipRect : NULL, g, specHeight, colour, shadow, outputRect);
+   				glyphCallback.OnGlyph(column, Width(clipRect) != 0 ? &clipRect : NULL, g, scale, (float) fontHeight, colour, shadow, outputRect);
 			}
 		}
 
-		virtual Vec2 GetCursor()
+		Vec2 GetCursor() override
 		{
 			return cursor;
 		}
 
-		virtual GuiRectf GetClipRect() const
+		GuiRectf GetClipRect() const override
 		{
 			return clipRect;
 		}
 
-		virtual void SetClipRect(const GuiRectf& clipRect)
+		void SetClipRect(const GuiRectf& clipRect) override
 		{
 			this->clipRect = clipRect;
 		}
 
-		virtual void SetFirstColumnIndex(int index)
+		void SetFirstColumnIndex(int index) override
 		{
 			column = index;
 		}
 
-		virtual void SetCursor(const Vec2& cursor)
+		void SetCursor(const Vec2& cursor) override
 		{
 			this->cursor = Vec2{ floorf(cursor.x), floorf(cursor.y) };
 		}
 
-		virtual void SetTextColour(FontColour colour)
+		void SetTextColour(FontColour colour) override
 		{
 			this->colour = colour;
 		}
 
-		virtual void SetShadow(bool shadow)
+		void SetShadow(bool shadow) override
 		{
 			this->shadow = shadow;
 		}
 
-		virtual float SetFontIndex(int fontIndex)
+		float SetFontIndex(int fontIndex) override
 		{
 			this->fontIndex = fontIndex;
 			return fg[fontIndex].FontHeight();
 		}
 
-		virtual void SetSpacesPerTab(int spacesPerTab)
+		void SetSpacesPerTab(int spacesPerTab) override
 		{
 			this->spacesPerTab = spacesPerTab;
 		}
@@ -302,72 +311,72 @@ namespace
 
 		IGlyphBuilder& Builder() { return *builder; }
 
-		virtual void OnGlyph(int column, const GuiRectf* clipRect, const Glyph& g, float height, FontColour colour, bool isShadowed, GuiRectf& outputRect)
+		void OnGlyph(int column, const GuiRectf* clipRect, const Glyph& g, float scale, float targetHeight, FontColour colour, bool isShadowed, GuiRectf& outputRect) override
 		{
-         bool isVisible = true;
-         if (clipRect != nullptr)
-         {
-            if (builder->cursor.y + height < clipRect->top)
-            {
-               isVisible = false;
-            }
-            else if (builder->cursor.y > clipRect->bottom)
-            {
-               isVisible = false;
-            }
-            else if ((builder->cursor.x + g.A + g.B) < clipRect->left)
-            {
-               isVisible = false;
-            }
-            else if (builder->cursor.x > clipRect->right)
-            {
-               isVisible = false;
-            }
-         }
-            
+			bool isVisible = true;
+			if (clipRect != nullptr)
+			{
+				if (builder->cursor.y + targetHeight < clipRect->top)
+				{
+					isVisible = false;
+				}
+				else if (builder->cursor.y > clipRect->bottom)
+				{
+					isVisible = false;
+				}
+				else if ((builder->cursor.x + scale * (g.A + g.B)) < clipRect->left)
+				{
+					isVisible = false;
+				}
+				else if (builder->cursor.x > clipRect->right)
+				{
+					isVisible = false;
+				}
+			}
+
 			GuiRectf glyphClipRect = clipRect == NULL ? GuiRectf(0, 0, 16384.0f, 16384.0f) : *clipRect;
 
 			// Since it is visible the lowest line in the glyph must be below the top line in the clip rect, and the top line in the glyph above the bottom line in the clip rect
 			// also the left side of the glyph is to the left of the right clip rect. amd the right side of the glyph is to the right of the left clip rect
 
-			float dy = (g.bottomRight.y - g.topLeft.y);
+			float dx = scale * (g.bottomRight.x - g.topLeft.x);
+			float dy = scale * (g.bottomRight.y - g.topLeft.y);
 
 			if (isVisible && isShadowed)
 			{
 				Vec2 shadowCursor = builder->cursor;
 				shadowCursor.x += 1.0f;
 				shadowCursor.y += 1.0f;
-				shadowCursor.x += g.A;
+				shadowCursor.x += scale * g.A;
 
-				pipeline.ClipGlyph(glyphClipRect, shadowCursor, g.topLeft, g.bottomRight, shadowColour);
+				pipeline.ClipGlyph(glyphClipRect, shadowCursor, g.topLeft, g.bottomRight, scale, shadowColour);
 
 				shadowCursor = builder->cursor;
 				shadowCursor.x += 2.0f;
 				shadowCursor.y += 2.0f;
-				shadowCursor.x += g.A;
+				shadowCursor.x += scale * g.A;
 
-				pipeline.ClipGlyph(glyphClipRect, shadowCursor, g.topLeft, g.bottomRight, shadowColour);
+				pipeline.ClipGlyph(glyphClipRect, shadowCursor, g.topLeft, g.bottomRight, scale, shadowColour);
 			}
 
-			builder->cursor.x += g.A;
+			builder->cursor.x += scale * g.A;
 
-			outputRect = GuiRectf(builder->cursor.x, builder->cursor.y, builder->cursor.x + g.bottomRight.x - g.topLeft.x, builder->cursor.y + dy);
+			outputRect = GuiRectf(builder->cursor.x, builder->cursor.y, builder->cursor.x + dx, builder->cursor.y + dy);
 
 			if (isVisible)
 			{
-				pipeline.ClipGlyph(glyphClipRect, builder->cursor, g.topLeft, g.bottomRight, colour);
+				pipeline.ClipGlyph(glyphClipRect, builder->cursor, g.topLeft, g.bottomRight, scale, colour);
 			}
 
-			builder->cursor.x += g.B + g.C;
+			builder->cursor.x += scale * (g.B + g.C);
 
-			lastHeight = max(lastHeight, height);
+			lastHeight = targetHeight;
 		}
 
-		virtual void OnNewLine()
+		void OnNewLine() override
 		{
 			left = builder->cursor.x;
 			builder->cursor.y += lastHeight;
-			lastHeight = 0;
 		}
 	};
 
@@ -381,18 +390,21 @@ namespace
 
 		}
 
-		virtual void Free()
+		void Free()
 		{
 			delete this;
 		}
 
-		virtual void ClipGlyph(const GuiRectf& glyphClip, const Vec2& cursor, const Vec2& glyphTopLeft, const Vec2& glyphBottomRight, FontColour rgbaColour)
+		void ClipGlyph(const GuiRectf& glyphClip, cr_vec2 cursor, cr_vec2 glyphTopLeft, cr_vec2 glyphBottomRight, float scale, FontColour rgbaColour) override
 		{
 			Vec2 t0 = glyphTopLeft, t1 = glyphBottomRight;
 			Vec2 p = cursor;
 
-			float dx = t1.x - t0.x;
-			float dy = t1.y - t0.y;
+			float du = t1.x - t0.x;
+			float dv = t1.y - t0.y;
+
+			float dx = du * scale;
+			float dy = dv * scale;
 
 			float ddx0 = 0;
 			float ddx1 = 0;
@@ -430,9 +442,11 @@ namespace
 			{
 				ddy1 = (p.y + dy) - glyphClip.bottom;
 				dy -= ddy1;
+				t1.y -= ddy1;
 			}
 
-			renderer.DrawGlyph(t0, p, dx, dy, rgbaColour);
+			Vec2 p1 = { p.x + dx, p.y + dy };
+			renderer.DrawGlyph(t0, t1, p, p1, rgbaColour);
 		}
 	};
 }
