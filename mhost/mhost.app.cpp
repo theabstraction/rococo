@@ -22,6 +22,12 @@ namespace MHost
 
 	void RunEnvironmentScript(Platform& platform, IEngineSupervisor* engine, cstr name, bool releaseAfterUse, bool trace);
 
+	namespace UI
+	{
+		void CaptureMouse(Rococo::Windows::IWindow& window);
+		void ReleaseMouse();
+	}
+
 	struct AppSceneBuilder : public IScene
 	{
 		Platform& platform;
@@ -325,6 +331,16 @@ namespace MHost
 				k = { 0 };
 				return 0;
 			}
+		}
+
+		void CaptureMouse() override
+		{
+			MHost::UI::CaptureMouse(this->platform.renderer.Window());
+		}
+
+		void ReleaseMouse() override
+		{
+			MHost::UI::ReleaseMouse();
 		}
 	};
 }

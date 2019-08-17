@@ -1,5 +1,28 @@
 namespace
 {
+	void NativeSysMathsF64Clamp(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+
+		double upper;
+		_offset += sizeof(upper);
+		ReadInput(upper, _sf, -_offset);
+
+		double lower;
+		_offset += sizeof(lower);
+		ReadInput(lower, _sf, -_offset);
+
+		double x;
+		_offset += sizeof(x);
+		ReadInput(x, _sf, -_offset);
+
+		double value = min(max(x, lower), upper);
+
+		_offset += sizeof(value);
+		WriteOutput(value, _sf, -_offset);
+	}
+
 	void NativeSysMathsF64Sin(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -452,6 +475,7 @@ namespace Sys { namespace Maths { namespace F64 {
 	void AddNativeCalls_SysMathsF64(Rococo::Script::IPublicScriptSystem& ss, void* nullContext = nullptr)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Sys.Maths.F64"));
+		ss.AddNativeCall(ns, NativeSysMathsF64Clamp, nullptr, ("Clamp(Float64 x)(Float64 lower)(Float64 upper) -> (Float64 value)"));
 		ss.AddNativeCall(ns, NativeSysMathsF64Sin, nullptr, ("Sin(Float64 radians) -> (Float64 value)"));
 		ss.AddNativeCall(ns, NativeSysMathsF64Cos, nullptr, ("Cos(Float64 radians) -> (Float64 value)"));
 		ss.AddNativeCall(ns, NativeSysMathsF64Tan, nullptr, ("Tan(Float64 radians) -> (Float64 value)"));

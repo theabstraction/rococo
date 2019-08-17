@@ -743,6 +743,26 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->SetNextScript(scriptName);
 	}
+	void NativeMHostIEngineCaptureMouse(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		MHost::IEngine* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->CaptureMouse();
+	}
+	void NativeMHostIEngineReleaseMouse(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		MHost::IEngine* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->ReleaseMouse();
+	}
 
 	void NativeGetHandleForMHostEngine(NativeCallEnvironment& _nce)
 	{
@@ -771,6 +791,8 @@ namespace MHost {
 		ss.AddNativeCall(ns, NativeMHostIEngineTryGetSpriteSpec, nullptr, ("IEngineTryGetSpriteSpec (Pointer hObject)(Sys.Type.IString resourceName)(Sys.MPlat.BitmapLocation loc) -> (Bool isSuccessful)"));
 		ss.AddNativeCall(ns, NativeMHostIEngineGetSpriteSpec, nullptr, ("IEngineGetSpriteSpec (Pointer hObject)(Sys.Type.IString resourceName)(Sys.MPlat.BitmapLocation loc) -> "));
 		ss.AddNativeCall(ns, NativeMHostIEngineSetNextScript, nullptr, ("IEngineSetNextScript (Pointer hObject)(Sys.Type.IString scriptName) -> "));
+		ss.AddNativeCall(ns, NativeMHostIEngineCaptureMouse, nullptr, ("IEngineCaptureMouse (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeMHostIEngineReleaseMouse, nullptr, ("IEngineReleaseMouse (Pointer hObject) -> "));
 	}
 }
 // BennyHill generated Sexy native functions for MHost::IDictionaryStream 

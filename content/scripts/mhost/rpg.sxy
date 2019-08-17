@@ -8,6 +8,8 @@
 	"!scripts/mhost/widgets/widgets.sxy"
 	"!scripts/mhost/widgets/menu.vertical.sxy"
 	"!scripts/mhost/widgets/uistack.sxy"
+	"!scripts/mhost/widgets/drag.list.sxy"
+	"!scripts/mhost/widgets/vscroll.sxy"
 	"!scripts/mhost/rpg/controls/credits.sxy"
 	"!scripts/mhost/rpg/controls/add.character.sxy"
 	"!scripts/mhost/rpg/controls/gen.name.sxy"
@@ -20,7 +22,6 @@
 	"!scripts/mhost/rpg/controls/toggle.label.sxy"
 	"!scripts/mhost/rpg/controls/label.button.sxy"
 	"!scripts/mhost/rpg/controls/new.game.screen.sxy"
-	"!scripts/mhost/rpg/controls/drag.list.sxy"
 	"!scripts/mhost/rpg/controls/image.button.sxy"
 )
 
@@ -51,12 +52,35 @@
 (interface RPG.IInputThread
 	(extends Sys.ICoroutine)
 	(SetScreen (IScreen screen)->)
+	(UIControl -> (IUIControl uiControl))
 )
 
 (class GuiInputThread 
 	(implements RPG.IInputThread)
+	(implements MHost.OS.IUIControl)
 	(IEngine engine)
 	(IScreen activeScreen)
+	(IEventHandler modalSink)
+	(IKeyboard keyboard)
+)
+
+(method GuiInputThread.UIControl -> (IUIControl control):
+	(control = this)
+)
+
+(method GuiInputThread.Destruct -> :
+	(engine.ReleaseMouse)
+)
+
+(method GuiInputThread.CaptureMouse (IEventHandler handler)-> :
+	(this.modalSink = handler) 
+	(this.engine.CaptureMouse)
+)
+
+(method GuiInputThread.ReleaseMouse (IEventHandler handler)-> :
+	(IEventHandler nullHandler)
+	(this.modalSink = nullHandler)
+	(this.engine.ReleaseMouse)
 )
 
 (method GuiInputThread.SetScreen (IScreen screen)-> :
@@ -88,9 +112,9 @@
 		(this.engine.PollKeyState keys)
 		
 		(while (this.engine.GetNextMouseEvent ev)
-			(TranslateMouseEvent ev this.activeScreen)
+			(TranslateMouseEvent ev this.activeScreen this.modalSink)
 		)
-		
+			
 		(while (this.engine.GetNextKeyboardEvent key)
 			(TranslateKeyboardEvent key this.activeScreen)
 		)
@@ -181,6 +205,20 @@
 	(this.uistack.RouteMouseEvent pos q)
 )
 
+(method OpeningScreen.OnMouseMove (Float32 x)(Float32 y) -> :
+	(Vec2 pos = x y)
+	
+	(IEventHandler evHandler = this)
+		
+	(OnUIStackItem q = 
+		(closure (UIStackItem item)->(Bool terminate):
+			(MouseClickArgs args = pos evHandler 0)
+			(item.handler.OnMouseMove args)
+		)
+	)
+	(this.uistack.RouteMouseEvent pos q)
+)
+
 (method OpeningScreen.OnMouseUp (Int32 button)(Float32 x)(Float32 y) -> :
 	(Vec2 pos = x y)
 	
@@ -263,6 +301,10 @@
 	(this.openingScreen = (NewOpeningScreen this.engine this))
 	(this.addCharacterScreen = (NewAddCharacterScreen this))
 	(this.newGameScreen = (NewNewGameScreen this))
+)
+
+(method GameBundle.UIControl -> (IUIControl uiControl): 
+	(uiControl = this.inputThread.UIControl)
 )
 
 (method GameBundle.Engine -> (IEngine engine):

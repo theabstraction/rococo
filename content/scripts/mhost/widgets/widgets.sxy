@@ -106,6 +106,43 @@
 
 (alias UseDefaultColourScheme MHost.Graphics.UseDefaultColourScheme)
 
+(using Sys.MPlat)
+
+(function DrawUpTriangle (IGui g)(Rectf bounds)(Int32 colour)-> :
+	(Float32 xC = (0.5 * (bounds.left + bounds.right)))
+	
+	(BaseVertexData nFont = (0 0) 0)
+	(SpriteVertexData noSprite = 1 0 0 0)
+	
+	(GuiTriangle tri = 
+		((xC bounds.top)				nFont noSprite colour)
+		((bounds.left bounds.bottom)	nFont noSprite colour)
+		((bounds.right bounds.bottom)	nFont noSprite colour)
+	)
+	
+	(g.DrawTriangle tri)
+)
+
+(function DrawDownTriangle (IGui g)(Rectf bounds)(Int32 colour)-> :
+	(Float32 xC = (0.5 * (bounds.left + bounds.right)))
+	
+	(BaseVertexData nFont = (0 0) 0)
+	(SpriteVertexData noSprite = 1 0 0 0)
+	
+	(GuiTriangle tri = 
+		((xC bounds.bottom)			nFont noSprite colour)
+		((bounds.left bounds.top)	nFont noSprite colour)
+		((bounds.right bounds.top)	nFont noSprite colour)
+	)
+	
+	(g.DrawTriangle tri)
+)
+
+(namespace MHost.Graphics)
+
+(alias DrawUpTriangle MHost.Graphics.DrawUpTriangle)
+(alias DrawDownTriangle MHost.Graphics.DrawDownTriangle)
+
 (function DrawStandardControlBorder (IGui gui)(Rectf rect)(Bool isEnabled)(Bool isGlowing)-> :
 	(Vec2 cursorPos)
 	(gui.GetCursorPos cursorPos)
@@ -169,6 +206,7 @@
 
 (interface MHost.Graphics.IUIEventHandler
 	(OnMouseDown (Int32 button) (Float32 x)(Float32 y) ->)
+	(OnMouseMove (Float32 x)(Float32 y) ->)
 	(OnMouseUp (Int32 button) (Float32 x)(Float32 y) ->)
 	(OnWheel (Int32 spin) ->)
 	(OnAsciiChar (Int32 asciiValue)->)
@@ -205,27 +243,56 @@
 	)
 )
 
-(function TranslateMouseEvent (MHost.OS.MouseEvent me)(IUIEventHandler handler)-> :
+(function TranslateMouseEvent (MHost.OS.MouseEvent me)(IUIEventHandler handler)(IEventHandler modalSink)-> :
 	(Float32 x = (ToFloat32 me.cursorPos.x))
 	(Float32 y = (ToFloat32 me.cursorPos.y))
 	
-	(if (HasFlags me.buttons 0x3FF)
-		(if (HasFlags me.buttons 0x001) (handler.OnMouseDown 0 x y))
-		(if (HasFlags me.buttons 0x002) (handler.OnMouseUp   0 x y))
-		(if (HasFlags me.buttons 0x004) (handler.OnMouseDown 1 x y))
-		(if (HasFlags me.buttons 0x008) (handler.OnMouseUp   1 x y))
-		(if (HasFlags me.buttons 0x010) (handler.OnMouseDown 2 x y))
-		(if (HasFlags me.buttons 0x020) (handler.OnMouseUp   2 x y))
-		(if (HasFlags me.buttons 0x040) (handler.OnMouseDown 3 x y))
-		(if (HasFlags me.buttons 0x080) (handler.OnMouseUp   3 x y))
-		(if (HasFlags me.buttons 0x100) (handler.OnMouseDown 4 x y))
-		(if (HasFlags me.buttons 0x200) (handler.OnMouseUp   4 x y))
+	(if (HasFlags me.buttons 0x400)
+		(Int32 spin = (RightShift me.buttons 16))
+		(handler.OnWheel spin)
+		(return)
+	)
+	
+	(if (modalSink ?)
+		(MouseClickArgs args)
+		(args.pos = x y)
+		
+		(if (HasFlags me.buttons 0x3FF)
+			(if (HasFlags me.buttons 0x001) (args.button = 0) (modalSink.OnMouseDown args))
+			(if (HasFlags me.buttons 0x002) (args.button = 0) (modalSink.OnMouseUp   args))
+			(if (HasFlags me.buttons 0x004) (args.button = 1) (modalSink.OnMouseDown args))
+			(if (HasFlags me.buttons 0x008) (args.button = 1) (modalSink.OnMouseUp   args))
+			(if (HasFlags me.buttons 0x010) (args.button = 2) (modalSink.OnMouseDown args))
+			(if (HasFlags me.buttons 0x020) (args.button = 2) (modalSink.OnMouseUp   args))
+			(if (HasFlags me.buttons 0x040) (args.button = 3) (modalSink.OnMouseDown args))
+			(if (HasFlags me.buttons 0x080) (args.button = 3) (modalSink.OnMouseUp   args))
+			(if (HasFlags me.buttons 0x100) (args.button = 4) (modalSink.OnMouseDown args))
+			(if (HasFlags me.buttons 0x200) (args.button = 4) (modalSink.OnMouseUp   args))
+		else
+			(args.button = 0)
+			(modalSink.OnMouseMove args)
+		)		
+	else
+		(if (HasFlags me.buttons 0x3FF)
+			(if (HasFlags me.buttons 0x001) (handler.OnMouseDown 0 x y))
+			(if (HasFlags me.buttons 0x002) (handler.OnMouseUp   0 x y))
+			(if (HasFlags me.buttons 0x004) (handler.OnMouseDown 1 x y))
+			(if (HasFlags me.buttons 0x008) (handler.OnMouseUp   1 x y))
+			(if (HasFlags me.buttons 0x010) (handler.OnMouseDown 2 x y))
+			(if (HasFlags me.buttons 0x020) (handler.OnMouseUp   2 x y))
+			(if (HasFlags me.buttons 0x040) (handler.OnMouseDown 3 x y))
+			(if (HasFlags me.buttons 0x080) (handler.OnMouseUp   3 x y))
+			(if (HasFlags me.buttons 0x100) (handler.OnMouseDown 4 x y))
+			(if (HasFlags me.buttons 0x200) (handler.OnMouseUp   4 x y))
+		else
+			(handler.OnMouseMove x y)
+		)	
+	)
+)
 
-		(if (HasFlags me.buttons 0x400)
-			(Int32 spin = (RightShift me.buttons 16))
-			(handler.OnWheel spin)
-		)
-	)	
+(interface MHost.OS.IUIControl
+	(CaptureMouse (IEventHandler handler)->)
+	(ReleaseMouse (IEventHandler handler)->)
 )
 
 (alias TranslateMouseEvent MHost.OS.TranslateMouseEvent)

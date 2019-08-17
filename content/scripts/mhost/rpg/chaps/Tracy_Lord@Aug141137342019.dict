@@ -1,0 +1,11 @@
+// Rococo::Sex::S-Parser is recommended for parsing this file
+
+(' S-Format-Dictionary-v1.0 : 7 entries ( 
+	(I32 "Strength" 246)
+	(I32 "Agility" 278)
+	(I32 "Wellness" 334)
+	(I32 "Psyche" 124)
+	(I32 "Ego" 101)
+	(I32 "Maths" 110)
+	(STR "Name" "Tracy Lord")
+))

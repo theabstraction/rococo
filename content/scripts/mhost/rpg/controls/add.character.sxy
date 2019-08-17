@@ -687,6 +687,20 @@
 	(this.uistack.RouteMouseEvent pos q)
 )
 
+(method AddCharacterScreen.OnMouseMove (Float32 x)(Float32 y) -> :
+	(Vec2 pos = x y)
+	
+	(IEventHandler evHandler = this)
+		
+	(OnUIStackItem q = 
+		(closure (UIStackItem item)->(Bool terminate):
+			(MouseClickArgs args = pos evHandler 0)
+			(item.handler.OnMouseMove args)
+		)
+	)
+	(this.uistack.RouteMouseEvent pos q)
+)
+
 (method AddCharacterScreen.OnMouseUp (Int32 button)(Float32 x)(Float32 y) -> :
 	(Vec2 pos = x y)
 	

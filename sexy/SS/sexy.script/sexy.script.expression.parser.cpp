@@ -842,7 +842,7 @@ namespace Rococo
 			
 			if (PublicMemberCount(varStruct) + 3 + offset != directive.NumberOfElements())
 			{
-				Throw(directive, ("Expecting one element in the constructor for every member of the structure"));
+				Throw(directive, "Expecting one element in the constructor for every member of the structure:\n Source: '%s - %s'", varStruct.Module().Name(), varStruct.Name());
 			}
 
 			int publicCount = 0;

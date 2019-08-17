@@ -38,7 +38,7 @@
 	(GuiVertex a b c)
 )
 
-(alias GuiVertex Sys.MPlat.GuiTriangle)
+(alias GuiTriangle Sys.MPlat.GuiTriangle)
 
 (struct GuiQuad
 	(GuiVertex a b c d) // topleft, topRight, bottomLeft, bottomRight

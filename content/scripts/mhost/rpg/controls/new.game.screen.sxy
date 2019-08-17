@@ -40,7 +40,7 @@
 	(this.screenSpan = -1 -1)
 	(this.cursorPos = -1 -1)
 	(this.uistack = (MHost.Graphics.NewUIStack))
-	(this.roster = (NewDragList))
+	(this.roster = (NewDragList bundle.UIControl))
 	(this.uistack.AddTopLevelControl this.roster "roster")
 )
 
@@ -100,7 +100,7 @@
 	(Float32 top = (this.screenSpan.y - 200))
 	(Float32 bottom = (this.screenSpan.y - 70))
 	(Rectf hintRect = 200 top right bottom)
-	(g.DrawLeftAligned hintRect "Drag and drop portraits to character slots to build a party." 2 0xFFFFFFFF 50 120)
+	(g.DrawLeftAligned hintRect "Drag and drop portraits to character slots to build a party." 2 36 0xFFFFFFFF 50 120)
 	
 	(RenderTree this.uistack g)
 	
@@ -132,6 +132,21 @@
 		(closure (UIStackItem item)->(Bool terminate):
 			(MouseClickArgs args = pos evHandler button)
 			(item.handler.OnMouseUp args)
+		)
+	)
+	
+	(this.uistack.RouteMouseEvent pos q)
+)
+
+(method NewGameScreen.OnMouseMove (Float32 x)(Float32 y) -> :
+	(Vec2 pos = x y)
+	
+	(IEventHandler evHandler = this)
+	
+	(OnUIStackItem q = 
+		(closure (UIStackItem item)->(Bool terminate):
+			(MouseClickArgs args = pos evHandler 0)
+			(item.handler.OnMouseMove args)
 		)
 	)
 	

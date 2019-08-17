@@ -1,5 +1,28 @@
 namespace
 {
+	void NativeSysMathsI64Clamp(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+
+		int64 upper;
+		_offset += sizeof(upper);
+		ReadInput(upper, _sf, -_offset);
+
+		int64 lower;
+		_offset += sizeof(lower);
+		ReadInput(lower, _sf, -_offset);
+
+		int64 x;
+		_offset += sizeof(x);
+		ReadInput(x, _sf, -_offset);
+
+		int64 value = min(max(x, lower), upper);
+
+		_offset += sizeof(value);
+		WriteOutput(value, _sf, -_offset);
+	}
+
 	void NativeSysMathsI64Abs(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -160,6 +183,7 @@ namespace Sys { namespace Maths { namespace I64 {
 	void AddNativeCalls_SysMathsI64(Rococo::Script::IPublicScriptSystem& ss, void* nullContext = nullptr)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Sys.Maths.I64"));
+		ss.AddNativeCall(ns, NativeSysMathsI32Clamp, nullptr, ("Clamp(Int64 x)(Int64 lower)(Int64 upper) -> (Int64 value)"));
 		ss.AddNativeCall(ns, NativeSysMathsI64Abs, nullptr, ("Abs(Int64 x) -> (Int64 value)"));
 		ss.AddNativeCall(ns, NativeSysMathsI64LeftShift, nullptr, ("LeftShift(Int64 x)(Int64 bitCount) -> (Int64 value)"));
 		ss.AddNativeCall(ns, NativeSysMathsI64RightShift, nullptr, ("RightShift(Int64 x)(Int64 bitCount) -> (Int64 value)"));

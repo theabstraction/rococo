@@ -1,5 +1,27 @@
 namespace
 {
+	void NativeSysMathsF32Clamp(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+
+		float upper;
+		_offset += sizeof(upper);
+		ReadInput(upper, _sf, -_offset);
+
+		float lower;
+		_offset += sizeof(lower);
+		ReadInput(lower, _sf, -_offset);
+
+		float x;
+		_offset += sizeof(x);
+		ReadInput(x, _sf, -_offset);
+
+		float value = clamp(x, lower, upper);
+		_offset += sizeof(value);
+		WriteOutput(value, _sf, -_offset);
+	}
+
 	void NativeSysMathsAddVec2fVec2f(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -576,6 +598,7 @@ namespace Sys { namespace Maths { namespace F32 {
 	void AddNativeCalls_SysMathsF32(Rococo::Script::IPublicScriptSystem& ss, void* nullContext = nullptr)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Sys.Maths.F32"));
+		ss.AddNativeCall(ns, NativeSysMathsF32Clamp, nullptr, ("Clamp(Float32 x)(Float32 lower)(Float32 upper) -> (Float32 value)"));
 		ss.AddNativeCall(ns, NativeSysMathsF32Sin, nullptr, ("Sin(Float32 radians) -> (Float32 value)"));
 		ss.AddNativeCall(ns, NativeSysMathsF32Cos, nullptr, ("Cos(Float32 radians) -> (Float32 value)"));
 		ss.AddNativeCall(ns, NativeSysMathsF32Tan, nullptr, ("Tan(Float32 radians) -> (Float32 value)"));

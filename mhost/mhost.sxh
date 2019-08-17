@@ -63,6 +63,8 @@
 		(TryGetSpriteSpec (IString resourceName)(BitmapLocation loc) -> (Bool isSuccessful))
 		(GetSpriteSpec (IString resourceName)(BitmapLocation loc))
 		(SetNextScript (IString scriptName))
+		(CaptureMouse)
+		(ReleaseMouse)
 	)
 	(factory MHost.Engine)
 )

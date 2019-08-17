@@ -1,0 +1,188 @@
+(using Sys)
+(using Sys.Maths)
+(using Sys.Maths.F32)
+(using Sys.Type)
+(using Sys.MPlat)
+(using Sys.Random)
+(using Sys.Reflection)
+(using Sys.Type.Strings)
+(using MHost)
+(using MHost.OS)
+(using MHost.Graphics)
+(using Rococo)
+(using Rococo.Graphics)
+(using Rococo.Audio)
+
+(interface MHost.Graphics.IVericalScrollBar
+	(Handler -> (IEventHandler handler))
+	(Layout (Rectf rect) ->)
+	(PxToDocPos (Float32 y) -> (Float32 docPos))
+	(Render (IGui g)-> )
+	(SetDocumentLength (Float32 length) -> )
+	(SetPageSize (Float32 size) -> )
+)
+
+(class VerticalScrollBar
+	(implements MHost.Graphics.IVericalScrollBar)
+	(implements IEventHandler)
+	(Rectf vscrollRect)
+	(Rectf upRect)
+	(Rectf downRect)
+	(Rectf sliderRect)
+	(Float32 pageSize)
+	(Float32 documentLength)
+	(Float32 startPos)
+	(Float32 dragPoint)
+	(Float32 vscrollWidth)
+	(Float32 cursor)
+	(Float32 sliderRange)
+	(IUIControl uiControl)
+)
+
+(method VerticalScrollBar.Handler -> (IEventHandler handler):
+	(handler = this)
+)
+
+(method VerticalScrollBar.Construct (IUIControl uiControl): 
+	(this.vscrollRect = 0 0 0 0)
+	(this.pageSize = 100)
+	(this.documentLength = 1000)
+	(this.startPos = 100)
+	(this.dragPoint = -1)
+	(this.cursor = 0)
+	(this.sliderRange = 0)
+	(this.uiControl = uiControl)
+)
+
+(method VerticalScrollBar.PxToDocPos (Float32 y)-> (Float32 docPos) :
+	(Float32 top = this.upRect.bottom)
+	(Float32 bottom = this.downRect.top)
+	
+	(Float32 y0 = top)
+	(Float32 dy = (y - y0))
+	(Float32 scalePxToDoc = (this.documentLength / this.sliderRange))
+	(docPos = (dy * scalePxToDoc))
+)
+
+(factory MHost.Graphics.NewVerticalScrollBar MHost.Graphics.IVericalScrollBar (IUIControl uiControl) :
+	(construct VerticalScrollBar uiControl)
+)
+
+(method VerticalScrollBar.UpdateButtonRect -> :
+	(Float32 scaleDocToPx = (this.sliderRange / this.documentLength))
+	(Float32 topPosPx = (scaleDocToPx * this.cursor))
+	(Float32 sliderHeight = (scaleDocToPx * this.pageSize))
+	
+	(this.sliderRect.left = (this.vscrollRect.left + 2))
+	(this.sliderRect.right = (this.vscrollRect.right - 2))
+	(this.sliderRect.top = (2 + (this.upRect.bottom + topPosPx)))
+	(this.sliderRect.bottom = ((this.sliderRect.top + sliderHeight) - 2))
+)
+
+(method VerticalScrollBar.Layout (Rectf rect) -> :
+	(this.vscrollRect = rect)
+	
+	(Float32 top = this.vscrollRect.top)
+	(Float32 bottom = this.vscrollRect.bottom)
+	(Float32 vscrollWidth = (rect.right - rect.left))
+	
+	(this.upRect.top = (top + 2))
+	(this.upRect.left = (rect.left + 2))
+	(this.upRect.right = (rect.right - 2))
+	(this.upRect.bottom = (top + vscrollWidth))
+	
+	(this.downRect.top = (rect.bottom - vscrollWidth))
+	(this.downRect.left = (rect.left + 2))
+	(this.downRect.right = (rect.right - 2))
+	(this.downRect.bottom = (rect.bottom - 2))
+	
+	(this.sliderRange = ((this.downRect.top - this.upRect.bottom) - 2))
+	
+	(this.UpdateButtonRect)
+)
+
+(method VerticalScrollBar.SetDocumentLength (Float32 length)-> :
+	(this.documentLength = length)
+	(this.UpdateButtonRect)
+)
+
+(method VerticalScrollBar.SetPageSize (Float32 size)-> :
+	(this.pageSize = size)
+	(this.UpdateButtonRect)
+)
+
+(method VerticalScrollBar.OnMouseDown (MouseClickArgs args) -> :
+	(Vec2 pos = args.pos)
+	
+	(if (IsPointInRect pos this.sliderRect)
+		(this.dragPoint = pos.y)
+		(this.startPos = this.sliderRect.top)
+		(this.uiControl.CaptureMouse this)
+	)
+)
+
+(method VerticalScrollBar.OnMouseMove (MouseClickArgs args) -> :
+	(if (this.dragPoint >= 0)	
+		(Vec2 pos = args.pos)
+		(Float32 delta = (pos.y - this.dragPoint))
+		
+		(Float32 pxPos = (this.startPos + delta))
+		(this.PxToDocPos pxPos -> this.cursor)
+		(this.cursor = (Sys.Maths.F32.Clamp this.cursor 0 (this.documentLength - this.pageSize)))
+		
+		(this.UpdateButtonRect)
+	)
+)
+
+(method VerticalScrollBar.OnMouseUp (MouseClickArgs args) -> :
+	(this.dragPoint = -1)
+	(this.uiControl.ReleaseMouse this)
+)
+
+(method VerticalScrollBar.Render (IGui g)-> :
+	(Vec2 cursorPos)
+	(g.GetCursorPos cursorPos)
+	
+	(if (IsPointInRect cursorPos this.vscrollRect)
+		(g.FillRect this.vscrollRect 0xFF404040)
+		(g.DrawBorder this.vscrollRect 1 0xFFFFFFFF 0xFFAFAFAF 0xFF8F8F8F 0xFF5F5F5F)
+	else
+		(g.FillRect this.vscrollRect 0xFF303030)
+		(g.DrawBorder this.vscrollRect 1 0xFFC0C0C0 0xFF808080 0xFF606060 0xFF404040)
+	)
+	
+	(g.DrawBorder this.upRect 1 0xFFFFFFFF 0xFFAFAFAF 0xFF8F8F8F 0xFF5F5F5F)
+	(g.DrawBorder this.downRect 1 0xFFFFFFFF 0xFFAFAFAF 0xFF8F8F8F 0xFF5F5F5F)
+	
+	(Rectf upClickArrow)
+	(upClickArrow.left = (this.upRect.left + 6))
+	(upClickArrow.top = (this.upRect.top + 5))
+	(upClickArrow.right = (this.upRect.right - 6))
+	(upClickArrow.bottom = (this.upRect.bottom - 5))
+	
+	(if (IsPointInRect cursorPos this.upRect)
+		(DrawUpTriangle g upClickArrow 0xFFFFFFFF)
+	else
+		(DrawUpTriangle g upClickArrow 0xFFA0A0A0)
+	)
+	
+	(Rectf downClickArrow)
+	(downClickArrow.left = (this.downRect.left + 6))
+	(downClickArrow.top = (this.downRect.top + 5))
+	(downClickArrow.right = (this.downRect.right - 6))
+	(downClickArrow.bottom = (this.downRect.bottom - 5))
+	
+	(if (IsPointInRect cursorPos this.downRect)
+		(DrawUpTriangle g downClickArrow 0xFFFFFFFF)
+	else
+		(DrawUpTriangle g downClickArrow 0xFFA0A0A0)
+	)
+	
+	(if (IsPointInRect cursorPos this.sliderRect)
+		(g.FillRect this.sliderRect 0xFFA0A0A0)
+		(g.DrawBorder this.sliderRect 1 0xFFFFFFFF 0xFFAFAFAF 0xFF8F8F8F 0xFF5F5F5F)
+	else
+		(g.FillRect this.sliderRect 0xFF808080)
+		(g.DrawBorder this.sliderRect 1 0xFFC0C0C0 0xFF808080 0xFF606060 0xFF404040)
+	)
+)

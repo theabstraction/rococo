@@ -9,6 +9,19 @@ using namespace Rococo;
 namespace MHost
 {
 	IDirectApp* CreateApp(Platform& platform, IDirectAppControl& control);
+
+	namespace UI
+	{
+		void CaptureMouse(Rococo::Windows::IWindow& window)
+		{
+			::SetCapture(window);
+		}
+
+		void ReleaseMouse()
+		{
+			::ReleaseCapture();
+		}
+	}
 }
 
 #ifdef _DEBUG
