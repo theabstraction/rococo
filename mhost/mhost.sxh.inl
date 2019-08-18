@@ -763,6 +763,20 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->ReleaseMouse();
 	}
+	void NativeMHostIEngineCursorPosition(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Vec2* cursorPosition;
+		_offset += sizeof(cursorPosition);
+		ReadInput(cursorPosition, _sf, -_offset);
+
+		MHost::IEngine* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->CursorPosition(*cursorPosition);
+	}
 
 	void NativeGetHandleForMHostEngine(NativeCallEnvironment& _nce)
 	{
@@ -793,6 +807,7 @@ namespace MHost {
 		ss.AddNativeCall(ns, NativeMHostIEngineSetNextScript, nullptr, ("IEngineSetNextScript (Pointer hObject)(Sys.Type.IString scriptName) -> "));
 		ss.AddNativeCall(ns, NativeMHostIEngineCaptureMouse, nullptr, ("IEngineCaptureMouse (Pointer hObject) -> "));
 		ss.AddNativeCall(ns, NativeMHostIEngineReleaseMouse, nullptr, ("IEngineReleaseMouse (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeMHostIEngineCursorPosition, nullptr, ("IEngineCursorPosition (Pointer hObject)(Sys.Maths.Vec2 cursorPosition) -> "));
 	}
 }
 // BennyHill generated Sexy native functions for MHost::IDictionaryStream 

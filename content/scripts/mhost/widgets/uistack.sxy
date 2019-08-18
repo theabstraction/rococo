@@ -16,6 +16,7 @@
 	(SetVisible (IControl control)(Bool visible)-> )
 	(ForEachItemByZOrder (OnUIStackItem callback)->(Bool shouldContinue))
 	(RouteMouseEvent (Vec2 cursorPos)(OnUIStackItem callback)->)
+	(RouteSysKey (Bool isUp)(Int32 virtualKeyCode)->)
 )
 
 (archetype MHost.Graphics.OnUIStackItem (UIStackItem item) -> (Bool terminateNow))
@@ -36,12 +37,14 @@
 
 (class UIStack (implements MHost.Graphics.IUIStack)
 	(UIStackItem root)
+	(Vec2 lastCursorPos)
 )
 
 (method UIStack.Construct ->  (construct root) : 
 	(this.root.name = "~root~")
 	(this.root.isVisible = true)
 	(this.root.isClippedByParent = true)
+	(this.lastCursorPos = 0 0)
 )
 
 (factory MHost.Graphics.NewUIStack IUIStack : (construct UIStack))
@@ -218,7 +221,29 @@
 )
 
 (method UIStack.RouteMouseEvent (Vec2 cursorPos)(OnUIStackItem callback) -> :
+	(this.lastCursorPos = cursorPos)
 	(RouteMouseEventRecursive this.root cursorPos callback)
+)
+
+(struct SysKeyData
+	(Bool isUp)
+	(Int32 virtualKeyCode)
+	(Vec2 cursorPos)
+)
+
+(alias SysKeyData MHost.OS.SysKeyData)
+
+(method UIStack.RouteSysKey (Bool isUp)(Int32 virtualKeyCode)-> :
+	(Vec2 lastCursorPos = this.lastCursorPos)
+	(OnUIStackItem routeKey = 
+		(closure (UIStackItem item)->(Bool terminate):
+			(IEventHandler handler = (item.control.GetEventHandler))
+			(SysKeyData skd = isUp virtualKeyCode lastCursorPos)
+			(handler.OnSysKey skd)
+			(terminate = true)
+		)
+	)
+	(RouteMouseEventRecursive this.root this.lastCursorPos routeKey)
 )
 
 (function RenderTree (IUIStack tree)(IGui gui)-> :

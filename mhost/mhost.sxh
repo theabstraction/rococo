@@ -65,6 +65,7 @@
 		(SetNextScript (IString scriptName))
 		(CaptureMouse)
 		(ReleaseMouse)
+		(CursorPosition (Vec2 cursorPosition) ->)
 	)
 	(factory MHost.Engine)
 )

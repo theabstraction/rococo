@@ -101,6 +101,8 @@ namespace MHost
 		HString mainScript = "!scripts/mhost/mhost.init.sxy";
 		bool queuedForExecute = false;
 
+		Vec2 cursorPosition;
+
 		// Busy event handler responds to resource loading and renders progress panel
 		void OnBusy(const Rococo::Events::BusyEvent& be)
 		{
@@ -312,6 +314,7 @@ namespace MHost
 
 		boolean32 GetNextMouseEvent(Rococo::MouseEvent& me) override
 		{
+			cursorPosition = { (float)me.cursorPos.x, (float)me.cursorPos.y };
 			return (boolean32)control.TryGetNextMouseEvent(me);
 		}
 
@@ -341,6 +344,11 @@ namespace MHost
 		void ReleaseMouse() override
 		{
 			MHost::UI::ReleaseMouse();
+		}
+
+		void CursorPosition(Vec2& cursorPosition)
+		{
+			cursorPosition = this->cursorPosition;
 		}
 	};
 }

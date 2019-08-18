@@ -19,7 +19,7 @@
 )
 
 (class NewGameScreen 
-	(implements MHost.IScreen)
+	(implements IScreen)
 	(implements IEventHandler)
 	
 	(IBundle bundle) 
@@ -160,5 +160,6 @@
 )
 
 (method NewGameScreen.OnSysKey (Bool isUp)(Int32 virtualKeyCode)-> :
+	(this.uistack.RouteSysKey isUp virtualKeyCode)
 )
 

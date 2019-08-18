@@ -20,6 +20,7 @@
 	(Render (IGui g)-> )
 	(SetDocumentLength (Float32 length) -> )
 	(SetPageSize (Float32 size) -> )
+	(SetLineHeight (Float32 height) -> )
 )
 
 (class VerticalScrollBar
@@ -31,12 +32,19 @@
 	(Rectf sliderRect)
 	(Float32 pageSize)
 	(Float32 documentLength)
+	(Float32 lineHeight)
 	(Float32 startPos)
 	(Float32 dragPoint)
 	(Float32 vscrollWidth)
 	(Float32 cursor)
 	(Float32 sliderRange)
 	(IUIControl uiControl)
+	(Int32 keyLineDown)
+	(Int32 keyLineUp)
+	(Int32 keyPageDown)
+	(Int32 keyPageUp)
+	(Int32 keyHome)
+	(Int32 keyEnd)
 )
 
 (method VerticalScrollBar.Handler -> (IEventHandler handler):
@@ -48,10 +56,20 @@
 	(this.pageSize = 100)
 	(this.documentLength = 1000)
 	(this.startPos = 100)
+	(this.lineHeight = 5)
 	(this.dragPoint = -1)
 	(this.cursor = 0)
 	(this.sliderRange = 0)
 	(this.uiControl = uiControl)
+	
+	(IKeyboard keyboard (Keyboard))
+	
+	(this.keyLineDown = (keyboard.GetVKeyFromName "DOWN"))
+	(this.keyLineUp = (keyboard.GetVKeyFromName "UP"))
+	(this.keyPageUp = (keyboard.GetVKeyFromName "PGUP"))
+	(this.keyPageDown = (keyboard.GetVKeyFromName "PGDOWN"))
+	(this.keyHome = (keyboard.GetVKeyFromName "HOME"))
+	(this.keyEnd = (keyboard.GetVKeyFromName "END"))
 )
 
 (method VerticalScrollBar.PxToDocPos (Float32 y)-> (Float32 docPos) :
@@ -111,6 +129,10 @@
 	(this.UpdateButtonRect)
 )
 
+(method VerticalScrollBar.SetLineHeight (Float32 height)-> :
+	(this.lineHeight = height)
+)
+
 (method VerticalScrollBar.OnMouseDown (MouseClickArgs args) -> :
 	(Vec2 pos = args.pos)
 	
@@ -137,6 +159,37 @@
 (method VerticalScrollBar.OnMouseUp (MouseClickArgs args) -> :
 	(this.dragPoint = -1)
 	(this.uiControl.ReleaseMouse this)
+)
+
+(method VerticalScrollBar.OnSysKey (SysKeyData key) -> :
+	(if ((this.dragPoint < 0) and (not key.isUp))
+		(if (key.virtualKeyCode == this.keyLineDown)
+			(this.cursor = (this.cursor + this.lineHeight))
+		)
+		
+		(if (key.virtualKeyCode == this.keyLineUp)
+			(this.cursor = (this.cursor - this.lineHeight))
+		)
+		
+		(if (key.virtualKeyCode == this.keyPageDown)
+			(this.cursor = (this.cursor + this.pageSize))
+		)
+		
+		(if (key.virtualKeyCode == this.keyPageUp)
+			(this.cursor = (this.cursor - this.pageSize))
+		)
+		
+		(if (key.virtualKeyCode == this.keyHome)
+			(this.cursor = 0)
+		)
+		
+		(if (key.virtualKeyCode == this.keyEnd)
+			(this.cursor = this.documentLength)
+		)
+		
+		(this.cursor = (Sys.Maths.F32.Clamp this.cursor 0 (this.documentLength - this.pageSize)))
+		(this.UpdateButtonRect)
+	)
 )
 
 (method VerticalScrollBar.Render (IGui g)-> :
