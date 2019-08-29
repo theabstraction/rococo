@@ -1,27 +1,28 @@
-(interface Sys.ICat (attribute dispatch))
+(namespace EntryPoint) 
+(using Sys) 
+(using Sys.Type) 
+(using Sys.Maths)
 
-(class Cat (implements Sys.ICat) (Int32 id))
-
-(method Cat.Construct (Int32 id): 
-	(this.id = id)
-)
-(factory Sys.NewCat Sys.ICat (Int32 id) :
-	(construct Cat id)
+(interface Sys.IRobot
+	(Think ->)
 )
 
-(struct MewArgs (Int32 id))
-
-(method Cat.Mew (MewArgs args) -> : 
-	(args.id = this.id)
+(class Robot
+(implements Sys.IRobot)
 )
 
-(namespace EntryPoint)
+(method Robot.Think -> : )
 
-(function Main -> (Int32 exitCode): 
-   (Sys.ICat cat (Sys.NewCat 773))
-   (MewArgs args)
-   (cat.Mew args)
-   (exitCode = args.id)
+(method Robot.Construct : )
+
+(factory Sys.NewRobot Sys.IRobot : (construct Robot))
+
+(function Main -> (Int32 result): 
+	(array Sys.IRobot robots 4)
+	(Sys.IRobot robby (Sys.NewRobot))
+	(robots.Push robby)
+	(foreach robot # robots 
+		(robot.Think)
+	)
 )
-
 (alias Main EntryPoint.Main)

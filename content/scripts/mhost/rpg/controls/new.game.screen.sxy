@@ -30,9 +30,24 @@
 	
 	(array Slot slots) 
 
-	
-	(IDragList roster)
+	(IListBuilder roster)
 )
+
+(class PlayerRow
+	(implements IListRow)
+)
+
+(method PlayerRow.Render (IGui g)(Rectf rect)-> :
+	(g.DrawBorder rect 4 0xFFFFFFFF 0xFFAFAFAF 0xFF8F8F8F 0xFF5F5F5F)
+)
+
+(method PlayerRow.GetSpan (Vec2 span)-> :
+	(span = 200 64)
+)
+
+(method PlayerRow.Construct : )
+
+(factory RPG.NewPlayerRow IListRow : (construct PlayerRow))
 
 (method NewGameScreen.Construct (IBundle bundle) -> (construct slots 5): 
 	(this.bundle = bundle)
@@ -40,8 +55,26 @@
 	(this.screenSpan = -1 -1)
 	(this.cursorPos = -1 -1)
 	(this.uistack = (MHost.Graphics.NewUIStack))
-	(this.roster = (NewDragList bundle.UIControl))
+	(this.roster = (NewListBuilder bundle.UIControl 100))
 	(this.uistack.AddTopLevelControl this.roster "roster")
+	
+	(IListRow row1 (NewPlayerRow))
+	(this.roster.AddRow row1)
+	
+	(IListRow row2 (NewPlayerRow))
+	(this.roster.AddRow row2)
+	
+	(IListRow row3 (NewPlayerRow))
+	(this.roster.AddRow row3)
+	
+	(IListRow row4 (NewPlayerRow))
+	(this.roster.AddRow row4)
+	
+	(IListRow row5 (NewPlayerRow))
+	(this.roster.AddRow row5)
+	
+	(IListRow row6 (NewPlayerRow))
+	(this.roster.AddRow row6)
 )
 
 (factory RPG.NewNewGameScreen MHost.IScreen (IBundle bundle):

@@ -671,6 +671,16 @@ struct Gui : public MHost::IGui
 	{
 		return gc.Renderer().FontMetrics().NumberOfGlyphSets();
 	}
+
+	void SetScissorRect(const Rococo::GuiRectf& rect) override
+	{
+		gc.SetScissorRect(rect);
+	}
+
+	void ClearScissorRect() override
+	{
+		gc.ClearScissorRect();
+	}
 };
 
 namespace MHost

@@ -2173,6 +2173,9 @@ namespace ANON
 
 		   dc.RSSetState(spriteRaterizering);
 
+		   D3D11_RECT rect = { 0, 0, screenSpan.x, screenSpan.y };
+		   dc.RSSetScissorRects(1, &rect);
+
 		   FLOAT blendFactorUnused[] = { 0,0,0,0 };
 		   dc.OMSetBlendState(alphaBlend, blendFactorUnused, 0xffffffff);
 		   dc.IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -2553,6 +2556,22 @@ namespace ANON
 				   }
 			   }
 		   }
+	   }
+
+	   void SetScissorRect(const Rococo::GuiRectf& rect) override
+	   {
+		   D3D11_RECT d11Rect;
+		   d11Rect.left = (LONG) rect.left;
+		   d11Rect.top = (LONG)rect.top;
+		   d11Rect.right = (LONG)rect.right;
+		   d11Rect.bottom = (LONG)rect.bottom;
+		   dc.RSSetScissorRects(1, &d11Rect);
+	   }
+
+	   void ClearScissorRect() override
+	   {
+		   D3D11_RECT rect = { 0, 0, screenSpan.x, screenSpan.y };
+		   dc.RSSetScissorRects(1, &rect);
 	   }
    };
 }

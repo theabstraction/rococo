@@ -8,7 +8,7 @@
 	"!scripts/mhost/widgets/widgets.sxy"
 	"!scripts/mhost/widgets/menu.vertical.sxy"
 	"!scripts/mhost/widgets/uistack.sxy"
-	"!scripts/mhost/widgets/drag.list.sxy"
+	"!scripts/mhost/widgets/list.builder.sxy"
 	"!scripts/mhost/widgets/vscroll.sxy"
 	"!scripts/mhost/rpg/controls/credits.sxy"
 	"!scripts/mhost/rpg/controls/add.character.sxy"
@@ -103,20 +103,20 @@
 	(Int32 upKey = (keyboard.GetVKeyFromName "W"))
 	(Int32 downKey = (keyboard.GetVKeyFromName "S")) */
 	
-	(MouseEvent ev)
-	(KeyboardEvent key)
+	(MouseEvent mouseEvent)
+	(KeyboardEvent keyEvent)
 	
-	(KeyState keys)
+//	(KeyState keys)
 			
 	(while this.engine.IsRunning
-		(this.engine.PollKeyState keys)
+	//	(this.engine.PollKeyState keys)
 		
-		(while (this.engine.GetNextMouseEvent ev)
-			(TranslateMouseEvent ev this.activeScreen this.modalSink)
+		(while (this.engine.GetNextMouseEvent mouseEvent)
+			(TranslateMouseEvent mouseEvent this.activeScreen this.modalSink)
 		)
 			
-		(while (this.engine.GetNextKeyboardEvent key)
-			(TranslateKeyboardEvent key this.activeScreen)
+		(while (this.engine.GetNextKeyboardEvent keyEvent)
+			(TranslateKeyboardEvent keyEvent this.activeScreen)
 		)
 		
 		(yield 1000)

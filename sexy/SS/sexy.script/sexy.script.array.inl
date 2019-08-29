@@ -523,6 +523,8 @@ namespace Rococo
 		   int32 index = registers[VM::REGISTER_D12].int32Value;
 		   uint8* pElement = ((uint8*)a->Start) + index * a->ElementLength;
 		   InterfacePointer* ppInterface = (InterfacePointer*)pElement;
+		   ObjectStub* pObject = InterfaceToInstance(*ppInterface);
+		   pObject->refCount++;
 		   registers[VM::REGISTER_D7].vPtrValue = *ppInterface;
 
 #ifdef _DEBUG

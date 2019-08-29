@@ -39,7 +39,7 @@ namespace Rococo
          spriteRenderingDesc.DepthBiasClamp = 0.0f;
          spriteRenderingDesc.SlopeScaledDepthBias = 0.0f;
          spriteRenderingDesc.DepthClipEnable = FALSE;
-         spriteRenderingDesc.ScissorEnable = FALSE;
+         spriteRenderingDesc.ScissorEnable = TRUE;
          spriteRenderingDesc.MultisampleEnable = FALSE;
 
          ID3D11RasterizerState* sr = nullptr;

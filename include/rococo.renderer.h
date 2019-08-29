@@ -109,6 +109,8 @@ namespace Rococo
 		virtual IRenderer& Renderer() = 0;
 		virtual auto SelectTexture(ID_TEXTURE id)->Vec2i = 0; // select texture and returns span
 		virtual void SetGuiShader(cstr pixelShader) = 0;
+		virtual void SetScissorRect(const Rococo::GuiRectf& rect) = 0;
+		virtual void ClearScissorRect() = 0;
 	};
 
 	struct ObjectInstance

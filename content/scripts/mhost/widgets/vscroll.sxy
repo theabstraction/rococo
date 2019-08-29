@@ -21,6 +21,8 @@
 	(SetDocumentLength (Float32 length) -> )
 	(SetPageSize (Float32 size) -> )
 	(SetLineHeight (Float32 height) -> )
+	(GetSliderRange -> (Float32 range))
+	(GetSliderPos -> (Float32 docPos))
 )
 
 (class VerticalScrollBar
@@ -47,6 +49,10 @@
 	(Int32 keyEnd)
 )
 
+(method VerticalScrollBar.GetSliderPos -> (Float32 docPos):
+	(docPos = this.cursor)
+)
+
 (method VerticalScrollBar.Handler -> (IEventHandler handler):
 	(handler = this)
 )
@@ -70,6 +76,10 @@
 	(this.keyPageDown = (keyboard.GetVKeyFromName "PGDOWN"))
 	(this.keyHome = (keyboard.GetVKeyFromName "HOME"))
 	(this.keyEnd = (keyboard.GetVKeyFromName "END"))
+)
+
+(method VerticalScrollBar.GetSliderRange -> (Float32 range):
+	(range = this.sliderRange)
 )
 
 (method VerticalScrollBar.PxToDocPos (Float32 y)-> (Float32 docPos) :

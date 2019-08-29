@@ -554,6 +554,30 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->SetGuiShaders(pixelShaderFilename);
 	}
+	void NativeMHostIGuiSetScissorRect(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::GuiRectf* rect;
+		_offset += sizeof(rect);
+		ReadInput(rect, _sf, -_offset);
+
+		MHost::IGui* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetScissorRect(*rect);
+	}
+	void NativeMHostIGuiClearScissorRect(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		MHost::IGui* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->ClearScissorRect();
+	}
 
 }
 
@@ -579,6 +603,8 @@ namespace MHost {
 		ss.AddNativeCall(ns, NativeMHostIGuiGetScreenSpan, nullptr, ("IGuiGetScreenSpan (Pointer hObject)(Sys.Maths.Vec2 span) -> "));
 		ss.AddNativeCall(ns, NativeMHostIGuiGetCursorPos, nullptr, ("IGuiGetCursorPos (Pointer hObject)(Sys.Maths.Vec2 pos) -> "));
 		ss.AddNativeCall(ns, NativeMHostIGuiSetGuiShaders, nullptr, ("IGuiSetGuiShaders (Pointer hObject)(Sys.Type.IString pixelShaderFilename) -> "));
+		ss.AddNativeCall(ns, NativeMHostIGuiSetScissorRect, nullptr, ("IGuiSetScissorRect (Pointer hObject)(Sys.Maths.Rectf rect) -> "));
+		ss.AddNativeCall(ns, NativeMHostIGuiClearScissorRect, nullptr, ("IGuiClearScissorRect (Pointer hObject) -> "));
 	}
 }
 // BennyHill generated Sexy native functions for MHost::IEngine 

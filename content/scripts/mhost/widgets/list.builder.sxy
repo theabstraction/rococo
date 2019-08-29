@@ -1,0 +1,116 @@
+(using Sys)
+(using Sys.Maths)
+(using Sys.Maths.F32)
+(using Sys.Type)
+(using Sys.MPlat)
+(using Sys.Random)
+(using Sys.Reflection)
+(using Sys.Type.Strings)
+(using MHost)
+(using MHost.OS)
+(using MHost.Graphics)
+(using Rococo)
+(using Rococo.Graphics)
+(using Rococo.Audio)
+
+(interface MHost.Graphics.IListRow
+	(Render (IGui g)(Rectf rect)->)
+	(GetSpan (Vec2 span)->)
+)
+
+(interface MHost.Graphics.IListBuilder
+	(extends MHost.Graphics.IControl)
+	(SetRect (Rectf rect)(IGui g) -> )
+	(AddRow (IListRow row) -> )
+)
+
+(class ListBuilder
+	(implements IListBuilder)
+	(Rectf outerRect)
+	(IVericalScrollBar verticalScrollBar)
+	(array IListRow rows)
+	(Vec2 totalSpan)
+	(Rectf vscrollRect)
+) 
+
+(method ListBuilder.Construct (IUIControl uiControl)(Int32 maxRows) -> (construct rows maxRows):
+	(this.outerRect = -1 -1 -1 -1)
+	(this.verticalScrollBar = (NewVerticalScrollBar uiControl))
+	(this.totalSpan = 0 0)
+)
+
+(method ListBuilder.GetRect (Rectf rect)-> :
+	(rect = this.outerRect)
+)
+
+(method ListBuilder.AddRow (IListRow row)-> :
+	(this.rows.Push row)
+	
+	(Vec2 span)
+	(row.GetSpan span)
+	
+	(this.totalSpan.x = (Sys.Maths.F32.MaxOf span.x this.totalSpan.x))
+	(this.totalSpan.y += span.y)
+	
+	(this.verticalScrollBar.SetDocumentLength this.totalSpan.y)
+	(this.verticalScrollBar.SetPageSize this.verticalScrollBar.GetSliderRange)
+)
+
+(method ListBuilder.GetEventHandler ->(IEventHandler evHandler):
+	(evHandler = this.verticalScrollBar.Handler)
+)
+
+(factory MHost.Graphics.NewListBuilder MHost.Graphics.IListBuilder (IUIControl uiControl)(Int32 maxRows):
+	(construct ListBuilder uiControl maxRows)
+)
+
+(method ListBuilder.SetRect (Rectf rect)(IGui g) -> :
+	(this.outerRect = rect)
+	
+	(this.vscrollRect.left = (rect.right - 21))
+	(this.vscrollRect.right = (rect.right - 1))
+	(this.vscrollRect.top = (rect.top + 1))
+	(this.vscrollRect.bottom = (rect.bottom - 1))
+	
+	(this.verticalScrollBar.Layout this.vscrollRect)
+)
+
+(method ListBuilder.Render (IGui g)-> :
+	(this.verticalScrollBar.Render g)
+	
+	(Vec2 cursorPos)
+	(g.GetCursorPos cursorPos)
+	
+	(Float32 x = 0)
+	(Float32 sliderPos = (0 - this.verticalScrollBar.GetSliderPos))
+	
+	(Float32 y0 = sliderPos)
+	
+	(Float32 outerSpan = ((this.outerRect.bottom - this.outerRect.top) - 2))
+	
+	// Render from top to bottom. y gives number of pixels above the outerRect line
+	(foreach row # this.rows
+		(Vec2 rowSpan)
+		(row.GetSpan rowSpan)
+		(Float32 y1 = (y0 + rowSpan.y))
+		
+		(if ((y1 > 0) and (y0 < outerSpan))	
+			(Rectf rowRect)
+			(rowRect.left = (this.outerRect.left + 1))
+			(rowRect.right = (this.vscrollRect.left - 1))
+			(rowRect.top = ((this.outerRect.top + 1) + y0))
+			(rowRect.bottom = ((this.outerRect.top + 1) + y1)) 
+			(g.SetScissorRect rowRect)
+			(row.Render g rowRect)
+			(g.ClearScissorRect)
+			
+			(y0 = y1)
+		)
+	)
+	
+	(if (IsPointInRect cursorPos this.outerRect)
+		(g.DrawBorder this.outerRect 1 0xFFFFFFFF 0xFFAFAFAF 0xFF8F8F8F 0xFF5F5F5F)
+	else
+		(g.DrawBorder this.outerRect 1 0xFFCFCFCF 0xFF8F8F8F 0xFF6F6F6F 0xFF3F3F3F)
+	)
+)
