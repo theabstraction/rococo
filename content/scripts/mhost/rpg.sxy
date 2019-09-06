@@ -30,10 +30,12 @@
 	
 (using Sys)
 (using Sys.Maths)
+(using Sys.Maths.F32)
 (using Sys.Type)
-(using Sys.MPlat)
 (using Sys.Random)
 (using Sys.Type.Strings)
+
+(using MPlat)
 (using MHost)
 (using MHost.OS)
 (using MHost.Graphics)
@@ -41,11 +43,10 @@
 (using Rococo.Graphics)
 (using Rococo.Audio)
 
-(using Sys.Maths.F32)
 (using Sys.Maths.I32)
 
 (namespace RPG)
-(namespace MHost.Graphics)
+
 
 (using RPG)
 

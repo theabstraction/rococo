@@ -106,7 +106,7 @@
 
 (alias UseDefaultColourScheme MHost.Graphics.UseDefaultColourScheme)
 
-(using Sys.MPlat)
+(using MPlat)
 
 (function DrawUpTriangle (IGui g)(Rectf bounds)(Int32 colour)-> :
 	(Float32 xC = (0.5 * (bounds.left + bounds.right)))

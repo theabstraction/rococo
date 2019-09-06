@@ -1,9 +1,10 @@
 (using Sys)
 (using Sys.Maths)
 (using Sys.Type)
-(using Sys.MPlat)
 (using Sys.Random)
 (using Sys.Type.Strings)
+
+(using MPlat)
 (using MHost)
 (using MHost.OS)
 (using MHost.Graphics)

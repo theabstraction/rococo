@@ -1,28 +1,14 @@
 (namespace EntryPoint) 
+	(alias Main EntryPoint.Main)
+	
 (using Sys) 
 (using Sys.Type) 
 (using Sys.Maths)
 
-(interface Sys.IRobot
-	(Think ->)
-)
-
-(class Robot
-(implements Sys.IRobot)
-)
-
-(method Robot.Think -> : )
-
-(method Robot.Construct : )
-
-(factory Sys.NewRobot Sys.IRobot : (construct Robot))
-
 (function Main -> (Int32 result): 
-	(array Sys.IRobot robots 4)
-	(Sys.IRobot robby (Sys.NewRobot))
-	(robots.Push robby)
-	(foreach robot # robots 
-		(robot.Think)
+	(array Sys.Type.IString items 4)
+	(foreach item # items 
+		(Sys.Print item)
 	)
 )
-(alias Main EntryPoint.Main)
+

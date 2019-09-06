@@ -13235,6 +13235,36 @@ namespace
 	   ValidateLogs();
    }
 
+   void TestEmptyArrayOfInterfaces(IPublicScriptSystem& ss)
+   {
+	   cstr src =
+		   "(namespace EntryPoint) \n"
+		   "(using Sys) \n"
+		   "(using Sys.Type) \n"
+		   "(using Sys.Maths)\n"
+
+		   "(function Main -> (Int32 result): \n"
+		   "	(array Sys.Type.IString items 4)\n"
+		   "    (foreach item # items (Sys.Print item))\n"
+		   ")\n"
+		   "(alias Main EntryPoint.Main) \n";
+
+	   Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(src, -1, Vec2i{ 0,0 }, __FUNCTION__);
+	   Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+	   VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+	   vm.Push(77); // Allocate stack space for the int32 x
+
+	   vm.Core().SetLogger(&s_logger);
+	   EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+	   validate(result == EXECUTERESULT_TERMINATED);
+
+	   int x = vm.PopInt32();
+	   validate(x == 0);
+	   ValidateLogs();
+   }
+
    void RunCollectionTests()
    {
 	   TEST(TestMap);
@@ -13396,6 +13426,7 @@ namespace
 	{
 		validate(true);
 
+		TEST(TestEmptyArrayOfInterfaces);
 		TEST(TestArrayOfInterfacesBuilder);
 
 		TEST(TestClamp1);

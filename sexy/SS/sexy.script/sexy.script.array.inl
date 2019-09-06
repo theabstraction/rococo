@@ -1203,6 +1203,10 @@ namespace Rococo
 		   else
 		   {
 			   AddVariable(ce, NameString::From(refName), elementType);
+			   VariantValue nullVal;
+			   nullVal.vPtrValue = (uint8*) (elementType.GetInterface(0).UniversalNullInstance()) + ObjectStub::BYTECOUNT_INSTANCE_TO_INTERFACE0;
+			   ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, nullVal, BITCOUNT_POINTER);
+			   ce.Builder.AssignTempToVariable(0, refName);
 		   }
 
 		   AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 6, Rococo::ROOT_TEMPDEPTH + 6, BITCOUNT_POINTER);

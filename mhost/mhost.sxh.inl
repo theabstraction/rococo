@@ -585,15 +585,15 @@ namespace MHost {
 	void AddNativeCalls_MHostIGui(Rococo::Script::IPublicScriptSystem& ss, MHost::IGui* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("MHost.Native"));
-		ss.AddNativeCall(ns, NativeMHostIGuiDrawTriangle, nullptr, ("IGuiDrawTriangle (Pointer hObject)(Sys.MPlat.GuiTriangle t) -> "));
-		ss.AddNativeCall(ns, NativeMHostIGuiDrawQuad, nullptr, ("IGuiDrawQuad (Pointer hObject)(Sys.MPlat.GuiQuad q) -> "));
+		ss.AddNativeCall(ns, NativeMHostIGuiDrawTriangle, nullptr, ("IGuiDrawTriangle (Pointer hObject)(MPlat.GuiTriangle t) -> "));
+		ss.AddNativeCall(ns, NativeMHostIGuiDrawQuad, nullptr, ("IGuiDrawQuad (Pointer hObject)(MPlat.GuiQuad q) -> "));
 		ss.AddNativeCall(ns, NativeMHostIGuiDrawBorder, nullptr, ("IGuiDrawBorder (Pointer hObject)(Sys.Maths.Rectf rect)(Float32 pxThickness)(Int32 tl)(Int32 tr)(Int32 bl)(Int32 br) -> "));
 		ss.AddNativeCall(ns, NativeMHostIGuiFillRect, nullptr, ("IGuiFillRect (Pointer hObject)(Sys.Maths.Rectf rect)(Int32 colour) -> "));
-		ss.AddNativeCall(ns, NativeMHostIGuiDrawColouredSprite, nullptr, ("IGuiDrawColouredSprite (Pointer hObject)(Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(Sys.MPlat.BitmapLocation loc)(Float32 blendFactor)(Int32 colour) -> "));
+		ss.AddNativeCall(ns, NativeMHostIGuiDrawColouredSprite, nullptr, ("IGuiDrawColouredSprite (Pointer hObject)(Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(MPlat.BitmapLocation loc)(Float32 blendFactor)(Int32 colour) -> "));
 		ss.AddNativeCall(ns, NativeMHostIGuiDrawLeftAligned, nullptr, ("IGuiDrawLeftAligned (Pointer hObject)(Sys.Maths.Rectf rect)(Sys.Type.IString text)(Int32 fontIndex)(Int32 fontHeight)(Int32 colour)(Float32 rightHardEdge)(Float32 rightSoftEdge) -> "));
-		ss.AddNativeCall(ns, NativeMHostIGuiDrawScaledColouredSprite, nullptr, ("IGuiDrawScaledColouredSprite (Pointer hObject)(Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(Sys.MPlat.BitmapLocation loc)(Float32 blendFactor)(Int32 colour)(Float32 scaleFactor) -> "));
-		ss.AddNativeCall(ns, NativeMHostIGuiDrawSprite, nullptr, ("IGuiDrawSprite (Pointer hObject)(Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(Sys.MPlat.BitmapLocation loc) -> "));
-		ss.AddNativeCall(ns, NativeMHostIGuiStretchSprite, nullptr, ("IGuiStretchSprite (Pointer hObject)(Sys.Maths.Rectf rect)(Sys.MPlat.BitmapLocation loc) -> "));
+		ss.AddNativeCall(ns, NativeMHostIGuiDrawScaledColouredSprite, nullptr, ("IGuiDrawScaledColouredSprite (Pointer hObject)(Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(MPlat.BitmapLocation loc)(Float32 blendFactor)(Int32 colour)(Float32 scaleFactor) -> "));
+		ss.AddNativeCall(ns, NativeMHostIGuiDrawSprite, nullptr, ("IGuiDrawSprite (Pointer hObject)(Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(MPlat.BitmapLocation loc) -> "));
+		ss.AddNativeCall(ns, NativeMHostIGuiStretchSprite, nullptr, ("IGuiStretchSprite (Pointer hObject)(Sys.Maths.Rectf rect)(MPlat.BitmapLocation loc) -> "));
 		ss.AddNativeCall(ns, NativeMHostIGuiDrawClippedText, nullptr, ("IGuiDrawClippedText (Pointer hObject)(Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Int32 colour)(Sys.Maths.Rectf clipRect) -> "));
 		ss.AddNativeCall(ns, NativeMHostIGuiDrawTextWithCaret, nullptr, ("IGuiDrawTextWithCaret (Pointer hObject)(Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Int32 colour)(Sys.Maths.Rectf clipRect)(Int32 caretPos) -> "));
 		ss.AddNativeCall(ns, NativeMHostIGuiDrawText, nullptr, ("IGuiDrawText (Pointer hObject)(Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Int32 colour) -> "));
@@ -828,8 +828,8 @@ namespace MHost {
 		ss.AddNativeCall(ns, NativeMHostIEngineIsRunning, nullptr, ("IEngineIsRunning (Pointer hObject) -> (Bool isRunning)"));
 		ss.AddNativeCall(ns, NativeMHostIEngineShutdown, nullptr, ("IEngineShutdown (Pointer hObject) -> "));
 		ss.AddNativeCall(ns, NativeMHostIEngineYieldForSystemMessages, nullptr, ("IEngineYieldForSystemMessages (Pointer hObject)(Int32 sleepMS) -> "));
-		ss.AddNativeCall(ns, NativeMHostIEngineTryGetSpriteSpec, nullptr, ("IEngineTryGetSpriteSpec (Pointer hObject)(Sys.Type.IString resourceName)(Sys.MPlat.BitmapLocation loc) -> (Bool isSuccessful)"));
-		ss.AddNativeCall(ns, NativeMHostIEngineGetSpriteSpec, nullptr, ("IEngineGetSpriteSpec (Pointer hObject)(Sys.Type.IString resourceName)(Sys.MPlat.BitmapLocation loc) -> "));
+		ss.AddNativeCall(ns, NativeMHostIEngineTryGetSpriteSpec, nullptr, ("IEngineTryGetSpriteSpec (Pointer hObject)(Sys.Type.IString resourceName)(MPlat.BitmapLocation loc) -> (Bool isSuccessful)"));
+		ss.AddNativeCall(ns, NativeMHostIEngineGetSpriteSpec, nullptr, ("IEngineGetSpriteSpec (Pointer hObject)(Sys.Type.IString resourceName)(MPlat.BitmapLocation loc) -> "));
 		ss.AddNativeCall(ns, NativeMHostIEngineSetNextScript, nullptr, ("IEngineSetNextScript (Pointer hObject)(Sys.Type.IString scriptName) -> "));
 		ss.AddNativeCall(ns, NativeMHostIEngineCaptureMouse, nullptr, ("IEngineCaptureMouse (Pointer hObject) -> "));
 		ss.AddNativeCall(ns, NativeMHostIEngineReleaseMouse, nullptr, ("IEngineReleaseMouse (Pointer hObject) -> "));

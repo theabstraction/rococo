@@ -1,20 +1,21 @@
+(using Sys.Type)
 (using Sys.Maths)
-(namespace Sys.MPlat)
+(namespace MPlat)
 
 (struct BitmapLocation
 	(Recti rect)
 	(Int32 arrayIndex)
 )
 
-(using Sys.MPlat)
-(alias BitmapLocation Sys.MPlat.BitmapLocation)
+(using MPlat)
+(alias BitmapLocation MPlat.BitmapLocation)
 
 (struct BaseVertexData
 	(Vec2 uv)
 	(Float32 fontBlend) // 0 -> normal triangle, 1 -> modulate with font texture
 )
 
-(alias BaseVertexData Sys.MPlat.BaseVertexData)
+(alias BaseVertexData MPlat.BaseVertexData)
 
 (struct SpriteVertexData
 	(Float32 lerpBitmapToColour) // 1.0 -> use colour, 0.0 -> use bitmap texture
@@ -23,7 +24,7 @@
 	(Float32 textureToMatLerpFactor) // 0 -> use textureIndex, 1 -> use matIndex, lerping in between
 )
 
-(alias SpriteVertexData Sys.MPlat.SpriteVertexData)
+(alias SpriteVertexData MPlat.SpriteVertexData)
 
 (struct GuiVertex
 	(Vec2 pos)
@@ -32,16 +33,18 @@
 	(Int32 aabbggrr)
 )
 
-(alias GuiVertex Sys.MPlat.GuiVertex)
+(alias GuiVertex MPlat.GuiVertex)
 
 (struct GuiTriangle
 	(GuiVertex a b c)
 )
 
-(alias GuiTriangle Sys.MPlat.GuiTriangle)
+(alias GuiTriangle MPlat.GuiTriangle)
 
 (struct GuiQuad
 	(GuiVertex a b c d) // topleft, topRight, bottomLeft, bottomRight
 )
 
-(alias GuiQuad Sys.MPlat.GuiQuad)
+(alias GuiQuad MPlat.GuiQuad)
+
+(archetype MPlat.StringToBool (IString input) -> (Bool output))

@@ -106,6 +106,38 @@ Rococo::Audio::ILegacySoundControl* FactoryConstructRococoAudioLegacySoundContro
 #include <rococo.sexy.ide.h>
 #include <rococo.strings.h>
 
+inline ObjectStub* InterfaceToInstance(InterfacePointer i)
+{
+	auto* p = ((uint8*)i) + (*i)->OffsetToInstance;
+	auto* obj = (ObjectStub*)p;
+	return obj;
+}
+
+static void NativeEnumerateFiles(NativeCallEnvironment& nce)
+{
+	auto& platform = *(Platform*)nce.context;
+
+	auto *sf = nce.cpu.SF();
+
+	InterfacePointer ipFilter;
+	ReadInput(0, ipFilter, nce);
+
+	ArchetypeCallback ac;
+	ReadInput(1, ac, nce);
+
+	auto* stubFilter = InterfaceToInstance(ipFilter);
+
+	auto& sc = (const CStringConstant&) *stubFilter;
+
+	if (sc.length == 0 || sc.pointer == nullptr)
+	{
+		Throw(0, "MPlat.NativeEnumerateFiles. String argument was blank");
+	}
+
+	int a = 1;
+}
+
+
 namespace Rococo
 {
 	using namespace Rococo::Windows;
@@ -178,6 +210,9 @@ namespace Rococo
 						AddNativeCalls_RococoIKeyboard(args.ss, &platform.keyboard);
 						Entities::AddNativeCalls_RococoEntitiesIParticleSystem(args.ss, &platform);
 						Audio::AddNativeCalls_RococoAudioILegacySoundControl(args.ss, &platform);
+
+						const INamespace& ns = args.ss.AddNativeNamespace("MPlat.OS");
+						args.ss.AddNativeCall(ns, NativeEnumerateFiles, &platform, "EnumerateFiles (Sys.Type.IString filter)(MPlat.StringToBool callback)->");
 
 						args.ss.AddNativeLibrary("rococo.sexy.mathsex");
 					}

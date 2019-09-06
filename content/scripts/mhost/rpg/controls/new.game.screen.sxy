@@ -2,10 +2,10 @@
 (using Sys.Maths)
 (using Sys.Maths.F32)
 (using Sys.Type)
-(using Sys.MPlat)
 (using Sys.Random)
-(using Sys.Reflection)
 (using Sys.Type.Strings)
+
+(using MPlat)
 (using MHost)
 (using MHost.OS)
 (using MHost.Graphics)
@@ -49,6 +49,11 @@
 
 (factory RPG.NewPlayerRow IListRow : (construct PlayerRow))
 
+(function AddCharRow (IListBuilder roster) (IString filename)-> :
+	(IListRow row1 (NewPlayerRow))
+	(roster.AddRow row1)
+)
+
 (method NewGameScreen.Construct (IBundle bundle) -> (construct slots 5): 
 	(this.bundle = bundle)
 	(this.uistack = (MHost.Graphics.NewUIStack))
@@ -58,23 +63,15 @@
 	(this.roster = (NewListBuilder bundle.UIControl 100))
 	(this.uistack.AddTopLevelControl this.roster "roster")
 	
-	(IListRow row1 (NewPlayerRow))
-	(this.roster.AddRow row1)
+	(IListBuilder roster = this.roster)
 	
-	(IListRow row2 (NewPlayerRow))
-	(this.roster.AddRow row2)
+	(MPlat.StringToBool appendToList =
+		(closure (IString path) -> (Bool terminateEnumeration):
+			(AddCharRow roster path)
+		)
+	)
 	
-	(IListRow row3 (NewPlayerRow))
-	(this.roster.AddRow row3)
-	
-	(IListRow row4 (NewPlayerRow))
-	(this.roster.AddRow row4)
-	
-	(IListRow row5 (NewPlayerRow))
-	(this.roster.AddRow row5)
-	
-	(IListRow row6 (NewPlayerRow))
-	(this.roster.AddRow row6)
+	(MPlat.OS.EnumerateFiles "!scripts/mhost/rpg/chaps/*.dict" appendToList)
 )
 
 (factory RPG.NewNewGameScreen MHost.IScreen (IBundle bundle):
