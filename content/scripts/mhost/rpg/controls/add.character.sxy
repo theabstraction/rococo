@@ -642,7 +642,7 @@
 		(name.AppendTextTo fullImageName)
 	)
 	
-	(Sys.MPlat.BitmapLocation img)
+	(MPlat.BitmapLocation img)
 	(engine.GetSpriteSpec fullImageName img)
 	(this.portraitButton.SetImage img)
 )
