@@ -142,7 +142,7 @@ namespace MHost
 				}
 			}
 
-			Throw(0, "Could not find %s in the script %s", moduleName, structName);
+			Throw(0, "Could not find %s in the script %s", structName, moduleName);
 			return nullptr;
 		}
 

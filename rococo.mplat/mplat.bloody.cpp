@@ -1230,11 +1230,11 @@ namespace ANON
 
 		void OnDetached(char* buffer) override
 		{
-			char sysPath[IO::MAX_PATHLEN];
+			//wchar_t sysPath[IO::MAX_PATHLEN];
 			try
 			{
-				platform.installation.ConvertPingPathToSysPath(value, sysPath, len);
-				id = platform.renderer.GetMaterialId(sysPath);
+				//platform.installation.ConvertPingPathToSysPath(value, sysPath, len);
+				id = platform.renderer.GetMaterialId(value);
 			}
 			catch (IException&)
 			{
@@ -1353,8 +1353,8 @@ namespace ANON
 					auto mat = platform.renderer.GetMaterialTextureName(id);
 					if (mat)
 					{
-						char sysName[IO::MAX_PATHLEN];
-						SafeFormat(sysName, sizeof(sysName), "%s", mat);
+						wchar_t sysName[IO::MAX_PATHLEN];
+						platform.installation.ConvertPingPathToSysPath(mat, sysName, IO::MAX_PATHLEN);
 
 						try
 						{
@@ -1505,16 +1505,15 @@ namespace ANON
 		Platform& platform;
 		TextEditorBox teb;
 		bool validated = false;
-		std::string contentSubDir;
+		std::wstring contentSubDir;
 	public:
 		BloodyPingPathBinding(Platform& _platform, IEventCallback<IBloodyPropertyType>& dirtNotifier, char* pingPath, size_t _len, cstr _contentSubDir) :
 			platform(_platform),
 			value(pingPath),
 			len(_len),
-			contentSubDir(_contentSubDir),
 			teb(_platform, *this, dirtNotifier, value, _len, true, *this)
 		{
-			char sysSubDir[IO::MAX_PATHLEN];
+			wchar_t sysSubDir[IO::MAX_PATHLEN];
 			platform.installation.ConvertPingPathToSysPath(_contentSubDir, sysSubDir, IO::MAX_PATHLEN);
 			contentSubDir = sysSubDir;
 
@@ -1533,7 +1532,7 @@ namespace ANON
 
 		void OnDetached(char* buffer)
 		{
-			char sysPath[IO::MAX_PATHLEN];
+			wchar_t sysPath[IO::MAX_PATHLEN];
 			try
 			{
 				if (*buffer == 0)
@@ -1619,9 +1618,9 @@ namespace ANON
 
 				if (*value == '!')
 				{
-					char buffer[IO::MAX_PATHLEN];
-					platform.os.ConvertUnixPathToSysPath(value, buffer, len);
-					SafeFormat(sd.path, sizeof(sd.path), "%s%s", (cstr)content, buffer);
+					wchar_t buffer[IO::MAX_PATHLEN];
+					platform.installation.ConvertPingPathToSysPath(value, buffer, len);
+					SafeFormat(sd.path, sizeof(sd.path), L"%s%s", (cstr)content, buffer);
 
 					if (OS::IsFileExistant(sd.path))
 					{
@@ -1631,7 +1630,7 @@ namespace ANON
 					{
 						if (platform.utilities.QueryYesNo(platform.renderer.Window(), "Cannot locate file. Navigate to content?"))
 						{
-							SafeFormat(sd.path, sizeof(sd.path), "%s", contentSubDir.c_str());
+							SafeFormat(sd.path, sizeof(sd.path), L"%s", contentSubDir.c_str());
 							changed = platform.utilities.GetSaveLocation(platform.renderer.Window(), sd);
 						}
 					}
@@ -1640,7 +1639,7 @@ namespace ANON
 				{
 					if (platform.utilities.QueryYesNo(platform.renderer.Window(), "Path did not begin with ping. Navigate to content?"))
 					{
-						SafeFormat(sd.path, sizeof(sd.path), "%s", contentSubDir.c_str());
+						SafeFormat(sd.path, _MAX_PATH, L"%s", contentSubDir.c_str());
 						changed = platform.utilities.GetSaveLocation(platform.renderer.Window(), sd);
 					}
 				}
@@ -1648,7 +1647,7 @@ namespace ANON
 				if (changed)
 				{
 					teb.Notify();
-					if (strstr(sd.path, content) != sd.path)
+					if (wcsstr(sd.path, content) != sd.path)
 					{
 						try
 						{
@@ -1661,10 +1660,11 @@ namespace ANON
 						return;
 					}
 
-					OS::ToUnixPath(sd.path + content.length);
+					wchar_t* pathTrail = sd.path + wcslen(content);
+					OS::ToUnixPath(pathTrail);
 
-					SecureFormat(value, len, "!%s", sd.path + content.length);
-
+					SecureFormat(value, len, "!%S", pathTrail);
+					
 					OnDetached(value);
 				}
 			}

@@ -835,31 +835,31 @@ namespace
 			case DebuggerCommandObject::OPEN_SOURCE_FILE:
 				{
 					auto* fileObj = (DebuggerCommandObjectFile*)obj;
-					char sysPath[256];
+					wchar_t sysPath[256];
 					installation.ConvertPingPathToSysPath(fileObj->filename, sysPath, 256);
 					if (OS::IsFileExistant(sysPath))
 					{
-						ShellExecuteA(hOwner, "open", sysPath, nullptr, nullptr, SW_SHOW);
+						ShellExecuteW(hOwner, L"open", sysPath, nullptr, nullptr, SW_SHOW);
 					}
 					else
 					{
-						ShellExecuteA(hOwner, "explore", installation.Content(), nullptr, nullptr, SW_SHOW);
+						ShellExecuteW(hOwner, L"explore", installation.Content(), nullptr, nullptr, SW_SHOW);
 					}
 				}
 				break;
 			case DebuggerCommandObject::OPEN_SOURCE_FOLDER:
 				{
 					auto* fileObj = (DebuggerCommandObjectFile*)obj;
-					char sysPath[256];
-					installation.ConvertPingPathToSysPath(fileObj->filename, sysPath, 256);
+					wchar_t sysPath[_MAX_PATH];
+					installation.ConvertPingPathToSysPath(fileObj->filename, sysPath, _MAX_PATH);
 					if (OS::IsFileExistant(sysPath))
 					{
 						OS::StripLastSubpath(sysPath);
-						ShellExecuteA(hOwner, "explore", sysPath, nullptr, nullptr, SW_SHOW);
+						ShellExecuteW(hOwner, L"open", sysPath, nullptr, nullptr, SW_SHOW);
 					}
 					else
 					{
-						ShellExecuteA(hOwner, "explore", installation.Content(), nullptr, nullptr, SW_SHOW);
+						ShellExecuteW(hOwner, L"explore", installation.Content(), nullptr, nullptr, SW_SHOW);
 					}
 				}
 				break;

@@ -58,7 +58,7 @@ namespace Rococo
 
 	bool FileModifiedArgs::Matches(cstr resource) const
 	{
-		cstr a = this->resourceName;
+		const wchar_t* a = this->resourceName;
 		cstr b = resource;
 		if (*b == L'!') b++;
 
@@ -83,20 +83,37 @@ namespace Rococo
 
 		return *b == 0;
 	}
-
-	void FileModifiedArgs::GetPingPath(char* path, size_t capacity) const
-	{
-		SafeFormat(path, capacity, "!%s", resourceName);
-
-		for (char* p = path; *p != 0; p++)
-		{
-			if (*p == '\\') *p = '/';
-		}
-	}
 }
 
 #include <rococo.window.h>
 #include <Commdlg.h>
+
+namespace
+{
+	struct FileHandle
+	{
+		HANDLE hFile;
+
+		FileHandle(HANDLE _hFile) : hFile(_hFile)
+		{
+		}
+
+		bool IsValid() const
+		{
+			return hFile != INVALID_HANDLE_VALUE;
+		}
+
+		~FileHandle()
+		{
+			if (IsValid()) CloseHandle(hFile);
+		}
+
+		operator HANDLE()
+		{
+			return hFile;
+		}
+	};
+}
 
 namespace Rococo
 {
@@ -226,9 +243,9 @@ namespace Rococo
 			GetKeyboardState(scanArray);
 		}
 
-		bool IsFileExistant(const char* filename)
+		bool IsFileExistant(const wchar_t* filename)
 		{
-			DWORD flags = GetFileAttributesA(filename);
+			DWORD flags = GetFileAttributesW(filename);
 			return flags != INVALID_FILE_ATTRIBUTES;
 		}
 
@@ -238,6 +255,21 @@ namespace Rococo
 			for (int i = len - 2; i > 0; --i)
 			{
 				if (fullpath[i] == '\\')
+				{
+					fullpath[i + 1] = 0;
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		bool StripLastSubpath(wchar_t* fullpath)
+		{
+			int32 len = (int32)wcslen(fullpath);
+			for (int i = len - 2; i > 0; --i)
+			{
+				if (fullpath[i] == L'\\')
 				{
 					fullpath[i + 1] = 0;
 					return true;
@@ -275,11 +307,27 @@ namespace Rococo
 			}
 		}
 
+		void ToSysPath(wchar_t* path)
+		{
+			for (wchar_t* s = path; *s != 0; ++s)
+			{
+				if (*s == L'/') *s = L'\\';
+			}
+		}
+
+		void ToUnixPath(wchar_t* path)
+		{
+			for (wchar_t* s = path; *s != 0; ++s)
+			{
+				if (*s == '\\') *s = '/';
+			}
+		}
+
 		void ToSysPath(char* path)
 		{
 			for (char* s = path; *s != 0; ++s)
 			{
-				if (*s == '/') *s = '\\';
+				if (*s == L'/') *s = L'\\';
 			}
 		}
 
@@ -452,30 +500,6 @@ namespace
 {
 	using namespace Rococo;
 
-	struct FileHandle
-	{
-		HANDLE hFile;
-
-		FileHandle(HANDLE _hFile) : hFile(_hFile)
-		{
-		}
-
-		bool IsValid() const
-		{
-			return hFile != INVALID_HANDLE_VALUE;
-		}
-
-		~FileHandle()
-		{
-			if (IsValid()) CloseHandle(hFile);
-		}
-
-		operator HANDLE()
-		{
-			return hFile;
-		}
-	};
-
 	void MakeContainerDirectory(char* filename)
 	{
 		int len = (int)rlen(filename);
@@ -483,6 +507,20 @@ namespace
 		for (int i = len - 2; i > 0; --i)
 		{
 			if (filename[i] == '\\')
+			{
+				filename[i + 1] = 0;
+				return;
+			}
+		}
+	}
+
+	void MakeContainerDirectory(wchar_t* filename)
+	{
+		int len = (int)wcslen(filename);
+
+		for (int i = len - 2; i > 0; --i)
+		{
+			if (filename[i] == L'\\')
 			{
 				filename[i + 1] = 0;
 				return;
@@ -498,60 +536,58 @@ namespace
 		operator cstr() const { return data; }
 	};
 
-	void GetContentDirectory(cstr contentIndicatorName, FilePath& path, IOS& os)
+	void GetContentDirectory(const wchar_t* contentIndicatorName, wchar_t path[Rococo::IO::MAX_PATHLEN], IOS& os)
 	{
-		FilePath binDirectory;
+		wchar_t binDirectory[Rococo::IO::MAX_PATHLEN];
 		os.GetBinDirectoryAbsolute(binDirectory, os.MaxPath());
 
-		StackStringBuilder sb(path.data, _MAX_PATH);
-		sb << binDirectory.data;
+		SecureFormat(path, Rococo::IO::MAX_PATHLEN, L"%s", binDirectory);
 
-		if (strstr(contentIndicatorName, "\\") != nullptr)
+		if (wcsstr(contentIndicatorName, L"\\") != nullptr)
 		{
 			// The indicator is part of a path
 			if (os.IsFileExistant(contentIndicatorName))
 			{
-				sb.Clear();
-				sb << contentIndicatorName;
+				SecureFormat(path, Rococo::IO::MAX_PATHLEN, L"%s", contentIndicatorName);
 				MakeContainerDirectory(path);
 				return;
 			}
 		}
 
-		size_t len = rlen(path);
+		size_t len = wcslen(path);
 
 		while (len > 0)
 		{
-			FilePath indicator;
-			SecureFormat(indicator.data, FilePath::CAPACITY, "%s%s", path.data, contentIndicatorName);
+			wchar_t indicator[Rococo::IO::MAX_PATHLEN];
+			SecureFormat(indicator, FilePath::CAPACITY, L"%s%s", path, contentIndicatorName);
 			if (os.IsFileExistant(indicator))
 			{
-				StackStringBuilder sb(path.data, _MAX_PATH, StringBuilder::BUILD_EXISTING);
-				sb << "content\\";
+				SecureFormat(indicator, FilePath::CAPACITY, L"%s%s", path, L"content\\");
+				SecureFormat(path, FilePath::CAPACITY, L"%s", indicator);
 				return;
 			}
 
 			MakeContainerDirectory(path);
 
-			size_t newLen = rlen(path);
+			size_t newLen = wcslen(path);
 			if (newLen >= len) break;
 			len = newLen;
 		}
 
-		Throw(0, "Could not find %s below the executable folder '%s'", contentIndicatorName, binDirectory);
+		Throw(0, "Could not find %S below the executable folder '%S'", contentIndicatorName, binDirectory);
 	}
 
 	class Installation : public IInstallationSupervisor
 	{
 		IOS& os;
-		FilePath contentDirectory;
+		wchar_t contentDirectory[Rococo::IO::MAX_PATHLEN];
 		int32 len;
 		std::unordered_map<std::string, std::string> macroToSubdir;
 	public:
-		Installation(cstr contentIndicatorName, IOS& _os) : os(_os)
+		Installation(const wchar_t* contentIndicatorName, IOS& _os) : os(_os)
 		{
 			GetContentDirectory(contentIndicatorName, contentDirectory, os);
-			len = (int32)strlen(contentDirectory);
+			len = (int32)wcslen(contentDirectory);
 		}
 
 		void Free()  override
@@ -564,22 +600,22 @@ namespace
 			return os;
 		}
 
-		const fstring Content() const  override
+		const wchar_t* Content() const  override
 		{
-			return fstring{ contentDirectory.data, len };
+			return contentDirectory;
 		}
 
 		bool DoPingsMatch(cstr a, cstr b) const override
 		{
 			try
 			{
-				char sysPathA[IO::MAX_PATHLEN];
+				wchar_t sysPathA[IO::MAX_PATHLEN];
 				ConvertPingPathToSysPath(a, sysPathA, IO::MAX_PATHLEN);
 
-				char sysPathB[IO::MAX_PATHLEN];
+				wchar_t sysPathB[IO::MAX_PATHLEN];
 				ConvertPingPathToSysPath(b, sysPathB, IO::MAX_PATHLEN);
 
-				return Eq(sysPathA, sysPathB);
+				return wcscmp(sysPathA, sysPathB) == 0;
 			}
 			catch (IException&)
 			{
@@ -600,7 +636,7 @@ namespace
 			return nullptr;
 		}
 
-		void ConvertPingPathToSysPath(cstr pingPath, char* sysPath, size_t sysPathCapacity) const override
+		void ConvertPingPathToSysPath(cstr pingPath, wchar_t* sysPath, size_t sysPathCapacity) const override
 		{
 			if (pingPath == nullptr || *pingPath == 0)
 			{
@@ -614,7 +650,7 @@ namespace
 			{
 				subdir = pingPath + 1;
 
-				SecureFormat(sysPath, sysPathCapacity, "%s%s", contentDirectory.data, subdir);
+				SecureFormat(sysPath, sysPathCapacity, L"%s%S", contentDirectory, subdir);
 			}
 			else if (*pingPath == '#')
 			{
@@ -638,7 +674,7 @@ namespace
 
 				macroDir = i->second.c_str();
 
-				SecureFormat(sysPath, sysPathCapacity, "%s%s%s", contentDirectory.data, macroDir + 1, subdir);
+				SecureFormat(sysPath, sysPathCapacity, L"%s%S%S", contentDirectory, macroDir + 1, subdir);
 			}
 			else
 			{
@@ -650,11 +686,10 @@ namespace
 				Throw(0, "Installation::ConvertPingPathToSysPath(...) Illegal sequence in ping path: '..'");
 			}
 
-			int fulllen = SecureFormat(sysPath, sysPathCapacity, "%s%s%s", contentDirectory.data, macroDir + 1, subdir);
 			OS::ToSysPath(sysPath);
 		}
 
-		void ConvertSysPathToMacroPath(cstr sysPath, char* pingPath, size_t pingPathCapacity, cstr macro) const override
+		void ConvertSysPathToMacroPath(const wchar_t* sysPath, char* pingPath, size_t pingPathCapacity, cstr macro) const override
 		{
 			char fullPingPath[IO::MAX_PATHLEN];
 			ConvertSysPathToPingPath(sysPath, fullPingPath, IO::MAX_PATHLEN);
@@ -674,17 +709,18 @@ namespace
 			SecureFormat(pingPath, pingPathCapacity, "%s/%s", macro, fullPingPath + i->second.size());
 		}
 
-		void ConvertSysPathToPingPath(cstr sysPath, char* pingPath, size_t pingPathCapacity) const override
+		void ConvertSysPathToPingPath(const wchar_t* sysPath, char* pingPath, size_t pingPathCapacity) const override
 		{
 			if (pingPath == nullptr || sysPath == nullptr) Throw(0, "ConvertSysPathToPingPath: Null argument");
 
-			const fstring s = to_fstring(sysPath);
-			auto p = strstr(sysPath, contentDirectory.data);
+			int sysPathLen = (int) wcslen(sysPath);
 
-			int32 netLength = s.length - len;
+			auto p = wcsstr(sysPath, contentDirectory);
+
+			int32 netLength = sysPathLen - len;
 			if (netLength < 0 || p != sysPath)
 			{
-				Throw(0, "ConvertSysPathToPingPath: path did not begin with the content folder %s", contentDirectory.data);
+				Throw(0, "ConvertSysPathToPingPath: path did not begin with the content folder %S", contentDirectory);
 			}
 
 			if (netLength >= (int32)pingPathCapacity)
@@ -692,28 +728,28 @@ namespace
 				Throw(0, "ConvertSysPathToPingPath: Insufficient space in ping path buffer");
 			}
 
-			if (strstr(sysPath, "..") != nullptr)
+			if (wcsstr(sysPath, L"..") != nullptr)
 			{
 				Throw(0, "ConvertSysPathToPingPath: Illegal sequence in ping path: '..'");
 			}
 
-			SecureFormat(pingPath, pingPathCapacity, "!%s", sysPath + len);
+			SecureFormat(pingPath, pingPathCapacity, "!%S", sysPath + len);
 
 			OS::ToUnixPath(pingPath);
 		}
 
-		void LoadResource(cstr resourcePath, IExpandingBuffer& buffer, int64 maxFileLength) override
+		void LoadResource(cstr pingPath, IExpandingBuffer& buffer, int64 maxFileLength) override
 		{
-			if (resourcePath == nullptr || rlen(resourcePath) < 2) Throw(E_INVALIDARG, "Win32OS::LoadResource failed: <resourcePath> was blank");
+			if (pingPath == nullptr || rlen(pingPath) < 2) Throw(E_INVALIDARG, "Win32OS::LoadResource failed: <resourcePath> was blank");
 
-			FilePath absPath;
-			if (resourcePath[0] == '!' || resourcePath[0] == '#')
+			wchar_t absPath[Rococo::IO::MAX_PATHLEN];
+			if (pingPath[0] == '!' || pingPath[0] == '#')
 			{
-				ConvertPingPathToSysPath(resourcePath, absPath.data, absPath.CAPACITY);
+				ConvertPingPathToSysPath(pingPath, absPath, Rococo::IO::MAX_PATHLEN);
 			}
 			else
 			{
-				SafeFormat(absPath.data, FilePath::CAPACITY, "%s", resourcePath);
+				SafeFormat(absPath, Rococo::IO::MAX_PATHLEN, L"%S", pingPath);
 			}
 
 			os.LoadAbsolute(absPath, buffer, maxFileLength);
@@ -777,14 +813,14 @@ namespace
 
 	class Win32OS : public IOSSupervisor
 	{
-		FilePath binDirectory;
+		wchar_t binDirectory[Rococo::IO::MAX_PATHLEN];
 		HANDLE hMonitorDirectory;
 		uintptr_t hThread;
 		unsigned threadId;
 		bool isRunning;
 
 		CriticalSection threadLock;
-		std::vector<std::string> modifiedFiles;
+		std::vector<std::wstring> modifiedFiles;
 
 		IEventCallback<SysUnstableArgs>* onUnstable;
 	public:
@@ -795,7 +831,7 @@ namespace
 			onUnstable(nullptr)
 		{
 			auto hAppInstance = GetModuleHandle(nullptr);
-			GetModuleFileNameA(hAppInstance, binDirectory, _MAX_PATH);
+			GetModuleFileNameW(hAppInstance, binDirectory, _MAX_PATH);
 			MakeContainerDirectory(binDirectory);
 		}
 
@@ -813,12 +849,12 @@ namespace
 			CloseHandle(hMonitorDirectory);
 		}
 
-		virtual void Free()
+		void Free() override
 		{
 			delete this;
 		}
 
-		virtual void UTF8ToUnicode(const char* s, wchar_t* unicode, size_t cbUtf8count, size_t unicodeCapacity)
+		void UTF8ToUnicode(const char* s, wchar_t* unicode, size_t cbUtf8count, size_t unicodeCapacity) override
 		{
 			if (0 == MultiByteToWideChar(CP_UTF8, 0, s, (int)cbUtf8count, unicode, (int)unicodeCapacity))
 			{
@@ -826,12 +862,12 @@ namespace
 			}
 		}
 
-		virtual void EnumerateModifiedFiles(IEventCallback<FileModifiedArgs> &cb)
+		void EnumerateModifiedFiles(IEventCallback<FileModifiedArgs> &cb) override
 		{
 			while (!modifiedFiles.empty())
 			{
 				threadLock.Lock();
-				std::string f = modifiedFiles.back();
+				std::wstring f = modifiedFiles.back();
 				modifiedFiles.pop_back();
 				threadLock.Unlock();
 
@@ -839,18 +875,18 @@ namespace
 			}
 		}
 
-		virtual void FireUnstable()
+		void FireUnstable() override
 		{
 			SysUnstableArgs unused;
 			if (onUnstable) onUnstable->OnEvent(unused);
 		}
 
-		virtual void SetUnstableHandler(IEventCallback<SysUnstableArgs>* cb)
+		void SetUnstableHandler(IEventCallback<SysUnstableArgs>* cb) override
 		{
 			onUnstable = cb;
 		}
 
-		void OnModified(cstr filename)
+		void OnModified(const wchar_t* filename)
 		{
 			Sleep(500);
 			Sync sync(threadLock);
@@ -862,7 +898,7 @@ namespace
 
 				for (auto& v : modifiedFiles)
 				{
-					if (strcmp(v.c_str(), filename) == 0)
+					if (Eq(v.c_str(), filename))
 					{
 						isInList = true;
 						break;
@@ -885,10 +921,10 @@ namespace
 					size_t nChars = info.FileNameLength >> 1;
 					if (nChars < _MAX_PATH - 1)
 					{
-						char nullTerminatedFilename[_MAX_PATH] = { 0 };
+						wchar_t nullTerminatedFilename[_MAX_PATH] = { 0 };
 						for (DWORD i = 0; i < nChars; ++i)
 						{
-							nullTerminatedFilename[i] = (char)info.FileName[i];
+							nullTerminatedFilename[i] = info.FileName[i];
 						}
 						nullTerminatedFilename[nChars] = 0;
 						OnModified(nullTerminatedFilename);
@@ -960,7 +996,7 @@ namespace
 			return This->MonitorDirectory();
 		}
 
-		virtual void Monitor(cstr absPath)
+		void Monitor(const wchar_t* absPath) override
 		{
 			if (isRunning || hMonitorDirectory != INVALID_HANDLE_VALUE)
 			{
@@ -968,35 +1004,35 @@ namespace
 			}
 
 			DWORD shareFlags = FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE;
-			hMonitorDirectory = CreateFileA(absPath, GENERIC_READ, shareFlags, nullptr, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED, nullptr);
+			hMonitorDirectory = CreateFileW(absPath, GENERIC_READ, shareFlags, nullptr, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED, nullptr);
 			if (hMonitorDirectory == INVALID_HANDLE_VALUE)
 			{
-				Throw(GetLastError(), "Failed to create monitor on directory %s", absPath);
+				Throw(GetLastError(), "Failed to create monitor on directory %S", absPath);
 			}
 
 			isRunning = true;
 			hThread = _beginthreadex(nullptr, 65536, thread_monitor_directory, this, 0, &threadId);
 		}
 
-		virtual bool IsFileExistant(cstr absPath) const
+		bool IsFileExistant(const wchar_t* absPath) const override
 		{
-			return INVALID_FILE_ATTRIBUTES != GetFileAttributesA(absPath);
+			return INVALID_FILE_ATTRIBUTES != GetFileAttributesW(absPath);
 		}
 
-		virtual void ConvertUnixPathToSysPath(cstr unixPath, char* sysPath, size_t bufferCapacity) const
+		void ConvertUnixPathToSysPath(const wchar_t* unixPath, wchar_t* sysPath, size_t bufferCapacity) const override
 		{
 			if (unixPath == nullptr) Throw(E_INVALIDARG, "Blank path in call to os.ConvertUnixPathToSysPath");
-			if (rlen(unixPath) >= bufferCapacity)
+			if (wcslen(unixPath) >= bufferCapacity)
 			{
 				Throw(E_INVALIDARG, "Path too long in call to os.ConvertUnixPathToSysPath");
 			}
 
-			size_t len = rlen(unixPath);
+			size_t len = wcslen(unixPath);
 
 			size_t i = 0;
 			for (; i < len; ++i)
 			{
-				char c = unixPath[i];
+				wchar_t c = unixPath[i];
 
 				if (c == '\\') Throw(E_INVALIDARG, "Illegal backslash '\\' in unixPath in call to os.ConvertUnixPathToSysPath");
 
@@ -1013,9 +1049,9 @@ namespace
 			sysPath[i] = 0;
 		}
 
-		virtual void LoadAbsolute(cstr absPath, IExpandingBuffer& buffer, int64 maxFileLength) const
+		void LoadAbsolute(const wchar_t* absPath, IExpandingBuffer& buffer, int64 maxFileLength) const override
 		{
-			FileHandle hFile = CreateFileA(absPath, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
+			FileHandle hFile = CreateFileW(absPath, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
 			if (!hFile.IsValid()) Throw(HRESULT_FROM_WIN32(GetLastError()), "Win32OS::LoadResource failed: Error opening file %s", absPath);
 
 			LARGE_INTEGER len;
@@ -1052,12 +1088,12 @@ namespace
 			}
 		}
 
-		virtual void GetBinDirectoryAbsolute(char* directory, size_t capacityChars) const
+		void GetBinDirectoryAbsolute(wchar_t* directory, size_t capacityChars) const override
 		{
-			SecureFormat(directory, capacityChars, "%s", binDirectory.data);
+			SecureFormat(directory, capacityChars, L"%s", binDirectory);
 		}
 
-		virtual size_t MaxPath() const
+		size_t MaxPath() const override
 		{
 			return _MAX_PATH;
 		}
@@ -1071,7 +1107,7 @@ namespace Rococo
 		return new Win32OS();
 	}
 
-	IInstallationSupervisor* CreateInstallation(cstr contentIndicatorName, IOS& os)
+	IInstallationSupervisor* CreateInstallation(const wchar_t* contentIndicatorName, IOS& os)
 	{
 		return new Installation(contentIndicatorName, os);
 	}
@@ -1218,11 +1254,11 @@ namespace Rococo
 			CopyStringToClipboard(buffer.data());
 		}
 
-		void SaveAsciiTextFile(TargetDirectory target, cstr filename, const fstring& text)
+		void SaveAsciiTextFile(TargetDirectory target, const wchar_t* filename, const fstring& text)
 		{
 			if (text.length > 1024_megabytes)
 			{
-				Throw(0, "Rococo::OS::SaveAsciiTextFile(%s): Sanity check. String was > 1 gigabyte in length", filename);
+				Throw(0, "Rococo::OS::SaveAsciiTextFile(%S): Sanity check. String was > 1 gigabyte in length", filename);
 			}
 
 			HANDLE hFile = INVALID_HANDLE_VALUE;
@@ -1239,23 +1275,23 @@ namespace Rococo
 					}
 
 					WCHAR* fullpath = (WCHAR*)alloca(sizeof(wchar_t) * (wcslen(path) + 1 + text.length));
-					wnsprintfW(fullpath, MAX_PATH, L"%s\\%S", path, filename);
+					wnsprintfW(fullpath, MAX_PATH, L"%s\\%s", path, filename);
 					CoTaskMemFree(path);
 
 					hFile = CreateFileW(fullpath, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 				}
 				break;
 			case TargetDirectory_Root:
-				hFile = CreateFileA(filename, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+				hFile = CreateFileW(filename, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 				break;
 			default:
-				Throw(0, "Rococo::OS::SaveAsciiTextFile(... %s): Unrecognized target directory", filename);
+				Throw(0, "Rococo::OS::SaveAsciiTextFile(... %S): Unrecognized target directory", filename);
 				break;
 			}
 
 			if (hFile == INVALID_HANDLE_VALUE)
 			{
-				Throw(GetLastError(), "Cannot create file %s in user directory", filename);
+				Throw(GetLastError(), "Cannot create file %S in user directory", filename);
 			}
 			DWORD bytesWritten;
 			bool status = WriteFile(hFile, text.buffer, (DWORD)text.length, &bytesWritten, NULL);
@@ -1264,7 +1300,7 @@ namespace Rococo
 
 			if (!status)
 			{
-				Throw(err, "Rococo::OS::SaveAsciiTextFile(%s) : failed to write text to file", filename);
+				Throw(err, "Rococo::OS::SaveAsciiTextFile(%S) : failed to write text to file", filename);
 			}
 		}
 	}
@@ -1538,13 +1574,36 @@ namespace Rococo
 			}
 		}
 
-		void ForEachFileInDirectory(cstr directory, IEventCallback<cstr>& onFile)
+		void EndDirectoryWithSlash(wchar_t* pathname, size_t capacity)
 		{
-			struct Anon
-			{
-				HANDLE hSearch;
+			const wchar_t* finalChar = GetFinalNull(pathname);
 
-				~Anon()
+			if (pathname == nullptr || pathname == finalChar)
+			{
+				Throw(0, "Invalid pathname in call to EndDirectoryWithSlash");
+			}
+
+			bool isSlashed = finalChar[-1] == L'\\' || finalChar[-1] == L'/';
+			if (!isSlashed)
+			{
+				if (finalChar >= (pathname + capacity - 1))
+				{
+					Throw(0, "Insufficient room in directory buffer to trail with slash");
+				}
+
+				wchar_t* mutablePath = const_cast<wchar_t*>(finalChar);
+				mutablePath[0] = L'/';
+				mutablePath[1] = 0;
+			}
+		}
+
+		void ForEachFileInDirectory(const wchar_t* filter, IEventCallback<const wchar_t*>& onFile)
+		{
+			struct AutoSearchHandle
+			{
+				HANDLE hSearch = INVALID_HANDLE_VALUE;
+
+				~AutoSearchHandle()
 				{
 					if (hSearch != INVALID_HANDLE_VALUE)
 					{
@@ -1557,20 +1616,41 @@ namespace Rococo
 				}
 			};
 
-			Anon hSearch;
+			if (filter == nullptr || filter[0] == 0)
+			{
+				Throw(0, "%s: <filter> was blank.", __FUNCTION__);
+			}
 
-			char fullpath[MAX_PATH];
-			bool isSlashed = GetFinalNull(directory)[-1] == L'\\' || GetFinalNull(directory)[-1] == L'/';
-			SafeFormat(fullpath, sizeof(fullpath), "%s%s*.*", directory, isSlashed ? "" : "\\");
+			wchar_t fullSearchFilter[_MAX_PATH];
+			wchar_t containerDirectory[_MAX_PATH];
 
-			WIN32_FIND_DATAA findData;
-			hSearch.hSearch = FindFirstFileA(fullpath, &findData);
+			auto finalChar = GetFinalNull(filter)[-1];
+			bool isSlashed = finalChar == L'\\' || finalChar == L'/';
+
+			DWORD status = GetFileAttributesW(filter);
+			
+			if (status != INVALID_FILE_ATTRIBUTES && ((status & FILE_ATTRIBUTE_DIRECTORY) != 0))
+			{
+				SafeFormat(fullSearchFilter, _MAX_PATH, L"%s%s*.*", filter, isSlashed ? L"" : L"\\");
+				SafeFormat(containerDirectory, _MAX_PATH, L"%s%s", filter, isSlashed ? L"" : L"\\");
+			}
+			else // Assume we have <dir>/*.ext or something similar
+			{
+				SafeFormat(fullSearchFilter, _MAX_PATH, L"%s", filter);
+				SafeFormat(containerDirectory, _MAX_PATH, L"%s", filter);
+				MakeContainerDirectory(containerDirectory);
+			}
+
+			WIN32_FIND_DATAW findData;
+
+			AutoSearchHandle hSearch;
+			hSearch.hSearch = FindFirstFileW(fullSearchFilter, &findData);
 
 			if (hSearch.hSearch == INVALID_HANDLE_VALUE)
 			{
 				if (GetLastError() != ERROR_FILE_NOT_FOUND)
 				{
-					Throw(GetLastError(), "Could not browse directory: %s", fullpath);
+					Throw(GetLastError(), "%s: %s\n", __FUNCTION__, fullSearchFilter);
 				}
 				return;
 			}
@@ -1579,35 +1659,37 @@ namespace Rococo
 			{
 				if ((findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
 				{
+					// We found a file
 					onFile.OnEvent(findData.cFileName);
 				}
 				else
 				{
+					// We found a directory
 					if (*findData.cFileName != '.')
 					{
-						struct : IEventCallback<cstr>
+						struct : IEventCallback<const wchar_t*>
 						{
-							char stem[IO::MAX_PATHLEN];
+							wchar_t stem[IO::MAX_PATHLEN];
 
-							IEventCallback<cstr>* caller;
-							virtual void OnEvent(cstr name)
+							IEventCallback<const wchar_t*>* caller;
+							virtual void OnEvent(const wchar_t* name)
 							{
-								char subsubpath[IO::MAX_PATHLEN];
-								SecureFormat(subsubpath, IO::MAX_PATHLEN, "%s%s", stem, name);
+								wchar_t subsubpath[IO::MAX_PATHLEN];
+								SecureFormat(subsubpath, IO::MAX_PATHLEN, L"%s%s", stem, name);
 								caller->OnEvent(subsubpath);
 							}
 						} subpathResult;
 
-						char subpath[IO::MAX_PATHLEN];
-						SecureFormat(subpath, IO::MAX_PATHLEN, "%s%s%s\\", directory, isSlashed ? "" : "\\", findData.cFileName);
+						wchar_t subpath[IO::MAX_PATHLEN];
+						SecureFormat(subpath, IO::MAX_PATHLEN, L"%s%s\\", containerDirectory, findData.cFileName);
 						subpathResult.caller = &onFile;
 
-						SecureFormat(subpathResult.stem, IO::MAX_PATHLEN, "%s\\", findData.cFileName);
+						SecureFormat(subpathResult.stem, IO::MAX_PATHLEN, L"%s\\", findData.cFileName);
 
 						ForEachFileInDirectory(subpath, subpathResult);
 					}
 				}
-			} while (FindNextFileA(hSearch, &findData));
+			} while (FindNextFileW(hSearch, &findData));
 		}
 	} // IO
 

@@ -249,7 +249,7 @@ namespace
 
 	  virtual void LoadMaterialArray(const fstring& folder, int32 txWidth)
 	  {
-		  struct: public IEventCallback<cstr>, IMaterialTextureArrayBuilder
+		  struct: public IEventCallback<const wchar_t*>, IMaterialTextureArrayBuilder
 		  {
 			  int32 txWidth;
 			  std::vector<std::string> filenames;
@@ -258,16 +258,19 @@ namespace
 			  Events::IPublisher* publisher;
 			  Instances* This;
 
-			  char absPath[IO::MAX_PATHLEN];
+			  char pingPath[IO::MAX_PATHLEN];
 
-			  void OnEvent(cstr name) override
+			  void OnEvent(const wchar_t* sysName) override
 			  {
-				  auto ext = GetFileExtension(name);
-				  if (Eq(ext, ".jpeg") || Eq(ext, ".jpg") || Eq(ext, "tif") || Eq(ext, "tiff"))
+				  auto ext = GetFileExtension(sysName);
+				  if (Eq(ext, L".jpeg") || Eq(ext, L".jpg") || Eq(ext, L"tif") || Eq(ext, L"tiff"))
 				  {
-					  char absName[IO::MAX_PATHLEN];
-					  SecureFormat(absName, IO::MAX_PATHLEN, "%s%s", absPath, name);
-					  filenames.push_back(absName);
+					  char pingName[_MAX_PATH];
+					  installation->ConvertSysPathToPingPath(sysName, pingName, _MAX_PATH);
+
+					  char fullPingName[IO::MAX_PATHLEN];
+					  SecureFormat(fullPingName, IO::MAX_PATHLEN, "%s%s", pingPath, pingName);
+					  filenames.push_back(fullPingName);
 				  }
 			  }
 
@@ -288,7 +291,7 @@ namespace
 				  Events::BusyEvent be;
 				  be.isNowBusy = true;
 				  be.message = "Loading textures";
-				  be.resourceName = path;
+				  SafeFormat(be.resourceName, Rococo::IO::MAX_PATHLEN, "%S", path);
 				  publisher->Publish(be, Rococo::Events::evBusy);
 
 				  installation->LoadResource(path, *buffer, 64_megabytes);
@@ -302,23 +305,26 @@ namespace
 		  z.publisher = &publisher;
 		  z.This = this;
 
-		  z.installation->ConvertPingPathToSysPath(folder, z.absPath, IO::MAX_PATHLEN);
+		  SafeFormat(z.pingPath, _MAX_PATH, "%s", folder.buffer);
+
+		  wchar_t sysPath[_MAX_PATH];
+		  z.installation->ConvertPingPathToSysPath(z.pingPath, sysPath, _MAX_PATH);
 	
-		  IO::ForEachFileInDirectory(z.absPath, z);
+		  IO::ForEachFileInDirectory(sysPath, z);
 
 		  if (z.filenames.empty()) return;
 
 		  Events::BusyEvent be;
 		  be.isNowBusy = true;
 		  be.message = "Loading textures";
-		  be.resourceName = "";
+		  be.resourceName[0] = 0;
 		  publisher.Publish(be, Rococo::Events::evBusy);
 
 		  renderer.LoadMaterialTextureArray(z);
 
 		  be.isNowBusy = false;
 		  be.message = "";
-		  be.resourceName = "";
+		  be.resourceName[0] = 0;
 		  publisher.Publish(be, Rococo::Events::evBusy);
 
 		  RefreshCategories();
@@ -348,12 +354,12 @@ namespace
 		  {
 			  auto id = (MaterialId)i;
 			  cstr name = renderer.GetMaterialTextureName(id);
-			  if (StartsWith(name, content))
+			  if (name)
 			  {
 				  char fullname[IO::MAX_PATHLEN];
 				  SafeFormat(fullname, IO::MAX_PATHLEN, "%s", name);
 				  OS::ToUnixPath(fullname);
-				  cstr subpath = fullname + content.length;
+				  cstr subpath = fullname;
 
 				  for (auto& j : subdirToCatEnum)
 				  {
@@ -395,9 +401,7 @@ namespace
 
 	  MaterialId GetMaterialDirect(const fstring& pingPath) override
 	  {
-		  char sysPath[IO::MAX_PATHLEN];
-		  renderer.Installation().ConvertPingPathToSysPath(pingPath, sysPath, IO::MAX_PATHLEN);
-		  return renderer.GetMaterialId(sysPath);
+		  return renderer.GetMaterialId(pingPath);
 	  }
 
 	  MaterialId GetRandomMaterialId(Rococo::Graphics::MaterialCategory category) override

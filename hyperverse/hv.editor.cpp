@@ -974,7 +974,7 @@ namespace
 
 		AutoFree<IBloodyPropertySetEditorSupervisor> ambienceEditor;
 
-		char levelpath[IO::MAX_PATHLEN] = { 0 };
+		wchar_t levelpath[IO::MAX_PATHLEN] = { 0 };
 
 		virtual bool IsScrollLocked() const
 		{
@@ -1159,8 +1159,11 @@ namespace
 					char pingPath[IO::MAX_PATHLEN];
 					platform.installation.ConvertSysPathToPingPath(ld.path, pingPath, IO::MAX_PATHLEN);
 					Load(pingPath);
-					SafeFormat(levelpath, sizeof(levelpath), "%s", ld.path);
-					platform.utilities.AddSubtitle(ld.shortName);
+					SafeFormat(levelpath, sizeof(levelpath), L"%s", ld.path);
+
+					char shortPingPath[IO::MAX_PATHLEN];
+					platform.installation.ConvertSysPathToPingPath(ld.shortName, shortPingPath, IO::MAX_PATHLEN);
+					platform.utilities.AddSubtitle(shortPingPath);
 				}
 				catch (IException& ex)
 				{
@@ -1177,13 +1180,16 @@ namespace
 			sd.extDesc = "Sexy script level-file (.level.sxy)";
 			sd.shortName = nullptr;
 
-			SafeFormat(sd.path, sizeof(sd.path), "%s", levelpath);
+			SafeFormat(sd.path, sizeof(sd.path), L"%s", levelpath);
 
 			if (platform.utilities.GetSaveLocation(platform.renderer.Window(), sd))
 			{
 				Save(sd.path);
-				SafeFormat(levelpath, sizeof(levelpath), "%s", sd.path);
-				platform.utilities.AddSubtitle(sd.shortName);
+				SafeFormat(levelpath, sizeof(levelpath), L"%s", sd.path);
+
+				char shortPingName[256];
+				SafeFormat(shortPingName, 256, "%S", sd.shortName);
+				platform.utilities.AddSubtitle(shortPingName);
 			}
 		}
 
@@ -1195,7 +1201,7 @@ namespace
 			platform.publisher.Publish(setNextLevelEvent, HV::Events::evSetNextLevel);
 		}
 
-		void Save(cstr filename)
+		void Save(const wchar_t* filename)
 		{
 			std::vector<char> buffer;
 			buffer.resize(1024_kilobytes);

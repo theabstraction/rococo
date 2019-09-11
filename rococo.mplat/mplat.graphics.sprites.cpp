@@ -41,38 +41,32 @@ namespace
          }
       }
 
-      void AddEachSpriteInDirectory(const fstring& directoryName)
+      void AddEachSpriteInDirectory(const fstring& pingNameForDirectory)
       {
-         struct : IEventCallback<cstr>
+         struct : IEventCallback<const wchar_t*>
          {
             Sprites* sprites;
-            char shortdir[IO::MAX_PATHLEN];
-            char directory[IO::MAX_PATHLEN];
+            char containingDir[IO::MAX_PATHLEN];
 
-            virtual void OnEvent(cstr filename)
+            virtual void OnEvent(const wchar_t* filename)
             {
                char contentRelativePath[IO::MAX_PATHLEN];
-               SafeFormat(contentRelativePath, IO::MAX_PATHLEN, "%s%s", shortdir, filename);
+               SafeFormat(contentRelativePath, IO::MAX_PATHLEN, "%s/%S", containingDir, filename);
                sprites->AddSprite(to_fstring(contentRelativePath));
             }
          } onFileFound;
          onFileFound.sprites = this;
 
-         if (directoryName[0] != L'!')
+         if (pingNameForDirectory[0] != '!')
          {
-            Throw(0, "Sprite directories must be inside the content directory. Use the '!<directory>' notation");
+            Throw(0, "Sprite directories must be inside the content directory. Use the '!<directory>' ping path");
          }
 
-         StackStringBuilder sb(onFileFound.shortdir, _MAX_PATH);
-         sb << directoryName;
+		 SafeFormat(onFileFound.containingDir, IO::MAX_PATHLEN, "%s", pingNameForDirectory.buffer);
 
-         EndDirectoryWithSlash(onFileFound.shortdir, IO::MAX_PATHLEN);
-
-		 char sysPath[IO::MAX_PATHLEN];
-		 renderer.Installation().OS().ConvertUnixPathToSysPath(directoryName, sysPath, IO::MAX_PATHLEN);
-
-         SafeFormat(onFileFound.directory, IO::MAX_PATHLEN, "%s%s", (cstr) renderer.Installation().Content(), (sysPath + 1));
-         IO::ForEachFileInDirectory(onFileFound.directory, onFileFound);
+		 wchar_t sysDirectory[_MAX_PATH];
+		 renderer.Installation().ConvertPingPathToSysPath(pingNameForDirectory, sysDirectory, IO::MAX_PATHLEN);
+         IO::ForEachFileInDirectory(sysDirectory, onFileFound);
       }
 
       void LoadAllSprites()

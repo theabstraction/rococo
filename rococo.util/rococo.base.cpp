@@ -111,20 +111,20 @@ namespace Rococo
 
 	namespace OS
 	{
-		void LoadAsciiTextFile(char* data, size_t capacity, const char* filename)
+		void LoadAsciiTextFile(char* data, size_t capacity, const wchar_t* filename)
 		{
 #ifdef _WIN32
 # pragma warning(disable: 4996)
 #endif
 
-			FILE* f = fopen(filename, "rb");
+			FILE* f = _wfopen(filename, L"rb");
 
 #ifdef _WIN32
 # pragma warning(default: 4996)
 #endif
 			if (f == nullptr)
 			{
-				Throw(0, "Cannot open file %s", filename);
+				Throw(0, "Cannot open file %S", filename);
 			}
 
 			size_t startIndex = 0;
@@ -143,7 +143,7 @@ namespace Rococo
 			if (startIndex >= capacity)
 			{
 				fclose(f);
-				Throw(0, "File too large: ", filename);
+				Throw(0, "File too large: %S", filename);
 			}
 
 			fclose(f);

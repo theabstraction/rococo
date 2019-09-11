@@ -5,7 +5,7 @@ namespace Rococo
 {
 	namespace IO
 	{
-      void UseBufferlessStdout();
+		void UseBufferlessStdout();
 
 		ROCOCOAPI IStreamer
 		{
@@ -63,7 +63,7 @@ namespace Rococo
 		};
 
 		void Print(IBinaryWriter& writer, const char* format, ...);
-      void SaveUserFile(cstr filename, cstr s);
+		void SaveUserFile(cstr filename, cstr s);
 	}
 
 	ROCOCOAPI IBuffer
@@ -73,7 +73,7 @@ namespace Rococo
 		virtual size_t Length() const = 0;
 	};
 
-	ROCOCOAPI IExpandingBuffer: public IBuffer
+	ROCOCOAPI IExpandingBuffer : public IBuffer
 	{
 		virtual void Resize(size_t length) = 0;
 		virtual void Free() = 0;
@@ -82,77 +82,77 @@ namespace Rococo
 	IExpandingBuffer* CreateExpandingBuffer(size_t initialCapacity);
 
 	struct SysUnstableArgs {};
-   struct FileModifiedArgs
-   {
-      cstr resourceName;
-      bool Matches(cstr resource) const;
-      void GetPingPath(char* path, size_t capacity) const;
-   };
+	struct FileModifiedArgs
+	{
+		const wchar_t* resourceName;
+		bool Matches(cstr resource) const;
+	};
 
-   struct MemoryUsage
-   {
-      uint64 current;
-      uint64 peak;
-   };
+	struct MemoryUsage
+	{
+		uint64 current;
+		uint64 peak;
+	};
 
-   MemoryUsage ProcessMemory();
+	MemoryUsage ProcessMemory();
 
 	ROCOCOAPI IOS
 	{
-		virtual void ConvertUnixPathToSysPath(cstr unixPath, char* sysPath, size_t bufferCapacity) const = 0;
+		virtual void ConvertUnixPathToSysPath(const wchar_t* unixPath, wchar_t* sysPath, size_t bufferCapacity) const = 0;
 		virtual void EnumerateModifiedFiles(IEventCallback<FileModifiedArgs>& cb) = 0;
 
 		// Call if the system has become unstable due to bad assets et al
 		virtual void FireUnstable() = 0;
 		virtual void SetUnstableHandler(IEventCallback<SysUnstableArgs>* cb) = 0;
-		virtual void GetBinDirectoryAbsolute(char* binDirectory, size_t capacityChars) const = 0;
-		virtual bool IsFileExistant(cstr absPath) const = 0;
-		virtual void LoadAbsolute(cstr absPath, IExpandingBuffer& buffer, int64 maxFileLength) const = 0;
+		virtual void GetBinDirectoryAbsolute(wchar_t* binDirectory, size_t capacityChars) const = 0;
+		virtual bool IsFileExistant(const wchar_t* absPath) const = 0;
+		virtual void LoadAbsolute(const wchar_t* absPath, IExpandingBuffer& buffer, int64 maxFileLength) const = 0;
 		virtual size_t MaxPath() const = 0;
-		virtual void Monitor(cstr absPath) = 0;
+		virtual void Monitor(const wchar_t* absPath) = 0;
 		virtual void UTF8ToUnicode(const char* s, wchar_t* unicode, size_t cbUtf8count, size_t unicodeCapacity) = 0;
 	};
 
 	ROCOCOAPI IInstallation
 	{
-		virtual const fstring Content() const = 0;
-		virtual void LoadResource(cstr resourcePath, IExpandingBuffer& buffer, int64 maxFileLength) = 0;
-		virtual void ConvertPingPathToSysPath(cstr pingPath, char* sysPath, size_t sysPathCapacity) const = 0;
-		virtual void ConvertSysPathToMacroPath(cstr sysPath, char* pingPath, size_t pingPathCapacity, cstr macro) const = 0;
-		virtual void ConvertSysPathToPingPath(cstr sysPath, char* pingPath, size_t pingPathCapacity) const = 0;
+		virtual const wchar_t* Content() const = 0;
+		virtual void LoadResource(cstr pingPath, IExpandingBuffer& buffer, int64 maxFileLength) = 0;
+		virtual void ConvertPingPathToSysPath(cstr pingPath, wchar_t* sysPath, size_t sysPathCapacity) const = 0;
+		virtual void ConvertSysPathToMacroPath(const wchar_t* sysPath, char* pingPath, size_t pingPathCapacity, cstr macro) const = 0;
+		virtual void ConvertSysPathToPingPath(const wchar_t* sysPath, char* pingPath, size_t pingPathCapacity) const = 0;
 		virtual bool DoPingsMatch(cstr a, cstr b) const = 0;
 		virtual void Macro(cstr name, cstr pingFolder) = 0;
 		virtual IOS& OS() = 0;
 	};
 
-	ROCOCOAPI IInstallationSupervisor: public IInstallation
+	ROCOCOAPI IInstallationSupervisor : public IInstallation
 	{
 		virtual void Free() = 0;
 	};
 
-	ROCOCOAPI IOSSupervisor: public IOS
+	ROCOCOAPI IOSSupervisor : public IOS
 	{
 		virtual void Free() = 0;
 	};
 
-   IOSSupervisor* GetOS();
+	IOSSupervisor* GetOS();
 
-	IInstallationSupervisor* CreateInstallation(cstr contentIndicatorName, IOS& os);
+	IInstallationSupervisor* CreateInstallation(const wchar_t* contentIndicatorName, IOS& os);
 
 	bool DoesModifiedFilenameMatchResourceName(cstr modifiedFilename, cstr resourceName);
 
-   namespace IO
-   {
-      enum { MAX_PATHLEN = 260 };
-      char GetFileSeparator();
-      void EndDirectoryWithSlash(char* pathname, size_t capacity);
+	namespace IO
+	{
+		enum { MAX_PATHLEN = 260 };
+		char GetFileSeparator();
+		void EndDirectoryWithSlash(char* pathname, size_t capacity);
+		void EndDirectoryWithSlash(wchar_t* pathname, size_t capacity);
 #ifdef _WIN32 // Windows may have UNICODE16 characters in the username, so ascii insufficient to hold the user path
-      void GetUserPath(wchar_t* fullpath, size_t capacity, cstr shortname);
+		void GetUserPath(wchar_t* fullpath, size_t capacity, cstr shortname);
 #else
-	  void GetUserPath(char* fullpath, size_t capacity, cstr shortname);
+		void GetUserPath(char* fullpath, size_t capacity, cstr shortname);
 #endif
-      void DeleteUserFile(cstr filename);
-   }
+		void DeleteUserFile(cstr filename);
+	}
 }
 
 #endif

@@ -424,8 +424,8 @@ namespace Rococo
 	   cstr caption;
 	   cstr ext;
 	   cstr extDesc;
-	   char path[IO::MAX_PATHLEN];
-	   cstr shortName;
+	   wchar_t path[IO::MAX_PATHLEN];
+	   const wchar_t* shortName;
    };
 
    struct LoadDesc
@@ -433,8 +433,8 @@ namespace Rococo
 	   cstr caption;
 	   cstr ext;
 	   cstr extDesc;
-	   char path[IO::MAX_PATHLEN];
-	   cstr shortName;
+	   wchar_t path[IO::MAX_PATHLEN];
+	   const wchar_t* shortName;
    };
 
    namespace Events
@@ -445,7 +445,7 @@ namespace Rococo
 	   {
 			boolean32 isNowBusy;
 			cstr message;
-			cstr resourceName;
+			char resourceName[Rococo::IO::MAX_PATHLEN];
 	   };
 
 	   struct DirectMouseEvent : public EventArgs
@@ -473,14 +473,14 @@ namespace Rococo
    {
 	   virtual void AddSubtitle(cstr subtitle) = 0;
 	   virtual IScrollbar* CreateScrollbar(bool _isVertical) = 0;
-	   virtual void EnumerateFiles(IEventCallback<cstr>& cb, cstr pingPathDirectory) = 0;
+	   virtual void EnumerateFiles(IEventCallback<const wchar_t*>& cb, cstr pingPathDirectory) = 0;
 	   virtual Graphics::ITextTesselator& GetTextTesselator() = 0;
 	   virtual bool GetSaveLocation(Windows::IWindow& parent, SaveDesc& sd) = 0;
 	   virtual bool GetLoadLocation(Windows::IWindow& parent, LoadDesc& sd) = 0;
 	   virtual bool QueryYesNo(Windows::IWindow& parent, cstr question, cstr caption = nullptr) = 0;
 	   virtual void RefreshResource(cstr pingPath) = 0;
 	   virtual void RunEnvironmentScript(IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail = true, bool trace = false) = 0;
-	   virtual void SaveBinary(cstr pathname, const void* buffer, size_t nChars) = 0;
+	   virtual void SaveBinary(const wchar_t* pathname, const void* buffer, size_t nChars) = 0;
 	   virtual void ShowErrorBox(Windows::IWindow& parent, IException& ex, cstr message) = 0;
 	   virtual IVariableEditor* CreateVariableEditor(Windows::IWindow& parent, const Vec2i& span, int32 labelWidth, cstr appQueryName, cstr defaultTab, cstr defaultTooltip, IVariableEditorEventHandler* eventHandler = nullptr, const Vec2i* topLeft = nullptr) = 0;
 	   virtual IBloodyPropertySetEditorSupervisor* CreateBloodyPropertySetEditor(IEventCallback<IBloodyPropertySetEditorSupervisor>& _onDirty) = 0;

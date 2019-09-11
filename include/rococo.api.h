@@ -180,8 +180,8 @@ namespace Rococo
 
 	ROCOCOAPI ILogger
 	{
-	  virtual void AddLogSection(RGBAb colour, cstr format, ...) = 0;
-	  virtual void ClearLog() = 0;
+		virtual void AddLogSection(RGBAb colour, cstr format, ...) = 0;
+		virtual void ClearLog() = 0;
 		virtual int Log(cstr format, ...) = 0;
 	};
 
@@ -189,7 +189,7 @@ namespace Rococo
 	{
 		struct IUnicode16Writer;
 		bool ChooseDirectory(char* name, size_t capacity);
-		void ForEachFileInDirectory(cstr directory, IEventCallback<cstr>& onFile);
+		void ForEachFileInDirectory(const wchar_t* directory, IEventCallback<const wchar_t*>& onFile);
 	}
 
 	namespace OS
@@ -243,7 +243,7 @@ namespace Rococo
 			TargetDirectory_Root
 		};
 
-		void SaveAsciiTextFile(TargetDirectory target, cstr filename, const fstring& text);
+		void SaveAsciiTextFile(TargetDirectory target, const wchar_t* filename, const fstring& text);
 	}
 
 	struct IDebuggerWindow;
@@ -573,20 +573,22 @@ namespace Rococo
 		ticks CpuHz();
 		ticks UTCTime();
 		void FormatTime(ticks utcTime, char* buffer, size_t nBytes);
-		bool StripLastSubpath(char* fullpath);
-		bool IsFileExistant(cstr path);
+		bool StripLastSubpath(wchar_t* fullpath);
+		bool IsFileExistant(const wchar_t* path);
 		void Format_C_Error(int errorCode, char* buffer, size_t capacity);
 		int OpenForAppend(void** fp, cstr name);
 		int OpenForRead(void** fp, cstr name);
 		void UILoop(uint32 milliseconds);
+		void ToSysPath(wchar_t* path);
+		void ToUnixPath(wchar_t* path);
 		void ToSysPath(char* path);
 		void ToUnixPath(char* path);
 		void SanitizePath(char* path);
 		void SaveClipBoardText(cstr text, Windows::IWindow& window);
 		bool TryGetColourFromDialog(RGBAb& colour, Windows::IWindow& window);
 		cstr GetAsciiCommandLine();
-		void LoadAsciiTextFile(char* data, size_t capacity, const char* filename);
-		void GetEnvVariable(char* data, size_t capacity, const char* envVariable);
+		void LoadAsciiTextFile(char* data, size_t capacity, const wchar_t* filename);
+		void GetEnvVariable(wchar_t* data, size_t capacity, const wchar_t* envVariable);
 		void PollKeys(uint8 scanArray[256]);
 	}
 

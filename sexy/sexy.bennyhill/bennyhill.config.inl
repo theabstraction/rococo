@@ -336,15 +336,15 @@ namespace
 
 		cstr configPath = StringFrom(configSpec.GetElement(1));
 
-		char fullconfigPath[_MAX_PATH];
+		wchar_t fullconfigPath[_MAX_PATH];
 
 		if (*configPath == '$')
 		{
-			SafeFormat(fullconfigPath, _MAX_PATH, ("%s%s"), pc.projectRoot, configPath + 1);
+			SafeFormat(fullconfigPath, _MAX_PATH, L"%S%S", pc.projectRoot, configPath + 1);
 		}
 		else
 		{
-			SafeFormat(fullconfigPath, _MAX_PATH, ("%s"), configPath);
+			SafeFormat(fullconfigPath, _MAX_PATH, L"%S", configPath);
 		}
 
 		Auto<ISParser> parser = Sexy_CreateSexParser_2_0(Rococo::Memory::CheckedAllocator());

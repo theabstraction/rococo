@@ -217,8 +217,9 @@ namespace MHost
 		void OnEvent(FileModifiedArgs& args) override
 		{
 			char pingname[1024];
-			args.GetPingPath(pingname, 1024);
-
+			SafeFormat(pingname, 1024, "!%S", args.resourceName);
+			Rococo::OS::ToUnixPath(pingname);
+			
 			platform.gui.LogMessage("File modified: %s", pingname);
 
 			auto ext = Rococo::GetFileExtension(args.resourceName);
@@ -226,17 +227,17 @@ namespace MHost
 			{
 
 			}
-			else if (Eq(ext, ".sxy"))
+			else if (Eq(ext, L".sxy"))
 			{
 				platform.utilities.RefreshResource(pingname);
 				queuedForExecute = true;
 			}
-			else if (Eq(ext, ".ps"))
+			else if (Eq(ext, L".ps"))
 			{
 				platform.gui.LogMessage("Updating pixel shader");
 				platform.renderer.UpdatePixelShader(pingname);
 			}
-			else if (Eq(ext, ".vs"))
+			else if (Eq(ext, L".vs"))
 			{
 				platform.gui.LogMessage("Updating vertex shader");
 				platform.renderer.UpdateVertexShader(pingname);

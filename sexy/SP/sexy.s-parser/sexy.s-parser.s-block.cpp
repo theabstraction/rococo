@@ -1433,7 +1433,7 @@ namespace Anon
 			return tree;
 		}
 
-		ISourceCode* DuplicateSourceBuffer(cstr buffer, int segmentLength, const Vec2i& origin, cstr name) override
+		ISourceCode* DuplicateSourceBuffer(cstr buffer, int segmentLength, const Vec2i& origin, const char* name) override
 		{
 			if (buffer == nullptr || name == nullptr)
 			{
@@ -1499,20 +1499,23 @@ namespace Anon
 			return src;
 		}
 
-		ISourceCode* LoadSource(cstr filename, const Vec2i& origin) override
+		ISourceCode* LoadSource(const wchar_t* u16filename, const Vec2i& origin) override
 		{
-			if (filename == nullptr || *filename == 0) Rococo::Throw(0, "ISParser::LoadSource: Blank filename");
+			if (u16filename == nullptr || *u16filename == 0) Rococo::Throw(0, "ISParser::LoadSource: Blank filename");
+
+			char filename[_MAX_PATH];
+			SafeFormat(filename, _MAX_PATH, "%S", u16filename);
 
 			try
 			{
-				if (!Rococo::OS::IsFileExistant(filename))
+				if (!Rococo::OS::IsFileExistant(u16filename))
 				{
-					Rococo::Throw(0, "file does not exist");
+					Rococo::Throw(0, "%s: file does not exist", __FUNCTION__);
 				}
 
 				enum { MAX_FILELEN = 0x7FFFFFFELL }; // +1 byte for the nul char gives int32.max, which is our hard limit
 
-				FILE* fp = fopen(filename, "rb");
+				FILE* fp = _wfopen(u16filename, L"rb");
 				if (fp == nullptr)
 				{
 					int err = errno;
@@ -1566,82 +1569,11 @@ namespace Anon
 			}
 		}
 
-#ifdef _WIN32 // UNICODE for Win32
-		ISourceCode* LoadSource(const wchar_t* filename, const Vec2i& origin) override
+		ISourceCode* LoadSource(const wchar_t* u16filename, const Vec2i& origin, const char* buffer, long len) override
 		{
-			if (filename == nullptr || *filename == 0) Rococo::Throw(0, "ISParser::LoadSource: Blank filename");
-
-			try
-			{
-				FILE* fp = _wfopen(filename, L"rb");
-				if (fp == nullptr)
-				{
-					int err = errno;
-					Rococo::Throw(0, "Could not open file - %s", strerror(err));
-				}
-
-				struct FPANON
-				{
-					FILE* fp;
-
-					~FPANON()
-					{
-						fclose(fp);
-					}
-				} fpCloser{ fp };
-
-				fseek(fp, 0, SEEK_END);
-
-				long filelen = ftell(fp);
-
-				fseek(fp, 0, SEEK_SET);
-
-				char* asciifilename = (char*)alloca(wcslen(filename) + 1);
-
-				auto* pSrc = filename;
-				auto* pDst = asciifilename;
-
-				do
-				{
-					wchar_t c = *pSrc++;
-					*pDst++ = c > 127 ? '?' : c;
-				} while (*pSrc != 0);
-
-				size_t blockSize = sizeof(SourceCode) + filelen + 1 + strlen(asciifilename) + 1;
-				char* block = (char*)allocator.Allocate(blockSize);
-				auto* src = new (block) SourceCode(allocator);
-				src->allocator = allocator;
-				src->buffer = block + sizeof(SourceCode);
-
-				size_t lenRead = fread(src->buffer, 1, filelen, fp);
-				if (lenRead != filelen)
-				{
-					int err = errno;
-					allocator.FreeData(block);
-					Rococo::Throw(0, "Could not read all file data - %s", strerror(err));
-				}
-
-				src->buffer[filelen] = 0;
-				src->name = src->buffer + filelen + 1;
-				src->srcLength = (int32)filelen;
-				src->origin = origin;
-				src->block = block;
-
-				memcpy(src->name, asciifilename, strlen(asciifilename) + 1);
-
-				return src;
-			}
-			catch (IException& ex)
-			{
-				Rococo::Throw(ex.ErrorCode(), "ISParser::LoadSource( %s ,...) failed - %s", filename, ex.Message());
-				return nullptr;
-			}
-		}
-#endif
-
-		ISourceCode* LoadSource(cstr moduleName, const Vec2i& origin, const char* buffer, long len) override
-		{
-			return DuplicateSourceBuffer(buffer, len, origin, moduleName);
+			char filename[_MAX_PATH];
+			SafeFormat(filename, _MAX_PATH, "%S", u16filename);
+			return DuplicateSourceBuffer(buffer, len, origin, filename);
 		}
 
 		refcount_t AddRef() override

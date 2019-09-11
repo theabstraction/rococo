@@ -187,6 +187,11 @@ namespace Rococo
 		virtual void OnEvent(cstr arg) = 0;
 	};
 
+	template<> struct IEventCallback<const wchar_t*>
+	{
+		virtual void OnEvent(const wchar_t* arg) = 0;
+	};
+
 	template<class T> inline void Free(T* t)
 	{
 		if (t) t->Free();

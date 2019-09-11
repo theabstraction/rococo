@@ -72,7 +72,7 @@ namespace
 #else
 # define charENCODING "ASCII"
 	bool IsSexUnicode = false;
-	ISourceCode* AddUnicodeModule(const Byte* input, IScriptSystem& ss, int moduleLength, cstr name)
+	ISourceCode* AddUnicodeModule(const Byte* input, IScriptSystem& ss, int moduleLength, const wchar_t* name)
 	{
 		char* tempBuffer = new char[moduleLength];
 		if (!CopyUnicodeTochar(tempBuffer, moduleLength, (const Char*) input))
@@ -82,15 +82,19 @@ namespace
 		}
 		else
 		{
-			ISourceCode* sc = ss.SParser().DuplicateSourceBuffer(tempBuffer, moduleLength, Vec2i{ 0,0 }, name);
+			char asciiName[1024];
+			SafeFormat(asciiName, 1024, "%S", name);
+			ISourceCode* sc = ss.SParser().DuplicateSourceBuffer(tempBuffer, moduleLength, Vec2i{ 0,0 }, asciiName);
 			delete tempBuffer;
 			return sc;
 		}		
 	}
 
-	ISourceCode* AddAsciiModule(const Byte* input, IScriptSystem& ss, int moduleLength, cstr name)
+	ISourceCode* AddAsciiModule(const Byte* input, IScriptSystem& ss, int moduleLength, const wchar_t* name)
 	{
-		return ss.SParser().DuplicateSourceBuffer((cstr) input, moduleLength, Vec2i{ 0,0 }, name);
+		char asciiName[1024];
+		SafeFormat(asciiName, 1024, "%S", name);
+		return ss.SParser().DuplicateSourceBuffer((cstr) input, moduleLength, Vec2i{ 0,0 }, asciiName);
 	}
 
    int CopycharToUnicode(wchar_t* output, size_t bufferCapacity, cstr input)

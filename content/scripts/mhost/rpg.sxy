@@ -27,7 +27,7 @@
 
 (namespace EntryPoint)
 	(alias Main EntryPoint.Main)
-	
+
 (using Sys)
 (using Sys.Maths)
 (using Sys.Maths.F32)

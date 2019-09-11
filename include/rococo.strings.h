@@ -15,7 +15,9 @@ int _stricmp(const char* a, const char* b);
 namespace Rococo
 {
    int SecureFormat(char* buffer, size_t capacity, const char* format, ...);
+   int SecureFormat(wchar_t* buffer, size_t capacity, const wchar_t* format, ...);
    int SafeFormat(char* buffer, size_t capacity, const char* format, ...);
+   int SafeFormat(wchar_t* buffer, size_t capacity, const wchar_t* format, ...);
 
 #ifdef ROCOCO_USE_SAFE_V_FORMAT
    int SafeVFormat(char* buffer, size_t capacity, const char* format, va_list args);
@@ -35,10 +37,18 @@ namespace Rococo
    cstr GetRightSubstringAfter(cstr s, char c);
    cstr GetFileExtension(cstr s);
 
+   const wchar_t* GetFinalNull(const wchar_t* s);
+   const wchar_t* GetRightSubstringAfter(const wchar_t* s, wchar_t c);
+   const wchar_t* GetFileExtension(const wchar_t* s);
+
+   bool Eq(const wchar_t* a, const wchar_t* b);
    bool Eq(cstr a, cstr b);
    bool EqI(cstr a, cstr b);
    bool StartsWith(cstr bigString, cstr prefix);
    bool EndsWith(cstr bigString, cstr suffix);
+
+   bool StartsWith(const wchar_t* bigString, const wchar_t* prefix);
+   bool EndsWith(const wchar_t* bigString, const wchar_t* suffix);
 
    void SetStringAllocator(IAllocator* a);
 
@@ -147,6 +157,7 @@ namespace Rococo
    void CopyString(char* dest, size_t capacity, const char* source);
 
    void StringCat(char* buf, cstr source, int maxChars);
+   void StringCat(wchar_t* buf, const wchar_t* source, int maxChars);
 
    size_t rlen(cstr s);
    int StrCmpN(cstr a, cstr b, size_t len);

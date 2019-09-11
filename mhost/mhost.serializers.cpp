@@ -399,7 +399,7 @@ namespace Anon
 
 		void LoadFrom(const fstring& pingPath) override
 		{
-			char sysPath[Rococo::IO::MAX_PATHLEN];
+			wchar_t sysPath[Rococo::IO::MAX_PATHLEN];
 			installation.ConvertPingPathToSysPath(pingPath, sysPath, sizeof(sysPath));
 
 			Auto<ISParser> sparser = Sexy_CreateSexParser_2_0(Rococo::Memory::CheckedAllocator());
@@ -439,8 +439,8 @@ namespace Anon
 			}
 			sb << "))\n";
 
-			char sysPath[Rococo::IO::MAX_PATHLEN];
-			installation.ConvertPingPathToSysPath(pingPath, sysPath, sizeof(sysPath));
+			wchar_t sysPath[Rococo::IO::MAX_PATHLEN];
+			installation.ConvertPingPathToSysPath(pingPath, sysPath, Rococo::IO::MAX_PATHLEN);
 
 			Rococo::OS::SaveAsciiTextFile(Rococo::OS::TargetDirectory_Root, sysPath, *sb);
 		}

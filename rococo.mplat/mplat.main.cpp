@@ -120,23 +120,31 @@ public:
 
 	bool GetLoadLocation(Windows::IWindow& parent, LoadDesc& ld) override
 	{
-		char filter[128];
-		SecureFormat(filter, sizeof(filter), "%s%c%s%c%c", ld.extDesc, 0, ld.ext, 0, 0);
+		wchar_t filter[128];
+		SecureFormat(filter, sizeof(filter), L"%S%c%S%c%c", ld.extDesc, 0, ld.ext, 0, 0);
 
-		OPENFILENAMEA dialog = { 0 };
+		OPENFILENAMEW dialog = { 0 };
 		dialog.lStructSize = sizeof(dialog);
 		dialog.hwndOwner = parent;
 		dialog.lpstrFilter = filter;
 		dialog.nFilterIndex = 1;
 		dialog.lpstrFile = ld.path;
 		dialog.nMaxFile = sizeof(ld.path);
-		dialog.lpstrTitle = ld.caption;
+
+		wchar_t u16Caption[256];
+		SafeFormat(u16Caption, 256, L"%S", ld.caption);
+
+		dialog.lpstrTitle = u16Caption;
 		dialog.Flags = OFN_CREATEPROMPT | OFN_ENABLESIZING | OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST;
-		dialog.lpstrDefExt = ld.ext;
+
+		wchar_t u16Ext[64];
+		SafeFormat(u16Caption, 64, L"%S", ld.ext);
+
+		dialog.lpstrDefExt = u16Ext;
 
 		renderer.SwitchToWindowMode();
 
-		if (GetOpenFileNameA(&dialog))
+		if (GetOpenFileNameW(&dialog))
 		{
 			ld.shortName = ld.path + dialog.nFileOffset;
 			return true;
@@ -151,26 +159,32 @@ public:
 
 	bool GetSaveLocation(Windows::IWindow& parent, SaveDesc& sd) override
 	{
-		char filter[128];
-		SecureFormat(filter, sizeof(filter), "%s%c%s%c%c", sd.extDesc, 0, sd.ext, 0, 0);
+		wchar_t filter[128];
+		SecureFormat(filter, sizeof(filter), L"%S%c%S%c%c", sd.extDesc, 0, sd.ext, 0, 0);
 
-		OPENFILENAMEA dialog = { 0 };
+		OPENFILENAMEW dialog = { 0 };
 		dialog.lStructSize = sizeof(dialog);
 		dialog.hwndOwner = parent;
 		dialog.lpstrFilter = filter;
 		dialog.nFilterIndex = 1;
 		dialog.lpstrFile = sd.path;
 		dialog.nMaxFile = sizeof(sd.path);
-		dialog.lpstrTitle = sd.caption;
-		dialog.lpstrDefExt = sd.ext;
 
-		fstring fullPath = to_fstring(sd.path);
+		wchar_t u16Caption[256];
+		SafeFormat(u16Caption, 256, L"%S", sd.caption);
+		dialog.lpstrTitle = u16Caption;
 
-		char initialPath[IO::MAX_PATHLEN];
+		wchar_t u16Ext[256];
+		SafeFormat(u16Ext, 256, L"%S", sd.ext);
+		dialog.lpstrDefExt = u16Ext;
 
-		if (fullPath.buffer[fullPath.length - 1] == '\\')
+		wchar_t initialPath[IO::MAX_PATHLEN];
+
+		size_t len = wcslen(sd.path);
+
+		if (sd.path[len - 1] == '\\')
 		{
-			SafeFormat(initialPath, IO::MAX_PATHLEN, "%s", sd.path);
+			SafeFormat(initialPath, IO::MAX_PATHLEN, L"%s", sd.path);
 			*sd.path = 0;
 			dialog.Flags = OFN_ENABLESIZING;
 		}
@@ -181,7 +195,7 @@ public:
 
 		renderer.SwitchToWindowMode();
 
-		if (GetSaveFileNameA(&dialog))
+		if (GetSaveFileNameW(&dialog))
 		{
 			sd.shortName = sd.path + dialog.nFileOffset;
 			return true;
@@ -194,12 +208,12 @@ public:
 		}
 	}
 
-	void EnumerateFiles(IEventCallback<cstr>& cb, cstr pingPathDirectory) override
+	void EnumerateFiles(IEventCallback<const wchar_t*>& cb, cstr pingPathDirectory) override
 	{
-		struct : IEventCallback<cstr>
+		struct : IEventCallback<const wchar_t*>
 		{
-			std::vector<std::string> allResults;
-			virtual void OnEvent(cstr filename)
+			std::vector<std::wstring> allResults;
+			virtual void OnEvent(const wchar_t* filename)
 			{
 				allResults.push_back(filename);
 			}
@@ -210,23 +224,22 @@ public:
 			Throw(0, "Directories must be inside the content directory. Use the '!<directory>' notation");
 		}
 
-		char shortdir[IO::MAX_PATHLEN];
-		char directory[IO::MAX_PATHLEN];
+		wchar_t shortDir[IO::MAX_PATHLEN];
+		wchar_t directory[IO::MAX_PATHLEN];
 
-		StackStringBuilder sb(shortdir, _MAX_PATH);
-		sb << pingPathDirectory;
+		SafeFormat(shortDir, IO::MAX_PATHLEN, L"%S", pingPathDirectory);
+		
+		EndDirectoryWithSlash(shortDir, IO::MAX_PATHLEN);
 
-		EndDirectoryWithSlash(shortdir, IO::MAX_PATHLEN);
-
-		SafeFormat(directory, IO::MAX_PATHLEN, "%s%s", (cstr) installation.Content(), (shortdir + 1));
+		SafeFormat(directory, IO::MAX_PATHLEN, L"%s%s", (cstr) installation.Content(), shortDir + 1);
 		IO::ForEachFileInDirectory(directory, onFileFound);
 
 		std::sort(onFileFound.allResults.begin(), onFileFound.allResults.end());
 
 		for (auto& s : onFileFound.allResults)
 		{
-			char contentRelativePath[IO::MAX_PATHLEN];
-			SafeFormat(contentRelativePath, IO::MAX_PATHLEN, "%s%s", shortdir, s.c_str());
+			wchar_t contentRelativePath[IO::MAX_PATHLEN];
+			SafeFormat(contentRelativePath, IO::MAX_PATHLEN, L"%s%s", shortDir, s.c_str());
 			cb.OnEvent(contentRelativePath);
 		}
 	}
@@ -301,17 +314,17 @@ public:
 		return Rococo::CreateVariableEditor(window, span, labelWidth, appQueryName, defaultTab, defaultTooltip, eventHandler, topLeft);
 	}
 
-	virtual void SaveBinary(cstr pathname, const void* buffer, size_t nChars)
+	virtual void SaveBinary(const wchar_t* pathname, const void* buffer, size_t nChars)
 	{
-		FileHandle fh = CreateFileA(pathname, GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+		FileHandle fh = CreateFileW(pathname, GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
 		if (fh == INVALID_HANDLE_VALUE)
 		{
-			Throw(GetLastError(), "Error saving %s", pathname);
+			Throw(GetLastError(), "Error saving %S", pathname);
 		}
 
 		if (!WriteFile(fh, buffer, (DWORD)nChars, nullptr, nullptr))
 		{
-			Throw(GetLastError(), "Error writing %s", pathname);
+			Throw(GetLastError(), "Error writing %S", pathname);
 		}
 	}
 };
@@ -3707,7 +3720,7 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	Imaging::SetTiffAllocator(imageAllocator);
 
 	AutoFree<IOSSupervisor> os = GetOS();
-	AutoFree<IInstallationSupervisor> installation = CreateInstallation("content.indicator.txt", *os);
+	AutoFree<IInstallationSupervisor> installation = CreateInstallation(L"content.indicator.txt", *os);
 	AutoFree<Rococo::Events::IPublisherSupervisor> publisher(Events::CreatePublisher());
 	os->Monitor(installation->Content());
 

@@ -1014,7 +1014,9 @@ int main(int argc, char* argv[])
 
 	try
 	{
-		src = parser->LoadSource(pc.scriptInput, Vec2i{ 1,1 });
+		wchar_t u16inputName[_MAX_PATH];
+		SafeFormat(u16inputName, _MAX_PATH, L"%S", pc.scriptInput);
+		src = parser->LoadSource(u16inputName, Vec2i{ 1,1 });
 		tree = parser->CreateTree(src());
 
 		if (tree->Root().NumberOfElements() == 0)

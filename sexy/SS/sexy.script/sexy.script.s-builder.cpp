@@ -308,7 +308,7 @@ namespace
 			return nullptr;
 		}
 
-		ISourceCode* DuplicateSourceBuffer(cstr buffer, int segmentLength, const Vec2i& origin, cstr name) override
+		ISourceCode* DuplicateSourceBuffer(cstr buffer, int segmentLength, const Vec2i& origin, const char* name) override
 		{
 			Throw(0, "Not implemented on Expression Builder");
 			return nullptr;
@@ -320,21 +320,13 @@ namespace
 			return nullptr;
 		}
 
-		ISourceCode* LoadSource(cstr filename, const Vec2i& origin) override
-		{
-			Throw(0, "Not implemented on Expression Builder");
-			return nullptr;
-		}
-
-#ifdef _WIN32
 		ISourceCode* LoadSource(const wchar_t* filename, const Vec2i& origin) override
 		{
 			Throw(0, "Not implemented on Expression Builder");
 			return nullptr;
 		}
-#endif
 
-		ISourceCode* LoadSource(cstr moduleName, const Vec2i& origin, const char* buffer, long len) override
+		ISourceCode* LoadSource(const wchar_t* moduleName, const Vec2i& origin, const char* buffer, long len) override
 		{
 			Throw(0, "Not implemented on Expression Builder");
 			return nullptr;

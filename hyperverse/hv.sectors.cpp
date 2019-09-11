@@ -579,7 +579,7 @@ namespace ANON
 		   {
 			   try
 			   {
-				   char sysPath[IO::MAX_PATHLEN];
+				   wchar_t sysPath[IO::MAX_PATHLEN];
 				   platform.installation.ConvertPingPathToSysPath(populateScript, sysPath, IO::MAX_PATHLEN);
 				   platform.installation.ConvertSysPathToMacroPath(sysPath, populateScript, IO::MAX_PATHLEN, "#objects");
 			   }

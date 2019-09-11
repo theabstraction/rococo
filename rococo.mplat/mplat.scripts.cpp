@@ -134,7 +134,18 @@ static void NativeEnumerateFiles(NativeCallEnvironment& nce)
 		Throw(0, "MPlat.NativeEnumerateFiles. String argument was blank");
 	}
 
-	int a = 1;
+	struct : IEventCallback<const wchar_t*>
+	{
+		void OnEvent(const wchar_t* filename) override
+		{
+
+		}
+	} onFile;
+
+	wchar_t sysPath[Rococo::IO::MAX_PATHLEN];
+	platform.installation.ConvertPingPathToSysPath((cstr)sc.pointer, sysPath, Rococo::IO::MAX_PATHLEN);
+
+	Rococo::IO::ForEachFileInDirectory(sysPath, onFile);
 }
 
 
@@ -148,8 +159,8 @@ namespace Rococo
 
 		void InitScriptSystem(IInstallation& installation)
 		{
-			char srcpath[Rococo::IO::MAX_PATHLEN];
-			SecureFormat(srcpath, sizeof(srcpath), "%sscripts\\native\\", (cstr)installation.Content());
+			wchar_t srcpath[Rococo::IO::MAX_PATHLEN];
+			SecureFormat(srcpath, Rococo::IO::MAX_PATHLEN, L"%sscripts\\native\\", installation.Content());
 
 			Rococo::Script::SetDefaultNativeSourcePath(srcpath);
 			Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);

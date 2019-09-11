@@ -71,13 +71,13 @@ namespace Rococo {
 		struct ProgramInitParameters
 		{
 			size_t MaxProgramBytes;
-			cstr NativeSourcePath;
+			const wchar_t* NativeSourcePath;
 			bool addCoroutineLib = false; // Set to true to use sexy.nativelib.coroutine.dll
 			bool useDebugLibs = false; // Set to true to use the sexy.nativelib.debug.<xxx>.dlls 
 
 			enum { ONE_KILOBYTE = 1024 };
 			ProgramInitParameters() : MaxProgramBytes(1024 * ONE_KILOBYTE), NativeSourcePath(nullptr) {}
-			ProgramInitParameters(size_t _maxProgBytes, cstr _nativeSourcePath = nullptr) : MaxProgramBytes(_maxProgBytes), NativeSourcePath(_nativeSourcePath) {}
+			ProgramInitParameters(size_t _maxProgBytes, const wchar_t* _nativeSourcePath = nullptr) : MaxProgramBytes(_maxProgBytes), NativeSourcePath(_nativeSourcePath) {}
 		};
 
 		class NameString

@@ -270,18 +270,12 @@ namespace SexyDotNet { namespace Host
 		pin_ptr<Char> namePin = &nameArray[0];
 		const Char* namePtr = namePin;
 
-		char sexName[256];
-		if (!CopyUnicodeTochar(sexName, 256, namePtr))
-		{
-			throw gcnew CompileError(moduleFullPath, "Cannot convert the unicode name to sex characters", SourceLocation(0,0), SourceLocation(0,0));
-		}
-
 		ISourceCode* sc;
 
 		// Assume that if the number of bytes in the file is even and the first high-byte is zero then we have a unicode file
 		if (fileLength % 2 == 0 && inputBuffer[1] == 0)
 		{
-			sc = AddUnicodeModule(inputPtr, ss, fileLength / 2, sexName);
+			sc = AddUnicodeModule(inputPtr, ss, fileLength / 2, namePtr);
 			if (sc == NULL)
 			{
 				throw gcnew Exception("Error adding the UNICODE source code as " + charENCODING + "module");
@@ -289,7 +283,7 @@ namespace SexyDotNet { namespace Host
 		}
 		else
 		{
-			sc = AddAsciiModule(inputPtr, ss, fileLength, sexName);
+			sc = AddAsciiModule(inputPtr, ss, fileLength, namePtr);
 			if (sc == NULL)
 			{
 				throw gcnew Exception("Error adding the ASCII source code as " + charENCODING + "module");

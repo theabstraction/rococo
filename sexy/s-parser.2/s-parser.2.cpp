@@ -63,7 +63,10 @@ void TestGenerated()
 	AutoFree<IAllocatorSupervisor> allocator(Rococo::Memory::CreateBlockAllocator(16, 0));
 
 	Auto<ISParser> sparser = Sexy_CreateSexParser_2_0(*allocator, 32768);
-	auto* s = sparser->LoadSource(filename, { 1,1 });
+
+	wchar_t u16filename[_MAX_PATH];
+	SafeFormat(u16filename, _MAX_PATH, L"%S", filename);
+	auto* s = sparser->LoadSource(u16filename, { 1,1 });
 
 	auto start = Rococo::OS::CpuTicks();
 

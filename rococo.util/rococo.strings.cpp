@@ -328,6 +328,11 @@ namespace Rococo
 	{
 		strcat_s(buf, maxChars, source);
 	}
+
+	void StringCat(wchar_t* buf, const wchar_t* source, int maxChars)
+	{
+		wcscat_s(buf, maxChars, source);
+	}
 #else
 	void StringCat(char* buf, const char* source, int maxChars)
 	{
@@ -347,6 +352,24 @@ namespace Rococo
       return SafeVFormat(buffer, capacity, format, args);
    }
 
+   int SafeVFormat(wchar_t* buffer, size_t capacity, const wchar_t* format, va_list args)
+   {
+	   int count = _vsnwprintf_s(buffer, capacity, capacity, format, args);
+	   if (count >= capacity)
+	   {
+		   return -1;
+	   }
+
+	   return count;
+   }
+
+   int SafeFormat(wchar_t* buffer, size_t capacity, const wchar_t* format, ...)
+   {
+	   va_list args;
+	   va_start(args, format);
+	   return SafeVFormat(buffer, capacity, format, args);
+   }
+
    int SecureFormat(char* buffer, size_t capacity, const char* format, ...)
    {
       va_list args;
@@ -357,6 +380,18 @@ namespace Rococo
          Throw(0, "SecureFormat failed. Buffer length exceeded. Format String: %s", format);
       }
       return count;
+   }
+
+   int SecureFormat(wchar_t* buffer, size_t capacity, const wchar_t* format, ...)
+   {
+	   va_list args;
+	   va_start(args, format);
+	   int count = SafeVFormat(buffer, capacity, format, args);
+	   if (count == -1)
+	   {
+		   Throw(0, "SecureFormat failed. Buffer length exceeded. Format String: %s", format);
+	   }
+	   return count;
    }
 
    int SafeVFormat(char* buffer, size_t capacity, const char* format, va_list args)
@@ -452,6 +487,13 @@ namespace Rococo
       return p - 1;
    }
 
+   const wchar_t* GetFinalNull(const wchar_t* s)
+   {
+	   const wchar_t* p = s;
+	   while (*p++ != 0);
+	   return p - 1;
+   }
+
    cstr GetRightSubstringAfter(cstr s, char c)
    {
       cstr p = GetFinalNull(s);
@@ -466,14 +508,38 @@ namespace Rococo
       return nullptr;
    }
 
+   const wchar_t* GetRightSubstringAfter(const wchar_t* s, wchar_t c)
+   {
+	   const wchar_t* p = GetFinalNull(s);
+	   for (const wchar_t* q = p; q >= s; --q)
+	   {
+		   if (*q == c)
+		   {
+			   return q;
+		   }
+	   }
+
+	   return nullptr;
+   }
+
    cstr GetFileExtension(cstr s)
    {
-      return GetRightSubstringAfter(s, L'.');
+      return GetRightSubstringAfter(s, '.');
+   }
+
+   const wchar_t* GetFileExtension(const wchar_t* s)
+   {
+	   return GetRightSubstringAfter(s, L'.');
    }
 
    bool Eq(const char* a, const char* b)
    {
       return strcmp(a, b) == 0;
+   }
+
+   bool Eq(const wchar_t* a, const wchar_t* b)
+   {
+	   return wcscmp(a, b) == 0;
    }
 
    bool EqI(const char* a, const char* b)
@@ -491,6 +557,19 @@ namespace Rococo
 	   size_t len = strlen(suffix);
 	   size_t lenBig = strlen(bigString);
 	   const char* t = bigString + lenBig - len;
+	   return Eq(suffix, t);
+   }
+
+   bool StartsWith(const wchar_t* bigString, const wchar_t* prefix)
+   {
+	   return wcsncmp(bigString, prefix, wcslen(prefix)) == 0;
+   }
+
+   bool EndsWith(const wchar_t* bigString, const wchar_t* suffix)
+   {
+	   size_t len = wcslen(suffix);
+	   size_t lenBig = wcslen(bigString);
+	   const wchar_t* t = bigString + lenBig - len;
 	   return Eq(suffix, t);
    }
 

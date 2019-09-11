@@ -293,7 +293,7 @@ namespace Rococo {
 			virtual const MethodInfo GetMethodByName(cstr methodName,  const Rococo::Compiler::IStructure& concreteClassType) = 0;
 		};
 
-		void SetDefaultNativeSourcePath(cstr pathname);
+		void SetDefaultNativeSourcePath(const wchar_t* pathname);
 
 		ROCOCOAPI INativeLib
 		{

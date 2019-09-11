@@ -2378,7 +2378,7 @@ namespace ANON
 	  void NotifyChanged()
 	  {
 		  propertiesChanged = true;
-		  char sysPath[IO::MAX_PATHLEN];
+		  wchar_t sysPath[IO::MAX_PATHLEN];
 
 		  if (*wallScript)
 		  {
@@ -2457,8 +2457,8 @@ namespace ANON
 			  RunGenCorridorScript();
 		  }
 
-		  char path[256];
-		  args.GetPingPath(path, 256);
+		  char path[_MAX_PATH];
+		  platform.installation.ConvertSysPathToPingPath(args.resourceName, path, _MAX_PATH);
 
 		  cstr theWallScript = *wallScript ? wallScript : "#walls/stretch.bricks.sxy";
 		  if (platform.installation.DoPingsMatch(path, theWallScript) && scriptWalls)
@@ -2594,7 +2594,7 @@ namespace ANON
 
 			  try
 			  {
-				  char sysPath[IO::MAX_PATHLEN];
+				  wchar_t sysPath[IO::MAX_PATHLEN];
 				  if (*wallScript)
 				  {
 					  platform.installation.ConvertPingPathToSysPath(wallScript, sysPath, IO::MAX_PATHLEN);

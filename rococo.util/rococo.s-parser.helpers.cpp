@@ -536,14 +536,14 @@ namespace Rococo
 		}
 	}
 
-	ISourceCode* DuplicateSourceCode(IOS& os, IExpandingBuffer& rbuffer, ISParser& parser, const IBuffer& rawData, cstr resourcePath)
+	ISourceCode* DuplicateSourceCode(IOS& os, IExpandingBuffer& rbuffer, ISParser& parser, const IBuffer& rawData, const char* resourcePath)
 	{
 		const char* utf8data = (const char*)rawData.GetData();
 		size_t rawLength = rawData.Length();
 
 		if (rawLength < 2)
 		{
-			Throw(0, "Script file '%s' was too small", resourcePath);
+			Throw(0, "Script file '%S' was too small", resourcePath);
 		}
 
 		if (rawLength % 2 == 0)
@@ -551,7 +551,7 @@ namespace Rococo
 			char bom = *utf8data;
 			if (bom == 0 || (bom & 0x80))
 			{
-				Throw(0, "Script file '%s' was not UTF-8 or began with non-ASCII character", resourcePath);
+				Throw(0, "Script file '%S' was not UTF-8 or began with non-ASCII character", resourcePath);
 			}
 		}
 
@@ -743,7 +743,10 @@ namespace Rococo
 			{
 				char theTime[256];
 				OS::FormatTime(i.second.loadTime, theTime, 256);
-				visitor.ShowString(i.first.c_str(), "%8d bytes      %8.8s", i.second.code->SourceLength(), theTime);
+
+				char name[256];
+				SafeFormat(name, 256, "%S", i.first.c_str());
+				visitor.ShowString(name, "%8d bytes      %8.8s", i.second.code->SourceLength(), theTime);
 			}
 		}
 		 
@@ -752,9 +755,9 @@ namespace Rococo
 			delete this;
 		}
 
-		ISParserTree* GetSource(cstr resourceName) override
+		ISParserTree* GetSource(cstr pingName) override
 		{
-			auto i = sources.find(resourceName);
+			auto i = sources.find(pingName);
 			if (i != sources.end())
 			{
 				if (i->second.tree == nullptr)
@@ -769,15 +772,15 @@ namespace Rococo
 				}
 			}
 
-			installation.LoadResource(resourceName, *fileBuffer, 64_megabytes);
+			installation.LoadResource(pingName, *fileBuffer, 64_megabytes);
 
-			ISourceCode* src = DuplicateSourceCode(installation.OS(), *unicodeBuffer, *parser, *fileBuffer, resourceName);
-			sources[resourceName] = Binding{ nullptr, src, 0 };
+			ISourceCode* src = DuplicateSourceCode(installation.OS(), *unicodeBuffer, *parser, *fileBuffer, pingName);
+			sources[pingName] = Binding{ nullptr, src, 0 };
 
 			// We have cached the source, so that if tree generation creates an exception, the source codes is still existant
 
 			ISParserTree* tree = parser->CreateTree(*src);
-			sources[resourceName] = Binding{ tree, src, OS::UTCTime() };
+			sources[pingName] = Binding{ tree, src, OS::UTCTime() };
 
 			return tree;
 		}

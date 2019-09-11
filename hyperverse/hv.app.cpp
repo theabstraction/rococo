@@ -231,7 +231,7 @@ namespace HV
 			e.platform.publisher.Publish(ev, HV::Events::OS::evFileChanged);
 
 			char pingname[1024];
-			args.GetPingPath(pingname, 1024);
+			e.platform.installation.ConvertSysPathToPingPath(args.resourceName, pingname, 1024);
 
 			platform.gui.LogMessage("File modified: %s", pingname);
 
@@ -240,7 +240,7 @@ namespace HV
 			{
 
 			}
-			else if (Eq(ext, ".sxy"))
+			else if (Eq(ext, L".sxy"))
 			{
 				e.platform.utilities.RefreshResource(pingname);
 
@@ -256,12 +256,12 @@ namespace HV
 					sectors->OnSectorScriptChanged(args);
 				}
 			}
-			else if (Eq(ext, ".ps"))
+			else if (Eq(ext, L".ps"))
 			{
 				platform.gui.LogMessage("Updating pixel shader");
 				e.platform.renderer.UpdatePixelShader(pingname);
 			}
-			else if (Eq(ext, ".vs"))
+			else if (Eq(ext, L".vs"))
 			{
 				platform.gui.LogMessage("Updating vertex shader");
 				e.platform.renderer.UpdateVertexShader(pingname);
