@@ -3,10 +3,38 @@
 #include <sexy.script.h>
 #include <sexy.vm.cpu.h>
 
-namespace Rococo
+namespace Rococo // declarations herein are to help intellisense do its job.
 {
+	struct IConfig;
+	struct IKeyboard;	
+	struct IPaneBuilder;
+
+	namespace Audio
+	{
+		struct ILegacySoundControl;
+	}
+
+	namespace Entities
+	{
+		struct IMobiles;
+		struct IParticleSystem;
+		struct IInstances;
+	}
+
 	namespace Graphics
 	{
+		struct IFieldTesselator;
+		struct IRendererConfig;
+		struct ITextTesselator;
+		struct IMessaging;
+		struct IQuadStackTesselator;
+		struct IRodTesselator;
+		struct IRimTesselator;
+		struct ISprites;
+		struct ISceneBuilder;
+		struct ICamera;
+		struct IMobiles;
+
 		IFieldTesselator* CreateFieldTesselator();
 	}
 }
@@ -136,14 +164,37 @@ static void NativeEnumerateFiles(NativeCallEnvironment& nce)
 
 	struct : IEventCallback<const wchar_t*>
 	{
+		IPublicScriptSystem* ss;
+		IInstallation* installation;
+		Rococo::Script::ArchetypeCallback callback;
+
+		wchar_t sysRoot[Rococo::IO::MAX_PATHLEN];
+
 		void OnEvent(const wchar_t* filename) override
 		{
+			wchar_t sysFullPath[Rococo::IO::MAX_PATHLEN];
+			SafeFormat(sysFullPath, Rococo::IO::MAX_PATHLEN, L"%s%s", sysRoot, filename);
 
+			char pingPath[Rococo::IO::MAX_PATHLEN];
+			installation->ConvertSysPathToPingPath(sysFullPath, pingPath, Rococo::IO::MAX_PATHLEN);
+
+			auto& SS = (IScriptSystem&)*ss;
+			auto* constant = SS.GetStringReflection(pingPath);
+			InterfacePointer pPingPath = (InterfacePointer)(((uint8*)constant) + ObjectStub::BYTECOUNT_INSTANCE_TO_INTERFACE0);
+			
+			ss->DispatchToSexyClosure(pPingPath, callback);
 		}
 	} onFile;
 
+	onFile.ss = &nce.ss;
+	onFile.callback = ac;
+	onFile.installation = &platform.installation;
+
 	wchar_t sysPath[Rococo::IO::MAX_PATHLEN];
 	platform.installation.ConvertPingPathToSysPath((cstr)sc.pointer, sysPath, Rococo::IO::MAX_PATHLEN);
+
+	SafeFormat(onFile.sysRoot, Rococo::IO::MAX_PATHLEN, L"%s", sysPath);
+	Rococo::OS::MakeContainerDirectory(onFile.sysRoot);
 
 	Rococo::IO::ForEachFileInDirectory(sysPath, onFile);
 }
@@ -223,7 +274,7 @@ namespace Rococo
 						Audio::AddNativeCalls_RococoAudioILegacySoundControl(args.ss, &platform);
 
 						const INamespace& ns = args.ss.AddNativeNamespace("MPlat.OS");
-						args.ss.AddNativeCall(ns, NativeEnumerateFiles, &platform, "EnumerateFiles (Sys.Type.IString filter)(MPlat.StringToBool callback)->");
+						args.ss.AddNativeCall(ns, NativeEnumerateFiles, &platform, "EnumerateFiles (Sys.Type.IString filter)(MPlat.OnFileName callback)->");
 
 						args.ss.AddNativeLibrary("rococo.sexy.mathsex");
 					}

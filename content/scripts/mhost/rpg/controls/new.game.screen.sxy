@@ -65,9 +65,9 @@
 	
 	(IListBuilder roster = this.roster)
 	
-	(MPlat.StringToBool appendToList =
-		(closure (IString path) -> (Bool terminateEnumeration):
-			(AddCharRow roster path)
+	(MPlat.OnFileName appendToList =
+		(closure (IString fileName) -> :
+			(AddCharRow roster fileName)
 		)
 	)
 	

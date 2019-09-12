@@ -119,6 +119,34 @@ namespace Rococo
 {
 	namespace OS
 	{
+		void MakeContainerDirectory(char* filename)
+		{
+			int len = (int)rlen(filename);
+
+			for (int i = len - 2; i > 0; --i)
+			{
+				if (filename[i] == '\\')
+				{
+					filename[i + 1] = 0;
+					return;
+				}
+			}
+		}
+
+		void MakeContainerDirectory(wchar_t* filename)
+		{
+			int len = (int)wcslen(filename);
+
+			for (int i = len - 2; i > 0; --i)
+			{
+				if (filename[i] == L'\\')
+				{
+					filename[i + 1] = 0;
+					return;
+				}
+			}
+		}
+
 		IThreadSupervisor* CreateRococoThread(IThreadJob* job, uint32 stacksize)
 		{
 			struct Supervisor;
@@ -500,34 +528,6 @@ namespace
 {
 	using namespace Rococo;
 
-	void MakeContainerDirectory(char* filename)
-	{
-		int len = (int)rlen(filename);
-
-		for (int i = len - 2; i > 0; --i)
-		{
-			if (filename[i] == '\\')
-			{
-				filename[i + 1] = 0;
-				return;
-			}
-		}
-	}
-
-	void MakeContainerDirectory(wchar_t* filename)
-	{
-		int len = (int)wcslen(filename);
-
-		for (int i = len - 2; i > 0; --i)
-		{
-			if (filename[i] == L'\\')
-			{
-				filename[i + 1] = 0;
-				return;
-			}
-		}
-	}
-
 	struct FilePath
 	{
 		enum { CAPACITY = 260 };
@@ -549,7 +549,7 @@ namespace
 			if (os.IsFileExistant(contentIndicatorName))
 			{
 				SecureFormat(path, Rococo::IO::MAX_PATHLEN, L"%s", contentIndicatorName);
-				MakeContainerDirectory(path);
+				OS::MakeContainerDirectory(path);
 				return;
 			}
 		}
@@ -567,7 +567,7 @@ namespace
 				return;
 			}
 
-			MakeContainerDirectory(path);
+			OS::MakeContainerDirectory(path);
 
 			size_t newLen = wcslen(path);
 			if (newLen >= len) break;
@@ -832,7 +832,7 @@ namespace
 		{
 			auto hAppInstance = GetModuleHandle(nullptr);
 			GetModuleFileNameW(hAppInstance, binDirectory, _MAX_PATH);
-			MakeContainerDirectory(binDirectory);
+			OS::MakeContainerDirectory(binDirectory);
 		}
 
 		~Win32OS()
@@ -1638,7 +1638,7 @@ namespace Rococo
 			{
 				SafeFormat(fullSearchFilter, _MAX_PATH, L"%s", filter);
 				SafeFormat(containerDirectory, _MAX_PATH, L"%s", filter);
-				MakeContainerDirectory(containerDirectory);
+				OS::MakeContainerDirectory(containerDirectory);
 			}
 
 			WIN32_FIND_DATAW findData;

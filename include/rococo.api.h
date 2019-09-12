@@ -590,6 +590,8 @@ namespace Rococo
 		void LoadAsciiTextFile(char* data, size_t capacity, const wchar_t* filename);
 		void GetEnvVariable(wchar_t* data, size_t capacity, const wchar_t* envVariable);
 		void PollKeys(uint8 scanArray[256]);
+		void MakeContainerDirectory(char* filename);
+		void MakeContainerDirectory(wchar_t* filename);
 	}
 
 	namespace Memory

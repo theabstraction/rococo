@@ -47,4 +47,4 @@
 
 (alias GuiQuad MPlat.GuiQuad)
 
-(archetype MPlat.StringToBool (IString input) -> (Bool output))
+(archetype MPlat.OnFileName (IString filename) -> )
