@@ -6,6 +6,7 @@
 #include <sexy.script.h>
 #include <rococo.strings.h>
 
+
 using namespace Rococo;
 
 namespace MHost
@@ -70,12 +71,49 @@ namespace MHost
 {
 	using namespace Rococo;
 
+	inline ObjectStub* InterfaceToInstance(InterfacePointer i)
+	{
+		auto* p = ((uint8*)i) + (*i)->OffsetToInstance;
+		auto* obj = (ObjectStub*)p;
+		return obj;
+	}
+
 	void RunEnvironmentScript(Platform& platform, IEngineSupervisor* engine, cstr name, bool releaseAfterUse, bool trace)
 	{
 		class ScriptContext : public IEventCallback<ScriptCompileArgs>
 		{
 			Platform& platform;
 			IEngineSupervisor* engine;
+			const IStructure* exprStruct = nullptr;
+
+			AutoFree<ISourceCache> privateSourceCache;
+
+			void LoadExpression(NativeCallEnvironment& _nce)
+			{
+				Rococo::uint8* _sf = _nce.cpu.SF();
+				ptrdiff_t _offset = 2 * sizeof(size_t);
+
+				InterfacePointer pStringInterface;
+				ReadInput(0, pStringInterface, _nce);
+
+				auto* stub = (CStringConstant*) MHost::InterfaceToInstance(pStringInterface);
+				cstr fileName = stub->pointer;
+
+				auto* tree = privateSourceCache->GetSource(fileName);
+
+				const int reflModule = 3;
+				exprStruct = _nce.ss.PublicProgramObject().GetModule(reflModule).FindStructure("Expression");
+				if (exprStruct == nullptr) Rococo::Throw(0, "Could not find class [Expression] in module %d (Sys.Reflection.sxy)", reflModule);
+
+				auto* sExpression = _nce.ss.Represent(*exprStruct, &tree->Root());
+				InterfacePointer pExpr = &sExpression->header.pVTables[0];
+				WriteOutput(0, pExpr, _nce);
+			}
+
+			static void NativeLoadExpression(NativeCallEnvironment& _nce)
+			{
+				((ScriptContext*)(_nce.context))->LoadExpression(_nce);
+			}
 
 			virtual void OnEvent(ScriptCompileArgs& args)
 			{
@@ -90,6 +128,9 @@ namespace MHost
 				MHost::Graphics::AddNativeCalls_MHostGraphics(args.ss);
 				AddNativeCalls_MHostIDictionaryStream(args.ss, &platform.installation);
 
+				auto& mhostOS = args.ss.AddNativeNamespace("MHost.OS");
+				args.ss.AddNativeCall(mhostOS, ScriptContext::NativeLoadExpression, this, "LoadExpression (Sys.Type.IString name) -> (Sys.Reflection.IExpression s)");
+
 				engine->SetRunningScriptContext(&args.ss);
 
 				engine->OnCompile(args.ss);
@@ -97,7 +138,10 @@ namespace MHost
 
 		public:
 			ScriptContext(Platform& _platform, IEngineSupervisor* _engine) :
-				platform(_platform), engine(_engine) {}
+				platform(_platform), engine(_engine) 
+			{
+				privateSourceCache = CreateSourceCache(platform.installation);
+			}
 
 			void Execute(cstr name, bool trace)
 			{

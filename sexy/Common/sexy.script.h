@@ -291,6 +291,8 @@ namespace Rococo {
 			virtual const ScriptCallbacks& GetScriptCallbacks() = 0;
 			virtual cstr GetPersistentString(cstr txt) = 0;
 			virtual const MethodInfo GetMethodByName(cstr methodName,  const Rococo::Compiler::IStructure& concreteClassType) = 0;
+
+			virtual ID_API_CALLBACK GetIdSerializeCallback() const = 0;
 		};
 
 		void SetDefaultNativeSourcePath(const wchar_t* pathname);

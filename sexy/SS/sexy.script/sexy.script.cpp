@@ -132,6 +132,140 @@ namespace Rococo {
 
 		void DeleteMembers(IScriptSystem& ss, const IStructure& type, uint8* pInstance);
 
+		VM_CALLBACK(Serialize)
+		{
+			InterfacePointer sip = (InterfacePointer)registers[5].vPtrValue;
+			auto* sStub = InterfaceToInstance(sip);
+
+			IScriptSystem* ss = (IScriptSystem*)context;
+
+			if (sStub->Desc->TypeInfo != &ss->ProgramObject().Common().SysReflectionExpression())
+			{
+				Throw(0, "serialize <src> -> <target>: src must be an interface to class Expression from Sys.Reflection.sxy");
+			}
+
+			auto* cce = (CClassExpression*)sStub;
+
+			cr_sex s = *cce->ExpressionPtr;
+
+			auto* target = registers[7].vPtrValue;
+			auto* targetType = (const IStructure*)registers[4].vPtrValue;
+
+			uint8* targetData;
+
+			if (targetType->InterfaceCount() == 0)
+			{
+				targetData = (uint8*)target;
+			}
+			else
+			{
+				auto* targetStub = InterfaceToInstance((InterfacePointer)target);
+				targetData = (uint8*)targetStub;
+				targetType = targetStub->Desc->TypeInfo;
+			}
+
+			cstr err = "Expecting a compound element with three atomic elements: (<type> <name> <value>)";
+
+			if (s.NumberOfElements() != 3)
+			{
+				Throw(s, err);
+			}
+
+			cr_sex sType = s[0];
+			cr_sex sName = s[1];
+			cr_sex sValue = s[2];
+
+			if (!IsAtomic(sType)) Throw(sType, err);
+			if (!IsAtomic(sName)) Throw(sName, err);
+			if (!IsAtomic(sValue) && !IsStringLiteral(sValue)) Throw(sValue, err);
+
+			auto srcType = sType.String();
+			auto srcName = sName.String();
+			auto srcValue = sValue.String();
+
+			int offset = 0;
+			const IMember* member = nullptr;
+
+			for (int i = 0; i < targetType->MemberCount(); ++i)
+			{
+				auto& m = targetType->GetMember(i);
+
+				if (m.Name()[0] != '_' && _strcmpi(srcName->Buffer, m.Name()) == 0)
+				{
+					member = &m;
+					break;
+				}
+
+				offset += m.SizeOfMember();
+			}
+
+			if (member == nullptr)
+			{
+				Throw(sName, "Cannot find %s in %s of %s", srcName->Buffer, targetType->Name(), targetType->Module().Name());
+			}
+
+			switch (member->UnderlyingType()->VarType())
+			{
+			case VARTYPE_Bool:
+				if (!AreEqual(srcType, "B32")) Throw(sType, "Expecting B32 to match Bool %s in %s of %s", srcName->Buffer, targetType->Name(), targetType->Module().Name());
+				{
+					boolean32 bValue = AreEqual(srcValue->Buffer, "true") ? 1 : 0;
+					boolean32* bTargetValue = (boolean32*)(targetData + offset);
+					*bTargetValue = bValue;
+				}
+				break;
+			case VARTYPE_Int32:
+				if (!AreEqual(srcType, "I32")) Throw(sType, "Expecting I32 to match Int32 %s in %s of %s", srcName->Buffer, targetType->Name(), targetType->Module().Name());
+				{
+					int32 value = atoi(srcValue->Buffer);
+					int32* bTargetValue = (int32*)(targetData + offset);
+					*bTargetValue = value;
+				}
+				break;
+			case VARTYPE_Int64:
+				if (!AreEqual(srcType, "I64")) Throw(sType, "Expecting I64 to match Int64 %s in %s of %s", srcName->Buffer, targetType->Name(), targetType->Module().Name());
+				{
+					int64 value = atoll(srcValue->Buffer);
+					int64* bTargetValue = (int64*)(targetData + offset);
+					*bTargetValue = value;
+				}
+				break;
+			case VARTYPE_Float32:
+				if (!AreEqual(srcType, "F32")) Throw(sType, "Expecting F32 to match Float32 %s in %s of %s", srcName->Buffer, targetType->Name(), targetType->Module().Name());
+				{
+					float32 value = (float)atof(srcValue->Buffer);
+					float32* fTargetValue = (float32*)(targetData + offset);
+					*fTargetValue = value;
+				}
+				break;
+			case VARTYPE_Float64:
+				if (!AreEqual(srcType, "F64")) Throw(sType, "Expecting F64 to match Float64 %s in %s of %s", srcName->Buffer, targetType->Name(), targetType->Module().Name());
+				{
+					float64 value = atof(srcValue->Buffer);
+					float64* fTargetValue = (float64*)(targetData + offset);
+					*fTargetValue = value;
+				}
+				break;
+			case VARTYPE_Derivative:
+				if (&member->UnderlyingType()->GetInterface(0) == &ss->ProgramObject().Common().SysTypeIString())
+				{
+					auto** ipString = (InterfacePointer*)(targetData + offset);
+					ss->ProgramObject().DecrementRefCount(*ipString);
+					
+					auto* sc = ss->GetStringReflection(srcValue->Buffer);
+					auto* scip = (InterfacePointer)&sc->header.pVTables[0];
+					ss->ProgramObject().IncrementRefCount(scip);
+					*ipString = scip;
+				}
+				else
+				{
+					Throw(sName, "Member variable %s from %s of %s. Cannot serialize derivative type", member->Name(), targetType->Name(), targetType->Module().Name());
+				}
+				break;
+			default:
+				Throw(sName, "Member variable%s from %s of %s. Cannot serialize this type", member->Name(), targetType->Name(), targetType->Module().Name());
+			}
+		}
 	} // Script
 } // Rococo
 
@@ -459,6 +593,7 @@ namespace Rococo
 
 		ID_API_CALLBACK jitId;
 		ID_API_CALLBACK arrayPushId;
+		ID_API_CALLBACK serializeId;
 
 		wchar_t srcEnvironment[_MAX_PATH];
 
@@ -667,6 +802,7 @@ namespace Rococo
 			callbacks.idStringIndexToChar = core.RegisterCallback(OnInvokeStringIndexToChar, this, "StringIndexToChar");
 			methodMap[("Capacity")] = ("_elementCapacity");
 			methodMap[("Length")] = ("_length");
+			serializeId = core.RegisterCallback(OnInvokeSerialize, this, "serialize");
 		}
 
 		const ScriptCallbacks& GetScriptCallbacks() override
@@ -692,6 +828,11 @@ namespace Rococo
 
 			progObjProxy = nullptr;
 			if (stringPool) stringPool->Free();
+		}
+
+		ID_API_CALLBACK GetIdSerializeCallback() const override
+		{
+			return serializeId;
 		}
 
 		IStringPool* stringPool = nullptr;
@@ -1582,7 +1723,7 @@ namespace Rococo
 
 			AddNativeCall(sysOS, NativeSysOSClockHz, nullptr, "ClockHz -> (Int64 hz)", false);
 			AddNativeCall(sysOS, NativeSysOSClockTicks, nullptr, "ClockTicks -> (Int64 tickCount)", false);
-
+			
 			progObjProxy->ResolveNativeTypes();
 
 			scripts->ExceptionLogic().InstallThrowHandler();

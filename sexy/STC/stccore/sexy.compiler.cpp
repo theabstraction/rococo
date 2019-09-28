@@ -559,26 +559,28 @@ namespace Rococo
 	   CommonStructures::CommonStructures(IProgramObject& obj)
 	   {
 		   ValidateNotNull(this->root = &obj.GetRootNamespace());
-		   ValidateNotNull(this->sys = root->FindSubspace(("Sys")));
-		   ValidateNotNull(this->sysType = sys->FindSubspace(("Type")));
-		   ValidateNotNull(this->sysNative = sys->FindSubspace(("Native")));
-		   ValidateNotNull(this->sysReflection = sys->FindSubspace(("Reflection")));
+		   ValidateNotNull(this->sys = root->FindSubspace("Sys"));
+		   ValidateNotNull(this->sysType = sys->FindSubspace("Type"));
+		   ValidateNotNull(this->sysNative = sys->FindSubspace("Native"));
+		   ValidateNotNull(this->sysReflection = sys->FindSubspace("Reflection"));
 
-		   ValidateNotNull(this->typeInt32 = obj.IntrinsicModule().FindStructure(("Int32")));
-		   ValidateNotNull(this->typeInt64 = obj.IntrinsicModule().FindStructure(("Int64")));
-		   ValidateNotNull(this->typeBool = obj.IntrinsicModule().FindStructure(("Bool")));
-		   ValidateNotNull(this->typeFloat32 = obj.IntrinsicModule().FindStructure(("Float32")));
-		   ValidateNotNull(this->typeFloat64 = obj.IntrinsicModule().FindStructure(("Float64")));
-		   ValidateNotNull(this->typePointer = obj.IntrinsicModule().FindStructure(("Pointer")));
-		   ValidateNotNull(this->typeNode = obj.GetModule(0).FindStructure(("_Node")));
-		   ValidateNotNull(this->typeArray = obj.GetModule(0).FindStructure(("_Array")));
-		   ValidateNotNull(this->typeMapNode = obj.GetModule(0).FindStructure(("_MapNode")));
+		   ValidateNotNull(this->typeInt32 = obj.IntrinsicModule().FindStructure("Int32"));
+		   ValidateNotNull(this->typeInt64 = obj.IntrinsicModule().FindStructure("Int64"));
+		   ValidateNotNull(this->typeBool = obj.IntrinsicModule().FindStructure("Bool"));
+		   ValidateNotNull(this->typeFloat32 = obj.IntrinsicModule().FindStructure("Float32"));
+		   ValidateNotNull(this->typeFloat64 = obj.IntrinsicModule().FindStructure("Float64"));
+		   ValidateNotNull(this->typePointer = obj.IntrinsicModule().FindStructure("Pointer"));
+		   ValidateNotNull(this->typeNode = obj.GetModule(0).FindStructure("_Node"));
+		   ValidateNotNull(this->typeArray = obj.GetModule(0).FindStructure("_Array"));
+		   ValidateNotNull(this->typeMapNode = obj.GetModule(0).FindStructure("_MapNode"));
 
-		   ValidateNotNull(this->sysTypeIString = sysType->FindInterface(("IString")));
-		   ValidateNotNull(this->sysTypeIException = sysType->FindInterface(("IException")));
-		   ValidateNotNull(this->sysTypeIExpression = sysReflection->FindInterface(("IExpression")));
+		   ValidateNotNull(this->sysTypeIString = sysType->FindInterface("IString"));
+		   ValidateNotNull(this->sysTypeIException = sysType->FindInterface("IException"));
+		   ValidateNotNull(this->sysTypeIExpression = sysReflection->FindInterface("IExpression"));
 
-		   ValidateNotNull(this->typeStringLiteral = obj.GetModule(0).FindStructure(("StringConstant")));
+		   ValidateNotNull(this->typeStringLiteral = obj.GetModule(0).FindStructure("StringConstant"));
+
+		   ValidateNotNull(this->typeExpression = obj.GetModule(3).FindStructure("Expression"));
 	   }
 
 	   void Throw(ERRORCODE code, cstr source, cstr format, ...)

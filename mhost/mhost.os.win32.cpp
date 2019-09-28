@@ -1,6 +1,7 @@
 // mhost.os.win32.cpp : Defines the entry point for the application in Windows.
 #include <rococo.mplat.dynamic.inl>
 #include <sexy.lib.util.h>
+#include <sexy.lib.script.h>
 
 #include "resource.h"
 

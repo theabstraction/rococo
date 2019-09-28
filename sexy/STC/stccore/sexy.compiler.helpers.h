@@ -64,6 +64,7 @@ namespace Rococo
 			IStructure* typeArray;
 			IStructure* typeMapNode;
 			IStructure* typeStringLiteral;
+			IStructure* typeExpression;
 
 			IInterface* sysTypeIString;
 			IInterface* sysTypeIException;
@@ -88,6 +89,8 @@ namespace Rococo
 			const IStructure& TypeArray() const { return *typeArray; }
 			const IStructure& TypeMapNode() const { return *typeMapNode; }
 			const IStructure& TypeStringLiteral() const { return *typeStringLiteral; }
+
+			const IStructure& SysReflectionExpression() const { return *typeExpression; }
 
 			const IInterface& SysTypeIString() const { return *sysTypeIString; }
 			const IInterface& SysTypeIException() const { return *sysTypeIException; }			

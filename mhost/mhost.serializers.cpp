@@ -81,9 +81,9 @@ namespace Anon
 		default: Throw(0, "AppendValue(StringBuilder& sb, cstr key, const Variant& v): Unhandled type");
 		}
 
-		sb << " \"";
-		AppendEscapedString(sb, key);
-		sb << "\" ";
+		sb << " ";
+		sb << key;
+		sb << " ";
 
 		switch (v.type)
 		{
@@ -428,7 +428,7 @@ namespace Anon
 
 			sb << "// Rococo::Sex::S-Parser is recommended for parsing this file\n\n";
 
-			sb.AppendFormat("(' %s : %llu entries ( \n", typeId, map.size());
+			sb.AppendFormat("(' %s ( \n", typeId, map.size());
 			for(auto& key: keysByOriginalOrder)
 			{
 				sb << "\t";

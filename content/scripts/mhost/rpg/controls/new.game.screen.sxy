@@ -4,6 +4,7 @@
 (using Sys.Type)
 (using Sys.Random)
 (using Sys.Type.Strings)
+(using Sys.Reflection)
 
 (using MPlat)
 (using MHost)
@@ -33,24 +34,109 @@
 	(IListBuilder roster)
 )
 
+(struct CharRow
+	(IString name)
+	(Int32 strength)
+	(Int32 agility)
+	(Int32 wellness)
+	(Int32 psyche)
+	(Int32 ego)
+	(Int32 maths)
+)
+
 (class PlayerRow
 	(implements IListRow)
+	(CharRow data)
 )
 
 (method PlayerRow.Render (IGui g)(Rectf rect)-> :
 	(g.DrawBorder rect 4 0xFFFFFFFF 0xFFAFAFAF 0xFF8F8F8F 0xFF5F5F5F)
+	(g.DrawText rect 0 this.data.name 0 0xFFFFFFFF)
 )
 
 (method PlayerRow.GetSpan (Vec2 span)-> :
 	(span = 200 64)
 )
 
-(method PlayerRow.Construct : )
+(method PlayerRow.Construct (CharRow data): 
+	(this.data = data)
+)
 
-(factory RPG.NewPlayerRow IListRow : (construct PlayerRow))
+(factory RPG.NewPlayerRow IListRow (CharRow data): (construct PlayerRow data))
+
+(function ThrowSourceError (IString message)(IString source)-> :
+	(IStringBuilder sb = (NewParagraphBuilder))
+	(#build sb message ": " source)
+	(Sys.Throw 0 sb)
+)
+
+(function IsAtomic (IExpression s)-> (Bool isAtomic):
+	(Int32 typeAtomic = (#ExpressionTypeAtomic))
+	(isAtomic = (s.Type == typeAtomic))
+)
+
+(function AssertAtomic (IExpression s)(IString source)-> :
+	(if (not (IsAtomic s))
+		(ThrowSourceError "Expecting atomic expression" source)
+	)
+)
+
+(function AssertExpressionIsAtomicString (IExpression s)(IString value)(IString source)-> :
+	(AssertAtomic s source)
+		
+	(Bool isMatched = (Sys.Type.Strings.IsExactMatch value s.Text))
+	
+	(if (not isMatched)
+		(IStringBuilder sb = (NewParagraphBuilder))
+		(#build sb "Expecting <" value ">: " source)
+		(Sys.Throw 0 sb)
+	)
+)
+
+(function AssertSFormatDictionary (IExpression s)(IString source)-> :
+	(IExpression sRoot = (s 0))
+	(Int32 childCount = (sRoot.ChildCount))
+	(if (childCount != 3)
+		(ThrowSourceError "Expecting 3 top level elements in an S-Format dictionary" source)
+	)
+	
+	(IExpression sQuote = (sRoot 0))
+	(AssertExpressionIsAtomicString sQuote "'" source)
+	
+	(IExpression sID = (sRoot 1))
+	(AssertExpressionIsAtomicString sID "S-Format-Dictionary-v1.0" source)
+)
 
 (function AddCharRow (IListBuilder roster) (IString filename)-> :
-	(IListRow row1 (NewPlayerRow))
+	(CharRow data)
+	(IExpression s = (MHost.OS.LoadExpression filename))
+	
+	/* Example expression:
+	
+	(' S-Format-Dictionary-v1.0 
+		( 
+			(I32 Strength 135)
+			(I32 Agility 146)
+			(I32 Wellness 146)
+			(I32 Psyche 89)
+			(I32 Ego 110)
+			(I32 Maths 130)
+			(STR Name "Corbin Fosnought")
+		)
+	)
+	
+	*/
+	
+	(AssertSFormatDictionary s filename)
+	
+	(IExpression sRoot = (s 0))
+	(IExpression sAttributes = (sRoot 2))
+	(#for (Int32 i = 0) (i < sAttributes.ChildCount)(i += 1)
+		(IExpression sAttribute = (sAttributes i))
+		(serialize sAttribute -> data)	
+	)
+	
+	(IListRow row1 (NewPlayerRow data))
 	(roster.AddRow row1)
 )
 
@@ -59,7 +145,6 @@
 	(this.uistack = (MHost.Graphics.NewUIStack))
 	(this.screenSpan = -1 -1)
 	(this.cursorPos = -1 -1)
-	(this.uistack = (MHost.Graphics.NewUIStack))
 	(this.roster = (NewListBuilder bundle.UIControl 100))
 	(this.uistack.AddTopLevelControl this.roster "roster")
 	

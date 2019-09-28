@@ -1,0 +1,11 @@
+// Rococo::Sex::S-Parser is recommended for parsing this file
+
+(' S-Format-Dictionary-v1.0 ( 
+	(I32 Strength 216)
+	(I32 Agility 285)
+	(I32 Wellness 346)
+	(I32 Psyche 105)
+	(I32 Ego 120)
+	(I32 Maths 103)
+	(STR Name "Cherie Biller")
+))

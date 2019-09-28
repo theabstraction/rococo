@@ -13265,6 +13265,39 @@ namespace
 	   ValidateLogs();
    }
 
+   void TestSerialize(IPublicScriptSystem& ss)
+   {
+	   cstr src =
+		   "(namespace EntryPoint) \n"
+		   "(using Sys) \n"
+		   "(using Sys.Type) \n"
+		   "(using Sys.Maths)\n"
+		   "(using Sys.Reflection)\n"
+
+		   "(function Main -> (Int32 result): \n"
+		   "	(IExpression s = ' (I32 x 135))\n"
+		   "	(Vec2i v)\n"
+		   "	(serialize s -> v)\n"
+		   "    (result = v.x)\n"
+		   ")\n"
+		   "(alias Main EntryPoint.Main) \n";
+
+	   Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(src, -1, Vec2i{ 0,0 }, __FUNCTION__);
+	   Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+	   VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+	   vm.Push(77); // Allocate stack space for the int32 x
+
+	   vm.Core().SetLogger(&s_logger);
+	   EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+	   validate(result == EXECUTERESULT_TERMINATED);
+
+	   int x = vm.PopInt32();
+	   validate(x == 135);
+	   ValidateLogs();
+   }
+
    void RunCollectionTests()
    {
 	   TEST(TestMap);
@@ -13425,6 +13458,8 @@ namespace
 	void RunPositiveSuccesses()
 	{
 		validate(true);
+
+		TEST(TestSerialize);
 
 		TEST(TestEmptyArrayOfInterfaces);
 		TEST(TestArrayOfInterfacesBuilder);

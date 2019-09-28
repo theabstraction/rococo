@@ -32,6 +32,7 @@
 (primitive MaterialCategory Int32 Rococo.Graphics.MaterialCategory)
 (primitive GuiPopulator MHost.GuiPopulator MHost.GuiPopulator)
 (primitive ELegacySoundShape Int32 Rococo.Audio.ELegacySoundShape)
+(primitive IExpression Sys.Reflection.IExpression InterfacePointer)
 
 // (struct <name> <sexy-name> <cpp-name>)  maps <name> found in the sxh file to the <sexy-name> in the generated sxy file, and <cpp-name> in the c++ files
 // Arguments that are struct are passed by reference in the script system. They may not be used as output arguments. It is assumed that the structures are defined elsewhere.

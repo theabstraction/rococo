@@ -2283,6 +2283,86 @@ namespace Rococo
 			}
 		}
 
+		bool IsExpressionInterface(const IStructure& s)
+		{
+			if (s.InterfaceCount() > 0)
+			{
+				auto& i = s.GetInterface(0);
+				for (const auto* pInterf = &i; pInterf != nullptr; pInterf = pInterf->Base())
+				{
+					// N.B make sure modules match as a security measure
+					if (AreEqual("IExpression", pInterf->Name()) && &pInterf->NullObjectType().Module() == &s.Object().GetModule(3))
+					{
+						return true;
+					}
+				}
+			}
+
+			return false;
+		}
+
+		void CompileSerializeFromInterface(cr_sex s, CCompileEnvironment& ce, const MemberDef& srcDef, const MemberDef& trgDef)
+		{
+			if (trgDef.ResolvedType->VarType() != VARTYPE_Derivative)
+			{
+				Throw(s, "(serialize <src> -> <targets>): The target was not a class or struct");
+			}
+
+			cstr srcName = s[1].String()->Buffer;
+			ce.Builder.AssignVariableToTemp(srcName, 1); // D5
+
+			cstr trgName = s[3].String()->Buffer;
+			ce.Builder.AssignVariableRefToTemp(trgName, 3); // D7
+
+			VariantValue v;
+			v.vPtrValue = (void*) trgDef.ResolvedType;
+			ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, v, BITCOUNT_POINTER);
+
+			ce.Builder.Assembler().Append_Invoke(ce.SS.GetIdSerializeCallback());
+		}
+
+		void CompileSerialize(CCompileEnvironment& ce, cr_sex s)
+		{
+			// (serialize <source> -> <target>)
+			AssertNotTooFewElements(s, 4);
+			AssertNotTooManyElements(s, 4);
+
+			cr_sex ssrc = s[1];
+			cr_sex sassign = s[2];
+			cr_sex starget = s[3];
+
+			AssertAtomic(ssrc);
+			AssertAtomic(sassign);
+			AssertAtomic(starget);
+
+			auto src = ssrc.String();
+			auto assign = sassign.String();
+			auto target = starget.String();
+
+			if (!AreEqual(assign, "->")) Throw(sassign, "(serialize <src> -> <target>): Expecting -> at this position.");
+			
+			MemberDef srcDef;
+			if (!ce.Builder.TryGetVariableByName(srcDef, src->Buffer))
+			{
+				Throw(ssrc, "(serialize <src> -> <target>): Could not identify the source variable");
+			}
+
+			MemberDef trgDef;
+			if (!ce.Builder.TryGetVariableByName(trgDef, target->Buffer))
+			{
+				Throw(ssrc, "(serialize <src> -> <target>): Could not identify the target variable");
+			}
+
+			if (IsExpressionInterface(*srcDef.ResolvedType))
+			{
+				CompileSerializeFromInterface(s, ce, srcDef, trgDef);
+			}
+			else
+			{
+				Throw(ssrc, "(serialize <src> -> <target>): Neither the source nor the target variable was an IExpression");
+			}
+		}
+
 		void CompileTrip(CCompileEnvironment& ce, cr_sex s)
 		{
 			ce.Builder.Assembler().Append_TripDebugger();
@@ -2457,94 +2537,99 @@ namespace Rococo
 
 		bool TryCompileAsKeyword(CCompileEnvironment& ce, sexstring token, cr_sex s)
 		{
-			if (AreEqual(token, ("if")))
+			if (AreEqual(token, "if"))
 			{
 				CompileIfThenElse(ce, s);
 				return true;
 			}
-			else if (AreEqual(token, ("cast")))
+			else if (AreEqual(token, "cast"))
 			{
 				CompileCast(ce, s);
 				return true;
 			}
-			else if (AreEqual(token, ("while")))
+			else if (AreEqual(token, "while"))
 			{
 				CompileWhileLoop(ce, s);
 				return true;
 			}
-			else if (AreEqual(token, ("break")))
+			else if (AreEqual(token, "break"))
 			{
 				CompileBreak(ce, s);
 				return true;
 			}
-			else if (AreEqual(token, ("continue")))
+			else if (AreEqual(token, "continue"))
 			{
 				CompileContinue(ce, s);
 				return true;
 			}
-			else if (AreEqual(token, ("do")))
+			else if (AreEqual(token, "do"))
 			{
 				CompileDoWhile(ce, s);
 				return true;
 			}
-			else if (AreEqual(token, ("foreach")))
+			else if (AreEqual(token, "foreach"))
 			{
 				CompileForEach(ce, s);
 				return true;
 			}
-			else if (AreEqual(token, ("throw")))
+			else if (AreEqual(token, "throw"))
 			{
 				CompileThrow(ce, s);			
 				return true;
 			}
-			else if (AreEqual(token, ("construct")))
+			else if (AreEqual(token, "construct"))
 			{
 				CompileConstructInterfaceCall(ce, s);
 				return true;
 			}
-			else if (AreEqual(token, ("trip")))
-			{
-				CompileTrip(ce, s);
-				return true;
-			}
-			else if (AreEqual(token, ("try")))
+			else if (AreEqual(token, "try"))
 			{
 				CompileExceptionBlock(ce, s);
 				return true;
 			}
-			else if (AreEqual(token, ("return")))
+			else if (AreEqual(token, "return"))
 			{
 				CompileReturnFromFunction(ce, s);
 				return true;
 			}
-			else if (AreEqual(token, ("array")))
+			else if (AreEqual(token, "array"))
 			{
 				CompileArrayDeclaration(ce, s);
 				return true;
 			}
-			else if (AreEqual(token, ("list")))
+			else if (AreEqual(token, "list"))
 			{
 				CompileListDeclaration(ce, s);
 				return true;
 			}
-			else if (AreEqual(token, ("map")))
+			else if (AreEqual(token, "map"))
 			{
 				CompileMapDeclaration(ce, s);
 				return true;
 			}
-			else if (AreEqual(token, ("node")))
+			else if (AreEqual(token, "node"))
 			{
 				CompleAsNodeDeclaration(ce, s);
 				return true;
 			}
-			else if (AreEqual(token, ("yield")))
+			else if (AreEqual(token, "yield"))
 			{
 				CompileAsYield(ce, s);
 				return true;
 			}
-			else if (AreEqual(token, ("global")))
+			else if (AreEqual(token, "global"))
 			{
 				CompileAsGlobalAccess(ce, s);
+				return true;
+			}
+			else if (AreEqual(token, "trip"))
+			{
+				CompileTrip(ce, s);
+				return true;
+			}
+			else if (AreEqual(token, "serialize"))
+			{
+				CompileSerialize(ce, s);
 				return true;
 			}
 			else

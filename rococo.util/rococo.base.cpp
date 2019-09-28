@@ -6,6 +6,7 @@
 #include <stdio.h>
 
 #include <list>
+#include <vector>
 
 #include <rococo.api.h>
 
@@ -111,6 +112,63 @@ namespace Rococo
 
 	namespace OS
 	{
+		void LoadAsciiTextFile(IEventCallback<cstr>& onLoad, const wchar_t* filename)
+		{
+			std::vector<char> asciiData;
+
+			struct AutoFile
+			{
+				FILE* fp = nullptr;
+
+				~AutoFile()
+				{
+					if (fp != nullptr)
+					{
+						fclose(fp);
+					}
+				}
+			};
+
+			{ // autofile section
+#ifdef _WIN32
+# pragma warning(disable: 4996)
+#endif
+				AutoFile f{ _wfopen(filename, L"rb") };
+
+				_fseeki64(f.fp, 0, SEEK_END);
+				long long nCapacity = _ftelli64(f.fp);
+				_fseeki64(f.fp, 0, SEEK_SET);
+
+				asciiData.reserve(nCapacity + 1);
+
+#ifdef _WIN32
+# pragma warning(default: 4996)
+#endif
+				if (f.fp == nullptr)
+				{
+					Throw(0, "Cannot open file %S", filename);
+				}
+
+				while (true)
+				{
+					char data[8192];
+					size_t bytesRead = fread(data, 1, sizeof(data), f.fp);
+					if (bytesRead <= 0)
+					{
+						asciiData.push_back(0);
+						break;
+					}
+
+					for (auto i = 0; i < bytesRead; ++i)
+					{
+						asciiData.push_back(data[i]);
+					}
+				}
+			}
+
+			onLoad.OnEvent(asciiData.data());
+		}
+
 		void LoadAsciiTextFile(char* data, size_t capacity, const wchar_t* filename)
 		{
 #ifdef _WIN32
