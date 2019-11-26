@@ -70,6 +70,12 @@
     <FxCompile Include="gui.cloud.ps.hlsl">
       <Filter>HLSL\GUI</Filter>
     </FxCompile>
+    <FxCompile Include="skybox.vs.hlsl">
+      <Filter>HLSL\Objects</Filter>
+    </FxCompile>
+    <FxCompile Include="skybox.ps.hlsl">
+      <Filter>HLSL\Objects</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dx11.swapchain.cpp">

@@ -33,6 +33,23 @@
 	(IEventHandler source)
 )
 
+(interface MHost.Graphics.IControl
+	(GetRect (Rectf rect)->)
+	(GetEventHandler -> (IEventHandler handler))
+	(Render (IGui gui)->)
+)
+
+(interface MHost.Graphics.IListRow
+	(Render (IGui g)(Rectf rect)->)
+	(GetSpan (Vec2 span)->)
+)
+
+(interface MHost.Graphics.IListBuilder
+	(extends MHost.Graphics.IControl)
+	(SetRect (Rectf rect)(IGui g) -> )
+	(AddRow (IListRow row) -> )
+)
+
 (alias BoolArgs MHost.BoolArgs)
 (alias KeyboardCharArgs MHost.KeyboardCharArgs)
 (alias KeyboardVKeyArgs MHost.KeyboardVKeyArgs)
@@ -63,12 +80,6 @@
 
 (alias ShrinkRectf MHost.ShrinkRectf)
 
-(interface MHost.Graphics.IControl
-	(GetRect (Rectf rect)->)
-	(GetEventHandler -> (IEventHandler handler))
-	(Render (IGui gui)->)
-)
-
 (struct MenuSelectArgs
 	(Int32 menuIndex)
 	(IString menuText)
@@ -76,6 +87,15 @@
 )
 
 (alias MenuSelectArgs MHost.Graphics.MenuSelectArgs)
+
+(struct SelectListRowArgs
+	(IListRow selectedRow)
+	(Vec2 selectPoint)
+	(IListBuilder listBuilder)
+	(Bool withMouseDown)
+)
+
+(alias SelectListRowArgs MHost.Graphics.SelectListRowArgs)
 
 (struct ButtonClickArgs
 	(IString text)

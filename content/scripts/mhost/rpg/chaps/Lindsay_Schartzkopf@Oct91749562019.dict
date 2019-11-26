@@ -1,0 +1,12 @@
+// Rococo::Sex::S-Parser is recommended for parsing this file
+
+(' S-Format-Dictionary-v1.0 ( 
+	(I32 Strength 228)
+	(I32 Agility 401)
+	(I32 Wellness 176)
+	(I32 Psyche 83)
+	(I32 Ego 117)
+	(I32 Maths 86)
+	(STR Name "Lindsay Schartzkopf")
+	(STR Portrait "!textures/faces/female/lady.black.1.jpg")
+))

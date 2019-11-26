@@ -69,7 +69,7 @@ namespace
 	{
 		if FAILED(hr)
 		{
-			Throw(hr, "DX11 call failed: %S. %S in %S line %d.", badcall, function, file, lineNumber);
+			Throw(hr, "DX11 call failed: %s.\n%s in\n %s line %d.", badcall, function, file, lineNumber);
 		}
 	}
 }

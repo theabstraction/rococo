@@ -37,6 +37,15 @@ namespace MHost
 			float32 height;
 		};
 	}
+
+	struct WorldOrientation
+	{
+		Degrees heading;
+		Degrees elevation;
+		Degrees roll;
+	};
+
+	ROCOCO_ID(IdTexture, uint64, 0);
 } // MHost
 
 #pragma pack(pop)
@@ -86,4 +95,12 @@ namespace MHost
 	};
 
 	IScriptDispatcher* CreateScriptDispatcher();
+
+	ROCOCOAPI ISceneBuilderSupervisor: ISceneBuilder
+	{
+		virtual void Free() = 0;
+		virtual ID_TEXTURE GetSkyBoxCubeId() const = 0;
+	};
+
+	ISceneBuilderSupervisor* CreateSceneBuilder(Platform& platform);
 }

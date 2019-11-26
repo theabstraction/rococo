@@ -51,6 +51,30 @@
 )
 
 (interface
+	(as.sxy MHost.ICamera "../content/scripts/mhost/mhost")
+	(as.cpp MHost.ICamera "mhost")
+	(context factory MHost.ISceneBuilder)
+	(methods
+		(SetPosition (const Vec3 position))
+		(SetOrientation (const WorldOrientation wo))
+		(SetPerspective (Float32 near)(Float32 far))
+		(GetWorldToCamera (Matrix4x4 m))
+		(GetCameraToScreen (Matrix4x4 m))
+	)
+)
+
+(interface
+	(as.sxy MHost.ISceneBuilder "../content/scripts/mhost/mhost")
+	(as.cpp MHost.ISceneBuilder "mhost")
+	(context factory MHost.ISceneBuilder)
+	(methods
+		(Camera -> (MHost.ICamera camera))
+		(CreateCubeTexture (IString folder)(IString extension)->(IdTexture cubeId))
+		(SetSkyBox (IdTexture cubeId))
+	)
+)
+
+(interface
 	(as.sxy MHost.IEngine "../content/scripts/mhost/mhost")
 	(as.cpp MHost.IEngine "mhost")
 	(context factory MHost.IEngine)
@@ -68,6 +92,7 @@
 		(CaptureMouse)
 		(ReleaseMouse)
 		(CursorPosition (Vec2 cursorPosition) ->)
+		(Scene -> (MHost.ISceneBuilder scene))
 	)
 	(factory MHost.Engine)
 )

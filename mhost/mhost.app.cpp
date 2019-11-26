@@ -28,7 +28,7 @@ namespace MHost
 		void ReleaseMouse();
 	}
 
-	struct AppSceneBuilder : public IScene
+	struct AppSceneManager : public IScene
 	{
 		Platform& platform;
 		GuiPopulator populator;
@@ -36,7 +36,11 @@ namespace MHost
 		AutoFree<IScriptDispatcher> dispatcher;
 		char guiBuffer[64];
 
-		AppSceneBuilder(Platform& _platform): platform(_platform)
+		ISceneBuilderSupervisor& scene3DBuilder;
+
+		AppSceneManager(Platform& _platform, ISceneBuilderSupervisor& _scene3DBuilder):
+			platform(_platform),
+			scene3DBuilder(_scene3DBuilder)
 		{
 			dispatcher = CreateScriptDispatcher();
 			platform.camera.SetRHProjection(45_degrees, 0.1_metres, 1000_metres);
@@ -49,7 +53,7 @@ namespace MHost
 
 		RGBA GetClearColour() const override
 		{
-			return platform.scene.GetClearColour();
+			return RGBA{ 0.5f, 0.0f, 0.0f, 1.0f };
 		}
 
 		void OnGuiResize(Vec2i screenSpan) override
@@ -67,6 +71,11 @@ namespace MHost
 			IGui* gui = CreateGuiOnStack(guiBuffer, grc);
 			dispatcher->RouteGuiToScript(ss, gui, populator);
 			platform.scene.RenderGui(grc);
+		}
+
+		ID_TEXTURE GetSkyboxCubeId() const override
+		{
+			return scene3DBuilder.GetSkyBoxCubeId();
 		}
 
 		void RenderObjects(IRenderContext& rc)  override
@@ -96,7 +105,9 @@ namespace MHost
 
 		AutoFree<IPaneBuilderSupervisor> overlayPanel;
 		AutoFree<IPaneBuilderSupervisor> busyPanel;
-		AppSceneBuilder sceneBuilder;
+		AutoFree<ISceneBuilderSupervisor> scene3DBuilder;
+
+		AppSceneManager sceneManager;
 
 		HString mainScript = "!scripts/mhost/mhost.init.sxy";
 		bool queuedForExecute = false;
@@ -152,7 +163,7 @@ namespace MHost
 
 		void SetRunningScriptContext(IPublicScriptSystem* ss)
 		{
-			sceneBuilder.ss = ss;
+			sceneManager.ss = ss;
 		}
 
 		virtual void OnEvent(Event& ev)
@@ -179,7 +190,7 @@ namespace MHost
 
 		void OnCompile(IPublicScriptSystem& ss) override
 		{
-			sceneBuilder.OnCompile(ss);
+			sceneManager.OnCompile(ss);
 		}
 
 		boolean32 TryGetSpriteSpec(const fstring& resourceName, BitmapLocation& loc) override
@@ -196,7 +207,7 @@ namespace MHost
 		}
 	public:
 		App(Platform& _platform, IDirectAppControl& _control) :
-			platform(_platform), control(_control), sceneBuilder(_platform)
+			platform(_platform), control(_control), scene3DBuilder(CreateSceneBuilder(_platform)), sceneManager(_platform, *scene3DBuilder)
 		{
 			busyPanel = platform.gui.BindPanelToScript("!scripts/panel.opening.sxy");
 			overlayPanel = platform.gui.CreateOverlay();
@@ -255,6 +266,11 @@ namespace MHost
 			return platform.appControl.IsRunning() && isScriptRunning && !isShutdown;
 		}
 
+		void CleanupResources()
+		{
+			ReleaseMouse();
+		}
+
 		void Run() override
 		{
 			RunEnvironmentScript(platform, this, "!scripts/mhost/keys.sxy", true, false);
@@ -263,6 +279,7 @@ namespace MHost
 			{
 				isScriptRunning = true;
 				RunEnvironmentScript(platform, this, mainScript, true, false);
+				CleanupResources();
 			}
 		}
 
@@ -291,11 +308,11 @@ namespace MHost
 			Rococo::Graphics::RenderPhaseConfig config;
 			config.EnvironmentalMap = Rococo::Graphics::ENVIRONMENTAL_MAP_FIXED_CUBE;
 
-			sceneBuilder.populator = populator;
+			sceneManager.populator = populator;
 
-			platform.renderer.Render(config, sceneBuilder);
+			platform.renderer.Render(config, sceneManager);
 
-			sceneBuilder.populator = GuiPopulator{ 0,nullptr };
+			sceneManager.populator = GuiPopulator{ 0,nullptr };
 		}
 
 		void PollKeyState(KeyState& keyState) override
@@ -350,6 +367,11 @@ namespace MHost
 		void CursorPosition(Vec2& cursorPosition)
 		{
 			cursorPosition = this->cursorPosition;
+		}
+
+		ISceneBuilder* Scene()
+		{
+			return scene3DBuilder;
 		}
 	};
 }

@@ -116,6 +116,7 @@
     <ClCompile Include="mhost.app.cpp" />
     <ClCompile Include="mhost.graphics.cpp" />
     <ClCompile Include="mhost.os.win32.cpp" />
+    <ClCompile Include="mhost.scene.cpp" />
     <ClCompile Include="mhost.scripts.cpp" />
     <ClCompile Include="mhost.serializers.cpp" />
   </ItemGroup>

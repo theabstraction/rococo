@@ -1,0 +1,52 @@
+// 3d test
+
+(' #include 
+	"!scripts/mhost/mplat.types.sxy"
+	"!scripts/mhost/mhost.sxh.sxy"
+	"!scripts/mplat.sxh.sxy"
+	"!scripts/types.sxy"
+	"!scripts/mhost/mhost.include.sxy"
+	"!scripts/mhost/widgets/widgets.sxy"
+)
+
+(using Sys)
+(using Sys.Maths)
+(using Sys.Maths.F32)
+(using Sys.Type)
+(using Sys.Random)
+(using Sys.Type.Strings)
+
+(using MPlat)
+(using MHost)
+(using MHost.OS)
+(using MHost.Graphics)
+(using Rococo)
+(using Rococo.Graphics)
+(using Rococo.Audio)
+
+(using Sys.Maths.I32)
+
+(namespace T3D)
+(using T3D)
+
+(class World (implements T3D.IWorld)
+	(Vec3 cameraPos)
+)
+
+(method World.SetPlayerDirection (Int32 straffe)(Int32 advance)-> :
+)
+
+(method World.Construct : (this.cameraPos = 0 0 1))
+
+(factory T3D.NewWorld T3D.IWorld : (construct World))
+
+(method World.RenderGui (IGui gui)-> :
+	(Rectf menuRect = 10 10 110 110)
+	(gui.FillRect menuRect 0xFF404020)
+)
+
+
+
+
+
+

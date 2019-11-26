@@ -12,6 +12,11 @@ namespace ANON
       { "color",	0, DXGI_FORMAT_R8G8B8A8_UNORM,	0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
       { "texcoord",	1, DXGI_FORMAT_R32G32_FLOAT,	0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
    };
+
+   D3D11_INPUT_ELEMENT_DESC skyVertexDesc[] = 
+   {
+		{ "position",	0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+   };
 }
 
 namespace Rococo
@@ -29,6 +34,18 @@ namespace Rococo
          static_assert(sizeof(ANON::objectVertexDesc) / sizeof(D3D11_INPUT_ELEMENT_DESC) == 5, "Vertex data was not 5 fields");
          return sizeof(ANON::objectVertexDesc) / sizeof(D3D11_INPUT_ELEMENT_DESC);
       }
+
+	  const D3D11_INPUT_ELEMENT_DESC* const GetSkyVertexDesc()
+	  {
+		  static_assert(sizeof(SkyVertex) == 12, "Sky vertex data was not 16 bytes wide");
+		  return ANON::skyVertexDesc;
+	  }
+
+	  const uint32 NumberOfSkyVertexElements()
+	  {
+		  static_assert(sizeof(ANON::skyVertexDesc) / sizeof(D3D11_INPUT_ELEMENT_DESC) == 1, "Sky Vertex data was not 1 field");
+		  return sizeof(ANON::skyVertexDesc) / sizeof(D3D11_INPUT_ELEMENT_DESC);
+	  }
 
       ID3D11RasterizerState* CreateObjectRasterizer(ID3D11Device& device)
       {
@@ -53,6 +70,24 @@ namespace Rococo
 		  D3D11_RASTERIZER_DESC rd;
 		  rd.FillMode = D3D11_FILL_SOLID;
 		  rd.CullMode = D3D11_CULL_FRONT;
+		  rd.FrontCounterClockwise = FALSE;
+		  rd.DepthBias = 0;
+		  rd.DepthBiasClamp = 0.0f;
+		  rd.SlopeScaledDepthBias = 0.0f;
+		  rd.DepthClipEnable = TRUE;
+		  rd.ScissorEnable = FALSE;
+		  rd.MultisampleEnable = FALSE;
+
+		  ID3D11RasterizerState* rs = nullptr;
+		  VALIDATEDX11(device.CreateRasterizerState(&rd, &rs));
+		  return rs;
+	  }
+
+	  ID3D11RasterizerState* CreateSkyRasterizer(ID3D11Device& device)
+	  {
+		  D3D11_RASTERIZER_DESC rd;
+		  rd.FillMode = D3D11_FILL_SOLID;
+		  rd.CullMode = D3D11_CULL_NONE;
 		  rd.FrontCounterClockwise = FALSE;
 		  rd.DepthBias = 0;
 		  rd.DepthBiasClamp = 0.0f;

@@ -333,6 +333,8 @@ namespace ANON
 	   DX11TextureArray spriteArray;
 	   DX11TextureArray materialArray;
 
+	   std::vector<DX11::TextureBind> cubeTextureArray;
+
 	   AutoFree<ITextureArrayBuilderSupervisor> spriteArrayBuilder;
 
 	   AutoRelease<IDXGISwapChain> mainSwapChain;
@@ -359,6 +361,7 @@ namespace ANON
 	   AutoRelease<ID3D11RasterizerState> spriteRaterizering;
 	   AutoRelease<ID3D11RasterizerState> objectRaterizering;
 	   AutoRelease<ID3D11RasterizerState> particleRaterizering;
+	   AutoRelease<ID3D11RasterizerState> skyRasterizering;
 	   AutoRelease<ID3D11RasterizerState> shadowRaterizering;
 
 	   AutoRelease<ID3D11BlendState> alphaBlend;
@@ -401,11 +404,15 @@ namespace ANON
 	   ID_VERTEX_SHADER idObjVS_Shadows;
 	   ID_PIXEL_SHADER idObjPS_Shadows;
 
+	   ID_VERTEX_SHADER idObjSkyVS;
+	   ID_PIXEL_SHADER idObjSkyPS;
+
 	   AutoRelease<ID3D11Buffer> instanceBuffer;
 
 	   AutoRelease<ID3D11DepthStencilState> guiDepthState;
 	   AutoRelease<ID3D11DepthStencilState> objDepthState;
 	   AutoRelease<ID3D11DepthStencilState> objDepthState_NoWrite;
+	   AutoRelease<ID3D11DepthStencilState> noDepthTestOrWrite;
 
 	   AutoRelease<ID3D11ShaderResourceView> envMap;
 
@@ -438,6 +445,9 @@ namespace ANON
 	   std::vector<ParticleVertex> plasma;
 
 	   ID3D11SamplerState* samplers[16] = { 0 };
+	   AutoRelease<ID3D11SamplerState> skySampler;
+
+	   ID_SYS_MESH skyMeshId;
    public:
 	   Windows::IWindow& window;
 	   bool isBuildingAlphaBlendedSprites{ false };
@@ -459,10 +469,12 @@ namespace ANON
 		   objDepthState = DX11::CreateObjectDepthStencilState(device);
 		   objDepthState_NoWrite = DX11::CreateObjectDepthStencilState_NoWrite(device);
 		   guiDepthState = DX11::CreateGuiDepthStencilState(device);
+		   noDepthTestOrWrite = DX11::CreateNoDepthCheckOrWrite(device);
 
 		   spriteRaterizering = DX11::CreateSpriteRasterizer(device);
 		   objectRaterizering = DX11::CreateObjectRasterizer(device);
 		   particleRaterizering = DX11::CreateParticleRasterizer(device);
+		   skyRasterizering = DX11::CreateSkyRasterizer(device);
 		   shadowRaterizering = DX11::CreateShadowRasterizer(device);
 
 		   alphaBlend = DX11::CreateAlphaBlend(device);
@@ -538,8 +550,53 @@ namespace ANON
 
 		   instanceBuffer = DX11::CreateConstantBuffer<ObjectInstance>(device);
 
+		   installation.LoadResource("!skybox.vs", *scratchBuffer, 64_kilobytes);
+		   idObjSkyVS = CreateVertexShader("!skybox.vs", scratchBuffer->GetData(), scratchBuffer->Length(), DX11::GetSkyVertexDesc(), DX11::NumberOfSkyVertexElements());
+
+		   installation.LoadResource("!skybox.ps", *scratchBuffer, 64_kilobytes);
+		   idObjSkyPS = CreatePixelShader("!skybox.ps", scratchBuffer->GetData(), scratchBuffer->Length());
+
 		   lastTick = OS::CpuTicks();
 		   rng.seed(123456U);
+
+		   D3D11_SAMPLER_DESC desc;
+		   desc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+		   desc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+		   desc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+		   desc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+		   desc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+		   desc.MaxAnisotropy = 1;
+		   desc.MipLODBias = 0;
+		   desc.MaxLOD = D3D11_FLOAT32_MAX;
+		   desc.MinLOD = 0;
+
+		   VALIDATEDX11(device.CreateSamplerState(&desc, &skySampler));
+
+		   SkyVertex topNW{ -1.0f, 1.0f, 1.0f };
+		   SkyVertex topNE{  1.0f, 1.0f, 1.0f };
+		   SkyVertex topSW{ -1.0f,-1.0f, 1.0f };
+		   SkyVertex topSE{  1.0f,-1.0f, 1.0f };
+		   SkyVertex botNW{ -1.0f, 1.0f,-1.0f };
+		   SkyVertex botNE{  1.0f, 1.0f,-1.0f };
+		   SkyVertex botSW{ -1.0f,-1.0f,-1.0f };
+		   SkyVertex botSE{  1.0f,-1.0f,-1.0f };
+
+		   SkyVertex skyboxVertices[36] =
+		   {
+			   topSW, topNW, topNE, // top,
+			   topNE, topSE, topSW, // top,
+			   botSW, botNW, botNE, // bottom,
+			   botNE, botSE, botSW, // bottom,
+			   topNW, topSW, botSW, // West
+			   botSW, botNW, topNW, // West
+			   topNE, topSE, botSE, // East
+			   botSE, botNE, topNE, // East
+			   topNW, topNE, botNE, // North
+			   botNE, botNW, topNW, // North
+			   topSW, topSE, botSE, // South
+			   botSE, botSW, topSW, // South
+		   };
+		   skyMeshId = CreateSkyMesh(skyboxVertices, sizeof(skyboxVertices) / sizeof(SkyVertex));
 	   }
 
 	   ~DX11AppRenderer()
@@ -573,6 +630,12 @@ namespace ANON
 		   for (auto& s : samplers)
 		   {
 			   if (s) s->Release();
+		   }
+
+		   for (auto& t : cubeTextureArray)
+		   {
+			   t.shaderView->Release();
+			   t.texture->Release();
 		   }
 	   }
 
@@ -667,6 +730,99 @@ namespace ANON
 		   dc.PSSetSamplers(index, 1, &samplers[index]);
 	   }
 
+	   struct CubeLoader : public DX11::IColourBitmapLoadEvent
+	   {
+		   size_t face;
+		   int width;
+		   std::vector<RGBAb> expandedBuffer;
+
+		   void OnLoad(const RGBAb* pixels, const Vec2i& span) override
+		   {
+			   if (width == 0)
+			   {
+				   width = span.x;
+				   if (span.x != span.y)
+				   {
+					   Throw(0, "CubeLoader::OnLoad: image was not sqaure");
+				   }
+
+				   expandedBuffer.resize(6 * width * width);
+			   }
+
+			   if (span.x != width || span.y != width)
+			   {
+				   Throw(0, "Image span %d x %d did not match the cube texture face width [%d]", span.x, span.y, width);
+			   }
+
+			   size_t sizeOfImageBytes = width * width * sizeof(RGBAb);
+			   char* dest = (char*) expandedBuffer.data();
+			   memcpy(dest + face * sizeOfImageBytes, pixels, sizeOfImageBytes);
+		   }
+	   };
+
+	   enum { CUBE_ID_BASE = 100000000 };
+
+	   ID_TEXTURE CreateCubeTexture(cstr path, cstr extension)
+	   {
+		   const char* short_filenames[6] = { "posx", "negx", "posy", "negy", "posz", "negz" };
+
+		   CubeLoader cubeloader;
+		   cubeloader.width = 0;
+		   cubeloader.face = 0;
+
+		   D3D11_SUBRESOURCE_DATA initData[6];
+
+		   for (auto f : short_filenames)
+		   {
+			   char fullpath[Rococo::IO::MAX_PATHLEN];
+			   SecureFormat(fullpath, Rococo::IO::MAX_PATHLEN, "%s%s.%s", path, f, extension);
+			   textureLoader.LoadColourBitmapIntoAddress(fullpath, cubeloader);
+
+			   size_t sizeofImage = cubeloader.width * cubeloader.width;
+
+			   initData[cubeloader.face].pSysMem = cubeloader.expandedBuffer.data() + sizeofImage * cubeloader.face;
+			   initData[cubeloader.face].SysMemPitch = cubeloader.width * sizeof(RGBAb);
+			   initData[cubeloader.face].SysMemSlicePitch = 0;
+
+			   cubeloader.face++;
+		   }
+
+		   D3D11_TEXTURE2D_DESC desc;
+		   ZeroMemory(&desc, sizeof(desc));
+		   desc.Width = cubeloader.width;
+		   desc.Height = cubeloader.width;
+		   desc.ArraySize = 6;
+		   desc.SampleDesc.Count = 1;
+		   desc.SampleDesc.Quality = 0;
+		   desc.MipLevels = 1;
+		   desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		   desc.Usage = D3D11_USAGE_DEFAULT;
+		   desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+		   desc.CPUAccessFlags = 0;
+		   desc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
+
+		   ID3D11Texture2D* pTexCube = nullptr;
+		   
+		   VALIDATEDX11(device.CreateTexture2D(&desc, &initData[0], &pTexCube));
+
+		   ID3D11ShaderResourceView* view = nullptr;
+		   HRESULT hr = device.CreateShaderResourceView(pTexCube, nullptr, &view);
+		   if FAILED(hr)
+		   {
+			   pTexCube->Release();
+			   Throw(hr, "DX11Renderer::CreateCubeTexture: Error creating shader resource view for cube texture");
+		   }
+
+		   DX11::TextureBind tb;
+		   tb.shaderView = view;
+		   tb.texture = pTexCube;
+
+		   cubeTextureArray.push_back(tb);
+
+		   size_t index = cubeTextureArray.size() + CUBE_ID_BASE;
+		   return ID_TEXTURE{ index };
+	   }
+
 	   int32 cubeMaterialId[6] = { -1,-1,-1,-1,-1,-1 };
 
 	   /* 6 material ids determine the environmental texture */
@@ -707,7 +863,12 @@ namespace ANON
 			   cubeTexture = pTexCube;
 
 			   ID3D11ShaderResourceView* view = nullptr;
-			   VALIDATEDX11(device.CreateShaderResourceView(pTexCube, nullptr, &view));
+			   HRESULT hr = device.CreateShaderResourceView(pTexCube, nullptr, &view);
+			   if FAILED(hr)
+			   {
+					pTexCube->Release();
+					Throw(hr, "DX11Renderer::SyncCubeTexture: Error creating shader resource view for cube texture");
+			   }
 
 			   cubeTextureView = view;
 		   }
@@ -1717,6 +1878,14 @@ namespace ANON
 		   return ID_SYS_MESH(index - 1);
 	   }
 
+	   ID_SYS_MESH CreateSkyMesh(const SkyVertex* vertices, uint32 nVertices)
+	   {
+		   ID3D11Buffer* meshBuffer = vertices ? DX11::CreateImmutableVertexBuffer(device, vertices, nVertices) : nullptr;
+		   meshBuffers.push_back(MeshBuffer{ meshBuffer, nVertices, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST, ID_PIXEL_SHADER(), ID_PIXEL_SHADER(), false, false });
+		   int32 index = (int32)meshBuffers.size();
+		   return ID_SYS_MESH(index - 1);
+	   }
+
 	   void SetSpecialShader(ID_SYS_MESH id, cstr psSpotlightPingPath, cstr psAmbientPingPath, bool alphaBlending) override
 	   {
 		   if (id.value < 0 || id.value >= meshBuffers.size())
@@ -2334,6 +2503,48 @@ namespace ANON
 		   return rt;
 	   }
 
+	   void RenderSkybox(IScene& scene)
+	   {
+		   ID_TEXTURE cubeId = scene.GetSkyboxCubeId();
+
+		   if (!cubeId.Invalid())
+		   {
+			   size_t index = cubeId.value - CUBE_ID_BASE - 1;
+			   if (index < cubeTextureArray.size())
+			   {
+				   auto* skyCubeTextureView = this->cubeTextureArray[index].shaderView;
+
+				   if (UseShaders(idObjSkyVS, idObjSkyPS))
+				   {
+					   auto& mesh = meshBuffers[skyMeshId.value];
+					   UINT strides[] = { sizeof(SkyVertex) };
+					   UINT offsets[]{ 0 };
+					   dc.IASetPrimitiveTopology(mesh.topology);
+					   dc.IASetVertexBuffers(0, 1, &mesh.dx11Buffer, strides, offsets);
+					   dc.PSSetShaderResources(0, 1, &skyCubeTextureView);
+					   dc.PSSetSamplers(0, 1, &skySampler);
+
+					   dc.RSSetState(skyRasterizering);
+					   dc.OMSetDepthStencilState(noDepthTestOrWrite, 0);
+
+					   FLOAT blendFactorUnused[] = { 0,0,0,0 };
+					   dc.OMSetBlendState(disableBlend, blendFactorUnused, 0xffffffff);
+					   dc.Draw(mesh.numberOfVertices, 0);
+
+					   dc.PSSetSamplers(0, 16, samplers);
+				   }
+				   else
+				   {
+					   Throw(0, "DX11Renderer::RenderSkybox failed. Error setting sky shaders");
+				   }
+			   }
+			   else
+			   {
+				   Throw(0, "DX11Renderer::RenderSkybox failed. Cube id was not valid");
+			   }
+		   }
+	   }
+
 	   void Render(Graphics::RenderPhaseConfig& config, IScene& scene) override
 	   {
 		   phaseConfig = config;
@@ -2365,20 +2576,22 @@ namespace ANON
 		   SyncViewport(phaseConfig.depthTarget);
 
 		   SetAndClearRenderBuffers(scene.GetClearColour());
-	
-		   InitInvariantTextureViews();
 
 		   now = OS::CpuTicks();
-
-		   dc.RSSetState(objectRaterizering);
-		   dc.OMSetDepthStencilState(objDepthState, 0);
-
-		   builtFirstPass = false;
 
 		   UpdateGlobalState(scene);
 
 		   RenderTarget rt = GetCurrentRenderTarget();
 		   dc.OMSetRenderTargets(1, &rt.renderTargetView, rt.depthView);
+
+		   RenderSkybox(scene);
+
+		   InitInvariantTextureViews();
+
+		   dc.RSSetState(objectRaterizering);
+		   dc.OMSetDepthStencilState(objDepthState, 0);
+
+		   builtFirstPass = false;
 
 		   size_t nLights = 0;
 		   const Light* lights = scene.GetLights(nLights);

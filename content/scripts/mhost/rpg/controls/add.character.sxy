@@ -53,6 +53,8 @@
 	(IImageButton portraitButton)
 	
 	(Int32 portraitIndex)
+	
+	(IStringBuilder portraitFilename)
 )
 
 (archetype Sys.Reflection.CallbackWithExpression (IExpression expression) ->)
@@ -111,6 +113,8 @@
 	
 	(IStringBuilder nameBuilder = this.nameEditor.GetBuilder)
 	(s.AddString "Name" nameBuilder)
+	
+	(s.AddString "Portrait" this.portraitFilename)
 	
 	(IStringBuilder filename = NewPathBuilder)
 	(#build filename "#chaps/")
@@ -218,6 +222,8 @@
 	
 	(this.sysFont = -1)
 	(this.portraitIndex = -1)
+	
+	(this.portraitFilename = (NewPathBuilder))
 	
 	(IDropValueMenu classEditor (NewDropValueMenu 7 this))
 	
@@ -625,25 +631,25 @@
 		male.white.1.jpg	male.white.2.jpg	male.white.3.jpg 
 	))
 	
-	(IStringBuilder fullImageName = NewPathBuilder)
+	(this.portraitFilename.Clear)
 	
 	(IExpression s = this.sexButton.GetSelectedValue)
 	(if (s == this.sFemale)
-		(fullImageName "!textures/faces/female/")
+		(this.portraitFilename "!textures/faces/female/")
 		(Int32 index = (Sys.Maths.I32.Mod this.portraitIndex femaleFaces.ChildCount))
 		(IExpression name = (femaleFaces index))
 		(this.portraitIndex = index)
-		(name.AppendTextTo fullImageName)
+		(name.AppendTextTo this.portraitFilename)
 	else
-		(fullImageName "!textures/faces/male/")
+		(this.portraitFilename "!textures/faces/male/")
 		(Int32 index = (Sys.Maths.I32.Mod this.portraitIndex maleFaces.ChildCount))
 		(IExpression name = (maleFaces index))
 		(this.portraitIndex = index)
-		(name.AppendTextTo fullImageName)
+		(name.AppendTextTo this.portraitFilename)
 	)
 	
 	(MPlat.BitmapLocation img)
-	(engine.GetSpriteSpec fullImageName img)
+	(engine.GetSpriteSpec this.portraitFilename img)
 	(this.portraitButton.SetImage img)
 )
 

@@ -41,8 +41,14 @@ namespace
 		  camera.GetWorld(world);
 		  camera.GetWorldAndProj(proj);
 		  camera.GetPosition(eye);
+		  eye.w = 1.0f;
 		  viewDir = Vec4::FromVec3(world.GetForwardDirection(), 0);
 	  };
+
+	  ID_TEXTURE GetSkyboxCubeId() const override
+	  {
+		  return ID_TEXTURE::Invalid();
+	  }
 
 	  const Light* GetLights(size_t& nCount) const override
 	  {

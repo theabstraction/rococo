@@ -263,7 +263,15 @@ namespace Rococo
 					}
 					catch (IException& ex)
 					{
-						debugger.Log("Exception thrown in script: %s", ex.Message());
+						if (ex.ErrorCode() != 0)
+						{
+							debugger.Log("Exception thrown in script: %s\nError code 0x%x (%d)", ex.Message(), ex.ErrorCode(), ex.ErrorCode());
+						}
+						else
+						{
+							debugger.Log("Exception thrown in script: %s", ex.Message());
+						}
+
 						switch (exceptionHandler.GetScriptExceptionFlow("--app--", ex.Message()))
 						{
 						case EScriptExceptionFlow_Ignore:

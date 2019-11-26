@@ -43,6 +43,11 @@ namespace HV
 			return e.platform.scene.GetLights(nLights);
 		}
 
+		ID_TEXTURE GetSkyboxCubeId() const override
+		{
+			return ID_TEXTURE::Invalid();
+		}
+
 		void RenderShadowPass(const DepthRenderData& drd, IRenderContext& rc) override
 		{
 			return e.platform.scene.RenderShadowPass(drd, rc);

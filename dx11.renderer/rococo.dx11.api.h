@@ -17,6 +17,7 @@ namespace Rococo
       ID3D11DepthStencilState* CreateGuiDepthStencilState(ID3D11Device& device);
       ID3D11DepthStencilState* CreateObjectDepthStencilState(ID3D11Device& device);
 	  ID3D11DepthStencilState* CreateObjectDepthStencilState_NoWrite(ID3D11Device& device);
+	  ID3D11DepthStencilState* CreateNoDepthCheckOrWrite(ID3D11Device& device);
 
       const D3D11_INPUT_ELEMENT_DESC* const GetGuiVertexDesc();
       const uint32 NumberOfGuiVertexElements();
@@ -27,10 +28,14 @@ namespace Rococo
 	  const D3D11_INPUT_ELEMENT_DESC* const GetParticleVertexDesc();
 	  const uint32 NumberOfParticleVertexElements();
 
+	  const D3D11_INPUT_ELEMENT_DESC* const GetSkyVertexDesc();
+	  const uint32 NumberOfSkyVertexElements();
+
       ID3D11RasterizerState* CreateSpriteRasterizer(ID3D11Device& device);
       ID3D11RasterizerState* CreateObjectRasterizer(ID3D11Device& device);
 	  ID3D11RasterizerState* CreateParticleRasterizer(ID3D11Device& device);
 	  ID3D11RasterizerState* CreateShadowRasterizer(ID3D11Device& device);
+	  ID3D11RasterizerState* CreateSkyRasterizer(ID3D11Device& device);
 	  ID3D11BlendState* CreateAlphaAdditiveBlend(ID3D11Device& device);
       ID3D11BlendState* CreateAlphaBlend(ID3D11Device& device);
       ID3D11BlendState* CreateNoBlend(ID3D11Device& device);
@@ -53,6 +58,11 @@ namespace Rococo
 		 ID3D11DepthStencilView* depthView = nullptr;
       };
 
+	  struct IColourBitmapLoadEvent
+	  {
+		  virtual void OnLoad(const RGBAb* pixels, const Vec2i& span) = 0;
+	  };
+
       class TextureLoader
       {
          IInstallation& installation;
@@ -64,6 +74,7 @@ namespace Rococo
          TextureLoader(IInstallation& installation, ID3D11Device& device, ID3D11DeviceContext& _dc, IExpandingBuffer& _scratchBuffer);
          TextureBind LoadAlphaBitmap(cstr resourceName);
          TextureBind LoadColourBitmap(cstr resourceName);
+		 void LoadColourBitmapIntoAddress(cstr resourceName, IColourBitmapLoadEvent& onLoad);
       };
    } // DX11
 } // Rococo

@@ -182,6 +182,50 @@ namespace Rococo
          return{ tx, view };
       }
 
+	  void TextureLoader::LoadColourBitmapIntoAddress(cstr resourceName, IColourBitmapLoadEvent& onLoad)
+	  {
+		  auto* ext = GetFileExtension(resourceName);
+		  if (!Eq(ext, ".tiff") && !Eq(ext, ".tif") && !Eq(ext, ".jpg") && !Eq(ext, ".jpg"))
+		  {
+			  Throw(0, "%s\nOnly Tiff and Jpeg files can be used for colour bitmaps", resourceName);
+		  }
+
+		  installation.LoadResource(resourceName, scratchBuffer, 64_megabytes);
+
+		  if (scratchBuffer.Length() == 0) Throw(0, "The image file %s was blank", resourceName);
+
+		  struct ANON : public Rococo::Imaging::IImageLoadEvents
+		  {
+			  IColourBitmapLoadEvent* onLoad;
+
+			  void OnError(const char* message) override
+			  {
+				  Throw(0, "Error loading image file. %s", message);
+			  }
+
+			  void OnRGBAImage(const Vec2i& span, const RGBAb* data) override
+			  {
+				  onLoad->OnLoad(data, span);
+			  }
+
+			  void OnAlphaImage(const Vec2i& span, const uint8* data) override
+			  {
+				  Throw(0, "The image file was alpha. 32-bit colour image expected");
+			  }
+		  } loadHandler;
+
+		  loadHandler.onLoad = &onLoad;
+
+		  if (Eq(ext, ".tiff") || Eq(ext, ".tif"))
+		  {
+			  Rococo::Imaging::DecompressTiff(loadHandler, scratchBuffer.GetData(), scratchBuffer.Length());
+		  }
+		  else
+		  {
+			  Rococo::Imaging::DecompressJPeg(loadHandler, scratchBuffer.GetData(), scratchBuffer.Length());
+		  }
+	  }
+
       TextureBind TextureLoader::LoadAlphaBitmap(cstr resourceName)
       {
          auto* ext = GetFileExtension(resourceName);

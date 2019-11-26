@@ -25,6 +25,8 @@
 (primitive Kilograms Sys.SI.Kilograms Kilograms)
 (primitive RGBAb Int32 RGBAb)
 
+(primitive IdTexture MHost.IdTexture IdTexture)
+
 (primitive Pointer Pointer uintptr_t)
 (primitive IdMesh Int32 ID_MESH)
 (primitive IdEntity Int64 ID_ENTITY)
@@ -64,6 +66,8 @@
 (struct KeyboardEvent MHost.OS.KeyboardEvent Rococo.MHostKeyboardEvent)
 (struct RGBA RGBA RGBA)
 (struct FontDesc MHost.Graphics.FontDesc MHost.Graphics.FontDesc)
+(struct WorldOrientation MHost.WorldOrientation MHost.WorldOrientation)
+(struct CubeTextureDef MHost.CubeTextureDef MHost.CubeTextureDef)
 
 // (defstruct <name> <sexy-name> <cpp-name> (fields) )  maps <name> found in the sxh file to the <sexy-name> in the generated sxy file, and <cpp-name> in the c++ files. It creates new structures in the target specified in (cpp.types ...)
 // (fields) is a sequence of s-expressions of the format (<type> <name>) where <type> is either a primitive or struct defined BEFORE the parent defstruct and <name> is a unique name for the variable.

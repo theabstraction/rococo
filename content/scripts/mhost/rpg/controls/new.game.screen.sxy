@@ -17,6 +17,7 @@
 
 (struct Slot
 	(Rectf rect)
+	(ICharDataStore charData)
 )
 
 (class NewGameScreen 
@@ -32,10 +33,13 @@
 	(array Slot slots) 
 
 	(IListBuilder roster)
+	
+	(IListRow selectedRow)
 )
 
 (struct CharRow
 	(IString name)
+	(IString portrait)
 	(Int32 strength)
 	(Int32 agility)
 	(Int32 wellness)
@@ -44,25 +48,73 @@
 	(Int32 maths)
 )
 
+(interface RPG.ICharDataStore
+	(GetCharData (CharRow data)->)
+	(AssignToSlot (Int32 index) ->)
+)
+
 (class PlayerRow
 	(implements IListRow)
+	(implements ICharDataStore)
 	(CharRow data)
+	(IEngine engine)
+	(Int32 slot)
+)
+
+(method PlayerRow.GetCharData (CharRow data)-> :
+	(data = this.data)
 )
 
 (method PlayerRow.Render (IGui g)(Rectf rect)-> :
 	(g.DrawBorder rect 4 0xFFFFFFFF 0xFFAFAFAF 0xFF8F8F8F 0xFF5F5F5F)
-	(g.DrawText rect 0 this.data.name 0 0xFFFFFFFF)
+	
+	(Rectf faceRect)
+	(faceRect.left = rect.left)
+	(faceRect.right = (rect.left + (rect.bottom - rect.top)))
+	(faceRect.top = rect.top)
+	(faceRect.bottom = rect.bottom)
+	
+	(Rectf nameRect)
+	(nameRect.left = (faceRect.right + 1))
+	(nameRect.right = rect.right)
+	(nameRect.top = rect.top)
+	(nameRect.bottom = rect.bottom)
+	
+	(g.DrawText nameRect 0 this.data.name 0 0xFFFFFFFF)
+	
+	(MPlat.BitmapLocation img)
+	(this.engine.GetSpriteSpec this.data.portrait img)
+	
+	(if (img.arrayIndex >= 0) 
+		(Rectf innerFaceRect)
+		(innerFaceRect.left = (faceRect.left + 4))
+		(innerFaceRect.top = (faceRect.top + 4))
+		(innerFaceRect.right = (faceRect.right - 4))
+		(innerFaceRect.bottom = (faceRect.bottom - 4))
+		(g.StretchSprite innerFaceRect img)
+	)
+	
+	(if (this.slot >= -1)
+		(g.DrawBorder rect 4 0xFFFFFFFF 0xFFAFAFAF 0xFF8F8F8F 0xFF5F5F5F)
+		(g.FillRect rect 0xC0404040)
+	)
 )
 
 (method PlayerRow.GetSpan (Vec2 span)-> :
 	(span = 200 64)
 )
 
-(method PlayerRow.Construct (CharRow data): 
+(method PlayerRow.Construct (CharRow data)(IEngine engine): 
 	(this.data = data)
+	(this.engine = engine)
+	(this.slot = -2) // -2 = none, -1 = cursor, 0+ = party slot
 )
 
-(factory RPG.NewPlayerRow IListRow (CharRow data): (construct PlayerRow data))
+(method PlayerRow.AssignToSlot (Int32 slotId)-> :
+	(this.slot = slotId)
+)
+
+(factory RPG.NewPlayerRow IListRow (CharRow data)(IEngine engine): (construct PlayerRow data engine))
 
 (function ThrowSourceError (IString message)(IString source)-> :
 	(IStringBuilder sb = (NewParagraphBuilder))
@@ -107,7 +159,7 @@
 	(AssertExpressionIsAtomicString sID "S-Format-Dictionary-v1.0" source)
 )
 
-(function AddCharRow (IListBuilder roster) (IString filename)-> :
+(function AddCharRow (IListBuilder roster) (IString filename)(IEngine engine)-> :
 	(CharRow data)
 	(IExpression s = (MHost.OS.LoadExpression filename))
 	
@@ -136,7 +188,7 @@
 		(serialize sAttribute -> data)	
 	)
 	
-	(IListRow row1 (NewPlayerRow data))
+	(IListRow row1 (NewPlayerRow data engine))
 	(roster.AddRow row1)
 )
 
@@ -149,14 +201,23 @@
 	(this.uistack.AddTopLevelControl this.roster "roster")
 	
 	(IListBuilder roster = this.roster)
+	(IEngine engine = this.bundle.Engine)
 	
 	(MPlat.OnFileName appendToList =
 		(closure (IString fileName) -> :
-			(AddCharRow roster fileName)
+			(AddCharRow roster fileName engine)
 		)
 	)
 	
 	(MPlat.OS.EnumerateFiles "!scripts/mhost/rpg/chaps/*.dict" appendToList)
+)
+
+(method NewGameScreen.OnClickListRow (SelectListRowArgs args) -> :
+	(if args.withMouseDown
+		(this.selectedRow = args.selectedRow)
+		(cast this.selectedRow -> ICharDataStore cds)
+		(cds.AssignToSlot -1)
+	)
 )
 
 (factory RPG.NewNewGameScreen MHost.IScreen (IBundle bundle):
@@ -184,11 +245,12 @@
 	(Float32 centreXright = (centreX + (portraitSpan.x / 2)))
 	
 	(this.slots.Clear)
-	(this.slots.Push Slot ((centreXleft yTopFar centreXright yTopNear)))
-	(this.slots.Push Slot ((xLeftFar yTopFar xLeftNear yTopNear)))
-	(this.slots.Push Slot ((xRightFar yTopFar xRightNear yTopNear)))
-	(this.slots.Push Slot ((xLeftFar yBottomNear xLeftNear yBottomFar)))
-	(this.slots.Push Slot ((xRightFar yBottomNear xRightNear yBottomFar)))
+	(ICharDataStore nullChar)
+	(this.slots.Push Slot ((centreXleft yTopFar centreXright yTopNear) nullChar))
+	(this.slots.Push Slot ((xLeftFar yTopFar xLeftNear yTopNear) nullChar))
+	(this.slots.Push Slot ((xRightFar yTopFar xRightNear yTopNear) nullChar))
+	(this.slots.Push Slot ((xLeftFar yBottomNear xLeftNear yBottomFar) nullChar))
+	(this.slots.Push Slot ((xRightFar yBottomNear xRightNear yBottomFar) nullChar))
 	
 	(Rectf rosterRect)
 	(rosterRect.left = 128)
@@ -221,6 +283,43 @@
 	
 	(foreach slot # this.slots
 		(g.DrawBorder slot.rect 1 0xFFFFFFFF 0xFFAFAFAF 0xFF8F8F8F 0xFF5F5F5F)
+		
+		(if (slot.charData ?)
+			(CharRow charData)
+			(slot.charData.GetCharData charData)
+			(IEngine engine = this.bundle.Engine)
+			
+			(MPlat.BitmapLocation img)
+			(if (charData.portrait.Length > 0)
+				(engine.GetSpriteSpec charData.portrait img)
+				(g.StretchSprite slot.rect img)
+			)
+		)
+	)
+	
+	(if (this.selectedRow ?)
+		(cast this.selectedRow -> ICharDataStore cds)
+		(CharRow charData)
+		(cds.GetCharData charData)
+		(IEngine engine = this.bundle.Engine)
+		
+		(MPlat.BitmapLocation img)
+		(if (charData.portrait.Length > 0)
+			(engine.GetSpriteSpec charData.portrait img)
+			
+			(Vec2 cursorPos)
+			(g.GetCursorPos cursorPos)
+			
+			(Vec2 dragSpan = 56 56)
+			
+			(Rectf dragRect)
+			(dragRect.left = cursorPos.x)
+			(dragRect.top = cursorPos.y)
+			(dragRect.right = (cursorPos.x + dragSpan.x))
+			(dragRect.bottom = (cursorPos.y + dragSpan.y))
+			
+			(g.StretchSprite dragRect img)
+		)
 	)
 )
 
@@ -242,6 +341,20 @@
 	(Vec2 pos = x y)
 	
 	(IEventHandler evHandler = this)
+	
+	(cast this.selectedRow -> ICharDataStore cds)
+	(cds.AssignToSlot -2)
+	
+	(foreach i slot # this.slots
+		(if (IsPointInRect pos slot.rect)
+			(cds.AssignToSlot i)
+			(slot.charData.AssignToSlot -2)
+			(slot.charData = cds)
+			(break)
+		)
+	)
+	
+	(this.selectedRow = 0)
 	
 	(OnUIStackItem q = 
 		(closure (UIStackItem item)->(Bool terminate):

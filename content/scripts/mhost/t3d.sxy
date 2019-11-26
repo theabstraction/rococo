@@ -1,0 +1,211 @@
+// 3d test
+
+(' #include 
+	"!scripts/mhost/mplat.types.sxy"
+	"!scripts/mhost/mhost.sxh.sxy"
+	"!scripts/mplat.sxh.sxy"
+	"!scripts/types.sxy"
+	"!scripts/mhost/mhost.include.sxy"
+	"!scripts/mhost/widgets/widgets.sxy"
+	"!scripts/mhost/t3d/t3d.world.sxy"
+)
+
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+
+(using Sys)
+(using Sys.Maths)
+(using Sys.Maths.F32)
+(using Sys.Type)
+(using Sys.Random)
+(using Sys.Type.Strings)
+
+(using MPlat)
+(using MHost)
+(using MHost.OS)
+(using MHost.Graphics)
+(using Rococo)
+(using Rococo.Graphics)
+(using Rococo.Audio)
+
+(using Sys.Maths.I32)
+
+(namespace T3D)
+(using T3D)
+
+(interface T3D.IInputThread
+	(extends Sys.ICoroutine)
+)
+
+(class GuiInputThread 
+	(implements T3D.IInputThread)
+	(IEngine engine)
+	(IScreen activeScreen)
+	(IEventHandler modalSink)
+	(IKeyboard keyboard)
+	(IWorld world)
+)
+
+(method GuiInputThread.Destruct -> :
+)
+
+(method GuiInputThread.CaptureMouse (IEventHandler handler)-> :
+	(this.modalSink = handler) 
+	(this.engine.CaptureMouse)
+)
+
+(method GuiInputThread.ReleaseMouse (IEventHandler handler)-> :
+	(IEventHandler nullHandler)
+	(this.modalSink = nullHandler)
+	(this.engine.ReleaseMouse)
+)
+
+(method GuiInputThread.Construct (IEngine engine)(IWorld world) : 
+	(this.engine = engine)
+	(this.world = world)
+)
+
+(factory T3D.NewGuiInputThread IInputThread (IEngine engine)(IWorld world):
+	(construct GuiInputThread engine world)
+)
+
+(method GuiInputThread.Run -> :
+	(IKeyboard keyboard (Keyboard))
+	(Int32 leftKey = (keyboard.GetVKeyFromName "A"))
+	(Int32 rightKey = (keyboard.GetVKeyFromName "D"))
+	(Int32 fireKey = (keyboard.GetVKeyFromName "SPACEBAR"))
+	(Int32 upKey = (keyboard.GetVKeyFromName "W"))
+	(Int32 downKey = (keyboard.GetVKeyFromName "S")) 
+	
+	(MouseEvent mouseEvent)
+	(KeyboardEvent keyEvent)
+	
+	(KeyState keys)
+			
+	(Vec2 oldPlayerDirection = 0 0)
+	
+	(while this.engine.IsRunning
+		(KeyState keys)
+		(this.engine.PollKeyState keys)
+		
+		(Vec2 playerDirection = 0 0)
+	
+		(if (IsKeyPressed keys leftKey)
+			(playerDirection.x = -1)
+		)
+		
+		(if (IsKeyPressed keys rightKey)
+			(playerDirection.x = 1)
+		)
+		
+		(if (IsKeyPressed keys upKey)
+			(playerDirection.y = 1)
+		)
+		
+		(if (IsKeyPressed keys downKey)
+			(playerDirection.y = -1)
+		)
+		
+		(if ((oldPlayerDirection.x != playerDirection.x) or (oldPlayerDirection.y != playerDirection.y))
+			(this.worldControl.SetPlayerDirection playerDirection)
+			(oldPlayerDirection = playerDirection)
+		)
+		
+		(yield 10000)
+	)
+)
+
+(struct CommandButton
+	(Rectf rect)
+	(IString text)
+)
+
+(interface T3D.IWorld
+	(SetPlayerDirection (Int32 straffe)(Int32 advance)->)
+	(RenderGui (IGui g)->)
+)
+
+(class GameBundle (defines T3D.IBundle)
+	(ISprites sprites)
+	(IEngine engine)
+	(ILegacySoundControl sound)
+	(IInputThread inputThread)
+	(ICoroutineControl coroutines)
+	(IWorld world)
+)
+
+(method GameBundle.Construct : 
+	(ISprites sprites (Sprites))
+	(sprites.AddEachSpriteInDirectory "!textures/faces/female")
+	(sprites.LoadAllSprites)
+	(this.sprites = sprites)
+	
+	(this.engine = (Engine))
+	(this.sound = (Rococo.Audio.LegacySoundControl))
+	
+	(this.coroutines = (Coroutines))
+	
+	(this.coroutines.Add this.inputThread)
+	
+	(this.world = (NewWorld))
+	
+	(this.inputThread = (NewGuiInputThread this.engine this.world))
+)
+
+(method GameBundle.UIControl -> (IUIControl uiControl): 
+	(uiControl = this.inputThread.UIControl)
+)
+
+(method GameBundle.Engine -> (IEngine engine):
+	(engine = this.engine)
+)
+
+(method GameBundle.Sound -> (ILegacySoundControl sound):
+	(sound = this.sound)
+)
+
+(method GameBundle.AddCoroutine -> (ICoroutine coroutine):
+	(coroutines.Add coroutine)
+)
+
+(factory T3D.NewGameBundle T3D.IBundle : (construct GameBundle))
+
+(method GameBundle.Run -> :
+	(ISceneBuilder scene = (this.engine.Scene))
+	
+	(Int64 cubeId = (scene.CreateCubeTexture "!textures/t3d/skybox/Yokohama/" "jpg"))
+	(scene.SetSkyBox cubeId)
+
+	(while this.engine.IsRunning
+		(while (this.coroutines.Continue > 0))
+		
+		(IWorld world = this.world)
+		
+		(GuiPopulator overlay =
+			(closure (IGui gui) -> : 
+				(world.RenderGui gui)
+			)
+		)
+		
+		(this.engine.Render overlay)	
+		(this.engine.YieldForSystemMessages 5)
+	)
+	
+	(this.coroutines.ReleaseAll)
+)
+
+(function Main (Int32 id) -> (Int32 exitCode):
+	(IRendererConfig rc (RendererConfig))
+	
+	(SampleStateDef fontDef)
+	(fontDef.method = (#SampleMethodLinear))
+	(fontDef.u = (#SampleFilterBorder))
+	(fontDef.v = (#SampleFilterBorder))
+	(fontDef.w = (#SampleFilterBorder))
+	(fontDef.borderColour =	0 0 0 0)
+	(rc.SetSampler fontDef (#SampleIndexFonts))
+	
+	(Sys.Random.Seed 0)
+	(IBundle bundle (NewGameBundle))
+	(bundle.Run)
+)

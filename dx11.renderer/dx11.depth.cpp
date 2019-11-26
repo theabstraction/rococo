@@ -51,6 +51,19 @@ namespace Rococo
 		  return dss;
 	  }
 
+	  ID3D11DepthStencilState* CreateNoDepthCheckOrWrite(ID3D11Device& device)
+	  {
+		  D3D11_DEPTH_STENCIL_DESC desc;
+		  ZeroMemory(&desc, sizeof(desc));
+		  desc.DepthEnable = FALSE;
+		  desc.DepthFunc = D3D11_COMPARISON_ALWAYS;
+		  desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+
+		  ID3D11DepthStencilState* dss = nullptr;
+		  VALIDATEDX11(device.CreateDepthStencilState(&desc, &dss));
+		  return dss;
+	  }
+
       ID3D11DepthStencilState* CreateGuiDepthStencilState(ID3D11Device& device)
       {
          D3D11_DEPTH_STENCIL_DESC desc;

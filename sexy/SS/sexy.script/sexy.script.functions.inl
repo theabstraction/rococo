@@ -1273,24 +1273,24 @@ namespace Rococo
 		  registers[7].int64Value = diff != 0 ? 1 : 0;
 	  }
 
-      bool TryCompileMethodCallAndReturnValue(CCompileEnvironment& ce, cr_sex s, VARTYPE returnType, const IStructure* returnTypeStruct, const IArchetype* returnArchetype)
-      {
-	      cr_sex firstArg = IsCompound(s) ? s.GetElement(0) : s;
-	      cstr fname = firstArg.String()->Buffer;
+	  bool TryCompileMethodCallAndReturnValue(CCompileEnvironment& ce, cr_sex s, VARTYPE returnType, const IStructure* returnTypeStruct, const IArchetype* returnArchetype)
+	  {
+		  cr_sex firstArg = IsCompound(s) ? s.GetElement(0) : s;
+		  cstr fname = firstArg.String()->Buffer;
 
-	      NamespaceSplitter splitter(fname);
+		  NamespaceSplitter splitter(fname);
 
-	      const IStructure* instanceStruct = NULL;
+		  const IStructure* instanceStruct = NULL;
 
-	      cstr instance, methodName;
-	      if (!splitter.SplitTail(OUT instance, OUT methodName))
-	      {
-		      // Could be index method
-		      if (s.NumberOfElements() == 2)
-		      {
-			      instanceStruct = ce.Builder.GetVarStructure(fname);
-			      instance = fname;
-			      methodName = GetIndexedMethod(ce, s, instanceStruct);
+		  cstr instance, methodName;
+		  if (!splitter.SplitTail(OUT instance, OUT methodName))
+		  {
+			  // Could be index method
+			  if (s.NumberOfElements() == 2)
+			  {
+				  instanceStruct = ce.Builder.GetVarStructure(fname);
+				  instance = fname;
+				  methodName = GetIndexedMethod(ce, s, instanceStruct);
 
 				  if (methodName == nullptr)
 				  {
@@ -1311,65 +1311,81 @@ namespace Rococo
 					  }
 					  return false;
 				  }
-		      }
+			  }
 			  else
 			  {
 				  return false;
 			  }
-	      }
-	      else
-	      {
-		      instanceStruct = ce.Builder.GetVarStructure(instance);
-	      }
+		  }
+		  else
+		  {
+			  // Could be index method
+			  if (s.NumberOfElements() == 2 && IsAtomic(s[1]) && AreEqual(s[1].String(), "?") && returnType == VARTYPE_Bool)
+			  {
+				  instanceStruct = ce.Builder.GetVarStructure(fname);
+				  instance = fname;
 
-	      if (instanceStruct == NULL)
-	      {
-		      return false;
-	      }
+				  if (instanceStruct && instanceStruct->InterfaceCount() > 0 && IsNullType(*instanceStruct))
+				  {
+					  return TryCompileAsTestExistenceAndReturnBool(ce, s, instance, *instanceStruct);
+				  }
+				  else
+				  {
+					  Throw(s[0], "(... exists) can only be applied to interface types");
+				  }
+			  }
 
-	      if (!IsCapital(methodName[0]))
-	      {
-		      return false;
-	      }
-		
-	      if (TryCompileAsInlineArrayAndReturnValue(ce, s, instance, methodName, returnType, *instanceStruct))
-	      {
-		      return true;
-	      }
+			  instanceStruct = ce.Builder.GetVarStructure(instance);
+		  }
 
-	      if (TryCompileAsInlineListAndReturnValue(ce, s, instance, methodName, returnType, *instanceStruct))
-	      {
-		      return true;
-	      }
+		  if (instanceStruct == NULL)
+		  {
+			  return false;
+		  }
 
-	      VARTYPE outputType;
-	      if (TryCompileAsInlineMapAndReturnValue(ce, s, instance, methodName, returnType, *instanceStruct, OUT outputType))
-	      {
-		      return true;
-	      }
+		  if (!IsCapital(methodName[0]))
+		  {
+			  return false;
+		  }
 
-	      if (!instanceStruct->Prototype().IsClass)
-	      {
-		      return false;
-	      }
+		  if (TryCompileAsInlineArrayAndReturnValue(ce, s, instance, methodName, returnType, *instanceStruct))
+		  {
+			  return true;
+		  }
 
-	      if (TryCompileAsInlineIStringAndReturnValue(ce, instance, methodName, returnType, *instanceStruct))
-	      {
-		      return true;
-	      }
+		  if (TryCompileAsInlineListAndReturnValue(ce, s, instance, methodName, returnType, *instanceStruct))
+		  {
+			  return true;
+		  }
 
-	      OUT int interfaceIndex, OUT methodIndex;
-	      if (GetMethodIndices(OUT interfaceIndex, OUT methodIndex, *instanceStruct, methodName))
-	      {
-		      const IInterface& interf = instanceStruct->GetInterface(interfaceIndex);
-		      const IArchetype& method = interf.GetMethod(methodIndex);
+		  VARTYPE outputType;
+		  if (TryCompileAsInlineMapAndReturnValue(ce, s, instance, methodName, returnType, *instanceStruct, OUT outputType))
+		  {
+			  return true;
+		  }
 
-		      CompileVirtualCallAndReturnValue(ce, false, method, s, interfaceIndex, methodIndex, instance, returnType, returnTypeStruct, returnArchetype, interf);
-		      return true;
-	      }
+		  if (!instanceStruct->Prototype().IsClass)
+		  {
+			  return false;
+		  }
 
-	      return false;
-      }
+		  if (TryCompileAsInlineIStringAndReturnValue(ce, instance, methodName, returnType, *instanceStruct))
+		  {
+			  return true;
+		  }
+
+		  OUT int interfaceIndex, OUT methodIndex;
+		  if (GetMethodIndices(OUT interfaceIndex, OUT methodIndex, *instanceStruct, methodName))
+		  {
+			  const IInterface& interf = instanceStruct->GetInterface(interfaceIndex);
+			  const IArchetype& method = interf.GetMethod(methodIndex);
+
+			  CompileVirtualCallAndReturnValue(ce, false, method, s, interfaceIndex, methodIndex, instance, returnType, returnTypeStruct, returnArchetype, interf);
+			  return true;
+		  }
+
+		  return false;
+	  }
 
       bool TryCompileMethodCallWithoutInputAndReturnValue(CCompileEnvironment& ce, cr_sex s, cstr instance, cstr methodName, VARTYPE returnType, const IStructure* returnTypeStruct, const IArchetype* returnArchetype)
       {
