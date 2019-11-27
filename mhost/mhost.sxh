@@ -71,6 +71,8 @@
 		(Camera -> (MHost.ICamera camera))
 		(CreateCubeTexture (IString folder)(IString extension)->(IdTexture cubeId))
 		(SetSkyBox (IdTexture cubeId))
+		(SetFieldOfView (Degrees fov))
+		(SetCameraOrientation (const WorldOrientation cameraOrientation))
 	)
 )
 
@@ -80,6 +82,7 @@
 	(context factory MHost.IEngine)
 	(methods
 		(PollKeyState (KeyState keys))
+		(GetNextMouseDelta (Vec2 delta))
 		(GetNextMouseEvent (MouseEvent me)->(Bool wasPopped))
 		(GetNextKeyboardEvent(KeyboardEvent ke)->(Bool wasPopped))
 		(Render (GuiPopulator populator))

@@ -217,6 +217,7 @@ namespace Rococo
 		virtual bool TryGetNextKeyboardEvent(KeyboardEvent& k) = 0;
 		virtual bool TryGetNextMouseEvent(MouseEvent& m) = 0;
 		virtual bool TryRouteSysMessages(uint32 sleepMS) = 0;
+		virtual void GetNextMouseDelta(Vec2& delta) = 0;
 	};
 
 	ROCOCOAPI IDirectApp

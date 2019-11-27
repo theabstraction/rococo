@@ -37,13 +37,13 @@ struct CameraObject: public ICamera
 		cameraToScreen = Matrix4x4::GetRHProjectionMatrix(fov, aspectRatio, near, far);
 	}
 
-	void SetAspectRatio(float aspectRatio) override
+	void SetAspectRatio(float aspectRatio)
 	{
 		this->aspectRatio = aspectRatio;
 		SyncCameraToScreen();
 	}
 
-	void SetFieldOfView(Degrees fov) override
+	void SetFieldOfView(Degrees fov)
 	{
 		this->fov = fov;
 		SyncCameraToScreen();
@@ -58,10 +58,6 @@ struct CameraObject: public ICamera
 		worldToCamera.row0.x = -position.x;
 		worldToCamera.row0.y = -position.y;
 		worldToCamera.row0.z = -position.z;
-	}
-
-	void SetOrientation(const MHost::WorldOrientation& wo) override
-	{
 	}
 
 	void SetPerspective(float near, float far) override
@@ -79,6 +75,14 @@ struct CameraObject: public ICamera
 	void GetCameraToScreen(Matrix4x4& m)  override
 	{
 		m = cameraToScreen;
+	}
+
+	void SetOrientation(const MHost::WorldOrientation& orientation) override
+	{
+		auto Rx = Matrix4x4::RotateRHAnticlockwiseX(orientation.elevation);
+		auto Rz = Matrix4x4::RotateRHAnticlockwiseZ(Degrees{ 90.0f - orientation.heading });
+
+		worldToCamera = Rx * Rz;
 	}
 };
 
@@ -116,6 +120,21 @@ struct SceneBuilder : public ISceneBuilderSupervisor
 	void Free() override
 	{
 		delete this;
+	}
+
+	void SetAspectRatio(float aspectRatio) override
+	{
+		camera.SetAspectRatio(aspectRatio);
+	}
+
+	void SetFieldOfView(Degrees fov) override
+	{
+		camera.SetFieldOfView(fov);
+	}
+
+	void SetCameraOrientation(const MHost::WorldOrientation& cameraOrientation)
+	{
+		camera.SetOrientation(cameraOrientation);
 	}
 };
 

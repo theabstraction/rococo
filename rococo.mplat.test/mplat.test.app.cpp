@@ -213,6 +213,11 @@ struct TestApp : IApp, private IScene, public IEventCallback<FileModifiedArgs>
    {
 
    }
+
+   ID_TEXTURE GetSkyboxCubeId() const
+   {
+	   return ID_TEXTURE::Invalid();
+   }
 };
 
 namespace Test

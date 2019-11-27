@@ -43,12 +43,15 @@ namespace MHost
 			scene3DBuilder(_scene3DBuilder)
 		{
 			dispatcher = CreateScriptDispatcher();
-			platform.camera.SetRHProjection(45_degrees, 0.1_metres, 1000_metres);
 		}
 
-		void GetCamera(Matrix4x4& camera, Matrix4x4& world, Vec4& eye, Vec4& viewDir) override
+		void GetCamera(Matrix4x4& projection, Matrix4x4& worldToCamera, Vec4& eye, Vec4& viewDir) override
 		{
-			return platform.scene.GetCamera(camera, world, eye, viewDir);
+			scene3DBuilder.Camera()->GetCameraToScreen(projection);
+			scene3DBuilder.Camera()->GetWorldToCamera(worldToCamera);
+
+			eye = Vec4::FromVec3(worldToCamera.GetPosition(), 1.0f);
+			viewDir = Vec4::FromVec3(worldToCamera.GetForwardDirection(), 0.0f);
 		}
 
 		RGBA GetClearColour() const override
@@ -58,7 +61,7 @@ namespace MHost
 
 		void OnGuiResize(Vec2i screenSpan) override
 		{
-			return platform.scene.OnGuiResize(screenSpan);
+		
 		}
 
 		void OnCompile(IPublicScriptSystem& ss)
@@ -66,11 +69,58 @@ namespace MHost
 			dispatcher->OnCompile(ss);
 		}
 
+		void RenderMatrix(IGui& g, const Matrix4x4& m, const GuiRectf& r, RGBAb colour)
+		{
+			GuiRectf lineRect = r;
+
+			float dy = 0.25f * (r.bottom - r.top);
+
+			for (int i = 0; i < 4; i++)
+			{
+				lineRect.bottom = lineRect.top + dy;
+
+				Vec4& v = ((Vec4*)&m)[i];
+				
+				char buf[128];
+				SafeFormat(buf, 128, "(%+4.4f %+4.4f %+4.4f %+4.4f)", v.x, v.y, v.z, v.w);
+				g.DrawClippedText(lineRect, AlignmentFlags_Left, to_fstring(buf), 1, colour, lineRect);
+
+				lineRect.top = lineRect.bottom;
+			}
+		}
+
+		void RenderMatrixBox(IGui& g, const Matrix4x4& m, const Vec2& topLeft, cstr title)
+		{
+			GuiRectf rect{ topLeft.x, topLeft.y, topLeft.x + 280, topLeft.y + 80 };
+
+			g.FillRect(rect, RGBAb(0, 0, 0, 224));
+
+			GuiRectf titleRect = rect;
+			titleRect.bottom = titleRect.top + 0.2f * Height(titleRect);
+			titleRect.left += 4;
+
+			g.DrawText(titleRect, AlignmentFlags_Left, to_fstring(title), 1, RGBAb(255, 255, 255, 255));
+
+			GuiRectf matrixRect = rect;
+			matrixRect.top = titleRect.bottom;
+			matrixRect.left += 4;
+			RenderMatrix(g, m, matrixRect, RGBAb(255, 255, 128, 255));
+
+			g.DrawBorder(rect, 1.0f, RGBAb(255, 255, 255, 255), RGBAb(224, 224, 224, 255), RGBAb(200, 200, 200, 255), RGBAb(128, 128, 128, 255));
+		}
+
 		void RenderGui(IGuiRenderContext& grc)  override
 		{
 			IGui* gui = CreateGuiOnStack(guiBuffer, grc);
 			dispatcher->RouteGuiToScript(ss, gui, populator);
-			platform.scene.RenderGui(grc);
+
+			Matrix4x4 worldToCamera;
+			scene3DBuilder.Camera()->GetWorldToCamera(worldToCamera);
+			RenderMatrixBox(*gui, worldToCamera, { 10, 100 }, "WorldToCamera");
+
+			Matrix4x4 cameraToScreen;
+			scene3DBuilder.Camera()->GetCameraToScreen(cameraToScreen);
+			RenderMatrixBox(*gui, cameraToScreen, { 10, 200 }, "Projection");
 		}
 
 		ID_TEXTURE GetSkyboxCubeId() const override
@@ -80,17 +130,16 @@ namespace MHost
 
 		void RenderObjects(IRenderContext& rc)  override
 		{
-			return platform.scene.RenderObjects(rc);
 		}
 
 		const Light* GetLights(size_t& nCount) const override
 		{
-			return platform.scene.GetLights(nCount);
+			return nullptr;
 		}
 
 		void RenderShadowPass(const DepthRenderData& drd, IRenderContext& rc)  override
 		{
-			return platform.scene.RenderShadowPass(drd, rc);
+			
 		}
 	};
 
@@ -310,6 +359,13 @@ namespace MHost
 
 			sceneManager.populator = populator;
 
+			Matrix4x4 worldToCamera;
+			scene3DBuilder->Camera()->GetWorldToCamera(worldToCamera);
+			Quat rotQuat;
+			Matrix4x4::GetRotationQuat(worldToCamera, rotQuat);
+
+			platform.camera.SetOrientation(rotQuat);
+
 			platform.renderer.Render(config, sceneManager);
 
 			sceneManager.populator = GuiPopulator{ 0,nullptr };
@@ -334,6 +390,11 @@ namespace MHost
 		{
 			cursorPosition = { (float)me.cursorPos.x, (float)me.cursorPos.y };
 			return (boolean32)control.TryGetNextMouseEvent(me);
+		}
+
+		void GetNextMouseDelta(Vec2& delta)
+		{
+			control.GetNextMouseDelta(delta);
 		}
 
 		boolean32 GetNextKeyboardEvent(MHostKeyboardEvent& k) override

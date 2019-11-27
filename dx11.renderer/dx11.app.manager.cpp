@@ -200,6 +200,7 @@ namespace ANON
 		OneReaderOneWriterCircleBuffer<KeyboardEvent> keyBuffer;
 		OneReaderOneWriterCircleBuffer<MouseEvent> mouseBuffer;
 		HANDLE hInstanceLock;
+		Vec2 mouseDelta = { 0,0 };
 
 		DirectAppManager(Platform& platform, IDX11GraphicsWindow& _window, IDirectAppFactory& _factory) : 
 			window(_window),
@@ -253,6 +254,12 @@ namespace ANON
 			auto* b = mouseBuffer.GetBackSlot();
 			if (b) *b = me;
 			mouseBuffer.WriteBack();
+
+			if (m.usFlags == MOUSE_MOVE_RELATIVE)
+			{
+				mouseDelta.x += (float) m.lLastX;
+				mouseDelta.y += (float) m.lLastY;
+			}
 		}
 
 		bool TryGetNextKeyboardEvent(KeyboardEvent& k) override
@@ -263,6 +270,12 @@ namespace ANON
 		bool TryGetNextMouseEvent(MouseEvent& m) override
 		{
 			return mouseBuffer.TryPopFront(m);
+		}
+
+		void GetNextMouseDelta(Vec2& delta) override
+		{
+			delta = { fmodf(mouseDelta.x, 16384.0f), fmodf(mouseDelta.y, 16384.0f) };
+			mouseDelta = { 0,0 };
 		}
 
 		bool TryRouteSysMessages(uint32 sleepMS) override

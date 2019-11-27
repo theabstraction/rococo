@@ -763,6 +763,34 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->SetSkyBox(cubeId);
 	}
+	void NativeMHostISceneBuilderSetFieldOfView(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Degrees fov;
+		_offset += sizeof(fov);
+		ReadInput(fov, _sf, -_offset);
+
+		MHost::ISceneBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetFieldOfView(fov);
+	}
+	void NativeMHostISceneBuilderSetCameraOrientation(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		MHost::WorldOrientation* cameraOrientation;
+		_offset += sizeof(cameraOrientation);
+		ReadInput(cameraOrientation, _sf, -_offset);
+
+		MHost::ISceneBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetCameraOrientation(*cameraOrientation);
+	}
 
 }
 
@@ -773,6 +801,8 @@ namespace MHost {
 		ss.AddNativeCall(ns, NativeMHostISceneBuilderCamera, nullptr, ("ISceneBuilderCamera (Pointer hObject) -> (MHost.ICamera camera)"));
 		ss.AddNativeCall(ns, NativeMHostISceneBuilderCreateCubeTexture, nullptr, ("ISceneBuilderCreateCubeTexture (Pointer hObject)(Sys.Type.IString folder)(Sys.Type.IString extension) -> (MHost.IdTexture cubeId)"));
 		ss.AddNativeCall(ns, NativeMHostISceneBuilderSetSkyBox, nullptr, ("ISceneBuilderSetSkyBox (Pointer hObject)(MHost.IdTexture cubeId) -> "));
+		ss.AddNativeCall(ns, NativeMHostISceneBuilderSetFieldOfView, nullptr, ("ISceneBuilderSetFieldOfView (Pointer hObject)(Sys.Maths.Degrees fov) -> "));
+		ss.AddNativeCall(ns, NativeMHostISceneBuilderSetCameraOrientation, nullptr, ("ISceneBuilderSetCameraOrientation (Pointer hObject)(MHost.WorldOrientation cameraOrientation) -> "));
 	}
 }
 // BennyHill generated Sexy native functions for MHost::IEngine 
@@ -796,6 +826,20 @@ namespace
 
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->PollKeyState(*keys);
+	}
+	void NativeMHostIEngineGetNextMouseDelta(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Vec2* delta;
+		_offset += sizeof(delta);
+		ReadInput(delta, _sf, -_offset);
+
+		MHost::IEngine* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GetNextMouseDelta(*delta);
 	}
 	void NativeMHostIEngineGetNextMouseEvent(NativeCallEnvironment& _nce)
 	{
@@ -1004,6 +1048,7 @@ namespace MHost {
 		const INamespace& ns = ss.AddNativeNamespace(("MHost.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForMHostEngine, _nceContext, ("GetHandleForIEngine0  -> (Pointer hObject)"));
 		ss.AddNativeCall(ns, NativeMHostIEnginePollKeyState, nullptr, ("IEnginePollKeyState (Pointer hObject)(MHost.OS.KeyState keys) -> "));
+		ss.AddNativeCall(ns, NativeMHostIEngineGetNextMouseDelta, nullptr, ("IEngineGetNextMouseDelta (Pointer hObject)(Sys.Maths.Vec2 delta) -> "));
 		ss.AddNativeCall(ns, NativeMHostIEngineGetNextMouseEvent, nullptr, ("IEngineGetNextMouseEvent (Pointer hObject)(MHost.OS.MouseEvent me) -> (Bool wasPopped)"));
 		ss.AddNativeCall(ns, NativeMHostIEngineGetNextKeyboardEvent, nullptr, ("IEngineGetNextKeyboardEvent (Pointer hObject)(MHost.OS.KeyboardEvent ke) -> (Bool wasPopped)"));
 		ss.AddNativeCall(ns, NativeMHostIEngineRender, nullptr, ("IEngineRender (Pointer hObject)(MHost.GuiPopulator populator) -> "));

@@ -2595,12 +2595,15 @@ namespace ANON
 
 		   size_t nLights = 0;
 		   const Light* lights = scene.GetLights(nLights);
-		   for (size_t i = 0; i < nLights; ++i)
+		   if (lights != nullptr)
 		   {
-			   RenderSpotlightLitScene(lights[i], scene);
-		   }
+			   for (size_t i = 0; i < nLights; ++i)
+			   {
+				   RenderSpotlightLitScene(lights[i], scene);
+			   }
 
-		   RenderAmbient(scene, lights[0]);
+			   RenderAmbient(scene, lights[0]);
+		   }
 
 		   objCost = OS::CpuTicks() - now;
 	   

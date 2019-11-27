@@ -33,7 +33,7 @@
 (namespace T3D)
 (using T3D)
 
-(interface T3D.IInputThread
+(interface T3D.IInputThread (attribute essential)
 	(extends Sys.ICoroutine)
 )
 
@@ -107,8 +107,15 @@
 		)
 		
 		(if ((oldPlayerDirection.x != playerDirection.x) or (oldPlayerDirection.y != playerDirection.y))
-			(this.worldControl.SetPlayerDirection playerDirection)
+		//	(this.world.SetPlayerDirection playerDirection)
 			(oldPlayerDirection = playerDirection)
+		)
+		
+		(Vec2 cursorDelta)
+		(this.engine.GetNextMouseDelta cursorDelta)
+
+		(if ((cursorDelta.x != 0) or (cursorDelta.y != 0))
+			(this.world.UpdateMouseLook cursorDelta)
 		)
 		
 		(yield 10000)
@@ -120,9 +127,10 @@
 	(IString text)
 )
 
-(interface T3D.IWorld
-	(SetPlayerDirection (Int32 straffe)(Int32 advance)->)
+(interface T3D.IWorld (attribute essential)
 	(RenderGui (IGui g)->)
+	(UpdateMouseLook (Vec2 delta)->)
+	(GetCameraOrientation (WorldOrientation cameraOrientation)->)
 )
 
 (class GameBundle (defines T3D.IBundle)
@@ -145,11 +153,9 @@
 	
 	(this.coroutines = (Coroutines))
 	
-	(this.coroutines.Add this.inputThread)
-	
 	(this.world = (NewWorld))
-	
 	(this.inputThread = (NewGuiInputThread this.engine this.world))
+	(this.coroutines.Add this.inputThread)
 )
 
 (method GameBundle.UIControl -> (IUIControl uiControl): 
@@ -173,8 +179,9 @@
 (method GameBundle.Run -> :
 	(ISceneBuilder scene = (this.engine.Scene))
 	
-	(Int64 cubeId = (scene.CreateCubeTexture "!textures/t3d/skybox/Yokohama/" "jpg"))
+	(Int64 cubeId = (scene.CreateCubeTexture "!textures/t3d/skybox/YokohamaSmall/" "jpg"))
 	(scene.SetSkyBox cubeId)
+	(scene.SetFieldOfView 60)
 
 	(while this.engine.IsRunning
 		(while (this.coroutines.Continue > 0))
@@ -186,6 +193,11 @@
 				(world.RenderGui gui)
 			)
 		)
+		
+		(WorldOrientation cameraOrientation)
+		(this.world.GetCameraOrientation cameraOrientation)
+		
+		(scene.SetCameraOrientation cameraOrientation)
 		
 		(this.engine.Render overlay)	
 		(this.engine.YieldForSystemMessages 5)

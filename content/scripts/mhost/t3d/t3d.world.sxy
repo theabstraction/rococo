@@ -31,12 +31,24 @@
 
 (class World (implements T3D.IWorld)
 	(Vec3 cameraPos)
+	(WorldOrientation cameraOrientation)
 )
 
-(method World.SetPlayerDirection (Int32 straffe)(Int32 advance)-> :
+(method World.UpdateMouseLook (Vec2 delta)-> :
+	(Float32 newBearing = (delta.x + this.cameraOrientation.bearing))
+	(Float32 newElevation = (delta.y + this.cameraOrientation.elevation))
+	(this.cameraOrientation.bearing = (Sys.Maths.F32.Mod newBearing 360))
+	(this.cameraOrientation.elevation = (Sys.Maths.F32.Clamp newElevation -90 90))
 )
 
-(method World.Construct : (this.cameraPos = 0 0 1))
+(method World.GetCameraOrientation (WorldOrientation cameraOrientation)-> :
+	(cameraOrientation = this.cameraOrientation)
+)
+
+(method World.Construct : 
+	(this.cameraPos = 0 0 1)
+	(this.cameraOrientation = 0 0 0)
+)
 
 (factory T3D.NewWorld T3D.IWorld : (construct World))
 
