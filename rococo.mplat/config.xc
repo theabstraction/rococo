@@ -28,6 +28,7 @@
 (primitive Pointer Pointer uintptr_t)
 (primitive IdMesh Int32 ID_MESH)
 (primitive IdEntity Int64 ID_ENTITY)
+(primitive IdCubeTexture Int64 ID_CUBE_TEXTURE)
 (primitive LayoutId Int32 ELayoutAlgorithm)
 
 // (struct <name> <sexy-name> <cpp-name>)  maps <name> found in the sxh file to the <sexy-name> in the generated sxy file, and <cpp-name> in the c++ files

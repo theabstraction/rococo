@@ -38,14 +38,14 @@ namespace HV
 			}
 		}
 
+		ID_CUBE_TEXTURE GetSkyboxCubeId() const override
+		{
+			return e.platform.scene.GetSkyboxCubeId();
+		}
+
 		const Light* GetLights(size_t& nLights) const override
 		{
 			return e.platform.scene.GetLights(nLights);
-		}
-
-		ID_TEXTURE GetSkyboxCubeId() const override
-		{
-			return ID_TEXTURE::Invalid();
 		}
 
 		void RenderShadowPass(const DepthRenderData& drd, IRenderContext& rc) override

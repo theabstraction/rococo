@@ -762,7 +762,7 @@ namespace ANON
 
 	   enum { CUBE_ID_BASE = 100000000 };
 
-	   ID_TEXTURE CreateCubeTexture(cstr path, cstr extension)
+	   ID_CUBE_TEXTURE CreateCubeTexture(cstr path, cstr extension)
 	   {
 		   const char* short_filenames[6] = { "posx", "negx", "posy", "negy", "posz", "negz" };
 
@@ -820,7 +820,7 @@ namespace ANON
 		   cubeTextureArray.push_back(tb);
 
 		   size_t index = cubeTextureArray.size() + CUBE_ID_BASE;
-		   return ID_TEXTURE{ index };
+		   return ID_CUBE_TEXTURE{ index };
 	   }
 
 	   int32 cubeMaterialId[6] = { -1,-1,-1,-1,-1,-1 };
@@ -2505,9 +2505,9 @@ namespace ANON
 
 	   void RenderSkybox(IScene& scene)
 	   {
-		   ID_TEXTURE cubeId = scene.GetSkyboxCubeId();
+		   ID_CUBE_TEXTURE cubeId = scene.GetSkyboxCubeId();
 
-		   if (!cubeId.Invalid())
+		   if (cubeId)
 		   {
 			   size_t index = cubeId.value - CUBE_ID_BASE - 1;
 			   if (index < cubeTextureArray.size())

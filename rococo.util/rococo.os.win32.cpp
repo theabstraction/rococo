@@ -446,6 +446,14 @@ namespace Rococo
 			}
 		}
 
+		void FormatErrorMessage(char* message, size_t sizeofBuffer, int errorCode)
+		{
+			if (!FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, NULL, errorCode, 0, message, (DWORD) sizeofBuffer, nullptr))
+			{
+				SafeFormat(message, sizeofBuffer, "Unknown error");
+			}
+		}
+
 		bool TryGetColourFromDialog(RGBAb& colour, Windows::IWindow& window)
 		{
 			static COLORREF colours[16] = { 0 };
@@ -1648,9 +1656,10 @@ namespace Rococo
 
 			if (hSearch.hSearch == INVALID_HANDLE_VALUE)
 			{
-				if (GetLastError() != ERROR_FILE_NOT_FOUND)
+				HRESULT hr = HRESULT_FROM_WIN32(GetLastError());
+				if (hr != ERROR_FILE_NOT_FOUND)
 				{
-					Throw(GetLastError(), "%s: %s\n", __FUNCTION__, fullSearchFilter);
+					Throw(hr, "%s: %S\n", __FUNCTION__, fullSearchFilter);
 				}
 				return;
 			}

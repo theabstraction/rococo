@@ -188,8 +188,29 @@ namespace Rococo
 	  {
 		  mv = m * v;
 	  }
-   }
-}
+
+	  void GetRotationQuat(Degrees theta, float i, float j, float k, Quat& q)
+	  {
+		  Degrees halfTheta{ 0.5f * theta };
+
+		  float c = Cos(halfTheta);
+		  float s = Sin(halfTheta);
+
+		  q.s = c;
+		  q.v.x = i * s;
+		  q.v.y = j * s;
+		  q.v.z = k * s;
+	  }
+
+	  void MultiplyQuatByQuat(const Quat& p, const Quat& q, Quat& pq)
+	  {
+		  XMVECTOR P = XMLoadFloat4((const XMFLOAT4*)&p);
+		  XMVECTOR Q = XMLoadFloat4((const XMFLOAT4*)&q);
+		  XMVECTOR PQ = XMQuaternionMultiply(P, Q);
+		  XMStoreFloat4((XMFLOAT4*) &pq, PQ);
+	  }
+   } // Maths
+}// Rococo
 
 using namespace Rococo;
 using namespace Rococo::Script;

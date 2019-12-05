@@ -182,7 +182,12 @@ namespace
          }
       }
 
-      virtual void ConcatenateModelMatrices(ID_ENTITY leafId, Matrix4x4& m)
+	  ID_CUBE_TEXTURE CreateCubeTexture(const fstring& folder, const fstring& extension) override
+	  {
+		  return renderer.CreateCubeTexture(folder, extension);
+	  }
+
+      void ConcatenateModelMatrices(ID_ENTITY leafId, Matrix4x4& m) override
       {
          modelStack.clear();
 
@@ -259,6 +264,7 @@ namespace
 			  Instances* This;
 
 			  char pingPath[IO::MAX_PATHLEN];
+			  wchar_t sysSearchPath[IO::MAX_PATHLEN];
 
 			  void OnEvent(const wchar_t* sysName) override
 			  {
@@ -266,11 +272,13 @@ namespace
 				  if (Eq(ext, L".jpeg") || Eq(ext, L".jpg") || Eq(ext, L"tif") || Eq(ext, L"tiff"))
 				  {
 					  char pingName[_MAX_PATH];
-					  installation->ConvertSysPathToPingPath(sysName, pingName, _MAX_PATH);
 
-					  char fullPingName[IO::MAX_PATHLEN];
-					  SecureFormat(fullPingName, IO::MAX_PATHLEN, "%s%s", pingPath, pingName);
-					  filenames.push_back(fullPingName);
+					  wchar_t fullPath[IO::MAX_PATHLEN];
+					  swprintf_s(fullPath, IO::MAX_PATHLEN, L"%s%s", sysSearchPath, sysName);
+
+					  installation->ConvertSysPathToPingPath(fullPath, pingName, _MAX_PATH);
+
+					  filenames.push_back(pingName);
 				  }
 			  }
 
@@ -305,10 +313,12 @@ namespace
 		  z.publisher = &publisher;
 		  z.This = this;
 
-		  SafeFormat(z.pingPath, _MAX_PATH, "%s", folder.buffer);
+		  SafeFormat(z.pingPath, IO::MAX_PATHLEN, "%s", folder.buffer);
 
 		  wchar_t sysPath[_MAX_PATH];
-		  z.installation->ConvertPingPathToSysPath(z.pingPath, sysPath, _MAX_PATH);
+		  z.installation->ConvertPingPathToSysPath(z.pingPath, sysPath, IO::MAX_PATHLEN);
+
+		  swprintf_s(z.sysSearchPath, IO::MAX_PATHLEN, L"%s", sysPath);
 	
 		  IO::ForEachFileInDirectory(sysPath, z);
 

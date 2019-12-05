@@ -124,7 +124,6 @@ namespace MHost
 #endif
 				AddNativeCalls_MHostIGui(args.ss, nullptr);
 				AddNativeCalls_MHostIEngine(args.ss, engine);
-				AddNativeCalls_MHostISceneBuilder(args.ss, engine->Scene());
 				MHost::OS::AddNativeCalls_MHostOS(args.ss);
 				MHost::Graphics::AddNativeCalls_MHostGraphics(args.ss);
 				AddNativeCalls_MHostIDictionaryStream(args.ss, &platform.installation);

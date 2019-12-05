@@ -593,6 +593,7 @@ namespace Rococo
 		void PollKeys(uint8 scanArray[256]);
 		void MakeContainerDirectory(char* filename);
 		void MakeContainerDirectory(wchar_t* filename);
+		void FormatErrorMessage(char* message, size_t sizeofBuffer, int errorCode);
 	}
 
 	namespace Memory

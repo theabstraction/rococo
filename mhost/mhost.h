@@ -95,14 +95,4 @@ namespace MHost
 	};
 
 	IScriptDispatcher* CreateScriptDispatcher();
-
-	ROCOCOAPI ISceneBuilderSupervisor: ISceneBuilder
-	{
-		virtual void Free() = 0;
-		virtual ID_TEXTURE GetSkyBoxCubeId() const = 0;
-		virtual void SetAspectRatio(float aspectRatio) = 0;
-		virtual void SetFieldOfView(Degrees fov) = 0;
-	};
-
-	ISceneBuilderSupervisor* CreateSceneBuilder(Platform& platform);
 }

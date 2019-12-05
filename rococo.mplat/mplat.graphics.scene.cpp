@@ -26,6 +26,8 @@ namespace
 	  Light lights[MAX_LIGHTS] = { 0 };
 
 	  IScenePopulator* populator = nullptr;
+
+	  ID_CUBE_TEXTURE skyboxId;
    public:
       Scene(IInstancesSupervisor& _instances, ICameraSupervisor& _camera) :
          instances(_instances), camera(_camera)
@@ -36,6 +38,11 @@ namespace
       {
       }
 
+	  void SetSkyBox(ID_CUBE_TEXTURE cubeId) override
+	  {
+		  this->skyboxId = cubeId;
+	  }
+
 	  void GetCamera(Matrix4x4& proj, Matrix4x4& world, Vec4& eye, Vec4& viewDir) override
 	  {
 		  camera.GetWorld(world);
@@ -45,9 +52,9 @@ namespace
 		  viewDir = Vec4::FromVec3(world.GetForwardDirection(), 0);
 	  };
 
-	  ID_TEXTURE GetSkyboxCubeId() const override
+	  ID_CUBE_TEXTURE GetSkyboxCubeId() const override
 	  {
-		  return ID_TEXTURE::Invalid();
+		  return skyboxId;
 	  }
 
 	  const Light* GetLights(size_t& nCount) const override
@@ -217,7 +224,7 @@ namespace Rococo
    {
       ISceneSupervisor* CreateScene(IInstancesSupervisor& instances, ICameraSupervisor& camera)
       {
-         return new  Scene(instances, camera);
+         return new Scene(instances, camera);
       }
    }
 }

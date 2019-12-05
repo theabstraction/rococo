@@ -249,6 +249,7 @@
 		(ClearLights)
 		(SetClearColour (Float32 red)(Float32 green)(Float32 blue)(Float32 alpha))
 		(SetLight(const LightSpec light)(Int32 index))
+		(SetSkyBox (IdCubeTexture cubeId))
 	)
 	(factory Rococo.Graphics.SceneBuilder)
 )
@@ -281,6 +282,7 @@
 	(methods
 		(AddBody (IString modelName)(const Matrix4x4 model)(const Vec3 scale)(IdEntity parentId)->(IdEntity entityId))
 		(AddGhost (const Matrix4x4 model)(IdEntity parentId)->(IdEntity entityId))
+		(CreateCubeTexture (IString folder)(IString extension)->(IdCubeTexture cubeId))
 		(Delete (IdEntity id))
 		(LoadMaterialArray (IString folder)(Int32 txWidth))
 		(CountMaterialsInCategory (MaterialCategory category)->(Int32 count))

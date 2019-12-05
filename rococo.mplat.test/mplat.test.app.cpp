@@ -214,9 +214,9 @@ struct TestApp : IApp, private IScene, public IEventCallback<FileModifiedArgs>
 
    }
 
-   ID_TEXTURE GetSkyboxCubeId() const
+   ID_CUBE_TEXTURE GetSkyboxCubeId() const
    {
-	   return ID_TEXTURE::Invalid();
+	   return ID_CUBE_TEXTURE::Invalid();
    }
 };
 

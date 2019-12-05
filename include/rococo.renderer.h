@@ -98,6 +98,7 @@ namespace Rococo
 	ROCOCO_ID(ID_PIXEL_SHADER, size_t, -1)
 	ROCOCO_ID(ID_GEOMETRY_SHADER, size_t, -1)
 	ROCOCO_ID(ID_TEXTURE, size_t, -1)
+	ROCOCO_ID(ID_CUBE_TEXTURE, size_t, 0);
 
 	namespace Textures
 	{
@@ -194,7 +195,7 @@ namespace Rococo
 	ROCOCOAPI IScene
 	{
 		virtual void GetCamera(Matrix4x4& camera, Matrix4x4& world, Vec4& eye, Vec4& viewDir) = 0;
-		virtual ID_TEXTURE GetSkyboxCubeId() const = 0;
+		virtual ID_CUBE_TEXTURE GetSkyboxCubeId() const = 0;
 		virtual RGBA GetClearColour() const = 0;
 		virtual void OnGuiResize(Vec2i screenSpan) = 0;
 		virtual void RenderGui(IGuiRenderContext& grc) = 0;
@@ -338,7 +339,7 @@ namespace Rococo
 	  virtual void ClearFog() = 0;
 	  virtual void ClearPlasma() = 0;
 	  virtual ID_SYS_MESH CreateTriangleMesh(const ObjectVertex* vertices, uint32 nVertices) = 0;
-	  virtual ID_TEXTURE CreateCubeTexture(cstr path, cstr extension) = 0;
+	  virtual ID_CUBE_TEXTURE CreateCubeTexture(cstr path, cstr extension) = 0;
 	  virtual void DeleteMesh(ID_SYS_MESH id) = 0;
 	  virtual ID_TEXTURE FindTexture(cstr name) const = 0;
 	  virtual Fonts::IFont& FontMetrics() = 0;

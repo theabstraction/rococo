@@ -36,22 +36,19 @@ namespace MHost
 		AutoFree<IScriptDispatcher> dispatcher;
 		char guiBuffer[64];
 
-		ISceneBuilderSupervisor& scene3DBuilder;
-
-		AppSceneManager(Platform& _platform, ISceneBuilderSupervisor& _scene3DBuilder):
-			platform(_platform),
-			scene3DBuilder(_scene3DBuilder)
+		AppSceneManager(Platform& _platform): platform(_platform)
 		{
 			dispatcher = CreateScriptDispatcher();
 		}
 
+		ID_CUBE_TEXTURE GetSkyboxCubeId() const override
+		{
+			return platform.scene.GetSkyboxCubeId();
+		}
+
 		void GetCamera(Matrix4x4& projection, Matrix4x4& worldToCamera, Vec4& eye, Vec4& viewDir) override
 		{
-			scene3DBuilder.Camera()->GetCameraToScreen(projection);
-			scene3DBuilder.Camera()->GetWorldToCamera(worldToCamera);
-
-			eye = Vec4::FromVec3(worldToCamera.GetPosition(), 1.0f);
-			viewDir = Vec4::FromVec3(worldToCamera.GetForwardDirection(), 0.0f);
+			return platform.scene.GetCamera(projection, worldToCamera, eye, viewDir);
 		}
 
 		RGBA GetClearColour() const override
@@ -61,7 +58,7 @@ namespace MHost
 
 		void OnGuiResize(Vec2i screenSpan) override
 		{
-		
+			platform.scene.OnGuiResize(screenSpan);
 		}
 
 		void OnCompile(IPublicScriptSystem& ss)
@@ -91,7 +88,7 @@ namespace MHost
 
 		void RenderMatrixBox(IGui& g, const Matrix4x4& m, const Vec2& topLeft, cstr title)
 		{
-			GuiRectf rect{ topLeft.x, topLeft.y, topLeft.x + 280, topLeft.y + 80 };
+			GuiRectf rect{ topLeft.x, topLeft.y, topLeft.x + 420, topLeft.y + 120 };
 
 			g.FillRect(rect, RGBAb(0, 0, 0, 224));
 
@@ -114,18 +111,59 @@ namespace MHost
 			IGui* gui = CreateGuiOnStack(guiBuffer, grc);
 			dispatcher->RouteGuiToScript(ss, gui, populator);
 
-			Matrix4x4 worldToCamera;
-			scene3DBuilder.Camera()->GetWorldToCamera(worldToCamera);
-			RenderMatrixBox(*gui, worldToCamera, { 10, 100 }, "WorldToCamera");
+			Matrix4x4 cameraToScreen, worldToCamera;
+			Vec4 eye, viewDir;
+			platform.scene.GetCamera(cameraToScreen, worldToCamera, eye, viewDir);
 
-			Matrix4x4 cameraToScreen;
-			scene3DBuilder.Camera()->GetCameraToScreen(cameraToScreen);
-			RenderMatrixBox(*gui, cameraToScreen, { 10, 200 }, "Projection");
+			RenderMatrixBox(*gui, worldToCamera, { 10, 100 }, "WorldToCamera");
+			RenderMatrixBox(*gui, cameraToScreen, { 10, 230 }, "Projection");
 		}
 
-		ID_TEXTURE GetSkyboxCubeId() const override
+		void RenderObjects(IRenderContext& rc)  override
 		{
-			return scene3DBuilder.GetSkyBoxCubeId();
+			platform.scene.RenderObjects(rc);
+		}
+
+		const Light* GetLights(size_t& nCount) const override
+		{
+			return platform.scene.GetLights(nCount);
+		}
+
+		void RenderShadowPass(const DepthRenderData& drd, IRenderContext& rc)  override
+		{
+			platform.scene.RenderShadowPass(drd, rc);
+		}
+	};
+
+	struct EmptyScene : public IScene
+	{
+		EmptyScene()
+		{
+		}
+
+		void GetCamera(Matrix4x4& projection, Matrix4x4& worldToCamera, Vec4& eye, Vec4& viewDir) override
+		{
+			projection = worldToCamera = Matrix4x4::Identity();
+			eye = { 0,0,0 };
+			viewDir = { 1,0,0 };
+		}
+
+		RGBA GetClearColour() const override
+		{
+			return RGBA{ 0.5f, 0.0f, 0.0f, 1.0f };
+		}
+
+		void OnGuiResize(Vec2i screenSpan) override
+		{
+		}
+
+		void RenderGui(IGuiRenderContext& grc)  override
+		{
+		}
+
+		ID_CUBE_TEXTURE GetSkyboxCubeId() const override
+		{
+			return ID_CUBE_TEXTURE::Invalid();
 		}
 
 		void RenderObjects(IRenderContext& rc)  override
@@ -139,7 +177,7 @@ namespace MHost
 
 		void RenderShadowPass(const DepthRenderData& drd, IRenderContext& rc)  override
 		{
-			
+
 		}
 	};
 
@@ -154,7 +192,6 @@ namespace MHost
 
 		AutoFree<IPaneBuilderSupervisor> overlayPanel;
 		AutoFree<IPaneBuilderSupervisor> busyPanel;
-		AutoFree<ISceneBuilderSupervisor> scene3DBuilder;
 
 		AppSceneManager sceneManager;
 
@@ -170,7 +207,8 @@ namespace MHost
 			{
 				IPublisher& publisher;
 				const Rococo::Events::BusyEvent& be;
-				BusyEventCapture(IPublisher& _publisher, const Rococo::Events::BusyEvent& _be) : publisher(_publisher), be(_be)
+				BusyEventCapture(IPublisher& _publisher, const Rococo::Events::BusyEvent& _be) : 
+					publisher(_publisher), be(_be)
 				{
 					publisher.Subscribe(this, evPopulateBusyCategoryId);
 					publisher.Subscribe(this, evPopulateBusyResourceId);
@@ -206,7 +244,9 @@ namespace MHost
 
 			Rococo::Graphics::RenderPhaseConfig config;
 			config.EnvironmentalMap = Rococo::Graphics::ENVIRONMENTAL_MAP_FIXED_CUBE;
-			platform.renderer.Render(config, platform.scene);
+
+			EmptyScene emptyScene;
+			platform.renderer.Render(config, emptyScene);
 			platform.gui.Pop();
 		}
 
@@ -256,7 +296,7 @@ namespace MHost
 		}
 	public:
 		App(Platform& _platform, IDirectAppControl& _control) :
-			platform(_platform), control(_control), scene3DBuilder(CreateSceneBuilder(_platform)), sceneManager(_platform, *scene3DBuilder)
+			platform(_platform), control(_control), sceneManager(_platform)
 		{
 			busyPanel = platform.gui.BindPanelToScript("!scripts/panel.opening.sxy");
 			overlayPanel = platform.gui.CreateOverlay();
@@ -356,19 +396,7 @@ namespace MHost
 		{
 			Rococo::Graphics::RenderPhaseConfig config;
 			config.EnvironmentalMap = Rococo::Graphics::ENVIRONMENTAL_MAP_FIXED_CUBE;
-
-			sceneManager.populator = populator;
-
-			Matrix4x4 worldToCamera;
-			scene3DBuilder->Camera()->GetWorldToCamera(worldToCamera);
-			Quat rotQuat;
-			Matrix4x4::GetRotationQuat(worldToCamera, rotQuat);
-
-			platform.camera.SetOrientation(rotQuat);
-
-			platform.renderer.Render(config, sceneManager);
-
-			sceneManager.populator = GuiPopulator{ 0,nullptr };
+			platform.renderer.Render(config, platform.scene);
 		}
 
 		void PollKeyState(KeyState& keyState) override
@@ -428,11 +456,6 @@ namespace MHost
 		void CursorPosition(Vec2& cursorPosition)
 		{
 			cursorPosition = this->cursorPosition;
-		}
-
-		ISceneBuilder* Scene()
-		{
-			return scene3DBuilder;
 		}
 	};
 }

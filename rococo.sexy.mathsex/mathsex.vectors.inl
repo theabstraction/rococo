@@ -292,6 +292,52 @@ namespace
 		Rococo::Maths::LerpVec3(*a, *b, t, *mixed);
 	}
 
+	void NativeSysGeometryF32GetRotationQuat(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Quat* q;
+		_offset += sizeof(q);
+		ReadInput(q, _sf, -_offset);
+
+		float k;
+		_offset += sizeof(k);
+		ReadInput(k, _sf, -_offset);
+
+		float j;
+		_offset += sizeof(j);
+		ReadInput(j, _sf, -_offset);
+
+		float i;
+		_offset += sizeof(i);
+		ReadInput(i, _sf, -_offset);
+
+		Degrees theta;
+		_offset += sizeof(theta);
+		ReadInput(theta, _sf, -_offset);
+
+		Rococo::Maths::GetRotationQuat(theta, i, j, k, *q);
+	}
+
+	void NativeSysGeometryF32MultiplyQuatfQuatf(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Quat* output;
+		_offset += sizeof(output);
+		ReadInput(output, _sf, -_offset);
+
+		Quat* b;
+		_offset += sizeof(b);
+		ReadInput(b, _sf, -_offset);
+
+		Quat* a;
+		_offset += sizeof(a);
+		ReadInput(a, _sf, -_offset);
+
+		Rococo::Maths::MultiplyQuatByQuat(*a, *b, *output);
+	}
+
 }
 
 namespace Sys { namespace Geometry { namespace F32 { 
@@ -314,5 +360,7 @@ namespace Sys { namespace Geometry { namespace F32 {
 		ss.AddNativeCall(ns, NativeSysGeometryF32Normalize, nullptr, ("Normalize(Sys.Maths.Vec3 n) -> "));
 		ss.AddNativeCall(ns, NativeSysGeometryF32GetNormal, nullptr, ("GetNormal(Sys.Maths.Triangle t)(Sys.Maths.Vec3 normal) -> "));
 		ss.AddNativeCall(ns, NativeSysGeometryF32LerpVec3, nullptr, ("LerpVec3(Sys.Maths.Vec3 a)(Sys.Maths.Vec3 b)(Float32 t)(Sys.Maths.Vec3 mixed) -> "));
+		ss.AddNativeCall(ns, NativeSysGeometryF32GetRotationQuat, nullptr, ("GetRotationQuat(Sys.Maths.Degrees theta)(Float32 i)(Float32 j)(Float32 k)(Sys.Maths.Quat q) -> "));
+		ss.AddNativeCall(ns, NativeSysGeometryF32MultiplyQuatfQuatf, nullptr, ("MultiplyQuatfQuatf(Sys.Maths.Quat a)(Sys.Maths.Quat b)(Sys.Maths.Quat output) -> "));
 	}
 }}}

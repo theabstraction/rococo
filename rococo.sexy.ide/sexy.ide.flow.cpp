@@ -265,7 +265,9 @@ namespace Rococo
 					{
 						if (ex.ErrorCode() != 0)
 						{
-							debugger.Log("Exception thrown in script: %s\nError code 0x%x (%d)", ex.Message(), ex.ErrorCode(), ex.ErrorCode());
+							char errorMessage[256];
+							Rococo::OS::FormatErrorMessage(errorMessage, sizeof(errorMessage), ex.ErrorCode());
+							debugger.Log("Exception thrown in script: %s\nError code 0x%x (%d). %s", ex.Message(), ex.ErrorCode(), ex.ErrorCode(), errorMessage);
 						}
 						else
 						{

@@ -58,9 +58,6 @@
     <ClCompile Include="mhost.serializers.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mhost.scene.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="mhost.sxh">

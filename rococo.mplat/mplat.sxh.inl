@@ -5057,6 +5057,20 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->SetLight(*light, index);
 	}
+	void NativeRococoGraphicsISceneBuilderSetSkyBox(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		ID_CUBE_TEXTURE cubeId;
+		_offset += sizeof(cubeId);
+		ReadInput(cubeId, _sf, -_offset);
+
+		Rococo::Graphics::ISceneBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetSkyBox(cubeId);
+	}
 
 	void NativeGetHandleForRococoGraphicsSceneBuilder(NativeCallEnvironment& _nce)
 	{
@@ -5080,6 +5094,7 @@ namespace Rococo { namespace Graphics {
 		ss.AddNativeCall(ns, NativeRococoGraphicsISceneBuilderClearLights, nullptr, ("ISceneBuilderClearLights (Pointer hObject) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsISceneBuilderSetClearColour, nullptr, ("ISceneBuilderSetClearColour (Pointer hObject)(Float32 red)(Float32 green)(Float32 blue)(Float32 alpha) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsISceneBuilderSetLight, nullptr, ("ISceneBuilderSetLight (Pointer hObject)(Rococo.LightSpec light)(Int32 index) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsISceneBuilderSetSkyBox, nullptr, ("ISceneBuilderSetSkyBox (Pointer hObject)(Int64 cubeId) -> "));
 	}
 }}
 // BennyHill generated Sexy native functions for Rococo::Graphics::IMessaging 
@@ -5184,6 +5199,30 @@ namespace
 		ID_ENTITY entityId = _pObject->AddGhost(*model, parentId);
 		_offset += sizeof(entityId);
 		WriteOutput(entityId, _sf, -_offset);
+	}
+	void NativeRococoEntitiesIInstancesCreateCubeTexture(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _extension;
+		ReadInput(_extension, _sf, -_offset);
+		fstring extension { _extension->buffer, _extension->length };
+
+
+		_offset += sizeof(IString*);
+		IString* _folder;
+		ReadInput(_folder, _sf, -_offset);
+		fstring folder { _folder->buffer, _folder->length };
+
+
+		Rococo::Entities::IInstances* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		ID_CUBE_TEXTURE cubeId = _pObject->CreateCubeTexture(folder, extension);
+		_offset += sizeof(cubeId);
+		WriteOutput(cubeId, _sf, -_offset);
 	}
 	void NativeRococoEntitiesIInstancesDelete(NativeCallEnvironment& _nce)
 	{
@@ -5391,6 +5430,7 @@ namespace Rococo { namespace Entities {
 		ss.AddNativeCall(ns, NativeGetHandleForRococoEntitiesInstances, _nceContext, ("GetHandleForIInstances0  -> (Pointer hObject)"));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesAddBody, nullptr, ("IInstancesAddBody (Pointer hObject)(Sys.Type.IString modelName)(Sys.Maths.Matrix4x4 model)(Sys.Maths.Vec3 scale)(Int64 parentId) -> (Int64 entityId)"));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesAddGhost, nullptr, ("IInstancesAddGhost (Pointer hObject)(Sys.Maths.Matrix4x4 model)(Int64 parentId) -> (Int64 entityId)"));
+		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesCreateCubeTexture, nullptr, ("IInstancesCreateCubeTexture (Pointer hObject)(Sys.Type.IString folder)(Sys.Type.IString extension) -> (Int64 cubeId)"));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesDelete, nullptr, ("IInstancesDelete (Pointer hObject)(Int64 id) -> "));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesLoadMaterialArray, nullptr, ("IInstancesLoadMaterialArray (Pointer hObject)(Sys.Type.IString folder)(Int32 txWidth) -> "));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesCountMaterialsInCategory, nullptr, ("IInstancesCountMaterialsInCategory (Pointer hObject)(Int32 category) -> (Int32 count)"));

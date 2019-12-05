@@ -23,6 +23,7 @@
 (using Rococo)
 (using Rococo.Graphics)
 (using Rococo.Audio)
+(using Rococo.Entities)
 
 (using Sys.Maths.I32)
 
@@ -32,6 +33,8 @@
 (class World (implements T3D.IWorld)
 	(Vec3 cameraPos)
 	(WorldOrientation cameraOrientation)
+	(IInstances localObjects)
+	(IMeshBuilder meshBuilder)
 )
 
 (method World.UpdateMouseLook (Vec2 delta)-> :
@@ -45,9 +48,64 @@
 	(cameraOrientation = this.cameraOrientation)
 )
 
+(function MakeBottle (IString meshName) -> :
+	(IRodTesselator bottle (RodTesselator))
+	(bottle.Clear)
+	
+	(IInstances instances (Instances))
+	
+	(MaterialVertexData glass)
+	(AnyColour 0 255 0 255 0 255 48 224 -> glass.colour)
+	(instances.GetRandomMaterialId (#MaterialCategoryRock) -> glass.id)
+	(glass.gloss = 0.2)
+	
+	(bottle.SetMaterialTop glass)
+	(bottle.SetMaterialMiddle glass)
+	(bottle.SetMaterialBottom glass)
+	
+	(Float32 length = (AnyFloat 0.05 0.25))
+	(Float32 bottomWidth = (AnyFloat 0.025 0.10))
+	(Float32 topWidth = (bottomWidth * (AnyFloat 0.5 1)))
+	(Int32 divs = (AnyInt 4 8))
+	(bottle.AddTube length bottomWidth topWidth divs)
+	
+	(Float32 neckLength = (AnyFloat 0.01 0.05))
+	(bottle.AddTube neckLength topWidth 0.01 divs)
+	
+	(MaterialVertexData stopper)
+	(instances.GetRandomMaterialId (#MaterialCategoryRock) -> stopper.id)
+	(stopper.gloss = 0.2)
+	(AnyColour 0 255 0 255 0 255 48 128 -> stopper.colour)
+	(bottle.SetMaterialTop stopper)
+	(bottle.SetMaterialMiddle stopper)
+	(bottle.SetMaterialBottom stopper)
+		
+	(Float32 stopperLength = (AnyFloat 0.005 0.02))
+	(Int32 stopperDivs = (AnyInt 4 6))
+	(bottle.AddTube stopperLength (AnyFloat 0.01 0.02) (AnyFloat 0.01 0.035) stopperDivs)
+	
+	(bottle.CopyToMeshBuilder meshName false false true)
+)
+
 (method World.Construct : 
 	(this.cameraPos = 0 0 1)
 	(this.cameraOrientation = 0 0 0)
+	
+	(IInstances instances (Instances))
+	(instances.LoadMaterialArray "!textures/hv/materials/hi-rez/" 1024) 
+	
+	(MakeBottle "potion.1") 
+	
+	(Matrix4x4 model = 
+		(1 0 0  0)
+		(0 1 0  0)
+		(0 0 1 -2) // locate the bottle at z = -2
+		(0 0 0  1)
+	)
+	
+	(Vec3 scale = 1 1 1)
+	
+	(Int64 entityId = (this.localObjects.AddBody "potion.1" model scale 0))
 )
 
 (factory T3D.NewWorld T3D.IWorld : (construct World))
