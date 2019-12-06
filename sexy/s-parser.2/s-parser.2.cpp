@@ -55,7 +55,7 @@ void TestGenerated()
 	cstr filename = "tmp_generated.sxy";
 //	GenerateTestSFile(filename, 300000);
 
-	using namespace std::experimental::filesystem;
+	using namespace std::filesystem;
 
 	path p = filename;
 	auto len = file_size(p);

@@ -111,8 +111,17 @@
 (factory T3D.NewWorld T3D.IWorld : (construct World))
 
 (method World.RenderGui (IGui gui)-> :
-	(Rectf menuRect = 10 10 110 110)
+	(Rectf menuRect = 10 10 900 30)
 	(gui.FillRect menuRect 0xFF404020)
+	
+	(WorldOrientation camera)
+	(this.GetCameraOrientation camera)
+	
+	(IStringBuilder sb = (NewPathBuilder))
+	(sb.SetFormat 0 0 false false)
+	(#build sb "Roll: " camera.roll ", Elevation: " camera.elevation ", Bearing: " camera.bearing)
+	
+	(gui.DrawText menuRect 1 sb 1 0xFFFFFFFF)
 )
 
 

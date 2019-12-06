@@ -236,7 +236,7 @@
 		)
 		
 		(WorldOrientation cameraOrientation)
-		(this.world.GetCameraOrientation cameraOrientation)
+		(world.GetCameraOrientation cameraOrientation)
 		
 		(Quat cameraQuat)
 		(GetWorldToCameraQuat cameraOrientation cameraQuat)

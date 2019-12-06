@@ -293,7 +293,7 @@ namespace Rococo
 		size_t l = strlen(s);
 		if (l > MAX_INT32)
 		{
-			throw std::invalid_argument("The string length exceeded INT_MAX characters");
+			Throw(0, "The string length exceeded INT_MAX characters");
 		}
 
 		return (int32)l;

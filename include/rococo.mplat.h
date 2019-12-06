@@ -595,20 +595,6 @@ namespace Rococo
       const char* const title;
    };
 
-   struct IApp;
-
-   ROCOCOAPI IAppFactory
-   {
-      virtual IApp* CreateApp(Platform& platform) = 0;
-   };
-
-   struct IDirectApp;
-
-   ROCOCOAPI IDirectAppFactory
-   {
-	  virtual IDirectApp* CreateApp(Platform& platform, IDirectAppControl& control) = 0;
-   };
-
    namespace Events
    {
       struct ScrollEvent : public Events::EventArgs

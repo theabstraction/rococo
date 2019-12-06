@@ -394,9 +394,15 @@ namespace MHost
 
 		void Render(MHost::GuiPopulator populator) override
 		{
+			if (!populator.byteCodeId)
+			{
+				Throw(0, "GuiPopulator undefined");
+			}
+
 			Rococo::Graphics::RenderPhaseConfig config;
 			config.EnvironmentalMap = Rococo::Graphics::ENVIRONMENTAL_MAP_FIXED_CUBE;
-			platform.renderer.Render(config, platform.scene);
+			sceneManager.populator = populator;
+			platform.renderer.Render(config, sceneManager);
 		}
 
 		void PollKeyState(KeyState& keyState) override

@@ -16,7 +16,7 @@ namespace
 		  Degrees fov;
 		  Metres near;
 		  Metres far;
-	   } projectionParameters = { 0 };
+	   } projectionParameters = { { 60 }, {0.1f}, {1000.0f} };
 
 	  Matrix4x4 projection;
       Quat orientation;
@@ -84,7 +84,7 @@ namespace
          visitor.ShowPointer("this", this);
       }
 
-      virtual void ElevateView(ID_ENTITY entityId, Degrees delta, cr_vec3 relativePos)
+      void ElevateView(ID_ENTITY entityId, Degrees delta, cr_vec3 relativePos) override
       {
          if (delta != 0 && orientationGuideId == entityId)
          {
@@ -98,7 +98,7 @@ namespace
          this->relativePos = relativePos;
       }
 
-      virtual void Clear()
+      void Clear() override
       {
          relativePos = Vec3{ 0,0,0 };
          projection = world = Matrix4x4::Identity();
@@ -110,7 +110,7 @@ namespace
          elevation = Degrees{ 0 };
       }
 
-      virtual float AspectRatio()
+      float AspectRatio() override
       {
          GuiMetrics metrics;
          renderer.GetGuiMetrics(metrics);
@@ -118,24 +118,24 @@ namespace
          return metrics.screenSpan.x / (float)metrics.screenSpan.y;
       }
 
-      virtual void GetPosition(Vec3& position)
+      void GetPosition(Vec3& position) override
       {
          position = this->position + this->relativePos;
       }
 
-      virtual void GetOrientation(Quat& orientation)
+      void GetOrientation(Quat& orientation) override
       {
          orientation = this->orientation;
       }
 
-      virtual void SetPosition(const Vec3& position)
+      void SetPosition(const Vec3& position) override
       {
          followingId = ID_ENTITY::Invalid();
          isDirty = true;
          this->position = position;
       }
 
-      virtual void SetOrientation(const Quat& orientation)
+      void SetOrientation(const Quat& orientation) override
       {
          orientationGuideId = ID_ENTITY::Invalid();
          isDirty = true;
@@ -231,14 +231,14 @@ namespace
          }
       }
 
-      virtual void SetRHProjection(Degrees fov, float near, float far)
+      void SetRHProjection(Degrees fov, float near, float far) override
       {
 		  projectionParameters.fov = fov;
 		  projectionParameters.near = Metres{ near };
 		  projectionParameters.far = Metres{ far };
       }
 
-      virtual void GetWorld(Matrix4x4& worldToCamera)
+      void GetWorld(Matrix4x4& worldToCamera) override
       {
          if (isDirty)
          {
@@ -251,7 +251,7 @@ namespace
          worldToCamera = this->world;
       }
 
-      virtual void GetWorldAndProj(Matrix4x4& worldAndProj)
+      void GetWorldAndProj(Matrix4x4& worldAndProj) override
       {
          Matrix4x4 world;
          GetWorld(world);
@@ -261,25 +261,25 @@ namespace
          worldAndProj = projection * world;
       }
 
-      virtual void FollowEntity(ID_ENTITY id)
+      void FollowEntity(ID_ENTITY id) override
       {
          followingId = id;
       }
 
-      virtual void MoveToEntity(ID_ENTITY id)
+      void MoveToEntity(ID_ENTITY id) override
       {
          followingId = ID_ENTITY::Invalid();
          instances.ConcatenatePositionVectors(id, position);
       }
 
-      virtual void OrientateWithEntity(ID_ENTITY id, int32 flags)
+      void OrientateWithEntity(ID_ENTITY id, int32 flags) override
       {
          orientationGuideId = id;
 
          isFPSlinked = true;
       }
 
-      virtual void OrientateToEntity(ID_ENTITY id, int32 flags)
+      void OrientateToEntity(ID_ENTITY id, int32 flags) override
       {
          orientationGuideId = ID_ENTITY::Invalid();
 
@@ -295,7 +295,7 @@ namespace
          Matrix4x4::GetRotationQuat(model, orientation);
       }
 
-      virtual void Free()
+      void Free() override
       {
          delete this;
       }

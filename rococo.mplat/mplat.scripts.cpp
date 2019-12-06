@@ -225,12 +225,12 @@ namespace Rococo
 				IEventCallback<ScriptCompileArgs>& onScriptEvent;
 				bool shutdownOnFail;
 
-				virtual void Free()
+				void Free() override
 				{
 
 				}
 
-				virtual IDE::EScriptExceptionFlow GetScriptExceptionFlow(cstr source, cstr message)
+				IDE::EScriptExceptionFlow GetScriptExceptionFlow(cstr source, cstr message) override
 				{
 					platform.installation.OS().FireUnstable();
 
@@ -252,7 +252,7 @@ namespace Rococo
 					return IDE::EScriptExceptionFlow_Retry;
 				}
 
-				virtual void OnEvent(ScriptCompileArgs& args)
+				void OnEvent(ScriptCompileArgs& args) override
 				{
 					if (addPlatform)
 					{
