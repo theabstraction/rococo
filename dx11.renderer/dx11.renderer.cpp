@@ -2599,7 +2599,14 @@ namespace ANON
 		   {
 			   for (size_t i = 0; i < nLights; ++i)
 			   {
-				   RenderSpotlightLitScene(lights[i], scene);
+				   try
+				   {
+					   RenderSpotlightLitScene(lights[i], scene);
+				   }
+				   catch (IException & ex)
+				   {
+					   Throw(ex.ErrorCode(), "Error lighting scene with light #%d: %s", i, ex.Message());
+				   }
 			   }
 
 			   RenderAmbient(scene, lights[0]);

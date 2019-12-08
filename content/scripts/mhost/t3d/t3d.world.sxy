@@ -33,7 +33,6 @@
 (class World (implements T3D.IWorld)
 	(Vec3 cameraPos)
 	(WorldOrientation cameraOrientation)
-	(IInstances localObjects)
 	(IMeshBuilder meshBuilder)
 )
 
@@ -41,7 +40,7 @@
 	(Float32 newBearing = (delta.x + this.cameraOrientation.bearing))
 	(Float32 newElevation = (delta.y + this.cameraOrientation.elevation))
 	(this.cameraOrientation.bearing = (Sys.Maths.F32.Mod newBearing 360))
-	(this.cameraOrientation.elevation = (Sys.Maths.F32.Clamp newElevation -90 90))
+	(this.cameraOrientation.elevation = (Sys.Maths.F32.Clamp newElevation -45 45))
 )
 
 (method World.GetCameraOrientation (WorldOrientation cameraOrientation)-> :
@@ -97,21 +96,40 @@
 	(MakeBottle "potion.1") 
 	
 	(Matrix4x4 model = 
-		(1 0 0  0)
-		(0 1 0  0)
-		(0 0 1 -2) // locate the bottle at z = -2
-		(0 0 0  1)
+		(1 0 0    0)
+		(0 1 0    1)
+		(0 0 1 -0.4) 
+		(0 0 0    1)
 	)
 	
 	(Vec3 scale = 1 1 1)
 	
-	(Int64 entityId = (this.localObjects.AddBody "potion.1" model scale 0))
+	(Int64 entityId = (instances.AddBody "potion.1" model scale 0))
+	
+	(ISceneBuilder scene (SceneBuilder))
+	
+	(LightSpec light)
+	(light.position = 0 0 8)
+	(light.direction = 0 0 1)
+	(light.fov = 90)
+	(light.diffuse = 0.0 0.0 0.0 1.0)
+	(light.ambience = 0.1 0.1 0.1 1.0)
+	(light.cutoffAngle = 30)
+	(light.cutoffPower = 32)
+	(light.attenuation = -0.35)
+	(light.nearPlane = 0.1)
+	(light.farPlane = 1000)
+	(light.fogConstant = 1)
+	
+	(scene.SetLight light 0)
+	
+	(scene.AddStatics entityId)
 )
 
 (factory T3D.NewWorld T3D.IWorld : (construct World))
 
 (method World.RenderGui (IGui gui)-> :
-	(Rectf menuRect = 10 10 900 30)
+	(Rectf menuRect = 10 10 310 30)
 	(gui.FillRect menuRect 0xFF404020)
 	
 	(WorldOrientation camera)
@@ -119,9 +137,9 @@
 	
 	(IStringBuilder sb = (NewPathBuilder))
 	(sb.SetFormat 0 0 false false)
-	(#build sb "Roll: " camera.roll ", Elevation: " camera.elevation ", Bearing: " camera.bearing)
+	(#build sb "Elevation: " camera.elevation ", Bearing: " camera.bearing)
 	
-	(gui.DrawText menuRect 1 sb 1 0xFFFFFFFF)
+	(gui.DrawText menuRect 0 sb 1 0xFFFFFFFF)
 )
 
 

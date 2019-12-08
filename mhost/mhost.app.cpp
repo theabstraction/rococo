@@ -106,17 +106,22 @@ namespace MHost
 			g.DrawBorder(rect, 1.0f, RGBAb(255, 255, 255, 255), RGBAb(224, 224, 224, 255), RGBAb(200, 200, 200, 255), RGBAb(128, 128, 128, 255));
 		}
 
+		void ShowCameraMatrices(IGui& gui)
+		{
+			Matrix4x4 cameraToScreen, worldToCamera;
+			Vec4 eye, viewDir;
+			platform.scene.GetCamera(cameraToScreen, worldToCamera, eye, viewDir);
+
+			RenderMatrixBox(gui, worldToCamera, { 10, 100 }, "WorldToCamera");
+			RenderMatrixBox(gui, cameraToScreen, { 10, 230 }, "Projection");
+		}
+
 		void RenderGui(IGuiRenderContext& grc)  override
 		{
 			IGui* gui = CreateGuiOnStack(guiBuffer, grc);
 			dispatcher->RouteGuiToScript(ss, gui, populator);
 
-			Matrix4x4 cameraToScreen, worldToCamera;
-			Vec4 eye, viewDir;
-			platform.scene.GetCamera(cameraToScreen, worldToCamera, eye, viewDir);
-
-			RenderMatrixBox(*gui, worldToCamera, { 10, 100 }, "WorldToCamera");
-			RenderMatrixBox(*gui, cameraToScreen, { 10, 230 }, "Projection");
+			// ShowCameraMatrices(*gui);
 		}
 
 		void RenderObjects(IRenderContext& rc)  override

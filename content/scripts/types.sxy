@@ -22,6 +22,9 @@
 	(Sys.Maths.Degrees cutoffAngle)
 	(Float32 cutoffPower)
 	(Float32 attenuation)
+	(Sys.SI.Metres nearPlane)
+	(Sys.SI.Metres farPlane)
+	(Float32 fogConstant)
 )
 (alias LightSpec Rococo.LightSpec)
 

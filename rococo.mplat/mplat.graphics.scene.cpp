@@ -153,7 +153,11 @@ namespace
 
       virtual void AddStatics(ID_ENTITY id)
       {
-         entities.push_back(id);
+		  if (!id)
+		  {
+			  Throw(0, "Scene.AddStatics: id was zero/invalid");
+		  }
+          entities.push_back(id);
       }
 
 	  void OnGuiResize(Vec2i span) override
@@ -195,7 +199,7 @@ namespace
             IEntity* entity = instances.GetEntity(i);
             if (!entity)
             {
-               Throw(0, "Unexpected missing entity");
+               Throw(0, "Scene: Unexpected missing entity with id #%lld", i.value);
             }
 
             if (entity->MeshId() != meshId)

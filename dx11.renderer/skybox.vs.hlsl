@@ -20,11 +20,9 @@ ScreenVertex main(SkyVertex v)
 {
 	ScreenVertex output;
 
-	float3 centredMeshPos = v.pos - global.eye.xyz;
-	float4 centredMeshPos4 = float4 (centredMeshPos.xyz, 1.0f);
-	float4 centredMeshDir4 = float4 (centredMeshPos.xyz, 0.0f);
-	output.pos = mul(global.worldToScreenMatrix, centredMeshPos4);
-	output.viewDir = centredMeshPos.xyz; // mul(global.worldToCameraMatrix, centredMeshDir4).xyz;
+	float3 pos = v.pos - global.eye.xyz;
+	output.pos = mul(global.worldToScreenMatrix, float4 (pos, 1.0f));
+	output.viewDir = float3 (pos.x, pos.z, pos.y );
 
 	return output;
 }

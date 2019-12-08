@@ -8,6 +8,7 @@
 	"!scripts/mhost/mhost.include.sxy"
 	"!scripts/mhost/widgets/widgets.sxy"
 	"!scripts/mhost/t3d/t3d.world.sxy"
+	"!scripts/mhost/t3d/t3d.config.sxy"
 )
 
 (namespace EntryPoint)
@@ -113,14 +114,16 @@
 			(oldPlayerDirection = playerDirection)
 		)
 		
-		(Vec2 cursorDelta)
-		(this.engine.GetNextMouseDelta cursorDelta)
+		(Vec2 mouseDelta)
+		(this.engine.GetNextMouseDelta mouseDelta)
 
-		(if ((cursorDelta.x != 0) or (cursorDelta.y != 0))
-			(this.world.UpdateMouseLook cursorDelta)
+		(if ((mouseDelta.x != 0) or (mouseDelta.y != 0))
+			(Float32 mouseDegreesPerDelta = T3D.Config.UI.MouseDegreesPerDelta)
+			(Vec2 mouseDeltaDegrees = mouseDegreesPerDelta * mouseDelta)
+			(this.world.UpdateMouseLook mouseDeltaDegrees)
 		)
 		
-		(yield 10000)
+		(yield 5000) // This gives 5ms per poll or 200 Hz
 	)
 )
 
@@ -190,25 +193,24 @@
 	/* A world to camera quaternion gives the rotation and roll required to map a direction and roll
 	defined in a WorldOrientation vector to an object facing -ve z, with x to the right and y up */
 	
-	(Degrees invRoll = (0 - world.roll))
+	// Consider the case of three rotations mapping -z to a direction N. The inverse transformation
+	// of three rotations is three inverse rotations in reverse order. e.g (Rx.Ry.Rz)' = Rz'.Ry'.Rx'
 	
-	(Quat invRollXQ)
-	(GetRotationQuat invRoll 1 0 0 invRollXQ)
-	
-	(Degrees invElevation = (0 - world.elevation))
+	(Degrees invElevation = (-90 - world.elevation))
 	
 	(Quat invElevationYQ)
-	(GetRotationQuat invElevation 0 1 0 invElevationYQ)
+	(GetRotationQuat invElevation 1 0 0 invElevationYQ)
 	
 	(Degrees invBearing = (0 - world.bearing))
 	
+	(Degrees thetaXY = (0 - invBearing))
+	
 	(Quat invBearingZQ)
-	(GetRotationQuat invBearing 0 0 1 invBearingZQ)
+	(GetRotationQuat thetaXY 0 0 1 invBearingZQ)
 	
-	(Quat yz = invElevationYQ * invBearingZQ)
-	(Quat xyz = invRollXQ * yz)
-	
-	(q = xyz)
+	(Quat zy = invBearingZQ * invElevationYQ)
+
+	(q = zy)
 )
 
 (method GameBundle.Run -> :

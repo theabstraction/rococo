@@ -1,0 +1,7 @@
+(namespace T3D)
+(namespace T3D.Config)
+(namespace T3D.Config.UI)
+
+(function MouseDegreesPerDelta -> (Float32 degreesPerDelta): (degreesPerDelta = 0.2))
+
+(alias MouseDegreesPerDelta T3D.Config.UI.MouseDegreesPerDelta)
