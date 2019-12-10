@@ -93,7 +93,7 @@
 	(IInstances instances (Instances))
 	
 	(MaterialVertexData marble)
-	(AnyColour 200 255 200 255 200 255 128 128 -> marble.colour)
+	(AnyColour 200 255 0 0 0 0 192 192 -> marble.colour)
 	(instances.GetRandomMaterialId (#MaterialCategoryMarble) -> marble.id)
 	(marble.gloss = 0.1)
 	
@@ -101,7 +101,7 @@
 	(rod.SetMaterialMiddle marble)
 	(rod.SetMaterialBottom marble)
 	
-	(rod.SetUVScale 1.0)
+	(rod.SetUVScale 0.05)
 	
 	(Vec2 b0 = -10  10)
 	(Vec2 b1 =  10  10)
@@ -120,7 +120,7 @@
 	(instances.Clear)
 	(instances.LoadMaterialArray "!textures/hv/materials/hi-rez/" 1024) 
 	
-	(MakeBottle "potion.1") 
+//	(MakeBottle "potion.1") 
 	
 	(Matrix4x4 model = 
 		(1 0 0 0)
@@ -131,7 +131,7 @@
 	
 	(Vec3 noScale = 1 1 1)
 	
-	(Int64 bottleId = (instances.AddBody "potion.1" model noScale 0))
+//	(Int64 bottleId = (instances.AddBody "potion.1" model noScale 0))
 	
 	(MakeFloor "floor.1")
 	
@@ -146,7 +146,7 @@
 	
 	(ISceneBuilder scene (SceneBuilder))
 	(scene.Clear)
-	(scene.AddStatics bottleId)
+//	(scene.AddStatics bottleId)
 	(scene.AddStatics floorId)
 )
 

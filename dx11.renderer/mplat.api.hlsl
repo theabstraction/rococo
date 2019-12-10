@@ -31,10 +31,11 @@ cbuffer textureState : register(b5)
 }
 
 SamplerState fontSampler: register(s0);
-SamplerState spriteSampler: register(s1);
-SamplerState matSampler: register(s2);
+SamplerState shadowSampler: register(s2);
 SamplerState envSampler: register(s3);
-SamplerState shadowSampler: register(s4);
+SamplerState selectSampler: register(s4);
+SamplerState matSampler: register(s6);
+SamplerState spriteSampler: register(s7);
 
 Texture2D tx_FontSprite: register(t0);
 Texture2D tx_ShadowMap: register(t2);

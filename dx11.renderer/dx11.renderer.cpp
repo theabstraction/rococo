@@ -448,6 +448,16 @@ namespace ANON
 	   AutoRelease<ID3D11SamplerState> skySampler;
 
 	   ID_SYS_MESH skyMeshId;
+
+	   enum TXUNIT // The enum values must match the tXXX registers specified in mplat.api.hlsl
+	   {
+		   TXUNIT_FONT = 0,
+		   TXUNIT_SHADOW = 2,
+		   TXUNIT_ENV_MAP = 3,
+		   TXUNIT_SELECT = 4,
+		   TXUNIT_MATERIALS = 6,
+		   TXUNIT_SPRITES = 7
+	   };
    public:
 	   Windows::IWindow& window;
 	   bool isBuildingAlphaBlendedSprites{ false };
@@ -597,6 +607,15 @@ namespace ANON
 			   botSE, botSW, topSW, // South
 		   };
 		   skyMeshId = CreateSkyMesh(skyboxVertices, sizeof(skyboxVertices) / sizeof(SkyVertex));
+
+		   RGBA red{ 1.0f, 0, 0, 1.0f };
+
+		   SetSampler(TXUNIT_FONT,	 Filter_Linear, AddressMode_Border, AddressMode_Border, AddressMode_Border, red);
+		   SetSampler(TXUNIT_SHADOW, Filter_Linear, AddressMode_Border, AddressMode_Border, AddressMode_Border, red);
+		   SetSampler(TXUNIT_ENV_MAP,   Filter_Linear, AddressMode_Wrap, AddressMode_Wrap, AddressMode_Wrap, red);
+		   SetSampler(TXUNIT_SELECT, Filter_Linear, AddressMode_Wrap, AddressMode_Wrap, AddressMode_Wrap, red);
+		   SetSampler(TXUNIT_MATERIALS, Filter_Linear, AddressMode_Wrap, AddressMode_Wrap, AddressMode_Wrap, red);
+		   SetSampler(TXUNIT_SPRITES,   Filter_Point, AddressMode_Border, AddressMode_Border, AddressMode_Border, red);
 	   }
 
 	   ~DX11AppRenderer()
@@ -687,18 +706,17 @@ namespace ANON
 
 	   EWindowCursor cursorId = EWindowCursor_Default;
 
-	   virtual void SetSysCursor(EWindowCursor id)
+	   void SetSysCursor(EWindowCursor id) override
 	   {
 		   cursorId = id;
 	   }
 
-	   void SetSampler(uint32 index, Filter filter, AddressMode u, AddressMode v, AddressMode w, const RGBA& borderColour)
+	   void SetSampler(uint32 index, Filter filter, AddressMode u, AddressMode v, AddressMode w, const RGBA& borderColour) override
 	   {
-		   if (index >= 16) Throw(0, "DX11Renderer::SetSampler(%d, ...): Maximum index is 15");
-
 		   if (samplers[index])
 		   {
 			   samplers[index]->Release();
+			   samplers[index] = nullptr;
 		   }
 
 		   D3D11_SAMPLER_DESC desc;
@@ -727,7 +745,6 @@ namespace ANON
 		   desc.MinLOD = 0;
 
 		   VALIDATEDX11(device.CreateSamplerState(&desc, &samplers[index]));
-		   dc.PSSetSamplers(index, 1, &samplers[index]);
 	   }
 
 	   struct CubeLoader : public DX11::IColourBitmapLoadEvent
@@ -2435,14 +2452,14 @@ namespace ANON
 
 	   void InitInvariantTextureViews()
 	   {
-		   dc.PSSetShaderResources(0, 1, &fontBinding);
-		   dc.PSSetShaderResources(3, 1, &cubeTextureView);
+		   dc.PSSetShaderResources(TXUNIT_FONT, 1, &fontBinding);
+		   dc.PSSetShaderResources(TXUNIT_ENV_MAP, 1, &cubeTextureView);
 
 		   ID3D11ShaderResourceView* materials[1] = { materialArray.View() };
-		   dc.PSSetShaderResources(6, 1, materials);
+		   dc.PSSetShaderResources(TXUNIT_MATERIALS, 1, materials);
 
 		   ID3D11ShaderResourceView* spriteviews[1] = { spriteArray.View() };
-		   dc.PSSetShaderResources(7, 1, spriteviews);
+		   dc.PSSetShaderResources(TXUNIT_SPRITES, 1, spriteviews);
 
 		   dc.PSSetSamplers(0, 16, samplers);
 		   dc.GSSetSamplers(0, 16, samplers);
