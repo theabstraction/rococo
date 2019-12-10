@@ -102,15 +102,20 @@ float4 GetPointSpriteTexel(float2 uv, float4 colour)
 
 float GetSpotlightIntensity(float3 lightToPixelDir)
 {
-	float f = dot(lightToPixelDir, normalize(light.direction.xyz));
+	float incidence = dot(lightToPixelDir, light.direction.xyz);
 
 	float intensity = 1.0f;
 
-	if (f < light.cutoffCosAngle) intensity = pow(1.0f - (light.cutoffCosAngle - f), light.cutoffPower);
-
-	if (f < 0) f = 0;
-
-	return pow(f, 16.0f);
+	if (incidence < 0) return 0;
+	if (incidence < light.cutoffCosAngle)
+	{
+		intensity = pow(1.0f - (light.cutoffCosAngle - incidence), light.cutoffPower);
+	}
+	else
+	{
+		intensity = incidence;
+	}
+	return intensity;
 }
 
 float GetClarity(float3 cameraSpacePosition)
@@ -131,7 +136,7 @@ float GetSpecular(ObjectPixelVertex p, float3 incident, float3 lightDirection)
 	float3 r = reflect(lightDirection, p.normal.xyz);
 	float dotProduct = dot(r, incident);
 	float specular = p.uv_material_and_gloss.w * max(pow(dotProduct, shine), 0);
-	return specular;
+	return clamp(specular, 0, 1);
 }
 
 float GetDiffuse(ObjectPixelVertex p, float3 lightToPixelVec, float3 lightToPixelDir)

@@ -1,5 +1,9 @@
 #pragma pack_matrix(row_major)
 
+#ifdef _DEBUG
+# pragma enable_d3d11_debug_symbols
+#endif
+
 struct AmbientData
 {
 	float4 localLight;

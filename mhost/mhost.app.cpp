@@ -53,7 +53,7 @@ namespace MHost
 
 		RGBA GetClearColour() const override
 		{
-			return RGBA{ 0.5f, 0.0f, 0.0f, 1.0f };
+			return RGBA{ 0.0f, 0.0f, 0.0f, 1.0f };
 		}
 
 		void OnGuiResize(Vec2i screenSpan) override

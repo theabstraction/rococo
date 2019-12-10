@@ -117,13 +117,13 @@ namespace
 	  {
 		  if (index < 0 || index >= MAX_LIGHTS)
 		  {
-			  // Not enough lights, and so since index represents priority, it is silently dropped
+			  // Not enough lights, and so since index represents priority, request is silently ignored
 			  return;
 		  }
 
 		  lights[index] = { 0 };
 		  lights[index].colour = spec.diffuse;
-		  lights[index].direction = Vec4::FromVec3(spec.direction,0.0f);
+		  lights[index].direction = Vec4::FromVec3(Normalize(spec.direction),0.0f);
 		  lights[index].fov = spec.fov;
 		  lights[index].cosHalfFov = cosf(lights[index].fov * 0.5f);
 		  lights[index].position = Vec4::FromVec3(spec.position, 1.0f);

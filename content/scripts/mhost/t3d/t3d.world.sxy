@@ -38,9 +38,9 @@
 
 (method World.UpdateMouseLook (Vec2 delta)-> :
 	(Float32 newBearing = (delta.x + this.cameraOrientation.bearing))
-	(Float32 newElevation = (delta.y + this.cameraOrientation.elevation))
+//	(Float32 newElevation = (delta.y + this.cameraOrientation.elevation))
 	(this.cameraOrientation.bearing = (Sys.Maths.F32.Mod newBearing 360))
-	(this.cameraOrientation.elevation = (Sys.Maths.F32.Clamp newElevation -45 45))
+//	(this.cameraOrientation.elevation = (Sys.Maths.F32.Clamp newElevation -45 45))
 )
 
 (method World.GetCameraOrientation (WorldOrientation cameraOrientation)-> :
@@ -86,44 +86,68 @@
 	(bottle.CopyToMeshBuilder meshName false false true)
 )
 
+(function MakeFloor (IString meshName) -> :
+	(IRodTesselator rod (RodTesselator))
+	(rod.Clear)
+	
+	(IInstances instances (Instances))
+	
+	(MaterialVertexData marble)
+	(AnyColour 200 255 200 255 200 255 128 128 -> marble.colour)
+	(instances.GetRandomMaterialId (#MaterialCategoryMarble) -> marble.id)
+	(marble.gloss = 0.1)
+	
+	(rod.SetMaterialTop marble)
+	(rod.SetMaterialMiddle marble)
+	(rod.SetMaterialBottom marble)
+	
+	(rod.SetUVScale 1.0)
+	
+	(Vec2 b0 = -10  10)
+	(Vec2 b1 =  10  10)
+	(Vec2 b2 =  10 -10)
+	(Vec2 b3 = -10 -10)
+	(rod.AddBox 0.25 b0 b1 b2 b3)
+	
+	(rod.CopyToMeshBuilder meshName false false true)
+)
+
 (method World.Construct : 
 	(this.cameraPos = 0 0 1)
 	(this.cameraOrientation = 0 0 0)
 	
 	(IInstances instances (Instances))
+	(instances.Clear)
 	(instances.LoadMaterialArray "!textures/hv/materials/hi-rez/" 1024) 
 	
 	(MakeBottle "potion.1") 
 	
 	(Matrix4x4 model = 
+		(1 0 0 0)
+		(0 1 0 1)
+		(0 0 1 0) 
+		(0 0 0 1)
+	)
+	
+	(Vec3 noScale = 1 1 1)
+	
+	(Int64 bottleId = (instances.AddBody "potion.1" model noScale 0))
+	
+	(MakeFloor "floor.1")
+	
+	(Matrix4x4 model2 = 
 		(1 0 0    0)
 		(0 1 0    1)
-		(0 0 1 -0.4) 
+		(0 0 1 -1.0) 
 		(0 0 0    1)
 	)
 	
-	(Vec3 scale = 1 1 1)
-	
-	(Int64 entityId = (instances.AddBody "potion.1" model scale 0))
+	(Int64 floorId = (instances.AddBody "floor.1" model2 noScale 0))
 	
 	(ISceneBuilder scene (SceneBuilder))
-	
-	(LightSpec light)
-	(light.position = 0 0 8)
-	(light.direction = 0 0 1)
-	(light.fov = 90)
-	(light.diffuse = 0.0 0.0 0.0 1.0)
-	(light.ambience = 0.1 0.1 0.1 1.0)
-	(light.cutoffAngle = 30)
-	(light.cutoffPower = 32)
-	(light.attenuation = -0.35)
-	(light.nearPlane = 0.1)
-	(light.farPlane = 1000)
-	(light.fogConstant = 1)
-	
-	(scene.SetLight light 0)
-	
-	(scene.AddStatics entityId)
+	(scene.Clear)
+	(scene.AddStatics bottleId)
+	(scene.AddStatics floorId)
 )
 
 (factory T3D.NewWorld T3D.IWorld : (construct World))
