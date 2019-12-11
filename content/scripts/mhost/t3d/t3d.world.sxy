@@ -38,9 +38,9 @@
 
 (method World.UpdateMouseLook (Vec2 delta)-> :
 	(Float32 newBearing = (delta.x + this.cameraOrientation.bearing))
-//	(Float32 newElevation = (delta.y + this.cameraOrientation.elevation))
+	(Float32 newElevation = (delta.y + this.cameraOrientation.elevation))
 	(this.cameraOrientation.bearing = (Sys.Maths.F32.Mod newBearing 360))
-//	(this.cameraOrientation.elevation = (Sys.Maths.F32.Clamp newElevation -45 45))
+	(this.cameraOrientation.elevation = (Sys.Maths.F32.Clamp newElevation -45 45))
 )
 
 (method World.GetCameraOrientation (WorldOrientation cameraOrientation)-> :

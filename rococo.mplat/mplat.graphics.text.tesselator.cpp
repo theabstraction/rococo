@@ -103,7 +103,8 @@ namespace ANON
 
 			Graphics::StackSpaceGraphics ssg;
 			GuiRect rect{ 0, 0, virtualPixelsPerQuad, virtualPixelsPerQuad };
-			auto& job = Graphics::CreateLeftAlignedText(ssg, rect, 200, 120, fontIndex, text, colour);
+			int fontHeight = 16;
+			auto& job = Graphics::CreateLeftAlignedText(ssg, rect, 200, 120, fontHeight, fontIndex, text, colour);
 			AddTextJob({ 0,0 }, job, nullptr);
 		}
 

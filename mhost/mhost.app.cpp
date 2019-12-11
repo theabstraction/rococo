@@ -66,62 +66,11 @@ namespace MHost
 			dispatcher->OnCompile(ss);
 		}
 
-		void RenderMatrix(IGui& g, const Matrix4x4& m, const GuiRectf& r, RGBAb colour)
-		{
-			GuiRectf lineRect = r;
-
-			float dy = 0.25f * (r.bottom - r.top);
-
-			for (int i = 0; i < 4; i++)
-			{
-				lineRect.bottom = lineRect.top + dy;
-
-				Vec4& v = ((Vec4*)&m)[i];
-				
-				char buf[128];
-				SafeFormat(buf, 128, "(%+4.4f %+4.4f %+4.4f %+4.4f)", v.x, v.y, v.z, v.w);
-				g.DrawClippedText(lineRect, AlignmentFlags_Left, to_fstring(buf), 1, colour, lineRect);
-
-				lineRect.top = lineRect.bottom;
-			}
-		}
-
-		void RenderMatrixBox(IGui& g, const Matrix4x4& m, const Vec2& topLeft, cstr title)
-		{
-			GuiRectf rect{ topLeft.x, topLeft.y, topLeft.x + 420, topLeft.y + 120 };
-
-			g.FillRect(rect, RGBAb(0, 0, 0, 224));
-
-			GuiRectf titleRect = rect;
-			titleRect.bottom = titleRect.top + 0.2f * Height(titleRect);
-			titleRect.left += 4;
-
-			g.DrawText(titleRect, AlignmentFlags_Left, to_fstring(title), 1, RGBAb(255, 255, 255, 255));
-
-			GuiRectf matrixRect = rect;
-			matrixRect.top = titleRect.bottom;
-			matrixRect.left += 4;
-			RenderMatrix(g, m, matrixRect, RGBAb(255, 255, 128, 255));
-
-			g.DrawBorder(rect, 1.0f, RGBAb(255, 255, 255, 255), RGBAb(224, 224, 224, 255), RGBAb(200, 200, 200, 255), RGBAb(128, 128, 128, 255));
-		}
-
-		void ShowCameraMatrices(IGui& gui)
-		{
-			Matrix4x4 cameraToScreen, worldToCamera;
-			Vec4 eye, viewDir;
-			platform.scene.GetCamera(cameraToScreen, worldToCamera, eye, viewDir);
-
-			RenderMatrixBox(gui, worldToCamera, { 10, 100 }, "WorldToCamera");
-			RenderMatrixBox(gui, cameraToScreen, { 10, 230 }, "Projection");
-		}
-
 		void RenderGui(IGuiRenderContext& grc)  override
 		{
 			IGui* gui = CreateGuiOnStack(guiBuffer, grc);
 			dispatcher->RouteGuiToScript(ss, gui, populator);
-
-			// ShowCameraMatrices(*gui);
+			platform.gui.Render(grc);
 		}
 
 		void RenderObjects(IRenderContext& rc)  override
@@ -204,6 +153,8 @@ namespace MHost
 		bool queuedForExecute = false;
 
 		Vec2 cursorPosition;
+
+		int32 overlayToggleKey = 0;
 
 		// Busy event handler responds to resource loading and renders progress panel
 		void OnBusy(const Rococo::Events::BusyEvent& be)
@@ -427,8 +378,26 @@ namespace MHost
 
 		boolean32 GetNextMouseEvent(Rococo::MouseEvent& me) override
 		{
-			cursorPosition = { (float)me.cursorPos.x, (float)me.cursorPos.y };
-			return (boolean32)control.TryGetNextMouseEvent(me);
+			if (IsOverlayActive())
+			{
+				while (IsOverlayActive() && control.TryGetNextMouseEvent(me))
+				{
+					platform.gui.AppendEvent(me);
+				}
+
+				return false;
+			}
+
+			boolean32 found = control.TryGetNextMouseEvent(me);
+			if (found)
+			{
+				cursorPosition = { (float)me.cursorPos.x, (float)me.cursorPos.y };
+				return true;
+			}
+			else
+			{
+				return false;
+			}
 		}
 
 		void GetNextMouseDelta(Vec2& delta)
@@ -436,15 +405,64 @@ namespace MHost
 			control.GetNextMouseDelta(delta);
 		}
 
+		bool IsOverlayActive()
+		{
+			return platform.gui.Top() == overlayPanel->Supervisor();
+		}
+
+		void ToggleOverlay()
+		{
+			if (!IsOverlayActive())
+			{
+				platform.gui.PushTop(overlayPanel->Supervisor(), true);
+			}
+			else
+			{
+				platform.gui.Pop();
+			}
+		}
+
+		void SetOverlayToggleKey(int32 vkeyCode) override
+		{
+			overlayToggleKey = vkeyCode;
+		}
+
 		boolean32 GetNextKeyboardEvent(MHostKeyboardEvent& k) override
 		{
 			KeyboardEvent key;
 			if (control.TryGetNextKeyboardEvent(key))
 			{
-				k.asciiCode = (key.unicode > 0 && key.unicode < 128) ? key.unicode : 0;
-				k.isUp = key.IsUp();
-				k.scancode = key.scanCode;
-				k.vkeyCode = key.VKey;
+				if (IsOverlayActive())
+				{
+					platform.gui.AppendEvent(key);
+
+					if (key.VKey == (uint16)overlayToggleKey)
+					{
+						if (!key.IsUp())
+						{
+							ToggleOverlay();
+						}
+					}
+
+					k = { 0 };
+					return 0;
+				}
+				else if (key.VKey == (uint16) overlayToggleKey)
+				{
+					if (!key.IsUp())
+					{
+						ToggleOverlay();
+					}
+					k = { 0 };
+					return 0;
+				}
+				else
+				{
+					k.asciiCode = (key.unicode > 0 && key.unicode < 128) ? key.unicode : 0;
+					k.isUp = key.IsUp();
+					k.scancode = key.scanCode;
+					k.vkeyCode = key.VKey;
+				}
 				return 1;
 			}
 			else

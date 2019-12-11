@@ -70,9 +70,9 @@
 	
 	(frame.SetLayoutAlgorithm (#LayoutIdMaximizeOnlyChild))
 	(frame.SetMinMaxSpan 400 300 1024 480)
-	(frame.SetCaption "Debugging overlay. Press F1 to toggle")
+	(frame.SetCaption "Debugging overlay")
 	
-	(ITabContainer tabs = (frame.AddTabContainer 20 8 tabRect))
+	(ITabContainer tabs = (frame.AddTabContainer 24 8 tabRect))
 	(tabs.AddTab 67 "Window"		"overlay.window")
 	(tabs.AddTab 90 "Renderer" 		"overlay.renderer")
 	(tabs.AddTab 70 "Camera"		"overlay.camera")

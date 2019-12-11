@@ -817,6 +817,20 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->CursorPosition(*cursorPosition);
 	}
+	void NativeMHostIEngineSetOverlayToggleKey(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 vkeyCode;
+		_offset += sizeof(vkeyCode);
+		ReadInput(vkeyCode, _sf, -_offset);
+
+		MHost::IEngine* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetOverlayToggleKey(vkeyCode);
+	}
 
 	void NativeGetHandleForMHostEngine(NativeCallEnvironment& _nce)
 	{
@@ -849,6 +863,7 @@ namespace MHost {
 		ss.AddNativeCall(ns, NativeMHostIEngineCaptureMouse, nullptr, ("IEngineCaptureMouse (Pointer hObject) -> "));
 		ss.AddNativeCall(ns, NativeMHostIEngineReleaseMouse, nullptr, ("IEngineReleaseMouse (Pointer hObject) -> "));
 		ss.AddNativeCall(ns, NativeMHostIEngineCursorPosition, nullptr, ("IEngineCursorPosition (Pointer hObject)(Sys.Maths.Vec2 cursorPosition) -> "));
+		ss.AddNativeCall(ns, NativeMHostIEngineSetOverlayToggleKey, nullptr, ("IEngineSetOverlayToggleKey (Pointer hObject)(Int32 vkeyCode) -> "));
 	}
 }
 // BennyHill generated Sexy native functions for MHost::IDictionaryStream 

@@ -27,6 +27,8 @@
 
 #include <sexy.script.h>
 
+#undef DrawText
+
 #pragma warning (disable : 4250)
 
 using namespace Rococo;
@@ -1571,7 +1573,7 @@ class PanelFrame : public PanelContainer, public IFramePane, public IObserver
 	int32 fontIndex = 1;
 	char title[128] = { 0 };
 	const int border = 1;
-	const int captionHeight = 20;
+	const int captionHeight = 28;
 	ELayoutAlgorithm layoutAlgorithm = ELayoutAlgorithm_MaximizeOnlyChild;
 
 	int32 dragRightPos = -1;
@@ -1853,8 +1855,8 @@ public:
 
 		Graphics::DrawRectangle(grc, captionRect, RGBAb(0, 0, 192, 255), RGBAb(0, 0, 192, 255));
 
-		Vec2i pos = TopLeft(captionRect) + Vec2i{ 4, 0 };
-		Graphics::RenderTopLeftAlignedText(grc, caption.c_str(), RGBAb(255, 255, 255, 255), 6, pos);
+		GuiRectf textRect{ (float)captionRect.left + 4, (float)captionRect.top + 2, (float)captionRect.right, (float)captionRect.bottom - 2 };
+		Rococo::Graphics::DrawText(grc, textRect, 0, to_fstring(caption.c_str()), 0, RGBAb(255, 255, 255));
 	}
 
 	Rococo::IPaneContainer* Container()
@@ -2131,11 +2133,11 @@ public:
 			fontColour.alpha = 224;
 		}
 
-		Vec2i middleLeft = { tab.lastRect.left + 6, 1 + ( (tab.lastRect.top + tab.lastRect.bottom) >> 1) };
+		GuiRectf rect = { (float) tab.lastRect.left + 4, (float) tab.lastRect.top + 2, (float) tab.lastRect.right - 2, (float) tab.lastRect.bottom - 2 };
 
 		if (!tab.caption.empty())
 		{
-			Graphics::RenderVerticalCentredText(grc, tab.caption.c_str(), fontColour, fontIndex, middleLeft);
+			Graphics::DrawText(grc, rect, Graphics::Alignment_Left, to_fstring(tab.caption.c_str()), 0, fontColour);
 		}
 	}
 

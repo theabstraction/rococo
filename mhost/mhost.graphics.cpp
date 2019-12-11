@@ -11,73 +11,6 @@ using namespace Rococo::Textures;
 using namespace Rococo::Fonts;
 using namespace Rococo::Graphics;
 
-Vec2i GetTopLeftPos(const GuiRect& rect, Vec2i span, int32 alignmentFlags)
-{
-	Vec2i pos;
-
-	if (IsFlagged(alignmentFlags, AlignmentFlags_Left) && !IsFlagged(alignmentFlags, AlignmentFlags_Right))
-	{
-		pos.x = rect.left;
-	}
-	else if (!IsFlagged(alignmentFlags, AlignmentFlags_Left) && IsFlagged(alignmentFlags, AlignmentFlags_Right))
-	{
-		pos.x = rect.right - span.x;
-	}
-	else
-	{
-		pos.x = ((rect.left + rect.right - span.x) >> 1);
-	}
-
-	if (IsFlagged(alignmentFlags, AlignmentFlags_Top) && !IsFlagged(alignmentFlags, AlignmentFlags_Bottom))
-	{
-		pos.y = rect.top;
-	}
-	else if (!IsFlagged(alignmentFlags, AlignmentFlags_Top) && IsFlagged(alignmentFlags, AlignmentFlags_Bottom))
-	{
-		pos.y = rect.bottom - span.y;
-	}
-	else
-	{
-		pos.y = ((rect.top + rect.bottom + span.y) >> 1) - span.y;
-	}
-	
-	return pos;
-}
-
-Vec2 GetTopLeftPos(Vec2 pos, Vec2 span, int32 alignmentFlags)
-{
-	Vec2 topLeftPos;
-
-	if (HasFlag(alignmentFlags, AlignmentFlags_Left) && !HasFlag(alignmentFlags, AlignmentFlags_Right))
-	{
-		topLeftPos.x = pos.x;
-	}
-	else if (!HasFlag(alignmentFlags, AlignmentFlags_Left) && HasFlag(alignmentFlags, AlignmentFlags_Right))
-	{
-		topLeftPos.x = pos.x - span.x;
-	}
-	else // Centred horizontally
-	{
-		topLeftPos.x = pos.x - 0.5f * span.x;
-	}
-
-	if (HasFlag(alignmentFlags, AlignmentFlags_Top) && !HasFlag(alignmentFlags, AlignmentFlags_Bottom))
-	{
-		topLeftPos.y = pos.y;
-	}
-	else if (!HasFlag(alignmentFlags, AlignmentFlags_Top) && HasFlag(alignmentFlags, AlignmentFlags_Bottom))
-	{
-		topLeftPos.y = pos.y - span.y;
-	}
-	else // Centred vertically
-	{
-		topLeftPos.y = pos.y - 0.5f * span.y;
-	}
-
-	return topLeftPos;
-}
-
-
 void SetGuiQuadForBitmap(GuiTriangle t[2], const GuiRectf& txUV, int textureIndex)
 {
 	t[0].a.colour = RGBAb(0xFFFFFFFF);
@@ -120,207 +53,6 @@ void SetGuiQuadForBitmapWithColour(GuiTriangle t[2], const GuiRectf& txUV, int t
 	t[1].b.vd.uv = t[0].c.vd.uv;
 	t[1].c.vd.uv = t[0].b.vd.uv;
 }
-
-struct GlyphArgs
-{
-	int32 index;
-	GuiRectf rect;
-};
-
-class BasicTextJob : public IDrawTextJob
-{
-private:
-	cstr text;
-	FontColour colour;
-	int fontIndex;
-	int fontHeight;
-	IEventCallback<GlyphArgs>* cb;
-	int count = 0;
-public:
-	GuiRectf target;
-
-	BasicTextJob(int _fontIndex, cstr _text, RGBAb _colour, int _fontHeight, IEventCallback<GlyphArgs>* _cb = nullptr) :
-		text(_text),  colour((FontColour&)_colour), fontIndex(_fontIndex), fontHeight(_fontHeight), cb(_cb)
-	{
-		float minFloat = std::numeric_limits<float>::min();
-		float maxFloat = std::numeric_limits<float>::max();
-		target = GuiRectf(maxFloat, maxFloat, minFloat, minFloat);
-	}
-
-	void Reset(IEventCallback<GlyphArgs>* cb)
-	{
-		count = 0;
-		this->cb = cb;
-	}
-
-	void DrawNextGlyph(char c, Fonts::IGlyphBuilder& builder)
-	{
-		GuiRectf outputRect;
-		builder.AppendChar(c, outputRect);
-
-		if (cb)
-		{
-			GlyphArgs args;
-			args.index = count++;
-			args.rect = outputRect;
-			cb->OnEvent(args);
-		}
-
-		if (outputRect.left < target.left) target.left = outputRect.left;
-		if (outputRect.right > target.right) target.right = outputRect.right;
-		if (outputRect.bottom > target.bottom) target.bottom = outputRect.bottom;
-		if (outputRect.top < target.top) target.top = outputRect.top;
-	}
-
-	virtual void OnDraw(Fonts::IGlyphBuilder& builder)
-	{
-		builder.SetTextColour(colour);
-		builder.SetShadow(false);
-		builder.SetFontIndex(fontIndex);
-		builder.SetFontHeight(fontHeight);
-
-		Vec2 firstGlyphPos = builder.GetCursor();
-
-		for (cstr p = text; *p != 0; p++)
-		{
-			char c = *p;
-
-			if (c >= 255) c = '?';
-
-			if (c == '\t')
-			{
-				for (int i = 0; i < 4; ++i)
-				{
-					DrawNextGlyph(' ', builder);
-				}
-			}
-			else if (c == '\n')
-			{
-				Vec2 nextGlyphPos = builder.GetCursor();
-				builder.SetCursor(Vec2{ firstGlyphPos.x, nextGlyphPos.y + fontHeight });
-			}
-			else
-			{
-				DrawNextGlyph((char)c, builder);
-			}
-		}
-	}
-};
-
-class LeftAlignedTextJob : public IDrawTextJob
-{
-private:
-	cstr text;
-	FontColour colour;
-	int fontIndex;
-	int fontHeight;
-	IEventCallback<GlyphArgs>* cb;
-	int count = 0;
-	GuiRectf bounds;
-
-	float rightMaxReturnX;
-	float rightAlignX;
-public:
-	GuiRectf target;
-
-	LeftAlignedTextJob(int _fontIndex, float hardRightEdge, float softRightEdge, cstr _text, RGBAb _colour, const GuiRectf& _bounds, int32 _fontHeight, IEventCallback<GlyphArgs>* _cb = nullptr) :
-		text(_text), colour((FontColour&)_colour), fontIndex(_fontIndex), fontHeight(_fontHeight), cb(_cb), bounds(_bounds)
-	{
-		float minFloat = std::numeric_limits<float>::min();
-		float maxFloat = std::numeric_limits<float>::max();
-		target = GuiRectf(maxFloat, maxFloat, minFloat, minFloat);
-		rightMaxReturnX = bounds.right - hardRightEdge;
-		rightAlignX = bounds.right - softRightEdge;
-	}
-
-	void Reset(IEventCallback<GlyphArgs>* cb)
-	{
-		count = 0;
-		this->cb = cb;
-	}
-
-	void DrawNextGlyph(char c, Fonts::IGlyphBuilder& builder)
-	{
-		GuiRectf outputRect;
-		builder.AppendChar(c, outputRect);
-
-		if (cb)
-		{
-			GlyphArgs args;
-			args.index = count++;
-			args.rect = outputRect;
-			cb->OnEvent(args);
-		}
-
-		if (outputRect.left < target.left) target.left = outputRect.left;
-		if (outputRect.right > target.right) target.right = outputRect.right;
-		if (outputRect.bottom > target.bottom) target.bottom = outputRect.bottom;
-		if (outputRect.top < target.top) target.top = outputRect.top;
-	}
-
-	virtual void OnDraw(Fonts::IGlyphBuilder& builder)
-	{
-		builder.SetTextColour(colour);
-		builder.SetShadow(false);
-		builder.SetFontIndex(fontIndex);
-		builder.SetFontHeight(fontHeight);
-
-		Vec2 firstGlyphPos = builder.GetCursor();
-
-		for (cstr p = text; *p != 0; p++)
-		{
-			char c = *p;
-
-			if (c >= 255) c = '?';
-
-			Vec2 pos = builder.GetCursor();
-
-			if (pos.x >= rightAlignX)
-			{
-				if (c <= 32)
-				{
-					pos.x = bounds.left;
-					pos.y += (float) fontHeight;
-					builder.SetCursor(pos);
-					continue;
-				}
-				else if (pos.x >= rightMaxReturnX)
-				{
-					pos.x = bounds.left;
-					pos.y += (float)fontHeight;
-					builder.SetCursor(pos);
-				}
-			}
-
-			if (c == '\t')
-			{
-				for (int i = 0; i < 4; ++i)
-				{
-					DrawNextGlyph(' ', builder);
-				}
-
-				pos = builder.GetCursor();
-
-				if (pos.x >= rightAlignX)
-				{
-					pos.x = bounds.left;
-					pos.y += (float)fontHeight;
-					builder.SetCursor(pos);
-				}
-			}
-			else if (c == '\n')
-			{
-				pos.x = bounds.left;
-				pos.y += (float)fontHeight;
-				builder.SetCursor(pos);
-			}
-			else
-			{
-				DrawNextGlyph((char)c, builder);
-			}
-		}
-	}
-};
 
 struct Gui : public MHost::IGui
 {
@@ -486,109 +218,22 @@ struct Gui : public MHost::IGui
 
 	void DrawClippedText(const Rococo::GuiRectf& rect, int32 alignmentFlags, const fstring& text, int32 fontIndex, RGBAb colour, const Rococo::GuiRectf& clipRect) override
 	{
-		GuiRect iRect{ (int32)rect.left, (int32)rect.top, (int32)rect.right, (int32)rect.bottom };
-		if (text.length)
-		{
-			BasicTextJob job(fontIndex, text, colour, Height(iRect));
-			Vec2i span = gc.EvalSpan({ 0,0 }, job);
-			Vec2i topLeft = GetTopLeftPos(iRect, span, alignmentFlags);
-
-			GuiRect clipRecti{ (int32)clipRect.left, (int32)clipRect.top, (int32)clipRect.right, (int32)clipRect.bottom };
-			gc.RenderText(topLeft, job, &clipRecti);
-		}
+		Rococo::Graphics::DrawClippedText(gc, rect, alignmentFlags, text, fontIndex, colour, clipRect);
 	}
 
 	void DrawTextWithCaret(const Rococo::GuiRectf& rect, int32 alignmentFlags, const fstring& text, int32 fontIndex, RGBAb colour, const Rococo::GuiRectf& clipRect, int32 caretPos) override
 	{
-		GuiRect iRect{ (int32)rect.left, (int32)rect.top, (int32)rect.right, (int32)rect.bottom };
-
-		struct : IEventCallback<GlyphArgs>
-		{
-			int caretPos;
-
-			GuiRectf caretGlyphRect = { -1,-1,-1,-1 };
-			GuiRectf lastGlyphRect = { -1, -1, -1, -1 };
-
-			void OnEvent(GlyphArgs& args) override
-			{
-				lastGlyphRect = args.rect;
-
-				if (caretPos == args.index)
-				{
-					caretGlyphRect = args.rect;
-				}
-			}
-		} onGlyph;
-
-		onGlyph.caretPos = caretPos;
-
-		BasicTextJob job(fontIndex, text, colour, Height(iRect), &onGlyph);
-		Vec2i span = gc.EvalSpan({ 0,0 }, job);
-
-		job.Reset(&onGlyph);
-
-		Vec2i topLeft = GetTopLeftPos(iRect, span, alignmentFlags);
-
-		GuiRect clipRecti{ (int32)clipRect.left, (int32)clipRect.top, (int32)clipRect.right, (int32)clipRect.bottom };
-		gc.RenderText(topLeft, job, &clipRecti);
-
-		if (onGlyph.caretGlyphRect.left > -1)
-		{
-			Vec2i caretStart = { (int32)onGlyph.caretGlyphRect.left,  (int32)onGlyph.caretGlyphRect.bottom };
-			Vec2i caretEnd   = { (int32)onGlyph.caretGlyphRect.right, (int32)onGlyph.caretGlyphRect.bottom };
-			Rococo::Graphics::DrawLine(gc, 2, caretStart, caretEnd, 0xFFFFFFFF);
-		}
-		else if (onGlyph.lastGlyphRect.left > -1)
-		{
-			auto& f = gc.Renderer().FontMetrics();
-			auto& glyphs = f[fontIndex % f.NumberOfGlyphSets()];
-			auto& glyph = glyphs['a'];
-			auto span = glyph.B;
-			Vec2i caretStart = { (int32)onGlyph.lastGlyphRect.right,  (int32)onGlyph.lastGlyphRect.bottom };
-			Vec2i caretEnd = { caretStart.x + (int32) span, caretStart.y };
-			Rococo::Graphics::DrawLine(gc, 2, caretStart, caretEnd, 0xFFFFFFFF);
-		}
-		else
-		{
-			auto& f = gc.Renderer().FontMetrics();
-			auto& glyphs = f[fontIndex % f.NumberOfGlyphSets()];
-			auto& glyph = glyphs['a'];
-			auto span = glyph.B;
-
-			Vec2i ds{ (int32) span, (int32) glyphs.FontHeight() };
-			Vec2i caretStart = GetTopLeftPos(iRect, ds, alignmentFlags);
-			caretStart.y += ds.y;
-
-			Vec2i caretEnd = { caretStart.x + (int32)span, caretStart.y };
-			Rococo::Graphics::DrawLine(gc, 2, caretStart, caretEnd, 0xFFFFFFFF);
-		}
+		Rococo::Graphics::DrawTextWithCaret(gc, rect, alignmentFlags, text, fontIndex, colour, clipRect, caretPos);
 	}
 
 	void DrawLeftAligned(const Rococo::GuiRectf& rect, const fstring& text, int32 fontIndex, int32 fontHeight, RGBAb colour, float32 softRightEdge, float32 hardRightEdge) override
 	{
-		GuiRect iRect{ (int32)rect.left, (int32)rect.top, (int32)rect.right, (int32)rect.bottom };
-		if (text.length)
-		{
-			LeftAlignedTextJob job(fontIndex, softRightEdge, hardRightEdge, text, colour, rect, fontHeight);
-
-			Vec2i topLeft = { iRect.left, iRect.top };
-			gc.RenderText(topLeft, job, &iRect);
-		}
+		Rococo::Graphics::DrawLeftAligned(gc, rect, text, fontIndex, fontHeight, colour, softRightEdge, hardRightEdge);
 	}
 
 	void DrawText(const GuiRectf& rect, int32 alignmentFlags, const fstring& text, int32 fontIndex, RGBAb colour) override
 	{
-		GuiRect iRect{ (int32)rect.left, (int32)rect.top, (int32)rect.right, (int32)rect.bottom };
-		if (text.length)
-		{
-			BasicTextJob job(fontIndex, text, colour, (int) Height(rect));
-			Vec2i span = gc.EvalSpan({ 0,0 }, job);
-			Vec2i topLeft = GetTopLeftPos(iRect, span, alignmentFlags);
-
-			if (HasFlag(alignmentFlags, AlignmentFlags_Clipped)) __debugbreak();
-
-			gc.RenderText(topLeft, job, HasFlag(alignmentFlags, AlignmentFlags_Clipped) ? &iRect : nullptr);
-		}
+		Rococo::Graphics::DrawText(gc, rect, alignmentFlags, text, fontIndex, colour);
 	}
 
 	void GetScreenSpan(Vec2& span) override
@@ -652,10 +297,7 @@ struct Gui : public MHost::IGui
 
 	void EvalTextSpan(const fstring& text, int32 fontIndex, int fontHeight, Vec2& pixelSpan) override
 	{
-		BasicTextJob job(fontIndex, text, 0xFFFFFFFF, (int) pixelSpan.y);
-		auto iSpan = gc.EvalSpan({ 0,0 }, job);
-		pixelSpan.x = (float)iSpan.x;
-		pixelSpan.y = (float)iSpan.y;
+		Rococo::Graphics::EvalTextSpan(gc, text, fontIndex, fontHeight, pixelSpan);
 	}
 
 	void GetFontDescription(int32 fontIndex, Rococo::IStringPopulator& familyName, MHost::Graphics::FontDesc& desc) override

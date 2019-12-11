@@ -103,19 +103,9 @@ float4 GetPointSpriteTexel(float2 uv, float4 colour)
 
 float GetSpotlightIntensity(float3 lightToPixelDir)
 {
-	float incidence = dot(lightToPixelDir, light.direction.xyz);
-
-	float intensity = 1.0f;
-
-	if (incidence < 0) return 0;
-	if (incidence < light.cutoffCosAngle)
-	{
-		intensity = pow(1.0f - (light.cutoffCosAngle - incidence), light.cutoffPower);
-	}
-	else
-	{
-		intensity = incidence;
-	}
+	float incidence = clamp(dot(lightToPixelDir, light.direction.xyz), 0, 1);
+	float radialAttenuation = clamp(light.cutoffCosAngle - incidence, 0, 1);	
+	float intensity = incidence * pow(1.0f - radialAttenuation, light.cutoffPower);
 	return intensity;
 }
 

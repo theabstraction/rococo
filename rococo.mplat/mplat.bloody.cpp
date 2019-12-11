@@ -765,7 +765,8 @@ namespace ANON
 				SafeFormat(buffer, sizeof(buffer), "%s", i->second);
 			}
 
-			Rococo::Graphics::RenderCentredText(rc, buffer, colour, 9, Centre(rect), &rect);
+			GuiRectf textRect{ (float) rect.left, (float) rect.top, (float) rect.right, (float) rect.bottom };
+			Rococo::Graphics::DrawText(rc, textRect, 0, to_fstring(buffer), 0, colour);
 		}
 
 		int GetLeftValue(int v)
@@ -1285,7 +1286,8 @@ namespace ANON
 
 			if (Eq("random", value) && platform.gui.CurrentKeyboardSink() != &teb)
 			{
-				Rococo::Graphics::RenderCentredText(rc, value, RGBAb(128, 0, 0, 255), 9, Centre(editorRect), &editorRect);
+				GuiRectf textRect{ (float)editorRect.left, (float)editorRect.top, (float)editorRect.right, (float)editorRect.bottom };
+				Rococo::Graphics::DrawText(rc, textRect, 0, to_fstring(value), 0, RGBAb(128, 0, 0, 255));
 			}
 			else
 			{
@@ -1433,16 +1435,18 @@ namespace ANON
 			GuiMetrics metrics;
 			rc.Renderer().GetGuiMetrics(metrics);
 
+			GuiRectf textRect{ (float)rect.left, (float)rect.top, (float)rect.right, (float)rect.bottom };
+
 			if (IsPointInRect(metrics.cursorPosition, rect))
 			{
 				Graphics::DrawRectangle(rc, rect, RGBAb(192, 192, 192, 255), RGBAb(192, 192, 192, 255));
-				Graphics::RenderCentredText(rc, name.c_str(), RGBAb(0, 0, 0, 255), 9, Centre(rect), &rect);
+				Rococo::Graphics::DrawText(rc, textRect, 0, to_fstring(name.c_str()), 0, RGBAb(0, 0, 0, 255));
 				Graphics::DrawBorderAround(rc, rect, { 1,1 }, RGBAb(255, 255, 255, 255), RGBAb(224, 224, 224, 255));
 			}
 			else
 			{
 				Graphics::DrawRectangle(rc, rect, RGBAb(160, 160, 160, 255), RGBAb(160, 160, 160, 255));
-				Graphics::RenderCentredText(rc, name.c_str(), RGBAb(0, 0, 0, 255), 9, Centre(rect), &rect);
+				Rococo::Graphics::DrawText(rc, textRect, 0, to_fstring(name.c_str()), 0, RGBAb(0, 0, 0, 255));
 				Graphics::DrawBorderAround(rc, rect, { 1,1 }, RGBAb(224, 224, 224, 255), RGBAb(200, 200, 200, 255));
 			}
 		}
@@ -1478,14 +1482,15 @@ namespace ANON
 			delete this;
 		}
 
-		virtual cstr Name() const
+		cstr Name() const override
 		{
 			return "Spacer";
 		}
 
-		virtual void Render(IGuiRenderContext& rc, const GuiRect& rect, RGBAb colour)
+		void Render(IGuiRenderContext& rc, const GuiRect& rect, RGBAb colour) override
 		{
-			Graphics::RenderCentredText(rc, msg.c_str(), colour, 9, Centre(rect), &rect);
+			GuiRectf textRect{ (float)rect.left, (float)rect.top, (float)rect.right, (float)rect.bottom };
+			Rococo::Graphics::DrawText(rc, textRect, 0, to_fstring(msg.c_str()), 0, colour);
 		}
 
 		RGBAb NameColour() const override
@@ -1584,7 +1589,8 @@ namespace ANON
 			}
 			else
 			{
-				Rococo::Graphics::RenderCentredText(rc, "~", RGBAb(255, 255, 255), 3, Centre(buttonRect), &buttonRect);
+				GuiRectf textRect{ (float)buttonRect.left, (float)buttonRect.top, (float)buttonRect.right, (float)buttonRect.bottom };
+				Rococo::Graphics::DrawText(rc, textRect, 0, "~"_fstring, 0, RGBAb(255, 255, 255));
 			}
 
 			if (IsPointInRect(metrics.cursorPosition, buttonRect))

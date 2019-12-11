@@ -292,6 +292,8 @@ namespace
 		   selectedLine = -1;
 	   }
 
+	   const int fontHeight = 16;
+
 	   void RenderStringList(IGuiRenderContext& gc, const GuiRect& absRect, int padding)
 	   {
 		   GuiMetrics metrics;
@@ -302,7 +304,7 @@ namespace
 		   RGBAb keyColour(192, 192, 192);
 		   RGBAb valueColour(255, 255, 255);
 
-		   int fontIndex = 9;
+		   int fontIndex = 1;
 
 		   int32 keyMaxWidth = 0;
 
@@ -313,7 +315,7 @@ namespace
 
 		   for (auto& line : lines)
 		   {
-			   auto& job = Rococo::Graphics::CreateLeftAlignedText(ssg, screenRect, 0, 0, fontIndex, line.key, keyColour);
+			   auto& job = Rococo::Graphics::CreateLeftAlignedText(ssg, screenRect, 0, 0, 16, fontIndex, line.key, keyColour);
 			   auto span = gc.EvalSpan({ 0,0 }, job);
 			   keyMaxWidth = max(keyMaxWidth, span.x);
 			   totalHeight += span.y;
@@ -356,7 +358,7 @@ namespace
 			   int32 dy = 0;
 			   if (*line.key != 0 || *line.value != 0)
 			   {
-				   auto& job = Rococo::Graphics::CreateLeftAlignedText(ssg, keyRect, 0, 0, fontIndex, line.key, keyColour);
+				   auto& job = Rococo::Graphics::CreateLeftAlignedText(ssg, keyRect, 0, 0, fontHeight, fontIndex, line.key, keyColour);
 				   auto span = gc.EvalSpan({ 0,0 }, job);
 
 				   if (keyRect.top >= absRect.top)
@@ -382,7 +384,7 @@ namespace
 
 					   gc.RenderText(TopLeft(keyRect), job);
 
-					   auto& job2 = Rococo::Graphics::CreateLeftAlignedText(ssg, valueRect, 0, 0, fontIndex, line.value, valueColour);
+					   auto& job2 = Rococo::Graphics::CreateLeftAlignedText(ssg, valueRect, 0, 0, fontHeight, fontIndex, line.value, valueColour);
 					   auto span2 = gc.EvalSpan({ 0,0 }, job);
 					  
 					   GuiRect valueback{ valueRect.left, valueRect.top, valueRect.left + span2.x + 4, valueRect.top + span2.y };

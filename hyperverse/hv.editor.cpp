@@ -107,8 +107,12 @@ namespace
 			SafeFormat(originText, sizeof(originText), "(%4.1f,%4.1f)", worldCursor.x, worldCursor.y);
 
 			Vec2i centre{ metrics.screenSpan.x >> 1, metrics.screenSpan.y >> 1 };
-			Rococo::Graphics::DrawRectangle(grc, { centre.x - 70,0,centre.x + 70, 20 }, RGBAb(64, 64, 64, 224), RGBAb(64, 64, 64, 224));
-			Rococo::Graphics::RenderCentredText(grc, originText, RGBAb(255, 255, 255), 9, { metrics.screenSpan.x >> 1, 8 });
+
+			GuiRect outRect { centre.x - 70,0,centre.x + 70, 20 };
+			Rococo::Graphics::DrawRectangle(grc, outRect, RGBAb(64, 64, 64, 224), RGBAb(64, 64, 64, 224));
+
+			GuiRectf textRect { (float) centre.x - 70, 0.0f,  (float)centre.x + 70, 20.0f };
+			Rococo::Graphics::DrawText(grc, textRect, 0, to_fstring(originText), 0, RGBAb(255, 255, 255));
 
 			auto* entity = instances.GetEntity(cameraId);
 			Vec3 entityPos = entity->Position();

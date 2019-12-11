@@ -79,6 +79,8 @@
 	(Int32 fireKey = (keyboard.GetVKeyFromName "SPACEBAR"))
 	(Int32 upKey = (keyboard.GetVKeyFromName "W"))
 	(Int32 downKey = (keyboard.GetVKeyFromName "S")) 
+	(Int32 overlayToggleKey = (keyboard.GetVKeyFromName "F1"))
+	(this.engine.SetOverlayToggleKey overlayToggleKey)
 	
 	(MouseEvent mouseEvent)
 	(KeyboardEvent keyEvent)
@@ -112,6 +114,14 @@
 		(if ((oldPlayerDirection.x != playerDirection.x) or (oldPlayerDirection.y != playerDirection.y))
 		//	(this.world.SetPlayerDirection playerDirection)
 			(oldPlayerDirection = playerDirection)
+		)
+		
+		(while (this.engine.GetNextKeyboardEvent keyEvent)
+			// Required for overlay control
+		)
+		
+		(while (this.engine.GetNextMouseEvent mouseEvent)
+			// Required for overlay control
 		)
 		
 		(Vec2 mouseDelta)
