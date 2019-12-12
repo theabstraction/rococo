@@ -83,6 +83,9 @@
 	(Degrees cutoffAngle)
 	(Float32 cutoffPower)
 	(Float32 attenuation)
+	(Metres nearPlane)
+	(Metres farPlane)
+	(Float32 fogConstant)
 )
 
 (defstruct QuadColours Rococo.QuadColours QuadColours

@@ -1268,17 +1268,21 @@ void RenderLabel(IGuiRenderContext& grc, cstr text, const GuiRect& absRect, int 
 	GuiMetrics metrics;
 	grc.Renderer().GetGuiMetrics(metrics);
 
+	int fontHeight = Height(absRect) - 4;
+
 	using namespace Rococo::Fonts;
 	struct : IDrawTextJob
 	{
 		cstr text;
 		int fontIndex;
 		RGBAb colour;
+		int fontHeight;
 
 		virtual void OnDraw(IGlyphBuilder& builder)
 		{
 			builder.SetTextColour((FontColour&)colour);
 			builder.SetFontIndex(fontIndex);
+			builder.SetFontHeight(fontHeight);
 
 			for (cstr p = text; *p != 0; p++)
 			{
@@ -1291,6 +1295,7 @@ void RenderLabel(IGuiRenderContext& grc, cstr text, const GuiRect& absRect, int 
 
 	job.text = text;
 	job.fontIndex = fontIndex;
+	job.fontHeight = fontHeight;
 	job.colour = enableHighlights && IsPointInRect(metrics.cursorPosition, absRect) ? scheme.hi_fontColour : scheme.fontColour;
 
 	Vec2i span = grc.EvalSpan({ 0,0 }, job, nullptr);

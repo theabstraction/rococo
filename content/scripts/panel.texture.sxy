@@ -13,7 +13,7 @@
 (using Sys.Type)
 
 (function AddTextOut (IString key)(IPaneContainer container)(Recti rect)-> :
-	(ITextOutputPane textOut = (container.AddTextOutput 8 key rect))
+	(ITextOutputPane textOut = (container.AddTextOutput 1 key rect))
 	(textOut.SetColourBk1   0xFF000000 0xFF000000)
 	(textOut.SetColourBk2   0xFF000000 0xFF000000)
 	(textOut.SetColourEdge1 0xFFFFFFFF 0xFFFFFFFF)

@@ -21,6 +21,9 @@
 		Degrees cutoffAngle;
 		float cutoffPower;
 		float attenuation;
+		Metres nearPlane;
+		Metres farPlane;
+		float fogConstant;
 	};
 	struct QuadColours
 	{

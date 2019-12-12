@@ -745,7 +745,7 @@ namespace Rococo
 				OS::FormatTime(i.second.loadTime, theTime, 256);
 
 				char name[256];
-				SafeFormat(name, 256, "%S", i.first.c_str());
+				SafeFormat(name, 256, "%s", i.first.c_str());
 				visitor.ShowString(name, "%8d bytes      %8.8s", i.second.code->SourceLength(), theTime);
 			}
 		}
