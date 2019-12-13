@@ -9,7 +9,7 @@ using namespace Rococo;
 
 namespace MHost
 {
-	IDirectApp* CreateApp(Platform& platform, IDirectAppControl& control);
+	IDirectApp* CreateApp(Platform& platform, IDirectAppControl& control, cstr commandLine);
 
 	namespace UI
 	{
@@ -31,13 +31,13 @@ namespace MHost
 # define MPLAT_LIB MPLAT_RELEASE
 #endif
 
-int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR cmdLine, int nCmdShow)
 {
 	struct : IDirectAppFactory
 	{
 		IDirectApp* CreateApp(Platform& e, IDirectAppControl& control) override
 		{
-			return MHost::CreateApp(e, control);
+			return MHost::CreateApp(e, control, GetCommandLineA());
 		}
 	} factory;
 

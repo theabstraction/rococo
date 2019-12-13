@@ -159,8 +159,6 @@
 
 (method GameBundle.Construct : 
 	(ISprites sprites (Sprites))
-	(sprites.AddEachSpriteInDirectory "!textures/faces/female")
-	(sprites.LoadAllSprites)
 	(this.sprites = sprites)
 	
 	(this.engine = (Engine))
@@ -235,7 +233,7 @@
 	
 	(Int64 cubeId = (instances.CreateCubeTexture "!textures/t3d/skybox/YokohamaSmall/" "jpg"))
 	(scene.SetSkyBox cubeId)
-
+	
 	(while this.engine.IsRunning
 		(while (this.coroutines.Continue > 0))
 		

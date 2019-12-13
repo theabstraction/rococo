@@ -334,6 +334,7 @@ namespace ANON
 	   DX11TextureArray materialArray;
 
 	   std::vector<DX11::TextureBind> cubeTextureArray;
+	   std::unordered_map<std::string, ID_CUBE_TEXTURE> nameToCubeTexture;
 
 	   AutoFree<ITextureArrayBuilderSupervisor> spriteArrayBuilder;
 
@@ -781,6 +782,12 @@ namespace ANON
 
 	   ID_CUBE_TEXTURE CreateCubeTexture(cstr path, cstr extension)
 	   {
+		   auto i = nameToCubeTexture.find(path);
+		   if (i != nameToCubeTexture.end())
+		   {
+			   return i->second;
+		   }
+
 		   const char* short_filenames[6] = { "posx", "negx", "posy", "negy", "posz", "negz" };
 
 		   CubeLoader cubeloader;
@@ -837,7 +844,11 @@ namespace ANON
 		   cubeTextureArray.push_back(tb);
 
 		   size_t index = cubeTextureArray.size() + CUBE_ID_BASE;
-		   return ID_CUBE_TEXTURE{ index };
+		   auto id = ID_CUBE_TEXTURE{ index };
+
+		   nameToCubeTexture[path] = id;
+
+		   return id;
 	   }
 
 	   int32 cubeMaterialId[6] = { -1,-1,-1,-1,-1,-1 };

@@ -118,7 +118,6 @@
 	
 	(IInstances instances (Instances))
 	(instances.Clear)
-	(instances.LoadMaterialArray "!textures/hv/materials/hi-rez/" 1024) 
 	
 //	(MakeBottle "potion.1") 
 	

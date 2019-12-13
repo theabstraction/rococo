@@ -21,5 +21,5 @@
 
 (function Main (Int32 id) -> (Int32 exitCode):
 	(IEngine engine (Engine))
-	(engine.SetNextScript "!scripts/mhost/t3d.sxy")
+	(engine.SetNextScript "!scripts/mhost/t3d.init.sxy")
 )

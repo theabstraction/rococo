@@ -4,10 +4,16 @@
 #include <rococo.strings.h>
 
 #include <vector>
+#include <string>
 
 #include <rococo.textures.h>
 
 #include <rococo.ui.h>
+
+struct AppArgs
+{
+	cstr mainScript;
+};
 
 namespace MHost
 {
@@ -149,7 +155,7 @@ namespace MHost
 
 		AppSceneManager sceneManager;
 
-		HString mainScript = "!scripts/mhost/mhost.init.sxy";
+		HString mainScript;
 		bool queuedForExecute = false;
 
 		Vec2 cursorPosition;
@@ -251,13 +257,15 @@ namespace MHost
 			}
 		}
 	public:
-		App(Platform& _platform, IDirectAppControl& _control) :
+		App(Platform& _platform, IDirectAppControl& _control, const AppArgs& args) :
 			platform(_platform), control(_control), sceneManager(_platform)
 		{
 			busyPanel = platform.gui.BindPanelToScript("!scripts/panel.opening.sxy");
 			overlayPanel = platform.gui.CreateOverlay();
 
 			platform.publisher.Subscribe(this, Rococo::Events::evBusy);
+
+			this->mainScript = args.mainScript;
 		}
 
 		~App()
@@ -491,10 +499,39 @@ namespace MHost
 
 namespace MHost
 {
-	IDirectApp* CreateApp(Platform& p, IDirectAppControl& control)
+	IDirectApp* CreateApp(Platform& p, IDirectAppControl& control, cstr cmdLine)
 	{
 		p.installation.Macro("#bitmaps", "!scripts/mhost/bitmaps/");
 		p.installation.Macro("#chaps", "!scripts/mhost/rpg/chaps/");
-		return new MHost::App(p, control);
+
+		struct arglist: IEventCallback<cstr>
+		{
+			std::vector<std::string> items;
+			void OnEvent(cstr token) override
+			{
+				items.push_back(token);
+			}
+		} args;
+
+		Rococo::SplitString(cmdLine, 0, " \t", args);
+
+		AppArgs appArgs;
+		appArgs.mainScript = "!scripts/mhost/mhost.default.sxy";
+
+		for (size_t i = 1; i < args.items.size(); ++i)
+		{
+			cstr arg = args.items[i].c_str();
+			if (arg[0] == '-')
+			{
+				// Opt
+			}
+			else
+			{
+				// filename
+				appArgs.mainScript = arg;
+			}
+		}
+
+		return new MHost::App(p, control, appArgs);
 	}
 }
