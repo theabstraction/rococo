@@ -240,14 +240,26 @@ namespace
 		cstr text;
 		Fonts::FontColour colour;
 		int fontIndex;
+		int fontHeight;
 		float lastCellHeight;
 		IEventCallback<Rococo::Graphics::GlyphCallbackArgs>* cb;
 		int count = 0;
 	public:
 		GuiRectf target;
 
-		HorizontalCentredText(int _fontIndex, cstr _text, Fonts::FontColour _colour, IEventCallback<Rococo::Graphics::GlyphCallbackArgs>* _cb = nullptr) :
-			text(_text), colour(_colour), fontIndex(_fontIndex), lastCellHeight(10.0f), cb(_cb)
+		HorizontalCentredText(
+			int _fontIndex, 
+			int _fontHeight, 
+			cstr _text, 
+			Fonts::FontColour _colour, 
+			IEventCallback<Rococo::Graphics::GlyphCallbackArgs>* _cb = nullptr
+		) :
+			fontIndex(_fontIndex),
+			fontHeight(_fontHeight),
+			text(_text),
+			colour(_colour),
+			lastCellHeight((float)_fontHeight),
+			cb(_cb)
 		{
 			constexpr float minFloat = std::numeric_limits<float>::min();
 			constexpr float maxFloat = std::numeric_limits<float>::max();
@@ -263,6 +275,9 @@ namespace
 		void DrawNextGlyph(char c, Fonts::IGlyphBuilder& builder)
 		{
 			GuiRectf outputRect;
+
+			builder.SetFontIndex(fontIndex);
+			builder.SetFontHeight(fontHeight);
 			builder.AppendChar(c, outputRect);
 
 			if (cb)
@@ -724,7 +739,7 @@ namespace Rococo
 			} anon;
 			anon.targetPos = cursorPos;
 
-			HorizontalCentredText job(fontSize, txt, FontColourFromRGBAb(colour), &anon);
+			HorizontalCentredText job(0, fontSize, txt, FontColourFromRGBAb(colour), &anon);
 			Vec2i span = gr.EvalSpan(Vec2i{ 0,0 }, job);
 
 			int dx = anon.rect.left - Width(clipRect);
@@ -758,7 +773,7 @@ namespace Rococo
 
 		Vec2i RenderVerticalCentredText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const Vec2i& middleLeft, const GuiRect* clipRect)
 		{
-			HorizontalCentredText job(fontSize, text, FontColourFromRGBAb(colour));
+			HorizontalCentredText job(0, fontSize, text, FontColourFromRGBAb(colour));
 			Vec2i span = grc.EvalSpan(Vec2i{ 0,0 }, job);
 			grc.RenderText(Vec2i{ middleLeft.x, middleLeft.y - (span.y >> 1) }, job, clipRect);
 			return span;
@@ -766,7 +781,7 @@ namespace Rococo
 
 		Vec2i RenderTopLeftAlignedText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const Vec2i& topLeft)
 		{
-			HorizontalCentredText job(fontSize, text, FontColourFromRGBAb(colour));
+			HorizontalCentredText job(0, fontSize, text, FontColourFromRGBAb(colour));
 			Vec2i span = grc.EvalSpan(Vec2i{ 0,0 }, job);
 			grc.RenderText(Vec2i{ topLeft.x, topLeft.y }, job);
 			return span;
@@ -774,7 +789,7 @@ namespace Rococo
 
 		Vec2i RenderTopRightAlignedText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const Vec2i& topRight)
 		{
-			HorizontalCentredText job(fontSize, text, FontColourFromRGBAb(colour));
+			HorizontalCentredText job(0, fontSize, text, FontColourFromRGBAb(colour));
 			Vec2i span = grc.EvalSpan(Vec2i{ 0,0 }, job);
 			grc.RenderText(Vec2i{ topRight.x - span.x, topRight.y }, job);
 			return span;
@@ -782,7 +797,7 @@ namespace Rococo
 
 		Vec2i RenderRightAlignedText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const GuiRect& rect)
 		{
-			HorizontalCentredText job(fontSize, text, FontColourFromRGBAb(colour));
+			HorizontalCentredText job(0, fontSize, text, FontColourFromRGBAb(colour));
 			Vec2i span = grc.EvalSpan(Vec2i{ 0,0 }, job);
 			Vec2i centre = Centre(rect);
 			grc.RenderText(Vec2i{ rect.right - span.x - 2, centre.y - (span.y >> 1) }, job, &rect);
@@ -791,7 +806,7 @@ namespace Rococo
 
 		Vec2i RenderHorizontalCentredText(IGuiRenderContext& grc, cstr txt, RGBAb colour, int fontSize, const Vec2i& topMiddle)
 		{
-			HorizontalCentredText job(fontSize, txt, FontColourFromRGBAb(colour));
+			HorizontalCentredText job(0, fontSize, txt, FontColourFromRGBAb(colour));
 			Vec2i span = grc.EvalSpan(Vec2i{ 0,0 }, job);
 			grc.RenderText(Vec2i{ topMiddle.x - (span.x >> 1), topMiddle.y }, job);
 			return span;
@@ -877,7 +892,7 @@ namespace Rococo
 		Fonts::IDrawTextJob& CreateHorizontalCentredText(StackSpaceGraphics& ss, int fontIndex, cstr text, RGBAb colour)
 		{
 			static_assert(sizeof(ss) > sizeof(HorizontalCentredText), "Increase buffer size");
-			HorizontalCentredText *hct = new (&ss) HorizontalCentredText(fontIndex, text, FontColourFromRGBAb(colour));
+			HorizontalCentredText *hct = new (&ss) HorizontalCentredText(0, fontIndex, text, FontColourFromRGBAb(colour));
 			return *hct;
 		}
 

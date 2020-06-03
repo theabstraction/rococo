@@ -62,7 +62,6 @@
 	(IEngine engine)
 	(IScreen activeScreen)
 	(IEventHandler modalSink)
-	(IKeyboard keyboard)
 )
 
 (method GuiInputThread.UIControl -> (IUIControl control):

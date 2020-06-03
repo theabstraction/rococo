@@ -40,6 +40,15 @@
 	(extends Sys.ICoroutine)
 )
 
+(interface T3D.IWorld (attribute essential)
+	(RenderGui (IGui g)->)
+	(UpdateMouseLook (Vec2 delta)->)
+	(GetCameraOrientation (WorldOrientation cameraOrientation)->)
+	(GetPlayerEyePos (Vec3 pos)-> )
+	(SetPlayerEyePos (Vec3 pos)-> )
+	(SetPlayerMoveIntent (Float32 straffe)(Float32 forward)->)
+)
+
 (class GuiInputThread 
 	(implements T3D.IInputThread)
 	(IEngine engine)
@@ -86,35 +95,31 @@
 	(KeyboardEvent keyEvent)
 	
 	(KeyState keys)
-			
-	(Vec2 oldPlayerDirection = 0 0)
 	
 	(while this.engine.IsRunning
 		(KeyState keys)
 		(this.engine.PollKeyState keys)
 		
-		(Vec2 playerDirection = 0 0)
+		(Float32 straffe = 0)
+		(Float32 forward = 0)
 	
 		(if (IsKeyPressed keys leftKey)
-			(playerDirection.x = -1)
+			(straffe = (straffe - 1))
 		)
 		
 		(if (IsKeyPressed keys rightKey)
-			(playerDirection.x = 1)
+			(straffe = (straffe + 1))
 		)
 		
 		(if (IsKeyPressed keys upKey)
-			(playerDirection.y = 1)
+			(forward = (forward + 1))
 		)
 		
 		(if (IsKeyPressed keys downKey)
-			(playerDirection.y = -1)
+			(forward = (forward - 1))
 		)
 		
-		(if ((oldPlayerDirection.x != playerDirection.x) or (oldPlayerDirection.y != playerDirection.y))
-		//	(this.world.SetPlayerDirection playerDirection)
-			(oldPlayerDirection = playerDirection)
-		)
+		(this.world.SetPlayerMoveIntent straffe forward)
 		
 		(while (this.engine.GetNextKeyboardEvent keyEvent)
 			// Required for overlay control
@@ -140,12 +145,6 @@
 (struct CommandButton
 	(Rectf rect)
 	(IString text)
-)
-
-(interface T3D.IWorld (attribute essential)
-	(RenderGui (IGui g)->)
-	(UpdateMouseLook (Vec2 delta)->)
-	(GetCameraOrientation (WorldOrientation cameraOrientation)->)
 )
 
 (class GameBundle (defines T3D.IBundle)
@@ -221,6 +220,24 @@
 	(q = zy)
 )
 
+(function AdvanceCoroutines (ICoroutineControl coroutines)-> :
+	(while (coroutines.Continue > 0)
+		// Some coroutine did something interesting
+	)
+
+	// Either there are no coroutines or all are in a wait state
+)
+
+(function RenderWorldThenUI (IWorld world)(IEngine engine) -> :
+	(GuiPopulator overlay =
+			(closure (IGui gui) -> : 
+				(world.RenderGui gui)
+			)
+	)
+
+	(engine.Render overlay)	
+)
+
 (method GameBundle.Run -> :
 	(ISceneBuilder scene (SceneBuilder))
 	(IInstances instances (Instances))
@@ -228,22 +245,17 @@
 	
 	(camera.SetRHProjection 60 0.1 1000.0)
 	
-	(Vec3 origin = 0 0 0)
-	(camera.SetPosition origin)
+	(IWorld world = this.world)
 	
 	(Int64 cubeId = (instances.CreateCubeTexture "!textures/t3d/skybox/YokohamaSmall/" "jpg"))
 	(scene.SetSkyBox cubeId)
 	
 	(while this.engine.IsRunning
-		(while (this.coroutines.Continue > 0))
+		(AdvanceCoroutines this.coroutines)
 		
-		(IWorld world = this.world)
-		
-		(GuiPopulator overlay =
-			(closure (IGui gui) -> : 
-				(world.RenderGui gui)
-			)
-		)
+		(Vec3 playerEyePosition)
+		(world.GetPlayerEyePos playerEyePosition)
+		(camera.SetPosition playerEyePosition)
 		
 		(WorldOrientation cameraOrientation)
 		(world.GetCameraOrientation cameraOrientation)
@@ -253,7 +265,8 @@
 		
 		(camera.SetOrientation cameraQuat)
 		
-		(this.engine.Render overlay)	
+		(RenderWorldThenUI this.world this.engine)
+
 		(this.engine.YieldForSystemMessages 5)
 	)
 	

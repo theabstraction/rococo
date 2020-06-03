@@ -19,4 +19,5 @@
 	(Sys.Geometry.F32.LerpVec3 (Vec3 a)(Vec3 b)(Float32 t)(Vec3 mixed)-> : Rococo::Maths::LerpVec3)
 	(Sys.Geometry.F32.GetRotationQuat (Degrees theta)(Float32 i)(Float32 j)(Float32 k)(Quat q)-> : Rococo::Maths::GetRotationQuat)
 	(Sys.Geometry.F32.MultiplyQuatfQuatf (const Quat a)(const Quat b)(Quat output) -> : Rococo::Maths::MultiplyQuatByQuat)
+	(Sys.Geometry.F32.RotateAboutZ (Float32 degrees)(Matrix4x4 rZ) -> : Rococo::Maths::RotateAboutZThetaDegrees)
 )

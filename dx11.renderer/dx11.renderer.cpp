@@ -1487,8 +1487,17 @@ namespace ANON
 
 		   RECT rect;
 		   GetClientRect(window, &rect);
-		   mainDepthBufferId = CreateDepthTarget(rect.right - rect.left, rect.bottom - rect.top);
-		   shadowBufferId = CreateDepthTarget(1024, 1024);
+
+		   auto mainDepthBufferDesc = CreateDepthTarget(rect.right - rect.left, rect.bottom - rect.top);
+		   textures.push_back(mainDepthBufferDesc);
+		   this->mainDepthBufferId = ID_TEXTURE{ textures.size() };
+		   mapNameToTexture[scdt_name] = mainDepthBufferId;
+
+		   auto shadowBufferDesc = CreateDepthTarget(1024, 1024);
+		   textures.push_back(shadowBufferDesc);
+
+		   this->shadowBufferId = ID_TEXTURE{ textures.size() };
+		   mapNameToTexture["ShadowBuffer"] = shadowBufferId;
 
 		   SyncViewport(mainDepthBufferId);
 	   }
@@ -1565,7 +1574,7 @@ namespace ANON
 		   return ID_PIXEL_SHADER(pixelShaders.size() - 1);
 	   }
 
-	   ID_TEXTURE CreateDepthTarget(int32 width, int32 height) override
+	   DX11::TextureBind CreateDepthTarget(int32 width, int32 height)
 	   {
 		   ID3D11Texture2D* tex2D = nullptr;
 		   ID3D11DepthStencilView* depthView = nullptr;
@@ -1609,15 +1618,7 @@ namespace ANON
 			   throw;
 		   }
 
-		   textures.push_back(DX11::TextureBind{ tex2D, srv, nullptr, depthView });
-		   auto id = ID_TEXTURE(textures.size());
-
-		   char name[64];
-		   SafeFormat(name, sizeof(name), "DepthTarget_%llu", id.value);
-
-		   mapNameToTexture[name] = id;
-
-		   return id;
+		   return { tex2D, srv, nullptr, depthView };
 	   }
 
 	   ID_TEXTURE CreateRenderTarget(int32 width, int32 height) override
@@ -2722,6 +2723,8 @@ namespace ANON
 		   guiVertices.clear();
 	   }
 
+	   cstr scdt_name = "SwapChainDepthTarget";
+
 	   void ResizeBuffers(const Vec2i& span)
 	   {
 		   mainBackBufferView.Detach();
@@ -2735,14 +2738,19 @@ namespace ANON
 		   RECT rect;
 		   GetClientRect(window, &rect);
 
-		   ID_TEXTURE newDepthBufferId = CreateDepthTarget(rect.right - rect.left, rect.bottom - rect.top);
-		   auto& theOld = GetTexture(mainDepthBufferId);
-		   auto& theNew = GetTexture(newDepthBufferId);
-		   std::swap(theOld, theNew);
-		   theNew.depthView->Release();
-		   theNew.shaderView->Release();
-		   theNew.texture->Release();
-		   textures.pop_back();
+		   auto newDepthBuffer = CreateDepthTarget(rect.right - rect.left, rect.bottom - rect.top);
+
+		   auto i = mapNameToTexture.find(scdt_name);
+		   if (i == mapNameToTexture.end())
+		   {
+			   Throw(0, "Expecting to find %s in mapNameToTexture", scdt_name);
+		   }
+
+		   auto& t = textures[i->second - 1];
+		   t.depthView->Release();
+		   t.shaderView->Release();
+		   t.texture->Release();
+		   t = newDepthBuffer;
 	   }
 
 	   BOOL isFullScreen = FALSE;

@@ -33,7 +33,6 @@
 	(label.SetAlignment 0 0 0 0)
 )
 
-// Norfolk & Durham, Simon Bailey, Mike Barton, John Glen MP
 (function AddLabel (IString text)(IPaneContainer builder)(IString cmd)(Bool defer)-> :
 	(Recti rect = 0 0 20 70)
 	(ILabelPane label = (builder.AddLabel 0 text rect))
@@ -45,6 +44,8 @@
 	(label.SetCommand 1 defer cmd)
 	(label.SetAlignment 0 0 0 0)
 )
+
+// Cool comment Eh?
 
 (function Main (Int32 id)->(Int32 exitCode):
 	(IPaneBuilder builder (PaneBuilder))
@@ -72,15 +73,15 @@
 	(frame.SetMinMaxSpan 400 300 1024 480)
 	(frame.SetCaption "Debugging overlay")
 	
-	(ITabContainer tabs = (frame.AddTabContainer 24 8 tabRect))
-	(tabs.AddTab 67 "Window"		"overlay.window")
-	(tabs.AddTab 90 "Renderer" 		"overlay.renderer")
-	(tabs.AddTab 70 "Camera"		"overlay.camera")
-	(tabs.AddTab 88 "Textures"		"overlay.textures")
-	(tabs.AddTab 65 "Meshes"		"overlay.meshes")
-	(tabs.AddTab 32 "OS"			"overlay.os")
-	(tabs.AddTab 120 "Script Cache"	"overlay.cache")
-	(tabs.AddTab 160 "Script Performance" "overlay.performance")
+	(ITabContainer tabs = (frame.AddTabContainer 32 1 tabRect))
+	(tabs.AddTab 84 "Window"		"overlay.window")
+	(tabs.AddTab 96 "Renderer" 		"overlay.renderer")
+	(tabs.AddTab 78 "Camera"		"overlay.camera")
+	(tabs.AddTab 91 "Textures"		"overlay.textures")
+	(tabs.AddTab 76 "Meshes"		"overlay.meshes")
+	(tabs.AddTab 34 "OS"			"overlay.os")
+	(tabs.AddTab 124 "Script Cache"	"overlay.cache")
+	(tabs.AddTab 182 "Script Performance" "overlay.performance")
 	
 	(tabs.SetColourBk1   0xE0200000 0xE0200000)
 	(tabs.SetColourBk2   0xE0000020 0xE0000020)

@@ -333,7 +333,6 @@ namespace Rococo
 	  virtual void AddOverlay(int zorder, IUIOverlay* overlay) = 0;
 	  virtual void AddFog(const ParticleVertex& fog) = 0;
 	  virtual void AddPlasma(const ParticleVertex& p) = 0;
-	  virtual ID_TEXTURE CreateDepthTarget(int32 width, int32 height) = 0;
 	  virtual ID_TEXTURE CreateRenderTarget(int32 width, int32 height) = 0;
 	  virtual void CaptureMouse(bool enable) = 0;
 	  virtual void ClearMeshes() = 0;

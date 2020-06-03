@@ -112,6 +112,38 @@
 	(rod.CopyToMeshBuilder meshName false false true)
 )
 
+(method World.GetPlayerEyePos (Vec3 pos)-> : (pos = this.cameraPos))
+(method World.SetPlayerEyePos (Vec3 pos)-> : (this.cameraPos = pos))
+
+(method World.SetPlayerMoveIntent (Float32 straffeSpeed)(Float32 forwardSpeed)-> :
+	/*
+	(struct WorldOrientation
+		(Degrees bearing) // 0 = North, 90 = East, 180 = South, 270 = West
+		(Degrees elevation) // 0 = forward, 90 = up, -90 = down
+		(Degrees roll) // anti-clockwise roll about direction vector
+	)
+	*/
+
+
+	// Consider the case of three rotations mapping -z to a direction N. The inverse transformation
+	// of three rotations is three inverse rotations in reverse order. e.g (Rx.Ry.Rz)' = Rz'.Ry'.Rx'
+	
+	(Float32 anticlockWiseDegrees = (0 - this.cameraOrientation.bearing))
+	
+	(Matrix4x4 rZ)
+	(Sys.Geometry.F32.RotateAboutZ anticlockWiseDegrees rZ)
+	
+	(Float32 forwardDelta = (0.01 * forwardSpeed))
+	
+	(Vec4 forward = 0 forwardDelta 0 0)
+	(Vec4 worldForward)
+	
+	(Sys.Geometry.F32.MultiplyMatrix4x4fVec4f rZ forward worldForward)
+	
+	(this.cameraPos.x = (this.cameraPos.x + worldForward.x))
+	(this.cameraPos.y = (this.cameraPos.y + worldForward.y))
+)
+
 (method World.Construct : 
 	(this.cameraPos = 0 0 1)
 	(this.cameraOrientation = 0 0 0)

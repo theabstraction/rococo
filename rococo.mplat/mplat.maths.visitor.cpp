@@ -64,7 +64,7 @@ namespace
 
 	   }
 
-	   virtual void Show(VisitorName name, const Matrix4x4& m)
+	   void Show(VisitorName name, const Matrix4x4& m) override
 	   {
 		   DebugLine line[4];
 		   Name(line[0], name);
@@ -87,7 +87,7 @@ namespace
 		   AddBlankLine();
 	   }
 
-	   virtual void ShowRow(VisitorName name, const float* vector, const size_t nComponents)
+	   void ShowRow(VisitorName name, const float* vector, const size_t nComponents) override
 	   {
 		   DebugLine line;
 		   Name(line, name);
@@ -113,7 +113,7 @@ namespace
 		   AddBlankLine();
 	   }
 
-	   virtual void ShowColumn(VisitorName name, const float* vector, const size_t nComponents)
+	   void ShowColumn(VisitorName name, const float* vector, const size_t nComponents) override
 	   {
 		   DebugLine line;
 		   Name(line, name);
@@ -134,7 +134,7 @@ namespace
 		   }
 	   }
 
-	   virtual void Show(VisitorName name, const float value)
+	   void Show(VisitorName name, const float value) override
 	   {
 		   DebugLine line;
 		   Name(line, name);
@@ -142,7 +142,7 @@ namespace
 		   lines.push_back(line);
 	   }
 
-	   virtual void ShowDecimal(VisitorName name, const int32 value)
+	   void ShowDecimal(VisitorName name, const int32 value) override
 	   {
 		   DebugLine line;
 		   Name(line, name);
@@ -150,7 +150,7 @@ namespace
 		   lines.push_back(line);;
 	   }
 
-	   virtual void ShowHex(VisitorName name, const int32 value)
+	   void ShowHex(VisitorName name, const int32 value) override
 	   {
 		   DebugLine line;
 		   Name(line, name);
@@ -158,7 +158,7 @@ namespace
 		   lines.push_back(line);
 	   }
 
-	   virtual void ShowBool(VisitorName name, const bool value)
+	   void ShowBool(VisitorName name, const bool value) override
 	   {
 		   DebugLine line;
 		   Name(line, name);
@@ -166,7 +166,7 @@ namespace
 		   lines.push_back(line);
 	   }
 
-	   virtual void ShowDecimal(VisitorName name, const int64 value)
+	   void ShowDecimal(VisitorName name, const int64 value) override
 	   {
 		   DebugLine line;
 		   Name(line, name);
@@ -174,7 +174,7 @@ namespace
 		   lines.push_back(line);
 	   }
 
-	   virtual void ShowHex(VisitorName name, const int64 value)
+	   void ShowHex(VisitorName name, const int64 value) override
 	   {
 		   DebugLine line;
 		   Name(line, name);
@@ -182,7 +182,7 @@ namespace
 		   lines.push_back(line);
 	   }
 
-	   virtual void ShowPointer(VisitorName name, const void* ptr)
+	   void ShowPointer(VisitorName name, const void* ptr) override
 	   {
 		   DebugLine line;
 		   Name(line, name);
@@ -190,7 +190,7 @@ namespace
 		   lines.push_back(line);
 	   }
 
-	   virtual void ShowString(VisitorName name, cstr format, ...)
+	   void ShowString(VisitorName name, cstr format, ...) override
 	   {
 		   DebugLine line;
 		   Name(line, name);
@@ -203,7 +203,7 @@ namespace
 		   lines.push_back(line);
 	   }
 
-	   virtual void ShowSelectableString(cstr eventName, VisitorName name, cstr format, ...)
+	   void ShowSelectableString(cstr eventName, VisitorName name, cstr format, ...) override
 	   {
 		   DebugLine line{ EventIdRef { eventName, 0} };
 		   Name(line, name);
@@ -218,12 +218,12 @@ namespace
 		   lines.push_back(line);
 	   }
 
-	   virtual void Clear()
+	   void Clear() override
 	   {
 		   lines.clear();
 	   }
 
-	   virtual void Free()
+	   void Free() override
 	   {
 		   delete this;
 	   }
@@ -292,7 +292,7 @@ namespace
 		   selectedLine = -1;
 	   }
 
-	   const int fontHeight = 16;
+	   const int fontHeight = 24;
 
 	   void RenderStringList(IGuiRenderContext& gc, const GuiRect& absRect, int padding)
 	   {
@@ -312,10 +312,14 @@ namespace
 
 		   int32 totalHeight = 0;
 		   int32 lastRowHeight = 0;
+		   
+		   GuiRect lineRect{ screenRect };
+
+		   lineRect.bottom = lineRect.top + fontHeight;
 
 		   for (auto& line : lines)
 		   {
-			   auto& job = Rococo::Graphics::CreateLeftAlignedText(ssg, screenRect, 0, 0, 16, fontIndex, line.key, keyColour);
+			   auto& job = Rococo::Graphics::CreateLeftAlignedText(ssg, lineRect, 0, 0, fontHeight, fontIndex, line.key, keyColour);
 			   auto span = gc.EvalSpan({ 0,0 }, job);
 			   keyMaxWidth = max(keyMaxWidth, span.x);
 			   totalHeight += span.y;
@@ -433,7 +437,7 @@ namespace
 			   }
 			   else
 			   {
-				   dy = 13;
+				   dy = 24;
 			   }
 
 			   keyRect.top += dy;
@@ -446,7 +450,7 @@ namespace
 		   }
 	   }
 
-	   virtual void Render(IGuiRenderContext& gc, const GuiRect& absRect, int padding)
+	   void Render(IGuiRenderContext& gc, const GuiRect& absRect, int padding) override
 	   {
 		   scrollRect = GuiRect{ absRect.right - 24, absRect.top, absRect.right, absRect.bottom };
 		   RenderScrollbar(gc, scrollRect);

@@ -683,7 +683,7 @@ public:
 
 		for (auto& m : scrollingMessages)
 		{
-			Graphics::RenderVerticalCentredText(grc, m.message.text, RGBAb(255, 255, 255), 9, { 4,m.y }, &logRect);
+			Graphics::RenderVerticalCentredText(grc, m.message.text, RGBAb(255, 255, 255), 32, { 4,m.y }, &logRect);
 		}
 
 		if (!messageLog.IsEmpty() && HasRoomForMessage(logRect))

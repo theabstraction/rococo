@@ -331,7 +331,14 @@ namespace MHost
 			while (platform.appControl.IsRunning() && !isShutdown)
 			{
 				isScriptRunning = true;
-				RunEnvironmentScript(platform, this, mainScript, true, false);
+
+				// mainScript variable can be changed by a script, so not safe to pass references to the
+				// script and expect it to be unchanged throughout. So duplicate on the stack
+
+				char currentScript[Rococo::IO::MAX_PATHLEN];
+				SecureFormat(currentScript, Rococo::IO::MAX_PATHLEN, "%s", mainScript.c_str());
+
+				RunEnvironmentScript(platform, this, currentScript, true, false);
 				CleanupResources();
 			}
 		}

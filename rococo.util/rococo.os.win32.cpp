@@ -831,10 +831,14 @@ namespace
 		std::vector<std::wstring> modifiedFiles;
 
 		IEventCallback<SysUnstableArgs>* onUnstable;
+
+		std::unordered_map<std::wstring, Rococo::OS::ticks> lastModifiedList;
+
 	public:
 		Win32OS() :
 			hMonitorDirectory(INVALID_HANDLE_VALUE),
 			hThread(0),
+			threadId(0),
 			isRunning(false),
 			onUnstable(nullptr)
 		{
@@ -878,6 +882,27 @@ namespace
 				std::wstring f = modifiedFiles.back();
 				modifiedFiles.pop_back();
 				threadLock.Unlock();
+
+				// N.B the Windows API for scanning file changes will typically send multiple events
+				// for the same file change, so we ignore the superfluous notifications in the same period
+
+				auto i = lastModifiedList.find(f);
+				if (i != lastModifiedList.end())
+				{
+					auto oneHalfSecond = Rococo::OS::CpuHz() / 2;
+					auto dt = Rococo::OS::CpuTicks() - i->second;
+					if (dt < oneHalfSecond)
+					{
+						// We've reported a change to that file in the last half a second, so skip 
+						continue;
+					}
+
+					i->second = Rococo::OS::CpuTicks();
+				}
+				else
+				{
+					lastModifiedList[f] = Rococo::OS::CpuTicks();
+				}
 
 				cb.OnEvent(FileModifiedArgs{ f.c_str() });
 			}

@@ -82,11 +82,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.mplat.dynamic", "roc
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.util", "rococo.util\rococo.util.vcxproj", "{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.cute", "rococo.cute\rococo.cute.vcxproj", "{8D046FB5-DA7D-4C07-A143-20FE5355B9FF}"
-	ProjectSection(ProjectDependencies) = postProject
-		{997A007C-24B0-44FE-A27E-0EE006D74128} = {997A007C-24B0-44FE-A27E-0EE006D74128}
-	EndProjectSection
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.mhost", "mhost\mhost.vcxproj", "{1EA74CEB-5E30-4B16-BDDF-8523A5F23DF8}"
 	ProjectSection(ProjectDependencies) = postProject
 		{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D} = {D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}
@@ -185,12 +180,6 @@ Global
 		{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}.Release|Any CPU.ActiveCfg = Release|x64
 		{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}.Release|x64.ActiveCfg = Release|x64
 		{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}.Release|x64.Build.0 = Release|x64
-		{8D046FB5-DA7D-4C07-A143-20FE5355B9FF}.Debug|Any CPU.ActiveCfg = Debug|x64
-		{8D046FB5-DA7D-4C07-A143-20FE5355B9FF}.Debug|x64.ActiveCfg = Debug|x64
-		{8D046FB5-DA7D-4C07-A143-20FE5355B9FF}.Debug|x64.Build.0 = Debug|x64
-		{8D046FB5-DA7D-4C07-A143-20FE5355B9FF}.Release|Any CPU.ActiveCfg = Release|x64
-		{8D046FB5-DA7D-4C07-A143-20FE5355B9FF}.Release|x64.ActiveCfg = Release|x64
-		{8D046FB5-DA7D-4C07-A143-20FE5355B9FF}.Release|x64.Build.0 = Release|x64
 		{1EA74CEB-5E30-4B16-BDDF-8523A5F23DF8}.Debug|Any CPU.ActiveCfg = Debug|x64
 		{1EA74CEB-5E30-4B16-BDDF-8523A5F23DF8}.Debug|x64.ActiveCfg = Debug|x64
 		{1EA74CEB-5E30-4B16-BDDF-8523A5F23DF8}.Debug|x64.Build.0 = Debug|x64

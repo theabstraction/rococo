@@ -209,6 +209,11 @@ namespace Rococo
 		  XMVECTOR PQ = XMQuaternionMultiply(P, Q);
 		  XMStoreFloat4((XMFLOAT4*) &pq, PQ);
 	  }
+
+      void RotateAboutZThetaDegrees(Degrees theta, Matrix4x4 Rz)
+      {
+          Rz = Matrix4x4::RotateRHAnticlockwiseZ(theta);
+      }
    } // Maths
 }// Rococo
 
