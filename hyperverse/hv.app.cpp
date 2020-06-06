@@ -209,7 +209,7 @@ namespace HV
 			editorPanel = e.platform.gui.BindPanelToScript("!scripts/panel.editor.sxy");
 			fpsPanel = e.platform.gui.BindPanelToScript("!scripts/panel.fps.sxy");
 			busyPanel = e.platform.gui.BindPanelToScript("!scripts/panel.opening.sxy");
-			overlayPanel = e.platform.gui.CreateOverlay();
+			overlayPanel = e.platform.gui.CreateDebuggingOverlay();
 
 			e.platform.gui.PushTop(fpsPanel->Supervisor(), true);
 

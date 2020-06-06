@@ -119,6 +119,7 @@
 	(context factory Rococo.ITextOutputPane)
 	(methods
 		(SetAlignment (Int32 horz)(Int32 vert)(Int32 paddingX)(Int32 paddingY))
+		(SetActivateKey (IString key))
 	)
 )
 

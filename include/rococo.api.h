@@ -210,6 +210,7 @@ namespace Rococo
 		void BeepWarning();
 		void BuildExceptionString(char* buffer, size_t capacity, IException& ex, bool appendStack);
 		void CopyExceptionToClipboard(IException& ex);
+		void EditImageFile(Rococo::Windows::IWindow& window, const wchar_t* sysPath);
 
 		struct IThreadControl;
 
@@ -448,6 +449,7 @@ namespace Rococo
 		struct VisitorItemClickedEvent : EventArgs
 		{
 			cstr key;
+			cstr value;
 		};
 
 		ROCOCOAPI IObserver

@@ -30,6 +30,8 @@ namespace Rococo
 		virtual void Free() = 0;
 	};
 
+	// An IAppManager implementation manages a mainloop and periodically calls app.OnFrameUpdate
+	// It is generally used when the major implementation language is C++
 	ROCOCOAPI IAppManager
 	{
 		virtual void Free() = 0;
@@ -40,6 +42,9 @@ namespace Rococo
 
 	struct IDirectAppFactory;
 
+	// An IDirectAppManager implementation passes control to an IDirectApp. The IDirectApp implementation
+	// implements its own mainloop. This allows a mod to have complete control of program execution.
+	// MHost uses this methodology to give script writers complete control of program flow.
 	ROCOCOAPI IDirectAppManager
 	{
 		virtual void Free() = 0;

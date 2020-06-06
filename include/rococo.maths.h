@@ -195,6 +195,16 @@ namespace Rococo
 		return 180.0f / PI();
 	}
 
+	inline bool operator != (const GuiRect& a, const GuiRect& b)
+	{
+		return a.left != b.left || a.right != b.right || a.bottom != b.bottom || a.top != b.top;
+	}
+
+	inline bool operator == (const GuiRect& a, const GuiRect& b)
+	{
+		return !(a != b);
+	}
+
 	struct Radians
 	{
 		float radians;

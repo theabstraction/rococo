@@ -63,6 +63,7 @@
       <PreprocessorDefinitions>_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir)include\;$(SolutionDir)sexy\common\</AdditionalIncludeDirectories>
+      <AdditionalOptions>-wd4250</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -83,6 +84,7 @@
       <PreprocessorDefinitions>NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir)include\;$(SolutionDir)sexy\common\</AdditionalIncludeDirectories>
+      <AdditionalOptions>-wd4250</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -114,6 +116,7 @@
     <ClCompile Include="mplat.graphics.sprites.cpp" />
     <ClCompile Include="mplat.graphics.tess.rim.cpp" />
     <ClCompile Include="mplat.graphics.text.tesselator.cpp" />
+    <ClCompile Include="mplat.guistack.cpp" />
     <ClCompile Include="mplat.keyboard.cpp" />
     <ClCompile Include="mplat.main.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
@@ -121,11 +124,21 @@
     </ClCompile>
     <ClCompile Include="mplat.maths.visitor.cpp" />
     <ClCompile Include="mplat.graphics.scene.cpp" />
+    <ClCompile Include="mplat.os.win32.venue.cpp" />
+    <ClCompile Include="mplat.overlay.cpp" />
+    <ClCompile Include="mplat.pane.label.cpp" />
+    <ClCompile Include="mplat.pane.radiobutton.cpp" />
+    <ClCompile Include="mplat.pane.scrollbar.cpp" />
+    <ClCompile Include="mplat.pane.slider.cpp" />
+    <ClCompile Include="mplat.pane.tab.container.cpp" />
+    <ClCompile Include="mplat.pane.textoutput.cpp" />
     <ClCompile Include="mplat.renderer.config.cpp" />
     <ClCompile Include="mplat.scripts.cpp" />
+    <ClCompile Include="mplat.utilities.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\rococo.mplat.h" />
+    <ClInclude Include="mplat.panel.base.h" />
     <ClInclude Include="mplat.sxh.h" />
     <ClInclude Include="rococo.script.types.h" />
   </ItemGroup>
@@ -135,6 +148,7 @@
     <CustomBuild Include="mplat.sxh">
       <FileType>Document</FileType>
     </CustomBuild>
+    <ClCompile Include="mplat.pane.base.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

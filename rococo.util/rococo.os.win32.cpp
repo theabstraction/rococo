@@ -39,6 +39,8 @@
 
 #include <ctime>
 
+#include <shellapi.h>
+
 namespace Rococo
 {
 	void GetTimestamp(char str[26])
@@ -119,6 +121,11 @@ namespace Rococo
 {
 	namespace OS
 	{
+		void EditImageFile(Rococo::Windows::IWindow& window, const wchar_t* sysPath)
+		{
+			ShellExecuteW(window, L"open", sysPath, nullptr, nullptr, SW_SHOW);
+		}
+
 		void MakeContainerDirectory(char* filename)
 		{
 			int len = (int)rlen(filename);

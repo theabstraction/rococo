@@ -417,7 +417,8 @@ namespace
 							   if (*line.selectEvent.name != 0)
 							   {
 								   VisitorItemClickedEvent clicked;
-								   clicked.key = line.key;					   
+								   clicked.key = line.key;	
+								   clicked.value = line.value;
 								   publisher.Publish(clicked, line.selectEvent);
 							   }
 						   }

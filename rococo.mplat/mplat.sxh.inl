@@ -4041,6 +4041,22 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->SetAlignment(horz, vert, paddingX, paddingY);
 	}
+	void NativeRococoITextOutputPaneSetActivateKey(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _key;
+		ReadInput(_key, _sf, -_offset);
+		fstring key { _key->buffer, _key->length };
+
+
+		Rococo::ITextOutputPane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetActivateKey(key);
+	}
 
 }
 
@@ -4066,6 +4082,7 @@ namespace Rococo {
 		ss.AddNativeCall(ns, NativeRococoITextOutputPaneSetCommand, nullptr, ("ITextOutputPaneSetCommand (Pointer hObject)(Int32 stateIndex)(Bool deferAction)(Sys.Type.IString text) -> "));
 		ss.AddNativeCall(ns, NativeRococoITextOutputPaneSetPopulator, nullptr, ("ITextOutputPaneSetPopulator (Pointer hObject)(Int32 stateIndex)(Sys.Type.IString populatorName) -> "));
 		ss.AddNativeCall(ns, NativeRococoITextOutputPaneSetAlignment, nullptr, ("ITextOutputPaneSetAlignment (Pointer hObject)(Int32 horz)(Int32 vert)(Int32 paddingX)(Int32 paddingY) -> "));
+		ss.AddNativeCall(ns, NativeRococoITextOutputPaneSetActivateKey, nullptr, ("ITextOutputPaneSetActivateKey (Pointer hObject)(Sys.Type.IString key) -> "));
 	}
 }
 // BennyHill generated Sexy native functions for Rococo::IPaneBuilder 

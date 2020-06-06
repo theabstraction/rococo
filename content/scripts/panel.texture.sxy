@@ -19,6 +19,7 @@
 	(textOut.SetColourEdge1 0xFFFFFFFF 0xFFFFFFFF)
 	(textOut.SetColourEdge2 0xFFFFFFFF 0xFFFFFFFF)
 	(textOut.SetAlignment -1 0 0 0)
+	(textOut.SetActivateKey "overlay.texture.desc")
 )
 
 (function AddBlue(IPaneContainer builder)(Recti rect)-> :
@@ -52,13 +53,13 @@
 	(fakeTabs.SetColourEdge2 0xFFFFFFFF 0xFFFFFFFF)
 	(fakeTabs.SetPopulator 0 "texture_cancel")
 	
-	(Recti rect = 110 10 1000 30)
+	(Recti rect = 140 10 1300 38)
 	(AddTextOut "selected.texture.name" pane rect)
 	
 	(Recti crossRect = 1 1 79 8)
 	(AddBlue fakeTabs crossRect)
 	
-	(Recti txRect = 140 40 652 552)
+	(Recti txRect = 140 50 652 562)
 	(IPaneContainer textureView = (pane.AddContainer txRect))
 	(textureView.SetColourBk1   0x00000000 0x00000000)
 	(textureView.SetColourBk2   0x00000000 0x00000000)

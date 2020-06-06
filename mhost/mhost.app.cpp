@@ -261,7 +261,7 @@ namespace MHost
 			platform(_platform), control(_control), sceneManager(_platform)
 		{
 			busyPanel = platform.gui.BindPanelToScript("!scripts/panel.opening.sxy");
-			overlayPanel = platform.gui.CreateOverlay();
+			overlayPanel = platform.gui.CreateDebuggingOverlay();
 
 			platform.publisher.Subscribe(this, Rococo::Events::evBusy);
 

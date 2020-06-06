@@ -129,6 +129,7 @@ namespace ANON
 		}
 	}
 
+	// See IAppManager for an explanation of this class
 	struct AppManager : public IAppManager, public IEventCallback<SysUnstableArgs>, public IAppEventHandler
 	{
 		IApp& app;
@@ -190,6 +191,7 @@ namespace ANON
 		}
 	};
 
+	// See IDirectAppManager for an explanation of this class
 	struct DirectAppManager :
 		public IDirectAppManager,
 		public IEventCallback<SysUnstableArgs>,
