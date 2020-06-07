@@ -38,7 +38,7 @@
 
 (method World.UpdateMouseLook (Vec2 delta)-> :
 	(Float32 newBearing = (delta.x + this.cameraOrientation.bearing))
-	(Float32 newElevation = (delta.y + this.cameraOrientation.elevation))
+	(Float32 newElevation = (this.cameraOrientation.elevation - delta.y))
 	(this.cameraOrientation.bearing = (Sys.Maths.F32.Mod newBearing 360))
 	(this.cameraOrientation.elevation = (Sys.Maths.F32.Clamp newElevation -45 45))
 )
@@ -128,20 +128,23 @@
 	// Consider the case of three rotations mapping -z to a direction N. The inverse transformation
 	// of three rotations is three inverse rotations in reverse order. e.g (Rx.Ry.Rz)' = Rz'.Ry'.Rx'
 	
-	(Float32 anticlockWiseDegrees = (0 - this.cameraOrientation.bearing))
-	
-	(Matrix4x4 rZ)
-	(Sys.Geometry.F32.RotateAboutZ anticlockWiseDegrees rZ)
-	
-	(Float32 forwardDelta = (0.01 * forwardSpeed))
-	
-	(Vec4 forward = 0 forwardDelta 0 0)
-	(Vec4 worldForward)
-	
-	(Sys.Geometry.F32.MultiplyMatrix4x4fVec4f rZ forward worldForward)
-	
-	(this.cameraPos.x = (this.cameraPos.x + worldForward.x))
-	(this.cameraPos.y = (this.cameraPos.y + worldForward.y))
+	(if ((forwardSpeed != 0) or (straffeSpeed != 0))
+		(Float32 anticlockWiseDegrees = (0 - this.cameraOrientation.bearing))
+		
+		(Matrix4x4 rZ)
+		(Sys.Geometry.F32.RotateAboutZ anticlockWiseDegrees rZ)
+		
+		(Float32 forwardDelta = (0.1 * forwardSpeed))
+		(Float32 straffeDelta = (0.1 * straffeSpeed))
+		
+		(Vec4 forward = straffeDelta forwardDelta 0 0)
+		(Vec4 worldForward)
+		
+		(Sys.Geometry.F32.MultiplyMatrix4x4fVec4f rZ forward worldForward)
+		
+		(this.cameraPos.x = (this.cameraPos.x + worldForward.x))
+		(this.cameraPos.y = (this.cameraPos.y + worldForward.y))
+	)
 )
 
 (method World.Construct : 
@@ -151,7 +154,7 @@
 	(IInstances instances (Instances))
 	(instances.Clear)
 	
-//	(MakeBottle "potion.1") 
+	(MakeBottle "potion.1") 
 	
 	(Matrix4x4 model = 
 		(1 0 0 0)
@@ -162,7 +165,7 @@
 	
 	(Vec3 noScale = 1 1 1)
 	
-//	(Int64 bottleId = (instances.AddBody "potion.1" model noScale 0))
+	(Int64 bottleId = (instances.AddBody "potion.1" model noScale 0))
 	
 	(MakeFloor "floor.1")
 	

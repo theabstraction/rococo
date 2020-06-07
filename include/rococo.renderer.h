@@ -137,6 +137,7 @@ namespace Rococo
 	{
 		Matrix4x4 worldMatrixAndProj;
 		Matrix4x4 worldMatrix;
+		Matrix4x4 projMatrix;
 		GuiScale guiScale;
 		Vec4 eye;
 		Vec4 viewDir;
@@ -194,7 +195,7 @@ namespace Rococo
 
 	ROCOCOAPI IScene
 	{
-		virtual void GetCamera(Matrix4x4& camera, Matrix4x4& world, Vec4& eye, Vec4& viewDir) = 0;
+		virtual void GetCamera(Matrix4x4& camera, Matrix4x4& world, Matrix4x4& proj, Vec4& eye, Vec4& viewDir) = 0;
 		virtual ID_CUBE_TEXTURE GetSkyboxCubeId() const = 0;
 		virtual RGBA GetClearColour() const = 0;
 		virtual void OnGuiResize(Vec2i screenSpan) = 0;

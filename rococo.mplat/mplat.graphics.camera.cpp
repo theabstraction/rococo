@@ -45,6 +45,11 @@ namespace
       {
       }
 
+      void GetProjection(Matrix4x4& proj)
+      {
+          proj = this->projection;
+      }
+
       IMathsVenue& Venue()
       {
          return *this;

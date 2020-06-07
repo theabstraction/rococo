@@ -235,6 +235,7 @@
 		(GetOrientation (Quat orientation))
 		(GetWorld (Matrix4x4 world))
 		(GetWorldAndProj (Matrix4x4 worldAndProj))
+		(GetProjection (Matrix4x4 proj))
 		(AspectRatio -> (Float32 widthOverHeight))
 	)
 	(factory Rococo.Graphics.Camera)

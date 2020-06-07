@@ -2481,7 +2481,7 @@ namespace ANON
 	   void UpdateGlobalState(IScene& scene)
 	   {
 		   GlobalState g;
-		   scene.GetCamera(g.worldMatrixAndProj, g.worldMatrix, g.eye, g.viewDir);
+		   scene.GetCamera(g.worldMatrixAndProj, g.worldMatrix, g.projMatrix, g.eye, g.viewDir);
 
 		   float aspectRatio = screenSpan.y / (float)screenSpan.x;
 		   g.aspect = { aspectRatio,0,0,0 };

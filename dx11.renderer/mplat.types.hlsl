@@ -26,6 +26,8 @@ struct GlobalState
 {
 	float4x4 worldToScreenMatrix;
 	float4x4 worldToCameraMatrix;
+	float4x4 cameraToScreenMatrix;
+	float4x4 skymatrix; // worldToScreenMatrix with player position at the origin (0 0 0)
 	GuiScale guiScale;
 	float4 eye;
 	float4 viewDir;

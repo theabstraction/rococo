@@ -52,9 +52,9 @@ namespace MHost
 			return platform.scene.GetSkyboxCubeId();
 		}
 
-		void GetCamera(Matrix4x4& projection, Matrix4x4& worldToCamera, Vec4& eye, Vec4& viewDir) override
+		void GetCamera(Matrix4x4& worldToScreen, Matrix4x4& worldToCamera, Matrix4x4& proj, Vec4& eye, Vec4& viewDir) override
 		{
-			return platform.scene.GetCamera(projection, worldToCamera, eye, viewDir);
+			return platform.scene.GetCamera(worldToScreen, worldToCamera, proj, eye, viewDir);
 		}
 
 		RGBA GetClearColour() const override
@@ -101,9 +101,9 @@ namespace MHost
 		{
 		}
 
-		void GetCamera(Matrix4x4& projection, Matrix4x4& worldToCamera, Vec4& eye, Vec4& viewDir) override
+		void GetCamera(Matrix4x4& worldToScreen, Matrix4x4& worldToCamera, Matrix4x4& proj, Vec4& eye, Vec4& viewDir) override
 		{
-			projection = worldToCamera = Matrix4x4::Identity();
+			proj = worldToScreen = worldToCamera = Matrix4x4::Identity();
 			eye = { 0,0,0 };
 			viewDir = { 1,0,0 };
 		}

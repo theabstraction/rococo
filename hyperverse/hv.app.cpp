@@ -68,9 +68,9 @@ namespace HV
 			}
 		}
 
-		void GetCamera(Matrix4x4& proj, Matrix4x4& world, Vec4& eye, Vec4& viewDir) override
+		void GetCamera(Matrix4x4& wordlToScreen, Matrix4x4& world, Matrix4x4& proj, Vec4& eye, Vec4& viewDir) override
 		{
-			e.platform.scene.GetCamera(proj, world, eye, viewDir);
+			e.platform.scene.GetCamera(wordlToScreen, world, proj, eye, viewDir);
 		}
 
 		void RenderObjects(IRenderContext& rc)  override

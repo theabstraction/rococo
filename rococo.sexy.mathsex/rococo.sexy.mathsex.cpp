@@ -210,7 +210,7 @@ namespace Rococo
 		  XMStoreFloat4((XMFLOAT4*) &pq, PQ);
 	  }
 
-      void RotateAboutZThetaDegrees(Degrees theta, Matrix4x4 Rz)
+      void RotateAboutZThetaDegrees(Degrees theta, Matrix4x4& Rz)
       {
           Rz = Matrix4x4::RotateRHAnticlockwiseZ(theta);
       }

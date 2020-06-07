@@ -4943,6 +4943,20 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->GetWorldAndProj(*worldAndProj);
 	}
+	void NativeRococoGraphicsICameraGetProjection(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Matrix4x4* proj;
+		_offset += sizeof(proj);
+		ReadInput(proj, _sf, -_offset);
+
+		Rococo::Graphics::ICamera* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GetProjection(*proj);
+	}
 	void NativeRococoGraphicsICameraAspectRatio(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -4985,6 +4999,7 @@ namespace Rococo { namespace Graphics {
 		ss.AddNativeCall(ns, NativeRococoGraphicsICameraGetOrientation, nullptr, ("ICameraGetOrientation (Pointer hObject)(Sys.Maths.Quat orientation) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsICameraGetWorld, nullptr, ("ICameraGetWorld (Pointer hObject)(Sys.Maths.Matrix4x4 world) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsICameraGetWorldAndProj, nullptr, ("ICameraGetWorldAndProj (Pointer hObject)(Sys.Maths.Matrix4x4 worldAndProj) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsICameraGetProjection, nullptr, ("ICameraGetProjection (Pointer hObject)(Sys.Maths.Matrix4x4 proj) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsICameraAspectRatio, nullptr, ("ICameraAspectRatio (Pointer hObject) -> (Float32 widthOverHeight)"));
 	}
 }}
