@@ -338,6 +338,36 @@ namespace
 		Rococo::Maths::MultiplyQuatByQuat(*a, *b, *output);
 	}
 
+	void NativeSysGeometryF32RotateAboutX(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Matrix4x4* rX;
+		_offset += sizeof(rX);
+		ReadInput(rX, _sf, -_offset);
+
+		Degrees degrees;
+		_offset += sizeof(degrees);
+		ReadInput(degrees, _sf, -_offset);
+
+		Rococo::Maths::RotateAboutXThetaDegrees(degrees, *rX);
+	}
+
+	void NativeSysGeometryF32RotateAboutY(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Matrix4x4* rY;
+		_offset += sizeof(rY);
+		ReadInput(rY, _sf, -_offset);
+
+		Degrees degrees;
+		_offset += sizeof(degrees);
+		ReadInput(degrees, _sf, -_offset);
+
+		Rococo::Maths::RotateAboutYThetaDegrees(degrees, *rY);
+	}
+
 	void NativeSysGeometryF32RotateAboutZ(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -346,11 +376,26 @@ namespace
 		_offset += sizeof(rZ);
 		ReadInput(rZ, _sf, -_offset);
 
-		float degrees;
+		Degrees degrees;
 		_offset += sizeof(degrees);
 		ReadInput(degrees, _sf, -_offset);
 
-		Rococo::Maths::RotateAboutZThetaDegrees(Degrees{ degrees } , *rZ);
+		Rococo::Maths::RotateAboutZThetaDegrees(degrees, *rZ);
+	}
+
+	void NativeSysGeometryF32MakeTranslateMatrix(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Matrix4x4* t;
+		_offset += sizeof(t);
+		ReadInput(t, _sf, -_offset);
+
+		Vec3* ds;
+		_offset += sizeof(ds);
+		ReadInput(ds, _sf, -_offset);
+
+		Rococo::Maths::MakeTranslateMatrix(*ds, *t);
 	}
 
 }
@@ -377,6 +422,9 @@ namespace Sys { namespace Geometry { namespace F32 {
 		ss.AddNativeCall(ns, NativeSysGeometryF32LerpVec3, nullptr, ("LerpVec3(Sys.Maths.Vec3 a)(Sys.Maths.Vec3 b)(Float32 t)(Sys.Maths.Vec3 mixed) -> "));
 		ss.AddNativeCall(ns, NativeSysGeometryF32GetRotationQuat, nullptr, ("GetRotationQuat(Sys.Maths.Degrees theta)(Float32 i)(Float32 j)(Float32 k)(Sys.Maths.Quat q) -> "));
 		ss.AddNativeCall(ns, NativeSysGeometryF32MultiplyQuatfQuatf, nullptr, ("MultiplyQuatfQuatf(Sys.Maths.Quat a)(Sys.Maths.Quat b)(Sys.Maths.Quat output) -> "));
-		ss.AddNativeCall(ns, NativeSysGeometryF32RotateAboutZ, nullptr, ("RotateAboutZ(Float32 degrees)(Sys.Maths.Matrix4x4 rZ) -> "));
+		ss.AddNativeCall(ns, NativeSysGeometryF32RotateAboutX, nullptr, ("RotateAboutX(Sys.Maths.Degrees degrees)(Sys.Maths.Matrix4x4 rX) -> "));
+		ss.AddNativeCall(ns, NativeSysGeometryF32RotateAboutY, nullptr, ("RotateAboutY(Sys.Maths.Degrees degrees)(Sys.Maths.Matrix4x4 rY) -> "));
+		ss.AddNativeCall(ns, NativeSysGeometryF32RotateAboutZ, nullptr, ("RotateAboutZ(Sys.Maths.Degrees degrees)(Sys.Maths.Matrix4x4 rZ) -> "));
+		ss.AddNativeCall(ns, NativeSysGeometryF32MakeTranslateMatrix, nullptr, ("MakeTranslateMatrix(Sys.Maths.Vec3 ds)(Sys.Maths.Matrix4x4 t) -> "));
 	}
 }}}

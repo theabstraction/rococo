@@ -19,6 +19,16 @@ namespace Rococo
       return xdet.m128_f32[0];
    }
 
+   Vec4 operator * (float scale, const Vec4& v)
+   {
+	   return Vec4{ v.x * scale, v.y * scale, v.z * scale, v.w };
+   }
+
+   Vec4 operator-(const Vec4& v)
+   {
+	   return Vec4{ -v.x, -v.y, -v.z, v.w };
+   }
+
    Matrix4x4 RotateDirectionToNegZ(cr_vec3 direction)
    {
 	   float Dy = direction.y;
@@ -518,6 +528,19 @@ namespace Rococo
 		};
 	}
 
+	Matrix4x4 Matrix4x4::RotateRHAnticlockwiseY(Radians theta)
+	{
+		float s = Sin(theta);
+		float c = Cos(theta);
+
+		return Matrix4x4{
+			{ c,   0,     -s,        0 },
+			{ 0, 1.0f,     0,        0 },
+			{ s,    0,     c,        0 },
+			{ 0,    0,     0,     1.0f }
+		};
+	}
+
 	Matrix4x4 Matrix4x4::RotateRHAnticlockwiseZ(Radians theta)
 	{
 		float s = Sin(theta);
@@ -633,8 +656,20 @@ namespace Rococo
 
 	Matrix4x4 InvertMatrix(const Matrix4x4& matrix)
 	{
+#ifdef _DEBUG
+		if (isnan(matrix.row3.w))
+		{
+			Throw(0, "Bad input matrix");
+		}
+#endif
 		Matrix4x4 invMatrix;
 		InvertMatrix(matrix, invMatrix);
+#ifdef _DEBUG
+		if (isnan(invMatrix.row3.w))
+		{
+			Throw(0, "Could not invert matrix");
+		}
+#endif
 		return invMatrix;
 	}
 

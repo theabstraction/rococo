@@ -12,6 +12,8 @@ namespace Rococo
 		struct IDrawTextJob;
 	}
 
+	struct Light;
+
 	struct BaseVertexData
 	{
 		Vec2 uv;
@@ -201,7 +203,7 @@ namespace Rococo
 		virtual void OnGuiResize(Vec2i screenSpan) = 0;
 		virtual void RenderGui(IGuiRenderContext& grc) = 0;
 		virtual void RenderObjects(IRenderContext& rc) = 0; // Do not change lights from here
-		virtual const Light* GetLights(size_t& nCount) const = 0;	// Called prior to the shadow pass. 
+		virtual const Light* GetLights(uint32& nCount) const = 0;	// Called prior to the shadow pass. 
 		virtual void RenderShadowPass(const DepthRenderData& drd, IRenderContext& rc) = 0; // Do not change lights from here
 	};
 

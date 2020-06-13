@@ -248,7 +248,7 @@
 	(IWorld world = this.world)
 	
 	(Int64 cubeId = (instances.CreateCubeTexture "!textures/t3d/skybox/YokohamaSmall/" "jpg"))
-	(scene.SetSkyBox cubeId)
+//	(scene.SetSkyBox cubeId)
 	
 	(while this.engine.IsRunning
 		(AdvanceCoroutines this.coroutines)
@@ -274,23 +274,6 @@
 )
 
 (function Main (Int32 id) -> (Int32 exitCode):
-	(ISceneBuilder scene (SceneBuilder))
-	
-	(LightSpec light)
-	(light.position = 0 3 1.2)
-	(light.direction = 0 0.0 -1)
-	(light.fov = 45)
-	(light.diffuse = 3.0 3.0 3.0 1.0)
-	(light.ambience = 0.6 0.6 0.6 0.5)
-	(light.cutoffAngle = 25)
-	(light.cutoffPower = 25)
-	(light.attenuation = -0.5)
-	(light.nearPlane = 0.1)
-	(light.farPlane = 1000)
-	(light.fogConstant = -0.1)
-	
-	(scene.SetLight light 0)
-	
 	(Sys.Random.Seed 0)
 	(IBundle bundle (NewGameBundle))
 	(bundle.Run)

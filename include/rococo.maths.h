@@ -134,6 +134,10 @@ namespace Rococo
 		// The matrx rotates vectors by pre multiplying the vector: MP -> P'
 		static Matrix4x4 RotateRHAnticlockwiseZ(Radians theta);
 
+		// Given a right handed co-ordinate system, with Y away from the observer, phi gives the rotation in radians anticlockwise about the axis
+		// The matrx rotates vectors by pre multiplying the vector: MP -> P'
+		static Matrix4x4 RotateRHAnticlockwiseY(Radians theta);
+
 		Vec3 GetPosition() const
 		{
 			return Vec3{ row0.w, row1.w, row2.w };
@@ -178,10 +182,11 @@ namespace Rococo
 	// Multiply matrix Ra x Rb to make RaRb. This has the property that Ra X Rb x v = (Ra x Rb) x v = Ra x (Rb x v)
 	void Multiply(Matrix4x4& product, const Matrix4x4& Ra, const Matrix4x4& Rb);
 #endif
-
+	Vec4 operator-(const Vec4& v);
 	Matrix4x4 operator * (const Matrix4x4& a, const Matrix4x4& b);
 	Vec4 operator * (const Vec4& v, const Matrix4x4& R);
 	Vec4 operator * (const Matrix4x4& R, const Vec4& v);
+	Vec4 operator * (float scale, const Vec4& v); // Scale a 4 vector. N.B w component is invariant
 
 	inline constexpr float PI() { return 3.14159265358979323846f; }
 

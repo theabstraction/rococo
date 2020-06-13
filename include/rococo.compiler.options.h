@@ -1,7 +1,7 @@
 #ifndef ROCOCO_COMPILER_OPTIONS_H
 # define ROCOCO_COMPILER_OPTIONS_H
 
-# define _ITERATOR_DEBUG_LEVEL 0
+# define _ITERATOR_DEBUG_LEVEL 0 // This can speed execution in debug mode quite a bit
 # define _SECURE_SCL_THROWS 0
 # define _NO_DEBUG_HEAP 1
 
@@ -21,6 +21,10 @@
 # define CALLTYPE_C __cdecl
 #else
 # define CALLTYPE_C
+#endif
+
+#ifdef _WIN32
+#pragma warning ( disable: 26812 )
 #endif
 
 #endif // ROCOCO

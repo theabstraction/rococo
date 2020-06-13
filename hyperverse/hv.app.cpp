@@ -43,7 +43,7 @@ namespace HV
 			return e.platform.scene.GetSkyboxCubeId();
 		}
 
-		const Light* GetLights(size_t& nLights) const override
+		const Light* GetLights(uint32& nLights) const override
 		{
 			return e.platform.scene.GetLights(nLights);
 		}

@@ -1422,12 +1422,12 @@ namespace Rococo
 						}
 					}
 				} tracer(ss, vm);
-				EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(true, false), &tracer);
+				EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, false), &tracer);
 				return result;
 			}
 			else
 			{
-				EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(true, false));
+				EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, false));
 				return result;
 			}
 		}

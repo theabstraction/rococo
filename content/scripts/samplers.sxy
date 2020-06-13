@@ -51,7 +51,7 @@
 	(rc.SetSampler eDef (#SampleIndexEnvironmentalMap))
 
 	(SampleStateDef shadowDef)
-	(shadowDef.method = (#SampleMethodPoint))
+	(shadowDef.method = (#SampleMethodLinear))
 	(shadowDef.u = (#SampleFilterBorder))
 	(shadowDef.v = (#SampleFilterBorder))
 	(shadowDef.w = (#SampleFilterBorder))

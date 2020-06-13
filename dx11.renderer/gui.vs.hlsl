@@ -1,3 +1,5 @@
+#include <mplat.api.hlsl>
+
 struct BaseVertexData
 {
 	float2 uv;
@@ -28,36 +30,18 @@ struct PixelVertex
 	float4 colour : COLOR;
 };
 
-struct GuiScale
-{
-	float OOScreenWidth;
-	float OOScreenHeight;
-	float OOFontWidth;
-	float OOSpriteWidth;
-};
-
-cbuffer GlobalState: register(b0)
-{
-	float4x4 worldMatrixAndProj;
-	float4x4 worldMatrix;
-	GuiScale guiScale;
-	float4 eye;
-	float4 viewDir;
-	float4 aspect;
-}
-
 PixelVertex main(GuiVertex v)
 {
 	PixelVertex sv;
 
-	sv.position.x = 2.0f * v.pos.x * guiScale.OOScreenWidth - 1.0f;
-	sv.position.y = -2.0f * v.pos.y * guiScale.OOScreenHeight + 1.0f;
+	sv.position.x = 2.0f * v.pos.x * global.guiScale.OOScreenWidth - 1.0f;
+	sv.position.y = -2.0f * v.pos.y * global.guiScale.OOScreenHeight + 1.0f;
 	sv.position.z = 0;
 	sv.position.w = 1.0f;
 	sv.colour = v.colour;
 	sv.base = v.base;
 	sv.sd = v.sd;
-	sv.base.xy = lerp(sv.base.xy, v.base.xy * guiScale.OOFontWidth, v.base.z);
-	sv.base.xy = lerp(v.base.xy * guiScale.OOSpriteWidth, sv.base.xy, sv.sd.w);
+	sv.base.xy = lerp(sv.base.xy, v.base.xy * global.guiScale.OOFontWidth, v.base.z);
+	sv.base.xy = lerp(v.base.xy * global.guiScale.OOSpriteWidth, sv.base.xy, sv.sd.w);
 	return sv;
 }

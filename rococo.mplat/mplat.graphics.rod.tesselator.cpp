@@ -926,6 +926,11 @@ namespace ANON
 					{ t.C + origin, normal, uvC,  middle }
 				};
 
+				if (normal.z < 0)
+				{
+					std::swap(vt.b, vt.c);
+				}
+
 				triangles.push_back(vt);
 
 				s0 = s1;

@@ -109,7 +109,7 @@ struct TestApp : IApp, private IScene, public IEventCallback<FileModifiedArgs>
       return RGBA(0.0f, 0.0f, 0.0f, 1.0f);
    }
 
-   const Light* GetLights(size_t& nLights) const override
+   const Light* GetLights(uint32& nLights) const override
    {
 	   nLights = 0;
 	   return nullptr;

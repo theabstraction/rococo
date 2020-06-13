@@ -175,6 +175,7 @@ namespace Rococo
 		~RecursionGuard() { counter--; }
 	};
 
+	[[ noreturn ]]
 	void Throw(int32 errorCode, cstr format, ...);
 
 	template<class T> struct IEventCallback

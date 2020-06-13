@@ -214,6 +214,21 @@ namespace Rococo
       {
           Rz = Matrix4x4::RotateRHAnticlockwiseZ(theta);
       }
+
+	  void RotateAboutYThetaDegrees(Degrees theta, Matrix4x4& Rz)
+	  {
+		  Rz = Matrix4x4::RotateRHAnticlockwiseY(theta);
+	  }
+
+	  void RotateAboutXThetaDegrees(Degrees theta, Matrix4x4& Rz)
+	  {
+		  Rz = Matrix4x4::RotateRHAnticlockwiseX(theta);
+	  }
+
+	  void MakeTranslateMatrix(cr_vec3 ds, Matrix4x4& T)
+	  {
+		  T = Matrix4x4::Translate(ds);
+	  }
    } // Maths
 }// Rococo
 

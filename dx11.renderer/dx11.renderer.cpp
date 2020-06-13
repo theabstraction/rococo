@@ -359,11 +359,11 @@ namespace ANON
 	   AutoRelease<ID3D11Texture2D> fontTexture;
 	   AutoRelease<ID3D11ShaderResourceView> fontBinding;
 
-	   AutoRelease<ID3D11RasterizerState> spriteRaterizering;
-	   AutoRelease<ID3D11RasterizerState> objectRaterizering;
-	   AutoRelease<ID3D11RasterizerState> particleRaterizering;
+	   AutoRelease<ID3D11RasterizerState> spriteRasterizering;
+	   AutoRelease<ID3D11RasterizerState> objectRasterizering;
+	   AutoRelease<ID3D11RasterizerState> particleRasterizering;
 	   AutoRelease<ID3D11RasterizerState> skyRasterizering;
-	   AutoRelease<ID3D11RasterizerState> shadowRaterizering;
+	   AutoRelease<ID3D11RasterizerState> shadowRasterizering;
 
 	   AutoRelease<ID3D11BlendState> alphaBlend;
 	   AutoRelease<ID3D11BlendState> alphaAdditiveBlend;
@@ -380,6 +380,8 @@ namespace ANON
 	   AutoRelease<ID3D11Texture2D> cubeTexture;
 	   AutoRelease<ID3D11ShaderResourceView> cubeTextureView;
 
+	   AutoRelease<ID3D11Buffer> lightConeBuffer;
+
 	   RAWMOUSE lastMouseEvent;
 	   Vec2i screenSpan;
 
@@ -388,6 +390,9 @@ namespace ANON
 
 	   ID_VERTEX_SHADER idObjVS;
 	   ID_PIXEL_SHADER idObjPS;
+	   ID_PIXEL_SHADER idLightConePS;
+
+	   ID_VERTEX_SHADER idLightConeVS;
 	   ID_VERTEX_SHADER idObjAmbientVS;
 	   ID_PIXEL_SHADER idObjAmbientPS;
 
@@ -482,11 +487,11 @@ namespace ANON
 		   guiDepthState = DX11::CreateGuiDepthStencilState(device);
 		   noDepthTestOrWrite = DX11::CreateNoDepthCheckOrWrite(device);
 
-		   spriteRaterizering = DX11::CreateSpriteRasterizer(device);
-		   objectRaterizering = DX11::CreateObjectRasterizer(device);
-		   particleRaterizering = DX11::CreateParticleRasterizer(device);
+		   spriteRasterizering = DX11::CreateSpriteRasterizer(device);
+		   objectRasterizering = DX11::CreateObjectRasterizer(device);
+		   particleRasterizering = DX11::CreateParticleRasterizer(device);
 		   skyRasterizering = DX11::CreateSkyRasterizer(device);
-		   shadowRaterizering = DX11::CreateShadowRasterizer(device);
+		   shadowRasterizering = DX11::CreateShadowRasterizer(device);
 
 		   alphaBlend = DX11::CreateAlphaBlend(device);
 		   alphaAdditiveBlend = DX11::CreateAlphaAdditiveBlend(device);
@@ -559,6 +564,12 @@ namespace ANON
 		   installation.LoadResource("!shadow.ps", *scratchBuffer, 64_kilobytes);
 		   idObjPS_Shadows = CreatePixelShader("!shadow.ps", scratchBuffer->GetData(), scratchBuffer->Length());
 
+		   installation.LoadResource("!light_cone.ps", *scratchBuffer, 64_kilobytes);
+		   idLightConePS = CreatePixelShader("!light_cone.ps", scratchBuffer->GetData(), scratchBuffer->Length());
+
+		   installation.LoadResource("!light_cone.vs", *scratchBuffer, 64_kilobytes);
+		   idLightConeVS = CreateVertexShader("!light_cone.vs", scratchBuffer->GetData(), scratchBuffer->Length(), DX11::GetObjectVertexDesc(), DX11::NumberOfObjectVertexElements());
+
 		   instanceBuffer = DX11::CreateConstantBuffer<ObjectInstance>(device);
 
 		   installation.LoadResource("!skybox.vs", *scratchBuffer, 64_kilobytes);
@@ -617,6 +628,8 @@ namespace ANON
 		   SetSampler(TXUNIT_SELECT, Filter_Linear, AddressMode_Wrap, AddressMode_Wrap, AddressMode_Wrap, red);
 		   SetSampler(TXUNIT_MATERIALS, Filter_Linear, AddressMode_Wrap, AddressMode_Wrap, AddressMode_Wrap, red);
 		   SetSampler(TXUNIT_SPRITES,   Filter_Point, AddressMode_Border, AddressMode_Border, AddressMode_Border, red);
+
+		   lightConeBuffer = DX11::CreateDynamicVertexBuffer<ObjectVertex>(device, 3);
 	   }
 
 	   ~DX11AppRenderer()
@@ -1972,7 +1985,87 @@ namespace ANON
 
 	   RenderPhase phase = RenderPhase_None;
 
-	   virtual void Draw(ID_SYS_MESH id, const ObjectInstance* instances, uint32 nInstances)
+	   void DrawLightCone(const Light& light)
+	   {
+		   /* our aim is to render a cross section of the light cone as a single alpha blended triangle
+				   B
+				 '
+			   '
+			 ' (cutoffTheta)
+		   A   -----------------> Light direction D
+			 '
+			   '
+				  '
+					C
+
+
+			  A is the position of the light facing D. We need to compute B and C
+			 
+			  The triangle ABC is parallel to the screen (with screem direction F), which means BC.F = 0
+
+			  A unit vector p parallel to BC is thus the normalized cross product of F and D.
+
+			  p = |D x F|.
+
+			  We can now construct B and C by taking basis vectors d and p from A.
+
+			  Given we specify a length k of the light cone, along its central axis,
+			  then the radius R along the vector p to construct B and C is such that
+			  R / k = tan ( cutoffTheta )
+
+			  The component of d of D parallel to the screen is | F x p |
+
+		   */
+
+		   const Vec3& D = light.direction;
+
+		   Vec3 p = Cross(D, currentGlobalState.viewDir);
+
+		   if (LengthSq(p) < 0.15)
+		   { 
+			   // Too acute, do not render
+			   return;
+		   }
+
+		   p = Normalize(p);
+
+		   if (fabsf(light.cutoffCosAngle) < 0.1)
+		   {
+			   // Angle too obtuse, do not render
+			   return;
+		   }
+
+		   float cutOffAngle = acosf(light.cutoffCosAngle);
+		   float tanCutoff = tanf(cutOffAngle);
+
+		   auto coneLength = 1.0_metres;
+		   auto radius = coneLength* tanCutoff;
+
+		   Vec3 d = Normalize(Cross(currentGlobalState.viewDir, p));
+
+		   ObjectVertex v[3] = { 0 };
+		   v[0].position = light.position;
+		   v[0].material.colour = RGBAb(255, 255, 255, 128);
+		   v[0].uv.x = 0;
+		   v[1].uv.y = 0;
+
+		   v[1].position = light.position + coneLength * D + radius * p;
+		   v[1].material.colour = RGBAb(255, 255, 255, 0);
+		   v[1].uv.x = 1.0f;
+		   v[1].uv.y = -1.0f;
+
+		   v[2].position = light.position + coneLength * D - radius * p;
+		   v[2].material.colour = RGBAb(255, 255, 255, 0);
+		   v[2].uv.x = 1.0f;
+		   v[2].uv.y = -1.0f;
+
+		   DX11::CopyStructureToBuffer(dc, lightConeBuffer, v, sizeof(ObjectVertex) * 3);
+
+		   dc.Draw(3, 0);
+		   trianglesThisFrame += 1;
+	   }
+
+	   void Draw(ID_SYS_MESH id, const ObjectInstance* instances, uint32 nInstances) override
 	   {
 		   if (id == ID_SYS_MESH::Invalid()) return;
 		   if (id.value < 0 || id.value >= meshBuffers.size()) Throw(E_INVALIDARG, "renderer.DrawObject(ID_MESH id) - Bad id ");
@@ -2167,7 +2260,7 @@ namespace ANON
 		   if (!UseGeometryShader(gsID)) return;
 
 		   dc.IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
-		   dc.RSSetState(particleRaterizering);
+		   dc.RSSetState(particleRasterizering);
 		   dc.OMSetDepthStencilState(objDepthState_NoWrite, 0);
 
 		   size_t qSize = particles.size();
@@ -2276,7 +2369,7 @@ namespace ANON
 			   FLOAT blendFactorUnused[] = { 0,0,0,0 };
 			   dc.OMSetBlendState(disableBlend, blendFactorUnused, 0xffffffff);
 
-			   dc.RSSetState(shadowRaterizering);
+			   dc.RSSetState(shadowRasterizering);
 
 			   phase = RenderPhase_DetermineShadowVolumes;
 			   scene.RenderShadowPass(drd, *this);
@@ -2314,7 +2407,7 @@ namespace ANON
 			   }
 
 			   dc.PSSetShaderResources(2, 1, &shadowBind.shaderView);
-			   dc.RSSetState(objectRaterizering);
+			   dc.RSSetState(objectRasterizering);
 
 			   scene.RenderObjects(*this);
 
@@ -2369,7 +2462,7 @@ namespace ANON
 	   {
 		   OS::ticks now = OS::CpuTicks();
 
-		   dc.RSSetState(spriteRaterizering);
+		   dc.RSSetState(spriteRasterizering);
 
 		   D3D11_RECT rect = { 0, 0, screenSpan.x, screenSpan.y };
 		   dc.RSSetScissorRects(1, &rect);
@@ -2432,7 +2525,7 @@ namespace ANON
 				   builtFirstPass = true;
 			   }
 
-			   dc.RSSetState(objectRaterizering);
+			   dc.RSSetState(objectRasterizering);
 
 			   AmbientData ad;
 			   ad.localLight = ambientLight.ambient;
@@ -2478,6 +2571,8 @@ namespace ANON
 		   dc.VSSetSamplers(0, 16, samplers);
 	   }
 
+	   GlobalState currentGlobalState = { 0 };
+
 	   void UpdateGlobalState(IScene& scene)
 	   {
 		   GlobalState g;
@@ -2492,6 +2587,8 @@ namespace ANON
 		   g.guiScale.OOSpriteWidth = 1.0f / spriteArray.width;
 
 		   DX11::CopyStructureToBuffer(dc, globalStateBuffer, g);
+
+		   currentGlobalState = g;
 
 		   dc.VSSetConstantBuffers(CBUFFER_INDEX_GLOBAL_STATE, 1, &globalStateBuffer);
 		   dc.PSSetConstantBuffers(CBUFFER_INDEX_GLOBAL_STATE, 1, &globalStateBuffer);
@@ -2617,12 +2714,12 @@ namespace ANON
 
 		   InitInvariantTextureViews();
 
-		   dc.RSSetState(objectRaterizering);
+		   dc.RSSetState(objectRasterizering);
 		   dc.OMSetDepthStencilState(objDepthState, 0);
 
 		   builtFirstPass = false;
 
-		   size_t nLights = 0;
+		   uint32 nLights = 0;
 		   const Light* lights = scene.GetLights(nLights);
 		   if (lights != nullptr)
 		   {
@@ -2647,6 +2744,9 @@ namespace ANON
 		   dc.OMSetBlendState(plasmaBlend, blendFactorUnused, 0xffffffff);
 		   RenderParticles(plasma, idPlasmaPS, idParticleVS, idPlasmaGS);
 
+		   DrawLightCones(scene);
+
+		   UpdateGlobalState(scene);
 		   RenderGui(scene);
 
 		   now = OS::CpuTicks();
@@ -2660,6 +2760,51 @@ namespace ANON
 		   now = OS::CpuTicks();
 		   frameTime = now - lastTick;
 		   lastTick = now;
+	   }
+
+	   void DrawLightCones(IScene& scene)
+	   {
+		   uint32 nLights = 0;
+		   const Light* lights = scene.GetLights(nLights);
+
+		   if (lights != nullptr)
+		   {
+			   UINT strides[] = { sizeof(ObjectVertex) };
+			   UINT offsets[]{ 0 };
+
+			   dc.IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+			   dc.IASetVertexBuffers(0, 1, &lightConeBuffer, strides, offsets);
+			   dc.RSSetState(spriteRasterizering);
+
+			   UseShaders(idLightConeVS, idLightConePS);
+
+			   FLOAT blendFactorUnused[] = { 0,0,0,0 };
+			   dc.OMSetBlendState(alphaBlend, blendFactorUnused, 0xffffffff);
+			   dc.OMSetDepthStencilState(objDepthState, 0);
+			   dc.PSSetConstantBuffers(0, 1, &globalStateBuffer);
+			   dc.VSSetConstantBuffers(0, 1, &globalStateBuffer);
+
+			   ObjectInstance identity;
+			   identity.orientation = Matrix4x4::Identity();
+			   identity.highlightColour = { 0 };
+			   DX11::CopyStructureToBuffer(dc, instanceBuffer, &identity, sizeof(ObjectInstance));
+			   dc.VSSetConstantBuffers(CBUFFER_INDEX_INSTANCE_BUFFER, 1, &instanceBuffer);
+
+			   for (uint32 i = 0; i < nLights; ++i)
+			   {
+				   if (lights[i].ambient.alpha == 0)
+				   {
+					   break;
+				   }
+
+				   DrawLightCone(lights[i]);
+			   }
+
+			   dc.IASetVertexBuffers(0, 0, nullptr, nullptr, nullptr);
+			   dc.RSSetState(nullptr);
+			   dc.PSSetConstantBuffers(0, 0, nullptr);
+			   dc.VSSetConstantBuffers(0, 0, nullptr);
+		   }
 	   }
 
 	   void AddTriangle(const GuiVertex triangle[3])

@@ -58,7 +58,7 @@ namespace
 		  return skyboxId;
 	  }
 
-	  const Light* GetLights(size_t& nCount) const override
+	  const Light* GetLights(uint32& nCount) const override
 	  {
 		  nCount = MAX_LIGHTS;
 		  return lights;
@@ -101,7 +101,7 @@ namespace
 		  FlushDrawQueue_NoTexture(meshId, rc);
 	  }
 
-      virtual void SetClearColour(float32 red, float32 green, float32 blue, float alpha)
+      void SetClearColour(float32 red, float32 green, float32 blue, float alpha) override
       {
          clearColour.red = red;
          clearColour.green = green;
@@ -114,7 +114,7 @@ namespace
 		  memset(lights, 0, sizeof(lights));
 	  }
 
-	  virtual void SetLight(const LightSpec& spec,  int index)
+	  void SetLight(const LightSpec& spec,  int index) override
 	  {
 		  if (index < 0 || index >= MAX_LIGHTS)
 		  {
@@ -137,23 +137,23 @@ namespace
 		  lights[index].fogConstant = spec.fogConstant;
       }
 
-      virtual void Free()
+      void Free() override
       {
          delete this;
       }
 
-      virtual ISceneBuilderSupervisor& Builder()
+      ISceneBuilderSupervisor& Builder() override
       {
          return *this;
       }
 
-      virtual void Clear()
+      void Clear() override
       {
          entities.clear();
       }
 
-      virtual void AddStatics(ID_ENTITY id)
-      {
+      void AddStatics(ID_ENTITY id) override
+      { 
 		  if (!id)
 		  {
 			  Throw(0, "Scene.AddStatics: id was zero/invalid");
@@ -166,7 +166,7 @@ namespace
 
 	  }
 
-      virtual void RenderGui(IGuiRenderContext& grc)
+      void RenderGui(IGuiRenderContext& grc) override
       {
       }
 
@@ -184,7 +184,7 @@ namespace
 		  drawQueue.clear();
 	  }
 
-      virtual void RenderObjects(IRenderContext& rc)
+      void RenderObjects(IRenderContext& rc) override
       {
 		  if (populator)
 		  {
@@ -216,7 +216,7 @@ namespace
          FlushDrawQueue(meshId, rc);
       }
 
-      virtual RGBA GetClearColour() const
+      RGBA GetClearColour() const override
       {
          return clearColour;
       }

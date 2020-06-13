@@ -26,6 +26,7 @@
 (using Rococo.Entities)
 
 (using Sys.Maths.I32)
+(using Sys.Geometry.F32)
 
 (namespace T3D)
 (using T3D)
@@ -61,14 +62,16 @@
 	(bottle.SetMaterialTop glass)
 	(bottle.SetMaterialMiddle glass)
 	(bottle.SetMaterialBottom glass)
+	(bottle.UseSmoothNormals)
 	
-	(Float32 length = (AnyFloat 0.05 0.25))
-	(Float32 bottomWidth = (AnyFloat 0.025 0.10))
+	(Float32 length = 1.0)
+	(Float32 bottomWidth = (AnyFloat 0.15 0.25))
 	(Float32 topWidth = (bottomWidth * (AnyFloat 0.5 1)))
-	(Int32 divs = (AnyInt 4 8))
+	(Int32 divs = 5)
+	
 	(bottle.AddTube length bottomWidth topWidth divs)
 	
-	(Float32 neckLength = (AnyFloat 0.01 0.05))
+	(Float32 neckLength = (AnyFloat 0.04 0.08))
 	(bottle.AddTube neckLength topWidth 0.01 divs)
 	
 	(MaterialVertexData stopper)
@@ -108,6 +111,32 @@
 	(Vec2 b2 =  10 -10)
 	(Vec2 b3 = -10 -10)
 	(rod.AddBox 0.25 b0 b1 b2 b3)
+	
+	(rod.CopyToMeshBuilder meshName false false true)
+)
+
+(function MakeLamp (IString meshName) -> :
+	(IRodTesselator rod (RodTesselator))
+	(rod.Clear)
+	
+	(IInstances instances (Instances))
+	
+	(MaterialVertexData marble)
+	(AnyColour 200 255 0 0 0 0 192 192 -> marble.colour)
+	(instances.GetRandomMaterialId (#MaterialCategoryMarble) -> marble.id)
+	(marble.gloss = 0.1)
+	
+	(rod.SetMaterialTop marble)
+	(rod.SetMaterialMiddle marble)
+	(rod.SetMaterialBottom marble)
+	
+	(rod.SetUVScale 0.05)
+	
+	(Vec2 b0 = -10  10)
+	(Vec2 b1 =  10  10)
+	(Vec2 b2 =  10 -10)
+	(Vec2 b3 = -10 -10)
+	(rod.AddTube 0.05 0.025 0.01 8)
 	
 	(rod.CopyToMeshBuilder meshName false false true)
 )
@@ -158,8 +187,8 @@
 	
 	(Matrix4x4 model = 
 		(1 0 0 0)
-		(0 1 0 1)
-		(0 0 1 0) 
+		(0 1 0 1.0)
+		(0 0 1 -0.5) 
 		(0 0 0 1)
 	)
 	
@@ -180,8 +209,41 @@
 	
 	(ISceneBuilder scene (SceneBuilder))
 	(scene.Clear)
-//	(scene.AddStatics bottleId)
+	(scene.AddStatics bottleId)
 	(scene.AddStatics floorId)
+	
+	(Matrix4x4 rotX)
+	(Sys.Geometry.F32.RotateAboutX 45 rotX)
+	(Vec4 down = 0 0 -1 0)
+	(Vec4 downPrime = rotX * down)
+	
+	(LightSpec light)
+	(light.position = 0 0 1.2)
+	(light.direction = downPrime.x downPrime.y downPrime.z)
+	(light.fov = 45)
+	(light.diffuse = 3.0 3.0 3.0 1.0)
+	(light.ambience = 0.6 0.6 0.6 0.5)
+	(light.cutoffAngle = 25)
+	(light.cutoffPower = 25)
+	(light.attenuation = -0.5)
+	(light.nearPlane = 0.1)
+	(light.farPlane = 1000)
+	(light.fogConstant = -0.1)
+	
+	(MakeLamp "light.cone.1")
+	
+	(Matrix4x4 lightConeTranslate)
+	
+	(Sys.Geometry.F32.MakeTranslateMatrix light.position lightConeTranslate)
+	
+	(Matrix4x4 lightConeModel)
+	(lightConeModel = lightConeTranslate * rotX)
+	
+	(Int64 lightConeId = (instances.AddBody "light.cone.1" lightConeModel noScale 0))
+	
+	(scene.AddStatics lightConeId)
+	
+	(scene.SetLight light 0)
 )
 
 (factory T3D.NewWorld T3D.IWorld : (construct World))

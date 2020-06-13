@@ -76,6 +76,12 @@
     <FxCompile Include="skybox.ps.hlsl">
       <Filter>HLSL\Objects</Filter>
     </FxCompile>
+    <FxCompile Include="light_cone.ps..hlsl">
+      <Filter>HLSL\Objects</Filter>
+    </FxCompile>
+    <FxCompile Include="light_cone.vs.hlsl">
+      <Filter>HLSL\Objects</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dx11.swapchain.cpp">
