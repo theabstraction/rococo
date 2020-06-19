@@ -3,6 +3,7 @@
 (' #include 
 	"!scripts/types.sxy"
 	"!scripts/mplat.sxh.sxy"
+	"!scripts/mplat.types.sxy"
 )
 
 (namespace EntryPoint)

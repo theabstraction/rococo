@@ -1,5 +1,6 @@
 (' #include
 	"!scripts/mplat.sxh.sxy"
+	"!scripts/mplat.types.sxy"
 	"!scripts/types.sxy"
 )
 

@@ -248,6 +248,7 @@ namespace Rococo
 					}
 					catch (ParseException& ex)
 					{
+						debugger.Log("Caught exception during execution of %s", resourcePath);
 						LogParseException(ex, debugger);
 
 						switch (exceptionHandler.GetScriptExceptionFlow(ex.Name(), ex.Message()))

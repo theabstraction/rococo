@@ -2,6 +2,7 @@
 
 (' #include 
 	"!scripts/mplat.pane.sxh.sxy"
+	"!scripts/mplat.types.sxy"
 	"!scripts/types.sxy"
 )
 
