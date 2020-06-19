@@ -33,6 +33,8 @@ using namespace Rococo::MPlatImpl;
 
 static auto evFileUpdated = "OnFileUpdated"_event;
 
+void PerformSanityTests();
+
 namespace Rococo 
 {
 	namespace MPlatImpl
@@ -289,6 +291,7 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	AutoFree<Graphics::IMessagingSupervisor> messaging = Graphics::CreateMessaging();
 	AutoFree<Audio::ILegacySoundControlSupervisor> legacySound = Audio::CreateLegacySoundControl();
 	AutoFree<Rococo::Script::IScriptSystemFactory> ssFactory = CreateScriptSystemFactory_1_5_0_0(sourceCache->Allocator());
+	AutoFree<Rococo::Puppet::IPuppetsSupervisor> puppets = Rococo::Puppet::CreatePuppets(1000000, 128);
 
 	OutputDebugStringA("\n\nLegacy Sound Description:");
 
@@ -307,7 +310,7 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	OutputDebugStringA("\n\n");
 
 	Tesselators tesselators{ *rimTesselator };
-	Platform platform{ *os, *installation, *appControl, mainWindow->Renderer(), *rendererConfig, *messaging, *sourceCache, *debuggerWindow, *publisher, *utilities, *gui, *keyboard, *config, *meshes, *instances, *mobiles, *particles, *sprites, *camera, *scene, tesselators, *mathsVisitor, *legacySound, *ssFactory, title };
+	Platform platform{ *os, *installation, *appControl, mainWindow->Renderer(), *rendererConfig, *messaging, *sourceCache, *debuggerWindow, *publisher, *utilities, *gui, *keyboard, *config, *meshes, *instances, *mobiles, *particles, *sprites, *camera, *scene, tesselators, *mathsVisitor, *legacySound, *ssFactory, *puppets, title };
 	gui->PostConstruct(&platform);
 	utilities->SetPlatform(platform);
 	messaging->PostCreate(platform);
@@ -344,6 +347,8 @@ int Main(HINSTANCE hInstance, IAppFactory& appFactory, cstr title, HICON hLargeI
 
 int Main(HINSTANCE hInstance, IDirectAppFactory& appFactory, cstr title, HICON hLargeIcon, HICON hSmallIcon)
 {
+	PerformSanityTests();
+
 	struct : public IMainloop
 	{
 		IDirectAppFactory* appFactory;

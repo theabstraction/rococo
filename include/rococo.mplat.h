@@ -7,6 +7,7 @@
 namespace Rococo
 {
    ROCOCO_ID(ID_ENTITY, int64, 0);
+   ROCOCO_ID(ID_PUPPET, uint64, 0)
 
    struct FileUpdatedEvent : public Rococo::Events::EventArgs
    {
@@ -63,6 +64,11 @@ namespace Rococo
 		struct SampleStateDef;
 	}
 
+	namespace Puppet
+	{
+		struct NewPuppetDesc;
+	}
+
 	struct QuadColours
 	{
 		RGBAb a;
@@ -94,6 +100,16 @@ namespace Rococo
 			SampleFilter w;
 			RGBA borderColour;
 		};
+	}
+
+	namespace Puppet
+	{
+		ROCOCOAPI IPuppetsSupervisor : public Rococo::Puppet::IPuppets
+		{
+			virtual void Free() = 0;
+		};
+
+		IPuppetsSupervisor* CreatePuppets(size_t maxPuppets, size_t maxActivePuppets);
 	}
 
 	ROCOCOAPI IConfigSupervisor : public IConfig
@@ -617,6 +633,8 @@ namespace Rococo
 		Audio::ILegacySoundControl& legacySoundControl;
 
 		Rococo::Script::IScriptSystemFactory& ssFactory;
+
+		Rococo::Puppet::IPuppets& puppets;
 
 		// Application title
 		const char* const title;

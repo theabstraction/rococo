@@ -91,3 +91,8 @@
 )
 (alias SampleStateDef Rococo.SampleStateDef)
 
+(struct NewPuppetDesc
+	(Int32 dummy)
+)
+(alias NewPuppetDesc Rococo.Puppet.NewPuppetDesc)
+

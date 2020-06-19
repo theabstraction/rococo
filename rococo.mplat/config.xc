@@ -24,6 +24,7 @@
 (primitive Metres Sys.SI.Metres Metres)
 (primitive Kilograms Sys.SI.Kilograms Kilograms)
 (primitive RGBAb Int32 RGBAb)
+(primitive IdPuppet Int64 ID_PUPPET)
 
 (primitive Pointer Pointer uintptr_t)
 (primitive IdMesh Int32 ID_MESH)
@@ -144,3 +145,9 @@
 	(SampleFilter w)
 	(RGBA borderColour)
 )
+
+(defstruct NewPuppetDesc Rococo.Puppet.NewPuppetDesc Rococo.Puppet.NewPuppetDesc
+	(Int32 dummy)
+)
+
+//(struct IPuppet Rococo.Puppet.IPuppet Rococo.Puppet.IPuppet)

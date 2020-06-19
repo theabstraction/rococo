@@ -120,6 +120,7 @@
     <ClCompile Include="rococo.texture.builder.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\include\rococo.handles.h" />
     <ClInclude Include="..\include\rococo.allocators.h" />
     <ClInclude Include="..\include\rococo.api.h" />
     <ClInclude Include="..\include\rococo.debugging.h" />

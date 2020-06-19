@@ -132,8 +132,10 @@
     <ClCompile Include="mplat.pane.slider.cpp" />
     <ClCompile Include="mplat.pane.tab.container.cpp" />
     <ClCompile Include="mplat.pane.textoutput.cpp" />
+    <ClCompile Include="mplat.puppets.cpp" />
     <ClCompile Include="mplat.renderer.config.cpp" />
     <ClCompile Include="mplat.scripts.cpp" />
+    <ClCompile Include="mplat.tests.cpp" />
     <ClCompile Include="mplat.utilities.cpp" />
   </ItemGroup>
   <ItemGroup>

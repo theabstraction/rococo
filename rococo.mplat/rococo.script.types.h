@@ -84,3 +84,9 @@ namespace Rococo { namespace Graphics {
 		RGBA borderColour;
 	};
 }}
+namespace Rococo { namespace Puppet { 
+	struct NewPuppetDesc
+	{
+		int32 dummy;
+	};
+}}

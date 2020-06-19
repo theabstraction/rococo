@@ -7840,3 +7840,296 @@ namespace Rococo { namespace Audio {
 		ss.AddNativeCall(ns, NativeRococoAudioILegacySoundControlSetEnvelope, nullptr, ("ILegacySoundControlSetEnvelope (Pointer hObject)(Int32 channel)(Float32 attackSecs)(Float32 decaySecs)(Float32 sustainLevel)(Float32 releaseSecs) -> "));
 	}
 }}
+// BennyHill generated Sexy native functions for Rococo::Puppet::IPuppet 
+namespace
+{
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
+
+	void NativeRococoPuppetIPuppetDestruct(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Puppet::IPuppet* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->Destruct();
+	}
+	void NativeRococoPuppetIPuppetMarkForDeath(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Puppet::IPuppet* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->MarkForDeath();
+	}
+	void NativeRococoPuppetIPuppetExists(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Puppet::IPuppet* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		boolean32 isExistent = _pObject->Exists();
+		_offset += sizeof(isExistent);
+		WriteOutput(isExistent, _sf, -_offset);
+	}
+	void NativeRococoPuppetIPuppetSetKey(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _key;
+		ReadInput(_key, _sf, -_offset);
+		fstring key { _key->buffer, _key->length };
+
+
+		Rococo::Puppet::IPuppet* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetKey(key);
+	}
+	void NativeRococoPuppetIPuppetAppendKey(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(VirtualTable**);
+		VirtualTable** key;
+		ReadInput(key, _sf, -_offset);
+		Rococo::Helpers::StringPopulator _keyPopulator(_nce, key);
+		Rococo::Puppet::IPuppet* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AppendKey(_keyPopulator);
+	}
+	void NativeRococoPuppetIPuppetSetAtrribute(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _value;
+		ReadInput(_value, _sf, -_offset);
+		fstring value { _value->buffer, _value->length };
+
+
+		_offset += sizeof(IString*);
+		IString* _key;
+		ReadInput(_key, _sf, -_offset);
+		fstring key { _key->buffer, _key->length };
+
+
+		Rococo::Puppet::IPuppet* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetAtrribute(key, value);
+	}
+	void NativeRococoPuppetIPuppetAppendAttribute(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(VirtualTable**);
+		VirtualTable** valueBuilder;
+		ReadInput(valueBuilder, _sf, -_offset);
+		Rococo::Helpers::StringPopulator _valueBuilderPopulator(_nce, valueBuilder);
+		_offset += sizeof(IString*);
+		IString* _key;
+		ReadInput(_key, _sf, -_offset);
+		fstring key { _key->buffer, _key->length };
+
+
+		Rococo::Puppet::IPuppet* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AppendAttribute(key, _valueBuilderPopulator);
+	}
+	void NativeRococoPuppetIPuppetId(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Puppet::IPuppet* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		int64 id = _pObject->Id();
+		_offset += sizeof(id);
+		WriteOutput(id, _sf, -_offset);
+	}
+	void NativeRococoPuppetIPuppetSetModel(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Matrix4x4* model;
+		_offset += sizeof(model);
+		ReadInput(model, _sf, -_offset);
+
+		Rococo::Puppet::IPuppet* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetModel(*model);
+	}
+	void NativeRococoPuppetIPuppetGetModel(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Matrix4x4* model;
+		_offset += sizeof(model);
+		ReadInput(model, _sf, -_offset);
+
+		Rococo::Puppet::IPuppet* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GetModel(*model);
+	}
+	void NativeRococoPuppetIPuppetIsActive(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 isActive;
+		_offset += sizeof(isActive);
+		ReadInput(isActive, _sf, -_offset);
+
+		Rococo::Puppet::IPuppet* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->IsActive(isActive);
+	}
+
+}
+
+namespace Rococo { namespace Puppet { 
+	void AddNativeCalls_RococoPuppetIPuppet(Rococo::Script::IPublicScriptSystem& ss, Rococo::Platform* _nceContext)
+	{
+		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Puppet.Native"));
+		ss.AddNativeCall(ns, NativeRococoPuppetIPuppetDestruct, nullptr, ("IPuppetDestruct (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeRococoPuppetIPuppetMarkForDeath, nullptr, ("IPuppetMarkForDeath (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeRococoPuppetIPuppetExists, nullptr, ("IPuppetExists (Pointer hObject) -> (Bool isExistent)"));
+		ss.AddNativeCall(ns, NativeRococoPuppetIPuppetSetKey, nullptr, ("IPuppetSetKey (Pointer hObject)(Sys.Type.IString key) -> "));
+		ss.AddNativeCall(ns, NativeRococoPuppetIPuppetAppendKey, nullptr, ("IPuppetAppendKey (Pointer hObject)(Sys.Type.IStringBuilder key) -> "));
+		ss.AddNativeCall(ns, NativeRococoPuppetIPuppetSetAtrribute, nullptr, ("IPuppetSetAtrribute (Pointer hObject)(Sys.Type.IString key)(Sys.Type.IString value) -> "));
+		ss.AddNativeCall(ns, NativeRococoPuppetIPuppetAppendAttribute, nullptr, ("IPuppetAppendAttribute (Pointer hObject)(Sys.Type.IString key)(Sys.Type.IStringBuilder valueBuilder) -> "));
+		ss.AddNativeCall(ns, NativeRococoPuppetIPuppetId, nullptr, ("IPuppetId (Pointer hObject) -> (Int64 id)"));
+		ss.AddNativeCall(ns, NativeRococoPuppetIPuppetSetModel, nullptr, ("IPuppetSetModel (Pointer hObject)(Sys.Maths.Matrix4x4 model) -> "));
+		ss.AddNativeCall(ns, NativeRococoPuppetIPuppetGetModel, nullptr, ("IPuppetGetModel (Pointer hObject)(Sys.Maths.Matrix4x4 model) -> "));
+		ss.AddNativeCall(ns, NativeRococoPuppetIPuppetIsActive, nullptr, ("IPuppetIsActive (Pointer hObject)(Bool isActive) -> "));
+	}
+}}
+// BennyHill generated Sexy native functions for Rococo::Puppet::IPuppets 
+namespace
+{
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
+
+	void NativeRococoPuppetIPuppetsKillAllPuppets(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Puppet::IPuppets* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->KillAllPuppets();
+	}
+	void NativeRococoPuppetIPuppetsCreatePuppet(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Puppet::NewPuppetDesc* puppetDescription;
+		_offset += sizeof(puppetDescription);
+		ReadInput(puppetDescription, _sf, -_offset);
+
+		Rococo::Puppet::IPuppets* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		Rococo::Puppet::IPuppet* puppet = _pObject->CreatePuppet(*puppetDescription);
+		_offset += sizeof(CReflectedClass*);
+		auto& _puppetStruct = Rococo::Helpers::GetDefaultProxy(("Rococo.Puppet"),("IPuppet"), ("ProxyIPuppet"), _nce.ss);
+		CReflectedClass* _sxypuppet = _nce.ss.Represent(_puppetStruct, puppet);
+		WriteOutput(&_sxypuppet->header.pVTables[0], _sf, -_offset);
+	}
+	void NativeRococoPuppetIPuppetsGetFirstPuppetId(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Puppet::IPuppets* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		ID_PUPPET id = _pObject->GetFirstPuppetId();
+		_offset += sizeof(id);
+		WriteOutput(id, _sf, -_offset);
+	}
+	void NativeRococoPuppetIPuppetsFindPuppetById(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		ID_PUPPET id;
+		_offset += sizeof(id);
+		ReadInput(id, _sf, -_offset);
+
+		Rococo::Puppet::IPuppets* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		Rococo::Puppet::IPuppet* puppet = _pObject->FindPuppetById(id);
+		_offset += sizeof(CReflectedClass*);
+		auto& _puppetStruct = Rococo::Helpers::GetDefaultProxy(("Rococo.Puppet"),("IPuppet"), ("ProxyIPuppet"), _nce.ss);
+		CReflectedClass* _sxypuppet = _nce.ss.Represent(_puppetStruct, puppet);
+		WriteOutput(&_sxypuppet->header.pVTables[0], _sf, -_offset);
+	}
+	void NativeRococoPuppetIPuppetsGetNextPuppetId(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		ID_PUPPET id;
+		_offset += sizeof(id);
+		ReadInput(id, _sf, -_offset);
+
+		Rococo::Puppet::IPuppets* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		ID_PUPPET nextId = _pObject->GetNextPuppetId(id);
+		_offset += sizeof(nextId);
+		WriteOutput(nextId, _sf, -_offset);
+	}
+
+	void NativeGetHandleForRococoPuppetPuppets(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Platform* nceContext = reinterpret_cast<Rococo::Platform*>(_nce.context);
+		// Uses: Rococo::Puppet::IPuppets* FactoryConstructRococoPuppetPuppets(Rococo::Platform* _context);
+		Rococo::Puppet::IPuppets* pObject = FactoryConstructRococoPuppetPuppets(nceContext);
+		_offset += sizeof(IString*);
+		WriteOutput(pObject, _sf, -_offset);
+	}
+}
+
+namespace Rococo { namespace Puppet { 
+	void AddNativeCalls_RococoPuppetIPuppets(Rococo::Script::IPublicScriptSystem& ss, Rococo::Platform* _nceContext)
+	{
+		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Puppet.Native"));
+		ss.AddNativeCall(ns, NativeGetHandleForRococoPuppetPuppets, _nceContext, ("GetHandleForIPuppets0  -> (Pointer hObject)"));
+		ss.AddNativeCall(ns, NativeRococoPuppetIPuppetsKillAllPuppets, nullptr, ("IPuppetsKillAllPuppets (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeRococoPuppetIPuppetsCreatePuppet, nullptr, ("IPuppetsCreatePuppet (Pointer hObject)(Rococo.Puppet.NewPuppetDesc puppetDescription) -> (Rococo.Puppet.IPuppet puppet)"));
+		ss.AddNativeCall(ns, NativeRococoPuppetIPuppetsGetFirstPuppetId, nullptr, ("IPuppetsGetFirstPuppetId (Pointer hObject) -> (Int64 id)"));
+		ss.AddNativeCall(ns, NativeRococoPuppetIPuppetsFindPuppetById, nullptr, ("IPuppetsFindPuppetById (Pointer hObject)(Int64 id) -> (Rococo.Puppet.IPuppet puppet)"));
+		ss.AddNativeCall(ns, NativeRococoPuppetIPuppetsGetNextPuppetId, nullptr, ("IPuppetsGetNextPuppetId (Pointer hObject)(Int64 id) -> (Int64 nextId)"));
+	}
+}}
