@@ -167,6 +167,8 @@ public:
 
 	void AppendEvent(const MouseEvent& me, const Vec2i& absTopLeft) override
 	{
+		if (tabs.empty()) return;
+
 		if (me.HasFlag(MouseEvent::LUp))
 		{
 			for (size_t i = 0; i < tabs.size(); ++i)

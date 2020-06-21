@@ -137,7 +137,7 @@ public:
 	bool GetSaveLocation(Windows::IWindow& parent, SaveDesc& sd) override
 	{
 		wchar_t filter[128];
-		SecureFormat(filter, sizeof(filter), L"%S%c%S%c%c", sd.extDesc, 0, sd.ext, 0, 0);
+		SecureFormat(filter, 128, L"%S%c%S%c%c", sd.extDesc, 0, sd.ext, 0, 0);
 
 		OPENFILENAMEW dialog = { 0 };
 		dialog.lStructSize = sizeof(dialog);
@@ -145,7 +145,7 @@ public:
 		dialog.lpstrFilter = filter;
 		dialog.nFilterIndex = 1;
 		dialog.lpstrFile = sd.path;
-		dialog.nMaxFile = sizeof(sd.path);
+		dialog.nMaxFile = sizeof(sd.path) / sizeof(wchar_t);
 
 		wchar_t u16Caption[256];
 		SafeFormat(u16Caption, 256, L"%S", sd.caption);
@@ -163,11 +163,6 @@ public:
 		{
 			SafeFormat(initialPath, IO::MAX_PATHLEN, L"%s", sd.path);
 			*sd.path = 0;
-			dialog.Flags = OFN_ENABLESIZING;
-		}
-		else
-		{
-			dialog.Flags = OFN_ENABLESIZING;
 		}
 
 		renderer.SwitchToWindowMode();

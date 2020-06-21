@@ -84,7 +84,7 @@ namespace Rococo
 	struct SysUnstableArgs {};
 	struct FileModifiedArgs
 	{
-		const wchar_t* resourceName;
+		const wchar_t* sysPath;
 		bool Matches(cstr resource) const;
 	};
 

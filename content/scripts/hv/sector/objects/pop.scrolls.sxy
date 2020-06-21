@@ -5,7 +5,7 @@
 	"!scripts/hv.sxh.sxy"
 	"!scripts/hv/hv.types.sxy"
 	"!scripts/types.sxy"
-	"!scripts/types.mplat.sxy"
+	"!scripts/mplat.types.sxy"
 )
 
 (namespace EntryPoint)
@@ -62,7 +62,7 @@
 	(addItemFlags = (addItemFlags + (#AddItemFlagsRandomPosition)))
 	(addItemFlags = (addItemFlags + (#AddItemFlagsAlignEdge)))
 		
-	(IStringBuilder sb (StringBuilder 256))
+	(IStringBuilder sb = NewPathBuilder)
 	
 	(IInstances instances (Instances))
 	

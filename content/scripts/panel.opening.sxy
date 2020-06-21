@@ -33,7 +33,7 @@
 
 (function AddTextOut (IString key)(IPaneContainer container)-> :
 	(Recti rect = 0 0 20 90)
-	(ITextOutputPane label = (container.AddTextOutput 2 key rect))
+	(ITextOutputPane label = (container.AddTextOutput 0 key rect))
 	(label.SetColourFont 0xFFD0D0D0 0xFFFFFFFF)
 	(label.SetColourBk1  0x00000000 0xFF200000)
 	(label.SetColourBk2  0x00000000 0xFF800000)

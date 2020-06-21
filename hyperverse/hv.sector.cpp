@@ -2457,18 +2457,18 @@ namespace ANON
 			  RunGenCorridorScript();
 		  }
 
-		  char path[_MAX_PATH];
-		  platform.installation.ConvertSysPathToPingPath(args.resourceName, path, _MAX_PATH);
+		  char pingPath[_MAX_PATH];
+		  platform.installation.ConvertSysPathToPingPath(args.sysPath, pingPath, _MAX_PATH);
 
 		  cstr theWallScript = *wallScript ? wallScript : "#walls/stretch.bricks.sxy";
-		  if (platform.installation.DoPingsMatch(path, theWallScript) && scriptWalls)
+		  if (platform.installation.DoPingsMatch(pingPath, theWallScript) && scriptWalls)
 		  {
 			  FinalizeGaps();
 			  Rebuild();
 		  }
 
 		  cstr theFloorScript = *floorScript ? floorScript : "#floors/square.mosaic.sxy";
-		  if (platform.installation.DoPingsMatch(path, theFloorScript) && scriptFloor && !completeSquares.empty())
+		  if (platform.installation.DoPingsMatch(pingPath, theFloorScript) && scriptFloor && !completeSquares.empty())
 		  {
 			  isDirty = true;
 			  RunSectorGenFloorAndCeilingScript();
@@ -2600,11 +2600,11 @@ namespace ANON
 					  platform.installation.ConvertPingPathToSysPath(wallScript, sysPath, IO::MAX_PATHLEN);
 					  platform.installation.ConvertSysPathToMacroPath(sysPath, wallScript, IO::MAX_PATHLEN, "#walls");
 				  }
-				  editor.AddPingPath("wall script", wallScript, IO::MAX_PATHLEN, "!scripts/hv/sector/walls/*.sxy");
+				  editor.AddPingPath("wall script", wallScript, IO::MAX_PATHLEN, "!scripts/hv/sector/walls/*.sxy", 90);
 			  }
 			  catch (IException&)
 			  {
-				  editor.AddPingPath("wall script", wallScript, IO::MAX_PATHLEN, "!scripts/hv/sector/walls/*.sxy");
+				  editor.AddPingPath("wall script", wallScript, IO::MAX_PATHLEN, "!scripts/hv/sector/walls/*.sxy", 90);
 			  }
 		  }
 		  else if (Eq(category, "ceiling"))
@@ -2633,7 +2633,7 @@ namespace ANON
 			  {
 				  editor.AddBool("use script", &scriptFloor);
 				  editor.AddMessage("Default: \"#floors/square.mosaics.sxy\"");
-				  editor.AddPingPath("script file", floorScript, IO::MAX_PATHLEN, "#floors/*.sxy");
+				  editor.AddPingPath("script file", floorScript, IO::MAX_PATHLEN, "#floors/*.sxy", 120);
 			  }
 			  else
 			  {
@@ -2652,7 +2652,7 @@ namespace ANON
 				  editor.AddSpacer();
 				  editor.AddBool("script corridor", &scriptCorridor);
 				  editor.AddMessage("Defaults to !scripts/hv/sector/gen.door.sxy");
-				  editor.AddPingPath("corridor script", corridorScript, IO::MAX_PATHLEN, "!scripts/hv/sector/*.sxy");
+				  editor.AddPingPath("corridor script", corridorScript, IO::MAX_PATHLEN, "!scripts/hv/sector/*.sxy", 130);
 			  }
 			  else
 			  {

@@ -60,7 +60,7 @@ namespace Rococo
 
 	bool FileModifiedArgs::Matches(cstr resource) const
 	{
-		const wchar_t* a = this->resourceName;
+		const wchar_t* a = this->sysPath;
 		cstr b = resource;
 		if (*b == L'!') b++;
 
@@ -718,7 +718,7 @@ namespace
 			cstr expansion = i->second.c_str();
 			if (strstr(fullPingPath, expansion) == nullptr)
 			{
-				Throw(0, "Installation::ConvertSysPathToMacroPath(...\"%s\", \"%s\") Path not prefixed by macro: %s", sysPath, macro, expansion);
+				Throw(0, "Installation::ConvertSysPathToMacroPath(...\"%S\", \"%s\") Path not prefixed by macro: %s", sysPath, macro, expansion);
 			}
 
 			SecureFormat(pingPath, pingPathCapacity, "%s/%s", macro, fullPingPath + i->second.size());
@@ -730,25 +730,19 @@ namespace
 
 			int sysPathLen = (int) wcslen(sysPath);
 
-			auto p = wcsstr(sysPath, contentDirectory);
-
-			int32 netLength = sysPathLen - len;
-			if (netLength < 0 || p != sysPath)
+			size_t contentDirLength = wcslen(contentDirectory);
+			
+			if (0 != _wcsnicmp(sysPath, contentDirectory, wcslen(contentDirectory)))
 			{
-				Throw(0, "ConvertSysPathToPingPath: path did not begin with the content folder %S", contentDirectory);
-			}
-
-			if (netLength >= (int32)pingPathCapacity)
-			{
-				Throw(0, "ConvertSysPathToPingPath: Insufficient space in ping path buffer");
+				Throw(0, "ConvertSysPathToPingPath: '%S' did not begin with the content folder %S", sysPath, contentDirectory);
 			}
 
 			if (wcsstr(sysPath, L"..") != nullptr)
 			{
-				Throw(0, "ConvertSysPathToPingPath: Illegal sequence in ping path: '..'");
+				Throw(0, "ConvertSysPathToPingPath: '%S' - Illegal sequence in ping path: '..'", sysPath);
 			}
 
-			SecureFormat(pingPath, pingPathCapacity, "!%S", sysPath + len);
+			SecureFormat(pingPath, pingPathCapacity, "!%S", sysPath + contentDirLength);
 
 			OS::ToUnixPath(pingPath);
 		}
@@ -830,6 +824,7 @@ namespace
 	{
 		wchar_t binDirectory[Rococo::IO::MAX_PATHLEN];
 		HANDLE hMonitorDirectory;
+		std::wstring monitorDirectoryRoot;
 		uintptr_t hThread;
 		unsigned threadId;
 		bool isRunning;
@@ -967,7 +962,10 @@ namespace
 							nullTerminatedFilename[i] = info.FileName[i];
 						}
 						nullTerminatedFilename[nChars] = 0;
-						OnModified(nullTerminatedFilename);
+
+						wchar_t fullPath[_MAX_PATH];
+						_snwprintf_s(fullPath, _TRUNCATE, L"%s%s", monitorDirectoryRoot.c_str(), nullTerminatedFilename);
+						OnModified(fullPath);
 					}
 				}
 
@@ -1038,6 +1036,8 @@ namespace
 
 		void Monitor(const wchar_t* absPath) override
 		{
+			monitorDirectoryRoot = absPath;
+
 			if (isRunning || hMonitorDirectory != INVALID_HANDLE_VALUE)
 			{
 				Throw(0, "A directory is already being monitored");

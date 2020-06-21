@@ -28,8 +28,8 @@
 )
 
 (function AddLabel (IString text)(IPaneContainer builder)(IString cmd)(Bool defer)-> :
-	(Recti rect = 0 0 20 18)
-	(ILabelPane label = (builder.AddLabel 9 text rect))
+	(Recti rect = 0 0 20 26)
+	(ILabelPane label = (builder.AddLabel 0 text rect))
 	(label.SetColourFont 0xFFD0D0D0 0xFFFFFFFF)
 	(label.SetColourBk1  0x00000000 0xFF200000)
 	(label.SetColourBk2  0x00000000 0xFF800000)
@@ -42,7 +42,7 @@
 )
 
 (function AddRadio (IString text)(IPaneContainer builder)(IString key)(IString value)-> :
-	(Recti rect = 0 0 20 16)
+	(Recti rect = 0 0 20 26)
 	(AddRadioAt rect text builder key value -1)
 )
 
@@ -79,7 +79,7 @@
 	(SetTransparentBackground container)
 	(container.SetPopulator 0 "sector_editor")
 	
-	(Recti menuRect = 10 10 100 150)
+	(Recti menuRect = 10 10 100 200)
 	(IPaneContainer menu = (container.AddContainer menuRect))
 	(menu.SetColourBk1   0xAF000000 0xAF000000)
 	(menu.SetColourBk2   0x4F000000 0x4F000000)
@@ -107,7 +107,7 @@
 	(toolsRect.right = (containerSpan.x))
 	(toolsRect.bottom = (containerSpan.y - 32))
 	
-	(ITabContainer tabs = (container.AddTabContainer 20 8 toolsRect))
+	(ITabContainer tabs = (container.AddTabContainer 28 0 toolsRect))
 	(tabs.SetColourBk1   0xFF808080 0xFF808080)
 	(tabs.SetColourBk2   0xFF808080 0xFF808080)
 	(tabs.SetColourEdge1 0xFF808080 0xFFFFFFFF)

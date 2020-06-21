@@ -19,25 +19,6 @@ namespace
 		Rococo::Maths::AddVec3toVec3(*a, *b, *sum);
 	}
 
-	void NativeSysGeometryF32AddVec2fVec2f(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Vec2* output;
-		_offset += sizeof(output);
-		ReadInput(output, _sf, -_offset);
-
-		Vec2* b;
-		_offset += sizeof(b);
-		ReadInput(b, _sf, -_offset);
-
-		Vec2* a;
-		_offset += sizeof(a);
-		ReadInput(a, _sf, -_offset);
-
-		Rococo::Maths::AddVec2toVec2(*a, *b, *output);
-	}
-
 	void NativeSysGeometryF32SubtractVec3fVec3f(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -405,7 +386,6 @@ namespace Sys { namespace Geometry { namespace F32 {
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Sys.Geometry.F32"));
 		ss.AddNativeCall(ns, NativeSysGeometryF32AddVec3fVec3f, nullptr, ("AddVec3fVec3f(Sys.Maths.Vec3 a)(Sys.Maths.Vec3 b)(Sys.Maths.Vec3 sum) -> "));
-		ss.AddNativeCall(ns, NativeSysGeometryF32AddVec2fVec2f, nullptr, ("AddVec2fVec2f(Sys.Maths.Vec2 a)(Sys.Maths.Vec2 b)(Sys.Maths.Vec2 output) -> "));
 		ss.AddNativeCall(ns, NativeSysGeometryF32SubtractVec3fVec3f, nullptr, ("SubtractVec3fVec3f(Sys.Maths.Vec3 a)(Sys.Maths.Vec3 b)(Sys.Maths.Vec3 difference) -> "));
 		ss.AddNativeCall(ns, NativeSysGeometryF32SubtractVec2fVec2f, nullptr, ("SubtractVec2fVec2f(Sys.Maths.Vec2 a)(Sys.Maths.Vec2 b)(Sys.Maths.Vec2 difference) -> "));
 		ss.AddNativeCall(ns, NativeSysGeometryF32MultiplyFloat32Vec2f, nullptr, ("MultiplyFloat32Vec2f(Float32 f)(Sys.Maths.Vec2 a)(Sys.Maths.Vec2 scaledVector) -> "));

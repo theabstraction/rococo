@@ -233,7 +233,8 @@ namespace ANON
 
 			int pos = platform.gui.CurrentKeyboardSink() == this ? cursorPos : (defaultToEnd ? len : 0);
 
-			Rococo::Graphics::RenderVerticalCentredTextWithCallback(rc, pos, cb, buffer, colour, 10, { x, Centre(rect).y }, clipRect);
+			enum { TEXT_HEIGHT = 24 };
+			Rococo::Graphics::RenderVerticalCentredTextWithCallback(rc, pos, cb, buffer, colour, TEXT_HEIGHT, { x, Centre(rect).y }, clipRect);
 
 			if (platform.gui.CurrentKeyboardSink() == this)
 			{
@@ -1620,13 +1621,9 @@ namespace ANON
 
 				bool changed = false;
 
-				auto content = platform.installation.Content();
-
 				if (*value == '!')
 				{
-					wchar_t buffer[IO::MAX_PATHLEN];
-					platform.installation.ConvertPingPathToSysPath(value, buffer, len);
-					SafeFormat(sd.path, sizeof(sd.path), L"%s%s", (cstr)content, buffer);
+					platform.installation.ConvertPingPathToSysPath(value, sd.path, len);
 
 					if (OS::IsFileExistant(sd.path))
 					{
@@ -1653,7 +1650,7 @@ namespace ANON
 				if (changed)
 				{
 					teb.Notify();
-					if (wcsstr(sd.path, content) != sd.path)
+					if (wcsstr(sd.path, platform.installation.Content()) != sd.path)
 					{
 						try
 						{
@@ -1666,7 +1663,7 @@ namespace ANON
 						return;
 					}
 
-					wchar_t* pathTrail = sd.path + wcslen(content);
+					wchar_t* pathTrail = sd.path + wcslen(platform.installation.Content());
 					OS::ToUnixPath(pathTrail);
 
 					SecureFormat(value, len, "!%S", pathTrail);
@@ -1681,14 +1678,16 @@ namespace ANON
 	{
 		AutoFree<IBloodyPropertyType> prop;
 		std::string name;
+		int width;
 		GuiRect lastRect{ 0,0,0,0 };
 	public:
-		BloodyProperty(IBloodyPropertyType* _prop, cstr _name) :
-			name(_name), prop(_prop)
+		BloodyProperty(IBloodyPropertyType* _prop, cstr _name, int _width = 130) :
+			name(_name), prop(_prop), width(_width)
 		{
 
 		}
 
+		int Width() const { return width; }
 		cstr Name() const { return name.c_str(); }
 		IBloodyPropertyType& Prop() { return *prop; }
 		void SetRect(const GuiRect& rect) { lastRect = rect; }
@@ -1818,9 +1817,9 @@ namespace ANON
 			Add(new BloodyProperty(b, name));
 		}
 
-		void AddPingPath(cstr name, char* pingPath, size_t len, cstr defaultSubDir) override
+		void AddPingPath(cstr name, char* pingPath, size_t len, cstr defaultSubDir, int32 width) override
 		{
-			Add(new BloodyProperty(new BloodyPingPathBinding(platform, *this, pingPath, len, defaultSubDir), name));
+			Add(new BloodyProperty(new BloodyPingPathBinding(platform, *this, pingPath, len, defaultSubDir), name, width));
 		}
 
 		virtual bool OnKeyboardEvent(const KeyboardEvent& key)
@@ -1888,7 +1887,8 @@ namespace ANON
 
 			for (auto p : properties)
 			{
-				int y1 = y + 20;
+				enum { PROPERTY_RECT_HEIGHT = 28, PROPERTY_TEXT_HEIGHT = 24 };
+				int y1 = y + PROPERTY_RECT_HEIGHT;
 				GuiRect rowRect{ absRect.left + 2, y, mainRect.right - 2, y1 };
 				RGBAb edge1 = IsPointInRect(metrics.cursorPosition, rowRect) ? RGBAb(255, 255, 255) : RGBAb(64, 64, 64, 64);
 				RGBAb edge2 = IsPointInRect(metrics.cursorPosition, rowRect) ? RGBAb(224, 224, 224) : RGBAb(32, 32, 32, 64);
@@ -1897,9 +1897,9 @@ namespace ANON
 
 				if (*p->Name())
 				{
-					GuiRect nameRect{ rowRect.left, y, rowRect.left + 130, y1 };
+					GuiRect nameRect{ rowRect.left, y, rowRect.left + p->Width(), y1 };
 					Graphics::DrawRectangle(rc, nameRect, p->Prop().NameColour(), p->Prop().NameColour());
-					Graphics::RenderVerticalCentredText(rc, p->Name(), fontColour, 9, { rowRect.left + 4, Centre(rowRect).y }, &nameRect);
+					Graphics::RenderVerticalCentredText(rc, p->Name(), fontColour, PROPERTY_TEXT_HEIGHT, { rowRect.left + 4, Centre(rowRect).y }, &nameRect);
 
 					GuiRect valueRect{ nameRect.right + 1, y, rowRect.right, y1 };
 					p->Prop().Render(rc, valueRect, fontColour);

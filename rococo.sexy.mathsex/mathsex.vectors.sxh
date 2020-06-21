@@ -2,7 +2,6 @@
 
 (functions "mathsex.vectors"
 	(Sys.Geometry.F32.AddVec3fVec3f (Vec3 a)(Vec3 b)(Vec3 sum)-> : Rococo::Maths::AddVec3toVec3)
-	(Sys.Geometry.F32.AddVec2fVec2f (Vec2 a)(Vec2 b)(Vec2 output) -> : Rococo::Maths::AddVec2toVec2)
 	(Sys.Geometry.F32.SubtractVec3fVec3f (Vec3 a)(Vec3 b)(Vec3 difference)-> : Rococo::Maths::SubtractVec3fromVec3)
 	(Sys.Geometry.F32.SubtractVec2fVec2f (Vec2 a)(Vec2 b)(Vec2 difference)-> : Rococo::Maths::SubtractVec2fromVec2)
 	(Sys.Geometry.F32.MultiplyFloat32Vec2f  (Float32 f)(Vec2 a)(Vec2 scaledVector)-> : Rococo::Maths::ScaleVector2)

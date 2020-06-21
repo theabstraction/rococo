@@ -569,7 +569,7 @@ namespace ANON
 
 	   void BindProperties(IBloodyPropertySetEditor& editor) override
 	   {
-		   editor.AddPingPath("Populate Script", populateScript, IO::MAX_PATHLEN, "#objects/pop.default.sxy");
+		   editor.AddPingPath("Populate Script", populateScript, IO::MAX_PATHLEN, "#objects/pop.default.sxy", 140);
 		   editor.AddButton("Populate", evPopulateSectors.name);
 	   }
 

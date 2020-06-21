@@ -144,10 +144,23 @@ namespace ANON
 			window.Renderer().SwitchToWindowMode();
 		}
 
+		static int32 VcodeToUnicode(int32 virtualKeyCode, int32 scancode, HKL layout)
+		{
+			BYTE keystate[256];
+			GetKeyboardState(keystate);
+
+			WCHAR buffer[4] = { 0,0,0,0 };
+			UINT flags = 0;
+			int charsRead = ToUnicodeEx(virtualKeyCode, scancode, keystate, buffer, 4, flags, layout);
+			return (charsRead == 1) ? buffer[0] : 0;
+		}
+
 		void OnKeyboardEvent(const RAWKEYBOARD& k, HKL hKeyboardLayout)
 		{
-
-			app.OnKeyboardEvent((const KeyboardEvent&)k);
+			KeyboardEvent key;
+			((RAWKEYBOARD&)key) = k;
+			key.unicode = VcodeToUnicode(k.VKey, key.scanCode, hKeyboardLayout);
+			app.OnKeyboardEvent(key);
 		}
 
 		void OnMouseEvent(const RAWMOUSE& m)

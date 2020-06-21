@@ -116,11 +116,6 @@ namespace Rococo
 		  fa = a * f;
 	  }
 
-	  void AddVec2toVec2(const Vec2& a, const Vec2& b, Vec2& c)
-	  {
-		  c = a + b;
-	  }
-
 	  void SubtractVec2fromVec2(const Vec2& a, const Vec2& b, Vec2& c)
 	  {
 		  c = a - b;

@@ -49,4 +49,6 @@
 
 (archetype MPlat.OnFileName (IString filename) -> )
 
+(alias Sys.Type.Float32 Rococo.Graphics.MaterialId)
+
 (namespace Rococo.Puppet)

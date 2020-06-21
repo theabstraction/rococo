@@ -236,16 +236,16 @@ namespace HV
 			e.platform.publisher.Publish(ev, HV::Events::OS::evFileChanged);
 
 			char pingname[1024];
-			e.platform.installation.ConvertSysPathToPingPath(args.resourceName, pingname, 1024);
+			e.platform.installation.ConvertSysPathToPingPath(args.sysPath, pingname, 1024);
 
 			platform.gui.LogMessage("File modified: %s", pingname);
 
-			auto ext = Rococo::GetFileExtension(args.resourceName);
+			auto ext = Rococo::GetFileExtension(pingname);
 			if (!ext)
 			{
 
 			}
-			else if (Eq(ext, L".sxy"))
+			else if (Eq(ext, ".sxy"))
 			{
 				e.platform.utilities.RefreshResource(pingname);
 
@@ -261,12 +261,12 @@ namespace HV
 					sectors->OnSectorScriptChanged(args);
 				}
 			}
-			else if (Eq(ext, L".ps"))
+			else if (Eq(ext, ".ps"))
 			{
 				platform.gui.LogMessage("Updating pixel shader");
 				e.platform.renderer.UpdatePixelShader(pingname);
 			}
-			else if (Eq(ext, L".vs"))
+			else if (Eq(ext, ".vs"))
 			{
 				platform.gui.LogMessage("Updating vertex shader");
 				e.platform.renderer.UpdateVertexShader(pingname);
