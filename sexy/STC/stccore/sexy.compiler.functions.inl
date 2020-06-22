@@ -337,7 +337,7 @@ namespace Anon
 						{
 							if (argType->VarType() == VARTYPE_Derivative && argType->InterfaceCount() == 0)
 							{
-								Throw(0, "Output arguments cannot be of derived type. Error with output %s in %s", arg->Name(), name.c_str());
+								Throw(0, "Output arguments cannot be of derived type. Error with output %s in %s of %s", arg->Name(), name.c_str(), module.Name());
 							}
 						}			
 					}

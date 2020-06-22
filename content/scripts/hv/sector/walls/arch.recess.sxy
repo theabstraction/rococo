@@ -21,7 +21,7 @@
 (using Sys.Geometry.F32)
 (using Sys.Random)
 
-(function AddQuad (ITriangleList tris) (Quadf quad)(Float32 vStart)(Float32 uStart)->(Float32 uEnd)(Float32 vEnd)(MaterialVertexData mat)(Float32 uvScale) :
+(function AddQuad (ITriangleList tris) (Quadf quad)(Float32 vStart)(Float32 uStart)(MaterialVertexData mat)->(Float32 uEnd)(Float32 vEnd)(Float32 uvScale) :
 	(Triangle t = quad.a quad.b quad.c)
 	(Vec3 n)
 	(GetNormal t n)

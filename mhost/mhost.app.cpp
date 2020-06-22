@@ -281,12 +281,12 @@ namespace MHost
 		void OnEvent(FileModifiedArgs& args) override
 		{
 			char pingname[1024];
-			SafeFormat(pingname, 1024, "!%S", args.resourceName);
+			SafeFormat(pingname, 1024, "!%S", args.sysPath);
 			Rococo::OS::ToUnixPath(pingname);
 			
 			platform.gui.LogMessage("File modified: %s", pingname);
 
-			auto ext = Rococo::GetFileExtension(args.resourceName);
+			auto ext = Rococo::GetFileExtension(args.sysPath);
 			if (!ext)
 			{
 
