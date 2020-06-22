@@ -104,6 +104,27 @@ namespace HV
    struct ISectors;
    struct ISector;
 
+   ROCOCOAPI IWorldMap
+   {
+		virtual ISectors & Sectors() = 0;
+		virtual void ZoomIn(int32 degrees) = 0;
+		virtual void ZoomOut(int32 degrees) = 0;
+		virtual void GrabAtCursor() = 0;
+		virtual void ReleaseGrab() = 0;
+		virtual Vec2 GetWorldPosition(Vec2i screenPosition) = 0;
+		virtual Vec2i GetScreenPosition(Vec2 worldPosition) = 0;
+		virtual Vec2 SnapToGrid(Vec2 worldPosition) = 0;
+		virtual void RenderTopGui(IGuiRenderContext& grc, ID_ENTITY cameraId) = 0;
+		virtual void Render(IGuiRenderContext& grc, const ISector* litSector, bool isTransparent) = 0;
+   };
+
+   ROCOCOAPI IWorldMapSupervisor: public IWorldMap
+   {
+	   virtual void Free() = 0;
+   };
+
+   IWorldMapSupervisor* CreateWorldMap(Platform& platform, ISectors& sectors);
+
    ROCOCOAPI IGameMode
    {
 		virtual void Activate() = 0;

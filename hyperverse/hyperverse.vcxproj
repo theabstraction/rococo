@@ -129,6 +129,7 @@
     <ClCompile Include="hv.sector.cpp" />
     <ClCompile Include="hv.sectors.cpp" />
     <ClCompile Include="hv.utils.cpp" />
+    <ClCompile Include="hv.world.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="hv.defaults.h" />
