@@ -1327,6 +1327,66 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->SetUVScale(scale);
 	}
+	void NativeHVISectorFloorTesselatorNumberOfSegments(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::ISectorFloorTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		int32 segCount = _pObject->NumberOfSegments();
+		_offset += sizeof(segCount);
+		WriteOutput(segCount, _sf, -_offset);
+	}
+	void NativeHVISectorFloorTesselatorNumberOfGaps(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::ISectorFloorTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		int32 gapCount = _pObject->NumberOfGaps();
+		_offset += sizeof(gapCount);
+		WriteOutput(gapCount, _sf, -_offset);
+	}
+	void NativeHVISectorFloorTesselatorGetSegment(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::WallSegment* segment;
+		_offset += sizeof(segment);
+		ReadInput(segment, _sf, -_offset);
+
+		int32 segIndex;
+		_offset += sizeof(segIndex);
+		ReadInput(segIndex, _sf, -_offset);
+
+		HV::ISectorFloorTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GetSegment(segIndex, *segment);
+	}
+	void NativeHVISectorFloorTesselatorGetGap(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::GapSegment* segment;
+		_offset += sizeof(segment);
+		ReadInput(segment, _sf, -_offset);
+
+		int32 gapIndex;
+		_offset += sizeof(gapIndex);
+		ReadInput(gapIndex, _sf, -_offset);
+
+		HV::ISectorFloorTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GetGap(gapIndex, *segment);
+	}
 
 	void NativeGetHandleForHVSectorFloorTesselator(NativeCallEnvironment& _nce)
 	{
@@ -1354,5 +1414,9 @@ namespace HV {
 		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorAddFloorTriangle, nullptr, ("ISectorFloorTesselatorAddFloorTriangle (Pointer hObject)(Rococo.VertexTriangle t) -> "));
 		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorGetMaterial, nullptr, ("ISectorFloorTesselatorGetMaterial (Pointer hObject)(Rococo.MaterialVertexData mat)(Sys.Type.IString componentClass) -> "));
 		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorSetUVScale, nullptr, ("ISectorFloorTesselatorSetUVScale (Pointer hObject)(Float32 scale) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorNumberOfSegments, nullptr, ("ISectorFloorTesselatorNumberOfSegments (Pointer hObject) -> (Int32 segCount)"));
+		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorNumberOfGaps, nullptr, ("ISectorFloorTesselatorNumberOfGaps (Pointer hObject) -> (Int32 gapCount)"));
+		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorGetSegment, nullptr, ("ISectorFloorTesselatorGetSegment (Pointer hObject)(Int32 segIndex)(HV.WallSegment segment) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorGetGap, nullptr, ("ISectorFloorTesselatorGetGap (Pointer hObject)(Int32 gapIndex)(HV.GapSegment segment) -> "));
 	}
 }

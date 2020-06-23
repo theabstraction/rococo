@@ -83,7 +83,7 @@
 	(addItemFlags = (addItemFlags + (#AddItemFlagsRandomPosition)))
 	(addItemFlags = (addItemFlags + (#AddItemFlagsAlignEdge)))
 		
-	(IStringBuilder sb (StringBuilder 256))
+	(IStringBuilder sb = NewPathBuilder)
 	
 	(IParticleSystem particles (ParticleSystem))
 	(particles.Clear)

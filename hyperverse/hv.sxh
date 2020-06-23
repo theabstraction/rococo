@@ -159,6 +159,12 @@
 		(AddFloorTriangle (const VertexTriangle t)) // If gloss > 1.0 physics hull else graphics hull
 		(GetMaterial (MaterialVertexData mat)(IString componentClass))
 		(SetUVScale (Float32 scale))
+
+		(NumberOfSegments -> (Int32 segCount))
+		(NumberOfGaps -> (Int32 gapCount))
+
+		(GetSegment (Int32 segIndex)(WallSegment segment))
+		(GetGap (Int32 gapIndex)(GapSegment segment))
 	)
 	(factory HV.SectorFloorTesselator)
 )

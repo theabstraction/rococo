@@ -60,6 +60,15 @@
     <ClCompile Include="hv.world.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="hv.sector.editor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="hv.sector.builder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="hv.texture_list.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="hv.h">

@@ -106,12 +106,6 @@
 	)
 )
 
-(function SetVec3 (Vec3 v)(Float32 x)(Float32 y)(Float32 z)-> :
-	(v.x = x)
-	(v.y = y)
-	(v.z = z)
-)
-
 (function MoveQuad (QuadVertices q)(Vec3 ds)-> :
 	(q.positions.a = q.positions.a + ds)
 	(q.positions.b = q.positions.b + ds)
@@ -120,10 +114,10 @@
 )
 
 (function SetNormal(QuadVertices q)(Float32 nX)(Float32 nY)(Float32 nZ)-> :
-	(SetVec3 q.normals.a nX nY nZ)
-	(SetVec3 q.normals.b nX nY nZ)
-	(SetVec3 q.normals.c nX nY nZ)
-	(SetVec3 q.normals.d nX nY nZ)
+	(q.normals.a = nX nY nZ)
+	(q.normals.b = nX nY nZ)
+	(q.normals.c = nX nY nZ)
+	(q.normals.d = nX nY nZ)
 )
 
 (function SetColour(QuadVertices q)(Int32 colour)-> :
@@ -133,7 +127,7 @@
 	(q.colours.d = colour)
 )
 
-(function MakeDoor (IQuadStackTesselator qst)(ISectorComponents components)(QuadVertices q)(Float32 doorWidth)-> :
+(function MakeDoor (IQuadStackTesselator qst)(ISectorComponents components)(QuadVertices q)(Float32 halfWidth)-> :
 	(components.BuildComponent "door.body")
 	
 	(MaterialVertexData panels)
@@ -143,8 +137,6 @@
 	(components.GetMaterial mullions "mullions")
 	
 	(MaterialVertexData scaffold = 0 0 0)
-
-	(Float32 halfWidth = (doorWidth * 0.5))
 	
 	(QuadVertices backFace)
 	(Vec3 backFaceDisp = 0 halfWidth 0)
@@ -155,7 +147,7 @@
 	(Rectf rect = 0.001 1 0.999 0)
 	(qst.Shrink rect)
 	
-	(qst.AddCuboid 0 1 0 1 0.5 0.5 mullions)
+	(qst.AddCuboid 0 1 0 1 (halfWidth * 2) 0.5 mullions)
 	
 	(qst.ClearInput)
 	
@@ -194,9 +186,9 @@
 	
 	(Float32 halfWidth = y1)
 	
-	(Float32 pillarWidth =  (AnyFloat 0.1 0.45))
-	(Float32 baseWidth =  (AnyFloat 0.1 0.45))
-	(Float32 capWidth =  (AnyFloat 0.35 0.5))
+	(Float32 pillarWidth =  0.38)
+	(Float32 baseWidth =  0.45)
+	(Float32 capWidth = 0.5)
 	
 	(MaterialVertexData casing)
 	(components.GetMaterial casing "casing")
@@ -327,31 +319,35 @@
 
 (function Main (Int32 id)->(Int32 exitCode):
 	(ICorridor corridor (Corridor))
-	(Vec3 span)
+	(Vec3 span) // span.x will give span tangental to the door, span.y will give span of room through door and span.z height of corridor
 	(corridor.GetSpan span)
 	(Float32 x0 = (0.5 * (0 - span.x)))
 	(Float32 x1 = (0.5 * span.x))
-	(Float32 halfWidth = (AnyFloat 0.1 0.5))
+	(Float32 halfWidth = 0.1) // 2 x halfWidth gives door thickness
 	(Float32 y0 = (0 - halfWidth))
 	(Float32 y1 = halfWidth)
 	(Float32 z0 = 0)
 	(Float32 z1 = span.z)
+	(Float32 casingExtent = 0.1) 
+	(Float32 halfSpanY = (0.5 * span.y))
+	(Float32 t0 = (halfSpanY + casingExtent))
+	(Float32 t1 = ((0 - halfSpanY) - casingExtent))
 	
-	(Float32 f =  (AnyFloat 0.65 0.8))
-	(Float32 t0 = (f * y0))
-	(Float32 t1 = (f * y1))
-	
-	(Vec3 bottomLeft = x0 t0 z0)
-	(Vec3 topRight = x1 t1 z1)
+	(Vec3 bottomLeft = x0 t0 z0) // back bottom left of the BB containing the casing
+	(Vec3 topRight = x1 t1 z1)// back top right of the BB containing the casing
 	
 	(ISectorComponents components (SectorComponents))
+	(components.ClearComponents "door.body")
+	(components.ClearComponents "door.rails")
+	(components.ClearComponents "door.casing")
+	
 	(IQuadStackTesselator qst (QuadStackTesselator))
 	
 	(QuadVertices centreQuad)
-	(SetVec3 centreQuad.positions.a x0 0 z1)
-	(SetVec3 centreQuad.positions.b x1 0 z1)
-	(SetVec3 centreQuad.positions.c x1 0 z0)
-	(SetVec3 centreQuad.positions.d x0 0 z0)
+	(centreQuad.positions.a = x0 0 z1)
+	(centreQuad.positions.b = x1 0 z1)
+	(centreQuad.positions.c = x1 0 z0)
+	(centreQuad.positions.d = x0 0 z0)
 	(SetNormal centreQuad 0 -1 0)
 	(SetColour centreQuad 0xFFFFFFFF)
 	

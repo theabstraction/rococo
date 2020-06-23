@@ -31,613 +31,11 @@ namespace
 
 	auto evEditorToolsVScrollSet = "editor.tools.vscroll_set"_event;
 
-	ROCOCOAPI IEditMode : public IUIElement
-	{
-	   virtual const ISector* GetHilight() const = 0;
-	};
-
-	class EditMode_SectorEditor : private IEditMode
-	{
-		IWorldMap& map;
-		GuiMetrics metrics;
-		Platform& platform;
-		IEditorState* editor;
-		Windows::IWindow& parent;
-
-		void Render(IGuiRenderContext& grc, const GuiRect& rect) override
-		{
-
-		}
-
-		bool OnKeyboardEvent(const KeyboardEvent& k) override
-		{
-			Key key = platform.keyboard.GetKeyFromEvent(k);
-
-			auto* action = platform.keyboard.GetAction(key.KeyName);
-			if (action && Eq(action, "gui.editor.sector.delete"))
-			{
-				if (!key.isPressed)
-				{
-					auto& s = map.Sectors();
-
-					size_t litIndex = map.Sectors().GetSelectedSectorId();
-						
-					size_t nSectors = s.end() - s.begin();
-					if (litIndex < nSectors)
-					{
-						s.Delete(s.begin()[litIndex]);
-						map.Sectors().SelectSector(-1);
-					}
-				}
-				return true;
-			}
-
-			return false;
-		}
-
-		void OnRawMouseEvent(const MouseEvent& key) override
-		{
-		}
-
-		void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel) override
-		{
-			if (dWheel < 0)
-			{
-				map.ZoomIn(-dWheel);
-			}
-			else if (dWheel > 0)
-			{
-				map.ZoomOut(dWheel);
-			}
-		}
-
-		void OnMouseLClick(Vec2i cursorPos, bool clickedDown) override
-		{
-			if (clickedDown)
-			{
-				map.GrabAtCursor();
-			}
-			else
-			{
-				map.ReleaseGrab();
-			}
-		}
-
-		void OnMouseRClick(Vec2i cursorPos, bool clickedDown) override
-		{
-			if (clickedDown)
-			{
-				Vec2 wp = map.GetWorldPosition(cursorPos);
-				for (auto* s : map.Sectors())
-				{
-					int32 index = s->GetFloorTriangleIndexContainingPoint(wp);
-					if (index >= 0)
-					{
-						auto& secs = map.Sectors();
-
-						size_t nSectors = secs.end() - secs.begin();
-						for (size_t i = 0; i < nSectors; ++i)
-						{
-							if (secs.begin()[i] == s)
-							{
-								map.Sectors().SelectSector(i);
-								editor->SetPropertyTarget(secs.begin()[i]);
-								editor->BindSectorPropertiesToPropertyEditor(secs.begin()[i]);
-								return;
-							}
-						}
-					}
-				}
-
-				map.Sectors().SelectSector(-1);
-				editor->SetPropertyTarget(nullptr);
-			}
-		}
-	public:
-		EditMode_SectorEditor(Platform& _platform, IWorldMap& _map, Windows::IWindow& _parent) :
-			platform(_platform),
-			map(_map),
-			parent(_parent),
-			editor(nullptr)
-		{ }
-		IEditMode& Mode() { return *this; }
-		const ISector* GetHilight() const override
-		{
-			auto& secs = map.Sectors();
-			size_t nSectors = secs.end() - secs.begin();
-			size_t litIndex = map.Sectors().GetSelectedSectorId();
-			return (litIndex < nSectors) ? secs.begin()[litIndex] : nullptr;
-		}
-
-		void SetEditor(IEditorState* editor) { this->editor = editor; }
-		void CancelHilight() { map.Sectors().SelectSector(-1); }
-	};
-
-	class EditMode_SectorBuilder : private IEditMode
-	{
-		bool isLineBuilding{ false };
-		std::vector<Vec2> lineList;
-		IWorldMap& map;
-		GuiMetrics metrics;
-		IPublisher& publisher;
-
-		void Render(IGuiRenderContext& grc, const GuiRect& absRect) override
-		{
-			grc.Renderer().GetGuiMetrics(metrics);
-
-			for (int i = 1; i < lineList.size(); ++i)
-			{
-				Vec2i start = map.GetScreenPosition(lineList[i - 1]);
-				Vec2i end = map.GetScreenPosition(lineList[i]);
-				Rococo::Graphics::DrawLine(grc, 2, start, end, RGBAb(255, 255, 0));
-			}
-
-			if (isLineBuilding && !lineList.empty())
-			{
-				Vec2i start = map.GetScreenPosition(lineList[lineList.size() - 1]);
-				Rococo::Graphics::DrawLine(grc, 2, start, metrics.cursorPosition, RGBAb(255, 255, 0));
-			}
-		}
-
-		std::string defaultTextures[3] =
-		{
-		   "!textures/hv/wall_1.jpg",
-		   "!textures/hv/floor_1.jpg",
-		   "!textures/hv/ceiling_1.jpg"
-		};
-
-		bool OnKeyboardEvent(const KeyboardEvent& key)
-		{
-			return false;
-		}
-
-		void OnRawMouseEvent(const MouseEvent& key) override
-		{
-		}
-
-		void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel) override
-		{
-			if (dWheel < 0)
-			{
-				map.ZoomIn(-dWheel);
-			}
-			else if (dWheel > 0)
-			{
-				map.ZoomOut(dWheel);
-			}
-		}
-
-		void OnMouseLClick(Vec2i cursorPos, bool clickedDown) override
-		{
-			if (clickedDown)
-			{
-				map.GrabAtCursor();
-			}
-			else
-			{
-				map.ReleaseGrab();
-			}
-		}
-
-		void DestroyCrossedLines()
-		{
-			if (lineList.size() > 2)
-			{
-				Vec2 lastVertex = lineList[lineList.size() - 1];
-				Vec2 startOfLastLine = lineList[lineList.size() - 2];
-
-				for (size_t i = 1; i < lineList.size() - 2; ++i)
-				{
-					Vec2 a = lineList[i - 1];
-					Vec2 b = lineList[i];
-
-					float t, u;
-					if (GetLineIntersect(a, b, startOfLastLine, lastVertex, t, u))
-					{
-						if (t >= 0 && t <= 1 && u >= 0 && u <= 1)
-						{
-							SetStatus("Crossed lines: sector creation cancelled", publisher);
-							lineList.clear();
-							return;
-						}
-					}
-					else if (DoParallelLinesIntersect(a, b, startOfLastLine, lastVertex))
-					{
-						lineList.clear();
-						SetStatus("Sector creation cancelled", publisher);
-						return;
-					}
-				}
-			}
-		}
-
-		void TryAppendVertex(Vec2 worldPosition)
-		{
-			isLineBuilding = true;
-
-			if (lineList.empty())
-			{
-				SectorAndSegment sns = map.Sectors().GetFirstSectorWithVertex(worldPosition);
-				if (sns.sector == nullptr)
-				{
-					ISector* sector = map.Sectors().GetFirstSectorContainingPoint(worldPosition);
-					if (sector != nullptr)
-					{
-						SetStatus("A new sector's first point must lie outside all other sectors", publisher);
-						return;
-					}
-				}
-			}
-			else
-			{
-				Vec2 a = *lineList.rbegin();
-				Vec2 b = worldPosition;
-
-				SectorAndSegment sns = map.Sectors().GetFirstSectorWithVertex(b);
-				if (sns.sector == nullptr)
-				{
-					auto* first = map.Sectors().GetFirstSectorCrossingLine(a, b);
-					if (first)
-					{
-						SetStatus("Cannot place edge of a new sector within the vertices of another.", publisher);
-						return;
-					}
-				}
-			}
-
-			if (!lineList.empty() && lineList[0] == worldPosition)
-			{
-				// Sector closed
-				isLineBuilding = false;
-
-				if (lineList.size() >= 3)
-				{
-					map.Sectors().AddSector(&lineList[0], lineList.size());
-					SetStatus("Sector created", publisher);
-				}
-				lineList.clear();
-				return;
-			}
-			else
-			{
-				lineList.push_back(worldPosition);
-			}
-			DestroyCrossedLines();
-		}
-
-		void OnMouseRClick(Vec2i cursorPos, bool clickedDown) override
-		{
-			if (clickedDown)
-			{
-				Vec2 wp = map.SnapToGrid(map.GetWorldPosition(cursorPos));
-				TryAppendVertex(wp);
-			}
-		}
-	public:
-		EditMode_SectorBuilder(IPublisher& _publisher, IWorldMap& _map) : publisher(_publisher), map(_map)
-		{
-		}
-
-		void SetTexture(int32 index, cstr name)
-		{
-			defaultTextures[index] = name;
-		}
-
-		cstr GetTexture(int32 index) const
-		{
-			return defaultTextures[index].c_str();
-		}
-
-		cstr GetTexture(int32 state)
-		{
-			if (state < 0 || state >= 3) Throw(0, "Bad index to EditMode_SectorBuilder::GetTexture(%d)", state);
-			return defaultTextures[state].c_str();
-		}
-
-		IEditMode& Mode() { return *this; }
-		const ISector* GetHilight() const override { return nullptr; }
-	};
-
 	EventIdRef evScrollChanged = "editor.tools.vscroll_ui"_event;
 	EventIdRef evScrollSet = "editor.tools.vscroll_set"_event;
 	EventIdRef evScrollGet = "editor.tools.vscroll_get"_event;
 	EventIdRef evScrollSendKey = "editor.tools.vscroll_sendkey"_event;
 	EventIdRef evScrollSendMouse = "editor.tools.vscroll_sendmouse"_event;
-
-	class TextureList : public IUIElement, public IObserver
-	{
-		Platform& platform;
-		int32 scrollPosition = 0;
-		Vec2i absTopLeft = { 0,0 };
-		std::string target;
-	public:
-		TextureList(Platform& _platform) : platform(_platform)
-		{
-			platform.gui.RegisterPopulator("editor.tools.imagelist", this);
-			platform.publisher.Subscribe(this, evScrollChanged);
-			platform.publisher.Subscribe(this, evScrollGet);
-		}
-
-		~TextureList()
-		{
-			platform.publisher.Unsubscribe(this);
-			platform.gui.UnregisterPopulator(this);
-		}
-
-		int32 GetIndexOf(cstr name)
-		{
-			return (int32)platform.renderer.GetMaterialId(name);
-		}
-
-		cstr GetNeighbour(cstr name, bool forward)
-		{
-			int32 i = GetIndexOf(name);
-
-			MaterialArrayMetrics mam;
-			platform.renderer.GetMaterialArrayMetrics(mam);
-
-			if (forward) i++;
-			else i--;
-
-			if (i < 0) i = 0;
-			if (i >= mam.NumberOfElements) i = mam.NumberOfElements - 1;
-
-			return platform.renderer.GetMaterialTextureName((float)i);
-		}
-
-		void ScrollTo(cstr filename)
-		{
-			int index = -1;
-
-			if (index < 0) return;
-
-			scrollPosition = index * lastDy;
-
-			ScrollEvent se;
-			se.fromScrollbar = false;
-			se.logicalMaxValue = 0 * lastDy;
-
-			scrollPosition = min(scrollPosition, se.logicalMaxValue - lastPageSize);
-
-			se.logicalMinValue = 0;
-			se.logicalPageSize = lastPageSize;
-			se.rowSize = lastDy / 4;
-			se.logicalValue = scrollPosition;
-
-			platform.publisher.Publish(se, evScrollSet);
-		}
-
-		cstr GetSelectedTexture() const
-		{
-			return "none";
-		}
-
-		bool OnKeyboardEvent(const KeyboardEvent& key) override
-		{
-			RouteKeyboardEvent rk;
-			rk.ke = &key;
-			rk.consume = false;
-			platform.publisher.Publish(rk, evScrollSendKey);
-			return rk.consume;
-		}
-
-		void OnRawMouseEvent(const MouseEvent& me) override
-		{
-			if (me.HasFlag(MouseEvent::LDown) || me.HasFlag(MouseEvent::LUp))
-			{
-				// We handle Lbutton ourselves as 'left-click to select'
-				return;
-			}
-			RouteMouseEvent rm;
-			rm.me = &me;
-			rm.absTopleft = absTopLeft;
-			platform.publisher.Publish(rm, evScrollSendMouse);
-		}
-
-		void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel)  override
-		{
-		}
-
-		void OnMouseLClick(Vec2i cursorPos, bool clickedDown)  override
-		{
-			if (clickedDown)
-			{
-				struct : IEventCallback<ImageCallbackArgs>
-				{
-					Vec2i cursorPos;
-					std::string target;
-					virtual void OnEvent(ImageCallbackArgs& args)
-					{
-						GuiRect itemRect{ (int32)args.target.left, (int32)args.target.top, (int32)args.target.right, (int32)args.target.bottom };
-						if (IsPointInRect(cursorPos, itemRect))
-						{
-							target = args.filename;
-						}
-					}
-				} selectItem;
-
-				selectItem.cursorPos = cursorPos;
-				selectItem.target = "none";
-
-				EnumerateVisibleImages(selectItem, lastRect);
-
-				target = selectItem.target;
-
-				HV::Events::ChangeDefaultTextureEvent ev;
-				ev.wallName = selectItem.target.c_str();
-				platform.publisher.Publish(ev, HV::Events::evChangeDefaultTextureId);
-			}
-		}
-
-		void OnMouseRClick(Vec2i cursorPos, bool clickedDown)  override
-		{
-		}
-
-		int32 lastDy = 0;
-		int32 lastPageSize = 0;
-		GuiRect lastRect = { 0,0,0,0 };
-
-		void OnEvent(Event& ev) override
-		{
-			if (ev == evScrollChanged)
-			{
-				auto& se = As<ScrollEvent>(ev);
-				if (!se.fromScrollbar)
-				{
-					se.fromScrollbar = false;
-					se.logicalMaxValue = 0 * lastDy;
-					se.logicalMinValue = 0;
-					se.logicalPageSize = lastPageSize;
-					se.rowSize = lastDy / 4;
-					se.logicalValue = scrollPosition;
-				}
-				else
-				{
-					scrollPosition = se.logicalValue;
-				}
-			}
-		}
-
-		struct ImageCallbackArgs
-		{
-			GuiRectf target;
-			cstr filename;
-			float txUVtop;
-			float txUVbottom;
-			MaterialId matid;
-		};
-
-		void EnumerateVisibleImages(IEventCallback<ImageCallbackArgs>& cb, const GuiRect& absRect)
-		{
-			float x0 = absRect.left + 1.0f;
-			float x1 = absRect.right - 1.0f;
-
-			int32 width = Width(absRect) - 2;
-
-			float y = absRect.top + 1.0f - scrollPosition;
-			float dy = (float)width;
-
-			lastPageSize = (int32)Height(absRect) - 2;
-
-			MaterialArrayMetrics metrics;
-			platform.renderer.GetMaterialArrayMetrics(metrics);
-
-			for (MaterialId i = 0; i < metrics.NumberOfElements; i = i + 1)
-			{
-				float y1 = y + dy;
-
-				float h = 1.0f;
-
-				float b = y1;
-
-				if (y1 >= absRect.bottom)
-				{
-					h = (absRect.bottom - y) / dy;
-					b = (float)absRect.bottom - 1;
-				}
-
-				if (y1 > absRect.top)
-				{
-					float g = 0;
-					float t = y;
-
-					if (y <= absRect.top)
-					{
-						g = (absRect.top + 1 - y) / dy;
-						t = (float)(absRect.top + 1);
-					}
-
-					ImageCallbackArgs args;
-					args.filename = platform.renderer.GetMaterialTextureName(i);
-					args.target = GuiRectf{ x0, t, x1, b };
-					args.matid = i;
-					args.txUVbottom = h;
-					args.txUVtop = g;
-
-					cb.OnEvent(args);
-				}
-
-				if (h < 1.0f)
-				{
-					break;
-				}
-
-				y = y1;
-			}
-		}
-
-		void Render(IGuiRenderContext& grc, const GuiRect& absRect) override
-		{
-			int32 width = Width(absRect);
-
-			absTopLeft = TopLeft(absRect);
-
-			if (lastDy == 0 || lastDy != width)
-			{
-				lastDy = width;
-
-				MaterialArrayMetrics mam;
-				grc.Renderer().GetMaterialArrayMetrics(mam);
-
-				int maxValue = mam.NumberOfElements * lastDy;
-				lastPageSize = min(Height(absRect), maxValue);
-
-				ScrollEvent se;
-				se.fromScrollbar = false;
-				se.logicalMaxValue = maxValue;
-				se.logicalMinValue = 0;
-				se.logicalPageSize = lastPageSize;
-				se.rowSize = lastDy / 4;
-				se.logicalValue = scrollPosition;
-				platform.publisher.Publish(se, evEditorToolsVScrollSet);
-			}
-
-			lastRect = absRect;
-
-			struct : IEventCallback<ImageCallbackArgs>
-			{
-				IGuiRenderContext* grc;
-				cstr target;
-
-				virtual void OnEvent(ImageCallbackArgs& args)
-				{
-					float x0 = args.target.left;
-					float x1 = args.target.right;
-					float t = args.target.top;
-					float b = args.target.bottom;
-
-					float g = args.txUVtop;
-					float h = args.txUVbottom;
-
-					SpriteVertexData material{ 0, 0, args.matid, 1 };
-					RGBAb unused(0, 0, 0);
-					GuiVertex v[6] =
-					{
-					   { {x0, t}, {{0, g}, 0}, material, unused },
-					   { {x1, t}, {{1, g}, 0}, material, unused },
-					   { {x1, b}, {{1, h}, 0}, material, unused },
-					   { {x0, t}, {{0, g}, 0}, material, unused },
-					   { {x0, b}, {{0, h}, 0}, material, unused },
-					   { {x1, b}, {{1, h}, 0}, material, unused }
-					};
-
-					grc->AddTriangle(v);
-					grc->AddTriangle(v + 3);
-
-					if (target && Eq(args.filename, target))
-					{
-						GuiRect hilight{ (int32)args.target.left + 1, (int32)args.target.top + 1, (int32)args.target.right - 1, (int32)args.target.bottom - 1 };
-						Rococo::Graphics::DrawBorderAround(*grc, hilight, Vec2i{ 2,2 }, RGBAb(224, 224, 224), RGBAb(255, 255, 255));
-					}
-				}
-			} renderImages;
-
-			renderImages.grc = &grc;
-			renderImages.target = target.empty() ? nullptr : target.c_str();
-
-			EnumerateVisibleImages(renderImages, absRect);
-		}
-	};
 
 	class ToggleEventHandler;
 	struct ToggleStateChanged
@@ -651,7 +49,7 @@ namespace
 		IPublisher& publisher;
 		EventIdRef id;
 		int state = 0;
-		IEventCallback<ToggleStateChanged>* eventHandler;
+		IEventCallback<ToggleStateChanged>* eventHandler = nullptr;
 
 	public:
 		ToggleEventHandler(cstr handlerName, IPublisher& _publisher, std::vector<cstr> _names) :
@@ -723,14 +121,14 @@ namespace
 		public IEventCallback<IBloodyPropertySetEditorSupervisor>
 	{
 		AutoFree<IWorldMapSupervisor> map;
-		EditMode_SectorBuilder editMode_SectorBuilder;
-		EditMode_SectorEditor editMode_SectorEditor;
+		AutoFree<ISectorBuilderEditor> editMode_SectorBuilder;
+		AutoFree<ISectorEditor> editMode_SectorEditor;
 		GuiMetrics metrics;
 		AutoFree<IStatusBar> statusbar;
 		Platform& platform;
 		IFPSGameMode& fpsGameMode;
 		IPlayerSupervisor& players;
-		TextureList textureList;
+		AutoFree<ITextureList> textureList;
 		bool initialized = false;
 
 		ToggleEventHandler editModeHandler;
@@ -780,7 +178,7 @@ namespace
 
 		IEditMode& EditMode()
 		{
-			return editModeHandler.State() == 0 ? editMode_SectorBuilder.Mode() : editMode_SectorEditor.Mode();
+			return editModeHandler.State() == 0 ? editMode_SectorBuilder->Mode() : editMode_SectorEditor->Mode();
 		}
 
 		void OnEvent(ToggleStateChanged& ev)
@@ -788,8 +186,8 @@ namespace
 			if (ev.handler == &textureTargetHandler)
 			{
 				int state = textureTargetHandler.State();
-				cstr textureName = editMode_SectorBuilder.GetTexture(state);
-				textureList.ScrollTo(textureName);
+				cstr textureName = editMode_SectorBuilder->GetTexture(state);
+				textureList->ScrollTo(textureName);
 			}
 		}
 
@@ -800,7 +198,7 @@ namespace
 				auto& cdt = As<HV::Events::ChangeDefaultTextureEvent>(ev);
 
 				int32 textureTargetIndex = textureTargetHandler.State();
-				editMode_SectorBuilder.SetTexture(textureTargetIndex, cdt.wallName);
+				editMode_SectorBuilder->SetTexture(textureTargetIndex, cdt.wallName);
 			}
 		}
 
@@ -912,7 +310,7 @@ namespace
 		void OnEditorNew(cstr command)
 		{
 			map->Sectors().Builder()->Clear();
-			editMode_SectorEditor.CancelHilight();
+			editMode_SectorEditor->CancelHilight();
 		}
 
 		void OnEditorLoad(cstr command)
@@ -923,7 +321,7 @@ namespace
 			ld.extDesc = "Sexy script level-file (.level.sxy)";
 			ld.shortName = nullptr;
 
-			platform.installation.ConvertPingPathToSysPath("!scripts/hv/levels/*.level.sxy", ld.path, sizeof(ld.path));
+			platform.installation.ConvertPingPathToSysPath("!scripts/hv/levels/*.level.sxy", ld.path, IO::MAX_PATHLEN);
 
 			if (platform.utilities.GetLoadLocation(platform.renderer.Window(), ld))
 			{
@@ -932,16 +330,17 @@ namespace
 					char pingPath[IO::MAX_PATHLEN];
 					platform.installation.ConvertSysPathToPingPath(ld.path, pingPath, IO::MAX_PATHLEN);
 					Load(pingPath);
-					SafeFormat(levelpath, sizeof(levelpath), L"%s", ld.path);
-
-					char shortPingPath[IO::MAX_PATHLEN];
-					platform.installation.ConvertSysPathToPingPath(ld.shortName, shortPingPath, IO::MAX_PATHLEN);
-					platform.utilities.AddSubtitle(shortPingPath);
 				}
 				catch (IException& ex)
 				{
 					platform.utilities.ShowErrorBox(platform.renderer.Window(), ex, "Level find must be within content folder");
 				}
+
+				SafeFormat(levelpath, Rococo::IO::MAX_PATHLEN, L"%s", ld.path);
+
+				char shortPingPath[IO::MAX_PATHLEN];
+				SafeFormat(shortPingPath, IO::MAX_PATHLEN, "%S", ld.shortName);
+				platform.utilities.AddSubtitle(shortPingPath);
 			}
 		}
 
@@ -953,12 +352,12 @@ namespace
 			sd.extDesc = "Sexy script level-file (.level.sxy)";
 			sd.shortName = nullptr;
 
-			SafeFormat(sd.path, sizeof(sd.path), L"%s", levelpath);
+			SafeFormat(sd.path, Rococo::IO::MAX_PATHLEN, L"%s", levelpath);
 
 			if (platform.utilities.GetSaveLocation(platform.renderer.Window(), sd))
 			{
 				Save(sd.path);
-				SafeFormat(levelpath, sizeof(levelpath), L"%s", sd.path);
+				SafeFormat(levelpath, Rococo::IO::MAX_PATHLEN, L"%s", sd.path);
 
 				char shortPingName[256];
 				SafeFormat(shortPingName, 256, "%S", sd.shortName);
@@ -990,6 +389,7 @@ namespace
 				"\n\t\"!scripts/hv.sxh.sxy\""
 				"\n\t\"!scripts/types.sxy\""
 				"\n\t\"!scripts/hv/hv.types.sxy\""
+				"\n\t\"!scripts/mplat.types.sxy\""
 				")\n\n");
 
 			sb.AppendFormat("(namespace EntryPoint)\n\t(alias Main EntryPoint.Main)\n\n");
@@ -1025,9 +425,9 @@ namespace
 			fpsGameMode(_fpsGameMode),
 			players(_players),
 			map(CreateWorldMap(_platform, sectors)),
-			textureList(_platform),
-			editMode_SectorBuilder(_platform.publisher, *map),
-			editMode_SectorEditor(_platform, *map, _platform.renderer.Window()),
+			textureList(CreateTextureList(_platform)),
+			editMode_SectorBuilder(CreateSectorBuilder(_platform.publisher, *map)),
+			editMode_SectorEditor(CreateSectorEditor(_platform, *map, _platform.renderer.Window())),
 			statusbar(CreateStatusBar(_platform.publisher)),
 			editModeHandler("editor.edit_mode", _platform.publisher, { "v", "s" }),
 			textureTargetHandler("editor.texture.target", _platform.publisher, { "w", "f", "c" }),
@@ -1057,7 +457,7 @@ namespace
 
 			platform.gui.RegisterPopulator("sector_editor", this);
 
-			editMode_SectorEditor.SetEditor(this);
+			editMode_SectorEditor->SetEditor(this);
 
 			platform.gui.RegisterPopulator("editor.tab.objects", &(*objectLayoutEditor));
 			platform.gui.RegisterPopulator("editor.tab.walls", &(*wallEditor));
@@ -1088,7 +488,7 @@ namespace
 
 		virtual cstr TextureName(int index) const
 		{
-			return editMode_SectorBuilder.GetTexture(index);
+			return editMode_SectorBuilder->GetTexture(index);
 		}
 	};
 }

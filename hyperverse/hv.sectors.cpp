@@ -175,7 +175,7 @@ namespace ANON
 		   vertices.clear();
 	   }
 
-	   virtual void SaveAsFunction(StringBuilder& sb)
+	   void SaveAsFunction(StringBuilder& sb) override
 	   {
 		   sb.AppendFormat("(using HV)\n");
 		   sb.AppendFormat("(using Rococo.Graphics)\n\n");

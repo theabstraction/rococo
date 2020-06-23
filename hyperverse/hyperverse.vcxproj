@@ -126,8 +126,11 @@
     <ClCompile Include="hv.player.cpp" />
     <ClCompile Include="hv.script.config.cpp" />
     <ClCompile Include="hv.scripts.cpp" />
+    <ClCompile Include="hv.sector.builder.cpp" />
     <ClCompile Include="hv.sector.cpp" />
+    <ClCompile Include="hv.sector.editor.cpp" />
     <ClCompile Include="hv.sectors.cpp" />
+    <ClCompile Include="hv.texture_list.cpp" />
     <ClCompile Include="hv.utils.cpp" />
     <ClCompile Include="hv.world.cpp" />
   </ItemGroup>

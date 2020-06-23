@@ -787,12 +787,15 @@ namespace Rococo
 
 		void Release(cstr resourceName) override
 		{
-			auto i = sources.find(resourceName);
-			if (i != sources.end())
+			for (auto i = sources.begin(); i != sources.end(); ++i)
 			{
-				i->second.code->Release();
-				if (i->second.tree)i->second.tree->Release();
-				sources.erase(i);
+				if (installation.DoPingsMatch(i->first.c_str(), resourceName))
+				{
+					i->second.code->Release();
+					if (i->second.tree)i->second.tree->Release();
+					sources.erase(i);
+					break;
+				}
 			}
 		}
 

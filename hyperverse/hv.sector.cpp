@@ -1033,6 +1033,26 @@ namespace ANON
 			  {
 			  }
 
+			  int32 NumberOfSegments() override
+			  {
+				  return This->NumberOfSegments();
+			  }
+
+			  int32 NumberOfGaps() override
+			  {
+				  return This->NumberOfGaps();
+			  }
+
+			  void GetSegment(int32 segIndex, HV::WallSegment& segment) override
+			  {
+				  This->GetSegment(segIndex, segment);
+			  }
+
+			  void GetGap(int32 gapIndex, HV::GapSegment& segment)  override
+			  {
+				  This->GetGap(gapIndex, segment);
+			  }
+
 			  int32 NumberOfSquares() override
 			  {
 				  return (int32) This->completeSquares.size();
@@ -2033,6 +2053,8 @@ namespace ANON
 			  }
 		  } byLeftIndex;
 		  std::sort(wallSegments.begin(), wallSegments.end(), byLeftIndex);
+
+		  Rebuild();
 	  }
 
 	  void AddGap(Vec2 p, Vec2 q, ISector* other)
@@ -2349,7 +2371,7 @@ namespace ANON
 		  Rebuild();
 	  }
 
-	  virtual void Decouple()
+	  void Decouple() override
 	  {
 		  static int64 decoupleIterationFrame = 0x820000000000;
 		  decoupleIterationFrame++;
@@ -2449,10 +2471,14 @@ namespace ANON
 	  {
 		  static int64 anySectorScriptChangedUpdate = 0x900000000000;
 
-		  cstr theCorridorScript = *corridorScript ? corridorScript : "!scripts/hv/sector/gen.door.sxy";
-		  if (args.Matches(theCorridorScript) && IsCorridor() && scriptCorridor)
+		  cstr theCorridorScript = *corridorScript ? corridorScript : "!scripts/hv/sector/corridor/gen.door.sxy";
+
+		  wchar_t u16CorridorScript[IO::MAX_PATHLEN];
+		  platform.installation.ConvertPingPathToSysPath(theCorridorScript, u16CorridorScript, IO::MAX_PATHLEN);
+		  if (Eq(u16CorridorScript, args.sysPath) && IsCorridor() && scriptCorridor)
 		  {
 			  isDirty = true;
+			  Rebuild();
 			  ResetBarriers();
 			  RunGenCorridorScript();
 		  }
@@ -2660,9 +2686,11 @@ namespace ANON
 				  editor.AddSpacer();
 				  editor.AddSpacer();
 				  editor.AddSpacer();
-				  editor.AddMessage("Sector is not a corridor");
+				  editor.AddMessage("The selected sector is not a corridor.");
 				  editor.AddMessage("Corridors are rectangular");
-				  editor.AddMessage("...and have only four vertices");
+				  editor.AddMessage("...and have only four vertices.");
+				  editor.AddMessage("Opposite ends link to rooms");
+				  editor.AddMessage("...which must not be 4pt rectangles.");
 			  }
 		  }
 	  }

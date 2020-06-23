@@ -370,7 +370,7 @@ public:
 
 		GuiRect logRect;
 		logRect.left = 2;
-		logRect.right = 799;
+		logRect.right = metrics.screenSpan.x - 2;
 		logRect.bottom = metrics.screenSpan.y - 1;
 		logRect.top = logRect.bottom - 100;
 

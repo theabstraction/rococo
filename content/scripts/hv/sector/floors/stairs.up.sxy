@@ -1,0 +1,148 @@
+(' #file.type rococo.hv)
+
+(' #include 
+	"!scripts/hv.sxh.sxy"
+	"!scripts/types.sxy"
+	"!scripts/mplat.sxh.sxy"
+	"!scripts/hv/hv.types.sxy"
+	"!scripts/mplat.types.sxy"
+)
+
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+
+(using Sys.Maths)
+(using Sys.Maths.I32)
+(using Sys.Maths.F32)
+(using HV)
+(using Sys.Type)
+(using Sys.Geometry.F32)
+(using Sys.Random)
+(using Rococo)
+(using Rococo.Graphics)
+(using Rococo.Entities)
+
+(function DoesWallOpposeGap (GapSegment gap)(WallSegment wall)->(Bool isOpposed):
+	(Float32 dotProduct = (Sys.Geometry.F32.Dot gap.normal wall.normal))
+	(if (dotProduct == -1)
+		(IMessaging messaging (Messaging))
+		(messaging.Log "The script found an opposing wall to the gap")
+		(return true)
+	)
+)
+
+(function GetOpposingWall (ISectorFloorTesselator sector)(WallSegment wall)(GapSegment gap)-> :
+	(Int32 nWalls = sector.NumberOfSegments )
+	(#for (Int32 i = 0)(i < nWalls)(#inc i)
+		(WallSegment wall)
+		(sector.GetSegment i wall)
+		
+		(if (DoesWallOpposeGap gap wall)
+			(break)
+		)
+	)
+)
+
+(function GetQuadFromGapAndWall (QuadVertices q)(WallSegment wall)(GapSegment gap)-> :
+	/*
+	(struct QuadVertices
+	(Sys.Maths.Quadf positions)
+	(Sys.Maths.Rectf uv)
+	(Sys.Maths.Quadf normals)
+	(Rococo.QuadColours colours)
+	*/
+	
+	(q.normals.a = 0 0 1)
+	(q.normals.b = 0 0 1)
+	(q.normals.c = 0 0 1)
+	(q.normals.d = 0 0 1)
+	(q.colours.a = 0)
+	(q.colours.b = 0)
+	(q.colours.c = 0)
+	(q.colours.d = 0)
+	(q.uv.left = 0)
+	(q.uv.top  = 0)
+	(q.uv.right = 1)
+	(q.uv.bottom = 1)
+	(q.positions.a = wall.quad.a)
+	(q.positions.b = wall.quad.b)
+	(q.positions.c = gap.quad.a)
+	(q.positions.d = gap.quad.a)
+)
+
+(function GenerateGraphicsMesh (ISectorFloorTesselator sector) -> :
+	(MaterialVertexData steps)
+	(sector.GetMaterial steps "casing")
+	
+	(IScriptConfig config (ScriptConfig))
+	(Float32 uvScale = (config.GetFloat "UV size" 0.5 0.01 10))
+	(Float32 stepWidth = (config.GetFloat "Step width (m)" 0.3 0.1 10))
+	(Float32 stepHeight = (config.GetFloat "Step height(m)" 0.15 0.1 100))
+	
+	(GapSegment gap)
+	(sector.GetGap 0 gap)
+	
+	(WallSegment wall)
+	(GetOpposingWall sector wall gap)
+	
+	(QuadVertices q)
+	(GetQuadFromGapAndWall q wall gap)
+	
+	(IQuadStackTesselator qst (QuadStackTesselator))
+	
+	(qst.PushQuad q steps)
+	(qst.MoveInputToOutput)
+		
+	(VertexTriangle topLeft)
+	(VertexTriangle bottomRight)
+	(while (qst.PopOutputAsTriangles topLeft bottomRight)
+		(sector.AddFloorTriangle topLeft)
+		(sector.AddFloorTriangle bottomRight)
+	)
+)
+
+(function Main (Int32 id)->(Int32 exitCode):
+	(IInstances instances (Instances))
+	
+	(ISectorFloorTesselator sector (SectorFloorTesselator))
+	(IQuadStackTesselator qst (QuadStackTesselator))
+	
+	(qst.Clear)
+	
+	(if (sector.FoundationsExist == false)
+		// Axis aligned rectangular room
+		
+		(Int32 nSquares = sector.NumberOfSquares)
+		
+		// First generate the physics mesh
+		(#for(Int32 i = 0)(i < nSquares)(#inc i)
+			(QuadVertices q)
+			(sector.FloorQuad i q)
+			
+			(MaterialVertexData barrier)
+			(sector.GetMaterial barrier "physics.hull")
+
+			(qst.PushQuad q barrier)
+			(qst.MoveInputToOutput)
+			
+			(VertexTriangle physicsHullTL)
+			(VertexTriangle physicsHullBR)
+			(while (qst.PopOutputAsTriangles physicsHullTL physicsHullBR)
+				(sector.AddFloorTriangle physicsHullTL)
+				(sector.AddFloorTriangle physicsHullBR)
+			)
+		)
+	
+		(if (sector.NumberOfGaps != 1)
+			(IMessaging messaging (Messaging))
+			(messaging.Log "The stairs script requires a sector to be rectangular and have one connected sector")
+		)
+	
+		(qst.Clear)
+		
+		(GenerateGraphicsMesh sector)
+	else
+		(IMessaging messaging (Messaging))
+		(messaging.Log "The script requires a sector to be rectangular")
+	)
+)

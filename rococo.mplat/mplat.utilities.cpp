@@ -98,7 +98,7 @@ public:
 	bool GetLoadLocation(Windows::IWindow& parent, LoadDesc& ld) override
 	{
 		wchar_t filter[128];
-		SecureFormat(filter, sizeof(filter), L"%S%c%S%c%c", ld.extDesc, 0, ld.ext, 0, 0);
+		SecureFormat(filter, 128, L"%S%c%S%c%c", ld.extDesc, 0, ld.ext, 0, 0);
 
 		OPENFILENAMEW dialog = { 0 };
 		dialog.lStructSize = sizeof(dialog);
@@ -106,7 +106,7 @@ public:
 		dialog.lpstrFilter = filter;
 		dialog.nFilterIndex = 1;
 		dialog.lpstrFile = ld.path;
-		dialog.nMaxFile = sizeof(ld.path);
+		dialog.nMaxFile = Rococo::IO::MAX_PATHLEN;
 
 		wchar_t u16Caption[256];
 		SafeFormat(u16Caption, 256, L"%S", ld.caption);

@@ -103,6 +103,29 @@ namespace HV
 
    struct ISectors;
    struct ISector;
+   struct IEditorState;
+
+   ROCOCOAPI IEditMode : public IUIElement
+   {
+	  virtual const ISector * GetHilight() const = 0;
+   };
+
+   ROCOCOAPI ISectorEditor
+   {
+		virtual void Free() = 0;
+		virtual IEditMode& Mode() = 0;
+		virtual void CancelHilight() = 0;
+		virtual void SetEditor(IEditorState* editor) = 0;
+   };
+
+   ROCOCOAPI ISectorBuilderEditor
+   {
+		virtual void Free() = 0;
+		virtual void SetTexture(int32 index, cstr name) = 0;
+		virtual cstr GetTexture(int32 index) const = 0;
+		virtual cstr GetTexture(int32 state) = 0;
+		virtual IEditMode& Mode() = 0;
+   };
 
    ROCOCOAPI IWorldMap
    {
@@ -118,12 +141,22 @@ namespace HV
 		virtual void Render(IGuiRenderContext& grc, const ISector* litSector, bool isTransparent) = 0;
    };
 
+   ROCOCOAPI ITextureList
+   {
+		virtual void Free() = 0;
+		virtual void ScrollTo(cstr filename) = 0;
+   };
+
+   ITextureList* CreateTextureList(Platform& _platform);
+
    ROCOCOAPI IWorldMapSupervisor: public IWorldMap
    {
 	   virtual void Free() = 0;
    };
 
    IWorldMapSupervisor* CreateWorldMap(Platform& platform, ISectors& sectors);
+   ISectorEditor* CreateSectorEditor(Platform& _platform, IWorldMap& _map, Windows::IWindow& _parent);
+   ISectorBuilderEditor* CreateSectorBuilder(IPublisher& publisher, IWorldMap& map);
 
    ROCOCOAPI IGameMode
    {
