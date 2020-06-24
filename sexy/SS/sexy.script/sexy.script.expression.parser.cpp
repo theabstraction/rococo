@@ -2370,6 +2370,10 @@ namespace Rococo
 
 		void CompileReturnFromFunction(CCompileEnvironment& ce, cr_sex s)
 		{
+			if (s.NumberOfElements() > 1)
+			{
+				Throw(s, "Return statements take no arguments. Output variables should be set with assignment semantics.");
+			}
 			AppendDeconstructAll(ce, s);
 			ce.Builder.Assembler().Append_Return();
 		}

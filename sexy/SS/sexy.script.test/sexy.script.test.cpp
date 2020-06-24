@@ -5635,7 +5635,7 @@ namespace
 			"(function Main -> (Int32 result): "
 			"	(Sys.IDog dog)"
 			"   (if (dog ?)"
-			"		(return = 7)"
+			"		(result = 7)"
 			"	else"
 			"		(result = 9)"
 			"	)"

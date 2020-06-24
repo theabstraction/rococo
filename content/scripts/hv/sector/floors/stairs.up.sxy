@@ -27,16 +27,16 @@
 	(if (dotProduct == -1)
 		(IMessaging messaging (Messaging))
 		(messaging.Log "The script found an opposing wall to the gap")
-		(return true)
+		(isOpposed = true)
+	else
+		(isOpposed = false)
 	)
 )
 
 (function GetOpposingWall (ISectorFloorTesselator sector)(WallSegment wall)(GapSegment gap)-> :
 	(Int32 nWalls = sector.NumberOfSegments )
-	(#for (Int32 i = 0)(i < nWalls)(#inc i)
-		(WallSegment wall)
+	(#for (Int32 i = 0)(i < nWalls)(i += 1)
 		(sector.GetSegment i wall)
-		
 		(if (DoesWallOpposeGap gap wall)
 			(break)
 		)
@@ -46,28 +46,30 @@
 (function GetQuadFromGapAndWall (QuadVertices q)(WallSegment wall)(GapSegment gap)-> :
 	/*
 	(struct QuadVertices
-	(Sys.Maths.Quadf positions)
-	(Sys.Maths.Rectf uv)
-	(Sys.Maths.Quadf normals)
-	(Rococo.QuadColours colours)
+		(Sys.Maths.Quadf positions)
+		(Sys.Maths.Rectf uv)
+		(Sys.Maths.Quadf normals)
+		(Rococo.QuadColours colours)
+	)
 	*/
 	
 	(q.normals.a = 0 0 1)
 	(q.normals.b = 0 0 1)
 	(q.normals.c = 0 0 1)
 	(q.normals.d = 0 0 1)
-	(q.colours.a = 0)
-	(q.colours.b = 0)
-	(q.colours.c = 0)
-	(q.colours.d = 0)
+	(q.colours.a = 0xFFFFFFFF)
+	(q.colours.b = 0xFFFFFFFF)
+	(q.colours.c = 0xFFFFFFFF)
+	(q.colours.d = 0xFFFFFFFF)
 	(q.uv.left = 0)
 	(q.uv.top  = 0)
 	(q.uv.right = 1)
 	(q.uv.bottom = 1)
-	(q.positions.a = wall.quad.a)
-	(q.positions.b = wall.quad.b)
-	(q.positions.c = gap.quad.a)
-	(q.positions.d = gap.quad.a)
+	
+	(q.positions.a = wall.quad.d)
+	(q.positions.b = wall.quad.c)
+	(q.positions.c = gap.quad.d)
+	(q.positions.d = gap.quad.c)
 )
 
 (function GenerateGraphicsMesh (ISectorFloorTesselator sector) -> :
