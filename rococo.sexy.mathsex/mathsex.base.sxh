@@ -2,5 +2,6 @@
 
 (functions "mathsex.base"
 	(Sys.Type.MakeColour (Int32 r)(Int32 g)(Int32 b)(Int32 a)->(RGBAb colour): Rococo::MakeColour)
+	(Sys.Type.ToRGBA (Float32 r)(Float32 g)(Float32 b)(Float32 alpha)->(RGBAb colour): Rococo::ToRGBA)
 )
 

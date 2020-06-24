@@ -91,6 +91,21 @@ namespace Rococo
 	   return RGBAb( (uint8)r, (uint8)g, (uint8)b, (uint8)a);
    }
 
+   RGBAb ToRGBA(float red, float green, float blue, float alpha)
+   {
+	   float a = clamp(255.0f * alpha, 0.0f, 255.0f);
+	   float r = clamp(255.0f * red, 0.0f, 255.0f);
+	   float g = clamp(255.0f * green, 0.0f, 255.0f);
+	   float b = clamp(255.0f * blue, 0.0f, 255.0f);
+
+	   int A = (int)a;
+	   int R = (int)r;
+	   int G = (int)g;
+	   int B = (int)b;
+
+	   return MakeColour(R, G, B, A);
+   }
+
    namespace Maths
    {
       // N.B when compiled in release mode, these will generally inline within the vectorlib.inl function code
@@ -254,6 +269,7 @@ extern "C"
          {
             Sys::Geometry::F32::AddNativeCalls_SysGeometryF32(ss, nullptr);
             Sys::Random::AddNativeCalls_SysRandom(ss, nullptr);
+			Sys::Type::AddNativeCalls_SysType(ss, nullptr);
          }
 
          virtual void ClearResources()

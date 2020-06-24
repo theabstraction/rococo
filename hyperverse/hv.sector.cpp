@@ -3023,6 +3023,7 @@ namespace ANON
 		  Vec3 tangent = segment.quad.b - segment.quad.a;
 
 		  segment.normal = Normalize(Vec3{ tangent.y, -tangent.x, 0 });
+		  segment.tangent = Normalize(tangent);
 		  segment.vertical = { 0,0,1 };
 		  segment.leadsToCorridor = gap.other->IsCorridor();
 		  segment.otherZ0 = Z0();

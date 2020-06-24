@@ -1,0 +1,35 @@
+(' #file.type rococo.hv)
+
+(' #include 
+	"!scripts/mplat.sxh.sxy"
+	"!scripts/hv.sxh.sxy"
+	"!scripts/hv/hv.types.sxy"
+	"!scripts/types.sxy"
+	"!scripts/mplat.types.sxy"
+)
+
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+	
+(using HV)
+(using Rococo)
+(using Rococo.Entities)
+(using Rococo.Graphics)
+(using Sys.Type)
+(using Sys.Maths)
+(using Sys.Geometry.F32)
+(using Sys.Random)
+
+(function Main (Int32 id)->(Int32 exitCode):
+	(ISectorWallTesselator sector (SectorWallTesselator))
+	(Int32 nSegments = sector.NumberOfSegments)
+	(Float32 u = 0)
+	
+	(IQuadStackTesselator qst (QuadStackTesselator))
+		
+	(#for (Int32 i = 0)(i < nSegments)(#inc i)
+		(WallSegment seg)
+		(sector.GetSegment i seg)
+		// NOP
+	)
+)
