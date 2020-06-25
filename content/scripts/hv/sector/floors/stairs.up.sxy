@@ -313,6 +313,12 @@
 	
 	(qst.Clear)
 	
+	(if (sector.NumberOfGaps == 0)
+		(IMessaging messaging (Messaging))
+		(messaging.Log "There are no gaps in the sector")
+		(return)
+	)
+	
 	(if (sector.FoundationsExist == false)
 		// Axis aligned rectangular room
 		

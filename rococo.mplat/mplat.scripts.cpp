@@ -61,7 +61,7 @@ Rococo::Graphics::IQuadStackTesselator* FactoryConstructRococoGraphicsQuadStackT
 
 Rococo::Graphics::IRodTesselator* FactoryConstructRococoGraphicsRodTesselator(Rococo::Platform* platform)
 {
-	return Rococo::Graphics::CreateRodTesselator(*platform);
+	return Rococo::Graphics::CreateRodTesselator(platform->meshes);
 }
 
 Rococo::Graphics::IFieldTesselator* FactoryConstructRococoGraphicsFieldTesselator(Rococo::Graphics::IFieldTesselator* _context)

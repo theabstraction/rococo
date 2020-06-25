@@ -1171,6 +1171,52 @@ namespace ANON
 		  }
 	  }
 
+	  void CreateColumnAt(float z0, float z1, Vec2 posXY, const MaterialVertexData& brickwork)
+	  {
+		  auto radius = 0.2_metres; // width
+
+		  auto& rod = platform.tesselators.rod;
+		  rod.Clear();
+
+		  auto height = Metres{ z1 - z0 };
+		  rod.SetMaterialMiddle(brickwork);
+
+		  rod.SetOrigin(Vec3{ posXY.x, posXY.y, -z0 });
+		  rod.UseSmoothNormals();
+		  rod.AddTube(height, radius, radius, 8);
+
+		  VertexTriangle t;
+		  while (rod.PopNextTriangle(t))
+		  {
+			  wallTriangles.push_back(t);
+		  }
+	  }
+
+	  void CreateColumnsForGap(const Gap& gap, const MaterialVertexData& brickwork)
+	  {
+		  // Compare the memory address of the sector on the other side of the gap 
+		  if (gap.other < this)
+		  {
+			  return; // Not our job to create the column. The other side will handle it
+		  }
+
+		  float zMin = min(z0, gap.other->Z0());
+		  float zMax = max(z1, gap.other->Z1());
+
+		  // Our column hides the joint between sectors, so extends as high and as low as needed.
+
+		  CreateColumnAt(z0, z1, gap.a, brickwork);
+		  CreateColumnAt(z0, z1, gap.b, brickwork);
+	  }
+
+	  void CreateGapColumns(const MaterialVertexData& brickwork)
+	  {
+		  for (auto& gap : gapSegments)
+		  {
+			  CreateColumnsForGap(gap, brickwork);
+		  }
+	  }
+
 	  void CreateFlatWallsBetweenGaps(const MaterialVertexData& brickwork)
 	  {
 		  float u = 0;
@@ -1244,6 +1290,8 @@ namespace ANON
          {
 			 CreateFlatWallsBetweenGaps(brickwork);
          }
+
+		 CreateGapColumns(brickwork);
 
 		 isDirty = true;
       }

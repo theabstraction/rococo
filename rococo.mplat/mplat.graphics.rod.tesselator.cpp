@@ -20,10 +20,9 @@ namespace ANON
 		ObjectVertex d;
 	};
 
-	struct RodTesselator : public IRodTesselator
+	struct RodTesselator : public IRodTesselatorSupervisor
 	{
-		Platform& platform;
-
+		IMeshBuilder& meshes;
 		std::vector<Vec2> vertices;
 		std::vector<ObjectVertex> tempBuffer0;
 		std::vector<ObjectVertex> tempBuffer1;
@@ -47,10 +46,14 @@ namespace ANON
 			triangles.push_back({ q.c, q.d, q.a });
 		}
 
-		RodTesselator(Platform& _platform):
-			platform(_platform)
+		RodTesselator(IMeshBuilder& _meshes): meshes(_meshes)
 		{
 
+		}
+
+		void Free() override
+		{
+			delete this;
 		}
 
 		Vec3 Transform(cr_vec3 v)
@@ -1074,15 +1077,15 @@ namespace ANON
 
 		void CopyToMeshBuilder(const fstring& meshName, boolean32 preserveMesh, boolean32 isInvisible, boolean32 castsShadows)
 		{
-			platform.meshes.Begin(meshName);
+			meshes.Begin(meshName);
 
 			for (auto& t : triangles)
 			{
-				platform.meshes.AddTriangleEx(t);
+				meshes.AddTriangleEx(t);
 			}
 
-			platform.meshes.End(preserveMesh, isInvisible);
-			platform.meshes.SetShadowCasting(meshName, castsShadows);
+			meshes.End(preserveMesh, isInvisible);
+			meshes.SetShadowCasting(meshName, castsShadows);
 		}
 
 		void GetOrigin(Vec3& origin)
@@ -1222,17 +1225,17 @@ namespace ANON
 			}
 		}
 
-		void SetMaterialBottom(MaterialVertexData& bottom) override
+		void SetMaterialBottom(const MaterialVertexData& bottom) override
 		{
 			this->bottom = bottom;
 		}
 
-		void SetMaterialMiddle(MaterialVertexData& middle) override
+		void SetMaterialMiddle(const MaterialVertexData& middle) override
 		{
 			this->middle = middle;
 		}
 
-		void SetMaterialTop(MaterialVertexData& top) override
+		void SetMaterialTop(const MaterialVertexData& top) override
 		{
 			this->top = top;
 		}
@@ -1290,9 +1293,9 @@ namespace Rococo
 {
 	namespace Graphics
 	{
-		IRodTesselator* CreateRodTesselator(Platform& platform)
+		IRodTesselatorSupervisor* CreateRodTesselator(IMeshBuilder& meshes)
 		{
-			return new ANON::RodTesselator(platform);
+			return new ANON::RodTesselator(meshes);
 		}
 	}
 }

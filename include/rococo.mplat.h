@@ -247,7 +247,6 @@ namespace Rococo
 		ISpriteSupervisor* CreateSpriteSupervisor(IRenderer& renderer);
 
 		IQuadStackTesselator* CreateQuadStackTesselator();
-		IRodTesselator* CreateRodTesselator(Platform& platform);
 
 		ROCOCOAPI IRendererConfigSupervisor : public IRendererConfig
 		{
@@ -552,6 +551,13 @@ namespace Rococo
 
 		IRimTesselatorSupervisor* CreateRimTesselator();
 
+		ROCOCOAPI IRodTesselatorSupervisor : public IRodTesselator
+		{
+			virtual void Free() = 0;
+		};
+
+		IRodTesselatorSupervisor* CreateRodTesselator(IMeshBuilder& meshes);
+
 		ROCOCOAPI IMessagingSupervisor : public IMessaging
 		{
 			virtual void PostCreate(Platform & platform) = 0;
@@ -564,6 +570,7 @@ namespace Rococo
 	struct Tesselators
 	{
 		Graphics::IRimTesselatorSupervisor& rim;
+		Graphics::IRodTesselator& rod;
 	};
 
 	namespace Script
