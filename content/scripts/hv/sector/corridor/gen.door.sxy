@@ -127,7 +127,7 @@
 	(q.colours.d = colour)
 )
 
-(function MakeDoor (IQuadStackTesselator qst)(ISectorComponents components)(QuadVertices q)(Float32 halfWidth)-> :
+(function MakeDoor (IQuadStackTesselator qst)(ISectorComponents components)(QuadVertices q)(Float32 halfThickness)-> :
 	(components.BuildComponent "door.body")
 	
 	(MaterialVertexData panels)
@@ -138,16 +138,17 @@
 	
 	(MaterialVertexData scaffold = 0 0 0)
 	
-	(QuadVertices backFace)
-	(Vec3 backFaceDisp = 0 halfWidth 0)
+	(QuadVertices backFace = q)
+	(Vec3 backFaceDisp = 0 halfThickness 0)
+//	(Vec3 backFaceDisp = 0 0 0)
 	(MoveQuad backFace backFaceDisp)
 	
-	(qst.PushQuad q scaffold)
+	(qst.PushQuad backFace scaffold)
 
-	(Rectf rect = 0.001 1 0.999 0)
+	(Rectf rect = 0.002 1 0.998 0)
 	(qst.Shrink rect)
 	
-	(qst.AddCuboid 0 1 0 1 (halfWidth * 2) 0.5 mullions)
+	(qst.AddCuboid 0 1 0 1 (halfThickness * 2) 0.5 mullions)
 	
 	(qst.ClearInput)
 	
@@ -176,7 +177,7 @@
 	(components.CompleteComponent false)
 )
 
-(function MakePillars (ISectorComponents components)(Vec3 bottomLeft)(Vec3 topRight)-> :
+(function MakePillars (ISectorComponents components)(Vec3 bottomLeft)(Vec3 topRight)(Float32 halfDoorThickness)-> :
 	(Float32 x0 = bottomLeft.x)
 	(Float32 x1 = topRight.x)
 	(Float32 y0 = bottomLeft.y)
@@ -187,7 +188,7 @@
 	(Float32 halfWidth = y1)
 	
 	(Float32 pillarWidth =  0.38)
-	(Float32 baseWidth =  0.45)
+	(Float32 baseWidth =  0.25)
 	(Float32 capWidth = 0.5)
 	
 	(MaterialVertexData casing)
@@ -202,7 +203,9 @@
 	(Float32 xA1 = (x0 + baseWidth))
 	(Float32 xB1 = (x1 - baseWidth))
 	
-	(Float32 dy1 = (halfWidth + pillarWidth))
+	(Float32 halfPillarThickness = 0.25)
+	
+	(Float32 dy1 = (halfDoorThickness + halfPillarThickness))
 	(Float32 dy2 = (0 - dy1))
 	(Float32 zB = (z1 - pillarWidth))
 	   
@@ -230,7 +233,7 @@
 	)
 			
 	(rim.SetTransform transform1)
-	(AddRimObject components rim uvScale (0 - pillarWidth) pillarWidth casing)
+	(AddRimObject components rim uvScale (0 - halfPillarThickness) halfPillarThickness casing)
 	
 	(Matrix4x4 transform2 =
 		(1 0  0  0)
@@ -240,29 +243,57 @@
 	)
 			
 	(rim.SetTransform transform2)
-	(AddRimObject components rim uvScale (0 - pillarWidth) pillarWidth casing)
+	(AddRimObject components rim uvScale (0 - halfPillarThickness) halfPillarThickness casing)
 	
-	(
-		(Float32 switchY0 = ((y0 - ( 2 * pillarWidth)) - 0.25) )
-		(Float32 switchY1 = ((y0 - ( 2 * pillarWidth)) - 0.1) )
-		(Float32 switchZ0 = 1.5)
-		(Float32 switchZ1 = 1.55)
-		(Float32 switchX0 = (x0 + 0.025))
-		(Vec3 v = x0       switchY0 z0)
-		(Vec3 w = switchX0 switchY1 switchZ1)
-		(AddBox components v w uvScale uvScale casing) // switch base
-	)
+	(Float32 switchY1 = ((y0 - dy1) - 0.10))
+	(Float32 switchY0 = (switchY1 - 0.15) )
+	(Float32 switchZ0 = 1.5)
+	(Float32 switchZ1 = 1.55)
+	(Float32 switchX0 = (x0 + 0.025))
+	(Vec3 v = x0       switchY0 z0)
+	(Vec3 w = switchX0 switchY1 switchZ1)
+	(AddBox components v w uvScale uvScale casing) // switch base
+
+	(Float32 switch2Y0 = ((y1 + dy1) + 0.10))
+	(Float32 switch2Y1 = (switch2Y0 + 0.15) )
+	(Float32 switch2Z0 = 1.5)
+	(Float32 switch2Z1 = 1.55)
+	(Float32 switch2X0 = (x1 - 0.025))
+	(Vec3 v2 = switch2X0 switch2Y0 z0)
+	(Vec3 w2 = x1 switch2Y1 switch2Z1)
 	
-	(
-		(Float32 switchY0 = ((y1 + ( 2 * pillarWidth)) + 0.1) )
-		(Float32 switchY1 = ((y1 + ( 2 * pillarWidth)) + 0.25) )
-		(Float32 switchZ0 = 1.5)
-		(Float32 switchZ1 = 1.55)
-		(Float32 switchX0 = (x1 - 0.025))
-		(Vec3 v = switchX0    switchY0 z0)
-		(Vec3 w = x1          switchY1 switchZ1)
-		(AddBox components v w uvScale uvScale casing) // switch base
-	)
+	(AddBox components v2 w2 uvScale uvScale casing) // switch base
+	
+	(components.CompleteComponent false)
+	
+	(components.BuildComponent "door.button.1")
+	
+	(MaterialVertexData buttonPlastic = casing)
+	(buttonPlastic.colour = (Sys.Type.ToRGBA 0.25 0 0 0.0))
+	
+	(Float32 buttonY0 = (switchY0 + 0.03))
+	(Float32 buttonY1 = (switchY1 - 0.03))
+	(Float32 buttonZ0 = (switchZ1 - 0.10))
+	(Float32 buttonZ1 = (switchZ1 - 0.04))
+	(Float32 buttonX1 = (switchX0 + 0.01))
+	(Float32 buttonX0 = switchX0)
+	(Vec3 b11 = buttonX0 buttonY0 buttonZ0)
+	(Vec3 b21 = buttonX1 buttonY1 buttonZ1)
+	(AddBox components b11 b21 uvScale uvScale buttonPlastic) // switch base
+	
+	(components.CompleteComponent false)
+
+	(components.BuildComponent "door.button.2")
+	
+	(Float32 button2Y0 = (switch2Y0 + 0.03))
+	(Float32 button2Y1 = (switch2Y1 - 0.03))
+	(Float32 button2Z0 = (switch2Z1 - 0.10))
+	(Float32 button2Z1 = (switch2Z1 - 0.04))
+	(Float32 button2X0 = (switch2X0 - 0.01))
+	(Float32 button2X1 = switch2X0)
+	(Vec3 b12 = button2X0 button2Y0 button2Z0)
+	(Vec3 b22 = button2X1 button2Y1 button2Z1)
+	(AddBox components b12 b22 uvScale uvScale buttonPlastic) // switch base
 	
 	(components.CompleteComponent false)
 )
@@ -323,18 +354,14 @@
 	(corridor.GetSpan span)
 	(Float32 x0 = (0.5 * (0 - span.x)))
 	(Float32 x1 = (0.5 * span.x))
-	(Float32 halfWidth = 0.1) // 2 x halfWidth gives door thickness
-	(Float32 y0 = (0 - halfWidth))
-	(Float32 y1 = halfWidth)
+	(Float32 halfDoorThichness = 0.15) // 2 x halfDoorThichness gives door thickness
+	(Float32 y0 = (0 - halfDoorThichness))
+	(Float32 y1 = halfDoorThichness)
 	(Float32 z0 = 0)
-	(Float32 z1 = span.z)
-	(Float32 casingExtent = 0.1) 
-	(Float32 halfSpanY = (0.5 * span.y))
-	(Float32 t0 = (halfSpanY + casingExtent))
-	(Float32 t1 = ((0 - halfSpanY) - casingExtent))
+	(Float32 z1 = span.z) // height of room
 	
-	(Vec3 bottomLeft = x0 t0 z0) // back bottom left of the BB containing the casing
-	(Vec3 topRight = x1 t1 z1)// back top right of the BB containing the casing
+	(Vec3 bottomLeft = x0 y0 z0) // back bottom left of the BB containing the casing
+	(Vec3 topRight = x1 y1 z1)// back top right of the BB containing the casing
 	
 	(ISectorComponents components (SectorComponents))
 	(components.ClearComponents "door.body")
@@ -355,7 +382,7 @@
 	(Rectf uv = 0 0 uvScale uvScale)
 	(centreQuad.uv = uv)
 	
-	(MakeDoor qst components centreQuad halfWidth)
-	(MakePillars components bottomLeft topRight)
+	(MakeDoor qst components centreQuad halfDoorThichness)
+	(MakePillars components bottomLeft topRight halfDoorThichness)
 	(MakeRails components  bottomLeft topRight)
 )
