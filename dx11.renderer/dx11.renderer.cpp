@@ -1907,7 +1907,6 @@ namespace ANON
 		   ID_PIXEL_SHADER psAmbientShader;
 		   bool alphaBlending;
 		   bool disableShadowCasting;
-		   std::vector<VertexTriangle> triangles;
 	   };
 
 	   std::vector<MeshBuffer> meshBuffers;
