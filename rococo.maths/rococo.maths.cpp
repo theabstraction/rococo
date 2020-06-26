@@ -568,6 +568,16 @@ namespace Rococo
 		return{ row0.y, row1.y, row2.y };
 	}
 
+	Vec3 Matrix4x4::GetWorldToCameraForwardDirection() const
+	{
+		// If F is the forward vector, and W maps forward to z = -1 (for RH camera targetting -ve z)
+	// Then W.F = (0 0 -1). Since W is a rotation matrix, the transpose - T - is the inverse.
+	// We thus have T.W.F = T(0 0 -1) giving F = T.(0 0 -1)
+	// This gives the final column of T = {-Fx -Fy Fz }. Transposing and we grab from the first row of M
+
+		return { -row2.x, -row2.y, row2.z };
+	}
+
 	Vec3 Matrix4x4::GetRightDirection() const
 	{
 		// M.north gives direction of target

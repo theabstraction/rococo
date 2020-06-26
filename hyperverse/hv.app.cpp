@@ -306,6 +306,7 @@ namespace HV
 			}
 			else
 			{
+				sectors->OnTick(clock);
 				return 5;
 			}
 		}

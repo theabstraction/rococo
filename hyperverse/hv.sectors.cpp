@@ -647,6 +647,14 @@ namespace ANON
 		   cstr thePopulateScript = *populateScript != 0 ? populateScript : "#objects/pop.default.sxy";
 		   platform.utilities.RunEnvironmentScript(p, thePopulateScript, true, false);
 	   }
+
+	   void OnTick(const IUltraClock& clock) override
+	   {
+		   for (auto s: sectors)
+		   {
+			   s->OnTick(clock);
+		   }
+	   }
    };
 }
 

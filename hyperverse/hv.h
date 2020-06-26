@@ -265,6 +265,8 @@ namespace HV
 	  virtual const AABB2d& GetAABB() const = 0;
 	  virtual uint32 Id() const = 0;
 
+	  virtual bool UseAnythingAt(cr_vec3 probePoint, cr_vec3 probeDirection, Metres reach) = 0;
+
 	  // Iteration frames are used by some iteration functions to mark sectors as having been enumrerated
 	  // Generally the frame count is incremented each function call
 	  // 0x81000000000 to 0x82000000000 are from calls to ForEverySectorVisibleAt
@@ -305,6 +307,8 @@ namespace HV
 	  virtual void SyncEnvironmentMapToSector() = 0;
 
 	  virtual ISectorLayout* Layout() = 0;
+
+	  virtual void OnTick(const IUltraClock& clock) = 0;
    };
 
    float GetHeightAtPointInSector(cr_vec3 p, ISector& sector);
@@ -339,6 +343,8 @@ namespace HV
 
 	  virtual size_t GetSelectedSectorId() const = 0;
 	  virtual void SelectSector(size_t id) = 0;
+
+	  virtual void OnTick(const IUltraClock& clock) = 0;
    };
 
    ISectors* CreateSectors(Platform& platform);

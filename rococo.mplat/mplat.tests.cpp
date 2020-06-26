@@ -1,5 +1,6 @@
 #include <rococo.api.h>
 #include <rococo.handles.h>
+#include <rococo.maths.h>
 
 using namespace Rococo;
 
@@ -25,7 +26,29 @@ void TestHandles()
 	t1.Invalidate(h0);
 }
 
+void TestMaths()
+{
+	Triangle t
+	{
+		Vec3 { 0, 1.0f, 0.0f},
+		Vec3 { -1.0f, 0.0f, 0.0f},
+		Vec3 { 1.0f, 0.0f, 0.0f}
+	};
+
+	Vec3 start = { 0, 0.25f, 1.0f };
+	Vec3 dir = { 0, 0, -1.0f };
+
+	Collision c = CollideLineAndTriangle(t, start, dir);
+
+	VALIDATE(c.t == 1.0f);
+
+	c = CollideLineAndTriangle(t, Vec3{ 1.0f, 1.0f, 1.0f }, dir);
+
+	VALIDATE(c.contactType == ContactType_None);
+}
+
 void PerformSanityTests()
 {
 	TestHandles();
+	TestMaths();
 }

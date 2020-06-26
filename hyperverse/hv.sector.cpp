@@ -288,7 +288,7 @@ namespace ANON
 	   int32 altitudeInCm;
 	   int32 heightInCm;
 
-	   std::vector<Barrier> barriers;
+	   std::vector<Barrier> barriers; // Barrier 0 is always the door if there is one
 
 	   // N.B we need addresses of material fields to remain constant when map is resized
 	   // So use heap generated argument in nameToMaterial. Do not refactor pointer to Material as Material!
@@ -536,6 +536,14 @@ namespace ANON
 
 	  const Barrier* Barriers(size_t& barrierCount) const override
 	  {
+		  if (!barriers.empty())
+		  {
+			  if (doorElevation > 2)
+			  {
+				  barrierCount = 0;
+				  return nullptr;
+			  }
+		  }
 		  barrierCount = barriers.size();
 		  return barriers.empty() ? nullptr : &barriers[0];
 	  }
@@ -1173,7 +1181,7 @@ namespace ANON
 
 	  void CreateColumnAt(float z0, float z1, Vec2 posXY, const MaterialVertexData& brickwork)
 	  {
-		  auto radius = 0.2_metres; // width
+		  auto radius = 0.4_metres; // width
 
 		  auto& rod = platform.tesselators.rod;
 		  rod.Clear();
@@ -3076,6 +3084,122 @@ namespace ANON
 		  segment.leadsToCorridor = gap.other->IsCorridor();
 		  segment.otherZ0 = Z0();
 		  segment.otherZ1 = Z1();
+	  }
+
+	  float doorElevation = 0;
+	  float doorDirection = 0.0f;
+
+	  const Metres DOOR_MAX_ELEVATION = 3.9_metres;
+	  const MetresPerSecond DOOR_ELEVATION_SPEED = 0.4_mps;
+
+	  void UpdateDoor(ID_ENTITY idDoor, const IUltraClock& clock)
+	  {
+		  auto* door = platform.instances.GetEntity(idDoor);
+		  if (!door) return;
+
+		  doorElevation += doorDirection * clock.DT();
+
+		  if (doorElevation < 0)
+		  {
+			  doorDirection = 0.0f;
+			  doorElevation = 0.0f;
+		  }
+
+		  if (doorElevation > DOOR_MAX_ELEVATION)
+		  {
+			  doorDirection = 0.0f;
+			  doorElevation = DOOR_MAX_ELEVATION;
+		  }
+		 
+		  door->Model().row2.w = doorElevation;
+	  }
+
+	  void OnTick(const IUltraClock& clock) override
+	  {
+		  if (components.empty()) return;
+
+		  for (auto c : components)
+		  {
+			  if (Eq(c.name.c_str(), "door.body"))
+			  {
+				  UpdateDoor(c.id, clock);
+				  break;
+			  }
+		  }
+	  }
+
+	  void ClickButton()
+	  {
+		  if (doorDirection == 0)
+		  {
+			  if (doorElevation > 1.5f)
+			  {
+				  doorDirection = -DOOR_ELEVATION_SPEED;
+			  }
+			  else
+			  {
+				  doorDirection = DOOR_ELEVATION_SPEED;
+			  }
+		  }
+	  }
+
+	  bool TryClickButton(ID_ENTITY idButton, cr_vec3 probePoint, cr_vec3 probeDirection, Metres reach)
+	  {
+		  auto* e = platform.instances.GetEntity(idButton);
+		  auto idMesh = e->MeshId();
+
+		  size_t nTriangles;
+		  auto* triangles = platform.meshes.GetTriangles(idMesh, nTriangles);
+		  if (triangles)
+		  {
+			  for (size_t i = 0; i < nTriangles; ++i)
+			  {
+				  const auto& T = triangles[i];
+
+				  Triangle abc{ T.a.position, T.b.position, T.c.position };
+				  Triangle ABC;
+
+				  cr_m4x4 model = e->Model();
+				  TransformPositions(&abc.A, 3, model, &ABC.A);
+
+				  Collision c = Rococo::CollideLineAndTriangle(ABC, probePoint, probeDirection);
+
+				  if (c.contactType == ContactType_Face)
+				  {
+					  if (c.t > 0 && c.t < reach)
+					  {
+						  ClickButton();
+						  return true;
+					  }
+				  }
+			  }
+		  }
+
+		  return false;
+	  }
+
+	  bool UseAnythingAt(cr_vec3 probePoint, cr_vec3 probeDirection, Metres reach) override
+	  {
+		  for (auto c : components)
+		  {
+			  if (Eq(c.name.c_str(), "door.button.1"))
+			  {
+				  if (TryClickButton(c.id, probePoint, probeDirection, reach))
+				  {
+					  return true;
+				  }
+			  }
+
+			  if (Eq(c.name.c_str(), "door.button.2"))
+			  {
+				  if (TryClickButton(c.id, probePoint, probeDirection, reach))
+				  {
+					  return true;
+				  }
+			  }
+		  }
+
+		  return false;
 	  }
    };
 }

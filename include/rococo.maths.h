@@ -154,6 +154,9 @@ namespace Rococo
 		static void FromQuatAndThenTranspose(const Quat& quat, Matrix4x4& m);
 		static void GetRotationQuat(const Matrix4x4& m, Quat& quat);
 
+		// if the matrix represents a transformation to a camera looking down the negative z axies 
+		// then this function gives the forward direction
+		Vec3 GetWorldToCameraForwardDirection() const;
 		Vec3 GetForwardDirection() const;
 		Vec3 GetRightDirection() const;
 		Vec3 GetUpDirection() const;
@@ -593,6 +596,9 @@ namespace Rococo
 	Collision CollideBoundingBoxAndSphere(const BoundingCube& cube, const Sphere& sphere, cr_vec3 target);
 	Collision CollideEdgeAndSphere(const Edge& edge, const Sphere& sphere, cr_vec3 target);
 	Collision CollideVertexAndSphere(cr_vec3 v, const Sphere& sphere, cr_vec3 target);
+
+	bool IsPointInTriangle(cr_vec3 P, const Triangle& T);
+	Collision CollideLineAndTriangle(const Triangle& T, cr_vec3 start, cr_vec3 direction);
 
 	template<class T> T Lerp(const T& a, const T& b, float t) { return a + (b - a) * t; }
 }

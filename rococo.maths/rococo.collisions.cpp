@@ -325,6 +325,68 @@ namespace Rococo
 		ForEachVertex(cube.bottomVertices, processVertices);
 	}
 
+	bool IsPointInTriangle(cr_vec3 P, const Triangle& T)
+	{
+		// Given that T is clockwise A->B->C
+		// Then all internal points P give clockwise for APC BCP and ABP
+		Vec3 N = Cross(T.B - T.A, T.C - T.A);
+
+		Vec3 apc = Cross(P - T.A, T.C - P);
+		Vec3 bcp = Cross(T.C - T.B, P - T.C);
+		Vec3 abp = Cross(T.B - T.A, P - T.B);
+		if (Dot(N, apc) < 0)
+		{
+			return false;
+		}
+
+		if (Dot(N, bcp) < 0)
+		{
+			return false;
+		}
+
+		if (Dot(N, abp) < 0)
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	Collision CollideLineAndTriangle(const Triangle& T, cr_vec3 start, cr_vec3 direction)
+	{
+		// The line will penetrate the plane of the triangle at parameter t,
+		// give that the line is parameterized as P + D.t where P is the start point and D is the direction
+
+		// if I is the point of intersection = (P + D.t) then (A-I).N = 0
+		// Expand to give (A - (P + D.t)).N = 0, giving  (A-P).N - D.Nt = 0
+		// => (A - P).N = D.Nt. Ergo t = (A - P).N / D.N
+
+		Vec3 N = Cross(T.B - T.A, T.C - T.A);
+
+		float denominator = Dot(N, direction);
+		const float EPSILON = 0.0000001f;
+
+		if (fabsf(denominator) <= EPSILON)
+		{
+			return NoCollision();
+		}
+
+		Collision collision;
+		collision.t = Dot(T.A - start, direction);
+		collision.touchPoint = start + direction * collision.t;
+		collision.contactType = ContactType_Face;
+		collision.isDegenerate = false;
+
+		if (IsPointInTriangle(collision.touchPoint, T))
+		{
+			return collision;
+		}
+		else
+		{
+			return NoCollision();
+		}
+	}
+
 	Collision CollideEdgeAndSphere(const Edge& edge, const Sphere& sphere, cr_vec3 target)
 	{
 		// First of all, if the sphere penetrates the edge, then a collision is deemed to be at time zero

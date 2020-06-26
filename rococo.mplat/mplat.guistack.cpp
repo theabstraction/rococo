@@ -142,10 +142,12 @@ public:
 	{
 		platform->renderer.SetSysCursor(EWindowCursor_Default);
 
-		DirectMouseEvent dme(me);
-		publisher.Publish(dme, evUIMouseEvent);
-
-		if (dme.consumed) return;
+		if (panels.empty())
+		{
+			DirectMouseEvent dme(me);
+			publisher.Publish(dme, evUIMouseEvent);
+			if (dme.consumed) return;
+		}
 
 		for (auto i = panels.rbegin(); i != panels.rend(); ++i)
 		{

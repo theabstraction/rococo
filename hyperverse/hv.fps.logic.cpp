@@ -986,9 +986,38 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 		if (!isCursorActive) fpsControl.OnMouseMove(cursorPos, delta, dWheel);
 	}
 
+	void UseAnythingAtCrosshair()
+	{
+		Vec3 eye;
+		platform.camera.GetPosition(eye);
+
+		auto* s = sectors.GetFirstSectorContainingPoint((Vec2&) eye);
+		if (s != nullptr)
+		{
+			Matrix4x4 world;
+			platform.camera.GetWorld(world);
+			Vec3 dir = world.GetWorldToCameraForwardDirection();
+			if (!s->UseAnythingAt(eye, dir, 1.5_metres))
+			{
+				size_t nGaps;
+				auto* gaps = s->Gaps(nGaps);
+				for (size_t i = 0; i < nGaps; ++i)
+				{
+					auto& g = gaps[i];
+					if (g.other->UseAnythingAt(eye, dir, 1.0_metres))
+					{
+						break;
+					}
+				}
+			}
+		}
+	}
+
 	void OnMouseLClick(Vec2i cursorPos, bool clickedDown) override
 	{
-
+		if (!clickedDown) return;
+			
+		UseAnythingAtCrosshair();
 	}
 
 	void OnMouseRClick(Vec2i cursorPos, bool clickedDown) override
@@ -1000,9 +1029,15 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 		}
 	}
 
-	void Render(IGuiRenderContext& rc, const GuiRect& absRect) override
+	void Render(IGuiRenderContext& g, const GuiRect& absRect) override
 	{
+		GuiMetrics metrics;
+		g.Renderer().GetGuiMetrics(metrics);
 
+		Vec2i c{ metrics.screenSpan.x >> 1, metrics.screenSpan.y >> 1 };
+
+		Graphics::DrawLine(g, 1, c - Vec2i{ 1, 0 }, c + Vec2i{ 0, 1 }, RGBAb(255, 255, 255, 255));
+		Graphics::DrawLine(g, 1, c - Vec2i{ 0, 1 }, c + Vec2i{ 1, 0 }, RGBAb(255, 255, 255, 255));
 	}
 };
 

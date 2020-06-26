@@ -203,7 +203,7 @@
 	(Float32 xA1 = (x0 + baseWidth))
 	(Float32 xB1 = (x1 - baseWidth))
 	
-	(Float32 halfPillarThickness = 0.25)
+	(Float32 halfPillarThickness = 0.15)
 	
 	(Float32 dy1 = (halfDoorThickness + halfPillarThickness))
 	(Float32 dy2 = (0 - dy1))
@@ -245,8 +245,8 @@
 	(rim.SetTransform transform2)
 	(AddRimObject components rim uvScale (0 - halfPillarThickness) halfPillarThickness casing)
 	
-	(Float32 switchY1 = ((y0 - dy1) - 0.10))
-	(Float32 switchY0 = (switchY1 - 0.15) )
+	(Float32 switchY1 = ((y0 - dy1) - 0.01))
+	(Float32 switchY0 = (switchY1 - 0.12) )
 	(Float32 switchZ0 = 1.5)
 	(Float32 switchZ1 = 1.55)
 	(Float32 switchX0 = (x0 + 0.025))
@@ -254,8 +254,8 @@
 	(Vec3 w = switchX0 switchY1 switchZ1)
 	(AddBox components v w uvScale uvScale casing) // switch base
 
-	(Float32 switch2Y0 = ((y1 + dy1) + 0.10))
-	(Float32 switch2Y1 = (switch2Y0 + 0.15) )
+	(Float32 switch2Y0 = ((y1 + dy1) + 0.01))
+	(Float32 switch2Y1 = (switch2Y0 + 0.12) )
 	(Float32 switch2Z0 = 1.5)
 	(Float32 switch2Z1 = 1.55)
 	(Float32 switch2X0 = (x1 - 0.025))
@@ -281,7 +281,7 @@
 	(Vec3 b21 = buttonX1 buttonY1 buttonZ1)
 	(AddBox components b11 b21 uvScale uvScale buttonPlastic) // switch base
 	
-	(components.CompleteComponent false)
+	(components.CompleteComponent true)
 
 	(components.BuildComponent "door.button.2")
 	
@@ -293,9 +293,10 @@
 	(Float32 button2X1 = switch2X0)
 	(Vec3 b12 = button2X0 button2Y0 button2Z0)
 	(Vec3 b22 = button2X1 button2Y1 button2Z1)
-	(AddBox components b12 b22 uvScale uvScale buttonPlastic) // switch base
+	(AddBox components b12 b22 uvScale uvScale buttonPlastic)
 	
-	(components.CompleteComponent false)
+	(components.CompleteComponent true)
+
 )
 
 (function MakeRails (ISectorComponents components)(Vec3 bottomLeft)(Vec3 topRight)-> :
@@ -365,6 +366,8 @@
 	
 	(ISectorComponents components (SectorComponents))
 	(components.ClearComponents "door.body")
+	(components.ClearComponents "door.button.1")
+	(components.ClearComponents "door.button.2")
 	(components.ClearComponents "door.rails")
 	(components.ClearComponents "door.casing")
 	

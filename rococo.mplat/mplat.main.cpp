@@ -325,6 +325,8 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 
 int Main(HINSTANCE hInstance, IAppFactory& appFactory, cstr title, HICON hLargeIcon, HICON hSmallIcon)
 {
+	PerformSanityTests();
+
 	struct : public IMainloop
 	{
 		IAppFactory* appFactory;
