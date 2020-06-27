@@ -5540,6 +5540,20 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->AddTriangle(*a, *b, *c);
 	}
+	void NativeRococoGraphicsIMeshBuilderAddPhysicsHull(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Triangle* t;
+		_offset += sizeof(t);
+		ReadInput(t, _sf, -_offset);
+
+		Rococo::Graphics::IMeshBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AddPhysicsHull(*t);
+	}
 	void NativeRococoGraphicsIMeshBuilderBegin(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -5693,6 +5707,7 @@ namespace Rococo { namespace Graphics {
 		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderAddMesh, nullptr, ("IMeshBuilderAddMesh (Pointer hObject)(Sys.Maths.Matrix4x4 transform)(Sys.Type.IString sourceName) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderAddTriangleEx, nullptr, ("IMeshBuilderAddTriangleEx (Pointer hObject)(Rococo.VertexTriangle t) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderAddTriangle, nullptr, ("IMeshBuilderAddTriangle (Pointer hObject)(Rococo.ObjectVertex a)(Rococo.ObjectVertex b)(Rococo.ObjectVertex c) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderAddPhysicsHull, nullptr, ("IMeshBuilderAddPhysicsHull (Pointer hObject)(Sys.Maths.Triangle t) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderBegin, nullptr, ("IMeshBuilderBegin (Pointer hObject)(Sys.Type.IString meshName) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderEnd, nullptr, ("IMeshBuilderEnd (Pointer hObject)(Bool preserveCopy)(Bool invisible) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderClear, nullptr, ("IMeshBuilderClear (Pointer hObject) -> "));

@@ -17,6 +17,7 @@ namespace
 	   AABB bounds; // Bounding box surrounding mesh
 	   ObjectVertex* pVertexArray;
 	   size_t nVertices;
+	   std::vector<Triangle> physicsHull;
    };
 
    struct MeshBindingEx
@@ -31,6 +32,7 @@ namespace
 	  std::unordered_map<ID_SYS_MESH, MeshBindingEx, ID_SYS_MESH> idToName;
 	  char name[MAX_FQ_NAME_LEN + 1] = { 0 };
       std::vector<ObjectVertex> vertices;
+	  std::vector<Triangle> physicsHull;
       IRenderer& renderer;
 
       MeshBuilder(IRenderer& _renderer) : renderer(_renderer)
@@ -52,6 +54,7 @@ namespace
       {
          name[0] = 0;
          vertices.clear();
+		 physicsHull.clear();
       }
 
 	  const VertexTriangle* GetTriangles(ID_SYS_MESH id, size_t& nTriangles) const override
@@ -65,6 +68,19 @@ namespace
 
 		  nTriangles = i->second.bind->nVertices / 3;
 		  return (const VertexTriangle*)i->second.bind->pVertexArray;
+	  }
+
+	  const Triangle* GetPhysicsHull(ID_SYS_MESH id, size_t& nTriangles) const override
+	  {
+		  auto i = idToName.find(id);
+		  if (i == idToName.end() || i->second.bind->physicsHull.empty())
+		  {
+			  nTriangles = 0;
+			  return nullptr;
+		  }
+
+		  nTriangles = i->second.bind->physicsHull.size();
+		  return (const Triangle*)i->second.bind->physicsHull.data();
 	  }
 
 	  AABB Bounds(ID_SYS_MESH id) const override
@@ -195,7 +211,7 @@ namespace
 
       void AddTriangle(const ObjectVertex& a, const ObjectVertex& b, const ObjectVertex& c) override
       {
-         if (*name == 0) Throw(0, "Call MeshBuilder.Begin() first");
+         if (*name == 0) Throw(0, "MeshBuilder::AddTriangle - Call MeshBuilder.Begin() first");
          vertices.push_back(a);
          vertices.push_back(b);
          vertices.push_back(c);
@@ -203,7 +219,7 @@ namespace
 
 	  void AddTriangleEx(const VertexTriangle& t)
 	  {
-		  if (*name == 0) Throw(0, "Call MeshBuilder.Begin() first");
+		  if (*name == 0) Throw(0, "MeshBuilder::AddTriangleEx - Call MeshBuilder.Begin() first");
 		  vertices.push_back(t.a);
 		  vertices.push_back(t.b);
 		  vertices.push_back(t.c);
@@ -239,19 +255,27 @@ namespace
 				i->second->nVertices = vertices.size();
 				delete[] i->second->pVertexArray;
 				i->second->pVertexArray = backup;
+				i->second->physicsHull = physicsHull;
 			}
-         }
-         else
-         {
-            auto id = renderer.CreateTriangleMesh(invisible ? nullptr : v, invisible ? 0 : (uint32)vertices.size());
-			auto binding = new MeshBinding{ id, boundingBox, backup, vertices.size() };
-			auto& s = std::string(name);
-			meshes[s] = binding;
-			idToName[id] = MeshBindingEx { binding, s };
-         }
+			else if (!physicsHull.empty())
+			{
+				i->second->nVertices = 0;
+				delete[] i->second->pVertexArray;
+				i->second->pVertexArray = nullptr;
+				i->second->physicsHull = physicsHull;
+			}
+		 }
+		 else
+		 {
+			 auto id = renderer.CreateTriangleMesh(invisible ? nullptr : v, invisible ? 0 : (uint32)vertices.size());
+			 auto binding = new MeshBinding{ id, boundingBox, backup, vertices.size(), physicsHull };
+			 auto& s = std::string(name);
+			 meshes[s] = binding;
+			 idToName[id] = MeshBindingEx{ binding, s };
+		 }
 
-         Clear();
-      }
+		 Clear();
+	  }
 
 	  void SetSpecialShader(const fstring& fqName, const fstring& psSpotlightPingPath, const fstring& psAmbientPingPath, boolean32 alphaBlending)
 	  {
@@ -300,7 +324,7 @@ namespace
 		  }
 	  }
 
-	  void Span(Vec3& span, const fstring& name)
+	  void Span(Vec3& span, const fstring& name) override
 	  {
 		  auto i = meshes.find((cstr)name);
 		  if (i == meshes.end())
@@ -311,22 +335,37 @@ namespace
 		  span = i->second->bounds.Span();
 	  }
 
-      virtual bool TryGetByName(cstr name, ID_SYS_MESH& id, AABB& bounds)
-      {
-         auto i = meshes.find(name);
-         if (i == meshes.end())
-         {
-            id = ID_SYS_MESH::Invalid();
-			bounds = AABB();
-            return false;
-         }
-         else
-         {
-            id = i->second->id;
-			bounds = i->second->bounds;
-            return true;
-         }
-      }
+	  bool TryGetByName(cstr name, ID_SYS_MESH& id, AABB& bounds) override
+	  {
+		  auto i = meshes.find(name);
+		  if (i == meshes.end())
+		  {
+			  id = ID_SYS_MESH::Invalid();
+			  bounds = AABB();
+			  return false;
+		  }
+		  else
+		  {
+			  id = i->second->id;
+			  bounds = i->second->bounds;
+			  return true;
+		  }
+	  }
+
+	  void AddPhysicsHull(const Triangle& t) override
+	  {
+		  if (*name == 0) Throw(0, "MeshBuilder::AddPhysicsHull - Call MeshBuilder.Begin() first");
+
+		  Vec3 n = t.EdgeCrossProduct();
+
+		  const float EPSILON = 1.0e-16f;
+		  if (LengthSq(n) < EPSILON)
+		  {
+			  Throw(0, "MeshBuilder::AddPhysicsHull degenerate triangle. Normal length squared was less than %g", EPSILON);
+		  }
+
+		  physicsHull.push_back(t);
+	  }
    };
 }
 

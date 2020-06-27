@@ -172,6 +172,11 @@ namespace Rococo
 	   }
    }
 
+   Vec3 Triangle::EdgeCrossProduct() const
+   {
+	   return Cross(B - A, C - A);
+   }
+
    void TransposeMatrix(const Matrix4x4& matrix, Matrix4x4& transposeOfMatrix)
    {
       using namespace DirectX;
@@ -575,7 +580,7 @@ namespace Rococo
 	// We thus have T.W.F = T(0 0 -1) giving F = T.(0 0 -1)
 	// This gives the final column of T = {-Fx -Fy Fz }. Transposing and we grab from the first row of M
 
-		return { -row2.x, -row2.y, row2.z };
+		return { -row2.x, -row2.y, -row2.z }; // Flipped sign dont know why - eek
 	}
 
 	Vec3 Matrix4x4::GetRightDirection() const

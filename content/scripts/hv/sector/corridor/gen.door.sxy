@@ -263,14 +263,12 @@
 	(Vec3 w2 = x1 switch2Y1 switch2Z1)
 	
 	(AddBox components v2 w2 uvScale uvScale casing) // switch base
-	
 	(components.CompleteComponent false)
-	
-	(components.BuildComponent "door.button.1")
 	
 	(MaterialVertexData buttonPlastic = casing)
 	(buttonPlastic.colour = (Sys.Type.ToRGBA 0.25 0 0 0.0))
 	
+	(components.BuildComponent "door.button.1")
 	(Float32 buttonY0 = (switchY0 + 0.03))
 	(Float32 buttonY1 = (switchY1 - 0.03))
 	(Float32 buttonZ0 = (switchZ1 - 0.10))
@@ -279,12 +277,28 @@
 	(Float32 buttonX0 = switchX0)
 	(Vec3 b11 = buttonX0 buttonY0 buttonZ0)
 	(Vec3 b21 = buttonX1 buttonY1 buttonZ1)
-	(AddBox components b11 b21 uvScale uvScale buttonPlastic) // switch base
+	(AddBox components b11 b21 uvScale uvScale buttonPlastic) // switch base	
 	
-	(components.CompleteComponent true)
+	(Triangle bt1PhysicsHull1 = 
+		(buttonX0 buttonY0 buttonZ1)
+		(buttonX0 buttonY0 buttonZ0)
+		(buttonX0 buttonY1 buttonZ1)
+	)
+	
+	(components.AddPhysicsHull bt1PhysicsHull1)
+	
+	
+	(Triangle bt1PhysicsHull2 = 
+		(buttonX0 buttonY1 buttonZ0)
+		(buttonX0 buttonY1 buttonZ1)
+		(buttonX0 buttonY0 buttonZ0)
+	)
+	
+	(components.AddPhysicsHull bt1PhysicsHull2)
 
-	(components.BuildComponent "door.button.2")
-	
+	(components.CompleteComponent false)
+
+	(components.BuildComponent "door.button.2")	
 	(Float32 button2Y0 = (switch2Y0 + 0.03))
 	(Float32 button2Y1 = (switch2Y1 - 0.03))
 	(Float32 button2Z0 = (switch2Z1 - 0.10))
@@ -293,9 +307,25 @@
 	(Float32 button2X1 = switch2X0)
 	(Vec3 b12 = button2X0 button2Y0 button2Z0)
 	(Vec3 b22 = button2X1 button2Y1 button2Z1)
-	(AddBox components b12 b22 uvScale uvScale buttonPlastic)
+	(AddBox components b12 b22 uvScale uvScale buttonPlastic)	
 	
-	(components.CompleteComponent true)
+	(Triangle bt2PhysicsHull1 = 
+		(button2X0 button2Y0 button2Z0)
+		(button2X0 button2Y0 button2Z1)
+		(button2X0 button2Y1 button2Z1)
+	)
+	
+	(components.AddPhysicsHull bt2PhysicsHull1)
+	
+	(Triangle bt2PhysicsHull2 = 
+		(button2X0 button2Y1 button2Z1)
+		(button2X0 button2Y1 button2Z0)
+		(button2X0 button2Y0 button2Z0)
+	)
+	
+	(components.AddPhysicsHull bt2PhysicsHull2)
+	
+	(components.CompleteComponent false)
 
 )
 

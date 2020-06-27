@@ -194,6 +194,7 @@ namespace Rococo
 		   virtual IMathsVenue* Venue() = 0;
 		   virtual const fstring GetName(ID_SYS_MESH id) const = 0;
 		   virtual const VertexTriangle* GetTriangles(ID_SYS_MESH id, size_t& nTriangles) const = 0;
+		   virtual const Triangle* GetPhysicsHull(ID_SYS_MESH id, size_t& nTriangles) const = 0;
 		   virtual AABB Bounds(ID_SYS_MESH id) const = 0;
 		};
 

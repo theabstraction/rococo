@@ -309,6 +309,7 @@
 		(AddMesh (const Matrix4x4 transform)(IString sourceName))
 		(AddTriangleEx (const VertexTriangle t))
 		(AddTriangle (const Vertex a)(const Vertex b)(const Vertex c))	
+		(AddPhysicsHull (const Triangle t))
 		(Begin (IString meshName))
 		(End (Bool preserveCopy)(Bool invisible))
 		(Clear)

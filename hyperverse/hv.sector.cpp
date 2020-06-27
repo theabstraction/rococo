@@ -984,6 +984,11 @@ namespace ANON
 				  This->platform.meshes.AddTriangleEx(t);
 			  }
 
+			  void AddPhysicsHull(const Triangle& t) override
+			  {
+				  This->platform.meshes.AddPhysicsHull(t);
+			  }
+
 			  void BuildComponent(const fstring& componentName) override
 			  {
 				  this->localName = componentName;
@@ -1132,9 +1137,14 @@ namespace ANON
 				  }
 			  }
 
-			  virtual void AddTriangle(const VertexTriangle& t)
+			  void AddTriangle(const VertexTriangle& t) override
 			  {
 				  This->platform.meshes.AddTriangleEx(t);
+			  }
+
+			  void AddPhysicsHull(const Triangle& t) override
+			  {
+				  This->platform.meshes.AddPhysicsHull(t);
 			  }
 
 			  void BuildComponent(const fstring& componentName) override
@@ -1735,6 +1745,18 @@ namespace ANON
          meshName.Populate(fullMeshName);
       }
 
+	  const Triangle* GetPhysicsHull(const fstring& componentName, size_t& nTriangles) const
+	  {
+		  char fullMeshName[256];
+		  SafeFormat(fullMeshName, 256, "sector.%d.%s", id, (cstr)componentName);
+
+		  ID_SYS_MESH id;
+		  AABB bounds;
+		  platform.meshes.TryGetByName(fullMeshName, id, bounds);
+
+		  return platform.meshes.GetPhysicsHull(id, nTriangles);
+	  }
+
       void RunGenCorridorScript()
       {
          struct : IEventCallback<ScriptCompileArgs>, public ICorridor, public ISectorComponents
@@ -1775,6 +1797,11 @@ namespace ANON
 
 				This->platform.meshes.Clear();
 				This->platform.meshes.Begin(to_fstring(fullMeshName));
+			}
+
+			void AddPhysicsHull(const Triangle& t) override
+			{
+				This->platform.meshes.AddPhysicsHull(t);
 			}
 
 			void ClearComponents(const fstring& componentName) override
@@ -3147,20 +3174,18 @@ namespace ANON
 	  {
 		  auto* e = platform.instances.GetEntity(idButton);
 		  auto idMesh = e->MeshId();
+		  cr_m4x4 model = e->Model();
 
 		  size_t nTriangles;
-		  auto* triangles = platform.meshes.GetTriangles(idMesh, nTriangles);
+		  auto* triangles = platform.meshes.GetPhysicsHull(idMesh, nTriangles);
 		  if (triangles)
 		  {
 			  for (size_t i = 0; i < nTriangles; ++i)
 			  {
 				  const auto& T = triangles[i];
 
-				  Triangle abc{ T.a.position, T.b.position, T.c.position };
 				  Triangle ABC;
-
-				  cr_m4x4 model = e->Model();
-				  TransformPositions(&abc.A, 3, model, &ABC.A);
+				  TransformPositions(&T.A, 3, model, &ABC.A);
 
 				  Collision c = Rococo::CollideLineAndTriangle(ABC, probePoint, probeDirection);
 
@@ -3168,8 +3193,11 @@ namespace ANON
 				  {
 					  if (c.t > 0 && c.t < reach)
 					  {
-						  ClickButton();
-						  return true;
+						  if (Dot(probeDirection, T.EdgeCrossProduct()) < 0)
+						  {
+							  ClickButton();
+							  return true;
+						  }
 					  }
 				  }
 			  }

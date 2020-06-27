@@ -852,6 +852,20 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->AddTriangle(*t);
 	}
+	void NativeHVISectorComponentsAddPhysicsHull(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Triangle* t;
+		_offset += sizeof(t);
+		ReadInput(t, _sf, -_offset);
+
+		HV::ISectorComponents* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AddPhysicsHull(*t);
+	}
 	void NativeHVISectorComponentsBuildComponent(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -937,6 +951,7 @@ namespace HV {
 		const INamespace& ns = ss.AddNativeNamespace(("HV.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForHVSectorComponents, _nceContext, ("GetHandleForISectorComponents0  -> (Pointer hObject)"));
 		ss.AddNativeCall(ns, NativeHVISectorComponentsAddTriangle, nullptr, ("ISectorComponentsAddTriangle (Pointer hObject)(Rococo.VertexTriangle t) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorComponentsAddPhysicsHull, nullptr, ("ISectorComponentsAddPhysicsHull (Pointer hObject)(Sys.Maths.Triangle t) -> "));
 		ss.AddNativeCall(ns, NativeHVISectorComponentsBuildComponent, nullptr, ("ISectorComponentsBuildComponent (Pointer hObject)(Sys.Type.IString componentName) -> "));
 		ss.AddNativeCall(ns, NativeHVISectorComponentsClearComponents, nullptr, ("ISectorComponentsClearComponents (Pointer hObject)(Sys.Type.IString componentName) -> "));
 		ss.AddNativeCall(ns, NativeHVISectorComponentsCompleteComponent, nullptr, ("ISectorComponentsCompleteComponent (Pointer hObject)(Bool preserveMesh) -> "));

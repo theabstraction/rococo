@@ -278,6 +278,21 @@ namespace Rococo
 		Vec3 A;
 		Vec3 B;
 		Vec3 C;
+
+		/* 
+		 Compute the cross product: (B-A)(C-A). With the anticlockwise oriented triangle below:
+
+		 C
+		:
+		:
+		:
+		:
+		:
+		 A-----------B
+
+		 B-A is i, and C-A is j, so the result is i x j = k
+		*/
+		Vec3 EdgeCrossProduct() const;
 	};
 
 	bool GetTriangleHeight(const Triangle& t, cr_vec2 P, float& result);

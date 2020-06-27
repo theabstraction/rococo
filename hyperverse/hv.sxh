@@ -109,6 +109,7 @@
 	(context factory HV.ISectorComponents)
 	(methods
 		(AddTriangle (const VertexTriangle t))
+		(AddPhysicsHull (const Triangle t))
 		(BuildComponent (IString componentName))
 		(ClearComponents (IString componentName))
 		(CompleteComponent (Bool preserveMesh))
