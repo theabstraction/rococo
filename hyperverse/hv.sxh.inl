@@ -376,6 +376,26 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->SetTemplateDoorScript(hasDoor, scriptName);
 	}
+	void NativeHVISectorBuilderSetTemplateFloorScript(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _scriptName;
+		ReadInput(_scriptName, _sf, -_offset);
+		fstring scriptName { _scriptName->buffer, _scriptName->length };
+
+
+		boolean32 useScript;
+		_offset += sizeof(useScript);
+		ReadInput(useScript, _sf, -_offset);
+
+		HV::ISectorBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetTemplateFloorScript(useScript, scriptName);
+	}
 	void NativeHVISectorBuilderSetTemplateMaterial(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -406,6 +426,66 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->SetTemplateMaterial(bodyClass, cat, colour, persistentId);
 	}
+	void NativeHVISectorBuilderSetWallScriptF32(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		float value;
+		_offset += sizeof(value);
+		ReadInput(value, _sf, -_offset);
+
+		_offset += sizeof(IString*);
+		IString* _name;
+		ReadInput(_name, _sf, -_offset);
+		fstring name { _name->buffer, _name->length };
+
+
+		HV::ISectorBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetWallScriptF32(name, value);
+	}
+	void NativeHVISectorBuilderSetFloorScriptF32(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		float value;
+		_offset += sizeof(value);
+		ReadInput(value, _sf, -_offset);
+
+		_offset += sizeof(IString*);
+		IString* _name;
+		ReadInput(_name, _sf, -_offset);
+		fstring name { _name->buffer, _name->length };
+
+
+		HV::ISectorBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetFloorScriptF32(name, value);
+	}
+	void NativeHVISectorBuilderSetCorridorScriptF32(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		float value;
+		_offset += sizeof(value);
+		ReadInput(value, _sf, -_offset);
+
+		_offset += sizeof(IString*);
+		IString* _name;
+		ReadInput(_name, _sf, -_offset);
+		fstring name { _name->buffer, _name->length };
+
+
+		HV::ISectorBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetCorridorScriptF32(name, value);
+	}
 
 	void NativeGetHandleForHVSectorBuilder(NativeCallEnvironment& _nce)
 	{
@@ -429,7 +509,11 @@ namespace HV {
 		ss.AddNativeCall(ns, NativeHVISectorBuilderCreateFromTemplate, nullptr, ("ISectorsCreateFromTemplate (Pointer hObject)(Int32 altitude)(Int32 height) -> (Int32 id)"));
 		ss.AddNativeCall(ns, NativeHVISectorBuilderSetTemplateWallScript, nullptr, ("ISectorsSetTemplateWallScript (Pointer hObject)(Bool useScript)(Sys.Type.IString scriptName) -> "));
 		ss.AddNativeCall(ns, NativeHVISectorBuilderSetTemplateDoorScript, nullptr, ("ISectorsSetTemplateDoorScript (Pointer hObject)(Bool hasDoor)(Sys.Type.IString scriptName) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorBuilderSetTemplateFloorScript, nullptr, ("ISectorsSetTemplateFloorScript (Pointer hObject)(Bool useScript)(Sys.Type.IString scriptName) -> "));
 		ss.AddNativeCall(ns, NativeHVISectorBuilderSetTemplateMaterial, nullptr, ("ISectorsSetTemplateMaterial (Pointer hObject)(Sys.Type.IString bodyClass)(Int32 cat)(Int32 colour)(Sys.Type.IString persistentId) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorBuilderSetWallScriptF32, nullptr, ("ISectorsSetWallScriptF32 (Pointer hObject)(Sys.Type.IString name)(Float32 value) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorBuilderSetFloorScriptF32, nullptr, ("ISectorsSetFloorScriptF32 (Pointer hObject)(Sys.Type.IString name)(Float32 value) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorBuilderSetCorridorScriptF32, nullptr, ("ISectorsSetCorridorScriptF32 (Pointer hObject)(Sys.Type.IString name)(Float32 value) -> "));
 	}
 }
 // BennyHill generated Sexy native functions for HV::ISectorLayout 

@@ -12,6 +12,11 @@
 
 #include <random>
 
+namespace
+{
+	cstr const DEFAULT_WALL_SCRIPT = "#walls/stretch.bricks.sxy";
+}
+
 namespace HV
 {
    HV::ICorridor* FactoryConstructHVCorridor(HV::ICorridor* _context)
@@ -257,6 +262,23 @@ namespace ANON
 	   std::sort(quads.begin(), quads.end(), byAreaDescedning);
    }
 
+   bool IsQuadRectangular(const Quad& q)
+   {
+	   Vec3 ab = q.b - q.a;
+	   Vec3 bc = q.c - q.b;
+	   Vec3 cd = q.d - q.c;
+	   Vec3 da = q.a - q.d;
+
+	   if (Dot(ab, bc) == 0 && Dot(bc, cd) == 0 && Dot(cd, da) == 0 && Dot(da, ab) == 0)
+	   {
+		   return true;
+	   }
+	   else
+	   {
+		   return false;
+	   }
+   }
+
    struct Sector : public ISector, public ICorridor, IMaterialPalette, public IEventCallback<MaterialArgs>, public ISectorLayout
    {
 	   IInstancesSupervisor& instances;
@@ -376,6 +398,7 @@ namespace ANON
 		   return aabb;
 	   }
 
+	   // Any quads in the scenery that face (0 0 1) marked for utility
 	   void UseUpFacingQuads(ID_ENTITY id) override
 	   {
 		   for (auto& i : scenery)
@@ -422,23 +445,6 @@ namespace ANON
 	   }
 
 	   std::vector<SceneryBind*> randomizedSceneryList;
-
-	   bool IsQuadRectangular(const Quad& q)
-	   {
-		   Vec3 ab = q.b - q.a;
-		   Vec3 bc = q.c - q.b;
-		   Vec3 cd = q.d - q.c;
-		   Vec3 da = q.a - q.d;
-
-		   if (Dot(ab, bc) == 0 && Dot(bc, cd) == 0 && Dot(cd, da) == 0 && Dot(da, ab) == 0)
-		   {
-			   return true;
-		   }
-		   else
-		   {
-			   return false;
-		   }
-	   }
 
 	   bool TryPlaceItemOnQuad(const Quad& qModel, ID_ENTITY quadsEntityId, ID_ENTITY itemId)
 	   {
@@ -529,7 +535,7 @@ namespace ANON
 		   }
 	   }
 
-	   virtual void SetTemplate(MatEnumerator& enumerator)
+	   void SetTemplate(MatEnumerator& enumerator) override
 	   {
 		   enumerator.Enumerate(*this);
 	   }
@@ -1016,7 +1022,7 @@ namespace ANON
 
 		  try
 		  {
-			  cstr theWallScript = *wallScript ? wallScript : "#walls/stretch.bricks.sxy";
+			  cstr theWallScript = *wallScript ? wallScript : DEFAULT_WALL_SCRIPT;
 			  scriptConfig->SetCurrentScript(theWallScript);
 			  platform.utilities.RunEnvironmentScript(scriptCallback, theWallScript, true, false);
 			  return true;
@@ -1366,8 +1372,43 @@ namespace ANON
 		  cstr wscript = co_sectors.GetTemplateWallScript(scriptWalls);
 		  SafeFormat(wallScript, IO::MAX_PATHLEN, "%s", wscript);
 
+		  struct VariableEnumerator : IEventCallback<VariableCallbackData>
+		  {
+			  Sector& sector;
+			  void OnEvent(VariableCallbackData& v) override
+			  {
+				  sector.scriptConfig->SetVariable(v.name, v.value);
+			  }
+
+			  VariableEnumerator(Sector& _sector) : sector(_sector) {}
+		  };
+
+		  if (wscript)
+		  {
+			  VariableEnumerator foreachWallVariable(*this);
+			  scriptConfig->SetCurrentScript(wscript);
+			  co_sectors.EnumerateWallVars(foreachWallVariable);
+		  }
+
 		  cstr cscript = co_sectors.GetTemplateDoorScript(scriptCorridor);
 		  SafeFormat(corridorScript, IO::MAX_PATHLEN, "%s", cscript);
+
+		  if (cscript)
+		  {
+			  VariableEnumerator foreachCorridorVariable(*this);
+			  scriptConfig->SetCurrentScript(cscript);
+			  co_sectors.EnumerateWallVars(foreachCorridorVariable);
+		  }
+
+		  cstr fscript = co_sectors.GetTemplateFloorScript(scriptFloor);
+		  SafeFormat(floorScript, IO::MAX_PATHLEN, "%s", fscript);
+
+		  if (fscript)
+		  {
+			  VariableEnumerator foreachFloorVariable(*this);
+			  scriptConfig->SetCurrentScript(fscript);
+			  co_sectors.EnumerateWallVars(foreachFloorVariable);
+		  }
       }
 
 	  void OnEvent(MaterialArgs& args)
@@ -2662,10 +2703,56 @@ namespace ANON
 
 		  if (Is4PointRectangular())
 		  {
-			  sb.AppendFormat("\n\n\t(sectors.SetTemplateDoorScript %s \"%s\")", scriptCorridor ? "true" : "false", corridorScript);
+			  if (corridorScript)
+			  {
+				scriptConfig->SetCurrentScript(corridorScript);
+				struct Anon : IEventCallback<VariableCallbackData>
+				{
+					StringBuilder& sb;
+					Anon(StringBuilder& _sb) : sb(_sb) {}
+					void OnEvent(VariableCallbackData& vd) override
+					{
+						sb.AppendFormat("\n\t(sectors.SetCorridorScriptF32 \"%s\" %f)", vd.name, vd.value);
+					}
+				} foreachVariable(sb);
+				scriptConfig->Current().Enumerate(foreachVariable);
+			  }
+			  sb.AppendFormat("\n\t(sectors.SetTemplateDoorScript %s \"%s\")", scriptCorridor ? "true" : "false", corridorScript);
 		  }
 
-		  sb.AppendFormat("\n\t(sectors.SetTemplateWallScript %s \"%s\")\n", scriptWalls ? "true" : "false", wallScript);
+		  cstr theWallScript = *wallScript ? wallScript : DEFAULT_WALL_SCRIPT;
+
+		  if (this->scriptWalls)
+		  {
+			  scriptConfig->SetCurrentScript(theWallScript);
+			  struct Anon : IEventCallback<VariableCallbackData>
+			  {
+				  StringBuilder& sb;
+				  Anon(StringBuilder& _sb) : sb(_sb) {}
+				  void OnEvent(VariableCallbackData& vd) override
+				  {
+					  sb.AppendFormat("\n\t(sectors.SetWallScriptF32 \"%s\" %f)", vd.name, vd.value);
+				  }
+			  } foreachVariable(sb);
+			  scriptConfig->Current().Enumerate(foreachVariable);
+		  }
+		  sb.AppendFormat("\n\t(sectors.SetTemplateWallScript %s \"%s\")", scriptWalls ? "true" : "false", theWallScript);
+
+		  if (*floorScript)
+		  {
+			  scriptConfig->SetCurrentScript(floorScript);
+			  struct Anon : IEventCallback<VariableCallbackData>
+			  {
+				  StringBuilder& sb;
+				  Anon(StringBuilder& _sb) : sb(_sb) {}
+				  void OnEvent(VariableCallbackData& vd) override
+				  {
+					  sb.AppendFormat("\n\t(sectors.SetFloorScriptF32 \"%s\" %f)", vd.name, vd.value);
+				  }
+			  } foreachVariable(sb);
+			  scriptConfig->Current().Enumerate(foreachVariable);
+		  }
+		  sb.AppendFormat("\n\t(sectors.SetTemplateFloorScript %s \"%s\")", scriptFloor ? "true" : "false", floorScript);
 
 		  sb.AppendFormat("\n\t(sectors.CreateFromTemplate %d %d)\n", altitudeInCm, heightInCm);
 	  }

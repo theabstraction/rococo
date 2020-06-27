@@ -56,6 +56,33 @@ namespace ANON
 			}
 		}
 
+		void SetVariable(cstr name, float value)
+		{
+			auto i = variables.find(name);
+			if (i != variables.end())
+			{
+				auto* v = i->second;
+				delete v;
+				variables.erase(i);
+			}
+
+			auto* v = new Variable();
+			v->floatValue.value = value;
+			v->Type = VariableType_Float;
+			variables[name] = v;
+		}
+
+		void Enumerate(IEventCallback<VariableCallbackData>& cb)
+		{
+			for (auto& v : variables)
+			{
+				if (v.second->Type == VariableType_Float)
+				{
+					cb.OnEvent(VariableCallbackData{ v.first.c_str(), v.second->floatValue.value });
+				}
+			}
+		}
+
 		void BindProperties(IBloodyPropertySetEditor& editor)
 		{
 			for (auto& v : variables)
@@ -77,6 +104,7 @@ namespace ANON
 				}
 			}
 		}
+
 
 		void Free() override
 		{
@@ -148,6 +176,12 @@ namespace ANON
 			{
 				i.second->Free();
 			}
+		}
+
+		void SetVariable(cstr name, float value) override
+		{
+			if (!current) Throw(0, "ScriptSet::SetVariable(%s,%f): No current script is set", name, value);
+			current->SetVariable(name, value);
 		}
 
 		IScriptConfigSupervisor& Current() override

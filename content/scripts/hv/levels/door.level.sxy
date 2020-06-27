@@ -43,8 +43,8 @@
 	(sectors.SetTemplateMaterial "rails"      (#MaterialCategoryMetal) 0xc36bd066 "random")
 	(sectors.SetTemplateMaterial "casing"     (#MaterialCategoryMetal) 0xcae19d91 "random")
 	(sectors.SetTemplateMaterial "panels"     (#MaterialCategoryMetal) 0xe1a13b32 "random")
-	(sectors.SetTemplateWallScript false "")
-
+	(sectors.SetTemplateWallScript true "")
+	(sectors.SetTemplateFloorScript false "")
 	(sectors.CreateFromTemplate 0 400)
 )
 
@@ -62,10 +62,9 @@
 	(sectors.SetTemplateMaterial "rails"      (#MaterialCategoryMetal) 0xc2668edc "random")
 	(sectors.SetTemplateMaterial "casing"     (#MaterialCategoryWood) 0xdc1ed1cd "random")
 	(sectors.SetTemplateMaterial "panels"     (#MaterialCategoryWood) 0xe8ff6149 "random")
-
 	(sectors.SetTemplateDoorScript true "")
 	(sectors.SetTemplateWallScript false "")
-
+	(sectors.SetTemplateFloorScript false "")
 	(sectors.CreateFromTemplate 0 400)
 )
 
@@ -86,7 +85,7 @@
 	(sectors.SetTemplateMaterial "casing"     (#MaterialCategoryWood) 0xe5758fd3 "random")
 	(sectors.SetTemplateMaterial "panels"     (#MaterialCategoryMetal) 0xcfd3cfcc "random")
 	(sectors.SetTemplateWallScript false "")
-
+	(sectors.SetTemplateFloorScript false "")
 	(sectors.CreateFromTemplate 0 400)
 )
 

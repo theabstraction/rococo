@@ -43,7 +43,11 @@
 		(CreateFromTemplate (Int32 altitude)(Int32 height)->(Int32 id))
 		(SetTemplateWallScript (Bool useScript) (IString scriptName))
 		(SetTemplateDoorScript (Bool hasDoor) (IString scriptName))
+		(SetTemplateFloorScript (Bool useScript)(IString scriptName))
 		(SetTemplateMaterial(IString bodyClass) (MaterialCategory cat)(RGBAb colour)(IString persistentId))	
+		(SetWallScriptF32 (IString name)(Float32 value))
+		(SetFloorScriptF32 (IString name)(Float32 value))
+		(SetCorridorScriptF32 (IString name)(Float32 value))
 	)
 	(factory HV.SectorBuilder)
 )
@@ -87,7 +91,7 @@
 		
 		(ClearManagedEntities)
 		(ManageEntity (IdEntity id))
-		(UseUpFacingQuads (IdEntity id))
+		(UseUpFacingQuads (IdEntity id)) // Any quads in the scenery that face (0 0 1) marked for utility
 	)
 )
 

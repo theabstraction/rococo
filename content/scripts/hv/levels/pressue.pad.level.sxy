@@ -1,0 +1,74 @@
+(' #file.type hv.level)
+
+(' #include
+	"!scripts/mplat.sxh.sxy"
+	"!scripts/hv.sxh.sxy"
+	"!scripts/types.sxy"
+	"!scripts/hv/hv.types.sxy"
+	"!scripts/mplat.types.sxy")
+
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+
+(function Main(Int32 id)->(Int32 exitCode) :
+	(AddSectorsToLevel)
+)
+
+(using HV)
+(using Rococo.Graphics)
+
+(function AddSectorsToLevel -> :
+	(ISectors sectors (SectorBuilder))
+
+	(sectors.Clear)
+
+	(AddSector0 sectors) // entrance
+	(AddSector1 sectors)
+)
+
+(function AddSector0 (ISectors sectors) -> :
+	(sectors.AddVertex 2.000000 4.000000)
+	(sectors.AddVertex 2.000000 -2.000000)
+	(sectors.AddVertex -2.000000 -2.000000)
+	(sectors.AddVertex -2.000000 4.000000)
+
+	(sectors.SetTemplateMaterial "brickwork"  (#MaterialCategoryStone) 0xd55e473b "random")
+	(sectors.SetTemplateMaterial "floor"      (#MaterialCategoryMetal) 0xd39f562b "random")
+	(sectors.SetTemplateMaterial "cement"     (#MaterialCategoryRock) 0xdbbaf236 "random")
+	(sectors.SetTemplateMaterial "mullions"   (#MaterialCategoryMetal) 0xdaccb154 "random")
+	(sectors.SetTemplateMaterial "ceiling"    (#MaterialCategoryMarble) 0xca7a1efc "random")
+	(sectors.SetTemplateMaterial "rails"      (#MaterialCategoryMetal) 0xedebb368 "random")
+	(sectors.SetTemplateMaterial "casing"     (#MaterialCategoryWood) 0xf0a2f874 "random")
+	(sectors.SetTemplateMaterial "panels"     (#MaterialCategoryMetal) 0xc5c09e3e "random")
+
+	(sectors.SetTemplateDoorScript false "")
+	(sectors.SetTemplateWallScript false "#walls/none.sxy")
+
+	(sectors.SetTemplateFloorScript false "")
+
+	(sectors.CreateFromTemplate 0 400)
+)
+
+(function AddSector1 (ISectors sectors) -> :
+	(sectors.AddVertex 2.000000 8.000000)
+	(sectors.AddVertex 2.000000 4.000000)
+	(sectors.AddVertex -2.000000 4.000000)
+	(sectors.AddVertex -2.000000 8.000000)
+
+	(sectors.SetTemplateMaterial "brickwork"  (#MaterialCategoryStone) 0xc8266810 "random")
+	(sectors.SetTemplateMaterial "floor"      (#MaterialCategoryMetal) 0xcf29bd36 "random")
+	(sectors.SetTemplateMaterial "cement"     (#MaterialCategoryRock) 0xc616dcfc "random")
+	(sectors.SetTemplateMaterial "mullions"   (#MaterialCategoryMetal) 0xbfa8c653 "random")
+	(sectors.SetTemplateMaterial "ceiling"    (#MaterialCategoryRock) 0xdb991ff2 "random")
+	(sectors.SetTemplateMaterial "rails"      (#MaterialCategoryWood) 0xfcf6f2a9 "random")
+	(sectors.SetTemplateMaterial "casing"     (#MaterialCategoryMetal) 0xe6a83e23 "random")
+	(sectors.SetTemplateMaterial "panels"     (#MaterialCategoryWood) 0xd515addf "random")
+
+	(sectors.SetTemplateDoorScript false "")
+	(sectors.SetTemplateWallScript false "#walls/none.sxy")
+
+	(sectors.SetTemplateFloorScript true "!scripts/hv/sector/floors/pressure_pad.sxy")
+
+	(sectors.CreateFromTemplate 0 400)
+)
+

@@ -67,10 +67,18 @@ namespace HV
       }
    }
 
+   struct VariableCallbackData
+   {
+	   cstr name;
+	   float value;
+   };
+
    ROCOCOAPI IScriptConfigSupervisor : public IScriptConfig
    {
-	   virtual void BindProperties(IBloodyPropertySetEditor& editor) = 0;
-	   virtual void Free() = 0;
+		virtual void BindProperties(IBloodyPropertySetEditor & editor) = 0;
+		virtual void Enumerate(IEventCallback<VariableCallbackData>& cb) = 0;
+		virtual void SetVariable(cstr name, float value) = 0;
+		virtual void Free() = 0;
    };
 
    ROCOCOAPI IScriptConfigSet
@@ -78,6 +86,7 @@ namespace HV
 	   virtual void Free() = 0;
 	   virtual void SetCurrentScript(cstr scriptName) = 0;
 	   virtual IScriptConfigSupervisor& Current() = 0;
+	   virtual void SetVariable(cstr name, float value) = 0;
    };
 
    IScriptConfigSet* CreateScriptConfigSet();
@@ -336,7 +345,12 @@ namespace HV
 	  virtual void SaveAsFunction(StringBuilder& sb) = 0;
 
 	  virtual cstr GetTemplateDoorScript(bool& hasDoor) const = 0;
+	  virtual cstr GetTemplateFloorScript(bool& usesScript) const = 0;
 	  virtual cstr GetTemplateWallScript(bool& usesScript) const = 0;
+
+	  virtual void EnumerateDoorVars(IEventCallback<VariableCallbackData>& cb) = 0;
+	  virtual void EnumerateWallVars(IEventCallback<VariableCallbackData>& cb) = 0;
+	  virtual void EnumerateFloorVars(IEventCallback<VariableCallbackData>& cb) = 0;
 
 	  virtual void BindProperties(IBloodyPropertySetEditor& editor) = 0;
 	  virtual void NotifyChanged() = 0;

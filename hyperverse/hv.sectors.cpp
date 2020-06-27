@@ -366,7 +366,13 @@ namespace ANON
 		   std::string wall_scriptName;
 		   bool wall_useScript;
 
+		   std::string floor_scriptName;
+		   bool floor_useScript;
+
 		   std::unordered_map<std::string, Material*> nameToMaterials;
+		   std::unordered_map<std::string, float> doorVars;
+		   std::unordered_map<std::string, float> floorVars;
+		   std::unordered_map<std::string, float> wallVars;
 	   } temp;
 
 	   void SetTemplateWallScript(boolean32 useScript, const fstring& scriptName) override
@@ -381,6 +387,18 @@ namespace ANON
 		   temp.door_scriptName = scriptName;
 	   }
 
+	   void SetTemplateFloorScript(boolean32 useScript, const fstring& scriptName) override
+	   {
+		   temp.floor_useScript = useScript;
+		   temp.floor_scriptName = scriptName;
+	   }
+
+	   cstr GetTemplateFloorScript(bool& usesScript) const override
+	   {
+		   usesScript = this->temp.floor_useScript;
+		   return temp.floor_scriptName.empty() ? "" : temp.floor_scriptName.c_str();
+	   }
+
 	   cstr GetTemplateDoorScript(bool& hasDoor) const override
 	   {
 		   hasDoor = this->temp.door_useScript;
@@ -391,6 +409,45 @@ namespace ANON
 	   {
 		   usesScript = this->temp.wall_useScript;
 		   return temp.wall_scriptName.empty() ? "" : temp.wall_scriptName.c_str();
+	   }
+
+	   void EnumerateDoorVars(IEventCallback<VariableCallbackData>& cb) override
+	   {
+		   for (auto& v : temp.doorVars)
+		   {
+			   cb.OnEvent(VariableCallbackData{ v.first.c_str(), v.second });
+		   }
+	   }
+
+	   void EnumerateWallVars(IEventCallback<VariableCallbackData>& cb) override
+	   {
+		   for (auto& v : temp.wallVars)
+		   {
+			   cb.OnEvent(VariableCallbackData{ v.first.c_str(), v.second });
+		   }
+	   }
+
+	   void EnumerateFloorVars(IEventCallback<VariableCallbackData>& cb) override
+	   {
+		   for (auto& v : temp.floorVars)
+		   {
+			   cb.OnEvent(VariableCallbackData{ v.first.c_str(), v.second });
+		   }
+	   }
+
+	   void SetWallScriptF32(const fstring& name, float value) override
+	   {
+		   temp.wallVars[(cstr)name] = value;
+	   }
+
+	   void SetFloorScriptF32(const fstring& name, float value) override
+	   {
+		   temp.floorVars[(cstr)name] = value;
+	   }
+
+	   void SetCorridorScriptF32(const fstring& name, float value) override
+	   {
+		   temp.doorVars[(cstr)name] = value;
 	   }
 
 	   void SetTemplateMaterial(const fstring& bodyClass, Graphics::MaterialCategory cat, RGBAb colour, const fstring& persistentId)  override
@@ -444,6 +501,10 @@ namespace ANON
 		   }
 
 		   vertices.clear();
+
+		   temp.wallVars.clear();
+		   temp.floorVars.clear();
+		   temp.doorVars.clear();
 
 		   return s->Id();
 	   }

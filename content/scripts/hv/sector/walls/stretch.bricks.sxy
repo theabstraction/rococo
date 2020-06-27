@@ -52,8 +52,6 @@
 	(Int32 nColumns = ft.NumberOfColumns)
 	(Int32 nRows = ft.NumberOfRows)
 	
-	(IInstances instances (Instances))
-	
 	(MaterialVertexData brick)
 	(sector.GetMaterial brick "brickwork")
 	
@@ -134,6 +132,12 @@
 		(sector.GetSegment i seg)
 		
 		(ft.InitByFixedCellWidth seg.quad dX dY)
+		
+		(if (ft.NumberOfColumns < 2)
+			(IMessaging messaging (Messaging))
+			(messaging.Log "Cell width too great for the span of the room.")
+			(return)
+		)
 		
 		(Float32 u1 = (u + (uvScale * seg.span.x)))
 		

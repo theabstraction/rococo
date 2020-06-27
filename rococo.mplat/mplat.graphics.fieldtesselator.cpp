@@ -527,8 +527,8 @@ namespace
 
 			top.positions.d = q.positions.a;
 			top.positions.c = q.positions.b;
-			top.positions.a = flatQuad.a;
-			top.positions.b = flatQuad.b;
+			top.positions.a = flatQuad.a - realNormal * 0.02f; // hack - intrude on the inside wall by 2cm to hide rendering glitches
+			top.positions.b = flatQuad.b - realNormal * 0.02f;
 
 			top.normals.a = top.normals.b = top.normals.c = top.normals.d = Normalize(rawVertical);
 

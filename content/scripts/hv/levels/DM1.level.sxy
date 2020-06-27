@@ -64,8 +64,13 @@
 	(sectors.SetTemplateMaterial "rails"      (#MaterialCategoryMetal) 0xda52fe79 "random")
 	(sectors.SetTemplateMaterial "casing"     (#MaterialCategoryWood) 0xf40bce28 "random")
 	(sectors.SetTemplateMaterial "panels"     (#MaterialCategoryWood) 0xc4f43ce5 "random")
-	(sectors.SetTemplateWallScript true "")
-
+	(sectors.SetWallScriptF32 "Cell DX" 2.000000)
+	(sectors.SetWallScriptF32 "Cell DY" 1.000000)
+	(sectors.SetWallScriptF32 "Extrusion" 0.015000)
+	(sectors.SetWallScriptF32 "UV Scale" 0.250000)
+	(sectors.SetWallScriptF32 "Cement thickness (m)" 0.025000)
+	(sectors.SetTemplateWallScript true "#walls/stretch.bricks.sxy")
+	(sectors.SetTemplateFloorScript false "")
 	(sectors.CreateFromTemplate 0 400)
 )
 
@@ -83,10 +88,19 @@
 	(sectors.SetTemplateMaterial "rails"      (#MaterialCategoryWood) 0xdac1959a "random")
 	(sectors.SetTemplateMaterial "casing"     (#MaterialCategoryMetal) 0xfe54b5c2 "random")
 	(sectors.SetTemplateMaterial "panels"     (#MaterialCategoryWood) 0xd9a8e97e "random")
-
+	(sectors.SetCorridorScriptF32 "Extrusion" 0.150000)
+	(sectors.SetCorridorScriptF32 "UV Scale" 0.250000)
+	(sectors.SetCorridorScriptF32 "Cell DX" 2.000000)
+	(sectors.SetCorridorScriptF32 "Cell DY" 1.000000)
+	(sectors.SetCorridorScriptF32 "Cement thickness (m)" 0.005000)
 	(sectors.SetTemplateDoorScript true "")
+	(sectors.SetWallScriptF32 "Cell DX" 2.000000)
+	(sectors.SetWallScriptF32 "Cell DY" 1.000000)
+	(sectors.SetWallScriptF32 "Extrusion" 0.150000)
+	(sectors.SetWallScriptF32 "UV Scale" 0.250000)
+	(sectors.SetWallScriptF32 "Cement thickness (m)" 0.005000)
 	(sectors.SetTemplateWallScript true "#walls/stretch.bricks.sxy")
-
+	(sectors.SetTemplateFloorScript false "")
 	(sectors.CreateFromTemplate 0 400)
 )
 
@@ -108,8 +122,13 @@
 	(sectors.SetTemplateMaterial "rails"      (#MaterialCategoryWood) 0xe889462a "random")
 	(sectors.SetTemplateMaterial "casing"     (#MaterialCategoryWood) 0xe8dadf26 "random")
 	(sectors.SetTemplateMaterial "panels"     (#MaterialCategoryMetal) 0xc178767a "random")
-	(sectors.SetTemplateWallScript true "")
-
+	(sectors.SetWallScriptF32 "Cell DX" 2.000000)
+	(sectors.SetWallScriptF32 "Cell DY" 1.000000)
+	(sectors.SetWallScriptF32 "Extrusion" 0.010000)
+	(sectors.SetWallScriptF32 "UV Scale" 0.250000)
+	(sectors.SetWallScriptF32 "Cement thickness (m)" 0.050000)
+	(sectors.SetTemplateWallScript true "#walls/stretch.bricks.sxy")
+	(sectors.SetTemplateFloorScript false "")
 	(sectors.CreateFromTemplate 0 400)
 )
 
@@ -127,10 +146,9 @@
 	(sectors.SetTemplateMaterial "rails"      (#MaterialCategoryMetal) 0xe0281b65 "random")
 	(sectors.SetTemplateMaterial "casing"     (#MaterialCategoryMetal) 0xcca8f3dc "random")
 	(sectors.SetTemplateMaterial "panels"     (#MaterialCategoryWood) 0xc58e2ce7 "random")
-
 	(sectors.SetTemplateDoorScript false "")
-	(sectors.SetTemplateWallScript false "")
-
+	(sectors.SetTemplateWallScript false "#walls/stretch.bricks.sxy")
+	(sectors.SetTemplateFloorScript false "")
 	(sectors.CreateFromTemplate 0 400)
 )
 
@@ -148,10 +166,9 @@
 	(sectors.SetTemplateMaterial "rails"      (#MaterialCategoryMetal) 0xf18654a7 "random")
 	(sectors.SetTemplateMaterial "casing"     (#MaterialCategoryMetal) 0xfcbecaf5 "random")
 	(sectors.SetTemplateMaterial "panels"     (#MaterialCategoryWood) 0xca13685b "random")
-
 	(sectors.SetTemplateDoorScript true "")
-	(sectors.SetTemplateWallScript false "")
-
+	(sectors.SetTemplateWallScript false "#walls/stretch.bricks.sxy")
+	(sectors.SetTemplateFloorScript false "")
 	(sectors.CreateFromTemplate 0 400)
 )
 
@@ -169,8 +186,13 @@
 	(sectors.SetTemplateMaterial "rails"      (#MaterialCategoryWood) 0xd4cfadaa "random")
 	(sectors.SetTemplateMaterial "casing"     (#MaterialCategoryMetal) 0xd82779f4 "random")
 	(sectors.SetTemplateMaterial "panels"     (#MaterialCategoryMetal) 0xdcd8ff27 "random")
-	(sectors.SetTemplateWallScript true "")
-
+	(sectors.SetWallScriptF32 "Cell DX" 2.000000)
+	(sectors.SetWallScriptF32 "Cell DY" 1.000000)
+	(sectors.SetWallScriptF32 "Extrusion" 0.150000)
+	(sectors.SetWallScriptF32 "UV Scale" 0.250000)
+	(sectors.SetWallScriptF32 "Cement thickness (m)" 0.005000)
+	(sectors.SetTemplateWallScript true "#walls/stretch.bricks.sxy")
+	(sectors.SetTemplateFloorScript false "")
 	(sectors.CreateFromTemplate 0 400)
 )
 
@@ -188,10 +210,19 @@
 	(sectors.SetTemplateMaterial "rails"      (#MaterialCategoryWood) 0xd4a54167 "random")
 	(sectors.SetTemplateMaterial "casing"     (#MaterialCategoryMetal) 0xe0d14cfe "random")
 	(sectors.SetTemplateMaterial "panels"     (#MaterialCategoryWood) 0xc1159f18 "random")
-
+	(sectors.SetCorridorScriptF32 "Extrusion" 0.150000)
+	(sectors.SetCorridorScriptF32 "UV Scale" 0.250000)
+	(sectors.SetCorridorScriptF32 "Cell DX" 2.000000)
+	(sectors.SetCorridorScriptF32 "Cell DY" 1.000000)
+	(sectors.SetCorridorScriptF32 "Cement thickness (m)" 0.005000)
 	(sectors.SetTemplateDoorScript false "")
-	(sectors.SetTemplateWallScript true "")
-
+	(sectors.SetWallScriptF32 "Cell DX" 2.000000)
+	(sectors.SetWallScriptF32 "Cell DY" 1.000000)
+	(sectors.SetWallScriptF32 "Extrusion" 0.150000)
+	(sectors.SetWallScriptF32 "UV Scale" 0.250000)
+	(sectors.SetWallScriptF32 "Cement thickness (m)" 0.005000)
+	(sectors.SetTemplateWallScript true "#walls/stretch.bricks.sxy")
+	(sectors.SetTemplateFloorScript false "")
 	(sectors.CreateFromTemplate 0 400)
 )
 
@@ -209,8 +240,13 @@
 	(sectors.SetTemplateMaterial "rails"      (#MaterialCategoryWood) 0xe8c0c9b4 "random")
 	(sectors.SetTemplateMaterial "casing"     (#MaterialCategoryWood) 0xdcdbc656 "random")
 	(sectors.SetTemplateMaterial "panels"     (#MaterialCategoryMetal) 0xc04d2c09 "random")
-	(sectors.SetTemplateWallScript true "")
-
+	(sectors.SetWallScriptF32 "Cell DX" 2.000000)
+	(sectors.SetWallScriptF32 "Cell DY" 1.000000)
+	(sectors.SetWallScriptF32 "Extrusion" 0.150000)
+	(sectors.SetWallScriptF32 "UV Scale" 0.250000)
+	(sectors.SetWallScriptF32 "Cement thickness (m)" 0.005000)
+	(sectors.SetTemplateWallScript true "#walls/stretch.bricks.sxy")
+	(sectors.SetTemplateFloorScript false "")
 	(sectors.CreateFromTemplate -200 400)
 )
 
@@ -228,10 +264,9 @@
 	(sectors.SetTemplateMaterial "rails"      (#MaterialCategoryMetal) 0xefb5b837 "random")
 	(sectors.SetTemplateMaterial "casing"     (#MaterialCategoryWood) 0xc28bd974 "random")
 	(sectors.SetTemplateMaterial "panels"     (#MaterialCategoryWood) 0xeb80dff5 "random")
-
 	(sectors.SetTemplateDoorScript false "")
-	(sectors.SetTemplateWallScript false "")
-
+	(sectors.SetTemplateWallScript false "#walls/stretch.bricks.sxy")
+	(sectors.SetTemplateFloorScript false "")
 	(sectors.CreateFromTemplate -200 400)
 )
 
@@ -251,8 +286,13 @@
 	(sectors.SetTemplateMaterial "rails"      (#MaterialCategoryWood) 0xc340619b "random")
 	(sectors.SetTemplateMaterial "casing"     (#MaterialCategoryMetal) 0xee036f75 "random")
 	(sectors.SetTemplateMaterial "panels"     (#MaterialCategoryMetal) 0xc930a7b1 "random")
-	(sectors.SetTemplateWallScript true "")
-
+	(sectors.SetWallScriptF32 "Cell DX" 2.000000)
+	(sectors.SetWallScriptF32 "Cell DY" 1.000000)
+	(sectors.SetWallScriptF32 "Extrusion" 0.150000)
+	(sectors.SetWallScriptF32 "UV Scale" 0.250000)
+	(sectors.SetWallScriptF32 "Cement thickness (m)" 0.005000)
+	(sectors.SetTemplateWallScript true "#walls/stretch.bricks.sxy")
+	(sectors.SetTemplateFloorScript false "")
 	(sectors.CreateFromTemplate -200 400)
 )
 
@@ -270,10 +310,9 @@
 	(sectors.SetTemplateMaterial "rails"      (#MaterialCategoryWood) 0xe159fdf6 "random")
 	(sectors.SetTemplateMaterial "casing"     (#MaterialCategoryMetal) 0xd3822a76 "random")
 	(sectors.SetTemplateMaterial "panels"     (#MaterialCategoryWood) 0xc80fadbe "random")
-
 	(sectors.SetTemplateDoorScript false "")
-	(sectors.SetTemplateWallScript false "")
-
+	(sectors.SetTemplateWallScript false "#walls/stretch.bricks.sxy")
+	(sectors.SetTemplateFloorScript false "")
 	(sectors.CreateFromTemplate 0 400)
 )
 
@@ -293,8 +332,8 @@
 	(sectors.SetTemplateMaterial "rails"      (#MaterialCategoryWood) 0xf12fe2c2 "random")
 	(sectors.SetTemplateMaterial "casing"     (#MaterialCategoryWood) 0xef7f1ec2 "random")
 	(sectors.SetTemplateMaterial "panels"     (#MaterialCategoryMetal) 0xd5e5cb2b "random")
-	(sectors.SetTemplateWallScript false "")
-
+	(sectors.SetTemplateWallScript false "#walls/stretch.bricks.sxy")
+	(sectors.SetTemplateFloorScript false "")
 	(sectors.CreateFromTemplate 0 400)
 )
 
@@ -312,10 +351,9 @@
 	(sectors.SetTemplateMaterial "rails"      (#MaterialCategoryMetal) 0xecebb594 "random")
 	(sectors.SetTemplateMaterial "casing"     (#MaterialCategoryWood) 0xda962f0b "random")
 	(sectors.SetTemplateMaterial "panels"     (#MaterialCategoryWood) 0xe72ccd31 "random")
-
 	(sectors.SetTemplateDoorScript false "")
-	(sectors.SetTemplateWallScript false "")
-
+	(sectors.SetTemplateWallScript false "#walls/stretch.bricks.sxy")
+	(sectors.SetTemplateFloorScript false "")
 	(sectors.CreateFromTemplate 0 400)
 )
 
@@ -334,8 +372,8 @@
 	(sectors.SetTemplateMaterial "rails"      (#MaterialCategoryMetal) 0xd885c991 "random")
 	(sectors.SetTemplateMaterial "casing"     (#MaterialCategoryWood) 0xdcd69350 "random")
 	(sectors.SetTemplateMaterial "panels"     (#MaterialCategoryWood) 0xd4d5c3ed "random")
-	(sectors.SetTemplateWallScript false "")
-
+	(sectors.SetTemplateWallScript false "#walls/stretch.bricks.sxy")
+	(sectors.SetTemplateFloorScript false "")
 	(sectors.CreateFromTemplate 0 400)
 )
 
@@ -353,10 +391,9 @@
 	(sectors.SetTemplateMaterial "rails"      (#MaterialCategoryWood) 0xe8fb3e18 "random")
 	(sectors.SetTemplateMaterial "casing"     (#MaterialCategoryMetal) 0xee9508eb "random")
 	(sectors.SetTemplateMaterial "panels"     (#MaterialCategoryMetal) 0xcdfbc565 "random")
-
 	(sectors.SetTemplateDoorScript false "")
-	(sectors.SetTemplateWallScript false "")
-
+	(sectors.SetTemplateWallScript false "#walls/stretch.bricks.sxy")
+	(sectors.SetTemplateFloorScript true "!scripts/hv/sector/floors/pressure_pad.sxy")
 	(sectors.CreateFromTemplate 0 400)
 )
 
@@ -374,10 +411,9 @@
 	(sectors.SetTemplateMaterial "rails"      (#MaterialCategoryMetal) 0xee88423e "random")
 	(sectors.SetTemplateMaterial "casing"     (#MaterialCategoryWood) 0xfd466d22 "random")
 	(sectors.SetTemplateMaterial "panels"     (#MaterialCategoryMetal) 0xf353d419 "random")
-
 	(sectors.SetTemplateDoorScript false "")
-	(sectors.SetTemplateWallScript false "")
-
+	(sectors.SetTemplateWallScript false "#walls/stretch.bricks.sxy")
+	(sectors.SetTemplateFloorScript true "!scripts/hv/sector/floors/pressure_pad.sxy")
 	(sectors.CreateFromTemplate 0 400)
 )
 
@@ -395,10 +431,10 @@
 	(sectors.SetTemplateMaterial "rails"      (#MaterialCategoryWood) 0xed720316 "random")
 	(sectors.SetTemplateMaterial "casing"     (#MaterialCategoryMetal) 0xe7738364 "random")
 	(sectors.SetTemplateMaterial "panels"     (#MaterialCategoryWood) 0xdf19197f "random")
-
 	(sectors.SetTemplateDoorScript false "")
-	(sectors.SetTemplateWallScript false "")
-
+	(sectors.SetTemplateWallScript false "#walls/stretch.bricks.sxy")
+	(sectors.SetFloorScriptF32 "UV size" 0.500000)
+	(sectors.SetTemplateFloorScript true "!scripts/hv/sector/floors/drain.sxy")
 	(sectors.CreateFromTemplate 0 400)
 )
 
@@ -416,10 +452,9 @@
 	(sectors.SetTemplateMaterial "rails"      (#MaterialCategoryMetal) 0xccac2eb9 "random")
 	(sectors.SetTemplateMaterial "casing"     (#MaterialCategoryWood) 0xe5de0a1a "random")
 	(sectors.SetTemplateMaterial "panels"     (#MaterialCategoryWood) 0xe048eb7c "random")
-
 	(sectors.SetTemplateDoorScript false "")
-	(sectors.SetTemplateWallScript false "")
-
+	(sectors.SetTemplateWallScript false "#walls/stretch.bricks.sxy")
+	(sectors.SetTemplateFloorScript false "")
 	(sectors.CreateFromTemplate 0 400)
 )
 
@@ -438,8 +473,8 @@
 	(sectors.SetTemplateMaterial "rails"      (#MaterialCategoryWood) 0xf169b385 "random")
 	(sectors.SetTemplateMaterial "casing"     (#MaterialCategoryWood) 0xee8c00f1 "random")
 	(sectors.SetTemplateMaterial "panels"     (#MaterialCategoryMetal) 0xc51be132 "random")
-	(sectors.SetTemplateWallScript false "")
-
+	(sectors.SetTemplateWallScript false "#walls/stretch.bricks.sxy")
+	(sectors.SetTemplateFloorScript false "")
 	(sectors.CreateFromTemplate 0 400)
 )
 
@@ -457,10 +492,9 @@
 	(sectors.SetTemplateMaterial "rails"      (#MaterialCategoryMetal) 0xc887c023 "random")
 	(sectors.SetTemplateMaterial "casing"     (#MaterialCategoryMetal) 0xe5efdb70 "random")
 	(sectors.SetTemplateMaterial "panels"     (#MaterialCategoryWood) 0xce0612f8 "random")
-
 	(sectors.SetTemplateDoorScript false "")
-	(sectors.SetTemplateWallScript false "")
-
+	(sectors.SetTemplateWallScript false "#walls/stretch.bricks.sxy")
+	(sectors.SetTemplateFloorScript false "")
 	(sectors.CreateFromTemplate 0 400)
 )
 
@@ -479,8 +513,8 @@
 	(sectors.SetTemplateMaterial "rails"      (#MaterialCategoryMetal) 0xd5520689 "random")
 	(sectors.SetTemplateMaterial "casing"     (#MaterialCategoryMetal) 0xce0275eb "random")
 	(sectors.SetTemplateMaterial "panels"     (#MaterialCategoryMetal) 0xec368435 "random")
-	(sectors.SetTemplateWallScript false "")
-
+	(sectors.SetTemplateWallScript false "#walls/stretch.bricks.sxy")
+	(sectors.SetTemplateFloorScript false "")
 	(sectors.CreateFromTemplate 0 400)
 )
 
@@ -498,10 +532,12 @@
 	(sectors.SetTemplateMaterial "rails"      (#MaterialCategoryWood) 0xf11bf8db "random")
 	(sectors.SetTemplateMaterial "casing"     (#MaterialCategoryMetal) 0xc742b0ff "random")
 	(sectors.SetTemplateMaterial "panels"     (#MaterialCategoryMetal) 0xedc30c8c "random")
-
 	(sectors.SetTemplateDoorScript false "")
 	(sectors.SetTemplateWallScript true "#walls/none.sxy")
-
+	(sectors.SetFloorScriptF32 "UV size" 0.500000)
+	(sectors.SetFloorScriptF32 "Step width (m)" 1.000000)
+	(sectors.SetFloorScriptF32 "Step height(m)" 0.150000)
+	(sectors.SetTemplateFloorScript true "!scripts/hv/sector/floors/stairs.up.sxy")
 	(sectors.CreateFromTemplate 0 600)
 )
 
