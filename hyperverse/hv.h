@@ -318,6 +318,7 @@ namespace HV
 	  virtual ISectorLayout* Layout() = 0;
 
 	  virtual void OnTick(const IUltraClock& clock) = 0;
+	  virtual void NotifySectorPlayerIsInSector(const IUltraClock& clock) = 0;
    };
 
    float GetHeightAtPointInSector(cr_vec3 p, ISector& sector);

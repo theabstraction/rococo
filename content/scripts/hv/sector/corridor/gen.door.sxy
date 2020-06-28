@@ -278,6 +278,7 @@
 	(Vec3 b11 = buttonX0 buttonY0 buttonZ0)
 	(Vec3 b21 = buttonX1 buttonY1 buttonZ1)
 	(AddBox components b11 b21 uvScale uvScale buttonPlastic) // switch base	
+
 	
 	(Triangle bt1PhysicsHull1 = 
 		(buttonX0 buttonY0 buttonZ1)

@@ -796,8 +796,10 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 		return false;
 	}
 
-	void UpdatePlayer(float dt)
+	void UpdatePlayer(const IUltraClock& clock)
 	{
+		float dt = clock.DT();
+
 		auto* player = players.GetPlayer(0);
 		auto id = player->GetPlayerEntity();
 
@@ -947,6 +949,12 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 		}
 
 		lightBuilder.clear();
+
+		auto* homeSector = sectors.GetFirstSectorContainingPoint(Vec2{ eye.x, eye.y } );
+		if (homeSector)
+		{
+			homeSector->NotifySectorPlayerIsInSector(clock);
+		}
 	}
 
 	std::vector<LightSpec> lightBuilder;
@@ -956,7 +964,7 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 	void UpdateAI(const IUltraClock& clock) override
 	{
 		platform.gui.RegisterPopulator("fps", this);
-		UpdatePlayer(clock.DT());
+		UpdatePlayer(clock);
 		ComputeVisibleSectorsThisTimestep();
 	}
 

@@ -1,0 +1,176 @@
+(' #file.type rococo.hv)
+
+(' #include 
+	"!scripts/mplat.sxh.sxy"
+	"!scripts/hv.sxh.sxy"
+	"!scripts/hv/hv.types.sxy"
+	"!scripts/types.sxy"
+	"!scripts/mplat.types.sxy"
+)
+
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+	
+
+(using HV)
+(using Rococo)
+(using Rococo.Entities)
+(using Rococo.Graphics)
+(using Sys.Type)
+(using Sys.Maths)
+(using Sys.Geometry.F32)
+(using Sys.Random)
+
+(function TesselateBlankWall (QuadVertices q)(ISectorWallTesselator sector)(IQuadStackTesselator qst)-> :
+	(MaterialVertexData brickwork)
+	(sector.GetMaterial brickwork "brickwork")
+	
+	(qst.PushQuad q brickwork)
+	(qst.MoveInputToOutput)
+	
+	(ITriangleList tris = sector.WallTriangles)
+	
+	(VertexTriangle topLeft)
+	(VertexTriangle bottomRight)
+	(while (qst.PopOutputAsTriangles topLeft bottomRight)
+		(tris.AddTriangle topLeft)
+		(tris.AddTriangle bottomRight)
+	)
+)
+
+(function TesselateWallWithLever (QuadVertices q)(ISectorWallTesselator sector)(IQuadStackTesselator qst)(IScriptConfig config)-> :
+	(MaterialVertexData wall)
+	(sector.GetMaterial wall "brickwork")
+	
+	(MaterialVertexData cement)
+	(sector.GetMaterial cement "cement")
+	
+	(MaterialVertexData rodMat)
+	(sector.GetMaterial rodMat "rails")
+	
+	
+	(ITriangleList tris = sector.WallTriangles)
+	
+	(Vec2 span)
+	(GetTriSpan q.positions.d q.positions.a q.positions.b span)
+	
+	(Float32 buttonWidth = (config.GetFloat "base length"   0.2 0.01 1))
+	(Float32 buttonHeight = (config.GetFloat "base height" 1.5 0.01 2))
+	(Float32 buttonLength = (config.GetFloat "base width" 0.1 0.01 1))
+	(Float32 buttonDepth = (config.GetFloat "base depth"   0.1 0.01 0.3))
+	(Float32 buttonUVscale = (config.GetFloat "base uvScale" 0.5 0.01 10))
+	(Float32 buttonThickness = (config.GetFloat "base thickness" 0.025 0.01 0.2))
+	
+	(Float32 relWidth = (buttonWidth / span.y))
+	(Float32 relHeight = (buttonHeight / span.y))
+	(Float32 relLength = (buttonLength / span.x))
+	
+	(Vec2 centre = 0.5 0.5)
+	
+	(Float32 x0 = (centre.x - relLength))
+	(Float32 x1 = (centre.x + relLength))
+	
+	(Float32 y0 = relHeight)
+	(Float32 y1 = (relHeight + relWidth))
+	
+	(Rectf hole = x0 y1 x1 y0)
+	
+	(qst.PushQuad q wall)
+	(qst.Intrude hole buttonDepth buttonUVscale wall cement)
+	
+	(qst.MoveOutputToInputWithMat cement)
+	
+	(VertexTriangle topLeft)
+	(VertexTriangle bottomRight)
+	(while (qst.PopOutputAsTriangles topLeft bottomRight)
+		(tris.AddTriangle topLeft)
+		(tris.AddTriangle bottomRight)
+	)
+	
+	(ISectorComponents components (SectorComponents))	
+	(components.BuildComponent "wall.lever.base")
+	(qst.MoveInputToOutput)
+	
+	(
+		(VertexTriangle topLeft)
+		(VertexTriangle bottomRight)
+		(while (qst.PopOutputAsTriangles topLeft bottomRight)
+			(components.AddTriangle topLeft)
+			(components.AddTriangle bottomRight)
+		)
+	)
+	(components.CompleteComponent true)
+	
+	(components.BuildComponent "wall.lever")
+	
+	(IRodTesselator lever (RodTesselator))
+	(lever.Clear)
+	
+	(lever.SetMaterialBottom rodMat)
+	(lever.SetMaterialMiddle rodMat)
+	(lever.SetMaterialTop rodMat)
+	(lever.UseSmoothNormals)
+	
+	(lever.Advance -0.02)
+	(lever.AddSphere 0.04 6 6)
+	(lever.AddTorus 0.04 0.06 6 6)
+	(lever.Advance -0.02)
+	(lever.AddTube 0.5 0.04 0.02 8)
+	(lever.Advance -0.02)
+	(lever.AddSphere 0.04 6 6)
+	
+	(VertexTriangle t)
+	(while true
+		(Bool wasPopped = (lever.PopNextTriangle t))
+		(if wasPopped
+			(components.AddTriangle t)
+		else
+			(break)
+		)
+	)
+	
+	(components.CompleteComponent true)
+)
+
+(function Main (Int32 id)->(Int32 exitCode):
+	(ISectorWallTesselator sector (SectorWallTesselator))
+	(Int32 nSegments = sector.NumberOfSegments)
+	(Float32 u = 0)
+	
+	(IQuadStackTesselator qst (QuadStackTesselator))
+	
+	(IScriptConfig config (ScriptConfig))
+	(Float32 uvScale = (config.GetFloat "UV scale" 0.5 -100 100))
+		
+	(#for (Int32 i = 0)(i < nSegments)(#inc i)
+		(WallSegment seg)
+		(sector.GetSegment i seg)
+	
+		(Float32 u0 = u)
+		(Float32 u1 = (u0 + (seg.span.x * uvScale)))
+		
+		(QuadVertices qv)
+		(qv.positions = seg.quad)
+		(qv.normals.a = seg.normal)
+		(qv.normals.b = seg.normal)
+		(qv.normals.c = seg.normal)
+		(qv.normals.d = seg.normal)
+		(qv.uv.left = u0)
+		(qv.uv.right = u1)
+		(qv.uv.top = (seg.quad.a.z * uvScale))
+		(qv.uv.right = u1)
+		(qv.uv.bottom = (seg.quad.d.z * uvScale))
+		
+		(qst.SetBasis seg.tangent seg.normal seg.vertical)
+	
+		(qst.Clear)
+	
+		(if (i == 0)
+			(TesselateWallWithLever qv sector qst config)
+		else
+			(TesselateBlankWall qv sector qst)
+		)
+		
+		(u = u1)
+	)
+)

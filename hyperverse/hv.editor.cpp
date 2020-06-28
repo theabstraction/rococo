@@ -323,24 +323,37 @@ namespace
 
 			platform.installation.ConvertPingPathToSysPath("!scripts/hv/levels/*.level.sxy", ld.path, IO::MAX_PATHLEN);
 
-			if (platform.utilities.GetLoadLocation(platform.renderer.Window(), ld))
+			try
 			{
-				try
+				if (platform.utilities.GetLoadLocation(platform.renderer.Window(), ld))
 				{
-					char pingPath[IO::MAX_PATHLEN];
-					platform.installation.ConvertSysPathToPingPath(ld.path, pingPath, IO::MAX_PATHLEN);
-					Load(pingPath);
-				}
-				catch (IException& ex)
-				{
-					platform.utilities.ShowErrorBox(platform.renderer.Window(), ex, "Level find must be within content folder");
-				}
+					try
+					{
+						char pingPath[IO::MAX_PATHLEN];
+						platform.installation.ConvertSysPathToPingPath(ld.path, pingPath, IO::MAX_PATHLEN);
+						Load(pingPath);
+					}
+					catch (IException& ex)
+					{
+						platform.utilities.ShowErrorBox(platform.renderer.Window(), ex, "Level file must be within content folder");
+					}
 
-				SafeFormat(levelpath, Rococo::IO::MAX_PATHLEN, L"%s", ld.path);
+					SafeFormat(levelpath, Rococo::IO::MAX_PATHLEN, L"%s", ld.path);
 
-				char shortPingPath[IO::MAX_PATHLEN];
-				SafeFormat(shortPingPath, IO::MAX_PATHLEN, "%S", ld.shortName);
-				platform.utilities.AddSubtitle(shortPingPath);
+					char shortPingPath[IO::MAX_PATHLEN];
+					SafeFormat(shortPingPath, IO::MAX_PATHLEN, "%S", ld.shortName);
+					platform.utilities.AddSubtitle(shortPingPath);
+				}
+			}
+			catch (IException& ex)
+			{
+				char sysMessage[1024];
+				Rococo::OS::FormatErrorMessage(sysMessage, 1024, ex.ErrorCode());
+
+				char errorBuffer[1024];
+				SafeFormat(errorBuffer, 1024, "Error loading level. %s %s", sysMessage, ex.Message());
+
+				platform.messaging.Log(to_fstring(errorBuffer));
 			}
 		}
 

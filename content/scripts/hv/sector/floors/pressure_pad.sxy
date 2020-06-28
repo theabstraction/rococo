@@ -97,6 +97,7 @@
 		(components.AddTriangle bottomRight)
 	)
 	
+	
 	(components.CompleteComponent true)
 )
 

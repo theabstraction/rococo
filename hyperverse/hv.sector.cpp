@@ -3219,8 +3219,17 @@ namespace ANON
 	  float doorElevation = 0;
 	  float doorDirection = 0.0f;
 
+	  float padIntrusion = 0;
+	  float padDirection = 0.0f;
+
 	  const Metres DOOR_MAX_ELEVATION = 3.9_metres;
 	  const MetresPerSecond DOOR_ELEVATION_SPEED = 0.4_mps;
+
+	  const Metres PAD_MAX_INTRUSION = 0.1_metres;
+	  const MetresPerSecond PAD_DESCENT_SPEED = 0.40_mps;
+	  const MetresPerSecond PAD_ASCENT_SPEED = 1.0_mps;
+
+	  OS::ticks lastPlayerOccupiedTime;
 
 	  void UpdateDoor(ID_ENTITY idDoor, const IUltraClock& clock)
 	  {
@@ -3244,6 +3253,102 @@ namespace ANON
 		  door->Model().row2.w = doorElevation;
 	  }
 
+	  void NotifySectorPlayerIsInSector(const IUltraClock& clock)
+	  {
+		  lastPlayerOccupiedTime = clock.FrameStart();
+	  }
+
+	  void UpdatePressurePad(ID_ENTITY idPressurePad, const IUltraClock& clock)
+	  {
+		  auto* pad = platform.instances.GetEntity(idPressurePad);
+		  if (!pad) return;
+
+		  padIntrusion += padDirection * clock.DT();
+
+		  if (lastPlayerOccupiedTime >= clock.FrameStart())
+		  {
+			  padDirection = PAD_DESCENT_SPEED;
+		  }
+		  else
+		  {
+			  padDirection = -PAD_ASCENT_SPEED;
+		  }
+
+		  if (padIntrusion > PAD_MAX_INTRUSION)
+		  {
+			  padIntrusion = PAD_MAX_INTRUSION;
+		  }
+
+		  if (padIntrusion < 0)
+		  {
+			  padIntrusion = 0;
+		  }
+
+		  pad->Model().row2.w = -padIntrusion;
+	  }
+
+	  float leverElevation = 0_degrees;
+	  float leverOmega = 90.0f;
+
+	  const float leverSpeed = 180.0f;
+
+	  const Degrees LEVER_UP_ANGLE = 45_degrees;
+	  const Degrees LEVER_DOWN_ANGLE = -45_degrees;
+
+	  void UpdateLever(ID_ENTITY idLeverBase, ID_ENTITY idLever, const IUltraClock& clock)
+	  {
+		  auto* base = platform.instances.GetEntity(idLeverBase);
+		  if (base == nullptr) return;
+
+		  auto* lever = platform.instances.GetEntity(idLever);
+		  if (lever == nullptr) return;
+
+		  size_t nTriangles;
+		  auto* tris = platform.meshes.GetTriangles(base->MeshId(), nTriangles);
+		  if (!tris) return;
+
+		  auto& t = *tris;
+		  Vec3 pos = (t.a.position + t.c.position) * 0.5f;
+		  Vec3 normalU = Cross(t.b.position - t.a.position, t.c.position - t.a.position);
+		  if (LengthSq(normalU) <= 0)
+		  {
+			  return;
+		  }
+
+		  leverElevation += leverOmega * clock.DT();
+		  if (leverElevation < LEVER_DOWN_ANGLE)
+		  {
+			  leverElevation = LEVER_DOWN_ANGLE;
+			  leverOmega = 0;
+		  }
+		  else if (leverElevation > LEVER_UP_ANGLE)
+		  {
+			  leverElevation = LEVER_UP_ANGLE;
+			  leverOmega = 0;
+		  }
+
+		  Vec3 normal = Normalize(normalU);
+		  Vec3 tangent = Normalize(t.a.position - t.b.position);
+		  Vec3 bitangent = Cross(normal, tangent);
+
+		  Matrix4x4 model =
+		  {
+			{ tangent.x, -bitangent.x, -normal.x,  0 },
+			{ tangent.y, -bitangent.y, -normal.y,  0 },
+			{ tangent.z, -bitangent.z, -normal.z,  0 },
+			{         0,        0,           0, 1.0f },
+		  };
+
+		  auto Ry = Matrix4x4::RotateRHAnticlockwiseY(Degrees{ -leverElevation });
+
+		  Matrix4x4 T = Ry * model;
+		  T.row0.w = pos.x;
+		  T.row1.w = pos.y;
+		  T.row2.w = pos.z;
+
+		  lever->Model() = T;
+	  }
+
 	  void OnTick(const IUltraClock& clock) override
 	  {
 		  if (components.empty()) return;
@@ -3254,6 +3359,22 @@ namespace ANON
 			  {
 				  UpdateDoor(c.id, clock);
 				  break;
+			  }
+			  else if (Eq(c.name.c_str(), "pressure_pad"))
+			  {
+				  UpdatePressurePad(c.id, clock);
+				  break;
+			  }
+			  else if (Eq(c.name.c_str(), "wall.lever.base"))
+			  {
+				  for (auto d : components)
+				  {
+					  if (Eq(d.name.c_str(), "wall.lever"))
+					  {
+						  UpdateLever(c.id, d.id, clock);
+						  break;
+					  }
+				  }
 			  }
 		  }
 	  }
@@ -3271,6 +3392,61 @@ namespace ANON
 				  doorDirection = DOOR_ELEVATION_SPEED;
 			  }
 		  }
+	  }
+
+	  bool TryClickGraphicsMesh(ID_ENTITY idObject, cr_vec3 probePoint, cr_vec3 probeDirection, Metres reach)
+	  {
+		  auto* e = platform.instances.GetEntity(idObject);
+		  auto idMesh = e->MeshId();
+		  cr_m4x4 model = e->Model();
+
+		  size_t nTriangles;
+		  auto* triangles = platform.meshes.GetTriangles(idMesh, nTriangles);
+		  if (triangles)
+		  {
+			  for (size_t i = 0; i < nTriangles; ++i)
+			  {
+				  Triangle T;
+				  T.A = triangles[i].a.position;
+				  T.B = triangles[i].b.position;
+				  T.C = triangles[i].c.position;
+
+				  Triangle ABC;
+				  TransformPositions(&T.A, 3, model, &ABC.A);
+
+				  Collision c = Rococo::CollideLineAndTriangle(ABC, probePoint, probeDirection);
+
+				  if (c.contactType == ContactType_Face)
+				  {
+					  if (c.t > 0 && c.t < reach)
+					  {
+						  if (Dot(probeDirection, T.EdgeCrossProduct()) < 0)
+						  {
+							  return true;
+						  }
+					  }
+				  }
+			  }
+		  }
+
+		  return false;
+	  }
+
+	  bool TryClickLever(ID_ENTITY idLever, cr_vec3 probePoint, cr_vec3 probeDirection, Metres reach)
+	  {
+		  if (TryClickGraphicsMesh(idLever, probePoint, probeDirection, reach))
+		  {
+			  if (leverElevation < 0)
+			  {
+				  leverOmega = leverSpeed;
+			  }
+			  else
+			  {
+				  leverOmega = -leverSpeed;
+			  }
+		  }
+
+		  return false;
 	  }
 
 	  bool TryClickButton(ID_ENTITY idButton, cr_vec3 probePoint, cr_vec3 probeDirection, Metres reach)
@@ -3313,7 +3489,7 @@ namespace ANON
 	  {
 		  for (auto c : components)
 		  {
-			  if (Eq(c.name.c_str(), "door.button.1"))
+			  if (Eq(c.name.c_str(), "door.button.1") || Eq(c.name.c_str(), "door.button.2"))
 			  {
 				  if (TryClickButton(c.id, probePoint, probeDirection, reach))
 				  {
@@ -3321,9 +3497,9 @@ namespace ANON
 				  }
 			  }
 
-			  if (Eq(c.name.c_str(), "door.button.2"))
+			  if (Eq(c.name.c_str(), "wall.lever"))
 			  {
-				  if (TryClickButton(c.id, probePoint, probeDirection, reach))
+				  if (TryClickLever(c.id, probePoint, probeDirection, reach))
 				  {
 					  return true;
 				  }
