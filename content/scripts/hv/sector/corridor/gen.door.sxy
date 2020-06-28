@@ -247,8 +247,8 @@
 	
 	(Float32 switchY1 = ((y0 - dy1) - 0.01))
 	(Float32 switchY0 = (switchY1 - 0.12) )
-	(Float32 switchZ0 = 1.5)
-	(Float32 switchZ1 = 1.55)
+	(Float32 switchZ0 = 0.8)
+	(Float32 switchZ1 = 0.85)
 	(Float32 switchX0 = (x0 + 0.025))
 	(Vec3 v = x0       switchY0 z0)
 	(Vec3 w = switchX0 switchY1 switchZ1)
@@ -256,8 +256,8 @@
 
 	(Float32 switch2Y0 = ((y1 + dy1) + 0.01))
 	(Float32 switch2Y1 = (switch2Y0 + 0.12) )
-	(Float32 switch2Z0 = 1.5)
-	(Float32 switch2Z1 = 1.55)
+	(Float32 switch2Z0 = 0.8)
+	(Float32 switch2Z1 = 0.85)
 	(Float32 switch2X0 = (x1 - 0.025))
 	(Vec3 v2 = switch2X0 switch2Y0 z0)
 	(Vec3 w2 = x1 switch2Y1 switch2Z1)

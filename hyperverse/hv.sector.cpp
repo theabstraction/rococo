@@ -1202,12 +1202,28 @@ namespace ANON
 		  auto& rod = platform.tesselators.rod;
 		  rod.Clear();
 
+		  if (IsSloped())
+		  {
+			  z1 += 100.0;
+			  z0 -= 100.0f;
+		  }
+
 		  auto height = Metres{ z1 - z0 };
 		  rod.SetMaterialMiddle(brickwork);
 
-		  rod.SetOrigin(Vec3{ posXY.x, posXY.y, -z0 });
+		  rod.SetOrigin(Vec3{ posXY.x, posXY.y, z0 });
 		  rod.UseSmoothNormals();
-		  rod.AddTube(height, radius, radius, 8);
+
+		  if (!IsSloped())
+		  {
+			  rod.AddTube(0.10_metres, Metres{ radius + 0.2_metres }, Metres{ radius + 0.1_metres }, 12);
+			  rod.AddTube(Metres{ height - 0.3_metres }, radius, radius, 8);
+			  rod.AddTube(Metres{ 0.2_metres }, Metres{ radius + 0.1_metres }, Metres{ radius + 0.3_metres }, 8);
+		  }
+		  else
+		  {
+			  rod.AddTube(height, radius, radius, 8);
+		  }
 
 		  VertexTriangle t;
 		  while (rod.PopNextTriangle(t))
