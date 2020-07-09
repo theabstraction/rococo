@@ -97,6 +97,8 @@ namespace HV
 		AutoFree<IPaneBuilderSupervisor> fpsPanel;
 		AutoFree<IPaneBuilderSupervisor> overlayPanel;
 		AutoFree<IPaneBuilderSupervisor> busyPanel;
+		AutoFree<IMPlatFileBrowser> browser;
+		AutoFree<IPaneBuilderSupervisor> fileBrowserPane;
 
 		Cosmos e; // Put this as the last member, since other members need to be constructed first
 
@@ -150,6 +152,11 @@ namespace HV
 			config.EnvironmentalMap = Graphics::ENVIRONMENTAL_MAP_FIXED_CUBE;
 			platform.renderer.Render(config, (IScene&) scene);
 			e.platform.gui.Pop();
+
+			browser = platform.utilities.CreateMPlatFileBrowser();
+			browser->Engage();
+
+			platform.gui.PushTop(fileBrowserPane->Supervisor(), true);
 		}
 
 		virtual void OnGuiResize(Vec2i screenSpan) override
@@ -158,6 +165,7 @@ namespace HV
 			fpsPanel->Supervisor()->SetRect(fullScreen);
 			busyPanel->Supervisor()->SetRect(fullScreen);
 			editorPanel->Root()->SetRect(fullScreen);
+			fileBrowserPane->SetRect(fullScreen);
 		}
 
 		virtual void OnEvent(Event& ev)
@@ -217,6 +225,10 @@ namespace HV
 			e.platform.publisher.Subscribe(this, Rococo::Events::evBusy);
 
 			scene.resizeCallback = this;
+
+	//		e.platform.instances.LoadMeshList("!/mesh/fred.sxy"_fstring);
+
+			fileBrowserPane = platform.gui.BindPanelToScript("!scripts/panel.browser.sxy");
 		}
 
 		~App()

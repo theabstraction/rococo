@@ -106,6 +106,7 @@
     <ClCompile Include="mplat.config.cpp" />
     <ClCompile Include="mplat.entities.mobiles.cpp" />
     <ClCompile Include="mplat.entities.particles.cpp" />
+    <ClCompile Include="mplat.file.browser.cpp" />
     <ClCompile Include="mplat.graphics.camera.cpp" />
     <ClCompile Include="mplat.entities.instances.cpp" />
     <ClCompile Include="mplat.graphics.fieldtesselator.cpp" />
@@ -124,6 +125,7 @@
     </ClCompile>
     <ClCompile Include="mplat.maths.visitor.cpp" />
     <ClCompile Include="mplat.graphics.scene.cpp" />
+    <ClCompile Include="mplat.mesh.list.cpp" />
     <ClCompile Include="mplat.os.win32.venue.cpp" />
     <ClCompile Include="mplat.overlay.cpp" />
     <ClCompile Include="mplat.pane.label.cpp" />

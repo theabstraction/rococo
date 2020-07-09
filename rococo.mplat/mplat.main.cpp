@@ -204,6 +204,40 @@ struct HandleManager
 
 using namespace Rococo::Windows::IDE;
 
+namespace Rococo
+{
+	namespace M
+	{
+		void NativeLoadMesh(Rococo::Script::NativeCallEnvironment& e);
+	}
+}
+
+void LoadMeshFromFile(Platform& platform, const fstring& pingPath)
+{
+	class ScriptContext : public IEventCallback<ScriptCompileArgs>
+	{
+		Platform& platform;
+
+		void OnEvent(ScriptCompileArgs& args) override
+		{
+			auto& nsEntryPoint = args.ss.AddNativeNamespace("EntryPoint");
+			args.ss.AddNativeCall(nsEntryPoint, Rococo::M::NativeLoadMesh, &platform, "LoadMesh (Sys.Reflection.IExpression s)->", true);
+		}
+
+	public:
+		ScriptContext(Platform& _platform) : platform(_platform) {}
+
+		void Execute(cstr name, bool trace)
+		{
+			platform.utilities.RunEnvironmentScript(*this, name, true, true, trace);
+		}
+	} sc(platform);
+
+	sc.Execute(pingPath, false);
+
+	platform.sourceCache.Release(pingPath);
+}
+
 int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon, HICON hSmallIcon)
 {
 	char filename[1024];
@@ -241,8 +275,6 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	AutoFree<Rococo::Events::IPublisherSupervisor> publisher(Events::CreatePublisher());
 	os->Monitor(installation->Content());
 
-	OS::PrintDebug("Starting mainWindow!\n");
-
 	AutoFree<IDX11Logger> logger = CreateStandardOutputLogger();
 
 	FactorySpec factorySpec;
@@ -274,8 +306,17 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 
 	Rococo::M::InitScriptSystem(*installation);
 
+	struct MeshLoader : public IMeshLoader
+	{
+		Platform* platform = nullptr;
+		void LoadFromFile(const fstring& pingName) override
+		{
+			LoadMeshFromFile(*platform, pingName);
+		}
+	} meshLoader;
+
 	AutoFree<Graphics::IMeshBuilderSupervisor> meshes = Graphics::CreateMeshBuilder(mainWindow->Renderer());
-	AutoFree<Entities::IInstancesSupervisor> instances = Entities::CreateInstanceBuilder(*meshes, mainWindow->Renderer(), *publisher);
+	AutoFree<Entities::IInstancesSupervisor> instances = Entities::CreateInstanceBuilder(meshLoader, *meshes, mainWindow->Renderer(), *publisher);
 	AutoFree<Entities::IMobilesSupervisor> mobiles = Entities::CreateMobilesSupervisor(*instances);
 	AutoFree<Graphics::ICameraSupervisor> camera = Graphics::CreateCamera(*instances, *mobiles, mainWindow->Renderer());
 	AutoFree<Graphics::ISceneSupervisor> scene = Graphics::CreateScene(*instances, *camera);
@@ -315,6 +356,8 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	gui->PostConstruct(&platform);
 	utilities->SetPlatform(platform);
 	messaging->PostCreate(platform);
+
+	meshLoader.platform = &platform;
 
 	PlatformTabs tabs(platform);
 

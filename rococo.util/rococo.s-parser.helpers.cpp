@@ -1540,7 +1540,9 @@ namespace Rococo
 	{
 		EXECUTERESULT result = EXECUTERESULT_YIELDED;
 
-		if (!OS::IsDebugging())
+		bool captureStructedException = false;
+
+		if (captureStructedException && !OS::IsDebugging())
 		{
 			TRY_PROTECTED
 			{

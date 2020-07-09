@@ -182,14 +182,14 @@ public:
 
 	void EnumerateFiles(IEventCallback<const wchar_t*>& cb, cstr pingPathDirectory) override
 	{
-		struct : IEventCallback<const wchar_t*>
+		struct : IEventCallback<IO::FileItemData>
 		{
 			std::vector<std::wstring> allResults;
-			virtual void OnEvent(const wchar_t* filename)
+			void OnEvent(IO::FileItemData& file) override
 			{
-				allResults.push_back(filename);
+				allResults.push_back(file.fullPath);
 			}
-		} onFileFound;
+		} addToList;
 
 		if (pingPathDirectory == nullptr || pingPathDirectory[0] != '!')
 		{
@@ -204,11 +204,11 @@ public:
 		EndDirectoryWithSlash(shortDir, IO::MAX_PATHLEN);
 
 		SafeFormat(directory, IO::MAX_PATHLEN, L"%s%s", (cstr)installation.Content(), shortDir + 1);
-		IO::ForEachFileInDirectory(directory, onFileFound);
+		IO::ForEachFileInDirectory(directory, addToList, true);
 
-		std::sort(onFileFound.allResults.begin(), onFileFound.allResults.end());
+		std::sort(addToList.allResults.begin(), addToList.allResults.end());
 
-		for (auto& s : onFileFound.allResults)
+		for (auto& s : addToList.allResults)
 		{
 			wchar_t contentRelativePath[IO::MAX_PATHLEN];
 			SafeFormat(contentRelativePath, IO::MAX_PATHLEN, L"%s%s", shortDir, s.c_str());
@@ -298,6 +298,11 @@ public:
 		{
 			Throw(GetLastError(), "Error writing %S", pathname);
 		}
+	}
+
+	IMPlatFileBrowser* CreateMPlatFileBrowser() override
+	{
+		return Rococo::CreateMPlatFileBrowser(platform->publisher, platform->installation);
 	}
 };
 

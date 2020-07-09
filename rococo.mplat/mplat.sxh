@@ -286,6 +286,7 @@
 		(AddGhost (const Matrix4x4 model)(IdEntity parentId)->(IdEntity entityId))
 		(CreateCubeTexture (IString folder)(IString extension)->(IdCubeTexture cubeId))
 		(Delete (IdEntity id))
+		(LoadMeshList (IString pingPath))
 		(LoadMaterialArray (IString folder)(Int32 txWidth))
 		(CountMaterialsInCategory (MaterialCategory category)->(Int32 count))
 		(GetMaterialId  (MaterialCategory category)(Int32 index)->(MaterialId id))

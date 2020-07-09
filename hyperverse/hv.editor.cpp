@@ -145,9 +145,11 @@ namespace
 
 		AutoFree<IBloodyPropertySetEditorSupervisor> ambienceEditor;
 
+		AutoFree<IPaneBuilderSupervisor> fileBrowserPane;
+
 		wchar_t levelpath[IO::MAX_PATHLEN] = { 0 };
 
-		virtual bool IsScrollLocked() const
+		bool IsScrollLocked() const override
 		{
 			return scrollLock.State() == 1;
 		}

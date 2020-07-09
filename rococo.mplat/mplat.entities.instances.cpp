@@ -64,20 +64,26 @@ namespace
    struct Instances : public IInstancesSupervisor
    {      
       MapIdToEntity idToEntity;
-      Rococo::Graphics::IMeshBuilderSupervisor& meshBuilder;
+      IMeshBuilderSupervisor& meshBuilder;
       IRenderer& renderer;
 	  Events::IPublisher& publisher;
+      IMeshLoader& meshLoader;
 
       int32 enumerationDepth{ 0 };
 
-      Instances(Rococo::Graphics::IMeshBuilderSupervisor& _meshBuilder, IRenderer& _renderer, Events::IPublisher& _publisher) :
-         meshBuilder(_meshBuilder), renderer(_renderer), publisher(_publisher)
+      Instances(IMeshLoader& _meshLoader, IMeshBuilderSupervisor& _meshBuilder, IRenderer& _renderer, Events::IPublisher& _publisher) :
+          meshLoader(_meshLoader), meshBuilder(_meshBuilder), renderer(_renderer), publisher(_publisher)
       {
       }
 
       ~Instances()
       {
          Clear();
+      }
+
+      void LoadMeshList(const fstring& pingPath) override
+      {
+          meshLoader.LoadFromFile(pingPath);
       }
 
       Rococo::Graphics::IMeshBuilder& MeshBuilder() override
@@ -254,7 +260,7 @@ namespace
 
 	  virtual void LoadMaterialArray(const fstring& folder, int32 txWidth)
 	  {
-		  struct: public IEventCallback<const wchar_t*>, IMaterialTextureArrayBuilder
+		  struct: public IEventCallback<IO::FileItemData>, IMaterialTextureArrayBuilder
 		  {
 			  int32 txWidth;
 			  std::vector<std::string> filenames;
@@ -266,18 +272,15 @@ namespace
 			  char pingPath[IO::MAX_PATHLEN];
 			  wchar_t sysSearchPath[IO::MAX_PATHLEN];
 
-			  void OnEvent(const wchar_t* sysName) override
+			  void OnEvent(IO::FileItemData& item) override
 			  {
-				  auto ext = GetFileExtension(sysName);
+                  if (item.isDirectory) return;
+
+				  auto ext = GetFileExtension(item.itemRelContainer);
 				  if (Eq(ext, L".jpeg") || Eq(ext, L".jpg") || Eq(ext, L"tif") || Eq(ext, L"tiff"))
 				  {
 					  char pingName[_MAX_PATH];
-
-					  wchar_t fullPath[IO::MAX_PATHLEN];
-					  swprintf_s(fullPath, IO::MAX_PATHLEN, L"%s%s", sysSearchPath, sysName);
-
-					  installation->ConvertSysPathToPingPath(fullPath, pingName, _MAX_PATH);
-
+					  installation->ConvertSysPathToPingPath(item.fullPath, pingName, _MAX_PATH);
 					  filenames.push_back(pingName);
 				  }
 			  }
@@ -320,7 +323,7 @@ namespace
 
 		  swprintf_s(z.sysSearchPath, IO::MAX_PATHLEN, L"%s", sysPath);
 	
-		  IO::ForEachFileInDirectory(sysPath, z);
+		  IO::ForEachFileInDirectory(sysPath, z, true);
 
 		  if (z.filenames.empty()) return;
 
@@ -463,9 +466,9 @@ namespace Rococo
 {
    namespace Entities
    {
-      IInstancesSupervisor* CreateInstanceBuilder(IMeshBuilderSupervisor& meshes, IRenderer& renderer, Events::IPublisher& publisher)
+      IInstancesSupervisor* CreateInstanceBuilder(IMeshLoader& meshLoader, IMeshBuilderSupervisor& meshes, IRenderer& renderer, Events::IPublisher& publisher)
       {
-         return new Instances(meshes, renderer, publisher);
+         return new Instances(meshLoader, meshes, renderer, publisher);
       }
    }
 }

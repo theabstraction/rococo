@@ -189,7 +189,23 @@ namespace Rococo
 	{
 		struct IUnicode16Writer;
 		bool ChooseDirectory(char* name, size_t capacity);
-		void ForEachFileInDirectory(const wchar_t* directory, IEventCallback<const wchar_t*>& onFile);
+
+		struct FileItemData
+		{
+			const wchar_t* fullPath;
+			const wchar_t* containerRelRoot;
+			const wchar_t* itemRelContainer;
+			bool isDirectory;
+		};
+		void ForEachFileInDirectory(const wchar_t* directory, IEventCallback<FileItemData>& onFile, bool recurse);
+
+		struct FileAttributes
+		{
+			uint64 fileLength;
+			char timestamp[24];
+		};
+		
+		bool TryGetFileAttributes(const wchar_t* sysPath, FileAttributes& attr);
 	}
 
 	namespace OS

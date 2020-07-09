@@ -21,8 +21,10 @@
 
 #ifdef _DEBUG
 # pragma comment(lib, "rococo.sexy.ide.debug.lib")
+# pragma comment(lib, "rococo.file.browser.debug.lib")
 #else
 # pragma comment(lib, "rococo.sexy.ide.lib")
+# pragma comment(lib, "rococo.file.browser.lib")
 #endif
 
 #include "..\dx11.renderer\dx11.imports.inl"

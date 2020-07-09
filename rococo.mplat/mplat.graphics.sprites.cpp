@@ -43,30 +43,32 @@ namespace
 
       void AddEachSpriteInDirectory(const fstring& pingNameForDirectory)
       {
-         struct : IEventCallback<const wchar_t*>
+         struct : IEventCallback<IO::FileItemData>
          {
             Sprites* sprites;
             char containingDir[IO::MAX_PATHLEN];
 
-            virtual void OnEvent(const wchar_t* filename)
+            virtual void OnEvent(IO::FileItemData& item)
             {
                char contentRelativePath[IO::MAX_PATHLEN];
-               SafeFormat(contentRelativePath, IO::MAX_PATHLEN, "%s/%S", containingDir, filename);
+               cstr sep = EndsWith(containingDir, "/") ? "" : "/";
+               cstr sep2 = item.containerRelRoot[0] == 0 || EndsWith(item.containerRelRoot, L"/") ? "" : "/";
+               SafeFormat(contentRelativePath, IO::MAX_PATHLEN, "%s%s%S%s%S", containingDir, sep, item.containerRelRoot, sep2, item.itemRelContainer);
                sprites->AddSprite(to_fstring(contentRelativePath));
             }
-         } onFileFound;
-         onFileFound.sprites = this;
+         } addSprite;
+         addSprite.sprites = this;
 
          if (pingNameForDirectory[0] != '!')
          {
             Throw(0, "Sprite directories must be inside the content directory. Use the '!<directory>' ping path");
          }
 
-		 SafeFormat(onFileFound.containingDir, IO::MAX_PATHLEN, "%s", pingNameForDirectory.buffer);
+		 SafeFormat(addSprite.containingDir, IO::MAX_PATHLEN, "%s", pingNameForDirectory.buffer);
 
 		 wchar_t sysDirectory[_MAX_PATH];
 		 renderer.Installation().ConvertPingPathToSysPath(pingNameForDirectory, sysDirectory, IO::MAX_PATHLEN);
-         IO::ForEachFileInDirectory(sysDirectory, onFileFound);
+         IO::ForEachFileInDirectory(sysDirectory, addSprite, true);
       }
 
       void LoadAllSprites()

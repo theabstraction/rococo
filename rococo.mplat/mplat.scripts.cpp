@@ -167,7 +167,7 @@ static void NativeEnumerateFiles(NativeCallEnvironment& nce)
 		Throw(0, "MPlat.NativeEnumerateFiles. String argument was blank");
 	}
 
-	struct : IEventCallback<const wchar_t*>
+	struct : IEventCallback<IO::FileItemData>
 	{
 		IPublicScriptSystem* ss;
 		IInstallation* installation;
@@ -175,13 +175,10 @@ static void NativeEnumerateFiles(NativeCallEnvironment& nce)
 
 		wchar_t sysRoot[Rococo::IO::MAX_PATHLEN];
 
-		void OnEvent(const wchar_t* filename) override
+		void OnEvent(IO::FileItemData& file) override
 		{
-			wchar_t sysFullPath[Rococo::IO::MAX_PATHLEN];
-			SafeFormat(sysFullPath, Rococo::IO::MAX_PATHLEN, L"%s%s", sysRoot, filename);
-
 			char pingPath[Rococo::IO::MAX_PATHLEN];
-			installation->ConvertSysPathToPingPath(sysFullPath, pingPath, Rococo::IO::MAX_PATHLEN);
+			installation->ConvertSysPathToPingPath(file.fullPath, pingPath, Rococo::IO::MAX_PATHLEN);
 
 			auto& SS = (IScriptSystem&)*ss;
 			auto* constant = SS.GetStringReflection(pingPath);
@@ -189,19 +186,19 @@ static void NativeEnumerateFiles(NativeCallEnvironment& nce)
 			
 			ss->DispatchToSexyClosure(pPingPath, callback);
 		}
-	} onFile;
+	} dispatchToSexyClosure;
 
-	onFile.ss = &nce.ss;
-	onFile.callback = ac;
-	onFile.installation = &platform.installation;
+	dispatchToSexyClosure.ss = &nce.ss;
+	dispatchToSexyClosure.callback = ac;
+	dispatchToSexyClosure.installation = &platform.installation;
 
 	wchar_t sysPath[Rococo::IO::MAX_PATHLEN];
 	platform.installation.ConvertPingPathToSysPath((cstr)sc.pointer, sysPath, Rococo::IO::MAX_PATHLEN);
 
-	SafeFormat(onFile.sysRoot, Rococo::IO::MAX_PATHLEN, L"%s", sysPath);
-	Rococo::OS::MakeContainerDirectory(onFile.sysRoot);
+	SafeFormat(dispatchToSexyClosure.sysRoot, Rococo::IO::MAX_PATHLEN, L"%s", sysPath);
+	Rococo::OS::MakeContainerDirectory(dispatchToSexyClosure.sysRoot);
 
-	Rococo::IO::ForEachFileInDirectory(sysPath, onFile);
+	Rococo::IO::ForEachFileInDirectory(sysPath, dispatchToSexyClosure, true);
 }
 
 
@@ -314,5 +311,19 @@ namespace Rococo
 
 			sc.Execute(name, stats, trace);
 		}
-	}
-}
+
+		void LoadMeshesFromSExpression(Platform& platform, cr_sex s);
+
+		void NativeLoadMesh(Rococo::Script::NativeCallEnvironment& e)
+		{
+			auto& platform = *(Platform*)e.context;
+
+			Rococo::InterfacePointer interf;
+			ReadInput<Rococo::InterfacePointer>(0, interf, e);
+
+			auto* pExpr = (Rococo::CClassExpression*) InterfaceToInstance(interf);
+
+			LoadMeshesFromSExpression(platform, *pExpr->ExpressionPtr);
+		}
+	} // M
+} // Rococo

@@ -85,6 +85,21 @@ namespace Rococo
 		operator cstr() const { return buffer; }
 	};
 
+	template<class T> struct FilePath
+	{
+		enum { CAPACITY = 260 };
+		T buf[CAPACITY];
+		T pathSeparator;
+
+		typedef const T* cstr;
+
+		operator const T* () const { return buf; }
+	};
+
+	typedef FilePath<char32_t> U32FilePath;
+	typedef FilePath<wchar_t>  WideFilePath;
+	typedef FilePath<char>	   U8FilePath;
+
 	union WindowHandle
 	{
 		size_t sValue;

@@ -14,7 +14,6 @@ namespace Rococo
 	   cstr pingPath;
    };
 
-
    struct TextOutputClickedEvent : public Rococo::Events::EventArgs
    {
 	   cstr key;
@@ -169,6 +168,11 @@ namespace Rococo
 		};
 	}
 
+	ROCOCOAPI IMeshLoader
+	{
+		virtual void LoadFromFile(const fstring & pingName) = 0;
+	};
+
 	struct Key
 	{
 		cstr KeyName;
@@ -276,7 +280,7 @@ namespace Rococo
 
 		IMobilesSupervisor* CreateMobilesSupervisor(Entities::IInstancesSupervisor& instances);
 
-		IInstancesSupervisor* CreateInstanceBuilder(Graphics::IMeshBuilderSupervisor& meshes, IRenderer& renderer, Events::IPublisher& publisher);
+		IInstancesSupervisor* CreateInstanceBuilder(IMeshLoader& meshLoader, Graphics::IMeshBuilderSupervisor& meshes, IRenderer& renderer, Events::IPublisher& publisher);
 
 		ROCOCOAPI IParticleSystemSupervisor : IParticleSystem
 		{
@@ -490,6 +494,8 @@ namespace Rococo
 		extern EventIdRef evUIMouseEvent;
 	}
 
+	struct IMPlatFileBrowser;
+
 	ROCOCOAPI IScrollbar
 	{
 		virtual void GetScrollState(Events::ScrollEvent & s) = 0;
@@ -518,6 +524,7 @@ namespace Rococo
 		virtual IBloodyPropertySetEditorSupervisor* CreateBloodyPropertySetEditor(IEventCallback<IBloodyPropertySetEditorSupervisor>& _onDirty) = 0;
 		virtual fstring ToShortString(Graphics::MaterialCategory value) const = 0;
 		virtual IMathsVenue* Venue() = 0;
+		virtual IMPlatFileBrowser* CreateMPlatFileBrowser() = 0;
 	};
 
 	ROCOCOAPI IUtilitiesSupervisor : public IUtilitiies
@@ -660,6 +667,14 @@ namespace Rococo
 			boolean32 fromScrollbar;
 		};
 	}
+
+	ROCOCOAPI IMPlatFileBrowser
+	{
+		virtual void Engage() = 0;
+		virtual void Free() = 0;
+	};
+
+	IMPlatFileBrowser* CreateMPlatFileBrowser(Events::IPublisher& publisher, IInstallation& installation);
 }
 
 #define REGISTER_UI_EVENT_HANDLER(guistack, instance, classname, methodname, cmd, helpString)  \

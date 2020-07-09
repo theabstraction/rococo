@@ -525,6 +525,10 @@ namespace
 			{
 				static_cast<IIDETextWindow*>(logPane)->AddSegment(RGB(0, 0, 0), text, rlen(text) + 1, RGBAb(255, 255, 255));
 			}
+			else
+			{
+				Rococo::OS::BeepWarning();
+			}
 
 			return len;
 		}

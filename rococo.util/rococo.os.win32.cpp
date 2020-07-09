@@ -41,6 +41,8 @@
 
 #include <shellapi.h>
 
+#include <rococo.strings.h>
+
 namespace Rococo
 {
 	void GetTimestamp(char str[26])
@@ -55,6 +57,32 @@ namespace Rococo
 		void UseBufferlessStdout()
 		{
 			setvbuf(stdout, nullptr, _IONBF, 0);
+		}
+
+		bool TryGetFileAttributes(const wchar_t* sysPath, FileAttributes& attr)
+		{
+			if (sysPath == nullptr) Throw(0, "Rococo::IO::GetFileLength: sysPath was null");
+
+			WIN32_FILE_ATTRIBUTE_DATA data;
+			if (!GetFileAttributesExW(sysPath, GetFileExInfoStandard, &data))
+			{
+				attr.fileLength = GetLastError();
+				attr.timestamp[0] = 0;
+				return false;
+			}
+
+			uint64 high = ((uint64)data.nFileSizeHigh) & 0x00000000FFFFFFFF;
+			uint64 low  = ((uint64)data.nFileSizeLow) & 0x00000000FFFFFFFF;
+			uint64 len = (high << 32) + low;
+			attr.fileLength = len;
+			
+			FILETIME ft = data.ftLastWriteTime;
+
+			SYSTEMTIME t;
+			FileTimeToSystemTime(&ft, &t);
+
+			SafeFormat(attr.timestamp, sizeof(attr.timestamp), "%2.2d:%2.2d:%2.2d %2.2d/%2.2d/%4.4d",
+				t.wHour, t.wMinute, t.wSecond, t.wDay, t.wMonth, t.wYear);
 		}
 	}
 
@@ -1637,7 +1665,7 @@ namespace Rococo
 			}
 		}
 
-		void ForEachFileInDirectory(const wchar_t* filter, IEventCallback<const wchar_t*>& onFile)
+		void ForEachFileInDirectory(const wchar_t* filter, IEventCallback<FileItemData>& onFile, bool recurse)
 		{
 			struct AutoSearchHandle
 			{
@@ -1701,33 +1729,65 @@ namespace Rococo
 				if ((findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
 				{
 					// We found a file
-					onFile.OnEvent(findData.cFileName);
+
+					FileItemData item;
+					item.isDirectory = false;
+
+					wchar_t fullPath[MAX_PATH];
+					SafeFormat(fullPath, MAX_PATH, L"%s%s", containerDirectory, findData.cFileName);
+
+					item.fullPath = fullPath;
+					item.itemRelContainer = findData.cFileName;
+					item.containerRelRoot = L"";
+					onFile.OnEvent(item);
 				}
 				else
 				{
-					// We found a directory
+					// We found a directory, so recurse
 					if (*findData.cFileName != '.')
 					{
-						struct : IEventCallback<const wchar_t*>
+						FileItemData item;
+						item.isDirectory = true;
+
+						wchar_t fullPath[MAX_PATH];
+						SafeFormat(fullPath, MAX_PATH, L"%s%s", containerDirectory, findData.cFileName);
+
+						item.fullPath = fullPath;
+						item.itemRelContainer = findData.cFileName;
+						item.containerRelRoot = L"";
+						onFile.OnEvent(item);
+
+						if (recurse)
 						{
-							wchar_t stem[IO::MAX_PATHLEN];
-
-							IEventCallback<const wchar_t*>* caller;
-							virtual void OnEvent(const wchar_t* name)
+							struct : IEventCallback<FileItemData>
 							{
-								wchar_t subsubpath[IO::MAX_PATHLEN];
-								SecureFormat(subsubpath, IO::MAX_PATHLEN, L"%s%s", stem, name);
-								caller->OnEvent(subsubpath);
-							}
-						} subpathResult;
+								wchar_t stem[IO::MAX_PATHLEN];
+								const wchar_t* fullstem;
 
-						wchar_t subpath[IO::MAX_PATHLEN];
-						SecureFormat(subpath, IO::MAX_PATHLEN, L"%s%s\\", containerDirectory, findData.cFileName);
-						subpathResult.caller = &onFile;
+								IEventCallback<FileItemData>* caller;
+								void OnEvent(FileItemData& item) override
+								{
+									wchar_t fullpath[MAX_PATH];
+									SafeFormat(fullpath, MAX_PATH, L"%s%s", fullstem, item.itemRelContainer);
+									FileItemData fromRoot;
+									fromRoot.isDirectory = item.isDirectory;
+									fromRoot.itemRelContainer = item.itemRelContainer;
+									fromRoot.containerRelRoot = stem;
+									fromRoot.fullPath = fullpath;
+									caller->OnEvent(fromRoot);
+								}
+							} subpathResult;
 
-						SecureFormat(subpathResult.stem, IO::MAX_PATHLEN, L"%s\\", findData.cFileName);
+							wchar_t subpath[IO::MAX_PATHLEN];
+							SecureFormat(subpath, IO::MAX_PATHLEN, L"%s%s\\", containerDirectory, findData.cFileName);
+							subpathResult.caller = &onFile;
 
-						ForEachFileInDirectory(subpath, subpathResult);
+							subpathResult.fullstem = subpath;
+
+							SecureFormat(subpathResult.stem, IO::MAX_PATHLEN, L"%s\\", findData.cFileName);
+
+							ForEachFileInDirectory(subpath, subpathResult, recurse);
+						}
 					}
 				}
 			} while (FindNextFileW(hSearch, &findData));

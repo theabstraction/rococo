@@ -1,0 +1,47 @@
+(' #file.type rococo.mplat.panel)
+
+(' #include 
+	"!scripts/mplat.pane.sxh.sxy"
+	"!scripts/mplat.types.sxy"
+	"!scripts/types.sxy"
+)
+
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+	
+(using Rococo)
+(using Sys.Maths)
+(using Sys.Type)
+
+(function SetTransparentBackground (IPane pane)-> :
+	(pane.SetColourBk1   0x00000000 0x00000000)
+	(pane.SetColourBk2   0x00000000 0x00000000)
+	(pane.SetColourEdge1 0x00000000 0x00000000)
+	(pane.SetColourEdge2 0x00000000 0x00000000)
+)
+
+(function Main (Int32 id)->(Int32 exitCode):
+	(IPaneBuilder builder (PaneBuilder))
+	(IPaneContainer root = builder.Root)
+	(root.SetColourBk1   0x00000000 0x00000000)
+	(root.SetColourBk2   0x00000000 0x00000000)
+	(root.SetColourEdge1 0xFFFFFFFF 0xFFFFFFFF)
+	(root.SetColourEdge2 0xFFFFFFFF 0xFFFFFFFF)
+	
+	(Recti frameRect = 100 100 1600 900)
+	(IFramePane frame = (root.AddFrame frameRect))
+
+	(frame.SetColourBk1   0xF0000000 0xF0000000)
+	(frame.SetColourBk2   0xF0000000 0xF0000000)
+	(frame.SetColourEdge1 0xEFC0C0C0 0xFFFFFFFF)
+	(frame.SetColourEdge2 0xEFC0C0C0 0xFFFFFFFF)
+	
+	(Recti subRect = 100 100 700 600)
+	(IPaneContainer mainWindow = (frame.AddContainer subRect))
+	(mainWindow.SetPopulator 0 "File.Browser")
+	(mainWindow.SetColourBk1 0 0)
+	(mainWindow.SetColourBk2 0 0)
+	(frame.SetLayoutAlgorithm (#LayoutIdMaximizeOnlyChild))
+	(frame.SetMinMaxSpan 400 300 1024 480)
+	(frame.SetCaption "File Browser")
+)

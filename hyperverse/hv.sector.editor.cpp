@@ -110,7 +110,14 @@ namespace
 			map(_map),
 			parent(_parent),
 			editor(nullptr)
-		{ }
+		{ 
+			
+		}
+
+		~SectorEditor()
+		{
+		}
+
 		IEditMode& Mode() override { return *this; }
 		const ISector* GetHilight() const override
 		{
