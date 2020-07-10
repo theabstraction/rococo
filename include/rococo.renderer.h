@@ -387,6 +387,8 @@ namespace Rococo
 
 		void DrawTriangleFacingLeft(IGuiRenderContext& grc, const GuiRect& container, RGBAb colour);
 		void DrawTriangleFacingRight(IGuiRenderContext& grc, const GuiRect& container, RGBAb colour);
+		void DrawTriangleFacingUp(IGuiRenderContext& grc, const GuiRect& container, RGBAb colour);
+		void DrawTriangleFacingDown(IGuiRenderContext& grc, const GuiRect& container, RGBAb colour);
 
 		Vec2i GetScreenCentre(const GuiMetrics& metrics);
 		Vec2i RenderHorizontalCentredText(IGuiRenderContext& gr, cstr txt, RGBAb colour, int fontSize, const Vec2i& topMiddle);

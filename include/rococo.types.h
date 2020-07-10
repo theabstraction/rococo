@@ -343,12 +343,7 @@ namespace Rococo
 		return a < b ? a : b;
 	}
 
-	inline float clamp(float a, float lowestBound, float highestBound)
-	{
-		return min(highestBound, max(lowestBound, a));
-	}
-
-	inline int32 clamp(int32 a, int32 lowestBound, int32 highestBound)
+	template<class T> inline T clamp(T a, T lowestBound, T highestBound)
 	{
 		return min(highestBound, max(lowestBound, a));
 	}

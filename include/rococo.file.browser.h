@@ -24,7 +24,15 @@ namespace Rococo
 		FILE_SECTION,
 		TREE_SECTION,
 		TREE_FOLDER_ENTRY,
-		FOLDER_ICON
+		FOLDER_ICON,
+		FILE_SCROLLER
+	};
+
+	struct VScrollerRects
+	{
+		GuiRect up;
+		GuiRect down;
+		GuiRect slider;
 	};
 
 	ROCOCOAPI IFileBrowserRendererContext
@@ -35,6 +43,12 @@ namespace Rococo
 		virtual void DrawIcon(const GuiRect& rect, BrowserComponent component) = 0;
 		virtual void DrawBackground(const GuiRect& rect, BrowserComponent component) = 0;
 		virtual void RenderSubFolder(cstr subpath, int index, int depth, const GuiRect& rect, GuiRect& outputPathTarget) = 0;
+		/* DrawVScroller -
+				top: position into document at which we first render
+				pageSize: number of lines/pixel-rows in which we observe the document
+				domain: number of lines/pixel-rows in which cover the entire document
+		*/
+		virtual void DrawVScroller(const GuiRect& rect, int64 top, int64 pageSize, int64 domain, VScrollerRects& outputRects) = 0;
 		virtual void SetClipRect(const GuiRect& rect) = 0;
 	};
 
@@ -42,13 +56,15 @@ namespace Rococo
 	{
 		virtual int32 RowHeight(BrowserComponent component) const = 0;
 		virtual GuiRect BorderDeltas(BrowserComponent component) const = 0;
+		virtual int32 HorizontalSpan(BrowserComponent component) const = 0;
 	};
 
 	ROCOCOAPI IFileBrowser
 	{
-		virtual void ClickAt(Vec2i pos) = 0;
+		virtual void ClickAt(Vec2i pos, bool clickedDown) = 0;
 		virtual void RaiseContextAt(Vec2i pos) = 0;
 		virtual void Render(IFileBrowserRendererContext & rc) = 0;
+		virtual void WheelAt(Vec2i cursorPos, int dWheel) = 0;
 		virtual void Free() = 0;
 	};
 

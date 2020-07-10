@@ -7,7 +7,7 @@ using namespace Rococo;
 
 #include <vector>
 
-template<typename T> void ForEachSubPath(const FilePath<T>& dir, IEventCallback<FilePath<T>>& cb)
+template<typename T> void ForEachSubPath(const FilePath<T>& dir, IEventCallback<FilePath<T>>& cb, size_t skipStartChars)
 {
 	FilePath<T> tempCharBuffer = { 0 };
 	tempCharBuffer.pathSeparator = dir.pathSeparator;
@@ -16,7 +16,7 @@ template<typename T> void ForEachSubPath(const FilePath<T>& dir, IEventCallback<
 
 	T sep = dir.pathSeparator;
 
-	for (const T* s = dir.buf; *s != 0; ++s)
+	for (const T* s = dir.buf + skipStartChars; *s != 0; ++s)
 	{
 		T c = *s;
 		if (c != sep)
@@ -25,20 +25,22 @@ template<typename T> void ForEachSubPath(const FilePath<T>& dir, IEventCallback<
 		}
 		else
 		{
-			*p++ = 0;
+			*p++ = sep;
+			*p = 0;
 			cb.OnEvent(tempCharBuffer);
-			p = tempCharBuffer.buf;
+			if (s[1] == 0) return;
 		}
 	}
 
 	if (p != tempCharBuffer.buf)
 	{
+		*p++ = sep;
 		*p++ = 0;
 		cb.OnEvent(tempCharBuffer);
 	}
 }
 
-void ToU8FilePath(const U32FilePath& src, U8FilePath& dest, char substitute = '?')
+void ToU8FilePathWithSubstitutions(const U32FilePath& src, U8FilePath& dest, char substitute = '?')
 {
 	char* q = dest.buf;
 	const char32_t* p = src;
@@ -66,6 +68,51 @@ template<class T> size_t Length(const T* s)
 	return p - s;
 }
 
+bool Eq(const char32_t* p, const char32_t* q)
+{
+	while (*p != 0)
+	{
+		if (*p++ != *q++)
+		{
+			return false;
+		}
+	}
+
+	return *q != 0;
+}
+
+void AddPathSeparatror(U32FilePath& target)
+{
+	size_t len = Length(target.buf);
+	if (len + 1 >= target.CAPACITY)
+	{
+		Throw(0, "AddPathSeparatror(target): length > CAPACITY");
+	}
+
+	target.buf[len] = target.pathSeparator;
+	target.buf[len + 1] = 0;
+}
+
+void Merge(U32FilePath& target, const U32FilePath& prefix, const U32FilePath& suffix)
+{
+	size_t lenPrefix = Length(prefix.buf);
+	size_t lenSuffix = Length(suffix.buf);
+
+	if (lenPrefix + lenSuffix + 1 >= target.CAPACITY)
+	{
+		Throw(0, "Merge(target, prefix, suffix): Cannot merge paths. Combined length > CAPACITY");
+	}
+
+	target = prefix;
+
+	for (size_t i = 0; i < lenSuffix; ++i)
+	{
+		target.buf[i + lenPrefix] = suffix[i];
+	}
+
+	target.buf[lenPrefix + lenSuffix] = 0;
+}
+
 struct FileBrowser : public IFileBrowser
 {
 	FileBrowsingAPI& api;
@@ -82,8 +129,11 @@ struct FileBrowser : public IFileBrowser
 	};
 	std::vector<FileInfo> subFiles;
 
+	int64 cursorPos = 0;
+
 	GuiRect containerRect{ -1, -1, -1, -1 };
 	GuiRect fileRect { -1, -1, -1, -1 };
+	GuiRect fileScrollRect{ -1, -1, -1, -1 };
 
 	FileBrowser(FileBrowsingAPI& _api) : api(_api)
 	{
@@ -97,14 +147,52 @@ struct FileBrowser : public IFileBrowser
 		ClearSubdirs();
 	}
 
-	void ClickAt(Vec2i pos) override
+	void WheelAt(Vec2i pos, int dWheel) override
 	{
+		if (IsPointInRect(pos, fileRect))
+		{
+			int64 pageSize = fileRect.bottom - fileRect.top;
+			int64 delta = -dWheel * api.style.RowHeight(BrowserComponent::FILE_ENTRY);
+			cursorPos = clamp(cursorPos + delta, 0LL,  fileScrollDomain - pageSize);
+		}
+	}
+
+	void ClickAt(Vec2i pos, bool isDown) override
+	{
+		if (!isDown)
+		{
+			return;
+		}
+
 		for (auto& fd : folders)
 		{
 			if (IsPointInRect(pos, fd.rect))
 			{
 				OnFolderClicked(fd);
 				return;
+			}
+		}
+
+		if (IsPointInRect(pos, lastRenderedFileVScrollRects.up))
+		{
+			cursorPos = max(0LL, cursorPos - api.style.RowHeight(BrowserComponent::FILE_ENTRY));
+		}
+		else if (IsPointInRect(pos, lastRenderedFileVScrollRects.down))
+		{
+			int64 pageSize = fileRect.bottom - fileRect.top;
+			cursorPos = min(fileScrollDomain - pageSize, cursorPos + api.style.RowHeight(BrowserComponent::FILE_ENTRY));
+		}
+		else if (IsPointInRect(pos, fileScrollRect))
+		{
+			if (pos.y > lastRenderedFileVScrollRects.slider.bottom)
+			{
+				int64 pageSize = fileRect.bottom - fileRect.top;
+				cursorPos = min(fileScrollDomain - pageSize, cursorPos + pageSize);
+			}
+			else if (pos.y < lastRenderedFileVScrollRects.slider.top)
+			{
+				int64 pageSize = fileRect.bottom - fileRect.top;
+				cursorPos = max(0LL, cursorPos - pageSize);
 			}
 		}
 	}
@@ -131,6 +219,7 @@ struct FileBrowser : public IFileBrowser
 			void OnFile(const U32FilePath& root, const U32FilePath& subpath, cstr timestamp, uint64 length) override
 			{
 				subDirectories->push_back(subpath);
+				AddPathSeparatror(subDirectories->back());
 			}
 		} addToSubList;
 
@@ -157,7 +246,10 @@ struct FileBrowser : public IFileBrowser
 
 		api.directoryPopulator.EnumerateFiles(currentDirectory, addToFileList, false);
 
+		fileScrollDomain = api.style.RowHeight(BrowserComponent::FILE_ENTRY) * (subFiles.size() + subDirectories.size());
 	}
+
+	int64 fileScrollDomain = 0;
 
 	void Layout(IFileBrowserRendererContext& rc)
 	{
@@ -167,14 +259,18 @@ struct FileBrowser : public IFileBrowser
 			this->containerRect = containerRect;
 			fileRect = containerRect;
 			fileRect.left = (4 * containerRect.left + containerRect.right) / 5;
+			fileScrollRect = containerRect;
+			fileScrollRect.left = fileScrollRect.right - api.style.HorizontalSpan(BrowserComponent::FILE_SCROLLER) - 1;
+			fileScrollRect.right -= 1;
+			fileScrollRect.top += 1;
+			fileScrollRect.bottom -= 1;
 		}
 	}
-
 
 	void DrawString(IFileBrowserRendererContext& rc, BrowserComponent component, const U32FilePath& path, const GuiRect& rect)
 	{
 		U8FilePath asciiPath;
-		ToU8FilePath(path, asciiPath, '?');
+		ToU8FilePathWithSubstitutions(path, asciiPath, '?');
 		rc.DrawAsciiText(rect, component, asciiPath.buf);
 	}
 
@@ -188,64 +284,34 @@ struct FileBrowser : public IFileBrowser
 
 		int32 rowHeight = api.style.RowHeight(BrowserComponent::FILE_ENTRY);
 
-		targetRect.left += borderDeltas.left;
-		targetRect.right -= borderDeltas.right;
-		targetRect.top += borderDeltas.top;
-		targetRect.bottom = targetRect.top + rowHeight - borderDeltas.bottom;
-
 		if (subDirectories.empty())
 		{
 			Repopulate();
 		}
 
-		for (auto info : subFiles)
+		targetRect.left += borderDeltas.left;
+		targetRect.right -= borderDeltas.right;
+		targetRect.top += borderDeltas.top - (int32) cursorPos;
+		targetRect.bottom = targetRect.top + rowHeight - borderDeltas.bottom;
+
+		for (auto info : subDirectories)
 		{
-			auto& f = info.path;
-			size_t len = Length(f.buf);
-			if (f.buf[len - 1] == f.pathSeparator)
+			if (targetRect.bottom <= fileRect.top)
 			{
-				GuiRect iconRect = targetRect;
-				iconRect.right = iconRect.left + iconRect.bottom - iconRect.top; // make square
-				rc.DrawIcon(iconRect, BrowserComponent::FOLDER_ICON);
-
-				GuiRect subtargetRect = targetRect;
-				subtargetRect.left = iconRect.right + borderDeltas.left;
-				subtargetRect.top += 4;
-				subtargetRect.bottom -= 4;
-				DrawString(rc, BrowserComponent::FILE_ENTRY, f, subtargetRect);
+				targetRect.top += rowHeight;
+				targetRect.bottom = targetRect.top + rowHeight - borderDeltas.bottom;
+				continue;
 			}
-			else
-			{
-				GuiRect textRect = targetRect;
-				textRect.top += 4;
-				textRect.bottom -= 4;
-				DrawString(rc, BrowserComponent::FILE_ENTRY, f, textRect);
 
-				GuiRect infoRect = textRect;
-				infoRect.left = textRect.right - 480;
+			GuiRect iconRect = targetRect;
+			iconRect.right = iconRect.left + iconRect.bottom - iconRect.top; // make square
+			rc.DrawIcon(iconRect, BrowserComponent::FOLDER_ICON);
 
-				char desc[64];
-				if (info.length < 10000)
-				{
-					char fullLength[64];
-					SafeFormat(fullLength, sizeof(fullLength), "%llu bytes", info.length);
-					SafeFormat(desc, sizeof(desc), "%s %12s", info.timestamp, fullLength);
-				}
-				else if (info.length < 1048576)
-				{
-					char fullLength[64];
-					SafeFormat(fullLength, sizeof(fullLength), "%llu kb", info.length / 1024);
-					SafeFormat(desc, sizeof(desc), "%s %12s", info.timestamp, fullLength);
-				}
-				else
-				{
-					char fullLength[64];
-					SafeFormat(fullLength, sizeof(fullLength), "%llu Mb", info.length / 1048576);
-					SafeFormat(desc, sizeof(desc), "%s %12s", info.timestamp, fullLength);
-				}
-
-				rc.DrawAsciiText(infoRect, BrowserComponent::FILE_ENTRY, desc);
-			}
+			GuiRect subtargetRect = targetRect;
+			subtargetRect.left = iconRect.right + borderDeltas.left;
+			subtargetRect.top += 4;
+			subtargetRect.bottom -= 4;
+			DrawString(rc, BrowserComponent::FILE_ENTRY, info, subtargetRect);
 
 			targetRect.top += rowHeight;
 			targetRect.bottom = targetRect.top + rowHeight - borderDeltas.bottom;
@@ -255,12 +321,67 @@ struct FileBrowser : public IFileBrowser
 				break;
 			}
 		}
+
+		for (auto info : subFiles)
+		{
+			if (targetRect.bottom <= fileRect.top)
+			{
+				targetRect.top += rowHeight;
+				targetRect.bottom = targetRect.top + rowHeight - borderDeltas.bottom;
+				continue;
+			}
+
+			auto& f = info.path;
+			
+			GuiRect textRect = targetRect;
+			textRect.top += 4;
+			textRect.bottom -= 4;
+			DrawString(rc, BrowserComponent::FILE_ENTRY, f, textRect);
+
+			GuiRect infoRect = textRect;
+			infoRect.left = textRect.right - 480;
+
+			char desc[64];
+			if (info.length < 10000)
+			{
+				char fullLength[64];
+				SafeFormat(fullLength, sizeof(fullLength), "%llu bytes", info.length);
+				SafeFormat(desc, sizeof(desc), "%s %12s", info.timestamp, fullLength);
+			}
+			else if (info.length < 1048576)
+			{
+				char fullLength[64];
+				SafeFormat(fullLength, sizeof(fullLength), "%llu kb", info.length / 1024);
+				SafeFormat(desc, sizeof(desc), "%s %12s", info.timestamp, fullLength);
+			}
+			else
+			{
+				char fullLength[64];
+				SafeFormat(fullLength, sizeof(fullLength), "%llu Mb", info.length / 1048576);
+				SafeFormat(desc, sizeof(desc), "%s %12s", info.timestamp, fullLength);
+			}
+
+			rc.DrawAsciiText(infoRect, BrowserComponent::FILE_ENTRY, desc);
+
+			targetRect.top += rowHeight;
+			targetRect.bottom = targetRect.top + rowHeight - borderDeltas.bottom;
+
+			if (targetRect.top >= fileRect.bottom)
+			{
+				break;
+			}
+		}
+
+		rc.DrawVScroller(fileScrollRect, cursorPos, fileRect.bottom - fileRect.top, fileScrollDomain, lastRenderedFileVScrollRects);
 	}
+
+	VScrollerRects lastRenderedFileVScrollRects;
 
 	struct FolderDesc
 	{
-		char text[64];
+		U32FilePath subdir;
 		int depth;
+		int index;
 		GuiRect rect;
 	};
 
@@ -270,7 +391,7 @@ struct FileBrowser : public IFileBrowser
 		int depth = 0;
 		char32_t sep = dir.pathSeparator;
 
-		if (Eq(fd.text, "!"))
+		if (Eq(fd.subdir, U"!"))
 		{
 			PathFromAscii("!", '/', currentDirectory);
 			folders.clear(); // sanity - prevent invalidated folder tree from being used until next render
@@ -278,34 +399,20 @@ struct FileBrowser : public IFileBrowser
 			return;
 		}
 
-		size_t len = Length(dir.buf);
-		for (size_t i = 0; i != len; ++i)
-		{
-			char32_t c = dir[i];
-			if (c == sep)
-			{
-				depth++;
-				if (depth == fd.depth)
-				{
-					U32FilePath newDir;
-					DuplicateSubString(dir, 0, i, newDir);
-					currentDirectory = newDir;
-					folders.clear(); // sanity - prevent invalidated folder tree from being used until next render
-					Repopulate();
-					return;
-				}
-			}
-		}
+		currentDirectory = fd.subdir;
+		folders.clear(); // sanity - prevent invalidated folder tree from being used until next render
+		Repopulate();
 	}
 
 	std::vector<FolderDesc> folders; // This gets populated on each render cycle, giving rectangles of each folder
 
-	void AddFolderRect(cstr text, int index, int depth, const GuiRect& rect)
+	void AddFolderRect(const U32FilePath& subdir, int index, int depth, const GuiRect& rect)
 	{
 		FolderDesc desc;
-		SafeFormat(desc.text, sizeof(desc.text), "%s", text);
+		desc.subdir = subdir;
 		desc.depth = depth;
 		desc.rect = rect;
+		desc.index = index;
 
 		folders.push_back(desc);
 	}
@@ -330,25 +437,50 @@ struct FileBrowser : public IFileBrowser
 			void OnEvent(U32FilePath& subpath) override
 			{
 				U8FilePath asciiRep;
-				ToU8FilePath(subpath, asciiRep, '?');
+				ToU8FilePathWithSubstitutions(subpath, asciiRep, '?');
 				GuiRect outputSubfolderRect;
-				rc->RenderSubFolder(asciiRep, index++, depth++, This->containerRect, outputSubfolderRect);
-				This->AddFolderRect(asciiRep, index, depth, outputSubfolderRect);
+
+				bool foundSubDir = false;
+
+				size_t len = Length(asciiRep.buf);
+				for (const char* p = asciiRep + len; p > asciiRep; p--)
+				{
+					if (*p == asciiRep.pathSeparator && p[1] != 0)
+					{
+						rc->RenderSubFolder(p + 1, index++, depth++, This->containerRect, outputSubfolderRect);
+						foundSubDir = true;
+					}
+				}
+
+				if (!foundSubDir)
+				{
+					rc->RenderSubFolder(asciiRep, index++, depth++, This->containerRect, outputSubfolderRect);
+				}
+				
+				This->AddFolderRect(subpath, index, depth, outputSubfolderRect);
 			}
 		} renderSubfolder;
 		renderSubfolder.This = this;
 		renderSubfolder.rc = &rc;
-		ForEachSubPath<char32_t>(currentDirectory, renderSubfolder);
+
+		U32FilePath root;
+		PathFromAscii("!", '/', root);
+		renderSubfolder.OnEvent(root);
+		ForEachSubPath<char32_t>(currentDirectory, renderSubfolder, 1);
 
 		for (auto& dir : subDirectories)
 		{
 			GuiRect outputSubfolderRect;
 			
 			U8FilePath asciiRep;
-			ToU8FilePath(dir, asciiRep, '?');
+			ToU8FilePathWithSubstitutions(dir, asciiRep, '?');
 
 			rc.RenderSubFolder(asciiRep, renderSubfolder.index, renderSubfolder.depth, containerRect, outputSubfolderRect);
-			AddFolderRect(asciiRep, renderSubfolder.index++, renderSubfolder.depth, outputSubfolderRect);
+
+			U32FilePath fullDir;
+			Merge(fullDir, currentDirectory, dir);
+
+			AddFolderRect(fullDir, renderSubfolder.index++, renderSubfolder.depth, outputSubfolderRect);
 		}
 	}
 

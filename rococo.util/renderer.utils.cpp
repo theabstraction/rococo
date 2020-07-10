@@ -687,6 +687,64 @@ namespace Rococo
 			grc.AddTriangle(triangle);
 		}
 
+		void DrawTriangleFacingUp(IGuiRenderContext& grc, const GuiRect& container, RGBAb colour)
+		{
+			BaseVertexData noFont{ { 0, 0 }, 0 };
+			SpriteVertexData solid{ 1.0f, 0, 0, 0 };
+
+			GuiVertex triangle[3] =
+			{
+				{
+					{ (float)((container.left + container.right) >> 1), (float) container.top } ,
+					noFont,
+					solid,
+					colour
+				},
+				{
+					{ (float)container.right, (float)container.bottom },
+					noFont,
+					solid,
+					colour
+				},
+				{
+					{ (float)container.left, (float)container.bottom },
+					noFont,
+					solid,
+					colour
+				}
+			};
+			grc.AddTriangle(triangle);
+		}
+
+		void DrawTriangleFacingDown(IGuiRenderContext& grc, const GuiRect& container, RGBAb colour)
+		{
+			BaseVertexData noFont{ { 0, 0 }, 0 };
+			SpriteVertexData solid{ 1.0f, 0, 0, 0 };
+
+			GuiVertex triangle[3] =
+			{
+				{
+					{ (float)((container.left + container.right) >> 1), (float)container.bottom } ,
+					noFont,
+					solid,
+					colour
+				},
+				{
+					{ (float)container.left, (float)container.top },
+					noFont,
+					solid,
+					colour
+				},
+				{
+					{ (float)container.right, (float)container.top },
+					noFont,
+					solid,
+					colour
+				}
+			};
+			grc.AddTriangle(triangle);
+		}
+
 		void DrawTriangleFacingRight(IGuiRenderContext& grc, const GuiRect& container, RGBAb colour)
 		{
 			BaseVertexData noFont{ { 0,0 }, 0 };

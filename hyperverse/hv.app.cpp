@@ -152,11 +152,6 @@ namespace HV
 			config.EnvironmentalMap = Graphics::ENVIRONMENTAL_MAP_FIXED_CUBE;
 			platform.renderer.Render(config, (IScene&) scene);
 			e.platform.gui.Pop();
-
-			browser = platform.utilities.CreateMPlatFileBrowser();
-			browser->Engage();
-
-			platform.gui.PushTop(fileBrowserPane->Supervisor(), true);
 		}
 
 		virtual void OnGuiResize(Vec2i screenSpan) override
@@ -229,6 +224,11 @@ namespace HV
 	//		e.platform.instances.LoadMeshList("!/mesh/fred.sxy"_fstring);
 
 			fileBrowserPane = platform.gui.BindPanelToScript("!scripts/panel.browser.sxy");
+
+			browser = platform.utilities.CreateMPlatFileBrowser();
+			browser->Engage();
+
+			platform.gui.PushTop(fileBrowserPane->Supervisor(), true);
 		}
 
 		~App()
