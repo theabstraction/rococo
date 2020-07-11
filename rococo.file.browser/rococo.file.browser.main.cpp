@@ -93,9 +93,9 @@ void AddPathSeparatror(U32FilePath& target)
 	target.buf[len + 1] = 0;
 }
 
-void Merge(U32FilePath& target, const U32FilePath& prefix, const U32FilePath& suffix)
+void Merge(U32FilePath& target, const char32_t* prefix, const U32FilePath& suffix)
 {
-	size_t lenPrefix = Length(prefix.buf);
+	size_t lenPrefix = Length(prefix);
 	size_t lenSuffix = Length(suffix.buf);
 
 	if (lenPrefix + lenSuffix + 1 >= target.CAPACITY)
@@ -103,8 +103,9 @@ void Merge(U32FilePath& target, const U32FilePath& prefix, const U32FilePath& su
 		Throw(0, "Merge(target, prefix, suffix): Cannot merge paths. Combined length > CAPACITY");
 	}
 
-	target = prefix;
-
+	target.pathSeparator = suffix.pathSeparator;
+	memcpy(target.buf, prefix, sizeof(char32_t) * lenPrefix);
+	
 	for (size_t i = 0; i < lenSuffix; ++i)
 	{
 		target.buf[i + lenPrefix] = suffix[i];
@@ -399,7 +400,15 @@ struct FileBrowser : public IFileBrowser
 			return;
 		}
 
-		currentDirectory = fd.subdir;
+		if (fd.subdir[0] == U'!')
+		{
+			currentDirectory = fd.subdir;
+		}
+		else
+		{
+			Merge(currentDirectory, U"!", fd.subdir);
+		}
+
 		folders.clear(); // sanity - prevent invalidated folder tree from being used until next render
 		Repopulate();
 	}
