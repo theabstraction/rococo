@@ -18,6 +18,9 @@
     <ClCompile Include="rococo.file.browser.main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="rococo.pingpopulator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\rococo.file.browser.h">

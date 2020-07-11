@@ -4,88 +4,98 @@
 
 namespace Rococo
 {
-	union CharTypePointers
+	struct IInstallation;
+
+	namespace Browser
 	{
-		const char* charPtr;
-		const wchar_t* char16Ptr;
-		const int32* char32Ptr;
-	};
+		void ToU8(const U32FilePath& src, U8FilePath& dest);
+		void ToWide(const U32FilePath& src, WideFilePath& dest);
 
-	void ToU8(const U32FilePath& src, U8FilePath& dest);
-	void ToWide(const U32FilePath& src, WideFilePath& dest);
+		void PathFromAscii(cstr c_string, char separator, U32FilePath& path);
+		void PathFromWide(const wchar_t* u16Code, wchar_t separator, U32FilePath& path);
+		void DuplicateSubString(const U32FilePath& src, size_t start, size_t end, U32FilePath& dest);
 
-	void PathFromAscii(cstr c_string, char separator, U32FilePath& path);
-	void PathFromWide(const wchar_t* u16Code, wchar_t separator, U32FilePath& path);
-	void DuplicateSubString(const U32FilePath& src, size_t start, size_t end, U32FilePath& dest);
+		enum class BrowserComponent
+		{
+			FILE_ENTRY,
+			FILE_SECTION,
+			TREE_SECTION,
+			TREE_FOLDER_ENTRY,
+			FOLDER_ICON,
+			FILE_SCROLLER_SLIDER,
+			FILE_SCROLLER_SLIDER_BACK
+		};
 
-	enum class BrowserComponent
-	{
-		FILE_ENTRY,
-		FILE_SECTION,
-		TREE_SECTION,
-		TREE_FOLDER_ENTRY,
-		FOLDER_ICON,
-		FILE_SCROLLER
-	};
+		struct VScrollerRects
+		{
+			GuiRect up;
+			GuiRect down;
+			GuiRect slider;
+		};
 
-	struct VScrollerRects
-	{
-		GuiRect up;
-		GuiRect down;
-		GuiRect slider;
-	};
+		ROCOCOAPI IFileBrowserRenderContext
+		{
+			virtual void DrawArrowButton(Vec2 direction, const GuiRect & rect) = 0;
+			virtual void DrawAsciiText(const GuiRect& rect, BrowserComponent component, cstr buffer) = 0;
+			virtual void DrawU16Text(const GuiRect& rect, BrowserComponent component, const wchar_t* buffer) = 0;
+			virtual GuiRect GetContainerRect() const = 0;
+			virtual void DrawIcon(const GuiRect& rect, BrowserComponent component) = 0;
+			virtual void DrawBackground(const GuiRect& rect, BrowserComponent component) = 0;
+			virtual void SetClipRect(const GuiRect& rect) = 0;
+			virtual void DrawBorder(const GuiRect& rect, BrowserComponent component) = 0;
+		};
 
-	ROCOCOAPI IFileBrowserRendererContext
-	{
-		virtual void DrawAsciiText(const GuiRect& rect, BrowserComponent component, cstr buffer) = 0;
-		virtual void DrawU16Text(const GuiRect& rect, BrowserComponent component, const wchar_t* buffer) = 0;
-		virtual GuiRect GetContainerRect() const = 0;
-		virtual void DrawIcon(const GuiRect& rect, BrowserComponent component) = 0;
-		virtual void DrawBackground(const GuiRect& rect, BrowserComponent component) = 0;
-		virtual void RenderSubFolder(cstr subpath, int index, int depth, const GuiRect& rect, GuiRect& outputPathTarget) = 0;
-		/* DrawVScroller -
-				top: position into document at which we first render
-				pageSize: number of lines/pixel-rows in which we observe the document
-				domain: number of lines/pixel-rows in which cover the entire document
-		*/
-		virtual void DrawVScroller(const GuiRect& rect, int64 top, int64 pageSize, int64 domain, VScrollerRects& outputRects) = 0;
-		virtual void SetClipRect(const GuiRect& rect) = 0;
-	};
+		ROCOCOAPI IFileBrowserStyle
+		{
+			virtual int32 RowHeight(BrowserComponent component) const = 0;
+			virtual GuiRect BorderDeltas(BrowserComponent component) const = 0;
+			virtual int32 HorizontalSpan(BrowserComponent component) const = 0;
+		};
 
-	ROCOCOAPI IFileBrowserStyle
-	{
-		virtual int32 RowHeight(BrowserComponent component) const = 0;
-		virtual GuiRect BorderDeltas(BrowserComponent component) const = 0;
-		virtual int32 HorizontalSpan(BrowserComponent component) const = 0;
-	};
+		ROCOCOAPI IFileBrowser
+		{
+			virtual void ClickAt(Vec2i pos, bool clickedDown) = 0;
+			virtual void RaiseContextAt(Vec2i pos) = 0;
+			virtual void Render(IFileBrowserRenderContext& rc) = 0;
+			virtual void WheelAt(Vec2i cursorPos, int dWheel) = 0;
+			virtual void Free() = 0;
+		};
 
-	ROCOCOAPI IFileBrowser
-	{
-		virtual void ClickAt(Vec2i pos, bool clickedDown) = 0;
-		virtual void RaiseContextAt(Vec2i pos) = 0;
-		virtual void Render(IFileBrowserRendererContext & rc) = 0;
-		virtual void WheelAt(Vec2i cursorPos, int dWheel) = 0;
-		virtual void Free() = 0;
-	};
+		ROCOCOAPI IFileCallback
+		{
+			virtual void OnFile(const U32FilePath & root, const U32FilePath & subpath, cstr timestamp, uint64 length) = 0;
+		};
 
-	ROCOCOAPI IFileCallback
-	{
-		virtual void OnFile(const U32FilePath& root, const U32FilePath&subpath, cstr timestamp, uint64 length) = 0;
-	};
+		struct FileTimestamp
+		{
+			char text[64];
+			uint64 osFileTime;
+		};
 
-	ROCOCOAPI IDirectoryPopulator
-	{
-		virtual const U32FilePath& InitialDirectory() const = 0;
-		virtual void EnumerateFiles(const U32FilePath& root, IFileCallback& cb, bool recurse) = 0;
-		virtual void EnumerateSubfolders(const U32FilePath& root, IFileCallback& cb, bool recurse) = 0;
-		virtual void Free() = 0;
-	};
+		ROCOCOAPI IDirectoryPopulator
+		{
+			virtual size_t FileCount() const = 0;
+			virtual const U32FilePath& GetFile(size_t index, uint64& fileLength, FileTimestamp& timestamp) const = 0;
 
-	struct FileBrowsingAPI
-	{
-		IDirectoryPopulator& directoryPopulator;
-		IFileBrowserStyle& style;
-	};
+			virtual size_t DirectoryCount() const = 0;
+			virtual const U32FilePath& GetDirectory(size_t index) const = 0;
 
-	IFileBrowser* CreateFileBrowser(FileBrowsingAPI& api);
-}
+			virtual void SetCurrentDirectory(const U32FilePath& path) = 0;
+
+			virtual void ForEachSubPathFromCurrent(IEventCallback<U32FilePath>& cb) = 0;
+
+			virtual void GetFullPath(U32FilePath& fullPath, const U32FilePath& subdir) const = 0;
+
+			virtual void Free() = 0;
+		};
+		struct FileBrowsingAPI
+		{
+			IDirectoryPopulator& directoryPopulator;
+			IFileBrowserStyle& style;
+		};
+
+		IFileBrowser* CreateFileBrowser(FileBrowsingAPI& api);
+
+		IDirectoryPopulator* CreatePingPopulator(IInstallation& installation);
+	} // Browser
+} // Rococo

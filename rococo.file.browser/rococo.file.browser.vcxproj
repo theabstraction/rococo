@@ -12,6 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="rococo.file.browser.main.cpp" />
+    <ClCompile Include="rococo.pingpopulator.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\rococo.file.browser.h" />
