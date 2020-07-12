@@ -7,6 +7,7 @@
 using namespace Rococo;
 using namespace Rococo::Events;
 using namespace Rococo::Browser;
+using namespace Rococo::IO;
 
 struct FileBrowserStyle: public IFileBrowserStyle
 {
@@ -90,7 +91,17 @@ struct FileBrowserRC : public IFileBrowserRenderContext
 		GuiMetrics metrics;
 		gc.Renderer().GetGuiMetrics(metrics);
 
-		RGBAb textColour = IsPointInRect(metrics.cursorPosition, rect) ? RGBAb(255, 255, 255, 255) : RGBAb(200, 200, 200, 255);
+		RGBAb textColour;
+		
+		switch (component)
+		{
+		case BrowserComponent::STATUS_ERROR:
+			textColour = IsPointInRect(metrics.cursorPosition, rect) ? RGBAb(255, 0, 0, 255) : RGBAb(200, 0, 0, 255);
+			break;
+		default:
+			textColour = IsPointInRect(metrics.cursorPosition, rect) ? RGBAb(255, 255, 255, 255) : RGBAb(200, 200, 200, 255);
+			break;
+		}
 		Graphics::DrawText(gc, ToF(rect), Graphics::Alignment_Left, to_fstring(buffer), 1, textColour);
 	}
 
@@ -124,6 +135,10 @@ struct FileBrowserRC : public IFileBrowserRenderContext
 		case BrowserComponent::FILE_SCROLLER_SLIDER:
 			fillCol1 = fillCol2 = RGBAb(128, 128, 128, 224);
 			edgeCol1 = edgeCol2 = RGBAb(224, 224, 224, 224);
+			break;
+		case BrowserComponent::STATUS_ERROR:
+			fillCol1 = fillCol2 = RGBAb(255, 255, 255, 225);
+			edgeCol1 = edgeCol2 = RGBAb(255, 255, 255, 255);
 			break;
 		default:
 			fillCol1 = fillCol2 = RGBAb(0, 0, 32, 224);
@@ -187,21 +202,149 @@ struct FileBrowserRC : public IFileBrowserRenderContext
 	}
 };
 
+struct StatusBar : IUIElement
+{
+	StatusBar()
+	{
+
+	}
+
+	HString status;
+
+	bool OnKeyboardEvent(const KeyboardEvent& key) override
+	{
+		return false;
+	}
+
+	void OnRawMouseEvent(const MouseEvent& ev) override
+	{
+
+	}
+
+	void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel) override
+	{
+
+	}
+
+	void OnMouseLClick(Vec2i cursorPos, bool clickedDown) override
+	{
+
+	}
+
+	void OnMouseRClick(Vec2i cursorPos, bool clickedDown) override
+	{
+
+	}
+
+	void Render(IGuiRenderContext& gc, const GuiRect& absRect) override
+	{
+		FileBrowserRC rc(gc, absRect);
+
+		//	gc.SetScissorRect(ToF(absRect));
+
+		GuiRect textRect = absRect;
+		textRect.left += 4;
+		textRect.right -= 4;
+		textRect.top += 1;
+		textRect.bottom -= 1;
+
+		if (status.length() > 0)
+		{
+			rc.DrawBackground(absRect, BrowserComponent::STATUS_ERROR);
+		}
+		rc.DrawAsciiText(textRect, BrowserComponent::STATUS_ERROR, status);
+
+		GuiRectf noScissor = { -1, -1, 1000000, 1000000 };
+		//	gc.SetScissorRect(noScissor);
+	}
+};
+
+struct FilenameEditor: IUIElement
+{
+	IFileBrowser& browser;
+	IDirectoryPopulator& populator;
+
+	FilenameEditor(IFileBrowser& _browser, IDirectoryPopulator& _populator) :
+		browser(_browser), populator(_populator)
+	{
+
+	}
+
+	bool OnKeyboardEvent(const KeyboardEvent& key) override
+	{
+		return false;
+	}
+
+	void OnRawMouseEvent(const MouseEvent& ev) override
+	{
+
+	}
+
+	void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel) override
+	{
+
+	}
+
+	void OnMouseLClick(Vec2i cursorPos, bool clickedDown) override
+	{
+
+	}
+
+	void OnMouseRClick(Vec2i cursorPos, bool clickedDown) override
+	{
+
+	}
+
+	void Render(IGuiRenderContext& gc, const GuiRect& absRect) override
+	{
+		FileBrowserRC rc(gc, absRect);
+
+		U32FilePath selectedFile;
+		browser.GetSelectedFile(selectedFile);
+
+	//	gc.SetScissorRect(ToF(absRect));
+
+		GuiRect textRect = absRect;
+		textRect.left += 4;
+		textRect.right -= 4;
+		textRect.top += 4;
+		textRect.bottom -= 4;
+
+		U32FilePath fullPath;
+		populator.GetFullPathToFile(selectedFile, fullPath);
+
+		U8FilePath asciiRep;
+		ToU8(fullPath, asciiRep);
+
+		rc.DrawAsciiText(textRect, BrowserComponent::FILE_ENTRY, asciiRep);
+
+		GuiRectf noScissor = { -1, -1, 1000000, 1000000 };
+	//	gc.SetScissorRect(noScissor);
+	}
+};
+
+auto evGetCaption = "Panel.Browser.GetCaption"_event;
+
 struct MPlatFileBrowser: public IMPlatFileBrowser, public IObserver, public IUIElement
 {
 	AutoFree<IDirectoryPopulator> pingPopulator;
 	FileBrowserStyle style;
 	FileBrowsingAPI api;
 
+	AutoFree<IBrowserRules> rules;
 	AutoFree<IFileBrowser> browser;
 	IPublisher& publisher;
+
+	FilenameEditor filenameEditor;
+	StatusBar statusBar;
 
 	MPlatFileBrowser(IPublisher& _publisher, IInstallation& _installation):
 		pingPopulator(CreatePingPopulator(_installation)),
 		api { *pingPopulator, style }, 
-		publisher(_publisher)
+		publisher(_publisher),
+		browser(CreateFileBrowser(api)),
+		filenameEditor(*browser, *pingPopulator)
 	{
-		browser = CreateFileBrowser(api);
 	}
 
 	~MPlatFileBrowser()
@@ -218,12 +361,47 @@ struct MPlatFileBrowser: public IMPlatFileBrowser, public IObserver, public IUIE
 			{
 				pop.renderElement = this;
 			}
+			else if (Eq(pop.name, "File.Browser.Filename"))
+			{
+				pop.renderElement = &filenameEditor;
+			}
+			else if (Eq(pop.name, "File.Browser.Status"))
+			{
+				pop.renderElement = &statusBar;
+			}
+		}
+		else if (ev == evGetCaption)
+		{
+			auto& args = As<UIInvoke>(ev);
+			rules->GetCaption(args.command, sizeof(args.command));
 		}
 	}
 
-	void Engage() override
+	bool Select() override
 	{
+		U32FilePath selectedFile;
+		browser->GetSelectedFile(selectedFile);
+
+		U32FilePath fullPath;
+		pingPopulator->GetFullPathToFile(selectedFile, fullPath);
+
+		if (rules->Select(fullPath))
+		{
+			return true;
+		}
+
+		statusBar.status = rules->GetLastError();
+
+		return false;
+	}
+
+	void Engage(IBrowserRulesFactory& factory) override
+	{
+		publisher.Unsubscribe(this);
 		publisher.Subscribe(this, evUIPopulate);
+		publisher.Subscribe(this, evGetCaption);
+
+		rules = factory.CreateRules();
 	}
 
 	void Free() override

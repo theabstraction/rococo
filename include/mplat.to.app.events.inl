@@ -10,5 +10,6 @@ namespace Rococo
 		EventIdRef evUIInvoke = "ui.invoke"_event;
 		EventIdRef evUIPopulate = "ui.populate"_event;
 		EventIdRef evUIMouseEvent = "ui.mouse"_event;
+		EventIdRef evScreenResize = "ui.screen.resize"_event;
 	}
 }

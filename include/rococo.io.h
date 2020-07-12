@@ -5,6 +5,11 @@ namespace Rococo
 {
 	namespace IO
 	{
+		void ToU8(const U32FilePath& src, U8FilePath& dest);
+		void ToWide(const U32FilePath& src, WideFilePath& dest);
+		void PathFromAscii(cstr ascii_string, char separator, U32FilePath& path);
+		void PathFromWide(const wchar_t* wide_string, wchar_t separator, U32FilePath& path);
+
 		void UseBufferlessStdout();
 
 		ROCOCOAPI IStreamer

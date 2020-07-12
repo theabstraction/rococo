@@ -67,7 +67,7 @@
 	(selectRect.right = (mainRect.right - 110))
 	(selectRect.top = 35)
 	(selectRect.bottom = 65)
-	(ILabelPane selectButton = (frame.AddLabel 0 "Select" selectRect))
+	(ILabelPane selectButton = (frame.AddLabel 0 "Save" selectRect))
 	(selectButton.SetColourBk1  0xFF404040 0xFFA0A0A0)
 	(selectButton.SetColourBk2  0xFF808080 0xFFC0C0C0)
 	(selectButton.SetColourFont 0xFFC0C0C0 0xFFFFFFFF) 
@@ -90,5 +90,5 @@
 	(mainWindow.SetColourBk2 0 0)
 	
 	(frame.SetMinMaxSpan 400 300 1024 480)
-	(frame.SetCaption "File Browser")
+	(frame.SetCaption "Save As")
 )

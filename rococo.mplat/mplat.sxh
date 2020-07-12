@@ -76,6 +76,7 @@
 		(SetLayoutAlgorithm (LayoutId layout))
 		(SetMinMaxSpan (Int32 minDX)(Int32 minDY)(Int32 maxDX)(Int32 maxDY))
 		(SetCaption (IString caption))
+		(SetCaptionEvent (IString eventId))
 	)
 )
 

@@ -2328,6 +2328,22 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->SetCaption(caption);
 	}
+	void NativeRococoIFramePaneSetCaptionEvent(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _eventId;
+		ReadInput(_eventId, _sf, -_offset);
+		fstring eventId { _eventId->buffer, _eventId->length };
+
+
+		Rococo::IFramePane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetCaptionEvent(eventId);
+	}
 
 }
 
@@ -2365,6 +2381,7 @@ namespace Rococo {
 		ss.AddNativeCall(ns, NativeRococoIFramePaneSetLayoutAlgorithm, nullptr, ("IFramePaneSetLayoutAlgorithm (Pointer hObject)(Int32 layout) -> "));
 		ss.AddNativeCall(ns, NativeRococoIFramePaneSetMinMaxSpan, nullptr, ("IFramePaneSetMinMaxSpan (Pointer hObject)(Int32 minDX)(Int32 minDY)(Int32 maxDX)(Int32 maxDY) -> "));
 		ss.AddNativeCall(ns, NativeRococoIFramePaneSetCaption, nullptr, ("IFramePaneSetCaption (Pointer hObject)(Sys.Type.IString caption) -> "));
+		ss.AddNativeCall(ns, NativeRococoIFramePaneSetCaptionEvent, nullptr, ("IFramePaneSetCaptionEvent (Pointer hObject)(Sys.Type.IString eventId) -> "));
 	}
 }
 // BennyHill generated Sexy native functions for Rococo::IRadioButton 

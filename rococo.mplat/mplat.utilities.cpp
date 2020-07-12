@@ -16,6 +16,7 @@
 #include <rococo.strings.h>
 
 using namespace Rococo;
+using namespace Rococo::Events;
 
 static auto evFileUpdated = "OnFileUpdated"_event;
 
@@ -35,7 +36,7 @@ namespace Rococo
 	}
 }
 
-class Utilities : public IUtilitiesSupervisor, public IMathsVenue
+class Utilities : public IUtilitiesSupervisor, public IMathsVenue, public IObserver
 {
 	IInstallation& installation;
 	IRenderer& renderer;
@@ -44,6 +45,11 @@ class Utilities : public IUtilitiesSupervisor, public IMathsVenue
 public:
 	Utilities(IInstallation& _installation, IRenderer& _renderer) : installation(_installation), renderer(_renderer)
 	{
+	}
+
+	~Utilities()
+	{
+		platform->publisher.Unsubscribe(this);
 	}
 
 	void Free() override
@@ -55,6 +61,21 @@ public:
 	{
 		this->platform = &platform;
 		textTesselator = Graphics::CreateTextTesselator(platform);
+
+		platform.publisher.Subscribe(this, evUIInvoke);
+	}
+
+	void OnEvent(Event& ev) override
+	{
+		auto& args = As<UIInvoke>(ev);
+		if (Eq(args.command, "file.browswer.ui.select"))
+		{
+			OnBrowserSelect();
+		}
+		else if (Eq(args.command, "file.browswer.ui.cancel"))
+		{
+			OnBrowserCancel();
+		}
 	}
 
 	IScrollbar* CreateScrollbar(bool _isVertical) override;
@@ -300,9 +321,60 @@ public:
 		}
 	}
 
-	IMPlatFileBrowser* CreateMPlatFileBrowser() override
+	AutoFree<IMPlatFileBrowser> browser;
+	AutoFree<IPaneBuilderSupervisor> browsingPane;
+
+	void BrowseFiles(IBrowserRulesFactory& factory)  override
 	{
-		return Rococo::CreateMPlatFileBrowser(platform->publisher, platform->installation);
+		if (!browser)
+		{
+			browser = CreateMPlatFileBrowser(platform->publisher, platform->installation);
+		}
+
+		if (!browsingPane)
+		{
+			browsingPane = platform->gui.BindPanelToScript(factory.GetPanePingPath());
+
+			GuiMetrics metrics;
+			platform->renderer.GetGuiMetrics(metrics);
+			OnScreenResize(metrics.screenSpan);
+		}
+
+		browser->Engage(factory);
+
+		platform->gui.PushTop(browsingPane->Supervisor(), true);
+	}
+
+	void OnBrowserSelect()
+	{
+		auto* old = platform->gui.Pop();
+
+		// Assume the top is a file browser
+		if (browser->Select())
+		{
+			browser = nullptr;
+			browsingPane = nullptr;
+		}
+		else
+		{
+			platform->gui.PushTop(old, true);
+		}
+	}
+
+	void OnBrowserCancel()
+	{
+		// Assume the top is a file browser
+		platform->gui.Pop();
+		browser = nullptr;
+	}
+
+	void OnScreenResize(Vec2i span) override
+	{
+		if (browsingPane != nullptr)
+		{
+			GuiRect rect{ 0, 0, span.x, span.y };
+			browsingPane->SetRect(rect);
+		}
 	}
 };
 

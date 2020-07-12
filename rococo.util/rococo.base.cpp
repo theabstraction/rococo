@@ -24,6 +24,99 @@ namespace Rococo
       return ptr != nullptr;
    }
 
+   namespace IO
+   {
+	   void ToU8(const U32FilePath& src, U8FilePath& dest)
+	   {
+		   char* q = dest.buf;
+		   const char32_t* p = src;
+
+		   while (*p != 0)
+		   {
+			   char32_t c = *p;
+
+			   if (c < 32 || c > 127)
+			   {
+				   Throw(0, "Cannot convert Unicode to ascii. Character value out of range at position #llu", p - src.buf);
+			   }
+			   else
+			   {
+				   *q = (char)*p;
+			   }
+
+			   p++, q++;
+		   }
+
+		   *q = 0;
+
+		   dest.pathSeparator = (char)src.pathSeparator;
+	   }
+
+	   void ToWide(const U32FilePath& src, WideFilePath& dest)
+	   {
+		   wchar_t* q = dest.buf;
+		   const char32_t* p = src;
+
+		   while (*p != 0)
+		   {
+			   char32_t c = *p;
+
+			   if (c < 32 || c > 32767)
+			   {
+				   Throw(0, "Cannot convert Unicode to wide char. Character value out of range at position #llu", p - src.buf);
+			   }
+			   else
+			   {
+				   *q = (char)*p;
+			   }
+
+			   p++, q++;
+		   }
+
+		   *q = 0;
+
+		   dest.pathSeparator = (char)src.pathSeparator;
+	   }
+
+	   void PathFromAscii(cstr ascii_string, char separator, U32FilePath& path)
+	   {
+		   path.pathSeparator = separator;
+
+		   char32_t* q = path.buf;
+		   const char* p = ascii_string;
+
+		   while (*p != 0)
+		   {
+			   if (*p < 32 || *p > 127)
+			   {
+				   Throw(0, "Cannot convert 8-bit to char32_t. Character value out of range at position #llu", p - ascii_string);
+			   }
+			   *q++ = *p++;
+		   }
+
+		   *q = 0;
+	   }
+
+	   void PathFromWide(const wchar_t* wide_string, wchar_t separator, U32FilePath& path)
+	   {
+		   path.pathSeparator = separator;
+
+		   char32_t* q = path.buf;
+		   const wchar_t* p = wide_string;
+
+		   while (*p != 0)
+		   {
+			   if (*p < 32 || *p >= 32767)
+			   {
+				   Throw(0, "Cannot convert wide to char32_t. Character value out of range at position #llu", p - wide_string);
+			   }
+			   *q++ = *p++;
+		   }
+
+		   *q = 0;
+	   }
+   }
+
    namespace OS
    {
       void SetBreakPoints(int flags)

@@ -462,6 +462,11 @@ namespace Rococo
 			Vec2i absTopleft;
 		};
 
+		struct ScreenResizeEvent : EventArgs
+		{
+			GuiRect bounds;
+		};
+
 		struct VisitorItemClickedEvent : EventArgs
 		{
 			cstr key;

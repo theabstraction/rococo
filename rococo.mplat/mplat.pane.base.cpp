@@ -998,6 +998,17 @@ public:
 	{
 		return this;
 	}
+
+	void SetCaptionEvent(const fstring& eventName) override
+	{
+		EventIdRef id = publisher.CreateEventIdFromVolatileString(eventName);
+
+		UIInvoke args;
+		SafeFormat(args.command, sizeof(args.command), "%s", (cstr) eventName);
+		publisher.Publish(args, id);
+
+		caption = args.command;
+	}
 };
 
 

@@ -2,6 +2,8 @@
 #include <rococo.mplat.h>
 #include <rococo.renderer.h>
 #include <rococo.strings.h>
+#include <rococo.file.browser.h>
+#include <rococo.io.h>
 
 #include "hv.events.h"
 #include "hv.defaults.h"
@@ -10,6 +12,7 @@
 
 namespace HV
 {
+	using namespace Rococo::IO;
 	using namespace Rococo::Entities;
 
 	auto evPopulateBusyCategoryId = "busy.category"_event;
@@ -98,7 +101,6 @@ namespace HV
 		AutoFree<IPaneBuilderSupervisor> overlayPanel;
 		AutoFree<IPaneBuilderSupervisor> busyPanel;
 		AutoFree<IMPlatFileBrowser> browser;
-		AutoFree<IPaneBuilderSupervisor> fileBrowserPane;
 
 		Cosmos e; // Put this as the last member, since other members need to be constructed first
 
@@ -160,7 +162,7 @@ namespace HV
 			fpsPanel->Supervisor()->SetRect(fullScreen);
 			busyPanel->Supervisor()->SetRect(fullScreen);
 			editorPanel->Root()->SetRect(fullScreen);
-			fileBrowserPane->SetRect(fullScreen);
+			((IUtilitiesSupervisor&)platform.utilities).OnScreenResize(screenSpan);
 		}
 
 		virtual void OnEvent(Event& ev)
@@ -223,12 +225,71 @@ namespace HV
 
 	//		e.platform.instances.LoadMeshList("!/mesh/fred.sxy"_fstring);
 
-			fileBrowserPane = platform.gui.BindPanelToScript("!scripts/panel.browser.sxy");
+			struct BrowserRulesNone: public IBrowserRules
+			{
+				IPublisher& publisher;
+				const EventIdRef& id;
+				HString lastError;
 
-			browser = platform.utilities.CreateMPlatFileBrowser();
-			browser->Engage();
+				BrowserRulesNone(IPublisher& _publisher, const EventIdRef& _id):
+					publisher(_publisher), id(_id)
+				{
 
-			platform.gui.PushTop(fileBrowserPane->Supervisor(), true);
+				}
+
+				cstr GetLastError() const
+				{
+					return lastError;
+				}
+
+				void GetCaption(char* caption, size_t capacity) override
+				{
+					SafeFormat(caption, capacity, "Select level file to load...");
+				}
+
+				void Free() override
+				{
+					delete this;
+				}
+
+				bool Select(const U32FilePath& browserSelection) override
+				{
+					U8FilePath ascii;
+					ToU8(browserSelection, ascii);
+
+					if (EndsWith(ascii, ".level.sxy"))
+					{
+						PingPathArgs args;
+						args.pingPath = ascii;
+						publisher.Publish(args, id);
+						return true;
+					}
+					else
+					{
+						lastError = "Filename must have extension '.level.sxy'";
+						OS::BeepWarning();
+						return false;
+					}
+				}
+			};
+
+			struct BrowseRulesFactoryNone : public IBrowserRulesFactory
+			{
+				EventIdRef id;
+				IPublisher* publisher;
+				IBrowserRules* CreateRules() override
+				{
+					return new BrowserRulesNone(*publisher, id);
+				}
+
+				cstr GetPanePingPath() const
+				{
+					return "!scripts/panel.open.sxy";
+				}
+			} test;
+			test.id = "test.file.selected"_event;
+			test.publisher = &platform.publisher;
+			platform.utilities.BrowseFiles(test);
 		}
 
 		~App()

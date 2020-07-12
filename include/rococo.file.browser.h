@@ -8,11 +8,6 @@ namespace Rococo
 
 	namespace Browser
 	{
-		void ToU8(const U32FilePath& src, U8FilePath& dest);
-		void ToWide(const U32FilePath& src, WideFilePath& dest);
-
-		void PathFromAscii(cstr c_string, char separator, U32FilePath& path);
-		void PathFromWide(const wchar_t* u16Code, wchar_t separator, U32FilePath& path);
 		void DuplicateSubString(const U32FilePath& src, size_t start, size_t end, U32FilePath& dest);
 
 		enum class BrowserComponent
@@ -23,7 +18,8 @@ namespace Rococo
 			TREE_FOLDER_ENTRY,
 			FOLDER_ICON,
 			FILE_SCROLLER_SLIDER,
-			FILE_SCROLLER_SLIDER_BACK
+			FILE_SCROLLER_SLIDER_BACK,
+			STATUS_ERROR
 		};
 
 		struct VScrollerRects
@@ -57,6 +53,7 @@ namespace Rococo
 			virtual void ClickAt(Vec2i pos, bool clickedDown) = 0;
 			virtual void RaiseContextAt(Vec2i pos) = 0;
 			virtual void Render(IFileBrowserRenderContext& rc) = 0;
+			virtual void GetSelectedFile(U32FilePath& path) const = 0;
 			virtual void WheelAt(Vec2i cursorPos, int dWheel) = 0;
 			virtual void Free() = 0;
 		};
@@ -76,16 +73,12 @@ namespace Rococo
 		{
 			virtual size_t FileCount() const = 0;
 			virtual const U32FilePath& GetFile(size_t index, uint64& fileLength, FileTimestamp& timestamp) const = 0;
-
 			virtual size_t DirectoryCount() const = 0;
 			virtual const U32FilePath& GetDirectory(size_t index) const = 0;
-
 			virtual void SetCurrentDirectory(const U32FilePath& path) = 0;
-
 			virtual void ForEachSubPathFromCurrent(IEventCallback<U32FilePath>& cb) = 0;
-
 			virtual void GetFullPath(U32FilePath& fullPath, const U32FilePath& subdir) const = 0;
-
+			virtual void GetFullPathToFile(const U32FilePath& shortFileName, U32FilePath& fullPath) const = 0;
 			virtual void Free() = 0;
 		};
 		struct FileBrowsingAPI

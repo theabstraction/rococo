@@ -83,6 +83,8 @@ namespace Rococo
 
 			SafeFormat(attr.timestamp, sizeof(attr.timestamp), "%2.2d:%2.2d:%2.2d %2.2d/%2.2d/%4.4d",
 				t.wHour, t.wMinute, t.wSecond, t.wDay, t.wMonth, t.wYear);
+
+			return true;
 		}
 	}
 

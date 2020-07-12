@@ -320,11 +320,22 @@ namespace Rococo
 		extern EventIdRef evUIInvoke;
 		extern EventIdRef evUIPopulate;
 		extern EventIdRef evBusy;
+		extern EventIdRef evScreenResize;
 	}
+
+	struct AsciiEventArgs : public Events::EventArgs
+	{
+		fstring asciiText;
+	};
 
 	struct UIInvoke : public Events::EventArgs
 	{
 		char command[232];
+	};
+
+	struct PingPathArgs : public Events::EventArgs
+	{
+		cstr pingPath;
 	};
 
 	struct IUIElement
@@ -507,6 +518,20 @@ namespace Rococo
 		virtual void Render(IGuiRenderContext& grc, const GuiRect& absRect, const Modality& modality, RGBAb hilightColour, RGBAb baseColour, RGBAb hilightEdge, RGBAb baseEdge, IEventCallback<Events::ScrollEvent>& populator, const Events::EventIdRef& populationEventId) = 0;
 	};
 
+	ROCOCOAPI IBrowserRules
+	{
+		virtual cstr GetLastError() const = 0;
+		virtual void GetCaption(char* caption, size_t capacity) = 0;
+		virtual bool Select(const U32FilePath & browserSelection) = 0;
+		virtual void Free() = 0;
+	};
+
+	ROCOCOAPI IBrowserRulesFactory
+	{
+		virtual IBrowserRules * CreateRules() = 0;
+		virtual cstr GetPanePingPath() const = 0;
+	};
+
 	ROCOCOAPI IUtilitiies
 	{
 		virtual void AddSubtitle(cstr subtitle) = 0;
@@ -524,13 +549,14 @@ namespace Rococo
 		virtual IBloodyPropertySetEditorSupervisor* CreateBloodyPropertySetEditor(IEventCallback<IBloodyPropertySetEditorSupervisor>& _onDirty) = 0;
 		virtual fstring ToShortString(Graphics::MaterialCategory value) const = 0;
 		virtual IMathsVenue* Venue() = 0;
-		virtual IMPlatFileBrowser* CreateMPlatFileBrowser() = 0;
+		virtual void BrowseFiles(IBrowserRulesFactory& factory) = 0;
 	};
 
 	ROCOCOAPI IUtilitiesSupervisor : public IUtilitiies
 	{
 		virtual void Free() = 0;
 		virtual void SetPlatform(Platform& platform) = 0;
+		virtual void OnScreenResize(Vec2i screenSize) = 0;
 	};
 
 	namespace MPlatImpl
@@ -670,7 +696,9 @@ namespace Rococo
 
 	ROCOCOAPI IMPlatFileBrowser
 	{
-		virtual void Engage() = 0;
+		// Select returns false if the path is an invalid selection, otherwise triggers selection events
+		virtual bool Select() = 0;
+		virtual void Engage(IBrowserRulesFactory& factory) = 0;
 		virtual void Free() = 0;
 	};
 

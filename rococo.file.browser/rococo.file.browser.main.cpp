@@ -155,7 +155,7 @@ struct FileBrowser : public IFileBrowser
 
 	void ClickAt(Vec2i pos, bool isDown) override
 	{
-		if (!isDown)
+		if (isDown)
 		{
 			return;
 		}
@@ -169,7 +169,18 @@ struct FileBrowser : public IFileBrowser
 			}
 		}
 
-		if (IsPointInRect(pos, lastRenderedFileVScrollRects.up))
+		if (IsPointInRect(pos, fileRect))
+		{
+			for (auto& f : files)
+			{
+				if (IsPointInRect(pos, f.rect))
+				{
+					OnFileClicked(f);
+					return;
+				}
+			}
+		}
+		else if (IsPointInRect(pos, lastRenderedFileVScrollRects.up))
 		{
 			cursorPos = max(0LL, cursorPos - api.style.RowHeight(BrowserComponent::FILE_ENTRY));
 		}
@@ -237,6 +248,8 @@ struct FileBrowser : public IFileBrowser
 		targetRect.right -= borderDeltas.right;
 		targetRect.top += borderDeltas.top - (int32) cursorPos;
 		targetRect.bottom = targetRect.top + rowHeight - borderDeltas.bottom;
+
+		files.clear();
 
 		for (size_t i = 0; i < api.directoryPopulator.DirectoryCount(); i++)
 		{
@@ -309,6 +322,10 @@ struct FileBrowser : public IFileBrowser
 				SafeFormat(desc, sizeof(desc), "%s %12s", lastModifiedAt.text, fullLength);
 			}
 
+			GuiRect fullrect = textRect;
+			textRect.right = infoRect.right;
+			files.push_back({ f, fullrect });
+
 			rc.DrawAsciiText(infoRect, BrowserComponent::FILE_ENTRY, desc);
 
 			targetRect.top += rowHeight;
@@ -334,8 +351,29 @@ struct FileBrowser : public IFileBrowser
 		GuiRect rect;
 	};
 
+	struct FileDesc
+	{
+		U32FilePath filename;
+		GuiRect rect;
+	};
+
+	std::vector<FileDesc> files;
+
+	U32FilePath selectedFile = { 0 };
+
+	void OnFileClicked(const FileDesc& fd)
+	{
+		selectedFile = fd.filename;
+	}
+
+	void GetSelectedFile(U32FilePath& path) const override
+	{
+		path = selectedFile;
+	}
+
 	void OnFolderClicked(const FolderDesc& fd)
 	{
+		selectedFile = { 0 };
 		api.directoryPopulator.SetCurrentDirectory(fd.subdir);
 		folders.clear(); // sanity - prevent invalidated folder tree from being used until next render
 		SyncDomain();
@@ -359,7 +397,7 @@ struct FileBrowser : public IFileBrowser
 		GuiRect treeRect = containerRect;
 		treeRect.right = fileRect.left;
 
-		rc.SetClipRect(containerRect);
+		rc.SetClipRect(treeRect);
 
 		rc.DrawBackground(treeRect, BrowserComponent::TREE_SECTION);
 
@@ -391,6 +429,7 @@ struct FileBrowser : public IFileBrowser
 					{
 						RenderSubFolder(*rc, p + 1, index++, depth++, This->containerRect, outputSubfolderRect);
 						foundSubDir = true;
+						break;
 					}
 				}
 
@@ -475,96 +514,6 @@ namespace Rococo
 			*p++ = 0;
 
 			dest.pathSeparator = src.pathSeparator;
-		}
-
-		void ToU8(const U32FilePath& src, U8FilePath& dest)
-		{
-			char* q = dest.buf;
-			const char32_t* p = src;
-
-			while (*p != 0)
-			{
-				char32_t c = *p;
-
-				if (c < 32 || c > 127)
-				{
-					Throw(0, "Cannot convert Unicode to ascii. Character value out of range at position #llu", p - src.buf);
-				}
-				else
-				{
-					*q = (char)*p;
-				}
-
-				p++, q++;
-			}
-
-			*q = 0;
-
-			dest.pathSeparator = (char)src.pathSeparator;
-		}
-
-		void ToWide(const U32FilePath& src, WideFilePath& dest)
-		{
-			wchar_t* q = dest.buf;
-			const char32_t* p = src;
-
-			while (*p != 0)
-			{
-				char32_t c = *p;
-
-				if (c < 32 || c > 32767)
-				{
-					Throw(0, "Cannot convert Unicode to wide char. Character value out of range at position #llu", p - src.buf);
-				}
-				else
-				{
-					*q = (char)*p;
-				}
-
-				p++, q++;
-			}
-
-			*q = 0;
-
-			dest.pathSeparator = (char)src.pathSeparator;
-		}
-
-		void PathFromAscii(cstr ascii_string, char separator, U32FilePath& path)
-		{
-			path.pathSeparator = separator;
-
-			char32_t* q = path.buf;
-			const char* p = ascii_string;
-
-			while (*p != 0)
-			{
-				if (*p < 32 || *p > 127)
-				{
-					Throw(0, "Cannot convert 8-bit to char32_t. Character value out of range at position #llu", p - ascii_string);
-				}
-				*q++ = *p++;
-			}
-
-			*q = 0;
-		}
-
-		void PathFromWide(const wchar_t* wide_string, wchar_t separator, U32FilePath& path)
-		{
-			path.pathSeparator = separator;
-
-			char32_t* q = path.buf;
-			const wchar_t* p = wide_string;
-
-			while (*p != 0)
-			{
-				if (*p < 32 || *p >= 32767)
-				{
-					Throw(0, "Cannot convert wide to char32_t. Character value out of range at position #llu", p - wide_string);
-				}
-				*q++ = *p++;
-			}
-
-			*q = 0;
 		}
 	} // Browser
 } // Rococo

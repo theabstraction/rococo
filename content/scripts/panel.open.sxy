@@ -49,7 +49,7 @@
 	(mainRect.left = 10)
 	(mainRect.top = 70)
 	(mainRect.right = (frameRect.right - 30))
-	(mainRect.bottom = (frameRect.bottom - 30))
+	(mainRect.bottom = (frameRect.bottom - 65))
 	
 	(Recti cancelRect)
 	(cancelRect.left = (mainRect.right - 100))
@@ -67,7 +67,7 @@
 	(selectRect.right = (mainRect.right - 110))
 	(selectRect.top = 35)
 	(selectRect.bottom = 65)
-	(ILabelPane selectButton = (frame.AddLabel 0 "Select" selectRect))
+	(ILabelPane selectButton = (frame.AddLabel 0 "Open" selectRect))
 	(selectButton.SetColourBk1  0xFF404040 0xFFA0A0A0)
 	(selectButton.SetColourBk2  0xFF808080 0xFFC0C0C0)
 	(selectButton.SetColourFont 0xFFC0C0C0 0xFFFFFFFF) 
@@ -90,5 +90,19 @@
 	(mainWindow.SetColourBk2 0 0)
 	
 	(frame.SetMinMaxSpan 400 300 1024 480)
-	(frame.SetCaption "File Browser")
+	(frame.SetCaptionEvent "Panel.Browser.GetCaption")
+	
+	(Recti statusRect)
+	(statusRect.left = mainRect.left)
+	(statusRect.right = mainRect.right)
+	(statusRect.top = (mainRect.bottom + 10))
+	(statusRect.bottom = (frameRect.bottom - 30))
+	
+	(IPaneContainer statusBar = (frame.AddContainer statusRect))
+	(statusBar.SetColourBk1 0 0)
+	(statusBar.SetColourBk2 0 0)
+	(statusBar.SetColourEdge1 0 0)
+	(statusBar.SetColourEdge2 0 0)
+	(statusBar.SetColourFont 0xFFFF0000 0xFFFF0000) 
+	(statusBar.SetPopulator 0 "File.Browser.Status")
 )

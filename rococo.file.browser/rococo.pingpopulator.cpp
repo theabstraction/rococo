@@ -6,6 +6,7 @@
 #include <vector>
 
 using namespace Rococo;
+using namespace Rococo::IO;
 using namespace Rococo::Events;
 using namespace Rococo::Browser;
 
@@ -325,6 +326,14 @@ struct PingPopulator : public IDirectoryPopulator
 		PathFromAscii(currentDirectory, '/', u32current);
 
 		Merge(fullPath, u32current, subdir);
+	}
+
+	void GetFullPathToFile(const U32FilePath& shortFileName, U32FilePath& fullPath) const
+	{
+		U32FilePath u32current;
+		PathFromAscii(currentDirectory, '/', u32current);
+
+		Merge(fullPath, u32current, shortFileName);
 	}
 };
 
