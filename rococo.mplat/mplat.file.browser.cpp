@@ -318,7 +318,7 @@ void DeleteAtPos(int& caretPos, char* buffer, size_t capacity)
 	}
 }
 
-void AppendKeyboardInputToEditoBuffer(int& caretPos, char* buffer, size_t capacity, const KeyboardEvent& key)
+void AppendKeyboardInputToEditBuffer(int& caretPos, char* buffer, size_t capacity, const KeyboardEvent& key)
 {
 	if (key.IsUp()) return;
 
@@ -367,10 +367,11 @@ void AppendKeyboardInputToEditoBuffer(int& caretPos, char* buffer, size_t capaci
 	}
 }
 
-struct FilenameEditor : IUIElement
+struct FilenameEditor : IUIElement, public IKeyboardSink
 {
 	IFileBrowser& browser;
 	IDirectoryPopulator& populator;
+	IGUIStack& gui;
 
 	U32FilePath fullPath = { U"!", U'/' };
 	U8FilePath asciiRep = { "!", '/' };
@@ -378,24 +379,30 @@ struct FilenameEditor : IUIElement
 	bool editing = false;
 	int caretPos = 0;
 
-	FilenameEditor(IFileBrowser& _browser, IDirectoryPopulator& _populator) :
-		browser(_browser), populator(_populator)
+	FilenameEditor(IFileBrowser& _browser, IDirectoryPopulator& _populator, IGUIStack& _gui) :
+		browser(_browser), populator(_populator), gui(_gui)
 	{
 
+	}
+
+	~FilenameEditor()
+	{
+		if (editing) gui.DetachKeyboardSink(this);
 	}
 
 	bool OnKeyboardEvent(const KeyboardEvent& key) override
 	{
 		if (editing)
 		{
-			if (key.VKey == IO::VKCode_ENTER)
+			if (key.VKey == IO::VKCode_ENTER && key.IsUp())
 			{
 				editing = false;
+				gui.DetachKeyboardSink(this);
 				return true;
 			}
 			else
 			{
-				AppendKeyboardInputToEditoBuffer(caretPos, asciiRep.buf, asciiRep.CAPACITY, key);
+				AppendKeyboardInputToEditBuffer(caretPos, asciiRep.buf, asciiRep.CAPACITY, key);
 				return true;
 			}
 		}
@@ -417,6 +424,15 @@ struct FilenameEditor : IUIElement
 		if (!clickedDown)
 		{
 			editing = !editing;
+
+			if (editing)
+			{
+				gui.AttachKeyboardSink(this);
+			}
+			else
+			{
+				gui.DetachKeyboardSink(this);
+			}
 		}
 	}
 
@@ -454,6 +470,12 @@ struct FilenameEditor : IUIElement
 		ToU8(fullPath, asciiRep);
 
 		caretPos = StringLength(asciiRep);
+
+		if (editing)
+		{
+			gui.DetachKeyboardSink(this);
+			editing = false;
+		}
 	}
 };
 
@@ -472,12 +494,12 @@ struct MPlatFileBrowser: public IMPlatFileBrowser, public IObserver, public IUIE
 	FilenameEditor filenameEditor;
 	StatusBar statusBar;
 
-	MPlatFileBrowser(IPublisher& _publisher, IInstallation& _installation):
+	MPlatFileBrowser(IPublisher& _publisher, IInstallation& _installation, IGUIStack& gui):
 		pingPopulator(CreatePingPopulator(_installation)),
 		api { *pingPopulator, style }, 
 		publisher(_publisher),
 		browser(CreateFileBrowser(api, *this)),
-		filenameEditor(*browser, *pingPopulator)
+		filenameEditor(*browser, *pingPopulator, gui)
 	{
 	}
 
@@ -518,11 +540,8 @@ struct MPlatFileBrowser: public IMPlatFileBrowser, public IObserver, public IUIE
 
 	bool Select() override
 	{
-		U32FilePath selectedFile;
-		browser->GetSelectedFile(selectedFile);
-
 		U32FilePath fullPath;
-		pingPopulator->GetFullPathToFile(selectedFile, fullPath);
+		PathFromAscii(filenameEditor.asciiRep, '/', fullPath);
 
 		if (rules->Select(fullPath))
 		{
@@ -589,8 +608,8 @@ struct MPlatFileBrowser: public IMPlatFileBrowser, public IObserver, public IUIE
 
 namespace Rococo
 {
-	IMPlatFileBrowser* CreateMPlatFileBrowser(Events::IPublisher& publisher, IInstallation& installation)
+	IMPlatFileBrowser* CreateMPlatFileBrowser(Events::IPublisher& publisher, IInstallation& installation, IGUIStack& gui)
 	{
-		return new MPlatFileBrowser(publisher, installation);
+		return new MPlatFileBrowser(publisher, installation, gui);
 	}
 }

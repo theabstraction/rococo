@@ -328,7 +328,7 @@ public:
 	{
 		if (!browser)
 		{
-			browser = CreateMPlatFileBrowser(platform->publisher, platform->installation);
+			browser = CreateMPlatFileBrowser(platform->publisher, platform->installation, platform->gui);
 		}
 
 		if (!browsingPane)
