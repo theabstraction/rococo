@@ -522,6 +522,13 @@ namespace Rococo
 		{
 			GuiRect iRect{ (int32)rect.left, (int32)rect.top, (int32)rect.right, (int32)rect.bottom };
 
+			auto t = OS::CpuTicks();
+			auto quarterSecond = OS::CpuHz() >> 2;
+
+			auto counter = t / quarterSecond;
+
+			bool isCaretLit = (counter % 2) == 0;
+
 			struct : IEventCallback<GlyphArgs>
 			{
 				int caretPos;
@@ -556,7 +563,7 @@ namespace Rococo
 			{
 				Vec2i caretStart = { (int32)onGlyph.caretGlyphRect.left,  (int32)onGlyph.caretGlyphRect.bottom };
 				Vec2i caretEnd = { (int32)onGlyph.caretGlyphRect.right, (int32)onGlyph.caretGlyphRect.bottom };
-				Rococo::Graphics::DrawLine(g, 2, caretStart, caretEnd, 0xFFFFFFFF);
+				Rococo::Graphics::DrawLine(g, 2, caretStart, caretEnd, isCaretLit ? 0 : 0xFFFFFFFF);
 			}
 			else if (onGlyph.lastGlyphRect.left > -1)
 			{
@@ -566,7 +573,7 @@ namespace Rococo
 				auto span = glyph.B;
 				Vec2i caretStart = { (int32)onGlyph.lastGlyphRect.right,  (int32)onGlyph.lastGlyphRect.bottom };
 				Vec2i caretEnd = { caretStart.x + (int32)span, caretStart.y };
-				Rococo::Graphics::DrawLine(g, 2, caretStart, caretEnd, 0xFFFFFFFF);
+				Rococo::Graphics::DrawLine(g, 2, caretStart, caretEnd, isCaretLit ? 0 : 0xFFFFFFFF);
 			}
 			else
 			{
@@ -580,7 +587,8 @@ namespace Rococo
 				caretStart.y += ds.y;
 
 				Vec2i caretEnd = { caretStart.x + (int32)span, caretStart.y };
-				Rococo::Graphics::DrawLine(g, 2, caretStart, caretEnd, 0xFFFFFFFF);
+
+				Rococo::Graphics::DrawLine(g, 2, caretStart, caretEnd, isCaretLit ? 0 : 0xFFFFFFFF);
 			}
 		}
 

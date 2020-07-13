@@ -105,6 +105,8 @@ struct PingPopulator : public IDirectoryPopulator
 	};
 	std::vector<FileInfo> subFiles;
 
+	U8FilePath requiredPrefix = { "!", '/' };
+
 	PingPopulator(IInstallation& _installation) :
 		installation(_installation)
 	{
@@ -155,6 +157,11 @@ struct PingPopulator : public IDirectoryPopulator
 
 		U8FilePath asciiPath;
 		ToU8(path, asciiPath);
+
+		if (!StartsWith(asciiPath, requiredPrefix))
+		{
+			asciiPath = requiredPrefix;
+		}
 
 		if (Eq(asciiPath, "!"))
 		{
@@ -334,6 +341,20 @@ struct PingPopulator : public IDirectoryPopulator
 		PathFromAscii(currentDirectory, '/', u32current);
 
 		Merge(fullPath, u32current, shortFileName);
+	}
+
+	void LimitRoot(const U32FilePath& prefix) override
+	{
+		ToU8(prefix, requiredPrefix);
+		if (!EndsWith(requiredPrefix, "/"))
+		{
+			Throw(0, "PingPopulator::LimitRoot(%s). Prefix did not end with a '/'", (cstr)requiredPrefix);
+		}
+
+		if (!StartsWith(currentDirectory, requiredPrefix))
+		{
+			SetCurrentDirectory(prefix);
+		}
 	}
 };
 

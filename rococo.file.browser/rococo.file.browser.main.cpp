@@ -122,6 +122,7 @@ void RenderSubFolder(IFileBrowserRenderContext& rc, cstr subpath, int index, int
 struct FileBrowser : public IFileBrowser
 {
 	FileBrowsingAPI& api;
+	IEventCallback<const U32FilePath>& selectionChangeNotifierSink;
 
 	int64 cursorPos = 0;
 
@@ -129,7 +130,9 @@ struct FileBrowser : public IFileBrowser
 	GuiRect fileRect { -1, -1, -1, -1 };
 	GuiRect fileScrollRect{ -1, -1, -1, -1 };
 
-	FileBrowser(FileBrowsingAPI& _api) : api(_api)
+	FileBrowser(FileBrowsingAPI& _api, IEventCallback<const U32FilePath>& _selectionChangeNotifierSink) :
+		api(_api),
+		selectionChangeNotifierSink(_selectionChangeNotifierSink)
 	{
 		SyncDomain();
 	}
@@ -364,6 +367,7 @@ struct FileBrowser : public IFileBrowser
 	void OnFileClicked(const FileDesc& fd)
 	{
 		selectedFile = fd.filename;
+		selectionChangeNotifierSink.OnEvent(selectedFile);
 	}
 
 	void GetSelectedFile(U32FilePath& path) const override
@@ -489,9 +493,9 @@ namespace Rococo
 {
 	namespace Browser
 	{
-		IFileBrowser* CreateFileBrowser(FileBrowsingAPI& api)
+		IFileBrowser* CreateFileBrowser(FileBrowsingAPI& api, IEventCallback<const U32FilePath>& selectionChangeNotifierSink)
 		{
-			return new FileBrowser(api);
+			return new FileBrowser(api, selectionChangeNotifierSink);
 		}
 
 		void DuplicateSubString(const U32FilePath& src, size_t start, size_t end, U32FilePath& dest)

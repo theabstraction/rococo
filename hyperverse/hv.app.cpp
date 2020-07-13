@@ -237,6 +237,11 @@ namespace HV
 
 				}
 
+				void GetRoot(U32FilePath& path) const
+				{
+					path = { U"!scripts/hv/levels/", '/' };
+				}
+
 				cstr GetLastError() const
 				{
 					return lastError;
@@ -244,7 +249,7 @@ namespace HV
 
 				void GetCaption(char* caption, size_t capacity) override
 				{
-					SafeFormat(caption, capacity, "Select level file to load...");
+					SafeFormat(caption, capacity, "Select level file to save...");
 				}
 
 				void Free() override
@@ -284,7 +289,7 @@ namespace HV
 
 				cstr GetPanePingPath() const
 				{
-					return "!scripts/panel.open.sxy";
+					return "!scripts/panel.saveas.sxy";
 				}
 			} test;
 			test.id = "test.file.selected"_event;

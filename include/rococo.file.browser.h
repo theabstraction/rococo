@@ -19,7 +19,8 @@ namespace Rococo
 			FOLDER_ICON,
 			FILE_SCROLLER_SLIDER,
 			FILE_SCROLLER_SLIDER_BACK,
-			STATUS_ERROR
+			STATUS_ERROR,
+			LINE_EDITOR
 		};
 
 		struct VScrollerRects
@@ -33,6 +34,7 @@ namespace Rococo
 		{
 			virtual void DrawArrowButton(Vec2 direction, const GuiRect & rect) = 0;
 			virtual void DrawAsciiText(const GuiRect& rect, BrowserComponent component, cstr buffer) = 0;
+			virtual void DrawAsciiTextWithCaret(int pos, const GuiRect& rect, cstr buffer) = 0;
 			virtual void DrawU16Text(const GuiRect& rect, BrowserComponent component, const wchar_t* buffer) = 0;
 			virtual GuiRect GetContainerRect() const = 0;
 			virtual void DrawIcon(const GuiRect& rect, BrowserComponent component) = 0;
@@ -79,6 +81,8 @@ namespace Rococo
 			virtual void ForEachSubPathFromCurrent(IEventCallback<U32FilePath>& cb) = 0;
 			virtual void GetFullPath(U32FilePath& fullPath, const U32FilePath& subdir) const = 0;
 			virtual void GetFullPathToFile(const U32FilePath& shortFileName, U32FilePath& fullPath) const = 0;
+			// Specify a prefix that we are allowed to navigate through, but not out of.
+			virtual void LimitRoot(const U32FilePath& prefix) = 0;
 			virtual void Free() = 0;
 		};
 		struct FileBrowsingAPI
@@ -87,7 +91,7 @@ namespace Rococo
 			IFileBrowserStyle& style;
 		};
 
-		IFileBrowser* CreateFileBrowser(FileBrowsingAPI& api);
+		IFileBrowser* CreateFileBrowser(FileBrowsingAPI& api, IEventCallback<const U32FilePath>& onSelChange);
 
 		IDirectoryPopulator* CreatePingPopulator(IInstallation& installation);
 	} // Browser

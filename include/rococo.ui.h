@@ -61,6 +61,15 @@ namespace Rococo
 	};
 
 	struct SourceFileSet;
+
+	namespace IO
+	{
+		bool IsKeyPressed(int vkeyCode);
+		void CopyToClipboard(cstr asciiText);
+
+		// Safe format of clipboard contents, Truncates to buffer capacity and null terminates the string.
+		void PasteFromClipboard(char* asciiBuffer, size_t capacity);
+	}
 }
 
 #endif // BLOKE_UI_H

@@ -520,6 +520,7 @@ namespace Rococo
 
 	ROCOCOAPI IBrowserRules
 	{
+		virtual void GetRoot(U32FilePath& path) const = 0;
 		virtual cstr GetLastError() const = 0;
 		virtual void GetCaption(char* caption, size_t capacity) = 0;
 		virtual bool Select(const U32FilePath & browserSelection) = 0;

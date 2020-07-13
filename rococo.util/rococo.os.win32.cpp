@@ -54,6 +54,61 @@ namespace Rococo
 
 	namespace IO
 	{
+		bool IsKeyPressed(int vkeyCode)
+		{
+			SHORT value = GetAsyncKeyState(vkeyCode);
+			return (value & 0x8000) != 0;
+		}
+
+		void CopyToClipboard(cstr asciiText)
+		{
+			if (!OpenClipboard(nullptr))
+			{
+				OS::BeepWarning();
+			}
+			else
+			{
+				EmptyClipboard();
+
+				size_t nBytes = sizeof(char) * (strlen(asciiText) + 1);
+				HGLOBAL hItem = GlobalAlloc(GMEM_MOVEABLE, nBytes);
+				if (hItem)
+				{
+					void* pData = GlobalLock(hItem);
+					if (pData)
+					{
+						memcpy(pData, asciiText, nBytes);
+						GlobalUnlock(hItem);
+						SetClipboardData(CF_TEXT, hItem);
+					}
+				}
+				CloseClipboard();
+			}
+		}
+
+		void PasteFromClipboard(char* asciiBuffer, size_t capacity)
+		{
+			if (!OpenClipboard(nullptr))
+			{
+				OS::BeepWarning();
+			}
+			else
+			{
+				HANDLE hItem = GetClipboardData(CF_TEXT);
+				if (hItem != nullptr)
+				{
+					auto* pData = (const char*)GlobalLock(hItem);
+					if (pData)
+					{
+						SafeFormat(asciiBuffer, capacity, "%s", pData);
+						GlobalUnlock(hItem);
+					}
+				}
+
+				CloseClipboard();
+			}
+		}
+
 		void UseBufferlessStdout()
 		{
 			setvbuf(stdout, nullptr, _IONBF, 0);

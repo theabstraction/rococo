@@ -3,6 +3,7 @@
 #include <rococo.strings.h>
 #include <rococo.maths.h>
 #include <rococo.textures.h>
+#include <rococo.ui.h>
 
 using namespace Rococo;
 using namespace Rococo::Events;
@@ -98,11 +99,25 @@ struct FileBrowserRC : public IFileBrowserRenderContext
 		case BrowserComponent::STATUS_ERROR:
 			textColour = IsPointInRect(metrics.cursorPosition, rect) ? RGBAb(255, 0, 0, 255) : RGBAb(200, 0, 0, 255);
 			break;
+		case BrowserComponent::LINE_EDITOR:
+			textColour = IsPointInRect(metrics.cursorPosition, rect) ? RGBAb(255, 255, 255, 255) : RGBAb(240, 240, 240, 255);
+			break;
 		default:
 			textColour = IsPointInRect(metrics.cursorPosition, rect) ? RGBAb(255, 255, 255, 255) : RGBAb(200, 200, 200, 255);
 			break;
 		}
 		Graphics::DrawText(gc, ToF(rect), Graphics::Alignment_Left, to_fstring(buffer), 1, textColour);
+	}
+
+	void DrawAsciiTextWithCaret(int pos, const GuiRect& rect, cstr buffer) override
+	{
+		GuiMetrics metrics;
+		gc.Renderer().GetGuiMetrics(metrics);
+
+		auto& clip = ToF(rect);
+
+		RGBAb textColour = IsPointInRect(metrics.cursorPosition, rect) ? RGBAb(255, 255, 255, 255) : RGBAb(240, 240, 240, 255);
+		Graphics::DrawTextWithCaret(gc, ToF(rect), Graphics::Alignment_Left, to_fstring(buffer), 1, textColour, clip, pos);
 	}
 
 	void DrawU16Text(const GuiRect& rect, BrowserComponent component, const wchar_t* buffer)
@@ -126,6 +141,10 @@ struct FileBrowserRC : public IFileBrowserRenderContext
 		{
 		case BrowserComponent::TREE_FOLDER_ENTRY:
 			fillCol1 = fillCol2 = RGBAb(192, 192, 0, 224);
+			edgeCol1 = edgeCol2 = RGBAb(224, 224, 224, 224);
+			break;
+		case BrowserComponent::LINE_EDITOR:
+			fillCol1 = fillCol2 = RGBAb(0, 0, 0, 224);
 			edgeCol1 = edgeCol2 = RGBAb(224, 224, 224, 224);
 			break;
 		case BrowserComponent::FILE_SCROLLER_SLIDER_BACK:
@@ -259,10 +278,105 @@ struct StatusBar : IUIElement
 	}
 };
 
-struct FilenameEditor: IUIElement
+void InsertCharAtPos(int& caretPos, char* buffer, size_t capacity, char c)
+{
+	int32 len = StringLength(buffer);
+	if (len < capacity)
+	{
+		buffer[len] = c;
+		buffer[len + 1] = 0;
+		caretPos++;
+	}
+}
+
+void DeleteCharAt(int pos, char* buffer, size_t capacity)
+{
+	char* dest = buffer + pos - 1;
+	for (const char* p = buffer + pos; *p != 0; ++p)
+	{
+		*dest++ = *p;
+	}
+
+	*dest = 0;
+}
+
+void BackSpaceAtPos(int& caretPos, char* buffer, size_t capacity)
+{
+	if (caretPos > 0)
+	{
+		DeleteCharAt(caretPos, buffer, capacity);
+		caretPos--;
+	}
+}
+
+void DeleteAtPos(int& caretPos, char* buffer, size_t capacity)
+{
+	int len = StringLength(buffer);
+	if (caretPos < len)
+	{
+		DeleteCharAt(caretPos+1, buffer, capacity);
+	}
+}
+
+void AppendKeyboardInputToEditoBuffer(int& caretPos, char* buffer, size_t capacity, const KeyboardEvent& key)
+{
+	if (key.IsUp()) return;
+
+	switch (key.VKey)
+	{
+	case IO::VKCode_HOME:
+		caretPos = 0;
+		break;
+	case IO::VKCode_END:
+		caretPos = StringLength(buffer);
+		break;
+	case IO::VKCode_LEFT:
+		caretPos--;
+		caretPos = max(0, caretPos);
+		break;
+	case IO::VKCode_RIGHT:
+		caretPos++;
+		caretPos = min(StringLength(buffer), caretPos);
+		break;
+	case IO::VKCode_BACKSPACE:
+		BackSpaceAtPos(caretPos, buffer, capacity);
+		break;
+	case IO::VKCode_DELETE:
+		DeleteAtPos(caretPos, buffer, capacity);
+		break;
+	case IO::VKCode_C:
+		if (Rococo::IO::IsKeyPressed(IO::VKCode_CTRL))
+		{
+			IO::CopyToClipboard(buffer);
+		}
+		break;
+	case IO::VKCode_V:
+		if (Rococo::IO::IsKeyPressed(IO::VKCode_CTRL))
+		{
+			IO::PasteFromClipboard(buffer, capacity);
+			caretPos = StringLength(buffer);
+		}
+		break;
+	default:
+		if (key.unicode >= 32 && key.unicode < 127)
+		{
+			char c = key.unicode;
+			InsertCharAtPos(caretPos, buffer, capacity, c);
+		}
+		break;
+	}
+}
+
+struct FilenameEditor : IUIElement
 {
 	IFileBrowser& browser;
 	IDirectoryPopulator& populator;
+
+	U32FilePath fullPath = { U"!", U'/' };
+	U8FilePath asciiRep = { "!", '/' };
+
+	bool editing = false;
+	int caretPos = 0;
 
 	FilenameEditor(IFileBrowser& _browser, IDirectoryPopulator& _populator) :
 		browser(_browser), populator(_populator)
@@ -272,6 +386,19 @@ struct FilenameEditor: IUIElement
 
 	bool OnKeyboardEvent(const KeyboardEvent& key) override
 	{
+		if (editing)
+		{
+			if (key.VKey == IO::VKCode_ENTER)
+			{
+				editing = false;
+				return true;
+			}
+			else
+			{
+				AppendKeyboardInputToEditoBuffer(caretPos, asciiRep.buf, asciiRep.CAPACITY, key);
+				return true;
+			}
+		}
 		return false;
 	}
 
@@ -287,7 +414,10 @@ struct FilenameEditor: IUIElement
 
 	void OnMouseLClick(Vec2i cursorPos, bool clickedDown) override
 	{
-
+		if (!clickedDown)
+		{
+			editing = !editing;
+		}
 	}
 
 	void OnMouseRClick(Vec2i cursorPos, bool clickedDown) override
@@ -299,33 +429,37 @@ struct FilenameEditor: IUIElement
 	{
 		FileBrowserRC rc(gc, absRect);
 
-		U32FilePath selectedFile;
-		browser.GetSelectedFile(selectedFile);
-
-	//	gc.SetScissorRect(ToF(absRect));
-
 		GuiRect textRect = absRect;
 		textRect.left += 4;
 		textRect.right -= 4;
 		textRect.top += 4;
 		textRect.bottom -= 4;
 
-		U32FilePath fullPath;
-		populator.GetFullPathToFile(selectedFile, fullPath);
+		if (editing)
+		{
+			rc.DrawBackground(absRect, BrowserComponent::LINE_EDITOR);
+			rc.DrawAsciiTextWithCaret(caretPos, textRect, asciiRep);
+		}
+		else
+		{
+			rc.DrawAsciiText(textRect, BrowserComponent::FILE_ENTRY, asciiRep);
+		}
+	}
 
-		U8FilePath asciiRep;
+	void Sync()
+	{
+		U32FilePath selectedFile;
+		browser.GetSelectedFile(selectedFile);
+		populator.GetFullPathToFile(selectedFile, fullPath);
 		ToU8(fullPath, asciiRep);
 
-		rc.DrawAsciiText(textRect, BrowserComponent::FILE_ENTRY, asciiRep);
-
-		GuiRectf noScissor = { -1, -1, 1000000, 1000000 };
-	//	gc.SetScissorRect(noScissor);
+		caretPos = StringLength(asciiRep);
 	}
 };
 
 auto evGetCaption = "Panel.Browser.GetCaption"_event;
 
-struct MPlatFileBrowser: public IMPlatFileBrowser, public IObserver, public IUIElement
+struct MPlatFileBrowser: public IMPlatFileBrowser, public IObserver, public IUIElement, public IEventCallback<const U32FilePath>
 {
 	AutoFree<IDirectoryPopulator> pingPopulator;
 	FileBrowserStyle style;
@@ -342,7 +476,7 @@ struct MPlatFileBrowser: public IMPlatFileBrowser, public IObserver, public IUIE
 		pingPopulator(CreatePingPopulator(_installation)),
 		api { *pingPopulator, style }, 
 		publisher(_publisher),
-		browser(CreateFileBrowser(api)),
+		browser(CreateFileBrowser(api, *this)),
 		filenameEditor(*browser, *pingPopulator)
 	{
 	}
@@ -350,6 +484,11 @@ struct MPlatFileBrowser: public IMPlatFileBrowser, public IObserver, public IUIE
 	~MPlatFileBrowser()
 	{
 		publisher.Unsubscribe(this);
+	}
+
+	void OnEvent(const U32FilePath& newSelection)
+	{
+		filenameEditor.Sync();
 	}
 
 	void OnEvent(Event& ev) override
@@ -402,6 +541,10 @@ struct MPlatFileBrowser: public IMPlatFileBrowser, public IObserver, public IUIE
 		publisher.Subscribe(this, evGetCaption);
 
 		rules = factory.CreateRules();
+
+		U32FilePath rootPrefix;
+		rules->GetRoot(rootPrefix);
+		pingPopulator->LimitRoot(rootPrefix);
 	}
 
 	void Free() override
