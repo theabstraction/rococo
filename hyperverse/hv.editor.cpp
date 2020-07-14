@@ -6,12 +6,13 @@
 #include <rococo.mplat.h>
 #include <rococo.textures.h>
 #include <rococo.ui.h>
+#include <rococo.io.h>
 
 #include <vector>
 #include <algorithm>
 #include <unordered_map>
 
-#include <rococo.rings.inl>
+#include <rococo.rings.inl> 
 
 namespace HV
 {
@@ -28,6 +29,7 @@ namespace
 	using namespace Rococo;
 	using namespace Rococo::Widgets;
 	using namespace Rococo::Entities;
+	using namespace Rococo::IO;
 
 	auto evEditorToolsVScrollSet = "editor.tools.vscroll_set"_event;
 
@@ -147,7 +149,12 @@ namespace
 
 		AutoFree<IPaneBuilderSupervisor> fileBrowserPane;
 
-		wchar_t levelpath[IO::MAX_PATHLEN] = { 0 };
+		char levelpath[IO::MAX_PATHLEN] = { 0 };
+
+		cstr LevelFilename() const
+		{
+			return levelpath;
+		}
 
 		bool IsScrollLocked() const override
 		{
@@ -317,35 +324,101 @@ namespace
 
 		void OnEditorLoad(cstr command)
 		{
-			LoadDesc ld;
-			ld.caption = "Select a level file to load";
-			ld.ext = "*.level.sxy";
-			ld.extDesc = "Sexy script level-file (.level.sxy)";
-			ld.shortName = nullptr;
+			struct BrowserRules_LoadLevel : public IBrowserRules
+			{
+				IPublisher& publisher;
+				Editor& editor;
+				HString lastError;
 
-			platform.installation.ConvertPingPathToSysPath("!scripts/hv/levels/*.level.sxy", ld.path, IO::MAX_PATHLEN);
+				BrowserRules_LoadLevel(IPublisher& _publisher, Editor& _editor) :
+					publisher(_publisher), editor(_editor)
+				{
 
+				}
+
+				void GetInitialFilename(U32FilePath& path) const override
+				{
+					PathFromAscii(editor.LevelFilename(), '/', path);
+				}
+
+				void GetRoot(U32FilePath& path) const override
+				{
+					path = { U"!scripts/hv/levels/", '/' };
+				}
+
+				cstr GetLastError() const override
+				{
+					return lastError;
+				}
+
+				void GetCaption(char* caption, size_t capacity) override
+				{
+					SafeFormat(caption, capacity, "Select level file to load...");
+				}
+
+				void Free() override
+				{
+					delete this;
+				}
+
+				bool Select(const U32FilePath& levelFilename) override
+				{
+					U8FilePath pingPath;
+					ToU8(levelFilename, pingPath);
+
+					if (EndsWith(pingPath, ".level.sxy"))
+					{
+						editor.OnLoadLevelFileNameSelected(pingPath);
+						return true;
+					}
+					else
+					{
+						lastError = "Filename must have extension '.level.sxy'";
+						OS::BeepWarning();
+						return false;
+					}
+				}
+			};
+
+			struct BrowseRulesLoadLevelFactory : public IBrowserRulesFactory
+			{
+				Editor* editor;
+				IPublisher* publisher;
+				IBrowserRules* CreateRules() override
+				{
+					return new BrowserRules_LoadLevel(*publisher, *editor);
+				}
+
+				cstr GetPanePingPath() const
+				{
+					return "!scripts/panel.open.sxy";
+				}
+			} forLevelFilename;
+			forLevelFilename.editor = this;
+			forLevelFilename.publisher = &platform.publisher;
+			platform.utilities.BrowseFiles(forLevelFilename);
+		}
+
+		void OnLoadLevelFileNameSelected(cstr pingPath)
+		{
 			try
 			{
-				if (platform.utilities.GetLoadLocation(platform.renderer.Window(), ld))
+				Load(pingPath);
+
+				auto root = "!scripts/hv/levels/"_fstring;
+
+				char shortPingPath[IO::MAX_PATHLEN];
+
+				if (StartsWith(pingPath, root))
 				{
-					try
-					{
-						char pingPath[IO::MAX_PATHLEN];
-						platform.installation.ConvertSysPathToPingPath(ld.path, pingPath, IO::MAX_PATHLEN);
-						Load(pingPath);
-					}
-					catch (IException& ex)
-					{
-						platform.utilities.ShowErrorBox(platform.renderer.Window(), ex, "Level file must be within content folder");
-					}
-
-					SafeFormat(levelpath, Rococo::IO::MAX_PATHLEN, L"%s", ld.path);
-
-					char shortPingPath[IO::MAX_PATHLEN];
-					SafeFormat(shortPingPath, IO::MAX_PATHLEN, "%S", ld.shortName);
-					platform.utilities.AddSubtitle(shortPingPath);
+					SafeFormat(shortPingPath, IO::MAX_PATHLEN, "%s", pingPath + root.length);
 				}
+				else
+				{
+					SafeFormat(shortPingPath, IO::MAX_PATHLEN, "%s", pingPath);
+				}
+
+				platform.utilities.AddSubtitle(shortPingPath);
 			}
 			catch (IException& ex)
 			{
@@ -356,28 +429,101 @@ namespace
 				SafeFormat(errorBuffer, 1024, "Error loading level. %s %s", sysMessage, ex.Message());
 
 				platform.messaging.Log(to_fstring(errorBuffer));
+
+				platform.utilities.ShowErrorBox(platform.renderer.Window(), ex, "Error loading level file");
 			}
+
+			platform.utilities.ShowBusy(false, "", "");
 		}
 
 		void OnEditorSave(cstr command)
 		{
-			SaveDesc sd;
-			sd.caption = "Select a level file to save";
-			sd.ext = "*.level.sxy";
-			sd.extDesc = "Sexy script level-file (.level.sxy)";
-			sd.shortName = nullptr;
-
-			SafeFormat(sd.path, Rococo::IO::MAX_PATHLEN, L"%s", levelpath);
-
-			if (platform.utilities.GetSaveLocation(platform.renderer.Window(), sd))
+			struct BrowserRules_SaveLevel : public IBrowserRules
 			{
-				Save(sd.path);
-				SafeFormat(levelpath, Rococo::IO::MAX_PATHLEN, L"%s", sd.path);
+				IPublisher& publisher;
+				Editor& editor;
+				HString lastError;
 
-				char shortPingName[256];
-				SafeFormat(shortPingName, 256, "%S", sd.shortName);
-				platform.utilities.AddSubtitle(shortPingName);
-			}
+				BrowserRules_SaveLevel(IPublisher& _publisher, Editor& _editor) :
+					publisher(_publisher), editor(_editor)
+				{
+
+				}
+
+				void GetInitialFilename(U32FilePath& path) const override
+				{
+					PathFromAscii(editor.LevelFilename(), '/', path);
+				}
+
+				void GetRoot(U32FilePath& path) const
+				{
+					path = { U"!scripts/hv/levels/", '/' };
+				}
+
+				cstr GetLastError() const
+				{
+					return lastError;
+				}
+
+				void GetCaption(char* caption, size_t capacity) override
+				{
+					SafeFormat(caption, capacity, "Select file to save level as...");
+				}
+
+				void Free() override
+				{
+					delete this;
+				}
+
+				bool Select(const U32FilePath& levelFilename) override
+				{
+					U8FilePath pingPath;
+					ToU8(levelFilename, pingPath);
+
+					if (EndsWith(pingPath, ".level.sxy"))
+					{
+						editor.OnSaveLevelFileNameSelected(pingPath);
+						return true;
+					}
+					else
+					{
+						lastError = "Filename must have extension '.level.sxy'";
+						OS::BeepWarning();
+						return false;
+					}
+				}
+			};
+
+			struct BrowseRulesLoadLevelFactory : public IBrowserRulesFactory
+			{
+				Editor* editor;
+				IPublisher* publisher;
+				IBrowserRules* CreateRules() override
+				{
+					return new BrowserRules_SaveLevel(*publisher, *editor);
+				}
+
+				cstr GetPanePingPath() const
+				{
+					return "!scripts/panel.saveas.sxy";
+				}
+			} forLevelFilename;
+			forLevelFilename.editor = this;
+			forLevelFilename.publisher = &platform.publisher;
+			platform.utilities.BrowseFiles(forLevelFilename);
+		}
+
+		void OnSaveLevelFileNameSelected(cstr pingPath)
+		{
+			WideFilePath sysPath;
+			platform.installation.ConvertPingPathToSysPath(pingPath, sysPath.buf, sysPath.CAPACITY);
+
+			Save(sysPath);
+			SafeFormat(levelpath, Rococo::IO::MAX_PATHLEN, "%s", pingPath);
+
+			char shortPingName[256];
+			SafeFormat(shortPingName, 256, "%S", sysPath);
+			platform.utilities.AddSubtitle(shortPingName);
 		}
 
 		void Load(cstr pingName)

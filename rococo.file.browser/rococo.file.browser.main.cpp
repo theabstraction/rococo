@@ -1,3 +1,4 @@
+#include <rococo.api.h>
 #include <rococo.file.browser.h>
 #include <string.h>
 #include <rococo.strings.h>
@@ -36,7 +37,7 @@ bool Eq(const char32_t* p, const char32_t* q)
 		}
 	}
 
-	return *q != 0;
+	return *q == 0;
 }
 
 bool TryCalcVScrollerRects(const GuiRect& rect, int64 top, int64 pageSize, int64 domain, VScrollerRects& rects)
@@ -122,7 +123,7 @@ void RenderSubFolder(IFileBrowserRenderContext& rc, cstr subpath, int index, int
 struct FileBrowser : public IFileBrowser
 {
 	FileBrowsingAPI& api;
-	IEventCallback<const U32FilePath>& selectionChangeNotifierSink;
+	IBrowserFileChangeNotification& selectionChangeNotifierSink;
 
 	int64 cursorPos = 0;
 
@@ -130,7 +131,7 @@ struct FileBrowser : public IFileBrowser
 	GuiRect fileRect { -1, -1, -1, -1 };
 	GuiRect fileScrollRect{ -1, -1, -1, -1 };
 
-	FileBrowser(FileBrowsingAPI& _api, IEventCallback<const U32FilePath>& _selectionChangeNotifierSink) :
+	FileBrowser(FileBrowsingAPI& _api, IBrowserFileChangeNotification& _selectionChangeNotifierSink) :
 		api(_api),
 		selectionChangeNotifierSink(_selectionChangeNotifierSink)
 	{
@@ -364,10 +365,27 @@ struct FileBrowser : public IFileBrowser
 
 	U32FilePath selectedFile = { 0 };
 
+	OS::ticks lastClick;
+
 	void OnFileClicked(const FileDesc& fd)
 	{
+		OS::ticks now = OS::CpuTicks();
+
+		bool doubleClick = false;
+
+		if (Eq(fd.filename, selectedFile))
+		{
+			OS::ticks oneQuarterSecond = OS::CpuHz() >> 2;
+			if (now - lastClick < oneQuarterSecond)
+			{
+				doubleClick = true;
+			}
+		}
+
+		lastClick = now;
+
 		selectedFile = fd.filename;
-		selectionChangeNotifierSink.OnEvent(selectedFile);
+		selectionChangeNotifierSink.OnFileSelect(selectedFile, doubleClick);
 	}
 
 	void GetSelectedFile(U32FilePath& path) const override
@@ -381,6 +399,7 @@ struct FileBrowser : public IFileBrowser
 		api.directoryPopulator.SetCurrentDirectory(fd.subdir);
 		folders.clear(); // sanity - prevent invalidated folder tree from being used until next render
 		SyncDomain();
+		selectionChangeNotifierSink.OnFileSelect(fd.subdir, false);
 	}
 
 	std::vector<FolderDesc> folders; // This gets populated on each render cycle, giving rectangles of each folder
@@ -493,7 +512,7 @@ namespace Rococo
 {
 	namespace Browser
 	{
-		IFileBrowser* CreateFileBrowser(FileBrowsingAPI& api, IEventCallback<const U32FilePath>& selectionChangeNotifierSink)
+		IFileBrowser* CreateFileBrowser(FileBrowsingAPI& api, IBrowserFileChangeNotification& selectionChangeNotifierSink)
 		{
 			return new FileBrowser(api, selectionChangeNotifierSink);
 		}

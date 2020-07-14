@@ -126,6 +126,7 @@ namespace Rococo
 		virtual void ConvertSysPathToPingPath(const wchar_t* sysPath, char* pingPath, size_t pingPathCapacity) const = 0;
 		virtual bool DoPingsMatch(cstr a, cstr b) const = 0;
 		virtual void Macro(cstr name, cstr pingFolder) = 0;
+		virtual void CompressPingPath(char* buffer, size_t capacity, cstr pingPath) const = 0;
 		virtual IOS& OS() = 0;
 	};
 

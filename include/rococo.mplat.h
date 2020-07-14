@@ -522,6 +522,7 @@ namespace Rococo
 	{
 		virtual void GetRoot(U32FilePath& path) const = 0;
 		virtual cstr GetLastError() const = 0;
+		virtual void GetInitialFilename(U32FilePath& path) const = 0;
 		virtual void GetCaption(char* caption, size_t capacity) = 0;
 		virtual bool Select(const U32FilePath & browserSelection) = 0;
 		virtual void Free() = 0;
@@ -551,6 +552,7 @@ namespace Rococo
 		virtual fstring ToShortString(Graphics::MaterialCategory value) const = 0;
 		virtual IMathsVenue* Venue() = 0;
 		virtual void BrowseFiles(IBrowserRulesFactory& factory) = 0;
+		virtual void ShowBusy(bool enable, cstr title, cstr messageFormat, ...) = 0;
 	};
 
 	ROCOCOAPI IUtilitiesSupervisor : public IUtilitiies
@@ -703,7 +705,12 @@ namespace Rococo
 		virtual void Free() = 0;
 	};
 
-	IMPlatFileBrowser* CreateMPlatFileBrowser(Events::IPublisher& publisher, IInstallation& installation, IGUIStack& gui);
+	namespace Browser
+	{
+		struct IBrowserFileChangeNotification;
+	}
+
+	IMPlatFileBrowser* CreateMPlatFileBrowser(Events::IPublisher& publisher, IInstallation& installation, IGUIStack& gui, Browser::IBrowserFileChangeNotification& onChange);
 }
 
 #define REGISTER_UI_EVENT_HANDLER(guistack, instance, classname, methodname, cmd, helpString)  \

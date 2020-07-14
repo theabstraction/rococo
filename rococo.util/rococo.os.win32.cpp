@@ -26,6 +26,8 @@
 
 #include <timeapi.h>
 
+#include <algorithm>
+
 #pragma comment(lib, "Shlwapi.lib")
 
 #include <stdlib.h>
@@ -721,6 +723,39 @@ namespace
 			{
 				return false;
 			}
+		}
+
+		void CompressPingPath(char* buffer, size_t capacity, cstr pingPath) const
+		{
+			struct MacroToSubpath
+			{
+				std::string macro;
+				std::string subpath;
+
+				bool operator < (const MacroToSubpath& other) const
+				{
+					return other.macro.size() - other.subpath.size() > macro.size() - subpath.size();
+				}
+			};
+
+			std::vector<MacroToSubpath> macros;
+			for (auto& i : macroToSubdir)
+			{
+				macros.push_back({ i.first, i.second });
+			}
+
+			std::sort(macros.begin(), macros.end()); // macros is now sorted in order of macro length
+
+			for (auto& m : macros)
+			{
+				if (StartsWith(pingPath, m.subpath.c_str()))
+				{
+					SafeFormat(buffer, capacity, "%s/%s", m.macro.c_str(), pingPath + m.subpath.size());
+					return;
+				}
+			}
+
+			SafeFormat(buffer, capacity, "%s", pingPath);
 		}
 
 		cstr GetFirstSlash(cstr path) const

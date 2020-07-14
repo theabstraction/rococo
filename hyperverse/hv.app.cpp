@@ -81,7 +81,7 @@ namespace HV
 			e.platform.scene.RenderObjects(rc);
 		}
 	public:
-		IGuiResizeEvent* resizeCallback;
+		IGuiResizeEvent* resizeCallback = nullptr;
 
 		AppScene(Cosmos& _e) :
 			e(_e)
@@ -224,77 +224,6 @@ namespace HV
 			scene.resizeCallback = this;
 
 	//		e.platform.instances.LoadMeshList("!/mesh/fred.sxy"_fstring);
-
-			struct BrowserRulesNone: public IBrowserRules
-			{
-				IPublisher& publisher;
-				const EventIdRef& id;
-				HString lastError;
-
-				BrowserRulesNone(IPublisher& _publisher, const EventIdRef& _id):
-					publisher(_publisher), id(_id)
-				{
-
-				}
-
-				void GetRoot(U32FilePath& path) const
-				{
-					path = { U"!scripts/hv/levels/", '/' };
-				}
-
-				cstr GetLastError() const
-				{
-					return lastError;
-				}
-
-				void GetCaption(char* caption, size_t capacity) override
-				{
-					SafeFormat(caption, capacity, "Select level file to save...");
-				}
-
-				void Free() override
-				{
-					delete this;
-				}
-
-				bool Select(const U32FilePath& browserSelection) override
-				{
-					U8FilePath ascii;
-					ToU8(browserSelection, ascii);
-
-					if (EndsWith(ascii, ".level.sxy"))
-					{
-						PingPathArgs args;
-						args.pingPath = ascii;
-						publisher.Publish(args, id);
-						return true;
-					}
-					else
-					{
-						lastError = "Filename must have extension '.level.sxy'";
-						OS::BeepWarning();
-						return false;
-					}
-				}
-			};
-
-			struct BrowseRulesFactoryNone : public IBrowserRulesFactory
-			{
-				EventIdRef id;
-				IPublisher* publisher;
-				IBrowserRules* CreateRules() override
-				{
-					return new BrowserRulesNone(*publisher, id);
-				}
-
-				cstr GetPanePingPath() const
-				{
-					return "!scripts/panel.saveas.sxy";
-				}
-			} test;
-			test.id = "test.file.selected"_event;
-			test.publisher = &platform.publisher;
-			platform.utilities.BrowseFiles(test);
 		}
 
 		~App()
@@ -361,6 +290,8 @@ namespace HV
 
 			if (nextLevelName.length() > 0)
 			{
+				e.fpsMode.ClearCache();
+				RebaseSectors();
 				RunEnvironmentScript(e, nextLevelName.c_str());
 				e.platform.sourceCache.Release(nextLevelName.c_str());
 				nextLevelName = "";

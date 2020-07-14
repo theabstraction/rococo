@@ -3518,6 +3518,11 @@ namespace HV
 		return new ANON::Sector(platform, co_sectors);
 	}
 
+	void RebaseSectors()
+	{
+		ANON::nextSectorId = 1;
+	}
+
 	float GetHeightAtPointInSector(cr_vec3 p, ISector& sector)
 	{
 		int32 index = sector.GetFloorTriangleIndexContainingPoint({ p.x, p.y });

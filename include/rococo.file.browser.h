@@ -50,6 +50,11 @@ namespace Rococo
 			virtual int32 HorizontalSpan(BrowserComponent component) const = 0;
 		};
 
+		ROCOCOAPI IBrowserFileChangeNotification
+		{
+			virtual void OnFileSelect(const U32FilePath & path, bool doubleClick) = 0;
+		};
+
 		ROCOCOAPI IFileBrowser
 		{
 			virtual void ClickAt(Vec2i pos, bool clickedDown) = 0;
@@ -91,7 +96,7 @@ namespace Rococo
 			IFileBrowserStyle& style;
 		};
 
-		IFileBrowser* CreateFileBrowser(FileBrowsingAPI& api, IEventCallback<const U32FilePath>& onSelChange);
+		IFileBrowser* CreateFileBrowser(FileBrowsingAPI& api, IBrowserFileChangeNotification& onSelChange);
 
 		IDirectoryPopulator* CreatePingPopulator(IInstallation& installation);
 	} // Browser

@@ -10,6 +10,8 @@
 #include <unordered_map>
 #include <rococo.variable.editor.h>
 
+#include <rococo.file.browser.h>
+
 #include <algorithm>
 
 #define ROCOCO_USE_SAFE_V_FORMAT
@@ -36,7 +38,7 @@ namespace Rococo
 	}
 }
 
-class Utilities : public IUtilitiesSupervisor, public IMathsVenue, public IObserver
+class Utilities : public IUtilitiesSupervisor, public IMathsVenue, public IObserver, public Browser::IBrowserFileChangeNotification
 {
 	IInstallation& installation;
 	IRenderer& renderer;
@@ -63,6 +65,18 @@ public:
 		textTesselator = Graphics::CreateTextTesselator(platform);
 
 		platform.publisher.Subscribe(this, evUIInvoke);
+	}
+
+	void ShowBusy(bool enable, cstr title, cstr messageFormat, ...)
+	{
+		Rococo::Events::BusyEvent busy;
+		busy.isNowBusy = enable;
+		busy.message = title;
+
+		va_list args;
+		va_start(args, messageFormat);
+		SafeVFormat(busy.resourceName, sizeof(busy.resourceName), messageFormat, args);
+		platform->publisher.Publish(busy, Rococo::Events::evBusy);
 	}
 
 	void OnEvent(Event& ev) override
@@ -328,7 +342,7 @@ public:
 	{
 		if (!browser)
 		{
-			browser = CreateMPlatFileBrowser(platform->publisher, platform->installation, platform->gui);
+			browser = CreateMPlatFileBrowser(platform->publisher, platform->installation, platform->gui, *this);
 		}
 
 		if (!browsingPane)
@@ -343,6 +357,14 @@ public:
 		browser->Engage(factory);
 
 		platform->gui.PushTop(browsingPane->Supervisor(), true);
+	}
+
+	void OnFileSelect(const U32FilePath& path, bool doubleClick)
+	{
+		if (doubleClick)
+		{
+			OnBrowserSelect();
+		}
 	}
 
 	void OnBrowserSelect()
@@ -366,6 +388,7 @@ public:
 		// Assume the top is a file browser
 		platform->gui.Pop();
 		browser = nullptr;
+		browsingPane = nullptr;
 	}
 
 	void OnScreenResize(Vec2i span) override

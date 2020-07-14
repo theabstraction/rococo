@@ -164,6 +164,11 @@ namespace ANON
 		   }
 	   }
 
+	   void RebaseIds()
+	   {
+
+	   }
+
 	   void Clear()
 	   {
 		   for (auto* s : sectors)
@@ -505,6 +510,8 @@ namespace ANON
 		   temp.wallVars.clear();
 		   temp.floorVars.clear();
 		   temp.doorVars.clear();
+
+		   platform.utilities.ShowBusy(true, "Loading level", "Created sector %u", s->Id());
 
 		   return s->Id();
 	   }

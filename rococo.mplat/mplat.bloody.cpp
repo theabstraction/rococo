@@ -7,6 +7,8 @@
 #include <unordered_map>
 #include <algorithm>
 
+#include <rococo.file.browser.h>
+
 namespace ANON
 {
 	using namespace Rococo;
@@ -1504,6 +1506,31 @@ namespace ANON
 		}
 	};
 
+	void ExpandMacros(cstr pingPath, U8FilePath& expandedPath, IInstallation& installation)
+	{
+		WideFilePath sysPath;
+		installation.ConvertPingPathToSysPath(pingPath, sysPath.buf, sysPath.CAPACITY);
+		installation.ConvertSysPathToPingPath(sysPath, expandedPath.buf, expandedPath.CAPACITY);
+	}
+
+	void StripUntilFinalDirectory(char* pingPath)
+	{
+		int32 len = StringLength(pingPath);
+		if (pingPath[len - 1] == '/)')
+		{
+			return;
+		}
+
+		for (int32 i = len - 1; i > 0; i--)
+		{
+			if (pingPath[i] == '/')
+			{
+				pingPath[i + 1] = 0;
+				return;
+			}
+		}
+	}
+
 	class BloodyPingPathBinding : public IBloodyPropertyType, public IValidator
 	{
 		char* value;
@@ -1511,17 +1538,20 @@ namespace ANON
 		Platform& platform;
 		TextEditorBox teb;
 		bool validated = false;
-		std::wstring contentSubDir;
+		HString root;
 	public:
-		BloodyPingPathBinding(Platform& _platform, IEventCallback<IBloodyPropertyType>& dirtNotifier, char* pingPath, size_t _len, cstr _contentSubDir) :
+		BloodyPingPathBinding(Platform& _platform, IEventCallback<IBloodyPropertyType>& dirtNotifier, char* pingPath, size_t _len, cstr default) :
 			platform(_platform),
 			value(pingPath),
 			len(_len),
 			teb(_platform, *this, dirtNotifier, value, _len, true, *this)
 		{
-			wchar_t sysSubDir[IO::MAX_PATHLEN];
-			platform.installation.ConvertPingPathToSysPath(_contentSubDir, sysSubDir, IO::MAX_PATHLEN);
-			contentSubDir = sysSubDir;
+			U8FilePath expandedPath;
+			ExpandMacros(default, expandedPath, platform.installation);
+
+			StripUntilFinalDirectory(expandedPath.buf);
+
+			root = expandedPath;
 
 			if (value == nullptr)
 			{
@@ -1531,12 +1561,12 @@ namespace ANON
 			OnDetached(value);
 		}
 
-		virtual bool IsLegal(char c, int cursorPos) const
+		bool IsLegal(char c, int cursorPos) const override
 		{
 			return true;
 		}
 
-		void OnDetached(char* buffer)
+		void OnDetached(char* buffer) override
 		{
 			wchar_t sysPath[IO::MAX_PATHLEN];
 			try
@@ -1555,12 +1585,12 @@ namespace ANON
 			}
 		}
 
-		virtual void Free()
+		void Free() override
 		{
 			delete this;
 		}
 
-		virtual cstr Name() const
+		cstr Name() const override
 		{
 			return "Ping Path";
 		}
@@ -1570,7 +1600,7 @@ namespace ANON
 
 		const fstring loadImage = "!textures/toolbars/load.tif"_fstring;
 
-		virtual void Render(IGuiRenderContext& rc, const GuiRect& rect, RGBAb colour)
+		void Render(IGuiRenderContext& rc, const GuiRect& rect, RGBAb colour) override
 		{
 			int span = Height(rect);
 			editorRect = GuiRect{ rect.left + span, rect.top, rect.right, rect.bottom };
@@ -1605,6 +1635,99 @@ namespace ANON
 			return RGBAb(64, 64, 64, 128);
 		}
 
+		void OnSelected(cstr pingPath)
+		{
+			teb.Notify();
+			platform.installation.CompressPingPath(value, len, pingPath);
+			OnDetached(value);
+		}
+
+		void InvokeSelectFileUI()
+		{
+			using namespace Rococo::IO;
+
+			struct BrowserRules_SelectScript : public IBrowserRules
+			{
+				IPublisher& publisher;
+				HString lastError;
+				HString prefix;
+				HString initialFile;
+				BloodyPingPathBinding& control;
+
+				BrowserRules_SelectScript(IPublisher& _publisher, cstr _prefix, cstr _initalFile, BloodyPingPathBinding& _control) :
+					publisher(_publisher), prefix(_prefix), initialFile(_initalFile), control(_control)
+				{
+
+				}
+
+				void GetRoot(U32FilePath& path) const override
+				{
+					IO::PathFromAscii(prefix, '/',  path);
+				}
+
+				void GetInitialFilename(U32FilePath& path) const override
+				{
+					IO::PathFromAscii(initialFile, '/', path);
+				}
+
+				cstr GetLastError() const override
+				{
+					return lastError;
+				}
+
+				void GetCaption(char* caption, size_t capacity) override
+				{
+					SafeFormat(caption, capacity, "Select script file ...");
+				}
+
+				void Free() override
+				{
+					delete this;
+				}
+
+				bool Select(const U32FilePath& scriptName) override
+				{
+					U8FilePath pingPath;
+					ToU8(scriptName, pingPath);
+
+					if (EndsWith(pingPath, ".sxy"))
+					{
+						control.OnSelected(pingPath);
+						return true;
+					}
+					else
+					{
+						lastError = "Filename must have extension '.sxy'";
+						OS::BeepWarning();
+						return false;
+					}
+				}
+			};
+
+			struct BrowserRules_SelectScriptFactory : public IBrowserRulesFactory
+			{
+				IPublisher* publisher;
+				cstr prefix;
+				cstr initialFilename;
+				BloodyPingPathBinding* control;
+
+				IBrowserRules* CreateRules() override
+				{
+					return new BrowserRules_SelectScript(*publisher, prefix, initialFilename, *control);
+				}
+
+				cstr GetPanePingPath() const
+				{
+					return "!scripts/panel.browser.sxy";
+				}
+			} forLevelFilename;
+			forLevelFilename.prefix = root;
+			forLevelFilename.initialFilename = value;
+			forLevelFilename.publisher = &platform.publisher;
+			forLevelFilename.control = this;
+			platform.utilities.BrowseFiles(forLevelFilename);
+		}
+
 		void Click(bool clickedDown, Vec2i pos) override
 		{
 			if (IsPointInRect(pos, editorRect))
@@ -1613,63 +1736,7 @@ namespace ANON
 			}
 			else if (IsPointInRect(pos, buttonRect))
 			{
-				SaveDesc sd;
-				sd.caption = "Select or Create file";
-				sd.ext = "*.sxy";
-				sd.extDesc = "Sexy script (.sxy)";
-				sd.shortName = nullptr;
-
-				bool changed = false;
-
-				if (*value == '!')
-				{
-					platform.installation.ConvertPingPathToSysPath(value, sd.path, len);
-
-					if (OS::IsFileExistant(sd.path))
-					{
-						changed = platform.utilities.GetSaveLocation(platform.renderer.Window(), sd);
-					}
-					else
-					{
-						if (platform.utilities.QueryYesNo(platform.renderer.Window(), "Cannot locate file. Navigate to content?"))
-						{
-							SafeFormat(sd.path, sizeof(sd.path), L"%s", contentSubDir.c_str());
-							changed = platform.utilities.GetSaveLocation(platform.renderer.Window(), sd);
-						}
-					}
-				}
-				else
-				{
-					if (platform.utilities.QueryYesNo(platform.renderer.Window(), "Path did not begin with ping. Navigate to content?"))
-					{
-						SafeFormat(sd.path, _MAX_PATH, L"%s", contentSubDir.c_str());
-						changed = platform.utilities.GetSaveLocation(platform.renderer.Window(), sd);
-					}
-				}
-
-				if (changed)
-				{
-					teb.Notify();
-					if (wcsstr(sd.path, platform.installation.Content()) != sd.path)
-					{
-						try
-						{
-							Throw(0, "Path was not a subdirectory of the content folder\nChoose a secure ping path");
-						}
-						catch (IException& ex)
-						{
-							platform.utilities.ShowErrorBox(platform.renderer.Window(), ex, platform.title);
-						}
-						return;
-					}
-
-					wchar_t* pathTrail = sd.path + wcslen(platform.installation.Content());
-					OS::ToUnixPath(pathTrail);
-
-					SecureFormat(value, len, "!%S", pathTrail);
-					
-					OnDetached(value);
-				}
+				InvokeSelectFileUI();
 			}
 		}
 	};

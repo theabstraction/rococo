@@ -281,12 +281,22 @@ struct StatusBar : IUIElement
 void InsertCharAtPos(int& caretPos, char* buffer, size_t capacity, char c)
 {
 	int32 len = StringLength(buffer);
-	if (len < capacity)
+	if (len < capacity && caretPos >= len)
 	{
 		buffer[len] = c;
 		buffer[len + 1] = 0;
-		caretPos++;
 	}
+	else
+	{
+		for (int32 i = len; i > caretPos; i--)
+		{
+			buffer[i] = buffer[i - 1];
+		}
+
+		buffer[caretPos] = c;
+	}
+
+	caretPos++;
 }
 
 void DeleteCharAt(int pos, char* buffer, size_t capacity)
@@ -321,6 +331,13 @@ void DeleteAtPos(int& caretPos, char* buffer, size_t capacity)
 void AppendKeyboardInputToEditBuffer(int& caretPos, char* buffer, size_t capacity, const KeyboardEvent& key)
 {
 	if (key.IsUp()) return;
+
+	if (key.unicode >= 32 && key.unicode < 127)
+	{
+		char c = key.unicode;
+		InsertCharAtPos(caretPos, buffer, capacity, c);
+		return;
+	}
 
 	switch (key.VKey)
 	{
@@ -358,11 +375,6 @@ void AppendKeyboardInputToEditBuffer(int& caretPos, char* buffer, size_t capacit
 		}
 		break;
 	default:
-		if (key.unicode >= 32 && key.unicode < 127)
-		{
-			char c = key.unicode;
-			InsertCharAtPos(caretPos, buffer, capacity, c);
-		}
 		break;
 	}
 }
@@ -481,7 +493,7 @@ struct FilenameEditor : IUIElement, public IKeyboardSink
 
 auto evGetCaption = "Panel.Browser.GetCaption"_event;
 
-struct MPlatFileBrowser: public IMPlatFileBrowser, public IObserver, public IUIElement, public IEventCallback<const U32FilePath>
+struct MPlatFileBrowser: public IMPlatFileBrowser, public IObserver, public IUIElement, public IBrowserFileChangeNotification
 {
 	AutoFree<IDirectoryPopulator> pingPopulator;
 	FileBrowserStyle style;
@@ -494,12 +506,15 @@ struct MPlatFileBrowser: public IMPlatFileBrowser, public IObserver, public IUIE
 	FilenameEditor filenameEditor;
 	StatusBar statusBar;
 
-	MPlatFileBrowser(IPublisher& _publisher, IInstallation& _installation, IGUIStack& gui):
+	IBrowserFileChangeNotification& onChange;
+
+	MPlatFileBrowser(IPublisher& _publisher, IInstallation& _installation, IGUIStack& gui, IBrowserFileChangeNotification& _onChange):
 		pingPopulator(CreatePingPopulator(_installation)),
 		api { *pingPopulator, style }, 
 		publisher(_publisher),
 		browser(CreateFileBrowser(api, *this)),
-		filenameEditor(*browser, *pingPopulator, gui)
+		filenameEditor(*browser, *pingPopulator, gui),
+		onChange(_onChange)
 	{
 	}
 
@@ -508,9 +523,14 @@ struct MPlatFileBrowser: public IMPlatFileBrowser, public IObserver, public IUIE
 		publisher.Unsubscribe(this);
 	}
 
-	void OnEvent(const U32FilePath& newSelection)
+	void OnFileSelect(const U32FilePath& path, bool doubleClick)
 	{
 		filenameEditor.Sync();
+
+		if (doubleClick)
+		{
+			onChange.OnFileSelect(path, doubleClick);
+		}
 	}
 
 	void OnEvent(Event& ev) override
@@ -563,6 +583,10 @@ struct MPlatFileBrowser: public IMPlatFileBrowser, public IObserver, public IUIE
 
 		U32FilePath rootPrefix;
 		rules->GetRoot(rootPrefix);
+
+		ToU8(rootPrefix, filenameEditor.asciiRep);
+		filenameEditor.caretPos = StringLength(filenameEditor.asciiRep);
+
 		pingPopulator->LimitRoot(rootPrefix);
 	}
 
@@ -608,8 +632,8 @@ struct MPlatFileBrowser: public IMPlatFileBrowser, public IObserver, public IUIE
 
 namespace Rococo
 {
-	IMPlatFileBrowser* CreateMPlatFileBrowser(Events::IPublisher& publisher, IInstallation& installation, IGUIStack& gui)
+	IMPlatFileBrowser* CreateMPlatFileBrowser(Events::IPublisher& publisher, IInstallation& installation, IGUIStack& gui, IBrowserFileChangeNotification& onChange)
 	{
-		return new MPlatFileBrowser(publisher, installation, gui);
+		return new MPlatFileBrowser(publisher, installation, gui, onChange);
 	}
 }

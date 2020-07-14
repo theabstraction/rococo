@@ -181,6 +181,7 @@ namespace HV
 
    ROCOCOAPI IFPSGameModeSupervisor : public IFPSGameMode
    {
+	   virtual void ClearCache() = 0;
 	   virtual void Free() = 0;
    };
 
@@ -325,6 +326,8 @@ namespace HV
 
    ISector* CreateSector(Platform& platform, ISectors& co_sectors);
 
+   void RebaseSectors();
+
    ROCOCOAPI ISectors
    {
 	  virtual ISectorBuilder* Builder() = 0;
@@ -338,6 +341,8 @@ namespace HV
 	  virtual ISector* GetFirstSectorContainingPoint(Vec2 a) = 0;
 	  virtual ISector** begin() = 0;
 	  virtual ISector** end() = 0;
+
+	  virtual void RebaseIds() = 0;
 
 	  virtual void OnSectorScriptChanged(const FileModifiedArgs& args) = 0;
 	  virtual size_t ForEverySectorVisibleBy(cr_m4x4 worldToScreen, cr_vec3 eye, cr_vec3 forward, IEventCallback<VisibleSector>& cb) = 0;

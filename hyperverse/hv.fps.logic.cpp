@@ -1047,6 +1047,14 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 		Graphics::DrawLine(g, 1, c - Vec2i{ 1, 0 }, c + Vec2i{ 0, 1 }, RGBAb(255, 255, 255, 255));
 		Graphics::DrawLine(g, 1, c - Vec2i{ 0, 1 }, c + Vec2i{ 1, 0 }, RGBAb(255, 255, 255, 255));
 	}
+
+	void ClearCache() override
+	{
+		illuminatedRooms.clear();
+		shadowCasterSectors.clear();
+		visibleSectorsThisTimestep.clear();
+		visibleSectors.clear();
+	}
 };
 
 namespace HV
