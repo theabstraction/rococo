@@ -140,28 +140,28 @@ struct FileBrowserRC : public IFileBrowserRenderContext
 		switch (component)
 		{
 		case BrowserComponent::TREE_FOLDER_ENTRY:
-			fillCol1 = fillCol2 = RGBAb(192, 192, 0, 224);
-			edgeCol1 = edgeCol2 = RGBAb(224, 224, 224, 224);
+			fillCol1 = fillCol2 = RGBAb(192, 192, 0, 200);
+			edgeCol1 = edgeCol2 = RGBAb(224, 224, 224, 200);
 			break;
 		case BrowserComponent::LINE_EDITOR:
-			fillCol1 = fillCol2 = RGBAb(0, 0, 0, 224);
-			edgeCol1 = edgeCol2 = RGBAb(224, 224, 224, 224);
+			fillCol1 = fillCol2 = RGBAb(0, 0, 0, 200);
+			edgeCol1 = edgeCol2 = RGBAb(224, 224, 224, 200);
 			break;
 		case BrowserComponent::FILE_SCROLLER_SLIDER_BACK:
-			fillCol1 = fillCol2 = RGBAb(0, 0, 0, 224);
-			edgeCol1 = edgeCol2 = RGBAb(224, 224, 224, 224);
+			fillCol1 = fillCol2 = RGBAb(0, 0, 0, 200);
+			edgeCol1 = edgeCol2 = RGBAb(224, 224, 224, 200);
 			break;
 		case BrowserComponent::FILE_SCROLLER_SLIDER:
-			fillCol1 = fillCol2 = RGBAb(128, 128, 128, 224);
-			edgeCol1 = edgeCol2 = RGBAb(224, 224, 224, 224);
+			fillCol1 = fillCol2 = RGBAb(128, 128, 128, 200);
+			edgeCol1 = edgeCol2 = RGBAb(224, 224, 224, 200);
 			break;
 		case BrowserComponent::STATUS_ERROR:
-			fillCol1 = fillCol2 = RGBAb(255, 255, 255, 225);
-			edgeCol1 = edgeCol2 = RGBAb(255, 255, 255, 255);
+			fillCol1 = fillCol2 = RGBAb(255, 255, 255, 200);
+			edgeCol1 = edgeCol2 = RGBAb(255, 255, 255, 200);
 			break;
 		default:
-			fillCol1 = fillCol2 = RGBAb(0, 0, 32, 224);
-			edgeCol1 = edgeCol2 = RGBAb(224, 224, 224, 224);
+			fillCol1 = fillCol2 = RGBAb(0, 0, 32, 200);
+			edgeCol1 = edgeCol2 = RGBAb(224, 224, 224, 200);
 			break;
 		}
 
@@ -170,7 +170,8 @@ struct FileBrowserRC : public IFileBrowserRenderContext
 
 		if (IsPointInRect(metrics.cursorPosition, rect))
 		{
-			fillCol1.alpha = fillCol2.alpha = edgeCol1.alpha = edgeCol2.alpha = 255;
+			fillCol1.alpha = fillCol2.alpha = 224;
+			edgeCol1.alpha = edgeCol2.alpha = 255;
 		}
 
 		Graphics::DrawRectangle(gc, rect, fillCol1, fillCol2);
