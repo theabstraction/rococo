@@ -100,7 +100,7 @@ namespace HV
 		AutoFree<IPaneBuilderSupervisor> fpsPanel;
 		AutoFree<IPaneBuilderSupervisor> overlayPanel;
 		AutoFree<IPaneBuilderSupervisor> busyPanel;
-		AutoFree<IMPlatFileBrowser> browser;
+		AutoFree<IPaneBuilderSupervisor> colourPanel;
 
 		Cosmos e; // Put this as the last member, since other members need to be constructed first
 
@@ -158,10 +158,12 @@ namespace HV
 
 		virtual void OnGuiResize(Vec2i screenSpan) override
 		{
+			// TODO - make this automatic
 			GuiRect fullScreen = { 0, 0, screenSpan.x, screenSpan.y };
 			fpsPanel->Supervisor()->SetRect(fullScreen);
 			busyPanel->Supervisor()->SetRect(fullScreen);
 			editorPanel->Root()->SetRect(fullScreen);
+			colourPanel->Root()->SetRect(fullScreen);
 			((IUtilitiesSupervisor&)platform.utilities).OnScreenResize(screenSpan);
 		}
 
@@ -214,6 +216,7 @@ namespace HV
 			editorPanel = e.platform.gui.BindPanelToScript("!scripts/panel.editor.sxy");
 			fpsPanel = e.platform.gui.BindPanelToScript("!scripts/panel.fps.sxy");
 			busyPanel = e.platform.gui.BindPanelToScript("!scripts/panel.opening.sxy");
+			colourPanel = e.platform.gui.BindPanelToScript("!scripts/panel.colour.sxy");
 			overlayPanel = e.platform.gui.CreateDebuggingOverlay();
 
 			e.platform.gui.PushTop(fpsPanel->Supervisor(), true);
@@ -377,6 +380,8 @@ namespace HV
 		void OnCreate() override
 		{
 			RunEnvironmentScript(e, "!scripts/hv/app.created.sxy", true);
+
+		//	e.platform.gui.PushTop(colourPanel->Supervisor(), true);
 		}
 	};
 }

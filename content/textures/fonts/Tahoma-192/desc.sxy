@@ -1,0 +1,110 @@
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+
+(function Main (Int32 id)->(Int32 exitCode):
+	(FontMetrics metrics)
+	(metrics.height = 232)
+	(metrics.ascent = 192)
+	(metrics.descent = 40)
+	(metrics.italic = 0)
+	(metrics.weight = 400)
+	(metrics.internalLeading = 40)
+	(DeclareFontMetrics metrics)
+
+	 // (AddGlyph <ascii> <image-file> <A> <B> <C>)
+	(AddGlyph 32 "c032.tiff" 0 1 59)    //  
+	(AddGlyph 33 "c033.tiff" 21 22 21)  // !
+	(AddGlyph 34 "c034.tiff" 10 57 10)  // "
+	(AddGlyph 35 "c035.tiff" 13 114 13) // #
+	(AddGlyph 36 "c036.tiff" 10 87 8)   // $
+	(AddGlyph 37 "c037.tiff" 9 170 9)   // %
+	(AddGlyph 38 "c038.tiff" 6 130 -7)  // &&
+	(AddGlyph 39 "c039.tiff" 10 21 10)  // '
+	(AddGlyph 40 "c040.tiff" 10 57 7)   // (
+	(AddGlyph 41 "c041.tiff" 7 57 10)   // )
+	(AddGlyph 42 "c042.tiff" 10 85 10)  // *
+	(AddGlyph 43 "c043.tiff" 14 112 14) // +
+	(AddGlyph 44 "c044.tiff" 7 40 11)   // ,
+	(AddGlyph 45 "c045.tiff" 8 54 8)    // -
+	(AddGlyph 46 "c046.tiff" 17 24 17)  // .
+	(AddGlyph 47 "c047.tiff" -3 72 4)   // /
+	(AddGlyph 48 "c048.tiff" 7 91 7)    // 0
+	(AddGlyph 49 "c049.tiff" 21 69 15)  // 1
+	(AddGlyph 50 "c050.tiff" 10 87 8)   // 2
+	(AddGlyph 51 "c051.tiff" 9 86 10)   // 3
+	(AddGlyph 52 "c052.tiff" 3 98 4)    // 4
+	(AddGlyph 53 "c053.tiff" 11 84 10)  // 5
+	(AddGlyph 54 "c054.tiff" 8 91 6)    // 6
+	(AddGlyph 55 "c055.tiff" 9 89 7)    // 7
+	(AddGlyph 56 "c056.tiff" 7 91 7)    // 8
+	(AddGlyph 57 "c057.tiff" 6 91 8)    // 9
+	(AddGlyph 58 "c058.tiff" 22 24 22)  // :
+	(AddGlyph 59 "c059.tiff" 11 41 16)  // ;
+	(AddGlyph 60 "c060.tiff" 18 102 20) // <
+	(AddGlyph 61 "c061.tiff" 18 104 18) // =
+	(AddGlyph 62 "c062.tiff" 20 102 18) // >
+	(AddGlyph 63 "c063.tiff" 10 76 5)   // ?
+	(AddGlyph 64 "c064.tiff" 12 152 11) // @
+	(AddGlyph 65 "c065.tiff" -1 117 -1) // A
+	(AddGlyph 66 "c066.tiff" 14 95 4)   // B
+	(AddGlyph 67 "c067.tiff" 6 106 3)   // C
+	(AddGlyph 68 "c068.tiff" 14 110 6)  // D
+	(AddGlyph 69 "c069.tiff" 14 88 6)   // E
+	(AddGlyph 70 "c070.tiff" 14 84 2)   // F
+	(AddGlyph 71 "c071.tiff" 6 113 9)   // G
+	(AddGlyph 72 "c072.tiff" 14 102 14) // H
+	(AddGlyph 73 "c073.tiff" 8 55 9)    // I
+	(AddGlyph 74 "c074.tiff" 0 67 13)   // J
+	(AddGlyph 75 "c075.tiff" 14 102 -3) // K
+	(AddGlyph 76 "c076.tiff" 14 82 0)   // L
+	(AddGlyph 77 "c077.tiff" 14 120 14) // M
+	(AddGlyph 78 "c078.tiff" 14 100 14) // N
+	(AddGlyph 79 "c079.tiff" 6 124 6)   // O
+	(AddGlyph 80 "c080.tiff" 14 89 3)   // P
+	(AddGlyph 81 "c081.tiff" 6 125 5)   // Q
+	(AddGlyph 82 "c082.tiff" 14 109 -4) // R
+	(AddGlyph 83 "c083.tiff" 7 96 4)    // S
+	(AddGlyph 84 "c084.tiff" -1 114 -1) // T
+	(AddGlyph 85 "c085.tiff" 12 102 12) // U
+	(AddGlyph 86 "c086.tiff" -1 117 -1) // V
+	(AddGlyph 87 "c087.tiff" 2 169 2)   // W
+	(AddGlyph 88 "c088.tiff" 0 111 0)   // X
+	(AddGlyph 89 "c089.tiff" -1 113 -1) // Y
+	(AddGlyph 90 "c090.tiff" 5 98 4)    // Z
+	(AddGlyph 91 "c091.tiff" 15 50 9)   // [
+	(AddGlyph 92 "c092.tiff" 4 72 -3)   // \
+	(AddGlyph 93 "c093.tiff" 9 50 15)   // ]
+	(AddGlyph 94 "c094.tiff" 12 116 12) // ^
+	(AddGlyph 95 "c095.tiff" -2 109 -2) // _
+	(AddGlyph 96 "c096.tiff" 23 40 42)  // `
+	(AddGlyph 97 "c097.tiff" 5 84 12)   // a
+	(AddGlyph 98 "c098.tiff" 12 89 5)   // b
+	(AddGlyph 99 "c099.tiff" 5 81 3)    // c
+	(AddGlyph 100 "c100.tiff" 5 89 12)   // d
+	(AddGlyph 101 "c101.tiff" 5 91 5)    // e
+	(AddGlyph 102 "c102.tiff" 2 66 -7)   // f
+	(AddGlyph 103 "c103.tiff" 5 89 12)   // g
+	(AddGlyph 104 "c104.tiff" 12 83 12)  // h
+	(AddGlyph 105 "c105.tiff" 12 20 12)  // i
+	(AddGlyph 106 "c106.tiff" -9 51 12)  // j
+	(AddGlyph 107 "c107.tiff" 12 88 -4)  // k
+	(AddGlyph 108 "c108.tiff" 13 18 13)  // l
+	(AddGlyph 109 "c109.tiff" 12 137 12) // m
+	(AddGlyph 110 "c110.tiff" 12 83 12)  // n
+	(AddGlyph 111 "c111.tiff" 5 94 5)    // o
+	(AddGlyph 112 "c112.tiff" 12 89 5)   // p
+	(AddGlyph 113 "c113.tiff" 5 89 12)   // q
+	(AddGlyph 114 "c114.tiff" 12 56 1)   // r
+	(AddGlyph 115 "c115.tiff" 6 77 3)    // s
+	(AddGlyph 116 "c116.tiff" 2 62 0)    // t
+	(AddGlyph 117 "c117.tiff" 12 83 12)  // u
+	(AddGlyph 118 "c118.tiff" 0 96 0)    // v
+	(AddGlyph 119 "c119.tiff" 2 139 2)   // w
+	(AddGlyph 120 "c120.tiff" 1 93 1)    // x
+	(AddGlyph 121 "c121.tiff" 0 96 0)    // y
+	(AddGlyph 122 "c122.tiff" 4 78 3)    // z
+	(AddGlyph 123 "c123.tiff" 5 78 9)    // {
+	(AddGlyph 124 "c124.tiff" 28 17 28)  // |
+	(AddGlyph 125 "c125.tiff" 9 78 5)    // }
+	(AddGlyph 126 "c126.tiff" 12 116 12) // ~
+)

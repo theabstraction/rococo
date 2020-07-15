@@ -16,6 +16,7 @@ namespace Rococo
 			virtual void OnAlphaImage(const Vec2i& span, const uint8* data) = 0;
 		};
 		
+		void SaveAsTiff(const uint8* grayScale, const Vec2i& span, const char* filename);
 		bool CompressJPeg(const unsigned char* data, const Vec2i& span, const char* filename, int quality);
 		bool CompressJPeg(const unsigned char* data, const Vec2i& span, cstr filename, int quality);
 

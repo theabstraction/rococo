@@ -14,6 +14,7 @@
 #include <rococo.strings.h>
 
 #include <tiffiop.h>
+#include <vector>
 
 namespace
 {
@@ -297,6 +298,137 @@ namespace
 
 	char* ImageReader::errorBuffer = NULL;
 	size_t ImageReader::errorCapacity = 0;
+
+	class ImageWriter
+	{
+	private:
+		const char* filename;
+
+		FILE* f = nullptr;
+
+		static tsize_t Read(thandle_t hThis, tdata_t buffer, tsize_t len)
+		{
+			ImageWriter* This = (ImageWriter*)hThis;
+			size_t bytesRead = fread(buffer, 1, len, This->f);
+			return bytesRead;
+		}
+
+		static tsize_t Write(thandle_t hThis, tdata_t buffer, tsize_t len)
+		{
+			ImageWriter* This = (ImageWriter*)hThis;
+			size_t bytesWritten = fwrite(buffer, 1, len, This->f);
+			return bytesWritten;
+		}
+
+		static toff_t GetFileLength(thandle_t hThis)
+		{
+			ImageWriter* This = (ImageWriter*)hThis;
+			return ftell(This->f);
+		}
+
+		static toff_t Seek(thandle_t hThis, toff_t offset, int whence)
+		{
+			ImageWriter* This = (ImageWriter*)hThis;
+			int result = fseek(This->f, offset, whence);
+			long pos = ftell(This->f);
+			return pos;
+		}
+
+		static int MapFile(thandle_t hThis, tdata_t* pBuffer, toff_t* pOffset)
+		{
+			return 0;
+		}
+
+		static void UnmapFile(thandle_t hThis, tdata_t buffer, toff_t offset)
+		{
+		}
+
+		static int Close(thandle_t hThis)
+		{
+			return 0;
+		}
+
+		static void _OnError(thandle_t hThis, const char* module, const char* format, va_list args)
+		{
+			_OnError(module, format, args);
+		}
+
+		static void _OnError(const char* module, const char* format, va_list args)
+		{
+			SafeVFormat(errorBuffer, errorCapacity, format, args);
+		}
+
+		static char* errorBuffer;
+		static size_t errorCapacity;
+
+	public:
+		ImageWriter(const char* _filename) : filename(_filename)
+		{
+			typedef void(*TIFFErrorHandlerExt)(thandle_t, const char*, const char*, va_list);
+			f = fopen(_filename, "wb");
+		}
+
+		~ImageWriter()
+		{
+			fclose(f);
+		}
+
+		bool Write(const uint8* grayscalePixels, int32 width, int32 height)
+		{
+			ImageWriter::errorBuffer = errorBuffer;
+			ImageWriter::errorCapacity = errorCapacity;
+
+			TIFFErrorHandler standardErrorHandler = TIFFSetErrorHandler(ImageWriter::_OnError);
+			TIFFErrorHandlerExt standardErrorHandlerExt = TIFFSetErrorHandlerExt(ImageWriter::_OnError);
+
+			bool isGood = false;
+
+			TIFF* tif = TIFFClientOpen(filename, "wm", (thandle_t)this, Read, Write, Seek, Close, GetFileLength, MapFile, UnmapFile);
+			if (tif)
+			{
+				TIFFSetField(tif, TIFFTAG_IMAGEWIDTH, (size_t) width);
+				TIFFSetField(tif, TIFFTAG_IMAGELENGTH, (size_t) height);
+				TIFFSetField(tif, TIFFTAG_SAMPLESPERPIXEL, 1);
+				TIFFSetField(tif, TIFFTAG_BITSPERSAMPLE, 8);
+				TIFFSetField(tif, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT);  
+				TIFFSetField(tif, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);
+				TIFFSetField(tif, TIFFTAG_COMPRESSION, COMPRESSION_LZW);
+				TIFFSetField(tif, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_MINISBLACK);
+				TIFFSetField(tif, TIFFTAG_ROWSPERSTRIP, 1);
+
+				uint32 rowsPerStrip = height;
+				rowsPerStrip = TIFFDefaultStripSize(tif, rowsPerStrip);
+				TIFFSetField(tif, TIFFTAG_ROWSPERSTRIP, rowsPerStrip);
+				TIFFSetupStrips(tif);
+
+				tsize_t linebytes = sizeof(char) * width; 
+
+				//    Allocating memory to store the pixels of current row
+				tsize_t scanLineLength = TIFFScanlineSize(tif);
+
+				tsize_t bufLen = max(linebytes, scanLineLength);
+
+				std::vector<uint8> buf;
+				buf.resize(bufLen);
+
+				TIFFWriteEncodedStrip(tif, 0, (tdata_t) grayscalePixels, linebytes * height);
+
+				TIFFFlush(tif);
+				TIFFClose(tif);
+			}
+
+			ImageWriter::errorBuffer = NULL;
+			ImageWriter::errorCapacity = 0;
+
+			TIFFSetErrorHandler(standardErrorHandler);
+			TIFFSetErrorHandlerExt(standardErrorHandlerExt);
+
+			return isGood;
+		}
+	};
+
+	char* ImageWriter::errorBuffer = NULL;
+	size_t ImageWriter::errorCapacity = 0;
 }
 
 namespace Rococo
@@ -323,6 +455,12 @@ namespace Rococo
 		void SetTiffAllocator(IAllocator* _allocator)
 		{
 			tiffAllocator = _allocator;
+		}
+
+		void SaveAsTiff(const uint8* grayScale, const Vec2i& span, const char* filename)
+		{
+			ImageWriter writer(filename);
+			writer.Write(grayScale, span.x, span.y);
 		}
 	}
 }
