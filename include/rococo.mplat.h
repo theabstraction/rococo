@@ -7,7 +7,8 @@
 namespace Rococo
 {
    ROCOCO_ID(ID_ENTITY, int64, 0);
-   ROCOCO_ID(ID_PUPPET, uint64, 0)
+   ROCOCO_ID(ID_PUPPET, uint64, 0);
+   ROCOCO_ID(ID_FONT, int32, 0);
 
    struct FileUpdatedEvent : public Rococo::Events::EventArgs
    {
@@ -61,6 +62,16 @@ namespace Rococo
 	namespace Graphics
 	{
 		struct SampleStateDef;
+
+		struct FontMetrics
+		{
+			int32 ascent;
+			int32 descent; 
+			int32 height; 
+			int32 internalLeading; 
+			int32 italic; 
+			int32 weight;
+		};
 	}
 
 	namespace Puppet
@@ -615,6 +626,13 @@ namespace Rococo
 		struct IScriptSystemFactory;
 	}
 
+	ROCOCOAPI IArrayFontsSupervisor: public IArrayFonts
+	{
+		virtual void Free() = 0;
+	};
+
+	IArrayFontsSupervisor* CreateArrayFonts(IInstallation& installion, IUtilitiies& utils, IRenderer& renderer);
+
 	struct Platform
 	{
 		// Operating system functions
@@ -679,6 +697,8 @@ namespace Rococo
 		Rococo::Script::IScriptSystemFactory& ssFactory;
 
 		Rococo::Puppet::IPuppets& puppets;
+
+		IArrayFonts& fonts;
 
 		// Application title
 		const char* const title;

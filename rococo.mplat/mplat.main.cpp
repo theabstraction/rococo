@@ -209,6 +209,7 @@ namespace Rococo
 	namespace M
 	{
 		void NativeLoadMesh(Rococo::Script::NativeCallEnvironment& e);
+		void InitArrayFonts(Platform& platform);
 	}
 }
 
@@ -351,8 +352,18 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 
 	OutputDebugStringA("\n\n");
 
+	AutoFree<IArrayFontsSupervisor> fonts{ CreateArrayFonts(*installation, *utilities, mainWindow->Renderer()) };
+
 	Tesselators tesselators{ *rimTesselator, *rodTesselator };
-	Platform platform{ *os, *installation, *appControl, mainWindow->Renderer(), *rendererConfig, *messaging, *sourceCache, *debuggerWindow, *publisher, *utilities, *gui, *keyboard, *config, *meshes, *instances, *mobiles, *particles, *sprites, *camera, *scene, tesselators, *mathsVisitor, *legacySound, *ssFactory, *puppets, title };
+
+	Platform platform
+	{ 
+		*os, *installation, *appControl, mainWindow->Renderer(), *rendererConfig, *messaging, 
+		*sourceCache, *debuggerWindow, *publisher, *utilities, *gui, *keyboard, *config, *meshes, 
+		*instances, *mobiles, *particles, *sprites, *camera, *scene, tesselators, *mathsVisitor,
+		*legacySound, *ssFactory, *puppets, *fonts, title
+	};
+
 	gui->PostConstruct(&platform);
 	utilities->SetPlatform(platform);
 	messaging->PostCreate(platform);

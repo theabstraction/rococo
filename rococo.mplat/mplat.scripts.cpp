@@ -109,6 +109,11 @@ Rococo::IPaneBuilder* FactoryConstructRococoPaneBuilder(Rococo::IPaneBuilder* _c
    return _context;
 }
 
+Rococo::IArrayFonts* FactoryConstructRococoArrayFonts(Rococo::IArrayFonts* fonts)
+{
+	return fonts;
+}
+
 Rococo::Puppet::IPuppets* FactoryConstructRococoPuppetPuppets(Rococo::Platform* platform)
 {
 	return &platform->puppets;
@@ -276,6 +281,7 @@ namespace Rococo
 						AddNativeCalls_RococoIKeyboard(args.ss, &platform.keyboard);
 						Entities::AddNativeCalls_RococoEntitiesIParticleSystem(args.ss, &platform);
 						Audio::AddNativeCalls_RococoAudioILegacySoundControl(args.ss, &platform);
+						AddNativeCalls_RococoIArrayFonts(args.ss, &platform.fonts);
 
 						const INamespace& ns = args.ss.AddNativeNamespace("MPlat.OS");
 						args.ss.AddNativeCall(ns, NativeEnumerateFiles, &platform, "EnumerateFiles (Sys.Type.IString filter)(MPlat.OnFileName callback)->");

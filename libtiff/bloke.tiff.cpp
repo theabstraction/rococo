@@ -406,21 +406,15 @@ namespace
 
 				tsize_t linebytes = sizeof(char) * width; 
 
-				//    Allocating memory to store the pixels of current row
-				tsize_t scanLineLength = TIFFScanlineSize(tif);
-
-				tsize_t bufLen = max(linebytes, scanLineLength);
-
-				std::vector<uint8> buf;
-				buf.resize(bufLen);
-
 				TIFFWriteEncodedStrip(tif, 0, (tdata_t) grayscalePixels, linebytes * height);
 
 				TIFFFlush(tif);
 				TIFFClose(tif);
+
+				isGood = true;
 			}
 
-			ImageWriter::errorBuffer = NULL;
+			ImageWriter::errorBuffer = nullptr;
 			ImageWriter::errorCapacity = 0;
 
 			TIFFSetErrorHandler(standardErrorHandler);
@@ -464,10 +458,17 @@ namespace Rococo
 		{
 			ImageWriter writer(filename);
 
-			char errorBuffer[1024];
+			char errorBuffer[1024] = "";
 			if (!writer.Write(grayScale, span.x, span.y, errorBuffer, sizeof(errorBuffer)))
 			{
-				Throw(0, "Error writing %s: %s", filename, errorBuffer);
+				if (*errorBuffer)
+				{
+					Throw(0, "Error writing %s: %s", filename, errorBuffer);
+				}
+				else
+				{
+					Throw(0, "Error writing %s", filename);
+				}
 			}
 		}
 	}

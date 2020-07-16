@@ -157,8 +157,17 @@ struct AutoDC
 
 void GenerateLogFont(cstr targetFolder, const LOGFONT& f)
 {
-	const int FIRST_CHAR_CODE = 32;
-	const int FINAL_CHAR_CODE = 126;
+	const int FIRST_ASCII_CHAR_CODE = 32;
+	const int FINAL_ASCII_CHAR_CODE = 126;
+
+	std::vector<unsigned char> charCodes;
+	for (int i = FIRST_ASCII_CHAR_CODE; i <= FINAL_ASCII_CHAR_CODE; ++i)
+	{
+		charCodes.push_back(i);
+	}
+
+	charCodes.push_back('£');
+	charCodes.push_back('€');
 
 	AutoGDI<HFONT> hFont{ CreateFontIndirectW(&f) };
 	AutoDC hdcDesktop{ GetDC(nullptr) };
@@ -173,7 +182,7 @@ void GenerateLogFont(cstr targetFolder, const LOGFONT& f)
 
 	int txWidth = 0;
 
-	for (int i = FIRST_CHAR_CODE; i <= FINAL_CHAR_CODE; ++i)
+	for (uint8 i: charCodes)
 	{
 		ABC abc;
 		if (GetCharABCWidthsA(hMemDC, i, i, &abc))
@@ -216,6 +225,14 @@ void GenerateLogFont(cstr targetFolder, const LOGFONT& f)
 		Throw(0, "Could not create description file");
 	}
 
+	fprintf_s(fp, "(' #file.type rococo.fontdef.sxy)\n");
+
+	fprintf_s(fp, "(struct FontMetrics\n");
+	fprintf_s(fp, "\t(Int32 ascent descent height internalLeading italic weight)\n");
+	fprintf_s(fp, ")\n");
+	fprintf_s(fp, "(alias FontMetrics Rococo.Graphics.FontMetrics)\n");
+	fprintf_s(fp, "(using Rococo.Graphics)\n");
+	
 	fprintf_s(fp, "(namespace EntryPoint)\n");
 	fprintf_s(fp, "\t(alias Main EntryPoint.Main)\n\n");
 	fprintf_s(fp, "(function Main (Int32 id)->(Int32 exitCode):\n");
@@ -230,12 +247,12 @@ void GenerateLogFont(cstr targetFolder, const LOGFONT& f)
 	
 	fprintf_s(fp, "\t // (AddGlyph <ascii> <image-file> <A> <B> <C>)\n");
 
-	for (int i = FIRST_CHAR_CODE; i <= FINAL_CHAR_CODE; ++i)
+	for (uint8 i : charCodes)
 	{
 		U8FilePath targetFile;
-		SafeFormat(targetFile.buf, targetFile.CAPACITY, "%s\\c%03u.tiff", targetFolder, i);
+		SafeFormat(targetFile.buf, targetFile.CAPACITY, "%s\\c%04u.tiff", targetFolder, i);
 	
-		fprintf_s(fp, "\t(AddGlyph %d \"c%03u.tiff\"", i, i);
+		fprintf_s(fp, "\t(AddGlyph %d \"c%04u.tiff\"", i, i);
 
 		int nLineChars = GenerateCharFile(i, f, rc, targetFile, fp);
 

@@ -10,6 +10,21 @@
 )
 
 (interface 
+	(as.sxy Rococo.IArrayFonts "../content/scripts/mplat")
+	(as.cpp Rococo.IArrayFonts "mplat")
+	(context factory Rococo.IArrayFonts)
+	(methods
+		(LoadFont (IString pingPathToFolder)->(IdFont id))
+		(FontCount -> (Int32 nFonts))
+		(GetFontMetrics (IdFont fontId)(FontMetrics metrics))
+		(AppendFontName (IdFont fontId)(IStringBuilder sb))
+		(DevFont -> (IdFont fontId))
+		(MarkDevFont (IdFont fontId))
+	)
+	(factory Rococo.ArrayFonts)
+)
+
+(interface 
 	(as.sxy Rococo.IPane "../content/scripts/mplat.pane")
 	(as.cpp Rococo.IPane "mplat")
 	(context factory Rococo.IPane)

@@ -18,4 +18,13 @@
 	(IInstances instances (Instances))
 	(instances.SetMaterialMacro "!textures/hv/materials/hi-rez/" )
 	(instances.LoadMaterialArray "#m/" 1024)
+	
+	(IArrayFonts fonts (ArrayFonts))
+	
+	// Protocol says we define fonts roughly in order of size
+	(fonts.LoadFont "!textures/fonts/Tahoma-192/")
+	
+	(Int32 idDevFont)
+	(fonts.LoadFont "!textures/fonts/Courier New-15/" -> idDevFont)
+	(fonts.MarkDevFont idDevFont)
 )

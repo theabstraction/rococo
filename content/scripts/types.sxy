@@ -29,10 +29,7 @@
 (alias LightSpec Rococo.LightSpec)
 
 (struct QuadColours
-	(Int32 a)
-	(Int32 b)
-	(Int32 c)
-	(Int32 d)
+	(Int32 a b c d)
 )
 (alias QuadColours Rococo.QuadColours)
 
@@ -45,17 +42,12 @@
 (alias QuadVertices Rococo.QuadVertices)
 
 (struct VertexTriangle
-	(Rococo.ObjectVertex a)
-	(Rococo.ObjectVertex b)
-	(Rococo.ObjectVertex c)
+	(Rococo.ObjectVertex a b c)
 )
 (alias VertexTriangle Rococo.VertexTriangle)
 
 (struct AAB2d
-	(Float32 left)
-	(Float32 bottom)
-	(Float32 right)
-	(Float32 top)
+	(Float32 left bottom right top)
 )
 (alias AAB2d Rococo.AAB2d)
 
@@ -84,9 +76,7 @@
 
 (struct SampleStateDef
 	(Int32 method)
-	(Int32 u)
-	(Int32 v)
-	(Int32 w)
+	(Int32 u v w)
 	(Sys.Maths.Vec4 borderColour)
 )
 (alias SampleStateDef Rococo.SampleStateDef)
@@ -95,4 +85,9 @@
 	(Int32 dummy)
 )
 (alias NewPuppetDesc Rococo.Puppet.NewPuppetDesc)
+
+(struct FontMetrics
+	(Int32 ascent descent height internalLeading italic weight)
+)
+(alias FontMetrics Rococo.Graphics.FontMetrics)
 

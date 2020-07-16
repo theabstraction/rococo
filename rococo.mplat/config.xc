@@ -25,6 +25,7 @@
 (primitive Kilograms Sys.SI.Kilograms Kilograms)
 (primitive RGBAb Int32 RGBAb)
 (primitive IdPuppet Int64 ID_PUPPET)
+(primitive IdFont Int32 ID_FONT)
 
 (primitive Pointer Pointer uintptr_t)
 (primitive IdMesh Int32 ID_MESH)
@@ -50,6 +51,7 @@
 (struct Triangle Sys.Maths.Triangle Triangle)
 (struct Triangle2d Sys.Maths.Triangle2d Triangle2d)
 (struct RGBA Sys.Maths.Vec4 RGBA)
+(struct FontMetrics Rococo.Graphics.FontMetrics Rococo.Graphics.FontMetrics)
 
 (primitive MaterialId Float32 MaterialId)
 (primitive MaterialCategory Int32 Rococo.Graphics.MaterialCategory)
