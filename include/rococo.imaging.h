@@ -23,8 +23,8 @@ namespace Rococo
 		bool DecompressJPeg(IImageLoadEvents& loadEvents, const unsigned char* sourceBuffer, size_t dataLengthBytes);
 		bool DecompressTiff(IImageLoadEvents& loadEvents, const unsigned char* sourceBuffer, size_t dataLengthBytes);
 
-      void SetTiffAllocator(IAllocator* _allocator);
-      void SetJpegAllocator(IAllocator* _allocator);
+		void SetTiffAllocator(IAllocator* _allocator);
+		void SetJpegAllocator(IAllocator* _allocator);
 	}
 }
 

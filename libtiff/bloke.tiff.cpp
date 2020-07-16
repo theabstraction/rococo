@@ -364,16 +364,19 @@ namespace
 	public:
 		ImageWriter(const char* _filename) : filename(_filename)
 		{
-			typedef void(*TIFFErrorHandlerExt)(thandle_t, const char*, const char*, va_list);
-			f = fopen(_filename, "wb");
+			auto err = fopen_s(&f, _filename, "wb");
+			if (err)
+			{
+				Throw(0, "Could not open %s: %s", filename, strerror(err));
+			}
 		}
 
 		~ImageWriter()
 		{
-			fclose(f);
+			if (f) fclose(f);
 		}
 
-		bool Write(const uint8* grayscalePixels, int32 width, int32 height)
+		bool Write(const uint8* grayscalePixels, int32 width, int32 height, char* errorBuffer, size_t errorCapacity)
 		{
 			ImageWriter::errorBuffer = errorBuffer;
 			ImageWriter::errorCapacity = errorCapacity;
@@ -460,7 +463,12 @@ namespace Rococo
 		void SaveAsTiff(const uint8* grayScale, const Vec2i& span, const char* filename)
 		{
 			ImageWriter writer(filename);
-			writer.Write(grayScale, span.x, span.y);
+
+			char errorBuffer[1024];
+			if (!writer.Write(grayScale, span.x, span.y, errorBuffer, sizeof(errorBuffer)))
+			{
+				Throw(0, "Error writing %s: %s", filename, errorBuffer);
+			}
 		}
 	}
 }
