@@ -331,6 +331,18 @@ namespace Rococo
 		EWindowCursor_BottomRightDrag
 	};
 
+	struct TextureLoadData
+	{
+		const wchar_t* filename;
+		const uint8* pData;
+		size_t nBytes;
+	};
+
+	ROCOCOAPI ITextureLoadEnumerator
+	{
+		virtual void ForEachElement(IEventCallback<TextureLoadData> & callback, bool readData) = 0;
+	};
+
 	ROCOCOAPI IRenderer
 	{
 	  virtual void AddOverlay(int zorder, IUIOverlay* overlay) = 0;
@@ -369,6 +381,7 @@ namespace Rococo
 	  virtual void SyncCubeTexture(int32 XMaxFace, int32 XMinFace, int32 YMaxFace, int32 YMinFace, int32 ZMaxFace, int32 ZMinFace) = 0;
 	  virtual void SwitchToWindowMode() = 0;
 	  virtual IMathsVenue* TextureVenue() = 0;
+	  virtual ID_TEXTURE LoadAlphaTextureArray(cstr uniqueName, Vec2i span, int nElements, ITextureLoadEnumerator& enumerator) = 0;
 	  virtual void UpdateMesh(ID_SYS_MESH rendererId, const ObjectVertex* vertices, uint32 nVertices) = 0;
 	  virtual void UpdatePixelShader(cstr pingPath) = 0;
 	  virtual void UpdateVertexShader(cstr pingPath) = 0;

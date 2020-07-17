@@ -25,6 +25,7 @@ struct ArrayFont
 	ArrayFont() {}
 	FontMetrics metrics;
 	ID_TEXTURE arrayTextureId;
+	WideFilePath sysPath;
 	
 	std::unordered_map<char32_t, GlyphSpec> glyphs;
 	enum { FONT_NAME_CAPACITY = 64 };
@@ -40,15 +41,77 @@ inline ObjectStub* InterfaceToInstance(InterfacePointer i)
 
 cstr GetLastFolder(const fstring& pingPath)
 {
-	for (size_t i = pingPath.length - 1; i >= 0; i--)
+	for (size_t i = pingPath.length - 2; i >= 0; i--)
 	{
 		if (pingPath.buffer[i] == '/')
 		{
-			return pingPath.buffer + i;
+			return pingPath.buffer + i + 1;
 		}
 	}
 
 	return nullptr;
+}
+
+void LoadImagesIntoArray(ArrayFont& font, IRenderer& renderer, IInstallation& installation)
+{
+	using namespace Rococo::IO;
+
+	struct : ITextureLoadEnumerator
+	{
+		const ArrayFont* font;
+		IInstallation* installation;
+		AutoFree<IExpandingBuffer> buffer{ CreateExpandingBuffer(128 * 1024) };
+		void ForEachElement(IEventCallback<TextureLoadData>& callback, bool readData) override
+		{
+			struct : IEventCallback<FileItemData>
+			{
+				IEventCallback<TextureLoadData>* callback;
+				IInstallation* installation;
+				IExpandingBuffer* buffer;
+
+				void OnEvent(FileItemData& data) override
+				{
+					if (!data.isDirectory && EndsWith(data.itemRelContainer, L".tiff"))
+					{
+						if (buffer)
+						{
+							U8FilePath pingPath;
+							installation->ConvertSysPathToPingPath(data.fullPath, pingPath.buf, pingPath.CAPACITY);
+							installation->LoadResource(pingPath, *buffer, 4 * 1024 * 1024);
+
+							TextureLoadData atld;
+							atld.filename = data.fullPath;
+							atld.nBytes = buffer->Length();
+							atld.pData = buffer->GetData();
+							callback->OnEvent(atld);
+							buffer->Resize(0);
+						}
+						else
+						{
+							TextureLoadData atld;
+							atld.filename = data.fullPath;
+							atld.nBytes = 0;
+							atld.pData = nullptr;
+							callback->OnEvent(atld);
+						}
+					}
+				}
+			} routeToRenderer;
+
+			routeToRenderer.callback = &callback;
+			routeToRenderer.installation = installation;
+			routeToRenderer.buffer = readData ? (IExpandingBuffer*) buffer : nullptr;
+
+			IO::ForEachFileInDirectory(font->sysPath, routeToRenderer, false);
+		}
+	} enumerator;
+
+	enumerator.font = &font;
+	enumerator.installation = &installation;
+
+	Vec2i span{ font.metrics.imgWidth, font.metrics.imgWidth };
+
+	font.arrayTextureId = renderer.LoadAlphaTextureArray(font.fontName, span, (int32) font.glyphs.size(), enumerator);
 }
 
 struct ArrayFonts : public IArrayFontsSupervisor, public IEventCallback<ScriptCompileArgs>
@@ -73,11 +136,6 @@ struct ArrayFonts : public IArrayFontsSupervisor, public IEventCallback<ScriptCo
 	void Free() override
 	{
 		delete this;
-	}
-
-	void LoadImagesIntoArray(ArrayFont& font)
-	{
-
 	}
 
 	void AddGlyph(char32_t charCode, cstr filename, int32 a, uint32 b, int32 c)
@@ -164,10 +222,24 @@ struct ArrayFonts : public IArrayFontsSupervisor, public IEventCallback<ScriptCo
 			Throw(0, "ArrayFonts.LoadFont '%s' - folder name must end with /", pingPathToFolder.buffer);
 		}
 
+		WideFilePath sysPath;
+		installation.ConvertPingPathToSysPath(pingPathToFolder, sysPath.buf, sysPath.CAPACITY);
+
+		// Stop duplication of fonts, return existing id
+		for (int32 i = 0; i < fonts.size(); ++i)
+		{
+			if (Eq(fonts[i].sysPath, sysPath))
+			{
+				return ID_FONT{ i };
+			}
+		}
+
 		ID_FONT id{ (int32) fonts.size() };
 		fonts.push_back(ArrayFont{});
 
 		auto& f = fonts.back();
+
+		f.sysPath = sysPath;
 
 		cstr container = GetLastFolder(pingPathToFolder);
 
@@ -185,7 +257,7 @@ struct ArrayFonts : public IArrayFontsSupervisor, public IEventCallback<ScriptCo
 		}
 
 		SafeFormat(f.fontName, ArrayFont::FONT_NAME_CAPACITY, "%s", container);
-		f.fontName[strlen(f.fontName)] = 0;
+		f.fontName[strlen(f.fontName)-1] = 0;
 
 		U8FilePath fontScript;
 		SafeFormat(fontScript.buf, fontScript.CAPACITY, "%sdesc.sxy", pingPathToFolder.buffer);
@@ -193,7 +265,7 @@ struct ArrayFonts : public IArrayFontsSupervisor, public IEventCallback<ScriptCo
 		try
 		{
 			utils.RunEnvironmentScript(*this, fontScript, false);
-			LoadImagesIntoArray(f);
+			LoadImagesIntoArray(f, renderer, installation);
 			return id;
 		}
 		catch (IException&)

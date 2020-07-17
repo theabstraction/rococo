@@ -228,7 +228,7 @@ void GenerateLogFont(cstr targetFolder, const LOGFONT& f)
 	fprintf_s(fp, "(' #file.type rococo.fontdef.sxy)\n");
 
 	fprintf_s(fp, "(struct FontMetrics\n");
-	fprintf_s(fp, "\t(Int32 ascent descent height internalLeading italic weight)\n");
+	fprintf_s(fp, "\t(Int32 ascent descent height internalLeading italic weight imgWidth imgHeight)\n");
 	fprintf_s(fp, ")\n");
 	fprintf_s(fp, "(alias FontMetrics Rococo.Graphics.FontMetrics)\n");
 	fprintf_s(fp, "(using Rococo.Graphics)\n");
@@ -243,6 +243,8 @@ void GenerateLogFont(cstr targetFolder, const LOGFONT& f)
 	fprintf_s(fp, "\t(metrics.italic = %d)\n", tm.tmItalic);
 	fprintf_s(fp, "\t(metrics.weight = %d)\n", tm.tmWeight);
 	fprintf_s(fp, "\t(metrics.internalLeading = %d)\n", tm.tmInternalLeading);
+	fprintf_s(fp, "\t(metrics.imgWidth = %d)\n", txWidth);
+	fprintf_s(fp, "\t(metrics.imgHeight = %d)\n", txHeight);
 	fprintf_s(fp, "\t(DeclareFontMetrics metrics)\n\n");
 	
 	fprintf_s(fp, "\t // (AddGlyph <ascii> <image-file> <A> <B> <C>)\n");

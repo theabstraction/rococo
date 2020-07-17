@@ -71,6 +71,8 @@ namespace Rococo
 			int32 internalLeading; 
 			int32 italic; 
 			int32 weight;
+			int32 imgWidth;
+			int32 imgHeight;
 		};
 	}
 

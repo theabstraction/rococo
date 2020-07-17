@@ -150,8 +150,10 @@ namespace ANON
 
    struct DX11TextureArray : public ITextureArray
    {
-      DX11::TextureBind tb;
+	   DX11::TextureBind tb = { 0 };
+	  DXGI_FORMAT format = DXGI_FORMAT_NV11;
       int32 width{ 0 };
+	  int32 height{ 0 };
       ID3D11Device& device;
       ID3D11DeviceContext& dc;
 
@@ -213,11 +215,19 @@ namespace ANON
          count++;
       }
 
-      virtual void ResetWidth(int32 width)
+      void ResetWidth(int32 width)
       {
          Clear();
          this->width = width;
+		 this->height = width;
       }
+
+	  void ResetWidth(int32 width, int32 height)
+	  {
+		  Clear();
+		  this->width = width;
+		  this->height = height;
+	  }
 
 	  void Resize(size_t nElements)
 	  {
@@ -230,10 +240,11 @@ namespace ANON
          if (width > 0 && tb.texture == nullptr)
          {
             arrayCapacity = count;
+			format = DXGI_FORMAT_R8G8B8A8_UNORM;
 
             D3D11_TEXTURE2D_DESC colourSpriteArray;
             colourSpriteArray.Width = width;
-            colourSpriteArray.Height = width;
+            colourSpriteArray.Height = height;
             colourSpriteArray.MipLevels = 1;
             colourSpriteArray.ArraySize = (UINT)arrayCapacity;
             colourSpriteArray.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -248,20 +259,67 @@ namespace ANON
 
          if (width > 0)
          {
-            UINT subresourceIndex = D3D11CalcSubresource(0, (UINT)index, 1);
-            Vec2i span = Span(targetLocation);
-            D3D11_BOX box;
-            box.left = targetLocation.left;
-            box.right = targetLocation.right;
-            box.back = 1;
-            box.front = 0;
-            box.top = targetLocation.top;
-            box.bottom = targetLocation.bottom;
+			if (format != DXGI_FORMAT_R8G8B8A8_UNORM)
+			{
+				Throw(0, "DX11TextureArray::format is not RGBA but image passed was RGBA");
+			}
 
-            UINT srcDepth = span.x * span.y * sizeof(RGBAb);
-            dc.UpdateSubresource(tb.texture, subresourceIndex, &box, pixels, span.x * sizeof(RGBAb), srcDepth);
+			UINT subresourceIndex = D3D11CalcSubresource(0, (UINT)index, 1);
+			Vec2i span = Span(targetLocation);
+			D3D11_BOX box;
+			box.left = targetLocation.left;
+			box.right = targetLocation.right;
+			box.back = 1;
+			box.front = 0;
+			box.top = targetLocation.top;
+			box.bottom = targetLocation.bottom;
+
+			UINT srcDepth = span.x * span.y * sizeof(RGBAb);
+			dc.UpdateSubresource(tb.texture, subresourceIndex, &box, pixels, span.x * sizeof(RGBAb), srcDepth);
          }
       }
+
+	  virtual void WriteSubImage(size_t index, const uint8* grayScalePixels, Vec2i span)
+	  {
+		  if (width > 0 && tb.texture == nullptr)
+		  {
+			  arrayCapacity = count;
+
+			  D3D11_TEXTURE2D_DESC alphArray;
+			  alphArray.Width = width;
+			  alphArray.Height = height;
+			  alphArray.MipLevels = 1;
+			  alphArray.ArraySize = (UINT)arrayCapacity;
+			  alphArray.Format = DXGI_FORMAT_A8_UNORM;
+			  alphArray.SampleDesc.Count = 1;
+			  alphArray.SampleDesc.Quality = 0;
+			  alphArray.Usage = D3D11_USAGE_DEFAULT;
+			  alphArray.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+			  alphArray.CPUAccessFlags = 0;
+			  alphArray.MiscFlags = 0;
+			  VALIDATEDX11(device.CreateTexture2D(&alphArray, nullptr, &tb.texture));
+		  }
+
+		  if (width > 0)
+		  {
+			  if (format != DXGI_FORMAT_A8_UNORM)
+			  {
+				  Throw(0, "DX11TextureArray::format is not A8 but image passed was A8");
+			  }
+
+			  UINT subresourceIndex = D3D11CalcSubresource(0, (UINT)index, 1);
+			  D3D11_BOX box;
+			  box.left = 0;
+			  box.right = 1;
+			  box.back = 1;
+			  box.front = 0;
+			  box.top = 0;
+			  box.bottom = 1;
+
+			  UINT srcDepth = span.x * span.y * sizeof(uint8);
+			  dc.UpdateSubresource(tb.texture, subresourceIndex, &box, grayScalePixels, span.x * sizeof(uint8), srcDepth);
+		  }
+	  }
 
       virtual int32 MaxWidth() const
       {
@@ -329,6 +387,8 @@ namespace ANON
 	   IInstallation& installation;
 	   int64 trianglesThisFrame = 0;
 	   int64 entitiesThisFrame = 0;
+	   std::unordered_map<ID_TEXTURE, DX11TextureArray*, ID_TEXTURE> genericTextureArray;
+	   std::unordered_map<std::string, ID_TEXTURE> nameToGenericTextureId;
 
 	   DX11TextureArray spriteArray;
 	   DX11TextureArray materialArray;
@@ -440,9 +500,80 @@ namespace ANON
 	   AutoFree<IExpandingBuffer> scratchBuffer;
 	   DX11::TextureLoader textureLoader;
 
-	   virtual void Load(cstr name, IEventCallback<CompressedTextureBuffer>& onLoad)
+	   void Load(cstr name, IEventCallback<CompressedTextureBuffer>& onLoad) override
 	   {
 		   StandardLoadFromCompressedTextureBuffer(name, onLoad, installation, *scratchBuffer);
+	   }
+
+	   ID_TEXTURE LoadAlphaTextureArray(cstr uniqueName, Vec2i span, int32 nElements, ITextureLoadEnumerator& enumerator) override
+	   {
+		   auto i = nameToGenericTextureId.find(uniqueName);
+		   if (i != nameToGenericTextureId.end()) return i->second;
+		  
+		   DX11TextureArray* array = new DX11TextureArray(device, dc);
+
+		   try
+		   {
+			   array->ResetWidth(span.x, span.y);
+			   array->Resize(nElements);
+
+			   struct : IEventCallback<TextureLoadData>
+			   {
+				   int index = 0;
+				   DX11TextureArray* array;
+				   void OnEvent(TextureLoadData& data) override
+				   {
+					   struct : Rococo::Imaging::IImageLoadEvents
+					   {
+						   const wchar_t* filename;
+						   DX11TextureArray* array;
+						   int32 index;
+
+						   void OnError(const char* message) override
+						   {
+							   Throw(0, "IRenderer.LoadAlphaTextureArray(...) - Error loading\n %S", filename);
+						   }
+
+						   void OnRGBAImage(const Vec2i& span, const RGBAb* data) override
+						   {
+							   Throw(0, "IRenderer.LoadAlphaTextureArray(...) - Tiff was RGBA.\n %S", filename);
+						   }
+
+						   void OnAlphaImage(const Vec2i& span, const uint8* data) override
+						   {
+							   if (array->width != span.x || array->height != span.y)
+							   {
+								   Throw(0, "IRenderer.LoadAlphaTextureArray(...) - Tiff was of incorrect span.\n % S", filename);
+							   }
+							   array->WriteSubImage(index, data, span);
+						   }
+					   } toArray;
+					   toArray.filename = data.filename;
+					   toArray.array = array;
+					   toArray.index = index;
+
+					   if (EndsWith(data.filename, L".tff"))
+					   {
+						   Rococo::Imaging::DecompressTiff(toArray, data.pData, data.nBytes);
+						   index++;
+					   }
+				   }
+			   } insertImageIntoArray;
+
+			   insertImageIntoArray.array = array;
+
+			   enumerator.ForEachElement(insertImageIntoArray, true);
+
+			   auto id = ID_TEXTURE{ (size_t)array | 0x8000000000000000LL };
+			   nameToGenericTextureId[uniqueName] = id;
+			   genericTextureArray[id] = array;
+			   return id;
+		   }
+		   catch (IException&)
+		   {
+			   delete array;
+			   throw;
+		   }
 	   }
 
 	   std::unordered_map<std::string, ID_PIXEL_SHADER> nameToPixelShader;
@@ -669,6 +800,12 @@ namespace ANON
 		   {
 			   t.shaderView->Release();
 			   t.texture->Release();
+		   }
+
+
+		   for (auto& t : genericTextureArray)
+		   {
+			   delete t.second;
 		   }
 	   }
 
