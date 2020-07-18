@@ -13,23 +13,23 @@ using namespace Rococo::Script;
 
 struct GlyphSpec
 {
-	char filename[12];
+	char filename[16];
 	int32 a;
 	uint32 b;
 	int32 c;
-	int32 textureIndex;
+	mutable int32 textureIndex;
 };
 
 struct ArrayFont
 {
 	ArrayFont() {}
-	FontMetrics metrics;
-	ID_TEXTURE arrayTextureId;
-	WideFilePath sysPath;
+	FontMetrics metrics { 0 };
+	ID_TEXTURE arrayTextureId { 0 };
+	U8FilePath pingPath = { "",'/' };
 	
 	std::unordered_map<char32_t, GlyphSpec> glyphs;
 	enum { FONT_NAME_CAPACITY = 64 };
-	char fontName[FONT_NAME_CAPACITY];
+	char fontName[FONT_NAME_CAPACITY] = "";
 };
 
 inline ObjectStub* InterfaceToInstance(InterfacePointer i)
@@ -41,7 +41,7 @@ inline ObjectStub* InterfaceToInstance(InterfacePointer i)
 
 cstr GetLastFolder(const fstring& pingPath)
 {
-	for (size_t i = pingPath.length - 2; i >= 0; i--)
+	for (int32 i = pingPath.length - 2; i >= 0; i--)
 	{
 		if (pingPath.buffer[i] == '/')
 		{
@@ -52,7 +52,7 @@ cstr GetLastFolder(const fstring& pingPath)
 	return nullptr;
 }
 
-void LoadImagesIntoArray(ArrayFont& font, IRenderer& renderer, IInstallation& installation)
+ID_TEXTURE LoadImagesIntoArray(const ArrayFont& font, IRenderer& renderer, IInstallation& installation)
 {
 	using namespace Rococo::IO;
 
@@ -63,58 +63,45 @@ void LoadImagesIntoArray(ArrayFont& font, IRenderer& renderer, IInstallation& in
 		AutoFree<IExpandingBuffer> buffer{ CreateExpandingBuffer(128 * 1024) };
 		void ForEachElement(IEventCallback<TextureLoadData>& callback, bool readData) override
 		{
-			struct : IEventCallback<FileItemData>
+			int index = 0;
+			for (auto& g : font->glyphs)
 			{
-				IEventCallback<TextureLoadData>* callback;
-				IInstallation* installation;
-				IExpandingBuffer* buffer;
-
-				void OnEvent(FileItemData& data) override
+				// The order with which we enumerate will determine the index of the texture slices for each glyph
+				if (g.second.textureIndex < 0)
 				{
-					if (!data.isDirectory && EndsWith(data.itemRelContainer, L".tiff"))
-					{
-						if (buffer)
-						{
-							U8FilePath pingPath;
-							installation->ConvertSysPathToPingPath(data.fullPath, pingPath.buf, pingPath.CAPACITY);
-							installation->LoadResource(pingPath, *buffer, 4 * 1024 * 1024);
-
-							TextureLoadData atld;
-							atld.filename = data.fullPath;
-							atld.nBytes = buffer->Length();
-							atld.pData = buffer->GetData();
-							callback->OnEvent(atld);
-							buffer->Resize(0);
-						}
-						else
-						{
-							TextureLoadData atld;
-							atld.filename = data.fullPath;
-							atld.nBytes = 0;
-							atld.pData = nullptr;
-							callback->OnEvent(atld);
-						}
-					}
+					g.second.textureIndex = index;
 				}
-			} routeToRenderer;
 
-			routeToRenderer.callback = &callback;
-			routeToRenderer.installation = installation;
-			routeToRenderer.buffer = readData ? (IExpandingBuffer*) buffer : nullptr;
+				index++;
 
-			IO::ForEachFileInDirectory(font->sysPath, routeToRenderer, false);
+				U8FilePath imgPath;
+				SafeFormat(imgPath.buf, imgPath.CAPACITY, "%s%s", font->pingPath.buf, g.second.filename);
+
+				TextureLoadData tld = { 0 };
+				tld.filename = imgPath;
+
+				if (readData)
+				{
+					buffer->Resize(0);
+					installation->LoadResource(imgPath, *buffer, 128_kilobytes);
+					tld.nBytes = buffer->Length();
+					tld.pData = buffer->GetData();
+				}
+
+				callback.OnEvent(tld);
+			}
 		}
 	} enumerator;
 
 	enumerator.font = &font;
 	enumerator.installation = &installation;
 
-	Vec2i span{ font.metrics.imgWidth, font.metrics.imgWidth };
+	Vec2i span{ font.metrics.imgWidth, font.metrics.imgHeight };
 
-	font.arrayTextureId = renderer.LoadAlphaTextureArray(font.fontName, span, (int32) font.glyphs.size(), enumerator);
+	return renderer.LoadAlphaTextureArray(font.fontName, span, (int32) font.glyphs.size(), enumerator);
 }
 
-struct ArrayFonts : public IArrayFontsSupervisor, public IEventCallback<ScriptCompileArgs>
+struct ArrayFonts : public IArrayFontsSupervisor, public IEventCallback<ScriptCompileArgs>, public IHQFont
 {
 	ID_FONT devFontId;
 	std::vector<ArrayFont> fonts;
@@ -159,6 +146,50 @@ struct ArrayFonts : public IArrayFontsSupervisor, public IEventCallback<ScriptCo
 		spec.c = c;
 		spec.textureIndex = -1;
 		f.glyphs[charCode] = spec;
+
+		if (!EndsWith(filename, ".tiff"))
+		{
+			Throw(0, "ArrayFonts.AddGlyph: charCode %d: filename must have extension .tiff: %s", filename);
+		}
+	}
+
+	enum { DEFAULT_CHAR = U'?' };
+
+	GlyphData GetGlyphData(ID_FONT id, char c) const override
+	{
+		// This function is called by the renderer which calls GetFontHeight first
+		// Since GetFontHeight has validated the id, we do not have to test the id here
+		// Not testing the id or fonts.size() speeds the function a little
+
+		int index = id.value % fonts.size();
+		auto& g = fonts[index].glyphs;
+
+		auto i = g.find(c);
+		if (i == g.end())
+		{
+			i = g.find(DEFAULT_CHAR);
+		}
+
+		auto& glyph = i->second;
+		return GlyphData{ glyph.textureIndex, glyph.a, glyph.b, glyph.c };
+	}
+
+	Vec2i GetFontCellSpan(ID_FONT id) const override
+	{
+		if (fonts.empty()) Throw(0, "ArrayFonts.GetFontHeight -> no fonts loaded");
+		if (id.value < 0)  Throw(0, "ArrayFonts.GetFontHeight -> -ve font Id");
+		int index = id.value % fonts.size();
+		return { fonts[index].metrics.imgWidth, fonts[index].metrics.height };
+	}
+
+	bool IsFontIdMapped(ID_FONT id) const override
+	{
+		return !fonts.empty() && id.value >= 0;
+	}
+
+	IHQFont* HQ() override
+	{
+		return this;
 	}
 
 	void OnEvent(ScriptCompileArgs& args) override
@@ -210,62 +241,84 @@ struct ArrayFonts : public IArrayFontsSupervisor, public IEventCallback<ScriptCo
 			"AddGlyph (Int32 charCode)(IString filename)(Int32 a)(Int32 b)(Int32 c)->", true);
 	}
 
-	ID_FONT LoadFont(const fstring& pingPathToFolder) override
+	ID_FONT FindFontByPingPath(const fstring& pingPathToFolder)
 	{
-		if (pingPathToFolder.length == 0 || pingPathToFolder[0] != '!')
+		if (pingPathToFolder.length < 2 || pingPathToFolder[0] != '!')
 		{
-			Throw(0, "ArrayFonts.LoadFont '%s' - folder name must start with !", pingPathToFolder.buffer);
+			Throw(0, "ArrayFonts.FindFontByPingPath '%s' - folder name must start with !", pingPathToFolder.buffer);
 		}
 
 		if (!EndsWith(pingPathToFolder, "/"))
 		{
-			Throw(0, "ArrayFonts.LoadFont '%s' - folder name must end with /", pingPathToFolder.buffer);
+			Throw(0, "ArrayFonts.FindFontByPingPath '%s' - folder name must end with /", pingPathToFolder.buffer);
 		}
 
-		WideFilePath sysPath;
-		installation.ConvertPingPathToSysPath(pingPathToFolder, sysPath.buf, sysPath.CAPACITY);
-
-		// Stop duplication of fonts, return existing id
 		for (int32 i = 0; i < fonts.size(); ++i)
 		{
-			if (Eq(fonts[i].sysPath, sysPath))
+			if (Eq(fonts[i].pingPath, pingPathToFolder))
 			{
 				return ID_FONT{ i };
 			}
 		}
 
+		return ID_FONT::Invalid();
+	}
+
+	// Use rococo.font_array_gen to generate the images and script file from a Windows font
+	// ...and make sure the font owner gives permission to share the font!
+	ID_FONT LoadFont(const fstring& pingPathToFolder) override
+	{
+		ID_FONT idOfExistingFont = FindFontByPingPath(pingPathToFolder);
+		if (idOfExistingFont) return idOfExistingFont;
+
+		// It should be obvious here ID_FONT zero corresponds to first element of fonts array and so on
 		ID_FONT id{ (int32) fonts.size() };
 		fonts.push_back(ArrayFont{});
 
-		auto& f = fonts.back();
-
-		f.sysPath = sysPath;
-
-		cstr container = GetLastFolder(pingPathToFolder);
-
-		if (container == nullptr)
-		{
-			fonts.pop_back();
-			Throw(0, "ArrayFonts.LoadFont: Could not ascertain the final folder name in the ping path %s", pingPathToFolder.buffer);
-		}
-
-		size_t startLen = container - pingPathToFolder.buffer;
-		if (pingPathToFolder.length - startLen > ArrayFont::FONT_NAME_CAPACITY)
-		{
-			fonts.pop_back();
-			Throw(0, "ArrayFonts.LoadFont: ping path final folder name too long: %s", pingPathToFolder.buffer);
-		}
-
-		SafeFormat(f.fontName, ArrayFont::FONT_NAME_CAPACITY, "%s", container);
-		f.fontName[strlen(f.fontName)-1] = 0;
-
-		U8FilePath fontScript;
-		SafeFormat(fontScript.buf, fontScript.CAPACITY, "%sdesc.sxy", pingPathToFolder.buffer);
-
 		try
 		{
+			auto& f = fonts.back();
+
+			SafeFormat(f.pingPath.buf, f.pingPath.CAPACITY, "%s", (cstr) pingPathToFolder);
+
+			cstr container = GetLastFolder(pingPathToFolder);
+
+			if (container == nullptr)
+			{
+				Throw(0, "ArrayFonts.LoadFont: Could not ascertain the final folder name in the ping path %s", pingPathToFolder.buffer);
+			}
+
+			size_t startLen = container - pingPathToFolder.buffer;
+			if (pingPathToFolder.length - startLen > ArrayFont::FONT_NAME_CAPACITY)
+			{
+				Throw(0, "ArrayFonts.LoadFont: ping path final folder name too long: %s", pingPathToFolder.buffer);
+			}
+
+			SafeFormat(f.fontName, ArrayFont::FONT_NAME_CAPACITY, "%s", container);
+			f.fontName[strlen(f.fontName)-1] = 0; // Eliminate the trailing slash
+
+			U8FilePath fontScript;
+			SafeFormat(fontScript.buf, fontScript.CAPACITY, "%sdesc.sxy", pingPathToFolder.buffer);
+
+			// The fontScript will issue callbacks to AddGlyph and DeclareFontMetrics (see above)
 			utils.RunEnvironmentScript(*this, fontScript, false);
-			LoadImagesIntoArray(f, renderer, installation);
+
+			if (f.glyphs.size() == 0)
+			{
+				Throw(0, "The font script did not add glyphs");
+			}
+
+			if (f.metrics.height == 0)
+			{
+				Throw(0, "The font script did not set the font height");
+			}
+
+			if (f.glyphs.find(DEFAULT_CHAR) == f.glyphs.end())
+			{
+				Throw(0, "No default character '%c' in the font", DEFAULT_CHAR);
+			}
+
+			f.arrayTextureId = LoadImagesIntoArray(f, renderer, installation);
 			return id;
 		}
 		catch (IException&)
@@ -283,21 +336,17 @@ struct ArrayFonts : public IArrayFontsSupervisor, public IEventCallback<ScriptCo
 	void GetFontMetrics(ID_FONT fontId, FontMetrics& metrics) override
 	{
 		if (fonts.empty()) Throw(0, "ArrayFonts.GetFontMetrics: No fonts are loaded");
+		if (fontId.value < 0) Throw(0, "ArrayFonts.GetFontMetrics: -ve font id");
 
 		int32 index = fontId.value % fonts.size();
-
-		if (index < 0) Throw(0, "ArrayFonts.GetFontMetrics: -ve font index");
 		metrics = fonts[index].metrics;
 	}
 
 	void AppendFontName(ID_FONT fontId, IStringPopulator& sb) override
 	{
 		if (fonts.empty()) Throw(0, "ArrayFonts.AppendFontName: No fonts are loaded");
-
+		if (fontId.value < 0) Throw(0, "ArrayFonts.AppendFontName: -ve font id");
 		int32 index = fontId.value % fonts.size();
-
-		if (index < 0) Throw(0, "ArrayFonts.AppendFontName: -ve font index");
-
 		sb.Populate(fonts[index].fontName);
 	}
 
@@ -308,8 +357,15 @@ struct ArrayFonts : public IArrayFontsSupervisor, public IEventCallback<ScriptCo
 
 	void MarkDevFont(ID_FONT id) override
 	{
-		if (id.value < 0) Throw(0, "ArrayFonts.MarkDevFont: -ve font id");
 		devFontId = id;
+	}
+
+	void SetCurrentFont(ID_FONT id) override
+	{
+		if (id.value < 0) Throw(0, "ArrayFonts.SetCurrentFont: -ve font id");
+		if (fonts.empty()) Throw(0, "ArrayFonts.SetCurrentFont: No fonts have been loaded");
+		int32 index = id.value % fonts.size();
+		renderer.SetGenericTextureArray(fonts[index].arrayTextureId);
 	}
 };
 

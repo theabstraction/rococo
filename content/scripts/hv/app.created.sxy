@@ -27,4 +27,6 @@
 	(Int32 idDevFont)
 	(fonts.LoadFont "!textures/fonts/Courier New-15/" -> idDevFont)
 	(fonts.MarkDevFont idDevFont)
+
+	(fonts.SetCurrentFont 0)
 )

@@ -90,3 +90,16 @@ namespace Rococo { namespace Puppet {
 		int32 dummy;
 	};
 }}
+namespace Rococo { namespace Graphics { 
+	struct FontMetrics
+	{
+		int32 ascent;
+		int32 descent;
+		int32 height;
+		int32 internalLeading;
+		int32 italic;
+		int32 weight;
+		int32 imgWidth;
+		int32 imgHeight;
+	};
+}}

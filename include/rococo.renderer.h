@@ -119,6 +119,9 @@ namespace Rococo
 		virtual void SetGuiShader(cstr pixelShader) = 0;
 		virtual void SetScissorRect(const Rococo::GuiRectf& rect) = 0;
 		virtual void ClearScissorRect() = 0;
+
+		// Renders text and returns the span. To compute span without rendering, pass alpha zero
+		virtual Vec2i RenderHQText(ID_FONT id, cstr text, Vec2i pos, RGBAb colour) = 0;
 	};
 
 	struct ObjectInstance
@@ -333,7 +336,7 @@ namespace Rococo
 
 	struct TextureLoadData
 	{
-		const wchar_t* filename;
+		cstr filename;
 		const uint8* pData;
 		size_t nBytes;
 	};
@@ -374,6 +377,7 @@ namespace Rococo
 	  virtual void RemoveOverlay(IUIOverlay* overlay) = 0;
 	  virtual void SetCursorBitmap(const Textures::BitmapLocation& sprite, Vec2i hotspotOffset) = 0;
 	  virtual void SetCursorVisibility(bool isVisible) = 0;
+	  virtual void SetGenericTextureArray(ID_TEXTURE id) = 0;
 	  virtual void SetSampler(uint32 index, Samplers::Filter, Samplers::AddressMode u, Samplers::AddressMode v, Samplers::AddressMode w, const RGBA& borderColour) = 0;
 	  virtual void SetShadowCasting(ID_SYS_MESH id, boolean32 isActive) = 0;
 	  virtual void SetSpecialShader(ID_SYS_MESH id, cstr psSpotlightPingPath, cstr psAmbientPingPath, bool alphaBlending) = 0;
@@ -387,6 +391,7 @@ namespace Rococo
 	  virtual void UpdateVertexShader(cstr pingPath) = 0;
 	  virtual Windows::IWindow& Window() = 0;
 	  virtual IMathsVenue* Venue() = 0;
+	  virtual void UseHQFonts(IHQFont* hqFonts) = 0; // Typically initialized from mplat's platform.fonts object
 	  virtual void Free() = 0;
 	};
 

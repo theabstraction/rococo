@@ -28,7 +28,8 @@ namespace Rococo
 {
 	struct Quat;
 
-	ROCOCO_ID(ID_BITMAP, uint64, -1)
+	ROCOCO_ID(ID_BITMAP, uint64, -1);
+	ROCOCO_ID(ID_FONT, int32, -1);
 
 	struct Sphere
 	{
@@ -639,6 +640,20 @@ namespace Rococo
 
 	struct IDirectApp;
 
+	struct GlyphData
+	{
+		int32 index;
+		int32 a;
+		uint32 b;
+		int32 c;
+	};
+
+	ROCOCOAPI IHQFont
+	{
+		virtual bool IsFontIdMapped(ID_FONT id) const = 0;
+		virtual GlyphData GetGlyphData(ID_FONT id, char c) const = 0;
+		virtual Vec2i GetFontCellSpan(ID_FONT id) const = 0;
+	};
 
 	ROCOCOAPI IDirectAppControl
 	{

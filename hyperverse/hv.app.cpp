@@ -68,6 +68,9 @@ namespace HV
 			if (metrics.screenSpan.y >= 256 && metrics.screenSpan.x >= 256)
 			{
 				e.platform.gui.Render(grc);
+
+				grc.RenderHQText(ID_FONT{ 0 }, "Hello World", { 0, 300 }, RGBAb(0, 0, 0, 255));
+				grc.RenderHQText(ID_FONT{ 0 }, "Hello World", { 10, 290 }, RGBAb(255, 255, 255, 255));
 			}
 		}
 

@@ -284,13 +284,14 @@ namespace ANON
 		  if (width > 0 && tb.texture == nullptr)
 		  {
 			  arrayCapacity = count;
+			  format = DXGI_FORMAT_R8_UNORM;
 
 			  D3D11_TEXTURE2D_DESC alphArray;
 			  alphArray.Width = width;
 			  alphArray.Height = height;
 			  alphArray.MipLevels = 1;
 			  alphArray.ArraySize = (UINT)arrayCapacity;
-			  alphArray.Format = DXGI_FORMAT_A8_UNORM;
+			  alphArray.Format = DXGI_FORMAT_R8_UNORM;
 			  alphArray.SampleDesc.Count = 1;
 			  alphArray.SampleDesc.Quality = 0;
 			  alphArray.Usage = D3D11_USAGE_DEFAULT;
@@ -302,7 +303,7 @@ namespace ANON
 
 		  if (width > 0)
 		  {
-			  if (format != DXGI_FORMAT_A8_UNORM)
+			  if (format != DXGI_FORMAT_R8_UNORM)
 			  {
 				  Throw(0, "DX11TextureArray::format is not A8 but image passed was A8");
 			  }
@@ -310,11 +311,11 @@ namespace ANON
 			  UINT subresourceIndex = D3D11CalcSubresource(0, (UINT)index, 1);
 			  D3D11_BOX box;
 			  box.left = 0;
-			  box.right = 1;
+			  box.right = span.x;
 			  box.back = 1;
 			  box.front = 0;
 			  box.top = 0;
-			  box.bottom = 1;
+			  box.bottom = span.y;
 
 			  UINT srcDepth = span.x * span.y * sizeof(uint8);
 			  dc.UpdateSubresource(tb.texture, subresourceIndex, &box, grayScalePixels, span.x * sizeof(uint8), srcDepth);
@@ -448,6 +449,9 @@ namespace ANON
 	   ID_VERTEX_SHADER idGuiVS;
 	   ID_PIXEL_SHADER idGuiPS;
 
+	   ID_VERTEX_SHADER idHQVS;
+	   ID_PIXEL_SHADER idHQPS;
+
 	   ID_VERTEX_SHADER idObjVS;
 	   ID_PIXEL_SHADER idObjPS;
 	   ID_PIXEL_SHADER idLightConePS;
@@ -525,25 +529,25 @@ namespace ANON
 				   {
 					   struct : Rococo::Imaging::IImageLoadEvents
 					   {
-						   const wchar_t* filename;
+						   cstr filename;
 						   DX11TextureArray* array;
 						   int32 index;
 
 						   void OnError(const char* message) override
 						   {
-							   Throw(0, "IRenderer.LoadAlphaTextureArray(...) - Error loading\n %S", filename);
+							   Throw(0, "IRenderer.LoadAlphaTextureArray(...) - Error loading\n %s", filename);
 						   }
 
 						   void OnRGBAImage(const Vec2i& span, const RGBAb* data) override
 						   {
-							   Throw(0, "IRenderer.LoadAlphaTextureArray(...) - Tiff was RGBA.\n %S", filename);
+							   Throw(0, "IRenderer.LoadAlphaTextureArray(...) - Tiff was RGBA.\n %s", filename);
 						   }
 
 						   void OnAlphaImage(const Vec2i& span, const uint8* data) override
 						   {
 							   if (array->width != span.x || array->height != span.y)
 							   {
-								   Throw(0, "IRenderer.LoadAlphaTextureArray(...) - Tiff was of incorrect span.\n % S", filename);
+								   Throw(0, "IRenderer.LoadAlphaTextureArray(...) - Tiff was of incorrect span.\n %s", filename);
 							   }
 							   array->WriteSubImage(index, data, span);
 						   }
@@ -552,7 +556,7 @@ namespace ANON
 					   toArray.array = array;
 					   toArray.index = index;
 
-					   if (EndsWith(data.filename, L".tff"))
+					   if (EndsWith(data.filename, ".tiff"))
 					   {
 						   Rococo::Imaging::DecompressTiff(toArray, data.pData, data.nBytes);
 						   index++;
@@ -576,6 +580,90 @@ namespace ANON
 		   }
 	   }
 
+	   ID_TEXTURE idCurrentGenericTextureArray;
+
+	   void SetGenericTextureArray(ID_TEXTURE id)
+	   {
+		   auto i = genericTextureArray.find(id);
+		   if (i == genericTextureArray.end()) return;
+		  
+		   idCurrentGenericTextureArray = id;
+	   }
+
+	   IHQFont* hqFonts = nullptr;
+
+	   void UseHQFonts(IHQFont* hqFonts)
+	   {
+		   this->hqFonts = hqFonts;
+	   }
+
+	   Vec2i RenderHQText(ID_FONT id, cstr text, Vec2i pos, RGBAb colour) override
+	   {
+		   if (hqFonts == nullptr) Throw(0, "DX11Renderer.RenderHQTest - UseHQFonts not called first");
+		   if (!hqFonts->IsFontIdMapped(id)) return { 0,0 };
+
+		   Vec2i span = hqFonts->GetFontCellSpan(id);
+
+		   GuiRectf R{ (float) pos.x, (float)(pos.y - span.y), (float)pos.x, (float) pos.y };
+
+		   if (colour.alpha > 0)
+		   {
+			   FlushLayer();
+		   }
+
+		   for (cstr p = text; *p != 0; p++)
+		   {
+			   GlyphData g = hqFonts->GetGlyphData(id, *p);
+
+			   /*
+			   struct GuiVertex
+			   {
+				   Vec2 pos;
+				   BaseVertexData vd; // 3 floats
+				   SpriteVertexData sd; // 4 floats
+				   RGBAb colour;
+			   };
+			   */
+
+			   if (colour.alpha > 0)
+			   {
+				   float i = (float)g.index;
+
+				   R.left += g.a;
+				   R.right = R.left + (float) span.x;
+
+				   GuiQuad q
+				   {
+						{ {R.left, R.top},    {{0,0}, 0}, {0, i, 0, 0}, colour},
+						{ {R.right,R.top},    {{1,0}, 0}, {0, i, 0, 0}, colour},
+						{ {R.left, R.bottom}, {{0,1}, 0}, {0, i, 0, 0}, colour},
+						{ {R.right,R.bottom}, {{1,1}, 0}, {0, i, 0, 0}, colour},
+				   };
+
+				   R.left += g.b + g.c;
+
+				   GuiTriangle A{ q.topLeft, q.topRight, q.bottomRight };
+				   GuiTriangle B{ q.bottomRight, q.bottomLeft, q.topLeft };
+				   this->AddTriangle(&A.a);
+				   this->AddTriangle(&B.a);
+			   }
+		   }
+
+		   if (colour.alpha > 0)
+		   {
+			   UseShaders(idHQVS, idHQPS);
+
+			   FlushLayer();
+
+			   if (!UseShaders(idGuiVS, idGuiPS))
+			   {
+				   Throw(0, "Error setting Gui shaders");
+			   }
+		   }
+
+		   return { (int) (R.right - pos.x),  span.y };
+	   }
+
 	   std::unordered_map<std::string, ID_PIXEL_SHADER> nameToPixelShader;
 
 	   std::vector<ParticleVertex> fog;
@@ -593,7 +681,8 @@ namespace ANON
 		   TXUNIT_ENV_MAP = 3,
 		   TXUNIT_SELECT = 4,
 		   TXUNIT_MATERIALS = 6,
-		   TXUNIT_SPRITES = 7
+		   TXUNIT_SPRITES = 7,
+		   TXUNIT_GENERIC_TXARRAY = 8
 	   };
    public:
 	   Windows::IWindow& window;
@@ -649,6 +738,12 @@ namespace ANON
 
 		   installation.LoadResource("!gui.ps", *scratchBuffer, 64_kilobytes);
 		   idGuiPS = CreatePixelShader("!gui.ps", scratchBuffer->GetData(), scratchBuffer->Length());
+
+		   installation.LoadResource("!HQ-font.vs", *scratchBuffer, 64_kilobytes);
+		   idHQVS = CreateGuiVertexShader("!HQ-font.vs", scratchBuffer->GetData(), scratchBuffer->Length());
+
+		   installation.LoadResource("!HQ-font.ps", *scratchBuffer, 64_kilobytes);
+		   idHQPS = CreatePixelShader("!HQ-font.ps", scratchBuffer->GetData(), scratchBuffer->Length());
 
 		   installation.LoadResource("!object.vs", *scratchBuffer, 64_kilobytes);
 		   idObjVS = CreateObjectVertexShader("!object.vs", scratchBuffer->GetData(), scratchBuffer->Length());
@@ -752,6 +847,7 @@ namespace ANON
 		   skyMeshId = CreateSkyMesh(skyboxVertices, sizeof(skyboxVertices) / sizeof(SkyVertex));
 
 		   RGBA red{ 1.0f, 0, 0, 1.0f };
+		   RGBA transparent{ 0.0f, 0, 0, 0.0f };
 
 		   SetSampler(TXUNIT_FONT,	 Filter_Linear, AddressMode_Border, AddressMode_Border, AddressMode_Border, red);
 		   SetSampler(TXUNIT_SHADOW, Filter_Linear, AddressMode_Border, AddressMode_Border, AddressMode_Border, red);
@@ -759,6 +855,7 @@ namespace ANON
 		   SetSampler(TXUNIT_SELECT, Filter_Linear, AddressMode_Wrap, AddressMode_Wrap, AddressMode_Wrap, red);
 		   SetSampler(TXUNIT_MATERIALS, Filter_Linear, AddressMode_Wrap, AddressMode_Wrap, AddressMode_Wrap, red);
 		   SetSampler(TXUNIT_SPRITES,   Filter_Point, AddressMode_Border, AddressMode_Border, AddressMode_Border, red);
+		   SetSampler(TXUNIT_GENERIC_TXARRAY, Filter_Point, AddressMode_Border, AddressMode_Border, AddressMode_Border, transparent);
 
 		   lightConeBuffer = DX11::CreateDynamicVertexBuffer<ObjectVertex>(device, 3);
 	   }
@@ -2702,6 +2799,16 @@ namespace ANON
 
 		   ID3D11ShaderResourceView* spriteviews[1] = { spriteArray.View() };
 		   dc.PSSetShaderResources(TXUNIT_SPRITES, 1, spriteviews);
+
+		   if (idCurrentGenericTextureArray)
+		   {
+			   auto i = genericTextureArray.find(idCurrentGenericTextureArray);
+			   if (i != genericTextureArray.end())
+			   {
+				   ID3D11ShaderResourceView* gtaViews[1] = { i->second->View() };
+				   dc.PSSetShaderResources(TXUNIT_GENERIC_TXARRAY, 1, gtaViews);
+			   }
+		   }
 
 		   dc.PSSetSamplers(0, 16, samplers);
 		   dc.GSSetSamplers(0, 16, samplers);

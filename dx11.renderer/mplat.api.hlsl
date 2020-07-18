@@ -36,6 +36,7 @@ SamplerState envSampler: register(s3);
 SamplerState selectSampler: register(s4);
 SamplerState matSampler: register(s6);
 SamplerState spriteSampler: register(s7);
+SamplerState glyphSampler: register(s8);
 
 Texture2D tx_FontSprite: register(t0);
 Texture2D tx_ShadowMap: register(t2);
@@ -43,6 +44,7 @@ TextureCube tx_cubeMap: register(t3);
 Texture2D tx_SelectedTexture : register(t4);
 Texture2DArray tx_materials: register(t6);
 Texture2DArray tx_BitmapSprite: register(t7);
+Texture2DArray tx_GlyphArray: register(t8);
 
 float4 Transform_Instance_To_World(float4 v)
 {

@@ -1,6 +1,6 @@
 (' #file.type rococo.fontdef.sxy)
 (struct FontMetrics
-	(Int32 ascent descent height internalLeading italic weight)
+	(Int32 ascent descent height internalLeading italic weight imgWidth imgHeight)
 )
 (alias FontMetrics Rococo.Graphics.FontMetrics)
 (using Rococo.Graphics)
@@ -15,6 +15,8 @@
 	(metrics.italic = 0)
 	(metrics.weight = 400)
 	(metrics.internalLeading = 2)
+	(metrics.imgWidth = 9)
+	(metrics.imgHeight = 17)
 	(DeclareFontMetrics metrics)
 
 	 // (AddGlyph <ascii> <image-file> <A> <B> <C>)

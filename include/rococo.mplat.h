@@ -8,7 +8,6 @@ namespace Rococo
 {
    ROCOCO_ID(ID_ENTITY, int64, 0);
    ROCOCO_ID(ID_PUPPET, uint64, 0);
-   ROCOCO_ID(ID_FONT, int32, 0);
 
    struct FileUpdatedEvent : public Rococo::Events::EventArgs
    {
@@ -628,8 +627,9 @@ namespace Rococo
 		struct IScriptSystemFactory;
 	}
 
-	ROCOCOAPI IArrayFontsSupervisor: public IArrayFonts
+	ROCOCOAPI IArrayFontsSupervisor : public IArrayFonts
 	{
+		virtual IHQFont* HQ() = 0;
 		virtual void Free() = 0;
 	};
 

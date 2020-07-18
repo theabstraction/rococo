@@ -20,6 +20,8 @@
 		(AppendFontName (IdFont fontId)(IStringBuilder sb))
 		(DevFont -> (IdFont fontId))
 		(MarkDevFont (IdFont fontId))
+		(FindFontByPingPath (IString pingPathToFolder)->(IdFont fontId))
+		(SetCurrentFont (IdFont fontId))
 	)
 	(factory Rococo.ArrayFonts)
 )

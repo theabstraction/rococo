@@ -364,6 +364,7 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 		*legacySound, *ssFactory, *puppets, *fonts, title
 	};
 
+	platform.renderer.UseHQFonts(fonts->HQ());
 	gui->PostConstruct(&platform);
 	utilities->SetPlatform(platform);
 	messaging->PostCreate(platform);

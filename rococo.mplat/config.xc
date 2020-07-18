@@ -51,7 +51,6 @@
 (struct Triangle Sys.Maths.Triangle Triangle)
 (struct Triangle2d Sys.Maths.Triangle2d Triangle2d)
 (struct RGBA Sys.Maths.Vec4 RGBA)
-(struct FontMetrics Rococo.Graphics.FontMetrics Rococo.Graphics.FontMetrics)
 
 (primitive MaterialId Float32 MaterialId)
 (primitive MaterialCategory Int32 Rococo.Graphics.MaterialCategory)
@@ -150,6 +149,17 @@
 
 (defstruct NewPuppetDesc Rococo.Puppet.NewPuppetDesc Rococo.Puppet.NewPuppetDesc
 	(Int32 dummy)
+)
+
+(defstruct FontMetrics Rococo.Graphics.FontMetrics Rococo.Graphics.FontMetrics
+	(Int32 ascent) 
+	(Int32 descent) 
+	(Int32 height) 
+	(Int32 internalLeading)
+	(Int32 italic)
+	(Int32 weight) 
+	(Int32 imgWidth)
+	(Int32 imgHeight)
 )
 
 //(struct IPuppet Rococo.Puppet.IPuppet Rococo.Puppet.IPuppet)
