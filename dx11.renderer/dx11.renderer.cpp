@@ -580,14 +580,14 @@ namespace ANON
 		   }
 	   }
 
-	   ID_TEXTURE idCurrentGenericTextureArray;
-
 	   void SetGenericTextureArray(ID_TEXTURE id)
 	   {
 		   auto i = genericTextureArray.find(id);
-		   if (i == genericTextureArray.end()) return;
-		  
-		   idCurrentGenericTextureArray = id;
+		   if (i != genericTextureArray.end())
+		   {
+			   ID3D11ShaderResourceView* gtaViews[1] = { i->second->View() };
+			   dc.PSSetShaderResources(TXUNIT_GENERIC_TXARRAY, 1, gtaViews);
+		   }
 	   }
 
 	   IHQFont* hqFonts = nullptr;
@@ -602,7 +602,10 @@ namespace ANON
 		   if (hqFonts == nullptr) Throw(0, "DX11Renderer.RenderHQTest - UseHQFonts not called first");
 		   if (!hqFonts->IsFontIdMapped(id)) return { 0,0 };
 
-		   Vec2i span = hqFonts->GetFontCellSpan(id);
+		   ID_TEXTURE fontArrayId;
+		   Vec2i span = hqFonts->GetFontCellSpan(id, fontArrayId);
+
+		   SetGenericTextureArray(fontArrayId);
 
 		   GuiRectf R{ (float) pos.x, (float)(pos.y - span.y), (float)pos.x, (float) pos.y };
 
@@ -2799,16 +2802,6 @@ namespace ANON
 
 		   ID3D11ShaderResourceView* spriteviews[1] = { spriteArray.View() };
 		   dc.PSSetShaderResources(TXUNIT_SPRITES, 1, spriteviews);
-
-		   if (idCurrentGenericTextureArray)
-		   {
-			   auto i = genericTextureArray.find(idCurrentGenericTextureArray);
-			   if (i != genericTextureArray.end())
-			   {
-				   ID3D11ShaderResourceView* gtaViews[1] = { i->second->View() };
-				   dc.PSSetShaderResources(TXUNIT_GENERIC_TXARRAY, 1, gtaViews);
-			   }
-		   }
 
 		   dc.PSSetSamplers(0, 16, samplers);
 		   dc.GSSetSamplers(0, 16, samplers);

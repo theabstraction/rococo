@@ -174,11 +174,12 @@ struct ArrayFonts : public IArrayFontsSupervisor, public IEventCallback<ScriptCo
 		return GlyphData{ glyph.textureIndex, glyph.a, glyph.b, glyph.c };
 	}
 
-	Vec2i GetFontCellSpan(ID_FONT id) const override
+	Vec2i GetFontCellSpan(ID_FONT id, ID_TEXTURE& fontArrayId) const override
 	{
 		if (fonts.empty()) Throw(0, "ArrayFonts.GetFontHeight -> no fonts loaded");
 		if (id.value < 0)  Throw(0, "ArrayFonts.GetFontHeight -> -ve font Id");
 		int index = id.value % fonts.size();
+		fontArrayId = fonts[index].arrayTextureId;
 		return { fonts[index].metrics.imgWidth, fonts[index].metrics.height };
 	}
 
@@ -358,14 +359,6 @@ struct ArrayFonts : public IArrayFontsSupervisor, public IEventCallback<ScriptCo
 	void MarkDevFont(ID_FONT id) override
 	{
 		devFontId = id;
-	}
-
-	void SetCurrentFont(ID_FONT id) override
-	{
-		if (id.value < 0) Throw(0, "ArrayFonts.SetCurrentFont: -ve font id");
-		if (fonts.empty()) Throw(0, "ArrayFonts.SetCurrentFont: No fonts have been loaded");
-		int32 index = id.value % fonts.size();
-		renderer.SetGenericTextureArray(fonts[index].arrayTextureId);
 	}
 };
 

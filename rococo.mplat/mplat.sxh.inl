@@ -596,20 +596,6 @@ namespace
 		_offset += sizeof(fontId);
 		WriteOutput(fontId, _sf, -_offset);
 	}
-	void NativeRococoIArrayFontsSetCurrentFont(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		ID_FONT fontId;
-		_offset += sizeof(fontId);
-		ReadInput(fontId, _sf, -_offset);
-
-		Rococo::IArrayFonts* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->SetCurrentFont(fontId);
-	}
 
 	void NativeGetHandleForRococoArrayFonts(NativeCallEnvironment& _nce)
 	{
@@ -635,7 +621,6 @@ namespace Rococo {
 		ss.AddNativeCall(ns, NativeRococoIArrayFontsDevFont, nullptr, ("IArrayFontsDevFont (Pointer hObject) -> (Int32 fontId)"));
 		ss.AddNativeCall(ns, NativeRococoIArrayFontsMarkDevFont, nullptr, ("IArrayFontsMarkDevFont (Pointer hObject)(Int32 fontId) -> "));
 		ss.AddNativeCall(ns, NativeRococoIArrayFontsFindFontByPingPath, nullptr, ("IArrayFontsFindFontByPingPath (Pointer hObject)(Sys.Type.IString pingPathToFolder) -> (Int32 fontId)"));
-		ss.AddNativeCall(ns, NativeRococoIArrayFontsSetCurrentFont, nullptr, ("IArrayFontsSetCurrentFont (Pointer hObject)(Int32 fontId) -> "));
 	}
 }
 // BennyHill generated Sexy native functions for Rococo::IPane 

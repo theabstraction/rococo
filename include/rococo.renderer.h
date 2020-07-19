@@ -99,7 +99,6 @@ namespace Rococo
 	ROCOCO_ID(ID_VERTEX_SHADER, size_t, -1)
 	ROCOCO_ID(ID_PIXEL_SHADER, size_t, -1)
 	ROCOCO_ID(ID_GEOMETRY_SHADER, size_t, -1)
-	ROCOCO_ID(ID_TEXTURE, size_t, -1)
 	ROCOCO_ID(ID_CUBE_TEXTURE, size_t, 0);
 
 	namespace Textures
@@ -377,7 +376,6 @@ namespace Rococo
 	  virtual void RemoveOverlay(IUIOverlay* overlay) = 0;
 	  virtual void SetCursorBitmap(const Textures::BitmapLocation& sprite, Vec2i hotspotOffset) = 0;
 	  virtual void SetCursorVisibility(bool isVisible) = 0;
-	  virtual void SetGenericTextureArray(ID_TEXTURE id) = 0;
 	  virtual void SetSampler(uint32 index, Samplers::Filter, Samplers::AddressMode u, Samplers::AddressMode v, Samplers::AddressMode w, const RGBA& borderColour) = 0;
 	  virtual void SetShadowCasting(ID_SYS_MESH id, boolean32 isActive) = 0;
 	  virtual void SetSpecialShader(ID_SYS_MESH id, cstr psSpotlightPingPath, cstr psAmbientPingPath, bool alphaBlending) = 0;
