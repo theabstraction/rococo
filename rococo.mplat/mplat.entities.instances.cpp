@@ -279,9 +279,9 @@ namespace
 				  auto ext = GetFileExtension(item.itemRelContainer);
 				  if (Eq(ext, L".jpeg") || Eq(ext, L".jpg") || Eq(ext, L"tif") || Eq(ext, L"tiff"))
 				  {
-					  char pingName[_MAX_PATH];
-					  installation->ConvertSysPathToPingPath(item.fullPath, pingName, _MAX_PATH);
-					  filenames.push_back(pingName);
+					  U8FilePath pingName;
+					  installation->ConvertSysPathToPingPath(item.fullPath, pingName);
+					  filenames.push_back((cstr)pingName);
 				  }
 			  }
 

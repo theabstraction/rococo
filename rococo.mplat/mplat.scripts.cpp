@@ -182,8 +182,8 @@ static void NativeEnumerateFiles(NativeCallEnvironment& nce)
 
 		void OnEvent(IO::FileItemData& file) override
 		{
-			char pingPath[Rococo::IO::MAX_PATHLEN];
-			installation->ConvertSysPathToPingPath(file.fullPath, pingPath, Rococo::IO::MAX_PATHLEN);
+			U8FilePath pingPath;
+			installation->ConvertSysPathToPingPath(file.fullPath, pingPath);
 
 			auto& SS = (IScriptSystem&)*ss;
 			auto* constant = SS.GetStringReflection(pingPath);

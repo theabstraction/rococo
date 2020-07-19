@@ -1510,7 +1510,7 @@ namespace ANON
 	{
 		WideFilePath sysPath;
 		installation.ConvertPingPathToSysPath(pingPath, sysPath);
-		installation.ConvertSysPathToPingPath(sysPath, expandedPath.buf, expandedPath.CAPACITY);
+		installation.ConvertSysPathToPingPath(sysPath, expandedPath);
 	}
 
 	void StripUntilFinalDirectory(char* pingPath)

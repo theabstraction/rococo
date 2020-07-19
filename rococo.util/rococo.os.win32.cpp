@@ -828,8 +828,8 @@ namespace
 
 		void ConvertSysPathToMacroPath(const wchar_t* sysPath, char* pingPath, size_t pingPathCapacity, cstr macro) const override
 		{
-			char fullPingPath[IO::MAX_PATHLEN];
-			ConvertSysPathToPingPath(sysPath, fullPingPath, IO::MAX_PATHLEN);
+			U8FilePath fullPingPath;
+			ConvertSysPathToPingPath(sysPath, fullPingPath);
 
 			auto i = macroToSubdir.find(macro);
 			if (i == macroToSubdir.end())
@@ -843,12 +843,14 @@ namespace
 				Throw(0, "Installation::ConvertSysPathToMacroPath(...\"%S\", \"%s\") Path not prefixed by macro: %s", sysPath, macro, expansion);
 			}
 
-			SecureFormat(pingPath, pingPathCapacity, "%s/%s", macro, fullPingPath + i->second.size());
+			SecureFormat(pingPath, pingPathCapacity, "%s/%s", macro, fullPingPath.buf + i->second.size());
 		}
 
-		void ConvertSysPathToPingPath(const wchar_t* sysPath, char* pingPath, size_t pingPathCapacity) const override
+		void ConvertSysPathToPingPath(const wchar_t* sysPath, U8FilePath& pingPath) const override
 		{
 			if (pingPath == nullptr || sysPath == nullptr) Throw(0, "ConvertSysPathToPingPath: Null argument");
+
+			pingPath.pathSeparator = '/';
 
 			int sysPathLen = (int) wcslen(sysPath);
 
@@ -864,9 +866,9 @@ namespace
 				Throw(0, "ConvertSysPathToPingPath: '%S' - Illegal sequence in ping path: '..'", sysPath);
 			}
 
-			SecureFormat(pingPath, pingPathCapacity, "!%S", sysPath + contentDirLength);
+			SecureFormat(pingPath.buf, pingPath.CAPACITY, "!%S", sysPath + contentDirLength);
 
-			OS::ToUnixPath(pingPath);
+			OS::ToUnixPath(pingPath.buf);
 		}
 
 		void LoadResource(cstr pingPath, IExpandingBuffer& buffer, int64 maxFileLength) override

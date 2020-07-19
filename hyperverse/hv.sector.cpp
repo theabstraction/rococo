@@ -2624,7 +2624,7 @@ namespace ANON
 		  }
 
 		  U8FilePath pingPath;
-		  platform.installation.ConvertSysPathToPingPath(args.sysPath, pingPath.buf, pingPath.CAPACITY);
+		  platform.installation.ConvertSysPathToPingPath(args.sysPath, pingPath);
 
 		  cstr theWallScript = *wallScript ? wallScript : "#walls/stretch.bricks.sxy";
 		  if (platform.installation.DoPingsMatch(pingPath, theWallScript) && scriptWalls)

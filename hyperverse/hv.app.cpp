@@ -248,10 +248,10 @@ namespace HV
 			ev.args = &args;
 			e.platform.publisher.Publish(ev, HV::Events::OS::evFileChanged);
 
-			char pingname[1024];
-			e.platform.installation.ConvertSysPathToPingPath(args.sysPath, pingname, 1024);
+			U8FilePath pingname;
+			e.platform.installation.ConvertSysPathToPingPath(args.sysPath, pingname);
 
-			platform.gui.LogMessage("File modified: %s", pingname);
+			platform.gui.LogMessage("File modified: %s", pingname.buf);
 
 			auto ext = Rococo::GetFileExtension(pingname);
 			if (!ext)

@@ -182,8 +182,8 @@ struct TestApp : IApp, private IScene, public IEventCallback<FileModifiedArgs>
 
    void OnEvent(FileModifiedArgs& args) override
    {
-      char pingPath[IO::MAX_PATHLEN];
-	  platform.installation.ConvertSysPathToPingPath(args.sysPath, pingPath, IO::MAX_PATHLEN);
+      U8FilePath pingPath;
+	  platform.installation.ConvertSysPathToPingPath(args.sysPath, pingPath);
       platform.utilities.RefreshResource(pingPath);
    }
 

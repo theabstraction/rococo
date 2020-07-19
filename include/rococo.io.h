@@ -123,7 +123,7 @@ namespace Rococo
 		virtual void LoadResource(cstr pingPath, IExpandingBuffer& buffer, int64 maxFileLength) = 0;
 		virtual void ConvertPingPathToSysPath(cstr pingPath, WideFilePath& path) const = 0;
 		virtual void ConvertSysPathToMacroPath(const wchar_t* sysPath, char* pingPath, size_t pingPathCapacity, cstr macro) const = 0;
-		virtual void ConvertSysPathToPingPath(const wchar_t* sysPath, char* pingPath, size_t pingPathCapacity) const = 0;
+		virtual void ConvertSysPathToPingPath(const wchar_t* sysPath, U8FilePath& pingPath) const = 0;
 		virtual bool DoPingsMatch(cstr a, cstr b) const = 0;
 		virtual void Macro(cstr name, cstr pingFolder) = 0;
 		virtual void CompressPingPath(char* buffer, size_t capacity, cstr pingPath) const = 0;
