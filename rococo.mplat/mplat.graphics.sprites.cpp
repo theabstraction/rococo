@@ -66,8 +66,8 @@ namespace
 
 		 SafeFormat(addSprite.containingDir, IO::MAX_PATHLEN, "%s", pingNameForDirectory.buffer);
 
-		 wchar_t sysDirectory[_MAX_PATH];
-		 renderer.Installation().ConvertPingPathToSysPath(pingNameForDirectory, sysDirectory, IO::MAX_PATHLEN);
+		 WideFilePath sysDirectory;
+		 renderer.Installation().ConvertPingPathToSysPath(pingNameForDirectory, sysDirectory);
          IO::ForEachFileInDirectory(sysDirectory, addSprite, true);
       }
 

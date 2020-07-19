@@ -2540,13 +2540,13 @@ namespace ANON
 	  void NotifyChanged()
 	  {
 		  propertiesChanged = true;
-		  wchar_t sysPath[IO::MAX_PATHLEN];
+		  WideFilePath sysPath;
 
 		  if (*wallScript)
 		  {
 			  try
 			  {
-				  platform.installation.ConvertPingPathToSysPath(wallScript, sysPath, IO::MAX_PATHLEN);
+				  platform.installation.ConvertPingPathToSysPath(wallScript, sysPath);
 				  platform.installation.ConvertSysPathToMacroPath(sysPath, wallScript, IO::MAX_PATHLEN, "#walls");
 			  }
 			  catch (IException&)
@@ -2613,8 +2613,8 @@ namespace ANON
 
 		  cstr theCorridorScript = *corridorScript ? corridorScript : "!scripts/hv/sector/corridor/gen.door.sxy";
 
-		  wchar_t u16CorridorScript[IO::MAX_PATHLEN];
-		  platform.installation.ConvertPingPathToSysPath(theCorridorScript, u16CorridorScript, IO::MAX_PATHLEN);
+		  WideFilePath u16CorridorScript;
+		  platform.installation.ConvertPingPathToSysPath(theCorridorScript, u16CorridorScript);
 		  if (Eq(u16CorridorScript, args.sysPath) && IsCorridor() && scriptCorridor)
 		  {
 			  isDirty = true;
@@ -2623,8 +2623,8 @@ namespace ANON
 			  RunGenCorridorScript();
 		  }
 
-		  char pingPath[_MAX_PATH];
-		  platform.installation.ConvertSysPathToPingPath(args.sysPath, pingPath, _MAX_PATH);
+		  U8FilePath pingPath;
+		  platform.installation.ConvertSysPathToPingPath(args.sysPath, pingPath.buf, pingPath.CAPACITY);
 
 		  cstr theWallScript = *wallScript ? wallScript : "#walls/stretch.bricks.sxy";
 		  if (platform.installation.DoPingsMatch(pingPath, theWallScript) && scriptWalls)
@@ -2806,10 +2806,10 @@ namespace ANON
 
 			  try
 			  {
-				  wchar_t sysPath[IO::MAX_PATHLEN];
+				  WideFilePath sysPath;
 				  if (*wallScript)
 				  {
-					  platform.installation.ConvertPingPathToSysPath(wallScript, sysPath, IO::MAX_PATHLEN);
+					  platform.installation.ConvertPingPathToSysPath(wallScript, sysPath);
 					  platform.installation.ConvertSysPathToMacroPath(sysPath, wallScript, IO::MAX_PATHLEN, "#walls");
 				  }
 				  editor.AddPingPath("wall script", wallScript, IO::MAX_PATHLEN, "!scripts/hv/sector/walls/*.sxy", 90);

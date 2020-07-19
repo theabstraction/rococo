@@ -516,13 +516,13 @@ namespace
 		void OnSaveLevelFileNameSelected(cstr pingPath)
 		{
 			WideFilePath sysPath;
-			platform.installation.ConvertPingPathToSysPath(pingPath, sysPath.buf, sysPath.CAPACITY);
+			platform.installation.ConvertPingPathToSysPath(pingPath, sysPath);
 
 			Save(sysPath);
 			SafeFormat(levelpath, Rococo::IO::MAX_PATHLEN, "%s", pingPath);
 
 			char shortPingName[256];
-			SafeFormat(shortPingName, 256, "%S", sysPath);
+			SafeFormat(shortPingName, 256, "%S", sysPath.buf);
 			platform.utilities.AddSubtitle(shortPingName);
 		}
 

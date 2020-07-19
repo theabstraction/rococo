@@ -1358,8 +1358,8 @@ namespace ANON
 					auto mat = platform.renderer.GetMaterialTextureName(id);
 					if (mat)
 					{
-						wchar_t sysName[IO::MAX_PATHLEN];
-						platform.installation.ConvertPingPathToSysPath(mat, sysName, IO::MAX_PATHLEN);
+						WideFilePath sysName;
+						platform.installation.ConvertPingPathToSysPath(mat, sysName);
 
 						try
 						{
@@ -1509,7 +1509,7 @@ namespace ANON
 	void ExpandMacros(cstr pingPath, U8FilePath& expandedPath, IInstallation& installation)
 	{
 		WideFilePath sysPath;
-		installation.ConvertPingPathToSysPath(pingPath, sysPath.buf, sysPath.CAPACITY);
+		installation.ConvertPingPathToSysPath(pingPath, sysPath);
 		installation.ConvertSysPathToPingPath(sysPath, expandedPath.buf, expandedPath.CAPACITY);
 	}
 
@@ -1568,7 +1568,7 @@ namespace ANON
 
 		void OnDetached(char* buffer) override
 		{
-			wchar_t sysPath[IO::MAX_PATHLEN];
+			WideFilePath sysPath;
 			try
 			{
 				if (*buffer == 0)
@@ -1576,7 +1576,7 @@ namespace ANON
 					validated = false;
 					return;
 				}
-				platform.installation.ConvertPingPathToSysPath(buffer, sysPath, len);
+				platform.installation.ConvertPingPathToSysPath(buffer, sysPath);
 				validated = OS::IsFileExistant(sysPath);
 			}
 			catch (IException&)

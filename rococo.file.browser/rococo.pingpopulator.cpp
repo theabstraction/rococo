@@ -200,7 +200,7 @@ struct PingPopulator : public IDirectoryPopulator
 		ToU8(root, pingPath);
 
 		WideFilePath sysPath;
-		installation.ConvertPingPathToSysPath(pingPath, sysPath.buf, sysPath.CAPACITY);
+		installation.ConvertPingPathToSysPath(pingPath, sysPath);
 
 		struct : public IEventCallback<IO::FileItemData>
 		{
@@ -237,7 +237,7 @@ struct PingPopulator : public IDirectoryPopulator
 		ToU8(root, pingPath);
 
 		WideFilePath sysPath;
-		installation.ConvertPingPathToSysPath(pingPath, sysPath.buf, sysPath.CAPACITY);
+		installation.ConvertPingPathToSysPath(pingPath, sysPath);
 
 		struct : public IEventCallback<IO::FileItemData>
 		{

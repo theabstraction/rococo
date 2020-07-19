@@ -168,8 +168,8 @@ struct OverlayPane : public IPaneBuilderSupervisor, PaneDelegate, public IUIElem
 					cstr fullname = platform.renderer.GetMaterialTextureName(id);
 					if (fullname != nullptr)
 					{
-						wchar_t sysPath[Rococo::IO::MAX_PATHLEN];
-						platform.installation.ConvertPingPathToSysPath(fullname, sysPath, Rococo::IO::MAX_PATHLEN);
+						WideFilePath sysPath;
+						platform.installation.ConvertPingPathToSysPath(fullname, sysPath);
 						Rococo::OS::EditImageFile(platform.renderer.Window(), sysPath);
 					}
 				}

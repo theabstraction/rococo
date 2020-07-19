@@ -711,11 +711,11 @@ namespace
 		{
 			try
 			{
-				wchar_t sysPathA[IO::MAX_PATHLEN];
-				ConvertPingPathToSysPath(a, sysPathA, IO::MAX_PATHLEN);
+				WideFilePath sysPathA;
+				ConvertPingPathToSysPath(a, sysPathA);
 
-				wchar_t sysPathB[IO::MAX_PATHLEN];
-				ConvertPingPathToSysPath(b, sysPathB, IO::MAX_PATHLEN);
+				WideFilePath sysPathB;
+				ConvertPingPathToSysPath(b, sysPathB);
 
 				return wcscmp(sysPathA, sysPathB) == 0;
 			}
@@ -771,12 +771,14 @@ namespace
 			return nullptr;
 		}
 
-		void ConvertPingPathToSysPath(cstr pingPath, wchar_t* sysPath, size_t sysPathCapacity) const override
+		void ConvertPingPathToSysPath(cstr pingPath, WideFilePath& sysPath) const override
 		{
 			if (pingPath == nullptr || *pingPath == 0)
 			{
 				Throw(0, "Installation::ConvertPingPathToSysPath(...) Ping path was blank");
 			}
+
+			sysPath.pathSeparator = '\\';
 
 			auto macroDir = "";
 			const char* subdir = nullptr;
@@ -785,7 +787,7 @@ namespace
 			{
 				subdir = pingPath + 1;
 
-				SecureFormat(sysPath, sysPathCapacity, L"%s%S", contentDirectory, subdir);
+				SecureFormat(sysPath.buf, sysPath.CAPACITY, L"%s%S", contentDirectory, subdir);
 			}
 			else if (*pingPath == '#')
 			{
@@ -809,7 +811,7 @@ namespace
 
 				macroDir = i->second.c_str();
 
-				SecureFormat(sysPath, sysPathCapacity, L"%s%S%S", contentDirectory, macroDir + 1, subdir);
+				SecureFormat(sysPath.buf, sysPath.CAPACITY, L"%s%S%S", contentDirectory, macroDir + 1, subdir);
 			}
 			else
 			{
@@ -821,7 +823,7 @@ namespace
 				Throw(0, "Installation::ConvertPingPathToSysPath(...) Illegal sequence in ping path: '..'");
 			}
 
-			OS::ToSysPath(sysPath);
+			OS::ToSysPath(sysPath.buf);
 		}
 
 		void ConvertSysPathToMacroPath(const wchar_t* sysPath, char* pingPath, size_t pingPathCapacity, cstr macro) const override
@@ -871,14 +873,14 @@ namespace
 		{
 			if (pingPath == nullptr || rlen(pingPath) < 2) Throw(E_INVALIDARG, "Win32OS::LoadResource failed: <resourcePath> was blank");
 
-			wchar_t absPath[Rococo::IO::MAX_PATHLEN];
+			WideFilePath absPath;
 			if (pingPath[0] == '!' || pingPath[0] == '#')
 			{
-				ConvertPingPathToSysPath(pingPath, absPath, Rococo::IO::MAX_PATHLEN);
+				ConvertPingPathToSysPath(pingPath, absPath);
 			}
 			else
 			{
-				SafeFormat(absPath, Rococo::IO::MAX_PATHLEN, L"%S", pingPath);
+				SafeFormat(absPath.buf, absPath.CAPACITY, L"%S", pingPath);
 			}
 
 			os.LoadAbsolute(absPath, buffer, maxFileLength);

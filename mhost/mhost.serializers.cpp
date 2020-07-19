@@ -399,8 +399,8 @@ namespace Anon
 
 		void LoadFrom(const fstring& pingPath) override
 		{
-			wchar_t sysPath[Rococo::IO::MAX_PATHLEN];
-			installation.ConvertPingPathToSysPath(pingPath, sysPath, sizeof(sysPath));
+			WideFilePath sysPath;
+			installation.ConvertPingPathToSysPath(pingPath, sysPath);
 
 			Auto<ISParser> sparser = Sexy_CreateSexParser_2_0(Rococo::Memory::CheckedAllocator());
 			Auto<ISourceCode> src = sparser->LoadSource(sysPath, { 1,1 });
@@ -416,7 +416,7 @@ namespace Anon
 			{
 				auto a = ex.Start();
 				auto b = ex.End();
-				Throw(ex.ErrorCode(), "Error loading %s:\n (%d.%d) to (%d.%d). %s", sysPath, a.x, a.y, b.x, b.y, ex.Message());
+				Throw(ex.ErrorCode(), "Error loading %s:\n (%d.%d) to (%d.%d). %s", sysPath.buf, a.x, a.y, b.x, b.y, ex.Message());
 			}
 		}
 
@@ -439,9 +439,8 @@ namespace Anon
 			}
 			sb << "))\n";
 
-			wchar_t sysPath[Rococo::IO::MAX_PATHLEN];
-			installation.ConvertPingPathToSysPath(pingPath, sysPath, Rococo::IO::MAX_PATHLEN);
-
+			WideFilePath sysPath;
+			installation.ConvertPingPathToSysPath(pingPath, sysPath);
 			Rococo::OS::SaveAsciiTextFile(Rococo::OS::TargetDirectory_Root, sysPath, *sb);
 		}
 

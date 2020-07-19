@@ -647,8 +647,8 @@ namespace ANON
 		   {
 			   try
 			   {
-				   wchar_t sysPath[IO::MAX_PATHLEN];
-				   platform.installation.ConvertPingPathToSysPath(populateScript, sysPath, IO::MAX_PATHLEN);
+				   WideFilePath sysPath;
+				   platform.installation.ConvertPingPathToSysPath(populateScript, sysPath);
 				   platform.installation.ConvertSysPathToMacroPath(sysPath, populateScript, IO::MAX_PATHLEN, "#objects");
 			   }
 			   catch (IException&)

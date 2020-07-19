@@ -839,8 +839,8 @@ namespace
 			case DebuggerCommandObject::OPEN_SOURCE_FILE:
 				{
 					auto* fileObj = (DebuggerCommandObjectFile*)obj;
-					wchar_t sysPath[256];
-					installation.ConvertPingPathToSysPath(fileObj->filename, sysPath, 256);
+					WideFilePath sysPath;
+					installation.ConvertPingPathToSysPath(fileObj->filename, sysPath);
 					if (OS::IsFileExistant(sysPath))
 					{
 						ShellExecuteW(hOwner, L"open", sysPath, nullptr, nullptr, SW_SHOW);
@@ -854,11 +854,11 @@ namespace
 			case DebuggerCommandObject::OPEN_SOURCE_FOLDER:
 				{
 					auto* fileObj = (DebuggerCommandObjectFile*)obj;
-					wchar_t sysPath[_MAX_PATH];
-					installation.ConvertPingPathToSysPath(fileObj->filename, sysPath, _MAX_PATH);
+					WideFilePath sysPath;
+					installation.ConvertPingPathToSysPath(fileObj->filename, sysPath);
 					if (OS::IsFileExistant(sysPath))
 					{
-						OS::StripLastSubpath(sysPath);
+						OS::StripLastSubpath(sysPath.buf);
 						ShellExecuteW(hOwner, L"open", sysPath, nullptr, nullptr, SW_SHOW);
 					}
 					else

@@ -318,10 +318,10 @@ namespace
 
 		  SafeFormat(z.pingPath, IO::MAX_PATHLEN, "%s", folder.buffer);
 
-		  wchar_t sysPath[_MAX_PATH];
-		  z.installation->ConvertPingPathToSysPath(z.pingPath, sysPath, IO::MAX_PATHLEN);
+		  WideFilePath sysPath;
+		  z.installation->ConvertPingPathToSysPath(z.pingPath, sysPath);
 
-		  swprintf_s(z.sysSearchPath, IO::MAX_PATHLEN, L"%s", sysPath);
+		  swprintf_s(z.sysSearchPath, IO::MAX_PATHLEN, L"%s", sysPath.buf);
 	
 		  IO::ForEachFileInDirectory(sysPath, z, true);
 
