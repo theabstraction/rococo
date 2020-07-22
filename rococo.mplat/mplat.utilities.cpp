@@ -38,7 +38,12 @@ namespace Rococo
 	}
 }
 
-class Utilities : public IUtilitiesSupervisor, public IMathsVenue, public IObserver, public Browser::IBrowserFileChangeNotification
+class Utilities :
+	public IUtilitiesSupervisor,
+	public IMathsVenue,
+	public IObserver,
+	public Browser::IBrowserFileChangeNotification,
+	public IEventCallback<IContextMenuSupervisor>
 {
 	IInstallation& installation;
 	IRenderer& renderer;
@@ -109,7 +114,7 @@ public:
 		return this;
 	}
 
-	IBloodyPropertySetEditorSupervisor* CreateBloodyPropertySetEditor(IEventCallback<IBloodyPropertySetEditorSupervisor>& _onDirty) override
+	IBloodyPropertySetEditorSupervisor* CreateBloodyPropertySetEditor(IEventCallback<BloodyNotifyArgs>& _onDirty) override
 	{
 		return Rococo::CreateBloodyPropertySetEditor(*platform, _onDirty);
 	}
@@ -348,10 +353,6 @@ public:
 		if (!browsingPane)
 		{
 			browsingPane = platform->gui.BindPanelToScript(factory.GetPanePingPath());
-
-			GuiMetrics metrics;
-			platform->renderer.GetGuiMetrics(metrics);
-			OnScreenResize(metrics.screenSpan);
 		}
 
 		browser->Engage(factory);
@@ -391,13 +392,42 @@ public:
 		browsingPane = nullptr;
 	}
 
-	void OnScreenResize(Vec2i span) override
+	AutoFree<IPaneBuilderSupervisor> contextMenuPane;
+	AutoFree<IContextMenuSupervisor> contextMenu;
+
+	EventIdRef evGetPopupRef = "mplat.default.contextmenu"_event;
+
+	IContextMenuSupervisor& GetContextMenu()
 	{
-		if (browsingPane != nullptr)
+		if (!contextMenu)
 		{
-			GuiRect rect{ 0, 0, span.x, span.y };
-			browsingPane->SetRect(rect);
+			contextMenu = MPlatImpl::CreateContextMenu(platform->publisher, *this);
 		}
+
+		return *contextMenu;
+	}
+
+	void OnEvent(IContextMenuSupervisor& cm) override
+	{
+		// triggered
+		if (platform->gui.Top() == contextMenuPane->Supervisor())
+		{
+			platform->gui.Pop();
+		}
+	}
+
+	IContextMenu& PopupContextMenu()
+	{
+		IContextMenuSupervisor& cm = GetContextMenu();
+
+		if (!contextMenuPane)
+		{
+			contextMenuPane = platform->gui.BindPanelToScript("!scripts/panel.context-menu.sxy");
+		}
+
+		platform->gui.PushTop(contextMenuPane->Supervisor(), true);
+
+		return cm;
 	}
 };
 

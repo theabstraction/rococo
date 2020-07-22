@@ -61,16 +61,21 @@ namespace HV
 			resizeCallback->OnGuiResize(screenSpan);
 		}
 
-		void RenderGui(IGuiRenderContext& grc) override
+		void RenderHelloWorld(IGuiRenderContext& g)
+		{
+			/* enable font loading in app.created.sxy to make this work */
+			g.RenderHQText(ID_FONT{ 0 }, "Hello World", { 0, 300 }, RGBAb(0, 0, 0, 255));
+			g.RenderHQText(ID_FONT{ 0 }, "Hello World", { 10, 290 }, RGBAb(255, 255, 255, 255));
+		}
+
+		void RenderGui(IGuiRenderContext& g) override
 		{
 			GuiMetrics metrics;
-			grc.Renderer().GetGuiMetrics(metrics);
+			g.Renderer().GetGuiMetrics(metrics);
 			if (metrics.screenSpan.y >= 256 && metrics.screenSpan.x >= 256)
 			{
-				e.platform.gui.Render(grc);
-
-				grc.RenderHQText(ID_FONT{ 0 }, "Hello World", { 0, 300 }, RGBAb(0, 0, 0, 255));
-				grc.RenderHQText(ID_FONT{ 0 }, "Hello World", { 10, 290 }, RGBAb(255, 255, 255, 255));
+				e.platform.gui.Render(g);
+				// RenderHelloWorld(g);
 			}
 		}
 
@@ -159,18 +164,11 @@ namespace HV
 			e.platform.gui.Pop();
 		}
 
-		virtual void OnGuiResize(Vec2i screenSpan) override
+		void OnGuiResize(Vec2i screenSpan) override
 		{
-			// TODO - make this automatic
-			GuiRect fullScreen = { 0, 0, screenSpan.x, screenSpan.y };
-			fpsPanel->Supervisor()->SetRect(fullScreen);
-			busyPanel->Supervisor()->SetRect(fullScreen);
-			editorPanel->Root()->SetRect(fullScreen);
-			colourPanel->Root()->SetRect(fullScreen);
-			((IUtilitiesSupervisor&)platform.utilities).OnScreenResize(screenSpan);
 		}
 
-		virtual void OnEvent(Event& ev)
+		void OnEvent(Event& ev) override
 		{
 			if (ev == HV::Events::evSetNextLevel)
 			{
@@ -383,6 +381,19 @@ namespace HV
 		void OnCreate() override
 		{
 			RunEnvironmentScript(e, "!scripts/hv/app.created.sxy", true);
+
+			IContextMenu& menu = platform.utilities.PopupContextMenu();
+			menu.Clear(0);
+			menu.AddString(0, "New"_fstring, "OnNewThing"_fstring, "Ctrl+N"_fstring);
+			menu.AddString(0, "Open"_fstring, "OnOpenThing"_fstring, "Ctrl+O"_fstring);
+			int32 idEditSubMenu = menu.AddSubMenu("Edit..."_fstring, 0);
+			menu.AddString(idEditSubMenu, "Reset"_fstring, "OnResetThing"_fstring, ""_fstring);
+			menu.AddString(idEditSubMenu, "Copy"_fstring, "OnCopyThing"_fstring, ""_fstring);
+			menu.AddString(idEditSubMenu, "Paste"_fstring, "OnPasteThing"_fstring, ""_fstring);
+			menu.AddString(0, "Save"_fstring, "OnSaveThing"_fstring, "Ctrl+S"_fstring);
+			menu.AddString(0, "Save As"_fstring, "OnSaveAsThing"_fstring, "Ctrl+A"_fstring);
+			menu.AddString(0, "Close"_fstring, "OnCloseThing"_fstring, "Ctrl+D"_fstring);
+			menu.SetPopupPoint({ 200,200 });
 
 		//	e.platform.gui.PushTop(colourPanel->Supervisor(), true);
 		}

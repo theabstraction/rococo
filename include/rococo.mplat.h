@@ -368,10 +368,10 @@ namespace Rococo
 		virtual void AddFloat(cstr name, float* value, float minValue, float maxValue) = 0;
 		virtual void AddFloatRange(cstr name, float* leftValue, float* rightValue, float minValue, float maxValue) = 0;
 		virtual void AddInt(cstr name, bool addHexView, int* value) = 0;
-		virtual void AddMaterialCategory(cstr name, Graphics::MaterialCategory* cat) = 0;
+		virtual void AddMaterialCategory(cstr name, cstr notifyId, Graphics::MaterialCategory* cat) = 0;
 		virtual void AddMessage(cstr message) = 0;
 		virtual void AddColour(cstr name, RGBAb* colour) = 0;
-		virtual void AddMaterialString(cstr name, char* value, size_t valueLen) = 0;
+		virtual void AddMaterialString(cstr name, MaterialId& id, cstr notifyId, char* value, size_t valueLen) = 0;
 		virtual void AddPingPath(cstr name, char* value, size_t valueLen, cstr defaultSubDir, int32 width) = 0;
 		virtual void AddButton(cstr name, cstr eventName) = 0;
 		virtual void Clear();
@@ -382,8 +382,14 @@ namespace Rococo
 		virtual void Free() = 0;
 	};
 
-	IBloodyPropertySetEditorSupervisor* CreateBloodyPropertySetEditor(Platform& _platform, IEventCallback<IBloodyPropertySetEditorSupervisor>& _onDirty);
+	struct BloodyNotifyArgs
+	{
+		IBloodyPropertySetEditorSupervisor& bs;
+		cstr sourceName;
+		cstr notifyId;
+	};
 
+	IBloodyPropertySetEditorSupervisor* CreateBloodyPropertySetEditor(Platform& _platform, IEventCallback<BloodyNotifyArgs>& _onDirty);
 
 	struct UIPopulate : public Events::EventArgs
 	{
@@ -546,6 +552,19 @@ namespace Rococo
 		virtual cstr GetPanePingPath() const = 0;
 	};
 
+	ROCOCOAPI IContextMenuSupervisor : public IContextMenu
+	{
+		virtual void AppendEvent(const KeyboardEvent& me) = 0;
+		virtual void AppendEvent(const MouseEvent & me) = 0;
+		virtual void Render(IGuiRenderContext & grc) = 0;
+		virtual void Free() = 0;
+	};
+
+	namespace MPlatImpl
+	{
+		IContextMenuSupervisor* CreateContextMenu(Events::IPublisher& publisher, IEventCallback<IContextMenuSupervisor>& onTriggered);
+	}
+
 	ROCOCOAPI IUtilitiies
 	{
 		virtual void AddSubtitle(cstr subtitle) = 0;
@@ -560,18 +579,19 @@ namespace Rococo
 		virtual void SaveBinary(const wchar_t* pathname, const void* buffer, size_t nChars) = 0;
 		virtual void ShowErrorBox(Windows::IWindow& parent, IException& ex, cstr message) = 0;
 		virtual IVariableEditor* CreateVariableEditor(Windows::IWindow& parent, const Vec2i& span, int32 labelWidth, cstr appQueryName, cstr defaultTab, cstr defaultTooltip, IVariableEditorEventHandler* eventHandler = nullptr, const Vec2i* topLeft = nullptr) = 0;
-		virtual IBloodyPropertySetEditorSupervisor* CreateBloodyPropertySetEditor(IEventCallback<IBloodyPropertySetEditorSupervisor>& _onDirty) = 0;
+		virtual IBloodyPropertySetEditorSupervisor* CreateBloodyPropertySetEditor(IEventCallback<BloodyNotifyArgs>& _onDirty) = 0;
 		virtual fstring ToShortString(Graphics::MaterialCategory value) const = 0;
 		virtual IMathsVenue* Venue() = 0;
 		virtual void BrowseFiles(IBrowserRulesFactory& factory) = 0;
 		virtual void ShowBusy(bool enable, cstr title, cstr messageFormat, ...) = 0;
+		virtual IContextMenuSupervisor& GetContextMenu() = 0;
+		virtual IContextMenu& PopupContextMenu() = 0;
 	};
 
 	ROCOCOAPI IUtilitiesSupervisor : public IUtilitiies
 	{
 		virtual void Free() = 0;
 		virtual void SetPlatform(Platform& platform) = 0;
-		virtual void OnScreenResize(Vec2i screenSize) = 0;
 	};
 
 	namespace MPlatImpl

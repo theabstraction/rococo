@@ -1623,6 +1623,20 @@ namespace ANON
 
 	   MaterialId GetMaterialId(cstr name) const
 	   {
+		   if (name[0] == '#')
+		   {
+			   // Macro, so expand
+			   U8FilePath expandedPath;
+			   if (installation.TryExpandMacro(name, expandedPath))
+			   {
+				   return GetMaterialId(expandedPath);
+			   }
+			   else
+			   {
+				   return -1;
+			   }
+		   }
+
 		   auto i = nameToMaterialId.find(name);
 		   return i != nameToMaterialId.end() ? i->second : -1.0f;
 	   }
@@ -3029,12 +3043,10 @@ namespace ANON
 
 			   for (uint32 i = 0; i < nLights; ++i)
 			   {
-				   if (lights[i].ambient.alpha == 0)
+				   if (lights[i].hasCone)
 				   {
-					   break;
+					   DrawLightCone(lights[i]);
 				   }
-
-				   DrawLightCone(lights[i]);
 			   }
 
 			   dc.IASetVertexBuffers(0, 0, nullptr, nullptr, nullptr);

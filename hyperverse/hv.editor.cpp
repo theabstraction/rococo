@@ -120,7 +120,7 @@ namespace
 		private IObserver, 
 		IEventCallback<ToggleStateChanged>,
 		public IEditorState,
-		public IEventCallback<IBloodyPropertySetEditorSupervisor>
+		public IEventCallback<BloodyNotifyArgs>
 	{
 		AutoFree<IWorldMapSupervisor> map;
 		AutoFree<ISectorBuilderEditor> editMode_SectorBuilder;
@@ -570,11 +570,11 @@ namespace
 			};
 		}
 
-		void OnEvent(IBloodyPropertySetEditorSupervisor& bs)
+		void OnEvent(BloodyNotifyArgs& args)
 		{
 			if (target != nullptr)
 			{
-				target->NotifyChanged();
+				target->NotifyChanged(args);
 			}
 
 			map->Sectors().NotifyChanged();

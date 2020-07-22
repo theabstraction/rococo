@@ -119,6 +119,7 @@ namespace Rococo
 
 	ROCOCOAPI IInstallation
 	{
+		virtual bool TryExpandMacro(cstr macroPrefixPlusPath, U8FilePath & expandedPath) = 0;
 		virtual const wchar_t* Content() const = 0;
 		virtual void LoadResource(cstr pingPath, IExpandingBuffer& buffer, int64 maxFileLength) = 0;
 		virtual void ConvertPingPathToSysPath(cstr pingPath, WideFilePath& path) const = 0;

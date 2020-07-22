@@ -30,5 +30,5 @@
 	(instances.SetMaterialMacro "!textures/hv/materials/hi-rez/" )
 	(instances.LoadMaterialArray "#m/" 1024)
 	
-	(LoadFonts)
+//	(LoadFonts)
 )

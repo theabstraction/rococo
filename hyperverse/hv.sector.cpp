@@ -2537,8 +2537,43 @@ namespace ANON
 
 	  bool propertiesChanged = true;
 
-	  void NotifyChanged()
+	  void OnMaterialCategoryChanged(cstr component)
 	  {
+		  auto i = nameToMaterial.find(component);
+		  if (i != nameToMaterial.end())
+		  {
+			  SafeFormat(i->second->persistentName, IO::MAX_PATHLEN, "random");
+		  }
+	  }
+
+	  void OnMaterialIdChanged(cstr component)
+	  {
+		  auto i = nameToMaterial.find(component);
+		  if (i != nameToMaterial.end())
+		  {
+			  auto& id = i->second->mvd.materialId;
+			  if (id > 0)
+			  {
+				  MaterialCategory category = platform.instances.GetMaterialCateogry(id);
+				  if (category != i->second->category)
+				  {
+					  id = platform.instances.GetMaterialId(i->second->category, 0);
+				  }
+			  }
+		  }
+	  }
+
+	  void NotifyChanged(BloodyNotifyArgs& args) override
+	  {
+		  if (Eq("MaterialCategory", args.sourceName))
+		  {
+			  OnMaterialCategoryChanged(args.notifyId);
+		  }
+		  else if (Eq("MaterialId", args.sourceName))
+		  {
+			  OnMaterialIdChanged(args.notifyId);
+		  }
+
 		  propertiesChanged = true;
 		  WideFilePath sysPath;
 
@@ -2693,11 +2728,11 @@ namespace ANON
 		  SafeFormat(name, sizeof(name), "%s mat", bcmc);
 
 		  editor.AddSpacer();
-		  editor.AddMaterialCategory(name, &i->second->category);
+		  editor.AddMaterialCategory(name, i->first.c_str(), &i->second->category);
 
 		  char id[32];
 		  SafeFormat(id, sizeof(id), "%s id", bcmc);
-		  editor.AddMaterialString(id, i->second->persistentName, IO::MAX_PATHLEN);
+		  editor.AddMaterialString(id, i->second->mvd.materialId, i->first.c_str(), i->second->persistentName, IO::MAX_PATHLEN);
 
 		  char colour[32];
 		  SafeFormat(colour, sizeof(colour), "%s colour", bcmc);
@@ -2812,11 +2847,11 @@ namespace ANON
 					  platform.installation.ConvertPingPathToSysPath(wallScript, sysPath);
 					  platform.installation.ConvertSysPathToMacroPath(sysPath, wallScript, IO::MAX_PATHLEN, "#walls");
 				  }
-				  editor.AddPingPath("wall script", wallScript, IO::MAX_PATHLEN, "!scripts/hv/sector/walls/*.sxy", 90);
+				  editor.AddPingPath("wall script", wallScript, IO::MAX_PATHLEN, "#walls/*.sxy", 90);
 			  }
 			  catch (IException&)
 			  {
-				  editor.AddPingPath("wall script", wallScript, IO::MAX_PATHLEN, "!scripts/hv/sector/walls/*.sxy", 90);
+				  editor.AddPingPath("wall script", wallScript, IO::MAX_PATHLEN, "#walls/*.sxy", 90);
 			  }
 		  }
 		  else if (Eq(category, "ceiling"))

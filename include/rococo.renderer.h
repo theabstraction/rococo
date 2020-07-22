@@ -179,6 +179,8 @@ namespace Rococo
 		float cutoffCosAngle; // Angle beyond which light is severely diminished, 0.5ish to 1.0
 		float cutoffPower = 16.0f; // Exponent of cutoff rate. Range 1 to 16 is cool
 		float attenuationRate = -0.15f; // Point lights vary as inverse square, so 0.5 ish
+		boolean32 hasCone = 0;
+		Vec3 unused;
 	};
 
 	struct DepthRenderData // N.B if size is not multiple of 16 bytes this will crash DX11 renderer

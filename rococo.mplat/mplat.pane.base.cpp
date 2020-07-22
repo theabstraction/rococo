@@ -588,6 +588,12 @@ struct PaneContainer : public BasePane, virtual public IPaneContainer
 		return scroller;
 	}
 
+	Rococo::IContextMenuPane* AddContextMenu(const fstring& key, const GuiRect& rect)
+	{
+		auto* menu = Rococo::MPlatImpl::AddContextMenuPane(platform.publisher, platform.keyboard, *this, key, rect, platform.utilities.GetContextMenu());
+		return menu;
+	}
+
 	void Free() override
 	{
 		FreeAllChildren();

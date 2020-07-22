@@ -22,6 +22,7 @@ namespace ANON
 		virtual cstr Name() const = 0;
 		virtual void Render(IGuiRenderContext& rc, const GuiRect& rect, RGBAb colour) = 0;
 		virtual RGBAb NameColour() const = 0;
+		virtual cstr NotifyId() const = 0;
 	};
 
 	ROCOCOAPI IValidator
@@ -287,6 +288,8 @@ namespace ANON
 			SafeFormat(buffer, 12, "%f", *_value);
 		}
 
+		cstr NotifyId() const override { return nullptr; }
+
 		virtual bool IsLegal(char c, int charPos) const
 		{
 			if (c >= '0' && c <= '9')
@@ -468,6 +471,8 @@ namespace ANON
 			SafeFormat(bloodyRangeRight.buffer, 12, "%f", *_rightValue);
 		}
 
+		cstr NotifyId() const override { return nullptr; }
+
 		virtual void Free()
 		{
 			delete this;
@@ -530,6 +535,8 @@ namespace ANON
 		{
 			platform.gui.DetachKeyboardSink(this);
 		}
+
+		cstr NotifyId() const override { return nullptr; }
 
 		virtual bool OnKeyboardEvent(const KeyboardEvent& key)
 		{
@@ -631,15 +638,19 @@ namespace ANON
 		std::vector<std::string> orderedByName;
 		Platform& platform;
 		IEventCallback<IBloodyPropertyType>& dirtNotifier;
+		HString notifyId;
 	public:
-		BloodyEnumInt32Binding(Platform& _platform, IEventCallback<IBloodyPropertyType>& _dirtNotifier, cstr _name, int* _value) :
+		BloodyEnumInt32Binding(Platform& _platform, IEventCallback<IBloodyPropertyType>& _dirtNotifier, cstr _name, cstr _notifyId, int* _value) :
 			name(_name),
 			platform(_platform),
 			value(_value),
-			dirtNotifier(_dirtNotifier)
+			dirtNotifier(_dirtNotifier),
+			notifyId(_notifyId)
 		{
 
 		}
+
+		cstr NotifyId() const override { return notifyId; }
 
 		~BloodyEnumInt32Binding()
 		{
@@ -653,106 +664,124 @@ namespace ANON
 			orderedByName.clear();
 		}
 
-		virtual void Free()
+		void Free() override
 		{
 			delete this;
 		}
 
-		virtual cstr Name() const
+		cstr Name() const override
 		{
 			return name.c_str();
 		}
 
-		virtual bool OnKeyboardEvent(const KeyboardEvent& key)
+		bool OnKeyboardEvent(const KeyboardEvent& key) override
 		{
-			dirtNotifier.OnEvent(*this);
-
 			if (!key.IsUp())
 			{
-				switch (key.VKey)
+				char c = (key.unicode > 0 && key.unicode < 128) ? key.unicode : 0;
+				if (c > 0)
 				{
-				case IO::VKCode_ENTER:
-					platform.gui.DetachKeyboardSink(this);
-					break;
-				case IO::VKCode_HOME:
-					if (!orderedByName.empty())
-					{
-						auto i = constantsNameToValue.find(orderedByName[0]);
-						*value = i != constantsNameToValue.end() ? i->second : *value;
-					}
-					return true;
-				case IO::VKCode_END:
-					if (!orderedByName.empty())
-					{
-						auto i = constantsNameToValue.find(*orderedByName.rbegin());
-						*value = i != constantsNameToValue.end() ? i->second : *value;
-					}
-					return true;
-				case IO::VKCode_LEFT:
-					if (!orderedByName.empty())
-					{
-						*value = GetLeftValue(*value);
-					}
-					return true;
-				case IO::VKCode_RIGHT:
-					if (!orderedByName.empty())
-					{
-						*value = GetRightValue(*value);
-					}
-					return true;
-				case IO::VKCode_PGDOWN:
-				{
-					size_t delta = max(1ULL, orderedByName.size() / 10);
-					for (size_t i = 0; i < delta; ++i)
-					{
-						*value = GetLeftValue(*value);
-					}
+					OnAsciiCode(c);
 				}
-				return true;
-				case IO::VKCode_PGUP:
+				else
 				{
-					size_t delta = max(1ULL, orderedByName.size() / 10);
-					for (size_t i = 0; i < delta; ++i)
-					{
-						*value = GetRightValue(*value);
-					}
-				}
-				return true;
+					OnSysKeyEvent(key);
 				}
 
-				char c = (key.unicode > 0 && key.unicode < 128) ? key.unicode : 0;
-				if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'))
+				dirtNotifier.OnEvent(*this);
+			}
+
+			return true;
+		}
+
+		void OnSysKeyEvent(const KeyboardEvent& key)
+		{
+			switch (key.VKey)
+			{
+			case IO::VKCode_ENTER:
+				platform.gui.DetachKeyboardSink(this);
+				break;
+			case IO::VKCode_HOME:
+				if (!orderedByName.empty())
 				{
-					for (size_t i = 0; i < orderedByName.size(); ++i)
+					auto i = constantsNameToValue.find(orderedByName[0]);
+					*value = i != constantsNameToValue.end() ? i->second : *value;
+				}
+				break;
+			case IO::VKCode_END:
+				if (!orderedByName.empty())
+				{
+					auto i = constantsNameToValue.find(*orderedByName.rbegin());
+					*value = i != constantsNameToValue.end() ? i->second : *value;
+				}
+				break;
+			case IO::VKCode_LEFT:
+				if (!orderedByName.empty())
+				{
+					*value = GetLeftValue(*value);
+				}
+				break;
+			case IO::VKCode_RIGHT:
+				if (!orderedByName.empty())
+				{
+					*value = GetRightValue(*value);
+				}
+				return;
+			case IO::VKCode_PGDOWN:
+				{
+					size_t delta = max(1ULL, orderedByName.size() / 10);
+					for (size_t i = 0; i < delta; ++i)
 					{
-						char d = orderedByName[i][0];
-						if ((d >= 'A' && d <= 'Z') || (d >= 'A' && d <= 'Z'))
-						{
-							if ((c & ~32) == (d & ~32))
-							{
-								// case independent match
-								auto k = constantsNameToValue.find(orderedByName[i]);
-								*value = (k != constantsNameToValue.end()) ? k->second : *value;
-								return true;
-							}
-						}
+						*value = GetLeftValue(*value);
 					}
 				}
-				else if (c > 0)
+				break;
+			case IO::VKCode_PGUP:
 				{
-					for (size_t i = 0; i < orderedByName.size(); ++i)
+					size_t delta = max(1ULL, orderedByName.size() / 10);
+					for (size_t i = 0; i < delta; ++i)
 					{
-						char d = orderedByName[i][0];
-						if (c == d)
+						*value = GetRightValue(*value);
+					}
+				}
+				break;
+			default:
+				break;
+			}
+		}
+
+		void OnAsciiCode(char c)
+		{
+			if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'))
+			{
+				for (size_t i = 0; i < orderedByName.size(); ++i)
+				{
+					char d = orderedByName[i][0];
+					if ((d >= 'A' && d <= 'Z') || (d >= 'a' && d <= 'z'))
+					{
+						if ((c & ~32) == (d & ~32))
 						{
+							// case independent match
 							auto k = constantsNameToValue.find(orderedByName[i]);
 							*value = (k != constantsNameToValue.end()) ? k->second : *value;
-							return true;
+							return;
 						}
 					}
 				}
 			}
-			return true;
+			else if (c > 0)
+			{
+				for (size_t i = 0; i < orderedByName.size(); ++i)
+				{
+					char d = orderedByName[i][0];
+					if (c == d)
+					{
+						auto k = constantsNameToValue.find(orderedByName[i]);
+						*value = (k != constantsNameToValue.end()) ? k->second : *value;
+						return;
+					}
+				}
+			}
 		}
 
 		void RenderValue(IGuiRenderContext& rc, int32 v, const GuiRect& rect, RGBAb colour)
@@ -908,8 +937,6 @@ namespace ANON
 
 		void Click(bool clickedDown, Vec2i pos) override
 		{
-			dirtNotifier.OnEvent(*this);
-
 			if (!clickedDown)
 			{
 				auto centre = Centre(absRect);
@@ -924,6 +951,8 @@ namespace ANON
 				{
 					platform.gui.AttachKeyboardSink(this);
 				}
+
+				dirtNotifier.OnEvent(*this);
 			}
 		}
 	};
@@ -965,6 +994,8 @@ namespace ANON
 
 			SafeFormat(buffer, 12, "%d", *_value);
 		}
+
+		cstr NotifyId() const override { return nullptr; }
 
 		virtual bool IsLegal(char c, int charPos) const
 		{
@@ -1077,7 +1108,9 @@ namespace ANON
 			platform.gui.DetachKeyboardSink(this);
 		}
 
-		virtual void Free()
+		cstr NotifyId() const override { return nullptr; }
+
+		void Free() override
 		{
 			delete this;
 		}
@@ -1210,14 +1243,16 @@ namespace ANON
 		size_t len;
 		Platform& platform;
 		TextEditorBox teb;
-		MaterialId id = -1;
-
+		MaterialId& id;
+		HString notifyId;
 	public:
-		BloodyMaterialBinding(Platform& _platform, IEventCallback<IBloodyPropertyType>& dirtNotifier, char* matString, size_t _len) :
+		BloodyMaterialBinding(Platform& _platform, MaterialId& _id, IEventCallback<IBloodyPropertyType>& dirtNotifier, cstr _notfiyId, char* matString, size_t _len) :
+			id(_id),
 			value(matString),
 			len(_len),
 			platform(_platform),
-			teb(_platform, *this, dirtNotifier, value, _len, true, *this)
+			teb(_platform, *this, dirtNotifier, value, _len, true, *this),
+			notifyId(_notfiyId)
 		{
 			if (value == nullptr)
 			{
@@ -1227,17 +1262,17 @@ namespace ANON
 			SafeFormat(value, len, "%s", matString);
 		}
 
-		virtual bool IsLegal(char c, int charPos) const
+		cstr NotifyId() const override { return notifyId; }
+
+		bool IsLegal(char c, int charPos) const override
 		{
 			return true;
 		}
 
 		void OnDetached(char* buffer) override
 		{
-			//wchar_t sysPath[IO::MAX_PATHLEN];
 			try
 			{
-				//platform.installation.ConvertPingPathToSysPath(value, sysPath, len);
 				id = platform.renderer.GetMaterialId(value);
 			}
 			catch (IException&)
@@ -1325,24 +1360,22 @@ namespace ANON
 		{
 			bool consumed = false;
 
-			teb.Notify();
-
 			if (clickedDown)
 			{
-				auto oldId = id;
-
 				if (IsPointInRect(pos, leftClickRect))
 				{
 					id = GetLeftValue(id);
-					if (id == -1)
+					if (id != 0)
 					{
-						SafeFormat(value, sizeof(value), "random");
+						teb.Notify();
+						SafeFormat(value, len, "random");
 					}
 					consumed = true;
 				}
 				else if (IsPointInRect(pos, rightClickRect))
 				{
 					id = GetRightValue(id);
+					teb.Notify();
 					consumed = true;
 				}
 
@@ -1350,26 +1383,24 @@ namespace ANON
 				{
 					if (*value == 0)
 					{
-						SafeFormat(value, sizeof(value), "random");
+						SafeFormat(value, len, "random");
 					}
 				}
-				else if (oldId != id)
+				
+				auto mat = platform.renderer.GetMaterialTextureName(id);
+				if (mat)
 				{
-					auto mat = platform.renderer.GetMaterialTextureName(id);
-					if (mat)
-					{
-						WideFilePath sysName;
-						platform.installation.ConvertPingPathToSysPath(mat, sysName);
+					WideFilePath sysName;
+					platform.installation.ConvertPingPathToSysPath(mat, sysName);
 
-						try
-						{
-							platform.installation.ConvertSysPathToMacroPath(sysName, value, len, "#m");
-						}
-						catch (IException& ex)
-						{
-							SafeFormat(value, len, "%s", ex.Message());
-						}			
+					try
+					{
+						platform.installation.ConvertSysPathToMacroPath(sysName, value, len, "#m");
 					}
+					catch (IException& ex)
+					{
+						SafeFormat(value, len, "%s", ex.Message());
+					}			
 				}
 			}
 
@@ -1384,6 +1415,8 @@ namespace ANON
 		BloodySpacer()
 		{
 		}
+
+		cstr NotifyId() const override { return nullptr; }
 
 		virtual void Free()
 		{
@@ -1422,6 +1455,8 @@ namespace ANON
 		{
 			id = { eventName.c_str(), 0 };
 		}
+
+		cstr NotifyId() const override { return nullptr; }
 
 		virtual void Free()
 		{
@@ -1480,7 +1515,9 @@ namespace ANON
 		{
 		}
 
-		virtual void Free()
+		cstr NotifyId() const override { return nullptr; }
+
+		void Free() override
 		{
 			delete this;
 		}
@@ -1560,6 +1597,8 @@ namespace ANON
 			SafeFormat(value, _len, "%s", pingPath);
 			OnDetached(value);
 		}
+
+		cstr NotifyId() const override { return nullptr; }
 
 		bool IsLegal(char c, int cursorPos) const override
 		{
@@ -1769,7 +1808,7 @@ namespace ANON
 		std::vector<BloodyProperty*> properties;
 		Platform& platform;
 		AutoFree<IScrollbar> vscroll;
-		IEventCallback<IBloodyPropertySetEditorSupervisor>& onDirty;
+		IEventCallback<BloodyNotifyArgs>& onDirty;
 
 		bool ValidateUnique(cstr name) const
 		{
@@ -1797,10 +1836,10 @@ namespace ANON
 
 		void OnEvent(IBloodyPropertyType& p)
 		{
-			onDirty.OnEvent(*this);
+			onDirty.OnEvent(BloodyNotifyArgs{ *this, p.Name(), p.NotifyId() });
 		}
 	public:
-		BloodyPropertySetEditor(Platform& _platform, IEventCallback<IBloodyPropertySetEditorSupervisor>& _onDirty) :
+		BloodyPropertySetEditor(Platform& _platform, IEventCallback<BloodyNotifyArgs>& _onDirty) :
 			platform(_platform),
 			onDirty(_onDirty),
 			vscroll(platform.utilities.CreateScrollbar(true))
@@ -1856,9 +1895,9 @@ namespace ANON
 			Add(new BloodyProperty(new BloodyIntBinding(platform, *this, addHexView, value), name));
 		}
 
-		void AddMaterialCategory(cstr name, Rococo::Graphics::MaterialCategory* cat) override
+		void AddMaterialCategory(cstr name, cstr notifyId, Rococo::Graphics::MaterialCategory* cat) override
 		{
-			auto* b = new BloodyEnumInt32Binding(platform, *this, "MaterialCategory", (int*)cat);
+			auto* b = new BloodyEnumInt32Binding(platform, *this, "MaterialCategory", notifyId, (int*)cat);
 			b->AddEnumConstant("Rock", Rococo::Graphics::MaterialCategory_Rock);
 			b->AddEnumConstant("Stone", Rococo::Graphics::MaterialCategory_Stone);
 			b->AddEnumConstant("Marble", Rococo::Graphics::MaterialCategory_Marble);
@@ -1878,9 +1917,9 @@ namespace ANON
 			Add(new BloodyProperty(b, name));
 		}
 
-		void AddMaterialString(cstr name, char* matString, size_t len) override
+		void AddMaterialString(cstr name, MaterialId& id, cstr notifyId, char* matString, size_t len) override
 		{
-			auto* b = new BloodyMaterialBinding(platform, *this, matString, len);
+			auto* b = new BloodyMaterialBinding(platform, id, *this, notifyId, matString, len);
 			Add(new BloodyProperty(b, name));
 		}
 
@@ -1988,7 +2027,7 @@ namespace ANON
 
 namespace Rococo
 {
-	IBloodyPropertySetEditorSupervisor* CreateBloodyPropertySetEditor(Platform& _platform, IEventCallback<IBloodyPropertySetEditorSupervisor>& _onDirty)
+	IBloodyPropertySetEditorSupervisor* CreateBloodyPropertySetEditor(Platform& _platform, IEventCallback<BloodyNotifyArgs>& _onDirty)
 	{
 		return new ANON::BloodyPropertySetEditor(_platform, _onDirty);
 	}

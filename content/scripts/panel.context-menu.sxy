@@ -1,0 +1,29 @@
+(' #file.type rococo.mplat.panel)
+
+(' #include 
+	"!scripts/mplat.pane.sxh.sxy"
+	"!scripts/mplat.types.sxy"
+	"!scripts/types.sxy"
+)
+
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+	
+(using Rococo)
+(using Sys.Maths)
+(using Sys.Type)
+
+
+(function Main (Int32 id)->(Int32 exitCode):
+	(IPaneBuilder builder (PaneBuilder))
+	(IPaneContainer root = builder.Root)
+	(root.SetColourBk1   0x00000000 0x00000000)
+	(root.SetColourBk2   0x00000000 0x00000000)
+	(root.SetColourEdge1 0x00000000 0x00000000)
+	(root.SetColourEdge2 0x00000000 0x00000000)
+	
+	(Recti screen)
+	(root.GetRect screen)
+	
+	(IContextMenuPane menu = (root.AddContextMenu "mplat.default.contextmenu" screen))
+)

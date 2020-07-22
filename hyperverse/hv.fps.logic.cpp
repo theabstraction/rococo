@@ -167,7 +167,7 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 		}
 	}
 
-	void NotifyChanged()  override
+	void NotifyChanged(BloodyNotifyArgs& args)  override
 	{
 
 	}

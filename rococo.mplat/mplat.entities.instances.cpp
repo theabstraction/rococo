@@ -258,7 +258,7 @@ namespace
          position = i->second->model.GetPosition();
       }
 
-	  virtual void LoadMaterialArray(const fstring& folder, int32 txWidth)
+	  void LoadMaterialArray(const fstring& folder, int32 txWidth) override
 	  {
 		  struct: public IEventCallback<IO::FileItemData>, IMaterialTextureArrayBuilder
 		  {
@@ -309,23 +309,24 @@ namespace
 				  MaterialTextureArrayBuilderArgs args{ *buffer, path };
 				  onLoad.OnEvent(args);
 			  }
-		  } z;
+		  } materialIndex;
 
-		  z.txWidth = txWidth;
-		  z.installation = &renderer.Installation();
-		  z.publisher = &publisher;
-		  z.This = this;
+          // First thing we do is build up a list of filenames for each material
+          materialIndex.txWidth = txWidth;
+          materialIndex.installation = &renderer.Installation();
+          materialIndex.publisher = &publisher;
+          materialIndex.This = this;
 
-		  SafeFormat(z.pingPath, IO::MAX_PATHLEN, "%s", folder.buffer);
+		  SafeFormat(materialIndex.pingPath, IO::MAX_PATHLEN, "%s", folder.buffer);
 
 		  WideFilePath sysPath;
-		  z.installation->ConvertPingPathToSysPath(z.pingPath, sysPath);
+          materialIndex.installation->ConvertPingPathToSysPath(materialIndex.pingPath, sysPath);
 
-		  swprintf_s(z.sysSearchPath, IO::MAX_PATHLEN, L"%s", sysPath.buf);
+		  swprintf_s(materialIndex.sysSearchPath, IO::MAX_PATHLEN, L"%s", sysPath.buf);
 	
-		  IO::ForEachFileInDirectory(sysPath, z, true);
+		  IO::ForEachFileInDirectory(sysPath, materialIndex, true);
 
-		  if (z.filenames.empty()) return;
+		  if (materialIndex.filenames.empty()) return;
 
 		  Events::BusyEvent be;
 		  be.isNowBusy = true;
@@ -333,7 +334,8 @@ namespace
 		  be.resourceName[0] = 0;
 		  publisher.Publish(be, Rococo::Events::evBusy);
 
-		  renderer.LoadMaterialTextureArray(z);
+          // Then we tell the renderer to open the files by index
+		  renderer.LoadMaterialTextureArray(materialIndex);
 
 		  be.isNowBusy = false;
 		  be.message = "";
@@ -353,6 +355,20 @@ namespace
 		  { "/metal/", MaterialCategory_Metal },
 		  { "/marble/", MaterialCategory_Marble },
 	  };
+
+      MaterialCategory GetMaterialCateogry(MaterialId id)
+      {
+          cstr name = renderer.GetMaterialTextureName(id);
+          for (auto& j : subdirToCatEnum)
+          {
+              if (strstr(name, j.first.c_str()))
+              {
+                  return j.second;
+              }
+          }
+
+          return MaterialCategory_Marble; // all that is not anythng is marble
+      }
 
 	  void RefreshCategories()
 	  {

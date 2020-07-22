@@ -427,6 +427,11 @@ namespace Rococo
 			int64 sizeInBytes;
 		};
 
+		template<class T> struct TEventArgs : public EventArgs
+		{
+			T data;
+		};
+
 		class IPublisher;
 
 		struct Event

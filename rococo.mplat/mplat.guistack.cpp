@@ -332,7 +332,21 @@ public:
 
 	void Render(IGuiRenderContext& grc) override
 	{
-		if (panels.empty()) return;
+		GuiMetrics metrics;
+		grc.Renderer().GetGuiMetrics(metrics);
+
+		if (metrics.screenSpan != lastSpan)
+		{
+			lastSpan = metrics.screenSpan;
+			GuiRect screenRect{ 0, 0, lastSpan.x, lastSpan.y };
+
+			for (auto& p : panels)
+			{
+				p.panel->SetRect(screenRect);
+			}
+		}
+
+		if (lastSpan.x == 0 || lastSpan.y == 0 || panels.empty()) return;
 
 		bool hiddenByModal = false;
 
@@ -366,9 +380,6 @@ public:
 		modality.isTop = true;
 		modality.isModal = p.isModal;
 		p.panel->Render(grc, { rect.left, rect.top }, modality);
-
-		GuiMetrics metrics;
-		grc.Renderer().GetGuiMetrics(metrics);
 
 		GuiRect logRect;
 		logRect.left = 2;
@@ -406,9 +417,14 @@ public:
 		ScrollMessages(logRect);
 	}
 
+	Vec2i lastSpan = { 0,0 };
+
 	void PushTop(IPaneSupervisor* panel, bool isModal) override
 	{
 		panels.push_back({ panel,isModal });
+
+		GuiRect screenRect{ 0, 0, lastSpan.x, lastSpan.y };
+		panel->SetRect(screenRect);
 	}
 
 	IPaneSupervisor* Pop() override

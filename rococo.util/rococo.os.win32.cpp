@@ -707,6 +707,30 @@ namespace
 			return contentDirectory;
 		}
 
+		bool TryExpandMacro(cstr macroPrefixPlusPath, U8FilePath& expandedPath) override
+		{
+			auto slash = GetFirstSlash(macroPrefixPlusPath + 1);
+			if (slash == nullptr)
+			{
+				Throw(0, "Installation::TryExpandMacro(\"%s\"): expecting forward slash character in pingPath", macroPrefixPlusPath);
+			}
+
+			cstr subdir = slash + 1;
+
+			U8FilePath macro;
+			memcpy_s(macro.buf, macro.CAPACITY, macroPrefixPlusPath, slash - macroPrefixPlusPath);
+			macro.buf[slash - macroPrefixPlusPath] = 0;
+
+			auto i = macroToSubdir.find(macro.buf);
+			if (i == macroToSubdir.end())
+			{
+				return false;
+			}
+
+			SecureFormat(expandedPath.buf, expandedPath.CAPACITY, "%s%s", i->second.c_str(), subdir);
+			return true;
+		}
+
 		bool DoPingsMatch(cstr a, cstr b) const override
 		{
 			try

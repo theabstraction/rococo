@@ -222,7 +222,7 @@ namespace HV
    {
 	   virtual void Assign(IPropertyHost* host) = 0; // N.B a property target must never by Next to itself
 	   virtual void GetProperties(cstr category, IBloodyPropertySetEditor& editor) = 0;
-	   virtual void NotifyChanged() = 0;
+	   virtual void NotifyChanged(BloodyNotifyArgs& args) = 0;
    };
 
    ROCOCOAPI IPropertyHost
