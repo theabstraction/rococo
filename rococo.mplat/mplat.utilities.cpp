@@ -43,7 +43,7 @@ class Utilities :
 	public IMathsVenue,
 	public IObserver,
 	public Browser::IBrowserFileChangeNotification,
-	public IEventCallback<IContextMenuSupervisor>
+	public IContextMenuEvents
 {
 	IInstallation& installation;
 	IRenderer& renderer;
@@ -407,13 +407,28 @@ public:
 		return *contextMenu;
 	}
 
-	void OnEvent(IContextMenuSupervisor& cm) override
+	void CloseContextMenu()
 	{
-		// triggered
 		if (platform->gui.Top() == contextMenuPane->Supervisor())
 		{
 			platform->gui.Pop();
 		}
+		else
+		{
+			Throw(0, "Expecting context menu to be the top level of the gui stack");
+		}
+	}
+
+	/* IContextMenuEvent::OnItemSelected */
+	void OnItemSelected(IContextMenuSupervisor& cm) override
+	{
+		CloseContextMenu();
+	}
+
+	/* IContextMenuEvent::OnClickOutsideControls */
+	void OnClickOutsideControls(IContextMenuSupervisor& menu) override
+	{
+		CloseContextMenu();
 	}
 
 	IContextMenu& PopupContextMenu()

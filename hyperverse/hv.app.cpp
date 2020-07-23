@@ -381,20 +381,6 @@ namespace HV
 		void OnCreate() override
 		{
 			RunEnvironmentScript(e, "!scripts/hv/app.created.sxy", true);
-
-			IContextMenu& menu = platform.utilities.PopupContextMenu();
-			menu.Clear(0);
-			menu.AddString(0, "New"_fstring, "OnNewThing"_fstring, "Ctrl+N"_fstring);
-			menu.AddString(0, "Open"_fstring, "OnOpenThing"_fstring, "Ctrl+O"_fstring);
-			int32 idEditSubMenu = menu.AddSubMenu("Edit..."_fstring, 0);
-			menu.AddString(idEditSubMenu, "Reset"_fstring, "OnResetThing"_fstring, ""_fstring);
-			menu.AddString(idEditSubMenu, "Copy"_fstring, "OnCopyThing"_fstring, ""_fstring);
-			menu.AddString(idEditSubMenu, "Paste"_fstring, "OnPasteThing"_fstring, ""_fstring);
-			menu.AddString(0, "Save"_fstring, "OnSaveThing"_fstring, "Ctrl+S"_fstring);
-			menu.AddString(0, "Save As"_fstring, "OnSaveAsThing"_fstring, "Ctrl+A"_fstring);
-			menu.AddString(0, "Close"_fstring, "OnCloseThing"_fstring, "Ctrl+D"_fstring);
-			menu.SetPopupPoint({ 200,200 });
-
 		//	e.platform.gui.PushTop(colourPanel->Supervisor(), true);
 		}
 	};

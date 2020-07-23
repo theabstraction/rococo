@@ -68,7 +68,7 @@ class ContextMenu: public IContextMenuSupervisor
 	IPublisher& publisher;
 	GuiRect menuRect = { 0,0,0,0 };
 	int32 nextBranchId = 1;
-	IEventCallback<IContextMenuSupervisor>& onTriggered;
+	IContextMenuEvents& eventHandler;
 
 	MenuBranch& GetBranch(ID_MENU_BRANCH id)
 	{
@@ -124,6 +124,33 @@ class ContextMenu: public IContextMenuSupervisor
 		}
 	}
 
+	// Shift rectangle to a location where it will fit nicely on screen, or die trying
+	void FitRect(IGuiRenderContext& grc, GuiRect& rect)
+	{
+		GuiMetrics metrics;
+		grc.Renderer().GetGuiMetrics(metrics);
+
+		if (rect.right > metrics.screenSpan.x)
+		{
+			// Too far right, so shift left
+			
+			int32 dx = rect.right - rect.left;
+			rect.right = rect.left;
+			rect.left = rect.right - dx;
+		}
+
+		if (rect.bottom > metrics.screenSpan.y)
+		{
+			// Shift up
+			int32 dy = rect.bottom - rect.top;
+			if (dy < metrics.screenSpan.y)
+			{
+				rect.bottom = metrics.screenSpan.y;
+				rect.top = rect.bottom - dy;
+			}
+		}
+	}
+
 	void RenderBranch(IGuiRenderContext& grc, MenuBranch& branch, Vec2i screenPos)
 	{
 		int32 maxWidth = 0;
@@ -138,6 +165,11 @@ class ContextMenu: public IContextMenuSupervisor
 		Vec2i span{ maxWidth * CELL_WIDTH + 4,  4 + CELL_HEIGHT * (int32)branch.children.size() };
 
 		GuiRect menuRect{ screenPos.x, screenPos.y, screenPos.x + span.x, screenPos.y + span.y };
+
+		if (branch.id == 0)
+		{
+			FitRect(grc, menuRect);
+		}
 
 		branch.lastRenderedRect = menuRect;
 
@@ -194,8 +226,8 @@ class ContextMenu: public IContextMenuSupervisor
 	}
 
 public:
-	ContextMenu(IPublisher& _publisher, IEventCallback<IContextMenuSupervisor>& _onTriggered) :
-		publisher(_publisher), onTriggered(_onTriggered) {}
+	ContextMenu(IPublisher& _publisher, IContextMenuEvents& _eventHandler) :
+		publisher(_publisher), eventHandler(_eventHandler) {}
 
 	void Free() override
 	{
@@ -216,7 +248,7 @@ public:
 	{
 		if (b.item.triggerEvent.name != nullptr && b.item.triggerEvent.name[0] != 0)
 		{
-			onTriggered.OnEvent(*this);
+			eventHandler.OnItemSelected(*this);
 
 			TEventArgs<cstr> args;
 			args.data = b.item.text.c_str();
@@ -253,7 +285,15 @@ public:
 	{
 		if (me.HasFlag(MouseEvent::LUp))
 		{
-			TrySelectAt(me.cursorPos, root);
+			if (!TrySelectAt(me.cursorPos, root))
+			{
+				eventHandler.OnClickOutsideControls(*this);
+			}
+		}
+
+		if (me.HasFlag(MouseEvent::RUp))
+		{
+			eventHandler.OnClickOutsideControls(*this);
 		}
 	}
 
@@ -386,9 +426,9 @@ namespace Rococo
 			return menu;
 		}
 
-		IContextMenuSupervisor* CreateContextMenu(IPublisher& publisher, IEventCallback<IContextMenuSupervisor>& onTriggered)
+		IContextMenuSupervisor* CreateContextMenu(IPublisher& publisher, IContextMenuEvents& eventHandler)
 		{
-			return new ContextMenu(publisher, onTriggered);
+			return new ContextMenu(publisher, eventHandler);
 		}
 	}
 }

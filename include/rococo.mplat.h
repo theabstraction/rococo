@@ -560,11 +560,18 @@ namespace Rococo
 		virtual void Free() = 0;
 	};
 
+	ROCOCOAPI IContextMenuEvents
+	{
+		virtual void OnClickOutsideControls(IContextMenuSupervisor& menu) = 0;
+		virtual void OnItemSelected(IContextMenuSupervisor & menu) = 0;
+	};
+
 	namespace MPlatImpl
 	{
-		IContextMenuSupervisor* CreateContextMenu(Events::IPublisher& publisher, IEventCallback<IContextMenuSupervisor>& onTriggered);
+		IContextMenuSupervisor* CreateContextMenu(Events::IPublisher& publisher, IContextMenuEvents& eventHandler);
 	}
 
+	// If this class grows too long, consider adding sub-interfaces to better index the functionality
 	ROCOCOAPI IUtilitiies
 	{
 		virtual void AddSubtitle(cstr subtitle) = 0;

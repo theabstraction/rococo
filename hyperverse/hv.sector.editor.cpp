@@ -74,9 +74,19 @@ namespace
 			}
 		}
 
+		void PopupSectorContext(Vec2i cursorPos, int sectorIndex)
+		{
+			auto& menu = platform.utilities.PopupContextMenu();
+			menu.Clear(0);
+			menu.AddString(0, "Pull Colours"_fstring, "edit.sector.cmd.colours.pull"_fstring, ""_fstring);
+			menu.AddString(0, "Push Colours"_fstring, "edit.sector.cmd.colours.push"_fstring, ""_fstring);
+			menu.AddString(0, "Set UI colour"_fstring, "edit.sector.cmd.colours.set_ui"_fstring, ""_fstring);
+			menu.SetPopupPoint(cursorPos + Vec2i{ 25, 25 });
+		}
+
 		void OnMouseRClick(Vec2i cursorPos, bool clickedDown) override
 		{
-			if (clickedDown)
+			if (!clickedDown)
 			{
 				Vec2 wp = map.GetWorldPosition(cursorPos);
 				for (auto* s : map.Sectors())
@@ -91,7 +101,15 @@ namespace
 						{
 							if (secs.begin()[i] == s)
 							{
-								map.Sectors().SelectSector(i);
+								if (map.Sectors().GetSelectedSectorId() == i)
+								{
+									// Already selected
+									PopupSectorContext(cursorPos, (int32) i);
+								}
+								else
+								{
+									map.Sectors().SelectSector(i);
+								}
 								editor->SetPropertyTarget(secs.begin()[i]);
 								editor->BindSectorPropertiesToPropertyEditor(secs.begin()[i]);
 								return;
