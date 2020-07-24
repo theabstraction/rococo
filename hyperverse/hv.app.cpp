@@ -396,4 +396,10 @@ namespace HV
 		p.installation.Macro("#objects", "!scripts/hv/sector/objects/");
 		return new HV::App(p);
 	}
+
+	IRandom& GetRandomizer()
+	{
+		static Random::RandomMT mt;
+		return mt;
+	}
 }

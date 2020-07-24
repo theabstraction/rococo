@@ -279,7 +279,13 @@ namespace ANON
 	   }
    }
 
-   struct Sector : public ISector, public ICorridor, IMaterialPalette, public IEventCallback<MaterialArgs>, public ISectorLayout
+   struct Sector : 
+	   public ISector,
+	   public ICorridor,
+	   IMaterialPalette,
+	   public IEventCallback<MaterialArgs>,
+	   public ISectorLayout,
+	   public ITriggersAndActions
    {
 	   IInstancesSupervisor& instances;
 	   ISectors& co_sectors;
@@ -338,6 +344,67 @@ namespace ANON
 	   };
 
 	   std::vector<SceneryBind> scenery;
+
+	   std::vector<ITriggerSupervisor*> triggers;
+
+	   int32 TriggerCount() const
+	   {
+		   return (int32)triggers.size();
+	   }
+
+	   ITrigger& operator[](int32 i)
+	   {
+		   return *triggers[i];
+	   }
+
+	   void AddAction(int32 triggerIndex) override
+	   {
+		   if (triggerIndex < 0 || triggerIndex > (int32) triggers.size())
+		   {
+			   Throw(0, "Sector.AddAction(%d) -> index out of range", triggerIndex);
+		   }
+
+		   auto& t = *triggers[triggerIndex];
+		   t.Actions().AddAction(GetDefaultActionFactory());
+	   }
+
+	   void RemoveAction(int32 triggerIndex) override
+	   {
+		   if (triggerIndex < 0 || triggerIndex > (int32) triggers.size())
+		   {
+			   Throw(0, "Sector.RemoveAction(%d) -> index out of range", triggerIndex);
+		   }
+	   }
+
+	   void AddTrigger(int32 pos) override
+	   {
+		   auto* t = CreateTrigger();
+
+		   if (pos >= 0 && pos < (int32) triggers.size())
+		   {
+			   auto i = triggers.begin();
+			   std::advance(i, pos);
+			   triggers.insert(i, t);
+		   }
+		   else
+		   {
+			   triggers.push_back(t);
+		   }
+	   }
+
+	   void RemoveTrigger(int32 pos)  override
+	   {
+		   if (pos >= 0 && pos < (int32)triggers.size())
+		   {
+			   auto i = triggers.begin();
+			   std::advance(i, pos);
+			   triggers.erase(i);
+		   }
+		   else
+		   {
+			   Throw(0, "Sector.TriggersAndActions.RemoveTrigger[%d] Bad trigger index", pos);
+		   }
+	   }
 
 	   void Altitude(Vec2& altitudes)
 	   {
@@ -1508,6 +1575,11 @@ namespace ANON
 		  for (auto m : nameToMaterial)
 		  {
 			  delete m.second;
+		  }
+
+		  for (auto* t : triggers)
+		  {
+			  t->Free();
 		  }
 	  }
 
@@ -3543,11 +3615,26 @@ namespace ANON
 
 		  return false;
 	  }
+
+	  ITriggersAndActions& TriggersAndActions() override { return *this; }
    };
 }
 
 namespace HV
 {
+	const fstring ToFstring(TRIGGER_TYPE type)
+	{
+		switch (type)
+		{
+		case TRIGGER_TYPE_NONE: return "None"_fstring;
+		case TRIGGER_TYPE_DEPRESSED: return "Depressed"_fstring;
+		case TRIGGER_TYPE_PRESSED: return "Pressed"_fstring;
+		case TRIGGER_TYPE_LEVEL_LOAD: return "LevelLoad"_fstring;
+		default:
+			Throw(0, "Unknown trigger type: %d", type);
+		}
+	}
+
 	ISector* CreateSector(Platform& platform, ISectors& co_sectors)
 	{
 		return new ANON::Sector(platform, co_sectors);

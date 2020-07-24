@@ -547,6 +547,17 @@ struct PaneContainer : public BasePane, virtual public IPaneContainer
 		return container;
 	}
 
+	Rococo::IArrayBox* /* box */ AddArrayBox(int32 fontIndex, const fstring& populatorEvent, const GuiRect& rect)
+	{
+		auto* arrayBox = Rococo::MPlatImpl::AddArrayBox(platform.publisher, *this, fontIndex, populatorEvent, rect);
+		return arrayBox;
+	}
+
+	Rococo::IEnumListPane* AddEnumList(int32 fontIndex, const fstring& populateEvent, const GuiRect& rect) override
+	{
+		auto* enumList = Rococo::MPlatImpl::AddEnumList(platform.publisher, *this, fontIndex, populateEvent, rect);
+		return enumList;
+	}
 
 	Rococo::ILabelPane* AddLabel(int32 fontIndex, const fstring& text, const GuiRect& rect)
 	{
@@ -663,12 +674,14 @@ public:
 		AddNativeCalls_RococoIFramePane(args.ss, nullptr);
 		AddNativeCalls_RococoIPaneContainer(args.ss, nullptr);
 		AddNativeCalls_RococoILabelPane(args.ss, nullptr);
+		AddNativeCalls_RococoIArrayBox(args.ss, nullptr);
 		AddNativeCalls_RococoIPaneBuilder(args.ss, this);
 		AddNativeCalls_RococoITextOutputPane(args.ss, nullptr);
 		AddNativeCalls_RococoIRadioButton(args.ss, nullptr);
 		AddNativeCalls_RococoIPane(args.ss, nullptr);
 		AddNativeCalls_RococoISlider(args.ss, nullptr);
 		AddNativeCalls_RococoIScroller(args.ss, nullptr);
+		AddNativeCalls_RococoIEnumListPane(args.ss, nullptr);
 	}
 
 	void RefreshScript()

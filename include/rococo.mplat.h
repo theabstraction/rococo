@@ -9,6 +9,15 @@ namespace Rococo
    ROCOCO_ID(ID_ENTITY, int64, 0);
    ROCOCO_ID(ID_PUPPET, uint64, 0);
 
+   struct IEnumVector
+   {
+	   virtual int32 GetActiveIndex() const = 0;
+	   virtual void SetActiveIndex(int32 index) = 0;
+	   virtual void SetValue(int32 index, int32 value) = 0;
+	   virtual int32 operator[] (int32 index) const = 0;
+	   virtual int32 Count() const = 0;
+   };
+
    struct FileUpdatedEvent : public Rococo::Events::EventArgs
    {
 	   cstr pingPath;

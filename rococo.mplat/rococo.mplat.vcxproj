@@ -129,6 +129,7 @@
     <ClCompile Include="mplat.mesh.list.cpp" />
     <ClCompile Include="mplat.os.win32.venue.cpp" />
     <ClCompile Include="mplat.overlay.cpp" />
+    <ClCompile Include="mplat.pane.array-box.cpp" />
     <ClCompile Include="mplat.pane.context-menu.cpp" />
     <ClCompile Include="mplat.pane.label.cpp" />
     <ClCompile Include="mplat.pane.radiobutton.cpp" />
@@ -136,6 +137,7 @@
     <ClCompile Include="mplat.pane.slider.cpp" />
     <ClCompile Include="mplat.pane.tab.container.cpp" />
     <ClCompile Include="mplat.pane.textoutput.cpp" />
+    <ClCompile Include="mplat.pane.enumlist.cpp" />
     <ClCompile Include="mplat.puppets.cpp" />
     <ClCompile Include="mplat.renderer.config.cpp" />
     <ClCompile Include="mplat.scripts.cpp" />

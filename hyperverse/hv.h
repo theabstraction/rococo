@@ -270,6 +270,109 @@ namespace HV
 
    struct ISectorLayout;
 
+   enum TRIGGER_TYPE 
+   { 
+	   TRIGGER_TYPE_NONE = 0,
+	   TRIGGER_TYPE_DEPRESSED,
+	   TRIGGER_TYPE_PRESSED,
+	   TRIGGER_TYPE_LEVEL_LOAD,
+   };
+
+   const fstring ToFstring(TRIGGER_TYPE type);
+
+   enum ADVANCE_STATE
+   {
+	   // state has advanced, but not completed, advance next timestep
+	   ADVANCE_STATE_YIELD,
+
+	   // state had advanced and completed, move on to next action in sequence
+	   ADVANCE_STATE_COMPLETED,
+
+	   // state has advanced and orderd the action sequence to terminate
+	   ADVANCE_STATE_TERMINATE
+   };
+
+   struct AdvanceInfo
+   {
+	   IPublisher& publisher;
+	   const Seconds dt;
+   };
+
+   enum PARAMETER_TYPE
+   {
+	   PARAMETER_TYPE_SECTOR_STRING,
+	   PARAMETER_TYPE_EVENT_NAME,
+	   PARAMETER_TYPE_FLOAT,
+	   PARAMETER_TYPE_INT
+   };
+
+   struct ParamDesc
+   {
+	   cstr name;
+	   PARAMETER_TYPE type;
+	   float minValue;
+	   float maxValue;
+   };
+
+   struct ParameterBuffer
+   {
+	   enum {CAPACITY = 256};
+	   char data[CAPACITY];
+	   operator cstr() const { return data; }
+   };
+
+   ROCOCOAPI IAction
+   {
+	    virtual ADVANCE_STATE Advance(AdvanceInfo& info) = 0;
+		virtual int32 ParameterCount() const = 0;
+		virtual void GetParameter(int32 index, ParameterBuffer& buf) const = 0;
+		virtual void SetParameter(int32 index, cstr value) = 0;
+		virtual ParamDesc GetParameterName(int32 index) const = 0;
+		virtual void Format(char* buffer, size_t capacity) = 0;
+		virtual void Free() = 0;
+   };
+
+   IRandom& GetRandomizer();
+
+   ROCOCOAPI IActionFactory
+   {
+		virtual IAction * Create() = 0;
+		virtual cstr Name() const = 0;
+   };
+
+   IActionFactory& GetDefaultActionFactory();
+
+   ROCOCOAPI IActionArray
+   {
+		virtual IAction & operator[](int32 index) = 0;
+		virtual int32 Count() const = 0;
+		virtual void AddAction(IActionFactory& factory) = 0;
+   };
+
+   ROCOCOAPI ITrigger
+   {
+		virtual TRIGGER_TYPE Type() const = 0;
+		virtual void SetType(TRIGGER_TYPE type) = 0;
+		virtual IActionArray& Actions() = 0;
+   };
+
+   struct ITriggerSupervisor : public ITrigger
+   {
+	   virtual void Free() = 0;
+   };
+
+   ITriggerSupervisor* CreateTrigger();
+
+   ROCOCOAPI ITriggersAndActions
+   {
+	  virtual void AddTrigger(int32 pos) = 0;
+	  virtual void RemoveTrigger(int32 pos) = 0;
+	  virtual int32 TriggerCount() const = 0;
+	  virtual ITrigger& operator[](int32 i) = 0;
+	  virtual void AddAction(int32 triggerIndex) = 0;
+	  virtual void RemoveAction(int32 triggerIndex) = 0;
+   };
+
    ROCOCOAPI ISector: public IPropertyTarget
    {
 	  virtual const AABB2d& GetAABB() const = 0;
@@ -320,6 +423,8 @@ namespace HV
 
 	  virtual void OnTick(const IUltraClock& clock) = 0;
 	  virtual void NotifySectorPlayerIsInSector(const IUltraClock& clock) = 0;
+
+	  virtual ITriggersAndActions& TriggersAndActions() = 0;
    };
 
    float GetHeightAtPointInSector(cr_vec3 p, ISector& sector);

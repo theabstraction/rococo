@@ -111,7 +111,7 @@
 	(lever.SetMaterialTop rodMat)
 	(lever.UseSmoothNormals)
 	
-	(lever.Advance -0.02)
+	(lever.Advance -0.02e)
 	(lever.AddSphere 0.04 6 6)
 	(lever.AddTorus 0.04 0.06 6 6)
 	(lever.Advance -0.02)

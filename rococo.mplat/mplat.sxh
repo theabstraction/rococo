@@ -80,10 +80,31 @@
 )
 
 (interface 
+	(as.sxy Rococo.IEnumListPane "../content/scripts/mplat.pane" Rococo.IPane)
+	(as.cpp Rococo.IEnumListPane "mplat" "virtual public Rococo::IPane")
+	(context factory Rococo.IEnumListPane)
+	(methods
+		(AddEnumCategory (IString key)(Int32 value))
+		(SetArrowColours (RGBAb normal)(RGBAb hilighted)(RGBAb disabled))
+		(SetFocusColours (RGBAb col1)(RGBAb col2))
+	)
+)
+
+(interface 
+	(as.sxy Rococo.IArrayBox "../content/scripts/mplat.pane" Rococo.IPane)
+	(as.cpp Rococo.IArrayBox "mplat" "virtual public Rococo::IPane")
+	(context factory Rococo.IArrayBox)
+	(methods
+		(SetFocusColours (RGBAb col1)(RGBAb col2))
+	)
+)
+
+(interface 
 	(as.sxy Rococo.IPaneContainer "../content/scripts/mplat.pane" Rococo.IPane)
 	(as.cpp Rococo.IPaneContainer "mplat" "virtual public Rococo::IPane")
 	(context factory Rococo.IPaneContainer)
 	(methods
+		(AddArrayBox (Int32 fontIndex)(IString populatorEvent)(const Rect rect)->(Rococo.IArrayBox box))
 		(AddContainer (const Rect rect)->(Rococo.IPaneContainer container))
 		(AddFrame (const Rect rect)->(Rococo.IFramePane frame))
 		(AddTabContainer (Int32 tabHeight)(Int32 fontIndex)(const Rect rect)->(Rococo.ITabContainer container))
@@ -93,6 +114,7 @@
 		(AddTextOutput  (Int32 fontIndex)(IString key) (const Rect rect)->(Rococo.ITextOutputPane textBox))
 		(AddRadioButton (Int32 fontIndex)(IString text)(IString key)(IString value) (const Rect rect)->(Rococo.IRadioButton radio))
 		(AddContextMenu (IString key) (const Rect rect) -> (Rococo.IContextMenuPane menu))
+		(AddEnumList (Int32 fontIndex)(IString populateEvent)(const Rect rect) -> (Rococo.IEnumListPane enumList))
 	)
 )
 

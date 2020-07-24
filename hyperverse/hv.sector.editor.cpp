@@ -2,10 +2,158 @@
 #include <rococo.mplat.h>
 #include <rococo.strings.h>
 #include <rococo.rings.inl>
+#include <vector>
 
 namespace
 {
 	using namespace HV;
+
+	static const EventIdRef evEditSectorLogic = "edit.sector.logic"_event;
+	static const EventIdRef evPopulateTriggers = "editor.logic.enum_triggers"_event;
+
+	struct LogicEditor: public IObserver
+	{
+		struct TriggerList: IEnumVector
+		{
+			ISector* sector = nullptr;
+			int32 activeIndex = 0;
+
+			int32 GetActiveIndex() const override
+			{
+				return activeIndex;
+			}
+
+			void SetActiveIndex(int32 index) override
+			{
+				activeIndex = index;
+			}
+
+			int32 operator[] (int32 index) const override
+			{
+				return (int32) sector->TriggersAndActions()[index].Type();
+			}
+
+			void SetValue(int32 index, int32 value) override
+			{
+				if (index < 0 || index >= (int32)sector->TriggersAndActions().TriggerCount())
+				{
+					Throw(0, "LogicEditor.TriggerList.SetValue(%d) index out of range)", index);
+				}
+
+				sector->TriggersAndActions()[index].SetType((TRIGGER_TYPE)value);
+			}
+
+			int32 Count() const  override
+			{
+				return sector->TriggersAndActions().TriggerCount();
+			}
+		} triggerList;
+		Platform& platform;
+		ISectors& sectors;
+		ISector* sector = nullptr;
+
+		AutoFree<IPaneBuilderSupervisor> logicPanel;
+
+		LogicEditor(Platform& _platform, ISectors& _sectors) : 
+			platform(_platform), sectors(_sectors)
+		{
+			logicPanel = platform.gui.BindPanelToScript("!scripts/hv/panel.logic.sxy");
+			platform.publisher.Subscribe(this, evEditSectorLogic);
+			platform.publisher.Subscribe(this, evUIInvoke);
+			platform.publisher.Subscribe(this, evPopulateTriggers);
+		}
+
+		void OpenEditor()
+		{
+			auto id = sectors.GetSelectedSectorId();
+			if (id != (size_t)-1)
+			{
+				sector = sectors.begin()[id];
+				platform.gui.PushTop(logicPanel->Supervisor(), true);
+			}
+			else
+			{
+				sector = nullptr;		
+			}
+			
+			triggerList.sector = sector;
+			triggerList.activeIndex = 0;
+		}
+
+		void CloseEditor()
+		{
+			if (platform.gui.Top() == logicPanel->Supervisor())
+			{
+				platform.gui.Pop();
+				sector = nullptr;
+				triggerList.sector = nullptr;
+			}
+			else
+			{
+				Throw(0, "LogicEditor::CloseEditor -> the editor panel was not on top of the gui stack");
+			}
+		}
+
+		void AddTrigger()
+		{
+			sector->TriggersAndActions().AddTrigger(triggerList.activeIndex);
+		}
+
+		void RemoveTrigger()
+		{
+			sector->TriggersAndActions().RemoveTrigger(triggerList.activeIndex);
+		}
+
+		void AddAction()
+		{
+			sector->TriggersAndActions().AddAction(triggerList.activeIndex);
+		}
+
+		void RemoveAction()
+		{
+			sector->TriggersAndActions().RemoveAction(triggerList.activeIndex);
+		}
+
+		void OnEvent(Event& ev) override
+		{
+			if (ev == evEditSectorLogic)
+			{
+				OpenEditor();
+			}
+			else if (ev == Rococo::Events::evUIInvoke)
+			{
+				auto& cmd = As<UIInvoke>(ev);
+				if (Eq(cmd.command, "editor.logic.close"))
+				{
+					CloseEditor();
+				}
+				else if (Eq(cmd.command, "editor.logic.add_trigger"))
+				{
+					AddTrigger();
+				}
+				else if (Eq(cmd.command, "editor.logic.remove_trigger"))
+				{
+					RemoveTrigger();
+				}
+				else if (Eq(cmd.command, "editor.logic.add_action"))
+				{
+					AddAction();
+				}
+				else if (Eq(cmd.command, "editor.logic.remove_action"))
+				{
+					RemoveAction();
+				}
+			}
+			else if (ev == evPopulateTriggers)
+			{
+				auto& pop = As<TEventArgs<Rococo::IEnumVector*>>(ev);
+				if (triggerList.sector != nullptr)
+				{
+					pop.data = &triggerList;
+				}
+			}
+		}
+	};
 
 	class SectorEditor : public ISectorEditor, private IEditMode
 	{
@@ -14,6 +162,7 @@ namespace
 		Platform& platform;
 		IEditorState* editor;
 		Windows::IWindow& parent;
+		LogicEditor logicEditor;
 
 		void Render(IGuiRenderContext& grc, const GuiRect& rect) override
 		{
@@ -78,9 +227,7 @@ namespace
 		{
 			auto& menu = platform.utilities.PopupContextMenu();
 			menu.Clear(0);
-			menu.AddString(0, "Pull Colours"_fstring, "edit.sector.cmd.colours.pull"_fstring, ""_fstring);
-			menu.AddString(0, "Push Colours"_fstring, "edit.sector.cmd.colours.push"_fstring, ""_fstring);
-			menu.AddString(0, "Set UI colour"_fstring, "edit.sector.cmd.colours.set_ui"_fstring, ""_fstring);
+			menu.AddString(0, "Logic..."_fstring, "edit.sector.logic"_fstring, ""_fstring);
 			menu.SetPopupPoint(cursorPos + Vec2i{ 25, 25 });
 		}
 
@@ -127,9 +274,9 @@ namespace
 			platform(_platform),
 			map(_map),
 			parent(_parent),
-			editor(nullptr)
+			editor(nullptr),
+			logicEditor(_platform, _map.Sectors())
 		{ 
-			
 		}
 
 		~SectorEditor()
