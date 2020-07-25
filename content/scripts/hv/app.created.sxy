@@ -18,11 +18,13 @@
 	(IArrayFonts fonts (ArrayFonts))
 	
 	// Protocol says we define fonts roughly in order of size
-	(fonts.LoadFont "!textures/fonts/Tahoma-192/")
+//	(fonts.LoadFont "!textures/fonts/Tahoma-192/")
 	
 	(Int32 idDevFont)
 	(fonts.LoadFont "!textures/fonts/Courier New-15/" -> idDevFont)
 	(fonts.MarkDevFont idDevFont)
+	
+	(fonts.LoadFont "!textures/fonts/Courier New-19/")
 )
 
 (function Main (Int32 id)->(Int32 exitCode):
@@ -30,5 +32,5 @@
 	(instances.SetMaterialMacro "!textures/hv/materials/hi-rez/" )
 	(instances.LoadMaterialArray "#m/" 1024)
 	
-//	(LoadFonts)
+	(LoadFonts)
 )

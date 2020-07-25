@@ -303,7 +303,8 @@ namespace HV
 	   PARAMETER_TYPE_SECTOR_STRING,
 	   PARAMETER_TYPE_EVENT_NAME,
 	   PARAMETER_TYPE_FLOAT,
-	   PARAMETER_TYPE_INT
+	   PARAMETER_TYPE_INT,
+	   PARAMETER_TYPE_INT_UNBOUNDED
    };
 
    struct ParamDesc
@@ -334,9 +335,30 @@ namespace HV
 
    IRandom& GetRandomizer();
 
+   ROCOCOAPI IGlobalVariables
+   {
+	   enum { MAX_VARIABLE_NAME_LENGTH = 32 };
+	   // Get or else create a variable of the given name, returning true if the variable already exists
+	   // If the variable is created the variable is initialized to the default value passed into the function
+	   virtual bool GetValue(cstr name, int32& outputValue) const = 0;
+
+	   // Sets the value of the variable with the given name, returns the previous value.
+	   // If the variable was not defined, it is created, initialized, and the output is zero.
+	   virtual int32 SetValue(cstr name, int32 value) = 0;
+
+	   // Test the name for conformity to naming rules. If it is violated an IException is thrown
+	   // with a descriptive message that includes the original string.
+	   virtual void ValidateName(cstr name) const = 0;
+   };
+
+   ROCOCOAPI IIActionFactoryCreateContext
+   {
+	   virtual IGlobalVariables& GetGlobals() = 0;
+   };
+
    ROCOCOAPI IActionFactory
    {
-		virtual IAction * Create() = 0;
+		virtual IAction * Create(IIActionFactoryCreateContext& context) = 0;
 		virtual cstr Name() const = 0;
    };
 
@@ -346,7 +368,8 @@ namespace HV
    {
 		virtual IAction & operator[](int32 index) = 0;
 		virtual int32 Count() const = 0;
-		virtual void AddAction(IActionFactory& factory) = 0;
+		virtual void AddAction(IActionFactory& factory, IIActionFactoryCreateContext& context) = 0;
+		virtual void RemoveAction(int32 index) = 0;
    };
 
    ROCOCOAPI ITrigger
@@ -354,6 +377,7 @@ namespace HV
 		virtual TRIGGER_TYPE Type() const = 0;
 		virtual void SetType(TRIGGER_TYPE type) = 0;
 		virtual IActionArray& Actions() = 0;
+		virtual IStringVector& GetStringVector() = 0;
    };
 
    struct ITriggerSupervisor : public ITrigger
@@ -363,6 +387,12 @@ namespace HV
 
    ITriggerSupervisor* CreateTrigger();
 
+
+   IActionFactory& GetDefaultActionFactory();
+   size_t ActionFactoryCount();
+   IActionFactory& GetActionFactory(size_t index);
+   IActionFactory& GetActionFactory(cstr name);
+
    ROCOCOAPI ITriggersAndActions
    {
 	  virtual void AddTrigger(int32 pos) = 0;
@@ -370,7 +400,7 @@ namespace HV
 	  virtual int32 TriggerCount() const = 0;
 	  virtual ITrigger& operator[](int32 i) = 0;
 	  virtual void AddAction(int32 triggerIndex) = 0;
-	  virtual void RemoveAction(int32 triggerIndex) = 0;
+	  virtual void RemoveAction(int32 triggerIndex, int32 actionIndex) = 0;
    };
 
    ROCOCOAPI ISector: public IPropertyTarget
@@ -470,6 +500,8 @@ namespace HV
 	  virtual void SelectSector(size_t id) = 0;
 
 	  virtual void OnTick(const IUltraClock& clock) = 0;
+
+	  virtual IIActionFactoryCreateContext& AFCC() = 0;
    };
 
    ISectors* CreateSectors(Platform& platform);

@@ -2126,6 +2126,62 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->SetFocusColours(col1, col2);
 	}
+	void NativeRococoIArrayBoxSetLineHeight(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 pixels;
+		_offset += sizeof(pixels);
+		ReadInput(pixels, _sf, -_offset);
+
+		Rococo::IArrayBox* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetLineHeight(pixels);
+	}
+	void NativeRococoIArrayBoxSetLineBorders(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 bottom;
+		_offset += sizeof(bottom);
+		ReadInput(bottom, _sf, -_offset);
+
+		int32 right;
+		_offset += sizeof(right);
+		ReadInput(right, _sf, -_offset);
+
+		int32 top;
+		_offset += sizeof(top);
+		ReadInput(top, _sf, -_offset);
+
+		int32 left;
+		_offset += sizeof(left);
+		ReadInput(left, _sf, -_offset);
+
+		Rococo::IArrayBox* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetLineBorders(left, top, right, bottom);
+	}
+	void NativeRococoIArrayBoxSetItemSelectEvent(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _eventText;
+		ReadInput(_eventText, _sf, -_offset);
+		fstring eventText { _eventText->buffer, _eventText->length };
+
+
+		Rococo::IArrayBox* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetItemSelectEvent(eventText);
+	}
 
 }
 
@@ -2151,6 +2207,9 @@ namespace Rococo {
 		ss.AddNativeCall(ns, NativeRococoIArrayBoxSetCommand, nullptr, ("IArrayBoxSetCommand (Pointer hObject)(Int32 stateIndex)(Bool deferAction)(Sys.Type.IString text) -> "));
 		ss.AddNativeCall(ns, NativeRococoIArrayBoxSetPopulator, nullptr, ("IArrayBoxSetPopulator (Pointer hObject)(Int32 stateIndex)(Sys.Type.IString populatorName) -> "));
 		ss.AddNativeCall(ns, NativeRococoIArrayBoxSetFocusColours, nullptr, ("IArrayBoxSetFocusColours (Pointer hObject)(Int32 col1)(Int32 col2) -> "));
+		ss.AddNativeCall(ns, NativeRococoIArrayBoxSetLineHeight, nullptr, ("IArrayBoxSetLineHeight (Pointer hObject)(Int32 pixels) -> "));
+		ss.AddNativeCall(ns, NativeRococoIArrayBoxSetLineBorders, nullptr, ("IArrayBoxSetLineBorders (Pointer hObject)(Int32 left)(Int32 top)(Int32 right)(Int32 bottom) -> "));
+		ss.AddNativeCall(ns, NativeRococoIArrayBoxSetItemSelectEvent, nullptr, ("IArrayBoxSetItemSelectEvent (Pointer hObject)(Sys.Type.IString eventText) -> "));
 	}
 }
 // BennyHill generated Sexy native functions for Rococo::IPaneContainer 

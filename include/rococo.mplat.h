@@ -18,6 +18,12 @@ namespace Rococo
 	   virtual int32 Count() const = 0;
    };
 
+   ROCOCOAPI IStringVector
+   {
+	   virtual int32 Count() const = 0;
+	   virtual void GetItem(int32 item, char* text, size_t capacity) const = 0;
+   };
+
    struct FileUpdatedEvent : public Rococo::Events::EventArgs
    {
 	   cstr pingPath;

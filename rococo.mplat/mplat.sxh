@@ -96,6 +96,9 @@
 	(context factory Rococo.IArrayBox)
 	(methods
 		(SetFocusColours (RGBAb col1)(RGBAb col2))
+		(SetLineHeight (Int32 pixels))
+		(SetLineBorders (Int32 left)(Int32 top)(Int32 right)(Int32 bottom))
+		(SetItemSelectEvent (IString eventText))
 	)
 )
 

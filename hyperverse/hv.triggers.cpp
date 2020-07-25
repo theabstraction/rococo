@@ -3,12 +3,13 @@
 #include <rococo.strings.h>
 #include <rococo.rings.inl>
 #include <vector>
+#include <string>
 
 namespace
 {
 	using namespace HV;
 
-	struct Trigger : public ITriggerSupervisor, public IActionArray
+	struct Trigger : ITriggerSupervisor, IActionArray, IStringVector
 	{
 		TRIGGER_TYPE type = TRIGGER_TYPE_NONE;
 		std::vector<IAction*> actions;
@@ -34,6 +35,7 @@ namespace
 		TRIGGER_TYPE Type() const override { return type; }
 		void SetType(TRIGGER_TYPE type) override { this->type = type; }
 		IActionArray& Actions() override { return *this; }
+		IStringVector& GetStringVector() override { return *this; }
 
 		IAction& operator[](int32 index) override
 		{
@@ -41,14 +43,27 @@ namespace
 			return *actions[index];
 		}
 
+		void GetItem(int32 index, char* buffer, size_t capacity) const
+		{
+			actions[index]->Format(buffer, capacity);
+		}
+
 		int32 Count() const override
 		{
 			return (int32)actions.size();
 		}
 
-		void AddAction(IActionFactory& factory) override
+		void AddAction(IActionFactory& factory, IIActionFactoryCreateContext& context) override
 		{
-			actions.push_back(factory.Create());
+			actions.push_back(factory.Create(context));
+		}
+
+		void RemoveAction(int32 index)
+		{
+			actions[index]->Free();
+			auto i = actions.begin();
+			std::advance(i, index);
+			actions.erase(i);
 		}
 	};
 
@@ -169,7 +184,7 @@ namespace
 
 	struct GenericEventFactory : public IActionFactory
 	{
-		IAction* Create() override
+		IAction* Create(IIActionFactoryCreateContext& context) override
 		{
 			return new GenericEvent();
 		}
@@ -182,6 +197,548 @@ namespace
 
 	GenericEventFactory s_GenericEventFactory;
 
+	void StringToNumber(cstr s, int32& value)
+	{
+		value = atoi(s);
+	}
+
+	void StringToNumber(cstr s, int64& value)
+	{
+		value = _atoi64(s);
+	}
+
+	void StringToNumber(cstr s, float& value)
+	{
+		_CRT_FLOAT f;
+		value = 0 == _atoflt(&f, s) ? f.f : 0;
+	}
+
+	void StringToNumber(cstr s, double& value)
+	{
+		value = atof(s);
+	}
+
+	template<typename NUMBER_TYPE, typename Transform>
+	struct GlobalNumericVariableManipulator : public IAction
+	{
+		enum { DEFAULT_NUMBER_VALUE = 0 };
+
+		NUMBER_TYPE arg = DEFAULT_NUMBER_VALUE;
+		IGlobalVariables& globals;
+
+		char variableName[IGlobalVariables::MAX_VARIABLE_NAME_LENGTH] = "";
+
+		GlobalNumericVariableManipulator(IGlobalVariables& _globals) :
+			globals(_globals)
+		{
+		}
+
+		ADVANCE_STATE Advance(AdvanceInfo& info)
+		{
+			NUMBER_TYPE value = (NUMBER_TYPE) DEFAULT_NUMBER_VALUE;
+			globals.GetValue(variableName, value);
+
+			NUMBER_TYPE transformedValue = Transform::Operator(value, arg);
+			globals.SetValue(variableName, transformedValue);
+
+			return ADVANCE_STATE_COMPLETED;
+		}
+
+		int32 ParameterCount() const override
+		{
+			return 1;
+		}
+
+		void GetParameter(int32 index, ParameterBuffer& buffer) const override
+		{
+			switch (index)
+			{
+			default: Throw(0, "GlobalNumericVariableManipulator.GetParameter(%d). Bad index", index);
+			case 0: SafeFormat(buffer.data, buffer.CAPACITY, "%s", (cstr)variableName); break;
+			case 1:
+			{
+				Rococo::StackStringBuilder sb(buffer.data, buffer.CAPACITY);
+				sb << arg;
+				break;
+			}
+			}
+		}
+
+		void SetParameter(int32 index, cstr value) override
+		{
+			switch (index)
+			{
+			default: Throw(0, "GlobalNumericVariableManipulator.SetParameter(%d). Bad index", index); break;
+			case 0: CopyString(variableName, sizeof variableName, value); break;
+			case 1: StringToNumber(value, arg); break;
+			}
+		}
+
+		ParamDesc GetParameterName(int32 index) const override
+		{
+			switch (index)
+			{
+			default: Throw(0, "GlobalNumericVariableManipulator.GetParameterName(%d). Bad index", index); break;
+			case 0: return { "global-variable", PARAMETER_TYPE_INT, 0.0f,  0.0f }; break;
+			case 1: return { "const-argument", PARAMETER_TYPE_INT_UNBOUNDED, 0.0f,  0.0f }; break;
+			}
+		}
+
+		void Format(char* buffer, size_t capacity) override
+		{
+			StackStringBuilder sb(buffer, capacity);
+			sb << "GlobalNumericVariableManipulator " << (cstr)variableName << " arg " << arg;
+		}
+
+		void Free() override
+		{
+			delete this;
+		}
+	};
+
+	struct GlobalInt32LogicalAndFactory: public IActionFactory
+	{
+		GlobalInt32LogicalAndFactory()
+		{
+
+		}
+
+		IAction* Create(IIActionFactoryCreateContext& context) override
+		{
+			struct AndInt32
+			{
+				static int32 Operator(int32 value, int32 arg)
+				{
+					return value & arg;
+				}
+			};
+			return new GlobalNumericVariableManipulator<int32, AndInt32>(context.GetGlobals());
+		}
+
+		cstr Name() const override
+		{
+			return "GlobalInt32LogicalAnd";
+		}
+	};
+
+	GlobalInt32LogicalAndFactory s_GlobalInt32LogicalAndFactory;
+
+	struct GlobalInt32LogicalOrFactory : public IActionFactory
+	{
+		GlobalInt32LogicalOrFactory()
+		{
+
+		}
+
+		IAction* Create(IIActionFactoryCreateContext& context) override
+		{
+			struct OrInt32
+			{
+				static int32 Operator(int32 value, int32 arg)
+				{
+					return value | arg;
+				}
+			};
+			return new GlobalNumericVariableManipulator<int32, OrInt32>(context.GetGlobals());
+		}
+
+		cstr Name() const override
+		{
+			return "GlobalInt32LogicalOr";
+		}
+	};
+
+	GlobalInt32LogicalOrFactory s_GlobalInt32LogicalOrFactory;
+
+	// N.B: Y xor 1 yields 0 when Y = 1, and 1 when Y = 0, so Y xor 0xFFFFFFFF is bitwise NOT
+	// Hence we do not need a bitwise not factory
+	struct GlobalInt32LogicalXorFactory : public IActionFactory
+	{
+		GlobalInt32LogicalXorFactory()
+		{
+
+		}
+
+		IAction* Create(IIActionFactoryCreateContext& context) override
+		{
+			struct XorInt32
+			{
+				static int32 Operator(int32 value, int32 arg)
+				{
+					return value ^ arg;
+				}
+			};
+			return new GlobalNumericVariableManipulator<int32, XorInt32>(context.GetGlobals());
+		}
+
+		cstr Name() const override
+		{
+			return "GlobalInt32LogicalXor";
+		}
+	};
+
+	GlobalInt32LogicalXorFactory s_GlobalInt32LogicalXorFactory;
+
+	struct GlobalInt32SetFactory : public IActionFactory
+	{
+		GlobalInt32SetFactory()
+		{
+
+		}
+
+		IAction* Create(IIActionFactoryCreateContext& context) override
+		{
+			struct Set
+			{
+				static int32 Operator(int32 value, int32 arg)
+				{
+					return arg;
+				}
+			};
+			return new GlobalNumericVariableManipulator<int32, Set>(context.GetGlobals());
+		}
+
+		cstr Name() const override
+		{
+			return "GlobalInt32Set";
+		}
+	};
+
+	GlobalInt32SetFactory s_GlobalInt32SetFactory;
+
+	// Add also covers subtract when the argument is negative
+	struct GlobalInt32AddFactory : public IActionFactory
+	{
+		GlobalInt32AddFactory()
+		{
+
+		}
+
+		IAction* Create(IIActionFactoryCreateContext& context) override
+		{
+			struct Add
+			{
+				static int32 Operator(int32 value, int32 arg)
+				{
+					return value + arg;
+				}
+			};
+			return new GlobalNumericVariableManipulator<int32, Add>(context.GetGlobals());
+		}
+
+		cstr Name() const override
+		{
+			return "GlobalInt32Add";
+		}
+	};
+
+	GlobalInt32AddFactory s_GlobalInt32AddFactory;
+
+	// Shift left if arg +ve and right if arg -ve
+	struct GlobalInt32ShiftFactory : public IActionFactory
+	{
+		GlobalInt32ShiftFactory()
+		{
+
+		}
+
+		IAction* Create(IIActionFactoryCreateContext& context) override
+		{
+			struct Add
+			{
+				static int32 Operator(int32 value, int32 arg)
+				{
+					if (arg > 0)
+					{
+						return value << arg;
+					}
+					else if (arg < 0)
+					{
+						return value >> (-arg);
+					}
+					else
+					{
+						return value;
+					}
+				}
+			};
+			return new GlobalNumericVariableManipulator<int32, Add>(context.GetGlobals());
+		}
+
+		cstr Name() const override
+		{
+			return "GlobalInt32Shift";
+		}
+	};
+
+	GlobalInt32ShiftFactory s_GlobalInt32ShiftFactory;
+
+	template<typename NUMBER_TYPE, typename Test>
+	struct GlobalNumericVariableTest : public IAction
+	{
+		enum { DEFAULT_NUMBER_VALUE = 0 };
+
+		NUMBER_TYPE arg = DEFAULT_NUMBER_VALUE;
+		IGlobalVariables& globals;
+
+		char variableName[IGlobalVariables::MAX_VARIABLE_NAME_LENGTH] = "";
+
+		GlobalNumericVariableTest(IGlobalVariables& _globals) :
+			globals(_globals)
+		{
+		}
+
+		ADVANCE_STATE Advance(AdvanceInfo& info)
+		{
+			NUMBER_TYPE value = (NUMBER_TYPE)DEFAULT_NUMBER_VALUE;
+			globals.GetValue(variableName, value);
+
+			bool hasPassed = Test::IsTrue(value, arg);
+			
+			return hasPassed ? ADVANCE_STATE_COMPLETED : ADVANCE_STATE_TERMINATE;
+		}
+
+		int32 ParameterCount() const override
+		{
+			return 1;
+		}
+
+		void GetParameter(int32 index, ParameterBuffer& buffer) const override
+		{
+			switch (index)
+			{
+			default: Throw(0, "GlobalNumericVariableTest.GetParameter(%d). Bad index", index);
+			case 0: SafeFormat(buffer.data, buffer.CAPACITY, "%s", (cstr)variableName); break;
+			case 1:
+			{
+				Rococo::StackStringBuilder sb(buffer.data, buffer.CAPACITY);
+				sb << arg;
+				break;
+			}
+			}
+		}
+
+		void SetParameter(int32 index, cstr value) override
+		{
+			switch (index)
+			{
+			default: Throw(0, "GlobalNumericVariableTest.SetParameter(%d). Bad index", index); break;
+			case 0: CopyString(variableName, sizeof variableName, value); break;
+			case 1: StringToNumber(value, arg); break;
+			}
+		}
+
+		ParamDesc GetParameterName(int32 index) const override
+		{
+			switch (index)
+			{
+			default: Throw(0, "GlobalNumericVariableTest.GetParameterName(%d). Bad index", index); break;
+			case 0: return { "global-variable", PARAMETER_TYPE_INT, 0.0f,  0.0f }; break;
+			case 1: return { "const-argument", PARAMETER_TYPE_INT_UNBOUNDED, 0.0f,  0.0f }; break;
+			}
+		}
+
+		void Format(char* buffer, size_t capacity) override
+		{
+			StackStringBuilder sb(buffer, capacity);
+			sb << "GlobalNumericVariableTest " << (cstr)variableName << " arg " << arg;
+		}
+
+		void Free() override
+		{
+			delete this;
+		}
+	};
+
+	struct GlobalInt32LTEFactory : public IActionFactory
+	{
+		GlobalInt32LTEFactory()
+		{
+
+		}
+
+		IAction* Create(IIActionFactoryCreateContext& context) override
+		{
+			struct LTE
+			{
+				static int32 IsTrue(int32 value, int32 arg)
+				{
+					return value <= arg;
+				}
+			};
+			return new GlobalNumericVariableTest<int32, LTE>(context.GetGlobals());
+		}
+
+		cstr Name() const override
+		{
+			return "GlobalInt32LTE";
+		}
+	};
+
+	GlobalInt32LTEFactory s_GlobalInt32LTEFactory;
+
+	struct GlobalInt32LTFactory : public IActionFactory
+	{
+		GlobalInt32LTFactory() 
+		{
+
+		}
+
+		IAction* Create(IIActionFactoryCreateContext& context) override
+		{
+			struct LT
+			{
+				static int32 IsTrue(int32 value, int32 arg)
+				{
+					return value < arg;
+				}
+			};
+			return new GlobalNumericVariableTest<int32, LT>(context.GetGlobals());
+		}
+
+		cstr Name() const override
+		{
+			return "GlobalInt32LT";
+		}
+	};
+
+	GlobalInt32LTFactory s_GlobalInt32LTFactory;
+
+	struct GlobalInt32EQFactory : public IActionFactory
+	{
+		GlobalInt32EQFactory()
+		{
+
+		}
+
+		IAction* Create(IIActionFactoryCreateContext& context) override
+		{
+			struct EQ
+			{
+				static int32 IsTrue(int32 value, int32 arg)
+				{
+					return value == arg;
+				}
+			};
+			return new GlobalNumericVariableTest<int32, EQ>(context.GetGlobals());
+		}
+
+		cstr Name() const override
+		{
+			return "GlobalInt32EQ";
+		}
+	};
+
+	GlobalInt32EQFactory s_GlobalInt32EQFactory;
+
+	struct GlobalInt32TestAndFactory : public IActionFactory
+	{
+		GlobalInt32TestAndFactory()
+		{
+
+		}
+
+		IAction* Create(IIActionFactoryCreateContext& context) override
+		{
+			struct And
+			{
+				static int32 IsTrue(int32 value, int32 arg)
+				{
+					return (value & arg) != 0;
+				}
+			};
+			return new GlobalNumericVariableTest<int32, And>(context.GetGlobals());
+		}
+
+		cstr Name() const override
+		{
+			return "GlobalInt32TestAnd";
+		}
+	};
+
+	GlobalInt32TestAndFactory s_GlobalInt32TestAndFactory;
+
+	struct GlobalInt32TestNorFactory : public IActionFactory
+	{
+		GlobalInt32TestNorFactory() 
+		{
+
+		}
+
+		IAction* Create(IIActionFactoryCreateContext& context) override
+		{
+			struct Nor
+			{
+				static int32 IsTrue(int32 value, int32 arg)
+				{
+					return (value & arg) == 0;
+				}
+			};
+			return new GlobalNumericVariableTest<int32, Nor>(context.GetGlobals());
+		}
+
+		cstr Name() const override
+		{
+			return "GlobalInt32TestNor";
+		}
+	};
+
+	GlobalInt32TestNorFactory s_GlobalInt32TestNorFactory;
+
+	struct GlobalInt32GTFactory : public IActionFactory
+	{
+		GlobalInt32GTFactory()
+		{
+
+		}
+
+		IAction* Create(IIActionFactoryCreateContext& context) override
+		{
+			struct GT
+			{
+				static int32 IsTrue(int32 value, int32 arg)
+				{
+					return value > arg;
+				}
+			};
+			return new GlobalNumericVariableTest<int32, GT>(context.GetGlobals());
+		}
+
+		cstr Name() const override
+		{
+			return "GlobalInt32GT";
+		}
+	};
+
+	GlobalInt32GTFactory s_GlobalInt32GTFactory;
+
+	struct GlobalInt32GTEFactory : public IActionFactory
+	{
+		GlobalInt32GTEFactory()
+		{
+
+		}
+
+		IAction* Create(IIActionFactoryCreateContext& context) override
+		{
+			struct GTE
+			{
+				static int32 IsTrue(int32 value, int32 arg)
+				{
+					return value >= arg;
+				}
+			};
+			return new GlobalNumericVariableTest<int32, GTE>(context.GetGlobals());
+		}
+
+		cstr Name() const override
+		{
+			return "GlobalInt32GTE";
+		}
+	};
+
+	GlobalInt32GTEFactory s_GlobalInt32GTEFactory;
+
 	struct CountDown : public IAction
 	{
 		int countInit = 2;
@@ -191,12 +748,12 @@ namespace
 		{
 			if (count > 0)
 			{
-				return ADVANCE_STATE_YIELD;
+				return ADVANCE_STATE_COMPLETED;
 			}
 			else
 			{
 				count = countInit; // reset the counter
-				return ADVANCE_STATE_COMPLETED;
+				return ADVANCE_STATE_TERMINATE;
 			}
 		}
 
@@ -241,7 +798,7 @@ namespace
 
 	struct CountDownFactory : public IActionFactory
 	{
-		IAction* Create() override
+		IAction* Create(IIActionFactoryCreateContext& context) override
 		{
 			return new CountDown();
 		}
@@ -313,7 +870,7 @@ namespace
 
 	struct PossiblyAbortFactory : public IActionFactory
 	{
-		IAction* Create() override
+		IAction* Create(IIActionFactoryCreateContext& context) override
 		{
 			return new PossiblyAbort();
 		}
@@ -385,7 +942,7 @@ namespace
 
 	struct DelayFactory : public IActionFactory
 	{
-		IAction* Create() override
+		IAction* Create(IIActionFactoryCreateContext& context) override
 		{
 			return new Delay();
 		}
@@ -494,7 +1051,7 @@ namespace
 
 	struct RandomDelayFactory: public IActionFactory
 	{
-		IAction* Create() override
+		IAction* Create(IIActionFactoryCreateContext& context) override
 		{
 			return new RandomDelay();
 		}
@@ -561,7 +1118,7 @@ namespace
 
 	struct LowerSceneryFactory : public IActionFactory
 	{
-		IAction* Create() override
+		IAction* Create(IIActionFactoryCreateContext& context) override
 		{
 			return new LowerScenery();
 		}
@@ -628,7 +1185,7 @@ namespace
 
 	struct RaiseSceneryFactory : public IActionFactory
 	{
-		IAction* Create() override
+		IAction* Create(IIActionFactoryCreateContext& context) override
 		{
 			return new RaiseScenery();
 		}
@@ -695,7 +1252,7 @@ namespace
 
 	struct ToggleElevationFactory: public IActionFactory
 	{
-		IAction* Create() override
+		IAction* Create(IIActionFactoryCreateContext& context) override
 		{
 			return new ToggleElevation();
 		}
@@ -718,6 +1275,19 @@ namespace
 		&s_PossiblyAbortFactory,
 		&s_CountDownFactory,
 		&s_GenericEventFactory,
+		&s_GlobalInt32LogicalAndFactory,
+		&s_GlobalInt32LogicalOrFactory,
+		&s_GlobalInt32LogicalXorFactory,
+		&s_GlobalInt32SetFactory,
+		&s_GlobalInt32AddFactory,
+		&s_GlobalInt32ShiftFactory,
+		&s_GlobalInt32LTEFactory,
+		&s_GlobalInt32LTFactory,
+		&s_GlobalInt32EQFactory,
+		&s_GlobalInt32TestAndFactory,
+		&s_GlobalInt32TestNorFactory,
+		&s_GlobalInt32GTFactory,
+		&s_GlobalInt32GTEFactory
 	};
 }
 

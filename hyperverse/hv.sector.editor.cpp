@@ -10,6 +10,23 @@ namespace
 
 	static const EventIdRef evEditSectorLogic = "edit.sector.logic"_event;
 	static const EventIdRef evPopulateTriggers = "editor.logic.enum_triggers"_event;
+	static const EventIdRef evPopulateActions = "editor.logic.actions.populate"_event;
+	static const EventIdRef evSelectAction = "editor.logic.action.selected"_event;
+	static const EventIdRef evPopulateActionType = "editor.logic.action-type.populate"_event;
+
+	struct ActionFactoryEnumerator : IStringVector
+	{
+		int32 Count() const override
+		{
+			return (int32) HV::ActionFactoryCount();
+		}
+
+		void GetItem(int32 item, char* text, size_t capacity) const override
+		{
+			cstr name = HV::GetActionFactory(item).Name();
+			CopyString(text, capacity, name);
+		}
+	} s_ActionFactoryStrings;
 
 	struct LogicEditor: public IObserver
 	{
@@ -52,6 +69,9 @@ namespace
 		ISectors& sectors;
 		ISector* sector = nullptr;
 
+		// The index of the action in the action editor
+		int32 activeActionIndex = -1;
+
 		AutoFree<IPaneBuilderSupervisor> logicPanel;
 
 		LogicEditor(Platform& _platform, ISectors& _sectors) : 
@@ -61,6 +81,14 @@ namespace
 			platform.publisher.Subscribe(this, evEditSectorLogic);
 			platform.publisher.Subscribe(this, evUIInvoke);
 			platform.publisher.Subscribe(this, evPopulateTriggers);
+			platform.publisher.Subscribe(this, evPopulateActions);
+			platform.publisher.Subscribe(this, evSelectAction);
+			platform.publisher.Subscribe(this, evPopulateActionType);
+		}
+
+		~LogicEditor()
+		{
+			platform.publisher.Unsubscribe(this);
 		}
 
 		void OpenEditor()
@@ -111,7 +139,12 @@ namespace
 
 		void RemoveAction()
 		{
-			sector->TriggersAndActions().RemoveAction(triggerList.activeIndex);
+			sector->TriggersAndActions().RemoveAction(triggerList.activeIndex, activeActionIndex);
+		}
+
+		void SelectAction(int32 actionIndex)
+		{
+			activeActionIndex = actionIndex;
 		}
 
 		void OnEvent(Event& ev) override
@@ -119,6 +152,11 @@ namespace
 			if (ev == evEditSectorLogic)
 			{
 				OpenEditor();
+			}
+			else if (ev == evSelectAction)
+			{
+				auto& selectEvent = As<TEventArgs<int>>(ev);
+				SelectAction(selectEvent.data);
 			}
 			else if (ev == Rococo::Events::evUIInvoke)
 			{
@@ -150,6 +188,30 @@ namespace
 				if (triggerList.sector != nullptr)
 				{
 					pop.data = &triggerList;
+				}
+			}
+			else if (ev == evPopulateActions)
+			{
+				auto& pop = As<TEventArgs<Rococo::IStringVector*>>(ev);
+
+				int32 triggerIndex = triggerList.GetActiveIndex();
+				if (triggerIndex >= 0 && triggerIndex < triggerList.Count())
+				{
+					pop.data = &sector->TriggersAndActions()[triggerIndex].GetStringVector();
+				}
+			}
+			else if (ev == evPopulateActionType)
+			{
+				auto& pop = As<TEventArgs<Rococo::IStringVector*>>(ev);
+				int32 triggerIndex = triggerList.GetActiveIndex();
+				if (triggerIndex >= 0 && triggerIndex < triggerList.Count())
+				{
+					auto& trigger = sector->TriggersAndActions()[triggerIndex];
+					auto& actions = trigger.Actions();
+					if (activeActionIndex >= 0 && activeActionIndex < actions.Count())
+					{
+						pop.data = &s_ActionFactoryStrings;
+					}
 				}
 			}
 		}

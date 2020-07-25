@@ -365,14 +365,20 @@ namespace ANON
 		   }
 
 		   auto& t = *triggers[triggerIndex];
-		   t.Actions().AddAction(GetDefaultActionFactory());
+		   t.Actions().AddAction(GetDefaultActionFactory(), co_sectors.AFCC());
 	   }
 
-	   void RemoveAction(int32 triggerIndex) override
+	   void RemoveAction(int32 triggerIndex, int32 actionIndex) override
 	   {
 		   if (triggerIndex < 0 || triggerIndex > (int32) triggers.size())
 		   {
 			   Throw(0, "Sector.RemoveAction(%d) -> index out of range", triggerIndex);
+		   }
+
+		   auto& t = *triggers[triggerIndex];
+		   if (actionIndex >= 0 && actionIndex < t.Actions().Count())
+		   {
+			   t.Actions().RemoveAction(actionIndex);
 		   }
 	   }
 
