@@ -65,6 +65,14 @@ namespace
 			std::advance(i, index);
 			actions.erase(i);
 		}
+
+		void SetAction(int32 index, IActionFactory& factory, IIActionFactoryCreateContext& context) override
+		{
+			actions[index]->Free();
+			auto i = actions.begin();
+			std::advance(i, index);
+			actions[index] = factory.Create(context);
+		}
 	};
 
 	struct FixedEvent : public IAction
@@ -168,7 +176,7 @@ namespace
 		ParamDesc GetParameterName(int32 index) const override
 		{
 			if (index != 0) Throw(0, "GenericEvent.GetParameterName(%d). Bad index", index);
-			return { "event-name", PARAMETER_TYPE_EVENT_NAME, 0, 0 };
+			return { "event", PARAMETER_TYPE_EVENT_NAME, 0, 0 };
 		}
 
 		void Format(char* buffer, size_t capacity) override
@@ -246,7 +254,7 @@ namespace
 
 		int32 ParameterCount() const override
 		{
-			return 1;
+			return 2;
 		}
 
 		void GetParameter(int32 index, ParameterBuffer& buffer) const override
@@ -279,15 +287,18 @@ namespace
 			switch (index)
 			{
 			default: Throw(0, "GlobalNumericVariableManipulator.GetParameterName(%d). Bad index", index); break;
-			case 0: return { "global-variable", PARAMETER_TYPE_INT, 0.0f,  0.0f }; break;
-			case 1: return { "const-argument", PARAMETER_TYPE_INT_UNBOUNDED, 0.0f,  0.0f }; break;
+			case 0: return { "var-name", PARAMETER_TYPE_INT, 0.0f,  0.0f }; break;
+			case 1: return { "constant", PARAMETER_TYPE_INT_UNBOUNDED, 0.0f,  0.0f }; break;
 			}
 		}
 
 		void Format(char* buffer, size_t capacity) override
 		{
 			StackStringBuilder sb(buffer, capacity);
-			sb << "GlobalNumericVariableManipulator " << (cstr)variableName << " arg " << arg;
+
+			cstr proxyName = *variableName ? variableName : "<undefined>";
+
+			sb << Transform::Name() << " $" << proxyName << " " << arg;
 		}
 
 		void Free() override
@@ -310,6 +321,11 @@ namespace
 				static int32 Operator(int32 value, int32 arg)
 				{
 					return value & arg;
+				}
+
+				static cstr Name()
+				{
+					return "Global Int32 AND";
 				}
 			};
 			return new GlobalNumericVariableManipulator<int32, AndInt32>(context.GetGlobals());
@@ -337,6 +353,11 @@ namespace
 				static int32 Operator(int32 value, int32 arg)
 				{
 					return value | arg;
+				}
+
+				static cstr Name()
+				{
+					return "Global Int32 OR";
 				}
 			};
 			return new GlobalNumericVariableManipulator<int32, OrInt32>(context.GetGlobals());
@@ -367,6 +388,11 @@ namespace
 				{
 					return value ^ arg;
 				}
+
+				static cstr Name()
+				{
+					return "Global Int32 XOR";
+				}
 			};
 			return new GlobalNumericVariableManipulator<int32, XorInt32>(context.GetGlobals());
 		}
@@ -393,6 +419,11 @@ namespace
 				static int32 Operator(int32 value, int32 arg)
 				{
 					return arg;
+				}
+
+				static cstr Name()
+				{
+					return "Global Int32 Set";
 				}
 			};
 			return new GlobalNumericVariableManipulator<int32, Set>(context.GetGlobals());
@@ -421,6 +452,11 @@ namespace
 				static int32 Operator(int32 value, int32 arg)
 				{
 					return value + arg;
+				}
+
+				static cstr Name()
+				{
+					return "Global Int32 Add";
 				}
 			};
 			return new GlobalNumericVariableManipulator<int32, Add>(context.GetGlobals());
@@ -461,6 +497,11 @@ namespace
 						return value;
 					}
 				}
+
+				static cstr Name()
+				{
+					return "Global Int32 Shift";
+				}
 			};
 			return new GlobalNumericVariableManipulator<int32, Add>(context.GetGlobals());
 		}
@@ -500,7 +541,7 @@ namespace
 
 		int32 ParameterCount() const override
 		{
-			return 1;
+			return 2;
 		}
 
 		void GetParameter(int32 index, ParameterBuffer& buffer) const override
@@ -533,15 +574,16 @@ namespace
 			switch (index)
 			{
 			default: Throw(0, "GlobalNumericVariableTest.GetParameterName(%d). Bad index", index); break;
-			case 0: return { "global-variable", PARAMETER_TYPE_INT, 0.0f,  0.0f }; break;
-			case 1: return { "const-argument", PARAMETER_TYPE_INT_UNBOUNDED, 0.0f,  0.0f }; break;
+			case 0: return { "var-name", PARAMETER_TYPE_INT, 0.0f,  0.0f }; break;
+			case 1: return { "constant", PARAMETER_TYPE_INT_UNBOUNDED, 0.0f,  0.0f }; break;
 			}
 		}
 
 		void Format(char* buffer, size_t capacity) override
 		{
 			StackStringBuilder sb(buffer, capacity);
-			sb << "GlobalNumericVariableTest " << (cstr)variableName << " arg " << arg;
+			cstr proxyName = *variableName ? variableName : "<undefined>";
+			sb << "Abort if $" << proxyName << " " << Test::Name() << " " << arg;
 		}
 
 		void Free() override
@@ -564,6 +606,11 @@ namespace
 				static int32 IsTrue(int32 value, int32 arg)
 				{
 					return value <= arg;
+				}
+
+				static cstr Name()
+				{
+					return "<=";
 				}
 			};
 			return new GlobalNumericVariableTest<int32, LTE>(context.GetGlobals());
@@ -592,6 +639,11 @@ namespace
 				{
 					return value < arg;
 				}
+
+				static cstr Name()
+				{
+					return "<";
+				}
 			};
 			return new GlobalNumericVariableTest<int32, LT>(context.GetGlobals());
 		}
@@ -618,6 +670,11 @@ namespace
 				static int32 IsTrue(int32 value, int32 arg)
 				{
 					return value == arg;
+				}
+
+				static cstr Name()
+				{
+					return "==";
 				}
 			};
 			return new GlobalNumericVariableTest<int32, EQ>(context.GetGlobals());
@@ -646,6 +703,11 @@ namespace
 				{
 					return (value & arg) != 0;
 				}
+
+				static cstr Name()
+				{
+					return "Bitwise-AND";
+				}
 			};
 			return new GlobalNumericVariableTest<int32, And>(context.GetGlobals());
 		}
@@ -672,6 +734,11 @@ namespace
 				static int32 IsTrue(int32 value, int32 arg)
 				{
 					return (value & arg) == 0;
+				}
+
+				static cstr Name()
+				{
+					return "Bitwise-Nor";
 				}
 			};
 			return new GlobalNumericVariableTest<int32, Nor>(context.GetGlobals());
@@ -700,6 +767,11 @@ namespace
 				{
 					return value > arg;
 				}
+
+				static cstr Name()
+				{
+					return ">";
+				}
 			};
 			return new GlobalNumericVariableTest<int32, GT>(context.GetGlobals());
 		}
@@ -726,6 +798,11 @@ namespace
 				static int32 IsTrue(int32 value, int32 arg)
 				{
 					return value >= arg;
+				}
+
+				static cstr Name()
+				{
+					return ">=";
 				}
 			};
 			return new GlobalNumericVariableTest<int32, GTE>(context.GetGlobals());
@@ -1033,8 +1110,8 @@ namespace
 			switch (index)
 			{
 			default: Throw(0, "RandomDelay.GetParameterName(%d). Bad index", index);
-			case 0: return { "lower-bound", PARAMETER_TYPE_FLOAT, 0.0f, 3600.0f };
-			case 1: return { "upper-bound", PARAMETER_TYPE_FLOAT, 0.0f, 3600.0f };
+			case 0: return { "min", PARAMETER_TYPE_FLOAT, 0.0f, 3600.0f };
+			case 1: return { "max", PARAMETER_TYPE_FLOAT, 0.0f, 3600.0f };
 			}
 		}
 

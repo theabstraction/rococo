@@ -357,6 +357,11 @@ namespace ANON
 		   return *triggers[i];
 	   }
 
+	   IIActionFactoryCreateContext& AFCC()
+	   {
+		   return co_sectors.AFCC();
+	   }
+
 	   void AddAction(int32 triggerIndex) override
 	   {
 		   if (triggerIndex < 0 || triggerIndex > (int32) triggers.size())

@@ -88,10 +88,11 @@
 	(Recti removeActionRect = 355 40 380 70)
 	(ILabelPane removeActionButton = (frame.AddLabel 0 "-" removeActionRect))
 	(removeActionButton.SetCommand 1 false "editor.logic.remove_action")
+	(removeActionButton.SetEnableEvent "editor.logic.remove_action_enabler" 0x80101040 0x80303060)
 	(SetButtonDefaultColours removeActionButton)
 	
 	(Recti actionTypeRect = triggerActionRect)
-	(actionTypeRect.bottom = 300)
+	(actionTypeRect.bottom = 320)
 	(actionTypeRect.right = (frameWidth - 10))
 	(actionTypeRect.left = (frameWidth - 390))
 	(IArrayBox actionTypeEditor = (frame.AddArrayBox 1 "editor.logic.action-type.populate" actionTypeRect))
@@ -103,6 +104,14 @@
 	(actionTypeEditor.SetColourBk2 0x00303030 0x00404040)
 	(actionTypeEditor.SetItemSelectEvent "editor.logic.action-type.selected")
 	(actionTypeEditor.SetColourFont 0xFFC0C0C0 0xFFFFFFFF)
+	
+	(Recti argRect = actionTypeRect)
+	(argRect.top = 330)
+	(argRect.bottom = (frameHeight - 10))
+	(IPaneContainer actionArgEditor = (frame.AddContainer argRect))
+	(actionArgEditor.SetPopulator 0 "editor.logic.action-arguments")
+	(actionArgEditor.SetColourBk1 0xF0303030 0xF0404040)
+	(actionArgEditor.SetColourBk2 0x00303030 0x00404040)
 	
 	(Recti closeRect = -1 40 -1 70)
 	(closeRect.right = (frameWidth - 10))

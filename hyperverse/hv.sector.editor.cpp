@@ -12,8 +12,11 @@ namespace
 	static const EventIdRef evPopulateTriggers = "editor.logic.enum_triggers"_event;
 	static const EventIdRef evPopulateActions = "editor.logic.actions.populate"_event;
 	static const EventIdRef evSelectAction = "editor.logic.action.selected"_event;
+	static const EventIdRef evSelectActionType = "editor.logic.action-type.selected"_event;
 	static const EventIdRef evPopulateActionType = "editor.logic.action-type.populate"_event;
 	static const EventIdRef evAddActionEnabler = "editor.logic.add_action_enabler"_event;
+	static const EventIdRef evRemoveActionEnabler = "editor.logic.remove_action_enabler"_event;
+	static const EventIdRef evActionArgsEditor = "editor.logic.action-arguments"_event;
 
 	struct ActionFactoryEnumerator : IStringVector
 	{
@@ -31,6 +34,8 @@ namespace
 
 	struct LogicEditor: public IObserver
 	{
+		AutoFree<IFieldEditor> fieldEditor;
+
 		struct TriggerList: IEnumVector
 		{
 			ISector* sector = nullptr;
@@ -79,18 +84,25 @@ namespace
 			platform(_platform), sectors(_sectors)
 		{
 			logicPanel = platform.gui.BindPanelToScript("!scripts/hv/panel.logic.sxy");
+			fieldEditor = CreateFieldEditor( FieldEditorContext { platform.publisher });
 			platform.publisher.Subscribe(this, evEditSectorLogic);
 			platform.publisher.Subscribe(this, evUIInvoke);
 			platform.publisher.Subscribe(this, evPopulateTriggers);
 			platform.publisher.Subscribe(this, evPopulateActions);
 			platform.publisher.Subscribe(this, evSelectAction);
+			platform.publisher.Subscribe(this, evSelectActionType);
 			platform.publisher.Subscribe(this, evPopulateActionType);
 			platform.publisher.Subscribe(this, evAddActionEnabler);
+			platform.publisher.Subscribe(this, evRemoveActionEnabler);
+			platform.publisher.Subscribe(this, evActionArgsEditor);
+
+			platform.gui.RegisterPopulator(evActionArgsEditor.name, &fieldEditor->UIElement());
 		}
 
 		~LogicEditor()
 		{
 			platform.publisher.Unsubscribe(this);
+			platform.gui.UnregisterPopulator(&fieldEditor->UIElement());
 		}
 
 		void OpenEditor()
@@ -221,6 +233,73 @@ namespace
 				auto& isEnabled = As <TEventArgs<bool>>(ev);
 				int32 triggerIndex = triggerList.GetActiveIndex();
 				isEnabled.data = (triggerIndex >= 0 && triggerIndex < triggerList.Count());
+			}
+			else if (ev == evRemoveActionEnabler)
+			{
+				auto& isEnabled = As <TEventArgs<bool>>(ev);
+				isEnabled.data = false;
+
+				int32 triggerIndex = triggerList.GetActiveIndex();
+				if (triggerIndex >= 0 && triggerIndex < triggerList.Count())
+				{
+					auto& actions = sector->TriggersAndActions()[triggerIndex].Actions();
+					if (activeActionIndex >= 0 && activeActionIndex < actions.Count())
+					{
+						isEnabled.data = true;
+					}
+				}
+			}
+			else if (ev == evSelectActionType)
+			{
+				auto& selectionArgs = As<TEventArgs<int>>(ev);
+				int32 typeIndex = selectionArgs.data;
+
+				if (typeIndex >= 0 && typeIndex < ActionFactoryCount())
+				{
+					int32 triggerIndex = triggerList.GetActiveIndex();
+					if (triggerIndex >= 0 && triggerIndex < triggerList.Count())
+					{
+						auto& trigger = sector->TriggersAndActions()[triggerIndex];
+						auto& actions = trigger.Actions();
+						if (activeActionIndex >= 0 && activeActionIndex < actions.Count())
+						{
+							trigger.Actions().SetAction(activeActionIndex, GetActionFactory(typeIndex), sector->AFCC());
+							auto& action = trigger.Actions()[activeActionIndex];
+							ShowActionArgsInFieldEditor(action);
+						}
+					}
+				}
+			}
+		}
+
+		void ShowActionArgsInFieldEditor(IAction& action)
+		{
+			fieldEditor->Clear();
+
+			for (int i = 0; i < action.ParameterCount(); ++i)
+			{
+				ParamDesc desc = action.GetParameterName(i);
+				switch (desc.type)
+				{
+				case PARAMETER_TYPE_INT_UNBOUNDED:
+					fieldEditor->AddInt32FieldUnbounded(desc.name, 0);
+					break;
+				case PARAMETER_TYPE_INT:
+					fieldEditor->AddInt32FieldBounded(desc.name, 0,
+						(int32)desc.minValue, (int32)desc.maxValue);
+					break;
+				case PARAMETER_TYPE_EVENT_NAME:
+					fieldEditor->AddStringField(desc.name, "");
+					break;
+				case PARAMETER_TYPE_SECTOR_STRING:
+					fieldEditor->AddStringField(desc.name, "");
+					break;
+				case PARAMETER_TYPE_FLOAT:
+					fieldEditor->AddFloat32FieldBounded(desc.name,
+						0, desc.minValue, desc.maxValue);
+				default:
+					break;
+				}
 			}
 		}
 	};

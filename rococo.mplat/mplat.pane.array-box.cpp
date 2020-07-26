@@ -74,7 +74,7 @@ struct PanelArrayBox : public BasePane, public IArrayBox
 		lineRect.top -= vscrollPos;
 		for (int i = 0; i < sv.Count(); ++i)
 		{
-			lineRect.bottom = lineRect.top + lineHeight;
+			lineRect.bottom = lineRect.top + lineHeight - 1;
 
 			char text[256];
 			sv.GetItem(i, text, sizeof text);
@@ -89,6 +89,20 @@ struct PanelArrayBox : public BasePane, public IArrayBox
 
 	void AppendEvent(const MouseEvent& me, const Vec2i& absTopLeft) override
 	{
+		int dz = ((int32)(short)me.buttonData) / 120;
+
+		if (dz != 0)
+		{
+			if (IsPointInRect(me.cursorPos, absRect))
+			{
+				dz *= -1;
+
+				vscrollPos += dz * lineHeight;
+				vscrollPos = max(0, vscrollPos);
+				vscrollPos = min(vscrollPos, vscrollSpan - pageSize);
+			}
+		}
+
 		if (me.HasFlag(me.LUp) || me.HasFlag(me.RUp))
 		{
 			if (IsPointInRect(me.cursorPos, vscroller.upButton))

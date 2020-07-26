@@ -150,6 +150,24 @@ namespace HV
 		virtual void Render(IGuiRenderContext& grc, const ISector* litSector, bool isTransparent) = 0;
    };
 
+   struct FieldEditorContext
+   {
+	   IPublisher& publisher;
+   };
+
+   ROCOCOAPI IFieldEditor
+   {
+		virtual void AddInt32FieldUnbounded(cstr name, int32 value) = 0;
+		virtual void AddInt32FieldBounded(cstr name, int32 value, int32 minValue, int32 maxValue) = 0;
+		virtual void AddFloat32FieldBounded(cstr name, float value, float minValue, float maxValue) = 0;
+		virtual void AddStringField(cstr name, cstr value) = 0;
+		virtual void Clear() = 0;
+		virtual IUIElement & UIElement() = 0;
+		virtual void Free() = 0;
+   };
+
+   IFieldEditor* CreateFieldEditor(FieldEditorContext& context);
+
    ROCOCOAPI ITextureList
    {
 		virtual void Free() = 0;
@@ -370,6 +388,7 @@ namespace HV
 		virtual int32 Count() const = 0;
 		virtual void AddAction(IActionFactory& factory, IIActionFactoryCreateContext& context) = 0;
 		virtual void RemoveAction(int32 index) = 0;
+		virtual void SetAction(int32 index, IActionFactory& factory, IIActionFactoryCreateContext& context) = 0;
    };
 
    ROCOCOAPI ITrigger
@@ -403,8 +422,9 @@ namespace HV
 	  virtual void RemoveAction(int32 triggerIndex, int32 actionIndex) = 0;
    };
 
-   ROCOCOAPI ISector: public IPropertyTarget
+   ROCOCOAPI ISector : public IPropertyTarget
    {
+	  virtual IIActionFactoryCreateContext & AFCC() = 0;
 	  virtual const AABB2d& GetAABB() const = 0;
 	  virtual uint32 Id() const = 0;
 
@@ -419,25 +439,25 @@ namespace HV
 	  virtual const Gap* GetGapAtSegment(const Vec2& a, const Vec2& b) const = 0;
 
 	  virtual const Barrier* Barriers(size_t& barrierCount) const = 0;
-      virtual void Build(const Vec2* positionArray, size_t nVertices, float z0, float z1) = 0;
-      virtual bool DoesLineCrossSector(Vec2 a, Vec2 b) = 0;
-      virtual ObjectVertexBuffer FloorVertices() const = 0;
-      virtual const Gap* Gaps(size_t& count) const = 0;
+	  virtual void Build(const Vec2* positionArray, size_t nVertices, float z0, float z1) = 0;
+	  virtual bool DoesLineCrossSector(Vec2 a, Vec2 b) = 0;
+	  virtual ObjectVertexBuffer FloorVertices() const = 0;
+	  virtual const Gap* Gaps(size_t& count) const = 0;
 
 	  virtual void Decouple() = 0; // Called to take the sector out of the world, prior to deletion
-      virtual void Free() = 0;
-      virtual float Z0() const = 0;
-      virtual float Z1() const = 0;  
-      virtual Segment GetSegment(Vec2 p, Vec2 q) = 0;
-      virtual int32 GetFloorTriangleIndexContainingPoint(Vec2 p) = 0;
-      virtual RGBAb GetGuiColour(float intensity) const = 0;
-      virtual int32 GetPerimeterIndex(Vec2 a) const = 0;
-      virtual void InvokeSectorRebuild(bool force) = 0;
-      virtual const Vec2* WallVertices(size_t& nVertices) const = 0;
-      virtual void Rebuild() = 0;
-      virtual bool Is4PointRectangular() const = 0; // The sector has four points and its perimeter in 2D space is a rectangle or square
-      virtual bool IsCorridor() const = 0; // The sector Is4PointRectangular & two opposing edges are portals to other sectors and neither is itself a 4PtRect
-      virtual const Segment* GetWallSegments(size_t& count) const = 0;
+	  virtual void Free() = 0;
+	  virtual float Z0() const = 0;
+	  virtual float Z1() const = 0;
+	  virtual Segment GetSegment(Vec2 p, Vec2 q) = 0;
+	  virtual int32 GetFloorTriangleIndexContainingPoint(Vec2 p) = 0;
+	  virtual RGBAb GetGuiColour(float intensity) const = 0;
+	  virtual int32 GetPerimeterIndex(Vec2 a) const = 0;
+	  virtual void InvokeSectorRebuild(bool force) = 0;
+	  virtual const Vec2* WallVertices(size_t& nVertices) const = 0;
+	  virtual void Rebuild() = 0;
+	  virtual bool Is4PointRectangular() const = 0; // The sector has four points and its perimeter in 2D space is a rectangle or square
+	  virtual bool IsCorridor() const = 0; // The sector Is4PointRectangular & two opposing edges are portals to other sectors and neither is itself a 4PtRect
+	  virtual const Segment* GetWallSegments(size_t& count) const = 0;
 	  virtual void OnSectorScriptChanged(const FileModifiedArgs& args) = 0;
 
 	  virtual void ForEveryObjectInSector(IEventCallback<const ID_ENTITY>& cb) = 0;
