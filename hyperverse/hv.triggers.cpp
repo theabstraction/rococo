@@ -571,11 +571,11 @@ namespace
 
 		cstr Name() const override
 		{
-			return "GlobalInt32LTE";
+			return "GlobalInt32TestLTE";
 		}
 	};
 
-	GlobalInt32LTEFactory s_GlobalInt32LTEFactory;
+	GlobalInt32LTEFactory s_GlobalInt32TestLTEFactory;
 
 	struct GlobalInt32LTFactory : public IActionFactory
 	{
@@ -598,11 +598,11 @@ namespace
 
 		cstr Name() const override
 		{
-			return "GlobalInt32LT";
+			return "GlobalInt32TestLT";
 		}
 	};
 
-	GlobalInt32LTFactory s_GlobalInt32LTFactory;
+	GlobalInt32LTFactory s_GlobalInt32TestLTFactory;
 
 	struct GlobalInt32EQFactory : public IActionFactory
 	{
@@ -625,11 +625,11 @@ namespace
 
 		cstr Name() const override
 		{
-			return "GlobalInt32EQ";
+			return "GlobalInt32TestEQ";
 		}
 	};
 
-	GlobalInt32EQFactory s_GlobalInt32EQFactory;
+	GlobalInt32EQFactory s_GlobalInt32TestEQFactory;
 
 	struct GlobalInt32TestAndFactory : public IActionFactory
 	{
@@ -706,11 +706,11 @@ namespace
 
 		cstr Name() const override
 		{
-			return "GlobalInt32GT";
+			return "GlobalInt32TestGT";
 		}
 	};
 
-	GlobalInt32GTFactory s_GlobalInt32GTFactory;
+	GlobalInt32GTFactory s_GlobalInt32TestGTFactory;
 
 	struct GlobalInt32GTEFactory : public IActionFactory
 	{
@@ -733,11 +733,11 @@ namespace
 
 		cstr Name() const override
 		{
-			return "GlobalInt32GTE";
+			return "GlobalInt32TestGTE";
 		}
 	};
 
-	GlobalInt32GTEFactory s_GlobalInt32GTEFactory;
+	GlobalInt32GTEFactory s_GlobalInt32TestGTEFactory;
 
 	struct CountDown : public IAction
 	{
@@ -1281,13 +1281,13 @@ namespace
 		&s_GlobalInt32SetFactory,
 		&s_GlobalInt32AddFactory,
 		&s_GlobalInt32ShiftFactory,
-		&s_GlobalInt32LTEFactory,
-		&s_GlobalInt32LTFactory,
-		&s_GlobalInt32EQFactory,
+		&s_GlobalInt32TestLTEFactory,
+		&s_GlobalInt32TestLTFactory,
+		&s_GlobalInt32TestEQFactory,
+		&s_GlobalInt32TestGTFactory,
+		&s_GlobalInt32TestGTEFactory,
 		&s_GlobalInt32TestAndFactory,
 		&s_GlobalInt32TestNorFactory,
-		&s_GlobalInt32GTFactory,
-		&s_GlobalInt32GTEFactory
 	};
 }
 

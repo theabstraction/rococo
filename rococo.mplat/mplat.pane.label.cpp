@@ -16,6 +16,10 @@ class PanelLabel : public BasePane, public ILabelPane
 	int32 vertAlign = 0;
 	Vec2i padding{ 0,0 };
 	IPublisher& publisher;
+	EventIdRef evEnabler;
+
+	RGBAb greyout1{ 0 };
+	RGBAb greyout2{ 0 };
 public:
 	PanelLabel(IPublisher& _publisher, int _fontIndex, cstr _text) : fontIndex(_fontIndex), publisher(_publisher)
 	{
@@ -34,15 +38,42 @@ public:
 		padding = { paddingX, paddingY };
 	}
 
+	bool IsEnabled() const
+	{
+		if (evEnabler.hashCode == 0) return true;
+
+		TEventArgs<bool> args;
+		args.data = true;
+		publisher.Publish(args, evEnabler);
+		return args.data;
+	}
+
+	void SetEnableEvent(const fstring& enablerEventName, RGBAb grey1, RGBAb grey2) override
+	{
+		evEnabler = publisher.CreateEventIdFromVolatileString(enablerEventName);
+		greyout1 = grey1;
+		greyout2 = grey2;
+	}
+
+	bool isPressed = false;
+
 	void AppendEvent(const MouseEvent& me, const Vec2i& absTopLeft) override
 	{
 		if (me.HasFlag(me.LUp) || me.HasFlag(me.RUp))
 		{
-			BasePane::Invoke(publisher, 1);
+			isPressed = false;
+			if (IsEnabled())
+			{
+				BasePane::Invoke(publisher, 1);
+			}
 		}
 		else if (me.HasFlag(me.LDown) || me.HasFlag(me.RDown))
 		{
-			BasePane::Invoke(publisher, 0);
+			if (IsEnabled())
+			{
+				isPressed = true;
+				BasePane::Invoke(publisher, 0);
+			}
 		}
 	}
 
@@ -53,12 +84,31 @@ public:
 
 	void Render(IGuiRenderContext& grc, const Vec2i& topLeft, const Modality& modality) override
 	{
-		RenderBackground(grc, topLeft, modality);
-
 		auto span = Span(ClientRect());
 		GuiRect absRect{ topLeft.x, topLeft.y, topLeft.x + span.x, topLeft.y + span.y };
 
-		RenderLabel(grc, text, absRect, horzAlign, vertAlign, padding, fontIndex, BasePane::Scheme(), !modality.isUnderModal);
+		GuiMetrics metrics;
+		grc.Renderer().GetGuiMetrics(metrics);
+
+		bool isEnabled = IsEnabled();
+		bool isLit = isEnabled && !modality.isUnderModal && IsPointInRect(metrics.cursorPosition, absRect);
+		auto& s = Scheme();
+
+		RGBAb backColour = isPressed && isLit ? s.bottomRight : s.topLeft;
+
+		Graphics::DrawRectangle(grc, absRect, backColour, backColour);
+
+		RenderLabel(grc, text, absRect, horzAlign, vertAlign, padding, fontIndex, BasePane::Scheme(), !modality.isUnderModal && isEnabled);
+
+		if (!isEnabled)
+		{
+			GuiRect greyRect{ absRect.left + 1, absRect.top + 1, absRect.right - 1, absRect.bottom - 1 };
+			Graphics::DrawRectangle(grc, greyRect, greyout1, greyout2);
+		}
+
+		RGBAb edge1 = isLit ? s.hi_bottomRightEdge : s.bottomRightEdge;
+		RGBAb edge2 = isLit ? s.hi_topLeftEdge : s.topLeftEdge;
+		Graphics::DrawBorderAround(grc, absRect, { 1,1 }, edge1, edge2);
 	}
 };
 

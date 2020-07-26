@@ -82,6 +82,7 @@
 	(Recti addActionRect = 320 40 345 70)
 	(ILabelPane addActionButton = (frame.AddLabel 0 "+" addActionRect))
 	(addActionButton.SetCommand 1 false "editor.logic.add_action")
+	(addActionButton.SetEnableEvent "editor.logic.add_action_enabler" 0x80101040 0x80303060)
 	(SetButtonDefaultColours addActionButton)
 	
 	(Recti removeActionRect = 355 40 380 70)

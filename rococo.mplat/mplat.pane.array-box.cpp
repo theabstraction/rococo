@@ -81,7 +81,7 @@ struct PanelArrayBox : public BasePane, public IArrayBox
 			SVArgs args{ lineRect, text, i };
 			eventHandler.OnEvent(args);
 
-			lineRect.top = lineRect.bottom;
+			lineRect.top = lineRect.bottom + 1;
 		}
 	}
 

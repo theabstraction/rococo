@@ -13,6 +13,7 @@ namespace
 	static const EventIdRef evPopulateActions = "editor.logic.actions.populate"_event;
 	static const EventIdRef evSelectAction = "editor.logic.action.selected"_event;
 	static const EventIdRef evPopulateActionType = "editor.logic.action-type.populate"_event;
+	static const EventIdRef evAddActionEnabler = "editor.logic.add_action_enabler"_event;
 
 	struct ActionFactoryEnumerator : IStringVector
 	{
@@ -84,6 +85,7 @@ namespace
 			platform.publisher.Subscribe(this, evPopulateActions);
 			platform.publisher.Subscribe(this, evSelectAction);
 			platform.publisher.Subscribe(this, evPopulateActionType);
+			platform.publisher.Subscribe(this, evAddActionEnabler);
 		}
 
 		~LogicEditor()
@@ -213,6 +215,12 @@ namespace
 						pop.data = &s_ActionFactoryStrings;
 					}
 				}
+			}
+			else if (ev == evAddActionEnabler)
+			{
+				auto& isEnabled = As <TEventArgs<bool>>(ev);
+				int32 triggerIndex = triggerList.GetActiveIndex();
+				isEnabled.data = (triggerIndex >= 0 && triggerIndex < triggerList.Count());
 			}
 		}
 	};

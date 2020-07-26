@@ -4635,6 +4635,30 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->SetAlignment(horz, vert, paddingX, paddingY);
 	}
+	void NativeRococoILabelPaneSetEnableEvent(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		RGBAb grey2;
+		_offset += sizeof(grey2);
+		ReadInput(grey2, _sf, -_offset);
+
+		RGBAb grey1;
+		_offset += sizeof(grey1);
+		ReadInput(grey1, _sf, -_offset);
+
+		_offset += sizeof(IString*);
+		IString* _enablerEventName;
+		ReadInput(_enablerEventName, _sf, -_offset);
+		fstring enablerEventName { _enablerEventName->buffer, _enablerEventName->length };
+
+
+		Rococo::ILabelPane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetEnableEvent(enablerEventName, grey1, grey2);
+	}
 
 }
 
@@ -4660,6 +4684,7 @@ namespace Rococo {
 		ss.AddNativeCall(ns, NativeRococoILabelPaneSetCommand, nullptr, ("ILabelPaneSetCommand (Pointer hObject)(Int32 stateIndex)(Bool deferAction)(Sys.Type.IString text) -> "));
 		ss.AddNativeCall(ns, NativeRococoILabelPaneSetPopulator, nullptr, ("ILabelPaneSetPopulator (Pointer hObject)(Int32 stateIndex)(Sys.Type.IString populatorName) -> "));
 		ss.AddNativeCall(ns, NativeRococoILabelPaneSetAlignment, nullptr, ("ILabelPaneSetAlignment (Pointer hObject)(Int32 horz)(Int32 vert)(Int32 paddingX)(Int32 paddingY) -> "));
+		ss.AddNativeCall(ns, NativeRococoILabelPaneSetEnableEvent, nullptr, ("ILabelPaneSetEnableEvent (Pointer hObject)(Sys.Type.IString enablerEventName)(Int32 grey1)(Int32 grey2) -> "));
 	}
 }
 // BennyHill generated Sexy native functions for Rococo::ISlider 

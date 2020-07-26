@@ -62,7 +62,6 @@ namespace Rococo
 			void SetPopulator(int32 stateIndex, const fstring& populatorName);
 			void AppendEventToChildren(IPublisher& publisher, const MouseEvent& me, const Vec2i& absTopLeft, int stateIndex = 0);
 			bool AppendEventToChildren(IPublisher& publisher, const KeyboardEvent& ke, const Vec2i& focusPoint, const Vec2i& absTopLeft, int stateIndex = 0);
-
 			void AlignLeftEdges(int32 borderPixels, boolean32 preserveSpan) override;
 			void AlignRightEdges(int32 borderPixels, boolean32 preserveSpan) override;
 			void AlignTopEdges(int32 borderPixels, boolean32 preserveSpan) override;
