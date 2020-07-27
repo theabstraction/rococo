@@ -63,7 +63,7 @@ namespace
 					Throw(0, "LogicEditor.TriggerList.SetValue(%d) index out of range)", index);
 				}
 
-				sector->TriggersAndActions()[index].SetType((TRIGGER_TYPE)value);
+				sector->TriggersAndActions()[index].SetType((TriggerType)value);
 			}
 
 			int32 Count() const  override
@@ -321,13 +321,13 @@ namespace
 					break;
 				}
 				case PARAMETER_TYPE_GLOBALVAR_NAME:
-					fieldEditor->AddStringField(desc.name, buf, 128);
+					fieldEditor->AddStringField(desc.name, buf, 24);
 					break;
 				case PARAMETER_TYPE_EVENT_NAME:
-					fieldEditor->AddStringField(desc.name, buf, 128);
+					fieldEditor->AddStringField(desc.name, buf, 24);
 					break;
 				case PARAMETER_TYPE_SECTOR_STRING:
-					fieldEditor->AddStringField(desc.name, buf, 64);
+					fieldEditor->AddStringField(desc.name, buf, 24);
 					break;
 				case PARAMETER_TYPE_FLOAT:
 				{

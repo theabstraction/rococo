@@ -287,6 +287,117 @@ namespace ANON
 	   public ISectorLayout,
 	   public ITriggersAndActions
    {
+	   struct AIBuilder : ISectorAIBuilder
+	   {
+		   Sector* sector;
+
+		   void ClearTriggers() override
+		   {
+			   sector->triggers.clear();
+		   }
+
+		   HString lastTrigger;
+
+		   void AddTrigger(const fstring& name) override
+		   {
+			   int32 index = (int32) sector->triggers.size();
+			   sector->AddTrigger(index);
+
+			   lastTrigger = name;
+
+			   TriggerType type;
+			   if (!HV::TryShortParse(name, type))
+			   {
+				   Throw(0, "ISectorAIBuilder.AddTrigger(...): Unrecognized trigger type: %s", (cstr)name);
+			   }
+
+			   sector->triggers[index]->SetType(type);
+		   }
+
+		   IAction& GetLastAction()
+		   {
+			   if (sector->triggers.empty())
+			   {
+				   Throw(0, "GetLastAction(): no trigger to which to append action");
+			   }
+
+			   int32 triggerIndex = (int32)sector->triggers.size() - 1;
+
+			   auto& actions = sector->triggers[triggerIndex]->Actions();
+
+			   if (actions.Count() == 0)
+			   {
+				   Throw(0, "GetLastAction(): no actions for last trigger");
+			   }
+
+			   int32 actionIndex = actions.Count() - 1;
+
+			   return actions[actionIndex];
+		   }
+
+		   HString lastFactory;
+
+		   void AddAction(const fstring& factoryName) override
+		   {
+			   if (sector->triggers.empty())
+			   {
+				   Throw(0, "ISectorAIBuilder::AddAction(%s): no trigger to which to append action", (cstr) factoryName);
+			   }
+
+			   lastFactory = factoryName;
+
+			   int32 triggerIndex = (int32)sector->triggers.size() - 1;
+			   sector->AddAction(triggerIndex);
+
+			   auto& actions = sector->triggers[triggerIndex]->Actions();
+
+			   int32 actionIndex = actions.Count() - 1;
+
+			   IActionFactory& factoryRef = GetActionFactory(factoryName);
+			   actions.SetAction(actionIndex, factoryRef, sector->AFCC());
+		   }
+
+		   int32 FindParameterIndex(IAction& a, const fstring& argName)
+		   {
+			   for (int32 i = 0; i < a.ParameterCount(); ++i)
+			   {
+				   auto desc = a.GetParameterName(i);
+				   if (Eq(desc.name, argName))
+				   {
+					   return i;
+				   }
+			   }
+
+			   Throw(0, "Cannot find argument '%s' to %s of %s", (cstr)argName, lastFactory.c_str(), lastTrigger.c_str());
+		   }
+
+		   void AddActionArgumentI32(const fstring& argName, int32 value) override
+		   {
+			   IAction& a = GetLastAction();
+			   int32 paramIndex = FindParameterIndex(a, argName);
+
+			   char buf[32];
+			   SafeFormat(buf, sizeof buf, "%d", value);
+			   a.SetParameter(paramIndex, buf);
+		   }
+
+		   void AddActionArgumentF32(const fstring& argName, float value) override
+		   {
+			   IAction& a = GetLastAction();
+			   int32 paramIndex = FindParameterIndex(a, argName);
+
+			   char buf[32];
+			   SafeFormat(buf, sizeof buf, "%f", value);
+			   a.SetParameter(paramIndex, buf);
+		   }
+
+		   void AddActionArgumentString(const fstring& argName, const fstring& value) override
+		   {
+			   IAction& a = GetLastAction();
+			   int32 paramIndex = FindParameterIndex(a, argName);
+			   a.SetParameter(paramIndex, value);
+		   }
+	   } aiBuilder;
 	   IInstancesSupervisor& instances;
 	   ISectors& co_sectors;
 
@@ -346,6 +457,11 @@ namespace ANON
 	   std::vector<SceneryBind> scenery;
 
 	   std::vector<ITriggerSupervisor*> triggers;
+
+	   ISectorAIBuilder& GetSectorAIBuilder()
+	   {
+		   return aiBuilder;
+	   }
 
 	   int32 TriggerCount() const
 	   {
@@ -1453,6 +1569,8 @@ namespace ANON
          co_sectors(_co_sectors),
 		 scriptConfig(CreateScriptConfigSet())
       {
+		  aiBuilder.sector = this;
+
 		  PrepMat(GraphicsEx::BodyComponentMatClass_Brickwork, "random", Graphics::MaterialCategory_Stone);
 		  PrepMat(GraphicsEx::BodyComponentMatClass_Cement,    "random", Graphics::MaterialCategory_Rock);
 		  PrepMat(GraphicsEx::BodyComponentMatClass_Floor,     "random", RandomRockOrMarble());
@@ -2888,7 +3006,7 @@ namespace ANON
 		  }
 		  sb.AppendFormat("\n\t(sectors.SetTemplateFloorScript %s \"%s\")", scriptFloor ? "true" : "false", floorScript);
 
-		  sb.AppendFormat("\n\t(sectors.CreateFromTemplate %d %d)\n", altitudeInCm, heightInCm);
+		  sb.AppendFormat("\n\t(Int32 id = (sectors.CreateFromTemplate %d %d))\n", altitudeInCm, heightInCm);
 	  }
 
 	  void GetProperties(cstr category, IBloodyPropertySetEditor& editor) override
@@ -3633,19 +3751,6 @@ namespace ANON
 
 namespace HV
 {
-	const fstring ToFstring(TRIGGER_TYPE type)
-	{
-		switch (type)
-		{
-		case TRIGGER_TYPE_NONE: return "None"_fstring;
-		case TRIGGER_TYPE_DEPRESSED: return "Depressed"_fstring;
-		case TRIGGER_TYPE_PRESSED: return "Pressed"_fstring;
-		case TRIGGER_TYPE_LEVEL_LOAD: return "LevelLoad"_fstring;
-		default:
-			Throw(0, "Unknown trigger type: %d", type);
-		}
-	}
-
 	ISector* CreateSector(Platform& platform, ISectors& co_sectors)
 	{
 		return new ANON::Sector(platform, co_sectors);

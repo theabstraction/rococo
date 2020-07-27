@@ -33,7 +33,7 @@ namespace
 		buffer.clear();
 		buffer.resize(buffer.capacity());
 
-		CopyString(buffer.data(), buffer.size(), str);
+		SafeFormat(buffer.data(), buffer.size(), "%s", str);
 	}
 
 	void RenderName(IGuiRenderContext& grc, cstr name, const GuiRect& lineRect, int32 width)
@@ -377,7 +377,7 @@ namespace
 
 		void FormatValue(char* outputBuffer, size_t capacity)
 		{
-			CopyString(outputBuffer, capacity, editBuffer.data());
+			SafeFormat(outputBuffer, capacity, "%s", editBuffer.data());
 		}
 
 		void Render(IGuiRenderContext& grc, bool isActive)  override
@@ -407,7 +407,7 @@ namespace
 
 		FloatField(IKeyboardSupervisor& _keyboard, cstr _name, float _value, float _minValue, float _maxValue)
 			: keyboard(_keyboard), name(_name), value(_value), minValue(_minValue), maxValue(_maxValue),
-			editBuffer(10)
+			editBuffer(11)
 		{
 			char buf[64];
 			SafeFormat(buf, sizeof buf, "%f", _value);
@@ -543,7 +543,7 @@ namespace
 		{
 			if (activeIndex >= 0)
 			{
-				char text[1024];
+				char text[260];
 				fields[activeIndex]->FormatValue(text, sizeof text);
 				context.onActiveChange.OnActiveIndexChanged(activeIndex, text);
 			}

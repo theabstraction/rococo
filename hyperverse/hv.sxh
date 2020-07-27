@@ -1,5 +1,16 @@
 (config $config.xc) 
 
+(enum Int32
+	(as.sxy HV.TriggerType "../content/scripts/hv")
+	(as.cpp HV.TriggerType "hv")
+	(
+		(None 0)
+		(Depressed 1)
+		(Pressed 2)
+		(LevelLoad 3)
+	)
+)
+
 (interface
 	(as.sxy HV.IPlayer "../content/scripts/hv")
 	(as.cpp HV.IPlayer "hv" "IPlayerBase")
@@ -33,6 +44,20 @@
 	(factory HV.Corridor)
 )
 
+(interface 
+	(as.sxy HV.ISectorAIBuilder "../content/scripts/hv")
+	(as.cpp HV.ISectorAIBuilder "hv" )
+	(context factory HV.ISectorAIBuilder)
+	(methods
+		(ClearTriggers)
+		(AddTrigger (IString name))
+		(AddAction (IString factoryName))
+		(AddActionArgumentI32 (IString argName)(Int32 value))
+		(AddActionArgumentF32 (IString argName)(Float32 value))
+		(AddActionArgumentString (IString argName)(IString value))
+	)
+)
+
 (interface
 	(as.sxy HV.ISectors "../content/scripts/hv")
 	(as.cpp HV.ISectorBuilder "hv" )
@@ -48,6 +73,7 @@
 		(SetWallScriptF32 (IString name)(Float32 value))
 		(SetFloorScriptF32 (IString name)(Float32 value))
 		(SetCorridorScriptF32 (IString name)(Float32 value))
+		(GetSectorAIBuilder (Int32 sectorId)-> (HV.ISectorAIBuilder sector))
 	)
 	(factory HV.SectorBuilder)
 )

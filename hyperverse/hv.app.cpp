@@ -212,7 +212,15 @@ namespace HV
 			RunEnvironmentScript(e, "!scripts/hv/keys.sxy", true);
 			RunEnvironmentScript(e, "!scripts/hv/controls.sxy", true);
 			RunEnvironmentScript(e, "!scripts/hv/main.sxy", true);
-			RunEnvironmentScript(e, "!scripts/samplers.sxy", true);
+
+			struct NulExtras: IEventCallback<ScriptCompileArgs>
+			{
+				void OnEvent(ScriptCompileArgs& args)
+				{
+
+				}
+			} nullExtras;
+			e.platform.utilities.RunEnvironmentScript(nullExtras, "!scripts/samplers.sxy", true);
 
 			editorPanel = e.platform.gui.BindPanelToScript("!scripts/panel.editor.sxy");
 			fpsPanel = e.platform.gui.BindPanelToScript("!scripts/panel.fps.sxy");
@@ -380,7 +388,15 @@ namespace HV
 
 		void OnCreate() override
 		{
-			RunEnvironmentScript(e, "!scripts/hv/app.created.sxy", true);
+			struct NulExtras : IEventCallback<ScriptCompileArgs>
+			{
+				void OnEvent(ScriptCompileArgs& args)
+				{
+
+				}
+			} nullExtras;
+
+			e.platform.utilities.RunEnvironmentScript(nullExtras, "!scripts/hv/app.created.sxy", true);
 		//	e.platform.gui.PushTop(colourPanel->Supervisor(), true);
 		}
 	};

@@ -785,8 +785,21 @@ return false;
 			   s->OnTick(clock);
 		   }
 	   }
-   };
-}
+
+	   HV::ISectorAIBuilder* GetSectorAIBuilder(int32 id)
+	   {
+		   for (auto s : sectors)
+		   {
+			   if (s->Id() == (uint32)id)
+			   {
+				   return &s->GetSectorAIBuilder();
+			   }
+		   }
+
+		   Throw(0, "Could not find sector with id %d", id);
+	   }
+   }; // class Sectors
+}// HV
 
 namespace HV
 {

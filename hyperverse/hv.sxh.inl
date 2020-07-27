@@ -1,4 +1,74 @@
 namespace HV { 
+	bool TryParse(const Rococo::fstring& s, TriggerType& value)
+	{
+		if (s ==  "TriggerType_None"_fstring)
+		{
+			value = TriggerType_None;
+		}
+		else if (s ==  "TriggerType_Depressed"_fstring)
+		{
+			value = TriggerType_Depressed;
+		}
+		else if (s ==  "TriggerType_Pressed"_fstring)
+		{
+			value = TriggerType_Pressed;
+		}
+		else if (s ==  "TriggerType_LevelLoad"_fstring)
+		{
+			value = TriggerType_LevelLoad;
+		}
+		else
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	bool TryShortParse(const Rococo::fstring& s, TriggerType& value)
+	{
+		if (s ==  "None"_fstring)
+		{
+			value = TriggerType_None;
+		}
+		else if (s ==  "Depressed"_fstring)
+		{
+			value = TriggerType_Depressed;
+		}
+		else if (s ==  "Pressed"_fstring)
+		{
+			value = TriggerType_Pressed;
+		}
+		else if (s ==  "LevelLoad"_fstring)
+		{
+			value = TriggerType_LevelLoad;
+		}
+		else
+		{
+			return false;
+		}
+
+		return true;
+	}
+	fstring ToShortString(TriggerType value)
+	{
+		switch(value)
+		{
+			case TriggerType_None:
+				return "None"_fstring;
+			case TriggerType_Depressed:
+				return "Depressed"_fstring;
+			case TriggerType_Pressed:
+				return "Pressed"_fstring;
+			case TriggerType_LevelLoad:
+				return "LevelLoad"_fstring;
+			default:
+				return {"",0};
+		}
+	}
+}// HV.TriggerType
+
+namespace HV { 
 	bool TryParse(const Rococo::fstring& s, AddItemFlags& value)
 	{
 		if (s ==  "AddItemFlags_None"_fstring)
@@ -280,6 +350,132 @@ namespace HV {
 		ss.AddNativeCall(ns, NativeHVICorridorIsSloped, nullptr, ("ICorridorIsSloped (Pointer hObject) -> (Bool isSloped)"));
 	}
 }
+// BennyHill generated Sexy native functions for HV::ISectorAIBuilder 
+namespace
+{
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
+
+	void NativeHVISectorAIBuilderClearTriggers(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::ISectorAIBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->ClearTriggers();
+	}
+	void NativeHVISectorAIBuilderAddTrigger(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _name;
+		ReadInput(_name, _sf, -_offset);
+		fstring name { _name->buffer, _name->length };
+
+
+		HV::ISectorAIBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AddTrigger(name);
+	}
+	void NativeHVISectorAIBuilderAddAction(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _factoryName;
+		ReadInput(_factoryName, _sf, -_offset);
+		fstring factoryName { _factoryName->buffer, _factoryName->length };
+
+
+		HV::ISectorAIBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AddAction(factoryName);
+	}
+	void NativeHVISectorAIBuilderAddActionArgumentI32(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 value;
+		_offset += sizeof(value);
+		ReadInput(value, _sf, -_offset);
+
+		_offset += sizeof(IString*);
+		IString* _argName;
+		ReadInput(_argName, _sf, -_offset);
+		fstring argName { _argName->buffer, _argName->length };
+
+
+		HV::ISectorAIBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AddActionArgumentI32(argName, value);
+	}
+	void NativeHVISectorAIBuilderAddActionArgumentF32(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		float value;
+		_offset += sizeof(value);
+		ReadInput(value, _sf, -_offset);
+
+		_offset += sizeof(IString*);
+		IString* _argName;
+		ReadInput(_argName, _sf, -_offset);
+		fstring argName { _argName->buffer, _argName->length };
+
+
+		HV::ISectorAIBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AddActionArgumentF32(argName, value);
+	}
+	void NativeHVISectorAIBuilderAddActionArgumentString(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _value;
+		ReadInput(_value, _sf, -_offset);
+		fstring value { _value->buffer, _value->length };
+
+
+		_offset += sizeof(IString*);
+		IString* _argName;
+		ReadInput(_argName, _sf, -_offset);
+		fstring argName { _argName->buffer, _argName->length };
+
+
+		HV::ISectorAIBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AddActionArgumentString(argName, value);
+	}
+}
+
+namespace HV { 
+	void AddNativeCalls_HVISectorAIBuilder(Rococo::Script::IPublicScriptSystem& ss, HV::ISectorAIBuilder* _nceContext)
+	{
+		const INamespace& ns = ss.AddNativeNamespace(("HV.Native"));
+		ss.AddNativeCall(ns, NativeHVISectorAIBuilderClearTriggers, nullptr, ("ISectorAIBuilderClearTriggers (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorAIBuilderAddTrigger, nullptr, ("ISectorAIBuilderAddTrigger (Pointer hObject)(Sys.Type.IString name) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorAIBuilderAddAction, nullptr, ("ISectorAIBuilderAddAction (Pointer hObject)(Sys.Type.IString factoryName) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorAIBuilderAddActionArgumentI32, nullptr, ("ISectorAIBuilderAddActionArgumentI32 (Pointer hObject)(Sys.Type.IString argName)(Int32 value) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorAIBuilderAddActionArgumentF32, nullptr, ("ISectorAIBuilderAddActionArgumentF32 (Pointer hObject)(Sys.Type.IString argName)(Float32 value) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorAIBuilderAddActionArgumentString, nullptr, ("ISectorAIBuilderAddActionArgumentString (Pointer hObject)(Sys.Type.IString argName)(Sys.Type.IString value) -> "));
+	}
+}
 // BennyHill generated Sexy native functions for HV::ISectorBuilder 
 namespace
 {
@@ -486,6 +682,24 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->SetCorridorScriptF32(name, value);
 	}
+	void NativeHVISectorBuilderGetSectorAIBuilder(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 sectorId;
+		_offset += sizeof(sectorId);
+		ReadInput(sectorId, _sf, -_offset);
+
+		HV::ISectorBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		HV::ISectorAIBuilder* sector = _pObject->GetSectorAIBuilder(sectorId);
+		_offset += sizeof(CReflectedClass*);
+		auto& _sectorStruct = Rococo::Helpers::GetDefaultProxy(("HV"),("ISectorAIBuilder"), ("ProxyISectorAIBuilder"), _nce.ss);
+		CReflectedClass* _sxysector = _nce.ss.Represent(_sectorStruct, sector);
+		WriteOutput(&_sxysector->header.pVTables[0], _sf, -_offset);
+	}
 
 	void NativeGetHandleForHVSectorBuilder(NativeCallEnvironment& _nce)
 	{
@@ -514,6 +728,7 @@ namespace HV {
 		ss.AddNativeCall(ns, NativeHVISectorBuilderSetWallScriptF32, nullptr, ("ISectorsSetWallScriptF32 (Pointer hObject)(Sys.Type.IString name)(Float32 value) -> "));
 		ss.AddNativeCall(ns, NativeHVISectorBuilderSetFloorScriptF32, nullptr, ("ISectorsSetFloorScriptF32 (Pointer hObject)(Sys.Type.IString name)(Float32 value) -> "));
 		ss.AddNativeCall(ns, NativeHVISectorBuilderSetCorridorScriptF32, nullptr, ("ISectorsSetCorridorScriptF32 (Pointer hObject)(Sys.Type.IString name)(Float32 value) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorBuilderGetSectorAIBuilder, nullptr, ("ISectorsGetSectorAIBuilder (Pointer hObject)(Int32 sectorId) -> (HV.ISectorAIBuilder sector)"));
 	}
 }
 // BennyHill generated Sexy native functions for HV::ISectorLayout 

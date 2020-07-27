@@ -298,16 +298,6 @@ namespace HV
 
    struct ISectorLayout;
 
-   enum TRIGGER_TYPE 
-   { 
-	   TRIGGER_TYPE_NONE = 0,
-	   TRIGGER_TYPE_DEPRESSED,
-	   TRIGGER_TYPE_PRESSED,
-	   TRIGGER_TYPE_LEVEL_LOAD,
-   };
-
-   const fstring ToFstring(TRIGGER_TYPE type);
-
    enum ADVANCE_STATE
    {
 	   // state has advanced, but not completed, advance next timestep
@@ -405,8 +395,8 @@ namespace HV
 
    ROCOCOAPI ITrigger
    {
-		virtual TRIGGER_TYPE Type() const = 0;
-		virtual void SetType(TRIGGER_TYPE type) = 0;
+		virtual TriggerType Type() const = 0;
+		virtual void SetType(TriggerType type) = 0;
 		virtual IActionArray& Actions() = 0;
 		virtual IStringVector& GetStringVector() = 0;
    };
@@ -434,8 +424,10 @@ namespace HV
 	  virtual void RemoveAction(int32 triggerIndex, int32 actionIndex) = 0;
    };
 
+   // Getting to be a god class
    ROCOCOAPI ISector : public IPropertyTarget
    {
+	  virtual ISectorAIBuilder & GetSectorAIBuilder() = 0;
 	  virtual IIActionFactoryCreateContext & AFCC() = 0;
 	  virtual const AABB2d& GetAABB() const = 0;
 	  virtual uint32 Id() const = 0;

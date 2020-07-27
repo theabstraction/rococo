@@ -1,8 +1,10 @@
 (' #file.type hv.control.binding)
 
 (' #include 
+	"!scripts/hv.sxh.sxy"
 	"!scripts/mplat.sxh.sxy"
 	"!scripts/mplat.types.sxy"
+	"!scripts/hv/hv.types.sxy"
 	"!scripts/types.sxy"
 )
 

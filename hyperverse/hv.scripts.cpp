@@ -73,6 +73,7 @@ namespace HV
 #endif
             AddNativeCalls_HVIPlayer(args.ss, &e.players);
 			AddNativeCalls_HVISectorBuilder(args.ss, &e.sectors);
+			AddNativeCalls_HVISectorAIBuilder(args.ss, nullptr);
          }
 
       public:

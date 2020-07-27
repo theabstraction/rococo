@@ -11,7 +11,7 @@ namespace
 
 	struct Trigger : ITriggerSupervisor, IActionArray, IStringVector
 	{
-		TRIGGER_TYPE type = TRIGGER_TYPE_NONE;
+		TriggerType type = TriggerType_None;
 		std::vector<IAction*> actions;
 
 		Trigger()
@@ -32,8 +32,8 @@ namespace
 			delete this;
 		}
 
-		TRIGGER_TYPE Type() const override { return type; }
-		void SetType(TRIGGER_TYPE type) override { this->type = type; }
+		TriggerType Type() const override { return type; }
+		void SetType(TriggerType type) override { this->type = type; }
 		IActionArray& Actions() override { return *this; }
 		IStringVector& GetStringVector() override { return *this; }
 
@@ -163,7 +163,7 @@ namespace
 		void GetParameter(int32 index, ParameterBuffer& buffer) const override
 		{
 			if (index != 0) Throw(0, "GenericEvent.GetParameter(%d). Bad index", index);
-			CopyString(buffer.data, buffer.CAPACITY, eventString);
+			SafeFormat(buffer.data, buffer.CAPACITY, "%s", eventString.c_str());
 		}
 
 		void SetParameter(int32 index, cstr value) override
@@ -277,7 +277,7 @@ namespace
 			switch (index)
 			{
 			default: Throw(0, "GlobalNumericVariableManipulator.SetParameter(%d). Bad index", index); break;
-			case 0: CopyString(variableName, sizeof variableName, value); break;
+			case 0: SafeFormat(variableName, sizeof variableName, "%s", value); break;
 			case 1: StringToNumber(value, arg); break;
 			}
 		}
@@ -597,7 +597,7 @@ namespace
 			switch (index)
 			{
 			default: Throw(0, "GlobalNumericVariableTest.SetParameter(%d). Bad index", index); break;
-			case 0: CopyString(variableName, sizeof variableName, value); break;
+			case 0: SafeFormat(variableName, sizeof variableName, "%s", value); break;
 			case 1: StringToNumber(value, arg); break;
 			}
 		}
@@ -1202,7 +1202,7 @@ namespace
 		void GetParameter(int32 index, ParameterBuffer& buf) const override
 		{
 			if (index != 0) Throw(0, "LowerScenery.GetParameter(%d). Bad index", index);
-			CopyString(buf.data, buf.CAPACITY, target);
+			SafeFormat(buf.data, buf.CAPACITY, "%s", target.c_str());
 		}
 
 		void SetParameter(int32 index, cstr value) override
@@ -1219,7 +1219,7 @@ namespace
 
 		void Format(char* buffer, size_t capacity) override
 		{
-			SafeFormat(buffer, capacity, "LowerScenery @%s", target.length() == 0 ? "<none>" : target.c_str());
+			SafeFormat(buffer, capacity, "LowerScenery %s", target.length() == 0 ? "<none>" : target.c_str());
 		}
 
 		void Free() override
@@ -1269,7 +1269,7 @@ namespace
 		void GetParameter(int32 index, ParameterBuffer& buf) const override
 		{
 			if (index != 0) Throw(0, "RaiseScenery.GetParameter(%d). Bad index", index);
-			CopyString(buf.data, buf.CAPACITY, target);
+			SafeFormat(buf.data, buf.CAPACITY, "%s", target.c_str());
 		}
 
 		void SetParameter(int32 index, cstr value) override
@@ -1286,7 +1286,7 @@ namespace
 
 		void Format(char* buffer, size_t capacity) override
 		{
-			SafeFormat(buffer, capacity, "RaiseScenery @%s", target.length() == 0 ? "<none>" : target.c_str());
+			SafeFormat(buffer, capacity, "RaiseScenery %s", target.length() == 0 ? "<none>" : target.c_str());
 		}
 
 		void Free() override
@@ -1336,7 +1336,7 @@ namespace
 		void GetParameter(int32 index, ParameterBuffer& buf) const override
 		{
 			if (index != 0) Throw(0, "RaiseScenery.GetParameter(%d). Bad index", index);
-			CopyString(buf.data, buf.CAPACITY, target);
+			SafeFormat(buf.data, buf.CAPACITY, "%s", target.c_str());
 		}
 
 		void SetParameter(int32 index, cstr value) override
@@ -1353,7 +1353,7 @@ namespace
 
 		void Format(char* buffer, size_t capacity) override
 		{
-			SafeFormat(buffer, capacity, "ToggleElevation @%s", target.length() == 0 ? "<none>" : target.c_str());
+			SafeFormat(buffer, capacity, "ToggleElevation %s", target.length() == 0 ? "<none>" : target.c_str());
 		}
 
 		void Free() override
