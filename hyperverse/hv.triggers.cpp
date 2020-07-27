@@ -287,18 +287,19 @@ namespace
 			switch (index)
 			{
 			default: Throw(0, "GlobalNumericVariableManipulator.GetParameterName(%d). Bad index", index); break;
-			case 0: return { "var-name", PARAMETER_TYPE_INT, 0.0f,  0.0f }; break;
-			case 1: return { "constant", PARAMETER_TYPE_INT_UNBOUNDED, 0.0f,  0.0f }; break;
+			case 0: return { "var-name", PARAMETER_TYPE_GLOBALVAR_NAME, 0.0f,  0.0f }; break;
+			case 1: return { "constant", PARAMETER_TYPE_INT_HEX, 0.0f,  0.0f }; break;
 			}
 		}
 
 		void Format(char* buffer, size_t capacity) override
 		{
-			StackStringBuilder sb(buffer, capacity);
-
 			cstr proxyName = *variableName ? variableName : "<undefined>";
-
-			sb << Transform::Name() << " $" << proxyName << " " << arg;
+			StackStringBuilder sb(buffer, capacity);
+			sb.AppendFormat("Int32 $%s -> %s ", proxyName, Transform::Name()) << arg;
+			int32 bigEnd = 0x0000FFFF & (arg >> 16);
+			int32 littleEnd = 0x0000FFFF & arg;
+			sb.AppendFormat(" { 0x%4.4X:%4.4X }", bigEnd, littleEnd);
 		}
 
 		void Free() override
@@ -325,7 +326,7 @@ namespace
 
 				static cstr Name()
 				{
-					return "Global Int32 AND";
+					return "Bitwise-AND";
 				}
 			};
 			return new GlobalNumericVariableManipulator<int32, AndInt32>(context.GetGlobals());
@@ -333,7 +334,7 @@ namespace
 
 		cstr Name() const override
 		{
-			return "GlobalInt32LogicalAnd";
+			return "$Int32_Bitwise_And";
 		}
 	};
 
@@ -357,7 +358,7 @@ namespace
 
 				static cstr Name()
 				{
-					return "Global Int32 OR";
+					return "Bitwise-OR";
 				}
 			};
 			return new GlobalNumericVariableManipulator<int32, OrInt32>(context.GetGlobals());
@@ -365,7 +366,7 @@ namespace
 
 		cstr Name() const override
 		{
-			return "GlobalInt32LogicalOr";
+			return "$Int32_Bitwise_Or";
 		}
 	};
 
@@ -391,7 +392,7 @@ namespace
 
 				static cstr Name()
 				{
-					return "Global Int32 XOR";
+					return "Bitwise-XOR";
 				}
 			};
 			return new GlobalNumericVariableManipulator<int32, XorInt32>(context.GetGlobals());
@@ -399,7 +400,7 @@ namespace
 
 		cstr Name() const override
 		{
-			return "GlobalInt32LogicalXor";
+			return "$Int32_Bitwise_Xor";
 		}
 	};
 
@@ -423,7 +424,7 @@ namespace
 
 				static cstr Name()
 				{
-					return "Global Int32 Set";
+					return "Set to";
 				}
 			};
 			return new GlobalNumericVariableManipulator<int32, Set>(context.GetGlobals());
@@ -431,13 +432,12 @@ namespace
 
 		cstr Name() const override
 		{
-			return "GlobalInt32Set";
+			return "$Int32_Set";
 		}
 	};
 
 	GlobalInt32SetFactory s_GlobalInt32SetFactory;
 
-	// Add also covers subtract when the argument is negative
 	struct GlobalInt32AddFactory : public IActionFactory
 	{
 		GlobalInt32AddFactory()
@@ -456,7 +456,7 @@ namespace
 
 				static cstr Name()
 				{
-					return "Global Int32 Add";
+					return "Add";
 				}
 			};
 			return new GlobalNumericVariableManipulator<int32, Add>(context.GetGlobals());
@@ -464,11 +464,44 @@ namespace
 
 		cstr Name() const override
 		{
-			return "GlobalInt32Add";
+			return "$Int32_Add";
 		}
 	};
 
 	GlobalInt32AddFactory s_GlobalInt32AddFactory;
+
+	// Add also covers subtract when the argument is negative
+	struct GlobalInt32SubtractFactory : public IActionFactory
+	{
+		GlobalInt32SubtractFactory()
+		{
+
+		}
+
+		IAction* Create(IIActionFactoryCreateContext& context) override
+		{
+			struct Subtract
+			{
+				static int32 Operator(int32 value, int32 arg)
+				{
+					return value - arg;
+				}
+
+				static cstr Name()
+				{
+					return "Subtract";
+				}
+			};
+			return new GlobalNumericVariableManipulator<int32, Subtract>(context.GetGlobals());
+		}
+
+		cstr Name() const override
+		{
+			return "$Int32_Subtract";
+		}
+	};
+
+	GlobalInt32SubtractFactory s_GlobalInt32SubtractFactory;
 
 	// Shift left if arg +ve and right if arg -ve
 	struct GlobalInt32ShiftFactory : public IActionFactory
@@ -500,7 +533,7 @@ namespace
 
 				static cstr Name()
 				{
-					return "Global Int32 Shift";
+					return "BitShift";
 				}
 			};
 			return new GlobalNumericVariableManipulator<int32, Add>(context.GetGlobals());
@@ -508,7 +541,7 @@ namespace
 
 		cstr Name() const override
 		{
-			return "GlobalInt32Shift";
+			return "$Int32_BitShift";
 		}
 	};
 
@@ -574,8 +607,8 @@ namespace
 			switch (index)
 			{
 			default: Throw(0, "GlobalNumericVariableTest.GetParameterName(%d). Bad index", index); break;
-			case 0: return { "var-name", PARAMETER_TYPE_INT, 0.0f,  0.0f }; break;
-			case 1: return { "constant", PARAMETER_TYPE_INT_UNBOUNDED, 0.0f,  0.0f }; break;
+			case 0: return { "var-name", PARAMETER_TYPE_GLOBALVAR_NAME, 0.0f,  0.0f }; break;
+			case 1: return { "constant", PARAMETER_TYPE_INT_HEX, 0.0f,  0.0f }; break;
 			}
 		}
 
@@ -583,7 +616,11 @@ namespace
 		{
 			StackStringBuilder sb(buffer, capacity);
 			cstr proxyName = *variableName ? variableName : "<undefined>";
-			sb << "Abort if $" << proxyName << " " << Test::Name() << " " << arg;
+			sb << "Continue if $" << proxyName << " " << Test::Name() << " " << arg;
+
+			int32 bigEnd = 0x0000FFFF & (arg >> 16);
+			int32 littleEnd = 0x0000FFFF & arg;
+			sb.AppendFormat(" { 0x%4.4X:%4.4X }", bigEnd, littleEnd);
 		}
 
 		void Free() override
@@ -618,7 +655,7 @@ namespace
 
 		cstr Name() const override
 		{
-			return "GlobalInt32TestLTE";
+			return "$Int32_Continue_LTE";
 		}
 	};
 
@@ -650,7 +687,7 @@ namespace
 
 		cstr Name() const override
 		{
-			return "GlobalInt32TestLT";
+			return "$Int32_Continue_LT";
 		}
 	};
 
@@ -682,7 +719,7 @@ namespace
 
 		cstr Name() const override
 		{
-			return "GlobalInt32TestEQ";
+			return "$Int32_Continue_EQ";
 		}
 	};
 
@@ -714,7 +751,7 @@ namespace
 
 		cstr Name() const override
 		{
-			return "GlobalInt32TestAnd";
+			return "$Int32_Continue_And";
 		}
 	};
 
@@ -746,7 +783,7 @@ namespace
 
 		cstr Name() const override
 		{
-			return "GlobalInt32TestNor";
+			return "$Int32_Continue_Nor";
 		}
 	};
 
@@ -778,7 +815,7 @@ namespace
 
 		cstr Name() const override
 		{
-			return "GlobalInt32TestGT";
+			return "$Int32_Continue_GT";
 		}
 	};
 
@@ -810,7 +847,7 @@ namespace
 
 		cstr Name() const override
 		{
-			return "GlobalInt32TestGTE";
+			return "$Int32_Continue_GTE";
 		}
 	};
 
@@ -859,7 +896,7 @@ namespace
 		ParamDesc GetParameterName(int32 index) const override
 		{
 			if (index != 0) Throw(0, "CountDown.GetParameterName(%d). Bad index", index);
-			return { "count", PARAMETER_TYPE_INT, 0.0f, 10000.0f };
+			return { "count", PARAMETER_TYPE_INT, 0.0f, 10000000.0f };
 		}
 
 		void Format(char* buffer, size_t capacity) override
@@ -1008,7 +1045,7 @@ namespace
 
 		void Format(char* buffer, size_t capacity) override
 		{
-			SafeFormat(buffer, capacity, "Delay %f second%s", delayPeriod, delayPeriod != 1.0f ? "s" : "");
+			SafeFormat(buffer, capacity, "Delay %.2f secs", delayPeriod);
 		}
 
 		void Free() override
@@ -1072,8 +1109,8 @@ namespace
 			switch (index)
 			{
 			default: Throw(0, "RandomDelay.GetParameter(%d). Bad index", index);
-			case 0: SafeFormat(buffer.data, buffer.CAPACITY, "%f", lowerBound);
-			case 1: SafeFormat(buffer.data, buffer.CAPACITY, "%f", upperBound);
+			case 0: SafeFormat(buffer.data, buffer.CAPACITY, "%f", lowerBound); break;
+			case 1: SafeFormat(buffer.data, buffer.CAPACITY, "%f", upperBound); break;
 			}	
 		}
 
@@ -1088,7 +1125,6 @@ namespace
 				{
 					Throw(0, "RandomDelay.SetParameter(0, %s). Bad float string", value);
 				}
-				lowerBound = 0;
 				break;
 			}
 			case 1:
@@ -1097,7 +1133,6 @@ namespace
 				{
 					Throw(0, "RandomDelay.SetParameter(1, %s). Bad float string", value);
 				}
-				upperBound = 0;
 				break;
 			}
 			}
@@ -1117,7 +1152,7 @@ namespace
 
 		void Format(char* buffer, size_t capacity) override
 		{
-			SafeFormat(buffer, capacity, "RandomDelay %f second%s", delayPeriod, delayPeriod != 1.0f ? "s" : "");
+			SafeFormat(buffer, capacity, "RandomDelay %.2f-%.2f secs", lowerBound, upperBound);
 		}
 
 		void Free() override
@@ -1357,6 +1392,7 @@ namespace
 		&s_GlobalInt32LogicalXorFactory,
 		&s_GlobalInt32SetFactory,
 		&s_GlobalInt32AddFactory,
+		&s_GlobalInt32SubtractFactory,
 		&s_GlobalInt32ShiftFactory,
 		&s_GlobalInt32TestLTEFactory,
 		&s_GlobalInt32TestLTFactory,

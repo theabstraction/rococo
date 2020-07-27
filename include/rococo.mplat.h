@@ -210,6 +210,7 @@ namespace Rococo
 	{
 	   virtual cstr GetAction(cstr keyName) = 0;
 	   virtual Key GetKeyFromEvent(const KeyboardEvent& ke) = 0;
+	   virtual void AppendKeyboardInputToEditBuffer(int& caretPos, char* buffer, size_t capacity, const KeyboardEvent& key) = 0;
 	   virtual void Free() = 0;
 	};
 
@@ -774,7 +775,7 @@ namespace Rococo
 		struct IBrowserFileChangeNotification;
 	}
 
-	IMPlatFileBrowser* CreateMPlatFileBrowser(Events::IPublisher& publisher, IInstallation& installation, IGUIStack& gui, Browser::IBrowserFileChangeNotification& onChange);
+	IMPlatFileBrowser* CreateMPlatFileBrowser(Events::IPublisher& publisher, IInstallation& installation, IGUIStack& gui, IKeyboardSupervisor& keyboard, Browser::IBrowserFileChangeNotification& onChange);
 }
 
 #define REGISTER_UI_EVENT_HANDLER(guistack, instance, classname, methodname, cmd, helpString)  \

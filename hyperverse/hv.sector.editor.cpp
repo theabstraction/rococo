@@ -32,7 +32,7 @@ namespace
 		}
 	} s_ActionFactoryStrings;
 
-	struct LogicEditor: public IObserver
+	struct LogicEditor: public IObserver, IFieldEditorEventHandler
 	{
 		AutoFree<IFieldEditor> fieldEditor;
 
@@ -84,7 +84,9 @@ namespace
 			platform(_platform), sectors(_sectors)
 		{
 			logicPanel = platform.gui.BindPanelToScript("!scripts/hv/panel.logic.sxy");
-			fieldEditor = CreateFieldEditor( FieldEditorContext { platform.publisher });
+			
+			FieldEditorContext fc{ platform.publisher, platform.gui, platform.keyboard, *this };
+			fieldEditor = CreateFieldEditor(fc);
 			platform.publisher.Subscribe(this, evEditSectorLogic);
 			platform.publisher.Subscribe(this, evUIInvoke);
 			platform.publisher.Subscribe(this, evPopulateTriggers);
@@ -103,6 +105,20 @@ namespace
 		{
 			platform.publisher.Unsubscribe(this);
 			platform.gui.UnregisterPopulator(&fieldEditor->UIElement());
+		}
+
+		void OnActiveIndexChanged(int32 index, const char* stringRepresentation) override
+		{
+			int32 triggerIndex = triggerList.GetActiveIndex();
+			if (triggerIndex >= 0 && triggerIndex < triggerList.Count())
+			{
+				auto& trigger = sector->TriggersAndActions()[triggerIndex];
+				auto& actions = trigger.Actions();
+				if (activeActionIndex >= 0 && activeActionIndex < actions.Count())
+				{
+					actions[activeActionIndex].SetParameter(index, stringRepresentation);
+				}
+			}
 		}
 
 		void OpenEditor()
@@ -129,6 +145,7 @@ namespace
 				platform.gui.Pop();
 				sector = nullptr;
 				triggerList.sector = nullptr;
+				fieldEditor->Deactivate();
 			}
 			else
 			{
@@ -279,24 +296,44 @@ namespace
 			for (int i = 0; i < action.ParameterCount(); ++i)
 			{
 				ParamDesc desc = action.GetParameterName(i);
+
+				ParameterBuffer buf;
+				action.GetParameter(i, buf);
+
 				switch (desc.type)
 				{
-				case PARAMETER_TYPE_INT_UNBOUNDED:
-					fieldEditor->AddInt32FieldUnbounded(desc.name, 0);
+				case PARAMETER_TYPE_INT_HEX:
+				{
+					int32 value = atoi(buf);
+					fieldEditor->AddInt32FieldUnbounded(desc.name, value, true);
 					break;
+				}
+				case PARAMETER_TYPE_INT_UNBOUNDED:
+				{
+					int32 value = atoi(buf);
+					fieldEditor->AddInt32FieldUnbounded(desc.name, value, false);
+					break;
+				}
 				case PARAMETER_TYPE_INT:
-					fieldEditor->AddInt32FieldBounded(desc.name, 0,
-						(int32)desc.minValue, (int32)desc.maxValue);
+				{
+					int32 value = atoi(buf);
+					fieldEditor->AddInt32FieldBounded(desc.name, value, (int32)desc.minValue, (int32)desc.maxValue);
+					break;
+				}
+				case PARAMETER_TYPE_GLOBALVAR_NAME:
+					fieldEditor->AddStringField(desc.name, buf, 128);
 					break;
 				case PARAMETER_TYPE_EVENT_NAME:
-					fieldEditor->AddStringField(desc.name, "");
+					fieldEditor->AddStringField(desc.name, buf, 128);
 					break;
 				case PARAMETER_TYPE_SECTOR_STRING:
-					fieldEditor->AddStringField(desc.name, "");
+					fieldEditor->AddStringField(desc.name, buf, 64);
 					break;
 				case PARAMETER_TYPE_FLOAT:
-					fieldEditor->AddFloat32FieldBounded(desc.name,
-						0, desc.minValue, desc.maxValue);
+				{
+					float value = (float)atof(buf);
+					fieldEditor->AddFloat32FieldBounded(desc.name, value, desc.minValue, desc.maxValue);
+				}
 				default:
 					break;
 				}

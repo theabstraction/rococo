@@ -565,29 +565,20 @@ namespace Rococo
 				Vec2i caretEnd = { (int32)onGlyph.caretGlyphRect.right, (int32)onGlyph.caretGlyphRect.bottom };
 				Rococo::Graphics::DrawLine(g, 2, caretStart, caretEnd, isCaretLit ? 0 : 0xFFFFFFFF);
 			}
-			else if (onGlyph.lastGlyphRect.left > -1)
+			else if(onGlyph.lastGlyphRect.right > -1)
 			{
-				auto& f = g.Renderer().FontMetrics();
-				auto& glyphs = f[fontIndex % f.NumberOfGlyphSets()];
-				auto& glyph = glyphs['a'];
-				auto span = glyph.B;
-				Vec2i caretStart = { (int32)onGlyph.lastGlyphRect.right,  (int32)onGlyph.lastGlyphRect.bottom };
-				Vec2i caretEnd = { caretStart.x + (int32)span, caretStart.y };
+				auto ds = Span(rect);
+				float defaultCaretSpan = 0.75f * ds.y;
+				Vec2i caretStart = { (int32)onGlyph.lastGlyphRect.right,  (int32)rect.bottom };
+				Vec2i caretEnd = { caretStart.x + (int32)defaultCaretSpan, caretStart.y };
 				Rococo::Graphics::DrawLine(g, 2, caretStart, caretEnd, isCaretLit ? 0 : 0xFFFFFFFF);
 			}
 			else
 			{
-				auto& f = g.Renderer().FontMetrics();
-				auto& glyphs = f[fontIndex % f.NumberOfGlyphSets()];
-				auto& glyph = glyphs['a'];
-				auto span = glyph.B;
-
-				Vec2i ds{ (int32)span, (int32)glyphs.FontHeight() };
-				Vec2i caretStart = GetTopLeftPos(iRect, ds, alignmentFlags);
-				caretStart.y += ds.y;
-
-				Vec2i caretEnd = { caretStart.x + (int32)span, caretStart.y };
-
+				auto ds = Span(rect);
+				float defaultCaretSpan = 0.75f * ds.y;
+				Vec2i caretStart = { (int32) rect.left,  (int32)rect.bottom };
+				Vec2i caretEnd = { caretStart.x + (int32)defaultCaretSpan, caretStart.y };
 				Rococo::Graphics::DrawLine(g, 2, caretStart, caretEnd, isCaretLit ? 0 : 0xFFFFFFFF);
 			}
 		}

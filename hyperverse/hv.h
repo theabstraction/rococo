@@ -150,18 +150,28 @@ namespace HV
 		virtual void Render(IGuiRenderContext& grc, const ISector* litSector, bool isTransparent) = 0;
    };
 
+   ROCOCOAPI IFieldEditorEventHandler
+   {
+	   virtual void OnActiveIndexChanged(int32 index, const char* stringRepresentation) = 0;
+   };
+
    struct FieldEditorContext
    {
 	   IPublisher& publisher;
+	   IGUIStack& gui;
+	   IKeyboardSupervisor& keyboard;
+	   IFieldEditorEventHandler& onActiveChange;
    };
 
    ROCOCOAPI IFieldEditor
    {
-		virtual void AddInt32FieldUnbounded(cstr name, int32 value) = 0;
+		virtual void AddInt32FieldUnbounded(cstr name, int32 value, bool preferHex) = 0;
 		virtual void AddInt32FieldBounded(cstr name, int32 value, int32 minValue, int32 maxValue) = 0;
 		virtual void AddFloat32FieldBounded(cstr name, float value, float minValue, float maxValue) = 0;
-		virtual void AddStringField(cstr name, cstr value) = 0;
+		virtual void GetActiveValueAsString(char* buffer, size_t capacity) = 0;
+		virtual void AddStringField(cstr name, cstr value, size_t capacity) = 0;
 		virtual void Clear() = 0;
+		virtual void Deactivate() = 0;
 		virtual IUIElement & UIElement() = 0;
 		virtual void Free() = 0;
    };
@@ -320,8 +330,10 @@ namespace HV
    {
 	   PARAMETER_TYPE_SECTOR_STRING,
 	   PARAMETER_TYPE_EVENT_NAME,
+	   PARAMETER_TYPE_GLOBALVAR_NAME,
 	   PARAMETER_TYPE_FLOAT,
 	   PARAMETER_TYPE_INT,
+	   PARAMETER_TYPE_INT_HEX,
 	   PARAMETER_TYPE_INT_UNBOUNDED
    };
 

@@ -12,6 +12,112 @@ namespace
 {
    using namespace Rococo;
 
+   void InsertCharAtPos(int& caretPos, char* buffer, size_t capacity, char c)
+   {
+	   int32 len = StringLength(buffer);
+	   if (len == capacity - 1)
+	   {
+		   return;
+	   }
+	   else if (caretPos >= len)
+	   {
+		   buffer[len] = c;
+		   buffer[len + 1] = 0;
+	   }
+	   else
+	   {
+		   for (int32 i = len; i > caretPos; i--)
+		   {
+			   buffer[i] = buffer[i - 1];
+		   }
+
+		   buffer[caretPos] = c;
+		   buffer[len + 1] = 0;
+	   }
+
+	   caretPos++;
+   }
+
+   void DeleteCharAt(int pos, char* buffer, size_t capacity)
+   {
+	   char* dest = buffer + pos - 1;
+	   for (const char* p = buffer + pos; *p != 0; ++p)
+	   {
+		   *dest++ = *p;
+	   }
+
+	   *dest = 0;
+   }
+
+   void BackSpaceAtPos(int& caretPos, char* buffer, size_t capacity)
+   {
+	   if (caretPos > 0)
+	   {
+		   DeleteCharAt(caretPos, buffer, capacity);
+		   caretPos--;
+	   }
+   }
+
+   void DeleteAtPos(int& caretPos, char* buffer, size_t capacity)
+   {
+	   int len = StringLength(buffer);
+	   if (caretPos < len)
+	   {
+		   DeleteCharAt(caretPos + 1, buffer, capacity);
+	   }
+   }
+
+   void Anon_AppendKeyboardInputToEditBuffer(int& caretPos, char* buffer, size_t capacity, const KeyboardEvent& key)
+   {
+	   if (key.IsUp()) return;
+
+	   if (key.unicode >= 32 && key.unicode < 127)
+	   {
+		   char c = key.unicode;
+		   InsertCharAtPos(caretPos, buffer, capacity, c);
+		   return;
+	   }
+
+	   switch (key.VKey)
+	   {
+	   case IO::VKCode_HOME:
+		   caretPos = 0;
+		   break;
+	   case IO::VKCode_END:
+		   caretPos = StringLength(buffer);
+		   break;
+	   case IO::VKCode_LEFT:
+		   caretPos--;
+		   caretPos = max(0, caretPos);
+		   break;
+	   case IO::VKCode_RIGHT:
+		   caretPos++;
+		   caretPos = min(StringLength(buffer), caretPos);
+		   break;
+	   case IO::VKCode_BACKSPACE:
+		   BackSpaceAtPos(caretPos, buffer, capacity);
+		   break;
+	   case IO::VKCode_DELETE:
+		   DeleteAtPos(caretPos, buffer, capacity);
+		   break;
+	   case IO::VKCode_C:
+		   if (Rococo::IO::IsKeyPressed(IO::VKCode_CTRL))
+		   {
+			   IO::CopyToClipboard(buffer);
+		   }
+		   break;
+	   case IO::VKCode_V:
+		   if (Rococo::IO::IsKeyPressed(IO::VKCode_CTRL))
+		   {
+			   IO::PasteFromClipboard(buffer, capacity);
+			   caretPos = StringLength(buffer);
+		   }
+		   break;
+	   default:
+		   break;
+	   }
+   }
+
    class Keyboard : public IKeyboardSupervisor
    {
       std::array<std::string, 512> codes;
@@ -22,12 +128,17 @@ namespace
       {
       }
 
-      virtual void ClearActions()
+	  void AppendKeyboardInputToEditBuffer(int& caretPos, char* buffer, size_t capacity, const KeyboardEvent& key)
+	  {
+		  return Anon_AppendKeyboardInputToEditBuffer(caretPos, buffer, capacity, key);
+	  }
+
+      void ClearActions() override
       {
          actionBinds.clear();
       }
 
-      virtual void BindAction(const fstring& keyName, const fstring& actionName)
+      void BindAction(const fstring& keyName, const fstring& actionName) override
       {
          actionBinds[keyName.buffer] = actionName.buffer;
       }
@@ -38,7 +149,7 @@ namespace
 		  return i == mapNameToVkCode.end() ? 0 : i->second;
 	  }
 
-      virtual cstr GetAction(cstr keyName)
+      cstr GetAction(cstr keyName) override
       {
          if (keyName != nullptr)
          {
@@ -52,12 +163,12 @@ namespace
          return nullptr;
       }
 
-      virtual void Free()
+      void Free() override
       {
          delete this;
       }
 
-      virtual Key GetKeyFromEvent(const KeyboardEvent& ke)
+      Key GetKeyFromEvent(const KeyboardEvent& ke) override
       {
          auto& rke = reinterpret_cast<const RAWKEYBOARD&>(ke);
 
@@ -82,7 +193,7 @@ namespace
          };
       }
 
-      virtual void SetKeyName(const fstring& name, int32 vkeyCode)
+      void SetKeyName(const fstring& name, int32 vkeyCode) override
       {
          if (vkeyCode < 0 || vkeyCode >= codes.size())
          {
@@ -94,7 +205,7 @@ namespace
          codes[vkeyCode] = name.buffer;
       }
 
-	  virtual void SaveCppHeader()
+	  void SaveCppHeader() override
 	  {
 		  char text[8192];
 		  StackStringBuilder ssb(text, sizeof(text));

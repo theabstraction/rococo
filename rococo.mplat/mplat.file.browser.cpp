@@ -279,112 +279,12 @@ struct StatusBar : IUIElement
 	}
 };
 
-void InsertCharAtPos(int& caretPos, char* buffer, size_t capacity, char c)
-{
-	int32 len = StringLength(buffer);
-	if (len < capacity && caretPos >= len)
-	{
-		buffer[len] = c;
-		buffer[len + 1] = 0;
-	}
-	else
-	{
-		for (int32 i = len; i > caretPos; i--)
-		{
-			buffer[i] = buffer[i - 1];
-		}
-
-		buffer[caretPos] = c;
-	}
-
-	caretPos++;
-}
-
-void DeleteCharAt(int pos, char* buffer, size_t capacity)
-{
-	char* dest = buffer + pos - 1;
-	for (const char* p = buffer + pos; *p != 0; ++p)
-	{
-		*dest++ = *p;
-	}
-
-	*dest = 0;
-}
-
-void BackSpaceAtPos(int& caretPos, char* buffer, size_t capacity)
-{
-	if (caretPos > 0)
-	{
-		DeleteCharAt(caretPos, buffer, capacity);
-		caretPos--;
-	}
-}
-
-void DeleteAtPos(int& caretPos, char* buffer, size_t capacity)
-{
-	int len = StringLength(buffer);
-	if (caretPos < len)
-	{
-		DeleteCharAt(caretPos+1, buffer, capacity);
-	}
-}
-
-void AppendKeyboardInputToEditBuffer(int& caretPos, char* buffer, size_t capacity, const KeyboardEvent& key)
-{
-	if (key.IsUp()) return;
-
-	if (key.unicode >= 32 && key.unicode < 127)
-	{
-		char c = key.unicode;
-		InsertCharAtPos(caretPos, buffer, capacity, c);
-		return;
-	}
-
-	switch (key.VKey)
-	{
-	case IO::VKCode_HOME:
-		caretPos = 0;
-		break;
-	case IO::VKCode_END:
-		caretPos = StringLength(buffer);
-		break;
-	case IO::VKCode_LEFT:
-		caretPos--;
-		caretPos = max(0, caretPos);
-		break;
-	case IO::VKCode_RIGHT:
-		caretPos++;
-		caretPos = min(StringLength(buffer), caretPos);
-		break;
-	case IO::VKCode_BACKSPACE:
-		BackSpaceAtPos(caretPos, buffer, capacity);
-		break;
-	case IO::VKCode_DELETE:
-		DeleteAtPos(caretPos, buffer, capacity);
-		break;
-	case IO::VKCode_C:
-		if (Rococo::IO::IsKeyPressed(IO::VKCode_CTRL))
-		{
-			IO::CopyToClipboard(buffer);
-		}
-		break;
-	case IO::VKCode_V:
-		if (Rococo::IO::IsKeyPressed(IO::VKCode_CTRL))
-		{
-			IO::PasteFromClipboard(buffer, capacity);
-			caretPos = StringLength(buffer);
-		}
-		break;
-	default:
-		break;
-	}
-}
-
 struct FilenameEditor : IUIElement, public IKeyboardSink
 {
 	IFileBrowser& browser;
 	IDirectoryPopulator& populator;
 	IGUIStack& gui;
+	IKeyboardSupervisor& keyboard;
 
 	U32FilePath fullPath = { U"!", U'/' };
 	U8FilePath asciiRep = { "!", '/' };
@@ -392,8 +292,8 @@ struct FilenameEditor : IUIElement, public IKeyboardSink
 	bool editing = false;
 	int caretPos = 0;
 
-	FilenameEditor(IFileBrowser& _browser, IDirectoryPopulator& _populator, IGUIStack& _gui) :
-		browser(_browser), populator(_populator), gui(_gui)
+	FilenameEditor(IFileBrowser& _browser, IDirectoryPopulator& _populator, IGUIStack& _gui, IKeyboardSupervisor& _keyboard) :
+		browser(_browser), populator(_populator), gui(_gui), keyboard(_keyboard)
 	{
 
 	}
@@ -415,7 +315,7 @@ struct FilenameEditor : IUIElement, public IKeyboardSink
 			}
 			else
 			{
-				AppendKeyboardInputToEditBuffer(caretPos, asciiRep.buf, asciiRep.CAPACITY, key);
+				keyboard.AppendKeyboardInputToEditBuffer(caretPos, asciiRep.buf, asciiRep.CAPACITY, key);
 				return true;
 			}
 		}
@@ -509,12 +409,12 @@ struct MPlatFileBrowser: public IMPlatFileBrowser, public IObserver, public IUIE
 
 	IBrowserFileChangeNotification& onChange;
 
-	MPlatFileBrowser(IPublisher& _publisher, IInstallation& _installation, IGUIStack& gui, IBrowserFileChangeNotification& _onChange):
+	MPlatFileBrowser(IPublisher& _publisher, IInstallation& _installation, IGUIStack& gui, IKeyboardSupervisor& keyboard, IBrowserFileChangeNotification& _onChange):
 		pingPopulator(CreatePingPopulator(_installation)),
 		api { *pingPopulator, style }, 
 		publisher(_publisher),
 		browser(CreateFileBrowser(api, *this)),
-		filenameEditor(*browser, *pingPopulator, gui),
+		filenameEditor(*browser, *pingPopulator, gui, keyboard),
 		onChange(_onChange)
 	{
 	}
@@ -633,8 +533,8 @@ struct MPlatFileBrowser: public IMPlatFileBrowser, public IObserver, public IUIE
 
 namespace Rococo
 {
-	IMPlatFileBrowser* CreateMPlatFileBrowser(Events::IPublisher& publisher, IInstallation& installation, IGUIStack& gui, IBrowserFileChangeNotification& onChange)
+	IMPlatFileBrowser* CreateMPlatFileBrowser(Events::IPublisher& publisher, IInstallation& installation, IGUIStack& gui, IKeyboardSupervisor& keyboard, IBrowserFileChangeNotification& onChange)
 	{
-		return new MPlatFileBrowser(publisher, installation, gui, onChange);
+		return new MPlatFileBrowser(publisher, installation, gui, keyboard, onChange);
 	}
 }

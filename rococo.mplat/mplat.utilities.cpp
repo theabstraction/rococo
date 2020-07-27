@@ -347,7 +347,7 @@ public:
 	{
 		if (!browser)
 		{
-			browser = CreateMPlatFileBrowser(platform->publisher, platform->installation, platform->gui, *this);
+			browser = CreateMPlatFileBrowser(platform->publisher, platform->installation, platform->gui, platform->keyboard, *this);
 		}
 
 		if (!browsingPane)
