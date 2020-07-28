@@ -43,9 +43,9 @@ public:
 		if (evEnabler.hashCode == 0) return true;
 
 		TEventArgs<bool> args;
-		args.data = true;
+		args.value = true;
 		publisher.Publish(args, evEnabler);
-		return args.data;
+		return args.value;
 	}
 
 	void SetEnableEvent(const fstring& enablerEventName, RGBAb grey1, RGBAb grey2) override
@@ -98,7 +98,22 @@ public:
 
 		Graphics::DrawRectangle(grc, absRect, backColour, backColour);
 
-		RenderLabel(grc, text, absRect, horzAlign, vertAlign, padding, fontIndex, BasePane::Scheme(), !modality.isUnderModal && isEnabled);
+		if (Eq(text, "$up"))
+		{
+			int ds = (absRect.right - absRect.left) >> 3;
+			GuiRect triRect{ absRect.left + ds, absRect.top + ds, absRect.right - ds, absRect.bottom - ds };
+			Graphics::DrawTriangleFacingUp(grc, triRect, isLit ? s.hi_fontColour : s.fontColour);
+		}
+		else if (Eq(text, "$down"))
+		{
+			int ds = (absRect.right - absRect.left) >> 3;
+			GuiRect triRect{ absRect.left + ds, absRect.top + ds, absRect.right - ds, absRect.bottom - ds };
+			Graphics::DrawTriangleFacingDown(grc, triRect, isLit ? s.hi_fontColour : s.fontColour);
+		}
+		else
+		{
+			RenderLabel(grc, text, absRect, horzAlign, vertAlign, padding, fontIndex, s, !modality.isUnderModal && isEnabled);
+		}
 
 		if (!isEnabled)
 		{

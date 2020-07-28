@@ -23,6 +23,14 @@ namespace HV
 		virtual void OnGuiResize(Vec2i span) = 0;
 	};
 
+	struct NoExtraNativeLibs : IEventCallback<ScriptCompileArgs>
+	{
+		void OnEvent(ScriptCompileArgs& args)
+		{
+
+		}
+	};
+
 	// Route scene methods to the platform.scene object
 	// We intercept the gui events to resize application panels
 	class AppScene: public IScene
@@ -213,14 +221,8 @@ namespace HV
 			RunEnvironmentScript(e, "!scripts/hv/controls.sxy", true);
 			RunEnvironmentScript(e, "!scripts/hv/main.sxy", true);
 
-			struct NulExtras: IEventCallback<ScriptCompileArgs>
-			{
-				void OnEvent(ScriptCompileArgs& args)
-				{
-
-				}
-			} nullExtras;
-			e.platform.utilities.RunEnvironmentScript(nullExtras, "!scripts/samplers.sxy", true);
+			NoExtraNativeLibs noExtraLibs;
+			e.platform.utilities.RunEnvironmentScript(noExtraLibs, "!scripts/samplers.sxy", true);
 
 			editorPanel = e.platform.gui.BindPanelToScript("!scripts/panel.editor.sxy");
 			fpsPanel = e.platform.gui.BindPanelToScript("!scripts/panel.fps.sxy");
@@ -388,15 +390,8 @@ namespace HV
 
 		void OnCreate() override
 		{
-			struct NulExtras : IEventCallback<ScriptCompileArgs>
-			{
-				void OnEvent(ScriptCompileArgs& args)
-				{
-
-				}
-			} nullExtras;
-
-			e.platform.utilities.RunEnvironmentScript(nullExtras, "!scripts/hv/app.created.sxy", true);
+			NoExtraNativeLibs noExtras;
+			e.platform.utilities.RunEnvironmentScript(noExtras, "!scripts/hv/app.created.sxy", true);
 		//	e.platform.gui.PushTop(colourPanel->Supervisor(), true);
 		}
 	};

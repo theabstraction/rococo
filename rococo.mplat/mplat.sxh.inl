@@ -2182,6 +2182,22 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->SetItemSelectEvent(eventText);
 	}
+	void NativeRococoIArrayBoxSetScrollToItemEvent(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _eventText;
+		ReadInput(_eventText, _sf, -_offset);
+		fstring eventText { _eventText->buffer, _eventText->length };
+
+
+		Rococo::IArrayBox* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetScrollToItemEvent(eventText);
+	}
 
 }
 
@@ -2210,6 +2226,7 @@ namespace Rococo {
 		ss.AddNativeCall(ns, NativeRococoIArrayBoxSetLineHeight, nullptr, ("IArrayBoxSetLineHeight (Pointer hObject)(Int32 pixels) -> "));
 		ss.AddNativeCall(ns, NativeRococoIArrayBoxSetLineBorders, nullptr, ("IArrayBoxSetLineBorders (Pointer hObject)(Int32 left)(Int32 top)(Int32 right)(Int32 bottom) -> "));
 		ss.AddNativeCall(ns, NativeRococoIArrayBoxSetItemSelectEvent, nullptr, ("IArrayBoxSetItemSelectEvent (Pointer hObject)(Sys.Type.IString eventText) -> "));
+		ss.AddNativeCall(ns, NativeRococoIArrayBoxSetScrollToItemEvent, nullptr, ("IArrayBoxSetScrollToItemEvent (Pointer hObject)(Sys.Type.IString eventText) -> "));
 	}
 }
 // BennyHill generated Sexy native functions for Rococo::IPaneContainer 

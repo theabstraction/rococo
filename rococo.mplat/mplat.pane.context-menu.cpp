@@ -251,7 +251,7 @@ public:
 			eventHandler.OnItemSelected(*this);
 
 			TEventArgs<cstr> args;
-			args.data = b.item.text.c_str();
+			args.value = b.item.text.c_str();
 			publisher.Publish(args, b.item.triggerEvent);
 		}
 	}

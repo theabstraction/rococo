@@ -263,74 +263,74 @@ namespace
 		std::vector<char> editBuffer;
 		IKeyboardSupervisor& keyboard;
 
-		BoundedInt32Field(IKeyboardSupervisor& _keyboard, cstr _name, int32 _value, int32 _minValue, int32 _maxValue):
-			keyboard(_keyboard), name(_name), value(_value), minValue(_minValue), maxValue(_maxValue),
-			editBuffer(10)
-		{
-			char buf[64];
-			SafeFormat(buf, sizeof buf, "%d", _value);
-			SetBufferWithString(buf, editBuffer);
-			caretPos = (int32)strlen(buf);
-		}
+BoundedInt32Field(IKeyboardSupervisor& _keyboard, cstr _name, int32 _value, int32 _minValue, int32 _maxValue) :
+	keyboard(_keyboard), name(_name), value(_value), minValue(_minValue), maxValue(_maxValue),
+	editBuffer(10)
+{
+	char buf[64];
+	SafeFormat(buf, sizeof buf, "%d", _value);
+	SetBufferWithString(buf, editBuffer);
+	caretPos = (int32)strlen(buf);
+}
 
-		bool OnKeyboardEvent(const KeyboardEvent& key) override
+bool OnKeyboardEvent(const KeyboardEvent& key) override
+{
+	if (key.unicode > 32 && key.unicode < 127)
+	{
+		char c = key.unicode;
+		if (c == '-' && editBuffer.data()[0] == 0)
 		{
-			if (key.unicode > 32 && key.unicode < 127)
-			{
-				char c = key.unicode;
-				if (c == '-' && editBuffer.data()[0] == 0)
-				{
 
-				}
-				else if (!IsNumeric(c))
-				{
-					return false;
-				}
-			}
-			keyboard.AppendKeyboardInputToEditBuffer(caretPos, editBuffer.data(), editBuffer.capacity(), key);
-			return true;
 		}
-
-		cstr Name() const override
+		else if (!IsNumeric(c))
 		{
-			return name;
+			return false;
 		}
+	}
+	keyboard.AppendKeyboardInputToEditBuffer(caretPos, editBuffer.data(), editBuffer.capacity(), key);
+	return true;
+}
 
-		void MakeActive() override
-		{
-			caretPos = (int32) strlen(editBuffer.data());
-		}
+cstr Name() const override
+{
+	return name;
+}
 
-		const GuiRect& Rect() const  override
-		{
-			return rect;
-		}
+void MakeActive() override
+{
+	caretPos = (int32)strlen(editBuffer.data());
+}
 
-		void SetRect(const GuiRect& _rect)
-		{
-			rect = _rect;
-		}
+const GuiRect& Rect() const  override
+{
+	return rect;
+}
 
-		void FormatValue(char* outputBuffer, size_t capacity)
-		{
-			int32 newValue = (int)atoi(editBuffer.data());
-			value = clamp(newValue, minValue, maxValue);
-			SafeFormat(outputBuffer, capacity, "%d", value);
-			SetBufferWithString(outputBuffer, editBuffer);
-			caretPos = (int32)strlen(outputBuffer);
-		}
+void SetRect(const GuiRect& _rect)
+{
+	rect = _rect;
+}
 
-		void Render(IGuiRenderContext& grc, bool isActive)  override
-		{
-			RenderName(grc, name, rect, NAME_WIDTH);
-			RenderEditorBackground(grc, name, rect, NAME_WIDTH, isActive);
-			RenderEditorForeground(grc, rect, NAME_WIDTH, isActive, editBuffer.data(), caretPos);
-		}
+void FormatValue(char* outputBuffer, size_t capacity)
+{
+	int32 newValue = (int)atoi(editBuffer.data());
+	value = clamp(newValue, minValue, maxValue);
+	SafeFormat(outputBuffer, capacity, "%d", value);
+	SetBufferWithString(outputBuffer, editBuffer);
+	caretPos = (int32)strlen(outputBuffer);
+}
 
-		void Free() override
-		{
-			delete this;
-		}
+void Render(IGuiRenderContext& grc, bool isActive)  override
+{
+	RenderName(grc, name, rect, NAME_WIDTH);
+	RenderEditorBackground(grc, name, rect, NAME_WIDTH, isActive);
+	RenderEditorForeground(grc, rect, NAME_WIDTH, isActive, editBuffer.data(), caretPos);
+}
+
+void Free() override
+{
+	delete this;
+}
 	};
 
 	struct StringField : IField
@@ -339,18 +339,43 @@ namespace
 		GuiRect rect;
 		int caretPos = 0;
 		IKeyboardSupervisor& keyboard;
+		bool isVarName;
 
 		std::vector<char> editBuffer;
 
-		StringField(IKeyboardSupervisor& _keyboard, size_t _capacity, cstr value, cstr _name):
-			keyboard(_keyboard), editBuffer(_capacity), name(_name)
+		StringField(IKeyboardSupervisor& _keyboard, size_t _capacity, cstr value, cstr _name, bool _isVarName) :
+			keyboard(_keyboard), editBuffer(_capacity), name(_name), isVarName(_isVarName)
 		{
 			SetBufferWithString(value, editBuffer);
-			caretPos = (int32) strlen(value);
+			caretPos = (int32)strlen(value);
 		}
 
 		bool OnKeyboardEvent(const KeyboardEvent& key) override
 		{
+			if (isVarName)
+			{
+				int code = key.unicode;
+				if (code >= 32 && code < 127)
+				{
+					if (IsAlphaNumeric(code))
+					{
+
+					}
+					else
+					{
+						switch (code)
+						{
+						case '_':
+						case '.':
+						case '-':
+							break;
+						default:
+							return true;
+						}
+					}
+				}
+			}
+			
 			keyboard.AppendKeyboardInputToEditBuffer(caretPos, editBuffer.data(), editBuffer.capacity(), key);
 			return true;
 		}
@@ -410,7 +435,7 @@ namespace
 			editBuffer(11)
 		{
 			char buf[64];
-			SafeFormat(buf, sizeof buf, "%f", _value);
+			SafeFormat(buf, sizeof buf, "%g", _value);
 			SetBufferWithString(buf, editBuffer);
 			caretPos = (int32)strlen(buf);
 		}
@@ -453,7 +478,7 @@ namespace
 		{
 			float newValue = (float) atof(editBuffer.data());
 			value = clamp(newValue, minValue, maxValue);
-			SafeFormat(outputBuffer, capacity, "%f", value);
+			SafeFormat(outputBuffer, capacity, "%g", value);
 			SetBufferWithString(outputBuffer, editBuffer);
 			caretPos = (int32) strlen(outputBuffer);
 		}
@@ -489,7 +514,7 @@ namespace
 			Clear();
 		}
 
-		void Deactivate()
+		void Deactivate() override
 		{
 			activeIndex = -1;
 			context.gui.DetachKeyboardSink(this);
@@ -514,9 +539,9 @@ namespace
 			fields.push_back(field);
 		}
 
-		void AddStringField(cstr name, cstr value, size_t capacity)
+		void AddStringField(cstr name, cstr value, size_t capacity, bool isVariableName) override
 		{
-			auto* field = new StringField(context.keyboard, capacity, value, name);
+			auto* field = new StringField(context.keyboard, capacity, value, name, isVariableName);
 			auto* f = static_cast<IField*>(field);
 			fields.push_back(f);
 		}

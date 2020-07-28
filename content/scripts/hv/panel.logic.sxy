@@ -78,6 +78,7 @@
 	(actionArray.SetColourBk2 0x00303030 0x00404040)
 	(actionArray.SetItemSelectEvent "editor.logic.action.selected")
 	(actionArray.SetColourFont 0xFFC0C0C0 0xFFFFFFFF)
+	(actionArray.SetScrollToItemEvent "editor.logic.action.scroll-to")
 	
 	(Recti addActionRect = 320 40 345 70)
 	(ILabelPane addActionButton = (frame.AddLabel 0 "+" addActionRect))
@@ -90,6 +91,18 @@
 	(removeActionButton.SetCommand 1 false "editor.logic.remove_action")
 	(removeActionButton.SetEnableEvent "editor.logic.remove_action_enabler" 0x80101040 0x80303060)
 	(SetButtonDefaultColours removeActionButton)
+	
+	(Recti raiseActionRect = 390 40 415 70)
+	(ILabelPane raiseActionButton = (frame.AddLabel 0 "$up" raiseActionRect))
+	(raiseActionButton.SetCommand 1 false "editor.logic.raise_action")
+	(raiseActionButton.SetEnableEvent "editor.logic.raise_action_enabler" 0x80101040 0x80303060)
+	(SetButtonDefaultColours raiseActionButton)
+	
+	(Recti lowerActionRect = 425 40 450 70)
+	(ILabelPane lowerActionButton = (frame.AddLabel 0 "$down" lowerActionRect))
+	(lowerActionButton.SetCommand 1 false "editor.logic.lower_action")
+	(lowerActionButton.SetEnableEvent "editor.logic.lower_action_enabler" 0x80101040 0x80303060)
+	(SetButtonDefaultColours lowerActionButton)
 	
 	(Recti actionTypeRect = triggerActionRect)
 	(actionTypeRect.bottom = 320)
@@ -104,6 +117,7 @@
 	(actionTypeEditor.SetColourBk2 0x00303030 0x00404040)
 	(actionTypeEditor.SetItemSelectEvent "editor.logic.action-type.selected")
 	(actionTypeEditor.SetColourFont 0xFFC0C0C0 0xFFFFFFFF)
+	(actionTypeEditor.SetScrollToItemEvent "editor.logic.action-arguments.scroll-to")
 	
 	(Recti argRect = actionTypeRect)
 	(argRect.top = 330)

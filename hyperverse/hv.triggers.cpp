@@ -73,6 +73,11 @@ namespace
 			std::advance(i, index);
 			actions[index] = factory.Create(context);
 		}
+
+		void Swap(int32 i, int32 j)
+		{
+			std::swap(actions[i], actions[j]);
+		}
 	};
 
 	struct FixedEvent : public IAction
@@ -95,7 +100,7 @@ namespace
 				}
 
 				struct TEventArgs<bool> noArgs;
-				noArgs.data = false;
+				noArgs.value = false;
 				info.publisher.Publish(noArgs, ev);
 			}
 
@@ -138,6 +143,15 @@ namespace
 		HString eventString = "";
 		EventIdRef ev;
 
+		IActionFactory& factory;
+		IActionFactory& Factory() override { return factory; }
+
+		GenericEvent(IActionFactory& _factory):
+			factory(_factory)
+		{
+
+		}
+
 		ADVANCE_STATE Advance(AdvanceInfo& info)
 		{
 			if (eventString.length() != 0)
@@ -148,7 +162,7 @@ namespace
 				}
 
 				struct TEventArgs<bool> noArgs;
-				noArgs.data = false;
+				noArgs.value = false;
 				info.publisher.Publish(noArgs, ev);
 			}
 
@@ -194,7 +208,7 @@ namespace
 	{
 		IAction* Create(IIActionFactoryCreateContext& context) override
 		{
-			return new GenericEvent();
+			return new GenericEvent(*this);
 		}
 
 		cstr Name() const override
@@ -236,8 +250,11 @@ namespace
 
 		char variableName[IGlobalVariables::MAX_VARIABLE_NAME_LENGTH] = "";
 
-		GlobalNumericVariableManipulator(IGlobalVariables& _globals) :
-			globals(_globals)
+		IActionFactory& factory;
+		IActionFactory& Factory() override { return factory; }
+
+		GlobalNumericVariableManipulator(IGlobalVariables& _globals, IActionFactory& _factory) :
+			globals(_globals), factory(_factory)
 		{
 		}
 
@@ -287,7 +304,7 @@ namespace
 			switch (index)
 			{
 			default: Throw(0, "GlobalNumericVariableManipulator.GetParameterName(%d). Bad index", index); break;
-			case 0: return { "var-name", PARAMETER_TYPE_GLOBALVAR_NAME, 0.0f,  0.0f }; break;
+			case 0: return { "int32", PARAMETER_TYPE_GLOBALVAR_NAME, 0.0f,  0.0f }; break;
 			case 1: return { "constant", PARAMETER_TYPE_INT_HEX, 0.0f,  0.0f }; break;
 			}
 		}
@@ -296,7 +313,7 @@ namespace
 		{
 			cstr proxyName = *variableName ? variableName : "<undefined>";
 			StackStringBuilder sb(buffer, capacity);
-			sb.AppendFormat("Int32 $%s -> %s ", proxyName, Transform::Name()) << arg;
+			sb.AppendFormat("Int32 %s -> %s ", proxyName, Transform::Name()) << arg;
 			int32 bigEnd = 0x0000FFFF & (arg >> 16);
 			int32 littleEnd = 0x0000FFFF & arg;
 			sb.AppendFormat(" { 0x%4.4X:%4.4X }", bigEnd, littleEnd);
@@ -329,12 +346,12 @@ namespace
 					return "Bitwise-AND";
 				}
 			};
-			return new GlobalNumericVariableManipulator<int32, AndInt32>(context.GetGlobals());
+			return new GlobalNumericVariableManipulator<int32, AndInt32>(context.GetGlobals(), *this);
 		}
 
 		cstr Name() const override
 		{
-			return "$Int32_Bitwise_And";
+			return "int32_Bitwise_And";
 		}
 	};
 
@@ -361,12 +378,12 @@ namespace
 					return "Bitwise-OR";
 				}
 			};
-			return new GlobalNumericVariableManipulator<int32, OrInt32>(context.GetGlobals());
+			return new GlobalNumericVariableManipulator<int32, OrInt32>(context.GetGlobals(), *this);
 		}
 
 		cstr Name() const override
 		{
-			return "$Int32_Bitwise_Or";
+			return "int32_Bitwise_Or";
 		}
 	};
 
@@ -395,12 +412,12 @@ namespace
 					return "Bitwise-XOR";
 				}
 			};
-			return new GlobalNumericVariableManipulator<int32, XorInt32>(context.GetGlobals());
+			return new GlobalNumericVariableManipulator<int32, XorInt32>(context.GetGlobals(), *this);
 		}
 
 		cstr Name() const override
 		{
-			return "$Int32_Bitwise_Xor";
+			return "int32_Bitwise_Xor";
 		}
 	};
 
@@ -427,12 +444,12 @@ namespace
 					return "Set to";
 				}
 			};
-			return new GlobalNumericVariableManipulator<int32, Set>(context.GetGlobals());
+			return new GlobalNumericVariableManipulator<int32, Set>(context.GetGlobals(), *this);
 		}
 
 		cstr Name() const override
 		{
-			return "$Int32_Set";
+			return "int32_Set";
 		}
 	};
 
@@ -459,12 +476,12 @@ namespace
 					return "Add";
 				}
 			};
-			return new GlobalNumericVariableManipulator<int32, Add>(context.GetGlobals());
+			return new GlobalNumericVariableManipulator<int32, Add>(context.GetGlobals(), *this);
 		}
 
 		cstr Name() const override
 		{
-			return "$Int32_Add";
+			return "int32_Add";
 		}
 	};
 
@@ -492,12 +509,12 @@ namespace
 					return "Subtract";
 				}
 			};
-			return new GlobalNumericVariableManipulator<int32, Subtract>(context.GetGlobals());
+			return new GlobalNumericVariableManipulator<int32, Subtract>(context.GetGlobals(), *this);
 		}
 
 		cstr Name() const override
 		{
-			return "$Int32_Subtract";
+			return "int32_Subtract";
 		}
 	};
 
@@ -536,12 +553,12 @@ namespace
 					return "BitShift";
 				}
 			};
-			return new GlobalNumericVariableManipulator<int32, Add>(context.GetGlobals());
+			return new GlobalNumericVariableManipulator<int32, Add>(context.GetGlobals(), *this);
 		}
 
 		cstr Name() const override
 		{
-			return "$Int32_BitShift";
+			return "int32_BitShift";
 		}
 	};
 
@@ -557,8 +574,11 @@ namespace
 
 		char variableName[IGlobalVariables::MAX_VARIABLE_NAME_LENGTH] = "";
 
-		GlobalNumericVariableTest(IGlobalVariables& _globals) :
-			globals(_globals)
+		IActionFactory& factory;
+		IActionFactory& Factory() { return factory;  }
+
+		GlobalNumericVariableTest(IGlobalVariables& _globals, IActionFactory& _factory) :
+			globals(_globals), factory(_factory)
 		{
 		}
 
@@ -607,7 +627,7 @@ namespace
 			switch (index)
 			{
 			default: Throw(0, "GlobalNumericVariableTest.GetParameterName(%d). Bad index", index); break;
-			case 0: return { "var-name", PARAMETER_TYPE_GLOBALVAR_NAME, 0.0f,  0.0f }; break;
+			case 0: return { "int32", PARAMETER_TYPE_GLOBALVAR_NAME, 0.0f,  0.0f }; break;
 			case 1: return { "constant", PARAMETER_TYPE_INT_HEX, 0.0f,  0.0f }; break;
 			}
 		}
@@ -616,7 +636,7 @@ namespace
 		{
 			StackStringBuilder sb(buffer, capacity);
 			cstr proxyName = *variableName ? variableName : "<undefined>";
-			sb << "Continue if $" << proxyName << " " << Test::Name() << " " << arg;
+			sb << "Continue if " << proxyName << " " << Test::Name() << " " << arg;
 
 			int32 bigEnd = 0x0000FFFF & (arg >> 16);
 			int32 littleEnd = 0x0000FFFF & arg;
@@ -650,12 +670,12 @@ namespace
 					return "<=";
 				}
 			};
-			return new GlobalNumericVariableTest<int32, LTE>(context.GetGlobals());
+			return new GlobalNumericVariableTest<int32, LTE>(context.GetGlobals(), *this);
 		}
 
 		cstr Name() const override
 		{
-			return "$Int32_Continue_LTE";
+			return "int32_Continue_LTE";
 		}
 	};
 
@@ -682,12 +702,12 @@ namespace
 					return "<";
 				}
 			};
-			return new GlobalNumericVariableTest<int32, LT>(context.GetGlobals());
+			return new GlobalNumericVariableTest<int32, LT>(context.GetGlobals(), *this);
 		}
 
 		cstr Name() const override
 		{
-			return "$Int32_Continue_LT";
+			return "int32_Continue_LT";
 		}
 	};
 
@@ -714,12 +734,12 @@ namespace
 					return "==";
 				}
 			};
-			return new GlobalNumericVariableTest<int32, EQ>(context.GetGlobals());
+			return new GlobalNumericVariableTest<int32, EQ>(context.GetGlobals(), *this);
 		}
 
 		cstr Name() const override
 		{
-			return "$Int32_Continue_EQ";
+			return "int32_Continue_EQ";
 		}
 	};
 
@@ -746,12 +766,12 @@ namespace
 					return "Bitwise-AND";
 				}
 			};
-			return new GlobalNumericVariableTest<int32, And>(context.GetGlobals());
+			return new GlobalNumericVariableTest<int32, And>(context.GetGlobals(), *this);
 		}
 
 		cstr Name() const override
 		{
-			return "$Int32_Continue_And";
+			return "int32_Continue_And";
 		}
 	};
 
@@ -778,12 +798,12 @@ namespace
 					return "Bitwise-Nor";
 				}
 			};
-			return new GlobalNumericVariableTest<int32, Nor>(context.GetGlobals());
+			return new GlobalNumericVariableTest<int32, Nor>(context.GetGlobals(), *this);
 		}
 
 		cstr Name() const override
 		{
-			return "$Int32_Continue_Nor";
+			return "int32_Continue_Nor";
 		}
 	};
 
@@ -810,12 +830,12 @@ namespace
 					return ">";
 				}
 			};
-			return new GlobalNumericVariableTest<int32, GT>(context.GetGlobals());
+			return new GlobalNumericVariableTest<int32, GT>(context.GetGlobals(), *this);
 		}
 
 		cstr Name() const override
 		{
-			return "$Int32_Continue_GT";
+			return "int32_Continue_GT";
 		}
 	};
 
@@ -842,12 +862,12 @@ namespace
 					return ">=";
 				}
 			};
-			return new GlobalNumericVariableTest<int32, GTE>(context.GetGlobals());
+			return new GlobalNumericVariableTest<int32, GTE>(context.GetGlobals(), *this);
 		}
 
 		cstr Name() const override
 		{
-			return "$Int32_Continue_GTE";
+			return "int32_Continue_GTE";
 		}
 	};
 
@@ -857,6 +877,11 @@ namespace
 	{
 		int countInit = 2;
 		int count = 2;
+
+		IActionFactory& factory;
+		IActionFactory& Factory() override { return factory; }
+
+		CountDown(IActionFactory& _factory) : factory(_factory) {}
 
 		ADVANCE_STATE Advance(AdvanceInfo& info)
 		{
@@ -896,7 +921,7 @@ namespace
 		ParamDesc GetParameterName(int32 index) const override
 		{
 			if (index != 0) Throw(0, "CountDown.GetParameterName(%d). Bad index", index);
-			return { "count", PARAMETER_TYPE_INT, 0.0f, 10000000.0f };
+			return { "from", PARAMETER_TYPE_INT, 0.0f, 10000000.0f };
 		}
 
 		void Format(char* buffer, size_t capacity) override
@@ -914,7 +939,7 @@ namespace
 	{
 		IAction* Create(IIActionFactoryCreateContext& context) override
 		{
-			return new CountDown();
+			return new CountDown(*this);
 		}
 
 		cstr Name() const override
@@ -928,6 +953,11 @@ namespace
 	struct PossiblyAbort : public IAction
 	{
 		float probabilityPercent = 50.0f; // probabily of abort happening
+
+		IActionFactory& factory;
+		IActionFactory& Factory() override { return factory; }
+
+		PossiblyAbort(IActionFactory& _factory) : factory(_factory) {}
 
 		ADVANCE_STATE Advance(AdvanceInfo& info)
 		{
@@ -953,7 +983,19 @@ namespace
 		void GetParameter(int32 index, ParameterBuffer& buffer) const override
 		{
 			if (index != 0) Throw(0, "PossiblyAbort.GetParameter(%d). Bad index", index);
-			SafeFormat(buffer.data, buffer.CAPACITY, "%f", probabilityPercent);
+
+			if (probabilityPercent > 20.0f)
+			{
+				SafeFormat(buffer.data, buffer.CAPACITY, "%.0f", probabilityPercent);
+			}
+			else if (probabilityPercent > 5.0f)
+			{
+				SafeFormat(buffer.data, buffer.CAPACITY, "%.1f", probabilityPercent);
+			}
+			else
+			{
+				SafeFormat(buffer.data, buffer.CAPACITY, "%f", probabilityPercent);
+			}
 		}
 
 		void SetParameter(int32 index, cstr value) override
@@ -973,7 +1015,29 @@ namespace
 
 		void Format(char* buffer, size_t capacity) override
 		{
-			SafeFormat(buffer, capacity, "PossiblyAbort %%%f", probabilityPercent);
+			if (probabilityPercent <= 0)
+			{
+				SafeFormat(buffer, capacity, "Abort %%0.0 of the time (i.e never)");
+			}
+			else if (probabilityPercent >= 100.0f)
+			{
+				SafeFormat(buffer, capacity, "Abort %%100 of the time (i.e always)");
+			}
+			else
+			{
+				if (probabilityPercent < 1.0f)
+				{
+					SafeFormat(buffer, capacity, "Abort %%%.4f of the time", probabilityPercent);
+				}
+				else if (probabilityPercent < 10.0f)
+				{
+					SafeFormat(buffer, capacity, "Abort %%%.1f of the time", probabilityPercent);
+				}
+				else
+				{
+					SafeFormat(buffer, capacity, "Abort %%%.0f of the time", probabilityPercent);
+				}
+			}
 		}
 
 		void Free() override
@@ -986,7 +1050,7 @@ namespace
 	{
 		IAction* Create(IIActionFactoryCreateContext& context) override
 		{
-			return new PossiblyAbort();
+			return new PossiblyAbort(*this);
 		}
 
 		cstr Name() const override
@@ -1001,6 +1065,11 @@ namespace
 	{
 		float delayPeriod = 1.0_seconds;
 		float expiredTime = 0.0_seconds;
+
+		IActionFactory& factory;
+		IActionFactory& Factory() override { return factory; }
+
+		Delay(IActionFactory& _factory) : factory(_factory) {}
 
 		ADVANCE_STATE Advance(AdvanceInfo& info)
 		{
@@ -1040,7 +1109,7 @@ namespace
 		ParamDesc GetParameterName(int32 index) const override
 		{
 			if (index != 0) Throw(0, "LowerScenery.GetParameterName(%d). Bad index", index);
-			return { "period", PARAMETER_TYPE_FLOAT, 0.0f, 3600.0f };
+			return { "duration", PARAMETER_TYPE_FLOAT, 0.0f, 3600.0f };
 		}
 
 		void Format(char* buffer, size_t capacity) override
@@ -1058,7 +1127,7 @@ namespace
 	{
 		IAction* Create(IIActionFactoryCreateContext& context) override
 		{
-			return new Delay();
+			return new Delay(*this);
 		}
 
 		cstr Name() const override
@@ -1075,6 +1144,11 @@ namespace
 		float lowerBound = 0.1_seconds;
 		float delayPeriod = -1.0_seconds;
 		float expiredTime = 0.0_seconds;
+
+		IActionFactory& factory;
+		IActionFactory& Factory() override { return factory; }
+
+		RandomDelay(IActionFactory& _factory) : factory(_factory) {}
 
 		ADVANCE_STATE Advance(AdvanceInfo& info)
 		{
@@ -1165,7 +1239,7 @@ namespace
 	{
 		IAction* Create(IIActionFactoryCreateContext& context) override
 		{
-			return new RandomDelay();
+			return new RandomDelay(*this);
 		}
 
 		cstr Name() const override
@@ -1182,11 +1256,16 @@ namespace
 	{
 		HString target;
 
+		IActionFactory& factory;
+		IActionFactory& Factory() override { return factory; }
+
+		LowerScenery(IActionFactory& _factory) : factory(_factory) {}
+
 		ADVANCE_STATE Advance(AdvanceInfo& info)
 		{
 			TEventArgs<cstr> args;
-			args.data = target.c_str();
-			if (args.data)
+			args.value = target.c_str();
+			if (args.value)
 			{
 				info.publisher.Publish(args, ev_LowerScenery);
 			}
@@ -1214,7 +1293,7 @@ namespace
 		ParamDesc GetParameterName(int32 index) const override
 		{
 			if (index != 0) Throw(0, "LowerScenery.GetParameterName(%d). Bad index", index);
-			return { "target", PARAMETER_TYPE_SECTOR_STRING, 0, 0 };
+			return { "sector", PARAMETER_TYPE_SECTOR_STRING, 0, 0 };
 		}
 
 		void Format(char* buffer, size_t capacity) override
@@ -1232,7 +1311,7 @@ namespace
 	{
 		IAction* Create(IIActionFactoryCreateContext& context) override
 		{
-			return new LowerScenery();
+			return new LowerScenery(*this);
 		}
 
 		cstr Name() const override
@@ -1249,11 +1328,16 @@ namespace
 	{
 		HString target;
 
+		IActionFactory& factory;
+		IActionFactory& Factory() override { return factory; }
+
+		RaiseScenery(IActionFactory& _factory) : factory(_factory) {}
+
 		ADVANCE_STATE Advance(AdvanceInfo& info)
 		{
 			TEventArgs<cstr> args;
-			args.data = target.c_str();
-			if (args.data)
+			args.value = target.c_str();
+			if (args.value)
 			{
 				info.publisher.Publish(args, ev_RaiseScenery);
 			}
@@ -1281,7 +1365,7 @@ namespace
 		ParamDesc GetParameterName(int32 index) const override
 		{
 			if (index != 0) Throw(0, "RaiseScenery.GetParameterName(%d). Bad index", index);
-			return { "target", PARAMETER_TYPE_SECTOR_STRING, 0, 0 };
+			return { "sector", PARAMETER_TYPE_SECTOR_STRING, 0, 0 };
 		}
 
 		void Format(char* buffer, size_t capacity) override
@@ -1299,7 +1383,7 @@ namespace
 	{
 		IAction* Create(IIActionFactoryCreateContext& context) override
 		{
-			return new RaiseScenery();
+			return new RaiseScenery(*this);
 		}
 
 		cstr Name() const override
@@ -1316,13 +1400,18 @@ namespace
 	{
 		HString target;
 
+		IActionFactory& factory;
+		IActionFactory& Factory() override { return factory; }
+
+		ToggleElevation(IActionFactory& _factory) : factory(_factory) {}
+
 		ADVANCE_STATE Advance(AdvanceInfo& info)
 		{
-			TEventArgs<cstr> args;
-			args.data = target.c_str();
-			if (args.data)
+			TEventArgs<cstr> sector;
+			sector.value = target.c_str();
+			if (sector.value)
 			{
-				info.publisher.Publish(args, ev_ToggleElevation);
+				info.publisher.Publish(sector, ev_ToggleElevation);
 			}
 
 			return ADVANCE_STATE_COMPLETED;
@@ -1348,7 +1437,7 @@ namespace
 		ParamDesc GetParameterName(int32 index) const override
 		{
 			if (index != 0) Throw(0, "ToggleDoor.GetParameterName(%d). Bad index", index);
-			return { "target", PARAMETER_TYPE_SECTOR_STRING, 0, 0 };
+			return { "sector", PARAMETER_TYPE_SECTOR_STRING, 0, 0 };
 		}
 
 		void Format(char* buffer, size_t capacity) override
@@ -1366,7 +1455,7 @@ namespace
 	{
 		IAction* Create(IIActionFactoryCreateContext& context) override
 		{
-			return new ToggleElevation();
+			return new ToggleElevation(*this);
 		}
 
 		cstr Name() const override
@@ -1386,7 +1475,7 @@ namespace
 		&s_DelayFactory,
 		&s_PossiblyAbortFactory,
 		&s_CountDownFactory,
-		&s_GenericEventFactory,
+		// &s_GenericEventFactory,
 		&s_GlobalInt32LogicalAndFactory,
 		&s_GlobalInt32LogicalOrFactory,
 		&s_GlobalInt32LogicalXorFactory,

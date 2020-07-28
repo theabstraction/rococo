@@ -169,7 +169,7 @@ namespace HV
 		virtual void AddInt32FieldBounded(cstr name, int32 value, int32 minValue, int32 maxValue) = 0;
 		virtual void AddFloat32FieldBounded(cstr name, float value, float minValue, float maxValue) = 0;
 		virtual void GetActiveValueAsString(char* buffer, size_t capacity) = 0;
-		virtual void AddStringField(cstr name, cstr value, size_t capacity) = 0;
+		virtual void AddStringField(cstr name, cstr value, size_t capacity, bool isVariableName) = 0;
 		virtual void Clear() = 0;
 		virtual void Deactivate() = 0;
 		virtual IUIElement & UIElement() = 0;
@@ -342,8 +342,11 @@ namespace HV
 	   operator cstr() const { return data; }
    };
 
+   struct IActionFactory;
+
    ROCOCOAPI IAction
    {
+		virtual IActionFactory &Factory() = 0;
 	    virtual ADVANCE_STATE Advance(AdvanceInfo& info) = 0;
 		virtual int32 ParameterCount() const = 0;
 		virtual void GetParameter(int32 index, ParameterBuffer& buf) const = 0;
@@ -391,6 +394,7 @@ namespace HV
 		virtual void AddAction(IActionFactory& factory, IIActionFactoryCreateContext& context) = 0;
 		virtual void RemoveAction(int32 index) = 0;
 		virtual void SetAction(int32 index, IActionFactory& factory, IIActionFactoryCreateContext& context) = 0;
+		virtual void Swap(int32 i, int32 j) = 0;
    };
 
    ROCOCOAPI ITrigger

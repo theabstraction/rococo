@@ -79,11 +79,11 @@ public:
 		if (categoriesById.find(value) != categoriesById.end())
 		{
 			TEventArgs<IEnumVector*> args;
-			args.data = nullptr;
+			args.value = nullptr;
 			publisher.Publish(args, evPopulate);
-			if (args.data)
+			if (args.value)
 			{
-				args.data->SetValue(id, value);
+				args.value->SetValue(id, value);
 			}
 		}
 	}
@@ -91,11 +91,11 @@ public:
 	void MakeActive(int32 id)
 	{
 		TEventArgs<IEnumVector*> args;
-		args.data = nullptr;
+		args.value = nullptr;
 		publisher.Publish(args, evPopulate);
-		if (args.data)
+		if (args.value)
 		{
-			args.data->SetActiveIndex(id);
+			args.value->SetActiveIndex(id);
 		}
 	}
 
@@ -207,19 +207,19 @@ public:
 		GuiRect absRect{ topLeft.x, topLeft.y, topLeft.x + span.x, topLeft.y + span.y };
 
 		TEventArgs<IEnumVector*> args;
-		args.data = nullptr;
+		args.value = nullptr;
 		publisher.Publish(args, evPopulate);
 
-		if (args.data == nullptr) return;
+		if (args.value == nullptr) return;
 
-		auto& enums = *args.data;
+		auto& enums = *args.value;
 
 		enum { CELL_HEIGHT = 24 };
 
 		ItemCallbackArgs rects;
 		rects.itemRect = { absRect.left, absRect.top, absRect.right, absRect.top + CELL_HEIGHT };
 
-		rects.activeId = args.data->GetActiveIndex();
+		rects.activeId = args.value->GetActiveIndex();
 
 		enum 
 		{ 

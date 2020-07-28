@@ -429,7 +429,13 @@ namespace Rococo
 
 		template<class T> struct TEventArgs : public EventArgs
 		{
-			T data;
+			T value;
+		};
+
+		template<class T,class U> struct T2EventArgs : public EventArgs
+		{
+			T value1;
+			U value2;
 		};
 
 		class IPublisher;

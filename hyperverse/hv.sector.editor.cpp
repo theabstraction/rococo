@@ -17,6 +17,8 @@ namespace
 	static const EventIdRef evAddActionEnabler = "editor.logic.add_action_enabler"_event;
 	static const EventIdRef evRemoveActionEnabler = "editor.logic.remove_action_enabler"_event;
 	static const EventIdRef evActionArgsEditor = "editor.logic.action-arguments"_event;
+	static const EventIdRef evScrollToActionType = "editor.logic.action-arguments.scroll-to"_event;
+	static const EventIdRef evScrollToAction = "editor.logic.action.scroll-to"_event;
 
 	struct ActionFactoryEnumerator : IStringVector
 	{
@@ -40,6 +42,7 @@ namespace
 		{
 			ISector* sector = nullptr;
 			int32 activeIndex = 0;
+			IFieldEditor* fieldEditor;
 
 			int32 GetActiveIndex() const override
 			{
@@ -48,6 +51,8 @@ namespace
 
 			void SetActiveIndex(int32 index) override
 			{
+				fieldEditor->Clear();
+				fieldEditor->Deactivate();
 				activeIndex = index;
 			}
 
@@ -87,6 +92,8 @@ namespace
 			
 			FieldEditorContext fc{ platform.publisher, platform.gui, platform.keyboard, *this };
 			fieldEditor = CreateFieldEditor(fc);
+			triggerList.fieldEditor = fieldEditor;
+
 			platform.publisher.Subscribe(this, evEditSectorLogic);
 			platform.publisher.Subscribe(this, evUIInvoke);
 			platform.publisher.Subscribe(this, evPopulateTriggers);
@@ -155,27 +162,105 @@ namespace
 
 		void AddTrigger()
 		{
+			fieldEditor->Clear();
+			fieldEditor->Deactivate();
 			sector->TriggersAndActions().AddTrigger(triggerList.activeIndex);
 		}
 
 		void RemoveTrigger()
 		{
+			fieldEditor->Clear();
+			fieldEditor->Deactivate();
 			sector->TriggersAndActions().RemoveTrigger(triggerList.activeIndex);
 		}
 
 		void AddAction()
 		{
+			fieldEditor->Clear();
+			fieldEditor->Deactivate();
 			sector->TriggersAndActions().AddAction(triggerList.activeIndex);
 		}
 
 		void RemoveAction()
 		{
+			fieldEditor->Clear();
+			fieldEditor->Deactivate();
 			sector->TriggersAndActions().RemoveAction(triggerList.activeIndex, activeActionIndex);
+		}
+
+		void LowerAction()
+		{
+			fieldEditor->Clear();
+			fieldEditor->Deactivate();
+
+			int32 triggerIndex = triggerList.GetActiveIndex();
+			if (triggerIndex >= 0 && triggerIndex < triggerList.Count())
+			{
+				auto& actions = sector->TriggersAndActions()[triggerIndex].Actions();
+				if (activeActionIndex >= 0 && activeActionIndex < actions.Count())
+				{
+					if (activeActionIndex >= 0 && activeActionIndex < actions.Count() - 1)
+					{
+						actions.Swap(activeActionIndex, activeActionIndex + 1);
+						activeActionIndex++;
+
+						TEventArgs<int32> lineNumber;
+						lineNumber.value = activeActionIndex;
+						platform.publisher.Publish(lineNumber, evScrollToAction);
+					}
+				}
+			}
+		}
+
+		void RaiseAction()
+		{
+			fieldEditor->Clear();
+			fieldEditor->Deactivate();
+
+			int32 triggerIndex = triggerList.GetActiveIndex();
+			if (triggerIndex >= 0 && triggerIndex < triggerList.Count())
+			{
+				auto& actions = sector->TriggersAndActions()[triggerIndex].Actions();
+				if (activeActionIndex >= 0 && activeActionIndex < actions.Count())
+				{
+					if (activeActionIndex > 0)
+					{
+						actions.Swap(activeActionIndex, activeActionIndex - 1);
+						activeActionIndex--;
+
+						TEventArgs<int32> lineNumber;
+						lineNumber.value = activeActionIndex;
+						platform.publisher.Publish(lineNumber, evScrollToAction);
+					}
+				}
+			}
 		}
 
 		void SelectAction(int32 actionIndex)
 		{
 			activeActionIndex = actionIndex;
+
+			int32 triggerIndex = triggerList.GetActiveIndex();
+			if (triggerIndex >= 0 && triggerIndex < triggerList.Count())
+			{
+				auto& actions = sector->TriggersAndActions()[triggerIndex].Actions();
+				if (actionIndex >= 0 && actionIndex < actions.Count())
+				{
+					auto& a = actions[actionIndex];
+
+					for (size_t i = 0; i < ActionFactoryCount(); ++i)
+					{
+						if (&GetActionFactory(i) == &a.Factory())
+						{
+							TEventArgs<int32> lineNumber;
+							lineNumber.value = (int32) i;
+							platform.publisher.Publish(lineNumber, evScrollToActionType);
+							ShowActionArgsInFieldEditor(a);
+							break;
+						}
+					}
+				}
+			}
 		}
 
 		void OnEvent(Event& ev) override
@@ -187,7 +272,7 @@ namespace
 			else if (ev == evSelectAction)
 			{
 				auto& selectEvent = As<TEventArgs<int>>(ev);
-				SelectAction(selectEvent.data);
+				SelectAction(selectEvent.value);
 			}
 			else if (ev == Rococo::Events::evUIInvoke)
 			{
@@ -212,28 +297,37 @@ namespace
 				{
 					RemoveAction();
 				}
+				else if (Eq(cmd.command, "editor.logic.raise_action"))
+				{
+					RaiseAction();
+				}
+				else if (Eq(cmd.command, "editor.logic.lower_action"))
+				{
+					LowerAction();
+				}
 			}
 			else if (ev == evPopulateTriggers)
 			{
 				auto& pop = As<TEventArgs<Rococo::IEnumVector*>>(ev);
 				if (triggerList.sector != nullptr)
 				{
-					pop.data = &triggerList;
+					pop.value = &triggerList;
 				}
 			}
 			else if (ev == evPopulateActions)
 			{
-				auto& pop = As<TEventArgs<Rococo::IStringVector*>>(ev);
+				auto& pop = As<T2EventArgs<Rococo::IStringVector*,int32>>(ev);
 
 				int32 triggerIndex = triggerList.GetActiveIndex();
 				if (triggerIndex >= 0 && triggerIndex < triggerList.Count())
 				{
-					pop.data = &sector->TriggersAndActions()[triggerIndex].GetStringVector();
+					pop.value1 = &sector->TriggersAndActions()[triggerIndex].GetStringVector();
+					pop.value2 = activeActionIndex;
 				}
 			}
 			else if (ev == evPopulateActionType)
 			{
-				auto& pop = As<TEventArgs<Rococo::IStringVector*>>(ev);
+				auto& pop = As<T2EventArgs<Rococo::IStringVector*,int32>>(ev);
 				int32 triggerIndex = triggerList.GetActiveIndex();
 				if (triggerIndex >= 0 && triggerIndex < triggerList.Count())
 				{
@@ -241,7 +335,8 @@ namespace
 					auto& actions = trigger.Actions();
 					if (activeActionIndex >= 0 && activeActionIndex < actions.Count())
 					{
-						pop.data = &s_ActionFactoryStrings;
+						pop.value1 = &s_ActionFactoryStrings;
+						pop.value2 = activeActionIndex;
 					}
 				}
 			}
@@ -249,12 +344,12 @@ namespace
 			{
 				auto& isEnabled = As <TEventArgs<bool>>(ev);
 				int32 triggerIndex = triggerList.GetActiveIndex();
-				isEnabled.data = (triggerIndex >= 0 && triggerIndex < triggerList.Count());
+				isEnabled.value = (triggerIndex >= 0 && triggerIndex < triggerList.Count());
 			}
 			else if (ev == evRemoveActionEnabler)
 			{
 				auto& isEnabled = As <TEventArgs<bool>>(ev);
-				isEnabled.data = false;
+				isEnabled.value = false;
 
 				int32 triggerIndex = triggerList.GetActiveIndex();
 				if (triggerIndex >= 0 && triggerIndex < triggerList.Count())
@@ -262,14 +357,17 @@ namespace
 					auto& actions = sector->TriggersAndActions()[triggerIndex].Actions();
 					if (activeActionIndex >= 0 && activeActionIndex < actions.Count())
 					{
-						isEnabled.data = true;
+						isEnabled.value = true;
 					}
 				}
 			}
 			else if (ev == evSelectActionType)
 			{
 				auto& selectionArgs = As<TEventArgs<int>>(ev);
-				int32 typeIndex = selectionArgs.data;
+				int32 typeIndex = selectionArgs.value;
+
+				fieldEditor->Clear();
+				fieldEditor->Deactivate();
 
 				if (typeIndex >= 0 && typeIndex < ActionFactoryCount())
 				{
@@ -292,6 +390,7 @@ namespace
 		void ShowActionArgsInFieldEditor(IAction& action)
 		{
 			fieldEditor->Clear();
+			fieldEditor->Deactivate();
 
 			for (int i = 0; i < action.ParameterCount(); ++i)
 			{
@@ -321,13 +420,13 @@ namespace
 					break;
 				}
 				case PARAMETER_TYPE_GLOBALVAR_NAME:
-					fieldEditor->AddStringField(desc.name, buf, 24);
+					fieldEditor->AddStringField(desc.name, buf, 24, true);
 					break;
 				case PARAMETER_TYPE_EVENT_NAME:
-					fieldEditor->AddStringField(desc.name, buf, 24);
+					fieldEditor->AddStringField(desc.name, buf, 24, true);
 					break;
 				case PARAMETER_TYPE_SECTOR_STRING:
-					fieldEditor->AddStringField(desc.name, buf, 24);
+					fieldEditor->AddStringField(desc.name, buf, 24, true);
 					break;
 				case PARAMETER_TYPE_FLOAT:
 				{

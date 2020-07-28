@@ -8,14 +8,15 @@ using namespace Rococo::Events;
 using namespace Rococo::Windows;
 using namespace Rococo::MPlatImpl;
 
-struct PanelArrayBox : public BasePane, public IArrayBox
+struct PanelArrayBox : public BasePane, public IArrayBox, public IObserver
 {
 	int32 fontIndex = 1;
 	int32 activeIndex = -1;
-	char populateArrayEventText[128] = "";
-	char itemSelectedEventText[128] = "";
+	HString populateArrayEventText;
+	HString itemSelectedEventText;
 	EventIdRef evPopulate = { 0,0 };
 	EventIdRef evItemSelected = { 0,0 };
+	EventIdRef evScrollToLine = { 0,0 };
 	IPublisher& publisher;
 	RGBAb hi_focusColour{ 0,0,64,255 };
 	RGBAb focusColour{ 0,0,48,255 };
@@ -25,8 +26,13 @@ struct PanelArrayBox : public BasePane, public IArrayBox
 	PanelArrayBox(IPublisher& _publisher, int _fontIndex, cstr _populateArrayEventText) :
 		fontIndex(_fontIndex), publisher(_publisher)
 	{
-		CopyString(populateArrayEventText, sizeof populateArrayEventText, _populateArrayEventText);
+		populateArrayEventText = _populateArrayEventText;
 		evPopulate = publisher.CreateEventIdFromVolatileString(populateArrayEventText);
+	}
+	
+	~PanelArrayBox()
+	{
+		publisher.Unsubscribe(this);
 	}
 
 	void SetLineHeight(int32 pixels)
@@ -46,8 +52,26 @@ struct PanelArrayBox : public BasePane, public IArrayBox
 
 	void SetItemSelectEvent(const fstring& eventText) override
 	{
-		CopyString(itemSelectedEventText, sizeof itemSelectedEventText, eventText);
+		itemSelectedEventText = eventText;
 		evItemSelected = publisher.CreateEventIdFromVolatileString(eventText);
+	}
+
+	void SetScrollToItemEvent(const fstring& eventText) override
+	{
+		evScrollToLine = publisher.CreateEventIdFromVolatileString(eventText);
+		publisher.Subscribe(this, evScrollToLine);
+	}
+
+	void OnEvent(Event& ev)
+	{
+		if (ev == evScrollToLine)
+		{
+			auto& lineNumber = As<TEventArgs<int32>>(ev);
+			vscrollPos = lineNumber.value * lineHeight;
+			vscrollPos = max(0, vscrollPos);
+			vscrollPos = min(vscrollPos, vscrollSpan - pageSize);
+			this->activeIndex = lineNumber.value;
+		}
 	}
 
 	void SetFocusColours(RGBAb normal, RGBAb hilight) override
@@ -149,19 +173,20 @@ struct PanelArrayBox : public BasePane, public IArrayBox
 			routeClick.This = this;
 			routeClick.pos = me.cursorPos;
 
-			TEventArgs<IStringVector*> args;
-			args.data = nullptr;
+			T2EventArgs<IStringVector*,int32> args;
+			args.value1 = nullptr;
+			args.value2 = -1;
 			publisher.Publish(args, evPopulate);
 
-			if (args.data != nullptr)
+			if (args.value1 != nullptr)
 			{
-				EnumerateStringVector(*args.data, absRect, routeClick);
+				EnumerateStringVector(*args.value1, absRect, routeClick);
 			}
 
 			if (previousIndex != activeIndex)
 			{
 				TEventArgs<int> selectArgs;
-				selectArgs.data = activeIndex;
+				selectArgs.value = activeIndex;
 				publisher.Publish(selectArgs, evItemSelected);
 			}
 		}
@@ -302,18 +327,18 @@ struct PanelArrayBox : public BasePane, public IArrayBox
 		auto span = Span(ClientRect());
 		absRect = GuiRect { topLeft.x+1, topLeft.y + 1, topLeft.x + span.x - vsWidth - 1, topLeft.y + span.y };
 
-		TEventArgs<IStringVector*> args;
-		args.data = nullptr;
+		T2EventArgs<IStringVector*,int32> args;
+		args.value1 = nullptr;
 		publisher.Publish(args, evPopulate);
 
 		GuiMetrics metrics;
 		grc.Renderer().GetGuiMetrics(metrics);
 
-		if (args.data != nullptr)
+		if (args.value1 != nullptr)
 		{
 			grc.FlushLayer();
 			grc.SetScissorRect(Dequantize(absRect));
-			RenderRows(grc, *args.data);
+			RenderRows(grc, *args.value1);
 			grc.FlushLayer();
 			grc.SetScissorRect(GuiRectf{ 0, 0, 1000000.0f, 1000000.0f });
 		}
