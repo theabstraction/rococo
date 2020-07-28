@@ -47,7 +47,7 @@
 	(sectors.SetTemplateMaterial "panels"     (#MaterialCategoryWood) 0xe58bbb43 "random")
 	(sectors.SetTemplateWallScript false "#walls/stretch.bricks.sxy")
 	(sectors.SetTemplateFloorScript false "")
-	(sectors.CreateFromTemplate 0 400)
+	(Int32 id = (sectors.CreateFromTemplate 0 400))
 )
 
 (function AddSector1 (ISectors sectors) -> :
@@ -67,7 +67,7 @@
 	(sectors.SetTemplateDoorScript false "")
 	(sectors.SetTemplateWallScript false "#walls/stretch.bricks.sxy")
 	(sectors.SetTemplateFloorScript false "")
-	(sectors.CreateFromTemplate 0 400)
+	(Int32 id = (sectors.CreateFromTemplate 0 400))
 )
 
 (function AddSector2 (ISectors sectors) -> :
@@ -88,6 +88,21 @@
 	(sectors.SetTemplateMaterial "panels"     (#MaterialCategoryMetal) 0xcddc2d7e "random")
 	(sectors.SetTemplateWallScript false "#walls/stretch.bricks.sxy")
 	(sectors.SetTemplateFloorScript false "")
-	(sectors.CreateFromTemplate 0 400)
+	(Int32 id = (sectors.CreateFromTemplate 0 400))
+
+	(ISectorAIBuilder ai = (sectors.GetSectorAIBuilder id))
+	(ai.AddTrigger "Depressed")
+		(ai.AddAction "LowerScenery")
+			(ai.AddActionArgumentString "sector" "kitchen.door.1")
+	(ai.AddTrigger "Pressed")
+		(ai.AddAction "PossiblyAbort")
+			(ai.AddActionArgumentF32 "%" 75)
+		(ai.AddAction "Delay")
+			(ai.AddActionArgumentF32 "duration" 12.000000)
+		(ai.AddAction "ToggleElevation")
+			(ai.AddActionArgumentString "sector" "kitchen.door.1")
+		(ai.AddAction "int32_Continue_And")
+			(ai.AddActionArgumentString "int32" "maxCount")
+			(ai.AddActionArgumentI32 "constant" 2147450880) // 0x7FFF8000
 )
 

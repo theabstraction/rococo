@@ -3007,6 +3007,63 @@ namespace ANON
 		  sb.AppendFormat("\n\t(sectors.SetTemplateFloorScript %s \"%s\")", scriptFloor ? "true" : "false", floorScript);
 
 		  sb.AppendFormat("\n\t(Int32 id = (sectors.CreateFromTemplate %d %d))\n", altitudeInCm, heightInCm);
+
+		  auto& ta = TriggersAndActions();
+		  if (ta.TriggerCount() > 0)
+		  {
+			  sb << "\n\t(ISectorAIBuilder ai = (sectors.GetSectorAIBuilder id))";
+
+			  for (int i = 0; i < ta.TriggerCount(); ++i)
+			  {
+				  auto& trigger = ta[i];
+				  TriggerType type = trigger.Type();
+				  auto stype = ToShortString(type);
+				  sb << "\n\t(ai.AddTrigger \"" << (cstr)stype << "\")";
+
+				  auto& actions = trigger.Actions();
+				  for (int j = 0; j < actions.Count(); j++)
+				  {
+					  auto& action = actions[j];
+					  sb << "\n\t\t(ai.AddAction \"" << action.Factory().Name() << "\")";
+
+					  for (int k = 0; k < action.ParameterCount(); ++k)
+					  {
+						  auto desc = action.GetParameterName(k);
+
+						  ParameterBuffer buf;
+						  action.GetParameter(k, buf);
+
+						  switch (desc.type)
+						  {
+						  case PARAMETER_TYPE_EVENT_NAME:
+						  case PARAMETER_TYPE_GLOBALVAR_NAME:
+						  case PARAMETER_TYPE_SECTOR_STRING:
+							  sb << "\n\t\t\t(ai.AddActionArgumentString \"" << desc.name << "\" \"" << buf << "\")";
+							  break;
+						  case PARAMETER_TYPE_FLOAT:
+							  sb << "\n\t\t\t(ai.AddActionArgumentF32 \"" << desc.name << "\" " << buf << ")";
+							  break;
+						  case PARAMETER_TYPE_INT:
+						  case PARAMETER_TYPE_INT_UNBOUNDED:
+						  case PARAMETER_TYPE_INT_HEX:
+							  sb << "\n\t\t\t(ai.AddActionArgumentI32 \"" << desc.name << "\" " << buf << ")";
+							  {
+								  if (desc.type == PARAMETER_TYPE_INT_HEX)
+								  {
+									  int32 iValue = atoi(buf);
+									  sb.AppendFormat(" // 0x%8.8X\n", iValue);
+								  }
+								  else
+								  {
+									  sb << "\n";
+								  }
+							  }
+							  break;
+						  }
+					  }
+				  }
+			  }
+		  }
 	  }
 
 	  void GetProperties(cstr category, IBloodyPropertySetEditor& editor) override
