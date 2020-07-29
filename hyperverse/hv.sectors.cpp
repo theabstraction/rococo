@@ -195,6 +195,88 @@ return false;
 	   }
    };
 
+   struct JapaneseFrodoMachine : ITags
+   {
+	   ISectors* sectors;
+
+	   typedef std::unordered_map<std::string, std::vector<ISector*>> TMapStringToSectors;
+	   TMapStringToSectors map;
+
+	   bool inTagCall = false;
+
+	   void Invalidate() override
+	   {
+		   if (inTagCall) Throw(0, "Tags.Invalidate(): callback tried to delete hashtable");
+		   map.clear();
+	   }
+
+	   void RefreshHashtables()
+	   {
+		   Invalidate();
+
+		   cstr undefined = GET_UNDEFINDED_TAG();
+
+		   for (auto* s : *sectors)
+		   {
+			   auto& tags = s->GetTags();
+			   for (int32 i = 0; i < tags.Count(); ++i)
+			   {
+				   char varName[IGlobalVariables::MAX_VARIABLE_NAME_LENGTH];
+				   tags.GetItem(i, varName, IGlobalVariables::MAX_VARIABLE_NAME_LENGTH);
+
+				   if (Eq(varName, undefined))
+				   {
+					   continue;
+				   }
+				   
+				   auto j = map.find(varName);
+				   if (j == map.end())
+				   {
+					   j = map.insert(std::make_pair(std::string(varName), std::vector<ISector*>())).first;
+				   }
+
+				   j->second.push_back(s);
+			   }
+		   }
+	   }
+
+	   void ForEachSectorWithTagProtected(cstr tag, ITagCallback& cb)
+	   {
+		   auto i = map.find(tag);
+		   if (i != map.end())
+		   {
+			   int32 count = 0;
+
+			   for (auto* sector : i->second)
+			   {
+				   TagContext context{ *sector, tag,  count++ };
+				   cb.OnTag(context);
+			   }
+		   }
+	   }
+
+	   void ForEachSectorWithTag(cstr tag, ITagCallback& cb) override
+	   {
+		   if (inTagCall) Throw(0, "Tags.ForEachSectorWithTag(%s,...): callback tried to recurse", tag);
+
+		   if (map.empty())
+		   {
+			   RefreshHashtables();
+		   }
+
+		   try
+		   {
+			   inTagCall = true;
+			   ForEachSectorWithTagProtected(tag, cb);
+			   inTagCall = false;
+		   }
+		   catch(IException&)
+		   {
+			   inTagCall = false;
+		   }
+	   }
+   };
+
    class Sectors : public ISectors, public ISectorBuilder, public Rococo::Events::IObserver
    {
 	   const Metres defaultFloorLevel{ 0.0f };
@@ -202,10 +284,12 @@ return false;
 	   std::vector<ISector*> sectors;
 	   Platform& platform;
 	   ActionFactoryCreateContext afcc;
+	   JapaneseFrodoMachine tags;
    public:
 	   Sectors(Platform& _platform) :
 		   platform(_platform)
 	   {
+		   tags.sectors = this;
 		   platform.publisher.Subscribe(this, evPopulateSectors);
 	   }
 
@@ -219,6 +303,11 @@ return false;
 		   {
 			   delete i.second;
 		   }
+	   }
+
+	   ITags& Tags()
+	   {
+		   return tags;
 	   }
 
 	   IIActionFactoryCreateContext& AFCC()
@@ -780,9 +869,12 @@ return false;
 
 	   void OnTick(const IUltraClock& clock) override
 	   {
-		   for (auto s: sectors)
+		   if (clock.DT() > 0.0f)
 		   {
-			   s->OnTick(clock);
+			   for (auto s : sectors)
+			   {
+				   s->OnTick(clock);
+			   }
 		   }
 	   }
 

@@ -58,6 +58,26 @@ namespace HV
       operator const fstring() { return key; }
    };
 
+   struct ISector;
+
+   struct TagContext
+   {
+	   ISector& sector;
+	   cstr tag;
+	   const int32 index;
+   };
+
+   ROCOCOAPI ITagCallback
+   {
+	   virtual void OnTag(TagContext & context) = 0;
+   };
+
+   ROCOCOAPI ITags
+   {
+		virtual void Invalidate() = 0;
+		virtual void ForEachSectorWithTag(cstr tag, ITagCallback& cb) = 0;
+   };
+
    namespace Events
    {
       namespace Player
@@ -300,8 +320,12 @@ namespace HV
 
    enum ADVANCE_STATE
    {
-	   // state has advanced, but not completed, advance next timestep
+	   // state has advanced, but not completed and will advance next timestep. 
+	   // The action trigger may restart the action sequence
 	   ADVANCE_STATE_YIELD,
+
+	   // state has yielded and trigger be ignored until delays have expired
+	   ADVANCE_STATE_YIELD_UNINTERRUPTIBLE,
 
 	   // state had advanced and completed, move on to next action in sequence
 	   ADVANCE_STATE_COMPLETED,
@@ -407,11 +431,19 @@ namespace HV
 
    struct ITriggerSupervisor : public ITrigger
    {
+	   virtual void QueueActionSequence() = 0;
+	   virtual void Advance(AdvanceInfo& info) = 0;
 	   virtual void Free() = 0;
    };
 
    ITriggerSupervisor* CreateTrigger();
 
+   ROCOCOAPI IAIBrain
+   {
+	   virtual void Free() = 0;
+   };
+
+   IAIBrain* CreateAIBrain(IPublisher& publisher, ISectors& sectors);
 
    IActionFactory& GetDefaultActionFactory();
    size_t ActionFactoryCount();
@@ -428,61 +460,76 @@ namespace HV
 	  virtual void RemoveAction(int32 triggerIndex, int32 actionIndex) = 0;
    };
 
+   cstr GET_UNDEFINDED_TAG();
+
    // Getting to be a god class
    ROCOCOAPI ISector : public IPropertyTarget
    {
-	  virtual ISectorAIBuilder & GetSectorAIBuilder() = 0;
-	  virtual IIActionFactoryCreateContext & AFCC() = 0;
-	  virtual const AABB2d& GetAABB() const = 0;
-	  virtual uint32 Id() const = 0;
+		virtual void LowerScenery() = 0;
+		virtual void RaiseScenery() = 0;
+		virtual void ToggleElevation() = 0;
 
-	  virtual bool UseAnythingAt(cr_vec3 probePoint, cr_vec3 probeDirection, Metres reach) = 0;
+		virtual ISectorAIBuilder& GetSectorAIBuilder() = 0;
+		virtual IIActionFactoryCreateContext& AFCC() = 0;
+		virtual const AABB2d& GetAABB() const = 0;
+		virtual uint32 Id() const = 0;
 
-	  // Iteration frames are used by some iteration functions to mark sectors as having been enumrerated
-	  // Generally the frame count is incremented each function call
-	  // 0x81000000000 to 0x82000000000 are from calls to ForEverySectorVisibleAt
-	  virtual int64 IterationFrame() const = 0;
-	  virtual void SetIterationFrame(int64 value) = 0;
+		virtual bool IsDirty() const = 0;
 
-	  virtual const Gap* GetGapAtSegment(const Vec2& a, const Vec2& b) const = 0;
+		virtual IStringVector& GetTags() = 0;
 
-	  virtual const Barrier* Barriers(size_t& barrierCount) const = 0;
-	  virtual void Build(const Vec2* positionArray, size_t nVertices, float z0, float z1) = 0;
-	  virtual bool DoesLineCrossSector(Vec2 a, Vec2 b) = 0;
-	  virtual ObjectVertexBuffer FloorVertices() const = 0;
-	  virtual const Gap* Gaps(size_t& count) const = 0;
+		// AddTag returns true if a tag was added, otherwise it returns false, indicating the tag already exists
+		virtual bool AddTag(int32 pos, cstr text) = 0;
+		virtual void RemoveTag(int32 pos) = 0;
+		virtual void SetTag(int32 pos, cstr text) = 0;
 
-	  virtual void Decouple() = 0; // Called to take the sector out of the world, prior to deletion
-	  virtual void Free() = 0;
-	  virtual float Z0() const = 0;
-	  virtual float Z1() const = 0;
-	  virtual Segment GetSegment(Vec2 p, Vec2 q) = 0;
-	  virtual int32 GetFloorTriangleIndexContainingPoint(Vec2 p) = 0;
-	  virtual RGBAb GetGuiColour(float intensity) const = 0;
-	  virtual int32 GetPerimeterIndex(Vec2 a) const = 0;
-	  virtual void InvokeSectorRebuild(bool force) = 0;
-	  virtual const Vec2* WallVertices(size_t& nVertices) const = 0;
-	  virtual void Rebuild() = 0;
-	  virtual bool Is4PointRectangular() const = 0; // The sector has four points and its perimeter in 2D space is a rectangle or square
-	  virtual bool IsCorridor() const = 0; // The sector Is4PointRectangular & two opposing edges are portals to other sectors and neither is itself a 4PtRect
-	  virtual const Segment* GetWallSegments(size_t& count) const = 0;
-	  virtual void OnSectorScriptChanged(const FileModifiedArgs& args) = 0;
+		virtual bool UseAnythingAt(cr_vec3 probePoint, cr_vec3 probeDirection, Metres reach) = 0;
 
-	  virtual void ForEveryObjectInSector(IEventCallback<const ID_ENTITY>& cb) = 0;
+		// Iteration frames are used by some iteration functions to mark sectors as having been enumrerated
+		// Generally the frame count is incremented each function call
+		// 0x81000000000 to 0x82000000000 are from calls to ForEverySectorVisibleAt
+		virtual int64 IterationFrame() const = 0;
+		virtual void SetIterationFrame(int64 value) = 0;
 
-	  virtual void SaveTemplate(StringBuilder& sb) = 0;
-	  virtual void SetTemplate(MatEnumerator& enumerator) = 0;
+		virtual const Gap* GetGapAtSegment(const Vec2& a, const Vec2& b) const = 0;
 
-	  virtual const LightSpec* Lights(size_t& numberOfLights) const = 0;
+		virtual const Barrier* Barriers(size_t& barrierCount) const = 0;
+		virtual void Build(const Vec2* positionArray, size_t nVertices, float z0, float z1) = 0;
+		virtual bool DoesLineCrossSector(Vec2 a, Vec2 b) = 0;
+		virtual ObjectVertexBuffer FloorVertices() const = 0;
+		virtual const Gap* Gaps(size_t& count) const = 0;
 
-	  virtual void SyncEnvironmentMapToSector() = 0;
+		virtual void Decouple() = 0; // Called to take the sector out of the world, prior to deletion
+		virtual void Free() = 0;
+		virtual float Z0() const = 0;
+		virtual float Z1() const = 0;
+		virtual Segment GetSegment(Vec2 p, Vec2 q) = 0;
+		virtual int32 GetFloorTriangleIndexContainingPoint(Vec2 p) = 0;
+		virtual RGBAb GetGuiColour(float intensity) const = 0;
+		virtual int32 GetPerimeterIndex(Vec2 a) const = 0;
+		virtual void InvokeSectorRebuild(bool force) = 0;
+		virtual const Vec2* WallVertices(size_t& nVertices) const = 0;
+		virtual void Rebuild() = 0;
+		virtual bool Is4PointRectangular() const = 0; // The sector has four points and its perimeter in 2D space is a rectangle or square
+		virtual bool IsCorridor() const = 0; // The sector Is4PointRectangular & two opposing edges are portals to other sectors and neither is itself a 4PtRect
+		virtual const Segment* GetWallSegments(size_t& count) const = 0;
+		virtual void OnSectorScriptChanged(const FileModifiedArgs& args) = 0;
 
-	  virtual ISectorLayout* Layout() = 0;
+		virtual void ForEveryObjectInSector(IEventCallback<const ID_ENTITY>& cb) = 0;
 
-	  virtual void OnTick(const IUltraClock& clock) = 0;
-	  virtual void NotifySectorPlayerIsInSector(const IUltraClock& clock) = 0;
+		virtual void SaveTemplate(StringBuilder& sb) = 0;
+		virtual void SetTemplate(MatEnumerator& enumerator) = 0;
 
-	  virtual ITriggersAndActions& TriggersAndActions() = 0;
+		virtual const LightSpec* Lights(size_t& numberOfLights) const = 0;
+
+		virtual void SyncEnvironmentMapToSector() = 0;
+
+		virtual ISectorLayout* Layout() = 0;
+
+		virtual void OnTick(const IUltraClock& clock) = 0;
+		virtual void NotifySectorPlayerIsInSector(const IUltraClock& clock) = 0;
+
+		virtual ITriggersAndActions& TriggersAndActions() = 0;
    };
 
    float GetHeightAtPointInSector(cr_vec3 p, ISector& sector);
@@ -495,6 +542,8 @@ namespace HV
    {
 	  virtual ISectorBuilder* Builder() = 0;
 	  virtual void Free() = 0;
+
+	  virtual ITags& Tags() = 0;
 
 	  virtual void AddSector(const Vec2* perimeter, size_t nVertices) = 0;
 	  virtual void Delete(ISector* sector) = 0;

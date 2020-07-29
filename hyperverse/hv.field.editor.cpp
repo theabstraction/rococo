@@ -180,7 +180,7 @@ namespace
 				}
 				else
 				{
-					return false;
+					return true;
 				}
 			}
 

@@ -15,8 +15,12 @@ namespace HV
 	using namespace Rococo::IO;
 	using namespace Rococo::Entities;
 
-	auto evPopulateBusyCategoryId = "busy.category"_event;
-	auto evPopulateBusyResourceId = "busy.resource"_event;
+	namespace Events
+	{
+		const EventIdRef  evPopulateBusyCategoryId = "busy.category"_event;
+		const EventIdRef  evPopulateBusyResourceId = "busy.resource"_event;
+		const EventIdRef evEnableEditor = "editor.enable"_event;
+	}
 
 	struct IGuiResizeEvent
 	{
@@ -118,6 +122,8 @@ namespace HV
 		AutoFree<IPaneBuilderSupervisor> busyPanel;
 		AutoFree<IPaneBuilderSupervisor> colourPanel;
 
+		AutoFree<IAIBrain> brain;
+
 		Cosmos e; // Put this as the last member, since other members need to be constructed first
 
 		IGameMode* mode;
@@ -134,8 +140,8 @@ namespace HV
 				const Rococo::Events::BusyEvent& be;
 				BusyEventCapture(IPublisher& _publisher, const Rococo::Events::BusyEvent& _be) : publisher(_publisher), be(_be)
 				{
-					publisher.Subscribe(this, evPopulateBusyCategoryId);
-					publisher.Subscribe(this, evPopulateBusyResourceId);
+					publisher.Subscribe(this, Events::evPopulateBusyCategoryId);
+					publisher.Subscribe(this, Events::evPopulateBusyResourceId);
 				}
 
 				~BusyEventCapture()
@@ -145,7 +151,7 @@ namespace HV
 
 				virtual void OnEvent(Event& ev)
 				{
-					if (ev == evPopulateBusyCategoryId)
+					if (ev == Events::evPopulateBusyCategoryId)
 					{
 						auto& te = As<TextOutputEvent>(ev);
 						if (te.isGetting)
@@ -153,7 +159,7 @@ namespace HV
 							SafeFormat(te.text, sizeof(te.text), "%s", be.message);
 						}
 					}
-					else if (ev == evPopulateBusyResourceId)
+					else if (ev == Events::evPopulateBusyResourceId)
 					{
 						auto& te = As<TextOutputEvent>(ev);
 						if (te.isGetting)
@@ -194,11 +200,31 @@ namespace HV
 					}
 				}
 			}
-			else if (ev == evPopulateBusyCategoryId)
+			else if (ev == Events::evEnableEditor)
+			{
+				auto isEnabled = As<TEventArgs<bool>>(ev);
+				if (isEnabled)
+				{
+					if (!IsEditorActive())
+					{
+						e.platform.gui.PushTop(editorPanel->Supervisor(), true);
+						mode->Deactivate();
+					}
+				}
+				else
+				{
+					if (IsEditorActive())
+					{
+						e.platform.gui.Pop();
+						mode->Activate();
+					}
+				}
+			}
+			else if (ev == Events::evPopulateBusyCategoryId)
 			{
 			}
 
-			else if (ev == evPopulateBusyResourceId)
+			else if (ev == Events::evPopulateBusyResourceId)
 			{
 			}
 		}
@@ -234,8 +260,11 @@ namespace HV
 
 			e.platform.publisher.Subscribe(this, HV::Events::evSetNextLevel);
 			e.platform.publisher.Subscribe(this, Rococo::Events::evBusy);
+			e.platform.publisher.Subscribe(this, Events::evEnableEditor);
 
 			scene.resizeCallback = this;
+
+			brain = CreateAIBrain(platform.publisher, e.sectors);
 
 	//		e.platform.instances.LoadMeshList("!/mesh/fred.sxy"_fstring);
 		}
@@ -361,20 +390,7 @@ namespace HV
 				}
 				else if (action)
 				{
-					if (Eq(action, "gui.editor.toggle") && key.isPressed)
-					{
-						if (IsEditorActive())
-						{
-							e.platform.gui.Pop();
-							mode->Activate();
-						}
-						else
-						{
-							e.platform.gui.PushTop(editorPanel->Supervisor(), true);
-							mode->Deactivate();
-						}
-					}
-					else if (Eq(action, "gui.overlay.toggle") && key.isPressed)
+					if (Eq(action, "gui.overlay.toggle") && key.isPressed)
 					{
 						e.platform.gui.PushTop(overlayPanel->Supervisor(), true);
 						mode->Deactivate();

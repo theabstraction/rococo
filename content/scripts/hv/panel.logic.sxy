@@ -23,6 +23,8 @@
 (function Main (Int32 id)->(Int32 exitCode):
 	(IPaneBuilder builder (PaneBuilder))
 	(IPaneContainer root = builder.Root)
+	(root.SetColourBk1 0xD0202020 0xD0202020)
+	(root.SetColourBk2 0xD0404040 0xD0404040)
 	
 	(Recti screen)
 	(root.GetRect screen)
@@ -38,8 +40,8 @@
 	
 	(frame.SetCaption "Edit sector logic")
 
-	(frame.SetColourBk1   0xF0404040 0xF0404040)
-	(frame.SetColourBk2   0xF0404040 0xF0404040)
+	(frame.SetColourBk1   0x80404040 0x80404040)
+	(frame.SetColourBk2   0x80404040 0x80404040)
 	(frame.SetColourEdge1 0xEFC0C0C0 0xFFFFFFFF)
 	(frame.SetColourEdge2 0xEFC0C0C0 0xFFFFFFFF)
 	(frame.SetLayoutAlgorithm 0)

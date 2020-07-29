@@ -430,6 +430,7 @@ namespace Rococo
 		template<class T> struct TEventArgs : public EventArgs
 		{
 			T value;
+			operator T () { return value; }
 		};
 
 		template<class T,class U> struct T2EventArgs : public EventArgs

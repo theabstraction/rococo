@@ -9,10 +9,79 @@ namespace
 {
 	using namespace HV;
 
+	static auto ev_LowerScenery = "hv.action.scenery.lower"_event;
+	static auto ev_RaiseScenery = "hv.action.scenery.raise"_event;
+	static auto ev_ToggleElevation = "hv.action.elevation.toggle"_event;
+
+	struct AIBrain : IAIBrain, IObserver
+	{
+		IPublisher& publisher;
+		ITags& tags;
+
+		AIBrain(IPublisher& _publisher, ISectors& _sectors):
+			publisher(_publisher), tags(_sectors.Tags())
+		{
+			publisher.Subscribe(this, ev_LowerScenery);
+			publisher.Subscribe(this, ev_RaiseScenery);
+			publisher.Subscribe(this, ev_ToggleElevation);
+		}
+
+		void Free() override
+		{
+			delete this;
+		}
+
+		void OnEvent(Event& ev) override
+		{
+			if (ev == ev_LowerScenery)
+			{
+				auto& tag = As<TEventArgs<cstr>>(ev);
+
+				struct : ITagCallback
+				{
+					void OnTag(TagContext& tc) override
+					{
+						tc.sector.LowerScenery();
+					}
+				} lowerScenery;
+				tags.ForEachSectorWithTag(tag, lowerScenery);
+			}
+			else if (ev == ev_RaiseScenery)
+			{
+				auto& tag = As<TEventArgs<cstr>>(ev);
+				struct : ITagCallback
+				{
+					void OnTag(TagContext& tc) override
+					{
+						tc.sector.RaiseScenery();
+					}
+				} raiseScenery;
+				tags.ForEachSectorWithTag(tag, raiseScenery);
+			}
+			else if (ev == ev_ToggleElevation)
+			{
+				auto& tag = As<TEventArgs<cstr>>(ev);
+				struct : ITagCallback
+				{
+					void OnTag(TagContext& tc) override
+					{
+						tc.sector.ToggleElevation();
+					}
+				} toggleElevation;
+				tags.ForEachSectorWithTag(tag, toggleElevation);
+			}
+		}
+	};
+
 	struct Trigger : ITriggerSupervisor, IActionArray, IStringVector
 	{
 		TriggerType type = TriggerType_None;
 		std::vector<IAction*> actions;
+
+		enum { SLEEPING = -1};
+
+		bool isInterruptible = true;
+		size_t nextAction = (size_t) SLEEPING;
 
 		Trigger()
 		{
@@ -25,6 +94,45 @@ namespace
 			{
 				action->Free();
 			}
+		}
+
+		void QueueActionSequence() override
+		{
+			if (isInterruptible && !actions.empty())
+			{
+				nextAction = 0;
+			}
+		}
+
+		void Advance(AdvanceInfo& info) override
+		{
+			// Assumes dt > 0
+			while (nextAction < actions.size())
+			{
+				ADVANCE_STATE state = actions[nextAction]->Advance(info);
+
+				switch (state)
+				{
+				case ADVANCE_STATE_YIELD:
+					isInterruptible = true;
+					return;
+
+				case ADVANCE_STATE_YIELD_UNINTERRUPTIBLE:
+					isInterruptible = false;
+					return;
+
+				case ADVANCE_STATE_COMPLETED:
+					nextAction++;
+					break;
+
+				case ADVANCE_STATE_TERMINATE:
+					break;
+				}
+			}
+
+			// All actions in a sequence have been executed, and so the sequence terminates
+			isInterruptible = true;
+			nextAction = (size_t)SLEEPING;
 		}
 
 		void Free() override
@@ -55,11 +163,15 @@ namespace
 
 		void AddAction(IActionFactory& factory, IIActionFactoryCreateContext& context) override
 		{
+			isInterruptible = true;
+			nextAction = (size_t)SLEEPING;
 			actions.push_back(factory.Create(context));
 		}
 
 		void RemoveAction(int32 index)
 		{
+			isInterruptible = true;
+			nextAction = (size_t)SLEEPING;
 			actions[index]->Free();
 			auto i = actions.begin();
 			std::advance(i, index);
@@ -68,6 +180,8 @@ namespace
 
 		void SetAction(int32 index, IActionFactory& factory, IIActionFactoryCreateContext& context) override
 		{
+			isInterruptible = true;
+			nextAction = (size_t)SLEEPING;
 			actions[index]->Free();
 			auto i = actions.begin();
 			std::advance(i, index);
@@ -76,6 +190,8 @@ namespace
 
 		void Swap(int32 i, int32 j)
 		{
+			isInterruptible = true;
+			nextAction = (size_t)SLEEPING;
 			std::swap(actions[i], actions[j]);
 		}
 	};
@@ -1250,8 +1366,6 @@ namespace
 
 	RandomDelayFactory s_RandomDelayFactory;
 
-	static auto ev_LowerScenery = "hv.action.scenery.lower"_event;
-
 	struct LowerScenery : public IAction
 	{
 		HString target;
@@ -1322,8 +1436,6 @@ namespace
 
 	LowerSceneryFactory s_LowerSceneryFactory;
 
-	static auto ev_RaiseScenery = "hv.action.scenery.raise"_event;
-
 	struct RaiseScenery : public IAction
 	{
 		HString target;
@@ -1393,8 +1505,6 @@ namespace
 	};
 
 	RaiseSceneryFactory s_RaiseSceneryFactory;
-
-	static auto ev_ToggleElevation = "hv.action.elevation.toggle"_event;
 
 	struct ToggleElevation : public IAction
 	{
@@ -1498,6 +1608,11 @@ namespace HV
 	ITriggerSupervisor* CreateTrigger()
 	{
 		return new Trigger();
+	}
+
+	IAIBrain* CreateAIBrain(IPublisher& publisher, ISectors& sectors)
+	{
+		return new AIBrain(publisher, sectors);
 	}
 
 	IActionFactory& GetDefaultActionFactory()

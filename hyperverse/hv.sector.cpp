@@ -23,6 +23,11 @@ namespace HV
    {
       return _context;
    }
+
+   cstr GET_UNDEFINDED_TAG()
+   {
+	   return "<undefined>";
+   }
 }
 
 namespace ANON
@@ -291,6 +296,19 @@ namespace ANON
 	   {
 		   Sector* sector;
 
+		   void AddTag(const fstring& tag) override
+		   {
+			   if (tag.length == 0) 
+				   Throw(0, "AIBuilder.AddTag(...): tag was 0 length");
+
+			   if (tag.length >= IGlobalVariables::MAX_VARIABLE_NAME_LENGTH) 
+				   Throw(0, "AIBuilder.AddTag(...) : tag was > %u characters", IGlobalVariables::MAX_VARIABLE_NAME_LENGTH);
+
+			   sector->AFCC().GetGlobals().ValidateName(tag);
+
+			   sector->AddTag(-1, tag);
+		   }
+
 		   void ClearTriggers() override
 		   {
 			   sector->triggers.clear();
@@ -398,6 +416,83 @@ namespace ANON
 			   a.SetParameter(paramIndex, value);
 		   }
 	   } aiBuilder;
+
+	   struct Tags: public IStringVector
+	   {
+		   std::vector<std::string> items;
+
+		   Sector* sector;
+
+		   int32 Count() const override
+		   {
+			   return (int32)items.size();
+ 		   }
+
+		   void GetItem(int32 index, char* text, size_t capacity) const
+		   {
+			   SafeFormat(text, capacity, "%s", items[index].c_str());
+		   }
+	   } tags;
+
+	   bool AddTag(int32 pos, cstr text) override
+	   {
+		   for (auto& t : tags.items)
+		   {
+			   if (Eq(t.c_str(), text))
+			   {
+				   // Duplicate - ignore
+				   return false;
+			   }
+		   }
+
+		   if (pos >= (int32) tags.items.size())
+		   {
+			   tags.items.push_back(text);
+			   return true;
+		   }
+
+		   auto i = tags.items.begin();
+
+		   if (pos > 0)
+		   {
+			   std::advance(i, pos);
+		   }
+
+		   tags.items.insert(i, text);
+		   return true;
+	   }
+
+	   void SetTag(int32 pos, cstr text) override
+	   {
+		   if (pos < 0 || pos >= tags.items.size())
+		   {
+			   AddTag(pos, text);
+			   return;
+		   }
+
+		   for (auto& t: tags.items)
+		   {
+			   if (Eq(t.c_str(), text))
+			   {
+				   return; // We are not alloed to duplicate
+			   }
+		   }
+
+		   tags.items[pos] = text;
+	   }
+
+	   void RemoveTag(int32 pos) override
+	   {
+		   if (pos < 0 || pos >= tags.items.size())
+		   {
+			   return;
+		   }
+
+		   auto i = tags.items.begin();
+		   std::advance(i, pos);
+		   tags.items.erase(i);
+	   }
+
 	   IInstancesSupervisor& instances;
 	   ISectors& co_sectors;
 
@@ -476,6 +571,11 @@ namespace ANON
 	   IIActionFactoryCreateContext& AFCC()
 	   {
 		   return co_sectors.AFCC();
+	   }
+
+	   IStringVector& GetTags()
+	   {
+		   return tags;
 	   }
 
 	   void AddAction(int32 triggerIndex) override
@@ -1570,6 +1670,7 @@ namespace ANON
 		 scriptConfig(CreateScriptConfigSet())
       {
 		  aiBuilder.sector = this;
+		  tags.sector = this;
 
 		  PrepMat(GraphicsEx::BodyComponentMatClass_Brickwork, "random", Graphics::MaterialCategory_Stone);
 		  PrepMat(GraphicsEx::BodyComponentMatClass_Cement,    "random", Graphics::MaterialCategory_Rock);
@@ -1622,6 +1723,17 @@ namespace ANON
 			  co_sectors.EnumerateWallVars(foreachFloorVariable);
 		  }
       }
+
+	  void Trigger(TriggerType type)
+	  {
+		  for (auto* t : triggers)
+		  {
+			  if (t->Type() == type)
+			  {
+				  t->QueueActionSequence();
+			  }
+		  }
+	  }
 
 	  void OnEvent(MaterialArgs& args)
 	  {
@@ -2738,6 +2850,11 @@ namespace ANON
 
 	  bool propertiesChanged = true;
 
+	  bool IsDirty() const override
+	  {
+		  return propertiesChanged;
+	  }
+
 	  void OnMaterialCategoryChanged(cstr component)
 	  {
 		  auto i = nameToMaterial.find(component);
@@ -3009,7 +3126,7 @@ namespace ANON
 		  sb.AppendFormat("\n\t(Int32 id = (sectors.CreateFromTemplate %d %d))\n", altitudeInCm, heightInCm);
 
 		  auto& ta = TriggersAndActions();
-		  if (ta.TriggerCount() > 0)
+		  if (ta.TriggerCount() > 0 || !tags.items.empty())
 		  {
 			  sb << "\n\t(ISectorAIBuilder ai = (sectors.GetSectorAIBuilder id))";
 
@@ -3062,6 +3179,11 @@ namespace ANON
 						  }
 					  }
 				  }
+			  }
+
+			  for (auto& t : tags.items)
+			  {
+				  sb << "\n\t\t(ai.AddTag \"" << t.c_str() << "\")";
 			  }
 		  }
 	  }
@@ -3171,6 +3293,10 @@ namespace ANON
 				  editor.AddMessage("Opposite ends link to rooms");
 				  editor.AddMessage("...which must not be 4pt rectangles.");
 			  }
+		  }
+		  else if (Eq(category, "tags"))
+		  {
+			  editor.AddSpacer();
 		  }
 	  }
 
@@ -3569,11 +3695,13 @@ namespace ANON
 
 		  if (padIntrusion > PAD_MAX_INTRUSION)
 		  {
+			  Trigger(TriggerType_Pressed);
 			  padIntrusion = PAD_MAX_INTRUSION;
 		  }
 
 		  if (padIntrusion < 0)
 		  {
+			  Trigger(TriggerType_Depressed);
 			  padIntrusion = 0;
 		  }
 
@@ -3612,11 +3740,13 @@ namespace ANON
 		  if (leverElevation < LEVER_DOWN_ANGLE)
 		  {
 			  leverElevation = LEVER_DOWN_ANGLE;
+			  Trigger(TriggerType_Depressed);
 			  leverOmega = 0;
 		  }
 		  else if (leverElevation > LEVER_UP_ANGLE)
 		  {
 			  leverElevation = LEVER_UP_ANGLE;
+			  Trigger(TriggerType_Pressed);
 			  leverOmega = 0;
 		  }
 
@@ -3642,9 +3772,114 @@ namespace ANON
 		  lever->Model() = T;
 	  }
 
+	  void LowerScenery() override
+	  {
+		  for (auto c : components)
+		  {
+			  if (Eq(c.name.c_str(), "door.body"))
+			  {
+				  doorDirection = -1.0f;
+				  break;
+			  }
+			  else if (Eq(c.name.c_str(), "wall.lever.base"))
+			  {
+				  for (auto d : components)
+				  {
+					  if (Eq(d.name.c_str(), "wall.lever"))
+					  {
+						  leverOmega = leverSpeed;
+						  break;
+					  }
+				  }
+			  }
+		  }
+	  }
+
+	  void RaiseScenery() override
+	  {
+		  for (auto c : components)
+		  {
+			  if (Eq(c.name.c_str(), "door.body"))
+			  {
+				  doorDirection = 1.0f;
+				  break;
+			  }
+			  else if (Eq(c.name.c_str(), "wall.lever.base"))
+			  {
+				  for (auto d : components)
+				  {
+					  if (Eq(d.name.c_str(), "wall.lever"))
+					  {
+						  leverOmega = -leverSpeed;
+						  break;
+					  }
+				  }
+			  }
+		  }
+	  }
+
+	  void ToggleElevation() override
+	  {
+		  for (auto c : components)
+		  {
+			  if (Eq(c.name.c_str(), "door.body"))
+			  {
+				  if (doorDirection == 0.0f)
+				  {
+					  if (doorElevation > 1.5f)
+					  {
+						  doorDirection = -DOOR_ELEVATION_SPEED;
+					  }
+					  else
+					  {
+						  doorDirection = DOOR_ELEVATION_SPEED;
+					  }
+				  }
+				  else
+				  {
+					  doorDirection *= -1.0f;
+				  }
+				  break;
+			  }
+			  else if (Eq(c.name.c_str(), "wall.lever.base"))
+			  {
+				  for (auto d : components)
+				  {
+					  if (Eq(d.name.c_str(), "wall.lever"))
+					  {
+						  if (leverOmega == 0.0f)
+						  {
+							  if (leverElevation < 0)
+							  {
+								  leverOmega = leverSpeed;
+							  }
+							  else
+							  {
+								  leverOmega = -leverSpeed;
+							  }
+						  }
+						  else
+						  {
+							  leverOmega *= -1.0f;
+						  }
+						  break;
+					  }
+				  }
+			  }
+		  }
+	  }
+
+
 	  void OnTick(const IUltraClock& clock) override
 	  {
-		  if (components.empty()) return;
+		  AdvanceInfo info { platform.publisher, clock.DT() };
+
+		  for (auto t : triggers)
+		  {
+			  t->Advance(info);
+		  }
+
+		  if (components.empty()) return; // N.B generally most sectors do not have components
 
 		  for (auto c : components)
 		  {

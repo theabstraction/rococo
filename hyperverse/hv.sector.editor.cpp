@@ -9,6 +9,9 @@ namespace
 	using namespace HV;
 
 	static const EventIdRef evEditSectorLogic = "edit.sector.logic"_event;
+	static const EventIdRef evEditSectorTags = "edit.sector.tags"_event;
+	static const EventIdRef evSelectTag = "editor.tags.selected"_event;
+	static const EventIdRef evPopulateTag = "editor.tag"_event;
 	static const EventIdRef evPopulateTriggers = "editor.logic.enum_triggers"_event;
 	static const EventIdRef evPopulateActions = "editor.logic.actions.populate"_event;
 	static const EventIdRef evSelectAction = "editor.logic.action.selected"_event;
@@ -19,6 +22,7 @@ namespace
 	static const EventIdRef evActionArgsEditor = "editor.logic.action-arguments"_event;
 	static const EventIdRef evScrollToActionType = "editor.logic.action-arguments.scroll-to"_event;
 	static const EventIdRef evScrollToAction = "editor.logic.action.scroll-to"_event;
+	static const EventIdRef evTagsPopulate = "editor.tags.populate"_event;
 
 	struct ActionFactoryEnumerator : IStringVector
 	{
@@ -37,6 +41,7 @@ namespace
 	struct LogicEditor: public IObserver, IFieldEditorEventHandler
 	{
 		AutoFree<IFieldEditor> fieldEditor;
+		AutoFree<IFieldEditor> tagsEditor;
 
 		struct TriggerList: IEnumVector
 		{
@@ -84,17 +89,34 @@ namespace
 		int32 activeActionIndex = -1;
 
 		AutoFree<IPaneBuilderSupervisor> logicPanel;
+		AutoFree<IPaneBuilderSupervisor> tagsPanel;
+
+		struct TagEvents: IFieldEditorEventHandler
+		{
+			LogicEditor* editor;
+			void OnActiveIndexChanged(int32 index, const char* stringRepresentation) override
+			{
+				editor->sector->SetTag(editor->tagIndex, stringRepresentation);
+			}
+		} tagEvents;
 
 		LogicEditor(Platform& _platform, ISectors& _sectors) : 
 			platform(_platform), sectors(_sectors)
 		{
 			logicPanel = platform.gui.BindPanelToScript("!scripts/hv/panel.logic.sxy");
+			tagsPanel = platform.gui.BindPanelToScript("!scripts/hv/panel.tags.sxy");
 			
-			FieldEditorContext fc{ platform.publisher, platform.gui, platform.keyboard, *this };
-			fieldEditor = CreateFieldEditor(fc);
+			FieldEditorContext fcActions { platform.publisher, platform.gui, platform.keyboard, *this };
+			fieldEditor = CreateFieldEditor(fcActions);
+
+			FieldEditorContext fcTags { platform.publisher, platform.gui, platform.keyboard, tagEvents };
+			tagsEditor = CreateFieldEditor(fcTags);
 			triggerList.fieldEditor = fieldEditor;
 
+			tagEvents.editor = this;
+
 			platform.publisher.Subscribe(this, evEditSectorLogic);
+			platform.publisher.Subscribe(this, evEditSectorTags);
 			platform.publisher.Subscribe(this, evUIInvoke);
 			platform.publisher.Subscribe(this, evPopulateTriggers);
 			platform.publisher.Subscribe(this, evPopulateActions);
@@ -103,9 +125,11 @@ namespace
 			platform.publisher.Subscribe(this, evPopulateActionType);
 			platform.publisher.Subscribe(this, evAddActionEnabler);
 			platform.publisher.Subscribe(this, evRemoveActionEnabler);
-			platform.publisher.Subscribe(this, evActionArgsEditor);
+			platform.publisher.Subscribe(this, evTagsPopulate);
+			platform.publisher.Subscribe(this, evSelectTag);
 
 			platform.gui.RegisterPopulator(evActionArgsEditor.name, &fieldEditor->UIElement());
+			platform.gui.RegisterPopulator(evPopulateTag.name, &tagsEditor->UIElement());
 		}
 
 		~LogicEditor()
@@ -143,6 +167,32 @@ namespace
 			
 			triggerList.sector = sector;
 			triggerList.activeIndex = 0;
+		}
+
+		void OpenTags()
+		{
+			auto id = sectors.GetSelectedSectorId();
+			if (id != (size_t)-1)
+			{
+				sector = sectors.begin()[id];
+				platform.gui.PushTop(tagsPanel->Supervisor(), true);
+			}
+			else
+			{
+				sector = nullptr;
+			}
+		}
+
+		void CloseTags()
+		{
+			if (platform.gui.Top() == tagsPanel->Supervisor())
+			{
+				platform.gui.Pop();
+			}
+			else
+			{
+				Throw(0, "LogicEditor::CloseTags -> the tag panel was not on top of the gui stack");
+			}
 		}
 
 		void CloseEditor()
@@ -263,16 +313,39 @@ namespace
 			}
 		}
 
+		int32 tagIndex = -1;
+
+		void SelectTag(int32 index)
+		{
+			this->tagIndex = index;
+
+			tagsEditor->Clear();
+			tagsEditor->Deactivate();
+
+			char text[32];
+			sector->GetTags().GetItem(index, text, sizeof text);
+			tagsEditor->AddStringField("tag", text, sizeof text, true);
+		}
+
 		void OnEvent(Event& ev) override
 		{
 			if (ev == evEditSectorLogic)
 			{
 				OpenEditor();
 			}
+			else if (ev == evEditSectorTags)
+			{
+				OpenTags();
+			}
 			else if (ev == evSelectAction)
 			{
 				auto& selectEvent = As<TEventArgs<int>>(ev);
 				SelectAction(selectEvent.value);
+			}
+			else if (ev == evSelectTag)
+			{
+				auto& selectTag = As<TEventArgs<int>>(ev);
+				SelectTag(selectTag.value);
 			}
 			else if (ev == Rococo::Events::evUIInvoke)
 			{
@@ -280,6 +353,10 @@ namespace
 				if (Eq(cmd.command, "editor.logic.close"))
 				{
 					CloseEditor();
+				}
+				if (Eq(cmd.command, "editor.tags.close"))
+				{
+					CloseTags();
 				}
 				else if (Eq(cmd.command, "editor.logic.add_trigger"))
 				{
@@ -305,6 +382,14 @@ namespace
 				{
 					LowerAction();
 				}
+				else if (Eq(cmd.command, "editor.tags.add"))
+				{
+					sector->AddTag(tagIndex, GET_UNDEFINDED_TAG());
+				}
+				else if (Eq(cmd.command, "editor.tags.remove"))
+				{
+					if (tagIndex >= 0) sector->RemoveTag(tagIndex);
+				}
 			}
 			else if (ev == evPopulateTriggers)
 			{
@@ -324,6 +409,13 @@ namespace
 					pop.value1 = &sector->TriggersAndActions()[triggerIndex].GetStringVector();
 					pop.value2 = activeActionIndex;
 				}
+			}
+			else if (ev == evTagsPopulate)
+			{
+				auto& pop = As<T2EventArgs<Rococo::IStringVector*, int32>>(ev);
+
+				pop.value1 = &sector->GetTags();
+				pop.value2 = -1;
 			}
 			else if (ev == evPopulateActionType)
 			{
@@ -477,7 +569,7 @@ namespace
 				return true;
 			}
 
-			return false;
+			return true;
 		}
 
 		void OnRawMouseEvent(const MouseEvent& key) override
@@ -513,6 +605,7 @@ namespace
 			auto& menu = platform.utilities.PopupContextMenu();
 			menu.Clear(0);
 			menu.AddString(0, "Logic..."_fstring, "edit.sector.logic"_fstring, ""_fstring);
+			menu.AddString(0, "Tags..."_fstring, "edit.sector.tags"_fstring, ""_fstring);
 			menu.SetPopupPoint(cursorPos + Vec2i{ 25, 25 });
 		}
 
@@ -536,7 +629,7 @@ namespace
 								if (map.Sectors().GetSelectedSectorId() == i)
 								{
 									// Already selected
-									PopupSectorContext(cursorPos, (int32) i);
+									if (!s->IsDirty()) PopupSectorContext(cursorPos, (int32) i);
 								}
 								else
 								{

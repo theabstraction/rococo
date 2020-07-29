@@ -18,8 +18,8 @@ namespace HV
 {
 	namespace Events
 	{
-		EventIdRef evChangeDefaultTextureId = "editor.textureId.change"_event;
-		EventIdRef evPopulateTabs = "tabs.populate"_event;
+		const EventIdRef evChangeDefaultTextureId = "editor.textureId.change"_event;
+		const EventIdRef evPopulateTabs = "tabs.populate"_event;
 	}
 }
 
@@ -161,9 +161,22 @@ namespace
 			return scrollLock.State() == 1;
 		}
 
-		bool OnKeyboardEvent(const KeyboardEvent& key) override
+		bool OnKeyboardEvent(const KeyboardEvent& k) override
 		{
-			return EditMode().OnKeyboardEvent(key);
+			Key key = platform.keyboard.GetKeyFromEvent(k);
+			auto* action = platform.keyboard.GetAction(key.KeyName);
+
+			if (action && !key.isPressed && Eq(action, "gui.editor.toggle"))
+			{
+				TEventArgs<bool> disable;
+				disable.value = false;
+				platform.publisher.Publish(disable, HV::Events::evEnableEditor);
+				return true;
+			}
+			else
+			{
+				return EditMode().OnKeyboardEvent(k);
+			}
 		}
 
 		void OnRawMouseEvent(const MouseEvent& key) override
@@ -277,7 +290,8 @@ namespace
 				{ "Floor",		"editor.tab.floor",   50 },
 				{ "Ceiling",	"editor.tab.ceiling", 60 },
 				{ "Corridor",   "editor.tab.corridor",75 },
-				{ "Lights",		"editor.tab.lights",  55 }
+				{ "Lights",		"editor.tab.lights",  55 },
+				{ "Tags",		"editor.tab.tags",    55 }
 			};
 
 			tbe.numberOfTabs = 6;
@@ -290,6 +304,7 @@ namespace
 			target->GetProperties("ceiling", *ceilingEditor);
 			target->GetProperties("corridor", *corridorEditor);
 			target->GetProperties("lights", *lightEditor);
+			target->GetProperties("tags", *lightEditor);
 		}
 
 		void Render(IGuiRenderContext& grc, const GuiRect& absRect) override

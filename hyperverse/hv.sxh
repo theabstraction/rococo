@@ -55,6 +55,7 @@
 		(AddActionArgumentI32 (IString argName)(Int32 value))
 		(AddActionArgumentF32 (IString argName)(Float32 value))
 		(AddActionArgumentString (IString argName)(IString value))
+		(AddTag (IString text))
 	)
 )
 

@@ -196,6 +196,9 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 		isCursorActive = false;
 		platform.renderer.SetCursorVisibility(false);
 		fpsControl.Clear();
+
+		// Assume the editor has invalidates the tags, so flag to rebuild
+		sectors.Tags().Invalidate();
 	}
 
 	void Deactivate()
@@ -974,6 +977,14 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 		auto* action = platform.keyboard.GetAction(key.KeyName);
 		if (action)
 		{
+			if (!key.isPressed && Eq(action, "gui.editor.toggle"))
+			{
+				TEventArgs<bool> enable;
+				enable.value = true;
+				platform.publisher.Publish(enable, evEnableEditor);
+				return true;
+			}
+
 			HV::Events::Player::PlayerActionEvent pae;
 			pae.Name = action;
 			pae.start = key.isPressed;

@@ -462,6 +462,23 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->AddActionArgumentString(argName, value);
 	}
+	void NativeHVISectorAIBuilderAddTag(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _text;
+		ReadInput(_text, _sf, -_offset);
+		fstring text { _text->buffer, _text->length };
+
+
+		HV::ISectorAIBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AddTag(text);
+	}
+
 }
 
 namespace HV { 
@@ -474,6 +491,7 @@ namespace HV {
 		ss.AddNativeCall(ns, NativeHVISectorAIBuilderAddActionArgumentI32, nullptr, ("ISectorAIBuilderAddActionArgumentI32 (Pointer hObject)(Sys.Type.IString argName)(Int32 value) -> "));
 		ss.AddNativeCall(ns, NativeHVISectorAIBuilderAddActionArgumentF32, nullptr, ("ISectorAIBuilderAddActionArgumentF32 (Pointer hObject)(Sys.Type.IString argName)(Float32 value) -> "));
 		ss.AddNativeCall(ns, NativeHVISectorAIBuilderAddActionArgumentString, nullptr, ("ISectorAIBuilderAddActionArgumentString (Pointer hObject)(Sys.Type.IString argName)(Sys.Type.IString value) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorAIBuilderAddTag, nullptr, ("ISectorAIBuilderAddTag (Pointer hObject)(Sys.Type.IString text) -> "));
 	}
 }
 // BennyHill generated Sexy native functions for HV::ISectorBuilder 

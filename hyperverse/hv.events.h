@@ -6,7 +6,8 @@ namespace HV
 
 	namespace Events
 	{
-		extern EventIdRef evChangeDefaultTextureId;
+		extern const EventIdRef evChangeDefaultTextureId;
+		extern const EventIdRef evEnableEditor;
 
 		struct ChangeDefaultTextureEvent : public EventArgs
 		{
