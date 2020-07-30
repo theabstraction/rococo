@@ -555,7 +555,7 @@ struct PaneContainer : public BasePane, virtual public IPaneContainer
 
 	Rococo::IEnumListPane* AddEnumList(int32 fontIndex, const fstring& populateEvent, const GuiRect& rect) override
 	{
-		auto* enumList = Rococo::MPlatImpl::AddEnumList(platform.publisher, *this, fontIndex, populateEvent, rect);
+		auto* enumList = Rococo::MPlatImpl::AddEnumList(platform, *this, fontIndex, populateEvent, rect);
 		return enumList;
 	}
 

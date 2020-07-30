@@ -63,14 +63,28 @@
 	(Recti tagRect = 10 120 110 320)
 	(tagRect.right = (frameWidth - 10))
 	(tagRect.bottom = (frameHeight - 10))
+	
+	(Recti raiseRect = 310 40 340 70)
+	(ILabelPane raiseButton = (frame.AddLabel 0 "$up" raiseRect))
+	(raiseButton.SetCommand 1 false "editor.tags.raise")
+	(raiseButton.SetEnableEvent "editor.tags.raise_enabler" 0x80101040 0x80303060)
+	(SetButtonDefaultColours raiseButton)
+	
+	(Recti lowerRect = 350 40 380 70)
+	(ILabelPane lowerButton = (frame.AddLabel 0 "$down" lowerRect))
+	(lowerButton.SetCommand 1 false "editor.tags.lower")
+	(lowerButton.SetEnableEvent "editor.tags.lower_enabler" 0x80101040 0x80303060)
+	(SetButtonDefaultColours lowerButton)
 			
 	(Recti editRect = tagRect)
 	(editRect.top = 80)
 	(editRect.bottom = 110)
 	(IPaneContainer editor = (frame.AddContainer editRect))
 	(editor.SetPopulator 0 "editor.tag")
-	(editor.SetColourBk1 0xF0303030 0xF0404040)
-	(editor.SetColourBk2 0x00303030 0x00404040)
+	(editor.SetColourBk1 0 0)
+	(editor.SetColourBk2 0 0)
+	(editor.SetColourEdge1 0 0)
+	(editor.SetColourEdge2 0 0)
 	
 	(IArrayBox actionArray = (frame.AddArrayBox 1 "editor.tags.populate" tagRect))
 	(actionArray.SetLineHeight 32)
@@ -79,6 +93,7 @@
 	(actionArray.SetColourBk2 0x00303030 0x00404040)
 	(actionArray.SetItemSelectEvent "editor.tags.selected")
 	(actionArray.SetColourFont 0xFFC0C0C0 0xFFFFFFFF)
+	(actionArray.SetScrollToItemEvent "editor.tags.scroll-to")
 
 	
 	(Recti closeRect = -1 40 -1 70)

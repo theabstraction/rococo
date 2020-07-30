@@ -8,6 +8,7 @@ namespace
 {
 	using namespace HV;
 
+	static const EventIdRef evEditTagsScrollTo =  "editor.tags.scroll-to"_event;
 	static const EventIdRef evEditSectorLogic = "edit.sector.logic"_event;
 	static const EventIdRef evEditSectorTags = "edit.sector.tags"_event;
 	static const EventIdRef evSelectTag = "editor.tags.selected"_event;
@@ -221,7 +222,10 @@ namespace
 		{
 			fieldEditor->Clear();
 			fieldEditor->Deactivate();
-			sector->TriggersAndActions().RemoveTrigger(triggerList.activeIndex);
+			if (triggerList.activeIndex >= 0 && triggerList.activeIndex < triggerList.Count())
+			{
+				sector->TriggersAndActions().RemoveTrigger(triggerList.activeIndex);
+			}
 		}
 
 		void AddAction()
@@ -324,6 +328,10 @@ namespace
 
 			char text[32];
 			sector->GetTags().GetItem(index, text, sizeof text);
+			if (Eq(text, GET_UNDEFINDED_TAG()))
+			{
+				text[0] = 0;
+			}
 			tagsEditor->AddStringField("tag", text, sizeof text, true);
 		}
 
@@ -382,13 +390,40 @@ namespace
 				{
 					LowerAction();
 				}
+				else if (Eq(cmd.command, "editor.tags.raise"))
+				{
+					sector->RaiseTag(tagIndex);
+					if (tagIndex > 0) tagIndex--;
+					TEventArgs<int32> line;
+					line.value = tagIndex;
+					platform.publisher.Publish(line, evEditTagsScrollTo);
+				}
+				else if (Eq(cmd.command, "editor.tags.lower"))
+				{
+					sector->LowerTag(tagIndex++);
+					if (tagIndex >= sector->TagCount()) tagIndex--;
+					TEventArgs<int32> line;
+					line.value = tagIndex;
+					platform.publisher.Publish(line, evEditTagsScrollTo);
+				}
 				else if (Eq(cmd.command, "editor.tags.add"))
 				{
 					sector->AddTag(tagIndex, GET_UNDEFINDED_TAG());
+					if (tagIndex < 0 || tagIndex >= sector->GetTags().Count())
+					{
+						SelectTag(0);
+					}
+
+					TEventArgs<int32> lineZero;
+					lineZero.value = 0;
+					platform.publisher.Publish(lineZero, evEditTagsScrollTo);
 				}
 				else if (Eq(cmd.command, "editor.tags.remove"))
 				{
-					if (tagIndex >= 0) sector->RemoveTag(tagIndex);
+					if (tagIndex >= 0 && tagIndex < sector->GetTags().Count())
+					{
+						sector->RemoveTag(tagIndex);
+					}
 				}
 			}
 			else if (ev == evPopulateTriggers)

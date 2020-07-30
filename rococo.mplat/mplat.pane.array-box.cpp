@@ -68,8 +68,8 @@ struct PanelArrayBox : public BasePane, public IArrayBox, public IObserver
 		{
 			auto& lineNumber = As<TEventArgs<int32>>(ev);
 			vscrollPos = lineNumber.value * lineHeight;
-			vscrollPos = max(0, vscrollPos);
 			vscrollPos = min(vscrollPos, vscrollSpan - pageSize);
+			vscrollPos = max(0, vscrollPos);
 			this->activeIndex = lineNumber.value;
 		}
 	}

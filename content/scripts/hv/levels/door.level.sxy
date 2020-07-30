@@ -70,7 +70,8 @@
 	(Int32 id = (sectors.CreateFromTemplate 0 400))
 
 	(ISectorAIBuilder ai = (sectors.GetSectorAIBuilder id))
-		(ai.AddTag "kitchen.door.1"))
+		(ai.AddTag "kitchen.door.1")
+)
 
 (function AddSector2 (ISectors sectors) -> :
 	(sectors.AddVertex -6.000000 20.000000)
@@ -109,5 +110,6 @@
 		(ai.AddAction "Delay")
 			(ai.AddActionArgumentF32 "duration" 4.000000)
 		(ai.AddAction "LowerScenery")
-			(ai.AddActionArgumentString "sector" "kitchen.door.1"))
+			(ai.AddActionArgumentString "sector" "kitchen.door.1")
+)
 

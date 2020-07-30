@@ -95,6 +95,11 @@ public:
 		value = s.logicalValue;
 		pageSize = s.logicalPageSize;
 		rowSize = s.rowSize;
+
+		if (maxValue - minValue < s.logicalPageSize)
+		{
+			maxValue = minValue + s.logicalPageSize;
+		}
 	}
 
 	bool AppendEvent(const KeyboardEvent& k, ScrollEvent& updateStatus)
@@ -215,7 +220,7 @@ public:
 	}
 
 
-	void Render(IGuiRenderContext& grc, const GuiRect& absRect, const Modality& modality, RGBAb hilightColour, RGBAb baseColour, RGBAb hilightEdge, RGBAb baseEdge, IEventCallback<ScrollEvent>& populator, const EventIdRef& populationEventId)
+	void Render(IGuiRenderContext& grc, const GuiRect& absRect, const Modality& modality, RGBAb hilightColour, RGBAb baseColour, RGBAb hi_SliderCol, RGBAb sliderCol,  RGBAb hilightEdge, RGBAb baseEdge, IEventCallback<ScrollEvent>& populator, const EventIdRef& populationEventId)
 	{
 		GuiMetrics metrics;
 		grc.Renderer().GetGuiMetrics(metrics);
@@ -296,14 +301,16 @@ public:
 
 		if (isVertical)
 		{
-			sliderRect = GuiRect{ 1, 1, span.x - 2, PageSizeInPixels() } + Vec2i{ 0, PixelValue(value) } + TopLeft(absRect);
+			sliderRect = GuiRect{ 1, 1, span.x - 2, PageSizeInPixels() };
+			sliderRect = sliderRect + Vec2i{ 0, PixelValue(value) };
+			sliderRect = sliderRect + TopLeft(absRect);
 		}
 		else
 		{
 			sliderRect = GuiRect{ 1, 1, PageSizeInPixels(), span.y - 2 } + Vec2i{ PixelValue(value), 0 } + TopLeft(absRect);
 		}
 
-		Graphics::DrawRectangle(grc, sliderRect, lit ? hilightColour : baseColour, lit ? hilightColour : baseColour);
+		Graphics::DrawRectangle(grc, sliderRect, lit ? hi_SliderCol : sliderCol, lit ? hi_SliderCol : sliderCol);
 		Graphics::DrawBorderAround(grc, sliderRect, { 1,1 }, lit ? hilightEdge : baseEdge, lit ? hilightEdge : baseEdge);
 	}
 };
@@ -437,7 +444,8 @@ public:
 	{
 		auto span = Span(ClientRect());
 		GuiRect absRect = GuiRect{ 0, 0, span.x, span.y } + topLeft;
-		scrollbar.Render(grc, absRect, modality, Scheme().hi_topLeft, Scheme().topLeft, Scheme().hi_topLeftEdge, Scheme().topLeftEdge, *this, uiScrollId);
+		auto& s = Scheme();
+		scrollbar.Render(grc, absRect, modality, s.hi_topLeft, s.topLeft, s.hi_bottomRight, s.bottomRight, s.hi_topLeftEdge, s.topLeftEdge, *this, uiScrollId);
 	}
 };
 

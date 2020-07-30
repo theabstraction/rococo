@@ -1972,7 +1972,19 @@ namespace ANON
 			modality.isModal = true;
 			modality.isTop = true;
 			modality.isUnderModal = false;
-			vscroll->Render(rc, scrollRect, modality, RGBAb(48, 48, 48, 240), RGBAb(32, 32, 32, 240), RGBAb(255, 255, 255), RGBAb(192, 192, 192), *this, ""_event);
+			vscroll->Render(
+				rc,
+				scrollRect, 
+				modality, 
+				RGBAb(48, 48, 48, 240),
+				RGBAb(32, 32, 32, 240),
+				RGBAb(64, 64, 64, 240),
+				RGBAb(96, 96, 96, 240),
+				RGBAb(255, 255, 255), 
+				RGBAb(192, 192, 192),
+				*this, 
+				""_event
+			);
 
 			GuiRect mainRect{ absRect.left, absRect.top, scrollRect.left - 1, absRect.bottom };
 

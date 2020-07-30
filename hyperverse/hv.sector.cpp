@@ -430,7 +430,15 @@ namespace ANON
 
 		   void GetItem(int32 index, char* text, size_t capacity) const
 		   {
-			   SafeFormat(text, capacity, "%s", items[index].c_str());
+		/*	   auto& item = items[index];
+			   if (item.empty())
+			   {
+				   SafeFormat(text, capacity, "<undefined>");
+			   }
+			   else */
+			   {
+				   SafeFormat(text, capacity, "%s", items[index].c_str());
+			   }
 		   }
 	   } tags;
 
@@ -460,6 +468,27 @@ namespace ANON
 
 		   tags.items.insert(i, text);
 		   return true;
+	   }
+
+	   void RaiseTag(int32 pos) override
+	   {
+		   if (pos > 0 && pos < tags.items.size())
+		   {
+			   std::swap(tags.items[pos], tags.items[pos - 1]);
+		   }
+	   }
+
+	   void LowerTag(int32 pos) override
+	   {
+		   if (tags.items.size() >= 2 && pos >= 0 && pos < tags.items.size()-1)
+		   {
+			   std::swap(tags.items[pos], tags.items[pos + 1]);
+		   }
+	   }
+
+	   int32 TagCount() const override
+	   {
+		   return (int32) tags.items.size();
 	   }
 
 	   void SetTag(int32 pos, cstr text) override
@@ -3185,6 +3214,8 @@ namespace ANON
 			  {
 				  sb << "\n\t\t(ai.AddTag \"" << t.c_str() << "\")";
 			  }
+
+			  sb << "\n";
 		  }
 	  }
 

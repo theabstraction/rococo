@@ -7,6 +7,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.windows", "rococo.wi
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "window.test", "window.test\window.test.vcxproj", "{039F8FD0-0C62-46D0-AC97-F16177E33272}"
 	ProjectSection(ProjectDependencies) = postProject
+		{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D} = {D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}
 		{997A007C-24B0-44FE-A27E-0EE006D74128} = {997A007C-24B0-44FE-A27E-0EE006D74128}
 	EndProjectSection
 EndProject
@@ -20,6 +21,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.maths", "rococo.math
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.maths.test", "rococo.maths.test\rococo.maths.test.vcxproj", "{9A70BF9A-D77A-4934-86AE-A429A25CB2C2}"
 	ProjectSection(ProjectDependencies) = postProject
+		{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D} = {D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}
 		{426AEC64-C529-4ADF-9A49-B4E7A3D6C710} = {426AEC64-C529-4ADF-9A49-B4E7A3D6C710}
 	EndProjectSection
 EndProject

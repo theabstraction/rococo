@@ -10,14 +10,14 @@ using namespace Rococo::Events;
 using namespace Rococo::Windows;
 using namespace Rococo::MPlatImpl;
 
-class EnumListPane : public BasePane, public IEnumListPane
+class EnumListPane : public BasePane, public IEnumListPane, public IEventCallback<ScrollEvent>
 {
+	Platform& platform; // make platform first member to ensure correct compilation of constructor
 	int32 fontIndex = 1;
 	std::string populateId;
 	int32 horzAlign = 0;
 	int32 vertAlign = 0;
 	Vec2i padding{ 0,0 };
-	IPublisher& publisher;
 	EventIdRef evPopulate;
 	std::unordered_map<std::string, int32> categoriesByName;
 	std::unordered_map<int32, std::string> categoriesById;
@@ -30,11 +30,20 @@ class EnumListPane : public BasePane, public IEnumListPane
 
 	RGBAb focusColour1{ 0,0,64,255 };
 	RGBAb focusColour2{ 0,0,96,255 };
+
+	EventIdRef evScrollPopulate;
+	AutoFree<IScrollbar> vscroll;
+
+	int32 vPos = 0;
 public:
-	EnumListPane(IPublisher& _publisher, int _fontIndex, cstr _populateId) : 
-		fontIndex(_fontIndex), publisher(_publisher), populateId(_populateId),
-		evPopulate(publisher.CreateEventIdFromVolatileString(_populateId))
+	EnumListPane(Platform& _platform, int _fontIndex, cstr _populateId) :
+		fontIndex(_fontIndex), platform(_platform), populateId(_populateId),
+		evPopulate(platform.publisher.CreateEventIdFromVolatileString(_populateId)),
+		vscroll(platform.utilities.CreateScrollbar(true))
 	{
+		char scrollPopulateText[256];
+		SafeFormat(scrollPopulateText, sizeof scrollPopulateText, "%s.vscroll.populate", _populateId);
+		evScrollPopulate = platform.publisher.CreateEventIdFromVolatileString(scrollPopulateText);
 	}
 
 	void Free() override
@@ -80,7 +89,7 @@ public:
 		{
 			TEventArgs<IEnumVector*> args;
 			args.value = nullptr;
-			publisher.Publish(args, evPopulate);
+			platform.publisher.Publish(args, evPopulate);
 			if (args.value)
 			{
 				args.value->SetValue(id, value);
@@ -88,11 +97,16 @@ public:
 		}
 	}
 
+	void OnEvent(ScrollEvent& ev) override
+	{
+		this->vPos = ev.logicalValue;
+	}
+
 	void MakeActive(int32 id)
 	{
 		TEventArgs<IEnumVector*> args;
 		args.value = nullptr;
-		publisher.Publish(args, evPopulate);
+		platform.publisher.Publish(args, evPopulate);
 		if (args.value)
 		{
 			args.value->SetActiveIndex(id);
@@ -112,45 +126,61 @@ public:
 		focusColour2 = col2;
 	}
 
+	GuiRect lastAbsRect{ -1, -1, -1, -1 };
+
 	void AppendEvent(const MouseEvent& me, const Vec2i& absTopLeft) override
 	{
+		ScrollEvent se;
+		if (vscroll->AppendEvent(me, TopLeft(lastAbsRect), se))
+		{
+			vPos = se.logicalValue;
+			return;
+		}
+
 		if (me.HasFlag(me.LUp) || me.HasFlag(me.RUp))
 		{
 			struct ANON : public IEventCallback<const ItemCallbackArgs>
 			{
 				EnumListPane* This;
 				Vec2i pos;
-				int32 id = 0;
+
 				void OnEvent(const ItemCallbackArgs& args) override
 				{
 					if (IsPointInRect(pos, args.lButtonRect))
 					{
-						This->DecrementEnum(id, args.value);
+						This->DecrementEnum(args.id, args.value);
 					}
 					else if (IsPointInRect(pos, args.rButtonRect))
 					{
-						This->IncrementEnum(id, args.value);
+						This->IncrementEnum(args.id, args.value);
 					}
 					else if (IsPointInRect(pos, args.itemRect))
 					{
-						This->MakeActive(id);
+						This->MakeActive(args.id);
 					}
-
-					id++;
 				}
 			} routeClick;
 			routeClick.This = this;
 			routeClick.pos = me.cursorPos;
-			ForEachItem(routeClick, lastPos);
+			ForEachItem(routeClick, lastEnumRect);
 		}
 		else if (me.HasFlag(me.LDown) || me.HasFlag(me.RDown))
 		{
 		}
 	}
 
-	bool AppendEvent(const KeyboardEvent& me, const Vec2i& focusPoint, const Vec2i& absTopLeft) override
+	bool AppendEvent(const KeyboardEvent& ke, const Vec2i& focusPoint, const Vec2i& absTopLeft) override
 	{
-		return false;
+		ScrollEvent se;
+		if (vscroll->AppendEvent(ke, se))
+		{
+			vPos = se.logicalValue;
+			return true;
+		}
+		else
+		{
+			return false;
+		}
 	}
 
 	void AddEnumCategory(const fstring& key, int32 value) override
@@ -197,27 +227,24 @@ public:
 		Graphics::DrawText(grc, args.textRect, Graphics::Alignment_Left, to_fstring(text), fontIndex, fontColour);
 	}
 
-	Vec2i lastPos{ 0,0 };
+	GuiRect lastEnumRect = { -1,-1,-1,-1};
 
-	void ForEachItem(IEventCallback<const ItemCallbackArgs>& cb, Vec2i topLeft)
+	enum { CELL_HEIGHT = 24 };
+
+	void ForEachItem(IEventCallback<const ItemCallbackArgs>& cb, const GuiRect& enumRect)
 	{
-		lastPos = topLeft;
-
-		auto span = Span(ClientRect());
-		GuiRect absRect{ topLeft.x, topLeft.y, topLeft.x + span.x, topLeft.y + span.y };
+		lastEnumRect = enumRect;
 
 		TEventArgs<IEnumVector*> args;
 		args.value = nullptr;
-		publisher.Publish(args, evPopulate);
+		platform.publisher.Publish(args, evPopulate);
 
 		if (args.value == nullptr) return;
 
 		auto& enums = *args.value;
 
-		enum { CELL_HEIGHT = 24 };
-
 		ItemCallbackArgs rects;
-		rects.itemRect = { absRect.left, absRect.top, absRect.right, absRect.top + CELL_HEIGHT };
+		rects.itemRect = { enumRect.left, enumRect.top, enumRect.right, enumRect.top - vPos };
 
 		rects.activeId = args.value->GetActiveIndex();
 
@@ -235,35 +262,42 @@ public:
 			int32 value = enums[i];
 			rects.itemRect.top = rects.itemRect.bottom;
 			rects.itemRect.bottom += CELL_HEIGHT;
-			rects.id = i;
 
-			rects.textRect =
+			if (rects.itemRect.bottom > enumRect.top && rects.itemRect.top < enumRect.bottom)
 			{
-				(float)rects.itemRect.left + LBORDER,
-				(float)rects.itemRect.top,
-				(float)rects.itemRect.right - RBORDER,
-				(float)rects.itemRect.bottom,
-			};
+				rects.id = i;
 
-			GuiRect lButton = rects.itemRect;
-			lButton.right = lButton.left + ARROW_SPAN;
-			lButton.top = rects.itemRect.top + BUTTON_BORDER_TOP;
-			lButton.bottom = rects.itemRect.bottom - BUTTON_BORDER_BOTTOM;
+				rects.textRect =
+				{
+					(float)rects.itemRect.left + LBORDER,
+					(float)rects.itemRect.top,
+					(float)rects.itemRect.right - RBORDER,
+					(float)rects.itemRect.bottom,
+				};
 
-			GuiRect rButton = rects.itemRect;
-			rButton.right = rects.itemRect.right;
-			rButton.left = rects.itemRect.right - ARROW_SPAN;
-			lButton.top = rects.itemRect.top + BUTTON_BORDER_TOP;
-			lButton.bottom = rects.itemRect.bottom - BUTTON_BORDER_BOTTOM;
+				GuiRect lButton = rects.itemRect;
+				lButton.right = lButton.left + ARROW_SPAN;
+				lButton.top = rects.itemRect.top + BUTTON_BORDER_TOP;
+				lButton.bottom = rects.itemRect.bottom - BUTTON_BORDER_BOTTOM;
 
-			rects.lButtonRect = lButton;
-			rects.rButtonRect = rButton;
+				GuiRect rButton = rects.itemRect;
+				rButton.right = rects.itemRect.right;
+				rButton.left = rects.itemRect.right - ARROW_SPAN;
+				lButton.top = rects.itemRect.top + BUTTON_BORDER_TOP;
+				lButton.bottom = rects.itemRect.bottom - BUTTON_BORDER_BOTTOM;
 
-			rects.value = value;
+				rects.lButtonRect = lButton;
+				rects.rButtonRect = rButton;
 
-			cb.OnEvent(rects);
+				rects.value = value;
+
+				cb.OnEvent(rects);
+			}
 		}
 	}
+
+	int32 lastPageSize = -1;
+	int lastCount = -1;
 
 	void Render(IGuiRenderContext& grc, const Vec2i& topLeft, const Modality& modality) override
 	{
@@ -273,6 +307,39 @@ public:
 		auto span = Span(ClientRect());
 		GuiRect absRect{ topLeft.x, topLeft.y, topLeft.x + span.x, topLeft.y + span.y };
 
+		lastAbsRect = absRect;
+
+		TEventArgs<IEnumVector*> args;
+		args.value = nullptr;
+		platform.publisher.Publish(args, evPopulate);
+
+		int32 pageSize = Height(absRect);
+
+		if (args.value)
+		{
+			if (lastCount != args.value->Count())
+			{
+				lastCount = args.value->Count();
+				lastPageSize = -1;
+			}
+		}
+
+		if (args.value && lastPageSize != pageSize)
+		{
+			lastPageSize = pageSize;
+
+			auto& enums = *args.value;
+
+			ScrollEvent state;
+			state.fromScrollbar = false;
+			state.logicalMinValue = 0;
+			state.logicalMaxValue = max(0, enums.Count() * CELL_HEIGHT);
+			state.logicalPageSize = pageSize;
+			state.logicalValue = 0;
+			state.rowSize = CELL_HEIGHT;
+			vscroll->SetScrollState(state);
+		}
+
 		bool isLit = IsPointInRect(metrics.cursorPosition, absRect);
 
 		auto& s = Scheme();
@@ -280,7 +347,15 @@ public:
 		RGBAb bkColour1 = !isLit ? s.bottomRight : s.hi_bottomRight;
 		RGBAb bkColour2 = !isLit ? s.topLeft : s.hi_topLeft;
 
+		int32 vscrollLeft = absRect.right - 24;
+
+		GuiRect enumRect = absRect;
+		enumRect.right = vscrollLeft - 2;
+
 		Graphics::DrawRectangle(grc, absRect, bkColour1, bkColour2);
+
+		grc.FlushLayer();
+		grc.SetScissorRect(Dequantize(enumRect));
 
 		struct ANON : IEventCallback<const ItemCallbackArgs>
 		{
@@ -305,7 +380,32 @@ public:
 		renderAll.grc = &grc;
 		renderAll.This = this;
 
-		ForEachItem(renderAll, topLeft);
+		ForEachItem(renderAll, enumRect);
+
+		grc.FlushLayer();
+		grc.SetScissorRect(GuiRectf{ 0, 0, (float) metrics.screenSpan.x, (float) metrics.screenSpan.y });
+
+		GuiRect scrollRect =
+		{
+			vscrollLeft,
+			absRect.top + 1,
+			absRect.right - 1,
+			absRect.bottom - 1
+		};
+
+		vscroll->Render(
+			grc,
+			scrollRect,
+			modality,
+			RGBAb(128, 128, 128,255),
+			RGBAb(96,96,96,255),
+			RGBAb(160, 160, 160, 255),
+			RGBAb(140, 140, 140, 255),
+			s.hi_topLeftEdge,
+			s.topLeftEdge,
+			*this,
+			evScrollPopulate
+		);
 
 		RGBAb edgeColour1 = isLit ? s.bottomRightEdge : s.hi_bottomRightEdge;
 		RGBAb edgeColour2 = isLit ? s.topLeftEdge : s.hi_topLeftEdge;
@@ -317,9 +417,9 @@ namespace Rococo
 {
 	namespace MPlatImpl
 	{
-		Rococo::IEnumListPane* AddEnumList(IPublisher& publisher, BasePane& panel, int32 fontIndex, const fstring& populateId, const GuiRect& rect)
+		Rococo::IEnumListPane* AddEnumList(Platform& platform, BasePane& panel, int32 fontIndex, const fstring& populateId, const GuiRect& rect)
 		{
-			auto* enumList = new EnumListPane(publisher, fontIndex, populateId);
+			auto* enumList = new EnumListPane(platform, fontIndex, populateId);
 			panel.AddChild(enumList);
 			enumList->SetRect(rect);
 			return enumList;

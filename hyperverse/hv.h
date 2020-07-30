@@ -482,6 +482,9 @@ namespace HV
 		virtual bool AddTag(int32 pos, cstr text) = 0;
 		virtual void RemoveTag(int32 pos) = 0;
 		virtual void SetTag(int32 pos, cstr text) = 0;
+		virtual void LowerTag(int32 pos) = 0;
+		virtual void RaiseTag(int32 pos) = 0;
+		virtual int32 TagCount() const = 0;
 
 		virtual bool UseAnythingAt(cr_vec3 probePoint, cr_vec3 probeDirection, Metres reach) = 0;
 

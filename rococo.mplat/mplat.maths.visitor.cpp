@@ -278,8 +278,22 @@ namespace
 		   RGBAb loCol(160, 160, 160);
 		   RGBAb hiEdg(255, 255, 255);
 		   RGBAb loEdg(224, 224, 224);
+		   RGBAb hiSli(224, 224, 224);
+		   RGBAb loSli(192, 192, 192);
 
-		   scrollbar->Render(gc, absRect, modality, hiCol, loCol, hiEdg, loEdg, *this, ""_event);
+		   scrollbar->Render(
+			   gc,
+			   absRect,
+			   modality,
+			   hiCol,
+			   loCol, 
+			   hiSli,
+			   loSli,
+			   hiEdg,
+			   loEdg,
+			   *this, 
+			   ""_event
+		   );
 	   }
 
 	   int32 knownHeight = 0;
