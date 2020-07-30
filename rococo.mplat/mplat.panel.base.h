@@ -252,7 +252,7 @@ namespace Rococo
 		};
 
 		IPaneBuilderSupervisor* CreateDebuggingOverlay(Platform& platfore);
-		Rococo::IArrayBox* AddArrayBox(IPublisher& publisher, BasePane& panel, int32 fontIndex, const fstring& populatorEventKey, const GuiRect& rect);
+		Rococo::IArrayBox* AddArrayBox(Platform& platform, BasePane& panel, int32 fontIndex, const fstring& populatorEventKey, const GuiRect& rect);
 		ITextOutputPane* AddTextOutput(IPublisher& publisher, BasePane& panel, int32 fontIndex, const fstring& eventKey, const GuiRect& rect);
 		Rococo::IScroller* AddScroller(IPublisher& publisher, BasePane& panel, const fstring& key, const GuiRect& rect, boolean32 isVertical);
 		Rococo::IContextMenuPane* AddContextMenuPane(IPublisher& publisher, IKeyboardSupervisor& keyboard, BasePane& panel, const fstring& key, const GuiRect& rect, IContextMenuSupervisor& cm);

@@ -549,7 +549,7 @@ struct PaneContainer : public BasePane, virtual public IPaneContainer
 
 	Rococo::IArrayBox* /* box */ AddArrayBox(int32 fontIndex, const fstring& populatorEvent, const GuiRect& rect)
 	{
-		auto* arrayBox = Rococo::MPlatImpl::AddArrayBox(platform.publisher, *this, fontIndex, populatorEvent, rect);
+		auto* arrayBox = Rococo::MPlatImpl::AddArrayBox(platform, *this, fontIndex, populatorEvent, rect);
 		return arrayBox;
 	}
 

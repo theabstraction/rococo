@@ -8,8 +8,9 @@ using namespace Rococo::Events;
 using namespace Rococo::Windows;
 using namespace Rococo::MPlatImpl;
 
-struct PanelArrayBox : public BasePane, public IArrayBox, public IObserver
+struct PanelArrayBox : BasePane, IArrayBox, IObserver, IEventCallback<ScrollEvent>
 {
+	Platform& platform;
 	int32 fontIndex = 1;
 	int32 activeIndex = -1;
 	HString populateArrayEventText;
@@ -17,22 +18,28 @@ struct PanelArrayBox : public BasePane, public IArrayBox, public IObserver
 	EventIdRef evPopulate = { 0,0 };
 	EventIdRef evItemSelected = { 0,0 };
 	EventIdRef evScrollToLine = { 0,0 };
-	IPublisher& publisher;
 	RGBAb hi_focusColour{ 0,0,64,255 };
 	RGBAb focusColour{ 0,0,48,255 };
 	int32 lineHeight = 20;
 	GuiRect borders{ 0, 0, 0, 0 };
+	AutoFree<IScrollbar> vscroll;
 
-	PanelArrayBox(IPublisher& _publisher, int _fontIndex, cstr _populateArrayEventText) :
-		fontIndex(_fontIndex), publisher(_publisher)
+	PanelArrayBox(Platform& _platform, int _fontIndex, cstr _populateArrayEventText) :
+		fontIndex(_fontIndex), platform(_platform),
+		vscroll(_platform.utilities.CreateScrollbar(true))
 	{
 		populateArrayEventText = _populateArrayEventText;
-		evPopulate = publisher.CreateEventIdFromVolatileString(populateArrayEventText);
+		evPopulate = platform.publisher.CreateEventIdFromVolatileString(populateArrayEventText);
 	}
 	
 	~PanelArrayBox()
 	{
-		publisher.Unsubscribe(this);
+		platform.publisher.Unsubscribe(this);
+	}
+
+	void OnEvent(ScrollEvent& ev) override
+	{
+		vscrollPos = ev.logicalValue;
 	}
 
 	void SetLineHeight(int32 pixels)
@@ -53,13 +60,13 @@ struct PanelArrayBox : public BasePane, public IArrayBox, public IObserver
 	void SetItemSelectEvent(const fstring& eventText) override
 	{
 		itemSelectedEventText = eventText;
-		evItemSelected = publisher.CreateEventIdFromVolatileString(eventText);
+		evItemSelected = platform.publisher.CreateEventIdFromVolatileString(eventText);
 	}
 
 	void SetScrollToItemEvent(const fstring& eventText) override
 	{
-		evScrollToLine = publisher.CreateEventIdFromVolatileString(eventText);
-		publisher.Subscribe(this, evScrollToLine);
+		evScrollToLine = platform.publisher.CreateEventIdFromVolatileString(eventText);
+		platform.publisher.Subscribe(this, evScrollToLine);
 	}
 
 	void OnEvent(Event& ev)
@@ -80,8 +87,14 @@ struct PanelArrayBox : public BasePane, public IArrayBox, public IObserver
 		hi_focusColour = hilight;
 	}
 
-	bool AppendEvent(const KeyboardEvent& me, const Vec2i& focusPoint, const Vec2i& absTopLeft) override
+	bool AppendEvent(const KeyboardEvent& ke, const Vec2i& focusPoint, const Vec2i& absTopLeft) override
 	{
+		ScrollEvent se;
+		if (vscroll->AppendEvent(ke, se))
+		{
+			vscrollPos = se.logicalValue;
+			return true;
+		}
 		return false;
 	}
 
@@ -113,6 +126,13 @@ struct PanelArrayBox : public BasePane, public IArrayBox, public IObserver
 
 	void AppendEvent(const MouseEvent& me, const Vec2i& absTopLeft) override
 	{
+		ScrollEvent se;
+		if (vscroll->AppendEvent(me, absTopLeft, se))
+		{
+			vscrollPos = se.logicalValue;
+			return;
+		}
+
 		int dz = ((int32)(short)me.buttonData) / 120;
 
 		if (dz != 0)
@@ -129,33 +149,6 @@ struct PanelArrayBox : public BasePane, public IArrayBox, public IObserver
 
 		if (me.HasFlag(me.LUp) || me.HasFlag(me.RUp))
 		{
-			if (IsPointInRect(me.cursorPos, vscroller.upButton))
-			{
-				vscrollPos -= lineHeight;
-				vscrollPos = max(0, vscrollPos);
-				return;
-			}
-			else if (IsPointInRect(me.cursorPos, vscroller.downButton))
-			{
-				vscrollPos += lineHeight;
-				vscrollPos = min(vscrollPos, vscrollSpan - pageSize);
-				return;
-			}
-			else if (IsPointInRect(me.cursorPos, vscroller.back))
-			{
-				if (me.cursorPos.y > vscroller.upButton.bottom && me.cursorPos.y < vscroller.slider.top)
-				{
-					vscrollPos -= pageSize;
-					vscrollPos = max(0, vscrollPos);
-				}
-				else if (me.cursorPos.y > vscroller.slider.bottom && me.cursorPos.y < vscroller.downButton.top)
-				{
-					vscrollPos += pageSize;
-					vscrollPos = min(vscrollPos, vscrollSpan - pageSize);
-				}
-				return;
-			}
-
 			int32 previousIndex = activeIndex;
 			struct: IEventCallback<SVArgs>
 			{
@@ -176,7 +169,7 @@ struct PanelArrayBox : public BasePane, public IArrayBox, public IObserver
 			T2EventArgs<IStringVector*,int32> args;
 			args.value1 = nullptr;
 			args.value2 = -1;
-			publisher.Publish(args, evPopulate);
+			platform.publisher.Publish(args, evPopulate);
 
 			if (args.value1 != nullptr)
 			{
@@ -187,7 +180,7 @@ struct PanelArrayBox : public BasePane, public IArrayBox, public IObserver
 			{
 				TEventArgs<int> selectArgs;
 				selectArgs.value = activeIndex;
-				publisher.Publish(selectArgs, evItemSelected);
+				platform.publisher.Publish(selectArgs, evItemSelected);
 			}
 		}
 		else if (me.HasFlag(me.LDown) || me.HasFlag(me.RDown))
@@ -254,71 +247,10 @@ struct PanelArrayBox : public BasePane, public IArrayBox, public IObserver
 		EnumerateStringVector(sv, absRect, renderLine);
 	}
 
-	struct VScroller
-	{
-		GuiRect upButton;
-		GuiRect back;
-		GuiRect slider;
-		GuiRect downButton;
-	};
+	enum { vsWidth = 24 };
 
-	int32 vsWidth = 20;
-
-	void GetVScrollerRect(VScroller& vscroller, const GuiRect& rect)
-	{
-		vscroller.back = rect;
-		vscroller.upButton = rect;
-		vscroller.upButton.bottom = rect.top + vsWidth;
-		vscroller.upButton.left += 2;
-		vscroller.upButton.right -= 2;
-		vscroller.upButton.top += 2;
-		vscroller.downButton = rect;
-		vscroller.downButton.top = rect.bottom - vsWidth;
-		vscroller.downButton.left += 2;
-		vscroller.downButton.right -= 2;
-		vscroller.downButton.bottom -= 2;
-
-		int32 sliderHeight = 0;
-		int32 sliderStartPos = 0;
-		if (vscrollSpan > 0)
-		{
-			sliderHeight = (int)((pageSize / (float)vscrollSpan) * (float)(vscroller.downButton.top - vscroller.upButton.bottom));
-			sliderStartPos = (int)((vscrollPos / (float)vscrollSpan) * (float)(vscroller.downButton.top - vscroller.upButton.bottom));
-		}
-
-		vscroller.slider.top = vscroller.upButton.bottom + 1 + sliderStartPos;
-		vscroller.slider.bottom = vscroller.slider.top + sliderHeight;
-		vscroller.slider.left = rect.left + 2;
-		vscroller.slider.right = rect.right - 2;
-	}
-
-	void RenderVScroller(IGuiRenderContext& grc, const VScroller& scroller, Vec2i cursorPos)
-	{
-		bool isUpLit = IsPointInRect(cursorPos, scroller.upButton);
-		Graphics::DrawTriangleFacingUp(grc, scroller.upButton, isUpLit ? RGBAb(255, 255, 255, 255) : RGBAb(224, 224, 224, 255));
-
-		bool isDownLit = IsPointInRect(cursorPos, scroller.downButton);
-		Graphics::DrawTriangleFacingDown(grc, scroller.downButton, isDownLit ? RGBAb(255, 255, 255, 255) : RGBAb(224, 224, 224, 255));
-
-		if (vscrollSpan > pageSize)
-		{
-			bool isSliderLit = IsPointInRect(cursorPos, scroller.slider);
-			RGBAb col1 = isSliderLit ? RGBAb(200, 100, 100, 255) : RGBAb(200, 100, 100, 128);
-			RGBAb col2 = isSliderLit ? RGBAb(160, 120, 120, 255) : RGBAb(160, 120, 120, 128);
-			Graphics::DrawRectangle(grc, scroller.slider, col1, col2);
-
-			RGBAb b1 = isSliderLit ? RGBAb(255, 255, 255, 255) : RGBAb(224, 224, 224, 255);
-			RGBAb b2 = isSliderLit ? RGBAb(224, 224, 224, 255) : RGBAb(200, 200, 200, 255);
-			Graphics::DrawBorderAround(grc, scroller.slider, { 1,1 }, b1, b2);
-		}
-
-		bool isLit = IsPointInRect(cursorPos, scroller.back);
-		RGBAb b1 = isLit ? RGBAb(255, 255, 255, 255) : RGBAb(224, 224, 224, 255);
-		RGBAb b2 = isLit ? RGBAb(224, 224, 224, 255) : RGBAb(200, 200, 200, 255);
-		Graphics::DrawBorderAround(grc, scroller.back, { 1,1 }, b1, b2);
-	}
-
-	VScroller vscroller = { };
+	int32 lastCount = -1;
+	int32 lastPageSize = -1;
 
 	void Render(IGuiRenderContext& grc, const Vec2i& topLeft, const Modality& modality) override
 	{
@@ -329,7 +261,7 @@ struct PanelArrayBox : public BasePane, public IArrayBox, public IObserver
 
 		T2EventArgs<IStringVector*,int32> args;
 		args.value1 = nullptr;
-		publisher.Publish(args, evPopulate);
+		platform.publisher.Publish(args, evPopulate);
 
 		GuiMetrics metrics;
 		grc.Renderer().GetGuiMetrics(metrics);
@@ -341,17 +273,51 @@ struct PanelArrayBox : public BasePane, public IArrayBox, public IObserver
 			RenderRows(grc, *args.value1);
 			grc.FlushLayer();
 			grc.SetScissorRect(GuiRectf{ 0, 0, 1000000.0f, 1000000.0f });
+
+			int32 pageSize = Height(absRect);
+
+			if (lastCount != args.value1->Count())
+			{
+				lastCount = args.value1->Count();
+				lastPageSize = -1;
+			}
+
+			if (args.value1 && lastPageSize != pageSize)
+			{
+				lastPageSize = pageSize;
+
+				ScrollEvent state;
+				state.fromScrollbar = false;
+				state.logicalMinValue = 0;
+				state.logicalMaxValue = max(0, lastCount * lineHeight);
+				state.logicalPageSize = pageSize;
+				state.logicalValue = 0;
+				state.rowSize = lineHeight;
+				vscroll->SetScrollState(state);
+			}
 		}
 
-		GuiRect scrollerRect = absRect;
-		scrollerRect.left = absRect.right;
-		scrollerRect.right = topLeft.x + span.x - 1;
+		GuiRect scrollRect = absRect;
+		scrollRect.left = absRect.right;
+		scrollRect.right = topLeft.x + span.x - 1;
 
 		if (vscrollSpan <= pageSize) vscrollPos = 0;
 
-		GetVScrollerRect(vscroller, scrollerRect);
+		auto& s = Scheme();
 
-		RenderVScroller(grc, vscroller, metrics.cursorPosition);
+		vscroll->Render(
+			grc,
+			scrollRect,
+			modality,
+			RGBAb(128, 128, 128, 255),
+			RGBAb(96, 96, 96, 255),
+			RGBAb(160, 160, 160, 255),
+			RGBAb(140, 140, 140, 255),
+			s.hi_topLeftEdge,
+			s.topLeftEdge,
+			*this,
+			{0,0}
+		);
 	}
 };
 
@@ -359,9 +325,9 @@ namespace Rococo
 {
 	namespace MPlatImpl
 	{
-		IArrayBox* AddArrayBox(IPublisher& publisher, BasePane& panel, int32 fontIndex, const fstring& populatorEventKey, const GuiRect& rect)
+		IArrayBox* AddArrayBox(Platform& platform, BasePane& panel, int32 fontIndex, const fstring& populatorEventKey, const GuiRect& rect)
 		{
-			auto* ab = new PanelArrayBox(publisher, fontIndex, populatorEventKey);
+			auto* ab = new PanelArrayBox(platform, fontIndex, populatorEventKey);
 			panel.AddChild(ab);
 			ab->SetRect(rect);
 			return ab;
