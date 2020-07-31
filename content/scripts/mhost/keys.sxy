@@ -1,7 +1,7 @@
 (' #file.type rococo.script.vkeys)
 
 (' #include
-	"!scripts/mhost/mplat.types.sxy"
+	"!scripts/mplat.types.sxy"
 	"!scripts/mhost/mhost.sxh.sxy"
 	"!scripts/mplat.sxh.sxy"
 	"!scripts/types.sxy"
@@ -16,7 +16,7 @@
 (using Rococo)
 
 (macro Rococo.addkeys in out
-	(#for (Int32 i = 1) (i < in.ChildCount) (#inc i)
+	(#for (Int32 i = 1) (i < in.ChildCount) (i += 1)
 		(IExpression child = (in i))
 		(IExpression code = (child 0))
 		(IExpression name = (child 1))

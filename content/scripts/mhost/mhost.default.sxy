@@ -1,5 +1,5 @@
 (' #include 
-	"!scripts/mhost/mplat.types.sxy"
+	"!scripts/mplat.types.sxy"
 	"!scripts/mhost/mhost.sxh.sxy"
 	"!scripts/mplat.sxh.sxy"
 	"!scripts/types.sxy"
@@ -21,5 +21,5 @@
 
 (function Main (Int32 id) -> (Int32 exitCode):
 	(IEngine engine (Engine))
-	(engine.SetNextScript "!scripts/mhost/t3d.init.sxy")
+	(engine.SetNextScript "!scripts/mhost/t3d/t3d.init.sxy")
 )

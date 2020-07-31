@@ -1490,8 +1490,15 @@ namespace Rococo
 
 						auto name = sname.String();
 
-						auto includedModule = sources.GetSource(name->Buffer);
-						ss.AddTree(*includedModule);
+						try
+						{
+							auto includedModule = sources.GetSource(name->Buffer);
+							ss.AddTree(*includedModule);
+						}
+						catch (IException& ex)
+						{
+							Throw(sname, "Error with include file. %s", ex.Message());
+						}
 					}
 				}
 				else if (squot == "'" && stype == "#natives")

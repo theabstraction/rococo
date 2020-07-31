@@ -268,7 +268,7 @@ namespace Rococo
 						{
 							char errorMessage[256];
 							Rococo::OS::FormatErrorMessage(errorMessage, sizeof(errorMessage), ex.ErrorCode());
-							debugger.Log("Exception thrown in script: %s\nError code 0x%x (%d). %s", ex.Message(), ex.ErrorCode(), ex.ErrorCode(), errorMessage);
+							debugger.Log("Exception thrown in script: %s\nError code 0x%x (%d). %s\nMain file: %s", ex.Message(), ex.ErrorCode(), ex.ErrorCode(), errorMessage, resourcePath);
 						}
 						else
 						{

@@ -1,7 +1,7 @@
 // 3d test
 
 (' #include 
-	"!scripts/mhost/mplat.types.sxy"
+	"!scripts/mplat.types.sxy"
 	"!scripts/mhost/mhost.sxh.sxy"
 	"!scripts/mplat.sxh.sxy"
 	"!scripts/types.sxy"
@@ -248,7 +248,7 @@
 	(IWorld world = this.world)
 	
 	(Int64 cubeId = (instances.CreateCubeTexture "!textures/t3d/skybox/YokohamaSmall/" "jpg"))
-//	(scene.SetSkyBox cubeId)
+	(scene.SetSkyBox cubeId)
 	
 	(while this.engine.IsRunning
 		(AdvanceCoroutines this.coroutines)

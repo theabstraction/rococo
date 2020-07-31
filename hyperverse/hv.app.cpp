@@ -266,7 +266,7 @@ namespace HV
 
 			brain = CreateAIBrain(platform.publisher, e.sectors);
 
-	//		e.platform.instances.LoadMeshList("!/mesh/fred.sxy"_fstring);
+			e.platform.instances.LoadMeshList("!mesh/hv/mike.sxy"_fstring);
 		}
 
 		~App()
@@ -382,7 +382,7 @@ namespace HV
 
 				if (IsOverlayActive())
 				{
-					if (Eq(action, "gui.overlay.toggle") && key.isPressed)
+					if (action && Eq(action, "gui.overlay.toggle") && key.isPressed)
 					{
 						e.platform.gui.Pop();
 						if (!IsEditorActive())  mode->Activate();
