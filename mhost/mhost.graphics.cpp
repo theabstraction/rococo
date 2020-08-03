@@ -67,14 +67,12 @@ struct Gui : public MHost::IGui
 	//   | /
 	//   |/
 	//   c
-
 	//         c
 	//       / |
 	//      /  | = t1
 	//     /   |
 	//    /    |
 	//   b-----a
-
 	void DrawSprite(const Vec2& pixelPos, int32 alignmentFlags, const BitmapLocation& loc) override
 	{
 		GuiRectf txUV = { (float)loc.txUV.left,  (float)loc.txUV.top, (float)loc.txUV.right,  (float)loc.txUV.bottom };

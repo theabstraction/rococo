@@ -88,6 +88,12 @@
     <FxCompile Include="HQ-font.vs.hlsl">
       <Filter>HLSL\GUI</Filter>
     </FxCompile>
+    <FxCompile Include="ambient.no-texture.ps.hlsl">
+      <Filter>HLSL\Objects</Filter>
+    </FxCompile>
+    <FxCompile Include="object.no-texture.ps.hlsl">
+      <Filter>HLSL\Objects</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dx11.swapchain.cpp">

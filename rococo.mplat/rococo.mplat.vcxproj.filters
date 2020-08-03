@@ -123,9 +123,6 @@
     <ClCompile Include="mplat.tests.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mplat.mesh.list.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="mplat.file.browser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -139,6 +136,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="mplat.pane.array-box.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mplat.mesh.importer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

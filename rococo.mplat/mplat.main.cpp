@@ -221,8 +221,8 @@ void LoadMeshFromFile(Platform& platform, const fstring& pingPath)
 
 		void OnEvent(ScriptCompileArgs& args) override
 		{
-			auto& nsEntryPoint = args.ss.AddNativeNamespace("EntryPoint");
-			args.ss.AddNativeCall(nsEntryPoint, Rococo::M::NativeLoadMesh, &platform, "LoadMesh (Sys.Reflection.IExpression s)->", true);
+			auto& ns = args.ss.AddNativeNamespace("Rococo");
+			args.ss.AddNativeCall(ns, Rococo::M::NativeLoadMesh, &platform, "LoadMesh (Sys.Reflection.IExpression s)->", true);
 		}
 
 	public:

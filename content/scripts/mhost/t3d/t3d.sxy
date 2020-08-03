@@ -248,7 +248,37 @@
 	(IWorld world = this.world)
 	
 	(Int64 cubeId = (instances.CreateCubeTexture "!textures/t3d/skybox/YokohamaSmall/" "jpg"))
-	(scene.SetSkyBox cubeId)
+//	(scene.SetSkyBox cubeId)
+	
+	(instances.LoadMeshList "!mesh/t3d/mike.sxy")
+	
+	
+	(Matrix4x4 mikeMatrix =
+		(1 0 0   0)
+		(0 1 0   1)
+		(0 0 1 0.3)
+		(0 0 0   1)
+	)
+	
+	(Vec3 noScale = 1 1 1)
+	
+	(Int64 jeansId = (instances.AddBody "mike_jeans" mikeMatrix noScale 0))
+	(Int64 shirtId = (instances.AddBody "mike_shirt" mikeMatrix noScale 0))
+	(Int64 hairId =  (instances.AddBody "mike_hair"  mikeMatrix noScale 0))
+	(Int64 teethId = (instances.AddBody "mike_teeth" mikeMatrix noScale 0))
+	(Int64 tongueId = (instances.AddBody "mike_tong" mikeMatrix noScale 0))
+	(Int64 eyeballId1 = (instances.AddBody "mike_eye_ball.l" mikeMatrix noScale 0))
+	(Int64 eyeballId2 = (instances.AddBody "mike_eye_ball.r" mikeMatrix noScale 0))
+	(Int64 bodyId = (instances.AddBody "mike_body" mikeMatrix noScale 0))
+		
+	(scene.AddStatics jeansId)
+	(scene.AddStatics shirtId)
+	(scene.AddStatics hairId)
+	(scene.AddStatics teethId)
+	(scene.AddStatics tongueId)
+	(scene.AddStatics bodyId)
+	(scene.AddStatics eyeballId1)
+	(scene.AddStatics eyeballId2)
 	
 	(while this.engine.IsRunning
 		(AdvanceCoroutines this.coroutines)
@@ -274,6 +304,7 @@
 )
 
 (function Main (Int32 id) -> (Int32 exitCode):
+	(IInstances instances (Instances))
 	(Sys.Random.Seed 0)
 	(IBundle bundle (NewGameBundle))
 	(bundle.Run)

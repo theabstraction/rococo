@@ -265,8 +265,6 @@ namespace HV
 			scene.resizeCallback = this;
 
 			brain = CreateAIBrain(platform.publisher, e.sectors);
-
-			e.platform.instances.LoadMeshList("!mesh/hv/mike.sxy"_fstring);
 		}
 
 		~App()

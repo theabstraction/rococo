@@ -177,7 +177,7 @@
 )
 
 (method World.Construct : 
-	(this.cameraPos = 0 0 1)
+	(this.cameraPos = 0 0 1.8)
 	(this.cameraOrientation = 0 0 0)
 	
 	(IInstances instances (Instances))
@@ -194,22 +194,22 @@
 	
 	(Vec3 noScale = 1 1 1)
 	
-	(Int64 bottleId = (instances.AddBody "potion.1" model noScale 0))
+//	(Int64 bottleId = (instances.AddBody "potion.1" model noScale 0))
 	
 	(MakeFloor "floor.1")
 	
 	(Matrix4x4 model2 = 
-		(1 0 0    0)
-		(0 1 0    1)
-		(0 0 1 -1.0) 
-		(0 0 0    1)
+		(1 0 0 0)
+		(0 1 0 0)
+		(0 0 1 0) 
+		(0 0 0 1)
 	)
 	
 	(Int64 floorId = (instances.AddBody "floor.1" model2 noScale 0))
 	
 	(ISceneBuilder scene (SceneBuilder))
 	(scene.Clear)
-	(scene.AddStatics bottleId)
+	//(scene.AddStatics bottleId)
 	(scene.AddStatics floorId)
 	
 	(Matrix4x4 rotX)
@@ -218,7 +218,7 @@
 	(Vec4 downPrime = rotX * down)
 	
 	(LightSpec light)
-	(light.position = 0 0 1.2)
+	(light.position = 0 0 2.4)
 	(light.direction = downPrime.x downPrime.y downPrime.z)
 	(light.fov = 45)
 	(light.diffuse = 3.0 3.0 3.0 1.0)
@@ -242,7 +242,6 @@
 	(Int64 lightConeId = (instances.AddBody "light.cone.1" lightConeModel noScale 0))
 	
 	(scene.AddStatics lightConeId)
-	
 	(scene.SetLight light 0)
 )
 

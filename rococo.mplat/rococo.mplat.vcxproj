@@ -126,7 +126,7 @@
     </ClCompile>
     <ClCompile Include="mplat.maths.visitor.cpp" />
     <ClCompile Include="mplat.graphics.scene.cpp" />
-    <ClCompile Include="mplat.mesh.list.cpp" />
+    <ClCompile Include="mplat.mesh.importer.cpp" />
     <ClCompile Include="mplat.os.win32.venue.cpp" />
     <ClCompile Include="mplat.overlay.cpp" />
     <ClCompile Include="mplat.pane.array-box.cpp" />
