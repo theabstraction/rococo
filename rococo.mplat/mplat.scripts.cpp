@@ -139,6 +139,11 @@ Rococo::Audio::ILegacySoundControl* FactoryConstructRococoAudioLegacySoundContro
 	return &platform->legacySoundControl;
 }
 
+Rococo::Graphics::IRigs* FactoryConstructRococoGraphicsRigs(Rococo::Graphics::IRigs* _context)
+{
+	return _context;
+}
+
 #include <..\rococo.mplat\mplat.sxh.inl>
 
 #include <rococo.sexy.ide.h>
@@ -211,7 +216,7 @@ namespace Rococo
 {
 	using namespace Rococo::Windows;
 
-	namespace M
+	namespace MPlatImpl
 	{
 		bool QueryYesNo(IWindow& ownerWindow, cstr message);
 
@@ -263,6 +268,8 @@ namespace Rococo
 				{
 					if (addPlatform)
 					{
+						Graphics::AddNativeCalls_RococoGraphicsIRigs(args.ss, &platform.rigs);
+						Graphics::AddNativeCalls_RococoGraphicsIRig(args.ss, nullptr);
 						Graphics::AddNativeCalls_RococoGraphicsIMeshBuilder(args.ss, &platform.meshes);
 						Entities::AddNativeCalls_RococoEntitiesIInstances(args.ss, &platform.instances);
 						Entities::AddNativeCalls_RococoEntitiesIMobiles(args.ss, &platform.mobiles);
@@ -318,9 +325,9 @@ namespace Rococo
 			sc.Execute(name, stats, trace);
 		}
 
-		void LoadMeshesFromSExpression(Platform& platform, cr_sex s);
+		void LoadRigFromSExpression(Platform& platform, cr_sex s);
 
-		void NativeLoadMesh(Rococo::Script::NativeCallEnvironment& e)
+		void NativeLoadRig(Rococo::Script::NativeCallEnvironment& e)
 		{
 			auto& platform = *(Platform*)e.context;
 
@@ -329,7 +336,7 @@ namespace Rococo
 
 			auto* pExpr = (Rococo::CClassExpression*) InterfaceToInstance(interf);
 
-			LoadMeshesFromSExpression(platform, *pExpr->ExpressionPtr);
+			LoadRigFromSExpression(platform, *pExpr->ExpressionPtr);
 		}
 	} // M
 } // Rococo

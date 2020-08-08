@@ -714,7 +714,7 @@ namespace Rococo
 
 			auto& core = progObjProxy->VirtualMachine().Core();
 
-			jitId = core.RegisterCallback(OnJITRoutineNeedsCompiling, this, ("OnJITRoutineNeedsCompiling"));
+			jitId = core.RegisterCallback(Compile_JIT, this, "Compile_JIT");
 
 			arrayCallbacks.ArrayGetRefUnchecked = core.RegisterCallback(OnInvokeArrayGetRefUnchecked, this, ("ArrayGetRefUnchecked"));
 			arrayCallbacks.ArrayLock = core.RegisterCallback(OnInvokeArrayLock, this, ("ArrayLock"));

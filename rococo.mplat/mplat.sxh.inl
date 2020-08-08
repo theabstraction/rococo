@@ -6905,7 +6905,7 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->Delete(id);
 	}
-	void NativeRococoEntitiesIInstancesLoadMeshList(NativeCallEnvironment& _nce)
+	void NativeRococoEntitiesIInstancesLoadRig(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
@@ -6919,7 +6919,7 @@ namespace
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->LoadMeshList(pingPath);
+		_pObject->LoadRig(pingPath);
 	}
 	void NativeRococoEntitiesIInstancesLoadMaterialArray(NativeCallEnvironment& _nce)
 	{
@@ -7131,7 +7131,7 @@ namespace Rococo { namespace Entities {
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesAddGhost, nullptr, ("IInstancesAddGhost (Pointer hObject)(Sys.Maths.Matrix4x4 model)(Int64 parentId) -> (Int64 entityId)"));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesCreateCubeTexture, nullptr, ("IInstancesCreateCubeTexture (Pointer hObject)(Sys.Type.IString folder)(Sys.Type.IString extension) -> (Int64 cubeId)"));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesDelete, nullptr, ("IInstancesDelete (Pointer hObject)(Int64 id) -> "));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesLoadMeshList, nullptr, ("IInstancesLoadMeshList (Pointer hObject)(Sys.Type.IString pingPath) -> "));
+		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesLoadRig, nullptr, ("IInstancesLoadRig (Pointer hObject)(Sys.Type.IString pingPath) -> "));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesLoadMaterialArray, nullptr, ("IInstancesLoadMaterialArray (Pointer hObject)(Sys.Type.IString folder)(Int32 txWidth) -> "));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesGetMaterialCateogry, nullptr, ("IInstancesGetMaterialCateogry (Pointer hObject)(Float32 id) -> (Int32 category)"));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesCountMaterialsInCategory, nullptr, ("IInstancesCountMaterialsInCategory (Pointer hObject)(Int32 category) -> (Int32 count)"));
@@ -7143,6 +7143,264 @@ namespace Rococo { namespace Entities {
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesSetScale, nullptr, ("IInstancesSetScale (Pointer hObject)(Int64 entityId)(Sys.Maths.Vec3 scale) -> "));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesTryGetModelToWorldMatrix, nullptr, ("IInstancesTryGetModelToWorldMatrix (Pointer hObject)(Int64 entityId)(Sys.Maths.Matrix4x4 position) -> (Bool existant)"));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesClear, nullptr, ("IInstancesClear (Pointer hObject) -> "));
+	}
+}}
+// BennyHill generated Sexy native functions for Rococo::Graphics::IRig 
+namespace
+{
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
+
+	void NativeRococoGraphicsIRigAppendMeshName(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(VirtualTable**);
+		VirtualTable** mesh;
+		ReadInput(mesh, _sf, -_offset);
+		Rococo::Helpers::StringPopulator _meshPopulator(_nce, mesh);
+		Rococo::Graphics::IRig* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AppendMeshName(_meshPopulator);
+	}
+	void NativeRococoGraphicsIRigAppendRigName(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(VirtualTable**);
+		VirtualTable** name;
+		ReadInput(name, _sf, -_offset);
+		Rococo::Helpers::StringPopulator _namePopulator(_nce, name);
+		Rococo::Graphics::IRig* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AppendRigName(_namePopulator);
+	}
+	void NativeRococoGraphicsIRigChild(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 index;
+		_offset += sizeof(index);
+		ReadInput(index, _sf, -_offset);
+
+		Rococo::Graphics::IRig* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		Rococo::Graphics::IRig* rig = _pObject->Child(index);
+		_offset += sizeof(CReflectedClass*);
+		auto& _rigStruct = Rococo::Helpers::GetDefaultProxy(("Rococo.Graphics"),("IRig"), ("ProxyIRig"), _nce.ss);
+		CReflectedClass* _sxyrig = _nce.ss.Represent(_rigStruct, rig);
+		WriteOutput(&_sxyrig->header.pVTables[0], _sf, -_offset);
+	}
+	void NativeRococoGraphicsIRigChildCount(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Graphics::IRig* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		int32 count = _pObject->ChildCount();
+		_offset += sizeof(count);
+		WriteOutput(count, _sf, -_offset);
+	}
+	void NativeRococoGraphicsIRigClearChildren(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Graphics::IRig* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->ClearChildren();
+	}
+	void NativeRococoGraphicsIRigExists(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Graphics::IRig* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		boolean32 exists = _pObject->Exists();
+		_offset += sizeof(exists);
+		WriteOutput(exists, _sf, -_offset);
+	}
+	void NativeRococoGraphicsIRigGetMatrix(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Matrix4x4* output;
+		_offset += sizeof(output);
+		ReadInput(output, _sf, -_offset);
+
+		Rococo::Graphics::IRig* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GetMatrix(*output);
+	}
+	void NativeRococoGraphicsIRigSetMatrix(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Matrix4x4* input;
+		_offset += sizeof(input);
+		ReadInput(input, _sf, -_offset);
+
+		Rococo::Graphics::IRig* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetMatrix(*input);
+	}
+
+}
+
+namespace Rococo { namespace Graphics { 
+	void AddNativeCalls_RococoGraphicsIRig(Rococo::Script::IPublicScriptSystem& ss, Rococo::Graphics::IRig* _nceContext)
+	{
+		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Graphics.Native"));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRigAppendMeshName, nullptr, ("IRigAppendMeshName (Pointer hObject)(Sys.Type.IStringBuilder mesh) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRigAppendRigName, nullptr, ("IRigAppendRigName (Pointer hObject)(Sys.Type.IStringBuilder name) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRigChild, nullptr, ("IRigChild (Pointer hObject)(Int32 index) -> (Rococo.Graphics.IRig rig)"));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRigChildCount, nullptr, ("IRigChildCount (Pointer hObject) -> (Int32 count)"));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRigClearChildren, nullptr, ("IRigClearChildren (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRigExists, nullptr, ("IRigExists (Pointer hObject) -> (Bool exists)"));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRigGetMatrix, nullptr, ("IRigGetMatrix (Pointer hObject)(Sys.Maths.Matrix4x4 output) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRigSetMatrix, nullptr, ("IRigSetMatrix (Pointer hObject)(Sys.Maths.Matrix4x4 input) -> "));
+	}
+}}
+// BennyHill generated Sexy native functions for Rococo::Graphics::IRigs 
+namespace
+{
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
+
+	void NativeRococoGraphicsIRigsAddRig(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _rigName;
+		ReadInput(_rigName, _sf, -_offset);
+		fstring rigName { _rigName->buffer, _rigName->length };
+
+
+		Rococo::Graphics::IRigs* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		Rococo::Graphics::IRig* rig = _pObject->AddRig(rigName);
+		_offset += sizeof(CReflectedClass*);
+		auto& _rigStruct = Rococo::Helpers::GetDefaultProxy(("Rococo.Graphics"),("IRig"), ("ProxyIRig"), _nce.ss);
+		CReflectedClass* _sxyrig = _nce.ss.Represent(_rigStruct, rig);
+		WriteOutput(&_sxyrig->header.pVTables[0], _sf, -_offset);
+	}
+	void NativeRococoGraphicsIRigsAddMeshToRig(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Matrix4x4* local;
+		_offset += sizeof(local);
+		ReadInput(local, _sf, -_offset);
+
+		_offset += sizeof(IString*);
+		IString* _parentRig;
+		ReadInput(_parentRig, _sf, -_offset);
+		fstring parentRig { _parentRig->buffer, _parentRig->length };
+
+
+		_offset += sizeof(IString*);
+		IString* _mesh;
+		ReadInput(_mesh, _sf, -_offset);
+		fstring mesh { _mesh->buffer, _mesh->length };
+
+
+		Rococo::Graphics::IRigs* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AddMeshToRig(mesh, parentRig, *local);
+	}
+	void NativeRococoGraphicsIRigsGetRig(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _rigName;
+		ReadInput(_rigName, _sf, -_offset);
+		fstring rigName { _rigName->buffer, _rigName->length };
+
+
+		Rococo::Graphics::IRigs* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		Rococo::Graphics::IRig* rig = _pObject->GetRig(rigName);
+		_offset += sizeof(CReflectedClass*);
+		auto& _rigStruct = Rococo::Helpers::GetDefaultProxy(("Rococo.Graphics"),("IRig"), ("ProxyIRig"), _nce.ss);
+		CReflectedClass* _sxyrig = _nce.ss.Represent(_rigStruct, rig);
+		WriteOutput(&_sxyrig->header.pVTables[0], _sf, -_offset);
+	}
+	void NativeRococoGraphicsIRigsClearRig(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _rigName;
+		ReadInput(_rigName, _sf, -_offset);
+		fstring rigName { _rigName->buffer, _rigName->length };
+
+
+		Rococo::Graphics::IRigs* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->ClearRig(rigName);
+	}
+	void NativeRococoGraphicsIRigsClearRigs(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Graphics::IRigs* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->ClearRigs();
+	}
+
+	void NativeGetHandleForRococoGraphicsRigs(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Graphics::IRigs* nceContext = reinterpret_cast<Rococo::Graphics::IRigs*>(_nce.context);
+		// Uses: Rococo::Graphics::IRigs* FactoryConstructRococoGraphicsRigs(Rococo::Graphics::IRigs* _context);
+		Rococo::Graphics::IRigs* pObject = FactoryConstructRococoGraphicsRigs(nceContext);
+		_offset += sizeof(IString*);
+		WriteOutput(pObject, _sf, -_offset);
+	}
+}
+
+namespace Rococo { namespace Graphics { 
+	void AddNativeCalls_RococoGraphicsIRigs(Rococo::Script::IPublicScriptSystem& ss, Rococo::Graphics::IRigs* _nceContext)
+	{
+		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Graphics.Native"));
+		ss.AddNativeCall(ns, NativeGetHandleForRococoGraphicsRigs, _nceContext, ("GetHandleForIRigs0  -> (Pointer hObject)"));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRigsAddRig, nullptr, ("IRigsAddRig (Pointer hObject)(Sys.Type.IString rigName) -> (Rococo.Graphics.IRig rig)"));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRigsAddMeshToRig, nullptr, ("IRigsAddMeshToRig (Pointer hObject)(Sys.Type.IString mesh)(Sys.Type.IString parentRig)(Sys.Maths.Matrix4x4 local) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRigsGetRig, nullptr, ("IRigsGetRig (Pointer hObject)(Sys.Type.IString rigName) -> (Rococo.Graphics.IRig rig)"));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRigsClearRig, nullptr, ("IRigsClearRig (Pointer hObject)(Sys.Type.IString rigName) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRigsClearRigs, nullptr, ("IRigsClearRigs (Pointer hObject) -> "));
 	}
 }}
 // BennyHill generated Sexy native functions for Rococo::Graphics::IMeshBuilder 

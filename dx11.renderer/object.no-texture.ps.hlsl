@@ -6,7 +6,6 @@ float4 main(ObjectPixelVertex p) : SV_TARGET
 	{
 		float4 texel = p.colour;
 		float3 incident = normalize(p.worldPosition.xyz - global.eye.xyz);
-		texel = ModulateWithEnvMap(texel, incident, p.normal.xyz, p.uv_material_and_gloss.w);
 
 		float3 lightToPixelVec = p.worldPosition.xyz - light.position.xyz;
 		float3 lightToPixelDir = normalize(lightToPixelVec);

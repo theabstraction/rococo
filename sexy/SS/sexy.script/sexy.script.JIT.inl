@@ -87,7 +87,7 @@ namespace Rococo
 	  };
 #pragma pack(pop)
 
-      void CALLTYPE_C OnJITRoutineNeedsCompiling_Protected(VariantValue* registers, IScriptSystem& ss, JITArgs* args)
+      void CALLTYPE_C Compile_JIT_Protected(VariantValue* registers, IScriptSystem& ss, JITArgs* args)
       {
          switch (args->type)
          {
@@ -106,13 +106,13 @@ namespace Rococo
          }
          break;
          default:
-            ss.ProgramObject().Log().Write(("OnJITRoutineNeedsCompiling called with bad type"));
+            ss.ProgramObject().Log().Write(("Compile_JIT called with bad type"));
             ss.ProgramObject().VirtualMachine().Throw();
             return;
          }
       }
 
-      void CALLTYPE_C OnJITRoutineNeedsCompiling(VariantValue* registers, void* context)
+      void CALLTYPE_C Compile_JIT(VariantValue* registers, void* context)
       {
          IScriptSystem& ss = *(IScriptSystem*)context;
 		 registers[VM::REGISTER_SP].uint8PtrValue -= sizeof(JITArgs);
@@ -121,7 +121,7 @@ namespace Rococo
 
          try
          {
-            OnJITRoutineNeedsCompiling_Protected(registers, ss, args);
+             Compile_JIT_Protected(registers, ss, args);
          }
          catch (ParseException& ex)
          {

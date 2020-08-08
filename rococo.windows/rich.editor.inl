@@ -80,14 +80,24 @@ namespace
 			cr.cpMax = -1;
 
 			size_t len = min(rlen(text), nChars);
-			char* segmentBuffer = (char*)_alloca(sizeof(char)* len + 2);
 
-         StackStringBuilder sb(segmentBuffer, len + 1);
-			sb << text;
+			const char* source = text;
 
-			// hwnd = rich edit hwnd
-			SendMessage(hWndEditor, EM_EXSETSEL, 0, (LPARAM)&cr);
-			SendMessage(hWndEditor, EM_REPLACESEL, 0, (LPARAM)segmentBuffer);
+			while (len > 0)
+			{
+				enum { SEGMENT_CAPACITY = 4096 };
+				char segmentBuffer[SEGMENT_CAPACITY];
+
+				size_t delta = (len >= SEGMENT_CAPACITY) ? SEGMENT_CAPACITY - 1 : len;
+			
+				memcpy(segmentBuffer, source, delta);
+				segmentBuffer[delta] = 0;
+				source += delta;
+				len -= delta;
+
+				SendMessage(hWndEditor, EM_EXSETSEL, 0, (LPARAM)&cr);
+				SendMessage(hWndEditor, EM_REPLACESEL, 0, (LPARAM)segmentBuffer);
+			}
 		}
 
 		static LRESULT Subclassproc(

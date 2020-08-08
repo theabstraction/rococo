@@ -47,7 +47,7 @@ namespace Rococo
 
 namespace Rococo
 {
-	namespace M
+	namespace MPlatImpl
 	{
 		bool QueryYesNo(IWindow& ownerWindow, cstr message)
 		{
@@ -206,14 +206,14 @@ using namespace Rococo::Windows::IDE;
 
 namespace Rococo
 {
-	namespace M
+	namespace MPlatImpl
 	{
-		void NativeLoadMesh(Rococo::Script::NativeCallEnvironment& e);
+		void NativeLoadRig(Rococo::Script::NativeCallEnvironment& e);
 		void InitArrayFonts(Platform& platform);
 	}
 }
 
-void LoadMeshFromFile(Platform& platform, const fstring& pingPath)
+void LoadRigFromFile(Platform& platform, const fstring& pingPath)
 {
 	class ScriptContext : public IEventCallback<ScriptCompileArgs>
 	{
@@ -222,7 +222,7 @@ void LoadMeshFromFile(Platform& platform, const fstring& pingPath)
 		void OnEvent(ScriptCompileArgs& args) override
 		{
 			auto& ns = args.ss.AddNativeNamespace("Rococo");
-			args.ss.AddNativeCall(ns, Rococo::M::NativeLoadMesh, &platform, "LoadMesh (Sys.Reflection.IExpression s)->", true);
+			args.ss.AddNativeCall(ns, Rococo::MPlatImpl::NativeLoadRig, &platform, "LoadRig (Sys.Reflection.IExpression s)->", true);
 		}
 
 	public:
@@ -241,14 +241,16 @@ void LoadMeshFromFile(Platform& platform, const fstring& pingPath)
 
 int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon, HICON hSmallIcon)
 {
-	char filename[1024];
-	GetModuleFileNameA(nullptr, filename, 1024);
-	for (char* p = filename; *p != 0; p++)
+	U8FilePath exeFile;
+	GetModuleFileNameA(nullptr, exeFile.buf, exeFile.CAPACITY);
+
+	U8FilePath eventName = exeFile;
+	for (char* p = eventName.buf; *p != 0; p++)
 	{
 		if (*p == '\\') *p = '#';
 	}
 
-	HANDLE hInstanceLock = CreateEventA(nullptr, TRUE, FALSE, filename);
+	HANDLE hInstanceLock = CreateEventA(nullptr, TRUE, FALSE, eventName);
 
 	HandleManager autoInstanceLock(hInstanceLock);
 
@@ -259,7 +261,7 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 
 		if (IsDebuggerPresent())
 		{
-			ShowMessageBox(Windows::NoParent(), "Application is already running", filename, MB_ICONEXCLAMATION);
+			ShowMessageBox(Windows::NoParent(), "Application is already running", exeFile, MB_ICONEXCLAMATION);
 		}
 
 		return err;
@@ -305,19 +307,20 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	AutoFree<OS::IAppControlSupervisor> appControl(OS::CreateAppControl());
 	AutoFree<IDebuggerWindow> debuggerWindow(CreateDebuggerWindow(mainWindow->Window(), debuggerEventHandler->GetMenuCallback(), *appControl));
 
-	Rococo::M::InitScriptSystem(*installation);
+	Rococo::MPlatImpl::InitScriptSystem(*installation);
 
-	struct MeshLoader : public IMeshLoader
+	struct RigLoader : public IRigLoader
 	{
 		Platform* platform = nullptr;
 		void LoadFromFile(const fstring& pingName) override
 		{
-			LoadMeshFromFile(*platform, pingName);
+			LoadRigFromFile(*platform, pingName);
 		}
-	} meshLoader;
+	} rigLoader;
 
+	AutoFree<Graphics::IRigsSupervisor> rigs = Graphics::CreateRigs();
 	AutoFree<Graphics::IMeshBuilderSupervisor> meshes = Graphics::CreateMeshBuilder(mainWindow->Renderer());
-	AutoFree<Entities::IInstancesSupervisor> instances = Entities::CreateInstanceBuilder(meshLoader, *meshes, mainWindow->Renderer(), *publisher);
+	AutoFree<Entities::IInstancesSupervisor> instances = Entities::CreateInstanceBuilder(rigLoader, *meshes, mainWindow->Renderer(), *publisher);
 	AutoFree<Entities::IMobilesSupervisor> mobiles = Entities::CreateMobilesSupervisor(*instances);
 	AutoFree<Graphics::ICameraSupervisor> camera = Graphics::CreateCamera(*instances, *mobiles, mainWindow->Renderer());
 	AutoFree<Graphics::ISceneSupervisor> scene = Graphics::CreateScene(*instances, *camera);
@@ -359,7 +362,7 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	Platform platform
 	{ 
 		*os, *installation, *appControl, mainWindow->Renderer(), *rendererConfig, *messaging, 
-		*sourceCache, *debuggerWindow, *publisher, *utilities, *gui, *keyboard, *config, *meshes, 
+		*sourceCache, *debuggerWindow, *publisher, *utilities, *gui, *keyboard, *config, *meshes, *rigs,
 		*instances, *mobiles, *particles, *sprites, *camera, *scene, tesselators, *mathsVisitor,
 		*legacySound, *ssFactory, *puppets, *fonts, title
 	};
@@ -369,7 +372,7 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	utilities->SetPlatform(platform);
 	messaging->PostCreate(platform);
 
-	meshLoader.platform = &platform;
+	rigLoader.platform = &platform;
 
 	PlatformTabs tabs(platform);
 

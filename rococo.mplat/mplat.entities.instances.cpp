@@ -67,12 +67,12 @@ namespace
       IMeshBuilderSupervisor& meshBuilder;
       IRenderer& renderer;
 	  Events::IPublisher& publisher;
-      IMeshLoader& meshLoader;
+      IRigLoader& rigLoader;
 
       int32 enumerationDepth{ 0 };
 
-      Instances(IMeshLoader& _meshLoader, IMeshBuilderSupervisor& _meshBuilder, IRenderer& _renderer, Events::IPublisher& _publisher) :
-          meshLoader(_meshLoader), meshBuilder(_meshBuilder), renderer(_renderer), publisher(_publisher)
+      Instances(IRigLoader& _rigLoader, IMeshBuilderSupervisor& _meshBuilder, IRenderer& _renderer, Events::IPublisher& _publisher) :
+          rigLoader(_rigLoader), meshBuilder(_meshBuilder), renderer(_renderer), publisher(_publisher)
       {
       }
 
@@ -81,9 +81,9 @@ namespace
          Clear();
       }
 
-      void LoadMeshList(const fstring& pingPath) override
+      void LoadRig(const fstring& pingPath) override
       {
-          meshLoader.LoadFromFile(pingPath);
+          rigLoader.LoadFromFile(pingPath);
       }
 
       Rococo::Graphics::IMeshBuilder& MeshBuilder() override
@@ -93,11 +93,16 @@ namespace
 
       ID_ENTITY Add(ID_SYS_MESH meshId, const Matrix4x4& model, const Vec3& scale, ID_ENTITY parentId)
       {
-         float d = Determinant(model);
-         if (d < 0.975f || d > 1.025f)
-         {
-            Throw(0, "Bad model matrix. Determinant was %f", d);
-         }
+          // 0 scale means scale is passed as the model matrix
+
+          if (scale.x != 0)
+          {
+              float d = Determinant(model);
+              if (d < 0.975f || d > 1.025f)
+              {
+                  Throw(0, "Bad model matrix. Determinant was %f", d);
+              }
+          }
          
          ID_ENTITY id(nextId++);
 
@@ -112,7 +117,8 @@ namespace
          e->model = model;
          e->parentId = parentId;
          e->meshId = meshId;
-         e->scale = scale;
+
+         e->scale = (scale.x != 0) ? scale : Vec3{ 1.0f, 1.0f, 1.0f };
 
          idToEntity.insert(std::make_pair(id, e));
 
@@ -482,9 +488,9 @@ namespace Rococo
 {
    namespace Entities
    {
-      IInstancesSupervisor* CreateInstanceBuilder(IMeshLoader& meshLoader, IMeshBuilderSupervisor& meshes, IRenderer& renderer, Events::IPublisher& publisher)
+      IInstancesSupervisor* CreateInstanceBuilder(IRigLoader& rigLoader, IMeshBuilderSupervisor& meshes, IRenderer& renderer, Events::IPublisher& publisher)
       {
-         return new Instances(meshLoader, meshes, renderer, publisher);
+         return new Instances(rigLoader, meshes, renderer, publisher);
       }
    }
 }

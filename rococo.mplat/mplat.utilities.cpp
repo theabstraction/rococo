@@ -32,7 +32,7 @@ namespace Rococo
 
 namespace Rococo
 {
-	namespace M
+	namespace MPlatImpl
 	{
 		void RunEnvironmentScript(ScriptPerformanceStats& stats, Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail, bool trace);
 	}
@@ -290,7 +290,7 @@ public:
 	void RunEnvironmentScript(IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail, bool trace) override
 	{
 		ScriptPerformanceStats stats = { 0 };
-		Rococo::M::RunEnvironmentScript(stats, *platform, _onScriptEvent, name, addPlatform, shutdownOnFail, trace);
+		Rococo::MPlatImpl::RunEnvironmentScript(stats, *platform, _onScriptEvent, name, addPlatform, shutdownOnFail, trace);
 
 		auto i = nameToStats.find(name);
 		if (i == nameToStats.end())

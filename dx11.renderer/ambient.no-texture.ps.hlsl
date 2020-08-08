@@ -12,9 +12,8 @@ struct PixelVertex
 
 float4 main(PixelVertex p): SV_TARGET
 {
-	float4 texel = SampleMaterial(p.uv_material_and_gloss.xyz, p.colour.w);
+	float4 texel = p.colour;
 	float3 incident = normalize(p.worldPosition.xyz - global.eye.xyz);
-	texel = ModulateWithEnvMap(texel, incident, p.normal.xyz, p.uv_material_and_gloss.w);
 
 	float clarity = GetClarity(p.cameraSpacePosition.xyz);
 	

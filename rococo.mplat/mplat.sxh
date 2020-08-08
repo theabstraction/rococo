@@ -354,7 +354,7 @@
 		(AddGhost (const Matrix4x4 model)(IdEntity parentId)->(IdEntity entityId))
 		(CreateCubeTexture (IString folder)(IString extension)->(IdCubeTexture cubeId))
 		(Delete (IdEntity id))
-		(LoadMeshList (IString pingPath))
+		(LoadRig (IString pingPath))
 		(LoadMaterialArray (IString folder)(Int32 txWidth))
 		(GetMaterialCateogry (MaterialId id)->(MaterialCategory category))
 		(CountMaterialsInCategory (MaterialCategory category)->(Int32 count))
@@ -370,6 +370,35 @@
 	(factory Rococo.Entities.Instances)
 )
 
+(interface
+	(as.sxy Rococo.Graphics.IRig "../content/scripts/mplat")
+	(as.cpp Rococo.Graphics.IRig "mplat")
+	(context factory Rococo.Graphics.IRig)
+	(methods
+		(AppendMeshName (IStringBuilder mesh))
+		(AppendRigName (IStringBuilder name))
+		(Child (Int32 index) -> (Rococo.Graphics.IRig rig))
+		(ChildCount -> (Int32 count))
+		(ClearChildren)
+		(Exists -> (Bool exists))
+		(GetMatrix (Matrix4x4 output))
+		(SetMatrix (const Matrix4x4 input))
+	)
+)
+
+(interface
+	(as.sxy Rococo.Graphics.IRigs "../content/scripts/mplat")
+	(as.cpp Rococo.Graphics.IRigs "mplat")
+	(context factory Rococo.Graphics.IRigs)
+	(methods
+		(AddRig (IString rigName) ->  (Rococo.Graphics.IRig rig))
+		(AddMeshToRig (IString mesh)(IString parentRig)(const Matrix4x4 local))
+		(GetRig (IString rigName) -> (Rococo.Graphics.IRig rig))
+		(ClearRig (IString rigName))
+		(ClearRigs)
+	)
+	(factory Rococo.Graphics.Rigs)
+)
 
 (interface
 	(as.sxy Rococo.Graphics.IMeshBuilder "../content/scripts/mplat")

@@ -195,7 +195,7 @@ namespace Rococo
 		};
 	}
 
-	ROCOCOAPI IMeshLoader
+	ROCOCOAPI IRigLoader
 	{
 		virtual void LoadFromFile(const fstring & pingName) = 0;
 	};
@@ -308,7 +308,7 @@ namespace Rococo
 
 		IMobilesSupervisor* CreateMobilesSupervisor(Entities::IInstancesSupervisor& instances);
 
-		IInstancesSupervisor* CreateInstanceBuilder(IMeshLoader& meshLoader, Graphics::IMeshBuilderSupervisor& meshes, IRenderer& renderer, Events::IPublisher& publisher);
+		IInstancesSupervisor* CreateInstanceBuilder(IRigLoader& meshLoader, Graphics::IMeshBuilderSupervisor& meshes, IRenderer& renderer, Events::IPublisher& publisher);
 
 		ROCOCOAPI IParticleSystemSupervisor : IParticleSystem
 		{
@@ -657,6 +657,18 @@ namespace Rococo
 		};
 
 		IMessagingSupervisor* CreateMessaging();
+
+		ROCOCOAPI IRigsSupervisor : public Rococo::Graphics::IRigs
+		{
+			virtual void Free() = 0;
+		};
+
+		ROCOCOAPI IRigSupervisor : public Rococo::Graphics::IRig
+		{
+			virtual void Free() = 0;
+		};
+
+		IRigsSupervisor* CreateRigs();
 	}
 
 	struct Tesselators
@@ -719,6 +731,8 @@ namespace Rococo
 
 		// Mesh builder object
 		Graphics::IMeshBuilderSupervisor& meshes;
+
+		Graphics::IRigsSupervisor& rigs;
 
 		// Entity instances
 		Entities::IInstancesSupervisor& instances;

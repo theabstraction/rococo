@@ -138,7 +138,10 @@
     <ClCompile Include="mplat.pane.array-box.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mplat.mesh.importer.cpp">
+    <ClCompile Include="mplat.graphics.rigs.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mplat.graphics.mesh.importer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
