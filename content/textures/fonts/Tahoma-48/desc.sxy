@@ -1,0 +1,120 @@
+(' #file.type rococo.fontdef.sxy)
+(struct FontMetrics
+	(Int32 ascent descent height internalLeading italic weight imgWidth imgHeight)
+)
+(alias FontMetrics Rococo.Graphics.FontMetrics)
+(using Rococo.Graphics)
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+
+(function Main (Int32 id)->(Int32 exitCode):
+	(FontMetrics metrics)
+	(metrics.height = 36)
+	(metrics.ascent = 30)
+	(metrics.descent = 6)
+	(metrics.italic = 0)
+	(metrics.weight = 400)
+	(metrics.internalLeading = 6)
+	(metrics.imgWidth = 29)
+	(metrics.imgHeight = 36)
+	(DeclareFontMetrics metrics)
+
+	 // (AddGlyph <ascii> <image-file> <A> <B> <C>)
+	(AddGlyph 32 "c0032.tiff" 0 1 8)     //  
+	(AddGlyph 33 "c0033.tiff" 3 3 4)     // !
+	(AddGlyph 34 "c0034.tiff" 2 9 1)     // "
+	(AddGlyph 35 "c0035.tiff" 2 18 2)    // #
+	(AddGlyph 36 "c0036.tiff" 2 13 1)    // $
+	(AddGlyph 37 "c0037.tiff" 2 26 1)    // %
+	(AddGlyph 38 "c0038.tiff" 1 20 -1)   // &&
+	(AddGlyph 39 "c0039.tiff" 2 3 1)     // '
+	(AddGlyph 40 "c0040.tiff" 2 9 0)     // (
+	(AddGlyph 41 "c0041.tiff" 0 9 2)     // )
+	(AddGlyph 42 "c0042.tiff" 1 14 1)    // *
+	(AddGlyph 43 "c0043.tiff" 3 16 3)    // +
+	(AddGlyph 44 "c0044.tiff" 1 6 2)     // ,
+	(AddGlyph 45 "c0045.tiff" 1 8 2)     // -
+	(AddGlyph 46 "c0046.tiff" 3 4 2)     // .
+	(AddGlyph 47 "c0047.tiff" 0 11 0)    // /
+	(AddGlyph 48 "c0048.tiff" 1 14 1)    // 0
+	(AddGlyph 49 "c0049.tiff" 3 11 2)    // 1
+	(AddGlyph 50 "c0050.tiff" 2 14 0)    // 2
+	(AddGlyph 51 "c0051.tiff" 1 13 2)    // 3
+	(AddGlyph 52 "c0052.tiff" 1 15 0)    // 4
+	(AddGlyph 53 "c0053.tiff" 2 13 1)    // 5
+	(AddGlyph 54 "c0054.tiff" 1 14 1)    // 6
+	(AddGlyph 55 "c0055.tiff" 1 14 1)    // 7
+	(AddGlyph 56 "c0056.tiff" 1 14 1)    // 8
+	(AddGlyph 57 "c0057.tiff" 1 14 1)    // 9
+	(AddGlyph 58 "c0058.tiff" 4 4 3)     // :
+	(AddGlyph 59 "c0059.tiff" 2 6 3)     // ;
+	(AddGlyph 60 "c0060.tiff" 3 16 3)    // <
+	(AddGlyph 61 "c0061.tiff" 3 16 3)    // =
+	(AddGlyph 62 "c0062.tiff" 3 16 3)    // >
+	(AddGlyph 63 "c0063.tiff" 2 12 0)    // ?
+	(AddGlyph 64 "c0064.tiff" 2 23 2)    // @
+	(AddGlyph 65 "c0065.tiff" 0 18 0)    // A
+	(AddGlyph 66 "c0066.tiff" 2 15 1)    // B
+	(AddGlyph 67 "c0067.tiff" 1 16 1)    // C
+	(AddGlyph 68 "c0068.tiff" 2 17 1)    // D
+	(AddGlyph 69 "c0069.tiff" 2 14 1)    // E
+	(AddGlyph 70 "c0070.tiff" 2 14 0)    // F
+	(AddGlyph 71 "c0071.tiff" 1 18 1)    // G
+	(AddGlyph 72 "c0072.tiff" 2 16 2)    // H
+	(AddGlyph 73 "c0073.tiff" 1 9 1)     // I
+	(AddGlyph 74 "c0074.tiff" 0 11 2)    // J
+	(AddGlyph 75 "c0075.tiff" 2 16 0)    // K
+	(AddGlyph 76 "c0076.tiff" 2 13 0)    // L
+	(AddGlyph 77 "c0077.tiff" 2 19 2)    // M
+	(AddGlyph 78 "c0078.tiff" 2 16 2)    // N
+	(AddGlyph 79 "c0079.tiff" 1 19 1)    // O
+	(AddGlyph 80 "c0080.tiff" 2 14 1)    // P
+	(AddGlyph 81 "c0081.tiff" 1 19 1)    // Q
+	(AddGlyph 82 "c0082.tiff" 2 17 0)    // R
+	(AddGlyph 83 "c0083.tiff" 1 15 1)    // S
+	(AddGlyph 84 "c0084.tiff" 0 19 -1)   // T
+	(AddGlyph 85 "c0085.tiff" 2 16 2)    // U
+	(AddGlyph 86 "c0086.tiff" 0 18 0)    // V
+	(AddGlyph 87 "c0087.tiff" 0 27 0)    // W
+	(AddGlyph 88 "c0088.tiff" 0 17 0)    // X
+	(AddGlyph 89 "c0089.tiff" 0 17 0)    // Y
+	(AddGlyph 90 "c0090.tiff" 1 15 1)    // Z
+	(AddGlyph 91 "c0091.tiff" 2 8 1)     // [
+	(AddGlyph 92 "c0092.tiff" 1 11 -1)   // \
+	(AddGlyph 93 "c0093.tiff" 1 8 2)     // ]
+	(AddGlyph 94 "c0094.tiff" 2 18 2)    // ^
+	(AddGlyph 95 "c0095.tiff" 0 16 0)    // _
+	(AddGlyph 96 "c0096.tiff" 4 6 6)     // `
+	(AddGlyph 97 "c0097.tiff" 1 13 2)    // a
+	(AddGlyph 98 "c0098.tiff" 2 14 1)    // b
+	(AddGlyph 99 "c0099.tiff" 1 12 1)    // c
+	(AddGlyph 100 "c0100.tiff" 1 14 2)    // d
+	(AddGlyph 101 "c0101.tiff" 1 14 1)    // e
+	(AddGlyph 102 "c0102.tiff" 0 10 0)    // f
+	(AddGlyph 103 "c0103.tiff" 1 14 2)    // g
+	(AddGlyph 104 "c0104.tiff" 2 13 2)    // h
+	(AddGlyph 105 "c0105.tiff" 2 3 2)     // i
+	(AddGlyph 106 "c0106.tiff" -2 8 2)    // j
+	(AddGlyph 107 "c0107.tiff" 2 14 -1)   // k
+	(AddGlyph 108 "c0108.tiff" 2 3 2)     // l
+	(AddGlyph 109 "c0109.tiff" 2 21 2)    // m
+	(AddGlyph 110 "c0110.tiff" 2 13 2)    // n
+	(AddGlyph 111 "c0111.tiff" 1 14 1)    // o
+	(AddGlyph 112 "c0112.tiff" 2 14 1)    // p
+	(AddGlyph 113 "c0113.tiff" 1 14 2)    // q
+	(AddGlyph 114 "c0114.tiff" 2 9 0)     // r
+	(AddGlyph 115 "c0115.tiff" 1 11 1)    // s
+	(AddGlyph 116 "c0116.tiff" 0 10 0)    // t
+	(AddGlyph 117 "c0117.tiff" 2 13 2)    // u
+	(AddGlyph 118 "c0118.tiff" 0 15 0)    // v
+	(AddGlyph 119 "c0119.tiff" 0 22 0)    // w
+	(AddGlyph 120 "c0120.tiff" 0 15 0)    // x
+	(AddGlyph 121 "c0121.tiff" 0 15 0)    // y
+	(AddGlyph 122 "c0122.tiff" 1 11 1)    // z
+	(AddGlyph 123 "c0123.tiff" 1 12 1)    // {
+	(AddGlyph 124 "c0124.tiff" 5 3 3)     // |
+	(AddGlyph 125 "c0125.tiff" 2 12 0)    // }
+	(AddGlyph 126 "c0126.tiff" 2 18 2)    // ~
+	(AddGlyph 163 "c0163.tiff" 1 14 1)    
+	(AddGlyph 8364 "c8364.tiff" 0 15 1)    
+)

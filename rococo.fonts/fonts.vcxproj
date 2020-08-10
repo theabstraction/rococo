@@ -91,6 +91,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="fonts.cpp" />
+    <ClCompile Include="fonts.os.win32.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="csv.inl" />

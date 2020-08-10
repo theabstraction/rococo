@@ -69,6 +69,74 @@ namespace Rococo
 	enum { MAX_FQ_NAME_LEN = 127 };
 	void ValidateFQNameIdentifier(cstr fqName);
 
+	ROCOCOAPI IImagePopulator
+	{
+		virtual void OnImage(const uint8 * grayscale, int width, int height) = 0;
+	};
+
+	namespace Fonts
+	{
+		ROCOCOAPI IFontGlyphBuilder
+		{
+			virtual void AddGlyph(wchar_t code) = 0;
+			virtual void AddGlyph(unsigned char code) = 0;
+		};
+
+		struct ArrayGlyph
+		{
+			int32 A; // dx cursor rollback before rendering
+			int32 B; // Width in pixels
+			int32 C; // dx cursor advance after rendering
+		};
+
+		struct GlyphDesc
+		{
+			const ArrayGlyph& glyph;
+			const char32_t charCode;
+
+			GlyphDesc(const ArrayGlyph& _glyph, const char32_t _charCode) : glyph(_glyph), charCode(_charCode) {}
+		};
+
+		struct ArrayFontMetrics
+		{
+			int32 height;
+			int32 ascent;
+			int32 descent;
+			int32 italic;
+			int32 weight;
+			int32 internalLeading;
+			int32 imgWidth;
+			int32 imgHeight;
+		};
+
+		ROCOCOAPI IArrayFont
+		{
+			virtual const ArrayFontMetrics & Metrics() const = 0;
+			virtual void ForEachGlyph(IEventCallback<const GlyphDesc>& cb) = 0;
+			virtual void GetImage(const GlyphDesc& gd, IImagePopulator& populator) = 0;
+		};
+
+		ROCOCOAPI IArrayFontSupervisor : IArrayFont
+		{
+			virtual void Free() = 0;
+		};
+
+		ROCOCOAPI IArrayFontSet
+		{
+			virtual void Populate(IFontGlyphBuilder & builder);
+		};
+
+		struct FontSpec
+		{
+			cstr fontName;
+			int32 height;
+			int32 weight;
+			int32 italic;
+		};
+
+		IArrayFontSupervisor* CreateOSFont(IArrayFontSet& glyphSet, const FontSpec& spec);
+	}
+
 	namespace Windows
 	{
 		IWindow& NoParent();

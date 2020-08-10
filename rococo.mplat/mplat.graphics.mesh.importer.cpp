@@ -13,6 +13,7 @@ ROCOCOAPI IBone
 	virtual int32 ChildCount() const = 0;
 	virtual const fstring Name() const = 0;
 	virtual IBone& AppendBone(cstr _name, size_t numberOfChildrenHint) = 0;
+	virtual void AddMatrixRow(cr_vec4 row, int32 pos) = 0;
 };
 
 struct Bone : IBone
@@ -24,6 +25,7 @@ struct Bone : IBone
 
 	HString name;
 	std::vector<Bone> children;
+	Vec4 matrix[3]; // top 3 rows in the transform
 
 	IBone& operator[](int32 index) { return children[index]; }
 	int32 ChildCount() const { return (int32)children.size(); }
@@ -38,12 +40,46 @@ struct Bone : IBone
 		children.push_back(Bone(_name, numberOfChildrenHint));
 		return children.back();
 	}
+
+	void AddMatrixRow(cr_vec4 row, int32 pos) override
+	{
+		matrix[pos] = row;
+	}
 };
 
 struct FileVertex
 {
 	Vec3 position;
 	Vec3 normal;
+
+	enum { MAX_GROUPS = 12 };
+
+	int groupId[MAX_GROUPS] = { 0 };
+	float weight[MAX_GROUPS] = { 0 };
+
+	void AddGroupAndWeight(cr_sex origin, int _groupId, float _weight, int pos)
+	{
+		if (pos >= MAX_GROUPS) Throw(origin, "AddGroupAndWeight: too many groups for vertex. Max is %u", MAX_GROUPS);
+		for (int i = 0; i < MAX_GROUPS; i++)
+		{
+			groupId[pos] = _groupId;
+			weight[pos] = _weight;
+		}
+	}
+
+	void Validate(cr_sex origin)
+	{
+		float sumOfWeights = 0;
+		for (int i = 0; i < MAX_GROUPS; ++i)
+		{
+			sumOfWeights += weight[i];
+		}
+
+		if (sumOfWeights < 0.95f || sumOfWeights > 1.05f)
+		{
+			Throw(origin, "Sum of weights is %f. It should be closer to 1.0", sumOfWeights);
+		}
+	}
 };
 
 void Check(cr_sex s, cstr checkString)
@@ -206,15 +242,27 @@ void ParseLocalMaterial(cr_sex s, LocalMaterial& mat, IRenderer& renderer)
 
 void AddBone(cr_sex sBone, IBone& root)
 {
-	if (sBone.NumberOfElements() < 2) Throw(sBone, "(bone ...) -> expecting > 1 element");
+	if (sBone.NumberOfElements() < 6) Throw(sBone, "(bone <groupId> <name> <row0><row1><row2> ...) -> expecting > 5 elements");
 
 	Check(sBone[0], "bone");
 
-	auto& name = GetStringLiteral(sBone[1]);
+	// (bone <group-id> <name> <child-bones...>)
 
-	IBone& child = root.AppendBone(name, sBone.NumberOfElements() - 2);
+	int32 groupId = AsI32(sBone[1]);
 
-	for (int i = 2; i < sBone.NumberOfElements(); ++i)
+	auto& name = GetStringLiteral(sBone[2]);
+
+	IBone& child = root.AppendBone(name, sBone.NumberOfElements() - 3);
+
+	for (int i = 3; i < 6; ++i)
+	{
+		cr_sex sRow = sBone[i];
+		if (sRow.NumberOfElements() != 4) Throw(sRow, "Expecting Vec4");
+		Vec4 row{ AsF32(sRow[0]), AsF32(sRow[1]), AsF32(sRow[2]), AsF32(sRow[3]) };
+		child.AddMatrixRow(row, i - 3);
+	}
+
+	for (int i = 6; i < sBone.NumberOfElements(); ++i)
 	{
 		AddBone(sBone[i], child);
 	}
@@ -251,13 +299,29 @@ void LoadMeshAndRig(Platform& platform, cr_sex s, const fstring& rig)
 	{
 		FileVertex v;
 		cr_sex sVertex = sVertices[i];
-		if (sVertex.NumberOfElements() != 7) Throw(sVertex, "Expected (<index> px py pz nx ny nz)");
+		if (sVertex.NumberOfElements() < 7) Throw(sVertex, "Expected (<index> px py pz nx ny nz (<group-id-1> <weight1>) ... (<group-id-N> <weightN>)");
 		v.position.x = AsF32(sVertex[1]);
 		v.position.y = AsF32(sVertex[2]);
 		v.position.z = AsF32(sVertex[3]);
 		v.normal.x = AsF32(sVertex[4]);
 		v.normal.y = AsF32(sVertex[5]);
 		v.normal.z = AsF32(sVertex[6]);
+
+		for (int j = 7; j < sVertex.NumberOfElements(); ++j)
+		{
+			cr_sex sGroupAndWeight = sVertex[j];
+			if (sGroupAndWeight.NumberOfElements() != 2)
+			{
+				Throw(sGroupAndWeight, "Expected (<group-id> <weight>)");
+			}
+
+			int groupId = AsI32(sGroupAndWeight[0]);
+			float weight = AsF32(sGroupAndWeight[1]);
+			v.AddGroupAndWeight(sGroupAndWeight, groupId, weight, j - 7);
+		}
+
+		// v.Validate(sVertex); blender does not seem to enforce normalized weighting
+
 		vertexArray.push_back(v);
 	}
 
@@ -418,8 +482,10 @@ namespace Rococo
 		void LoadRigFromSExpression(Platform& platform, cr_sex s)
 		{
 			// (ISExpression rig = '("<name>" (mesh ...)(mesh ...)...)(pose...))
-			//           s =          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-			// Ergo s[1] is first mesh definition
+			//           s =          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+			// Ergo s[0] is the rig name and s[N] is Nth mesh definition. The final element is (pose ...)
+
+			if (s.NumberOfElements() < 2) Throw(s, "%s. Expecting compound expression", __FUNCTION__);
 
 			fstring rigName = GetStringLiteral(s[0]);
 			auto* rig = platform.rigs.AddRig(rigName);
@@ -435,8 +501,8 @@ namespace Rococo
 
 			Check(sPose[0], "pose");
 
-			Bone pose("pose", (int32)(sPose.NumberOfElements() - 1LL));
-			for (int i = 1; i < sPose.NumberOfElements(); ++i)
+			Bone pose("pose", (int32)(sPose.NumberOfElements() - 2LL));
+			for (int i = 2; i < sPose.NumberOfElements(); ++i)
 			{
 				AddBone(sPose[i], pose);
 			}
