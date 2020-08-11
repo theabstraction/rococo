@@ -49,6 +49,7 @@ class Utilities :
 	IRenderer& renderer;
 	AutoFree<Graphics::ITextTesselatorSupervisor> textTesselator;
 	Platform* platform = nullptr;
+	AutoFree<Graphics::IHQFontsSupervisor> hqFonts;
 public:
 	Utilities(IInstallation& _installation, IRenderer& _renderer) : installation(_installation), renderer(_renderer)
 	{
@@ -57,6 +58,11 @@ public:
 	~Utilities()
 	{
 		platform->publisher.Unsubscribe(this);
+	}
+
+	Rococo::Graphics::IHQFonts& GetHQFonts()
+	{
+		return *hqFonts;
 	}
 
 	void Free() override
@@ -68,7 +74,7 @@ public:
 	{
 		this->platform = &platform;
 		textTesselator = Graphics::CreateTextTesselator(platform);
-
+		hqFonts = Graphics::CreateHQFonts(platform.renderer);
 		platform.publisher.Subscribe(this, evUIInvoke);
 	}
 

@@ -609,6 +609,7 @@ namespace Rococo
 		virtual void ShowBusy(bool enable, cstr title, cstr messageFormat, ...) = 0;
 		virtual IContextMenuSupervisor& GetContextMenu() = 0;
 		virtual IContextMenu& PopupContextMenu() = 0;
+		virtual Rococo::Graphics::IHQFonts& GetHQFonts() = 0;
 	};
 
 	ROCOCOAPI IUtilitiesSupervisor : public IUtilitiies
@@ -682,13 +683,15 @@ namespace Rococo
 		struct IScriptSystemFactory;
 	}
 
-	ROCOCOAPI IArrayFontsSupervisor : public IArrayFonts
+	namespace Graphics
 	{
-		virtual IHQFont* HQ() = 0;
-		virtual void Free() = 0;
-	};
+		ROCOCOAPI IHQFontsSupervisor : IHQFonts
+		{
+			virtual void Free() = 0;
+		};
 
-	IArrayFontsSupervisor* CreateArrayFonts(IInstallation& installion, IUtilitiies& utils, IRenderer& renderer);
+		IHQFontsSupervisor* CreateHQFonts(IRenderer& renderer);
+	}
 
 	struct Platform
 	{
@@ -756,8 +759,6 @@ namespace Rococo
 		Rococo::Script::IScriptSystemFactory& ssFactory;
 
 		Rococo::Puppet::IPuppets& puppets;
-
-		IArrayFonts& fonts;
 
 		// Application title
 		const char* const title;

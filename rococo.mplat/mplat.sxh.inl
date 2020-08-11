@@ -199,6 +199,76 @@ namespace Rococo { namespace Graphics {
 }}// Rococo.Graphics.MaterialCategory
 
 namespace Rococo { namespace Graphics { 
+	bool TryParse(const Rococo::fstring& s, HQFont& value)
+	{
+		if (s ==  "HQFont_DebuggerFont"_fstring)
+		{
+			value = HQFont_DebuggerFont;
+		}
+		else if (s ==  "HQFont_EditorFont"_fstring)
+		{
+			value = HQFont_EditorFont;
+		}
+		else if (s ==  "HQFont_TitleFont"_fstring)
+		{
+			value = HQFont_TitleFont;
+		}
+		else if (s ==  "HQFont_EmperorFont"_fstring)
+		{
+			value = HQFont_EmperorFont;
+		}
+		else
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	bool TryShortParse(const Rococo::fstring& s, HQFont& value)
+	{
+		if (s ==  "DebuggerFont"_fstring)
+		{
+			value = HQFont_DebuggerFont;
+		}
+		else if (s ==  "EditorFont"_fstring)
+		{
+			value = HQFont_EditorFont;
+		}
+		else if (s ==  "TitleFont"_fstring)
+		{
+			value = HQFont_TitleFont;
+		}
+		else if (s ==  "EmperorFont"_fstring)
+		{
+			value = HQFont_EmperorFont;
+		}
+		else
+		{
+			return false;
+		}
+
+		return true;
+	}
+	fstring ToShortString(HQFont value)
+	{
+		switch(value)
+		{
+			case HQFont_DebuggerFont:
+				return "DebuggerFont"_fstring;
+			case HQFont_EditorFont:
+				return "EditorFont"_fstring;
+			case HQFont_TitleFont:
+				return "TitleFont"_fstring;
+			case HQFont_EmperorFont:
+				return "EmperorFont"_fstring;
+			default:
+				return {"",0};
+		}
+	}
+}}// Rococo.Graphics.HQFont
+
+namespace Rococo { namespace Graphics { 
 	bool TryParse(const Rococo::fstring& s, SampleMethod& value)
 	{
 		if (s ==  "SampleMethod_Point"_fstring)
@@ -478,151 +548,6 @@ namespace Rococo { namespace Audio {
 	}
 }}// Rococo.Audio.ELegacySoundShape
 
-// BennyHill generated Sexy native functions for Rococo::IArrayFonts 
-namespace
-{
-	using namespace Rococo;
-	using namespace Rococo::Sex;
-	using namespace Rococo::Script;
-	using namespace Rococo::Compiler;
-
-	void NativeRococoIArrayFontsLoadFont(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		_offset += sizeof(IString*);
-		IString* _pingPathToFolder;
-		ReadInput(_pingPathToFolder, _sf, -_offset);
-		fstring pingPathToFolder { _pingPathToFolder->buffer, _pingPathToFolder->length };
-
-
-		Rococo::IArrayFonts* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		ID_FONT id = _pObject->LoadFont(pingPathToFolder);
-		_offset += sizeof(id);
-		WriteOutput(id, _sf, -_offset);
-	}
-	void NativeRococoIArrayFontsFontCount(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Rococo::IArrayFonts* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		int32 nFonts = _pObject->FontCount();
-		_offset += sizeof(nFonts);
-		WriteOutput(nFonts, _sf, -_offset);
-	}
-	void NativeRococoIArrayFontsGetFontMetrics(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Rococo::Graphics::FontMetrics* metrics;
-		_offset += sizeof(metrics);
-		ReadInput(metrics, _sf, -_offset);
-
-		ID_FONT fontId;
-		_offset += sizeof(fontId);
-		ReadInput(fontId, _sf, -_offset);
-
-		Rococo::IArrayFonts* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->GetFontMetrics(fontId, *metrics);
-	}
-	void NativeRococoIArrayFontsAppendFontName(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		_offset += sizeof(VirtualTable**);
-		VirtualTable** sb;
-		ReadInput(sb, _sf, -_offset);
-		Rococo::Helpers::StringPopulator _sbPopulator(_nce, sb);
-		ID_FONT fontId;
-		_offset += sizeof(fontId);
-		ReadInput(fontId, _sf, -_offset);
-
-		Rococo::IArrayFonts* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->AppendFontName(fontId, _sbPopulator);
-	}
-	void NativeRococoIArrayFontsDevFont(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Rococo::IArrayFonts* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		ID_FONT fontId = _pObject->DevFont();
-		_offset += sizeof(fontId);
-		WriteOutput(fontId, _sf, -_offset);
-	}
-	void NativeRococoIArrayFontsMarkDevFont(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		ID_FONT fontId;
-		_offset += sizeof(fontId);
-		ReadInput(fontId, _sf, -_offset);
-
-		Rococo::IArrayFonts* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		_pObject->MarkDevFont(fontId);
-	}
-	void NativeRococoIArrayFontsFindFontByPingPath(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		_offset += sizeof(IString*);
-		IString* _pingPathToFolder;
-		ReadInput(_pingPathToFolder, _sf, -_offset);
-		fstring pingPathToFolder { _pingPathToFolder->buffer, _pingPathToFolder->length };
-
-
-		Rococo::IArrayFonts* _pObject;
-		_offset += sizeof(_pObject);
-
-		ReadInput(_pObject, _sf, -_offset);
-		ID_FONT fontId = _pObject->FindFontByPingPath(pingPathToFolder);
-		_offset += sizeof(fontId);
-		WriteOutput(fontId, _sf, -_offset);
-	}
-
-	void NativeGetHandleForRococoArrayFonts(NativeCallEnvironment& _nce)
-	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Rococo::IArrayFonts* nceContext = reinterpret_cast<Rococo::IArrayFonts*>(_nce.context);
-		// Uses: Rococo::IArrayFonts* FactoryConstructRococoArrayFonts(Rococo::IArrayFonts* _context);
-		Rococo::IArrayFonts* pObject = FactoryConstructRococoArrayFonts(nceContext);
-		_offset += sizeof(IString*);
-		WriteOutput(pObject, _sf, -_offset);
-	}
-}
-
-namespace Rococo { 
-	void AddNativeCalls_RococoIArrayFonts(Rococo::Script::IPublicScriptSystem& ss, Rococo::IArrayFonts* _nceContext)
-	{
-		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForRococoArrayFonts, _nceContext, ("GetHandleForIArrayFonts0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeRococoIArrayFontsLoadFont, nullptr, ("IArrayFontsLoadFont (Pointer hObject)(Sys.Type.IString pingPathToFolder) -> (Int32 id)"));
-		ss.AddNativeCall(ns, NativeRococoIArrayFontsFontCount, nullptr, ("IArrayFontsFontCount (Pointer hObject) -> (Int32 nFonts)"));
-		ss.AddNativeCall(ns, NativeRococoIArrayFontsGetFontMetrics, nullptr, ("IArrayFontsGetFontMetrics (Pointer hObject)(Int32 fontId)(Rococo.Graphics.FontMetrics metrics) -> "));
-		ss.AddNativeCall(ns, NativeRococoIArrayFontsAppendFontName, nullptr, ("IArrayFontsAppendFontName (Pointer hObject)(Int32 fontId)(Sys.Type.IStringBuilder sb) -> "));
-		ss.AddNativeCall(ns, NativeRococoIArrayFontsDevFont, nullptr, ("IArrayFontsDevFont (Pointer hObject) -> (Int32 fontId)"));
-		ss.AddNativeCall(ns, NativeRococoIArrayFontsMarkDevFont, nullptr, ("IArrayFontsMarkDevFont (Pointer hObject)(Int32 fontId) -> "));
-		ss.AddNativeCall(ns, NativeRococoIArrayFontsFindFontByPingPath, nullptr, ("IArrayFontsFindFontByPingPath (Pointer hObject)(Sys.Type.IString pingPathToFolder) -> (Int32 fontId)"));
-	}
-}
 // BennyHill generated Sexy native functions for Rococo::IPane 
 namespace
 {
@@ -9564,6 +9489,195 @@ namespace Rococo { namespace Graphics {
 		ss.AddNativeCall(ns, NativeRococoGraphicsITextTesselatorSetFormatQuad, nullptr, ("ITextTesselatorSetFormatQuad (Pointer hObject)(Sys.Maths.Quadf positions) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsITextTesselatorTrySetFontIndex, nullptr, ("ITextTesselatorTrySetFontIndex (Pointer hObject)(Int32 index) -> (Bool isSet)"));
 		ss.AddNativeCall(ns, NativeRococoGraphicsITextTesselatorTrySetFont, nullptr, ("ITextTesselatorTrySetFont (Pointer hObject)(Sys.Type.IString name)(Float32 dotSize) -> (Bool isSet)"));
+	}
+}}
+// BennyHill generated Sexy native functions for Rococo::Graphics::IHQFonts 
+namespace
+{
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
+
+	void NativeRococoGraphicsIHQFontsBuild(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Graphics::HQFont font;
+		_offset += sizeof(font);
+		ReadInput(font, _sf, -_offset);
+
+		Rococo::Graphics::IHQFonts* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->Build(font);
+	}
+	void NativeRococoGraphicsIHQFontsClear(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Graphics::IHQFonts* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->Clear();
+	}
+	void NativeRococoGraphicsIHQFontsSetFaceName(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _name;
+		ReadInput(_name, _sf, -_offset);
+		fstring name { _name->buffer, _name->length };
+
+
+		Rococo::Graphics::IHQFonts* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetFaceName(name);
+	}
+	void NativeRococoGraphicsIHQFontsSetHeight(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 dyPixels;
+		_offset += sizeof(dyPixels);
+		ReadInput(dyPixels, _sf, -_offset);
+
+		Rococo::Graphics::IHQFonts* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetHeight(dyPixels);
+	}
+	void NativeRococoGraphicsIHQFontsMakeItalics(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Graphics::IHQFonts* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->MakeItalics();
+	}
+	void NativeRococoGraphicsIHQFontsMakeBold(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Graphics::IHQFonts* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->MakeBold();
+	}
+	void NativeRococoGraphicsIHQFontsAddUnicode32Char(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 unicodeValue;
+		_offset += sizeof(unicodeValue);
+		ReadInput(unicodeValue, _sf, -_offset);
+
+		Rococo::Graphics::IHQFonts* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AddUnicode32Char(unicodeValue);
+	}
+	void NativeRococoGraphicsIHQFontsAddCharacters(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _s;
+		ReadInput(_s, _sf, -_offset);
+		fstring s { _s->buffer, _s->length };
+
+
+		Rococo::Graphics::IHQFonts* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AddCharacters(s);
+	}
+	void NativeRococoGraphicsIHQFontsAddRange(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 unicodeEndChar;
+		_offset += sizeof(unicodeEndChar);
+		ReadInput(unicodeEndChar, _sf, -_offset);
+
+		int32 unicodeStarChar;
+		_offset += sizeof(unicodeStarChar);
+		ReadInput(unicodeStarChar, _sf, -_offset);
+
+		Rococo::Graphics::IHQFonts* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AddRange(unicodeStarChar, unicodeEndChar);
+	}
+	void NativeRococoGraphicsIHQFontsCommit(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Graphics::IHQFonts* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		ID_FONT fontId = _pObject->Commit();
+		_offset += sizeof(fontId);
+		WriteOutput(fontId, _sf, -_offset);
+	}
+	void NativeRococoGraphicsIHQFontsGetSysFont(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Graphics::HQFont font;
+		_offset += sizeof(font);
+		ReadInput(font, _sf, -_offset);
+
+		Rococo::Graphics::IHQFonts* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		ID_FONT fontId = _pObject->GetSysFont(font);
+		_offset += sizeof(fontId);
+		WriteOutput(fontId, _sf, -_offset);
+	}
+
+	void NativeGetHandleForRococoGraphicsHQFonts(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Platform* nceContext = reinterpret_cast<Rococo::Platform*>(_nce.context);
+		// Uses: Rococo::Graphics::IHQFonts* FactoryConstructRococoGraphicsHQFonts(Rococo::Platform* _context);
+		Rococo::Graphics::IHQFonts* pObject = FactoryConstructRococoGraphicsHQFonts(nceContext);
+		_offset += sizeof(IString*);
+		WriteOutput(pObject, _sf, -_offset);
+	}
+}
+
+namespace Rococo { namespace Graphics { 
+	void AddNativeCalls_RococoGraphicsIHQFonts(Rococo::Script::IPublicScriptSystem& ss, Rococo::Platform* _nceContext)
+	{
+		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Graphics.Native"));
+		ss.AddNativeCall(ns, NativeGetHandleForRococoGraphicsHQFonts, _nceContext, ("GetHandleForIHQFonts0  -> (Pointer hObject)"));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIHQFontsBuild, nullptr, ("IHQFontsBuild (Pointer hObject)(Int32 font) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIHQFontsClear, nullptr, ("IHQFontsClear (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIHQFontsSetFaceName, nullptr, ("IHQFontsSetFaceName (Pointer hObject)(Sys.Type.IString name) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIHQFontsSetHeight, nullptr, ("IHQFontsSetHeight (Pointer hObject)(Int32 dyPixels) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIHQFontsMakeItalics, nullptr, ("IHQFontsMakeItalics (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIHQFontsMakeBold, nullptr, ("IHQFontsMakeBold (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIHQFontsAddUnicode32Char, nullptr, ("IHQFontsAddUnicode32Char (Pointer hObject)(Int32 unicodeValue) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIHQFontsAddCharacters, nullptr, ("IHQFontsAddCharacters (Pointer hObject)(Sys.Type.IString s) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIHQFontsAddRange, nullptr, ("IHQFontsAddRange (Pointer hObject)(Int32 unicodeStarChar)(Int32 unicodeEndChar) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIHQFontsCommit, nullptr, ("IHQFontsCommit (Pointer hObject) -> (Int32 fontId)"));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIHQFontsGetSysFont, nullptr, ("IHQFontsGetSysFont (Pointer hObject)(Int32 font) -> (Int32 fontId)"));
 	}
 }}
 // BennyHill generated Sexy native functions for Rococo::Graphics::IRendererConfig 

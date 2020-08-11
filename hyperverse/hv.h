@@ -181,6 +181,7 @@ namespace HV
 	   IGUIStack& gui;
 	   IKeyboardSupervisor& keyboard;
 	   IFieldEditorEventHandler& onActiveChange;
+	   ID_FONT idFont;
    };
 
    ROCOCOAPI IFieldEditor

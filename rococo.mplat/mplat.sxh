@@ -10,22 +10,6 @@
 )
 
 (interface 
-	(as.sxy Rococo.IArrayFonts "../content/scripts/mplat")
-	(as.cpp Rococo.IArrayFonts "mplat")
-	(context factory Rococo.IArrayFonts)
-	(methods
-		(LoadFont (IString pingPathToFolder)->(IdFont id))
-		(FontCount -> (Int32 nFonts))
-		(GetFontMetrics (IdFont fontId)(FontMetrics metrics))
-		(AppendFontName (IdFont fontId)(IStringBuilder sb))
-		(DevFont -> (IdFont fontId))
-		(MarkDevFont (IdFont fontId))
-		(FindFontByPingPath (IString pingPathToFolder)->(IdFont fontId))
-	)
-	(factory Rococo.ArrayFonts)
-)
-
-(interface 
 	(as.sxy Rococo.IPane "../content/scripts/mplat.pane")
 	(as.cpp Rococo.IPane "mplat")
 	(context factory Rococo.IPane)
@@ -549,6 +533,36 @@
 		(TrySetFont (IString name)(Float32 dotSize)->(Bool isSet))
 	)
 	(factory Rococo.Graphics.TextTesselator)
+)
+
+(enum Int32
+	(as.sxy Rococo.Graphics.HQFont "../content/scripts/mplat")
+	(as.cpp Rococo.Graphics.HQFont "mplat")
+	(
+		(DebuggerFont 0)
+		(EditorFont 1)
+		(TitleFont 2)
+		(EmperorFont 3)
+	)
+)
+
+(interface (as.sxy Rococo.Graphics.IHQFonts "../content/scripts/mplat")
+	(as.cpp Rococo.Graphics.IHQFonts "mplat")
+	(context factory Rococo.Platform)
+	(methods
+		(Build (EHQFont font))
+		(Clear)
+		(SetFaceName (IString name))
+		(SetHeight (Int32 dyPixels))
+		(MakeItalics)
+		(MakeBold)
+		(AddUnicode32Char (Int32 unicodeValue))
+		(AddCharacters (IString s))
+		(AddRange (Int32 unicodeStarChar)(Int32 unicodeEndChar))
+		(Commit -> (IdFont fontId))
+		(GetSysFont  (EHQFont font) -> (IdFont fontId))
+	)
+	(factory Rococo.Graphics.HQFonts)
 )
 
 (enum Int32

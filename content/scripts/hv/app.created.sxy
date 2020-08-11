@@ -14,23 +14,17 @@
 (using Rococo.Entities)
 (using Sys.Type)
 
-(function LoadFonts -> :
-	(IArrayFonts fonts (ArrayFonts))
-	
-	// Protocol says we define fonts roughly in order of size
-//	(fonts.LoadFont "!textures/fonts/Tahoma-192/")
-	
-	(Int32 idDevFont)
-	(fonts.LoadFont "!textures/fonts/Courier New-15/" -> idDevFont)
-	(fonts.MarkDevFont idDevFont)
-	
-	(fonts.LoadFont "!textures/fonts/Courier New-19/")
-)
-
 (function Main (Int32 id)->(Int32 exitCode):
 	(IInstances instances (Instances))
 	(instances.SetMaterialMacro "!textures/hv/materials/hi-rez/" )
 	(instances.LoadMaterialArray "#m/" 1024)
 	
-	(LoadFonts)
+	(IHQFonts fonts (HQFonts))
+	(fonts.Build (#HQFontEditorFont))
+	(fonts.SetFaceName "Courier New")
+	(fonts.MakeBold)
+	(fonts.AddRange 32 127)
+	(fonts.AddCharacters "£")
+	(fonts.SetHeight 24)
+	(fonts.Commit)
 )

@@ -931,6 +931,47 @@ namespace Rococo
 			}
 		}
 
+		void RenderHQText_LeftAligned_VCentre(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour)
+		{
+			if (text == nullptr || *text == 0) return;
+
+			Vec2 origin = { 0, 1000 };
+			struct : IHQTextJob
+			{
+				cstr text;
+				RGBAb colour;
+				Vec2 startPos;
+				GuiRectf lastRect = { 0,0,0,0 };
+
+				void Render(IHQTextBuilder& builder) override
+				{
+					builder.SetColour(colour);
+					builder.SetCursor(startPos);
+
+					for (const char* p = text; *p != 0; p++)
+					{
+						builder.Write(*p, &lastRect);
+					}
+				}
+			} job;
+
+			job.text = text;
+			job.colour = colour;
+			job.startPos = origin;
+
+			grc.RenderHQText(fontId, job, IGuiRenderContext::EVALUATE_SPAN_ONLY);
+
+			Vec2 span;
+			span.x = job.lastRect.right - origin.x;
+			span.y = Height(job.lastRect);
+
+			job.startPos.x = (float)rect.left;
+			job.startPos.y = 0.5f * ((float)rect.top + (float)rect.bottom + span.y);
+
+			grc.RenderHQText(fontId, job, IGuiRenderContext::RENDER);
+		}
+
+
 		void DrawBorderAround(IGuiRenderContext& grc, const GuiRect& rect, const Vec2i& width, RGBAb diag, RGBAb backdiag)
 		{
 			GuiRect topRect{ rect.left - width.x, rect.top, rect.right, rect.top + width.y };

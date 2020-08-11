@@ -355,8 +355,6 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 
 	OutputDebugStringA("\n\n");
 
-	AutoFree<IArrayFontsSupervisor> fonts{ CreateArrayFonts(*installation, *utilities, mainWindow->Renderer()) };
-
 	Tesselators tesselators{ *rimTesselator, *rodTesselator };
 
 	Platform platform
@@ -364,10 +362,9 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 		*os, *installation, *appControl, mainWindow->Renderer(), *rendererConfig, *messaging, 
 		*sourceCache, *debuggerWindow, *publisher, *utilities, *gui, *keyboard, *config, *meshes, *rigs,
 		*instances, *mobiles, *particles, *sprites, *camera, *scene, tesselators, *mathsVisitor,
-		*legacySound, *ssFactory, *puppets, *fonts, title
+		*legacySound, *ssFactory, *puppets, title
 	};
 
-	platform.renderer.UseHQFonts(fonts->HQ());
 	gui->PostConstruct(&platform);
 	utilities->SetPlatform(platform);
 	messaging->PostCreate(platform);

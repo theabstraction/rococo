@@ -236,6 +236,13 @@ namespace Rococo
 			Rococo::Free(t);
 		}
 
+		T* Release()
+		{
+			T* output = t;
+			t = nullptr;
+			return output;
+		}
+
 		operator T* () { return t; }
 		T* operator -> () { return t; }
 		T& operator * () { return *t; }

@@ -26,6 +26,7 @@
 (primitive RGBAb Int32 RGBAb)
 (primitive IdPuppet Int64 ID_PUPPET)
 (primitive IdFont Int32 ID_FONT)
+(primitive EHQFont Int32 Rococo.Graphics.HQFont)
 
 (primitive Pointer Pointer uintptr_t)
 (primitive IdMesh Int32 ID_MESH)

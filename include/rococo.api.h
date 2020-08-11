@@ -69,9 +69,10 @@ namespace Rococo
 	enum { MAX_FQ_NAME_LEN = 127 };
 	void ValidateFQNameIdentifier(cstr fqName);
 
+	template<typename COLOUR_STRUCT>
 	ROCOCOAPI IImagePopulator
 	{
-		virtual void OnImage(const uint8 * grayscale, int width, int height) = 0;
+		virtual void OnImage(const COLOUR_STRUCT* pixelBuffer, int width, int height) = 0;
 	};
 
 	namespace Fonts
@@ -79,7 +80,7 @@ namespace Rococo
 		ROCOCOAPI IFontGlyphBuilder
 		{
 			virtual void AddGlyph(wchar_t code) = 0;
-			virtual void AddGlyph(unsigned char code) = 0;
+			virtual void AddGlyph(unsigned char asciiValue) = 0;
 		};
 
 		struct ArrayGlyph
@@ -87,6 +88,7 @@ namespace Rococo
 			int32 A; // dx cursor rollback before rendering
 			int32 B; // Width in pixels
 			int32 C; // dx cursor advance after rendering
+			int32 Index; // enumeration index
 		};
 
 		struct GlyphDesc
@@ -109,11 +111,29 @@ namespace Rococo
 			int32 imgHeight;
 		};
 
+		typedef uint8 GRAYSCALE;
+
 		ROCOCOAPI IArrayFont
 		{
+			virtual int32 NumberOfGlyphs() const = 0;
+
+			virtual const ArrayGlyph& operator[](unsigned char) = 0;
+			virtual const ArrayGlyph& operator[](wchar_t) = 0;
+			virtual const ArrayGlyph& operator[](char32_t) = 0;
+
 			virtual const ArrayFontMetrics & Metrics() const = 0;
+
+			/* Enumerate the glyphs in the registered glyphs for this font
+			 The callback gives the ABC widths of each glyph as well as the UNICODE value
+			*/
 			virtual void ForEachGlyph(IEventCallback<const GlyphDesc>& cb) = 0;
-			virtual void GetImage(const GlyphDesc& gd, IImagePopulator& populator) = 0;
+
+			/*
+			 GenerateImage will work for characters outside the glyph set, but this is abuse of the API
+			 In general the consumer uses ForEachGlyph to iterate over all registered glyphs
+			 then calls GenerateImage in the callback to get an image, and saves it to memory or disk
+			*/
+			virtual void GenerateImage(const char32_t charCode, IImagePopulator<GRAYSCALE>& populator) = 0;
 		};
 
 		ROCOCOAPI IArrayFontSupervisor : IArrayFont
@@ -131,9 +151,15 @@ namespace Rococo
 			cstr fontName;
 			int32 height;
 			int32 weight;
-			int32 italic;
+			boolean32 italic;
 		};
 
+		/*
+		  Implement your own IArrayFontSent. The populate function should call IFontGlyphBuilder::AddGlyph
+		  for every UNICODE value you want in the font image set. Since this can be rather expensive in
+		  memory for the full UNICODE set, I suggest you restrict glyphs to ASCII 32 to 126 and add whatever
+		  extra characters your particular application needs.
+		*/
 		IArrayFontSupervisor* CreateOSFont(IArrayFontSet& glyphSet, const FontSpec& spec);
 	}
 
@@ -727,13 +753,6 @@ namespace Rococo
 		int32 a;
 		uint32 b;
 		int32 c;
-	};
-
-	ROCOCOAPI IHQFont
-	{
-		virtual bool IsFontIdMapped(ID_FONT id) const = 0;
-		virtual GlyphData GetGlyphData(ID_FONT id, char c) const = 0;
-		virtual Vec2i GetFontCellSpan(ID_FONT id, ID_TEXTURE& fontArrayId) const = 0;
 	};
 
 	ROCOCOAPI IDirectAppControl

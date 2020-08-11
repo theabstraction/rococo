@@ -69,7 +69,7 @@ namespace Rococo
 
 	ROCOCOAPI IMaterialPalette
 	{
-		virtual bool TryGetMaterial(BodyComponentMatClass name, MaterialVertexData& vd) const = 0;
+		virtual bool TryGetMaterial(BodyComponentMatClass name, MaterialVertexData & vd) const = 0;
 	};
 
 	struct VertexTriangle
@@ -97,14 +97,29 @@ namespace Rococo
 	struct IRenderer;
 
 	ROCOCO_ID(ID_VERTEX_SHADER, size_t, -1)
-	ROCOCO_ID(ID_PIXEL_SHADER, size_t, -1)
-	ROCOCO_ID(ID_GEOMETRY_SHADER, size_t, -1)
-	ROCOCO_ID(ID_CUBE_TEXTURE, size_t, 0);
+		ROCOCO_ID(ID_PIXEL_SHADER, size_t, -1)
+		ROCOCO_ID(ID_GEOMETRY_SHADER, size_t, -1)
+		ROCOCO_ID(ID_CUBE_TEXTURE, size_t, 0);
 
 	namespace Textures
 	{
 		struct BitmapLocation;
 	}
+
+	ROCOCOAPI IHQTextBuilder
+	{
+		 virtual const Fonts::ArrayFontMetrics & Metrics() const = 0;
+		 virtual void SetColour(RGBAb colour) = 0;
+		 virtual void SetCursor(Vec2 bottomLeftNextCharCell) = 0;
+		 virtual void Write(char c, GuiRectf* outputBounds) = 0;
+		 virtual void Write(wchar_t c, GuiRectf* outputBounds) = 0;
+		 virtual void Write(char32_t c, GuiRectf* outputBounds) = 0;
+	};
+
+	ROCOCOAPI IHQTextJob
+	{
+		virtual void Render(IHQTextBuilder & builder) = 0;
+	};
 
 	ROCOCOAPI IGuiRenderContext // Provides draw calls - do not cache
 	{
@@ -119,8 +134,10 @@ namespace Rococo
 		virtual void SetScissorRect(const Rococo::GuiRectf& rect) = 0;
 		virtual void ClearScissorRect() = 0;
 
-		// Renders text and returns the span. To compute span without rendering, pass alpha zero
-		virtual Vec2i RenderHQText(ID_FONT id, cstr text, Vec2i pos, RGBAb colour) = 0;
+		// Renders high quality text. To compute span without rendering, pass evaluateSpanOnly as true
+
+		enum EMode { RENDER, EVALUATE_SPAN_ONLY, };
+		virtual void RenderHQText(ID_FONT id, IHQTextJob& job, EMode mode = RENDER) = 0;
 	};
 
 	struct ObjectInstance
@@ -150,13 +167,13 @@ namespace Rococo
 
 	ROCOCOAPI IRenderContext // Provides draw calls - do not cache
 	{
-		virtual void Draw(ID_SYS_MESH id, const ObjectInstance* instance, uint32 nInstances) = 0;
+		virtual void Draw(ID_SYS_MESH id, const ObjectInstance * instance, uint32 nInstances) = 0;
 		virtual IRenderer& Renderer() = 0;
 	};
 
 	ROCOCOAPI IUIOverlay
 	{
-	   virtual void Render(IGuiRenderContext& gc) = 0;
+	   virtual void Render(IGuiRenderContext & gc) = 0;
 	};
 
 #pragma pack(push,4)
@@ -167,7 +184,7 @@ namespace Rococo
 		Vec4 direction;
 		Vec4 right;
 		Vec4 up;
-		RGBA colour = RGBA(1,1,1,1);
+		RGBA colour = RGBA(1, 1, 1, 1);
 		RGBA ambient = RGBA(0, 0, 0, 0);
 		float fogConstant;
 		Vec3 randoms; // 3 random quotients 0.0 - 1.0
@@ -201,7 +218,7 @@ namespace Rococo
 
 	ROCOCOAPI IScene
 	{
-		virtual void GetCamera(Matrix4x4& camera, Matrix4x4& world, Matrix4x4& proj, Vec4& eye, Vec4& viewDir) = 0;
+		virtual void GetCamera(Matrix4x4 & camera, Matrix4x4 & world, Matrix4x4 & proj, Vec4 & eye, Vec4 & viewDir) = 0;
 		virtual ID_CUBE_TEXTURE GetSkyboxCubeId() const = 0;
 		virtual RGBA GetClearColour() const = 0;
 		virtual void OnGuiResize(Vec2i screenSpan) = 0;
@@ -270,7 +287,7 @@ namespace Rococo
 			Filter_Point = 0,
 			Filter_Linear = 1
 		};
-	
+
 		enum AddressMode : int32
 		{
 			AddressMode_Border = 0,
@@ -349,50 +366,50 @@ namespace Rococo
 
 	ROCOCOAPI IRenderer
 	{
-	  virtual void AddOverlay(int zorder, IUIOverlay* overlay) = 0;
-	  virtual void AddFog(const ParticleVertex& fog) = 0;
-	  virtual void AddPlasma(const ParticleVertex& p) = 0;
-	  virtual ID_TEXTURE CreateRenderTarget(int32 width, int32 height) = 0;
-	  virtual void CaptureMouse(bool enable) = 0;
-	  virtual void ClearMeshes() = 0;
-	  virtual void ClearFog() = 0;
-	  virtual void ClearPlasma() = 0;
-	  virtual ID_SYS_MESH CreateTriangleMesh(const ObjectVertex* vertices, uint32 nVertices) = 0;
-	  virtual ID_CUBE_TEXTURE CreateCubeTexture(cstr path, cstr extension) = 0;
-	  virtual void DeleteMesh(ID_SYS_MESH id) = 0;
-	  virtual ID_TEXTURE FindTexture(cstr name) const = 0;
-	  virtual Fonts::IFont& FontMetrics() = 0;
-	  virtual void SetSysCursor(EWindowCursor id) = 0;
-	  virtual void GetGuiMetrics(GuiMetrics& metrics) const = 0;
-	  virtual void GetMaterialArrayMetrics(MaterialArrayMetrics& metrics) const = 0;
-	  virtual void GetMeshDesc(char desc[256], ID_SYS_MESH id) = 0;
-	  virtual bool TryGetTextureDesc(TextureDesc& desc, ID_TEXTURE id) const = 0;
-	  virtual IInstallation& Installation() = 0;
-	  virtual void LoadMaterialTextureArray(IMaterialTextureArrayBuilder& builder) = 0;
-	  virtual MaterialId GetMaterialId(cstr name) const = 0;
-	  virtual cstr GetMaterialTextureName(MaterialId id) const = 0;
-	  virtual ID_TEXTURE LoadTexture(IBuffer& rawImageBuffer, cstr uniqueName) = 0;
-	  virtual Textures::ITextureArrayBuilder& SpriteBuilder() = 0;
-	  virtual void OnSize(Vec2i span) = 0;
-	  virtual void Render(Graphics::RenderPhaseConfig& config, IScene& scene) = 0;
-	  virtual void RemoveOverlay(IUIOverlay* overlay) = 0;
-	  virtual void SetCursorBitmap(const Textures::BitmapLocation& sprite, Vec2i hotspotOffset) = 0;
-	  virtual void SetCursorVisibility(bool isVisible) = 0;
-	  virtual void SetSampler(uint32 index, Samplers::Filter, Samplers::AddressMode u, Samplers::AddressMode v, Samplers::AddressMode w, const RGBA& borderColour) = 0;
-	  virtual void SetShadowCasting(ID_SYS_MESH id, boolean32 isActive) = 0;
-	  virtual void SetSpecialShader(ID_SYS_MESH id, cstr psSpotlightPingPath, cstr psAmbientPingPath, bool alphaBlending) = 0;
-	  virtual void ShowWindowVenue(IMathsVisitor& visitor) = 0;
-	  virtual void SyncCubeTexture(int32 XMaxFace, int32 XMinFace, int32 YMaxFace, int32 YMinFace, int32 ZMaxFace, int32 ZMinFace) = 0;
-	  virtual void SwitchToWindowMode() = 0;
-	  virtual IMathsVenue* TextureVenue() = 0;
-	  virtual ID_TEXTURE LoadAlphaTextureArray(cstr uniqueName, Vec2i span, int nElements, ITextureLoadEnumerator& enumerator) = 0;
-	  virtual void UpdateMesh(ID_SYS_MESH rendererId, const ObjectVertex* vertices, uint32 nVertices) = 0;
-	  virtual void UpdatePixelShader(cstr pingPath) = 0;
-	  virtual void UpdateVertexShader(cstr pingPath) = 0;
-	  virtual Windows::IWindow& Window() = 0;
-	  virtual IMathsVenue* Venue() = 0;
-	  virtual void UseHQFonts(IHQFont* hqFonts) = 0; // Typically initialized from mplat's platform.fonts object
-	  virtual void Free() = 0;
+		virtual ID_FONT CreateOSFont(Fonts::IArrayFontSet& glyphs, const Fonts::FontSpec & spec) = 0;
+		virtual void AddOverlay(int zorder, IUIOverlay * overlay) = 0;
+		virtual void AddFog(const ParticleVertex& fog) = 0;
+		virtual void AddPlasma(const ParticleVertex& p) = 0;
+		virtual ID_TEXTURE CreateRenderTarget(int32 width, int32 height) = 0;
+		virtual void CaptureMouse(bool enable) = 0;
+		virtual void ClearMeshes() = 0;
+		virtual void ClearFog() = 0;
+		virtual void ClearPlasma() = 0;
+		virtual ID_SYS_MESH CreateTriangleMesh(const ObjectVertex* vertices, uint32 nVertices) = 0;
+		virtual ID_CUBE_TEXTURE CreateCubeTexture(cstr path, cstr extension) = 0;
+		virtual void DeleteMesh(ID_SYS_MESH id) = 0;
+		virtual ID_TEXTURE FindTexture(cstr name) const = 0;
+		virtual Fonts::IFont& FontMetrics() = 0;
+		virtual void SetSysCursor(EWindowCursor id) = 0;
+		virtual void GetGuiMetrics(GuiMetrics& metrics) const = 0;
+		virtual void GetMaterialArrayMetrics(MaterialArrayMetrics& metrics) const = 0;
+		virtual void GetMeshDesc(char desc[256], ID_SYS_MESH id) = 0;
+		virtual bool TryGetTextureDesc(TextureDesc& desc, ID_TEXTURE id) const = 0;
+		virtual IInstallation& Installation() = 0;
+		virtual void LoadMaterialTextureArray(IMaterialTextureArrayBuilder& builder) = 0;
+		virtual MaterialId GetMaterialId(cstr name) const = 0;
+		virtual cstr GetMaterialTextureName(MaterialId id) const = 0;
+		virtual ID_TEXTURE LoadTexture(IBuffer& rawImageBuffer, cstr uniqueName) = 0;
+		virtual Textures::ITextureArrayBuilder& SpriteBuilder() = 0;
+		virtual void OnSize(Vec2i span) = 0;
+		virtual void Render(Graphics::RenderPhaseConfig& config, IScene& scene) = 0;
+		virtual void RemoveOverlay(IUIOverlay* overlay) = 0;
+		virtual void SetCursorBitmap(const Textures::BitmapLocation& sprite, Vec2i hotspotOffset) = 0;
+		virtual void SetCursorVisibility(bool isVisible) = 0;
+		virtual void SetSampler(uint32 index, Samplers::Filter, Samplers::AddressMode u, Samplers::AddressMode v, Samplers::AddressMode w, const RGBA& borderColour) = 0;
+		virtual void SetShadowCasting(ID_SYS_MESH id, boolean32 isActive) = 0;
+		virtual void SetSpecialShader(ID_SYS_MESH id, cstr psSpotlightPingPath, cstr psAmbientPingPath, bool alphaBlending) = 0;
+		virtual void ShowWindowVenue(IMathsVisitor& visitor) = 0;
+		virtual void SyncCubeTexture(int32 XMaxFace, int32 XMinFace, int32 YMaxFace, int32 YMinFace, int32 ZMaxFace, int32 ZMinFace) = 0;
+		virtual void SwitchToWindowMode() = 0;
+		virtual IMathsVenue* TextureVenue() = 0;
+		virtual ID_TEXTURE LoadAlphaTextureArray(cstr uniqueName, Vec2i span, int nElements, ITextureLoadEnumerator& enumerator) = 0;
+		virtual void UpdateMesh(ID_SYS_MESH rendererId, const ObjectVertex* vertices, uint32 nVertices) = 0;
+		virtual void UpdatePixelShader(cstr pingPath) = 0;
+		virtual void UpdateVertexShader(cstr pingPath) = 0;
+		virtual Windows::IWindow& Window() = 0;
+		virtual IMathsVenue* Venue() = 0;
+		virtual void Free() = 0;
 	};
 
 	namespace Graphics
@@ -420,6 +437,8 @@ namespace Rococo
 		void DrawBorderAround(IGuiRenderContext& grc, const GuiRect& rect, const Vec2i& width, RGBAb diag, RGBAb backdiag);
 		void DrawLine(IGuiRenderContext& grc, int pixelthickness, Vec2i start, Vec2i end, RGBAb colour);
 
+		void RenderHQText_LeftAligned_VCentre(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour);
+
 		struct alignas(16) StackSpaceGraphics
 		{
 			char opaque[256];
@@ -440,6 +459,6 @@ namespace Rococo
 		void DrawSprite(const Vec2i& topLeft, const Textures::BitmapLocation& location, IGuiRenderContext& gc);
 		void DrawSpriteCentred(const GuiRect& rect, const Textures::BitmapLocation& location, IGuiRenderContext& gc);
 	} // Graphics
-} // Rococo
+}// Rococo
 
 #endif

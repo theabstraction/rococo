@@ -108,13 +108,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WindowFontAPI", "GisephoneF
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.file.browser", "rococo.file.browser\rococo.file.browser.vcxproj", "{224026E5-A812-4025-AB4B-266A3C83612F}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.font_array_gen", "rococo.font_array_gen\rococo.font_array_gen.vcxproj", "{727CACF6-807C-452B-BD2B-B9804701E6F8}"
-	ProjectSection(ProjectDependencies) = postProject
-		{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D} = {D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}
-		{31024025-C99F-45A4-A4EA-BCEB32794477} = {31024025-C99F-45A4-A4EA-BCEB32794477}
-		{2AF865A5-02B2-4B64-9F89-E03E8CB9C933} = {2AF865A5-02B2-4B64-9F89-E03E8CB9C933}
-	EndProjectSection
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.tiff", "libtiff\bloke.tiff\bloke.tiff.vcxproj", "{2AF865A5-02B2-4B64-9F89-E03E8CB9C933}"
 EndProject
 Global
@@ -233,12 +226,6 @@ Global
 		{224026E5-A812-4025-AB4B-266A3C83612F}.Release|Any CPU.ActiveCfg = Release|x64
 		{224026E5-A812-4025-AB4B-266A3C83612F}.Release|x64.ActiveCfg = Release|x64
 		{224026E5-A812-4025-AB4B-266A3C83612F}.Release|x64.Build.0 = Release|x64
-		{727CACF6-807C-452B-BD2B-B9804701E6F8}.Debug|Any CPU.ActiveCfg = Debug|x64
-		{727CACF6-807C-452B-BD2B-B9804701E6F8}.Debug|x64.ActiveCfg = Debug|x64
-		{727CACF6-807C-452B-BD2B-B9804701E6F8}.Debug|x64.Build.0 = Debug|x64
-		{727CACF6-807C-452B-BD2B-B9804701E6F8}.Release|Any CPU.ActiveCfg = Release|x64
-		{727CACF6-807C-452B-BD2B-B9804701E6F8}.Release|x64.ActiveCfg = Release|x64
-		{727CACF6-807C-452B-BD2B-B9804701E6F8}.Release|x64.Build.0 = Release|x64
 		{2AF865A5-02B2-4B64-9F89-E03E8CB9C933}.Debug|Any CPU.ActiveCfg = Debug|x64
 		{2AF865A5-02B2-4B64-9F89-E03E8CB9C933}.Debug|x64.ActiveCfg = Debug|x64
 		{2AF865A5-02B2-4B64-9F89-E03E8CB9C933}.Debug|x64.Build.0 = Debug|x64

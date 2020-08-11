@@ -76,8 +76,9 @@ namespace HV
 		void RenderHelloWorld(IGuiRenderContext& g)
 		{
 			/* enable font loading in app.created.sxy to make this work */
-			g.RenderHQText(ID_FONT{ 0 }, "Hello World", { 0, 300 }, RGBAb(0, 0, 0, 255));
-			g.RenderHQText(ID_FONT{ 0 }, "Hello World", { 10, 290 }, RGBAb(255, 255, 255, 255));
+
+			Graphics::RenderHQText_LeftAligned_VCentre(g, ID_FONT{ 400 }, GuiRect{ 0,0,300,300}, "Hello World",  RGBAb(0, 0, 0, 255));
+			Graphics::RenderHQText_LeftAligned_VCentre(g, ID_FONT{ 400 }, GuiRect{ 0,0,304,304}, "Hello World", RGBAb(0, 0, 0, 255));
 		}
 
 		void RenderGui(IGuiRenderContext& g) override

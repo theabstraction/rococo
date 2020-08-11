@@ -7,13 +7,6 @@ using namespace HV;
 
 namespace
 {
-	void RenderHQText_LeftAligned_VCentre(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour)
-	{
-		Vec2i span = grc.RenderHQText(fontId, text, { 0,0 }, RGBAb(0, 0, 0, 0));
-		Vec2i pos{ rect.left, (rect.top + rect.bottom + span.y) >> 1 };
-		grc.RenderHQText(fontId, text, pos, colour);
-	}
-
 	ROCOCOAPI IField
 	{
 		virtual bool OnKeyboardEvent(const KeyboardEvent & key) = 0;
@@ -36,11 +29,11 @@ namespace
 		SafeFormat(buffer.data(), buffer.size(), "%s", str);
 	}
 
-	void RenderName(IGuiRenderContext& grc, cstr name, const GuiRect& lineRect, int32 width)
+	void RenderName(IGuiRenderContext& grc, ID_FONT idFont, cstr name, const GuiRect& lineRect, int32 width)
 	{
 		GuiRect nameRect = lineRect;
 		nameRect.right = nameRect.left + width;
-		RenderHQText_LeftAligned_VCentre(grc, ID_FONT{ 1 }, nameRect, name, RGBAb(255, 255, 255, 255));
+		Graphics::RenderHQText_LeftAligned_VCentre(grc, idFont, nameRect, name, RGBAb(255, 255, 255, 255));
 	}
 
 	void RenderEditorBackground(IGuiRenderContext& grc, cstr name, const GuiRect& lineRect, int32 width, bool isActive)
@@ -103,8 +96,10 @@ namespace
 
 		bool showHex;
 
-		UnboundedInt32Field(IKeyboardSupervisor& _keyboard, cstr _name, int32 _value, bool _preferHex):
-			keyboard(_keyboard), name(_name), value(_value), editBuffer(12), preferHex(_preferHex)
+		ID_FONT idFont;
+
+		UnboundedInt32Field(ID_FONT _idFont, IKeyboardSupervisor& _keyboard, cstr _name, int32 _value, bool _preferHex):
+			keyboard(_keyboard), name(_name), value(_value), editBuffer(12), preferHex(_preferHex), idFont(_idFont)
 		{
 			char buf[16];
 
@@ -223,7 +218,7 @@ namespace
 
 		void Render(IGuiRenderContext& grc, bool isActive)  override
 		{
-			RenderName(grc, name, rect, NAME_WIDTH);
+			RenderName(grc, idFont, name, rect, NAME_WIDTH);
 			RenderEditorBackground(grc, name, rect, NAME_WIDTH, isActive);
 
 			enum { SPAN0X = 24, LEFT_DELTA = 4 };
@@ -236,7 +231,7 @@ namespace
 					rect.bottom
 				};
 
-				RenderHQText_LeftAligned_VCentre(grc, ID_FONT{ 1 }, rect0X, "0x", RGBAb(255, 255, 0, 255));
+				Graphics::RenderHQText_LeftAligned_VCentre(grc, ID_FONT{ 1 }, rect0X, "0x", RGBAb(255, 255, 0, 255));
 				RenderEditorForeground(grc, rect, NAME_WIDTH + SPAN0X, isActive, editBuffer.data(), caretPos);
 			}
 			else
@@ -262,75 +257,76 @@ namespace
 		int32 caretPos = -1;
 		std::vector<char> editBuffer;
 		IKeyboardSupervisor& keyboard;
+		ID_FONT idFont;
 
-BoundedInt32Field(IKeyboardSupervisor& _keyboard, cstr _name, int32 _value, int32 _minValue, int32 _maxValue) :
-	keyboard(_keyboard), name(_name), value(_value), minValue(_minValue), maxValue(_maxValue),
-	editBuffer(10)
-{
-	char buf[64];
-	SafeFormat(buf, sizeof buf, "%d", _value);
-	SetBufferWithString(buf, editBuffer);
-	caretPos = (int32)strlen(buf);
-}
-
-bool OnKeyboardEvent(const KeyboardEvent& key) override
-{
-	if (key.unicode > 32 && key.unicode < 127)
-	{
-		char c = key.unicode;
-		if (c == '-' && editBuffer.data()[0] == 0)
+		BoundedInt32Field(ID_FONT _idFont, IKeyboardSupervisor& _keyboard, cstr _name, int32 _value, int32 _minValue, int32 _maxValue) :
+			keyboard(_keyboard), name(_name), value(_value), minValue(_minValue), maxValue(_maxValue),
+			editBuffer(10), idFont(_idFont)
 		{
-
+			char buf[64];
+			SafeFormat(buf, sizeof buf, "%d", _value);
+			SetBufferWithString(buf, editBuffer);
+			caretPos = (int32)strlen(buf);
 		}
-		else if (!IsNumeric(c))
+
+		bool OnKeyboardEvent(const KeyboardEvent& key) override
 		{
-			return false;
+			if (key.unicode > 32 && key.unicode < 127)
+			{
+				char c = key.unicode;
+				if (c == '-' && editBuffer.data()[0] == 0)
+				{
+
+				}
+				else if (!IsNumeric(c))
+				{
+					return false;
+				}
+			}
+			keyboard.AppendKeyboardInputToEditBuffer(caretPos, editBuffer.data(), editBuffer.capacity(), key);
+			return true;
 		}
-	}
-	keyboard.AppendKeyboardInputToEditBuffer(caretPos, editBuffer.data(), editBuffer.capacity(), key);
-	return true;
-}
 
-cstr Name() const override
-{
-	return name;
-}
+		cstr Name() const override
+		{
+			return name;
+		}
 
-void MakeActive() override
-{
-	caretPos = (int32)strlen(editBuffer.data());
-}
+		void MakeActive() override
+		{
+			caretPos = (int32)strlen(editBuffer.data());
+		}
 
-const GuiRect& Rect() const  override
-{
-	return rect;
-}
+		const GuiRect& Rect() const  override
+		{
+			return rect;
+		}
 
-void SetRect(const GuiRect& _rect)
-{
-	rect = _rect;
-}
+		void SetRect(const GuiRect& _rect)
+		{
+			rect = _rect;
+		}
 
-void FormatValue(char* outputBuffer, size_t capacity)
-{
-	int32 newValue = (int)atoi(editBuffer.data());
-	value = clamp(newValue, minValue, maxValue);
-	SafeFormat(outputBuffer, capacity, "%d", value);
-	SetBufferWithString(outputBuffer, editBuffer);
-	caretPos = (int32)strlen(outputBuffer);
-}
+		void FormatValue(char* outputBuffer, size_t capacity)
+		{
+			int32 newValue = (int)atoi(editBuffer.data());
+			value = clamp(newValue, minValue, maxValue);
+			SafeFormat(outputBuffer, capacity, "%d", value);
+			SetBufferWithString(outputBuffer, editBuffer);
+			caretPos = (int32)strlen(outputBuffer);
+		}
 
-void Render(IGuiRenderContext& grc, bool isActive)  override
-{
-	RenderName(grc, name, rect, NAME_WIDTH);
-	RenderEditorBackground(grc, name, rect, NAME_WIDTH, isActive);
-	RenderEditorForeground(grc, rect, NAME_WIDTH, isActive, editBuffer.data(), caretPos);
-}
+		void Render(IGuiRenderContext& grc, bool isActive)  override
+		{
+			RenderName(grc, idFont, name, rect, NAME_WIDTH);
+			RenderEditorBackground(grc, name, rect, NAME_WIDTH, isActive);
+			RenderEditorForeground(grc, rect, NAME_WIDTH, isActive, editBuffer.data(), caretPos);
+		}
 
-void Free() override
-{
-	delete this;
-}
+		void Free() override
+		{
+			delete this;
+		}
 	};
 
 	struct StringField : IField
@@ -343,8 +339,10 @@ void Free() override
 
 		std::vector<char> editBuffer;
 
-		StringField(IKeyboardSupervisor& _keyboard, size_t _capacity, cstr value, cstr _name, bool _isVarName) :
-			keyboard(_keyboard), editBuffer(_capacity), name(_name), isVarName(_isVarName)
+		ID_FONT idFont;
+
+		StringField(ID_FONT _idFont, IKeyboardSupervisor& _keyboard, size_t _capacity, cstr value, cstr _name, bool _isVarName) :
+			keyboard(_keyboard), editBuffer(_capacity), name(_name), isVarName(_isVarName), idFont(_idFont)
 		{
 			SetBufferWithString(value, editBuffer);
 			caretPos = (int32)strlen(value);
@@ -407,7 +405,7 @@ void Free() override
 
 		void Render(IGuiRenderContext& grc, bool isActive)  override
 		{
-			RenderName(grc, name, rect, NAME_WIDTH);
+			RenderName(grc, idFont, name, rect, NAME_WIDTH);
 			RenderEditorBackground(grc, name, rect, NAME_WIDTH, isActive);
 			RenderEditorForeground(grc, rect, NAME_WIDTH, isActive, editBuffer.data(), caretPos);
 		}
@@ -430,9 +428,11 @@ void Free() override
 		float minValue;
 		float maxValue;
 
-		FloatField(IKeyboardSupervisor& _keyboard, cstr _name, float _value, float _minValue, float _maxValue)
+		ID_FONT idFont;
+
+		FloatField(ID_FONT _idFont, IKeyboardSupervisor& _keyboard, cstr _name, float _value, float _minValue, float _maxValue)
 			: keyboard(_keyboard), name(_name), value(_value), minValue(_minValue), maxValue(_maxValue),
-			editBuffer(11)
+			editBuffer(11), idFont(_idFont)
 		{
 			char buf[64];
 			SafeFormat(buf, sizeof buf, "%g", _value);
@@ -485,7 +485,7 @@ void Free() override
 
 		void Render(IGuiRenderContext& grc, bool isActive)  override
 		{
-			RenderName(grc, name, rect, NAME_WIDTH);
+			RenderName(grc, idFont, name, rect, NAME_WIDTH);
 			RenderEditorBackground(grc, name, rect, NAME_WIDTH, isActive);
 			RenderEditorForeground(grc, rect, NAME_WIDTH, isActive, editBuffer.data(), caretPos);
 		}
@@ -529,26 +529,26 @@ void Free() override
 
 		void AddInt32FieldUnbounded(cstr name, int32 value, bool preferHex) override
 		{
-			auto* field = new UnboundedInt32Field(context.keyboard, name, value, preferHex);
+			auto* field = new UnboundedInt32Field(context.idFont, context.keyboard, name, value, preferHex);
 			fields.push_back(field);
 		}
 
 		void AddInt32FieldBounded(cstr name, int32 value, int32 minValue, int32 maxValue) override
 		{
-			auto* field = new BoundedInt32Field(context.keyboard, name, value, minValue, maxValue);
+			auto* field = new BoundedInt32Field(context.idFont, context.keyboard, name, value, minValue, maxValue);
 			fields.push_back(field);
 		}
 
 		void AddStringField(cstr name, cstr value, size_t capacity, bool isVariableName) override
 		{
-			auto* field = new StringField(context.keyboard, capacity, value, name, isVariableName);
+			auto* field = new StringField(context.idFont, context.keyboard, capacity, value, name, isVariableName);
 			auto* f = static_cast<IField*>(field);
 			fields.push_back(f);
 		}
 
 		void AddFloat32FieldBounded(cstr name, float value, float minValue, float maxValue) override
 		{
-			auto* field = new FloatField(context.keyboard, name, value, minValue, maxValue);
+			auto* field = new FloatField(context.idFont, context.keyboard, name, value, minValue, maxValue);
 			fields.push_back(field);
 		}
 

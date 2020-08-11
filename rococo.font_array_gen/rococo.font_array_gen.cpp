@@ -106,18 +106,18 @@ void GenerateLogFont(cstr targetFolder, const LOGFONTA& logFont)
 			U8FilePath targetFile;
 			SafeFormat(targetFile.buf, targetFile.CAPACITY, "%s\\c%04u.tiff", targetFolder, (uint32) gd.charCode);
 
-			struct : IImagePopulator
+			struct : IImagePopulator<GRAYSCALE>
 			{
 				cstr filename;
 
-				void OnImage(const uint8* grayscale, int width, int height)
+				void OnImage(const GRAYSCALE* grayscale, int width, int height) override
 				{
 					Rococo::Imaging::SaveAsTiff(grayscale, { width, height }, filename);
 				}
 			} saveAsTiff;
 			saveAsTiff.filename = targetFile;
 
-			font->GetImage(gd, saveAsTiff);
+			font->GenerateImage(gd.charCode, saveAsTiff);
 
 			fprintf_s(fp, "\t(AddGlyph %u \"c%04u.tiff\"", (uint32) gd.charCode, (uint32) gd.charCode);
 

@@ -101,7 +101,6 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="mplat.array_fonts.cpp" />
     <ClCompile Include="mplat.audio.legacy.cpp" />
     <ClCompile Include="mplat.bloody.cpp" />
     <ClCompile Include="mplat.config.cpp" />
@@ -119,6 +118,7 @@
     <ClCompile Include="mplat.graphics.tess.rim.cpp" />
     <ClCompile Include="mplat.graphics.text.tesselator.cpp" />
     <ClCompile Include="mplat.guistack.cpp" />
+    <ClCompile Include="mplat.hqfonts.cpp" />
     <ClCompile Include="mplat.keyboard.cpp" />
     <ClCompile Include="mplat.main.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>

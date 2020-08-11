@@ -84,6 +84,7 @@ struct FontGlyphs : IFontGlyphBuilder
 	{
 		int32 width = 0;
 
+		int32 enumerationIndex = 0;
 		for (auto& it : codes)
 		{
 			ABC abc;
@@ -102,6 +103,8 @@ struct FontGlyphs : IFontGlyphBuilder
 				int totalWidth = a + b + c;
 				width = max(width, totalWidth);
 			}
+
+			it.second.Index = enumerationIndex++;
 		}
 
 		return width;
@@ -123,6 +126,8 @@ struct WindowsArrayFont : IArrayFontSupervisor
 	AutoGDI<HBRUSH> hEraserBrush;
 
 	int width = 0;
+
+	enum { DEFAULT_CHAR = L'?' };
 
 	WindowsArrayFont(IArrayFontSet& glyphSet, const FontSpec& spec) :
 		hdcDesktop{ GetDC(nullptr) },
@@ -149,8 +154,10 @@ struct WindowsArrayFont : IArrayFontSupervisor
 
 		SetMapMode(hMemDC, MM_TEXT);
 
-		int32 DOTSY = GetDeviceCaps(hMemDC, LOGPIXELSY);
-		logFont.lfHeight = (int32) abs((spec.height / (double) DOTSY) * 72.0);
+		//int32 DOTSY = GetDeviceCaps(hMemDC, LOGPIXELSY);
+		//logFont.lfHeight = (int32) abs((spec.height / (double) DOTSY) * 72.0);
+
+		logFont.lfHeight = spec.height;
 
 		hFont = CreateFontIndirectA(&logFont);
 
@@ -160,6 +167,12 @@ struct WindowsArrayFont : IArrayFontSupervisor
 		GetTextMetricsA(hMemDC, &tm);
 
 		glyphSet.Populate(glyphs);
+
+		auto i = glyphs.codes.find('?');
+		if (i == glyphs.codes.end())
+		{
+			glyphs.AddGlyph((wchar_t) DEFAULT_CHAR);
+		}
 
 		metrics.ascent = tm.tmAscent;
 		metrics.descent = tm.tmDescent;
@@ -205,6 +218,32 @@ struct WindowsArrayFont : IArrayFontSupervisor
 		return glyphs.ComputeMaxABCWidth(hMemDC);
 	}
 
+	int32 NumberOfGlyphs() const override
+	{
+		return (int32) glyphs.codes.size();
+	}
+
+	const ArrayGlyph& operator[](unsigned char ascii) override
+	{
+		return this->operator[]((char32_t)ascii);
+	}
+
+	const ArrayGlyph& operator[](wchar_t unicode) override
+	{
+		return this->operator[]((char32_t)(uint32)unicode);
+	}
+
+	const ArrayGlyph& operator[](char32_t unicode) override
+	{
+		auto i = glyphs.codes.find((uint32)unicode);
+		if (i == glyphs.codes.end())
+		{
+			i = glyphs.codes.find(DEFAULT_CHAR);
+		}
+
+		return i->second;
+	}
+
 	void ForEachGlyph(IEventCallback<const GlyphDesc>& cb) override
 	{
 		glyphs.ForEachGlyph(cb);
@@ -215,10 +254,10 @@ struct WindowsArrayFont : IArrayFontSupervisor
 		return metrics;
 	}
 
-	void GetImage(const GlyphDesc& gd, IImagePopulator& populator)
+	void GenerateImage(const char32_t charCode, IImagePopulator<GRAYSCALE>& populator) override
 	{
 		wchar_t text[2] = { 0,0 };
-		text[0] = gd.charCode > 32768 ? '?' : (wchar_t)gd.charCode;
+		text[0] = charCode > 32768 ? '?' : (wchar_t) charCode;
 
 		RECT rect{ 0, 0, width, metrics.height };
 

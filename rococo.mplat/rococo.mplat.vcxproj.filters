@@ -126,9 +126,6 @@
     <ClCompile Include="mplat.file.browser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mplat.array_fonts.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="mplat.pane.context-menu.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -142,6 +139,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="mplat.graphics.mesh.importer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mplat.hqfonts.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

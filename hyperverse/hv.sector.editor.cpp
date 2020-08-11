@@ -106,11 +106,13 @@ namespace
 		{
 			logicPanel = platform.gui.BindPanelToScript("!scripts/hv/panel.logic.sxy");
 			tagsPanel = platform.gui.BindPanelToScript("!scripts/hv/panel.tags.sxy");
+
+			ID_FONT idFont = platform.utilities.GetHQFonts().GetSysFont(Graphics::HQFont_EditorFont);
 			
-			FieldEditorContext fcActions { platform.publisher, platform.gui, platform.keyboard, *this };
+			FieldEditorContext fcActions { platform.publisher, platform.gui, platform.keyboard, *this, idFont };
 			fieldEditor = CreateFieldEditor(fcActions);
 
-			FieldEditorContext fcTags { platform.publisher, platform.gui, platform.keyboard, tagEvents };
+			FieldEditorContext fcTags { platform.publisher, platform.gui, platform.keyboard, tagEvents, idFont };
 			tagsEditor = CreateFieldEditor(fcTags);
 			triggerList.fieldEditor = fieldEditor;
 
@@ -574,11 +576,14 @@ namespace
 		Platform& platform;
 		IEditorState* editor;
 		Windows::IWindow& parent;
-		LogicEditor logicEditor;
+		LogicEditor* logicEditor = nullptr;
 
 		void Render(IGuiRenderContext& grc, const GuiRect& rect) override
 		{
-
+			if (!logicEditor)
+			{
+				logicEditor = new LogicEditor(platform, map.Sectors());
+			}
 		}
 
 		bool OnKeyboardEvent(const KeyboardEvent& k) override
@@ -687,13 +692,13 @@ namespace
 			platform(_platform),
 			map(_map),
 			parent(_parent),
-			editor(nullptr),
-			logicEditor(_platform, _map.Sectors())
+			editor(nullptr)
 		{ 
 		}
 
 		~SectorEditor()
 		{
+			delete logicEditor;
 		}
 
 		IEditMode& Mode() override { return *this; }
@@ -705,7 +710,11 @@ namespace
 			return (litIndex < nSectors) ? secs.begin()[litIndex] : nullptr;
 		}
 
-		void SetEditor(IEditorState* editor) override { this->editor = editor; }
+		void SetEditor(IEditorState* editor) override
+		{ 
+			this->editor = editor;
+		}
+
 		void CancelHilight() override { map.Sectors().SelectSector(-1); }
 		void Free() override { delete this; }
 	};

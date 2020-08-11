@@ -11,7 +11,7 @@ using namespace Rococo::MPlatImpl;
 struct PanelArrayBox : BasePane, IArrayBox, IObserver, IEventCallback<ScrollEvent>
 {
 	Platform& platform;
-	int32 fontIndex = 1;
+	ID_FONT idFont;
 	int32 activeIndex = -1;
 	HString populateArrayEventText;
 	HString itemSelectedEventText;
@@ -25,9 +25,10 @@ struct PanelArrayBox : BasePane, IArrayBox, IObserver, IEventCallback<ScrollEven
 	AutoFree<IScrollbar> vscroll;
 
 	PanelArrayBox(Platform& _platform, int _fontIndex, cstr _populateArrayEventText) :
-		fontIndex(_fontIndex), platform(_platform),
+		platform(_platform),
 		vscroll(_platform.utilities.CreateScrollbar(true))
 	{
+		idFont = platform.utilities.GetHQFonts().GetSysFont(Graphics::HQFont_EditorFont);
 		populateArrayEventText = _populateArrayEventText;
 		evPopulate = platform.publisher.CreateEventIdFromVolatileString(populateArrayEventText);
 	}
@@ -188,13 +189,6 @@ struct PanelArrayBox : BasePane, IArrayBox, IObserver, IEventCallback<ScrollEven
 		}
 	}
 
-	void RenderHQText_LeftAligned_VCentre(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour)
-	{
-		Vec2i span = grc.RenderHQText(fontId, text, { 0,0 }, RGBAb(0,0,0,0));
-		Vec2i pos{ rect.left, (rect.top + rect.bottom + span.y) >> 1 };
-		grc.RenderHQText(fontId, text, pos, colour);
-	}
-
 	int32 vscrollSpan = 0;
 	int32 pageSize = 0;
 	int32 vscrollPos = 0;
@@ -232,11 +226,11 @@ struct PanelArrayBox : BasePane, IArrayBox, IObserver, IEventCallback<ScrollEven
 					Rococo::Graphics::DrawRectangle(*grc, args.lineRect, bcol, bcol);
 				}
 
-				This->RenderHQText_LeftAligned_VCentre(*grc, fontId, textRect, args.text, fcolour);
+				Graphics::RenderHQText_LeftAligned_VCentre(*grc, fontId, textRect, args.text, fcolour);
 			}
 		} renderLine;
 
-		renderLine.fontId = ID_FONT(fontIndex);
+		renderLine.fontId = idFont;
 		renderLine.grc = &grc;
 		renderLine.This = this;
 		renderLine.cursorPos = metrics.cursorPosition;
