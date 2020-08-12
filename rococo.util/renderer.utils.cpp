@@ -931,9 +931,9 @@ namespace Rococo
 			}
 		}
 
-		void RenderHQText_LeftAligned_VCentre(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour)
+		Vec2 RenderHQText_LeftAligned_VCentre(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour)
 		{
-			if (text == nullptr || *text == 0) return;
+			if (text == nullptr || *text == 0) return { 0,0 };
 
 			Vec2 origin = { 0, 1000 };
 			struct : IHQTextJob
@@ -969,6 +969,91 @@ namespace Rococo
 			job.startPos.y = 0.5f * ((float)rect.top + (float)rect.bottom + span.y);
 
 			grc.RenderHQText(fontId, job, IGuiRenderContext::RENDER);
+
+			return span;
+		}
+
+		Vec2 RenderHQText_LeftAligned_VCentre_WithCaret(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour, int caretPos)
+		{
+			if (text == nullptr || *text == 0) return { 0,0 };
+
+			auto t = OS::CpuTicks();
+			auto quarterSecond = OS::CpuHz() >> 2;
+
+			auto counter = t / quarterSecond;
+
+			bool isCaretLit = (counter % 2) == 0;
+
+			Vec2 origin = { 0, 1000 };
+			struct : IHQTextJob
+			{
+				cstr text;
+				RGBAb colour;
+				Vec2 startPos;
+				GuiRectf lastRect = { 0,0,0,0 };
+				GuiRectf caretGlyphRect = { -1,-1,-1,-1 };
+				int caretPos;
+
+				void Render(IHQTextBuilder& builder) override
+				{
+					builder.SetColour(colour);
+					builder.SetCursor(startPos);
+
+
+					const char* caretPointer = text + caretPos;
+
+					for (const char* p = text; *p != 0; p++)
+					{
+						builder.Write(*p, &lastRect);
+
+						if (p == caretPointer)
+						{
+							caretGlyphRect = lastRect;
+						}
+					}
+				}
+			} job;
+
+			job.text = text;
+			job.colour = colour;
+			job.startPos = origin;
+			job.caretPos = caretPos;
+
+			grc.RenderHQText(fontId, job, IGuiRenderContext::EVALUATE_SPAN_ONLY);
+
+			Vec2 span;
+			span.x = job.lastRect.right - origin.x;
+			span.y = Height(job.lastRect);
+
+			job.startPos.x = (float)rect.left;
+			job.startPos.y = 0.5f * ((float)rect.top + (float)rect.bottom + span.y);
+
+			grc.RenderHQText(fontId, job, IGuiRenderContext::RENDER);
+
+			if (job.caretGlyphRect.left > -1)
+			{
+				Vec2i caretStart = { (int32)job.caretGlyphRect.left,  (int32)job.caretGlyphRect.bottom };
+				Vec2i caretEnd = { (int32)job.caretGlyphRect.right, (int32)job.caretGlyphRect.bottom };
+				Rococo::Graphics::DrawLine(grc, 2, caretStart, caretEnd, isCaretLit ? 0 : 0xFFFFFFFF);
+			}
+			else if (job.lastRect.right > -1)
+			{
+				auto ds = Span(rect);
+				float defaultCaretSpan = 0.75f * ds.y;
+				Vec2i caretStart = { (int32)job.lastRect.right,  (int32)rect.bottom };
+				Vec2i caretEnd = { caretStart.x + (int32)defaultCaretSpan, caretStart.y };
+				Rococo::Graphics::DrawLine(grc, 2, caretStart, caretEnd, isCaretLit ? 0 : 0xFFFFFFFF);
+			}
+			else
+			{
+				auto ds = Span(rect);
+				float defaultCaretSpan = 0.75f * ds.y;
+				Vec2i caretStart = { (int32)rect.left,  (int32)rect.bottom };
+				Vec2i caretEnd = { caretStart.x + (int32)defaultCaretSpan, caretStart.y };
+				Rococo::Graphics::DrawLine(grc, 2, caretStart, caretEnd, isCaretLit ? 0 : 0xFFFFFFFF);
+			}
+
+			return span;
 		}
 
 

@@ -663,6 +663,17 @@ namespace ANON
 		   }
 	   }
 
+	   Fonts::ArrayFontMetrics GetFontMetrics(ID_FONT idFont) override
+	   {
+		   int32 index = idFont.value - ID_FONT_OSFONT_OFFSET;
+		   if (index < 0 || index >= (int32)osFonts.size())
+		   {
+			   Throw(0, "DX11Renderer.GetFontMetrics - ID_FONT parameter was unknown value");
+		   }
+
+		   return osFonts[index].arrayFont->Metrics();
+	   }
+
 	   void RenderHQText(ID_FONT id, IHQTextJob& job, IGuiRenderContext::EMode mode) override
 	   {
 		   int32 index = id.value - ID_FONT_OSFONT_OFFSET;

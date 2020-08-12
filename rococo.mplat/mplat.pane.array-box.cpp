@@ -20,7 +20,8 @@ struct PanelArrayBox : BasePane, IArrayBox, IObserver, IEventCallback<ScrollEven
 	EventIdRef evScrollToLine = { 0,0 };
 	RGBAb hi_focusColour{ 0,0,64,255 };
 	RGBAb focusColour{ 0,0,48,255 };
-	int32 lineHeight = 20;
+	int32 lineHeight = 0;
+	int32 fontHeight = 0;
 	GuiRect borders{ 0, 0, 0, 0 };
 	AutoFree<IScrollbar> vscroll;
 
@@ -29,6 +30,7 @@ struct PanelArrayBox : BasePane, IArrayBox, IObserver, IEventCallback<ScrollEven
 		vscroll(_platform.utilities.CreateScrollbar(true))
 	{
 		idFont = platform.utilities.GetHQFonts().GetSysFont(Graphics::HQFont_EditorFont);
+		fontHeight = lineHeight = platform.renderer.GetFontMetrics(idFont).height;
 		populateArrayEventText = _populateArrayEventText;
 		evPopulate = platform.publisher.CreateEventIdFromVolatileString(populateArrayEventText);
 	}
@@ -43,14 +45,10 @@ struct PanelArrayBox : BasePane, IArrayBox, IObserver, IEventCallback<ScrollEven
 		vscrollPos = ev.logicalValue;
 	}
 
-	void SetLineHeight(int32 pixels)
-	{
-		lineHeight = pixels;
-	}
-
 	void SetLineBorders(int32 left, int32 top, int32 right, int32 bottom)
 	{
 		borders = GuiRect{ left, top, right, bottom };
+		lineHeight = fontHeight + top + bottom;
 	}
 
 	void Free() override

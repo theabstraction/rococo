@@ -7,6 +7,7 @@ using namespace HV;
 
 namespace
 {
+	enum { TOTAL_INTERNAL_VBORDER_SPAN = 8 };
 	ROCOCOAPI IField
 	{
 		virtual bool OnKeyboardEvent(const KeyboardEvent & key) = 0;
@@ -29,53 +30,62 @@ namespace
 		SafeFormat(buffer.data(), buffer.size(), "%s", str);
 	}
 
-	void RenderName(IGuiRenderContext& grc, ID_FONT idFont, cstr name, const GuiRect& lineRect, int32 width)
+	Vec2 RenderName(IGuiRenderContext& grc, ID_FONT idFont, cstr name, const GuiRect& lineRect)
 	{
-		GuiRect nameRect = lineRect;
-		nameRect.right = nameRect.left + width;
-		Graphics::RenderHQText_LeftAligned_VCentre(grc, idFont, nameRect, name, RGBAb(255, 255, 255, 255));
+		return Graphics::RenderHQText_LeftAligned_VCentre(grc, idFont, lineRect, name, RGBAb(255, 255, 255, 255));
 	}
 
-	void RenderEditorBackground(IGuiRenderContext& grc, cstr name, const GuiRect& lineRect, int32 width, bool isActive)
+	void RenderEditorBackground(IGuiRenderContext& grc, const GuiRect& editorRect, bool isActive)
 	{
-		GuiRect editorRect
-		{
-			lineRect.left + width + 2,
-			lineRect.top + 3,
-			lineRect.right - 4,
-			lineRect.bottom - 3
-		};
-
 		int32 edge_alpha = isActive ? 255 : 200;
 		RGBAb edge1(224, 224, 224, edge_alpha);
 		RGBAb edge2(255, 255, 255, edge_alpha);
 
 		int32 bk_alpha = isActive ? 255 : 64;
-		Graphics::DrawRectangle(grc, editorRect, RGBAb(0, 0, 0, bk_alpha), RGBAb(0, 0, 0, bk_alpha));
-		Graphics::DrawBorderAround(grc, editorRect, { 1,1 }, edge1, edge2);
+
+		GuiRect borderRect = Expand(editorRect, 4);
+		Graphics::DrawRectangle(grc, borderRect, RGBAb(0, 0, 0, bk_alpha), RGBAb(0, 0, 0, bk_alpha));
+		Graphics::DrawBorderAround(grc, borderRect, { 1,1 }, edge1, edge2);
 	}
 
-	void RenderEditorForeground(IGuiRenderContext& grc, const GuiRect& lineRect, int32 width, bool isActive, cstr editBuffer, int32 caretPos)
+	GuiRect RenderNameAndEditorBackground(IGuiRenderContext& grc, ID_FONT idFont, cstr name, const GuiRect& lineRect, bool isActive)
 	{
-		GuiRectf editorRect
+		Vec2 nameSpan = RenderName(grc, idFont, name, lineRect);
+
+		GuiRect editorRect
 		{
-			(float) lineRect.left + width + 4,
-			(float) lineRect.top + 4,
-			(float) lineRect.right - 6,
-			(float) lineRect.bottom - 6
+			lineRect.left + (int32) nameSpan.x + (Height(lineRect) >> 1),
+			lineRect.top + (TOTAL_INTERNAL_VBORDER_SPAN >> 1),
+			lineRect.right - 4,
+			lineRect.bottom - (TOTAL_INTERNAL_VBORDER_SPAN >> 1)
+		};
+
+		RenderEditorBackground(grc, editorRect, isActive);
+
+		return editorRect;
+	}
+
+	void RenderEditorForeground(IGuiRenderContext& grc, ID_FONT idFont, const GuiRect& editorRect, int32 width, bool isActive, cstr editBuffer, int32 caretPos)
+	{
+		GuiRect textRect
+		{
+			editorRect.left + width,
+			editorRect.top,
+			editorRect.right,
+			editorRect.bottom
 		};
 
 		int fontIndex = 0;
 
+		RGBAb white(255, 255, 255, 255);
+
 		if (isActive)
 		{
-			Graphics::DrawTextWithCaret(grc, editorRect, Graphics::Alignment_Left, to_fstring(editBuffer),
-				fontIndex, RGBAb(255, 255, 255, 255), editorRect, caretPos);
+			Graphics::RenderHQText_LeftAligned_VCentre_WithCaret(grc, idFont, textRect, editBuffer, white, caretPos);
 		}
 		else
 		{
-			Graphics::DrawText(grc, editorRect, Graphics::Alignment_Left, to_fstring(editBuffer),
-				fontIndex, RGBAb(255, 255, 255, 255));
+			Graphics::RenderHQText_LeftAligned_VCentre(grc, idFont, textRect, editBuffer, white);
 		}
 	}
 
@@ -218,25 +228,16 @@ namespace
 
 		void Render(IGuiRenderContext& grc, bool isActive)  override
 		{
-			RenderName(grc, idFont, name, rect, NAME_WIDTH);
-			RenderEditorBackground(grc, name, rect, NAME_WIDTH, isActive);
+			GuiRect editorRect = RenderNameAndEditorBackground(grc, idFont, name, rect, isActive);
 
-			enum { SPAN0X = 24, LEFT_DELTA = 4 };
 			if (showHex)
 			{
-				GuiRect rect0X {
-					rect.left + NAME_WIDTH + LEFT_DELTA,
-					rect.top,
-					rect.left + NAME_WIDTH + SPAN0X,
-					rect.bottom
-				};
-
-				Graphics::RenderHQText_LeftAligned_VCentre(grc, ID_FONT{ 1 }, rect0X, "0x", RGBAb(255, 255, 0, 255));
-				RenderEditorForeground(grc, rect, NAME_WIDTH + SPAN0X, isActive, editBuffer.data(), caretPos);
+				Vec2 span0x = Graphics::RenderHQText_LeftAligned_VCentre(grc, idFont, editorRect, "0x", RGBAb(255, 255, 0, 255));
+				RenderEditorForeground(grc, idFont, editorRect, 1 + (int32) span0x.x, isActive, editBuffer.data(), caretPos);
 			}
 			else
 			{
-				RenderEditorForeground(grc, rect, NAME_WIDTH, isActive, editBuffer.data(), caretPos);
+				RenderEditorForeground(grc, idFont, editorRect, 0, isActive, editBuffer.data(), caretPos);
 			}
 		}
 
@@ -318,9 +319,8 @@ namespace
 
 		void Render(IGuiRenderContext& grc, bool isActive)  override
 		{
-			RenderName(grc, idFont, name, rect, NAME_WIDTH);
-			RenderEditorBackground(grc, name, rect, NAME_WIDTH, isActive);
-			RenderEditorForeground(grc, rect, NAME_WIDTH, isActive, editBuffer.data(), caretPos);
+			RenderNameAndEditorBackground(grc, idFont, name, rect, isActive);
+			RenderEditorForeground(grc, idFont, rect, NAME_WIDTH, isActive, editBuffer.data(), caretPos);
 		}
 
 		void Free() override
@@ -405,9 +405,8 @@ namespace
 
 		void Render(IGuiRenderContext& grc, bool isActive)  override
 		{
-			RenderName(grc, idFont, name, rect, NAME_WIDTH);
-			RenderEditorBackground(grc, name, rect, NAME_WIDTH, isActive);
-			RenderEditorForeground(grc, rect, NAME_WIDTH, isActive, editBuffer.data(), caretPos);
+			GuiRect editorRect = RenderNameAndEditorBackground(grc, idFont, name, rect, isActive);
+			RenderEditorForeground(grc, idFont, editorRect, 0, isActive, editBuffer.data(), caretPos);
 		}
 
 		void Free() override
@@ -485,9 +484,8 @@ namespace
 
 		void Render(IGuiRenderContext& grc, bool isActive)  override
 		{
-			RenderName(grc, idFont, name, rect, NAME_WIDTH);
-			RenderEditorBackground(grc, name, rect, NAME_WIDTH, isActive);
-			RenderEditorForeground(grc, rect, NAME_WIDTH, isActive, editBuffer.data(), caretPos);
+			GuiRect editorRect = RenderNameAndEditorBackground(grc, idFont, name, rect, isActive);
+			RenderEditorForeground(grc, idFont, editorRect, 0, isActive, editBuffer.data(), caretPos);
 		}
 
 		void Free() override
@@ -632,13 +630,18 @@ namespace
 
 		void Render(IGuiRenderContext& grc, const GuiRect& absRect) override
 		{
-			enum { CELL_HEIGHT = 32 };
-
 			GuiRect lineRect = absRect;
+
+			int32 lineHeight = grc.Renderer().GetFontMetrics(context.idFont).height;
+
+			lineRect.right -= (lineHeight >> 1);
+
+			int32 vBorderSpan = (lineHeight >> 1);
 
 			for (int i = 0; i < fields.size(); ++i)
 			{
-				lineRect.bottom = lineRect.top + CELL_HEIGHT;
+				lineRect.top += vBorderSpan;
+				lineRect.bottom = lineRect.top + lineHeight + TOTAL_INTERNAL_VBORDER_SPAN;
 
 				auto& f = *fields[i];
 

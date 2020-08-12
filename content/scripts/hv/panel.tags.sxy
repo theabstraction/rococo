@@ -60,7 +60,7 @@
 	(Int32 frameHeight = (frameRect.bottom - frameRect.top))
 	(Int32 frameWidth = (frameRect.right - frameRect.left))
 	
-	(Recti tagRect = 10 120 110 320)
+	(Recti tagRect = 10 130 110 320)
 	(tagRect.right = (frameWidth - 10))
 	(tagRect.bottom = (frameHeight - 10))
 	
@@ -87,7 +87,6 @@
 	(editor.SetColourEdge2 0 0)
 	
 	(IArrayBox actionArray = (frame.AddArrayBox 1 "editor.tags.populate" tagRect))
-	(actionArray.SetLineHeight 32)
 	(actionArray.SetLineBorders 4 2 4 4)
 	(actionArray.SetColourBk1 0xF0303030 0xF0404040)
 	(actionArray.SetColourBk2 0x00303030 0x00404040)
