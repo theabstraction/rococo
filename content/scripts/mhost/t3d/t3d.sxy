@@ -251,7 +251,7 @@
 	(Int64 cubeId = (instances.CreateCubeTexture "!textures/t3d/skybox/YokohamaSmall/" "jpg"))
 	(scene.SetSkyBox cubeId)
 
-	(instances.LoadRig "!mesh/t3d/mike.sxy") // generates mike_rig
+/*	(instances.LoadRig "!mesh/t3d/mike.sxy") // generates mike_rig
 	
 	(IRigs rigs (Rigs))
 	(IRig mike = (rigs.GetRig "mike_rig"))
@@ -282,6 +282,11 @@
 		(scene.AddStatics childBodyId)
 	)
 	
+	*/
+
+	(IRigBuilder rb (RigBuilder))
+	(rb.AddBone "Dave")
+	(rb.AddBone "Dave")
 	
 	(while this.engine.IsRunning
 		(AdvanceCoroutines this.coroutines)

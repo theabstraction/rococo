@@ -317,6 +317,18 @@ namespace Rococo
 		};
 
 		IParticleSystemSupervisor* CreateParticleSystem(IRenderer& renderer, IInstances& instances);
+
+		ROCOCOAPI IRigBuilderSupervisor : IRigBuilder
+		{
+			virtual void Free() = 0;
+		};
+
+		struct RigBuilderContext
+		{
+
+		};
+
+		IRigBuilderSupervisor* CreateRigBuilder(RigBuilderContext& rbc);
 	}
 
 	struct Platform;
@@ -743,6 +755,8 @@ namespace Rococo
 		Entities::IMobilesSupervisor& mobiles;
 
 		Entities::IParticleSystemSupervisor& particles;
+
+		Entities::IRigBuilderSupervisor& rigBuilder;
 
 		Graphics::ISpriteSupervisor& sprites;
 

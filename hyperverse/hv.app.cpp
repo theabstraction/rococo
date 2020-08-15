@@ -77,8 +77,12 @@ namespace HV
 		{
 			/* enable font loading in app.created.sxy to make this work */
 
-			Graphics::RenderHQText_LeftAligned_VCentre(g, ID_FONT{ 400 }, GuiRect{ 0,0,300,300}, "Hello World",  RGBAb(0, 0, 0, 255));
-			Graphics::RenderHQText_LeftAligned_VCentre(g, ID_FONT{ 400 }, GuiRect{ 0,0,304,304}, "Hello World", RGBAb(0, 0, 0, 255));
+			ID_FONT idFont = e.platform.utilities.GetHQFonts().GetSysFont(Graphics::HQFont_EditorFont);
+			if (idFont)
+			{
+				Graphics::RenderHQText_LeftAligned_VCentre(g, idFont, GuiRect{ 100,2,300,300 }, "Hello World", RGBAb(0, 0, 0, 255));
+				Graphics::RenderHQText_LeftAligned_VCentre(g, idFont, GuiRect{ 98,0,298,298 }, "Hello World", RGBAb(255, 255, 255, 255));
+			}
 		}
 
 		void RenderGui(IGuiRenderContext& g) override
@@ -88,7 +92,7 @@ namespace HV
 			if (metrics.screenSpan.y >= 256 && metrics.screenSpan.x >= 256)
 			{
 				e.platform.gui.Render(g);
-				// RenderHelloWorld(g);
+			//	RenderHelloWorld(g);
 			}
 		}
 

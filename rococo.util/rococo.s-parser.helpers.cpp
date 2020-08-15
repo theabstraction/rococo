@@ -1345,17 +1345,9 @@ namespace Rococo
 				auto* f = DisassembleCallStackAndAppendToView(*disassembler, debugger, *ss, vm.Cpu(), depth, &s, &SF, stackDepth);
 				if (depth == stackDepth && f != nullptr)
 				{
-					size_t progOffset = vm.Cpu().PC() - vm.Cpu().ProgramStart;
-
-					CodeSection section;
-					f->Code().GetCodeSection(section);
-					size_t fnOffset = progOffset - ss->PublicProgramObject().ProgramMemory().GetFunctionAddress(section.Id);
-
-					auto sym = f->Code().GetSymbol(fnOffset);
-
-					if (sym.SourceExpression != nullptr)
+					if (s != nullptr)
 					{
-						const Sex::ISExpression* sexpr = reinterpret_cast<const Sex::ISExpression*>(sym.SourceExpression);
+						const Sex::ISExpression* sexpr = reinterpret_cast<const Sex::ISExpression*>(s);
 						auto origin = sexpr->Tree().Source().Origin();
 						auto p0 = sexpr->Start() - Vec2i{ 1,0 };
 						auto p1 = sexpr->End() - Vec2i{ 1,0 };

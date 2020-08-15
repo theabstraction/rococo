@@ -22,6 +22,9 @@
     <Filter Include="Generated  Files">
       <UniqueIdentifier>{55118b6c-5126-4b39-892c-e42c3ca3c1a6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Scripts">
+      <UniqueIdentifier>{f2a643ef-56eb-4a63-98ce-3d0cad09aff7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Resource.h">
@@ -101,6 +104,18 @@
     </None>
     <None Include="..\content\scripts\mhost\widgets\widgets.sxy">
       <Filter>ScriptGen Files\SXY</Filter>
+    </None>
+    <None Include="..\content\scripts\mhost\t3d\t3d.config.sxy">
+      <Filter>Scripts</Filter>
+    </None>
+    <None Include="..\content\scripts\mhost\t3d\t3d.init.sxy">
+      <Filter>Scripts</Filter>
+    </None>
+    <None Include="..\content\scripts\mhost\t3d\t3d.sxy">
+      <Filter>Scripts</Filter>
+    </None>
+    <None Include="..\content\scripts\mhost\t3d\t3d.world.sxy">
+      <Filter>Scripts</Filter>
     </None>
   </ItemGroup>
 </Project>

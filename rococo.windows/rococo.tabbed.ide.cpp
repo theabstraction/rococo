@@ -168,7 +168,7 @@ namespace
 
       POINT dragStart;
 
-      IDESplitterWindow() : dragStart{ -1,-1 }
+      IDESplitterWindow() : dragStart{ -1,-1 }, window(nullptr)
       {
       }
 
@@ -481,7 +481,7 @@ namespace
          {
             GuiRect rect{ wrect.left, wrect.top, wrect.right, wrect.bottom };
 			DWORD style = TCS_BUTTONS;
-            tabView = Windows::AddTabs(*window, rect, "Tabbed Contro", 0x41000000, *this, style, 0);
+            tabView = Windows::AddTabs(*window, rect, "Tabbed Control", 0x41000000, *this, style, 0);
          }
          else
          {

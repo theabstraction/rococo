@@ -1013,6 +1013,62 @@ namespace Rococo {
 		ss.AddNativeCall(ns, NativeRococoIContextMenuSetPopupPoint, nullptr, ("IContextMenuSetPopupPoint (Pointer hObject)(Sys.Maths.Vec2i position) -> "));
 	}
 }
+// BennyHill generated Sexy native functions for Rococo::Entities::IRigBuilder 
+namespace
+{
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
+
+	void NativeRococoEntitiesIRigBuilderClear(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Entities::IRigBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->Clear();
+	}
+	void NativeRococoEntitiesIRigBuilderAddBone(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _name;
+		ReadInput(_name, _sf, -_offset);
+		fstring name { _name->buffer, _name->length };
+
+
+		Rococo::Entities::IRigBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AddBone(name);
+	}
+
+	void NativeGetHandleForRococoEntitiesRigBuilder(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Entities::IRigBuilder* nceContext = reinterpret_cast<Rococo::Entities::IRigBuilder*>(_nce.context);
+		// Uses: Rococo::Entities::IRigBuilder* FactoryConstructRococoEntitiesRigBuilder(Rococo::Entities::IRigBuilder* _context);
+		Rococo::Entities::IRigBuilder* pObject = FactoryConstructRococoEntitiesRigBuilder(nceContext);
+		_offset += sizeof(IString*);
+		WriteOutput(pObject, _sf, -_offset);
+	}
+}
+
+namespace Rococo { namespace Entities { 
+	void AddNativeCalls_RococoEntitiesIRigBuilder(Rococo::Script::IPublicScriptSystem& ss, Rococo::Entities::IRigBuilder* _nceContext)
+	{
+		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Entities.Native"));
+		ss.AddNativeCall(ns, NativeGetHandleForRococoEntitiesRigBuilder, _nceContext, ("GetHandleForIRigBuilder0  -> (Pointer hObject)"));
+		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderClear, nullptr, ("IRigBuilderClear (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderAddBone, nullptr, ("IRigBuilderAddBone (Pointer hObject)(Sys.Type.IString name) -> "));
+	}
+}}
 // BennyHill generated Sexy native functions for Rococo::IContextMenuPane 
 namespace
 {

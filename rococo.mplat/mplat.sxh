@@ -55,6 +55,19 @@
 )
 
 (interface 
+	(as.sxy Rococo.Entities.IRigBuilder "../content/scripts/mplat")
+	(as.cpp Rococo.Entities.IRigBuilder "mplat")
+	(context factory Rococo.Entities.IRigBuilder)
+	(methods
+		(Clear)
+		(AddBone (IString name))
+	)
+
+	(factory Rococo.Entities.RigBuilder)
+)
+
+
+(interface 
 	(as.sxy Rococo.IContextMenuPane "../content/scripts/mplat.pane" Rococo.IPane)
 	(as.cpp Rococo.IContextMenuPane "mplat" "virtual public Rococo.IPane")
 	(context factory Rococo.IContextMenuPane)

@@ -48,18 +48,15 @@
 	(sprites.AddEachSpriteInDirectory "!textures/toolbars")
 	(sprites.LoadAllSprites)
 		
-	(Int64 playerId)
-	(
-		(Matrix4x4 model =
-			(1 0 0  0)
-			(0 1 0  0)
-			(0 0 1  0)
-			(0 0 0  1)
-		)
-		
-		(instances.AddGhost model 0 -> playerId)
-		(mobiles.Link playerId)
+	(Matrix4x4 model =
+		(1 0 0  0)
+		(0 1 0  0)
+		(0 0 1  0)
+		(0 0 0  1)
 	)
+	
+	(Int64 playerId = (instances.AddGhost model 0))
+	(mobiles.Link playerId)
 	
 	(ISceneBuilder scene (SceneBuilder))
 	

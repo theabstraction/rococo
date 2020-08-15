@@ -7,6 +7,7 @@
 #define ROCOCO_USE_SAFE_V_FORMAT
 #include <rococo.strings.h>
 #include <rococo.imaging.h>
+#include <rococo.strings.h>
 
 #include <vector>
 #include <algorithm>
@@ -267,7 +268,11 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 		return err;
 	}
 
-	InitRococoWindows(hInstance, hLargeIcon, hSmallIcon, nullptr, nullptr);
+	LOGFONTA font = { 0 };
+	SafeFormat(font.lfFaceName, sizeof font.lfFaceName, "Consolas");
+	font.lfHeight = 24;
+
+	InitRococoWindows(hInstance, hLargeIcon, hSmallIcon, &font, &font);
 
 	AutoFree<IAllocatorSupervisor> imageAllocator = Memory::CreateBlockAllocator(0, 0);
 	Imaging::SetJpegAllocator(imageAllocator);
@@ -339,6 +344,9 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	AutoFree<Rococo::Script::IScriptSystemFactory> ssFactory = CreateScriptSystemFactory_1_5_0_0(sourceCache->Allocator());
 	AutoFree<Rococo::Puppet::IPuppetsSupervisor> puppets = Rococo::Puppet::CreatePuppets(1000000, 128);
 
+	Rococo::Entities::RigBuilderContext rbc;
+	AutoFree<Rococo::Entities::IRigBuilderSupervisor> rigBuilder = Rococo::Entities::CreateRigBuilder(rbc);
+
 	OutputDebugStringA("\n\nLegacy Sound Description:");
 
 	struct ANON : public IEventCallback<StringKeyValuePairArg>
@@ -361,7 +369,7 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	{ 
 		*os, *installation, *appControl, mainWindow->Renderer(), *rendererConfig, *messaging, 
 		*sourceCache, *debuggerWindow, *publisher, *utilities, *gui, *keyboard, *config, *meshes, *rigs,
-		*instances, *mobiles, *particles, *sprites, *camera, *scene, tesselators, *mathsVisitor,
+		*instances, *mobiles, *particles, *rigBuilder, *sprites, *camera, *scene, tesselators, *mathsVisitor,
 		*legacySound, *ssFactory, *puppets, title
 	};
 

@@ -95,69 +95,63 @@ namespace Rococo
          }
       }
 
-		void InitRococoWindows(HINSTANCE _hInstance, HICON _hLargeIcon, HICON _hSmallIcon, const LOGFONTA* titleFont, const LOGFONTA* controlFont)
-		{
-			if (_hInstance == nullptr)
-			{
-				Throw(0, "Rococo::Windows::InitRococoWindows(...): _hInstance was nul");
-			}
+	  void InitRococoWindows(HINSTANCE _hInstance, HICON _hLargeIcon, HICON _hSmallIcon, const LOGFONTA* titleFont, const LOGFONTA* controlFont)
+	  {
+		  if (_hInstance == nullptr)
+		  {
+			  Throw(0, "Rococo::Windows::InitRococoWindows(...): _hInstance was nul");
+		  }
 
-			hThisInstance = _hInstance;
-			hLargeIcon = _hLargeIcon;
-			hSmallIcon = _hSmallIcon;
+		  hThisInstance = _hInstance;
+		  hLargeIcon = _hLargeIcon;
+		  hSmallIcon = _hSmallIcon;
 
-			LOGFONTA defaultTitleFont = { 0 };
-         {
-            StackStringBuilder sb(defaultTitleFont.lfFaceName, sizeof(defaultTitleFont.lfFaceName));
-            sb << "Courier New";
-         }
-			defaultTitleFont.lfHeight = -11;
+		  LOGFONTA defaultTitleFont = { 0 };
+		  SafeFormat(defaultTitleFont.lfFaceName, sizeof(defaultTitleFont.lfFaceName), "Consolas");
+		  defaultTitleFont.lfHeight = 14;
 
-			hTitleFont = CreateFontIndirectA(titleFont ? titleFont : & defaultTitleFont);
-			if (hTitleFont == nullptr)
-			{
-				Throw(GetLastError(), "Rococo::Windows::InitRococoWindows(...): CreateFontIndirect(&titlefont) returned nul");
-			}
+		  hTitleFont = CreateFontIndirectA(titleFont ? titleFont : &defaultTitleFont);
+		  if (hTitleFont == nullptr)
+		  {
+			  Throw(GetLastError(), "Rococo::Windows::InitRococoWindows(...): CreateFontIndirect(&titlefont) returned nul");
+		  }
 
-			LOGFONTA defaultControlFont = { 0 };
-         {
-            StackStringBuilder sb(defaultControlFont.lfFaceName, sizeof(defaultControlFont.lfFaceName));
-            sb << "Courier New";
-         }
-			defaultControlFont.lfHeight = -11;
+		  LOGFONTA defaultControlFont = { 0 };
+		  SafeFormat(defaultControlFont.lfFaceName, sizeof(defaultControlFont.lfFaceName), "Consolas");
+		  defaultControlFont.lfHeight = 14;
 
-			hControlFont = CreateFontIndirectA(controlFont ? controlFont : &defaultControlFont);
-			if (hControlFont == nullptr)
-			{
-				Throw(GetLastError(), "Rococo::Windows::InitRococoWindows(...): CreateFontIndirect(&controlFont) returned nul");
-			}
+		  hControlFont = CreateFontIndirectA(controlFont ? controlFont : &defaultControlFont);
+		  if (hControlFont == nullptr)
+		  {
+			  Throw(GetLastError(), "Rococo::Windows::InitRococoWindows(...): CreateFontIndirect(&controlFont) returned nul");
+		  }
 
-         BOOL isTrue = TRUE, isFalse = FALSE;
-         SystemParametersInfo(SPI_SETMENUANIMATION, 0, &isTrue, 0);
-         SystemParametersInfo(SPI_SETMENUFADE, 0, &isFalse, 0);
+		  BOOL isTrue = TRUE, isFalse = FALSE;
+		  SystemParametersInfo(SPI_SETMENUANIMATION, 0, &isTrue, 0);
+		  SystemParametersInfo(SPI_SETMENUFADE, 0, &isFalse, 0);
 
-         InitCommonControls();
+		  InitCommonControls();
 
-         struct ANON
-         {
-            static void Cleanup()
-            {
-               if (hTitleFont)
-               {
-                  DeleteObject(hTitleFont);
-                  hTitleFont = nullptr;
-               }
+		  struct ANON
+		  {
+			  static void Cleanup()
+			  {
+				  if (hTitleFont)
+				  {
+					  DeleteObject(hTitleFont);
+					  hTitleFont = nullptr;
+				  }
 
-               if (hControlFont)
-               {
-                  DeleteObject(hControlFont);
-                  hControlFont = nullptr;
-               }
-            }
-         };
+				  if (hControlFont)
+				  {
+					  DeleteObject(hControlFont);
+					  hControlFont = nullptr;
+				  }
+			  }
+		  };
 
-			atexit(ANON::Cleanup);
-		}
+		  atexit(ANON::Cleanup);
+	  }
 
 		void ValidateInit()
 		{

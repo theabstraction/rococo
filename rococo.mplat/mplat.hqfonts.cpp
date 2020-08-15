@@ -134,10 +134,6 @@ struct HQFonts : IHQFontsSupervisor, Fonts::IArrayFontSet
 		}
 
 		auto id = sysFonts[font];
-		if (!id)
-		{
-			Throw(0, "%s: Sys font %s undefined", __FUNCTION__, ToShortString(font).buffer);
-		}
 		return id;
 	}
 
