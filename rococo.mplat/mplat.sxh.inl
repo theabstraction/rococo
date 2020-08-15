@@ -1047,6 +1047,152 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->AddBone(name);
 	}
+	void NativeRococoEntitiesIRigBuilderSetLength(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Metres length;
+		_offset += sizeof(length);
+		ReadInput(length, _sf, -_offset);
+
+		_offset += sizeof(IString*);
+		IString* _name;
+		ReadInput(_name, _sf, -_offset);
+		fstring name { _name->buffer, _name->length };
+
+
+		Rococo::Entities::IRigBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetLength(name, length);
+	}
+	void NativeRococoEntitiesIRigBuilderSetScale(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		float sz;
+		_offset += sizeof(sz);
+		ReadInput(sz, _sf, -_offset);
+
+		float sy;
+		_offset += sizeof(sy);
+		ReadInput(sy, _sf, -_offset);
+
+		float sx;
+		_offset += sizeof(sx);
+		ReadInput(sx, _sf, -_offset);
+
+		_offset += sizeof(IString*);
+		IString* _name;
+		ReadInput(_name, _sf, -_offset);
+		fstring name { _name->buffer, _name->length };
+
+
+		Rococo::Entities::IRigBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetScale(name, sx, sy, sz);
+	}
+	void NativeRococoEntitiesIRigBuilderSetOffsetFromParent(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Vec3* positionOffset;
+		_offset += sizeof(positionOffset);
+		ReadInput(positionOffset, _sf, -_offset);
+
+		_offset += sizeof(IString*);
+		IString* _name;
+		ReadInput(_name, _sf, -_offset);
+		fstring name { _name->buffer, _name->length };
+
+
+		Rococo::Entities::IRigBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetOffsetFromParent(name, *positionOffset);
+	}
+	void NativeRococoEntitiesIRigBuilderSetOrientFromParent(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 validateQuat;
+		_offset += sizeof(validateQuat);
+		ReadInput(validateQuat, _sf, -_offset);
+
+		Quat* orientFromParent;
+		_offset += sizeof(orientFromParent);
+		ReadInput(orientFromParent, _sf, -_offset);
+
+		_offset += sizeof(IString*);
+		IString* _name;
+		ReadInput(_name, _sf, -_offset);
+		fstring name { _name->buffer, _name->length };
+
+
+		Rococo::Entities::IRigBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetOrientFromParent(name, *orientFromParent, validateQuat);
+	}
+	void NativeRococoEntitiesIRigBuilderSetParentOfChild(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _ofChild;
+		ReadInput(_ofChild, _sf, -_offset);
+		fstring ofChild { _ofChild->buffer, _ofChild->length };
+
+
+		_offset += sizeof(IString*);
+		IString* _parent;
+		ReadInput(_parent, _sf, -_offset);
+		fstring parent { _parent->buffer, _parent->length };
+
+
+		Rococo::Entities::IRigBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetParentOfChild(parent, ofChild);
+	}
+	void NativeRococoEntitiesIRigBuilderBuildSkeleton(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _name;
+		ReadInput(_name, _sf, -_offset);
+		fstring name { _name->buffer, _name->length };
+
+
+		Rococo::Entities::IRigBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->BuildSkeleton(name);
+	}
+	void NativeRococoEntitiesIRigBuilderBuildPose(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _name;
+		ReadInput(_name, _sf, -_offset);
+		fstring name { _name->buffer, _name->length };
+
+
+		Rococo::Entities::IRigBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->BuildPose(name);
+	}
 
 	void NativeGetHandleForRococoEntitiesRigBuilder(NativeCallEnvironment& _nce)
 	{
@@ -1067,6 +1213,13 @@ namespace Rococo { namespace Entities {
 		ss.AddNativeCall(ns, NativeGetHandleForRococoEntitiesRigBuilder, _nceContext, ("GetHandleForIRigBuilder0  -> (Pointer hObject)"));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderClear, nullptr, ("IRigBuilderClear (Pointer hObject) -> "));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderAddBone, nullptr, ("IRigBuilderAddBone (Pointer hObject)(Sys.Type.IString name) -> "));
+		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderSetLength, nullptr, ("IRigBuilderSetLength (Pointer hObject)(Sys.Type.IString name)(Sys.SI.Metres length) -> "));
+		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderSetScale, nullptr, ("IRigBuilderSetScale (Pointer hObject)(Sys.Type.IString name)(Float32 sx)(Float32 sy)(Float32 sz) -> "));
+		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderSetOffsetFromParent, nullptr, ("IRigBuilderSetOffsetFromParent (Pointer hObject)(Sys.Type.IString name)(Sys.Maths.Vec3 positionOffset) -> "));
+		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderSetOrientFromParent, nullptr, ("IRigBuilderSetOrientFromParent (Pointer hObject)(Sys.Type.IString name)(Sys.Maths.Quat orientFromParent)(Bool validateQuat) -> "));
+		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderSetParentOfChild, nullptr, ("IRigBuilderSetParentOfChild (Pointer hObject)(Sys.Type.IString parent)(Sys.Type.IString ofChild) -> "));
+		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderBuildSkeleton, nullptr, ("IRigBuilderBuildSkeleton (Pointer hObject)(Sys.Type.IString name) -> "));
+		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderBuildPose, nullptr, ("IRigBuilderBuildPose (Pointer hObject)(Sys.Type.IString name) -> "));
 	}
 }}
 // BennyHill generated Sexy native functions for Rococo::IContextMenuPane 

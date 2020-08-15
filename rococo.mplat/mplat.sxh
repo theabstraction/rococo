@@ -61,6 +61,13 @@
 	(methods
 		(Clear)
 		(AddBone (IString name))
+		(SetLength (IString name)(Metres length))
+		(SetScale (IString name)(Float32 sx)(Float32 sy)(Float32 sz))
+		(SetOffsetFromParent (IString name) (const Vec3 positionOffset))
+		(SetOrientFromParent (IString name) (const Quat orientFromParent) (Bool validateQuat))
+		(SetParentOfChild (IString parent)(IString ofChild))
+		(CommitToSkeleton (IString name))
+		(CommitToPose (IString name))
 	)
 
 	(factory Rococo.Entities.RigBuilder)

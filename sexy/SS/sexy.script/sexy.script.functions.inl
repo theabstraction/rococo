@@ -1603,18 +1603,56 @@ namespace Rococo
 	      ce.Builder.AssignClosureParentSFtoD6();
       }
 
+	  void FormatWithCallDescription(const IArchetype& callee, char* message, size_t capacity, cstr extraInfo)
+	  {
+		  StackStringBuilder sb(message, capacity);
+		  sb << extraInfo << "\nExpecting: (" << callee.Name();
+
+		  for (int i = 0; i < callee.NumberOfInputs() - 1; ++i)
+		  {
+			  auto& argType = callee.GetArgument(i);
+			  sb << "(" << GetFriendlyName(argType) << " ";
+			  sb << callee.GetArgName(i) << ")";
+		  }
+
+		  sb << "->";
+
+		  for (int i = 0; i < callee.NumberOfOutputs(); ++i)
+		  {
+			  int index = i + callee.NumberOfInputs();
+			  auto& argType = callee.GetArgument(index);
+			  sb << "(" << GetFriendlyName(argType) << " ";
+			  sb << callee.GetArgName(index) << ")";
+		  }
+
+		  sb << ")";
+	  }
+
       void CompileVirtualCall(CCompileEnvironment& ce, const IArchetype& callee, cr_sex s, int interfaceIndex, int methodIndex, cstr instanceName, const IInterface& interfaceRef)
       {
 	      // (<instance.method-name> input1 input2 input3.... inputN -> output1...output2...outputN)
 	      cstr calleeName = callee.Name();
 	      cstr callerName = ce.Builder.Owner().Name();
 
-	      int mapIndex = GetMapIndex(s, 1, callee.NumberOfOutputs(), callee.NumberOfInputs()-1);
+		  int mapIndex;
+		  
+		  try
+		  {
+			  mapIndex = GetMapIndex(s, 1, callee.NumberOfOutputs(), callee.NumberOfInputs() - 1);
+		  }
+		  catch (IException& ex)
+		  {
+			  char message[2048];
+			  FormatWithCallDescription(callee, message, sizeof message, ex.Message());
+			  Throw(s, message);
+		  }
 
 	      int nSuppliedInputs = mapIndex - 1;
 	      if (nSuppliedInputs > callee.NumberOfInputs() - 1)
 	      {
-		      Throw(s, ("More inputs were supplied than are needed by the function call"));
+			  char message[2048];
+			  FormatWithCallDescription(callee, message, sizeof message, "More inputs were supplied than are needed by the function call");
+			  Throw(s, message);
 	      }
 
 	      int outputOffset = CompileVirtualCallKernel(ce, false, callee, s, interfaceIndex, methodIndex, instanceName, interfaceRef);

@@ -280,31 +280,30 @@ namespace MHost
 
 		void OnEvent(FileModifiedArgs& args) override
 		{
-			char pingname[1024];
-			SafeFormat(pingname, 1024, "!%S", args.sysPath);
-			Rococo::OS::ToUnixPath(pingname);
-			
-			platform.gui.LogMessage("File modified: %s", pingname);
+			U8FilePath pingPath;
+			platform.installation.ConvertSysPathToPingPath(args.sysPath, pingPath);	
+			platform.gui.LogMessage("File modified: %s", pingPath);
 
-			auto ext = Rococo::GetFileExtension(args.sysPath);
+			auto ext = Rococo::GetFileExtension(pingPath);
 			if (!ext)
 			{
 
 			}
-			else if (Eq(ext, L".sxy"))
+			else if (Eq(ext, ".sxy"))
 			{
-				platform.utilities.RefreshResource(pingname);
+				platform.gui.LogMessage("Updating script file");
+				platform.utilities.RefreshResource(pingPath);
 				queuedForExecute = true;
 			}
-			else if (Eq(ext, L".ps"))
+			else if (Eq(ext, ".ps"))
 			{
 				platform.gui.LogMessage("Updating pixel shader");
-				platform.renderer.UpdatePixelShader(pingname);
+				platform.renderer.UpdatePixelShader(pingPath);
 			}
-			else if (Eq(ext, L".vs"))
+			else if (Eq(ext, ".vs"))
 			{
 				platform.gui.LogMessage("Updating vertex shader");
-				platform.renderer.UpdateVertexShader(pingname);
+				platform.renderer.UpdateVertexShader(pingPath);
 			}
 		}
 
