@@ -1161,7 +1161,7 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->SetParentOfChild(parent, ofChild);
 	}
-	void NativeRococoEntitiesIRigBuilderBuildSkeleton(NativeCallEnvironment& _nce)
+	void NativeRococoEntitiesIRigBuilderCommitToSkeleton(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
@@ -1175,9 +1175,9 @@ namespace
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->BuildSkeleton(name);
+		_pObject->CommitToSkeleton(name);
 	}
-	void NativeRococoEntitiesIRigBuilderBuildPose(NativeCallEnvironment& _nce)
+	void NativeRococoEntitiesIRigBuilderCommitToPose(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
@@ -1191,7 +1191,7 @@ namespace
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->BuildPose(name);
+		_pObject->CommitToPose(name);
 	}
 
 	void NativeGetHandleForRococoEntitiesRigBuilder(NativeCallEnvironment& _nce)
@@ -1218,8 +1218,8 @@ namespace Rococo { namespace Entities {
 		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderSetOffsetFromParent, nullptr, ("IRigBuilderSetOffsetFromParent (Pointer hObject)(Sys.Type.IString name)(Sys.Maths.Vec3 positionOffset) -> "));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderSetOrientFromParent, nullptr, ("IRigBuilderSetOrientFromParent (Pointer hObject)(Sys.Type.IString name)(Sys.Maths.Quat orientFromParent)(Bool validateQuat) -> "));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderSetParentOfChild, nullptr, ("IRigBuilderSetParentOfChild (Pointer hObject)(Sys.Type.IString parent)(Sys.Type.IString ofChild) -> "));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderBuildSkeleton, nullptr, ("IRigBuilderBuildSkeleton (Pointer hObject)(Sys.Type.IString name) -> "));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderBuildPose, nullptr, ("IRigBuilderBuildPose (Pointer hObject)(Sys.Type.IString name) -> "));
+		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderCommitToSkeleton, nullptr, ("IRigBuilderCommitToSkeleton (Pointer hObject)(Sys.Type.IString name) -> "));
+		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderCommitToPose, nullptr, ("IRigBuilderCommitToPose (Pointer hObject)(Sys.Type.IString name) -> "));
 	}
 }}
 // BennyHill generated Sexy native functions for Rococo::IContextMenuPane 

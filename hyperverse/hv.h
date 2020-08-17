@@ -544,6 +544,7 @@ namespace HV
 
    ROCOCOAPI ISectors
    {
+	  virtual bool IsMeshGenerationEnabled() const = 0;
 	  virtual ISectorBuilder* Builder() = 0;
 	  virtual void Free() = 0;
 

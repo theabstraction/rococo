@@ -285,6 +285,8 @@ return false;
 	   Platform& platform;
 	   ActionFactoryCreateContext afcc;
 	   JapaneseFrodoMachine tags;
+	   bool generateMesh = true;
+
    public:
 	   Sectors(Platform& _platform) :
 		   platform(_platform)
@@ -303,6 +305,32 @@ return false;
 		   {
 			   delete i.second;
 		   }
+	   }
+
+	   void DisableMeshGeneration() override
+	   {
+		   generateMesh = false;
+	   }
+
+	   void EnableMeshGeneration() override
+	   {
+		   generateMesh = true;
+	   }
+
+	   void GenerateMeshes() override
+	   {
+		   for (auto sector : sectors)
+		   {
+			   if (sector->IsDirty())
+			   {
+				   sector->Rebuild();
+			   }
+		   }
+	   }
+
+	   bool IsMeshGenerationEnabled() const override
+	   {
+		   return generateMesh;
 	   }
 
 	   ITags& Tags()
@@ -338,13 +366,17 @@ return false;
 
 		   sb.AppendFormat("(function AddSectorsToLevel -> :\n");
 		   sb.AppendFormat("\t(ISectors sectors (SectorBuilder))\n\n");
-		   sb.AppendFormat("\t(sectors.Clear)\n\n");
+		   sb.AppendFormat("\t(sectors.Clear)\n");
+		   sb.AppendFormat("\t(sectors.DisableMeshGeneration)\n\n");
 
 		   uint32 index = 0;
 		   for (auto s : sectors)
 		   {
 			   sb.AppendFormat("\t(AddSector%u sectors)%s\n", index++, index == 0 ? " // entrance" : "");
 		   }
+
+		   sb.AppendFormat("\n\t(sectors.EnableMeshGeneration)\n");
+		   sb.AppendFormat("\t(sectors.GenerateMeshes)\n");
 
 		   sb.AppendFormat(")\n\n");
 

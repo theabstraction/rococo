@@ -153,12 +153,12 @@ struct RigBuilder : IRigBuilderSupervisor
 		GetBone(name).quat = q;
 	}
 
-	void BuildSkeleton(const fstring& name) override
+	void CommitToSkeleton(const fstring& name) override
 	{
 
 	}
 
-	void BuildPose(const fstring& name) override
+	void CommitToPose(const fstring& name) override
 	{
 
 	}

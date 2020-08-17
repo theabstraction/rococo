@@ -530,6 +530,36 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->Clear();
 	}
+	void NativeHVISectorBuilderDisableMeshGeneration(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::ISectorBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->DisableMeshGeneration();
+	}
+	void NativeHVISectorBuilderEnableMeshGeneration(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::ISectorBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->EnableMeshGeneration();
+	}
+	void NativeHVISectorBuilderGenerateMeshes(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::ISectorBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GenerateMeshes();
+	}
 	void NativeHVISectorBuilderCreateFromTemplate(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -738,6 +768,9 @@ namespace HV {
 		ss.AddNativeCall(ns, NativeGetHandleForHVSectorBuilder, _nceContext, ("GetHandleForISectors0  -> (Pointer hObject)"));
 		ss.AddNativeCall(ns, NativeHVISectorBuilderAddVertex, nullptr, ("ISectorsAddVertex (Pointer hObject)(Float32 x)(Float32 y) -> "));
 		ss.AddNativeCall(ns, NativeHVISectorBuilderClear, nullptr, ("ISectorsClear (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorBuilderDisableMeshGeneration, nullptr, ("ISectorsDisableMeshGeneration (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorBuilderEnableMeshGeneration, nullptr, ("ISectorsEnableMeshGeneration (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorBuilderGenerateMeshes, nullptr, ("ISectorsGenerateMeshes (Pointer hObject) -> "));
 		ss.AddNativeCall(ns, NativeHVISectorBuilderCreateFromTemplate, nullptr, ("ISectorsCreateFromTemplate (Pointer hObject)(Int32 altitude)(Int32 height) -> (Int32 id)"));
 		ss.AddNativeCall(ns, NativeHVISectorBuilderSetTemplateWallScript, nullptr, ("ISectorsSetTemplateWallScript (Pointer hObject)(Bool useScript)(Sys.Type.IString scriptName) -> "));
 		ss.AddNativeCall(ns, NativeHVISectorBuilderSetTemplateDoorScript, nullptr, ("ISectorsSetTemplateDoorScript (Pointer hObject)(Bool hasDoor)(Sys.Type.IString scriptName) -> "));

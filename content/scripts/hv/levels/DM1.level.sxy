@@ -21,6 +21,7 @@
 	(ISectors sectors (SectorBuilder))
 
 	(sectors.Clear)
+	(sectors.DisableMeshGeneration)
 
 	(AddSector0 sectors) // entrance
 	(AddSector1 sectors)
@@ -45,6 +46,12 @@
 	(AddSector20 sectors)
 	(AddSector21 sectors)
 	(AddSector22 sectors)
+
+	(sectors.EnableMeshGeneration)
+
+
+	(sectors.GenerateMeshes)
+
 )
 
 (function AddSector0 (ISectors sectors) -> :
@@ -72,7 +79,7 @@
 	(sectors.SetWallScriptF32 "Cement thickness (m)" 0.025000)
 	(sectors.SetTemplateWallScript true "#walls/stretch.bricks.sxy")
 	(sectors.SetTemplateFloorScript false "")
-	(sectors.CreateFromTemplate 0 400)
+	(Int32 id = (sectors.CreateFromTemplate 0 400))
 )
 
 (function AddSector1 (ISectors sectors) -> :
@@ -102,7 +109,7 @@
 	(sectors.SetWallScriptF32 "Cement thickness (m)" 0.005000)
 	(sectors.SetTemplateWallScript true "#walls/stretch.bricks.sxy")
 	(sectors.SetTemplateFloorScript false "")
-	(sectors.CreateFromTemplate 0 400)
+	(Int32 id = (sectors.CreateFromTemplate 0 400))
 )
 
 (function AddSector2 (ISectors sectors) -> :
@@ -122,7 +129,7 @@
 	(sectors.SetTemplateDoorScript true "")
 	(sectors.SetTemplateWallScript false "#walls/stretch.bricks.sxy")
 	(sectors.SetTemplateFloorScript false "")
-	(sectors.CreateFromTemplate 0 400)
+	(Int32 id = (sectors.CreateFromTemplate 0 400))
 )
 
 (function AddSector3 (ISectors sectors) -> :
@@ -146,7 +153,7 @@
 	(sectors.SetWallScriptF32 "Cement thickness (m)" 0.005000)
 	(sectors.SetTemplateWallScript true "#walls/stretch.bricks.sxy")
 	(sectors.SetTemplateFloorScript false "")
-	(sectors.CreateFromTemplate 0 400)
+	(Int32 id = (sectors.CreateFromTemplate 0 400))
 )
 
 (function AddSector4 (ISectors sectors) -> :
@@ -176,7 +183,7 @@
 	(sectors.SetWallScriptF32 "Cement thickness (m)" 0.005000)
 	(sectors.SetTemplateWallScript true "#walls/stretch.bricks.sxy")
 	(sectors.SetTemplateFloorScript false "")
-	(sectors.CreateFromTemplate 0 400)
+	(Int32 id = (sectors.CreateFromTemplate 0 400))
 )
 
 (function AddSector5 (ISectors sectors) -> :
@@ -200,7 +207,7 @@
 	(sectors.SetWallScriptF32 "Cement thickness (m)" 0.005000)
 	(sectors.SetTemplateWallScript true "#walls/stretch.bricks.sxy")
 	(sectors.SetTemplateFloorScript false "")
-	(sectors.CreateFromTemplate -200 400)
+	(Int32 id = (sectors.CreateFromTemplate -200 400))
 )
 
 (function AddSector6 (ISectors sectors) -> :
@@ -220,7 +227,7 @@
 	(sectors.SetTemplateDoorScript false "")
 	(sectors.SetTemplateWallScript false "#walls/stretch.bricks.sxy")
 	(sectors.SetTemplateFloorScript false "")
-	(sectors.CreateFromTemplate -200 400)
+	(Int32 id = (sectors.CreateFromTemplate -200 400))
 )
 
 (function AddSector7 (ISectors sectors) -> :
@@ -246,7 +253,7 @@
 	(sectors.SetWallScriptF32 "Cement thickness (m)" 0.025000)
 	(sectors.SetTemplateWallScript true "#walls/stretch.bricks.sxy")
 	(sectors.SetTemplateFloorScript false "")
-	(sectors.CreateFromTemplate -200 400)
+	(Int32 id = (sectors.CreateFromTemplate -200 400))
 )
 
 (function AddSector8 (ISectors sectors) -> :
@@ -266,7 +273,7 @@
 	(sectors.SetTemplateDoorScript false "")
 	(sectors.SetTemplateWallScript false "#walls/stretch.bricks.sxy")
 	(sectors.SetTemplateFloorScript false "")
-	(sectors.CreateFromTemplate 0 400)
+	(Int32 id = (sectors.CreateFromTemplate 0 400))
 )
 
 (function AddSector9 (ISectors sectors) -> :
@@ -287,7 +294,7 @@
 	(sectors.SetTemplateMaterial "panels"     (#MaterialCategoryMetal) 0xd5e5cb2b "random")
 	(sectors.SetTemplateWallScript false "#walls/stretch.bricks.sxy")
 	(sectors.SetTemplateFloorScript false "")
-	(sectors.CreateFromTemplate 0 400)
+	(Int32 id = (sectors.CreateFromTemplate 0 400))
 )
 
 (function AddSector10 (ISectors sectors) -> :
@@ -307,7 +314,7 @@
 	(sectors.SetTemplateDoorScript false "")
 	(sectors.SetTemplateWallScript false "#walls/stretch.bricks.sxy")
 	(sectors.SetTemplateFloorScript false "")
-	(sectors.CreateFromTemplate 0 400)
+	(Int32 id = (sectors.CreateFromTemplate 0 400))
 )
 
 (function AddSector11 (ISectors sectors) -> :
@@ -327,7 +334,7 @@
 	(sectors.SetTemplateMaterial "panels"     (#MaterialCategoryWood) 0xd4d5c3ed "random")
 	(sectors.SetTemplateWallScript false "#walls/stretch.bricks.sxy")
 	(sectors.SetTemplateFloorScript false "")
-	(sectors.CreateFromTemplate 0 400)
+	(Int32 id = (sectors.CreateFromTemplate 0 400))
 )
 
 (function AddSector12 (ISectors sectors) -> :
@@ -368,7 +375,7 @@
 	(sectors.SetFloorScriptF32 "base depth" 0.100000)
 	(sectors.SetFloorScriptF32 "base thickness" 0.025000)
 	(sectors.SetTemplateFloorScript true "!scripts/hv/sector/floors/pressure_pad.sxy")
-	(sectors.CreateFromTemplate 0 400)
+	(Int32 id = (sectors.CreateFromTemplate 0 400))
 )
 
 (function AddSector13 (ISectors sectors) -> :
@@ -388,7 +395,7 @@
 	(sectors.SetTemplateDoorScript false "")
 	(sectors.SetTemplateWallScript false "#walls/stretch.bricks.sxy")
 	(sectors.SetTemplateFloorScript true "!scripts/hv/sector/floors/pressure_pad.sxy")
-	(sectors.CreateFromTemplate 0 400)
+	(Int32 id = (sectors.CreateFromTemplate 0 400))
 )
 
 (function AddSector14 (ISectors sectors) -> :
@@ -409,7 +416,7 @@
 	(sectors.SetTemplateWallScript false "#walls/stretch.bricks.sxy")
 	(sectors.SetFloorScriptF32 "UV size" 0.500000)
 	(sectors.SetTemplateFloorScript true "!scripts/hv/sector/floors/drain.sxy")
-	(sectors.CreateFromTemplate 0 400)
+	(Int32 id = (sectors.CreateFromTemplate 0 400))
 )
 
 (function AddSector15 (ISectors sectors) -> :
@@ -429,7 +436,7 @@
 	(sectors.SetTemplateDoorScript false "")
 	(sectors.SetTemplateWallScript false "#walls/stretch.bricks.sxy")
 	(sectors.SetTemplateFloorScript false "")
-	(sectors.CreateFromTemplate 0 400)
+	(Int32 id = (sectors.CreateFromTemplate 0 400))
 )
 
 (function AddSector16 (ISectors sectors) -> :
@@ -449,7 +456,7 @@
 	(sectors.SetTemplateMaterial "panels"     (#MaterialCategoryMetal) 0xc51be132 "random")
 	(sectors.SetTemplateWallScript false "#walls/stretch.bricks.sxy")
 	(sectors.SetTemplateFloorScript false "")
-	(sectors.CreateFromTemplate 0 400)
+	(Int32 id = (sectors.CreateFromTemplate 0 400))
 )
 
 (function AddSector17 (ISectors sectors) -> :
@@ -469,7 +476,7 @@
 	(sectors.SetTemplateDoorScript false "")
 	(sectors.SetTemplateWallScript false "#walls/stretch.bricks.sxy")
 	(sectors.SetTemplateFloorScript false "")
-	(sectors.CreateFromTemplate 0 400)
+	(Int32 id = (sectors.CreateFromTemplate 0 400))
 )
 
 (function AddSector18 (ISectors sectors) -> :
@@ -489,7 +496,7 @@
 	(sectors.SetTemplateMaterial "panels"     (#MaterialCategoryMetal) 0xec368435 "random")
 	(sectors.SetTemplateWallScript false "#walls/stretch.bricks.sxy")
 	(sectors.SetTemplateFloorScript false "")
-	(sectors.CreateFromTemplate 0 400)
+	(Int32 id = (sectors.CreateFromTemplate 0 400))
 )
 
 (function AddSector19 (ISectors sectors) -> :
@@ -512,7 +519,7 @@
 	(sectors.SetFloorScriptF32 "Step width (m)" 1.000000)
 	(sectors.SetFloorScriptF32 "Step height(m)" 0.150000)
 	(sectors.SetTemplateFloorScript true "!scripts/hv/sector/floors/stairs.up.sxy")
-	(sectors.CreateFromTemplate 0 600)
+	(Int32 id = (sectors.CreateFromTemplate 0 600))
 )
 
 (function AddSector20 (ISectors sectors) -> :
@@ -543,7 +550,7 @@
 	(sectors.SetFloorScriptF32 "UV Scale" 0.250000)
 	(sectors.SetFloorScriptF32 "Cement thickness (m)" 0.005000)
 	(sectors.SetTemplateFloorScript false "!scripts/hv/sector/floors/stairs.up.sxy")
-	(sectors.CreateFromTemplate 0 400)
+	(Int32 id = (sectors.CreateFromTemplate 0 400))
 )
 
 (function AddSector21 (ISectors sectors) -> :
@@ -575,7 +582,7 @@
 	(sectors.SetFloorScriptF32 "Frieze drop" 0.900000)
 	(sectors.SetFloorScriptF32 "Skirt height" 0.100000)
 	(sectors.SetTemplateFloorScript true "!scripts/hv/sector/floors/pool.sxy")
-	(sectors.CreateFromTemplate 0 600)
+	(Int32 id = (sectors.CreateFromTemplate 0 600))
 )
 
 (function AddSector22 (ISectors sectors) -> :
@@ -595,6 +602,6 @@
 	(sectors.SetTemplateDoorScript false "")
 	(sectors.SetTemplateWallScript false "#walls/none.sxy")
 	(sectors.SetTemplateFloorScript false "!scripts/hv/sector/floors/stairs.up.sxy")
-	(sectors.CreateFromTemplate 70 294)
+	(Int32 id = (sectors.CreateFromTemplate 70 292))
 )
 

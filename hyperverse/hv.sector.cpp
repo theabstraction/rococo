@@ -2358,6 +2358,11 @@ namespace ANON
 	  {
 		  isDirty = true;
 
+		  if (!co_sectors.IsMeshGenerationEnabled())
+		  {
+			  return;
+		  }
+
 		  TesselateWalls();
 
 		  if (scriptFloor && !completeSquares.empty())
