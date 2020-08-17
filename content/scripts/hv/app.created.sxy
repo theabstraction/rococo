@@ -27,4 +27,12 @@
 	(fonts.AddCharacters "£")
 	(fonts.SetHeight 24)
 	(fonts.Commit)
+
+	(fonts.Build (#HQFontDebuggerFont))
+	(fonts.SetFaceName "Consolas")
+	//(fonts.MakeBold)
+	(fonts.AddRange 32 127)
+	(fonts.AddCharacters "£")
+	(fonts.SetHeight 28)
+	(fonts.Commit)
 )

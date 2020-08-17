@@ -27,8 +27,9 @@ namespace
 	   std::vector<DebugLine> lines;
 	   GuiRect scrollRect;
 	   bool queueMouseUp = false;
-
+	   IUtilitiies& utilities;
 	   Events::IPublisher& publisher;
+	   ID_FONT idDebuggerFont;
 
 	   void Name(DebugLine& line, VisitorName name)
 	   {
@@ -56,12 +57,12 @@ namespace
 	   }
 
    public:
-	   MathsVisitor(IUtilitiies& utilities, IPublisher& _publisher) :
-		   scrollbar(utilities.CreateScrollbar(true)),
+	   MathsVisitor(IUtilitiies& _utilities, IPublisher& _publisher) :
+		   utilities(_utilities),
+		   scrollbar(_utilities.CreateScrollbar(true)),
 		   publisher(_publisher)
 		   
 	   {
-
 	   }
 
 	   void Show(VisitorName name, const Matrix4x4& m) override
@@ -306,14 +307,10 @@ namespace
 		   selectedLine = -1;
 	   }
 
-	   const int fontHeight = 24;
-
 	   void RenderStringList(IGuiRenderContext& gc, const GuiRect& absRect, int padding)
 	   {
 		   GuiMetrics metrics;
 		   gc.Renderer().GetGuiMetrics(metrics);
-
-		   Rococo::Graphics::StackSpaceGraphics ssg;
 
 		   RGBAb keyColour(192, 192, 192);
 		   RGBAb valueColour(255, 255, 255);
@@ -329,15 +326,17 @@ namespace
 		   
 		   GuiRect lineRect{ screenRect };
 
-		   lineRect.bottom = lineRect.top + fontHeight;
+		   auto fm = gc.Renderer().GetFontMetrics(idDebuggerFont);
+
+		   lineRect.bottom = lineRect.top + fm.imgHeight;
 
 		   for (auto& line : lines)
 		   {
-			   auto& job = Rococo::Graphics::CreateLeftAlignedText(ssg, lineRect, 0, 0, fontHeight, fontIndex, line.key, keyColour);
-			   auto span = gc.EvalSpan({ 0,0 }, job);
-			   keyMaxWidth = max(keyMaxWidth, span.x);
-			   totalHeight += span.y;
-			   lastRowHeight = span.y;
+			   RGBAb transparent(0, 0, 0, 0);
+			   Vec2 span = Rococo::Graphics::RenderHQText_LeftAligned_VCentre(gc, idDebuggerFont, lineRect, line.key, transparent);
+			   keyMaxWidth = max(keyMaxWidth, (int32) span.x);
+			   totalHeight += fm.imgHeight;
+			   lastRowHeight = fm.imgHeight;
 		   }
 
 		   if (totalHeight != knownHeight)
@@ -363,11 +362,14 @@ namespace
 
 		   keyMaxWidth += padding;
 
-		   GuiRect keyRect = { absRect.left, absRect.top, absRect.left + keyMaxWidth, absRect.bottom };
-		   GuiRect valueRect{ absRect.left + keyMaxWidth, absRect.top, absRect.right, absRect.bottom };
+		   GuiRect keyRect = { absRect.left, absRect.top, absRect.left + keyMaxWidth, 0 };
+		   GuiRect valueRect{ absRect.left + keyMaxWidth, absRect.top, absRect.right, 0 };
 
 		   keyRect.top -= pos;
 		   valueRect.top -= pos;
+
+		   keyRect.bottom = keyRect.top + fm.height;
+		   valueRect.bottom = valueRect.top + fm.height;
 
 		   size_t lineIndex = 0;
 
@@ -376,52 +378,35 @@ namespace
 			   int32 dy = 0;
 			   if (*line.key != 0 || *line.value != 0)
 			   {
-				   auto& job = Rococo::Graphics::CreateLeftAlignedText(ssg, keyRect, 0, 0, fontHeight, fontIndex, line.key, keyColour);
-				   auto span = gc.EvalSpan({ 0,0 }, job);
-
 				   if (keyRect.top >= absRect.top)
 				   {
-					   RGBAb backColour = RGBAb(0, 0, 0, 192);
+					   RGBAb backColour = RGBAb(0, 0, 0, 255);
 
-					   GuiRect keyback{ keyRect.left, keyRect.top, keyRect.right, keyRect.top + span.y };
-					  
 					   if (line.isSelectable)
 					   {
-						   if (IsPointInRect(metrics.cursorPosition, keyback))
+						   if (IsPointInRect(metrics.cursorPosition, lineRect))
 						   {
-							   backColour = RGBAb(32, 16, 16, 255);
+							   backColour = RGBAb(96, 16, 16, 255);
 						   }
 
 						   if (selectedLine == lineIndex)
 						   {
-							   backColour = RGBAb(64, 32, 32, 255);
+							   backColour = RGBAb(128, 32, 32, 255);
 						   }
 					   }
 
-					   Rococo::Graphics::DrawRectangle(gc, keyback, backColour, backColour);
+					   GuiRect backRect = lineRect;
+					   backRect.bottom = min(backRect.bottom, absRect.bottom);
 
-					   gc.RenderText(TopLeft(keyRect), job);
-
-					   auto& job2 = Rococo::Graphics::CreateLeftAlignedText(ssg, valueRect, 0, 0, fontHeight, fontIndex, line.value, valueColour);
-					   auto span2 = gc.EvalSpan({ 0,0 }, job);
-					  
-					   GuiRect valueback{ valueRect.left, valueRect.top, valueRect.left + span2.x + 4, valueRect.top + span2.y };
-
-					   if (line.isSelectable)
+					   if (lineRect.top < absRect.bottom)
 					   {
-						   if (IsPointInRect(metrics.cursorPosition, keyback) || IsPointInRect(metrics.cursorPosition, valueback))
-						   {
-							   backColour = RGBAb(32, 16, 16, 255);
-						   }
-
-						   if (selectedLine == lineIndex)
-						   {
-							   backColour = RGBAb(64, 32, 32, 255);
-						   }
+						   Rococo::Graphics::DrawRectangle(gc, backRect, backColour, backColour);
 					   }
-					   Rococo::Graphics::DrawRectangle(gc, valueback, backColour, backColour);
-					   
-					   if (queueMouseUp && IsPointInRect(metrics.cursorPosition, valueback))
+
+					   Rococo::Graphics::RenderHQText_LeftAligned_VCentre(gc, idDebuggerFont, keyRect, line.key, keyColour);
+					   Rococo::Graphics::RenderHQText_LeftAligned_VCentre(gc, idDebuggerFont, valueRect, line.value, valueColour);
+
+					   if (queueMouseUp && IsPointInRect(metrics.cursorPosition, lineRect))
 					   {
 						   queueMouseUp = false;
 
@@ -431,7 +416,7 @@ namespace
 							   if (*line.selectEvent.name != 0)
 							   {
 								   VisitorItemClickedEvent clicked;
-								   clicked.key = line.key;	
+								   clicked.key = line.key;
 								   clicked.value = line.value;
 								   publisher.Publish(clicked, line.selectEvent);
 							   }
@@ -441,38 +426,48 @@ namespace
 							   CancelSelect();
 						   }
 					   }
+				   }
+			   }
 
-					   gc.RenderText(TopLeft(valueRect), job);
-					   dy = max(span2.y, span.y);
-				   }
-				   else
-				   {
-					   dy = span.y;
-				   }
-			   }
-			   else
-			   {
-				   dy = 24;
-			   }
+			   dy = fm.height;
 
 			   keyRect.top += dy;
 			   valueRect.top += dy;
 
+			   keyRect.bottom += dy;
+			   valueRect.bottom += dy;
+
+			   lineRect.top += dy;
+			   lineRect.bottom += dy;
+
 			   lineIndex++;
 
-			   if (keyRect.top >= keyRect.bottom)
+			   if (keyRect.top >= absRect.bottom)
 				   break;
 		   }
 	   }
 
 	   void Render(IGuiRenderContext& gc, const GuiRect& absRect, int padding) override
 	   {
+		   if (!idDebuggerFont)
+		   {
+			   idDebuggerFont = utilities.GetHQFonts().GetSysFont(Graphics::HQFont_DebuggerFont);
+			   if (!idDebuggerFont)
+			   {
+				   Throw(0, "Undefined HQFont_DebuggerFont");
+			   }
+		   }
+
 		   scrollRect = GuiRect{ absRect.right - 24, absRect.top, absRect.right, absRect.bottom };
 		   RenderScrollbar(gc, scrollRect);
 
 		   GuiRect strListRect{ absRect.left + 4, absRect.top, scrollRect.left - 8, absRect.bottom };
+		   gc.FlushLayer();
+		   gc.SetScissorRect(Dequantize(strListRect));
 		   RenderStringList(gc, strListRect, padding);
-	   }
+		   gc.ClearScissorRect();
+		   gc.FlushLayer();
+	   } 
    };
 }
 

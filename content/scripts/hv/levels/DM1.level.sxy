@@ -48,10 +48,7 @@
 	(AddSector22 sectors)
 
 	(sectors.EnableMeshGeneration)
-
-
 	(sectors.GenerateMeshes)
-
 )
 
 (function AddSector0 (ISectors sectors) -> :

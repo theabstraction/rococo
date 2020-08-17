@@ -143,6 +143,7 @@
     <ClInclude Include="hv.sxh.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\content\scripts\hv\app.created.sxy" />
     <None Include="..\include\rococo.rings.inl" />
     <None Include="config.xc" />
     <CustomBuild Include="hv.sxh">

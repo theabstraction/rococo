@@ -15,6 +15,8 @@
 
 #include <stdarg.h>
 
+#include <algorithm>
+
 #include <unordered_map>
 #include <string>
 
@@ -701,6 +703,13 @@ namespace Rococo
 		AutoFree<IAllocatorSupervisor> allocator;
 		Auto<ISParser> parser;
 
+		struct VisitorInfo
+		{
+			U8FilePath pingPath;
+			size_t fileLength;
+			char time[64];
+		};
+		std::vector<VisitorInfo> visitorData;
 	public:
 		SourceCache(IInstallation& _installation) :
 			fileBuffer(CreateExpandingBuffer(64_kilobytes)),
@@ -737,16 +746,32 @@ namespace Rococo
 
 		void ShowVenue(IMathsVisitor& visitor) override
 		{
+			if (visitorData.empty())
+			{
+				visitorData.reserve(sources.size());
+
+				for (auto i : sources)
+				{
+					VisitorInfo info;
+					OS::FormatTime(i.second.loadTime, info.time, sizeof info.time);
+					info.fileLength = i.second.code->SourceLength();
+					SafeFormat(info.pingPath.buf, info.pingPath.CAPACITY, "%s", i.first.c_str());
+					visitorData.push_back(info);
+				}
+
+				std::sort(visitorData.begin(), visitorData.end(),
+					[](const VisitorInfo& a, const VisitorInfo& b)
+					{
+						return b.fileLength < a.fileLength;
+					}
+					);
+			}
+
 			visitor.ShowString("", "   File Length     Timestamp");
 
-			for (auto i : sources)
+			for (auto i : visitorData)
 			{
-				char theTime[256];
-				OS::FormatTime(i.second.loadTime, theTime, 256);
-
-				char name[256];
-				SafeFormat(name, 256, "%s", i.first.c_str());
-				visitor.ShowString(name, "%8d bytes      %8.8s", i.second.code->SourceLength(), theTime);
+				visitor.ShowString(i.pingPath, "%8d bytes      %8.8s", i.fileLength, i.time);
 			}
 		}
 		 
@@ -772,6 +797,7 @@ namespace Rococo
 				}
 			}
 
+			visitorData.clear();
 			installation.LoadResource(pingName, *fileBuffer, 64_megabytes);
 
 			ISourceCode* src = DuplicateSourceCode(installation.OS(), *unicodeBuffer, *parser, *fileBuffer, pingName);
@@ -787,6 +813,8 @@ namespace Rococo
 
 		void Release(cstr resourceName) override
 		{
+			visitorData.clear();
+
 			for (auto i = sources.begin(); i != sources.end(); ++i)
 			{
 				if (installation.DoPingsMatch(i->first.c_str(), resourceName))
@@ -801,6 +829,8 @@ namespace Rococo
 
 		void ReleaseAll() override
 		{
+			visitorData.clear();
+
 			for (auto i : sources)
 			{
 				if (i.second.tree) i.second.tree->Release();

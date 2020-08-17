@@ -279,17 +279,42 @@ public:
 
 	std::unordered_map<std::string, PerformanceStats> nameToStats;
 
+	struct NameAndStats
+	{
+		U8FilePath name;
+		PerformanceStats stats;
+	};
+	std::vector<NameAndStats> nameAndStats;
+
 	void ShowVenue(IMathsVisitor& visitor) override
 	{
 		visitor.ShowString("", "Loading  Compiling  Execution Call-count");
 
+		nameAndStats.reserve(nameToStats.size());
+		nameAndStats.clear();
+
 		for (auto i : nameToStats)
 		{
+			NameAndStats nas;
+			SafeFormat(nas.name.buf, nas.name.CAPACITY, "%s", i.first.c_str());
+			nas.stats = i.second;
+			nameAndStats.push_back(nas);
+		}
+
+		std::sort(nameAndStats.begin(), nameAndStats.end(),
+			[](const NameAndStats& a, const NameAndStats& b)
+			{
+				return strcmp(a.name, b.name) < 0;
+			}
+		);
+
+		for (auto i : nameAndStats)
+		{
 			float cyclesPerMs = OS::CpuHz() / 1000.0f;
-			float loadCost = i.second.totalLoadCost / cyclesPerMs;
-			float compileCost = i.second.totalCompileCost / cyclesPerMs;
-			float executeCost = i.second.totalExecuteCost / cyclesPerMs;
-			visitor.ShowString(i.first.c_str(), " %4.0fms     %4.0fms     %4.0fms     %d", loadCost, compileCost, executeCost, i.second.moduleCallCount);
+			float loadCost = i.stats.totalLoadCost / cyclesPerMs;
+			float compileCost = i.stats.totalCompileCost / cyclesPerMs;
+			float executeCost = i.stats.totalExecuteCost / cyclesPerMs;
+			visitor.ShowString(i.name, " %4.0fms     %4.0fms     %4.0fms     %d", loadCost, compileCost, executeCost, i.stats.moduleCallCount);
 		}
 	}
 

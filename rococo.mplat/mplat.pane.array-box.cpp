@@ -264,7 +264,7 @@ struct PanelArrayBox : BasePane, IArrayBox, IObserver, IEventCallback<ScrollEven
 			grc.SetScissorRect(Dequantize(absRect));
 			RenderRows(grc, *args.value1);
 			grc.FlushLayer();
-			grc.SetScissorRect(GuiRectf{ 0, 0, 1000000.0f, 1000000.0f });
+			grc.ClearScissorRect();
 
 			int32 pageSize = Height(absRect);
 

@@ -100,6 +100,9 @@
     <None Include="..\include\rococo.rings.inl">
       <Filter>Header Files</Filter>
     </None>
+    <None Include="..\content\scripts\hv\app.created.sxy">
+      <Filter>Script Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="hv.sxh">

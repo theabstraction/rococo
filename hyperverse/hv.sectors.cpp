@@ -323,6 +323,7 @@ return false;
 		   {
 			   if (sector->IsDirty())
 			   {
+				   platform.utilities.ShowBusy(true, "Generating meshes", "Building sector %u", sector->Id());
 				   sector->Rebuild();
 			   }
 		   }
