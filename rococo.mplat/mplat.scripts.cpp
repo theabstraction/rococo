@@ -235,7 +235,7 @@ namespace Rococo
 			Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
 		}
 
-		void RunEnvironmentScript(ScriptPerformanceStats& stats, Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail, bool trace)
+		void RunEnvironmentScript(ScriptPerformanceStats& stats, Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail, bool trace, int id)
 		{
 			struct ScriptContext : public IEventCallback<ScriptCompileArgs>, public IDE::IScriptExceptionHandler
 			{
@@ -310,11 +310,22 @@ namespace Rococo
 
 				ScriptContext(Platform& _platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent) : platform(_platform), onScriptEvent(_onScriptEvent) {}
 
-				void Execute(cstr name, ScriptPerformanceStats& stats, bool trace)
+				void Execute(cstr name, ScriptPerformanceStats& stats, bool trace, int32 id)
 				{
 					try
 					{
-						IDE::ExecuteSexyScriptLoop(stats, 1024_kilobytes, platform.ssFactory, platform.sourceCache, platform.debuggerWindow, name, 0, (int32)128_kilobytes, *this, *this, platform.appControl, trace);
+						IDE::ExecuteSexyScriptLoop(stats,
+							1024_kilobytes, 
+							platform.ssFactory,
+							platform.sourceCache,
+							platform.debuggerWindow,
+							name, 
+							id,
+							(int32)128_kilobytes, 
+							*this, 
+							*this, 
+							platform.appControl,
+							trace);
 					}
 					catch (IException&)
 					{
@@ -329,7 +340,7 @@ namespace Rococo
 			sc.addPlatform = addPlatform;
 			sc.shutdownOnFail = shutdownOnFail;
 
-			sc.Execute(name, stats, trace);
+			sc.Execute(name, stats, trace, id);
 		}
 
 		void LoadRigFromSExpression(Platform& platform, cr_sex s);

@@ -137,6 +137,7 @@ return false;
 	   void ClearManagedEntities()  override {}
 	   void ManageEntity(ID_ENTITY id) override {}
 	   void UseUpFacingQuads(ID_ENTITY id)  override {}
+	   boolean32 TryGetAsRectangle(GuiRectf& rect) override { rect = { 0,0,0,0 }; return false; }
    } nullSectorLayout;
 
    struct ActionFactoryCreateContext : IIActionFactoryCreateContext, IGlobalVariables
@@ -277,7 +278,11 @@ return false;
 	   }
    };
 
-   class Sectors : public ISectors, public ISectorBuilder, public Rococo::Events::IObserver
+   class Sectors : 
+	   public ISectors, 
+	   public ISectorBuilder, 
+	   public Rococo::Events::IObserver,
+	   public ISectorEnumerator
    {
 	   const Metres defaultFloorLevel{ 0.0f };
 	   const Metres defaultRoomHeight{ 4.0f };
@@ -305,6 +310,55 @@ return false;
 		   {
 			   delete i.second;
 		   }
+	   }
+
+	   int32 Count() override
+	   {
+		   return (int32)sectors.size();
+	   }
+
+	   HV::ISectorLayout* GetSector(int32 index)  override
+	   {
+		   if (index < 0 || index >= sectors.size())
+		   {
+			   if (sectors.empty()) 
+				   Throw(0, "No sectors");
+			   else 
+				   Throw(0, "Invalid sector index %d. Range is [0,%d]", index, (int32) sectors.size() - 1);
+		   }
+		   return sectors[index]->Layout();
+	   }
+
+	   HV::ISectorLayout* GetSectorById(int32 id)  override
+	   {
+		   int32 index = id - 1;
+		   if (index < 0 || index >= sectors.size())
+		   {
+			   if (sectors.empty())
+				   Throw(0, "No sectors");
+			   else
+				   Throw(0, "Invalid sector id %d. Range is [1,%d]", index, (int32)sectors.size());
+		   }
+
+		   auto& s = sectors[index];
+		   if (s->Id() != id) Throw(0, "Sector id mismatch #%d to #%d", s->Id(), id);
+		   return sectors[index]->Layout();
+	   }
+
+
+	   HV::ISectorLayout* GetSelectedSector() override
+	   {
+		   if (selectedIndex >= sectors.size())
+		   {
+			   return &ANON::nullSectorLayout;
+		   }
+
+		   return sectors[selectedIndex]->Layout();
+	   }
+
+	   ISectorEnumerator& Enumerator() override
+	   {
+		   return *this;
 	   }
 
 	   void DisableMeshGeneration() override
@@ -864,33 +918,13 @@ return false;
 
 	   void Populate()
 	   {
-		   struct : IEventCallback<ScriptCompileArgs>, public ISectorEnumerator
+		   struct : IEventCallback<ScriptCompileArgs>
 		   {
 			   Sectors* This;
 			   void OnEvent(ScriptCompileArgs& args) override
 			   {
-				   AddNativeCalls_HVISectorEnumerator(args.ss, this);
+				   AddNativeCalls_HVISectorEnumerator(args.ss, This);
 				   AddNativeCalls_HVISectorLayout(args.ss, nullptr);
-			   }
-
-			   int32 Count() override
-			   {
-				   return (int32) This->sectors.size();
-			   }
-
-			   HV::ISectorLayout* GetSector(int32 index)  override
-			   {
-				   return This->sectors[index]->Layout();
-			   }
-
-			   HV::ISectorLayout* GetSelectedSector() override
-			   {
-				   if (This->selectedIndex >= This->sectors.size())
-				   {
-					   return &ANON::nullSectorLayout;
-				   }
-
-				   return This->sectors[This->selectedIndex]->Layout();
 			   }
 		   } p;
 

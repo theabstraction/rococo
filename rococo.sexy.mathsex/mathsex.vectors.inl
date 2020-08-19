@@ -379,6 +379,31 @@ namespace
 		Rococo::Maths::MakeTranslateMatrix(*ds, *t);
 	}
 
+	void NativeSysGeometryF32TryGetCommonSegment(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Quad* q;
+		_offset += sizeof(q);
+		ReadInput(q, _sf, -_offset);
+
+		Quad* p;
+		_offset += sizeof(p);
+		ReadInput(p, _sf, -_offset);
+
+		Vec3* b;
+		_offset += sizeof(b);
+		ReadInput(b, _sf, -_offset);
+
+		Vec3* a;
+		_offset += sizeof(a);
+		ReadInput(a, _sf, -_offset);
+
+		boolean32 matched = Rococo::Maths::TryGetCommonSegment(*a, *b, *p, *q);
+		_offset += sizeof(matched);
+		WriteOutput(matched, _sf, -_offset);
+	}
+
 }
 
 namespace Sys { namespace Geometry { namespace F32 { 
@@ -406,5 +431,6 @@ namespace Sys { namespace Geometry { namespace F32 {
 		ss.AddNativeCall(ns, NativeSysGeometryF32RotateAboutY, nullptr, ("RotateAboutY(Sys.Maths.Degrees degrees)(Sys.Maths.Matrix4x4 rY) -> "));
 		ss.AddNativeCall(ns, NativeSysGeometryF32RotateAboutZ, nullptr, ("RotateAboutZ(Sys.Maths.Degrees degrees)(Sys.Maths.Matrix4x4 rZ) -> "));
 		ss.AddNativeCall(ns, NativeSysGeometryF32MakeTranslateMatrix, nullptr, ("MakeTranslateMatrix(Sys.Maths.Vec3 ds)(Sys.Maths.Matrix4x4 t) -> "));
+		ss.AddNativeCall(ns, NativeSysGeometryF32TryGetCommonSegment, nullptr, ("TryGetCommonSegment(Sys.Maths.Vec3 a)(Sys.Maths.Vec3 b)(Sys.Maths.Quadf p)(Sys.Maths.Quadf q) -> (Bool matched)"));
 	}
 }}}

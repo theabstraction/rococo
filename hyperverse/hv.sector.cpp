@@ -827,6 +827,91 @@ namespace ANON
 		   return false;
 	   }
 
+	   boolean32 TryGetAsRectangle(GuiRectf& rect) override
+	   {
+		   auto GetTangent = [](Vec2 a, Vec2 b)-> Vec2
+		   {
+			   Vec2 tangent = Normalize(b - a);
+			   tangent.x = roundf(tangent.x);
+			   tangent.y = roundf(tangent.y);
+			   return tangent;
+		   };
+
+		   int32 tangentIndex = 0;
+		   Vec2 tangents[4] = { {0,0}, {0,0}, {0,0}, {0,0} };
+		   Vec2 corners[4] = { {0,0}, {0,0}, {0,0}, {0,0} };
+
+		   rect = { -1,-1,-1,-1 };
+
+		   Ring<Vec2> vertices(floorPerimeter.data(), floorPerimeter.size());
+
+		   tangents[0] = GetTangent(vertices[0], vertices[1]);
+		   if (tangents[0].x != 0 && tangents[0].y != 0)
+		   {
+			   // Our rectangle must be axis-aligned, so one component of tangent
+			   // has to be zero
+			   return false;
+		   }
+
+		   size_t indexOfLastChange = 0;
+
+		   for (size_t i = 1; i < vertices.ElementCount(); ++i)
+		   {
+			   Vec2 start = vertices[i];
+			   Vec2 end = vertices[i + 1];
+			   Vec2 tangent = GetTangent(start, end);
+
+			   if (tangent.x != 0 && tangent.y != 0)
+			   {
+				   // Our rectangle must be axis-aligned, so one component of tangent
+				   // has to be zero
+				   return false;
+			   }
+
+			   if (tangents[tangentIndex] != tangent)
+			   {
+				   if (tangentIndex == 3)
+				   {
+					   return false; // Rectangles have only got 4 tangents
+				   }
+
+				   tangentIndex++;
+
+				   corners[tangentIndex] = start;
+				   tangents[tangentIndex] = tangent;
+
+				   indexOfLastChange = i;
+			   }
+		   }
+
+		   if (tangentIndex != 3)
+		   {
+			   return false;
+		   }
+		   
+		   Vec2 lastTangent = tangents[3];
+
+		   for (size_t i = indexOfLastChange; i < indexOfLastChange + vertices.ElementCount(); ++i)
+		   {
+			   Vec2 start = vertices[i];
+			   Vec2 end = vertices[i + 1];
+			   Vec2 tangent = GetTangent(start, end);
+
+			   if (lastTangent != tangent)
+			   {
+				   corners[0] = start;
+				   break;
+			   }
+		   }
+
+		   rect.left = min(corners[0].x, corners[2].x);
+		   rect.right = max(corners[0].x, corners[2].x);
+		   rect.top = max(corners[0].y, corners[2].y);
+		   rect.bottom = min(corners[0].y, corners[2].y);
+		   
+		   return true;
+	   }
+
 	   void SyncEnvironmentMapToSector() override
 	   {
 		   int32 wallId     = (int32) nameToMaterial.find(GraphicsEx::BodyComponentMatClass_Brickwork)->second->mvd.materialId;
@@ -1295,6 +1380,8 @@ namespace ANON
 				  AddNativeCalls_HVISectorComponents(args.ss, this);
 				  AddNativeCalls_HVITriangleList(args.ss, this);
 				  AddNativeCalls_HVIScriptConfig(args.ss, &This->scriptConfig->Current());
+				  AddNativeCalls_HVISectorEnumerator(args.ss, &This->co_sectors.Enumerator());
+				  AddNativeCalls_HVISectorLayout(args.ss, nullptr);
 			  }
 
 			  void GetMaterial(MaterialVertexData& mat, const fstring& componentClass) override
@@ -1347,7 +1434,7 @@ namespace ANON
 		  {
 			  cstr theWallScript = *wallScript ? wallScript : DEFAULT_WALL_SCRIPT;
 			  scriptConfig->SetCurrentScript(theWallScript);
-			  platform.utilities.RunEnvironmentScript(scriptCallback, theWallScript, true, false);
+			  platform.utilities.RunEnvironmentScript(scriptCallback, id, theWallScript, true, false, false);
 			  return true;
 		  }
 		  catch (IException& ex)
@@ -1450,6 +1537,8 @@ namespace ANON
 				  AddNativeCalls_HVISectorFloorTesselator(args.ss, this);
 				  AddNativeCalls_HVISectorComponents(args.ss, this);
 				  AddNativeCalls_HVIScriptConfig(args.ss, &This->scriptConfig->Current());
+				  AddNativeCalls_HVISectorEnumerator(args.ss, &This->co_sectors.Enumerator());
+				  AddNativeCalls_HVISectorLayout(args.ss, nullptr);
 			  }
 
 			  void GetMaterial(MaterialVertexData& mat, const fstring& componentClass) override
@@ -1506,7 +1595,7 @@ namespace ANON
 		  {
 			  cstr theFloorScript = *floorScript ? floorScript : "#floors/square.mosaics.sxy";
 			  scriptConfig->SetCurrentScript(theFloorScript);
-			  platform.utilities.RunEnvironmentScript(scriptCallback, theFloorScript, true, false);
+			  platform.utilities.RunEnvironmentScript(scriptCallback, id, theFloorScript, true, false);
 			  return true;
 		  }
 		  catch (IException& ex)
@@ -1525,11 +1614,17 @@ namespace ANON
 		  auto& rod = platform.tesselators.rod;
 		  rod.Clear();
 
-		  if (IsSloped())
+		  float z0min = z0;
+		  float z1max = z1;
+
+		  for (auto& gap : gapSegments)
 		  {
-			  z1 += 100.0;
-			  z0 -= 100.0f;
+			  z0min = min(z0min, gap.z0);
+			  z1max = max(z1max, gap.z1);
 		  }
+
+		  z0 = z0min;
+		  z1 = z1max;
 
 		  auto height = Metres{ z1 - z0 };
 		  rod.SetMaterialMiddle(brickwork);
@@ -2079,14 +2174,18 @@ namespace ANON
          }
       }
 
-      boolean32 IsSloped()
+      boolean32 IsSloped() override
       {
-         return (gapSegments[0].z0 != gapSegments[1].z0) || (gapSegments[0].z1 != gapSegments[1].z1);
+		  return (gapSegments.size() > 1) &&
+			  (
+				  (gapSegments[0].z0 != gapSegments[1].z0) ||
+				  (gapSegments[0].z1 != gapSegments[1].z1)
+			  );
       }
 
       std::vector<Component> components;
 
-      virtual void ClearComponents(const fstring& componentName)
+      void ClearComponents(const fstring& componentName)
       {
 		 for (auto& c : components)
 		 {
@@ -2168,6 +2267,8 @@ namespace ANON
             {
                AddNativeCalls_HVICorridor(args.ss, this);
 			   AddNativeCalls_HVISectorComponents(args.ss, this);
+			   AddNativeCalls_HVISectorEnumerator(args.ss, &This->co_sectors.Enumerator());
+			   AddNativeCalls_HVISectorLayout(args.ss, nullptr);
             }
 
 			void GetSpan(Vec3& span) override
@@ -2231,7 +2332,7 @@ namespace ANON
 
 		 try
 		 {	
-			 platform.utilities.RunEnvironmentScript(scriptCallback, genCorridor, true);
+			 platform.utilities.RunEnvironmentScript(scriptCallback, id, genCorridor, true, false);
 		 }
 		 catch (IException& ex)
 		 {

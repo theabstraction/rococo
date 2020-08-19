@@ -1137,14 +1137,19 @@ namespace Rococo
             }
             else
             {
-               if (expected)
-               {
-                  sexstringstream<1024> streamer;
-                  streamer.sb << ("Expected expression with 3 elements. This expression had ") << s.NumberOfElements() << (" elements.");
-                  Throw(s, streamer);
-               }
-               // All binary predicate expressions have 3 elements
-               return false;
+                if (TryCompileBooleanValuedFunction(ce, s, expected))
+                {
+                    return true;
+                }
+
+                if (expected)
+                {
+                    sexstringstream<1024> streamer;
+                    streamer.sb << ("Expected expression with 3 elements. This expression had ") << s.NumberOfElements() << (" elements.");
+                    Throw(s, streamer);
+                }
+                // All binary predicate expressions have 3 elements
+                return false;
             }
          }
          else if (IsAtomic(s))

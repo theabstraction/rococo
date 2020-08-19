@@ -13459,6 +13459,8 @@ namespace
 	{
 		validate(true);
 
+		TEST(TestStringSplit);
+
 		TEST(TestSerialize);
 
 		TEST(TestEmptyArrayOfInterfaces);
@@ -13470,7 +13472,6 @@ namespace
 
 		TEST(TestArrayClear);
 
-		TEST(TestStringSplit);
 		TEST(TestSearchSubstring);
 		TEST(TestRightSearchSubstring);
 		TEST(TestSetCase);

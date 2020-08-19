@@ -258,7 +258,7 @@
 (archetype Sys.Type.Strings.ForEachSubstring (IStringBuilder sb) (Int32 index) ->)
 
 (function StringSplit (IStringBuilder sb) (IString container) (IString sep) (Sys.Type.Strings.ForEachSubstring f) -> :
-	(if ((sep.Length == 0) or ((container.Length) == 0)) (return))
+	(if ((sep.Length == 0) or (container.Length == 0)) (return))
 	(Int32 len = container.Length)
 	(Int32 i = 0)
 	(Int32 last = 0)

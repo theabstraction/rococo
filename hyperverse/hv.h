@@ -584,6 +584,7 @@ namespace HV
 	  virtual void OnTick(const IUltraClock& clock) = 0;
 
 	  virtual IIActionFactoryCreateContext& AFCC() = 0;
+	  virtual ISectorEnumerator& Enumerator() = 0;
    };
 
    ISectors* CreateSectors(Platform& platform);

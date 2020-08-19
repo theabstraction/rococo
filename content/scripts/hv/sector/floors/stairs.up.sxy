@@ -43,7 +43,7 @@
 	)
 )
 
-(function GetQuadFromGapAndWall (QuadVertices floor)(QuadVertices ceiling)(WallSegment wall)(GapSegment gap)-> :
+(function GetQuadFromGapAndWall (Float32 z0)(Float32 z1)(QuadVertices floor)(QuadVertices ceiling)(WallSegment wall)(GapSegment gap)-> :
 	/*
 	(struct QuadVertices
 		(Sys.Maths.Quadf positions)
@@ -71,10 +71,20 @@
 	(floor.positions.c = wall.quad.d)
 	(floor.positions.d = wall.quad.c)
 	
+	(floor.positions.a.z = z0)
+	(floor.positions.b.z = z0)
+	(floor.positions.c.z = z0)
+	(floor.positions.d.z = z0)
+	
 	(ceiling.positions.a = gap.quad.b)
 	(ceiling.positions.b = gap.quad.a)
 	(ceiling.positions.c = wall.quad.b)
 	(ceiling.positions.d = wall.quad.a)
+	(ceiling.positions.a.z = z1)
+	(ceiling.positions.b.z = z1)
+	(ceiling.positions.c.z = z1)
+	(ceiling.positions.d.z = z1)
+	
 	(ceiling.normals.a = 0 0 -1)
 	(ceiling.normals.b = 0 0 -1)
 	(ceiling.normals.c = 0 0 -1)
@@ -129,7 +139,7 @@
 	(q.normals.d = dx dy dz)
 )
 
-(function GenerateGraphicsMesh (ISectorFloorTesselator sector) -> :
+(function GenerateGraphicsMesh (Int32 sectorId) (ISectorFloorTesselator sector) -> :
 	(MaterialVertexData steps)
 	(sector.GetMaterial steps "casing")
 	
@@ -149,9 +159,16 @@
 	(WallSegment wall)
 	(GetOpposingWall sector wall gap)
 	
+	(ISectorEnumerator sectors (SectorEnumerator))
+	(ISectorLayout layout = (sectors.GetSectorById sectorId))
+	(Vec2 alts)
+	(layout.Altitude alts)
+	(Float32 z0 = alts.x)
+	(Float32 z1 = alts.y)
+	
 	(QuadVertices floor)
 	(QuadVertices ceiling)
-	(GetQuadFromGapAndWall floor ceiling wall gap)
+	(GetQuadFromGapAndWall z0 z1 floor ceiling wall gap)
 	
 	(AddQuadToCeiling ceiling qst sector steps)	
 	
@@ -254,7 +271,8 @@
 		(rightWallStrip.uv = u v u1 v1)
 		(SetQuadNormals rightWallStrip gap.tangent.x gap.tangent.y gap.tangent.z)
 		
-		(Vec3 skirtToCeiling = 0 0 4)
+		(Float32 dH = (z1 - z0))
+		(Vec3 skirtToCeiling = 0 0 dH)
 		
 		(Float32 v2 = (uvScale * (v1 + skirtToCeiling.z)))
 		
@@ -305,7 +323,7 @@
 	)
 )
 
-(function Main (Int32 id)->(Int32 exitCode):
+(function Main (Int32 sectorId)->(Int32 exitCode):
 	(IInstances instances (Instances))
 	
 	(ISectorFloorTesselator sector (SectorFloorTesselator))
@@ -321,23 +339,16 @@
 	
 	(if (sector.FoundationsExist == false)
 		// Axis aligned rectangular room
-		
-		(Int32 nSquares = sector.NumberOfSquares)
-		
-		// First generate the physics mesh
-		(#for(Int32 i = 0)(i < nSquares)(#inc i)
-			(QuadVertices q)
-			(sector.FloorQuad i q)
-		)
 	
 		(if (sector.NumberOfGaps != 1)
 			(IMessaging messaging (Messaging))
 			(messaging.Log "The stairs script requires a sector to be rectangular and have one connected sector")
+			(return)
 		)
 	
 		(qst.Clear)
 		
-		(GenerateGraphicsMesh sector)
+		(GenerateGraphicsMesh sectorId sector)
 	else
 		(IMessaging messaging (Messaging))
 		(messaging.Log "The script requires a sector to be rectangular")

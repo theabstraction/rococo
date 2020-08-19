@@ -239,6 +239,34 @@ namespace Rococo
 	  {
 		  T = Matrix4x4::Translate(ds);
 	  }
+
+	  boolean32 TryGetCommonSegment(Vec3& a, Vec3& b, const Quad& P, const Quad& Q)
+	  {
+		  const Vec3* p = &P.a;
+		  const Vec3* q = &Q.a;
+
+		  int matchCount = 0;
+
+		  for (int i = 0; i < 4; i++)
+		  {
+			  for (int j = 0; j < 4; j++)
+			  {
+				  if (p[i] == q[j])
+				  {
+					  Vec3& target = matchCount == 0 ? a : b;
+					  target = p[i];
+					  matchCount++;
+					  if (matchCount == 2)
+					  {
+						  return true;
+					  }
+					  break;
+				  }
+			  }
+		  }
+
+		  return false;
+	  }
    } // Maths
 }// Rococo
 

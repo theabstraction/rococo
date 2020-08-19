@@ -42,6 +42,7 @@
 (struct IStringBuilder Sys.Type.IStringBuilder Rococo.IStringPopulator)
 (struct FPSAngles Sys.Maths.FPSAngles FPSAngles)
 (struct Triangle Sys.Maths.Triangle Rococo.Triangle)
+(struct Quad Sys.Maths.Quadf Quad)
 
 // (defstruct <name> <sexy-name> <cpp-name> (fields) )  maps <name> found in the sxh file to the <sexy-name> in the generated sxy file, and <cpp-name> in the c++ files. It creates new structures in the target specified in (cpp.types ...)
 // (fields) is a sequence of s-expressions of the format (<type> <name>) where <type> is either a primitive or struct defined BEFORE the parent defstruct and <name> is a unique name for the variable.

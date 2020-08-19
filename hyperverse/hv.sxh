@@ -104,6 +104,7 @@
 		(GetSquare (Int32 sqIndex)(AABB2d sq))
 		(CeilingQuad (Int32 sqIndex)(QuadVertices q))
 		(FloorQuad (Int32 sqIndex)(QuadVertices q))
+		(TryGetAsRectangle (Rectf rect)->(Bool success))
 		(Altitude (Vec2 altitudes))
 
 		(NumberOfSegments -> (Int32 segCount))
@@ -132,6 +133,7 @@
 	(methods
 		(Count -> (Int32 nCount))
 		(GetSector (Int32 index) -> (HV.ISectorLayout layout))
+		(GetSectorById (Int32 id) -> (HV.ISectorLayout layout))
 		(GetSelectedSector -> (HV.ISectorLayout layout))
 	)
 	(factory HV.SectorEnumerator)

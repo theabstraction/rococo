@@ -144,6 +144,26 @@ namespace
 		WriteOutput(result, _sf, -_offset);
 	}
 
+	void NativeSysMathsIsNotEqVec3fVec3f(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+
+		Vec3* a;
+		_offset += sizeof(a);
+		ReadInput(a, _sf, -_offset);
+
+		Vec3* b;
+		_offset += sizeof(b);
+		ReadInput(b, _sf, -_offset);
+
+		boolean32 result;
+		result = a->x != b->x || a->y != b->y || a->z != b->z;
+
+		_offset += sizeof(result);
+		WriteOutput(result, _sf, -_offset);
+	}
+
 	void NativeSysMathsIsEqVec2fVec2f(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -159,6 +179,26 @@ namespace
 
 		boolean32 result;
 		result = a->x == b->x && a->y == b->y;
+
+		_offset += sizeof(result);
+		WriteOutput(result, _sf, -_offset);
+	}
+
+	void NativeSysMathsIsEqVec3fVec3f(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+
+		Vec3* a;
+		_offset += sizeof(a);
+		ReadInput(a, _sf, -_offset);
+
+		Vec3* b;
+		_offset += sizeof(b);
+		ReadInput(b, _sf, -_offset);
+
+		boolean32 result;
+		result = a->x == b->x && a->y == b->y && a->z == b->z;
 
 		_offset += sizeof(result);
 		WriteOutput(result, _sf, -_offset);
@@ -659,5 +699,7 @@ namespace Sys { namespace Maths { namespace F32 {
 		ss.AddNativeCall(ns, NativeSysMathsDivideVec2fFloat32, nullptr, ("DivideVec2fFloat32(Sys.Maths.Vec2 a)(Float32 scale)(Sys.Maths.Vec2 product)->"));
 		ss.AddNativeCall(ns, NativeSysMathsIsNotEqVec2fVec2f, nullptr, ("IsNotEqVec2fVec2f(Sys.Maths.Vec2 a)(Sys.Maths.Vec2 b)->(Bool result)"));
 		ss.AddNativeCall(ns, NativeSysMathsIsEqVec2fVec2f, nullptr, ("IsEqVec2fVec2f(Sys.Maths.Vec2 a)(Sys.Maths.Vec2  b)->(Bool result)"));
+		ss.AddNativeCall(ns, NativeSysMathsIsNotEqVec3fVec3f, nullptr, ("IsNotEqVec3fVec3f(Sys.Maths.Vec3 a)(Sys.Maths.Vec3 b)->(Bool result)"));
+		ss.AddNativeCall(ns, NativeSysMathsIsEqVec3fVec3f, nullptr, ("IsEqVec3fVec3f(Sys.Maths.Vec3 a)(Sys.Maths.Vec3  b)->(Bool result)"));
 	}
 }}}

@@ -22,4 +22,8 @@
 	(Sys.Geometry.F32.RotateAboutY (Degrees degrees)(Matrix4x4 rY) -> : Rococo::Maths::RotateAboutYThetaDegrees)
 	(Sys.Geometry.F32.RotateAboutZ (Degrees degrees)(Matrix4x4 rZ) -> : Rococo::Maths::RotateAboutZThetaDegrees)
 	(Sys.Geometry.F32.MakeTranslateMatrix (Vec3 ds)(Matrix4x4 t)-> : Rococo::Maths::MakeTranslateMatrix)
+	(Sys.Geometry.F32.TryGetCommonSegment (Vec3 a)(Vec3 b)(Quad p)(Quad q)-> (Bool matched): Rococo::Maths::TryGetCommonSegment)
+
 )
+
+

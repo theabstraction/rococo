@@ -868,6 +868,22 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->FloorQuad(sqIndex, *q);
 	}
+	void NativeHVISectorLayoutTryGetAsRectangle(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		GuiRectf* rect;
+		_offset += sizeof(rect);
+		ReadInput(rect, _sf, -_offset);
+
+		HV::ISectorLayout* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		boolean32 success = _pObject->TryGetAsRectangle(*rect);
+		_offset += sizeof(success);
+		WriteOutput(success, _sf, -_offset);
+	}
 	void NativeHVISectorLayoutAltitude(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -1090,6 +1106,7 @@ namespace HV {
 		ss.AddNativeCall(ns, NativeHVISectorLayoutGetSquare, nullptr, ("ISectorLayoutGetSquare (Pointer hObject)(Int32 sqIndex)(Rococo.AAB2d sq) -> "));
 		ss.AddNativeCall(ns, NativeHVISectorLayoutCeilingQuad, nullptr, ("ISectorLayoutCeilingQuad (Pointer hObject)(Int32 sqIndex)(Rococo.QuadVertices q) -> "));
 		ss.AddNativeCall(ns, NativeHVISectorLayoutFloorQuad, nullptr, ("ISectorLayoutFloorQuad (Pointer hObject)(Int32 sqIndex)(Rococo.QuadVertices q) -> "));
+		ss.AddNativeCall(ns, NativeHVISectorLayoutTryGetAsRectangle, nullptr, ("ISectorLayoutTryGetAsRectangle (Pointer hObject)(Sys.Maths.Rectf rect) -> (Bool success)"));
 		ss.AddNativeCall(ns, NativeHVISectorLayoutAltitude, nullptr, ("ISectorLayoutAltitude (Pointer hObject)(Sys.Maths.Vec2 altitudes) -> "));
 		ss.AddNativeCall(ns, NativeHVISectorLayoutNumberOfSegments, nullptr, ("ISectorLayoutNumberOfSegments (Pointer hObject) -> (Int32 segCount)"));
 		ss.AddNativeCall(ns, NativeHVISectorLayoutNumberOfGaps, nullptr, ("ISectorLayoutNumberOfGaps (Pointer hObject) -> (Int32 gapCount)"));
@@ -1143,6 +1160,24 @@ namespace
 		CReflectedClass* _sxylayout = _nce.ss.Represent(_layoutStruct, layout);
 		WriteOutput(&_sxylayout->header.pVTables[0], _sf, -_offset);
 	}
+	void NativeHVISectorEnumeratorGetSectorById(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 id;
+		_offset += sizeof(id);
+		ReadInput(id, _sf, -_offset);
+
+		HV::ISectorEnumerator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		HV::ISectorLayout* layout = _pObject->GetSectorById(id);
+		_offset += sizeof(CReflectedClass*);
+		auto& _layoutStruct = Rococo::Helpers::GetDefaultProxy(("HV"),("ISectorLayout"), ("ProxyISectorLayout"), _nce.ss);
+		CReflectedClass* _sxylayout = _nce.ss.Represent(_layoutStruct, layout);
+		WriteOutput(&_sxylayout->header.pVTables[0], _sf, -_offset);
+	}
 	void NativeHVISectorEnumeratorGetSelectedSector(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -1177,6 +1212,7 @@ namespace HV {
 		ss.AddNativeCall(ns, NativeGetHandleForHVSectorEnumerator, _nceContext, ("GetHandleForISectorEnumerator0  -> (Pointer hObject)"));
 		ss.AddNativeCall(ns, NativeHVISectorEnumeratorCount, nullptr, ("ISectorEnumeratorCount (Pointer hObject) -> (Int32 nCount)"));
 		ss.AddNativeCall(ns, NativeHVISectorEnumeratorGetSector, nullptr, ("ISectorEnumeratorGetSector (Pointer hObject)(Int32 index) -> (HV.ISectorLayout layout)"));
+		ss.AddNativeCall(ns, NativeHVISectorEnumeratorGetSectorById, nullptr, ("ISectorEnumeratorGetSectorById (Pointer hObject)(Int32 id) -> (HV.ISectorLayout layout)"));
 		ss.AddNativeCall(ns, NativeHVISectorEnumeratorGetSelectedSector, nullptr, ("ISectorEnumeratorGetSelectedSector (Pointer hObject) -> (HV.ISectorLayout layout)"));
 	}
 }
