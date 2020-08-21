@@ -107,10 +107,10 @@
 		(sector.AddFloorTriangle bottomRight)
 	)
 	
-	(floorQuad.positions.a.z = (floorQuad.positions.a.z - 0.15))
-	(floorQuad.positions.b.z = (floorQuad.positions.b.z - 0.15))
-	(floorQuad.positions.c.z = (floorQuad.positions.c.z - 0.15))
-	(floorQuad.positions.d.z = (floorQuad.positions.d.z - 0.15))
+	(floorQuad.positions.a.z += -0.15)
+	(floorQuad.positions.b.z += -0.15)
+	(floorQuad.positions.c.z += -0.15)
+	(floorQuad.positions.d.z += -0.15)
 	
 	(qst.PushQuad floorQuad floor)
 	(qst.Shrink hole)
@@ -173,47 +173,39 @@
 	(ISectorEnumerator sectors (SectorEnumerator))
 	(ISectorLayout layout = (sectors.GetSectorById sectorId))
 	
-	//(if (sector.FoundationsExist == false)
-		// First generate the physics mesh
-		(Int32 nSquares = sector.NumberOfSquares)
-		
-		(MaterialVertexData barrier)
-		(sector.GetMaterial barrier "physics.hull")
-		
-		(Rectf floorRect)
-		(Bool isRectangular)
-		(layout.TryGetAsRectangle floorRect -> isRectangular)	
-		(if (not isRectangular)
-			(IMessaging messaging (Messaging))
-			(IStringBuilder sb = NewPathBuilder)
-			(#build sb "The gutter script requires that sector " sectorId " is an axis-aligned rectangule")
-			(messaging.Log sb)
-		)
-		
-		(Vec2 altitude)
-		(layout.Altitude altitude)
-		(GenerateFloorMesh floorRect altitude.x altitude.y sector qst)
-		
-		(qst.Clear)
-		
-		(#for(Int32 i = 0)(i < nSquares)(i += 1)
-			(QuadVertices q)
-			(sector.FloorQuad i q)
-
-			(qst.PushQuad q barrier)
-			(qst.MoveInputToOutput)
-			
-			(VertexTriangle physicsHullTL)
-			(VertexTriangle physicsHullBR)
-			(while (qst.PopOutputAsTriangles physicsHullTL physicsHullBR)
-				(sector.AddFloorTriangle physicsHullTL)
-				(sector.AddFloorTriangle physicsHullBR)
-			)
-		)
-/*	else
+	(Int32 nSquares = sector.NumberOfSquares)
+	
+	(MaterialVertexData barrier)
+	(sector.GetMaterial barrier "physics.hull")
+	
+	(Rectf floorRect)
+	(Bool isRectangular)
+	(layout.TryGetAsRectangle floorRect -> isRectangular)	
+	(if (not isRectangular)
 		(IMessaging messaging (Messaging))
 		(IStringBuilder sb = NewPathBuilder)
-		(#build sb "The gutter script requires that sector " sectorId " is rectangular")
+		(#build sb "The gutter script requires that sector " sectorId " is an axis-aligned rectangule")
 		(messaging.Log sb)
-	) */
+	)
+	
+	(Vec2 altitude)
+	(layout.Altitude altitude)
+	(GenerateFloorMesh floorRect altitude.x altitude.y sector qst)
+	
+	(qst.Clear)
+	
+	(#for(Int32 i = 0)(i < nSquares)(i += 1)
+		(QuadVertices q)
+		(sector.FloorQuad i q)
+		
+		(qst.PushQuad q barrier)
+		(qst.MoveInputToOutput)
+		
+		(VertexTriangle physicsHullTL)
+		(VertexTriangle physicsHullBR)
+		(while (qst.PopOutputAsTriangles physicsHullTL physicsHullBR)
+			(sector.AddFloorTriangle physicsHullTL)
+			(sector.AddFloorTriangle physicsHullBR)
+		)
+	)
 )
