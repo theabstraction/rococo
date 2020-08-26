@@ -299,6 +299,19 @@ namespace Rococo
 		return (int32)l;
 	}
 
+	// N.B sexy script language string length is int32 with max 2^31-1 chars
+	int32 StringLength(const wchar_t* s)
+	{
+		enum { MAX_INT32 = 0x7FFFFFFF };
+		size_t l = wcslen(s);
+		if (l > MAX_INT32)
+		{
+			Throw(0, "The string length exceeded INT_MAX characters");
+		}
+
+		return (int32)l;
+	}
+
 	int WriteToStandardOutput(const char* format, ...)
 	{
 		va_list args;

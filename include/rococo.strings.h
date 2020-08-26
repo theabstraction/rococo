@@ -153,7 +153,7 @@ namespace Rococo
    int WriteToStandardOutput(cstr text, ...);
 
    int32 StringLength(const char* s);
-   int32 StringLength(cstr s);
+   int32 StringLength(const wchar_t* s);
    void CopyString(char* dest, size_t capacity, const char* source);
 
    void StringCat(char* buf, cstr source, int maxChars);

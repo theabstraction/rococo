@@ -1056,6 +1056,13 @@ namespace Rococo
 			return span;
 		}
 
+		void RenderCentred(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour)
+		{
+			Vec2 span = RenderHQText_LeftAligned_VCentre(grc, fontId, rect, text, RGBAb(0, 0, 0, 0));
+			int32 left = ((rect.left + rect.right - (int32)(span.x)) >> 1);
+			GuiRect finalRect = { left, rect.top, rect.right, rect.bottom };
+			RenderHQText_LeftAligned_VCentre(grc, fontId, finalRect, text, colour);
+		}
 
 		void DrawBorderAround(IGuiRenderContext& grc, const GuiRect& rect, const Vec2i& width, RGBAb diag, RGBAb backdiag)
 		{

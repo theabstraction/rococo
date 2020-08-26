@@ -332,10 +332,17 @@ namespace Anon
 
 		IExpressionBuilder& builder;
 
-		SParser(cstr _sExpression, IExpressionBuilder& _builder) : sExpression(_sExpression), builder(_builder)
+		SParser(cstr sNull_terminated_Expression, IExpressionBuilder& _builder) : sExpression(sNull_terminated_Expression), builder(_builder)
+		{
+			if (sNull_terminated_Expression == nullptr) Throw(0, "Parser::Parse - null expression forbidden");
+			len = rlen(sExpression);
+			end = sExpression + len;
+		}
+
+		SParser(cstr _sExpression, size_t length, IExpressionBuilder& _builder) : sExpression(_sExpression), builder(_builder)
 		{
 			if (_sExpression == nullptr) Throw(0, "Parser::Parse - null expression forbidden");
-			len = rlen(sExpression);
+			len = length;
 			end = sExpression + len;
 		}
 
@@ -1412,7 +1419,7 @@ namespace Anon
 		{
 			SCostEvaluator ce(maxStringLength, maxStringLength);
 
-			SParser parser(sourceCode.SourceStart(), ce);
+			SParser parser(sourceCode.SourceStart(), sourceCode.SourceLength(), ce);
 			parser.name = sourceCode.Name();
 			parser.Parse(nullptr);
 
@@ -1485,6 +1492,11 @@ namespace Anon
 				}
 
 				segmentLength = (int)len;
+			}
+
+			if (bufferRef[segmentLength] != 0)
+			{
+				Throw(0, "%s: buffer must be null at position %d", nameRef, segmentLength);
 			}
 
 			size_t blockSize = sizeof(SourceCode);

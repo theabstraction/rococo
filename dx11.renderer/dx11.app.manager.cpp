@@ -14,6 +14,8 @@
 
 #include <rococo.io.h>
 
+#include <rococo.app.h>
+
 namespace ANON
 {
 	using namespace Rococo;

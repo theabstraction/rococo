@@ -15,6 +15,18 @@ using namespace Rococo::Graphics;
 
 typedef std::unordered_map<ISector*, int32> TSectorSet;
 
+static const std::vector<const char*> wide_credits =
+{
+	"Hyperverse", "by", "Mark Anthony Taylor", "Copyright (c) 2020. All rights reserved",
+	"Email: mark.anthony.taylor@gmail.com", "", "Press E to toggle editor"
+};
+
+static const std::vector<const char*> narrow_credits =
+{
+	"Hyperverse", "by", "Mark Anthony Taylor", "Copyright (c) 2020", "All rights reserved",
+	"Email:","mark.anthony.taylor@gmail.com"
+};
+
 void Insert(TSectorSet& set, ISector* sector)
 {
 	set.insert(std::make_pair(sector, 0));
@@ -1048,7 +1060,7 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 		}
 	}
 
-	void Render(IGuiRenderContext& g, const GuiRect& absRect) override
+	void RenderCrosshair(IGuiRenderContext& g, const GuiRect& absRect)
 	{
 		GuiMetrics metrics;
 		g.Renderer().GetGuiMetrics(metrics);
@@ -1057,6 +1069,50 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 
 		Graphics::DrawLine(g, 1, c - Vec2i{ 1, 0 }, c + Vec2i{ 0, 1 }, RGBAb(255, 255, 255, 255));
 		Graphics::DrawLine(g, 1, c - Vec2i{ 0, 1 }, c + Vec2i{ 1, 0 }, RGBAb(255, 255, 255, 255));
+	}
+
+	void RenderSplash(IGuiRenderContext& g)
+	{
+		/* enable font loading in app.created.sxy to make this work */
+
+		ID_FONT idFont = platform.utilities.GetHQFonts().GetSysFont(Graphics::HQFont_TitleFont);
+		if (idFont)
+		{
+			GuiMetrics metrics;
+			g.Renderer().GetGuiMetrics(metrics);
+			auto white = RGBAb(255, 255, 255, 255);
+
+			int32 hDelta;
+
+			auto& credits = metrics.screenSpan.x < 1800 ? narrow_credits : wide_credits;
+			hDelta = metrics.screenSpan.x < 1800 ? 85 : 100;
+
+			int32 topBorder = (metrics.screenSpan.y - (int32)credits.size() * hDelta) >> 1;
+
+			GuiRect line1 = { 0, topBorder, metrics.screenSpan.x, topBorder + hDelta };
+
+			GuiRect line = line1;
+
+			for (auto* credit : credits)
+			{
+				Graphics::RenderCentred(g, idFont, line, credit, white);
+				line.top += hDelta;
+				line.bottom += hDelta;
+			}
+		}
+	}
+
+	void Render(IGuiRenderContext& g, const GuiRect& absRect) override
+	{
+		RenderCrosshair(g, absRect);
+
+		if (sectors.begin() == sectors.end())
+		{
+			if (platform.gui.Count() == 1)
+			{
+				RenderSplash(g);
+			}
+		}
 	}
 
 	void ClearCache() override

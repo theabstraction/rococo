@@ -3,6 +3,7 @@
 #include <rococo.api.h>
 #include <rococo.renderer.h>
 #include <rococo.visitors.h>
+#include <rococo.app.h>
 
 namespace Rococo
 {
@@ -496,6 +497,7 @@ namespace Rococo
 		virtual void UnregisterEventHandler(ICommandHandler* handler) = 0;
 		virtual void RegisterPopulator(cstr name, IUIElement* renderElement) = 0;
 		virtual void UnregisterPopulator(IUIElement* renderElement) = 0;
+		virtual int32 Count() const = 0; // Number of panes in the stack
 
 		template<class T> inline void UnregisterEventHandler(T* handler)
 		{

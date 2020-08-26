@@ -117,7 +117,9 @@
     </PreLinkEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="hv.app.cpp" />
+    <ClCompile Include="hv.app.cpp">
+      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|x64'">stdcpp17</LanguageStandard>
+    </ClCompile>
     <ClCompile Include="hv.defaultconfig.cpp" />
     <ClCompile Include="hv.editor.cpp" />
     <ClCompile Include="hv.events.cpp" />

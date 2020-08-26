@@ -88,6 +88,11 @@ public:
 		delete this;
 	}
 
+	int Count() const override
+	{
+		return (int32) panels.size();
+	}
+
 	void AttachKeyboardSink(IKeyboardSink* ks) override
 	{
 		keyboardSink = ks;

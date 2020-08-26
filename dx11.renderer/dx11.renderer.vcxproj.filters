@@ -146,6 +146,9 @@
     <ClInclude Include="dx11.factory.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\rococo.app.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="dx11helpers.inl">

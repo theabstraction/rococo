@@ -28,6 +28,13 @@
 	(fonts.SetHeight 24)
 	(fonts.Commit)
 
+	(fonts.Build (#HQFontTitleFont))
+	(fonts.SetFaceName "Tahoma")
+	//(fonts.MakeBold)
+	(fonts.AddRange 32 127)
+	(fonts.SetHeight 80)
+	(fonts.Commit)
+	
 	(fonts.Build (#HQFontDebuggerFont))
 	(fonts.SetFaceName "Consolas")
 	//(fonts.MakeBold)

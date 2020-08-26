@@ -9,6 +9,6 @@
 	(array Sys.Type.IString items 4)
 	(foreach item # items 
 		(Sys.Print item)
-	)
 )
+
 

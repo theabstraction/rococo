@@ -689,12 +689,8 @@ namespace Rococo
 				AddCommonSource("Sys.Maths.sxy"); // Module 2			
 				AddCommonSource("Sys.Reflection.sxy"); // Module 3
 
-#ifdef _WIN32
 				bool useDebug = pip.useDebugLibs;
-#else
-				bool useDebug = false;
-#endif
-				
+
 				AddNativeLibrary(useDebug ? "sexy.nativeLib.reflection.debug" : "sexy.nativeLib.reflection");
 				AddNativeLibrary(useDebug ? "sexy.nativeLib.maths.debug" : "sexy.nativeLib.maths");
 
