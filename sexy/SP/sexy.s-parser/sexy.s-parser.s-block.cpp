@@ -1531,14 +1531,14 @@ namespace Anon
 				FILE* fp = _wfopen(u16filename, L"rb");
 #else
 				U8FilePath u8filename;
-				SecureFormat(u8filename.buf, u8filename.CAPACITY, "%S", u16filename);
+				Format(u8filename, "%S", u16filename);
 				
 				FILE* fp = fopen(u8filename, "rb");
 #endif
 				if (fp == nullptr)
 				{
 					int err = errno;
-					Rococo::Throw(0, "Could not open file - %s", strerror(err));
+					Rococo::Throw(0, "Could not open file %S - %s", u16filename, strerror(err));
 				}
 
 				struct FPANON

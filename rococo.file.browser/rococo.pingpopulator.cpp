@@ -111,7 +111,7 @@ struct PingPopulator : public IDirectoryPopulator
 		installation(_installation)
 	{
 		currentDirectory.pathSeparator = '/';
-		SafeFormat(currentDirectory.buf, currentDirectory.CAPACITY, "!");
+		Format(currentDirectory, "!");
 		Populate();
 	}
 
@@ -165,7 +165,7 @@ struct PingPopulator : public IDirectoryPopulator
 
 		if (Eq(asciiPath, "!"))
 		{
-			SafeFormat(currentDirectory.buf, currentDirectory.CAPACITY, "!");
+			Format(currentDirectory, "!");
 			Populate();
 			return;
 		}
@@ -176,7 +176,7 @@ struct PingPopulator : public IDirectoryPopulator
 		}
 		else
 		{
-			SafeFormat(currentDirectory.buf, currentDirectory.CAPACITY, "!%s", asciiPath);
+			Format(currentDirectory, "!%s", asciiPath);
 		}
 
 		Populate();
@@ -215,7 +215,7 @@ struct PingPopulator : public IDirectoryPopulator
 					if (*item.containerRelRoot == 0) // Only interested in the first layer of folders
 					{
 						U8FilePath buf; // ascii should be fine, since we are in a subdir of a ping path
-						SafeFormat(buf.buf, buf.CAPACITY, "%S%S", item.containerRelRoot, item.itemRelContainer);
+						Format(buf, "%S%S", item.containerRelRoot, item.itemRelContainer);
 						U32FilePath itemPath;
 						PathFromAscii(buf, '/', itemPath);
 						cb->OnFile(root, itemPath, nullptr, 0);

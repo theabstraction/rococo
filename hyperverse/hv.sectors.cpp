@@ -871,11 +871,11 @@ return false;
 		   return this;
 	   }
 
-	   char populateScript[IO::MAX_PATHLEN] = { 0 };
+	   U8FilePath populateScript = { 0 };
 
 	   void BindProperties(IBloodyPropertySetEditor& editor) override
 	   {
-		   editor.AddPingPath("Populate Script", populateScript, IO::MAX_PATHLEN, "#objects/pop.default.sxy", 140);
+		   editor.AddPingPath("Populate Script", populateScript.buf, IO::MAX_PATHLEN, "#objects/pop.default.sxy", 140);
 		   editor.AddButton("Populate", evPopulateSectors.name);
 	   }
 
@@ -887,7 +887,7 @@ return false;
 			   {
 				   WideFilePath sysPath;
 				   platform.installation.ConvertPingPathToSysPath(populateScript, sysPath);
-				   platform.installation.ConvertSysPathToMacroPath(sysPath, populateScript, IO::MAX_PATHLEN, "#objects");
+				   platform.installation.ConvertSysPathToMacroPath(sysPath, populateScript, "#objects");
 			   }
 			   catch (IException&)
 			   {

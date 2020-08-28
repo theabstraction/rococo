@@ -100,7 +100,7 @@ namespace Rococo { namespace OS
 	{
 		char u8Data[1024];
 		U8FilePath u8VarName;
-		SafeFormat(u8VarName.buf, u8VarName.CAPACITY, "%S", envVariable);
+		Format(u8VarName, "%S", envVariable);
 		GetEnvVariable(u8Data, capacity, u8VarName);
 		SecureFormat(data, capacity, L"%S", u8Data);
 	}
@@ -132,7 +132,7 @@ namespace Rococo { namespace OS
 	Rococo::Script::FN_CreateLib GetLibCreateFunction(const wchar_t* dynamicLinkLibOfNativeCalls, bool throwOnError)
 	{
 		U8FilePath filename;
-		SecureFormat(filename.buf, filename.CAPACITY, "%S", dynamicLinkLibOfNativeCalls);
+		Format(filename, "%S", dynamicLinkLibOfNativeCalls);
 		return GetLibCreateFunction(filename, throwOnError);
 	}
 }} // Rococo::OS

@@ -66,6 +66,9 @@ namespace Rococo
 	}
 #endif
 
+	int32 Format(U8FilePath& path, cstr format, ...);
+	int32 Format(WideFilePath& path, const wchar_t* format, ...);
+
 	enum { MAX_FQ_NAME_LEN = 127 };
 	void ValidateFQNameIdentifier(cstr fqName);
 

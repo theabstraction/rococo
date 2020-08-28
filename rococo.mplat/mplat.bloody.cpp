@@ -1395,7 +1395,9 @@ namespace ANON
 
 					try
 					{
-						platform.installation.ConvertSysPathToMacroPath(sysName, value, len, "#m");
+						U8FilePath macroPath;
+						platform.installation.ConvertSysPathToMacroPath(sysName, macroPath, "#m");
+						SecureFormat(value, len, "%s", macroPath.buf);
 					}
 					catch (IException& ex)
 					{
@@ -1677,7 +1679,9 @@ namespace ANON
 		void OnSelected(cstr pingPath)
 		{
 			teb.Notify();
-			platform.installation.CompressPingPath(value, len, pingPath);
+			U8FilePath macroPath;
+			platform.installation.CompressPingPath(pingPath, macroPath);
+			SecureFormat(value, len, "%s", macroPath.buf);
 			OnDetached(value);
 		}
 

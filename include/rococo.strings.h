@@ -21,7 +21,7 @@ namespace Rococo
 
 #ifdef ROCOCO_USE_SAFE_V_FORMAT
    int SafeVFormat(char* buffer, size_t capacity, const char* format, va_list args);
-
+   int SafeVFormat(wchar_t* buffer, size_t capacity, const wchar_t* format, va_list args);
 # ifndef _WIN32
    int sscanf_s(const char* buffer, const char* format, ...);
 # endif

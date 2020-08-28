@@ -1191,8 +1191,8 @@ namespace ANON
 
 		   for (auto f : short_filenames)
 		   {
-			   char fullpath[Rococo::IO::MAX_PATHLEN];
-			   SecureFormat(fullpath, Rococo::IO::MAX_PATHLEN, "%s%s.%s", path, f, extension);
+			   U8FilePath fullpath;
+			   Format(fullpath, "%s%s.%s", path, f, extension);
 			   textureLoader.LoadColourBitmapIntoAddress(fullpath, cubeloader);
 
 			   size_t sizeofImage = cubeloader.width * cubeloader.width;

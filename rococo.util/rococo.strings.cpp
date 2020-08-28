@@ -179,6 +179,30 @@ namespace
 
 namespace Rococo
 {
+	int32 Format(U8FilePath& path, cstr format, ...)
+	{
+		va_list args;
+		va_start(args, format);
+		int count = SafeVFormat(path.buf, path.CAPACITY, format, args);
+		if (count == -1)
+		{
+			Throw(0, "%s failed. Buffer length exceeded. Format String: %s", __FUNCTION__, format);
+		}
+		return count;
+	}
+
+	int32 Format(WideFilePath& path, const wchar_t* format, ...)
+	{
+		va_list args;
+		va_start(args, format);
+		int count = SafeVFormat(path.buf, path.CAPACITY, format, args);
+		if (count == -1)
+		{
+			Throw(0, "%s failed. Buffer length exceeded. Format String: %S", __FUNCTION__, format);
+		}
+		return count;
+	}
+
 	bool IsCapital(char c)
 	{
 		return c >= 'A' && c <= 'Z';
@@ -410,7 +434,7 @@ namespace Rococo
 	   int count = SafeVFormat(buffer, capacity, format, args);
 	   if (count == -1)
 	   {
-		   Throw(0, "SecureFormat failed. Buffer length exceeded. Format String: %s", format);
+		   Throw(0, "SecureFormat failed. Buffer length exceeded. Format String: %S", format);
 	   }
 	   return count;
    }

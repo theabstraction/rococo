@@ -557,9 +557,9 @@ namespace ANON
 	   // So use heap generated argument in nameToMaterial. Do not refactor pointer to Material as Material!
 	   std::unordered_map<std::string, Material*> nameToMaterial;
 
-	   char corridorScript[IO::MAX_PATHLEN] = { 0 };
-	   char wallScript[IO::MAX_PATHLEN] = { 0 };
-	   char floorScript[IO::MAX_PATHLEN] = { 0 };
+	   U8FilePath corridorScript = { 0 };
+	   U8FilePath wallScript = { 0 };
+	   U8FilePath floorScript = { 0 };
 
 	   bool scriptCorridor = false;
 	   bool scriptWalls = false;
@@ -1807,7 +1807,7 @@ namespace ANON
 		  PrepMat(GraphicsEx::BodyComponentMatClass_Door_Casing,  "random", RandomWoodOrMetal());
 
 		  cstr wscript = co_sectors.GetTemplateWallScript(scriptWalls);
-		  SafeFormat(wallScript, IO::MAX_PATHLEN, "%s", wscript);
+		  Format(wallScript, "%s", wscript);
 
 		  struct VariableEnumerator : IEventCallback<VariableCallbackData>
 		  {
@@ -1828,7 +1828,7 @@ namespace ANON
 		  }
 
 		  cstr cscript = co_sectors.GetTemplateDoorScript(scriptCorridor);
-		  SafeFormat(corridorScript, IO::MAX_PATHLEN, "%s", cscript);
+		  Format(corridorScript, "%s", cscript);
 
 		  if (cscript)
 		  {
@@ -1838,7 +1838,7 @@ namespace ANON
 		  }
 
 		  cstr fscript = co_sectors.GetTemplateFloorScript(scriptFloor);
-		  SafeFormat(floorScript, IO::MAX_PATHLEN, "%s", fscript);
+		  Format(floorScript, "%s", fscript);
 
 		  if (fscript)
 		  {
@@ -2328,7 +2328,7 @@ namespace ANON
          } scriptCallback;
          scriptCallback.This = this;
 		 
-		 cstr genCorridor = *corridorScript ? corridorScript : "#corridor/gen.door.sxy";
+		 cstr genCorridor = *corridorScript.buf ? corridorScript : "#corridor/gen.door.sxy";
 
 		 try
 		 {	
@@ -3035,7 +3035,7 @@ namespace ANON
 			  try
 			  {
 				  platform.installation.ConvertPingPathToSysPath(wallScript, sysPath);
-				  platform.installation.ConvertSysPathToMacroPath(sysPath, wallScript, IO::MAX_PATHLEN, "#walls");
+				  platform.installation.ConvertSysPathToMacroPath(sysPath, wallScript, "#walls");
 			  }
 			  catch (IException&)
 			  {
@@ -3362,13 +3362,13 @@ namespace ANON
 				  if (*wallScript)
 				  {
 					  platform.installation.ConvertPingPathToSysPath(wallScript, sysPath);
-					  platform.installation.ConvertSysPathToMacroPath(sysPath, wallScript, IO::MAX_PATHLEN, "#walls");
+					  platform.installation.ConvertSysPathToMacroPath(sysPath, wallScript, "#walls");
 				  }
-				  editor.AddPingPath("wall script", wallScript, IO::MAX_PATHLEN, "#walls/*.sxy", 90);
+				  editor.AddPingPath("wall script", wallScript.buf, IO::MAX_PATHLEN, "#walls/*.sxy", 90);
 			  }
 			  catch (IException&)
 			  {
-				  editor.AddPingPath("wall script", wallScript, IO::MAX_PATHLEN, "#walls/*.sxy", 90);
+				  editor.AddPingPath("wall script", wallScript.buf, IO::MAX_PATHLEN, "#walls/*.sxy", 90);
 			  }
 		  }
 		  else if (Eq(category, "ceiling"))
@@ -3397,7 +3397,7 @@ namespace ANON
 			  {
 				  editor.AddBool("use script", &scriptFloor);
 				  editor.AddMessage("Default: \"#floors/square.mosaics.sxy\"");
-				  editor.AddPingPath("script file", floorScript, IO::MAX_PATHLEN, "#floors/*.sxy", 120);
+				  editor.AddPingPath("script file", floorScript.buf, IO::MAX_PATHLEN, "#floors/*.sxy", 120);
 			  }
 			  else
 			  {
@@ -3416,7 +3416,7 @@ namespace ANON
 				  editor.AddSpacer();
 				  editor.AddBool("script corridor", &scriptCorridor);
 				  editor.AddMessage("Defaults to !scripts/hv/sector/gen.door.sxy");
-				  editor.AddPingPath("corridor script", corridorScript, IO::MAX_PATHLEN, "!scripts/hv/sector/*.sxy", 130);
+				  editor.AddPingPath("corridor script", corridorScript.buf, IO::MAX_PATHLEN, "!scripts/hv/sector/*.sxy", 130);
 			  }
 			  else
 			  {

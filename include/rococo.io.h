@@ -103,13 +103,13 @@ namespace Rococo
 
 	ROCOCOAPI IOS
 	{
-		virtual void ConvertUnixPathToSysPath(const wchar_t* unixPath, wchar_t* sysPath, size_t bufferCapacity) const = 0;
+		virtual void ConvertUnixPathToSysPath(const wchar_t* unixPath, WideFilePath& sysPath) const = 0;
 		virtual void EnumerateModifiedFiles(IEventCallback<FileModifiedArgs>& cb) = 0;
 
 		// Call if the system has become unstable due to bad assets et al
 		virtual void FireUnstable() = 0;
 		virtual void SetUnstableHandler(IEventCallback<SysUnstableArgs>* cb) = 0;
-		virtual void GetBinDirectoryAbsolute(wchar_t* binDirectory, size_t capacityChars) const = 0;
+		virtual void GetBinDirectoryAbsolute(WideFilePath& binDirectory) const = 0;
 		virtual bool IsFileExistant(const wchar_t* absPath) const = 0;
 		virtual void LoadAbsolute(const wchar_t* absPath, IExpandingBuffer& buffer, int64 maxFileLength) const = 0;
 		virtual size_t MaxPath() const = 0;
@@ -123,11 +123,11 @@ namespace Rococo
 		virtual const wchar_t* Content() const = 0;
 		virtual void LoadResource(cstr pingPath, IExpandingBuffer& buffer, int64 maxFileLength) = 0;
 		virtual void ConvertPingPathToSysPath(cstr pingPath, WideFilePath& path) const = 0;
-		virtual void ConvertSysPathToMacroPath(const wchar_t* sysPath, char* pingPath, size_t pingPathCapacity, cstr macro) const = 0;
+		virtual void ConvertSysPathToMacroPath(const wchar_t* sysPath, U8FilePath& pingPath, cstr macro) const = 0;
 		virtual void ConvertSysPathToPingPath(const wchar_t* sysPath, U8FilePath& pingPath) const = 0;
 		virtual bool DoPingsMatch(cstr a, cstr b) const = 0;
 		virtual void Macro(cstr name, cstr pingFolder) = 0;
-		virtual void CompressPingPath(char* buffer, size_t capacity, cstr pingPath) const = 0;
+		virtual void CompressPingPath(cstr pingPath, U8FilePath& resultPath) const = 0;
 		virtual IOS& OS() = 0;
 	};
 

@@ -85,7 +85,7 @@ namespace
 		{
 			for(int i = 0; i < 256; ++i)
 			{
-				SafeFormat(names[i].buf, 6, ("D%d"), i);
+				SafeFormat(names[i].buf, 6, "D%d", i);
 			}
 		}
 

@@ -756,7 +756,7 @@ namespace Rococo
 					VisitorInfo info;
 					OS::FormatTime(i.second.loadTime, info.time, sizeof info.time);
 					info.fileLength = i.second.code->SourceLength();
-					SafeFormat(info.pingPath.buf, info.pingPath.CAPACITY, "%s", i.first.c_str());
+					Format(info.pingPath, "%s", i.first.c_str());
 					visitorData.push_back(info);
 				}
 

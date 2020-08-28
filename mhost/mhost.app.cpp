@@ -335,7 +335,7 @@ namespace MHost
 				// script and expect it to be unchanged throughout. So duplicate on the stack
 
 				U8FilePath currentScript;
-				SecureFormat(currentScript.buf, currentScript.CAPACITY, "%s", mainScript.c_str());
+				Format(currentScript, "%s", mainScript.c_str());
 
 				RunEnvironmentScript(platform, this, currentScript, true, false);
 				CleanupResources();

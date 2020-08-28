@@ -83,7 +83,7 @@ namespace
 	   Rococo::U8FilePath path;
 	   UTF8(const wchar_t* wsz)
 	   {
-		   SecureFormat(path.buf, path.CAPACITY, "%S", wsz);
+		   Format(path, "%S", wsz);
 	   }
 	   operator const char*() const { return path; }
    };
@@ -542,13 +542,10 @@ namespace Rococo
 			switch (target)
 			{
 				case TargetDirectory_UserDocuments:
-				{
-					char path[1024];
-					SecureFormat(fullpath.buf, fullpath.CAPACITY, "/docs/%S", path, filename);
-				}
+				Format(fullpath, "/docs/%S", filename);
 				break;
 			case TargetDirectory_Root:
-				SecureFormat(fullpath.buf, fullpath.CAPACITY, "%S", filename);
+				Format(fullpath, "%S", filename);
 				break;
 			default:
 				Throw(0, "Rococo::OS::SaveAsciiTextFile(... %S): Unrecognized target directory", filename);
@@ -614,17 +611,17 @@ namespace
    void GetContentDirectory(const wchar_t* contentIndicatorName, WideFilePath& content, IOS& os)
    {
 		WideFilePath container;
-		os.GetBinDirectoryAbsolute(container.buf, container.CAPACITY);
+		os.GetBinDirectoryAbsolute(container);
 		MakeContainerDirectory(container.buf);
 		
 		WideFilePath indicatorFullPath;
-		SafeFormat(indicatorFullPath.buf, indicatorFullPath.CAPACITY, L"%s%s", container.buf, contentIndicatorName);
+		Format(indicatorFullPath, L"%s%s", container.buf, contentIndicatorName);
 		if (!os.IsFileExistant(indicatorFullPath))
 		{
 			Throw(0, "Expecting content indicator %S", indicatorFullPath.buf);
 		}
 		
-		SafeFormat(content.buf, content.CAPACITY, L"%scontent/", container.buf);
+		Format(content, L"%scontent/", container.buf);
    }
 
    class Installation : public IInstallationSupervisor
@@ -676,8 +673,7 @@ namespace
          }
 
          WideFilePath absPath;
-         SecureFormat(absPath.buf, absPath.CAPACITY, L"%s%S", contentDirectory.buf, resourcePath + 1);
-
+         Format(absPath, L"%s%S", contentDirectory.buf, resourcePath + 1);
          os.LoadAbsolute(absPath, buffer, maxFileLength);
       }
 
@@ -728,7 +724,7 @@ namespace
 		{
 			subdir = pingPath + 1;
 
-			SecureFormat(sysPath.buf, sysPath.CAPACITY, L"%s%S", contentDirectory, subdir);
+			Format(sysPath, L"%s%S", contentDirectory, subdir);
 		}
 		else if (*pingPath == '#')
 		{
@@ -752,7 +748,7 @@ namespace
 
 			macroDir = i->second.c_str();
 
-			SecureFormat(sysPath.buf, sysPath.CAPACITY, L"%s%S%S", contentDirectory, macroDir + 1, subdir);
+			Format(sysPath, L"%s%S%S", contentDirectory, macroDir + 1, subdir);
 		}
 		else
 		{
@@ -767,7 +763,7 @@ namespace
 		OS::ToSysPath(sysPath.buf);
 	}
 
-	void ConvertSysPathToMacroPath(const wchar_t* sysPath, char* pingPath, size_t pingPathCapacity, cstr macro) const override
+	void ConvertSysPathToMacroPath(const wchar_t* sysPath, U8FilePath& pingPath, cstr macro) const override
 	{
 		U8FilePath fullPingPath;
 		ConvertSysPathToPingPath(sysPath, fullPingPath);
@@ -784,7 +780,7 @@ namespace
 			Throw(0, "Installation::ConvertSysPathToMacroPath(...\"%S\", \"%s\") Path not prefixed by macro: %s", sysPath, macro, expansion);
 		}
 
-		SecureFormat(pingPath, pingPathCapacity, "%s/%s", macro, fullPingPath.buf + i->second.size());
+		Format(pingPath, "%s/%s", macro, fullPingPath.buf + i->second.size());
 	}
 
 	void ConvertSysPathToPingPath(const wchar_t* sysPath, U8FilePath& pingPath) const override
@@ -807,7 +803,7 @@ namespace
 			Throw(0, "ConvertSysPathToPingPath: '%S' - Illegal sequence in ping path: '..'", sysPath);
 		}
 
-		SecureFormat(pingPath.buf, pingPath.CAPACITY, "!%S", sysPath + contentDirLength);
+		Format(pingPath, "!%S", sysPath + contentDirLength);
 
 		OS::ToUnixPath(pingPath.buf);
 	}
@@ -824,9 +820,9 @@ namespace
 			  Throw(0, "Installation::Macro(..., pingFolder): [pingFolder] did not begin with a ping '!' character");
 		  }
 
-		  char pingRoot[IO::MAX_PATHLEN - 1];
-		  int len = SecureFormat(pingRoot, sizeof(pingRoot), "%s", pingFolder);
-		  OS::ToUnixPath(pingRoot);
+		  U8FilePath pingRoot;
+		  int len = Format(pingRoot, "%s", pingFolder);
+		  OS::ToUnixPath(pingRoot.buf);
 		  if (pingRoot[len - 1] != '/')
 		  {
 			  Throw(0, "Installation::Macro(..., pingFolder): %s did not end with slash '/' character");
@@ -861,7 +857,7 @@ namespace
 			return false;
 		}
 
-		SecureFormat(expandedPath.buf, expandedPath.CAPACITY, "%s%s", i->second.c_str(), subdir);
+		Format(expandedPath, "%s%s", i->second.c_str(), subdir);
 		return true;
 	  }
 	  
@@ -913,7 +909,7 @@ namespace
 			Throw(0, "_NSGetExecutablePath failed");
 		}
 		
-		SecureFormat(binDirectory.buf, binDirectory.CAPACITY, L"%S", u8Bin.buf);
+		Format(binDirectory, L"%S", u8Bin.buf);
 
 		MakeContainerDirectory(binDirectory.buf);
 	 } 
@@ -976,9 +972,9 @@ namespace
          return OS::IsFileExistant(absPath);
       }
 
-      void ConvertUnixPathToSysPath(const wchar_t* unixPath, wchar_t* sysPath, size_t capacity) const override
+      void ConvertUnixPathToSysPath(const wchar_t* unixPath, WideFilePath& sysPath) const override
       {
-         SecureFormat(sysPath, capacity, L"%s", unixPath);
+         Format(sysPath, L"%s", unixPath);
       }
 
       void LoadAbsolute(const wchar_t* absPath, IExpandingBuffer& buffer, int64 maxFileLength) const override
@@ -1019,9 +1015,9 @@ namespace
          }
       }
 
-      void GetBinDirectoryAbsolute(wchar_t* output, size_t capacityChars) const override
+      void GetBinDirectoryAbsolute(WideFilePath& output) const override
       {
-         SecureFormat(output, _MAX_PATH, L"%s", binDirectory.buf);
+		  output = this->binDirectory;
       }
 
       size_t MaxPath() const override
@@ -1148,7 +1144,7 @@ namespace Rococo::IO
 			{
 				bool isSlashed = GetFirstNullChar(directory)[-1] == L'/';
 
-				SafeFormat(qualifiedPath.buf, qualifiedPath.CAPACITY, "%s%s", directory, isSlashed ? "" : "/");
+				Format(qualifiedPath, "%s%s", directory, isSlashed ? "" : "/");
 
 				d = opendir(qualifiedPath);
 				if (d == nullptr)
@@ -1168,15 +1164,15 @@ namespace Rococo::IO
 					if (entry->d_type == DT_REG) // regular file
 #else
 					U8FilePath fullPath;
-					SecureFormat(fullPath.buf, fullPath.CAPACITY, "%s%s", qualifiedPath, entry->d_name);				
+					Format(fullPath, "%s%s", qualifiedPath, entry->d_name);				
 					if (IsFile(fullPath))
 #endif
 					{
 						WideFilePath wPath;
-						SecureFormat(wPath.buf, wPath.CAPACITY, L"%S", fullPath.buf);
+						Format(wPath, L"%S", fullPath.buf);
 						
 						WideFilePath containerRelRoot;
-						SecureFormat(containerRelRoot.buf, containerRelRoot.CAPACITY, L"%S", qualifiedPath.buf);
+						Format(containerRelRoot, L"%S", qualifiedPath.buf);
 							
 						Rococo::IO::FileItemData fid = 
 						{
@@ -1201,7 +1197,7 @@ namespace Rococo::IO
 		};
 		
 		U8FilePath u8Dir;
-		SecureFormat(u8Dir.buf, u8Dir.CAPACITY, "%S", directory);
+		Format(u8Dir, "%S", directory);
 		
 		Anon filesearch(u8Dir);
 		filesearch.Run(callback);
