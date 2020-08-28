@@ -1848,8 +1848,8 @@ namespace Rococo
 
 		void AddNativeLibrary(const char* dynamicLinkLibOfNativeCalls) override
 		{
-			wchar_t srcEnvironmentDll[_MAX_PATH];
-			SafeFormat(srcEnvironmentDll, _MAX_PATH, L"%s%S", srcEnvironment, dynamicLinkLibOfNativeCalls);
+			WideFilePath srcEnvironmentDll;
+			Format(srcEnvironmentDll, L"%s%S", srcEnvironment, dynamicLinkLibOfNativeCalls);
 
 			FN_CreateLib create;
 
@@ -1857,9 +1857,17 @@ namespace Rococo
 			if (!create)
 			{
 				// Could not find DLL in native source path, so check the default paths
-				wchar_t srcDefaultDll[_MAX_PATH];
-				SafeFormat(srcDefaultDll, _MAX_PATH, L"%S", dynamicLinkLibOfNativeCalls);
-				create = Rococo::OS::GetLibCreateFunction(srcDefaultDll, true);
+				WideFilePath srcDefaultDll;
+				Format(srcDefaultDll, L"%S", dynamicLinkLibOfNativeCalls);
+
+				try
+				{
+					create = Rococo::OS::GetLibCreateFunction(srcDefaultDll, true);
+				}
+				catch(IException& ex)
+				{
+					Throw(ex.ErrorCode(), "Error loading library: %S.dll", srcEnvironmentDll.buf);
+				}
 			}
 
 			INativeLib* lib = create(*this);

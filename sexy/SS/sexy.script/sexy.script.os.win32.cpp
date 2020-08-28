@@ -130,19 +130,19 @@ namespace Rococo {
 
 		Rococo::Script::FN_CreateLib GetLibCreateFunction(const wchar_t* dynamicLinkLibOfNativeCalls, bool throwOnError)
 		{
-			wchar_t linkLib[_MAX_PATH];
-			SafeFormat(linkLib, _MAX_PATH, L"%s.dll", dynamicLinkLibOfNativeCalls);
+			WideFilePath linkLib;
+			Format(linkLib, L"%s.dll", dynamicLinkLibOfNativeCalls);
 			HMODULE lib = LoadLibraryW(linkLib);
 			if (lib == nullptr)
 			{
-				if (throwOnError) Rococo::Throw(GetLastError(), "Could not load %S", (const char*)linkLib);
+				if (throwOnError) Rococo::Throw(GetLastError(), "Could not load %S", linkLib.buf);
 				return nullptr;
 			}
 
 			FARPROC fp = GetProcAddress(lib, "CreateLib");
 			if (fp == nullptr)
 			{
-				if (throwOnError) Rococo::Throw(GetLastError(), "Could not find  INativeLib* CreateLib(...) in %S", linkLib);
+				if (throwOnError) Rococo::Throw(GetLastError(), "Could not find  INativeLib* CreateLib(...) in %S", linkLib.buf);
 				return nullptr;
 			}
 

@@ -54,6 +54,7 @@ namespace Rococo { namespace OS
 {
    bool StripLastSubpath(char* data);
    bool IsFileExistant(const char* filename);
+		
    void GetDefaultNativeSrcDir(char* data, size_t capacity)
    {
       uint32 lcapacity = (uint32) capacity;
