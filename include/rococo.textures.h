@@ -22,7 +22,7 @@ namespace Rococo
 
       ROCOCOAPI IResourceLoader
       {
-         virtual void Load(cstr name, IEventCallback<CompressedTextureBuffer>& onLoad) = 0;
+         virtual void Load(cstr pingPath, IEventCallback<CompressedTextureBuffer>& onLoad) = 0;
       };
 
       struct BitmapLocation

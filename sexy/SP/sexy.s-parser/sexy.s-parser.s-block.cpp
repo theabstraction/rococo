@@ -1526,8 +1526,15 @@ namespace Anon
 				}
 
 				enum { MAX_FILELEN = 0x7FFFFFFELL }; // +1 byte for the nul char gives int32.max, which is our hard limit
-
+				
+#ifdef _WIN32
 				FILE* fp = _wfopen(u16filename, L"rb");
+#else
+				U8FilePath u8filename;
+				SecureFormat(u8filename.buf, u8filename.CAPACITY, "%S", u16filename);
+				
+				FILE* fp = fopen(u8filename, "rb");
+#endif
 				if (fp == nullptr)
 				{
 					int err = errno;

@@ -9,7 +9,7 @@
 #include "sexy.vm.cpu.h"
 #include "sexy.script.h"
 #include "sexy.native.sys.type.h"
-#include "../STC/stccore/Sexy.Compiler.h"
+#include "../STC/stccore/sexy.compiler.h"
 #include "sexy.strings.h"
 
 #include <sexy.lib.util.h>

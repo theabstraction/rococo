@@ -16,6 +16,10 @@
 #include <tiffiop.h>
 #include <vector>
 
+#ifndef _WIN32
+# include <errno.h>
+#endif
+
 namespace
 {
    using namespace Rococo;
@@ -362,9 +366,18 @@ namespace
 		static size_t errorCapacity;
 
 	public:
-		ImageWriter(const char* _filename) : filename(_filename)
+		ImageWriter(const char* l_filename) : filename(l_filename)
 		{
-			auto err = fopen_s(&f, _filename, "wb");
+#ifdef _WIN32
+			auto err = fopen_s(&f, filename, "wb");
+#else
+			f = fopen(filename, "wb");
+			auto err = 0;
+			if (f == nullptr)
+			{
+				err = errno;
+			}
+#endif
 			if (err)
 			{
 				Throw(0, "Could not open %s: %s", filename, strerror(err));

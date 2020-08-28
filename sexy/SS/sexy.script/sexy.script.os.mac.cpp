@@ -52,26 +52,28 @@
 
 namespace Rococo { namespace OS 
 {
+   bool StripLastSubpath(char* data);
+   bool IsFileExistant(const char* filename);
    void GetDefaultNativeSrcDir(char* data, size_t capacity)
    {
       uint32 lcapacity = (uint32) capacity;
       if (_NSGetExecutablePath(data, &lcapacity) != 0)
       {
-         Throw(0, ("_NSGetExecutablePath failed"));
+         Throw(0, "_NSGetExecutablePath failed");
       }
 
       while (OS::StripLastSubpath(data))
       {
          char fullpath[_MAX_PATH];
-         SafeFormat(fullpath, _MAX_PATH, ("%s%s"), data, ("src_indicator.txt"));
+         SafeFormat(fullpath, _MAX_PATH, "%s%s", data, "src_indicator.txt");
          if (OS::IsFileExistant(fullpath))
          {
-            StringCat(data, ("NativeSource/"), (int32)capacity);
+            StringCat(data, "NativeSource/", (int32)capacity);
             return;
          }
       }
 
-      Rococo::Throw(0, ("SEXY_NATIVE_SRC_DIR. Failed to get default variable: cannot find src_indicator.txt descending from sexy.script.dll"));
+      Rococo::Throw(0, "SEXY_NATIVE_SRC_DIR. Failed to get default variable: cannot find src_indicator.txt descending from sexy.script.dll");
    }
 
 #include <sys/stat.h>
@@ -93,6 +95,15 @@ namespace Rococo { namespace OS
 
       Throw(0, ("Environment variable %s not found"), envVariable);
    }
+   
+	void GetEnvVariable(wchar_t* data, size_t capacity, const wchar_t* envVariable)
+	{
+		char u8Data[1024];
+		U8FilePath u8VarName;
+		SafeFormat(u8VarName.buf, u8VarName.CAPACITY, "%S", envVariable);
+		GetEnvVariable(u8Data, capacity, u8VarName);
+		SecureFormat(data, capacity, L"%S", u8Data);
+	}
 
 	typedef void (*FN_AddNativeSexyCalls)(Rococo::Script::IScriptSystem& ss);
 
@@ -116,5 +127,12 @@ namespace Rococo { namespace OS
 		}
 
 		return fp;
+	}
+	
+	Rococo::Script::FN_CreateLib GetLibCreateFunction(const wchar_t* dynamicLinkLibOfNativeCalls, bool throwOnError)
+	{
+		U8FilePath filename;
+		SecureFormat(filename.buf, filename.CAPACITY, "%S", dynamicLinkLibOfNativeCalls);
+		return GetLibCreateFunction(filename, throwOnError);
 	}
 }} // Rococo::OS

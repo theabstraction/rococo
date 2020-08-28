@@ -17,6 +17,13 @@ namespace
    int breakFlags = 0;
 }
 
+#ifdef __APPLE__
+namespace Rococo
+{
+	FILE* _wfopen(const wchar_t* filename, const wchar_t* mode);
+}
+#endif
+
 namespace Rococo
 {
    bool IsPointerValid(const void* ptr)
@@ -212,6 +219,8 @@ namespace Rococo
 			struct AutoFile
 			{
 				FILE* fp = nullptr;
+				
+				AutoFile(FILE* l_fp): fp(l_fp) {}
 
 				~AutoFile()
 				{
@@ -227,20 +236,27 @@ namespace Rococo
 # pragma warning(disable: 4996)
 #endif
 				AutoFile f{ _wfopen(filename, L"rb") };
-
+				
+				if (f.fp == nullptr)
+				{
+					Throw(0, "Cannot open file %S", filename);
+				}
+				
+#ifdef _WIN32
 				_fseeki64(f.fp, 0, SEEK_END);
 				long long nCapacity = _ftelli64(f.fp);
 				_fseeki64(f.fp, 0, SEEK_SET);
+#else
+				fseeko(f.fp, 0, SEEK_END);
+				auto nCapacity = ftello(f.fp);
+				fseeko(f.fp, 0, SEEK_SET);
+#endif
 
 				asciiData.reserve(nCapacity + 1);
 
 #ifdef _WIN32
 # pragma warning(default: 4996)
 #endif
-				if (f.fp == nullptr)
-				{
-					Throw(0, "Cannot open file %S", filename);
-				}
 
 				while (true)
 				{

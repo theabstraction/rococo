@@ -90,7 +90,7 @@ namespace Rococo
 	struct FileModifiedArgs
 	{
 		const wchar_t* sysPath;
-		bool Matches(cstr resource) const;
+		bool Matches(cstr pingPath) const;
 	};
 
 	struct MemoryUsage

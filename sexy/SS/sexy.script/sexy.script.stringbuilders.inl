@@ -229,7 +229,7 @@ namespace
 			return typeFastStringBuilder;
 		}
 
-		AllocatorBinding* GetBinding()
+		AllocatorBinding* GetBinding() override
 		{
 			// StringPool memory allocators manage memory in the creation methods and the Destruct methods manually so use null allocators
 			return &binding;

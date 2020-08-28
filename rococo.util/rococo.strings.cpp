@@ -14,6 +14,10 @@
 #define ROCOCO_USE_SAFE_V_FORMAT
 #include <rococo.strings.h>
 
+#ifdef __APPLE__
+# define _stricmp strcasecmp
+#endif
+
 namespace
 {
 	using namespace Rococo;
@@ -311,7 +315,6 @@ namespace Rococo
 
 		return (int32)l;
 	}
-
 	int WriteToStandardOutput(const char* format, ...)
 	{
 		va_list args;
@@ -367,7 +370,12 @@ namespace Rococo
 
    int SafeVFormat(wchar_t* buffer, size_t capacity, const wchar_t* format, va_list args)
    {
+#ifdef _WIN32
 	   int count = _vsnwprintf_s(buffer, capacity, capacity, format, args);
+#else
+	   auto count = vswprintf(buffer, capacity, format, args); 
+#endif
+		   
 	   if (count >= capacity)
 	   {
 		   return -1;

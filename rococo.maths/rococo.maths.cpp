@@ -24,11 +24,6 @@ namespace Rococo
 	   return Vec4{ v.x * scale, v.y * scale, v.z * scale, v.w };
    }
 
-   Vec4 operator-(const Vec4& v)
-   {
-	   return Vec4{ -v.x, -v.y, -v.z, v.w };
-   }
-
    Matrix4x4 RotateDirectionToNegZ(cr_vec3 direction)
    {
 	   float Dy = direction.y;

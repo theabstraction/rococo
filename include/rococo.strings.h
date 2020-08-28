@@ -8,8 +8,8 @@
 # include <stdarg.h>
 #endif
 
-#ifndef _WIN32
-int _stricmp(const char* a, const char* b);
+#ifdef __APPLE__
+#define _stricmp strcasecmp
 #endif
 
 namespace Rococo

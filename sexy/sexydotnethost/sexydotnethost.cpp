@@ -270,6 +270,7 @@ namespace SexyDotNet { namespace Host
 		pin_ptr<Char> namePin = &nameArray[0];
 		const Char* namePtr = namePin;
 
+
 		ISourceCode* sc;
 
 		// Assume that if the number of bytes in the file is even and the first high-byte is zero then we have a unicode file

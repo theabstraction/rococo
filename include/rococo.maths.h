@@ -185,7 +185,6 @@ namespace Rococo
 	// Multiply matrix Ra x Rb to make RaRb. This has the property that Ra X Rb x v = (Ra x Rb) x v = Ra x (Rb x v)
 	void Multiply(Matrix4x4& product, const Matrix4x4& Ra, const Matrix4x4& Rb);
 #endif
-	Vec4 operator-(const Vec4& v);
 	Matrix4x4 operator * (const Matrix4x4& a, const Matrix4x4& b);
 	Vec4 operator * (const Vec4& v, const Matrix4x4& R);
 	Vec4 operator * (const Matrix4x4& R, const Vec4& v);
@@ -314,7 +313,8 @@ namespace Rococo
 	void TesselateByEarClip(I2dMeshBuilder& tb, IRingManipulator<Vec2>& ring);
 
 	bool IsOdd(int32 i);
-
+	
+	inline Vec4 operator-(const Vec4& v) { return Vec4{ -v.x, -v.y, -v.z, v.w }; }
 	inline Vec2 operator - (const Vec2& a, const Vec2& b) { return Vec2{ a.x - b.x, a.y - b.y }; }
 	inline Vec2 operator + (const Vec2& a, const Vec2& b) { return Vec2{ a.x + b.x, a.y + b.y }; }
 	inline float Dot(const Vec2& a, const Vec2& b) { return a.x * b.x + a.y * b.y; }

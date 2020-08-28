@@ -5,7 +5,7 @@
 #include <sexy.debug.types.h>
 #include <sexy.vm.cpu.h>
 #include <sexy.script.h>
-#include <Sexy.Compiler.h>
+#include <sexy.compiler.h>
 
 namespace Rococo
 {

@@ -19,6 +19,7 @@
 
 #include <unordered_map>
 #include <string>
+#include <vector>
 
 #ifdef _WIN32
 # include <malloc.h>
@@ -727,7 +728,7 @@ namespace Rococo
 
 		ISourceCache* GetInterface()
 		{
-			return this;
+			return static_cast<ISourceCache*>(this);
 		}
 
 		~SourceCache()
@@ -741,7 +742,7 @@ namespace Rococo
 
 		IMathsVenue* Venue() override
 		{
-			return this;
+			return static_cast<IMathsVenue*>(this);
 		}
 
 		void ShowVenue(IMathsVisitor& visitor) override

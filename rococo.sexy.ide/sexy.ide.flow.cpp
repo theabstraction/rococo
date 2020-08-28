@@ -274,7 +274,6 @@ namespace Rococo
 						{
 							debugger.Log("Exception thrown in script: %s", ex.Message());
 						}
-
 						switch (exceptionHandler.GetScriptExceptionFlow("--app--", ex.Message()))
 						{
 						case EScriptExceptionFlow_Ignore:

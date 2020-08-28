@@ -125,6 +125,9 @@ namespace Rococo
 #endif
 #define VM_CALLBACK(x) void VM_CALLBACK_CONVENTION OnInvoke##x(VariantValue* registers, void* context)
 
+#ifdef __APPLE__
+# define _strcmpi strcasecmp
+#endif
 namespace Rococo {
 	namespace Script
 	{
@@ -838,7 +841,7 @@ namespace Rococo
 			return *stringPool;
 		}
 
-		const IStructure* GetStringBuilderType() const
+		const IStructure* GetStringBuilderType() const override
 		{
 			return stringPool->FastStringBuilderType();
 		}

@@ -26,5 +26,4 @@
 #ifdef _WIN32
 #pragma warning ( disable: 26812 )
 #endif
-
 #endif // ROCOCO
