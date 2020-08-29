@@ -14,7 +14,7 @@ namespace Bloke
 
 			if (throwOnError)
 			{
-				Throw(0, "Cannot find any font with token %S", specToken);
+				Throw(0, "Cannot find any font with token %s", specToken);
 			}
 
 			return -1;
@@ -37,7 +37,7 @@ namespace Bloke
 
 			if (throwOnError)
 			{
-				Throw(0, "Cannot find %S font with height matching %f", specToken, height);
+				Throw(0, "Cannot find %s font with height matching %f", specToken, height);
 			}
 
 			return -1;

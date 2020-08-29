@@ -546,7 +546,7 @@ namespace Rococo
 
 		if (rawLength < 2)
 		{
-			Throw(0, "Script file '%S' was too small", resourcePath);
+			Throw(0, "Script file '%s' was too small", resourcePath);
 		}
 
 		if (rawLength % 2 == 0)
@@ -554,7 +554,7 @@ namespace Rococo
 			char bom = *utf8data;
 			if (bom == 0 || (bom & 0x80))
 			{
-				Throw(0, "Script file '%S' was not UTF-8 or began with non-ASCII character", resourcePath);
+				Throw(0, "Script file '%s' was not UTF-8 or began with non-ASCII character", resourcePath);
 			}
 		}
 

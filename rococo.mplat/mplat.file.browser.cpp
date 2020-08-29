@@ -123,7 +123,7 @@ struct FileBrowserRC : public IFileBrowserRenderContext
 	void DrawU16Text(const GuiRect& rect, BrowserComponent component, const wchar_t* buffer)
 	{
 		char asciitext[1024];
-		SafeFormat(asciitext, 1024, "%S", buffer);
+		SafeFormat(asciitext, 1024, "%ls", buffer);
 		DrawAsciiText(rect, component, asciitext);
 	}
 

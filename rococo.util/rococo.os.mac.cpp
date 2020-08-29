@@ -83,7 +83,7 @@ namespace
 	   Rococo::U8FilePath path;
 	   UTF8(const wchar_t* wsz)
 	   {
-		   Format(path, "%S", wsz);
+		   Assign(path, wsz);
 	   }
 	   operator const char*() const { return path; }
    };
@@ -534,7 +534,7 @@ namespace Rococo
 		{
 			if (text.length > 1024_megabytes)
 			{
-				Throw(0, "Rococo::OS::SaveAsciiTextFile(%S): Sanity check. String was > 1 gigabyte in length", filename);
+				Throw(0, "Rococo::OS::SaveAsciiTextFile(%ls): Sanity check. String was > 1 gigabyte in length", filename);
 			}
 
 			U8FilePath fullpath;
@@ -542,20 +542,20 @@ namespace Rococo
 			switch (target)
 			{
 				case TargetDirectory_UserDocuments:
-				Format(fullpath, "/docs/%S", filename);
+				Format(fullpath, "/docs/%ls", filename);
 				break;
 			case TargetDirectory_Root:
-				Format(fullpath, "%S", filename);
+				Assign(fullpath, filename);
 				break;
 			default:
-				Throw(0, "Rococo::OS::SaveAsciiTextFile(... %S): Unrecognized target directory", filename);
+				Throw(0, "Rococo::OS::SaveAsciiTextFile(... %ls): Unrecognized target directory", filename);
 				break;
 			}
 
 			FILE* fp = fopen(fullpath, "wb");
 			if (fp == nullptr)
 			{
-				Throw(0, "Cannot create file %s %s", fullpath, strerror(errno));
+				Throw(0, "Cannot create file %s %s", fullpath.buf, strerror(errno));
 			}
 			
 			auto bytesWritten = fwrite(text.buffer, 1, text.length, fp);
@@ -618,10 +618,10 @@ namespace
 		Format(indicatorFullPath, L"%s%s", container.buf, contentIndicatorName);
 		if (!os.IsFileExistant(indicatorFullPath))
 		{
-			Throw(0, "Expecting content indicator %S", indicatorFullPath.buf);
+			Throw(0, "Expecting content indicator %ls", indicatorFullPath.buf);
 		}
 		
-		Format(content, L"%scontent/", container.buf);
+		Format(content, L"%lscontent/", container.buf);
    }
 
    class Installation : public IInstallationSupervisor
@@ -664,7 +664,7 @@ namespace
 		 UTF8 u8content(contentDirectory);
          if (rlen(resourcePath) + rlen(u8content) >= _MAX_PATH)
          {
-            Throw(0, "OSX::LoadResource failed: %S%s - filename was too long", contentDirectory, resourcePath + 1);
+            Throw(0, "OSX::LoadResource failed: %ls%s - filename was too long", contentDirectory, resourcePath + 1);
          }
 
          if (strstr(resourcePath, "..") != nullptr)
@@ -673,7 +673,7 @@ namespace
          }
 
          WideFilePath absPath;
-         Format(absPath, L"%s%S", contentDirectory.buf, resourcePath + 1);
+         Format(absPath, L"%s%ls", contentDirectory.buf, resourcePath + 1);
          os.LoadAbsolute(absPath, buffer, maxFileLength);
       }
 
@@ -724,7 +724,7 @@ namespace
 		{
 			subdir = pingPath + 1;
 
-			Format(sysPath, L"%s%S", contentDirectory, subdir);
+			Format(sysPath, L"%s%ls", contentDirectory, subdir);
 		}
 		else if (*pingPath == '#')
 		{
@@ -748,7 +748,7 @@ namespace
 
 			macroDir = i->second.c_str();
 
-			Format(sysPath, L"%s%S%S", contentDirectory, macroDir + 1, subdir);
+			Format(sysPath, L"%ls%s%s", contentDirectory, macroDir + 1, subdir);
 		}
 		else
 		{
@@ -777,7 +777,7 @@ namespace
 		cstr expansion = i->second.c_str();
 		if (strstr(fullPingPath, expansion) == nullptr)
 		{
-			Throw(0, "Installation::ConvertSysPathToMacroPath(...\"%S\", \"%s\") Path not prefixed by macro: %s", sysPath, macro, expansion);
+			Throw(0, "Installation::ConvertSysPathToMacroPath(...\"%ls\", \"%s\") Path not prefixed by macro: %s", sysPath, macro, expansion);
 		}
 
 		Format(pingPath, "%s/%s", macro, fullPingPath.buf + i->second.size());
@@ -795,15 +795,15 @@ namespace
 
 		if (0 != wcsncmp(sysPath, contentDirectory, wcslen(contentDirectory)))
 		{
-			Throw(0, "ConvertSysPathToPingPath: '%S' did not begin with the content folder %S", sysPath, contentDirectory);
+			Throw(0, "ConvertSysPathToPingPath: '%ls' did not begin with the content folder %ls", sysPath, contentDirectory.buf);
 		}
 
 		if (wcsstr(sysPath, L"..") != nullptr)
 		{
-			Throw(0, "ConvertSysPathToPingPath: '%S' - Illegal sequence in ping path: '..'", sysPath);
+			Throw(0, "ConvertSysPathToPingPath: '%ls' - Illegal sequence in ping path: '..'", sysPath);
 		}
 
-		Format(pingPath, "!%S", sysPath + contentDirLength);
+		Format(pingPath, "!%ls", sysPath + contentDirLength);
 
 		OS::ToUnixPath(pingPath.buf);
 	}
@@ -909,7 +909,7 @@ namespace
 			Throw(0, "_NSGetExecutablePath failed");
 		}
 		
-		Format(binDirectory, L"%S", u8Bin.buf);
+		Format(binDirectory, L"%s", u8Bin.buf);
 
 		MakeContainerDirectory(binDirectory.buf);
 	 } 
@@ -922,34 +922,6 @@ namespace
       void Monitor(const wchar_t* absPath) override
       {
 		  // Not supported on the Max. Develope on a PC, a proper computer, then copy and paste to your noddy MAC
-      }
-
-      void UTF8ToUnicode(const char* s, wchar_t* unicode, size_t cbUtf8count, size_t unicodeCapacity) override
-      {
-         // OSX doesn't support wchar_t too well, so just do a bodge job
-         size_t i = 0;
-         for (; s[i] != 0; ++i)
-         {
-            if (i >= (unicodeCapacity - 1))
-            {
-               unicode[unicodeCapacity - 1] = 0;
-               return;
-            }
-            else
-            {
-               unicode[i] = ((s[i] & 0x80) != 0) ? '?' : s[i];
-            }
-         }
-
-         if (i >= (unicodeCapacity - 1))
-         {
-            unicode[unicodeCapacity - 1] = 0;
-            return;
-         }
-         else
-         {
-            unicode[i] = 0;
-         }
       }
 
       void EnumerateModifiedFiles(IEventCallback<FileModifiedArgs> &cb) override
@@ -981,14 +953,14 @@ namespace
       {
 		 UTF8 u8AbsPath(absPath);
          FileHandle hFile = fopen(u8AbsPath, "r");
-         if (!hFile.IsValid()) Throw(errno, "OSX::LoadResource failed: Error opening file %S", absPath);
+         if (!hFile.IsValid()) Throw(errno, "OSX::LoadResource failed: Error opening file %ls", absPath);
 
          fseek(hFile, 0, SEEK_END);
          long length = ftell(hFile);
 
          if ((int64)length > maxFileLength)
          {
-            Throw(0, "OSX::LoadResource failed: File <%S> was too large at over %lld bytes", absPath, maxFileLength);
+            Throw(0, "OSX::LoadResource failed: File <%ls> was too large at over %lld bytes", absPath, maxFileLength);
          }
 
          fseek(hFile, 0, SEEK_SET);
@@ -1007,7 +979,7 @@ namespace
 
             if (nBytesRead != chunk)
             {
-               Throw(0, "OSX::LoadResource: Error reading file <%S>. Failed to read chunk", absPath);
+               Throw(0, "OSX::LoadResource: Error reading file <%ls>. Failed to read chunk", absPath);
             }
 
             offset += (ptrdiff_t)chunk;
@@ -1169,10 +1141,10 @@ namespace Rococo::IO
 #endif
 					{
 						WideFilePath wPath;
-						Format(wPath, L"%S", fullPath.buf);
+						Assign(wPath, fullPath);
 						
 						WideFilePath containerRelRoot;
-						Format(containerRelRoot, L"%S", qualifiedPath.buf);
+						Format(containerRelRoot, L"%ls", qualifiedPath.buf);
 							
 						Rococo::IO::FileItemData fid = 
 						{
@@ -1197,7 +1169,7 @@ namespace Rococo::IO
 		};
 		
 		U8FilePath u8Dir;
-		Format(u8Dir, "%S", directory);
+		Assign(u8Dir, directory);
 		
 		Anon filesearch(u8Dir);
 		filesearch.Run(callback);

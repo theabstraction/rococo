@@ -240,7 +240,7 @@ namespace Rococo
             }
             else
             {
-               SafeFormat(buffer, bufferCapacity, sizeof(char) == 1 ? "%s" : "%S", symbol);
+               SafeFormat(buffer, bufferCapacity, "%s", symbol);
             }
 			break;
          }

@@ -101,9 +101,9 @@ namespace Rococo { namespace OS
 	{
 		char u8Data[1024];
 		U8FilePath u8VarName;
-		Format(u8VarName, "%S", envVariable);
+		Assign(u8VarName, envVariable);
 		GetEnvVariable(u8Data, capacity, u8VarName);
-		SecureFormat(data, capacity, L"%S", u8Data);
+		SecureFormat(data, capacity, L"%hs", u8Data);
 	}
 
 	typedef void (*FN_AddNativeSexyCalls)(Rococo::Script::IScriptSystem& ss);
@@ -133,7 +133,7 @@ namespace Rococo { namespace OS
 	Rococo::Script::FN_CreateLib GetLibCreateFunction(const wchar_t* dynamicLinkLibOfNativeCalls, bool throwOnError)
 	{
 		U8FilePath filename;
-		Format(filename, "%S", dynamicLinkLibOfNativeCalls);
+		Assign(filename, dynamicLinkLibOfNativeCalls);
 		return GetLibCreateFunction(filename, throwOnError);
 	}
 }} // Rococo::OS

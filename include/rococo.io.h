@@ -114,7 +114,6 @@ namespace Rococo
 		virtual void LoadAbsolute(const wchar_t* absPath, IExpandingBuffer& buffer, int64 maxFileLength) const = 0;
 		virtual size_t MaxPath() const = 0;
 		virtual void Monitor(const wchar_t* absPath) = 0;
-		virtual void UTF8ToUnicode(const char* s, wchar_t* unicode, size_t cbUtf8count, size_t unicodeCapacity) = 0;
 	};
 
 	ROCOCOAPI IInstallation

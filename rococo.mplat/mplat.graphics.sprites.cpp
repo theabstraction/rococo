@@ -53,7 +53,7 @@ namespace
                char contentRelativePath[IO::MAX_PATHLEN];
                cstr sep = EndsWith(containingDir, "/") ? "" : "/";
                cstr sep2 = item.containerRelRoot[0] == 0 || EndsWith(item.containerRelRoot, L"/") ? "" : "/";
-               SafeFormat(contentRelativePath, IO::MAX_PATHLEN, "%s%s%S%s%S", containingDir, sep, item.containerRelRoot, sep2, item.itemRelContainer);
+               SafeFormat(contentRelativePath, IO::MAX_PATHLEN, "%s%s%ls%s%ls", containingDir, sep, item.containerRelRoot, sep2, item.itemRelContainer);
                sprites->AddSprite(to_fstring(contentRelativePath));
             }
          } addSprite;

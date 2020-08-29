@@ -308,7 +308,7 @@ namespace
 				  Events::BusyEvent be;
 				  be.isNowBusy = true;
 				  be.message = "Loading textures";
-				  SafeFormat(be.resourceName, Rococo::IO::MAX_PATHLEN, "%S", path);
+				  Format(be.pingPath, "%s", path);
 				  publisher->Publish(be, Rococo::Events::evBusy);
 
 				  installation->LoadResource(path, *buffer, 64_megabytes);
@@ -337,7 +337,7 @@ namespace
 		  Events::BusyEvent be;
 		  be.isNowBusy = true;
 		  be.message = "Loading textures";
-		  be.resourceName[0] = 0;
+		  be.pingPath.buf[0] = 0;
 		  publisher.Publish(be, Rococo::Events::evBusy);
 
           // Then we tell the renderer to open the files by index
@@ -345,7 +345,7 @@ namespace
 
 		  be.isNowBusy = false;
 		  be.message = "";
-		  be.resourceName[0] = 0;
+		  be.pingPath.buf[0] = 0;
 		  publisher.Publish(be, Rococo::Events::evBusy);
 
 		  RefreshCategories();

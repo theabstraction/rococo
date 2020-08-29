@@ -537,7 +537,7 @@ namespace
 			SafeFormat(levelpath, Rococo::IO::MAX_PATHLEN, "%s", pingPath);
 
 			char shortPingName[256];
-			SafeFormat(shortPingName, 256, "%S", sysPath.buf);
+			SafeFormat(shortPingName, 256, "%ls", sysPath.buf);
 			platform.utilities.AddSubtitle(shortPingName);
 		}
 

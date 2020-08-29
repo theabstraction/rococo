@@ -540,7 +540,7 @@ namespace Rococo
 		{
 			boolean32 isNowBusy;
 			cstr message;
-			char resourceName[Rococo::IO::MAX_PATHLEN];
+			U8FilePath pingPath;
 		};
 
 		struct DirectMouseEvent : public EventArgs

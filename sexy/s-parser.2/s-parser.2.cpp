@@ -64,8 +64,8 @@ void TestGenerated()
 
 	Auto<ISParser> sparser = Sexy_CreateSexParser_2_0(*allocator, 32768);
 
-	wchar_t u16filename[_MAX_PATH];
-	SafeFormat(u16filename, _MAX_PATH, L"%S", filename);
+	WideFilePath u16filename;
+	Assign(u16filename, filename);
 	auto* s = sparser->LoadSource(u16filename, { 1,1 });
 
 	auto start = Rococo::OS::CpuTicks();

@@ -705,7 +705,7 @@ namespace Rococo
 			catch (IException& ex)
 			{
 				char msg[2048];
-				SafeFormat(msg, sizeof(msg), "Sexy: Error reading native files: %s\nExpecting them in %S\n", ex.Message(), srcEnvironment);
+				SafeFormat(msg, sizeof(msg), "Sexy: Error reading native files: %s\nExpecting them in %ls\n", ex.Message(), srcEnvironment);
 				_logger.Write(msg);
 				delete scripts;
 				throw;
@@ -1608,8 +1608,8 @@ namespace Rococo
 
 			sbc->Builder() << "</body></html>";
 
-			wchar_t filename[256];
-			SafeFormat(filename, 256, L"sexydoc\\%S.html", ns.FullName()->Buffer);
+			WideFilePath filename;
+			Format(filename, L"sexydoc\\%hs.html", ns.FullName()->Buffer);
 			Rococo::OS::SaveAsciiTextFile(OS::TargetDirectory_UserDocuments, filename, *sbc->Builder());
 
 			for (int i = 0; i < ns.ChildCount(); ++i)
@@ -1818,8 +1818,8 @@ namespace Rococo
 
 				char srcCode[MAX_NATIVE_SRC_LEN];
 
-				wchar_t fullPath[_MAX_PATH];
-				SafeFormat(fullPath, _MAX_PATH, L"%s%S", srcEnvironment, sexySourceFile);
+				WideFilePath fullPath;
+				Format(fullPath, L"%s%hs", srcEnvironment, sexySourceFile);
 
 				try
 				{
@@ -1849,7 +1849,7 @@ namespace Rococo
 		void AddNativeLibrary(const char* dynamicLinkLibOfNativeCalls) override
 		{
 			WideFilePath srcEnvironmentDll;
-			Format(srcEnvironmentDll, L"%s%S", srcEnvironment, dynamicLinkLibOfNativeCalls);
+			Format(srcEnvironmentDll, L"%ls%hs", srcEnvironment, dynamicLinkLibOfNativeCalls);
 
 			FN_CreateLib create;
 
@@ -1858,7 +1858,7 @@ namespace Rococo
 			{
 				// Could not find DLL in native source path, so check the default paths
 				WideFilePath srcDefaultDll;
-				Format(srcDefaultDll, L"%S", dynamicLinkLibOfNativeCalls);
+				Assign(srcDefaultDll, dynamicLinkLibOfNativeCalls);
 
 				try
 				{
@@ -1866,7 +1866,7 @@ namespace Rococo
 				}
 				catch(IException& ex)
 				{
-					Throw(ex.ErrorCode(), "Error loading library: %S.dll", srcEnvironmentDll.buf);
+					Throw(ex.ErrorCode(), "Error loading library: %ls.dll", srcEnvironmentDll.buf);
 				}
 			}
 

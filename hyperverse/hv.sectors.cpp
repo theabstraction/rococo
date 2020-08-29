@@ -896,7 +896,7 @@ return false;
 		   }
 	   }
 
-	   virtual void OnEvent(Event& ev)
+	   void OnEvent(Event& ev) override
 	   {
 		   if (ev == evPopulateSectors)
 		   {
@@ -906,12 +906,12 @@ return false;
 
 	   size_t selectedIndex = -1;
 
-	   virtual size_t GetSelectedSectorId() const
+	   size_t GetSelectedSectorId() const
 	   {
 		   return selectedIndex;
 	   }
 
-	   virtual void SelectSector(size_t index)
+	   void SelectSector(size_t index) override
 	   {
 		   selectedIndex = index;
 	   }

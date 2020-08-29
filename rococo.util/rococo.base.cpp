@@ -239,7 +239,7 @@ namespace Rococo
 				
 				if (f.fp == nullptr)
 				{
-					Throw(0, "Cannot open file %S", filename);
+					Throw(0, "Cannot open file %ls", filename);
 				}
 				
 #ifdef _WIN32
@@ -291,7 +291,7 @@ namespace Rococo
 #endif
 			if (f == nullptr)
 			{
-				Throw(0, "Cannot open file %S", filename);
+				Throw(0, "Cannot open file %ls", filename);
 			}
 
 			size_t startIndex = 0;
@@ -310,7 +310,7 @@ namespace Rococo
 			if (startIndex >= capacity)
 			{
 				fclose(f);
-				Throw(0, "File too large: %S", filename);
+				Throw(0, "File too large: %ls", filename);
 			}
 
 			fclose(f);

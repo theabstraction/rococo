@@ -279,7 +279,7 @@ namespace Rococo
                adapter->Release();
 
                char buf[256];
-               SafeFormat(buf, 256, "%S", desc.Description);
+               SafeFormat(buf, 256, "%ls", desc.Description);
                adapterList->AddString(buf);
             }
 

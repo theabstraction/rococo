@@ -86,7 +86,7 @@ public:
 
 		va_list args;
 		va_start(args, messageFormat);
-		SafeVFormat(busy.resourceName, sizeof(busy.resourceName), messageFormat, args);
+		SafeVFormat(busy.pingPath.buf, busy.pingPath.CAPACITY, messageFormat, args);
 		platform->publisher.Publish(busy, Rococo::Events::evBusy);
 	}
 
@@ -144,7 +144,7 @@ public:
 	bool GetLoadLocation(Windows::IWindow& parent, LoadDesc& ld) override
 	{
 		wchar_t filter[128];
-		SecureFormat(filter, 128, L"%S%c%S%c%c", ld.extDesc, 0, ld.ext, 0, 0);
+		SecureFormat(filter, 128, L"%hs%c%hs%c%c", ld.extDesc, 0, ld.ext, 0, 0);
 
 		OPENFILENAMEW dialog = { 0 };
 		dialog.lStructSize = sizeof(dialog);
@@ -155,13 +155,13 @@ public:
 		dialog.nMaxFile = Rococo::IO::MAX_PATHLEN;
 
 		wchar_t u16Caption[256];
-		SafeFormat(u16Caption, 256, L"%S", ld.caption);
+		SafeFormat(u16Caption, 256, L"%hs", ld.caption);
 
 		dialog.lpstrTitle = u16Caption;
 		dialog.Flags = OFN_CREATEPROMPT | OFN_ENABLESIZING | OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST;
 
 		wchar_t u16Ext[64];
-		SafeFormat(u16Caption, 64, L"%S", ld.ext);
+		SafeFormat(u16Caption, 64, L"%hs", ld.ext);
 
 		dialog.lpstrDefExt = u16Ext;
 
@@ -183,7 +183,7 @@ public:
 	bool GetSaveLocation(Windows::IWindow& parent, SaveDesc& sd) override
 	{
 		wchar_t filter[128];
-		SecureFormat(filter, 128, L"%S%c%S%c%c", sd.extDesc, 0, sd.ext, 0, 0);
+		SecureFormat(filter, 128, L"%hs%c%hs%c%c", sd.extDesc, 0, sd.ext, 0, 0);
 
 		OPENFILENAMEW dialog = { 0 };
 		dialog.lStructSize = sizeof(dialog);
@@ -194,11 +194,11 @@ public:
 		dialog.nMaxFile = sizeof(sd.path) / sizeof(wchar_t);
 
 		wchar_t u16Caption[256];
-		SafeFormat(u16Caption, 256, L"%S", sd.caption);
+		SafeFormat(u16Caption, 256, L"%hs", sd.caption);
 		dialog.lpstrTitle = u16Caption;
 
 		wchar_t u16Ext[256];
-		SafeFormat(u16Ext, 256, L"%S", sd.ext);
+		SafeFormat(u16Ext, 256, L"%hs", sd.ext);
 		dialog.lpstrDefExt = u16Ext;
 
 		wchar_t initialPath[IO::MAX_PATHLEN];
@@ -242,14 +242,14 @@ public:
 			Throw(0, "Directories must be inside the content directory. Use the '!<directory>' notation");
 		}
 
-		wchar_t shortDir[IO::MAX_PATHLEN];
-		wchar_t directory[IO::MAX_PATHLEN];
+		WideFilePath shortDir;
+		WideFilePath directory;
 
-		SafeFormat(shortDir, IO::MAX_PATHLEN, L"%S", pingPathDirectory);
+		Assign(shortDir, pingPathDirectory);
 
-		EndDirectoryWithSlash(shortDir, IO::MAX_PATHLEN);
+		EndDirectoryWithSlash(shortDir.buf, IO::MAX_PATHLEN);
 
-		SafeFormat(directory, IO::MAX_PATHLEN, L"%s%s", (cstr)installation.Content(), shortDir + 1);
+		Format(directory, L"%ls%ls", installation.Content(), shortDir + 1);
 		IO::ForEachFileInDirectory(directory, addToList, true);
 
 		std::sort(addToList.allResults.begin(), addToList.allResults.end());
@@ -367,12 +367,12 @@ public:
 		FileHandle fh = CreateFileW(pathname, GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
 		if (fh == INVALID_HANDLE_VALUE)
 		{
-			Throw(GetLastError(), "Error saving %S", pathname);
+			Throw(GetLastError(), "Error saving %ls", pathname);
 		}
 
 		if (!WriteFile(fh, buffer, (DWORD)nChars, nullptr, nullptr))
 		{
-			Throw(GetLastError(), "Error writing %S", pathname);
+			Throw(GetLastError(), "Error writing %ls", pathname);
 		}
 	}
 

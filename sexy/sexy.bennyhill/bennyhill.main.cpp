@@ -1014,8 +1014,8 @@ int main(int argc, char* argv[])
 
 	try
 	{
-		wchar_t u16inputName[_MAX_PATH];
-		SafeFormat(u16inputName, _MAX_PATH, L"%S", pc.scriptInput);
+		WideFilePath u16inputName;
+		Assign(u16inputName, pc.scriptInput);
 		src = parser->LoadSource(u16inputName, Vec2i{ 1,1 });
 		tree = parser->CreateTree(src());
 

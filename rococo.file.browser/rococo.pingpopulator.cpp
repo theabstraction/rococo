@@ -215,7 +215,7 @@ struct PingPopulator : public IDirectoryPopulator
 					if (*item.containerRelRoot == 0) // Only interested in the first layer of folders
 					{
 						U8FilePath buf; // ascii should be fine, since we are in a subdir of a ping path
-						Format(buf, "%S%S", item.containerRelRoot, item.itemRelContainer);
+						Format(buf, "%ls%ls", item.containerRelRoot, item.itemRelContainer);
 						U32FilePath itemPath;
 						PathFromAscii(buf, '/', itemPath);
 						cb->OnFile(root, itemPath, nullptr, 0);
@@ -251,7 +251,7 @@ struct PingPopulator : public IDirectoryPopulator
 					if (*item.containerRelRoot == 0) // Only interested in the first layer of folders
 					{
 						char buf[260];
-						SafeFormat(buf, 260, "%S%S", item.containerRelRoot, item.itemRelContainer);
+						SafeFormat(buf, 260, "%ls%ls", item.containerRelRoot, item.itemRelContainer);
 						U32FilePath itemPath;
 						PathFromAscii(buf, '/', itemPath);
 

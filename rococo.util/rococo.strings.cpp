@@ -198,7 +198,7 @@ namespace Rococo
 		int count = SafeVFormat(path.buf, path.CAPACITY, format, args);
 		if (count == -1)
 		{
-			Throw(0, "%s failed. Buffer length exceeded. Format String: %S", __FUNCTION__, format);
+			Throw(0, "%s failed. Buffer length exceeded. Format String: %ls", __FUNCTION__, format);
 		}
 		return count;
 	}
@@ -380,6 +380,16 @@ namespace Rococo
 	}
 #endif
 
+	void Assign(U8FilePath& dest, const wchar_t* wideSrc)
+	{
+		Format(dest, "%ls", wideSrc);
+	}
+
+	void Assign(WideFilePath& dest, const char* src)
+	{
+		Format(dest, L"%hs", src);
+	}
+
    size_t rlen(cstr s)
    {
       return strlen(s);
@@ -434,7 +444,7 @@ namespace Rococo
 	   int count = SafeVFormat(buffer, capacity, format, args);
 	   if (count == -1)
 	   {
-		   Throw(0, "SecureFormat failed. Buffer length exceeded. Format String: %S", format);
+		   Throw(0, "SecureFormat failed. Buffer length exceeded. Format String: %ls", format);
 	   }
 	   return count;
    }

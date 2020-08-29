@@ -93,11 +93,6 @@ namespace
 		return ss.SParser().DuplicateSourceBuffer((csexstr) input, moduleLength, Vec2i{ 0,0 }, name);
 	}
 
-   int CopySexCharToUnicode(wchar_t* output, size_t bufferCapacity, csexstr input)
-   {
-      return _snwprintf_s(output, bufferCapacity, _TRUNCATE, L"%S", input);
-   }
-
 	bool CopyUnicodeToSexChar(SEXCHAR* output, size_t bufferCapacity, const Char* input)
 	{
 		size_t neededLen = wcslen(input)+1;
@@ -223,11 +218,11 @@ namespace
          char rvalue[256];
 			ProtectedFormatValue(ss, rvalue, bufferLen, type, pVariableData);
 
-         _snwprintf_s(unicodeValue, bufferLen, _TRUNCATE, L"%S", rvalue);
+         _snwprintf_s(unicodeValue, bufferLen, _TRUNCATE, L"%hs", rvalue);
 		}
 		__except(1)
 		{
-         _snwprintf_s(unicodeValue, bufferLen, _TRUNCATE, L"%s", L"Bad pointer");
+         _snwprintf_s(unicodeValue, bufferLen, _TRUNCATE, L"Bad pointer");
 		}
 	}
 }

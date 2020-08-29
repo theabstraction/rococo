@@ -1924,7 +1924,7 @@ namespace ANON
 		   catch (_com_error& e)
 		   {
 			   const wchar_t* msg = e.ErrorMessage();
-			   Throw(e.Error(), "device.CreateInputLayout failed for shader %s: %S. %s\n", name, msg, (cstr) e.Description());
+			   Throw(e.Error(), "device.CreateInputLayout failed for shader %s: %ls. %s\n", name, msg, (cstr) e.Description());
 		   }
 
 		   if FAILED(hr)

@@ -1668,11 +1668,11 @@ namespace Rococo { namespace Script
 					}
 					catch (IException& e)
 					{
-						Rococo::Sex::Throw(*(j->E), e.Message());
+						Rococo::Sex::Throw(*(j->E), "%s", e.Message());
 					}
 					catch (std::exception& e)
 					{
-						Rococo::Sex::Throw(*(j->E), ("std::exception thrown: %S"), e.what());
+						Rococo::Sex::Throw(*(j->E), "std::exception thrown: %s", e.what());
 					}
 				}
 			}
@@ -1694,12 +1694,12 @@ namespace Rococo { namespace Script
 				catch(STCException& ex)
 				{
 					sexstringstream<1024> streamer;
-					streamer.sb << ex.Source() << (": ") << ex.Message();
-               Rococo::Sex::Throw(root, streamer);
+					streamer.sb << ex.Source() << ": " << ex.Message();
+					Rococo::Sex::Throw(root, streamer);
 				}			
 				catch (std::exception& e)
 				{
-               Rococo::Sex::Throw(root, ("std::exception thrown: %S"), e.what());
+					Rococo::Sex::Throw(root, "std::exception thrown: %s", e.what());
 				}	
 			}
 		}

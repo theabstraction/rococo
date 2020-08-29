@@ -196,7 +196,7 @@ namespace MHost
 						auto& te = As<TextOutputEvent>(ev);
 						if (te.isGetting)
 						{
-							SafeFormat(te.text, sizeof(te.text), "%s", be.resourceName);
+							SafeFormat(te.text, sizeof(te.text), "%s", be.pingPath.buf);
 						}
 					}
 				}

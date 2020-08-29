@@ -533,7 +533,7 @@ namespace
                BitmapLocationImpl* loc;
                ITextureArray* ta;
 
-               virtual void OnEvent(CompressedTextureBuffer& buffer)
+               void OnEvent(CompressedTextureBuffer& buffer) override
                {
                   if (buffer.type == COMPRESSED_TYPE_JPG)
                   {
@@ -545,12 +545,12 @@ namespace
                   }
                }
 
-               virtual void OnError(const char* message)
+               void OnError(const char* message) override
                {
-                  Throw(0, "Could not load image %s:\n%S", name, message);
+                  Throw(0, "Could not load image %s:\n%s", name, message);
                }
 
-               virtual void OnRGBAImage(const Vec2i& span, const RGBAb* data)
+               void OnRGBAImage(const Vec2i& span, const RGBAb* data) override
                {
                   if (this->span.x != span.x || this->span.y != span.y)
                   {
@@ -566,7 +566,7 @@ namespace
                   ta->WriteSubImage(loc->index, data, loc->uv);
                }
 
-               virtual void OnAlphaImage(const Vec2i& span, const uint8* data)
+               void OnAlphaImage(const Vec2i& span, const uint8* data) override
                {
                   Throw(0, "Image %s was an alpha, or single channel bitmap.\nOnly 32-bt RGBA or 24-bit RGB files supported.", name);
                }

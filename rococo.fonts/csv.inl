@@ -306,7 +306,7 @@ namespace
 		{
 			size_t tokenBufferLen = strlen(item.item) + 1;
 			char* expectedToken = (char*)alloca(sizeof(char)* tokenBufferLen);
-			Throw(0, "Expecting '%S' in '%s' at column %d line %d", expectedToken, filename, cursor.tokenIndex, cursor.lineNumber);
+			Throw(0, "Expecting '%ls' in '%s' at column %d line %d", expectedToken, filename, cursor.tokenIndex, cursor.lineNumber);
 		}
 		return *this;
 	}

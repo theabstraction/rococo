@@ -150,7 +150,7 @@ namespace Rococo
 		DXGI_ADAPTER_DESC desc;
 		testAdapter->GetDesc(&desc);
 
-		SafeFormat(d.description, sizeof(d.description), "%S rev %u", desc.Description, desc.Revision);
+		SafeFormat(d.description, sizeof(d.description), "%ls rev %u", desc.Description, desc.Revision);
 		d.sysMemoryMB = desc.DedicatedSystemMemory / 1_megabytes;
 		d.videoMemoryMB = desc.DedicatedVideoMemory / 1_megabytes;
 		d.sharedMemoryMB = desc.SharedSystemMemory / 1_megabytes;

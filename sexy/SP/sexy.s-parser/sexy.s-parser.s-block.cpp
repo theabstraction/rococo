@@ -1515,8 +1515,8 @@ namespace Anon
 		{
 			if (u16filename == nullptr || *u16filename == 0) Rococo::Throw(0, "ISParser::LoadSource: Blank filename");
 
-			char filename[_MAX_PATH];
-			SafeFormat(filename, _MAX_PATH, "%S", u16filename);
+			U8FilePath filename;
+			Assign(filename, u16filename);
 
 			try
 			{
@@ -1538,7 +1538,7 @@ namespace Anon
 				if (fp == nullptr)
 				{
 					int err = errno;
-					Rococo::Throw(0, "Could not open file %S - %s", u16filename, strerror(err));
+					Rococo::Throw(0, "Could not open file %ls - %s", u16filename, strerror(err));
 				}
 
 				struct FPANON
@@ -1583,15 +1583,15 @@ namespace Anon
 			}
 			catch (IException& ex)
 			{
-				Rococo::Throw(ex.ErrorCode(), "ISParser::LoadSource( %s ,...) failed - %s", filename, ex.Message());
+				Rococo::Throw(ex.ErrorCode(), "ISParser::LoadSource( %s ,...) failed - %s", filename.buf, ex.Message());
 				return nullptr;
 			}
 		}
 
 		ISourceCode* LoadSource(const wchar_t* u16filename, const Vec2i& origin, const char* buffer, long len) override
 		{
-			char filename[_MAX_PATH];
-			SafeFormat(filename, _MAX_PATH, "%S", u16filename);
+			U8FilePath filename;
+			Assign(filename, u16filename);
 			return DuplicateSourceBuffer(buffer, len, origin, filename);
 		}
 

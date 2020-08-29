@@ -676,7 +676,7 @@ namespace
 			len = newLen;
 		}
 
-		Throw(0, "Could not find %S below the executable folder '%S'", contentIndicatorName, binDirectory);
+		Throw(0, "Could not find %ls below the executable folder '%ls'", contentIndicatorName, binDirectory.buf);
 	}
 
 	class Installation : public IInstallationSupervisor
@@ -787,7 +787,7 @@ namespace
 			{
 				subdir = pingPath + 1;
 
-				Format(sysPath, L"%s%S", contentDirectory, subdir);
+				Format(sysPath, L"%ls%hs", contentDirectory, subdir);
 			}
 			else if (*pingPath == '#')
 			{
@@ -811,7 +811,7 @@ namespace
 
 				macroDir = i->second.c_str();
 
-				Format(sysPath, L"%s%S%S", contentDirectory, macroDir + 1, subdir);
+				Format(sysPath, L"%ls%hs%hs", contentDirectory, macroDir + 1, subdir);
 			}
 			else
 			{
@@ -840,7 +840,7 @@ namespace
 			cstr expansion = i->second.c_str();
 			if (strstr(fullPingPath, expansion) == nullptr)
 			{
-				Throw(0, "Installation::ConvertSysPathToMacroPath(...\"%S\", \"%s\") Path not prefixed by macro: %s", sysPath, macro, expansion);
+				Throw(0, "Installation::ConvertSysPathToMacroPath(...\"%ls\", \"%hs\") Path not prefixed by macro: %hs", sysPath, macro, expansion);
 			}
 
 			Format(pingPath, "%s/%s", macro, fullPingPath.buf + i->second.size());
@@ -858,15 +858,15 @@ namespace
 			
 			if (0 != _wcsnicmp(sysPath, contentDirectory, wcslen(contentDirectory)))
 			{
-				Throw(0, "ConvertSysPathToPingPath: '%S' did not begin with the content folder %S", sysPath, contentDirectory);
+				Throw(0, "ConvertSysPathToPingPath: '%ls' did not begin with the content folder %ls", sysPath, contentDirectory.buf);
 			}
 
 			if (wcsstr(sysPath, L"..") != nullptr)
 			{
-				Throw(0, "ConvertSysPathToPingPath: '%S' - Illegal sequence in ping path: '..'", sysPath);
+				Throw(0, "ConvertSysPathToPingPath: '%ls' - Illegal sequence in ping path: '..'", sysPath);
 			}
 
-			Format(pingPath, "!%S", sysPath + contentDirLength);
+			Format(pingPath, "!%ls", sysPath + contentDirLength);
 
 			OS::ToUnixPath(pingPath.buf);
 		}
@@ -906,7 +906,7 @@ namespace
 			}
 			else
 			{
-				Format(absPath, L"%S", pingPath);
+				Assign(absPath, pingPath);
 			}
 
 			os.LoadAbsolute(absPath, buffer, maxFileLength);
@@ -1014,14 +1014,6 @@ namespace
 		void Free() override
 		{
 			delete this;
-		}
-
-		void UTF8ToUnicode(const char* s, wchar_t* unicode, size_t cbUtf8count, size_t unicodeCapacity) override
-		{
-			if (0 == MultiByteToWideChar(CP_UTF8, 0, s, (int)cbUtf8count, unicode, (int)unicodeCapacity))
-			{
-				Throw(GetLastError(), "Could not convert UTF8 to rchar: %S", s);
-			}
 		}
 
 		void EnumerateModifiedFiles(IEventCallback<FileModifiedArgs> &cb) override
@@ -1195,7 +1187,7 @@ namespace
 			hMonitorDirectory = CreateFileW(absPath, GENERIC_READ, shareFlags, nullptr, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED, nullptr);
 			if (hMonitorDirectory == INVALID_HANDLE_VALUE)
 			{
-				Throw(GetLastError(), "Failed to create monitor on directory %S", absPath);
+				Throw(GetLastError(), "Failed to create monitor on directory %ls", absPath);
 			}
 
 			isRunning = true;
@@ -1240,7 +1232,7 @@ namespace
 		void LoadAbsolute(const wchar_t* absPath, IExpandingBuffer& buffer, int64 maxFileLength) const override
 		{
 			FileHandle hFile = CreateFileW(absPath, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
-			if (!hFile.IsValid()) Throw(HRESULT_FROM_WIN32(GetLastError()), "Win32OS::LoadResource failed: Error opening file %S", absPath);
+			if (!hFile.IsValid()) Throw(HRESULT_FROM_WIN32(GetLastError()), "Win32OS::LoadResource failed: Error opening file %ls", absPath);
 
 			LARGE_INTEGER len;
 			GetFileSizeEx(hFile, &len);
@@ -1446,7 +1438,7 @@ namespace Rococo
 		{
 			if (text.length > 1024_megabytes)
 			{
-				Throw(0, "Rococo::OS::SaveAsciiTextFile(%S): Sanity check. String was > 1 gigabyte in length", filename);
+				Throw(0, "Rococo::OS::SaveAsciiTextFile(%ls): Sanity check. String was > 1 gigabyte in length", filename);
 			}
 
 			HANDLE hFile = INVALID_HANDLE_VALUE;
@@ -1473,13 +1465,13 @@ namespace Rococo
 				hFile = CreateFileW(filename, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 				break;
 			default:
-				Throw(0, "Rococo::OS::SaveAsciiTextFile(... %S): Unrecognized target directory", filename);
+				Throw(0, "Rococo::OS::SaveAsciiTextFile(... %ls): Unrecognized target directory", filename);
 				break;
 			}
 
 			if (hFile == INVALID_HANDLE_VALUE)
 			{
-				Throw(GetLastError(), "Cannot create file %S in user directory", filename);
+				Throw(GetLastError(), "Cannot create file %ls in user directory", filename);
 			}
 			DWORD bytesWritten;
 			bool status = WriteFile(hFile, text.buffer, (DWORD)text.length, &bytesWritten, NULL);
@@ -1488,7 +1480,7 @@ namespace Rococo
 
 			if (!status)
 			{
-				Throw(err, "Rococo::OS::SaveAsciiTextFile(%S) : failed to write text to file", filename);
+				Throw(err, "Rococo::OS::SaveAsciiTextFile(%ls) : failed to write text to file", filename);
 			}
 		}
 	}
@@ -1504,7 +1496,7 @@ namespace Rococo
 
 			if (nChars > capacity) Throw(0, "Rococo::IO::GetUserPath -> Insufficient capacity in result buffer");
 
-			_snwprintf_s(fullpath, capacity, capacity, L"%s\\%S", userDocPath, shortname);
+			_snwprintf_s(fullpath, capacity, capacity, L"%ls\\%hs", userDocPath, shortname);
 
 			CoTaskMemFree(userDocPath);
 		}
@@ -1517,7 +1509,7 @@ namespace Rococo
 			size_t nChars = wcslen(userDocPath) + 2 + strlen(filename);
 			size_t sizeOfBuffer = sizeof(wchar_t) * nChars;
 			wchar_t* fullPath = (wchar_t*)alloca(sizeOfBuffer);
-			_snwprintf_s(fullPath, nChars, nChars, L"%s\\%S", userDocPath, filename);
+			_snwprintf_s(fullPath, nChars, nChars, L"%ls\\%hs", userDocPath, filename);
 			CoTaskMemFree(userDocPath);
 
 			BOOL success = DeleteFileW(fullPath);
@@ -1533,7 +1525,7 @@ namespace Rococo
 			size_t nChars = wcslen(userDocPath) + 2 + strlen(filename);
 			size_t sizeOfBuffer = sizeof(wchar_t) * nChars;
 			wchar_t* fullPath = (wchar_t*)alloca(sizeOfBuffer);
-			_snwprintf_s(fullPath, nChars, nChars, L"%s\\%S", userDocPath, filename);
+			_snwprintf_s(fullPath, nChars, nChars, L"%ls\\%hs", userDocPath, filename);
 			CoTaskMemFree(userDocPath);
 
 			HANDLE hFile = CreateFileW(fullPath, GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
@@ -1729,7 +1721,7 @@ namespace Rococo
 				Throw(hr, "pfd->GetResult");
 			}
 
-			SafeFormat(name, capacity, "%S", _name);
+			SafeFormat(name, capacity, "%ls", _name);
 
 			CoTaskMemFree(_name);
 
