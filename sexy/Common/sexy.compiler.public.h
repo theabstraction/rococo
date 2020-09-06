@@ -347,6 +347,8 @@ namespace Rococo {
 			virtual int StructCount() const = 0;
 			virtual int PrefixCount() const = 0;
 			virtual const INamespace& GetPrefix(int index) const = 0;
+
+			virtual void SetPackage(cstr packageId, cstr path) = 0;
 		};
 
 		bool IsNullType(const IStructure& s);

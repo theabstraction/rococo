@@ -26,6 +26,30 @@ namespace Rococo
    int sscanf_s(const char* buffer, const char* format, ...);
 # endif
 #endif
+   
+   template<size_t CAPACITY, typename... Args> 
+   inline int SafeFormat(char (&buffer)[CAPACITY], cstr format, Args... args)
+   {
+	   return SafeFormat(buffer, CAPACITY, format, args...);
+   }
+   
+   template<size_t CAPACITY, typename... Args> 
+   inline int SafeFormat(wchar_t (&buffer)[CAPACITY], const wchar_t* format, Args... args)
+   {
+	   return SafeFormat(buffer, CAPACITY, format, args...);
+   }
+   
+   template<size_t CAPACITY, typename... Args>
+   inline int SecureFormat(char(&buffer)[CAPACITY], cstr format, Args... args)
+   {
+	   return SecureFormat(buffer, CAPACITY, format, args...);
+   }
+
+   template<size_t CAPACITY, typename... Args>
+   inline int SecureFormat(wchar_t(&buffer)[CAPACITY], const wchar_t* format, Args... args)
+   {
+	   return SecureFormat(buffer, CAPACITY, format, args...);
+   }
 
 	struct IStringBuffer
 	{

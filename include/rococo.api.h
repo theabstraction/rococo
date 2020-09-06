@@ -10,9 +10,9 @@ struct DEFINED_ID_NAME																		            \
 	DEFINED_ID_NAME() : value(INVALID_VALUE) {}												      \
 	explicit DEFINED_ID_NAME(TYPE _value) : value(_value) {}								      \
 	TYPE value;																				               \
-   static DEFINED_ID_NAME Invalid() { return DEFINED_ID_NAME(); }							   \
-	size_t operator()(const DEFINED_ID_NAME& obj) const { return size_t(obj.value); }	\
-   operator bool () const { return value != INVALID_VALUE; }                           \
+    [[nodiscard]] static DEFINED_ID_NAME Invalid() noexcept { return DEFINED_ID_NAME(); }							   \
+	size_t operator() (const DEFINED_ID_NAME& obj) const { return size_t(obj.value); }	\
+    operator bool () const noexcept { return value != INVALID_VALUE; }                           \
 };																							                  \
 inline bool operator == (const DEFINED_ID_NAME& a, const DEFINED_ID_NAME& b) { return a.value == b.value; }				\
 inline bool operator != (const DEFINED_ID_NAME& a, const DEFINED_ID_NAME& b) { return !(a == b); }                   \
@@ -161,7 +161,7 @@ namespace Rococo
 		};
 
 		/*
-		  Implement your own IArrayFontSent. The populate function should call IFontGlyphBuilder::AddGlyph
+		  Implement your own IArrayFontSet. The populate function should call IFontGlyphBuilder::AddGlyph
 		  for every UNICODE value you want in the font image set. Since this can be rather expensive in
 		  memory for the full UNICODE set, I suggest you restrict glyphs to ASCII 32 to 126 and add whatever
 		  extra characters your particular application needs.
@@ -193,10 +193,10 @@ namespace Rococo
 
 	ROCOCOAPI IUltraClock
 	{
-	   virtual OS::ticks FrameStart() const = 0;	// The time of the current render frame
-	   virtual OS::ticks Start() const = 0;		// The time at which the mainloop started
-	   virtual OS::ticks FrameDelta() const = 0;	// The time between the previous frame and the current frame.
-	   virtual Seconds DT() const = 0; // Get a sanitized timestep in seconds
+	   [[nodiscard]] virtual OS::ticks FrameStart() const = 0;	// The time of the current render frame
+		[[nodiscard]] virtual OS::ticks Start() const = 0;		// The time at which the mainloop started
+		[[nodiscard]] virtual OS::ticks FrameDelta() const = 0;	// The time between the previous frame and the current frame.
+		[[nodiscard]] virtual Seconds DT() const = 0; // Get a sanitized timestep in seconds
 	};
 
 	struct IRandom;
@@ -247,9 +247,9 @@ namespace Rococo
 
 	bool operator == (const fstring& a, const fstring& b);
 
-	uint32 FastHash(cstr text);
+	[[nodiscard]] uint32 FastHash(cstr text);
 
-	fstring to_fstring(cstr const msg);
+	[[nodiscard]] fstring to_fstring(cstr const msg);
 
 #ifdef _WIN32
 	typedef size_t lsize_t;
@@ -351,9 +351,9 @@ namespace Rococo
 			virtual void Free() = 0;
 		};
 
-		IThreadSupervisor* CreateRococoThread(IThreadJob* thread, uint32 stacksize);
+		[[nodiscard]] IThreadSupervisor* CreateRococoThread(IThreadJob* thread, uint32 stacksize);
 
-		void* AllocBoundedMemory(size_t nBytes);
+		[[nodiscard]] void* AllocBoundedMemory(size_t nBytes);
 		void FreeBoundedMemory(void* pMemory);
 
 		enum TargetDirectory
@@ -385,7 +385,7 @@ namespace Rococo
 		virtual void InitDisassembly(size_t codeId) = 0;
 		virtual void AddSourceCode(cstr name, cstr sourceCode) = 0;
 		virtual void Free() = 0;
-		virtual Windows::IWindow& GetDebuggerWindowControl() = 0;
+		[[nodiscard]] virtual Windows::IWindow& GetDebuggerWindowControl() = 0;
 		virtual void PopulateMemberView(Visitors::ITreePopulator& populator) = 0;
 		virtual void PopulateRegisterView(Visitors::IListPopulator& populator) = 0;
 		virtual void PopulateVariableView(Visitors::IListPopulator& populator) = 0;
@@ -441,12 +441,12 @@ namespace Rococo
 
 	ROCOCOAPI ISourceCache
 	{
-		virtual IAllocator& Allocator() = 0;
-		virtual Rococo::Sex::ISParserTree* GetSource(cstr resourceName) = 0;
+		[[nodiscard]] virtual IAllocator& Allocator() = 0;
+		[[nodiscard]] virtual Rococo::Sex::ISParserTree* GetSource(cstr resourceName) = 0;
 		virtual void Free() = 0;
 		virtual void Release(cstr resourceName) = 0;
 		virtual void ReleaseAll() = 0;
-		virtual IMathsVenue* Venue() = 0;
+		[[nodiscard]] virtual IMathsVenue* Venue() = 0;
 	};
 
 	struct IArgStack
@@ -485,26 +485,26 @@ namespace Rococo
 	void ExecuteFunction(Rococo::ID_BYTECODE bytecodeId, IArgEnumerator& args, Rococo::Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger, bool trace);
 	void ExecuteFunction(cstr name, IArgEnumerator& args, Rococo::Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger, bool trace);
 	int32 ExecuteSexyScript(ScriptPerformanceStats& stats, Rococo::Sex::ISParserTree& mainModule, IDebuggerWindow& debugger, Rococo::Script::IPublicScriptSystem& ss, ISourceCache& sources, int32 param, IEventCallback<ScriptCompileArgs>& onCompile, bool trace);
-	ISourceCache* CreateSourceCache(IInstallation& installation);
+	[[nodiscard]] ISourceCache* CreateSourceCache(IInstallation& installation);
 
 	void ThrowSex(Rococo::Sex::cr_sex s, cstr format, ...);
 	void ScanExpression(Rococo::Sex::cr_sex s, cstr hint, const char* format, ...);
 	void ValidateArgument(Rococo::Sex::cr_sex s, cstr arg);
 
-	Vec3 GetVec3Value(Rococo::Sex::cr_sex sx, Rococo::Sex::cr_sex sy, Rococo::Sex::cr_sex sz);
-	RGBAb GetColourValue(Rococo::Sex::cr_sex s);
-	Quat GetQuat(Rococo::Sex::cr_sex s);
+	[[nodiscard]] Vec3 GetVec3Value(Rococo::Sex::cr_sex sx, Rococo::Sex::cr_sex sy, Rococo::Sex::cr_sex sz);
+	[[nodiscard]] RGBAb GetColourValue(Rococo::Sex::cr_sex s);
+	[[nodiscard]] Quat GetQuat(Rococo::Sex::cr_sex s);
 
 	void LogParseException(Rococo::Sex::ParseException& ex, IDebuggerWindow& logger);
 
-	fstring GetAtomicArg(Rococo::Sex::cr_sex s);
+	[[nodiscard]] fstring GetAtomicArg(Rococo::Sex::cr_sex s);
 }
 
 namespace Rococo
 {
 	ROCOCOAPI IRandom
 	{
-		virtual uint32 operator()() = 0;
+		[[nodiscard]] virtual uint32 operator()() = 0;
 		virtual void Seed(uint32 value) = 0;
 	};
 
@@ -632,9 +632,9 @@ namespace Rococo
 		   virtual void Free() = 0;
 		};
 
-		IPublisherSupervisor* CreatePublisher();
+		[[nodiscard]] IPublisherSupervisor* CreatePublisher();
 
-		template<class T> inline T& As(Event& ev)
+		template<class T> [[nodiscard]] inline T& As(Event& ev)
 		{
 			T& t = static_cast<T&>(ev.args);
 			if (t.sizeInBytes != sizeof(T)) ev.publisher.ThrowBadEvent(ev);
@@ -703,24 +703,25 @@ namespace Rococo
 		void PrintDebug(const char* format, ...);
 		void TripDebugger();
 		void ShowErrorBox(Windows::IWindow& parent, IException& ex, cstr caption);
-		bool IsDebugging();
+		[[nodiscard]] bool IsDebugging();
 		void BreakOnThrow(BreakFlag flag);
 		void SetBreakPoints(int flags);
-		ticks CpuTicks();
-		ticks CpuHz();
-		ticks UTCTime();
+		[[nodiscard]] ticks CpuTicks();
+		[[nodiscard]] ticks CpuHz();
+		[[nodiscard]] ticks UTCTime();
 		void FormatTime(ticks utcTime, char* buffer, size_t nBytes);
 		bool StripLastSubpath(wchar_t* fullpath);
 		bool IsFileExistant(const wchar_t* path);
 		void Format_C_Error(int errorCode, char* buffer, size_t capacity);
-		int OpenForAppend(void** fp, cstr name);
-		int OpenForRead(void** fp, cstr name);
+		[[nodiscard]] int OpenForAppend(void** fp, cstr name);
+		[[nodiscard]] int OpenForRead(void** fp, cstr name);
 		void UILoop(uint32 milliseconds);
 		void ToSysPath(wchar_t* path);
 		void ToUnixPath(wchar_t* path);
 		void ToSysPath(char* path);
 		void ToUnixPath(char* path);
 		void SanitizePath(char* path);
+		void SanitizePath(wchar_t* path);
 		void SaveClipBoardText(cstr text, Windows::IWindow& window);
 		bool TryGetColourFromDialog(RGBAb& colour, Windows::IWindow& window);
 		cstr GetAsciiCommandLine();
@@ -735,11 +736,11 @@ namespace Rococo
 
 	namespace Memory
 	{
-		IAllocator& CheckedAllocator();
-		IAllocatorSupervisor* CreateBlockAllocator(size_t kilobytes, size_t maxkilobytes);
+		[[nodiscard]] IAllocator& CheckedAllocator();
+		[[nodiscard]] IAllocatorSupervisor* CreateBlockAllocator(size_t kilobytes, size_t maxkilobytes);
 	}
 
-	template<typename T, typename U> inline bool HasFlag(T flag, U flags)
+	template<typename T, typename U> [[nodiscard]] inline bool HasFlag(T flag, U flags)
 	{
 		return (flags & flag) != 0;
 	}

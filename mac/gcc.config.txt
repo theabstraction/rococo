@@ -1,2 +1,2 @@
--O3 -c -mmacosx-version-min=10.10
+-g -c -mmacosx-version-min=10.8 -D_DEBUG=1
 -I../include/

@@ -149,5 +149,78 @@ namespace Rococo {
 			Rococo::Script::FN_CreateLib createFn = (Rococo::Script::FN_CreateLib) fp;
 			return createFn;
 		}
+
+		Rococo::Script::FN_CreateLib GetLibCreateFunction(cstr origin, const void* inMemoryDLL, int32 nBytesLength)
+		{
+			if (nBytesLength <= 0)
+			{
+				Throw(0, "Cannot create DLL %s\nBad length %d\n", origin, nBytesLength);
+			}
+
+			if (nBytesLength > 512_megabytes)
+			{
+				Throw(0, "Cannot create DLL %s\nExceeded maximum size of 512 MB\n", origin);
+			}
+
+			DWORD uint32Length = (DWORD)nBytesLength;
+
+			U8FilePath tempPath;
+			if (0 == GetTempPathA(tempPath.CAPACITY, tempPath.buf))
+			{
+				Throw(GetLastError(), "Could not open temporary path");
+			}
+
+			U8FilePath tempFile;
+			Format(tempFile, "%hs%hs", tempPath.buf, origin);
+
+			struct AutoFile
+			{
+				HANDLE hFile;
+				~AutoFile()
+				{
+					if (hFile != INVALID_HANDLE_VALUE)
+					{
+						CloseHandle(hFile);
+					}
+				}
+				void Close()
+				{
+					CloseHandle(hFile);
+					hFile = INVALID_HANDLE_VALUE;
+				}
+				operator HANDLE() { return hFile; }
+			} hFile = {
+				CreateFile(tempFile, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL)
+			};
+
+			if (hFile == INVALID_HANDLE_VALUE)
+			{
+				Throw(GetLastError(), "Could not open file for writing: %hs", tempFile.buf);
+			}
+
+			DWORD bytesWritten = 0;
+			if (!WriteFile(hFile, inMemoryDLL, uint32Length, &bytesWritten, nullptr)
+				|| bytesWritten != uint32Length)
+			{
+				Throw(GetLastError(), "Could not write %u bytes to %hs", uint32Length, tempFile.buf);
+			}
+
+			hFile.Close();
+
+			HMODULE lib = LoadLibrary(tempFile);
+			if (lib == nullptr)
+			{
+				Rococo::Throw(GetLastError(), "Could not load %hs", origin);
+			}
+
+			FARPROC fp = GetProcAddress(lib, "CreateLib");
+			if (fp == nullptr)
+			{
+				Rococo::Throw(GetLastError(), "Could not find  INativeLib* CreateLib(...) in %hs", origin);
+			}
+
+			Rococo::Script::FN_CreateLib createFn = (Rococo::Script::FN_CreateLib) fp;
+			return createFn;
+		}
 	}
 } // Rococo::OS

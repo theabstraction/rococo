@@ -149,7 +149,14 @@ namespace Rococo
 	namespace IO
 	{
 		enum { MAX_PATHLEN = 260 };
-		char GetFileSeparator();
+		[[nodiscard]] constexpr char GetFileSeparator() noexcept
+		{
+#ifdef _WIN32
+			return '\\';
+#else
+			return '/';
+#endif
+		}
 		void EndDirectoryWithSlash(char* pathname, size_t capacity);
 		void EndDirectoryWithSlash(wchar_t* pathname, size_t capacity);
 #ifdef _WIN32 // Windows may have UNICODE16 characters in the username, so ascii insufficient to hold the user path

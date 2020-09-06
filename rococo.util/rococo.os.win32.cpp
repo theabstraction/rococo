@@ -400,6 +400,14 @@ namespace Rococo
 
 			return false;
 		}
+		
+		void SanitizePath(wchar_t* path)
+		{
+			for (auto* s = path; *s != 0; ++s)
+			{
+				if (*s == L'/') *s = L'\\';
+			}
+		}
 
 		void SanitizePath(char* path)
 		{
@@ -1535,11 +1543,6 @@ namespace Rococo
 				WriteFile(hFile, s, (DWORD)(sizeof(char) * rlen(s)), &writeLength, nullptr);
 				CloseHandle(hFile);
 			}
-		}
-
-		char GetFileSeparator()
-		{
-			return L'\\';
 		}
 
 		template<class T> struct ComObject

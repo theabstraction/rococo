@@ -54,7 +54,7 @@ using namespace Rococo::VM;
 
 namespace
 {
-	wchar_t defaultNativeSourcePath[256] = { 0 };
+	WideFilePath defaultNativeSourcePath = { 0 };
 
 	// Careful that we had enough buffer space
 	void AddSlashToDirectory(wchar_t* buffer)
@@ -85,14 +85,14 @@ namespace Rococo
 		{
 			if (pathname == nullptr)
 			{
-				defaultNativeSourcePath[0] = 0;
+				defaultNativeSourcePath = {0};
 				return;
 			}
 
-			SafeFormat(defaultNativeSourcePath, _MAX_PATH, L"%s", pathname);
+			Format(defaultNativeSourcePath, L"%ls", pathname);
 
 			// Terminate with slash
-			AddSlashToDirectory(defaultNativeSourcePath);
+			AddSlashToDirectory(defaultNativeSourcePath.buf);
 		}
 	}
 }
@@ -102,6 +102,7 @@ namespace Rococo
 	namespace OS
 	{
 		FN_CreateLib GetLibCreateFunction(const wchar_t* dynamicLinkLibOfNativeCalls, bool throwOnError);
+		FN_CreateLib GetLibCreateFunction(cstr origin, const void* DLLmemoryBuffer, int32 nBytesLength);
 	}
 
 	namespace Script
@@ -598,7 +599,7 @@ namespace Rococo
 		ID_API_CALLBACK arrayPushId;
 		ID_API_CALLBACK serializeId;
 
-		wchar_t srcEnvironment[_MAX_PATH];
+		WideFilePath srcEnvironment;
 
 		TMapMethodToMember methodMap;
 
@@ -656,24 +657,24 @@ namespace Rococo
 			{
 				if (pip.NativeSourcePath != 0)
 				{
-					SafeFormat(srcEnvironment, _MAX_PATH, L"%s", pip.NativeSourcePath);
+					Format(srcEnvironment, L"%ls", pip.NativeSourcePath);
 				}
 				else if (*defaultNativeSourcePath != 0)
 				{
-					SafeFormat(srcEnvironment, _MAX_PATH, L"%s", defaultNativeSourcePath);
+					Format(srcEnvironment, L"%ls", defaultNativeSourcePath.buf);
 				}
 				else
 				{
-					OS::GetEnvVariable(srcEnvironment, _MAX_PATH, L"SEXY_NATIVE_SRC_DIR");
+					OS::GetEnvVariable(srcEnvironment.buf, _MAX_PATH, L"SEXY_NATIVE_SRC_DIR");
 				}
-				AddSlashToDirectory(srcEnvironment);
+				AddSlashToDirectory(srcEnvironment.buf);
 			}
 			catch (IException& innerEx)
 			{
 				char message[1024];
-				SafeFormat(message, sizeof(message), ("%s:\nFailed to get sexy environment.\nUse Rococo::Script::SetDefaultNativeSourcePath(...) or ProgramInitParameters or environment variable SEXY_NATIVE_SRC_DIR"), innerEx.Message());
+				SafeFormat(message, sizeof(message), "%hs:\nFailed to get sexy environment.\nUse Rococo::Script::SetDefaultNativeSourcePath(...) or ProgramInitParameters or environment variable SEXY_NATIVE_SRC_DIR", innerEx.Message());
 				_logger.Write(message);
-				Rococo::Throw(innerEx.ErrorCode(), ("%s"), message);
+				Rococo::Throw(innerEx.ErrorCode(), "%s", message);
 			}
 
 			scripts = new CScripts(*progObjProxy, *this);
@@ -692,7 +693,11 @@ namespace Rococo
 				AddCommonSource("Sys.Maths.sxy"); // Module 2			
 				AddCommonSource("Sys.Reflection.sxy"); // Module 3
 
+#ifdef _WIN32
 				bool useDebug = pip.useDebugLibs;
+#else
+				bool useDebug = false; // APPLE build script doesn't generate debug extension, so just use whatever files have been built
+#endif
 
 				AddNativeLibrary(useDebug ? "sexy.nativeLib.reflection.debug" : "sexy.nativeLib.reflection");
 				AddNativeLibrary(useDebug ? "sexy.nativeLib.maths.debug" : "sexy.nativeLib.maths");
@@ -705,7 +710,7 @@ namespace Rococo
 			catch (IException& ex)
 			{
 				char msg[2048];
-				SafeFormat(msg, sizeof(msg), "Sexy: Error reading native files: %s\nExpecting them in %ls\n", ex.Message(), srcEnvironment);
+				SafeFormat(msg, sizeof(msg), "Sexy: Error reading native files: %s\nExpecting them in %ls\n", ex.Message(), srcEnvironment.buf);
 				_logger.Write(msg);
 				delete scripts;
 				throw;
@@ -827,6 +832,66 @@ namespace Rococo
 
 			progObjProxy = nullptr;
 			if (stringPool) stringPool->Free();
+		}
+
+		void ImportSXYFilesInPackage(IPackage& pkg, const char* subdir)
+		{
+			int nFiles = pkg.CountFiles(subdir);
+			for (int i = 0; i < nFiles; i++)
+			{
+				SubPackageData f;
+				pkg.GetFile(subdir, i, f);
+
+				if (EndsWith(f.name, ".sxy"))
+				{
+					U8FilePath filename;
+					pkg.AppendPaths(subdir, f.name, filename);
+					Auto<ISourceCode> src = pkg.LoadFile(filename);
+					auto* tree = SParser().CreateTree(*src);
+					auto* module = AddTree(*tree);
+					module->SetPackage(pkg.UniqueName(), filename);
+				}
+			}
+
+			int nDirs = pkg.CountDirectories(subdir);
+			for (int i = 0; i < nDirs; i++)
+			{
+				SubPackageData dir;
+				pkg.GetDirectory(subdir, i, dir);
+
+				U8FilePath childDir;
+				pkg.AppendPaths(subdir, dir.name, childDir);
+				ImportSXYFilesInPackage(pkg, childDir);
+			}
+		}
+
+		void ImportDLLsInPackage(IPackage& pkg, const char* subdir)
+		{
+			int nFiles = pkg.CountFiles(subdir);
+			for (int i = 0; i < nFiles; i++)
+			{
+				SubPackageData dll;
+				pkg.GetFile(subdir, i, dll);
+
+				if (EndsWith(dll.name, ".dll"))
+				{
+					U8FilePath dllPath;
+					pkg.AppendPaths(subdir, dll.name, dllPath);
+					Auto<ISourceCode> src = pkg.LoadFile(dllPath);
+
+					U8FilePath dllUniqueName;
+					pkg.AppendPaths(pkg.UniqueName(), dllPath, dllUniqueName);
+
+					FN_CreateLib create = Rococo::OS::GetLibCreateFunction(dllUniqueName, src->SourceStart(), src->SourceLength());
+					INativeLib* lib = create(*this);
+					nativeLibs.push_back(lib);
+				}
+			}
+		}
+
+		void LoadPackage_SXYandDLLs(IPackage& loader) override
+		{
+			ImportSXYFilesInPackage(loader, "");
 		}
 
 		ID_API_CALLBACK GetIdSerializeCallback() const override
@@ -1805,6 +1870,9 @@ namespace Rococo
 				throw ex;
 			}
 		}
+		
+		enum { MAX_NATIVE_SRC_LEN = 32768 };
+		std::vector<char> sourceBuffer;
 
 		void AddCommonSource(const char *sexySourceFile) override
 		{
@@ -1814,23 +1882,21 @@ namespace Rococo
 			auto i = nativeSources.find(sexySourceFile);
 			if (i == nativeSources.end())
 			{
-				enum { MAX_NATIVE_SRC_LEN = 32768 };
-
-				char srcCode[MAX_NATIVE_SRC_LEN];
-
+				sourceBuffer.resize(MAX_NATIVE_SRC_LEN);
+				
 				WideFilePath fullPath;
-				Format(fullPath, L"%s%hs", srcEnvironment, sexySourceFile);
+				Format(fullPath, L"%ls%hs", srcEnvironment.buf, sexySourceFile);
 
 				try
 				{
-					OS::LoadAsciiTextFile(srcCode, MAX_NATIVE_SRC_LEN, fullPath);
+					OS::LoadAsciiTextFile(sourceBuffer.data(), sourceBuffer.size(), fullPath);
 				}
 				catch (Rococo::IException&)
 				{
 					throw;
 				}
 
-				src.Src = sexParserProxy().DuplicateSourceBuffer(srcCode, -1, Vec2i{ 0,0 }, sexySourceFile);
+				src.Src = sexParserProxy().DuplicateSourceBuffer(sourceBuffer.data(), -1, Vec2i{ 0,0 }, sexySourceFile);
 				src.Tree = sexParserProxy().CreateTree(*src.Src);
 
 				nativeSources.insert(std::make_pair(sexySourceFile, src.Tree));
@@ -1842,18 +1908,20 @@ namespace Rococo
 			}
 
 			AddTree(*src.Tree);
-
-			// commonSources.push_back(src);
 		}
+		
+#ifdef _WIN32
+		const char* const DLL_EXT = "dll";
+#else
+		const char* const DLL_EXT = "mac.dylib";
+#endif
 
 		void AddNativeLibrary(const char* dynamicLinkLibOfNativeCalls) override
 		{
 			WideFilePath srcEnvironmentDll;
-			Format(srcEnvironmentDll, L"%ls%hs", srcEnvironment, dynamicLinkLibOfNativeCalls);
+			Format(srcEnvironmentDll, L"%ls%hs", srcEnvironment.buf, dynamicLinkLibOfNativeCalls);
 
-			FN_CreateLib create;
-
-			create = Rococo::OS::GetLibCreateFunction(srcEnvironmentDll, false);
+			FN_CreateLib create = Rococo::OS::GetLibCreateFunction(srcEnvironmentDll, false);
 			if (!create)
 			{
 				// Could not find DLL in native source path, so check the default paths
@@ -1866,7 +1934,7 @@ namespace Rococo
 				}
 				catch(IException& ex)
 				{
-					Throw(ex.ErrorCode(), "Error loading library: %ls.dll", srcEnvironmentDll.buf);
+					Throw(ex.ErrorCode(), "Error loading library: %ls.%hs", srcEnvironmentDll.buf, DLL_EXT);
 				}
 			}
 
@@ -1881,9 +1949,9 @@ namespace Rococo
 
 		void ThrowNative(int errorNumber, cstr source, cstr message) override
 		{
-			sexstringstream<1024> streamer;
-			streamer.sb << ("Native Error (") << source << ("): ") << message;
-			progObjProxy->Log().Write(*streamer.sb);
+			char msg[1024];
+			SafeFormat(msg, sizeof(msg), "Native Error (%s): %s", source, message);
+			progObjProxy->Log().Write(msg);
 			progObjProxy->VirtualMachine().Throw();
 		}
 	};

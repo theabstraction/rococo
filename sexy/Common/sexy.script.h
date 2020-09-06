@@ -215,12 +215,30 @@ namespace Rococo {
 			virtual ENUM_REPRESENT OnRepresentation(CReflectedClass* rep) = 0;
 		};
 
+		struct SubPackageData
+		{
+			int64 filesize;
+			U8FilePath name;
+		};
+
+		ROCOCOAPI IPackage
+		{
+			virtual cstr UniqueName() const = 0;
+			virtual void AppendPaths(const char* a, const char* b, U8FilePath & ab) = 0;
+			virtual Sex::ISourceCode* LoadFile(const char* resourcePath) = 0;
+			virtual void GetFile(const char* resourcePath, int index, SubPackageData& pkg) const = 0;
+			virtual void GetDirectory(const char* resourcePath, int index, SubPackageData& pkg) const = 0;
+			virtual int CountDirectories(const char* resourcePath) const = 0;
+			virtual int CountFiles(const char* resourcePath) const = 0;
+		};
+
 		ROCOCOAPI IPublicScriptSystem : public IFreeable
 		{
 			virtual void AddCommonSource(const char* dynamicLinkLibOfNativeCalls) = 0;
 			virtual void AddNativeCall(const Compiler::INamespace& ns, FN_NATIVE_CALL callback, void* context, cstr archetype, bool checkName = true, int popBytes = 0) = 0; // Example: AddNativeCall(ns, ANON::CpuHz, NULL, "CpuHz -> (Int64 hz)");
 			virtual const Compiler::INamespace& AddNativeNamespace(cstr name) = 0;
 			virtual void AddNativeLibrary(const char *sexyLibraryFile) = 0;
+			virtual void LoadPackage_SXYandDLLs(IPackage& loader) = 0;
 			virtual Compiler::IModule* AddTree(Sex::ISParserTree& tree) = 0;
 			virtual void Compile() = 0;
 			virtual void DispatchToSexyClosure(void* pArgBuffer, const ArchetypeCallback& target) = 0;

@@ -10,6 +10,8 @@
 
 #include <rococo.strings.h>
 
+#include <rococo.maths.h>
+
 namespace
 {
    using namespace Rococo;
@@ -225,13 +227,14 @@ namespace
 		  auto i = mapNameToLoc.find(name);
 		  if (i == mapNameToLoc.end())
 		  {
-			  location = BitmapLocation{ { 0,0,0,0 }, -1 };
+              location = BitmapLocation{ { 0,0,0,0 }, -1, {0,0} };
 			  return false;
 		  }
 		  else
 		  {
 			  location.textureIndex = i->second.index;
 			  location.txUV = i->second.uv;
+              location.pixelSpan = Dequantize(i->second.span);
 			  return true;
 		  }
 	  }

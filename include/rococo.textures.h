@@ -29,6 +29,7 @@ namespace Rococo
       {
          GuiRect txUV;
          int32 textureIndex;
+         Vec2 pixelSpan;
       };
 
       ROCOCOAPI ITextureArrayBuilder

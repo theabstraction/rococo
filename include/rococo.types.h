@@ -35,8 +35,6 @@ namespace Rococo
 
 	typedef size_t ID_BYTECODE;
 
-#define ROCOCO_CONSTEXPR constexpr
-
 #else
 	typedef signed char int8;
 	typedef signed short int int16;
@@ -47,8 +45,6 @@ namespace Rococo
 	typedef unsigned short int uint16;
 	typedef unsigned int uint32;
 	typedef unsigned long long int uint64;
-
-#define ROCOCO_CONSTEXPR
 
 #endif
 
@@ -82,7 +78,7 @@ namespace Rococo
 		cstr buffer;
 		int32 length;
 
-		operator cstr() const { return buffer; }
+		constexpr operator cstr() const noexcept { return buffer; }
 	};
 
 	template<class T> struct FilePath
@@ -91,9 +87,7 @@ namespace Rococo
 		T buf[CAPACITY];
 		T pathSeparator;
 
-		typedef const T* cstr;
-
-		operator const T* () const { return buf; }
+		constexpr operator const T* () const noexcept { return buf; }
 	};
 
 	typedef FilePath<char32_t> U32FilePath;
@@ -113,7 +107,7 @@ namespace Rococo
 	   virtual void Populate(cstr text) = 0;
 	};
 
-	inline ROCOCO_CONSTEXPR fstring operator"" _fstring(cstr msg, size_t length)
+	inline constexpr fstring operator"" _fstring (cstr msg, size_t length) noexcept
 	{
 		return fstring{ msg, (int32)length };
 	}
@@ -264,15 +258,15 @@ namespace Rococo
 
 	template<class T> ROCOCOAPI IEnumerable
 	{
-		virtual const T& operator[](size_t index) = 0;
-		virtual size_t Count() const = 0;
+		[[nodiscard]] virtual const T& operator[](size_t index) = 0;
+		[[nodiscard]] virtual size_t Count() const = 0;
 		virtual void Enumerate(IEnumerator<T>& cb) = 0;
 	};
 
 	template<> ROCOCOAPI IEnumerable<cstr>
 	{
-		virtual cstr operator[](size_t index) = 0;
-		virtual size_t Count() const = 0;
+		[[nodiscard]] virtual cstr operator[](size_t index) = 0;
+		[[nodiscard]] virtual size_t Count() const = 0;
 		virtual void Enumerate(IEnumerator<cstr>& cb) = 0;
 	};
 
@@ -305,11 +299,11 @@ namespace Rococo
 
 	template<class T> ROCOCOAPI IVectorEnumerator
 	{
-	   virtual T* begin() = 0;
-	   virtual T* end() = 0;
-	   virtual const T* begin() const = 0;
-	   virtual const T* end() const = 0;
-	   virtual size_t size() const = 0;
+		[[nodiscard]] virtual T* begin() = 0;
+		[[nodiscard]] virtual T* end() = 0;
+		[[nodiscard]] virtual const T* begin() const = 0;
+		[[nodiscard]] virtual const T* end() const = 0;
+		[[nodiscard]] virtual size_t size() const = 0;
 	};
 
 	// Represent a gui rectangle in floating point co-ordinates. top < bottom for most uses.
@@ -340,22 +334,22 @@ namespace Rococo
 		AABB2d& operator << (cr_vec2 p);
 	};
 
-	template<class T> inline T max(T a, T b)
+	template<class T> [[nodiscard]] inline T max(T a, T b)
 	{
 		return a > b ? a : b;
 	}
 
-	template<class T> inline T min(T a, T b)
+	template<class T> [[nodiscard]] inline T min(T a, T b)
 	{
 		return a < b ? a : b;
 	}
 
-	template<class T> inline T clamp(T a, T lowestBound, T highestBound)
+	template<class T> [[nodiscard]] inline T clamp(T a, T lowestBound, T highestBound)
 	{
 		return min(highestBound, max(lowestBound, a));
 	}
 
-	template<class T> inline T Sq(T a)
+	template<class T> [[nodiscard]] inline T Sq(T a)
 	{
 		return a * a;
 	}
@@ -465,24 +459,24 @@ namespace Rococo
 		void Empty();
 
 		AABB& operator << (cr_vec3 p);
-		bool HoldsPoint(cr_vec3 p) const;
-		bool Intersects(const AABB& other) const;
+		[[nodiscard]] bool HoldsPoint(cr_vec3 p) const;
+		[[nodiscard]] bool Intersects(const AABB& other) const;
 
-		Vec3 Centre() const;
+		[[nodiscard]] Vec3 Centre() const;
 		void GetBox(BoundingBox& box) const;
-		Vec3 Span() const;
+		[[nodiscard]] Vec3 Span() const;
 
-		AABB RotateBounds(const Matrix4x4& Rz) const;
+		[[nodiscard]] AABB RotateBounds(const Matrix4x4& Rz) const;
 	};
 
-	inline const Vec2& Flatten(const Vec3& a)
+	[[nodiscard]] inline const Vec2& Flatten(const Vec3& a)
 	{
 		return *reinterpret_cast<const Vec2*>(&a);
 	}
 
 	ROCOCOAPI IAllocator
 	{
-	   virtual void* Allocate(size_t capacity) = 0;
+	   [[nodiscard]] virtual void* Allocate(size_t capacity) = 0;
 	   virtual void FreeData(void* data) = 0;
 	   virtual void* Reallocate(void* ptr, size_t capacity) = 0;
 	};
@@ -511,7 +505,7 @@ namespace Rococo
 		typedef int64 ticks;
 	}
 
-	template<class T, class U> bool IsFlagged(T flags, U flag) { return (flags & flag) != 0; }
+	template<class T, class U> [[nodiscard]] constexpr bool IsFlagged(T flags, U flag) { return (flags & flag) != 0; }
 
 #if !defined(_W64)
 # if !defined(__midl) && (defined(_X86_) || defined(_M_IX86))
