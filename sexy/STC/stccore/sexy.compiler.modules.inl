@@ -79,7 +79,12 @@ namespace Rococo { namespace Compiler { namespace Impl
 			ClearClosures();
 		}
 
-		virtual void Clear()
+		void SetPackage(cstr packageId, cstr path) override
+		{
+
+		}
+
+		void Clear() override
 		{
 			functions.Clear();
 			structures.Clear();
@@ -87,19 +92,19 @@ namespace Rococo { namespace Compiler { namespace Impl
 			ClearClosures();
 		}
 
-		virtual const IStructure& GetStructure(int index) const
+		const IStructure& GetStructure(int index) const override
 		{
 			const IStructAlias& alias = structures.GetStruct(index);
 			return alias.GetStructure();
 		}
 
-		virtual IStructureBuilder& GetStructure(int index)
+		IStructureBuilder& GetStructure(int index) override
 		{
 			IStructAliasBuilder& alias = structures.GetStruct(index);
 			return alias.GetStructure();
 		}
 
-		virtual IFunctionBuilder& DeclareClosure(IFunctionBuilder& parent, bool mayUseParentSF, const void* definition)
+		IFunctionBuilder& DeclareClosure(IFunctionBuilder& parent, bool mayUseParentSF, const void* definition) override
 		{
 			char name[32];
 			SafeFormat(name, 32, ("_Closure%s%u"), parent.Name(), closures.size());
@@ -108,7 +113,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 			return *f;
 		}
 
-		virtual IFunctionBuilder& DeclareFunction(const FunctionPrototype& prototype, const void* definition, int popBytes)
+		IFunctionBuilder& DeclareFunction(const FunctionPrototype& prototype, const void* definition, int popBytes) override
 		{
 			Anon::Function* f = (Anon::Function*) functions.Get(prototype.Name);
 			if (f != NULL)
@@ -123,17 +128,17 @@ namespace Rococo { namespace Compiler { namespace Impl
 			return *f;
 		}
 
-		virtual int FunctionCount() const 
+		int FunctionCount() const override
 		{
 			return (int32) (functions.size() + closures.size());
 		}
 
-		virtual int StructCount() const
+		int StructCount() const override
 		{
 			return structures.StructCount();
 		}
 
-		const IFunction& GetFunction(int index) const
+		const IFunction& GetFunction(int index) const override
 		{
 			if ( index < functions.size())
 			{
@@ -157,42 +162,42 @@ namespace Rococo { namespace Compiler { namespace Impl
 
 		int byteCodeVersion;
 
-		virtual int GetVersion() const
+		int GetVersion() const override
 		{
 			return byteCodeVersion;
 		}
 
-		virtual void IncVersion()
+		void IncVersion() override
 		{
 			byteCodeVersion++;
 		}
 
-		virtual IStructure& DeclareClass(cstr name, const StructurePrototype& prototype, const void* definition)
+		IStructure& DeclareClass(cstr name, const StructurePrototype& prototype, const void* definition) override
 		{
 			Structure* s = new Structure(name, prototype, *this, prototype.archetype != NULL ? VARTYPE_Closure : VARTYPE_Derivative, definition);
 			structures.Register(s->Name(), *s);
 			return *s;
 		}
 
-		virtual IStructureBuilder& DeclareStructure(cstr name, const StructurePrototype& prototype, const void* definition)
+		IStructureBuilder& DeclareStructure(cstr name, const StructurePrototype& prototype, const void* definition) override
 		{
 			Structure* s = new Structure(name, prototype, *this, prototype.archetype != NULL ? VARTYPE_Closure : VARTYPE_Derivative, definition);
 			structures.Register(s->Name(), *s);
 			return *s;
 		}
 
-		virtual IStructureBuilder* FindStructure(cstr name)
+		IStructureBuilder* FindStructure(cstr name) override
 		{
 			return structures.TryGet(name);
 		}
 
-		virtual const IStructure* FindStructure(cstr name) const
+		const IStructure* FindStructure(cstr name) const override
 		{
 			const IStructure* s = ((Module *)this)->structures.TryGet(name);
 			return s;
 		}
 
-		virtual const IFunction* FindFunction(cstr name) const
+		const IFunction* FindFunction(cstr name) const override
 		{
 			const IFunction* f = ((Module *)this)->GetFunctionCore(name);
 			return f;
@@ -221,7 +226,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 			return NULL;
 		}
 
-		virtual IFunctionBuilder* FindFunction(cstr name)
+		IFunctionBuilder* FindFunction(cstr name) override
 		{
 			return GetFunctionCore(name);
 		}
@@ -236,7 +241,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 			}
 		}
 
-		virtual bool ResolveDefinitions()
+		bool ResolveDefinitions()
 		{
 			bool success = true;
 			for(int i = 0; i < functions.FunctionCount(); i++)
@@ -251,16 +256,16 @@ namespace Rococo { namespace Compiler { namespace Impl
 			return success;
 		}
 			
-		virtual cstr Name() const	{	return name.c_str(); }
-		virtual IProgramObject& Object() { return object; }
-		virtual IPublicProgramObject& Object() const { return object; }
+		cstr Name() const override {	return name.c_str(); }
+		IProgramObject& Object() override  { return object; }
+		IPublicProgramObject& Object() const override { return object; }
 
 		FunctionRegistry& Functions() { return functions; }
 		StructRegistry& Structures() { return structures; }
 		const FunctionRegistry& Functions() const { return functions; }
 		const StructRegistry& Structures() const { return structures; }
 
-		virtual void UsePrefix(cstr name)
+		void UsePrefix(cstr name) override
 		{
 			for(auto i = prefixes.begin(); i != prefixes.end(); ++i)
 			{
@@ -281,10 +286,10 @@ namespace Rococo { namespace Compiler { namespace Impl
 			prefixes.push_back(ns);
 		}
 
-		virtual int PrefixCount() const { return (uint32) prefixes.size(); }
-		virtual INamespaceBuilder& GetPrefix(int index) { return *prefixes[index]; }
-		virtual const INamespace& GetPrefix(int index) const { return *prefixes[index]; }
-		virtual void ClearPrefixes() { prefixes.clear(); }
+		int PrefixCount() const override { return (uint32) prefixes.size(); }
+		INamespaceBuilder& GetPrefix(int index) override { return *prefixes[index]; }
+		const INamespace& GetPrefix(int index) const override { return *prefixes[index]; }
+		void ClearPrefixes() override { prefixes.clear(); }
 
 		static Module* CreateIntrinsics(IProgramObject& object, cstr name)
 		{

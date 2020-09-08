@@ -66,6 +66,8 @@ namespace Rococo
 	struct Gravity;
 	struct Metres;
 
+	struct IPackage;
+
 	typedef const Vec2& cr_vec2;
 	typedef const Vec3& cr_vec3;
 	typedef const Vec4& cr_vec4;
@@ -173,6 +175,24 @@ namespace Rococo
 		virtual cstr Message() const = 0;
 		virtual int32 ErrorCode() const = 0;
 		virtual Debugging::IStackFrameEnumerator* StackFrames() = 0;
+	};
+
+	struct SubPackageData
+	{
+		int64 filesize;
+		int64 timestamp;
+		U8FilePath name;
+	};
+
+	struct IFileSnapshot
+	{
+		const int64 filesize;
+		const void* pData;
+	};
+
+	ROCOCOAPI IFileHandler
+	{
+		virtual void OnLoad(const IFileSnapshot & snapshot) = 0;
 	};
 
 	class RecursionGuard

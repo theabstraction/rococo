@@ -46,6 +46,8 @@
 
 #include <rococo.api.h>
 
+#include <rococo.package.h>
+
 using namespace Rococo;
 using namespace Rococo::Script;
 using namespace Rococo::Compiler;
@@ -608,6 +610,8 @@ namespace Rococo
 
 		std::unordered_map<std::string, uint64> persistentStrings;
 
+		AutoFree<ISexyPackagerSupervisor> packager;
+
 		void InstallNullFunction()
 		{
 			IFunctionBuilder& nullFunction = progObjProxy->IntrinsicModule().DeclareFunction(FunctionPrototype(("_nothing"), false), NULL);
@@ -648,10 +652,23 @@ namespace Rococo
 		IAllocator& allocator;
 		TMapNameToSTree& nativeSources;
 		int nextId;
+
 	public:
-		CScriptSystem(TMapNameToSTree& _nativeSources, const ProgramInitParameters& pip, ILog& _logger, IAllocator& _allocator) :
-			allocator(_allocator), progObjProxy(CreateProgramObject_1_0_0_0(pip, _logger)), nativeCallIndex(1), stringConstantStruct(NULL),
-			reflectionRoot(NULL), nextId(0), nativeSources(_nativeSources), sexParserProxy(Sexy_CreateSexParser_2_0(_allocator))
+		CScriptSystem(
+			TMapNameToSTree& _nativeSources, 
+			const ProgramInitParameters& pip, 
+			ILog& _logger, 
+			IAllocator& _allocator) :
+
+			allocator(_allocator), 
+			progObjProxy(CreateProgramObject_1_0_0_0(pip, _logger)), 
+			nativeCallIndex(1), 
+			stringConstantStruct(NULL),
+			reflectionRoot(NULL), 
+			nextId(0), 
+			nativeSources(_nativeSources), 
+			sexParserProxy(Sexy_CreateSexParser_2_0(_allocator)),
+			packager(CreatePackager())
 		{
 			try
 			{
@@ -834,64 +851,9 @@ namespace Rococo
 			if (stringPool) stringPool->Free();
 		}
 
-		void ImportSXYFilesInPackage(IPackage& pkg, const char* subdir)
+		void RegisterPackage(IPackage* package) override
 		{
-			int nFiles = pkg.CountFiles(subdir);
-			for (int i = 0; i < nFiles; i++)
-			{
-				SubPackageData f;
-				pkg.GetFile(subdir, i, f);
-
-				if (EndsWith(f.name, ".sxy"))
-				{
-					U8FilePath filename;
-					pkg.AppendPaths(subdir, f.name, filename);
-					Auto<ISourceCode> src = pkg.LoadFile(filename);
-					auto* tree = SParser().CreateTree(*src);
-					auto* module = AddTree(*tree);
-					module->SetPackage(pkg.UniqueName(), filename);
-				}
-			}
-
-			int nDirs = pkg.CountDirectories(subdir);
-			for (int i = 0; i < nDirs; i++)
-			{
-				SubPackageData dir;
-				pkg.GetDirectory(subdir, i, dir);
-
-				U8FilePath childDir;
-				pkg.AppendPaths(subdir, dir.name, childDir);
-				ImportSXYFilesInPackage(pkg, childDir);
-			}
-		}
-
-		void ImportDLLsInPackage(IPackage& pkg, const char* subdir)
-		{
-			int nFiles = pkg.CountFiles(subdir);
-			for (int i = 0; i < nFiles; i++)
-			{
-				SubPackageData dll;
-				pkg.GetFile(subdir, i, dll);
-
-				if (EndsWith(dll.name, ".dll"))
-				{
-					U8FilePath dllPath;
-					pkg.AppendPaths(subdir, dll.name, dllPath);
-					Auto<ISourceCode> src = pkg.LoadFile(dllPath);
-
-					U8FilePath dllUniqueName;
-					pkg.AppendPaths(pkg.UniqueName(), dllPath, dllUniqueName);
-
-					FN_CreateLib create = Rococo::OS::GetLibCreateFunction(dllUniqueName, src->SourceStart(), src->SourceLength());
-					INativeLib* lib = create(*this);
-					nativeLibs.push_back(lib);
-				}
-			}
-		}
-
-		void LoadPackage_SXYandDLLs(IPackage& loader) override
-		{
-			ImportSXYFilesInPackage(loader, "");
+			packager->RegisterNamespacesInPackage(package);
 		}
 
 		ID_API_CALLBACK GetIdSerializeCallback() const override
