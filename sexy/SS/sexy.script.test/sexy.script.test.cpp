@@ -222,7 +222,7 @@ namespace
 
 	void PrintParseException(const ParseException& e)
 	{
-		WriteToStandardOutput("Parse error\r\nSource: %s\r\nExpression: (%d,%d) to (%d,%d)\r\nReason: %s\r\n", e.Name(), e.Start().x, e.Start().y, e.End().x, e.End().y, e.Message());
+		WriteToStandardOutput("\r\nParse error:\r\nSource: %s\r\nExpression: (%d,%d) to (%d,%d)\r\nReason: %s\r\n", e.Name(), e.Start().x, e.Start().y, e.End().x, e.End().y, e.Message());
 
 		int depth = 0;
 		for (const ISExpression* s = e.Source(); s != NULL; s = s->GetOriginal())
@@ -612,6 +612,77 @@ namespace
       ValidateExecution(result);
    }
 
+   void TestUseDefaultNamespace(IPublicScriptSystem& ss)
+   {
+	   cstr srcCode =
+		   "(namespace EntryPoint)"
+		   "(using Sys.Maths)"
+
+		   "($ Sys.Maths.I32)"
+
+		   "(function Double (Int32 x)->(Int32 y): (y = (2 * x)))"
+
+		   "(alias Double $.Double)"
+
+		   "(function Main (Int32 id) -> (Int32 exitCode): "
+		   "  (exitCode = (Sys.Maths.I32.Double 7))"
+		   ")"
+		   "(alias Main EntryPoint.Main)";
+	   Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+	   Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+	   VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+	   vm.Push(99); // Allocate stack space for the int32 exitcode
+	   vm.Push(101); // Allocate stack space for the int32 id
+
+	   auto result = vm.Execute(VM::ExecutionFlags(false, true));
+	   ValidateExecution(result);
+
+	   int32 id = vm.PopInt32();
+	   int32 exitCode = vm.PopInt32();
+	   validate(exitCode == 14);
+	   validate(id == 101);
+   }
+
+   void TestUseDefaultNamespace2(IPublicScriptSystem& ss)
+   {
+	   cstr srcCode =
+		   "(namespace EntryPoint)\n"
+		   "(using Sys.Maths)\n"
+
+		   "($ Sys.Dogs)\n"
+
+		   "(interface $.IDog\n"
+		   "	(Bark ->)\n"
+		   ")\n"
+
+		   "(using $)"
+
+		   "(class Dog (implements $.IDog))"
+
+		   "(method Dog.Bark -> : )"
+
+		   "(method Dog.Construct : )"
+
+		   "(factory $.NewDog $.IDog : (construct Dog))"
+
+		   "(function Main (Int32 id) -> (Int32 exitCode): \n"
+		   "     (IDog dog (NewDog))\n"
+		   ")\n"
+		   "(alias Main EntryPoint.Main)\n";
+	   Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+	   Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+	   VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+	   vm.Push(99); // Allocate stack space for the int32 exitcode
+	   vm.Push(101); // Allocate stack space for the int32 id
+
+	   auto result = vm.Execute(VM::ExecutionFlags(false, true));
+	   ValidateExecution(result);
+
+	   int32 id = vm.PopInt32();
+	   int32 exitCode = vm.PopInt32();
+   }
 
    void TestAssignDerivatives(IPublicScriptSystem& ss)
    {
@@ -13458,6 +13529,9 @@ namespace
 	void RunPositiveSuccesses()
 	{
 		validate(true);
+
+		TEST(TestUseDefaultNamespace);
+		TEST(TestUseDefaultNamespace2);
 
 		TEST(TestStringSplit);
 

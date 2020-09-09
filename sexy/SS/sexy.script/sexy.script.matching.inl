@@ -348,7 +348,7 @@ namespace Rococo
 
          cstr type = typeExpr.String()->Buffer;
 
-         if (!IsCapital(type[0]))
+         if (!IsCapital(type[0]) && *type != '$')
          {
             return NULL;
          }
@@ -359,6 +359,14 @@ namespace Rococo
          if (splitter.SplitTail(OUT body, OUT tail))
          {
             INamespaceBuilder* ns = Compiler::MatchNamespace(module, body);
+            if (ns == nullptr)
+            {
+                if (Eq(body, "$"))
+                {
+                    ns = static_cast<INamespaceBuilder*>(const_cast<INamespace*>(module.DefaultNamespace()));
+                }
+            }
+
             if (ns == NULL) ThrowTokenNotFound(typeExpr, body, ("program"), ("namespace"));
 
             IInterfaceBuilder* interf = ns->FindInterface(tail);

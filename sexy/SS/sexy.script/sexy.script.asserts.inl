@@ -128,7 +128,19 @@ namespace Rococo { namespace Sex
 		{
 			sexstringstream<1024> streamer;
 			streamer.sb << ("Expecting typename, but the string was too long. Exceeded ") << NAMESPACE_MAX_LENGTH << (" characters");
-         Throw(e, *streamer.sb);
+			Throw(e, *streamer.sb);
+		}
+
+		int startIndex = 0;
+
+		if (text->Buffer[0] == '$')
+		{
+			if (text->Length > 1 && text->Buffer[1] != '.')
+			{
+				Throw(e, "Default namespace character detected, but expected it to be followed by a dot");
+			}
+
+			startIndex = 2;
 		}
 
 		enum STATE
@@ -137,7 +149,7 @@ namespace Rococo { namespace Sex
 			STATE_WITHIN_ITEM,
 		} state = STATE_EXPECTING_NEW_ITEM;
 
-		for(int i = 0; i < text->Length; i++)
+		for(int i = startIndex; i < text->Length; i++)
 		{
 			char c = text->Buffer[i];
 
@@ -148,7 +160,7 @@ namespace Rococo { namespace Sex
 				{
 					sexstringstream<1024> streamer;
 					streamer.sb << ("Expecting typename '") << text->Buffer << ("' to begin with capital letter {A-Z} at position[") << i << ("]");
-               Throw(e, *streamer.sb);
+					Throw(e, *streamer.sb);
 				}
 				state = STATE_WITHIN_ITEM;
 				break;
@@ -161,7 +173,7 @@ namespace Rococo { namespace Sex
 				{
 					sexstringstream<1024> streamer;
 					streamer.sb << ("Expecting alphanumeric {A-Z or a-z or 0-9} at position[") << i << ("]");
-               Throw(e, *streamer.sb);
+					Throw(e, *streamer.sb);
 				}
 				break;
 			}

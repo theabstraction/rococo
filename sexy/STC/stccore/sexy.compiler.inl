@@ -473,7 +473,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		const IMember& GetMember(int index) const;
 		const IArchetype* Archetype() const { return prototype.archetype; }
 		void Update();
-		bool ResolveInterfaces(ILog& log, bool reportErrors);
+		bool ResolveInterfaces(ILog& log, bool reportErrors, const void** pSrcError);
 		virtual ID_BYTECODE GetDestructorId() const;	
 	};
 

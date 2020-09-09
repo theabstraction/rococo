@@ -262,6 +262,7 @@ namespace Rococo
          const ISExpression* E;
          CScript* Module;
          INamespace* NS;
+         bool default = false;
       };
 
       inline bool operator < (const CBindNSExpressionToModule& a, const CBindNSExpressionToModule& b)
@@ -296,6 +297,7 @@ namespace Rococo
          TMapNameToMapDef mapNameToMapDef;
          TMapNameToMapNodeDef mapNameToMapNodeDef;
 		 TTransformMap mapExpressionToTransform;
+
       public:
          CScript(ISParserTree& _tree, IProgramObject& _programObject, CScripts& _scripts);
          GlobalValue* GetGlobalValue(cstr name);

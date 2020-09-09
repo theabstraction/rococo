@@ -280,7 +280,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		}
 	}
 
-	bool Structure::ResolveInterfaces(ILog& log, bool reportErrors)
+	bool Structure::ResolveInterfaces(ILog& log, bool reportErrors, const void** pSrcError)
 	{
 		for(size_t i = 0; i < interfaceNames.size(); ++i)
 		{
@@ -294,7 +294,8 @@ namespace Rococo { namespace Compiler { namespace Impl
 				IInterface* interf = TryResolveInterfaceUsingPrefix(log, *this, name, reportErrors);
 				if (interf == NULL)
 				{
-					if (reportErrors) LogError(log, ("Cannot resolve interface %s of %s from %s. It is not fully qualified A.B.C.D, nor found in any namespace known to the module in which it is defined"), name, this->name.c_str(), this->module.Name());
+					*pSrcError = this->Definition();
+					if (reportErrors) LogError(log, "Cannot resolve interface %s of %s from %s. It is not fully qualified A.B.C.D, nor found in any namespace known to the module in which it is defined", publicName, body, this->module.Name());
 					return false;
 				}
 
@@ -305,14 +306,27 @@ namespace Rococo { namespace Compiler { namespace Impl
 				INamespace* ns = module.Object().GetRootNamespace().FindSubspace(body);
 				if (ns == NULL)
 				{
-					if (reportErrors) LogError(log, ("Cannot resolve interface %s of %s from %s. The namespace %s was not found"), name, this->name.c_str(), body, body);
+					if (Eq(body,"$"))
+					{
+						ns = const_cast<INamespace*>(module.DefaultNamespace());
+					}
+				}
+
+				if (ns == nullptr)
+				{
+					if (reportErrors)
+					{
+						*pSrcError = this->Definition();
+						LogError(log, "Cannot resolve interface %s of %s. The namespace %s was not found", publicName, body, body);
+					}
 					return false;
 				}
 
 				interfaces[i] =  (IInterfaceBuilder*) ns->FindInterface(publicName);
 				if (interfaces[i] == NULL)
 				{
-					if (reportErrors) LogError(log, ("Cannot resolve interface %s of %s from %s. The interface name %s was not found in the namespace"), name, this->name.c_str(), (cstr) ns->FullName()->Buffer, publicName);
+					*pSrcError = this->Definition();
+					if (reportErrors) LogError(log, "Cannot resolve interface %s of %s. The interface name was not found in the namespace", publicName, body);
 					return false;
 				}
 			}
@@ -374,7 +388,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		return member.SizeOfMember();
 	}
 
-	bool TryResolve(ILog& log, Structure& s, bool reportErrors)
+	bool TryResolve(ILog& log, Structure& s, bool reportErrors, const void** pErrSrc)
 	{
 		s.Seal();
 		s.Update();
@@ -407,10 +421,10 @@ namespace Rococo { namespace Compiler { namespace Impl
 			}
 		}
 
-		return s.ResolveInterfaces(log, reportErrors);
+		return s.ResolveInterfaces(log, reportErrors, pErrSrc);
 	}
 
-	void ResolveTypesInIntrinsics(IProgramObject& object)
+	void ResolveTypesInIntrinsics(IProgramObject& object, const void** pSrcError)
 	{
 		TStructureList unresolvedStructures;
 		TStructureList resolvedStructures;
@@ -452,11 +466,11 @@ namespace Rococo { namespace Compiler { namespace Impl
 				}				
 			}
 				
-			toResolve.ResolveInterfaces(object.Log(), true);
+			toResolve.ResolveInterfaces(object.Log(), true, pSrcError);
 		}
 	}
 
-	bool ResolveStructures(IProgramObject& object)
+	bool ResolveStructures(IProgramObject& object, const void** pSrcErr)
 	{
 		TStructureList unresolvedStructures;
 
@@ -472,7 +486,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 			Structure* s = unresolvedStructures.front();
 			unresolvedStructures.pop_front();
 
-			if (TryResolve(object.Log(), *s, false))
+			if (TryResolve(object.Log(), *s, false, pSrcErr))
 			{
 				toCheck = unresolvedStructures.size();
 			}
@@ -486,7 +500,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 					for(auto i = unresolvedStructures.begin(); i != unresolvedStructures.end(); ++i)
 					{
 						Structure* s = *i;
-						TryResolve(object.Log(), *s, true);
+						TryResolve(object.Log(), *s, true, pSrcErr);
 					}
 
 					return false;

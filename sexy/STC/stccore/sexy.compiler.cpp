@@ -507,14 +507,14 @@ namespace Anon
 			return id >= systemStructures.size() ? nullptr : systemStructures[id];
 		}
 
-		void ResolveNativeTypes() override
+		void ResolveNativeTypes(const void** pSrcErr) override
 		{
-			ResolveTypesInIntrinsics(*this);
+			ResolveTypesInIntrinsics(*this, pSrcErr);
 		}
 
-		bool ResolveDefinitions() override
+		bool ResolveDefinitions(const void **pSrcError) override
 		{
-			if (!ResolveStructures(*this))
+			if (!ResolveStructures(*this, pSrcError))
 			{
 				return false;
 			}

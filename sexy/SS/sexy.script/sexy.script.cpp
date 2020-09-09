@@ -1750,7 +1750,8 @@ namespace Rococo
 			AddNativeCall(sysOS, NativeSysOSClockHz, nullptr, "ClockHz -> (Int64 hz)", false);
 			AddNativeCall(sysOS, NativeSysOSClockTicks, nullptr, "ClockTicks -> (Int64 tickCount)", false);
 			
-			progObjProxy->ResolveNativeTypes();
+			const void* pSrcError = nullptr;
+			progObjProxy->ResolveNativeTypes(&pSrcError);
 
 			scripts->ExceptionLogic().InstallThrowHandler();
 

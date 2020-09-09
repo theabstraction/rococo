@@ -96,7 +96,15 @@ namespace Rococo { namespace Script
 		}
 	}
 
-	INamespaceBuilder& ValidateSplitTail(REF NamespaceSplitter& splitter, OUT cstr& body, OUT cstr& publicName, IN cr_sex s, IN IProgramObject& po)
+	INamespaceBuilder& ValidateSplitTail
+		(
+			REF NamespaceSplitter& splitter,
+			OUT cstr& body,
+			OUT cstr& publicName, 
+			IN cr_sex s,
+			IN IProgramObject& po,
+			IN IModule& module
+		)
 	{
 		if (!splitter.SplitTail(OUT body, OUT publicName))
 		{
@@ -106,9 +114,15 @@ namespace Rococo { namespace Script
 		INamespaceBuilder* ns = po.GetRootNamespace().FindSubspace(body);
 		if (ns == NULL)
 		{
-			sexstringstream<1024> streamer;
-			streamer.sb << "Cannot find namespace '" << body << "' that prefixes the public name: " << publicName;
-			Throw(s, streamer);
+			if (Eq(body, "$"))
+			{
+				ns = (INamespaceBuilder*)module.DefaultNamespace();
+			}
+
+			if (ns == nullptr)
+			{
+				Throw(s, "Cannot find namespace '%s' that prefixes the public name: '%s'", body, publicName);
+			}
 		}		
 
 		return *ns;
@@ -119,7 +133,7 @@ namespace Rococo { namespace Script
 		NamespaceSplitter splitter(nsName.String()->Buffer);
 
 		cstr body, tail;
-		INamespaceBuilder& ns = ValidateSplitTail(splitter, body, tail, nsName, module.Object());
+		INamespaceBuilder& ns = ValidateSplitTail(splitter, body, tail, nsName, module.Object(), module);
 
 		cstr publicFunctionName = tail;
 
@@ -1664,7 +1678,7 @@ namespace Rococo { namespace Script
 				{
 					try
 					{
-						j->NS = &programObject.GetRootNamespace().AddNamespace(nsSymbol, ADDNAMESPACEFLAGS_NORMAL);
+						ns = j->NS = &programObject.GetRootNamespace().AddNamespace(nsSymbol, ADDNAMESPACEFLAGS_NORMAL);
 					}
 					catch (IException& e)
 					{
@@ -1673,6 +1687,18 @@ namespace Rococo { namespace Script
 					catch (std::exception& e)
 					{
 						Rococo::Sex::Throw(*(j->E), "std::exception thrown: %s", e.what());
+					}
+				}
+
+				if (j->default)
+				{
+					try
+					{
+						j->Module->ProgramModule().SetDefaultNamespace(ns);
+					}
+					catch (IException& ex)
+					{
+						Throw(*j->E, "%s", ex.Message());
 					}
 				}
 			}
@@ -1897,13 +1923,20 @@ namespace Rococo { namespace Script
 			} fnctorComputeArchetypes;
 			ForEachScript(fnctorComputeArchetypes);
 
-			if (!programObject.ResolveDefinitions())
+			const void* pSrcError = nullptr;
+			if (!programObject.ResolveDefinitions(&pSrcError))
 			{
+				if (pSrcError)
+				{
+					auto& s = *reinterpret_cast<const ISExpression*>(pSrcError);
+					Throw(s, "Error resolving type");
+				}
+
 				Vec2i start, end;
 				start.x = end.x = 0;
 				start.y = end.y = 0;
 
-				ParseException ex(start, end, ("Sexy Script System"), ("Failed to resolve definitions"), (""), NULL);
+				ParseException ex(start, end, "Sexy Script System", "Failed to resolve definitions", "", NULL);
 				throw ex;
 			}
 
@@ -1913,7 +1946,7 @@ namespace Rococo { namespace Script
 				Vec2i start, end;
 				start.x = end.x = 0;
 				start.y = end.y = 0;
-				ParseException ex(start, end, ("Sexy Script System"), ("_Map was too small to represent a MapImage. Add a few fake pointers in the _Map definition."), (""), NULL);
+				ParseException ex(start, end, "Sexy Script System", "_Map was too small to represent a MapImage. Add a few fake pointers in the _Map definition.", "", NULL);
 				throw ex;
 			}
 
@@ -2418,14 +2451,28 @@ namespace Rococo { namespace Script
 		{
 			cr_sex e = root.GetElement(i);
 			cr_sex elementName = GetAtomicArg(e, 0);
-			if (AreEqual(elementName.String(), ("namespace")))
+			if (AreEqual(elementName.String(), "namespace"))
 			{
 				AssertNotTooFewElements(e, 2);
 
 				CBindNSExpressionToModule def;
-				def.E = &e.GetElement(1);
+				def.E = &e[1];
 				def.Module = this;
 				def.NS = NULL;
+
+				AssertValidNamespaceDef(*def.E);
+
+				nsDefs.push_back(def);
+			}
+			else if (AreEqual(elementName.String(), "$"))
+			{
+				AssertNotTooFewElements(e, 2);
+
+				CBindNSExpressionToModule def;
+				def.E = &e[1];
+				def.Module = this;
+				def.NS = NULL;
+				def.default = true;
 
 				AssertValidNamespaceDef(*def.E);
 
@@ -2559,7 +2606,7 @@ namespace Rococo { namespace Script
 
 		NamespaceSplitter splitter(fullyQualifiedNameExpr.String()->Buffer);
 		cstr body, tail;
-		INamespaceBuilder& ns = ValidateSplitTail(splitter, OUT body, OUT tail, fullyQualifiedNameExpr, programObject);
+		INamespaceBuilder& ns = ValidateSplitTail(splitter, OUT body, OUT tail, fullyQualifiedNameExpr, programObject, module);
 		AddArchetypeToNamespace(ns, tail, s, *this);
 	}
 
@@ -2583,7 +2630,7 @@ namespace Rococo { namespace Script
 		NamespaceSplitter splitter(fullyQualifiedNameExpr.String()->Buffer);
 
 		cstr body, tail;
-		INamespaceBuilder& ns = ValidateSplitTail(REF splitter, OUT body, OUT tail, IN fullyQualifiedNameExpr, IN programObject);	
+		INamespaceBuilder& ns = ValidateSplitTail(REF splitter, OUT body, OUT tail, IN fullyQualifiedNameExpr, IN programObject, IN module);	
 
 		const IArchetype* existing = ns.FindArchetype(tail);
 		if (existing != NULL) Throw(fullyQualifiedNameExpr, ("Archetype already defined"));
@@ -2734,7 +2781,7 @@ namespace Rococo { namespace Script
 		NamespaceSplitter splitter(name);
 
 		cstr body, tail;
-		INamespaceBuilder& ns = ValidateSplitTail(REF splitter, OUT body, OUT tail, IN nameExpr, IN programObject);
+		INamespaceBuilder& ns = ValidateSplitTail(REF splitter, OUT body, OUT tail, IN nameExpr, IN programObject, IN module);
 
 		AssertValidInterfaceName(nameExpr, tail);
 
@@ -3160,7 +3207,7 @@ namespace Rococo { namespace Script
 				NamespaceSplitter splitter(name.String()->Buffer);
 
 				cstr body, publicName;
-				INamespaceBuilder& ns = ValidateSplitTail(REF splitter, OUT body, OUT publicName, IN e, IN programObject);		
+				INamespaceBuilder& ns = ValidateSplitTail(REF splitter, OUT body, OUT publicName, IN e, IN programObject, IN module);		
 				
 				int methodIndex = 0;
 
@@ -3213,7 +3260,7 @@ namespace Rococo { namespace Script
 						NamespaceSplitter splitter(name.String()->Buffer);
 
 						cstr body, publicName;
-						INamespaceBuilder& ns = ValidateSplitTail(REF splitter, OUT body, OUT publicName, IN e, IN programObject);
+						INamespaceBuilder& ns = ValidateSplitTail(REF splitter, OUT body, OUT publicName, IN e, IN programObject, IN module);
 
 						int methodIndex = 0;
 
@@ -3349,18 +3396,19 @@ namespace Rococo { namespace Script
 
 	cstr topLevelItems[] =
 	{
-		("namespace"),
-		("struct"),
-		("function"),
-		("alias"),
-		("archetype"),
-		("using"),
-		("interface"),
-		("class"),
-		("method"),
-		("factory"),
-		("macro"),
-		("global"),
+		"namespace",
+		"struct",
+		"function",
+		"alias",
+		"archetype",
+		"using",
+		"interface",
+		"class",
+		"method",
+		"factory",
+		"macro",
+		"global",
+		"$",
 		NULL
 	};
 
@@ -3385,7 +3433,7 @@ namespace Rococo { namespace Script
 			sexstring directive = elementName.String();
 			if(directive->Buffer[0] != '\'' && !IsOneOf(directive->Buffer, topLevelItems))
 			{
-				Throw(elementName, ("Unknown top level item, expecting keyword or data item"));
+				Throw(elementName, "Unknown top level item, expecting keyword or data item");
 			}
 		}
 	}
@@ -3411,12 +3459,20 @@ namespace Rococo { namespace Script
 				sexstring prefix = prefixExpr.String();
 
 				INamespace* ns = module.Object().GetRootNamespace().FindSubspace(prefix->Buffer);
-				if (ns == NULL)
+				if (ns == nullptr)
 				{
-					Throw(prefixExpr, ("Could not find namespace specified in the using directive"));
+					if (Eq(prefix->Buffer, "$"))
+					{
+						ns = const_cast<INamespace*>(module.DefaultNamespace());
+					}
 				}
 
-				module.UsePrefix(prefix->Buffer);
+				if (ns == nullptr)
+				{
+					Throw(prefixExpr, "Could not find namespace specified in the using directive");
+				}
+
+				module.UsePrefix(ns->FullName()->Buffer);
 			}
 		}
 	}
@@ -3571,7 +3627,7 @@ namespace Rococo { namespace Script
 			AssertNotTooFewElements(topLevelItem, 1);
 			cr_sex elementName = GetAtomicArg(topLevelItem, 0);
 
-			if (AreEqual(elementName.String(), ("factory")))
+			if (AreEqual(elementName.String(), "factory"))
 			{
 				cr_sex factoryNameExpr = GetAtomicArg(topLevelItem, 1);
 				NamespaceSplitter splitter(factoryNameExpr.String()->Buffer);
@@ -3580,6 +3636,16 @@ namespace Rococo { namespace Script
 				splitter.SplitTail(OUT nsRoot, OUT publicName);
 
 				INamespaceBuilder* ns = programObject.GetRootNamespace().FindSubspace(nsRoot);
+				if (ns == nullptr)
+				{
+					ns = static_cast<INamespaceBuilder*>(const_cast<INamespace*>( module.DefaultNamespace()) );
+				}
+
+				if (ns == nullptr)
+				{
+					Throw(elementName, "Could not resolve namespace");
+				}
+
 				IFactoryBuilder* f = ns->FindFactory(publicName);
 
 				int bodyIndex = GetIndexOf(1, topLevelItem, (":"));
@@ -3659,14 +3725,25 @@ namespace Rococo { namespace Script
 		NamespaceSplitter splitter(factoryName->Buffer);
 		
 		cstr ns, shortName;
-		if (!splitter.SplitTail(OUT ns, OUT shortName))Throw(factoryNameExpr, ("Expecting fully qualified name"));
+		if (!splitter.SplitTail(OUT ns, OUT shortName))Throw(factoryNameExpr, "Expecting fully qualified name");
 
-		int bodyIndex = GetIndexOf(3, factoryDef, (":"));
-		if (bodyIndex < 0)	Throw(factoryDef, ("Expecting a body start token ':' in the expression"));
-		if (bodyIndex == factoryDef.NumberOfElements()-1)	Throw(factoryDef, ("Expecting a expressions to follow the body start token ':' in the expression"));
+		int bodyIndex = GetIndexOf(3, factoryDef, ":");
+		if (bodyIndex < 0)	Throw(factoryDef, "Expecting a body start token ':' in the expression");
+		if (bodyIndex == factoryDef.NumberOfElements()-1)	Throw(factoryDef, "Expecting a expressions to follow the body start token ':' in the expression");
 
 		INamespaceBuilder* factoryNS = module.Object().GetRootNamespace().FindSubspace(ns);
-		if (factoryNS == NULL) Throw(factoryNameExpr, ("Cannot find the namespace containing the factory"));
+		if (factoryNS == nullptr)
+		{
+			if (Eq(ns, "$"))
+			{
+				factoryNS =  static_cast<INamespaceBuilder*>( const_cast<INamespace*>(module.DefaultNamespace()) );
+			}
+		}
+
+		if (factoryNS == nullptr)
+		{
+			Throw(factoryNameExpr, "Cannot find the namespace containing the factory");
+		}
 
 		int inputCount = bodyIndex - 3;
 		for(int i = 0; i < inputCount; ++i)
@@ -3681,7 +3758,8 @@ namespace Rococo { namespace Script
 		}
 		
 		IInterfaceBuilder* interf = MatchInterface(factoryInterfaceExpr, module);
-		if (interf == NULL)	Throw(factoryInterfaceExpr, ("Unknown interface"));
+		if (interf == NULL)	
+			Throw(factoryInterfaceExpr, ("Unknown interface"));
 
 		IFactory* factory = factoryNS->FindFactory(shortName);
 		if (factory != NULL) Throw(factoryNameExpr, ("A factory with the same name exists in the same namespace"));

@@ -154,6 +154,7 @@ namespace Rococo { namespace Compiler
 		virtual void UsePrefix(cstr name) = 0;
 		virtual INamespaceBuilder& GetPrefix(int index) = 0;
 		virtual void IncVersion() = 0;
+		virtual void SetDefaultNamespace(const INamespace* ns) = 0;
 
 		virtual IProgramObject& Object() = 0;
 	};
@@ -225,8 +226,8 @@ namespace Rococo { namespace Compiler
 		virtual INamespaceBuilder& GetRootNamespace() = 0;
 		virtual IModuleBuilder& IntrinsicModule() = 0;
 		virtual IStructureBuilder& AddIntrinsicStruct(cstr name, size_t sizeOfType, VARTYPE underlyingType, const IArchetype* archetype) = 0;
-		virtual void ResolveNativeTypes() = 0;		
-		virtual bool ResolveDefinitions() = 0;				
+		virtual void ResolveNativeTypes(const void** pSrcErr) = 0;		
+		virtual bool ResolveDefinitions(const void** pSrcErr) = 0;
 		virtual cstr RegisterSymbol(cstr text) = 0;		
 		virtual CommonStructures& Common() = 0;
 		virtual void InitCommon() = 0;

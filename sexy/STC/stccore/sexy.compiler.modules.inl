@@ -46,6 +46,8 @@ namespace Rococo { namespace Compiler { namespace Impl
 		typedef std::vector<INamespaceBuilder*> TPrefixes;
 		TPrefixes prefixes;
 
+		const INamespace* defaultNamespace = nullptr;
+
 		void ClearClosures()
 		{
 			for(auto i = closures.begin(); i != closures.end(); ++i)
@@ -77,6 +79,28 @@ namespace Rococo { namespace Compiler { namespace Impl
 		~Module()
 		{
 			ClearClosures();
+		}
+
+		const INamespace* DefaultNamespace() const override
+		{
+			return defaultNamespace;
+		}
+
+		void SetDefaultNamespace(const INamespace* ns) override
+		{
+			if (ns == nullptr)
+			{
+				Rococo::Throw(0, "Module %s: SetDefaultNamespace() failed with null argument.", name.c_str());
+			}
+			else if (defaultNamespace == nullptr)
+			{
+				defaultNamespace = ns;
+			}
+			else if (ns != defaultNamespace)
+			{
+				Rococo::Throw(0, "Module %s: SetDefaultNamespace(%s) failed\nDefault %s already exists:",
+					name.c_str(), ns->FullName(), defaultNamespace->FullName());
+			}
 		}
 
 		void SetPackage(cstr packageId, cstr path) override

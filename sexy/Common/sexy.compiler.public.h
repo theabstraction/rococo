@@ -333,6 +333,7 @@ namespace Rococo {
 		ROCOCOAPI  IModule
 		{
 			virtual int GetVersion() const = 0;
+			virtual const INamespace* DefaultNamespace() const = 0;
 
 			virtual const IFunction* FindFunction(cstr name) const = 0;
 			virtual const IStructure* FindStructure(cstr name) const = 0;
