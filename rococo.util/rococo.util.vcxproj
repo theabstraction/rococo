@@ -114,6 +114,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="rococo.os.win32.cpp" />
+    <ClCompile Include="rococo.package.zip.cpp" />
     <ClCompile Include="rococo.parsering.cpp" />
     <ClCompile Include="rococo.postbox.cpp" />
     <ClCompile Include="rococo.s-parser.helpers.cpp" />
@@ -133,6 +134,7 @@
     <ClInclude Include="..\include\rococo.textures.h" />
     <ClInclude Include="..\include\rococo.types.h" />
     <ClInclude Include="..\include\rococo.window.h" />
+    <ClInclude Include="xxhash.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\mac\utils.mak" />

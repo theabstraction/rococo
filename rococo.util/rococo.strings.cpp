@@ -803,3 +803,14 @@ namespace Rococo
 	   return new DynamicStringBuilder(initialCapacity);
    }
 } // Rococo
+
+#include "xxhash.hpp"
+
+namespace Rococo
+{
+	int64 XXHash64(const void* buffer, size_t nBytesLength)
+	{
+		xxh::hash_t<64> hash = xxh::xxhash<64>(buffer, nBytesLength);
+		return hash;
+	}
+}

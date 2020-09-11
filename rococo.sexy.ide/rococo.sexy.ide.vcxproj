@@ -93,7 +93,6 @@
   <ItemGroup>
     <ClCompile Include="sexy.ide.flow.cpp" />
     <ClCompile Include="sexy.ide.debugger.cpp" />
-    <ClCompile Include="sexy.package.zip.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

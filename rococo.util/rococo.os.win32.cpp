@@ -120,6 +120,14 @@ namespace Rococo
 					}
 				}
 
+				void Truncate()
+				{
+					if (!SetEndOfFile(hFile))
+					{
+						Throw(GetLastError(), "Could not truncate");
+					}
+				}
+
 				void Write(size_t sizeOfElement, size_t nElements, const void* pElements)
 				{
 					size_t nTotalBytes = nElements * sizeOfElement;
@@ -179,6 +187,78 @@ namespace Rococo
 			};
 
 			return new Win32BinFile(sysPath);
+		}
+
+		IReadOnlyBinaryMapping* CreateReadOnlyBinaryMapping(const wchar_t* sysPath)
+		{
+			struct Win32ROBinMapping : IReadOnlyBinaryMapping
+			{
+				void* pMem = NULL;
+				uint64 length = 0;
+
+				HANDLE hFile = INVALID_HANDLE_VALUE;
+				HANDLE hMap = NULL;
+
+				Win32ROBinMapping(const wchar_t* sysPath)
+				{
+					hFile = CreateFileW(sysPath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+					if (hFile == INVALID_HANDLE_VALUE)
+					{
+						Throw(GetLastError(), "Error opening file: %ls\n", sysPath);
+					}
+
+					LARGE_INTEGER len;
+					if (!GetFileSizeEx(hFile, &len))
+					{
+						Throw(GetLastError(), "Error computing file size: %ls\n", sysPath);
+					}
+
+					length = len.QuadPart;
+
+					hMap = CreateFileMappingA(hFile, NULL, PAGE_READONLY, 0, 0, NULL);
+					if (!hMap)
+					{
+						Throw(GetLastError(), "Error creating map of file: %ls\n", sysPath);
+						CloseHandle(hFile);
+					}
+
+					pMem = MapViewOfFile(hMap, FILE_MAP_READ, 0, 0, 0);
+					if (pMem == NULL)
+					{
+						Throw(GetLastError(), "Error mapping file: %ls\n", sysPath);
+					}
+				}
+
+				~Win32ROBinMapping()
+				{
+					if (hMap != NULL)
+					{
+						CloseHandle(hMap);
+					}
+
+					if (hFile != INVALID_HANDLE_VALUE)
+					{
+						CloseHandle(hFile);
+					}
+				}
+
+				const char* Data() const override
+				{
+					return (const char*) pMem;
+				}
+
+				const uint64 Length() const override
+				{
+					return length;
+				}
+
+				void Free() override
+				{
+					delete this;
+				}
+			};
+
+			return new Win32ROBinMapping(sysPath);
 		}
 
 

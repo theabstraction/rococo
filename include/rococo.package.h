@@ -22,11 +22,8 @@ namespace Rococo
 	*/
 	ROCOCOAPI IPackage
 	{
-		/*
-			Every package has a unique id, such as a guid, or a URL + version
-			This means any consumer can cache its contents without redundant copying
-		*/
-		virtual cstr UniqueName() const = 0;
+		virtual const int64 HashCode() const = 0;
+		virtual cstr FriendlyName() const = 0;
 
 		virtual void LoadFileImageForCopying(const char* resourcePath, IFileHandler& handler) = 0;
 		virtual void LoadFileImageIntoBuffer(const char* resourcePath, void* buffer, int64 capacity) = 0;
@@ -42,4 +39,6 @@ namespace Rococo
 	{
 		virtual void Free() = 0;
 	};
+
+	IPackageSupervisor* OpenZipPackage(const wchar_t* sysPath, const char* friendlyName);
 }

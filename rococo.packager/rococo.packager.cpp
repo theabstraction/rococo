@@ -7,10 +7,9 @@
 void PrintUsage()
 {
     auto usage = 
-R"(
-"Usage:
+R"(Usage:
     rococo.packager.exe <source_directory> <target_filename>
-")";
+)";
 
     puts(usage);
 }
@@ -28,10 +27,23 @@ struct Pack
 {
     AutoFree<IBinaryArchive> f;
 
-    Pack(const wchar_t* archiveFilename, uint64 totalFileLength):
-        f(IO::CreateNewBinaryFile(archiveFilename))
+    Pack(const wchar_t* archiveFilename, uint64 totalFileLength)
     {
+        try
+        {
+            f = IO::CreateNewBinaryFile(archiveFilename);
+        }
+        catch (IException& ex)
+        {
+            Throw(ex.ErrorCode(), "Error creating new binary file: %ls\n", archiveFilename);
+        }
+
         f->Reserve(totalFileLength);
+    }
+
+    ~Pack()
+    {
+        f->Truncate();
     }
 
     void AppendFile(const wchar_t* fullname)
@@ -47,6 +59,11 @@ struct Pack
                 f->Write(1, readLength, buf);
             }
         } while (readLength > 0);
+
+        char nullchar = 0; // Allow text files to be null-terminated
+        f->Write(nullchar);
+        char newLine = '\n';
+        f->Write(newLine);
     }
 
     void Write(const fstring& s)
@@ -54,7 +71,7 @@ struct Pack
         f->Write(1, s.length, s.buffer);
     }
 
-    void WriteHeader(const wchar_t* directory)
+    void WriteHeader(const wchar_t* directory, uint32 fileCount)
     {
         Write("Rococo.Package:v1.0.0.0\n"_fstring);
         Write("HeaderLength:"_fstring);
@@ -73,7 +90,9 @@ struct Pack
 
         f->Write(u);
 
-        Write("\n\n"_fstring);
+        char dirInfo[128];
+        int diCount = SecureFormat(dirInfo, "\nFiles:%u\n\n", fileCount);
+        Write(to_fstring(dirInfo));
 
         struct : IEventCallback<IO::FileItemData>
         {
@@ -89,32 +108,35 @@ struct Pack
                     if (IO::TryGetFileAttributes(srcFile, a))
                     {
                         char buf[1024];
-                        int nBytes = SecureFormat(buf, "%ls/%ls\n%llu\n", file.containerRelRoot, file.itemRelContainer, a.fileLength);
+                        int nBytes = SecureFormat(buf, "%ls/%ls\t%llu\n", file.containerRelRoot, file.itemRelContainer, a.fileLength);
                         OS::ToUnixPath(buf);
                         f->Write(1, nBytes, buf);
                     }
                 }
             }
-        } writeEntry;
-        writeEntry.f = f;
-        IO::ForEachFileInDirectory(directory, writeEntry, true);
+        } writeDirectory;
+        writeDirectory.f = f;
+        IO::ForEachFileInDirectory(directory, writeDirectory, true);
+
+        Write("\n"_fstring);
 
         auto headerLength = f->Position();
 
         f->SeekAbsolute(headerLengthWritePos);
 
         char buf[9];
-        SecureFormat(buf, "%8.8lu", headerLength);
+        SecureFormat(buf, "%8lu", headerLength);
         f->Write(1, 8, buf);
 
         f->SeekAbsolute(headerLength);
     }
 };
 
-uint64 EvaluateLengthOfFilesWithin(const wchar_t* directory)
+uint64 EvaluateLengthOfFilesWithin(const wchar_t* directory, uint32& fileCount)
 {
     struct : IEventCallback<IO::FileItemData>
     {
+        uint32 fileCount = 0;
         uint64 len = 0;
         void OnEvent(IO::FileItemData& file)
         {
@@ -126,6 +148,7 @@ uint64 EvaluateLengthOfFilesWithin(const wchar_t* directory)
                 if (IO::TryGetFileAttributes(srcFile, a))
                 {
                     len += a.fileLength;
+                    fileCount++;
                 }
             }
 
@@ -137,6 +160,7 @@ uint64 EvaluateLengthOfFilesWithin(const wchar_t* directory)
 
     IO::ForEachFileInDirectory(directory, sumLen, true);
 
+    fileCount = sumLen.fileCount;
     return sumLen.len;
 }
 
@@ -148,15 +172,18 @@ void Package(const PackageArgs& args)
     WideFilePath wTrg;
     Assign(wTrg, args.target_filename);
 
-    uint64 totalLen = EvaluateLengthOfFilesWithin(wSrc);
+    uint32 fileCount;
+    uint64 totalLen = EvaluateLengthOfFilesWithin(wSrc, OUT fileCount);
     if (totalLen > 1024_megabytes)
     {
         Throw(0, "Sanity check failed: the archive would expand beyond the maximum size of 1GB");
     }
 
-    Pack pack(wTrg, totalLen);
+    auto reserveBytes = totalLen + 128; // Some space for the header
 
-    pack.WriteHeader(wSrc);
+    Pack pack(wTrg, reserveBytes);
+
+    pack.WriteHeader(wSrc, fileCount);
 
     struct : IEventCallback<IO::FileItemData>
     {
@@ -179,6 +206,14 @@ void Package(const PackageArgs& args)
     addFileToPack.pack = &pack;
 
     IO::ForEachFileInDirectory(wSrc, addFileToPack, true);
+
+    uint32 checkFileCount;
+    uint64 checkLen = EvaluateLengthOfFilesWithin(wSrc, checkFileCount);
+
+    if (checkLen != totalLen || checkFileCount != fileCount)
+    {
+        Throw(0, "The source directory appears to have been modified during the generation of the archive");
+    }
 }
 
 int main(int argc, char* argv[])
@@ -204,7 +239,7 @@ int main(int argc, char* argv[])
         {
             char msg[128];
             Rococo::OS::FormatErrorMessage(msg, sizeof(msg), ex.ErrorCode());
-            fprintf(stderr, "Exception:\n%s\%d: %s\n", ex.Message(), ex.ErrorCode(), msg);
+            fprintf(stderr, "Exception:\n%sCode %d: %s\n", ex.Message(), ex.ErrorCode(), msg);
         }
         else
         {

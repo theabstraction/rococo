@@ -6,6 +6,8 @@
 #include <rococo.strings.h>
 #include <rococo.map.h>
 
+#include <rococo.package.h>
+
 #ifdef _DEBUG
 # pragma comment(lib, "rococo.maths.debug.lib")
 # pragma comment(lib, "rococo.util.debug.lib")
@@ -574,6 +576,14 @@ void test()
 {
 	printf("rococo.strings running...\n");
 
+	AutoFree<IPackageSupervisor> pkg(
+		OpenZipPackage(L"\\work\\rococo\\rococo.packager\\test\\foobar.sxyz", "foobar.sxyz"));
+
+
+
+	int64 hash = pkg->HashCode();
+	cstr uniqueName = pkg->FriendlyName();
+
 	HString a = "Geoff";
 	printf("%s\n", a.c_str());
 
@@ -658,6 +668,13 @@ int main(int argc, char* argv[])
 	}
 	catch (IException& ex)
 	{
+		int code = ex.ErrorCode();
+		if (code != 0)
+		{
+			char msg[128];
+			Rococo::OS::FormatErrorMessage(msg, 128, code);
+			printf("Code: %d: %s\n", code, msg);
+		}
 		printf("%s\n", ex.Message());
 	}
 }

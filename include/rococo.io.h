@@ -56,6 +56,7 @@ namespace Rococo
 			virtual uint64 Position() const = 0;
 			virtual void Write(size_t sizeOfElement, size_t nElements, const void* pElements) = 0;
 			virtual void Free() = 0;
+			virtual void Truncate() = 0;
 
 			template<typename T> inline auto& Write(const T& t)
 			{
@@ -73,6 +74,15 @@ namespace Rococo
 		};
 
 		IBinarySource* ReadBinarySource(const wchar_t* sysPath);
+
+		ROCOCOAPI IReadOnlyBinaryMapping
+		{
+			virtual const char* Data() const = 0;
+			virtual const uint64 Length() const = 0;
+			virtual void Free() = 0;
+		};
+
+		IReadOnlyBinaryMapping* CreateReadOnlyBinaryMapping(const wchar_t* sysPath);
 
 		class FileImage
 		{
