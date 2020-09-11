@@ -257,12 +257,12 @@ namespace Rococo
 	typedef unsigned long long lsize_t;
 #endif
 
-	inline lsize_t operator "" _megabytes(lsize_t mb)
+	inline constexpr lsize_t operator "" _megabytes(lsize_t mb)
 	{
 		return mb * 1024 * 1024;
 	}
 
-	inline lsize_t operator "" _kilobytes(lsize_t kb)
+	inline constexpr lsize_t operator "" _kilobytes(lsize_t kb)
 	{
 		return kb * 1024;
 	}

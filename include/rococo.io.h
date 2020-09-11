@@ -49,6 +49,31 @@ namespace Rococo
 			virtual void AppendStringLiteral(IUnicode16Writer& writer, cstr text) = 0;
 		};
 
+		ROCOCOAPI IBinaryArchive
+		{
+			virtual void Reserve(uint64 nBytes) = 0;
+			virtual void SeekAbsolute(uint64 position) = 0;
+			virtual uint64 Position() const = 0;
+			virtual void Write(size_t sizeOfElement, size_t nElements, const void* pElements) = 0;
+			virtual void Free() = 0;
+
+			template<typename T> inline auto& Write(const T& t)
+			{
+				Write(sizeof(T), 1, &t);
+				return *this;
+			}
+		};
+
+		IBinaryArchive* CreateNewBinaryFile(const wchar_t* sysPath);
+
+		ROCOCOAPI IBinarySource
+		{
+			virtual uint32 Read(uint32 capacity, void* pElements) = 0;
+			virtual void Free() = 0;
+		};
+
+		IBinarySource* ReadBinarySource(const wchar_t* sysPath);
+
 		class FileImage
 		{
 		private:

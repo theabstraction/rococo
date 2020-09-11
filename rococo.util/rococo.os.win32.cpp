@@ -56,6 +56,132 @@ namespace Rococo
 
 	namespace IO
 	{
+		IBinaryArchive* CreateNewBinaryFile(const wchar_t* sysPath)
+		{
+			struct Win32BinArchive: IBinaryArchive
+			{
+				HANDLE hFile = INVALID_HANDLE_VALUE;
+
+				Win32BinArchive(const wchar_t* sysPath)
+				{
+					if (sysPath == nullptr) Throw(0, "%s: null sysPath", __FUNCTION__);
+					hFile = CreateFileW(sysPath, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+					if (hFile == INVALID_HANDLE_VALUE)
+					{
+						Throw(GetLastError(), "Error creating file");
+					}
+				}
+
+				~Win32BinArchive()
+				{
+					if (hFile != INVALID_HANDLE_VALUE)
+					{
+						CloseHandle(hFile);
+					}
+				}
+
+				uint64 Position() const override
+				{
+					LARGE_INTEGER zero;
+					zero.QuadPart = 0;
+
+					LARGE_INTEGER pos;
+					if (!SetFilePointerEx(hFile, zero, &pos, FILE_CURRENT))
+					{
+						Throw(GetLastError(), "SetFilePointerEx: Could not get file position");
+					}
+
+					return pos.QuadPart;
+				}
+
+				void Reserve(uint64 nBytes)
+				{
+					SeekAbsolute(nBytes);
+					if (!SetEndOfFile(hFile))
+					{
+						Throw(GetLastError(), "Could not set file length to %llu kb", nBytes / 1024);
+					}
+					SeekAbsolute(0);
+				}
+
+				void SeekAbsolute(uint64 position)
+				{
+					LARGE_INTEGER iPos;
+					LARGE_INTEGER finalPos;
+					iPos.QuadPart = position;
+					if (!SetFilePointerEx(hFile, iPos, &finalPos, FILE_BEGIN))
+					{
+						Throw(GetLastError(), "Could not seek to position %llu", position);
+					}
+
+					if (iPos.QuadPart != finalPos.QuadPart)
+					{
+						Throw(0, "Unexpected file position returned from SetFilePointerEx");
+					}
+				}
+
+				void Write(size_t sizeOfElement, size_t nElements, const void* pElements)
+				{
+					size_t nTotalBytes = nElements * sizeOfElement;
+
+					if (nTotalBytes >= 4096_megabytes)
+					{
+						Throw(0, "Could not write data. It was greater than 4GB in length");
+					}
+					
+					DWORD nTotal = (DWORD) nTotalBytes;
+					DWORD nWritten = 0;
+					if (!WriteFile(hFile, pElements, nTotal, &nWritten, NULL) || nWritten != nTotal)
+					{
+						Throw(GetLastError(), "Error writing %u bytes. Disk full?", nTotal);
+					}
+				}
+
+				void Free() override
+				{
+					delete this;
+				}
+			};
+
+			return new Win32BinArchive(sysPath);
+		}
+
+		IBinarySource* ReadBinarySource(const wchar_t* sysPath)
+		{
+			struct Win32BinFile : IBinarySource
+			{
+				HANDLE hFile;
+
+				Win32BinFile(const wchar_t* sysPath)
+				{
+					if (sysPath == nullptr) Throw(0, "%s: null sysPath", __FUNCTION__);
+					hFile = CreateFileW(sysPath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+					if (hFile == INVALID_HANDLE_VALUE)
+					{
+						Throw(GetLastError(), "Error reading file");
+					}
+				}
+
+				uint32 Read(uint32 capacity, void* pElements) override
+				{
+					DWORD bytesRead = 0;
+					if (!ReadFile(hFile, pElements, capacity, &bytesRead, NULL))
+					{
+						Throw(GetLastError(), "Error reading data");
+					}
+					return bytesRead;
+				}
+
+				void Free() override
+				{
+					delete this;
+				}
+			};
+
+			return new Win32BinFile(sysPath);
+		}
+
+
 		bool IsKeyPressed(int vkeyCode)
 		{
 			SHORT value = GetAsyncKeyState(vkeyCode);

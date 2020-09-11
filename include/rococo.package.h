@@ -37,4 +37,9 @@ namespace Rococo
 		virtual int CountDirectories(const char* resourcePath) const = 0;
 		virtual int CountFiles(const char* resourcePath) const = 0;
 	};
+
+	ROCOCOAPI IPackageSupervisor : IPackage
+	{
+		virtual void Free() = 0;
+	};
 }
