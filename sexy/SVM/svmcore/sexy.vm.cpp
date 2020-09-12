@@ -646,7 +646,7 @@ namespace Anon
 
 			if (status == EXECUTERESULT_RUNNING) return;
 
-			FileData start;
+			VM::FileData start;
 			if (!symbols.TryGetSymbol(cpu.PC() - cpu.ProgramStart, OUT start))
 			{
 				StepInto(true);
@@ -658,7 +658,7 @@ namespace Anon
 
 			while(status == EXECUTERESULT_RUNNING)
 			{
-				FileData fd;
+				VM::FileData fd;
 				if (symbols.TryGetSymbol(cpu.PC() - cpu.ProgramStart, OUT fd))
 				{
 					if (fd.Source != start.Source || fd.Pos.x != start.Pos.x || fd.Pos.y != start.Pos.y)

@@ -577,9 +577,9 @@ void test()
 	printf("rococo.strings running...\n");
 
 	AutoFree<IPackageSupervisor> pkg(
-		OpenZipPackage(L"\\work\\rococo\\rococo.packager\\test\\foobar.sxyz", "foobar.sxyz"));
+		OpenZipPackage(L"\\work\\rococo\\content.sxyz", "content.sxyz"));
 
-
+	size_t count = pkg->BuildDirectoryCache("");
 
 	int64 hash = pkg->HashCode();
 	cstr uniqueName = pkg->FriendlyName();

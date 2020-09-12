@@ -88,7 +88,7 @@ namespace
 	class Symbols final: public ISymbols
 	{
    private:
-		typedef std::unordered_map<size_t,FileData> TOffsetToSymbol;
+		typedef std::unordered_map<size_t,VM::FileData> TOffsetToSymbol;
 		TOffsetToSymbol symbolMap;
 
 		typedef std::vector<SourceImage*> TImages;
@@ -105,7 +105,7 @@ namespace
 			Clear();
 		}
 
-		virtual bool TryGetSymbol( size_t index, OUT FileData& fd ) const
+		virtual bool TryGetSymbol( size_t index, OUT VM::FileData& fd ) const
 		{
 			TOffsetToSymbol::const_iterator i = symbolMap.find(index);
 			if (i != symbolMap.end())
@@ -121,7 +121,7 @@ namespace
 			}
 		}
 
-		virtual void Add(size_t index, const FileData& fp ) 
+		virtual void Add(size_t index, const VM::FileData& fp ) 
 		{
 			symbolMap.insert(std::make_pair(index, fp));
 		}

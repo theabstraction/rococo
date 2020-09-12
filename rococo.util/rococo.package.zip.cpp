@@ -13,7 +13,20 @@
 
 #include <algorithm>
 
+#include <unordered_map>
+
 using namespace Rococo;
+
+namespace std
+{
+	template<> struct hash<U8FilePath>
+	{
+		size_t operator() (const U8FilePath& f) const
+		{
+			return XXHash64(f.buf, strlen(f.buf));
+		}
+	};
+}
 
 namespace
 {
@@ -25,7 +38,9 @@ namespace
 	static auto newLine = "\n"_fstring;
 	static auto tab = "\t"_fstring;
 
-	void ExpectString(const fstring& s, const char*& header, size_t& bufferLength)
+	typedef std::unordered_map<U8FilePath, int> TU8FilePathMap;
+
+	void ValidateStringAndAdvance(const fstring& s, const char*& header, size_t& bufferLength)
 	{
 		if (s.length > bufferLength)
 		{
@@ -52,7 +67,7 @@ namespace
 	{
 		SHeader_10000 h = { 0 };
 
-		ExpectString(headerLengthString, header, bufferLength);
+		ValidateStringAndAdvance(headerLengthString, header, bufferLength);
 
 		if (bufferLength < 10)
 		{
@@ -69,10 +84,10 @@ namespace
 		header += 8;
 		bufferLength -= 8;
 		
-		ExpectString(newLine, header, bufferLength);
-		ExpectString(headerCodeSet, header, bufferLength);
-		ExpectString(headerByteOrder, header, bufferLength);
-		ExpectString(headerFileCount, header, bufferLength);
+		ValidateStringAndAdvance(newLine, header, bufferLength);
+		ValidateStringAndAdvance(headerCodeSet, header, bufferLength);
+		ValidateStringAndAdvance(headerByteOrder, header, bufferLength);
+		ValidateStringAndAdvance(headerFileCount, header, bufferLength);
 
 		char sfilecount[16] = { 0 };
 
@@ -111,8 +126,8 @@ namespace
 		header += fclen;
 		bufferLength -= fclen;
 
-		ExpectString(newLine, header, bufferLength);
-		ExpectString(newLine, header, bufferLength);
+		ValidateStringAndAdvance(newLine, header, bufferLength);
+		ValidateStringAndAdvance(newLine, header, bufferLength);
 
 		h.filenames = header;
 
@@ -176,6 +191,22 @@ namespace
 		Throw(0, "Exhausted buffer trying to find newline after filename");
 	}
 
+	struct EnumLock
+	{
+		bool* pLock = nullptr;
+
+		EnumLock(bool& lock)
+		{
+			lock = true;
+			pLock = &lock;
+		}
+
+		~EnumLock()
+		{
+			*pLock = false;
+		}
+	};
+
 	struct ZipPackage : IPackageSupervisor
 	{
 		AutoFree<IO::IReadOnlyBinaryMapping> map;
@@ -188,6 +219,11 @@ namespace
 		Header header = { 0 };
 
 		TFiles files;
+		TU8FilePathMap dircache;
+		std::vector<U8FilePath> filecache;
+
+		mutable bool enumLockFiles = false;
+		mutable bool enumLockDirs = false;
 
 		ZipPackage(const wchar_t* filename, const char* key)
 		{
@@ -215,7 +251,7 @@ namespace
 				readPointer += len_Path;
 				bufferLeft -= len_Path;
 
-				ExpectString(tab, readPointer, bufferLeft);
+				ValidateStringAndAdvance(tab, readPointer, bufferLeft);
 
 				char slength[24];
 				size_t len_slength = ReadBuffer(readPointer, bufferLeft, slength, sizeof(slength), '\n');
@@ -231,14 +267,14 @@ namespace
 				readPointer += len_slength;
 				bufferLeft -= len_slength;
 
-				ExpectString(newLine, readPointer, bufferLeft);
+				ValidateStringAndAdvance(newLine, readPointer, bufferLeft);
 
 				files.push_back({ std::string(path), fileLength, filePos });
 
 				filePos += fileLength + 2; // The file + the trailing null & new line characters
 			}
 
-			ExpectString(newLine, readPointer, bufferLeft);
+			ValidateStringAndAdvance(newLine, readPointer, bufferLeft);
 
 			if (bufferLeft + header.headerLength != bufferLen)
 			{
@@ -268,44 +304,163 @@ namespace
 			return hash;
 		}
 
-		void LoadFileImageForCopying(const char* resourcePath, IFileHandler& handler) override
+		void GetFileInfo(const char* resourcePath, PackageFileData& f) const override
 		{
-
-		}
-
-		void LoadFileImageIntoBuffer(const char* resourcePath, void* buffer, int64 capacity) override
-		{
-
-		}
-
-		void GetFileInfo(const char* resourcePath, int index, SubPackageData& pkg) const override
-		{
-
-		}
-
-		void GetDirectoryInfo(const char* resourcePath, int index, SubPackageData& pkg) const override
-		{
-
-		}
-
-		int CountDirectories(const char* resourcePath) const override
-		{
-			if (resourcePath == nullptr ||
-				*resourcePath == 0 ||
-				*resourcePath == '/'
-				)
+			FileInfo val =
 			{
-				for (auto& f : files)
+				resourcePath,
+				0,
+				0
+			};
+
+			auto range = std::equal_range(files.begin(), files.end(), val,
+				[](const FileInfo& a, const FileInfo& b)
 				{
-					Throw(0, "Not implemented");
+					return a.path < b.path;
+				});
+
+			if (range.first == files.end())
+			{
+				Throw(0, "%s: Could not find %s in the package %s", __FUNCTION__, resourcePath, name.buf);
+			}
+
+			Format(f.name, "%s", range.first->path.c_str());
+			f.filesize = range.first->length;
+			f.data = buffer + range.first->position;
+		}
+
+		size_t BuildDirectoryCache(const char* prefix) override
+		{
+			if (prefix == nullptr || *prefix == 0)
+			{
+				Throw(0, "%s: prefix was null", __FUNCTION__);
+			}
+
+			if (*prefix != '/')
+			{
+				Throw(0, "%s: prefix did not begin with a forward slash: /", __FUNCTION__);
+			}
+
+			if (!EndsWith(prefix, "/"))
+			{
+				Throw(0, "%s: prefix did not terminate with a forward slash: /", __FUNCTION__);
+			}
+
+			if (enumLockDirs)
+			{
+				Throw(0, "%s: cannot rebuild cache while the directories are being enumerated.", __FUNCTION__);
+			}
+
+			auto lenPrefix = strlen(prefix);
+
+			std::pair<U8FilePath, int> subdirPair;
+			auto& subdir = subdirPair.first;
+			memcpy_s(subdir.buf, subdir.CAPACITY, prefix, lenPrefix);
+
+			dircache.clear();
+
+			for (auto& f : files)
+			{
+				if (StartsWith(f.path.c_str(), prefix))
+				{
+					auto suffix = f.path.c_str() + lenPrefix;
+					for (const char* s = suffix; *s != 0; s++)
+					{
+						if (*s == '/')
+						{
+							auto* mid = subdir.buf + lenPrefix;
+							auto bufferLeft = subdir.CAPACITY - lenPrefix;
+							memcpy_s(mid, bufferLeft, suffix, s - suffix);
+							subdir.buf[lenPrefix + s - suffix] = 0;
+
+							auto i = dircache.find(subdir);
+							if (i == dircache.end())
+							{
+								dircache.insert(subdirPair);
+							}
+						}
+					}
 				}
 			}
-			return 0;
+
+			return dircache.size();
 		}
 
-		int CountFiles(const char* resourcePath) const override
+		size_t BuildFileCache(const char* prefix)
 		{
-			return 0;
+			if (prefix == nullptr || *prefix == 0)
+			{
+				Throw(0, "%s: prefix was null", __FUNCTION__);
+			}
+
+			if (*prefix != '/')
+			{
+				Throw(0, "%s: prefix did not begin with a forward slash: /", __FUNCTION__);
+			}
+
+			if (EndsWith(prefix, "/"))
+			{
+				Throw(0, "%s: prefix terminated with a forward slash: /", __FUNCTION__);
+			}
+
+			if (enumLockFiles)
+			{
+				Throw(0, "%s: cannot rebuild cache while the directories are being enumerated.", __FUNCTION__);
+			}
+
+			auto lenPrefix = strlen(prefix);
+
+			FileInfo PREFIX
+			{
+				prefix,
+				0,
+				0
+			};
+
+			auto range = std::equal_range(files.begin(), files.end(), PREFIX,
+				[lenPrefix](const FileInfo& a, const FileInfo& b)
+				{
+					return Compare(a.path.c_str(), b.path.c_str(), (int64) lenPrefix) < 0;
+				});
+
+			if (range.first == files.end())
+			{
+				Throw(0, "%s: Could not find %s in the package %s", __FUNCTION__, prefix, name.buf);
+			}
+
+			filecache.reserve(std::distance(range.first, range.second));
+
+			filecache.clear();
+
+			for (auto i = range.first; i != range.second; ++i)
+			{
+				U8FilePath path;
+				memcpy_s(path.buf, path.CAPACITY, i->path.c_str(), i->path.size());
+				path.buf[i->path.size()] = 0;
+				filecache.push_back(path);
+			}
+
+			return filecache.size();
+		}
+
+		void ForEachDirInCache(IEventCallback<const char*>& cb) const override
+		{
+			EnumLock sync(enumLockDirs);
+
+			for (auto& d : dircache)
+			{
+				cb.OnEvent(d.first);
+			}
+		}
+
+		void ForEachFileInCache(IEventCallback<const char*>& cb) const override
+		{
+			EnumLock sync(enumLockFiles);
+
+			for (auto& d : filecache)
+			{
+				cb.OnEvent(d);
+			}
 		}
 
 		void Free() override

@@ -4,35 +4,56 @@ namespace Rococo
 {
 	/*
 		Package management class.
-		The consumer is expected to call CountFiles and CountDirectories with null arguments
-		This gives the top level set of items. The top level directories are resource paths
-		that can be used for recursive iteration. Resource paths consist of tokens separated
-		by the unix path separator /. Tokens obey the Sexy namespace conventions, begining with
-		A-Z and followed by a sequence of alpha numericals. File names are more or less
-		arbitrary, but if they link to a SEXY file they should consist of a namespace token
-		with extension sxy.
+		
+		You can identify the package with FriendlyName(). 
+		You can obtain an XXHash checksum by a call to HashCode() which
+		  allows you to distinguish two identical packages.
+		
+		To enumerate directores, first call
+			BuildDirectoryCache(const char* prefix)
 
-		Example Sys/Maths/F32.sxy
+		then grab the results with
+			ForEachDirInCache(IEventCallback<const char*>& cb) const
 
-		It is expected that a consumer of package will map the resource path to Sexy namespace
-		format. So Sys/Maths/I64.sxy will map to Sys.Maths.I64. Any paths that do not obey
-		the Sexy namespace protocol will not map to a Sexy namespace. Any SXY files that
-		do not obey the Sexy namespace protocol should cause an exception in the consumer
-		and complain to the application that the IPackage implementation is non-conformant.
+		To enumerate files, first call
+			size_t BuildFileCache(const char* prefix)
+
+		then grab the results with
+			 ForEachFileInCache(IEventCallback<const char*>& cb) const
+		
+		To get a pointer and length to file data call 
+			 GetFileInfo(const char* resourcePath, FileData& f) 
 	*/
+
+	struct PackageFileData
+	{
+		const char* data;
+		size_t filesize;
+		U8FilePath name;
+	};
+
 	ROCOCOAPI IPackage
 	{
-		virtual const int64 HashCode() const = 0;
+		// Return a cached string to identiy the package
 		virtual cstr FriendlyName() const = 0;
 
-		virtual void LoadFileImageForCopying(const char* resourcePath, IFileHandler& handler) = 0;
-		virtual void LoadFileImageIntoBuffer(const char* resourcePath, void* buffer, int64 capacity) = 0;
+		// Return a cached 64-bit XXHash code for the package
+		virtual const int64 HashCode() const = 0;
 
-		virtual void GetFileInfo(const char* resourcePath, int index, SubPackageData& pkg) const = 0;
-		virtual void GetDirectoryInfo(const char* resourcePath, int index, SubPackageData& pkg) const = 0;
+		// Cache a list of subdirectories and return the list size
+		virtual size_t BuildDirectoryCache(const char* dir) = 0;
 
-		virtual int CountDirectories(const char* resourcePath) const = 0;
-		virtual int CountFiles(const char* resourcePath) const = 0;
+		// Cache a list of files that start with the prefix and return the list size
+		virtual size_t BuildFileCache(const char* prefix) = 0;
+
+		// Enumerate the files in the directory cache. File caching is locked during enumeration
+		virtual void ForEachDirInCache(IEventCallback<const char*>& cb) const = 0;
+
+		// Enumerate the directories in the directory cache. Directory caching is locked during enumeration
+		virtual void ForEachFileInCache(IEventCallback<const char*>& cb) const = 0;
+
+		// Fill in a FileData structure with the file data block and length in bytes
+		virtual void GetFileInfo(const char* resourcePath, OUT PackageFileData& f) const = 0;
 	};
 
 	ROCOCOAPI IPackageSupervisor : IPackage

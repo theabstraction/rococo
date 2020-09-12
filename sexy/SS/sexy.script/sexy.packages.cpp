@@ -102,7 +102,7 @@ namespace
 
 		SexyPackager(IPackage* p):
 			dataPackage(p), 
-			root("", p->CountDirectories(nullptr) + p->CountFiles(nullptr))
+			root("", 10)
 		{
 
 		}
@@ -114,18 +114,24 @@ namespace
 
 		void MapDirectoriesAtLevelToNamespaces(PackageNamespaceToken& ns, const char* resourcePath)
 		{
-			int32 nDirectories = dataPackage->CountDirectories(resourcePath);
-			for (int i = 0; i < nDirectories; ++i)
-			{
-				SubPackageData dir;
-				dataPackage->GetDirectoryInfo(resourcePath, i, dir);
+			dataPackage->BuildDirectoryCache(resourcePath);
 
-				if (IsSexyNamespaceToken(dir.name))
+			struct A: IEventCallback<cstr>
+			{
+				PackageNamespaceToken& ns;
+				A(PackageNamespaceToken& _ns) : ns(_ns) {}
+
+				void OnEvent(const char* path) override
 				{
-					ns.subspaces.push_back(PackageNamespaceToken(dir.name, 0));
-					ns.subspaces.back().hasDirectory = true;
+					if (IsSexyNamespaceToken(path))
+					{
+						ns.subspaces.push_back(PackageNamespaceToken(path, 0));
+						ns.subspaces.back().hasDirectory = true;
+					}
 				}
-			}
+			} buildSubspace(ns);
+
+			dataPackage->ForEachDirInCache(buildSubspace);
 		}
 
 		void AddFilenameToSubspaces(const char* token, PackageNamespaceToken& ns, const char* resourcePath)
@@ -149,27 +155,24 @@ namespace
 
 		void MapFilesAtLevelToNamespaces(PackageNamespaceToken& ns, const char* resourcePath)
 		{
-			int32 nFiles = dataPackage->CountFiles(resourcePath);
-			for (int32 i = 0; i < nFiles; ++i)
+			dataPackage->BuildFileCache(resourcePath);
+
+			struct A : IEventCallback<cstr>
 			{
-				SubPackageData f;
-				dataPackage->GetFileInfo(resourcePath, i, f);
-				if (EndsWith(f.name, ".sxy"))
+				SexyPackager* This;
+				PackageNamespaceToken* ns;
+				void OnEvent(cstr path) override
 				{
-					auto* end = ValidateSexyFileNameAndRetEnd(f.name);
-
-					char token[PACKAGE_TOKEN_CAPACITY];
-					char* t = token;
-					for (auto* p = (cstr)f.name; p != end; ++p)
+					if (EndsWith(path, ".sxy"))
 					{
-						*t++ = *p++;
+						PackageFileData f;
+						This->dataPackage->GetFileInfo(path, f);
+						This->AddFilenameToSubspaces("", *ns, path);
 					}
-
-					*t = 0;
-
-					AddFilenameToSubspaces(token, ns, resourcePath);
 				}
-			}
+			} addFilenames;
+			addFilenames.This = this;
+			addFilenames.ns = &ns;
 		}
 
 		void ComputeNamespace(PackageNamespaceToken& ns, const char* resourcePath)
@@ -271,8 +274,9 @@ namespace
 			auto i = std::find_if(uniquePackages.begin(), uniquePackages.end(), 
 				[package](SexyPackager& other)
 				{
-					return package == other.dataPackage ||
-						Eq(package->UniqueName(), other.dataPackage->UniqueName());
+					return 
+						package == other.dataPackage ||
+						package->HashCode() == other.dataPackage->HashCode();
 				});
 
 			if (i == uniquePackages.end())

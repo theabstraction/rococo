@@ -166,7 +166,7 @@ namespace Rococo
 					hFile = CreateFileW(sysPath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 					if (hFile == INVALID_HANDLE_VALUE)
 					{
-						Throw(GetLastError(), "Error reading file");
+						Throw(GetLastError(), "Error opening file");
 					}
 				}
 
@@ -225,6 +225,8 @@ namespace Rococo
 					pMem = MapViewOfFile(hMap, FILE_MAP_READ, 0, 0, 0);
 					if (pMem == NULL)
 					{
+						CloseHandle(hMap);
+						CloseHandle(hFile);
 						Throw(GetLastError(), "Error mapping file: %ls\n", sysPath);
 					}
 				}
@@ -2083,18 +2085,16 @@ namespace Rococo
 							struct : IEventCallback<FileItemData>
 							{
 								WideFilePath stem;
-								const wchar_t* fullstem;
+								const wchar_t* root;
 
 								IEventCallback<FileItemData>* caller;
 								void OnEvent(FileItemData& item) override
 								{
-									wchar_t fullpath[MAX_PATH];
-									SafeFormat(fullpath, MAX_PATH, L"%s%s", fullstem, item.itemRelContainer);
 									FileItemData fromRoot;
 									fromRoot.isDirectory = item.isDirectory;
 									fromRoot.itemRelContainer = item.itemRelContainer;
 									fromRoot.containerRelRoot = stem;
-									fromRoot.fullPath = fullpath;
+									fromRoot.fullPath = item.fullPath;
 									caller->OnEvent(fromRoot);
 								}
 							} subpathResult;
@@ -2103,7 +2103,7 @@ namespace Rococo
 							Format(subpath, L"%s%s\\", containerDirectory, findData.cFileName);
 							subpathResult.caller = &onFile;
 
-							subpathResult.fullstem = subpath;
+							subpathResult.root = subpath;
 
 							Format(subpathResult.stem, L"%s\\", findData.cFileName);
 

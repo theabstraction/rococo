@@ -108,7 +108,17 @@ struct Pack
                     if (IO::TryGetFileAttributes(srcFile, a))
                     {
                         char buf[1024];
-                        int nBytes = SecureFormat(buf, "%ls/%ls\t%llu\n", file.containerRelRoot, file.itemRelContainer, a.fileLength);
+                        int nBytes;
+
+                        if (*file.containerRelRoot == 0)
+                        {
+                            nBytes = SecureFormat(buf, "%ls\t%llu\n", file.itemRelContainer, a.fileLength);
+                        }
+                        else
+                        {
+                            nBytes = SecureFormat(buf, "%ls%ls\t%llu\n", file.containerRelRoot, file.itemRelContainer, a.fileLength);
+                        }
+
                         OS::ToUnixPath(buf);
                         f->Write(1, nBytes, buf);
                     }
@@ -194,7 +204,10 @@ void Package(const PackageArgs& args)
 
             try
             {
-                pack->AppendFile(srcFile);
+                if (!file.isDirectory)
+                {
+                    pack->AppendFile(srcFile);
+                }
             }
             catch (IException& ex)
             {

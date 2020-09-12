@@ -177,12 +177,7 @@ namespace Rococo
 		virtual Debugging::IStackFrameEnumerator* StackFrames() = 0;
 	};
 
-	struct SubPackageData
-	{
-		int64 filesize;
-		int64 timestamp;
-		U8FilePath name;
-	};
+	/*
 
 	struct IFileSnapshot
 	{
@@ -194,6 +189,7 @@ namespace Rococo
 	{
 		virtual void OnLoad(const IFileSnapshot & snapshot) = 0;
 	};
+	TODO - delete */
 
 	class RecursionGuard
 	{
