@@ -87,8 +87,6 @@ namespace Rococo
 	{
 		enum { CAPACITY = 260 };
 		T buf[CAPACITY];
-		T pathSeparator;
-
 		constexpr operator const T* () const noexcept { return buf; }
 	};
 

@@ -172,6 +172,7 @@ namespace Rococo
    int32 Hash(cstr s, int64 length);
    int32 Hash(int32 x);
    int32 Hash(int64 x);
+   uint64 XXHash64(const void* buffer, size_t nBytesLength);
 
    int WriteToStandardOutput(const char* text, ...);
    int WriteToStandardOutput(cstr text, ...);
@@ -190,4 +191,52 @@ namespace Rococo
    int32 CompareI(cstr a, cstr b);
    int32 CompareI(cstr a, cstr b, int64 count);
    int32 Compare(cstr a, cstr b, int64 count);
+   
+   /* 
+	string key for use by unordered_map
+	note that the string is not persisted on the heap until Persist is called
+	this allows searching for an item without having to create a heap allocated string
+   */
+   class StringKey
+   {
+	   HString persistentData;
+	   cstr data;
+	   size_t hash = 0;
+   public:
+	   StringKey(cstr _stackData);
+	   StringKey()
+	   {
+		   data = nullptr;
+		   hash = 0;
+	   };
+	   StringKey(const StringKey& other):
+		   persistentData(other.persistentData),
+		   hash(other.hash)
+	   {
+		   data = persistentData;
+	   };
+
+	   operator cstr() const { return data; }
+
+	   void Persist();
+
+	   bool operator == (const StringKey& other) const
+	   {
+		   return hash == other.hash && Eq(data, other.data);
+	   }
+
+	   size_t HashCode() const
+	   {
+		   return hash;
+	   }
+
+	   // N.B using std::hash would mean #including STL headers
+	   struct Hash
+	   {
+		   size_t operator()(const StringKey& s) const noexcept
+		   {
+			   return s.HashCode();
+		   }
+	   };
+   };
 }

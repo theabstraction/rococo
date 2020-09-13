@@ -2,29 +2,6 @@
 
 namespace Rococo
 {
-	/*
-		Package management class.
-		
-		You can identify the package with FriendlyName(). 
-		You can obtain an XXHash checksum by a call to HashCode() which
-		  allows you to distinguish two identical packages.
-		
-		To enumerate directores, first call
-			BuildDirectoryCache(const char* prefix)
-
-		then grab the results with
-			ForEachDirInCache(IEventCallback<const char*>& cb) const
-
-		To enumerate files, first call
-			size_t BuildFileCache(const char* prefix)
-
-		then grab the results with
-			 ForEachFileInCache(IEventCallback<const char*>& cb) const
-		
-		To get a pointer and length to file data call 
-			 GetFileInfo(const char* resourcePath, FileData& f) 
-	*/
-
 	struct PackageFileData
 	{
 		const char* data;
@@ -32,6 +9,21 @@ namespace Rococo
 		U8FilePath name;
 	};
 
+	/*
+		Identify the package with FriendlyName() and obtain an XXHash checksum by a call to HashCode() 
+		which allows you to distinguish two identical packages.
+
+	To enumerate directores, first call BuildDirectoryCache(const char* prefix) then grab
+	the results with ForEachDirInCache(IEventCallback<const char*>& cb) const
+
+	To enumerate files, first call size_t BuildFileCache(const char* prefix)
+	then grab the results with ForEachFileInCache(IEventCallback<const char*>& cb) const
+
+	To get a pointer and length to file data call GetFileInfo(const char* resourcePath, FileData& f)
+
+	N.B the GetFileInfo uses O(log N) or better search algorithm,
+	but the cache and enumerations methods may be a lot slower.
+*/
 	ROCOCOAPI IPackage
 	{
 		// Return a cached string to identiy the package
@@ -52,7 +44,7 @@ namespace Rococo
 		// Enumerate the directories in the directory cache. Directory caching is locked during enumeration
 		virtual void ForEachFileInCache(IEventCallback<const char*>& cb) const = 0;
 
-		// Fill in a FileData structure with the file data block and length in bytes
+		// Fill in a FileData structure with the file data block
 		virtual void GetFileInfo(const char* resourcePath, OUT PackageFileData& f) const = 0;
 	};
 

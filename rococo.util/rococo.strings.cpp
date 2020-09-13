@@ -327,6 +327,20 @@ namespace Rococo
 		return (int32)l;
 	}
 
+	StringKey::StringKey(cstr _stackData) : data(_stackData)
+	{
+		hash = XXHash64(data, strlen(data));
+	}
+
+	void StringKey::Persist()
+	{
+		if (persistentData.length() == 0)
+		{
+			persistentData = data;
+			data = persistentData;
+		}
+	}
+
 	// N.B sexy script language string length is int32 with max 2^31-1 chars
 	int32 StringLength(const wchar_t* s)
 	{
@@ -808,7 +822,7 @@ namespace Rococo
 
 namespace Rococo
 {
-	int64 XXHash64(const void* buffer, size_t nBytesLength)
+	uint64 XXHash64(const void* buffer, size_t nBytesLength)
 	{
 		xxh::hash_t<64> hash = xxh::xxhash<64>(buffer, nBytesLength);
 		return hash;

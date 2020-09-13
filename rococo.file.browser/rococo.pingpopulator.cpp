@@ -10,14 +10,11 @@ using namespace Rococo::IO;
 using namespace Rococo::Events;
 using namespace Rococo::Browser;
 
-template<typename T> void ForEachSubPath(const FilePath<T>& dir, IEventCallback<FilePath<T>>& cb, size_t skipStartChars)
+template<typename T> void ForEachSubPath(const FilePath<T>& dir, IEventCallback<FilePath<T>>& cb, size_t skipStartChars, T sep)
 {
 	FilePath<T> tempCharBuffer = { 0 };
-	tempCharBuffer.pathSeparator = dir.pathSeparator;
 
 	T* p = tempCharBuffer.buf;
-
-	T sep = dir.pathSeparator;
 
 	for (const T* s = dir.buf + skipStartChars; *s != 0; ++s)
 	{
@@ -54,15 +51,15 @@ template<class T> size_t Length(const T* s)
 	return p - s;
 }
 
-void AddPathSeparatror(U32FilePath& target)
+void AddPathSeparator(U32FilePath& target, char32_t c)
 {
 	size_t len = Length(target.buf);
 	if (len + 1 >= target.CAPACITY)
 	{
-		Throw(0, "AddPathSeparatror(target): length > CAPACITY");
+		Throw(0, "AddPathSeparator(target): length > CAPACITY");
 	}
 
-	target.buf[len] = target.pathSeparator;
+	target.buf[len] = c;
 	target.buf[len + 1] = 0;
 }
 
@@ -76,7 +73,6 @@ void Merge(U32FilePath& target, const char32_t* prefix, const U32FilePath& suffi
 		Throw(0, "Merge(target, prefix, suffix): Cannot merge paths. Combined length > CAPACITY");
 	}
 
-	target.pathSeparator = suffix.pathSeparator;
 	memcpy(target.buf, prefix, sizeof(char32_t) * lenPrefix);
 
 	for (size_t i = 0; i < lenSuffix; ++i)
@@ -105,12 +101,11 @@ struct PingPopulator : public IDirectoryPopulator
 	};
 	std::vector<FileInfo> subFiles;
 
-	U8FilePath requiredPrefix = { "!", '/' };
+	U8FilePath requiredPrefix = { "!" };
 
 	PingPopulator(IInstallation& _installation) :
 		installation(_installation)
 	{
-		currentDirectory.pathSeparator = '/';
 		Format(currentDirectory, "!");
 		Populate();
 	}
@@ -153,7 +148,6 @@ struct PingPopulator : public IDirectoryPopulator
 	{
 		auto& dir = currentDirectory;
 		int depth = 0;
-		char32_t sep = dir.pathSeparator;
 
 		U8FilePath asciiPath;
 		ToU8(path, asciiPath);
@@ -191,7 +185,7 @@ struct PingPopulator : public IDirectoryPopulator
 		U32FilePath u32current;
 		PathFromAscii(currentDirectory, '/', u32current);
 
-		ForEachSubPath<char32_t>(u32current, cb, 1);
+		ForEachSubPath<char32_t>(u32current, cb, 1, '/');
 	}
 
 	void EnumerateSubfolders(const U32FilePath& root, IFileCallback& cb, bool recurse)
@@ -293,7 +287,7 @@ struct PingPopulator : public IDirectoryPopulator
 			void OnFile(const U32FilePath& root, const U32FilePath& subpath, cstr timestamp, uint64 length) override
 			{
 				subDirectories->push_back(subpath);
-				AddPathSeparatror(subDirectories->back());
+				AddPathSeparator(subDirectories->back(), '/');
 			}
 		} addToSubList;
 

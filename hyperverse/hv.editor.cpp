@@ -358,7 +358,7 @@ namespace
 
 				void GetRoot(U32FilePath& path) const override
 				{
-					path = { U"!scripts/hv/levels/", '/' };
+					path = { U"!scripts/hv/levels/" };
 				}
 
 				cstr GetLastError() const override
@@ -472,7 +472,7 @@ namespace
 
 				void GetRoot(U32FilePath& path) const
 				{
-					path = { U"!scripts/hv/levels/", '/' };
+					path = { U"!scripts/hv/levels/" };
 				}
 
 				cstr GetLastError() const

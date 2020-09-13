@@ -2,6 +2,7 @@
 #include <rococo.package.h>
 #include <rococo.strings.h>
 #include <vector>
+#include <unordered_map>
 
 using namespace Rococo;
 using namespace Rococo::Script;
@@ -14,8 +15,7 @@ namespace
 	{
 		char token[PACKAGE_TOKEN_CAPACITY];
 		std::vector<PackageNamespaceToken> subspaces;
-		int filecount = 0;
-		bool hasDirectory = false;
+		std::vector<PackageFileData> files;
 
 		PackageNamespaceToken(const char* text, int32 nSubspaces)
 		{
@@ -35,6 +35,19 @@ namespace
 			}
 
 			return *t == 0;
+		}
+
+		const PackageNamespaceToken* Find(const char* __restrict start, const char* __restrict end) const
+		{
+			for (auto& i : subspaces)
+			{
+				if (i.DoesTokenMatch(start, end))
+				{
+					return &i;
+				}
+			}
+
+			return nullptr;
 		}
 	};
 
@@ -123,10 +136,21 @@ namespace
 
 				void OnEvent(const char* path) override
 				{
-					if (IsSexyNamespaceToken(path))
+					// Paths end with slash, which we need to strip
+					auto len = strlen(path);
+					auto* path2 = reinterpret_cast<char*>(_alloca(len));
+					memcpy_s(path2, len, path, len - 1);
+
+					const char* subspaceToken = path2;
+					for (auto i = 0; i < len - 1; ++i)
 					{
-						ns.subspaces.push_back(PackageNamespaceToken(path, 0));
-						ns.subspaces.back().hasDirectory = true;
+						if (path[i] == '/') subspaceToken = path2 + i + 1;
+					}
+					path2[len - 1] = 0;
+
+					if (IsSexyNamespaceToken(subspaceToken))
+					{
+						ns.subspaces.push_back(PackageNamespaceToken(subspaceToken, 0));
 					}
 				}
 			} buildSubspace(ns);
@@ -134,23 +158,9 @@ namespace
 			dataPackage->ForEachDirInCache(buildSubspace);
 		}
 
-		void AddFilenameToSubspaces(const char* token, PackageNamespaceToken& ns, const char* resourcePath)
+		void AddFileToSubspaces(PackageNamespaceToken& ns, const PackageFileData& data)
 		{
-			auto i = std::find_if(ns.subspaces.begin(), ns.subspaces.end(),
-				[token](const PackageNamespaceToken& subspace)
-				{
-					return Eq(token, subspace.token);
-				});
-
-			if (i != ns.subspaces.end())
-			{
-				i->filecount++;
-			}
-			else
-			{
-				ns.subspaces.push_back(PackageNamespaceToken(token, 0));
-				ns.subspaces.back().filecount++;
-			}
+			ns.files.push_back(data);
 		}
 
 		void MapFilesAtLevelToNamespaces(PackageNamespaceToken& ns, const char* resourcePath)
@@ -167,12 +177,14 @@ namespace
 					{
 						PackageFileData f;
 						This->dataPackage->GetFileInfo(path, f);
-						This->AddFilenameToSubspaces("", *ns, path);
+						This->AddFileToSubspaces(*ns, f);
 					}
 				}
 			} addFilenames;
 			addFilenames.This = this;
 			addFilenames.ns = &ns;
+
+			dataPackage->ForEachFileInCache(addFilenames);
 		}
 
 		void ComputeNamespace(PackageNamespaceToken& ns, const char* resourcePath)
@@ -182,17 +194,14 @@ namespace
 
 			for (auto& subspace: ns.subspaces)
 			{
-				if (!subspace.hasDirectory)
-					continue;
-
 				U8FilePath subpath;
-				if (resourcePath == nullptr)
+				if (*resourcePath == 0)
 				{
-					SafeFormat(subpath.buf, "%s", subspace.token);
+					SafeFormat(subpath.buf, "%s/", subspace.token);
 				}
 				else
 				{
-					SafeFormat(subpath.buf, "%s/%s", resourcePath, subspace.token);
+					SafeFormat(subpath.buf, "%s%s/", resourcePath, subspace.token);
 				}
 
 				ComputeNamespace(subspace, subpath);
@@ -209,13 +218,13 @@ namespace
 			auto j = std::remove_if(ns.subspaces.begin(), ns.subspaces.end(),
 				[](PackageNamespaceToken& subspace)
 				{
-					return subspace.filecount == 0 && subspace.subspaces.empty();
+					return subspace.files.empty() && subspace.subspaces.empty();
 				});
 
 			ns.subspaces.erase(j, ns.subspaces.end());
 		}
 
-		bool ImplementsNamespace(const INamespace& ns) const
+		bool IsPublisherForNamespace(const INamespace& ns) const
 		{
 			auto* fullname = ns.FullName();
 
@@ -262,43 +271,94 @@ namespace
 
 	struct Packager: ISexyPackagerSupervisor
 	{
-		std::vector<SexyPackager> uniquePackages;
+		std::unordered_map<StringKey, SexyPackager, StringKey::Hash> packages;
 
-		void RegisterNamespacesInPackage(IPackage* package) override
+		bool RegisterNamespacesInPackage(IPackage* package) override
 		{
 			if (package == nullptr)
 			{
 				Throw(0, "%hs: package argument was null", __FUNCTION__);
 			}
 
-			auto i = std::find_if(uniquePackages.begin(), uniquePackages.end(), 
-				[package](SexyPackager& other)
-				{
-					return 
-						package == other.dataPackage ||
-						package->HashCode() == other.dataPackage->HashCode();
-				});
-
-			if (i == uniquePackages.end())
+			for (auto& i : packages)
 			{
-				SexyPackager sxyPackage(package);
-				uniquePackages.push_back(sxyPackage);
-				auto& back = uniquePackages.back();
-				back.ComputeNamespace(back.root, nullptr);
-				back.RemoveEmptySubspaces(back.root);
-			}
-		}
-
-		bool ImplementsNamespace(const INamespace& ns) const
-		{
-			for (auto& p : uniquePackages)
-			{
-				if (p.ImplementsNamespace(ns))
+				if (i.second.dataPackage->HashCode() == package->HashCode())
 				{
-					return true;
+					return false;
 				}
 			}
-			return false;
+
+			StringKey key(package->FriendlyName());
+			auto j = packages.find(key);
+			if (j != packages.end())
+			{
+				Throw(0, "%s: A package of the same name '%s' is already registered",
+					__FUNCTION__, (cstr)key);
+			}
+
+			key.Persist();
+			SexyPackager pkg(package);
+			auto k = packages.insert(std::make_pair(key, pkg)).first;
+			k->second.ComputeNamespace(k->second.root, "");
+			k->second.RemoveEmptySubspaces(k->second.root);
+
+			return true;
+		}
+
+		void LoadNamespaceAndRecurse(const PackageNamespaceToken& ns)
+		{
+
+		}
+
+		void LoadSubpackages(cstr namespaceFilter, cstr packageName)
+		{
+			StringKey key(packageName);
+			auto i = packages.find(key);
+			if (i == packages.end())
+			{
+				Throw(0, "%s: could not find package '%s'", __FUNCTION__, packageName);
+			}
+
+			const auto* ns = &i->second.root;
+			
+			if (namespaceFilter == nullptr || *namespaceFilter == 0)
+			{
+				LoadNamespaceAndRecurse(*ns);
+				return;
+			}
+
+			auto* start = namespaceFilter;
+			auto* end = start;
+
+			const char* s;
+			for (s = namespaceFilter; *s != 0; ++s)
+			{
+				if (*s == '.')
+				{
+					end = s;
+
+					ns = ns->Find(start, end);
+					if (ns == nullptr)
+					{
+						Throw(0, "%s: Could not match '%s' to anything in the package %s",
+							__FUNCTION__, namespaceFilter, i->second.dataPackage->FriendlyName());
+					}
+
+					start = s + 1;
+					end = start;
+				}
+			}
+
+			end = s;
+
+			ns = ns->Find(start, end);
+			if (ns == nullptr)
+			{
+				Throw(0, "%s: Could not match '%s' to anything in the package %s",
+					__FUNCTION__, namespaceFilter, i->second.dataPackage->FriendlyName());
+			}
+
+			LoadNamespaceAndRecurse(*ns);
 		}
 
 		void Free() override

@@ -98,6 +98,7 @@ struct Pack
         {
             IBinaryArchive* f;
             uint64 len = 0;
+            size_t prefixLen;
             void OnEvent(IO::FileItemData& file)
             {
                 auto* srcFile = file.fullPath;
@@ -108,17 +109,7 @@ struct Pack
                     if (IO::TryGetFileAttributes(srcFile, a))
                     {
                         char buf[1024];
-                        int nBytes;
-
-                        if (*file.containerRelRoot == 0)
-                        {
-                            nBytes = SecureFormat(buf, "%ls\t%llu\n", file.itemRelContainer, a.fileLength);
-                        }
-                        else
-                        {
-                            nBytes = SecureFormat(buf, "%ls%ls\t%llu\n", file.containerRelRoot, file.itemRelContainer, a.fileLength);
-                        }
-
+                        int nBytes = SecureFormat(buf, "%ls\t%llu\n", file.fullPath + prefixLen + 1, a.fileLength);
                         OS::ToUnixPath(buf);
                         f->Write(1, nBytes, buf);
                     }
@@ -126,6 +117,7 @@ struct Pack
             }
         } writeDirectory;
         writeDirectory.f = f;
+        writeDirectory.prefixLen = StringLength(directory);
         IO::ForEachFileInDirectory(directory, writeDirectory, true);
 
         Write("\n"_fstring);

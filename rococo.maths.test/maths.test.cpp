@@ -579,10 +579,52 @@ void test()
 	AutoFree<IPackageSupervisor> pkg(
 		OpenZipPackage(L"\\work\\rococo\\content.sxyz", "content.sxyz"));
 
-	size_t count = pkg->BuildDirectoryCache("");
-
 	int64 hash = pkg->HashCode();
 	cstr uniqueName = pkg->FriendlyName();
+
+	VALIDATE(Eq(uniqueName, "content.sxyz"));
+
+	auto nFiles = pkg->BuildFileCache("portraits/");
+
+	VALIDATE(nFiles == 1);
+
+	struct : IEventCallback<cstr>
+	{
+		void OnEvent(cstr filename) override
+		{
+			VALIDATE(Eq(filename, "portraits/charlotte.jpg"));
+		}
+	} checkCharlotte;
+	pkg->ForEachFileInCache(checkCharlotte);
+
+	auto nRootDirectories = pkg->BuildDirectoryCache("");
+
+	VALIDATE(nRootDirectories == 7);
+
+	auto nScriptDirectories = pkg->BuildDirectoryCache("scripts/");
+
+	VALIDATE(nScriptDirectories == 3);
+
+	struct : IEventCallback<cstr>
+	{
+		void OnEvent(cstr name) override
+		{
+			printf("Directory: %s\n", name);
+		}
+	} checkDirs;
+	pkg->ForEachDirInCache(checkDirs);
+
+	nFiles = pkg->BuildFileCache("scripts/hv/");
+	VALIDATE(nFiles == 8);
+
+	struct : IEventCallback<cstr>
+	{
+		void OnEvent(cstr name) override
+		{
+			printf("File: %s\n", name);
+		}
+	} checkFiles;
+	pkg->ForEachFileInCache(checkFiles);
 
 	HString a = "Geoff";
 	printf("%s\n", a.c_str());

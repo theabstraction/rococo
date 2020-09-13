@@ -217,8 +217,17 @@ namespace Rococo {
 
 		ROCOCOAPI ISexyPackager
 		{
-			virtual void RegisterNamespacesInPackage(IPackage* package) = 0;
-		    virtual bool ImplementsNamespace(const INamespace& ns) const = 0;
+			/*
+				Add a package to the package set, the package and its pointer must
+			    remain valid for the lifetime of the ISexyPackager.
+				If the package hash code matches that of an existing package
+				inside the ISexyPackager then the method returns false and
+				nothing else happens. Otherwise the files and directories
+				inside the package will be enumerated for later use and true is returned
+			*/
+			virtual bool RegisterNamespacesInPackage(IPackage* package)= 0;
+
+			virtual void LoadSubpackages(cstr namespaceFilter, cstr packageName) = 0;
 		};
 
 		ROCOCOAPI ISexyPackagerSupervisor: ISexyPackager
@@ -235,6 +244,7 @@ namespace Rococo {
 			virtual const Compiler::INamespace& AddNativeNamespace(cstr name) = 0;
 			virtual void AddNativeLibrary(const char *sexyLibraryFile) = 0;
 			virtual void RegisterPackage(IPackage* package) = 0;
+			virtual void LoadSubpackages(cstr namespaceFilter, cstr packageName) = 0;
 			virtual Compiler::IModule* AddTree(Sex::ISParserTree& tree) = 0;
 			virtual void Compile() = 0;
 			virtual void DispatchToSexyClosure(void* pArgBuffer, const ArchetypeCallback& target) = 0;

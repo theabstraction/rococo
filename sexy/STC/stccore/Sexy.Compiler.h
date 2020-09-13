@@ -397,8 +397,6 @@ namespace Rococo { namespace Compiler
 		virtual void AddInterfaceVariable(const NameString& ns, const IStructure& st, void* userData) = 0;
 	};
 
-	enum { MAX_NAMESPACE_LEN = 256 };
-
 	IStructureBuilder* FindMember(IStructureBuilder& s, cstr name);
 	IInterfaceBuilder* GetInterface(IProgramObject& object, cstr fullyQualifiedName);
 	IStructureBuilder* MatchStructure(ILog& logger, cstr type, IModuleBuilder& module);

@@ -67,6 +67,8 @@
 
 #include <sexy.dispatch.inl>
 
+#include <rococo.package.h>
+
 #define validate(_Expression) if (!(_Expression)) { ShowFailure(#_Expression, __FILE__, __LINE__); Abort(); }
 
 #define TEST(test) Test(#test, test, false)
@@ -610,6 +612,41 @@ namespace
 
       auto result = vm.Execute(VM::ExecutionFlags(false, true));
       ValidateExecution(result);
+   }
+
+   void TestPackage(IPublicScriptSystem& ss)
+   {
+	   cstr srcCode = 
+		 R"sexy(
+			(namespace EntryPoint)
+			(using Sys.Maths)
+
+			(function Main (Int32 id) -> (Int32 exitCode):
+			  (exitCode = (Sys.Maths.I32.Double 7))
+			)
+			(alias Main EntryPoint.Main)
+		)sexy";
+
+	   Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+	   Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+	   VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+	   vm.Push(99); // Allocate stack space for the int32 exitcode
+	   vm.Push(101); // Allocate stack space for the int32 id
+
+	   AutoFree<IPackageSupervisor> packageContent =
+		   OpenZipPackage(LR"(C:\work\rococo\sexy\SS\sexy.script.test\double.sxyz)", "double.sxyz");
+
+	   ss.RegisterPackage(packageContent);
+	   ss.LoadSubpackages("Sys.Maths", "double.sxyz");
+
+	   auto result = vm.Execute(VM::ExecutionFlags(false, true));
+	   ValidateExecution(result);
+
+	   int32 id = vm.PopInt32();
+	   int32 exitCode = vm.PopInt32();
+	   validate(exitCode == 14);
+	   validate(id == 101);
    }
 
    void TestUseDefaultNamespace(IPublicScriptSystem& ss)
@@ -13530,6 +13567,8 @@ namespace
 	{
 		validate(true);
 
+		TEST(TestPackage);
+
 		TEST(TestUseDefaultNamespace);
 		TEST(TestUseDefaultNamespace2);
 
@@ -13904,7 +13943,7 @@ int main(int argc, char* argv[])
 {
 	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
 
-	// _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF | _CRTDBG_CHECK_ALWAYS_DF);
+	//_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF | _CRTDBG_CHECK_ALWAYS_DF);
 
 	try
 	{

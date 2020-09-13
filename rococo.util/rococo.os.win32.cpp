@@ -994,8 +994,6 @@ namespace
 				Throw(0, "Installation::ConvertPingPathToSysPath(...) Ping path was blank");
 			}
 
-			sysPath.pathSeparator = '\\';
-
 			auto macroDir = "";
 			const char* subdir = nullptr;
 
@@ -1065,8 +1063,6 @@ namespace
 		void ConvertSysPathToPingPath(const wchar_t* sysPath, U8FilePath& pingPath) const override
 		{
 			if (pingPath == nullptr || sysPath == nullptr) Throw(0, "ConvertSysPathToPingPath: Null argument");
-
-			pingPath.pathSeparator = '/';
 
 			int sysPathLen = (int) wcslen(sysPath);
 
@@ -2022,13 +2018,13 @@ namespace Rococo
 			
 			if (status != INVALID_FILE_ATTRIBUTES && ((status & FILE_ATTRIBUTE_DIRECTORY) != 0))
 			{
-				SafeFormat(fullSearchFilter, _MAX_PATH, L"%s%s*.*", filter, isSlashed ? L"" : L"\\");
-				SafeFormat(containerDirectory, _MAX_PATH, L"%s%s", filter, isSlashed ? L"" : L"\\");
+				SafeFormat(fullSearchFilter, L"%s%s*.*", filter, isSlashed ? L"" : L"\\");
+				SafeFormat(containerDirectory, L"%s%s", filter, isSlashed ? L"" : L"\\");
 			}
 			else // Assume we have <dir>/*.ext or something similar
 			{
-				SafeFormat(fullSearchFilter, _MAX_PATH, L"%s", filter);
-				SafeFormat(containerDirectory, _MAX_PATH, L"%s", filter);
+				SafeFormat(fullSearchFilter, L"%s", filter);
+				SafeFormat(containerDirectory, L"%s", filter);
 				OS::MakeContainerDirectory(containerDirectory);
 			}
 
@@ -2057,7 +2053,7 @@ namespace Rococo
 					item.isDirectory = false;
 
 					wchar_t fullPath[MAX_PATH];
-					SafeFormat(fullPath, MAX_PATH, L"%s%s", containerDirectory, findData.cFileName);
+					SafeFormat(fullPath, L"%s%s", containerDirectory, findData.cFileName);
 
 					item.fullPath = fullPath;
 					item.itemRelContainer = findData.cFileName;
@@ -2073,7 +2069,7 @@ namespace Rococo
 						item.isDirectory = true;
 
 						wchar_t fullPath[MAX_PATH];
-						SafeFormat(fullPath, MAX_PATH, L"%s%s", containerDirectory, findData.cFileName);
+						SafeFormat(fullPath, L"%s%s", containerDirectory, findData.cFileName);
 
 						item.fullPath = fullPath;
 						item.itemRelContainer = findData.cFileName;

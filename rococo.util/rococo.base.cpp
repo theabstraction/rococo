@@ -55,8 +55,6 @@ namespace Rococo
 		   }
 
 		   *q = 0;
-
-		   dest.pathSeparator = (char)src.pathSeparator;
 	   }
 
 	   void ToWide(const U32FilePath& src, WideFilePath& dest)
@@ -81,14 +79,10 @@ namespace Rococo
 		   }
 
 		   *q = 0;
-
-		   dest.pathSeparator = (char)src.pathSeparator;
 	   }
 
 	   void PathFromAscii(cstr ascii_string, char separator, U32FilePath& path)
 	   {
-		   path.pathSeparator = separator;
-
 		   char32_t* q = path.buf;
 		   const char* p = ascii_string;
 
@@ -106,8 +100,6 @@ namespace Rococo
 
 	   void PathFromWide(const wchar_t* wide_string, wchar_t separator, U32FilePath& path)
 	   {
-		   path.pathSeparator = separator;
-
 		   char32_t* q = path.buf;
 		   const wchar_t* p = wide_string;
 

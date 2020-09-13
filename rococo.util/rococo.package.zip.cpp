@@ -26,6 +26,11 @@ namespace std
 			return XXHash64(f.buf, strlen(f.buf));
 		}
 	};
+
+	bool operator == (const U8FilePath& a, const U8FilePath& b)
+	{
+		return Eq(a, b);
+	}
 }
 
 namespace
@@ -207,7 +212,7 @@ namespace
 		}
 	};
 
-	struct ZipPackage : IPackageSupervisor
+	struct SXYZMapPackage : IPackageSupervisor
 	{
 		AutoFree<IO::IReadOnlyBinaryMapping> map;
 		U8FilePath name;
@@ -225,7 +230,7 @@ namespace
 		mutable bool enumLockFiles = false;
 		mutable bool enumLockDirs = false;
 
-		ZipPackage(const wchar_t* filename, const char* key)
+		SXYZMapPackage(const wchar_t* filename, const char* key)
 		{
 			map = IO::CreateReadOnlyBinaryMapping(filename);
 			buffer = map->Data();
@@ -331,17 +336,19 @@ namespace
 
 		size_t BuildDirectoryCache(const char* prefix) override
 		{
-			if (prefix == nullptr || *prefix == 0)
+			if (prefix == nullptr)
 			{
 				Throw(0, "%s: prefix was null", __FUNCTION__);
 			}
 
-			if (*prefix != '/')
+			if (*prefix == '/')
 			{
-				Throw(0, "%s: prefix did not begin with a forward slash: /", __FUNCTION__);
+				Throw(0, "%s: prefix should not begin with a forward slash: /", __FUNCTION__);
 			}
 
-			if (!EndsWith(prefix, "/"))
+			auto lenPrefix = strlen(prefix);
+
+			if (lenPrefix > 0 && !EndsWith(prefix, "/"))
 			{
 				Throw(0, "%s: prefix did not terminate with a forward slash: /", __FUNCTION__);
 			}
@@ -350,8 +357,6 @@ namespace
 			{
 				Throw(0, "%s: cannot rebuild cache while the directories are being enumerated.", __FUNCTION__);
 			}
-
-			auto lenPrefix = strlen(prefix);
 
 			std::pair<U8FilePath, int> subdirPair;
 			auto& subdir = subdirPair.first;
@@ -370,14 +375,16 @@ namespace
 						{
 							auto* mid = subdir.buf + lenPrefix;
 							auto bufferLeft = subdir.CAPACITY - lenPrefix;
-							memcpy_s(mid, bufferLeft, suffix, s - suffix);
-							subdir.buf[lenPrefix + s - suffix] = 0;
+							memcpy_s(mid, bufferLeft, suffix, s - suffix + 1);
+							subdir.buf[lenPrefix + s - suffix + 1] = 0;
 
 							auto i = dircache.find(subdir);
 							if (i == dircache.end())
 							{
 								dircache.insert(subdirPair);
 							}
+
+							break;
 						}
 					}
 				}
@@ -388,19 +395,9 @@ namespace
 
 		size_t BuildFileCache(const char* prefix)
 		{
-			if (prefix == nullptr || *prefix == 0)
+			if (prefix == nullptr)
 			{
 				Throw(0, "%s: prefix was null", __FUNCTION__);
-			}
-
-			if (*prefix != '/')
-			{
-				Throw(0, "%s: prefix did not begin with a forward slash: /", __FUNCTION__);
-			}
-
-			if (EndsWith(prefix, "/"))
-			{
-				Throw(0, "%s: prefix terminated with a forward slash: /", __FUNCTION__);
 			}
 
 			if (enumLockFiles)
@@ -434,10 +431,15 @@ namespace
 
 			for (auto i = range.first; i != range.second; ++i)
 			{
-				U8FilePath path;
-				memcpy_s(path.buf, path.CAPACITY, i->path.c_str(), i->path.size());
-				path.buf[i->path.size()] = 0;
-				filecache.push_back(path);
+				// If we find a slash after the prefix, it means we have a subdirectory
+				// of the prefix, in which case we should not enumerate it.
+				if (strstr(i->path.c_str() + lenPrefix, "/") == nullptr)
+				{
+					U8FilePath path;
+					memcpy_s(path.buf, path.CAPACITY, i->path.c_str(), i->path.size());
+					path.buf[i->path.size()] = 0;
+					filecache.push_back(path);
+				}
 			}
 
 			return filecache.size();
@@ -474,6 +476,6 @@ namespace Rococo
 {
 	IPackageSupervisor* OpenZipPackage(const wchar_t* sysPath, const char* friendlyName)
 	{
-		return new ZipPackage(sysPath, friendlyName);
+		return new SXYZMapPackage(sysPath, friendlyName);
 	}
 }

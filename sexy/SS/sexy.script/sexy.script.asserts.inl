@@ -254,12 +254,10 @@ namespace Rococo { namespace Sex
 
 		const sexstring text = e.String();
 
-		enum { NAMESPACE_MAX_TOTAL_LENGTH = 127 };
-
-		if (text->Length > NAMESPACE_MAX_TOTAL_LENGTH)
+		if (text->Length >= NAMESPACE_MAX_LENGTH)
 		{
 			sexstringstream<1024> streamer;
-			streamer.sb << ("Namespace name was greater than the maximum length of ") << NAMESPACE_MAX_TOTAL_LENGTH << (" characters");
+			streamer.sb << "Namespace name was greater than the maximum length of " << NAMESPACE_MAX_LENGTH << (" characters");
          Throw(e, *streamer.sb);
 		}
 	}

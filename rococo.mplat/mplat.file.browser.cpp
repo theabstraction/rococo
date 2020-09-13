@@ -286,8 +286,8 @@ struct FilenameEditor : IUIElement, public IKeyboardSink
 	IGUIStack& gui;
 	IKeyboardSupervisor& keyboard;
 
-	U32FilePath fullPath = { U"!", U'/' };
-	U8FilePath asciiRep = { "!", '/' };
+	U32FilePath fullPath = { U"!" };
+	U8FilePath asciiRep = { "!" };
 
 	bool editing = false;
 	int caretPos = 0;

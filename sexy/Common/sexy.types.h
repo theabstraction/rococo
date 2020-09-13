@@ -76,7 +76,7 @@ namespace Rococo
 
 	typedef uint32 ID_API_CALLBACK;
 
-	enum { NAMESPACE_MAX_LENGTH = 256 };
+	enum { NAMESPACE_MAX_LENGTH = 128 };
 
 #define __SEXFUNCTION__ __FUNCTION__
 

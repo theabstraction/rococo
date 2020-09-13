@@ -3,6 +3,7 @@
 #include <string.h>
 #include <rococo.strings.h>
 #include <rococo.maths.h>
+#include <rococo.io.h>
 
 using namespace Rococo;
 using namespace Rococo::Browser;
@@ -22,8 +23,6 @@ void ToU8FilePathWithSubstitutions(const U32FilePath& src, U8FilePath& dest, cha
 	}
 
 	*q = 0;
-
-	dest.pathSeparator = (char)src.pathSeparator;
 }
 
 
@@ -441,14 +440,14 @@ struct FileBrowser : public IFileBrowser
 				bool foundSubDir = false;
 
 				size_t len = strlen(asciiRep);
-				if (asciiRep.buf[len - 1] == subpath.pathSeparator)
+				if (asciiRep.buf[len - 1] == Rococo::IO::GetFileSeparator())
 				{
 					asciiRep.buf[len - 1] = 0;
 				}
 
 				for (const char* p = asciiRep + len; p > asciiRep; p--)
 				{
-					if (*p == asciiRep.pathSeparator && p[1] != 0)
+					if (*p == Rococo::IO::GetFileSeparator() && p[1] != 0)
 					{
 						RenderSubFolder(*rc, p + 1, index++, depth++, This->containerRect, outputSubfolderRect);
 						foundSubDir = true;
@@ -478,7 +477,7 @@ struct FileBrowser : public IFileBrowser
 			ToU8FilePathWithSubstitutions(dir, asciiRep, '?');
 
 			size_t len = strlen(asciiRep);
-			if (asciiRep.buf[len - 1] == asciiRep.pathSeparator)
+			if (asciiRep.buf[len - 1] == Rococo::IO::GetFileSeparator())
 			{
 				asciiRep.buf[len - 1] = 0;
 			}
@@ -535,8 +534,6 @@ namespace Rococo
 			}
 
 			*p++ = 0;
-
-			dest.pathSeparator = src.pathSeparator;
 		}
 	} // Browser
 } // Rococo

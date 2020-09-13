@@ -856,6 +856,11 @@ namespace Rococo
 			packager->RegisterNamespacesInPackage(package);
 		}
 
+		void LoadSubpackages(cstr namespaceFilter, cstr packageName) override
+		{
+			packager->LoadSubpackages(namespaceFilter, packageName);
+		}
+
 		ID_API_CALLBACK GetIdSerializeCallback() const override
 		{
 			return serializeId;
