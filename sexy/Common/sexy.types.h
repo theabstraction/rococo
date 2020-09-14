@@ -237,6 +237,7 @@ namespace Rococo
 		NamespaceSplitter(cstr _src);
 		bool SplitTail(cstr& _body, cstr& _tail);
 		bool SplitHead(cstr& _head, cstr& _body);
+		inline char* Raw() { return dottedName; }
 	};
 
 	namespace Sex
@@ -349,7 +350,7 @@ namespace Rococo
 		void AssertNotTooManyElements(cr_sex e, int32 maxElements);
 		void AssertNotTooFewElements(cr_sex e, int32 minElements);
 		cr_sex GetAtomicArg(cr_sex e, int argIndex);
-		void Throw(cr_sex e, cstr message, ...);
+		[[noreturn]] void Throw(cr_sex e, cstr message, ...);
 	}
 }// Sexy
 

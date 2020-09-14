@@ -96,6 +96,8 @@ namespace Rococo
 			// Terminate with slash
 			AddSlashToDirectory(defaultNativeSourcePath.buf);
 		}
+
+		ISexyPackagerSupervisor* CreatePackager(IScriptSystem& ss);
 	}
 }
 
@@ -668,7 +670,7 @@ namespace Rococo
 			nextId(0), 
 			nativeSources(_nativeSources), 
 			sexParserProxy(Sexy_CreateSexParser_2_0(_allocator)),
-			packager(CreatePackager())
+			packager(CreatePackager(*this))
 		{
 			try
 			{

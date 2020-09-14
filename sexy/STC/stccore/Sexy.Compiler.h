@@ -155,6 +155,7 @@ namespace Rococo { namespace Compiler
 		virtual INamespaceBuilder& GetPrefix(int index) = 0;
 		virtual void IncVersion() = 0;
 		virtual void SetDefaultNamespace(const INamespace* ns) = 0;
+		virtual void SetPackage(IPackage* package, cstr namespaceString) = 0;
 
 		virtual IProgramObject& Object() = 0;
 	};

@@ -630,15 +630,15 @@ namespace
 	   Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
 	   Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
+	   AutoFree<IPackageSupervisor> packageContent =
+		   OpenZipPackage(LR"(\work\rococo\sexy\SS\sexy.script.test\double.sxyz)", "double");
+
+	   ss.RegisterPackage(packageContent);
+	   ss.LoadSubpackages("Sys.Maths", "double");
+
 	   VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
 	   vm.Push(99); // Allocate stack space for the int32 exitcode
 	   vm.Push(101); // Allocate stack space for the int32 id
-
-	   AutoFree<IPackageSupervisor> packageContent =
-		   OpenZipPackage(LR"(C:\work\rococo\sexy\SS\sexy.script.test\double.sxyz)", "double.sxyz");
-
-	   ss.RegisterPackage(packageContent);
-	   ss.LoadSubpackages("Sys.Maths", "double.sxyz");
 
 	   auto result = vm.Execute(VM::ExecutionFlags(false, true));
 	   ValidateExecution(result);

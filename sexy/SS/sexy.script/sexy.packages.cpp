@@ -11,11 +11,68 @@ namespace
 {
 	enum { PACKAGE_TOKEN_CAPACITY = 16 };
 
+	struct SexyPackage;
+
+	struct PackedFile: ISourceCode
+	{
+		SexyPackage& parent;
+		PackageFileData data;
+		mutable ISParserTree* tree = nullptr;
+		HString id;
+
+		PackedFile(const PackageFileData& _data, SexyPackage& _parent);
+
+		~PackedFile()
+		{
+			if (tree)
+			{
+				tree->Release();
+			}
+		}
+
+		const Vec2i& Origin() const override
+		{
+			static Vec2i origin = { 1,1 };
+			return origin;
+		}
+
+		cstr SourceStart() const override
+		{
+			return data.data;
+		}
+
+		const int SourceLength() const override
+		{
+			return (int32) (int64) data.filesize;
+		}
+
+		cstr Name() const override
+		{
+			return id;
+		}
+
+		refcount_t AddRef()
+		{
+			return 1;
+		}
+
+		refcount_t Release()
+		{
+			return 0;
+		}
+
+		operator ISourceCode&() const
+		{
+			const ISourceCode& This = *this;
+			return const_cast<ISourceCode&>(This);
+		}
+	};
+
 	struct PackageNamespaceToken
 	{
 		char token[PACKAGE_TOKEN_CAPACITY];
 		std::vector<PackageNamespaceToken> subspaces;
-		std::vector<PackageFileData> files;
+		std::vector<PackedFile> files;
 
 		PackageNamespaceToken(const char* text, int32 nSubspaces)
 		{
@@ -108,19 +165,19 @@ namespace
 		return true;
 	}
 
-	struct SexyPackager
+	struct SexyPackage
 	{
 		IPackage* dataPackage;
 		PackageNamespaceToken root;
 
-		SexyPackager(IPackage* p):
+		SexyPackage(IPackage* p):
 			dataPackage(p), 
 			root("", 10)
 		{
 
 		}
 
-		~SexyPackager()
+		~SexyPackage()
 		{
 
 		}
@@ -160,37 +217,55 @@ namespace
 
 		void AddFileToSubspaces(PackageNamespaceToken& ns, const PackageFileData& data)
 		{
-			ns.files.push_back(data);
+			ns.files.push_back(PackedFile(data, *this));
 		}
 
-		void MapFilesAtLevelToNamespaces(PackageNamespaceToken& ns, const char* resourcePath)
+		void MapFilesAtLevelToNamespaces(IPublicScriptSystem& ss, PackageNamespaceToken& ns, const char* resourcePath)
 		{
 			dataPackage->BuildFileCache(resourcePath);
 
 			struct A : IEventCallback<cstr>
 			{
-				SexyPackager* This;
+				SexyPackage* This;
 				PackageNamespaceToken* ns;
+				IPublicScriptSystem* ss;
+
 				void OnEvent(cstr path) override
 				{
 					if (EndsWith(path, ".sxy"))
 					{
 						PackageFileData f;
 						This->dataPackage->GetFileInfo(path, f);
-						This->AddFileToSubspaces(*ns, f);
+
+						if (f.filesize < 0x7FFFFFFFLL)
+						{
+							// ISourceCode source length is int32 so we can't handle more than that
+							// in any case do we really want to treat files larger than 2GB as anything
+							// other than an error?
+							This->AddFileToSubspaces(*ns, f);
+						}
+						else
+						{
+							// Most package implementations will probably prohibit 2GB files, so this
+							// code may well never be called in human existence
+							char msg[1024];
+							SafeFormat(msg, "This may well be a unique event in human history:\n%s was not less than 2GB in length, and will not be referenced in the package", f.name.buf);
+							ss->PublicProgramObject().Log().Write(msg);
+						}
 					}
 				}
 			} addFilenames;
 			addFilenames.This = this;
 			addFilenames.ns = &ns;
+			addFilenames.ss = &ss;
 
 			dataPackage->ForEachFileInCache(addFilenames);
 		}
 
-		void ComputeNamespace(PackageNamespaceToken& ns, const char* resourcePath)
+		void ComputeNamespace(IPublicScriptSystem& ss, PackageNamespaceToken& ns, const char* resourcePath)
 		{
 			MapDirectoriesAtLevelToNamespaces(ns, resourcePath);
-			MapFilesAtLevelToNamespaces(ns, resourcePath);
+			MapFilesAtLevelToNamespaces(ss, ns, resourcePath);
 
 			for (auto& subspace: ns.subspaces)
 			{
@@ -204,7 +279,7 @@ namespace
 					SafeFormat(subpath.buf, "%s%s/", resourcePath, subspace.token);
 				}
 
-				ComputeNamespace(subspace, subpath);
+				ComputeNamespace(ss, subspace, subpath);
 			}
 		}
 
@@ -223,55 +298,14 @@ namespace
 
 			ns.subspaces.erase(j, ns.subspaces.end());
 		}
-
-		bool IsPublisherForNamespace(const INamespace& ns) const
-		{
-			auto* fullname = ns.FullName();
-
-			auto* start = fullname->Buffer;
-			auto* end = start + fullname->Length;
-
-			auto* p = start;
-			auto* branch = &root;
-
-			while (p < end)
-			{
-				char c = *p;
-				if (c == '.')
-				{
-					for (auto& subspace : branch->subspaces)
-					{
-						if (subspace.DoesTokenMatch(start, p))
-						{
-							branch = &subspace;
-							start = p + 1;
-							goto advanceToNextToken;
-						}
-					}
-
-					// Mismatch - no child matches our namespace
-					return false;
-				}
-
-			advanceToNextToken:
-				p++;
-			}
-
-			for (auto& subspace : branch->subspaces)
-			{
-				if (subspace.DoesTokenMatch(start, end))
-				{
-					return true;
-				}
-			}
-
-			return false;
-		}
 	};
 
 	struct Packager: ISexyPackagerSupervisor
 	{
-		std::unordered_map<StringKey, SexyPackager, StringKey::Hash> packages;
+		IScriptSystem& ss;
+		std::unordered_map<StringKey, SexyPackage, StringKey::Hash> packages;
+
+		Packager(IScriptSystem& _ss) : ss(_ss) {}
 
 		bool RegisterNamespacesInPackage(IPackage* package) override
 		{
@@ -297,20 +331,43 @@ namespace
 			}
 
 			key.Persist();
-			SexyPackager pkg(package);
+			SexyPackage pkg(package);
 			auto k = packages.insert(std::make_pair(key, pkg)).first;
-			k->second.ComputeNamespace(k->second.root, "");
+			k->second.ComputeNamespace(ss, k->second.root, "");
 			k->second.RemoveEmptySubspaces(k->second.root);
 
 			return true;
 		}
 
-		void LoadNamespaceAndRecurse(const PackageNamespaceToken& ns)
+		void LoadNamespaceAndRecurse(cstr prefix, const PackageNamespaceToken& ns, SexyPackage& sp)
 		{
+			for (auto& file : ns.files)
+			{
+				if (!file.tree)
+				{
+					file.tree = ss.SParser().CreateTree((ISourceCode&)file);
+				}
 
+				auto* module = static_cast<IModuleBuilder*>(ss.AddTree(*file.tree));
+				module->SetPackage(sp.dataPackage, prefix);
+			}
+
+			for (auto& subspace : ns.subspaces)
+			{
+				if (*prefix == 0)
+				{
+					LoadNamespaceAndRecurse(subspace.token, subspace, sp);
+				}
+				else
+				{
+					char subPrefix[NAMESPACE_MAX_LENGTH];
+					SecureFormat(subPrefix, "%s.%s", prefix, subspace.token);
+					LoadNamespaceAndRecurse(subPrefix, subspace, sp);
+				}
+			}
 		}
 
-		void LoadSubpackages(cstr namespaceFilter, cstr packageName)
+		void LoadSubpackages(cstr namespaceFilter, cstr packageName) override
 		{
 			StringKey key(packageName);
 			auto i = packages.find(key);
@@ -323,7 +380,7 @@ namespace
 			
 			if (namespaceFilter == nullptr || *namespaceFilter == 0)
 			{
-				LoadNamespaceAndRecurse(*ns);
+				LoadNamespaceAndRecurse("", *ns, i->second);
 				return;
 			}
 
@@ -358,7 +415,7 @@ namespace
 					__FUNCTION__, namespaceFilter, i->second.dataPackage->FriendlyName());
 			}
 
-			LoadNamespaceAndRecurse(*ns);
+			LoadNamespaceAndRecurse(namespaceFilter, *ns, i->second);
 		}
 
 		void Free() override
@@ -366,12 +423,20 @@ namespace
 			delete this;
 		}
 	};
+
+	PackedFile::PackedFile(const PackageFileData& _data, SexyPackage& _parent) :
+		parent(_parent), data(_data)
+	{
+		char name[1024];
+		SafeFormat(name, "Package[%s]@%s", parent.dataPackage->FriendlyName(), data.name.buf);
+		id = name;
+	}
 }
 
 namespace Rococo::Script
 {
-	ISexyPackagerSupervisor* CreatePackager()
+	ISexyPackagerSupervisor* CreatePackager(IScriptSystem& ss)
 	{
-		return new Packager();
+		return new Packager(ss);
 	}
 }

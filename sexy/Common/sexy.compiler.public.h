@@ -348,8 +348,6 @@ namespace Rococo {
 			virtual int StructCount() const = 0;
 			virtual int PrefixCount() const = 0;
 			virtual const INamespace& GetPrefix(int index) const = 0;
-
-			virtual void SetPackage(cstr packageId, cstr path) = 0;
 		};
 
 		bool IsNullType(const IStructure& s);
@@ -439,7 +437,7 @@ namespace Rococo {
 			virtual const IInterface* FindInterface(cstr name) const = 0;
 			virtual const IMacro* FindMacro(cstr name) const = 0;
 
-		  virtual const INamespace& GetChild(size_t index) const = 0;
+		    virtual const INamespace& GetChild(size_t index) const = 0;
 			virtual size_t ChildCount() const = 0;
 			virtual const sexstring FullName() const = 0;
 			virtual const sexstring Name() const = 0;

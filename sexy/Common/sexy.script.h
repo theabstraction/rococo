@@ -235,8 +235,6 @@ namespace Rococo {
 			virtual void Free() = 0;
 		};
 
-		ISexyPackagerSupervisor* CreatePackager();
-
 		ROCOCOAPI IPublicScriptSystem : public IFreeable
 		{
 			virtual void AddCommonSource(const char* dynamicLinkLibOfNativeCalls) = 0;

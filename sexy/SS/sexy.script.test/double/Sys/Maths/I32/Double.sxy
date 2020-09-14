@@ -1,4 +1,4 @@
-(function Double (Int32 x)->(Int32 y):
+(function DoubleI32 (Int32 x)->(Int32 y):
 	(y = (2 * x))
 )
 

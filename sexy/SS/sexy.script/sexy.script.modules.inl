@@ -128,12 +128,104 @@ namespace Rococo { namespace Script
 		return *ns;
 	}
 
+	bool IsLegalTypename(cstr __restrict begin, cstr __restrict end)
+	{
+		if (!IsCapital(*begin)) return false;
+
+		for (auto* s = begin + 1; s < end; ++s)
+		{
+			auto c = *s;
+			if (!IsCapital(c) && !IsLowerCase(c) && !IsNumeric(c))
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	void MakeTypenameFromFilename(char* buf, size_t capacity, cstr filename, cr_sex src)
+	{
+		size_t len = strlen(filename);
+
+		auto* end = filename + len;
+
+		auto* rend = filename - 1;
+		for (auto* s = end - 1; s != rend; s--)
+		{
+			if (*s == '.')
+			{
+				if (Eq(s, ".sxy"))
+				{
+					// Extension, which we skip
+					end = s;
+					break;
+				}
+			}
+		}
+
+		for (auto* s = end - 1; s != rend; s--)
+		{
+			if (*s == '.')
+			{
+				Throw(src, "The source filename has more than one dot, which prevents $ translating it to a Sexy type name");
+			}
+			else if (*s == '/')
+			{
+				if (!IsCapital(s[1]))
+				{
+					Throw(src, "The source filename did not begin with an upper case letter [A-Z], which prevents $ translating it to a Sexy type name");
+				}
+
+				if (end - s > 64)
+				{
+					Throw(src, "The source filename was too long, which prevents $ translating it to a Sexy type name");
+				}
+
+				if (!IsLegalTypename(s + 1, end))
+				{
+					Throw(src, "The source filename may only contain alphanumerics to translate $ to a Sexy type name");
+				}
+
+				memcpy_s(buf, capacity, s + 1, end - s - 1);
+				buf[end - s - 1] = 0;
+				return;
+			}
+		}
+
+		Throw(src, "The source file path must contain a / character to translate $ to a Sexy type name");
+	}
+
 	void AppendAlias(IModuleBuilder& module, cr_sex nsName, cr_sex nameExpr)
 	{
+		cstr body, tail;
+
+		INamespaceBuilder* pNS;
+
 		NamespaceSplitter splitter(nsName.String()->Buffer);
 
-		cstr body, tail;
-		INamespaceBuilder& ns = ValidateSplitTail(splitter, body, tail, nsName, module.Object(), module);
+		if (Eq(nsName.String()->Buffer, "$"))
+		{
+			pNS = static_cast<INamespaceBuilder*>(const_cast<INamespace*> (module.DefaultNamespace()));
+			if (pNS == nullptr)
+			{
+				Throw(nsName, "The module has no default namespace. So $ is invalid");
+			}
+			body = pNS->FullName()->Buffer;
+			
+			auto* buf = splitter.Raw();
+			nsName.Tree().Source().Name();
+
+			MakeTypenameFromFilename(buf, NAMESPACE_MAX_LENGTH, nsName.Tree().Source().Name(), nsName);
+
+			tail = buf;
+		}
+		else
+		{
+			pNS = &(ValidateSplitTail(splitter, body, tail, nsName, module.Object(), module));
+		}
+
+		INamespaceBuilder& ns = *pNS;
 
 		cstr publicFunctionName = tail;
 
@@ -150,17 +242,13 @@ namespace Rococo { namespace Script
 				INamespaceBuilder* nsSrc = MatchNamespace(module, nsBody);
 				if (nsSrc == NULL)
 				{
-					sexstringstream<1024> streamer;
-					streamer.sb << ("Cannot resolve alias. Source name '") << nsBody << ("' was not a reconigzed namespace");
-					Throw(nameExpr, streamer);
+					Throw(nameExpr, "Cannot resolve alias. Source name '%s' was not a reconigzed namespace", nsBody);
 				}
 
 				IStructureBuilder* s = nsSrc->FindStructure(shortName);
 				if (s == NULL)
 				{
-					sexstringstream<1024> streamer;
-					streamer.sb << ("Cannot find '") << shortName << ("' in ") << nsBody;
-					Throw(nameExpr, streamer);
+					Throw(nameExpr, "Cannot find '%s' in %s", shortName, nsBody);
 				}
 
 				ns.Alias(tail, *s);
@@ -171,17 +259,13 @@ namespace Rococo { namespace Script
 			IStructureBuilder* s = module.FindStructure(name);
 			if (s == NULL)
 			{
-				sexstringstream<1024> streamer;
-				streamer.sb << ("Cannot resolve alias. Local name '") << name << ("' was neither a structure or a function");
-				Throw(nameExpr, streamer);
+				Throw(nameExpr, "Cannot resolve alias. Local name '%s'was neither a structure or a function", name);
 			}
 			else
 			{
 				if (s->Prototype().IsClass)
 				{
-					sexstringstream<1024> streamer;
-					streamer.sb << ("Aliasing a class is not allowed: '") << name << ("'");
-					Throw(nameExpr, streamer);
+					Throw(nameExpr, "Aliasing a class is not allowed: '%s'", name);
 				}
 				else
 				{

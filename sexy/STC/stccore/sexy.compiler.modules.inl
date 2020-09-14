@@ -36,7 +36,9 @@ namespace Rococo { namespace Compiler { namespace Impl
 	class Module: public IModuleBuilder
 	{
 	private:
-		stdstring name;
+		HString name;
+		HString nsText;
+		IPackage* package = nullptr;
 		IProgramObject& object;
 		FunctionRegistry functions;
 		StructRegistry structures;
@@ -46,7 +48,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		typedef std::vector<INamespaceBuilder*> TPrefixes;
 		TPrefixes prefixes;
 
-		const INamespace* defaultNamespace = nullptr;
+		/* lol */ mutable const INamespace* defaultNamespace = nullptr;
 
 		void ClearClosures()
 		{
@@ -83,6 +85,14 @@ namespace Rococo { namespace Compiler { namespace Impl
 
 		const INamespace* DefaultNamespace() const override
 		{
+			if (defaultNamespace == nullptr)
+			{
+				if (nsText.length() > 0)
+				{
+					defaultNamespace = &object.GetRootNamespace().AddNamespace(nsText, Rococo::Compiler::ADDNAMESPACEFLAGS_CREATE_ROOTS);
+				}
+			}
+
 			return defaultNamespace;
 		}
 
@@ -103,9 +113,10 @@ namespace Rococo { namespace Compiler { namespace Impl
 			}
 		}
 
-		void SetPackage(cstr packageId, cstr path) override
+		void SetPackage(IPackage* package, cstr nsText) override
 		{
-
+			this->package = package;
+			this->nsText = nsText;
 		}
 
 		void Clear() override
