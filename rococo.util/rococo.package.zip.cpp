@@ -19,6 +19,11 @@ using namespace Rococo;
 
 namespace std
 {
+	/* N.B do not replace with StringKey, our U8FilePath as key only requires heap allocation
+	* for the unordered_map, and not the keys themselves, and our map is meant to be transient
+	* so we want to minimize heap fragmentation. We re-use the map, so it is possible that
+	* after some uses, heap allocation may cease for real-world scenarios in the use of this API
+	*/
 	template<> struct hash<U8FilePath>
 	{
 		size_t operator() (const U8FilePath& f) const
@@ -476,6 +481,9 @@ namespace Rococo
 {
 	IPackageSupervisor* OpenZipPackage(const wchar_t* sysPath, const char* friendlyName)
 	{
-		return new SXYZMapPackage(sysPath, friendlyName);
+		WideFilePath osPath;
+		Format(osPath, L"%ls", sysPath);
+		Rococo::OS::ToSysPath(osPath.buf);
+		return new SXYZMapPackage(osPath, friendlyName);
 	}
 }

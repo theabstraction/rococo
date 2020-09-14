@@ -53,5 +53,9 @@ namespace Rococo
 		virtual void Free() = 0;
 	};
 
+	// sysPath - unix or windows format of the zip file path.
+	// friendlyName - unique id for distinguishing the zip from others. 
+	//              - style rule: use lower case [a-z] letters only
+	// IPackageSupervisor lifetime should encompass the entities that refer to them
 	IPackageSupervisor* OpenZipPackage(const wchar_t* sysPath, const char* friendlyName);
 }

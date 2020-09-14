@@ -631,7 +631,7 @@ namespace
 	   Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 	   AutoFree<IPackageSupervisor> packageContent =
-		   OpenZipPackage(LR"(\work\rococo\sexy\SS\sexy.script.test\double.sxyz)", "double");
+		   OpenZipPackage(LR"(/work/rococo/sexy/SS/sexy.script.test/double.sxyz)", "double");
 
 	   ss.RegisterPackage(packageContent);
 	   ss.LoadSubpackages("Sys.Maths", "double");
