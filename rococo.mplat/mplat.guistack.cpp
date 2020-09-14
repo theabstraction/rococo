@@ -1,7 +1,6 @@
 #include <rococo.api.h>
 #include <rococo.mplat.h>
 #include <vector>
-#include <string>
 #include <unordered_map>
 #include <rococo.ringbuffer.h>
 #define ROCOCO_USE_SAFE_V_FORMAT
@@ -31,7 +30,7 @@ class GuiStack : public IGuiStackSupervisor, public IObserver
 
 	struct CommandHandler
 	{
-		std::string helpString;
+		HString helpString;
 		ICommandHandler* handler;
 		FN_OnCommand method;
 	};
@@ -41,8 +40,8 @@ class GuiStack : public IGuiStackSupervisor, public IObserver
 	IRenderer& renderer;
 	IUtilitiies& utilities;
 
-	std::unordered_map<std::string, CommandHandler> handlers;
-	std::unordered_map<std::string, IUIElement*> renderElements;
+	std::unordered_map<StringKey, CommandHandler, StringKey::Hash> handlers;
+	std::unordered_map<StringKey, IUIElement*, StringKey::Hash> renderElements;
 
 	IKeyboardSink* keyboardSink = nullptr;
 
@@ -263,7 +262,7 @@ public:
 
 	void RegisterEventHandler(ICommandHandler* handler, FN_OnCommand method, cstr cmd, cstr helpString) override
 	{
-		handlers[cmd] = { std::string(helpString == nullptr ? "" : helpString), handler, method };
+		handlers[cmd] = { HString(helpString == nullptr ? "" : helpString), handler, method };
 	}
 
 	void UnregisterEventHandler(ICommandHandler* handler)

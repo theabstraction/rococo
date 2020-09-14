@@ -202,30 +202,54 @@ namespace Rococo
 	   HString persistentData;
 	   cstr data;
 	   size_t hash = 0;
+
+	   void Persist();
    public:
 	   StringKey(cstr _stackData);
+
 	   StringKey()
 	   {
 		   data = nullptr;
 		   hash = 0;
 	   };
+
+	   StringKey& operator = (const StringKey& other)
+	   {
+		   data = other.data;
+		   persistentData = other.persistentData;
+		   Persist();
+		   return *this;
+	   }
+
+	   [[nodiscard]] const int length() const
+	   {
+		   return StringLength(data);
+	   }
+
 	   StringKey(const StringKey& other):
 		   persistentData(other.persistentData),
 		   hash(other.hash)
 	   {
-		   data = persistentData;
+		   data = other.data;
+		   Persist();
 	   };
 
-	   operator cstr() const { return data; }
+	   StringKey(StringKey&& other):
+		   persistentData(other.persistentData),
+		   data(other.data),
+		   hash(other.hash)	 
+	   {
+		   Persist();
+	   }
 
-	   void Persist();
+	   [[nodiscard]] operator cstr() const { return data; }
 
-	   bool operator == (const StringKey& other) const
+	   [[nodiscard]] bool operator == (const StringKey& other) const
 	   {
 		   return hash == other.hash && Eq(data, other.data);
 	   }
 
-	   size_t HashCode() const
+	   [[nodiscard]] size_t HashCode() const
 	   {
 		   return hash;
 	   }

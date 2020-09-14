@@ -3,7 +3,6 @@
 #include <rococo.strings.h>
 #include <rococo.ui.h>
 #include <unordered_map>
-#include <string>
 
 using namespace Rococo;
 using namespace Rococo::Events;
@@ -14,13 +13,13 @@ class EnumListPane : public BasePane, public IEnumListPane, public IEventCallbac
 {
 	Platform& platform; // make platform first member to ensure correct compilation of constructor
 	int32 fontIndex = 1;
-	std::string populateId;
+	HString populateId;
 	int32 horzAlign = 0;
 	int32 vertAlign = 0;
 	Vec2i padding{ 0,0 };
 	EventIdRef evPopulate;
-	std::unordered_map<std::string, int32> categoriesByName;
-	std::unordered_map<int32, std::string> categoriesById;
+	std::unordered_map<StringKey, int32, StringKey::Hash> categoriesByName;
+	std::unordered_map<int32, HString> categoriesById;
 	int32 minCatId = 0x7FFFFFFF;
 	int32 maxCatId = 0x80000000;
 
@@ -183,10 +182,11 @@ public:
 		}
 	}
 
-	void AddEnumCategory(const fstring& key, int32 value) override
+	void AddEnumCategory(const fstring& fkey, int32 value) override
 	{
-		categoriesByName[(cstr)key] = value;
-		categoriesById[value] = key;
+		StringKey key(fkey);
+		categoriesByName[key] = value;
+		categoriesById[value] = fkey;
 		minCatId = min(minCatId, value);
 		maxCatId = max(maxCatId, value);
 	}

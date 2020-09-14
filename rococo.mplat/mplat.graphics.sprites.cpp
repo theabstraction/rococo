@@ -5,7 +5,6 @@
 #include <rococo.textures.h>
 #include <rococo.strings.h>
 #include <unordered_set>
-#include <string>
 
 namespace
 {
@@ -15,7 +14,7 @@ namespace
    struct Sprites : public ISpriteSupervisor
    {
       IRenderer &renderer;
-      std::unordered_set<std::string> names;
+      std::unordered_set<StringKey, StringKey::Hash> names;
 
       Sprites(IRenderer& _renderer) : renderer(_renderer)
       {

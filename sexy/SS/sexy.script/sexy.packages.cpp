@@ -330,7 +330,6 @@ namespace
 					__FUNCTION__, (cstr)key);
 			}
 
-			key.Persist();
 			SexyPackage pkg(package);
 			auto k = packages.insert(std::make_pair(key, pkg)).first;
 			k->second.ComputeNamespace(ss, k->second.root, "");

@@ -1,6 +1,5 @@
 #include <rococo.mplat.h>
 #include <unordered_map>
-#include <string>
 #include <vector>
 #include <rococo.strings.h>
 
@@ -23,12 +22,45 @@ namespace
    struct MeshBindingEx
    {
 	   MeshBinding* bind;
-	   std::string name;
+	   StringKey name;
+
+	   MeshBindingEx():
+		   bind(nullptr)
+	   {
+
+	   }
+
+	   MeshBindingEx(MeshBinding* _bind, StringKey& _name) :
+		   bind(_bind), name(_name)
+	   {
+
+	   }
+
+	   MeshBindingEx(const MeshBindingEx& other):
+		   bind(other.bind),
+		   name(other.name)
+	   {
+
+	   }
+
+	   MeshBindingEx(MeshBindingEx&& other) :
+		   bind(other.bind),
+		   name(other.name)
+	   {
+
+	   }
+
+	   MeshBindingEx& operator = (const MeshBindingEx&& other)
+	   {
+		   bind = other.bind;
+		   name = other.name;
+		   return *this;
+	   }
    };
 
    struct MeshBuilder : public Rococo::Graphics::IMeshBuilderSupervisor, IMathsVenue
    {
-      std::unordered_map<std::string, MeshBinding*> meshes;
+      std::unordered_map<StringKey, MeshBinding*, StringKey::Hash> meshes;
 	  std::unordered_map<ID_SYS_MESH, MeshBindingEx, ID_SYS_MESH> idToName;
 	  char name[MAX_FQ_NAME_LEN + 1] = { 0 };
       std::vector<ObjectVertex> vertices;
@@ -99,7 +131,7 @@ namespace
 	  const fstring GetName(ID_SYS_MESH id) const override
 	  {
 		  auto i = idToName.find(id);
-		  return i != idToName.end() ? fstring { i->second.name.c_str(), (int32) i->second.name.size() } : fstring{ "", 0 };
+		  return i != idToName.end() ? fstring { i->second.name, (int32) i->second.name.length() } : fstring{ "", 0 };
 	  }
 
 	  void SetShadowCasting(const fstring& meshName, boolean32 isActive) override
@@ -129,7 +161,7 @@ namespace
 
 	  struct NameBinding
 	  {
-		  std::pair<std::string, MeshBinding*> item;
+		  std::pair<StringKey, MeshBinding*> item;
 
 		  bool operator < (const NameBinding& other) const
 		  {
@@ -159,7 +191,7 @@ namespace
 			  renderer.GetMeshDesc(desc, m.item.second->id);
 
 			  auto& b = m.item.second->bounds;
-			  visitor.ShowSelectableString("overlay.select.mesh", m.item.first.c_str(), "%5llu %s", m.item.second->id.value, desc);
+			  visitor.ShowSelectableString("overlay.select.mesh", (cstr) m.item.first, "%5llu %s", m.item.second->id.value, desc);
 		//	  visitor.ShowString(" -> bounds", "(%f, %f, %f) to (%f, %f, %f)", b.minXYZ.x, b.minXYZ.y, b.minXYZ.z, b.maxXYZ.x, b.maxXYZ.y, b.maxXYZ.z);
 		  }
 
@@ -269,9 +301,9 @@ namespace
 		 {
 			 auto id = renderer.CreateTriangleMesh(invisible ? nullptr : v, invisible ? 0 : (uint32)vertices.size());
 			 auto binding = new MeshBinding{ id, boundingBox, backup, vertices.size(), physicsHull };
-			 auto& s = std::string(name);
-			 meshes[s] = binding;
-			 idToName[id] = MeshBindingEx{ binding, s };
+			 StringKey key(name);
+			 meshes[key] = binding;
+			 idToName[id] = MeshBindingEx{ binding, key };
 		 }
 
 		 Clear();

@@ -1,10 +1,7 @@
 #include <rococo.mplat.h>
 #include <unordered_map>
-#include <string>
 #include <vector>
 #include <rococo.strings.h>
-#include <string>
-
 #include <algorithm>
 
 namespace
@@ -58,8 +55,8 @@ namespace
 
     struct Rig : public IRigSupervisor
     {
-        std::string rigName;
-        std::string meshName;
+        HString rigName;
+        HString meshName;
         IRig* parent;
         Matrix4x4 local;
         Vec3 scale = { 1,1,1 };
@@ -131,7 +128,7 @@ namespace
 
     struct Rigs : public IRigsSupervisor
     {
-        std::unordered_map<std::string, Rig*> rigs;
+        std::unordered_map<StringKey, Rig*, StringKey::Hash> rigs;
 
         Rigs()
         {
@@ -168,7 +165,7 @@ namespace
             if (i == rigs.end())
             {
                 auto* r = new Rig(rigName, ""_fstring, nullptr, Matrix4x4::Identity());
-                i = rigs.insert(std::make_pair(std::string(rigName), r)).first;
+                i = rigs.insert(std::make_pair(StringKey(rigName), r)).first;
             }
 
             return i->second;

@@ -120,9 +120,9 @@ namespace
 
    class Keyboard : public IKeyboardSupervisor
    {
-      std::array<std::string, 512> codes;
-	  std::unordered_map<std::string, int32> mapNameToVkCode;
-      std::unordered_map<std::string, std::string> actionBinds;
+      std::array<HString, 512> codes;
+	  std::unordered_map<StringKey, int32, StringKey::Hash> mapNameToVkCode;
+      std::unordered_map<StringKey, HString, StringKey::Hash> actionBinds;
    public:
       Keyboard()
       {
@@ -176,7 +176,7 @@ namespace
          {
             USHORT vKeyCode = rke.VKey;
             auto& name = codes[vKeyCode];
-            if (!name.empty())
+            if (name.length() != 0)
             {
                return Key
                {
@@ -214,7 +214,7 @@ namespace
 		  ssb << " enum VKCode\n {\n";
 		  for (size_t vk = 0; vk < codes.size(); ++vk)
 		  {
-			  if (codes[vk].size() > 0) ssb.AppendFormat("  VKCode_%s = %u,\n", codes[vk].c_str(), vk);
+			  if (codes[vk].length() > 0) ssb.AppendFormat("  VKCode_%s = %u,\n", codes[vk].c_str(), vk);
 		  }
 		  ssb.AppendFormat("  VKCode_None = 0\n");
 		  ssb << " };\n}}\n";

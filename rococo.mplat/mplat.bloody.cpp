@@ -2,8 +2,6 @@
 #include <rococo.strings.h>
 #include <rococo.ui.h>
 #include <rococo.textures.h>
-
-#include <string>
 #include <unordered_map>
 #include <algorithm>
 
@@ -632,10 +630,10 @@ namespace ANON
 	class BloodyEnumInt32Binding : public IBloodyPropertyType, public IKeyboardSink
 	{
 		int32* value;
-		std::string name;
-		std::unordered_map<std::string, int> constantsNameToValue;
-		std::unordered_map<int, std::string> constantsValueToName;
-		std::vector<std::string> orderedByName;
+		HString name;
+		std::unordered_map<StringKey, int, StringKey::Hash> constantsNameToValue;
+		std::unordered_map<int, HString> constantsValueToName;
+		std::vector<HString> orderedByName;
 		Platform& platform;
 		IEventCallback<IBloodyPropertyType>& dirtNotifier;
 		HString notifyId;
@@ -704,14 +702,16 @@ namespace ANON
 			case IO::VKCode_HOME:
 				if (!orderedByName.empty())
 				{
-					auto i = constantsNameToValue.find(orderedByName[0]);
+					StringKey key(orderedByName[0]);
+					auto i = constantsNameToValue.find(key);
 					*value = i != constantsNameToValue.end() ? i->second : *value;
 				}
 				break;
 			case IO::VKCode_END:
 				if (!orderedByName.empty())
 				{
-					auto i = constantsNameToValue.find(*orderedByName.rbegin());
+					StringKey key(*orderedByName.rbegin());
+					auto i = constantsNameToValue.find(key);
 					*value = i != constantsNameToValue.end() ? i->second : *value;
 				}
 				break;
@@ -762,7 +762,8 @@ namespace ANON
 						if ((c & ~32) == (d & ~32))
 						{
 							// case independent match
-							auto k = constantsNameToValue.find(orderedByName[i]);
+							StringKey key(orderedByName[i]);
+							auto k = constantsNameToValue.find(key);
 							*value = (k != constantsNameToValue.end()) ? k->second : *value;
 							return;
 						}
@@ -776,7 +777,8 @@ namespace ANON
 					char d = orderedByName[i][0];
 					if (c == d)
 					{
-						auto k = constantsNameToValue.find(orderedByName[i]);
+						StringKey key(orderedByName[i]);
+						auto k = constantsNameToValue.find(key);
 						*value = (k != constantsNameToValue.end()) ? k->second : *value;
 						return;
 					}
@@ -819,7 +821,8 @@ namespace ANON
 				{
 					if (orderedByName[j] == name)
 					{
-						auto k = constantsNameToValue.find(orderedByName[j - 1]);
+						StringKey key(orderedByName[j - 1]);
+						auto k = constantsNameToValue.find(key);
 						if (k == constantsNameToValue.end())
 						{
 							break;
@@ -853,7 +856,8 @@ namespace ANON
 				{
 					if (orderedByName[j] == name)
 					{
-						auto k = constantsNameToValue.find(orderedByName[j + 1]);
+						StringKey key(orderedByName[j + 1]);
+						auto k = constantsNameToValue.find(key);
 						if (k == constantsNameToValue.end())
 						{
 							break;
@@ -877,7 +881,8 @@ namespace ANON
 			{
 				for (auto& i : constantsNameToValue)
 				{
-					orderedByName.push_back(i.first.c_str());
+					HString name(i.first);
+					orderedByName.push_back(name);
 				}
 
 				std::sort(orderedByName.begin(), orderedByName.end());

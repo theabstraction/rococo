@@ -1,6 +1,6 @@
 #include "rococo.mplat.h"
 
-#include <string>
+#include <ctype.h>
 #include <unordered_map>
 
 #include <rococo.parse.h>

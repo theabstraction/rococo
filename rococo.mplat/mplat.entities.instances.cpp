@@ -1,6 +1,5 @@
 #include <rococo.mplat.h>
 #include <unordered_map>
-#include <string>
 #include <vector>
 
 #include <rococo.strings.h>
@@ -269,7 +268,7 @@ namespace
 		  struct: public IEventCallback<IO::FileItemData>, IMaterialTextureArrayBuilder
 		  {
 			  int32 txWidth;
-			  std::vector<std::string> filenames;
+			  std::vector<HString> filenames;
 			  IInstallation* installation;
 			  AutoFree<IExpandingBuffer> buffer = CreateExpandingBuffer(4_megabytes);
 			  Events::IPublisher* publisher;
@@ -353,7 +352,7 @@ namespace
 
 	  std::unordered_map<MaterialCategory, std::vector<MaterialId>> categories;
 
-	  std::unordered_map<std::string, MaterialCategory> subdirToCatEnum =
+	  std::unordered_map<StringKey, MaterialCategory, StringKey::Hash> subdirToCatEnum =
 	  {
 		  { "/wood/", MaterialCategory_Wood },
 		  { "/stone/", MaterialCategory_Stone },
@@ -367,7 +366,7 @@ namespace
           cstr name = renderer.GetMaterialTextureName(id);
           for (auto& j : subdirToCatEnum)
           {
-              if (strstr(name, j.first.c_str()))
+              if (strstr(name, j.first))
               {
                   return j.second;
               }
@@ -398,7 +397,7 @@ namespace
 
 				  for (auto& j : subdirToCatEnum)
 				  {
-					  if (strstr(subpath, j.first.c_str()))
+					  if (strstr(subpath, j.first))
 					  {
 						  auto c = categories.find(j.second);
 						  if (c == categories.end())

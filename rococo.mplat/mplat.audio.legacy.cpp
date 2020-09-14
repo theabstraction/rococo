@@ -1,6 +1,5 @@
 #include <rococo.mplat.h>
 #include <array>
-#include <vector>
 
 #include <al.h>
 #include <alc.h>
@@ -199,7 +198,7 @@ struct LegacySoundControl : public ILegacySoundControlSupervisor, public OS::ITh
 		alGenBuffers(3, bufferCycle.data());
 		AssertValidState("alGenBuffers");
 
-		std::vector<StereoSample> raw(4410);
+		std::array<StereoSample, 4410> raw;
 		for (auto& s : raw)
 		{
 			s.left = s.right = 0;
@@ -443,7 +442,7 @@ struct LegacySoundControl : public ILegacySoundControlSupervisor, public OS::ITh
 	{
 		tc.SetRealTimePriority();
 
-		std::vector<StereoSample> raw_int16(4410);
+		std::array<StereoSample,4410> raw_int16;
 		for (auto& s : raw_int16)
 		{
 			s.left = s.right = 0;

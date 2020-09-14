@@ -1,7 +1,6 @@
 #include <rococo.mplat.h>
+#include <rococo.strings.h>
 #include <unordered_map>
-
-#include <sexy.types.h>
 
 namespace
 {
@@ -14,66 +13,75 @@ namespace
 
    struct Config : public IConfigSupervisor
    {
-      std::unordered_map<std::string, int32> mapToInt;
-      std::unordered_map<std::string, float> mapToFloat;
-      std::unordered_map<std::string, boolean32> mapToBool;
-      std::unordered_map<std::string, std::string> mapToText;
+      std::unordered_map<StringKey, int32, StringKey::Hash> mapToInt;
+      std::unordered_map<StringKey, float, StringKey::Hash> mapToFloat;
+      std::unordered_map<StringKey, boolean32, StringKey::Hash> mapToBool;
+      std::unordered_map<StringKey, HString, StringKey::Hash> mapToText;
 
-      virtual void Int(const fstring& name, int32 value)
+      void Int(const fstring& name, int32 value) override
       {
          ValidateKey(name);
-         mapToInt[name.buffer] = value;
+         StringKey key(name);
+         mapToInt[key] = value;
       }
 
-      virtual void Float(const fstring& name, float value)
+      void Float(const fstring& name, float value) override
       {
          ValidateKey(name);
-         mapToFloat[name.buffer] = value;
+         StringKey key(name);
+         mapToFloat[key] = value;
       }
 
-      virtual void Bool(const fstring& name, boolean32 value)
+      void Bool(const fstring& name, boolean32 value) override
       {
          ValidateKey(name);
-         mapToBool[name.buffer] = value;
+         StringKey key(name);
+         mapToBool[key] = value;
       }
 
-      virtual void Text(const fstring& name, const fstring& value)
+      void Text(const fstring& name, const fstring& value) override
       {
          ValidateKey(name);
-         mapToText[name.buffer] = value;
+         StringKey key(name);
+         mapToText[key] = value;
       }
 
-      virtual int32 GetInt(const fstring& name)
+      int32 GetInt(const fstring& name) override
       {
-         auto i = mapToInt.find(name.buffer);
+         StringKey key(name);
+         auto i = mapToInt.find(key);
          return (i != mapToInt.end()) ? i->second : 0;
       }
 
-      virtual float GetFloat(const fstring& name)
+      float GetFloat(const fstring& name) override
       {
-         auto i = mapToFloat.find(name.buffer);
+         StringKey key(name);
+         auto i = mapToFloat.find(key);
          return (i != mapToFloat.end()) ? i->second : 0;
       }
 
-      virtual boolean32 GetBool(const fstring& name)
+      boolean32 GetBool(const fstring& name) override
       {
-         auto i = mapToBool.find(name.buffer);
+         StringKey key(name);
+         auto i = mapToBool.find(key);
          return (i != mapToBool.end()) ? i->second : false;
       }
 
-      virtual void GetText(const fstring& name, Rococo::IStringPopulator& text)
+      void GetText(const fstring& name, Rococo::IStringPopulator& text) override
       {
-         auto i = mapToText.find(name.buffer);
-         if (i != mapToText.end() && !i->second.empty())
+         StringKey key(name);
+         auto i = mapToText.find(key);
+         if (i != mapToText.end() && i->second.length() > 0)
          {
             text.Populate(i->second.c_str());
          }
       }
 
-      virtual cstr GetText(cstr name) const
+      cstr GetText(cstr name) const override
       {
-         auto i = mapToText.find(name);
-         if (i != mapToText.end() && !i->second.empty())
+         StringKey key(name);
+         auto i = mapToText.find(key);
+         if (i != mapToText.end() && i->second.length() > 0)
          {
             return i->second.c_str();
          }
@@ -83,7 +91,7 @@ namespace
          }
       }
 
-      virtual void Free()
+      void Free() override
       {
          delete this;
       }

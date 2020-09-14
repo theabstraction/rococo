@@ -20,7 +20,7 @@ namespace
       {
       }
 
-      virtual bool TryMoveMobile(const MoveMobileArgs& tmm)
+      bool TryMoveMobile(const MoveMobileArgs& tmm) override
       {
          auto i = mapIdToAngles.find(tmm.entityId);
          if (i != mapIdToAngles.end())
@@ -59,7 +59,7 @@ namespace
          return false;
       }
          
-      virtual void Link(ID_ENTITY id)
+      void Link(ID_ENTITY id) override
       {
          if (!instances.GetEntity(id))
          {
@@ -73,7 +73,7 @@ namespace
          }
       }
 
-      virtual void GetAngles(ID_ENTITY id, FPSAngles& angles)
+      void GetAngles(ID_ENTITY id, FPSAngles& angles) override
       {
          auto i = mapIdToAngles.find(id);
          if (i == mapIdToAngles.end())
@@ -84,7 +84,7 @@ namespace
          angles = i->second;
       }
 
-      virtual void SetAngles(ID_ENTITY id, const FPSAngles& angles)
+      void SetAngles(ID_ENTITY id, const FPSAngles& angles) override
       {
          auto i = mapIdToAngles.find(id);
          if (i == mapIdToAngles.end())
@@ -95,7 +95,7 @@ namespace
          i->second = angles;
       }
 
-      virtual void Free()
+      void Free() override
       {
          delete this;
       }

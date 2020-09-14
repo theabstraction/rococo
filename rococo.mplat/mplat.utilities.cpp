@@ -6,7 +6,6 @@
 #include <Commdlg.h>
 
 #include <vector>
-#include <string>
 #include <unordered_map>
 #include <rococo.variable.editor.h>
 
@@ -277,7 +276,7 @@ public:
 		int64 moduleCallCount = 0;
 	};
 
-	std::unordered_map<std::string, PerformanceStats> nameToStats;
+	std::unordered_map<StringKey, PerformanceStats, StringKey::Hash> nameToStats;
 
 	struct NameAndStats
 	{
@@ -296,7 +295,7 @@ public:
 		for (auto i : nameToStats)
 		{
 			NameAndStats nas;
-			SafeFormat(nas.name.buf, nas.name.CAPACITY, "%s", i.first.c_str());
+			SafeFormat(nas.name.buf, nas.name.CAPACITY, "%s", i.first);
 			nas.stats = i.second;
 			nameAndStats.push_back(nas);
 		}
