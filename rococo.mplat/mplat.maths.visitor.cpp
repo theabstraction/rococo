@@ -4,6 +4,7 @@
 #include <rococo.strings.h>
 #include <stdarg.h>
 #include <rococo.ui.h>
+#include <rococo.fonts.hq.h>
 
 namespace
 {

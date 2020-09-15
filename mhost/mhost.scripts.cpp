@@ -5,7 +5,8 @@
 #include <sexy.vm.cpu.h>
 #include <sexy.script.h>
 #include <rococo.strings.h>
-
+#include <rococo.sexy.api.h>
+#include <rococo.package.h>
 
 using namespace Rococo;
 
@@ -78,12 +79,13 @@ namespace MHost
 		return obj;
 	}
 
-	void RunEnvironmentScript(Platform& platform, IEngineSupervisor* engine, cstr name, bool releaseAfterUse, bool trace)
+	void RunEnvironmentScript(Platform& platform, IEngineSupervisor* engine, cstr name, bool releaseAfterUse, bool trace, IPackage& package)
 	{
 		class ScriptContext : public IEventCallback<ScriptCompileArgs>
 		{
 			Platform& platform;
 			IEngineSupervisor* engine;
+			IPackage& package;
 			const IStructure* exprStruct = nullptr;
 
 			AutoFree<ISourceCache> privateSourceCache;
@@ -115,8 +117,10 @@ namespace MHost
 				((ScriptContext*)(_nce.context))->LoadExpression(_nce);
 			}
 
-			virtual void OnEvent(ScriptCompileArgs& args)
+			void OnEvent(ScriptCompileArgs& args) override
 			{
+				args.ss.RegisterPackage(&package);
+				args.ss.LoadSubpackages("", "mhost");
 #ifdef _DEBUG
 				args.ss.AddNativeLibrary("rococo.sexy.mathsex.debug");
 #else
@@ -137,8 +141,8 @@ namespace MHost
 			}
 
 		public:
-			ScriptContext(Platform& _platform, IEngineSupervisor* _engine) :
-				platform(_platform), engine(_engine) 
+			ScriptContext(Platform& _platform, IEngineSupervisor* _engine, IPackage& _package) :
+				platform(_platform), engine(_engine), package(_package)
 			{
 				privateSourceCache = CreateSourceCache(platform.installation);
 			}
@@ -148,7 +152,7 @@ namespace MHost
 				platform.utilities.RunEnvironmentScript(*this, name, true, true, trace);
 				engine->SetRunningScriptContext(nullptr);
 			}
-		} sc(platform, engine);
+		} sc(platform, engine, package);
 
 		sc.Execute(name, trace);
 

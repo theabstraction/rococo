@@ -1,0 +1,35 @@
+(using Sys.Maths)
+(using Sys.Type)
+(using MHost.Graphics)
+(using MHost)
+(using MHost.OS)
+
+(using Sys.Maths.I32)
+(using Sys.Maths.F32)
+
+(struct PassEventHandlerArgs
+	(IEventHandler sink)
+)
+
+(struct KeyboardCharArgs
+	(Int32 asciiValue)
+	(IEventHandler source)
+)
+
+(struct KeyboardVKeyArgs
+	(Bool isUp)
+	(Int32 virtualKeyCode)
+	(IEventHandler source)
+)
+
+(struct BoolArgs
+	(Bool value)
+	(IEventHandler source)
+)
+
+(alias BoolArgs MHost.BoolArgs)
+(alias KeyboardCharArgs MHost.KeyboardCharArgs)
+(alias KeyboardVKeyArgs MHost.KeyboardVKeyArgs)
+(alias PassEventHandlerArgs MHost.PassEventHandlerArgs)
+
+

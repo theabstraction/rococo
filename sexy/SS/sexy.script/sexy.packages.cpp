@@ -314,6 +314,17 @@ namespace
 				Throw(0, "%hs: package argument was null", __FUNCTION__);
 			}
 
+			cstr name = package->FriendlyName();
+			if (name == nullptr)
+			{
+				Throw(0, "%hs: package name was null", __FUNCTION__);
+			}
+
+			if (strstr(name, "@") != nullptr)
+			{
+				Throw(0, "%hs: package name contained illegal character '@'", __FUNCTION__);
+			}
+
 			for (auto& i : packages)
 			{
 				if (i.second.dataPackage->HashCode() == package->HashCode())
@@ -338,67 +349,166 @@ namespace
 			return true;
 		}
 
-		void LoadNamespaceAndRecurse(cstr prefix, const PackageNamespaceToken& ns, SexyPackage& sp)
+		static bool DoesFileMatchFilter(cstr subspace, cstr filename, cstr filter)
 		{
-			for (auto& file : ns.files)
+			auto* f = filename + strlen(subspace) + 1;
+			auto* g = filter;
+			for (;;)
 			{
-				if (!file.tree)
+				switch (*g)
 				{
-					file.tree = ss.SParser().CreateTree((ISourceCode&)file);
+				case '*':
+					return true;
+				case 0:
+					return *f == 0;
+				default:
+					if (*f != *g) return false; else break;
 				}
 
-				auto* module = static_cast<IModuleBuilder*>(ss.AddTree(*file.tree));
-				module->SetPackage(sp.dataPackage, prefix);
+				g++;
+				f++;
+			}
+		}
+
+		static bool MapFileNameToNamespace(char defaultNamespace[NAMESPACE_MAX_LENGTH], cstr filename)
+		{
+			auto* f = filename; // Sys/Maths/I32/Double.sxy
+			
+			auto lenPathname = strlen(f);
+
+			if (lenPathname >= NAMESPACE_MAX_LENGTH)
+			{
+				Throw(0, "Pathname too long %s", f);
 			}
 
+			memcpy(defaultNamespace, f, lenPathname); //  Sys/Maths/I32/Double.sxy
+			defaultNamespace[lenPathname] = 0;
+
+			auto* d = defaultNamespace + lenPathname;
+			while (d > defaultNamespace)
+			{
+				if (*d == '/')
+				{
+					*d = 0; // Sys/Maths/I32
+					break;
+				}
+
+				d--;
+			}
+
+			if (d == defaultNamespace)
+			{
+				// This means we had a filename not under a directory, in which case
+				// there can be no default namespace, ergo, it cannot be listed in a package
+				return false;
+			}
+
+			for (d = defaultNamespace; *d != 0; d++)
+			{
+				switch (*d)
+				{
+				case '/':
+					*d = '.'; break;
+				case '.':
+					return false; // Dots not allowed
+				default:
+					break;
+				}
+			}
+
+			return true;
+		}
+
+		template<class T> size_t LoadFilesWhere(const PackageNamespaceToken& ns, SexyPackage& sp, T condition)
+		{
+			size_t count = 0;
+
+			for (auto& file : ns.files)
+			{
+				auto* f = file.Name(); // Package[double]@Sys/Maths/I32/Double.sxy 
+				while (*f++ != '@') {} // Sys/Maths/I32/Double.sxy 
+
+				char defaultNamespace[NAMESPACE_MAX_LENGTH];
+				if (condition(f) && MapFileNameToNamespace(defaultNamespace, f))
+				{
+					if (file.tree == nullptr)
+					{
+						file.tree = ss.SParser().CreateTree((ISourceCode&)file);
+					}
+					auto* module = static_cast<IModuleBuilder*>(ss.AddTree(*file.tree));
+					module->SetPackage(sp.dataPackage, defaultNamespace);
+					count++;
+				}
+			}
+
+			return count;
+		}
+
+		void LoadNamespaceAndRecurse(OUT size_t& count, cstr namespaceText, const PackageNamespaceToken& ns, SexyPackage& sp)
+		{
+			size_t fileCount = LoadFilesWhere(ns, sp,
+				[](const char* filename)
+				{
+					return true;
+				}
+			);
+
+			count += fileCount;
+
+			// recurse
 			for (auto& subspace : ns.subspaces)
 			{
-				if (*prefix == 0)
+				if (*namespaceText == 0)
 				{
-					LoadNamespaceAndRecurse(subspace.token, subspace, sp);
+					LoadNamespaceAndRecurse(count, subspace.token, subspace, sp);
 				}
 				else
 				{
 					char subPrefix[NAMESPACE_MAX_LENGTH];
-					SecureFormat(subPrefix, "%s.%s", prefix, subspace.token);
-					LoadNamespaceAndRecurse(subPrefix, subspace, sp);
+					int len = SecureFormat(subPrefix, "%s.%s", namespaceText, subspace.token);
+					LoadNamespaceAndRecurse(count, subPrefix, subspace, sp);
 				}
 			}
 		}
 
-		void LoadSubpackages(cstr namespaceFilter, cstr packageName) override
+		[[noreturn]] static void ThrowSubspaceMismatch(const PackageNamespaceToken* ns, cstr start)
 		{
-			StringKey key(packageName);
-			auto i = packages.find(key);
-			if (i == packages.end())
+			if (ns->subspaces.empty())
 			{
-				Throw(0, "%s: could not find package '%s'", __FUNCTION__, packageName);
+				Throw(0, "Could not match subspace %s. The parent [%s] has no subspaces", start, ns->token);
 			}
-
-			const auto* ns = &i->second.root;
-			
-			if (namespaceFilter == nullptr || *namespaceFilter == 0)
+			else
 			{
-				LoadNamespaceAndRecurse("", *ns, i->second);
-				return;
+				char subspaces[512];
+				StackStringBuilder ssb(subspaces, 512);
+				for (auto& sub : ns->subspaces)
+				{
+					ssb.AppendFormat("[%s] ", sub.token);
+				}
+				Throw(0, "Could not match subspace %s to anything in the parent namespace %s\nKnown subspaces: %s\n", start, ns->token, subspaces);
 			}
+		}
 
-			auto* start = namespaceFilter;
-			auto* end = start;
+		static auto GetSubspace(cstr namespaceText, SexyPackage& package)
+		{
+			const auto* ns = &package.root;
 
+			const char* start = namespaceText;
+			const char* end;
 			const char* s;
-			for (s = namespaceFilter; *s != 0; ++s)
+
+			for (s = namespaceText; *s != 0; ++s)
 			{
 				if (*s == '.')
 				{
 					end = s;
 
-					ns = ns->Find(start, end);
-					if (ns == nullptr)
+					auto ns1 = ns->Find(start, end);
+					if (ns1 == nullptr)
 					{
-						Throw(0, "%s: Could not match '%s' to anything in the package %s",
-							__FUNCTION__, namespaceFilter, i->second.dataPackage->FriendlyName());
+						ThrowSubspaceMismatch(ns, start);
 					}
+					ns = ns1;
 
 					start = s + 1;
 					end = start;
@@ -407,14 +517,111 @@ namespace
 
 			end = s;
 
-			ns = ns->Find(start, end);
-			if (ns == nullptr)
+			auto ns1 = ns->Find(start, end);
+			if (ns1 == nullptr)
 			{
-				Throw(0, "%s: Could not match '%s' to anything in the package %s",
-					__FUNCTION__, namespaceFilter, i->second.dataPackage->FriendlyName());
+				ThrowSubspaceMismatch(ns, start);
 			}
 
-			LoadNamespaceAndRecurse(namespaceFilter, *ns, i->second);
+			return ns1;
+		}
+
+		void LoadSubpackagesWithSearchFilter(cstr namespaceFilter, SexyPackage& package)
+		{
+			// Sys.Maths.I32.Doub* 
+
+			const char* n;
+			for (n = namespaceFilter + strlen(namespaceFilter); n > namespaceFilter; n--)
+			{
+				if (*n == '.')
+				{
+					n++;
+					break;
+				}
+			}
+
+			if (n == namespaceFilter)
+			{
+				Throw(0, "The search filter did not refer to a subspace. Filters have the format A.B.C.xyz*");
+			}
+
+			// n = Doub*
+
+			auto len = n - namespaceFilter;
+			if (len >= NAMESPACE_MAX_LENGTH)
+			{
+				Throw(0, "The search filter subspace was too long");
+			}
+
+			auto* filenameFilter = n;
+
+			char namespaceText[NAMESPACE_MAX_LENGTH];
+			memcpy(namespaceText, namespaceFilter, len-1);
+			namespaceText[len-1] = 0; // namespaceText = Sys.Maths.I32
+
+			auto subspace = GetSubspace(namespaceText, package);
+
+			size_t fileCount = LoadFilesWhere(*subspace, package,
+				[namespaceText, filenameFilter](const char* filename)
+				{
+					return DoesFileMatchFilter(namespaceText, filename, filenameFilter);
+				}
+			);
+
+			if (fileCount == 0) Throw(0, "No files were enumerated under [%s] with filter '%s'", namespaceText, filenameFilter);
+		}
+
+		void LoadSubpackagesRecursively(cstr namespaceText, SexyPackage& package)
+		{
+			const PackageNamespaceToken* subspace;
+
+			if (namespaceText == nullptr || *namespaceText == 0)
+			{
+				namespaceText = "";
+				subspace = &package.root;
+			}
+			else
+			{
+				subspace = GetSubspace(namespaceText, package);
+			}
+
+			size_t count = 0;
+			LoadNamespaceAndRecurse(OUT count, namespaceText, *subspace, package);
+			if (count == 0) Throw(0, "No files were enumerated under the root");
+		}
+
+		void LoadSubpackages(cstr namespaceFilter, cstr packageName) override
+		{
+			StringKey key(packageName);
+			auto i = packages.find(key);
+			if (i == packages.end())
+			{
+				Throw(0, "Packager::LoadSubpackages(..., \"%s\"): could not find package", packageName);
+			}
+
+			if (namespaceFilter && EndsWith(namespaceFilter, "*"))
+			{
+				try
+				{
+					LoadSubpackagesWithSearchFilter(namespaceFilter, i->second);
+				}
+				catch (IException& ex)
+				{
+					Throw(ex.ErrorCode(), "Packager::LoadSubpackages(\"%s\", \"%s\")\n%s", namespaceFilter, packageName, ex.Message());
+				}
+			}
+			else
+			{
+				try
+				{
+					LoadSubpackagesRecursively(namespaceFilter, i->second);
+				}
+				catch (IException& ex)
+				{
+					cstr ns = namespaceFilter == nullptr ? "<null>" : namespaceFilter;
+					Throw(ex.ErrorCode(), "Packager::LoadSubpackages(%s, \"%s\")\n%s", ns, packageName, ex.Message());
+				}
+			}
 		}
 
 		void Free() override

@@ -7,6 +7,11 @@ namespace Rococo
 	struct IInstallation;
 	struct IApp;
 
+	namespace OS
+	{
+		struct IAppControl;
+	}
+
 	void CALLBACK RendererMain(HANDLE hInstanceLock, IInstallation& installation, IAppFactory& factory);
 
 	ROCOCOAPI IDX11Window

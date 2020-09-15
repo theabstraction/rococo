@@ -20,6 +20,22 @@ typedef __int64 ptrdiff_t;
 # define TIGHTLY_PACKED __attribute__((packed))
 # endif
 
+// The following could be done with a template, but that results in bloated error messages, and our ids are ubiquitous
+#define ROCOCO_ID(DEFINED_ID_NAME,TYPE,INVALID_VALUE)										      \
+struct DEFINED_ID_NAME																		            \
+{																							                  \
+	DEFINED_ID_NAME() : value(INVALID_VALUE) {}												      \
+	explicit DEFINED_ID_NAME(TYPE _value) : value(_value) {}								      \
+	TYPE value;																				               \
+    [[nodiscard]] static DEFINED_ID_NAME Invalid() noexcept { return DEFINED_ID_NAME(); }							   \
+	size_t operator() (const DEFINED_ID_NAME& obj) const { return size_t(obj.value); }	\
+    operator bool () const noexcept { return value != INVALID_VALUE; }                           \
+};																							                  \
+inline bool operator == (const DEFINED_ID_NAME& a, const DEFINED_ID_NAME& b) { return a.value == b.value; }				\
+inline bool operator != (const DEFINED_ID_NAME& a, const DEFINED_ID_NAME& b) { return !(a == b); }                   \
+inline bool operator <  (const DEFINED_ID_NAME& a, const DEFINED_ID_NAME& b) { return a.value < b.value; }
+
+
 namespace Rococo
 {
 #ifdef _WIN32
@@ -111,6 +127,12 @@ namespace Rococo
 	{
 		return fstring{ msg, (int32)length };
 	}
+
+	template<typename COLOUR_STRUCT>
+	ROCOCOAPI IImagePopulator
+	{
+		virtual void OnImage(const COLOUR_STRUCT * pixelBuffer, int width, int height) = 0;
+	};
 
 	struct IDictionary;
 	struct StringBuilder;

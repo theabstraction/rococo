@@ -46,6 +46,9 @@ namespace Rococo
 
 		// Fill in a FileData structure with the file data block
 		virtual void GetFileInfo(const char* resourcePath, OUT PackageFileData& f) const = 0;
+
+		// Fill in a FileData structure with the file data block. Return false if the path does not exist
+		virtual bool TryGetFileInfo(const char* resourcePath, OUT PackageFileData& f) const = 0;
 	};
 
 	ROCOCOAPI IPackageSupervisor : IPackage

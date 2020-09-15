@@ -1,0 +1,122 @@
+(using Sys.Maths)
+
+(class UIStack (implements $.IUIStack)
+	(UIStackItem root)
+	(Vec2 lastCursorPos)
+)
+
+(method UIStack.Construct ->  (construct root) : 
+	(this.root.name = "~root~")
+	(this.root.isVisible = true)
+	(this.root.isClippedByParent = true)
+	(this.lastCursorPos = 0 0)
+)
+
+(factory $.NewUIStack IUIStack : (construct UIStack))
+
+(method UIStackItem.Construct -> (construct children ()): 
+)
+
+(method UIStack.AddTopLevelControl (MHost.Graphics.IControl control) (IString name)-> :
+	(this.root.children.Append ())
+	(node n = this.root.children.Tail)
+	(UIStackItem newItem = & n)
+	(newItem.control = control)
+	(newItem.name = name)
+	(newItem.isVisible = true)
+	(newItem.handler = (control.GetEventHandler))
+	(newItem.isClippedByParent = true)
+)
+
+(method UIStack.AddTopLevelFloater (MHost.Graphics.IControl control) (IString name)-> :
+	(this.root.children.Append ())
+	(node n = this.root.children.Tail)
+	(UIStackItem newItem = & n)
+	(newItem.control = control)
+	(newItem.name = name)
+	(newItem.isVisible = true)
+	(newItem.handler = (control.GetEventHandler))
+	(newItem.isClippedByParent = false)
+)
+
+(method UIStack.RemoveFromTopLevel (IControl control)-> :
+	(Int32 length = (this.root.children.Length))
+	(if (length > 0)
+		(node n = this.root.children.Head)
+		(do
+			(UIStackItem child = & n)
+			(if (child.control == control)
+				(n.Pop)
+				(return)
+			)
+		while n.GoNext)
+	)
+)
+
+(method UIStack.ForEachItemByZOrder (OnUIStackItem callback)->(Bool terminate):
+	(callback this.root -> terminate)
+	
+	(if (not terminate) (ForEachChildByZOrderRecursive this.root callback -> terminate))
+)
+
+(method UIStack.BringToTop (IControl control)-> :
+	(BringChildToTop origin.root control)
+)
+
+(method UIStack.SetVisible (IControl control) (Bool isVisible)-> :
+	(OnUIStackItem q =
+		(closure (UIStackItem item)->(Bool terminateNow):
+			(item.isVisible = isVisible)
+			(termianteNow = true)
+		)
+	)
+	
+	(FindItemAndExecute this.root control q -> terminateNow)
+)
+
+(method UIStack.AddChild (IControl control)(IControl parent)(IString name)(Bool clipped)-> :
+	(OnUIStackItem q =
+		(closure (UIStackItem item)->(Bool terminateNow):
+			(UIStackItem newChild)
+			(newChild.control = control)
+			(newChild.name = name)
+			(newChild.isVisible = true)
+			(newChild.isClippedByParent = clipped)
+			(newChild.handler = (control.GetUIEventHandler))
+			(terminateNow = true)
+			(item.children.Append newChild)
+		)
+	)
+	
+	(FindItemAndExecute this.root control q -> terminateNow)
+)
+
+(method UIStack.RouteMouseEvent (Vec2 cursorPos)(OnUIStackItem callback) -> :
+	(this.lastCursorPos = cursorPos)
+	(RouteMouseEventRecursive this.root cursorPos callback)
+)
+
+(method UIStack.RouteSysKey (Bool isUp)(Int32 virtualKeyCode)-> :
+	(Vec2 lastCursorPos = this.lastCursorPos)
+	(OnUIStackItem routeKey = 
+		(closure (UIStackItem item)->(Bool terminate):
+			(IEventHandler handler = (item.control.GetEventHandler))
+			(SysKeyData skd = isUp virtualKeyCode lastCursorPos)
+			(handler.OnSysKey skd)
+			(terminate = true)
+		)
+	)
+	(RouteMouseEventRecursive this.root this.lastCursorPos routeKey)
+)
+
+(function RenderTree (IUIStack tree)(IGui gui)-> :
+	(OnUIStackItem renderControl = 
+		(closure (UIStackItem item)->(Bool terminate):
+			(item.control.Render gui)
+			(terminate = false)
+		)
+	)
+	(tree.ForEachItemByZOrder renderControl)
+)
+
+(alias RenderTree $.RenderTree)

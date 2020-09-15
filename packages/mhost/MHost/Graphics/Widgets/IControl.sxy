@@ -1,0 +1,7 @@
+(using Sys.Maths)
+
+(interface $.IControl
+	(GetRect (Rectf rect)->)
+	(GetEventHandler -> (IEventHandler handler))
+	(Render (IGui gui)->)
+)

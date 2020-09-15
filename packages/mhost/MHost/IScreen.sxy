@@ -1,0 +1,3 @@
+(interface $.IScreen (extends MHost.Graphics.IUIEventHandler)
+	(RenderGui (IGui g) ->)
+)

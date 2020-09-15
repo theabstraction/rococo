@@ -45,13 +45,12 @@
 #include "sexy.debug.types.h"
 #include "sexy.compiler.public.h"
 #include "sexy.script.h"
-
 #include <memory>
 
 #define ROCOCO_USE_SAFE_V_FORMAT
 #include <rococo.strings.h>
-
 #include <rococo.api.h>
+#include <rococo.os.h>
 
 #define BREAK_ON_THROW
 

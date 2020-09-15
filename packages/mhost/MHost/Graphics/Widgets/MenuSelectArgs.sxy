@@ -1,0 +1,7 @@
+(struct MenuSelectArgs
+	(Int32 menuIndex)
+	(IString menuText)
+	(IMenu source)
+)
+
+(alias MenuSelectArgs $)

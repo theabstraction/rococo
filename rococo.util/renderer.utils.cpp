@@ -1,6 +1,7 @@
 #include <rococo.api.h>
 #include <rococo.renderer.h>
 #include <rococo.fonts.h>
+#include <rococo.fonts.hq.h>
 
 #include <limits>
 #include <new>
@@ -11,6 +12,7 @@ namespace
 {
 	using namespace Rococo;
 	using namespace Rococo::Graphics;
+	using namespace Rococo::Fonts;
 
 	Fonts::FontColour FontColourFromRGBAb(RGBAb colour)
 	{

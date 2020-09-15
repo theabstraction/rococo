@@ -6,6 +6,7 @@
 #include "sexy.script.h"
 #include "sexy.native.sys.type.h"
 #include "rococo.os.win32.h"
+#include "rococo.os.h"
 #include "sexy.compiler.h"
 
 #include <unordered_map>

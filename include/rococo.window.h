@@ -7,6 +7,8 @@
 
 namespace Rococo
 {
+	struct MenuCommand;
+
 	namespace Windows
 	{
 		ROCOCOAPI IWindow

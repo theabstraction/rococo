@@ -2,9 +2,12 @@
 #define ROCOCO_IDE_H
 
 #include <rococo.api.h>
+#include <rococo.sexy.api.h>
 
 namespace Rococo
 {
+	struct MenuCommand;
+
 	using namespace Rococo::Script;
 
 	namespace Windows
@@ -47,6 +50,11 @@ namespace Rococo
 	namespace Script
 	{
 		struct IScriptSystemFactory;
+	}
+
+	namespace OS
+	{
+		struct IAppControl;
 	}
 
 	namespace Windows

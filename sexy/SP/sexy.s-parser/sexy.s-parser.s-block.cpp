@@ -37,6 +37,7 @@
 
 #include <rococo.api.h>
 #include <rococo.strings.h>
+#include <rococo.os.h>
 
 #include <stdio.h>
 #include <memory>
@@ -1499,12 +1500,13 @@ namespace Anon
 				Throw(0, "%s: buffer must be null at position %d", nameRef, segmentLength);
 			}
 
-			size_t blockSize = sizeof(SourceCode);
+			size_t blockSize = sizeof(SourceCode) + strlen(nameRef) + 1;
 			char* block = (char*)allocator.Allocate(blockSize);
 			auto* src = new (block) SourceCode(allocator);
 			src->allocator = allocator;
 			src->buffer = const_cast<char*>(bufferRef);
-			src->name = const_cast<char*>(nameRef);
+			src->name = block + sizeof(SourceCode);
+			memcpy_s(src->name, strlen(nameRef) + 1, nameRef, strlen(nameRef) + 1);
 			src->srcLength = segmentLength;
 			src->origin = origin;
 			src->block = block;

@@ -1,0 +1,9 @@
+(using Sys.Maths)
+
+(struct MouseClickArgs
+	(Vec2 pos)
+	(IEventHandler eventHandler)
+	(Int32 button)
+)
+
+(alias MouseClickArgs $)

@@ -14,7 +14,7 @@
 (using Rococo.Graphics)
 (using Rococo.Audio)
 
-(interface MHost.Graphics.IVericalScrollBar
+(interface $.IVericalScrollBar
 	(Handler -> (IEventHandler handler))
 	(Layout (Rectf rect) ->)
 	(PxToDocPos (Float32 y) -> (Float32 docPos))
@@ -27,7 +27,7 @@
 )
 
 (class VerticalScrollBar
-	(implements MHost.Graphics.IVericalScrollBar)
+	(implements $.IVericalScrollBar)
 	(implements IEventHandler)
 	(Rectf vscrollRect)
 	(Rectf upRect)
@@ -50,12 +50,8 @@
 	(Int32 keyEnd)
 )
 
-(method VerticalScrollBar.GetSliderPos -> (Float32 docPos):
-	(docPos = this.cursor)
-)
-
-(method VerticalScrollBar.Handler -> (IEventHandler handler):
-	(handler = this)
+(factory $.NewVerticalScrollBar $.IVericalScrollBar (IUIControl uiControl) :
+	(construct VerticalScrollBar uiControl)
 )
 
 (method VerticalScrollBar.Construct (IUIControl uiControl): 
@@ -79,6 +75,14 @@
 	(this.keyEnd = (keyboard.GetVKeyFromName "END"))
 )
 
+(method VerticalScrollBar.GetSliderPos -> (Float32 docPos):
+	(docPos = this.cursor)
+)
+
+(method VerticalScrollBar.Handler -> (IEventHandler handler):
+	(handler = this)
+)
+
 (method VerticalScrollBar.GetSliderRange -> (Float32 range):
 	(range = this.sliderRange)
 )
@@ -91,10 +95,6 @@
 	(Float32 dy = (y - y0))
 	(Float32 scalePxToDoc = (this.documentLength / this.sliderRange))
 	(docPos = (dy * scalePxToDoc))
-)
-
-(factory MHost.Graphics.NewVerticalScrollBar MHost.Graphics.IVericalScrollBar (IUIControl uiControl) :
-	(construct VerticalScrollBar uiControl)
 )
 
 (method VerticalScrollBar.UpdateButtonRect -> :

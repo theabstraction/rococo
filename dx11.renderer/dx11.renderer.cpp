@@ -31,9 +31,12 @@
 
 #include <memory>
 
+#include <rococo.fonts.hq.h>
+
 namespace ANON
 {
 	using namespace Rococo;
+	using namespace Rococo::Fonts;
 	using namespace Rococo::Windows;
 	using namespace Rococo::Samplers;
 

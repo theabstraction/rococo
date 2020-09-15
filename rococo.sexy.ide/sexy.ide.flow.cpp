@@ -9,6 +9,8 @@
 #include <sexy.s-parser.h>
 
 #include <rococo.strings.h>
+#include <rococo.ide.h>
+#include <rococo.os.h>
 
 using namespace Rococo;
 using namespace Rococo::Windows;

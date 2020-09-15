@@ -3,6 +3,7 @@
 #include <rococo.strings.h>
 #include <stdio.h>
 #include <richedit.h>
+#include <rococo.os.h>
 
 namespace ANON
 {

@@ -4,10 +4,10 @@
 #include <rococo.strings.h>
 #include <rococo.file.browser.h>
 #include <rococo.io.h>
-
+#include <rococo.sexy.api.h>
+#include <rococo.random.h>
 #include "hv.events.h"
 #include "hv.defaults.h"
-
 #include <vector>
 
 namespace HV
@@ -414,7 +414,7 @@ namespace HV
 		return new HV::App(p);
 	}
 
-	IRandom& GetRandomizer()
+	Random::IRandom& GetRandomizer()
 	{
 		static Random::RandomMT mt;
 		return mt;

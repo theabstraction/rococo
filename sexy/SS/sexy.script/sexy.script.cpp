@@ -45,6 +45,8 @@
 #include <sexy.stdstrings.h>
 
 #include <rococo.api.h>
+#include <rococo.sexy.api.h>
+#include <rococo.os.h>
 
 #include <rococo.package.h>
 
@@ -1824,7 +1826,7 @@ namespace Rococo
 			CopyStringTochar(sxArchetype, MAX_ARCHETYPE_LEN, archetype, len + 1);
 
 			char srcName[MAX_ARCHETYPE_LEN + 64];
-			SafeFormat(srcName, MAX_ARCHETYPE_LEN + 64, ("Source: '%s'"), sxArchetype);
+			SafeFormat(srcName, MAX_ARCHETYPE_LEN + 64, "Source: '%s'", sxArchetype);
 			Auto<ISourceCode> src = SParser().ProxySourceBuffer(sxArchetype, (int)len, Vec2i{ 0,0 }, srcName);
 
 			try

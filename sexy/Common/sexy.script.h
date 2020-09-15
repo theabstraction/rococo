@@ -242,6 +242,22 @@ namespace Rococo {
 			virtual const Compiler::INamespace& AddNativeNamespace(cstr name) = 0;
 			virtual void AddNativeLibrary(const char *sexyLibraryFile) = 0;
 			virtual void RegisterPackage(IPackage* package) = 0;
+
+			/*
+			  Find a registered package with [packageName] and attempt to load all sxy files that
+			  match the search filter. If the filter ends with a * the string after the final dot 
+			  is matched against all filenames in the package with the prefix before the dot.
+			  So that 'Sys.Maths.I32.Do*', for example, would match Sys/Maths/I32/Double.sxy, but not
+			  Sys/Dog.sxy nor Sys/Maths/I32/Triple.sxy. If the star is missed off, all files in the 
+			  namespace and subspaces are matched so 'Sys.Math' would match Sys/Maths/I32/Double.sxy. 
+			  If the [namespaceFilter] is blank all files in all namespaces are matched. If no matches 
+			  occur an IException is thrown. Filename container paths that do not map to legal Sexy 
+			  namespace strings by subsituting slash for dot (/ -> .) are not enumerated and will not match. 
+			  All matching files have are added to the module list and their default namespace
+			  set to their subspace mapped from their file path prefix.
+			  
+			  E.g module Sys/Maths/I32/Double.sxy would have its default namespace set to Sys.Maths.I32
+			 */
 			virtual void LoadSubpackages(cstr namespaceFilter, cstr packageName) = 0;
 			virtual Compiler::IModule* AddTree(Sex::ISParserTree& tree) = 0;
 			virtual void Compile() = 0;

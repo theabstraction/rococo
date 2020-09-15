@@ -1,0 +1,7 @@
+(struct FontDesc
+	(Float32 ascent)
+	(Float32 height)
+)
+
+(alias FontDesc $)
+

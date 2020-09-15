@@ -1,0 +1,4 @@
+(interface $.IUIControl
+	(CaptureMouse (IEventHandler handler)->)
+	(ReleaseMouse (IEventHandler handler)->)
+)

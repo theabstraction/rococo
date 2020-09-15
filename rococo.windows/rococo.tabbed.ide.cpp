@@ -4,20 +4,18 @@
 #include <sexy.debug.types.h>
 #include <sexy.compiler.public.h>
 #include <sexy.script.h>
-
 #include <windows.h>
 #include <rococo.window.h>
 #include <rococo.strings.h>
 #include <commctrl.h>
-
 #include <vector>
 #include <algorithm>
 #include <unordered_map>
-
 #include <rococo.io.h>
-
 #include <rococo.parse.h>
 #include <sexy.strings.h>
+#include <rococo.ide.h>
+#include <rococo.sexy.api.h>
 
 using namespace Rococo;
 using namespace Rococo::Windows;

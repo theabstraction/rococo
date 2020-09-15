@@ -6,6 +6,14 @@
 using namespace Rococo;
 using namespace Rococo::Events;
 
+namespace Rococo
+{
+	namespace Random
+	{
+		struct IRandom;
+	}
+}
+
 namespace HV
 {
    struct IPlayerSupervisor;
@@ -381,7 +389,7 @@ namespace HV
 		virtual void Free() = 0;
    };
 
-   IRandom& GetRandomizer();
+   Random::IRandom& GetRandomizer();
 
    ROCOCOAPI IGlobalVariables
    {

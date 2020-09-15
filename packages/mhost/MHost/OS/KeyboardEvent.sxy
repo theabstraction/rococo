@@ -1,0 +1,18 @@
+(struct KeyboardEvent 
+	(Int32 scancode)
+	(Int32 virtualKeyCode)
+	(Int32 asciiValue)
+	(Bool isUp)
+)
+
+(alias KeyboardEvent $)
+
+(function TranslateKeyboardEvent ($.KeyboardEvent key)(IUIEventHandler handler)-> :
+	(if ((not key.isUp) and (key.asciiValue != 0))
+		(handler.OnAsciiChar key.asciiValue)
+	)
+	
+	(handler.OnSysKey key.isUp key.virtualKeyCode)
+)
+
+(alias TranslateKeyboardEvent $.TranslateKeyboardEvent)

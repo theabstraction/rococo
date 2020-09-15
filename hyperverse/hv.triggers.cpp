@@ -2,6 +2,7 @@
 #include <rococo.mplat.h>
 #include <rococo.strings.h>
 #include <rococo.rings.inl>
+#include <rococo.random.h>
 #include <vector>
 #include <string>
 

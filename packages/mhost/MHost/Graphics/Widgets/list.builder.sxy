@@ -24,6 +24,16 @@
 	(IListRow lastRowUnderCursor)
 ) 
 
+(factory $.NewListBuilder MHost.Graphics.IListBuilder (IUIControl uiControl)(Int32 maxRows):
+	(construct ListBuilder uiControl maxRows)
+)
+
+(method ListBuilder.Construct (IUIControl uiControl)(Int32 maxRows) -> (construct rows maxRows):
+	(this.outerRect = -1 -1 -1 -1)
+	(this.verticalScrollBar = (NewVerticalScrollBar uiControl))
+	(this.totalSpan = 0 0)
+)
+
 (method ListBuilder.OnMouseUp (MouseClickArgs args)-> :
 	(if (this.lastRowUnderCursor ?)
 		(SelectListRowArgs slra = this.lastRowUnderCursor args.pos this false)
@@ -45,12 +55,6 @@
 	)
 )
 
-(method ListBuilder.Construct (IUIControl uiControl)(Int32 maxRows) -> (construct rows maxRows):
-	(this.outerRect = -1 -1 -1 -1)
-	(this.verticalScrollBar = (NewVerticalScrollBar uiControl))
-	(this.totalSpan = 0 0)
-)
-
 (method ListBuilder.GetRect (Rectf rect)-> :
 	(rect = this.outerRect)
 )
@@ -70,10 +74,6 @@
 
 (method ListBuilder.GetEventHandler ->(IEventHandler evHandler):
 	(evHandler = this)
-)
-
-(factory MHost.Graphics.NewListBuilder MHost.Graphics.IListBuilder (IUIControl uiControl)(Int32 maxRows):
-	(construct ListBuilder uiControl maxRows)
 )
 
 (method ListBuilder.SetRect (Rectf rect)(IGui g) -> :

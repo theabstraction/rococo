@@ -2,6 +2,7 @@
 #include <unordered_set>
 #include <array>
 #include <rococo.strings.h>
+#include <rococo.fonts.hq.h>
 
 using namespace Rococo;
 using namespace Rococo::Graphics;

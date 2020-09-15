@@ -1,0 +1,12 @@
+(interface $.IEventHandler 
+	(attribute dispatch)
+	
+	/* known optional methods called by dispatch on this interface (these should be commented out, later versions of sexy may implement optional method syntax)
+	(OnMouseDown (MouseClickArgs args) -> )
+	(OnMouseUp (MouseClickArgs args) -> )
+	(SetKeyboardFocus (PassEventHandlerArgs peh) ->)
+	(OnAsciiChar (KeyboardCharArgs args)->)
+	(OnVirtualKey (KeyboardVKeyArgs args)->)
+	(SetHasFocus (BoolArgs args)->)
+	 */
+)

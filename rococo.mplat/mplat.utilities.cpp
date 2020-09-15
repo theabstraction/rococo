@@ -10,6 +10,7 @@
 #include <rococo.variable.editor.h>
 
 #include <rococo.file.browser.h>
+#include <rococo.sexy.api.h>
 
 #include <algorithm>
 

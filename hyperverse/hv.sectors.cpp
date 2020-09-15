@@ -7,6 +7,9 @@
 #include <algorithm>
 #include <unordered_map>
 
+#include <rococo.clock.h>
+#include <rococo.sexy.api.h>
+
 namespace ANON
 {
    using namespace Rococo;

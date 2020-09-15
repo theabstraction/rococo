@@ -50,6 +50,7 @@
 #include "bennyhill.h"
 
 #include <rococo.api.h>
+#include <rococo.os.h>
 
 namespace Rococo
 {

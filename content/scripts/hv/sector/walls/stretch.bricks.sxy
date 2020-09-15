@@ -22,10 +22,10 @@
 (using Sys.Random)
 
 (function SetColours (QuadColours q)(Int32 colour)-> :
-	(q.a = 0)
-	(q.b = 0)
-	(q.c = 0)
-	(q.d = 0)
+	(q.a = colour)
+	(q.b = colour)
+	(q.c = colour)
+	(q.d = colour)
 )
 
 (function AddQuadToWall (ITriangleList tris)(QuadVertices q)(MaterialVertexData mat)-> :

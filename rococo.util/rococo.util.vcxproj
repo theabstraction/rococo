@@ -123,13 +123,22 @@
     <ClCompile Include="rococo.texture.builder.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\include\rococo.bitmaps.h" />
+    <ClInclude Include="..\include\rococo.clock.h" />
+    <ClInclude Include="..\include\rococo.events.h" />
+    <ClInclude Include="..\include\rococo.fonts.hq.h" />
     <ClInclude Include="..\include\rococo.handles.h" />
     <ClInclude Include="..\include\rococo.allocators.h" />
     <ClInclude Include="..\include\rococo.api.h" />
     <ClInclude Include="..\include\rococo.debugging.h" />
+    <ClInclude Include="..\include\rococo.ide.h" />
     <ClInclude Include="..\include\rococo.io.h" />
+    <ClInclude Include="..\include\rococo.mouse.h" />
+    <ClInclude Include="..\include\rococo.os.h" />
     <ClInclude Include="..\include\rococo.parse.h" />
+    <ClInclude Include="..\include\rococo.random.h" />
     <ClInclude Include="..\include\rococo.ringbuffer.h" />
+    <ClInclude Include="..\include\rococo.sexy.api.h" />
     <ClInclude Include="..\include\rococo.strings.h" />
     <ClInclude Include="..\include\rococo.textures.h" />
     <ClInclude Include="..\include\rococo.types.h" />

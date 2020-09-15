@@ -9,6 +9,9 @@
 #include <rococo.textures.h>
 
 #include <rococo.ui.h>
+#include <rococo.sexy.api.h>
+
+#include <rococo.package.h>
 
 struct AppArgs
 {
@@ -26,7 +29,7 @@ namespace MHost
 	auto evPopulateBusyCategoryId = "busy.category"_event;
 	auto evPopulateBusyResourceId = "busy.resource"_event;
 
-	void RunEnvironmentScript(Platform& platform, IEngineSupervisor* engine, cstr name, bool releaseAfterUse, bool trace);
+	void RunEnvironmentScript(Platform& platform, IEngineSupervisor* engine, cstr name, bool releaseAfterUse, bool trace, IPackage& package);
 
 	namespace UI
 	{
@@ -162,6 +165,8 @@ namespace MHost
 
 		int32 overlayToggleKey = 0;
 
+		AutoFree<IPackageSupervisor> packageMHost;
+
 		// Busy event handler responds to resource loading and renders progress panel
 		void OnBusy(const Rococo::Events::BusyEvent& be)
 		{
@@ -266,6 +271,12 @@ namespace MHost
 			platform.publisher.Subscribe(this, Rococo::Events::evBusy);
 
 			this->mainScript = args.mainScript;
+
+			WideFilePath sysPathMHost;
+			platform.installation.ConvertPingPathToSysPath("!packages/mhost_1000.sxyz", sysPathMHost);
+			this->packageMHost = OpenZipPackage(sysPathMHost, "mhost");
+
+			platform.sourceCache.AddPackage(packageMHost);
 		}
 
 		~App()
@@ -325,7 +336,7 @@ namespace MHost
 
 		void Run() override
 		{
-			RunEnvironmentScript(platform, this, "!scripts/mhost/keys.sxy", true, false);
+			RunEnvironmentScript(platform, this, "!scripts/MHost/_Initialization/keys.sxy", true, false, *packageMHost);
 
 			while (platform.appControl.IsRunning() && !isShutdown)
 			{
@@ -337,7 +348,7 @@ namespace MHost
 				U8FilePath currentScript;
 				Format(currentScript, "%s", mainScript.c_str());
 
-				RunEnvironmentScript(platform, this, currentScript, true, false);
+				RunEnvironmentScript(platform, this, currentScript, true, false, *packageMHost);
 				CleanupResources();
 			}
 		}

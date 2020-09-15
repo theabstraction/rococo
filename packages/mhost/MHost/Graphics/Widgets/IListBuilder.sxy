@@ -1,0 +1,5 @@
+(interface $.IListBuilder
+	(extends $.IControl)
+	(SetRect (Rectf rect)(IGui g) -> )
+	(AddRow (IListRow row) -> )
+)

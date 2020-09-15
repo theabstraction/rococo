@@ -9,7 +9,12 @@ namespace Rococo
 {
 	namespace Fonts
 	{
+		struct FontSpec;
 		struct IDrawTextJob;
+		struct IHQTextJob;
+		struct IFont;
+		struct ArrayFontMetrics;
+		struct IArrayFontSet;
 	}
 
 	struct Light;
@@ -106,21 +111,6 @@ namespace Rococo
 		struct BitmapLocation;
 	}
 
-	ROCOCOAPI IHQTextBuilder
-	{
-		 virtual const Fonts::ArrayFontMetrics & Metrics() const = 0;
-		 virtual void SetColour(RGBAb colour) = 0;
-		 virtual void SetCursor(Vec2 bottomLeftNextCharCell) = 0;
-		 virtual void Write(char c, GuiRectf* outputBounds) = 0;
-		 virtual void Write(wchar_t c, GuiRectf* outputBounds) = 0;
-		 virtual void Write(char32_t c, GuiRectf* outputBounds) = 0;
-	};
-
-	ROCOCOAPI IHQTextJob
-	{
-		virtual void Render(IHQTextBuilder & builder) = 0;
-	};
-
 	ROCOCOAPI IGuiRenderContext // Provides draw calls - do not cache
 	{
 		virtual void AddTriangle(const GuiVertex triangle[3]) = 0;
@@ -137,7 +127,7 @@ namespace Rococo
 		// Renders high quality text. To compute span without rendering, pass evaluateSpanOnly as true
 
 		enum EMode { RENDER, EVALUATE_SPAN_ONLY, };
-		virtual void RenderHQText(ID_FONT id, IHQTextJob& job, EMode mode = RENDER) = 0;
+		virtual void RenderHQText(ID_FONT id, Fonts::IHQTextJob& job, EMode mode = RENDER) = 0;
 	};
 
 	struct ObjectInstance
@@ -274,11 +264,6 @@ namespace Rococo
 		int32 Width;
 		int32 NumberOfElements;
 	};
-
-	namespace Fonts
-	{
-		struct IFont;
-	}
 
 	namespace Samplers
 	{

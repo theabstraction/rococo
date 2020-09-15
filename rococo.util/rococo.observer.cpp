@@ -1,10 +1,10 @@
 #include <rococo.api.h>
 #include <rococo.strings.h>
+#include <rococo.events.h>
 
 #include <vector>
 #include <unordered_map>
 #include <algorithm>
-#include <string>
 #include <stdlib.h>
 
 namespace
@@ -47,8 +47,8 @@ namespace
       std::unordered_map<IObserver*, std::vector<EventHash>> knownObservers;
       std::vector<EventBinding> postedEvents;
       std::vector<EventBinding> outgoingEvents;
-	  std::unordered_map<EventHash, std::string> hashToNames;
-	  std::unordered_map<std::string,uint32> persistentStrings;
+	  std::unordered_map<EventHash, HString> hashToNames;
+	  std::unordered_map<StringKey,uint32,StringKey::Hash> persistentStrings;
 
       enum { LOSS_AT = 32, MAX_Q = 64 };
 
@@ -175,7 +175,7 @@ namespace
 		  auto i = hashToNames.find(hashValue);
 		  if (i == hashToNames.end())
 		  {
-			  hashToNames.insert(std::make_pair(hashValue, std::string(mutableRef.name)));
+			  hashToNames.insert(std::make_pair(hashValue, HString(mutableRef.name)));
 		  }
 		  else
 		  {
@@ -251,10 +251,10 @@ namespace
 		  auto i = persistentStrings.find(volatileString);
 		  if (i == persistentStrings.end())
 		  {
-			  i = persistentStrings.insert(std::make_pair(std::string(volatileString),0)).first;
+			  i = persistentStrings.insert(std::make_pair(StringKey(volatileString),0)).first;
 		  }
 
-		  return i->first.c_str();
+		  return i->first;
 	  }
 
 	  EventIdRef CreateEventIdFromVolatileString(const char* volatileString) override

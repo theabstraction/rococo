@@ -33,6 +33,7 @@
 
 #include "sexy.types.h"
 #include "sexy.strings.h"
+#include <rococo.sexy.api.h>
 
 #include <stdio.h>
 
@@ -64,10 +65,9 @@
 #include "sexy.s-parser.h"
 #include "sexy.compiler.h"
 #include <rococo.api.h>
-
 #include <sexy.dispatch.inl>
-
 #include <rococo.package.h>
+#include <rococo.os.h>
 
 #define validate(_Expression) if (!(_Expression)) { ShowFailure(#_Expression, __FILE__, __LINE__); Abort(); }
 
@@ -634,7 +634,7 @@ namespace
 		   OpenZipPackage(LR"(/work/rococo/sexy/SS/sexy.script.test/double.sxyz)", "double");
 
 	   ss.RegisterPackage(packageContent);
-	   ss.LoadSubpackages("Sys.Maths", "double");
+	   ss.LoadSubpackages("Sys.Maths.I32.*", "double");
 
 	   VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
 	   vm.Push(99); // Allocate stack space for the int32 exitcode

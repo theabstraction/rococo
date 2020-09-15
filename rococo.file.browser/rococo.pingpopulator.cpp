@@ -2,6 +2,7 @@
 #include <rococo.io.h>
 #include <rococo.file.browser.h>
 #include <rococo.strings.h>
+#include <rococo.events.h>
 
 #include <vector>
 

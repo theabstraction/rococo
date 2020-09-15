@@ -1,0 +1,10 @@
+(using Sys.Maths)
+
+(struct SelectListRowArgs
+	(IListRow selectedRow)
+	(Vec2 selectPoint)
+	(IListBuilder listBuilder)
+	(Bool withMouseDown)
+)
+
+(alias SelectListRowArgs $)

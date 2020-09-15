@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <wchar.h>
 #include <rococo.strings.h>
+#include <rococo.os.h>
 
 void PrintUsage()
 {

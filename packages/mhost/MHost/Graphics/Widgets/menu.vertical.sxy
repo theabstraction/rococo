@@ -11,12 +11,12 @@
 	(IWidgetContext wc)
 )
 
-(interface MHost.Graphics.IVerticalMenu (extends MHost.Graphics.IMenu)
+(interface $.IVerticalMenu (extends $.IMenu)
 	(OnMouseUp (MouseClickArgs args)->)
 )
 
 (class VerticalMenu
-	(implements IVerticalMenu)
+	(implements $.IVerticalMenu)
 	(implements IEventHandler)
 	(array MenuItem items)
 	(Int32 alignment)
@@ -29,6 +29,10 @@
 	(Rectf outerRect)
 	(Vec2 cursorPos)
 	(IString fontFamily)
+)
+
+(factory $.NewVerticalMenu $.IMenu (Int32 maxEntries) :
+	(construct VerticalMenu maxEntries)
 )
 
 (method VerticalMenu.Construct (Int32 maxEntries) -> (construct items maxEntries) :
@@ -56,10 +60,6 @@
 	(this.alignment = textAlignment)
 	(this.borderThickness = borderThickness)
 	(this.fontFamily = fontFamily)
-)
-
-(factory MHost.Graphics.NewVerticalMenu IMenu (Int32 maxEntries) :
-	(construct VerticalMenu maxEntries)
 )
 
 (method VerticalMenu.LayoutFixedRect (Rectf rect)(IGui g)-> :

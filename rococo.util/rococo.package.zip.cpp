@@ -1,19 +1,15 @@
 #include <rococo.api.h>
 #include <rococo.package.h>
 #include <rococo.io.h>
-
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
 #include <vector>
-
 #include <string>
-
 #include <rococo.strings.h>
-
 #include <algorithm>
-
 #include <unordered_map>
+#include <rococo.os.h>
 
 using namespace Rococo;
 
@@ -316,6 +312,14 @@ namespace
 
 		void GetFileInfo(const char* resourcePath, PackageFileData& f) const override
 		{
+			if (!TryGetFileInfo(resourcePath, f))
+			{
+				Throw(0, "%s: Could not find %s in the package %s", __FUNCTION__, resourcePath, name.buf);
+			}
+		}
+
+		bool TryGetFileInfo(const char* resourcePath, PackageFileData& f) const override
+		{
 			FileInfo val =
 			{
 				resourcePath,
@@ -331,12 +335,17 @@ namespace
 
 			if (range.first == files.end())
 			{
-				Throw(0, "%s: Could not find %s in the package %s", __FUNCTION__, resourcePath, name.buf);
+				*f.name.buf = 0;
+				f.filesize = 0;
+				f.data = nullptr;
+				return false;
 			}
 
 			Format(f.name, "%s", range.first->path.c_str());
 			f.filesize = range.first->length;
 			f.data = buffer + range.first->position;
+
+			return true;
 		}
 
 		size_t BuildDirectoryCache(const char* prefix) override

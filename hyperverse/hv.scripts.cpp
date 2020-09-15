@@ -5,6 +5,7 @@
 #include <sexy.script.h>
 #include <sexy.vm.h>
 #include <sexy.vm.cpu.h>
+#include <rococo.sexy.api.h>
 
 namespace // Script factories
 {

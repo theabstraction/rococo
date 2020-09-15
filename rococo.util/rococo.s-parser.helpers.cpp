@@ -21,6 +21,11 @@
 #include <string>
 #include <vector>
 
+#include <rococo.ide.h>
+#include <rococo.os.h>
+#include <rococo.sexy.api.h>
+#include <rococo.package.h>
+
 #ifdef _WIN32
 # include <malloc.h>
 # include <excpt.h>
@@ -697,7 +702,7 @@ namespace Rococo
 			ISourceCode* code;
 			OS::ticks loadTime;
 		};
-		std::unordered_map<std::string, Binding> sources;
+		std::unordered_map<StringKey, Binding, StringKey::Hash> sources;
 		AutoFree<IExpandingBuffer> fileBuffer;
 		AutoFree<IExpandingBuffer> unicodeBuffer;
 		IInstallation& installation;
@@ -711,6 +716,7 @@ namespace Rococo
 			char time[64];
 		};
 		std::vector<VisitorInfo> visitorData;
+		std::vector<IPackage*> packages;
 	public:
 		SourceCache(IInstallation& _installation) :
 			fileBuffer(CreateExpandingBuffer(64_kilobytes)),
@@ -756,7 +762,7 @@ namespace Rococo
 					VisitorInfo info;
 					OS::FormatTime(i.second.loadTime, info.time, sizeof info.time);
 					info.fileLength = i.second.code->SourceLength();
-					Format(info.pingPath, "%s", i.first.c_str());
+					Format(info.pingPath, "%s", (cstr) i.first);
 					visitorData.push_back(info);
 				}
 
@@ -799,9 +805,50 @@ namespace Rococo
 			}
 
 			visitorData.clear();
-			installation.LoadResource(pingName, *fileBuffer, 64_megabytes);
 
-			ISourceCode* src = DuplicateSourceCode(installation.OS(), *unicodeBuffer, *parser, *fileBuffer, pingName);
+			ISourceCode* src = nullptr;
+
+			try
+			{
+				installation.LoadResource(pingName, *fileBuffer, 64_megabytes);
+				src = DuplicateSourceCode(installation.OS(), *unicodeBuffer, *parser, *fileBuffer, pingName);
+			}
+			catch (IException& ex)
+			{
+				WideFilePath sysPath;
+				installation.ConvertPingPathToSysPath(pingName, sysPath);
+				U8FilePath expandedPath;
+				installation.ConvertSysPathToPingPath(sysPath, expandedPath);
+
+				auto scripts = "!scripts/"_fstring;
+				if (StartsWith(expandedPath, scripts))
+				{
+					const char* packagePath = expandedPath.buf + scripts.length;
+					for (auto p : packages)
+					{
+						PackageFileData pfd;
+						if (p->TryGetFileInfo(packagePath, pfd))
+						{
+							char fullname[256];
+							SafeFormat(fullname, "Package[%s]@%s", p->FriendlyName(), packagePath);
+
+							if (pfd.filesize > 0x7FFFFFFFLL)
+							{
+								Throw(0, "%s file length too long", fullname);
+							}
+
+							src = parser->ProxySourceBuffer(pfd.data, (int32) pfd.filesize, { 1,1 }, fullname);
+							break;
+						}
+					}
+				}
+
+				if (src == nullptr)
+				{
+					Throw(ex.ErrorCode(), "%s.\nCould not find file in content directory or packages", ex.Message());
+				}
+			}
+
 			sources[pingName] = Binding{ nullptr, src, 0 };
 
 			// We have cached the source, so that if tree generation creates an exception, the source codes is still existant
@@ -818,7 +865,7 @@ namespace Rococo
 
 			for (auto i = sources.begin(); i != sources.end(); ++i)
 			{
-				if (installation.DoPingsMatch(i->first.c_str(), resourceName))
+				if (installation.DoPingsMatch(i->first, resourceName))
 				{
 					i->second.code->Release();
 					if (i->second.tree)i->second.tree->Release();
@@ -839,6 +886,29 @@ namespace Rococo
 			}
 
 			sources.clear();
+		}
+
+		void AddPackage(IPackage* package) override
+		{
+			// Only add a package if a package with the same hash code is not found in the source
+			auto i = std::find_if(packages.begin(), packages.end(),
+				[package](const IPackage* p)
+				{ 
+					return package->HashCode() == p->HashCode();
+				});
+
+			if (i == packages.end())
+			{
+				packages.push_back(package);
+			}
+		}
+
+		void RegisterPackages(Rococo::Script::IPublicScriptSystem& ss) override
+		{
+			for (auto p : packages)
+			{
+				ss.RegisterPackage(p);
+			}
 		}
 	};
 
@@ -1485,6 +1555,7 @@ namespace Rococo
 	{
 		bool hasIncludedFiles = false;
 		bool hasIncludedNatives = false;
+		bool hasIncludedImports = false;
 
 		for (int i = 0; i < sourceRoot.NumberOfElements(); ++i)
 		{
@@ -1548,6 +1619,41 @@ namespace Rococo
 
 					break;
 				}
+				else if (squot == "'" && stype == "#import")
+				{
+					if (hasIncludedImports)
+					{
+						Throw(sincludeExpr, "An import directive is already been stated. Merge directives.");
+					}
+
+					hasIncludedImports = true;
+
+					for (int j = 2; j < sincludeExpr.NumberOfElements(); j++)
+					{
+						cr_sex simport = sincludeExpr[j];
+						if (simport.NumberOfElements() != 2)
+						{
+							Throw(simport, "expecting (<package> <namespace_filter>) literal in import directive");
+						}
+
+						auto packageName = GetAtomicArg(simport[0]);
+						AssertStringLiteral(simport[1]);
+						cstr namespaceFilter = simport[1].String()->Buffer;
+
+						try
+						{
+							ss.LoadSubpackages(namespaceFilter, packageName);
+						}
+						catch (ParseException&)
+						{
+							throw;
+						}
+						catch (IException& ex)
+						{
+							Throw(simport, "%s", ex.Message());
+						}
+					}
+				}
 			}
 		}
 	}
@@ -1559,6 +1665,8 @@ namespace Rococo
 
 		ScriptCompileArgs args{ ss };
 		onCompile.OnEvent(args);
+
+		sources.RegisterPackages(ss);
 
 		Preprocess(mainModule.Root(), sources, ss);
 

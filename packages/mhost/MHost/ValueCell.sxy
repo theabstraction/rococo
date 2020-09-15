@@ -1,0 +1,6 @@
+(struct ValueCell
+	(Sys.Type.IString text)
+	(Sys.Reflection.IExpression value)
+)
+
+(alias ValueCell $.ValueCell)

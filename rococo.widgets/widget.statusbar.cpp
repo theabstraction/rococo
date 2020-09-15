@@ -2,6 +2,7 @@
 #include <rococo.renderer.h>
 #include <rococo.widgets.h>
 #include <rococo.strings.h>
+#include <rococo.events.h>
 
 using namespace Rococo;
 using namespace Rococo::Events;

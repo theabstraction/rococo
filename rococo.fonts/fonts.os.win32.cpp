@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <rococo.os.win32.h>
 #include <rococo.window.h>
+#include <rococo.fonts.hq.h>
 
 using namespace Rococo;
 using namespace Rococo::Windows;

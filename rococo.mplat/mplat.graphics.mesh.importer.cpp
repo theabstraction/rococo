@@ -1,6 +1,7 @@
 #include <rococo.mplat.h>
 #include <sexy.types.h>
 #include <rococo.strings.h>
+#include <rococo.sexy.api.h>
 
 using namespace Rococo;
 using namespace Rococo::Sex;

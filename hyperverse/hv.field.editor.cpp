@@ -2,6 +2,7 @@
 #include <vector>
 #include <rococo.strings.h>
 #include <rococo.ui.h> // For IKeyboardSink
+#include <rococo.fonts.hq.h>
 
 using namespace HV;
 

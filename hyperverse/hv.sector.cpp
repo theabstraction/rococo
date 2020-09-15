@@ -1,16 +1,18 @@
 #include "hv.events.h"
 #include <rococo.strings.h>
 #include <rococo.maths.h>
-
 #include <vector>
 #include <unordered_map>
 #include <algorithm>
-
 #include <rococo.rings.inl>
-
 #include <rococo.variable.editor.h>
-
 #include <random>
+#include <rococo.clock.h>
+#include <rococo.sexy.api.h>
+#include <rococo.random.h>
+
+std::random_device rd;
+std::mt19937 g(rd());
 
 namespace
 {
@@ -810,7 +812,7 @@ namespace ANON
 			   randomizedSceneryList.push_back(&i);
 		   }
 
-		   std::random_shuffle(randomizedSceneryList.begin(), randomizedSceneryList.end());
+		   std::shuffle(randomizedSceneryList.begin(), randomizedSceneryList.end(), g);
 
 		   for (auto&i : randomizedSceneryList)
 		   {

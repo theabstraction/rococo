@@ -20,6 +20,8 @@
 #include <unordered_map>
 
 #include <rococo.io.h>
+#include <rococo.ide.h>
+#include <rococo.os.h>
 
 using namespace Rococo;
 using namespace Rococo::Windows;

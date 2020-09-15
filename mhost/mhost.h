@@ -17,6 +17,11 @@ namespace Rococo
 		int32 asciiCode;
 		boolean32 isUp;
 	};
+
+	namespace Script
+	{
+		struct ArchetypeCallback;
+	}
 }
 
 namespace MHost 

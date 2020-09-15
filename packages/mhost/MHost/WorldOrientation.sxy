@@ -1,0 +1,9 @@
+(using Sys.Maths)
+
+(struct WorldOrientation
+	(Degrees bearing) // 0 = North, 90 = East, 180 = South, 270 = West
+	(Degrees elevation) // 0 = forward, 90 = up, -90 = down
+	(Degrees roll) // anti-clockwise roll about direction vector
+)
+
+(alias WorldOrientation $)

@@ -1,0 +1,6 @@
+(struct ButtonClickArgs
+	(IString text)
+	(IControl button)
+)
+
+(alias ButtonClickArgs $)

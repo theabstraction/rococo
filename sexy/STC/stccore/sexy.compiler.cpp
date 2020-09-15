@@ -541,179 +541,191 @@ namespace Anon
 	};
 }
 
-namespace Rococo 
-{ 
-   namespace Compiler
-   {
-	   IProgramObject* CreateProgramObject_1_0_0_0(const ProgramInitParameters& pip, ILog& log)
-	   {
-		   return new Anon::ProgramObject(pip, log);
-	   }
+namespace Rococo
+{
+	namespace Compiler
+	{
+		IProgramObject* CreateProgramObject_1_0_0_0(const ProgramInitParameters& pip, ILog& log)
+		{
+			return new Anon::ProgramObject(pip, log);
+		}
 
-	   void ValidateNotNull(void* p)
-	   {
-		   if (p == NULL)
-			   Throw(Rococo::Compiler::ERRORCODE_NULL_POINTER, ("Null ptr"), ("item"));
-	   }
+		void ValidateNotNull(void* p)
+		{
+			if (p == NULL)
+				Throw(Rococo::Compiler::ERRORCODE_NULL_POINTER, ("Null ptr"), ("item"));
+		}
 
-	   CommonStructures::CommonStructures(IProgramObject& obj)
-	   {
-		   ValidateNotNull(this->root = &obj.GetRootNamespace());
-		   ValidateNotNull(this->sys = root->FindSubspace("Sys"));
-		   ValidateNotNull(this->sysType = sys->FindSubspace("Type"));
-		   ValidateNotNull(this->sysNative = sys->FindSubspace("Native"));
-		   ValidateNotNull(this->sysReflection = sys->FindSubspace("Reflection"));
+		CommonStructures::CommonStructures(IProgramObject& obj)
+		{
+			ValidateNotNull(this->root = &obj.GetRootNamespace());
+			ValidateNotNull(this->sys = root->FindSubspace("Sys"));
+			ValidateNotNull(this->sysType = sys->FindSubspace("Type"));
+			ValidateNotNull(this->sysNative = sys->FindSubspace("Native"));
+			ValidateNotNull(this->sysReflection = sys->FindSubspace("Reflection"));
 
-		   ValidateNotNull(this->typeInt32 = obj.IntrinsicModule().FindStructure("Int32"));
-		   ValidateNotNull(this->typeInt64 = obj.IntrinsicModule().FindStructure("Int64"));
-		   ValidateNotNull(this->typeBool = obj.IntrinsicModule().FindStructure("Bool"));
-		   ValidateNotNull(this->typeFloat32 = obj.IntrinsicModule().FindStructure("Float32"));
-		   ValidateNotNull(this->typeFloat64 = obj.IntrinsicModule().FindStructure("Float64"));
-		   ValidateNotNull(this->typePointer = obj.IntrinsicModule().FindStructure("Pointer"));
-		   ValidateNotNull(this->typeNode = obj.GetModule(0).FindStructure("_Node"));
-		   ValidateNotNull(this->typeArray = obj.GetModule(0).FindStructure("_Array"));
-		   ValidateNotNull(this->typeMapNode = obj.GetModule(0).FindStructure("_MapNode"));
+			ValidateNotNull(this->typeInt32 = obj.IntrinsicModule().FindStructure("Int32"));
+			ValidateNotNull(this->typeInt64 = obj.IntrinsicModule().FindStructure("Int64"));
+			ValidateNotNull(this->typeBool = obj.IntrinsicModule().FindStructure("Bool"));
+			ValidateNotNull(this->typeFloat32 = obj.IntrinsicModule().FindStructure("Float32"));
+			ValidateNotNull(this->typeFloat64 = obj.IntrinsicModule().FindStructure("Float64"));
+			ValidateNotNull(this->typePointer = obj.IntrinsicModule().FindStructure("Pointer"));
+			ValidateNotNull(this->typeNode = obj.GetModule(0).FindStructure("_Node"));
+			ValidateNotNull(this->typeArray = obj.GetModule(0).FindStructure("_Array"));
+			ValidateNotNull(this->typeMapNode = obj.GetModule(0).FindStructure("_MapNode"));
 
-		   ValidateNotNull(this->sysTypeIString = sysType->FindInterface("IString"));
-		   ValidateNotNull(this->sysTypeIException = sysType->FindInterface("IException"));
-		   ValidateNotNull(this->sysTypeIExpression = sysReflection->FindInterface("IExpression"));
+			ValidateNotNull(this->sysTypeIString = sysType->FindInterface("IString"));
+			ValidateNotNull(this->sysTypeIException = sysType->FindInterface("IException"));
+			ValidateNotNull(this->sysTypeIExpression = sysReflection->FindInterface("IExpression"));
 
-		   ValidateNotNull(this->typeStringLiteral = obj.GetModule(0).FindStructure("StringConstant"));
+			ValidateNotNull(this->typeStringLiteral = obj.GetModule(0).FindStructure("StringConstant"));
 
-		   ValidateNotNull(this->typeExpression = obj.GetModule(3).FindStructure("Expression"));
-	   }
+			ValidateNotNull(this->typeExpression = obj.GetModule(3).FindStructure("Expression"));
+		}
 
-	   void Throw(ERRORCODE code, cstr source, cstr format, ...)
-	   {
-		   va_list args;
-		   va_start(args, format);
+		void Throw(ERRORCODE code, cstr source, cstr format, ...)
+		{
+			va_list args;
+			va_start(args, format);
 
-		   char message[256];
-		   SafeVFormat(message, 256, format, args);
-		   STCException e(code, source, message);	
-		   Throw(e);
-	   }
+			char message[256];
+			SafeVFormat(message, 256, format, args);
+			STCException e(code, source, message);
+			Throw(e);
+		}
 
-	   void HighLightText(char* outputBuffer, size_t nBytesOutput, cstr highlightPos, cstr wholeString)
-	   {
-		   char charbuf[4];
-		   SafeFormat(charbuf, 4, ("[%c]"), *highlightPos);
-		   int startChars = (int32)(highlightPos - wholeString);
-		   CopyString(outputBuffer, std::min<int32>((int32)nBytesOutput, startChars), wholeString);
-		   StringCat(outputBuffer, charbuf, (int32)nBytesOutput);
-		   StringCat(outputBuffer, highlightPos + 1, (int32)nBytesOutput);
-	   }
-	
-	   bool IsCapital(char c) { return (c >= 'A' && c <= 'Z'); }
-	   bool IsLowerCase(char c) { return (c >= 'a' && c <= 'z'); }
-	   bool IsNumeral(char c) { return c >= '0' && c < '9'; }
-	   bool IsAlpha(char c) { return IsCapital(c) || IsLowerCase(c); }
-	   bool IsAlphaNumeral(char c) { return IsAlpha(c) || IsNumeral(c); }
-	
-	   void ValidateCapitalLetter(cstr s, cstr stringStart, cstr name, cstr functionSymbol)
-	   {
-		   if (!IsCapital(*s))
-		   {
-			   char text[256];
-			   HighLightText(text, 256, s, stringStart);
-			   Throw(ERRORCODE_BAD_ARGUMENT, functionSymbol, ("%s, Expecting capital letter A-Z: %s"), name, text);
-		   }
-	   }
+		struct HilightBuffer
+		{
+			enum { CAPACITY = 256 };
+			char text[CAPACITY];
+		};
 
-	   void ValidateLowerCaseLetter(cstr s, cstr stringStart, cstr name, cstr functionSymbol)
-	   {
-		   if (!IsLowerCase(*s))
-		   {
-			   char text[256];
-			   HighLightText(text, 256, s, stringStart);
-			   Throw(ERRORCODE_BAD_ARGUMENT, functionSymbol, ("%s, Expecting lower case a-z: %s"), name, text);
-		   }
-	   }
+		void HighLightText(HilightBuffer& output, cstr hilightPos, cstr wholeString)
+		{
+			char hi[4];
+			SafeFormat(hi, ("[%c]"), *hilightPos);
+			auto nPrefixChars = hilightPos - wholeString;
+			if (nPrefixChars >= HilightBuffer::CAPACITY - 8)
+			{
+				SafeFormat(output.text, "...%120.120hs%hs%120.120%hs...", hilightPos - 64, hi, hilightPos + 1);
+			}
+			else
+			{
+				memcpy_s(output.text, HilightBuffer::CAPACITY, wholeString, nPrefixChars);
+				SafeFormat(output.text + nPrefixChars, HilightBuffer::CAPACITY - nPrefixChars, "%hs%hs", hi, hilightPos + 1);
+			}
+		}
 
-	   void ValidateNumeral(cstr s, cstr stringStart, cstr name, cstr functionSymbol)
-	   {
-		   if (!IsNumeral(*s))
-		   {
-			   char text[256];
-			   HighLightText(text, 256, s, stringStart);
-			   Throw(ERRORCODE_BAD_ARGUMENT, functionSymbol, ("%s, Expecting numeral 0-9: %s"), name, text);
-		   }
-	   }
+		bool IsCapital(char c) { return (c >= 'A' && c <= 'Z'); }
+		bool IsLowerCase(char c) { return (c >= 'a' && c <= 'z'); }
+		bool IsNumeral(char c) { return c >= '0' && c < '9'; }
+		bool IsAlpha(char c) { return IsCapital(c) || IsLowerCase(c); }
+		bool IsAlphaNumeral(char c) { return IsAlpha(c) || IsNumeral(c); }
 
-	   void ValidateAlpha(cstr s, cstr stringStart, cstr name, cstr functionSymbol)
-	   {		
-		   if (!IsAlpha(*s)) 
-		   {
-			   char text[256];
-			   HighLightText(text, 256, s, stringStart);
-			   Throw(ERRORCODE_BAD_ARGUMENT, functionSymbol, ("%s, Expecting letter A-Z or a-z: %s"), name, text);
-		   }
-	   }
+		void ValidateCapitalLetter(cstr s, cstr stringStart, cstr name, cstr functionSymbol)
+		{
+			if (!IsCapital(*s))
+			{
+				HilightBuffer hi;
+				HighLightText(hi, s, stringStart);
+				Throw(ERRORCODE_BAD_ARGUMENT, functionSymbol, "%s\nExpecting capital letter A-Z: %s", name, hi.text);
+			}
+		}
 
-	   void ValidateAlphaNumeral(cstr s, cstr stringStart, cstr name, cstr functionSymbol)
-	   {		
-		   if (!IsAlphaNumeral(*s)) 
-		   {
-			   char text[256];
-			   HighLightText(text, 256, s, stringStart);
-			   Throw(ERRORCODE_BAD_ARGUMENT, functionSymbol, ("%s, Expecting alphanumeric A-Z or a-z or 0-9: %s"), name, text);
-		   }
-	   }
+		void ValidateLowerCaseLetter(cstr s, cstr stringStart, cstr name, cstr functionSymbol)
+		{
+			if (!IsLowerCase(*s))
+			{
+				HilightBuffer hi;
+				HighLightText(hi, s, stringStart);
+				Throw(ERRORCODE_BAD_ARGUMENT, functionSymbol, "%s\nExpecting lower case a-z: %s", name, hi.text);
+			}
+		}
 
-	   void ValidateNamespaceString(cstr s, cstr name, cstr functionSymbol)
-	   {
-		   if (s == NULL) Throw(ERRORCODE_NULL_POINTER, functionSymbol, ("[%s] was NULL"), name);
-		   if (s[0] == 0) Throw(ERRORCODE_EMPTY_STRING, functionSymbol, ("[%s] was empty string"), name);
+		void ValidateNumeral(cstr s, cstr stringStart, cstr name, cstr functionSymbol)
+		{
+			if (!IsNumeral(*s))
+			{
+				HilightBuffer hi;
+				HighLightText(hi, s, stringStart);
+				Throw(ERRORCODE_BAD_ARGUMENT, functionSymbol, "%s\nExpecting numeral 0-9: %s", name, hi.text);
+			}
+		}
 
-		   enum STATE
-		   {
-			   STATE_START_BRANCH,
-			   STATE_MID_BRANCH,
-		   } state = STATE_START_BRANCH;
+		void ValidateAlpha(cstr s, cstr stringStart, cstr name, cstr functionSymbol)
+		{
+			if (!IsAlpha(*s))
+			{
+				HilightBuffer hi;
+				HighLightText(hi, s, stringStart);
+				Throw(ERRORCODE_BAD_ARGUMENT, functionSymbol, "%s\nExpecting letter A-Z or a-z: %s", name, hi.text);
+			}
+		}
 
-		   for(cstr p = s; *p != 0; p++)
-		   {
-			   if (state == STATE_START_BRANCH)
-			   {
-				   ValidateCapitalLetter(p, s, name, functionSymbol);
-				   state = STATE_MID_BRANCH;
-			   }
-			   else // MID_BRANCH
-			   {
-				   if (*p == '.')
-				   {
-					   state = STATE_START_BRANCH;
-				   }
-				   else
-				   {
-					   ValidateAlphaNumeral(p, s, name, functionSymbol);
-				   }
-			   }
-		   }
+		void ValidateAlphaNumeral(cstr s, cstr stringStart, cstr name, cstr functionSymbol)
+		{
+			if (!IsAlphaNumeral(*s))
+			{
+				HilightBuffer hi;
+				HighLightText(hi, s, stringStart);
+				Throw(ERRORCODE_BAD_ARGUMENT, functionSymbol, "%s\nExpecting alphanumeric A-Z or a-z or 0-9: %s", name, hi.text);
+			}
+		}
 
-		   if (state == STATE_START_BRANCH)
-		   {
-			   Throw(ERRORCODE_BAD_ARGUMENT, functionSymbol, ("[%s] terminated in a dot: %s"), name, s);
-		   }
-	   }
+		void ValidateNamespaceString(cstr s, cstr name, cstr functionSymbol)
+		{
+			if (s == NULL) Throw(ERRORCODE_NULL_POINTER, functionSymbol, "[%s] was NULL", name);
+			if (s[0] == 0) Throw(ERRORCODE_EMPTY_STRING, functionSymbol, "[%s] was empty string", name);
 
-	   const IFunction* GetCurrentFunction(IPublicProgramObject& po, size_t& programOffset, size_t& pcOffset)
-	   {
-		   IVirtualMachine& vm = po.VirtualMachine();
-		   IProgramMemory& mem = po.ProgramMemory();
+			enum STATE
+			{
+				STATE_START_BRANCH,
+				STATE_MID_BRANCH,
+			} state = STATE_START_BRANCH;
 
-		   pcOffset = vm.Cpu().PC() - vm.Cpu().ProgramStart;
-		   ID_BYTECODE runningId = mem.GetFunctionContaingAddress(pcOffset);
-		   if (runningId != 0)
-		   {
-			   programOffset = mem.GetFunctionAddress(runningId);
-			   const IFunction* f = GetFunctionForBytecode(po, runningId);
-			   return f;
-		   }
+			for (cstr p = s; *p != 0; p++)
+			{
+				if (state == STATE_START_BRANCH)
+				{
+					ValidateCapitalLetter(p, s, name, functionSymbol);
+					state = STATE_MID_BRANCH;
+				}
+				else // MID_BRANCH
+				{
+					if (*p == '.')
+					{
+						state = STATE_START_BRANCH;
+					}
+					else
+					{
+						ValidateAlphaNumeral(p, s, name, functionSymbol);
+					}
+				}
+			}
 
-		   return NULL;
-	   }
-   }
+			if (state == STATE_START_BRANCH)
+			{
+				Throw(ERRORCODE_BAD_ARGUMENT, functionSymbol, "[%s] terminated in a dot: %s", name, s);
+			}
+		}
+
+		const IFunction* GetCurrentFunction(IPublicProgramObject& po, size_t& programOffset, size_t& pcOffset)
+		{
+			IVirtualMachine& vm = po.VirtualMachine();
+			IProgramMemory& mem = po.ProgramMemory();
+
+			pcOffset = vm.Cpu().PC() - vm.Cpu().ProgramStart;
+			ID_BYTECODE runningId = mem.GetFunctionContaingAddress(pcOffset);
+			if (runningId != 0)
+			{
+				programOffset = mem.GetFunctionAddress(runningId);
+				const IFunction* f = GetFunctionForBytecode(po, runningId);
+				return f;
+			}
+
+			return NULL;
+		}
+	}
 } // Rococo::Compiler
 
 namespace Rococo

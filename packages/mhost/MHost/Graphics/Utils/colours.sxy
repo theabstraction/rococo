@@ -1,0 +1,14 @@
+(struct QuadColour
+	(Int32 fontColour)
+	(Int32 backColour)
+	(Int32 tl tr bl br)
+)
+
+(alias QuadColour $.QuadColour)
+
+(function UseDefaultColourScheme (QuadColour low)(QuadColour high)-> :
+	(low  = 0xFFA0A0A0 0xFF000000 0xFF606060 0xFF808080 0xFFA0A0A0 0xFFC0C0C0)
+	(high = 0xFFFFFFFF 0xFF000000 0xFF808080 0xFFA0A0A0 0xFFC0C0C0 0xFFFFFFFF)
+)
+
+(alias UseDefaultColourScheme $.UseDefaultColourScheme)

@@ -4,6 +4,8 @@
 #include <rococo.renderer.h>
 #include <rococo.visitors.h>
 #include <rococo.app.h>
+#include <rococo.os.h>
+#include <rococo.events.h>
 
 namespace Rococo
 {
@@ -162,6 +164,7 @@ namespace Rococo
 
 	struct IUtilitiies;
 	struct IKeyboardSupervisor;
+	struct ScriptCompileArgs;
 
 	IMathsVisitorSupervisor* CreateMathsVisitor(IUtilitiies& utilities, Events::IPublisher& publisher);
 
@@ -707,6 +710,8 @@ namespace Rococo
 
 		IHQFontsSupervisor* CreateHQFonts(IRenderer& renderer);
 	}
+
+	struct ISourceCache;
 
 	struct Platform
 	{

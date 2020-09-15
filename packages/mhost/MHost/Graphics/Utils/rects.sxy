@@ -1,0 +1,51 @@
+(using Sys.Maths)
+
+(function ShrinkRectf (Rectf inputRect)(Rectf outputRect)(Float32 ds)-> :
+	(outputRect = inputRect)
+	(outputRect.left += ds)
+	(outputRect.top += ds)
+	(outputRect.right -= ds)
+	(outputRect.bottom -= ds)
+)
+
+(function EqRectfRectf (Rectf a)(Rectf b)->(Bool areEqual):
+	(areEqual = (((a.left == b.left) and (a.right == b.right)) and ((a.top == b.top) and (a.bottom == b.bottom))))
+)
+
+(function GetSpanRectf (Rectf rect)(Vec2 span)-> :
+	(span.x = (rect.right - rect.left))
+	(span.y = (rect.bottom - rect.top))
+)
+
+(function GetCentredRect (Vec2 screenSpan) (Float32 dx)(Float32 dy)(Rectf r)-> :
+	(Vec2 rectSpan = dx dy)
+	(Vec2 border = screenSpan - rectSpan)
+	(Vec2 halfBorder = border * 0.5)
+	(r.left = halfBorder.x)
+	(r.top = halfBorder.y)
+	(r.right = (screenSpan.x - halfBorder.x))
+	(r.bottom = (screenSpan.y - halfBorder.y))
+)
+
+(function CentreHorizontally (Rectf rect)(Rectf container)-> :
+	(Float32 containerDX = (container.right - container.left))
+	(Float32 childDX = (rect.right - rect.left))
+	(Float32 xBorder = ((containerDX - childDX) * 0.5))
+	(rect.left = (container.left + xBorder))
+	(rect.right = (container.right - xBorder))
+)
+
+(function IsPointInRect (Vec2 point)(Rectf rect)->(Bool result):
+	(if ((point.x > rect.left) and (point.x < rect.right))
+		(if ((point.y > rect.top) and (point.y < rect.bottom))
+			(result = true)
+		)
+	)
+)
+
+(alias EqRectfRectf $.EqRectfRectf)
+(alias GetSpanRectf $.GetSpanRectf)
+(alias ShrinkRectf $.ShrinkRectf)
+(alias IsPointInRect $IsPointInRect)
+(alias CentreHorizontally $CentreHorizontally)
+(alias GetCentredRect $GetCentredRect)

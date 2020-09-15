@@ -1,0 +1,109 @@
+(struct UIStackItem
+	(IControl control)
+	(IEventHandler handler)
+	(IString name)
+	(Bool isVisible)
+	(Bool isClippedByParent)
+	(list UIStackItem children)
+)
+
+(alias UIStackItem $)
+
+(archetype $.OnUIStackItem (UIStackItem item) -> (Bool terminateNow))
+
+(function ForEachChildByZOrderRecursive (UIStackItem parent)(OnUIStackItem callback)->(Bool terminate):
+
+	(Int32 length = (parent.children.Length))
+	
+	(if (length > 0)
+		(node d = parent.children.Head)
+		
+		(do
+			(UIStackItem child = & d)
+			(if (child.isClippedByParent)
+				(callback child -> terminate)
+				(if (terminate) (return))
+				(ForEachChildByZOrderRecursive child callback -> terminate)
+				(if (terminate) (return))
+			)
+		while d.GoNext)
+		
+		(node c = parent.children.Head)
+		(do
+			(UIStackItem child = & c)
+			(if (not child.isClippedByParent)
+				(callback child -> terminate)
+				(if (terminate) (return))
+				(ForEachChildByZOrderRecursive child callback -> terminate)
+				(if (terminate) (return))
+			)	
+		while c.GoNext)
+	)
+)
+
+(function BringChildToTop (UIStackItem parent)(IControl control) -> (Bool terminateNow) :
+	(foreach c # parent.children
+		(UIStackItem child = & c)
+		(if (child.control == control)
+			(UIStackItem clone)
+			(clone = child)
+			(parent.items.Append clone)
+			(c.Pop)
+			(terminateNow = true)
+			(break)
+		else	
+			(BringChildToTop child control -> terminateNow)
+			(if terminateNow (break))
+		)
+	)
+)
+
+(function FindItemAndExecute (UIStackItem origin)(IControl target) (OnUIStackItem callback)->(Bool terminateNow):
+	(if (item.control == target)
+		(callback item -> terminateNow)
+	else
+		(foreach c # item.children
+			(UIStackItem child = & c)
+			(FindItemAndExecute child target callback -> terminateNow)
+			(if terminateNow (break))
+		)
+	)
+)
+
+(function RouteMouseEventRecursive (UIStackItem item)(Vec2 pos)(OnUIStackItem callback)-> (Bool wasHandled) :
+	(Rectf rect = -10000 -10000 10000 10000)
+	(item.control.GetRect rect) // N.B if item.control is a null object rect is left unchanged
+	
+	// In the following we go in reverse order as rendered
+	
+	// First check the floating children, which are not bounded by the parent rectangle
+	(Int32 nChildren = (item.children.Length))
+	(if (nChildren > 0)
+		(node c = item.children.Tail)
+		(do
+			(UIStackItem child = & c)
+			(if (not child.isClippedByParent)
+				(RouteMouseEventRecursive child pos callback -> wasHandled)
+				(if wasHandled (return))
+			)
+		while c.GoPrevious)		
+	)
+		
+	(if (IsPointInRect pos rect) 
+		(if (nChildren > 0)
+			(node c = item.children.Tail)
+			(do
+				(UIStackItem child = & c)
+				(if child.isClippedByParent
+					(RouteMouseEventRecursive child pos callback -> wasHandled)
+					(if wasHandled (return))
+				)
+			while c.GoPrevious)
+		)
+	
+		(callback item)
+		(wasHandled = true)
+	else
+		(wasHandled = false)
+	)
+)

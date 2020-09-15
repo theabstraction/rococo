@@ -1,6 +1,5 @@
 #include <rococo.mplat.h>
 #include <rococo.os.win32.h>
-
 #include <rococo.window.h>
 #include <rococo.sexy.ide.h>
 #include <rococo.dx11.renderer.win32.h>
@@ -8,17 +7,13 @@
 #include <rococo.strings.h>
 #include <rococo.imaging.h>
 #include <rococo.strings.h>
-
 #include <vector>
 #include <algorithm>
-
 #include <rococo.fonts.h>
-
 #include <mplat.to.app.events.inl>
-
 #include <sexy.script.h>
-
 #include "mplat.panel.base.h"
+#include <rococo.ide.h>
 
 #undef DrawText
 

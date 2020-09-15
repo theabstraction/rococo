@@ -3,47 +3,36 @@
 
 #include <windows.h>
 #include <Psapi.h>
-
 #include <rococo.api.h>
 
 #define ROCOCO_USE_SAFE_V_FORMAT
 #include <rococo.strings.h>
-
 #include <stdlib.h>
-
 #include <rococo.io.h>
 #include <process.h>
-
 #include <vector>
 #include <unordered_map>
-
 #include <shlobj.h>
 #include <comip.h>
 #include <Shlwapi.h>
-
 #include <rococo.strings.h>
 #include <rococo.debugging.h>
-
 #include <timeapi.h>
-
 #include <algorithm>
 
 #pragma comment(lib, "Shlwapi.lib")
 
 #include <stdlib.h>
-
 #include <rococo.debugging.h>
-
 #include <dbghelp.h>
 
 #pragma comment(lib, "DbgHelp.lib")
 #pragma comment(lib, "Winmm.lib")
 
 #include <ctime>
-
 #include <shellapi.h>
-
 #include <rococo.strings.h>
+#include <rococo.os.h>
 
 namespace Rococo
 {

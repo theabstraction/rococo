@@ -2,6 +2,7 @@
 #include <random>
 #include <rococo.maths.h>
 #include <new>
+#include <rococo.random.h>
 
 namespace
 {
