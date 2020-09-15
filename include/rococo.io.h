@@ -176,6 +176,7 @@ namespace Rococo
 		virtual bool TryExpandMacro(cstr macroPrefixPlusPath, U8FilePath & expandedPath) = 0;
 		virtual const wchar_t* Content() const = 0;
 		virtual void LoadResource(cstr pingPath, IExpandingBuffer& buffer, int64 maxFileLength) = 0;
+		virtual bool TryLoadResource(cstr pingPath, IExpandingBuffer& buffer, int64 maxFileLength) = 0;
 		virtual void ConvertPingPathToSysPath(cstr pingPath, WideFilePath& path) const = 0;
 		virtual void ConvertSysPathToMacroPath(const wchar_t* sysPath, U8FilePath& pingPath, cstr macro) const = 0;
 		virtual void ConvertSysPathToPingPath(const wchar_t* sysPath, U8FilePath& pingPath) const = 0;

@@ -1014,9 +1014,9 @@ int main(int argc, char* argv[])
 
 	try
 	{
-		WideFilePath u16inputName;
-		Assign(u16inputName, pc.scriptInput);
-		src = parser->LoadSource(u16inputName, Vec2i{ 1,1 });
+		WideFilePath inputName;
+		Format(inputName, L"%hs%hs", pc.projectRoot, pc.scriptInput);
+		src = parser->LoadSource(inputName, Vec2i{ 1,1 });
 		tree = parser->CreateTree(src());
 
 		if (tree->Root().NumberOfElements() == 0)

@@ -9,7 +9,7 @@
 
 (alias MouseEvent $)
 
-(function TranslateMouseEvent ($.MouseEvent me)(IUIEventHandler handler)(IEventHandler modalSink)-> :
+(function TranslateMouseEvent ($.MouseEvent me)(MHost.Events.IUIEventHandler handler)(MHost.Events.IEventHandler modalSink)-> :
 	(Float32 x = (ToFloat32 me.cursorPos.x))
 	(Float32 y = (ToFloat32 me.cursorPos.y))
 	

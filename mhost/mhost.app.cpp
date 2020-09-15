@@ -336,7 +336,7 @@ namespace MHost
 
 		void Run() override
 		{
-			RunEnvironmentScript(platform, this, "!scripts/MHost/_Initialization/keys.sxy", true, false, *packageMHost);
+			RunEnvironmentScript(platform, this, "!scripts/MHost/_Init/keys.sxy", true, false, *packageMHost);
 
 			while (platform.appControl.IsRunning() && !isShutdown)
 			{

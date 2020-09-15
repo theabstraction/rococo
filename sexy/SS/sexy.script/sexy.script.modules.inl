@@ -67,11 +67,11 @@ namespace Rococo { namespace Script
 
 			if (genericArgType != NULL)
 			{
-				streamer.sb << ("Unknown type in argument (***") << type << ("*** ") << genericArgType << (" ") << id << (") of function ") << source << ("\r\n");
+				streamer.sb << "Unknown type in argument (***" << type << "*** " << genericArgType << " " << id << ") of function " << source << "\r\n";
 			}
 			else
 			{
-				streamer.sb << ("Unknown type in argument (***") << type << ("*** ") << id << (") of function ") << source << ("\r\n");
+				streamer.sb << "Unknown type in argument (***" << type << "*** " << id << ") of function " << source << "\r\n";
 			}
 			
 			Throw(e, streamer);
@@ -2574,7 +2574,6 @@ namespace Rococo { namespace Script
 		cr_sex type = GetAtomicArg(s, 0);
 		cr_sex name = GetAtomicArg(s, 1);
 
-		AssertTypeIdentifier(type);
 		AssertLocalIdentifier(name);
 
 		IStructure* st = MatchStructure(type, module);
@@ -2599,7 +2598,7 @@ namespace Rococo { namespace Script
 		cr_sex type = GetAtomicArg(s, 0);
 		cr_sex name = GetAtomicArg(s, 1);
 
-		AssertTypeIdentifier(type);
+		//AssertTypeIdentifier(type); TODO - delete this comment
 		AssertLocalIdentifier(name);
 
 		return MatchArchetype(type, module);

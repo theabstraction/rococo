@@ -1,5 +1,8 @@
 (using Sys.Maths)
 
+(using MHost)
+(using MHost.Events)
+
 (interface $.IControl
 	(GetRect (Rectf rect)->)
 	(GetEventHandler -> (IEventHandler handler))

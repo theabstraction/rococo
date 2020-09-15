@@ -4,6 +4,8 @@
 #include <vector>
 #include <unordered_map>
 
+#include <Sexy.S-Parser.h>
+
 using namespace Rococo;
 using namespace Rococo::Script;
 
@@ -433,7 +435,21 @@ namespace
 				{
 					if (file.tree == nullptr)
 					{
-						file.tree = ss.SParser().CreateTree((ISourceCode&)file);
+						try
+						{
+							file.tree = ss.SParser().CreateTree((ISourceCode&)file);
+						}
+						catch (ParseException& pex)
+						{
+							char err[2048];
+							SafeFormat(err, "%s: %s", file.Name(), pex.Message());
+							ParseException pex2(pex.Start(), pex.End(), pex.Name(), err, pex.Specimen(), pex.Source());
+							throw pex2;
+						}
+						catch (IException& ex)
+						{
+							Throw(ex.ErrorCode(), "Error parsing %s\n%s", file.Name(), ex.Message());
+						}
 					}
 					auto* module = static_cast<IModuleBuilder*>(ss.AddTree(*file.tree));
 					module->SetPackage(sp.dataPackage, defaultNamespace);

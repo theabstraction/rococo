@@ -221,16 +221,13 @@ namespace Rococo
 			enumFiles.insert(i.ec.appendSexyFile);
 		}
 
-		for (auto& i : enumFiles)
+		for (auto& i : pc.enums)
 		{
-			FileAppender sexyFileAppender(i.c_str());
-			for (auto& i : pc.enums)
-			{
-				DeclareSexyEnum(sexyFileAppender, i.ec, *i.sdef, pc);
-			}
-
-			pc.namespaces.clear();
+			FileAppender sexyFileAppender(i.ec.appendSexyFile);
+			DeclareSexyEnum(sexyFileAppender, i.ec, *i.sdef, pc);
 		}
+
+		pc.namespaces.clear();
 
 		enumFiles.clear();
 		for (auto& i : pc.enums)

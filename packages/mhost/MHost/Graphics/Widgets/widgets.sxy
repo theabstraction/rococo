@@ -1,8 +1,10 @@
 (using Sys.Maths)
 (using Sys.Type)
-(using MHost.Graphics)
+
 (using MHost)
 (using MHost.OS)
+(using MHost.Events)
+(using MHost.Graphics)
 
 (using Sys.Maths.I32)
 (using Sys.Maths.F32)

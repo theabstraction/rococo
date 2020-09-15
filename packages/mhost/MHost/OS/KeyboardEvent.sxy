@@ -7,7 +7,7 @@
 
 (alias KeyboardEvent $)
 
-(function TranslateKeyboardEvent ($.KeyboardEvent key)(IUIEventHandler handler)-> :
+(function TranslateKeyboardEvent ($.KeyboardEvent key)(MHost.Events.IUIEventHandler handler)-> :
 	(if ((not key.isUp) and (key.asciiValue != 0))
 		(handler.OnAsciiChar key.asciiValue)
 	)

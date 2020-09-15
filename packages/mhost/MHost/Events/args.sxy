@@ -1,6 +1,7 @@
 (using Sys.Maths)
 (using Sys.Type)
 (using MHost.Graphics)
+(using MHost.Events)
 (using MHost)
 (using MHost.OS)
 

@@ -1,0 +1,54 @@
+(using Sys.Type)
+(using Sys.Maths)
+(namespace MPlat)
+
+(struct BitmapLocation
+	(Recti rect)
+	(Int32 arrayIndex)
+)
+
+(using MPlat)
+(alias BitmapLocation MPlat.BitmapLocation)
+
+(struct BaseVertexData
+	(Vec2 uv)
+	(Float32 fontBlend) // 0 -> normal triangle, 1 -> modulate with font texture
+)
+
+(alias BaseVertexData MPlat.BaseVertexData)
+
+(struct SpriteVertexData
+	(Float32 lerpBitmapToColour) // 1.0 -> use colour, 0.0 -> use bitmap texture
+	(Float32 textureIndex) // When used in sprite calls, this indexes the texture in the texture array.
+	(Float32 matIndex) // index the texture in the material array
+	(Float32 textureToMatLerpFactor) // 0 -> use textureIndex, 1 -> use matIndex, lerping in between
+)
+
+(alias SpriteVertexData MPlat.SpriteVertexData)
+
+(struct GuiVertex
+	(Vec2 pos)
+	(BaseVertexData vd) // 3 floats
+	(SpriteVertexData sd) // 4 floats
+	(Int32 aabbggrr)
+)
+
+(alias GuiVertex MPlat.GuiVertex)
+
+(struct GuiTriangle
+	(GuiVertex a b c)
+)
+
+(alias GuiTriangle MPlat.GuiTriangle)
+
+(struct GuiQuad
+	(GuiVertex a b c d) // topleft, topRight, bottomLeft, bottomRight
+)
+
+(alias GuiQuad MPlat.GuiQuad)
+
+(archetype MPlat.OnFileName (IString filename) -> )
+
+(alias Sys.Type.Float32 Rococo.Graphics.MaterialId)
+
+(namespace Rococo.Puppet)

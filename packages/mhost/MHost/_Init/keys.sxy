@@ -1,18 +1,11 @@
 (' #file.type rococo.script.vkeys)
 
-/*
-(' #include
-	"!scripts/mplat.types.sxy"
-	"!scripts/mhost/mhost.sxh.sxy"
-	"!scripts/mplat.sxh.sxy"
-	"!scripts/types.sxy"
-	"!scripts/mhost/mhost.include.sxy"
-)
-*/
-
 (' #import
-	(mhost "MHost.mplat.*")
-	(mhost "MHost.mhost.*")
+	(mhost "MHost.*")
+	(mhost "MHost.Events.*")
+	(mhost "MHost.OS.*")
+	(mhost "MHost.Graphics.*")
+	(mhost "MHost.Graphics.Widgets.*")
 )
 
 (namespace EntryPoint)

@@ -1,5 +1,7 @@
 (using Sys.Maths)
 
+(using MHost.Events)
+
 (struct MouseClickArgs
 	(Vec2 pos)
 	(IEventHandler eventHandler)

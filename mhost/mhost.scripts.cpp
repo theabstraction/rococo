@@ -120,7 +120,6 @@ namespace MHost
 			void OnEvent(ScriptCompileArgs& args) override
 			{
 				args.ss.RegisterPackage(&package);
-				args.ss.LoadSubpackages("", "mhost");
 #ifdef _DEBUG
 				args.ss.AddNativeLibrary("rococo.sexy.mathsex.debug");
 #else
