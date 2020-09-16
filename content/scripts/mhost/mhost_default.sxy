@@ -14,6 +14,30 @@
 
 
 (function Main (Int32 id) -> (Int32 exitCode):
+	(IHQFonts fonts (HQFonts))
+	(fonts.Build (#HQFontEditorFont))
+	(fonts.SetFaceName "Courier New")
+	(fonts.MakeBold)
+	(fonts.AddRange 32 127)
+	(fonts.AddCharacters "£")
+	(fonts.SetHeight 24)
+	(fonts.Commit)
+
+	(fonts.Build (#HQFontTitleFont))
+	(fonts.SetFaceName "Tahoma")
+	//(fonts.MakeBold)
+	(fonts.AddRange 32 127)
+	(fonts.SetHeight 80)
+	(fonts.Commit)
+	
+	(fonts.Build (#HQFontDebuggerFont))
+	(fonts.SetFaceName "Consolas")
+	//(fonts.MakeBold)
+	(fonts.AddRange 32 127)
+	(fonts.AddCharacters "£")
+	(fonts.SetHeight 28)
+	(fonts.Commit)
+	
 	(IEngine engine (Engine))
 	(engine.SetNextScript "!scripts/mhost/t3d/t3d_init.sxy")
 )
