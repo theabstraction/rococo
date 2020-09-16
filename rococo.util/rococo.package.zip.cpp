@@ -333,7 +333,7 @@ namespace
 					return a.path < b.path;
 				});
 
-			if (range.first == files.end())
+			if (range.first == range.second)
 			{
 				*f.name.buf = 0;
 				f.filesize = 0;

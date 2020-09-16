@@ -1,3 +1,7 @@
+(using Sys.Type)
+
+(using MHost.Graphics.Widgets)
+
 (struct MenuSelectArgs
 	(Int32 menuIndex)
 	(IString menuText)

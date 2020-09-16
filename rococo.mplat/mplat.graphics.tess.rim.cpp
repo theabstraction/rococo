@@ -1,6 +1,5 @@
 #include <rococo.mplat.h>
 #include <vector>
-
 #include <rococo.maths.h>
 
 using namespace Rococo;

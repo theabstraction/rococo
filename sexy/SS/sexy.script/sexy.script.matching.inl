@@ -295,11 +295,21 @@ namespace Rococo
          cstr nsName, shortName;
          if (!splitter.SplitTail(OUT nsName, OUT shortName))
          {
-            Throw(baseExpr, ("Expecting fully qualified namespace name"));
+            Throw(baseExpr, "Expecting fully qualified namespace name");
          }
 
-         INamespaceBuilder* ns = GetProgramObject(script).GetRootNamespace().FindSubspace(nsName);
-         if (ns == NULL) ThrowTokenNotFound(baseExpr, nsName, ("program"), ("namespace"));
+         INamespaceBuilder* ns;
+
+         if (Eq(nsName, "$"))
+         {
+             ns = static_cast<INamespaceBuilder*>(const_cast<INamespace*>(script.ProgramModule().DefaultNamespace()));
+         }
+         else
+         {
+             ns = GetProgramObject(script).GetRootNamespace().FindSubspace(nsName);
+         }
+
+         if (ns == NULL) ThrowTokenNotFound(baseExpr, nsName, "program", "namespace");
 
          return ns->FindInterface(shortName);
       }

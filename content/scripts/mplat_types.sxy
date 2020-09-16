@@ -1,6 +1,7 @@
 (using Sys.Type)
 (using Sys.Maths)
 (namespace MPlat)
+(namespace Rococo.Graphics)
 
 (struct BitmapLocation
 	(Recti rect)

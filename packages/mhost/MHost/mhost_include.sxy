@@ -1,2 +1,4 @@
-(archetype MHost.GuiPopulator (IGui gui) -> )
+(namespace MHost)
+
+(archetype MHost.GuiPopulator (MHost.IGui gui) -> )
 (alias Sys.Type.Int64 MHost.IdTexture) // 0 = none/undefined, 1+ = index. -ve = invalid 

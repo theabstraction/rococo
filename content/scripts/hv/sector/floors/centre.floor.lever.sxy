@@ -3,9 +3,9 @@
 (' #include 
 	"!scripts/hv.sxh.sxy"
 	"!scripts/types.sxy"
-	"!scripts/mplat.sxh.sxy"
+	"!scripts/mplat_sxh.sxy"
 	"!scripts/hv/hv.types.sxy"
-	"!scripts/mplat.types.sxy"
+	"!scripts/mplat_types.sxy"
 )
 
 (namespace EntryPoint)

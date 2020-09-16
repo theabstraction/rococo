@@ -120,7 +120,6 @@ namespace MHost
 			void OnEvent(ScriptCompileArgs& args) override
 			{
 				args.ss.RegisterPackage(&package);
-				args.ss.LoadSubpackages("", "mhost");
 #ifdef _DEBUG
 				args.ss.AddNativeLibrary("rococo.sexy.mathsex.debug");
 #else
@@ -204,7 +203,7 @@ namespace MHost
 			if (this->ss != ss || guiSexyObject == nullptr)
 			{
 				this->ss = ss;
-				const IStructure* proxyIGuiStruct = FindStructureInModule(ss->PublicProgramObject(), "mhost.sxh.sxy", "ProxyIGui");
+				const IStructure* proxyIGuiStruct = FindStructureInModule(ss->PublicProgramObject(), "mhost_sxh.sxy", "ProxyIGui");
 				guiSexyObject = (GuiSexyObject*) ss->Represent(*proxyIGuiStruct, gui);
 			}
 

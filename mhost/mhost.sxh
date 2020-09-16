@@ -1,4 +1,4 @@
-(config mhost.xc) 
+(config $mhost.xc) 
 
 (functions "mhost"
 	(MHost.OS.IsKeyPressed (KeyState keys)(Int32 vKeyCode)->(Bool isPressed) : MHost::OS::IsKeyPressed)
@@ -8,7 +8,7 @@
 )
 
 (enum Int32
-	(as.sxy Rococo.AlignmentFlags "../content/scripts/mhost/mhost")
+	(as.sxy Rococo.AlignmentFlags "../packages/mhost/MHost/mhost")
 	(as.cpp Rococo.AlignmentFlags "mhost")
 	(
 		(None 0)
@@ -23,7 +23,7 @@
 )
 
 (interface
-	(as.sxy MHost.IGui "../content/scripts/mhost/mhost")
+	(as.sxy MHost.IGui "../packages/mhost/MHost/mhost")
 	(as.cpp MHost.IGui "mhost")
 	(context factory MHost.IGui)
 	(methods
@@ -51,7 +51,7 @@
 )
 
 (interface
-	(as.sxy MHost.IEngine "../content/scripts/mhost/mhost")
+	(as.sxy MHost.IEngine "../packages/mhost/MHost/mhost")
 	(as.cpp MHost.IEngine "mhost")
 	(context factory MHost.IEngine)
 	(methods
@@ -75,7 +75,7 @@
 )
 
 (interface 
-	(as.sxy MHost.IDictionaryStream "../content/scripts/mhost/mhost")
+	(as.sxy MHost.IDictionaryStream "../packages/mhost/MHost/mhost")
 	(as.cpp MHost.IDictionaryStream "mhost")
 	(context factory Rococo.IInstallation)
 	(methods

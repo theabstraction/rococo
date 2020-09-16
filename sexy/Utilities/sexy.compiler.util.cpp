@@ -255,7 +255,7 @@ namespace Rococo { namespace Compiler
 			}
 		}
 
-		if (!IsCapital(type[0]))
+		if (type[0] != '$' && !IsCapital(type[0]))
 		{
 			logger.Write(("Expecting type name to begin with capital letter"));
 			return NULL;
@@ -266,18 +266,28 @@ namespace Rococo { namespace Compiler
 		cstr body, tail;
 		if (splitter.SplitTail(OUT body, OUT tail))
 		{
-			INamespaceBuilder* ns =  Compiler::MatchNamespace(module, body);
+			INamespaceBuilder* ns;
+
+			if (Eq(body, "$"))
+			{
+				ns = static_cast<INamespaceBuilder*>(const_cast<INamespace*>(module.DefaultNamespace()));
+			}
+			else
+			{
+				ns = Compiler::MatchNamespace(module, body);
+			}
+
 			if (ns == NULL) 
 			{
 				sexstringstream<256> streamer;
-				streamer.sb << ("Could not identify namespace ") << body;
+				streamer.sb << "Could not identify namespace " << body;
 				logger.Write(streamer);
 				return NULL;
 			}
 
 			if (!IsCapital(tail[0]) && tail[0] != '_')
 			{
-				logger.Write(("Expecting type name to begin with capital letter"));
+				logger.Write("Expecting type name to begin with capital letter");
 				return NULL;
 			}
 
@@ -289,7 +299,7 @@ namespace Rococo { namespace Compiler
 			else
 			{
 				sexstringstream<1024> streamer;
-				streamer.sb << ("Cannot find structure ") << tail << (" in namespace ") << body;
+				streamer.sb << "Cannot find structure " << tail << " in namespace " << body;
 				logger.Write(streamer);
 			}
 

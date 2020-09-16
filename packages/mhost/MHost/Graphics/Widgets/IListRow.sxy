@@ -1,3 +1,7 @@
+(using Sys.Maths)
+
+(using MHost)
+
 (interface $.IListRow
 	(Render (IGui g)(Rectf rect)->)
 	(GetSpan (Vec2 span)->)

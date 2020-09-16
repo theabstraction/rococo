@@ -7,9 +7,13 @@
 (using Sys.Type.Strings)
 
 (using MPlat)
+
 (using MHost)
 (using MHost.OS)
 (using MHost.Graphics)
+(using MHost.Graphics.Widgets)
+(using MHost.Events)
+
 (using Rococo)
 (using Rococo.Graphics)
 (using Rococo.Audio)

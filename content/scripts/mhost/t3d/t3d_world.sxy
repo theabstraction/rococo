@@ -1,14 +1,5 @@
 // 3d test
 
-(' #include 
-	"!scripts/mhost/mplat.types.sxy"
-	"!scripts/mhost/mhost.sxh.sxy"
-	"!scripts/mplat.sxh.sxy"
-	"!scripts/types.sxy"
-	"!scripts/mhost/mhost.include.sxy"
-	"!scripts/mhost/widgets/widgets.sxy"
-)
-
 (using Sys)
 (using Sys.Maths)
 (using Sys.Maths.F32)
@@ -20,6 +11,8 @@
 (using MHost)
 (using MHost.OS)
 (using MHost.Graphics)
+(using MHost.Geometry)
+
 (using Rococo)
 (using Rococo.Graphics)
 (using Rococo.Audio)

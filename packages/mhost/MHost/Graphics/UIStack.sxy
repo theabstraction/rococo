@@ -1,4 +1,7 @@
 (using Sys.Maths)
+(using MHost)
+(using MHost.Graphics)
+(using MHost.Graphics.Widgets)
 
 (class UIStack (implements $.IUIStack)
 	(UIStackItem root)
@@ -12,12 +15,9 @@
 	(this.lastCursorPos = 0 0)
 )
 
-(factory $.NewUIStack IUIStack : (construct UIStack))
+(factory $.NewUIStack $.IUIStack : (construct UIStack))
 
-(method UIStackItem.Construct -> (construct children ()): 
-)
-
-(method UIStack.AddTopLevelControl (MHost.Graphics.IControl control) (IString name)-> :
+(method UIStack.AddTopLevelControl (IControl control) (IString name)-> :
 	(this.root.children.Append ())
 	(node n = this.root.children.Tail)
 	(UIStackItem newItem = & n)
@@ -28,7 +28,7 @@
 	(newItem.isClippedByParent = true)
 )
 
-(method UIStack.AddTopLevelFloater (MHost.Graphics.IControl control) (IString name)-> :
+(method UIStack.AddTopLevelFloater (IControl control) (IString name)-> :
 	(this.root.children.Append ())
 	(node n = this.root.children.Tail)
 	(UIStackItem newItem = & n)
