@@ -174,7 +174,7 @@ cstr g_smallIcon = nullptr;
 
 ROCOCOAPI IMainloop
 {
-	virtual void Invoke(Platform& platform, IDX11GraphicsWindow& mainWindow) = 0;
+	virtual void Invoke(Platform& platform, HANDLE hInstanceLock, IDX11GraphicsWindow& mainWindow) = 0;
 };
 
 struct HandleManager
@@ -373,7 +373,7 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 
 	PlatformTabs tabs(platform);
 
-	mainloop.Invoke(platform, *mainWindow);
+	mainloop.Invoke(platform, hInstanceLock, *mainWindow);
 
 	return 0;
 }
@@ -385,9 +385,8 @@ int Main(HINSTANCE hInstance, IAppFactory& appFactory, cstr title, HICON hLargeI
 	struct : public IMainloop
 	{
 		IAppFactory* appFactory;
-		HANDLE hInstanceLock;
 
-		void Invoke(Platform& platform, IDX11GraphicsWindow& mainWindow) override
+		void Invoke(Platform& platform, HANDLE hInstanceLock, IDX11GraphicsWindow& mainWindow) override
 		{
 			AutoFree<IApp> app(appFactory->CreateApp(platform));
 
@@ -410,9 +409,8 @@ int Main(HINSTANCE hInstance, IDirectAppFactory& appFactory, cstr title, HICON h
 	struct : public IMainloop
 	{
 		IDirectAppFactory* appFactory;
-		HANDLE hInstanceLock;
 
-		void Invoke(Platform& platform, IDX11GraphicsWindow& mainWindow) override
+		void Invoke(Platform& platform, HANDLE hInstanceLock, IDX11GraphicsWindow& mainWindow) override
 		{
 			AutoFree<IDirectAppManager> appManager = CreateAppManager(platform, mainWindow, *appFactory);
 			appManager->Run(hInstanceLock);

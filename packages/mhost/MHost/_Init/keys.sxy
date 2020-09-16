@@ -1,12 +1,6 @@
 (' #file.type rococo.script.vkeys)
 
-(' #import
-	(mhost "MHost.*")
-	(mhost "MHost.Events.*")
-	(mhost "MHost.OS.*")
-	(mhost "MHost.Graphics.*")
-	(mhost "MHost.Graphics.Widgets.*")
-)
+(' #import (mhost "MHost"))
 
 (namespace EntryPoint)
 	(alias Main EntryPoint.Main)

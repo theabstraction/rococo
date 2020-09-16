@@ -532,7 +532,7 @@ namespace MHost
 		Rococo::SplitString(cmdLine, 0, " \t", args);
 
 		AppArgs appArgs;
-		appArgs.mainScript = "!scripts/mhost/mhost.default.sxy";
+		appArgs.mainScript = "!scripts/mhost/mhost_default.sxy";
 
 		for (size_t i = 1; i < args.items.size(); ++i)
 		{

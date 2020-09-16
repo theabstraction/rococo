@@ -450,7 +450,7 @@ namespace Rococo
 			if (!splitter.SplitTail(OUT body, OUT publicName))
 			{
 				char fullError[2048];
-				SafeFormat(fullError, 2048, ("%s: Expecting fully qualified name A.B.C.D."), nf.Archetype.c_str());
+				SafeFormat(fullError, "%s: Expecting fully qualified name A.B.C.D.", nf.Archetype.c_str());
 				ParseException nativeError(Vec2i{ 0,0 }, Vec2i{ 0,0 }, NativeModuleSrc, fullError, (""), NULL);
 				Throw(nativeError);
 			}
@@ -463,7 +463,9 @@ namespace Rococo
 			if (!f->TryResolveArguments())
 			{
 				char fullError[2048];
-				SafeFormat(fullError, 2048, ("%s: Could not resolve all arguments. Check the log."), nf.Archetype.c_str());
+				StackStringBuilder sb(fullError, sizeof(fullError));
+				sb << nf.Archetype.c_str() << ": Could not resolve argument\n";
+				sb << "Module: " <<  nf.e.function.Module().Name() << "\n";
 				ParseException nativeError(Vec2i{ 0,0 }, Vec2i{ 0,0 }, NativeModuleSrc, fullError, (""), NULL);
 				Throw(nativeError);
 			}

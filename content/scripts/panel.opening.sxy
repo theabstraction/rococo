@@ -1,8 +1,8 @@
 (' #file.type rococo.mplat.panel)
 
 (' #include 
-	"!scripts/mplat.pane.sxh.sxy"
-	"!scripts/mplat.types.sxy"
+	"!scripts/mplat_pane_sxh.sxy"
+	"!scripts/mplat_types.sxy"
 	"!scripts/types.sxy"
 )
 
