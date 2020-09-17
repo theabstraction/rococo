@@ -39,6 +39,7 @@
 *.codeanalysis
 *.codeanalysisast
 *.lastcodeanalysissucceeded
+*.sxyz
 temp/
 sexy/bin/
 sexy/sexydotnet/obj/
