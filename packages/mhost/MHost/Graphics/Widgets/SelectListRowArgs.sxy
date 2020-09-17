@@ -1,5 +1,7 @@
 (using Sys.Maths)
 
+(using MHost.Graphics.Widgets)
+
 (struct SelectListRowArgs
 	(IListRow selectedRow)
 	(Vec2 selectPoint)

@@ -1,4 +1,9 @@
 (using Sys.Maths)
+(using Sys.Type)
+
+(using MHost)
+
+(using $)
 
 (interface $.IMenu (extends $.IControl)
 	(AddTextItem (IString text)(IWidgetContext wc)->(Int32 id))

@@ -1,15 +1,17 @@
 (using Sys.Maths)
 (using Sys.Type)
-(using MHost.Graphics)
+
 (using MHost)
 (using MHost.OS)
+(using MHost.Graphics)
+(using MHost.Graphics.Widgets)
 
 (using Sys.Maths.I32)
 (using Sys.Maths.F32)
 
 (interface $.IUIStack
 	(AddTopLevelControl (IControl control) (IString name)->)
-	(AddTopLevelFloater (MHost.Graphics.IControl control) (IString name)-> )
+	(AddTopLevelFloater (IControl control) (IString name)-> )
 	(RemoveFromTopLevel (IControl control)->)
 	(AddChild (IControl control)(IControl parent)(IString name)(Bool clipped)->)
 	(BringToTop (IControl control)->)

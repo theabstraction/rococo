@@ -1,3 +1,7 @@
+(using Sys.Type)
+(using MHost.Events)
+(using MHost.Graphics.Widgets)
+
 (struct ButtonClickArgs
 	(IString text)
 	(IControl button)

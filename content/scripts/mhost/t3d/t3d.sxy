@@ -1,14 +1,10 @@
 // 3d test
 
-(' #include 
-	"!scripts/mplat.types.sxy"
-	"!scripts/mhost/mhost.sxh.sxy"
-	"!scripts/mplat.sxh.sxy"
-	"!scripts/types.sxy"
-	"!scripts/mhost/mhost.include.sxy"
-	"!scripts/mhost/widgets/widgets.sxy"
-	"!scripts/mhost/t3d/t3d.world.sxy"
-	"!scripts/mhost/t3d/t3d.config.sxy"
+(' #import (mhost "MHost"))
+
+(' #include
+	"!scripts/mhost/t3d/t3d_world.sxy"
+	"!scripts/mhost/t3d/t3d_config.sxy"
 )
 
 (namespace EntryPoint)
@@ -25,6 +21,9 @@
 (using MHost)
 (using MHost.OS)
 (using MHost.Graphics)
+(using MHost.Events)
+(using MHost.Geometry)
+
 (using Rococo)
 (using Rococo.Graphics)
 (using Rococo.Entities)
@@ -287,6 +286,8 @@
 	(IRigBuilder rb (RigBuilder))
 	(rb.Clear)
 	
+	/*
+	
 	(rb.AddBone "spine.lower")
 	(rb.SetLength "spine.lower" 0.3)
 	
@@ -305,6 +306,8 @@
 		
 	(Int64 spineId = (instances.AddSkeleton "spine" rigToWorld))
 	(scene.AddStatics spineId)
+	
+	*/
 	
 	(while this.engine.IsRunning
 		(AdvanceCoroutines this.coroutines)

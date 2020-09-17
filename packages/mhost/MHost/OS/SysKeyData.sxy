@@ -1,3 +1,5 @@
+(using Sys.Maths)
+
 (struct SysKeyData
 	(Bool isUp)
 	(Int32 virtualKeyCode)

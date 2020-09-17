@@ -1,3 +1,8 @@
+(using Sys.Maths)
+
+(using MHost.Events)
+(using MHost.Graphics.Widgets)
+
 (struct UIStackItem
 	(IControl control)
 	(IEventHandler handler)
@@ -5,6 +10,9 @@
 	(Bool isVisible)
 	(Bool isClippedByParent)
 	(list UIStackItem children)
+)
+
+(method UIStackItem.Construct -> (construct children ()): 
 )
 
 (alias UIStackItem $)

@@ -1,5 +1,7 @@
 (using Sys.Maths)
 
+(using MHost)
+
 (function DrawUpTriangle (IGui g)(Rectf bounds)(Int32 colour)-> :
 	(Float32 xC = (0.5 * (bounds.left + bounds.right)))
 	
@@ -71,7 +73,7 @@
 	)
 )
 
-(alias GetTextColour $.GetTextColourAtRectUnderCursor)
+(alias GetTextColourAtRectUnderCursor $.GetTextColourAtRectUnderCursor)
 (alias DrawStandardControlBorder $.DrawStandardControlBorder)
 (alias DrawUpTriangle $.DrawUpTriangle)
 (alias DrawDownTriangle $.DrawDownTriangle)

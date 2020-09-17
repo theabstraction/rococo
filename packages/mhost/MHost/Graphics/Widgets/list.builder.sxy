@@ -8,7 +8,9 @@
 (using MPlat)
 (using MHost)
 (using MHost.OS)
+(using MHost.Events)
 (using MHost.Graphics)
+(using MHost.Graphics.Widgets)
 (using Rococo)
 (using Rococo.Graphics)
 (using Rococo.Audio)
@@ -24,7 +26,7 @@
 	(IListRow lastRowUnderCursor)
 ) 
 
-(factory $.NewListBuilder MHost.Graphics.IListBuilder (IUIControl uiControl)(Int32 maxRows):
+(factory $.NewListBuilder $.IListBuilder (IUIControl uiControl)(Int32 maxRows):
 	(construct ListBuilder uiControl maxRows)
 )
 

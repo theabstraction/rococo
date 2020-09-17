@@ -7,8 +7,8 @@
 (' #polygon.format (Int32 index)(Int32 matId) (for-each-vertex-in-polygon: (Int32 vertexIndex)(Float32 u)(Float32 v)))
 
 (' #include
-	"!scripts/mplat.sxh.sxy"
-	"!scripts/mplat.types.sxy"
+	"!scripts/mplat_sxh.sxy"
+	"!scripts/mplat_types.sxy"
 	"!scripts/types.sxy"
 )
 

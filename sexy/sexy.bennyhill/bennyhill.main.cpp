@@ -566,6 +566,7 @@ void ParseEnum(cr_sex senumDef, ParseContext& pc)
 
 			ec.asCppEnum.Set(sinterfaceName.String()->Buffer);
 			CopyString(ec.asSexyEnum, InterfaceContext::MAX_TOKEN_LEN, sinterfaceName.String()->Buffer);
+
 			SafeFormat(ec.appendSexyFile, _MAX_PATH, ("%s%s.sxh.sxy"), pc.cppRootDirectory, ssexyFilename.String()->Buffer);
 
 			OS::ToSysPath(ec.appendCppHeaderFile);
@@ -583,6 +584,7 @@ void ParseEnum(cr_sex senumDef, ParseContext& pc)
 			cr_sex ssexyFilename = sdirective.GetElement(2);
 			if (!IsStringLiteral(ssexyFilename)) Throw(ssexyFilename, ("Expecting string literal"));
 			CopyString(ec.asSexyEnum, InterfaceContext::MAX_TOKEN_LEN, sinterfaceName.String()->Buffer);
+
 			SafeFormat(ec.appendSexyFile, _MAX_PATH, ("%s%s.sxh.sxy"), pc.cppRootDirectory, ssexyFilename.String()->Buffer);
 			OS::ToSysPath(ec.appendSexyFile);
 		}
@@ -623,7 +625,7 @@ void ParseEnum(cr_sex senumDef, ParseContext& pc)
 		Throw(senumDef, ("Missing as.sxy or as.both"));
 	}
 
-	if (ec.appendSexyFile[0] == 0) SafeFormat(ec.appendSexyFile, _MAX_PATH, ("%s.sxh.sxy"), pc.scriptInputSansExtension);
+	if (ec.appendSexyFile[0] == 0) SafeFormat(ec.appendSexyFile, _MAX_PATH, ("%s_sxh.sxy"), pc.scriptInputSansExtension);
 
 	if (ec.appendCppHeaderFile[0] == 0)
 	{
@@ -671,7 +673,7 @@ void ParseInterface(cr_sex interfaceDef, ParseContext& pc, std::vector<std::stri
 
 			ic.asCppInterface.Set(sinterfaceName.String()->Buffer);
 			CopyString(ic.asSexyInterface, InterfaceContext::MAX_TOKEN_LEN, sinterfaceName.String()->Buffer);
-			SafeFormat(ic.appendSexyFile, _MAX_PATH, ("%s%s.sxh.sxy"), pc.cppRootDirectory, ssexyFilename.String()->Buffer);
+			SafeFormat(ic.appendSexyFile, _MAX_PATH, ("%s%s_sxh.sxy"), pc.cppRootDirectory, ssexyFilename.String()->Buffer);
 		}
 		else if (AreEqual(ssname, ("as.sxy")))
 		{
@@ -702,7 +704,7 @@ void ParseInterface(cr_sex interfaceDef, ParseContext& pc, std::vector<std::stri
 			cr_sex ssexyFilename = directive.GetElement(2);
 			if (!IsStringLiteral(ssexyFilename) && !IsAtomic(ssexyFilename)) Throw(ssexyFilename, ("Expecting string literal"));
 			CopyString(ic.asSexyInterface, InterfaceContext::MAX_TOKEN_LEN, sinterfaceName.String()->Buffer);
-			SafeFormat(ic.appendSexyFile, _MAX_PATH, ("%s%s.sxh.sxy"), pc.cppRootDirectory, ssexyFilename.String()->Buffer);
+			SafeFormat(ic.appendSexyFile, _MAX_PATH, ("%s%s_sxh.sxy"), pc.cppRootDirectory, ssexyFilename.String()->Buffer);
 		}
 		else if (AreEqual(ssname, ("as.cpp")))
 		{
@@ -792,7 +794,7 @@ void ParseInterface(cr_sex interfaceDef, ParseContext& pc, std::vector<std::stri
 		Throw(interfaceDef, ("Missing as.sxy or as.both"));
 	}
 
-	if (ic.appendSexyFile[0] == 0) SafeFormat(ic.appendSexyFile, _MAX_PATH, ("%s.sxh.sxy"), pc.scriptInputSansExtension);
+	if (ic.appendSexyFile[0] == 0) SafeFormat(ic.appendSexyFile, _MAX_PATH, ("%s_sxh.sxy"), pc.scriptInputSansExtension);
 
 	if (ic.appendCppHeaderFile[0] == 0) 
 	{
@@ -958,7 +960,7 @@ void PrintUsage()
 		"(config $config.xc) // The <config_path> can be prefixed with $, which if found, is substituted with the project root\n"
 		"\n"
 		"(interface\n"
-		"\t(as.sxy Sys.Animals.ITiger \"ITiger\") // Scripting language: generate Sys.Animals.ITiger in \"ITiger.sxh.sxy\"\n"
+		"\t(as.sxy Sys.Animals.ITiger \"ITiger\") // Scripting language: generate Sys.Animals.ITiger in \"ITiger_sxh.sxy\"\n"
 		"\t(as.cpp Sys.Animals.ITiger \"ITiger\") // C++: generate Sys::Animals::ITiger in \"ITiger.sxh.inl\" and \"ITiger.sxh.h\"\n"
 		"\t(context Sys.Animals.ITiger) // C++ -> 'Sys::Animals::ITiger* context' passed to native registration functions\n"
 		"\t(methods\n"
@@ -1021,9 +1023,9 @@ int main(int argc, char* argv[])
 
 	try
 	{
-		WideFilePath u16inputName;
-		Assign(u16inputName, pc.scriptInput);
-		src = parser->LoadSource(u16inputName, Vec2i{ 1,1 });
+		WideFilePath inputName;
+		Format(inputName, L"%hs%hs", pc.projectRoot, pc.scriptInput);
+		src = parser->LoadSource(inputName, Vec2i{ 1,1 });
 		tree = parser->CreateTree(src());
 
 		if (tree->Root().NumberOfElements() == 0)

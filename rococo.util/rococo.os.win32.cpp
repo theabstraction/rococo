@@ -1113,6 +1113,30 @@ namespace
 			os.LoadAbsolute(absPath, buffer, maxFileLength);
 		}
 
+		bool TryLoadResource(cstr pingPath, IExpandingBuffer& buffer, int64 maxFileLength) override
+		{
+			if (pingPath == nullptr || rlen(pingPath) < 2) Throw(E_INVALIDARG, "Win32OS::LoadResource failed: <resourcePath> was blank");
+
+			WideFilePath absPath;
+			if (pingPath[0] == '!' || pingPath[0] == '#')
+			{
+				ConvertPingPathToSysPath(pingPath, absPath);
+			}
+			else
+			{
+				Assign(absPath, pingPath);
+			}
+
+			if (!os.IsFileExistant(absPath))
+			{
+				return false;
+			}
+
+			os.LoadAbsolute(absPath, buffer, maxFileLength);
+
+			return true;
+		}
+
 		void Macro(cstr name, cstr pingFolder) override
 		{
 			if (name == nullptr || *name != '#')

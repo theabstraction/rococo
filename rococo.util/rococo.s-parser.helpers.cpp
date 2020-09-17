@@ -808,12 +808,12 @@ namespace Rococo
 
 			ISourceCode* src = nullptr;
 
-			try
+			bool success = installation.TryLoadResource(pingName, *fileBuffer, 64_megabytes);
+			if (success)
 			{
-				installation.LoadResource(pingName, *fileBuffer, 64_megabytes);
 				src = DuplicateSourceCode(installation.OS(), *unicodeBuffer, *parser, *fileBuffer, pingName);
 			}
-			catch (IException& ex)
+			else
 			{
 				WideFilePath sysPath;
 				installation.ConvertPingPathToSysPath(pingName, sysPath);
@@ -845,7 +845,7 @@ namespace Rococo
 
 				if (src == nullptr)
 				{
-					Throw(ex.ErrorCode(), "%s.\nCould not find file in content directory or packages", ex.Message());
+					Throw(0, "%s.\nCould not find file in content directory or packages", pingName);
 				}
 			}
 

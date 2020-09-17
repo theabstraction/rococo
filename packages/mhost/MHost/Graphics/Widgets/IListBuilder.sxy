@@ -1,3 +1,9 @@
+(using Sys.Maths)
+
+(using MHost)
+(using MHost.Graphics)
+(using MHost.Graphics.Widgets)
+
 (interface $.IListBuilder
 	(extends $.IControl)
 	(SetRect (Rectf rect)(IGui g) -> )

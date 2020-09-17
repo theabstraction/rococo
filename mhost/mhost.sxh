@@ -1,4 +1,4 @@
-(config mhost.xc) 
+(config $mhost.xc) 
 
 (functions "mhost"
 	(MHost.OS.IsKeyPressed (KeyState keys)(Int32 vKeyCode)->(Bool isPressed) : MHost::OS::IsKeyPressed)
