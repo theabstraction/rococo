@@ -1,1 +1,0 @@
-\work\rococo\bin\rococo.packager.exe \work\rococo\content \work\rococo\content.sxyz

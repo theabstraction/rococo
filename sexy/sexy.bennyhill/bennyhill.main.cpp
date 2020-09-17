@@ -43,6 +43,7 @@
 #include "sexy.lib.util.h"
 
 #include <rococo.api.h>
+#include <rococo.os.h>
 
 namespace Rococo
 {
@@ -566,6 +567,10 @@ void ParseEnum(cr_sex senumDef, ParseContext& pc)
 			ec.asCppEnum.Set(sinterfaceName.String()->Buffer);
 			CopyString(ec.asSexyEnum, InterfaceContext::MAX_TOKEN_LEN, sinterfaceName.String()->Buffer);
 			SafeFormat(ec.appendSexyFile, _MAX_PATH, ("%s%s.sxh.sxy"), pc.cppRootDirectory, ssexyFilename.String()->Buffer);
+
+			OS::ToSysPath(ec.appendCppHeaderFile);
+			OS::ToSysPath(ec.appendCppImplFile);
+			OS::ToSysPath(ec.appendSexyFile);
 		}
 		else if (scmd == ("as.sxy"))
 		{
@@ -579,6 +584,7 @@ void ParseEnum(cr_sex senumDef, ParseContext& pc)
 			if (!IsStringLiteral(ssexyFilename)) Throw(ssexyFilename, ("Expecting string literal"));
 			CopyString(ec.asSexyEnum, InterfaceContext::MAX_TOKEN_LEN, sinterfaceName.String()->Buffer);
 			SafeFormat(ec.appendSexyFile, _MAX_PATH, ("%s%s.sxh.sxy"), pc.cppRootDirectory, ssexyFilename.String()->Buffer);
+			OS::ToSysPath(ec.appendSexyFile);
 		}
 		else if (scmd == ("as.cpp"))
 		{
@@ -595,6 +601,9 @@ void ParseEnum(cr_sex senumDef, ParseContext& pc)
 
 			SafeFormat(ec.appendCppHeaderFile, _MAX_PATH, ("%s%s.sxh.h"), pc.cppRootDirectory, sexyFilename);
 			SafeFormat(ec.appendCppImplFile, _MAX_PATH, ("%s%s.sxh.inl"), pc.cppRootDirectory, sexyFilename);
+
+			OS::ToSysPath(ec.appendCppHeaderFile);
+			OS::ToSysPath(ec.appendCppImplFile);
 
 			ec.asCppEnum.Set(sstructName.String()->Buffer);
 		}
@@ -971,9 +980,7 @@ int main(int argc, char* argv[])
 	const char* scriptInput = argv[2];
 	const char* touchFile = argv[3];
 
-	printf("ProjectRoot: %s\n", projectRoot);
-	printf("ScriptInput: %s\n", scriptInput);
-	printf("TouchFile: %s\n", touchFile);
+	printf("%s", scriptInput);
 
 	int64 touchModifiedAt = GetLastModifiedDate(touchFile);
 	int64 scriptModifiedAt = GetLastModifiedDate(scriptInput);
@@ -990,7 +997,7 @@ int main(int argc, char* argv[])
 
 	if (scriptModifiedAt < touchModifiedAt)
 	{
-		printf("%s was last updated before %s.\nTerminating BennyHill gracefully.\n", scriptInput, touchFile);
+		printf(" - No changes detected, compilation terminated\n");
 		return 0;
 	}
 
@@ -1002,7 +1009,7 @@ int main(int argc, char* argv[])
 
 	if (*pc.scriptName == 0)
 	{
-		WriteToStandardOutput(("Unexpected error. Could not derive script name from script-input-file '%s'. Expecting [...filename.sxh]"), scriptInput);
+		WriteToStandardOutput("\n\tUnexpected error. Could not derive script name from script-input-file '%s'. Expecting [...filename.sxh]", scriptInput);
 		return -1;
 	}
 
@@ -1022,14 +1029,18 @@ int main(int argc, char* argv[])
 		if (tree->Root().NumberOfElements() == 0)
 		{
 			PrintUsage();
-			Throw(tree->Root(), ("The source code is blank"));
+			Throw(tree->Root(), "\n\tThe source code is blank\n");
 		}
 
 		ParseInterfaceFile(tree->Root(), pc);
+
+		printf("\n");
+
+		return 0;
 	}
 	catch (ParseException& ex)
 	{
-		WriteToStandardOutput(("%s. %s\nSpecimen: %s.\nPosition: %d.%d to %d.%d\n"), pc.scriptInput, ex.Message(), ex.Specimen(), ex.Start().x, ex.Start().y, ex.End().x, ex.End().y);
+		WriteToStandardOutput(("\n\t%s. %s\nSpecimen: %s.\nPosition: %d.%d to %d.%d\n"), pc.scriptInput, ex.Message(), ex.Specimen(), ex.Start().x, ex.Start().y, ex.End().x, ex.End().y);
 
 		if (ex.ErrorCode() != 0)
 		{
@@ -1039,7 +1050,7 @@ int main(int argc, char* argv[])
 	}
 	catch (IException& iex)
 	{
-		WriteToStandardOutput(("Error with bennyhill: %s"), iex.Message());
+		WriteToStandardOutput("\n\tError with bennyhill: %s\n", iex.Message());
 
 		if (iex.ErrorCode() != 0)
 		{

@@ -1,8 +1,0 @@
-(interface $.IUIEventHandler
-	(OnMouseDown (Int32 button) (Float32 x)(Float32 y) ->)
-	(OnMouseMove (Float32 x)(Float32 y) ->)
-	(OnMouseUp (Int32 button) (Float32 x)(Float32 y) ->)
-	(OnWheel (Int32 spin) ->)
-	(OnAsciiChar (Int32 asciiValue)->)
-	(OnSysKey (Bool isUp) (Int32 virtualKeyCode)->)
-)

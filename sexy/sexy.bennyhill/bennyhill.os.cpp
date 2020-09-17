@@ -66,7 +66,7 @@ namespace Rococo
 		int errcode = OS::OpenForAppend((void**)&hFile, _filename);
 		if (hFile == nullptr)
 		{
-			Throw(errcode, ("Error opening/creating %s for appending"), _filename);	
+			Throw(errcode, "Error opening/creating %s for appending", _filename);	
 		}
 	}
 

@@ -109,7 +109,7 @@
       <Outputs>mhost.sxh.h;,mhost.sxh.inl;mhost.script.types.h</Outputs>
     </CustomBuildStep>
     <PostBuildEvent>
-      <Command>cmd.exe $(SolutionDir)copy.natives.from.sexy.bat</Command>
+      <Command>$(SolutionDir)copy.natives.from.sexy.bat</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

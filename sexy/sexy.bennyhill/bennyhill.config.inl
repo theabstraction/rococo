@@ -357,6 +357,11 @@ namespace
 			tree = parser->CreateTree(configSrc());
 
 			ParseConfig(tree().Root(), pc);
+
+			OS::ToSysPath(pc.sexyTypesFilename);
+			OS::ToSysPath(pc.cppTypesFilename);
+			OS::ToSysPath(pc.cppRootDirectory);
+			OS::ToSysPath(pc.projectRoot);
 		}
 		catch (ParseException& ex)
 		{

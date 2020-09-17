@@ -1,0 +1,14 @@
+/* Sexy currently has a limitation, in that for every interface B that extends A
+   then A has to be pre-processed before B. We can hack that with our package system
+   by defining a file that starts with 0. Since 0 comes before the alphabetical in ASCII
+   it will be sorted so that it compiles first. Thus we put our base interfaces here 
+ */
+
+(interface MHost.Graphics.IUIEventHandler
+	(OnMouseDown (Int32 button) (Float32 x)(Float32 y) ->)
+	(OnMouseMove (Float32 x)(Float32 y) ->)
+	(OnMouseUp (Int32 button) (Float32 x)(Float32 y) ->)
+	(OnWheel (Int32 spin) ->)
+	(OnAsciiChar (Int32 asciiValue)->)
+	(OnSysKey (Bool isUp) (Int32 virtualKeyCode)->)
+)
