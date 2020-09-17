@@ -93,7 +93,7 @@ table, th, td {
 	<ul>
 	<li><b>underlying-type</b> - the integer type. Any integer type defined in in the Benny Hill <a href="benny.hill.config.htm">config file</a>. Int32 and Int64 are typical values.</li>
 	<li><b>sexy-enum-name</b> - Fully qualified name which forms the namespace and prefix of the enum. Sexy enums are implemented as macros that substitute names for integer literals</li>
-	<li><b>sexy-target-directory-prefix</b> - Sexy enum impementation code is written to this directory, appended to the project-root and given extension .sxh.sxy</li>
+	<li><b>sexy-target-directory-prefix</b> - Sexy enum impementation code is written to this directory, appended to the project-root and given extension _sxh.sxy</li>
 	<li><b>C++-enum-name</b> - Fully qualified name which forms the namespace and enum type of the enum as seen by C++.</li>
 	<li><b>c++-target-directory-prefix</b> - the C++ target directory, appended to the project root. .h and .inl are appended. </li>
 	</ul>
@@ -115,7 +115,7 @@ table, th, td {
 	where 
 	<ul>
 	<li><b>sexy-interface-name</b> - fully qualified name which forms the Sexy namespace and name of the interface</li>
-	<li><b>sexy-target-directory-prefix</b> - Sexy interface code is written to this directory, appended to the project-root and given extension .sxh.sxy. Marshals interfaces to proxies that call C++</li>
+	<li><b>sexy-target-directory-prefix</b> - Sexy interface code is written to this directory, appended to the project-root and given extension _sxh.sxy. Marshals interfaces to proxies that call C++</li>
 	<li><b>C++-interface-name</b> - fully qualified name which forms the C++ namespace and name of the interface.</li>
 	<li><b>C++-target-directory-prefix</b> - the C++ target directory, appended to the project root. .h and .inl are appended. Marshals Sexy to C++</li>
 	<li><b>C++-factory-ref</b> - in C++ the object exposed to Sexy may require a pointer type for construction. The type is specified here.</li>

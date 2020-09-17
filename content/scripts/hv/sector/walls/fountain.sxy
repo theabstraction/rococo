@@ -2,7 +2,7 @@
 
 (' #include 
 	"!scripts/mplat_sxh.sxy"
-	"!scripts/hv.sxh.sxy"
+	"!scripts/hv_sxh.sxy"
 	"!scripts/hv/hv.types.sxy"
 	"!scripts/types.sxy"
 		"!scripts/mplat_types.sxy"

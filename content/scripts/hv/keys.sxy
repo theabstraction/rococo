@@ -1,5 +1,5 @@
 (' #include
-	"!scripts/hv.sxh.sxy"
+	"!scripts/hv_sxh.sxy"
 	"!scripts/mplat_sxh.sxy"
 	"!scripts/mplat_types.sxy"
 	"!scripts/hv/hv.types.sxy"
