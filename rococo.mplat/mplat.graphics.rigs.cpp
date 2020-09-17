@@ -1,5 +1,5 @@
 #include <rococo.mplat.h>
-#include <unordered_map>
+#include <rococo.hashtable.h>
 #include <vector>
 #include <rococo.strings.h>
 #include <algorithm>
@@ -128,7 +128,7 @@ namespace
 
     struct Rigs : public IRigsSupervisor
     {
-        std::unordered_map<StringKey, Rig*, StringKey::Hash> rigs;
+        stringmap<Rig*> rigs;
 
         Rigs()
         {
@@ -165,7 +165,7 @@ namespace
             if (i == rigs.end())
             {
                 auto* r = new Rig(rigName, ""_fstring, nullptr, Matrix4x4::Identity());
-                i = rigs.insert(std::make_pair(StringKey(rigName), r)).first;
+                i = rigs.insert(rigName, r).first;
             }
 
             return i->second;

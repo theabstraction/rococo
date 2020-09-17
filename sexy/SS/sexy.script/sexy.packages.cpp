@@ -1,6 +1,6 @@
 #include "sexy.script.stdafx.h"
 #include <rococo.package.h>
-#include <rococo.strings.h>
+#include <rococo.hashtable.h>
 #include <vector>
 #include <unordered_map>
 
@@ -305,7 +305,7 @@ namespace
 	struct Packager: ISexyPackagerSupervisor
 	{
 		IScriptSystem& ss;
-		std::unordered_map<StringKey, SexyPackage, StringKey::Hash> packages;
+		stringmap<SexyPackage> packages;
 
 		Packager(IScriptSystem& _ss) : ss(_ss) {}
 
@@ -344,7 +344,7 @@ namespace
 			}
 
 			SexyPackage pkg(package);
-			auto k = packages.insert(std::make_pair(key, pkg)).first;
+			auto k = packages.insert(key, pkg).first;
 			k->second.ComputeNamespace(ss, k->second.root, "");
 			k->second.RemoveEmptySubspaces(k->second.root);
 

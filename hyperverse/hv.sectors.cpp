@@ -1,12 +1,9 @@
 #include "hv.h"
 #include "rococo.mplat.h"
-#include <rococo.strings.h>
 #include <rococo.maths.h>
-
 #include <vector>
 #include <algorithm>
-#include <unordered_map>
-
+#include <rococo.hashtable.h>
 #include <rococo.clock.h>
 #include <rococo.sexy.api.h>
 
@@ -147,7 +144,7 @@ return false;
    {
 	   IGlobalVariables& GetGlobals() override { return *this; }
 
-	   mutable std::unordered_map<std::string, int32> int32Variables;
+	   mutable stringmap<int32> int32Variables;
 
 	   bool GetValue(cstr name, int32& outputValue) const override
 	   {
@@ -203,7 +200,7 @@ return false;
    {
 	   ISectors* sectors;
 
-	   typedef std::unordered_map<std::string, std::vector<ISector*>> TMapStringToSectors;
+	   typedef stringmap<std::vector<ISector*>> TMapStringToSectors;
 	   TMapStringToSectors map;
 
 	   bool inTagCall = false;
@@ -236,7 +233,7 @@ return false;
 				   auto j = map.find(varName);
 				   if (j == map.end())
 				   {
-					   j = map.insert(std::make_pair(std::string(varName), std::vector<ISector*>())).first;
+					   j = map.insert(varName, std::vector<ISector*>()).first;
 				   }
 
 				   j->second.push_back(s);
@@ -615,10 +612,10 @@ return false;
 		   std::string floor_scriptName;
 		   bool floor_useScript;
 
-		   std::unordered_map<std::string, Material*> nameToMaterials;
-		   std::unordered_map<std::string, float> doorVars;
-		   std::unordered_map<std::string, float> floorVars;
-		   std::unordered_map<std::string, float> wallVars;
+		   stringmap<Material*> nameToMaterials;
+		   stringmap<float> doorVars;
+		   stringmap<float> floorVars;
+		   stringmap<float> wallVars;
 	   } temp;
 
 	   void SetTemplateWallScript(boolean32 useScript, const fstring& scriptName) override
@@ -661,7 +658,7 @@ return false;
 	   {
 		   for (auto& v : temp.doorVars)
 		   {
-			   cb.OnEvent(VariableCallbackData{ v.first.c_str(), v.second });
+			   cb.OnEvent(VariableCallbackData{ v.first, v.second });
 		   }
 	   }
 
@@ -669,7 +666,7 @@ return false;
 	   {
 		   for (auto& v : temp.wallVars)
 		   {
-			   cb.OnEvent(VariableCallbackData{ v.first.c_str(), v.second });
+			   cb.OnEvent(VariableCallbackData{ v.first, v.second });
 		   }
 	   }
 
@@ -677,7 +674,7 @@ return false;
 	   {
 		   for (auto& v : temp.floorVars)
 		   {
-			   cb.OnEvent(VariableCallbackData{ v.first.c_str(), v.second });
+			   cb.OnEvent(VariableCallbackData{ v.first, v.second });
 		   }
 	   }
 
@@ -701,7 +698,7 @@ return false;
 		   auto i = temp.nameToMaterials.find((cstr)bodyClass);
 		   if (i == temp.nameToMaterials.end())
 		   {
-			   i = temp.nameToMaterials.insert(std::make_pair(std::string(bodyClass), new Material)).first;
+			   i = temp.nameToMaterials.insert(bodyClass, new Material).first;
 		   }
 
 		   i->second->category = cat;
@@ -723,7 +720,7 @@ return false;
 			   {
 				   for (auto i : This->temp.nameToMaterials)
 				   {
-					   MaterialArgs args{ i.second, i.first.c_str() };
+					   MaterialArgs args{ i.second, i.first };
 					   cb.OnEvent(args);
 				   }
 			   }

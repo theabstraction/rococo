@@ -447,7 +447,7 @@ struct FileBrowser : public IFileBrowser
 
 				for (const char* p = asciiRep + len; p > asciiRep; p--)
 				{
-					if (*p == Rococo::IO::GetFileSeparator() && p[1] != 0)
+					if (*p == '/' && p[1] != 0)
 					{
 						RenderSubFolder(*rc, p + 1, index++, depth++, This->containerRect, outputSubfolderRect);
 						foundSubDir = true;

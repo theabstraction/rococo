@@ -213,41 +213,19 @@ namespace Rococo
 		   hash = 0;
 	   };
 
-	   StringKey& operator = (const StringKey& other)
-	   {
-		   data = other.data;
-		   persistentData = other.persistentData;
-		   Persist();
-		   return *this;
-	   }
+	   StringKey& operator = (const StringKey& other);
 
 	   [[nodiscard]] const int length() const
 	   {
 		   return StringLength(data);
 	   }
 
-	   StringKey(const StringKey& other):
-		   persistentData(other.persistentData),
-		   hash(other.hash)
-	   {
-		   data = other.data;
-		   Persist();
-	   };
-
-	   StringKey(StringKey&& other):
-		   persistentData(other.persistentData),
-		   data(other.data),
-		   hash(other.hash)	 
-	   {
-		   Persist();
-	   }
+	   StringKey(const StringKey& other);
+	   StringKey(StringKey&& other);
 
 	   [[nodiscard]] operator cstr() const { return data; }
 
-	   [[nodiscard]] bool operator == (const StringKey& other) const
-	   {
-		   return hash == other.hash && Eq(data, other.data);
-	   }
+	   [[nodiscard]] bool operator == (const StringKey& other) const;
 
 	   [[nodiscard]] size_t HashCode() const
 	   {

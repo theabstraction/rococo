@@ -2,7 +2,7 @@
 #include <rococo.strings.h>
 #include <rococo.ui.h>
 #include <rococo.textures.h>
-#include <unordered_map>
+#include <rococo.hashtable.h>
 #include <algorithm>
 
 #include <rococo.file.browser.h>
@@ -631,7 +631,7 @@ namespace ANON
 	{
 		int32* value;
 		HString name;
-		std::unordered_map<StringKey, int, StringKey::Hash> constantsNameToValue;
+		stringmap<int> constantsNameToValue;
 		std::unordered_map<int, HString> constantsValueToName;
 		std::vector<HString> orderedByName;
 		Platform& platform;
@@ -796,7 +796,7 @@ namespace ANON
 			}
 			else
 			{
-				SafeFormat(buffer, sizeof(buffer), "%s", i->second);
+				SafeFormat(buffer, sizeof(buffer), "%s", (cstr) i->second);
 			}
 
 			GuiRectf textRect{ (float) rect.left, (float) rect.top, (float) rect.right, (float) rect.bottom };

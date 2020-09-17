@@ -113,7 +113,7 @@ namespace Rococo
 
 	namespace Script
 	{
-		typedef std::unordered_map<CStringKey, cstr, ::hashCStringKey> TMapMethodToMember;
+		typedef stringmap<cstr> TMapMethodToMember;
 	}
 
 	namespace Compiler

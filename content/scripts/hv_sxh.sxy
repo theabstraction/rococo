@@ -1,3 +1,14 @@
+(namespace HV)
+(macro HV.TriggerTypeNone in out (out.AddAtomic "0x0"))
+(macro HV.TriggerTypeDepressed in out (out.AddAtomic "0x1"))
+(macro HV.TriggerTypePressed in out (out.AddAtomic "0x2"))
+(macro HV.TriggerTypeLevelLoad in out (out.AddAtomic "0x3"))
+
+(macro HV.AddItemFlagsNone in out (out.AddAtomic "0x0"))
+(macro HV.AddItemFlagsAlignEdge in out (out.AddAtomic "0x1"))
+(macro HV.AddItemFlagsRandomHeading in out (out.AddAtomic "0x2"))
+(macro HV.AddItemFlagsRandomPosition in out (out.AddAtomic "0x4"))
+
 (interface HV.IPlayer
 	(SetPlayerEntity (Int64 id) -> )
 	(GetPlayerEntity  -> (Int64 id))

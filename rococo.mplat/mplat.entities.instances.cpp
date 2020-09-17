@@ -1,5 +1,5 @@
 #include <rococo.mplat.h>
-#include <unordered_map>
+#include <rococo.hashtable.h>
 #include <vector>
 
 #include <rococo.strings.h>
@@ -352,7 +352,7 @@ namespace
 
 	  std::unordered_map<MaterialCategory, std::vector<MaterialId>> categories;
 
-	  std::unordered_map<StringKey, MaterialCategory, StringKey::Hash> subdirToCatEnum =
+	  stringmap<MaterialCategory> subdirToCatEnum =
 	  {
 		  { "/wood/", MaterialCategory_Wood },
 		  { "/stone/", MaterialCategory_Stone },

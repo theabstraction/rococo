@@ -54,7 +54,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 	{
 	private:
 		typedef std::vector<FunctionAlias> TFunctions;
-		typedef std::unordered_map<CStringKey,IFunctionBuilder*, hashCStringKey> TFunctionsByName;
+		typedef stringmap<IFunctionBuilder*> TFunctionsByName;
 		TFunctions functions;
 		TFunctionsByName functionsByName;
 		bool managesLifetime;
@@ -89,7 +89,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		virtual void Register(cstr publicName, IFunctionBuilder& f)
 		{
 			functions.push_back(FunctionAlias(publicName, f));
-			functionsByName.insert(std::make_pair(CStringKey(f.Name()), &f));
+			functionsByName.insert(f.Name(), &f);
 		}
 
 		virtual int FunctionCount() const
@@ -109,13 +109,13 @@ namespace Rococo { namespace Compiler { namespace Impl
 
 		virtual IFunctionBuilder* Get(cstr name)
 		{
-			auto i = functionsByName.find(CStringKey(name));
+			auto i = functionsByName.find(name);
 			return i != functionsByName.end() ? i->second : NULL;
 		}
 
 		virtual const IFunction* Get(cstr name) const
 		{
-			auto i = functionsByName.find(CStringKey(name));
+			auto i = functionsByName.find(name);
 			return i != functionsByName.end() ? i->second : NULL;
 		}
 	};
@@ -495,7 +495,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 	class AttributeContainer: public IAttributes
 	{		
 	private:
-		typedef std::unordered_map<CStringKey, const void*, hashCStringKey> TMapKeyToAttr;
+		typedef stringmap<const void*> TMapKeyToAttr;
 		TMapKeyToAttr attributeMap;
 
 		typedef std::vector<std::pair<cstr,const void*>> TAttrVector;
@@ -581,11 +581,11 @@ namespace Rococo { namespace Compiler { namespace Impl
 		virtual void SetInline(IFunctionBuilder* f, IStructureBuilder* s) { inlineConstructor = f; inlineClass = s; }
 	};
 
-	typedef std::unordered_map<CStringKey,Structure*,hashCStringKey> TResolvedStructures;
+	typedef stringmap<Structure*> TResolvedStructures;
 	typedef std::vector<CStructIdentityAlias> TStructures;
-	typedef std::unordered_map<CStringKey,Interface*,hashCStringKey> TInterfaces;
+	typedef stringmap<Interface*> TInterfaces;
 	typedef std::vector<IInterfaceBuilder*> TInterfaceEnum;
-	typedef std::unordered_map<CStringKey,Factory*,hashCStringKey> TFactories;
+	typedef stringmap<Factory*> TFactories;
 
 	class Macro: public IMacroBuilder
 	{
@@ -611,8 +611,8 @@ namespace Rococo { namespace Compiler { namespace Impl
 		sexstring fullname;
 
 		typedef std::vector<Namespace*> TChildren;
-		typedef std::unordered_map<CStringKey,Namespace*,hashCStringKey> TMapNameToNS;
-		typedef std::unordered_map<CStringKey,Macro*,hashCStringKey> TMapNameToMacro;
+		typedef stringmap<Namespace*> TMapNameToNS;
+		typedef stringmap<Macro*> TMapNameToMacro;
 
 		TChildren children;
 		TMapNameToNS nameToChildren;

@@ -1,8 +1,7 @@
 #include "rococo.mplat.h"
 
 #include <ctype.h>
-#include <unordered_map>
-
+#include <rococo.hashtable.h>
 #include <rococo.parse.h>
 
 using namespace Rococo;
@@ -70,7 +69,7 @@ void ValidateNameAccordingToBoneSytleRules(cstr name)
 struct RigBuilder : IRigBuilderSupervisor
 {
 	RigBuilderContext c;
-	std::unordered_map<std::string, Bone> bones;
+	stringmap<Bone> bones;
 
 	Bone& GetBone(cstr name)
 	{
@@ -95,7 +94,7 @@ struct RigBuilder : IRigBuilderSupervisor
 			Throw(0, "%s: Duplicate name, %s already exists in the rig builder", __FUNCTION__, (cstr)name);
 		}
 
-		i = bones.insert(std::make_pair(std::string(name), Bone())).first;
+		i = bones.insert(name, Bone()).first;
 	}
 
 	void SetLength(const fstring& name, Metres length)

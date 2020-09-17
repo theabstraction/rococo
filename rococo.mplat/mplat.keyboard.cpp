@@ -1,6 +1,6 @@
 #include <rococo.mplat.h>
 #include <array>
-#include <unordered_map>
+#include <rococo.hashtable.h>
 
 #include <rococo.os.win32.h>
 
@@ -121,8 +121,8 @@ namespace
    class Keyboard : public IKeyboardSupervisor
    {
       std::array<HString, 512> codes;
-	  std::unordered_map<StringKey, int32, StringKey::Hash> mapNameToVkCode;
-      std::unordered_map<StringKey, HString, StringKey::Hash> actionBinds;
+	  stringmap<int32> mapNameToVkCode;
+	  stringmap<HString> actionBinds;
    public:
       Keyboard()
       {

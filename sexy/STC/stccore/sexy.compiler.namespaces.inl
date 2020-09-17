@@ -113,7 +113,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 	{
 		for (auto& i : factories)
 		{
-			if (onFactory(*i.second, i.first.c_str()) == CALLBACK_CONTROL_BREAK) break;
+			if (onFactory(*i.second, i.first) == CALLBACK_CONTROL_BREAK) break;
 		}
 	}
 
@@ -142,22 +142,22 @@ namespace Rococo { namespace Compiler { namespace Impl
 
 	const IMacro* Namespace::FindMacro(cstr name) const
 	{
-		auto i = macros.find(CStringKey(name));
+		auto i = macros.find(name);
 		return i == macros.end() ? NULL : i->second;
 	}
 
 	IMacroBuilder* Namespace::FindMacro(cstr name)
 	{
-		auto i = macros.find(CStringKey(name));
+		auto i = macros.find(name);
 		return i == macros.end() ? NULL : i->second;
 	}
 
 	IMacroBuilder* Namespace::AddMacro(cstr name, void* expression, IFunctionBuilder& f)
 	{
-		auto i = macros.find(CStringKey(name));
+		auto i = macros.find(name);
 		if (i != macros.end()) return NULL;
 		auto m = new Macro(name, expression, *this, f);
-		macros.insert(std::make_pair(CStringKey(name), m));
+		macros.insert(name, m);
 		return m;
 	}
 
@@ -228,7 +228,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 	IInterfaceBuilder* Namespace::DeclareInterface(cstr name, int methodCount, IStructureBuilder& nullObject, IInterfaceBuilder* base)
 	{
 		Interface* inter = new Interface(name, methodCount, nullObject, base == NULL ? NULL : (Interface*) base);
-		interfaces.insert(std::make_pair(inter->Name(), inter));
+		interfaces.insert(inter->Name(), inter);
 		interfaceEnum.push_back(inter);
 		return inter;
 	}
@@ -290,7 +290,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 	IFactory& Namespace::RegisterFactory(cstr name, IFunctionBuilder& constructor, IInterfaceBuilder& interf, sexstring interfType)
 	{
 		Factory* f = new Factory(name, constructor, interf, interfType);
-		factories.insert(std::make_pair(f->Name(), f));
+		factories.insert(f->Name(), f);
 		return *f;
 	}
 
@@ -301,14 +301,12 @@ namespace Rococo { namespace Compiler { namespace Impl
 		cstr dotPos = GetSubString(childName, ("."));
 		if (dotPos == NULL)
 		{
-			CStringKey key(childName);
-			auto i = nameToChildren.find(key);
+			auto i = nameToChildren.find(childName);
 			if (i == nameToChildren.end())
 			{
 				Namespace* child = new Namespace(object, childName, this);
 				children.push_back(child);
-				CStringKey childKey(child->Name()->Buffer);
-				nameToChildren.insert(std::make_pair(childKey, child));
+				nameToChildren.insert(child->Name()->Buffer, child);
 				return *child;
 			}
 			else
@@ -361,8 +359,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		if (dotPos == NULL)
 		{
 			// The subspace is not qualified, so search children
-			CStringKey childKey(childName);
-			auto i = nameToChildren.find(childKey);
+			auto i = nameToChildren.find(childName);
 			return (i != nameToChildren.end()) ? i->second : NULL;
 		}
 		else

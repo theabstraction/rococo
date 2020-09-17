@@ -6,16 +6,14 @@
 #include <Commdlg.h>
 
 #include <vector>
-#include <unordered_map>
+#define ROCOCO_USE_SAFE_V_FORMAT
+#include <rococo.hashtable.h>
 #include <rococo.variable.editor.h>
 
 #include <rococo.file.browser.h>
 #include <rococo.sexy.api.h>
 
 #include <algorithm>
-
-#define ROCOCO_USE_SAFE_V_FORMAT
-#include <rococo.strings.h>
 
 using namespace Rococo;
 using namespace Rococo::Events;
@@ -277,7 +275,7 @@ public:
 		int64 moduleCallCount = 0;
 	};
 
-	std::unordered_map<StringKey, PerformanceStats, StringKey::Hash> nameToStats;
+	stringmap<PerformanceStats> nameToStats;
 
 	struct NameAndStats
 	{
@@ -296,7 +294,7 @@ public:
 		for (auto i : nameToStats)
 		{
 			NameAndStats nas;
-			SafeFormat(nas.name.buf, nas.name.CAPACITY, "%s", i.first);
+			Format(nas.name, "%s", (cstr) i.first);
 			nas.stats = i.second;
 			nameAndStats.push_back(nas);
 		}
@@ -331,7 +329,7 @@ public:
 		auto i = nameToStats.find(name);
 		if (i == nameToStats.end())
 		{
-			i = nameToStats.insert(std::make_pair(name, PerformanceStats{})).first;
+			i = nameToStats.insert(name, PerformanceStats{}).first;
 		}
 
 		i->second.totalCompileCost += stats.compileTime;

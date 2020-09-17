@@ -128,6 +128,9 @@
     <ClInclude Include="..\include\rococo.events.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\rococo.hashtable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="copy.sexy.to.game.debug.bat">

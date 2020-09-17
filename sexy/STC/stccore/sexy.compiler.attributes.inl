@@ -35,10 +35,10 @@ namespace Rococo { namespace Compiler { namespace Impl
 {	
 	bool AttributeContainer::AddAttribute(cstr name, const void* value)
 	{
-		auto i = attributeMap.find(CStringKey(name));
+		auto i = attributeMap.find(name);
 		if (i == attributeMap.end())
 		{
-			i = attributeMap.insert(std::make_pair(CStringKey(name), value)).first;
+			i = attributeMap.insert(name, value).first;
 			attributes.push_back(std::make_pair(name, value));
 			return true;
 		}
@@ -55,7 +55,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 
 	const bool AttributeContainer::FindAttribute(cstr name, OUT const void*& value) const
 	{
-		auto i = attributeMap.find(CStringKey(name));
+		auto i = attributeMap.find(name);
 		if (i == attributeMap.end())
 		{
 			value = NULL;

@@ -68,33 +68,6 @@ namespace Rococo
 	bool AreEqual(sexstring a, sexstring b);
 	bool operator < (const sexstring_key& a, const sexstring_key& b);
 
-   // This was written before later versions of C++ improved std::wstring as key for unodered_map
-   // TODO -> eliminate class
-   class CStringKey
-   {
-      friend bool operator == (const CStringKey& a, const CStringKey& b);
-      friend bool operator < (const CStringKey& a, const CStringKey& b);
-   private:
-      cstr text;
-      size_t hashValue;
-
-   public:
-      CStringKey(cstr _text) : text(_text) { hashValue = Rococo::Hash(_text); }
-      CStringKey() : text(nullptr), hashValue(0) {}
-
-      cstr c_str() const { return text; }
-
-      size_t Hash() const { return hashValue; }
-   };
-
-   struct hashCStringKey
-   {
-      size_t operator()(const CStringKey& s) const { return s.Hash(); }
-   };
-
-   bool operator == (const CStringKey& a, const CStringKey& b);
-   bool operator < (const CStringKey& a, const CStringKey& b);
-
    namespace Parse
    {
 	   VARTYPE GetLiteralType(cstr candidate);

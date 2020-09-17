@@ -2305,8 +2305,7 @@ namespace Rococo { namespace Script
 
    GlobalValue* CScript::GetGlobalValue(cstr name)
    {
-      CStringKey key(name);
-      auto i = globalVariables.find(key);
+      auto i = globalVariables.find(name);
       return i == globalVariables.end() ? nullptr : &i->second;
    }
 
@@ -2314,7 +2313,7 @@ namespace Rococo { namespace Script
    {
       for (auto i : globalVariables)
       {
-         cb(i.first.c_str(), i.second);
+         cb(i.first, i.second);
       }
    }
 
@@ -2322,7 +2321,7 @@ namespace Rococo { namespace Script
    {
       BuilderAndNameKey key;
       key.Builder = &builder;
-      key.Name = CStringKey(arrayName);
+      key.Name = StringKey(arrayName);
 
       TMapNameToArrayDef::const_iterator i = mapNameToArrayDef.find(key);
       return i == mapNameToArrayDef.end() ? NULL : &i->second;
@@ -2332,7 +2331,7 @@ namespace Rococo { namespace Script
    {
       BuilderAndNameKey key;
       key.Builder = &builder;
-      key.Name = CStringKey(listName);
+      key.Name = StringKey(listName);
 
       TMapNameToListDef::const_iterator i = mapNameToListDef.find(key);
       return i == mapNameToListDef.end() ? NULL : &i->second;
@@ -2342,7 +2341,7 @@ namespace Rococo { namespace Script
    {
       BuilderAndNameKey key;
       key.Builder = &builder;
-      key.Name = CStringKey(listName);
+      key.Name = StringKey(listName);
 
       TMapNameToNodeDef::const_iterator i = mapNameToNodeDef.find(key);
       return i == mapNameToNodeDef.end() ? NULL : &i->second;
@@ -2352,7 +2351,7 @@ namespace Rococo { namespace Script
    {
       BuilderAndNameKey key;
       key.Builder = &builder;
-      key.Name = CStringKey(listName);
+      key.Name = StringKey(listName);
 
       TMapNameToMapDef::const_iterator i = mapNameToMapDef.find(key);
       return i == mapNameToMapDef.end() ? NULL : &i->second;
@@ -2362,7 +2361,7 @@ namespace Rococo { namespace Script
    {
       BuilderAndNameKey key;
       key.Builder = &builder;
-      key.Name = CStringKey(name);
+      key.Name = StringKey(name);
 
       TMapNameToMapNodeDef::const_iterator i = mapNameToMapNodeDef.find(key);
       return i == mapNameToMapNodeDef.end() ? NULL : &i->second;
@@ -2372,7 +2371,7 @@ namespace Rococo { namespace Script
    {
       BuilderAndNameKey key;
       key.Builder = &builder;
-      key.Name = CStringKey(arrayName);
+      key.Name = StringKey(arrayName);
 
       ArrayDef def(s, elementType);
       mapNameToArrayDef.insert(std::make_pair(key, def));
@@ -2382,7 +2381,7 @@ namespace Rococo { namespace Script
    {
       BuilderAndNameKey key;
       key.Builder = &builder;
-      key.Name = CStringKey(name);
+      key.Name = StringKey(name);
 
       ListDef def(s, elementType);
       mapNameToListDef.insert(std::make_pair(key, def));
@@ -2392,7 +2391,7 @@ namespace Rococo { namespace Script
    {
       BuilderAndNameKey key;
       key.Builder = &builder;
-      key.Name = CStringKey(name);
+      key.Name = StringKey(name);
 
       MapDef def(s, keyType, valueType);
       mapNameToMapDef.insert(std::make_pair(key, def));
@@ -2402,7 +2401,7 @@ namespace Rococo { namespace Script
    {
       BuilderAndNameKey key;
       key.Builder = &builder;
-      key.Name = CStringKey(nodeName);
+      key.Name = StringKey(nodeName);
 
       MapNodeDef def(s, mapDef, mapName);
       mapNameToMapNodeDef.insert(std::make_pair(key, def));
@@ -2422,7 +2421,7 @@ namespace Rococo { namespace Script
    {
       BuilderAndNameKey key;
       key.Builder = &builder;
-      key.Name = CStringKey(nodeName);
+      key.Name = StringKey(nodeName);
 
       NodeDef def(s, elementType);
       mapNameToNodeDef.insert(std::make_pair(key, def));
@@ -3232,22 +3231,22 @@ namespace Rococo { namespace Script
 		sexstring type = stype.String();
 		sexstring value = svalue.String();
 
-		CStringKey key(name->Buffer);
+		StringKey key(name->Buffer);
 		auto i = globalVariables.find(key);
 		if (i != globalVariables.end())
 		{
-			Throw(sname, ("Duplicate global variable name."));
+			Throw(sname, "Duplicate global variable name.");
 		}
 
 		auto structure = MatchStructure(stype, module);
 		if (structure == nullptr)
 		{
-			Throw(stype, ("Cannot resolve global variable type"));
+			Throw(stype, "Cannot resolve global variable type");
 		}
 
 		if (!IsPrimitiveType(structure->VarType()))
 		{
-			Throw(stype, ("Only primitive types can serve as global variables"));
+			Throw(stype, "Only primitive types can serve as global variables");
 		}
 
 		GlobalValue g;
@@ -3255,7 +3254,7 @@ namespace Rococo { namespace Script
 		g.offset = globalBaseIndex;
 		globalBaseIndex += structure->SizeOfStruct();
 		AssertExpectedParse(stype, g.initialValue, g.type, value->Buffer);
-		globalVariables.insert(std::make_pair(key, g));
+		globalVariables.insert(key, g);
 	}
 
 	void CScript::ComputeGlobals(int& globalBaseIndex)
@@ -3971,7 +3970,7 @@ namespace Rococo { namespace Script
 				CBindFnDefToExpression binding;
 				binding.Fn = &f;
 				binding.FnDef = &topLevelItem;
-				localFunctions.insert(std::make_pair(CStringKey(f.Name()), binding));
+				localFunctions.insert(f.Name(), binding);
 			}
 		}
 

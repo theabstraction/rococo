@@ -49,9 +49,7 @@
 #include "sexy.strings.h"
 #include "sexy.stdstrings.h"
 #include "sexy.compiler.h"
-
-
-#include <unordered_map>
+#include <rococo.hashtable.h>
 #include <vector>
 
 namespace Rococo
@@ -94,7 +92,7 @@ namespace Rococo
 
       struct IScriptSystem;
 
-      typedef std::unordered_map<CStringKey, cstr, hashCStringKey> TMapMethodToMember;
+      typedef stringmap<cstr> TMapMethodToMember;
 
       class CScript;
 
@@ -135,7 +133,7 @@ namespace Rococo
 
          cstr MapMethodToMember(cstr method)
          {
-            auto i = methodMap.find(CStringKey(method));
+            auto i = methodMap.find(method);
             return i == methodMap.end() ? NULL : i->second;
          }
       };
@@ -151,7 +149,7 @@ namespace Rococo
          const ISExpression* FnDef;
          IFunctionBuilder* Fn;
       };
-      typedef std::unordered_map<CStringKey, CBindFnDefToExpression, hashCStringKey> TFunctionDefinitions;
+      typedef stringmap<CBindFnDefToExpression> TFunctionDefinitions;
 
       struct CBindStructDefToExpression
       {
@@ -184,14 +182,14 @@ namespace Rococo
       struct BuilderAndNameKey
       {
          ICodeBuilder* Builder;
-         CStringKey Name;
+         StringKey Name;
       };
 
       struct hashBuilderAndNameKey
       {
          size_t operator()(const BuilderAndNameKey& s) const
          {
-            return s.Name.Hash() ^ (size_t)s.Builder;
+            return s.Name.HashCode() ^ (size_t)s.Builder;
          }
       };
 
@@ -248,7 +246,7 @@ namespace Rococo
       typedef std::unordered_map<BuilderAndNameKey, NodeDef, hashBuilderAndNameKey> TMapNameToNodeDef;
       typedef std::unordered_map<BuilderAndNameKey, MapDef, hashBuilderAndNameKey> TMapNameToMapDef;
       typedef std::unordered_map<BuilderAndNameKey, MapNodeDef, hashBuilderAndNameKey> TMapNameToMapNodeDef;
-      typedef std::unordered_map<CStringKey, GlobalValue, hashCStringKey> TGlobalVariables;
+      typedef stringmap<GlobalValue> TGlobalVariables;
 
 	  struct TransformData
 	  {

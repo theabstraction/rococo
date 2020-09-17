@@ -1,8 +1,6 @@
 #include <rococo.mplat.h>
-#include <unordered_map>
+#include <rococo.hashtable.h>
 #include <vector>
-#include <rococo.strings.h>
-
 #include <algorithm>
 
 namespace
@@ -60,7 +58,7 @@ namespace
 
    struct MeshBuilder : public Rococo::Graphics::IMeshBuilderSupervisor, IMathsVenue
    {
-      std::unordered_map<StringKey, MeshBinding*, StringKey::Hash> meshes;
+      stringmap<MeshBinding*> meshes;
 	  std::unordered_map<ID_SYS_MESH, MeshBindingEx, ID_SYS_MESH> idToName;
 	  char name[MAX_FQ_NAME_LEN + 1] = { 0 };
       std::vector<ObjectVertex> vertices;

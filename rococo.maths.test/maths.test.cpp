@@ -8,6 +8,8 @@
 
 #include <rococo.package.h>
 
+#include <rococo.hashtable.h>
+
 #ifdef _DEBUG
 # pragma comment(lib, "rococo.maths.debug.lib")
 # pragma comment(lib, "rococo.util.debug.lib")
@@ -576,55 +578,20 @@ void test()
 {
 	printf("rococo.strings running...\n");
 
-	AutoFree<IPackageSupervisor> pkg(
-		OpenZipPackage(L"\\work\\rococo\\content.sxyz", "content.sxyz"));
+	stringmap<int> m;
+	
+	m["Apple"] = 1;
 
-	int64 hash = pkg->HashCode();
-	cstr uniqueName = pkg->FriendlyName();
-
-	VALIDATE(Eq(uniqueName, "content.sxyz"));
-
-	auto nFiles = pkg->BuildFileCache("portraits/");
-
-	VALIDATE(nFiles == 1);
-
-	struct : IEventCallback<cstr>
 	{
-		void OnEvent(cstr filename) override
-		{
-			VALIDATE(Eq(filename, "portraits/charlotte.jpg"));
-		}
-	} checkCharlotte;
-	pkg->ForEachFileInCache(checkCharlotte);
+		char beer[64] = "Beer";
+		m.insert(beer, 1);
+	}
+		
+	m["Cogs"] = 1;
 
-	auto nRootDirectories = pkg->BuildDirectoryCache("");
-
-	VALIDATE(nRootDirectories == 7);
-
-	auto nScriptDirectories = pkg->BuildDirectoryCache("scripts/");
-
-	VALIDATE(nScriptDirectories == 3);
-
-	struct : IEventCallback<cstr>
-	{
-		void OnEvent(cstr name) override
-		{
-			printf("Directory: %s\n", name);
-		}
-	} checkDirs;
-	pkg->ForEachDirInCache(checkDirs);
-
-	nFiles = pkg->BuildFileCache("scripts/hv/");
-	VALIDATE(nFiles == 8);
-
-	struct : IEventCallback<cstr>
-	{
-		void OnEvent(cstr name) override
-		{
-			printf("File: %s\n", name);
-		}
-	} checkFiles;
-	pkg->ForEachFileInCache(checkFiles);
+	auto i = m.find("Apple");
+	if (i != m.end()) i->second = 2;
+	else VALIDATE(false);
 
 	HString a = "Geoff";
 	printf("%s\n", a.c_str());

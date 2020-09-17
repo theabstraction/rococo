@@ -1,10 +1,7 @@
 #include "mhost.h"
 
-#include <unordered_map>
-#include <string>
+#include <rococo.hashtable.h>
 #include <vector>
-
-#include <rococo.strings.h>
 
 #include <sexy.types.h>
 #include <Sexy.S-Parser.h>
@@ -112,8 +109,8 @@ namespace Anon
 		IInstallation& installation;
 		bool prohibitOverwrite = false;
 
-		std::unordered_map<std::string, Variant> map;
-		std::vector<std::string> keysByOriginalOrder;
+		stringmap<Variant> map;
+		std::vector<HString> keysByOriginalOrder;
 
 		DictionaryStream(IInstallation& _installation) : installation(_installation)
 		{
@@ -127,14 +124,12 @@ namespace Anon
 
 		void Add(const fstring& key, const Variant& v)
 		{
-			std::string skey(key, key.length);
-
-			auto i = map.find(skey);
+			auto i = map.find(key);
 			if (i != map.end())
 			{
 				if (prohibitOverwrite)
 				{
-					Throw(0, "DictionaryStream: operation would overwrite key [%s]", i->first.c_str());
+					Throw(0, "DictionaryStream: operation would overwrite key [%s]", (cstr) i->first);
 				}
 
 				if (v.type == VARTYPE_Pointer)
@@ -144,7 +139,7 @@ namespace Anon
 			}
 			else
 			{
-				keysByOriginalOrder.push_back(skey);
+				keysByOriginalOrder.push_back(HString(key));
 			}
 
 			if (v.type == VARTYPE_Pointer)
@@ -152,11 +147,11 @@ namespace Anon
 				Variant newV;
 				newV.type = VARTYPE_Pointer;
 				newV.value.charPtrValue = _strdup(v.value.charPtrValue);
-				map[skey] = newV;
+				map[(cstr)key] = newV;
 			}
 			else
 			{
-				map[skey] = v;
+				map[(cstr)key] = v;
 			}
 		}
 

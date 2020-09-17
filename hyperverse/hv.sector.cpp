@@ -1,8 +1,7 @@
 #include "hv.events.h"
-#include <rococo.strings.h>
 #include <rococo.maths.h>
 #include <vector>
-#include <unordered_map>
+#include <rococo.hashtable.h>
 #include <algorithm>
 #include <rococo.rings.inl>
 #include <rococo.variable.editor.h>
@@ -557,7 +556,7 @@ namespace ANON
 
 	   // N.B we need addresses of material fields to remain constant when map is resized
 	   // So use heap generated argument in nameToMaterial. Do not refactor pointer to Material as Material!
-	   std::unordered_map<std::string, Material*> nameToMaterial;
+	   stringmap<Material*> nameToMaterial;
 
 	   U8FilePath corridorScript = { 0 };
 	   U8FilePath wallScript = { 0 };
@@ -1866,7 +1865,7 @@ namespace ANON
 		  auto i = nameToMaterial.find(args.bcmc);
 		  if (i == nameToMaterial.end())
 		  {
-			  i = nameToMaterial.insert(std::make_pair(std::string(args.bcmc), new Material())).first;
+			  i = nameToMaterial.insert(args.bcmc, new Material()).first;
 		  }
 
 		  *i->second = *args.mat;
@@ -3183,11 +3182,11 @@ namespace ANON
 		  SafeFormat(name, sizeof(name), "%s mat", bcmc);
 
 		  editor.AddSpacer();
-		  editor.AddMaterialCategory(name, i->first.c_str(), &i->second->category);
+		  editor.AddMaterialCategory(name, i->first, &i->second->category);
 
 		  char id[32];
 		  SafeFormat(id, sizeof(id), "%s id", bcmc);
-		  editor.AddMaterialString(id, i->second->mvd.materialId, i->first.c_str(), i->second->persistentName, IO::MAX_PATHLEN);
+		  editor.AddMaterialString(id, i->second->mvd.materialId, i->first, i->second->persistentName, IO::MAX_PATHLEN);
 
 		  char colour[32];
 		  SafeFormat(colour, sizeof(colour), "%s colour", bcmc);
@@ -3203,7 +3202,7 @@ namespace ANON
 		  for (auto& i : nameToMaterial)
 		  {
 			  char bodyClass[16];
-			  SafeFormat(bodyClass, 16, "\"%s\"", i.first.c_str());
+			  SafeFormat(bodyClass, 16, "\"%s\"", (cstr) i.first);
 			  sb.AppendFormat("\n\t(sectors.SetTemplateMaterial %-12s (#MaterialCategory%s) 0x%8.8x \"%s\")", bodyClass, platform.utilities.ToShortString(i.second->category).buffer, *(int32*)&i.second->mvd.colour, i.second->persistentName);
 		  }
 

@@ -11,7 +11,7 @@
 #include <rococo.maths.h>
 #include <rococo.io.h>
 
-#include <unordered_map>
+#include <rococo.hashtable.h>
 
 #include <rococo.dx11.renderer.win32.h>
 
@@ -403,13 +403,13 @@ namespace ANON
 	   int64 trianglesThisFrame = 0;
 	   int64 entitiesThisFrame = 0;
 	   std::unordered_map<ID_TEXTURE, DX11TextureArray*, ID_TEXTURE> genericTextureArray;
-	   std::unordered_map<std::string, ID_TEXTURE> nameToGenericTextureId;
+	   stringmap<ID_TEXTURE> nameToGenericTextureId;
 
 	   DX11TextureArray spriteArray;
 	   DX11TextureArray materialArray;
 
 	   std::vector<DX11::TextureBind> cubeTextureArray;
-	   std::unordered_map<std::string, ID_CUBE_TEXTURE> nameToCubeTexture;
+	   stringmap<ID_CUBE_TEXTURE> nameToCubeTexture;
 
 	   AutoFree<ITextureArrayBuilderSupervisor> spriteArrayBuilder;
 
@@ -501,8 +501,8 @@ namespace ANON
 	   AutoRelease<ID3D11ShaderResourceView> envMap;
 
 	   std::vector<DX11::TextureBind> textures;
-	   std::unordered_map<std::string, ID_TEXTURE> mapNameToTexture;
-	   std::unordered_map<std::string, MaterialId> nameToMaterialId;
+	   stringmap<ID_TEXTURE> mapNameToTexture;
+	   stringmap<MaterialId> nameToMaterialId;
 	   std::vector<std::string> idToMaterialName;
 
 	   std::vector<Overlay> overlays;
@@ -808,7 +808,7 @@ namespace ANON
 		   }
 	   }
 
-	   std::unordered_map<std::string, ID_PIXEL_SHADER> nameToPixelShader;
+	   stringmap<ID_PIXEL_SHADER> nameToPixelShader;
 
 	   std::vector<ParticleVertex> fog;
 	   std::vector<ParticleVertex> plasma;
@@ -1688,7 +1688,7 @@ namespace ANON
 		   textures.push_back(bind);
 
 		   auto id = ID_TEXTURE(textures.size());
-		   mapNameToTexture.insert(std::make_pair(uniqueName, id));
+		   mapNameToTexture.insert(uniqueName, id);
 
 		   orderedTextureList.clear();
 
@@ -2339,7 +2339,7 @@ namespace ANON
 		   {
 			   installation.LoadResource(psSpotlightPingPath, *scratchBuffer, 64_kilobytes);
 			   auto pxId = CreatePixelShader(psSpotlightPingPath, scratchBuffer->GetData(), scratchBuffer->Length());
-			   i = nameToPixelShader.insert(std::make_pair(std::string(psSpotlightPingPath), pxId)).first;
+			   i = nameToPixelShader.insert(psSpotlightPingPath, pxId).first;
 		   }
 
 		   m.psSpotlightShader = i->second;
@@ -2349,7 +2349,7 @@ namespace ANON
 		   {
 			   installation.LoadResource(psAmbientPingPath, *scratchBuffer, 64_kilobytes);
 			   auto pxId = CreatePixelShader(psAmbientPingPath, scratchBuffer->GetData(), scratchBuffer->Length());
-			   i = nameToPixelShader.insert(std::make_pair(std::string(psAmbientPingPath), pxId)).first;
+			   i = nameToPixelShader.insert(psAmbientPingPath, pxId).first;
 		   }
 
 		   m.psAmbientShader = i->second;
@@ -2625,7 +2625,7 @@ namespace ANON
 		   {
 			   installation.LoadResource(pixelShader, *scratchBuffer, 64_kilobytes);
 			   auto pxId = CreatePixelShader(pixelShader, scratchBuffer->GetData(), scratchBuffer->Length());
-			   i = nameToPixelShader.insert(std::make_pair(std::string(pixelShader), pxId)).first;
+			   i = nameToPixelShader.insert(pixelShader, pxId).first;
 		   }
 
 		   auto pxId = i->second;
@@ -2841,7 +2841,7 @@ namespace ANON
 			   {
 				   installation.LoadResource(pixelShaderName, *scratchBuffer, 64_kilobytes);
 				   auto pxId = CreatePixelShader(pixelShaderName, scratchBuffer->GetData(), scratchBuffer->Length());
-				   i = nameToPixelShader.insert(std::make_pair(std::string(pixelShaderName), pxId)).first;
+				   i = nameToPixelShader.insert(pixelShaderName, pxId).first;
 			   }
 			   catch (IException& ex)
 			   {

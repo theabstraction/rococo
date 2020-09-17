@@ -131,6 +131,7 @@
     <ClInclude Include="..\include\rococo.allocators.h" />
     <ClInclude Include="..\include\rococo.api.h" />
     <ClInclude Include="..\include\rococo.debugging.h" />
+    <ClInclude Include="..\include\rococo.hashtable.h" />
     <ClInclude Include="..\include\rococo.ide.h" />
     <ClInclude Include="..\include\rococo.io.h" />
     <ClInclude Include="..\include\rococo.mouse.h" />

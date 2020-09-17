@@ -327,9 +327,38 @@ namespace Rococo
 		return (int32)l;
 	}
 
+	StringKey& StringKey::operator = (const StringKey& other)
+	{
+		data = other.data;
+		persistentData = other.persistentData;
+		Persist();
+		return *this;
+	}
+
+	StringKey::StringKey(const StringKey& other) :
+		persistentData(other.persistentData),
+		hash(other.hash)
+	{
+		data = other.data;
+		Persist();
+	};
+
+	StringKey::StringKey(StringKey&& other) :
+		persistentData(other.persistentData),
+		data(other.data),
+		hash(other.hash)
+	{
+		Persist();
+	}
+
 	StringKey::StringKey(cstr _stackData) : data(_stackData)
 	{
 		hash = XXHash64(data, strlen(data));
+	}
+
+	bool StringKey::operator == (const StringKey& other) const
+	{
+		return hash == other.hash && Eq(data, other.data);
 	}
 
 	void StringKey::Persist()

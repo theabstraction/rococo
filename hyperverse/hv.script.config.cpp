@@ -1,5 +1,5 @@
 #include "hv.h"
-#include <unordered_map>
+#include <rococo.hashtable.h>
 
 using namespace HV;
 
@@ -46,7 +46,7 @@ namespace ANON
 
 	struct ScriptConfig : public IScriptConfigSupervisor
 	{
-		std::unordered_map<std::string, Variable*> variables;
+		stringmap<Variable*> variables;
 
 		~ScriptConfig()
 		{
@@ -78,7 +78,7 @@ namespace ANON
 			{
 				if (v.second->Type == VariableType_Float)
 				{
-					cb.OnEvent(VariableCallbackData{ v.first.c_str(), v.second->floatValue.value });
+					cb.OnEvent(VariableCallbackData{ v.first, v.second->floatValue.value });
 				}
 			}
 		}
@@ -92,13 +92,13 @@ namespace ANON
 					case VariableType_Float:
 					{
 						auto& f = v.second->floatValue;
-						editor.AddFloat(v.first.c_str(), &f.value, f.minValue, f.maxValue);
+						editor.AddFloat(v.first, &f.value, f.minValue, f.maxValue);
 					}
 					break;
 					case VariableType_Range:
 					{
 						auto& f = v.second->rangeValue;
-						editor.AddFloatRange(v.first.c_str(), &f.leftValue, &f.rightValue, f.minValue, f.maxValue);
+						editor.AddFloatRange(v.first, &f.leftValue, &f.rightValue, f.minValue, f.maxValue);
 					}
 					break;
 				}
@@ -116,7 +116,7 @@ namespace ANON
 			auto i = variables.find((cstr)variableName);
 			if (i == variables.end())
 			{
-				i = variables.insert(std::make_pair(std::string(variableName), new Variable())).first;
+				i = variables.insert(variableName, new Variable()).first;
 				i->second->floatValue = { defaultValue, minValue, maxValue, defaultValue };
 				i->second->Type = VariableType_Float;
 			}
@@ -140,7 +140,7 @@ namespace ANON
 			auto i = variables.find((cstr)variableName);
 			if (i == variables.end())
 			{
-				i = variables.insert(std::make_pair(std::string(variableName), new Variable())).first;
+				i = variables.insert(variableName, new Variable()).first;
 				i->second->rangeValue = { defaultLeft, defaultRight, minValue, maxValue };
 			}
 			else
@@ -168,7 +168,7 @@ namespace ANON
 	struct ScriptSet: IScriptConfigSet
 	{
 		IScriptConfigSupervisor* current = nullptr;
-		std::unordered_map<std::string, IScriptConfigSupervisor*> scripts;
+		stringmap<IScriptConfigSupervisor*> scripts;
 
 		~ScriptSet()
 		{

@@ -1,8 +1,7 @@
 #include "hv.h"
 #include "hv.events.h"
-#include <unordered_map>
+#include <rococo.hashtable.h>
 #include <rococo.maths.h>
-#include <rococo.strings.h>
 #include <rococo.clock.h>
 
 #include <algorithm>
@@ -78,7 +77,7 @@ private:
 
 public:
    typedef void (FPSControl::*ACTION_FUNCTION)(bool start);
-   static std::unordered_map<std::string, ACTION_FUNCTION> nameToAction;
+   static stringmap<ACTION_FUNCTION> nameToAction;
 
    bool isMovingForward{ false };
    bool isMovingBackward{ false };
@@ -145,7 +144,7 @@ public:
    }
 };
 
-std::unordered_map<std::string, FPSControl::ACTION_FUNCTION> FPSControl::nameToAction =
+stringmap<FPSControl::ACTION_FUNCTION> FPSControl::nameToAction =
 {
    { "move.fps.forward",         &FPSControl::OnForward },
    { "move.fps.backward",        &FPSControl::OnBackward },

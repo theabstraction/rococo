@@ -1,10 +1,9 @@
 #include <rococo.api.h>
 #include <rococo.mplat.h>
 #include <vector>
-#include <unordered_map>
-#include <rococo.ringbuffer.h>
 #define ROCOCO_USE_SAFE_V_FORMAT
-#include <rococo.strings.h>
+#include <rococo.hashtable.h>
+#include <rococo.ringbuffer.h>
 #include <rococo.ui.h>
 
 using namespace Rococo;
@@ -40,8 +39,8 @@ class GuiStack : public IGuiStackSupervisor, public IObserver
 	IRenderer& renderer;
 	IUtilitiies& utilities;
 
-	std::unordered_map<StringKey, CommandHandler, StringKey::Hash> handlers;
-	std::unordered_map<StringKey, IUIElement*, StringKey::Hash> renderElements;
+	stringmap<CommandHandler> handlers;
+	stringmap<IUIElement*> renderElements;
 
 	IKeyboardSink* keyboardSink = nullptr;
 

@@ -1,6 +1,6 @@
 #include <rococo.mplat.h>
 #include <rococo.strings.h>
-#include <unordered_map>
+#include <rococo.hashtable.h>
 
 namespace
 {
@@ -13,10 +13,10 @@ namespace
 
    struct Config : public IConfigSupervisor
    {
-      std::unordered_map<StringKey, int32, StringKey::Hash> mapToInt;
-      std::unordered_map<StringKey, float, StringKey::Hash> mapToFloat;
-      std::unordered_map<StringKey, boolean32, StringKey::Hash> mapToBool;
-      std::unordered_map<StringKey, HString, StringKey::Hash> mapToText;
+      stringmap<int32> mapToInt;
+      stringmap<float> mapToFloat;
+      stringmap<boolean32> mapToBool;
+      stringmap<HString> mapToText;
 
       void Int(const fstring& name, int32 value) override
       {
@@ -79,8 +79,7 @@ namespace
 
       cstr GetText(cstr name) const override
       {
-         StringKey key(name);
-         auto i = mapToText.find(key);
+         auto i = mapToText.find(name);
          if (i != mapToText.end() && i->second.length() > 0)
          {
             return i->second.c_str();

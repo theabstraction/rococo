@@ -2,7 +2,7 @@
 #include "mplat.panel.base.h"
 #include <rococo.strings.h>
 #include <rococo.ui.h>
-#include <unordered_map>
+#include <rococo.hashtable.h>
 
 using namespace Rococo;
 using namespace Rococo::Events;
@@ -18,8 +18,8 @@ class EnumListPane : public BasePane, public IEnumListPane, public IEventCallbac
 	int32 vertAlign = 0;
 	Vec2i padding{ 0,0 };
 	EventIdRef evPopulate;
-	std::unordered_map<StringKey, int32, StringKey::Hash> categoriesByName;
-	std::unordered_map<int32, HString> categoriesById;
+	stringmap<int32> categoriesByName;
+	std::unordered_map<int32,HString> categoriesById;
 	int32 minCatId = 0x7FFFFFFF;
 	int32 maxCatId = 0x80000000;
 

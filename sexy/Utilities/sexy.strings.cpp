@@ -35,14 +35,4 @@ namespace Rococo
 			return Compare(a.Text, b.Text, a.Length) < 0;
 		}
 	}
-
-	bool operator == (const CStringKey& a, const CStringKey& b)
-	{
-		return a.hashValue == b.hashValue && AreEqual(a.c_str(), b.c_str());
-	}
-
-	bool operator < (const CStringKey& a, const CStringKey& b)
-	{
-		return a.hashValue < b.hashValue || Compare(a.c_str(), b.c_str()) < 0;
-	}
 }
