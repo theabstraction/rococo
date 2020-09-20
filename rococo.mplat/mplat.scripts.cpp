@@ -235,13 +235,14 @@ namespace Rococo
 			Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
 		}
 
-		void RunEnvironmentScript(ScriptPerformanceStats& stats, Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail, bool trace, int id)
+		void RunEnvironmentScript(ScriptPerformanceStats& stats, Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail, bool trace, int id, IEventCallback<cstr>* onScriptCrash)
 		{
 			struct ScriptContext : public IEventCallback<ScriptCompileArgs>, public IDE::IScriptExceptionHandler
 			{
 				Platform& platform;
 				IEventCallback<ScriptCompileArgs>& onScriptEvent;
 				bool shutdownOnFail;
+				IEventCallback<cstr>* onScriptCrash;
 
 				void Free() override
 				{
@@ -250,7 +251,8 @@ namespace Rococo
 
 				IDE::EScriptExceptionFlow GetScriptExceptionFlow(cstr source, cstr message) override
 				{
-					platform.installation.OS().FireUnstable();
+					if (onScriptCrash) onScriptCrash->OnEvent(source);
+					platform.os.FireUnstable();
 
 					/* uncomment if you want a dialog box to prompt continuation
 					char msg[1024];
@@ -308,7 +310,8 @@ namespace Rococo
 					onScriptEvent.OnEvent(args);
 				}
 
-				ScriptContext(Platform& _platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent) : platform(_platform), onScriptEvent(_onScriptEvent) {}
+				ScriptContext(Platform& _platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, IEventCallback<cstr>* _onScriptCrash) :
+					platform(_platform), onScriptEvent(_onScriptEvent), onScriptCrash(_onScriptCrash) {}
 
 				void Execute(cstr name, ScriptPerformanceStats& stats, bool trace, int32 id)
 				{
@@ -335,7 +338,7 @@ namespace Rococo
 				}
 
 				bool addPlatform;
-			} sc(platform, _onScriptEvent);
+			} sc(platform, _onScriptEvent, onScriptCrash);
 
 			sc.addPlatform = addPlatform;
 			sc.shutdownOnFail = shutdownOnFail;

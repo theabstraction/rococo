@@ -5,12 +5,101 @@
 
 namespace Rococo
 {
+	class FastStringKey
+	{
+		HString persistentData;
+		cstr data;
+
+		void Persist()
+		{
+			if (persistentData.length() == 0)
+			{
+				persistentData = data;
+				data = persistentData;
+			}
+		}
+
+		static uint32 FastHash(cstr text)
+		{
+			uint32 hash = 5381;
+
+			while (true)
+			{
+				int c = *text;
+				if (c == 0) break;
+				hash = ((hash << 5) + hash) + c;
+				text++;
+			}
+
+			return hash;
+		}
+	public:
+		FastStringKey(cstr _stackData) : data(_stackData)
+		{
+		}
+
+		FastStringKey()
+		{
+			data = nullptr;
+		};
+
+		FastStringKey& operator = (const FastStringKey& other)
+		{
+			data = other.data;
+			persistentData = other.persistentData;
+			Persist();
+			return *this;
+		}
+
+		[[nodiscard]] const int length() const
+		{
+			return StringLength(data);
+		}
+
+		FastStringKey(const FastStringKey& other) :
+			persistentData(other.persistentData)
+		{
+			data = other.data;
+			Persist();
+		};
+
+		FastStringKey(FastStringKey&& other) noexcept:
+			persistentData(other.persistentData),
+			data(other.data)
+		{
+			Persist();
+		}
+
+		[[nodiscard]] operator cstr() const
+		{ 
+			return data;
+		}
+
+		[[nodiscard]] bool operator == (const FastStringKey& other) const
+		{
+			return Eq(data, other.data);
+		}
+
+		[[nodiscard]] size_t HashCode() const
+		{
+			return FastHash(data);
+		}
+
+		struct Hash
+		{
+			size_t operator()(const FastStringKey& s) const noexcept
+			{
+				return s.HashCode();
+			}
+		};
+	};
+
 	template<class VALUE>
 	class stringmap
 	{
 	private:
-		typedef std::unordered_map<StringKey, VALUE, StringKey::Hash> TMap;
-
+		typedef FastStringKey TString;
+		typedef std::unordered_map<TString, VALUE, TString::Hash> TMap;
 		TMap map;
 
 	public:
@@ -27,14 +116,14 @@ namespace Rococo
 		auto size() const { return map.size(); }
 		bool empty() const { return map.empty(); }
 
-		auto& operator[](const StringKey& key) { return map.operator[](key); }
-		auto& operator[](StringKey&& key) { return map.operator[](key); }
+		auto& operator[](const TString& key) { return map.operator[](key); }
+		auto& operator[](TString&& key) { return map.operator[](key); }
 
 		auto find(cstr key) { return map.find(key); }
 		auto find(cstr key) const { return map.find(key); }
 		auto insert(const char* key, const VALUE& item)
 		{
-			return map.insert(std::make_pair(StringKey(key), item));
+			return map.insert(std::make_pair(TString(key), item));
 		}
 
 		void reserve(size_t nElements) { map.reserve(nElements); }

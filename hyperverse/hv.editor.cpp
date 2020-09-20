@@ -561,11 +561,11 @@ namespace
 
 			sb.AppendFormat("(' #file.type hv.level)\n\n");
 
-			sb.AppendFormat("(' #include\n\t\"!scripts/mplat.sxh.sxy\""
-				"\n\t\"!scripts/hv.sxh.sxy\""
+			sb.AppendFormat("(' #include\n\t\"!scripts/mplat_sxh.sxy\""
+				"\n\t\"!scripts/hv_sxh.sxy\""
 				"\n\t\"!scripts/types.sxy\""
 				"\n\t\"!scripts/hv/hv.types.sxy\""
-				"\n\t\"!scripts/mplat.types.sxy\""
+				"\n\t\"!scripts/mplat_types.sxy\""
 				")\n\n");
 
 			sb.AppendFormat("(namespace EntryPoint)\n\t(alias Main EntryPoint.Main)\n\n");

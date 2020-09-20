@@ -21,56 +21,48 @@ namespace
       void Int(const fstring& name, int32 value) override
       {
          ValidateKey(name);
-         StringKey key(name);
-         mapToInt[key] = value;
+         mapToInt[(cstr) name] = value;
       }
 
       void Float(const fstring& name, float value) override
       {
          ValidateKey(name);
-         StringKey key(name);
-         mapToFloat[key] = value;
+         mapToFloat[(cstr)name] = value;
       }
 
       void Bool(const fstring& name, boolean32 value) override
       {
          ValidateKey(name);
-         StringKey key(name);
-         mapToBool[key] = value;
+         mapToBool[(cstr)name] = value;
       }
 
       void Text(const fstring& name, const fstring& value) override
       {
          ValidateKey(name);
-         StringKey key(name);
-         mapToText[key] = value;
+         mapToText[(cstr)name] = value;
       }
 
       int32 GetInt(const fstring& name) override
       {
-         StringKey key(name);
-         auto i = mapToInt.find(key);
+         auto i = mapToInt.find(name);
          return (i != mapToInt.end()) ? i->second : 0;
       }
 
       float GetFloat(const fstring& name) override
       {
-         StringKey key(name);
-         auto i = mapToFloat.find(key);
+         auto i = mapToFloat.find(name);
          return (i != mapToFloat.end()) ? i->second : 0;
       }
 
       boolean32 GetBool(const fstring& name) override
       {
-         StringKey key(name);
-         auto i = mapToBool.find(key);
+         auto i = mapToBool.find(name);
          return (i != mapToBool.end()) ? i->second : false;
       }
 
       void GetText(const fstring& name, Rococo::IStringPopulator& text) override
       {
-         StringKey key(name);
-         auto i = mapToText.find(key);
+         auto i = mapToText.find(name);
          if (i != mapToText.end() && i->second.length() > 0)
          {
             text.Populate(i->second.c_str());

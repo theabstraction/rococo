@@ -94,7 +94,7 @@
 	
 	(qst.PushQuad floorQuad floor)
 	
-	(Rectf uv = 0 0 uvScale uvScale)
+	(Rectf uv = 0 0 u0 v0)
 	(qst.SetTextureRect uv)
 	
 	(Rectf hole = holeRangeX.x holeRangeY.y holeRangeX.y holeRangeY.x)
@@ -152,6 +152,10 @@
 	(MaterialVertexData ceiling)
 	(sector.GetMaterial ceiling "ceiling")
 
+	(ceilingQuad.colours.a = ceiling.colour)
+	(ceilingQuad.colours.b = ceiling.colour)
+	(ceilingQuad.colours.c = ceiling.colour)
+	(ceilingQuad.colours.d = ceiling.colour)
 	(qst.PushQuad ceilingQuad ceiling)
 	(qst.MoveInputToOutput)
 
@@ -184,7 +188,7 @@
 	(if (not isRectangular)
 		(IMessaging messaging (Messaging))
 		(IStringBuilder sb = NewPathBuilder)
-		(#build sb "The gutter script requires that sector " sectorId " is an axis-aligned rectangule")
+		(#build sb "The gutter script requires that sector " sectorId " is an axis-aligned rectangle")
 		(messaging.Log sb)
 	)
 	

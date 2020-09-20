@@ -2321,7 +2321,7 @@ namespace Rococo { namespace Script
    {
       BuilderAndNameKey key;
       key.Builder = &builder;
-      key.Name = StringKey(arrayName);
+      key.Name = arrayName;
 
       TMapNameToArrayDef::const_iterator i = mapNameToArrayDef.find(key);
       return i == mapNameToArrayDef.end() ? NULL : &i->second;
@@ -2331,7 +2331,7 @@ namespace Rococo { namespace Script
    {
       BuilderAndNameKey key;
       key.Builder = &builder;
-      key.Name = StringKey(listName);
+      key.Name = listName;
 
       TMapNameToListDef::const_iterator i = mapNameToListDef.find(key);
       return i == mapNameToListDef.end() ? NULL : &i->second;
@@ -2341,7 +2341,7 @@ namespace Rococo { namespace Script
    {
       BuilderAndNameKey key;
       key.Builder = &builder;
-      key.Name = StringKey(listName);
+      key.Name = listName;
 
       TMapNameToNodeDef::const_iterator i = mapNameToNodeDef.find(key);
       return i == mapNameToNodeDef.end() ? NULL : &i->second;
@@ -2351,7 +2351,7 @@ namespace Rococo { namespace Script
    {
       BuilderAndNameKey key;
       key.Builder = &builder;
-      key.Name = StringKey(listName);
+      key.Name = listName;
 
       TMapNameToMapDef::const_iterator i = mapNameToMapDef.find(key);
       return i == mapNameToMapDef.end() ? NULL : &i->second;
@@ -2361,7 +2361,7 @@ namespace Rococo { namespace Script
    {
       BuilderAndNameKey key;
       key.Builder = &builder;
-      key.Name = StringKey(name);
+      key.Name = name;
 
       TMapNameToMapNodeDef::const_iterator i = mapNameToMapNodeDef.find(key);
       return i == mapNameToMapNodeDef.end() ? NULL : &i->second;
@@ -2371,7 +2371,7 @@ namespace Rococo { namespace Script
    {
       BuilderAndNameKey key;
       key.Builder = &builder;
-      key.Name = StringKey(arrayName);
+      key.Name = arrayName;
 
       ArrayDef def(s, elementType);
       mapNameToArrayDef.insert(std::make_pair(key, def));
@@ -2381,7 +2381,7 @@ namespace Rococo { namespace Script
    {
       BuilderAndNameKey key;
       key.Builder = &builder;
-      key.Name = StringKey(name);
+      key.Name = name;
 
       ListDef def(s, elementType);
       mapNameToListDef.insert(std::make_pair(key, def));
@@ -2391,7 +2391,7 @@ namespace Rococo { namespace Script
    {
       BuilderAndNameKey key;
       key.Builder = &builder;
-      key.Name = StringKey(name);
+      key.Name = name;
 
       MapDef def(s, keyType, valueType);
       mapNameToMapDef.insert(std::make_pair(key, def));
@@ -2401,7 +2401,7 @@ namespace Rococo { namespace Script
    {
       BuilderAndNameKey key;
       key.Builder = &builder;
-      key.Name = StringKey(nodeName);
+      key.Name = nodeName;
 
       MapNodeDef def(s, mapDef, mapName);
       mapNameToMapNodeDef.insert(std::make_pair(key, def));
@@ -2421,7 +2421,7 @@ namespace Rococo { namespace Script
    {
       BuilderAndNameKey key;
       key.Builder = &builder;
-      key.Name = StringKey(nodeName);
+      key.Name = nodeName;
 
       NodeDef def(s, elementType);
       mapNameToNodeDef.insert(std::make_pair(key, def));
@@ -3231,8 +3231,7 @@ namespace Rococo { namespace Script
 		sexstring type = stype.String();
 		sexstring value = svalue.String();
 
-		StringKey key(name->Buffer);
-		auto i = globalVariables.find(key);
+		auto i = globalVariables.find(name->Buffer);
 		if (i != globalVariables.end())
 		{
 			Throw(sname, "Duplicate global variable name.");
@@ -3254,7 +3253,7 @@ namespace Rococo { namespace Script
 		g.offset = globalBaseIndex;
 		globalBaseIndex += structure->SizeOfStruct();
 		AssertExpectedParse(stype, g.initialValue, g.type, value->Buffer);
-		globalVariables.insert(key, g);
+		globalVariables.insert(name->Buffer, g);
 	}
 
 	void CScript::ComputeGlobals(int& globalBaseIndex)

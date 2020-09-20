@@ -10,6 +10,8 @@
 
 #include <rococo.hashtable.h>
 
+#include <rococo.random.h>
+
 #ifdef _DEBUG
 # pragma comment(lib, "rococo.maths.debug.lib")
 # pragma comment(lib, "rococo.util.debug.lib")
@@ -574,25 +576,113 @@ void validateAABB()
 	VALIDATE(aabb.minXYZ.z == newBounds.minXYZ.z);
 }
 
-void test()
+cstr s[8] =
 {
-	printf("rococo.strings running...\n");
+	"apple",
+	"belt",
+	"bodkin",
+	"mangle",
+	"esperanto",
+	"kickoff",
+	"yada",
+	"handheld-orange"
+};
 
-	stringmap<int> m;
-	
-	m["Apple"] = 1;
+#ifdef _DEBUG
+enum { NumberOfIterations = 1'000'000 };
+#else
+enum { NumberOfIterations = 33'000'000 };
+#endif
+void TimeSTDUNMAP()
+{
+	std::unordered_map<std::string, int> m =
+	{ 
+		{"apple", 1},
+		{"bodkin", 1},
+		{"candle", 1},
+		{"dabble", 1},
+		{"eggs", 1},
+		{"flower", 1},
+		{"grumpy", 1},
+		{"handheld", 1}
+	};
 
+	Random::RandomMT rng;
+	rng.Seed((uint32)OS::CpuTicks());
+
+	int count = 0;
+
+	auto start = OS::CpuTicks();
+
+	for (int i = 0; i < NumberOfIterations; ++i)
 	{
-		char beer[64] = "Beer";
-		m.insert(beer, 1);
+		uint32 index = rng() & 0x7;
+		auto c = s[index];
+		auto j = m.find(c);
+		if (j != m.end())
+		{
+			count++;
+		}
 	}
-		
-	m["Cogs"] = 1;
 
-	auto i = m.find("Apple");
-	if (i != m.end()) i->second = 2;
-	else VALIDATE(false);
+	auto end = OS::CpuTicks();
 
+	auto dt = end - start;
+
+	double DT = dt / (double)OS::CpuHz();
+
+	if (count == 0) return;
+
+	printf("std::unordered_map<std::string,int> %0.lf searches per second \n", NumberOfIterations / DT);
+
+	// string map, 33 million searches per second;
+}
+
+void TimeStringMap()
+{
+	stringmap<int> m =
+	{
+		{"apple", 1},
+		{"bodkin", 1},
+		{"candle", 1},
+		{"dabble", 1},
+		{"eggs", 1},
+		{"flower", 1},
+		{"grumpy", 1},
+		{"handheld", 1}
+	};
+
+	Random::RandomMT rng;
+	rng.Seed((uint32)OS::CpuTicks());
+
+	int count = 0;
+
+	auto start = OS::CpuTicks();
+
+	for (int i = 0; i < 3'000'000; ++i)
+	{
+		uint32 index = rng() & 0x7;
+		auto c = s[index];
+		auto j = m.find(c);
+		if (j != m.end())
+		{
+			count++;
+		}
+	}
+
+	auto end = OS::CpuTicks();
+
+	auto dt = end - start;
+
+	double DT = dt / (double)OS::CpuHz();
+
+	if (count == 0) return;
+
+	printf("stringmap<int>:  %0.lf searches per second \n", NumberOfIterations / DT);
+}
+
+void ValidateDictionary()
+{
 	HString a = "Geoff";
 	printf("%s\n", a.c_str());
 
@@ -622,7 +712,7 @@ void test()
 	{
 		EnumControl OnIteration(cstr key, size_t keyLength, void* buffer) override
 		{
-			printf("%s: %llu chars. 0x%llX value\n", key, keyLength, (size_t) buffer);
+			printf("%s: %llu chars. 0x%llX value\n", key, keyLength, (size_t)buffer);
 			return ENUM_CONTINUE;
 		}
 	} e;
@@ -646,19 +736,17 @@ void test()
 
 	printf("Deleted Geoff and Mike\n");
 	d.Enumerate(e);
+}
 
-	return;
-
-	printf("rococo.maths.test running...\n");
-
+void test()
+{
+	TimeSTDUNMAP();
+	TimeStringMap();
+	//ValidateDictionary();
 	validateAABB();
-
 	validateConeCode();
-
 	validateTeselator();
-
 	validatePenetration();
-
 	ValidateVectorLib();
 	ValidatePolynomialLib();
 	ValidateMatrixLib();

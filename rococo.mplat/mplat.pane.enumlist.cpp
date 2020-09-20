@@ -182,11 +182,10 @@ public:
 		}
 	}
 
-	void AddEnumCategory(const fstring& fkey, int32 value) override
+	void AddEnumCategory(const fstring& key, int32 value) override
 	{
-		StringKey key(fkey);
-		categoriesByName[key] = value;
-		categoriesById[value] = fkey;
+		categoriesByName[(cstr)key] = value;
+		categoriesById[value] = key;
 		minCatId = min(minCatId, value);
 		maxCatId = max(maxCatId, value);
 	}

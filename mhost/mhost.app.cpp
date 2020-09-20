@@ -29,7 +29,7 @@ namespace MHost
 	auto evPopulateBusyCategoryId = "busy.category"_event;
 	auto evPopulateBusyResourceId = "busy.resource"_event;
 
-	void RunEnvironmentScript(Platform& platform, IEngineSupervisor* engine, cstr name, bool releaseAfterUse, bool trace, IPackage& package);
+	void RunEnvironmentScript(Platform& platform, IEngineSupervisor* engine, cstr name, bool releaseAfterUse, bool trace, IPackage& package, IEventCallback<cstr>* onScriptCrash);
 
 	namespace UI
 	{
@@ -148,7 +148,8 @@ namespace MHost
 		public IDirectApp, 
 		public IEventCallback<FileModifiedArgs>,
 		public IObserver, 
-		public IEngineSupervisor
+		public IEngineSupervisor,
+		public IEventCallback<cstr>
 	{
 		Platform& platform;
 		IDirectAppControl& control;
@@ -186,14 +187,14 @@ namespace MHost
 					publisher.Unsubscribe(this);
 				}
 
-				virtual void OnEvent(Event& ev)
+				void OnEvent(Event& ev) override
 				{
 					if (ev == evPopulateBusyCategoryId)
 					{
 						auto& te = As<TextOutputEvent>(ev);
 						if (te.isGetting)
 						{
-							SafeFormat(te.text, sizeof(te.text), "%s", be.message);
+							SafeFormat(te.text, "%s", be.message);
 						}
 					}
 					else if (ev == evPopulateBusyResourceId)
@@ -201,7 +202,7 @@ namespace MHost
 						auto& te = As<TextOutputEvent>(ev);
 						if (te.isGetting)
 						{
-							SafeFormat(te.text, sizeof(te.text), "%s", be.pingPath.buf);
+							SafeFormat(te.text, "%s", be.pingPath.buf);
 						}
 					}
 				}
@@ -222,7 +223,7 @@ namespace MHost
 			sceneManager.ss = ss;
 		}
 
-		virtual void OnEvent(Event& ev)
+		void OnEvent(Event& ev) override
 		{
 			if (ev == Rococo::Events::evBusy)
 			{
@@ -289,6 +290,11 @@ namespace MHost
 			delete this;
 		}
 
+		void OnEvent(cstr sourceOfCrash) override
+		{
+			platform.os.EnumerateModifiedFiles(*this);
+		}
+
 		void OnEvent(FileModifiedArgs& args) override
 		{
 			U8FilePath pingPath;
@@ -336,7 +342,7 @@ namespace MHost
 
 		void Run() override
 		{
-			RunEnvironmentScript(platform, this, "!scripts/MHost/_Init/keys.sxy", true, false, *packageMHost);
+			RunEnvironmentScript(platform, this, "!scripts/MHost/_Init/keys.sxy", true, false, *packageMHost, this);
 
 			while (platform.appControl.IsRunning() && !isShutdown)
 			{
@@ -348,7 +354,7 @@ namespace MHost
 				U8FilePath currentScript;
 				Format(currentScript, "%s", mainScript.c_str());
 
-				RunEnvironmentScript(platform, this, currentScript, true, false, *packageMHost);
+				RunEnvironmentScript(platform, this, currentScript, true, false, *packageMHost, this);
 				CleanupResources();
 			}
 		}

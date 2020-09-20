@@ -10,14 +10,13 @@
 #include <rococo.io.h>
 #include <rococo.visitors.h>
 #define ROCOCO_USE_SAFE_V_FORMAT
-#include <rococo.strings.h>
+#include <rococo.hashtable.h>
 #include <sexy.strings.h>
 
 #include <stdarg.h>
 
 #include <algorithm>
 
-#include <unordered_map>
 #include <string>
 #include <vector>
 
@@ -702,7 +701,7 @@ namespace Rococo
 			ISourceCode* code;
 			OS::ticks loadTime;
 		};
-		std::unordered_map<StringKey, Binding, StringKey::Hash> sources;
+		stringmap<Binding> sources;
 		AutoFree<IExpandingBuffer> fileBuffer;
 		AutoFree<IExpandingBuffer> unicodeBuffer;
 		IInstallation& installation;

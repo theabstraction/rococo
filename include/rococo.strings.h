@@ -113,6 +113,16 @@ namespace Rococo
 	   size_t ComputeHash() const;
    };
 
+   inline bool operator == (const HString& a, const HString& b)
+   {
+	   return Eq(a, b);
+   }
+
+   inline bool operator != (const HString& a, const HString& b)
+   {
+	   return !(a == b);
+   }
+
    struct StringBuilder
    {
 	   virtual StringBuilder& AppendFormat(const char* format, ...) = 0;
@@ -191,54 +201,4 @@ namespace Rococo
    int32 CompareI(cstr a, cstr b);
    int32 CompareI(cstr a, cstr b, int64 count);
    int32 Compare(cstr a, cstr b, int64 count);
-   
-   /* 
-	string key for use by unordered_map
-	note that the string is not persisted on the heap until Persist is called
-	this allows searching for an item without having to create a heap allocated string
-   */
-   class StringKey
-   {
-	   HString persistentData;
-	   cstr data;
-	   size_t hash = 0;
-
-	   void Persist();
-   public:
-	   StringKey(cstr _stackData);
-
-	   StringKey()
-	   {
-		   data = nullptr;
-		   hash = 0;
-	   };
-
-	   StringKey& operator = (const StringKey& other);
-
-	   [[nodiscard]] const int length() const
-	   {
-		   return StringLength(data);
-	   }
-
-	   StringKey(const StringKey& other);
-	   StringKey(StringKey&& other);
-
-	   [[nodiscard]] operator cstr() const { return data; }
-
-	   [[nodiscard]] bool operator == (const StringKey& other) const;
-
-	   [[nodiscard]] size_t HashCode() const
-	   {
-		   return hash;
-	   }
-
-	   // N.B using std::hash would mean #including STL headers
-	   struct Hash
-	   {
-		   size_t operator()(const StringKey& s) const noexcept
-		   {
-			   return s.HashCode();
-		   }
-	   };
-   };
 }

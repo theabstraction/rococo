@@ -7,7 +7,7 @@
 
 #include <rococo.file.browser.h>
 
-namespace ANON
+namespace
 {
 	using namespace Rococo;
 	using namespace Rococo::Graphics;
@@ -702,16 +702,14 @@ namespace ANON
 			case IO::VKCode_HOME:
 				if (!orderedByName.empty())
 				{
-					StringKey key(orderedByName[0]);
-					auto i = constantsNameToValue.find(key);
+					auto i = constantsNameToValue.find(orderedByName[0]);
 					*value = i != constantsNameToValue.end() ? i->second : *value;
 				}
 				break;
 			case IO::VKCode_END:
 				if (!orderedByName.empty())
 				{
-					StringKey key(*orderedByName.rbegin());
-					auto i = constantsNameToValue.find(key);
+					auto i = constantsNameToValue.find(*orderedByName.rbegin());
 					*value = i != constantsNameToValue.end() ? i->second : *value;
 				}
 				break;
@@ -762,8 +760,7 @@ namespace ANON
 						if ((c & ~32) == (d & ~32))
 						{
 							// case independent match
-							StringKey key(orderedByName[i]);
-							auto k = constantsNameToValue.find(key);
+							auto k = constantsNameToValue.find(orderedByName[i]);
 							*value = (k != constantsNameToValue.end()) ? k->second : *value;
 							return;
 						}
@@ -777,8 +774,7 @@ namespace ANON
 					char d = orderedByName[i][0];
 					if (c == d)
 					{
-						StringKey key(orderedByName[i]);
-						auto k = constantsNameToValue.find(key);
+						auto k = constantsNameToValue.find(orderedByName[i]);
 						*value = (k != constantsNameToValue.end()) ? k->second : *value;
 						return;
 					}
@@ -821,8 +817,7 @@ namespace ANON
 				{
 					if (orderedByName[j] == name)
 					{
-						StringKey key(orderedByName[j - 1]);
-						auto k = constantsNameToValue.find(key);
+						auto k = constantsNameToValue.find(orderedByName[j - 1]);
 						if (k == constantsNameToValue.end())
 						{
 							break;
@@ -856,8 +851,7 @@ namespace ANON
 				{
 					if (orderedByName[j] == name)
 					{
-						StringKey key(orderedByName[j + 1]);
-						auto k = constantsNameToValue.find(key);
+						auto k = constantsNameToValue.find(orderedByName[j + 1]);
 						if (k == constantsNameToValue.end())
 						{
 							break;
@@ -875,7 +869,7 @@ namespace ANON
 
 		GuiRect absRect{ 0,0,0,0 };
 
-		virtual void Render(IGuiRenderContext& rc, const GuiRect& rect, RGBAb colour)
+		void Render(IGuiRenderContext& rc, const GuiRect& rect, RGBAb colour) override
 		{
 			if (orderedByName.empty())
 			{
@@ -2050,6 +2044,6 @@ namespace Rococo
 {
 	IBloodyPropertySetEditorSupervisor* CreateBloodyPropertySetEditor(Platform& _platform, IEventCallback<BloodyNotifyArgs>& _onDirty)
 	{
-		return new ANON::BloodyPropertySetEditor(_platform, _onDirty);
+		return new BloodyPropertySetEditor(_platform, _onDirty);
 	}
 }

@@ -722,8 +722,8 @@ namespace Rococo
 				bool useDebug = false; // APPLE build script doesn't generate debug extension, so just use whatever files have been built
 #endif
 
-				AddNativeLibrary(useDebug ? "sexy.nativeLib.reflection.debug" : "sexy.nativeLib.reflection");
-				AddNativeLibrary(useDebug ? "sexy.nativeLib.maths.debug" : "sexy.nativeLib.maths");
+				AddNativeLibrary(useDebug ? "sexy.nativeLib.reflection.debug" : "sexy.nativelib.reflection");
+				AddNativeLibrary(useDebug ? "sexy.nativeLib.maths.debug" : "sexy.nativelib.maths");
 
 				if (pip.addCoroutineLib)
 				{

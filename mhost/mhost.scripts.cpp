@@ -79,7 +79,7 @@ namespace MHost
 		return obj;
 	}
 
-	void RunEnvironmentScript(Platform& platform, IEngineSupervisor* engine, cstr name, bool releaseAfterUse, bool trace, IPackage& package)
+	void RunEnvironmentScript(Platform& platform, IEngineSupervisor* engine, cstr name, bool releaseAfterUse, bool trace, IPackage& package, IEventCallback<cstr>* onScriptCrash)
 	{
 		class ScriptContext : public IEventCallback<ScriptCompileArgs>
 		{
@@ -146,12 +146,16 @@ namespace MHost
 				privateSourceCache = CreateSourceCache(platform.installation);
 			}
 
+			IEventCallback<cstr>* onScriptCrash;
+
 			void Execute(cstr name, bool trace)
 			{
-				platform.utilities.RunEnvironmentScript(*this, name, true, true, trace);
+				platform.utilities.RunEnvironmentScript(*this, name, true, true, trace, onScriptCrash);
 				engine->SetRunningScriptContext(nullptr);
 			}
 		} sc(platform, engine, package);
+
+		sc.onScriptCrash = onScriptCrash;
 
 		sc.Execute(name, trace);
 

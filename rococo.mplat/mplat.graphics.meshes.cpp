@@ -20,7 +20,7 @@ namespace
    struct MeshBindingEx
    {
 	   MeshBinding* bind;
-	   StringKey name;
+	   HString name;
 
 	   MeshBindingEx():
 		   bind(nullptr)
@@ -28,7 +28,7 @@ namespace
 
 	   }
 
-	   MeshBindingEx(MeshBinding* _bind, StringKey& _name) :
+	   MeshBindingEx(MeshBinding* _bind,cstr _name) :
 		   bind(_bind), name(_name)
 	   {
 
@@ -159,16 +159,22 @@ namespace
 
 	  struct NameBinding
 	  {
-		  std::pair<StringKey, MeshBinding*> item;
+		  std::pair<HString, MeshBinding*> item;
+
+		  NameBinding(cstr text, MeshBinding* mesh):
+			  item(text,mesh)
+		  {
+
+		  }
 
 		  bool operator < (const NameBinding& other) const
 		  {
-			  return item.first < other.item.first;
+			  return strcmp(item.first, other.item.first) < 0;
 		  }
 
 		  bool operator == (const NameBinding& other) const
 		  {
-			  return item.first == other.item.first;
+			  return Eq(item.first, other.item.first);
 		  }
 	  };
 
@@ -178,7 +184,7 @@ namespace
 	  {
 		  for (auto& m : meshes)
 		  {
-			  names.push_back({ m });
+			  names.push_back( NameBinding(m.first,m.second) );
 		  }
 
 		  std::sort(names.begin(), names.end());
@@ -299,9 +305,8 @@ namespace
 		 {
 			 auto id = renderer.CreateTriangleMesh(invisible ? nullptr : v, invisible ? 0 : (uint32)vertices.size());
 			 auto binding = new MeshBinding{ id, boundingBox, backup, vertices.size(), physicsHull };
-			 StringKey key(name);
-			 meshes[key] = binding;
-			 idToName[id] = MeshBindingEx{ binding, key };
+			 meshes[name] = binding;
+			 idToName[id] = MeshBindingEx( binding, name );
 		 }
 
 		 Clear();

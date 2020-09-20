@@ -1,9 +1,7 @@
 #include <rococo.api.h>
-#include <rococo.strings.h>
 #include <rococo.events.h>
-
+#include <rococo.hashtable.h>
 #include <vector>
-#include <unordered_map>
 #include <algorithm>
 #include <stdlib.h>
 
@@ -48,7 +46,7 @@ namespace
       std::vector<EventBinding> postedEvents;
       std::vector<EventBinding> outgoingEvents;
 	  std::unordered_map<EventHash, HString> hashToNames;
-	  std::unordered_map<StringKey,uint32,StringKey::Hash> persistentStrings;
+	  stringmap<uint32> persistentStrings;
 
       enum { LOSS_AT = 32, MAX_Q = 64 };
 
@@ -251,7 +249,7 @@ namespace
 		  auto i = persistentStrings.find(volatileString);
 		  if (i == persistentStrings.end())
 		  {
-			  i = persistentStrings.insert(std::make_pair(StringKey(volatileString),0)).first;
+			  i = persistentStrings.insert(volatileString,0).first;
 		  }
 
 		  return i->first;

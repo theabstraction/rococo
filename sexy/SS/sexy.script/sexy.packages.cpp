@@ -335,12 +335,12 @@ namespace
 				}
 			}
 
-			StringKey key(package->FriendlyName());
+			cstr key = package->FriendlyName();
 			auto j = packages.find(key);
 			if (j != packages.end())
 			{
 				Throw(0, "%s: A package of the same name '%s' is already registered",
-					__FUNCTION__, (cstr)key);
+					__FUNCTION__, key);
 			}
 
 			SexyPackage pkg(package);
@@ -608,8 +608,8 @@ namespace
 
 		void LoadSubpackages(cstr namespaceFilter, cstr packageName) override
 		{
-			StringKey key(packageName);
-			auto i = packages.find(key);
+
+			auto i = packages.find(packageName);
 			if (i == packages.end())
 			{
 				Throw(0, "Packager::LoadSubpackages(..., \"%s\"): could not find package", packageName);

@@ -24,7 +24,10 @@
 (function TesselateBlankWall (QuadVertices q)(ISectorWallTesselator sector)(IQuadStackTesselator qst)-> :
 	(MaterialVertexData brickwork)
 	(sector.GetMaterial brickwork "brickwork")
-	
+	(q.colours.a = brickwork.colour)
+	(q.colours.b = brickwork.colour)
+	(q.colours.c = brickwork.colour)
+	(q.colours.d = brickwork.colour)
 	(qst.PushQuad q brickwork)
 	(qst.MoveInputToOutput)
 	

@@ -1,17 +1,13 @@
-(' #include 
-	"!scripts/mhost/mplat_types.sxy"
-	"!scripts/mhost/mhost.sxh.sxy"
-	"!scripts/mplat_sxh.sxy"
-	"!scripts/types.sxy"
-	"!scripts/mhost/mhost.include.sxy"
-)
+(' #import (mhost "MHost"))
 
 (namespace EntryPoint)
 	(alias Main EntryPoint.Main)
 	
 (using Sys.Maths)
+(using Sys.Maths.I32)
 (using Sys.Type)
-(using Sys.MPlat)
+(using MPlat)
+
 (using MHost)
 (using MHost.OS)
 (using Rococo)
@@ -191,13 +187,16 @@
 
 (function DrawEntity (Entity e)(IGui gui) -> :
 	(Int32 alignmentFlags = 0) // centred
-	(gui.DrawSprite e.screenPosition alignmentFlags e.image.location)
+	(Vec2 pos)
+	(ToVec2f e.screenPosition pos)
+	(gui.DrawSprite pos alignmentFlags e.image.location)
 )
 
 (function RenderLives (Entity player)(IGui gui)(Int32 count)-> :
 	(#for (Int32 i = 0)(i < count)(i += 1)
 		(Int32 x =  (100 + (i * 64)))
-		(Vec2i pos = x 640)
+		(Vec2 pos = 0 640)
+		(ToFloat32 x -> pos.x)
 		(gui.DrawSprite pos 0 player.image.location)
 	)
 )
@@ -211,20 +210,39 @@
 	(rect.top += centre.y)
 )
 
+(function ToVec2f (Vec2i a)(Vec2 b) -> :
+	(ToFloat32 a.x -> b.x)
+	(ToFloat32 a.y -> b.y)
+)
+
+(function ToRectf (Recti a)(Rectf b) -> :
+	(ToFloat32 a.left -> b.left)
+	(ToFloat32 a.top -> b.top)
+	(ToFloat32 a.right -> b.right)
+	(ToFloat32 a.bottom -> b.bottom)
+)
+
 (method Galaxians.RenderGui (IGui gc) -> :
 	(OnEntity drawSprites = (closure (Entity e)-> : (DrawEntity e gc)))
+	
 	(this.ForEachEntityInWorld drawSprites)
 	
 	(if (this.deathAt != 0)
 		(Int64 peakBoom = Sys.OS.ClockHz)
 		(Int64 delta = ((Sys.OS.ClockTicks) - this.deathAt))
 		(if (delta < peakBoom)
-			(gc.DrawSprite this.playerExplosion.screenPosition 0 this.player.image.location)
+			(Vec2 pos)
+			(ToVec2f this.playerExplosion.screenPosition /* -> */ pos)
+			(gc.DrawSprite pos 0 this.player.image.location)
 			(Int64 boomTick = ( peakBoom / 64 ))
 			(Int32 span = (delta / boomTick))
+			
 			(Recti rect)
 			(ExpandRect rect span this.playerExplosion.screenPosition)
-			(gc.StretchSprite rect this.playerExplosion.image.location)
+			
+			(Rectf rectF)
+			(ToRectf rect rectF)
+			(gc.StretchSprite rectF this.playerExplosion.image.location)
 		)
 	)
 	
@@ -236,7 +254,10 @@
 			(Int32 span = (32 - (delta / boomTick)))
 			(Recti rect)
 			(ExpandRect rect span this.enemyExplosion.screenPosition)
-			(gc.StretchSprite rect this.enemyExplosion.image.location)
+			
+			(Rectf rectF)
+			(ToRectf rect rectF)
+			(gc.StretchSprite rectF this.enemyExplosion.image.location)
 		else
 			(this.enemyHitAt = 0)
 		)
@@ -250,13 +271,13 @@
 		)
 	)
 	
-	(IStringBuilder sbScore (StringBuilder 128))
+	(IStringBuilder sbScore = NewPathBuilder)
 	(#build sbScore "Score: " this.killCount)
 	
-	(Vec2i screenSpan)
+	(Vec2 screenSpan)
 	(gc.GetScreenSpan screenSpan)
 	(Int32 alignmentFlags = 0)
-	(Recti rect = 0 10 screenSpan.x 120)
+	(Rectf rect = 0 10 screenSpan.x 120)
 	(gc.DrawText rect alignmentFlags sbScore 1 0xFFFFFF80)
 )
 
@@ -312,10 +333,10 @@
 )
 
 (function GetEnemyLaunchPosition (Galaxians g) (Vec2i pos)-> :
-	(Float32 smallestDxi = 1000)
+	(Int32 smallestDxi = 1000)
 	(foreach alien # g.aliens
-		(Float32 dx = (g.player.screenPosition.x - alien.screenPosition.x))
-		(Float32 dxi = (Sys.Maths.F32.Abs dx))
+		(Int32 dx = (g.player.screenPosition.x - alien.screenPosition.x))
+		(Int32 dxi = (Sys.Maths.I32.Abs dx))
 		(if (((dxi < smallestDxi) and (g.player.screenPosition.y > 0)) and ((Sys.Random.AnyFloat 0 1) > 0.5))
 			(smallestDxi = dxi)
 			(pos = alien.screenPosition)
@@ -443,7 +464,7 @@
 	(world.Init)
 	
 	(while engine.IsRunning
-		(world.Advance)
+	//	(world.Advance)
 		
 		(GuiPopulator p =
 			(closure (IGui gui) -> : 

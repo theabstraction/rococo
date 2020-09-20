@@ -4,7 +4,7 @@
 #include <rococo.renderer.h>
 #include <rococo.textures.h>
 #include <rococo.strings.h>
-#include <unordered_set>
+#include <rococo.hashtable.h>
 
 namespace
 {
@@ -14,7 +14,7 @@ namespace
    struct Sprites : public ISpriteSupervisor
    {
       IRenderer &renderer;
-      std::unordered_set<StringKey, StringKey::Hash> names;
+      stringmap<int> names;
 
       Sprites(IRenderer& _renderer) : renderer(_renderer)
       {
@@ -35,7 +35,7 @@ namespace
             if (names.find(resourceName.buffer) == names.end())
             {
                renderer.SpriteBuilder().AddBitmap(resourceName);
-               names.insert(resourceName.buffer);
+               names.insert(resourceName.buffer, 0);
             }
          }
       }
