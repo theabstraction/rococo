@@ -6,6 +6,7 @@
 (struct BitmapLocation
 	(Recti rect)
 	(Int32 arrayIndex)
+	(Vec2 pixelSpan)
 )
 
 (using MPlat)

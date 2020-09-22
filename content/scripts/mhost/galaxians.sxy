@@ -81,7 +81,7 @@
 )
 
 (method Galaxians.Init -> :
-	(BitmapLocation defaultBmpLoc = (0 0 0 0) -1)
+	(BitmapLocation defaultBmpLoc = (0 0 0 0) -1 (0 0))
 	
 	(IString pawn1 = "!textures/mhost/galaxians/pawn.1.tiff")
 	(IString pawn2 = "!textures/mhost/galaxians/pawn.2.tiff")
@@ -91,7 +91,7 @@
 	(this.killCount = 0)
 	(this.enemyHitAt = 0)
 	
-	(this.playerExplosion = (0  -100) ("!textures/mhost/galaxians/explosion.tiff" defaultBmpLoc))
+	(this.playerExplosion =  (0  -100) ("!textures/mhost/galaxians/explosion.tiff" defaultBmpLoc))
 	(this.enemyExplosion = (0  -100) ("!textures/mhost/galaxians/explosion.tiff" defaultBmpLoc))
 	
 	// 4 enemy missiles
@@ -149,6 +149,7 @@
 	(this.deathAt = (Sys.OS.ClockTicks))
 	(this.lives = 3)
 	
+	
 	(IEngine engine = this.engine)
 	
 	(OnEntity initSprites = 
@@ -156,7 +157,10 @@
 			(InitSprite engine e.image)
 		)
 	)
+	
 	(this.ForEachEntityInWorld initSprites)
+	
+	
 	(InitSprite engine this.playerExplosion.image)
 	(InitSprite engine this.enemyExplosion.image)
 	
@@ -277,7 +281,7 @@
 	(Vec2 screenSpan)
 	(gc.GetScreenSpan screenSpan)
 	(Int32 alignmentFlags = 0)
-	(Rectf rect = 0 10 screenSpan.x 120)
+	(Rectf rect = 0 10 screenSpan.x 30)
 	(gc.DrawText rect alignmentFlags sbScore 1 0xFFFFFF80)
 )
 
@@ -464,7 +468,7 @@
 	(world.Init)
 	
 	(while engine.IsRunning
-	//	(world.Advance)
+		(world.Advance)
 		
 		(GuiPopulator p =
 			(closure (IGui gui) -> : 

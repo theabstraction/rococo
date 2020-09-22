@@ -72,20 +72,8 @@
     <None Include="..\content\scripts\mhost\galaxians.sxy">
       <Filter>ScriptGen Files\SXY</Filter>
     </None>
-    <None Include="..\content\scripts\mhost\mhost.sxh.sxy">
-      <Filter>ScriptGen Files\SXY</Filter>
-    </None>
-    <None Include="..\content\scripts\mhost\mplat.types.sxy">
-      <Filter>ScriptGen Files\SXY</Filter>
-    </None>
     <None Include="mhost.sxh.inl">
       <Filter>Generated  Files</Filter>
-    </None>
-    <None Include="..\content\scripts\mhost\mhost.include.sxy">
-      <Filter>ScriptGen Files\SXY</Filter>
-    </None>
-    <None Include="..\content\scripts\mhost\mhost.types.sxy">
-      <Filter>ScriptGen Files\SXY</Filter>
     </None>
     <None Include="..\content\scripts\mhost\keys.sxy">
       <Filter>ScriptGen Files\SXY</Filter>
@@ -99,12 +87,6 @@
     <None Include="..\content\scripts\mhost\widgets\fonts.sxy">
       <Filter>ScriptGen Files\SXY</Filter>
     </None>
-    <None Include="..\content\scripts\mhost\widgets\menu.vertical.sxy">
-      <Filter>ScriptGen Files\SXY</Filter>
-    </None>
-    <None Include="..\content\scripts\mhost\widgets\widgets.sxy">
-      <Filter>ScriptGen Files\SXY</Filter>
-    </None>
     <None Include="..\content\scripts\mhost\t3d\t3d.config.sxy">
       <Filter>Scripts</Filter>
     </None>
@@ -116,6 +98,9 @@
     </None>
     <None Include="..\content\scripts\mhost\t3d\t3d.world.sxy">
       <Filter>Scripts</Filter>
+    </None>
+    <None Include="..\content\scripts\mhost\mhost_startup.sxy">
+      <Filter>ScriptGen Files\SXY</Filter>
     </None>
   </ItemGroup>
 </Project>
