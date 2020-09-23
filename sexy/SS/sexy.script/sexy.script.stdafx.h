@@ -54,8 +54,6 @@
 
 namespace Rococo
 {
-   uint32 FastHash(cstr s);
-
    namespace Compiler
    {
       class STCException;
@@ -184,20 +182,20 @@ namespace Rococo
       struct BuilderAndNameKey
       {
          ICodeBuilder* Builder;
-         HString Name;
+         StringKey Name;
       };
 
       struct hashBuilderAndNameKey
       {
          size_t operator()(const BuilderAndNameKey& s) const
          {
-            return Rococo::FastHash(s.Name) ^ (size_t)s.Builder;
+            return s.Name.HashCode() ^ (size_t)s.Builder;
          }
       };
 
       inline bool operator == (const BuilderAndNameKey& a, const BuilderAndNameKey& b)
       {
-         return a.Builder == b.Builder && Eq(a.Name, b.Name);
+         return a.Builder == b.Builder && a.Name == b.Name;
       }
 
       struct ArrayDef
@@ -262,7 +260,7 @@ namespace Rococo
          const ISExpression* E;
          CScript* Module;
          INamespace* NS;
-         bool default = false;
+         bool isDefault = false;
       };
 
       inline bool operator < (const CBindNSExpressionToModule& a, const CBindNSExpressionToModule& b)

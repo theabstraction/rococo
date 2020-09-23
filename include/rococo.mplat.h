@@ -117,6 +117,65 @@ namespace Rococo
 
 #include <../rococo.mplat/mplat.sxh.h>
 
+namespace Rococo::Joysticks
+{
+	union XBox360ControllerButtons
+	{
+		struct Button
+		{
+			typedef uint16 BUTTON_TYPE;
+			BUTTON_TYPE up : 1;
+			BUTTON_TYPE down : 1;
+			BUTTON_TYPE left : 1;
+			BUTTON_TYPE right : 1;
+			BUTTON_TYPE start : 1;
+			BUTTON_TYPE back : 1;
+			BUTTON_TYPE left_thumb : 1;
+			BUTTON_TYPE right_thumb : 1;
+			BUTTON_TYPE left_shoulder : 1;
+			BUTTON_TYPE right_shoulder : 1;
+			BUTTON_TYPE unused_1 : 1;
+			BUTTON_TYPE unused_2 : 1;
+			BUTTON_TYPE A : 1;
+			BUTTON_TYPE B : 1;
+			BUTTON_TYPE X : 1;
+			BUTTON_TYPE Y : 1;
+
+		} button;
+		uint16 allButtons;
+	};
+
+	/* field for field copy of XINPUT_STATE so we can avoid including the Xinput header
+	* which amounts to thousands of lines of code to define the one struct!
+	*/
+	struct Joystick_XBOX360
+	{
+		uint32 packetNumber;
+		XBox360ControllerButtons buttons;
+		uint8  leftTrigger;
+		uint8  rightTrigger;
+		int16 thumbLX;
+		int16 thumbLY;
+		int16 thumbRX;
+		int16 thumbRY;
+	};
+
+	ROCOCOAPI IJoystick_XBOX360
+	{
+		virtual void EnumerateStateAsText(const Joystick_XBOX360 & x, IEventCallback<cstr> & cb) = 0;
+		virtual boolean32 Get(uint32 index, Joystick_XBOX360 & state) = 0;
+		/* Vibrate the controller, strength ranges from 0 to 1 */
+		virtual void Vibrate(uint32 index, float leftStrength, float rightStrength) = 0;
+	};
+
+	ROCOCOAPI IJoystick_XBOX360_Supervisor : IJoystick_XBOX360
+	{
+		virtual void Free() = 0;
+	};
+
+	IJoystick_XBOX360_Supervisor* CreateJoystick_XBox360Proxy();
+}
+
 namespace Rococo
 {
 	namespace Graphics
@@ -784,6 +843,8 @@ namespace Rococo
 
 		// Application title
 		const char* const title;
+
+		Rococo::Joysticks::IJoystick_XBOX360& xbox360joystick;
 	};
 
 	namespace Events

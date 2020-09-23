@@ -9,7 +9,7 @@
 #include <sys/sysctl.h>
 #include <rococo.io.h>
 #define ROCOCO_USE_SAFE_V_FORMAT
-#include <rococo.strings.h>
+#include <rococo.hashtable.h>
 #include <errno.h>
 #include <mach-o/dyld.h>
 #include <mach/mach.h>
@@ -19,19 +19,13 @@
 #include <new>
 #include <rococo.api.h>
 #include <rococo.debugging.h>
-
-#include <unordered_map>
-#include <string>
-
 #include <time.h>
-
 #include <execinfo.h>
 #include <cxxabi.h>
-
 #include <rococo.allocators.h>
 #include <vector>
-
 #include <dlfcn.h>
+#include <rococo.os.h>
 
 namespace
 {
@@ -641,7 +635,7 @@ namespace
       IOS& os;
       WideFilePath contentDirectory;
 	  int32 len;
-	  std::unordered_map<std::string, std::string> macroToSubdir;
+	  stringmap<HString> macroToSubdir;
    public:
       Installation(const wchar_t* contentIndicatorName, IOS& _os) : os(_os)
       {
@@ -688,6 +682,35 @@ namespace
          Format(absPath, L"%ls%hs", contentDirectory.buf, resourcePath + 1);
          os.LoadAbsolute(absPath, buffer, maxFileLength);
       }
+	  
+	  bool TryLoadResource(cstr resourcePath, IExpandingBuffer& buffer, int64 maxFileLength) override
+	  {
+          if (resourcePath == nullptr || rlen(resourcePath) < 2) Throw(0, "OSX::TryLoadResource failed: <resourcePath> was blank");
+          if (resourcePath[0] != '!') Throw(0, "OSX::TryLoadResource failed:\n%s\ndid not begin with ping '!' character", resourcePath);
+
+ 		  UTF8 u8content(contentDirectory);
+          if (rlen(resourcePath) + rlen(u8content) >= _MAX_PATH)
+          {
+             Throw(0, "OSX::TryLoadResource failed: %ls%hs - filename was too long", contentDirectory.buf, resourcePath + 1);
+          }
+
+          if (strstr(resourcePath, "..") != nullptr)
+          {
+             Throw(0, "OSX::TryLoadResource failed: %hs - parent directory sequence '..' is forbidden", resourcePath);
+          }
+		  
+          WideFilePath absPath;
+          Format(absPath, L"%ls%hs", contentDirectory.buf, resourcePath + 1);
+		  
+		  if (!Rococo::OS::IsFileExistant(absPath))
+		  {
+			  return false;
+		  }
+					  
+          os.LoadAbsolute(absPath, buffer, maxFileLength);
+		  
+		  return true;
+	  }
 
 	  bool DoPingsMatch(cstr a, cstr b) const override
 	  {
@@ -726,8 +749,6 @@ namespace
 		{
 			Throw(0, "Installation::ConvertPingPathToSysPath(...) Ping path was blank");
 		}
-
-		sysPath.pathSeparator = '\\';
 
 		auto macroDir = "";
 		const char* subdir = nullptr;
@@ -792,14 +813,12 @@ namespace
 			Throw(0, "Installation::ConvertSysPathToMacroPath(...\"%ls\", \"%s\") Path not prefixed by macro: %s", sysPath, macro, expansion);
 		}
 
-		Format(pingPath, "%s/%s", macro, fullPingPath.buf + i->second.size());
+		Format(pingPath, "%hs/%hs", macro, fullPingPath.buf + i->second.length());
 	}
 
 	void ConvertSysPathToPingPath(const wchar_t* sysPath, U8FilePath& pingPath) const override
 	{
 		if (pingPath == nullptr || sysPath == nullptr) Throw(0, "ConvertSysPathToPingPath: Null argument");
-
-		pingPath.pathSeparator = '/';
 
 		int sysPathLen = (int) wcslen(sysPath);
 
@@ -875,35 +894,36 @@ namespace
 	  
 	  void CompressPingPath(cstr pingPath, U8FilePath& buffer) const override
 	  {
+		  // Implementation here is not optimal, but its okay for now, as this method is only used during initialization
 		struct MacroToSubpath
 		{
-			std::string macro;
-			std::string subpath;
+			HString macro;
+			HString subpath;
 
 			bool operator < (const MacroToSubpath& other) const
 			{
-				return other.macro.size() - other.subpath.size() > macro.size() - subpath.size();
+				return other.macro.length() - other.subpath.length() > macro.length() - subpath.length();
 			}
 		};
 
 		std::vector<MacroToSubpath> macros;
 		for (auto& i : macroToSubdir)
 		{
-			macros.push_back({ i.first, i.second });
+			macros.push_back({ HString(i.first), i.second });
 		}
 
 		std::sort(macros.begin(), macros.end()); // macros is now sorted in order of macro length
 
 		for (auto& m : macros)
 		{
-			if (StartsWith(pingPath, m.subpath.c_str()))
+			if (StartsWith(pingPath, m.subpath))
 			{
-				Format(buffer, "%s/%s", m.macro.c_str(), pingPath + m.subpath.size());
+				Format(buffer, "%hs/%hs", m.macro.c_str(), pingPath + m.subpath.length());
 				return;
 			}
 		}
 
-		Format(buffer, "%s", pingPath);
+		Format(buffer, "%hs", pingPath);
 	  }
    };
    
@@ -1201,5 +1221,96 @@ namespace Rococo::IO
 		
 		Anon filesearch(u8Dir);
 		filesearch.Run(callback);
+	}
+}
+
+#include <stdio.h>
+
+namespace
+{
+	struct ROBIN: Rococo::IO::IReadOnlyBinaryMapping
+	{
+		std::vector<char> data;
+		
+		ROBIN(const wchar_t* sysPath)
+		{
+			U8FilePath u8SysPath;
+			Assign(u8SysPath, sysPath);
+			auto* fp = fopen(u8SysPath, "rb");
+			if (fp == nullptr)
+			{
+				Throw(errno, "Could not open binary file %hs", u8SysPath);
+			}
+			
+			struct AUTOFP
+			{
+				FILE* fp;
+				~AUTOFP() { fclose(fp); }
+			} FP {fp};
+			
+			fseek(fp, 0, SEEK_END);
+			auto len = ftell(fp);
+			fseek(fp, 0, SEEK_SET);
+			
+			if (len > 1024_megabytes)
+			{
+				Throw(errno, "Cannot handle binary mappings larger than 1GB. (%hs)", u8SysPath);
+			}
+			
+			data.resize(len);
+			
+			auto dataLeft = len;
+			auto* cursor = data.data();
+			
+			for(;;)
+			{
+				size_t blocksize = min<size_t>(dataLeft, 8192);
+				
+				if (blocksize == 0)
+				{
+					break;
+				}
+				
+				size_t bytesread = fread(cursor, 1, blocksize, fp);
+				
+				if (bytesread == 0)
+				{
+					if (feof(fp))
+					{
+						return;
+					}
+					else
+					{
+						Throw(0, "Error reading file: %s", u8SysPath);
+					}
+				}
+				
+				cursor += bytesread;
+				dataLeft -= bytesread;
+			}
+		}
+		
+		const char* Data() const override
+		{
+			return data.data();
+		}
+		
+		const uint64 Length() const override
+		{
+			return data.size();
+		}
+		
+		void Free() override
+		{
+			delete this;
+		}
+	};
+}
+
+namespace Rococo::IO
+{
+	IReadOnlyBinaryMapping* CreateReadOnlyBinaryMapping(const wchar_t* sysPath)
+	{
+		return new ROBIN(sysPath);
 	}
 }

@@ -184,7 +184,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 			return *closures[closureIndex];
 		}
 
-		IFunctionBuilder& GetFunction(int index)
+		IFunctionBuilder& GetFunction(int index) override
 		{
 			if ( index < functions.size())
 			{

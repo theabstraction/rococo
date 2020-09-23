@@ -2,12 +2,14 @@
 #include <rococo.package.h>
 #include <rococo.hashtable.h>
 #include <vector>
-#include <unordered_map>
-
-#include <Sexy.S-Parser.h>
+#include <sexy.s-parser.h>
 
 using namespace Rococo;
 using namespace Rococo::Script;
+
+#ifdef __APPLE__
+# define _alloca alloca
+#endif
 
 namespace
 {
@@ -53,17 +55,17 @@ namespace
 			return id;
 		}
 
-		refcount_t AddRef()
+		refcount_t AddRef() override
 		{
 			return 1;
 		}
 
-		refcount_t Release()
+		refcount_t Release() override
 		{
 			return 0;
 		}
 
-		operator ISourceCode&() const
+		ISourceCode& ToBase() const
 		{
 			const ISourceCode& This = *this;
 			return const_cast<ISourceCode&>(This);
@@ -335,12 +337,12 @@ namespace
 				}
 			}
 
-			cstr key = package->FriendlyName();
+			StringKey key(package->FriendlyName());
 			auto j = packages.find(key);
 			if (j != packages.end())
 			{
 				Throw(0, "%s: A package of the same name '%s' is already registered",
-					__FUNCTION__, key);
+					__FUNCTION__, (cstr)key);
 			}
 
 			SexyPackage pkg(package);
@@ -608,8 +610,8 @@ namespace
 
 		void LoadSubpackages(cstr namespaceFilter, cstr packageName) override
 		{
-
-			auto i = packages.find(packageName);
+			StringKey key(packageName);
+			auto i = packages.find(key);
 			if (i == packages.end())
 			{
 				Throw(0, "Packager::LoadSubpackages(..., \"%s\"): could not find package", packageName);

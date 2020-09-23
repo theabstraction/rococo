@@ -6,6 +6,7 @@
 #include <rococo.io.h>
 #include <vector>
 #include <rococo.api.h>
+#include <rococo.os.h>
 
 #define validate(_Expression) if (!(_Expression)) { ShowFailure(#_Expression, __FILE__, __LINE__); Abort(); }
 
@@ -1155,10 +1156,10 @@ namespace
 		vprintf(format, args);
 		va_end(args);
 
-      char errBuffer[256];
-      OS::Format_C_Error(error, errBuffer, sizeof(errBuffer));
-      printf("\r\nCode %d(0x%X): %s", error, error, errBuffer);
-	}
+        char errBuffer[256];
+        Rococo::OS::Format_C_Error(error, errBuffer, sizeof(errBuffer));
+        printf("\r\nCode %d(0x%X): %s", error, error, errBuffer);
+   }
 }
 
 int main(int argc, char* argv[])

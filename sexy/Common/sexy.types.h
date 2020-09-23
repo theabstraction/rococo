@@ -67,7 +67,7 @@ namespace Rococo
 	namespace Sex
 	{
 		class ParseException;
-		void Throw(ParseException& ex);
+		[[noreturn]] void Throw(ParseException& ex);
 	}
 
 	enum { ROOT_TEMPDEPTH = 3 };

@@ -116,7 +116,7 @@ namespace
 		}
 
 		h.fileCount = atoi(sfilecount);
-		if (sfilecount <= 0)
+		if (h.fileCount <= 0)
 		{
 			Throw(0, "Error, filecount was not positive");
 		}
@@ -407,7 +407,7 @@ namespace
 			return dircache.size();
 		}
 
-		size_t BuildFileCache(const char* prefix)
+		size_t BuildFileCache(const char* prefix) override
 		{
 			if (prefix == nullptr)
 			{
@@ -434,7 +434,7 @@ namespace
 					return Compare(a.path.c_str(), b.path.c_str(), (int64) lenPrefix) < 0;
 				});
 
-			if (range.first == files.end())
+			if (range.first == range.second)
 			{
 				Throw(0, "%s: Could not find %s in the package %s", __FUNCTION__, prefix, name.buf);
 			}

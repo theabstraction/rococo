@@ -1,6 +1,7 @@
 # Make file for VM module in the Rococo.Sexy library
 
-SCRIPT_OBJS = sexy.script.obj sexy.script.expression.parser.obj sexy.script.helpers.obj sexy.script.os.mac.obj sexy.script.s-builder.obj
+SCRIPT_OBJS = sexy.script.obj sexy.script.expression.parser.obj sexy.script.helpers.obj sexy.script.os.mac.obj sexy.script.s-builder.obj \
+              sexy.packages.obj
 SCRIPT_SRCS = $(SCRIPT_OBJS,.obj=.cpp) 
 
 OBJ_DIR = ../../intermediate.mac/

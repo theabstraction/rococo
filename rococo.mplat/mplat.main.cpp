@@ -357,12 +357,14 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 
 	Tesselators tesselators{ *rimTesselator, *rodTesselator };
 
+	AutoFree<Joysticks::IJoystick_XBOX360_Supervisor> xbox360stick = Joysticks::CreateJoystick_XBox360Proxy();
+
 	Platform platform
 	{ 
 		*os, *installation, *appControl, mainWindow->Renderer(), *rendererConfig, *messaging, 
 		*sourceCache, *debuggerWindow, *publisher, *utilities, *gui, *keyboard, *config, *meshes, *rigs,
 		*instances, *mobiles, *particles, *rigBuilder, *sprites, *camera, *scene, tesselators, *mathsVisitor,
-		*legacySound, *ssFactory, *puppets, title
+		*legacySound, *ssFactory, *puppets, title, *xbox360stick
 	};
 
 	gui->PostConstruct(&platform);

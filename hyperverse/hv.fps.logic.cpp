@@ -1071,6 +1071,49 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 		Graphics::DrawLine(g, 1, c - Vec2i{ 0, 1 }, c + Vec2i{ 1, 0 }, RGBAb(255, 255, 255, 255));
 	}
 
+	void RenderXbox360Data(IGuiRenderContext& g)
+	{
+		ID_FONT idFont = platform.utilities.GetHQFonts().GetSysFont(Graphics::HQFont_TitleFont);
+		if (idFont)
+		{
+			GuiMetrics metrics;
+			g.Renderer().GetGuiMetrics(metrics);
+				
+			GuiRect line1 = { 10, 20, metrics.screenSpan.x, 50 };
+
+			GuiRect line = line1;
+
+			struct : IEventCallback<cstr>
+			{
+				GuiRect line;
+				ID_FONT idFont;
+				RGBAb white = RGBAb(255, 255, 255, 255);
+				IGuiRenderContext* g;
+
+				void OnEvent(cstr text) override
+				{
+					Graphics::RenderHQText_LeftAligned_VCentre(*g, idFont, line, text, white);
+					line.top += 75;
+					line.bottom += 75;
+				}
+			} renderLine;
+
+			renderLine.idFont = idFont;
+			renderLine.line = line1;
+			renderLine.g = &g;
+
+			Joysticks::Joystick_XBOX360 x;
+			if (!platform.xbox360joystick.Get(0, x))
+			{
+				renderLine.OnEvent("Waiting for Xbox360 controller 0");
+			}
+			else
+			{
+				platform.xbox360joystick.EnumerateStateAsText(x, renderLine);
+			}
+		}
+	}
+
 	void RenderSplash(IGuiRenderContext& g)
 	{
 		/* enable font loading in app.created.sxy to make this work */
@@ -1110,7 +1153,8 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 		{
 			if (platform.gui.Count() == 1)
 			{
-				RenderSplash(g);
+				//RenderSplash(g);
+				RenderXbox360Data(g);
 			}
 		}
 	}

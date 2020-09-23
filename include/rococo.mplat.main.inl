@@ -27,6 +27,8 @@
 # pragma comment(lib, "rococo.file.browser.lib")
 #endif
 
+#pragma comment(lib, "xinput.lib")
+
 #include "..\dx11.renderer\dx11.imports.inl"
 
 namespace Rococo

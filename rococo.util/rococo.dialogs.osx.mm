@@ -4,6 +4,7 @@
 #import <Cocoa/Cocoa.h>
 
 #include <rococo.strings.h>
+#include <rococo.os.h>
 
 namespace Rococo
 {
@@ -16,13 +17,13 @@ namespace Rococo
 		   char fullmessage[1024];
 		   if (ex.ErrorCode() == 0)
 		   {
-				SafeFormat(fullmessage, 1024, "%s", ex.Message());
+				SafeFormat(fullmessage, "%s", ex.Message());
 		   }
 		   else
 		   {
 				char numError[256];
 				OS::Format_C_Error(ex.ErrorCode(), numError, 256);
-				SafeFormat(fullmessage, 1024, "%s:\n\t%s", numError, ex.Message());
+				SafeFormat(fullmessage, "%s:\n\t%s", numError, ex.Message());
 		   }
 
 		   NSAlert *alert =  [[[NSAlert alloc] init] autorelease];

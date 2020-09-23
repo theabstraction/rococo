@@ -5,6 +5,9 @@
 #define ROCOCO_USE_SAFE_V_FORMAT
 #include <rococo.strings.h>
 
+#include <rococo.ide.h>
+#include <rococo.os.h>
+
 // Provides limited IDE functionality for stdout.
 // Used on non-Win32 based platforms
 

@@ -133,7 +133,8 @@ namespace
 		nsSysType.Alias(("Int32"),  object.AddIntrinsicStruct(("Int32"), sizeof(int32),  VARTYPE_Int32, NULL));
 		nsSysType.Alias(("Int64"),  object.AddIntrinsicStruct(("Int64"), sizeof(int64),  VARTYPE_Int64, NULL));
 
-		VALIDATE(object.ResolveDefinitions());
+		const void* srcError = nullptr;
+		VALIDATE(object.ResolveDefinitions(&srcError));
 
 		object.IntrinsicModule().UsePrefix(("Sys.Type"));
 
@@ -295,7 +296,8 @@ namespace
 
 		fn.AddInput(NameString::From(("format")), TypeString::From(("Sys.Type.String")), NULL);
 
-		VALIDATE(!obj.ResolveDefinitions());
+		const void* srcError = nullptr;
+		VALIDATE(!obj.ResolveDefinitions(&srcError));
 	}
 
 	void TestStructures(IProgramObject& object)
@@ -352,10 +354,11 @@ namespace
 			VALIDATE(e.Code() == ERRORCODE_SEALED);
 		}
 
-		VALIDATE(!object.ResolveDefinitions());
+		const void* srcError = nullptr;
+		VALIDATE(!object.ResolveDefinitions(&srcError));
 		nsSysType.Alias(("Float32"), object.AddIntrinsicStruct(("Float32"), 4, VARTYPE_Float32, NULL));
-		VALIDATE(object.ResolveDefinitions());
-
+		VALIDATE(object.ResolveDefinitions(&srcError));
+		
 		IMember& mx = s.GetMember(0);
 		VALIDATE(AreEqual(mx.Name(), ("x")));
 		VALIDATE(mx.IsResolved());
@@ -394,9 +397,9 @@ namespace
 		sms.AddMember(NameString::From(("Item2")), TypeString::From(("Matrix3x3")));
 		
 		sms.Seal();
-
-		object.ResolveDefinitions();
-
+		
+		VALIDATE(object.ResolveDefinitions(&srcError));
+		
 		VALIDATE(sm.SizeOfStruct() == 36);
 	}
 
@@ -408,7 +411,9 @@ namespace
 		nsSysType.Alias(("Int32"), object.AddIntrinsicStruct(("Int32"), 4, VARTYPE_Int32, NULL));
 		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Int32")), NULL);
 		object.IntrinsicModule().UsePrefix(("Sys.Type"));
-		VALIDATE(object.ResolveDefinitions() == true);
+		
+		const void* srcError = nullptr;
+		VALIDATE(object.ResolveDefinitions(&srcError));
 	}
 
 	void TestParseringDecimal32(IProgramObject& object)
@@ -589,7 +594,9 @@ namespace
 		IFunctionBuilder& f = AddStandardTestStuff(object);
 		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Float32")), NULL);
 		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Float32")), NULL);
-		VALIDATE(object.ResolveDefinitions());
+		
+		const void* srcError = nullptr;
+		VALIDATE(object.ResolveDefinitions(&srcError));
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
@@ -613,7 +620,9 @@ namespace
 		IFunctionBuilder& f = AddStandardTestStuff(object);
 		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Float32")), NULL);
 		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Float32")), NULL);
-		VALIDATE(object.ResolveDefinitions());
+		
+		const void* srcError = nullptr;
+		VALIDATE(object.ResolveDefinitions(&srcError));
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
@@ -638,8 +647,8 @@ namespace
 		IFunctionBuilder& f = AddStandardTestStuff(object);
 		f.AddInput(NameString::From( ("x") ), TypeString::From( ("Sys.Type.Int32") ), NULL);
 		f.AddOutput(NameString::From( ("result") ), TypeString::From( ("Sys.Type.Int32") ), NULL);
-		VALIDATE(object.ResolveDefinitions());
-
+		const void* srcError = nullptr;
+		VALIDATE(object.ResolveDefinitions(&srcError));
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
 		builder.AssignVariableToTemp(("x"), 0);
@@ -664,8 +673,8 @@ namespace
 		IFunctionBuilder& f = AddStandardTestStuff(object);
 		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Float32")), NULL);
 		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Float32")), NULL);
-		VALIDATE(object.ResolveDefinitions());
-
+		const void* srcError = nullptr;
+		VALIDATE(object.ResolveDefinitions(&srcError));
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
 		builder.AssignVariableToTemp(("x"), 0);
@@ -690,8 +699,8 @@ namespace
 		IFunctionBuilder& f = AddStandardTestStuff(object);
 		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Float64")), NULL);
 		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Float64")), NULL);
-		VALIDATE(object.ResolveDefinitions());
-
+		const void* srcError = nullptr;
+		VALIDATE(object.ResolveDefinitions(&srcError));
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
 		builder.AssignVariableToTemp(("x"), 0);
@@ -716,7 +725,8 @@ namespace
 		IFunctionBuilder& f = AddStandardTestStuff(object);
 		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Int64")), NULL);
 		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Int64")), NULL);
-		VALIDATE(object.ResolveDefinitions());
+		const void* srcError = nullptr;
+		VALIDATE(object.ResolveDefinitions(&srcError));
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
@@ -743,7 +753,8 @@ namespace
 		IFunctionBuilder& f = AddStandardTestStuff(object);
 		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Float64")), NULL);
 		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Float64")), NULL);
-		VALIDATE(object.ResolveDefinitions());
+		const void* srcError = nullptr;
+		VALIDATE(object.ResolveDefinitions(&srcError));
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
@@ -769,7 +780,8 @@ namespace
 		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Float32")), NULL);
 		f.AddInput(NameString::From(("y")), TypeString::From(("Sys.Type.Float32")), NULL);
 		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Float32")), NULL);
-		VALIDATE(object.ResolveDefinitions());
+		const void* srcError = nullptr;
+		VALIDATE(object.ResolveDefinitions(&srcError));
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
@@ -799,7 +811,8 @@ namespace
 		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Float64")), NULL);
 		f.AddInput(NameString::From(("y")), TypeString::From(("Sys.Type.Float64")), NULL);
 		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Float64")), NULL);
-		VALIDATE(object.ResolveDefinitions());
+		const void* srcError = nullptr;
+		VALIDATE(object.ResolveDefinitions(&srcError));
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
@@ -829,7 +842,8 @@ namespace
 		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Int32")), NULL);
 		f.AddInput(NameString::From(("y")), TypeString::From(("Sys.Type.Int32")), NULL);
 		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Int32")), NULL);
-		VALIDATE(object.ResolveDefinitions());
+		const void* srcError = nullptr;
+		VALIDATE(object.ResolveDefinitions(&srcError));
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
@@ -860,8 +874,8 @@ namespace
 		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Int64")), NULL);
 		f.AddInput(NameString::From(("y")), TypeString::From(("Sys.Type.Int64")), NULL);
 		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Int64")), NULL);
-		VALIDATE(object.ResolveDefinitions());
-
+		const void* srcError = nullptr;
+		VALIDATE(object.ResolveDefinitions(&srcError));
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
 		builder.AssignVariableToTemp(("x"), 1);
@@ -890,7 +904,8 @@ namespace
 		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Float32")), NULL);
 		f.AddInput(NameString::From(("y")), TypeString::From(("Sys.Type.Float32")), NULL);
 		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Float32")), NULL);
-		VALIDATE(object.ResolveDefinitions());
+		const void* srcError = nullptr;
+		VALIDATE(object.ResolveDefinitions(&srcError));
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
@@ -920,7 +935,8 @@ namespace
 		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Float64")), NULL);
 		f.AddInput(NameString::From(("y")), TypeString::From(("Sys.Type.Float64")), NULL);
 		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Float64")), NULL);
-		VALIDATE(object.ResolveDefinitions());
+		const void* srcError = nullptr;
+		VALIDATE(object.ResolveDefinitions(&srcError));
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
@@ -950,7 +966,8 @@ namespace
 		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Int32")), NULL);
 		f.AddInput(NameString::From(("y")), TypeString::From(("Sys.Type.Int32")), NULL);
 		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Int32")), NULL);
-		VALIDATE(object.ResolveDefinitions());
+		const void* srcError = nullptr;
+		VALIDATE(object.ResolveDefinitions(&srcError));
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
@@ -981,7 +998,8 @@ namespace
 		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Int64")), NULL);
 		f.AddInput(NameString::From(("y")), TypeString::From(("Sys.Type.Int64")), NULL);
 		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Int64")), NULL);
-		VALIDATE(object.ResolveDefinitions());
+		const void* srcError = nullptr;
+		VALIDATE(object.ResolveDefinitions(&srcError));
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
@@ -1011,7 +1029,8 @@ namespace
 		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Float32")), NULL);
 		f.AddInput(NameString::From(("y")), TypeString::From(("Sys.Type.Float32")), NULL);
 		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Float32")), NULL);
-		VALIDATE(object.ResolveDefinitions());
+		const void* srcError = nullptr;
+		VALIDATE(object.ResolveDefinitions(&srcError));
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
@@ -1041,7 +1060,8 @@ namespace
 		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Float64")), NULL);
 		f.AddInput(NameString::From(("y")), TypeString::From(("Sys.Type.Float64")), NULL);
 		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Float64")), NULL);
-		VALIDATE(object.ResolveDefinitions());
+		const void* srcError = nullptr;
+		VALIDATE(object.ResolveDefinitions(&srcError));
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
@@ -1071,7 +1091,8 @@ namespace
 		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Int32")), NULL);
 		f.AddInput(NameString::From(("y")), TypeString::From(("Sys.Type.Int32")), NULL);
 		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Int32")), NULL);
-		VALIDATE(object.ResolveDefinitions());
+		const void* srcError = nullptr;
+		VALIDATE(object.ResolveDefinitions(&srcError));
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
@@ -1102,7 +1123,8 @@ namespace
 		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Int64")), NULL);
 		f.AddInput(NameString::From(("y")), TypeString::From(("Sys.Type.Int64")), NULL);
 		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Int64")), NULL);
-		VALIDATE(object.ResolveDefinitions());
+		const void* srcError = nullptr;
+		VALIDATE(object.ResolveDefinitions(&srcError));
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
@@ -1132,7 +1154,8 @@ namespace
 		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Float32")), NULL);
 		f.AddInput(NameString::From(("y")), TypeString::From(("Sys.Type.Float32")), NULL);
 		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Float32")), NULL);
-		VALIDATE(object.ResolveDefinitions());
+		const void* srcError = nullptr;
+		VALIDATE(object.ResolveDefinitions(&srcError));
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
@@ -1162,7 +1185,8 @@ namespace
 		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Float64")), NULL);
 		f.AddInput(NameString::From(("y")), TypeString::From(("Sys.Type.Float64")), NULL);
 		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Float64")), NULL);
-		VALIDATE(object.ResolveDefinitions());
+		const void* srcError = nullptr;
+		VALIDATE(object.ResolveDefinitions(&srcError));
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
@@ -1192,7 +1216,8 @@ namespace
 		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Int32")), NULL);
 		f.AddInput(NameString::From(("y")), TypeString::From(("Sys.Type.Int32")), NULL);
 		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Int32")), NULL);
-		VALIDATE(object.ResolveDefinitions());
+		const void* srcError = nullptr;
+		VALIDATE(object.ResolveDefinitions(&srcError));
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
@@ -1223,7 +1248,8 @@ namespace
 		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Int64")), NULL);
 		f.AddInput(NameString::From(("y")), TypeString::From(("Sys.Type.Int64")), NULL);
 		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Int64")), NULL);
-		VALIDATE(object.ResolveDefinitions());
+		const void* srcError = nullptr;
+		VALIDATE(object.ResolveDefinitions(&srcError));
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
@@ -1253,7 +1279,8 @@ namespace
 		IFunctionBuilder& f = AddStandardTestStuff(object);
 		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Float32")), NULL);
 		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Float32")), NULL);
-		VALIDATE(object.ResolveDefinitions());
+		const void* srcError = nullptr;
+		VALIDATE(object.ResolveDefinitions(&srcError));
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
@@ -1319,7 +1346,8 @@ namespace
 		IFunctionBuilder& f = AddStandardTestStuff(object);
 		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Float32")), NULL);
 		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Float32")), NULL);
-		VALIDATE(object.ResolveDefinitions());
+		const void* srcError = nullptr;
+		VALIDATE(object.ResolveDefinitions(&srcError));
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
@@ -1370,7 +1398,8 @@ namespace
 		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Float32")), NULL);
 		f.AddInput(NameString::From(("count")), TypeString::From(("Sys.Type.Int32")), NULL);
 		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Float32")), NULL);
-		VALIDATE(object.ResolveDefinitions());
+		const void* srcError = nullptr;
+		VALIDATE(object.ResolveDefinitions(&srcError));
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
@@ -1427,7 +1456,8 @@ namespace
 		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Float32")), NULL);
 		f.AddInput(NameString::From(("count")), TypeString::From(("Sys.Type.Int32")), NULL);
 		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Float32")), NULL);
-		VALIDATE(object.ResolveDefinitions());
+		const void* srcError = nullptr;
+		VALIDATE(object.ResolveDefinitions(&srcError));
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
@@ -1490,7 +1520,8 @@ namespace
 		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Float32")), NULL);
 		f.AddInput(NameString::From(("count")), TypeString::From(("Sys.Type.Int32")), NULL);
 		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Float32")), NULL);
-		VALIDATE(object.ResolveDefinitions());
+		const void* srcError = nullptr;
+		VALIDATE(object.ResolveDefinitions(&srcError));
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
@@ -1551,7 +1582,8 @@ namespace
 		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Float32")), NULL);
 		f.AddInput(NameString::From(("count")), TypeString::From(("Sys.Type.Int32")), NULL);
 		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Float32")), NULL);
-		VALIDATE(object.ResolveDefinitions());
+		const void* srcError = nullptr;
+		VALIDATE(object.ResolveDefinitions(&srcError));
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
@@ -1605,7 +1637,8 @@ namespace
 		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Float32")), NULL);
 		f.AddInput(NameString::From(("count")), TypeString::From(("Sys.Type.Int32")), NULL);
 		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Float32")), NULL);
-		VALIDATE(object.ResolveDefinitions());
+		const void* srcError = nullptr;
+		VALIDATE(object.ResolveDefinitions(&srcError));
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
@@ -1666,7 +1699,8 @@ namespace
 		f.AddInput(NameString::From(("x")), TypeString::From(("Sys.Type.Float32")), NULL);
 		f.AddInput(NameString::From(("count")), TypeString::From(("Sys.Type.Int32")), NULL);
 		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Float32")), NULL);
-		VALIDATE(object.ResolveDefinitions());
+		const void* srcError = nullptr;
+		VALIDATE(object.ResolveDefinitions(&srcError));
 
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
@@ -1726,8 +1760,8 @@ namespace
 	{
 		IFunctionBuilder& f = AddStandardTestStuff(object);
 		f.AddOutput(NameString::From(("result")), TypeString::From(("Sys.Type.Int32")), NULL);
-		VALIDATE(object.ResolveDefinitions());
-
+		const void* srcError = nullptr;
+		VALIDATE(object.ResolveDefinitions(&srcError));
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
 
