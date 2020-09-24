@@ -3,6 +3,7 @@
 (namespace EntryPoint)
 	(alias Main EntryPoint.Main)
 	
+(using Sys)
 (using Sys.Maths)
 (using Sys.Maths.I32)
 (using Sys.Type)
@@ -15,6 +16,7 @@
 (using Rococo.Audio)
 
 (namespace Galaxians)
+(using Galaxians)
 
 (struct Sprite
 	(IString filename)
@@ -26,14 +28,6 @@
 	(Sprite image)
 )
 
-(struct Controls
-	(Int32 leftKey)
-	(Int32 rightKey)
-	(Int32 fireKey)
-	(Int32 key1)
-	(Int32 playerDirection)
-)
-
 (interface MHost.IWorld
 	(ForEachEntityInWorld (OnEntity onEntity)->)
 	(Init ->)
@@ -41,28 +35,101 @@
 	(RenderGui (IGui gui)-> )
 )
 
+(interface Galaxians.IUIThread (extends Sys.ICoroutine)
+	(GetIntent -> (Int32 direction)(Bool fire))
+)
+
+(class UIThread (implements Galaxians.IUIThread)
+	(IEngine engine)
+	(Int32 direction)
+	(Bool fire)
+)
+
+(method UIThread.Construct (IEngine engine):
+	(this.engine = engine)
+	(this.direction = 0)
+	(this.fire = false)
+)
+
+(factory Galaxians.NewUIThread Sys.ICoroutine (IEngine engine):
+	(construct UIThread engine)
+	(Int32 direction)
+	(Bool fire)
+)
+
+(method UIThread.Run -> :
+	(IKeyboard keyboard (Keyboard))
+	
+	(Int32 leftKey = (keyboard.GetVKeyFromName "A"))
+	(Int32 rightKey = (keyboard.GetVKeyFromName "D"))
+	(Int32 fireKey = (keyboard.GetVKeyFromName "SPACEBAR"))
+	
+	(KeyboardEvent keyEvent)
+	(MouseEvent mouseEvent)
+	
+	(KeyState keys)		
+	(while this.engine.IsRunning
+		(while (this.engine.GetNextMouseEvent mouseEvent)
+		)
+			
+		(while (this.engine.GetNextKeyboardEvent keyEvent)
+		)
+		
+		(this.engine.PollKeyState keys)
+		
+		(this.direction = 0)
+		
+		(if (IsKeyPressed keys leftKey)
+			(this.direction -= 1)
+		)
+		
+		(if (IsKeyPressed keys rightKey)
+			(this.direction += 1)
+		)
+		
+		(this.fire = 0)
+		
+		(if (IsKeyPressed keys fireKey)
+			(this.fire = 1)
+		)
+		
+		(yield 1000)
+	)
+)
+
+(method UIThread.GetIntent -> (Int32 direction)(Bool fire):
+	(direction = this.direction)
+	(fire = this.fire)
+)
+
 (class Galaxians (implements MHost.IWorld)
 	(IEngine engine)
 	(ILegacySoundControl sound)
+	(IUIThread uiThread)
 	(array Entity aliens)
 	(array Entity missiles)
 	(Entity player)
 	(Entity playerMissile)
 	(Int32 direction)
 	(Vec2 playerPos)
-	(Controls controls)
 	(Int32 killCount)
 	(Int64 deathAt)
 	(Int32 lives)
 	(Entity playerExplosion)
 	(Entity enemyExplosion)
 	(Int64 enemyHitAt)
+	(IStringBuilder sbScore)
+	(Int32 playerDirection)
 )
 
 (method Galaxians.Construct (IEngine engine) (ILegacySoundControl sound) -> (construct aliens 54) (construct missiles 4) :
 	(this.direction = 1)
 	(this.engine = engine)
 	(this.sound = sound)
+	(this.uiThread = (Galaxians.NewUIThread engine))
+	(this.sbScore = NewPathBuilder)
+	(ICoroutineControl coroutines (Coroutines))
+	(coroutines.Add this.uiThread)
 )
 
 (factory MHost.Galaxians MHost.IWorld (IEngine engine) (ILegacySoundControl sound) : (construct Galaxians engine sound))
@@ -146,11 +213,8 @@
 	
 	(this.player = (500 8000) ("!textures/mhost/galaxians/player.1.tiff" defaultBmpLoc))
 	(this.playerMissile = (-100 -100) ("!textures/mhost/galaxians/missile.1.tiff" defaultBmpLoc))
-	(this.deathAt = (Sys.OS.ClockTicks))
+	(this.deathAt = Sys.OS.ClockTicks)
 	(this.lives = 3)
-	
-	
-	//(IEngine engine = this.engine)
 	
 	(OnEntity initSprites = 
 		(closure (Entity e)-> :
@@ -163,12 +227,6 @@
 	
 	(InitSprite this.engine this.playerExplosion.image)
 	(InitSprite this.engine this.enemyExplosion.image)
-	
-	(IKeyboard keyboard (Keyboard))
-	(this.controls.leftKey = (keyboard.GetVKeyFromName "A"))
-	(this.controls.rightKey = (keyboard.GetVKeyFromName "D"))
-	(this.controls.fireKey = (keyboard.GetVKeyFromName "SPACEBAR"))
-	(this.controls.key1 = (keyboard.GetVKeyFromName "1"))
 	
 	(this.sound.SetWave 0 (#ELegacySoundShapeSine) 1000 1.0)
 	(this.sound.SetWave 1 (#ELegacySoundShapeSine) 320 1.0)
@@ -275,14 +333,14 @@
 		)
 	)
 	
-	(IStringBuilder sbScore = NewPathBuilder)
-	(#build sbScore "Score: " this.killCount)
+	(this.sbScore.Clear)
+	(#build this.sbScore "Score: " this.killCount)
 	
 	(Vec2 screenSpan)
 	(gc.GetScreenSpan screenSpan)
 	(Int32 alignmentFlags = 0)
 	(Rectf rect = 0 10 screenSpan.x 30)
-	(gc.DrawText rect alignmentFlags sbScore 1 0xFFFFFF80)
+	(gc.DrawText rect alignmentFlags this.sbScore 1 0xFFFFFF80)
 )
 
 (function TryFireMissile (Entity playerMissile)(Entity player)-> :
@@ -292,28 +350,11 @@
 )
 
 (function UpdatePlayer (Galaxians g)-> :
-	(KeyState keys)
-	(g.engine.PollKeyState keys)
+	(Bool fire)
+	(g.uiThread.GetIntent -> g.playerDirection fire)
 	
-	(g.controls.playerDirection = 0)
-	(if (IsKeyPressed keys g.controls.leftKey)
-		(g.controls.playerDirection = -1)
-	)
-	
-	(if (IsKeyPressed keys g.controls.rightKey)
-		(g.controls.playerDirection = 1)
-	)
-	
-	(if (IsKeyPressed keys g.controls.fireKey)
+	(if fire
 		(TryFireMissile g.playerMissile g.player)
-	)
-	
-	(#for (Int32 i = 0)(i < 9)(i += 1)
-		(if (IsKeyPressed keys (g.controls.key1 + i))
-			(g.sound.Sustain i)
-		else
-			(g.sound.Release i)
-		)
 	)
 )
 
@@ -416,11 +457,11 @@
 		(a.screenPosition.x += delta)
 	)
 	
-	(if ((this.player.screenPosition.x > 200) and (this.controls.playerDirection < 0))
+	(if ((this.player.screenPosition.x > 200) and (this.playerDirection < 0))
 		(this.player.screenPosition.x -= 2)
 	)
 	
-	(if ((this.player.screenPosition.x < 800) and (this.controls.playerDirection > 0))
+	(if ((this.player.screenPosition.x < 800) and (this.playerDirection > 0))
 		(this.player.screenPosition.x += 2)
 	)
 	
@@ -467,6 +508,8 @@
 	(IWorld world (Galaxians engine sound))
 	(world.Init)
 	
+	(ICoroutineControl coroutines (Coroutines))
+	
 	(while engine.IsRunning
 		(world.Advance)
 		
@@ -479,5 +522,9 @@
 		(engine.Render p)
 		
 		(engine.YieldForSystemMessages 5)
+		
+		(while (coroutines.Continue > 0))
 	)
+	
+	(coroutines.ReleaseAll)
 )
