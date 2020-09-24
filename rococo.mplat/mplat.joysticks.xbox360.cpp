@@ -11,7 +11,7 @@ namespace
 	class XBOX360_Stick : public IJoystick_XBOX360_Supervisor
 	{
 	public:
-		boolean32 Get(uint32 index, Joystick_XBOX360& state) override
+		boolean32 TryGet(uint32 index, Joystick_XBOX360& state) override
 		{
 			static_assert(sizeof XINPUT_STATE == sizeof Joystick_XBOX360);
 			auto result = XInputGetState(index, reinterpret_cast<XINPUT_STATE*>(&state));

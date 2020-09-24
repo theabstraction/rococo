@@ -1103,7 +1103,7 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 			renderLine.g = &g;
 
 			Joysticks::Joystick_XBOX360 x;
-			if (!platform.xbox360joystick.Get(0, x))
+			if (!platform.xbox360joystick.TryGet(0, x))
 			{
 				renderLine.OnEvent("Waiting for Xbox360 controller 0");
 			}
