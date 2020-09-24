@@ -247,19 +247,12 @@
 	)
 )
 
-(function DrawEntity (Entity e)(IGui gui) -> :
-	(Int32 alignmentFlags = 0) // centred
-	(Vec2 pos)
-	(ToVec2f e.screenPosition pos)
-	(gui.DrawSprite pos alignmentFlags e.image.location)
-)
-
 (function RenderLives (Entity player)(IGui gui)(Int32 count)-> :
 	(#for (Int32 i = 0)(i < count)(i += 1)
-		(Int32 x =  (100 + (i * 64)))
-		(Vec2 pos = 0 640)
-		(ToFloat32 x -> pos.x)
-		(gui.DrawSprite pos 0 player.image.location)
+		(Vec2i pos)
+		(pos.x =  (100 + (i * 64)))
+		(pos.y = 640)
+		(DrawSprite gui pos player.image)
 	)
 )
 
@@ -284,8 +277,24 @@
 	(ToFloat32 a.bottom -> b.bottom)
 )
 
+(function DrawStretchedSprite(IGui gc)(Recti rect)(Entity e) -> :
+	(Rectf rectF)
+	(ToRectf rect rectF)
+	(gc.StretchSprite rectF e.image.location)
+)
+
+(function DrawSprite(IGui gc)(Vec2i pos)(Sprite s)-> :
+	(Vec2 fpos)
+	(ToVec2f pos /* -> */ fpos)
+	(gc.DrawSprite fpos 0 s.location)
+)
+
+(function DrawEntity(IGui gc)(Entity e)-> :
+	(DrawSprite gc e.screenPosition e.image)
+)
+
 (method Galaxians.RenderGui (IGui gc) -> :
-	(OnEntity drawSprites = (closure (Entity e)-> : (DrawEntity e gc)))
+	(OnEntity drawSprites = (closure (Entity e)-> : (DrawEntity gc e)))
 	
 	(this.ForEachEntityInWorld drawSprites)
 	
@@ -293,18 +302,14 @@
 		(Int64 peakBoom = Sys.OS.ClockHz)
 		(Int64 delta = ((Sys.OS.ClockTicks) - this.deathAt))
 		(if (delta < peakBoom)
-			(Vec2 pos)
-			(ToVec2f this.playerExplosion.screenPosition /* -> */ pos)
-			(gc.DrawSprite pos 0 this.player.image.location)
+			(DrawSprite gc this.playerExplosion.screenPosition this.player.image)
 			(Int64 boomTick = ( peakBoom / 64 ))
 			(Int32 span = (delta / boomTick))
 			
 			(Recti rect)
 			(ExpandRect rect span this.playerExplosion.screenPosition)
 			
-			(Rectf rectF)
-			(ToRectf rect rectF)
-			(gc.StretchSprite rectF this.playerExplosion.image.location)
+			(DrawStretchedSprite gc rect this.playerExplosion)
 		)
 	)
 	
@@ -317,9 +322,7 @@
 			(Recti rect)
 			(ExpandRect rect span this.enemyExplosion.screenPosition)
 			
-			(Rectf rectF)
-			(ToRectf rect rectF)
-			(gc.StretchSprite rectF this.enemyExplosion.image.location)
+			(DrawStretchedSprite gc rect this.enemyExplosion)
 		else
 			(this.enemyHitAt = 0)
 		)
