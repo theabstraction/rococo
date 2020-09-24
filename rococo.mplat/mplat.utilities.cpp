@@ -324,6 +324,7 @@ public:
 	void RunEnvironmentScript(IEventCallback<ScriptCompileArgs>& _onScriptEvent, int32 id, const char* name, bool addPlatform, bool shutdownOnFail, bool trace, IEventCallback<cstr>* onScriptCrash = nullptr) override
 	{
 		ScriptPerformanceStats stats = { 0 };
+
 		Rococo::MPlatImpl::RunEnvironmentScript(stats, *platform, _onScriptEvent, name, addPlatform, shutdownOnFail, trace, id, onScriptCrash);
 
 		auto i = nameToStats.find(name);

@@ -150,19 +150,19 @@
 	(this.lives = 3)
 	
 	
-	(IEngine engine = this.engine)
+	//(IEngine engine = this.engine)
 	
 	(OnEntity initSprites = 
 		(closure (Entity e)-> :
-			(InitSprite engine e.image)
+			(InitSprite this.engine e.image)
 		)
 	)
 	
 	(this.ForEachEntityInWorld initSprites)
 	
 	
-	(InitSprite engine this.playerExplosion.image)
-	(InitSprite engine this.enemyExplosion.image)
+	(InitSprite this.engine this.playerExplosion.image)
+	(InitSprite this.engine this.enemyExplosion.image)
 	
 	(IKeyboard keyboard (Keyboard))
 	(this.controls.leftKey = (keyboard.GetVKeyFromName "A"))
@@ -271,7 +271,7 @@
 		(if (this.deathAt == 0)
 			(RenderLives this.player gc (this.lives - 1))
 		else
-			(RenderLives this.player gc this.lives)
+			(RenderLives this.player gc this.lives) // I can hear you
 		)
 	)
 	
@@ -293,7 +293,7 @@
 
 (function UpdatePlayer (Galaxians g)-> :
 	(KeyState keys)
-	(this.engine.PollKeyState keys)
+	(g.engine.PollKeyState keys)
 	
 	(g.controls.playerDirection = 0)
 	(if (IsKeyPressed keys g.controls.leftKey)
@@ -310,9 +310,9 @@
 	
 	(#for (Int32 i = 0)(i < 9)(i += 1)
 		(if (IsKeyPressed keys (g.controls.key1 + i))
-			(this.sound.Sustain i)
+			(g.sound.Sustain i)
 		else
-			(this.sound.Release i)
+			(g.sound.Release i)
 		)
 	)
 )
@@ -352,7 +352,7 @@
 	(if (g.player.screenPosition.y < 8000)
 		(foreach missile # g.missiles
 			(if (missile.screenPosition.y < 32)
-				(GetEnemyLaunchPosition this missile.screenPosition)
+				(GetEnemyLaunchPosition g missile.screenPosition)
 				(return)
 			)
 		)

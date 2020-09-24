@@ -1101,7 +1101,16 @@ namespace Anon
 			if (parent != NULL)
 			{
 				CodeBuilder& parentBuilder = (CodeBuilder&) parent->Builder();
-				return parentBuilder.TryGetVariableByName(def, name);
+				bool success = parentBuilder.TryGetVariableByName(def, name);
+				if (success)
+				{
+					def.IsParentValue = true;
+					return true;
+				}
+				else
+				{
+					return false;
+				}
 			}
 		}
 

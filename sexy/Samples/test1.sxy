@@ -2,7 +2,9 @@
 (using EntryPoint)
 (archetype EntryPoint.IntToInt (Int32 x) -> (Int32 y))
 
-(class Dog (defines Sys.IDog))
+(class Dog (defines Sys.IDog)
+	(Int32 id)
+)
 
 (archetype Sys.Void -> )
 
@@ -11,18 +13,14 @@
 
 	(Sys.Void f =
 		 (closure -> :
-			(result = dog.Id)
+			(result = this.id)
 		 )
 	)	
 
 	(f)
 )
 
-(method Dog.Id -> (Int32 id):		
-	(id = 4)
-)
-
-(method Dog.Construct : )
+(method Dog.Construct : (this.id = 4))
 
 (factory Sys.NewDog Sys.IDog : (construct Dog))
 
@@ -30,15 +28,4 @@
 	(Sys.IDog rover4 (Sys.NewDog))
 	(rover4.Bark -> result)
 )
-
-(function Main2 -> (Int32 result):
-	(Sys.Void f =
-		 (closure -> :
-			(result = 4)
-		 )
-	)	
-
-	(f)
-)
-
 (alias Main EntryPoint.Main)

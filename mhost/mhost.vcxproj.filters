@@ -69,20 +69,8 @@
     <None Include="mhost.xc">
       <Filter>ScriptGen Files</Filter>
     </None>
-    <None Include="..\content\scripts\mhost\galaxians.sxy">
-      <Filter>ScriptGen Files\SXY</Filter>
-    </None>
     <None Include="mhost.sxh.inl">
       <Filter>Generated  Files</Filter>
-    </None>
-    <None Include="..\content\scripts\mhost\keys.sxy">
-      <Filter>ScriptGen Files\SXY</Filter>
-    </None>
-    <None Include="..\content\scripts\mhost\harrier.sxy">
-      <Filter>ScriptGen Files\SXY</Filter>
-    </None>
-    <None Include="..\content\scripts\mhost\rpg.sxy">
-      <Filter>ScriptGen Files\SXY</Filter>
     </None>
     <None Include="..\content\scripts\mhost\widgets\fonts.sxy">
       <Filter>ScriptGen Files\SXY</Filter>
@@ -100,7 +88,19 @@
       <Filter>Scripts</Filter>
     </None>
     <None Include="..\content\scripts\mhost\mhost_startup.sxy">
-      <Filter>ScriptGen Files\SXY</Filter>
+      <Filter>Scripts</Filter>
+    </None>
+    <None Include="..\content\scripts\mhost\rpg.sxy">
+      <Filter>Scripts</Filter>
+    </None>
+    <None Include="..\content\scripts\mhost\keys.sxy">
+      <Filter>Scripts</Filter>
+    </None>
+    <None Include="..\content\scripts\mhost\harrier.sxy">
+      <Filter>Scripts</Filter>
+    </None>
+    <None Include="..\content\scripts\mhost\galaxians.sxy">
+      <Filter>Scripts</Filter>
     </None>
   </ItemGroup>
 </Project>
