@@ -1,14 +1,44 @@
-(namespace EntryPoint) 
-	(alias Main EntryPoint.Main)
-	
-(using Sys) 
-(using Sys.Type) 
-(using Sys.Maths)
+(namespace EntryPoint)
+(using EntryPoint)
+(archetype EntryPoint.IntToInt (Int32 x) -> (Int32 y))
 
-(function Main -> (Int32 result): 
-	(array Sys.Type.IString items 4)
-	(foreach item # items 
-		(Sys.Print item)
+(class Dog (defines Sys.IDog))
+
+(archetype Sys.Void -> )
+
+(method Dog.Bark -> (Int32 result):		
+	(Sys.IDog dog = this)
+
+	(Sys.Void f =
+		 (closure -> :
+			(result = dog.Id)
+		 )
+	)	
+
+	(f)
 )
 
+(method Dog.Id -> (Int32 id):		
+	(id = 4)
+)
 
+(method Dog.Construct : )
+
+(factory Sys.NewDog Sys.IDog : (construct Dog))
+
+(function Main -> (Int32 result):
+	(Sys.IDog rover4 (Sys.NewDog))
+	(rover4.Bark -> result)
+)
+
+(function Main2 -> (Int32 result):
+	(Sys.Void f =
+		 (closure -> :
+			(result = 4)
+		 )
+	)	
+
+	(f)
+)
+
+(alias Main EntryPoint.Main)

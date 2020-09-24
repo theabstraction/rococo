@@ -1582,6 +1582,8 @@ namespace Rococo
 						return;
 					}
 				}
+
+				Throw(s, "Could not compile concrete method invocation");
 	      }					
       }
 

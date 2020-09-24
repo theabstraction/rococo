@@ -1055,6 +1055,7 @@ namespace Anon
 					v = parentBuilder.TryGetVariableByName(name, OUT offsetCorrection);
 					if (v != NULL)
 					{
+						offsetCorrection = 0; 
 						codeReferencesParentsSF = true;
 						def.CapturesLocalVariables = v->CanCaptureClosures();
 						def.IsParentValue = true;
@@ -1153,19 +1154,10 @@ namespace Anon
 	{		
 		if (variables.empty()) return NULL;
 
-		if (AreEqual(name, ("this")))
+		if (Owner().IsVirtualMethod() && AreEqual(name, "this"))
 		{
 			Variable* vThis = variables[0];
-
-			if (Owner().IsVirtualMethod())
-			{
-				offsetCorrect = -thisOffset;
-			}
-			else
-			{
-				offsetCorrect = 0;
-			}
-
+			offsetCorrect = -thisOffset;
 			return vThis;
 		}
 
@@ -2258,7 +2250,7 @@ namespace Anon
 		SafeFormat(symbol, 256, "D%d = %s", tempIndex + VM::REGISTER_D4, source);
 		AddSymbol(symbol);
 
-		if (srcType->InterfaceCount() > 0 && srcType->Name()[0] == '_')
+		if (srcType->InterfaceCount() > 0)
 		{
 			AssignInterfaceToTemp(*this, def, source, tempIndex, memberOffsetCorrection);
 		}

@@ -2767,6 +2767,56 @@ namespace
 		validate(x == 49);
 	}
 
+	void TestClosureAndThis(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+R"((namespace EntryPoint)
+(using EntryPoint)
+(archetype EntryPoint.IntToInt (Int32 x) -> (Int32 y))
+
+(class Dog (defines Sys.IDog))
+
+(archetype Sys.Void -> )
+
+(method Dog.Bark -> (Int32 result):		
+	(Sys.IDog dog = this)
+	//(result = dog.Id)
+
+	(Sys.Void f =
+		 (closure -> :
+			(result = this.Id)
+		 )
+	)	
+
+	(f)
+)
+
+(method Dog.Id -> (Int32 id):		
+	(id = 4)
+)
+
+(method Dog.Construct : )
+
+(factory Sys.NewDog Sys.IDog : (construct Dog))
+
+(function Main -> (Int32 result):
+	(Sys.IDog rover4 (Sys.NewDog))
+	(rover4.Bark -> result)
+)
+(alias Main EntryPoint.Main))";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(1); // Allocate stack space for the int32 x
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		int32 x = vm.PopInt32();
+		validate(x == 4);
+	}
+
 	void TestClosureWithVariable(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -13926,6 +13976,8 @@ namespace
 	{
 		int64 start, end, hz;
 		start = OS::CpuTicks();
+
+		TEST(TestClosureAndThis);
 
 		RunPositiveSuccesses();
 		RunPositiveFailures();	
