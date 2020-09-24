@@ -123,23 +123,26 @@ namespace Rococo::Joysticks
 	{
 		struct Button
 		{
-			typedef uint16 BUTTON_TYPE;
-			BUTTON_TYPE up : 1;
-			BUTTON_TYPE down : 1;
-			BUTTON_TYPE left : 1;
-			BUTTON_TYPE right : 1;
-			BUTTON_TYPE start : 1;
-			BUTTON_TYPE back : 1;
-			BUTTON_TYPE left_thumb : 1;
-			BUTTON_TYPE right_thumb : 1;
-			BUTTON_TYPE left_shoulder : 1;
-			BUTTON_TYPE right_shoulder : 1;
-			BUTTON_TYPE unused_1 : 1;
-			BUTTON_TYPE unused_2 : 1;
-			BUTTON_TYPE A : 1;
-			BUTTON_TYPE B : 1;
-			BUTTON_TYPE X : 1;
-			BUTTON_TYPE Y : 1;
+			// button's take 1 bit each, but the type of ButtonBool determines the size of 
+			// word in which the bit is stored. This works for Windows at least, which
+			// is all that matters here, because this code is for Windows & XBOX360 controllers only.
+			typedef uint16 ButtonBool;
+			ButtonBool up : 1;
+			ButtonBool down : 1;
+			ButtonBool left : 1;
+			ButtonBool right : 1;
+			ButtonBool start : 1;
+			ButtonBool back : 1;
+			ButtonBool left_thumb : 1;
+			ButtonBool right_thumb : 1;
+			ButtonBool left_shoulder : 1;
+			ButtonBool right_shoulder : 1;
+			ButtonBool unused_1 : 1;
+			ButtonBool unused_2 : 1;
+			ButtonBool A : 1;
+			ButtonBool B : 1;
+			ButtonBool X : 1;
+			ButtonBool Y : 1;
 
 		} button;
 		uint16 allButtons;
@@ -162,8 +165,9 @@ namespace Rococo::Joysticks
 
 	ROCOCOAPI IJoystick_XBOX360
 	{
-		virtual void EnumerateStateAsText(const Joystick_XBOX360 & x, IEventCallback<cstr> & cb) = 0;
-		virtual boolean32 Get(uint32 index, Joystick_XBOX360 & state) = 0;
+		/* describe the gamepad state as a number of lines as text - used for debugging gamepad issues */
+		virtual void EnumerateStateAsText(const Joystick_XBOX360& x, IEventCallback<cstr> & cb) = 0;
+		[[nodiscard]] virtual boolean32 TryGet(uint32 index, Joystick_XBOX360 & state) = 0;
 		/* Vibrate the controller, strength ranges from 0 to 1 */
 		virtual void Vibrate(uint32 index, float leftStrength, float rightStrength) = 0;
 	};

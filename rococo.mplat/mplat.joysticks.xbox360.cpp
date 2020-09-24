@@ -51,21 +51,21 @@ namespace
 			SafeFormat(text, "Triggers %3.3u %3.3u", x.leftTrigger, x.rightTrigger);
 			cb.OnEvent(text);
 
-			SafeFormat(text, "A: %d, B: %d, X: %d, Y: %d",
-				x.buttons.button.A, x.buttons.button.B, x.buttons.button.X, x.buttons.button.Y);
+			const auto& b = x.buttons.button;
+
+			SafeFormat(text, "A: %d, B: %d, X: %d, Y: %d", b.A, b.B, b.X, b.Y);
 			cb.OnEvent(text);
 
-			SafeFormat(text, "Up: %d, Down: %d, Left: %d, Right: %d",
-				x.buttons.button.up, x.buttons.button.down, x.buttons.button.left, x.buttons.button.right);
+			SafeFormat(text, "Up: %d, Down: %d, Left: %d, Right: %d", b.up, b.down, b.left, b.right);
 			cb.OnEvent(text);
 
-			SafeFormat(text, "Start: %d, Back: %d", x.buttons.button.start, x.buttons.button.back);
+			SafeFormat(text, "Start: %d, Back: %d", b.start, b.back);
 			cb.OnEvent(text);
 
-			SafeFormat(text, "Thumb Buttons: %d %d", x.buttons.button.left_thumb, x.buttons.button.right_thumb);
+			SafeFormat(text, "Thumb Buttons: %d %d", b.left_thumb, b.right_thumb);
 			cb.OnEvent(text);
 
-			SafeFormat(text, "Shoulders: %d %d", x.buttons.button.left_shoulder, x.buttons.button.right_shoulder);
+			SafeFormat(text, "Shoulders: %d %d", b.left_shoulder, b.right_shoulder);
 			cb.OnEvent(text);
 		}
 

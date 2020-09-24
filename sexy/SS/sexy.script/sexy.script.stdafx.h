@@ -54,6 +54,8 @@
 
 namespace Rococo
 {
+    [[nodiscard]] uint32 FastHash(cstr text);
+
    namespace Compiler
    {
       class STCException;
@@ -182,14 +184,14 @@ namespace Rococo
       struct BuilderAndNameKey
       {
          ICodeBuilder* Builder;
-         StringKey Name;
+         HString Name;
       };
 
       struct hashBuilderAndNameKey
       {
          size_t operator()(const BuilderAndNameKey& s) const
          {
-            return s.Name.HashCode() ^ (size_t)s.Builder;
+            return Rococo::FastHash(s.Name) ^ (size_t)s.Builder;
          }
       };
 

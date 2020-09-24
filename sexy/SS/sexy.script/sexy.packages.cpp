@@ -337,7 +337,7 @@ namespace
 				}
 			}
 
-			StringKey key(package->FriendlyName());
+			auto key = package->FriendlyName();
 			auto j = packages.find(key);
 			if (j != packages.end())
 			{
@@ -610,7 +610,7 @@ namespace
 
 		void LoadSubpackages(cstr namespaceFilter, cstr packageName) override
 		{
-			StringKey key(packageName);
+			auto key = packageName;
 			auto i = packages.find(key);
 			if (i == packages.end())
 			{
