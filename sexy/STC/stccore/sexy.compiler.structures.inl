@@ -295,7 +295,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 				if (interf == NULL)
 				{
 					*pSrcError = this->Definition();
-					if (reportErrors) LogError(log, "Cannot resolve interface %s of %s from %s. It is not fully qualified A.B.C.D, nor found in any namespace known to the module in which it is defined", publicName, body, this->module.Name());
+					if (reportErrors) LogError(log, "Cannot resolve interface %s from %s. It is not fully qualified A.B.C.D, nor found in any namespace known to the module in which it is defined", name, this->module.Name());
 					return false;
 				}
 
@@ -317,7 +317,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 					if (reportErrors)
 					{
 						*pSrcError = this->Definition();
-						LogError(log, "Cannot resolve interface %s of %s. The namespace %s was not found", publicName, body, body);
+						LogError(log, "Cannot resolve interface %s. The namespace %s was not found. Module: %s.\nDo a search for (namespace %s)?", name, body, this->module.Name(), body);
 					}
 					return false;
 				}
@@ -326,7 +326,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 				if (interfaces[i] == NULL)
 				{
 					*pSrcError = this->Definition();
-					if (reportErrors) LogError(log, "Cannot resolve interface %s of %s. The interface name was not found in the namespace", publicName, body);
+					if (reportErrors) LogError(log, "Cannot resolve interface %s. The interface name was not found in the namespace. Module: %s", name, this->module.Name());
 					return false;
 				}
 			}

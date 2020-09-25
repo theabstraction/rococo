@@ -341,9 +341,8 @@
 	
 	(Vec2 screenSpan)
 	(gc.GetScreenSpan screenSpan)
-	(Int32 alignmentFlags = 0)
 	(Rectf rect = 0 10 screenSpan.x 30)
-	(gc.DrawText rect alignmentFlags this.sbScore 1 0xFFFFFF80)
+	(gc.DrawText rect 0 this.sbScore 1 0xFFFFFF80)
 )
 
 (function TryFireMissile (Entity playerMissile)(Entity player)-> :

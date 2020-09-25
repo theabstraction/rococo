@@ -134,10 +134,10 @@
     <None Include="..\content\scripts\mhost\keys.sxy" />
     <None Include="..\content\scripts\mhost\mhost_startup.sxy" />
     <None Include="..\content\scripts\mhost\rpg.sxy" />
-    <None Include="..\content\scripts\mhost\t3d\t3d.config.sxy" />
-    <None Include="..\content\scripts\mhost\t3d\t3d.init.sxy" />
     <None Include="..\content\scripts\mhost\t3d\t3d.sxy" />
-    <None Include="..\content\scripts\mhost\t3d\t3d.world.sxy" />
+    <None Include="..\content\scripts\mhost\t3d\t3d_config.sxy" />
+    <None Include="..\content\scripts\mhost\t3d\t3d_init.sxy" />
+    <None Include="..\content\scripts\mhost\t3d\t3d_world.sxy" />
     <None Include="..\content\scripts\mhost\widgets\fonts.sxy" />
     <None Include="mhost.sxh" />
     <None Include="mhost.sxh.inl" />

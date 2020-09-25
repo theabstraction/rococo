@@ -214,7 +214,6 @@ namespace Rococo { namespace Script
 			body = pNS->FullName()->Buffer;
 			
 			auto* buf = splitter.Raw();
-			nsName.Tree().Source().Name();
 
 			MakeTypenameFromFilename(buf, NAMESPACE_MAX_LENGTH, nsName.Tree().Source().Name(), nsName);
 

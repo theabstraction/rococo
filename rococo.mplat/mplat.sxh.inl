@@ -10383,3 +10383,54 @@ namespace Rococo { namespace Puppet {
 		ss.AddNativeCall(ns, NativeRococoPuppetIPuppetsGetNextPuppetId, nullptr, ("IPuppetsGetNextPuppetId (Pointer hObject)(Int64 id) -> (Int64 nextId)"));
 	}
 }}
+// BennyHill generated Sexy native functions for Rococo::IInstallationManager 
+namespace
+{
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
+
+	void NativeRococoIInstallationManagerSetPingPathMacro(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _pingPathValue;
+		ReadInput(_pingPathValue, _sf, -_offset);
+		fstring pingPathValue { _pingPathValue->buffer, _pingPathValue->length };
+
+
+		_offset += sizeof(IString*);
+		IString* _key;
+		ReadInput(_key, _sf, -_offset);
+		fstring key { _key->buffer, _key->length };
+
+
+		Rococo::IInstallationManager* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetPingPathMacro(key, pingPathValue);
+	}
+
+	void NativeGetHandleForRococoInstallation(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Platform* nceContext = reinterpret_cast<Rococo::Platform*>(_nce.context);
+		// Uses: Rococo::IInstallationManager* FactoryConstructRococoInstallation(Rococo::Platform* _context);
+		Rococo::IInstallationManager* pObject = FactoryConstructRococoInstallation(nceContext);
+		_offset += sizeof(IString*);
+		WriteOutput(pObject, _sf, -_offset);
+	}
+}
+
+namespace Rococo { 
+	void AddNativeCalls_RococoIInstallationManager(Rococo::Script::IPublicScriptSystem& ss, Rococo::Platform* _nceContext)
+	{
+		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
+		ss.AddNativeCall(ns, NativeGetHandleForRococoInstallation, _nceContext, ("GetHandleForIInstallation0  -> (Pointer hObject)"));
+		ss.AddNativeCall(ns, NativeRococoIInstallationManagerSetPingPathMacro, nullptr, ("IInstallationSetPingPathMacro (Pointer hObject)(Sys.Type.IString key)(Sys.Type.IString pingPathValue) -> "));
+	}
+}

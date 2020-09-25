@@ -7,8 +7,10 @@
 
 (using MPlat)
 (using MHost)
+(using MHost.Events)
 (using MHost.OS)
 (using MHost.Graphics)
+(using MHost.Graphics.Widgets)
 (using Rococo)
 (using Rococo.Graphics)
 (using Rococo.Audio)
@@ -19,7 +21,7 @@
 	(Int32 value)
 )
 
-(interface RPG.IAttributeControl (extends MHost.Graphics.IControl)
+(interface RPG.IAttributeControl (extends MHost.Graphics.Widgets.IControl)
 	(SetRect (Rectf outerRect)-> )
 	(SetAttributeByName (IString name)(Int32 value)->)
 	(AddValue (IString name)(Int32 delta)->)

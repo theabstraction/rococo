@@ -776,6 +776,11 @@ namespace Rococo
 
 	struct ISourceCache;
 
+	struct IInstallationManagerSupervisor : public IInstallationManager
+	{
+		virtual void Free() = 0;
+	};
+
 	struct Platform
 	{
 		// Operating system functions
@@ -849,6 +854,8 @@ namespace Rococo
 		const char* const title;
 
 		Rococo::Joysticks::IJoystick_XBOX360& xbox360joystick;
+
+		Rococo::IInstallationManager& installationManager;
 	};
 
 	namespace Events
@@ -878,6 +885,14 @@ namespace Rococo
 	}
 
 	IMPlatFileBrowser* CreateMPlatFileBrowser(Events::IPublisher& publisher, IInstallation& installation, IGUIStack& gui, IKeyboardSupervisor& keyboard, Browser::IBrowserFileChangeNotification& onChange);
+}
+
+namespace Rococo
+{
+	namespace MPlatImpl
+	{
+		Rococo::IInstallationManagerSupervisor* CreateIMS(IInstallation& installation);
+	}
 }
 
 #define REGISTER_UI_EVENT_HANDLER(guistack, instance, classname, methodname, cmd, helpString)  \

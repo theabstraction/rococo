@@ -36,6 +36,8 @@
 
 namespace Rococo
 {
+	constexpr fstring packageprefix = "Package["_fstring;
+
 	void GetTimestamp(char str[26])
 	{
 		time_t t;
@@ -976,11 +978,56 @@ namespace
 			return nullptr;
 		}
 
+		void ConvertPackagePathToSysPath(cstr pingPath, WideFilePath& sysPath) const
+		{
+			char packName[64];
+			char* p = packName;
+
+			cstr dir = nullptr;
+			for (auto s = pingPath + packageprefix.length; *s != 0; ++s)
+			{
+				if (*s == ']')
+				{
+					*p = 0;
+					if (s[1] != '@')
+					{
+						Throw(0, "%s: Expecting ]@ after package name", pingPath);
+					}
+					dir = s + 2;
+					break;
+				}
+
+				*p++ = *s;
+
+				if (p - packName >= sizeof(packName) - 2)
+				{
+					Throw(0, "%s: Expecting ]@ after package name. The name seemed excessively long", pingPath);
+				}
+			}
+
+			if (dir == nullptr)
+			{
+				Throw(0, "%s: Expecting @ after package name", pingPath);
+			}
+
+			sysPath = contentDirectory;
+			Rococo::OS::StripLastSubpath(sysPath.buf);
+			size_t len = StringLength(sysPath);
+			SecureFormat(sysPath.buf + len, sysPath.CAPACITY - len, L"packages/%hs/%hs", packName, dir);
+			OS::ToSysPath(sysPath.buf);
+		}
+
 		void ConvertPingPathToSysPath(cstr pingPath, WideFilePath& sysPath) const override
 		{
 			if (pingPath == nullptr || *pingPath == 0)
 			{
 				Throw(0, "Installation::ConvertPingPathToSysPath(...) Ping path was blank");
+			}
+
+			if (strncmp(pingPath, packageprefix, packageprefix.length) == 0)
+			{
+				ConvertPackagePathToSysPath(pingPath, sysPath);
+				return;
 			}
 
 			auto macroDir = "";

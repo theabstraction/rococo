@@ -7,14 +7,17 @@
 
 (using MPlat)
 (using MHost)
+(using MHost.Events)
 (using MHost.OS)
 (using MHost.Graphics)
+(using MHost.Graphics.Widgets)
+(using MHost.Graphics.Drawing2D)
 (using Rococo)
 (using Rococo.Graphics)
 (using Rococo.Audio)
 
 (interface MHost.Graphics.ILabelButton
-	(extends MHost.Graphics.IControl)
+	(extends MHost.Graphics.Widgets.IControl)
 	(SetRect (IString fontName) (Rectf rect)(IGui g) -> )
 	(SetLabel (IString label)-> )
 	(Enable ->)
@@ -97,7 +100,7 @@
 )
 
 (method LabelButton.Render (IGui gui)-> :
-	(Int32 textColour = (GetTextColour this.outerRect gui this.isEnabled))
+	(Int32 textColour = (GetTextColourAtRectUnderCursor this.outerRect gui this.isEnabled))
 	(gui.DrawClippedText this.innerRect 0 this.text this.fontIndex textColour this.outerRect)
 	(DrawStandardControlBorder gui this.outerRect this.isEnabled this.isGlowing)
 )

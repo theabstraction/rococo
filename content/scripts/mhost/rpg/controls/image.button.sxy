@@ -7,14 +7,16 @@
 
 (using MPlat)
 (using MHost)
+(using MHost.Events)
 (using MHost.OS)
 (using MHost.Graphics)
+(using MHost.Graphics.Widgets)
 (using Rococo)
 (using Rococo.Graphics)
 (using Rococo.Audio)
 
 (interface MHost.Graphics.IImageButton
-	(extends MHost.Graphics.IControl)
+	(extends MHost.Graphics.Widgets.IControl)
 	(SetRect (Rectf rect)(IGui g) -> )
 	(SetImage (MPlat.BitmapLocation imgLoc)->)
 )
@@ -28,7 +30,7 @@
 
 (method ImageButton.Construct :
 	(this.outerRect = -1 -1 -1 -1)
-	(this.imgLoc = (-1 -1 -1 -1) -1)
+	(this.imgLoc = (-1 -1 -1 -1) -1 (0 0))
 )
 
 (method ImageButton.GetRect (Rectf rect)-> :

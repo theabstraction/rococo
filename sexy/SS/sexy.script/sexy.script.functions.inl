@@ -1679,8 +1679,8 @@ namespace Rococo
 
       int CompileInstancePointerArgFromTemp(CCompileEnvironment& ce, int tempDepth)
       {
-	      ce.Builder.AddSymbol(("// reference to instance"));
-	      AddArgVariable(("instance"), ce, ce.Object.Common().TypePointer());
+	      ce.Builder.AddSymbol("// reference to instance");
+	      AddArgVariable("instance", ce, ce.Object.Common().TypePointer());
 	      ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D4 + tempDepth, BITCOUNT_POINTER);			
 	      return (int) sizeof(void*);		
       }
@@ -1696,7 +1696,7 @@ namespace Rococo
 	      {
 		      if (s.NumberOfElements() - 1 > callee.NumberOfInputs())
 		      {
-			      Throw(s, ("Too many inputs"));
+			      Throw(s, "Too many inputs");
 		      }
 	      }
 

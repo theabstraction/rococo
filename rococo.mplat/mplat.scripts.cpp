@@ -145,9 +145,14 @@ Rococo::Audio::ILegacySoundControl* FactoryConstructRococoAudioLegacySoundContro
 	return &platform->legacySoundControl;
 }
 
-Rococo::Graphics::IRigs* FactoryConstructRococoGraphicsRigs(Rococo::Graphics::IRigs* _context)
+Rococo::Graphics::IRigs* FactoryConstructRococoGraphicsRigs(Rococo::Graphics::IRigs* context)
 {
-	return _context;
+	return context;
+}
+
+Rococo::IInstallationManager* FactoryConstructRococoInstallation(Rococo::Platform* p)
+{
+	return &p->installationManager;
 }
 
 #include <..\rococo.mplat\mplat.sxh.inl>
@@ -298,11 +303,10 @@ namespace Rococo
 						Entities::AddNativeCalls_RococoEntitiesIParticleSystem(args.ss, &platform);
 						Audio::AddNativeCalls_RococoAudioILegacySoundControl(args.ss, &platform);
 						Graphics::AddNativeCalls_RococoGraphicsIHQFonts(args.ss, &platform);
+						Rococo::AddNativeCalls_RococoIInstallationManager(args.ss, &platform);
 
 						const INamespace& ns = args.ss.AddNativeNamespace("MPlat.OS");
 						args.ss.AddNativeCall(ns, NativeEnumerateFiles, &platform, "EnumerateFiles (Sys.Type.IString filter)(MPlat.OnFileName callback)->");
-
-						args.ss.AddNativeLibrary("rococo.sexy.mathsex");
 					}
 
 					AddNativeCalls_RococoIConfig(args.ss, &platform.config);

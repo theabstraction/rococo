@@ -96,3 +96,41 @@ namespace Rococo
       return new Config;
    }
 }
+
+namespace Rococo::MPlatImpl
+{
+    Rococo::IInstallationManagerSupervisor* CreateIMS(IInstallation& installation)
+    {
+        struct Anon : IInstallationManagerSupervisor
+        {
+            IInstallation& installation;
+            Anon(IInstallation& _installation) : installation(_installation) {}
+
+            void Free() override
+            {
+                delete this;
+            }
+
+            void SetPingPathMacro(const fstring& key, const fstring& pingPathValue) override
+            {
+                if (key.length < 1 || key[0] != '#')
+                {
+                    Throw(0, "The key must begin with a #");
+                }
+
+                if (pingPathValue.length < 1 || pingPathValue[0] != '!')
+                {
+                    Throw(0, "The value must begin with a !");
+                }
+
+                if (!EndsWith(pingPathValue, "/"))
+                {
+                    Throw(0, "The value must end with a /");
+                }
+
+                installation.Macro(key, pingPathValue);
+            }
+        };
+        return new Anon(installation);
+    }
+}

@@ -721,3 +721,16 @@
 	(construct ProxyIPuppets pObject)
 )
 
+(interface Rococo.IInstallation
+	(SetPingPathMacro (Sys.Type.IString key)(Sys.Type.IString pingPathValue) -> )
+)
+
+(class ProxyIInstallation (implements Rococo.IInstallation) (Pointer hObject))
+	(method ProxyIInstallation.Construct (Pointer hObject): (this.hObject = hObject))
+	(method ProxyIInstallation.SetPingPathMacro (Sys.Type.IString key)(Sys.Type.IString pingPathValue) ->  : (Rococo.Native.IInstallationSetPingPathMacro this.hObject key pingPathValue))
+
+(factory Rococo.Installation Rococo.IInstallation  :
+	(Pointer pObject = (Rococo.Native.GetHandleForIInstallation0 ))
+	(construct ProxyIInstallation pObject)
+)
+

@@ -682,3 +682,13 @@
 	)
 	(factory Rococo.Puppet.Puppets)
 )
+
+(interface (as.sxy Rococo.IInstallation "../content/scripts/mplat")
+	(as.cpp Rococo.IInstallationManager "mplat")
+	(context factory Rococo.Platform)
+	(methods
+		(SetPingPathMacro (IString key)(IString pingPathValue))
+	)
+	(factory Rococo.Installation)
+)
+

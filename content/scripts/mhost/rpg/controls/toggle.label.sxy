@@ -8,14 +8,17 @@
 
 (using MPlat)
 (using MHost)
+(using MHost.Events)
 (using MHost.OS)
 (using MHost.Graphics)
 (using Rococo)
 (using Rococo.Graphics)
+(using MHost.Graphics.Widgets)
+(using MHost.Graphics.Drawing2D)
 (using Rococo.Audio)
 
 (interface MHost.Graphics.IToggleLabel
-	(extends MHost.Graphics.IControl)
+	(extends MHost.Graphics.Widgets.IControl)
 	(SetRect (IString fontName) (Rectf rect)(IGui g) -> )
 	(SetUndefinedText (IString text)-> )
 	(AddItem (IString text)(IExpression s)-> )
@@ -96,7 +99,7 @@
 		(text = this.undefinedText)
 	)
 	
-	(Int32 textColour = (GetTextColour this.outerRect gui true))
+	(Int32 textColour = (GetTextColourAtRectUnderCursor this.outerRect gui true))
 	(gui.DrawClippedText this.innerRect (#AlignmentFlagsLeft) text this.fontIndex textColour this.outerRect)
 	
 	(DrawStandardControlBorder gui this.outerRect true this.glowing)

@@ -7,13 +7,16 @@
 
 (using MPlat)
 (using MHost)
+(using MHost.Events)
 (using MHost.OS)
 (using MHost.Graphics)
+(using MHost.Graphics.Drawing2D)
+(using MHost.Graphics.Widgets)
 (using Rococo)
 (using Rococo.Graphics)
 (using Rococo.Audio)
 
-(interface MHost.Graphics.ILineEditorControl (extends MHost.Graphics.IControl)
+(interface MHost.Graphics.ILineEditorControl (extends MHost.Graphics.Widgets.IControl)
 	(SetRect (IString fontName) (Rectf outerRect)-> )
 	(SetText (IString text)-> )
 	(GetBuilder -> (IStringBuilder text))
@@ -147,7 +150,7 @@
 	
 	(Int32 caretPos = this.text.Length)
 	
-	(Int32 txColour = (GetTextColour this.outerRect g this.isEnabled))
+	(Int32 txColour = (GetTextColourAtRectUnderCursor this.outerRect g this.isEnabled))
 	
 	(if (this.hasFocus and this.isEnabled)
 		(g.DrawTextWithCaret this.innerRect (#AlignmentFlagsLeft) this.text this.fontIndex txColour this.outerRect caretPos)

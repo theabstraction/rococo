@@ -8,8 +8,12 @@
 
 (using MPlat)
 (using MHost)
+(using MHost.Events)
 (using MHost.OS)
 (using MHost.Graphics)
+(using MHost.Graphics.Utils)
+(using MHost.Graphics.Drawing2D)
+(using MHost.Graphics.Widgets)
 (using Rococo)
 (using Rococo.Graphics)
 (using Rococo.Audio)
@@ -220,7 +224,7 @@
 	)
 )
 
-(factory RPG.NewNewGameScreen MHost.IScreen (IBundle bundle):
+(factory RPG.NewNewGameScreen MHost.Graphics.IScreen (IBundle bundle):
 	(construct NewGameScreen bundle)
 )
 

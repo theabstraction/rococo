@@ -10,6 +10,7 @@
 (using MHost.OS)
 (using MHost.Events)
 (using MHost.Graphics)
+(using MHost.Graphics.Utils)
 (using MHost.Graphics.Widgets)
 (using Rococo)
 (using Rococo.Graphics)

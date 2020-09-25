@@ -1,15 +1,6 @@
+(' #import (mhost "MHost"))
+
 (' #include 
-	"!scripts/mhost/mplat_types.sxy"
-	"!scripts/mhost/mhost.sxh.sxy"
-	"!scripts/mplat_sxh.sxy"
-	"!scripts/types.sxy"
-	"!scripts/mhost/mhost.include.sxy"
-	"!scripts/mhost/widgets/fonts.sxy"
-	"!scripts/mhost/widgets/widgets.sxy"
-	"!scripts/mhost/widgets/menu.vertical.sxy"
-	"!scripts/mhost/widgets/uistack.sxy"
-	"!scripts/mhost/widgets/list.builder.sxy"
-	"!scripts/mhost/widgets/vscroll.sxy"
 	"!scripts/mhost/rpg/controls/credits.sxy"
 	"!scripts/mhost/rpg/controls/add.character.sxy"
 	"!scripts/mhost/rpg/controls/gen.name.sxy"
@@ -37,8 +28,11 @@
 
 (using MPlat)
 (using MHost)
+(using MHost.Events)
 (using MHost.OS)
 (using MHost.Graphics)
+(using MHost.Graphics.Utils)
+(using MHost.Graphics.Widgets)
 (using Rococo)
 (using Rococo.Graphics)
 (using Rococo.Audio)
@@ -128,13 +122,13 @@
 	(IString text)
 )
 
-(interface RPG.IOpeningScreen (extends MHost.IScreen)
+(interface RPG.IOpeningScreen (extends MHost.Graphics.IScreen)
 	(OnMenuSelect (MenuSelectArgs args)->)
 )
 
 (class OpeningScreen 
 	(implements RPG.IOpeningScreen)
-	(implements MHost.IEventHandler)
+	(implements IEventHandler)
 	
 	(IEngine engine) // The CPP side of flow control
 	
@@ -152,7 +146,7 @@
 	(this.engine = engine)
 	(this.bundle = bundle)
 	
-	(IMenu menu (MHost.Graphics.NewVerticalMenu 10))
+	(IMenu menu (NewVerticalMenu 10))
 	(menu.SetStyle 0 4 "Tahoma")
 	
 	(IWidgetContext nulWC)
@@ -245,7 +239,7 @@
 
 (function Layout (OpeningScreen screen)(IGui g)-> :
 	(Rectf menuRect)
-	(MHost.Graphics.GetCentredRect screen.screenSpan 1100 620 menuRect)
+	(MHost.Graphics.Utils.GetCentredRect screen.screenSpan 1100 620 menuRect)
 	(screen.menu.LayoutFixedRect menuRect g)
 )
 
@@ -284,7 +278,7 @@
 
 (method GameBundle.Construct : 
 	(ISprites sprites (Sprites))
-	(sprites.AddEachSpriteInDirectory "!textures/mhost/rpg")
+//	(sprites.AddEachSpriteInDirectory "!textures/mhost/rpg")
 	(sprites.AddEachSpriteInDirectory "!textures/faces/male")
 	(sprites.AddEachSpriteInDirectory "!textures/faces/female")
 	(sprites.LoadAllSprites)

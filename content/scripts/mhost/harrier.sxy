@@ -1,10 +1,4 @@
-(' #include 
-	"!scripts/mhost/mplat_types.sxy"
-	"!scripts/mhost/mhost.sxh.sxy"
-	"!scripts/mplat_sxh.sxy"
-	"!scripts/types.sxy"
-	"!scripts/mhost/mhost.include.sxy"
-)
+(' #import (mhost "MHost"))
 
 (namespace EntryPoint)
 	(alias Main EntryPoint.Main)
@@ -12,8 +6,8 @@
 (using Sys)
 (using Sys.Maths)
 (using Sys.Type)
-(using Sys.MPlat)
 (using Sys.Random)
+(using MPlat)
 (using MHost)
 (using MHost.OS)
 (using MHost.Graphics)
@@ -144,6 +138,8 @@
 	(array Star largeStars)
 	(array Cloud cloudsForeground)
 	(array Cloud cloudsBackground)
+	
+	(IStringBuilder infoLine)
 )
 
 (method World.Construct (IEngine engine) (ILegacySoundControl sound) ->
@@ -223,6 +219,8 @@
 		
 		(this.cloudsForeground.Push cloud)
 	)
+	
+	(this.infoLine = NewPathBuilder)
 )
 
 (factory Harrier.NewWorld IWorld (IEngine engine) (ILegacySoundControl sound) : 
@@ -250,11 +248,21 @@
 	(gui.DrawSprite w.player.screenPosition alignmentFlags w.player.image.location)
 )
 
-(function RenderLives (Entity player)(IGui gui)(Float32 count)-> :
+(function RenderLives (Entity player)(IGui g)(Float32 count)-> :
+	(Vec2 s)
+	(g.GetScreenSpan s)
+	(Float32 y = (s.y - 80))
+	
 	(#for (Float32 i = 0)(i < count)(i += 1)
-		(Float32 x =  (100 + (i * 64)))
-		(Vec2 pos = x 640)
-		(gui.DrawSprite pos 0 player.image.location)
+		(Float32 x =  (20 + (i * 64)))
+		(Vec2 pos = x y)
+		(y += 10)
+		
+		(Float32 right = (x + 70))
+		(Float32 bottom = (y + 30))
+
+		(Rectf rect = x y right bottom)
+		(g.StretchSprite rect player.image.location)
 	)
 )
 
@@ -341,13 +349,14 @@
 )
 
 (function DrawInfo(IGui gc)(World w) -> :
-	(IStringBuilder infoLine (StringBuilder 128))
+	(IStringBuilder infoLine = w.infoLine)
+	(infoLine.Clear)
 	(infoLine.SetFormat 2 0 false false)
-	(#build infoLine "Direction: (" this.playerDirection.x ", " this.playerDirection.y ")     ")  
-	(#build infoLine "Position: (" this.playerPosition.x ", " this.playerPosition.y ")     ")  
-	(#build infoLine "World - TopLeft: (" this.worldPosition.x ", " this.worldPosition.y ") ")  
+	(#build infoLine "Direction: (" w.playerDirection.x ", " w.playerDirection.y ")     ")  
+	(#build infoLine "Position: (" w.playerPosition.x ", " w.playerPosition.y ")     ")  
+	(#build infoLine "World - TopLeft: (" w.worldPosition.x ", " w.worldPosition.y ") ")  
 	
-	(Rectf rect = 0 0 this.screenSpan.x 40)
+	(Rectf rect = 0 0 w.screenSpan.x 40)
 	(gc.DrawText rect (#AlignmentFlagsLeft) infoLine 7 0xFFFFFFFF)
 )
 
@@ -468,89 +477,61 @@
 	)
 	
 	(if (this.playerPosition.y > 0)
-		(Vec2 halfSpan = this.screenSpan * 0.5)
-		(Float32 maxY = (this.playerPosition.y + halfSpan.y))
-		(maxY += 512)
+		(this.AdvanceClouds)
+	)
+)
+
+(method World.AdvanceClouds -> :
+	(Vec2 halfSpan = this.screenSpan * 0.5)
+	(Float32 maxY = (this.playerPosition.y + halfSpan.y))
+	(maxY += 512)
+	
+	(Float32 minY = (this.playerPosition.y - halfSpan.y))
+	(minY -= 512)
+	
+	(if (minY < 800)
+		(minY = 800)
+	)
+	
+	(Float32 maxX = (this.playerPosition.x + halfSpan.x))
+	(maxX += 512)
+	
+	(Float32 minX = (this.playerPosition.x - halfSpan.x))
+	(minX -= 512)
 		
-		(Float32 minY = (this.playerPosition.y - halfSpan.y))
-		(minY -= 512)
-		
-		(if (minY < 800)
-			(minY = 800)
-		)
-		
-		(Float32 maxX = (this.playerPosition.x + halfSpan.x))
-		(maxX += 512)
-		
-		(Float32 minX = (this.playerPosition.x - halfSpan.x))
-		(minX -= 512)
-		
-		(foreach cloud # this.cloudsBackground
-			(Vec2 pos = cloud.position)
-			(if (((pos.x < minX) or (pos.x > maxX)) or (((minY < maxY) and (pos.y < minY)) or (pos.y > maxY)))
-				(Float32 f = (AnyFloat 0 1))
-				(if (f < 0.25)
-					(pos.x = (minX + (AnyFloat 0 250)))
+	(foreach cloud # this.cloudsForeground
+		(Vec2 pos = cloud.position)
+		(if (((pos.x < minX) or (pos.x > maxX)) or (((minY < maxY) and (pos.y < minY)) or (pos.y > maxY)))
+			(Float32 f = (AnyFloat 0 1))
+			(if (f < 0.25)
+				(pos.x = (minX + (AnyFloat 0 250)))
+				(pos.y = (AnyFloat minY maxY))
+			else
+				(if (f < 0.5)
+					(pos.x = (maxX - (AnyFloat 0 250)))
 					(pos.y = (AnyFloat minY maxY))
 				else
-					(if (f < 0.5)
-						(pos.x = (maxX - (AnyFloat 0 250)))
-						(pos.y = (AnyFloat minY maxY))
+					(if (f < 0.75)
+						(pos.x = (AnyFloat minX maxX))
+						(pos.y = (maxY - (AnyFloat 0 250)))
 					else
-						(if (f < 0.75)
-							(pos.x = (AnyFloat minX maxX))
-							(pos.y = (maxY - (AnyFloat 0 250)))
-						else
-							(pos.x = (AnyFloat minX maxX))
-							(pos.y = (minY + (AnyFloat 0 250)))
-						)
+						(pos.x = (AnyFloat minX maxX))
+						(pos.y = (minY + (AnyFloat 0 250)))
 					)
 				)
-				
-				(cloud.position = pos)
-				(cloud.velocity.x = (AnyFloat -0.3 0.3))
-				(cloud.velocity.y = (AnyFloat -0.3 0.3))
 			)
 			
-			(cloud.position = cloud.position + cloud.velocity)
+			(cloud.position = pos)
+			(cloud.velocity.x = (AnyFloat -0.3 0.3))
+			(cloud.velocity.y = (AnyFloat -0.3 0.3))
 		)
 		
-		(foreach cloud # this.cloudsForeground
-			(Vec2 pos = cloud.position)
-			(if (((pos.x < minX) or (pos.x > maxX)) or (((minY < maxY) and (pos.y < minY)) or (pos.y > maxY)))
-				(Float32 f = (AnyFloat 0 1))
-				(if (f < 0.25)
-					(pos.x = (minX + (AnyFloat 0 250)))
-					(pos.y = (AnyFloat minY maxY))
-				else
-					(if (f < 0.5)
-						(pos.x = (maxX - (AnyFloat 0 250)))
-						(pos.y = (AnyFloat minY maxY))
-					else
-						(if (f < 0.75)
-							(pos.x = (AnyFloat minX maxX))
-							(pos.y = (maxY - (AnyFloat 0 250)))
-						else
-							(pos.x = (AnyFloat minX maxX))
-							(pos.y = (minY + (AnyFloat 0 250)))
-						)
-					)
-				)
-				
-				(cloud.position = pos)
-				(cloud.velocity.x = (AnyFloat -0.3 0.3))
-				(cloud.velocity.y = (AnyFloat -0.3 0.3))
-			)
-			
-			(cloud.position = cloud.position + cloud.velocity)
-			
-		//	(cloud.position = this.playerPosition)
-		)
+		(cloud.position = cloud.position + cloud.velocity)
 	)
 )
 
 (method World.Run -> :
-	(BitmapLocation defaultBmpLoc = (0 0 0 0) -1)
+	(BitmapLocation defaultBmpLoc = (0 0 0 0) -1 (0 0))
 	
 	(this.playerDirection = 0 0)
 	(this.playerPosition = 500 150)

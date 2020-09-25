@@ -7,14 +7,18 @@
 
 (using MPlat)
 (using MHost)
+(using MHost.Events)
 (using MHost.OS)
 (using MHost.Graphics)
+(using MHost.Graphics.Utils)
+(using MHost.Graphics.Drawing2D)
+(using MHost.Graphics.Widgets)
 (using Rococo)
 (using Rococo.Graphics)
 (using Rococo.Audio)
 
 (interface MHost.Graphics.ITooltip
-	(extends MHost.Graphics.IControl)
+	(extends MHost.Graphics.Widgets.IControl)
 	(SetRect (Rectf rect) -> )
 	(SetText (IString text)-> )
 	(SetTarget (IControl control)->)

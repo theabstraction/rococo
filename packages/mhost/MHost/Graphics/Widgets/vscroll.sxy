@@ -11,6 +11,8 @@
 (using MHost)
 (using MHost.OS)
 (using MHost.Graphics)
+(using MHost.Graphics.Drawing2D)
+(using MHost.Graphics.Utils)
 (using MHost.Graphics.Widgets)
 (using MHost.Events)
 

@@ -8,14 +8,18 @@
 
 (using MPlat)
 (using MHost)
+(using MHost.Events)
 (using MHost.OS)
 (using MHost.Graphics)
+(using MHost.Graphics.Utils)
+(using MHost.Graphics.Widgets)
+(using MHost.Graphics.Drawing2D)
 (using Rococo)
 (using Rococo.Graphics)
 (using Rococo.Audio)
 
 (interface MHost.Graphics.IOverlayControl 
-	(extends MHost.Graphics.IControl)
+	(extends MHost.Graphics.Widgets.IControl)
 	(SetRect (Rectf rect) -> )
 	(SetHost (IEventHandler host) -> )
 )
@@ -73,7 +77,7 @@
 (alias SelectionChangedArgs MHost.Graphics.SelectionChangedArgs)
 
 (interface MHost.Graphics.IDropValueMenu
-	(extends MHost.Graphics.IControl)
+	(extends MHost.Graphics.Widgets.IControl)
 	(AddItem (IString text)(IExpression value)->)
 	(SetLine (Rectf rect)(IGui g)->)
 	(SetUndefinedText (IString text)->)
@@ -172,7 +176,7 @@
 		(text = this.undefinedText)
 	)
 	
-	(Int32 textColour = (GetTextColour this.outerRect g this.isEnabled))
+	(Int32 textColour = (GetTextColourAtRectUnderCursor this.outerRect g this.isEnabled))
 	
 	(g.DrawClippedText this.textRect (#AlignmentFlagsLeft) text this.fontIndex textColour this.outerRect)
 )
@@ -202,7 +206,7 @@
 			(itemRect.bottom = y1)
 			(y = y1)
 			
-			(Int32 textColour = (GetTextColour itemRect args.g this.isEnabled))
+			(Int32 textColour = (GetTextColourAtRectUnderCursor itemRect args.g this.isEnabled))
 			(args.g.DrawText itemRect (#AlignmentFlagsLeft) item.text 0 textColour)
 		)
 	)

@@ -36,6 +36,10 @@
 	(fonts.SetHeight 28)
 	(fonts.Commit)
 	
+		
+	(IInstallation installation (Installation))
+	(installation.SetPingPathMacro "#chaps" "!textures/faces/")
+	
 	(IEngine engine (Engine))
-	(engine.SetNextScript "!scripts/mhost/galaxians.sxy")
+	(engine.SetNextScript "!scripts/mhost/rpg.sxy")
 )

@@ -75,16 +75,7 @@
     <None Include="..\content\scripts\mhost\widgets\fonts.sxy">
       <Filter>ScriptGen Files\SXY</Filter>
     </None>
-    <None Include="..\content\scripts\mhost\t3d\t3d.config.sxy">
-      <Filter>Scripts</Filter>
-    </None>
-    <None Include="..\content\scripts\mhost\t3d\t3d.init.sxy">
-      <Filter>Scripts</Filter>
-    </None>
     <None Include="..\content\scripts\mhost\t3d\t3d.sxy">
-      <Filter>Scripts</Filter>
-    </None>
-    <None Include="..\content\scripts\mhost\t3d\t3d.world.sxy">
       <Filter>Scripts</Filter>
     </None>
     <None Include="..\content\scripts\mhost\mhost_startup.sxy">
@@ -100,6 +91,15 @@
       <Filter>Scripts</Filter>
     </None>
     <None Include="..\content\scripts\mhost\galaxians.sxy">
+      <Filter>Scripts</Filter>
+    </None>
+    <None Include="..\content\scripts\mhost\t3d\t3d_init.sxy">
+      <Filter>Scripts</Filter>
+    </None>
+    <None Include="..\content\scripts\mhost\t3d\t3d_config.sxy">
+      <Filter>Scripts</Filter>
+    </None>
+    <None Include="..\content\scripts\mhost\t3d\t3d_world.sxy">
       <Filter>Scripts</Filter>
     </None>
   </ItemGroup>

@@ -6,14 +6,17 @@
 
 (using MPlat)
 (using MHost)
+(using MHost.Events)
 (using MHost.OS)
 (using MHost.Graphics)
+(using MHost.Graphics.Utils)
+(using MHost.Graphics.Widgets)
 (using Rococo)
 (using Rococo.Graphics)
 (using Rococo.Audio)
 
 (interface MHost.Graphics.ICreditsControl
-	(extends MHost.Graphics.IControl)
+	(extends MHost.Graphics.Widgets.IControl)
 	(Centre (Float32 dx)(Float32 dy)(Vec2 screenSpan)->)
 	(BeginScroll ->)
 )

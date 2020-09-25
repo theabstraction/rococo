@@ -2,6 +2,7 @@
 (using MHost)
 (using MHost.Graphics)
 (using MHost.Graphics.Widgets)
+(using MHost.Events)
 
 (class UIStack (implements $.IUIStack)
 	(UIStackItem root)

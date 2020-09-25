@@ -1,5 +1,6 @@
 (using MHost)
 (using MHost.Graphics)
+(using MHost.Graphics.Utils)
 (using MHost.Graphics.Widgets)
 (using MHost.Events)
 

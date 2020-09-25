@@ -1,3 +1,10 @@
+(using Sys.Maths.I32)
+
+(using MHost)
+(using MHost.Graphics)
+(using MHost.Graphics.Widgets)
+(using MHost.Events)
+
 (struct MouseEvent
     (Int32 usFlags)
 	(Int32 buttons)

@@ -1,6 +1,8 @@
 (using Sys.Maths)
+(using Sys.Maths.F32)
 
 (using MHost.Events)
+(using MHost.Graphics.Utils)
 (using MHost.Graphics.Widgets)
 
 (struct UIStackItem
@@ -15,7 +17,7 @@
 (method UIStackItem.Construct -> (construct children ()): 
 )
 
-(alias UIStackItem $)
+(alias UIStackItem $.UIStackItem)
 
 (archetype $.OnUIStackItem (UIStackItem item) -> (Bool terminateNow))
 
@@ -48,6 +50,8 @@
 		while c.GoNext)
 	)
 )
+
+(alias ForEachChildByZOrderRecursive $.ForEachChildByZOrderRecursive)
 
 (function BringChildToTop (UIStackItem parent)(IControl control) -> (Bool terminateNow) :
 	(foreach c # parent.children
@@ -115,3 +119,5 @@
 		(wasHandled = false)
 	)
 )
+
+(alias RouteMouseEventRecursive $.RouteMouseEventRecursive)

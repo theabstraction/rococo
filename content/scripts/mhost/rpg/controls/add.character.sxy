@@ -8,15 +8,18 @@
 
 (using MPlat)
 (using MHost)
+(using MHost.Events)
 (using MHost.OS)
 (using MHost.Graphics)
+(using MHost.Graphics.Utils)
+(using MHost.Graphics.Widgets)
 (using Rococo)
 (using Rococo.Graphics)
 (using Rococo.Audio)
 (using RPG)
 
 (class AddCharacterScreen 
-	(implements MHost.IScreen)
+	(implements IScreen)
 	(implements IEventHandler)
 	
 	(IBundle bundle) 
