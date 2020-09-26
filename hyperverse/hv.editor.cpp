@@ -21,6 +21,8 @@ namespace HV
 		const EventIdRef evChangeDefaultTextureId = "editor.textureId.change"_event;
 		const EventIdRef evPopulateTabs = "tabs.populate"_event;
 	}
+
+	void SaveLevelAsFunction(ISectors& sectors, StringBuilder& sb);
 }
 
 namespace
@@ -573,7 +575,7 @@ namespace
 			sb.AppendFormat("\t(AddSectorsToLevel)\n");
 			sb.AppendFormat(")\n\n");
 
-			map->Sectors().SaveAsFunction(sb);
+			HV::SaveLevelAsFunction(map->Sectors(), sb);
 
 			try
 			{

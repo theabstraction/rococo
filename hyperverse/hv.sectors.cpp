@@ -7,276 +7,23 @@
 #include <rococo.clock.h>
 #include <rococo.sexy.api.h>
 
+namespace HV
+{
+	ITagsSupervisor* CreateTagsSupervisor(ISectors& sectors);
+	bool CanSeeThrough(const Matrix4x4& camera, cr_vec3 forward, const Gap& gap, Vec2& leftPoint, Vec2& rightPoint, bool fromHome);
+}
+
+#include "hv.action.factory.inl"
+#include "hv.sector.layout.null.h"
+
 namespace ANON
 {
    using namespace Rococo;
    using namespace HV;
 
-   Vec3 GetNormal(const Gap& gap)
-   {
-	   Vec3 top = { gap.b.x - gap.a.x, gap.a.y - gap.a.y, 0 };
-	   return Vec3 { top.y, -top.x, 0 };
-   }
-
-   // Determine if we can look through a gap to see the sector beyond
-   // If we are in the home sector, then don't worry too much if the gap is slightly behind the near plane
-   // As we may be on the edge of the home sector, and our near plane just over the gap into the next sector
-   bool CanSeeThrough(const Matrix4x4& camera, cr_vec3 forward, const Gap& gap, Vec2& leftPoint, Vec2& rightPoint, bool fromHome)
-   {
-	   Vec4 qGap[4] =
-	   {
-		   { gap.a.x, gap.a.y, gap.z1, 1 },
-		   { gap.b.x, gap.b.y, gap.z1, 1 },
-		   { gap.b.x, gap.b.y, gap.z0, 1 },
-		   { gap.a.x, gap.a.y, gap.z0, 1 }
-	   };
-
-	   Vec4 qScreen[4];
-
-	   for (int i = 0; i < 4; ++i)
-	   {
-		   qScreen[i] = camera * qGap[i];
-	   }
-
-	   Vec3 qScreenV[4];
-	   for (int i = 0; i < 4; ++i)
-	   {
-		   qScreenV[i] = ((const Vec3&) qScreen[i]) * (1.0f / qScreen[i].w);
-	   }
-
-	   Vec3 ab1 = qScreenV[1] - qScreenV[0];
-	   Vec3 bc1 = qScreenV[2] - qScreenV[1];
-	   float tri1Normal = Cross(Flatten(ab1), Flatten(bc1));
-
-	   Vec3 ab2 = qScreenV[3] - qScreenV[2];
-	   Vec3 bc2 = qScreenV[0] - qScreenV[3];
-	   float tri2Normal = Cross(Flatten(ab2), Flatten(bc2));
-
-	   const Vec3* v = qScreenV;
-
-	   int j = 0;
-
-	   for (int i = 0; i < 4; i++)
-	   {
-		   if (qScreen[i].w < 0)
-		   {
-			   j--;
-		   }
-		   else if (qScreen[i].w > 0)
-		   {
-			   j++;
-		   }
-	   }
-
-	   if (j == 4 || j == -4)
-	   {
-		   if (tri1Normal > 0 && tri2Normal > 0)
-		   {
-			   // Edge case -> the eye may be in one sector, and the near plane just over the gap
-			   // This flips triangles, but we are still looking into the sector.
-			   // If this is so our view direction opposes the normal  of the gap
-
-			   if (fromHome)
-			   {
-				   if (Dot(forward, GetNormal(gap)))
-				   {
-					   return true;
-				   }
-			   }
-
-return false;
-		   }
-
-		   if (v[0].x <= -1 && v[1].x <= -1 && v[2].x <= -1 && v[3].x <= -1)
-		   {
-			   // Everything to left of screen, so gap is not visible
-			   return false;
-		   }
-
-		   if (v[0].x >= 1 && v[1].x >= 1 && v[2].x >= 1 && v[3].x >= 1)
-		   {
-			   // Everything to right of screen, so gap is not visible
-			   return false;
-		   }
-
-		   if (v[0].y >= 1 && v[1].y >= 1 && v[2].y >= 1 && v[3].y >= 1)
-		   {
-			   // Everything to top of screen, so gap is not visible
-			   return false;
-		   }
-
-		   if (v[0].y <= -1 && v[1].y <= -1 && v[2].y <= -1 && v[3].y <= -1)
-		   {
-			   // Everything to bottom of screen, so gap is not visible
-			   return false;
-		   }
-	   }
-
-	   return true;
-   }
-
    EventIdRef evPopulateSectors = "sectors.populate"_event;
 
-   struct NullSectorLayout : public ISectorLayout
-   {
-	   int32 CountSquares() override { return 0; }
-	   boolean32 Exists() override { return false; }
-	   void GetSquare(int32 sqIndex, AABB2d& sq) override {}
-	   void CeilingQuad(int32 sqIndex, QuadVertices& q) override {}
-	   void FloorQuad(int32 sqIndex, QuadVertices& q) override {}
-	   void Altitude(Vec2& altitudes) override {}
-	   int32 NumberOfSegments()  override { return 0; }
-	   int32 NumberOfGaps() override { return 0; }
-	   void GetSegment(int32 segIndex, HV::WallSegment& segment) override {}
-	   void GetGap(int32 gapIndex, HV::GapSegment& segment) override {}
-	   ID_ENTITY AddSceneryAroundObject(const fstring& mesh, ID_ENTITY centrePieceId, const HV::InsertItemSpec& iis, const HV::ObjectCreationSpec& ocs) override { return ID_ENTITY(); }
-	   ID_ENTITY AddItemToLargestSquare(const fstring& mesh, int32 addItemFlags, const HV::ObjectCreationSpec& ocs) override { return ID_ENTITY(); }
-	   boolean32 PlaceItemOnUpFacingQuad(ID_ENTITY id) override { return false; }
-	   void DeleteScenery()  override {}
-	   void DeleteItemsWithMesh(const fstring& prefix) override {}
-	   void ClearManagedEntities()  override {}
-	   void ManageEntity(ID_ENTITY id) override {}
-	   void UseUpFacingQuads(ID_ENTITY id)  override {}
-	   boolean32 TryGetAsRectangle(GuiRectf& rect) override { rect = { 0,0,0,0 }; return false; }
-   } nullSectorLayout;
-
-   struct ActionFactoryCreateContext : IIActionFactoryCreateContext, IGlobalVariables
-   {
-	   IGlobalVariables& GetGlobals() override { return *this; }
-
-	   mutable stringmap<int32> int32Variables;
-
-	   bool GetValue(cstr name, int32& outputValue) const override
-	   {
-		   auto i = int32Variables.find(name);
-		   if (i != int32Variables.end())
-		   {
-			   outputValue = i->second;
-			   return true;
-		   }
-		   else
-		   {
-			   int32Variables[name] = outputValue;
-			   return false;
-		   }
-	   }
-
-	   int32 SetValue(cstr name, int32 value) override
-	   {
-		   auto i = int32Variables.find(name);
-		   if (i != int32Variables.end())
-		   {
-			   int32 output = i->second;
-			   i->second = value;
-			   return output;
-		   }
-		   else
-		   {
-			   int32Variables[name] = value;
-			   return 0;
-		   }
-	   }
-
-	   void ValidateName(cstr name) const override
-	   {
-		   if (name == nullptr || *name == 0) Throw(0, "Global variable name was null.");
-		   for (auto p = name; *p != 0; p++)
-		   {
-			   char c = *p;
-			   if (!IsAlphaNumeric(c) && c != '.' && c != '_')
-			   {
-				   Throw(0, "Global variable %s had bad character at position %u. Must be alphanumeric, . or _", name, p - name);
-			   }
-		   }
-
-		   if (strlen(name) >= IGlobalVariables::MAX_VARIABLE_NAME_LENGTH)
-		   {
-			   Throw(0, "Global variable too long %s. Max length is ", name, IGlobalVariables::MAX_VARIABLE_NAME_LENGTH);
-		   }
-	   }
-   };
-
-   struct JapaneseFrodoMachine : ITags
-   {
-	   ISectors* sectors;
-
-	   typedef stringmap<std::vector<ISector*>> TMapStringToSectors;
-	   TMapStringToSectors map;
-
-	   bool inTagCall = false;
-
-	   void Invalidate() override
-	   {
-		   if (inTagCall) Throw(0, "Tags.Invalidate(): callback tried to delete hashtable");
-		   map.clear();
-	   }
-
-	   void RefreshHashtables()
-	   {
-		   Invalidate();
-
-		   cstr undefined = GET_UNDEFINDED_TAG();
-
-		   for (auto* s : *sectors)
-		   {
-			   auto& tags = s->GetTags();
-			   for (int32 i = 0; i < tags.Count(); ++i)
-			   {
-				   char varName[IGlobalVariables::MAX_VARIABLE_NAME_LENGTH];
-				   tags.GetItem(i, varName, IGlobalVariables::MAX_VARIABLE_NAME_LENGTH);
-
-				   if (Eq(varName, undefined))
-				   {
-					   continue;
-				   }
-				   
-				   auto j = map.find(varName);
-				   if (j == map.end())
-				   {
-					   j = map.insert(varName, std::vector<ISector*>()).first;
-				   }
-
-				   j->second.push_back(s);
-			   }
-		   }
-	   }
-
-	   void ForEachSectorWithTagProtected(cstr tag, ITagCallback& cb)
-	   {
-		   auto i = map.find(tag);
-		   if (i != map.end())
-		   {
-			   int32 count = 0;
-
-			   for (auto* sector : i->second)
-			   {
-				   TagContext context{ *sector, tag,  count++ };
-				   cb.OnTag(context);
-			   }
-		   }
-	   }
-
-	   void ForEachSectorWithTag(cstr tag, ITagCallback& cb) override
-	   {
-		   if (inTagCall) Throw(0, "Tags.ForEachSectorWithTag(%s,...): callback tried to recurse", tag);
-
-		   if (map.empty())
-		   {
-			   RefreshHashtables();
-		   }
-
-		   try
-		   {
-			   inTagCall = true;
-			   ForEachSectorWithTagProtected(tag, cb);
-			   inTagCall = false;
-		   }
-		   catch(IException&)
-		   {
-			   inTagCall = false;
-		   }
-	   }
-   };
+   NullSectorLayout nullSectorLayout;
 
    class Sectors : 
 	   public ISectors,  
@@ -288,15 +35,15 @@ return false;
 	   std::vector<ISector*> sectors;
 	   Platform& platform;
 	   ActionFactoryCreateContext afcc;
-	   JapaneseFrodoMachine tags;
 	   AutoFree<ISectorBuilderSupervisor> sectorBuilder;
+	   AutoFree<ITagsSupervisor> tags;
    public:
 	   Sectors(Platform& _platform) :
 		   platform(_platform),
 		   sectorBuilder(CreateSectorBuilder(sectorBuilderAPI)),
-		   sectorBuilderAPI(_platform, *this)
+		   sectorBuilderAPI(_platform, *this),
+		   tags(CreateTagsSupervisor(*this))
 	   {
-		   tags.sectors = this;
 		   platform.publisher.Subscribe(this, evPopulateSectors);
 	   }
 
@@ -400,6 +147,11 @@ return false;
 				   }
 			   }
 		   }
+
+		   void ClearSectors() override
+		   {
+			   sectors.Clear();
+		   }
 	   } sectorBuilderAPI;
 
 	   bool IsMeshGenerationEnabled() const override
@@ -409,17 +161,12 @@ return false;
 
 	   ITags& Tags()
 	   {
-		   return tags;
+		   return *tags;
 	   }
 
 	   IIActionFactoryCreateContext& AFCC()
 	   {
 		   return afcc;
-	   }
-
-	   void RebaseIds()
-	   {
-
 	   }
 
 	   void Clear()
@@ -430,54 +177,6 @@ return false;
 		   }
 
 		   sectors.clear();
-	   }
-
-	   void SaveAsFunction(StringBuilder& sb) override
-	   {
-		   sb.AppendFormat("(using HV)\n");
-		   sb.AppendFormat("(using Rococo.Graphics)\n\n");
-
-		   sb.AppendFormat("(function AddSectorsToLevel -> :\n");
-		   sb.AppendFormat("\t(ISectors sectors (SectorBuilder))\n\n");
-		   sb.AppendFormat("\t(sectors.Clear)\n");
-		   sb.AppendFormat("\t(sectors.DisableMeshGeneration)\n\n");
-
-		   uint32 index = 0;
-		   for (auto s : sectors)
-		   {
-			   sb.AppendFormat("\t(AddSector%u sectors)%s\n", index++, index == 0 ? " // entrance" : "");
-		   }
-
-		   sb.AppendFormat("\n\t(sectors.EnableMeshGeneration)\n");
-		   sb.AppendFormat("\t(sectors.GenerateMeshes)\n");
-
-		   sb.AppendFormat(")\n\n");
-
-		   index = 0;
-		   for (auto s : sectors)
-		   {
-			   sb.AppendFormat("(function AddSector%u (ISectors sectors) -> :\n", index++);
-
-			   int z0 = (int)(s->Z0() * 100);
-			   int z1 = (int)(s->Z1() * 100);
-
-			   size_t nVertices;
-			   auto* v = s->WallVertices(nVertices);
-
-			   for (size_t i = 0; i < nVertices; i++)
-			   {
-				   sb.AppendFormat("\t(sectors.AddVertex %f %f)\n", v[i].x, v[i].y);
-			   }
-
-			   s->SaveTemplate(sb);
-
-			   sb.AppendFormat(")\n\n");
-		   }
-	   }
-
-	   void ResetConfig()
-	   {
-
 	   }
 
 	   int64 iterationFrame = 0x81000000000;
@@ -781,6 +480,7 @@ return false;
 			   Sectors* This;
 			   void OnEvent(ScriptCompileArgs& args) override
 			   {
+				   HV::AddMathsEx(args.ss);
 				   AddNativeCalls_HVISectorEnumerator(args.ss, This);
 				   AddNativeCalls_HVISectorLayout(args.ss, nullptr);
 			   }
@@ -801,19 +501,6 @@ return false;
 				   s->OnTick(clock);
 			   }
 		   }
-	   }
-
-	   HV::ISectorAIBuilder* GetSectorAIBuilder(int32 id)
-	   {
-		   for (auto s : sectors)
-		   {
-			   if (s->Id() == (uint32)id)
-			   {
-				   return &s->GetSectorAIBuilder();
-			   }
-		   }
-
-		   Throw(0, "Could not find sector with id %d", id);
 	   }
    }; // class Sectors
 }// HV

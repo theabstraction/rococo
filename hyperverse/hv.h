@@ -45,6 +45,7 @@ namespace HV
 	ROCOCOAPI ISectorBuildAPI
 	{
 		virtual void Attach(ISector * s) = 0;
+		virtual void ClearSectors() = 0;
 		virtual ISector* CreateSector() = 0;
 		virtual MaterialId GetMaterialId(cstr name) = 0;
 		virtual MaterialId GetRandomMaterialId(Rococo::Graphics::MaterialCategory cat) = 0;
@@ -120,6 +121,11 @@ namespace HV
 	{
 		 virtual void Invalidate() = 0;
 		 virtual void ForEachSectorWithTag(cstr tag, ITagCallback& cb) = 0;
+	};
+
+	ROCOCOAPI ITagsSupervisor : ITags
+	{
+		virtual void Free() = 0;
 	};
 
 	namespace Events
@@ -603,13 +609,8 @@ namespace HV
 	   virtual ISector** begin() = 0;
 	   virtual ISector** end() = 0;
 
-	   virtual void RebaseIds() = 0;
-
 	   virtual void OnSectorScriptChanged(const FileModifiedArgs& args) = 0;
 	   virtual size_t ForEverySectorVisibleBy(cr_m4x4 worldToScreen, cr_vec3 eye, cr_vec3 forward, IEventCallback<VisibleSector>& cb) = 0;
-	   virtual void ResetConfig() = 0;
-
-	   virtual void SaveAsFunction(StringBuilder& sb) = 0;
 
 	   virtual void BindProperties(IBloodyPropertySetEditor& editor) = 0;
 	   virtual void NotifyChanged() = 0;

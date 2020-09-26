@@ -59,6 +59,7 @@ public:
 	void Clear() override
 	{
 		vertices.clear();
+		api.ClearSectors();
 	}
 
 	void DisableMeshGeneration() override

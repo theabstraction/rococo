@@ -127,14 +127,17 @@
     <ClCompile Include="hv.events.cpp" />
     <ClCompile Include="hv.field.editor.cpp" />
     <ClCompile Include="hv.fps.logic.cpp" />
+    <ClCompile Include="hv.level.saver.cpp" />
     <ClCompile Include="hv.main.mplat.cpp" />
+    <ClCompile Include="hv.optics.cpp" />
     <ClCompile Include="hv.player.cpp" />
     <ClCompile Include="hv.script.config.cpp" />
     <ClCompile Include="hv.scripts.cpp" />
-    <ClCompile Include="hv.sector-builder.cpp" />
+    <ClCompile Include="hv.sector-builder.script.cpp" />
     <ClCompile Include="hv.sector.builder.cpp" />
     <ClCompile Include="hv.sector.cpp" />
     <ClCompile Include="hv.sector.editor.cpp" />
+    <ClCompile Include="hv.sector.tags.cpp" />
     <ClCompile Include="hv.sectors.cpp" />
     <ClCompile Include="hv.texture_list.cpp" />
     <ClCompile Include="hv.triggers.cpp" />
@@ -145,6 +148,7 @@
     <ClInclude Include="hv.defaults.h" />
     <ClInclude Include="hv.events.h" />
     <ClInclude Include="hv.h" />
+    <ClInclude Include="hv.sector.layout.null.h" />
     <ClInclude Include="hv.sxh.h" />
   </ItemGroup>
   <ItemGroup>
@@ -154,6 +158,7 @@
     <CustomBuild Include="hv.sxh">
       <FileType>Document</FileType>
     </CustomBuild>
+    <None Include="hv.action.factory.inl" />
     <None Include="hv.sxh.inl" />
   </ItemGroup>
   <ItemGroup>
