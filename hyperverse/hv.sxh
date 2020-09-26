@@ -47,7 +47,7 @@
 (interface 
 	(as.sxy HV.ISectorAIBuilder "../content/scripts/hv")
 	(as.cpp HV.ISectorAIBuilder "hv" )
-	(context factory HV.ISectorAIBuilder)
+	(context factory Cosmos)
 	(methods
 		(ClearTriggers)
 		(AddTrigger (IString name))
@@ -57,6 +57,8 @@
 		(AddActionArgumentString (IString argName)(IString value))
 		(AddTag (IString text))
 	)
+
+	(factory HV.SectorAIBuilder (Int32 sectorId))
 )
 
 (interface
@@ -77,7 +79,6 @@
 		(SetWallScriptF32 (IString name)(Float32 value))
 		(SetFloorScriptF32 (IString name)(Float32 value))
 		(SetCorridorScriptF32 (IString name)(Float32 value))
-		(GetSectorAIBuilder (Int32 sectorId)-> (HV.ISectorAIBuilder sector))
 	)
 	(factory HV.SectorBuilder)
 )

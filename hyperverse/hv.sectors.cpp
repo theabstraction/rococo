@@ -279,8 +279,7 @@ return false;
    };
 
    class Sectors : 
-	   public ISectors, 
-	   public ISectorBuilder, 
+	   public ISectors,  
 	   public Rococo::Events::IObserver,
 	   public ISectorEnumerator
    {
@@ -290,11 +289,12 @@ return false;
 	   Platform& platform;
 	   ActionFactoryCreateContext afcc;
 	   JapaneseFrodoMachine tags;
-	   bool generateMesh = true;
-
+	   AutoFree<ISectorBuilderSupervisor> sectorBuilder;
    public:
 	   Sectors(Platform& _platform) :
-		   platform(_platform)
+		   platform(_platform),
+		   sectorBuilder(CreateSectorBuilder(sectorBuilderAPI)),
+		   sectorBuilderAPI(_platform, *this)
 	   {
 		   tags.sectors = this;
 		   platform.publisher.Subscribe(this, evPopulateSectors);
@@ -303,13 +303,7 @@ return false;
 	   ~Sectors()
 	   {
 		   platform.publisher.Unsubscribe(this);
-
 		   Clear();
-
-		   for (auto i : temp.nameToMaterials)
-		   {
-			   delete i.second;
-		   }
 	   }
 
 	   int32 Count() override
@@ -361,31 +355,56 @@ return false;
 		   return *this;
 	   }
 
-	   void DisableMeshGeneration() override
+	   struct SectorBuilderAPI : ISectorBuildAPI
 	   {
-		   generateMesh = false;
-	   }
-
-	   void EnableMeshGeneration() override
-	   {
-		   generateMesh = true;
-	   }
-
-	   void GenerateMeshes() override
-	   {
-		   for (auto sector : sectors)
+		   Platform& platform;
+		   Sectors& sectors;
+		   SectorBuilderAPI(Platform& _platform, Sectors& _sectors) :
+			   platform(_platform), sectors(_sectors) 
 		   {
-			   if (sector->IsDirty())
+		   }
+
+		   void Attach(ISector* s) override
+		   {
+			   sectors.sectors.push_back(s);
+		   }
+
+		   ISector* CreateSector() override
+		   {
+			   return HV::CreateSector(platform, sectors);
+		   }
+
+		   MaterialId GetMaterialId(cstr name) override
+		   {
+			   return platform.renderer.GetMaterialId(name);
+		   }
+
+		   MaterialId GetRandomMaterialId(Rococo::Graphics::MaterialCategory cat) override
+		   {
+			   return platform.instances.GetRandomMaterialId(cat);
+		   }
+
+		   void UpdateProgress(int id) override
+		   {
+			   platform.utilities.ShowBusy(true, "Loading level", "Created sector %u", id);
+		   }
+
+		   void GenerateMeshes() override
+		   {
+			   for (auto sector : sectors.sectors)
 			   {
-				   platform.utilities.ShowBusy(true, "Generating meshes", "Building sector %u", sector->Id());
-				   sector->Rebuild();
+				   if (sector->IsDirty())
+				   {
+					   platform.utilities.ShowBusy(true, "Generating meshes", "Building sector %u", sector->Id());
+					   sector->Rebuild();
+				   }
 			   }
 		   }
-	   }
+	   } sectorBuilderAPI;
 
 	   bool IsMeshGenerationEnabled() const override
 	   {
-		   return generateMesh;
+		   return sectorBuilder->IsMeshGenerationEnabled();
 	   }
 
 	   ITags& Tags()
@@ -411,7 +430,6 @@ return false;
 		   }
 
 		   sectors.clear();
-		   vertices.clear();
 	   }
 
 	   void SaveAsFunction(StringBuilder& sb) override
@@ -594,166 +612,6 @@ return false;
 	   ISector** begin() { return (sectors.empty() ? nullptr : &sectors[0]); }
 	   ISector** end() { return (sectors.empty() ? nullptr : &sectors[0] + sectors.size()); }
 
-	   std::vector<Vec2> vertices;
-
-	   void AddVertex(float x, float y) override
-	   {
-		   vertices.push_back(Vec2{ x, y });
-	   }
-
-	   struct
-	   {
-		   std::string door_scriptName;
-		   bool door_useScript;
-
-		   std::string wall_scriptName;
-		   bool wall_useScript;
-
-		   std::string floor_scriptName;
-		   bool floor_useScript;
-
-		   stringmap<Material*> nameToMaterials;
-		   stringmap<float> doorVars;
-		   stringmap<float> floorVars;
-		   stringmap<float> wallVars;
-	   } temp;
-
-	   void SetTemplateWallScript(boolean32 useScript, const fstring& scriptName) override
-	   {
-		   temp.wall_useScript = useScript;
-		   temp.wall_scriptName = scriptName;
-	   }
-
-	   void SetTemplateDoorScript(boolean32 hasDoor, const fstring& scriptName)  override
-	   {
-		   temp.door_useScript = hasDoor;
-		   temp.door_scriptName = scriptName;
-	   }
-
-	   void SetTemplateFloorScript(boolean32 useScript, const fstring& scriptName) override
-	   {
-		   temp.floor_useScript = useScript;
-		   temp.floor_scriptName = scriptName;
-	   }
-
-	   cstr GetTemplateFloorScript(bool& usesScript) const override
-	   {
-		   usesScript = this->temp.floor_useScript;
-		   return temp.floor_scriptName.empty() ? "" : temp.floor_scriptName.c_str();
-	   }
-
-	   cstr GetTemplateDoorScript(bool& hasDoor) const override
-	   {
-		   hasDoor = this->temp.door_useScript;
-		   return temp.door_scriptName.empty() ? "" : temp.door_scriptName.c_str();
-	   }
-
-	   cstr GetTemplateWallScript(bool& usesScript) const override
-	   {
-		   usesScript = this->temp.wall_useScript;
-		   return temp.wall_scriptName.empty() ? "" : temp.wall_scriptName.c_str();
-	   }
-
-	   void EnumerateDoorVars(IEventCallback<VariableCallbackData>& cb) override
-	   {
-		   for (auto& v : temp.doorVars)
-		   {
-			   cb.OnEvent(VariableCallbackData{ v.first, v.second });
-		   }
-	   }
-
-	   void EnumerateWallVars(IEventCallback<VariableCallbackData>& cb) override
-	   {
-		   for (auto& v : temp.wallVars)
-		   {
-			   cb.OnEvent(VariableCallbackData{ v.first, v.second });
-		   }
-	   }
-
-	   void EnumerateFloorVars(IEventCallback<VariableCallbackData>& cb) override
-	   {
-		   for (auto& v : temp.floorVars)
-		   {
-			   cb.OnEvent(VariableCallbackData{ v.first, v.second });
-		   }
-	   }
-
-	   void SetWallScriptF32(const fstring& name, float value) override
-	   {
-		   temp.wallVars[(cstr)name] = value;
-	   }
-
-	   void SetFloorScriptF32(const fstring& name, float value) override
-	   {
-		   temp.floorVars[(cstr)name] = value;
-	   }
-
-	   void SetCorridorScriptF32(const fstring& name, float value) override
-	   {
-		   temp.doorVars[(cstr)name] = value;
-	   }
-
-	   void SetTemplateMaterial(const fstring& bodyClass, Graphics::MaterialCategory cat, RGBAb colour, const fstring& persistentId)  override
-	   {
-		   auto i = temp.nameToMaterials.find((cstr)bodyClass);
-		   if (i == temp.nameToMaterials.end())
-		   {
-			   i = temp.nameToMaterials.insert(bodyClass, new Material).first;
-		   }
-
-		   i->second->category = cat;
-		   i->second->mvd.colour = colour;
-		   SafeFormat(i->second->persistentName, IO::MAX_PATHLEN, "%s", (cstr)persistentId);
-		   i->second->mvd.materialId = platform.renderer.GetMaterialId(i->second->persistentName);
-		   if (i->second->mvd.materialId < 0)
-		   {
-			   i->second->mvd.materialId = platform.instances.GetRandomMaterialId(cat);
-		   }
-	   }
-
-	   int32 CreateFromTemplate(int32 altitude, int32 height) override
-	   {
-		   struct : MatEnumerator
-		   {
-			   Sectors* This;
-			   virtual void Enumerate(IEventCallback<MaterialArgs>& cb)
-			   {
-				   for (auto i : This->temp.nameToMaterials)
-				   {
-					   MaterialArgs args{ i.second, i.first };
-					   cb.OnEvent(args);
-				   }
-			   }
-		   } mats;
-
-		   mats.This = this;
-
-		   auto* s = CreateSector(platform, *this);
-		   s->SetTemplate(mats);
-
-		   try
-		   {
-			   s->Build(&vertices[0], vertices.size(), 0.01f * altitude, 0.01f * (altitude + height));
-			   sectors.push_back(s);
-		   }
-		   catch (IException&)
-		   {
-			   s->Free();
-			   vertices.clear();
-			   throw;
-		   }
-
-		   vertices.clear();
-
-		   temp.wallVars.clear();
-		   temp.floorVars.clear();
-		   temp.doorVars.clear();
-
-		   platform.utilities.ShowBusy(true, "Loading level", "Created sector %u", s->Id());
-
-		   return s->Id();
-	   }
-
 	   void AddSector(const Vec2* floorPlan, size_t nVertices) override
 	   {
 		   auto* s = CreateSector(platform, *this);
@@ -866,9 +724,9 @@ return false;
 		   }
 	   }
 
-	   ISectorBuilder* Builder()
+	   ISectorBuilderSupervisor* Builder()
 	   {
-		   return this;
+		   return sectorBuilder;
 	   }
 
 	   U8FilePath populateScript = { 0 };

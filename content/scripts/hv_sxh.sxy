@@ -65,6 +65,7 @@
 )
 
 (class ProxyISectorAIBuilder (implements HV.ISectorAIBuilder) (Pointer hObject))
+	(method ProxyISectorAIBuilder.Construct (Pointer hObject): (this.hObject = hObject))
 	(method ProxyISectorAIBuilder.ClearTriggers  ->  : (HV.Native.ISectorAIBuilderClearTriggers this.hObject ))
 	(method ProxyISectorAIBuilder.AddTrigger (Sys.Type.IString name) ->  : (HV.Native.ISectorAIBuilderAddTrigger this.hObject name))
 	(method ProxyISectorAIBuilder.AddAction (Sys.Type.IString factoryName) ->  : (HV.Native.ISectorAIBuilderAddAction this.hObject factoryName))
@@ -72,6 +73,11 @@
 	(method ProxyISectorAIBuilder.AddActionArgumentF32 (Sys.Type.IString argName)(Float32 value) ->  : (HV.Native.ISectorAIBuilderAddActionArgumentF32 this.hObject argName value))
 	(method ProxyISectorAIBuilder.AddActionArgumentString (Sys.Type.IString argName)(Sys.Type.IString value) ->  : (HV.Native.ISectorAIBuilderAddActionArgumentString this.hObject argName value))
 	(method ProxyISectorAIBuilder.AddTag (Sys.Type.IString text) ->  : (HV.Native.ISectorAIBuilderAddTag this.hObject text))
+
+(factory HV.SectorAIBuilder HV.ISectorAIBuilder (Int32 sectorId) :
+	(Pointer pObject = (HV.Native.GetHandleForISectorAIBuilder0 sectorId))
+	(construct ProxyISectorAIBuilder pObject)
+)
 
 (interface HV.ISectors
 	(AddVertex (Float32 x)(Float32 y) -> )
@@ -87,7 +93,6 @@
 	(SetWallScriptF32 (Sys.Type.IString name)(Float32 value) -> )
 	(SetFloorScriptF32 (Sys.Type.IString name)(Float32 value) -> )
 	(SetCorridorScriptF32 (Sys.Type.IString name)(Float32 value) -> )
-	(GetSectorAIBuilder (Int32 sectorId) -> (HV.ISectorAIBuilder sector))
 )
 
 (class ProxyISectors (implements HV.ISectors) (Pointer hObject))
@@ -105,7 +110,6 @@
 	(method ProxyISectors.SetWallScriptF32 (Sys.Type.IString name)(Float32 value) ->  : (HV.Native.ISectorsSetWallScriptF32 this.hObject name value))
 	(method ProxyISectors.SetFloorScriptF32 (Sys.Type.IString name)(Float32 value) ->  : (HV.Native.ISectorsSetFloorScriptF32 this.hObject name value))
 	(method ProxyISectors.SetCorridorScriptF32 (Sys.Type.IString name)(Float32 value) ->  : (HV.Native.ISectorsSetCorridorScriptF32 this.hObject name value))
-	(method ProxyISectors.GetSectorAIBuilder (Int32 sectorId) -> (HV.ISectorAIBuilder sector) : (HV.Native.ISectorsGetSectorAIBuilder this.hObject sectorId -> sector))
 
 (factory HV.SectorBuilder HV.ISectors  :
 	(Pointer pObject = (HV.Native.GetHandleForISectors0 ))

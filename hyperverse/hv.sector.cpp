@@ -29,6 +29,19 @@ namespace HV
    {
 	   return "<undefined>";
    }
+
+   HV::ISectorAIBuilder* FactoryConstructHVSectorAIBuilder(Cosmos* c, int32 sectorId)
+   {
+	   for (auto s : c->sectors)
+	   {
+		   if (s->Id() == (uint32)sectorId)
+		   {
+			   return &s->GetSectorAIBuilder();
+		   }
+	   }
+
+	   Throw(0, "HV.SectorAIBuilder: no sector with id #%d", __FUNCTION__, sectorId);
+   }
 }
 
 namespace ANON
@@ -1377,6 +1390,9 @@ namespace ANON
 			  void OnEvent(ScriptCompileArgs& args) override
 			  {
 				  This->wallTriangles.clear();
+				  
+				  HV::AddMathsEx(args.ss);
+
 				  AddNativeCalls_HVISectorWallTesselator(args.ss, this);
 				  AddNativeCalls_HVISectorComponents(args.ss, this);
 				  AddNativeCalls_HVITriangleList(args.ss, this);
@@ -1535,6 +1551,7 @@ namespace ANON
 					  This->TesselateFloorAndCeiling();
 				  }
 
+				  HV::AddMathsEx(args.ss);
 				  AddNativeCalls_HVISectorFloorTesselator(args.ss, this);
 				  AddNativeCalls_HVISectorComponents(args.ss, this);
 				  AddNativeCalls_HVIScriptConfig(args.ss, &This->scriptConfig->Current());
@@ -1807,7 +1824,7 @@ namespace ANON
 		  PrepMat(GraphicsEx::BodyComponentMatClass_Door_Panels,  "random", RandomWoodOrMetal());
 		  PrepMat(GraphicsEx::BodyComponentMatClass_Door_Casing,  "random", RandomWoodOrMetal());
 
-		  cstr wscript = co_sectors.GetTemplateWallScript(scriptWalls);
+		  cstr wscript = co_sectors.Builder()->GetTemplateWallScript(scriptWalls);
 		  Format(wallScript, "%s", wscript);
 
 		  struct VariableEnumerator : IEventCallback<VariableCallbackData>
@@ -1825,27 +1842,27 @@ namespace ANON
 		  {
 			  VariableEnumerator foreachWallVariable(*this);
 			  scriptConfig->SetCurrentScript(wscript);
-			  co_sectors.EnumerateWallVars(foreachWallVariable);
+			  co_sectors.Builder()->EnumerateWallVars(foreachWallVariable);
 		  }
 
-		  cstr cscript = co_sectors.GetTemplateDoorScript(scriptCorridor);
+		  cstr cscript = co_sectors.Builder()->GetTemplateDoorScript(scriptCorridor);
 		  Format(corridorScript, "%s", cscript);
 
 		  if (cscript)
 		  {
 			  VariableEnumerator foreachCorridorVariable(*this);
 			  scriptConfig->SetCurrentScript(cscript);
-			  co_sectors.EnumerateWallVars(foreachCorridorVariable);
+			  co_sectors.Builder()->EnumerateWallVars(foreachCorridorVariable);
 		  }
 
-		  cstr fscript = co_sectors.GetTemplateFloorScript(scriptFloor);
+		  cstr fscript = co_sectors.Builder()->GetTemplateFloorScript(scriptFloor);
 		  Format(floorScript, "%s", fscript);
 
 		  if (fscript)
 		  {
 			  VariableEnumerator foreachFloorVariable(*this);
 			  scriptConfig->SetCurrentScript(fscript);
-			  co_sectors.EnumerateWallVars(foreachFloorVariable);
+			  co_sectors.Builder()->EnumerateWallVars(foreachFloorVariable);
 		  }
       }
 
@@ -2266,6 +2283,7 @@ namespace ANON
 
             void OnEvent(ScriptCompileArgs& args) override
             {
+				HV::AddMathsEx(args.ss);
                AddNativeCalls_HVICorridor(args.ss, this);
 			   AddNativeCalls_HVISectorComponents(args.ss, this);
 			   AddNativeCalls_HVISectorEnumerator(args.ss, &This->co_sectors.Enumerator());

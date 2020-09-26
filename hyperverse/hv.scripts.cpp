@@ -59,38 +59,43 @@ namespace HV
 
 namespace HV
 {
-   void RunEnvironmentScript(Cosmos& e, cstr name, bool releaseAfterUse, bool trace)
-   {
-      class ScriptContext: public IEventCallback<ScriptCompileArgs>
-      {
-         Cosmos& e;
-
-         virtual void OnEvent(ScriptCompileArgs& args)
-         { 
+	void AddMathsEx(IPublicScriptSystem& ss)
+	{
 #ifdef _DEBUG
-            args.ss.AddNativeLibrary("rococo.sexy.mathsex.debug");
+		ss.AddNativeLibrary("rococo.sexy.mathsex.debug");
 #else
-            args.ss.AddNativeLibrary("rococo.sexy.mathsex");
+		ss.AddNativeLibrary("rococo.sexy.mathsex");
 #endif
-            AddNativeCalls_HVIPlayer(args.ss, &e.players);
-			AddNativeCalls_HVISectorBuilder(args.ss, &e.sectors);
-			AddNativeCalls_HVISectorAIBuilder(args.ss, nullptr);
-         }
+	}
 
-      public:
-         ScriptContext(Cosmos& _e) : e(_e) {}
+	void RunEnvironmentScript(Cosmos& e, cstr name, bool releaseAfterUse, bool trace)
+	{
+		class ScriptContext : public IEventCallback<ScriptCompileArgs>
+		{
+			Cosmos& e;
 
-         void Execute(cstr name, bool trace)
-         {
-            e.platform.utilities.RunEnvironmentScript(*this, name, true, true, trace);
-         }
-      } sc(e);
+			virtual void OnEvent(ScriptCompileArgs& args)
+			{
+				AddMathsEx(args.ss);
+				AddNativeCalls_HVIPlayer(args.ss, &e.players);
+				AddNativeCalls_HVISectorBuilder(args.ss, &e.sectors);
+				AddNativeCalls_HVISectorAIBuilder(args.ss, nullptr);
+			}
 
-      sc.Execute(name, trace);
+		public:
+			ScriptContext(Cosmos& _e) : e(_e) {}
 
-	  if (releaseAfterUse)
-	  {
-		  e.platform.sourceCache.Release(name);
-	  }
-   }
+			void Execute(cstr name, bool trace)
+			{
+				e.platform.utilities.RunEnvironmentScript(*this, name, true, true, trace);
+			}
+		} sc(e);
+
+		sc.Execute(name, trace);
+
+		if (releaseAfterUse)
+		{
+			e.platform.sourceCache.Release(name);
+		}
+	}
 }

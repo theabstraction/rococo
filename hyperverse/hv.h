@@ -25,6 +25,11 @@ namespace HV
       virtual float& DuckFactor() = 0;
       virtual float Height() const = 0;
    };
+
+   struct Cosmos;
+   struct ISectorAIBuilder;
+
+   HV::ISectorAIBuilder* FactoryConstructHVSectorAIBuilder(Cosmos* c, int32 sectorId);
 }
 
 #include "hv.script.types.h"
@@ -35,596 +40,621 @@ namespace HV
 
 namespace HV
 {
-   struct ConfigText
-   {
-      const fstring key;
-      const fstring value;
+	struct ISector;
 
-      operator const fstring() { return key; }
-   };
+	ROCOCOAPI ISectorBuildAPI
+	{
+		virtual void Attach(ISector * s) = 0;
+		virtual ISector* CreateSector() = 0;
+		virtual MaterialId GetMaterialId(cstr name) = 0;
+		virtual MaterialId GetRandomMaterialId(Rococo::Graphics::MaterialCategory cat) = 0;
 
-   struct ConfigInt
-   {
-      const fstring key;
-      int value;
+		// platform.utilities.ShowBusy(true, "Loading level", "Created sector %u", s->Id());
+		virtual void UpdateProgress(int id) = 0;
 
-      operator const fstring() { return key; }
-   };
+		virtual void GenerateMeshes() = 0;
+	};
 
-   struct ConfigFloat
-   {
-      const fstring key;
-      float value;
+	struct VariableCallbackData;
 
-      operator const fstring() { return key; }
-   };
+	ROCOCOAPI ISectorBuilderSupervisor : public ISectorBuilder
+	{
+		virtual void EnumerateDoorVars(IEventCallback<VariableCallbackData> & cb) = 0;
+		virtual void EnumerateWallVars(IEventCallback<VariableCallbackData>& cb) = 0;
+		virtual void EnumerateFloorVars(IEventCallback<VariableCallbackData>& cb) = 0;
+		virtual cstr GetTemplateFloorScript(bool& usesScript) const = 0;
+		virtual cstr GetTemplateDoorScript(bool& hasDoor) const = 0;
+		virtual cstr GetTemplateWallScript(bool& usesScript) const = 0;
+		virtual void Free() = 0;
+		virtual bool IsMeshGenerationEnabled() const = 0;
+	};
 
-   struct ConfigBool
-   {
-      const fstring key;
-      const boolean32 value;
-      operator const fstring() { return key; }
-   };
+	ISectorBuilderSupervisor* CreateSectorBuilder(ISectorBuildAPI& api);
 
-   struct ISector;
+	struct ConfigText
+	{
+		const fstring key;
+		const fstring value;
 
-   struct TagContext
-   {
-	   ISector& sector;
-	   cstr tag;
-	   const int32 index;
-   };
+		operator const fstring() { return key; }
+	};
 
-   ROCOCOAPI ITagCallback
-   {
-	   virtual void OnTag(TagContext & context) = 0;
-   };
+	struct ConfigInt
+	{
+		const fstring key;
+		int value;
 
-   ROCOCOAPI ITags
-   {
-		virtual void Invalidate() = 0;
-		virtual void ForEachSectorWithTag(cstr tag, ITagCallback& cb) = 0;
-   };
+		operator const fstring() { return key; }
+	};
 
-   namespace Events
-   {
-      namespace Player
-      {
-         struct PlayerActionEvent;
-         struct PlayerViewChangeEvent;
-      }
-   }
+	struct ConfigFloat
+	{
+		const fstring key;
+		float value;
 
-   struct VariableCallbackData
-   {
-	   cstr name;
-	   float value;
-   };
+		operator const fstring() { return key; }
+	};
 
-   ROCOCOAPI IScriptConfigSupervisor : public IScriptConfig
-   {
-		virtual void BindProperties(IBloodyPropertySetEditor & editor) = 0;
-		virtual void Enumerate(IEventCallback<VariableCallbackData>& cb) = 0;
+	struct ConfigBool
+	{
+		const fstring key;
+		const boolean32 value;
+		operator const fstring() { return key; }
+	};
+
+	struct ISector;
+
+	struct TagContext
+	{
+		ISector& sector;
+		cstr tag;
+		const int32 index;
+	};
+
+	ROCOCOAPI ITagCallback
+	{
+		virtual void OnTag(TagContext & context) = 0;
+	};
+
+	ROCOCOAPI ITags
+	{
+		 virtual void Invalidate() = 0;
+		 virtual void ForEachSectorWithTag(cstr tag, ITagCallback& cb) = 0;
+	};
+
+	namespace Events
+	{
+		namespace Player
+		{
+			struct PlayerActionEvent;
+			struct PlayerViewChangeEvent;
+		}
+	}
+
+	struct VariableCallbackData
+	{
+		cstr name;
+		float value;
+	};
+
+	ROCOCOAPI IScriptConfigSupervisor : public IScriptConfig
+	{
+		 virtual void BindProperties(IBloodyPropertySetEditor & editor) = 0;
+		 virtual void Enumerate(IEventCallback<VariableCallbackData>& cb) = 0;
+		 virtual void SetVariable(cstr name, float value) = 0;
+		 virtual void Free() = 0;
+	};
+
+	ROCOCOAPI IScriptConfigSet
+	{
+		virtual void Free() = 0;
+		virtual void SetCurrentScript(cstr scriptName) = 0;
+		virtual IScriptConfigSupervisor& Current() = 0;
 		virtual void SetVariable(cstr name, float value) = 0;
-		virtual void Free() = 0;
-   };
+	};
 
-   ROCOCOAPI IScriptConfigSet
-   {
+	IScriptConfigSet* CreateScriptConfigSet();
+	IScriptConfigSupervisor* CreateScriptConfig();
+
+	ROCOCOAPI IPlayerSupervisor
+	{
 	   virtual void Free() = 0;
-	   virtual void SetCurrentScript(cstr scriptName) = 0;
-	   virtual IScriptConfigSupervisor& Current() = 0;
-	   virtual void SetVariable(cstr name, float value) = 0;
-   };
+	   virtual IPlayer* GetPlayer(int32 index) = 0;
+	};
 
-   IScriptConfigSet* CreateScriptConfigSet();
-   IScriptConfigSupervisor* CreateScriptConfig();
+	IPlayerSupervisor* CreatePlayerSupervisor(Platform& platform);
 
-   ROCOCOAPI IPlayerSupervisor
-   {
-      virtual void Free() = 0;
-      virtual IPlayer* GetPlayer(int32 index) = 0;
-   };
+	bool QueryYesNo(Windows::IWindow& ownerWindow, cstr message);
 
-   IPlayerSupervisor* CreatePlayerSupervisor(Platform& platform);
-  
-   bool QueryYesNo(Windows::IWindow& ownerWindow, cstr message);
+	struct IPropertyTarget;
 
-   struct IPropertyTarget;
-
-   ROCOCOAPI IEditor
-   {
-      virtual bool IsScrollLocked() const = 0;
-      virtual void Free() = 0;
-   };
-
-   struct ISectors;
-   struct ISector;
-   struct IEditorState;
-
-   ROCOCOAPI IEditMode : public IUIElement
-   {
-	  virtual const ISector * GetHilight() const = 0;
-   };
-
-   ROCOCOAPI ISectorEditor
-   {
-		virtual void Free() = 0;
-		virtual IEditMode& Mode() = 0;
-		virtual void CancelHilight() = 0;
-		virtual void SetEditor(IEditorState* editor) = 0;
-   };
-
-   ROCOCOAPI ISectorBuilderEditor
-   {
-		virtual void Free() = 0;
-		virtual void SetTexture(int32 index, cstr name) = 0;
-		virtual cstr GetTexture(int32 index) const = 0;
-		virtual cstr GetTexture(int32 state) = 0;
-		virtual IEditMode& Mode() = 0;
-   };
-
-   ROCOCOAPI IWorldMap
-   {
-		virtual ISectors & Sectors() = 0;
-		virtual void ZoomIn(int32 degrees) = 0;
-		virtual void ZoomOut(int32 degrees) = 0;
-		virtual void GrabAtCursor() = 0;
-		virtual void ReleaseGrab() = 0;
-		virtual Vec2 GetWorldPosition(Vec2i screenPosition) = 0;
-		virtual Vec2i GetScreenPosition(Vec2 worldPosition) = 0;
-		virtual Vec2 SnapToGrid(Vec2 worldPosition) = 0;
-		virtual void RenderTopGui(IGuiRenderContext& grc, ID_ENTITY cameraId) = 0;
-		virtual void Render(IGuiRenderContext& grc, const ISector* litSector, bool isTransparent) = 0;
-   };
-
-   ROCOCOAPI IFieldEditorEventHandler
-   {
-	   virtual void OnActiveIndexChanged(int32 index, const char* stringRepresentation) = 0;
-   };
-
-   struct FieldEditorContext
-   {
-	   IPublisher& publisher;
-	   IGUIStack& gui;
-	   IKeyboardSupervisor& keyboard;
-	   IFieldEditorEventHandler& onActiveChange;
-	   ID_FONT idFont;
-   };
-
-   ROCOCOAPI IFieldEditor
-   {
-		virtual void AddInt32FieldUnbounded(cstr name, int32 value, bool preferHex) = 0;
-		virtual void AddInt32FieldBounded(cstr name, int32 value, int32 minValue, int32 maxValue) = 0;
-		virtual void AddFloat32FieldBounded(cstr name, float value, float minValue, float maxValue) = 0;
-		virtual void GetActiveValueAsString(char* buffer, size_t capacity) = 0;
-		virtual void AddStringField(cstr name, cstr value, size_t capacity, bool isVariableName) = 0;
-		virtual void Clear() = 0;
-		virtual void Deactivate() = 0;
-		virtual IUIElement & UIElement() = 0;
-		virtual void Free() = 0;
-   };
-
-   IFieldEditor* CreateFieldEditor(FieldEditorContext& context);
-
-   ROCOCOAPI ITextureList
-   {
-		virtual void Free() = 0;
-		virtual void ScrollTo(cstr filename) = 0;
-   };
-
-   ITextureList* CreateTextureList(Platform& _platform);
-
-   ROCOCOAPI IWorldMapSupervisor: public IWorldMap
-   {
+	ROCOCOAPI IEditor
+	{
+	   virtual bool IsScrollLocked() const = 0;
 	   virtual void Free() = 0;
-   };
+	};
 
-   IWorldMapSupervisor* CreateWorldMap(Platform& platform, ISectors& sectors);
-   ISectorEditor* CreateSectorEditor(Platform& _platform, IWorldMap& _map, Windows::IWindow& _parent);
-   ISectorBuilderEditor* CreateSectorBuilder(IPublisher& publisher, IWorldMap& map);
+	struct ISectors;
+	struct ISector;
+	struct IEditorState;
 
-   ROCOCOAPI IGameMode
-   {
-		virtual void Activate() = 0;
-		virtual void Deactivate() = 0;
-		virtual void UpdateAI(const IUltraClock& clock) = 0;
-   };
+	ROCOCOAPI IEditMode : public IUIElement
+	{
+	   virtual const ISector * GetHilight() const = 0;
+	};
 
-   ROCOCOAPI IFPSGameMode : public IGameMode
-   {
-	   virtual IPropertyTarget* GetPropertyTarget() = 0;
-   };
+	ROCOCOAPI ISectorEditor
+	{
+		 virtual void Free() = 0;
+		 virtual IEditMode& Mode() = 0;
+		 virtual void CancelHilight() = 0;
+		 virtual void SetEditor(IEditorState* editor) = 0;
+	};
 
-   ROCOCOAPI IFPSGameModeSupervisor : public IFPSGameMode
-   {
-	   virtual void ClearCache() = 0;
-	   virtual void Free() = 0;
-   };
+	ROCOCOAPI ISectorBuilderEditor
+	{
+		 virtual void Free() = 0;
+		 virtual void SetTexture(int32 index, cstr name) = 0;
+		 virtual cstr GetTexture(int32 index) const = 0;
+		 virtual cstr GetTexture(int32 state) = 0;
+		 virtual IEditMode& Mode() = 0;
+	};
 
-   IEditor* CreateEditor(Platform& platform, IPlayerSupervisor& players, ISectors& sectors, IFPSGameMode& fpsGameMode);
+	ROCOCOAPI IWorldMap
+	{
+		 virtual ISectors & Sectors() = 0;
+		 virtual void ZoomIn(int32 degrees) = 0;
+		 virtual void ZoomOut(int32 degrees) = 0;
+		 virtual void GrabAtCursor() = 0;
+		 virtual void ReleaseGrab() = 0;
+		 virtual Vec2 GetWorldPosition(Vec2i screenPosition) = 0;
+		 virtual Vec2i GetScreenPosition(Vec2 worldPosition) = 0;
+		 virtual Vec2 SnapToGrid(Vec2 worldPosition) = 0;
+		 virtual void RenderTopGui(IGuiRenderContext& grc, ID_ENTITY cameraId) = 0;
+		 virtual void Render(IGuiRenderContext& grc, const ISector* litSector, bool isTransparent) = 0;
+	};
 
-   struct ObjectVertexBuffer
-   {
-      const ObjectVertex* v;
-      const size_t VertexCount;
-   };
+	ROCOCOAPI IFieldEditorEventHandler
+	{
+		virtual void OnActiveIndexChanged(int32 index, const char* stringRepresentation) = 0;
+	};
 
-   struct Segment
-   {
-      int32 perimeterIndexStart;
-      int32 perimeterIndexEnd;
-   };
+	struct FieldEditorContext
+	{
+		IPublisher& publisher;
+		IGUIStack& gui;
+		IKeyboardSupervisor& keyboard;
+		IFieldEditorEventHandler& onActiveChange;
+		ID_FONT idFont;
+	};
 
-   struct Gap
-   {
-      Vec2 a;
-      Vec2 b;
-      float z0;
-      float z1;
-      ISector* other;
-	  Sphere bounds;
-	  mutable int64 iterationFrame;
-   };
+	ROCOCOAPI IFieldEditor
+	{
+		 virtual void AddInt32FieldUnbounded(cstr name, int32 value, bool preferHex) = 0;
+		 virtual void AddInt32FieldBounded(cstr name, int32 value, int32 minValue, int32 maxValue) = 0;
+		 virtual void AddFloat32FieldBounded(cstr name, float value, float minValue, float maxValue) = 0;
+		 virtual void GetActiveValueAsString(char* buffer, size_t capacity) = 0;
+		 virtual void AddStringField(cstr name, cstr value, size_t capacity, bool isVariableName) = 0;
+		 virtual void Clear() = 0;
+		 virtual void Deactivate() = 0;
+		 virtual IUIElement& UIElement() = 0;
+		 virtual void Free() = 0;
+	};
 
-   struct SectorAndSegment
-   {
-      ISector* sector;
-      Segment segment;
-   };
+	IFieldEditor* CreateFieldEditor(FieldEditorContext& context);
 
-   struct IPropertyHost;
+	ROCOCOAPI ITextureList
+	{
+		 virtual void Free() = 0;
+		 virtual void ScrollTo(cstr filename) = 0;
+	};
 
-   ROCOCOAPI IPropertyTarget
-   {
-	   virtual void Assign(IPropertyHost* host) = 0; // N.B a property target must never by Next to itself
-	   virtual void GetProperties(cstr category, IBloodyPropertySetEditor& editor) = 0;
-	   virtual void NotifyChanged(BloodyNotifyArgs& args) = 0;
-   };
+	ITextureList* CreateTextureList(Platform& _platform);
 
-   ROCOCOAPI IPropertyHost
-   {
-	   virtual void SetPropertyTarget(IPropertyTarget* target) = 0;
-	   virtual void SetPropertyTargetToSuccessor() = 0;
-   };
-
-   ROCOCOAPI IEditorState: public IPropertyHost
-   {
-	  virtual void BindSectorPropertiesToPropertyEditor(IPropertyTarget* target) = 0;
-      virtual cstr TextureName(int index) const = 0;
-   };
-
-   struct Barrier
-   {
-	   Vec2 p; // barrier LHS
-	   Vec2 q; // barrier RHS 
-	   float z0; // Bottom level above ground
-	   float z1; // Top level above ground. z1 > z0
-   };
-
-   struct VisibleSector
-   {
-	   ISector& sector;
-   };
-
-   struct Material
-   {
-	   MaterialVertexData mvd;
-	   char persistentName[IO::MAX_PATHLEN];
-	   Rococo::Graphics::MaterialCategory category;
-   };
-
-   struct MaterialArgs
-   {
-	   Material* mat;
-	   BodyComponentMatClass bcmc;
-   };
-
-   ROCOCOAPI MatEnumerator
-   {
-	   virtual void Enumerate(IEventCallback<MaterialArgs>& cb) = 0;
-   };
-
-   struct ISectorLayout;
-
-   enum ADVANCE_STATE
-   {
-	   // state has advanced, but not completed and will advance next timestep. 
-	   // The action trigger may restart the action sequence
-	   ADVANCE_STATE_YIELD,
-
-	   // state has yielded and trigger be ignored until delays have expired
-	   ADVANCE_STATE_YIELD_UNINTERRUPTIBLE,
-
-	   // state had advanced and completed, move on to next action in sequence
-	   ADVANCE_STATE_COMPLETED,
-
-	   // state has advanced and orderd the action sequence to terminate
-	   ADVANCE_STATE_TERMINATE
-   };
-
-   struct AdvanceInfo
-   {
-	   IPublisher& publisher;
-	   const Seconds dt;
-   };
-
-   enum PARAMETER_TYPE
-   {
-	   PARAMETER_TYPE_SECTOR_STRING,
-	   PARAMETER_TYPE_EVENT_NAME,
-	   PARAMETER_TYPE_GLOBALVAR_NAME,
-	   PARAMETER_TYPE_FLOAT,
-	   PARAMETER_TYPE_INT,
-	   PARAMETER_TYPE_INT_HEX,
-	   PARAMETER_TYPE_INT_UNBOUNDED
-   };
-
-   struct ParamDesc
-   {
-	   cstr name;
-	   PARAMETER_TYPE type;
-	   float minValue;
-	   float maxValue;
-   };
-
-   struct ParameterBuffer
-   {
-	   enum {CAPACITY = 256};
-	   char data[CAPACITY];
-	   operator cstr() const { return data; }
-   };
-
-   struct IActionFactory;
-
-   ROCOCOAPI IAction
-   {
-		virtual IActionFactory &Factory() = 0;
-	    virtual ADVANCE_STATE Advance(AdvanceInfo& info) = 0;
-		virtual int32 ParameterCount() const = 0;
-		virtual void GetParameter(int32 index, ParameterBuffer& buf) const = 0;
-		virtual void SetParameter(int32 index, cstr value) = 0;
-		virtual ParamDesc GetParameterName(int32 index) const = 0;
-		virtual void Format(char* buffer, size_t capacity) = 0;
+	ROCOCOAPI IWorldMapSupervisor : public IWorldMap
+	{
 		virtual void Free() = 0;
-   };
+	};
 
-   Random::IRandom& GetRandomizer();
+	IWorldMapSupervisor* CreateWorldMap(Platform& platform, ISectors& sectors);
+	ISectorEditor* CreateSectorEditor(Platform& _platform, IWorldMap& _map, Windows::IWindow& _parent);
+	ISectorBuilderEditor* CreateSectorBuilder(IPublisher& publisher, IWorldMap& map);
 
-   ROCOCOAPI IGlobalVariables
-   {
-	   enum { MAX_VARIABLE_NAME_LENGTH = 32 };
-	   // Get or else create a variable of the given name, returning true if the variable already exists
-	   // If the variable is created the variable is initialized to the default value passed into the function
-	   virtual bool GetValue(cstr name, int32& outputValue) const = 0;
+	ROCOCOAPI IGameMode
+	{
+		 virtual void Activate() = 0;
+		 virtual void Deactivate() = 0;
+		 virtual void UpdateAI(const IUltraClock& clock) = 0;
+	};
 
-	   // Sets the value of the variable with the given name, returns the previous value.
-	   // If the variable was not defined, it is created, initialized, and the output is zero.
-	   virtual int32 SetValue(cstr name, int32 value) = 0;
+	ROCOCOAPI IFPSGameMode : public IGameMode
+	{
+		virtual IPropertyTarget * GetPropertyTarget() = 0;
+	};
 
-	   // Test the name for conformity to naming rules. If it is violated an IException is thrown
-	   // with a descriptive message that includes the original string.
-	   virtual void ValidateName(cstr name) const = 0;
-   };
-
-   ROCOCOAPI IIActionFactoryCreateContext
-   {
-	   virtual IGlobalVariables& GetGlobals() = 0;
-   };
-
-   ROCOCOAPI IActionFactory
-   {
-		virtual IAction * Create(IIActionFactoryCreateContext& context) = 0;
-		virtual cstr Name() const = 0;
-   };
-
-   IActionFactory& GetDefaultActionFactory();
-
-   ROCOCOAPI IActionArray
-   {
-		virtual IAction & operator[](int32 index) = 0;
-		virtual int32 Count() const = 0;
-		virtual void AddAction(IActionFactory& factory, IIActionFactoryCreateContext& context) = 0;
-		virtual void RemoveAction(int32 index) = 0;
-		virtual void SetAction(int32 index, IActionFactory& factory, IIActionFactoryCreateContext& context) = 0;
-		virtual void Swap(int32 i, int32 j) = 0;
-   };
-
-   ROCOCOAPI ITrigger
-   {
-		virtual TriggerType Type() const = 0;
-		virtual void SetType(TriggerType type) = 0;
-		virtual IActionArray& Actions() = 0;
-		virtual IStringVector& GetStringVector() = 0;
-   };
-
-   struct ITriggerSupervisor : public ITrigger
-   {
-	   virtual void QueueActionSequence() = 0;
-	   virtual void Advance(AdvanceInfo& info) = 0;
-	   virtual void Free() = 0;
-   };
-
-   ITriggerSupervisor* CreateTrigger();
-
-   ROCOCOAPI IAIBrain
-   {
-	   virtual void Free() = 0;
-   };
-
-   IAIBrain* CreateAIBrain(IPublisher& publisher, ISectors& sectors);
-
-   IActionFactory& GetDefaultActionFactory();
-   size_t ActionFactoryCount();
-   IActionFactory& GetActionFactory(size_t index);
-   IActionFactory& GetActionFactory(cstr name);
-
-   ROCOCOAPI ITriggersAndActions
-   {
-	  virtual void AddTrigger(int32 pos) = 0;
-	  virtual void RemoveTrigger(int32 pos) = 0;
-	  virtual int32 TriggerCount() const = 0;
-	  virtual ITrigger& operator[](int32 i) = 0;
-	  virtual void AddAction(int32 triggerIndex) = 0;
-	  virtual void RemoveAction(int32 triggerIndex, int32 actionIndex) = 0;
-   };
-
-   cstr GET_UNDEFINDED_TAG();
-
-   // Getting to be a god class
-   ROCOCOAPI ISector : public IPropertyTarget
-   {
-		virtual void LowerScenery() = 0;
-		virtual void RaiseScenery() = 0;
-		virtual void ToggleElevation() = 0;
-
-		virtual ISectorAIBuilder& GetSectorAIBuilder() = 0;
-		virtual IIActionFactoryCreateContext& AFCC() = 0;
-		virtual const AABB2d& GetAABB() const = 0;
-		virtual uint32 Id() const = 0;
-
-		virtual bool IsDirty() const = 0;
-
-		virtual IStringVector& GetTags() = 0;
-
-		// AddTag returns true if a tag was added, otherwise it returns false, indicating the tag already exists
-		virtual bool AddTag(int32 pos, cstr text) = 0;
-		virtual void RemoveTag(int32 pos) = 0;
-		virtual void SetTag(int32 pos, cstr text) = 0;
-		virtual void LowerTag(int32 pos) = 0;
-		virtual void RaiseTag(int32 pos) = 0;
-		virtual int32 TagCount() const = 0;
-
-		virtual bool UseAnythingAt(cr_vec3 probePoint, cr_vec3 probeDirection, Metres reach) = 0;
-
-		// Iteration frames are used by some iteration functions to mark sectors as having been enumrerated
-		// Generally the frame count is incremented each function call
-		// 0x81000000000 to 0x82000000000 are from calls to ForEverySectorVisibleAt
-		virtual int64 IterationFrame() const = 0;
-		virtual void SetIterationFrame(int64 value) = 0;
-
-		virtual const Gap* GetGapAtSegment(const Vec2& a, const Vec2& b) const = 0;
-
-		virtual const Barrier* Barriers(size_t& barrierCount) const = 0;
-		virtual void Build(const Vec2* positionArray, size_t nVertices, float z0, float z1) = 0;
-		virtual bool DoesLineCrossSector(Vec2 a, Vec2 b) = 0;
-		virtual ObjectVertexBuffer FloorVertices() const = 0;
-		virtual const Gap* Gaps(size_t& count) const = 0;
-
-		virtual void Decouple() = 0; // Called to take the sector out of the world, prior to deletion
+	ROCOCOAPI IFPSGameModeSupervisor : public IFPSGameMode
+	{
+		virtual void ClearCache() = 0;
 		virtual void Free() = 0;
-		virtual float Z0() const = 0;
-		virtual float Z1() const = 0;
-		virtual Segment GetSegment(Vec2 p, Vec2 q) = 0;
-		virtual int32 GetFloorTriangleIndexContainingPoint(Vec2 p) = 0;
-		virtual RGBAb GetGuiColour(float intensity) const = 0;
-		virtual int32 GetPerimeterIndex(Vec2 a) const = 0;
-		virtual void InvokeSectorRebuild(bool force) = 0;
-		virtual const Vec2* WallVertices(size_t& nVertices) const = 0;
-		virtual void Rebuild() = 0;
-		virtual bool Is4PointRectangular() const = 0; // The sector has four points and its perimeter in 2D space is a rectangle or square
-		virtual bool IsCorridor() const = 0; // The sector Is4PointRectangular & two opposing edges are portals to other sectors and neither is itself a 4PtRect
-		virtual const Segment* GetWallSegments(size_t& count) const = 0;
-		virtual void OnSectorScriptChanged(const FileModifiedArgs& args) = 0;
+	};
 
-		virtual void ForEveryObjectInSector(IEventCallback<const ID_ENTITY>& cb) = 0;
+	IEditor* CreateEditor(Platform& platform, IPlayerSupervisor& players, ISectors& sectors, IFPSGameMode& fpsGameMode);
 
-		virtual void SaveTemplate(StringBuilder& sb) = 0;
-		virtual void SetTemplate(MatEnumerator& enumerator) = 0;
+	struct ObjectVertexBuffer
+	{
+		const ObjectVertex* v;
+		const size_t VertexCount;
+	};
 
-		virtual const LightSpec* Lights(size_t& numberOfLights) const = 0;
+	struct Segment
+	{
+		int32 perimeterIndexStart;
+		int32 perimeterIndexEnd;
+	};
 
-		virtual void SyncEnvironmentMapToSector() = 0;
+	struct Gap
+	{
+		Vec2 a;
+		Vec2 b;
+		float z0;
+		float z1;
+		ISector* other;
+		Sphere bounds;
+		mutable int64 iterationFrame;
+	};
 
-		virtual ISectorLayout* Layout() = 0;
+	struct SectorAndSegment
+	{
+		ISector* sector;
+		Segment segment;
+	};
 
-		virtual void OnTick(const IUltraClock& clock) = 0;
-		virtual void NotifySectorPlayerIsInSector(const IUltraClock& clock) = 0;
+	struct IPropertyHost;
 
-		virtual ITriggersAndActions& TriggersAndActions() = 0;
-   };
+	ROCOCOAPI IPropertyTarget
+	{
+		virtual void Assign(IPropertyHost * host) = 0; // N.B a property target must never by Next to itself
+		virtual void GetProperties(cstr category, IBloodyPropertySetEditor& editor) = 0;
+		virtual void NotifyChanged(BloodyNotifyArgs& args) = 0;
+	};
 
-   float GetHeightAtPointInSector(cr_vec3 p, ISector& sector);
+	ROCOCOAPI IPropertyHost
+	{
+		virtual void SetPropertyTarget(IPropertyTarget * target) = 0;
+		virtual void SetPropertyTargetToSuccessor() = 0;
+	};
 
-   ISector* CreateSector(Platform& platform, ISectors& co_sectors);
+	ROCOCOAPI IEditorState : public IPropertyHost
+	{
+	   virtual void BindSectorPropertiesToPropertyEditor(IPropertyTarget * target) = 0;
+	   virtual cstr TextureName(int index) const = 0;
+	};
 
-   void RebaseSectors();
+	struct Barrier
+	{
+		Vec2 p; // barrier LHS
+		Vec2 q; // barrier RHS 
+		float z0; // Bottom level above ground
+		float z1; // Top level above ground. z1 > z0
+	};
 
-   ROCOCOAPI ISectors
-   {
-	  virtual bool IsMeshGenerationEnabled() const = 0;
-	  virtual ISectorBuilder* Builder() = 0;
-	  virtual void Free() = 0;
+	struct VisibleSector
+	{
+		ISector& sector;
+	};
 
-	  virtual ITags& Tags() = 0;
+	struct Material
+	{
+		MaterialVertexData mvd;
+		char persistentName[IO::MAX_PATHLEN];
+		Rococo::Graphics::MaterialCategory category;
+	};
 
-	  virtual void AddSector(const Vec2* perimeter, size_t nVertices) = 0;
-	  virtual void Delete(ISector* sector) = 0;
+	struct MaterialArgs
+	{
+		Material* mat;
+		BodyComponentMatClass bcmc;
+	};
 
-	  virtual ISector* GetFirstSectorCrossingLine(Vec2 a, Vec2 b) = 0;
-	  virtual SectorAndSegment GetFirstSectorWithVertex(Vec2 a) = 0;
-	  virtual ISector* GetFirstSectorContainingPoint(Vec2 a) = 0;
-	  virtual ISector** begin() = 0;
-	  virtual ISector** end() = 0;
+	ROCOCOAPI MatEnumerator
+	{
+		virtual void Enumerate(IEventCallback<MaterialArgs> & cb) = 0;
+	};
 
-	  virtual void RebaseIds() = 0;
+	struct ISectorLayout;
 
-	  virtual void OnSectorScriptChanged(const FileModifiedArgs& args) = 0;
-	  virtual size_t ForEverySectorVisibleBy(cr_m4x4 worldToScreen, cr_vec3 eye, cr_vec3 forward, IEventCallback<VisibleSector>& cb) = 0;
-	  virtual void ResetConfig() = 0;
+	enum ADVANCE_STATE
+	{
+		// state has advanced, but not completed and will advance next timestep. 
+		// The action trigger may restart the action sequence
+		ADVANCE_STATE_YIELD,
 
-	  virtual void SaveAsFunction(StringBuilder& sb) = 0;
+		// state has yielded and trigger be ignored until delays have expired
+		ADVANCE_STATE_YIELD_UNINTERRUPTIBLE,
 
-	  virtual cstr GetTemplateDoorScript(bool& hasDoor) const = 0;
-	  virtual cstr GetTemplateFloorScript(bool& usesScript) const = 0;
-	  virtual cstr GetTemplateWallScript(bool& usesScript) const = 0;
+		// state had advanced and completed, move on to next action in sequence
+		ADVANCE_STATE_COMPLETED,
 
-	  virtual void EnumerateDoorVars(IEventCallback<VariableCallbackData>& cb) = 0;
-	  virtual void EnumerateWallVars(IEventCallback<VariableCallbackData>& cb) = 0;
-	  virtual void EnumerateFloorVars(IEventCallback<VariableCallbackData>& cb) = 0;
+		// state has advanced and orderd the action sequence to terminate
+		ADVANCE_STATE_TERMINATE
+	};
 
-	  virtual void BindProperties(IBloodyPropertySetEditor& editor) = 0;
-	  virtual void NotifyChanged() = 0;
+	struct AdvanceInfo
+	{
+		IPublisher& publisher;
+		const Seconds dt;
+	};
 
-	  virtual size_t GetSelectedSectorId() const = 0;
-	  virtual void SelectSector(size_t id) = 0;
+	enum PARAMETER_TYPE
+	{
+		PARAMETER_TYPE_SECTOR_STRING,
+		PARAMETER_TYPE_EVENT_NAME,
+		PARAMETER_TYPE_GLOBALVAR_NAME,
+		PARAMETER_TYPE_FLOAT,
+		PARAMETER_TYPE_INT,
+		PARAMETER_TYPE_INT_HEX,
+		PARAMETER_TYPE_INT_UNBOUNDED
+	};
 
-	  virtual void OnTick(const IUltraClock& clock) = 0;
+	struct ParamDesc
+	{
+		cstr name;
+		PARAMETER_TYPE type;
+		float minValue;
+		float maxValue;
+	};
 
-	  virtual IIActionFactoryCreateContext& AFCC() = 0;
-	  virtual ISectorEnumerator& Enumerator() = 0;
-   };
+	struct ParameterBuffer
+	{
+		enum { CAPACITY = 256 };
+		char data[CAPACITY];
+		operator cstr() const { return data; }
+	};
 
-   ISectors* CreateSectors(Platform& platform);
+	struct IActionFactory;
 
-   struct Cosmos
-   {
-      Platform& platform;
-      IPlayerSupervisor& players;
-      IEditor& editor;
-      ISectors& sectors;
-	  IFPSGameModeSupervisor& fpsMode;
-   };
+	ROCOCOAPI IAction
+	{
+		 virtual IActionFactory & Factory() = 0;
+		 virtual ADVANCE_STATE Advance(AdvanceInfo& info) = 0;
+		 virtual int32 ParameterCount() const = 0;
+		 virtual void GetParameter(int32 index, ParameterBuffer& buf) const = 0;
+		 virtual void SetParameter(int32 index, cstr value) = 0;
+		 virtual ParamDesc GetParameterName(int32 index) const = 0;
+		 virtual void Format(char* buffer, size_t capacity) = 0;
+		 virtual void Free() = 0;
+	};
 
-   IFPSGameModeSupervisor* CreateFPSGameLogic(Platform& platform, IPlayerSupervisor& players, ISectors& sectors);
+	Random::IRandom& GetRandomizer();
 
-   IApp* CreateHVApp(Cosmos& e);
-   void RunEnvironmentScript(Cosmos& e, cstr name, bool releaseSource = false, bool trace = false);
+	ROCOCOAPI IGlobalVariables
+	{
+		enum { MAX_VARIABLE_NAME_LENGTH = 32 };
+	// Get or else create a variable of the given name, returning true if the variable already exists
+	// If the variable is created the variable is initialized to the default value passed into the function
+	virtual bool GetValue(cstr name, int32& outputValue) const = 0;
 
-   namespace GraphicsEx
-   {
-      void DrawPointer(IGuiRenderContext& grc, Vec2i pos, Degrees heading, RGBAb shadowColour, RGBAb bodyColour);
+	// Sets the value of the variable with the given name, returns the previous value.
+	// If the variable was not defined, it is created, initialized, and the output is zero.
+	virtual int32 SetValue(cstr name, int32 value) = 0;
 
-	  extern BodyComponentMatClass BodyComponentMatClass_Physics_Hull;
-	  extern BodyComponentMatClass BodyComponentMatClass_Brickwork;
-	  extern BodyComponentMatClass BodyComponentMatClass_Cement;
-	  extern BodyComponentMatClass BodyComponentMatClass_Floor;
-	  extern BodyComponentMatClass BodyComponentMatClass_Ceiling;
-	  extern BodyComponentMatClass BodyComponentMatClass_Door_Mullions;
-	  extern BodyComponentMatClass BodyComponentMatClass_Door_Panels;
-	  extern BodyComponentMatClass BodyComponentMatClass_Door_Casing;
-	  extern BodyComponentMatClass BodyComponentMatClass_Door_Rails;
-   }
+	// Test the name for conformity to naming rules. If it is violated an IException is thrown
+	// with a descriptive message that includes the original string.
+	virtual void ValidateName(cstr name) const = 0;
+	};
+
+	ROCOCOAPI IIActionFactoryCreateContext
+	{
+		virtual IGlobalVariables & GetGlobals() = 0;
+	};
+
+	ROCOCOAPI IActionFactory
+	{
+		 virtual IAction * Create(IIActionFactoryCreateContext & context) = 0;
+		 virtual cstr Name() const = 0;
+	};
+
+	IActionFactory& GetDefaultActionFactory();
+
+	ROCOCOAPI IActionArray
+	{
+		 virtual IAction & operator[](int32 index) = 0;
+		 virtual int32 Count() const = 0;
+		 virtual void AddAction(IActionFactory& factory, IIActionFactoryCreateContext& context) = 0;
+		 virtual void RemoveAction(int32 index) = 0;
+		 virtual void SetAction(int32 index, IActionFactory& factory, IIActionFactoryCreateContext& context) = 0;
+		 virtual void Swap(int32 i, int32 j) = 0;
+	};
+
+	ROCOCOAPI ITrigger
+	{
+		 virtual TriggerType Type() const = 0;
+		 virtual void SetType(TriggerType type) = 0;
+		 virtual IActionArray& Actions() = 0;
+		 virtual IStringVector& GetStringVector() = 0;
+	};
+
+	struct ITriggerSupervisor : public ITrigger
+	{
+		virtual void QueueActionSequence() = 0;
+		virtual void Advance(AdvanceInfo& info) = 0;
+		virtual void Free() = 0;
+	};
+
+	ITriggerSupervisor* CreateTrigger();
+
+	ROCOCOAPI IAIBrain
+	{
+		virtual void Free() = 0;
+	};
+
+	IAIBrain* CreateAIBrain(IPublisher& publisher, ISectors& sectors);
+
+	IActionFactory& GetDefaultActionFactory();
+	size_t ActionFactoryCount();
+	IActionFactory& GetActionFactory(size_t index);
+	IActionFactory& GetActionFactory(cstr name);
+
+	ROCOCOAPI ITriggersAndActions
+	{
+	   virtual void AddTrigger(int32 pos) = 0;
+	   virtual void RemoveTrigger(int32 pos) = 0;
+	   virtual int32 TriggerCount() const = 0;
+	   virtual ITrigger& operator[](int32 i) = 0;
+	   virtual void AddAction(int32 triggerIndex) = 0;
+	   virtual void RemoveAction(int32 triggerIndex, int32 actionIndex) = 0;
+	};
+
+	cstr GET_UNDEFINDED_TAG();
+
+	// Getting to be a god class
+	ROCOCOAPI ISector : public IPropertyTarget
+	{
+		 virtual void LowerScenery() = 0;
+		 virtual void RaiseScenery() = 0;
+		 virtual void ToggleElevation() = 0;
+
+		 virtual ISectorAIBuilder& GetSectorAIBuilder() = 0;
+		 virtual IIActionFactoryCreateContext& AFCC() = 0;
+		 virtual const AABB2d& GetAABB() const = 0;
+		 virtual uint32 Id() const = 0;
+
+		 virtual bool IsDirty() const = 0;
+
+		 virtual IStringVector& GetTags() = 0;
+
+		 // AddTag returns true if a tag was added, otherwise it returns false, indicating the tag already exists
+		 virtual bool AddTag(int32 pos, cstr text) = 0;
+		 virtual void RemoveTag(int32 pos) = 0;
+		 virtual void SetTag(int32 pos, cstr text) = 0;
+		 virtual void LowerTag(int32 pos) = 0;
+		 virtual void RaiseTag(int32 pos) = 0;
+		 virtual int32 TagCount() const = 0;
+
+		 virtual bool UseAnythingAt(cr_vec3 probePoint, cr_vec3 probeDirection, Metres reach) = 0;
+
+		 // Iteration frames are used by some iteration functions to mark sectors as having been enumrerated
+		 // Generally the frame count is incremented each function call
+		 // 0x81000000000 to 0x82000000000 are from calls to ForEverySectorVisibleAt
+		 virtual int64 IterationFrame() const = 0;
+		 virtual void SetIterationFrame(int64 value) = 0;
+
+		 virtual const Gap* GetGapAtSegment(const Vec2& a, const Vec2& b) const = 0;
+
+		 virtual const Barrier* Barriers(size_t& barrierCount) const = 0;
+		 virtual void Build(const Vec2* positionArray, size_t nVertices, float z0, float z1) = 0;
+		 virtual bool DoesLineCrossSector(Vec2 a, Vec2 b) = 0;
+		 virtual ObjectVertexBuffer FloorVertices() const = 0;
+		 virtual const Gap* Gaps(size_t& count) const = 0;
+
+		 virtual void Decouple() = 0; // Called to take the sector out of the world, prior to deletion
+		 virtual void Free() = 0;
+		 virtual float Z0() const = 0;
+		 virtual float Z1() const = 0;
+		 virtual Segment GetSegment(Vec2 p, Vec2 q) = 0;
+		 virtual int32 GetFloorTriangleIndexContainingPoint(Vec2 p) = 0;
+		 virtual RGBAb GetGuiColour(float intensity) const = 0;
+		 virtual int32 GetPerimeterIndex(Vec2 a) const = 0;
+		 virtual void InvokeSectorRebuild(bool force) = 0;
+		 virtual const Vec2* WallVertices(size_t& nVertices) const = 0;
+		 virtual void Rebuild() = 0;
+		 virtual bool Is4PointRectangular() const = 0; // The sector has four points and its perimeter in 2D space is a rectangle or square
+		 virtual bool IsCorridor() const = 0; // The sector Is4PointRectangular & two opposing edges are portals to other sectors and neither is itself a 4PtRect
+		 virtual const Segment* GetWallSegments(size_t& count) const = 0;
+		 virtual void OnSectorScriptChanged(const FileModifiedArgs& args) = 0;
+
+		 virtual void ForEveryObjectInSector(IEventCallback<const ID_ENTITY>& cb) = 0;
+
+		 virtual void SaveTemplate(StringBuilder& sb) = 0;
+		 virtual void SetTemplate(MatEnumerator& enumerator) = 0;
+
+		 virtual const LightSpec* Lights(size_t& numberOfLights) const = 0;
+
+		 virtual void SyncEnvironmentMapToSector() = 0;
+
+		 virtual ISectorLayout* Layout() = 0;
+
+		 virtual void OnTick(const IUltraClock& clock) = 0;
+		 virtual void NotifySectorPlayerIsInSector(const IUltraClock& clock) = 0;
+
+		 virtual ITriggersAndActions& TriggersAndActions() = 0;
+	};
+
+	float GetHeightAtPointInSector(cr_vec3 p, ISector& sector);
+
+	ISector* CreateSector(Platform& platform, ISectors& co_sectors);
+
+	void RebaseSectors();
+
+	ROCOCOAPI ISectors
+	{
+	   virtual bool IsMeshGenerationEnabled() const = 0;
+	   virtual ISectorBuilderSupervisor* Builder() = 0;
+	   virtual void Free() = 0;
+
+	   virtual ITags& Tags() = 0;
+
+	   virtual void AddSector(const Vec2* perimeter, size_t nVertices) = 0;
+	   virtual void Delete(ISector* sector) = 0;
+
+	   virtual ISector* GetFirstSectorCrossingLine(Vec2 a, Vec2 b) = 0;
+	   virtual SectorAndSegment GetFirstSectorWithVertex(Vec2 a) = 0;
+	   virtual ISector* GetFirstSectorContainingPoint(Vec2 a) = 0;
+	   virtual ISector** begin() = 0;
+	   virtual ISector** end() = 0;
+
+	   virtual void RebaseIds() = 0;
+
+	   virtual void OnSectorScriptChanged(const FileModifiedArgs& args) = 0;
+	   virtual size_t ForEverySectorVisibleBy(cr_m4x4 worldToScreen, cr_vec3 eye, cr_vec3 forward, IEventCallback<VisibleSector>& cb) = 0;
+	   virtual void ResetConfig() = 0;
+
+	   virtual void SaveAsFunction(StringBuilder& sb) = 0;
+
+	   virtual void BindProperties(IBloodyPropertySetEditor& editor) = 0;
+	   virtual void NotifyChanged() = 0;
+
+	   virtual size_t GetSelectedSectorId() const = 0;
+	   virtual void SelectSector(size_t id) = 0;
+
+	   virtual void OnTick(const IUltraClock& clock) = 0;
+
+	   virtual IIActionFactoryCreateContext& AFCC() = 0;
+	   virtual ISectorEnumerator& Enumerator() = 0;
+	};
+
+	ISectors* CreateSectors(Platform& platform);
+
+	struct Cosmos
+	{
+		Platform& platform;
+		IPlayerSupervisor& players;
+		IEditor& editor;
+		ISectors& sectors;
+		IFPSGameModeSupervisor& fpsMode;
+	};
+
+	IFPSGameModeSupervisor* CreateFPSGameLogic(Platform& platform, IPlayerSupervisor& players, ISectors& sectors);
+
+	IApp* CreateHVApp(Cosmos& e);
+	void RunEnvironmentScript(Cosmos& e, cstr name, bool releaseSource = false, bool trace = false);
+
+	namespace GraphicsEx
+	{
+		void DrawPointer(IGuiRenderContext& grc, Vec2i pos, Degrees heading, RGBAb shadowColour, RGBAb bodyColour);
+
+		extern BodyComponentMatClass BodyComponentMatClass_Physics_Hull;
+		extern BodyComponentMatClass BodyComponentMatClass_Brickwork;
+		extern BodyComponentMatClass BodyComponentMatClass_Cement;
+		extern BodyComponentMatClass BodyComponentMatClass_Floor;
+		extern BodyComponentMatClass BodyComponentMatClass_Ceiling;
+		extern BodyComponentMatClass BodyComponentMatClass_Door_Mullions;
+		extern BodyComponentMatClass BodyComponentMatClass_Door_Panels;
+		extern BodyComponentMatClass BodyComponentMatClass_Door_Casing;
+		extern BodyComponentMatClass BodyComponentMatClass_Door_Rails;
+	}
+
+	void AddMathsEx(Rococo::Script::IPublicScriptSystem& ss);
 }
 
 
