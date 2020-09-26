@@ -16,20 +16,23 @@ namespace Rococo
 
 namespace HV
 {
-   struct IPlayerSupervisor;
-   struct ISectors;
+	struct IPlayerSupervisor;
+	struct ISectors;
 
-   ROCOCOAPI IPlayerBase
-   {
-      virtual float& JumpSpeed() = 0;
-      virtual float& DuckFactor() = 0;
-      virtual float Height() const = 0;
-   };
+	ROCOCOAPI IPlayerBase
+	{
+	   virtual float& JumpSpeed() = 0;
+	   virtual float& DuckFactor() = 0;
+	   virtual float Height() const = 0;
+	};
 
-   struct Cosmos;
-   struct ISectorAIBuilder;
+	struct Cosmos;
+	struct ISectorAIBuilder;
+	struct ISectors;
+	struct ISector;
 
-   HV::ISectorAIBuilder* FactoryConstructHVSectorAIBuilder(Cosmos* c, int32 sectorId);
+	HV::ISectorAIBuilder* FactoryConstructHVSectorAIBuilder(Cosmos* c, int32 sectorId);
+	ISector* GetFirstSectorContainingPoint(Vec2 a, ISectors& sectors);
 }
 
 #include "hv.script.types.h"
@@ -40,8 +43,10 @@ namespace HV
 
 namespace HV
 {
-	struct ISector;
-
+	HV::ISectorLayout* GetSector(int32 index, ISectors& sectors);
+	HV::ISectorLayout* GetSectorById(int32 index, ISectors& sectors);
+	ISector* GetFirstSectorCrossingLine(Vec2 a, Vec2 b, ISectors& sectors);
+	
 	ROCOCOAPI ISectorBuildAPI
 	{
 		virtual void Attach(ISector * s) = 0;
@@ -315,6 +320,8 @@ namespace HV
 		Segment segment;
 	};
 
+	SectorAndSegment GetFirstSectorWithVertex(Vec2 a, ISectors& sectors);
+
 	struct IPropertyHost;
 
 	ROCOCOAPI IPropertyTarget
@@ -347,6 +354,12 @@ namespace HV
 	struct VisibleSector
 	{
 		ISector& sector;
+	};
+
+	ROCOCOAPI ISectorVisibilityBuilder
+	{
+		virtual size_t ForEverySectorVisibleBy(ISectors & sectors, const Matrix4x4 & cameraMatrix, cr_vec3 eye, cr_vec3 forward, IEventCallback<VisibleSector> & cb) = 0;
+		virtual void Free() = 0;
 	};
 
 	struct Material
@@ -603,11 +616,12 @@ namespace HV
 	   virtual void AddSector(const Vec2* perimeter, size_t nVertices) = 0;
 	   virtual void Delete(ISector* sector) = 0;
 
-	   virtual ISector* GetFirstSectorCrossingLine(Vec2 a, Vec2 b) = 0;
-	   virtual SectorAndSegment GetFirstSectorWithVertex(Vec2 a) = 0;
-	   virtual ISector* GetFirstSectorContainingPoint(Vec2 a) = 0;
 	   virtual ISector** begin() = 0;
 	   virtual ISector** end() = 0;
+	   virtual bool empty() const = 0;
+	   virtual size_t size() const = 0;
+	   virtual ISector& operator[](int index) = 0;
+	   virtual const ISector& operator[](int index) const = 0;
 
 	   virtual void OnSectorScriptChanged(const FileModifiedArgs& args) = 0;
 	   virtual size_t ForEverySectorVisibleBy(cr_m4x4 worldToScreen, cr_vec3 eye, cr_vec3 forward, IEventCallback<VisibleSector>& cb) = 0;
@@ -618,11 +632,11 @@ namespace HV
 	   virtual size_t GetSelectedSectorId() const = 0;
 	   virtual void SelectSector(size_t id) = 0;
 
-	   virtual void OnTick(const IUltraClock& clock) = 0;
-
 	   virtual IIActionFactoryCreateContext& AFCC() = 0;
 	   virtual ISectorEnumerator& Enumerator() = 0;
 	};
+
+	void AdvanceInTime(ISectors& sectors, const IUltraClock& clock);
 
 	ISectors* CreateSectors(Platform& platform);
 

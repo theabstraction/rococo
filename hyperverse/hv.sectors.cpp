@@ -10,11 +10,11 @@
 namespace HV
 {
 	ITagsSupervisor* CreateTagsSupervisor(ISectors& sectors);
-	bool CanSeeThrough(const Matrix4x4& camera, cr_vec3 forward, const Gap& gap, Vec2& leftPoint, Vec2& rightPoint, bool fromHome);
+	ISectorVisibilityBuilder* CreateSectorVisibilityBuilder();
 }
 
 #include "hv.action.factory.inl"
-#include "hv.sector.layout.null.h"
+#include "hv.sector.layout.null.inl"
 
 namespace ANON
 {
@@ -37,12 +37,14 @@ namespace ANON
 	   ActionFactoryCreateContext afcc;
 	   AutoFree<ISectorBuilderSupervisor> sectorBuilder;
 	   AutoFree<ITagsSupervisor> tags;
+	   AutoFree<ISectorVisibilityBuilder> sectorVisibilityBuilder;
    public:
 	   Sectors(Platform& _platform) :
 		   platform(_platform),
 		   sectorBuilder(CreateSectorBuilder(sectorBuilderAPI)),
 		   sectorBuilderAPI(_platform, *this),
-		   tags(CreateTagsSupervisor(*this))
+		   tags(CreateTagsSupervisor(*this)),
+		   sectorVisibilityBuilder(CreateSectorVisibilityBuilder())
 	   {
 		   platform.publisher.Subscribe(this, evPopulateSectors);
 	   }
@@ -58,34 +60,25 @@ namespace ANON
 		   return (int32)sectors.size();
 	   }
 
+	   bool empty() const override
+	   {
+		   return sectors.empty();
+	   }
+
+	   size_t size() const override
+	   {
+		   return sectors.size();
+	   }
+
 	   HV::ISectorLayout* GetSector(int32 index)  override
 	   {
-		   if (index < 0 || index >= sectors.size())
-		   {
-			   if (sectors.empty()) 
-				   Throw(0, "No sectors");
-			   else 
-				   Throw(0, "Invalid sector index %d. Range is [0,%d]", index, (int32) sectors.size() - 1);
-		   }
-		   return sectors[index]->Layout();
+		   return HV::GetSector(index, *this);
 	   }
 
 	   HV::ISectorLayout* GetSectorById(int32 id)  override
 	   {
-		   int32 index = id - 1;
-		   if (index < 0 || index >= sectors.size())
-		   {
-			   if (sectors.empty())
-				   Throw(0, "No sectors");
-			   else
-				   Throw(0, "Invalid sector id %d. Range is [1,%d]", index, (int32)sectors.size());
-		   }
-
-		   auto& s = sectors[index];
-		   if (s->Id() != id) Throw(0, "Sector id mismatch #%d to #%d", s->Id(), id);
-		   return sectors[index]->Layout();
+		   return HV::GetSectorById(id, *this);
 	   }
-
 
 	   HV::ISectorLayout* GetSelectedSector() override
 	   {
@@ -179,137 +172,18 @@ namespace ANON
 		   sectors.clear();
 	   }
 
-	   int64 iterationFrame = 0x81000000000;
-
-	   void CallbackOnce(ISector& sector, IEventCallback<VisibleSector>& cb, int64 iterationFrame)
-	   {
-		   if (sector.IterationFrame() != iterationFrame)
-		   {
-			   sector.SetIterationFrame(iterationFrame);
-			   cb.OnEvent(VisibleSector{ sector });
-		   }
-	   }
-
-	   bool IsInLineOfSight(const Gap& gap, cr_vec3 eye)
-	   {
-		   Vec2 qGap[2] =
-		   {
-			   gap.a,
-			   gap.b
-		   };
-
-		   for (auto k : lineOfSight)
-		   {
-			   if ((k->a == gap.a && k->b == gap.b) || (k->a == gap.b && k->b == gap.a))
-			   {
-				   // Prevent any gap being counted twice in any direction
-				   return false;
-			   }
-		   }
-
-		   for (auto k : lineOfSight)
-		   {
-			   // Use k to generate a cone and check bounds of gap fits in cone
-
-			   Vec3 displacement = k->bounds.centre - eye;
-			   if (LengthSq(displacement) > Sq(k->bounds.radius + 0.1f))
-			   {
-				   float d = Length(k->bounds.centre - eye);
-				   Radians coneAngle{ asinf(k->bounds.radius / d) };
-				   if (IsOutsideCone(eye, Normalize(displacement), coneAngle, gap.bounds))
-				   {
-					   return false;
-				   }
-			   }
-		   }
-
-		   for (auto k : lineOfSight)
-		   {
-			   int j = 0;
-			   for (int i = 0; i < 2; ++i)
-			   {
-				   auto l = ClassifyPtAgainstPlane(k->a, k->b, qGap[i]);
-				   if (l == LineClassify_Left)
-				   {
-					   j++;
-				   }
-				   else if (l == LineClassify_Right)
-				   {
-					   j--;
-				   }
-			   }
-
-			   auto l = ClassifyPtAgainstPlane(k->a, k->b, Flatten(eye));
-
-			   if (j == 2)
-			   {
-				   return l == LineClassify_Right;
-			   }
-			   else if (j == -2)
-			   {
-				   return l == LineClassify_Left;
-			   }
-		   }
-
-		   return true;
-	   }
-
-	   void RecurseVisibilityScanOnGapsBy(const Matrix4x4& cameraMatrix, cr_vec3 eye, cr_vec3 forward, ISector& current, IEventCallback<VisibleSector>& cb, size_t& count, bool fromHome, int64 iterationFrame)
-	   {
-		   count++;
-
-		   size_t numberOfGaps;
-		   auto* gaps = current.Gaps(numberOfGaps);
-		   for (size_t i = 0; i < numberOfGaps; ++i)
-		   {
-			   auto* gap = gaps++;
-
-			   Vec2 a1, b1;
-			   if (CanSeeThrough(cameraMatrix, forward, *gap, a1, b1, fromHome))
-			   {
-				   if (IsInLineOfSight(*gap, eye))
-				   {
-					   lineOfSight.push_back(gap);
-					   CallbackOnce(*gap->other, cb, iterationFrame);
-					   RecurseVisibilityScanOnGapsBy(cameraMatrix, eye, forward, *gap->other, cb, count, false, iterationFrame);
-					   lineOfSight.pop_back();
-				   }
-			   }
-		   }
-	   }
-
-	   std::vector<const Gap*> lineOfSight; // Quick, nasty but effective BSP test
-
-	   bool isScanning = false;
-
-	   size_t ForEverySectorVisibleBy(const Matrix4x4& cameraMatrix, cr_vec3 eye, cr_vec3 forward, IEventCallback<VisibleSector>& cb)
-	   {
-		   if (isScanning)
-		   {
-			   Throw(0, "Cannot nest ForEverySectorVisibleBe");
-		   }
-
-		   isScanning = true;
-
-		   iterationFrame++;
-
-		   lineOfSight.clear();
-
-		   size_t count = 0;
-		   ISector* home = GetFirstSectorContainingPoint({ eye.x, eye.y });
-		   if (home)
-		   {
-			   CallbackOnce(*home, cb, iterationFrame);
-			   RecurseVisibilityScanOnGapsBy(cameraMatrix, eye, forward, *home, cb, count, true, iterationFrame);
-		   }
-
-		   isScanning = false;
-
-		   return count;
-	   }
-
 	   ISector** begin() { return (sectors.empty() ? nullptr : &sectors[0]); }
 	   ISector** end() { return (sectors.empty() ? nullptr : &sectors[0] + sectors.size()); }
+
+	   ISector& operator[](int index) override
+	   {
+		   return *sectors[index];
+	   }
+
+	   const ISector& operator[](int index) const
+	   {
+		   return *sectors[index];
+	   }
 
 	   void AddSector(const Vec2* floorPlan, size_t nVertices) override
 	   {
@@ -364,55 +238,6 @@ namespace ANON
 	   void Free() override
 	   {
 		   delete this;
-	   }
-
-	   ISector* GetFirstSectorCrossingLine(Vec2 a, Vec2 b) override
-	   {
-		   for (auto* s : sectors)
-		   {
-			   if (s->DoesLineCrossSector(a, b))
-			   {
-				   return s;
-			   }
-		   }
-
-		   return nullptr;
-	   }
-
-	   SectorAndSegment GetFirstSectorWithVertex(Vec2 a)  override
-	   {
-		   for (auto* s : sectors)
-		   {
-			   if (s->GetAABB().HoldsPoint(a))
-			   {
-				   int32 seg = s->GetPerimeterIndex(a);
-				   if (seg >= 0)
-				   {
-					   return{ s, seg };
-				   }
-			   }
-		   }
-
-		   return{ nullptr, -1 };
-	   }
-
-	   ISector* GetFirstSectorContainingPoint(Vec2 a)  override
-	   {
-		   for (auto* s : sectors)
-		   {
-			   auto& aabb = s->GetAABB();
-
-			   if (aabb.HoldsPoint(a))
-			   {
-				   int32 i = s->GetFloorTriangleIndexContainingPoint(a);
-				   if (i >= 0)
-				   {
-					   return s;
-				   }
-			   }
-		   }
-
-		   return nullptr;
 	   }
 
 	   void OnSectorScriptChanged(const FileModifiedArgs& args) override
@@ -492,15 +317,9 @@ namespace ANON
 		   platform.utilities.RunEnvironmentScript(p, thePopulateScript, true, false);
 	   }
 
-	   void OnTick(const IUltraClock& clock) override
+	   size_t ForEverySectorVisibleBy(cr_m4x4 worldToScreen, cr_vec3 eye, cr_vec3 forward, IEventCallback<VisibleSector>& cb)
 	   {
-		   if (clock.DT() > 0.0f)
-		   {
-			   for (auto s : sectors)
-			   {
-				   s->OnTick(clock);
-			   }
-		   }
+		   return sectorVisibilityBuilder->ForEverySectorVisibleBy(*this, worldToScreen, eye, forward, cb);
 	   }
    }; // class Sectors
 }// HV

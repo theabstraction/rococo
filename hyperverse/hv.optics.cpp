@@ -1,9 +1,11 @@
 #include "hv.h"
 #include <rococo.maths.h>
+#include <vector>
 
+using namespace HV;
 using namespace Rococo;
 
-namespace HV
+namespace
 {
 	Vec3 GetNormal(const Gap& gap)
 	{
@@ -108,4 +110,161 @@ namespace HV
 		return true;
 	}
 
+	struct AutoBoolToFalse
+	{
+		bool& value;
+
+		AutoBoolToFalse(bool& _value): value(_value) 
+		{
+			_value = true;
+		}
+
+		~AutoBoolToFalse()
+		{
+			value = false;
+		}
+	};
+
+	class SectorVisibilityBuilder: public ISectorVisibilityBuilder
+	{
+	private:
+		std::vector<const Gap*> lineOfSight;
+		int64 iterationFrame = 0x81000000000LL;
+		bool isScanning = false;
+
+	public:
+		void Free() override
+		{
+			delete this;
+		}
+
+		bool IsInLineOfSight(const Gap& gap, cr_vec3 eye)
+		{
+			Vec2 qGap[2] =
+			{
+				gap.a,
+				gap.b
+			};
+
+			for (auto k : lineOfSight)
+			{
+				if ((k->a == gap.a && k->b == gap.b) || (k->a == gap.b && k->b == gap.a))
+				{
+					// Prevent any gap being counted twice in any direction
+					return false;
+				}
+			}
+
+			for (auto k : lineOfSight)
+			{
+				// Use k to generate a cone and check bounds of gap fits in cone
+
+				Vec3 displacement = k->bounds.centre - eye;
+				if (LengthSq(displacement) > Sq(k->bounds.radius + 0.1f))
+				{
+					float d = Length(k->bounds.centre - eye);
+					Radians coneAngle{ asinf(k->bounds.radius / d) };
+					if (IsOutsideCone(eye, Normalize(displacement), coneAngle, gap.bounds))
+					{
+						return false;
+					}
+				}
+			}
+
+			for (auto k : lineOfSight)
+			{
+				int j = 0;
+				for (int i = 0; i < 2; ++i)
+				{
+					auto l = ClassifyPtAgainstPlane(k->a, k->b, qGap[i]);
+					if (l == LineClassify_Left)
+					{
+						j++;
+					}
+					else if (l == LineClassify_Right)
+					{
+						j--;
+					}
+				}
+
+				auto l = ClassifyPtAgainstPlane(k->a, k->b, Flatten(eye));
+
+				if (j == 2)
+				{
+					return l == LineClassify_Right;
+				}
+				else if (j == -2)
+				{
+					return l == LineClassify_Left;
+				}
+			}
+
+			return true;
+		}
+
+		void CallbackOnce(ISector& sector, IEventCallback<VisibleSector>& cb, int64 iterationFrame)
+		{
+			if (sector.IterationFrame() != iterationFrame)
+			{
+				sector.SetIterationFrame(iterationFrame);
+				cb.OnEvent(VisibleSector{ sector });
+			}
+		}
+
+		void RecurseVisibilityScanOnGapsBy(const Matrix4x4& cameraMatrix, cr_vec3 eye, cr_vec3 forward, ISector& current, IEventCallback<VisibleSector>& cb, size_t& count, bool fromHome, int64 iterationFrame)
+		{
+			count++;
+
+			size_t numberOfGaps;
+			auto* gaps = current.Gaps(numberOfGaps);
+			for (size_t i = 0; i < numberOfGaps; ++i)
+			{
+				auto* gap = gaps++;
+
+				Vec2 a1, b1;
+				if (CanSeeThrough(cameraMatrix, forward, *gap, a1, b1, fromHome))
+				{
+					if (IsInLineOfSight(*gap, eye))
+					{
+						lineOfSight.push_back(gap);
+						CallbackOnce(*gap->other, cb, iterationFrame);
+						RecurseVisibilityScanOnGapsBy(cameraMatrix, eye, forward, *gap->other, cb, count, false, iterationFrame);
+						lineOfSight.pop_back();
+					}
+				}
+			}
+		}
+
+		size_t ForEverySectorVisibleBy(ISectors& sectors, const Matrix4x4& cameraMatrix, cr_vec3 eye, cr_vec3 forward, IEventCallback<VisibleSector>& cb)
+		{
+			if (isScanning)
+			{
+				Throw(0, "Cannot nest ForEverySectorVisibleBy");
+			}
+
+			AutoBoolToFalse lock{ isScanning };
+
+			iterationFrame++;
+
+			lineOfSight.clear();
+
+			size_t count = 0;
+			ISector* home = GetFirstSectorContainingPoint({ eye.x, eye.y }, sectors);
+			if (home)
+			{
+				CallbackOnce(*home, cb, iterationFrame);
+				RecurseVisibilityScanOnGapsBy(cameraMatrix, eye, forward, *home, cb, count, true, iterationFrame);
+			}
+
+			return count;
+		}
+	};
+}
+
+namespace HV
+{
+	ISectorVisibilityBuilder* CreateSectorVisibilityBuilder()
+	{
+		return new SectorVisibilityBuilder();
+	}
 }

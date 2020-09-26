@@ -348,7 +348,7 @@ namespace HV
 			}
 			else
 			{
-				sectors->OnTick(clock);
+				AdvanceInTime(*sectors, clock);
 				return 5;
 			}
 		}

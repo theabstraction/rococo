@@ -87,6 +87,12 @@
     <ClCompile Include="hv.optics.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="hv.sectors.query.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="hv.sector.tools.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="hv.h">
@@ -101,7 +107,7 @@
     <ClInclude Include="hv.sxh.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="hv.sector.layout.null.h">
+    <ClInclude Include="hv.sector.layout.null.inl">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -692,7 +692,7 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 	{
 		jumpSpeed = cp.jumpSpeed;
 
-		auto* fromSector = sectors.GetFirstSectorContainingPoint({ cp.start.x, cp.start.y });
+		auto* fromSector = GetFirstSectorContainingPoint({ cp.start.x, cp.start.y }, sectors);
 		if (!fromSector)
 		{
 			// Generally it is a bad thing for the start point to be outside all sectors
@@ -718,7 +718,7 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 			}
 		}
 
-		auto* toSector = sectors.GetFirstSectorContainingPoint({ cp.end.x, cp.end.y });
+		auto* toSector = GetFirstSectorContainingPoint({ cp.end.x, cp.end.y }, sectors);
 		if (!toSector)
 		{
 			// Totally disallow any movement that would take us out of the sector cosmology
@@ -965,7 +965,7 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 
 		lightBuilder.clear();
 
-		auto* homeSector = sectors.GetFirstSectorContainingPoint(Vec2{ eye.x, eye.y } );
+		auto* homeSector = GetFirstSectorContainingPoint(Vec2{ eye.x, eye.y }, sectors );
 		if (homeSector)
 		{
 			homeSector->NotifySectorPlayerIsInSector(clock);
@@ -1022,7 +1022,7 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 		Vec3 eye;
 		platform.camera.GetPosition(eye);
 
-		auto* s = sectors.GetFirstSectorContainingPoint((Vec2&) eye);
+		auto* s = GetFirstSectorContainingPoint((Vec2&) eye, sectors);
 		if (s != nullptr)
 		{
 			Matrix4x4 world;

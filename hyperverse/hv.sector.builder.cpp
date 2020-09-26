@@ -118,10 +118,10 @@ namespace HV
 
 			if (lineList.empty())
 			{
-				SectorAndSegment sns = map.Sectors().GetFirstSectorWithVertex(worldPosition);
+				SectorAndSegment sns = GetFirstSectorWithVertex(worldPosition, map.Sectors());
 				if (sns.sector == nullptr)
 				{
-					ISector* sector = map.Sectors().GetFirstSectorContainingPoint(worldPosition);
+					ISector* sector = GetFirstSectorContainingPoint(worldPosition, map.Sectors());
 					if (sector != nullptr)
 					{
 						Rococo::Widgets::SetStatus("A new sector's first point must lie outside all other sectors", publisher);
@@ -134,10 +134,10 @@ namespace HV
 				Vec2 a = *lineList.rbegin();
 				Vec2 b = worldPosition;
 
-				SectorAndSegment sns = map.Sectors().GetFirstSectorWithVertex(b);
+				SectorAndSegment sns = GetFirstSectorWithVertex(b, map.Sectors());
 				if (sns.sector == nullptr)
 				{
-					auto* first = map.Sectors().GetFirstSectorCrossingLine(a, b);
+					auto* first = GetFirstSectorCrossingLine(a, b, map.Sectors());
 					if (first)
 					{
 						Rococo::Widgets::SetStatus("Cannot place edge of a new sector within the vertices of another.", publisher);
