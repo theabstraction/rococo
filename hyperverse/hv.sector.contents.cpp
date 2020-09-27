@@ -703,6 +703,43 @@ namespace
 			lastPlayerOccupiedTime = clock.FrameStart();
 		}
 
+		bool TryClickButton(ID_ENTITY idButton, cr_vec3 probePoint, cr_vec3 probeDirection, Metres reach) override
+		{
+			auto* e = platform.instances.GetEntity(idButton);
+			auto idMesh = e->MeshId();
+			cr_m4x4 model = e->Model();
+
+			size_t nTriangles;
+			auto* triangles = platform.meshes.GetPhysicsHull(idMesh, nTriangles);
+			if (triangles)
+			{
+				for (size_t i = 0; i < nTriangles; ++i)
+				{
+					const auto& T = triangles[i];
+
+					Triangle ABC;
+					TransformPositions(&T.A, 3, model, &ABC.A);
+
+					Collision c = Rococo::CollideLineAndTriangle(ABC, probePoint, probeDirection);
+
+					if (c.contactType == ContactType_Face)
+					{
+						if (c.t > 0 && c.t < reach)
+						{
+							if (Dot(probeDirection, T.EdgeCrossProduct()) < 0)
+							{
+								ClickButton();
+								return true;
+							}
+						}
+					}
+				}
+			}
+
+			return false;
+		}
+
+
 		void ClickButton() override
 		{
 			if (doorDirection == 0)

@@ -2843,47 +2843,9 @@ namespace
 		  contents->OnTick(clock);
 	  }
 
-	  bool TryClickGraphicsMesh(ID_ENTITY idObject, cr_vec3 probePoint, cr_vec3 probeDirection, Metres reach)
-	  {
-		  auto* e = platform.instances.GetEntity(idObject);
-		  auto idMesh = e->MeshId();
-		  cr_m4x4 model = e->Model();
-
-		  size_t nTriangles;
-		  auto* triangles = platform.meshes.GetTriangles(idMesh, nTriangles);
-		  if (triangles)
-		  {
-			  for (size_t i = 0; i < nTriangles; ++i)
-			  {
-				  Triangle T;
-				  T.A = triangles[i].a.position;
-				  T.B = triangles[i].b.position;
-				  T.C = triangles[i].c.position;
-
-				  Triangle ABC;
-				  TransformPositions(&T.A, 3, model, &ABC.A);
-
-				  Collision c = Rococo::CollideLineAndTriangle(ABC, probePoint, probeDirection);
-
-				  if (c.contactType == ContactType_Face)
-				  {
-					  if (c.t > 0 && c.t < reach)
-					  {
-						  if (Dot(probeDirection, T.EdgeCrossProduct()) < 0)
-						  {
-							  return true;
-						  }
-					  }
-				  }
-			  }
-		  }
-
-		  return false;
-	  }
-
 	  bool TryClickLever(ID_ENTITY idLever, cr_vec3 probePoint, cr_vec3 probeDirection, Metres reach)
 	  {
-		  if (TryClickGraphicsMesh(idLever, probePoint, probeDirection, reach))
+		  if (TryClickGraphicsMesh(idLever, probePoint, probeDirection, reach, platform))
 		  {
 			  contents->ClickLever();
 		  }
@@ -2893,38 +2855,7 @@ namespace
 
 	  bool TryClickButton(ID_ENTITY idButton, cr_vec3 probePoint, cr_vec3 probeDirection, Metres reach)
 	  {
-		  auto* e = platform.instances.GetEntity(idButton);
-		  auto idMesh = e->MeshId();
-		  cr_m4x4 model = e->Model();
-
-		  size_t nTriangles;
-		  auto* triangles = platform.meshes.GetPhysicsHull(idMesh, nTriangles);
-		  if (triangles)
-		  {
-			  for (size_t i = 0; i < nTriangles; ++i)
-			  {
-				  const auto& T = triangles[i];
-
-				  Triangle ABC;
-				  TransformPositions(&T.A, 3, model, &ABC.A);
-
-				  Collision c = Rococo::CollideLineAndTriangle(ABC, probePoint, probeDirection);
-
-				  if (c.contactType == ContactType_Face)
-				  {
-					  if (c.t > 0 && c.t < reach)
-					  {
-						  if (Dot(probeDirection, T.EdgeCrossProduct()) < 0)
-						  {
-							  contents->ClickButton();
-							  return true;
-						  }
-					  }
-				  }
-			  }
-		  }
-
-		  return false;
+		  return contents->TryClickButton(idButton, probePoint, probeDirection, reach);
 	  }
 
 	  bool UseAnythingAt(cr_vec3 probePoint, cr_vec3 probeDirection, Metres reach) override
@@ -2997,27 +2928,6 @@ namespace HV
 	void RebaseSectors()
 	{
 		nextSectorId = 1;
-	}
-
-	float GetHeightAtPointInSector(cr_vec3 p, ISector& sector)
-	{
-		int32 index = sector.GetFloorTriangleIndexContainingPoint({ p.x, p.y });
-		if (index >= 0)
-		{
-			auto* v = sector.FloorVertices().v;
-			Triangle t;
-			t.A = v[3 * index].position;
-			t.B = v[3 * index + 1].position;
-			t.C = v[3 * index + 2].position;
-
-			float h;
-			if (GetTriangleHeight(t, { p.x,p.y }, h))
-			{
-				return h;
-			}
-		}
-
-		return 0.0f;
 	}
 }
 

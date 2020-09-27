@@ -135,4 +135,43 @@ namespace HV::HVMaths
 			return false;
 		}
 	}
+
+	bool TryClickGraphicsMesh(ID_ENTITY idObject, cr_vec3 probePoint, cr_vec3 probeDirection, Metres reach, Platform& platform)
+	{
+		auto* e = platform.instances.GetEntity(idObject);
+		auto idMesh = e->MeshId();
+		cr_m4x4 model = e->Model();
+
+		size_t nTriangles;
+		auto* triangles = platform.meshes.GetTriangles(idMesh, nTriangles);
+		if (triangles)
+		{
+			for (size_t i = 0; i < nTriangles; ++i)
+			{
+				Triangle T;
+				T.A = triangles[i].a.position;
+				T.B = triangles[i].b.position;
+				T.C = triangles[i].c.position;
+
+				Triangle ABC;
+				TransformPositions(&T.A, 3, model, &ABC.A);
+
+				Collision c = Rococo::CollideLineAndTriangle(ABC, probePoint, probeDirection);
+
+				if (c.contactType == ContactType_Face)
+				{
+					if (c.t > 0 && c.t < reach)
+					{
+						if (Dot(probeDirection, T.EdgeCrossProduct()) < 0)
+						{
+							return true;
+						}
+					}
+				}
+			}
+		}
+
+		return false;
+	}
+
 }

@@ -31,4 +31,25 @@ namespace HV
 
 		Throw(0, "HV.SectorAIBuilder: no sector with id #%d", __FUNCTION__, sectorId);
 	}
+
+	float GetHeightAtPointInSector(cr_vec3 p, ISector& sector)
+	{
+		int32 index = sector.GetFloorTriangleIndexContainingPoint({ p.x, p.y });
+		if (index >= 0)
+		{
+			auto* v = sector.FloorVertices().v;
+			Triangle t;
+			t.A = v[3 * index].position;
+			t.B = v[3 * index + 1].position;
+			t.C = v[3 * index + 2].position;
+
+			float h;
+			if (GetTriangleHeight(t, { p.x,p.y }, h))
+			{
+				return h;
+			}
+		}
+
+		return 0.0f;
+	}
 }

@@ -455,6 +455,7 @@ namespace HV
 		virtual void ManageEntity(ID_ENTITY id) = 0;
 		virtual void NotifySectorPlayerIsInSector(const IUltraClock& clock) = 0;
 		virtual boolean32 PlaceItemOnUpFacingQuad(ID_ENTITY id) = 0;
+		virtual bool TryClickButton(ID_ENTITY idButton, cr_vec3 probePoint, cr_vec3 probeDirection, Metres reach) = 0;
 		virtual bool TryGetScenery(ID_ENTITY id, AABB& worldBounds) const = 0;
 		virtual bool TryPlaceItemOnQuad(const Quad& qModel, ID_ENTITY quadsEntityId, ID_ENTITY itemId) = 0;
 		virtual void UseUpFacingQuadsOnScenery(ID_ENTITY id) = 0;
@@ -746,6 +747,7 @@ namespace HV
 		bool TryGetOrientationAndBoundsToFitBoxInAnother(Matrix4x4& Rz, AABB& newBounds, const AABB& bounds, cr_vec2 containerSpan, Degrees theta);
 		bool TryGetRotationToFit(Matrix4x4& Rz, bool randomizeHeading, const AABB& bounds, cr_vec2 containerSpan);
 		bool TryGetRandomTransformation(Matrix4x4& model, AABB& worldBounds, bool randomHeading, bool randomizePosition, const AABB& bounds, const AABB2d& container, float z0, float z1);
+		bool TryClickGraphicsMesh(ID_ENTITY idObject, cr_vec3 probePoint, cr_vec3 probeDirection, Metres reach, Platform& platform);
 	}
 }
 
