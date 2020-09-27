@@ -685,6 +685,14 @@ namespace HV
 	};
 
 	ISectorAIBuilderSupervisor* CreateSectorAI(IIActionFactoryCreateContext& afcc);
+
+	namespace Roll
+	{
+		uint32 d(uint32 maxValue);
+		uint32 x(uint32 oneAboveMaxValue);
+		boolean32 FiftyFifty();
+		float AnyOf(float minValue, float maxValue);
+	}
 }
 
 

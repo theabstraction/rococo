@@ -29,4 +29,22 @@ namespace Rococo::Random
 			uint8 opaque[6 * 1024];
 		} block;
 	};
+
+	struct ShufflerImpl;
+
+	class Shuffler
+	{
+	public:
+		typedef ptrdiff_t result_type;
+
+		static constexpr result_type min() { return 0; }
+		static constexpr result_type max() { return 0x7FFFFFFF; }
+
+		result_type operator()();
+
+		Shuffler(uint32 seed);
+		~Shuffler();
+	private:
+		ShufflerImpl* impl;
+	};
 }

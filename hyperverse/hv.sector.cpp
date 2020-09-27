@@ -5,13 +5,9 @@
 #include <algorithm>
 #include <rococo.rings.inl>
 #include <rococo.variable.editor.h>
-#include <random>
 #include <rococo.clock.h>
 #include <rococo.sexy.api.h>
 #include <rococo.random.h>
-
-std::random_device rd;
-std::mt19937 g(rd());
 
 namespace
 {
@@ -50,32 +46,6 @@ namespace ANON
    using namespace Rococo::Entities;
    using namespace Rococo::Graphics;
    using namespace HV;
-
-   Rococo::Random::RandomMT rng;
-
-   namespace Roll
-   {
-	   uint32 d(uint32 maxValue)
-	   {
-		   return (rng() % maxValue) + 1;
-	   }
-
-	   uint32 x(uint32 oneAboveMaxValue)
-	   {
-		   return rng() % oneAboveMaxValue;
-	   }
-
-	   // 50% chance to return true, else it returns false
-	   boolean32 FiftyFifty()
-	   {
-		   return (rng() % 2) == 0;
-	   }
-
-	   float AnyOf(float minValue, float maxValue)
-	   {
-		  return Rococo::Random::NextFloat(rng, minValue, maxValue);
-	   }
-   }
 
    bool IsTriangleFacingUp(cr_m4x4 model, const VertexTriangle& t)
    {
@@ -519,6 +489,8 @@ namespace ANON
 		   return false;
 	   }
 
+	   Random::Shuffler shuffler;
+
 	   boolean32 PlaceItemOnUpFacingQuad(ID_ENTITY id) override
 	   {
 		   randomizedSceneryList.clear();
@@ -528,7 +500,7 @@ namespace ANON
 			   randomizedSceneryList.push_back(&i);
 		   }
 
-		   std::shuffle(randomizedSceneryList.begin(), randomizedSceneryList.end(), g);
+		   std::shuffle(randomizedSceneryList.begin(), randomizedSceneryList.end(), shuffler);
 
 		   for (auto&i : randomizedSceneryList)
 		   {
@@ -1514,7 +1486,8 @@ namespace ANON
          platform(_platform),
          co_sectors(_co_sectors),
 		 scriptConfig(CreateScriptConfigSet()),
-		 ai(CreateSectorAI(co_sectors.AFCC()))
+		 ai(CreateSectorAI(co_sectors.AFCC())),
+		 shuffler(5550 + id)
       {
 		  PrepMat(GraphicsEx::BodyComponentMatClass_Brickwork, "random", Graphics::MaterialCategory_Stone);
 		  PrepMat(GraphicsEx::BodyComponentMatClass_Cement,    "random", Graphics::MaterialCategory_Rock);
@@ -1662,8 +1635,8 @@ namespace ANON
          intensity = max(0.0f, intensity);
          intensity = min(1.0f, intensity);
 
-		 Random::RandomMT mt;
-		 Random::Seed(mt, id + 1);
+		 Rococo::Random::RandomMT mt;
+		 Rococo::Random::Seed(mt, id + 1);
 
 		 uint32 index = id % 3;
 

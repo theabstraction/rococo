@@ -1082,7 +1082,7 @@ namespace
 			if (probabilityPercent <= 0) return ADVANCE_STATE_COMPLETED;
 			if (probabilityPercent >= 100.0f) return ADVANCE_STATE_TERMINATE;		
 				
-			if (Random::NextFloat(GetRandomizer(), 0, 100.0f) < probabilityPercent)
+			if (Rococo::Random::NextFloat(GetRandomizer(), 0, 100.0f) < probabilityPercent)
 			{
 				return ADVANCE_STATE_TERMINATE;
 			}

@@ -414,9 +414,9 @@ namespace HV
 		return new HV::App(p);
 	}
 
-	Random::IRandom& GetRandomizer()
+	Rococo::Random::IRandom& GetRandomizer()
 	{
-		static Random::RandomMT mt;
+		static Rococo::Random::RandomMT mt;
 		return mt;
 	}
 }
