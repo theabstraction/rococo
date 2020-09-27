@@ -526,6 +526,18 @@ namespace HV
 
 	cstr GET_UNDEFINDED_TAG();
 
+	ROCOCOAPI ITagContainer
+	{
+		// AddTag returns true if a tag was added, otherwise it returns false, indicating the tag already exists
+		virtual bool AddTag(int32 pos, cstr text) = 0;
+		virtual void RemoveTag(int32 pos) = 0;
+		virtual void SetTag(int32 pos, cstr text) = 0;
+		virtual void LowerTag(int32 pos) = 0;
+		virtual void RaiseTag(int32 pos) = 0;
+		[[nodiscard]] virtual int32 TagCount() const = 0;
+		[[nodiscard]] virtual IStringVector& EnumTags() = 0;
+	};
+
 	// Getting to be a god class
 	ROCOCOAPI ISector : public IPropertyTarget
 	{
@@ -535,20 +547,11 @@ namespace HV
 
 		 virtual ISectorAIBuilder& GetSectorAIBuilder() = 0;
 		 virtual IIActionFactoryCreateContext& AFCC() = 0;
+		 virtual ITagContainer& Tags() = 0;
 		 virtual const AABB2d& GetAABB() const = 0;
 		 virtual uint32 Id() const = 0;
 
 		 virtual bool IsDirty() const = 0;
-
-		 virtual IStringVector& GetTags() = 0;
-
-		 // AddTag returns true if a tag was added, otherwise it returns false, indicating the tag already exists
-		 virtual bool AddTag(int32 pos, cstr text) = 0;
-		 virtual void RemoveTag(int32 pos) = 0;
-		 virtual void SetTag(int32 pos, cstr text) = 0;
-		 virtual void LowerTag(int32 pos) = 0;
-		 virtual void RaiseTag(int32 pos) = 0;
-		 virtual int32 TagCount() const = 0;
 
 		 virtual bool UseAnythingAt(cr_vec3 probePoint, cr_vec3 probeDirection, Metres reach) = 0;
 
@@ -670,6 +673,18 @@ namespace HV
 	}
 
 	void AddMathsEx(Rococo::Script::IPublicScriptSystem& ss);
+
+	ROCOCOAPI ISectorAIBuilderSupervisor : ISectorAIBuilder
+	{
+		virtual void AdvanceInTime(IPublisher & publisher, const IUltraClock & clock) = 0;
+		virtual void SaveAsScript(StringBuilder& sb) = 0;
+		virtual ITagContainer& Tags() = 0;
+		virtual ITriggersAndActions & TriggersAndActions() = 0;
+		virtual void Trigger(TriggerType type) = 0;
+		virtual void Free() = 0;
+	};
+
+	ISectorAIBuilderSupervisor* CreateSectorAI(IIActionFactoryCreateContext& afcc);
 }
 
 

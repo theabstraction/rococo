@@ -141,6 +141,7 @@
     <ClCompile Include="hv.sector.tools.cpp" />
     <ClCompile Include="hv.sectors.cpp" />
     <ClCompile Include="hv.sectors.query.cpp" />
+    <ClCompile Include="hv.tags.holder.cpp" />
     <ClCompile Include="hv.texture_list.cpp" />
     <ClCompile Include="hv.triggers.cpp" />
     <ClCompile Include="hv.utils.cpp" />

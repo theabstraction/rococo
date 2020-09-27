@@ -39,7 +39,7 @@ namespace
 
 			for (auto* s : sectors)
 			{
-				auto& tags = s->GetTags();
+				auto& tags = s->Tags().EnumTags();
 				for (int32 i = 0; i < tags.Count(); ++i)
 				{
 					char varName[IGlobalVariables::MAX_VARIABLE_NAME_LENGTH];

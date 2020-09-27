@@ -97,7 +97,7 @@ namespace
 			LogicEditor* editor;
 			void OnActiveIndexChanged(int32 index, const char* stringRepresentation) override
 			{
-				editor->sector->SetTag(editor->tagIndex, stringRepresentation);
+				editor->sector->Tags().SetTag(editor->tagIndex, stringRepresentation);
 			}
 		} tagEvents;
 
@@ -329,7 +329,7 @@ namespace
 			tagsEditor->Deactivate();
 
 			char text[32];
-			sector->GetTags().GetItem(index, text, sizeof text);
+			sector->Tags().EnumTags().GetItem(index, text, sizeof text);
 			if (Eq(text, GET_UNDEFINDED_TAG()))
 			{
 				text[0] = 0;
@@ -394,7 +394,7 @@ namespace
 				}
 				else if (Eq(cmd.command, "editor.tags.raise"))
 				{
-					sector->RaiseTag(tagIndex);
+					sector->Tags().RaiseTag(tagIndex);
 					if (tagIndex > 0) tagIndex--;
 					TEventArgs<int32> line;
 					line.value = tagIndex;
@@ -402,16 +402,16 @@ namespace
 				}
 				else if (Eq(cmd.command, "editor.tags.lower"))
 				{
-					sector->LowerTag(tagIndex++);
-					if (tagIndex >= sector->TagCount()) tagIndex--;
+					sector->Tags().LowerTag(tagIndex++);
+					if (tagIndex >= sector->Tags().TagCount()) tagIndex--;
 					TEventArgs<int32> line;
 					line.value = tagIndex;
 					platform.publisher.Publish(line, evEditTagsScrollTo);
 				}
 				else if (Eq(cmd.command, "editor.tags.add"))
 				{
-					sector->AddTag(tagIndex, GET_UNDEFINDED_TAG());
-					if (tagIndex < 0 || tagIndex >= sector->GetTags().Count())
+					sector->Tags().AddTag(tagIndex, GET_UNDEFINDED_TAG());
+					if (tagIndex < 0 || tagIndex >= sector->Tags().TagCount())
 					{
 						SelectTag(0);
 					}
@@ -422,9 +422,9 @@ namespace
 				}
 				else if (Eq(cmd.command, "editor.tags.remove"))
 				{
-					if (tagIndex >= 0 && tagIndex < sector->GetTags().Count())
+					if (tagIndex >= 0 && tagIndex < sector->Tags().TagCount())
 					{
-						sector->RemoveTag(tagIndex);
+						sector->Tags().RemoveTag(tagIndex);
 					}
 				}
 			}
@@ -451,7 +451,7 @@ namespace
 			{
 				auto& pop = As<T2EventArgs<Rococo::IStringVector*, int32>>(ev);
 
-				pop.value1 = &sector->GetTags();
+				pop.value1 = &sector->Tags().EnumTags();
 				pop.value2 = -1;
 			}
 			else if (ev == evPopulateActionType)
