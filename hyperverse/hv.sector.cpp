@@ -8,265 +8,38 @@
 #include <rococo.clock.h>
 #include <rococo.sexy.api.h>
 #include <rococo.random.h>
+#include "hv.rings.h"
 
-namespace
-{
-	cstr const DEFAULT_WALL_SCRIPT = "#walls/stretch.bricks.sxy";
-}
+#include "hv.trianglelist.inl"
 
 namespace HV
 {
-   HV::ICorridor* FactoryConstructHVCorridor(HV::ICorridor* _context)
-   {
-      return _context;
-   }
-
-   cstr GET_UNDEFINDED_TAG()
-   {
-	   return "<undefined>";
-   }
-
-   HV::ISectorAIBuilder* FactoryConstructHVSectorAIBuilder(Cosmos* c, int32 sectorId)
-   {
-	   for (auto s : c->sectors)
-	   {
-		   if (s->Id() == (uint32)sectorId)
-		   {
-			   return &s->GetSectorAIBuilder();
-		   }
-	   }
-
-	   Throw(0, "HV.SectorAIBuilder: no sector with id #%d", __FUNCTION__, sectorId);
-   }
+	ISectorContents* CreateSectorContents(Platform& platform, ISector& sector);
 }
 
-namespace ANON
+namespace
 {
-   using namespace Rococo;
-   using namespace Rococo::Entities;
-   using namespace Rococo::Graphics;
-   using namespace HV;
+	using namespace Rococo;
+	using namespace Rococo::Entities;
+	using namespace Rococo::Graphics;
+	using namespace HV;
+	using namespace HVMaths;
 
-   bool IsTriangleFacingUp(cr_m4x4 model, const VertexTriangle& t)
-   {
-	   Vec3 up{ 0, 0, 1 };
-	   Vec3 Na, Nb, Nc;
-	   TransformDirection(model, t.a.normal, Na);
-	   TransformDirection(model, t.a.normal, Nb);
-	   TransformDirection(model, t.a.normal, Nc);
-	   return (Na == up && Nb == up && Nc == up);
-   }
+	cstr const DEFAULT_WALL_SCRIPT = "#walls/stretch.bricks.sxy";
 
-   struct TriangleListBinding : public  ITriangleList
-   {
-	   std::vector<VertexTriangle>& tris;
+	struct Component
+	{
+		HString name;
+		HString meshName;
+		ID_ENTITY id;
+	};
 
-	   TriangleListBinding(std::vector<VertexTriangle>& _tris): tris(_tris)
-	   {
-
-	   }
-
-	   void AddTriangleByVertices(ObjectVertex& a, ObjectVertex& b, ObjectVertex& c) override
-	   {
-		   if (a.position == b.position) return;
-		   if (a.position == c.position) return;
-		   if (b.position == c.position) return;
-
-		   VertexTriangle vt{ a, b, c };
-		   AddTriangle(vt);
-	   }
-
-	   void AddTriangle(VertexTriangle& abc) override
-	   {
-		   enum { MAX = 100000 };
-		   if (tris.size() > MAX)
-		   {
-			   Throw(0, "TriangleListBinding::AddTriangle... maximum %d triangles reached. Be kind to laptop users.", MAX);
-		   }
-		   tris.push_back(abc);
-	   }
-
-	   void AddQuad(ObjectVertex& a, ObjectVertex& b, ObjectVertex& c, ObjectVertex& d) override
-	   {
-		   AddTriangleByVertices(a, b, c);
-		   AddTriangleByVertices(c, d, a);
-	   }
-
-	   int32 CountVertices() override
-	   {
-		   return (int32)tris.size() * 3;
-	   }
-
-	   int32 CountTriangles()  override
-	   {
-		   return (int32)tris.size();
-	   }
-   };
-
-   struct Component
-   {
-      std::string name;
-      std::string meshName;
-      ID_ENTITY id;
-   };
-
-   bool operator == (const Component& a, const fstring& b)
-   {
-      return a.name.length() == b.length && Eq(a.name.c_str(), b);
-   }
-
-   // If [array] represents a ring, then GetRingElement(i...) returns the ith element using modular arithmetic
-   template<class T>
-   T GetRingElement(size_t index, const T* array, size_t capacity)
-   {
-      return array[index % capacity];
-   }
+	bool operator == (const Component& a, const fstring& b)
+	{
+		return a.name.length() == b.length && Eq(a.name.c_str(), b);
+	}
 
    uint32 nextSectorId = 1;
-
-   void Expand(AABB2d& rect, Metres ds)
-   {
-	   rect.left -= ds;
-	   rect.right += ds;
-	   rect.bottom -= ds;
-	   rect.top += ds;
-   }
-
-   bool TryGetOrientationAndBoundsToFitBoxInAnother(Matrix4x4& Rz, AABB& newBounds, const AABB& bounds, cr_vec2 containerSpan, Degrees theta)
-   {
-	   Rz = Matrix4x4::RotateRHAnticlockwiseZ(theta);
-
-	   newBounds = bounds.RotateBounds(Rz);
-
-	   Vec3 newSpan = newBounds.Span();
-
-	   if (newSpan.x <= containerSpan.x && newSpan.y <= containerSpan.y)
-	   {
-		   return true;
-	   }
-	   else
-	   {
-		   return false;
-	   }
-   }
-
-   bool GetRandomOrientationAndBoundsToFitBoxInAnother(Matrix4x4& Rz, AABB& newBounds, const AABB& bounds, cr_vec2 containerSpan, int32 guesses)
-   {
-	   for (int i = 0; i < guesses; ++i)
-	   {
-		   Degrees theta{ Roll::x(360) * 1.0f };
-		   return TryGetOrientationAndBoundsToFitBoxInAnother(Rz, newBounds, bounds, containerSpan, theta);
-	   }
-
-	   return false;
-   }
-
-   bool TryGetRotationToFit(Matrix4x4& Rz, bool randomizeHeading, const AABB& bounds, cr_vec2 containerSpan)
-   {
-	   Vec3 objectSpan = bounds.Span();
-
-	   if (randomizeHeading)
-	   {
-		   AABB newBounds;
-		   return GetRandomOrientationAndBoundsToFitBoxInAnother(Rz, newBounds, bounds, containerSpan, 30);
-	   }
-	   else
-	   {
-		   int delta = Roll::x(4);
-		   for (int i = 0; i < 4; ++i)
-		   {
-			   Degrees angle{ fmodf(90.0f * (i + delta), 360.0f) };
-			   AABB newBounds;
-			   if (TryGetOrientationAndBoundsToFitBoxInAnother(Rz, newBounds, bounds, containerSpan, angle))
-			   {
-				   return true;
-			   }
-		   }
-
-		   return false;
-	   }
-   }
-
-   bool TryGetRandomTransformation(Matrix4x4& model, AABB& worldBounds, bool randomHeading, bool randomizePosition, const AABB& bounds, const AABB2d& container, float z0, float z1)
-   {
-	   Vec2 containerSpan = container.Span();
-	   Vec3 objectSpan = bounds.Span();
-
-	   if (objectSpan.z > (z1 - z0))
-	   {
-		   return false;
-	   }
-
-	   Matrix4x4 Rz;
-	   if (!TryGetRotationToFit(Rz, randomHeading, bounds, containerSpan))
-	   {
-		   return false;
-	   }
-	   else
-	   {
-		   AABB newBounds = bounds.RotateBounds(Rz);
-		   Vec3 newSpan = newBounds.Span();
-
-		   float dx = containerSpan.x - newSpan.x;
-		   float dy = containerSpan.y - newSpan.y;
-
-		   float x0 = !randomizePosition ? dx * 0.5f : Roll::AnyOf(0, dx);
-		   float y0 = !randomizePosition ? dy * 0.5f : Roll::AnyOf(0, dy);
-
-		   Vec3 originDisplacement = Vec3{ x0, y0, 0 } -newBounds.minXYZ;
-		   Vec2 tileBottomLeft = { container.left, container.bottom };
-		   Vec3 position = Vec3{ tileBottomLeft.x, tileBottomLeft.y, z0 + 0.001f } +originDisplacement;
-
-		   auto T = Matrix4x4::Translate(position);
-
-		   model = T * Rz;
-
-		   Vec3 tileOrigin{ tileBottomLeft.x, tileBottomLeft.y, 0 };
-
-		   worldBounds = AABB();
-		   worldBounds << (tileOrigin + Vec3{ x0, y0, z0 });
-		   worldBounds << (tileOrigin + Vec3{ x0 + newSpan.x, y0 + newSpan.y, z0 + newSpan.z });
-
-		   return true;
-	   }
-   }
-
-   void SortQuadsByArea(std::vector<Quad>& quads)
-   {
-	   struct
-	   {
-		   static float AreaSq(const Quad& q)
-		   {
-			   Vec3 ab = q.b - q.a;
-			   Vec3 bc = q.c - q.b;
-			   Vec3 K = Cross(ab,bc);
-			   return LengthSq(K);
-		   }
-
-		   bool operator()(const Quad& p, const Quad& q) const
-		   {
-			   return AreaSq(p) > AreaSq(q);
-		   }
-	   } byAreaDescedning;
-	   std::sort(quads.begin(), quads.end(), byAreaDescedning);
-   }
-
-   bool IsQuadRectangular(const Quad& q)
-   {
-	   Vec3 ab = q.b - q.a;
-	   Vec3 bc = q.c - q.b;
-	   Vec3 cd = q.d - q.c;
-	   Vec3 da = q.a - q.d;
-
-	   if (Dot(ab, bc) == 0 && Dot(bc, cd) == 0 && Dot(cd, da) == 0 && Dot(da, ab) == 0)
-	   {
-		   return true;
-	   }
-	   else
-	   {
-		   return false;
-	   }
-   }
 
    struct Sector : 
 	   public ISector,
@@ -322,18 +95,24 @@ namespace ANON
 
 	   AABB2d aabb;
 
-	   std::vector<ID_ENTITY> managedEntities;
-
-	   struct SceneryBind
-	   {
-		   ID_ENTITY id;
-		   AABB worldBounds;
-		   std::vector<Quad> levelSurfaces;
-	   };
-
-	   std::vector<SceneryBind> scenery;
+	   AutoFree<ISectorContents> contents;
 
 	   AutoFree<ISectorAIBuilderSupervisor> ai;
+
+	   float doorElevation = 0;
+	   float doorDirection = 0.0f;
+
+	   float padIntrusion = 0;
+	   float padDirection = 0.0f;
+
+	   const Metres DOOR_MAX_ELEVATION = 3.9_metres;
+	   const MetresPerSecond DOOR_ELEVATION_SPEED = 0.4_mps;
+
+	   const Metres PAD_MAX_INTRUSION = 0.1_metres;
+	   const MetresPerSecond PAD_DESCENT_SPEED = 0.40_mps;
+	   const MetresPerSecond PAD_ASCENT_SPEED = 1.0_mps;
+
+	   OS::ticks lastPlayerOccupiedTime;
 
 	   ISectorAIBuilder& GetSectorAIBuilder()
 	   {
@@ -357,41 +136,12 @@ namespace ANON
 
 	   void ClearManagedEntities() override
 	   {
-		   managedEntities.clear();
+		   contents->ClearManagedEntities();
 	   }
 
 	   void DeleteItemsWithMesh(const fstring& prefix) override
 	   {
-		   struct
-		   {
-			   Sector* This;
-			   const fstring prefix;
-			   bool operator()(const ID_ENTITY id) const
-			   {
-				   auto& p = This->platform;
-				   auto* e = p.instances.GetEntity(id);
-				   if (e)
-				   {
-					   auto meshId = e->MeshId();
-					   auto name = p.meshes.GetName(meshId);
-					   if (StartsWith(name, prefix))
-					   {
-						   return true;
-					   }
-				   }
-				   return false;
-			   }
-
-			   bool operator()(const SceneryBind& bind) const
-			   {
-				   return operator()(bind.id);
-			   }
-		   } meshPrefixed{ this, prefix };
-		   auto i = std::remove_if(managedEntities.begin(), managedEntities.end(), meshPrefixed);
-		   managedEntities.erase(i, managedEntities.end());
-
-		   auto j = std::remove_if(scenery.begin(), scenery.end(), meshPrefixed);
-		   scenery.erase(j, scenery.end());
+		   contents->DeleteItemsWithMesh(prefix);
 	   }
 
 	   boolean32 Exists() override
@@ -401,7 +151,7 @@ namespace ANON
 
 	   void ManageEntity(ID_ENTITY id)  override
 	   {
-		   managedEntities.push_back(id);
+		   contents->ManageEntity(id);
 	   }
 
 	   const AABB2d& GetAABB() const override
@@ -410,111 +160,20 @@ namespace ANON
 	   }
 
 	   // Any quads in the scenery that face (0 0 1) marked for utility
+	   // by appending into scenery.levelSurfaces stack
 	   void UseUpFacingQuads(ID_ENTITY id) override
 	   {
-		   for (auto& i : scenery)
-		   {
-			   if (i.id == id)
-			   {
-				   i.levelSurfaces.clear();
-
-				   auto* e = platform.instances.GetEntity(id);
-				   if (e)
-				   {
-					   const Vec3 up{ 0, 0, 1 };
-					   auto& model = e->Model();
-					   size_t triangleCount = 0;
-					   auto tris = platform.meshes.GetTriangles(e->MeshId(), triangleCount);
-
-					   if (triangleCount > 1)
-					   {
-						   for (auto k = 0; k < triangleCount - 1; ++k)
-						   {
-							   auto& t0 = tris[k];
-							   auto& t1 = tris[k+1];
-							   if (IsTriangleFacingUp(model, t0) && IsTriangleFacingUp(model, t1))
-							   {
-									// We may have a quad, if so then t0 forms abc and t1 forms cda
-								   if (t0.a.position == t1.c.position && t0.c.position == t1.a.position)
-								   {
-									   Quad q;
-									   q.a = t0.a.position;
-									   q.b = t0.b.position;
-									   q.c = t0.c.position;
-									   q.d = t1.b.position;
-									   i.levelSurfaces.push_back(q);
-									   k++;
-								   }
-							   }
-						   }
-					   }
-
-					   SortQuadsByArea(i.levelSurfaces);
-				   }
-			   }
-		   }
+		   contents->UseUpFacingQuadsOnScenery(id);
 	   }
-
-	   std::vector<SceneryBind*> randomizedSceneryList;
 
 	   bool TryPlaceItemOnQuad(const Quad& qModel, ID_ENTITY quadsEntityId, ID_ENTITY itemId)
 	   {
-		   auto e = platform.instances.GetEntity(quadsEntityId);
-		   auto item = platform.instances.GetEntity(itemId);
-		   if (e && item)
-		   {
-			   if (IsQuadRectangular(qModel) && qModel.a.x == qModel.b.x || qModel.a.y == qModel.b.y)
-			   {
-				   Quad qWorld;
-				   TransformPositions(&qModel.a, 4, e->Model(), &qWorld.a);
-
-				   auto bounds = platform.meshes.Bounds(item->MeshId());
-				   if (bounds.minXYZ.x < bounds.maxXYZ.x)
-				   {
-					   AABB2d minSquare;
-					   minSquare << AsVec2(qModel.a) << AsVec2(qModel.b) << AsVec2(qModel.c) << AsVec2(qModel.d);
-
-					   Matrix4x4 randomModel;
-					   AABB worldBounds;
-					   if (TryGetRandomTransformation(randomModel, worldBounds, true, true, bounds, minSquare, qModel.a.z, z1 - z0))
-					   {
-						   ManageEntity(itemId);
-						   item->Model() = e->Model() * randomModel;
-						   return true;
-					   }
-				   }
-			   }
-		   }
-
-		   return false;
+		   return contents->TryPlaceItemOnQuad(qModel, quadsEntityId, itemId);
 	   }
-
-	   Random::Shuffler shuffler;
 
 	   boolean32 PlaceItemOnUpFacingQuad(ID_ENTITY id) override
 	   {
-		   randomizedSceneryList.clear();
-
-		   for (auto& i : scenery)
-		   {
-			   randomizedSceneryList.push_back(&i);
-		   }
-
-		   std::shuffle(randomizedSceneryList.begin(), randomizedSceneryList.end(), shuffler);
-
-		   for (auto&i : randomizedSceneryList)
-		   {
-			   if (!i->levelSurfaces.empty())
-			   {
-				   auto& q = i->levelSurfaces[Roll::x((uint32)i->levelSurfaces.size())];
-				   if (TryPlaceItemOnQuad(q, i->id, id))
-				   {
-					   return true;
-				   }
-			   }
-		   }
-
-		   return false;
+		   return contents->PlaceItemOnUpFacingQuad(id);
 	   }
 
 	   boolean32 TryGetAsRectangle(GuiRectf& rect) override
@@ -652,12 +311,12 @@ namespace ANON
 		  return barriers.empty() ? nullptr : &barriers[0];
 	  }
 
-      virtual float Z0() const
+      float Z0() const override
       {
          return z0;
       }
 
-      virtual float Z1() const
+      float Z1() const override
       {
          return z1;
       }
@@ -915,7 +574,7 @@ namespace ANON
 
 	  IPropertyHost* host = nullptr;
 
-	  virtual void Assign(IPropertyHost* host)
+	  void Assign(IPropertyHost* host) override
 	  {
 		  if (!deleting)
 		  {
@@ -1487,7 +1146,7 @@ namespace ANON
          co_sectors(_co_sectors),
 		 scriptConfig(CreateScriptConfigSet()),
 		 ai(CreateSectorAI(co_sectors.AFCC())),
-		 shuffler(5550 + id)
+		 contents(CreateSectorContents(_platform, *this))
       {
 		  PrepMat(GraphicsEx::BodyComponentMatClass_Brickwork, "random", Graphics::MaterialCategory_Stone);
 		  PrepMat(GraphicsEx::BodyComponentMatClass_Cement,    "random", Graphics::MaterialCategory_Rock);
@@ -1552,9 +1211,14 @@ namespace ANON
 		  *i->second = *args.mat;
 	  }
 
-	  virtual uint32 Id() const
+	  uint32 Id() const override
 	  {
 		  return id;
+	  }
+
+	  void DeleteScenery() override
+	  {
+		  contents->DeleteScenery();
 	  }
 
       void DeleteFloor()
@@ -1569,16 +1233,6 @@ namespace ANON
             instances.MeshBuilder().Delete(to_fstring(name));
          }
       }
-
-	  void DeleteScenery() override
-	  {
-		  for (auto s : scenery)
-		  {
-			  platform.instances.Delete(s.id);
-		  }
-
-		  scenery.clear();
-	  }
 
       void DeleteCeiling()
       {
@@ -2828,15 +2482,7 @@ namespace ANON
 			  cb.OnEvent(c.id);
 		  }
 
-		  for (auto& s : scenery)
-		  {
-			  cb.OnEvent(s.id);
-		  }
-
-		  for (auto& m : managedEntities)
-		  {
-			  cb.OnEvent(m);
-		  }
+		  contents->ForEveryObjectInContent(cb);
 	  }
 
 	  int64 iterationFrame = 0;
@@ -3058,175 +2704,36 @@ namespace ANON
 		  return this;
 	  }
 
+	  SectorSquares Squares() const override
+	  {
+		  if (completeSquares.empty()) 
+		  {
+			  return { nullptr, nullptr };
+		  }
+		  else
+		  {
+			  return SectorSquares{ completeSquares.data(), completeSquares.data() + completeSquares.size() };
+		  }
+	  }
+
 	  ID_ENTITY AddItemToLargestSquare(const fstring& meshName, int addItemFlags, const HV::ObjectCreationSpec& obs) override
 	  {
-		  if (IsCorridor() || completeSquares.empty()) return ID_ENTITY::Invalid();
+		  return contents->AddItemToLargestSquare(meshName, addItemFlags, obs);
+	  }
 
-		  auto& aabb = completeSquares[0];
-
-		  ID_SYS_MESH meshId;
-		  AABB bounds;
-		  if (!platform.meshes.TryGetByName(meshName, meshId, bounds)) return ID_ENTITY::Invalid();
-
-		  AABB worldBounds;
-		  Matrix4x4 model;
-		  if (!TryGetRandomTransformation(model, worldBounds, addItemFlags & AddItemFlags_RandomHeading, addItemFlags & AddItemFlags_RandomPosition, bounds, aabb, z0, z1))
-		  {
-			  return ID_ENTITY::Invalid();
-		  }
-
-		  auto id = platform.instances.AddBody(meshName, model, Vec3{ 1,1,1 }, ID_ENTITY::Invalid());
-		  scenery.push_back({ id,worldBounds });
-		  return id;
+	  ID_ENTITY AddSceneryAroundObject(const fstring& mesh, ID_ENTITY centrePieceId, const HV::InsertItemSpec& iis, const HV::ObjectCreationSpec& ocs) override
+	  {
+		  return contents->AddSceneryAroundObject(mesh, centrePieceId, iis, ocs);
 	  }
 
 	  bool TryGetScenery(ID_ENTITY id, AABB& worldBounds) const
 	  {
-		  for (auto& cp : scenery)
-		  {
-			  if (cp.id == id)
-			  {
-				  worldBounds = cp.worldBounds;
-				  return true;
-			  }
-		  }
-
-		  return false;
+		  return contents->TryGetScenery(id, worldBounds);
 	  }
-
-	  struct PlacementCandidate
-	  {
-		  AABB worldBounds;
-		  Matrix4x4 model;
-	  };
 
 		bool DoesSceneryCollide(const AABB& aabb) const
 		{
-			for (auto& s : scenery)
-			{
-				if (s.worldBounds.Intersects(aabb))
-				{
-					return true;
-				}
-			}
-
-			return false;
-		}
-
-		std::vector<PlacementCandidate> candidates;
-
-		virtual ID_ENTITY AddSceneryAroundObject(const fstring& mesh, ID_ENTITY centrePieceId, const HV::InsertItemSpec& iis, const HV::ObjectCreationSpec& ocs) override
-		{
-			if (IsCorridor() || completeSquares.empty()) return ID_ENTITY::Invalid();
-
-			auto& aabb = completeSquares[0];
-
-			AABB centreBounds;
-			if (!TryGetScenery(centrePieceId, centreBounds))
-			{
-				return ID_ENTITY::Invalid();
-			}
-
-			auto* e = platform.instances.GetEntity(centrePieceId);
-			if (e == nullptr)
-			{
-				return ID_ENTITY::Invalid();
-			}
-
-			ID_SYS_MESH meshId;
-			AABB bounds;
-			if (!platform.meshes.TryGetByName(mesh, meshId, bounds)) return ID_ENTITY::Invalid();
-
-			candidates.clear();
-
-			for (int i = 0; i < 100; i++)
-			{
-				AABB worldBounds;
-				Matrix4x4 model;
-				if (!TryGetRandomTransformation(model, worldBounds, iis.insertFlags & AddItemFlags_RandomHeading, iis.insertFlags & AddItemFlags_RandomPosition, bounds, aabb, z0, z1))
-				{
-					return ID_ENTITY::Invalid();
-				}
-
-				if (!DoesSceneryCollide(worldBounds))
-				{
-					candidates.push_back({ worldBounds, model });
-				}
-			}
-
-			if (candidates.empty())
-			{
-				return ID_ENTITY::Invalid();
-			}
-
-			struct
-			{
-				Vec3 centrePieceOrigin;
-				bool operator ()(const PlacementCandidate& a, const PlacementCandidate& b) const
-				{
-					auto Pa = a.worldBounds.Centre();
-					auto Pb = b.worldBounds.Centre();
-
-					float Rao = LengthSq(Pa - centrePieceOrigin);
-					float Rbo = LengthSq(Pb - centrePieceOrigin);
-
-					return Rao < Rbo;
-				}
-			} sortByRangeFromCentrePiece;
-
-			struct
-			{
-				float optimalRangeSq;
-				Vec3 centrePieceOrigin;
-
-				bool operator ()(const PlacementCandidate& a, const PlacementCandidate& b) const
-				{
-					auto Pa = a.worldBounds.Centre();
-					auto Pb = b.worldBounds.Centre();
-
-					Vec3 ao = centrePieceOrigin - Pa;
-					Vec3 bo = centrePieceOrigin - Pb;
-
-					float Rao = LengthSq(ao);
-					float Rbo = LengthSq(bo);
-
-					if (Rao < optimalRangeSq && Rbo < optimalRangeSq)
-					{
-						Vec3 ao_dir;
-						Vec3 bo_dir;
-						if (!TryNormalize(ao, ao_dir)) ao_dir = ao;
-						if (!TryNormalize(bo, bo_dir)) bo_dir = bo;
-
-						Vec3 aDir = a.model.GetForwardDirection();
-						Vec3 bDir = b.model.GetForwardDirection();
-
-						return Dot(aDir, ao_dir) > Dot(bDir, bo_dir);
-					}
-					else
-					{
-						return Rao < Rbo;
-					}
-				}
-			} sortByRangeFromCentrePieceAndOrientation;
-
-			bool sortByOrientation = iis.insertFlags & AddItemFlags_AlignEdge;
-
-			if (sortByOrientation)
-			{
-				sortByRangeFromCentrePieceAndOrientation.optimalRangeSq = Sq(iis.maxDistance.value);
-				sortByRangeFromCentrePieceAndOrientation.centrePieceOrigin = e->Position();
-				std::sort(candidates.begin(), candidates.end(), sortByRangeFromCentrePieceAndOrientation);
-			}
-			else
-			{
-				sortByRangeFromCentrePiece.centrePieceOrigin = e->Position();
-				std::sort(candidates.begin(), candidates.end(), sortByRangeFromCentrePiece);
-			}
-
-			auto id = platform.instances.AddBody(mesh, candidates[0].model, Vec3{ 1,1,1 }, ID_ENTITY::Invalid());
-			scenery.push_back({ id,candidates[0].worldBounds });
-
-			return id;
+			return contents->DoesSceneryCollide(aabb);
 		}
 
 	  int32 CountSquares() override
@@ -3387,21 +2894,6 @@ namespace ANON
 		  segment.otherZ0 = Z0();
 		  segment.otherZ1 = Z1();
 	  }
-
-	  float doorElevation = 0;
-	  float doorDirection = 0.0f;
-
-	  float padIntrusion = 0;
-	  float padDirection = 0.0f;
-
-	  const Metres DOOR_MAX_ELEVATION = 3.9_metres;
-	  const MetresPerSecond DOOR_ELEVATION_SPEED = 0.4_mps;
-
-	  const Metres PAD_MAX_INTRUSION = 0.1_metres;
-	  const MetresPerSecond PAD_DESCENT_SPEED = 0.40_mps;
-	  const MetresPerSecond PAD_ASCENT_SPEED = 1.0_mps;
-
-	  OS::ticks lastPlayerOccupiedTime;
 
 	  void UpdateDoor(ID_ENTITY idDoor, const IUltraClock& clock)
 	  {
@@ -3793,12 +3285,12 @@ namespace HV
 {
 	ISector* CreateSector(Platform& platform, ISectors& co_sectors)
 	{
-		return new ANON::Sector(platform, co_sectors);
+		return new Sector(platform, co_sectors);
 	}
 
 	void RebaseSectors()
 	{
-		ANON::nextSectorId = 1;
+		nextSectorId = 1;
 	}
 
 	float GetHeightAtPointInSector(cr_vec3 p, ISector& sector)

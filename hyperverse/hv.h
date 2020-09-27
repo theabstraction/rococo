@@ -430,6 +430,23 @@ namespace HV
 		operator cstr() const { return data; }
 	};
 
+	ROCOCOAPI ISectorContents
+	{
+		virtual ID_ENTITY AddItemToLargestSquare(const fstring& meshName, int addItemFlags, const HV::ObjectCreationSpec & obs) = 0;
+		virtual ID_ENTITY AddSceneryAroundObject(const fstring& mesh, ID_ENTITY centrePieceId, const HV::InsertItemSpec& iis, const HV::ObjectCreationSpec& ocs) = 0;
+		virtual void ClearManagedEntities() = 0;
+		virtual void DeleteItemsWithMesh(const fstring & prefix) = 0;
+		virtual void DeleteScenery() = 0;
+		virtual bool DoesSceneryCollide(const AABB& aabb) const = 0;
+		virtual void ForEveryObjectInContent(IEventCallback<const ID_ENTITY>& cb) = 0;
+		virtual void Free() = 0;
+		virtual void ManageEntity(ID_ENTITY id) = 0;
+		virtual boolean32 PlaceItemOnUpFacingQuad(ID_ENTITY id) = 0;
+		virtual bool TryGetScenery(ID_ENTITY id, AABB& worldBounds) const = 0;
+		virtual bool TryPlaceItemOnQuad(const Quad& qModel, ID_ENTITY quadsEntityId, ID_ENTITY itemId) = 0;
+		virtual void UseUpFacingQuadsOnScenery(ID_ENTITY id) = 0;
+	};
+
 	struct IActionFactory;
 
 	ROCOCOAPI IAction
@@ -538,12 +555,20 @@ namespace HV
 		[[nodiscard]] virtual IStringVector& EnumTags() = 0;
 	};
 
+	struct SectorSquares
+	{
+		const AABB2d* first;
+		const AABB2d* end;
+	};
+
 	// Getting to be a god class
 	ROCOCOAPI ISector : public IPropertyTarget
 	{
 		 virtual void LowerScenery() = 0;
 		 virtual void RaiseScenery() = 0;
 		 virtual void ToggleElevation() = 0;
+
+		 virtual SectorSquares Squares() const = 0;
 
 		 virtual ISectorAIBuilder& GetSectorAIBuilder() = 0;
 		 virtual IIActionFactoryCreateContext& AFCC() = 0;
@@ -692,6 +717,17 @@ namespace HV
 		uint32 x(uint32 oneAboveMaxValue);
 		boolean32 FiftyFifty();
 		float AnyOf(float minValue, float maxValue);
+	}
+
+	namespace HVMaths
+	{
+		bool IsQuadRectangular(const Quad& q);
+		bool IsTriangleFacingUp(cr_m4x4 model, const VertexTriangle& t);
+		void Expand(AABB2d& rect, Metres ds);
+		bool GetRandomOrientationAndBoundsToFitBoxInAnother(Matrix4x4& Rz, AABB& newBounds, const AABB& bounds, cr_vec2 containerSpan, int32 guesses);
+		bool TryGetOrientationAndBoundsToFitBoxInAnother(Matrix4x4& Rz, AABB& newBounds, const AABB& bounds, cr_vec2 containerSpan, Degrees theta);
+		bool TryGetRotationToFit(Matrix4x4& Rz, bool randomizeHeading, const AABB& bounds, cr_vec2 containerSpan);
+		bool TryGetRandomTransformation(Matrix4x4& model, AABB& worldBounds, bool randomHeading, bool randomizePosition, const AABB& bounds, const AABB2d& container, float z0, float z1);
 	}
 }
 

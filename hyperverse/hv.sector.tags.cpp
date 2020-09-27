@@ -3,6 +3,14 @@
 
 using namespace HV;
 
+namespace HV
+{
+	cstr GET_UNDEFINDED_TAG()
+	{
+		return "<undefined>";
+	}
+}
+
 namespace
 {
 	struct JapaneseFrodoMachine : ITagsSupervisor

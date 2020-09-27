@@ -99,6 +99,12 @@
     <ClCompile Include="hv.random.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="hv.maths.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="hv.sector.contents.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="hv.h">
@@ -116,6 +122,9 @@
     <ClInclude Include="hv.sector.layout.null.inl">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="hv.rings.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="hv.sxh.inl">
@@ -131,6 +140,9 @@
       <Filter>Script Files</Filter>
     </None>
     <None Include="hv.action.factory.inl">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="hv.trianglelist.inl">
       <Filter>Source Files</Filter>
     </None>
   </ItemGroup>
