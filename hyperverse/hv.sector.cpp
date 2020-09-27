@@ -14,7 +14,7 @@
 
 namespace HV
 {
-	ISectorContents* CreateSectorContents(Platform& platform, ISector& sector);
+	ISectorContents* CreateSectorContents(Platform& platform, ISector& sector, ISectorAIBuilderSupervisor& ai);
 }
 
 namespace
@@ -26,18 +26,6 @@ namespace
 	using namespace HVMaths;
 
 	cstr const DEFAULT_WALL_SCRIPT = "#walls/stretch.bricks.sxy";
-
-	struct Component
-	{
-		HString name;
-		HString meshName;
-		ID_ENTITY id;
-	};
-
-	bool operator == (const Component& a, const fstring& b)
-	{
-		return a.name.length() == b.length && Eq(a.name.c_str(), b);
-	}
 
    uint32 nextSectorId = 1;
 
@@ -95,24 +83,8 @@ namespace
 
 	   AABB2d aabb;
 
-	   AutoFree<ISectorContents> contents;
-
 	   AutoFree<ISectorAIBuilderSupervisor> ai;
-
-	   float doorElevation = 0;
-	   float doorDirection = 0.0f;
-
-	   float padIntrusion = 0;
-	   float padDirection = 0.0f;
-
-	   const Metres DOOR_MAX_ELEVATION = 3.9_metres;
-	   const MetresPerSecond DOOR_ELEVATION_SPEED = 0.4_mps;
-
-	   const Metres PAD_MAX_INTRUSION = 0.1_metres;
-	   const MetresPerSecond PAD_DESCENT_SPEED = 0.40_mps;
-	   const MetresPerSecond PAD_ASCENT_SPEED = 1.0_mps;
-
-	   OS::ticks lastPlayerOccupiedTime;
+	   AutoFree<ISectorContents> contents;
 
 	   ISectorAIBuilder& GetSectorAIBuilder()
 	   {
@@ -301,7 +273,7 @@ namespace
 	  {
 		  if (!barriers.empty())
 		  {
-			  if (doorElevation > 2)
+			  if (!contents->TraversalBlocked())
 			  {
 				  barrierCount = 0;
 				  return nullptr;
@@ -772,13 +744,13 @@ namespace
 
 			  void ClearComponents(const fstring& componentName) override
 			  {
-				  This->ClearComponents(componentName);
+				  This->contents->ClearComponents(componentName);
 			  }
 
 			  void CompleteComponent(boolean32 preserveMesh)  override
 			  {
 				  This->platform.meshes.End(preserveMesh, false);
-				  This->AddComponent(Matrix4x4::Identity(), localName.c_str(), meshName.c_str());
+				  This->contents->AddComponent(Matrix4x4::Identity(), localName.c_str(), meshName.c_str());
 			  }
 		  } scriptCallback(this);  
 
@@ -933,13 +905,13 @@ namespace
 
 			  void ClearComponents(const fstring& componentName) override
 			  {
-				  This->ClearComponents(componentName);
+				  This->contents->ClearComponents(componentName);
 			  }
 
 			  void CompleteComponent(boolean32 preserveMesh) override
 			  {
 				  This->platform.meshes.End(preserveMesh, false);
-				  This->AddComponent(Matrix4x4::Identity(), localName.c_str(), meshName.c_str());
+				  This->contents->AddComponent(Matrix4x4::Identity(), localName.c_str(), meshName.c_str());
 			  }
 
 		  } scriptCallback(this);
@@ -1146,7 +1118,7 @@ namespace
          co_sectors(_co_sectors),
 		 scriptConfig(CreateScriptConfigSet()),
 		 ai(CreateSectorAI(co_sectors.AFCC())),
-		 contents(CreateSectorContents(_platform, *this))
+		 contents(CreateSectorContents(_platform, *this, *ai))
       {
 		  PrepMat(GraphicsEx::BodyComponentMatClass_Brickwork, "random", Graphics::MaterialCategory_Stone);
 		  PrepMat(GraphicsEx::BodyComponentMatClass_Cement,    "random", Graphics::MaterialCategory_Rock);
@@ -1514,36 +1486,6 @@ namespace
 			  );
       }
 
-      std::vector<Component> components;
-
-      void ClearComponents(const fstring& componentName)
-      {
-		 for (auto& c : components)
-		 {
-			 platform.instances.Delete(c.id);
-		 }
-
-         components.erase(std::remove(components.begin(), components.end(), componentName), components.end());
-      }
-
-	  void AddComponent(cr_m4x4 model, cstr componentName, cstr meshName)
-	  {
-		  auto id = platform.instances.AddBody(to_fstring(meshName), model, Vec3{ 1,1,1 }, ID_ENTITY::Invalid());;
-
-		  for (auto& c : components)
-		  {
-			  if (Eq(componentName, c.name.c_str()) && Eq(meshName, c.meshName.c_str()))
-			  {
-				  platform.instances.Delete(c.id);
-				  c.id = id;
-				  return;
-			  }
-		  }
-
-		  Component c{ componentName, meshName, id };
-		  components.push_back(c);
-	  }
-
       void CorridorModelMatrix(Matrix4x4& model)
       {
          Vec2 centre = 0.5f * (floorPerimeter[0] + floorPerimeter[2]);
@@ -1638,7 +1580,7 @@ namespace
 
 			void ClearComponents(const fstring& componentName) override
 			{
-				This->ClearComponents(componentName);
+				This->contents->ClearComponents(componentName);
 			}
 
 			void CompleteComponent(boolean32 preserveMesh) override
@@ -1647,7 +1589,7 @@ namespace
 
 				Matrix4x4 model;
 				This->CorridorModelMatrix(model);
-				This->AddComponent(model, localName.c_str(), meshName.c_str());
+				This->contents->AddComponent(model, localName.c_str(), meshName.c_str());
 			}
 
 			void GetMaterial(MaterialVertexData& mat, const fstring& componentClass) override
@@ -2385,8 +2327,8 @@ namespace
 			  z0 = (float)altitudeInCm / 100;
 			  z1 = z0 + (float)heightInCm / 100;
 
-			  ClearComponents(""_fstring);
-			  components.clear();
+			  contents->ClearComponents(""_fstring);
+			  contents->ClearAllComponents();
 
 			  ResetBarriers();
 
@@ -2476,11 +2418,6 @@ namespace
 		  cb.OnEvent(wallId);
 		  cb.OnEvent(floorId);
 		  cb.OnEvent(ceilingId);
-
-		  for (const auto& c : components)
-		  {
-			  cb.OnEvent(c.id);
-		  }
 
 		  contents->ForEveryObjectInContent(cb);
 	  }
@@ -2895,271 +2832,15 @@ namespace
 		  segment.otherZ1 = Z1();
 	  }
 
-	  void UpdateDoor(ID_ENTITY idDoor, const IUltraClock& clock)
-	  {
-		  auto* door = platform.instances.GetEntity(idDoor);
-		  if (!door) return;
-
-		  doorElevation += doorDirection * clock.DT();
-
-		  if (doorElevation < 0)
-		  {
-			  doorDirection = 0.0f;
-			  doorElevation = 0.0f;
-		  }
-
-		  if (doorElevation > DOOR_MAX_ELEVATION)
-		  {
-			  doorDirection = 0.0f;
-			  doorElevation = DOOR_MAX_ELEVATION;
-		  }
-		 
-		  door->Model().row2.w = doorElevation;
-	  }
-
 	  void NotifySectorPlayerIsInSector(const IUltraClock& clock)
 	  {
-		  lastPlayerOccupiedTime = clock.FrameStart();
+		  contents->NotifySectorPlayerIsInSector(clock);
 	  }
-
-	  void UpdatePressurePad(ID_ENTITY idPressurePad, const IUltraClock& clock)
-	  {
-		  auto* pad = platform.instances.GetEntity(idPressurePad);
-		  if (!pad) return;
-
-		  padIntrusion += padDirection * clock.DT();
-
-		  if (lastPlayerOccupiedTime >= clock.FrameStart())
-		  {
-			  padDirection = PAD_DESCENT_SPEED;
-		  }
-		  else
-		  {
-			  padDirection = -PAD_ASCENT_SPEED;
-		  }
-
-		  if (padIntrusion > PAD_MAX_INTRUSION)
-		  {
-			  ai->Trigger(TriggerType_Pressed);
-			  padIntrusion = PAD_MAX_INTRUSION;
-		  }
-
-		  if (padIntrusion < 0)
-		  {
-			  ai->Trigger(TriggerType_Depressed);
-			  padIntrusion = 0;
-		  }
-
-		  pad->Model().row2.w = -padIntrusion;
-	  }
-
-	  float leverElevation = 0_degrees;
-	  float leverOmega = 90.0f;
-
-	  const float leverSpeed = 180.0f;
-
-	  const Degrees LEVER_UP_ANGLE = 45_degrees;
-	  const Degrees LEVER_DOWN_ANGLE = -45_degrees;
-
-	  void UpdateLever(ID_ENTITY idLeverBase, ID_ENTITY idLever, const IUltraClock& clock)
-	  {
-		  auto* base = platform.instances.GetEntity(idLeverBase);
-		  if (base == nullptr) return;
-
-		  auto* lever = platform.instances.GetEntity(idLever);
-		  if (lever == nullptr) return;
-
-		  size_t nTriangles;
-		  auto* tris = platform.meshes.GetTriangles(base->MeshId(), nTriangles);
-		  if (!tris) return;
-
-		  auto& t = *tris;
-		  Vec3 pos = (t.a.position + t.c.position) * 0.5f;
-		  Vec3 normalU = Cross(t.b.position - t.a.position, t.c.position - t.a.position);
-		  if (LengthSq(normalU) <= 0)
-		  {
-			  return;
-		  }
-
-		  leverElevation += leverOmega * clock.DT();
-		  if (leverElevation < LEVER_DOWN_ANGLE)
-		  {
-			  leverElevation = LEVER_DOWN_ANGLE;
-			  ai->Trigger(TriggerType_Depressed);
-			  leverOmega = 0;
-		  }
-		  else if (leverElevation > LEVER_UP_ANGLE)
-		  {
-			  leverElevation = LEVER_UP_ANGLE;
-			  ai->Trigger(TriggerType_Pressed);
-			  leverOmega = 0;
-		  }
-
-		  Vec3 normal = Normalize(normalU);
-		  Vec3 tangent = Normalize(t.a.position - t.b.position);
-		  Vec3 bitangent = Cross(normal, tangent);
-
-		  Matrix4x4 model =
-		  {
-			{ tangent.x, -bitangent.x, -normal.x,  0 },
-			{ tangent.y, -bitangent.y, -normal.y,  0 },
-			{ tangent.z, -bitangent.z, -normal.z,  0 },
-			{         0,        0,           0, 1.0f },
-		  };
-
-		  auto Ry = Matrix4x4::RotateRHAnticlockwiseY(Degrees{ -leverElevation });
-
-		  Matrix4x4 T = Ry * model;
-		  T.row0.w = pos.x;
-		  T.row1.w = pos.y;
-		  T.row2.w = pos.z;
-
-		  lever->Model() = T;
-	  }
-
-	  void LowerScenery() override
-	  {
-		  for (auto c : components)
-		  {
-			  if (Eq(c.name.c_str(), "door.body"))
-			  {
-				  doorDirection = -1.0f;
-				  break;
-			  }
-			  else if (Eq(c.name.c_str(), "wall.lever.base"))
-			  {
-				  for (auto d : components)
-				  {
-					  if (Eq(d.name.c_str(), "wall.lever"))
-					  {
-						  leverOmega = leverSpeed;
-						  break;
-					  }
-				  }
-			  }
-		  }
-	  }
-
-	  void RaiseScenery() override
-	  {
-		  for (auto c : components)
-		  {
-			  if (Eq(c.name.c_str(), "door.body"))
-			  {
-				  doorDirection = 1.0f;
-				  break;
-			  }
-			  else if (Eq(c.name.c_str(), "wall.lever.base"))
-			  {
-				  for (auto d : components)
-				  {
-					  if (Eq(d.name.c_str(), "wall.lever"))
-					  {
-						  leverOmega = -leverSpeed;
-						  break;
-					  }
-				  }
-			  }
-		  }
-	  }
-
-	  void ToggleElevation() override
-	  {
-		  for (auto c : components)
-		  {
-			  if (Eq(c.name.c_str(), "door.body"))
-			  {
-				  if (doorDirection == 0.0f)
-				  {
-					  if (doorElevation > 1.5f)
-					  {
-						  doorDirection = -DOOR_ELEVATION_SPEED;
-					  }
-					  else
-					  {
-						  doorDirection = DOOR_ELEVATION_SPEED;
-					  }
-				  }
-				  else
-				  {
-					  doorDirection *= -1.0f;
-				  }
-				  break;
-			  }
-			  else if (Eq(c.name.c_str(), "wall.lever.base"))
-			  {
-				  for (auto d : components)
-				  {
-					  if (Eq(d.name.c_str(), "wall.lever"))
-					  {
-						  if (leverOmega == 0.0f)
-						  {
-							  if (leverElevation < 0)
-							  {
-								  leverOmega = leverSpeed;
-							  }
-							  else
-							  {
-								  leverOmega = -leverSpeed;
-							  }
-						  }
-						  else
-						  {
-							  leverOmega *= -1.0f;
-						  }
-						  break;
-					  }
-				  }
-			  }
-		  }
-	  }
-
 
 	  void OnTick(const IUltraClock& clock) override
 	  {
 		  ai->AdvanceInTime(platform.publisher, clock);
-
-		  if (components.empty()) return; // N.B generally most sectors do not have components
-
-		  for (auto c : components)
-		  {
-			  if (Eq(c.name.c_str(), "door.body"))
-			  {
-				  UpdateDoor(c.id, clock);
-				  break;
-			  }
-			  else if (Eq(c.name.c_str(), "pressure_pad"))
-			  {
-				  UpdatePressurePad(c.id, clock);
-				  break;
-			  }
-			  else if (Eq(c.name.c_str(), "wall.lever.base"))
-			  {
-				  for (auto d : components)
-				  {
-					  if (Eq(d.name.c_str(), "wall.lever"))
-					  {
-						  UpdateLever(c.id, d.id, clock);
-						  break;
-					  }
-				  }
-			  }
-		  }
-	  }
-
-	  void ClickButton()
-	  {
-		  if (doorDirection == 0)
-		  {
-			  if (doorElevation > 1.5f)
-			  {
-				  doorDirection = -DOOR_ELEVATION_SPEED;
-			  }
-			  else
-			  {
-				  doorDirection = DOOR_ELEVATION_SPEED;
-			  }
-		  }
+		  contents->OnTick(clock);
 	  }
 
 	  bool TryClickGraphicsMesh(ID_ENTITY idObject, cr_vec3 probePoint, cr_vec3 probeDirection, Metres reach)
@@ -3204,14 +2885,7 @@ namespace
 	  {
 		  if (TryClickGraphicsMesh(idLever, probePoint, probeDirection, reach))
 		  {
-			  if (leverElevation < 0)
-			  {
-				  leverOmega = leverSpeed;
-			  }
-			  else
-			  {
-				  leverOmega = -leverSpeed;
-			  }
+			  contents->ClickLever();
 		  }
 
 		  return false;
@@ -3242,7 +2916,7 @@ namespace
 					  {
 						  if (Dot(probeDirection, T.EdgeCrossProduct()) < 0)
 						  {
-							  ClickButton();
+							  contents->ClickButton();
 							  return true;
 						  }
 					  }
@@ -3255,29 +2929,61 @@ namespace
 
 	  bool UseAnythingAt(cr_vec3 probePoint, cr_vec3 probeDirection, Metres reach) override
 	  {
-		  for (auto c : components)
+		  struct ANON : IEventCallback<const ComponentRef>
 		  {
-			  if (Eq(c.name.c_str(), "door.button.1") || Eq(c.name.c_str(), "door.button.2"))
+			  bool found = false;
+			  Sector* sector;
+			  Vec3 probePoint;
+			  Vec3 probeDirection;
+			  Metres reach;
+
+			  void OnEvent(const ComponentRef& c)
 			  {
-				  if (TryClickButton(c.id, probePoint, probeDirection, reach))
+				  if (found) return;
+
+				  if (Eq(c.name, "door.button.1") || Eq(c.name, "door.button.2"))
 				  {
-					  return true;
+					  if (sector->TryClickButton(c.id, probePoint, probeDirection, reach))
+					  {
+						  found = true;
+					  }
+				  }
+
+				  if (Eq(c.name, "wall.lever"))
+				  {
+					  if (sector->TryClickLever(c.id, probePoint, probeDirection, reach))
+					  {
+						  found = true;
+					  }
 				  }
 			  }
+		  } clickIt;
+		  clickIt.sector = this;
+		  clickIt.probePoint = probePoint;
+		  clickIt.probeDirection = probeDirection;
+		  clickIt.reach = reach;
 
-			  if (Eq(c.name.c_str(), "wall.lever"))
-			  {
-				  if (TryClickLever(c.id, probePoint, probeDirection, reach))
-				  {
-					  return true;
-				  }
-			  }
-		  }
+		  contents->ForEachComponent(clickIt);
 
-		  return false;
+		  return clickIt.found;
 	  }
 
 	  ITriggersAndActions& TriggersAndActions() override { return ai->TriggersAndActions(); }
+
+	  void LowerScenery() override
+	  {
+		  contents->LowerScenery();
+	  }
+
+	  void RaiseScenery() override
+	  {
+		  contents->RaiseScenery();
+	  }
+
+	  void ToggleElevation() override
+	  {
+		  contents->ToggleElevation();
+	  }
    };
 }
 

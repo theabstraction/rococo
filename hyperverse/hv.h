@@ -430,21 +430,39 @@ namespace HV
 		operator cstr() const { return data; }
 	};
 
+	struct ComponentRef
+	{
+		cstr name;
+		ID_ENTITY id;
+	};
+
 	ROCOCOAPI ISectorContents
 	{
+		virtual void AddComponent(cr_m4x4 model, cstr componentName, cstr meshName) = 0;
 		virtual ID_ENTITY AddItemToLargestSquare(const fstring& meshName, int addItemFlags, const HV::ObjectCreationSpec & obs) = 0;
 		virtual ID_ENTITY AddSceneryAroundObject(const fstring& mesh, ID_ENTITY centrePieceId, const HV::InsertItemSpec& iis, const HV::ObjectCreationSpec& ocs) = 0;
+		virtual void ClickButton() = 0;
+		virtual void ClickLever() = 0;
+		virtual void ClearAllComponents() = 0;
+		virtual void ClearComponents(const fstring& componentName) = 0;
 		virtual void ClearManagedEntities() = 0;
 		virtual void DeleteItemsWithMesh(const fstring & prefix) = 0;
 		virtual void DeleteScenery() = 0;
 		virtual bool DoesSceneryCollide(const AABB& aabb) const = 0;
+		virtual void ForEachComponent(IEventCallback<const ComponentRef>& cb) = 0;
 		virtual void ForEveryObjectInContent(IEventCallback<const ID_ENTITY>& cb) = 0;
 		virtual void Free() = 0;
 		virtual void ManageEntity(ID_ENTITY id) = 0;
+		virtual void NotifySectorPlayerIsInSector(const IUltraClock& clock) = 0;
 		virtual boolean32 PlaceItemOnUpFacingQuad(ID_ENTITY id) = 0;
 		virtual bool TryGetScenery(ID_ENTITY id, AABB& worldBounds) const = 0;
 		virtual bool TryPlaceItemOnQuad(const Quad& qModel, ID_ENTITY quadsEntityId, ID_ENTITY itemId) = 0;
 		virtual void UseUpFacingQuadsOnScenery(ID_ENTITY id) = 0;
+		virtual void OnTick(const IUltraClock& clock) = 0;
+		virtual void LowerScenery() = 0;
+		virtual void RaiseScenery() = 0;
+		virtual void ToggleElevation() = 0;
+		virtual bool TraversalBlocked() const = 0;
 	};
 
 	struct IActionFactory;

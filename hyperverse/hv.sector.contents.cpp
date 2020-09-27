@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <rococo.strings.h>
 #include <rococo.random.h>
+#include <rococo.clock.h>
 
 using namespace HV::HVMaths;
 
@@ -28,6 +29,18 @@ namespace
 			}
 		} byAreaDescending;
 		std::sort(quads.begin(), quads.end(), byAreaDescending);
+	}
+
+	struct Component
+	{
+		HString name;
+		HString meshName;
+		ID_ENTITY id;
+	};
+
+	bool operator == (const Component& a, const fstring& b)
+	{
+		return a.name.length() == b.length && Eq(a.name.c_str(), b);
 	}
 
 	class SC: public ISectorContents
@@ -56,10 +69,47 @@ namespace
 		};
 
 		std::vector<PlacementCandidate> candidates;
+
+		std::vector<Component> components;
+
+		ISectorAIBuilderSupervisor& ai;
 	public:
-		SC(Platform& _platform, ISector& _sector) : 
-			platform(_platform), sector(_sector), shuffler(_sector.Id() + 5550)
+		SC(Platform& _platform, ISector& _sector, ISectorAIBuilderSupervisor& _ai) : 
+			platform(_platform), sector(_sector), shuffler(_sector.Id() + 5550), ai(_ai)
 		{}
+
+		void ClearAllComponents() override
+		{
+			components.clear();
+		}
+
+		void ClearComponents(const fstring& componentName) override
+		{
+			for (auto& c : components)
+			{
+				platform.instances.Delete(c.id);
+			}
+
+			components.erase(std::remove(components.begin(), components.end(), componentName), components.end());
+		}
+
+		void AddComponent(cr_m4x4 model, cstr componentName, cstr meshName) override
+		{
+			auto id = platform.instances.AddBody(to_fstring(meshName), model, Vec3{ 1,1,1 }, ID_ENTITY::Invalid());;
+
+			for (auto& c : components)
+			{
+				if (Eq(componentName, c.name.c_str()) && Eq(meshName, c.meshName.c_str()))
+				{
+					platform.instances.Delete(c.id);
+					c.id = id;
+					return;
+				}
+			}
+
+			Component c{ componentName, meshName, id };
+			components.push_back(c);
+		}
 
 		ID_ENTITY AddItemToLargestSquare(const fstring& meshName, int addItemFlags, const HV::ObjectCreationSpec& obs) override
 		{
@@ -255,6 +305,11 @@ namespace
 
 		void ForEveryObjectInContent(IEventCallback<const ID_ENTITY>& cb) override
 		{
+			for (const auto& c : components)
+			{
+				cb.OnEvent(c.id);
+			}
+
 			for (auto& s : scenery)
 			{
 				cb.OnEvent(s.id);
@@ -409,13 +464,314 @@ namespace
 			return false;
 		}
 
+		float doorElevation = 0;
+		float doorDirection = 0.0f;
+
+		float leverElevation = 0_degrees;
+		float leverOmega = 90_degrees;
+
+		const float leverSpeed = 180_degrees;
+
+		const Degrees LEVER_UP_ANGLE = 45_degrees;
+		const Degrees LEVER_DOWN_ANGLE = -45_degrees;
+
+		void LowerScenery() override
+		{
+			for (auto c : components)
+			{
+				if (Eq(c.name.c_str(), "door.body"))
+				{
+					doorDirection = -1.0f;
+					break;
+				}
+				else if (Eq(c.name.c_str(), "wall.lever.base"))
+				{
+					for (auto d : components)
+					{
+						if (Eq(d.name.c_str(), "wall.lever"))
+						{
+							leverOmega = leverSpeed;
+							break;
+						}
+					}
+				}
+			}
+		}
+
+		void RaiseScenery() override
+		{
+			for (auto c : components)
+			{
+				if (Eq(c.name.c_str(), "door.body"))
+				{
+					doorDirection = 1.0f;
+					break;
+				}
+				else if (Eq(c.name.c_str(), "wall.lever.base"))
+				{
+					for (auto d : components)
+					{
+						if (Eq(d.name.c_str(), "wall.lever"))
+						{
+							leverOmega = -leverSpeed;
+							break;
+						}
+					}
+				}
+			}
+		}
+
+		float padIntrusion = 0;
+		float padDirection = 0.0f;
+
+		const Metres DOOR_MAX_ELEVATION = 3.9_metres;
+		const MetresPerSecond DOOR_ELEVATION_SPEED = 0.4_mps;
+
+		const Metres PAD_MAX_INTRUSION = 0.1_metres;
+		const MetresPerSecond PAD_DESCENT_SPEED = 0.40_mps;
+		const MetresPerSecond PAD_ASCENT_SPEED = 1.0_mps;
+
+		void ToggleElevation() override
+		{
+			for (auto c : components)
+			{
+				if (Eq(c.name.c_str(), "door.body"))
+				{
+					if (doorDirection == 0.0f)
+					{
+						if (doorElevation > 1.5f)
+						{
+							doorDirection = -DOOR_ELEVATION_SPEED;
+						}
+						else
+						{
+							doorDirection = DOOR_ELEVATION_SPEED;
+						}
+					}
+					else
+					{
+						doorDirection *= -1.0f;
+					}
+					break;
+				}
+				else if (Eq(c.name.c_str(), "wall.lever.base"))
+				{
+					for (auto d : components)
+					{
+						if (Eq(d.name.c_str(), "wall.lever"))
+						{
+							if (leverOmega == 0.0f)
+							{
+								if (leverElevation < 0)
+								{
+									leverOmega = leverSpeed;
+								}
+								else
+								{
+									leverOmega = -leverSpeed;
+								}
+							}
+							else
+							{
+								leverOmega *= -1.0f;
+							}
+							break;
+						}
+					}
+				}
+			}
+		}
+
+		bool TraversalBlocked() const override
+		{
+			return doorElevation < 2.0_metres;
+		}
+
+		void UpdateDoor(ID_ENTITY idDoor, const IUltraClock& clock)
+		{
+			auto* door = platform.instances.GetEntity(idDoor);
+			if (!door) return;
+
+			doorElevation += doorDirection * clock.DT();
+
+			if (doorElevation < 0)
+			{
+				doorDirection = 0.0f;
+				doorElevation = 0.0f;
+			}
+
+			if (doorElevation > DOOR_MAX_ELEVATION)
+			{
+				doorDirection = 0.0f;
+				doorElevation = DOOR_MAX_ELEVATION;
+			}
+
+			door->Model().row2.w = doorElevation;
+		}
+
+		OS::ticks lastPlayerOccupiedTime = 0;
+
+		void UpdatePressurePad(ID_ENTITY idPressurePad, const IUltraClock& clock)
+		{
+			auto* pad = platform.instances.GetEntity(idPressurePad);
+			if (!pad) return;
+
+			padIntrusion += padDirection * clock.DT();
+
+			if (lastPlayerOccupiedTime >= clock.FrameStart())
+			{
+				padDirection = PAD_DESCENT_SPEED;
+			}
+			else
+			{
+				padDirection = -PAD_ASCENT_SPEED;
+			}
+
+			if (padIntrusion > PAD_MAX_INTRUSION)
+			{
+				ai.Trigger(TriggerType_Pressed);
+				padIntrusion = PAD_MAX_INTRUSION;
+			}
+
+			if (padIntrusion < 0)
+			{
+				ai.Trigger(TriggerType_Depressed);
+				padIntrusion = 0;
+			}
+
+			pad->Model().row2.w = -padIntrusion;
+		}
+
+		void UpdateLever(ID_ENTITY idLeverBase, ID_ENTITY idLever, const IUltraClock& clock)
+		{
+			auto* base = platform.instances.GetEntity(idLeverBase);
+			if (base == nullptr) return;
+
+			auto* lever = platform.instances.GetEntity(idLever);
+			if (lever == nullptr) return;
+
+			size_t nTriangles;
+			auto* tris = platform.meshes.GetTriangles(base->MeshId(), nTriangles);
+			if (!tris) return;
+
+			auto& t = *tris;
+			Vec3 pos = (t.a.position + t.c.position) * 0.5f;
+			Vec3 normalU = Cross(t.b.position - t.a.position, t.c.position - t.a.position);
+			if (LengthSq(normalU) <= 0)
+			{
+				return;
+			}
+
+			leverElevation += leverOmega * clock.DT();
+			if (leverElevation < LEVER_DOWN_ANGLE)
+			{
+				leverElevation = LEVER_DOWN_ANGLE;
+				ai.Trigger(TriggerType_Depressed);
+				leverOmega = 0;
+			}
+			else if (leverElevation > LEVER_UP_ANGLE)
+			{
+				leverElevation = LEVER_UP_ANGLE;
+				ai.Trigger(TriggerType_Pressed);
+				leverOmega = 0;
+			}
+
+			Vec3 normal = Normalize(normalU);
+			Vec3 tangent = Normalize(t.a.position - t.b.position);
+			Vec3 bitangent = Cross(normal, tangent);
+
+			Matrix4x4 model =
+			{
+			  { tangent.x, -bitangent.x, -normal.x,  0 },
+			  { tangent.y, -bitangent.y, -normal.y,  0 },
+			  { tangent.z, -bitangent.z, -normal.z,  0 },
+			  {         0,        0,           0, 1.0f },
+			};
+
+			auto Ry = Matrix4x4::RotateRHAnticlockwiseY(Degrees{ -leverElevation });
+
+			Matrix4x4 T = Ry * model;
+			T.row0.w = pos.x;
+			T.row1.w = pos.y;
+			T.row2.w = pos.z;
+
+			lever->Model() = T;
+		}
+
+		void NotifySectorPlayerIsInSector(const IUltraClock& clock) override
+		{
+			lastPlayerOccupiedTime = clock.FrameStart();
+		}
+
+		void ClickButton() override
+		{
+			if (doorDirection == 0)
+			{
+				if (doorElevation > 1.5f)
+				{
+					doorDirection = -DOOR_ELEVATION_SPEED;
+				}
+				else
+				{
+					doorDirection = DOOR_ELEVATION_SPEED;
+				}
+			}
+		}
+
+		void ClickLever() override
+		{	
+			if (leverElevation < 0)
+			{
+				leverOmega = leverSpeed;
+			}
+			else
+			{
+				leverOmega = -leverSpeed;
+			}
+		}
+
+		void ForEachComponent(IEventCallback<const ComponentRef>& cb) override
+		{
+			for (auto& c : components)
+			{
+				cb.OnEvent({ c.name.c_str(), c.id });
+			}
+		}
+
+		void OnTick(const IUltraClock& clock) override
+		{
+			for (auto c : components)
+			{
+				if (Eq(c.name.c_str(), "door.body"))
+				{
+					UpdateDoor(c.id, clock);
+					break;
+				}
+				else if (Eq(c.name.c_str(), "pressure_pad"))
+				{
+					UpdatePressurePad(c.id, clock);
+					break;
+				}
+				else if (Eq(c.name.c_str(), "wall.lever.base"))
+				{
+					for (auto d : components)
+					{
+						if (Eq(d.name.c_str(), "wall.lever"))
+						{
+							UpdateLever(c.id, d.id, clock);
+							break;
+						}
+					}
+				}
+			}
+		}
 	};
 }
 
 namespace HV
 {
-	ISectorContents* CreateSectorContents(Platform& platform, ISector& sector)
+	ISectorContents* CreateSectorContents(Platform& platform, ISector& sector, ISectorAIBuilderSupervisor& ai)
 	{
-		return new SC(platform, sector);
+		return new SC(platform, sector, ai);
 	}
 }
