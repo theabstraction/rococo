@@ -968,7 +968,7 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 		auto* homeSector = GetFirstSectorContainingPoint(Vec2{ eye.x, eye.y }, sectors );
 		if (homeSector)
 		{
-			homeSector->NotifySectorPlayerIsInSector(clock);
+			homeSector->Contents().NotifySectorPlayerIsInSector(clock);
 		}
 	}
 

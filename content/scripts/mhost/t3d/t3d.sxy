@@ -282,32 +282,6 @@
 	)
 	
 	*/
-
-	(IRigBuilder rb (RigBuilder))
-	(rb.Clear)
-	
-	/*
-	
-	(rb.AddBone "spine.lower")
-	(rb.SetLength "spine.lower" 0.3)
-	
-	(rb.AddBone "spine.upper")
-	(rb.SetLength "spine.upper" 0.3)
-
-	(rb.SetParentOfChild "spine.lower" "spine.upper")
-	(rb.CommitToSkeleton "spine")
-	
-	(Matrix4x4 rigToWorld =
-		(1 0 0   0)
-		(0 1 0   1)
-		(0 0 1 0.3)
-		(0 0 0   1)
-	)
-		
-	(Int64 spineId = (instances.AddSkeleton "spine" rigToWorld))
-	(scene.AddStatics spineId)
-	
-	*/
 	
 	(while this.engine.IsRunning
 		(AdvanceCoroutines this.coroutines)

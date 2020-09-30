@@ -169,13 +169,7 @@
 	)
 )
 
-(method World.Construct : 
-	(this.cameraPos = 0 0 1.8)
-	(this.cameraOrientation = 0 0 0)
-	
-	(IInstances instances (Instances))
-	(instances.Clear)
-	
+(function AddBottle (ISceneBuilder scene)(IInstances instances)-> :
 	(MakeBottle "potion.1") 
 	
 	(Matrix4x4 model = 
@@ -187,23 +181,28 @@
 	
 	(Vec3 noScale = 1 1 1)
 	
-//	(Int64 bottleId = (instances.AddBody "potion.1" model noScale 0))
-	
+	(Int64 bottleId = (instances.AddBody "potion.1" model noScale 0))
+	(scene.AddStatics bottleId)
+)
+
+(function AddFloor (ISceneBuilder scene)(IInstances instances)-> :
 	(MakeFloor "floor.1")
 	
-	(Matrix4x4 model2 = 
+	(Matrix4x4 model = 
 		(1 0 0 0)
 		(0 1 0 0)
 		(0 0 1 0) 
 		(0 0 0 1)
 	)
 	
-	(Int64 floorId = (instances.AddBody "floor.1" model2 noScale 0))
+	(Vec3 noScale = 1 1 1)
 	
-	(ISceneBuilder scene (SceneBuilder))
-	(scene.Clear)
-	//(scene.AddStatics bottleId)
+	(Int64 floorId = (instances.AddBody "floor.1" model noScale 0))
 	(scene.AddStatics floorId)
+)
+
+(function AddLight (ISceneBuilder scene)(IInstances instances)-> :
+	(MakeLamp "light.cone.1")
 	
 	(Matrix4x4 rotX)
 	(Sys.Geometry.F32.RotateAboutX 45 rotX)
@@ -223,8 +222,6 @@
 	(light.farPlane = 1000)
 	(light.fogConstant = -0.1)
 	
-	(MakeLamp "light.cone.1")
-	
 	(Matrix4x4 lightConeTranslate)
 	
 	(Sys.Geometry.F32.MakeTranslateMatrix light.position lightConeTranslate)
@@ -232,10 +229,52 @@
 	(Matrix4x4 lightConeModel)
 	(lightConeModel = lightConeTranslate * rotX)
 	
-	(Int64 lightConeId = (instances.AddBody "light.cone.1" lightConeModel noScale 0))
+	(Vec3 noScale = 1 1 1)
 	
-	(scene.AddStatics lightConeId)
+	(Int64 lightCodeId = (instances.AddBody "light.cone.1" lightConeModel noScale 0))
+	(scene.AddStatics lightCodeId)
+	
 	(scene.SetLight light 0)
+)
+
+(function AddRig (ISceneBuilder scene)(IInstances instances)-> :
+	(IRigBuilder rb (RigBuilder))
+	(rb.Clear)
+	
+	(rb.AddBone "spine_lower")
+	(rb.SetLength "spine_lower" 2.3)
+	
+	(rb.AddBone "spine_upper")
+	(rb.SetLength "spine_upper" 2.3)
+
+	(rb.SetParentOfChild "spine_lower" "spine_upper")
+	(rb.CommitToSkeleton "geoff")
+	
+	(Matrix4x4 rigToWorld =
+		(1 0 0   0)
+		(0 1 0   1)
+		(0 0 1 0.3)
+		(0 0 0   1)
+	)
+		
+	(Int64 spineId = (instances.AddSkeleton "geoff" rigToWorld))
+	(scene.AddStatics spineId)
+)
+
+(method World.Construct : 
+	(this.cameraPos = 0 0 1.8)
+	(this.cameraOrientation = 0 0 0)
+	
+	(IInstances instances (Instances))
+	(instances.Clear)
+	
+	(ISceneBuilder scene (SceneBuilder))
+	(scene.Clear)
+	
+	(AddBottle scene instances)
+	(AddFloor scene instances)
+	(AddLight scene instances)
+	(AddRig scene instances)
 )
 
 (factory T3D.NewWorld T3D.IWorld : (construct World))

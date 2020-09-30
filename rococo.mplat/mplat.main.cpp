@@ -320,7 +320,9 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	AutoFree<Entities::IInstancesSupervisor> instances = Entities::CreateInstanceBuilder(rigLoader, *meshes, mainWindow->Renderer(), *publisher);
 	AutoFree<Entities::IMobilesSupervisor> mobiles = Entities::CreateMobilesSupervisor(*instances);
 	AutoFree<Graphics::ICameraSupervisor> camera = Graphics::CreateCamera(*instances, *mobiles, mainWindow->Renderer());
-	AutoFree<Graphics::ISceneSupervisor> scene = Graphics::CreateScene(*instances, *camera);
+	Rococo::Entities::RigBuilderContext rbc;
+	AutoFree<Rococo::Entities::IRigBuilderSupervisor> rigBuilder = Rococo::Entities::CreateRigBuilder(rbc);
+	AutoFree<Graphics::ISceneSupervisor> scene = Graphics::CreateScene(*instances, *camera, rigBuilder->Skeles());
 	AutoFree<IKeyboardSupervisor> keyboard = CreateKeyboardSupervisor();
 	AutoFree<Graphics::ISpriteSupervisor> sprites = Graphics::CreateSpriteSupervisor(mainWindow->Renderer());
 	AutoFree<IConfigSupervisor> config = CreateConfig();
@@ -335,9 +337,6 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	AutoFree<Audio::ILegacySoundControlSupervisor> legacySound = Audio::CreateLegacySoundControl();
 	AutoFree<Rococo::Script::IScriptSystemFactory> ssFactory = CreateScriptSystemFactory_1_5_0_0(sourceCache->Allocator());
 	AutoFree<Rococo::Puppet::IPuppetsSupervisor> puppets = Rococo::Puppet::CreatePuppets(1000000, 128);
-
-	Rococo::Entities::RigBuilderContext rbc;
-	AutoFree<Rococo::Entities::IRigBuilderSupervisor> rigBuilder = Rococo::Entities::CreateRigBuilder(rbc);
 
 	OutputDebugStringA("\n\nLegacy Sound Description:");
 

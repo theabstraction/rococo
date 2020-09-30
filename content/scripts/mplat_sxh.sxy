@@ -252,6 +252,7 @@
 (interface Rococo.Entities.IInstances
 	(AddBody (Sys.Type.IString modelName)(Sys.Maths.Matrix4x4 model)(Sys.Maths.Vec3 scale)(Int64 parentId) -> (Int64 entityId))
 	(AddGhost (Sys.Maths.Matrix4x4 model)(Int64 parentId) -> (Int64 entityId))
+	(AddSkeleton (Sys.Type.IString skeleton)(Sys.Maths.Matrix4x4 model) -> (Int64 entityId))
 	(CreateCubeTexture (Sys.Type.IString folder)(Sys.Type.IString extension) -> (Int64 cubeId))
 	(Delete (Int64 id) -> )
 	(LoadRig (Sys.Type.IString pingPath) -> )
@@ -272,6 +273,7 @@
 	(method ProxyIInstances.Construct (Pointer hObject): (this.hObject = hObject))
 	(method ProxyIInstances.AddBody (Sys.Type.IString modelName)(Sys.Maths.Matrix4x4 model)(Sys.Maths.Vec3 scale)(Int64 parentId) -> (Int64 entityId) : (Rococo.Entities.Native.IInstancesAddBody this.hObject modelName model scale parentId -> entityId))
 	(method ProxyIInstances.AddGhost (Sys.Maths.Matrix4x4 model)(Int64 parentId) -> (Int64 entityId) : (Rococo.Entities.Native.IInstancesAddGhost this.hObject model parentId -> entityId))
+	(method ProxyIInstances.AddSkeleton (Sys.Type.IString skeleton)(Sys.Maths.Matrix4x4 model) -> (Int64 entityId) : (Rococo.Entities.Native.IInstancesAddSkeleton this.hObject skeleton model -> entityId))
 	(method ProxyIInstances.CreateCubeTexture (Sys.Type.IString folder)(Sys.Type.IString extension) -> (Int64 cubeId) : (Rococo.Entities.Native.IInstancesCreateCubeTexture this.hObject folder extension -> cubeId))
 	(method ProxyIInstances.Delete (Int64 id) ->  : (Rococo.Entities.Native.IInstancesDelete this.hObject id))
 	(method ProxyIInstances.LoadRig (Sys.Type.IString pingPath) ->  : (Rococo.Entities.Native.IInstancesLoadRig this.hObject pingPath))

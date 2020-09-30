@@ -157,6 +157,8 @@ namespace Rococo
 
 	ROCOCOAPI IRenderContext // Provides draw calls - do not cache
 	{
+		virtual void Add3DGuiTriangles(const VertexTriangle * first, const VertexTriangle * last) = 0;
+		virtual void Clear3DGuiTriangles() = 0;
 		virtual void Draw(ID_SYS_MESH id, const ObjectInstance * instance, uint32 nInstances) = 0;
 		virtual IRenderer& Renderer() = 0;
 	};

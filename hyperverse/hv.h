@@ -583,12 +583,8 @@ namespace HV
 	// Getting to be a god class
 	ROCOCOAPI ISector : public IPropertyTarget
 	{
-		 virtual void LowerScenery() = 0;
-		 virtual void RaiseScenery() = 0;
-		 virtual void ToggleElevation() = 0;
-
+		 virtual ISectorContents& Contents() = 0;
 		 virtual SectorSquares Squares() const = 0;
-
 		 virtual ISectorAIBuilder& GetSectorAIBuilder() = 0;
 		 virtual IIActionFactoryCreateContext& AFCC() = 0;
 		 virtual ITagContainer& Tags() = 0;
@@ -641,7 +637,6 @@ namespace HV
 		 virtual ISectorLayout* Layout() = 0;
 
 		 virtual void OnTick(const IUltraClock& clock) = 0;
-		 virtual void NotifySectorPlayerIsInSector(const IUltraClock& clock) = 0;
 
 		 virtual ITriggersAndActions& TriggersAndActions() = 0;
 	};

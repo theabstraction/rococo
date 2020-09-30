@@ -166,6 +166,7 @@
       <FileType>Document</FileType>
     </CustomBuild>
     <None Include="hv.action.factory.inl" />
+    <None Include="hv.sector.perimeter.inl" />
     <None Include="hv.sxh.inl" />
     <None Include="hv.trianglelist.inl" />
   </ItemGroup>

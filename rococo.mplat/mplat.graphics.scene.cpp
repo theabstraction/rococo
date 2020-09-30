@@ -11,6 +11,23 @@ namespace
    using namespace Rococo::Entities;
    using namespace Rococo::Graphics;
 
+   typedef std::vector<VertexTriangle> TTriangles;
+
+   struct NullMeshBuilder : IMeshBuilder
+   {
+	   void AddMesh(const Matrix4x4& transform, const fstring& sourceName) override {}
+	   void AddTriangleEx(const VertexTriangle& t) override  {}
+	   void AddTriangle(const ObjectVertex& a, const ObjectVertex& b, const ObjectVertex& c) override  {}
+	   void AddPhysicsHull(const Triangle& t) override  {}
+	   void Begin(const fstring& meshName) override {}
+	   void End(boolean32 preserveCopy, boolean32 invisible) override  {}
+	   void Clear() override {}
+	   void Delete(const fstring& fqName) override {}
+	   void SetShadowCasting(const fstring& fqName, boolean32 isActive) override {}
+	   void SetSpecialShader(const fstring& fqName, const fstring& psSpotlightPingPath, const fstring& psAmbientPingPath, boolean32 alphaBlending) override  {}
+	   void Span(Vec3& span, const fstring& fqName) override {}
+   } s_NullMeshBuilder;
+
    class Scene : public ISceneSupervisor, public ISceneBuilderSupervisor
    {
       IInstancesSupervisor& instances;
@@ -28,10 +45,16 @@ namespace
 	  IScenePopulator* populator = nullptr;
 
 	  ID_CUBE_TEXTURE skyboxId;
+
+	  ISkeletons& skeletons;
+
+	  AutoFree<IRodTesselatorSupervisor> debugTesselator;
    public:
-      Scene(IInstancesSupervisor& _instances, ICameraSupervisor& _camera) :
-         instances(_instances), camera(_camera)
+      Scene(IInstancesSupervisor& _instances, ICameraSupervisor& _camera, ISkeletons& _skeletons) :
+         instances(_instances), camera(_camera), skeletons(_skeletons)
       {
+		  debugTesselator = CreateRodTesselator(s_NullMeshBuilder);
+		  debugTesselator->SetUVScale(1.0f);
       }
       
       ~Scene()
@@ -69,8 +92,53 @@ namespace
 		  this->populator = populator;
 	  }
 
+	  void AddDebugBone(const IBone& bone, const Matrix4x4& model, IRenderContext& rc)
+	  {
+		  if (bone.Length() > 0)
+		  {
+			  MaterialVertexData mat;
+			  mat.colour = RGBAb(255, 255, 255, 255);
+			  mat.gloss = 0;
+			  mat.materialId = 0;
+
+			  debugTesselator->SetMaterialTop(mat);
+			  debugTesselator->SetMaterialMiddle(mat);
+			  debugTesselator->SetMaterialBottom(mat);
+
+			  debugTesselator->AddTube(bone.Length(), 0.05_metres, 0.05_metres, 8);
+			  debugTesselator->TransformVertices(model);
+			  rc.Add3DGuiTriangles(debugTesselator->begin(), debugTesselator->end());
+			  debugTesselator->Clear();
+		  }
+
+		  for (auto& child : bone)
+		  {
+			  Matrix4x4 childModelMatrix = child->GetMatrix() * model;
+			  AddDebugBone(*child, childModelMatrix, rc);
+		  }
+	  }
+
+	  void AddDebugBones(IEntity& e, IRenderContext& rc)
+	  {
+		  auto skeleton = e.GetSkeleton(skeletons);
+		  if (skeleton)
+		  {
+			  auto* root = skeleton->Root();
+			  if (root)
+			  {
+				  Matrix4x4 m = e.Model();
+				  Matrix4x4 rY = Matrix4x4::RotateRHAnticlockwiseY(0_degrees);
+				  Matrix4x4 R = m * rY;
+				  AddDebugBone(*root, R, rc);
+			  }
+		  }
+	  }
+
 	  void RenderShadowPass(const DepthRenderData& drd, IRenderContext& rc) override
 	  {
+		  debugTesselator->Clear();
+		  rc.Clear3DGuiTriangles();
+
 		  if (populator)
 		  {
 			  populator->PopulateShadowCasters(*this, drd);
@@ -87,6 +155,8 @@ namespace
 			  {
 				  Throw(0, "Unexpected missing entity");
 			  }
+
+			  AddDebugBones(*entity, rc);
 
 			  if (entity->MeshId() != meshId)
 			  {
@@ -177,7 +247,7 @@ namespace
          drawQueue.clear();
       }
 
-	  void FlushDrawQueue_NoTexture(ID_SYS_MESH meshId , IRenderContext& rc)
+	  void FlushDrawQueue_NoTexture(ID_SYS_MESH meshId, IRenderContext& rc)
 	  {
 		  if (drawQueue.empty()) return;
 		  rc.Draw(meshId, &drawQueue[0], (uint32)drawQueue.size());
@@ -186,6 +256,8 @@ namespace
 
       void RenderObjects(IRenderContext& rc) override
       {
+		  debugTesselator->Clear();
+
 		  if (populator)
 		  {
 			  populator->PopulateScene(*this);
@@ -227,9 +299,9 @@ namespace Rococo
 {
    namespace Graphics
    {
-      ISceneSupervisor* CreateScene(IInstancesSupervisor& instances, ICameraSupervisor& camera)
+      ISceneSupervisor* CreateScene(IInstancesSupervisor& instances, ICameraSupervisor& camera, ISkeletons& skeletons)
       {
-         return new Scene(instances, camera);
+         return new Scene(instances, camera, skeletons);
       }
    }
 }

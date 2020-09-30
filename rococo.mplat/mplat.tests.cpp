@@ -10,7 +10,7 @@ void Validate(bool x, cstr message) { if (!x) Throw(0, "%s", message); }
 void TestHandles()
 {
 	// HandleTable<int32, 0x0000000FFFFFFFFF, 36> t0("t0", 0, nullptr); -> should throw
-	HandleTable<int32, 0x0000000FFFFFFFFF, 36> t1("t1", 2, nullptr);
+	HandleTable<int32, 8> t1("t1", 2);
 	auto h0 = t1.CreateNew();
 	auto h1 = t1.CreateNew();
 
@@ -23,7 +23,7 @@ void TestHandles()
 	hNext = t1.GetNextHandle(hNext);
 	VALIDATE(!hNext);
 
-	t1.Invalidate(h0);
+	t1.Destroy(h0, 0);
 }
 
 void TestMaths()

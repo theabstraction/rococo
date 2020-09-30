@@ -11,6 +11,7 @@ namespace Rococo
 {
    ROCOCO_ID(ID_ENTITY, int64, 0);
    ROCOCO_ID(ID_PUPPET, uint64, 0);
+   ROCOCO_ID(ID_SKELETON, uint64, 0);
 
    struct IEnumVector
    {
@@ -235,15 +236,30 @@ namespace Rococo
 
 	namespace Entities
 	{
+		struct IBone;
+
+		ROCOCOAPI ISkeleton
+		{
+			virtual cstr Name() const = 0;
+			virtual IBone* Root() = 0;
+		};
+
+		ROCOCOAPI ISkeletons
+		{
+			virtual void Clear() = 0;
+			virtual bool TryGet(cstr name, ISkeleton** ppSkeleton) = 0;
+			virtual bool TryGet(ID_SKELETON id, ISkeleton** ppSkeleton) = 0;
+		};
+
 		ROCOCOAPI IEntity
 		{
 		   virtual Vec3 Position() const = 0;
 		   virtual Matrix4x4& Model() = 0;
-		   virtual ID_ENTITY ParentId() const = 0;
-		   virtual const ID_ENTITY* begin() const = 0;
-		   virtual const ID_ENTITY* end() const = 0;
+
 		   virtual ID_SYS_MESH MeshId() const = 0;
 		   virtual void SetMesh(ID_SYS_MESH id) = 0;
+
+		   virtual ISkeleton* GetSkeleton(ISkeletons& skeletons) = 0;
 		};
 
 		ROCOCOAPI IEntityCallback
@@ -337,7 +353,7 @@ namespace Rococo
 		   virtual void SetPopulator(IScenePopulator* populator) = 0;
 		};
 
-		ISceneSupervisor* CreateScene(Rococo::Entities::IInstancesSupervisor& instances, ICameraSupervisor& camera);
+		ISceneSupervisor* CreateScene(Rococo::Entities::IInstancesSupervisor& instances, ICameraSupervisor& camera, Entities::ISkeletons& skeletons);
 
 		ROCOCOAPI ISpriteSupervisor : public ISprites
 		{
@@ -385,8 +401,40 @@ namespace Rococo
 
 		IParticleSystemSupervisor* CreateParticleSystem(IRenderer& renderer, IInstances& instances);
 
+		struct BonePath
+		{
+			char text[256];
+		};
+
+		ROCOCOAPI IBone
+		{
+			virtual const Matrix4x4& GetMatrix() const = 0;
+			virtual void SetMatrix(const Matrix4x4& m) = 0;
+			virtual cstr ShortName() const = 0;
+			virtual void GetFullName(BonePath& path) = 0;
+			virtual IBone* Parent() const = 0;
+			virtual IBone** begin() = 0;
+			virtual IBone** end() = 0;
+			virtual const IBone** begin() const = 0;
+			virtual const IBone** end() const = 0;
+			virtual Metres Length() const = 0;
+			virtual void SetLength(Metres length) = 0;
+			virtual IBone* AttachBone(const Matrix4x4& m, Metres length, cstr shortName) = 0;
+
+			/* 
+				Detach the bone from its parent and sets the parent to null.
+				After calling this function the skeleton no longer links to the bone
+				and you have the responsibility of calling Free() to release the memory
+			*/
+			virtual void Detach() = 0;
+
+			/* Detach this bone, then delete this bone and all its children */
+			virtual void Free() = 0;
+		};
+
 		ROCOCOAPI IRigBuilderSupervisor : IRigBuilder
 		{
+			virtual ISkeletons & Skeles() = 0;
 			virtual void Free() = 0;
 		};
 
@@ -727,6 +775,8 @@ namespace Rococo
 
 		ROCOCOAPI IRodTesselatorSupervisor : public IRodTesselator
 		{
+			virtual VertexTriangle* begin() = 0;
+			virtual VertexTriangle* end() = 0;
 			virtual void Free() = 0;
 		};
 

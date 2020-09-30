@@ -42,7 +42,7 @@ namespace
 				{
 					void OnTag(TagContext& tc) override
 					{
-						tc.sector.LowerScenery();
+						tc.sector.Contents().LowerScenery();
 					}
 				} lowerScenery;
 				tags.ForEachSectorWithTag(tag, lowerScenery);
@@ -54,7 +54,7 @@ namespace
 				{
 					void OnTag(TagContext& tc) override
 					{
-						tc.sector.RaiseScenery();
+						tc.sector.Contents().RaiseScenery();
 					}
 				} raiseScenery;
 				tags.ForEachSectorWithTag(tag, raiseScenery);
@@ -66,7 +66,7 @@ namespace
 				{
 					void OnTag(TagContext& tc) override
 					{
-						tc.sector.ToggleElevation();
+						tc.sector.Contents().ToggleElevation();
 					}
 				} toggleElevation;
 				tags.ForEachSectorWithTag(tag, toggleElevation);

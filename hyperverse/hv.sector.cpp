@@ -12,6 +12,8 @@
 
 #include "hv.trianglelist.inl"
 
+#include "hv.sector.perimeter.inl"
+
 namespace HV
 {
 	ISectorContents* CreateSectorContents(Platform& platform, ISector& sector, ISectorAIBuilderSupervisor& ai);
@@ -44,7 +46,6 @@ namespace
 
 	   // Indices into floor perimeter for each section of solid wall
 	   std::vector<Segment> wallSegments;
-
 	   std::vector<Gap> gapSegments;
 
 	   // Triangle list for the physics and graphics meshes
@@ -54,7 +55,12 @@ namespace
 
 	   AutoFree<IScriptConfigSet> scriptConfig;
 
-	   IUtilitiies& utilities;
+	   uint32 id; // unique sector Id
+
+		// One instance for each major mesh of the sector
+	   ID_ENTITY floorId;
+	   ID_ENTITY ceilingId;
+	   ID_ENTITY wallId;
 
 	   float uvScale{ 0.2f };
 	   Vec2 uvOffset{ 0,0 };
@@ -99,6 +105,11 @@ namespace
 	   ITagContainer& Tags()
 	   {
 		   return ai->Tags();
+	   }
+
+	   ISectorContents& Contents()
+	   {
+		   return *contents;
 	   }
 
 	   void Altitude(Vec2& altitudes)
@@ -150,87 +161,7 @@ namespace
 
 	   boolean32 TryGetAsRectangle(GuiRectf& rect) override
 	   {
-		   auto GetTangent = [](Vec2 a, Vec2 b)-> Vec2
-		   {
-			   Vec2 tangent = Normalize(b - a);
-			   tangent.x = roundf(tangent.x);
-			   tangent.y = roundf(tangent.y);
-			   return tangent;
-		   };
-
-		   int32 tangentIndex = 0;
-		   Vec2 tangents[4] = { {0,0}, {0,0}, {0,0}, {0,0} };
-		   Vec2 corners[4] = { {0,0}, {0,0}, {0,0}, {0,0} };
-
-		   rect = { -1,-1,-1,-1 };
-
-		   Ring<Vec2> vertices(floorPerimeter.data(), floorPerimeter.size());
-
-		   tangents[0] = GetTangent(vertices[0], vertices[1]);
-		   if (tangents[0].x != 0 && tangents[0].y != 0)
-		   {
-			   // Our rectangle must be axis-aligned, so one component of tangent
-			   // has to be zero
-			   return false;
-		   }
-
-		   size_t indexOfLastChange = 0;
-
-		   for (size_t i = 1; i < vertices.ElementCount(); ++i)
-		   {
-			   Vec2 start = vertices[i];
-			   Vec2 end = vertices[i + 1];
-			   Vec2 tangent = GetTangent(start, end);
-
-			   if (tangent.x != 0 && tangent.y != 0)
-			   {
-				   // Our rectangle must be axis-aligned, so one component of tangent
-				   // has to be zero
-				   return false;
-			   }
-
-			   if (tangents[tangentIndex] != tangent)
-			   {
-				   if (tangentIndex == 3)
-				   {
-					   return false; // Rectangles have only got 4 tangents
-				   }
-
-				   tangentIndex++;
-
-				   corners[tangentIndex] = start;
-				   tangents[tangentIndex] = tangent;
-
-				   indexOfLastChange = i;
-			   }
-		   }
-
-		   if (tangentIndex != 3)
-		   {
-			   return false;
-		   }
-		   
-		   Vec2 lastTangent = tangents[3];
-
-		   for (size_t i = indexOfLastChange; i < indexOfLastChange + vertices.ElementCount(); ++i)
-		   {
-			   Vec2 start = vertices[i];
-			   Vec2 end = vertices[i + 1];
-			   Vec2 tangent = GetTangent(start, end);
-
-			   if (lastTangent != tangent)
-			   {
-				   corners[0] = start;
-				   break;
-			   }
-		   }
-
-		   rect.left = min(corners[0].x, corners[2].x);
-		   rect.right = max(corners[0].x, corners[2].x);
-		   rect.top = max(corners[0].y, corners[2].y);
-		   rect.bottom = min(corners[0].y, corners[2].y);
-		   
-		   return true;
+		   return HV::TryGetAsRectangle(rect, floorPerimeter);
 	   }
 
 	   void SyncEnvironmentMapToSector() override
@@ -292,39 +223,10 @@ namespace
       {
          return z1;
       }
-   
-      uint32 id; // unique sector Id
-
-      // One instance for each major mesh of the sector
-      ID_ENTITY floorId;
-      ID_ENTITY ceilingId;
-      ID_ENTITY wallId;
       
       Segment GetSegment(Vec2 p, Vec2 q) override
       {
-		  if (!floorPerimeter.empty())
-		  {
-			  int32 index_p = GetPerimeterIndex(p);
-			  int32 index_q = GetPerimeterIndex(q);
-
-			  if (index_p >= 0 && index_q >= 0)
-			  {
-				  if (((index_p + 1) % floorPerimeter.size()) == index_q)
-				  {
-					  return{ index_p, index_q };
-				  }
-				  if (((index_q + 1) % floorPerimeter.size()) == index_p)
-				  {
-					  return{ index_q, index_p };
-				  }
-			  }
-		  }
-		  else
-		  {
-			  // Decoupled from the co-sectors
-		  }
-
-         return{ -1,-1 };
+		  return HV::GetSegment(p, q, floorPerimeter);
       }
 
       virtual const Segment* GetWallSegments(size_t& count) const
@@ -734,7 +636,7 @@ namespace
 				  this->localName = componentName;
 
 				  char fullMeshName[256];
-				  SafeFormat(fullMeshName, 256, "sector.%d.%s", This->id, (cstr)componentName);
+				  SafeFormat(fullMeshName, "sector.%d.%s", This->id, (cstr)componentName);
 
 				  this->meshName = fullMeshName;
 
@@ -764,7 +666,7 @@ namespace
 		  catch (IException& ex)
 		  {
 			  char title[256];
-			  SafeFormat(title, 256, "sector %u: %s failed", id, wallScript);
+			  SafeFormat(title, "sector %u: %s failed", id, wallScript);
 			  platform.utilities.ShowErrorBox(platform.renderer.Window(), ex, title);
 			  return false;
 		  }
@@ -833,7 +735,7 @@ namespace
 
 			  boolean32 FoundationsExist() override
 			  {
-				  return !This->IsAxisAlignedRectangular();
+				  return !HV::IsAxisAlignedRectangular(This->floorPerimeter);
 			  }
 
 			  void AddCeilingTriangle(const VertexTriangle& t) override
@@ -853,7 +755,7 @@ namespace
 				  This->floorTriangles.clear();
 				  This->ceilingTriangles.clear();
 
-				  if (!This->IsAxisAlignedRectangular())
+				  if (!HV::IsAxisAlignedRectangular(This->floorPerimeter))
 				  {
 					  This->TesselateFloorAndCeiling();
 				  }
@@ -1112,7 +1014,6 @@ namespace
    public:
       Sector(Platform& _platform, ISectors& _co_sectors) :
          instances(_platform.instances),
-         utilities(_platform.utilities),
          id(nextSectorId++),
          platform(_platform),
          co_sectors(_co_sectors),
@@ -1309,15 +1210,7 @@ namespace
 
       int32 GetPerimeterIndex(Vec2 a) const override
       {
-         for (int32 i = 0; i < floorPerimeter.size(); ++i)
-         {
-            if (floorPerimeter[i] == a)
-            {
-               return i;
-            }
-         }
-
-         return -1;
+		  return HV::GetPerimeterIndex(a, floorPerimeter);
       }
 
       bool DoesLineCrossSector(Vec2 a, Vec2 b) override
@@ -1441,7 +1334,7 @@ namespace
          }
       }
 
-      virtual void GetSpan(Vec3& span)
+      void GetSpan(Vec3& span) override
       {
          // Return span of corridor in generation co-ordinates
          // In such a system:
@@ -1512,14 +1405,14 @@ namespace
       virtual void GetComponentMeshName(const fstring& componentName, Rococo::IStringPopulator& meshName)
       {
          char fullMeshName[256];
-         SafeFormat(fullMeshName, 256, "sector.%d.%s", id, (cstr)componentName);
+         SafeFormat(fullMeshName, "sector.%d.%s", id, (cstr)componentName);
          meshName.Populate(fullMeshName);
       }
 
 	  const Triangle* GetPhysicsHull(const fstring& componentName, size_t& nTriangles) const
 	  {
 		  char fullMeshName[256];
-		  SafeFormat(fullMeshName, 256, "sector.%d.%s", id, (cstr)componentName);
+		  SafeFormat(fullMeshName, "sector.%d.%s", id, (cstr)componentName);
 
 		  ID_SYS_MESH id;
 		  AABB bounds;
@@ -1565,7 +1458,7 @@ namespace
 				this->localName = componentName;
 
 				char fullMeshName[256];
-				SafeFormat(fullMeshName, 256, "sector.%d.%s", This->id, (cstr)componentName);
+				SafeFormat(fullMeshName, "sector.%d.%s", This->id, (cstr)componentName);
 
 				this->meshName = fullMeshName;
 
@@ -1611,7 +1504,7 @@ namespace
 		 catch (IException& ex)
 		 {
 			 char title[256];
-			 SafeFormat(title, 256, "sector %u: %s failed", id, genCorridor);
+			 SafeFormat(title, "sector %u: %s failed", id, genCorridor);
 			 platform.utilities.ShowErrorBox(platform.renderer.Window(), ex, title);
 		 }
       }
@@ -1696,39 +1589,6 @@ namespace
 		  lights.push_back(light);
 	  }
 
-	  bool IsAxisAlignedRectangular() const
-	  {
-		  Ring<Vec2> ring(&floorPerimeter[0], floorPerimeter.size());
-
-		  for (size_t i = 0; i < floorPerimeter.size(); ++i)
-		  {
-			  auto p = ring[i];
-			  auto q = ring[i + 1];
-			  auto r = ring[i + 2];
-
-			  Vec2 pq = q - p;
-			  Vec2 qr = r - q;
-
-			  if (pq.x != 0 && pq.y != 0)
-			  {
-				  return false;
-			  }
-
-			  if (qr.x != 0 && qr.y != 0)
-			  {
-				  return false;
-			  }
-
-			  float x = Cross(pq, qr);
-			  if (x > 0)
-			  {
-				  return false;
-			  }
-		  }
-
-		  return true;
-	  }
-
 	  void Rebuild()
 	  {
 		  isDirty = true;
@@ -1786,7 +1646,7 @@ namespace
 			  MaterialVertexData floorMat;
 			  MaterialVertexData ceilingMat;
 
-			  virtual void Append(const Triangle2d& t)
+			  void Append(const Triangle2d& t) override
 			  {
 				  ObjectVertex a, b, c;
 
@@ -1976,73 +1836,10 @@ namespace
 		  }
 	  }
 
-	  struct RayCrossingsEnum
-	  {
-		  int count = 0;
-		  bool fromVertex = false;
-	  };
-
-	  RayCrossingsEnum CountRayCrossingsThroughSector(Vec2 a, Vec2 dir) const
-	  {
-		  Ring<Vec2> ring(&floorPerimeter[0], floorPerimeter.size());
-
-		  RayCrossingsEnum rce;
-
-		  if (GetPerimeterIndex(a) >= 0)
-		  {
-			  rce.fromVertex = true;
-		  }
-
-		  for (size_t i = 0; i < floorPerimeter.size(); ++i)
-		  {
-			  Vec2 p = ring[i];
-			  Vec2 q = ring[i + 1];
-
-			  float t, u;
-			  if (GetLineIntersect(a, a + dir, p, q, t, u))
-			  {
-				  if (u >= 0 && u <= 1)
-				  {
-					  if (t == 0 || u == 0 || u == 1)
-					  {
-						  rce.fromVertex = true;
-					  }
-					  else if (t > 0)
-					  {
-						  rce.count++;
-					  }
-				  }
-			  }
-		  }
-
-		  return rce;
-	  }
-
 	  bool IsInSector(Vec2 p) const
 	  {
-		  auto result = CountRayCrossingsThroughSector(p, { 1,0 });
+		  auto result = CountRayCrossingsThroughSector(p, { 1,0 }, floorPerimeter);
 		  return result.fromVertex || ((result.count % 2) == 1);
-	  }
-
-	  bool DoesSegmentCrossPerimeter(Vec2 p, Vec2 q)
-	  {
-		  size_t nVertices = floorPerimeter.size();
-		  for (size_t i = 0; i <= nVertices; ++i)
-		  {
-			  auto c = GetRingElement(i, &floorPerimeter[0], nVertices);
-			  auto d = GetRingElement(i + 1, &floorPerimeter[0], nVertices);
-
-			  float t, u;
-			  if (GetLineIntersect(p, q, c, d, t, u))
-			  {
-				  if (u > 0 && u < 1 && t > 0 && t < 1)
-				  {
-					  return true;
-				  }
-			  }
-		  }
-
-		  return false;
 	  }
 
 	  bool IsFullyOccupied(std::vector<int>& occupancyMatrix, int DX, int DY, int span, int startX, int startY)
@@ -2142,13 +1939,13 @@ namespace
 
 				  if (IsInSector(p00) && IsInSector(p01) && IsInSector(p10) && IsInSector(p11))
 				  {
-					  if (!DoesSegmentCrossPerimeter(p00, p01))
+					  if (!DoesSegmentCrossPerimeter(p00, p01, floorPerimeter))
 					  {
-						  if (!DoesSegmentCrossPerimeter(p01, p11))
+						  if (!DoesSegmentCrossPerimeter(p01, p11, floorPerimeter))
 						  {
-							  if (!DoesSegmentCrossPerimeter(p11, p10))
+							  if (!DoesSegmentCrossPerimeter(p11, p10, floorPerimeter))
 							  {
-								  if (!DoesSegmentCrossPerimeter(p10, p00))
+								  if (!DoesSegmentCrossPerimeter(p10, p00, floorPerimeter))
 								  {
 									  floorRectArray[X + Y * nX] = 1;
 								  }
@@ -2337,38 +2134,6 @@ namespace
 		  }
 	  }
 
-      bool Is4PointRectangular() const
-      {
-         if (floorPerimeter.size() != 4) return false;
-
-         Vec2 ab = floorPerimeter[1] - floorPerimeter[0];
-         Vec2 bc = floorPerimeter[2] - floorPerimeter[1];
-         Vec2 cd = floorPerimeter[3] - floorPerimeter[2];
-         Vec2 da = floorPerimeter[0] - floorPerimeter[3];
-
-         if (Dot(ab,bc) != 0)
-         {
-            return false;
-         }
-
-         if (Dot(bc,cd) != 0)
-         {
-            return false;
-         }
-
-         if (Dot(cd, da) != 0)
-         {
-            return false;
-         }
-
-         if (Dot(da, ab) != 0)
-         {
-            return false;
-         }
-
-         return true;
-      }
-
 	  void OnSectorScriptChanged(const FileModifiedArgs& args) override
 	  {
 		  static int64 anySectorScriptChangedUpdate = 0x900000000000;
@@ -2532,7 +2297,7 @@ namespace
 		  {
 			  SafeFormat(msg, sizeof(msg), "Sector #%u%s", id, IsCorridor() ? " (corridor)" : " (4 pt rectangle)");
 		  }
-		  else if (IsAxisAlignedRectangular())
+		  else if (HV::IsAxisAlignedRectangular(floorPerimeter))
 		  {
 			  SafeFormat(msg, sizeof(msg), "Sector #%u%s", id, " Axis-Aligned rectangular room");
 		  }
@@ -2832,11 +2597,6 @@ namespace
 		  segment.otherZ1 = Z1();
 	  }
 
-	  void NotifySectorPlayerIsInSector(const IUltraClock& clock)
-	  {
-		  contents->NotifySectorPlayerIsInSector(clock);
-	  }
-
 	  void OnTick(const IUltraClock& clock) override
 	  {
 		  ai->AdvanceInTime(platform.publisher, clock);
@@ -2899,22 +2659,12 @@ namespace
 		  return clickIt.found;
 	  }
 
+	  bool Is4PointRectangular() const override
+	  {
+		  return HV::Is4PointRectangular(floorPerimeter);
+	  }
+
 	  ITriggersAndActions& TriggersAndActions() override { return ai->TriggersAndActions(); }
-
-	  void LowerScenery() override
-	  {
-		  contents->LowerScenery();
-	  }
-
-	  void RaiseScenery() override
-	  {
-		  contents->RaiseScenery();
-	  }
-
-	  void ToggleElevation() override
-	  {
-		  contents->ToggleElevation();
-	  }
    };
 }
 

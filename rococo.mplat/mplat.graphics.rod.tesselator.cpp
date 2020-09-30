@@ -51,6 +51,16 @@ namespace ANON
 
 		}
 
+		VertexTriangle* begin() override
+		{
+			return triangles.empty() ? nullptr : triangles.data();
+		}
+
+		VertexTriangle* end() override
+		{
+			return triangles.empty() ? nullptr : triangles.data() + triangles.size();
+		}
+
 		void Free() override
 		{
 			delete this;

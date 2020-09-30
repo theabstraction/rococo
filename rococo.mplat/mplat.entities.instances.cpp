@@ -18,44 +18,46 @@ namespace
       Matrix4x4 model;
       ID_ENTITY parentId; 
       ID_SYS_MESH meshId;
-      Vec3 scale{ 1.0f, 1.0f, 1.0f };       
-      std::vector<ID_ENTITY> children;
+      Vec3 scale{ 1.0f, 1.0f, 1.0f };   
+      HString skeletonName;
+      ID_SKELETON idSkeleton;
 
-      virtual Vec3 Position() const
+      Vec3 Position() const override
       {
          return model.GetPosition();
       }
 
-      virtual Matrix4x4& Model()
+      Matrix4x4& Model() override
       {       
          return model;
       }
 
-      virtual ID_ENTITY ParentId() const
-      {
-         return parentId;
-      }
-
-      virtual const ID_ENTITY* begin() const 
-      { 
-         return children.empty() ? ((ID_ENTITY*) nullptr) : &children[0]; 
-      }
-      
-      virtual const ID_ENTITY* end() const
-      {
-         return children.empty() ? ((ID_ENTITY*) nullptr) : &children[children.size()];
-      }
-
-      virtual ID_SYS_MESH MeshId() const 
+      ID_SYS_MESH MeshId() const  override
 	  {
 		  return meshId;
 	  }
 
-	  virtual void SetMesh(ID_SYS_MESH id)
+	  void SetMesh(ID_SYS_MESH id) override
 	  {
 		  meshId = id;
 	  }
 
+      ISkeleton* GetSkeleton(ISkeletons& skeletons) override
+      {
+          if (skeletonName.length() == 0)
+          {
+              return nullptr;
+          }
+
+          ISkeleton* skeleton;
+          if (skeletons.TryGet(idSkeleton, &skeleton))
+          {
+              return skeleton;
+          }
+
+          skeletons.TryGet(skeletonName, &skeleton);
+          return skeleton;
+      }
    };
 
    typedef std::unordered_map<ID_ENTITY, EntityImpl*, ID_ENTITY> MapIdToEntity;
@@ -105,13 +107,6 @@ namespace
          
          ID_ENTITY id(nextId++);
 
-         if (parentId != 0)
-         {
-            auto i = idToEntity.find(parentId);
-            if (i == idToEntity.end()) Throw(0, "Cannot find parent entity with id #%d", parentId.value);
-            i->second->children.push_back(id);
-         }
-
          auto* e = new EntityImpl;
          e->model = model;
          e->parentId = parentId;
@@ -124,7 +119,29 @@ namespace
          return id;
       }
 
-      virtual ID_ENTITY AddBody(const fstring& modelName, const Matrix4x4& model, const Vec3& scale, ID_ENTITY parentId)
+      ID_ENTITY AddSkeleton(const fstring& skeleton, const Matrix4x4& model) override
+      {
+            float d = Determinant(model);
+            if (d < 0.975f || d > 1.025f)
+            {
+                Throw(0, "Bad model matrix. Determinant was %f", d);
+            }
+
+            ID_ENTITY id(nextId++);
+
+            auto* e = new EntityImpl;
+            e->model = model;
+            e->parentId = ID_ENTITY{ 0 };
+            e->meshId = ID_SYS_MESH::Invalid();
+            e->scale = Vec3{ 1.0f, 1.0f, 1.0f };
+            e->skeletonName = skeleton;
+
+            idToEntity.insert(std::make_pair(id, e));
+
+            return id;
+      }
+
+      ID_ENTITY AddBody(const fstring& modelName, const Matrix4x4& model, const Vec3& scale, ID_ENTITY parentId)
       {
          ID_SYS_MESH meshId;
 		 AABB bounds;
@@ -174,23 +191,17 @@ namespace
 
       std::vector<const Matrix4x4*> modelStack;
 
-      virtual void ConcatenatePositionVectors(ID_ENTITY leafId, Vec3& position)
+      void ConcatenatePositionVectors(ID_ENTITY leafId, Vec3& position) override
       {
-         position = Vec3{ 0,0,0 };
+        position = Vec3{ 0,0,0 };
 
-         ID_ENTITY i = leafId;
-         while (i != ID_ENTITY::Invalid())
-         {
-            auto* entity = GetEntity(i);
-            if (entity == nullptr)
-            {
-               Throw(0, "Missing entity");
-            }
+        auto* entity = GetEntity(leafId);
+        if (entity == nullptr)
+        {
+            Throw(0, "Missing entity");
+        }
 
-            position += entity->Position();
-
-            i = entity->ParentId();
-         }
+        position += entity->Position();
       }
 
 	  ID_CUBE_TEXTURE CreateCubeTexture(const fstring& folder, const fstring& extension) override
@@ -200,34 +211,19 @@ namespace
 
       void ConcatenateModelMatrices(ID_ENTITY leafId, Matrix4x4& m) override
       {
-         modelStack.clear();
+        auto* entity = GetEntity(leafId);
+        if (entity == nullptr)
+        {
+            Throw(0, "Missing entity");
+        }
 
-         ID_ENTITY i = leafId;
-         while(i != ID_ENTITY::Invalid())
-         {
-            auto* entity = GetEntity(i);
-            if (entity == nullptr)
-            {
-               Throw(0, "Missing entity");
-            }
+        m = entity->Model();
 
-            modelStack.push_back(&entity->Model());
-
-            i = entity->ParentId();
-         }
-
-         m = Matrix4x4::Identity();
-         for (auto j = modelStack.rbegin(); j != modelStack.rend(); ++j)
-         {
-            Matrix4x4 mPrimed = m * **j;
-            m = mPrimed;
-         }
-
-         float Dm = Determinant(m);
-         if (Dm < 0.9f || Dm > 1.1f)
-         {
+        float Dm = Determinant(m);
+        if (Dm < 0.9f || Dm > 1.1f)
+        {
             Throw(0, "Bad model matrix for entity %lld. Det M = %f", leafId.value, Dm);
-         }
+        }
       }
 
       void ForAll(IEntityCallback& cb)

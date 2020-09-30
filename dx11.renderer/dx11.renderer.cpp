@@ -425,10 +425,13 @@ namespace ANON
 
 	   AutoRelease<ID3D11Buffer> guiBuffer;
 	   AutoRelease<ID3D11Buffer> particleBuffer;
+	   AutoRelease<ID3D11Buffer> gui3DBuffer;
 	   std::vector<GuiVertex> guiVertices;
 
 	   enum { GUI_BUFFER_VERTEX_CAPACITY = 3 * 512 };
 	   enum { PARTICLE_BUFFER_VERTEX_CAPACITY = 1024 };
+	   enum { GUI3D_BUFFER_TRIANGLE_CAPACITY = 1024 };
+	   enum { GUI3D_BUFFER_VERTEX_CAPACITY = 3 * GUI3D_BUFFER_TRIANGLE_CAPACITY };
 
 	   AutoFree<Fonts::IFontSupervisor> fonts;
 	   AutoRelease<ID3D11Texture2D> fontTexture;
@@ -506,6 +509,21 @@ namespace ANON
 	   std::vector<std::string> idToMaterialName;
 
 	   std::vector<Overlay> overlays;
+
+	   std::vector<VertexTriangle> gui3DTriangles;
+
+	   void Add3DGuiTriangles(const VertexTriangle* first, const VertexTriangle* last)
+	   {
+		   for (auto i = first; i != last; ++i)
+		   {
+			   gui3DTriangles.push_back(*i);
+		   }
+	   }
+
+	   void Clear3DGuiTriangles()
+	   {
+		   gui3DTriangles.clear();
+	   }
 
 	   struct OSFont
 	   {
@@ -845,6 +863,7 @@ namespace ANON
 		   static_assert(GUI_BUFFER_VERTEX_CAPACITY % 3 == 0, "Capacity must be divisible by 3");
 		   guiBuffer = DX11::CreateDynamicVertexBuffer<GuiVertex>(device, GUI_BUFFER_VERTEX_CAPACITY);
 		   particleBuffer = DX11::CreateDynamicVertexBuffer<ParticleVertex>(device, PARTICLE_BUFFER_VERTEX_CAPACITY);
+		   gui3DBuffer = DX11::CreateDynamicVertexBuffer<ObjectVertex>(device, GUI3D_BUFFER_VERTEX_CAPACITY);
 
 		   objDepthState = DX11::CreateObjectDepthStencilState(device);
 		   objDepthState_NoWrite = DX11::CreateObjectDepthStencilState_NoWrite(device);
@@ -2469,6 +2488,11 @@ namespace ANON
 
 		   auto& m = meshBuffers[id.value];
 
+		   Draw(m, instances, nInstances);
+	   }
+
+	   void Draw(MeshBuffer& m, const ObjectInstance* instances, uint32 nInstances)
+	   {
 		   if (!m.dx11Buffer)
 			   return;
 
@@ -2728,6 +2752,35 @@ namespace ANON
 		   return textures[index];
 	   }
 
+	   void Render3DGui()
+	   {
+		   size_t cursor = 0;
+		   size_t len = gui3DTriangles.size();
+
+		   ObjectInstance one = { Matrix4x4::Identity(), RGBA(1.0f, 1.0f, 1.0f, 1.0f) };
+
+		   while (len > 0)
+		   {
+			   auto* v = gui3DTriangles.data() + cursor;
+
+			   size_t nTriangleBatchCount = min<size_t>(len, GUI3D_BUFFER_TRIANGLE_CAPACITY);
+
+			   DX11::CopyStructureToBuffer(dc, gui3DBuffer, v, nTriangleBatchCount * sizeof(VertexTriangle));
+
+			   MeshBuffer m;
+			   m.alphaBlending = false;
+			   m.disableShadowCasting = false;
+			   m.dx11Buffer = gui3DBuffer;
+			   m.numberOfVertices = (UINT) nTriangleBatchCount * 3;
+			   m.topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+
+			   Draw(m, &one, 1);
+
+			   len -= nTriangleBatchCount;
+			   cursor += nTriangleBatchCount;
+		   }
+	   }
+
 	   void RenderSpotlightLitScene(const Light& lightSubset, IScene& scene)
 	   {
 		   Light light = lightSubset;
@@ -2735,7 +2788,7 @@ namespace ANON
 		   DepthRenderData drd;
 		   if (PrepareDepthRenderFromLight(light, drd))
 		   {
-			   float f = 1.0f / rng.max();
+			   constexpr float f = 1.0f / rng.max();
 			   drd.randoms.x = rng() * f;
 			   drd.randoms.y = rng() * f;
 			   drd.randoms.z = rng() * f;
@@ -2807,6 +2860,8 @@ namespace ANON
 			   dc.RSSetState(objectRasterizering);
 
 			   scene.RenderObjects(*this);
+
+			   Render3DGui();
 
 			   dc.OMSetBlendState(alphaAdditiveBlend, blendFactorUnused, 0xffffffff);
 			   RenderParticles(fog, idFogSpotlightPS, idParticleVS, idFogSpotlightGS);
@@ -2932,6 +2987,8 @@ namespace ANON
 			   dc.PSSetConstantBuffers(CBUFFER_INDEX_AMBIENT_LIGHT, 1, &ambientBuffer);
 
 			   scene.RenderObjects(*this);
+			   Render3DGui();
+
 			   dc.OMSetBlendState(alphaAdditiveBlend, blendFactorUnused, 0xffffffff);
 			   RenderParticles(fog, idFogAmbientPS, idParticleVS, idFogAmbientGS);
 		   }
@@ -3144,6 +3201,7 @@ namespace ANON
 		   DrawLightCones(scene);
 
 		   UpdateGlobalState(scene);
+
 		   RenderGui(scene);
 
 		   now = OS::CpuTicks();

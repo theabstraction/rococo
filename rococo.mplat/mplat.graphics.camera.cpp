@@ -153,7 +153,6 @@ namespace
          // Generally this be called after entities are updated and just before scene is rendered
          if (followingId)
          {
-            instances.ConcatenatePositionVectors(followingId, position);
             isDirty = true;
          }
 

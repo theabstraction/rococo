@@ -21,13 +21,12 @@ namespace Rococo
 	namespace Puppet
 	{
 		IPuppetSupervisor* CreatePuppet(ID_PUPPET id) { return nullptr; }
-		IPuppetSupervisor* GetNullPuppet() { return nullptr; }
 	}
 }
 
 struct Puppets : public IPuppetsSupervisor
 {
-	typedef HandleTable<IPuppetSupervisor, 0x000000FFFFFFFFFF, 40> TPuppetHandleTable;
+	typedef HandleTable<IPuppetSupervisor*, 16> TPuppetHandleTable;
 	TPuppetHandleTable allPuppets;
 
 	std::vector<ID_PUPPET> activePuppets;
@@ -36,7 +35,7 @@ struct Puppets : public IPuppetsSupervisor
 
 	Puppets(size_t maxPuppets, size_t _maxActivePuppets) :
 		maxActivePuppets(_maxActivePuppets),
-		allPuppets("Puppets", maxPuppets, GetNullPuppet())
+		allPuppets("Puppets", maxPuppets)
 	{
 		activePuppets.reserve(_maxActivePuppets);
 	}
@@ -46,13 +45,13 @@ struct Puppets : public IPuppetsSupervisor
 		auto hPuppet = allPuppets.GetFirstHandle();
 		while(hPuppet)
 		{
-			auto* puppet = allPuppets.ToPointer(hPuppet);
-			if (puppet)
+			IPuppetSupervisor* puppet;
+			if (allPuppets.TryGet(hPuppet, &puppet))
 			{
 				puppet->MarkForDeath();
 			}
 
-			allPuppets.Invalidate(hPuppet);
+			allPuppets.Destroy(hPuppet, nullptr);
 
 			hPuppet = allPuppets.GetNextHandle(hPuppet);
 		}
@@ -63,13 +62,13 @@ struct Puppets : public IPuppetsSupervisor
 		auto hPuppet = allPuppets.CreateNew();
 		try
 		{
-			auto p = Rococo::Puppet::CreatePuppet(ID_PUPPET{ hPuppet.value });
-			allPuppets.SetPointer(hPuppet, p);
+			auto p = Rococo::Puppet::CreatePuppet(ID_PUPPET{ hPuppet.Value() });
+			allPuppets.Set(hPuppet, p);
 			return p;
 		}
 		catch (IException& ex)
 		{
-			allPuppets.Invalidate(hPuppet);
+			allPuppets.Destroy(hPuppet, nullptr);
 			Throw(ex.ErrorCode(), "%s", ex.Message());
 		}
 	}
@@ -82,7 +81,9 @@ struct Puppets : public IPuppetsSupervisor
 	Rococo::Puppet::IPuppet* /* puppet */ FindPuppetById(ID_PUPPET id) override
 	{
 		TPuppetHandleTable::Handle hPuppet{ id.value };
-		return allPuppets.ToPointer(hPuppet);
+		
+		IPuppetSupervisor* puppet = nullptr;
+		return allPuppets.TryGet(hPuppet, &puppet) ? puppet : nullptr;
 	}
 
 	ID_PUPPET /* nextId */ GetNextPuppetId(ID_PUPPET id) override
