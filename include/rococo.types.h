@@ -116,6 +116,8 @@ namespace Rococo
 		void* pValue;
 	};
 
+	struct BoneAngles;
+
 	typedef WindowHandle WindowRef;
 
 	ROCOCOAPI IStringPopulator

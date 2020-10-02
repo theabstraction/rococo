@@ -1143,4 +1143,14 @@ namespace Rococo
 			i++;
 		}
 	}
+
+	void ComputeBoneQuatFromAngles(Quat& quat, const BoneAngles& angles)
+	{
+		DirectX::XMVECTOR q = DirectX::XMQuaternionRotationRollPitchYaw(
+			-angles.tilt.ToRadians(),
+			-angles.roll.ToRadians(),
+			-angles.facing.ToRadians()
+		);
+		DirectX::XMStoreFloat4(quat, q);
+	}
 }

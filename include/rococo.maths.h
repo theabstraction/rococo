@@ -51,6 +51,8 @@ namespace Rococo
 		inline operator const DirectX::XMFLOAT4* () const { return reinterpret_cast<const DirectX::XMFLOAT4*> (this); }
 	};
 
+	void ComputeBoneQuatFromAngles(Quat& quat, const BoneAngles& angles);
+
 	template<class T>
 	ROCOCOAPI IRingManipulator
 	{
@@ -232,6 +234,32 @@ namespace Rococo
 		operator Radians () const { return Radians{ DEGREES_TO_RADIANS_QUOTIENT() * degrees }; }
 		Radians ToRadians() const { return Radians{ DEGREES_TO_RADIANS_QUOTIENT() * degrees }; }
 	};
+
+	/*
+		A bone treats its parent frame as Y = forward, X = right and Z = up
+		A bones considers its parent to extend vertically upwards from the origin
+	*/
+	struct BoneAngles
+	{
+		/*
+			Anticlockwise, rotation about parent's x-axis (parent's right),
+			0 < Tilt < 90 degrees elevate the forwards direction and pull the up direction backwards
+		*/
+		Degrees tilt;
+
+		/*
+			Anticlockwise, rotation about parent's y-axis (parent's forward),
+			0 < Roll < 90 degrees, bone tips to the right
+		*/
+		Degrees roll;
+
+		/*
+			Anticlockwise, rotation about parent's z-axis (parent's vertica axis aligned with its bone),
+			0 < Roll < 90 degrees, bone tips to the right
+		*/
+		Degrees facing;
+	};
+
 
 	struct FPSAngles
 	{

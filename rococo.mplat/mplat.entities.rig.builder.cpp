@@ -16,9 +16,28 @@ struct ScriptedBone
 	Metres length{ 0.1f };
 	Vec3 scale{ 1.0f, 1.0f, 1.0f };
 	Vec3 parentOffset{ 0.0f, 0.0f, 0.0f };
-	Quat quat;
+	Quat quat{ {0.0f, 0.0f, 0.0f}, 1.0f };
+	BoneAngles angles{ 0 };
 	std::string parent;
+
+	void GetTransformRelativeToParent(Matrix4x4& m)
+	{
+		Matrix4x4 T = Matrix4x4::Translate(parentOffset);
+		Matrix4x4 R;
+		Matrix4x4::FromQuat(quat, R);
+		m = T * R;
+	}
 };
+
+bool AreAnglesUsed(const BoneAngles& angles)
+{
+	return angles.facing != 0 || angles.roll != 0 || angles.tilt != 0;
+}
+
+bool IsQuatUsed(const Quat& q)
+{
+	return q.s != 1.0f;
+}
 
 enum { MAXLEN_BONENAME = 16 };
 
@@ -316,10 +335,9 @@ void AttachBonesAndRemoveFromMap_Recursive(stringmap<ScriptedBone>& bones, IBone
 		auto& bone = c->second;
 		if (Eq(bone.parent.c_str(), daddy.ShortName()))
 		{
-			Matrix4x4 rotation;
-			Matrix4x4::FromQuat(bone.quat, rotation);
-			Matrix4x4 model = Matrix4x4::Translate(bone.parentOffset) * rotation;
-			auto* child = daddy.AttachBone(model, bone.length, c->first);
+			Matrix4x4 m;
+			bone.GetTransformRelativeToParent(m);
+			auto* child = daddy.AttachBone(m, bone.length, c->first);
 			c = bones.erase(c);
 		}
 		else
@@ -416,14 +434,52 @@ struct RigBuilder : IRigBuilderSupervisor
 		GetBone(name).scale = { sx, sy, sz };
 	}
 
-	void SetOffsetFromParent(const fstring& name, const Vec3& positionOffset) override
+	void SetVec3OffsetFromParent(const fstring& name, const Vec3& positionOffset) override
 	{
 		GetBone(name).parentOffset = positionOffset;
 	}
 
-	void SetOrientFromParent(const fstring& name, const Quat& q, boolean32 validateQuat)
+	void SetOffsetFromParent(const fstring& name, float dx, float dy, float dz) override
 	{
-		ValidateDefinitive(name);
+		GetBone(name).parentOffset = { dx, dy, dz };
+	}
+
+	void SetRotationFromParent(const fstring& name, Degrees rX, Degrees rY, Degrees rZ) override
+	{
+		auto& b = GetBone(name);
+
+		if (AreAnglesUsed(b.angles))
+		{
+			Throw(0, "%s(%s...) Bone euler angles have already been specified", __FUNCTION__, name.buffer);
+		}
+
+		if (IsQuatUsed(b.quat))
+		{
+			Throw(0, "%s(%s...) The bone quaternion has already been specified", __FUNCTION__, name.buffer);
+		}
+
+		BoneAngles angles;
+		angles.facing = rZ;
+		angles.roll = rY;
+		angles.tilt = rX;
+		b.angles = angles;
+
+		ComputeBoneQuatFromAngles(b.quat, b.angles);
+	}
+
+	void SetQuatFromParent(const fstring& name, const Quat& q, boolean32 validateQuat) override
+	{
+		auto& b = GetBone(name);
+
+		if (AreAnglesUsed(b.angles))
+		{
+			Throw(0, "%s(%s...) Bone euler angles have already been specified", __FUNCTION__, name.buffer);
+		}
+
+		if (IsQuatUsed(b.quat))
+		{
+			Throw(0, "%s(%s...) The bone quaternion has already been specified", __FUNCTION__, name.buffer);
+		}
 
 		float ds2 = Square(q.s) + Square(q.v.x) + Square(q.v.y) + Square(q.v.z);
 		const float MIN_DS2 = 0.98f;
@@ -433,7 +489,7 @@ struct RigBuilder : IRigBuilderSupervisor
 			Throw(0, "%s: quat mod square is %f. Range is [%f,%f]", (cstr)name, ds2, MIN_DS2, MAX_DS2);
 		}
 
-		GetBone(name).quat = q;
+		b.quat = q;
 	}
 
 	ISkeletons& Skeles()
@@ -461,8 +517,9 @@ struct RigBuilder : IRigBuilderSupervisor
 
 			if (bone.parent.size() == 0)
 			{
-				Matrix4x4 M = Matrix4x4::Translate(bone.parentOffset);
-				auto* child =  s->root->AttachBone(M, bone.length, c->first);
+				Matrix4x4 m;
+				bone.GetTransformRelativeToParent(m);
+				auto* child =  s->root->AttachBone(m, bone.length, c->first);
 				c = bones.erase(c);
 			}
 			else
