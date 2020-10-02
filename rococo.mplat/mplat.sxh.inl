@@ -1031,6 +1031,16 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->Clear();
 	}
+	void NativeRococoEntitiesIRigBuilderClearSkeletons(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Entities::IRigBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->ClearSkeletons();
+	}
 	void NativeRococoEntitiesIRigBuilderAddBone(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -1212,6 +1222,7 @@ namespace Rococo { namespace Entities {
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Entities.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForRococoEntitiesRigBuilder, _nceContext, ("GetHandleForIRigBuilder0  -> (Pointer hObject)"));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderClear, nullptr, ("IRigBuilderClear (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderClearSkeletons, nullptr, ("IRigBuilderClearSkeletons (Pointer hObject) -> "));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderAddBone, nullptr, ("IRigBuilderAddBone (Pointer hObject)(Sys.Type.IString name) -> "));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderSetLength, nullptr, ("IRigBuilderSetLength (Pointer hObject)(Sys.Type.IString name)(Sys.SI.Metres length) -> "));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderSetScale, nullptr, ("IRigBuilderSetScale (Pointer hObject)(Sys.Type.IString name)(Float32 sx)(Float32 sy)(Float32 sz) -> "));

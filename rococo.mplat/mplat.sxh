@@ -60,6 +60,7 @@
 	(context factory Rococo.Entities.IRigBuilder)
 	(methods
 		(Clear)
+		(ClearSkeletons)
 		(AddBone (IString name))
 		(SetLength (IString name)(Metres length))
 		(SetScale (IString name)(Float32 sx)(Float32 sy)(Float32 sz))

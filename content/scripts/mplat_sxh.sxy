@@ -38,6 +38,7 @@
 
 (interface Rococo.Entities.IRigBuilder
 	(Clear  -> )
+	(ClearSkeletons  -> )
 	(AddBone (Sys.Type.IString name) -> )
 	(SetLength (Sys.Type.IString name)(Sys.SI.Metres length) -> )
 	(SetScale (Sys.Type.IString name)(Float32 sx)(Float32 sy)(Float32 sz) -> )
@@ -51,6 +52,7 @@
 (class ProxyIRigBuilder (implements Rococo.Entities.IRigBuilder) (Pointer hObject))
 	(method ProxyIRigBuilder.Construct (Pointer hObject): (this.hObject = hObject))
 	(method ProxyIRigBuilder.Clear  ->  : (Rococo.Entities.Native.IRigBuilderClear this.hObject ))
+	(method ProxyIRigBuilder.ClearSkeletons  ->  : (Rococo.Entities.Native.IRigBuilderClearSkeletons this.hObject ))
 	(method ProxyIRigBuilder.AddBone (Sys.Type.IString name) ->  : (Rococo.Entities.Native.IRigBuilderAddBone this.hObject name))
 	(method ProxyIRigBuilder.SetLength (Sys.Type.IString name)(Sys.SI.Metres length) ->  : (Rococo.Entities.Native.IRigBuilderSetLength this.hObject name length))
 	(method ProxyIRigBuilder.SetScale (Sys.Type.IString name)(Float32 sx)(Float32 sy)(Float32 sz) ->  : (Rococo.Entities.Native.IRigBuilderSetScale this.hObject name sx sy sz))

@@ -13,6 +13,71 @@ namespace
 
    typedef std::vector<VertexTriangle> TTriangles;
 
+   void AddDirectionArrow(cr_m4x4 model, IRenderContext& rc, RGBAb colour, IRodTesselatorSupervisor& rod)
+   {
+	   MaterialVertexData mat;
+	   mat.colour = colour;
+	   mat.gloss = 0;
+	   mat.materialId = 0;
+
+	   rod.SetMaterialTop(mat);
+	   rod.SetMaterialMiddle(mat);
+	   rod.SetMaterialBottom(mat);
+
+	   rod.Clear();
+	   rod.AddTube(0.3_metres, 0.01_metres, 0.01_metres, 3);
+	   rod.AddPyramid(0.05_metres, { -0.01f, 0.01f }, { 0.01f, 0.01f }, { 0.01f, -0.01f }, { -0.01f, -0.01f });
+	   rod.TransformVertices(model);
+	   rc.Add3DGuiTriangles(rod.begin(), rod.end());
+	   rod.Clear();
+   }
+
+   void AddDirectionArrow_Up(cr_m4x4 model, IRenderContext& rc, IRodTesselatorSupervisor& rod)
+   {
+	   AddDirectionArrow(model, rc, RGBAb(255, 0, 0, 0), rod);
+   }
+
+   void AddDirectionArrow_Right(cr_m4x4 model, IRenderContext& rc, IRodTesselatorSupervisor& rod)
+   {
+	   Matrix4x4 M = model * Matrix4x4::RotateRHAnticlockwiseY(-90.0_degrees);
+	   AddDirectionArrow(M, rc, RGBAb(0, 255, 0, 0), rod);
+   }
+
+   void AddDirectionArrow_Forward(cr_m4x4 model, IRenderContext& rc, IRodTesselatorSupervisor& rod)
+   {
+	   Matrix4x4 M = model * Matrix4x4::RotateRHAnticlockwiseX(-90.0_degrees);
+	   AddDirectionArrow(M, rc, RGBAb(0, 0, 255, 0), rod);
+   }
+
+   void AddOrientationArrows(cr_m4x4 model, IRenderContext& rc, IRodTesselatorSupervisor& rod)
+   {
+	   AddDirectionArrow_Up(model, rc, rod);
+	   AddDirectionArrow_Right(model, rc, rod);
+	   AddDirectionArrow_Forward(model, rc, rod);
+   }
+
+   void DrawBone(const IBone& bone, cr_m4x4 model, IRenderContext& rc, IRodTesselatorSupervisor& rod)
+   {
+	   if (bone.Length() > 0)
+	   {
+		   MaterialVertexData mat;
+		   mat.colour = RGBAb(255, 255, 255, 255);
+		   mat.gloss = 0;
+		   mat.materialId = 0;
+
+		   rod.Clear();
+
+		   rod.SetMaterialTop(mat);
+		   rod.SetMaterialMiddle(mat);
+		   rod.SetMaterialBottom(mat);
+
+		   rod.AddTube(bone.Length(), 0.05_metres, 0.05_metres, 8);
+		   rod.TransformVertices(model);
+		   rc.Add3DGuiTriangles(rod.begin(), rod.end());
+		   rod.Clear();
+	   }
+   }
+
    struct NullMeshBuilder : IMeshBuilder
    {
 	   void AddMesh(const Matrix4x4& transform, const fstring& sourceName) override {}
@@ -51,9 +116,9 @@ namespace
 	  AutoFree<IRodTesselatorSupervisor> debugTesselator;
    public:
       Scene(IInstancesSupervisor& _instances, ICameraSupervisor& _camera, ISkeletons& _skeletons) :
-         instances(_instances), camera(_camera), skeletons(_skeletons)
+         instances(_instances), camera(_camera), skeletons(_skeletons),
+		 debugTesselator(CreateRodTesselator(s_NullMeshBuilder))
       {
-		  debugTesselator = CreateRodTesselator(s_NullMeshBuilder);
 		  debugTesselator->SetUVScale(1.0f);
       }
       
@@ -94,26 +159,12 @@ namespace
 
 	  void AddDebugBone(const IBone& bone, const Matrix4x4& model, IRenderContext& rc)
 	  {
-		  if (bone.Length() > 0)
-		  {
-			  MaterialVertexData mat;
-			  mat.colour = RGBAb(255, 255, 255, 255);
-			  mat.gloss = 0;
-			  mat.materialId = 0;
-
-			  debugTesselator->SetMaterialTop(mat);
-			  debugTesselator->SetMaterialMiddle(mat);
-			  debugTesselator->SetMaterialBottom(mat);
-
-			  debugTesselator->AddTube(bone.Length(), 0.05_metres, 0.05_metres, 8);
-			  debugTesselator->TransformVertices(model);
-			  rc.Add3DGuiTriangles(debugTesselator->begin(), debugTesselator->end());
-			  debugTesselator->Clear();
-		  }
+		  DrawBone(bone, model, rc, *debugTesselator);
+		  AddOrientationArrows(model, rc, *debugTesselator);
 
 		  for (auto& child : bone)
 		  {
-			  Matrix4x4 childModelMatrix = child->GetMatrix() * model;
+			  Matrix4x4 childModelMatrix = model * child->GetMatrix();
 			  AddDebugBone(*child, childModelMatrix, rc);
 		  }
 	  }
@@ -127,9 +178,10 @@ namespace
 			  if (root)
 			  {
 				  Matrix4x4 m = e.Model();
-				  Matrix4x4 rY = Matrix4x4::RotateRHAnticlockwiseY(0_degrees);
-				  Matrix4x4 R = m * rY;
-				  AddDebugBone(*root, R, rc);
+
+				  AddOrientationArrows(m, rc, *debugTesselator);
+
+				  AddDebugBone(*root, m, rc);
 			  }
 		  }
 	  }

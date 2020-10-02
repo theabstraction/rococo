@@ -316,7 +316,10 @@ void AttachBonesAndRemoveFromMap_Recursive(stringmap<ScriptedBone>& bones, IBone
 		auto& bone = c->second;
 		if (Eq(bone.parent.c_str(), daddy.ShortName()))
 		{
-			auto* child = daddy.AttachBone(Matrix4x4::Identity(), bone.length, c->first);
+			Matrix4x4 rotation;
+			Matrix4x4::FromQuat(bone.quat, rotation);
+			Matrix4x4 model = Matrix4x4::Translate(bone.parentOffset) * rotation;
+			auto* child = daddy.AttachBone(model, bone.length, c->first);
 			c = bones.erase(c);
 		}
 		else
@@ -349,6 +352,11 @@ struct RigBuilder : IRigBuilderSupervisor
 	}
 
 	RigBuilder(RigBuilderContext& rbc): c(rbc)	{}
+
+	void ClearSkeletons() override
+	{
+		skeletons.Clear();
+	}
 
 	void AddBone(const fstring& name) override
 	{
@@ -453,7 +461,8 @@ struct RigBuilder : IRigBuilderSupervisor
 
 			if (bone.parent.size() == 0)
 			{
-				auto* child =  s->root->AttachBone(Matrix4x4::Identity(), bone.length, c->first);
+				Matrix4x4 M = Matrix4x4::Translate(bone.parentOffset);
+				auto* child =  s->root->AttachBone(M, bone.length, c->first);
 				c = bones.erase(c);
 			}
 			else

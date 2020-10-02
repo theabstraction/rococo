@@ -240,24 +240,35 @@
 (function AddRig (ISceneBuilder scene)(IInstances instances)-> :
 	(IRigBuilder rb (RigBuilder))
 	(rb.Clear)
+	(rb.ClearSkeletons)
 	
 	(rb.AddBone "spine_lower")
-	(rb.SetLength "spine_lower" 2.3)
+	(rb.SetLength "spine_lower" 0.25)
+	
+	(rb.AddBone "spine_middle")
+	(rb.SetLength "spine_middle" 0.25)
+	
+	(Vec3 spineMiddleOffset = 0 0 0.27)
+	(rb.SetOffsetFromParent "spine_middle" spineMiddleOffset)
 	
 	(rb.AddBone "spine_upper")
-	(rb.SetLength "spine_upper" 2.3)
+	(rb.SetLength "spine_upper" 0.25)
+	
+	(Vec3 spineUpperOffset = 0 0 0.27)
+	(rb.SetOffsetFromParent "spine_upper" spineUpperOffset)
 
-	(rb.SetParentOfChild "spine_lower" "spine_upper")
+	(rb.SetParentOfChild "spine_lower" "spine_middle")
+	(rb.SetParentOfChild "spine_middle" "spine_upper")
 	(rb.CommitToSkeleton "geoff")
 	
-	(Matrix4x4 rigToWorld =
+	(Matrix4x4 lowerSpineToWorld =
 		(1 0 0   0)
 		(0 1 0   1)
-		(0 0 1 0.3)
+		(0 0 1 0.8)
 		(0 0 0   1)
 	)
 		
-	(Int64 spineId = (instances.AddSkeleton "geoff" rigToWorld))
+	(Int64 spineId = (instances.AddSkeleton "geoff" lowerSpineToWorld))
 	(scene.AddStatics spineId)
 )
 
@@ -271,7 +282,7 @@
 	(ISceneBuilder scene (SceneBuilder))
 	(scene.Clear)
 	
-	(AddBottle scene instances)
+//	(AddBottle scene instances)
 	(AddFloor scene instances)
 	(AddLight scene instances)
 	(AddRig scene instances)
