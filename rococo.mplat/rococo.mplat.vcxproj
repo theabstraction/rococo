@@ -106,6 +106,7 @@
     <ClCompile Include="mplat.audio.legacy.cpp" />
     <ClCompile Include="mplat.bloody.cpp" />
     <ClCompile Include="mplat.config.cpp" />
+    <ClCompile Include="mplat.entities.animation.cpp" />
     <ClCompile Include="mplat.entities.mobiles.cpp" />
     <ClCompile Include="mplat.entities.particles.cpp" />
     <ClCompile Include="mplat.entities.rig.builder.cpp" />
@@ -150,6 +151,7 @@
     <ClCompile Include="mplat.utilities.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\include\rococo.animation.h" />
     <ClInclude Include="..\include\rococo.mplat.h" />
     <ClInclude Include="mplat.panel.base.h" />
     <ClInclude Include="mplat.sxh.h" />

@@ -315,13 +315,13 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 		}
 	} rigLoader;
 
-	AutoFree<Graphics::IRigsSupervisor> rigs = Graphics::CreateRigs();
-	AutoFree<Graphics::IMeshBuilderSupervisor> meshes = Graphics::CreateMeshBuilder(mainWindow->Renderer());
-	AutoFree<Entities::IInstancesSupervisor> instances = Entities::CreateInstanceBuilder(rigLoader, *meshes, mainWindow->Renderer(), *publisher);
-	AutoFree<Entities::IMobilesSupervisor> mobiles = Entities::CreateMobilesSupervisor(*instances);
-	AutoFree<Graphics::ICameraSupervisor> camera = Graphics::CreateCamera(*instances, *mobiles, mainWindow->Renderer());
 	Rococo::Entities::RigBuilderContext rbc;
 	AutoFree<Rococo::Entities::IRigBuilderSupervisor> rigBuilder = Rococo::Entities::CreateRigBuilder(rbc);
+	AutoFree<Graphics::IRigsSupervisor> rigs = Graphics::CreateRigs();
+	AutoFree<Graphics::IMeshBuilderSupervisor> meshes = Graphics::CreateMeshBuilder(mainWindow->Renderer());
+	AutoFree<Entities::IInstancesSupervisor> instances = Entities::CreateInstanceBuilder(*rigBuilder, rigLoader, *meshes, mainWindow->Renderer(), *publisher);
+	AutoFree<Entities::IMobilesSupervisor> mobiles = Entities::CreateMobilesSupervisor(*instances);
+	AutoFree<Graphics::ICameraSupervisor> camera = Graphics::CreateCamera(*instances, *mobiles, mainWindow->Renderer());
 	AutoFree<Graphics::ISceneSupervisor> scene = Graphics::CreateScene(*instances, *camera, rigBuilder->Skeles());
 	AutoFree<IKeyboardSupervisor> keyboard = CreateKeyboardSupervisor();
 	AutoFree<Graphics::ISpriteSupervisor> sprites = Graphics::CreateSpriteSupervisor(mainWindow->Renderer());

@@ -237,136 +237,93 @@
 	(scene.SetLight light 0)
 )
 
-(function AddRig (ISceneBuilder scene)(IInstances instances)-> :
+(function AddPoseRun0 (IRigBuilder rb)-> :
+	/*              name            parent      length     offset-dx,dy,dz  bone-angles--*/
+	(rb.AddBoneX "spine_lower"  ""              0.15       0     0      0       0   0   0)
+	(rb.AddBoneX "spine_middle" "spine_lower"   0.15       0     0   0.17       0   0   0)
+	(rb.AddBoneX "spine_upper"  "spine_middle"  0.15       0     0   0.17       0   0   0)
+	(rb.AddBoneX "femur_l"      "spine_lower"   0.45     0.1     0 -0.046     170   0   0)
+	(rb.AddBoneX "femur_r"      "spine_lower"   0.45    -0.1     0 -0.046     210   0   0)
+	(rb.AddBoneX "tibia_l"      "femur_l"       0.45       0     0   0.46     -15  -5   0)
+	(rb.AddBoneX "tibia_r"      "femur_r"       0.45       0     0   0.46     -15  -5   0)
+	(rb.AddBoneX "foot_l"       "tibia_l"       0.15       0     0    0.5       90  0   0)
+	(rb.AddBoneX "foot_r"       "tibia_r"       0.15       0     0    0.5       90  0   0)
+	(rb.AddBoneX "humerus_l"    "spine_upper"   0.25   -0.20     0   0.15      160  0   0)
+	(rb.AddBoneX "humerus_r"    "spine_upper"   0.25    0.20     0   0.15      200  0   0)
+	(rb.AddBoneX "ulna_l"    	"humerus_l"     0.35       0     0   0.27        0  0   0)
+	(rb.AddBoneX "ulna_r"    	"humerus_r"     0.35       0     0   0.27       20  0   0)
+	(rb.AddBoneX "hand_l"    	"ulna_l"        0.10       0     0   0.37      -10  0   0)
+	(rb.AddBoneX "hand_r"    	"ulna_r"        0.10       0     0   0.37       10  0   0)
+	(rb.AddBoneX "skull"  		"spine_upper"   0.25       0     0   0.17       0   0   0)
+	
+	(rb.CommitToPose "run.0")
+)
+
+(function AddPoseRun1 (IRigBuilder rb)-> :
+	/*              name            parent      length     offset-dx,dy,dz  bone-angles--*/
+	(rb.AddBoneX "spine_lower"  ""              0.15       0     0      0       0   0   0)
+	(rb.AddBoneX "spine_middle" "spine_lower"   0.15       0     0   0.17       0   0   0)
+	(rb.AddBoneX "spine_upper"  "spine_middle"  0.15       0     0   0.17       0   0   0)
+	(rb.AddBoneX "femur_l"      "spine_lower"   0.45     0.1     0 -0.046     210   0   0)
+	(rb.AddBoneX "femur_r"      "spine_lower"   0.45    -0.1     0 -0.046     170   0   0)
+	(rb.AddBoneX "tibia_l"      "femur_l"       0.45       0     0   0.46     -15  -5   0)
+	(rb.AddBoneX "tibia_r"      "femur_r"       0.45       0     0   0.46     -15  -5   0)
+	(rb.AddBoneX "foot_l"       "tibia_l"       0.15       0     0    0.5       90  0   0)
+	(rb.AddBoneX "foot_r"       "tibia_r"       0.15       0     0    0.5       90  0   0)
+	(rb.AddBoneX "humerus_l"    "spine_upper"   0.25   -0.20     0   0.15      200  0   0)
+	(rb.AddBoneX "humerus_r"    "spine_upper"   0.25    0.20     0   0.15      160  0   0)
+	(rb.AddBoneX "ulna_l"    	"humerus_l"     0.35       0     0   0.27       20  0   0)
+	(rb.AddBoneX "ulna_r"    	"humerus_r"     0.35       0     0   0.27        0  0   0)
+	(rb.AddBoneX "hand_l"    	"ulna_l"        0.10       0     0   0.37      -10  0   0)
+	(rb.AddBoneX "hand_r"    	"ulna_r"        0.10       0     0   0.37       10  0   0)
+	(rb.AddBoneX "skull"  		"spine_upper"   0.25       0     0   0.17       0   0   0)
+	
+	(rb.CommitToPose "run.1")
+)
+
+(function AddSkeletonGeoff (IRigBuilder rb)-> :
+	/*              name            parent      length     offset-dx,dy,dz  bone-angles--*/
+	(rb.AddBoneX "spine_lower"  ""              0.15       0     0      0       0   0   0)
+	(rb.AddBoneX "spine_middle" "spine_lower"   0.15       0     0   0.17       0   0   0)
+	(rb.AddBoneX "spine_upper"  "spine_middle"  0.15       0     0   0.17       0   0   0)
+	(rb.AddBoneX "femur_l"      "spine_lower"   0.45     0.1     0 -0.046     180   0   0)
+	(rb.AddBoneX "femur_r"      "spine_lower"   0.45    -0.1     0 -0.046     180   0   0)
+	(rb.AddBoneX "tibia_l"      "femur_l"       0.45       0     0   0.46       0   0   0)
+	(rb.AddBoneX "tibia_r"      "femur_r"       0.45       0     0   0.46       0   0   0)
+	(rb.AddBoneX "foot_l"       "tibia_l"       0.15       0     0    0.5      90   0   0)
+	(rb.AddBoneX "foot_r"       "tibia_r"       0.15       0     0    0.5      90   0   0)
+	(rb.AddBoneX "humerus_l"    "spine_upper"   0.25   -0.20     0   0.15     180   0   0)
+	(rb.AddBoneX "humerus_r"    "spine_upper"   0.25    0.20     0   0.15     180   0   0)
+	(rb.AddBoneX "ulna_l"    	"humerus_l"     0.35       0     0   0.27       0   0   0)
+	(rb.AddBoneX "ulna_r"    	"humerus_r"     0.35       0     0   0.27       0   0   0)
+	(rb.AddBoneX "hand_l"    	"ulna_l"        0.10       0     0   0.37       0   0   0)
+	(rb.AddBoneX "hand_r"    	"ulna_r"        0.10       0     0   0.37       0   0   0)
+	(rb.AddBoneX "skull"  		"spine_upper"   0.25       0     0   0.17       0   0   0)
+	
+	(rb.CommitToSkeleton "geoff")
+)
+
+(function AddRigs (ISceneBuilder scene)(IInstances instances)-> :
 	(IRigBuilder rb (RigBuilder))
 	(rb.Clear)
 	(rb.ClearSkeletons)
 	
-	(IString spineLower = "spine_lower")
-	(rb.AddBone spineLower)
-	(rb.SetLength spineLower 0.15)
-	
-	(IString spineMiddle = "spine_middle")
-	(rb.AddBone spineMiddle)
-	(rb.SetLength spineMiddle 0.15)
-	(rb.SetOffsetFromParent spineMiddle 0 0 0.17)
-	(rb.SetRotationFromParent spineMiddle 15 30 20)
-	
-	(IString spineUpper = "spine_upper")
-	(rb.AddBone spineUpper)
-	(rb.SetLength spineUpper 0.15)
-	(rb.SetOffsetFromParent spineUpper 0 0 0.17)
-	(rb.SetRotationFromParent spineUpper -15 -20 0)
-	
-	(IString leftFemur = "femur_l")
-	(rb.AddBone leftFemur)
-	(rb.SetLength leftFemur 0.45)
-	(rb.SetOffsetFromParent leftFemur -0.1 0 -0.5)
-	(rb.SetRotationFromParent leftFemur -15 -5 0)
-	
-	(IString rightFemur = "femur_r")
-	(rb.AddBone rightFemur)
-	(rb.SetLength rightFemur 0.45)
-	(rb.SetOffsetFromParent rightFemur 0.1 0 -0.5)
-	
-	(IString leftTibia = "tibia_l")
-	(rb.AddBone leftTibia)
-	(rb.SetLength leftTibia 0.45)
-	(rb.SetOffsetFromParent leftTibia 0 0 -0.5)
-	(rb.SetRotationFromParent leftTibia -15 -5 0)
-	
-	(IString rightTibia = "tibia_r")
-	(rb.AddBone rightTibia)
-	(rb.SetLength rightTibia 0.45)
-	(rb.SetOffsetFromParent rightTibia 0 0 -0.5)
-	
-	(IString leftFoot = "foot_l")
-	(rb.AddBone leftFoot)
-	(rb.SetLength leftFoot 0.15)
-	(rb.SetOffsetFromParent leftFoot 0 0 -0.05)
-	(rb.SetRotationFromParent leftFoot -90 0 0)
-	
-	(IString rightFoot = "foot_r")
-	(rb.AddBone rightFoot)
-	(rb.SetLength rightFoot 0.15)
-	(rb.SetOffsetFromParent rightFoot 0 0 -0.05)
-	(rb.SetRotationFromParent rightFoot -90 0 0)
-	
-	(IString leftHumerus = "humerus_l")
-	(rb.AddBone leftHumerus)
-	(rb.SetLength leftHumerus 0.25)
-	(rb.SetOffsetFromParent leftHumerus -0.20 0 0.15)
-	(rb.SetRotationFromParent leftHumerus 205 0 0)
-	
-	(IString rightHumerus = "humerus_r")
-	(rb.AddBone rightHumerus)
-	(rb.SetLength rightHumerus 0.25)
-	(rb.SetOffsetFromParent rightHumerus 0.20 0 0.15)
-	(rb.SetRotationFromParent rightHumerus 180 0 0)
-	
-	(IString leftUlna = "ulna_l")
-	(rb.AddBone leftUlna)
-	(rb.SetLength leftUlna 0.35)
-	(rb.SetOffsetFromParent leftUlna 0 0 0.27)
-	(rb.SetRotationFromParent leftUlna 25 0 0)
-	
-	(IString rightUlna = "ulna_r")
-	(rb.AddBone rightUlna)
-	(rb.SetLength rightUlna 0.35)
-	(rb.SetOffsetFromParent rightUlna 0 0 0.27)
-	(rb.SetRotationFromParent rightUlna 10 0 0)
-	
-	(IString leftHand = "hand_l")
-	(rb.AddBone leftHand)
-	(rb.SetLength leftHand 0.1)
-	(rb.SetOffsetFromParent leftHand 0 0 0.37)
-	(rb.SetRotationFromParent leftHand 35 0 0)
-	
-	(IString rightHand = "hand_r")
-	(rb.AddBone rightHand)
-	(rb.SetLength rightHand 0.1)
-	(rb.SetOffsetFromParent rightHand 0 0 0.37)
-	(rb.SetRotationFromParent rightHand -10 0 0)
-	
-	(IString cranium = "cranium")
-	(rb.AddBone cranium)
-	(rb.SetLength cranium 0.15)
-	(rb.SetOffsetFromParent cranium 0 0 0.18)
-	(rb.SetRotationFromParent cranium 0 0 35)
-	
-	(rb.SetParentOfChild spineUpper cranium)
-	
-	(rb.SetParentOfChild leftUlna leftHand)
-	(rb.SetParentOfChild rightUlna rightHand)
-	
-	(rb.SetParentOfChild spineUpper leftHumerus)
-	(rb.SetParentOfChild spineUpper rightHumerus)
-	
-	(rb.SetParentOfChild leftHumerus leftUlna)
-	(rb.SetParentOfChild rightHumerus rightUlna)
-	
-	(rb.SetParentOfChild leftTibia leftFoot)
-	(rb.SetParentOfChild rightTibia rightFoot)
-	
-	(rb.SetParentOfChild spineLower leftFemur)
-	(rb.SetParentOfChild spineLower rightFemur)
-	
-	(rb.SetParentOfChild leftFemur leftTibia)
-	(rb.SetParentOfChild rightFemur rightTibia)
-	
-	(rb.SetParentOfChild spineLower spineMiddle)
-	(rb.SetParentOfChild spineMiddle spineUpper)
-	(rb.CommitToSkeleton "geoff")
+	(AddPoseRun0 rb)
+	(AddPoseRun1 rb)
+	(AddSkeletonGeoff rb)
 	
 	(Matrix4x4 lowerSpineToWorld =
 		(1 0 0   0)
 		(0 1 0   1)
-		(0 0 1 2.0)
+		(0 0 1 1.3)
 		(0 0 0   1)
 	)
 		
-	(Int64 spineId = (instances.AddSkeleton "geoff" lowerSpineToWorld))
-	(scene.AddStatics spineId)
+	(Int64 geoffId = (instances.AddSkeleton "geoff" lowerSpineToWorld))
+	(scene.AddStatics geoffId)
+	
+	(instances.AddAnimationFrame geoffId "run.0" 1 false)
+	(instances.AddAnimationFrame geoffId "run.1" 1 true)
 )
 
 (method World.Construct : 
@@ -382,7 +339,7 @@
 //	(AddBottle scene instances)
 	(AddFloor scene instances)
 	(AddLight scene instances)
-	(AddRig scene instances)
+	(AddRigs scene instances)
 )
 
 (factory T3D.NewWorld T3D.IWorld : (construct World))

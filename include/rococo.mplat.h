@@ -13,6 +13,8 @@ namespace Rococo
    ROCOCO_ID(ID_PUPPET, uint64, 0);
    ROCOCO_ID(ID_SKELETON, uint64, 0);
 
+   enum { MAX_POSENAME_LEN = 16 };
+
    struct IEnumVector
    {
 	   virtual int32 GetActiveIndex() const = 0;
@@ -269,6 +271,7 @@ namespace Rococo
 
 		ROCOCOAPI IInstancesSupervisor : public IInstances
 		{
+		   virtual void AdvanceAnimations(Seconds dt) = 0;
 		   virtual void ForAll(IEntityCallback & cb) = 0;
 		   virtual void Free() = 0;
 		   virtual IEntity* GetEntity(ID_ENTITY id) = 0;
@@ -391,7 +394,14 @@ namespace Rococo
 
 		IMobilesSupervisor* CreateMobilesSupervisor(Entities::IInstancesSupervisor& instances);
 
-		IInstancesSupervisor* CreateInstanceBuilder(IRigLoader& meshLoader, Graphics::IMeshBuilderSupervisor& meshes, IRenderer& renderer, Events::IPublisher& publisher);
+		ROCOCOAPI IRigBuilderSupervisor : IRigBuilder
+		{
+			virtual ISkeletons & Skeles() = 0;
+			virtual ISkeletons& Poses() = 0;
+			virtual void Free() = 0;
+		};
+
+		IInstancesSupervisor* CreateInstanceBuilder(IRigBuilderSupervisor& rigs, IRigLoader& meshLoader, Graphics::IMeshBuilderSupervisor& meshes, IRenderer& renderer, Events::IPublisher& publisher);
 
 		ROCOCOAPI IParticleSystemSupervisor : IParticleSystem
 		{
@@ -408,6 +418,8 @@ namespace Rococo
 
 		ROCOCOAPI IBone
 		{
+			virtual cr_quat Quat() const = 0;
+			virtual void SetQuat(cr_quat q) = 0;
 			virtual const Matrix4x4& GetMatrix() const = 0;
 			virtual void SetMatrix(const Matrix4x4& m) = 0;
 			virtual cstr ShortName() const = 0;
@@ -419,7 +431,7 @@ namespace Rococo
 			virtual const IBone** end() const = 0;
 			virtual Metres Length() const = 0;
 			virtual void SetLength(Metres length) = 0;
-			virtual IBone* AttachBone(const Matrix4x4& m, Metres length, cstr shortName) = 0;
+			virtual IBone* AttachBone(cr_vec3 offset, cr_quat quat, Metres length, cstr shortName) = 0;
 
 			/* 
 				Detach the bone from its parent and sets the parent to null.
@@ -429,12 +441,6 @@ namespace Rococo
 			virtual void Detach() = 0;
 
 			/* Detach this bone, then delete this bone and all its children */
-			virtual void Free() = 0;
-		};
-
-		ROCOCOAPI IRigBuilderSupervisor : IRigBuilder
-		{
-			virtual ISkeletons & Skeles() = 0;
 			virtual void Free() = 0;
 		};
 

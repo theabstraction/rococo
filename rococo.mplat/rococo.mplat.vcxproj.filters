@@ -150,6 +150,9 @@
     <ClCompile Include="mplat.joysticks.xbox360.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="mplat.entities.animation.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\rococo.mplat.h">
@@ -162,6 +165,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="mplat.panel.base.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\rococo.animation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

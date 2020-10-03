@@ -723,7 +723,9 @@ namespace
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->YieldForSystemMessages(sleepMS);
+		Seconds frameDT = _pObject->YieldForSystemMessages(sleepMS);
+		_offset += sizeof(frameDT);
+		WriteOutput(frameDT, _sf, -_offset);
 	}
 	void NativeMHostIEngineTryGetSpriteSpec(NativeCallEnvironment& _nce)
 	{
@@ -856,7 +858,7 @@ namespace MHost {
 		ss.AddNativeCall(ns, NativeMHostIEngineRender, nullptr, ("IEngineRender (Pointer hObject)(MHost.GuiPopulator populator) -> "));
 		ss.AddNativeCall(ns, NativeMHostIEngineIsRunning, nullptr, ("IEngineIsRunning (Pointer hObject) -> (Bool isRunning)"));
 		ss.AddNativeCall(ns, NativeMHostIEngineShutdown, nullptr, ("IEngineShutdown (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeMHostIEngineYieldForSystemMessages, nullptr, ("IEngineYieldForSystemMessages (Pointer hObject)(Int32 sleepMS) -> "));
+		ss.AddNativeCall(ns, NativeMHostIEngineYieldForSystemMessages, nullptr, ("IEngineYieldForSystemMessages (Pointer hObject)(Int32 sleepMS) -> (Sys.SI.Seconds frameDT)"));
 		ss.AddNativeCall(ns, NativeMHostIEngineTryGetSpriteSpec, nullptr, ("IEngineTryGetSpriteSpec (Pointer hObject)(Sys.Type.IString resourceName)(MPlat.BitmapLocation loc) -> (Bool isSuccessful)"));
 		ss.AddNativeCall(ns, NativeMHostIEngineGetSpriteSpec, nullptr, ("IEngineGetSpriteSpec (Pointer hObject)(Sys.Type.IString resourceName)(MPlat.BitmapLocation loc) -> "));
 		ss.AddNativeCall(ns, NativeMHostIEngineSetNextScript, nullptr, ("IEngineSetNextScript (Pointer hObject)(Sys.Type.IString scriptName) -> "));

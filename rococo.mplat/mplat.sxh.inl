@@ -1057,6 +1057,56 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->AddBone(name);
 	}
+	void NativeRococoEntitiesIRigBuilderAddBoneX(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Degrees rZ;
+		_offset += sizeof(rZ);
+		ReadInput(rZ, _sf, -_offset);
+
+		Degrees rY;
+		_offset += sizeof(rY);
+		ReadInput(rY, _sf, -_offset);
+
+		Degrees rX;
+		_offset += sizeof(rX);
+		ReadInput(rX, _sf, -_offset);
+
+		float dz;
+		_offset += sizeof(dz);
+		ReadInput(dz, _sf, -_offset);
+
+		float dy;
+		_offset += sizeof(dy);
+		ReadInput(dy, _sf, -_offset);
+
+		float dx;
+		_offset += sizeof(dx);
+		ReadInput(dx, _sf, -_offset);
+
+		Metres length;
+		_offset += sizeof(length);
+		ReadInput(length, _sf, -_offset);
+
+		_offset += sizeof(IString*);
+		IString* _parent;
+		ReadInput(_parent, _sf, -_offset);
+		fstring parent { _parent->buffer, _parent->length };
+
+
+		_offset += sizeof(IString*);
+		IString* _name;
+		ReadInput(_name, _sf, -_offset);
+		fstring name { _name->buffer, _name->length };
+
+
+		Rococo::Entities::IRigBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AddBoneX(name, parent, length, dx, dy, dz, rX, rY, rZ);
+	}
 	void NativeRococoEntitiesIRigBuilderSetLength(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -1280,6 +1330,7 @@ namespace Rococo { namespace Entities {
 		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderClear, nullptr, ("IRigBuilderClear (Pointer hObject) -> "));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderClearSkeletons, nullptr, ("IRigBuilderClearSkeletons (Pointer hObject) -> "));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderAddBone, nullptr, ("IRigBuilderAddBone (Pointer hObject)(Sys.Type.IString name) -> "));
+		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderAddBoneX, nullptr, ("IRigBuilderAddBoneX (Pointer hObject)(Sys.Type.IString name)(Sys.Type.IString parent)(Sys.SI.Metres length)(Float32 dx)(Float32 dy)(Float32 dz)(Sys.Maths.Degrees rX)(Sys.Maths.Degrees rY)(Sys.Maths.Degrees rZ) -> "));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderSetLength, nullptr, ("IRigBuilderSetLength (Pointer hObject)(Sys.Type.IString name)(Sys.SI.Metres length) -> "));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderSetScale, nullptr, ("IRigBuilderSetScale (Pointer hObject)(Sys.Type.IString name)(Float32 sx)(Float32 sy)(Float32 sz) -> "));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderSetVec3OffsetFromParent, nullptr, ("IRigBuilderSetVec3OffsetFromParent (Pointer hObject)(Sys.Type.IString name)(Sys.Maths.Vec3 positionOffset) -> "));
@@ -7077,6 +7128,34 @@ namespace
 		_offset += sizeof(entityId);
 		WriteOutput(entityId, _sf, -_offset);
 	}
+	void NativeRococoEntitiesIInstancesAddAnimationFrame(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 loop;
+		_offset += sizeof(loop);
+		ReadInput(loop, _sf, -_offset);
+
+		Seconds duration;
+		_offset += sizeof(duration);
+		ReadInput(duration, _sf, -_offset);
+
+		_offset += sizeof(IString*);
+		IString* _frameName;
+		ReadInput(_frameName, _sf, -_offset);
+		fstring frameName { _frameName->buffer, _frameName->length };
+
+
+		ID_ENTITY id;
+		_offset += sizeof(id);
+		ReadInput(id, _sf, -_offset);
+
+		Rococo::Entities::IInstances* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AddAnimationFrame(id, frameName, duration, loop);
+	}
 	void NativeRococoEntitiesIInstancesCreateCubeTexture(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -7340,6 +7419,7 @@ namespace Rococo { namespace Entities {
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesAddBody, nullptr, ("IInstancesAddBody (Pointer hObject)(Sys.Type.IString modelName)(Sys.Maths.Matrix4x4 model)(Sys.Maths.Vec3 scale)(Int64 parentId) -> (Int64 entityId)"));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesAddGhost, nullptr, ("IInstancesAddGhost (Pointer hObject)(Sys.Maths.Matrix4x4 model)(Int64 parentId) -> (Int64 entityId)"));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesAddSkeleton, nullptr, ("IInstancesAddSkeleton (Pointer hObject)(Sys.Type.IString skeleton)(Sys.Maths.Matrix4x4 model) -> (Int64 entityId)"));
+		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesAddAnimationFrame, nullptr, ("IInstancesAddAnimationFrame (Pointer hObject)(Int64 id)(Sys.Type.IString frameName)(Sys.SI.Seconds duration)(Bool loop) -> "));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesCreateCubeTexture, nullptr, ("IInstancesCreateCubeTexture (Pointer hObject)(Sys.Type.IString folder)(Sys.Type.IString extension) -> (Int64 cubeId)"));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesDelete, nullptr, ("IInstancesDelete (Pointer hObject)(Int64 id) -> "));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesLoadRig, nullptr, ("IInstancesLoadRig (Pointer hObject)(Sys.Type.IString pingPath) -> "));

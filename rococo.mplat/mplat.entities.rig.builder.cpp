@@ -5,8 +5,8 @@
 #include <rococo.parse.h>
 
 #include <algorithm>
-
 #include <rococo.handles.h>
+#include <rococo.maths.h>
 
 using namespace Rococo;
 using namespace Rococo::Entities;
@@ -169,12 +169,22 @@ struct BoneImpl : IBone
 
 	char shortName[MAXLEN_BONENAME];
 
+	Vec3 offset;
+	Rococo::Quat quat{ {0,0,0},1 };
+
 	Matrix4x4 model;
 	std::vector<IBone*> children;
 
-	BoneImpl(Skeleton& _skeleton, cr_m4x4 m, BoneImpl* _parent, cstr _shortName, Metres _length) :
-		skeleton(_skeleton), parent(_parent), length(_length), model(m)
+	BoneImpl(Skeleton& _skeleton, cr_vec3 _offset, cr_quat _quat, BoneImpl* _parent, cstr _shortName, Metres _length) :
+		skeleton(_skeleton), parent(_parent), length(_length), offset(_offset), quat(_quat)
 	{
+		Matrix4x4 R;
+		Matrix4x4::FromQuat(quat, R);
+
+		Matrix4x4 T = Matrix4x4::Translate(_offset);
+
+		model = T * R;
+
 		SecureFormat(shortName, MAXLEN_BONENAME, "%s", _shortName);
 	}
 
@@ -193,6 +203,21 @@ struct BoneImpl : IBone
 	void Free() override
 	{
 		delete this;
+	}
+
+	cr_quat Quat() const override
+	{
+		return quat;
+	}
+
+	void SetQuat(cr_quat q) override
+	{
+		this->quat = q;
+		Matrix4x4 R;
+		Matrix4x4::FromQuat(q, R);
+
+		Matrix4x4 T = Matrix4x4::Translate(this->offset);
+		this->model = T * R;
 	}
 
 	const Matrix4x4& GetMatrix() const override
@@ -284,7 +309,7 @@ struct BoneImpl : IBone
 		this->length = length;
 	}
 
-	IBone* AttachBone(const Matrix4x4& m, Metres length, cstr shortName) override
+	IBone* AttachBone(cr_vec3 offset, cr_quat quat, Metres length, cstr shortName) override
 	{
 		if (shortName == nullptr || *shortName == 0)
 		{
@@ -301,8 +326,7 @@ struct BoneImpl : IBone
 
 		try
 		{
-			BoneImpl* b = new BoneImpl(skeleton, m, this, shortName, length);
-			b->model = m;
+			BoneImpl* b = new BoneImpl(skeleton, offset, quat, this, shortName, length);
 			children.push_back(b);
 			return b;
 		}
@@ -335,9 +359,7 @@ void AttachBonesAndRemoveFromMap_Recursive(stringmap<ScriptedBone>& bones, IBone
 		auto& bone = c->second;
 		if (Eq(bone.parent.c_str(), daddy.ShortName()))
 		{
-			Matrix4x4 m;
-			bone.GetTransformRelativeToParent(m);
-			auto* child = daddy.AttachBone(m, bone.length, c->first);
+			auto* child = daddy.AttachBone(bone.parentOffset, bone.quat, bone.length, c->first);
 			c = bones.erase(c);
 		}
 		else
@@ -357,6 +379,7 @@ struct RigBuilder : IRigBuilderSupervisor
 	RigBuilderContext c;
 	stringmap<ScriptedBone> bones;
 	Skeletons skeletons;
+	Skeletons poses;
 
 	ScriptedBone& GetBone(cstr name)
 	{
@@ -376,17 +399,43 @@ struct RigBuilder : IRigBuilderSupervisor
 		skeletons.Clear();
 	}
 
-	void AddBone(const fstring& name) override
+	ScriptedBone& CreateBone(cstr name)
 	{
 		ValidateNameAccordingToBoneStyleRules(name);
 
-		auto i = bones.find((cstr) name);
+		auto i = bones.find((cstr)name);
 		if (i != bones.end())
 		{
 			Throw(0, "%s: Duplicate name, %s already exists in the rig builder", __FUNCTION__, (cstr)name);
 		}
 
 		i = bones.insert(name, ScriptedBone()).first;
+		return i->second;
+	}
+
+	void AddBone(const fstring& name) override
+	{
+		CreateBone(name);
+	}
+
+	void AddBoneX(const fstring& name, const fstring& parent, Metres length, float dx, float dy, float dz, Degrees rX, Degrees rY, Degrees rZ)
+	{
+		auto& b = CreateBone(name);
+		b.length = length;
+		b.parentOffset = { dx, dy, dz };
+
+		BoneAngles angles;
+		angles.facing = rZ;
+		angles.roll = rY;
+		angles.tilt = rX;
+		b.angles = angles;
+
+		ComputeBoneQuatFromAngles(b.quat, b.angles);
+
+		if (parent.length > 0)
+		{
+			SetParentOfChild(parent, name);
+		}
 	}
 
 	void SetLength(const fstring& name, Metres length)
@@ -492,14 +541,33 @@ struct RigBuilder : IRigBuilderSupervisor
 		b.quat = q;
 	}
 
-	ISkeletons& Skeles()
+	ISkeletons& Skeles() override
 	{
 		return skeletons;
 	}
 
+	ISkeletons& Poses() override
+	{
+		return poses;
+	}
+
 	void CommitToSkeleton(const fstring& name) override
 	{
-		auto i = skeletons.nameToSkele.insert(name, nullptr);
+		CommitTo(skeletons, name);
+	}
+
+	void CommitToPose(const fstring& name) override
+	{
+		if (name.length < 1 || name.length >= MAX_POSENAME_LEN)
+		{
+			Throw(0, "%s - invalid pose name '%s'. Length must be between 1 and %u characters", __FUNCTION__, name.buffer, MAX_POSENAME_LEN);
+		}
+		CommitTo(poses, name);
+	}
+
+	void CommitTo(Skeletons& target, cstr name)
+	{
+		auto i = target.nameToSkele.insert(name, nullptr);
 		if (!i.second)
 		{
 			Throw(0, "%s: Skeleton %s already exists", __FUNCTION__, (cstr)name);
@@ -509,7 +577,7 @@ struct RigBuilder : IRigBuilderSupervisor
 		i.first->second = s;
 		s->name = name;
 
-		s->root = new BoneImpl(*s, Matrix4x4::Identity(), nullptr, "~", 0_metres);
+		s->root = new BoneImpl(*s, Vec3{ 0,0,0 }, Quat{ {0,0,0}, 1.0f }, nullptr, "~", 0_metres);
 		
 		for (auto c = bones.begin(); c != bones.end(); )
 		{
@@ -517,9 +585,7 @@ struct RigBuilder : IRigBuilderSupervisor
 
 			if (bone.parent.size() == 0)
 			{
-				Matrix4x4 m;
-				bone.GetTransformRelativeToParent(m);
-				auto* child =  s->root->AttachBone(m, bone.length, c->first);
+				auto* child =  s->root->AttachBone(bone.parentOffset, bone.quat, bone.length, c->first);
 				c = bones.erase(c);
 			}
 			else
@@ -540,11 +606,6 @@ struct RigBuilder : IRigBuilderSupervisor
 			skeletons.nameToSkele.erase(i.first);
 			Throw(0, "%s %s: %llu elements in the skeleton did not link to the root. Fix ancestors of '%s'", __FUNCTION__, (cstr)name, bones.size(), (cstr) bones.begin()->first);
 		}
-	}
-
-	void CommitToPose(const fstring& name) override
-	{
-
 	}
 
 	void Free() override

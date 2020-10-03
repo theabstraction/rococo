@@ -1,9 +1,9 @@
 #include <rococo.mplat.h>
 #include <rococo.hashtable.h>
 #include <vector>
-
 #include <rococo.strings.h>
 #include <rococo.maths.h>
+#include <rococo.animation.h>
 
 namespace
 {
@@ -21,6 +21,19 @@ namespace
       Vec3 scale{ 1.0f, 1.0f, 1.0f };   
       HString skeletonName;
       ID_SKELETON idSkeleton;
+
+      AutoFree<IAnimation> animation;
+
+      // Lazy init the animation object
+      IAnimation& GetAnimation()
+      {
+          if (!animation)
+          {
+              animation = CreateAnimation();
+          }
+
+          return *animation;
+      }
 
       Vec3 Position() const override
       {
@@ -69,11 +82,12 @@ namespace
       IRenderer& renderer;
 	  Events::IPublisher& publisher;
       IRigLoader& rigLoader;
+      IRigBuilderSupervisor& rigs;
 
       int32 enumerationDepth{ 0 };
 
-      Instances(IRigLoader& _rigLoader, IMeshBuilderSupervisor& _meshBuilder, IRenderer& _renderer, Events::IPublisher& _publisher) :
-          rigLoader(_rigLoader), meshBuilder(_meshBuilder), renderer(_renderer), publisher(_publisher)
+      Instances(IRigBuilderSupervisor& _rigs, IRigLoader& _rigLoader, IMeshBuilderSupervisor& _meshBuilder, IRenderer& _renderer, Events::IPublisher& _publisher) :
+          rigs(_rigs), rigLoader(_rigLoader), meshBuilder(_meshBuilder), renderer(_renderer), publisher(_publisher)
       {
       }
 
@@ -237,7 +251,7 @@ namespace
          }
       }
 
-      virtual void GetScale(ID_ENTITY entityId, Vec3& scale)
+      void GetScale(ID_ENTITY entityId, Vec3& scale)
       {
          auto i = idToEntity.find(entityId);
          if (i == idToEntity.end())
@@ -248,7 +262,7 @@ namespace
          scale = i->second->scale;
       }
 
-      virtual void GetPosition(ID_ENTITY entityId, Vec3& position)
+      void GetPosition(ID_ENTITY entityId, Vec3& position) 
       {
          auto i = idToEntity.find(entityId);
          if (i == idToEntity.end())
@@ -257,6 +271,18 @@ namespace
          }
 
          position = i->second->model.GetPosition();
+      }
+
+      void AddAnimationFrame(ID_ENTITY id, const fstring& frameName, Seconds duration, boolean32 loop) override
+      {
+          auto i = idToEntity.find(id);
+          if (i == idToEntity.end())
+          {
+              Throw(0, "%s - no such entity", __FUNCTION__);
+          }
+
+          auto e = i->second;
+          e->GetAnimation().AddKeyFrame(frameName, duration, loop);
       }
 
 	  void LoadMaterialArray(const fstring& folder, int32 txWidth) override
@@ -462,7 +488,7 @@ namespace
          i->second->scale = scale;
       }
    
-      virtual void Clear()
+      void Clear() override
       {
          for (auto& i : idToEntity)
          {
@@ -472,7 +498,31 @@ namespace
          idToEntity.clear();
       }
 
-      virtual void Free()
+      void AdvanceAnimations(Seconds dt)
+      {
+          auto& poses = rigs.Poses();
+
+          for (auto& i : idToEntity)
+          {
+              auto* e = i.second;
+              if (e->animation)
+              {
+                  auto* skele = e->GetSkeleton(rigs.Skeles());
+                  if (skele)
+                  {
+                      AnimationAdvanceArgs args
+                      {
+                           *skele,
+                           poses,
+                           dt
+                      };
+                      e->animation->Advance(args);
+                  }
+              }
+          }
+      }
+
+      void Free() override
       {
          delete this;
       }
@@ -483,9 +533,9 @@ namespace Rococo
 {
    namespace Entities
    {
-      IInstancesSupervisor* CreateInstanceBuilder(IRigLoader& rigLoader, IMeshBuilderSupervisor& meshes, IRenderer& renderer, Events::IPublisher& publisher)
+      IInstancesSupervisor* CreateInstanceBuilder(IRigBuilderSupervisor& rigs, IRigLoader& rigLoader, IMeshBuilderSupervisor& meshes, IRenderer& renderer, Events::IPublisher& publisher)
       {
-         return new Instances(rigLoader, meshes, renderer, publisher);
+         return new Instances(rigs, rigLoader, meshes, renderer, publisher);
       }
    }
 }

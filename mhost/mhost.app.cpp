@@ -359,8 +359,19 @@ namespace MHost
 			}
 		}
 
-		void YieldForSystemMessages(int32 sleepMS) override
+		Rococo::OS::ticks lastTick = 0;
+
+		Seconds YieldForSystemMessages(int32 sleepMS) override
 		{
+			auto now = Rococo::OS::CpuTicks();
+			auto DT = now - lastTick;
+
+			float dt = (float)DT / (float)Rococo::OS::CpuHz();
+
+			dt = clamp(dt, 0.0f, 0.1f);
+
+			lastTick = now;
+
 			platform.installation.OS().EnumerateModifiedFiles(*this);
 			platform.publisher.Deliver();
 
@@ -377,6 +388,10 @@ namespace MHost
 					queuedForExecute = false; 
 				}
 			}
+
+			platform.instances.AdvanceAnimations(Seconds{ dt });
+
+			return Seconds{ dt };
 		}
 
 		void Render(MHost::GuiPopulator populator) override
