@@ -144,7 +144,20 @@ pickOutFrame:
 
 		void MatchKeyFrame(AnimationAdvanceArgs& args, const KeyFrame& key)
 		{
+			ISkeleton* pose = nullptr;
+			if (!args.poses.TryGet(key.poseId, &pose))
+			{
+				args.poses.TryGet(key.name, &pose);
+			}
 
+			if (pose)
+			{
+				auto* puppetRoot = args.puppet.Root();
+				if (puppetRoot)
+				{
+					LerpPoseBonesToPuppet(*puppetRoot, pose->Root(), pose->Root(), 0.0f);
+				}
+			}
 		}
 
 		void AddKeyFrame(const fstring& frameName, Seconds duration, boolean32 loop) override

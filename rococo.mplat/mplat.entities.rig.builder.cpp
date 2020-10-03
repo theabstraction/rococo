@@ -397,6 +397,7 @@ struct RigBuilder : IRigBuilderSupervisor
 	void ClearSkeletons() override
 	{
 		skeletons.Clear();
+		poses.Clear();
 	}
 
 	ScriptedBone& CreateBone(cstr name)
