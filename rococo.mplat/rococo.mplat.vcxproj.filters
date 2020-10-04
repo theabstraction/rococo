@@ -132,12 +132,6 @@
     <ClCompile Include="mplat.pane.array-box.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mplat.graphics.rigs.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="mplat.graphics.mesh.importer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="mplat.hqfonts.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

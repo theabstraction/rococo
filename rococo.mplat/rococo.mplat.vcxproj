@@ -131,7 +131,6 @@
     </ClCompile>
     <ClCompile Include="mplat.maths.visitor.cpp" />
     <ClCompile Include="mplat.graphics.scene.cpp" />
-    <ClCompile Include="mplat.graphics.mesh.importer.cpp" />
     <ClCompile Include="mplat.os.win32.venue.cpp" />
     <ClCompile Include="mplat.overlay.cpp" />
     <ClCompile Include="mplat.pane.array-box.cpp" />
@@ -144,7 +143,6 @@
     <ClCompile Include="mplat.pane.textoutput.cpp" />
     <ClCompile Include="mplat.pane.enumlist.cpp" />
     <ClCompile Include="mplat.renderer.config.cpp" />
-    <ClCompile Include="mplat.graphics.rigs.cpp" />
     <ClCompile Include="mplat.scripts.cpp" />
     <ClCompile Include="mplat.tests.cpp" />
     <ClCompile Include="mplat.utilities.cpp" />

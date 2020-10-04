@@ -201,35 +201,8 @@ namespace Rococo
 {
 	namespace MPlatImpl
 	{
-		void NativeLoadRig(Rococo::Script::NativeCallEnvironment& e);
 		void InitArrayFonts(Platform& platform);
 	}
-}
-
-void LoadRigFromFile(Platform& platform, const fstring& pingPath)
-{
-	class ScriptContext : public IEventCallback<ScriptCompileArgs>
-	{
-		Platform& platform;
-
-		void OnEvent(ScriptCompileArgs& args) override
-		{
-			auto& ns = args.ss.AddNativeNamespace("Rococo");
-			args.ss.AddNativeCall(ns, Rococo::MPlatImpl::NativeLoadRig, &platform, "LoadRig (Sys.Reflection.IExpression s)->", true);
-		}
-
-	public:
-		ScriptContext(Platform& _platform) : platform(_platform) {}
-
-		void Execute(cstr name, bool trace)
-		{
-			platform.utilities.RunEnvironmentScript(*this, name, true, true, trace);
-		}
-	} sc(platform);
-
-	sc.Execute(pingPath, false);
-
-	platform.sourceCache.Release(pingPath);
 }
 
 int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon, HICON hSmallIcon)
@@ -306,20 +279,10 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 
 	Rococo::MPlatImpl::InitScriptSystem(*installation);
 
-	struct RigLoader : public IRigLoader
-	{
-		Platform* platform = nullptr;
-		void LoadFromFile(const fstring& pingName) override
-		{
-			LoadRigFromFile(*platform, pingName);
-		}
-	} rigLoader;
-
 	Rococo::Entities::RigBuilderContext rbc;
 	AutoFree<Rococo::Entities::IRigBuilderSupervisor> rigBuilder = Rococo::Entities::CreateRigBuilder(rbc);
-	AutoFree<Graphics::IRigsSupervisor> rigs = Graphics::CreateRigs();
 	AutoFree<Graphics::IMeshBuilderSupervisor> meshes = Graphics::CreateMeshBuilder(mainWindow->Renderer());
-	AutoFree<Entities::IInstancesSupervisor> instances = Entities::CreateInstanceBuilder(*rigBuilder, rigLoader, *meshes, mainWindow->Renderer(), *publisher);
+	AutoFree<Entities::IInstancesSupervisor> instances = Entities::CreateInstanceBuilder(*rigBuilder, *meshes, mainWindow->Renderer(), *publisher);
 	AutoFree<Entities::IMobilesSupervisor> mobiles = Entities::CreateMobilesSupervisor(*instances);
 	AutoFree<Graphics::ICameraSupervisor> camera = Graphics::CreateCamera(*instances, *mobiles, mainWindow->Renderer());
 	AutoFree<Graphics::ISceneSupervisor> scene = Graphics::CreateScene(*instances, *camera, rigBuilder->Skeles());
@@ -362,7 +325,7 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	Platform platform
 	{ 
 		*os, *installation, *appControl, mainWindow->Renderer(), *rendererConfig, *messaging, 
-		*sourceCache, *debuggerWindow, *publisher, *utilities, *gui, *keyboard, *config, *meshes, *rigs,
+		*sourceCache, *debuggerWindow, *publisher, *utilities, *gui, *keyboard, *config, *meshes,
 		*instances, *mobiles, *particles, *rigBuilder, *sprites, *camera, *scene, tesselators, *mathsVisitor,
 		*legacySound, *ssFactory, title, *xbox360stick, *ims
 	};
@@ -370,8 +333,6 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	gui->PostConstruct(&platform);
 	utilities->SetPlatform(platform);
 	messaging->PostCreate(platform);
-
-	rigLoader.platform = &platform;
 
 	PlatformTabs tabs(platform);
 

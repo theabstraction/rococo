@@ -140,11 +140,6 @@ Rococo::Audio::ILegacySoundControl* FactoryConstructRococoAudioLegacySoundContro
 	return &platform->legacySoundControl;
 }
 
-Rococo::Graphics::IRigs* FactoryConstructRococoGraphicsRigs(Rococo::Graphics::IRigs* context)
-{
-	return context;
-}
-
 Rococo::IInstallationManager* FactoryConstructRococoInstallation(Rococo::Platform* p)
 {
 	return &p->installationManager;
@@ -277,8 +272,6 @@ namespace Rococo
 					if (addPlatform)
 					{
 						Entities::AddNativeCalls_RococoEntitiesIRigBuilder(args.ss, &platform.rigBuilder);
-						Graphics::AddNativeCalls_RococoGraphicsIRigs(args.ss, &platform.rigs);
-						Graphics::AddNativeCalls_RococoGraphicsIRig(args.ss, nullptr);
 						Graphics::AddNativeCalls_RococoGraphicsIMeshBuilder(args.ss, &platform.meshes);
 						Entities::AddNativeCalls_RococoEntitiesIInstances(args.ss, &platform.instances);
 						Entities::AddNativeCalls_RococoEntitiesIMobiles(args.ss, &platform.mobiles);
@@ -341,20 +334,6 @@ namespace Rococo
 			sc.shutdownOnFail = shutdownOnFail;
 
 			sc.Execute(name, stats, trace, id);
-		}
-
-		void LoadRigFromSExpression(Platform& platform, cr_sex s);
-
-		void NativeLoadRig(Rococo::Script::NativeCallEnvironment& e)
-		{
-			auto& platform = *(Platform*)e.context;
-
-			Rococo::InterfacePointer interf;
-			ReadInput<Rococo::InterfacePointer>(0, interf, e);
-
-			auto* pExpr = (Rococo::CClassExpression*) InterfaceToInstance(interf);
-
-			LoadRigFromSExpression(platform, *pExpr->ExpressionPtr);
 		}
 	} // M
 } // Rococo

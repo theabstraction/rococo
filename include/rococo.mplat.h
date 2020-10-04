@@ -126,7 +126,7 @@ namespace Rococo::Joysticks
 	{
 		struct Button
 		{
-			// button's take 1 bit each, but the type of ButtonBool determines the size of 
+			// buttons take 1 bit each, but the type of ButtonBool determines the size of 
 			// word in which the bit is stored. This works for Windows at least, which
 			// is all that matters here, because this code is for Windows & XBOX360 controllers only.
 			typedef uint16 ButtonBool;
@@ -271,11 +271,6 @@ namespace Rococo
 		};
 	}
 
-	ROCOCOAPI IRigLoader
-	{
-		virtual void LoadFromFile(const fstring & pingName) = 0;
-	};
-
 	struct Key
 	{
 		cstr KeyName;
@@ -391,7 +386,7 @@ namespace Rococo
 			virtual void Free() = 0;
 		};
 
-		IInstancesSupervisor* CreateInstanceBuilder(IRigBuilderSupervisor& rigs, IRigLoader& meshLoader, Graphics::IMeshBuilderSupervisor& meshes, IRenderer& renderer, Events::IPublisher& publisher);
+		IInstancesSupervisor* CreateInstanceBuilder(IRigBuilderSupervisor& rigs, Graphics::IMeshBuilderSupervisor& meshes, IRenderer& renderer, Events::IPublisher& publisher);
 
 		ROCOCOAPI IParticleSystemSupervisor : IParticleSystem
 		{
@@ -785,18 +780,6 @@ namespace Rococo
 		};
 
 		IMessagingSupervisor* CreateMessaging();
-
-		ROCOCOAPI IRigsSupervisor : public Rococo::Graphics::IRigs
-		{
-			virtual void Free() = 0;
-		};
-
-		ROCOCOAPI IRigSupervisor : public Rococo::Graphics::IRig
-		{
-			virtual void Free() = 0;
-		};
-
-		IRigsSupervisor* CreateRigs();
 	}
 
 	struct Tesselators
@@ -868,8 +851,6 @@ namespace Rococo
 
 		// Mesh builder object
 		Graphics::IMeshBuilderSupervisor& meshes;
-
-		Graphics::IRigsSupervisor& rigs;
 
 		// Entity instances
 		Entities::IInstancesSupervisor& instances;

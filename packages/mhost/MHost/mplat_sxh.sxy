@@ -264,7 +264,6 @@
 	(AddAnimationFrame (Int64 id)(Sys.Type.IString frameName)(Sys.SI.Seconds duration)(Bool loop) -> )
 	(CreateCubeTexture (Sys.Type.IString folder)(Sys.Type.IString extension) -> (Int64 cubeId))
 	(Delete (Int64 id) -> )
-	(LoadRig (Sys.Type.IString pingPath) -> )
 	(LoadMaterialArray (Sys.Type.IString folder)(Int32 txWidth) -> )
 	(GetMaterialCateogry (Float32 id) -> (Int32 category))
 	(CountMaterialsInCategory (Int32 category) -> (Int32 count))
@@ -286,7 +285,6 @@
 	(method ProxyIInstances.AddAnimationFrame (Int64 id)(Sys.Type.IString frameName)(Sys.SI.Seconds duration)(Bool loop) ->  : (Rococo.Entities.Native.IInstancesAddAnimationFrame this.hObject id frameName duration loop))
 	(method ProxyIInstances.CreateCubeTexture (Sys.Type.IString folder)(Sys.Type.IString extension) -> (Int64 cubeId) : (Rococo.Entities.Native.IInstancesCreateCubeTexture this.hObject folder extension -> cubeId))
 	(method ProxyIInstances.Delete (Int64 id) ->  : (Rococo.Entities.Native.IInstancesDelete this.hObject id))
-	(method ProxyIInstances.LoadRig (Sys.Type.IString pingPath) ->  : (Rococo.Entities.Native.IInstancesLoadRig this.hObject pingPath))
 	(method ProxyIInstances.LoadMaterialArray (Sys.Type.IString folder)(Int32 txWidth) ->  : (Rococo.Entities.Native.IInstancesLoadMaterialArray this.hObject folder txWidth))
 	(method ProxyIInstances.GetMaterialCateogry (Float32 id) -> (Int32 category) : (Rococo.Entities.Native.IInstancesGetMaterialCateogry this.hObject id -> category))
 	(method ProxyIInstances.CountMaterialsInCategory (Int32 category) -> (Int32 count) : (Rococo.Entities.Native.IInstancesCountMaterialsInCategory this.hObject category -> count))
@@ -302,48 +300,6 @@
 (factory Rococo.Entities.Instances Rococo.Entities.IInstances  :
 	(Pointer pObject = (Rococo.Entities.Native.GetHandleForIInstances0 ))
 	(construct ProxyIInstances pObject)
-)
-
-(interface Rococo.Graphics.IRig
-	(AppendMeshName (Sys.Type.IStringBuilder mesh) -> )
-	(AppendRigName (Sys.Type.IStringBuilder name) -> )
-	(Child (Int32 index) -> (Rococo.Graphics.IRig rig))
-	(ChildCount  -> (Int32 count))
-	(ClearChildren  -> )
-	(Exists  -> (Bool exists))
-	(GetMatrix (Sys.Maths.Matrix4x4 output) -> )
-	(SetMatrix (Sys.Maths.Matrix4x4 input) -> )
-)
-
-(class ProxyIRig (implements Rococo.Graphics.IRig) (Pointer hObject))
-	(method ProxyIRig.AppendMeshName (Sys.Type.IStringBuilder mesh) ->  : (Rococo.Graphics.Native.IRigAppendMeshName this.hObject mesh))
-	(method ProxyIRig.AppendRigName (Sys.Type.IStringBuilder name) ->  : (Rococo.Graphics.Native.IRigAppendRigName this.hObject name))
-	(method ProxyIRig.Child (Int32 index) -> (Rococo.Graphics.IRig rig) : (Rococo.Graphics.Native.IRigChild this.hObject index -> rig))
-	(method ProxyIRig.ChildCount  -> (Int32 count) : (Rococo.Graphics.Native.IRigChildCount this.hObject  -> count))
-	(method ProxyIRig.ClearChildren  ->  : (Rococo.Graphics.Native.IRigClearChildren this.hObject ))
-	(method ProxyIRig.Exists  -> (Bool exists) : (Rococo.Graphics.Native.IRigExists this.hObject  -> exists))
-	(method ProxyIRig.GetMatrix (Sys.Maths.Matrix4x4 output) ->  : (Rococo.Graphics.Native.IRigGetMatrix this.hObject output))
-	(method ProxyIRig.SetMatrix (Sys.Maths.Matrix4x4 input) ->  : (Rococo.Graphics.Native.IRigSetMatrix this.hObject input))
-
-(interface Rococo.Graphics.IRigs
-	(AddRig (Sys.Type.IString rigName) -> (Rococo.Graphics.IRig rig))
-	(AddMeshToRig (Sys.Type.IString mesh)(Sys.Type.IString parentRig)(Sys.Maths.Matrix4x4 local) -> )
-	(GetRig (Sys.Type.IString rigName) -> (Rococo.Graphics.IRig rig))
-	(ClearRig (Sys.Type.IString rigName) -> )
-	(ClearRigs  -> )
-)
-
-(class ProxyIRigs (implements Rococo.Graphics.IRigs) (Pointer hObject))
-	(method ProxyIRigs.Construct (Pointer hObject): (this.hObject = hObject))
-	(method ProxyIRigs.AddRig (Sys.Type.IString rigName) -> (Rococo.Graphics.IRig rig) : (Rococo.Graphics.Native.IRigsAddRig this.hObject rigName -> rig))
-	(method ProxyIRigs.AddMeshToRig (Sys.Type.IString mesh)(Sys.Type.IString parentRig)(Sys.Maths.Matrix4x4 local) ->  : (Rococo.Graphics.Native.IRigsAddMeshToRig this.hObject mesh parentRig local))
-	(method ProxyIRigs.GetRig (Sys.Type.IString rigName) -> (Rococo.Graphics.IRig rig) : (Rococo.Graphics.Native.IRigsGetRig this.hObject rigName -> rig))
-	(method ProxyIRigs.ClearRig (Sys.Type.IString rigName) ->  : (Rococo.Graphics.Native.IRigsClearRig this.hObject rigName))
-	(method ProxyIRigs.ClearRigs  ->  : (Rococo.Graphics.Native.IRigsClearRigs this.hObject ))
-
-(factory Rococo.Graphics.Rigs Rococo.Graphics.IRigs  :
-	(Pointer pObject = (Rococo.Graphics.Native.GetHandleForIRigs0 ))
-	(construct ProxyIRigs pObject)
 )
 
 (interface Rococo.Graphics.IMeshBuilder

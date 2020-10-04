@@ -81,24 +81,18 @@ namespace
       IMeshBuilderSupervisor& meshBuilder;
       IRenderer& renderer;
 	  Events::IPublisher& publisher;
-      IRigLoader& rigLoader;
       IRigBuilderSupervisor& rigs;
 
       int32 enumerationDepth{ 0 };
 
-      Instances(IRigBuilderSupervisor& _rigs, IRigLoader& _rigLoader, IMeshBuilderSupervisor& _meshBuilder, IRenderer& _renderer, Events::IPublisher& _publisher) :
-          rigs(_rigs), rigLoader(_rigLoader), meshBuilder(_meshBuilder), renderer(_renderer), publisher(_publisher)
+      Instances(IRigBuilderSupervisor& _rigs, IMeshBuilderSupervisor& _meshBuilder, IRenderer& _renderer, Events::IPublisher& _publisher) :
+          rigs(_rigs), meshBuilder(_meshBuilder), renderer(_renderer), publisher(_publisher)
       {
       }
 
       ~Instances()
       {
          Clear();
-      }
-
-      void LoadRig(const fstring& pingPath) override
-      {
-          rigLoader.LoadFromFile(pingPath);
       }
 
       Rococo::Graphics::IMeshBuilder& MeshBuilder() override
@@ -533,9 +527,9 @@ namespace Rococo
 {
    namespace Entities
    {
-      IInstancesSupervisor* CreateInstanceBuilder(IRigBuilderSupervisor& rigs, IRigLoader& rigLoader, IMeshBuilderSupervisor& meshes, IRenderer& renderer, Events::IPublisher& publisher)
+      IInstancesSupervisor* CreateInstanceBuilder(IRigBuilderSupervisor& rigs, IMeshBuilderSupervisor& meshes, IRenderer& renderer, Events::IPublisher& publisher)
       {
-         return new Instances(rigs, rigLoader, meshes, renderer, publisher);
+         return new Instances(rigs, meshes, renderer, publisher);
       }
    }
 }
