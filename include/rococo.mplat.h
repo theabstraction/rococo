@@ -12,6 +12,7 @@ namespace Rococo
    ROCOCO_ID(ID_ENTITY, int64, 0);
    ROCOCO_ID(ID_PUPPET, uint64, 0);
    ROCOCO_ID(ID_SKELETON, uint64, 0);
+   ROCOCO_ID(ID_POSE, uint64, 0);
 
    enum { MAX_POSENAME_LEN = 16 };
 
@@ -245,7 +246,7 @@ namespace Rococo
 		ROCOCOAPI ISkeletons
 		{
 			virtual void Clear() = 0;
-			virtual bool TryGet(cstr name, ISkeleton** ppSkeleton) = 0;
+			virtual ID_SKELETON TryGet(cstr name, ISkeleton** ppSkeleton) = 0;
 			virtual bool TryGet(ID_SKELETON id, ISkeleton** ppSkeleton) = 0;
 		};
 

@@ -113,7 +113,13 @@ struct Skeletons : public ISkeletons
 {
 	enum { HSKELE_SALTBITS = 16 };
 
-	stringmap<Skeleton*> nameToSkele;
+	struct SkeleBind
+	{
+		Skeleton* skeleton = nullptr;
+		ID_SKELETON id;
+	};
+
+	stringmap<SkeleBind> nameToSkele;
 	HandleTable<Skeleton*, HSKELE_SALTBITS> handleToSkele;
 
 	Skeletons() : handleToSkele("Skeletons", 128)
@@ -125,23 +131,23 @@ struct Skeletons : public ISkeletons
 	{
 		for (auto i : nameToSkele)
 		{
-			delete i.second;
+			delete i.second.skeleton;
 		}
 		nameToSkele.clear();
 		handleToSkele.Clear(nullptr);
 	}
 
-	bool TryGet(cstr name, ISkeleton** ppSkeleton) override
+	ID_SKELETON TryGet(cstr name, ISkeleton** ppSkeleton) override
 	{
 		auto i = nameToSkele.find(name);
 		if (i != nameToSkele.end())
 		{
-			*ppSkeleton = i->second;
-			return true;
+			*ppSkeleton = i->second.skeleton;
+			return i->second.id;
 		}
 		else
 		{
-			return false;
+			return ID_SKELETON::Invalid();
 		}
 	}
 
@@ -553,16 +559,16 @@ struct RigBuilder : public IRigBuilder
 		b.quat = q;
 	}
 
-	void CommitTo(Skeletons& target, cstr name)
+	ID_SKELETON CommitTo(Skeletons& target, cstr name)
 	{
-		auto i = target.nameToSkele.insert(name, nullptr);
+		auto i = target.nameToSkele.insert(name, Skeletons::SkeleBind());
 		if (!i.second)
 		{
 			Throw(0, "%s: Skeleton %s already exists", __FUNCTION__, (cstr)name);
 		}
 
 		auto* s = new Skeleton();
-		i.first->second = s;
+		i.first->second.skeleton = s;
 		s->name = name;
 
 		s->root = new BoneImpl(*s, Vec3{ 0,0,0 }, Quat{ {0,0,0}, 1.0f }, nullptr, "~", 0_metres);
@@ -587,37 +593,53 @@ struct RigBuilder : public IRigBuilder
 			AttachBonesAndRemoveFromMap_Recursive(bones, *child);
 		}
 
-		if (!bones.empty())
+		try
+		{
+			if (!bones.empty())
+			{
+				Throw(0, "%s %s: %llu elements in the skeleton did not link to the root. Fix ancestors of '%s'", __FUNCTION__, (cstr)name, bones.size(), (cstr)bones.begin()->first);
+			}
+
+			auto handle = target.handleToSkele.CreateNew();
+			target.handleToSkele.Set(handle, s);
+			ID_SKELETON id{ handle.Value() };
+			i.first->second.id = id;
+			return id;
+		}
+		catch (IException&)
 		{
 			s->root->Free();
 			delete s;
-			skeletons.nameToSkele.erase(i.first);
-			Throw(0, "%s %s: %llu elements in the skeleton did not link to the root. Fix ancestors of '%s'", __FUNCTION__, (cstr)name, bones.size(), (cstr)bones.begin()->first);
+			target.nameToSkele.erase(i.first);
+			throw;
 		}
 	}
 
-	void CommitToSkeleton(const fstring& name) override
+	ID_SKELETON CommitToSkeleton(const fstring& name) override
 	{
-		CommitTo(skeletons, name);
+		ID_SKELETON id = CommitTo(skeletons, name);
+		return id;
 	}
 
-	void CommitToPose(const fstring& name) override
+	ID_POSE CommitToPose(const fstring& name) override
 	{
 		if (name.length < 1 || name.length >= MAX_POSENAME_LEN)
 		{
 			Throw(0, "%s - invalid pose name '%s'. Length must be between 1 and %u characters", __FUNCTION__, name.buffer, MAX_POSENAME_LEN);
 		}
-		CommitTo(poses, name);
+
+		auto id = CommitTo(poses, name);
+		return ID_POSE{ id };
 	}
 };
 
-struct RigStuff: public IRigs
+struct Rigs: public IRigs
 {
 	Skeletons skeletons;
 	Skeletons poses;
 	RigBuilder builder;
 
-	RigStuff(): builder(skeletons, poses) {}
+	Rigs(): builder(skeletons, poses) {}
 
 	IRigBuilder& Builder() override
 	{
@@ -644,6 +666,6 @@ namespace Rococo::Entities
 {
 	IRigs* CreateRigBuilder()
 	{
-		return new RigStuff();
+		return new Rigs();
 	}
 }

@@ -71,8 +71,8 @@
 		(SetQuatFromParent (IString name) (const Quat quatFromParent) (Bool validateQuat))
 		(SetRotationFromParent (IString name) (Degrees rX)(Degrees rY)(Degrees rZ))
 		(SetParentOfChild (IString parent)(IString ofChild))
-		(CommitToSkeleton (IString name))
-		(CommitToPose (IString name))
+		(CommitToSkeleton (IString name)->(IdSkeleton id))
+		(CommitToPose (IString name)->(IdPose id))
 	)
 
 	(factory Rococo.Entities.RigBuilder)

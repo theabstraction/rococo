@@ -1301,7 +1301,9 @@ namespace
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->CommitToSkeleton(name);
+		ID_SKELETON id = _pObject->CommitToSkeleton(name);
+		_offset += sizeof(id);
+		WriteOutput(id, _sf, -_offset);
 	}
 	void NativeRococoEntitiesIRigBuilderCommitToPose(NativeCallEnvironment& _nce)
 	{
@@ -1317,7 +1319,9 @@ namespace
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->CommitToPose(name);
+		ID_POSE id = _pObject->CommitToPose(name);
+		_offset += sizeof(id);
+		WriteOutput(id, _sf, -_offset);
 	}
 
 	void NativeGetHandleForRococoEntitiesRigBuilder(NativeCallEnvironment& _nce)
@@ -1349,8 +1353,8 @@ namespace Rococo { namespace Entities {
 		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderSetQuatFromParent, nullptr, ("IRigBuilderSetQuatFromParent (Pointer hObject)(Sys.Type.IString name)(Sys.Maths.Quat quatFromParent)(Bool validateQuat) -> "));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderSetRotationFromParent, nullptr, ("IRigBuilderSetRotationFromParent (Pointer hObject)(Sys.Type.IString name)(Sys.Maths.Degrees rX)(Sys.Maths.Degrees rY)(Sys.Maths.Degrees rZ) -> "));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderSetParentOfChild, nullptr, ("IRigBuilderSetParentOfChild (Pointer hObject)(Sys.Type.IString parent)(Sys.Type.IString ofChild) -> "));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderCommitToSkeleton, nullptr, ("IRigBuilderCommitToSkeleton (Pointer hObject)(Sys.Type.IString name) -> "));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderCommitToPose, nullptr, ("IRigBuilderCommitToPose (Pointer hObject)(Sys.Type.IString name) -> "));
+		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderCommitToSkeleton, nullptr, ("IRigBuilderCommitToSkeleton (Pointer hObject)(Sys.Type.IString name) -> (Int64 id)"));
+		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderCommitToPose, nullptr, ("IRigBuilderCommitToPose (Pointer hObject)(Sys.Type.IString name) -> (Int64 id)"));
 	}
 }}
 // BennyHill generated Sexy native functions for Rococo::IContextMenuPane 

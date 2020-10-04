@@ -135,13 +135,13 @@
     <ClCompile Include="mplat.hqfonts.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mplat.entities.rig.builder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="mplat.joysticks.xbox360.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="mplat.entities.animation.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mplat.entities.rigs.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -49,8 +49,8 @@
 	(SetQuatFromParent (Sys.Type.IString name)(Sys.Maths.Quat quatFromParent)(Bool validateQuat) -> )
 	(SetRotationFromParent (Sys.Type.IString name)(Sys.Maths.Degrees rX)(Sys.Maths.Degrees rY)(Sys.Maths.Degrees rZ) -> )
 	(SetParentOfChild (Sys.Type.IString parent)(Sys.Type.IString ofChild) -> )
-	(CommitToSkeleton (Sys.Type.IString name) -> )
-	(CommitToPose (Sys.Type.IString name) -> )
+	(CommitToSkeleton (Sys.Type.IString name) -> (Int64 id))
+	(CommitToPose (Sys.Type.IString name) -> (Int64 id))
 )
 
 (class ProxyIRigBuilder (implements Rococo.Entities.IRigBuilder) (Pointer hObject))
@@ -67,8 +67,8 @@
 	(method ProxyIRigBuilder.SetQuatFromParent (Sys.Type.IString name)(Sys.Maths.Quat quatFromParent)(Bool validateQuat) ->  : (Rococo.Entities.Native.IRigBuilderSetQuatFromParent this.hObject name quatFromParent validateQuat))
 	(method ProxyIRigBuilder.SetRotationFromParent (Sys.Type.IString name)(Sys.Maths.Degrees rX)(Sys.Maths.Degrees rY)(Sys.Maths.Degrees rZ) ->  : (Rococo.Entities.Native.IRigBuilderSetRotationFromParent this.hObject name rX rY rZ))
 	(method ProxyIRigBuilder.SetParentOfChild (Sys.Type.IString parent)(Sys.Type.IString ofChild) ->  : (Rococo.Entities.Native.IRigBuilderSetParentOfChild this.hObject parent ofChild))
-	(method ProxyIRigBuilder.CommitToSkeleton (Sys.Type.IString name) ->  : (Rococo.Entities.Native.IRigBuilderCommitToSkeleton this.hObject name))
-	(method ProxyIRigBuilder.CommitToPose (Sys.Type.IString name) ->  : (Rococo.Entities.Native.IRigBuilderCommitToPose this.hObject name))
+	(method ProxyIRigBuilder.CommitToSkeleton (Sys.Type.IString name) -> (Int64 id) : (Rococo.Entities.Native.IRigBuilderCommitToSkeleton this.hObject name -> id))
+	(method ProxyIRigBuilder.CommitToPose (Sys.Type.IString name) -> (Int64 id) : (Rococo.Entities.Native.IRigBuilderCommitToPose this.hObject name -> id))
 
 (factory Rococo.Entities.RigBuilder Rococo.Entities.IRigBuilder  :
 	(Pointer pObject = (Rococo.Entities.Native.GetHandleForIRigBuilder0 ))
