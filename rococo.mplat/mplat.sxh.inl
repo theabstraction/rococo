@@ -1021,7 +1021,7 @@ namespace
 	using namespace Rococo::Script;
 	using namespace Rococo::Compiler;
 
-	void NativeRococoEntitiesIRigBuilderClear(NativeCallEnvironment& _nce)
+	void NativeRococoEntitiesIRigBuilderClearBuilder(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
@@ -1029,7 +1029,17 @@ namespace
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->Clear();
+		_pObject->ClearBuilder();
+	}
+	void NativeRococoEntitiesIRigBuilderClearPoses(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Entities::IRigBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->ClearPoses();
 	}
 	void NativeRococoEntitiesIRigBuilderClearSkeletons(NativeCallEnvironment& _nce)
 	{
@@ -1314,8 +1324,8 @@ namespace
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Rococo::Entities::IRigBuilder* nceContext = reinterpret_cast<Rococo::Entities::IRigBuilder*>(_nce.context);
-		// Uses: Rococo::Entities::IRigBuilder* FactoryConstructRococoEntitiesRigBuilder(Rococo::Entities::IRigBuilder* _context);
+		Rococo::Entities::IRigs* nceContext = reinterpret_cast<Rococo::Entities::IRigs*>(_nce.context);
+		// Uses: Rococo::Entities::IRigBuilder* FactoryConstructRococoEntitiesRigBuilder(Rococo::Entities::IRigs* _context);
 		Rococo::Entities::IRigBuilder* pObject = FactoryConstructRococoEntitiesRigBuilder(nceContext);
 		_offset += sizeof(IString*);
 		WriteOutput(pObject, _sf, -_offset);
@@ -1323,11 +1333,12 @@ namespace
 }
 
 namespace Rococo { namespace Entities { 
-	void AddNativeCalls_RococoEntitiesIRigBuilder(Rococo::Script::IPublicScriptSystem& ss, Rococo::Entities::IRigBuilder* _nceContext)
+	void AddNativeCalls_RococoEntitiesIRigBuilder(Rococo::Script::IPublicScriptSystem& ss, Rococo::Entities::IRigs* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Entities.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForRococoEntitiesRigBuilder, _nceContext, ("GetHandleForIRigBuilder0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderClear, nullptr, ("IRigBuilderClear (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderClearBuilder, nullptr, ("IRigBuilderClearBuilder (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderClearPoses, nullptr, ("IRigBuilderClearPoses (Pointer hObject) -> "));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderClearSkeletons, nullptr, ("IRigBuilderClearSkeletons (Pointer hObject) -> "));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderAddBone, nullptr, ("IRigBuilderAddBone (Pointer hObject)(Sys.Type.IString name) -> "));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderAddBoneX, nullptr, ("IRigBuilderAddBoneX (Pointer hObject)(Sys.Type.IString name)(Sys.Type.IString parent)(Sys.SI.Metres length)(Float32 dx)(Float32 dy)(Float32 dz)(Sys.Maths.Degrees rX)(Sys.Maths.Degrees rY)(Sys.Maths.Degrees rZ) -> "));

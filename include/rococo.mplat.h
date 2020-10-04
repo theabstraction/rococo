@@ -15,6 +15,11 @@ namespace Rococo
 
    enum { MAX_POSENAME_LEN = 16 };
 
+   namespace Entities
+   {
+	   struct IRigs;
+   }
+
    struct IEnumVector
    {
 	   virtual int32 GetActiveIndex() const = 0;
@@ -379,14 +384,15 @@ namespace Rococo
 
 		IMobilesSupervisor* CreateMobilesSupervisor(Entities::IInstancesSupervisor& instances);
 
-		ROCOCOAPI IRigBuilderSupervisor : IRigBuilder
+		ROCOCOAPI IRigs
 		{
+			virtual IRigBuilder & Builder() = 0;
 			virtual ISkeletons & Skeles() = 0;
 			virtual ISkeletons& Poses() = 0;
 			virtual void Free() = 0;
 		};
 
-		IInstancesSupervisor* CreateInstanceBuilder(IRigBuilderSupervisor& rigs, Graphics::IMeshBuilderSupervisor& meshes, IRenderer& renderer, Events::IPublisher& publisher);
+		IInstancesSupervisor* CreateInstanceBuilder(IRigs& rigs, Graphics::IMeshBuilderSupervisor& meshes, IRenderer& renderer, Events::IPublisher& publisher);
 
 		ROCOCOAPI IParticleSystemSupervisor : IParticleSystem
 		{
@@ -429,12 +435,7 @@ namespace Rococo
 			virtual void Free() = 0;
 		};
 
-		struct RigBuilderContext
-		{
-
-		};
-
-		IRigBuilderSupervisor* CreateRigBuilder(RigBuilderContext& rbc);
+		IRigs* CreateRigBuilder();
 	}
 
 	struct Platform;
@@ -859,7 +860,7 @@ namespace Rococo
 
 		Entities::IParticleSystemSupervisor& particles;
 
-		Entities::IRigBuilderSupervisor& rigBuilder;
+		Entities::IRigs& rigs;
 
 		Graphics::ISpriteSupervisor& sprites;
 

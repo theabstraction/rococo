@@ -279,8 +279,7 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 
 	Rococo::MPlatImpl::InitScriptSystem(*installation);
 
-	Rococo::Entities::RigBuilderContext rbc;
-	AutoFree<Rococo::Entities::IRigBuilderSupervisor> rigBuilder = Rococo::Entities::CreateRigBuilder(rbc);
+	AutoFree<Rococo::Entities::IRigs> rigBuilder = Rococo::Entities::CreateRigBuilder();
 	AutoFree<Graphics::IMeshBuilderSupervisor> meshes = Graphics::CreateMeshBuilder(mainWindow->Renderer());
 	AutoFree<Entities::IInstancesSupervisor> instances = Entities::CreateInstanceBuilder(*rigBuilder, *meshes, mainWindow->Renderer(), *publisher);
 	AutoFree<Entities::IMobilesSupervisor> mobiles = Entities::CreateMobilesSupervisor(*instances);

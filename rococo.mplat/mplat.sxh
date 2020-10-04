@@ -57,9 +57,10 @@
 (interface 
 	(as.sxy Rococo.Entities.IRigBuilder "../content/scripts/mplat")
 	(as.cpp Rococo.Entities.IRigBuilder "mplat")
-	(context factory Rococo.Entities.IRigBuilder)
+	(context factory Rococo.Entities.IRigs)
 	(methods
-		(Clear)
+		(ClearBuilder)
+		(ClearPoses)
 		(ClearSkeletons)
 		(AddBone (IString name))
 		(AddBoneX (IString name)(IString parent)(Metres length) (Float32 dx)(Float32 dy)(Float32 dz)(Degrees rX)(Degrees rY)(Degrees rZ))

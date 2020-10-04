@@ -37,7 +37,8 @@
 (macro Rococo.Audio.ELegacySoundShapeNoise in out (out.AddAtomic "0x4"))
 
 (interface Rococo.Entities.IRigBuilder
-	(Clear  -> )
+	(ClearBuilder  -> )
+	(ClearPoses  -> )
 	(ClearSkeletons  -> )
 	(AddBone (Sys.Type.IString name) -> )
 	(AddBoneX (Sys.Type.IString name)(Sys.Type.IString parent)(Sys.SI.Metres length)(Float32 dx)(Float32 dy)(Float32 dz)(Sys.Maths.Degrees rX)(Sys.Maths.Degrees rY)(Sys.Maths.Degrees rZ) -> )
@@ -54,7 +55,8 @@
 
 (class ProxyIRigBuilder (implements Rococo.Entities.IRigBuilder) (Pointer hObject))
 	(method ProxyIRigBuilder.Construct (Pointer hObject): (this.hObject = hObject))
-	(method ProxyIRigBuilder.Clear  ->  : (Rococo.Entities.Native.IRigBuilderClear this.hObject ))
+	(method ProxyIRigBuilder.ClearBuilder  ->  : (Rococo.Entities.Native.IRigBuilderClearBuilder this.hObject ))
+	(method ProxyIRigBuilder.ClearPoses  ->  : (Rococo.Entities.Native.IRigBuilderClearPoses this.hObject ))
 	(method ProxyIRigBuilder.ClearSkeletons  ->  : (Rococo.Entities.Native.IRigBuilderClearSkeletons this.hObject ))
 	(method ProxyIRigBuilder.AddBone (Sys.Type.IString name) ->  : (Rococo.Entities.Native.IRigBuilderAddBone this.hObject name))
 	(method ProxyIRigBuilder.AddBoneX (Sys.Type.IString name)(Sys.Type.IString parent)(Sys.SI.Metres length)(Float32 dx)(Float32 dy)(Float32 dz)(Sys.Maths.Degrees rX)(Sys.Maths.Degrees rY)(Sys.Maths.Degrees rZ) ->  : (Rococo.Entities.Native.IRigBuilderAddBoneX this.hObject name parent length dx dy dz rX rY rZ))

@@ -374,30 +374,18 @@ void AttachBonesAndRemoveFromMap_Recursive(stringmap<ScriptedBone>& bones, IBone
 	}
 }
 
-struct RigBuilder : IRigBuilderSupervisor
+struct Skeletons;
+
+struct RigBuilder : public IRigBuilder
 {
-	RigBuilderContext c;
+	Skeletons& skeletons;
+	Skeletons& poses;
 	stringmap<ScriptedBone> bones;
-	Skeletons skeletons;
-	Skeletons poses;
 
-	ScriptedBone& GetBone(cstr name)
+	RigBuilder(Skeletons& _skeletons, Skeletons& _poses):
+		skeletons(_skeletons), poses(_poses)
 	{
-		ValidateDefinitive(name);
-		auto i = bones.find(name);
-		if (i == bones.end())
-		{
-			Throw(0, "Cannot find bone '%s'", name);
-		}
-		return i->second;
-	}
 
-	RigBuilder(RigBuilderContext& rbc): c(rbc)	{}
-
-	void ClearSkeletons() override
-	{
-		skeletons.Clear();
-		poses.Clear();
 	}
 
 	ScriptedBone& CreateBone(cstr name)
@@ -412,6 +400,24 @@ struct RigBuilder : IRigBuilderSupervisor
 
 		i = bones.insert(name, ScriptedBone()).first;
 		return i->second;
+	}
+
+
+	ScriptedBone& GetBone(cstr name)
+	{
+		ValidateDefinitive(name);
+		auto i = bones.find(name);
+		if (i == bones.end())
+		{
+			Throw(0, "Cannot find bone '%s'", name);
+		}
+		return i->second;
+	}	
+	
+	void ClearSkeletons() override
+	{
+		skeletons.Clear();
+		poses.Clear();
 	}
 
 	void AddBone(const fstring& name) override
@@ -444,21 +450,26 @@ struct RigBuilder : IRigBuilderSupervisor
 		GetBone(name).length = length;
 	}
 
-	void Clear() override
+	void ClearBuilder() override
 	{
 		bones.clear();
+	}
+
+	void ClearPoses() override
+	{
+		poses.Clear();
 	}
 
 	void SetParentOfChild(const fstring& parent, const fstring& ofChild) override
 	{
 		if (parent.length >= MAXLEN_BONENAME)
 		{
-			Throw(0, "%s: parent name was too long. Maximum length is %u characters", MAXLEN_BONENAME-1);
+			Throw(0, "%s: parent name was too long. Maximum length is %u characters", MAXLEN_BONENAME - 1);
 		}
 
 		if (ofChild.length >= MAXLEN_BONENAME)
 		{
-			Throw(0, "%s: ofChild name was too long. Maximum length is %u characters", MAXLEN_BONENAME-1);
+			Throw(0, "%s: ofChild name was too long. Maximum length is %u characters", MAXLEN_BONENAME - 1);
 		}
 
 		std::string previousParent = GetBone(ofChild).parent;
@@ -542,30 +553,6 @@ struct RigBuilder : IRigBuilderSupervisor
 		b.quat = q;
 	}
 
-	ISkeletons& Skeles() override
-	{
-		return skeletons;
-	}
-
-	ISkeletons& Poses() override
-	{
-		return poses;
-	}
-
-	void CommitToSkeleton(const fstring& name) override
-	{
-		CommitTo(skeletons, name);
-	}
-
-	void CommitToPose(const fstring& name) override
-	{
-		if (name.length < 1 || name.length >= MAX_POSENAME_LEN)
-		{
-			Throw(0, "%s - invalid pose name '%s'. Length must be between 1 and %u characters", __FUNCTION__, name.buffer, MAX_POSENAME_LEN);
-		}
-		CommitTo(poses, name);
-	}
-
 	void CommitTo(Skeletons& target, cstr name)
 	{
 		auto i = target.nameToSkele.insert(name, nullptr);
@@ -579,14 +566,14 @@ struct RigBuilder : IRigBuilderSupervisor
 		s->name = name;
 
 		s->root = new BoneImpl(*s, Vec3{ 0,0,0 }, Quat{ {0,0,0}, 1.0f }, nullptr, "~", 0_metres);
-		
+
 		for (auto c = bones.begin(); c != bones.end(); )
 		{
 			auto& bone = c->second;
 
 			if (bone.parent.size() == 0)
 			{
-				auto* child =  s->root->AttachBone(bone.parentOffset, bone.quat, bone.length, c->first);
+				auto* child = s->root->AttachBone(bone.parentOffset, bone.quat, bone.length, c->first);
 				c = bones.erase(c);
 			}
 			else
@@ -605,8 +592,46 @@ struct RigBuilder : IRigBuilderSupervisor
 			s->root->Free();
 			delete s;
 			skeletons.nameToSkele.erase(i.first);
-			Throw(0, "%s %s: %llu elements in the skeleton did not link to the root. Fix ancestors of '%s'", __FUNCTION__, (cstr)name, bones.size(), (cstr) bones.begin()->first);
+			Throw(0, "%s %s: %llu elements in the skeleton did not link to the root. Fix ancestors of '%s'", __FUNCTION__, (cstr)name, bones.size(), (cstr)bones.begin()->first);
 		}
+	}
+
+	void CommitToSkeleton(const fstring& name) override
+	{
+		CommitTo(skeletons, name);
+	}
+
+	void CommitToPose(const fstring& name) override
+	{
+		if (name.length < 1 || name.length >= MAX_POSENAME_LEN)
+		{
+			Throw(0, "%s - invalid pose name '%s'. Length must be between 1 and %u characters", __FUNCTION__, name.buffer, MAX_POSENAME_LEN);
+		}
+		CommitTo(poses, name);
+	}
+};
+
+struct RigStuff: public IRigs
+{
+	Skeletons skeletons;
+	Skeletons poses;
+	RigBuilder builder;
+
+	RigStuff(): builder(skeletons, poses) {}
+
+	IRigBuilder& Builder() override
+	{
+		return builder;
+	}
+
+	ISkeletons& Skeles() override
+	{
+		return skeletons;
+	}
+
+	ISkeletons& Poses() override
+	{
+		return poses;
 	}
 
 	void Free() override
@@ -617,8 +642,8 @@ struct RigBuilder : IRigBuilderSupervisor
 
 namespace Rococo::Entities
 {
-	IRigBuilderSupervisor* CreateRigBuilder(RigBuilderContext& rbc)
+	IRigs* CreateRigBuilder()
 	{
-		return new RigBuilder(rbc);
+		return new RigStuff();
 	}
 }

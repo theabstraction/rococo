@@ -336,8 +336,9 @@
 
 (function AddRigs (ISceneBuilder scene)(IInstances instances)-> :
 	(IRigBuilder rb (RigBuilder))
-	(rb.Clear)
+	(rb.ClearBuilder)
 	(rb.ClearSkeletons)
+	(rb.ClearPoses)
 	
 	(AddPoseRun0 rb)
 	(AddPoseRun1 rb)

@@ -81,11 +81,11 @@ namespace
       IMeshBuilderSupervisor& meshBuilder;
       IRenderer& renderer;
 	  Events::IPublisher& publisher;
-      IRigBuilderSupervisor& rigs;
+      IRigs& rigs;
 
       int32 enumerationDepth{ 0 };
 
-      Instances(IRigBuilderSupervisor& _rigs, IMeshBuilderSupervisor& _meshBuilder, IRenderer& _renderer, Events::IPublisher& _publisher) :
+      Instances(IRigs& _rigs, IMeshBuilderSupervisor& _meshBuilder, IRenderer& _renderer, Events::IPublisher& _publisher) :
           rigs(_rigs), meshBuilder(_meshBuilder), renderer(_renderer), publisher(_publisher)
       {
       }
@@ -527,7 +527,7 @@ namespace Rococo
 {
    namespace Entities
    {
-      IInstancesSupervisor* CreateInstanceBuilder(IRigBuilderSupervisor& rigs, IMeshBuilderSupervisor& meshes, IRenderer& renderer, Events::IPublisher& publisher)
+      IInstancesSupervisor* CreateInstanceBuilder(IRigs& rigs, IMeshBuilderSupervisor& meshes, IRenderer& renderer, Events::IPublisher& publisher)
       {
          return new Instances(rigs, meshes, renderer, publisher);
       }

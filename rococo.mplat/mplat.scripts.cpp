@@ -19,7 +19,7 @@ namespace Rococo // declarations herein are to help intellisense do its job.
 		struct IMobiles;
 		struct IParticleSystem;
 		struct IInstances;
-		struct IRigBuilder;
+		struct IRigs;
 	}
 
 	namespace Graphics
@@ -40,9 +40,9 @@ namespace Rococo // declarations herein are to help intellisense do its job.
 	}
 }
 
-Rococo::Entities::IRigBuilder* FactoryConstructRococoEntitiesRigBuilder(Rococo::Entities::IRigBuilder* rigBuilder)
+Rococo::Entities::IRigBuilder* FactoryConstructRococoEntitiesRigBuilder(Rococo::Entities::IRigs* rigs)
 {
-	return rigBuilder;
+	return &rigs->Builder();
 }
 
 Rococo::Graphics::IRendererConfig* FactoryConstructRococoGraphicsRendererConfig(Rococo::Platform* platform)
@@ -271,7 +271,7 @@ namespace Rococo
 				{
 					if (addPlatform)
 					{
-						Entities::AddNativeCalls_RococoEntitiesIRigBuilder(args.ss, &platform.rigBuilder);
+						Entities::AddNativeCalls_RococoEntitiesIRigBuilder(args.ss, &platform.rigs);
 						Graphics::AddNativeCalls_RococoGraphicsIMeshBuilder(args.ss, &platform.meshes);
 						Entities::AddNativeCalls_RococoEntitiesIInstances(args.ss, &platform.instances);
 						Entities::AddNativeCalls_RococoEntitiesIMobiles(args.ss, &platform.mobiles);
