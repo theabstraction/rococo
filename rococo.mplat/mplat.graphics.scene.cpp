@@ -1,4 +1,5 @@
 #include <rococo.mplat.h>
+#include <rococo.animation.h>
 
 #include <vector>
 #include <algorithm>
@@ -111,12 +112,12 @@ namespace
 
 	  ID_CUBE_TEXTURE skyboxId;
 
-	  ISkeletons& skeletons;
+	  IRigs& rigs;
 
 	  AutoFree<IRodTesselatorSupervisor> debugTesselator;
    public:
-      Scene(IInstancesSupervisor& _instances, ICameraSupervisor& _camera, ISkeletons& _skeletons) :
-         instances(_instances), camera(_camera), skeletons(_skeletons),
+      Scene(IInstancesSupervisor& _instances, ICameraSupervisor& _camera, IRigs& _rigs) :
+         instances(_instances), camera(_camera), rigs(_rigs),
 		 debugTesselator(CreateRodTesselator(s_NullMeshBuilder))
       {
 		  debugTesselator->SetUVScale(1.0f);
@@ -171,7 +172,7 @@ namespace
 
 	  void AddDebugBones(IEntity& e, IRenderContext& rc)
 	  {
-		  auto skeleton = e.GetSkeleton(skeletons);
+		  auto skeleton = e.GetSkeleton(rigs.Skeles());
 		  if (skeleton)
 		  {
 			  auto* root = skeleton->Root();
@@ -269,6 +270,35 @@ namespace
          return *this;
       }
 
+	  void AdvanceAnimations(Seconds dt) override
+	  {
+		  auto& poses = rigs.Poses();
+		  auto& skeles = rigs.Skeles();
+
+		  for (auto id : entities)
+		  {
+			  auto e = instances.GetEntity(id);
+			  if (e)
+			  {
+				  auto a = e->GetAnimation();
+				  if (a)
+				  {
+					  auto* skele = e->GetSkeleton(skeles);
+					  if (skele)
+					  {
+						  AnimationAdvanceArgs args
+						  {
+							   *skele,
+							   poses,
+							   dt
+						  };
+						  a->Advance(args);
+					  }
+				  }
+			  }
+		  }
+	  }
+
       void Clear() override
       {
          entities.clear();
@@ -351,9 +381,9 @@ namespace Rococo
 {
    namespace Graphics
    {
-      ISceneSupervisor* CreateScene(IInstancesSupervisor& instances, ICameraSupervisor& camera, ISkeletons& skeletons)
+      ISceneSupervisor* CreateScene(IInstancesSupervisor& instances, ICameraSupervisor& camera, IRigs& rigs)
       {
-         return new Scene(instances, camera, skeletons);
+         return new Scene(instances, camera, rigs);
       }
    }
 }

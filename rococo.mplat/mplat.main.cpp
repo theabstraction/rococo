@@ -279,12 +279,12 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 
 	Rococo::MPlatImpl::InitScriptSystem(*installation);
 
-	AutoFree<Rococo::Entities::IRigs> rigBuilder = Rococo::Entities::CreateRigBuilder();
+	AutoFree<Rococo::Entities::IRigs> rigs = Rococo::Entities::CreateRigBuilder();
 	AutoFree<Graphics::IMeshBuilderSupervisor> meshes = Graphics::CreateMeshBuilder(mainWindow->Renderer());
-	AutoFree<Entities::IInstancesSupervisor> instances = Entities::CreateInstanceBuilder(*rigBuilder, *meshes, mainWindow->Renderer(), *publisher);
+	AutoFree<Entities::IInstancesSupervisor> instances = Entities::CreateInstanceBuilder(*meshes, mainWindow->Renderer(), *publisher);
 	AutoFree<Entities::IMobilesSupervisor> mobiles = Entities::CreateMobilesSupervisor(*instances);
 	AutoFree<Graphics::ICameraSupervisor> camera = Graphics::CreateCamera(*instances, *mobiles, mainWindow->Renderer());
-	AutoFree<Graphics::ISceneSupervisor> scene = Graphics::CreateScene(*instances, *camera, rigBuilder->Skeles());
+	AutoFree<Graphics::ISceneSupervisor> scene = Graphics::CreateScene(*instances, *camera, *rigs);
 	AutoFree<IKeyboardSupervisor> keyboard = CreateKeyboardSupervisor();
 	AutoFree<Graphics::ISpriteSupervisor> sprites = Graphics::CreateSpriteSupervisor(mainWindow->Renderer());
 	AutoFree<IConfigSupervisor> config = CreateConfig();
@@ -325,7 +325,7 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	{ 
 		*os, *installation, *appControl, mainWindow->Renderer(), *rendererConfig, *messaging, 
 		*sourceCache, *debuggerWindow, *publisher, *utilities, *gui, *keyboard, *config, *meshes,
-		*instances, *mobiles, *particles, *rigBuilder, *sprites, *camera, *scene, tesselators, *mathsVisitor,
+		*instances, *mobiles, *particles, *rigs, *sprites, *camera, *scene, tesselators, *mathsVisitor,
 		*legacySound, *ssFactory, title, *xbox360stick, *ims
 	};
 

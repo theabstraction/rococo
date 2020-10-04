@@ -389,7 +389,7 @@ namespace MHost
 				}
 			}
 
-			platform.instances.AdvanceAnimations(Seconds{ dt });
+			platform.scene.AdvanceAnimations(Seconds{ dt });
 
 			return Seconds{ dt };
 		}

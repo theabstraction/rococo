@@ -234,6 +234,7 @@ namespace Rococo
 	namespace Entities
 	{
 		struct IBone;
+		struct IAnimation;
 
 		ROCOCOAPI ISkeleton
 		{
@@ -257,6 +258,7 @@ namespace Rococo
 		   virtual void SetMesh(ID_SYS_MESH id) = 0;
 
 		   virtual ISkeleton* GetSkeleton(ISkeletons& skeletons) = 0;
+		   virtual IAnimation* GetAnimation() = 0;
 		};
 
 		ROCOCOAPI IEntityCallback
@@ -266,7 +268,6 @@ namespace Rococo
 
 		ROCOCOAPI IInstancesSupervisor : public IInstances
 		{
-		   virtual void AdvanceAnimations(Seconds dt) = 0;
 		   virtual void ForAll(IEntityCallback & cb) = 0;
 		   virtual void Free() = 0;
 		   virtual IEntity* GetEntity(ID_ENTITY id) = 0;
@@ -341,12 +342,13 @@ namespace Rococo
 
 		ROCOCOAPI ISceneSupervisor : public IScene
 		{
+		   virtual void AdvanceAnimations(Seconds dt) = 0;
 		   virtual void Free() = 0;
 		   virtual ISceneBuilderSupervisor& Builder() = 0;
 		   virtual void SetPopulator(IScenePopulator* populator) = 0;
 		};
 
-		ISceneSupervisor* CreateScene(Rococo::Entities::IInstancesSupervisor& instances, ICameraSupervisor& camera, Entities::ISkeletons& skeletons);
+		ISceneSupervisor* CreateScene(Rococo::Entities::IInstancesSupervisor& instances, ICameraSupervisor& camera, Entities::IRigs& rigs);
 
 		ROCOCOAPI ISpriteSupervisor : public ISprites
 		{
@@ -392,7 +394,7 @@ namespace Rococo
 			virtual void Free() = 0;
 		};
 
-		IInstancesSupervisor* CreateInstanceBuilder(IRigs& rigs, Graphics::IMeshBuilderSupervisor& meshes, IRenderer& renderer, Events::IPublisher& publisher);
+		IInstancesSupervisor* CreateInstanceBuilder(Graphics::IMeshBuilderSupervisor& meshes, IRenderer& renderer, Events::IPublisher& publisher);
 
 		ROCOCOAPI IParticleSystemSupervisor : IParticleSystem
 		{

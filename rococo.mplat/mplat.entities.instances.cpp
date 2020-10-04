@@ -25,7 +25,7 @@ namespace
       AutoFree<IAnimation> animation;
 
       // Lazy init the animation object
-      IAnimation& GetAnimation()
+      IAnimation& LazyInitAndGetAnimation()
       {
           if (!animation)
           {
@@ -33,6 +33,11 @@ namespace
           }
 
           return *animation;
+      }
+
+      IAnimation* GetAnimation() override
+      {
+          return animation;
       }
 
       Vec3 Position() const override
@@ -81,12 +86,11 @@ namespace
       IMeshBuilderSupervisor& meshBuilder;
       IRenderer& renderer;
 	  Events::IPublisher& publisher;
-      IRigs& rigs;
 
       int32 enumerationDepth{ 0 };
 
-      Instances(IRigs& _rigs, IMeshBuilderSupervisor& _meshBuilder, IRenderer& _renderer, Events::IPublisher& _publisher) :
-          rigs(_rigs), meshBuilder(_meshBuilder), renderer(_renderer), publisher(_publisher)
+      Instances(IMeshBuilderSupervisor& _meshBuilder, IRenderer& _renderer, Events::IPublisher& _publisher) :
+          meshBuilder(_meshBuilder), renderer(_renderer), publisher(_publisher)
       {
       }
 
@@ -276,7 +280,7 @@ namespace
           }
 
           auto e = i->second;
-          e->GetAnimation().AddKeyFrame(frameName, duration, loop);
+          e->LazyInitAndGetAnimation().AddKeyFrame(frameName, duration, loop);
       }
 
 	  void LoadMaterialArray(const fstring& folder, int32 txWidth) override
@@ -492,30 +496,6 @@ namespace
          idToEntity.clear();
       }
 
-      void AdvanceAnimations(Seconds dt)
-      {
-          auto& poses = rigs.Poses();
-
-          for (auto& i : idToEntity)
-          {
-              auto* e = i.second;
-              if (e->animation)
-              {
-                  auto* skele = e->GetSkeleton(rigs.Skeles());
-                  if (skele)
-                  {
-                      AnimationAdvanceArgs args
-                      {
-                           *skele,
-                           poses,
-                           dt
-                      };
-                      e->animation->Advance(args);
-                  }
-              }
-          }
-      }
-
       void Free() override
       {
          delete this;
@@ -527,9 +507,9 @@ namespace Rococo
 {
    namespace Entities
    {
-      IInstancesSupervisor* CreateInstanceBuilder(IRigs& rigs, IMeshBuilderSupervisor& meshes, IRenderer& renderer, Events::IPublisher& publisher)
+      IInstancesSupervisor* CreateInstanceBuilder(IMeshBuilderSupervisor& meshes, IRenderer& renderer, Events::IPublisher& publisher)
       {
-         return new Instances(rigs, meshes, renderer, publisher);
+         return new Instances(meshes, renderer, publisher);
       }
    }
 }
