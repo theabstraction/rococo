@@ -120,11 +120,6 @@ Rococo::IPaneBuilder* FactoryConstructRococoPaneBuilder(Rococo::IPaneBuilder* _c
    return _context;
 }
 
-Rococo::Puppet::IPuppets* FactoryConstructRococoPuppetPuppets(Rococo::Platform* platform)
-{
-	return &platform->puppets;
-}
-
 Rococo::Entities::IParticleSystem* FactoryConstructRococoEntitiesParticleSystem(Rococo::Platform* platform)
 {
 	return &platform->particles;
@@ -297,8 +292,6 @@ namespace Rococo
 						Graphics::AddNativeCalls_RococoGraphicsITextTesselator(args.ss, &platform);
 						Graphics::AddNativeCalls_RococoGraphicsIRendererConfig(args.ss, &platform);
 						Graphics::AddNativeCalls_RococoGraphicsIMessaging(args.ss, &platform);
-						Puppet::AddNativeCalls_RococoPuppetIPuppet(args.ss, &platform);
-						Puppet::AddNativeCalls_RococoPuppetIPuppets(args.ss, &platform);
 						AddNativeCalls_RococoIKeyboard(args.ss, &platform.keyboard);
 						Entities::AddNativeCalls_RococoEntitiesIParticleSystem(args.ss, &platform);
 						Audio::AddNativeCalls_RococoAudioILegacySoundControl(args.ss, &platform);

@@ -197,16 +197,6 @@ namespace Rococo
 		};
 	}
 
-	namespace Puppet
-	{
-		ROCOCOAPI IPuppetsSupervisor : public Rococo::Puppet::IPuppets
-		{
-			virtual void Free() = 0;
-		};
-
-		IPuppetsSupervisor* CreatePuppets(size_t maxPuppets, size_t maxActivePuppets);
-	}
-
 	ROCOCOAPI IConfigSupervisor : public IConfig
 	{
 		virtual cstr GetText(cstr name) const = 0;
@@ -903,8 +893,6 @@ namespace Rococo
 		Audio::ILegacySoundControl& legacySoundControl;
 
 		Rococo::Script::IScriptSystemFactory& ssFactory;
-
-		Rococo::Puppet::IPuppets& puppets;
 
 		// Application title
 		const char* const title;

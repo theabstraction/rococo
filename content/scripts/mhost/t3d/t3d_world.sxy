@@ -281,14 +281,37 @@
 	(rb.CommitToPose "run.1")
 )
 
-(function AddSkeletonGeoff (IRigBuilder rb)-> :
+(function AddSixOClock (IRigBuilder rb)-> :
+	/*              name            parent      length     offset-dx,dy,dz  bone-angles--*/
+	(rb.AddBoneX "spine_lower"  ""              0.15       0     0      0       0    20  0)
+	(rb.AddBoneX "spine_middle" "spine_lower"   0.15       0     0   0.17       0   -10  0)
+	(rb.AddBoneX "spine_upper"  "spine_middle"  0.15       0     0   0.17       0   -10  0)
+	(rb.AddBoneX "femur_l"      "spine_lower"   0.45    -0.1     0 -0.046     180  -150  0)
+	(rb.AddBoneX "femur_r"      "spine_lower"   0.45     0.1     0 -0.046     180   30   0)
+	(rb.AddBoneX "tibia_l"      "femur_l"       0.45       0     0   0.46       0    0   0)
+	(rb.AddBoneX "tibia_r"      "femur_r"       0.45       0     0   0.46       0    0   0)
+	(rb.AddBoneX "foot_l"       "tibia_l"       0.15       0     0    0.5      30    0   0)
+	(rb.AddBoneX "foot_r"       "tibia_r"       0.15       0     0    0.5      -10   0   0)
+	(rb.AddBoneX "humerus_l"    "spine_upper"   0.25   -0.20     0   0.15      -90 -40   0)
+	(rb.AddBoneX "humerus_r"    "spine_upper"   0.25    0.20     0   0.15       80   40   0)
+	(rb.AddBoneX "ulna_l"    	"humerus_l"     0.30       0     0   0.27      120   90  0)
+	(rb.AddBoneX "ulna_r"    	"humerus_r"     0.30       0     0   0.27        0   0   0)
+	(rb.AddBoneX "hand_l"    	"ulna_l"        0.10       0     0   0.32        0   0   0)
+	(rb.AddBoneX "hand_r"    	"ulna_r"        0.10       0     0   0.32       40   0   0)
+	(rb.AddBoneX "skull"  		"spine_upper"   0.25       0     0   0.17        0   0   0)
+	
+	(rb.CommitToPose "6-o'clock")
+)
+
+
+(function BuildStraight (IRigBuilder rb)-> :
 	/*              name            parent      length     offset-dx,dy,dz  bone-angles--*/
 	(rb.AddBoneX "spine_lower"  ""              0.15       0     0      0       0   0   0)
 	(rb.AddBoneX "spine_middle" "spine_lower"   0.15       0     0   0.17       0   0   0)
 	(rb.AddBoneX "spine_upper"  "spine_middle"  0.15       0     0   0.17       0   0   0)
 	(rb.AddBoneX "femur_l"      "spine_lower"   0.45    -0.1     0 -0.046     180   0   0)
 	(rb.AddBoneX "femur_r"      "spine_lower"   0.45     0.1     0 -0.046     180   0   0)
-	(rb.AddBoneX "tibia_l"      "femur_l"       0.45       0     0   0.46     -20   0   0)
+	(rb.AddBoneX "tibia_l"      "femur_l"       0.45       0     0   0.46       0   0   0)
 	(rb.AddBoneX "tibia_r"      "femur_r"       0.45       0     0   0.46       0   0   0)
 	(rb.AddBoneX "foot_l"       "tibia_l"       0.15       0     0    0.5      90   0   0)
 	(rb.AddBoneX "foot_r"       "tibia_r"       0.15       0     0    0.5      90   0   0)
@@ -299,8 +322,16 @@
 	(rb.AddBoneX "hand_l"    	"ulna_l"        0.10       0     0   0.32       0   0   0)
 	(rb.AddBoneX "hand_r"    	"ulna_r"        0.10       0     0   0.32       0   0   0)
 	(rb.AddBoneX "skull"  		"spine_upper"   0.25       0     0   0.17       0   0   0)
-	
+)
+
+(function AddGeoff (IRigBuilder rb)-> :
+	(BuildStraight rb)	
 	(rb.CommitToSkeleton "geoff")
+)
+
+(function AddStraightPos (IRigBuilder rb)-> :
+	(BuildStraight rb)	
+	(rb.CommitToPose "straight")
 )
 
 (function AddRigs (ISceneBuilder scene)(IInstances instances)-> :
@@ -310,20 +341,29 @@
 	
 	(AddPoseRun0 rb)
 	(AddPoseRun1 rb)
-	(AddSkeletonGeoff rb)
+	(AddSixOClock rb)
+	(AddStraightPos rb)
+	(AddGeoff rb)
 	
 	(Matrix4x4 lowerSpineToWorld =
 		(1 0 0   0)
 		(0 1 0   1)
-		(0 0 1 1.3)
+		(0 0 1 1.4)
 		(0 0 0   1)
 	)
 		
 	(Int64 geoffId = (instances.AddSkeleton "geoff" lowerSpineToWorld))
 	(scene.AddStatics geoffId)
 	
-	(instances.AddAnimationFrame geoffId "run.0" 1 false)
-	(instances.AddAnimationFrame geoffId "run.1" 1 true)
+	(instances.AddAnimationFrame geoffId "straight" 4 false)
+	(instances.AddAnimationFrame geoffId "6-o'clock" 4 true)
+	(instances.AddAnimationFrame geoffId "straight" 4 false)
+	(instances.AddAnimationFrame geoffId "run.0" 4 true)
+	(instances.AddAnimationFrame geoffId "6-o'clock" 4 true)
+	(instances.AddAnimationFrame geoffId "straight" 4 false)
+	(instances.AddAnimationFrame geoffId "run.1" 4 true)
+	(instances.AddAnimationFrame geoffId "straight" 4 false)
+	(instances.AddAnimationFrame geoffId "run.0" 4 true)
 )
 
 (method World.Construct : 

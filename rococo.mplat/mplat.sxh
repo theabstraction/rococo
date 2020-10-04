@@ -658,37 +658,6 @@
 	(factory Rococo.Audio.LegacySoundControl)
 )
 
-(interface (as.sxy Rococo.Puppet.IPuppet "../content/scripts/mplat")
-	(as.cpp Rococo.Puppet.IPuppet "mplat")
-	(context factory Rococo.Platform)
-	(methods
-		(Destruct) // Releases reference to the puppet
-		(MarkForDeath) // Flag the puppet for destruction. Once all references are destroyed the puppet is toast
-		(Exists -> (Bool isExistent)) // Returns true if and only if this is a living puppet
-		(SetKey (IString key)) // Provide a friendly name for the puppet for use by scripts
-		(AppendKey (IStringBuilder key))
-		(SetAtrribute (IString key)(IString value)) // Assign a string key-value pair
-		(AppendAttribute (IString key)(IStringBuilder valueBuilder)) // Retrieve a string value for a given key
-		(Id -> (Int64 id)) // Returns unique 64-bit for fast caching. These are never reused
-		(SetModel (const Matrix4x4 model))
-		(GetModel (Matrix4x4 model))
-		(IsActive (Bool isActive))
-	)
-)
-
-(interface (as.sxy Rococo.Puppet.IPuppets "../content/scripts/mplat")
-	(as.cpp Rococo.Puppet.IPuppets "mplat")
-	(context factory Rococo.Platform)
-	(methods
-		(KillAllPuppets)
-		(CreatePuppet (const NewPuppetDesc puppetDescription)->(Rococo.Puppet.IPuppet puppet))
-		(GetFirstPuppetId -> (IdPuppet id))
-		(FindPuppetById (IdPuppet id)->(Rococo.Puppet.IPuppet puppet))
-		(GetNextPuppetId (IdPuppet id)->(IdPuppet nextId))
-	)
-	(factory Rococo.Puppet.Puppets)
-)
-
 (interface (as.sxy Rococo.IInstallation "../content/scripts/mplat")
 	(as.cpp Rococo.IInstallationManager "mplat")
 	(context factory Rococo.Platform)

@@ -685,54 +685,6 @@
 	(construct ProxyILegacySoundControl pObject)
 )
 
-(interface Rococo.Puppet.IPuppet
-	(Destruct  -> )
-	(MarkForDeath  -> )
-	(Exists  -> (Bool isExistent))
-	(SetKey (Sys.Type.IString key) -> )
-	(AppendKey (Sys.Type.IStringBuilder key) -> )
-	(SetAtrribute (Sys.Type.IString key)(Sys.Type.IString value) -> )
-	(AppendAttribute (Sys.Type.IString key)(Sys.Type.IStringBuilder valueBuilder) -> )
-	(Id  -> (Int64 id))
-	(SetModel (Sys.Maths.Matrix4x4 model) -> )
-	(GetModel (Sys.Maths.Matrix4x4 model) -> )
-	(IsActive (Bool isActive) -> )
-)
-
-(class ProxyIPuppet (implements Rococo.Puppet.IPuppet) (Pointer hObject))
-	(method ProxyIPuppet.Destruct  ->  : (Rococo.Puppet.Native.IPuppetDestruct this.hObject ))
-	(method ProxyIPuppet.MarkForDeath  ->  : (Rococo.Puppet.Native.IPuppetMarkForDeath this.hObject ))
-	(method ProxyIPuppet.Exists  -> (Bool isExistent) : (Rococo.Puppet.Native.IPuppetExists this.hObject  -> isExistent))
-	(method ProxyIPuppet.SetKey (Sys.Type.IString key) ->  : (Rococo.Puppet.Native.IPuppetSetKey this.hObject key))
-	(method ProxyIPuppet.AppendKey (Sys.Type.IStringBuilder key) ->  : (Rococo.Puppet.Native.IPuppetAppendKey this.hObject key))
-	(method ProxyIPuppet.SetAtrribute (Sys.Type.IString key)(Sys.Type.IString value) ->  : (Rococo.Puppet.Native.IPuppetSetAtrribute this.hObject key value))
-	(method ProxyIPuppet.AppendAttribute (Sys.Type.IString key)(Sys.Type.IStringBuilder valueBuilder) ->  : (Rococo.Puppet.Native.IPuppetAppendAttribute this.hObject key valueBuilder))
-	(method ProxyIPuppet.Id  -> (Int64 id) : (Rococo.Puppet.Native.IPuppetId this.hObject  -> id))
-	(method ProxyIPuppet.SetModel (Sys.Maths.Matrix4x4 model) ->  : (Rococo.Puppet.Native.IPuppetSetModel this.hObject model))
-	(method ProxyIPuppet.GetModel (Sys.Maths.Matrix4x4 model) ->  : (Rococo.Puppet.Native.IPuppetGetModel this.hObject model))
-	(method ProxyIPuppet.IsActive (Bool isActive) ->  : (Rococo.Puppet.Native.IPuppetIsActive this.hObject isActive))
-
-(interface Rococo.Puppet.IPuppets
-	(KillAllPuppets  -> )
-	(CreatePuppet (Rococo.Puppet.NewPuppetDesc puppetDescription) -> (Rococo.Puppet.IPuppet puppet))
-	(GetFirstPuppetId  -> (Int64 id))
-	(FindPuppetById (Int64 id) -> (Rococo.Puppet.IPuppet puppet))
-	(GetNextPuppetId (Int64 id) -> (Int64 nextId))
-)
-
-(class ProxyIPuppets (implements Rococo.Puppet.IPuppets) (Pointer hObject))
-	(method ProxyIPuppets.Construct (Pointer hObject): (this.hObject = hObject))
-	(method ProxyIPuppets.KillAllPuppets  ->  : (Rococo.Puppet.Native.IPuppetsKillAllPuppets this.hObject ))
-	(method ProxyIPuppets.CreatePuppet (Rococo.Puppet.NewPuppetDesc puppetDescription) -> (Rococo.Puppet.IPuppet puppet) : (Rococo.Puppet.Native.IPuppetsCreatePuppet this.hObject puppetDescription -> puppet))
-	(method ProxyIPuppets.GetFirstPuppetId  -> (Int64 id) : (Rococo.Puppet.Native.IPuppetsGetFirstPuppetId this.hObject  -> id))
-	(method ProxyIPuppets.FindPuppetById (Int64 id) -> (Rococo.Puppet.IPuppet puppet) : (Rococo.Puppet.Native.IPuppetsFindPuppetById this.hObject id -> puppet))
-	(method ProxyIPuppets.GetNextPuppetId (Int64 id) -> (Int64 nextId) : (Rococo.Puppet.Native.IPuppetsGetNextPuppetId this.hObject id -> nextId))
-
-(factory Rococo.Puppet.Puppets Rococo.Puppet.IPuppets  :
-	(Pointer pObject = (Rococo.Puppet.Native.GetHandleForIPuppets0 ))
-	(construct ProxyIPuppets pObject)
-)
-
 (interface Rococo.IInstallation
 	(SetPingPathMacro (Sys.Type.IString key)(Sys.Type.IString pingPathValue) -> )
 )

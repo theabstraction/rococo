@@ -336,8 +336,7 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	AutoFree<Graphics::IMessagingSupervisor> messaging = Graphics::CreateMessaging();
 	AutoFree<Audio::ILegacySoundControlSupervisor> legacySound = Audio::CreateLegacySoundControl();
 	AutoFree<Rococo::Script::IScriptSystemFactory> ssFactory = CreateScriptSystemFactory_1_5_0_0(sourceCache->Allocator());
-	AutoFree<Rococo::Puppet::IPuppetsSupervisor> puppets = Rococo::Puppet::CreatePuppets(1000000, 128);
-
+	
 	OutputDebugStringA("\n\nLegacy Sound Description:");
 
 	struct ANON : public IEventCallback<StringKeyValuePairArg>
@@ -365,7 +364,7 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 		*os, *installation, *appControl, mainWindow->Renderer(), *rendererConfig, *messaging, 
 		*sourceCache, *debuggerWindow, *publisher, *utilities, *gui, *keyboard, *config, *meshes, *rigs,
 		*instances, *mobiles, *particles, *rigBuilder, *sprites, *camera, *scene, tesselators, *mathsVisitor,
-		*legacySound, *ssFactory, *puppets, title, *xbox360stick, *ims
+		*legacySound, *ssFactory, title, *xbox360stick, *ims
 	};
 
 	gui->PostConstruct(&platform);
