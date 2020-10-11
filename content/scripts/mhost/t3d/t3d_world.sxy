@@ -354,7 +354,8 @@
 	)
 		
 	(Int64 geoffId = (instances.AddSkeleton "geoff" lowerSpineToWorld))
-	(scene.AddStatics geoffId)
+	(scene.AddDebugObject geoffId)
+	(scene.AddDynamicObject geoffId)
 	
 	(instances.AddAnimationFrame geoffId "straight" 4 false)
 	(instances.AddAnimationFrame geoffId "6-o'clock" 4 true)

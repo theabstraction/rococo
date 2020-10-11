@@ -107,6 +107,7 @@
     <ClCompile Include="mplat.bloody.cpp" />
     <ClCompile Include="mplat.config.cpp" />
     <ClCompile Include="mplat.entities.animation.cpp" />
+    <ClCompile Include="mplat.entities.animation.debug.cpp" />
     <ClCompile Include="mplat.entities.mobiles.cpp" />
     <ClCompile Include="mplat.entities.particles.cpp" />
     <ClCompile Include="mplat.entities.rigs.cpp" />

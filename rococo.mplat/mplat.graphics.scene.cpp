@@ -14,90 +14,12 @@ namespace
 
    typedef std::vector<VertexTriangle> TTriangles;
 
-   void AddDirectionArrow(cr_m4x4 model, IRenderContext& rc, RGBAb colour, IRodTesselatorSupervisor& rod)
-   {
-	   MaterialVertexData mat;
-	   mat.colour = colour;
-	   mat.gloss = 0;
-	   mat.materialId = 0;
-
-	   rod.SetMaterialTop(mat);
-	   rod.SetMaterialMiddle(mat);
-	   rod.SetMaterialBottom(mat);
-
-	   rod.Clear();
-	   rod.AddTube(0.3_metres, 0.01_metres, 0.01_metres, 3);
-	   rod.AddPyramid(0.05_metres, { -0.01f, 0.01f }, { 0.01f, 0.01f }, { 0.01f, -0.01f }, { -0.01f, -0.01f });
-	   rod.TransformVertices(model);
-	   rc.Add3DGuiTriangles(rod.begin(), rod.end());
-	   rod.Clear();
-   }
-
-   void AddDirectionArrow_Up(cr_m4x4 model, IRenderContext& rc, IRodTesselatorSupervisor& rod)
-   {
-	   AddDirectionArrow(model, rc, RGBAb(255, 0, 0, 0), rod);
-   }
-
-   void AddDirectionArrow_Right(cr_m4x4 model, IRenderContext& rc, IRodTesselatorSupervisor& rod)
-   {
-	   Matrix4x4 M = model * Matrix4x4::RotateRHAnticlockwiseY(-90.0_degrees);
-	   AddDirectionArrow(M, rc, RGBAb(0, 255, 0, 0), rod);
-   }
-
-   void AddDirectionArrow_Forward(cr_m4x4 model, IRenderContext& rc, IRodTesselatorSupervisor& rod)
-   {
-	   Matrix4x4 M = model * Matrix4x4::RotateRHAnticlockwiseX(-90.0_degrees);
-	   AddDirectionArrow(M, rc, RGBAb(0, 0, 255, 0), rod);
-   }
-
-   void AddOrientationArrows(cr_m4x4 model, IRenderContext& rc, IRodTesselatorSupervisor& rod)
-   {
-	   AddDirectionArrow_Up(model, rc, rod);
-	   AddDirectionArrow_Right(model, rc, rod);
-	   AddDirectionArrow_Forward(model, rc, rod);
-   }
-
-   void DrawBone(const IBone& bone, cr_m4x4 model, IRenderContext& rc, IRodTesselatorSupervisor& rod)
-   {
-	   if (bone.Length() > 0)
-	   {
-		   MaterialVertexData mat;
-		   mat.colour = RGBAb(255, 255, 255, 255);
-		   mat.gloss = 0;
-		   mat.materialId = 0;
-
-		   rod.Clear();
-
-		   rod.SetMaterialTop(mat);
-		   rod.SetMaterialMiddle(mat);
-		   rod.SetMaterialBottom(mat);
-
-		   rod.AddTube(bone.Length(), 0.05_metres, 0.05_metres, 8);
-		   rod.TransformVertices(model);
-		   rc.Add3DGuiTriangles(rod.begin(), rod.end());
-		   rod.Clear();
-	   }
-   }
-
-   struct NullMeshBuilder : IMeshBuilder
-   {
-	   void AddMesh(const Matrix4x4& transform, const fstring& sourceName) override {}
-	   void AddTriangleEx(const VertexTriangle& t) override  {}
-	   void AddTriangle(const ObjectVertex& a, const ObjectVertex& b, const ObjectVertex& c) override  {}
-	   void AddPhysicsHull(const Triangle& t) override  {}
-	   void Begin(const fstring& meshName) override {}
-	   void End(boolean32 preserveCopy, boolean32 invisible) override  {}
-	   void Clear() override {}
-	   void Delete(const fstring& fqName) override {}
-	   void SetShadowCasting(const fstring& fqName, boolean32 isActive) override {}
-	   void SetSpecialShader(const fstring& fqName, const fstring& psSpotlightPingPath, const fstring& psAmbientPingPath, boolean32 alphaBlending) override  {}
-	   void Span(Vec3& span, const fstring& fqName) override {}
-   } s_NullMeshBuilder;
-
    class Scene : public ISceneSupervisor, public ISceneBuilderSupervisor
    {
       IInstancesSupervisor& instances;
       std::vector<ID_ENTITY> entities;
+	  std::vector<ID_ENTITY> debugEntities;
+	  std::vector<ID_ENTITY> dynamics;
       std::vector<ObjectInstance> drawQueue;
       Rococo::Graphics::ICameraSupervisor& camera;
 
@@ -118,7 +40,7 @@ namespace
    public:
       Scene(IInstancesSupervisor& _instances, ICameraSupervisor& _camera, IRigs& _rigs) :
          instances(_instances), camera(_camera), rigs(_rigs),
-		 debugTesselator(CreateRodTesselator(s_NullMeshBuilder))
+		 debugTesselator(CreateIsolatedRodTesselator())
       {
 		  debugTesselator->SetUVScale(1.0f);
       }
@@ -158,38 +80,8 @@ namespace
 		  this->populator = populator;
 	  }
 
-	  void AddDebugBone(const IBone& bone, const Matrix4x4& model, IRenderContext& rc)
-	  {
-		  DrawBone(bone, model, rc, *debugTesselator);
-		  AddOrientationArrows(model, rc, *debugTesselator);
-
-		  for (auto& child : bone)
-		  {
-			  Matrix4x4 childModelMatrix = model * child->GetMatrix();
-			  AddDebugBone(*child, childModelMatrix, rc);
-		  }
-	  }
-
-	  void AddDebugBones(IEntity& e, IRenderContext& rc)
-	  {
-		  auto skeleton = e.GetSkeleton(rigs.Skeles());
-		  if (skeleton)
-		  {
-			  auto* root = skeleton->Root();
-			  if (root)
-			  {
-				  Matrix4x4 m = e.Model();
-
-				  AddOrientationArrows(m, rc, *debugTesselator);
-
-				  AddDebugBone(*root, m, rc);
-			  }
-		  }
-	  }
-
 	  void RenderShadowPass(const DepthRenderData& drd, IRenderContext& rc) override
 	  {
-		  debugTesselator->Clear();
 		  rc.Clear3DGuiTriangles();
 
 		  if (populator)
@@ -208,8 +100,6 @@ namespace
 			  {
 				  Throw(0, "Unexpected missing entity");
 			  }
-
-			  AddDebugBones(*entity, rc);
 
 			  if (entity->MeshId() != meshId)
 			  {
@@ -275,7 +165,7 @@ namespace
 		  auto& poses = rigs.Poses();
 		  auto& skeles = rigs.Skeles();
 
-		  for (auto id : entities)
+		  for (auto id : dynamics)
 		  {
 			  auto e = instances.GetEntity(id);
 			  if (e)
@@ -302,6 +192,8 @@ namespace
       void Clear() override
       {
          entities.clear();
+		 debugEntities.clear();
+		 dynamics.clear();
       }
 
       void AddStatics(ID_ENTITY id) override
@@ -312,6 +204,25 @@ namespace
 		  }
           entities.push_back(id);
       }
+
+	  void AddDebugObject(ID_ENTITY id) override
+	  {
+		  if (!id)
+		  {
+			  Throw(0, "Scene.AddDebugMeshes: id was zero/invalid");
+		  }
+		  debugEntities.push_back(id);
+	  }
+
+	  void AddDynamicObject(ID_ENTITY id) override
+	  {
+		  if (!id)
+		  {
+			  Throw(0, "Scene.AddDynamicObject: id was zero/invalid");
+		  }
+		  entities.push_back(id);
+		  dynamics.push_back(id);
+	  }
 
 	  void OnGuiResize(Vec2i span) override
 	  {
@@ -348,6 +259,17 @@ namespace
          drawQueue.clear();
 
          ID_SYS_MESH meshId;
+
+		 for (auto i : debugEntities)
+		 {
+			 IEntity* entity = instances.GetEntity(i);
+			 if (!entity)
+			 {
+				 Throw(0, "Scene: Unexpected missing entity with id #%lld", i.value);
+			 }
+
+			 AddDebugBones(*entity, rc, *debugTesselator, rigs);
+		 }
 
          for (auto i : entities)
          {

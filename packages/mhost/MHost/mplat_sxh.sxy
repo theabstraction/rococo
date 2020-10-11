@@ -225,6 +225,8 @@
 
 (interface Rococo.Graphics.ISceneBuilder
 	(AddStatics (Int64 entityId) -> )
+	(AddDebugObject (Int64 entityId) -> )
+	(AddDynamicObject (Int64 entityId) -> )
 	(Clear  -> )
 	(ClearLights  -> )
 	(SetClearColour (Float32 red)(Float32 green)(Float32 blue)(Float32 alpha) -> )
@@ -235,6 +237,8 @@
 (class ProxyISceneBuilder (implements Rococo.Graphics.ISceneBuilder) (Pointer hObject))
 	(method ProxyISceneBuilder.Construct (Pointer hObject): (this.hObject = hObject))
 	(method ProxyISceneBuilder.AddStatics (Int64 entityId) ->  : (Rococo.Graphics.Native.ISceneBuilderAddStatics this.hObject entityId))
+	(method ProxyISceneBuilder.AddDebugObject (Int64 entityId) ->  : (Rococo.Graphics.Native.ISceneBuilderAddDebugObject this.hObject entityId))
+	(method ProxyISceneBuilder.AddDynamicObject (Int64 entityId) ->  : (Rococo.Graphics.Native.ISceneBuilderAddDynamicObject this.hObject entityId))
 	(method ProxyISceneBuilder.Clear  ->  : (Rococo.Graphics.Native.ISceneBuilderClear this.hObject ))
 	(method ProxyISceneBuilder.ClearLights  ->  : (Rococo.Graphics.Native.ISceneBuilderClearLights this.hObject ))
 	(method ProxyISceneBuilder.SetClearColour (Float32 red)(Float32 green)(Float32 blue)(Float32 alpha) ->  : (Rococo.Graphics.Native.ISceneBuilderSetClearColour this.hObject red green blue alpha))

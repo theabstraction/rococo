@@ -766,6 +766,13 @@ namespace Rococo
 
 		IRodTesselatorSupervisor* CreateRodTesselator(IMeshBuilder& meshes);
 
+		/// <summary>
+		/// Creates a rod tesselator isloated from the platform mesh builder. 
+		/// Useful for standalone geometry generation
+		/// </summary>
+		/// <returns>A reference to the rod tesselator. Be sure to call Free() when done</returns>
+		IRodTesselatorSupervisor* CreateIsolatedRodTesselator();
+
 		ROCOCOAPI IMessagingSupervisor : public IMessaging
 		{
 			virtual void PostCreate(Platform & platform) = 0;
@@ -928,4 +935,9 @@ namespace Rococo
    };                                                                                      \
    g.RegisterEventHandler(handler, ANON::OnCommand, cmd, helpString);                      \
 }
-            
+        
+
+namespace Rococo::Entities
+{
+	void AddDebugBones(IEntity& e, IRenderContext& rc, Rococo::Graphics::IRodTesselatorSupervisor& rod, IRigs& rigs);
+}

@@ -1307,5 +1307,32 @@ namespace Rococo
 		{
 			return new ANON::RodTesselator(meshes);
 		}
+
+		IRodTesselatorSupervisor* CreateIsolatedRodTesselator()
+		{
+			struct NullMeshBuilder : IMeshBuilder
+			{
+				void AddMesh(const Matrix4x4& transform, const fstring& sourceName) override {}
+				void AddTriangleEx(const VertexTriangle& t) override {}
+				void AddTriangle(const ObjectVertex& a, const ObjectVertex& b, const ObjectVertex& c) override {}
+				void AddPhysicsHull(const Triangle& t) override {}
+
+				void Begin(const fstring& meshName) override 
+				{
+					Throw(0, "Isolated rod tesselators do not support exporting to the mesh builder");
+				}
+
+				void End(boolean32 preserveCopy, boolean32 invisible) override {}
+				void Clear() override {}
+				void Delete(const fstring& fqName) override {}
+				void SetShadowCasting(const fstring& fqName, boolean32 isActive) override {}
+				void SetSpecialShader(const fstring& fqName, const fstring& psSpotlightPingPath, const fstring& psAmbientPingPath, boolean32 alphaBlending) override {}
+				void Span(Vec3& span, const fstring& fqName) override {}
+			};
+			
+			static NullMeshBuilder s_NullMeshBuilder;
+
+			return new ANON::RodTesselator(s_NullMeshBuilder);
+		}
 	}
 }

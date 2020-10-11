@@ -6914,6 +6914,34 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->AddStatics(entityId);
 	}
+	void NativeRococoGraphicsISceneBuilderAddDebugObject(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		ID_ENTITY entityId;
+		_offset += sizeof(entityId);
+		ReadInput(entityId, _sf, -_offset);
+
+		Rococo::Graphics::ISceneBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AddDebugObject(entityId);
+	}
+	void NativeRococoGraphicsISceneBuilderAddDynamicObject(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		ID_ENTITY entityId;
+		_offset += sizeof(entityId);
+		ReadInput(entityId, _sf, -_offset);
+
+		Rococo::Graphics::ISceneBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AddDynamicObject(entityId);
+	}
 	void NativeRococoGraphicsISceneBuilderClear(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -7011,6 +7039,8 @@ namespace Rococo { namespace Graphics {
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Graphics.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForRococoGraphicsSceneBuilder, _nceContext, ("GetHandleForISceneBuilder0  -> (Pointer hObject)"));
 		ss.AddNativeCall(ns, NativeRococoGraphicsISceneBuilderAddStatics, nullptr, ("ISceneBuilderAddStatics (Pointer hObject)(Int64 entityId) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsISceneBuilderAddDebugObject, nullptr, ("ISceneBuilderAddDebugObject (Pointer hObject)(Int64 entityId) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsISceneBuilderAddDynamicObject, nullptr, ("ISceneBuilderAddDynamicObject (Pointer hObject)(Int64 entityId) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsISceneBuilderClear, nullptr, ("ISceneBuilderClear (Pointer hObject) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsISceneBuilderClearLights, nullptr, ("ISceneBuilderClearLights (Pointer hObject) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsISceneBuilderSetClearColour, nullptr, ("ISceneBuilderSetClearColour (Pointer hObject)(Float32 red)(Float32 green)(Float32 blue)(Float32 alpha) -> "));

@@ -323,6 +323,8 @@
 	(context factory Rococo.Graphics.ISceneBuilder)
 	(methods
 		(AddStatics  (IdEntity entityId))
+		(AddDebugObject (IdEntity entityId))
+		(AddDynamicObject (IdEntity entityId))
 		(Clear)
 		(ClearLights)
 		(SetClearColour (Float32 red)(Float32 green)(Float32 blue)(Float32 alpha))
