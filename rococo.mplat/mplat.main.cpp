@@ -407,6 +407,8 @@ namespace Rococo
 
 	int M_Platorm_Win64_MainDirect(HINSTANCE hInstance, IDirectAppFactory& factory, cstr title, HICON hLarge, HICON hSmall)
 	{
+		Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
+
 		int errCode = 0;
 
 		try

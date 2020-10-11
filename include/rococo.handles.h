@@ -8,6 +8,8 @@
 #include <vector>
 #include <algorithm>
 
+#include <rococo.ringbuffer.h>
+
 namespace Rococo
 {
 	/* 
@@ -82,7 +84,8 @@ namespace Rococo
 		};
 
 		std::vector<TableItem> items;
-		std::vector<Handle> freeHandles;
+
+		OneReaderOneWriterCircleBuffer<Handle> freeHandles;
 		
 		size_t length = 0;
 
@@ -96,7 +99,7 @@ namespace Rococo
 
 	public:
 		HandleTable(cstr _name, size_t capacity) :
-			name(_name)
+			name(_name), freeHandles(capacity)
 		{
 			if (capacity == 0) Throw(0, "HandleTable<%s>::Could not construct HandleTable. Capacity was zero", Name());
 			if (capacity > MAX_CAPACITY) Throw(0, "HandleTable<%s>::Could not construct HandeTable. Maximum of %llu handles but %llu were requested", Name(), MAX_CAPACITY, capacity);
@@ -105,8 +108,11 @@ namespace Rococo
 
 			for (size_t i = 0; i < items.size(); i++)
 			{
-				auto hItem = Handle{ items.size() - i };
-				freeHandles.push_back(hItem);
+				auto hItem = Handle{ i + 1 };
+				Handle* hSlot = freeHandles.GetBackSlot();
+				if (!hSlot) Throw(0, "%s: Error getting backslot for free handles.", __FUNCTION__);
+				*hSlot = hItem;
+				freeHandles.WriteBack();
 			} // The freeHandles now has 1 as the back most entry then 2.... all the way to handles.size()
 		}
 
@@ -122,14 +128,12 @@ namespace Rococo
 
 		Handle CreateNew()
 		{
-			if (freeHandles.empty())
+			Handle handle;
+			if (!freeHandles.TryPopFront(handle))
 			{
 				Throw(0, "HandleTable<%s>::CreateNew() - No more free handles", Name());
 			}
-
-			Handle handle = freeHandles.back();
-			freeHandles.pop_back();
-
+			
 			uint64 index = GetIndex(handle);
 
 			handle.IncrementSalt();
@@ -183,7 +187,12 @@ namespace Rococo
 
 			if (index < items.size() && items[index].handle == hItem)
 			{
-				freeHandles.push_back(hItem);
+				auto* backSlot = freeHandles.GetBackSlot(); 
+				if (backSlot)
+				{
+					*backSlot = hItem;
+					freeHandles.WriteBack();
+				}
 				items[index].handle = Handle::Invalid();
 				items[index].value = nullObject;
 				length--;

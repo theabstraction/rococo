@@ -227,7 +227,6 @@ namespace Rococo
 			Format(srcpath, L"%sscripts\\native\\", installation.Content());
 
 			Rococo::Script::SetDefaultNativeSourcePath(srcpath);
-			Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
 		}
 
 		void RunEnvironmentScript(ScriptPerformanceStats& stats, Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail, bool trace, int id, IEventCallback<cstr>* onScriptCrash)
