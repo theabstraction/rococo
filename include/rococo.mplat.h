@@ -236,19 +236,8 @@ namespace Rococo
 	{
 		struct IBone;
 		struct IAnimation;
-
-		ROCOCOAPI ISkeleton
-		{
-			virtual cstr Name() const = 0;
-			virtual IBone* Root() = 0;
-		};
-
-		ROCOCOAPI ISkeletons
-		{
-			virtual void Clear() = 0;
-			virtual ID_SKELETON TryGet(cstr name, ISkeleton** ppSkeleton) = 0;
-			virtual bool TryGet(ID_SKELETON id, ISkeleton** ppSkeleton) = 0;
-		};
+		struct ISkeleton;
+		struct ISkeletons;
 
 		ROCOCOAPI IEntity
 		{

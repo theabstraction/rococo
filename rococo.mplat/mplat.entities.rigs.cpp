@@ -8,6 +8,10 @@
 #include <rococo.handles.h>
 #include <rococo.maths.h>
 
+#include <rococo.animation.h>
+
+#include <Windows.h>
+
 using namespace Rococo;
 using namespace Rococo::Entities;
 
@@ -153,7 +157,7 @@ struct Skeletons : public ISkeletons
 
 	bool TryGet(ID_SKELETON id, ISkeleton** ppSkeleton) override
 	{
-		Skeleton* skele = nullptr;
+		Skeleton* skele;
 		if (handleToSkele.TryGet(THandle<HSKELE_SALTBITS>(id), &skele))
 		{
 			*ppSkeleton = skele;
@@ -161,7 +165,6 @@ struct Skeletons : public ISkeletons
 		}
 		else
 		{
-			*ppSkeleton = nullptr;
 			return false;
 		}
 	}

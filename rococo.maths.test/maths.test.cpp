@@ -757,6 +757,21 @@ void test()
 	printf("rococo.maths.test finished\n");
 }
 
+template<class ARGTYPE> struct IMyCallback
+{
+	virtual void Callback(ARGTYPE arg) = 0;
+};
+
+struct Enumerator
+{
+	void Enumerate(IMyCallback<int>& cb)
+	{
+		cb.Callback(1);
+		cb.Callback(2);
+		cb.Callback(3);
+	}
+};
+
 int main(int argc, char* argv[])
 {
 	try

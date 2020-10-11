@@ -301,7 +301,7 @@ namespace Rococo
 
                HRESULT hro;
                IDXGIOutput* output = nullptr;
-               for (UINT i = 0; hro = adapter->EnumOutputs(i, &output) == S_OK; ++i)
+               for (UINT i = 0; (hro = adapter->EnumOutputs(i, &output)) == S_OK; ++i)
                {
                   DXGI_OUTPUT_DESC odesc;
                   output->GetDesc(&odesc);

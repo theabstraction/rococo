@@ -67,13 +67,14 @@ namespace
               return nullptr;
           }
 
-          ISkeleton* skeleton;
+          ISkeleton* skeleton = nullptr;
+
           if (skeletons.TryGet(idSkeleton, &skeleton))
           {
               return skeleton;
           }
 
-          skeletons.TryGet(skeletonName, &skeleton);
+          idSkeleton = skeletons.TryGet(skeletonName, &skeleton);
           return skeleton;
       }
    };

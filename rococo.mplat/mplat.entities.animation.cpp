@@ -16,8 +16,18 @@ namespace
 		Seconds duration;
 		boolean32 loop;
 		char name[MAX_POSENAME_LEN];
-		ID_SKELETON poseId;
+		mutable ID_POSE poseId;
 	};
+
+	ID_SKELETON ToSkeletonId(ID_POSE id)
+	{
+		return ID_SKELETON{ id.value };
+	}
+
+	ID_POSE ToPoseId(ID_SKELETON id)
+	{
+		return ID_POSE{ id.value };
+	}
 
 	void LerpPoseBonesToPuppet(IBone& puppetBone, const IBone* a, const IBone* b, const float t)
 	{
@@ -116,15 +126,15 @@ pickOutFrame:
 		void Lerp(AnimationAdvanceArgs& args, const KeyFrame& start, const KeyFrame& end, float q)
 		{
 			ISkeleton* startPose = nullptr;
-			if (!args.poses.TryGet(start.poseId, &startPose))
+			if (!args.poses.TryGet(ToSkeletonId(start.poseId), &startPose))
 			{
-				args.poses.TryGet(start.name, &startPose);
+				start.poseId = ToPoseId( args.poses.TryGet(start.name, &startPose) );
 			}
 
 			ISkeleton* endPose = nullptr;
-			if (!args.poses.TryGet(end.poseId, &endPose))
+			if (!args.poses.TryGet(ToSkeletonId(end.poseId), &endPose))
 			{
-				args.poses.TryGet(end.name, &endPose);
+				end.poseId = ToPoseId( args.poses.TryGet(end.name, &endPose) );
 			}
 
 			if (startPose == nullptr) startPose = endPose;
@@ -145,9 +155,9 @@ pickOutFrame:
 		void MatchKeyFrame(AnimationAdvanceArgs& args, const KeyFrame& key)
 		{
 			ISkeleton* pose = nullptr;
-			if (!args.poses.TryGet(key.poseId, &pose))
+			if (!args.poses.TryGet(ToSkeletonId(key.poseId), &pose))
 			{
-				args.poses.TryGet(key.name, &pose);
+				key.poseId = ToPoseId( args.poses.TryGet(key.name, &pose) );
 			}
 
 			if (pose)

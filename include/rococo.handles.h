@@ -166,7 +166,7 @@ namespace Rococo
 		bool TryGet(Handle hItem, VALUE* pValue)
 		{
 			uint64 index = GetIndex(hItem);
-			if (items[index].handle == hItem)
+			if (index < items.size() && items[index].handle == hItem)
 			{
 				*pValue = items[index].value;
 				return true;
@@ -181,7 +181,7 @@ namespace Rococo
 		{
 			uint64 index = GetIndex(hItem);
 
-			if (items[index].handle == hItem)
+			if (index < items.size() && items[index].handle == hItem)
 			{
 				freeHandles.push_back(hItem);
 				items[index].handle = Handle::Invalid();
