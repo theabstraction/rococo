@@ -279,9 +279,14 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 
 	Rococo::MPlatImpl::InitScriptSystem(*installation);
 
+	AutoFree<Rococo::Script::IScriptSystemFactory> ssFactory = CreateScriptSystemFactory_1_5_0_0(sourceCache->Allocator());
+
+	MPlatOpts opts;
+	RunMPlatOptsScript(opts, *ssFactory, *debuggerWindow, *sourceCache, *appControl);
+
 	AutoFree<Rococo::Entities::IRigs> rigs = Rococo::Entities::CreateRigBuilder();
 	AutoFree<Graphics::IMeshBuilderSupervisor> meshes = Graphics::CreateMeshBuilder(mainWindow->Renderer());
-	AutoFree<Entities::IInstancesSupervisor> instances = Entities::CreateInstanceBuilder(*meshes, mainWindow->Renderer(), *publisher);
+	AutoFree<Entities::IInstancesSupervisor> instances = Entities::CreateInstanceBuilder(*meshes, mainWindow->Renderer(), *publisher, opts.maxEntities);
 	AutoFree<Entities::IMobilesSupervisor> mobiles = Entities::CreateMobilesSupervisor(*instances);
 	AutoFree<Graphics::ICameraSupervisor> camera = Graphics::CreateCamera(*instances, *mobiles, mainWindow->Renderer());
 	AutoFree<Graphics::ISceneSupervisor> scene = Graphics::CreateScene(*instances, *camera, *rigs);
@@ -297,7 +302,6 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	AutoFree<IGuiStackSupervisor> gui = CreateGui(*publisher, *sourceCache, mainWindow->Renderer(), *utilities);
 	AutoFree<Graphics::IMessagingSupervisor> messaging = Graphics::CreateMessaging();
 	AutoFree<Audio::ILegacySoundControlSupervisor> legacySound = Audio::CreateLegacySoundControl();
-	AutoFree<Rococo::Script::IScriptSystemFactory> ssFactory = CreateScriptSystemFactory_1_5_0_0(sourceCache->Allocator());
 	
 	OutputDebugStringA("\n\nLegacy Sound Description:");
 

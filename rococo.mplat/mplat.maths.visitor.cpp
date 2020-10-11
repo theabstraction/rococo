@@ -152,6 +152,14 @@ namespace
 		   lines.push_back(line);;
 	   }
 
+	   void ShowDecimal(VisitorName name, const uint64 value) override
+	   {
+		   DebugLine line;
+		   Name(line, name);
+		   SafeFormat(line.value, line.VALUE_LEN, "%llu", value);
+		   lines.push_back(line);;
+	   }
+
 	   void ShowHex(VisitorName name, const int32 value) override
 	   {
 		   DebugLine line;

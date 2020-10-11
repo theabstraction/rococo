@@ -212,6 +212,26 @@ static void NativeEnumerateFiles(NativeCallEnvironment& nce)
 	Rococo::IO::ForEachFileInDirectory(sysPath, dispatchToSexyClosure, true);
 }
 
+static void NativeSetMaxEntities(NativeCallEnvironment& nce)
+{
+	auto* opts = static_cast<Rococo::MPlatImpl::MPlatOpts*>(nce.context);
+
+	int32 maxEntities = 0;
+	ReadInput(0, maxEntities, nce);
+
+	if (maxEntities <= 0)
+	{
+		Throw(0, "SetMaxEntities(%d): invalid value", maxEntities);
+	}
+
+	opts->maxEntities = maxEntities;
+}
+
+void AddMPlatOpts(IPublicScriptSystem& ss, Rococo::MPlatImpl::MPlatOpts& opts)
+{
+	auto& ns = ss.AddNativeNamespace("MPlat");
+	ss.AddNativeCall(ns, NativeSetMaxEntities, &opts, "SetMaxEntities (Int32 maxEntities) ->");
+}
 
 namespace Rococo
 {
@@ -333,6 +353,100 @@ namespace Rococo
 			sc.shutdownOnFail = shutdownOnFail;
 
 			sc.Execute(name, stats, trace, id);
+		}
+
+		void RunBareScript(
+			ScriptPerformanceStats& stats,
+			IEventCallback<ScriptCompileArgs>& _onScriptEvent, 
+			const char* name,
+			int id,
+			IScriptSystemFactory& ssf,
+			IDebuggerWindow& debugger,
+			ISourceCache& sources,
+			OS::IAppControl& appControl
+		)
+		{
+			struct ScriptContext : public IEventCallback<ScriptCompileArgs>, public IDE::IScriptExceptionHandler
+			{
+				IEventCallback<ScriptCompileArgs>& onScriptEvent;
+				bool shutdownOnFail;
+
+				void Free() override
+				{
+
+				}
+
+				IDE::EScriptExceptionFlow GetScriptExceptionFlow(cstr source, cstr message) override
+				{
+					return IDE::EScriptExceptionFlow_Terminate;
+				}
+
+				void OnEvent(ScriptCompileArgs& args) override
+				{
+					onScriptEvent.OnEvent(args);
+				}
+
+				ScriptContext(IEventCallback<ScriptCompileArgs>& _onScriptEvent) :
+					onScriptEvent(_onScriptEvent) {}
+
+				void Execute(cstr name,
+					ScriptPerformanceStats stats,
+					int32 id,
+					IScriptSystemFactory& ssf, 
+					IDebuggerWindow& debugger, 
+					ISourceCache& sources,
+					OS::IAppControl& appControl)
+				{
+					try
+					{
+						ScriptPerformanceStats stats;
+						IDE::ExecuteSexyScriptLoop(stats,
+							1024_kilobytes,
+							ssf,
+							sources,
+							debugger,
+							name,
+							id,
+							(int32)128_kilobytes,
+							*this,
+							*this,
+							appControl,
+							false);
+					}
+					catch (IException&)
+					{
+						throw;
+					}
+				}
+
+			} sc(_onScriptEvent);
+
+			sc.Execute(name, stats, id, ssf, debugger, sources, appControl);
+		}
+
+		void RunMPlatOptsScript(MPlatOpts& opts,
+			Script::IScriptSystemFactory& ssf,
+			IDebuggerWindow& debugger,
+			ISourceCache& sources,
+			OS::IAppControl& appControl
+		)
+		{
+			struct : IEventCallback<ScriptCompileArgs>
+			{
+				MPlatOpts* opts;
+
+				void OnEvent(ScriptCompileArgs& args) override
+				{
+					AddMPlatOpts(args.ss, *opts);
+				}
+			} onCompile;
+			onCompile.opts = &opts;
+
+			ScriptPerformanceStats stats = { 0 };
+			RunBareScript(
+				stats, onCompile, "!scripts/init.sxy", 0,
+				ssf, debugger, sources, appControl
+			);
 		}
 	} // M
 } // Rococo

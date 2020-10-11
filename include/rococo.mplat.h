@@ -9,7 +9,7 @@
 
 namespace Rococo
 {
-   ROCOCO_ID(ID_ENTITY, int64, 0);
+   ROCOCO_ID(ID_ENTITY, uint64, 0);
    ROCOCO_ID(ID_PUPPET, uint64, 0);
    ROCOCO_ID(ID_SKELETON, uint64, 0);
    ROCOCO_ID(ID_POSE, uint64, 0);
@@ -384,7 +384,7 @@ namespace Rococo
 			virtual void Free() = 0;
 		};
 
-		IInstancesSupervisor* CreateInstanceBuilder(Graphics::IMeshBuilderSupervisor& meshes, IRenderer& renderer, Events::IPublisher& publisher);
+		IInstancesSupervisor* CreateInstanceBuilder(Graphics::IMeshBuilderSupervisor& meshes, IRenderer& renderer, Events::IPublisher& publisher, size_t maxEntities);
 
 		ROCOCOAPI IParticleSystemSupervisor : IParticleSystem
 		{
@@ -914,9 +914,38 @@ namespace Rococo
 
 namespace Rococo
 {
+	struct ScriptPerformanceStats;
+
 	namespace MPlatImpl
 	{
 		Rococo::IInstallationManagerSupervisor* CreateIMS(IInstallation& installation);
+
+		void RunBareScript(
+			ScriptPerformanceStats& stats,
+			IEventCallback<ScriptCompileArgs>& _onScriptEvent,
+			const char* name,
+			int id,
+			Script::IScriptSystemFactory& ssf,
+			IDebuggerWindow& debugger,
+			ISourceCache& sources,
+			OS::IAppControl& appControl
+		);
+
+		/// <summary>
+		/// The options are initialized before the graphics, sound and physics interfaces
+		/// of Platform are defined. They can be override in the !scripts/init.sxy file.
+		/// </summary>
+		struct MPlatOpts
+		{
+			size_t maxEntities = 100'000;
+		};
+
+		void RunMPlatOptsScript(MPlatOpts& opts,
+			Script::IScriptSystemFactory& ssf,
+			IDebuggerWindow& debugger,
+			ISourceCache& sources,
+			OS::IAppControl& appControl
+		);
 	}
 }
 
@@ -939,5 +968,12 @@ namespace Rococo
 
 namespace Rococo::Entities
 {
+	/// <summary>
+	/// Dynamically adds geometry to the render context to graphically visualize a skeleton
+	/// </summary>
+	/// <param name="e">- a reference to an entity with a skeleton</param>
+	/// <param name="rc">- the 3D render context to render to </param>
+	/// <param name="rod">- the rod tesselator object used to generate geometry</param>
+	/// <param name="rigs">- the set of poses used by the entity object</param>
 	void AddDebugBones(IEntity& e, IRenderContext& rc, Rococo::Graphics::IRodTesselatorSupervisor& rod, IRigs& rigs);
 }

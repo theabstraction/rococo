@@ -69,7 +69,6 @@ namespace Rococo
 
 	   salt_shift gives to number of bits to shift right to expose the salt value.
 	 */
-
 	template<class VALUE, uint64 SALT_BITCOUNT>
 	class HandleTable
 	{
@@ -173,6 +172,20 @@ namespace Rococo
 			if (index < items.size() && items[index].handle == hItem)
 			{
 				*pValue = items[index].value;
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+
+		bool TryGetRef(Handle hItem, VALUE** ppValue)
+		{
+			uint64 index = GetIndex(hItem);
+			if (index < items.size() && items[index].handle == hItem)
+			{
+				*ppValue = &items[index].value;
 				return true;
 			}
 			else

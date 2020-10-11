@@ -165,6 +165,8 @@ namespace
             model.row0.y = 0;
             model.row0.z = 0;
 
+            position = model.GetPosition();
+
             /*
 
             (Ax  Bx  Cx)(1)       (Ax)

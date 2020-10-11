@@ -64,6 +64,7 @@ namespace Rococo
 		virtual void ShowHex(VisitorName name, const int32 value) = 0;
 		virtual void ShowBool(VisitorName name, const bool value) = 0;
 		virtual void ShowDecimal(VisitorName name, const int64 value) = 0;
+		virtual void ShowDecimal(VisitorName name, const uint64 value) = 0;
 		virtual void ShowHex(VisitorName name, const int64 value) = 0;
 		virtual void ShowPointer(VisitorName name, const void* ptr) = 0;
 		virtual void ShowString(VisitorName name, cstr format, ...) = 0;

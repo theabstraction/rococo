@@ -920,7 +920,7 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 		{
 			FPSGameLogic* This;
 
-			virtual void OnEvent(VisibleSector& v)
+			void OnEvent(VisibleSector& v) override
 			{
 				size_t nLights;
 				auto sl = v.sector.Lights(nLights);

@@ -1,9 +1,10 @@
 #include <rococo.mplat.h>
-#include <rococo.hashtable.h>
 #include <vector>
 #include <rococo.strings.h>
 #include <rococo.maths.h>
 #include <rococo.animation.h>
+#include <rococo.handles.h>
+#include <rococo.hashtable.h>
 
 namespace
 {
@@ -11,16 +12,27 @@ namespace
    using namespace Rococo::Graphics;
    using namespace Rococo::Entities;
 
-   int64 nextId = 1;
-
    struct EntityImpl : public IEntity
    {
-      Matrix4x4 model;
+      Matrix4x4 model = Matrix4x4::Identity();
       ID_ENTITY parentId; 
       ID_SYS_MESH meshId;
       Vec3 scale{ 1.0f, 1.0f, 1.0f };   
       HString skeletonName;
       ID_SKELETON idSkeleton;
+
+      EntityImpl() {}
+
+      EntityImpl(const EntityImpl& src):
+          model(src.model),
+          parentId(src.parentId),
+          meshId(src.meshId),
+          scale(src.scale),
+          skeletonName(src.skeletonName),
+          idSkeleton(src.idSkeleton)
+      {
+
+      }
 
       AutoFree<IAnimation> animation;
 
@@ -79,7 +91,9 @@ namespace
       }
    };
 
-   typedef std::unordered_map<ID_ENTITY, EntityImpl*, ID_ENTITY> MapIdToEntity;
+   enum { ENTITY_SALT_BITCOUNT = 8 };
+   typedef HandleTable<EntityImpl, ENTITY_SALT_BITCOUNT> MapIdToEntity;
+   typedef THandle<ENTITY_SALT_BITCOUNT> H_ENTITY;
 
    struct Instances : public IInstancesSupervisor
    {      
@@ -90,8 +104,8 @@ namespace
 
       int32 enumerationDepth{ 0 };
 
-      Instances(IMeshBuilderSupervisor& _meshBuilder, IRenderer& _renderer, Events::IPublisher& _publisher) :
-          meshBuilder(_meshBuilder), renderer(_renderer), publisher(_publisher)
+      Instances(IMeshBuilderSupervisor& _meshBuilder, IRenderer& _renderer, Events::IPublisher& _publisher, size_t maxEntities) :
+          meshBuilder(_meshBuilder), renderer(_renderer), publisher(_publisher), idToEntity("Instances-idToEntity", maxEntities)
       {
       }
 
@@ -117,19 +131,22 @@ namespace
                   Throw(0, "Bad model matrix. Determinant was %f", d);
               }
           }
-         
-         ID_ENTITY id(nextId++);
 
-         auto* e = new EntityImpl;
-         e->model = model;
-         e->parentId = parentId;
-         e->meshId = meshId;
+          H_ENTITY hEntity = idToEntity.CreateNew();
 
-         e->scale = (scale.x != 0) ? scale : Vec3{ 1.0f, 1.0f, 1.0f };
+          EntityImpl* e;
+          if (!idToEntity.TryGetRef(hEntity, &e))
+          {
+              Throw(0, "%s: !idToEntity.TryGetRef returned false!", __FUNCTION__);
+          }
 
-         idToEntity.insert(std::make_pair(id, e));
+          e->model = model;
+          e->parentId = parentId;
+          e->meshId = meshId;
 
-         return id;
+          e->scale = (scale.x != 0) ? scale : Vec3{ 1.0f, 1.0f, 1.0f };
+
+          return ID_ENTITY{ hEntity.Value() };
       }
 
       ID_ENTITY AddSkeleton(const fstring& skeleton, const Matrix4x4& model) override
@@ -140,21 +157,24 @@ namespace
                 Throw(0, "Bad model matrix. Determinant was %f", d);
             }
 
-            ID_ENTITY id(nextId++);
+            H_ENTITY hEntity = idToEntity.CreateNew();
 
-            auto* e = new EntityImpl;
+            EntityImpl* e;
+            if (!idToEntity.TryGetRef(hEntity, &e))
+            {
+                Throw(0, "%s: !idToEntity.TryGetRef returned false!", __FUNCTION__);
+            }
+
             e->model = model;
             e->parentId = ID_ENTITY{ 0 };
             e->meshId = ID_SYS_MESH::Invalid();
-            e->scale = Vec3{ 1.0f, 1.0f, 1.0f };
             e->skeletonName = skeleton;
+            e->scale = Vec3{ 1.0f, 1.0f, 1.0f };
 
-            idToEntity.insert(std::make_pair(id, e));
-
-            return id;
+            return ID_ENTITY{ hEntity.Value() };
       }
 
-      ID_ENTITY AddBody(const fstring& modelName, const Matrix4x4& model, const Vec3& scale, ID_ENTITY parentId)
+      ID_ENTITY AddBody(const fstring& modelName, const Matrix4x4& model, const Vec3& scale, ID_ENTITY parentId) override
       {
          ID_SYS_MESH meshId;
 		 AABB bounds;
@@ -166,40 +186,42 @@ namespace
          return Add(meshId, model, scale, parentId);
       }
 
-      virtual ID_ENTITY AddGhost(const Matrix4x4& model, ID_ENTITY parentId)
+      ID_ENTITY AddGhost(const Matrix4x4& model, ID_ENTITY parentId) override
       {
 		  return Add(ID_SYS_MESH::Invalid(), model, { 1,1,1 }, parentId);
       }
 
-      virtual void Delete(ID_ENTITY id)
+      void Delete(ID_ENTITY id) override
       {
-         auto i = idToEntity.find(id);
-         if (i != idToEntity.end())
-         {
-            delete i->second;
-            idToEntity.erase(i);
-         }
+          idToEntity.Destroy(H_ENTITY(id.value), EntityImpl());
       }
 
-      virtual boolean32 TryGetModelToWorldMatrix(ID_ENTITY entityId, Matrix4x4& model)
+      boolean32 TryGetModelToWorldMatrix(ID_ENTITY id, Matrix4x4& model) override
       {
-         auto i = idToEntity.find(entityId);
-         if (i == idToEntity.end())
-         {
+          EntityImpl* e;
+          if (idToEntity.TryGetRef(H_ENTITY(id.value), &e))
+          {
+              model = e->model;
+              return true;
+          }
+          else
+          {
             model = Matrix4x4::Identity();
             return false;
-         }
-         else
-         {
-            model = i->second->model;
-            return true;
-         }
+          }
       }
 
-      virtual IEntity* GetEntity(ID_ENTITY id)
+      IEntity* GetEntity(ID_ENTITY id) override
       {
-         auto i = idToEntity.find(id);
-         return i == idToEntity.end() ? nullptr : i->second;
+          EntityImpl* e;
+          if (idToEntity.TryGetRef(H_ENTITY(id.value), &e))
+          {
+              return static_cast<IEntity*>(e);
+          }
+          else
+          {
+              return nullptr;
+          }
       }
 
       std::vector<const Matrix4x4*> modelStack;
@@ -244,43 +266,54 @@ namespace
          RecursionGuard guard(enumerationDepth);
 
          int64 count = 0;
-         for (auto& i : idToEntity)
+
+         H_ENTITY id = idToEntity.GetFirstHandle();
+
+         while(id)
          {
-            cb.OnEntity(count++, *i.second, i.first);
+             EntityImpl* e;
+             if (idToEntity.TryGetRef(id, &e))
+             {
+                 cb.OnEntity(count++, *static_cast<IEntity*>(e), ID_ENTITY(id.Value()));
+             }
+             id = idToEntity.GetNextHandle(id);
          }
       }
 
-      void GetScale(ID_ENTITY entityId, Vec3& scale)
+      void GetScale(ID_ENTITY id, Vec3& scale)
       {
-         auto i = idToEntity.find(entityId);
-         if (i == idToEntity.end())
-         {
-            Throw(0, "SetOrientation - no such entity");
-         }
-
-         scale = i->second->scale;
+          EntityImpl* e;
+          if (idToEntity.TryGetRef(H_ENTITY(id.value), &e))
+          {
+              scale = e->scale;
+          }
+          else
+          {
+              scale = { 0,0,0 };
+          }
       }
 
-      void GetPosition(ID_ENTITY entityId, Vec3& position) 
+      void GetPosition(ID_ENTITY id, Vec3& position) 
       {
-         auto i = idToEntity.find(entityId);
-         if (i == idToEntity.end())
-         {
-            Throw(0, "GetPosition - no such entity");
-         }
-
-         position = i->second->model.GetPosition();
+          EntityImpl* e;
+          if (idToEntity.TryGetRef(H_ENTITY(id.value), &e))
+          {
+              position = e->model.GetPosition();
+          }
+          else
+          {
+              position = { 0,0,0 };
+          }
       }
 
       void AddAnimationFrame(ID_ENTITY id, const fstring& frameName, Seconds duration, boolean32 loop) override
       {
-          auto i = idToEntity.find(id);
-          if (i == idToEntity.end())
+          EntityImpl* e;
+          if (!idToEntity.TryGetRef(H_ENTITY(id.value), &e))
           {
-              Throw(0, "%s - no such entity", __FUNCTION__);
+              Throw(0, "%s no such entity with id %llu", __FUNCTION__, id.value);
           }
 
-          auto e = i->second;
           e->LazyInitAndGetAnimation().AddKeyFrame(frameName, duration, loop);
       }
 
@@ -478,23 +511,16 @@ namespace
 
       void SetScale(ID_ENTITY id, const Vec3& scale) override
       {
-         auto i = idToEntity.find(id);
-         if (i == idToEntity.end())
-         {
-            Throw(0, "SetScale - no such entity");
-         }
-
-         i->second->scale = scale;
+          EntityImpl* e;
+          if (idToEntity.TryGetRef(H_ENTITY(id.value), &e))
+          {
+              e->scale = scale;
+          }
       }
    
       void Clear() override
       {
-         for (auto& i : idToEntity)
-         {
-            delete i.second;
-         }
-
-         idToEntity.clear();
+          idToEntity.Clear(EntityImpl());
       }
 
       void Free() override
@@ -508,9 +534,9 @@ namespace Rococo
 {
    namespace Entities
    {
-      IInstancesSupervisor* CreateInstanceBuilder(IMeshBuilderSupervisor& meshes, IRenderer& renderer, Events::IPublisher& publisher)
+      IInstancesSupervisor* CreateInstanceBuilder(IMeshBuilderSupervisor& meshes, IRenderer& renderer, Events::IPublisher& publisher, size_t maxEntities)
       {
-         return new Instances(meshes, renderer, publisher);
+         return new Instances(meshes, renderer, publisher, maxEntities);
       }
    }
 }
