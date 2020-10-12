@@ -89,6 +89,15 @@
 )
 
 (interface 
+	(as.sxy Rococo.Audio.IAudio "../content/scripts/mplat_pane")
+	(as.cpp Rococo.Audio.IAudio "mplat")
+	(context factory Rococo.Audio.IAudio)
+	(methods
+		(SetMusic (IString musicFile))
+	)
+)
+
+(interface 
 	(as.sxy Rococo.IEnumListPane "../content/scripts/mplat_pane" Rococo.IPane)
 	(as.cpp Rococo.IEnumListPane "mplat" "virtual public Rococo::IPane")
 	(context factory Rococo.IEnumListPane)

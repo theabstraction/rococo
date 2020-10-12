@@ -18,6 +18,10 @@
 
 (factory $.NewUIStack $.IUIStack : (construct UIStack))
 
+(method UIStack.NumberOfRootElements -> (Int32 length):
+	(length = this.root.children.Length)
+)
+
 (method UIStack.AddTopLevelControl (IControl control) (IString name)-> :
 	(this.root.children.Append ())
 	(node n = this.root.children.Tail)

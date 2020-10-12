@@ -6,8 +6,6 @@
 
 #include <rococo.strings.h>
 
-#pragma comment(lib, "OpenAL32.lib")
-
 using namespace Rococo;
 using namespace Rococo::Audio;
 

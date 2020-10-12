@@ -517,8 +517,8 @@ namespace Rococo
 
          if (l->Head == NULL)
          {
-            ss.ThrowFromNativeCode(-1, ("The list was empty"));
-            return;
+             ss.ThrowFromNativeCode(-1, ("The list was empty"));
+             return;
          }
 
          AddRef(l->Head);
@@ -893,6 +893,9 @@ namespace Rococo
             Throw(source, ("Expecting <source-name>.<property> There was no dot operator '.' in the atomic expression"));
          }
 
+         VariantValue v;
+         v.vPtrValue = nullptr;
+         ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7, v, BITCOUNT_POINTER);
          AssignTempToVariableRef(ce, Rococo::ROOT_TEMPDEPTH, nodeName);
 
          if (*ce.Builder.GetVarStructure(srcName) == ce.StructList())
@@ -911,7 +914,7 @@ namespace Rococo
             else if (AreEqual(listDirective, ("Head")))
             {
                ce.Builder.AddSymbol(("head now in D7"));
-               AppendInvoke(ce, GetListCallbacks(ce).ListGetHead, source); // tail is now in D7
+               AppendInvoke(ce, GetListCallbacks(ce).ListGetHead, source); // head is now in D7
                AssignTempToVariableRef(ce, Rococo::ROOT_TEMPDEPTH, nodeName); // node now points to the head
             }
             else

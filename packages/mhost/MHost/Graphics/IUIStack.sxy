@@ -10,6 +10,7 @@
 (using Sys.Maths.F32)
 
 (interface $.IUIStack
+	(NumberOfRootElements -> (Int32 nElements))
 	(AddTopLevelControl (IControl control) (IString name)->)
 	(AddTopLevelFloater (IControl control) (IString name)-> )
 	(RemoveFromTopLevel (IControl control)->)

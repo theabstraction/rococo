@@ -105,6 +105,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="sexy.exceptions.cpp" />
     <ClCompile Include="sexy.packages.cpp" />
     <ClCompile Include="sexy.script.cpp" />
     <ClCompile Include="sexy.script.helpers.cpp" />

@@ -1692,6 +1692,40 @@ namespace Rococo {
 		ss.AddNativeCall(ns, NativeRococoIContextMenuPaneNoOperation, nullptr, ("IContextMenuPaneNoOperation (Pointer hObject) -> "));
 	}
 }
+// BennyHill generated Sexy native functions for Rococo::Audio::IAudio 
+namespace
+{
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
+
+	void NativeRococoAudioIAudioSetMusic(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _musicFile;
+		ReadInput(_musicFile, _sf, -_offset);
+		fstring musicFile { _musicFile->buffer, _musicFile->length };
+
+
+		Rococo::Audio::IAudio* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetMusic(musicFile);
+	}
+
+}
+
+namespace Rococo { namespace Audio { 
+	void AddNativeCalls_RococoAudioIAudio(Rococo::Script::IPublicScriptSystem& ss, Rococo::Audio::IAudio* _nceContext)
+	{
+		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Audio.Native"));
+		ss.AddNativeCall(ns, NativeRococoAudioIAudioSetMusic, nullptr, ("IAudioSetMusic (Pointer hObject)(Sys.Type.IString musicFile) -> "));
+	}
+}}
 // BennyHill generated Sexy native functions for Rococo::IEnumListPane 
 namespace
 {

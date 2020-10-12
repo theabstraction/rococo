@@ -175,6 +175,7 @@
 	)
 	
 	(if (args.menuIndex == 3)
+		(this.uistack.RemoveFromTopLevel this.menu)
 		(this.uistack.AddTopLevelControl this.credits "credits")
 		(this.credits.BeginScroll)
 	)
@@ -238,19 +239,29 @@
 )
 
 (function Layout (OpeningScreen screen)(IGui g)-> :
-	(Rectf menuRect)
-	(MHost.Graphics.Utils.GetCentredRect screen.screenSpan 1100 620 menuRect)
+	(Rectf menuRect = 10 10 400 200)
+	//(MHost.Graphics.Utils.GetCentredRect screen.screenSpan 1100 620 menuRect)
 	(screen.menu.LayoutFixedRect menuRect g)
 )
 
 (method OpeningScreen.RenderGui (IGui g) -> :
 	(Vec2 screenSpan)
 	(g.GetScreenSpan screenSpan)
+
+	(BitmapLocation splashScreen)
+	(if (this.engine.TryGetSpriteSpec "!portraits/painting_1.jpg" splashScreen)
+		(Rectf fullScreenQuad = 0 0 screenSpan.x screenSpan.y)
+		(g.StretchSprite fullScreenQuad splashScreen)
+	)
 	
 	(if (screenSpan != this.screenSpan)
 		(this.screenSpan = screenSpan)
 		(this.credits.Centre 40 40 screenSpan)
 		(Layout this g)
+	)
+	
+	(if (this.uistack.NumberOfRootElements == 0)
+		(this.uistack.AddTopLevelControl this.menu "menu")
 	)
 	
 	(RenderTree this.uistack g)
@@ -281,6 +292,7 @@
 //	(sprites.AddEachSpriteInDirectory "!textures/mhost/rpg")
 	(sprites.AddEachSpriteInDirectory "!textures/faces/male")
 	(sprites.AddEachSpriteInDirectory "!textures/faces/female")
+	(sprites.AddSprite "!portraits/painting_1.jpg")
 	(sprites.LoadAllSprites)
 	(this.sprites = sprites)
 	

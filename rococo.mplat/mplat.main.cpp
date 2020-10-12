@@ -15,6 +15,8 @@
 #include "mplat.panel.base.h"
 #include <rococo.ide.h>
 
+#pragma comment(lib, "OpenAL32.lib")
+
 #undef DrawText
 
 #pragma warning (disable : 4250)

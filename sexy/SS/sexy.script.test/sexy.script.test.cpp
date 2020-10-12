@@ -2210,6 +2210,38 @@ namespace
 		ValidateExecution(result);
 		int32 x = vm.PopInt32();
 		validate(x == 42);
+		s_logger.Clear();
+	}
+
+	void TestListDeleteHeadAndThrow(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+R"(
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+
+(function Pop (list Int32 a)-> :
+	(node n = a.Head)
+	(n.Pop)
+)
+
+(function Main -> (Int32 result):
+	(list Int32 a)
+	(a.Append 6)
+	(node n = a.Head)
+	(Pop a)
+	(node q = a.Head) // throws
+)
+)";
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(1); // Allocate stack space for the int32 x
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		validate(result == EXECUTERESULT_THROWN);
+		s_logger.Clear();
 	}
 
 	void TestListReverseEnumeration(IPublicScriptSystem& ss)
@@ -13765,6 +13797,8 @@ R"((namespace EntryPoint)
 		//	TEST(TestArrayOfArchetypes); // -> currently disabled, since arrays are 32-bit and 64-bits only, and closures are 128 bits.
 		TEST(TestClosureCapture);
 		TEST(TestClosureCapture2);
+		TEST(TestClosureAndThisMember);
+		TEST(TestClosureAndThis);
 		TEST(TestArchetypePropagation);
 		TEST(TestArchetypeReturn);
 		TEST(TestArchetypeReturnFromMultipleOutput);
@@ -14024,8 +14058,8 @@ R"((namespace EntryPoint)
 		int64 start, end, hz;
 		start = OS::CpuTicks();
 
-		TEST(TestClosureAndThisMember);
-		TEST(TestClosureAndThis);
+		TEST(TestListDeleteHeadAndThrow);
+		TEST(TestListReverseEnumeration);
 
 		RunPositiveSuccesses();
 		RunPositiveFailures();	

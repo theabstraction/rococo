@@ -104,6 +104,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="mplat.audio.legacy.cpp" />
+    <ClCompile Include="mplat.audio.modern.cpp" />
     <ClCompile Include="mplat.bloody.cpp" />
     <ClCompile Include="mplat.config.cpp" />
     <ClCompile Include="mplat.entities.animation.cpp" />

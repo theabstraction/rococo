@@ -37,7 +37,11 @@
 				(if (terminate) (return))
 			)
 		while d.GoNext)
-		
+	)
+	
+	// The section above may have removed the head, so check there are still elements in the stack
+	(length = (parent.children.Length))
+	(if (length > 0)	
 		(node c = parent.children.Head)
 		(do
 			(UIStackItem child = & c)

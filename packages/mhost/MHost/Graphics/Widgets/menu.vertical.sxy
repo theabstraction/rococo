@@ -96,7 +96,7 @@
 	(this.fontIndex = 0)
 	
 	(Float32 buttonYHeight = pxHeightPerRow)
-	(Float32 buttonYBorder = 1)
+	(Float32 buttonYBorder = 2)
 	
 	(Float32 y = (rect.top + buttonYBorder))
 	
@@ -109,7 +109,7 @@
 		(y += buttonYBorder)
 	)
 	
-	(this.outerRect = rect)
+	(this.outerRect = rect.left rect.top rect.right y)
 )
 
 (method VerticalMenu.OnMouseUp (MouseClickArgs args)-> :
@@ -144,9 +144,7 @@
 	)
 	
 	(g.FillRect this.outerRect colours.backColour)
-	(g.DrawBorder this.outerRect this.borderThickness colours.tl colours.tr colours.bl colours.br)
-	
-	(Float32 halfFontHeight = 50)
+//	(g.DrawBorder this.outerRect this.borderThickness colours.tl colours.tr colours.bl colours.br)
 	
 	(foreach item # this.items
 		(if (IsPointInRect this.cursorPos item.rect)
@@ -156,6 +154,9 @@
 		)
 		
 		(g.DrawBorder item.rect 1 colours.tl colours.tr colours.bl colours.br)
+		
+		(Float32 itemHeight = (item.rect.bottom - item.rect.top))
+		(Float32 halfFontHeight = (itemHeight / 2.2))
 		
 		(Rectf textRect)
 		(textRect.left = item.rect.left)

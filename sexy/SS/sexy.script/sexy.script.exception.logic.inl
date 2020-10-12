@@ -31,7 +31,7 @@
 	principal credit screen and its principal readme file.
 */
 
-namespace
+namespace Rococo::Script
 {
 	struct ContainerLock
 	{
@@ -169,7 +169,7 @@ namespace
 		stream;
 		ss.ProgramObject().Log().Write(stream.str().c_str());
 		*/
-		for(int i = 0; i < src.InstancePosCount; ++i)
+		for (int i = 0; i < src.InstancePosCount; ++i)
 		{
 			int sfOffset = f.Builder().GetDestructorFromInstancePos(i + src.InstancePosStart);
 			const uint8* instance = sf + sfOffset;
@@ -178,7 +178,7 @@ namespace
 
 			if (type.Prototype().IsClass && type.Name()[0] == '_')
 			{
-				InterfacePointer pInterface = *(InterfacePointer*) instance;
+				InterfacePointer pInterface = *(InterfacePointer*)instance;
 				ss.ProgramObject().DecrementRefCount(pInterface);
 			}
 			else if (type.HasInterfaceMembers())
@@ -187,13 +187,13 @@ namespace
 			}
 			else if (AreEqual(type.Name(), ("_Lock")))
 			{
-				ContainerLock* locker = (ContainerLock*) instance;
-				int32* pLock = (int32*) (locker->ContainerPtr + locker->locMemberOffset);
+				ContainerLock* locker = (ContainerLock*)instance;
+				int32* pLock = (int32*)(locker->ContainerPtr + locker->locMemberOffset);
 				*pLock = 0;
 			}
 			else if (AreEqual(type.Name(), ("_Array")))
 			{
-				ArrayImage* a = (ArrayImage*) instance;
+				ArrayImage* a = (ArrayImage*)instance;
 				if (RequiresDestruction(*a->ElementType))
 				{
 					DestroyElements(*a, ss);
@@ -202,22 +202,22 @@ namespace
 			}
 			else if (AreEqual(type.Name(), ("_Node")))
 			{
-				NodeRef* nr = (NodeRef*) instance;
+				NodeRef* nr = (NodeRef*)instance;
 				if (nr->NodePtr != NULL) ReleaseNode(nr->NodePtr, ss);
 			}
 			else if (AreEqual(type.Name(), ("_List")))
 			{
-				ListImage* l = (ListImage*) instance;
+				ListImage* l = (ListImage*)instance;
 				ListClear(*l, ss);
 			}
 			else if (AreEqual(type.Name(), ("_Map")))
 			{
-				MapImage* m = (MapImage*) instance;
+				MapImage* m = (MapImage*)instance;
 				MapClear(m, ss);
 			}
 			else if (AreEqual(type.Name(), ("_MapNode")))
 			{
-				MapNodeRef* nr = (MapNodeRef*) instance;
+				MapNodeRef* nr = (MapNodeRef*)instance;
 				ReleaseNode(nr->NodePtr, ss);
 			}
 		}
@@ -232,10 +232,11 @@ namespace
 
 		size_t codeStart = ss.ProgramObject().ProgramMemory().GetFunctionAddress(section.Id);
 		const uint8* functionStart = ss.ProgramObject().VirtualMachine().Cpu().ProgramStart + codeStart;
-		size_t functionOffset = (size_t) (pc - functionStart);
+		size_t functionOffset = (size_t)(pc - functionStart);
 
 		DeconstructLocalObjects(ss, functionOffset, sf, f, REF totalStackCorrection);
 	}
+
 
 	const uint8* GetHandlerFor(const TExceptionHandlers& handlers, Compiler::IProgramObject& po, const uint8* pc)
 	{
@@ -336,48 +337,7 @@ namespace
 		logger.Write(stream);
 	}
 
-	bool CatchException(const TExceptionHandlers& handlers, IScriptSystem& ss)
-	{
-		VM::CPU& cpu = ss.ProgramObject().VirtualMachine().Cpu();
-
-		// LogCpu(ss.ProgramObject().Log(), cpu);
-
-		const uint8* sf = cpu.SF();
-		const uint8* returnAddress = cpu.PC();
-
-		int totalStackCorrection = 0;
-
-		while(true)
-		{				
-			const uint8* pc = returnAddress;
-
-			IFunctionBuilder* f = GetFunctionForAddress(pc, ss.ProgramObject());
-			if (f == NULL)
-			{
-				return false;
-			}
-
-			cstr fname = f->Name();
-
-			DeconstructLocalObjects(*f, pc, sf, ss, REF totalStackCorrection);
-
-			const uint8* catchAddress = GetHandlerFor(handlers, ss.ProgramObject(), pc);
-			if (catchAddress != NULL)
-			{
-				cpu.SetSF(sf);
-				cpu.SetPC(catchAddress);
-				cpu.D[VM::REGISTER_SP].uint8PtrValue -= totalStackCorrection;
-				return true;
-			}
-
-			totalStackCorrection += 2 * sizeof(size_t); // the return address and the old stack frame are popped off the stack
-
-			const uint8* oldSf = GetCallerSF(OUT returnAddress, sf);
-
-			if (oldSf >= sf) return false; // If sf is NULL, the execution stub, then oldSf will also be null
-			sf = oldSf;
-		}
-	}
+	bool CatchException(const TExceptionHandlers& handlers, IScriptSystem& ss);
 
 	const IStructure& GetType(const void* instance)
 	{

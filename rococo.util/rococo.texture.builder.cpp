@@ -202,13 +202,13 @@ namespace
 
       }
 
-      virtual void Free()
+      void Free() override
       {
          Clear();
          delete this;
       }
 
-      virtual void AddBitmap(cstr name)
+      void AddBitmap(cstr name) override
       {
          auto i = mapNameToLoc.find(name);
          if (i == mapNameToLoc.end())
@@ -217,7 +217,7 @@ namespace
          }
       }
 
-	  virtual bool TryGetBitmapLocation(cstr name, BitmapLocation& location)
+	  bool TryGetBitmapLocation(cstr name, BitmapLocation& location) override
 	  {
 		  if (name == nullptr)
 		  {
@@ -247,7 +247,7 @@ namespace
             Vec2i span;
             int32 maxWidth;
 
-            virtual void OnEvent(CompressedTextureBuffer& buffer)
+            void OnEvent(CompressedTextureBuffer& buffer) override
             {
                if (buffer.type == COMPRESSED_TYPE_JPG)
                {
@@ -259,20 +259,24 @@ namespace
                }
             }
 
-            virtual void OnError(const char* message)
+            void OnError(const char* message) override
             {
                Throw(0, "Could not load image %s:\n%s", name, message);
             }
 
-            virtual void OnRGBAImage(const Vec2i& span, const RGBAb* data)
+            void OnRGBAImage(const Vec2i& span, const RGBAb* data) override
             {
                if (span.x <= maxWidth && span.y <= maxWidth)
                {
                   this->span = span;
                }
+               else
+               {
+                   Throw(0, "Image span (%d,%d) for %s exceeded maximum dimension of (%d, %d)", span.x, span.y, name, maxWidth, maxWidth);
+               }
             }
 
-            virtual void OnAlphaImage(const Vec2i& span, const uint8* data)
+            void OnAlphaImage(const Vec2i& span, const uint8* data) override
             {
                Throw(0, "Image %s was an alpha, or single channel bitmap.\nOnly 32-bt RGBA or 24-bit RGB files supported.", name);
             }

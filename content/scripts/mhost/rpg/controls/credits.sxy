@@ -70,7 +70,7 @@
 	(Rectf innerRect)
 	(ShrinkRectf this.outerRect innerRect 4)
 	
-	(gui.FillRect innerRect 0xF0000000)
+	(gui.FillRect innerRect 0x80000000)
 	(gui.DrawBorder this.outerRect 4 0xFF404040 0xFF606060 0xFF808080 0xFFA0A0A0)
 	
 	(Float32 y = (innerRect.bottom - this.scrollHeight))
@@ -115,7 +115,7 @@
 
 (method Credits.Run -> :
 	(while (this.scrollHeight < 100000)
-		(this.scrollHeight += 2)
+		(this.scrollHeight += 8)
 		(yield 1100)
 	)
 	(this.isScrolling = false)

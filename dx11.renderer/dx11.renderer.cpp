@@ -211,7 +211,7 @@ namespace ANON
          arrayCapacity = 0;
       }
 
-      virtual void AddTexture()
+      void AddTexture() override
       {
          if (arrayCapacity != 0)
          {
@@ -240,7 +240,7 @@ namespace ANON
 		  arrayCapacity = count = nElements;
 	  }
 
-      virtual void WriteSubImage(size_t index, const RGBAb* pixels, const GuiRect& targetLocation)
+      void WriteSubImage(size_t index, const RGBAb* pixels, const GuiRect& targetLocation) override
       {
          if (width > 0 && tb.texture == nullptr)
          {
@@ -284,7 +284,7 @@ namespace ANON
          }
       }
 
-	  virtual void WriteSubImage(size_t index, const uint8* grayScalePixels, Vec2i span)
+	  void WriteSubImage(size_t index, const uint8* grayScalePixels, Vec2i span) override
 	  {
 		  if (width > 0 && tb.texture == nullptr)
 		  {
@@ -327,12 +327,12 @@ namespace ANON
 		  }
 	  }
 
-      virtual int32 MaxWidth() const
+      int32 MaxWidth() const override
       {
-         return 1024;
+         return 2048;
       }
 
-      virtual size_t TextureCount() const
+      size_t TextureCount() const override
       {
          return count;
       }
