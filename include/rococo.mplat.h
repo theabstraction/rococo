@@ -931,16 +931,7 @@ namespace Rococo
 			OS::IAppControl& appControl
 		);
 
-		/// <summary>
-		/// The options are initialized before the graphics, sound and physics interfaces
-		/// of Platform are defined. They can be override in the !scripts/init.sxy file.
-		/// </summary>
-		struct MPlatOpts
-		{
-			size_t maxEntities = 100'000;
-		};
-
-		void RunMPlatOptsScript(MPlatOpts& opts,
+		void RunMPlatConfigScript(OUT IConfig& config,
 			Script::IScriptSystemFactory& ssf,
 			IDebuggerWindow& debugger,
 			ISourceCache& sources,

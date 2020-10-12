@@ -1,6 +1,7 @@
 (' #file.type rococo.hv)
 
 (' #include 
+	"!scripts/mplat_config_sxh.sxy"
 	"!scripts/hv_sxh.sxy"
 	"!scripts/mplat_sxh.sxy"
 	"!scripts/mplat_types.sxy"

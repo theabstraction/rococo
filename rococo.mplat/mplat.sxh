@@ -224,7 +224,7 @@
 )
 
 (interface 
-	(as.sxy Rococo.IConfig "../content/scripts/mplat")
+	(as.sxy Rococo.IConfig "../content/scripts/mplat_config")
 	(as.cpp Rococo.IConfig "mplat")
 	(context factory Rococo.IConfig)
 	(methods

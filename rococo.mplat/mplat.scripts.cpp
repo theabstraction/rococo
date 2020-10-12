@@ -212,27 +212,6 @@ static void NativeEnumerateFiles(NativeCallEnvironment& nce)
 	Rococo::IO::ForEachFileInDirectory(sysPath, dispatchToSexyClosure, true);
 }
 
-static void NativeSetMaxEntities(NativeCallEnvironment& nce)
-{
-	auto* opts = static_cast<Rococo::MPlatImpl::MPlatOpts*>(nce.context);
-
-	int32 maxEntities = 0;
-	ReadInput(0, maxEntities, nce);
-
-	if (maxEntities <= 0)
-	{
-		Throw(0, "SetMaxEntities(%d): invalid value", maxEntities);
-	}
-
-	opts->maxEntities = maxEntities;
-}
-
-void AddMPlatOpts(IPublicScriptSystem& ss, Rococo::MPlatImpl::MPlatOpts& opts)
-{
-	auto& ns = ss.AddNativeNamespace("MPlat");
-	ss.AddNativeCall(ns, NativeSetMaxEntities, &opts, "SetMaxEntities (Int32 maxEntities) ->");
-}
-
 namespace Rococo
 {
 	using namespace Rococo::Windows;
@@ -267,22 +246,6 @@ namespace Rococo
 				{
 					if (onScriptCrash) onScriptCrash->OnEvent(source);
 					platform.os.FireUnstable();
-
-					/* uncomment if you want a dialog box to prompt continuation
-					char msg[1024];
-					SafeFormat(msg, sizeof(msg), "Error: Do you wish to debug?\n\t%s\n\t%s", source, message);
-					if (QueryYesNo(platform.renderer.Window(), msg))
-					{
-					   return IDE::EScriptExceptionFlow_Retry;
-					}
-					else
-					{
-					   if (shutdownOnFail) OS::ShutdownApp();
-					   return IDE::EScriptExceptionFlow_Terminate;
-					}
-
-					*/
-
 					return IDE::EScriptExceptionFlow_Retry;
 				}
 
@@ -309,12 +272,11 @@ namespace Rococo
 						Audio::AddNativeCalls_RococoAudioILegacySoundControl(args.ss, &platform);
 						Graphics::AddNativeCalls_RococoGraphicsIHQFonts(args.ss, &platform);
 						Rococo::AddNativeCalls_RococoIInstallationManager(args.ss, &platform);
+						AddNativeCalls_RococoIConfig(args.ss, &platform.config);
 
 						const INamespace& ns = args.ss.AddNativeNamespace("MPlat.OS");
 						args.ss.AddNativeCall(ns, NativeEnumerateFiles, &platform, "EnumerateFiles (Sys.Type.IString filter)(MPlat.OnFileName callback)->");
 					}
-
-					AddNativeCalls_RococoIConfig(args.ss, &platform.config);
 
 					onScriptEvent.OnEvent(args);
 				}
@@ -378,7 +340,7 @@ namespace Rococo
 
 				IDE::EScriptExceptionFlow GetScriptExceptionFlow(cstr source, cstr message) override
 				{
-					return IDE::EScriptExceptionFlow_Terminate;
+					return IDE::EScriptExceptionFlow_Retry;
 				}
 
 				void OnEvent(ScriptCompileArgs& args) override
@@ -424,7 +386,7 @@ namespace Rococo
 			sc.Execute(name, stats, id, ssf, debugger, sources, appControl);
 		}
 
-		void RunMPlatOptsScript(MPlatOpts& opts,
+		void RunMPlatConfigScript(OUT IConfig& config,
 			Script::IScriptSystemFactory& ssf,
 			IDebuggerWindow& debugger,
 			ISourceCache& sources,
@@ -433,18 +395,18 @@ namespace Rococo
 		{
 			struct : IEventCallback<ScriptCompileArgs>
 			{
-				MPlatOpts* opts;
+				IConfig* config;
 
 				void OnEvent(ScriptCompileArgs& args) override
 				{
-					AddMPlatOpts(args.ss, *opts);
+					AddNativeCalls_RococoIConfig(args.ss, config);
 				}
 			} onCompile;
-			onCompile.opts = &opts;
+			onCompile.config = &config;
 
 			ScriptPerformanceStats stats = { 0 };
 			RunBareScript(
-				stats, onCompile, "!scripts/init.sxy", 0,
+				stats, onCompile, "!scripts/config_mplat.sxy", 0,
 				ssf, debugger, sources, appControl
 			);
 		}

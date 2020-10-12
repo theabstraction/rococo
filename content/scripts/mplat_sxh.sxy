@@ -96,33 +96,6 @@
 	(construct ProxyIKeyboard pObject)
 )
 
-(interface Rococo.IConfig
-	(Int (Sys.Type.IString name)(Int32 value) -> )
-	(Float (Sys.Type.IString name)(Float32 value) -> )
-	(Bool (Sys.Type.IString name)(Bool value) -> )
-	(Text (Sys.Type.IString name)(Sys.Type.IString value) -> )
-	(GetInt (Sys.Type.IString name) -> (Int32 value))
-	(GetFloat (Sys.Type.IString name) -> (Float32 value))
-	(GetBool (Sys.Type.IString name) -> (Bool value))
-	(GetText (Sys.Type.IString name)(Sys.Type.IStringBuilder text) -> )
-)
-
-(class ProxyIConfig (implements Rococo.IConfig) (Pointer hObject))
-	(method ProxyIConfig.Construct (Pointer hObject): (this.hObject = hObject))
-	(method ProxyIConfig.Int (Sys.Type.IString name)(Int32 value) ->  : (Rococo.Native.IConfigInt this.hObject name value))
-	(method ProxyIConfig.Float (Sys.Type.IString name)(Float32 value) ->  : (Rococo.Native.IConfigFloat this.hObject name value))
-	(method ProxyIConfig.Bool (Sys.Type.IString name)(Bool value) ->  : (Rococo.Native.IConfigBool this.hObject name value))
-	(method ProxyIConfig.Text (Sys.Type.IString name)(Sys.Type.IString value) ->  : (Rococo.Native.IConfigText this.hObject name value))
-	(method ProxyIConfig.GetInt (Sys.Type.IString name) -> (Int32 value) : (Rococo.Native.IConfigGetInt this.hObject name -> value))
-	(method ProxyIConfig.GetFloat (Sys.Type.IString name) -> (Float32 value) : (Rococo.Native.IConfigGetFloat this.hObject name -> value))
-	(method ProxyIConfig.GetBool (Sys.Type.IString name) -> (Bool value) : (Rococo.Native.IConfigGetBool this.hObject name -> value))
-	(method ProxyIConfig.GetText (Sys.Type.IString name)(Sys.Type.IStringBuilder text) ->  : (Rococo.Native.IConfigGetText this.hObject name text))
-
-(factory Rococo.Config Rococo.IConfig  :
-	(Pointer pObject = (Rococo.Native.GetHandleForIConfig0 ))
-	(construct ProxyIConfig pObject)
-)
-
 (interface Rococo.Graphics.ISprites
 	(Clear  -> )
 	(AddSprite (Sys.Type.IString resourceName) -> )

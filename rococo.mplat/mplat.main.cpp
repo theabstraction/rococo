@@ -218,8 +218,6 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 
 	HANDLE hInstanceLock = CreateEventA(nullptr, TRUE, FALSE, eventName);
 
-	HandleManager autoInstanceLock(hInstanceLock);
-
 	int err = GetLastError();
 	if (err == ERROR_ALREADY_EXISTS)
 	{
@@ -233,8 +231,10 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 		return err;
 	}
 
+	HandleManager autoInstanceLock(hInstanceLock);
+
 	LOGFONTA font = { 0 };
-	SafeFormat(font.lfFaceName, sizeof font.lfFaceName, "Consolas");
+	SafeFormat(font.lfFaceName, "Consolas");
 	font.lfHeight = 24;
 
 	InitRococoWindows(hInstance, hLargeIcon, hSmallIcon, &font, &font);
@@ -245,6 +245,8 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 
 	AutoFree<IOSSupervisor> os = GetOS();
 	AutoFree<IInstallationSupervisor> installation = CreateInstallation(L"content.indicator.txt", *os);
+	AutoFree<IConfigSupervisor> config = CreateConfig();
+
 	AutoFree<Rococo::Events::IPublisherSupervisor> publisher(Events::CreatePublisher());
 	os->Monitor(installation->Content());
 
@@ -281,18 +283,19 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 
 	AutoFree<Rococo::Script::IScriptSystemFactory> ssFactory = CreateScriptSystemFactory_1_5_0_0(sourceCache->Allocator());
 
-	MPlatOpts opts;
-	RunMPlatOptsScript(opts, *ssFactory, *debuggerWindow, *sourceCache, *appControl);
+	RunMPlatConfigScript(*config, *ssFactory, *debuggerWindow, *sourceCache, *appControl);
+
+	int32 maxEntities = config->GetInt("mplat.instances.entities.max"_fstring);
+	if (maxEntities <= 0) Throw(0, "Int32 \"mplat.instances.entities.max\" defined in '!scripts/config_mplat.sxy' was not positive");
 
 	AutoFree<Rococo::Entities::IRigs> rigs = Rococo::Entities::CreateRigBuilder();
 	AutoFree<Graphics::IMeshBuilderSupervisor> meshes = Graphics::CreateMeshBuilder(mainWindow->Renderer());
-	AutoFree<Entities::IInstancesSupervisor> instances = Entities::CreateInstanceBuilder(*meshes, mainWindow->Renderer(), *publisher, opts.maxEntities);
+	AutoFree<Entities::IInstancesSupervisor> instances = Entities::CreateInstanceBuilder(*meshes, mainWindow->Renderer(), *publisher, (size_t) maxEntities);
 	AutoFree<Entities::IMobilesSupervisor> mobiles = Entities::CreateMobilesSupervisor(*instances);
 	AutoFree<Graphics::ICameraSupervisor> camera = Graphics::CreateCamera(*instances, *mobiles, mainWindow->Renderer());
 	AutoFree<Graphics::ISceneSupervisor> scene = Graphics::CreateScene(*instances, *camera, *rigs);
 	AutoFree<IKeyboardSupervisor> keyboard = CreateKeyboardSupervisor();
 	AutoFree<Graphics::ISpriteSupervisor> sprites = Graphics::CreateSpriteSupervisor(mainWindow->Renderer());
-	AutoFree<IConfigSupervisor> config = CreateConfig();
 	AutoFree<Graphics::IRimTesselatorSupervisor> rimTesselator = Graphics::CreateRimTesselator();
 	AutoFree<Graphics::IRodTesselatorSupervisor> rodTesselator = Graphics::CreateRodTesselator(*meshes);
 	AutoFree<Entities::IParticleSystemSupervisor> particles = Entities::CreateParticleSystem(mainWindow->Renderer(), *instances);
@@ -401,7 +404,7 @@ namespace Rococo
 		catch (IException& ex)
 		{
 			char text[256];
-			SafeFormat(text, 256, "%s crashed", title);
+			SafeFormat(text, "%s crashed", title);
 			OS::ShowErrorBox(NoParent(), ex, text);
 			errCode = ex.ErrorCode();
 		}
@@ -422,7 +425,7 @@ namespace Rococo
 		catch (IException& ex)
 		{
 			char text[256];
-			SafeFormat(text, 256, "%s crashed", title);
+			SafeFormat(text, "%s crashed", title);
 			OS::ShowErrorBox(NoParent(), ex, text);
 			errCode = ex.ErrorCode();
 		}

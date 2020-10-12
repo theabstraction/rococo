@@ -1,0 +1,17 @@
+// MPlat initialization file
+// This will be run before MPlatform's graphics and geometry objects are initialized
+// Since much of MPlat is not initialized at this point, we are restricted to manipulating IConfig
+
+(' #include 
+	"!scripts/mplat_config_sxh.sxy"
+)
+
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+	
+(using Rococo)
+
+(function Main (Int32 id)->(Int32 exitCode):
+	(IConfig c (Config))
+	(c.Int "mplat.instances.entities.max" 1000)
+)

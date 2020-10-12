@@ -31,7 +31,7 @@ namespace MHost
 # define MPLAT_LIB MPLAT_RELEASE
 #endif
 
-int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR cmdLine, int nCmdShow)
+int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine,_In_ int nShowCmd)
 {
 	struct : IDirectAppFactory
 	{
