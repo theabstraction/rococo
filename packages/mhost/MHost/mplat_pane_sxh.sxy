@@ -87,7 +87,13 @@
 )
 
 (class ProxyIAudio (implements Rococo.Audio.IAudio) (Pointer hObject))
+	(method ProxyIAudio.Construct (Pointer hObject): (this.hObject = hObject))
 	(method ProxyIAudio.SetMusic (Sys.Type.IString musicFile) ->  : (Rococo.Audio.Native.IAudioSetMusic this.hObject musicFile))
+
+(factory Rococo.Audio.GetAudio Rococo.Audio.IAudio  :
+	(Pointer pObject = (Rococo.Audio.Native.GetHandleForIAudio0 ))
+	(construct ProxyIAudio pObject)
+)
 
 (interface Rococo.IEnumListPane (extends Rococo.IPane)
 	(AddEnumCategory (Sys.Type.IString key)(Int32 value) -> )

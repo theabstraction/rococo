@@ -152,10 +152,11 @@ struct LegacySoundControl : public ILegacySoundControlSupervisor, public OS::ITh
 	{
 		if (thread)
 		{
-			auto* msg = thread->GetErrorMessage();
+			int err;
+			auto* msg = thread->GetErrorMessage(err);
 			if (msg)
 			{
-				Throw(0, "LegacySoundThread terminated: %s", msg);
+				Throw(err, "LegacySoundThread terminated: %s", msg);
 			}
 		}
 
@@ -188,6 +189,7 @@ struct LegacySoundControl : public ILegacySoundControlSupervisor, public OS::ITh
 		if (context == nullptr)
 		{
 			ClearAL();
+			Throw(0, "alcCreateContext failed");
 		}
 
 		alcMakeContextCurrent(context);
@@ -509,9 +511,30 @@ namespace Rococo
 {
 	namespace Audio
 	{
+		struct NullLegacy : ILegacySoundControlSupervisor
+		{
+			void EnumerateDeviceDesc(IEventCallback<StringKeyValuePairArg>& cb) override
+			{
+
+			}
+
+			void Free() override {}
+
+			void SetMasterVolumne(float gain) override {}
+			void SetChannelVolume(int32 channel, float leftVolume, float rightVolume) override {}
+			void SetWave(int32 channel, Rococo::Audio::ELegacySoundShape waveShape, float freqHz, float dutyCycle) override {}
+			void PlayWave(int32 channel) override {}
+			void Sustain(int32 channel) override {}
+			void Release(int32 channel) override {}
+			void SetEnvelope(int32 channel, float attackSecs, float decaySecs, float sustainLevel, float releaseSecs) override {}
+		};
+		
+		static NullLegacy s_NullLegacy;
+
 		ILegacySoundControlSupervisor* CreateLegacySoundControl()
 		{
-			return new LegacySoundControl();
+			//return new LegacySoundControl();
+			return &s_NullLegacy;
 		}
 	}
 }

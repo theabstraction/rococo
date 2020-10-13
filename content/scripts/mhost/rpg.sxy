@@ -370,6 +370,9 @@
 (function Main (Int32 id) -> (Int32 exitCode):
 	(IRendererConfig rc (RendererConfig))
 	
+	(IAudio audio (GetAudio))
+	(audio.SetMusic "!music/intro.mp3")
+	
 	(SampleStateDef fontDef)
 	(fontDef.method = (#SampleMethodLinear))
 	(fontDef.u = (#SampleFilterBorder))

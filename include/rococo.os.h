@@ -34,7 +34,7 @@ namespace Rococo::OS
 		virtual void Resume() = 0;
 		virtual void SetRealTimePriority() = 0;
 		virtual void SleepUntilAysncEvent(uint32 milliseconds) = 0;
-		virtual cstr GetErrorMessage() const = 0;
+		virtual cstr GetErrorMessage(int& err) const = 0;
 	};
 
 	ROCOCOAPI IThreadSupervisor : public IThreadControl

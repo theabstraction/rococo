@@ -1717,12 +1717,23 @@ namespace
 		_pObject->SetMusic(musicFile);
 	}
 
+	void NativeGetHandleForRococoAudioGetAudio(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Audio::IAudio* nceContext = reinterpret_cast<Rococo::Audio::IAudio*>(_nce.context);
+		// Uses: Rococo::Audio::IAudio* FactoryConstructRococoAudioGetAudio(Rococo::Audio::IAudio* _context);
+		Rococo::Audio::IAudio* pObject = FactoryConstructRococoAudioGetAudio(nceContext);
+		_offset += sizeof(IString*);
+		WriteOutput(pObject, _sf, -_offset);
+	}
 }
 
 namespace Rococo { namespace Audio { 
 	void AddNativeCalls_RococoAudioIAudio(Rococo::Script::IPublicScriptSystem& ss, Rococo::Audio::IAudio* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Audio.Native"));
+		ss.AddNativeCall(ns, NativeGetHandleForRococoAudioGetAudio, _nceContext, ("GetHandleForIAudio0  -> (Pointer hObject)"));
 		ss.AddNativeCall(ns, NativeRococoAudioIAudioSetMusic, nullptr, ("IAudioSetMusic (Pointer hObject)(Sys.Type.IString musicFile) -> "));
 	}
 }}

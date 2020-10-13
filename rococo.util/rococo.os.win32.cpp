@@ -471,8 +471,9 @@ namespace Rococo
 
 				}
 
-				cstr GetErrorMessage() const override
+				cstr GetErrorMessage(int& err) const override
 				{
+					err = threadErrorCode;
 					return threadErrorRaised ? threadErrorMessage.c_str() : nullptr;
 				}
 
@@ -521,6 +522,7 @@ namespace Rococo
 				Context context;
 				volatile bool threadErrorRaised = false;
 				HString threadErrorMessage;
+				int threadErrorCode = 0;
 			} *supervisor = new Supervisor();
 
 
@@ -539,6 +541,7 @@ namespace Rococo
 					{
 						c->supervisor->threadErrorMessage = ex.Message();
 						c->supervisor->threadErrorRaised = true;
+						c->supervisor->threadErrorCode = ex.ErrorCode();
 						return ex.ErrorCode();
 					}
 				}
@@ -1890,8 +1893,6 @@ namespace Rococo
 				~DialogEventHandler() { };
 				long _cRef;
 			};
-
-			CoInitializeEx(nullptr, COINIT_MULTITHREADED);
 
 			ComObject<IFileDialog> pfd;
 			HRESULT hr = CoCreateInstance(CLSID_FileOpenDialog, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfd));

@@ -1,6 +1,7 @@
-#include <rococo.api.h>
+#include <rococo.mplat.h>
 #include <rococo.handles.h>
 #include <rococo.maths.h>
+#include <mplat.audio.h>
 
 using namespace Rococo;
 
@@ -62,6 +63,12 @@ void TestMaths()
 
 void PerformSanityTests()
 {
+	/*
+	Rococo::Audio::IAudioDecoder* decoder = Audio::CreateAudioDecoder_MP3_to_Stereo_16bit_int(4410);
+	decoder->StreamInputFile(LR"(C:\work\rococo\content\music\intro.mp3)");
+	decoder->Free();
+	*/
+
 	TestHandles();
 	TestMaths();
 }

@@ -145,6 +145,11 @@ Rococo::IInstallationManager* FactoryConstructRococoInstallation(Rococo::Platfor
 	return &p->installationManager;
 }
 
+Rococo::Audio::IAudio* FactoryConstructRococoAudioGetAudio(Rococo::Audio::IAudio* a)
+{
+	return a;
+}
+
 #include <..\rococo.mplat\mplat.sxh.inl>
 
 #include <rococo.sexy.ide.h>
@@ -273,6 +278,7 @@ namespace Rococo
 						Graphics::AddNativeCalls_RococoGraphicsIHQFonts(args.ss, &platform);
 						Rococo::AddNativeCalls_RococoIInstallationManager(args.ss, &platform);
 						AddNativeCalls_RococoIConfig(args.ss, &platform.config);
+						Audio::AddNativeCalls_RococoAudioIAudio(args.ss, &platform.audio);
 
 						const INamespace& ns = args.ss.AddNativeNamespace("MPlat.OS");
 						args.ss.AddNativeCall(ns, NativeEnumerateFiles, &platform, "EnumerateFiles (Sys.Type.IString filter)(MPlat.OnFileName callback)->");

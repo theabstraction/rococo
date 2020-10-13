@@ -14,8 +14,13 @@
 #include <sexy.script.h>
 #include "mplat.panel.base.h"
 #include <rococo.ide.h>
+#include <mplat.audio.h>
+#include <objbase.h>
 
 #pragma comment(lib, "OpenAL32.lib")
+#pragma comment(lib, "wmcodecdspuuid.lib")
+#pragma comment(lib, "Mfuuid.lib")
+#pragma comment(lib, "Mfplat.lib")
 
 #undef DrawText
 
@@ -290,24 +295,8 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	int32 maxEntities = config->GetInt("mplat.instances.entities.max"_fstring);
 	if (maxEntities <= 0) Throw(0, "Int32 \"mplat.instances.entities.max\" defined in '!scripts/config_mplat.sxy' was not positive");
 
-	AutoFree<Rococo::Entities::IRigs> rigs = Rococo::Entities::CreateRigBuilder();
-	AutoFree<Graphics::IMeshBuilderSupervisor> meshes = Graphics::CreateMeshBuilder(mainWindow->Renderer());
-	AutoFree<Entities::IInstancesSupervisor> instances = Entities::CreateInstanceBuilder(*meshes, mainWindow->Renderer(), *publisher, (size_t) maxEntities);
-	AutoFree<Entities::IMobilesSupervisor> mobiles = Entities::CreateMobilesSupervisor(*instances);
-	AutoFree<Graphics::ICameraSupervisor> camera = Graphics::CreateCamera(*instances, *mobiles, mainWindow->Renderer());
-	AutoFree<Graphics::ISceneSupervisor> scene = Graphics::CreateScene(*instances, *camera, *rigs);
-	AutoFree<IKeyboardSupervisor> keyboard = CreateKeyboardSupervisor();
-	AutoFree<Graphics::ISpriteSupervisor> sprites = Graphics::CreateSpriteSupervisor(mainWindow->Renderer());
-	AutoFree<Graphics::IRimTesselatorSupervisor> rimTesselator = Graphics::CreateRimTesselator();
-	AutoFree<Graphics::IRodTesselatorSupervisor> rodTesselator = Graphics::CreateRodTesselator(*meshes);
-	AutoFree<Entities::IParticleSystemSupervisor> particles = Entities::CreateParticleSystem(mainWindow->Renderer(), *instances);
-	AutoFree<Graphics::IRendererConfigSupervisor> rendererConfig = Graphics::CreateRendererConfig(mainWindow->Renderer());
-	AutoFree<IUtilitiesSupervisor> utilities = CreateUtilities(*installation, mainWindow->Renderer());
-	AutoFree<IMathsVisitorSupervisor> mathsVisitor = CreateMathsVisitor(*utilities, *publisher);
-	AutoFree<IGuiStackSupervisor> gui = CreateGui(*publisher, *sourceCache, mainWindow->Renderer(), *utilities);
-	AutoFree<Graphics::IMessagingSupervisor> messaging = Graphics::CreateMessaging();
 	AutoFree<Audio::ILegacySoundControlSupervisor> legacySound = Audio::CreateLegacySoundControl();
-	
+
 	OutputDebugStringA("\n\nLegacy Sound Description:");
 
 	struct ANON : public IEventCallback<StringKeyValuePairArg>
@@ -324,18 +313,37 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 
 	OutputDebugStringA("\n\n");
 
+	Audio::AudioConfig audio_config{};
+	AutoFree<Audio::IAudioSupervisor> audio = Audio::CreateAudioSupervisor(*installation, audio_config);
+	AutoFree<Rococo::Entities::IRigs> rigs = Rococo::Entities::CreateRigBuilder();
+	AutoFree<Graphics::IMeshBuilderSupervisor> meshes = Graphics::CreateMeshBuilder(mainWindow->Renderer());
+	AutoFree<Entities::IInstancesSupervisor> instances = Entities::CreateInstanceBuilder(*meshes, mainWindow->Renderer(), *publisher, (size_t) maxEntities);
+	AutoFree<Entities::IMobilesSupervisor> mobiles = Entities::CreateMobilesSupervisor(*instances);
+	AutoFree<Graphics::ICameraSupervisor> camera = Graphics::CreateCamera(*instances, *mobiles, mainWindow->Renderer());
+	AutoFree<Graphics::ISceneSupervisor> scene = Graphics::CreateScene(*instances, *camera, *rigs);
+	AutoFree<IKeyboardSupervisor> keyboard = CreateKeyboardSupervisor();
+	AutoFree<Graphics::ISpriteSupervisor> sprites = Graphics::CreateSpriteSupervisor(mainWindow->Renderer());
+	AutoFree<Graphics::IRimTesselatorSupervisor> rimTesselator = Graphics::CreateRimTesselator();
+	AutoFree<Graphics::IRodTesselatorSupervisor> rodTesselator = Graphics::CreateRodTesselator(*meshes);
+	AutoFree<Entities::IParticleSystemSupervisor> particles = Entities::CreateParticleSystem(mainWindow->Renderer(), *instances);
+	AutoFree<Graphics::IRendererConfigSupervisor> rendererConfig = Graphics::CreateRendererConfig(mainWindow->Renderer());
+	AutoFree<IUtilitiesSupervisor> utilities = CreateUtilities(*installation, mainWindow->Renderer());
+	AutoFree<IMathsVisitorSupervisor> mathsVisitor = CreateMathsVisitor(*utilities, *publisher);
+	AutoFree<IGuiStackSupervisor> gui = CreateGui(*publisher, *sourceCache, mainWindow->Renderer(), *utilities);
+	AutoFree<Graphics::IMessagingSupervisor> messaging = Graphics::CreateMessaging();
+
 	Tesselators tesselators{ *rimTesselator, *rodTesselator };
 
 	AutoFree<Joysticks::IJoystick_XBOX360_Supervisor> xbox360stick = Joysticks::CreateJoystick_XBox360Proxy();
 
 	AutoFree<IInstallationManagerSupervisor> ims = Rococo::MPlatImpl::CreateIMS(*installation);
-
+	
 	Platform platform
 	{ 
 		*os, *installation, *appControl, mainWindow->Renderer(), *rendererConfig, *messaging, 
 		*sourceCache, *debuggerWindow, *publisher, *utilities, *gui, *keyboard, *config, *meshes,
 		*instances, *mobiles, *particles, *rigs, *sprites, *camera, *scene, tesselators, *mathsVisitor,
-		*legacySound, *ssFactory, title, *xbox360stick, *ims
+		*legacySound, *audio, *ssFactory, title, *xbox360stick, *ims
 	};
 
 	gui->PostConstruct(&platform);
@@ -351,6 +359,8 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 
 int Main(HINSTANCE hInstance, IAppFactory& appFactory, cstr title, HICON hLargeIcon, HICON hSmallIcon)
 {
+	CoInitializeEx(NULL, COINIT_MULTITHREADED);
+
 	PerformSanityTests();
 
 	struct : public IMainloop
@@ -375,6 +385,8 @@ int Main(HINSTANCE hInstance, IAppFactory& appFactory, cstr title, HICON hLargeI
 
 int Main(HINSTANCE hInstance, IDirectAppFactory& appFactory, cstr title, HICON hLargeIcon, HICON hSmallIcon)
 {
+	CoInitializeEx(NULL, COINIT_MULTITHREADED);
+
 	PerformSanityTests();
 
 	struct : public IMainloop

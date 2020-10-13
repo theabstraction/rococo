@@ -147,7 +147,13 @@
     <ClCompile Include="mplat.entities.animation.debug.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mplat.audio.modern.cpp">
+    <ClCompile Include="mplat.audio.AL.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mplat.audio.X2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mplat.audio.decoders.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -165,6 +171,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\rococo.animation.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\mplat.audio.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\mplat.release.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

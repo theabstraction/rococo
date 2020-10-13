@@ -21,6 +21,11 @@ namespace Rococo
 	   struct IRigs;
    }
 
+   namespace Audio
+   {
+	   struct IAudioSupervisor;
+   }
+
    struct IEnumVector
    {
 	   virtual int32 GetActiveIndex() const = 0;
@@ -872,6 +877,8 @@ namespace Rococo
 		IMathsVisitorSupervisor& mathsVisitor;
 
 		Audio::ILegacySoundControl& legacySoundControl;
+
+		Audio::IAudio& audio;
 
 		Rococo::Script::IScriptSystemFactory& ssFactory;
 
