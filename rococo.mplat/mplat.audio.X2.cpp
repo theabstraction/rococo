@@ -22,11 +22,11 @@ namespace
 	{
 		switch (x2err)
 		{
-		case XAUDIO2_E_INVALID_CALL: return "XAUDIO2_E_INVALID_CALL";
-		case XAUDIO2_E_XMA_DECODER_ERROR: return "XAUDIO2_E_XMA_DECODER_ERROR";
+		case XAUDIO2_E_INVALID_CALL:		 return "XAUDIO2_E_INVALID_CALL";
+		case XAUDIO2_E_XMA_DECODER_ERROR:	 return "XAUDIO2_E_XMA_DECODER_ERROR";
 		case XAUDIO2_E_XAPO_CREATION_FAILED: return "XAUDIO2_E_XAPO_CREATION_FAILED";
-		case XAUDIO2_E_DEVICE_INVALIDATED: return "XAUDIO2_E_DEVICE_INVALIDATED";
-		default: return "";
+		case XAUDIO2_E_DEVICE_INVALIDATED:	 return "XAUDIO2_E_DEVICE_INVALIDATED";
+		default:							 return "";
 		}
 	}
 
@@ -71,7 +71,7 @@ namespace
 
 	struct AudioPlayer : IAudioSupervisor, OS::IThreadJob
 	{
-		OS::IThreadSupervisor* thread = nullptr;
+		AutoFree<OS::IThreadSupervisor> thread;
 
 		IInstallation& installation;
 		const AudioConfig config;
@@ -177,7 +177,7 @@ namespace
 
 		~AudioPlayer()
 		{
-			if (thread) thread->Free();
+			thread = nullptr;
 
 			for (int i = 0; i < PCM_BLOCK_COUNT; ++i)
 			{

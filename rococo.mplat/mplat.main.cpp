@@ -17,10 +17,11 @@
 #include <mplat.audio.h>
 #include <objbase.h>
 
-#pragma comment(lib, "OpenAL32.lib")
+//////////////////////// XAUDIO2 and Media Foundation stuff for audio decoding ////////////////////
 #pragma comment(lib, "wmcodecdspuuid.lib")
 #pragma comment(lib, "Mfuuid.lib")
 #pragma comment(lib, "Mfplat.lib")
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 #undef DrawText
 

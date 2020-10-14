@@ -30,12 +30,16 @@ namespace Rococo::OS
 
 	ROCOCOAPI IThreadControl : public ILock
 	{
+		typedef void (*FN_APC)(void* context);
+		virtual void QueueAPC(FN_APC apc, void* context) = 0;
 		virtual bool IsRunning() const = 0;
 		virtual void Resume() = 0;
 		virtual void SetRealTimePriority() = 0;
 		virtual void SleepUntilAysncEvent(uint32 milliseconds) = 0;
 		virtual cstr GetErrorMessage(int& err) const = 0;
 	};
+
+	void WakeUp(IThreadControl& thread);
 
 	ROCOCOAPI IThreadSupervisor : public IThreadControl
 	{

@@ -440,6 +440,18 @@ namespace Rococo
 			}
 		}
 
+		void WakeUp(IThreadControl& thread)
+		{
+			struct ANON
+			{
+				static void WakeUp(void* context)
+				{
+
+				}
+			};
+			thread.QueueAPC(ANON::WakeUp, nullptr);
+		}
+
 		IThreadSupervisor* CreateRococoThread(IThreadJob* job, uint32 stacksize)
 		{
 			struct Supervisor;
@@ -469,6 +481,11 @@ namespace Rococo
 				static void WakeUp(ULONG_PTR data)
 				{
 
+				}
+
+				void QueueAPC(FN_APC apc, void* context) override
+				{
+					QueueUserAPC((PAPCFUNC) apc, (HANDLE)hThread, (ULONG_PTR) context); 
 				}
 
 				cstr GetErrorMessage(int& err) const override

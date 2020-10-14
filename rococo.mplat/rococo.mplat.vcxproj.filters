@@ -147,9 +147,6 @@
     <ClCompile Include="mplat.entities.animation.debug.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mplat.audio.AL.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="mplat.audio.X2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
