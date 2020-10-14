@@ -42,10 +42,10 @@
 	(this.creditLines.Push "Mark Anthony Taylor")
 	(this.creditLines.Push "")
 	(this.creditLines.Push "Original music composed by")
-	(this.creditLines.Push "Ludwig van Beethoven")
+	(this.creditLines.Push "The Classical Boys")
 	(this.creditLines.Push "")
 	(this.creditLines.Push "Graphics")
-	(this.creditLines.Push "Leondardo da Vinci")
+	(this.creditLines.Push "The Old Master Kids on the Block")
 	(this.lastFontName = NewTokenBuilder)
 )
 
@@ -115,7 +115,7 @@
 
 (method Credits.Run -> :
 	(while (this.scrollHeight < 100000)
-		(this.scrollHeight += 8)
+		(this.scrollHeight += 1)
 		(yield 1100)
 	)
 	(this.isScrolling = false)

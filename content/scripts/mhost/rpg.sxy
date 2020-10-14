@@ -178,6 +178,9 @@
 		(this.uistack.RemoveFromTopLevel this.menu)
 		(this.uistack.AddTopLevelControl this.credits "credits")
 		(this.credits.BeginScroll)
+
+		(IAudio audio (GetAudio))
+		(audio.SetMusic "!music/credits.mp3")
 	)
 	
 	(if (args.menuIndex == 4)

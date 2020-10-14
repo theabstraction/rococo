@@ -334,6 +334,8 @@ namespace
 		volatile int64 currentIndex = 0;
 		volatile int64 nextIndex = 0;
 
+		volatile int64 blockLock = 0;
+
 		AudioDecoder(uint32 outputSampleDelta)
 		{
 			HRESULT hr;
@@ -372,6 +374,41 @@ namespace
 			VALIDATE(hr = MFCreateSample(&outputSample));
 			VALIDATE(hr = outputSample->AddBuffer(pcmBuffer));
 
+			AutoRelease<IMFMediaType> outputType;
+			CreatePCMAudioType(44100, 16, 2, &outputType);
+
+			AutoRelease<IMFMediaType> inputType;
+			CreateMP3AudioType(44100, 2, &inputType);
+
+			VALIDATE(hr = transform->SetInputType(inputId, inputType, 0));
+
+			for (UINT typeIndex = 0; ; ++typeIndex)
+			{
+				AutoRelease<IMFMediaType> optType;
+				hr = transform->GetOutputAvailableType(outputId, typeIndex, &optType);
+				if FAILED(hr)
+				{
+					Throw(hr, "%s: (MP3 to PCM) transform->GetOutputAvailableType(outputId, typeIndex, optType) failed", __FUNCTION__);
+				}
+
+				if (IsPCM_Stereo(*optType, 44100))
+				{
+					hr = transform->SetOutputType(outputId, optType, 0);
+					if FAILED(hr)
+					{
+						Throw(hr, "%s: (MP3 to PCM) transform->SetOutputType(0, outputType, 0)", __FUNCTION__);
+					}
+
+					break;
+				}
+			}
+
+			MFT_INPUT_STREAM_INFO inputInfo;
+			VALIDATE(hr = transform->GetInputStreamInfo(0, &inputInfo));
+
+			MFT_OUTPUT_STREAM_INFO outputInfo;
+			VALIDATE(hr = transform->GetOutputStreamInfo(0, &outputInfo));
+
 			thread = OS::CreateRococoThread(this, 0);
 			thread->Resume();
 		}
@@ -404,42 +441,8 @@ namespace
 		{
 			PopulateMediaBufferWithFileData(sysPath, *mp3Buffer);
 
-			AutoRelease<IMFMediaType> outputType;
-			CreatePCMAudioType(44100, 16, 2, &outputType);
-
-			AutoRelease<IMFMediaType> inputType;
-			CreateMP3AudioType(44100, 2, &inputType);
-
 			HRESULT hr;
-			VALIDATE(hr = transform->SetInputType(inputId, inputType, 0));
-
-			for (UINT typeIndex = 0; ; ++typeIndex)
-			{
-				AutoRelease<IMFMediaType> optType;
-				hr = transform->GetOutputAvailableType(outputId, typeIndex, &optType);
-				if FAILED(hr)
-				{
-					Throw(hr, "transform->GetOutputAvailableType(outputId, typeIndex, optType) failed");
-				}
-
-				if (IsPCM_Stereo(*optType, 44100))
-				{
-					hr = transform->SetOutputType(outputId, optType, 0);
-					if FAILED(hr)
-					{
-						Throw(hr, "%s: transform->SetOutputType(0, outputType, 0)", __FUNCTION__);
-					}
-
-					break;
-				}
-			}
-
-			MFT_INPUT_STREAM_INFO inputInfo;
-			VALIDATE(hr = transform->GetInputStreamInfo(0, &inputInfo));
-
-			MFT_OUTPUT_STREAM_INFO outputInfo;
-			VALIDATE(hr = transform->GetOutputStreamInfo(0, &outputInfo));
-
+			VALIDATE(hr = transform->ProcessMessage(MFT_MESSAGE_COMMAND_FLUSH, 0));
 			VALIDATE(hr = transform->ProcessInput(inputId, mp3Sample, 0));
 
 			isStreaming = true;
@@ -472,8 +475,18 @@ namespace
 
 					if (!Eq(currentPath, nextPath))
 					{
-						// We have a few file
+						// We have a new file
 						currentPath = nextPath;
+
+						if (isStreaming)
+						{
+							isStreaming = false;
+
+							while ((blockLock % 2) == 1)
+							{
+								// GetOutput is processing
+							}
+						}
 						StreamInputFile_DecoderThread(currentPath);
 					}
 				}
@@ -484,56 +497,75 @@ namespace
 			return 0;
 		}
 
+		uint32 Write_MP3ToPCM_AudioThread(I16StereoSample* output, uint32 nSamples, STREAM_STATE& state)
+		{
+			MFT_OUTPUT_DATA_BUFFER buffer;
+			buffer.dwStreamID = outputId;
+			buffer.pSample = outputSample;
+			buffer.dwStatus = 0;
+			buffer.pEvents = nullptr;
+
+			DWORD status;
+			HRESULT hr = transform->ProcessOutput(0, 1, &buffer, &status);
+			if FAILED(hr)
+			{
+				WriteSilence(output, nSamples);
+				isStreaming = false;
+				state = STREAM_STATE_ERROR;
+			}
+
+			if (buffer.pEvents)
+			{
+				buffer.pEvents->Release();
+			}
+
+			DWORD totalLength = 0;
+
+			BYTE* pPCMData;
+			DWORD maxLen, currentLen;
+			pcmBuffer->Lock(&pPCMData, &maxLen, &currentLen);
+
+			DWORD nSamplesToRead = currentLen / sizeof(I16StereoSample);
+
+			CopyData(output, pPCMData, min(nSamplesToRead, nSamples));
+
+			pcmBuffer->Unlock();
+
+			if (nSamplesToRead < nSamples)
+			{
+				WriteSilence(output + nSamplesToRead, nSamples - nSamplesToRead);
+
+				if (nSamplesToRead == 0)
+				{
+					isStreaming = false;
+					state = STREAM_STATE_FINISHED;
+					return 0;
+				}
+			}
+
+			state = STREAM_STATE_CONTINUE;
+			return nSamplesToRead;
+		}
+
 		uint32 GetOutput(I16StereoSample* output, uint32 nSamples, STREAM_STATE& state) override
 		{
-			if (isStreaming)
+			struct AutoInc
 			{
-				MFT_OUTPUT_DATA_BUFFER buffer;
-				buffer.dwStreamID = outputId;
-				buffer.pSample = outputSample;
-				buffer.dwStatus = 0;
-				buffer.pEvents = nullptr;
-
-				DWORD status;
-				HRESULT hr = transform->ProcessOutput(0, 1, &buffer, &status);
-				if FAILED(hr)
+				volatile int64& i;
+				~AutoInc()
 				{
-					WriteSilence(output, nSamples);
-					isStreaming = false;
-					state = STREAM_STATE_ERROR;
+					i++;
 				}
+			};
 
-				if (buffer.pEvents)
-				{
-					buffer.pEvents->Release();
-				}
+			AutoInc inc{ blockLock };
+			blockLock++; // lock is odd
 
-				DWORD totalLength = 0;
-
-				BYTE* pPCMData;
-				DWORD maxLen, currentLen;
-				pcmBuffer->Lock(&pPCMData, &maxLen, &currentLen);
-
-				DWORD nSamplesToRead = currentLen / sizeof(I16StereoSample);
-
-				CopyData(output, pPCMData, min(nSamplesToRead, nSamples));
-
-				pcmBuffer->Unlock();
-
-				if (nSamplesToRead < nSamples)
-				{
-					WriteSilence(output + nSamplesToRead, nSamples - nSamplesToRead);
-
-					if (nSamplesToRead == 0)
-					{
-						isStreaming = false;
-						state = STREAM_STATE_FINISHED;
-						return 0;
-					}
-				}
-
-				state = STREAM_STATE_CONTINUE;
-				return nSamplesToRead;
+			// Since this function will be called by an audio thread, blocking objects are prohibited
+			if (isStreaming)
+			{	
+				auto nSamplesWritten = Write_MP3ToPCM_AudioThread(output, nSamples, state);
+				return nSamplesWritten;
 			}
 			else
 			{
@@ -541,6 +573,8 @@ namespace
 				state = STREAM_STATE_SILENCE;
 				return nSamples;
 			}
+
+			// AutoInc => lock is now even
 		}
 
 		void Free() override
