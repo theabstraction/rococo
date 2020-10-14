@@ -53,6 +53,7 @@
 	(this.cells.Push maths)
 	
 	(this.tempSB = NewTokenBuilder)
+	(this.tempSB.SetFormat 0 0 true false)
 	
 	(this.fontIndex = -1)
 )
@@ -141,6 +142,7 @@
 		(valueRect.right = x1)
 		(valueRect.top = (vCentre - halfFontHeight))
 		(valueRect.bottom = (vCentre + halfFontHeight))
+		
 		(g.DrawClippedText valueRect (#AlignmentFlagsRight) this.tempSB this.fontIndex 0xFFFFFFFF this.outerRect)
 		
 		(y += dy)

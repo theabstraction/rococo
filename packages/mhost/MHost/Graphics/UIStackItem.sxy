@@ -74,7 +74,7 @@
 	)
 )
 
-(function FindItemAndExecute (UIStackItem origin)(IControl target) (OnUIStackItem callback)->(Bool terminateNow):
+(function FindItemAndExecute (UIStackItem item)(IControl target) (OnUIStackItem callback)->(Bool terminateNow):
 	(if (item.control == target)
 		(callback item -> terminateNow)
 	else
@@ -85,6 +85,8 @@
 		)
 	)
 )
+
+(alias FindItemAndExecute $.FindItemAndExecute)
 
 (function RouteMouseEventRecursive (UIStackItem item)(Vec2 pos)(OnUIStackItem callback)-> (Bool wasHandled) :
 	(Rectf rect = -10000 -10000 10000 10000)

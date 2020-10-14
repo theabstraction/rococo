@@ -164,6 +164,7 @@
 		(if (target == this.hobby)
 			(this.toolTip.SetTarget this.rollButton)
 			(this.hobby.DisableGlow)	
+			(this.uistack.SetVisible this.portraitButton true)
 			(this.uistack.RemoveFromTopLevel this.toolTip)
 			(this.classEditor.EnableGlow)
 			(this.physTraits1.EnableGlow)
@@ -222,6 +223,7 @@
 	
 	(this.portraitButton = (NewImageButton))
 	(this.uistack.AddTopLevelControl this.portraitButton "portrait")
+	(this.uistack.SetVisible this.portraitButton false)
 	
 	(this.sysFont = -1)
 	(this.portraitIndex = -1)
@@ -925,6 +927,21 @@
 	)
 	
 	(RenderTree this.uistack g)
+	
+	(if (screenSpan.y < 700)
+		(Rectf warningRect = 20 20 0 0)
+		(warningRect.right = (screenSpan.x - 20))
+		(warningRect.top = (screenSpan.y - 140))
+		(warningRect.bottom = (screenSpan.y - 20))
+		(g.FillRect warningRect 0xC0000000)
+		(g.DrawBorder warningRect 2 0xFFFFFFFF 0xFFA0A0A0 0xFF808080 0xFF606060)
+		
+		(Float32 centreY = (screenSpan.x / 2))
+		(Rectf warningTextRect = warningRect)
+		(warningTextRect.top = (centreY - 20))
+		(warningTextRect.bottom = (centreY + 20))
+		(g.DrawText warningTextRect 0 "Expand the screen to see all the controls" this.sysFont 0xFFC0C0C0)
+	)
 )
 
 (method AddCharacterScreen.ActivateOverlay (ActivateOverlayArgs args)-> :

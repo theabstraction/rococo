@@ -1965,7 +1965,7 @@ namespace Anon
 			else
 			{
 				UseStackFrameFor(*this, sourceDef);
-				Assembler().Append_GetStackFrameAddress(VM::REGISTER_D5, targetDef.SFOffset + targetDef.MemberOffset);
+				Assembler().Append_GetStackFrameAddress(VM::REGISTER_D4, sourceDef.SFOffset + sourceDef.MemberOffset);
 				RestoreStackFrameFor(*this, sourceDef);
 				UseStackFrameFor(*this, targetDef);
 				Assembler().Append_GetStackFrameMemberPtr(VM::REGISTER_D5, targetDef.SFOffset, targetDef.MemberOffset);

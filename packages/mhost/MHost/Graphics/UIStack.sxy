@@ -72,11 +72,12 @@
 	(OnUIStackItem q =
 		(closure (UIStackItem item)->(Bool terminateNow):
 			(item.isVisible = isVisible)
-			(termianteNow = true)
+			(terminateNow = true)
 		)
 	)
 	
-	(FindItemAndExecute this.root control q -> terminateNow)
+	(Bool matchingObjectFound)
+	(FindItemAndExecute this.root control q -> matchingObjectFound)
 )
 
 (method UIStack.AddChild (IControl control)(IControl parent)(IString name)(Bool clipped)-> :
@@ -117,7 +118,9 @@
 (function RenderTree (IUIStack tree)(IGui gui)-> :
 	(OnUIStackItem renderControl = 
 		(closure (UIStackItem item)->(Bool terminate):
-			(item.control.Render gui)
+			(if item.isVisible
+				(item.control.Render gui)
+			)
 			(terminate = false)
 		)
 	)

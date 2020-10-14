@@ -1,31 +1,23 @@
 (namespace EntryPoint)
+
 (using EntryPoint)
+
+(struct Magic (Int32 a)(Int32 b))
+
 (archetype EntryPoint.IntToInt (Int32 x) -> (Int32 y))
 
-(class Dog (defines Sys.IDog)
-	(Int32 id)
+(function Do (Magic magic)-> :
+	(IntToInt f =
+			(closure (Int32 x) -> (Int32 y):
+				(magic.a = x)
+			)
+	)
+	(f 7)
 )
-
-(archetype Sys.Void -> )
-
-(method Dog.Bark -> (Int32 result):		
-	(Sys.IDog dog = this)
-
-	(Sys.Void f =
-		 (closure -> :
-			(result = this.id)
-		 )
-	)	
-
-	(f)
-)
-
-(method Dog.Construct : (this.id = 4))
-
-(factory Sys.NewDog Sys.IDog : (construct Dog))
 
 (function Main -> (Int32 result):
-	(Sys.IDog rover4 (Sys.NewDog))
-	(rover4.Bark -> result)
+	(Magic magic = 1 2)
+	(Do magic)
+	(result = magic.a)
 )
 (alias Main EntryPoint.Main)

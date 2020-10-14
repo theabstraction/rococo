@@ -253,7 +253,7 @@ namespace
 		ReadInput(0, capacity, e);
 
 		if (capacity <= 0) Throw(0, "NewStringBuilder failed. Capacity needs to be positive");
-		if (capacity > 1024_megabytes) Throw(0, "NewStringBuilder failed. Capacity needs to be less than 1 gigabyte");
+		if (capacity >= 1024_megabytes) Throw(0, "NewStringBuilder failed. Capacity needs to be less than 1 gigabyte");
 
 		FastStringBuilder* sb;
 
@@ -309,6 +309,7 @@ namespace
 		}
 
 		sb->buffer = ((char*) sb) + sizeof(FastStringBuilder);
+		sb->buffer[0] = 0;
 		sb->capacity = capacity;
 		sb->length = 0;
 		sb->formatBase = 10;

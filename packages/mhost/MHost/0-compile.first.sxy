@@ -1,7 +1,8 @@
 /* Sexy currently has a limitation, in that for every interface B that extends A
    then A has to be pre-processed before B. We can hack that with our package system
-   by defining a file that starts with 0. Since 0 comes before the alphabetical in ASCII
-   it will be sorted so that it compiles first. Thus we put our base interfaces here 
+   by defining a file that starts with 0. Since 0 comes before the alphabet in ASCII,
+   and our packager compiles filenames in ASCII order, the 0 prefixed file will be compiled first. 
+   Thus we put our base interfaces here 
  */
  
 (namespace MHost)

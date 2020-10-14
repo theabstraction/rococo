@@ -2799,6 +2799,49 @@ R"(
 		validate(x == 49);
 	}
 
+	void TestClosureInputToStruct(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+R"(
+
+(namespace EntryPoint)
+
+(using EntryPoint)
+
+(struct Magic (Int32 a)(Int32 b))
+
+(archetype EntryPoint.IntToInt (Int32 x) -> (Int32 y))
+
+(function Do (Magic magic)-> :
+	(IntToInt f =
+			(closure (Int32 x) -> (Int32 y):
+				(magic.a = x)
+			)
+	)
+	(f 7)
+)
+
+(function Main -> (Int32 result):
+	(Magic magic = 1 2)
+	(Do magic)
+	(result = magic.a)
+)
+(alias Main EntryPoint.Main)
+
+)";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(1); // Allocate stack space for the int32 x
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		int32 x = vm.PopInt32();
+		validate(x == 7);
+	}
+
 	void TestClosureAndThis(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -14058,6 +14101,7 @@ R"((namespace EntryPoint)
 		int64 start, end, hz;
 		start = OS::CpuTicks();
 
+		TEST(TestClosureInputToStruct);
 		TEST(TestListDeleteHeadAndThrow);
 		TEST(TestListReverseEnumeration);
 
