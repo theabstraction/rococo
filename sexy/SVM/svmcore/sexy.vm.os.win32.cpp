@@ -44,6 +44,8 @@
 #include <excpt.h>
 #include <intrin.h>
 
+#include <rococo.api.h>
+
 using namespace Rococo;
 using namespace Rococo::VM;
 
@@ -89,7 +91,9 @@ namespace Rococo { namespace VM { namespace OS
 		}
 		catch (IException& ex)
 		{
-			vm.Core().Log(ex.Message());
+			char msg[4096];
+			Rococo::OS::BuildExceptionString(msg, sizeof msg, ex, true);
+			vm.Core().Log(msg);
 			return EXECUTERESULT_THROWN;
 		}
 	}

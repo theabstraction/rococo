@@ -1,0 +1,106 @@
+(using Sys)
+(using Sys.Maths)
+(using Sys.Maths.F32)
+(using Sys.Type)
+(using Sys.Random)
+(using Sys.Reflection)
+(using Sys.Type.Strings)
+
+(using MPlat)
+(using MHost)
+(using MHost.Events)
+(using MHost.OS)
+(using MHost.Graphics)
+(using MHost.Graphics.Utils)
+(using MHost.Graphics.Widgets)
+(using Rococo)
+(using Rococo.Graphics)
+(using Rococo.Audio)
+(using RPG)
+
+(class WorldScreen 
+	(implements IScreen)
+	(implements IEventHandler)
+	
+	(IBundle bundle) 
+	(IUIStack uistack)
+	
+	(Vec2 screenSpan)
+	(Vec2 cursorPos)
+)
+
+(method WorldScreen.Construct (IBundle bundle) -> : 
+	(this.bundle = bundle)
+	(this.uistack = (MHost.Graphics.NewUIStack))
+	(this.screenSpan = -1 -1)
+	(this.cursorPos = -1 -1)
+)
+
+(factory RPG.NewWorldScreen IScreen (IBundle bundle): 
+	(construct WorldScreen bundle)
+)
+
+(method WorldScreen.OnMouseDown (Int32 button) (Float32 x)(Float32 y) -> :
+	(Vec2 pos = x y)
+	
+	(IEventHandler evHandler = this)
+		
+	(OnUIStackItem q = 
+		(closure (UIStackItem item)->(Bool terminate):
+			(MouseClickArgs args = pos evHandler button)
+			(item.handler.OnMouseDown args)
+		)
+	)
+	(this.uistack.RouteMouseEvent pos q)
+)
+
+(method WorldScreen.OnMouseMove (Float32 x)(Float32 y) -> :
+	(Vec2 pos = x y)
+	(IEventHandler evHandler = this)
+		
+	(OnUIStackItem q = 
+		(closure (UIStackItem item)->(Bool terminate):
+			(MouseClickArgs args = pos evHandler 0)
+			(item.handler.OnMouseMove args)
+		)
+	)
+	(this.uistack.RouteMouseEvent pos q)
+)
+
+(method WorldScreen.OnMouseUp (Int32 button)(Float32 x)(Float32 y) -> :
+	(Vec2 pos = x y)
+	(IEventHandler evHandler = this)
+	
+	(OnUIStackItem q = 
+		(closure (UIStackItem item)->(Bool terminate):
+			(MouseClickArgs args = pos evHandler button)
+			(item.handler.OnMouseUp args)
+		)
+	)
+	
+	(this.uistack.RouteMouseEvent pos q)
+)
+
+(method WorldScreen.OnWheel (Int32 spin) -> :
+)
+
+(method WorldScreen.OnAsciiChar (Int32 asciiValue)-> :
+)
+
+(method WorldScreen.OnSysKey (Bool isUp)(Int32 virtualKeyCode)-> :
+)
+
+(method WorldScreen.Layout (IGui g) -> :
+)
+
+(method WorldScreen.RenderGui (IGui g) -> :
+	(Vec2 screenSpan)
+	(g.GetScreenSpan screenSpan)
+	
+	(if (screenSpan != this.screenSpan)
+		(this.screenSpan = screenSpan)
+		(this.Layout g)
+	)
+	
+	(RenderTree this.uistack g)
+)

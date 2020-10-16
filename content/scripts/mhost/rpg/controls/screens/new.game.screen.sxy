@@ -229,6 +229,8 @@
 	(newGameButton.SetLabel "Enter World...")
 	(this.newGameButton = newGameButton)
 	(this.uistack.AddTopLevelControl newGameButton "newGame")
+	
+	(this.SyncUI)
 )
 
 (method NewGameScreen.OnClickListRow (SelectListRowArgs args) -> :
@@ -372,8 +374,31 @@
 	)
 )
 
+(method NewGameScreen.SyncUI -> :
+	// Make the Enter World button invisible if no slot is filled
+	(this.uistack.SetVisible this.newGameButton false)
+	
+	(foreach s # this.slots
+		(if (s.charData ?)
+			(this.uistack.SetVisible this.newGameButton true)
+			(this.newGameButton.EnableGlow)
+		)
+	)
+)
+
 (method NewGameScreen.OnMouseDown (Int32 button) (Float32 x)(Float32 y) -> :
 	(Vec2 pos = x y)
+	
+	// Remove portrait if it is under the cursor
+	(foreach slot # this.slots
+		(if (IsPointInRect pos slot.rect)
+			(slot.charData.AssignToSlot -2)
+			(slot.charData = 0)
+			
+			(this.SyncUI)
+			(return)
+		)
+	)
 	
 	(IEventHandler evHandler = this)
 		
@@ -394,24 +419,24 @@
 	(cast this.selectedRow -> ICharDataStore cds)
 	(cds.AssignToSlot -2)
 	
+	// Find which slot is under the cursor and set it to the selected row,
+	// and remove all references to the selected row in the remaining slots
 	(foreach i slot # this.slots
 		(if (IsPointInRect pos slot.rect)
 			(cds.AssignToSlot i)
 			(slot.charData.AssignToSlot -2) // this tells the character at the slot it is no longer assigned
 			(slot.charData = cds)
 			
-			(Int32 length = (this.slots.Length))
-			(#for (Int32 j = 0) (j < length)(j += 1)
+			(foreach j slotJ # this.slots
 				(if (i != j)
-					(foreach sj # (this.slots j)
-						(if (sj.charData ==  cds)
-							(sj.charData = 0)
-						)
+					(if (slotJ.charData ==  cds)
+						(slotJ.charData = 0)
 					)
 				)
 			)
 
-			(break)
+			(this.SyncUI)
+			(break) // Allow execution to return to the uistack as we need to tell the drag and drop source the drop occured
 		)
 	)
 	
@@ -455,5 +480,9 @@
 (method NewGameScreen.OnButtonUp (ButtonClickArgs args) -> :
 	(if (args.button == this.cancelButton)
 		(this.bundle.SetActiveScreen (#IdScreenOpening))
+	)
+	
+	(if (args.button == this.newGameButton)
+		(this.bundle.SetActiveScreen (#IdScreenWorld))
 	)
 )

@@ -2116,7 +2116,7 @@ namespace Rococo
 				HRESULT hr = HRESULT_FROM_WIN32(GetLastError());
 				if (hr != ERROR_FILE_NOT_FOUND)
 				{
-					Throw(hr, "%s: %S\n", __FUNCTION__, fullSearchFilter);
+					Throw(hr, "%s: %ls\n", __FUNCTION__, fullSearchFilter);
 				}
 				return;
 			}

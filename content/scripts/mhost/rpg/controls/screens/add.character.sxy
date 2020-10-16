@@ -58,6 +58,9 @@
 	(Int32 portraitIndex)
 	
 	(IStringBuilder portraitFilename)
+	
+	(array IString malePortraits)
+	(array IString femalePortraits)
 )
 
 (archetype Sys.Reflection.CallbackWithExpression (IExpression expression) ->)
@@ -208,7 +211,7 @@
 	(this.rollButton.Enable)
 )
 
-(method AddCharacterScreen.Construct (IBundle bundle) -> : 
+(method AddCharacterScreen.Construct (IBundle bundle) -> (construct malePortraits 100)(construct femalePortraits 100): 
 	(this.bundle = bundle)
 	
 	(this.uistack = (MHost.Graphics.NewUIStack))
@@ -624,33 +627,50 @@
 	(this.UpdatePortrait)
 )
 
+(function AppendToArray (IString item)(array IString items)-> :
+	(items.Push item)
+)
+
 (method AddCharacterScreen.UpdatePortrait -> :
 	(IEngine engine = this.bundle.Engine)
 	
-	(IExpression femaleFaces = '(
-		lady.asian.1.jpg	lady.black.1.jpg	lady.spanish.1.jpg 
-		lady.white.1.jpg	lady.white.2.jpg	lady.white.3.jpg 
-	))
+	(if ((this.malePortraits.Length) == 0)
+		(MPlat.OnFileName appendToList =
+			(closure (IString fileName) -> :
+				(AppendToArray fileName this.malePortraits)
+			)
+		)
+		(MPlat.OS.EnumerateFiles "!textures/faces/male/*.jpg" appendToList)
+	)
 	
-	(IExpression maleFaces = '(
-		male.white.1.jpg	male.white.2.jpg	male.white.3.jpg 
-	))
+	(if ((this.femalePortraits.Length) == 0)	
+		(MPlat.OnFileName appendToList =
+			(closure (IString fileName) -> :
+				(AppendToArray fileName this.femalePortraits)
+			)
+		)
+		(MPlat.OS.EnumerateFiles "!textures/faces/female/*.jpg" appendToList)
+	)
 	
 	(this.portraitFilename.Clear)
 	
+	(if ((this.malePortraits.Length) == 0)
+		(Sys.Throw 0 "Search for !textures/faces/male/*.jpg found no results")
+	)
+	
+	(if ((this.femalePortraits.Length) == 0)
+		(Sys.Throw 0 "Search for !textures/faces/female/*.jpg found no results")
+	)
+	
 	(IExpression s = this.sexButton.GetSelectedValue)
 	(if (s == this.sFemale)
-		(this.portraitFilename "!textures/faces/female/")
-		(Int32 index = (Sys.Maths.I32.Mod this.portraitIndex femaleFaces.ChildCount))
-		(IExpression name = (femaleFaces index))
+		(Int32 index = (Sys.Maths.I32.Mod this.portraitIndex (this.femalePortraits.Length)))
 		(this.portraitIndex = index)
-		(name.AppendTextTo this.portraitFilename)
+		(this.portraitFilename.AppendIString (this.femalePortraits index))
 	else
-		(this.portraitFilename "!textures/faces/male/")
-		(Int32 index = (Sys.Maths.I32.Mod this.portraitIndex maleFaces.ChildCount))
-		(IExpression name = (maleFaces index))
+		(Int32 index = (Sys.Maths.I32.Mod this.portraitIndex (this.malePortraits.Length)))
 		(this.portraitIndex = index)
-		(name.AppendTextTo this.portraitFilename)
+		(this.portraitFilename.AppendIString (this.malePortraits index))
 	)
 	
 	(MPlat.BitmapLocation img)

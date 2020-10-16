@@ -508,17 +508,11 @@ namespace
 			char text[4096];
 			va_list args;
 			va_start(args, format);
-			int len = SafeVFormat(text, 4094, format, args);
-
-			if (len > 0)
-			{
-				text[len] = L'\n';
-				text[len + 1] = 0;
-			}
-			else
-			{
-				Rococo::Throw(GetLastError(), "Bad format in log message");
-			}
+			int len = SafeVFormat(text, (sizeof text) - 2, format, args);
+			if (len == -1) 
+				len = (sizeof text) - 2;
+			text[len] = L'\n';
+			text[len + 1] = 0;
 
 			logSegments.push_back({ RGB(0,0,0), text });
 
