@@ -90,6 +90,8 @@
 	(construct GuiInputThread engine)
 )
 
+(function MouseDegreesPerDelta -> (Float32 degreesPerDelta): (degreesPerDelta = 0.2))
+
 (method GuiInputThread.Run -> :
 	(IKeyboard keyboard (Keyboard))
 /*	(Int32 leftKey = (keyboard.GetVKeyFromName "A"))
@@ -112,6 +114,17 @@
 			
 		(while (this.engine.GetNextKeyboardEvent keyEvent)
 			(TranslateKeyboardEvent keyEvent this.activeScreen)
+		)
+		
+		(Vec2 mouseDelta)
+		(this.engine.GetNextMouseDelta mouseDelta)
+
+		(if ((mouseDelta.x != 0) or (mouseDelta.y != 0))
+			(Float32 mouseDegreesPerDelta = MouseDegreesPerDelta)
+			(Vec2 mouseDeltaDegrees = mouseDelta * mouseDegreesPerDelta)	
+
+			(cast this.activeScreen -> IEventHandler dispatch)
+			(dispatch.UpdateMouseLook mouseDeltaDegrees)
 		)
 		
 		(yield 1000)
@@ -333,8 +346,27 @@
 
 (factory RPG.NewGameBundle RPG.IBundle : (construct GameBundle))
 
+(struct ArgsOnFrame
+	(Int64 frameIndex)
+	(Int64 frameTime)
+	(Float32 dt)
+)
+
+(alias ArgsOnFrame RPG.ArgsOnFrame)
+
 (method GameBundle.Run -> :
+	(Int64 frameIndex = 0)
+	(Int64 frameTime = 0)
+	(Int64 frameStart = Sys.OS.ClockTicks)
+	(Int64 cpuHz = Sys.OS.ClockHz)
+	(Int64 maxDt = (cpuHz / 10))
+	
 	(while this.engine.IsRunning
+		(Int64 frameEnd = Sys.OS.ClockTicks)
+		(Int64 dtTicks = (frameEnd - frameStart))
+		(dtTicks = (Sys.Maths.I64.Clamp dtTicks 0 maxDt))
+		(frameTime += dtTicks)
+		
 		(while (this.coroutines.Continue > 0))
 		
 		(IScreen screen = this.activeScreen)
@@ -345,8 +377,16 @@
 			)
 		)
 		
+		(cast screen -> IEventHandler dispatchToScreen)
+		
+		(Float32 dt = (Sys.Maths.I64.ToFloat32 dtTicks))
+		(ArgsOnFrame args = frameIndex frameTime dt)
+		(dispatchToScreen.OnFrame args)
+		
 		(this.engine.Render p)	
 		(this.engine.YieldForSystemMessages 5)
+		
+		(frameIndex += 1)
 	)
 	
 	(this.coroutines.ReleaseAll)

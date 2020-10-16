@@ -1,6 +1,8 @@
 (using Sys)
 (using Sys.Maths)
+(using Sys.Geometry.F32)
 (using Sys.Maths.F32)
+(using Sys.Maths.I32)
 (using Sys.Type)
 (using Sys.Random)
 (using Sys.Reflection)
@@ -13,9 +15,11 @@
 (using MHost.Graphics)
 (using MHost.Graphics.Utils)
 (using MHost.Graphics.Widgets)
+(using MHost.Geometry)
 (using Rococo)
 (using Rococo.Graphics)
 (using Rococo.Audio)
+(using Rococo.Entities)
 (using RPG)
 
 (class WorldScreen 
@@ -24,9 +28,46 @@
 	
 	(IBundle bundle) 
 	(IUIStack uistack)
+	(Bool isSceneDirty)
 	
 	(Vec2 screenSpan)
 	(Vec2 cursorPos)
+	
+	(WorldOrientation cameraOrientation)
+	
+	(Vec3 cameraPos)
+)
+
+(method WorldScreen.SetPlayerMoveIntent (Float32 straffeSpeed)(Float32 forwardSpeed)-> :
+	/*
+	(struct WorldOrientation
+		(Degrees bearing) // 0 = North, 90 = East, 180 = South, 270 = West
+		(Degrees elevation) // 0 = forward, 90 = up, -90 = down
+		(Degrees roll) // anti-clockwise roll about direction vector
+	)
+	*/
+
+
+	// Consider the case of three rotations mapping -z to a direction N. The inverse transformation
+	// of three rotations is three inverse rotations in reverse order. e.g (Rx.Ry.Rz)' = Rz'.Ry'.Rx'
+	
+	(if ((forwardSpeed != 0) or (straffeSpeed != 0))
+		(Float32 anticlockWiseDegrees = (0 - this.cameraOrientation.bearing))
+		
+		(Matrix4x4 rZ)
+		(Sys.Geometry.F32.RotateAboutZ anticlockWiseDegrees rZ)
+		
+		(Float32 forwardDelta = (0.1 * forwardSpeed))
+		(Float32 straffeDelta = (0.1 * straffeSpeed))
+		
+		(Vec4 forward = straffeDelta forwardDelta 0 0)
+		(Vec4 worldForward)
+		
+		(Sys.Geometry.F32.MultiplyMatrix4x4fVec4f rZ forward worldForward)
+		
+		(this.cameraPos.x = (this.cameraPos.x + worldForward.x))
+		(this.cameraPos.y = (this.cameraPos.y + worldForward.y))
+	)
 )
 
 (method WorldScreen.Construct (IBundle bundle) -> : 
@@ -34,6 +75,9 @@
 	(this.uistack = (MHost.Graphics.NewUIStack))
 	(this.screenSpan = -1 -1)
 	(this.cursorPos = -1 -1)
+	(this.isSceneDirty = true)
+	(this.cameraOrientation = 0 0 0)
+	(this.cameraPos = 0 0 1.6)
 )
 
 (factory RPG.NewWorldScreen IScreen (IBundle bundle): 
@@ -93,6 +137,71 @@
 (method WorldScreen.Layout (IGui g) -> :
 )
 
+(method WorldScreen.SetupScene -> :
+	(ISceneBuilder scene (SceneBuilder))
+	(IInstances instances (Instances))
+	(ICamera camera (Camera))	
+	(camera.SetRHProjection 60 0.1 1000.0)
+	
+	(Int64 cubeId = (instances.CreateCubeTexture "!textures/t3d/skybox/YokohamaSmall/" "jpg"))
+	(scene.SetSkyBox cubeId)
+)
+
+(method WorldScreen.OnFrame (ArgsOnFrame args) -> :
+	(if this.isSceneDirty
+		(this.SetupScene)
+		(this.isSceneDirty = false)
+	)
+	
+	(Quat cameraQuat)
+	(GetWorldToCameraQuat this.cameraOrientation cameraQuat)
+	(ICamera camera (Camera))		
+	(camera.SetOrientation cameraQuat)
+)
+
+(function GetWorldToCameraQuat (WorldOrientation world)(Quat q)-> :
+	/*
+	(struct WorldOrientation
+		(Degrees bearing) // 0 = North, 90 = East, 180 = South, 270 = West
+		(Degrees elevation) // 0 = forward, 90 = up, -90 = down
+		(Degrees roll) // anti-clockwise roll about direction vector
+	)
+	*/
+	
+	/* A world to camera quaternion gives the rotation and roll required to map a direction and roll
+	defined in a WorldOrientation vector to an object facing -ve z, with x to the right and y up */
+	
+	// Consider the case of three rotations mapping -z to a direction N. The inverse transformation
+	// of three rotations is three inverse rotations in reverse order. e.g (Rx.Ry.Rz)' = Rz'.Ry'.Rx'
+	
+	(Degrees invElevation = (-90 - world.elevation))
+	
+	(Quat invElevationYQ)
+	(GetRotationQuat invElevation 1 0 0 invElevationYQ)
+	
+	(Degrees invBearing = (0 - world.bearing))
+	
+	(Degrees thetaXY = (0 - invBearing))
+	
+	(Quat invBearingZQ)
+	(GetRotationQuat thetaXY 0 0 1 invBearingZQ)
+	
+	(Quat zy = invBearingZQ * invElevationYQ)
+
+	(q = zy)
+)
+
+(method WorldScreen.UpdateMouseLook (Vec2 delta)-> :
+	(Float32 newBearing = (delta.x + this.cameraOrientation.bearing))
+	(Float32 newElevation = (this.cameraOrientation.elevation - delta.y))
+	(this.cameraOrientation.bearing = (Sys.Maths.F32.Mod newBearing 360))
+	(this.cameraOrientation.elevation = (Sys.Maths.F32.Clamp newElevation -45 45))
+)
+
+(method WorldScreen.GetCameraOrientation (WorldOrientation cameraOrientation)-> :
+	(cameraOrientation = this.cameraOrientation)
+)
+
 (method WorldScreen.RenderGui (IGui g) -> :
 	(Vec2 screenSpan)
 	(g.GetScreenSpan screenSpan)
@@ -103,4 +212,16 @@
 	)
 	
 	(RenderTree this.uistack g)
+	
+	(Rectf menuRect = 10 10 310 30)
+	(g.FillRect menuRect 0xFF404020)
+	
+	(WorldOrientation camera)
+	(this.GetCameraOrientation camera)
+	
+	(IStringBuilder sb = (NewPathBuilder))
+	(sb.SetFormat 0 0 false false)
+	(#build sb "Elevation: " camera.elevation ", Bearing: " camera.bearing)
+	
+	(g.DrawText menuRect 0 sb 1 0xFFFFFFFF)
 )
