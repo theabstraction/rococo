@@ -39,6 +39,11 @@
 	(IListBuilder roster)
 	
 	(IListRow selectedRow)
+	
+	(ILabelButton cancelButton)
+	(ILabelButton newGameButton)
+	
+	(Rectf hintRect)
 )
 
 (struct CharRow
@@ -214,6 +219,16 @@
 	)
 	
 	(MPlat.OS.EnumerateFiles "!scripts/mhost/rpg/chaps/*.dict" appendToList)
+	
+	(ILabelButton cancelButton (NewLabelButton))
+	(cancelButton.SetLabel "Cancel")
+	(this.cancelButton = cancelButton)
+	(this.uistack.AddTopLevelControl cancelButton "cancel")
+	
+	(ILabelButton newGameButton (NewLabelButton))
+	(newGameButton.SetLabel "Enter World...")
+	(this.newGameButton = newGameButton)
+	(this.uistack.AddTopLevelControl newGameButton "newGame")
 )
 
 (method NewGameScreen.OnClickListRow (SelectListRowArgs args) -> :
@@ -235,34 +250,68 @@
 	(Vec2 portraitSpan = 80 80)
 	(Float32 border = 10)
 	
-	(Float32 xLeftFar = border)
-	(Float32 xLeftNear = (border + portraitSpan.x))
-	(Float32 xRightFar = (ds.x - border))
-	(Float32 xRightNear = (xRightNear - portraitSpan.x))
-	(Float32 yTopFar = border)
-	(Float32 yTopNear = (border + portraitSpan.y))
-	(Float32 yBottomFar = (ds.y - border))
-	(Float32 yBottomNear = (yBottomFar - portraitSpan.y))
-	
-	(Float32 centreX = (ds.x / 2))
-	(Float32 centreXleft = (centreX - (portraitSpan.x / 2)))
-	(Float32 centreXright = (centreX + (portraitSpan.x / 2)))
+	(Rectf slot0)
+	(slot0.left = border)
+	(slot0.top = border)
+	(slot0.right = (border + portraitSpan.x))
+	(slot0.bottom = (border + portraitSpan.y))
+
+	(Rectf slot1 = slot0)
+	(slot1.left = (slot0.right + border))
+	(slot1.right = (slot1.left + portraitSpan.x))
+
+	(Rectf slot2 = slot0)
+	(slot2.left = (slot1.right + border))
+	(slot2.right = (slot2.left + portraitSpan.x))
+
+	(Rectf slot3 = slot0)
+	(slot3.top = (slot0.bottom + border))
+	(slot3.bottom = (slot3.top + portraitSpan.y))
+
+	(Rectf slot4 = slot2)
+	(slot4.top = slot3.top)
+	(slot4.bottom = slot3.bottom)
 	
 	(this.slots.Clear)
 	(ICharDataStore nullChar)
-	(this.slots.Push Slot ((centreXleft yTopFar centreXright yTopNear) nullChar))
-	(this.slots.Push Slot ((xLeftFar yTopFar xLeftNear yTopNear) nullChar))
-	(this.slots.Push Slot ((xRightFar yTopFar xRightNear yTopNear) nullChar))
-	(this.slots.Push Slot ((xLeftFar yBottomNear xLeftNear yBottomFar) nullChar))
-	(this.slots.Push Slot ((xRightFar yBottomNear xRightNear yBottomFar) nullChar))
+	(this.slots.Push Slot (slot0 nullChar))
+	(this.slots.Push Slot (slot1 nullChar))
+	(this.slots.Push Slot (slot2 nullChar))
+	(this.slots.Push Slot (slot3 nullChar))
+	(this.slots.Push Slot (slot4 nullChar))
 	
 	(Rectf rosterRect)
-	(rosterRect.left = 128)
-	(rosterRect.top = 128)
-	(rosterRect.right = (ds.x - 128))
-	(rosterRect.bottom = (rosterRect.top + 320))
+	(rosterRect.left = (slot2.right + border))
+	(rosterRect.top = border)
+	(rosterRect.right = (ds.x - border))
+	(rosterRect.bottom = (ds.y - 160))
 	
 	(this.roster.SetRect rosterRect g)
+
+	(Float32 centreX = (0.5 * ds.x))
+	
+	(Rectf cancelRect)
+	(cancelRect.bottom = (ds.y - 10))
+	(cancelRect.top = (cancelRect.bottom - 40))
+	(cancelRect.left = (centreX - 70))
+	(cancelRect.right = (centreX + 70))
+	
+	(this.cancelButton.SetRect "Tahoma" cancelRect g)
+	
+	(Rectf newGameRect)
+	(newGameRect.bottom = (cancelRect.top - 20))
+	(newGameRect.top = (newGameRect.bottom - 40))
+	(newGameRect.left = (centreX - 112))
+	(newGameRect.right = (centreX + 112))
+	
+	(this.newGameButton.SetRect "Tahoma" newGameRect g)
+	
+	(
+		(Float32 right = (this.screenSpan.x - 5))
+		(Float32 top = (rosterRect.bottom + border))
+		(Float32 bottom = (top + 34))
+		(this.hintRect = 5 top right bottom)
+	)
 )
 
 (method NewGameScreen.RenderGui (IGui g) -> :
@@ -277,11 +326,7 @@
 	(Rectf rect = 0 0 this.screenSpan.x this.screenSpan.y)
 	(g.DrawBorder rect 4 0xFFFFFFFF 0xFFAFAFAF 0xFF8F8F8F 0xFF5F5F5F)
 	
-	(Float32 right = (this.screenSpan.x - 200))
-	(Float32 top = (this.screenSpan.y - 200))
-	(Float32 bottom = (this.screenSpan.y - 70))
-	(Rectf hintRect = 200 top right bottom)
-	(g.DrawLeftAligned hintRect "Drag and drop portraits to character slots to build a party." 2 36 0xFFFFFFFF 50 120)
+	(g.DrawText this.hintRect 0 "Drag and drop portraits to character slots to build a party." 2 0xFFFFFFFF)
 	
 	(RenderTree this.uistack g)
 	
@@ -352,8 +397,20 @@
 	(foreach i slot # this.slots
 		(if (IsPointInRect pos slot.rect)
 			(cds.AssignToSlot i)
-			(slot.charData.AssignToSlot -2)
+			(slot.charData.AssignToSlot -2) // this tells the character at the slot it is no longer assigned
 			(slot.charData = cds)
+			
+			(Int32 length = (this.slots.Length))
+			(#for (Int32 j = 0) (j < length)(j += 1)
+				(if (i != j)
+					(foreach sj # (this.slots j)
+						(if (sj.charData ==  cds)
+							(sj.charData = 0)
+						)
+					)
+				)
+			)
+
 			(break)
 		)
 	)
@@ -395,3 +452,8 @@
 	(this.uistack.RouteSysKey isUp virtualKeyCode)
 )
 
+(method NewGameScreen.OnButtonUp (ButtonClickArgs args) -> :
+	(if (args.button == this.cancelButton)
+		(this.bundle.SetActiveScreen (#IdScreenOpening))
+	)
+)

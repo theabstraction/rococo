@@ -56,15 +56,7 @@ namespace SexyDotNet
                         typeface = new Typeface(this.FontFamily, this.FontStyle, this.FontWeight, this.FontStretch);
                     }
 
-                    text = new FormattedText
-                    (
-                        value,
-                        culture,
-                        FlowDirection.LeftToRight,
-                        typeface,
-                        this.FontSize,
-                        Brushes.Black
-                    );
+                    text = new FormattedText(value,culture,FlowDirection.LeftToRight,typeface,this.FontSize,Brushes.Black, 1.0);
 
                     text.MaxTextWidth = 1920;
                     text.Trimming = TextTrimming.WordEllipsis;

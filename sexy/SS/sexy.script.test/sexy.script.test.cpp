@@ -1977,6 +1977,42 @@ namespace
 		validate(y == 25.0);
 	}
 
+	void TestPushStructToArray(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+R"(
+
+(using Sys.Maths)
+(namespace EntryPoint)
+
+(struct Slot
+	(Rectf rect)
+	(Int32 id)
+)
+
+(function Main -> (Float32 result):
+	(array Slot slots 1)
+	(Rectf rect = 1 2 10 11)
+	(slots.Push Slot (rect  7))
+	(Slot s0)
+	(s0 = (slots 0))
+	(result = s0.rect.bottom)
+)
+(alias Main EntryPoint.Main)
+
+)";
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the float32 x
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		float x = vm.PopFloat32();
+		validate(x == 11.0f);
+	}
+
 	void TestStructWithVec4f(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -12558,6 +12594,45 @@ R"((namespace EntryPoint)
 		validate(x1 = 4);
 	}
 
+	void TestNestedArrayEnumeration(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+R"(
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+	(using Sys.Maths)
+
+	(function Main -> (Float32 z):
+		(array Vec2 vectors 2)
+		(vectors.Push Vec2f (3 5))
+		(vectors.Push Vec2f (7 9))
+
+		(foreach i v # vectors
+			(foreach j w # vectors
+				(z = (z + (i * v.x)))
+				(z = (z + (i * v.y)))
+				(z = (z + (j * w.x)))
+				(z = (z + (j * w.y)))
+			)
+		)
+	)
+
+)";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 1,1 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0x00000001);
+		auto result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateLogs();
+		validate(result == Rococo::EXECUTERESULT_TERMINATED);
+
+		auto x1 = vm.PopFloat32();
+		validate(x1 = 34.0f);
+	}
+
 	void TestClosureArg(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -13739,6 +13814,11 @@ R"((namespace EntryPoint)
 	{
 		validate(true);
 
+		TEST(TestPushStructToArray);
+		TEST(TestClosureInputToStruct);
+		TEST(TestListDeleteHeadAndThrow);
+		TEST(TestListReverseEnumeration);
+
 		TEST(TestPackage);
 
 		TEST(TestUseDefaultNamespace);
@@ -13782,7 +13862,6 @@ R"((namespace EntryPoint)
 		TEST(TestStructArgFromStructArg);
 		TEST(TestStringArray);
 		TEST(TestCompareInterfaces);
-		TEST(TestListReverseEnumeration);
 		TEST(TestZeroDefaults);
 		TEST(TestMemberwiseConstructWithInterface);
 		TEST(TestStructInClassSetFromMethod);
@@ -14101,9 +14180,7 @@ R"((namespace EntryPoint)
 		int64 start, end, hz;
 		start = OS::CpuTicks();
 
-		TEST(TestClosureInputToStruct);
-		TEST(TestListDeleteHeadAndThrow);
-		TEST(TestListReverseEnumeration);
+		TEST(TestNestedArrayEnumeration);
 
 		RunPositiveSuccesses();
 		RunPositiveFailures();	

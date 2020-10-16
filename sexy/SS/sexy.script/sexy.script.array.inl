@@ -553,8 +553,13 @@ namespace Rococo
 		   }
 		   else
 		   {
-			   IScriptSystem& ss = *(IScriptSystem*) context;
-			   ss.ThrowFromNativeCode(ERANGE, ("Array.Lock failed: the array was already locked for enumeration"));
+			   if (a->LockNumber == 0x7FFFFFFF)
+			   {
+				   IScriptSystem& ss = *(IScriptSystem*) context;
+				   ss.ThrowFromNativeCode(0, "ArrayLock failed: the array lock reached the upper limit of 0x7FFFFFFF");
+			   }
+
+			   a->LockNumber++;
 		   }
 	   }
 
@@ -564,12 +569,17 @@ namespace Rococo
 
 		   if (IsLocked(*a))
 		   {			
-			   a->LockNumber = 0;			
+			   if (a->LockNumber <= 0)
+			   {
+				   IScriptSystem& ss = *(IScriptSystem*)context;
+				   ss.ThrowFromNativeCode(0, "ArrayUnlock failed: the array lock was not positive");
+			   }
+			   a->LockNumber--;			
 		   }
 		   else
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*) context;
-			   ss.ThrowFromNativeCode(ERANGE, ("Array.Unlock: the array was not locked"));
+			   ss.ThrowFromNativeCode(0, "Array.Unlock: the array was not locked");
 		   }
 	   }
 
@@ -607,14 +617,14 @@ namespace Rococo
 
 	   void CompileAsPushToArrayByRef(CCompileEnvironment& ce, cr_sex s, cstr instanceName)
 	   {
-		   const IStructure& elementType = GetArrayDef(ce, s, instanceName);
+		   const IStructure& elementType = GetElementTypeForArrayVariable(ce, s, instanceName);
 
 		   if (s.NumberOfElements() == 3)
 		   {
 			   cr_sex memberwiseIndicator = GetAtomicArg(s, 1);
 			   if (!AreEqual(memberwiseIndicator.String(), GetFriendlyName(elementType)))
 			   {
-				   Throw(s, ("Expecting either (array.Push <arg>), (array.Push ( element-constructor-args...)) or (array.Push <element-type-name> (memberwise-constructor-args...)"));
+				   Throw(s, "Expecting either (%s.Push <arg>), (%s.Push ( element-constructor-args...)) or (%s.Push %s (memberwise-constructor-args...)", instanceName, instanceName, instanceName, GetFriendlyName(elementType));
 			   }
 
 			   if (IsNullType(elementType))
@@ -634,7 +644,7 @@ namespace Rococo
 				   Throw(memberwiseArgs, ("Expecting either a null or compound expression"));
 			   }
 
-			   ConstructMemberByRef(ce, memberwiseArgs, Rococo::ROOT_TEMPDEPTH+1, elementType, 0);
+			   ConstructMemberByRef(ce, memberwiseArgs, REGISTER_D8, elementType, 0);
 		   }
 		   else // 2
 		   {
@@ -664,7 +674,7 @@ namespace Rococo
 
 	   void CompileAsPushToArray(CCompileEnvironment& ce, cr_sex s, cstr instanceName)
 	   {
-		   const IStructure& elementType = GetArrayDef(ce, s, instanceName);
+		   const IStructure& elementType = GetElementTypeForArrayVariable(ce, s, instanceName);
 
 		   AssertNotTooFewElements(s, 2);
 
@@ -744,7 +754,7 @@ namespace Rococo
 
 	   void CompileAsPopOutFromArray(CCompileEnvironment& ce, cr_sex s, cstr instanceName, VARTYPE requiredType)
 	   {
-		   const IStructure& elementType = GetArrayDef(ce, s, instanceName);
+		   const IStructure& elementType = GetElementTypeForArrayVariable(ce, s, instanceName);
 		   if (elementType.VarType() != requiredType)
 		   {
 			   sexstringstream<1024> streamer;
@@ -810,7 +820,7 @@ namespace Rococo
 
 		   AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH, 0, BITCOUNT_32); // save the value to D7 for popping to D4
 		
-		   const IStructure& elementType = GetArrayDef(ce, s, instance);
+		   const IStructure& elementType = GetElementTypeForArrayVariable(ce, s, instance);
 
 		   cr_sex value = s.GetElement(2);
 
@@ -894,7 +904,7 @@ namespace Rococo
 
 	   void ValidateElementType(CCompileEnvironment& ce, cr_sex s, cstr instanceName, VARTYPE type, const IStructure* structType)
 	   {
-		   const IStructure& elementType = GetArrayDef(ce, s, instanceName);
+		   const IStructure& elementType = GetElementTypeForArrayVariable(ce, s, instanceName);
 
 		   if (elementType.VarType() != type)
 		   {
@@ -921,7 +931,7 @@ namespace Rococo
 
 		   const ArrayCallbacks& callbacks = GetArrayCallbacks(ce);
 
-		   const IStructure& elementType = GetArrayDef(ce, s, instanceName);
+		   const IStructure& elementType = GetElementTypeForArrayVariable(ce, s, instanceName);
 		   switch(SizeOfElement(elementType))
 		   {
 		   case 4:
@@ -938,7 +948,7 @@ namespace Rococo
 
 	   void CompileGetArraySubelement(CCompileEnvironment& ce, cr_sex indexExpr, cr_sex subItemName, cstr instanceName, VARTYPE type, const IStructure* structType)
 	   {
-		   const IStructure& elementType = GetArrayDef(ce, indexExpr, instanceName);
+		   const IStructure& elementType = GetElementTypeForArrayVariable(ce, indexExpr, instanceName);
 
 		   int offset = 0;
 		   const IMember* member = FindMember(elementType, subItemName.String()->Buffer, OUT offset);
@@ -1103,7 +1113,7 @@ namespace Rococo
 		   AssertLocalIdentifier(refExpr);
 		   cstr refName = refExpr.String()->Buffer;
 		
-		   const IStructure& elementType = GetArrayDef(ce, s, collectionName);
+		   const IStructure& elementType = GetElementTypeForArrayVariable(ce, s, collectionName);
 
 		   AddVariableRef(ce, NameString::From(refName), elementType);
 
@@ -1146,6 +1156,29 @@ namespace Rococo
 		//   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayUnlock); // Enable popping of the array after enumeration has finished
 	   }
 
+		// (foreach i v # <collection-name> (...) (...) )
+		// (foreach i v # (<collection-name> <lower-bound> <upper-bound>) (...) (...) )
+		// (foreach v # (<collection-name> <lower-bound> <upper-bound>) (...) (...) )
+	   cstr GetCollectionNameFromForeachExpression(cr_sex scollection)
+	   {
+		   if (IsCompound(scollection))
+		   {
+			   AssertNotTooFewElements(scollection, 3);
+			   AssertNotTooManyElements(scollection, 3);
+
+			   cr_sex collectionNameExpr = GetAtomicArg(scollection, 0);
+			   cstr collectionName = collectionNameExpr.String()->Buffer;
+			   AssertLocalVariableOrMember(collectionNameExpr);
+			   return collectionName;
+		   }
+		   else
+		   {
+			   cstr collectionName = scollection.String()->Buffer;
+			   AssertLocalVariableOrMember(scollection);
+			   return collectionName;
+		   }
+	   }
+
 	   void CompileEnumerateArray(CCompileEnvironment& ce, cr_sex s, int hashIndex)
 	   {	
 		   // (foreach i v # a (...) (...) )
@@ -1153,48 +1186,36 @@ namespace Rococo
 		   // (foreach i v # (a <lower-bound> <upper-bound>) (...) (...) )
 		   // (foreach v # (a <lower-bound> <upper-bound>) (...) (...) )
 
-		   cr_sex collection = s.GetElement(hashIndex + 1);
-
-		   cstr collectionName;
-
-		   if (IsCompound(collection))
-		   {
-			   AssertNotTooFewElements(collection, 3);
-			   AssertNotTooManyElements(collection, 3);
-
-			   cr_sex collectionNameExpr = GetAtomicArg(collection, 0);
-			   collectionName = collectionNameExpr.String()->Buffer;
-			   AssertLocalVariableOrMember(collectionNameExpr);	
-		   }
-		   else
-		   {
-			   collectionName = collection.String()->Buffer;
-			   AssertLocalVariableOrMember(collection);			
-		   }
+		   cr_sex collection = s[hashIndex + 1];
+		   cstr collectionName = GetCollectionNameFromForeachExpression(collection);
 
 		   cstr indexName;
 		   cstr refName;
 
 		   if (hashIndex == 2)
 		   {
-			   indexName = NULL;
-			   cr_sex refExpr = s.GetElement(1);
+			   // (foreach v # a (...) (...) ) or
+			   // (foreach v # (a <lower-bound> <upper-bound>) (...) (...) )
+			   indexName = nullptr;
+			   cr_sex refExpr = s[1];
 			   AssertLocalIdentifier(refExpr);
 			   refName = refExpr.String()->Buffer;
 		   }
 		   else
 		   {
-			   cr_sex indexExpr = s.GetElement(1);
+			   // (foreach i v # a (...) (...) )
+		       // (foreach i v # (a <lower-bound> <upper-bound>) (...) (...) )
+			   cr_sex indexExpr = s[1];
 			   indexName = indexExpr.String()->Buffer;
 			   AssertLocalIdentifier(indexExpr);
 
-			   cr_sex refExpr = s.GetElement(2);
+			   cr_sex refExpr = s[2];
 			   AssertLocalIdentifier(refExpr);
 			   refName = refExpr.String()->Buffer;			
 			   AddVariable(ce, NameString::From(indexName), ce.Object.Common().TypeInt32());
 		   }
 
-		   const IStructure& elementType = GetArrayDef(ce, s, collectionName);
+		   const IStructure& elementType = GetElementTypeForArrayVariable(ce, s, collectionName);
 
 		   if (elementType.InterfaceCount() == 0)
 		   {
@@ -1204,7 +1225,7 @@ namespace Rococo
 		   {
 			   AddVariable(ce, NameString::From(refName), elementType);
 			   VariantValue nullVal;
-			   nullVal.vPtrValue = (uint8*) (elementType.GetInterface(0).UniversalNullInstance()) + ObjectStub::BYTECOUNT_INSTANCE_TO_INTERFACE0;
+			   nullVal.vPtrValue = (uint8*) elementType.GetInterface(0).UniversalNullInstance()->pVTables;
 			   ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, nullVal, BITCOUNT_POINTER);
 			   ce.Builder.AssignTempToVariable(0, refName);
 		   }
@@ -1214,10 +1235,10 @@ namespace Rococo
 		   ce.Builder.AddSymbol(collectionName);
 		   ce.Builder.AssignVariableRefToTemp(collectionName, 9, 0); // Array ref is now in D13
 				
-		   ce.Builder.AddSymbol(("D12 - working index"));
+		   ce.Builder.AddSymbol("D12 - working index");
 		   AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 5, Rococo::ROOT_TEMPDEPTH + 5, BITCOUNT_POINTER);
 
-		   ce.Builder.AddSymbol(("(foreach...")); 
+		   ce.Builder.AddSymbol("(foreach..."); 
 
 		   if (IsCompound(collection))
 		   {
@@ -1245,12 +1266,12 @@ namespace Rococo
 		   }
 		
 		   // We may be nested in a function that overwrites D11, so save it
-		   ce.Builder.AddSymbol(("D11 - final index"));
+		   ce.Builder.AddSymbol("D11 - final index");
 		   AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 4, Rococo::ROOT_TEMPDEPTH + 4, BITCOUNT_POINTER);
 
 		   if (IsCompound(collection))
 		   {
-			   cr_sex endIndexExpr = collection.GetElement(2);
+			   cr_sex endIndexExpr = collection[2];
 
 			   int32 endIndexValue;
 			   if (TryParseAsIndexPositiveLiteralInt32(OUT endIndexValue, endIndexExpr))
@@ -1261,7 +1282,7 @@ namespace Rococo
 			   }
 			   else
 			   {
-				   if (!TryCompileArithmeticExpression(ce, endIndexExpr, true, VARTYPE_Int32)) Throw(endIndexExpr, ("Failed to parse expression as (Int32 endIndex)"));
+				   if (!TryCompileArithmeticExpression(ce, endIndexExpr, true, VARTYPE_Int32)) Throw(endIndexExpr, "Failed to parse expression as (Int32 endIndex)");
 				   ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D11, BITCOUNT_32); // D11 contains the final index throughout the entire iteration
 			   }		
 
@@ -1270,7 +1291,7 @@ namespace Rococo
 		   else
 		   {
 			   TokenBuffer arrayLengthName;
-			   StringPrint(arrayLengthName, ("%s._length"), collectionName);
+			   StringPrint(arrayLengthName, "%s._length", collectionName);
 			   ce.Builder.AssignVariableToTemp(arrayLengthName, 7, 0);
 
 			   VariantValue minusOne;
@@ -1281,7 +1302,8 @@ namespace Rococo
 		   // We may be nested in a function that overwrites D10, which is used as the result of D10-11
 		   AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 3, Rococo::ROOT_TEMPDEPTH + 3, BITCOUNT_POINTER);
 		
-		   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayLock); // Prevent popping of the array during enumeration
+		   // Prevent popping of the array during enumeration, since this may corrupt our references
+		   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayLock);
 
 		   int lockSize = AddVariableArrayLock(ce, 9);
 
@@ -1291,7 +1313,7 @@ namespace Rococo
 
 			   CCompileEnvironment& ce;
 
-			   virtual void Compile(ICodeBuilder& builder, IProgramObject& object, ControlFlowData* controlFlowData)
+			   void Compile(ICodeBuilder& builder, IProgramObject& object, ControlFlowData* controlFlowData) override
 			   {
 				   ce.Builder.AddSymbol(("while (endIndex > currentIndex)"));
 				   ce.Builder.Assembler().Append_IntSubtract(VM::REGISTER_D11, BITCOUNT_32, VM::REGISTER_D12);
@@ -1311,9 +1333,9 @@ namespace Rococo
 			   int firstBodyIndex;
 			   int lastBodyIndex;
 
-			   virtual void Compile(ICodeBuilder& builder, IProgramObject& object, ControlFlowData* controlFlowData)
+			   void Compile(ICodeBuilder& builder, IProgramObject& object, ControlFlowData* controlFlowData) override
 			   {
-				   ce.Builder.AddSymbol(("while..{ "));
+				   ce.Builder.AddSymbol("while..{ ");
 				   builder.PushControlFlowPoint(*controlFlowData);
 		  
 				   MemberDef refDef;
@@ -1338,20 +1360,20 @@ namespace Rococo
 				   CompileExpressionSequence(ce, firstBodyIndex, lastBodyIndex, s);				
 
 				   builder.PopControlFlowPoint();
-				   ce.Builder.AddSymbol(("...while }"));
+				   ce.Builder.AddSymbol("...while }");
 			   }
 		   } bodySection(s, ce, indexName, refName, hashIndex + 2, s.NumberOfElements()-1);
 
 		   ce.Builder.AppendWhileDo(loopCriterion, CONDITION_IF_GREATER_OR_EQUAL, bodySection);
 		
 		//   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayUnlock); // Enable popping of the array after enumeration has finished
-		   ce.Builder.AddSymbol(("...foreach)"));
+		   ce.Builder.AddSymbol("...foreach)");
 		   ce.Builder.Assembler().Append_NoOperation();
 	   }
 
 	   void CompileArrayDestruct(CCompileEnvironment& ce, const IStructure& s, cstr instanceName)
 	   {
-		   const IStructure& elementType = GetArrayDef(ce, *(const ISExpression*) s.Definition(), instanceName);
+		   const IStructure& elementType = GetElementTypeForArrayVariable(ce, *(const ISExpression*) s.Definition(), instanceName);
 		   if (RequiresDestruction(elementType))
 		   {
 			   ce.Builder.AssignVariableRefToTemp(instanceName, Rococo::ROOT_TEMPDEPTH);

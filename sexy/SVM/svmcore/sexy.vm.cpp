@@ -281,7 +281,7 @@ namespace Anon
 			ActivateInstruction(SaveRegister32);
 			ActivateInstruction(RestoreRegister64);
 			ActivateInstruction(SaveRegister64);
-			ActivateInstruction(TripDebugger);
+			ActivateInstruction(Debug);
 
 			ActivateInstruction(GetGlobal);
 			ActivateInstruction(SetGlobal);
@@ -1621,7 +1621,7 @@ namespace Anon
 				ID_BYTECODE FirstMethodId;
 			};
 
-			const auto* args = (ArgsCallVitualFunctionViaRefOnStack*) cpu.PC();
+			const auto* args = (ArgsCallVirtualFunctionViaRefOnStack*) cpu.PC();
 
 			const uint8* sfItem = cpu.SF() + args->SFoffsetToInterfaceRef;
 			const uint8** pInstance = (const uint8**) sfItem;
@@ -1632,7 +1632,7 @@ namespace Anon
 
 			cpu.Push(cpu.D[REGISTER_SF].vPtrValue);
 
-			const uint8 *returnAddress = cpu.PC() + sizeof(ArgsCallVitualFunctionViaRefOnStack);
+			const uint8 *returnAddress = cpu.PC() + sizeof(ArgsCallVirtualFunctionViaRefOnStack);
 			cpu.Push(returnAddress);						
 
 			// Then make the new stack frame equal to the stack pointer
@@ -1653,7 +1653,7 @@ namespace Anon
 				ID_BYTECODE FirstMethodId;
 			};
 
-			const auto* args = (ArgsCallVitualFunctionViaMemberOffsetOnStack*)cpu.PC();
+			const auto* args = (ArgsCallVirtualFunctionViaMemberOffsetOnStack*)cpu.PC();
 
 			const uint8* sfItem = cpu.SF() + args->SFoffsetToStruct;
 			const uint8* pStructure = *(const uint8**)sfItem;
@@ -1666,7 +1666,7 @@ namespace Anon
 
 			cpu.Push(cpu.D[REGISTER_SF].vPtrValue);
 
-			const uint8 *returnAddress = cpu.PC() + sizeof(ArgsCallVitualFunctionViaMemberOffsetOnStack);
+			const uint8 *returnAddress = cpu.PC() + sizeof(ArgsCallVirtualFunctionViaMemberOffsetOnStack);
 			cpu.Push(returnAddress);
 
 			// Then make the new stack frame equal to the stack pointer
@@ -2792,7 +2792,7 @@ namespace Anon
 			TerminateByIllegal(-1);
 		}
 
-		OPCODE_CALLBACK(TripDebugger)
+		OPCODE_CALLBACK(Debug)
 		{
 			cpu.AdvancePC(1);
 			status = EXECUTERESULT_BREAKPOINT;

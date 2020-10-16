@@ -1508,7 +1508,7 @@ namespace Anon
 				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Could not assign a non zero literal to interface [%s]"), name.c_str());
 			}
 
-			value.vPtrValue =  interf.UniversalNullInstance();
+			value.vPtrValue =  interf.UniversalNullInstance()->pVTables;
 		}
 		else if (vType == VARTYPE_Pointer)
 		{

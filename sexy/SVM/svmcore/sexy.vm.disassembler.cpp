@@ -1026,9 +1026,9 @@ namespace
 		rep.ByteCount = 6;	
 	}
 
-	void FormatTripDebugger(const Ins& I, OUT IDisassembler::Rep& rep)
+	void FormatDebug(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, (""));
+		format(rep, "");
 		rep.ByteCount = 1;	
 	}
 
@@ -1055,7 +1055,7 @@ namespace
 
 	void FormatCallVitualFunctionViaMemberOffsetOnStack(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		auto& args = (ArgsCallVitualFunctionViaMemberOffsetOnStack&)I;
+		auto& args = (ArgsCallVirtualFunctionViaMemberOffsetOnStack&)I;
 		format(rep, ("(%d.%d) #%d"), args.SFoffsetToStruct, args.memberOffsetToInterfaceRef, args.vTableOffset);
 		rep.ByteCount = sizeof(args);
 	}
@@ -1222,7 +1222,7 @@ namespace
 		EnableFormatter(SaveRegister64);
 		EnableFormatter(RestoreRegister64);
 		EnableFormatter(Branch);
-		EnableFormatter(TripDebugger);
+		EnableFormatter(Debug);
 		EnableFormatter(GetGlobal);
 		EnableFormatter(SetGlobal);
 		EnableFormatter(GetStackFrameValueAndExtendToPointer);

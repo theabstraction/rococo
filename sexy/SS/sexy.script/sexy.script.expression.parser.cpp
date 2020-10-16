@@ -1949,7 +1949,7 @@ namespace Rococo
 
 					if (*def.ResolvedType == ce.StructArray())
 					{					
-						const IStructure& elementType = GetArrayDef(ce, value, commandText);
+						const IStructure& elementType = GetElementTypeForArrayVariable(ce, value, commandText);
 						const IStructure* varType = ce.Builder.GetVarStructure(varName);
 
 						if (varType == NULL)
@@ -1964,7 +1964,7 @@ namespace Rococo
 
 						if (!IsPLOD(elementType))
 						{
-							Throw(value, ("The array element type is not plain data"));
+							Throw(value, "The array element type is not plain data. One or more of its members was reference counted. Use syntax (foreach <local-var> # (<array> <index> (...logic....))");
 						}
 
 						if (!TryCompileArithmeticExpression(ce, arg, true, VARTYPE_Int32))
@@ -2626,7 +2626,7 @@ namespace Rococo
 				CompileAsGlobalAccess(ce, s);
 				return true;
 			}
-			else if (AreEqual(token, "trip"))
+			else if (AreEqual(token, "debug"))
 			{
 				CompileTrip(ce, s);
 				return true;

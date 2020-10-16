@@ -487,7 +487,7 @@ namespace Rococo
 
 	      if (varStruct == &ce.StructArray())
 	      {
-		      const IStructure& elementType = GetArrayDef(ce, s, vname);
+		      const IStructure& elementType = GetElementTypeForArrayVariable(ce, s, vname);
 
 		      if (&elementType != genericArg1)
 		      {				
@@ -1543,17 +1543,17 @@ namespace Rococo
 			  {
 				  MemberDef localDef; // Local defs are copies of parent interface put onto the local stack by value
 				  builder.TryGetVariableByName(OUT localDef, localName);
-				  builder.Assembler().Append_CallVitualFunctionViaRefOnStack(localDef.SFOffset, vTableByteOffset);
+				  builder.Assembler().Append_CallVirtualFunctionViaRefOnStack(localDef.SFOffset, vTableByteOffset);
 			  }
 			  else
 			  {
 				  if (!refDef.IsContained || refDef.Usage == ARGUMENTUSAGE_BYVALUE)
 				  {
-					  builder.Assembler().Append_CallVitualFunctionViaRefOnStack(refDef.SFOffset + refDef.MemberOffset, vTableByteOffset);
+					  builder.Assembler().Append_CallVirtualFunctionViaRefOnStack(refDef.SFOffset + refDef.MemberOffset, vTableByteOffset);
 				  }
 				  else
 				  {
-					  builder.Assembler().Append_CallVitualFunctionViaMemberOffsetOnStack(refDef.SFOffset, refDef.MemberOffset, vTableByteOffset);
+					  builder.Assembler().Append_CallVirtualFunctionViaMemberOffsetOnStack(refDef.SFOffset, refDef.MemberOffset, vTableByteOffset);
 				  }
 			  }
 	      }
@@ -1572,12 +1572,12 @@ namespace Rococo
 							MemberDef localDef; // Local defs are copies of parent interface put onto the local stack by value
 							builder.TryGetVariableByName(OUT localDef, localName);
 							int instanceToInterfaceOffset = Compiler::GetInstanceToInterfaceOffset(i);
-							builder.Assembler().Append_CallVitualFunctionViaRefOnStack(localDef.SFOffset, vTableByteOffset);
+							builder.Assembler().Append_CallVirtualFunctionViaRefOnStack(localDef.SFOffset, vTableByteOffset);
 						}
 						else
 						{
 							int instanceToInterfaceOffset = Compiler::GetInstanceToInterfaceOffset(i) + refDef.MemberOffset;
-							builder.Assembler().Append_CallVitualFunctionViaRefOnStack(refDef.SFOffset, vTableByteOffset, instanceToInterfaceOffset);
+							builder.Assembler().Append_CallVirtualFunctionViaRefOnStack(refDef.SFOffset, vTableByteOffset, instanceToInterfaceOffset);
 						}
 						return;
 					}
@@ -1936,7 +1936,7 @@ namespace Rococo
 		      {
 			      if (st == &ce.StructArray() && s.NumberOfElements() == 2)
 			      {
-				      return &GetArrayDef(ce, s, token);
+				      return &GetElementTypeForArrayVariable(ce, s, token);
 			      }
 			      else
 			      {

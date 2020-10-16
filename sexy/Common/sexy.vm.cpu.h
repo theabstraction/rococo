@@ -240,7 +240,7 @@ namespace Rococo { namespace VM
 			SaveRegister32,
 			RestoreRegister64,
 			SaveRegister64,
-			TripDebugger,
+			Debug,
 			GetGlobal,
 			SetGlobal,
 			GetStackFrameValueAndExtendToPointer,
@@ -283,7 +283,7 @@ namespace Rococo { namespace VM
 		int32 structToMemberOffset;
 	} TIGHTLY_PACKED;
 
-	struct ArgsCallVitualFunctionViaRefOnStack
+	struct ArgsCallVirtualFunctionViaRefOnStack
 	{
 		Opcodes::OPCODE opcode;
 		int32 SFoffsetToInterfaceRef;
@@ -291,7 +291,7 @@ namespace Rococo { namespace VM
 		int32 instanceToInterfaceOffset;
 	} TIGHTLY_PACKED;
 
-	struct ArgsCallVitualFunctionViaMemberOffsetOnStack
+	struct ArgsCallVirtualFunctionViaMemberOffsetOnStack
 	{
 		Opcodes::OPCODE opcode;
 		int32 SFoffsetToStruct;

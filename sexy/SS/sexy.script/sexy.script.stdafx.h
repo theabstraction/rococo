@@ -302,7 +302,7 @@ namespace Rococo
          CScript(ISParserTree& _tree, IProgramObject& _programObject, CScripts& _scripts);
          GlobalValue* GetGlobalValue(cstr name);
          void EnumerateGlobals(IGlobalEnumerator& cb);
-         const ArrayDef* GetArrayDef(ICodeBuilder& builder, cstr arrayName);
+         const ArrayDef* GetElementTypeForArrayVariable(ICodeBuilder& builder, cstr arrayName);
          const ListDef* GetListDef(ICodeBuilder& builder, cstr listName);
          const NodeDef* GetNodeDef(ICodeBuilder& builder, cstr listName);
          const MapDef* GetMapDef(ICodeBuilder& builder, cstr listName);
@@ -548,7 +548,7 @@ namespace Rococo
       const ListCallbacks& GetListCallbacks(CCompileEnvironment& ce);
       const MapCallbacks& GetMapCallbacks(CCompileEnvironment& ce);
 
-      const IStructure& GetArrayDef(CCompileEnvironment& ce, cr_sex src, cstr arrayName);
+      const IStructure& GetElementTypeForArrayVariable(CCompileEnvironment& ce, cr_sex src, cstr arrayName);
       const IStructure& GetListDef(CCompileEnvironment& ce, cr_sex src, cstr name);
       const MapDef GetMapDef(CCompileEnvironment& ce, cr_sex src, cstr name);
       const IStructure& GetNodeDef(CCompileEnvironment& ce, cr_sex src, cstr name);

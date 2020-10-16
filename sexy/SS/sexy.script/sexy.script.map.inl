@@ -742,7 +742,7 @@ namespace Rococo
          AddArchiveRegister(ce, 6, 6, BITCOUNT_POINTER); // save D10
          ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D4 + tempDepth, VM::REGISTER_D10, BITCOUNT_POINTER); // copy our ref to D10
 
-         ConstructMemberByRef(ce, args, 6, type, 0);
+         ConstructMemberByRef(ce, args, REGISTER_D10, type, 0);
 
          ce.Builder.PopLastVariables(1, true);
       }

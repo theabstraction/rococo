@@ -277,7 +277,7 @@ namespace Rococo
 
          if (hashIndex < 2)
          {
-            Throw(s, ("(foreach <enumvar1> ... <enumvarN> # <collection> (action1) ....(actionN) )"));
+            Throw(s, "(foreach <optional-enum-index-identifier> <element-ref-identifier> # <collection> (action1) ....(actionN) )");
          }
 
          cr_sex collection = s.GetElement(hashIndex + 1);

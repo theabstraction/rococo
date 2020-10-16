@@ -131,7 +131,7 @@ namespace
 		Assembler(ICore& _core): core(_core), nextWritePosition(-1) {}
 		~Assembler() {}
 
-		void Append_AddImmediate(DINDEX Dsource,  BITCOUNT bits, DINDEX Dtarget, const VariantValue& v)
+		void Append_AddImmediate(DINDEX Dsource,  BITCOUNT bits, DINDEX Dtarget, const VariantValue& v) override
 		{
 			if (Dsource == Dtarget && bits == BITCOUNT_32 && IsToInt8Lossless(v.int32Value))
 			{
@@ -175,12 +175,12 @@ namespace
 			}
 		}
 
-		virtual void Append_BooleanNot(DINDEX r)
+		void Append_BooleanNot(DINDEX r) override
 		{
 			AddTwoByteInstruction(Opcodes::BooleanNot, r);
 		}
 
-		virtual void Append_IntAdd(DINDEX Da, BITCOUNT bits, DINDEX Db)
+		void Append_IntAdd(DINDEX Da, BITCOUNT bits, DINDEX Db) override
 		{
 			if (bits == BITCOUNT_32)
 			{
@@ -192,7 +192,7 @@ namespace
 			}
 		}
 
-		virtual void Append_IntSubtract(DINDEX Da, BITCOUNT bits, DINDEX Db)
+		void Append_IntSubtract(DINDEX Da, BITCOUNT bits, DINDEX Db) override
 		{
 			if (bits == BITCOUNT_32)
 			{
@@ -204,7 +204,7 @@ namespace
 			}
 		}
 
-		virtual void Append_IntMultiply(DINDEX Da, BITCOUNT bits, DINDEX Db)
+		void Append_IntMultiply(DINDEX Da, BITCOUNT bits, DINDEX Db) override
 		{
 			if (bits == BITCOUNT_32)
 			{
@@ -216,7 +216,7 @@ namespace
 			}
 		}
 
-		virtual void Append_IntNegate(DINDEX src, BITCOUNT bits, DINDEX trg)
+		void Append_IntNegate(DINDEX src, BITCOUNT bits, DINDEX trg) override
 		{
 			if (bits == BITCOUNT_32)
 			{
@@ -228,7 +228,7 @@ namespace
 			}
 		}
 
-		virtual void Append_IntDivide(DINDEX Dnumerator, BITCOUNT bits, DINDEX Ddenominator)
+		void Append_IntDivide(DINDEX Dnumerator, BITCOUNT bits, DINDEX Ddenominator) override
 		{
 			if (bits == BITCOUNT_32)
 			{
@@ -240,18 +240,18 @@ namespace
 			}
 		}
 
-		virtual void Append_Invoke(ID_API_CALLBACK id)
+		void Append_Invoke(ID_API_CALLBACK id) override
 		{
 			AddSingleByteInstruction(Opcodes::Invoke);
 			AddArgument(id);
 		}
 
-		virtual void Append_InvokeBy(DINDEX index)
+		void Append_InvokeBy(DINDEX index) override
 		{
 			AddTwoByteInstruction(Opcodes::InvokeBy, index);
 		}
 
-		virtual void Append_RestoreRegister(DINDEX Di, BITCOUNT bits)
+		void Append_RestoreRegister(DINDEX Di, BITCOUNT bits) override
 		{
 			if (bits == BITCOUNT_32)
 			{
@@ -263,7 +263,7 @@ namespace
 			}			
 		}
 
-		virtual void Append_SaveRegister(DINDEX Di, BITCOUNT bits)
+		void Append_SaveRegister(DINDEX Di, BITCOUNT bits) override
 		{
 			if (bits == BITCOUNT_32)
 			{
@@ -275,7 +275,7 @@ namespace
 			}
 		}
 
-		virtual void Append_SubtractImmediate(DINDEX Dsource,  BITCOUNT bits, DINDEX Dtarget, const VariantValue& v)
+		void Append_SubtractImmediate(DINDEX Dsource,  BITCOUNT bits, DINDEX Dtarget, const VariantValue& v) override
 		{
 			if (Dsource == Dtarget && bits == BITCOUNT_32 && IsToInt8Lossless(v.int32Value))
 			{
@@ -322,27 +322,27 @@ namespace
 			}
 		}
 
-		virtual void Append_LogicalAND(DINDEX Dsource,  BITCOUNT bitCount, DINDEX Dtarget)
+		void Append_LogicalAND(DINDEX Dsource,  BITCOUNT bitCount, DINDEX Dtarget) override
 		{
 			AddThreeByteInstruction(bitCount == 64 ? Opcodes::LogicalAND64 : Opcodes::LogicalAND32, Dsource, Dtarget);	
 		}
 
-		virtual void Append_LogicalOR(DINDEX Dsource,  BITCOUNT bitCount, DINDEX Dtarget)
+		void Append_LogicalOR(DINDEX Dsource,  BITCOUNT bitCount, DINDEX Dtarget) override
 		{
 			AddThreeByteInstruction(bitCount == 64 ? Opcodes::LogicalOR64 : Opcodes::LogicalOR32, Dsource, Dtarget);		
 		}
 
-		virtual void Append_LogicalXOR(DINDEX Dsource,  BITCOUNT bitCount, DINDEX Dtarget)
+		void Append_LogicalXOR(DINDEX Dsource,  BITCOUNT bitCount, DINDEX Dtarget) override
 		{
 			AddThreeByteInstruction(bitCount == 64 ? Opcodes::LogicalXOR64 : Opcodes::LogicalXOR32, Dsource, Dtarget);		
 		}
 
-		virtual void Append_LogicalNOT(DINDEX Dsource,  BITCOUNT bitCount, DINDEX Dtarget)
+		void Append_LogicalNOT(DINDEX Dsource,  BITCOUNT bitCount, DINDEX Dtarget) override
 		{
 			AddThreeByteInstruction(bitCount == 64 ? Opcodes::LogicalNOT64 : Opcodes::LogicalNOT32, Dsource, Dtarget);		
 		}
 
-		virtual void Append_MoveRegister(DINDEX Dsource, DINDEX DTarget, BITCOUNT bitCount)
+		void Append_MoveRegister(DINDEX Dsource, DINDEX DTarget, BITCOUNT bitCount) override
 		{
 			if (bitCount == 64)
 			{
@@ -354,12 +354,12 @@ namespace
 			}
 		}
 
-		virtual void Append_NoOperation()
+		void Append_NoOperation() override
 		{
 			AddSingleByteInstruction(Opcodes::NoOperation);
 		}
 
-		virtual void Append_Poke(DINDEX Dsource, BITCOUNT bits, DINDEX Dtarget, int32 offset)
+		void Append_Poke(DINDEX Dsource, BITCOUNT bits, DINDEX Dtarget, int32 offset) override
 		{
 			if (bits == BITCOUNT_32)
 			{
@@ -373,7 +373,7 @@ namespace
 			}
 		}
 
-		virtual void Append_Pop(uint8 nBytes)
+		void Append_Pop(uint8 nBytes) override
 		{
 			if (nBytes > 0)
 			{
@@ -381,23 +381,23 @@ namespace
 			}
 		}
 
-		void Append_Dereference_D4()
+		void Append_Dereference_D4() override
 		{
 			AddSingleByteInstruction(Opcodes::DereferenceD4);
 		}
 
-		virtual void Append_PushIndirect(DINDEX Dsource, DINDEX Dtarget, size_t nBytes) 
+		void Append_PushIndirect(DINDEX Dsource, DINDEX Dtarget, size_t nBytes)  override
 		{
 			AddThreeByteInstruction(Opcodes::PushIndirect, Dsource, Dtarget);
 			AddArgument(nBytes);
 		}
 
-		virtual void Append_PushAddress(DINDEX source, DINDEX offsetRegister)
+		void Append_PushAddress(DINDEX source, DINDEX offsetRegister) override
 		{
 			AddThreeByteInstruction(Opcodes::PushAddress, source, offsetRegister);
 		}
 
-		virtual void Append_PushRegister(DINDEX Dsource, BITCOUNT bits)
+		void Append_PushRegister(DINDEX Dsource, BITCOUNT bits) override
 		{
 			if (bits == BITCOUNT_32)
 			{
@@ -409,7 +409,7 @@ namespace
 			}
 		}
 
-		virtual void Append_PushStackVariable(int sfOffset, BITCOUNT bitcount)
+		void Append_PushStackVariable(int sfOffset, BITCOUNT bitcount) override
 		{
 			ArgsPushStackVariable args;
 			args.opcode = (bitcount == BITCOUNT_32) ? Opcodes::PushStackVariable32 : Opcodes::PushStackVariable64;
@@ -417,7 +417,7 @@ namespace
 			AddArgument(args);
 		}
 
-		virtual void Append_PushStackFrameMemberPtr(int sfOffsetToStruct, int memberOffset)
+		void Append_PushStackFrameMemberPtr(int sfOffsetToStruct, int memberOffset) override
 		{
 			ArgsPushStackFrameMemberPtr args;
 			args.opcode = Opcodes::PushStackFrameMemberPtr;
@@ -426,7 +426,7 @@ namespace
 			AddArgument(args);
 		}
 
-		virtual void Append_PushStackFrameAddress(int offset)
+		void Append_PushStackFrameAddress(int offset) override
 		{
 			ArgsPushStackVariable args;
 			args.opcode = Opcodes::PushStackAddress;
@@ -434,7 +434,7 @@ namespace
 			AddArgument(args);
 		}
 
-		virtual void Append_PushLiteral(BITCOUNT bits, const VariantValue& value)
+		void Append_PushLiteral(BITCOUNT bits, const VariantValue& value) override
 		{
 			if (bits == BITCOUNT_32)
 			{
@@ -448,7 +448,7 @@ namespace
 			}
 		}
 
-		virtual void Append_SetRegisterImmediate(DINDEX Di, const VariantValue& v, BITCOUNT bitCount)
+		void Append_SetRegisterImmediate(DINDEX Di, const VariantValue& v, BITCOUNT bitCount) override
 		{
 			switch(bitCount)
 			{
@@ -475,7 +475,7 @@ namespace
 			}
 		}
 
-		virtual void Append_SetStackFrameImmediate(int32 offset, const VariantValue& v, BITCOUNT bitCount)
+		void Append_SetStackFrameImmediate(int32 offset, const VariantValue& v, BITCOUNT bitCount) override
 		{
 			if (IsToInt8Lossless(offset) && bitCount == BITCOUNT_32)
 			{
@@ -508,7 +508,7 @@ namespace
 			}
 		}
 
-		virtual void Append_GetStackFrameValue(int32 offset, DINDEX Dtarget, BITCOUNT bitCount)
+		void Append_GetStackFrameValue(int32 offset, DINDEX Dtarget, BITCOUNT bitCount) override
 		{
 			if (IsToInt8Lossless(offset) && bitCount == BITCOUNT_32)
 			{
@@ -525,13 +525,13 @@ namespace
 			}
 		}
 
-		virtual void Append_GetStackFrameValueAndExtendToPointer(int32 offset, DINDEX target)
+		void Append_GetStackFrameValueAndExtendToPointer(int32 offset, DINDEX target) override
 		{
 			AddTwoByteInstruction(Opcodes::GetStackFrameValueAndExtendToPointer, target);
 			AddArgument(offset);
 		}
 
-		virtual void Append_GetStackFrameMemberPtr(DINDEX Dtarget, int SFoffset, int memberOffset)
+		void Append_GetStackFrameMemberPtr(DINDEX Dtarget, int SFoffset, int memberOffset) override
 		{
 			if (IsToInt8Lossless(SFoffset) && IsToInt8Lossless(memberOffset))
 			{
@@ -545,7 +545,7 @@ namespace
 			}
 		}
 
-		virtual void Append_GetStackFrameMemberPtrAndDeref(DINDEX Dtarget, int SFoffset, int memberOffset)
+		void Append_GetStackFrameMemberPtrAndDeref(DINDEX Dtarget, int SFoffset, int memberOffset) override
 		{
 			ArgsGetStackFrameMemberPtrAndDeref args;
 			args.opcode = Opcodes::GetStackFrameMemberPtrAndDeref;
@@ -556,7 +556,7 @@ namespace
 			AddArgument(args);
 		}
 
-		virtual void Append_GetStackFrameMember(DINDEX Dtarget, int SFoffset, int memberOffset, BITCOUNT bits)
+		void Append_GetStackFrameMember(DINDEX Dtarget, int SFoffset, int memberOffset, BITCOUNT bits) override
 		{
 			if (bits == BITCOUNT_32)
 			{
@@ -571,13 +571,13 @@ namespace
 			AddArgument(memberOffset);
 		}
 
-		virtual void Append_GetStackFrameAddress(DINDEX Dtarget, int offset)
+		void Append_GetStackFrameAddress(DINDEX Dtarget, int offset) override
 		{
 			AddTwoByteInstruction(Opcodes::GetStackFrameAddress, Dtarget);
 			AddArgument(offset);
 		}
 
-		virtual void Append_SetSFValueFromSFValue(int32 trgOffset, int32 srcOffset, BITCOUNT bitCount)
+		void Append_SetSFValueFromSFValue(int32 trgOffset, int32 srcOffset, BITCOUNT bitCount) override
 		{
 			if (IsToInt8Lossless(trgOffset) && IsToInt8Lossless(srcOffset) && bitCount == BITCOUNT_32)
 			{
@@ -595,7 +595,7 @@ namespace
 			}
 		}
 
-		virtual void Append_SetStackFrameValue(int32 offset, DINDEX Dsource, BITCOUNT bitCount)
+		void Append_SetStackFrameValue(int32 offset, DINDEX Dsource, BITCOUNT bitCount) override
 		{
 			if (IsToInt8Lossless(offset) && bitCount == BITCOUNT_32)
 			{
@@ -612,22 +612,22 @@ namespace
 			}
 		}
 
-		virtual void Append_ShiftLeft(DINDEX Di, BITCOUNT bitCount, int8 shiftCount)
+		void Append_ShiftLeft(DINDEX Di, BITCOUNT bitCount, int8 shiftCount) override
 		{
 			AddThreeByteInstruction(bitCount == BITCOUNT_64 ? Opcodes::ShiftLeft64 : Opcodes::ShiftLeft32, Di, shiftCount);
 		}
 
-		virtual void Append_ShiftRight(DINDEX Di, BITCOUNT bitCount, int8 shiftCount)
+		void Append_ShiftRight(DINDEX Di, BITCOUNT bitCount, int8 shiftCount) override
 		{
 			AddThreeByteInstruction(bitCount == BITCOUNT_64 ? Opcodes::ShiftRight64 : Opcodes::ShiftRight32, Di, shiftCount);
 		}
 
-		virtual void Append_Exit(DINDEX Di)
+		void Append_Exit(DINDEX Di) override
 		{
 			AddTwoByteInstruction(Opcodes::Exit, Di);
 		}
 
-		virtual void Append_StackAlloc(int32 nBytes)
+		void Append_StackAlloc(int32 nBytes) override
 		{
 			if (nBytes == 0) return;
 
@@ -647,7 +647,7 @@ namespace
 			}
 		}
 
-		virtual void Append_Test(DINDEX Di, BITCOUNT bitcount)
+		void Append_Test(DINDEX Di, BITCOUNT bitcount) override
 		{
 			ArgsOperateOnRegister args;
 
@@ -665,13 +665,13 @@ namespace
 			AddArgument(args);
 		}
 
-		virtual void Append_Branch(int PCoffset)
+		void Append_Branch(int PCoffset) override
 		{
 			AddSingleByteInstruction(Opcodes::Branch);
 			AddArgument(PCoffset);
 		}
 
-		virtual void Append_BranchIf(CONDITION cse, int PCoffset)
+		void Append_BranchIf(CONDITION cse, int PCoffset) override
 		{	
 			ArgsBranchIf args;
 			args.PCoffset = PCoffset;
@@ -702,61 +702,61 @@ namespace
 			AddArgument(args);
 		}
 
-		virtual void Append_SetIf(CONDITION cse, DINDEX Di, BITCOUNT bits)
+		void Append_SetIf(CONDITION cse, DINDEX Di, BITCOUNT bits) override
 		{
 			AddThreeByteInstruction(((int)bits) == 32 ? Opcodes::SetIf32 : Opcodes::SetIf64, cse, Di);
 		}
 
-		virtual void Append_SwapRegister(DINDEX a, DINDEX b)
+		void Append_SwapRegister(DINDEX a, DINDEX b) override
 		{
 			AddThreeByteInstruction(Opcodes::Swap, a, b);
 		}
 
-		virtual void Append_FloatAdd(DINDEX Da, DINDEX Db, FLOATSPEC spec)
+		void Append_FloatAdd(DINDEX Da, DINDEX Db, FLOATSPEC spec) override
 		{
 			AddFourByteInstruction(spec == FLOATSPEC_SINGLE ? Opcodes::FloatAdd : Opcodes::DoubleAdd, Da, Db, spec);
 		}
 
-		virtual void Append_FloatSubtract(DINDEX Da, DINDEX Db, FLOATSPEC spec)
+		void Append_FloatSubtract(DINDEX Da, DINDEX Db, FLOATSPEC spec) override
 		{
 			AddFourByteInstruction(spec == FLOATSPEC_SINGLE ? Opcodes::FloatSubtract : Opcodes::DoubleSubtract, Da, Db, spec);
 		}
 
-		virtual void Append_FloatMultiply(DINDEX Da, DINDEX Db, FLOATSPEC spec)
+		void Append_FloatMultiply(DINDEX Da, DINDEX Db, FLOATSPEC spec) override
 		{
 			AddFourByteInstruction(spec == FLOATSPEC_SINGLE ? Opcodes::FloatMultiply : Opcodes::DoubleMultiply, Da, Db, spec);
 		}
 
-		virtual void Append_FloatDivide(DINDEX Da, DINDEX Db, FLOATSPEC spec)
+		void Append_FloatDivide(DINDEX Da, DINDEX Db, FLOATSPEC spec) override
 		{
 			AddFourByteInstruction(spec == FLOATSPEC_SINGLE ? Opcodes::FloatDivide : Opcodes::DoubleDivide, Da, Db, spec);
 		}
 
-		virtual void Append_CallByRegister(DINDEX offsetRegister) 
+		void Append_CallByRegister(DINDEX offsetRegister)  override
 		{
 			AddTwoByteInstruction(Opcodes::CallBy, offsetRegister);
 		}
 
-		virtual void Append_CallById(ID_BYTECODE id)
+		void Append_CallById(ID_BYTECODE id) override
 		{
 			AddSingleByteInstruction(Opcodes::CallById);
 			AddArgument(id);
 		}
 
-		virtual void Append_CallByIdIndirect(DINDEX Di)
+		void Append_CallByIdIndirect(DINDEX Di) override
 		{
 			AddTwoByteInstruction(Opcodes::CallByIdIndirect, Di);
 		}
 
-		virtual void Append_Call(int offsetFromPCstart)
+		void Append_Call(int offsetFromPCstart) override
 		{
 			AddSingleByteInstruction(Opcodes::Call);
 			AddArgument(offsetFromPCstart);
 		}
 
-		virtual void Append_CallVitualFunctionViaRefOnStack(int32 SFoffsetToInterfaceRef, int32 vTableOffset /* nBytes into vtable to find the method id */, int32 instanceToInterfaceOffset)
+		void Append_CallVirtualFunctionViaRefOnStack(int32 SFoffsetToInterfaceRef, int32 vTableOffset /* nBytes into vtable to find the method id */, int32 instanceToInterfaceOffset) override
 		{
-			ArgsCallVitualFunctionViaRefOnStack args;
+			ArgsCallVirtualFunctionViaRefOnStack args;
 			args.opcode = Opcodes::CallVitualFunctionViaRefOnStack;
 			args.SFoffsetToInterfaceRef = SFoffsetToInterfaceRef;
 			args.vTableOffset = vTableOffset >> 3;
@@ -764,9 +764,9 @@ namespace
 			AddArgument(args);
 		}
 
-		virtual void Append_CallVitualFunctionViaMemberOffsetOnStack(int32 SFoffsetToStruct, int32 memberOffset, int32 vTableOffset)
+		void Append_CallVirtualFunctionViaMemberOffsetOnStack(int32 SFoffsetToStruct, int32 memberOffset, int32 vTableOffset) override
 		{
-			ArgsCallVitualFunctionViaMemberOffsetOnStack args;
+			ArgsCallVirtualFunctionViaMemberOffsetOnStack args;
 			args.opcode = Opcodes::CallVitualFunctionViaMemberOffsetOnStack;
 			args.SFoffsetToStruct = SFoffsetToStruct;
 			args.memberOffsetToInterfaceRef = memberOffset;
@@ -774,14 +774,14 @@ namespace
 			AddArgument(args);
 		}
 
-		virtual void Append_CallVirtualFunctionByAddress(int32 SFoffsetToInterfaceValue, int32 vTableOffset)
+		void Append_CallVirtualFunctionByAddress(int32 SFoffsetToInterfaceValue, int32 vTableOffset) override
 		{
 			AddSingleByteInstruction(Opcodes::CallVirtualFunctionByAddress);
 			AddArgument(SFoffsetToInterfaceValue);
 			AddArgument(vTableOffset);
 		}
 
-		virtual void Append_CopySFVariable(int targetOffset, int sourceOffset, size_t nBytes)
+		void Append_CopySFVariable(int targetOffset, int sourceOffset, size_t nBytes) override
 		{
 			if (nBytes == 0) { Append_NoOperation(); return; }
 			if (IsToInt8Lossless(targetOffset) && IsToInt8Lossless(sourceOffset) && nBytes <= 255)
@@ -797,7 +797,7 @@ namespace
 			}
 		}
 
-		virtual void Append_SetSFMemberRefFromSFValue(int32 targetSFOffset, int32 targetMemberOffset, int32 SFSourceValueOffset, size_t nBytesSource)
+		void Append_SetSFMemberRefFromSFValue(int32 targetSFOffset, int32 targetMemberOffset, int32 SFSourceValueOffset, size_t nBytesSource) override
 		{
 			if (IsToInt8Lossless(targetSFOffset) && IsToInt8Lossless(targetMemberOffset) && IsToInt8Lossless(SFSourceValueOffset) && nBytesSource == 4)
 			{
@@ -819,7 +819,7 @@ namespace
 			}
 		}
 
-		virtual void Append_SetSFMemberRefFromSFMemberByRef(int32 sourceSFOffset, int32 sourceMemberOffset, int32 targetSFOffset, int32 targetMemberOffset, size_t nBytesSource)
+		void Append_SetSFMemberRefFromSFMemberByRef(int32 sourceSFOffset, int32 sourceMemberOffset, int32 targetSFOffset, int32 targetMemberOffset, size_t nBytesSource) override
 		{
 			Args_SetMemberRefFromSFMemberByRef args;
 			args.opcode = Opcodes::SetSFMemberRefFromSFMemberByRef64;
@@ -836,7 +836,7 @@ namespace
 			AddArgument(args);
 		}
 
-		virtual void Append_SetSFValueFromSFMemberRef(int32 sourceSFOffset, int32 sourceMemberOffset, int32 SFTargetValueOffset, size_t nBytesSource)
+		void Append_SetSFValueFromSFMemberRef(int32 sourceSFOffset, int32 sourceMemberOffset, int32 SFTargetValueOffset, size_t nBytesSource) override
 		{
 			if (IsToInt8Lossless(sourceSFOffset) && IsToInt8Lossless(sourceMemberOffset) && IsToInt8Lossless(SFTargetValueOffset) && nBytesSource == 4)
 			{
@@ -854,7 +854,7 @@ namespace
 			}
 		}
 
-		virtual void Append_SetSFMemberByRefFromRegister(DINDEX Dsource, int32 sfOffset, int32 memberOffset, BITCOUNT bitcount)
+		void Append_SetSFMemberByRefFromRegister(DINDEX Dsource, int32 sfOffset, int32 memberOffset, BITCOUNT bitcount) override
 		{
 			if (IsToInt8Lossless(sfOffset) && IsToInt8Lossless(memberOffset) && bitcount == 32)
 			{
@@ -868,7 +868,7 @@ namespace
 			}
 		}
 
-		virtual void Append_CopyMemory(DINDEX target, DINDEX source, size_t nBytes)
+		void Append_CopyMemory(DINDEX target, DINDEX source, size_t nBytes) override
 		{
 			if (nBytes == 0) { Append_NoOperation(); return; }
 
@@ -891,7 +891,7 @@ namespace
 			}
 		}
 
-		virtual void Append_CopySFVariableFromRef(int32 targetSFOffset, int32 sourcePtrSFOffset, int32 sourceMemberOffset, size_t nBytesSource)
+		void Append_CopySFVariableFromRef(int32 targetSFOffset, int32 sourcePtrSFOffset, int32 sourceMemberOffset, size_t nBytesSource) override
 		{
 			AddSingleByteInstruction(Opcodes::CopySFVariableFromRef);
 			AddArgument(targetSFOffset);
@@ -900,7 +900,7 @@ namespace
 			AddArgument(nBytesSource);
 		}
 
-		virtual void Append_IncrementPtr(DINDEX sourceAndTarget, int32 value)
+		void Append_IncrementPtr(DINDEX sourceAndTarget, int32 value) override
 		{
 			if (value == 0) return;
 			if (IsToInt8Lossless(value))	
@@ -914,53 +914,53 @@ namespace
 			}
 		}
 
-		virtual void Append_Return()
+		void Append_Return() override
 		{
 			AddSingleByteInstruction(Opcodes::Return);
 		}
 
-		virtual void Append_Yield()
+		void Append_Yield() override
 		{
 			AddSingleByteInstruction(Opcodes::Yield);
 		}
 
-		virtual void Append_TripDebugger()
+		void Append_TripDebugger() override
 		{
-			AddSingleByteInstruction(Opcodes::TripDebugger);
+			AddSingleByteInstruction(Opcodes::Debug);
 		}
 
-		virtual void Append_GetGlobal(BITCOUNT bits, int32 offset)
+		void Append_GetGlobal(BITCOUNT bits, int32 offset) override
 		{
 			AddTwoByteInstruction(Opcodes::GetGlobal, bits);
 			AddArgument(offset);
 		}
 
-		virtual void Append_SetGlobal(BITCOUNT bits, int32 offset)
+		void Append_SetGlobal(BITCOUNT bits, int32 offset) override
 		{
 			AddTwoByteInstruction(Opcodes::SetGlobal, bits);
 			AddArgument(offset);
 		}
 
-		virtual void Clear() { program.clear(); }
-		virtual ICore& Core() { return core; }
-		virtual void Free() { delete this; }
+		void Clear()  override { program.clear(); }
+		ICore& Core()  override { return core; }
+		void Free()  override { delete this; }
 
-		virtual size_t WritePosition() const
+		size_t WritePosition() const override
 		{
 			return (nextWritePosition != -1) ? nextWritePosition : program.size();
 		}
 
-		virtual void SetWriteModeToOverwrite(size_t position)
+		void SetWriteModeToOverwrite(size_t position) override
 		{
 			this->nextWritePosition = position;
 		}
 
-		virtual void SetWriteModeToAppend()
+		void SetWriteModeToAppend() override
 		{
 			this->nextWritePosition = -1;
 		}
 
-		virtual const unsigned char* Program(OUT size_t& length) const
+		const unsigned char* Program(OUT size_t& length) const override
 		{
 			if (program.empty())
 			{

@@ -170,7 +170,7 @@ namespace SexyDotNet
             if (section == null || segment.Function.Handle == IntPtr.Zero)
             {
                 string s = "No assembly code at this location: " + cpu.PC;
-                text = new FormattedText(s, culture, FlowDirection.LeftToRight, typeface, viewer.FontSize, Brushes.Black);
+                text = new FormattedText(s, culture, FlowDirection.LeftToRight, typeface, viewer.FontSize, Brushes.Black, 1.0);
 
                 viewer.HiStart = 0;
                 viewer.HiEnd = 0;
@@ -185,7 +185,7 @@ namespace SexyDotNet
                 int lineCount = 0;
                 AppendDissassembly(sb, out hiStart, out hiEnd, section, segment, ref lineCount);
 
-                text = new FormattedText(sb.ToString(), culture, FlowDirection.LeftToRight, typeface, viewer.FontSize, Brushes.Black);
+                text = new FormattedText(sb.ToString(), culture, FlowDirection.LeftToRight, typeface, viewer.FontSize, Brushes.Black, 1.0);
                 viewer.Width = text.Width;
                 viewer.Height = text.Height;
                 
@@ -207,7 +207,7 @@ namespace SexyDotNet
                 int lineCount = 0;
                 AppendDissassembly(sb, out hiStart, out hiEnd, section, segment, ref lineCount);
 
-                text = new FormattedText(sb.ToString(), culture, FlowDirection.LeftToRight, typeface, viewer.FontSize, Brushes.Black);
+                text = new FormattedText(sb.ToString(), culture, FlowDirection.LeftToRight, typeface, viewer.FontSize, Brushes.Black, 1.0);
                 if (text != null && hiEnd > hiStart)
                 {
                     BringScrollerIntoView(hiStart, hiEnd);
@@ -236,7 +236,7 @@ namespace SexyDotNet
 
             AppendDissassembly(sb, out hiStart, out hiEnd, pf.Module, segment);
 
-            text = new FormattedText(sb.ToString(), culture, FlowDirection.LeftToRight, typeface, viewer.FontSize, Brushes.Black);
+            text = new FormattedText(sb.ToString(), culture, FlowDirection.LeftToRight, typeface, viewer.FontSize, Brushes.Black, 1.0);
             text.SetForegroundBrush(Brushes.White, hiStart, hiEnd);
 
             viewer.Width = text.Width;

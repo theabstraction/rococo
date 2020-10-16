@@ -1031,9 +1031,39 @@ namespace Rococo { namespace Script
 		}
 	}
 
-	void ConstructMemberByRef(CCompileEnvironment& ce, cr_sex args, int tempDepth, const IStructure& type, int offset)
+	void ConstructMemberByRef(CCompileEnvironment& ce, cr_sex args, int registerIndexToRef, const IStructure& type, int offset)
 	{
-		if (args.NumberOfElements() != type.MemberCount())
+		if (registerIndexToRef == REGISTER_D7)
+		{
+			Throw(args, "Algorithmic error. ConstructMemberByRef must not modify D7");
+		}
+
+		if (registerIndexToRef == REGISTER_D4)
+		{
+			Throw(args, "Algorithmic error. ConstructMemberByRef must not modify D4");
+		}
+
+		int tempDepth = registerIndexToRef - VM::REGISTER_D4;
+
+		if (IsAtomic(args))
+		{
+			MemberDef def;
+			auto& sargs = GetAtomicArg(args);
+			if (!ce.Builder.TryGetVariableByName(def, sargs.buffer))
+			{
+				Throw(args, "Expecting a variable name");
+			}
+			
+			if (def.ResolvedType != &type)
+			{
+				Throw(args, "Expecting a variable of type %s, but found a %s", GetFriendlyName(type), GetFriendlyName(*def.ResolvedType));
+			}
+
+			ce.Builder.AssignVariableAddressToTemp(sargs.buffer, 0); // the src ptr is now in D4
+			ce.Builder.Assembler().Append_CopyMemory(registerIndexToRef, REGISTER_D4, def.ResolvedType->SizeOfStruct());
+			return;
+		}
+		else if (args.NumberOfElements() != type.MemberCount())
 		{
 			sexstringstream<1024> streamer;
 			streamer.sb << ("The number of arguments supplied in the memberwise constructor is ") << args.NumberOfElements()
@@ -1057,7 +1087,7 @@ namespace Rococo { namespace Script
 						if (Parse::TryParse(OUT value, mtype.VarType(), svalue) == Parse::PARSERESULT_GOOD)
 						{
 							ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7, value, GetBitCount(mtype.VarType()));
-							ce.Builder.Assembler().Append_Poke(VM::REGISTER_D7, GetBitCount(mtype.VarType()), VM::REGISTER_D4 + tempDepth, offset); // write the argument to the member	
+							ce.Builder.Assembler().Append_Poke(VM::REGISTER_D7, GetBitCount(mtype.VarType()), registerIndexToRef, offset); // write the argument to the member	
 							offset += m.SizeOfMember();
 							continue;
 						}
@@ -1067,8 +1097,8 @@ namespace Rococo { namespace Script
 				// ToDo -> remove archiving when the assembly does not overwrite any registers, save D7
 				AddArchiveRegister(ce, tempDepth, tempDepth, BITCOUNT_POINTER);
 				CompileNumericExpression(ce, arg, mtype.VarType()); // Numeric value in D7
-				ce.Builder.PopLastVariables(1,true); // VM::REGISTER_D4 + tempDepth contains the value pointer
-				ce.Builder.Assembler().Append_Poke(VM::REGISTER_D7, GetBitCount(mtype.VarType()), VM::REGISTER_D4 + tempDepth, offset); // write the argument to the member	
+				ce.Builder.PopLastVariables(1,true); // registerIndexToRef contains the value pointer
+				ce.Builder.Assembler().Append_Poke(VM::REGISTER_D7, GetBitCount(mtype.VarType()), registerIndexToRef, offset); // write the argument to the member	
 			}
 			else if (mtype.VarType() == VARTYPE_Derivative)
 			{
@@ -1082,11 +1112,11 @@ namespace Rococo { namespace Script
 					ce.Builder.AssignVariableToTemp(GetAtomicArg(arg), 3); // Numeric value in D7
 					ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D4, BITCOUNT_POINTER);
 					ce.Builder.Append_IncRef();
-					ce.Builder.Assembler().Append_Poke(VM::REGISTER_D7, BITCOUNT_POINTER, VM::REGISTER_D4 + tempDepth, offset); // write the argument to the member
+					ce.Builder.Assembler().Append_Poke(VM::REGISTER_D7, BITCOUNT_POINTER, registerIndexToRef, offset); // write the argument to the member
 				}
 				else
 				{
-					ConstructMemberByRef(ce, arg, tempDepth, mtype, offset);
+					ConstructMemberByRef(ce, arg, registerIndexToRef, mtype, offset);
 				}
 			}
 			else
@@ -2316,7 +2346,7 @@ namespace Rococo { namespace Script
       }
    }
 
-   const ArrayDef* CScript::GetArrayDef(ICodeBuilder& builder, cstr arrayName)
+   const ArrayDef* CScript::GetElementTypeForArrayVariable(ICodeBuilder& builder, cstr arrayName)
    {
       BuilderAndNameKey key;
       key.Builder = &builder;
@@ -4048,7 +4078,7 @@ namespace Rococo { namespace Script
 		return scripts.InlineStrings();
 	}
 
-	const IStructure& GetArrayDef(CCompileEnvironment& ce, cr_sex src, cstr arrayName)
+	const IStructure& GetElementTypeForArrayVariable(CCompileEnvironment& ce, cr_sex src, cstr arrayName)
 	{
 		NamespaceSplitter splitter(arrayName);
 
@@ -4071,7 +4101,7 @@ namespace Rococo { namespace Script
 			return *m->UnderlyingGenericArg1Type();
 		}
 
-		const ArrayDef* variableDef = ce.Script.GetArrayDef(ce.Builder, arrayName);
+		const ArrayDef* variableDef = ce.Script.GetElementTypeForArrayVariable(ce.Builder, arrayName);
 		if (variableDef == NULL)
 		{
 			ThrowTokenNotFound(src, arrayName, ce.Builder.Owner().Name(), ("member"));
