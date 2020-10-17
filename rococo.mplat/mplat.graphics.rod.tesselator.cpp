@@ -7,11 +7,6 @@ using namespace Rococo::Graphics;
 
 namespace ANON
 {
-	void SetNormala(QuadVertices& qv, cr_vec3 n)
-	{
-		qv.normals.a = qv.normals.b = qv.normals.c = qv.normals.d = n;
-	}
-
 	struct ObjectQuad
 	{
 		ObjectVertex a;
@@ -1299,40 +1294,37 @@ namespace ANON
 	};
 }
 
-namespace Rococo
+namespace Rococo::Graphics
 {
-	namespace Graphics
+	IRodTesselatorSupervisor* CreateRodTesselator(IMeshBuilder& meshes)
 	{
-		IRodTesselatorSupervisor* CreateRodTesselator(IMeshBuilder& meshes)
-		{
-			return new ANON::RodTesselator(meshes);
-		}
+		return new ANON::RodTesselator(meshes);
+	}
 
-		IRodTesselatorSupervisor* CreateIsolatedRodTesselator()
+	IRodTesselatorSupervisor* CreateIsolatedRodTesselator()
+	{
+		struct NullMeshBuilder : IMeshBuilder
 		{
-			struct NullMeshBuilder : IMeshBuilder
+			void AddMesh(const Matrix4x4& transform, const fstring& sourceName) override {}
+			void AddTriangleEx(const VertexTriangle& t) override {}
+			void AddTriangle(const ObjectVertex& a, const ObjectVertex& b, const ObjectVertex& c) override {}
+			void AddPhysicsHull(const Triangle& t) override {}
+
+			void Begin(const fstring& meshName) override 
 			{
-				void AddMesh(const Matrix4x4& transform, const fstring& sourceName) override {}
-				void AddTriangleEx(const VertexTriangle& t) override {}
-				void AddTriangle(const ObjectVertex& a, const ObjectVertex& b, const ObjectVertex& c) override {}
-				void AddPhysicsHull(const Triangle& t) override {}
+				Throw(0, "Isolated rod tesselators do not support exporting to the mesh builder");
+			}
 
-				void Begin(const fstring& meshName) override 
-				{
-					Throw(0, "Isolated rod tesselators do not support exporting to the mesh builder");
-				}
-
-				void End(boolean32 preserveCopy, boolean32 invisible) override {}
-				void Clear() override {}
-				void Delete(const fstring& fqName) override {}
-				void SetShadowCasting(const fstring& fqName, boolean32 isActive) override {}
-				void SetSpecialShader(const fstring& fqName, const fstring& psSpotlightPingPath, const fstring& psAmbientPingPath, boolean32 alphaBlending) override {}
-				void Span(Vec3& span, const fstring& fqName) override {}
-			};
+			void End(boolean32 preserveCopy, boolean32 invisible) override {}
+			void Clear() override {}
+			void Delete(const fstring& fqName) override {}
+			void SetShadowCasting(const fstring& fqName, boolean32 isActive) override {}
+			void SetSpecialShader(const fstring& fqName, const fstring& psSpotlightPingPath, const fstring& psAmbientPingPath, boolean32 alphaBlending) override {}
+			void Span(Vec3& span, const fstring& fqName) override {}
+		};
 			
-			static NullMeshBuilder s_NullMeshBuilder;
+		static NullMeshBuilder s_NullMeshBuilder;
 
-			return new ANON::RodTesselator(s_NullMeshBuilder);
-		}
+		return new ANON::RodTesselator(s_NullMeshBuilder);
 	}
 }

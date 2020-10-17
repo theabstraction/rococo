@@ -15,9 +15,11 @@
 #ifdef _DEBUG
 # pragma comment(lib, "rococo.maths.debug.lib")
 # pragma comment(lib, "rococo.util.debug.lib")
+# pragma comment(lib, "rococo.mplat.debug.lib")
 #else
 # pragma comment(lib, "rococo.maths.lib")
 # pragma comment(lib, "rococo.util.lib")
+# pragma comment(lib, "rococo.mplat.lib")
 #endif
 
 #include <stdio.h>
@@ -738,8 +740,151 @@ void ValidateDictionary()
 	d.Enumerate(e);
 }
 
+#include <rococo.octree.h>
+
+void TestOctree()
+{
+	OctreeCreateContext occ;
+	occ.centre = { 0,0,0 };
+	occ.span = 2000_metres;
+	occ.minSpan = 0.01_metres;
+	AutoFree<IOctreeSupervisor> octree = CreateLooseOctree(occ);
+
+	OctreeObject obj1;
+	obj1.centre = { 0,0,0 };
+	obj1.span = 2001_metres;
+	auto& pocket = octree->Insert(obj1);
+	pocket.context = 1;
+
+	OctreeObject obj2;
+	obj2.centre = { 0,0,0 };
+	obj2.span = 1999_metres;
+	auto& pocket2 = octree->Insert(obj2);
+	pocket2.context = 2;
+
+	OctreeObject obj3;
+	obj3.centre = { 0,0,0 };
+	obj3.span = 2000_metres;
+	auto& pocket3 = octree->Insert(obj3);
+	pocket3.context = 3;
+
+
+	OctreeObject obj4;
+	obj4.centre = { 0,0,0 };
+	obj4.span = 999_metres;
+	auto& pocket4 = octree->Insert(obj4);
+	pocket4.context = 4;
+
+	OctreeObject obj5;
+	obj5.centre = { -0.5,0,0 };
+	obj5.span = 999_metres;
+	auto& pocket5 = octree->Insert(obj5);
+	pocket5.context = 5;
+
+	OctreeObject obj6;
+	obj6.centre = { 0,0.5,0 };
+	obj6.span = 999_metres;
+	auto& pocket6 = octree->Insert(obj6);
+	pocket6.context = 6;
+
+	OctreeObject obj7;
+	obj7.centre = { 0,0,0.5 };
+	obj7.span = 999_metres;
+	auto& pocket7 = octree->Insert(obj7);
+	pocket7.context = 7;
+
+	OctreeObject obj8;
+	obj8.centre = { 0.5,0.5,0.5 };
+	obj8.span = 999_metres;
+	auto& pocket8 = octree->Insert(obj8);
+	pocket8.context = 8;
+
+	struct : IEventCallback<OctreePocket>
+	{
+		std::vector<uint64> ids;
+		void OnEvent(OctreePocket& pocket) override
+		{
+			ids.push_back(pocket.context);
+		}
+	} knockOff;
+	octree->EnumerateDescendants({ 1.0f, 1.0f, 1.0f }, knockOff);
+
+	VALIDATE(knockOff.ids.size() == 8);
+
+	knockOff.ids.clear();
+
+	octree->EnumerateDescendants({ -500.0f, -10.0f, -10.0f }, knockOff);
+
+	VALIDATE(knockOff.ids.size() == 7);
+
+	Rococo::Random::RandomMT rng;
+
+	OctreeCreateContext occ2;
+	occ2.centre = { 0,0,0 };
+	occ2.span = 2000_metres;
+	occ2.minSpan = 0.01_metres;
+	IOctreeSupervisor* octree2 = CreateLooseOctree(occ2);
+
+	auto start = OS::CpuTicks();
+	for (int i = 0; i < 100'000; ++i)
+	{
+		OctreeObject object;
+		object.centre.x = Rococo::Random::NextFloat(rng, -1000.0f, 1000.0f);
+		object.centre.y = Rococo::Random::NextFloat(rng, -1000.0f, 1000.0f);
+		object.centre.z = Rococo::Random::NextFloat(rng, -1000.0f, 1000.0f);
+		object.span = Rococo::Random::NextFloat(rng, 0.01f, 10.0f);
+		octree2->Insert(object);
+	}
+	auto dt = OS::CpuTicks() - start;
+
+	size_t pocketBytes, nodeBytes;
+	octree2->GetApproxMemoryUse(pocketBytes, nodeBytes);
+
+	printf("100,000 item memory cost: %llu\n", pocketBytes + nodeBytes);
+
+	printf("100,000 item insertion time into Octree: %f seconds\n", dt / (double)OS::CpuHz());
+
+	start = OS::CpuTicks();
+	octree2->Clear();
+	dt = OS::CpuTicks() - start;
+
+	printf("100,000 item clear time from Octree: %f seconds\n", dt / (double)OS::CpuHz());
+
+	start = OS::CpuTicks();
+	for (int i = 0; i < 100'000; ++i)
+	{
+		OctreeObject object;
+		object.centre.x = Rococo::Random::NextFloat(rng, -1000.0f, 1000.0f);
+		object.centre.y = Rococo::Random::NextFloat(rng, -1000.0f, 1000.0f);
+		object.centre.z = Rococo::Random::NextFloat(rng, -1000.0f, 1000.0f);
+		object.span = Rococo::Random::NextFloat(rng, 0.01f, 10.0f);
+		octree2->Insert(object);
+	}
+	dt = OS::CpuTicks() - start;
+
+	printf("100,000 item second insertion time into Octree: %f seconds\n", dt / (double)OS::CpuHz());
+
+	octree2->GetApproxMemoryUse(pocketBytes, nodeBytes);
+
+	printf("100,000 item memory cost: %llu\n", pocketBytes + nodeBytes);
+
+	start = OS::CpuTicks();
+	octree2->Clear();
+	dt = OS::CpuTicks() - start;
+
+	printf("100,000 item second clear time from Octree: %f seconds\n", dt / (double)OS::CpuHz());
+
+	start = OS::CpuTicks();
+	octree2->Free();
+
+	dt = OS::CpuTicks() - start;
+
+	printf("100,000 item deletion time from Octree: %f seconds\n", dt / (double)OS::CpuHz());
+}
+
 void test()
 {
+	TestOctree();
 	TimeSTDUNMAP();
 	TimeStringMap();
 	//ValidateDictionary();

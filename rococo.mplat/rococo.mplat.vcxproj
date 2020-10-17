@@ -134,6 +134,7 @@
     </ClCompile>
     <ClCompile Include="mplat.maths.visitor.cpp" />
     <ClCompile Include="mplat.graphics.scene.cpp" />
+    <ClCompile Include="mplat.octree.loose.cpp" />
     <ClCompile Include="mplat.os.win32.venue.cpp" />
     <ClCompile Include="mplat.overlay.cpp" />
     <ClCompile Include="mplat.pane.array-box.cpp" />
@@ -155,6 +156,7 @@
     <ClInclude Include="..\include\mplat.release.h" />
     <ClInclude Include="..\include\rococo.animation.h" />
     <ClInclude Include="..\include\rococo.mplat.h" />
+    <ClInclude Include="..\include\rococo.octree.h" />
     <ClInclude Include="mplat.panel.base.h" />
     <ClInclude Include="mplat.sxh.h" />
     <ClInclude Include="rococo.script.types.h" />
