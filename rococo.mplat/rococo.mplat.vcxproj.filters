@@ -156,6 +156,9 @@
     <ClCompile Include="mplat.octree.loose.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="mplat.graphics.landscapes.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\rococo.mplat.h">
@@ -180,6 +183,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\rococo.octree.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mplat.landscapes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

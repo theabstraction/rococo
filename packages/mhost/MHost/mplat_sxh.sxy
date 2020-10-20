@@ -522,6 +522,35 @@
 	(construct ProxyIRodTesselator pObject)
 )
 
+(interface Rococo.Graphics.ILandscapeTesselator
+	(AddQuadField (Int32 base2exponentDivisions)(Sys.SI.Metres span)(Sys.SI.Metres maxAltitude) -> )
+	(Clear  -> )
+	(CommitToMesh (Sys.Type.IString meshName) -> (Int32 id))
+	(Generate  -> )
+	(GetBounds (Sys.Maths.Vec3 minPoint)(Sys.Maths.Vec3 maxPoint) -> )
+	(RaiseMountain (Sys.Maths.Vec3 atPosition)(Sys.SI.Metres deltaHeight)(Sys.SI.Metres spread) -> )
+	(SetHeights (Sys.Maths.Vec2i p0)(Sys.Maths.Vec2i p1)(Sys.SI.Metres height) -> )
+	(SetSeed (Int64 seedNumber) -> )
+	(TranslateEachCell (Sys.Maths.Vec3 delta) -> )
+)
+
+(class ProxyILandscapeTesselator (implements Rococo.Graphics.ILandscapeTesselator) (Pointer hObject))
+	(method ProxyILandscapeTesselator.Construct (Pointer hObject): (this.hObject = hObject))
+	(method ProxyILandscapeTesselator.AddQuadField (Int32 base2exponentDivisions)(Sys.SI.Metres span)(Sys.SI.Metres maxAltitude) ->  : (Rococo.Graphics.Native.ILandscapeTesselatorAddQuadField this.hObject base2exponentDivisions span maxAltitude))
+	(method ProxyILandscapeTesselator.Clear  ->  : (Rococo.Graphics.Native.ILandscapeTesselatorClear this.hObject ))
+	(method ProxyILandscapeTesselator.CommitToMesh (Sys.Type.IString meshName) -> (Int32 id) : (Rococo.Graphics.Native.ILandscapeTesselatorCommitToMesh this.hObject meshName -> id))
+	(method ProxyILandscapeTesselator.Generate  ->  : (Rococo.Graphics.Native.ILandscapeTesselatorGenerate this.hObject ))
+	(method ProxyILandscapeTesselator.GetBounds (Sys.Maths.Vec3 minPoint)(Sys.Maths.Vec3 maxPoint) ->  : (Rococo.Graphics.Native.ILandscapeTesselatorGetBounds this.hObject minPoint maxPoint))
+	(method ProxyILandscapeTesselator.RaiseMountain (Sys.Maths.Vec3 atPosition)(Sys.SI.Metres deltaHeight)(Sys.SI.Metres spread) ->  : (Rococo.Graphics.Native.ILandscapeTesselatorRaiseMountain this.hObject atPosition deltaHeight spread))
+	(method ProxyILandscapeTesselator.SetHeights (Sys.Maths.Vec2i p0)(Sys.Maths.Vec2i p1)(Sys.SI.Metres height) ->  : (Rococo.Graphics.Native.ILandscapeTesselatorSetHeights this.hObject p0 p1 height))
+	(method ProxyILandscapeTesselator.SetSeed (Int64 seedNumber) ->  : (Rococo.Graphics.Native.ILandscapeTesselatorSetSeed this.hObject seedNumber))
+	(method ProxyILandscapeTesselator.TranslateEachCell (Sys.Maths.Vec3 delta) ->  : (Rococo.Graphics.Native.ILandscapeTesselatorTranslateEachCell this.hObject delta))
+
+(factory Rococo.Graphics.LandscapeTesselator Rococo.Graphics.ILandscapeTesselator  :
+	(Pointer pObject = (Rococo.Graphics.Native.GetHandleForILandscapeTesselator0 ))
+	(construct ProxyILandscapeTesselator pObject)
+)
+
 (interface Rococo.Graphics.ITextTesselator
 	(AddBlankQuad (Sys.Maths.Quadf positions)(Int32 paperColour) -> )
 	(AddLeftAlignedText (Int32 colour)(Sys.Type.IString text) -> )

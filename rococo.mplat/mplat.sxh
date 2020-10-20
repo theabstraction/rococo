@@ -527,6 +527,23 @@
 	(factory Rococo.Graphics.RodTesselator)
 )
 
+(interface (as.sxy Rococo.Graphics.ILandscapeTesselator "../content/scripts/mplat")
+	(as.cpp Rococo.Graphics.ILandscapeTesselator "mplat")
+	(context factory Rococo.Platform)
+	(methods
+		(AddQuadField (Int32 base2exponentDivisions)(Metres span)(Metres maxAltitude))
+		(Clear)
+		(CommitToMesh (IString meshName)->(IdMesh id))
+		(Generate)
+		(GetBounds (Vec3 minPoint)(Vec3 maxPoint))
+		(RaiseMountain (const Vec3 atPosition)(Metres deltaHeight)(Metres spread))
+		(SetHeights (const Vec2i p0)(const Vec2i p1)(Metres height))
+		(SetSeed (Int64 seedNumber))
+		(TranslateEachCell (const Vec3 delta))
+	)
+	(factory Rococo.Graphics.LandscapeTesselator)
+)
+
 (interface (as.sxy Rococo.Graphics.ITextTesselator "../content/scripts/mplat")
 	(as.cpp Rococo.Graphics.ITextTesselator "mplat")
 	(context factory Rococo.Platform)

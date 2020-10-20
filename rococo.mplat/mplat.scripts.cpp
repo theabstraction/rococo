@@ -1,5 +1,5 @@
 #include <rococo.mplat.h>
-
+#include "mplat.landscapes.h"
 #include <sexy.script.h>
 #include <sexy.vm.cpu.h>
 
@@ -73,6 +73,11 @@ Rococo::Graphics::IHQFonts* FactoryConstructRococoGraphicsHQFonts(Rococo::Platfo
 Rococo::Graphics::IRodTesselator* FactoryConstructRococoGraphicsRodTesselator(Rococo::Platform* platform)
 {
 	return Rococo::Graphics::CreateRodTesselator(platform->meshes);
+}
+
+Rococo::Graphics::ILandscapeTesselator*  FactoryConstructRococoGraphicsLandscapeTesselator(Rococo::Platform *nceContext)
+{
+	return Rococo::Graphics::CreateLandscapeTesselator(nceContext->meshes);
 }
 
 Rococo::Graphics::IFieldTesselator* FactoryConstructRococoGraphicsFieldTesselator(Rococo::Graphics::IFieldTesselator* _context)

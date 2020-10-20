@@ -2,6 +2,7 @@
 #include <rococo.maths.h>
 #include <rococo.octree.h>
 #include <vector>
+#include <rococo.memory.freelist.h>
 
 using namespace Rococo;
 using namespace Rococo::Memory;
@@ -119,112 +120,35 @@ namespace ANON
 		OctreeNode* CreateOrGetChild(int index);
 	};
 
-	// N.B I tried using a templated freelist but I spent way too much time trying
-	// to fix it.
-	class NodeAllocator
+	class NodeAllocator : public Rococo::Memory::FreeListAllocator<OctreeNode, 8>
 	{
-		std::vector<OctreeNode*> freeList;
-		std::vector<OctreeNode*> allocList;
-
 	public:
-		~NodeAllocator()
-		{
-			for (auto* n : allocList)
-			{
-				delete n;
-			}
-		}
-
-		size_t MemUse() const
-		{
-			return allocList.size() * (sizeof(OctreeNode) + sizeof(void*));
-		}
-
 		OctreeNode* Create(LooseOctree& reftree, OctreeNode* pParent, const ObjectMetrics& metrics)
 		{
-			if (freeList.empty())
-			{
-				auto* n = new OctreeNode(reftree, pParent, metrics);
-				allocList.push_back(n);
-				return n;
-			}
-			else
-			{
-				OctreeNode* pT = freeList.back();
-				freeList.pop_back();
-
-				try
+			auto* node = CreateWith(
+				[&](void* pMemory)
 				{
-					return new (pT) OctreeNode(reftree, pParent, metrics);
+					return new (pMemory) OctreeNode(reftree, pParent, metrics);
 				}
-				catch (...)
-				{
-					freeList.push_back(pT);
-					throw;
-				}
-			}
-		}
+			);
 
-		void FreeObject(OctreeNode* object)
-		{
-			if (object)
-			{
-				object->~OctreeNode();
-				freeList.push_back(object);
-			}
+			return node;
 		}
 	};
 
-	class PocketAllocator
+	class PocketAllocator : public Rococo::Memory::FreeListAllocator<OctreePocketSupervisor, 8>
 	{
-		std::vector<OctreePocketSupervisor*> freeList;
-		std::vector<OctreePocketSupervisor*> allocList;
 	public:
-		~PocketAllocator()
-		{
-			for (auto* p : allocList)
-			{
-				delete p;
-			}
-		}
-
-		size_t MemUse() const
-		{
-			return allocList.size() * (sizeof(OctreePocketSupervisor) + sizeof(void*));
-		}
-
 		OctreePocketSupervisor* Create(const OctreeObject& object)
 		{
-			if (freeList.empty())
-			{
-				auto* p = new OctreePocketSupervisor(object);
-				allocList.push_back(p);
-				return p;
-			}
-			else
-			{
-				OctreePocketSupervisor* pT = freeList.back();
-				freeList.pop_back();
-
-				try
+			auto* pocket = CreateWith(
+				[&](void* pMemory)
 				{
-					return new (pT) OctreePocketSupervisor(object);
+					return new (pMemory) OctreePocketSupervisor(object);
 				}
-				catch (...)
-				{
-					freeList.push_back(pT);
-					throw;
-				}
-			}
-		}
+			);
 
-		void FreeObject(OctreePocketSupervisor* object)
-		{
-			if (object)
-			{
-				object->~OctreePocketSupervisor();
-				freeList.push_back(object);
-			}
+			return pocket;
 		}
 	};
 
@@ -432,8 +356,8 @@ namespace ANON
 
 		void GetApproxMemoryUse(size_t& pocketBytes, size_t& nodeBytes) const
 		{
-			pocketBytes = pocketAllocator.MemUse();
-			nodeBytes = nodeAllocator.MemUse();
+			pocketBytes = pocketAllocator.MemoryUse();
+			nodeBytes = nodeAllocator.MemoryUse();
 		}
 	};
 

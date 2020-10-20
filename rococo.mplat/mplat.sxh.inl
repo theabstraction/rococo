@@ -9506,6 +9506,193 @@ namespace Rococo { namespace Graphics {
 		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorUseSmoothNormals, nullptr, ("IRodTesselatorUseSmoothNormals (Pointer hObject) -> "));
 	}
 }}
+// BennyHill generated Sexy native functions for Rococo::Graphics::ILandscapeTesselator 
+namespace
+{
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
+
+	void NativeRococoGraphicsILandscapeTesselatorAddQuadField(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Metres maxAltitude;
+		_offset += sizeof(maxAltitude);
+		ReadInput(maxAltitude, _sf, -_offset);
+
+		Metres span;
+		_offset += sizeof(span);
+		ReadInput(span, _sf, -_offset);
+
+		int32 base2exponentDivisions;
+		_offset += sizeof(base2exponentDivisions);
+		ReadInput(base2exponentDivisions, _sf, -_offset);
+
+		Rococo::Graphics::ILandscapeTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AddQuadField(base2exponentDivisions, span, maxAltitude);
+	}
+	void NativeRococoGraphicsILandscapeTesselatorClear(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Graphics::ILandscapeTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->Clear();
+	}
+	void NativeRococoGraphicsILandscapeTesselatorCommitToMesh(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _meshName;
+		ReadInput(_meshName, _sf, -_offset);
+		fstring meshName { _meshName->buffer, _meshName->length };
+
+
+		Rococo::Graphics::ILandscapeTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		ID_MESH id = _pObject->CommitToMesh(meshName);
+		_offset += sizeof(id);
+		WriteOutput(id, _sf, -_offset);
+	}
+	void NativeRococoGraphicsILandscapeTesselatorGenerate(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Graphics::ILandscapeTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->Generate();
+	}
+	void NativeRococoGraphicsILandscapeTesselatorGetBounds(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Vec3* maxPoint;
+		_offset += sizeof(maxPoint);
+		ReadInput(maxPoint, _sf, -_offset);
+
+		Vec3* minPoint;
+		_offset += sizeof(minPoint);
+		ReadInput(minPoint, _sf, -_offset);
+
+		Rococo::Graphics::ILandscapeTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GetBounds(*minPoint, *maxPoint);
+	}
+	void NativeRococoGraphicsILandscapeTesselatorRaiseMountain(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Metres spread;
+		_offset += sizeof(spread);
+		ReadInput(spread, _sf, -_offset);
+
+		Metres deltaHeight;
+		_offset += sizeof(deltaHeight);
+		ReadInput(deltaHeight, _sf, -_offset);
+
+		Vec3* atPosition;
+		_offset += sizeof(atPosition);
+		ReadInput(atPosition, _sf, -_offset);
+
+		Rococo::Graphics::ILandscapeTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->RaiseMountain(*atPosition, deltaHeight, spread);
+	}
+	void NativeRococoGraphicsILandscapeTesselatorSetHeights(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Metres height;
+		_offset += sizeof(height);
+		ReadInput(height, _sf, -_offset);
+
+		Vec2i* p1;
+		_offset += sizeof(p1);
+		ReadInput(p1, _sf, -_offset);
+
+		Vec2i* p0;
+		_offset += sizeof(p0);
+		ReadInput(p0, _sf, -_offset);
+
+		Rococo::Graphics::ILandscapeTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetHeights(*p0, *p1, height);
+	}
+	void NativeRococoGraphicsILandscapeTesselatorSetSeed(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int64 seedNumber;
+		_offset += sizeof(seedNumber);
+		ReadInput(seedNumber, _sf, -_offset);
+
+		Rococo::Graphics::ILandscapeTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetSeed(seedNumber);
+	}
+	void NativeRococoGraphicsILandscapeTesselatorTranslateEachCell(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Vec3* delta;
+		_offset += sizeof(delta);
+		ReadInput(delta, _sf, -_offset);
+
+		Rococo::Graphics::ILandscapeTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->TranslateEachCell(*delta);
+	}
+
+	void NativeGetHandleForRococoGraphicsLandscapeTesselator(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Platform* nceContext = reinterpret_cast<Rococo::Platform*>(_nce.context);
+		// Uses: Rococo::Graphics::ILandscapeTesselator* FactoryConstructRococoGraphicsLandscapeTesselator(Rococo::Platform* _context);
+		Rococo::Graphics::ILandscapeTesselator* pObject = FactoryConstructRococoGraphicsLandscapeTesselator(nceContext);
+		_offset += sizeof(IString*);
+		WriteOutput(pObject, _sf, -_offset);
+	}
+}
+
+namespace Rococo { namespace Graphics { 
+	void AddNativeCalls_RococoGraphicsILandscapeTesselator(Rococo::Script::IPublicScriptSystem& ss, Rococo::Platform* _nceContext)
+	{
+		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Graphics.Native"));
+		ss.AddNativeCall(ns, NativeGetHandleForRococoGraphicsLandscapeTesselator, _nceContext, ("GetHandleForILandscapeTesselator0  -> (Pointer hObject)"));
+		ss.AddNativeCall(ns, NativeRococoGraphicsILandscapeTesselatorAddQuadField, nullptr, ("ILandscapeTesselatorAddQuadField (Pointer hObject)(Int32 base2exponentDivisions)(Sys.SI.Metres span)(Sys.SI.Metres maxAltitude) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsILandscapeTesselatorClear, nullptr, ("ILandscapeTesselatorClear (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsILandscapeTesselatorCommitToMesh, nullptr, ("ILandscapeTesselatorCommitToMesh (Pointer hObject)(Sys.Type.IString meshName) -> (Int32 id)"));
+		ss.AddNativeCall(ns, NativeRococoGraphicsILandscapeTesselatorGenerate, nullptr, ("ILandscapeTesselatorGenerate (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsILandscapeTesselatorGetBounds, nullptr, ("ILandscapeTesselatorGetBounds (Pointer hObject)(Sys.Maths.Vec3 minPoint)(Sys.Maths.Vec3 maxPoint) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsILandscapeTesselatorRaiseMountain, nullptr, ("ILandscapeTesselatorRaiseMountain (Pointer hObject)(Sys.Maths.Vec3 atPosition)(Sys.SI.Metres deltaHeight)(Sys.SI.Metres spread) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsILandscapeTesselatorSetHeights, nullptr, ("ILandscapeTesselatorSetHeights (Pointer hObject)(Sys.Maths.Vec2i p0)(Sys.Maths.Vec2i p1)(Sys.SI.Metres height) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsILandscapeTesselatorSetSeed, nullptr, ("ILandscapeTesselatorSetSeed (Pointer hObject)(Int64 seedNumber) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsILandscapeTesselatorTranslateEachCell, nullptr, ("ILandscapeTesselatorTranslateEachCell (Pointer hObject)(Sys.Maths.Vec3 delta) -> "));
+	}
+}}
 // BennyHill generated Sexy native functions for Rococo::Graphics::ITextTesselator 
 namespace
 {

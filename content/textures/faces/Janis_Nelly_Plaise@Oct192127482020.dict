@@ -1,0 +1,12 @@
+// Rococo::Sex::S-Parser is recommended for parsing this file
+
+(' S-Format-Dictionary-v1.0 ( 
+	(I32 Strength 230)
+	(I32 Agility 246)
+	(I32 Wellness 220)
+	(I32 Psyche 104)
+	(I32 Ego 141)
+	(I32 Maths 127)
+	(STR Name "Janis Nelly Plaise")
+	(STR Portrait "!textures/faces/female/lady.white.4.jpg")
+))

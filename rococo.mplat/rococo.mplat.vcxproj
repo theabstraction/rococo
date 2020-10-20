@@ -117,6 +117,7 @@
     <ClCompile Include="mplat.graphics.camera.cpp" />
     <ClCompile Include="mplat.entities.instances.cpp" />
     <ClCompile Include="mplat.graphics.fieldtesselator.cpp" />
+    <ClCompile Include="mplat.graphics.landscapes.cpp" />
     <ClCompile Include="mplat.graphics.meshes.cpp" />
     <ClCompile Include="mplat.graphics.messaging.cpp" />
     <ClCompile Include="mplat.graphics.rod.tesselator.cpp" />
@@ -157,6 +158,7 @@
     <ClInclude Include="..\include\rococo.animation.h" />
     <ClInclude Include="..\include\rococo.mplat.h" />
     <ClInclude Include="..\include\rococo.octree.h" />
+    <ClInclude Include="mplat.landscapes.h" />
     <ClInclude Include="mplat.panel.base.h" />
     <ClInclude Include="mplat.sxh.h" />
     <ClInclude Include="rococo.script.types.h" />
