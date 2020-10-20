@@ -7,7 +7,7 @@
 using namespace Rococo;
 using namespace Rococo::Memory;
 
-namespace ANON
+namespace
 {
 	struct OctreeNode;
 	struct LooseOctree;
@@ -255,10 +255,10 @@ namespace ANON
 		{
 			const auto& offset = IndexToChildOffset[index];
 
-			float ds = HALF * (metrics.upperTopRight.x - metrics.lowerBottomLeft.x);
+			float ds = HALF * metrics.span;
 
 			ObjectMetrics childMetrics;
-			childMetrics.span = HALF * metrics.span;
+			childMetrics.span = ds;
 			childMetrics.lowerBottomLeft = metrics.lowerBottomLeft + offset * ds;
 			childMetrics.upperTopRight = childMetrics.lowerBottomLeft + OCTVEC3 {ds, ds, ds};
 			childMetrics.centre = HALF * (childMetrics.lowerBottomLeft + childMetrics.upperTopRight);
@@ -381,6 +381,6 @@ namespace Rococo
 {
 	IOctreeSupervisor* CreateLooseOctree(OctreeCreateContext& occ)
 	{
-		return new ANON::LooseOctree(occ);
+		return new LooseOctree(occ);
 	}
 }
