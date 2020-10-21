@@ -9518,10 +9518,6 @@ namespace
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Metres maxAltitude;
-		_offset += sizeof(maxAltitude);
-		ReadInput(maxAltitude, _sf, -_offset);
-
 		Metres span;
 		_offset += sizeof(span);
 		ReadInput(span, _sf, -_offset);
@@ -9534,7 +9530,7 @@ namespace
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->AddQuadField(base2exponentDivisions, span, maxAltitude);
+		_pObject->AddQuadField(base2exponentDivisions, span);
 	}
 	void NativeRococoGraphicsILandscapeTesselatorClear(NativeCallEnvironment& _nce)
 	{
@@ -9564,15 +9560,19 @@ namespace
 		_offset += sizeof(id);
 		WriteOutput(id, _sf, -_offset);
 	}
-	void NativeRococoGraphicsILandscapeTesselatorGenerate(NativeCallEnvironment& _nce)
+	void NativeRococoGraphicsILandscapeTesselatorGenerateByRecursiveSubdivision(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Metres maxAltitude;
+		_offset += sizeof(maxAltitude);
+		ReadInput(maxAltitude, _sf, -_offset);
+
 		Rococo::Graphics::ILandscapeTesselator* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->Generate();
+		_pObject->GenerateByRecursiveSubdivision(maxAltitude);
 	}
 	void NativeRococoGraphicsILandscapeTesselatorGetBounds(NativeCallEnvironment& _nce)
 	{
@@ -9682,10 +9682,10 @@ namespace Rococo { namespace Graphics {
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Graphics.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForRococoGraphicsLandscapeTesselator, _nceContext, ("GetHandleForILandscapeTesselator0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeRococoGraphicsILandscapeTesselatorAddQuadField, nullptr, ("ILandscapeTesselatorAddQuadField (Pointer hObject)(Int32 base2exponentDivisions)(Sys.SI.Metres span)(Sys.SI.Metres maxAltitude) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsILandscapeTesselatorAddQuadField, nullptr, ("ILandscapeTesselatorAddQuadField (Pointer hObject)(Int32 base2exponentDivisions)(Sys.SI.Metres span) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsILandscapeTesselatorClear, nullptr, ("ILandscapeTesselatorClear (Pointer hObject) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsILandscapeTesselatorCommitToMesh, nullptr, ("ILandscapeTesselatorCommitToMesh (Pointer hObject)(Sys.Type.IString meshName) -> (Int32 id)"));
-		ss.AddNativeCall(ns, NativeRococoGraphicsILandscapeTesselatorGenerate, nullptr, ("ILandscapeTesselatorGenerate (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsILandscapeTesselatorGenerateByRecursiveSubdivision, nullptr, ("ILandscapeTesselatorGenerateByRecursiveSubdivision (Pointer hObject)(Sys.SI.Metres maxAltitude) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsILandscapeTesselatorGetBounds, nullptr, ("ILandscapeTesselatorGetBounds (Pointer hObject)(Sys.Maths.Vec3 minPoint)(Sys.Maths.Vec3 maxPoint) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsILandscapeTesselatorRaiseMountain, nullptr, ("ILandscapeTesselatorRaiseMountain (Pointer hObject)(Sys.Maths.Vec3 atPosition)(Sys.SI.Metres deltaHeight)(Sys.SI.Metres spread) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsILandscapeTesselatorSetHeights, nullptr, ("ILandscapeTesselatorSetHeights (Pointer hObject)(Sys.Maths.Vec2i p0)(Sys.Maths.Vec2i p1)(Sys.SI.Metres height) -> "));

@@ -277,6 +277,7 @@ namespace Rococo
 						Graphics::AddNativeCalls_RococoGraphicsITextTesselator(args.ss, &platform);
 						Graphics::AddNativeCalls_RococoGraphicsIRendererConfig(args.ss, &platform);
 						Graphics::AddNativeCalls_RococoGraphicsIMessaging(args.ss, &platform);
+						Graphics::AddNativeCalls_RococoGraphicsILandscapeTesselator(args.ss, &platform);
 						AddNativeCalls_RococoIKeyboard(args.ss, &platform.keyboard);
 						Entities::AddNativeCalls_RococoEntitiesIParticleSystem(args.ss, &platform);
 						Audio::AddNativeCalls_RococoAudioILegacySoundControl(args.ss, &platform);

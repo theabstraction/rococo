@@ -111,6 +111,22 @@ namespace Rococo
 	// Count the number of times a vector crosses a permeter, used to determine whether a surface faces inside or outside a sector
 	IntersectCounts CountLineIntersects(Vec2 origin, Vec2 direction, Vec2 p, Vec2 q);
 
+	struct alignas(4) Matrix2x2
+	{
+		Vec2 row0;
+		Vec2 row1;
+
+		static const Matrix2x2 Identity();
+		static const Matrix2x2 Null();
+
+		static const Matrix2x2 RotateAnticlockwise(Radians phi);
+	};
+
+	inline Vec2 operator * (const Matrix2x2& m, const Vec2& v)
+	{
+		return Vec2{ m.row0.x * v.x + m.row0.y + v.y, m.row1.x * v.x + m.row1.y + v.y };
+	}
+
 	// Generally in the Rococo libs code/assume that matrices are used to pre-multiply column vectors
 	// If this is not the case, then make sure you comment/document that matrices go against the convention
 	struct alignas(4) Matrix4x4

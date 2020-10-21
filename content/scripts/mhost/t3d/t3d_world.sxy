@@ -377,6 +377,21 @@
 	
 	(ISceneBuilder scene (SceneBuilder))
 	(scene.Clear)
+
+	(ILandscapeTesselator landscape (LandscapeTesselator))
+	(landscape.AddQuadField 8 2048.0)
+	(landscape.GenerateByRecursiveSubdivision 30)
+	(landscape.CommitToMesh "landscape_0_0")
+	
+	(Vec3 noScale = 1 1 1)
+	(Matrix4x4 identity =
+		(1 0 0 0)
+		(0 1 0 0)
+		(0 0 1 0)
+		(0 0 0 1)
+	)
+	(Int64 landscapeId = (instances.AddBody "landscape_0_0" identity noScale 0))
+	(scene.AddStatics landscapeId)
 	
 //	(AddBottle scene instances)
 	(AddFloor scene instances)

@@ -523,10 +523,10 @@
 )
 
 (interface Rococo.Graphics.ILandscapeTesselator
-	(AddQuadField (Int32 base2exponentDivisions)(Sys.SI.Metres span)(Sys.SI.Metres maxAltitude) -> )
+	(AddQuadField (Int32 base2exponentDivisions)(Sys.SI.Metres span) -> )
 	(Clear  -> )
 	(CommitToMesh (Sys.Type.IString meshName) -> (Int32 id))
-	(Generate  -> )
+	(GenerateByRecursiveSubdivision (Sys.SI.Metres maxAltitude) -> )
 	(GetBounds (Sys.Maths.Vec3 minPoint)(Sys.Maths.Vec3 maxPoint) -> )
 	(RaiseMountain (Sys.Maths.Vec3 atPosition)(Sys.SI.Metres deltaHeight)(Sys.SI.Metres spread) -> )
 	(SetHeights (Sys.Maths.Vec2i p0)(Sys.Maths.Vec2i p1)(Sys.SI.Metres height) -> )
@@ -536,10 +536,10 @@
 
 (class ProxyILandscapeTesselator (implements Rococo.Graphics.ILandscapeTesselator) (Pointer hObject))
 	(method ProxyILandscapeTesselator.Construct (Pointer hObject): (this.hObject = hObject))
-	(method ProxyILandscapeTesselator.AddQuadField (Int32 base2exponentDivisions)(Sys.SI.Metres span)(Sys.SI.Metres maxAltitude) ->  : (Rococo.Graphics.Native.ILandscapeTesselatorAddQuadField this.hObject base2exponentDivisions span maxAltitude))
+	(method ProxyILandscapeTesselator.AddQuadField (Int32 base2exponentDivisions)(Sys.SI.Metres span) ->  : (Rococo.Graphics.Native.ILandscapeTesselatorAddQuadField this.hObject base2exponentDivisions span))
 	(method ProxyILandscapeTesselator.Clear  ->  : (Rococo.Graphics.Native.ILandscapeTesselatorClear this.hObject ))
 	(method ProxyILandscapeTesselator.CommitToMesh (Sys.Type.IString meshName) -> (Int32 id) : (Rococo.Graphics.Native.ILandscapeTesselatorCommitToMesh this.hObject meshName -> id))
-	(method ProxyILandscapeTesselator.Generate  ->  : (Rococo.Graphics.Native.ILandscapeTesselatorGenerate this.hObject ))
+	(method ProxyILandscapeTesselator.GenerateByRecursiveSubdivision (Sys.SI.Metres maxAltitude) ->  : (Rococo.Graphics.Native.ILandscapeTesselatorGenerateByRecursiveSubdivision this.hObject maxAltitude))
 	(method ProxyILandscapeTesselator.GetBounds (Sys.Maths.Vec3 minPoint)(Sys.Maths.Vec3 maxPoint) ->  : (Rococo.Graphics.Native.ILandscapeTesselatorGetBounds this.hObject minPoint maxPoint))
 	(method ProxyILandscapeTesselator.RaiseMountain (Sys.Maths.Vec3 atPosition)(Sys.SI.Metres deltaHeight)(Sys.SI.Metres spread) ->  : (Rococo.Graphics.Native.ILandscapeTesselatorRaiseMountain this.hObject atPosition deltaHeight spread))
 	(method ProxyILandscapeTesselator.SetHeights (Sys.Maths.Vec2i p0)(Sys.Maths.Vec2i p1)(Sys.SI.Metres height) ->  : (Rococo.Graphics.Native.ILandscapeTesselatorSetHeights this.hObject p0 p1 height))

@@ -531,10 +531,10 @@
 	(as.cpp Rococo.Graphics.ILandscapeTesselator "mplat")
 	(context factory Rococo.Platform)
 	(methods
-		(AddQuadField (Int32 base2exponentDivisions)(Metres span)(Metres maxAltitude))
+		(AddQuadField (Int32 base2exponentDivisions)(Metres span))
 		(Clear)
 		(CommitToMesh (IString meshName)->(IdMesh id))
-		(Generate)
+		(GenerateByRecursiveSubdivision (Metres maxAltitude))
 		(GetBounds (Vec3 minPoint)(Vec3 maxPoint))
 		(RaiseMountain (const Vec3 atPosition)(Metres deltaHeight)(Metres spread))
 		(SetHeights (const Vec2i p0)(const Vec2i p1)(Metres height))

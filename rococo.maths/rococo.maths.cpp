@@ -485,6 +485,23 @@ namespace Rococo
 		return B + E * u;
 	}
 
+	const Matrix2x2 Matrix2x2::Identity()
+	{
+		return Matrix2x2{ {1,0}, {0,1} };
+	}
+
+	const Matrix2x2 Matrix2x2::Null()
+	{
+		return Matrix2x2{ {0,0}, {0,0} };
+	}
+
+	const Matrix2x2 Matrix2x2::RotateAnticlockwise(Radians phi)
+	{
+		float sina = sinf(phi);
+		float cosa = cosf(phi);
+		return Matrix2x2{ { cosa, -sina }, { sina, cosa } };
+	}
+
 	const Matrix4x4& Matrix4x4::Identity()
 	{
 		return const_identity4x4;
