@@ -89,7 +89,7 @@
 )
 
 (interface 
-	(as.sxy Rococo.Audio.IAudio "../content/scripts/mplat_pane")
+	(as.sxy Rococo.Audio.IAudio "../content/scripts/mplat")
 	(as.cpp Rococo.Audio.IAudio "mplat")
 	(context factory Rococo.Audio.IAudio)
 	(methods
@@ -642,6 +642,19 @@
 	)
 	(factory Rococo.Graphics.RendererConfig)
 )
+
+(interface (as.sxy Rococo.IArchive "../content/scripts/mplat")
+	(as.cpp Rococo.IArchive "mplat")
+	(context factory Rococo.Platform)
+	(methods
+		(LoadF32 (IString key) (Float32 defaultValue)->(Float32 value))
+		(SaveF32 (IString key) (Float32 value))
+		(LoadVec3 (IString key)(Vec3 targetVariable)(Float32 defaultX)(Float32 defaultY)(Float32 defaultZ))
+		(SaveVec3 (IString key)(const Vec3 value))
+	)
+	(factory Rococo.GetArchive)
+)
+
 
 (interface (as.sxy Rococo.Audio.ILegacySoundControl "../content/scripts/mplat")
 	(as.cpp Rococo.Audio.ILegacySoundControl "mplat")

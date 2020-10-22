@@ -115,9 +115,10 @@ namespace
 
 					float alpha = Rococo::Random::NextFloat(rng, 0, DEGREES_TO_RADIANS_QUOTIENT() * 360.0f);
 					auto Rxy = Matrix2x2::RotateAnticlockwise(Radians{ alpha });
+					//auto Rxy = Matrix2x2::Identity();
 
 					a.uv = Rxy * Vec2 {-0.5f, -0.5f };
-					b.uv = Rxy * Vec2 { 0.5f, -0.5f };
+					b.uv = Rxy * Vec2 {-0.5f,  0.5f };
 					c.uv = Rxy * Vec2 { 0.5f,  0.5f };
 					d.uv = Rxy * Vec2 { 0.5f, -0.5f };
 
@@ -125,6 +126,11 @@ namespace
 					b.normal = GetNormalAt(i, j + 1);
 					c.normal = GetNormalAt(i + 1, j + 1);
 					d.normal = GetNormalAt(i + 1, j);
+
+					a.position += delta;
+					b.position += delta;
+					c.position += delta;
+					d.position += delta;
 
 					mb.AddTriangle(a, b, c);
 					mb.AddTriangle(c, d, a);

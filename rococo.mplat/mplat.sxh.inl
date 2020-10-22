@@ -10095,6 +10095,132 @@ namespace Rococo { namespace Graphics {
 		ss.AddNativeCall(ns, NativeRococoGraphicsIRendererConfigSetSampler, nullptr, ("IRendererConfigSetSampler (Pointer hObject)(Rococo.SampleStateDef ssd)(Int32 index) -> "));
 	}
 }}
+// BennyHill generated Sexy native functions for Rococo::IArchive 
+namespace
+{
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
+
+	void NativeRococoIArchiveLoadF32(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		float defaultValue;
+		_offset += sizeof(defaultValue);
+		ReadInput(defaultValue, _sf, -_offset);
+
+		_offset += sizeof(IString*);
+		IString* _key;
+		ReadInput(_key, _sf, -_offset);
+		fstring key { _key->buffer, _key->length };
+
+
+		Rococo::IArchive* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		float value = _pObject->LoadF32(key, defaultValue);
+		_offset += sizeof(value);
+		WriteOutput(value, _sf, -_offset);
+	}
+	void NativeRococoIArchiveSaveF32(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		float value;
+		_offset += sizeof(value);
+		ReadInput(value, _sf, -_offset);
+
+		_offset += sizeof(IString*);
+		IString* _key;
+		ReadInput(_key, _sf, -_offset);
+		fstring key { _key->buffer, _key->length };
+
+
+		Rococo::IArchive* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SaveF32(key, value);
+	}
+	void NativeRococoIArchiveLoadVec3(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		float defaultZ;
+		_offset += sizeof(defaultZ);
+		ReadInput(defaultZ, _sf, -_offset);
+
+		float defaultY;
+		_offset += sizeof(defaultY);
+		ReadInput(defaultY, _sf, -_offset);
+
+		float defaultX;
+		_offset += sizeof(defaultX);
+		ReadInput(defaultX, _sf, -_offset);
+
+		Vec3* targetVariable;
+		_offset += sizeof(targetVariable);
+		ReadInput(targetVariable, _sf, -_offset);
+
+		_offset += sizeof(IString*);
+		IString* _key;
+		ReadInput(_key, _sf, -_offset);
+		fstring key { _key->buffer, _key->length };
+
+
+		Rococo::IArchive* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->LoadVec3(key, *targetVariable, defaultX, defaultY, defaultZ);
+	}
+	void NativeRococoIArchiveSaveVec3(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Vec3* value;
+		_offset += sizeof(value);
+		ReadInput(value, _sf, -_offset);
+
+		_offset += sizeof(IString*);
+		IString* _key;
+		ReadInput(_key, _sf, -_offset);
+		fstring key { _key->buffer, _key->length };
+
+
+		Rococo::IArchive* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SaveVec3(key, *value);
+	}
+
+	void NativeGetHandleForRococoGetArchive(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Platform* nceContext = reinterpret_cast<Rococo::Platform*>(_nce.context);
+		// Uses: Rococo::IArchive* FactoryConstructRococoGetArchive(Rococo::Platform* _context);
+		Rococo::IArchive* pObject = FactoryConstructRococoGetArchive(nceContext);
+		_offset += sizeof(IString*);
+		WriteOutput(pObject, _sf, -_offset);
+	}
+}
+
+namespace Rococo { 
+	void AddNativeCalls_RococoIArchive(Rococo::Script::IPublicScriptSystem& ss, Rococo::Platform* _nceContext)
+	{
+		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
+		ss.AddNativeCall(ns, NativeGetHandleForRococoGetArchive, _nceContext, ("GetHandleForIArchive0  -> (Pointer hObject)"));
+		ss.AddNativeCall(ns, NativeRococoIArchiveLoadF32, nullptr, ("IArchiveLoadF32 (Pointer hObject)(Sys.Type.IString key)(Float32 defaultValue) -> (Float32 value)"));
+		ss.AddNativeCall(ns, NativeRococoIArchiveSaveF32, nullptr, ("IArchiveSaveF32 (Pointer hObject)(Sys.Type.IString key)(Float32 value) -> "));
+		ss.AddNativeCall(ns, NativeRococoIArchiveLoadVec3, nullptr, ("IArchiveLoadVec3 (Pointer hObject)(Sys.Type.IString key)(Sys.Maths.Vec3 targetVariable)(Float32 defaultX)(Float32 defaultY)(Float32 defaultZ) -> "));
+		ss.AddNativeCall(ns, NativeRococoIArchiveSaveVec3, nullptr, ("IArchiveSaveVec3 (Pointer hObject)(Sys.Type.IString key)(Sys.Maths.Vec3 value) -> "));
+	}
+}
 // BennyHill generated Sexy native functions for Rococo::Audio::ILegacySoundControl 
 namespace
 {

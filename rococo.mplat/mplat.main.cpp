@@ -338,11 +338,13 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	AutoFree<Joysticks::IJoystick_XBOX360_Supervisor> xbox360stick = Joysticks::CreateJoystick_XBox360Proxy();
 
 	AutoFree<IInstallationManagerSupervisor> ims = Rococo::MPlatImpl::CreateIMS(*installation);
+
+	AutoFree<IArchiveSupervisor> archive = Rococo::CreateArchive();
 	
 	Platform platform
 	{ 
 		*os, *installation, *appControl, mainWindow->Renderer(), *rendererConfig, *messaging, 
-		*sourceCache, *debuggerWindow, *publisher, *utilities, *gui, *keyboard, *config, *meshes,
+		*sourceCache, *debuggerWindow, *publisher, *utilities, *gui, *keyboard, *config, *archive, *meshes,
 		*instances, *mobiles, *particles, *rigs, *sprites, *camera, *scene, tesselators, *mathsVisitor,
 		*legacySound, *audio, *ssFactory, title, *xbox360stick, *ims
 	};

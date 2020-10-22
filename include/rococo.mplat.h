@@ -810,10 +810,17 @@ namespace Rococo
 
 	struct ISourceCache;
 
-	struct IInstallationManagerSupervisor : public IInstallationManager
+	ROCOCOAPI IInstallationManagerSupervisor :  IInstallationManager
 	{
 		virtual void Free() = 0;
 	};
+
+	ROCOCOAPI IArchiveSupervisor : IArchive
+	{
+		virtual void Free() = 0;
+	};
+
+	IArchiveSupervisor* CreateArchive();
 
 	struct Platform
 	{
@@ -853,6 +860,8 @@ namespace Rococo
 		IKeyboardSupervisor& keyboard;
 
 		IConfigSupervisor& config;
+
+		IArchive& archive;
 
 		// Mesh builder object
 		Graphics::IMeshBuilderSupervisor& meshes;

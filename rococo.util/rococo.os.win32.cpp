@@ -1388,16 +1388,20 @@ namespace
 					size_t nChars = info.FileNameLength >> 1;
 					if (nChars < _MAX_PATH - 1)
 					{
-						wchar_t nullTerminatedFilename[_MAX_PATH] = { 0 };
+						WideFilePath nullTerminatedFilename = { 0 };
 						for (DWORD i = 0; i < nChars; ++i)
 						{
-							nullTerminatedFilename[i] = info.FileName[i];
+							nullTerminatedFilename.buf[i] = info.FileName[i];
 						}
-						nullTerminatedFilename[nChars] = 0;
+						nullTerminatedFilename.buf[nChars] = 0;
 
-						wchar_t fullPath[_MAX_PATH];
-						_snwprintf_s(fullPath, _TRUNCATE, L"%s%s", monitorDirectoryRoot.c_str(), nullTerminatedFilename);
-						OnModified(fullPath);
+						WideFilePath fullPath;
+						Format(fullPath, L"%ls%ls", monitorDirectoryRoot.c_str(), nullTerminatedFilename.buf);
+
+						if (!Rococo::IO::IsDirectory(fullPath))
+						{
+							OnModified(fullPath);
+						}
 					}
 				}
 
@@ -1433,7 +1437,8 @@ namespace
 
 				int QueueScan()
 				{
-					if (!ReadDirectoryChangesW(hMonitorDirectory, raw, sizeof(raw), TRUE, FILE_NOTIFY_CHANGE_LAST_WRITE, &bytesReturned, &ovl, OnScan))
+					DWORD dwNotifyFilter = FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_LAST_WRITE;
+					if (!ReadDirectoryChangesW(hMonitorDirectory, raw, sizeof(raw), TRUE, dwNotifyFilter, &bytesReturned, &ovl, OnScan))
 					{
 						return GetLastError();
 					}
@@ -1827,6 +1832,12 @@ namespace Rococo
 				WriteFile(hFile, s, (DWORD)(sizeof(char) * rlen(s)), &writeLength, nullptr);
 				CloseHandle(hFile);
 			}
+		}
+
+		bool IsDirectory(const wchar_t* filename)
+		{
+			DWORD flags = GetFileAttributesW(filename);
+			return (flags & FILE_ATTRIBUTE_DIRECTORY) != 0;
 		}
 
 		template<class T> struct ComObject

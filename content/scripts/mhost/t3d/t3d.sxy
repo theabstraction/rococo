@@ -55,6 +55,7 @@
 	(IEventHandler modalSink)
 	(IKeyboard keyboard)
 	(IWorld world)
+	(Bool isViewLocked)
 )
 
 (method GuiInputThread.Destruct -> :
@@ -74,6 +75,7 @@
 (method GuiInputThread.Construct (IEngine engine)(IWorld world) : 
 	(this.engine = engine)
 	(this.world = world)
+	(this.isViewLocked = false)
 )
 
 (factory T3D.NewGuiInputThread IInputThread (IEngine engine)(IWorld world):
@@ -88,6 +90,7 @@
 	(Int32 upKey = (keyboard.GetVKeyFromName "W"))
 	(Int32 downKey = (keyboard.GetVKeyFromName "S")) 
 	(Int32 overlayToggleKey = (keyboard.GetVKeyFromName "F1"))
+	(Int32 lockViewKey = (keyboard.GetVKeyFromName "L"))
 	(this.engine.SetOverlayToggleKey overlayToggleKey)
 	
 	(MouseEvent mouseEvent)
@@ -122,6 +125,14 @@
 		
 		(while (this.engine.GetNextKeyboardEvent keyEvent)
 			// Required for overlay control
+			
+			(if ((keyEvent.virtualKeyCode == lockViewKey) and keyEvent.isUp)
+				(if this.isViewLocked
+					(this.isViewLocked = false)
+				else
+					(this.isViewLocked = true)
+				)
+			)
 		)
 		
 		(while (this.engine.GetNextMouseEvent mouseEvent)
@@ -131,10 +142,12 @@
 		(Vec2 mouseDelta)
 		(this.engine.GetNextMouseDelta mouseDelta)
 
-		(if ((mouseDelta.x != 0) or (mouseDelta.y != 0))
-			(Float32 mouseDegreesPerDelta = T3D.Config.UI.MouseDegreesPerDelta)
-			(Vec2 mouseDeltaDegrees = mouseDegreesPerDelta * mouseDelta)
-			(this.world.UpdateMouseLook mouseDeltaDegrees)
+		(if (not this.isViewLocked)
+			(if ((mouseDelta.x != 0) or (mouseDelta.y != 0))
+				(Float32 mouseDegreesPerDelta = T3D.Config.UI.MouseDegreesPerDelta)
+				(Vec2 mouseDeltaDegrees = mouseDegreesPerDelta * mouseDelta)
+				(this.world.UpdateMouseLook mouseDeltaDegrees)
+			)
 		)
 		
 		(yield 5000) // This gives 5ms per poll or 200 Hz
@@ -252,18 +265,19 @@
 
 /*	(instances.LoadRig "!mesh/t3d/mike.sxy") // generates mike_rig
 	
-	(IRigs rigs (Rigs))
-	(IRig mike = (rigs.GetRig "mike_rig"))
+//	(IRigs rigs (Rigs))
+//	(IRig mike = (rigs.GetRig "mike_rig"))
 	
-	(IStringBuilder meshName = (NewPathBuilder))
-	
+//	(IStringBuilder meshName = (NewPathBuilder))
+	/*
 	(Matrix4x4 rigToWorld =
 		(1 0 0   0)
 		(0 1 0   1)
 		(0 0 1 0.3)
 		(0 0 0   1)
 	)
-	
+	*/
+	/*
 	// Set scale to zero, which allows the childToWorld matrix to control scaling
 	(Vec3 useModelMatrixScaling = 0 0 0)
 	

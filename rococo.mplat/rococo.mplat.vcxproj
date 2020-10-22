@@ -103,6 +103,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="mplat.archive.cpp" />
     <ClCompile Include="mplat.audio.decoders.cpp" />
     <ClCompile Include="mplat.audio.legacy.cpp" />
     <ClCompile Include="mplat.audio.X2.cpp" />

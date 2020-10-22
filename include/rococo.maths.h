@@ -124,7 +124,7 @@ namespace Rococo
 
 	inline Vec2 operator * (const Matrix2x2& m, const Vec2& v)
 	{
-		return Vec2{ m.row0.x * v.x + m.row0.y + v.y, m.row1.x * v.x + m.row1.y + v.y };
+		return Vec2{ (m.row0.x * v.x) + (m.row0.y * v.y), (m.row1.x * v.x) + (m.row1.y * v.y) };
 	}
 
 	// Generally in the Rococo libs code/assume that matrices are used to pre-multiply column vectors

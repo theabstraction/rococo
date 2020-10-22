@@ -75,6 +75,19 @@
 	(construct ProxyIRigBuilder pObject)
 )
 
+(interface Rococo.Audio.IAudio
+	(SetMusic (Sys.Type.IString musicFile) -> )
+)
+
+(class ProxyIAudio (implements Rococo.Audio.IAudio) (Pointer hObject))
+	(method ProxyIAudio.Construct (Pointer hObject): (this.hObject = hObject))
+	(method ProxyIAudio.SetMusic (Sys.Type.IString musicFile) ->  : (Rococo.Audio.Native.IAudioSetMusic this.hObject musicFile))
+
+(factory Rococo.Audio.GetAudio Rococo.Audio.IAudio  :
+	(Pointer pObject = (Rococo.Audio.Native.GetHandleForIAudio0 ))
+	(construct ProxyIAudio pObject)
+)
+
 (interface Rococo.IKeyboard
 	(ClearActions  -> )
 	(GetVKeyFromName (Sys.Type.IString name) -> (Int32 vkCode))
@@ -622,6 +635,25 @@
 (factory Rococo.Graphics.RendererConfig Rococo.Graphics.IRendererConfig  :
 	(Pointer pObject = (Rococo.Graphics.Native.GetHandleForIRendererConfig0 ))
 	(construct ProxyIRendererConfig pObject)
+)
+
+(interface Rococo.IArchive
+	(LoadF32 (Sys.Type.IString key)(Float32 defaultValue) -> (Float32 value))
+	(SaveF32 (Sys.Type.IString key)(Float32 value) -> )
+	(LoadVec3 (Sys.Type.IString key)(Sys.Maths.Vec3 targetVariable)(Float32 defaultX)(Float32 defaultY)(Float32 defaultZ) -> )
+	(SaveVec3 (Sys.Type.IString key)(Sys.Maths.Vec3 value) -> )
+)
+
+(class ProxyIArchive (implements Rococo.IArchive) (Pointer hObject))
+	(method ProxyIArchive.Construct (Pointer hObject): (this.hObject = hObject))
+	(method ProxyIArchive.LoadF32 (Sys.Type.IString key)(Float32 defaultValue) -> (Float32 value) : (Rococo.Native.IArchiveLoadF32 this.hObject key defaultValue -> value))
+	(method ProxyIArchive.SaveF32 (Sys.Type.IString key)(Float32 value) ->  : (Rococo.Native.IArchiveSaveF32 this.hObject key value))
+	(method ProxyIArchive.LoadVec3 (Sys.Type.IString key)(Sys.Maths.Vec3 targetVariable)(Float32 defaultX)(Float32 defaultY)(Float32 defaultZ) ->  : (Rococo.Native.IArchiveLoadVec3 this.hObject key targetVariable defaultX defaultY defaultZ))
+	(method ProxyIArchive.SaveVec3 (Sys.Type.IString key)(Sys.Maths.Vec3 value) ->  : (Rococo.Native.IArchiveSaveVec3 this.hObject key value))
+
+(factory Rococo.GetArchive Rococo.IArchive  :
+	(Pointer pObject = (Rococo.Native.GetHandleForIArchive0 ))
+	(construct ProxyIArchive pObject)
 )
 
 (interface Rococo.Audio.ILegacySoundControl

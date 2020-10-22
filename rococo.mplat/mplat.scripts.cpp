@@ -45,6 +45,11 @@ Rococo::Entities::IRigBuilder* FactoryConstructRococoEntitiesRigBuilder(Rococo::
 	return &rigs->Builder();
 }
 
+Rococo::IArchive* FactoryConstructRococoGetArchive(Rococo::Platform * platform)
+{
+	return &platform->archive;
+}
+
 Rococo::Graphics::IRendererConfig* FactoryConstructRococoGraphicsRendererConfig(Rococo::Platform* platform)
 {
 	return &platform->rendererConfig;
@@ -285,6 +290,7 @@ namespace Rococo
 						Rococo::AddNativeCalls_RococoIInstallationManager(args.ss, &platform);
 						AddNativeCalls_RococoIConfig(args.ss, &platform.config);
 						Audio::AddNativeCalls_RococoAudioIAudio(args.ss, &platform.audio);
+						Rococo::AddNativeCalls_RococoIArchive(args.ss, &platform);
 
 						const INamespace& ns = args.ss.AddNativeNamespace("MPlat.OS");
 						args.ss.AddNativeCall(ns, NativeEnumerateFiles, &platform, "EnumerateFiles (Sys.Type.IString filter)(MPlat.OnFileName callback)->");
