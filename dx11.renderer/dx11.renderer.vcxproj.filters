@@ -94,6 +94,9 @@
     <FxCompile Include="object.no-texture.ps.hlsl">
       <Filter>HLSL\Objects</Filter>
     </FxCompile>
+    <FxCompile Include="landscape.ps.hlsl">
+      <Filter>HLSL\Landscapes</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dx11.swapchain.cpp">
@@ -185,6 +188,9 @@
     </Filter>
     <Filter Include="HLSL\Headers">
       <UniqueIdentifier>{6efd6b5c-0162-4473-b1b9-6b72629ec741}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HLSL\Landscapes">
+      <UniqueIdentifier>{81e392a9-b652-4772-9475-fc10f0b889e2}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

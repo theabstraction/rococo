@@ -96,7 +96,7 @@ namespace
 			MaterialVertexData mvd;
 			mvd.colour = RGBAb(255, 255, 255, 255);
 			mvd.gloss = 0;
-			mvd.materialId = 0;
+			mvd.materialId = 2;
 
 			rng.Seed((uint32) seedNumber);
 
@@ -142,6 +142,10 @@ namespace
 			}
 
 			mb.End(true, false);
+
+			mb.SetSpecialShader(meshName, ""_fstring, "!landscape.ps"_fstring, false);
+			mb.SetShadowCasting(meshName, false);
+
 			return ID_MESH::Invalid();
 		}
 

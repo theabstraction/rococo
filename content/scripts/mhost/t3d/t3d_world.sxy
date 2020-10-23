@@ -379,7 +379,7 @@
 	(landscape.AddQuadField 8 2048.0)
 	(Vec3 delta = -1024 -1024 0)
 	(landscape.TranslateEachCell delta)
-	(landscape.GenerateByRecursiveSubdivision 0.5)
+	(landscape.GenerateByRecursiveSubdivision 100)
 	(landscape.CommitToMesh "landscape_0_0")
 	
 	(Vec3 noScale = 1 1 1)
@@ -409,8 +409,8 @@
 	(scene.Clear)
 	
 	(AddBottle scene instances)
-//	(AddFloor scene instances)
-	(AddLandscape scene instances)
+	(AddFloor scene instances)
+//	(AddLandscape scene instances)
 	(AddLight scene instances)
 	(AddRigs scene instances)
 )

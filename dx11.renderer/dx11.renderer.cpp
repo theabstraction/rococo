@@ -2356,8 +2356,17 @@ namespace ANON
 		   auto i = nameToPixelShader.find(psSpotlightPingPath);
 		   if (i == nameToPixelShader.end())
 		   {
-			   installation.LoadResource(psSpotlightPingPath, *scratchBuffer, 64_kilobytes);
-			   auto pxId = CreatePixelShader(psSpotlightPingPath, scratchBuffer->GetData(), scratchBuffer->Length());
+			   ID_PIXEL_SHADER pxId;
+			   if (psSpotlightPingPath == nullptr || *psSpotlightPingPath == 0)
+			   {
+				   pxId = ID_PIXEL_SHADER::Invalid();
+			   }
+			   else
+			   {
+				   installation.LoadResource(psSpotlightPingPath, *scratchBuffer, 64_kilobytes);
+				   pxId = CreatePixelShader(psSpotlightPingPath, scratchBuffer->GetData(), scratchBuffer->Length());
+			   }
+
 			   i = nameToPixelShader.insert(psSpotlightPingPath, pxId).first;
 		   }
 
@@ -2366,8 +2375,17 @@ namespace ANON
 		   i = nameToPixelShader.find(psAmbientPingPath);
 		   if (i == nameToPixelShader.end())
 		   {
-			   installation.LoadResource(psAmbientPingPath, *scratchBuffer, 64_kilobytes);
-			   auto pxId = CreatePixelShader(psAmbientPingPath, scratchBuffer->GetData(), scratchBuffer->Length());
+			   ID_PIXEL_SHADER pxId;
+			   if (psAmbientPingPath == nullptr || *psAmbientPingPath == 0)
+			   {
+					pxId = ID_PIXEL_SHADER::Invalid();
+			   }
+			   else
+			   {
+				   installation.LoadResource(psAmbientPingPath, *scratchBuffer, 64_kilobytes);
+				   pxId = CreatePixelShader(psAmbientPingPath, scratchBuffer->GetData(), scratchBuffer->Length());
+			   }
+
 			   i = nameToPixelShader.insert(psAmbientPingPath, pxId).first;
 		   }
 
