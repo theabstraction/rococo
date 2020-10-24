@@ -1048,7 +1048,7 @@ namespace Rococo { namespace Script
 		if (IsAtomic(args))
 		{
 			MemberDef def;
-			auto& sargs = GetAtomicArg(args);
+			const fstring& sargs = GetAtomicArg(args);
 			if (!ce.Builder.TryGetVariableByName(def, sargs.buffer))
 			{
 				Throw(args, "Expecting a variable name");

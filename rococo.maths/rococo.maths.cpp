@@ -471,14 +471,14 @@ namespace Rococo
 		// (AxDy - AyDx -  BxDy + DxBy) / (ExDy - EyDx) = u
 		// (Ax - Bx).Dy + (By - Ay).Dx /  (ExDy - EyDx) = u
 
-		float denominator = E.x*D.y - E.y*D.x;
+		float denominator = E.x * D.y - E.y * D.x;
 
 		if (denominator == 0.0f)
 		{
 			Throw(0, "Degenerate args in GetIntersect(...)");
 		}
 
-		float numerator = (A.x - B.x) * D.y + (B.y - A.y)*D.x;
+		float numerator = (A.x - B.x) * D.y + (B.y - A.y) * D.x;
 
 		float u = numerator / denominator;
 
@@ -784,7 +784,7 @@ namespace Rococo
 		}
 		else
 		{
-			float d = b*b - 4.0f*a*c;
+			float d = b * b - 4.0f * a * c;
 			if (d < 0)
 			{
 				// Complex roots
@@ -806,7 +806,7 @@ namespace Rococo
 		}
 	}
 
-	void swap(float& a, float &b)
+	void swap(float& a, float& b)
 	{
 		float c = b;
 		b = a;
@@ -824,7 +824,7 @@ namespace Rococo
 
 		Vec3 atoc = start - sphere.centre;
 
-		if (TryGetRealRoots(t0, t1, LengthSq(end - start), 2.0f * atoc * (end - start), LengthSq(atoc) - sphere.radius*sphere.radius))
+		if (TryGetRealRoots(t0, t1, LengthSq(end - start), 2.0f * atoc * (end - start), LengthSq(atoc) - sphere.radius * sphere.radius))
 		{
 			if (t0 > t1)
 			{
@@ -848,7 +848,7 @@ namespace Rococo
 
 			cstr Message() const override { return msg; }
 			int32 ErrorCode() const override { return 0; }
-			Debugging::IStackFrameEnumerator* StackFrames() override { return nullptr;  }
+			Debugging::IStackFrameEnumerator* StackFrames() override { return nullptr; }
 		} ex;
 
 		SafeFormat(ex.msg, sizeof(ex.msg), "%s", format);
@@ -1055,7 +1055,7 @@ namespace Rococo
 		Vec2 dp = p1 - p0;
 
 		Vec2 normal = { dp.y, -dp.x };
-			
+
 		// Count the number of times that normal crosses the perimeter
 		int32 forwardCount = 0;
 		for (size_t i = 1; i < ring.ElementCount(); ++i)
@@ -1070,7 +1070,7 @@ namespace Rococo
 			float t, u;
 			if (GetLineIntersect(q0, q1, centre, centre + normal, t, u))
 			{
-				if (u > 0) 
+				if (u > 0)
 				{
 					if (dot > 0)
 					{
@@ -1160,7 +1160,11 @@ namespace Rococo
 			i++;
 		}
 	}
+}
 
+#ifdef _WIN32
+namespace Rococo
+{
 	void ComputeBoneQuatFromAngles(Quat& quat, const BoneAngles& angles)
 	{
 		DirectX::XMVECTOR q = DirectX::XMQuaternionRotationRollPitchYaw(
@@ -1171,3 +1175,4 @@ namespace Rococo
 		DirectX::XMStoreFloat4(quat, q);
 	}
 }
+#endif

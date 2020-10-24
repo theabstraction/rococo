@@ -974,7 +974,7 @@ namespace
 			}
 		}
 
-		void Revert(size_t position)
+		void Revert(size_t position) override
 		{
 			if (position < program.size())
 			{

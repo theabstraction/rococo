@@ -516,7 +516,7 @@ namespace
          }
       }
 
-      virtual void BuildTextures(int32 minWidth)
+      void BuildTextures(int32 minWidth) override
       {
          int32 width = EvaluateRequiredTextureSpan(minWidth);
 
@@ -588,7 +588,7 @@ namespace
          }
       }
 
-      virtual void Clear()
+      void Clear() override
       {
          textureArray.ResetWidth(0);
 
