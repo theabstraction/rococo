@@ -1319,7 +1319,8 @@ namespace Rococo::Graphics
 			void Clear() override {}
 			void Delete(const fstring& fqName) override {}
 			void SetShadowCasting(const fstring& fqName, boolean32 isActive) override {}
-			void SetSpecialShader(const fstring& fqName, const fstring& psSpotlightPingPath, const fstring& psAmbientPingPath, boolean32 alphaBlending) override {}
+			void SetSpecialAmbientShader(const fstring& fqName, const fstring& vs, const fstring& ps, boolean32 alphaBlending) override {}
+			void SetSpecialSpotlightShader(const fstring& fqName, const fstring& vs, const fstring& ps, boolean32 alphaBlending) override {}
 			void Span(Vec3& span, const fstring& fqName) override {}
 		};
 			

@@ -5,6 +5,13 @@
 )
 (alias MaterialVertexData Rococo.MaterialVertexData)
 
+(struct TriangleScan
+	(Int64 id)
+	(Int64 idMesh)
+	(Sys.Maths.Triangle t)
+)
+(alias TriangleScan Rococo.TriangleScan)
+
 (struct ObjectVertex
 	(Sys.Maths.Vec3 position)
 	(Sys.Maths.Vec3 normal)

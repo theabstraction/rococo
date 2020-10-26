@@ -1,6 +1,7 @@
 #include "rococo.mplat.h"
 #include "mplat.landscapes.h"
 #include <rococo.random.h>
+#include <rococo.octree.h>
 
 #include <vector>
 
@@ -24,7 +25,6 @@ namespace
 		LandscapeTesselator(IMeshBuilderSupervisor& refMeshBuilder):
 			meshBuilder(refMeshBuilder)
 		{
-
 		}
 
 		void AddQuadField(int32 base2exponentDivisions, Metres span) override
@@ -143,7 +143,8 @@ namespace
 
 			mb.End(true, false);
 
-			mb.SetSpecialShader(meshName, ""_fstring, "!landscape.ps"_fstring, false);
+			mb.SetSpecialAmbientShader(meshName, "!landscape.vs"_fstring, "!landscape.ps"_fstring, false);
+			mb.SetSpecialSpotlightShader(meshName, ""_fstring, ""_fstring, false);
 			mb.SetShadowCasting(meshName, false);
 
 			return ID_MESH::Invalid();

@@ -94,13 +94,13 @@ namespace Rococo
 
 	Rococo::cstr StringFrom(Rococo::Sex::cr_sex s)
 	{
-		if (!IsAtomic(s) && !IsStringLiteral(s)) Throw(s, ("Expecting atomic or string literal"));
+		if (!IsAtomic(s) && !IsStringLiteral(s)) Throw(s, "Expecting atomic or string literal");
 		return s.String()->Buffer;
 	}
 
 	Rococo::cstr StringFrom(Rococo::Sex::cr_sex command, int elementIndex)
 	{
-		if (elementIndex >= command.NumberOfElements()) Throw(command, ("Insufficient elements in expression"));
+		if (elementIndex >= command.NumberOfElements()) Throw(command, "Insufficient elements in expression");
 		return StringFrom(command.GetElement(elementIndex));
 	}
 
@@ -1046,7 +1046,7 @@ int main(int argc, char* argv[])
 	}
 	catch (ParseException& ex)
 	{
-		WriteToStandardOutput(("\n\t%s. %s\nSpecimen: %s.\nPosition: %d.%d to %d.%d\n"), pc.scriptInput, ex.Message(), ex.Specimen(), ex.Start().x, ex.Start().y, ex.End().x, ex.End().y);
+		WriteToStandardOutput("\n\t%s. %s\nSpecimen: %s.\nPosition: %d.%d to %d.%d\n", pc.scriptInput, ex.Message(), ex.Specimen(), ex.Start().x, ex.Start().y, ex.End().x, ex.End().y);
 
 		if (ex.ErrorCode() != 0)
 		{

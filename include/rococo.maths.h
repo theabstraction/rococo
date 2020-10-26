@@ -79,6 +79,11 @@ namespace Rococo
 		LineClassify_OnLine = 3,
 	};
 
+	inline Vec2 operator - (Vec2 src)
+	{
+		return { -src.x, -src.y };
+	}
+
 	LineClassify ClassifyPtAgainstPlane(Vec2 a, Vec2 b, Vec2 p);
 
 	bool IsClockwiseSequential(IRing<Vec2>& ring);

@@ -740,6 +740,68 @@ void ValidateDictionary()
 	d.Enumerate(e);
 }
 
+#include <rococo.quadtree.h>
+
+void TestQuadtree()
+{
+	QuadtreeCreateContext qcc;
+	qcc.centre = { 0,0 };
+	qcc.minSpan = 1.0f;
+	qcc.span = 32.0f;
+	AutoFree<IQuadtreeSupervisor> quad = CreateLooseQuadtree(qcc);
+
+	QuadtreeObject obj;
+	obj.centre = { -4.0f,12.0f };
+	obj.span = 8.0f;
+	auto& pocket = quad->Insert(obj);
+	
+	struct CLOSURE : IEventCallback<QuadtreePocket>
+	{
+		bool found = false;
+		void OnEvent(QuadtreePocket& pocket)
+		{
+		//	printf("(%f %f)", pocket.object.centre.x, pocket.object.centre.y);
+			found = true;
+		}
+	};
+
+	CLOSURE cb1;
+	quad->EnumerateDescendants({ -0.001f, 7.999f }, cb1);
+	VALIDATE(!cb1.found);
+
+	CLOSURE cb2;
+	quad->EnumerateDescendants({ -0.001f, 8.001f }, cb2);
+	VALIDATE(cb2.found);
+
+	CLOSURE cb3;
+	quad->EnumerateDescendants({ 0.001f, 8.001f }, cb3);
+	VALIDATE(!cb3.found);
+
+	CLOSURE cb4;
+	quad->EnumerateDescendants({ -8.001f, 8.001f }, cb4);
+	VALIDATE(!cb4.found);
+
+	CLOSURE cb5;
+	quad->EnumerateDescendants({ -8.00f, 8.001f }, cb5);
+	VALIDATE(cb5.found);
+
+	CLOSURE cb6;
+	quad->EnumerateDescendants({ -7.99f, 8.001f }, cb6);
+	VALIDATE(cb6.found);
+
+	CLOSURE cb7;
+	quad->EnumerateDescendants({ -7.0f, 16.001f }, cb7);
+	VALIDATE(!cb7.found);
+
+	CLOSURE cb8;
+	quad->EnumerateDescendants({ -7.0f, 16.00f }, cb8);
+	VALIDATE(cb8.found);
+
+	CLOSURE cb9;
+	quad->EnumerateDescendants({ -7.0f, 16.01f }, cb8);
+	VALIDATE(!cb9.found);
+}
+
 #include <rococo.octree.h>
 
 void TestOctree()
@@ -884,6 +946,8 @@ void TestOctree()
 
 void test()
 {
+	TestQuadtree();
+	return;
 	TestOctree();
 	TimeSTDUNMAP();
 	TimeStringMap();

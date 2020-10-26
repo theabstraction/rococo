@@ -153,13 +153,19 @@
     <ClCompile Include="mplat.audio.decoders.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mplat.octree.loose.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="mplat.graphics.landscapes.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="mplat.archive.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mplat.world.builder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mplat.geometry.octree.loose.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mplat.geometry.quadtree.loose.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

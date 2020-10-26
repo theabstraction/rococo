@@ -7667,7 +7667,7 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->SetShadowCasting(fqName, isActive);
 	}
-	void NativeRococoGraphicsIMeshBuilderSetSpecialShader(NativeCallEnvironment& _nce)
+	void NativeRococoGraphicsIMeshBuilderSetSpecialAmbientShader(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
@@ -7682,9 +7682,9 @@ namespace
 
 
 		_offset += sizeof(IString*);
-		IString* _psSpotlightPingPath;
-		ReadInput(_psSpotlightPingPath, _sf, -_offset);
-		fstring psSpotlightPingPath { _psSpotlightPingPath->buffer, _psSpotlightPingPath->length };
+		IString* _vsAmbientPingPath;
+		ReadInput(_vsAmbientPingPath, _sf, -_offset);
+		fstring vsAmbientPingPath { _vsAmbientPingPath->buffer, _vsAmbientPingPath->length };
 
 
 		_offset += sizeof(IString*);
@@ -7697,7 +7697,39 @@ namespace
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->SetSpecialShader(fqName, psSpotlightPingPath, psAmbientPingPath, alphaBlending);
+		_pObject->SetSpecialAmbientShader(fqName, vsAmbientPingPath, psAmbientPingPath, alphaBlending);
+	}
+	void NativeRococoGraphicsIMeshBuilderSetSpecialSpotlightShader(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 alphaBlending;
+		_offset += sizeof(alphaBlending);
+		ReadInput(alphaBlending, _sf, -_offset);
+
+		_offset += sizeof(IString*);
+		IString* _psSpotlightPingPath;
+		ReadInput(_psSpotlightPingPath, _sf, -_offset);
+		fstring psSpotlightPingPath { _psSpotlightPingPath->buffer, _psSpotlightPingPath->length };
+
+
+		_offset += sizeof(IString*);
+		IString* _vsSpotlightPingPath;
+		ReadInput(_vsSpotlightPingPath, _sf, -_offset);
+		fstring vsSpotlightPingPath { _vsSpotlightPingPath->buffer, _vsSpotlightPingPath->length };
+
+
+		_offset += sizeof(IString*);
+		IString* _fqName;
+		ReadInput(_fqName, _sf, -_offset);
+		fstring fqName { _fqName->buffer, _fqName->length };
+
+
+		Rococo::Graphics::IMeshBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetSpecialSpotlightShader(fqName, vsSpotlightPingPath, psSpotlightPingPath, alphaBlending);
 	}
 	void NativeRococoGraphicsIMeshBuilderSpan(NativeCallEnvironment& _nce)
 	{
@@ -7746,7 +7778,8 @@ namespace Rococo { namespace Graphics {
 		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderClear, nullptr, ("IMeshBuilderClear (Pointer hObject) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderDelete, nullptr, ("IMeshBuilderDelete (Pointer hObject)(Sys.Type.IString fqName) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderSetShadowCasting, nullptr, ("IMeshBuilderSetShadowCasting (Pointer hObject)(Sys.Type.IString fqName)(Bool isActive) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderSetSpecialShader, nullptr, ("IMeshBuilderSetSpecialShader (Pointer hObject)(Sys.Type.IString fqName)(Sys.Type.IString psSpotlightPingPath)(Sys.Type.IString psAmbientPingPath)(Bool alphaBlending) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderSetSpecialAmbientShader, nullptr, ("IMeshBuilderSetSpecialAmbientShader (Pointer hObject)(Sys.Type.IString fqName)(Sys.Type.IString vsAmbientPingPath)(Sys.Type.IString psAmbientPingPath)(Bool alphaBlending) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderSetSpecialSpotlightShader, nullptr, ("IMeshBuilderSetSpecialSpotlightShader (Pointer hObject)(Sys.Type.IString fqName)(Sys.Type.IString vsSpotlightPingPath)(Sys.Type.IString psSpotlightPingPath)(Bool alphaBlending) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderSpan, nullptr, ("IMeshBuilderSpan (Pointer hObject)(Sys.Maths.Vec3 span)(Sys.Type.IString fqName) -> "));
 	}
 }}
@@ -10439,5 +10472,111 @@ namespace Rococo {
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForRococoInstallation, _nceContext, ("GetHandleForIInstallation0  -> (Pointer hObject)"));
 		ss.AddNativeCall(ns, NativeRococoIInstallationManagerSetPingPathMacro, nullptr, ("IInstallationSetPingPathMacro (Pointer hObject)(Sys.Type.IString key)(Sys.Type.IString pingPathValue) -> "));
+	}
+}
+// BennyHill generated Sexy native functions for Rococo::IWorldBuilder 
+namespace
+{
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
+
+	void NativeRococoIWorldBuilderAddMeshToQuadtree(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		ID_ENTITY id;
+		_offset += sizeof(id);
+		ReadInput(id, _sf, -_offset);
+
+		Rococo::IWorldBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AddMeshToQuadtree(id);
+	}
+	void NativeRococoIWorldBuilderGetHeightAt(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		TriangleScan* t;
+		_offset += sizeof(t);
+		ReadInput(t, _sf, -_offset);
+
+		float y;
+		_offset += sizeof(y);
+		ReadInput(y, _sf, -_offset);
+
+		float x;
+		_offset += sizeof(x);
+		ReadInput(x, _sf, -_offset);
+
+		Rococo::IWorldBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		float height = _pObject->GetHeightAt(x, y, *t);
+		_offset += sizeof(height);
+		WriteOutput(height, _sf, -_offset);
+	}
+	void NativeRococoIWorldBuilderGetTriangleAt(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		TriangleScan* t;
+		_offset += sizeof(t);
+		ReadInput(t, _sf, -_offset);
+
+		Vec2* position;
+		_offset += sizeof(position);
+		ReadInput(position, _sf, -_offset);
+
+		Rococo::IWorldBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GetTriangleAt(*position, *t);
+	}
+	void NativeRococoIWorldBuilderNew(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Metres minSpan;
+		_offset += sizeof(minSpan);
+		ReadInput(minSpan, _sf, -_offset);
+
+		Metres span;
+		_offset += sizeof(span);
+		ReadInput(span, _sf, -_offset);
+
+		Rococo::IWorldBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->New(span, minSpan);
+	}
+
+	void NativeGetHandleForRococoWorldBuilder(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Platform* nceContext = reinterpret_cast<Rococo::Platform*>(_nce.context);
+		// Uses: Rococo::IWorldBuilder* FactoryConstructRococoWorldBuilder(Rococo::Platform* _context);
+		Rococo::IWorldBuilder* pObject = FactoryConstructRococoWorldBuilder(nceContext);
+		_offset += sizeof(IString*);
+		WriteOutput(pObject, _sf, -_offset);
+	}
+}
+
+namespace Rococo { 
+	void AddNativeCalls_RococoIWorldBuilder(Rococo::Script::IPublicScriptSystem& ss, Rococo::Platform* _nceContext)
+	{
+		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
+		ss.AddNativeCall(ns, NativeGetHandleForRococoWorldBuilder, _nceContext, ("GetHandleForIWorldBuilder0  -> (Pointer hObject)"));
+		ss.AddNativeCall(ns, NativeRococoIWorldBuilderAddMeshToQuadtree, nullptr, ("IWorldBuilderAddMeshToQuadtree (Pointer hObject)(Int64 id) -> "));
+		ss.AddNativeCall(ns, NativeRococoIWorldBuilderGetHeightAt, nullptr, ("IWorldBuilderGetHeightAt (Pointer hObject)(Float32 x)(Float32 y)(Rococo.TriangleScan t) -> (Float32 height)"));
+		ss.AddNativeCall(ns, NativeRococoIWorldBuilderGetTriangleAt, nullptr, ("IWorldBuilderGetTriangleAt (Pointer hObject)(Sys.Maths.Vec2 position)(Rococo.TriangleScan t) -> "));
+		ss.AddNativeCall(ns, NativeRococoIWorldBuilderNew, nullptr, ("IWorldBuilderNew (Pointer hObject)(Sys.SI.Metres span)(Sys.SI.Metres minSpan) -> "));
 	}
 }

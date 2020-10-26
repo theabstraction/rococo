@@ -67,11 +67,41 @@ struct ObjectPixelVertex
 	float4 colour: COLOR0;	// w component gives lerpColourToTexture
 };
 
+struct LandPixelVertex
+{
+	float4 position : SV_POSITION0;
+	float4 uv_material_and_gloss: TEXCOORD;
+	float4 normal : TEXCOORD1;
+};
+
+struct ScreenVertex
+{
+	float4 position : SV_POSITION0;
+	float4 uv_material_and_gloss: TEXCOORD;
+	float4 worldPosition: TEXCOORD1;
+	float4 normal : TEXCOORD2;
+	float4 shadowPos: TEXCOORD3;
+	float4 cameraSpacePosition: TEXCOORD4;
+	float4 colour: COLOR0;
+};
+
+struct LandVertex
+{
+	float4 position : SV_POSITION0;
+	float4 uv_material_and_gloss: TEXCOORD;
+	float4 normal : TEXCOORD1;
+};
+
 struct ParticleVertex
 {
 	float3 position : POSITION;
 	float4 colour: COLOR;
 	float4 geometry: TEXCOORD;
+};
+
+struct Sunlight
+{
+	float4 direction;
 };
 
 struct Light

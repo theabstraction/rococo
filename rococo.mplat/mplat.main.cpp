@@ -340,13 +340,15 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	AutoFree<IInstallationManagerSupervisor> ims = Rococo::MPlatImpl::CreateIMS(*installation);
 
 	AutoFree<IArchiveSupervisor> archive = Rococo::CreateArchive();
+
+	AutoFree<IWorldSupervisor> world = Rococo::CreateWorld(*meshes, *instances);
 	
 	Platform platform
 	{ 
 		*os, *installation, *appControl, mainWindow->Renderer(), *rendererConfig, *messaging, 
 		*sourceCache, *debuggerWindow, *publisher, *utilities, *gui, *keyboard, *config, *archive, *meshes,
 		*instances, *mobiles, *particles, *rigs, *sprites, *camera, *scene, tesselators, *mathsVisitor,
-		*legacySound, *audio, *ssFactory, title, *xbox360stick, *ims
+		*legacySound, *audio, *ssFactory, title, *xbox360stick, *ims, *world
 	};
 
 	gui->PostConstruct(&platform);

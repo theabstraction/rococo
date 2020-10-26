@@ -31,10 +31,17 @@
 (primitive Pointer Pointer uintptr_t)
 (primitive IdMesh Int32 ID_MESH)
 (primitive IdEntity Int64 ID_ENTITY)
+(primitive IdSysMesh Int64 ID_SYS_MESH)
 (primitive IdCubeTexture Int64 ID_CUBE_TEXTURE)
 (primitive IdSkeleton Int64 ID_SKELETON)
 (primitive IdPose Int64 ID_POSE)
 (primitive LayoutId Int32 ELayoutAlgorithm)
+(primitive MaterialId Float32 MaterialId)
+(primitive MaterialCategory Int32 Rococo.Graphics.MaterialCategory)
+(primitive SampleMethod Int32 Rococo.Graphics.SampleMethod)
+(primitive SampleFilter Int32 Rococo.Graphics.SampleFilter)
+(primitive SampleIndex Int32 Rococo.Graphics.SampleIndex)
+(primitive ELegacySoundShape Int32 Rococo.Audio.ELegacySoundShape)
 
 // (struct <name> <sexy-name> <cpp-name>)  maps <name> found in the sxh file to the <sexy-name> in the generated sxy file, and <cpp-name> in the c++ files
 // Arguments that are struct are passed by reference in the script system. They may not be used as output arguments. It is assumed that the structures are defined elsewhere.
@@ -55,13 +62,6 @@
 (struct Triangle2d Sys.Maths.Triangle2d Triangle2d)
 (struct RGBA Sys.Maths.Vec4 RGBA)
 
-(primitive MaterialId Float32 MaterialId)
-(primitive MaterialCategory Int32 Rococo.Graphics.MaterialCategory)
-(primitive SampleMethod Int32 Rococo.Graphics.SampleMethod)
-(primitive SampleFilter Int32 Rococo.Graphics.SampleFilter)
-(primitive SampleIndex Int32 Rococo.Graphics.SampleIndex)
-(primitive ELegacySoundShape Int32 Rococo.Audio.ELegacySoundShape)
-
 // (defstruct <name> <sexy-name> <cpp-name> (fields) )  maps <name> found in the sxh file to the <sexy-name> in the generated sxy file, and <cpp-name> in the c++ files. It creates new structures in the target specified in (cpp.types ...)
 // (fields) is a sequence of s-expressions of the format (<type> <name>) where <type> is either a primitive or struct defined BEFORE the parent defstruct and <name> is a unique name for the variable.
 // Field names must follow the naming rules for field variables in sexy, i.e, begin with a lowercase letter a-z and succeed with any sequence of alphanumerics.
@@ -70,6 +70,12 @@
 	(RGBAb colour)
 	(MaterialId id)
 	(Float32 gloss)
+)
+
+(defstruct TriangleScan Rococo.TriangleScan TriangleScan
+	(IdEntity id)
+	(IdSysMesh idMesh)
+	(Triangle t)
 )
 
 (defstruct Vertex Rococo.ObjectVertex ObjectVertex

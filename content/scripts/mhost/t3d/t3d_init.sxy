@@ -32,7 +32,7 @@
 	(sprites.LoadAllSprites)
 	
 	(IInstances instances (Instances))
-	(instances.CreateCubeTexture "!textures/t3d/skybox/YokohamaSmall/" "jpg")
+//	(instances.CreateCubeTexture "!textures/t3d/skybox/YokohamaSmall/" "jpg")
 	(instances.LoadMaterialArray "!textures/hv/materials/hi-rez/" 1024) 
 	
 	(IEngine engine (Engine))

@@ -312,15 +312,26 @@ namespace
 		 Clear();
 	  }
 
-	  void SetSpecialShader(const fstring& fqName, const fstring& psSpotlightPingPath, const fstring& psAmbientPingPath, boolean32 alphaBlending)
+	  void SetSpecialAmbientShader(const fstring& fqName, const fstring& vsAmbientPingPath, const fstring& psAmbientPingPath, boolean32 alphaBlending)
 	  {
 		  auto i = meshes.find((cstr)fqName);
 		  if (i == meshes.end())
 		  {
-			  Throw(0, "MeshBuilder::SetSpecialShader(...%s): mesh not found", (cstr)name);
+			  Throw(0, "MeshBuilder::SetSpecialAmbientShader(...%s): mesh not found", (cstr)name);
 		  }
 
-		  renderer.SetSpecialShader(i->second->id, psSpotlightPingPath, psAmbientPingPath, alphaBlending);
+		  renderer.SetSpecialAmbientShader(i->second->id, vsAmbientPingPath, psAmbientPingPath, alphaBlending);
+	  }
+
+	  void SetSpecialSpotlightShader(const fstring& fqName, const fstring& vsSpotlightPingPath, const fstring& psSpotlightPingPath, boolean32 alphaBlending)
+	  {
+		  auto i = meshes.find((cstr)fqName);
+		  if (i == meshes.end())
+		  {
+			  Throw(0, "MeshBuilder::SetSpecialSpotlightShader(...%s): mesh not found", (cstr)name);
+		  }
+
+		  renderer.SetSpecialSpotlightShader(i->second->id, vsSpotlightPingPath, psSpotlightPingPath, alphaBlending);
 	  }
 
 	  void SaveCSV(cstr name, IExpandingBuffer& buffer) override

@@ -1,12 +1,12 @@
 #include "mplat.types.hlsl"
 
-struct ScreenVertex
+struct SkyVertexOutput
 {
 	float4 pos : SV_POSITION;
 	float3 viewDir : TEXCOORD0;
 };
 
-struct SkyVertex
+struct SkyVertexInput
 {
 	float3 pos : POSITION0;
 };
@@ -16,9 +16,9 @@ cbuffer GlobalState: register(b0)
 	GlobalState global;
 }
 
-ScreenVertex main(SkyVertex v)
+SkyVertexOutput main(SkyVertexInput v)
 {
-	ScreenVertex output;
+	SkyVertexOutput output;
 
 	float3 pos = v.pos;
 	float4x4 proj = global.cameraToScreenMatrix;

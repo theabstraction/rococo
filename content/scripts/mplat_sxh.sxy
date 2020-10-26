@@ -304,7 +304,8 @@
 	(Clear  -> )
 	(Delete (Sys.Type.IString fqName) -> )
 	(SetShadowCasting (Sys.Type.IString fqName)(Bool isActive) -> )
-	(SetSpecialShader (Sys.Type.IString fqName)(Sys.Type.IString psSpotlightPingPath)(Sys.Type.IString psAmbientPingPath)(Bool alphaBlending) -> )
+	(SetSpecialAmbientShader (Sys.Type.IString fqName)(Sys.Type.IString vsAmbientPingPath)(Sys.Type.IString psAmbientPingPath)(Bool alphaBlending) -> )
+	(SetSpecialSpotlightShader (Sys.Type.IString fqName)(Sys.Type.IString vsSpotlightPingPath)(Sys.Type.IString psSpotlightPingPath)(Bool alphaBlending) -> )
 	(Span (Sys.Maths.Vec3 span)(Sys.Type.IString fqName) -> )
 )
 
@@ -319,7 +320,8 @@
 	(method ProxyIMeshBuilder.Clear  ->  : (Rococo.Graphics.Native.IMeshBuilderClear this.hObject ))
 	(method ProxyIMeshBuilder.Delete (Sys.Type.IString fqName) ->  : (Rococo.Graphics.Native.IMeshBuilderDelete this.hObject fqName))
 	(method ProxyIMeshBuilder.SetShadowCasting (Sys.Type.IString fqName)(Bool isActive) ->  : (Rococo.Graphics.Native.IMeshBuilderSetShadowCasting this.hObject fqName isActive))
-	(method ProxyIMeshBuilder.SetSpecialShader (Sys.Type.IString fqName)(Sys.Type.IString psSpotlightPingPath)(Sys.Type.IString psAmbientPingPath)(Bool alphaBlending) ->  : (Rococo.Graphics.Native.IMeshBuilderSetSpecialShader this.hObject fqName psSpotlightPingPath psAmbientPingPath alphaBlending))
+	(method ProxyIMeshBuilder.SetSpecialAmbientShader (Sys.Type.IString fqName)(Sys.Type.IString vsAmbientPingPath)(Sys.Type.IString psAmbientPingPath)(Bool alphaBlending) ->  : (Rococo.Graphics.Native.IMeshBuilderSetSpecialAmbientShader this.hObject fqName vsAmbientPingPath psAmbientPingPath alphaBlending))
+	(method ProxyIMeshBuilder.SetSpecialSpotlightShader (Sys.Type.IString fqName)(Sys.Type.IString vsSpotlightPingPath)(Sys.Type.IString psSpotlightPingPath)(Bool alphaBlending) ->  : (Rococo.Graphics.Native.IMeshBuilderSetSpecialSpotlightShader this.hObject fqName vsSpotlightPingPath psSpotlightPingPath alphaBlending))
 	(method ProxyIMeshBuilder.Span (Sys.Maths.Vec3 span)(Sys.Type.IString fqName) ->  : (Rococo.Graphics.Native.IMeshBuilderSpan this.hObject span fqName))
 
 (factory Rococo.Graphics.MeshBuilder Rococo.Graphics.IMeshBuilder  :
@@ -692,5 +694,24 @@
 (factory Rococo.Installation Rococo.IInstallation  :
 	(Pointer pObject = (Rococo.Native.GetHandleForIInstallation0 ))
 	(construct ProxyIInstallation pObject)
+)
+
+(interface Rococo.IWorldBuilder
+	(AddMeshToQuadtree (Int64 id) -> )
+	(GetHeightAt (Float32 x)(Float32 y)(Rococo.TriangleScan t) -> (Float32 height))
+	(GetTriangleAt (Sys.Maths.Vec2 position)(Rococo.TriangleScan t) -> )
+	(New (Sys.SI.Metres span)(Sys.SI.Metres minSpan) -> )
+)
+
+(class ProxyIWorldBuilder (implements Rococo.IWorldBuilder) (Pointer hObject))
+	(method ProxyIWorldBuilder.Construct (Pointer hObject): (this.hObject = hObject))
+	(method ProxyIWorldBuilder.AddMeshToQuadtree (Int64 id) ->  : (Rococo.Native.IWorldBuilderAddMeshToQuadtree this.hObject id))
+	(method ProxyIWorldBuilder.GetHeightAt (Float32 x)(Float32 y)(Rococo.TriangleScan t) -> (Float32 height) : (Rococo.Native.IWorldBuilderGetHeightAt this.hObject x y t -> height))
+	(method ProxyIWorldBuilder.GetTriangleAt (Sys.Maths.Vec2 position)(Rococo.TriangleScan t) ->  : (Rococo.Native.IWorldBuilderGetTriangleAt this.hObject position t))
+	(method ProxyIWorldBuilder.New (Sys.SI.Metres span)(Sys.SI.Metres minSpan) ->  : (Rococo.Native.IWorldBuilderNew this.hObject span minSpan))
+
+(factory Rococo.WorldBuilder Rococo.IWorldBuilder  :
+	(Pointer pObject = (Rococo.Native.GetHandleForIWorldBuilder0 ))
+	(construct ProxyIWorldBuilder pObject)
 )
 

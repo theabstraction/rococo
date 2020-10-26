@@ -1,16 +1,5 @@
 #include "mplat.api.hlsl"
 
-struct ScreenVertex
-{
-	float4 position : SV_POSITION0;
-	float4 uv_material_and_gloss: TEXCOORD;
-	float4 worldPosition: TEXCOORD1;
-	float4 normal : TEXCOORD2;
-	float4 shadowPos: TEXCOORD3;
-	float4 cameraSpacePosition: TEXCOORD4;
-	float4 colour: COLOR0;
-};
-
 ScreenVertex main(ObjectVertex v)
 {
 	ScreenVertex sv;

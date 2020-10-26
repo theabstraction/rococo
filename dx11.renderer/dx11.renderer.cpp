@@ -454,6 +454,7 @@ namespace ANON
 	   AutoRelease<ID3D11Buffer> lightStateBuffer;
 	   AutoRelease<ID3D11Buffer> textureDescBuffer;
 	   AutoRelease<ID3D11Buffer> ambientBuffer;
+	   AutoRelease<ID3D11Buffer> sunlightStateBuffer;
 
 	   AutoRelease<ID3D11Texture2D> cubeTexture;
 	   AutoRelease<ID3D11ShaderResourceView> cubeTextureView;
@@ -827,6 +828,7 @@ namespace ANON
 	   }
 
 	   stringmap<ID_PIXEL_SHADER> nameToPixelShader;
+	   stringmap<ID_VERTEX_SHADER> nameToVertexShader;
 
 	   std::vector<ParticleVertex> fog;
 	   std::vector<ParticleVertex> plasma;
@@ -893,6 +895,7 @@ namespace ANON
 		   globalStateBuffer = DX11::CreateConstantBuffer<GlobalState>(device);
 		   depthRenderStateBuffer = DX11::CreateConstantBuffer<DepthRenderData>(device);
 		   lightStateBuffer = DX11::CreateConstantBuffer<Light>(device);
+		   sunlightStateBuffer = DX11::CreateConstantBuffer<Vec4>(device);
 		   textureDescBuffer = DX11::CreateConstantBuffer<TextureDescState>(device);
 		   ambientBuffer = DX11::CreateConstantBuffer<AmbientData>(device);
 
@@ -1813,7 +1816,8 @@ namespace ANON
 		   CBUFFER_INDEX_AMBIENT_LIGHT = 2,
 		   CBUFFER_INDEX_DEPTH_RENDER_DESC = 3,
 		   CBUFFER_INDEX_INSTANCE_BUFFER = 4,
-		   CBUFFER_INDEX_SELECT_TEXTURE_DESC = 5
+		   CBUFFER_INDEX_SELECT_TEXTURE_DESC = 5,
+		   CBUFFER_INDEX_SUNLIGHT = 6
 	   };
 
 	   ID_TEXTURE FindTexture(cstr name) const
@@ -2321,6 +2325,8 @@ namespace ANON
 		   D3D_PRIMITIVE_TOPOLOGY topology;
 		   ID_PIXEL_SHADER psSpotlightShader;
 		   ID_PIXEL_SHADER psAmbientShader;
+		   ID_VERTEX_SHADER vsSpotlightShader;
+		   ID_VERTEX_SHADER vsAmbientShader;
 		   bool alphaBlending;
 		   bool disableShadowCasting;
 	   };
@@ -2331,7 +2337,7 @@ namespace ANON
 	   ID_SYS_MESH CreateTriangleMesh(const ObjectVertex* vertices, uint32 nVertices) override
 	   {
 		   ID3D11Buffer* meshBuffer = vertices ? DX11::CreateImmutableVertexBuffer(device, vertices, nVertices) : nullptr;
-		   meshBuffers.push_back(MeshBuffer{ meshBuffer, nVertices, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST, ID_PIXEL_SHADER(), ID_PIXEL_SHADER(), false, false});
+		   meshBuffers.push_back(MeshBuffer{ meshBuffer, nVertices, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST, ID_PIXEL_SHADER(), ID_PIXEL_SHADER(), ID_VERTEX_SHADER(), ID_VERTEX_SHADER(), false, false});
 		   int32 index = (int32)meshBuffers.size();
 		   return ID_SYS_MESH(index - 1);
 	   }
@@ -2339,57 +2345,106 @@ namespace ANON
 	   ID_SYS_MESH CreateSkyMesh(const SkyVertex* vertices, uint32 nVertices)
 	   {
 		   ID3D11Buffer* meshBuffer = vertices ? DX11::CreateImmutableVertexBuffer(device, vertices, nVertices) : nullptr;
-		   meshBuffers.push_back(MeshBuffer{ meshBuffer, nVertices, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST, ID_PIXEL_SHADER(), ID_PIXEL_SHADER(), false, false });
+		   meshBuffers.push_back(MeshBuffer{ meshBuffer, nVertices, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST, ID_PIXEL_SHADER(), ID_PIXEL_SHADER(), ID_VERTEX_SHADER(), ID_VERTEX_SHADER(), false, false });
 		   int32 index = (int32)meshBuffers.size();
 		   return ID_SYS_MESH(index - 1);
 	   }
 
-	   void SetSpecialShader(ID_SYS_MESH id, cstr psSpotlightPingPath, cstr psAmbientPingPath, bool alphaBlending) override
+	   void SetSpecialAmbientShader(ID_SYS_MESH id, cstr vs, cstr ps, bool alphaBlending) override
 	   {
 		   if (id.value < 0 || id.value >= meshBuffers.size())
 		   {
-			   Throw(E_INVALIDARG, "renderer.SetSpecialShader(ID_MESH id, ....) - Bad id ");
+			   Throw(E_INVALIDARG, "renderer.SetSpecialAmbientShader(ID_SYS_MESH id, ....) - Bad id ");
 		   }
 
 		   auto& m = meshBuffers[id.value];
 		   
-		   auto i = nameToPixelShader.find(psSpotlightPingPath);
+		   auto i = nameToPixelShader.find(ps);
 		   if (i == nameToPixelShader.end())
 		   {
 			   ID_PIXEL_SHADER pxId;
-			   if (psSpotlightPingPath == nullptr || *psSpotlightPingPath == 0)
+			   if (ps == nullptr || *ps == 0)
 			   {
 				   pxId = ID_PIXEL_SHADER::Invalid();
 			   }
 			   else
 			   {
-				   installation.LoadResource(psSpotlightPingPath, *scratchBuffer, 64_kilobytes);
-				   pxId = CreatePixelShader(psSpotlightPingPath, scratchBuffer->GetData(), scratchBuffer->Length());
+				   installation.LoadResource(ps, *scratchBuffer, 64_kilobytes);
+				   pxId = CreatePixelShader(ps, scratchBuffer->GetData(), scratchBuffer->Length());
 			   }
 
-			   i = nameToPixelShader.insert(psSpotlightPingPath, pxId).first;
-		   }
-
-		   m.psSpotlightShader = i->second;
-		   
-		   i = nameToPixelShader.find(psAmbientPingPath);
-		   if (i == nameToPixelShader.end())
-		   {
-			   ID_PIXEL_SHADER pxId;
-			   if (psAmbientPingPath == nullptr || *psAmbientPingPath == 0)
-			   {
-					pxId = ID_PIXEL_SHADER::Invalid();
-			   }
-			   else
-			   {
-				   installation.LoadResource(psAmbientPingPath, *scratchBuffer, 64_kilobytes);
-				   pxId = CreatePixelShader(psAmbientPingPath, scratchBuffer->GetData(), scratchBuffer->Length());
-			   }
-
-			   i = nameToPixelShader.insert(psAmbientPingPath, pxId).first;
+			   i = nameToPixelShader.insert(ps, pxId).first;
 		   }
 
 		   m.psAmbientShader = i->second;
+		   
+		   auto j = nameToVertexShader.find(vs);
+		   if (j == nameToVertexShader.end())
+		   {
+			   ID_VERTEX_SHADER vxId;
+			   if (vs == nullptr || *vs == 0)
+			   {
+				   vxId = ID_VERTEX_SHADER::Invalid();
+			   }
+			   else
+			   {
+				   installation.LoadResource(vs, *scratchBuffer, 64_kilobytes);
+				   vxId = CreateVertexShader(vs, scratchBuffer->GetData(), scratchBuffer->Length(), DX11::GetObjectVertexDesc(), DX11::NumberOfObjectVertexElements());
+			   }
+
+			   j = nameToVertexShader.insert(vs, vxId).first;
+		   }
+
+		   m.vsAmbientShader = j->second;
+		   m.alphaBlending = alphaBlending;
+	   }
+
+	   void SetSpecialSpotlightShader(ID_SYS_MESH id, cstr vs, cstr ps, bool alphaBlending) override
+	   {
+		   if (id.value < 0 || id.value >= meshBuffers.size())
+		   {
+			   Throw(E_INVALIDARG, "renderer.SetSpecialAmbientShader(ID_SYS_MESH id, ....) - Bad id ");
+		   }
+
+		   auto& m = meshBuffers[id.value];
+
+		   auto i = nameToPixelShader.find(ps);
+		   if (i == nameToPixelShader.end())
+		   {
+			   ID_PIXEL_SHADER pxId;
+			   if (ps == nullptr || *ps == 0)
+			   {
+				   pxId = ID_PIXEL_SHADER::Invalid();
+			   }
+			   else
+			   {
+				   installation.LoadResource(ps, *scratchBuffer, 64_kilobytes);
+				   pxId = CreatePixelShader(ps, scratchBuffer->GetData(), scratchBuffer->Length());
+			   }
+
+			   i = nameToPixelShader.insert(ps, pxId).first;
+		   }
+
+		   m.psSpotlightShader = i->second;
+
+		   auto j = nameToVertexShader.find(vs);
+		   if (j == nameToVertexShader.end())
+		   {
+			   ID_VERTEX_SHADER vxId;
+			   if (vs == nullptr || *vs == 0)
+			   {
+				   vxId = ID_VERTEX_SHADER::Invalid();
+			   }
+			   else
+			   {
+				   installation.LoadResource(vs, *scratchBuffer, 64_kilobytes);
+				   vxId = CreateVertexShader(vs, scratchBuffer->GetData(), scratchBuffer->Length(), DX11::GetObjectVertexDesc(), DX11::NumberOfObjectVertexElements());
+			   }
+
+			   j = nameToVertexShader.insert(vs, vxId).first;
+		   }
+
+		   m.vsSpotlightShader = j->second;
 		   m.alphaBlending = alphaBlending;
 	   }
 	   
@@ -2525,12 +2580,12 @@ namespace ANON
 
 		   if (m.psSpotlightShader && phase == RenderPhase_DetermineSpotlight)
 		   {
-			   UseShaders(currentVertexShaderId, m.psSpotlightShader);
+			   UseShaders(m.vsSpotlightShader, m.psSpotlightShader);
 			   overrideShader = true;
 		   }
 		   else if (m.psAmbientShader && phase == RenderPhase_DetermineAmbient)
 		   {
-			   UseShaders(currentVertexShaderId, m.psAmbientShader);
+			   UseShaders(m.vsAmbientShader, m.psAmbientShader);
 			   overrideShader = true;
 		   }
 
@@ -3065,6 +3120,15 @@ namespace ANON
 		   dc.VSSetConstantBuffers(CBUFFER_INDEX_GLOBAL_STATE, 1, &globalStateBuffer);
 		   dc.PSSetConstantBuffers(CBUFFER_INDEX_GLOBAL_STATE, 1, &globalStateBuffer);
 		   dc.GSSetConstantBuffers(CBUFFER_INDEX_GLOBAL_STATE, 1, &globalStateBuffer);
+
+		   Vec4 sunlight = { Sin(45_degrees), 0, Cos(45_degrees), 0 };
+		   Vec4 sunlightLocal = sunlight;
+
+		   DX11::CopyStructureToBuffer(dc, sunlightStateBuffer, sunlightLocal);
+
+		   dc.VSSetConstantBuffers(CBUFFER_INDEX_SUNLIGHT, 1, &sunlightStateBuffer);
+		   dc.PSSetConstantBuffers(CBUFFER_INDEX_SUNLIGHT, 1, &sunlightStateBuffer);
+		   dc.GSSetConstantBuffers(CBUFFER_INDEX_SUNLIGHT, 1, &sunlightStateBuffer);
 	   }
 
 	   struct RenderTarget

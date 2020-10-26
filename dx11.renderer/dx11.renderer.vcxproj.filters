@@ -97,6 +97,9 @@
     <FxCompile Include="landscape.ps.hlsl">
       <Filter>HLSL\Landscapes</Filter>
     </FxCompile>
+    <FxCompile Include="landscape.vs.hlsl">
+      <Filter>HLSL\Landscapes</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dx11.swapchain.cpp">

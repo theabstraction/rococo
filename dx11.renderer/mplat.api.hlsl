@@ -30,6 +30,11 @@ cbuffer textureState : register(b5)
 	TextureDescState state;
 }
 
+cbuffer SunlightState : register(b6)
+{
+	Sunlight sunlight;
+};
+
 SamplerState fontSampler: register(s0);
 SamplerState shadowSampler: register(s2);
 SamplerState envSampler: register(s3);

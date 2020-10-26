@@ -4,6 +4,12 @@
 		MaterialId id;
 		float gloss;
 	};
+	struct TriangleScan
+	{
+		ID_ENTITY id;
+		ID_SYS_MESH idMesh;
+		Triangle t;
+	};
 	struct ObjectVertex
 	{
 		Vec3 position;

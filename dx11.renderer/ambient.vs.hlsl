@@ -1,6 +1,6 @@
 #include "mplat.api.hlsl"
 
-struct ScreenVertex
+struct AmbientVertex
 {
 	float4 position : SV_POSITION0;
 	float4 normal : NORMAL;
@@ -10,9 +10,9 @@ struct ScreenVertex
 	float4 colour: COLOR0;
 };
 
-ScreenVertex main(ObjectVertex v)
+AmbientVertex main(ObjectVertex v)
 {
-	ScreenVertex sv;
+	AmbientVertex sv;
 
 	float4 instancePos = Transform_Instance_To_World(v.position);
 	sv.position = Transform_World_To_Screen(instancePos);

@@ -365,8 +365,8 @@ namespace
 		}
 		catch (ParseException& ex)
 		{
-			WriteToStandardOutput("%s: %s. Specimen: %s", fullconfigPath, ex.Message(), ex.Specimen());
-			Rococo::Throw(0, "Error parsing config");
+			WriteToStandardOutput("%ls: %s. Specimen: %s", fullconfigPath, ex.Message(), ex.Specimen());
+			Throw(ex);
 		}
 	}
 }

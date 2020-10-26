@@ -29,6 +29,7 @@
 	(WorldOrientation cameraOrientation)
 	(IMeshBuilder meshBuilder)
 	(IArchive archive)
+	(IWorldBuilder wb)
 )
 
 (method World.UpdateMouseLook (Vec2 delta)-> :
@@ -172,6 +173,8 @@
 		(this.cameraPos.y = (this.cameraPos.y + worldForward.y))
 		
 		(this.archive.SaveVec3 "world.cameraPos" this.cameraPos)
+		
+		(this.SnapToLandscape this.cameraPos 1.75)
 	)
 )
 
@@ -207,7 +210,7 @@
 	(scene.AddStatics floorId)
 )
 
-(function AddLight (ISceneBuilder scene)(IInstances instances)-> :
+(function AddLight (ISceneBuilder scene)(IInstances instances)(World world)-> :
 	(MakeLamp "light.cone.1")
 	
 	(Matrix4x4 rotX)
@@ -227,6 +230,8 @@
 	(light.nearPlane = 0.1)
 	(light.farPlane = 1000)
 	(light.fogConstant = -0.1)
+	
+	(world.SnapToLandscape light.position 2.4)
 	
 	(Matrix4x4 lightConeTranslate)
 	
@@ -340,7 +345,7 @@
 	(rb.CommitToPose "straight")
 )
 
-(function AddRigs (ISceneBuilder scene)(IInstances instances)-> :
+(function AddRigs (ISceneBuilder scene)(IInstances instances)(World world)-> :
 	(IRigBuilder rb (RigBuilder))
 	(rb.ClearBuilder)
 	(rb.ClearSkeletons)
@@ -352,11 +357,14 @@
 	(AddStraightPos rb)
 	(AddGeoff rb)
 	
+	(Vec3 pos = 0 1 0)
+	(world.SnapToLandscape pos 1.4)
+	
 	(Matrix4x4 lowerSpineToWorld =
-		(1 0 0   0)
-		(0 1 0   1)
-		(0 0 1 1.4)
-		(0 0 0   1)
+		(1 0 0  pos.x)
+		(0 1 0  pos.y)
+		(0 0 1  pos.z)
+		(0 0 0      1)
 	)
 		
 	(Int64 geoffId = (instances.AddSkeleton "geoff" lowerSpineToWorld))
@@ -379,7 +387,7 @@
 	(landscape.AddQuadField 8 2048.0)
 	(Vec3 delta = -1024 -1024 0)
 	(landscape.TranslateEachCell delta)
-	(landscape.GenerateByRecursiveSubdivision 100)
+	(landscape.GenerateByRecursiveSubdivision 400)
 	(landscape.CommitToMesh "landscape_0_0")
 	
 	(Vec3 noScale = 1 1 1)
@@ -392,11 +400,15 @@
 	
 	(Int64 landscapeId = (instances.AddBody "landscape_0_0" identity noScale 0))
 	(scene.AddStatics landscapeId)
+
+	(IWorldBuilder wb (WorldBuilder))
+	(wb.New 2048 1)
+	(wb.AddMeshToQuadtree landscapeId)
 )
 
 (method World.Construct : 
 	(this.archive = (GetArchive))
-	(this.archive.LoadVec3 "world.cameraPos" this.cameraPos 0 0 1.75)
+	(this.archive.LoadVec3 "world.cameraPos" this.cameraPos 0 0 127.5)
 	
 	(Float32 elevation = (this.archive.LoadF32 "world.camera.elevation" 0))
 	(Float32 bearing = (this.archive.LoadF32 "world.camera.bearing" 0))
@@ -408,11 +420,22 @@
 	(ISceneBuilder scene (SceneBuilder))
 	(scene.Clear)
 	
-	(AddBottle scene instances)
-	(AddFloor scene instances)
-//	(AddLandscape scene instances)
-	(AddLight scene instances)
-	(AddRigs scene instances)
+//	(AddBottle scene instances)
+//	(AddFloor scene instances)
+	(AddLandscape scene instances)
+	(AddLight scene instances this)
+	(AddRigs scene instances this)
+	
+	(this.SnapToLandscape this.cameraPos 1.75)
+)
+
+(method World.SnapToLandscape (Vec3 pos)(Float32 altitude)-> :
+	(this.wb = (WorldBuilder))
+	(TriangleScan scan)
+	(Float32 height = (this.wb.GetHeightAt pos.x pos.y scan))
+	(if (scan.id != 0)
+		(pos.z = (height + altitude))
+	)
 )
 
 (factory T3D.NewWorld T3D.IWorld : (construct World))

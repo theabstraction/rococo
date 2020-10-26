@@ -127,6 +127,15 @@ namespace Rococo
 		Quad normals;
 		QuadColours colours;
 	};
+
+#pragma pack(push,1)
+	struct TriangleScan
+	{
+		ID_ENTITY owner;
+		ID_SYS_MESH ownerMesh;
+		Triangle t;
+	};
+#pragma pack(pop)
 }
 
 #include <../rococo.mplat/mplat.sxh.h>
@@ -822,6 +831,13 @@ namespace Rococo
 
 	IArchiveSupervisor* CreateArchive();
 
+	ROCOCOAPI IWorldSupervisor : IWorldBuilder
+	{
+		virtual void Free() = 0;
+	};
+
+	IWorldSupervisor* CreateWorld(Graphics::IMeshBuilderSupervisor& meshes, Entities::IInstancesSupervisor& instances);
+
 	struct Platform
 	{
 		// Operating system functions
@@ -897,6 +913,8 @@ namespace Rococo
 		Rococo::Joysticks::IJoystick_XBOX360& xbox360joystick;
 
 		Rococo::IInstallationManager& installationManager;
+
+		Rococo::IWorldBuilder& worldBuilder;
 	};
 
 	namespace Events

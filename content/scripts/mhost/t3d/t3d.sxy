@@ -260,8 +260,8 @@
 	(IWorld world = this.world)
 	
 	
-	(Int64 cubeId = (instances.CreateCubeTexture "!textures/t3d/skybox/YokohamaSmall/" "jpg"))
-	(scene.SetSkyBox cubeId)
+//	(Int64 cubeId = (instances.CreateCubeTexture "!textures/t3d/skybox/YokohamaSmall/" "jpg"))
+//	(scene.SetSkyBox cubeId)
 
 /*	(instances.LoadRig "!mesh/t3d/mike.sxy") // generates mike_rig
 	
