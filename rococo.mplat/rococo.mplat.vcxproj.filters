@@ -168,6 +168,9 @@
     <ClCompile Include="mplat.geometry.quadtree.loose.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="mplat.inventory.array.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\rococo.mplat.h">

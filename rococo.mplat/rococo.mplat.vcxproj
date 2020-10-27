@@ -129,6 +129,7 @@
     <ClCompile Include="mplat.graphics.text.tesselator.cpp" />
     <ClCompile Include="mplat.guistack.cpp" />
     <ClCompile Include="mplat.hqfonts.cpp" />
+    <ClCompile Include="mplat.inventory.array.cpp" />
     <ClCompile Include="mplat.joysticks.xbox360.cpp" />
     <ClCompile Include="mplat.keyboard.cpp" />
     <ClCompile Include="mplat.main.cpp">
