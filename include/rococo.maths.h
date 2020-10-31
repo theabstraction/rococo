@@ -527,7 +527,8 @@ namespace Rococo
 	inline Degrees operator - (Degrees theta) { return Degrees{ -theta.degrees }; }
 
 	Vec2i TopCentre(const GuiRect& rect);
-	bool IsPointInRect(const Vec2i& p, const GuiRect& rect);
+	bool IsPointInRect(Vec2i p, const GuiRect& rect);
+	bool IsPointInRect(Vec2 p, const GuiRectf& rect);
 
 	struct QuadStats
 	{

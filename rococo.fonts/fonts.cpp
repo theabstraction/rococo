@@ -16,18 +16,6 @@ namespace
 	using namespace Rococo;
 	using namespace Rococo::Fonts;
 
-	bool IsPointIn(const GuiRectf& clipRect, const Vec2& p)
-	{
-		if (p.x >= clipRect.left && p.x <= clipRect.right && p.y >= clipRect.top && p.y <= clipRect.bottom)
-		{
-			return true;
-		}
-		else
-		{
-			return false;
-		}
-	}
-
 	class GlyphSet : public IGlyphSet
 	{
 	private:

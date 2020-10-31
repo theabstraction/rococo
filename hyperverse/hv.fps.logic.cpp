@@ -5,6 +5,7 @@
 #include <rococo.clock.h>
 #include "../rococo.mplat/rococo.script.types.h"
 #include <algorithm>
+#include <rococo.textures.h>
 
 using namespace HV;
 using namespace HV::Events;
@@ -14,6 +15,8 @@ using namespace Rococo::Entities;
 using namespace Rococo::Graphics;
 
 typedef std::unordered_map<ISector*, int32> TSectorSet;
+
+const Textures::BitmapLocation nullCursorBitmap { {0,0,0,0},0,{0,0} };
 
 static const std::vector<const char*> wide_credits =
 {
@@ -1070,11 +1073,45 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 		}
 	}
 
+	Textures::BitmapLocation cursorBitmap = nullCursorBitmap;
+	int32 selectedObjectIndex = -1;
+
+	void SetCursorToBitmap(const Textures::BitmapLocation& bitmap)
+	{
+		cursorBitmap = bitmap;
+	}
+
 	void OnMouseLClick(Vec2i cursorPos, bool clickedDown) override
 	{
 		if (!clickedDown) return;
-			
-		UseAnythingAtCrosshair();
+
+		if (overlayInventory)
+		{
+			int32 index = inventory->GetIndexAt(Dequantize(cursorPos));
+			if (index >= 0)
+			{
+				if (selectedObjectIndex >= 0)
+				{
+					inventory->Swap(index, selectedObjectIndex);
+					selectedObjectIndex = -1;
+					SetCursorToBitmap(nullCursorBitmap);
+				}
+				else
+				{ 
+					ID_OBJECT objId{ (uint64)inventory->Id(index) };
+					auto obj = objects.GetObject(objId);
+					if (obj.prototype != nullptr)
+					{
+						selectedObjectIndex = index;
+						SetCursorToBitmap(obj.prototype->Bitmap());
+					}
+				}
+			}
+		}
+		else
+		{
+			UseAnythingAtCrosshair();
+		}
 	}
 
 	void OnMouseRClick(Vec2i cursorPos, bool clickedDown) override
@@ -1209,7 +1246,7 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 			RGBAb t2 = isLit ? RGBAb(0, 0, 224, 64) : RGBAb(0, 0, 160, 32);
 			Graphics::DrawRectangle(g, recti, t1, t2);
 
-			if (obj.prototype!= nullptr)
+			if (obj.prototype != nullptr)
 			{
 				Graphics::StretchBitmap(g, obj.prototype->Bitmap(), recti);
 			}
@@ -1244,6 +1281,13 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 			if (overlayInventory)
 			{
 				RenderInventory(g, absRect);
+
+				if (cursorBitmap.txUV.left != cursorBitmap.txUV.right)
+				{
+					GuiMetrics metrics;
+					g.Renderer().GetGuiMetrics(metrics);
+					Graphics::DrawSprite(metrics.cursorPosition, cursorBitmap, g);
+				}
 			}
 			else
 			{

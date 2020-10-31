@@ -36,6 +36,19 @@ namespace
 		{
 		}
 
+		int32 GetIndexAt(Vec2& pos)
+		{
+			for (int i = 0; i < (int32)cells.size(); i++)
+			{
+				if (IsPointInRect(pos, cells[i].guiRect))
+				{
+					return i;
+				}
+			}
+
+			return -1;
+		}
+
 		void GetRect(int32 index, GuiRectf& rect) override
 		{
 			rect = At(index).guiRect;
@@ -90,6 +103,23 @@ namespace
 		{
 			span.x = L.columns * (L.borders.x + L.cellSpan.x);
 			span.y = L.rows * (L.borders.y + L.cellSpan.y);
+		}
+
+		void Swap(int32 i, int32 j)
+		{
+			if (i < 0 || i >(int32) cells.size())
+			{
+				Throw(0, "%s: Bad i", __FUNCTION__);
+			}
+
+			if (j < 0 || j >(int32) cells.size())
+			{
+				Throw(0, "%s: Bad j", __FUNCTION__);
+			}
+
+			std::swap(cells[i].flags, cells[j].flags);
+			std::swap(cells[i].id, cells[j].id);
+			std::swap(cells[i].itemCount, cells[j].itemCount);
 		}
 
 		void LayoutAsRect(const InventoryLayoutRules& L) override

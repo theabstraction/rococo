@@ -37,6 +37,7 @@
 (macro Rococo.Audio.ELegacySoundShapeNoise in out (out.AddAtomic "0x4"))
 
 (interface Rococo.IInventoryArray
+	(GetIndexAt (Sys.Maths.Vec2 pos) -> (Int32 index))
 	(Flags (Int32 index) -> (Int64 flags))
 	(GetRect (Int32 index)(Sys.Maths.Rectf rect) -> )
 	(Id (Int32 index) -> (Int64 flags))
@@ -47,10 +48,12 @@
 	(SetId (Int32 index)(Int64 id) -> )
 	(SetItemCount (Int32 index)(Int64 count) -> )
 	(SetRect (Int32 index)(Sys.Maths.Rectf rect) -> )
+	(Swap (Int32 i)(Int32 j) -> )
 	(ComputeSpan (Rococo.InventoryLayoutRules rules)(Sys.Maths.Vec2 span) -> )
 )
 
 (class ProxyIInventoryArray (implements Rococo.IInventoryArray) (Pointer hObject))
+	(method ProxyIInventoryArray.GetIndexAt (Sys.Maths.Vec2 pos) -> (Int32 index) : (Rococo.Native.IInventoryArrayGetIndexAt this.hObject pos -> index))
 	(method ProxyIInventoryArray.Flags (Int32 index) -> (Int64 flags) : (Rococo.Native.IInventoryArrayFlags this.hObject index -> flags))
 	(method ProxyIInventoryArray.GetRect (Int32 index)(Sys.Maths.Rectf rect) ->  : (Rococo.Native.IInventoryArrayGetRect this.hObject index rect))
 	(method ProxyIInventoryArray.Id (Int32 index) -> (Int64 flags) : (Rococo.Native.IInventoryArrayId this.hObject index -> flags))
@@ -61,6 +64,7 @@
 	(method ProxyIInventoryArray.SetId (Int32 index)(Int64 id) ->  : (Rococo.Native.IInventoryArraySetId this.hObject index id))
 	(method ProxyIInventoryArray.SetItemCount (Int32 index)(Int64 count) ->  : (Rococo.Native.IInventoryArraySetItemCount this.hObject index count))
 	(method ProxyIInventoryArray.SetRect (Int32 index)(Sys.Maths.Rectf rect) ->  : (Rococo.Native.IInventoryArraySetRect this.hObject index rect))
+	(method ProxyIInventoryArray.Swap (Int32 i)(Int32 j) ->  : (Rococo.Native.IInventoryArraySwap this.hObject i j))
 	(method ProxyIInventoryArray.ComputeSpan (Rococo.InventoryLayoutRules rules)(Sys.Maths.Vec2 span) ->  : (Rococo.Native.IInventoryArrayComputeSpan this.hObject rules span))
 
 (interface Rococo.Entities.IRigBuilder

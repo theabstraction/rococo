@@ -972,9 +972,21 @@ namespace Rococo
 		return Vec2i{ (rect.left + rect.right) >> 1, rect.top };
 	}
 
-	bool IsPointInRect(const Vec2i& p, const GuiRect& rect)
+	bool IsPointInRect(Vec2i p, const GuiRect& rect)
 	{
 		return (p.x >= rect.left && p.x <= rect.right && p.y >= rect.top && p.y <= rect.bottom);
+	}
+
+	bool IsPointInRect(Vec2 p, const GuiRectf& clipRect)
+	{
+		if (p.x >= clipRect.left && p.x <= clipRect.right && p.y >= clipRect.top && p.y <= clipRect.bottom)
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
 	}
 
 	bool Triangle2d::IsInternal(Vec2 p) const

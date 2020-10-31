@@ -91,7 +91,7 @@ namespace HV
 				AddNativeCalls_HVISectorBuilder(args.ss, &e.sectors);
 				AddNativeCalls_HVISectorAIBuilder(args.ss, nullptr);
 				AddNativeCalls_HVIObjectPrototypeBuilder(args.ss, &e.object_prototypes);
-				AddNativeCalls_HVIObjectPrototype(args.ss, nullptr);
+				AddNativeCalls_HVIObjectPrototypeBase(args.ss, nullptr);
 			}
 
 		public:

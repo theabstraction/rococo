@@ -880,6 +880,22 @@ namespace
 	using namespace Rococo::Script;
 	using namespace Rococo::Compiler;
 
+	void NativeRococoIInventoryArrayGetIndexAt(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Vec2* pos;
+		_offset += sizeof(pos);
+		ReadInput(pos, _sf, -_offset);
+
+		Rococo::IInventoryArray* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		int32 index = _pObject->GetIndexAt(*pos);
+		_offset += sizeof(index);
+		WriteOutput(index, _sf, -_offset);
+	}
 	void NativeRococoIInventoryArrayFlags(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -1044,6 +1060,24 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->SetRect(index, *rect);
 	}
+	void NativeRococoIInventoryArraySwap(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 j;
+		_offset += sizeof(j);
+		ReadInput(j, _sf, -_offset);
+
+		int32 i;
+		_offset += sizeof(i);
+		ReadInput(i, _sf, -_offset);
+
+		Rococo::IInventoryArray* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->Swap(i, j);
+	}
 	void NativeRococoIInventoryArrayComputeSpan(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -1069,6 +1103,7 @@ namespace Rococo {
 	void AddNativeCalls_RococoIInventoryArray(Rococo::Script::IPublicScriptSystem& ss, Rococo::IInventoryArray* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
+		ss.AddNativeCall(ns, NativeRococoIInventoryArrayGetIndexAt, nullptr, ("IInventoryArrayGetIndexAt (Pointer hObject)(Sys.Maths.Vec2 pos) -> (Int32 index)"));
 		ss.AddNativeCall(ns, NativeRococoIInventoryArrayFlags, nullptr, ("IInventoryArrayFlags (Pointer hObject)(Int32 index) -> (Int64 flags)"));
 		ss.AddNativeCall(ns, NativeRococoIInventoryArrayGetRect, nullptr, ("IInventoryArrayGetRect (Pointer hObject)(Int32 index)(Sys.Maths.Rectf rect) -> "));
 		ss.AddNativeCall(ns, NativeRococoIInventoryArrayId, nullptr, ("IInventoryArrayId (Pointer hObject)(Int32 index) -> (Int64 flags)"));
@@ -1079,6 +1114,7 @@ namespace Rococo {
 		ss.AddNativeCall(ns, NativeRococoIInventoryArraySetId, nullptr, ("IInventoryArraySetId (Pointer hObject)(Int32 index)(Int64 id) -> "));
 		ss.AddNativeCall(ns, NativeRococoIInventoryArraySetItemCount, nullptr, ("IInventoryArraySetItemCount (Pointer hObject)(Int32 index)(Int64 count) -> "));
 		ss.AddNativeCall(ns, NativeRococoIInventoryArraySetRect, nullptr, ("IInventoryArraySetRect (Pointer hObject)(Int32 index)(Sys.Maths.Rectf rect) -> "));
+		ss.AddNativeCall(ns, NativeRococoIInventoryArraySwap, nullptr, ("IInventoryArraySwap (Pointer hObject)(Int32 i)(Int32 j) -> "));
 		ss.AddNativeCall(ns, NativeRococoIInventoryArrayComputeSpan, nullptr, ("IInventoryArrayComputeSpan (Pointer hObject)(Rococo.InventoryLayoutRules rules)(Sys.Maths.Vec2 span) -> "));
 	}
 }
