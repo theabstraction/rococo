@@ -25,4 +25,5 @@
 	(k.BindAction "E"		"gui.editor.toggle")
 	(k.BindAction "F1"		"gui.overlay.toggle")
 	(k.BindAction "BACKSPACE" "gui.editor.sector.delete")	
+	(k.BindAction "I"		"gui.inventory.toggle")	
 )

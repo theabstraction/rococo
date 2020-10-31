@@ -1,0 +1,57 @@
+(' #file.type rococo)
+
+(' #include 
+	"!scripts/types.sxy"
+	"!scripts/mplat_sxh.sxy"
+	"!scripts/mplat_types.sxy"
+	"!scripts/hv_sxh.sxy"
+	"!scripts/hv/hv.types.sxy"
+)
+
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+	
+(using Rococo)
+(using Rococo.Graphics)
+(using Rococo.Entities)
+(using Sys.Type)
+(using HV)
+(using HV.Chemicals)
+
+(function GetSteel (MaterialData data)-> :
+	(data.mohsHardness = 7)
+	(data.toughness = 5)
+	(data.atomicNumber = (#CompoundsMedievalSteel))
+)
+
+(function AddFalchion (IObjectPrototypeBuilder obj) (IString uniqueName) -> :
+	(ObjectDynamics dynamics)
+	(dynamics.mass = 1.3)
+	(dynamics.airFrictionLinearQuotient = 0.1)
+	(dynamics.airFrictionQuadraticQuotient = 0.1)
+	(dynamics.span = 0.10 0.89 0.015)
+	(obj.AddDynamics dynamics)
+
+	(MeleeData melee)
+	(melee.swingSpeed = 1)
+	(melee.baseDamage = 6)
+	(obj.AddMeleeData melee)
+
+	(MaterialData steel)
+	(GetSteel steel)
+
+	(obj.AddMaterial steel)
+	(obj.AddShortName "Falchion")
+	(obj.AddDesc "A European medieval sword with a distinctive broad tip. The blade is very thin and is effective for slashing at unarmoured opponents")
+	(obj.AddIcon "#icons/falchion.tif")
+	(obj.Commit "weapon.sword.falchion")
+)
+
+(function Main (Int32 id)->(Int32 exitCode):
+	(IObjectPrototypeBuilder obj (ObjectPrototypeBuilder))
+	(ISpriteBuilder sb (SpriteBuilder))
+	(sb.AddEachSpriteInDirectory "#icons/")
+	(sb.LoadAllSprites)
+
+	(AddFalchion obj "weapon.sword.falchion")
+)

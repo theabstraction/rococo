@@ -446,7 +446,7 @@ namespace Rococo
 		void DrawText(IGuiRenderContext& g, const GuiRectf& rect, int32 alignmentFlags, const fstring& text, int32 fontIndex, RGBAb colour);
 		void DrawTexture(IGuiRenderContext& grc, ID_TEXTURE id, const GuiRect& absRect);
 		void RenderBitmap_ShrinkAndPreserveAspectRatio(IGuiRenderContext& rc, MaterialId id, const GuiRect& absRect);
-		void StretchBitmap(IGuiRenderContext& rc, const GuiRect& absRect);
+		void StretchBitmap(IGuiRenderContext& rc, const Textures::BitmapLocation& location, const GuiRect& absRect);
 		void DrawSprite(const Vec2i& topLeft, const Textures::BitmapLocation& location, IGuiRenderContext& gc);
 		void DrawSpriteCentred(const GuiRect& rect, const Textures::BitmapLocation& location, IGuiRenderContext& gc);
 	} // Graphics

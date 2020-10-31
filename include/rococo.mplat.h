@@ -10,9 +10,9 @@
 namespace Rococo
 {
    ROCOCO_ID(ID_ENTITY, uint64, 0);
-   ROCOCO_ID(ID_PUPPET, uint64, 0);
    ROCOCO_ID(ID_SKELETON, uint64, 0);
    ROCOCO_ID(ID_POSE, uint64, 0);
+   ROCOCO_ID(ID_SPRITE, uint64, 0);
 
    enum { MAX_POSENAME_LEN = 16 };
 
@@ -51,6 +51,9 @@ namespace Rococo
 	   cstr key;
 	   cstr value;
    };
+
+   struct TriangleScan;
+   struct InventoryLayoutRules;
 
 	struct LightSpec
 	{
@@ -127,15 +130,6 @@ namespace Rococo
 		Quad normals;
 		QuadColours colours;
 	};
-
-#pragma pack(push,1)
-	struct TriangleScan
-	{
-		ID_ENTITY owner;
-		ID_SYS_MESH ownerMesh;
-		Triangle t;
-	};
-#pragma pack(pop)
 }
 
 #include <../rococo.mplat/mplat.sxh.h>
@@ -354,12 +348,12 @@ namespace Rococo
 
 		ISceneSupervisor* CreateScene(Rococo::Entities::IInstancesSupervisor& instances, ICameraSupervisor& camera, Entities::IRigs& rigs);
 
-		ROCOCOAPI ISpriteSupervisor : public ISprites
+		ROCOCOAPI ISpriteBuilderSupervisor : public ISpriteBuilder
 		{
 		   virtual void Free() = 0;
 		};
 
-		ISpriteSupervisor* CreateSpriteSupervisor(IRenderer& renderer);
+		ISpriteBuilderSupervisor* CreateSpriteBuilderSupervisor(IRenderer& renderer);
 
 		IQuadStackTesselator* CreateQuadStackTesselator();
 
@@ -713,6 +707,11 @@ namespace Rococo
 		IContextMenuSupervisor* CreateContextMenu(Events::IPublisher& publisher, IContextMenuEvents& eventHandler);
 	}
 
+	ROCOCOAPI IInventoryArraySupervisor : IInventoryArray
+	{
+		virtual void Free() = 0;
+	};
+
 	// If this class grows too long, consider adding sub-interfaces to better index the functionality
 	ROCOCOAPI IUtilitiies
 	{
@@ -737,6 +736,7 @@ namespace Rococo
 		virtual IContextMenuSupervisor& GetContextMenu() = 0;
 		virtual IContextMenu& PopupContextMenu() = 0;
 		virtual Rococo::Graphics::IHQFonts& GetHQFonts() = 0;
+		virtual IInventoryArraySupervisor* CreateInventoryArray(int32 capacity) = 0;
 	};
 
 	ROCOCOAPI IUtilitiesSupervisor : public IUtilitiies
@@ -838,6 +838,16 @@ namespace Rococo
 
 	IWorldSupervisor* CreateWorld(Graphics::IMeshBuilderSupervisor& meshes, Entities::IInstancesSupervisor& instances);
 
+	namespace Graphics
+	{
+		ROCOCOAPI ISpritesSupervisor : ISprites
+		{
+			virtual void Free() = 0;
+		};
+
+		ISpritesSupervisor* CreateSpriteTable(IRenderer& renderer);
+	}
+
 	struct Platform
 	{
 		// Operating system functions
@@ -851,6 +861,8 @@ namespace Rococo
 
 		// Renderer
 		IRenderer& renderer;
+
+		Graphics::ISprites& sprites;
 
 		// Render config used to set up sampler states et al
 		Graphics::IRendererConfig& rendererConfig;
@@ -891,7 +903,7 @@ namespace Rococo
 
 		Entities::IRigs& rigs;
 
-		Graphics::ISpriteSupervisor& sprites;
+		Graphics::ISpriteBuilderSupervisor& spriteBuilder;
 
 		Graphics::ICameraSupervisor& camera;
 
@@ -944,6 +956,8 @@ namespace Rococo
 	}
 
 	IMPlatFileBrowser* CreateMPlatFileBrowser(Events::IPublisher& publisher, IInstallation& installation, IGUIStack& gui, IKeyboardSupervisor& keyboard, Browser::IBrowserFileChangeNotification& onChange);
+
+	IInventoryArraySupervisor* CreateInventoryArray(int32 capacity);
 }
 
 namespace Rococo

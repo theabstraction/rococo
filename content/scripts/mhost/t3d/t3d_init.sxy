@@ -27,7 +27,7 @@
 (function Main (Int32 id) -> (Int32 exitCode):
 	// We load textures, sprites and other resources here.
 	// This way if we modify the t3d.sxy file we do not have to wait for resource reloading
-	(ISprites sprites (Sprites))
+	(ISpriteBuilder sprites (SpriteBuilder))
 	(sprites.AddEachSpriteInDirectory "!textures/faces/female")
 	(sprites.LoadAllSprites)
 	

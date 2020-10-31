@@ -124,6 +124,7 @@
     </ClCompile>
     <ClCompile Include="hv.defaultconfig.cpp" />
     <ClCompile Include="hv.editor.cpp" />
+    <ClCompile Include="hv.equipment.cpp" />
     <ClCompile Include="hv.events.cpp" />
     <ClCompile Include="hv.field.editor.cpp" />
     <ClCompile Include="hv.fps.logic.cpp" />
@@ -160,6 +161,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\content\scripts\hv\app.created.sxy" />
+    <None Include="..\content\scripts\hv\equipment.sxy" />
+    <None Include="..\content\scripts\hv\hv.types.sxy" />
+    <None Include="..\content\scripts\hv_sxh.sxy" />
     <None Include="..\include\rococo.rings.inl" />
     <None Include="config.xc" />
     <CustomBuild Include="hv.sxh">

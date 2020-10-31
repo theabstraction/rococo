@@ -294,7 +294,7 @@
 (macro RPG.IdScreenWorld in out (out.AddAtomic "3"))
 
 (class GameBundle (defines RPG.IBundle)
-	(ISprites sprites)
+	(ISpriteBuilder spriteBuilder)
 	(IEngine engine)
 	(ILegacySoundControl sound)
 	(IInputThread inputThread)
@@ -307,12 +307,12 @@
 )
 
 (method GameBundle.Construct : 
-	(ISprites sprites (Sprites))
-	(sprites.AddEachSpriteInDirectory "!textures/faces/male")
-	(sprites.AddEachSpriteInDirectory "!textures/faces/female")
-	(sprites.AddSprite "!portraits/painting_1.jpg")
-	(sprites.LoadAllSprites)
-	(this.sprites = sprites)
+	(ISpriteBuilder spriteBuilder (SpriteBuilder))
+	(spriteBuilder.AddEachSpriteInDirectory "!textures/faces/male")
+	(spriteBuilder.AddEachSpriteInDirectory "!textures/faces/female")
+	(spriteBuilder.AddSprite "!portraits/painting_1.jpg")
+	(spriteBuilder.LoadAllSprites)
+	(this.spriteBuilder = spriteBuilder)
 	
 	(this.engine = (Engine))
 	(this.sound = (Rococo.Audio.LegacySoundControl))

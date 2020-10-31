@@ -1,19 +1,8 @@
 #include <rococo.mplat.h>
 #include <vector>
+#include "rococo.script.types.h"
 
 using namespace Rococo;
-
-struct InventoryLayoutRules
-{
-	int32 rows;
-	int32 columns;
-	Vec2 cellSpan;
-	Vec2 borders;
-	Vec2 topLeft;
-	boolean32 rowByRow;
-	int32 startIndex;
-	int32 endIndex;
-};
 
 struct InventoryCell
 {
@@ -21,30 +10,6 @@ struct InventoryCell
 	int64 itemCount = 0;
 	uint64 id = 0;
 	int64 flags = 0;
-};
-
-ROCOCOAPI IInventoryRenderScheme
-{
-	virtual void Render(IGuiRenderContext& g, const InventoryCell & cell) = 0;
-};
-
-ROCOCOAPI IInventoryArray
-{
-	virtual void GetRect(int32 index, GuiRectf& rect) = 0;
-	virtual int64 Flags(int32 index) = 0;
-	virtual int64 Id(int32 index) = 0;
-	virtual int64 ItemCount(int32 index) = 0;
-	virtual void SetFlags(int32 index, int64 flags) = 0;
-	virtual void SetId(int32 index, int64 count) = 0;
-	virtual void SetItemCount(int32 index, int64 count) = 0;
-	virtual void SetRect(int32 index, const GuiRectf& rect) = 0;
-	virtual void LayoutAsRect(const InventoryLayoutRules& rules) = 0;
-};
-
-ROCOCOAPI IInventoryArraySupervisor : IInventoryArray
-{
-	virtual void Render(IInventoryRenderScheme& scheme, IGuiRenderContext& g) = 0;
-	virtual void Free() = 0;
 };
 
 namespace
@@ -76,7 +41,12 @@ namespace
 			rect = At(index).guiRect;
 		}
 
-		void SetFlags (int32 index, int64 flags) override
+		int32 NumberOfItems()
+		{
+			return (int32) cells.size();
+		}
+
+		void SetFlags(int32 index, int64 flags) override
 		{
 			At(index).flags = flags;
 		}
@@ -116,12 +86,10 @@ namespace
 			delete this;
 		}
 
-		void Render(IInventoryRenderScheme& scheme, IGuiRenderContext& g)
+		void ComputeSpan(const Rococo::InventoryLayoutRules& L, Vec2& span)
 		{
-			for (auto& c : cells)
-			{
-				scheme.Render(g, c);
-			}
+			span.x = L.columns * (L.borders.x + L.cellSpan.x);
+			span.y = L.rows * (L.borders.y + L.cellSpan.y);
 		}
 
 		void LayoutAsRect(const InventoryLayoutRules& L) override

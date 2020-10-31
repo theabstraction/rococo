@@ -2,6 +2,7 @@
 #include <rococo.quadtree.h>
 #include <rococo.maths.h>
 #include <vector>
+#include "rococo.script.types.h"
 
 using namespace Rococo;
 using namespace Rococo::Entities;
@@ -112,8 +113,8 @@ namespace
 				}
 			}
 
-			t.owner = ID_ENTITY::Invalid();
-			t.ownerMesh = ID_SYS_MESH::Invalid();
+			t.id = ID_ENTITY::Invalid();
+			t.idMesh = ID_SYS_MESH::Invalid();
 			t.t = { 0 };
 		}
 
@@ -138,8 +139,8 @@ namespace
 						scan.t.A = vt.a.position;
 						scan.t.B = vt.b.position;
 						scan.t.C = vt.c.position;
-						scan.owner = id;
-						scan.ownerMesh = meshId;
+						scan.id = id;
+						scan.idMesh = meshId;
 						scanlist.push_back(scan);
 					}
 				}

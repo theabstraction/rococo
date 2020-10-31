@@ -160,7 +160,7 @@
 )
 
 (class GameBundle (defines T3D.IBundle)
-	(ISprites sprites)
+	(ISpriteBuilder spriteBuilder)
 	(IEngine engine)
 	(ILegacySoundControl sound)
 	(IInputThread inputThread)
@@ -169,8 +169,8 @@
 )
 
 (method GameBundle.Construct : 
-	(ISprites sprites (Sprites))
-	(this.sprites = sprites)
+	(ISpriteBuilder spriteBuilder (SpriteBuilder))
+	(this.spriteBuilder = spriteBuilder)
 	
 	(this.engine = (Engine))
 	(this.sound = (Rococo.Audio.LegacySoundControl))

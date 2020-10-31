@@ -479,6 +479,11 @@ public:
 
 		return cm;
 	}
+
+	IInventoryArraySupervisor* CreateInventoryArray(int32 capacity) override
+	{
+		return Rococo::CreateInventoryArray(capacity);
+	}
 };
 
 namespace Rococo

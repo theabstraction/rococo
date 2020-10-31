@@ -31,13 +31,18 @@ namespace Rococo // declarations herein are to help intellisense do its job.
 		struct IQuadStackTesselator;
 		struct IRodTesselator;
 		struct IRimTesselator;
-		struct ISprites;
+		struct ISpriteBuilder;
 		struct ISceneBuilder;
 		struct ICamera;
 		struct IMobiles;
 
 		IFieldTesselator* CreateFieldTesselator();
 	}
+}
+
+Rococo::Graphics::ISprites* FactoryConstructRococoGraphicsSprites(Rococo::Graphics::ISprites* s)
+{
+	return s;
 }
 
 Rococo::Entities::IRigBuilder* FactoryConstructRococoEntitiesRigBuilder(Rococo::Entities::IRigs* rigs)
@@ -95,44 +100,44 @@ Rococo::Graphics::IFieldTesselator* FactoryConstructRococoGraphicsFieldTesselato
 	return Rococo::Graphics::CreateFieldTesselator();
 }
 
-Rococo::Graphics::IRimTesselator* FactoryConstructRococoGraphicsRimTesselator(Rococo::Graphics::IRimTesselator* _context)
+Rococo::Graphics::IRimTesselator* FactoryConstructRococoGraphicsRimTesselator(Rococo::Graphics::IRimTesselator* t)
 {
-	return _context;
+	return t;
 }
 
-Rococo::IConfig* FactoryConstructRococoConfig(Rococo::IConfig* _context)
+Rococo::IConfig* FactoryConstructRococoConfig(Rococo::IConfig* c)
 {
-   return _context;
+   return c;
 }
 
-Rococo::Graphics::ISprites* FactoryConstructRococoGraphicsSprites(Rococo::Graphics::ISprites* _context)
+Rococo::Graphics::ISpriteBuilder* FactoryConstructRococoGraphicsSpriteBuilder(Rococo::Graphics::ISpriteBuilder* sb)
 {
-   return _context;
+   return sb;
 }
 
-Rococo::IKeyboard* FactoryConstructRococoKeyboard(Rococo::IKeyboard* _context)
+Rococo::IKeyboard* FactoryConstructRococoKeyboard(Rococo::IKeyboard* k)
 {
-   return _context;
+   return k;
 }
 
-Rococo::Graphics::ISceneBuilder* FactoryConstructRococoGraphicsSceneBuilder(Rococo::Graphics::ISceneBuilder* _context)
+Rococo::Graphics::ISceneBuilder* FactoryConstructRococoGraphicsSceneBuilder(Rococo::Graphics::ISceneBuilder* sb)
 {
-   return _context;
+   return sb;
 }
 
-Rococo::Graphics::ICamera* FactoryConstructRococoGraphicsCamera(Rococo::Graphics::ICamera* _context)
+Rococo::Graphics::ICamera* FactoryConstructRococoGraphicsCamera(Rococo::Graphics::ICamera* c)
 {
-   return _context;
+   return c;
 }
 
-Rococo::Entities::IMobiles* FactoryConstructRococoEntitiesMobiles(Rococo::Entities::IMobiles* _context)
+Rococo::Entities::IMobiles* FactoryConstructRococoEntitiesMobiles(Rococo::Entities::IMobiles* m)
 {
-   return _context;
+   return m;
 }
 
-Rococo::IPaneBuilder* FactoryConstructRococoPaneBuilder(Rococo::IPaneBuilder* _context)
+Rococo::IPaneBuilder* FactoryConstructRococoPaneBuilder(Rococo::IPaneBuilder* pb)
 {
-   return _context;
+   return pb;
 }
 
 Rococo::Entities::IParticleSystem* FactoryConstructRococoEntitiesParticleSystem(Rococo::Platform* platform)
@@ -145,9 +150,9 @@ Rococo::Entities::IInstances* FactoryConstructRococoEntitiesInstances(Rococo::En
    return ins;
 }
 
-Rococo::Graphics::IMeshBuilder* FactoryConstructRococoGraphicsMeshBuilder(Rococo::Graphics::IMeshBuilder* _context)
+Rococo::Graphics::IMeshBuilder* FactoryConstructRococoGraphicsMeshBuilder(Rococo::Graphics::IMeshBuilder* mb)
 {
-   return _context;
+   return mb;
 }
 
 Rococo::Audio::ILegacySoundControl* FactoryConstructRococoAudioLegacySoundControl(Rococo::Platform* platform)
@@ -279,6 +284,7 @@ namespace Rococo
 						Entities::AddNativeCalls_RococoEntitiesIMobiles(args.ss, &platform.mobiles);
 						Graphics::AddNativeCalls_RococoGraphicsICamera(args.ss, &platform.camera);
 						Graphics::AddNativeCalls_RococoGraphicsISceneBuilder(args.ss, &platform.scene.Builder());
+						Graphics::AddNativeCalls_RococoGraphicsISpriteBuilder(args.ss, &platform.spriteBuilder);
 						Graphics::AddNativeCalls_RococoGraphicsISprites(args.ss, &platform.sprites);
 						Graphics::AddNativeCalls_RococoGraphicsIRimTesselator(args.ss, &platform.tesselators.rim);
 						Graphics::AddNativeCalls_RococoGraphicsIFieldTesselator(args.ss, nullptr);

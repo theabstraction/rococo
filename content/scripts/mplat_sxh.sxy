@@ -36,6 +36,33 @@
 (macro Rococo.Audio.ELegacySoundShapeSaw in out (out.AddAtomic "0x3"))
 (macro Rococo.Audio.ELegacySoundShapeNoise in out (out.AddAtomic "0x4"))
 
+(interface Rococo.IInventoryArray
+	(Flags (Int32 index) -> (Int64 flags))
+	(GetRect (Int32 index)(Sys.Maths.Rectf rect) -> )
+	(Id (Int32 index) -> (Int64 flags))
+	(ItemCount (Int32 index) -> (Int64 flags))
+	(LayoutAsRect (Rococo.InventoryLayoutRules rules) -> )
+	(NumberOfItems  -> (Int32 nItems))
+	(SetFlags (Int32 index)(Int64 flags) -> )
+	(SetId (Int32 index)(Int64 id) -> )
+	(SetItemCount (Int32 index)(Int64 count) -> )
+	(SetRect (Int32 index)(Sys.Maths.Rectf rect) -> )
+	(ComputeSpan (Rococo.InventoryLayoutRules rules)(Sys.Maths.Vec2 span) -> )
+)
+
+(class ProxyIInventoryArray (implements Rococo.IInventoryArray) (Pointer hObject))
+	(method ProxyIInventoryArray.Flags (Int32 index) -> (Int64 flags) : (Rococo.Native.IInventoryArrayFlags this.hObject index -> flags))
+	(method ProxyIInventoryArray.GetRect (Int32 index)(Sys.Maths.Rectf rect) ->  : (Rococo.Native.IInventoryArrayGetRect this.hObject index rect))
+	(method ProxyIInventoryArray.Id (Int32 index) -> (Int64 flags) : (Rococo.Native.IInventoryArrayId this.hObject index -> flags))
+	(method ProxyIInventoryArray.ItemCount (Int32 index) -> (Int64 flags) : (Rococo.Native.IInventoryArrayItemCount this.hObject index -> flags))
+	(method ProxyIInventoryArray.LayoutAsRect (Rococo.InventoryLayoutRules rules) ->  : (Rococo.Native.IInventoryArrayLayoutAsRect this.hObject rules))
+	(method ProxyIInventoryArray.NumberOfItems  -> (Int32 nItems) : (Rococo.Native.IInventoryArrayNumberOfItems this.hObject  -> nItems))
+	(method ProxyIInventoryArray.SetFlags (Int32 index)(Int64 flags) ->  : (Rococo.Native.IInventoryArraySetFlags this.hObject index flags))
+	(method ProxyIInventoryArray.SetId (Int32 index)(Int64 id) ->  : (Rococo.Native.IInventoryArraySetId this.hObject index id))
+	(method ProxyIInventoryArray.SetItemCount (Int32 index)(Int64 count) ->  : (Rococo.Native.IInventoryArraySetItemCount this.hObject index count))
+	(method ProxyIInventoryArray.SetRect (Int32 index)(Sys.Maths.Rectf rect) ->  : (Rococo.Native.IInventoryArraySetRect this.hObject index rect))
+	(method ProxyIInventoryArray.ComputeSpan (Rococo.InventoryLayoutRules rules)(Sys.Maths.Vec2 span) ->  : (Rococo.Native.IInventoryArrayComputeSpan this.hObject rules span))
+
 (interface Rococo.Entities.IRigBuilder
 	(ClearBuilder  -> )
 	(ClearPoses  -> )
@@ -109,19 +136,34 @@
 	(construct ProxyIKeyboard pObject)
 )
 
-(interface Rococo.Graphics.ISprites
+(interface Rococo.Graphics.ISpriteBuilder
 	(Clear  -> )
 	(AddSprite (Sys.Type.IString resourceName) -> )
 	(AddEachSpriteInDirectory (Sys.Type.IString directoryName) -> )
 	(LoadAllSprites  -> )
 )
 
+(class ProxyISpriteBuilder (implements Rococo.Graphics.ISpriteBuilder) (Pointer hObject))
+	(method ProxyISpriteBuilder.Construct (Pointer hObject): (this.hObject = hObject))
+	(method ProxyISpriteBuilder.Clear  ->  : (Rococo.Graphics.Native.ISpriteBuilderClear this.hObject ))
+	(method ProxyISpriteBuilder.AddSprite (Sys.Type.IString resourceName) ->  : (Rococo.Graphics.Native.ISpriteBuilderAddSprite this.hObject resourceName))
+	(method ProxyISpriteBuilder.AddEachSpriteInDirectory (Sys.Type.IString directoryName) ->  : (Rococo.Graphics.Native.ISpriteBuilderAddEachSpriteInDirectory this.hObject directoryName))
+	(method ProxyISpriteBuilder.LoadAllSprites  ->  : (Rococo.Graphics.Native.ISpriteBuilderLoadAllSprites this.hObject ))
+
+(factory Rococo.Graphics.SpriteBuilder Rococo.Graphics.ISpriteBuilder  :
+	(Pointer pObject = (Rococo.Graphics.Native.GetHandleForISpriteBuilder0 ))
+	(construct ProxyISpriteBuilder pObject)
+)
+
+(interface Rococo.Graphics.ISprites
+	(TryGetId (Sys.Type.IString pingPath) -> (Int64 id))
+	(AppendPingPath (Int64 id)(Sys.Type.IStringBuilder sb) -> )
+)
+
 (class ProxyISprites (implements Rococo.Graphics.ISprites) (Pointer hObject))
 	(method ProxyISprites.Construct (Pointer hObject): (this.hObject = hObject))
-	(method ProxyISprites.Clear  ->  : (Rococo.Graphics.Native.ISpritesClear this.hObject ))
-	(method ProxyISprites.AddSprite (Sys.Type.IString resourceName) ->  : (Rococo.Graphics.Native.ISpritesAddSprite this.hObject resourceName))
-	(method ProxyISprites.AddEachSpriteInDirectory (Sys.Type.IString directoryName) ->  : (Rococo.Graphics.Native.ISpritesAddEachSpriteInDirectory this.hObject directoryName))
-	(method ProxyISprites.LoadAllSprites  ->  : (Rococo.Graphics.Native.ISpritesLoadAllSprites this.hObject ))
+	(method ProxyISprites.TryGetId (Sys.Type.IString pingPath) -> (Int64 id) : (Rococo.Graphics.Native.ISpritesTryGetId this.hObject pingPath -> id))
+	(method ProxyISprites.AppendPingPath (Int64 id)(Sys.Type.IStringBuilder sb) ->  : (Rococo.Graphics.Native.ISpritesAppendPingPath this.hObject id sb))
 
 (factory Rococo.Graphics.Sprites Rococo.Graphics.ISprites  :
 	(Pointer pObject = (Rococo.Graphics.Native.GetHandleForISprites0 ))

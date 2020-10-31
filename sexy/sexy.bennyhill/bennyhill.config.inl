@@ -240,7 +240,12 @@ namespace
 		if (*pc.cppRootDirectory == 0) Throw(sprimitiveDef, ("cpp.root must be specified before a defstruct"));
 		if (*pc.cppTypesFilename == 0) Throw(sprimitiveDef, ("cpp.types must be specified before a defstruct"));
 
-		if (sprimitiveDef.NumberOfElements() < 5) Throw(sprimitiveDef, ("Expecting 5 or more elements: (defstruct <sxh-type> <sxy-type> <cpp-type> (field1)...(fieldN))"));
+		if (sprimitiveDef.NumberOfElements() < 5) Throw(sprimitiveDef, "Expecting 5 or more elements: (defstruct <sxh-type> <sxy-type> <cpp-type> (field1)...(fieldN))");
+
+		if (!IsAtomic(sprimitiveDef[1]) || !IsAtomic(sprimitiveDef[2]) || !IsAtomic(sprimitiveDef[3]))
+		{
+			Throw(sprimitiveDef, "Expected 3 atomics in positions 1, 2 and 3 of expression.\n i.e (defstruct <sxh - type> <sxy - type> <cpp - type> (field1)...(fieldN))");
+		}
 
 		cstr sxhType = StringFrom(sprimitiveDef, 1);
 		cstr sxyType = StringFrom(sprimitiveDef, 2);

@@ -500,9 +500,9 @@
 )
 
 (function Main (Int32 id) -> (Int32 exitCode):
-	(ISprites sprites (Sprites))
-	(sprites.AddEachSpriteInDirectory "!textures/mhost/galaxians")
-	(sprites.LoadAllSprites)
+	(ISpriteBuilder spriteBuilder (SpriteBuilder))
+	(spriteBuilder.AddEachSpriteInDirectory "!textures/mhost/galaxians")
+	(spriteBuilder.LoadAllSprites)
 	
 	(IEngine engine (Engine))
 	(ILegacySoundControl sound (Rococo.Audio.LegacySoundControl))

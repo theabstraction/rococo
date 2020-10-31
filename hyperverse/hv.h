@@ -43,6 +43,8 @@ namespace HV
 
 namespace HV
 {
+	ROCOCO_ID(ID_OBJECT, uint64, 0);
+
 	HV::ISectorLayout* GetSector(int32 index, ISectors& sectors);
 	HV::ISectorLayout* GetSectorById(int32 index, ISectors& sectors);
 	ISector* GetFirstSectorCrossingLine(Vec2 a, Vec2 b, ISectors& sectors);
@@ -689,9 +691,12 @@ namespace HV
 		IEditor& editor;
 		ISectors& sectors;
 		IFPSGameModeSupervisor& fpsMode;
+		IObjectPrototypeBuilder& object_prototypes;
 	};
 
-	IFPSGameModeSupervisor* CreateFPSGameLogic(Platform& platform, IPlayerSupervisor& players, ISectors& sectors);
+	struct IObjectManager;
+
+	IFPSGameModeSupervisor* CreateFPSGameLogic(Platform& platform, IPlayerSupervisor& players, ISectors& sectors, IObjectManager& objects);
 
 	IApp* CreateHVApp(Cosmos& e);
 	void RunEnvironmentScript(Cosmos& e, cstr name, bool releaseSource = false, bool trace = false);
@@ -744,6 +749,31 @@ namespace HV
 		bool TryGetRandomTransformation(Matrix4x4& model, AABB& worldBounds, bool randomHeading, bool randomizePosition, const AABB& bounds, const AABB2d& container, float z0, float z1);
 		bool TryClickGraphicsMesh(ID_ENTITY idObject, cr_vec3 probePoint, cr_vec3 probeDirection, Metres reach, Platform& platform);
 	}
+
+	ROCOCOAPI IObjectPrototype : IObjectPrototypeBase
+	{
+		virtual const Textures::BitmapLocation & Bitmap() const = 0;
+	};
+
+	struct ObjectRef
+	{
+		const IObjectPrototype* prototype;
+		const int32 stackSize;
+	};
+
+	ROCOCOAPI IObjectPrototypeSupervisor : IObjectPrototype
+	{
+		virtual void Free() = 0;
+	};
+
+	ROCOCOAPI IObjectManager : IObjectPrototypeBuilder
+	{
+		virtual ID_OBJECT CreateObject(cstr name, int32 stackSize = 1) = 0;
+		virtual ObjectRef GetObject(ID_OBJECT id) = 0;
+		virtual void Free() = 0;
+	};
+
+	IObjectManager* CreateObjectManager(IRenderer& renderer);
 }
 
 

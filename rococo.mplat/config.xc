@@ -24,9 +24,9 @@
 (primitive Metres Sys.SI.Metres Metres)
 (primitive Kilograms Sys.SI.Kilograms Kilograms)
 (primitive RGBAb Int32 RGBAb)
-(primitive IdPuppet Int64 ID_PUPPET)
 (primitive IdFont Int32 ID_FONT)
 (primitive EHQFont Int32 Rococo.Graphics.HQFont)
+(primitive IdSprite Int64 ID_SPRITE)
 
 (primitive Pointer Pointer uintptr_t)
 (primitive IdMesh Int32 ID_MESH)
@@ -66,109 +66,31 @@
 // (fields) is a sequence of s-expressions of the format (<type> <name>) where <type> is either a primitive or struct defined BEFORE the parent defstruct and <name> is a unique name for the variable.
 // Field names must follow the naming rules for field variables in sexy, i.e, begin with a lowercase letter a-z and succeed with any sequence of alphanumerics.
 
-(defstruct MaterialVertexData Rococo.MaterialVertexData MaterialVertexData
-	(RGBAb colour)
-	(MaterialId id)
-	(Float32 gloss)
-)
+(struct MaterialVertexData Rococo.MaterialVertexData MaterialVertexData)
 
-(defstruct TriangleScan Rococo.TriangleScan TriangleScan
+(struct Vertex Rococo.ObjectVertex ObjectVertex)
+(struct LightSpec Rococo.LightSpec LightSpec)
+(struct QuadColours Rococo.QuadColours QuadColours)
+(struct QuadVertices Rococo.QuadVertices QuadVertices)
+(struct VertexTriangle Rococo.VertexTriangle VertexTriangle)
+(struct AABB2d Rococo.AAB2d AABB2d)
+(struct FlameDef Rococo.FlameDef FlameDef)
+(struct SampleStateDef Rococo.SampleStateDef Rococo.Graphics.SampleStateDef)
+(struct FontMetrics Rococo.Graphics.FontMetrics Rococo.Graphics.FontMetrics)
+
+(defstruct TriangleScan Rococo.TriangleScan Rococo.TriangleScan
 	(IdEntity id)
 	(IdSysMesh idMesh)
 	(Triangle t)
 )
 
-(defstruct Vertex Rococo.ObjectVertex ObjectVertex
-	(Vec3 position)
-	(Vec3 normal)
-	(Vec2 uv)
-	(MaterialVertexData mat)
+(defstruct InventoryLayoutRules Rococo.InventoryLayoutRules Rococo.InventoryLayoutRules
+	(Int32 rows)
+	(Int32 columns)
+	(Vec2 cellSpan)
+	(Vec2 borders)
+	(Vec2 topLeft)
+	(Bool rowByRow)
+	(Int32 startIndex)
+	(Int32 endIndex)
 )
-
-(defstruct LightSpec Rococo.LightSpec LightSpec
-	(Vec3 position)
-	(Vec3 direction)
-	(Degrees fov)
-	(RGBA diffuse)
-	(RGBA ambience)
-	(Degrees cutoffAngle)
-	(Float32 cutoffPower)
-	(Float32 attenuation)
-	(Metres nearPlane)
-	(Metres farPlane)
-	(Float32 fogConstant)
-)
-
-(defstruct QuadColours Rococo.QuadColours QuadColours
-	(RGBAb a)
-	(RGBAb b)
-	(RGBAb c)
-	(RGBAb d)
-)
-
-(defstruct QuadVertices Rococo.QuadVertices QuadVertices
-	(Quad positions)
-	(Rectf uv)
-	(Quad normals)
-	(QuadColours colours)
-)
-
-(defstruct VertexTriangle Rococo.VertexTriangle VertexTriangle
-	(Vertex a)
-	(Vertex b)
-	(Vertex c)
-)
-
-(defstruct AABB2d Rococo.AAB2d AABB2d
-	(Float32 left)
-	(Float32 bottom)
-	(Float32 right)
-	(Float32 top)
-)
-
-(defstruct FlameDef Rococo.FlameDef FlameDef
-	(Metres minStartParticleSize)
-	(Metres maxStartParticleSize)
-	(Metres minEndParticleSize)
-	(Metres maxEndParticleSize)
-	(Int32 particleCount)
-	(Seconds minLifeSpan)
-	(Seconds maxLifeSpan)
-	(Float32 initialVelocityRange)
-	(Float32 initialSpawnPosRange)
-	(Float32 jetSpeed)
-	(Metres attractorHeight)
-	(Metres attractorMaxRange)
-	(Metres attractorMinRange)
-	(Metres attractorSpawnPosRange)
-	(Seconds attractorAIduration)
-	(Float32 attractorResetProbability)
-	(Float32 attractorDriftFactor)
-	(Float32 attractorPerturbFactor)
-	(Float32 attractorForce)
-)
-
-(defstruct SampleStateDef Rococo.SampleStateDef Rococo.Graphics.SampleStateDef
-	(SampleMethod method)
-	(SampleFilter u)
-	(SampleFilter v)
-	(SampleFilter w)
-	(RGBA borderColour)
-)
-
-(defstruct NewPuppetDesc Rococo.Puppet.NewPuppetDesc Rococo.Puppet.NewPuppetDesc
-	(Int32 dummy)
-)
-
-(defstruct FontMetrics Rococo.Graphics.FontMetrics Rococo.Graphics.FontMetrics
-	(Int32 ascent) 
-	(Int32 descent) 
-	(Int32 height) 
-	(Int32 internalLeading)
-	(Int32 italic)
-	(Int32 weight) 
-	(Int32 imgWidth)
-	(Int32 imgHeight)
-)
-
-//(struct IPuppet Rococo.Puppet.IPuppet Rococo.Puppet.IPuppet)

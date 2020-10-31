@@ -28,8 +28,10 @@
 (primitive Pointer Pointer uintptr_t)
 (primitive IdMesh Int32 ID_MESH)
 (primitive IdEntity Int64 ID_ENTITY)
+(primitive IdSprite Int64 ID_SPRITE)
 (primitive MaterialId Float32 MaterialId)
 (primitive MaterialCategory Int32 Rococo.Graphics.MaterialCategory)
+(primitive EquipmentSlot Int32 HV.EquipmentSlot)
 
 // (struct <name> <sexy-name> <cpp-name>)  maps <name> found in the sxh file to the <sexy-name> in the generated sxy file, and <cpp-name> in the c++ files
 // Arguments that are struct are passed by reference in the script system. They may not be used as output arguments. It is assumed that the structures are defined elsewhere.
@@ -86,5 +88,33 @@
 
 (defstruct ObjectCreationSpec HV.ObjectCreationSpec HV.ObjectCreationSpec
 	(Bool unused)
+)
 
+(defstruct MeleeData HV.MeleeData HV.MeleeData
+	(Float32 swingSpeed)
+	(Float32 baseDamage)
+)
+
+(defstruct ArmourData HV.ArmourData HV.ArmourData
+	(Float32 catchProjectilePercentile)
+	(Metres thickness)
+)
+
+(defstruct ObjectDynamics HV.ObjectDynamics HV.ObjectDynamics
+	(Kilograms mass)
+	(Float32 airFrictionLinearQuotient) // dv/dt = -AFLQ.v - AFQQ.v^2
+	(Float32 airFrictionQuadraticQuotient)
+	(Vec3 span)
+)
+
+(defstruct InventoryData HV.InventoryData HV.InventoryData
+	(Int32 legalEquipmentSlotFlags) // bitwise-OR of EquipmentSlot flags
+	(Int32 maxStackSize) // 1 => not stackable
+	(IdSprite icon)
+)
+
+(defstruct MaterialData HV.MaterialData HV.MaterialData
+	(Int32 mohsHardness) // 1 = ice, 10 = diamond
+	(Int32 toughness) // 1 = glass, 10 = graphene
+	(Int32 atomicNumber)
 )

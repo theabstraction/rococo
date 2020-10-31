@@ -105,6 +105,9 @@
     <ClCompile Include="hv.sector.contents.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="hv.equipment.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="hv.h">
@@ -147,6 +150,15 @@
     </None>
     <None Include="hv.sector.perimeter.inl">
       <Filter>Source Files</Filter>
+    </None>
+    <None Include="..\content\scripts\hv\equipment.sxy">
+      <Filter>Script Files</Filter>
+    </None>
+    <None Include="..\content\scripts\hv\hv.types.sxy">
+      <Filter>Script Files</Filter>
+    </None>
+    <None Include="..\content\scripts\hv_sxh.sxy">
+      <Filter>Script Files</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

@@ -102,8 +102,10 @@ namespace HV
 
 	class App : public IApp, public IEventCallback<FileModifiedArgs>,  public IObserver, public IGuiResizeEvent
 	{
-		Platform& platform;
+		// N.B make sure fields are in the correct order of construction
 
+		Platform& platform;
+		AutoFree<IObjectManager> object_manager;
 		AutoFree<ISectors> sectors;
 		AutoFree<IPlayerSupervisor> players;	
 		AutoFree<IFPSGameModeSupervisor> fpsLogic;
@@ -225,9 +227,10 @@ namespace HV
 			platform(_platform),
 			sectors(CreateSectors(_platform)),
 			players(CreatePlayerSupervisor(platform)),
-			fpsLogic(CreateFPSGameLogic(platform, *players, *sectors)),
+			object_manager(CreateObjectManager(platform.renderer)),
+			fpsLogic(CreateFPSGameLogic(platform, *players, *sectors, *object_manager)),
 			editor(CreateEditor(platform, *players, *sectors, *fpsLogic)),
-			e{ _platform, *players, *editor, *sectors, *fpsLogic },
+			e{ _platform, *players, *editor, *sectors, *fpsLogic, *object_manager },
 			scene(e)
 		{
 			mode = fpsLogic;
@@ -237,6 +240,7 @@ namespace HV
 			RunEnvironmentScript(e, "!scripts/hv/config.sxy", true);
 			RunEnvironmentScript(e, "!scripts/hv/keys.sxy", true);
 			RunEnvironmentScript(e, "!scripts/hv/controls.sxy", true);
+			RunEnvironmentScript(e, "!scripts/hv/equipment.sxy", true);
 			RunEnvironmentScript(e, "!scripts/hv/main.sxy", true);
 
 			NoExtraNativeLibs noExtraLibs;
@@ -411,6 +415,7 @@ namespace HV
 		p.installation.Macro("#floors", "!scripts/hv/sector/floors/");
 		p.installation.Macro("#corridor", "!scripts/hv/sector/corridor/");
 		p.installation.Macro("#objects", "!scripts/hv/sector/objects/");
+		p.installation.Macro("#icons", "!textures/hv/icons/");
 		return new HV::App(p);
 	}
 

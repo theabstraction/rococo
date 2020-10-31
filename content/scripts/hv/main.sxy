@@ -44,9 +44,9 @@
 	(IInstances instances (Instances))
 	(IMobiles mobiles (Mobiles))
 	
-	(ISprites sprites (Sprites))
-	(sprites.AddEachSpriteInDirectory "!textures/toolbars")
-	(sprites.LoadAllSprites)
+	(ISpriteBuilder spriteBuilder (SpriteBuilder))
+	(spriteBuilder.AddEachSpriteInDirectory "!textures/toolbars")
+	(spriteBuilder.LoadAllSprites)
 		
 	(Matrix4x4 model =
 		(1 0 0  0)

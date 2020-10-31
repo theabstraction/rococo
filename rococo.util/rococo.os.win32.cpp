@@ -564,10 +564,6 @@ namespace Rococo
 				}
 			};
 
-			TIMECAPS caps;
-			UINT cbtc = sizeof(caps);
-			timeGetDevCaps(&caps,cbtc);
-
 			supervisor->context = { job, supervisor };
 			supervisor->hThread = _beginthreadex(nullptr, stacksize, ANON::ThreadProc, &supervisor->context, CREATE_SUSPENDED, &supervisor->id);
 			return supervisor;

@@ -1,111 +1,21 @@
-	struct MaterialVertexData
-	{
-		RGBAb colour;
-		MaterialId id;
-		float gloss;
-	};
+namespace Rococo { 
 	struct TriangleScan
 	{
 		ID_ENTITY id;
 		ID_SYS_MESH idMesh;
 		Triangle t;
 	};
-	struct ObjectVertex
+}
+namespace Rococo { 
+	struct InventoryLayoutRules
 	{
-		Vec3 position;
-		Vec3 normal;
-		Vec2 uv;
-		MaterialVertexData mat;
+		int32 rows;
+		int32 columns;
+		Vec2 cellSpan;
+		Vec2 borders;
+		Vec2 topLeft;
+		boolean32 rowByRow;
+		int32 startIndex;
+		int32 endIndex;
 	};
-	struct LightSpec
-	{
-		Vec3 position;
-		Vec3 direction;
-		Degrees fov;
-		RGBA diffuse;
-		RGBA ambience;
-		Degrees cutoffAngle;
-		float cutoffPower;
-		float attenuation;
-		Metres nearPlane;
-		Metres farPlane;
-		float fogConstant;
-	};
-	struct QuadColours
-	{
-		RGBAb a;
-		RGBAb b;
-		RGBAb c;
-		RGBAb d;
-	};
-	struct QuadVertices
-	{
-		Quad positions;
-		GuiRectf uv;
-		Quad normals;
-		QuadColours colours;
-	};
-	struct VertexTriangle
-	{
-		ObjectVertex a;
-		ObjectVertex b;
-		ObjectVertex c;
-	};
-	struct AABB2d
-	{
-		float left;
-		float bottom;
-		float right;
-		float top;
-	};
-	struct FlameDef
-	{
-		Metres minStartParticleSize;
-		Metres maxStartParticleSize;
-		Metres minEndParticleSize;
-		Metres maxEndParticleSize;
-		int32 particleCount;
-		Seconds minLifeSpan;
-		Seconds maxLifeSpan;
-		float initialVelocityRange;
-		float initialSpawnPosRange;
-		float jetSpeed;
-		Metres attractorHeight;
-		Metres attractorMaxRange;
-		Metres attractorMinRange;
-		Metres attractorSpawnPosRange;
-		Seconds attractorAIduration;
-		float attractorResetProbability;
-		float attractorDriftFactor;
-		float attractorPerturbFactor;
-		float attractorForce;
-	};
-namespace Rococo { namespace Graphics { 
-	struct SampleStateDef
-	{
-		Rococo::Graphics::SampleMethod method;
-		Rococo::Graphics::SampleFilter u;
-		Rococo::Graphics::SampleFilter v;
-		Rococo::Graphics::SampleFilter w;
-		RGBA borderColour;
-	};
-}}
-namespace Rococo { namespace Puppet { 
-	struct NewPuppetDesc
-	{
-		int32 dummy;
-	};
-}}
-namespace Rococo { namespace Graphics { 
-	struct FontMetrics
-	{
-		int32 ascent;
-		int32 descent;
-		int32 height;
-		int32 internalLeading;
-		int32 italic;
-		int32 weight;
-		int32 imgWidth;
-		int32 imgHeight;
-	};
-}}
+}

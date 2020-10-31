@@ -435,6 +435,11 @@ namespace Rococo
 		return Vec2{ (float)v.x, (float)v.y };
 	}
 
+	inline GuiRect Quantize(const GuiRectf& r)
+	{
+		return GuiRect{ (int32)r.left, (int32)r.top, (int32)r.right, (int32)r.bottom };
+	}
+
 	inline GuiRectf Dequantize(const GuiRect& v)
 	{
 		return GuiRectf((float)v.left, (float)v.top, (float)v.right, (float)v.bottom);

@@ -563,9 +563,9 @@
 )
 
 (function Main (Int32 id) -> (Int32 exitCode):
-	(ISprites sprites (Sprites))
-	(sprites.AddEachSpriteInDirectory "!textures/mhost/harrier")
-	(sprites.LoadAllSprites)
+	(ISpriteBuilder spriteBuilder (SpriteBuilder))
+	(spriteBuilder.AddEachSpriteInDirectory "!textures/mhost/harrier")
+	(spriteBuilder.LoadAllSprites)
 	
 	(IEngine engine (Engine))
 	(ILegacySoundControl sound (Rococo.Audio.LegacySoundControl))

@@ -48,9 +48,6 @@
     <ClCompile Include="mplat.keyboard.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mplat.graphics.sprites.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="mplat.config.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -169,6 +166,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="mplat.inventory.array.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mplat.graphics.sprite_builder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mplat.graphics.sprites.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

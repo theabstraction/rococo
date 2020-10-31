@@ -22,29 +22,39 @@ namespace // Script factories
 		return context;
 	}
 
-	HV::ISectorBuilder* FactoryConstructHVSectorBuilder(HV::ISectors* _context)
+	HV::ISectorBuilder* FactoryConstructHVSectorBuilder(HV::ISectors* context)
 	{
-		return _context->Builder();
+		return context->Builder();
 	}
 
-	HV::ISectorWallTesselator* FactoryConstructHVSectorWallTesselator(HV::ISectorWallTesselator* _context)
+	HV::ISectorWallTesselator* FactoryConstructHVSectorWallTesselator(HV::ISectorWallTesselator* context)
 	{
-		return _context;
+		return context;
 	}
 
-	HV::ISectorFloorTesselator* FactoryConstructHVSectorFloorTesselator(HV::ISectorFloorTesselator* _context)
+	HV::ISectorFloorTesselator* FactoryConstructHVSectorFloorTesselator(HV::ISectorFloorTesselator* context)
 	{
-		return _context;
+		return context;
 	}
 
-	HV::ISectorComponents* FactoryConstructHVSectorComponents(HV::ISectorComponents* _context)
+	HV::ISectorComponents* FactoryConstructHVSectorComponents(HV::ISectorComponents* context)
 	{
-		return _context;
+		return context;
 	}
 
-	HV::ISectorEnumerator* FactoryConstructHVSectorEnumerator(HV::ISectorEnumerator* _context)
+	HV::ISectorEnumerator* FactoryConstructHVSectorEnumerator(HV::ISectorEnumerator* context)
 	{
-		return _context;
+		return context;
+	}
+
+	HV::IObjectPrototypeBuilder* FactoryConstructHVObjectPrototypeBuilder(HV::IObjectPrototypeBuilder* context)
+	{
+		return context;
+	}
+
+	HV::IObjectPrototype* FactoryConstructHVObjectPrototypeBuilder(HV::IObjectPrototype* context)
+	{
+		return context;
 	}
 }
 
@@ -80,6 +90,8 @@ namespace HV
 				AddNativeCalls_HVIPlayer(args.ss, &e.players);
 				AddNativeCalls_HVISectorBuilder(args.ss, &e.sectors);
 				AddNativeCalls_HVISectorAIBuilder(args.ss, nullptr);
+				AddNativeCalls_HVIObjectPrototypeBuilder(args.ss, &e.object_prototypes);
+				AddNativeCalls_HVIObjectPrototype(args.ss, nullptr);
 			}
 
 		public:

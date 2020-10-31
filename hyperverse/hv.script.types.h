@@ -37,3 +37,42 @@ namespace HV {
 		boolean32 unused;
 	};
 }
+namespace HV { 
+	struct MeleeData
+	{
+		float swingSpeed;
+		float baseDamage;
+	};
+}
+namespace HV { 
+	struct ArmourData
+	{
+		float catchProjectilePercentile;
+		Metres thickness;
+	};
+}
+namespace HV { 
+	struct ObjectDynamics
+	{
+		Kilograms mass;
+		float airFrictionLinearQuotient;
+		float airFrictionQuadraticQuotient;
+		Vec3 span;
+	};
+}
+namespace HV { 
+	struct InventoryData
+	{
+		int32 legalEquipmentSlotFlags;
+		int32 maxStackSize;
+		ID_SPRITE icon;
+	};
+}
+namespace HV { 
+	struct MaterialData
+	{
+		int32 mohsHardness;
+		int32 toughness;
+		int32 atomicNumber;
+	};
+}

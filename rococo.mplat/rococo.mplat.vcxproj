@@ -125,6 +125,7 @@
     <ClCompile Include="mplat.graphics.rod.tesselator.cpp" />
     <ClCompile Include="mplat.graphics.qs.tesselator.cpp" />
     <ClCompile Include="mplat.graphics.sprites.cpp" />
+    <ClCompile Include="mplat.graphics.sprite_builder.cpp" />
     <ClCompile Include="mplat.graphics.tess.rim.cpp" />
     <ClCompile Include="mplat.graphics.text.tesselator.cpp" />
     <ClCompile Include="mplat.guistack.cpp" />

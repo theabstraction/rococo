@@ -323,7 +323,7 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	AutoFree<Graphics::ICameraSupervisor> camera = Graphics::CreateCamera(*instances, *mobiles, mainWindow->Renderer());
 	AutoFree<Graphics::ISceneSupervisor> scene = Graphics::CreateScene(*instances, *camera, *rigs);
 	AutoFree<IKeyboardSupervisor> keyboard = CreateKeyboardSupervisor();
-	AutoFree<Graphics::ISpriteSupervisor> sprites = Graphics::CreateSpriteSupervisor(mainWindow->Renderer());
+	AutoFree<Graphics::ISpriteBuilderSupervisor> spriteBuilder = Graphics::CreateSpriteBuilderSupervisor(mainWindow->Renderer());
 	AutoFree<Graphics::IRimTesselatorSupervisor> rimTesselator = Graphics::CreateRimTesselator();
 	AutoFree<Graphics::IRodTesselatorSupervisor> rodTesselator = Graphics::CreateRodTesselator(*meshes);
 	AutoFree<Entities::IParticleSystemSupervisor> particles = Entities::CreateParticleSystem(mainWindow->Renderer(), *instances);
@@ -342,12 +342,14 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	AutoFree<IArchiveSupervisor> archive = Rococo::CreateArchive();
 
 	AutoFree<IWorldSupervisor> world = Rococo::CreateWorld(*meshes, *instances);
+
+	AutoFree<Graphics::ISpritesSupervisor> sprites = Rococo::Graphics::CreateSpriteTable(mainWindow->Renderer());
 	
 	Platform platform
 	{ 
-		*os, *installation, *appControl, mainWindow->Renderer(), *rendererConfig, *messaging, 
+		*os, *installation, *appControl, mainWindow->Renderer(), *sprites, *rendererConfig, *messaging, 
 		*sourceCache, *debuggerWindow, *publisher, *utilities, *gui, *keyboard, *config, *archive, *meshes,
-		*instances, *mobiles, *particles, *rigs, *sprites, *camera, *scene, tesselators, *mathsVisitor,
+		*instances, *mobiles, *particles, *rigs, *spriteBuilder, *camera, *scene, tesselators, *mathsVisitor,
 		*legacySound, *audio, *ssFactory, title, *xbox360stick, *ims, *world
 	};
 

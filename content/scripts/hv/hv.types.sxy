@@ -33,3 +33,37 @@
 )
 (alias ObjectCreationSpec HV.ObjectCreationSpec)
 
+(struct MeleeData
+	(Float32 swingSpeed)
+	(Float32 baseDamage)
+)
+(alias MeleeData HV.MeleeData)
+
+(struct ArmourData
+	(Float32 catchProjectilePercentile)
+	(Sys.SI.Metres thickness)
+)
+(alias ArmourData HV.ArmourData)
+
+(struct ObjectDynamics
+	(Sys.SI.Kilograms mass)
+	(Float32 airFrictionLinearQuotient)
+	(Float32 airFrictionQuadraticQuotient)
+	(Sys.Maths.Vec3 span)
+)
+(alias ObjectDynamics HV.ObjectDynamics)
+
+(struct InventoryData
+	(Int32 legalEquipmentSlotFlags)
+	(Int32 maxStackSize)
+	(Int64 icon)
+)
+(alias InventoryData HV.InventoryData)
+
+(struct MaterialData
+	(Int32 mohsHardness)
+	(Int32 toughness)
+	(Int32 atomicNumber)
+)
+(alias MaterialData HV.MaterialData)
+

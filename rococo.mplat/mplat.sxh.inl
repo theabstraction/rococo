@@ -872,6 +872,216 @@ namespace Rococo {
 		ss.AddNativeCall(ns, NativeRococoIPaneSetPopulator, nullptr, ("IPaneSetPopulator (Pointer hObject)(Int32 stateIndex)(Sys.Type.IString populatorName) -> "));
 	}
 }
+// BennyHill generated Sexy native functions for Rococo::IInventoryArray 
+namespace
+{
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
+
+	void NativeRococoIInventoryArrayFlags(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 index;
+		_offset += sizeof(index);
+		ReadInput(index, _sf, -_offset);
+
+		Rococo::IInventoryArray* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		int64 flags = _pObject->Flags(index);
+		_offset += sizeof(flags);
+		WriteOutput(flags, _sf, -_offset);
+	}
+	void NativeRococoIInventoryArrayGetRect(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		GuiRectf* rect;
+		_offset += sizeof(rect);
+		ReadInput(rect, _sf, -_offset);
+
+		int32 index;
+		_offset += sizeof(index);
+		ReadInput(index, _sf, -_offset);
+
+		Rococo::IInventoryArray* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GetRect(index, *rect);
+	}
+	void NativeRococoIInventoryArrayId(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 index;
+		_offset += sizeof(index);
+		ReadInput(index, _sf, -_offset);
+
+		Rococo::IInventoryArray* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		int64 flags = _pObject->Id(index);
+		_offset += sizeof(flags);
+		WriteOutput(flags, _sf, -_offset);
+	}
+	void NativeRococoIInventoryArrayItemCount(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 index;
+		_offset += sizeof(index);
+		ReadInput(index, _sf, -_offset);
+
+		Rococo::IInventoryArray* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		int64 flags = _pObject->ItemCount(index);
+		_offset += sizeof(flags);
+		WriteOutput(flags, _sf, -_offset);
+	}
+	void NativeRococoIInventoryArrayLayoutAsRect(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::InventoryLayoutRules* rules;
+		_offset += sizeof(rules);
+		ReadInput(rules, _sf, -_offset);
+
+		Rococo::IInventoryArray* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->LayoutAsRect(*rules);
+	}
+	void NativeRococoIInventoryArrayNumberOfItems(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::IInventoryArray* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		int32 nItems = _pObject->NumberOfItems();
+		_offset += sizeof(nItems);
+		WriteOutput(nItems, _sf, -_offset);
+	}
+	void NativeRococoIInventoryArraySetFlags(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int64 flags;
+		_offset += sizeof(flags);
+		ReadInput(flags, _sf, -_offset);
+
+		int32 index;
+		_offset += sizeof(index);
+		ReadInput(index, _sf, -_offset);
+
+		Rococo::IInventoryArray* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetFlags(index, flags);
+	}
+	void NativeRococoIInventoryArraySetId(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int64 id;
+		_offset += sizeof(id);
+		ReadInput(id, _sf, -_offset);
+
+		int32 index;
+		_offset += sizeof(index);
+		ReadInput(index, _sf, -_offset);
+
+		Rococo::IInventoryArray* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetId(index, id);
+	}
+	void NativeRococoIInventoryArraySetItemCount(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int64 count;
+		_offset += sizeof(count);
+		ReadInput(count, _sf, -_offset);
+
+		int32 index;
+		_offset += sizeof(index);
+		ReadInput(index, _sf, -_offset);
+
+		Rococo::IInventoryArray* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetItemCount(index, count);
+	}
+	void NativeRococoIInventoryArraySetRect(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		GuiRectf* rect;
+		_offset += sizeof(rect);
+		ReadInput(rect, _sf, -_offset);
+
+		int32 index;
+		_offset += sizeof(index);
+		ReadInput(index, _sf, -_offset);
+
+		Rococo::IInventoryArray* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetRect(index, *rect);
+	}
+	void NativeRococoIInventoryArrayComputeSpan(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Vec2* span;
+		_offset += sizeof(span);
+		ReadInput(span, _sf, -_offset);
+
+		Rococo::InventoryLayoutRules* rules;
+		_offset += sizeof(rules);
+		ReadInput(rules, _sf, -_offset);
+
+		Rococo::IInventoryArray* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->ComputeSpan(*rules, *span);
+	}
+
+}
+
+namespace Rococo { 
+	void AddNativeCalls_RococoIInventoryArray(Rococo::Script::IPublicScriptSystem& ss, Rococo::IInventoryArray* _nceContext)
+	{
+		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
+		ss.AddNativeCall(ns, NativeRococoIInventoryArrayFlags, nullptr, ("IInventoryArrayFlags (Pointer hObject)(Int32 index) -> (Int64 flags)"));
+		ss.AddNativeCall(ns, NativeRococoIInventoryArrayGetRect, nullptr, ("IInventoryArrayGetRect (Pointer hObject)(Int32 index)(Sys.Maths.Rectf rect) -> "));
+		ss.AddNativeCall(ns, NativeRococoIInventoryArrayId, nullptr, ("IInventoryArrayId (Pointer hObject)(Int32 index) -> (Int64 flags)"));
+		ss.AddNativeCall(ns, NativeRococoIInventoryArrayItemCount, nullptr, ("IInventoryArrayItemCount (Pointer hObject)(Int32 index) -> (Int64 flags)"));
+		ss.AddNativeCall(ns, NativeRococoIInventoryArrayLayoutAsRect, nullptr, ("IInventoryArrayLayoutAsRect (Pointer hObject)(Rococo.InventoryLayoutRules rules) -> "));
+		ss.AddNativeCall(ns, NativeRococoIInventoryArrayNumberOfItems, nullptr, ("IInventoryArrayNumberOfItems (Pointer hObject) -> (Int32 nItems)"));
+		ss.AddNativeCall(ns, NativeRococoIInventoryArraySetFlags, nullptr, ("IInventoryArraySetFlags (Pointer hObject)(Int32 index)(Int64 flags) -> "));
+		ss.AddNativeCall(ns, NativeRococoIInventoryArraySetId, nullptr, ("IInventoryArraySetId (Pointer hObject)(Int32 index)(Int64 id) -> "));
+		ss.AddNativeCall(ns, NativeRococoIInventoryArraySetItemCount, nullptr, ("IInventoryArraySetItemCount (Pointer hObject)(Int32 index)(Int64 count) -> "));
+		ss.AddNativeCall(ns, NativeRococoIInventoryArraySetRect, nullptr, ("IInventoryArraySetRect (Pointer hObject)(Int32 index)(Sys.Maths.Rectf rect) -> "));
+		ss.AddNativeCall(ns, NativeRococoIInventoryArrayComputeSpan, nullptr, ("IInventoryArrayComputeSpan (Pointer hObject)(Rococo.InventoryLayoutRules rules)(Sys.Maths.Vec2 span) -> "));
+	}
+}
 // BennyHill generated Sexy native functions for Rococo::IContextMenu 
 namespace
 {
@@ -6367,7 +6577,7 @@ namespace Rococo {
 		ss.AddNativeCall(ns, NativeRococoIConfigGetText, nullptr, ("IConfigGetText (Pointer hObject)(Sys.Type.IString name)(Sys.Type.IStringBuilder text) -> "));
 	}
 }
-// BennyHill generated Sexy native functions for Rococo::Graphics::ISprites 
+// BennyHill generated Sexy native functions for Rococo::Graphics::ISpriteBuilder 
 namespace
 {
 	using namespace Rococo;
@@ -6375,17 +6585,17 @@ namespace
 	using namespace Rococo::Script;
 	using namespace Rococo::Compiler;
 
-	void NativeRococoGraphicsISpritesClear(NativeCallEnvironment& _nce)
+	void NativeRococoGraphicsISpriteBuilderClear(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Rococo::Graphics::ISprites* _pObject;
+		Rococo::Graphics::ISpriteBuilder* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->Clear();
 	}
-	void NativeRococoGraphicsISpritesAddSprite(NativeCallEnvironment& _nce)
+	void NativeRococoGraphicsISpriteBuilderAddSprite(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
@@ -6395,13 +6605,13 @@ namespace
 		fstring resourceName { _resourceName->buffer, _resourceName->length };
 
 
-		Rococo::Graphics::ISprites* _pObject;
+		Rococo::Graphics::ISpriteBuilder* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->AddSprite(resourceName);
 	}
-	void NativeRococoGraphicsISpritesAddEachSpriteInDirectory(NativeCallEnvironment& _nce)
+	void NativeRococoGraphicsISpriteBuilderAddEachSpriteInDirectory(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
@@ -6411,21 +6621,89 @@ namespace
 		fstring directoryName { _directoryName->buffer, _directoryName->length };
 
 
-		Rococo::Graphics::ISprites* _pObject;
+		Rococo::Graphics::ISpriteBuilder* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->AddEachSpriteInDirectory(directoryName);
 	}
-	void NativeRococoGraphicsISpritesLoadAllSprites(NativeCallEnvironment& _nce)
+	void NativeRococoGraphicsISpriteBuilderLoadAllSprites(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Rococo::Graphics::ISprites* _pObject;
+		Rococo::Graphics::ISpriteBuilder* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->LoadAllSprites();
+	}
+
+	void NativeGetHandleForRococoGraphicsSpriteBuilder(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Graphics::ISpriteBuilder* nceContext = reinterpret_cast<Rococo::Graphics::ISpriteBuilder*>(_nce.context);
+		// Uses: Rococo::Graphics::ISpriteBuilder* FactoryConstructRococoGraphicsSpriteBuilder(Rococo::Graphics::ISpriteBuilder* _context);
+		Rococo::Graphics::ISpriteBuilder* pObject = FactoryConstructRococoGraphicsSpriteBuilder(nceContext);
+		_offset += sizeof(IString*);
+		WriteOutput(pObject, _sf, -_offset);
+	}
+}
+
+namespace Rococo { namespace Graphics { 
+	void AddNativeCalls_RococoGraphicsISpriteBuilder(Rococo::Script::IPublicScriptSystem& ss, Rococo::Graphics::ISpriteBuilder* _nceContext)
+	{
+		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Graphics.Native"));
+		ss.AddNativeCall(ns, NativeGetHandleForRococoGraphicsSpriteBuilder, _nceContext, ("GetHandleForISpriteBuilder0  -> (Pointer hObject)"));
+		ss.AddNativeCall(ns, NativeRococoGraphicsISpriteBuilderClear, nullptr, ("ISpriteBuilderClear (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsISpriteBuilderAddSprite, nullptr, ("ISpriteBuilderAddSprite (Pointer hObject)(Sys.Type.IString resourceName) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsISpriteBuilderAddEachSpriteInDirectory, nullptr, ("ISpriteBuilderAddEachSpriteInDirectory (Pointer hObject)(Sys.Type.IString directoryName) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsISpriteBuilderLoadAllSprites, nullptr, ("ISpriteBuilderLoadAllSprites (Pointer hObject) -> "));
+	}
+}}
+// BennyHill generated Sexy native functions for Rococo::Graphics::ISprites 
+namespace
+{
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
+
+	void NativeRococoGraphicsISpritesTryGetId(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _pingPath;
+		ReadInput(_pingPath, _sf, -_offset);
+		fstring pingPath { _pingPath->buffer, _pingPath->length };
+
+
+		Rococo::Graphics::ISprites* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		ID_SPRITE id = _pObject->TryGetId(pingPath);
+		_offset += sizeof(id);
+		WriteOutput(id, _sf, -_offset);
+	}
+	void NativeRococoGraphicsISpritesAppendPingPath(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(VirtualTable**);
+		VirtualTable** sb;
+		ReadInput(sb, _sf, -_offset);
+		Rococo::Helpers::StringPopulator _sbPopulator(_nce, sb);
+		ID_SPRITE id;
+		_offset += sizeof(id);
+		ReadInput(id, _sf, -_offset);
+
+		Rococo::Graphics::ISprites* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AppendPingPath(id, _sbPopulator);
 	}
 
 	void NativeGetHandleForRococoGraphicsSprites(NativeCallEnvironment& _nce)
@@ -6445,10 +6723,8 @@ namespace Rococo { namespace Graphics {
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Graphics.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForRococoGraphicsSprites, _nceContext, ("GetHandleForISprites0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeRococoGraphicsISpritesClear, nullptr, ("ISpritesClear (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsISpritesAddSprite, nullptr, ("ISpritesAddSprite (Pointer hObject)(Sys.Type.IString resourceName) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsISpritesAddEachSpriteInDirectory, nullptr, ("ISpritesAddEachSpriteInDirectory (Pointer hObject)(Sys.Type.IString directoryName) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsISpritesLoadAllSprites, nullptr, ("ISpritesLoadAllSprites (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsISpritesTryGetId, nullptr, ("ISpritesTryGetId (Pointer hObject)(Sys.Type.IString pingPath) -> (Int64 id)"));
+		ss.AddNativeCall(ns, NativeRococoGraphicsISpritesAppendPingPath, nullptr, ("ISpritesAppendPingPath (Pointer hObject)(Int64 id)(Sys.Type.IStringBuilder sb) -> "));
 	}
 }}
 // BennyHill generated Sexy native functions for Rococo::Entities::IMobiles 
@@ -10500,7 +10776,7 @@ namespace
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		TriangleScan* t;
+		Rococo::TriangleScan* t;
 		_offset += sizeof(t);
 		ReadInput(t, _sf, -_offset);
 
@@ -10524,7 +10800,7 @@ namespace
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		TriangleScan* t;
+		Rococo::TriangleScan* t;
 		_offset += sizeof(t);
 		ReadInput(t, _sf, -_offset);
 

@@ -3,7 +3,7 @@
 #include <rococo.hashtable.h>
 #include <rococo.maths.h>
 #include <rococo.clock.h>
-
+#include "../rococo.mplat/rococo.script.types.h"
 #include <algorithm>
 
 using namespace HV;
@@ -164,6 +164,8 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 	RGBAb ambientLight = RGBAb(10,10,10,255);
 	float fogConstant = -0.1f;
 	IPropertyHost* host = nullptr;
+	AutoFree<IInventoryArraySupervisor> inventory;
+	IObjectManager& objects;
 
 	void Assign(IPropertyHost* host) override
 	{
@@ -189,12 +191,16 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 		return this;
 	}
 
-	FPSGameLogic(Platform& _platform, IPlayerSupervisor& _players, ISectors& _sectors) : 
-		platform(_platform), players(_players), sectors(_sectors)
+	enum { INVENTORY_SLOTS = 64 };
+
+	FPSGameLogic(Platform& _platform, IPlayerSupervisor& _players, ISectors& _sectors, IObjectManager& _objects) :
+		platform(_platform), players(_players), sectors(_sectors), objects(_objects)
 	{
 		fpsControl.speeds = Vec3{ 10.0f, 5.0f, 5.0f };
 
 		platform.scene.SetPopulator(this);
+
+		inventory = platform.utilities.CreateInventoryArray(64);
 	}
 
 	~FPSGameLogic()
@@ -255,7 +261,7 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 	TSectorVector illuminatedRooms;
 	TSectorVector shadowCasterSectors;
 
-	virtual void PopulateShadowCasters(ISceneBuilder& sb, const DepthRenderData& drd)  override
+	void PopulateShadowCasters(ISceneBuilder& sb, const DepthRenderData& drd)  override
 	{
 		sb.Clear();
 		shadowCasterSectors.clear();
@@ -983,6 +989,20 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 		ComputeVisibleSectorsThisTimestep();
 	}
 
+	bool inventoryGenerated = false;
+
+	void CreateDefaultInventory()
+	{
+		if (!inventoryGenerated)
+		{	
+			ID_OBJECT falchion = objects.CreateObject("weapon.sword.falchion");
+			inventory->SetId(0, falchion.value);
+			inventoryGenerated = true;
+		}
+	}
+
+	bool overlayInventory = false;
+
 	bool OnKeyboardEvent(const KeyboardEvent& k)
 	{
 		Key key = platform.keyboard.GetKeyFromEvent(k);
@@ -995,6 +1015,12 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 				enable.value = true;
 				platform.publisher.Publish(enable, evEnableEditor);
 				return true;
+			}
+
+			if (!key.isPressed && Eq(action, "gui.inventory.toggle"))
+			{
+				overlayInventory = !overlayInventory;
+				CreateDefaultInventory();
 			}
 
 			HV::Events::Player::PlayerActionEvent pae;
@@ -1145,16 +1171,83 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 		}
 	}
 
+	void Layout(const GuiRect& absRect)
+	{
+		InventoryLayoutRules layout;
+		layout.borders = { 4,4 };
+		layout.cellSpan = { 64,64 };
+		layout.columns = 16;
+		layout.rows = 4;
+		layout.startIndex = 0;
+		layout.endIndex = 64;
+		layout.rowByRow = true;
+		layout.topLeft.x = absRect.left + 16.0f;
+
+		Vec2 span;
+		inventory->ComputeSpan(layout, span);
+		layout.topLeft.y = absRect.bottom - span.y - 16.0f;
+		inventory->LayoutAsRect(layout);
+	}
+
+	void RenderInventory(IGuiRenderContext& g, const GuiRect& absRect)
+	{
+		GuiMetrics metrics;
+		g.Renderer().GetGuiMetrics(metrics);
+		for (int32 i = 0; i < INVENTORY_SLOTS; ++i)
+		{
+			GuiRectf rect;
+			inventory->GetRect(i, OUT rect);
+
+			GuiRect recti = Quantize(rect);
+
+			bool isLit = IsPointInRect(metrics.cursorPosition, recti);
+
+			ID_OBJECT id{ (uint64) inventory->Id(i) };
+			ObjectRef obj = objects.GetObject(id);
+			
+			RGBAb t1 = isLit ? RGBAb(255, 0, 0, 64) : RGBAb(192, 0, 0, 32);
+			RGBAb t2 = isLit ? RGBAb(0, 0, 224, 64) : RGBAb(0, 0, 160, 32);
+			Graphics::DrawRectangle(g, recti, t1, t2);
+
+			if (obj.prototype!= nullptr)
+			{
+				Graphics::StretchBitmap(g, obj.prototype->Bitmap(), recti);
+			}
+
+			RGBAb diag1 = isLit ? RGBAb(255, 255, 255, 255) : RGBAb(192, 192, 192, 255);
+			RGBAb diag2 = isLit ? RGBAb(224, 224, 224, 224) : RGBAb(160, 160, 160, 255);
+			Graphics::DrawBorderAround(g, recti, { 1,1 }, diag1, diag2);
+		}
+	}
+
+	GuiRect lastAbsRect = {0, 0, 0, 0};
+
 	void Render(IGuiRenderContext& g, const GuiRect& absRect) override
 	{
-		RenderCrosshair(g, absRect);
+		if (lastAbsRect != absRect)
+		{
+			lastAbsRect = absRect;
+			Layout(absRect);
+			lastAbsRect = absRect;
+		}
 
 		if (sectors.begin() == sectors.end())
 		{
 			if (platform.gui.Count() == 1)
 			{
-				//RenderSplash(g);
-				RenderXbox360Data(g);
+				RenderSplash(g);
+				//RenderXbox360Data(g);
+			}
+		}
+		else
+		{
+			if (overlayInventory)
+			{
+				RenderInventory(g, absRect);
+			}
+			else
+			{
+				RenderCrosshair(g, absRect);
 			}
 		}
 	}
@@ -1170,8 +1263,8 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 
 namespace HV
 {
-	IFPSGameModeSupervisor* CreateFPSGameLogic(Platform& platform, IPlayerSupervisor& players, ISectors& sectors)
+	IFPSGameModeSupervisor* CreateFPSGameLogic(Platform& platform, IPlayerSupervisor& players, ISectors& sectors, IObjectManager& objects)
 	{
-		return new FPSGameLogic(platform, players, sectors);
+		return new FPSGameLogic(platform, players, sectors, objects);
 	}
 }

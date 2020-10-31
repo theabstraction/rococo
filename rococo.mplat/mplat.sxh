@@ -41,6 +41,25 @@
 )
 
 (interface 
+	(as.sxy Rococo.IInventoryArray "../content/scripts/mplat")
+	(as.cpp Rococo.IInventoryArray "mplat")
+	(context factory Rococo.IInventoryArray)
+	(methods
+		(Flags(Int32 index) -> (Int64 flags))
+		(GetRect (Int32 index) (Rectf rect))
+		(Id(Int32 index) -> (Int64 flags))
+		(ItemCount(Int32 index) -> (Int64 flags))
+		(LayoutAsRect (const InventoryLayoutRules rules))
+		(NumberOfItems -> (Int32 nItems))
+		(SetFlags(Int32 index)(Int64 flags))
+		(SetId (Int32 index)(Int64 id))
+		(SetItemCount(Int32 index)(Int64 count))
+		(SetRect(Int32 index)(const Rectf rect))
+		(ComputeSpan (const InventoryLayoutRules rules)(Vec2 span))
+	)
+)
+
+(interface 
 	(as.sxy Rococo.IContextMenu "../content/scripts/mplat_pane")
 	(as.cpp Rococo.IContextMenu "mplat")
 	(context factory Rococo.IContextMenu)
@@ -253,14 +272,25 @@
 )
 
 (interface 
-	(as.sxy Rococo.Graphics.ISprites "../content/scripts/mplat")
-	(as.cpp Rococo.Graphics.ISprites "mplat")
-	(context factory Rococo.Graphics.ISprites)
+	(as.sxy Rococo.Graphics.ISpriteBuilder "../content/scripts/mplat")
+	(as.cpp Rococo.Graphics.ISpriteBuilder "mplat")
+	(context factory Rococo.Graphics.ISpriteBuilder)
 	(methods
 		(Clear)
 		(AddSprite (IString resourceName))
 		(AddEachSpriteInDirectory (IString directoryName))
 		(LoadAllSprites)
+	)
+	(factory Rococo.Graphics.SpriteBuilder)
+)
+
+(interface 
+	(as.sxy Rococo.Graphics.ISprites "../content/scripts/mplat")
+	(as.cpp Rococo.Graphics.ISprites "mplat")
+	(context factory Rococo.Graphics.ISprites)
+	(methods
+		(TryGetId (IString pingPath)->(IdSprite id))
+		(AppendPingPath (IdSprite id)(IStringBuilder sb))
 	)
 	(factory Rococo.Graphics.Sprites)
 )

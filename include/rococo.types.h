@@ -199,20 +199,6 @@ namespace Rococo
 		virtual Debugging::IStackFrameEnumerator* StackFrames() = 0;
 	};
 
-	/*
-
-	struct IFileSnapshot
-	{
-		const int64 filesize;
-		const void* pData;
-	};
-
-	ROCOCOAPI IFileHandler
-	{
-		virtual void OnLoad(const IFileSnapshot & snapshot) = 0;
-	};
-	TODO - delete */
-
 	class RecursionGuard
 	{
 	private:
