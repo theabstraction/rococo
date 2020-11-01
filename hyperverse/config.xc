@@ -110,7 +110,7 @@
 )
 
 (defstruct InventoryData HV.InventoryData HV.InventoryData
-	(Int32 legalEquipmentSlotFlags) // bitwise-OR of EquipmentSlot flags
+	(Int64 legalEquipmentSlotFlags) // bitwise-OR of EquipmentSlot flags
 	(Int32 maxStackSize) // 1 => not stackable
 	(IdSprite icon)
 )

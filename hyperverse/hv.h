@@ -753,11 +753,12 @@ namespace HV
 	ROCOCOAPI IObjectPrototype : IObjectPrototypeBase
 	{
 		virtual const Textures::BitmapLocation & Bitmap() const = 0;
+		virtual bool CanFitSlot(int64 flags) const = 0;
 	};
 
 	struct ObjectRef
 	{
-		const IObjectPrototype* prototype;
+		IObjectPrototype* prototype;
 		const int32 stackSize;
 	};
 

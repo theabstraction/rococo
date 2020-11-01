@@ -87,9 +87,15 @@ public:
 		{
 			if (selectedObjectIndex >= 0)
 			{
-				inventory.Swap(index, selectedObjectIndex);
-				selectedObjectIndex = -1;
-				SetCursorToBitmap(nullCursorBitmap);
+				int64 targetFlags = inventory.Flags(index);
+				ID_OBJECT sourceItem{ (uint64) inventory.Id(selectedObjectIndex) };
+				auto ref = objects.GetObject(sourceItem);
+				if (ref.prototype && (targetFlags == 0 || ref.prototype->CanFitSlot(targetFlags)))
+				{
+					inventory.Swap(index, selectedObjectIndex);
+					selectedObjectIndex = -1;
+					SetCursorToBitmap(nullCursorBitmap);
+				}
 			}
 			else
 			{
@@ -166,13 +172,17 @@ public:
 			ID_OBJECT id{ (uint64)inventory.Id(i) };
 			ObjectRef obj = objects.GetObject(id);
 
-			RGBAb t1 = isLit ? RGBAb(255, 0, 0, 64) : RGBAb(192, 0, 0, 32);
-			RGBAb t2 = isLit ? RGBAb(0, 0, 224, 64) : RGBAb(0, 0, 160, 32);
-			Graphics::DrawRectangle(g, rect, t1, t2);
-
 			if (obj.prototype != nullptr)
 			{
+				RGBAb black = RGBAb(0, 0, 0, 192);
+				Graphics::DrawRectangle(g, rect, black, black);
 				Graphics::StretchBitmap(g, obj.prototype->Bitmap(), rect);
+			}
+			else
+			{
+				RGBAb t1 = isLit ? RGBAb(255, 0, 0, 64) : RGBAb(192, 0, 0, 32);
+				RGBAb t2 = isLit ? RGBAb(0, 0, 224, 64) : RGBAb(0, 0, 160, 32);
+				Graphics::DrawRectangle(g, rect, t1, t2);
 			}
 
 			RGBAb diag1 = isLit ? RGBAb(255, 255, 255, 255) : RGBAb(192, 192, 192, 255);

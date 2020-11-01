@@ -24,7 +24,7 @@
 	(data.atomicNumber = (#CompoundsMedievalSteel))
 )
 
-(function AddFalchion (IObjectPrototypeBuilder obj) (IString uniqueName) -> :
+(function AddFalchion (IObjectPrototypeBuilder obj) -> :
 	(ObjectDynamics dynamics)
 	(dynamics.mass = 1.3)
 	(dynamics.airFrictionLinearQuotient = 0.1)
@@ -39,6 +39,8 @@
 
 	(MaterialData steel)
 	(GetSteel steel)
+	
+	(obj.AddSlot (#EquipmentSlotHand))
 
 	(obj.AddMaterial steel)
 	(obj.AddShortName "Falchion")
@@ -48,11 +50,11 @@
 )
 
 (function Main (Int32 id)->(Int32 exitCode):
-	(IObjectPrototypeBuilder obj (ObjectPrototypeBuilder))
+	(IObjectPrototypeBuilder prototypes (ObjectPrototypeBuilder))
 	(ISpriteBuilder sb (SpriteBuilder))
 	(sb.AddEachSpriteInDirectory "#icons/")
 	(sb.AddEachSpriteInDirectory "!textures/hv/inventory/")
 	(sb.LoadAllSprites)
 
-	(AddFalchion obj "weapon.sword.falchion")
+	(AddFalchion prototypes)
 )

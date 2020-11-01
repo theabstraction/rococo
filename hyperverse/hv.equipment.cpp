@@ -35,6 +35,18 @@ namespace
 			sb.Populate(shortName);
 		}
 
+		bool CanFitSlot(int64 flags) const
+		{
+			if (invData.legalEquipmentSlotFlags != 0)
+			{
+				return (invData.legalEquipmentSlotFlags & flags) != 0;
+			}
+			else
+			{
+				return true;
+			}
+		}
+
 		const BitmapLocation& Bitmap() const override
 		{
 			return bitmap;

@@ -70,38 +70,46 @@
 	(layout.topLeft.y = ((rootRect.bottom - span.y) - 16))
 	(inventory.LayoutAsRect layout)
 	
-	(Int32 dx = 10)
-	(Int32 dy = 80)
+	(Int32 dx = doll.left)
+	(Int32 dy = doll.top)
 	
 	(Recti head = 80 -40 144 24)
 	(MoveRect head dx dy)
 	(inventory.SetRect 63 head)
+	(inventory.SetFlags 63 (#EquipmentSlotHead))
 		
 	(Recti neck = 80 40 144 104)
 	(MoveRect neck dx dy)
 	(inventory.SetRect 62 neck)
+	(inventory.SetFlags 62 (#EquipmentSlotNeck))
 	
 	(Recti torso = 80 110 144 174)
 	(MoveRect torso dx dy)
 	(inventory.SetRect 61 torso)
+	(inventory.SetFlags 61 (#EquipmentSlotBody))
 	
 	(Recti rightHand = 80 180 144 244)
 	(MoveRect rightHand dx dy)
 	(inventory.SetRect 60 rightHand)
+	(inventory.SetFlags 60 (#EquipmentSlotHand))
 	
 	(Recti underpants = 80 250 144 315)
 	(MoveRect underpants dx dy)
 	(inventory.SetRect 59 underpants)
+	(inventory.SetFlags 59 (#EquipmentSlotWaist))
 	
 	(Recti leftHand = 150 216 214 280)
 	(MoveRect leftHand dx dy)
 	(inventory.SetRect 58 leftHand)
+	(inventory.SetFlags 58 (#EquipmentSlotHand))
 	
 	(Recti legs = 80 416 144 480)
 	(MoveRect legs dx dy)
 	(inventory.SetRect 57 legs)
+	(inventory.SetFlags 57 (#EquipmentSlotLeg))
 	
 	(Recti feet = 80 330 144 394)
 	(MoveRect feet dx dy)
 	(inventory.SetRect 56 feet)
+	(inventory.SetFlags 56 (#EquipmentSlotFeet))
 )
