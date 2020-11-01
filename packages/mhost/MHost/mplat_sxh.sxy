@@ -14,6 +14,7 @@
 (macro Rococo.Graphics.HQFontEditorFont in out (out.AddAtomic "0x1"))
 (macro Rococo.Graphics.HQFontTitleFont in out (out.AddAtomic "0x2"))
 (macro Rococo.Graphics.HQFontEmperorFont in out (out.AddAtomic "0x3"))
+(macro Rococo.Graphics.HQFontInfoFont in out (out.AddAtomic "0x4"))
 
 (macro Rococo.Graphics.SampleMethodPoint in out (out.AddAtomic "0x0"))
 (macro Rococo.Graphics.SampleMethodLinear in out (out.AddAtomic "0x1"))

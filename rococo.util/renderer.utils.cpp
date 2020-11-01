@@ -975,6 +975,87 @@ namespace Rococo
 			return span;
 		}
 
+		Vec2 RenderHQParagraph(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour)
+		{
+			if (text == nullptr || *text == 0) return { 0,0 };
+
+			Vec2 origin = { 0, 1000 };
+			struct : IHQTextJob
+			{
+				cstr text;
+				RGBAb colour;
+				Vec2 startPos;
+				GuiRectf lastRect = { 0,0,0,0 };
+
+				float32 rightBarrier_noMoreWords;
+				float32 rightBarrier_noMoreChars;
+				float32 lastRowHeight = 0;
+
+				void Render(IHQTextBuilder& builder) override
+				{
+					builder.SetColour(colour);
+					builder.SetCursor(startPos);
+
+					for (const char* p = text; *p != 0; p++)
+					{
+						if (*p == '\n')
+						{
+							builder.SetCursor({ startPos.x, lastRect.bottom + lastRowHeight });
+							continue;
+						}
+						
+						builder.Write(*p, &lastRect);
+
+						lastRowHeight = Height(lastRect);
+
+						if (lastRect.right > rightBarrier_noMoreChars)
+						{
+							if (*p > ' ') // printable character
+							{
+								if (p[1] > ' ')
+								{
+									builder.Write('-', &lastRect);
+								}
+								builder.SetCursor({ startPos.x, lastRect.bottom + lastRowHeight });							
+								p++;
+							}
+							else
+							{
+								builder.SetCursor({ startPos.x, lastRect.bottom + lastRowHeight });
+							}
+						}
+						else if (lastRect.right > rightBarrier_noMoreWords)
+						{
+							if (*p <= ' ')
+							{
+								builder.SetCursor({ startPos.x, lastRect.bottom + lastRowHeight });
+							}
+						}
+					}
+				}
+			} job;
+
+			job.rightBarrier_noMoreWords = rect.right - Width(rect) / 16.0f;
+			job.rightBarrier_noMoreChars = rect.right - Width(rect) / 32.0f;
+
+			job.text = text;
+			job.colour = colour;
+			job.startPos = origin;
+
+			grc.RenderHQText(fontId, job, IGuiRenderContext::EVALUATE_SPAN_ONLY);
+
+			Vec2 span;
+			span.x = job.lastRect.right - origin.x;
+			span.y = Height(job.lastRect);
+
+			job.startPos.x = (float)rect.left;
+			job.startPos.y = (float)rect.top + job.lastRowHeight;
+
+			grc.RenderHQText(fontId, job, IGuiRenderContext::RENDER);
+
+			return span;
+		}
+
 		Vec2 RenderHQText_LeftAligned_VCentre_WithCaret(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour, int caretPos)
 		{
 			if (text == nullptr || *text == 0) return { 0,0 };

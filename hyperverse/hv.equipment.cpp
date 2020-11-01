@@ -30,6 +30,41 @@ namespace
 			invData.maxStackSize = 1;
 		}
 
+		const ObjectDynamics& Dynamics() const override
+		{
+			return dynamics;
+		}
+
+		const MaterialData& Mats() const override
+		{
+			return material;
+		}
+
+		const fstring ShortName() const override
+		{
+			return fstring{ shortName.c_str(), (int32) shortName.length() };
+		}
+
+		const InventoryData& InvData() const override
+		{
+			return invData;
+		}
+
+		const ArmourData& Armour() const override
+		{
+			return armour;
+		}
+
+		const MeleeData& Melee() const override
+		{
+			return melee;
+		}
+
+		const fstring Description() const override
+		{
+			return fstring{ desc, (int32) desc.length() };
+		}
+
 		void AppendName(Rococo::IStringPopulator& sb) override
 		{
 			sb.Populate(shortName);

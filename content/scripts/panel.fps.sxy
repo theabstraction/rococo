@@ -45,7 +45,7 @@
 	(IPaneContainer inventoryPane = (root.AddContainer rootRect))
 	
 	(SetTransparentBackground inventoryPane)
-	(inventoryPane.SetPopulator 0 "inventory")
+	(inventoryPane.SetPopulator 0 "fps.inventory")
 	
 	(IPlayer player (Player 0))
 	
@@ -112,4 +112,24 @@
 	(MoveRect feet dx dy)
 	(inventory.SetRect 56 feet)
 	(inventory.SetFlags 56 (#EquipmentSlotFeet))
+	
+	(Recti eyeRect)
+	(eyeRect.left = layout.topLeft.x)
+	(eyeRect.top = (layout.topLeft.y - 80))
+	(eyeRect.right = (eyeRect.left + 64))
+	(eyeRect.bottom = (eyeRect.top + 64))
+	(IPaneContainer eyePane = (inventoryPane.AddContainer eyeRect))
+	
+	(SetTransparentBackground eyePane)
+	(eyePane.SetPopulator 0 "fps.eye_glass")
+	
+	(Recti infoRect)
+	(infoRect.left = (doll.right + 24))
+	(infoRect.top = 16)
+	(infoRect.right = (rootRect.right - 16))
+	(infoRect.bottom = (layout.topLeft.y - 16))
+	(IPaneContainer infoPane = (inventoryPane.AddContainer infoRect))
+	
+	(SetTransparentBackground infoPane)
+	(infoPane.SetPopulator 0 "fps.information")
 )

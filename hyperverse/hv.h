@@ -752,8 +752,15 @@ namespace HV
 
 	ROCOCOAPI IObjectPrototype : IObjectPrototypeBase
 	{
+		virtual const ObjectDynamics& Dynamics() const = 0;
+		virtual const MaterialData& Mats() const = 0;
+		virtual const fstring ShortName() const = 0;
+		virtual const InventoryData& InvData() const = 0;
+		virtual const ArmourData& Armour() const = 0;
+		virtual const MeleeData& Melee() const = 0;
 		virtual const Textures::BitmapLocation & Bitmap() const = 0;
 		virtual bool CanFitSlot(int64 flags) const = 0;
+		virtual const fstring Description() const = 0;
 	};
 
 	struct ObjectRef

@@ -607,6 +607,7 @@
 		(EditorFont 1)
 		(TitleFont 2)
 		(EmperorFont 3)
+		(InfoFont 4)
 	)
 )
 

@@ -123,6 +123,14 @@ namespace
 			return *this;
 		}
 
+		StringBuilder& operator << (char c) override
+		{
+			char data[2];
+			data[0] = c;
+			data[1] = 0;
+			return *this << data;
+		}
+
 		StringBuilder& operator << (int32 value) override
 		{
 			return AppendFormat("%d", value);
@@ -688,6 +696,11 @@ namespace Rococo
    StringBuilder& StackStringBuilder::operator << (cstr text)
    {
       return AppendFormat("%s", text);
+   }
+
+   StringBuilder& StackStringBuilder::operator << (char c)
+   {
+	   return AppendFormat("%c", c);
    }
 
    StringBuilder& StackStringBuilder::operator << (int32 value)

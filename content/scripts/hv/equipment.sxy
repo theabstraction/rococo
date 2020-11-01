@@ -44,7 +44,7 @@
 
 	(obj.AddMaterial steel)
 	(obj.AddShortName "Falchion")
-	(obj.AddDesc "A European medieval sword with a distinctive broad tip. The blade is very thin and is effective for slashing at unarmoured opponents")
+	(obj.AddDesc "A European medieval sword with a distinctive broad tip. The blade is very thin and was designed for slashing at unarmoured opponents")
 	(obj.AddIcon "#icons/falchion.tif")
 	(obj.Commit "weapon.sword.falchion")
 )

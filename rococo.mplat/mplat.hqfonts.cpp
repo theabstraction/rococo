@@ -23,12 +23,13 @@ struct HQFonts : IHQFontsSupervisor, Fonts::IArrayFontSet
 	boolean32 italics = false;
 	boolean32 bold = false;
 
-	std::array<ID_FONT, 4> sysFonts = 
+	std::array<ID_FONT, 5> sysFonts = 
 	{
 		ID_FONT::Invalid(),
 		ID_FONT::Invalid(), 
 		ID_FONT::Invalid(), 
-		ID_FONT::Invalid()
+		ID_FONT::Invalid(),
+		ID_FONT::Invalid(),
 	};
 
 	void Build(Rococo::Graphics::HQFont font) override
@@ -131,7 +132,7 @@ struct HQFonts : IHQFontsSupervisor, Fonts::IArrayFontSet
 	{
 		if (font < 0 || font >= sysFonts.size())
 		{
-			Throw(0, "%s: Bad font enum", __FUNCTION__);
+			Throw(0, "%s: Bad font enum %d", __FUNCTION__, font);
 		}
 
 		auto id = sysFonts[font];

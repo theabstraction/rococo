@@ -217,6 +217,10 @@ namespace Rococo { namespace Graphics {
 		{
 			value = HQFont_EmperorFont;
 		}
+		else if (s ==  "HQFont_InfoFont"_fstring)
+		{
+			value = HQFont_InfoFont;
+		}
 		else
 		{
 			return false;
@@ -243,6 +247,10 @@ namespace Rococo { namespace Graphics {
 		{
 			value = HQFont_EmperorFont;
 		}
+		else if (s ==  "InfoFont"_fstring)
+		{
+			value = HQFont_InfoFont;
+		}
 		else
 		{
 			return false;
@@ -262,6 +270,8 @@ namespace Rococo { namespace Graphics {
 				return "TitleFont"_fstring;
 			case HQFont_EmperorFont:
 				return "EmperorFont"_fstring;
+			case HQFont_InfoFont:
+				return "InfoFont"_fstring;
 			default:
 				return {"",0};
 		}

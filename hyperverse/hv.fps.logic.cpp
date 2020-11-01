@@ -6,6 +6,7 @@
 #include "../rococo.mplat/rococo.script.types.h"
 #include <algorithm>
 #include <rococo.textures.h>
+#include <rococo.strings.h>
 
 using namespace HV;
 using namespace HV::Events;
@@ -16,7 +17,7 @@ using namespace Rococo::Graphics;
 
 typedef std::unordered_map<ISector*, int32> TSectorSet;
 
-const Textures::BitmapLocation nullCursorBitmap { {0,0,0,0},0,{0,0} };
+const Textures::BitmapLocation nullBitmap { {0,0,0,0},0,{0,0} };
 
 static const std::vector<const char*> wide_credits =
 {
@@ -41,14 +42,470 @@ bool IsPresent(const TSectorSet& set, ISector* sector)
 	return i != set.end();
 }
 
+struct ICursorMonitor
+{
+	virtual void SetCursorObject(ID_OBJECT id) = 0;
+};
+
+class InformationPopulator : public IUIElement
+{
+	IUIElement& parent;
+	bool enable = false;
+	IObjectManager& objects;
+	GuiRect lastRect;
+	ID_FONT idFont;
+	Platform& platform;
+public:
+	InformationPopulator(IObjectManager& refObjects, IUIElement& refParent, Platform& _platform) :
+		objects(refObjects), parent(refParent), platform(_platform)
+	{
+	}
+
+	void Enable(bool enable)
+	{
+		this->enable = enable;
+	}
+
+	bool OnKeyboardEvent(const KeyboardEvent& key) override
+	{
+		return false;
+	}
+
+	void OnRawMouseEvent(const MouseEvent& ev) override
+	{
+	}
+
+	void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel) override
+	{
+		parent.OnMouseMove(cursorPos, delta, dWheel);
+	}
+
+	void OnMouseLClick(Vec2i cursorPos, bool clickedDown) override
+	{
+		parent.OnMouseLClick(cursorPos, clickedDown);
+	}
+
+	void OnMouseRClick(Vec2i cursorPos, bool clickedDown) override
+	{
+		parent.OnMouseRClick(cursorPos, clickedDown);
+	}
+
+	void ToPoundsAndOunces(Kilograms mass, int32& pounds, float& oz)
+	{
+		float lbsF32 = mass * 2.204623f;
+		float lbsF32Int = floorf(lbsF32);
+		constexpr float ozPerLb = 16;
+		oz = ozPerLb * (lbsF32 - lbsF32Int);
+		pounds = (int32)lbsF32Int;
+	}
+
+	void AppendInFeetAndInches(StringBuilder& sb, float x)
+	{
+		float inches = x * 39.37008f;
+		float wholeInches = floorf(inches);
+		float partialInches = inches - wholeInches;
+		int32 feet = (int32)(wholeInches / 12.0f);
+
+		int32 remainderInches = ((int32)wholeInches) % 12;
+
+		if (feet > 0)
+		{
+			sb << feet << "' " << remainderInches << "\"";
+		}
+		else
+		{
+			float32 outputInches = partialInches + (float)remainderInches;
+			sb.AppendFormat("%.2f\"", outputInches);
+		}
+	}
+
+	void AppendMass(StringBuilder& sb, Kilograms mass)
+	{
+		if (mass < 1.0)
+		{
+			float grams = mass * 1000.0f;
+			sb << (int32)grams << " grams\n";
+		}
+		else
+		{
+			sb.AppendFormat("%.2f kg", mass.value);
+		}
+
+		int pounds;
+		float oz;
+		ToPoundsAndOunces(mass, OUT pounds, OUT oz);
+
+		if (pounds > 0)
+		{
+			sb.AppendFormat(" / %d lbs", pounds);
+
+			int32 ioz = (int32)oz;
+			if (ioz != 0)
+			{
+				sb.AppendFormat(" %d oz", ioz);
+			}
+		}
+		else
+		{
+			sb.AppendFormat(" %.2f oz", oz);
+		}
+	}
+
+	void AppendSpan(StringBuilder& sb, const Vec3& spanMetres)
+	{
+		auto& span = 1000.0f * spanMetres;
+
+		sb.AppendFormat("%.0fmm x %.0fmm x %0.fmm (", span.x, span.y, span.z);
+
+		AppendInFeetAndInches(sb, spanMetres.x);
+
+		sb << "  x  ";
+
+		AppendInFeetAndInches(sb, spanMetres.y);
+
+		sb << "  x  ";
+
+		AppendInFeetAndInches(sb, spanMetres.z);
+
+		sb << ")\n";
+	}
+
+	void AppendEnumToBuilderForHumanReader(StringBuilder& sb, const fstring& name)
+	{
+		for (int i = 0; i < name.length; ++i)
+		{
+			char c = name[i];
+			if (c >= 'A' && c <= 'Z')
+			{
+				if (i > 0)
+				{
+					sb << " ";
+				}
+
+				sb << (char)(c + 32);
+			}
+			else
+			{
+				sb << c;
+			}
+		}
+	}
+
+	void AtomicNumberToString(StringBuilder& sb, int atomicNumber)
+	{
+		if (atomicNumber < 0)
+		{
+			sb << "anti-matter";
+			return;
+		}
+		else if (atomicNumber == 0)
+		{
+			sb << "pure-energy";
+			return;
+		}
+
+		if (atomicNumber < 200)
+		{
+			auto& name = HV::Chemicals::ToShortString((HV::Chemicals::Element) atomicNumber);
+			if (name.length > 0)
+			{
+				AppendEnumToBuilderForHumanReader(sb, name);
+			}
+			else
+			{
+				sb << "Element #" << atomicNumber;
+			}
+			return;
+		}
+
+		auto& name = HV::Chemicals::ToShortString((HV::Chemicals::Compounds) atomicNumber);
+		if (name.length > 0)
+		{
+			AppendEnumToBuilderForHumanReader(sb, name);
+		}
+		else
+		{
+			sb << "Agent #" << atomicNumber;
+		}
+		return;
+	}
+
+	void HardnessToString(StringBuilder& sb, int32 mohsScale)
+	{
+		if (mohsScale <= 1)
+		{
+			sb << "crumbly";
+			return;
+		}
+
+		switch (mohsScale)
+		{
+		case 2:
+			sb << "quite soft";
+			return;
+		case 3:
+			sb << "soft";
+			return;
+		case 4:
+			sb << "not very hard";
+			return;
+		case 5:
+			sb << "hard";
+			return;
+		case 6:
+			sb << "quite hard";
+			return;
+		case 7:
+			sb << "very hard";
+			return;
+		case 8:
+			sb << "very very hard";
+			return;
+		case 9:
+			sb << "almost as hard as diamonds";
+			return;
+		case 10:
+			sb << "hard as diamonds";
+			return;
+		default:
+			sb << "harder than any diamond";
+			return;
+		}
+	}
+
+	void ToughnessToString(StringBuilder& sb, int32 toughness)
+	{
+		if (toughness <= 1)
+		{
+			sb << "extremely fragile";
+			return;
+		}
+
+		switch (toughness)
+		{
+		case 2:
+			sb << "very fragile";
+			return;
+		case 3:
+			sb << "fragile";
+			return;
+		case 4:
+			sb << "brittle";
+			return;
+		case 5:
+			sb << "a little brittle";
+			return;
+		case 6:
+			sb << "tough";
+			return;
+		case 7:
+			sb << "quite tough";
+			return;
+		case 8:
+			sb << "very tough";
+			return;
+		case 9:
+			sb << "very very tough";
+			return;
+		case 10:
+			sb << "of unmatched toughness";
+			return;
+		default:
+			sb << "unphysically tough";
+			return;
+		}
+	}
+
+	void RenderInfo(IGuiRenderContext& g, ID_OBJECT objectId)
+	{
+		RGBAb white(255, 255, 255, 255);
+		RGBAb dull(0, 0, 0, 192);
+		Graphics::DrawRectangle(g, lastRect, dull, dull);
+
+		if (!idFont)
+		{
+			idFont = platform.utilities.GetHQFonts().GetSysFont(Graphics::HQFont_InfoFont);
+		}
+
+		if (!objectId) return;
+
+		auto obj = objects.GetObject(objectId);
+
+		if (!obj.prototype) return;
+
+		auto& p = *obj.prototype;
+
+		char desc[4096];
+		StackStringBuilder sb(desc, sizeof(desc));
+
+		auto& melee = p.Melee();
+
+		sb << p.ShortName() << "\n\n";
+		sb << " * " << p.Description() << "\n";
+
+		auto& dynamics = p.Dynamics();
+
+		sb << "\n * Mass: ";
+		AppendMass(sb, dynamics.mass);
+
+		sb << "\n * Dimensions: ";
+		AppendSpan(sb, dynamics.span);
+
+		const auto& mats = p.Mats();
+
+		sb << "\n * The material appears to be ";
+		AtomicNumberToString(sb, mats.atomicNumber);
+		sb << " - it feels ";
+		
+		if ((mats.mohsHardness < 5 && mats.toughness < 5) ||
+			(mats.mohsHardness > 5 && mats.toughness > 5))
+		{
+			sb << " both ";
+		}
+		
+		HardnessToString(sb, mats.mohsHardness);
+
+		if ((mats.mohsHardness < 5 && mats.toughness < 5) ||
+			(mats.mohsHardness > 5 && mats.toughness > 5))
+		{
+			sb << " and ";
+		}
+		else
+		{
+			sb << " but ";
+		}
+		ToughnessToString(sb, mats.toughness);
+
+		sb << "\n";
+
+		if (melee.baseDamage > 0)
+		{
+			if (melee.baseDamage < 2)
+			{
+				sb << " * The weapon appears to be no better than a sharp stick";
+			}
+			else 
+			if (melee.baseDamage < 8)
+			{
+				sb << " * The weapon appears to be little better than a sharp stick";
+			}
+			else
+			if (melee.baseDamage < 16)
+			{
+				sb << " * If you can get a hit in, this weapon would give you good odds in armed combat";
+			}
+			else
+			if (melee.baseDamage < 24)
+			{
+				sb << " * The weapon looks like it could inflict a grevious wound";
+			}
+			else
+			if (melee.baseDamage < 32)
+			{
+				sb << " * One blow from this weapon could fell any man";
+			}
+			else
+			{
+				sb << " * One blow from this weapon could split a horse in two";
+			}
+		}
+
+		Graphics::RenderHQParagraph(g, idFont, lastRect, desc, white);
+
+		Graphics::DrawBorderAround(g, lastRect, { 1,1 }, white, white);
+	}
+
+	void Render(IGuiRenderContext& g, const GuiRect& absRect) override
+	{
+		lastRect = absRect;
+	}
+};
+
+class EyeGlassPopulator : public IUIElement, public ICursorMonitor
+{
+	IUIElement& parent;
+	Textures::BitmapLocation bitmap;
+	bool enable = false;
+	ID_OBJECT cursorObjectId;
+	IObjectManager& objects;
+	GuiRect lastRect;
+	InformationPopulator& infoPopulator;
+public:
+	EyeGlassPopulator(IObjectManager& refObjects, IUIElement& refParent, InformationPopulator& refInfoPopulator):
+		objects(refObjects), parent(refParent), bitmap(nullBitmap), infoPopulator(refInfoPopulator)
+	{
+
+	}
+
+	void SetCursorObject(ID_OBJECT id) override
+	{
+		cursorObjectId = id;
+	}
+
+	void Enable(bool enable)
+	{
+		this->enable = enable;
+	}
+
+	bool OnKeyboardEvent(const KeyboardEvent& key) override
+	{
+		return false;
+	}
+
+	void OnRawMouseEvent(const MouseEvent& ev) override
+	{
+	}
+
+	void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel) override
+	{
+		parent.OnMouseMove(cursorPos, delta, dWheel);
+	}
+
+	void OnMouseLClick(Vec2i cursorPos, bool clickedDown) override
+	{
+		parent.OnMouseLClick(cursorPos, clickedDown);
+	}
+
+	void OnMouseRClick(Vec2i cursorPos, bool clickedDown) override
+	{
+		parent.OnMouseRClick(cursorPos, clickedDown);
+	}
+
+	void Render(IGuiRenderContext& g, const GuiRect& absRect) override
+	{
+		if (!enable) return;
+
+		lastRect = absRect;
+		
+		if (bitmap.pixelSpan.x == 0)
+		{
+			if (!g.Renderer().SpriteBuilder().TryGetBitmapLocation("#icons/eye_glass.tif", bitmap))
+			{
+				Throw(0, "Could not find bitmap: #icons/eye_glass.tif");
+			}
+		}
+
+		Graphics::StretchBitmap(g, bitmap, absRect);
+
+		GuiMetrics metrics;
+		g.Renderer().GetGuiMetrics(metrics);
+
+		if (cursorObjectId && IsPointInRect(metrics.cursorPosition, lastRect))
+		{
+			infoPopulator.RenderInfo(g, cursorObjectId);
+		}
+	}
+};
+
 class InventoryPopulator : public IUIElement
 {
 	IInventoryArray& inventory;
 	IObjectManager& objects;
 	IUIElement& parent;
+	ICursorMonitor& monitor;
 
 	int32 selectedObjectIndex = -1;
-	Textures::BitmapLocation cursorBitmap = nullCursorBitmap;
+	Textures::BitmapLocation cursorBitmap = nullBitmap;
 	bool enable = false;
 
 	void SetCursorToBitmap(const Textures::BitmapLocation& bitmap)
@@ -56,8 +513,8 @@ class InventoryPopulator : public IUIElement
 		cursorBitmap = bitmap;
 	}
 public:
-	InventoryPopulator(IInventoryArray& refInventory, IObjectManager& refObjects, IUIElement& refParent):
-		inventory(refInventory), objects(refObjects), parent(refParent)
+	InventoryPopulator(IInventoryArray& refInventory, IObjectManager& refObjects, IUIElement& refParent, ICursorMonitor& refMonitor):
+		inventory(refInventory), objects(refObjects), parent(refParent), monitor(refMonitor)
 	{
 	}
 
@@ -87,14 +544,16 @@ public:
 		{
 			if (selectedObjectIndex >= 0)
 			{
+				ID_OBJECT sourceItem{ (uint64)inventory.Id(selectedObjectIndex) };
+
 				int64 targetFlags = inventory.Flags(index);
-				ID_OBJECT sourceItem{ (uint64) inventory.Id(selectedObjectIndex) };
 				auto ref = objects.GetObject(sourceItem);
 				if (ref.prototype && (targetFlags == 0 || ref.prototype->CanFitSlot(targetFlags)))
 				{
 					inventory.Swap(index, selectedObjectIndex);
 					selectedObjectIndex = -1;
-					SetCursorToBitmap(nullCursorBitmap);
+					SetCursorToBitmap(nullBitmap);
+					monitor.SetCursorObject(ID_OBJECT::Invalid());
 				}
 			}
 			else
@@ -105,6 +564,7 @@ public:
 				{
 					selectedObjectIndex = index;
 					SetCursorToBitmap(obj.prototype->Bitmap());
+					monitor.SetCursorObject(objId);
 				}
 			}
 		}
@@ -331,6 +791,8 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 	float fogConstant = -0.1f;
 	IPropertyHost* host = nullptr;
 	IObjectManager& objects;
+	InformationPopulator infoPopulator;
+	EyeGlassPopulator eyeGlassPopulator;
 	InventoryPopulator inventoryPopulator;
 
 	void Assign(IPropertyHost* host) override
@@ -359,10 +821,11 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 
 	FPSGameLogic(Platform& _platform, IPlayerSupervisor& _players, ISectors& _sectors, IObjectManager& _objects) :
 		platform(_platform), players(_players), sectors(_sectors), objects(_objects), 
-		inventoryPopulator(*players.GetPlayer(0)->GetInventory(), objects, *this)
+		infoPopulator(objects, *this, _platform),
+		eyeGlassPopulator(objects, *this, infoPopulator),
+		inventoryPopulator(*players.GetPlayer(0)->GetInventory(), objects, *this, eyeGlassPopulator)
 	{
 		fpsControl.speeds = Vec3{ 10.0f, 5.0f, 5.0f };
-
 		platform.scene.SetPopulator(this);
 	}
 
@@ -1148,7 +1611,9 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 	void UpdateAI(const IUltraClock& clock) override
 	{
 		platform.gui.RegisterPopulator("fps", this);
-		platform.gui.RegisterPopulator("inventory", &inventoryPopulator);
+		platform.gui.RegisterPopulator("fps.information", &infoPopulator);
+		platform.gui.RegisterPopulator("fps.inventory", &inventoryPopulator);
+		platform.gui.RegisterPopulator("fps.eye_glass", &eyeGlassPopulator);
 		UpdatePlayer(clock);
 		ComputeVisibleSectorsThisTimestep();
 	}
@@ -1173,6 +1638,8 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 			{
 				overlayInventory = !overlayInventory;
 				inventoryPopulator.Enable(overlayInventory);
+				eyeGlassPopulator.Enable(overlayInventory);
+				infoPopulator.Enable(overlayInventory);	
 			}
 
 			HV::Events::Player::PlayerActionEvent pae;
