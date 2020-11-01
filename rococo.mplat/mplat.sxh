@@ -24,6 +24,7 @@
 		(SetVisible (Bool isVisible)->)
 		(GetRect(Rect rect))
 		(SetRect(const Rect rect)->)
+		(SetBkImage (IString pingPath))
 		
 		///////////////////// child layout /////////////////////
 		(AlignLeftEdges (Int32 borderPixels)(Bool preserveSpan) ->)
@@ -45,9 +46,14 @@
 	(as.cpp Rococo.IInventoryArray "mplat")
 	(context factory Rococo.IInventoryArray)
 	(methods
-		(GetIndexAt (Vec2 pos) -> (Int32 index))
+		(AddPaperDoll (const Rect rect)(IString pingPathToImage))
+		(ClearDolls)
+		(DollCount -> (Int32 nDolls))
+		(GetDoll (Int32 dollIndex)(Rect rect)(IStringBuilder sb)(BitmapLocation bitmap)->(Bool isOK))
+		(SetDollBitmap (Int32 dollIndex)(const BitmapLocation bitmap))
 		(Flags(Int32 index) -> (Int64 flags))
-		(GetRect (Int32 index) (Rectf rect))
+		(GetIndexAt (Vec2i pos) -> (Int32 index))
+		(GetRect (Int32 index) (Rect rect))
 		(Id(Int32 index) -> (Int64 flags))
 		(ItemCount(Int32 index) -> (Int64 flags))
 		(LayoutAsRect (const InventoryLayoutRules rules))
@@ -55,9 +61,9 @@
 		(SetFlags(Int32 index)(Int64 flags))
 		(SetId (Int32 index)(Int64 id))
 		(SetItemCount (Int32 index)(Int64 count))
-		(SetRect (Int32 index)(const Rectf rect))
+		(SetRect (Int32 index)(const Rect rect))
 		(Swap (Int32 i)(Int32 j))
-		(ComputeSpan (const InventoryLayoutRules rules)(Vec2 span))
+		(ComputeSpan (const InventoryLayoutRules rules)(Vec2i span))
 	)
 )
 

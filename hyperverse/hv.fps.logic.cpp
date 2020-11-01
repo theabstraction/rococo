@@ -41,6 +41,159 @@ bool IsPresent(const TSectorSet& set, ISector* sector)
 	return i != set.end();
 }
 
+class InventoryPopulator : public IUIElement
+{
+	IInventoryArray& inventory;
+	IObjectManager& objects;
+	IUIElement& parent;
+
+	int32 selectedObjectIndex = -1;
+	Textures::BitmapLocation cursorBitmap = nullCursorBitmap;
+	bool enable = false;
+
+	void SetCursorToBitmap(const Textures::BitmapLocation& bitmap)
+	{
+		cursorBitmap = bitmap;
+	}
+public:
+	InventoryPopulator(IInventoryArray& refInventory, IObjectManager& refObjects, IUIElement& refParent):
+		inventory(refInventory), objects(refObjects), parent(refParent)
+	{
+	}
+
+	void Enable(bool enable)
+	{
+		this->enable = enable;
+	}
+
+	bool OnKeyboardEvent(const KeyboardEvent& key) override
+	{
+		return false;
+	}
+
+	void OnRawMouseEvent(const MouseEvent& ev) override
+	{
+	}
+
+	void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel) override
+	{
+		parent.OnMouseMove(cursorPos, delta, dWheel);
+	}
+
+	void OnMouseLClick(Vec2i cursorPos, bool clickedDown) override
+	{
+		int32 index = inventory.GetIndexAt(cursorPos);
+		if (!clickedDown && index >= 0)
+		{
+			if (selectedObjectIndex >= 0)
+			{
+				inventory.Swap(index, selectedObjectIndex);
+				selectedObjectIndex = -1;
+				SetCursorToBitmap(nullCursorBitmap);
+			}
+			else
+			{
+				ID_OBJECT objId{ (uint64)inventory.Id(index) };
+				auto obj = objects.GetObject(objId);
+				if (obj.prototype != nullptr)
+				{
+					selectedObjectIndex = index;
+					SetCursorToBitmap(obj.prototype->Bitmap());
+				}
+			}
+		}
+		else
+		{
+			parent.OnMouseLClick(cursorPos, clickedDown);
+		}
+	}
+
+	void OnMouseRClick(Vec2i cursorPos, bool clickedDown) override
+	{
+		parent.OnMouseRClick(cursorPos, clickedDown);
+	}
+
+	void RenderInventory(IGuiRenderContext& g, const GuiRect& absRect)
+	{
+		GuiMetrics metrics;
+		g.Renderer().GetGuiMetrics(metrics);
+
+		int32 nDolls = inventory.DollCount();
+
+		for (int32 i = 0; i < nDolls; ++i)
+		{
+			GuiRect rect;
+
+			struct : IStringPopulator
+			{
+				U8FilePath pingPath = { 0 };
+
+				void Populate(cstr text)override
+				{
+					Format(pingPath, "%s", text);
+				}
+			} pop;
+
+			Textures::BitmapLocation bitmap;
+			inventory.GetDoll(i, rect, pop, bitmap);
+
+			if (bitmap.txUV.left == bitmap.txUV.right)
+			{
+				if (!g.Renderer().SpriteBuilder().TryGetBitmapLocation(pop.pingPath, bitmap))
+				{
+					Throw(0, "The ping path [%s] for inventory doll %d did not correspond to an image", pop.pingPath.buf, i);
+				}
+				else
+				{
+					inventory.SetDollBitmap(i, bitmap);
+				}
+			}
+			else
+			{
+				Graphics::StretchBitmap(g, bitmap, rect);
+			}
+		}
+
+		int32 nItems = inventory.NumberOfItems();
+
+		for (int32 i = 0; i < nItems; ++i)
+		{
+			GuiRect rect;
+			inventory.GetRect(i, OUT rect);
+
+			bool isLit = IsPointInRect(metrics.cursorPosition, rect);
+
+			ID_OBJECT id{ (uint64)inventory.Id(i) };
+			ObjectRef obj = objects.GetObject(id);
+
+			RGBAb t1 = isLit ? RGBAb(255, 0, 0, 64) : RGBAb(192, 0, 0, 32);
+			RGBAb t2 = isLit ? RGBAb(0, 0, 224, 64) : RGBAb(0, 0, 160, 32);
+			Graphics::DrawRectangle(g, rect, t1, t2);
+
+			if (obj.prototype != nullptr)
+			{
+				Graphics::StretchBitmap(g, obj.prototype->Bitmap(), rect);
+			}
+
+			RGBAb diag1 = isLit ? RGBAb(255, 255, 255, 255) : RGBAb(192, 192, 192, 255);
+			RGBAb diag2 = isLit ? RGBAb(224, 224, 224, 224) : RGBAb(160, 160, 160, 255);
+			Graphics::DrawBorderAround(g, rect, { 1,1 }, diag1, diag2);
+		}
+	}
+
+	void Render(IGuiRenderContext& g, const GuiRect& absRect) override
+	{
+		if (enable) RenderInventory(g, absRect);
+
+		if (selectedObjectIndex >= 0 && cursorBitmap.txUV.left != cursorBitmap.txUV.right)
+		{
+			GuiMetrics metrics;
+			g.Renderer().GetGuiMetrics(metrics);
+			Graphics::DrawSprite(metrics.cursorPosition, cursorBitmap, g);
+		}
+	}
+};
+
 class FPSControl
 {
 private:
@@ -167,8 +320,8 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 	RGBAb ambientLight = RGBAb(10,10,10,255);
 	float fogConstant = -0.1f;
 	IPropertyHost* host = nullptr;
-	AutoFree<IInventoryArraySupervisor> inventory;
 	IObjectManager& objects;
+	InventoryPopulator inventoryPopulator;
 
 	void Assign(IPropertyHost* host) override
 	{
@@ -194,16 +347,13 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 		return this;
 	}
 
-	enum { INVENTORY_SLOTS = 64 };
-
 	FPSGameLogic(Platform& _platform, IPlayerSupervisor& _players, ISectors& _sectors, IObjectManager& _objects) :
-		platform(_platform), players(_players), sectors(_sectors), objects(_objects)
+		platform(_platform), players(_players), sectors(_sectors), objects(_objects), 
+		inventoryPopulator(*players.GetPlayer(0)->GetInventory(), objects, *this)
 	{
 		fpsControl.speeds = Vec3{ 10.0f, 5.0f, 5.0f };
 
 		platform.scene.SetPopulator(this);
-
-		inventory = platform.utilities.CreateInventoryArray(64);
 	}
 
 	~FPSGameLogic()
@@ -988,20 +1138,9 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 	void UpdateAI(const IUltraClock& clock) override
 	{
 		platform.gui.RegisterPopulator("fps", this);
+		platform.gui.RegisterPopulator("inventory", &inventoryPopulator);
 		UpdatePlayer(clock);
 		ComputeVisibleSectorsThisTimestep();
-	}
-
-	bool inventoryGenerated = false;
-
-	void CreateDefaultInventory()
-	{
-		if (!inventoryGenerated)
-		{	
-			ID_OBJECT falchion = objects.CreateObject("weapon.sword.falchion");
-			inventory->SetId(0, falchion.value);
-			inventoryGenerated = true;
-		}
 	}
 
 	bool overlayInventory = false;
@@ -1023,7 +1162,7 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 			if (!key.isPressed && Eq(action, "gui.inventory.toggle"))
 			{
 				overlayInventory = !overlayInventory;
-				CreateDefaultInventory();
+				inventoryPopulator.Enable(overlayInventory);
 			}
 
 			HV::Events::Player::PlayerActionEvent pae;
@@ -1073,40 +1212,12 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 		}
 	}
 
-	Textures::BitmapLocation cursorBitmap = nullCursorBitmap;
-	int32 selectedObjectIndex = -1;
-
-	void SetCursorToBitmap(const Textures::BitmapLocation& bitmap)
-	{
-		cursorBitmap = bitmap;
-	}
-
 	void OnMouseLClick(Vec2i cursorPos, bool clickedDown) override
 	{
 		if (!clickedDown) return;
 
 		if (overlayInventory)
 		{
-			int32 index = inventory->GetIndexAt(Dequantize(cursorPos));
-			if (index >= 0)
-			{
-				if (selectedObjectIndex >= 0)
-				{
-					inventory->Swap(index, selectedObjectIndex);
-					selectedObjectIndex = -1;
-					SetCursorToBitmap(nullCursorBitmap);
-				}
-				else
-				{ 
-					ID_OBJECT objId{ (uint64)inventory->Id(index) };
-					auto obj = objects.GetObject(objId);
-					if (obj.prototype != nullptr)
-					{
-						selectedObjectIndex = index;
-						SetCursorToBitmap(obj.prototype->Bitmap());
-					}
-				}
-			}
 		}
 		else
 		{
@@ -1208,66 +1319,8 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 		}
 	}
 
-	void Layout(const GuiRect& absRect)
-	{
-		InventoryLayoutRules layout;
-		layout.borders = { 4,4 };
-		layout.cellSpan = { 64,64 };
-		layout.columns = 16;
-		layout.rows = 4;
-		layout.startIndex = 0;
-		layout.endIndex = 64;
-		layout.rowByRow = true;
-		layout.topLeft.x = absRect.left + 16.0f;
-
-		Vec2 span;
-		inventory->ComputeSpan(layout, span);
-		layout.topLeft.y = absRect.bottom - span.y - 16.0f;
-		inventory->LayoutAsRect(layout);
-	}
-
-	void RenderInventory(IGuiRenderContext& g, const GuiRect& absRect)
-	{
-		GuiMetrics metrics;
-		g.Renderer().GetGuiMetrics(metrics);
-		for (int32 i = 0; i < INVENTORY_SLOTS; ++i)
-		{
-			GuiRectf rect;
-			inventory->GetRect(i, OUT rect);
-
-			GuiRect recti = Quantize(rect);
-
-			bool isLit = IsPointInRect(metrics.cursorPosition, recti);
-
-			ID_OBJECT id{ (uint64) inventory->Id(i) };
-			ObjectRef obj = objects.GetObject(id);
-			
-			RGBAb t1 = isLit ? RGBAb(255, 0, 0, 64) : RGBAb(192, 0, 0, 32);
-			RGBAb t2 = isLit ? RGBAb(0, 0, 224, 64) : RGBAb(0, 0, 160, 32);
-			Graphics::DrawRectangle(g, recti, t1, t2);
-
-			if (obj.prototype != nullptr)
-			{
-				Graphics::StretchBitmap(g, obj.prototype->Bitmap(), recti);
-			}
-
-			RGBAb diag1 = isLit ? RGBAb(255, 255, 255, 255) : RGBAb(192, 192, 192, 255);
-			RGBAb diag2 = isLit ? RGBAb(224, 224, 224, 224) : RGBAb(160, 160, 160, 255);
-			Graphics::DrawBorderAround(g, recti, { 1,1 }, diag1, diag2);
-		}
-	}
-
-	GuiRect lastAbsRect = {0, 0, 0, 0};
-
 	void Render(IGuiRenderContext& g, const GuiRect& absRect) override
 	{
-		if (lastAbsRect != absRect)
-		{
-			lastAbsRect = absRect;
-			Layout(absRect);
-			lastAbsRect = absRect;
-		}
-
 		if (sectors.begin() == sectors.end())
 		{
 			if (platform.gui.Count() == 1)
@@ -1278,18 +1331,7 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 		}
 		else
 		{
-			if (overlayInventory)
-			{
-				RenderInventory(g, absRect);
-
-				if (cursorBitmap.txUV.left != cursorBitmap.txUV.right)
-				{
-					GuiMetrics metrics;
-					g.Renderer().GetGuiMetrics(metrics);
-					Graphics::DrawSprite(metrics.cursorPosition, cursorBitmap, g);
-				}
-			}
-			else
+			if (!overlayInventory)
 			{
 				RenderCrosshair(g, absRect);
 			}

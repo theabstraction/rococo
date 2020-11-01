@@ -8,9 +8,9 @@
 (struct InventoryLayoutRules
 	(Int32 rows)
 	(Int32 columns)
-	(Sys.Maths.Vec2 cellSpan)
-	(Sys.Maths.Vec2 borders)
-	(Sys.Maths.Vec2 topLeft)
+	(Sys.Maths.Vec2i cellSpan)
+	(Sys.Maths.Vec2i borders)
+	(Sys.Maths.Vec2i topLeft)
 	(Bool rowByRow)
 	(Int32 startIndex)
 	(Int32 endIndex)

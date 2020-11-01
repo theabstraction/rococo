@@ -2120,6 +2120,20 @@ namespace
 		_offset += sizeof(id);
 		WriteOutput(id, _sf, -_offset);
 	}
+	void NativeHVIPlayerGetInventory(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		HV::IPlayer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		Rococo::IInventoryArray* inventory = _pObject->GetInventory();
+		_offset += sizeof(CReflectedClass*);
+		auto& _inventoryStruct = Rococo::Helpers::GetDefaultProxy(("Rococo"),("IInventoryArray"), ("ProxyIInventoryArray"), _nce.ss);
+		CReflectedClass* _sxyinventory = _nce.ss.Represent(_inventoryStruct, inventory);
+		WriteOutput(&_sxyinventory->header.pVTables[0], _sf, -_offset);
+	}
 
 	void NativeGetHandleForHVPlayer(NativeCallEnvironment& _nce)
 	{
@@ -2144,6 +2158,7 @@ namespace HV {
 		ss.AddNativeCall(ns, NativeGetHandleForHVPlayer, _nceContext, ("GetHandleForIPlayer0 (Int32 index) -> (Pointer hObject)"));
 		ss.AddNativeCall(ns, NativeHVIPlayerSetPlayerEntity, nullptr, ("IPlayerSetPlayerEntity (Pointer hObject)(Int64 id) -> "));
 		ss.AddNativeCall(ns, NativeHVIPlayerGetPlayerEntity, nullptr, ("IPlayerGetPlayerEntity (Pointer hObject) -> (Int64 id)"));
+		ss.AddNativeCall(ns, NativeHVIPlayerGetInventory, nullptr, ("IPlayerGetInventory (Pointer hObject) -> (Rococo.IInventoryArray inventory)"));
 	}
 }
 // BennyHill generated Sexy native functions for HV::IScriptConfig 

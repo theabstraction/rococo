@@ -77,6 +77,7 @@
 (struct FlameDef Rococo.FlameDef FlameDef)
 (struct SampleStateDef Rococo.SampleStateDef Rococo.Graphics.SampleStateDef)
 (struct FontMetrics Rococo.Graphics.FontMetrics Rococo.Graphics.FontMetrics)
+(struct BitmapLocation MPlat.BitmapLocation Rococo.Textures.BitmapLocation)
 
 (defstruct TriangleScan Rococo.TriangleScan Rococo.TriangleScan
 	(IdEntity id)
@@ -87,9 +88,9 @@
 (defstruct InventoryLayoutRules Rococo.InventoryLayoutRules Rococo.InventoryLayoutRules
 	(Int32 rows)
 	(Int32 columns)
-	(Vec2 cellSpan)
-	(Vec2 borders)
-	(Vec2 topLeft)
+	(Vec2i cellSpan)
+	(Vec2i borders)
+	(Vec2i topLeft)
 	(Bool rowByRow)
 	(Int32 startIndex)
 	(Int32 endIndex)

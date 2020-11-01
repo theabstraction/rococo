@@ -215,6 +215,8 @@ namespace Rococo
 
 int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon, HICON hSmallIcon)
 {
+	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
+
 	U8FilePath exeFile;
 	GetModuleFileNameA(nullptr, exeFile.buf, exeFile.CAPACITY);
 

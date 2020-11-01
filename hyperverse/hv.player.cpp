@@ -10,42 +10,50 @@ namespace
 
    class Player : public IPlayer
    {
+      friend class PlayerSupervisor;
+
       ID_ENTITY playerId;
       float jumpSpeed = 0;
       const float height = 1.65_metres;
       float duckFactor = 1.0f;
+
+      AutoFree<IInventoryArraySupervisor> inventory;
    public:
       Player()
       {
 
       }
 
-      virtual void Clear()
+      void Clear()
       {
       }
 
+      IInventoryArray* GetInventory() override
+      {
+          return inventory;
+      }
 
-      virtual void SetPlayerEntity(ID_ENTITY id)
+      void SetPlayerEntity(ID_ENTITY id) override
       {
          playerId = id;
       }
 
-      virtual ID_ENTITY GetPlayerEntity()
+      ID_ENTITY GetPlayerEntity() override
       {
          return playerId;
       }
 
-      virtual float& JumpSpeed()
+      float& JumpSpeed() override
       {
          return jumpSpeed;
       }
 
-      virtual float Height() const
+      float Height() const override
       {
          return height;
       }
 
-      virtual float& DuckFactor()
+      float& DuckFactor() override
       {
          return duckFactor;
       }
@@ -54,16 +62,19 @@ namespace
    class PlayerSupervisor : public IPlayerSupervisor
    {
       Player player;
+
+      enum { PLAYER_INVENTORY_SLOTS = 64 };
    public:
       PlayerSupervisor(Platform& _platform)
       {
+          player.inventory = _platform.utilities.CreateInventoryArray(PLAYER_INVENTORY_SLOTS);
       }
 
       ~PlayerSupervisor()
       {
       }
 
-      virtual IPlayer* GetPlayer(int32 index)
+      IPlayer* GetPlayer(int32 index) override
       {
          if (index != 0)
          {
@@ -73,7 +84,7 @@ namespace
          return &player;
       }
 
-      virtual void Free()
+      void Free() override
       {
          delete this;
       }

@@ -11,9 +11,9 @@ namespace Rococo {
 	{
 		int32 rows;
 		int32 columns;
-		Vec2 cellSpan;
-		Vec2 borders;
-		Vec2 topLeft;
+		Vec2i cellSpan;
+		Vec2i borders;
+		Vec2i topLeft;
 		boolean32 rowByRow;
 		int32 startIndex;
 		int32 endIndex;

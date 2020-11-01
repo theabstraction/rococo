@@ -1384,7 +1384,7 @@ namespace Rococo
 			  return true;
 		  }
 
-		  return false;
+		  Throw(firstArg, "Could not identify method %s in %s", methodName, GetFriendlyName(*instanceStruct));
 	  }
 
       bool TryCompileMethodCallWithoutInputAndReturnValue(CCompileEnvironment& ce, cr_sex s, cstr instance, cstr methodName, VARTYPE returnType, const IStructure* returnTypeStruct, const IArchetype* returnArchetype)

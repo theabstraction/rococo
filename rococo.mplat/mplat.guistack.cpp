@@ -14,7 +14,7 @@ namespace Rococo
 	namespace MPlatImpl
 	{
 		IPaneBuilderSupervisor* CreateDebuggingOverlay(Platform& platform);
-		IPaneBuilderSupervisor* CreateScriptedPanel(Platform& platform, cstr filename);
+		IPaneBuilderSupervisor* CreateScriptedPanel(Platform& platform, cstr filename, IEventCallback<ScriptCompileArgs>* onCompile);
 	}
 }
 
@@ -444,9 +444,9 @@ public:
 		return panels.empty() ? nullptr : panels.back().panel;
 	}
 
-	IPaneBuilderSupervisor* BindPanelToScript(cstr scriptName) override
+	IPaneBuilderSupervisor* BindPanelToScript(cstr scriptName, IEventCallback<ScriptCompileArgs>* onCompile) override
 	{
-		return Rococo::MPlatImpl::CreateScriptedPanel(*platform, scriptName);
+		return Rococo::MPlatImpl::CreateScriptedPanel(*platform, scriptName, onCompile);
 	}
 
 	IPaneBuilderSupervisor* GuiStack::CreateDebuggingOverlay()

@@ -34,7 +34,6 @@
 	(label.SetAlignment 0 0 0 0)
 )
 
-// Norfolk & Durham, Simon Bailey, Mike Barton, John Glen MP
 (function AddLabel (IString text)(IPaneContainer builder)(IString cmd)(Bool defer)-> :
 	(Recti rect = 0 0 20 70)
 	(ILabelPane label = (builder.AddLabel 0 text rect))

@@ -112,6 +112,7 @@ public:
 		}
 		else
 		{
+			BasePane::RenderBkImage(grc, topLeft, modality);
 			RenderLabel(grc, text, absRect, horzAlign, vertAlign, padding, fontIndex, s, !modality.isUnderModal && isEnabled);
 		}
 

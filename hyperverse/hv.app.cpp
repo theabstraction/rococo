@@ -35,6 +35,17 @@ namespace HV
 		}
 	};
 
+	struct FPSExtraNativeLibs : IEventCallback<ScriptCompileArgs>
+	{
+		Cosmos& cosmos;
+		FPSExtraNativeLibs(Cosmos& refCosmos) : cosmos(refCosmos) {}
+
+		void OnEvent(ScriptCompileArgs& args)
+		{
+			AddNativeCalls_HVIPlayer(args.ss, &cosmos.players);
+		}
+	};
+
 	// Route scene methods to the platform.scene object
 	// We intercept the gui events to resize application panels
 	class AppScene: public IScene
@@ -124,6 +135,8 @@ namespace HV
 		HString nextLevelName;
 
 		AppScene scene;
+
+		FPSExtraNativeLibs fpsExtraLibs;
 
 		// Busy event handler responds to resource loading and renders progress panel
 		void OnBusy(const Rococo::Events::BusyEvent& be)
@@ -231,7 +244,8 @@ namespace HV
 			fpsLogic(CreateFPSGameLogic(platform, *players, *sectors, *object_manager)),
 			editor(CreateEditor(platform, *players, *sectors, *fpsLogic)),
 			e{ _platform, *players, *editor, *sectors, *fpsLogic, *object_manager },
-			scene(e)
+			scene(e),
+			fpsExtraLibs(e)
 		{
 			mode = fpsLogic;
 
@@ -247,7 +261,7 @@ namespace HV
 			e.platform.utilities.RunEnvironmentScript(noExtraLibs, "!scripts/samplers.sxy", true);
 
 			editorPanel = e.platform.gui.BindPanelToScript("!scripts/panel.editor.sxy");
-			fpsPanel = e.platform.gui.BindPanelToScript("!scripts/panel.fps.sxy");
+			fpsPanel = e.platform.gui.BindPanelToScript("!scripts/panel.fps.sxy", &fpsExtraLibs);
 			busyPanel = e.platform.gui.BindPanelToScript("!scripts/panel.opening.sxy");
 			colourPanel = e.platform.gui.BindPanelToScript("!scripts/panel.colour.sxy");
 			overlayPanel = e.platform.gui.CreateDebuggingOverlay();
@@ -261,6 +275,10 @@ namespace HV
 			scene.resizeCallback = this;
 
 			brain = CreateAIBrain(platform.publisher, e.sectors);
+
+			auto id = object_manager->CreateObject("weapon.sword.falchion");
+			e.players.GetPlayer(0)->GetInventory()->SetId(0, (uint64) id.value);
+			
 		}
 
 		~App()
@@ -411,6 +429,7 @@ namespace HV
 {
 	IApp* CreateApp(Platform& p)
 	{
+		Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
 		p.installation.Macro("#walls", "!scripts/hv/sector/walls/");
 		p.installation.Macro("#floors", "!scripts/hv/sector/floors/");
 		p.installation.Macro("#corridor", "!scripts/hv/sector/corridor/");

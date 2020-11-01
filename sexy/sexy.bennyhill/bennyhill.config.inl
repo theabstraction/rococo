@@ -122,6 +122,28 @@ namespace
 		pc.primitives[sxhType] = def;
 	}
 
+	void ParseInterfaceDecl(cr_sex sprimitiveDef, ParseContext& pc)
+	{
+		if (sprimitiveDef.NumberOfElements() != 4) Throw(sprimitiveDef, "Expecting 4 elements: (interface <sxh-type> <sxy-type> <cpp-type>)");
+		
+		cstr sxhType = StringFrom(sprimitiveDef, 1);
+		cstr sxyType = StringFrom(sprimitiveDef, 2);
+		cstr cppType = StringFrom(sprimitiveDef, 3);
+
+		ValidateCPPType(sprimitiveDef.GetElement(3), cppType);
+		ValidateSexyType(sprimitiveDef.GetElement(2), sxyType);
+
+		auto i = pc.interfaces.find(sxhType);
+		if (i != pc.interfaces.end()) Throw(sprimitiveDef, ("sxh-type has already been defined"));
+
+		InterfaceDef* def = new InterfaceDef();
+		SafeFormat(def->ic.asSexyInterface, "%s", sxyType);
+		def->ic.asCppInterface.Set(cppType);
+		def->sdef = &sprimitiveDef;
+		pc.interfaces.insert(std::make_pair(stdstring(sxhType), def));
+
+	}
+
 	void ParseStruct(cr_sex sprimitiveDef, ParseContext& pc)
 	{
 		if (sprimitiveDef.NumberOfElements() != 4) Throw(sprimitiveDef, ("Expecting 4 elements: (struct <sxh-type> <sxy-type> <cpp-type>)"));
@@ -301,13 +323,17 @@ namespace
 			{
 				ParseStruct(sconfigItem, pc);
 			}
+			else if (AreEqual(configCommand, ("interface")))
+			{
+				ParseInterfaceDecl(sconfigItem, pc);
+			}
 			else if (AreEqual(configCommand, ("defstruct")))
 			{
 				nStructDefs++;
 			}
 			else
 			{
-				Throw(configDef, ("Expecting one of { cpp.root, type.files, primitive, struct, defstruct }"));
+				Throw(sconfigItem, ("Expecting one of { cpp.root, type.files, primitive, struct, defstruct }"));
 			}
 		}
 

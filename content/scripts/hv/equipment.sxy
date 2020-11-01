@@ -51,6 +51,7 @@
 	(IObjectPrototypeBuilder obj (ObjectPrototypeBuilder))
 	(ISpriteBuilder sb (SpriteBuilder))
 	(sb.AddEachSpriteInDirectory "#icons/")
+	(sb.AddEachSpriteInDirectory "!textures/hv/inventory/")
 	(sb.LoadAllSprites)
 
 	(AddFalchion obj "weapon.sword.falchion")

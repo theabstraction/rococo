@@ -1,6 +1,9 @@
 (' #file.type rococo.mplat.panel)
 
 (' #include 
+	"!scripts/hv_sxh.sxy"
+	"!scripts/hv/hv.types.sxy"
+	"!scripts/mplat_sxh.sxy"
 	"!scripts/mplat_pane_sxh.sxy"
 	"!scripts/mplat_types.sxy"
 	"!scripts/types.sxy"
@@ -12,6 +15,7 @@
 (using Rococo)
 (using Sys.Maths)
 (using Sys.Type)
+(using HV)
 
 (function SetTransparentBackground (IPane pane)-> :
 	(pane.SetColourBk1   0x00000000 0x00000000)
@@ -20,9 +24,84 @@
 	(pane.SetColourEdge2 0x00000000 0x00000000)
 )
 
+(function MoveRect (Recti rect)(Int32 dx)(Int32 dy)-> :
+	(rect.left += dx)
+	(rect.right += dx)
+	(rect.top += dy)
+	(rect.bottom += dy)
+)
+
 (function Main (Int32 id)->(Int32 exitCode):
 	(IPaneBuilder builder (PaneBuilder))
 	(IPaneContainer root = builder.Root)
+	
 	(SetTransparentBackground root)
+	
+	(Recti rootRect)
+	(root.GetRect rootRect)
+	
 	(root.SetPopulator 0 "fps")
+	
+	(IPaneContainer inventoryPane = (root.AddContainer rootRect))
+	
+	(SetTransparentBackground inventoryPane)
+	(inventoryPane.SetPopulator 0 "inventory")
+	
+	(IPlayer player (Player 0))
+	
+	(IInventoryArray inventory = (player.GetInventory))
+	
+	(Recti doll = 10 80 210 560)
+	(inventory.ClearDolls)
+	(inventory.AddPaperDoll doll "!textures/hv/inventory/doll.male.tif")
+	
+	(InventoryLayoutRules layout)
+	(layout.borders = 4 4)
+	(layout.cellSpan = 64 64)
+	(layout.columns = 11)
+	(layout.rows = 5)
+	(layout.startIndex = 0)
+	(layout.endIndex = 55)
+	(layout.rowByRow = true)
+	(layout.topLeft.x = (rootRect.left + 16))
+
+	(Vec2i span)
+	(inventory.ComputeSpan layout span)
+	(layout.topLeft.y = ((rootRect.bottom - span.y) - 16))
+	(inventory.LayoutAsRect layout)
+	
+	(Int32 dx = 10)
+	(Int32 dy = 80)
+	
+	(Recti head = 80 -40 144 24)
+	(MoveRect head dx dy)
+	(inventory.SetRect 63 head)
+		
+	(Recti neck = 80 40 144 104)
+	(MoveRect neck dx dy)
+	(inventory.SetRect 62 neck)
+	
+	(Recti torso = 80 110 144 174)
+	(MoveRect torso dx dy)
+	(inventory.SetRect 61 torso)
+	
+	(Recti rightHand = 80 180 144 244)
+	(MoveRect rightHand dx dy)
+	(inventory.SetRect 60 rightHand)
+	
+	(Recti underpants = 80 250 144 315)
+	(MoveRect underpants dx dy)
+	(inventory.SetRect 59 underpants)
+	
+	(Recti leftHand = 150 216 214 280)
+	(MoveRect leftHand dx dy)
+	(inventory.SetRect 58 leftHand)
+	
+	(Recti legs = 80 416 144 480)
+	(MoveRect legs dx dy)
+	(inventory.SetRect 57 legs)
+	
+	(Recti feet = 80 330 144 394)
+	(MoveRect feet dx dy)
+	(inventory.SetRect 56 feet)
 )

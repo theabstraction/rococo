@@ -234,6 +234,7 @@
 	(methods
 		(SetPlayerEntity (IdEntity id))
 		(GetPlayerEntity -> (IdEntity id))
+		(GetInventory -> (IInventoryArray inventory))
 	)
 	(factory HV.Player (Int32 index))
 )

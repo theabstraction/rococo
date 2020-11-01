@@ -4,6 +4,8 @@
 #include <vector>
 #include <string>
 #include <rococo.fonts.h>
+#include <rococo.textures.h>
+#include <rococo.strings.h>
 
 // TODO: this breaks the Rococo convention of no STL headers or classes in Rococo headers. I regret 
 // writing this code, it really needs  to be replaced and serves as An example of why deriving classes
@@ -52,6 +54,8 @@ namespace Rococo
 			   RGBAb(255,255,255, 255),
 			};
 
+			HString bkImageName;
+			Textures::BitmapLocation bkBitmap = { {0,0,0,0},0,{0,0} };
 		public:
 
 			void SetParent(IPaneSupervisor* panel);
@@ -79,6 +83,7 @@ namespace Rococo
 			void AddChild(IPaneSupervisor* child) override;
 			void RemoveChild(IPaneSupervisor* child) override;
 			void FreeAllChildren() override;
+			void SetBkImage(const fstring& pingPath) override;
 			void SetScheme(const ColourScheme& scheme) override;
 			const ColourScheme& Scheme() const;
 			void SetColourBk1(RGBAb normal, RGBAb hilight) override;
@@ -87,6 +92,7 @@ namespace Rococo
 			void SetColourEdge2(RGBAb normal, RGBAb hilight) override;
 			void SetColourFont(RGBAb normal, RGBAb hilight) override;
 			void Populate(IPublisher& publisher, IGuiRenderContext& grc, int32 stateIndex, const Vec2i& topLeft);
+			void RenderBkImage(IGuiRenderContext& grc, const Vec2i& topLeft, const Modality& modality);
 			void RenderBackground(IGuiRenderContext& grc, const Vec2i& topLeft, const Modality& modality);
 			void RenderChildren(IGuiRenderContext& grc, const Vec2i& topLeft, const Modality& modality);
 		}; // class BasePane

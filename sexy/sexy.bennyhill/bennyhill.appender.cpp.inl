@@ -247,8 +247,11 @@ namespace Rococo
 		enumFiles.clear();
 		for (auto& i : pc.interfaces)
 		{
-			auto& ic = i.second->ic;
-			enumFiles.insert(ic.appendCppHeaderFile);
+			if (*i.second->ic.appendCppHeaderFile)
+			{
+				auto& ic = i.second->ic;
+				enumFiles.insert(ic.appendCppHeaderFile);
+			}
 		}
 
 		for (auto& i : enumFiles)
@@ -256,8 +259,11 @@ namespace Rococo
 			FileAppender cppFileAppender(i.c_str());
 			for (auto& i : pc.interfaces)
 			{
-				WriteInterfaceDeclaration(cppFileAppender, i.second->ic.asCppInterface.SexyName(), 0);
-				cppFileAppender.Append(("\n\n"));
+				if (*i.second->ic.appendCppHeaderFile)
+				{
+					WriteInterfaceDeclaration(cppFileAppender, i.second->ic.asCppInterface.SexyName(), 0);
+					cppFileAppender.Append(("\n\n"));
+				}
 			}
 		}
 	}

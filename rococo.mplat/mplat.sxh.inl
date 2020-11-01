@@ -712,6 +712,22 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->SetRect(*rect);
 	}
+	void NativeRococoIPaneSetBkImage(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _pingPath;
+		ReadInput(_pingPath, _sf, -_offset);
+		fstring pingPath { _pingPath->buffer, _pingPath->length };
+
+
+		Rococo::IPane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetBkImage(pingPath);
+	}
 	void NativeRococoIPaneAlignLeftEdges(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -863,6 +879,7 @@ namespace Rococo {
 		ss.AddNativeCall(ns, NativeRococoIPaneSetVisible, nullptr, ("IPaneSetVisible (Pointer hObject)(Bool isVisible) -> "));
 		ss.AddNativeCall(ns, NativeRococoIPaneGetRect, nullptr, ("IPaneGetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
 		ss.AddNativeCall(ns, NativeRococoIPaneSetRect, nullptr, ("IPaneSetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
+		ss.AddNativeCall(ns, NativeRococoIPaneSetBkImage, nullptr, ("IPaneSetBkImage (Pointer hObject)(Sys.Type.IString pingPath) -> "));
 		ss.AddNativeCall(ns, NativeRococoIPaneAlignLeftEdges, nullptr, ("IPaneAlignLeftEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
 		ss.AddNativeCall(ns, NativeRococoIPaneAlignRightEdges, nullptr, ("IPaneAlignRightEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
 		ss.AddNativeCall(ns, NativeRococoIPaneAlignTopEdges, nullptr, ("IPaneAlignTopEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
@@ -880,21 +897,93 @@ namespace
 	using namespace Rococo::Script;
 	using namespace Rococo::Compiler;
 
-	void NativeRococoIInventoryArrayGetIndexAt(NativeCallEnvironment& _nce)
+	void NativeRococoIInventoryArrayAddPaperDoll(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Vec2* pos;
-		_offset += sizeof(pos);
-		ReadInput(pos, _sf, -_offset);
+		_offset += sizeof(IString*);
+		IString* _pingPathToImage;
+		ReadInput(_pingPathToImage, _sf, -_offset);
+		fstring pingPathToImage { _pingPathToImage->buffer, _pingPathToImage->length };
+
+
+		GuiRect* rect;
+		_offset += sizeof(rect);
+		ReadInput(rect, _sf, -_offset);
 
 		Rococo::IInventoryArray* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		int32 index = _pObject->GetIndexAt(*pos);
-		_offset += sizeof(index);
-		WriteOutput(index, _sf, -_offset);
+		_pObject->AddPaperDoll(*rect, pingPathToImage);
+	}
+	void NativeRococoIInventoryArrayClearDolls(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::IInventoryArray* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->ClearDolls();
+	}
+	void NativeRococoIInventoryArrayDollCount(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::IInventoryArray* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		int32 nDolls = _pObject->DollCount();
+		_offset += sizeof(nDolls);
+		WriteOutput(nDolls, _sf, -_offset);
+	}
+	void NativeRococoIInventoryArrayGetDoll(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Textures::BitmapLocation* bitmap;
+		_offset += sizeof(bitmap);
+		ReadInput(bitmap, _sf, -_offset);
+
+		_offset += sizeof(VirtualTable**);
+		VirtualTable** sb;
+		ReadInput(sb, _sf, -_offset);
+		Rococo::Helpers::StringPopulator _sbPopulator(_nce, sb);
+		GuiRect* rect;
+		_offset += sizeof(rect);
+		ReadInput(rect, _sf, -_offset);
+
+		int32 dollIndex;
+		_offset += sizeof(dollIndex);
+		ReadInput(dollIndex, _sf, -_offset);
+
+		Rococo::IInventoryArray* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		boolean32 isOK = _pObject->GetDoll(dollIndex, *rect, _sbPopulator, *bitmap);
+		_offset += sizeof(isOK);
+		WriteOutput(isOK, _sf, -_offset);
+	}
+	void NativeRococoIInventoryArraySetDollBitmap(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Textures::BitmapLocation* bitmap;
+		_offset += sizeof(bitmap);
+		ReadInput(bitmap, _sf, -_offset);
+
+		int32 dollIndex;
+		_offset += sizeof(dollIndex);
+		ReadInput(dollIndex, _sf, -_offset);
+
+		Rococo::IInventoryArray* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetDollBitmap(dollIndex, *bitmap);
 	}
 	void NativeRococoIInventoryArrayFlags(NativeCallEnvironment& _nce)
 	{
@@ -912,11 +1001,27 @@ namespace
 		_offset += sizeof(flags);
 		WriteOutput(flags, _sf, -_offset);
 	}
+	void NativeRococoIInventoryArrayGetIndexAt(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Vec2i* pos;
+		_offset += sizeof(pos);
+		ReadInput(pos, _sf, -_offset);
+
+		Rococo::IInventoryArray* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		int32 index = _pObject->GetIndexAt(*pos);
+		_offset += sizeof(index);
+		WriteOutput(index, _sf, -_offset);
+	}
 	void NativeRococoIInventoryArrayGetRect(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		GuiRectf* rect;
+		GuiRect* rect;
 		_offset += sizeof(rect);
 		ReadInput(rect, _sf, -_offset);
 
@@ -1046,7 +1151,7 @@ namespace
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		GuiRectf* rect;
+		GuiRect* rect;
 		_offset += sizeof(rect);
 		ReadInput(rect, _sf, -_offset);
 
@@ -1082,7 +1187,7 @@ namespace
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Vec2* span;
+		Vec2i* span;
 		_offset += sizeof(span);
 		ReadInput(span, _sf, -_offset);
 
@@ -1103,9 +1208,14 @@ namespace Rococo {
 	void AddNativeCalls_RococoIInventoryArray(Rococo::Script::IPublicScriptSystem& ss, Rococo::IInventoryArray* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
-		ss.AddNativeCall(ns, NativeRococoIInventoryArrayGetIndexAt, nullptr, ("IInventoryArrayGetIndexAt (Pointer hObject)(Sys.Maths.Vec2 pos) -> (Int32 index)"));
+		ss.AddNativeCall(ns, NativeRococoIInventoryArrayAddPaperDoll, nullptr, ("IInventoryArrayAddPaperDoll (Pointer hObject)(Sys.Maths.Recti rect)(Sys.Type.IString pingPathToImage) -> "));
+		ss.AddNativeCall(ns, NativeRococoIInventoryArrayClearDolls, nullptr, ("IInventoryArrayClearDolls (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeRococoIInventoryArrayDollCount, nullptr, ("IInventoryArrayDollCount (Pointer hObject) -> (Int32 nDolls)"));
+		ss.AddNativeCall(ns, NativeRococoIInventoryArrayGetDoll, nullptr, ("IInventoryArrayGetDoll (Pointer hObject)(Int32 dollIndex)(Sys.Maths.Recti rect)(Sys.Type.IStringBuilder sb)(MPlat.BitmapLocation bitmap) -> (Bool isOK)"));
+		ss.AddNativeCall(ns, NativeRococoIInventoryArraySetDollBitmap, nullptr, ("IInventoryArraySetDollBitmap (Pointer hObject)(Int32 dollIndex)(MPlat.BitmapLocation bitmap) -> "));
 		ss.AddNativeCall(ns, NativeRococoIInventoryArrayFlags, nullptr, ("IInventoryArrayFlags (Pointer hObject)(Int32 index) -> (Int64 flags)"));
-		ss.AddNativeCall(ns, NativeRococoIInventoryArrayGetRect, nullptr, ("IInventoryArrayGetRect (Pointer hObject)(Int32 index)(Sys.Maths.Rectf rect) -> "));
+		ss.AddNativeCall(ns, NativeRococoIInventoryArrayGetIndexAt, nullptr, ("IInventoryArrayGetIndexAt (Pointer hObject)(Sys.Maths.Vec2i pos) -> (Int32 index)"));
+		ss.AddNativeCall(ns, NativeRococoIInventoryArrayGetRect, nullptr, ("IInventoryArrayGetRect (Pointer hObject)(Int32 index)(Sys.Maths.Recti rect) -> "));
 		ss.AddNativeCall(ns, NativeRococoIInventoryArrayId, nullptr, ("IInventoryArrayId (Pointer hObject)(Int32 index) -> (Int64 flags)"));
 		ss.AddNativeCall(ns, NativeRococoIInventoryArrayItemCount, nullptr, ("IInventoryArrayItemCount (Pointer hObject)(Int32 index) -> (Int64 flags)"));
 		ss.AddNativeCall(ns, NativeRococoIInventoryArrayLayoutAsRect, nullptr, ("IInventoryArrayLayoutAsRect (Pointer hObject)(Rococo.InventoryLayoutRules rules) -> "));
@@ -1113,9 +1223,9 @@ namespace Rococo {
 		ss.AddNativeCall(ns, NativeRococoIInventoryArraySetFlags, nullptr, ("IInventoryArraySetFlags (Pointer hObject)(Int32 index)(Int64 flags) -> "));
 		ss.AddNativeCall(ns, NativeRococoIInventoryArraySetId, nullptr, ("IInventoryArraySetId (Pointer hObject)(Int32 index)(Int64 id) -> "));
 		ss.AddNativeCall(ns, NativeRococoIInventoryArraySetItemCount, nullptr, ("IInventoryArraySetItemCount (Pointer hObject)(Int32 index)(Int64 count) -> "));
-		ss.AddNativeCall(ns, NativeRococoIInventoryArraySetRect, nullptr, ("IInventoryArraySetRect (Pointer hObject)(Int32 index)(Sys.Maths.Rectf rect) -> "));
+		ss.AddNativeCall(ns, NativeRococoIInventoryArraySetRect, nullptr, ("IInventoryArraySetRect (Pointer hObject)(Int32 index)(Sys.Maths.Recti rect) -> "));
 		ss.AddNativeCall(ns, NativeRococoIInventoryArraySwap, nullptr, ("IInventoryArraySwap (Pointer hObject)(Int32 i)(Int32 j) -> "));
-		ss.AddNativeCall(ns, NativeRococoIInventoryArrayComputeSpan, nullptr, ("IInventoryArrayComputeSpan (Pointer hObject)(Rococo.InventoryLayoutRules rules)(Sys.Maths.Vec2 span) -> "));
+		ss.AddNativeCall(ns, NativeRococoIInventoryArrayComputeSpan, nullptr, ("IInventoryArrayComputeSpan (Pointer hObject)(Rococo.InventoryLayoutRules rules)(Sys.Maths.Vec2i span) -> "));
 	}
 }
 // BennyHill generated Sexy native functions for Rococo::IContextMenu 
@@ -1767,6 +1877,22 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->SetRect(*rect);
 	}
+	void NativeRococoIContextMenuPaneSetBkImage(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _pingPath;
+		ReadInput(_pingPath, _sf, -_offset);
+		fstring pingPath { _pingPath->buffer, _pingPath->length };
+
+
+		Rococo::IContextMenuPane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetBkImage(pingPath);
+	}
 	void NativeRococoIContextMenuPaneAlignLeftEdges(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -1928,6 +2054,7 @@ namespace Rococo {
 		ss.AddNativeCall(ns, NativeRococoIContextMenuPaneSetVisible, nullptr, ("IContextMenuPaneSetVisible (Pointer hObject)(Bool isVisible) -> "));
 		ss.AddNativeCall(ns, NativeRococoIContextMenuPaneGetRect, nullptr, ("IContextMenuPaneGetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
 		ss.AddNativeCall(ns, NativeRococoIContextMenuPaneSetRect, nullptr, ("IContextMenuPaneSetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
+		ss.AddNativeCall(ns, NativeRococoIContextMenuPaneSetBkImage, nullptr, ("IContextMenuPaneSetBkImage (Pointer hObject)(Sys.Type.IString pingPath) -> "));
 		ss.AddNativeCall(ns, NativeRococoIContextMenuPaneAlignLeftEdges, nullptr, ("IContextMenuPaneAlignLeftEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
 		ss.AddNativeCall(ns, NativeRococoIContextMenuPaneAlignRightEdges, nullptr, ("IContextMenuPaneAlignRightEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
 		ss.AddNativeCall(ns, NativeRococoIContextMenuPaneAlignTopEdges, nullptr, ("IContextMenuPaneAlignTopEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
@@ -2147,6 +2274,22 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->SetRect(*rect);
 	}
+	void NativeRococoIEnumListPaneSetBkImage(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _pingPath;
+		ReadInput(_pingPath, _sf, -_offset);
+		fstring pingPath { _pingPath->buffer, _pingPath->length };
+
+
+		Rococo::IEnumListPane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetBkImage(pingPath);
+	}
 	void NativeRococoIEnumListPaneAlignLeftEdges(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -2358,6 +2501,7 @@ namespace Rococo {
 		ss.AddNativeCall(ns, NativeRococoIEnumListPaneSetVisible, nullptr, ("IEnumListPaneSetVisible (Pointer hObject)(Bool isVisible) -> "));
 		ss.AddNativeCall(ns, NativeRococoIEnumListPaneGetRect, nullptr, ("IEnumListPaneGetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
 		ss.AddNativeCall(ns, NativeRococoIEnumListPaneSetRect, nullptr, ("IEnumListPaneSetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
+		ss.AddNativeCall(ns, NativeRococoIEnumListPaneSetBkImage, nullptr, ("IEnumListPaneSetBkImage (Pointer hObject)(Sys.Type.IString pingPath) -> "));
 		ss.AddNativeCall(ns, NativeRococoIEnumListPaneAlignLeftEdges, nullptr, ("IEnumListPaneAlignLeftEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
 		ss.AddNativeCall(ns, NativeRococoIEnumListPaneAlignRightEdges, nullptr, ("IEnumListPaneAlignRightEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
 		ss.AddNativeCall(ns, NativeRococoIEnumListPaneAlignTopEdges, nullptr, ("IEnumListPaneAlignTopEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
@@ -2533,6 +2677,22 @@ namespace
 
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->SetRect(*rect);
+	}
+	void NativeRococoIArrayBoxSetBkImage(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _pingPath;
+		ReadInput(_pingPath, _sf, -_offset);
+		fstring pingPath { _pingPath->buffer, _pingPath->length };
+
+
+		Rococo::IArrayBox* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetBkImage(pingPath);
 	}
 	void NativeRococoIArrayBoxAlignLeftEdges(NativeCallEnvironment& _nce)
 	{
@@ -2761,6 +2921,7 @@ namespace Rococo {
 		ss.AddNativeCall(ns, NativeRococoIArrayBoxSetVisible, nullptr, ("IArrayBoxSetVisible (Pointer hObject)(Bool isVisible) -> "));
 		ss.AddNativeCall(ns, NativeRococoIArrayBoxGetRect, nullptr, ("IArrayBoxGetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
 		ss.AddNativeCall(ns, NativeRococoIArrayBoxSetRect, nullptr, ("IArrayBoxSetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
+		ss.AddNativeCall(ns, NativeRococoIArrayBoxSetBkImage, nullptr, ("IArrayBoxSetBkImage (Pointer hObject)(Sys.Type.IString pingPath) -> "));
 		ss.AddNativeCall(ns, NativeRococoIArrayBoxAlignLeftEdges, nullptr, ("IArrayBoxAlignLeftEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
 		ss.AddNativeCall(ns, NativeRococoIArrayBoxAlignRightEdges, nullptr, ("IArrayBoxAlignRightEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
 		ss.AddNativeCall(ns, NativeRococoIArrayBoxAlignTopEdges, nullptr, ("IArrayBoxAlignTopEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
@@ -2937,6 +3098,22 @@ namespace
 
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->SetRect(*rect);
+	}
+	void NativeRococoIPaneContainerSetBkImage(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _pingPath;
+		ReadInput(_pingPath, _sf, -_offset);
+		fstring pingPath { _pingPath->buffer, _pingPath->length };
+
+
+		Rococo::IPaneContainer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetBkImage(pingPath);
 	}
 	void NativeRococoIPaneContainerAlignLeftEdges(NativeCallEnvironment& _nce)
 	{
@@ -3391,6 +3568,7 @@ namespace Rococo {
 		ss.AddNativeCall(ns, NativeRococoIPaneContainerSetVisible, nullptr, ("IPaneContainerSetVisible (Pointer hObject)(Bool isVisible) -> "));
 		ss.AddNativeCall(ns, NativeRococoIPaneContainerGetRect, nullptr, ("IPaneContainerGetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
 		ss.AddNativeCall(ns, NativeRococoIPaneContainerSetRect, nullptr, ("IPaneContainerSetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
+		ss.AddNativeCall(ns, NativeRococoIPaneContainerSetBkImage, nullptr, ("IPaneContainerSetBkImage (Pointer hObject)(Sys.Type.IString pingPath) -> "));
 		ss.AddNativeCall(ns, NativeRococoIPaneContainerAlignLeftEdges, nullptr, ("IPaneContainerAlignLeftEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
 		ss.AddNativeCall(ns, NativeRococoIPaneContainerAlignRightEdges, nullptr, ("IPaneContainerAlignRightEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
 		ss.AddNativeCall(ns, NativeRococoIPaneContainerAlignTopEdges, nullptr, ("IPaneContainerAlignTopEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
@@ -3574,6 +3752,22 @@ namespace
 
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->SetRect(*rect);
+	}
+	void NativeRococoITabContainerSetBkImage(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _pingPath;
+		ReadInput(_pingPath, _sf, -_offset);
+		fstring pingPath { _pingPath->buffer, _pingPath->length };
+
+
+		Rococo::ITabContainer* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetBkImage(pingPath);
 	}
 	void NativeRococoITabContainerAlignLeftEdges(NativeCallEnvironment& _nce)
 	{
@@ -3768,6 +3962,7 @@ namespace Rococo {
 		ss.AddNativeCall(ns, NativeRococoITabContainerSetVisible, nullptr, ("ITabContainerSetVisible (Pointer hObject)(Bool isVisible) -> "));
 		ss.AddNativeCall(ns, NativeRococoITabContainerGetRect, nullptr, ("ITabContainerGetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
 		ss.AddNativeCall(ns, NativeRococoITabContainerSetRect, nullptr, ("ITabContainerSetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
+		ss.AddNativeCall(ns, NativeRococoITabContainerSetBkImage, nullptr, ("ITabContainerSetBkImage (Pointer hObject)(Sys.Type.IString pingPath) -> "));
 		ss.AddNativeCall(ns, NativeRococoITabContainerAlignLeftEdges, nullptr, ("ITabContainerAlignLeftEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
 		ss.AddNativeCall(ns, NativeRococoITabContainerAlignRightEdges, nullptr, ("ITabContainerAlignRightEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
 		ss.AddNativeCall(ns, NativeRococoITabContainerAlignTopEdges, nullptr, ("ITabContainerAlignTopEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
@@ -3942,6 +4137,22 @@ namespace
 
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->SetRect(*rect);
+	}
+	void NativeRococoIFramePaneSetBkImage(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _pingPath;
+		ReadInput(_pingPath, _sf, -_offset);
+		fstring pingPath { _pingPath->buffer, _pingPath->length };
+
+
+		Rococo::IFramePane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetBkImage(pingPath);
 	}
 	void NativeRococoIFramePaneAlignLeftEdges(NativeCallEnvironment& _nce)
 	{
@@ -4496,6 +4707,7 @@ namespace Rococo {
 		ss.AddNativeCall(ns, NativeRococoIFramePaneSetVisible, nullptr, ("IFramePaneSetVisible (Pointer hObject)(Bool isVisible) -> "));
 		ss.AddNativeCall(ns, NativeRococoIFramePaneGetRect, nullptr, ("IFramePaneGetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
 		ss.AddNativeCall(ns, NativeRococoIFramePaneSetRect, nullptr, ("IFramePaneSetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
+		ss.AddNativeCall(ns, NativeRococoIFramePaneSetBkImage, nullptr, ("IFramePaneSetBkImage (Pointer hObject)(Sys.Type.IString pingPath) -> "));
 		ss.AddNativeCall(ns, NativeRococoIFramePaneAlignLeftEdges, nullptr, ("IFramePaneAlignLeftEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
 		ss.AddNativeCall(ns, NativeRococoIFramePaneAlignRightEdges, nullptr, ("IFramePaneAlignRightEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
 		ss.AddNativeCall(ns, NativeRococoIFramePaneAlignTopEdges, nullptr, ("IFramePaneAlignTopEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
@@ -4686,6 +4898,22 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->SetRect(*rect);
 	}
+	void NativeRococoIRadioButtonSetBkImage(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _pingPath;
+		ReadInput(_pingPath, _sf, -_offset);
+		fstring pingPath { _pingPath->buffer, _pingPath->length };
+
+
+		Rococo::IRadioButton* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetBkImage(pingPath);
+	}
 	void NativeRococoIRadioButtonAlignLeftEdges(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -4863,6 +5091,7 @@ namespace Rococo {
 		ss.AddNativeCall(ns, NativeRococoIRadioButtonSetVisible, nullptr, ("IRadioButtonSetVisible (Pointer hObject)(Bool isVisible) -> "));
 		ss.AddNativeCall(ns, NativeRococoIRadioButtonGetRect, nullptr, ("IRadioButtonGetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
 		ss.AddNativeCall(ns, NativeRococoIRadioButtonSetRect, nullptr, ("IRadioButtonSetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
+		ss.AddNativeCall(ns, NativeRococoIRadioButtonSetBkImage, nullptr, ("IRadioButtonSetBkImage (Pointer hObject)(Sys.Type.IString pingPath) -> "));
 		ss.AddNativeCall(ns, NativeRococoIRadioButtonAlignLeftEdges, nullptr, ("IRadioButtonAlignLeftEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
 		ss.AddNativeCall(ns, NativeRococoIRadioButtonAlignRightEdges, nullptr, ("IRadioButtonAlignRightEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
 		ss.AddNativeCall(ns, NativeRococoIRadioButtonAlignTopEdges, nullptr, ("IRadioButtonAlignTopEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
@@ -5036,6 +5265,22 @@ namespace
 
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->SetRect(*rect);
+	}
+	void NativeRococoILabelPaneSetBkImage(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _pingPath;
+		ReadInput(_pingPath, _sf, -_offset);
+		fstring pingPath { _pingPath->buffer, _pingPath->length };
+
+
+		Rococo::ILabelPane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetBkImage(pingPath);
 	}
 	void NativeRococoILabelPaneAlignLeftEdges(NativeCallEnvironment& _nce)
 	{
@@ -5238,6 +5483,7 @@ namespace Rococo {
 		ss.AddNativeCall(ns, NativeRococoILabelPaneSetVisible, nullptr, ("ILabelPaneSetVisible (Pointer hObject)(Bool isVisible) -> "));
 		ss.AddNativeCall(ns, NativeRococoILabelPaneGetRect, nullptr, ("ILabelPaneGetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
 		ss.AddNativeCall(ns, NativeRococoILabelPaneSetRect, nullptr, ("ILabelPaneSetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
+		ss.AddNativeCall(ns, NativeRococoILabelPaneSetBkImage, nullptr, ("ILabelPaneSetBkImage (Pointer hObject)(Sys.Type.IString pingPath) -> "));
 		ss.AddNativeCall(ns, NativeRococoILabelPaneAlignLeftEdges, nullptr, ("ILabelPaneAlignLeftEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
 		ss.AddNativeCall(ns, NativeRococoILabelPaneAlignRightEdges, nullptr, ("ILabelPaneAlignRightEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
 		ss.AddNativeCall(ns, NativeRococoILabelPaneAlignTopEdges, nullptr, ("ILabelPaneAlignTopEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
@@ -5413,6 +5659,22 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->SetRect(*rect);
 	}
+	void NativeRococoISliderSetBkImage(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _pingPath;
+		ReadInput(_pingPath, _sf, -_offset);
+		fstring pingPath { _pingPath->buffer, _pingPath->length };
+
+
+		Rococo::ISlider* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetBkImage(pingPath);
+	}
 	void NativeRococoISliderAlignLeftEdges(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -5564,6 +5826,7 @@ namespace Rococo {
 		ss.AddNativeCall(ns, NativeRococoISliderSetVisible, nullptr, ("ISliderSetVisible (Pointer hObject)(Bool isVisible) -> "));
 		ss.AddNativeCall(ns, NativeRococoISliderGetRect, nullptr, ("ISliderGetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
 		ss.AddNativeCall(ns, NativeRococoISliderSetRect, nullptr, ("ISliderSetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
+		ss.AddNativeCall(ns, NativeRococoISliderSetBkImage, nullptr, ("ISliderSetBkImage (Pointer hObject)(Sys.Type.IString pingPath) -> "));
 		ss.AddNativeCall(ns, NativeRococoISliderAlignLeftEdges, nullptr, ("ISliderAlignLeftEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
 		ss.AddNativeCall(ns, NativeRococoISliderAlignRightEdges, nullptr, ("ISliderAlignRightEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
 		ss.AddNativeCall(ns, NativeRococoISliderAlignTopEdges, nullptr, ("ISliderAlignTopEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
@@ -5737,6 +6000,22 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->SetRect(*rect);
 	}
+	void NativeRococoIScrollerSetBkImage(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _pingPath;
+		ReadInput(_pingPath, _sf, -_offset);
+		fstring pingPath { _pingPath->buffer, _pingPath->length };
+
+
+		Rococo::IScroller* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetBkImage(pingPath);
+	}
 	void NativeRococoIScrollerAlignLeftEdges(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -5888,6 +6167,7 @@ namespace Rococo {
 		ss.AddNativeCall(ns, NativeRococoIScrollerSetVisible, nullptr, ("IScrollerSetVisible (Pointer hObject)(Bool isVisible) -> "));
 		ss.AddNativeCall(ns, NativeRococoIScrollerGetRect, nullptr, ("IScrollerGetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
 		ss.AddNativeCall(ns, NativeRococoIScrollerSetRect, nullptr, ("IScrollerSetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
+		ss.AddNativeCall(ns, NativeRococoIScrollerSetBkImage, nullptr, ("IScrollerSetBkImage (Pointer hObject)(Sys.Type.IString pingPath) -> "));
 		ss.AddNativeCall(ns, NativeRococoIScrollerAlignLeftEdges, nullptr, ("IScrollerAlignLeftEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
 		ss.AddNativeCall(ns, NativeRococoIScrollerAlignRightEdges, nullptr, ("IScrollerAlignRightEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
 		ss.AddNativeCall(ns, NativeRococoIScrollerAlignTopEdges, nullptr, ("IScrollerAlignTopEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
@@ -6060,6 +6340,22 @@ namespace
 
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->SetRect(*rect);
+	}
+	void NativeRococoITextOutputPaneSetBkImage(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _pingPath;
+		ReadInput(_pingPath, _sf, -_offset);
+		fstring pingPath { _pingPath->buffer, _pingPath->length };
+
+
+		Rococo::ITextOutputPane* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetBkImage(pingPath);
 	}
 	void NativeRococoITextOutputPaneAlignLeftEdges(NativeCallEnvironment& _nce)
 	{
@@ -6254,6 +6550,7 @@ namespace Rococo {
 		ss.AddNativeCall(ns, NativeRococoITextOutputPaneSetVisible, nullptr, ("ITextOutputPaneSetVisible (Pointer hObject)(Bool isVisible) -> "));
 		ss.AddNativeCall(ns, NativeRococoITextOutputPaneGetRect, nullptr, ("ITextOutputPaneGetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
 		ss.AddNativeCall(ns, NativeRococoITextOutputPaneSetRect, nullptr, ("ITextOutputPaneSetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
+		ss.AddNativeCall(ns, NativeRococoITextOutputPaneSetBkImage, nullptr, ("ITextOutputPaneSetBkImage (Pointer hObject)(Sys.Type.IString pingPath) -> "));
 		ss.AddNativeCall(ns, NativeRococoITextOutputPaneAlignLeftEdges, nullptr, ("ITextOutputPaneAlignLeftEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
 		ss.AddNativeCall(ns, NativeRococoITextOutputPaneAlignRightEdges, nullptr, ("ITextOutputPaneAlignRightEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
 		ss.AddNativeCall(ns, NativeRococoITextOutputPaneAlignTopEdges, nullptr, ("ITextOutputPaneAlignTopEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));

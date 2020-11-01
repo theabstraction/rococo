@@ -1,12 +1,14 @@
 #include <rococo.mplat.h>
 #include <vector>
 #include "rococo.script.types.h"
+#include <rococo.textures.h>
+#include <rococo.strings.h>
 
 using namespace Rococo;
 
 struct InventoryCell
 {
-	GuiRectf guiRect = { 0,0,0,0 };
+	GuiRect guiRect = { 0,0,0,0 };
 	int64 itemCount = 0;
 	uint64 id = 0;
 	int64 flags = 0;
@@ -17,9 +19,17 @@ namespace
 	// The value is chosen such that the capacity squared never overflows the int32
 	const int32 MAX_CAPACITY = 32767;
 
+	struct PaperDoll
+	{
+		GuiRect rect;
+		Textures::BitmapLocation bitmap;
+		HString pingPath;
+	};
+
 	struct InventoryArray : IInventoryArraySupervisor
 	{
 		std::vector<InventoryCell> cells;
+		std::vector<PaperDoll> dolls;
 
 		InventoryCell& At(int32 index)
 		{
@@ -36,7 +46,59 @@ namespace
 		{
 		}
 
-		int32 GetIndexAt(Vec2& pos)
+		void AddPaperDoll(const GuiRect& rect, const fstring& pingPathToImage) override
+		{
+			if (pingPathToImage.length < 2) Throw(0, "Expecting at least 2 characters in [pingPathToImage]");
+			Textures::BitmapLocation bitmap{ {0,0,0,0}, 0, {0,0} };
+			dolls.push_back(PaperDoll { rect, bitmap, pingPathToImage });
+		}
+
+		void ClearDolls() override
+		{
+			dolls.clear();
+		}
+
+		boolean32 GetDoll(int32 index, GuiRect& rect, IStringPopulator& sb, Rococo::Textures::BitmapLocation& bitmap) override
+		{
+			if (dolls.empty())
+			{
+				Throw(0, "No dolls");
+			}
+
+			if (index < 0 || index >= (int32)dolls.size())
+			{
+				Throw(0, "Bad doll index %d. Range is [0, %llu]", index, dolls.size());
+			}
+
+			const auto& d = dolls[index];
+			rect = d.rect;
+			sb.Populate(d.pingPath);
+			bitmap = d.bitmap;
+
+			return true;
+		}
+
+		void SetDollBitmap(int32 index, const Textures::BitmapLocation& bitmap) override
+		{
+			if (dolls.empty())
+			{
+				Throw(0, "No dolls");
+			}
+
+			if (index < 0 || index >= (int32)dolls.size())
+			{
+				Throw(0, "Bad doll index %d. Range is [0, %llu]", index, dolls.size());
+			}
+
+			dolls[index].bitmap = bitmap;
+		}
+
+		int32 DollCount()
+		{
+			return (int32) dolls.size();
+		}
+
+		int32 GetIndexAt(Vec2i& pos) override
 		{
 			for (int i = 0; i < (int32)cells.size(); i++)
 			{
@@ -49,7 +111,7 @@ namespace
 			return -1;
 		}
 
-		void GetRect(int32 index, GuiRectf& rect) override
+		void GetRect(int32 index, GuiRect& rect) override
 		{
 			rect = At(index).guiRect;
 		}
@@ -74,7 +136,7 @@ namespace
 			At(index).itemCount = count;
 		}
 
-		void SetRect(int32 index, const GuiRectf& rect) override
+		void SetRect(int32 index, const GuiRect& rect) override
 		{
 			At(index).guiRect = rect;
 		}
@@ -99,13 +161,13 @@ namespace
 			delete this;
 		}
 
-		void ComputeSpan(const Rococo::InventoryLayoutRules& L, Vec2& span)
+		void ComputeSpan(const Rococo::InventoryLayoutRules& L, Vec2i& span) override
 		{
 			span.x = L.columns * (L.borders.x + L.cellSpan.x);
 			span.y = L.rows * (L.borders.y + L.cellSpan.y);
 		}
 
-		void Swap(int32 i, int32 j)
+		void Swap(int32 i, int32 j) override
 		{
 			if (i < 0 || i >(int32) cells.size())
 			{
@@ -151,8 +213,8 @@ namespace
 				Throw(0, "The product of rows * columns (%d x %d) must be %d", L.rows, L.columns, nCells);
 			}
 
-			float x0 = L.topLeft.x;
-			float y0 = L.topLeft.y;
+			int32 x0 = L.topLeft.x;
+			int32 y0 = L.topLeft.y;
 
 			int32 index = L.startIndex;
 

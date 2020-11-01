@@ -33,6 +33,8 @@
 (primitive MaterialCategory Int32 Rococo.Graphics.MaterialCategory)
 (primitive EquipmentSlot Int32 HV.EquipmentSlot)
 
+(interface IInventoryArray Rococo.IInventoryArray Rococo.IInventoryArray)
+
 // (struct <name> <sexy-name> <cpp-name>)  maps <name> found in the sxh file to the <sexy-name> in the generated sxy file, and <cpp-name> in the c++ files
 // Arguments that are struct are passed by reference in the script system. They may not be used as output arguments. It is assumed that the structures are defined elsewhere.
 

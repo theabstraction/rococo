@@ -440,7 +440,7 @@ namespace
 
 		if (ic.factories.size() != 1 && ic.isSingleton)
 		{
-			Throw(interfaceDef , ("Singleton objects should only require one factory to be defined."));
+			Throw(interfaceDef , "Singleton objects require a factory to be defined.");
 		}
 
 		int factoryIndex = 0;

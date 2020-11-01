@@ -20,6 +20,11 @@ IPaneSupervisor* BasePane::Parent()
 	return parent;
 }
 
+void BasePane::SetBkImage(const fstring& pingPath)
+{
+	bkImageName = pingPath;
+}
+
 void BasePane::SetCommand(int32 stateIndex, boolean32 deferAction, const fstring& text)
 {
 	if (stateIndex < 0 || stateIndex > 4)
@@ -415,6 +420,31 @@ void BasePane::Populate(IPublisher& publisher, IGuiRenderContext& grc, int32 sta
 	}
 }
 
+void BasePane::RenderBkImage(IGuiRenderContext& grc, const Vec2i& topLeft, const Modality& modality)
+{
+	if (bkImageName.length() > 0)
+	{
+		if (bkBitmap.txUV.left == bkBitmap.txUV.right)
+		{
+			if (!grc.Renderer().SpriteBuilder().TryGetBitmapLocation(bkImageName, bkBitmap))
+			{
+				Throw(0, "%s: Cannot find image %s", __FUNCTION__, bkImageName.c_str());
+			}
+		}
+	}
+	else
+	{
+		return;
+	}
+
+	GuiRect absRect{ topLeft.x, topLeft.y, topLeft.x + rect.right - rect.left, topLeft.y + rect.bottom - rect.top };
+
+	if (bkBitmap.txUV.left != bkBitmap.txUV.right)
+	{
+		Graphics::StretchBitmap(grc, bkBitmap, absRect);
+	}
+}
+
 void BasePane::RenderBackground(IGuiRenderContext& grc, const Vec2i& topLeft, const Modality& modality)
 {
 	GuiMetrics metrics;
@@ -427,11 +457,13 @@ void BasePane::RenderBackground(IGuiRenderContext& grc, const Vec2i& topLeft, co
 	if (!modality.isUnderModal && IsPointInRect(p, absRect))
 	{
 		Graphics::DrawRectangle(grc, absRect, scheme.hi_topLeft, scheme.hi_bottomRight);
+		RenderBkImage(grc, topLeft, modality);
 		Graphics::DrawBorderAround(grc, absRect, Vec2i{ 1, 1 }, scheme.hi_topLeftEdge, scheme.hi_bottomRightEdge);
 	}
 	else
 	{
 		Graphics::DrawRectangle(grc, absRect, scheme.topLeft, scheme.bottomRight);
+		RenderBkImage(grc, topLeft, modality);
 		Graphics::DrawBorderAround(grc, absRect, Vec2i{ 1, 1 }, scheme.topLeftEdge, scheme.bottomRightEdge);
 	}
 }
@@ -634,10 +666,12 @@ class ScriptedPanel : IEventCallback<ScriptCompileArgs>, IObserver, public IPane
 	GuiRect lastRect{ 0, 0, 0, 0 };
 	std::string scriptFilename;
 	Platform& platform;
+	IEventCallback<ScriptCompileArgs>* onCompile;
 public:
-	ScriptedPanel(Platform& _platform, cstr _scriptFilename) : PaneContainer(_platform),
+	ScriptedPanel(Platform& _platform, cstr _scriptFilename, IEventCallback<ScriptCompileArgs>* _onCompile) : PaneContainer(_platform),
 		platform(_platform),
-		scriptFilename(_scriptFilename)
+		scriptFilename(_scriptFilename),
+		onCompile(_onCompile)
 	{
 		platform.publisher.Subscribe(this, evFileUpdated);
 	}
@@ -669,7 +703,7 @@ public:
 		delete this;
 	}
 
-	virtual void OnEvent(ScriptCompileArgs& args)
+	void OnEvent(ScriptCompileArgs& args) override
 	{
 		AddNativeCalls_RococoITabContainer(args.ss, nullptr);
 		AddNativeCalls_RococoIFramePane(args.ss, nullptr);
@@ -683,6 +717,17 @@ public:
 		AddNativeCalls_RococoISlider(args.ss, nullptr);
 		AddNativeCalls_RococoIScroller(args.ss, nullptr);
 		AddNativeCalls_RococoIEnumListPane(args.ss, nullptr);
+		AddNativeCalls_RococoIInventoryArray(args.ss, nullptr);
+
+		if (onCompile)
+		{
+			// N.B if the caller provides some extra native calls they
+			// may want to do something sophisticated with the panels, so give them
+			// more of the MPLAT API to work with.
+
+			Rococo::Entities::AddNativeCalls_RococoEntitiesIInstances(args.ss, &platform.instances);
+			onCompile->OnEvent(args);
+		}
 	}
 
 	void RefreshScript()
@@ -1049,9 +1094,9 @@ namespace Rococo
 			return new PaneContainer(platform);
 		}
 
-		IPaneBuilderSupervisor* CreateScriptedPanel(Platform& platform, cstr filename)
+		IPaneBuilderSupervisor* CreateScriptedPanel(Platform& platform, cstr filename, IEventCallback<ScriptCompileArgs>* onCompile)
 		{
-			return new ScriptedPanel(platform, filename);
+			return new ScriptedPanel(platform, filename, onCompile);
 		}
 	}
 }

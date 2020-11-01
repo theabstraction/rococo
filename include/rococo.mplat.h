@@ -593,7 +593,13 @@ namespace Rococo
 		virtual void LogMessage(const char* format, ...) = 0;
 		virtual void ToggleOverwriteMode() = 0;
 		virtual IKeyboardSink* CurrentKeyboardSink() = 0;
-		virtual IPaneBuilderSupervisor* BindPanelToScript(cstr scriptName) = 0;
+
+		/*
+		*	N.B if the onCompile parameter is supplied then some of the mplat.sxh interfaces
+		*   are added that may be useful in panel generation. A application can also add native
+		*   interfaces and functions using the onCompile implementation
+		*/
+		virtual IPaneBuilderSupervisor* BindPanelToScript(cstr scriptName, IEventCallback<ScriptCompileArgs>* onCompile = nullptr) = 0;
 		virtual IPaneBuilderSupervisor* CreateDebuggingOverlay() = 0;
 		virtual void Render(IGuiRenderContext& grc) = 0;
 		virtual void PushTop(IPaneSupervisor* panel, bool isModal) = 0;

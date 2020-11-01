@@ -220,12 +220,14 @@
 (interface HV.IPlayer
 	(SetPlayerEntity (Int64 id) -> )
 	(GetPlayerEntity  -> (Int64 id))
+	(GetInventory  -> (Rococo.IInventoryArray inventory))
 )
 
 (class ProxyIPlayer (implements HV.IPlayer) (Pointer hObject))
 	(method ProxyIPlayer.Construct (Pointer hObject): (this.hObject = hObject))
 	(method ProxyIPlayer.SetPlayerEntity (Int64 id) ->  : (HV.Native.IPlayerSetPlayerEntity this.hObject id))
 	(method ProxyIPlayer.GetPlayerEntity  -> (Int64 id) : (HV.Native.IPlayerGetPlayerEntity this.hObject  -> id))
+	(method ProxyIPlayer.GetInventory  -> (Rococo.IInventoryArray inventory) : (HV.Native.IPlayerGetInventory this.hObject  -> inventory))
 
 (factory HV.Player HV.IPlayer (Int32 index) :
 	(Pointer pObject = (HV.Native.GetHandleForIPlayer0 index))

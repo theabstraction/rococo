@@ -15,7 +15,7 @@ namespace Rococo
 {
 	namespace MPlatImpl
 	{
-		IPaneBuilderSupervisor* CreateScriptedPanel(Platform& platform, cstr filename);
+		IPaneBuilderSupervisor* CreateScriptedPanel(Platform& platform, cstr filename, IEventCallback<ScriptCompileArgs>* onCompile = nullptr);
 	}
 }
 
@@ -182,32 +182,32 @@ struct OverlayPane : public IPaneBuilderSupervisor, PaneDelegate, public IUIElem
 		delete this;
 	}
 
-	virtual bool OnKeyboardEvent(const KeyboardEvent& key)
+	bool OnKeyboardEvent(const KeyboardEvent& key) override
 	{
 		return false;
 	}
 
-	virtual void OnRawMouseEvent(const MouseEvent& ev)
+	void OnRawMouseEvent(const MouseEvent& ev) override
 	{
 
 	}
 
-	virtual void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel)
+	void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel) override
 	{
 
 	}
 
-	virtual void OnMouseLClick(Vec2i cursorPos, bool clickedDown)
+	void OnMouseLClick(Vec2i cursorPos, bool clickedDown) override
 	{
 
 	}
 
-	virtual void OnMouseRClick(Vec2i cursorPos, bool clickedDown)
+	void OnMouseRClick(Vec2i cursorPos, bool clickedDown) override
 	{
 
 	}
 
-	virtual void Render(IGuiRenderContext& rc, const GuiRect& absRect)
+	void Render(IGuiRenderContext& rc, const GuiRect& absRect) override
 	{
 		if (type == OverlayPane::Type::Material && !name.empty())
 		{
@@ -312,12 +312,17 @@ struct OverlayPane : public IPaneBuilderSupervisor, PaneDelegate, public IUIElem
 		return current->Render(grc, topLeft, modality);
 	}
 
+	void SetBkImage(const fstring& name) override
+	{
+		Throw(0, "Not implemented");
+	}
+
 	IPaneSupervisor* Supervisor() override
 	{
 		return this;
 	}
 
-	virtual Rococo::IPaneContainer* Root()
+	Rococo::IPaneContainer* Root() override
 	{
 		return PaneDelegate::Root();
 	}
