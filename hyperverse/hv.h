@@ -782,6 +782,8 @@ namespace HV
 	};
 
 	IObjectManager* CreateObjectManager(IRenderer& renderer);
+
+	void FormatEquipmentInfo(char* buffer, size_t capacity, IObjectPrototype& p);
 }
 
 

@@ -127,7 +127,7 @@ namespace Rococo
    {
 	   virtual StringBuilder& AppendFormat(const char* format, ...) = 0;
 	   virtual StringBuilder& operator << (cstr text) = 0;
-	   virtual StringBuilder& operator << (char c) = 0;
+	   virtual StringBuilder& AppendChar(char c) = 0;
 	   virtual StringBuilder& operator << (int32 value) = 0;
 	   virtual StringBuilder& operator << (uint32 value) = 0;
 	   virtual StringBuilder& operator << (int64 value) = 0;
@@ -163,7 +163,7 @@ namespace Rococo
 	   fstring operator * () const override { return fstring{ buffer, length }; }
 	   StringBuilder& AppendFormat(const char* format, ...) override;
 	   StringBuilder& operator << (cstr text) override;
-	   StringBuilder& operator << (char c) override;
+	   StringBuilder& AppendChar(char c) override;
 	   StringBuilder& operator << (int32 value)  override;
 	   StringBuilder& operator << (uint32 value) override;
 	   StringBuilder& operator << (int64 value)  override;

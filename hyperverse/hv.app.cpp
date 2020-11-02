@@ -276,9 +276,57 @@ namespace HV
 
 			brain = CreateAIBrain(platform.publisher, e.sectors);
 
+			int i = 0;
 			auto id = object_manager->CreateObject("weapon.sword.falchion");
-			e.players.GetPlayer(0)->GetInventory()->SetId(0, (uint64) id.value);
-			
+			e.players.GetPlayer(0)->GetInventory()->SetId(i++, (uint64) id.value);
+
+			id = object_manager->CreateObject("weapon.sword.rapier");
+			e.players.GetPlayer(0)->GetInventory()->SetId(i++, (uint64)id.value);
+
+			id = object_manager->CreateObject("weapon.sword.long.1");
+			e.players.GetPlayer(0)->GetInventory()->SetId(i++, (uint64)id.value);
+
+			id = object_manager->CreateObject("weapon.sword.long.2");
+			e.players.GetPlayer(0)->GetInventory()->SetId(i++, (uint64)id.value);
+
+			id = object_manager->CreateObject("weapon.sword.broad.1");
+			e.players.GetPlayer(0)->GetInventory()->SetId(i++, (uint64)id.value);
+
+			id = object_manager->CreateObject("weapon.sword.broad.2");
+			e.players.GetPlayer(0)->GetInventory()->SetId(i++, (uint64)id.value);
+
+			id = object_manager->CreateObject("weapon.axe.battle");
+			e.players.GetPlayer(0)->GetInventory()->SetId(i++, (uint64)id.value);
+
+			id = object_manager->CreateObject("weapon.hammer.mace");
+			e.players.GetPlayer(0)->GetInventory()->SetId(i++, (uint64)id.value);
+
+			id = object_manager->CreateObject("weapon.hammer.claw");
+			e.players.GetPlayer(0)->GetInventory()->SetId(i++, (uint64)id.value);
+
+			id = object_manager->CreateObject("weapon.sword.katana");
+			e.players.GetPlayer(0)->GetInventory()->SetId(i++, (uint64)id.value);	
+
+			id = object_manager->CreateObject("weapon.xbow.hand");
+			e.players.GetPlayer(0)->GetInventory()->SetId(i++, (uint64)id.value);
+
+			id = object_manager->CreateObject("weapon.xbow.modern");
+			e.players.GetPlayer(0)->GetInventory()->SetId(i++, (uint64)id.value);
+
+			id = object_manager->CreateObject("weapon.sword.delta");
+			e.players.GetPlayer(0)->GetInventory()->SetId(i++, (uint64)id.value);
+
+			id = object_manager->CreateObject("weapon.sword.short");
+			e.players.GetPlayer(0)->GetInventory()->SetId(i++, (uint64)id.value);
+
+			id = object_manager->CreateObject("weapon.sword.sabre.1");
+			e.players.GetPlayer(0)->GetInventory()->SetId(i++, (uint64)id.value);
+
+			id = object_manager->CreateObject("weapon.sword.sabre.2");
+			e.players.GetPlayer(0)->GetInventory()->SetId(i++, (uint64)id.value);
+
+			id = object_manager->CreateObject("weapon.sword.bastard");
+			e.players.GetPlayer(0)->GetInventory()->SetId(i++, (uint64)id.value);
 		}
 
 		~App()

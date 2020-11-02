@@ -54,7 +54,7 @@
 (alias ObjectDynamics HV.ObjectDynamics)
 
 (struct InventoryData
-	(Int32 legalEquipmentSlotFlags)
+	(Int64 legalEquipmentSlotFlags)
 	(Int32 maxStackSize)
 	(Int64 icon)
 )

@@ -274,6 +274,9 @@ namespace
 			prototype->dynamics = i->second->dynamics;
 			prototype->melee = i->second->melee;
 			prototype->invData = i->second->invData;
+			prototype->material = i->second->material;
+			prototype->shortName = i->second->shortName;
+			prototype->desc = i->second->desc;
 		}
 
 		void Commit(const fstring& uniqueName) override

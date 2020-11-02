@@ -49,6 +49,170 @@
 	(obj.Commit "weapon.sword.falchion")
 )
 
+(function AddBolloxDagger (IObjectPrototypeBuilder obj) -> :
+	(ObjectDynamics dynamics)
+	(dynamics.mass = 0.624)
+	(dynamics.airFrictionLinearQuotient = 0.1)
+	(dynamics.airFrictionQuadraticQuotient = 0.1)
+	(dynamics.span = 0.06 0.39 0.0175)
+	(obj.AddDynamics dynamics)
+
+	(MeleeData melee)
+	(melee.swingSpeed = 2)
+	(melee.baseDamage = 4)
+	(obj.AddMeleeData melee)
+
+	(MaterialData steel)
+	(GetSteel steel)
+	
+	(obj.AddSlot (#EquipmentSlotHand))
+
+	(obj.AddMaterial steel)
+	(obj.AddShortName "Bollox Dagger")
+	(obj.AddDesc "Popular from the 13th to the 18th century, the dagger takes its name from its distinctive hilt.")
+	(obj.AddIcon "#icons/bollox.dagger.tif")
+	(obj.Commit "weapon.dagger.bollox")
+)
+
+(function AddRondelDagger (IObjectPrototypeBuilder obj) -> :
+	(obj.CloneFrom "weapon.dagger.bollox")
+	(obj.AddShortName "Rondel Dagger")
+	(obj.AddDesc "A 15th century invention, the sharp and hard point of the Rondel dagger, combined with its sturdy blade was ideal for penetrating chain armour and the chinks in platemail.")
+	(obj.AddIcon "#icons/rondel.dagger.tif")
+	(obj.Commit "weapon.dagger.rondel")
+)
+
+(function AddQuillonDagger (IObjectPrototypeBuilder obj) -> :
+	(obj.CloneFrom "weapon.dagger.bollox")
+	(obj.AddShortName "Quillon Dagger")
+	(obj.AddDesc "Take a short blade and add a decent crossguard and you have quillon dagger. The defensive advantages are obvious.")
+	(obj.AddIcon "#icons/quillon.dagger.tif")
+	(obj.Commit "weapon.dagger.quillon")
+)
+
+(function AddBastardSword (IObjectPrototypeBuilder obj) -> :
+	(obj.CloneFrom "weapon.sword.falchion")
+	(obj.AddShortName "Bastard Sword")
+	(obj.AddDesc "Otherwise known as a hand-and-a-half sword, it is something betwixt a long sword and a claymore but does not handle as either.")
+	(obj.AddIcon "#icons/bastard.sword.tif")
+	(obj.Commit "weapon.sword.bastard")
+)
+
+(function AddBattleAxe (IObjectPrototypeBuilder obj) -> :
+	(obj.CloneFrom "weapon.sword.falchion")
+	(obj.AddShortName "Battle Axe")
+	(obj.AddDesc "Suprisingly light and agile the battle axe was used to slash rather than to chop.")
+	(obj.AddIcon "#icons/battle.axe.tif")
+	(obj.Commit "weapon.axe.battle")
+)
+
+(function AddBroadSwords (IObjectPrototypeBuilder obj) -> :
+	(obj.CloneFrom "weapon.sword.falchion")
+	(obj.AddShortName "Broadsword")
+	(obj.AddDesc "Generally confused with long swords, the broadsword is intended to be used single-handed, with a shield in the other hand. They are heavy and unwieldy, but quite hard hitting even when blunt.")
+	(obj.AddIcon "#icons/broad.sword.tif")
+	(obj.Commit "weapon.sword.broad.1")
+	(obj.CloneFrom "weapon.sword.broad.1")
+	(obj.AddIcon "#icons/broad.sword.2.tif")
+	(obj.Commit "weapon.sword.broad.2")
+)
+
+(function AddLongSwords (IObjectPrototypeBuilder obj) -> :
+	(obj.CloneFrom "weapon.sword.falchion")
+	(obj.AddShortName "Long sword")
+	(obj.AddDesc "A two handed weapon from the 16th century, the techniques of long sword fighting are still an unknown. Some say they were used in a form of wrestling, where the finishing move was to impale your opponent .")
+	(obj.AddIcon "#icons/long.sword.tif")
+	(obj.Commit "weapon.sword.long.1")
+	(obj.CloneFrom "weapon.sword.long.1")
+	(obj.AddIcon "#icons/long.sword.2.tif")
+	(obj.Commit "weapon.sword.long.2")
+	(obj.CloneFrom "weapon.sword.long.1")
+	(obj.AddIcon "#icons/long.sword.3.tif")
+	(obj.Commit "weapon.sword.long.3")
+)
+
+(function AddSabres (IObjectPrototypeBuilder obj) -> :
+	(obj.CloneFrom "weapon.sword.long.1")
+	(obj.AddShortName "Sabre")
+	(obj.AddDesc "With the advantage of a curved blade, together with its very light weight and fantastic edge the sabre was the favoured melee weapon up until the 20th century. It is highly effective at both slashing and thrusting.")
+	(obj.AddIcon "#icons/cavalry.sword.tif")
+	(obj.Commit "weapon.sword.sabre.1")
+	(obj.CloneFrom "weapon.sword.sabre.1")
+	(obj.AddIcon "#icons/sabre.tif")
+	(obj.Commit "weapon.sword.sabre.2")
+)
+
+(function AddHammers (IObjectPrototypeBuilder obj) -> :
+	(obj.CloneFrom "weapon.sword.falchion")
+	(obj.AddShortName "Claw Hammer")
+	(obj.AddDesc "When everything looks like a nail, the tool of choice has to be the claw hammer")
+	
+	(MaterialData highCarbonSteel)
+	(highCarbonSteel.mohsHardness = 8)
+	(highCarbonSteel.toughness = 9)
+	(highCarbonSteel.atomicNumber = (#CompoundsStainlessSteel))		
+	(obj.AddMaterial highCarbonSteel)
+	
+	(obj.AddIcon "#icons/claw.hammer.tif")
+	(obj.Commit "weapon.hammer.claw")
+)
+
+(function AddMace (IObjectPrototypeBuilder obj) -> :
+	(obj.CloneFrom "weapon.sword.falchion")
+	(obj.AddShortName "Mace")
+	(obj.AddDesc "With chainmail and plate armour renowned for defeating swords, arrows and even axes, weaponsmiths developed the mace - a heavy lump of soft metal, such as copper, at the end of a sturdy rod. A very effective weapon for killing people, but not too good against a rapier.")
+	(obj.AddIcon "#icons/mace.tif")
+	(obj.Commit "weapon.hammer.mace")
+)
+
+(function AddShortsword (IObjectPrototypeBuilder obj) -> :
+	(obj.CloneFrom "weapon.sword.falchion")
+	(obj.AddShortName "Shortsword")
+	(obj.AddDesc "While not having much reach, they are swift and can pack quite a punch. The Roman legions swore by them.")
+	(obj.AddIcon "#icons/short.sword.tif")
+	(obj.Commit "weapon.sword.short")
+)
+
+(function AddRapier (IObjectPrototypeBuilder obj) -> :
+	(obj.CloneFrom "weapon.sword.falchion")
+	(obj.AddShortName "Rapier")
+	(obj.AddDesc "They may be a little dainty, but they were more than a match for katanas when the Portugese invaded Japan. Their great speed and length makes it trivial to poke out an enemy's eye, or rip open a thigh.")
+	(obj.AddIcon "#icons/rapier.tif")
+	(obj.Commit "weapon.sword.rapier")
+)
+
+(function AddKatana (IObjectPrototypeBuilder obj) -> :
+	(obj.CloneFrom "weapon.sword.rapier")
+	(obj.AddShortName "Katana")
+	(obj.AddDesc "More of a ceremonial artifact than weapon, Samurais preferred bows and spears, but a well-honed katana is no doubt a deadly weapon.")
+	(obj.AddIcon "#icons/katana.tif")
+	(obj.Commit "weapon.sword.katana")
+)
+
+(function AddDelta (IObjectPrototypeBuilder obj) -> :
+	(obj.CloneFrom "weapon.sword.rapier")
+	(obj.AddShortName "Deltasword")
+	(obj.AddDesc "There must be some reason that someone put the crossguard on the wrong way around. Still, as long as your opponent is armed with another delta sword, it confers no disadvantage.")
+	(obj.AddIcon "#icons/delta.sword.tif")
+	(obj.Commit "weapon.sword.delta")
+)
+
+(function AddHandBow (IObjectPrototypeBuilder obj) -> :
+	(obj.CloneFrom "weapon.sword.rapier")
+	(obj.AddShortName "Hand crossbow")
+	(obj.AddDesc "Light enough that you can fire it one handed without shaking too much. The aim is awful, so is generally only effective at point blank range.")
+	(obj.AddIcon "#icons/hand.xbow.tif")
+	(obj.Commit "weapon.xbow.hand")
+)
+
+(function AddModernXBow (IObjectPrototypeBuilder obj) -> :
+	(obj.CloneFrom "weapon.xbow.hand")
+	(obj.AddShortName "Modern crossbow")
+	(obj.AddDesc "While a silent and deadly weapon, you need both hands and a foot in the styrrup to reload it. Not exactly an 'assault' weapon. It is also quite bulky and awkward to carry around.")
+	(obj.AddIcon "#icons/xbow.modern.tif")
+	(obj.Commit "weapon.xbow.modern")
+)
+
 (function Main (Int32 id)->(Int32 exitCode):
 	(IObjectPrototypeBuilder prototypes (ObjectPrototypeBuilder))
 	(ISpriteBuilder sb (SpriteBuilder))
@@ -57,4 +221,20 @@
 	(sb.LoadAllSprites)
 
 	(AddFalchion prototypes)
+	(AddBastardSword prototypes)
+	(AddBattleAxe prototypes)
+	(AddBroadSwords prototypes)
+	(AddBolloxDagger prototypes)
+	(AddQuillonDagger prototypes)
+	(AddRondelDagger prototypes)
+	(AddLongSwords prototypes)
+	(AddSabres prototypes)
+	(AddHammers prototypes)
+	(AddMace prototypes)
+	(AddShortsword prototypes)
+	(AddRapier prototypes)
+	(AddKatana prototypes)
+	(AddDelta prototypes)
+	(AddHandBow prototypes)
+	(AddModernXBow prototypes)
 )

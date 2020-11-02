@@ -123,7 +123,7 @@ namespace
 			return *this;
 		}
 
-		StringBuilder& operator << (char c) override
+		StringBuilder& AppendChar(char c) override
 		{
 			char data[2];
 			data[0] = c;
@@ -698,7 +698,7 @@ namespace Rococo
       return AppendFormat("%s", text);
    }
 
-   StringBuilder& StackStringBuilder::operator << (char c)
+   StringBuilder& StackStringBuilder::AppendChar(char c)
    {
 	   return AppendFormat("%c", c);
    }

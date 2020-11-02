@@ -63,7 +63,7 @@ namespace HV {
 namespace HV { 
 	struct InventoryData
 	{
-		int32 legalEquipmentSlotFlags;
+		int64 legalEquipmentSlotFlags;
 		int32 maxStackSize;
 		ID_SPRITE icon;
 	};

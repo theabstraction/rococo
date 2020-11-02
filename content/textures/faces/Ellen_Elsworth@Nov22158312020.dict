@@ -1,0 +1,12 @@
+// Rococo::Sex::S-Parser is recommended for parsing this file
+
+(' S-Format-Dictionary-v1.0 ( 
+	(I32 Strength 111)
+	(I32 Agility 103)
+	(I32 Wellness 117)
+	(I32 Psyche 80)
+	(I32 Ego 134)
+	(I32 Maths 99)
+	(STR Name "Ellen Elsworth")
+	(STR Portrait "!textures/faces/female/lady.white.10.jpg")
+))

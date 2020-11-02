@@ -90,232 +90,6 @@ public:
 		parent.OnMouseRClick(cursorPos, clickedDown);
 	}
 
-	void ToPoundsAndOunces(Kilograms mass, int32& pounds, float& oz)
-	{
-		float lbsF32 = mass * 2.204623f;
-		float lbsF32Int = floorf(lbsF32);
-		constexpr float ozPerLb = 16;
-		oz = ozPerLb * (lbsF32 - lbsF32Int);
-		pounds = (int32)lbsF32Int;
-	}
-
-	void AppendInFeetAndInches(StringBuilder& sb, float x)
-	{
-		float inches = x * 39.37008f;
-		float wholeInches = floorf(inches);
-		float partialInches = inches - wholeInches;
-		int32 feet = (int32)(wholeInches / 12.0f);
-
-		int32 remainderInches = ((int32)wholeInches) % 12;
-
-		if (feet > 0)
-		{
-			sb << feet << "' " << remainderInches << "\"";
-		}
-		else
-		{
-			float32 outputInches = partialInches + (float)remainderInches;
-			sb.AppendFormat("%.2f\"", outputInches);
-		}
-	}
-
-	void AppendMass(StringBuilder& sb, Kilograms mass)
-	{
-		if (mass < 1.0)
-		{
-			float grams = mass * 1000.0f;
-			sb << (int32)grams << " grams\n";
-		}
-		else
-		{
-			sb.AppendFormat("%.2f kg", mass.value);
-		}
-
-		int pounds;
-		float oz;
-		ToPoundsAndOunces(mass, OUT pounds, OUT oz);
-
-		if (pounds > 0)
-		{
-			sb.AppendFormat(" / %d lbs", pounds);
-
-			int32 ioz = (int32)oz;
-			if (ioz != 0)
-			{
-				sb.AppendFormat(" %d oz", ioz);
-			}
-		}
-		else
-		{
-			sb.AppendFormat(" %.2f oz", oz);
-		}
-	}
-
-	void AppendSpan(StringBuilder& sb, const Vec3& spanMetres)
-	{
-		auto& span = 1000.0f * spanMetres;
-
-		sb.AppendFormat("%.0fmm x %.0fmm x %0.fmm (", span.x, span.y, span.z);
-
-		AppendInFeetAndInches(sb, spanMetres.x);
-
-		sb << "  x  ";
-
-		AppendInFeetAndInches(sb, spanMetres.y);
-
-		sb << "  x  ";
-
-		AppendInFeetAndInches(sb, spanMetres.z);
-
-		sb << ")\n";
-	}
-
-	void AppendEnumToBuilderForHumanReader(StringBuilder& sb, const fstring& name)
-	{
-		for (int i = 0; i < name.length; ++i)
-		{
-			char c = name[i];
-			if (c >= 'A' && c <= 'Z')
-			{
-				if (i > 0)
-				{
-					sb << " ";
-				}
-
-				sb << (char)(c + 32);
-			}
-			else
-			{
-				sb << c;
-			}
-		}
-	}
-
-	void AtomicNumberToString(StringBuilder& sb, int atomicNumber)
-	{
-		if (atomicNumber < 0)
-		{
-			sb << "anti-matter";
-			return;
-		}
-		else if (atomicNumber == 0)
-		{
-			sb << "pure-energy";
-			return;
-		}
-
-		if (atomicNumber < 200)
-		{
-			auto& name = HV::Chemicals::ToShortString((HV::Chemicals::Element) atomicNumber);
-			if (name.length > 0)
-			{
-				AppendEnumToBuilderForHumanReader(sb, name);
-			}
-			else
-			{
-				sb << "Element #" << atomicNumber;
-			}
-			return;
-		}
-
-		auto& name = HV::Chemicals::ToShortString((HV::Chemicals::Compounds) atomicNumber);
-		if (name.length > 0)
-		{
-			AppendEnumToBuilderForHumanReader(sb, name);
-		}
-		else
-		{
-			sb << "Agent #" << atomicNumber;
-		}
-		return;
-	}
-
-	void HardnessToString(StringBuilder& sb, int32 mohsScale)
-	{
-		if (mohsScale <= 1)
-		{
-			sb << "crumbly";
-			return;
-		}
-
-		switch (mohsScale)
-		{
-		case 2:
-			sb << "quite soft";
-			return;
-		case 3:
-			sb << "soft";
-			return;
-		case 4:
-			sb << "not very hard";
-			return;
-		case 5:
-			sb << "hard";
-			return;
-		case 6:
-			sb << "quite hard";
-			return;
-		case 7:
-			sb << "very hard";
-			return;
-		case 8:
-			sb << "very very hard";
-			return;
-		case 9:
-			sb << "almost as hard as diamonds";
-			return;
-		case 10:
-			sb << "hard as diamonds";
-			return;
-		default:
-			sb << "harder than any diamond";
-			return;
-		}
-	}
-
-	void ToughnessToString(StringBuilder& sb, int32 toughness)
-	{
-		if (toughness <= 1)
-		{
-			sb << "extremely fragile";
-			return;
-		}
-
-		switch (toughness)
-		{
-		case 2:
-			sb << "very fragile";
-			return;
-		case 3:
-			sb << "fragile";
-			return;
-		case 4:
-			sb << "brittle";
-			return;
-		case 5:
-			sb << "a little brittle";
-			return;
-		case 6:
-			sb << "tough";
-			return;
-		case 7:
-			sb << "quite tough";
-			return;
-		case 8:
-			sb << "very tough";
-			return;
-		case 9:
-			sb << "very very tough";
-			return;
-		case 10:
-			sb << "of unmatched toughness";
-			return;
-		default:
-			sb << "unphysically tough";
-			return;
-		}
-	}
-
 	void RenderInfo(IGuiRenderContext& g, ID_OBJECT objectId)
 	{
 		RGBAb white(255, 255, 255, 255);
@@ -333,82 +107,8 @@ public:
 
 		if (!obj.prototype) return;
 
-		auto& p = *obj.prototype;
-
 		char desc[4096];
-		StackStringBuilder sb(desc, sizeof(desc));
-
-		auto& melee = p.Melee();
-
-		sb << p.ShortName() << "\n\n";
-		sb << " * " << p.Description() << "\n";
-
-		auto& dynamics = p.Dynamics();
-
-		sb << "\n * Mass: ";
-		AppendMass(sb, dynamics.mass);
-
-		sb << "\n * Dimensions: ";
-		AppendSpan(sb, dynamics.span);
-
-		const auto& mats = p.Mats();
-
-		sb << "\n * The material appears to be ";
-		AtomicNumberToString(sb, mats.atomicNumber);
-		sb << " - it feels ";
-		
-		if ((mats.mohsHardness < 5 && mats.toughness < 5) ||
-			(mats.mohsHardness > 5 && mats.toughness > 5))
-		{
-			sb << " both ";
-		}
-		
-		HardnessToString(sb, mats.mohsHardness);
-
-		if ((mats.mohsHardness < 5 && mats.toughness < 5) ||
-			(mats.mohsHardness > 5 && mats.toughness > 5))
-		{
-			sb << " and ";
-		}
-		else
-		{
-			sb << " but ";
-		}
-		ToughnessToString(sb, mats.toughness);
-
-		sb << "\n";
-
-		if (melee.baseDamage > 0)
-		{
-			if (melee.baseDamage < 2)
-			{
-				sb << " * The weapon appears to be no better than a sharp stick";
-			}
-			else 
-			if (melee.baseDamage < 8)
-			{
-				sb << " * The weapon appears to be little better than a sharp stick";
-			}
-			else
-			if (melee.baseDamage < 16)
-			{
-				sb << " * If you can get a hit in, this weapon would give you good odds in armed combat";
-			}
-			else
-			if (melee.baseDamage < 24)
-			{
-				sb << " * The weapon looks like it could inflict a grevious wound";
-			}
-			else
-			if (melee.baseDamage < 32)
-			{
-				sb << " * One blow from this weapon could fell any man";
-			}
-			else
-			{
-				sb << " * One blow from this weapon could split a horse in two";
-			}
-		}
+		FormatEquipmentInfo(desc, sizeof(desc), *obj.prototype);
 
 		Graphics::RenderHQParagraph(g, idFont, lastRect, desc, white);
 
@@ -497,6 +197,62 @@ public:
 	}
 };
 
+void RenderItemBitmapMax(IGuiRenderContext& g, const Textures::BitmapLocation& bitmap, const Vec2& pos, Degrees rotationTheta)
+{
+	SpriteVertexData svd;
+	svd.lerpBitmapToColour = 0.0f;
+	svd.textureIndex = (float)bitmap.textureIndex;
+	svd.textureToMatLerpFactor = 0.0f;
+	svd.matIndex = 0;
+
+	GuiRectf txUV = Dequantize(bitmap.txUV);
+
+	GuiVertex a, b, c, d;
+	a.colour = b.colour = c.colour = d.colour = RGBAb(0, 0, 0, 0);
+	a.vd.fontBlend = b.vd.fontBlend = c.vd.fontBlend = d.vd.fontBlend = 0;
+	a.vd.uv = { txUV.left, txUV.bottom };
+	b.vd.uv = { txUV.left, txUV.top };
+	c.vd.uv = { txUV.right, txUV.top };
+	d.vd.uv = { txUV.right, txUV.bottom };
+	a.sd = b.sd = c.sd = d.sd = svd;
+
+	GuiRectf rect{ pos.x, pos.y, pos.x + Width(txUV), pos.y + Height(txUV) };
+	// Horizontal items align to the top and then rotate 45 degrees
+	a.pos = { rect.left, rect.bottom };
+	b.pos = { rect.left, rect.top };
+	c.pos = { rect.right, rect.top };
+	d.pos = { rect.right, rect.bottom };
+
+	Vec2 centreOfRotation = b.pos + Vec2{ 0.5f * Height(rect), 0.5f * Height(rect) };
+
+	a.pos -= centreOfRotation;
+	b.pos -= centreOfRotation;
+	c.pos -= centreOfRotation;
+	d.pos -= centreOfRotation;
+
+	Matrix2x2 R = Matrix2x2::RotateAnticlockwise(rotationTheta);
+
+	a.pos = R * a.pos;
+	b.pos = R * b.pos;
+	c.pos = R * c.pos;
+	d.pos = R * d.pos;
+
+	a.pos += centreOfRotation;
+	b.pos += centreOfRotation;
+	c.pos += centreOfRotation;
+	d.pos += centreOfRotation;
+
+	GuiTriangle t1, t2;
+	t1.a = a;
+	t1.b = b;
+	t1.c = c;
+	t2.a = c;
+	t2.b = d;
+	t2.c = a;
+	g.AddTriangle(&t1.a);
+	g.AddTriangle(&t2.a);
+}
+
 class InventoryPopulator : public IUIElement
 {
 	IInventoryArray& inventory;
@@ -537,6 +293,20 @@ public:
 		parent.OnMouseMove(cursorPos, delta, dWheel);
 	}
 
+	void Advance(const IUltraClock& clock)
+	{
+		if (unsheatheAngle > -25.0f)
+		{
+			unsheatheAngle -= 450.0f * clock.DT();
+		}
+		else
+		{
+			unsheatheAngle = -25.0f;
+		}
+	}
+
+	float unsheatheAngle = 45.0f;
+
 	void OnMouseLClick(Vec2i cursorPos, bool clickedDown) override
 	{
 		int32 index = inventory.GetIndexAt(cursorPos);
@@ -562,6 +332,7 @@ public:
 				auto obj = objects.GetObject(objId);
 				if (obj.prototype != nullptr)
 				{
+					unsheatheAngle = 45.0f;
 					selectedObjectIndex = index;
 					SetCursorToBitmap(obj.prototype->Bitmap());
 					monitor.SetCursorObject(objId);
@@ -577,6 +348,81 @@ public:
 	void OnMouseRClick(Vec2i cursorPos, bool clickedDown) override
 	{
 		parent.OnMouseRClick(cursorPos, clickedDown);
+	}
+
+	void RenderItemBitmap(IGuiRenderContext& g, const Textures::BitmapLocation& bitmap, const GuiRect& absRect)
+	{
+		if (bitmap.pixelSpan.x == bitmap.pixelSpan.y)
+		{
+			// Square bitmaps stretch to fit
+			Graphics::StretchBitmap(g, bitmap, absRect);
+			return;
+		}
+
+		SpriteVertexData svd;
+		svd.lerpBitmapToColour = 0.0f;
+		svd.textureIndex = (float)bitmap.textureIndex;
+		svd.textureToMatLerpFactor = 0.0f;
+		svd.matIndex = 0;
+
+		GuiRectf txUV = Dequantize(bitmap.txUV);
+
+		GuiVertex a, b, c, d;
+		a.colour = b.colour = c.colour = d.colour = RGBAb(0, 0, 0, 0);
+		a.vd.fontBlend = b.vd.fontBlend = c.vd.fontBlend = d.vd.fontBlend = 0;
+		a.vd.uv = { txUV.left, txUV.bottom };
+		b.vd.uv = { txUV.left, txUV.top };
+		c.vd.uv = { txUV.right, txUV.top };
+		d.vd.uv = { txUV.right, txUV.bottom };
+		a.sd = b.sd = c.sd = d.sd = svd;
+
+		if (bitmap.pixelSpan.x > bitmap.pixelSpan.y)
+		{
+			GuiRectf rect = Dequantize(absRect);
+			float deltaY = bitmap.pixelSpan.y * Height(rect) / bitmap.pixelSpan.x;
+			// Horizontal items align to the top and then rotate 45 degrees
+			a.pos = { rect.left, rect.top + deltaY };
+			b.pos = { rect.left, rect.top};
+			c.pos = { rect.right, rect.top};
+			d.pos = { rect.right, rect.top + deltaY };
+
+			Vec2 centreOfRotation = b.pos + Vec2{ 0.5f * deltaY, 0.5f * deltaY };
+
+			a.pos -= centreOfRotation;
+			b.pos -= centreOfRotation;
+			c.pos -= centreOfRotation;
+			d.pos -= centreOfRotation;
+
+			Matrix2x2 R = Matrix2x2::RotateAnticlockwise(45_degrees);
+
+			a.pos = R * a.pos;
+			b.pos = R * b.pos;
+			c.pos = R * c.pos;
+			d.pos = R * d.pos;
+
+			a.pos += centreOfRotation;
+			b.pos += centreOfRotation;
+			c.pos += centreOfRotation;
+			d.pos += centreOfRotation;
+
+			float L = Width(rect);
+			float dL = L * (1.0f - 0.5f * sqrtf(2)) * 0.25f;
+
+			a.pos += Vec2{ dL, dL };
+			b.pos += Vec2{ dL, dL };
+			c.pos += Vec2{ dL, dL };
+			d.pos += Vec2{ dL, dL };
+
+			GuiTriangle t1, t2;
+			t1.a = a;
+			t1.b = b;
+			t1.c = c;
+			t2.a = c;
+			t2.b = d;
+			t2.c = a;
+			g.AddTriangle(&t1.a);
+			g.AddTriangle(&t2.a);
+		}
 	}
 
 	void RenderInventory(IGuiRenderContext& g, const GuiRect& absRect)
@@ -636,7 +482,7 @@ public:
 			{
 				RGBAb black = RGBAb(0, 0, 0, 192);
 				Graphics::DrawRectangle(g, rect, black, black);
-				Graphics::StretchBitmap(g, obj.prototype->Bitmap(), rect);
+				RenderItemBitmap(g, obj.prototype->Bitmap(), rect);
 			}
 			else
 			{
@@ -659,7 +505,13 @@ public:
 		{
 			GuiMetrics metrics;
 			g.Renderer().GetGuiMetrics(metrics);
-			Graphics::DrawSprite(metrics.cursorPosition, cursorBitmap, g);
+
+			int64 delta = Rococo::OS::CpuTicks() % Rococo::OS::CpuHz();
+			float t = delta / (float) Rococo::OS::CpuHz();
+			float s = sinf(2.0f * 3.14159f * t);
+			Degrees sr{ unsheatheAngle + 1.0f * s };
+
+			RenderItemBitmapMax(g, cursorBitmap, Dequantize(metrics.cursorPosition), sr);
 		}
 	}
 };
@@ -827,6 +679,12 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 	{
 		fpsControl.speeds = Vec3{ 10.0f, 5.0f, 5.0f };
 		platform.scene.SetPopulator(this);
+
+		platform.gui.RegisterPopulator("fps", this);
+		platform.gui.RegisterPopulator("fps.information", &infoPopulator);
+		platform.gui.RegisterPopulator("fps.inventory", &inventoryPopulator);
+		platform.gui.RegisterPopulator("fps.eye_glass", &eyeGlassPopulator);
+
 	}
 
 	~FPSGameLogic()
@@ -1610,12 +1468,10 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 
 	void UpdateAI(const IUltraClock& clock) override
 	{
-		platform.gui.RegisterPopulator("fps", this);
-		platform.gui.RegisterPopulator("fps.information", &infoPopulator);
-		platform.gui.RegisterPopulator("fps.inventory", &inventoryPopulator);
-		platform.gui.RegisterPopulator("fps.eye_glass", &eyeGlassPopulator);
 		UpdatePlayer(clock);
 		ComputeVisibleSectorsThisTimestep();
+
+		inventoryPopulator.Advance(clock);
 	}
 
 	bool overlayInventory = false;
@@ -1802,7 +1658,10 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 		{
 			if (platform.gui.Count() == 1)
 			{
-				RenderSplash(g);
+				if (!overlayInventory)
+				{
+					RenderSplash(g);
+				}
 				//RenderXbox360Data(g);
 			}
 		}

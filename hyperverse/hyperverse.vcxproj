@@ -125,6 +125,7 @@
     <ClCompile Include="hv.defaultconfig.cpp" />
     <ClCompile Include="hv.editor.cpp" />
     <ClCompile Include="hv.equipment.cpp" />
+    <ClCompile Include="hv.equipment.info.english.cpp" />
     <ClCompile Include="hv.events.cpp" />
     <ClCompile Include="hv.field.editor.cpp" />
     <ClCompile Include="hv.fps.logic.cpp" />
