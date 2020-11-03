@@ -124,7 +124,6 @@ public:
 class EyeGlassPopulator : public IUIElement, public ICursorMonitor
 {
 	IUIElement& parent;
-	Textures::BitmapLocation bitmap;
 	bool enable = false;
 	ID_OBJECT cursorObjectId;
 	IObjectManager& objects;
@@ -132,7 +131,7 @@ class EyeGlassPopulator : public IUIElement, public ICursorMonitor
 	InformationPopulator& infoPopulator;
 public:
 	EyeGlassPopulator(IObjectManager& refObjects, IUIElement& refParent, InformationPopulator& refInfoPopulator):
-		objects(refObjects), parent(refParent), bitmap(nullBitmap), infoPopulator(refInfoPopulator)
+		objects(refObjects), parent(refParent), infoPopulator(refInfoPopulator)
 	{
 
 	}
@@ -176,16 +175,6 @@ public:
 		if (!enable) return;
 
 		lastRect = absRect;
-		
-		if (bitmap.pixelSpan.x == 0)
-		{
-			if (!g.Renderer().SpriteBuilder().TryGetBitmapLocation("#icons/eye_glass.tif", bitmap))
-			{
-				Throw(0, "Could not find bitmap: #icons/eye_glass.tif");
-			}
-		}
-
-		Graphics::StretchBitmap(g, bitmap, absRect);
 
 		GuiMetrics metrics;
 		g.Renderer().GetGuiMetrics(metrics);

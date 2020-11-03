@@ -159,8 +159,15 @@
 
 (function AddMace (IObjectPrototypeBuilder obj) -> :
 	(obj.CloneFrom "weapon.sword.falchion")
+	
+	(MaterialData copper)
+	(copper.mohsHardness = 4)
+	(copper.toughness = 8)
+	(copper.atomicNumber = (#ElementCopper))		
+	(obj.AddMaterial copper)
+	
 	(obj.AddShortName "Mace")
-	(obj.AddDesc "With chainmail and plate armour renowned for defeating swords, arrows and even axes, weaponsmiths developed the mace - a heavy lump of soft metal, such as copper, at the end of a sturdy rod. A very effective weapon for killing people, but not too good against a rapier.")
+	(obj.AddDesc "With chainmail and plate armour renowned for defeating swords, arrows and even axes, weaponsmiths developed the mace - a heavy lump of soft metal at the end of a sturdy rod. A very effective weapon for killing people, but not too good against a rapier.")
 	(obj.AddIcon "#icons/mace.tif")
 	(obj.Commit "weapon.hammer.mace")
 )

@@ -130,6 +130,8 @@
 	(infoRect.bottom = (layout.topLeft.y - 16))
 	(IPaneContainer infoPane = (inventoryPane.AddContainer infoRect))
 	
+	(inventory.AddPaperDoll eyeRect "#icons/eye_glass.tif")
+	
 	(SetTransparentBackground infoPane)
 	(infoPane.SetPopulator 0 "fps.information")
 )

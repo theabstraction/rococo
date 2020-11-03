@@ -253,7 +253,7 @@ namespace HV
 
 		sb << "\n * The material appears to be ";
 		AtomicNumberToString(sb, mats.atomicNumber);
-		sb << " - it feels ";
+		sb << " - it is ";
 
 		if ((mats.mohsHardness < 5 && mats.toughness < 5) ||
 			(mats.mohsHardness > 5 && mats.toughness > 5))
@@ -270,7 +270,7 @@ namespace HV
 		}
 		else
 		{
-			sb << " but ";
+			sb << " but is also ";
 		}
 		ToughnessToString(sb, mats.toughness);
 
