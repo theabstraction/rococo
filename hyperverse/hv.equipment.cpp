@@ -10,7 +10,7 @@ using namespace HV;
 using namespace Rococo;
 using namespace Rococo::Textures;
 
-namespace
+namespace ANON // This allows the debugger to identify the members from the interface reference
 {
 	class ObjectPrototype : public IObjectPrototypeSupervisor
 	{
@@ -310,6 +310,6 @@ namespace HV
 {
 	IObjectManager* CreateObjectManager(IRenderer& renderer)
 	{
-		return new ObjectPrototypeManager(renderer);
+		return new ANON::ObjectPrototypeManager(renderer);
 	}
 }

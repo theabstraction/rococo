@@ -108,7 +108,8 @@ namespace
 	{
 		if (atomicNumber < 0)
 		{
-			sb << "anti-matter";
+			sb << "anti-";
+			AtomicNumberToString(sb, -atomicNumber);
 			return;
 		}
 		else if (atomicNumber == 0)
@@ -175,13 +176,13 @@ namespace
 			sb << "very very hard";
 			return;
 		case 9:
-			sb << "almost as hard as diamonds";
+			sb << "almost as hard as diamond";
 			return;
 		case 10:
-			sb << "hard as diamonds";
+			sb << "hard as diamond";
 			return;
 		default:
-			sb << "harder than any diamond";
+			sb << "much harder than any diamond";
 			return;
 		}
 	}
@@ -255,22 +256,16 @@ namespace HV
 		AtomicNumberToString(sb, mats.atomicNumber);
 		sb << " - it is ";
 
-		if ((mats.mohsHardness < 5 && mats.toughness < 5) ||
-			(mats.mohsHardness > 5 && mats.toughness > 5))
-		{
-			sb << "both ";
-		}
-
 		HardnessToString(sb, mats.mohsHardness);
 
 		if ((mats.mohsHardness < 5 && mats.toughness < 5) ||
-			(mats.mohsHardness > 5 && mats.toughness > 5))
+			(mats.mohsHardness >= 5 && mats.toughness >= 5))
 		{
 			sb << " and ";
 		}
 		else
 		{
-			sb << " but is also ";
+			sb << " but it is ";
 		}
 		ToughnessToString(sb, mats.toughness);
 

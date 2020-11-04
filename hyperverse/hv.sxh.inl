@@ -1311,6 +1311,10 @@ namespace HV { namespace Chemicals {
 		{
 			value = Compounds_Rosewood;
 		}
+		else if (s ==  "Compounds_Elm"_fstring)
+		{
+			value = Compounds_Elm;
+		}
 		else if (s ==  "Compounds_Polythene"_fstring)
 		{
 			value = Compounds_Polythene;
@@ -1362,6 +1366,10 @@ namespace HV { namespace Chemicals {
 		else if (s ==  "Compounds_MedievalSteel"_fstring)
 		{
 			value = Compounds_MedievalSteel;
+		}
+		else if (s ==  "Compounds_SpringSteel"_fstring)
+		{
+			value = Compounds_SpringSteel;
 		}
 		else if (s ==  "Compounds_Cotton"_fstring)
 		{
@@ -1421,6 +1429,10 @@ namespace HV { namespace Chemicals {
 		{
 			value = Compounds_Rosewood;
 		}
+		else if (s ==  "Elm"_fstring)
+		{
+			value = Compounds_Elm;
+		}
 		else if (s ==  "Polythene"_fstring)
 		{
 			value = Compounds_Polythene;
@@ -1473,6 +1485,10 @@ namespace HV { namespace Chemicals {
 		{
 			value = Compounds_MedievalSteel;
 		}
+		else if (s ==  "SpringSteel"_fstring)
+		{
+			value = Compounds_SpringSteel;
+		}
 		else if (s ==  "Cotton"_fstring)
 		{
 			value = Compounds_Cotton;
@@ -1522,6 +1538,8 @@ namespace HV { namespace Chemicals {
 				return "Teak"_fstring;
 			case Compounds_Rosewood:
 				return "Rosewood"_fstring;
+			case Compounds_Elm:
+				return "Elm"_fstring;
 			case Compounds_Polythene:
 				return "Polythene"_fstring;
 			case Compounds_Perspex:
@@ -1548,6 +1566,8 @@ namespace HV { namespace Chemicals {
 				return "Gunmetal"_fstring;
 			case Compounds_MedievalSteel:
 				return "MedievalSteel"_fstring;
+			case Compounds_SpringSteel:
+				return "SpringSteel"_fstring;
 			case Compounds_Cotton:
 				return "Cotton"_fstring;
 			case Compounds_Wool:

@@ -210,11 +210,15 @@ namespace
 
       void AddBitmap(cstr name) override
       {
-         auto i = mapNameToLoc.find(name);
-         if (i == mapNameToLoc.end())
-         {
-             i = mapNameToLoc.insert(std::make_pair(std::string(name), BitmapLocationImpl{ GuiRect {0,0,0,0}, {0,0},0 })).first;
-         }
+          if (textureArray.TextureCount() != 0)
+          {
+              Throw(0, "Cannot add %s to the bitmap arrays - they have already been computed");
+          }
+          auto i = mapNameToLoc.find(name);
+          if (i == mapNameToLoc.end())
+          {
+              i = mapNameToLoc.insert(std::make_pair(std::string(name), BitmapLocationImpl{ GuiRect {0,0,0,0}, {0,0},0 })).first;
+          }
       }
 
 	  bool TryGetBitmapLocation(cstr name, BitmapLocation& location) override
@@ -518,6 +522,11 @@ namespace
 
       void BuildTextures(int32 minWidth) override
       {
+          if (textureArray.TextureCount() != 0)
+          {
+              Throw(0, "Cannot add %s to the bitmap arrays - they have already been computed");
+          }
+
          int32 width = EvaluateRequiredTextureSpan(minWidth);
 
          textureArray.ResetWidth(width);

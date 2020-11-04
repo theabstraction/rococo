@@ -43,10 +43,6 @@
 (function Main (Int32 id)->(Int32 exitCode):
 	(IInstances instances (Instances))
 	(IMobiles mobiles (Mobiles))
-	
-	(ISpriteBuilder spriteBuilder (SpriteBuilder))
-	(spriteBuilder.AddEachSpriteInDirectory "!textures/toolbars")
-	(spriteBuilder.LoadAllSprites)
 		
 	(Matrix4x4 model =
 		(1 0 0  0)

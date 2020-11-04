@@ -277,6 +277,7 @@ namespace HV
 			brain = CreateAIBrain(platform.publisher, e.sectors);
 
 			int i = 0;
+
 			auto id = object_manager->CreateObject("weapon.sword.falchion");
 			e.players.GetPlayer(0)->GetInventory()->SetId(i++, (uint64) id.value);
 
@@ -301,9 +302,6 @@ namespace HV
 			id = object_manager->CreateObject("weapon.hammer.mace");
 			e.players.GetPlayer(0)->GetInventory()->SetId(i++, (uint64)id.value);
 
-			id = object_manager->CreateObject("weapon.hammer.claw");
-			e.players.GetPlayer(0)->GetInventory()->SetId(i++, (uint64)id.value);
-
 			id = object_manager->CreateObject("weapon.sword.katana");
 			e.players.GetPlayer(0)->GetInventory()->SetId(i++, (uint64)id.value);	
 
@@ -326,6 +324,9 @@ namespace HV
 			e.players.GetPlayer(0)->GetInventory()->SetId(i++, (uint64)id.value);
 
 			id = object_manager->CreateObject("weapon.sword.bastard");
+			e.players.GetPlayer(0)->GetInventory()->SetId(i++, (uint64)id.value);
+
+			id = object_manager->CreateObject("weapon.hammer.claw");
 			e.players.GetPlayer(0)->GetInventory()->SetId(i++, (uint64)id.value);
 		}
 

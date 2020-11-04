@@ -146,6 +146,7 @@
 		(Walnut 1002)
 		(Teak 1003)
 		(Rosewood 1004)
+		(Elm 1005)
 
 		(Polythene 1101)
 		(Perspex 1102)
@@ -163,6 +164,7 @@
 		(Brass 1405)
 		(Gunmetal 1406)
 		(MedievalSteel 1407)
+		(SpringSteel 1408)
 
 		(Cotton 1501)
 		(Wool 1502)
