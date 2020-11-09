@@ -58,6 +58,18 @@ namespace Rococo
 		MaterialVertexData material;
 	};
 
+	struct BoneWeight
+	{
+		float index;
+		float weight;
+	};
+
+	struct BoneWeights
+	{
+		BoneWeight bone0;
+		BoneWeight bone1;
+	};
+
 	struct ParticleVertex
 	{
 		Vec3 worldPosition;
@@ -161,11 +173,18 @@ namespace Rococo
 		virtual void Clear3DGuiTriangles() = 0;
 		virtual void Draw(ID_SYS_MESH id, const ObjectInstance * instance, uint32 nInstances) = 0;
 		virtual IRenderer& Renderer() = 0;
+		virtual void SetBoneMatrix(uint32 index, cr_m4x4 m) = 0;
 	};
 
 	ROCOCOAPI IUIOverlay
 	{
 	   virtual void Render(IGuiRenderContext & gc) = 0;
+	};
+
+	struct BoneMatrices
+	{
+		enum { BONE_MATRIX_CAPACITY = 16 }; // This should match that in mplat.api.hlsl
+		Matrix4x4 bones[BONE_MATRIX_CAPACITY];
 	};
 
 #pragma pack(push,4)
@@ -362,7 +381,7 @@ namespace Rococo
 		virtual void ClearMeshes() = 0;
 		virtual void ClearFog() = 0;
 		virtual void ClearPlasma() = 0;
-		virtual ID_SYS_MESH CreateTriangleMesh(const ObjectVertex* vertices, uint32 nVertices) = 0;
+		virtual ID_SYS_MESH CreateTriangleMesh(const ObjectVertex* vertices, uint32 nVertices, const BoneWeights* weights) = 0;
 		virtual ID_CUBE_TEXTURE CreateCubeTexture(cstr path, cstr extension) = 0;
 		virtual void DeleteMesh(ID_SYS_MESH id) = 0;
 		virtual ID_TEXTURE FindTexture(cstr name) const = 0;
@@ -392,7 +411,7 @@ namespace Rococo
 		virtual void SwitchToWindowMode() = 0;
 		virtual IMathsVenue* TextureVenue() = 0;
 		virtual ID_TEXTURE LoadAlphaTextureArray(cstr uniqueName, Vec2i span, int nElements, ITextureLoadEnumerator& enumerator) = 0;
-		virtual void UpdateMesh(ID_SYS_MESH rendererId, const ObjectVertex* vertices, uint32 nVertices) = 0;
+		virtual void UpdateMesh(ID_SYS_MESH rendererId, const ObjectVertex* vertices, uint32 nVerticess, const BoneWeights* weights) = 0;
 		virtual void UpdatePixelShader(cstr pingPath) = 0;
 		virtual void UpdateVertexShader(cstr pingPath) = 0;
 		virtual Windows::IWindow& Window() = 0;

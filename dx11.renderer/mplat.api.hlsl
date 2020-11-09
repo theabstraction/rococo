@@ -1,5 +1,6 @@
 #include "mplat.types.hlsl"
 
+// b registers are mapped by CBUFFER_INDEX in dx11.renderer.cpp
 cbuffer GlobalState: register(b0)
 {
 	GlobalState global;
@@ -35,6 +36,11 @@ cbuffer SunlightState : register(b6)
 	Sunlight sunlight;
 };
 
+cbuffer BoneMatricesState: register(b7)
+{
+	float4x4 boneMatrices[16];
+};
+
 SamplerState fontSampler: register(s0);
 SamplerState shadowSampler: register(s2);
 SamplerState envSampler: register(s3);
@@ -54,6 +60,20 @@ Texture2DArray tx_GlyphArray: register(t8);
 float4 Transform_Instance_To_World(float4 v)
 {
 	return mul(instance.modelToWorldMatrix, v);
+}
+
+float4x4 GetBoneMatrix(float index)
+{
+	return boneMatrices[(int)index];
+}
+
+float4 Transform_Model_Via_Skinned(float4 v, BoneWeight_2Bones w)
+{
+	float4x4 skin0 = GetBoneMatrix(w.index0);
+	float4 v0 = mul(skin0, v);
+	float4x4 skin1 = GetBoneMatrix(w.index1);
+	float4 v1 = mul(skin1, v);
+	return lerp(v0, v1, w.weight0);
 }
 
 float4 Transform_World_To_Screen(float4 v)

@@ -7865,6 +7865,26 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->AddAnimationFrame(id, frameName, duration, loop);
 	}
+	void NativeRococoEntitiesIInstancesBindSkeletonToBody(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		ID_ENTITY idBody;
+		_offset += sizeof(idBody);
+		ReadInput(idBody, _sf, -_offset);
+
+		_offset += sizeof(IString*);
+		IString* _skeleton;
+		ReadInput(_skeleton, _sf, -_offset);
+		fstring skeleton { _skeleton->buffer, _skeleton->length };
+
+
+		Rococo::Entities::IInstances* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->BindSkeletonToBody(skeleton, idBody);
+	}
 	void NativeRococoEntitiesIInstancesCreateCubeTexture(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -8113,6 +8133,7 @@ namespace Rococo { namespace Entities {
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesAddGhost, nullptr, ("IInstancesAddGhost (Pointer hObject)(Sys.Maths.Matrix4x4 model)(Int64 parentId) -> (Int64 entityId)"));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesAddSkeleton, nullptr, ("IInstancesAddSkeleton (Pointer hObject)(Sys.Type.IString skeleton)(Sys.Maths.Matrix4x4 model) -> (Int64 entityId)"));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesAddAnimationFrame, nullptr, ("IInstancesAddAnimationFrame (Pointer hObject)(Int64 id)(Sys.Type.IString frameName)(Sys.SI.Seconds duration)(Bool loop) -> "));
+		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesBindSkeletonToBody, nullptr, ("IInstancesBindSkeletonToBody (Pointer hObject)(Sys.Type.IString skeleton)(Int64 idBody) -> "));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesCreateCubeTexture, nullptr, ("IInstancesCreateCubeTexture (Pointer hObject)(Sys.Type.IString folder)(Sys.Type.IString extension) -> (Int64 cubeId)"));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesDelete, nullptr, ("IInstancesDelete (Pointer hObject)(Int64 id) -> "));
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesLoadMaterialArray, nullptr, ("IInstancesLoadMaterialArray (Pointer hObject)(Sys.Type.IString folder)(Int32 txWidth) -> "));
@@ -8191,6 +8212,28 @@ namespace
 
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->AddTriangle(*a, *b, *c);
+	}
+	void NativeRococoGraphicsIMeshBuilderAddBoneWeights(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		BoneWeights* c;
+		_offset += sizeof(c);
+		ReadInput(c, _sf, -_offset);
+
+		BoneWeights* b;
+		_offset += sizeof(b);
+		ReadInput(b, _sf, -_offset);
+
+		BoneWeights* a;
+		_offset += sizeof(a);
+		ReadInput(a, _sf, -_offset);
+
+		Rococo::Graphics::IMeshBuilder* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->AddBoneWeights(*a, *b, *c);
 	}
 	void NativeRococoGraphicsIMeshBuilderAddPhysicsHull(NativeCallEnvironment& _nce)
 	{
@@ -8391,6 +8434,7 @@ namespace Rococo { namespace Graphics {
 		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderAddMesh, nullptr, ("IMeshBuilderAddMesh (Pointer hObject)(Sys.Maths.Matrix4x4 transform)(Sys.Type.IString sourceName) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderAddTriangleEx, nullptr, ("IMeshBuilderAddTriangleEx (Pointer hObject)(Rococo.VertexTriangle t) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderAddTriangle, nullptr, ("IMeshBuilderAddTriangle (Pointer hObject)(Rococo.ObjectVertex a)(Rococo.ObjectVertex b)(Rococo.ObjectVertex c) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderAddBoneWeights, nullptr, ("IMeshBuilderAddBoneWeights (Pointer hObject)(Rococo.BoneWeights a)(Rococo.BoneWeights b)(Rococo.BoneWeights c) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderAddPhysicsHull, nullptr, ("IMeshBuilderAddPhysicsHull (Pointer hObject)(Sys.Maths.Triangle t) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderBegin, nullptr, ("IMeshBuilderBegin (Pointer hObject)(Sys.Type.IString meshName) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderEnd, nullptr, ("IMeshBuilderEnd (Pointer hObject)(Bool preserveCopy)(Bool invisible) -> "));
@@ -10007,6 +10051,28 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->Scale(sx, sy, sz);
 	}
+	void NativeRococoGraphicsIRodTesselatorSetBlendWeightByHeight(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		float upperValue;
+		_offset += sizeof(upperValue);
+		ReadInput(upperValue, _sf, -_offset);
+
+		float lowerValue;
+		_offset += sizeof(lowerValue);
+		ReadInput(lowerValue, _sf, -_offset);
+
+		int32 boneIndex;
+		_offset += sizeof(boneIndex);
+		ReadInput(boneIndex, _sf, -_offset);
+
+		Rococo::Graphics::IRodTesselator* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetBlendWeightByHeight(boneIndex, lowerValue, upperValue);
+	}
 	void NativeRococoGraphicsIRodTesselatorSetMaterialBottom(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -10148,6 +10214,7 @@ namespace Rococo { namespace Graphics {
 		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorRaiseBox, nullptr, ("IRodTesselatorRaiseBox (Pointer hObject)(Sys.SI.Metres length) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorRaisePyramid, nullptr, ("IRodTesselatorRaisePyramid (Pointer hObject)(Sys.SI.Metres length) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorScale, nullptr, ("IRodTesselatorScale (Pointer hObject)(Float32 sx)(Float32 sy)(Float32 sz) -> "));
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorSetBlendWeightByHeight, nullptr, ("IRodTesselatorSetBlendWeightByHeight (Pointer hObject)(Int32 boneIndex)(Float32 lowerValue)(Float32 upperValue) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorSetMaterialBottom, nullptr, ("IRodTesselatorSetMaterialBottom (Pointer hObject)(Rococo.MaterialVertexData bottom) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorSetMaterialMiddle, nullptr, ("IRodTesselatorSetMaterialMiddle (Pointer hObject)(Rococo.MaterialVertexData middle) -> "));
 		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorSetMaterialTop, nullptr, ("IRodTesselatorSetMaterialTop (Pointer hObject)(Rococo.MaterialVertexData top) -> "));

@@ -247,6 +247,24 @@ namespace
 		  drawQueue.clear();
 	  }
 
+	  void AddBoneMatrix(cr_m4x4 parentMatrix, IBone& bone, IRenderContext& rc, int& index)
+	  {
+		  if (index >= BoneMatrices::BONE_MATRIX_CAPACITY)
+		  {
+			  BonePath bp;
+			  bone.GetFullName(bp);
+			  Throw(0, "Too many bones in bone: %s", bp.text);
+		  }
+
+		  Matrix4x4 boneMatrix = parentMatrix * bone.GetMatrix();
+		  rc.SetBoneMatrix(index++, boneMatrix);
+
+		  for (auto* child : bone)
+		  {
+			  AddBoneMatrix(boneMatrix, *child, rc, index);
+		  }
+	  }
+
       void RenderObjects(IRenderContext& rc) override
       {
 		  debugTesselator->Clear();
@@ -279,6 +297,8 @@ namespace
                Throw(0, "Scene: Unexpected missing entity with id #%lld", i.value);
             }
 
+			auto* skeleton = entity->GetSkeleton(rigs.Skeles());
+
             if (entity->MeshId() != meshId)
             {
                FlushDrawQueue(meshId, rc);
@@ -287,6 +307,21 @@ namespace
            
             ObjectInstance instance{ entity->Model(), RGBA(0, 0, 0, 0) };
             drawQueue.push_back(instance);
+
+			if (skeleton)
+			{
+				auto* root = skeleton->Root();
+				if (root)
+				{
+					int index = 0;
+					for (auto* child : *root)
+					{
+						AddBoneMatrix(root->GetMatrix(), *child, rc, index);
+					}
+				}
+				FlushDrawQueue(meshId, rc);
+				meshId = ID_SYS_MESH::Invalid();
+			}
          }
 
          FlushDrawQueue(meshId, rc);

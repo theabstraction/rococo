@@ -69,6 +69,7 @@
 (struct MaterialVertexData Rococo.MaterialVertexData MaterialVertexData)
 
 (struct Vertex Rococo.ObjectVertex ObjectVertex)
+(struct BoneWeights Rococo.BoneWeights BoneWeights)
 (struct LightSpec Rococo.LightSpec LightSpec)
 (struct QuadColours Rococo.QuadColours QuadColours)
 (struct QuadVertices Rococo.QuadVertices QuadVertices)

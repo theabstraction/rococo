@@ -4,6 +4,14 @@
 # pragma enable_d3d11_debug_symbols
 #endif
 
+struct BoneWeight_2Bones
+{
+	float index0 : BLENDINDICES0;
+	float weight0 : BLENDWEIGHT0;
+	float index1 : BLENDINDICES1;
+	float weight1 : BLENDWEIGHT1;
+};
+
 struct AmbientData
 {
 	float4 localLight;

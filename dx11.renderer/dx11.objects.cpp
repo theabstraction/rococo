@@ -17,15 +17,39 @@ namespace ANON
    {
 		{ "position",	0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
    };
+
+   D3D11_INPUT_ELEMENT_DESC skinnedObjectVertexDesc[] =
+   {
+	  { "position",	0, DXGI_FORMAT_R32G32B32_FLOAT,	0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	  { "normal",	0, DXGI_FORMAT_R32G32B32_FLOAT,	0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	  { "texcoord",	0, DXGI_FORMAT_R32G32_FLOAT,    0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	  { "color",	0, DXGI_FORMAT_R8G8B8A8_UNORM,	0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	  { "texcoord",	1, DXGI_FORMAT_R32G32_FLOAT,	0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	  { "blendindices",	0, DXGI_FORMAT_R32_FLOAT,	1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	  { "blendweight",	0, DXGI_FORMAT_R32_FLOAT,	1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	  { "blendindices",	1, DXGI_FORMAT_R32_FLOAT,	1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	  { "blendweight",	1, DXGI_FORMAT_R32_FLOAT,	1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+   };
 }
 
 namespace Rococo
 {
    namespace DX11
    {
+	   const D3D11_INPUT_ELEMENT_DESC* const GetSkinnedObjectVertexDesc()
+	   {
+		   return ANON::skinnedObjectVertexDesc;
+	   }
+
+	   const uint32 NumberOfSkinnedObjectVertexElements()
+	   {
+		   static_assert(sizeof(ANON::skinnedObjectVertexDesc) / sizeof(D3D11_INPUT_ELEMENT_DESC) == 9, "Vertex data was not 9 fields");
+		   return sizeof(ANON::skinnedObjectVertexDesc) / sizeof(D3D11_INPUT_ELEMENT_DESC);
+	   }
+
       const D3D11_INPUT_ELEMENT_DESC* const GetObjectVertexDesc()
       {
-         static_assert(sizeof(ObjectVertex) == 44, "Gui vertex data was not 40 bytes wide");
+         static_assert(sizeof(ObjectVertex) == 44, "Gui vertex data was not 44 bytes wide");
          return ANON::objectVertexDesc;
       }
 

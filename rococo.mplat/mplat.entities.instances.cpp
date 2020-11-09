@@ -191,6 +191,24 @@ namespace
 		  return Add(ID_SYS_MESH::Invalid(), model, { 1,1,1 }, parentId);
       }
 
+      void BindSkeletonToBody(const fstring& skeleton, ID_ENTITY idBody) override
+      {
+          if (skeleton.length < 1)
+          {
+              Throw(0, "%s: skeleton name was blank", __FUNCTION__);
+          }
+
+          H_ENTITY hBody{ idBody.value };
+
+          EntityImpl* body;
+          if (!idToEntity.TryGetRef(hBody, &body))
+          {
+              Throw(0, "%s: !idToEntity.TryGetRef returned false! Failed to find body with id %llu", __FUNCTION__, idBody.value);
+          }
+
+          body->skeletonName = skeleton;
+      }
+
       void Delete(ID_ENTITY id) override
       {
           idToEntity.Destroy(H_ENTITY(id.value), EntityImpl());

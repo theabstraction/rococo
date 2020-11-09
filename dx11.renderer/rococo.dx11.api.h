@@ -25,6 +25,9 @@ namespace Rococo
       const D3D11_INPUT_ELEMENT_DESC* const GetObjectVertexDesc();
       const uint32 NumberOfObjectVertexElements();
 
+      const D3D11_INPUT_ELEMENT_DESC* const GetSkinnedObjectVertexDesc();
+      const uint32 NumberOfSkinnedObjectVertexElements();
+
 	  const D3D11_INPUT_ELEMENT_DESC* const GetParticleVertexDesc();
 	  const uint32 NumberOfParticleVertexElements();
 

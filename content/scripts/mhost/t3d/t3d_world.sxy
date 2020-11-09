@@ -243,7 +243,7 @@
 	(Vec3 noScale = 1 1 1)
 	
 	(Int64 lightCodeId = (instances.AddBody "light.cone.1" lightConeModel noScale 0))
-	(scene.AddStatics lightCodeId)
+	//(scene.AddStatics lightCodeId)
 	
 	(scene.SetLight light 0)
 )
@@ -345,6 +345,21 @@
 	(rb.CommitToPose "straight")
 )
 
+(function AddWormPoses (IRigBuilder rb)-> :
+	/*              name            parent      length     offset-dx,dy,dz  bone-angles--*/
+	(rb.AddBoneX	"base"			""           0.6       0     0      0       0   0   0)
+	(rb.AddBoneX	"neck"			"base"		 0.6       0     0   0.62       0   0   0)
+	(rb.CommitToSkeleton "worm")
+
+	(rb.AddBoneX	"base"			""           0.6       0     0      0       0   0   0)
+	(rb.AddBoneX	"neck"			"base"		 0.6       0     0   0.62      30 -45   0)
+	(rb.CommitToPose "worm-straight")
+
+	(rb.AddBoneX	"base"			""           0.6       0     0      0       0   0   0)
+	(rb.AddBoneX	"neck"			"base"		 0.6       0     0   0.62      60  90   0)
+	(rb.CommitToPose "worm-bent")
+)
+
 (function AddRigs (ISceneBuilder scene)(IInstances instances)(World world)-> :
 	(IRigBuilder rb (RigBuilder))
 	(rb.ClearBuilder)
@@ -357,7 +372,7 @@
 	(AddStraightPos rb)
 	(AddGeoff rb)
 	
-	(Vec3 pos = 0 1 0)
+	(Vec3 pos = 1 1 0)
 	(world.SnapToLandscape pos 1.4)
 	
 	(Matrix4x4 lowerSpineToWorld =
@@ -366,7 +381,7 @@
 		(0 0 1  pos.z)
 		(0 0 0      1)
 	)
-		
+		/*
 	(Int64 geoffId = (instances.AddSkeleton "geoff" lowerSpineToWorld))
 	(scene.AddDebugObject geoffId)
 	(scene.AddDynamicObject geoffId)
@@ -380,6 +395,48 @@
 	(instances.AddAnimationFrame geoffId "run.1" 4 true)
 	(instances.AddAnimationFrame geoffId "straight" 4 false)
 	(instances.AddAnimationFrame geoffId "run.0" 4 true)
+	*/
+	(Vec3 posWorm = 0 1 0)
+	(world.SnapToLandscape posWorm 0.2)
+
+	(MaterialVertexData steel)
+	(AnyColour 200 255 0 0 0 0 192 192 -> steel.colour)
+	(instances.GetRandomMaterialId (#MaterialCategoryMetal) -> steel.id)
+	(steel.gloss = 0.1)
+
+	(IRodTesselator rod (RodTesselator))
+	(rod.Clear)
+	(rod.SetMaterialBottom steel)
+	(rod.SetMaterialMiddle steel)
+	(rod.SetMaterialTop steel)
+	(rod.AddTube 0.4 0.05 0.05 10)
+	(rod.AddTube 0.4 0.05 0.05 10)
+	(rod.AddTube 0.4 0.05 0.05 10)
+	(rod.AddTube 0.4 0.05 0.05 10)
+	(rod.SetBlendWeightByHeight 0 1.0 0.0)
+	(rod.SetBlendWeightByHeight 1 0.0 1.0)
+	(rod.CopyToMeshBuilder "worm-mesh" true false true)
+	
+	(IMeshBuilder mb (MeshBuilder))
+	(mb.SetSpecialAmbientShader 	"worm-mesh" "!skinned_2bone.ambient.vs" "!ambient.ps" false)
+	(mb.SetSpecialSpotlightShader	"worm-mesh" "!skinned_2bone.vs" "!object.ps" false)
+	
+	(Matrix4x4 wormToWorld =
+		(1 0 0  posWorm.x)
+		(0 1 0  posWorm.y)
+		(0 0 1  posWorm.z)
+		(0 0 0          1)
+	)
+
+	(AddWormPoses rb)
+
+	(Vec3 wormScale = 1 1 1)
+	(Int64 wormBodyId = (instances.AddBody "worm-mesh" wormToWorld wormScale 0))
+	(instances.BindSkeletonToBody "worm" wormBodyId)
+	(scene.AddDynamicObject wormBodyId)
+
+	(instances.AddAnimationFrame wormBodyId "worm-straight" 4 false)
+	(instances.AddAnimationFrame wormBodyId "worm-bent" 4 true)
 )
 
 (function AddLandscape (ISceneBuilder scene)(IInstances instances) -> :
@@ -387,7 +444,7 @@
 	(landscape.AddQuadField 8 2048.0)
 	(Vec3 delta = -1024 -1024 0)
 	(landscape.TranslateEachCell delta)
-	(landscape.GenerateByRecursiveSubdivision 400)
+	(landscape.GenerateByRecursiveSubdivision 50)
 	(landscape.CommitToMesh "landscape_0_0")
 	
 	(Vec3 noScale = 1 1 1)

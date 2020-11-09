@@ -456,6 +456,9 @@ namespace ANON
 	   AutoRelease<ID3D11Buffer> ambientBuffer;
 	   AutoRelease<ID3D11Buffer> sunlightStateBuffer;
 
+	   BoneMatrices boneMatrices = { 0 };
+	   AutoRelease<ID3D11Buffer> boneMatricesStateBuffer;
+
 	   AutoRelease<ID3D11Texture2D> cubeTexture;
 	   AutoRelease<ID3D11ShaderResourceView> cubeTextureView;
 
@@ -673,6 +676,16 @@ namespace ANON
 			   delete array;
 			   throw;
 		   }
+	   }
+
+	   void SetBoneMatrix(uint32 index, cr_m4x4 m) override
+	   {
+		   if (index >= BoneMatrices::BONE_MATRIX_CAPACITY)
+		   {
+			   Throw(0, "Bad bone index #%u", index);
+		   }
+
+		   boneMatrices.bones[index] = m;
 	   }
 
 	   void SetGenericTextureArray(ID_TEXTURE id)
@@ -896,6 +909,7 @@ namespace ANON
 		   depthRenderStateBuffer = DX11::CreateConstantBuffer<DepthRenderData>(device);
 		   lightStateBuffer = DX11::CreateConstantBuffer<Light>(device);
 		   sunlightStateBuffer = DX11::CreateConstantBuffer<Vec4>(device);
+		   boneMatricesStateBuffer = DX11::CreateConstantBuffer<BoneMatrices>(device);
 		   textureDescBuffer = DX11::CreateConstantBuffer<TextureDescState>(device);
 		   ambientBuffer = DX11::CreateConstantBuffer<AmbientData>(device);
 
@@ -1451,11 +1465,19 @@ namespace ANON
 		   {
 			   auto& m = meshBuffers[id.value];
 
-			   if (m.dx11Buffer)
+			   if (m.vertexBuffer)
 			   {
+				   UINT byteWidth = 0;
 				   D3D11_BUFFER_DESC bdesc;
-				   m.dx11Buffer->GetDesc(&bdesc);
-				   SafeFormat(desc, 256, " %p %6d vertices. %6u bytes", m.dx11Buffer, m.numberOfVertices, bdesc.ByteWidth);
+				   m.vertexBuffer->GetDesc(&bdesc);
+				   byteWidth += bdesc.ByteWidth;
+
+				   if (m.weightsBuffer)
+				   {
+					   m.weightsBuffer->GetDesc(&bdesc);
+					   byteWidth += bdesc.ByteWidth;
+				   }
+				   SafeFormat(desc, 256, " %p %6d %svertices. %6u bytes", m.vertexBuffer, m.numberOfVertices, m.weightsBuffer != nullptr ? "(weighted) " : "", byteWidth);
 			   }
 			   else
 			   {
@@ -1665,7 +1687,8 @@ namespace ANON
 	   {
 		   for (auto& x : meshBuffers)
 		   {
-			   if (x.dx11Buffer) x.dx11Buffer->Release();
+			   if (x.vertexBuffer) x.vertexBuffer->Release();
+			   if (x.weightsBuffer) x.weightsBuffer->Release();
 		   }
 
 		   meshBuffers.clear();
@@ -1674,12 +1697,19 @@ namespace ANON
 	   virtual void DeleteMesh(ID_SYS_MESH id)
 	   {
 		   if (id.value < 0 || id.value >= meshBuffers.size()) Throw(0, "DX11AppRenderer::DeleteMesh(...): Bad ID_SYS_MESH");
+		  
+		   meshBuffers[id.value].numberOfVertices = 0;
 
-		   if (meshBuffers[id.value].dx11Buffer)
+		   if (meshBuffers[id.value].vertexBuffer)
 		   {
-			   meshBuffers[id.value].dx11Buffer->Release();
-			   meshBuffers[id.value].dx11Buffer = nullptr;
-			   meshBuffers[id.value].numberOfVertices = 0;
+			   meshBuffers[id.value].vertexBuffer->Release();
+			   meshBuffers[id.value].vertexBuffer = nullptr;
+		   }
+
+		   if (meshBuffers[id.value].weightsBuffer)
+		   {
+			   meshBuffers[id.value].weightsBuffer->Release();
+			   meshBuffers[id.value].weightsBuffer = nullptr;
 		   }
 	   }
 
@@ -1817,7 +1847,8 @@ namespace ANON
 		   CBUFFER_INDEX_DEPTH_RENDER_DESC = 3,
 		   CBUFFER_INDEX_INSTANCE_BUFFER = 4,
 		   CBUFFER_INDEX_SELECT_TEXTURE_DESC = 5,
-		   CBUFFER_INDEX_SUNLIGHT = 6
+		   CBUFFER_INDEX_SUNLIGHT = 6,
+		   CBUFFER_INDEX_BONE_MATRICES = 7
 	   };
 
 	   ID_TEXTURE FindTexture(cstr name) const
@@ -2320,7 +2351,8 @@ namespace ANON
 
 	   struct MeshBuffer
 	   {
-		   ID3D11Buffer* dx11Buffer;
+		   ID3D11Buffer* vertexBuffer;
+		   ID3D11Buffer* weightsBuffer;
 		   UINT numberOfVertices;
 		   D3D_PRIMITIVE_TOPOLOGY topology;
 		   ID_PIXEL_SHADER psSpotlightShader;
@@ -2334,10 +2366,11 @@ namespace ANON
 	   std::vector<MeshBuffer> meshBuffers;
 	   int64 meshUpdateCount = 0;
 
-	   ID_SYS_MESH CreateTriangleMesh(const ObjectVertex* vertices, uint32 nVertices) override
+	   ID_SYS_MESH CreateTriangleMesh(const ObjectVertex* vertices, uint32 nVertices, const BoneWeights* weights) override
 	   {
 		   ID3D11Buffer* meshBuffer = vertices ? DX11::CreateImmutableVertexBuffer(device, vertices, nVertices) : nullptr;
-		   meshBuffers.push_back(MeshBuffer{ meshBuffer, nVertices, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST, ID_PIXEL_SHADER(), ID_PIXEL_SHADER(), ID_VERTEX_SHADER(), ID_VERTEX_SHADER(), false, false});
+		   ID3D11Buffer* weightsBuffer = weights ? DX11::CreateImmutableVertexBuffer(device, weights, nVertices) : nullptr;
+		   meshBuffers.push_back(MeshBuffer{ meshBuffer, weightsBuffer, nVertices, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST, ID_PIXEL_SHADER(), ID_PIXEL_SHADER(), ID_VERTEX_SHADER(), ID_VERTEX_SHADER(), false, false});
 		   int32 index = (int32)meshBuffers.size();
 		   return ID_SYS_MESH(index - 1);
 	   }
@@ -2345,7 +2378,7 @@ namespace ANON
 	   ID_SYS_MESH CreateSkyMesh(const SkyVertex* vertices, uint32 nVertices)
 	   {
 		   ID3D11Buffer* meshBuffer = vertices ? DX11::CreateImmutableVertexBuffer(device, vertices, nVertices) : nullptr;
-		   meshBuffers.push_back(MeshBuffer{ meshBuffer, nVertices, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST, ID_PIXEL_SHADER(), ID_PIXEL_SHADER(), ID_VERTEX_SHADER(), ID_VERTEX_SHADER(), false, false });
+		   meshBuffers.push_back(MeshBuffer{ meshBuffer, nullptr, nVertices, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST, ID_PIXEL_SHADER(), ID_PIXEL_SHADER(), ID_VERTEX_SHADER(), ID_VERTEX_SHADER(), false, false });
 		   int32 index = (int32)meshBuffers.size();
 		   return ID_SYS_MESH(index - 1);
 	   }
@@ -2389,7 +2422,15 @@ namespace ANON
 			   else
 			   {
 				   installation.LoadResource(vs, *scratchBuffer, 64_kilobytes);
-				   vxId = CreateVertexShader(vs, scratchBuffer->GetData(), scratchBuffer->Length(), DX11::GetObjectVertexDesc(), DX11::NumberOfObjectVertexElements());
+
+				   if (strstr(vs, "skinned"))
+				   {
+					   vxId = CreateVertexShader(vs, scratchBuffer->GetData(), scratchBuffer->Length(), DX11::GetSkinnedObjectVertexDesc(), DX11::NumberOfSkinnedObjectVertexElements());
+				   }
+				   else
+				   {
+					   vxId = CreateVertexShader(vs, scratchBuffer->GetData(), scratchBuffer->Length(), DX11::GetObjectVertexDesc(), DX11::NumberOfObjectVertexElements());
+				   }
 			   }
 
 			   j = nameToVertexShader.insert(vs, vxId).first;
@@ -2438,7 +2479,15 @@ namespace ANON
 			   else
 			   {
 				   installation.LoadResource(vs, *scratchBuffer, 64_kilobytes);
-				   vxId = CreateVertexShader(vs, scratchBuffer->GetData(), scratchBuffer->Length(), DX11::GetObjectVertexDesc(), DX11::NumberOfObjectVertexElements());
+
+				   if (strstr(vs, "skinned"))
+				   {
+					   vxId = CreateVertexShader(vs, scratchBuffer->GetData(), scratchBuffer->Length(), DX11::GetSkinnedObjectVertexDesc(), DX11::NumberOfSkinnedObjectVertexElements());
+				   }
+				   else
+				   {
+					   vxId = CreateVertexShader(vs, scratchBuffer->GetData(), scratchBuffer->Length(), DX11::GetObjectVertexDesc(), DX11::NumberOfObjectVertexElements());
+				   }
 			   }
 
 			   j = nameToVertexShader.insert(vs, vxId).first;
@@ -2448,7 +2497,7 @@ namespace ANON
 		   m.alphaBlending = alphaBlending;
 	   }
 	   
-	   void UpdateMesh(ID_SYS_MESH id, const ObjectVertex* vertices, uint32 nVertices) override
+	   void UpdateMesh(ID_SYS_MESH id, const ObjectVertex* vertices, uint32 nVertices, const BoneWeights* weights) override
 	   {
 		   if (id.value < 0 || id.value >= meshBuffers.size())
 		   {
@@ -2457,11 +2506,16 @@ namespace ANON
 
 		   meshUpdateCount++;
 
-		   ID3D11Buffer* newMesh = vertices != nullptr ? DX11::CreateImmutableVertexBuffer(device, vertices, nVertices) : nullptr;
 		   meshBuffers[id.value].numberOfVertices = nVertices;
 
-		   if (meshBuffers[id.value].dx11Buffer) meshBuffers[id.value].dx11Buffer->Release();
-		   meshBuffers[id.value].dx11Buffer = newMesh;
+		   ID3D11Buffer* newMesh = vertices != nullptr ? DX11::CreateImmutableVertexBuffer(device, vertices, nVertices) : nullptr;
+		   ID3D11Buffer* newWeights = weights != nullptr ? DX11::CreateImmutableVertexBuffer(device, weights, nVertices) : nullptr;
+
+		   if (meshBuffers[id.value].vertexBuffer) meshBuffers[id.value].vertexBuffer->Release();
+		   meshBuffers[id.value].vertexBuffer = newMesh;
+
+		   if (meshBuffers[id.value].weightsBuffer) meshBuffers[id.value].weightsBuffer->Release();
+		   meshBuffers[id.value].weightsBuffer = newWeights;
 	   }
 
 	   enum RenderPhase
@@ -2566,13 +2620,13 @@ namespace ANON
 
 	   void Draw(MeshBuffer& m, const ObjectInstance* instances, uint32 nInstances)
 	   {
-		   if (!m.dx11Buffer)
+		   if (!m.vertexBuffer)
 			   return;
 
 		   if (phase == RenderPhase_DetermineShadowVolumes && m.disableShadowCasting)
 			   return;
 
-		   ID3D11Buffer* buffers[] = { m.dx11Buffer };
+		   ID3D11Buffer* buffers[2] = { m.vertexBuffer, m.weightsBuffer };
 
 		   entitiesThisFrame += (int64) nInstances;
 
@@ -2596,10 +2650,10 @@ namespace ANON
 			   dc.OMSetDepthStencilState(objDepthState_NoWrite, 0);
 		   }
 
-		   UINT strides[] = { sizeof(ObjectVertex) };
-		   UINT offsets[]{ 0 };
+		   UINT strides[] = { sizeof(ObjectVertex), sizeof(BoneWeights) };
+		   UINT offsets[]{ 0, 0 };
 		   dc.IASetPrimitiveTopology(m.topology);
-		   dc.IASetVertexBuffers(0, 1, buffers, strides, offsets);
+		   dc.IASetVertexBuffers(0, m.weightsBuffer ? 2 : 1, buffers, strides, offsets);
 
 		   for (uint32 i = 0; i < nInstances; i++)
 		   {
@@ -2843,7 +2897,8 @@ namespace ANON
 			   MeshBuffer m;
 			   m.alphaBlending = false;
 			   m.disableShadowCasting = false;
-			   m.dx11Buffer = gui3DBuffer;
+			   m.vertexBuffer = gui3DBuffer;
+			   m.weightsBuffer = nullptr;
 			   m.numberOfVertices = (UINT) nTriangleBatchCount * 3;
 			   m.topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
@@ -3129,6 +3184,9 @@ namespace ANON
 		   dc.VSSetConstantBuffers(CBUFFER_INDEX_SUNLIGHT, 1, &sunlightStateBuffer);
 		   dc.PSSetConstantBuffers(CBUFFER_INDEX_SUNLIGHT, 1, &sunlightStateBuffer);
 		   dc.GSSetConstantBuffers(CBUFFER_INDEX_SUNLIGHT, 1, &sunlightStateBuffer);
+
+		   DX11::CopyStructureToBuffer(dc, boneMatricesStateBuffer, boneMatrices);
+		   dc.VSSetConstantBuffers(CBUFFER_INDEX_BONE_MATRICES, 1, &boneMatricesStateBuffer);
 	   }
 
 	   struct RenderTarget
@@ -3182,7 +3240,7 @@ namespace ANON
 					   UINT strides[] = { sizeof(SkyVertex) };
 					   UINT offsets[]{ 0 };
 					   dc.IASetPrimitiveTopology(mesh.topology);
-					   dc.IASetVertexBuffers(0, 1, &mesh.dx11Buffer, strides, offsets);
+					   dc.IASetVertexBuffers(0, 1, &mesh.vertexBuffer, strides, offsets);
 					   dc.PSSetShaderResources(0, 1, &skyCubeTextureView);
 					   dc.PSSetSamplers(0, 1, &skySampler);
 

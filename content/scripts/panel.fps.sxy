@@ -36,7 +36,7 @@
 	(IPaneContainer root = builder.Root)
 	
 	(SetTransparentBackground root)
-	
+
 	(Recti rootRect)
 	(root.GetRect rootRect)
 	
@@ -63,11 +63,16 @@
 	(layout.startIndex = 0)
 	(layout.endIndex = 55)
 	(layout.rowByRow = true)
-	(layout.topLeft.x = (rootRect.left + 16))
+	(layout.topLeft.x = 16)
 
 	(Vec2i span)
 	(inventory.ComputeSpan layout span)
 	(layout.topLeft.y = ((rootRect.bottom - span.y) - 16))
+	
+	(if (layout.topLeft.y < doll.bottom)
+		(layout.topLeft.x = (doll.right + 32))
+	)
+	
 	(inventory.LayoutAsRect layout)
 	
 	(Int32 dx = doll.left)

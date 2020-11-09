@@ -46,6 +46,58 @@ namespace ANON
 
 		}
 
+		struct BlendList
+		{
+			int32 boneIndex;
+			std::vector<float> weights;
+		};
+
+		std::vector<BlendList> blendLists;
+
+		void SetBlendWeightByHeight(int32 boneIndex, float lowerValue, float upperValue) override
+		{
+			float minZValue = std::numeric_limits<float>::max();
+			float maxZValue = -std::numeric_limits<float>::max();
+
+			for (auto& t : triangles)
+			{
+				minZValue = min(t.a.position.z, minZValue);
+				maxZValue = max(t.a.position.z, maxZValue);
+				minZValue = min(t.b.position.z, minZValue);
+				maxZValue = max(t.b.position.z, maxZValue);
+				minZValue = min(t.c.position.z, minZValue);
+				maxZValue = max(t.c.position.z, maxZValue);
+			}
+
+			float Zspan = maxZValue - minZValue;
+
+			if (!Zspan)
+			{
+				Throw(0, "The Z span was zero");
+			}
+
+			BlendList b;
+			b.boneIndex = boneIndex;
+			b.weights.reserve(triangles.size() * 3);
+
+			for (auto& t : triangles)
+			{
+				float qA = (t.a.position.z - minZValue) / Zspan;
+				float weightA = (qA - lowerValue) * (upperValue - lowerValue);
+				b.weights.push_back(weightA);
+
+				float qB = (t.b.position.z - minZValue) / Zspan;
+				float weightB = (qB - lowerValue) * (upperValue - lowerValue);
+				b.weights.push_back(weightB);
+
+				float qC = (t.c.position.z - minZValue) / Zspan;
+				float weightC = (qC - lowerValue) * (upperValue - lowerValue);
+				b.weights.push_back(weightC);
+			}
+
+			blendLists.push_back(b);
+		}
+
 		VertexTriangle* begin() override
 		{
 			return triangles.empty() ? nullptr : triangles.data();
@@ -1045,6 +1097,7 @@ namespace ANON
 			bitangent = { 1, 0, 0 };
 			origin = { 0,0,0 };
 			vertices.clear();
+			blendLists.clear();
 		}
 
 		void ClearVertices() override
@@ -1082,11 +1135,54 @@ namespace ANON
 
 		void CopyToMeshBuilder(const fstring& meshName, boolean32 preserveMesh, boolean32 isInvisible, boolean32 castsShadows)
 		{
+			switch (blendLists.size())
+			{
+			case 0:
+				break;
+			case 2:
+				if (blendLists[0].weights.size() != triangles.size() * 3)
+				{
+					Throw(0, "Rod Tesselator: Cannot copy to mesh builder. The number of weights in blendLists[0] does not match the number of vertices in the triangle list");
+				}
+				if (blendLists[1].weights.size() != triangles.size() * 3)
+				{
+					Throw(0, "Rod Tesselator: Cannot copy to mesh builder. The number of weights in blendLists[1] does not match the number of vertices in the triangle list");
+				}
+				break;
+			default:
+				Throw(0, "Rod Tesselator: Expecting two blend lists. %llu were supplied", blendLists.size());
+			}
+
 			meshes.Begin(meshName);
 
 			for (auto& t : triangles)
 			{
 				meshes.AddTriangleEx(t);
+			}
+
+			if (blendLists.size() >= 2)
+			{
+				int index0 = blendLists[0].boneIndex;
+				int index1 = blendLists[1].boneIndex;
+
+				for (size_t i = 0; i < triangles.size(); i++)
+				{
+					BoneWeights weightsA, weightsB, weightsC;
+					weightsA.bone0.index = (float)index0;
+					weightsA.bone1.index = (float)index1;
+					weightsA.bone0.weight = blendLists[0].weights[3 * i];
+					weightsA.bone1.weight = blendLists[1].weights[3 * i];
+					weightsB.bone0.index = (float)index0;
+					weightsB.bone1.index = (float)index1;
+					weightsB.bone0.weight = blendLists[0].weights[3 * i + 1];
+					weightsB.bone1.weight = blendLists[1].weights[3 * i + 1];
+					weightsC.bone0.index = (float)index0;
+					weightsC.bone1.index = (float)index1;
+					weightsC.bone0.weight = blendLists[0].weights[3 * i + 2];
+					weightsC.bone1.weight = blendLists[1].weights[3 * i + 2];
+
+					meshes.AddBoneWeights(weightsA, weightsB, weightsC);
+				}
 			}
 
 			meshes.End(preserveMesh, isInvisible);
@@ -1308,6 +1404,7 @@ namespace Rococo::Graphics
 			void AddMesh(const Matrix4x4& transform, const fstring& sourceName) override {}
 			void AddTriangleEx(const VertexTriangle& t) override {}
 			void AddTriangle(const ObjectVertex& a, const ObjectVertex& b, const ObjectVertex& c) override {}
+			void AddBoneWeights(const BoneWeights& a, const BoneWeights& b, const BoneWeights& c) override {}
 			void AddPhysicsHull(const Triangle& t) override {}
 
 			void Begin(const fstring& meshName) override 

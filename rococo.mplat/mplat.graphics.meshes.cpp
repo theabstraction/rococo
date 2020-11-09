@@ -62,6 +62,7 @@ namespace
 	  std::unordered_map<ID_SYS_MESH, MeshBindingEx, ID_SYS_MESH> idToName;
 	  char name[MAX_FQ_NAME_LEN + 1] = { 0 };
       std::vector<ObjectVertex> vertices;
+	  std::vector<BoneWeights> weights;
 	  std::vector<Triangle> physicsHull;
       IRenderer& renderer;
 
@@ -85,6 +86,7 @@ namespace
          name[0] = 0;
          vertices.clear();
 		 physicsHull.clear();
+		 weights.clear();
       }
 
 	  const VertexTriangle* GetTriangles(ID_SYS_MESH id, size_t& nTriangles) const override
@@ -245,6 +247,13 @@ namespace
 		  }
 	  }
 
+	  void AddBoneWeights(const BoneWeights& a, const BoneWeights& b, const BoneWeights& c) override
+	  {
+		  weights.push_back(a);
+		  weights.push_back(b);
+		  weights.push_back(c);
+	  }
+
       void AddTriangle(const ObjectVertex& a, const ObjectVertex& b, const ObjectVertex& c) override
       {
          if (*name == 0) Throw(0, "MeshBuilder::AddTriangle - Call MeshBuilder.Begin() first");
@@ -261,55 +270,70 @@ namespace
 		  vertices.push_back(t.c);
 	  }
 
-      void End(boolean32 preserveCopy, boolean32 invisible) override
-      {
-         const ObjectVertex* v = vertices.empty() ? nullptr : (const ObjectVertex*)&vertices[0];
+	  void End(boolean32 preserveCopy, boolean32 invisible) override
+	  {
+		  if (name[0] == 0)
+		  {
+			  Throw(0, "No name defined. Missing begin() ?");
+		  }
 
-		 AABB boundingBox;
+		  const ObjectVertex* v = vertices.empty() ? nullptr : (const ObjectVertex*)&vertices[0];
 
-		 for (auto& v : vertices)
-		 {
-			 boundingBox << v.position;
-		 }
+		  if (!weights.empty() && weights.size() != vertices.size())
+		  {
+			  size_t nWeights = weights.size();
+			  size_t nVertices = vertices.size();
+			  Clear();
+			  Throw(0, "Error creating mesh [%s]: weights defined, but %llu weights and %llu vertices???", name, nWeights, nVertices);
+		  }
 
-		 ObjectVertex* backup = nullptr;
+		  AABB boundingBox;
 
-		 if (preserveCopy)
-		 {
-			 backup = new ObjectVertex[vertices.size()];
-			 memcpy(backup, &vertices[0], vertices.size() * sizeof(ObjectVertex));
-		 }
+		  for (auto& v : vertices)
+		  {
+			  boundingBox << v.position;
+		  }
 
-         auto i = meshes.find(name);
-         if (i != meshes.end())
-         {
-			i->second->bounds = boundingBox;
-            renderer.UpdateMesh(i->second->id, v, (uint32)vertices.size());
+		  ObjectVertex* backup = nullptr;
 
-			if (preserveCopy)
-			{
-				i->second->nVertices = vertices.size();
-				delete[] i->second->pVertexArray;
-				i->second->pVertexArray = backup;
-				i->second->physicsHull = physicsHull;
-			}
-			else if (!physicsHull.empty())
-			{
-				i->second->nVertices = 0;
-				delete[] i->second->pVertexArray;
-				i->second->pVertexArray = nullptr;
-				i->second->physicsHull = physicsHull;
-			}
-		 }
-		 else
-		 {
-			 auto id = renderer.CreateTriangleMesh(invisible ? nullptr : v, invisible ? 0 : (uint32)vertices.size());
-			 auto binding = new MeshBinding{ id, boundingBox, backup, vertices.size(), physicsHull };
-			 meshes[name] = binding;
-			 idToName[id] = MeshBindingEx( binding, name );
-		 }
+		  if (preserveCopy)
+		  {
+			  backup = new ObjectVertex[vertices.size()];
+			  memcpy(backup, &vertices[0], vertices.size() * sizeof(ObjectVertex));
+		  }
 
-		 Clear();
+		  const BoneWeights* pWeights = weights.empty() ? nullptr : weights.data();
+
+		  auto i = meshes.find(name);
+		  if (i != meshes.end())
+		  {
+			  i->second->bounds = boundingBox;
+			  renderer.UpdateMesh(i->second->id, v, (uint32)vertices.size(), pWeights);
+
+			  if (preserveCopy)
+			  {
+				  i->second->nVertices = vertices.size();
+				  delete[] i->second->pVertexArray;
+				  i->second->pVertexArray = backup;
+				  i->second->physicsHull = physicsHull;
+			  }
+			  else if (!physicsHull.empty())
+			  {
+				  i->second->nVertices = 0;
+				  delete[] i->second->pVertexArray;
+				  i->second->pVertexArray = nullptr;
+				  i->second->physicsHull = physicsHull;
+			  }
+		  }
+		  else
+		  {
+			  auto id = renderer.CreateTriangleMesh(invisible ? nullptr : v, invisible ? 0 : (uint32)vertices.size(), pWeights);
+			  auto binding = new MeshBinding{ id, boundingBox, backup, vertices.size(), physicsHull };
+			  meshes[name] = binding;
+			  idToName[id] = MeshBindingEx(binding, name);
+		  }
+
+		  Clear();
 	  }
 
 	  void SetSpecialAmbientShader(const fstring& fqName, const fstring& vsAmbientPingPath, const fstring& psAmbientPingPath, boolean32 alphaBlending)

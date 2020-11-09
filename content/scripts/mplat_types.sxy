@@ -18,6 +18,18 @@
 )
 (alias ObjectVertex Rococo.ObjectVertex)
 
+(struct BoneWeight
+	(Float32 index)
+	(Float32 weight)
+)
+
+(struct BoneWeights
+	(BoneWeight bone1 bone2)
+)
+
+(alias BoneWeight Rococo.BoneWeight)
+(alias BoneWeights Rococo.BoneWeights)
+
 (struct QuadColours
 	(Int32 a)
 	(Int32 b)
