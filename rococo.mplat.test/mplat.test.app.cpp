@@ -140,12 +140,12 @@ struct TestApp : IApp, private IScene, public IEventCallback<FileModifiedArgs>
 	   viewDir = { 0,0,1 };
    }
 
-   void RenderObjects(IRenderContext& rc) override
+   void RenderObjects(IRenderContext& rc, bool skinned) override
    {
          
    }
 
-   void RenderShadowPass(const DepthRenderData& drd, IRenderContext& rc) override
+   void RenderShadowPass(const DepthRenderData& drd, IRenderContext& rc, bool skinned) override
    {
 
    }
@@ -191,10 +191,7 @@ struct TestApp : IApp, private IScene, public IEventCallback<FileModifiedArgs>
    {
       platform.os.EnumerateModifiedFiles(*this);
       platform.publisher.Deliver();
-
-	  Graphics::RenderPhaseConfig config;
-	  config.EnvironmentalMap = Graphics::ENVIRONMENTAL_MAP_FIXED_CUBE;
-      platform.renderer.Render(config, *this);
+      platform.renderer.Render(Graphics::ENVIRONMENTAL_MAP_FIXED_CUBE, *this);
       
       return 2; // 2 millisecond sleep period
    }

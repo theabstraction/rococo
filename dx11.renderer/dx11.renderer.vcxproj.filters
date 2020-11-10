@@ -106,6 +106,9 @@
     <FxCompile Include="skinned_2bone.ambient.vs.hlsl">
       <Filter>HLSL\Objects</Filter>
     </FxCompile>
+    <FxCompile Include="skinned.shadow.vs.hlsl">
+      <Filter>HLSL\Objects</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dx11.swapchain.cpp">

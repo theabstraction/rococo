@@ -74,9 +74,9 @@ namespace HV
 			return e.platform.scene.GetLights(nLights);
 		}
 
-		void RenderShadowPass(const DepthRenderData& drd, IRenderContext& rc) override
+		void RenderShadowPass(const DepthRenderData& drd, IRenderContext& rc, bool skinned) override
 		{
-			return e.platform.scene.RenderShadowPass(drd, rc);
+			return e.platform.scene.RenderShadowPass(drd, rc, skinned);
 		}
 
 		void OnGuiResize(Vec2i screenSpan) override
@@ -99,9 +99,9 @@ namespace HV
 			e.platform.scene.GetCamera(wordlToScreen, world, proj, eye, viewDir);
 		}
 
-		void RenderObjects(IRenderContext& rc)  override
+		void RenderObjects(IRenderContext& rc, bool skinned)  override
 		{
-			e.platform.scene.RenderObjects(rc);
+			e.platform.scene.RenderObjects(rc, skinned);
 		}
 	public:
 		IGuiResizeEvent* resizeCallback = nullptr;
@@ -179,9 +179,7 @@ namespace HV
 
 			e.platform.gui.PushTop(busyPanel->Supervisor(), true);
 
-			Graphics::RenderPhaseConfig config;
-			config.EnvironmentalMap = Graphics::ENVIRONMENTAL_MAP_FIXED_CUBE;
-			platform.renderer.Render(config, (IScene&) scene);
+			platform.renderer.Render(Graphics::ENVIRONMENTAL_MAP_FIXED_CUBE, (IScene&) scene);
 			e.platform.gui.Pop();
 		}
 
@@ -405,9 +403,7 @@ namespace HV
 
 			e.platform.camera.Update(clock);
 
-			Graphics::RenderPhaseConfig config;
-			config.EnvironmentalMap = Graphics::ENVIRONMENTAL_MAP_FIXED_CUBE;
-			e.platform.renderer.Render(config, (IScene&) scene);
+			e.platform.renderer.Render(Graphics::ENVIRONMENTAL_MAP_FIXED_CUBE, (IScene&) scene);
 
 			if (IsEditorActive() || IsOverlayActive())
 			{

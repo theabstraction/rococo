@@ -352,11 +352,11 @@
 	(rb.CommitToSkeleton "worm")
 
 	(rb.AddBoneX	"base"			""           0.6       0     0      0       0   0   0)
-	(rb.AddBoneX	"neck"			"base"		 0.6       0     0   0.62      30 -45   0)
+	(rb.AddBoneX	"neck"			"base"		 0.6       0     0   0.62       0 -70   0)
 	(rb.CommitToPose "worm-straight")
 
 	(rb.AddBoneX	"base"			""           0.6       0     0      0       0   0   0)
-	(rb.AddBoneX	"neck"			"base"		 0.6       0     0   0.62      60  90   0)
+	(rb.AddBoneX	"neck"			"base"		 0.6       0     0   0.62       0  70   0)
 	(rb.CommitToPose "worm-bent")
 )
 
@@ -435,7 +435,7 @@
 	(instances.BindSkeletonToBody "worm" wormBodyId)
 	(scene.AddDynamicObject wormBodyId)
 	
-	(scene.AddDebugObject wormBodyId)
+//	(scene.AddDebugObject wormBodyId)
 
 	(instances.AddAnimationFrame wormBodyId "worm-straight" 4 false)
 	(instances.AddAnimationFrame wormBodyId "worm-bent" 4 true)

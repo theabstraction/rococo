@@ -493,6 +493,7 @@ namespace ANON
 	   ID_GEOMETRY_SHADER idFogAmbientGS;
 
 	   ID_VERTEX_SHADER idObjVS_Shadows;
+	   ID_VERTEX_SHADER idSkinnedObjVS_Shadows;
 	   ID_PIXEL_SHADER idObjPS_Shadows;
 
 	   ID_VERTEX_SHADER idObjSkyVS;
@@ -685,7 +686,9 @@ namespace ANON
 			   Throw(0, "Bad bone index #%u", index);
 		   }
 
-		   boneMatrices.bones[index] = m;
+		   auto& target = boneMatrices.bones[index];
+		   target = m;
+		   target.row3 = Vec4{ 0, 0, 0, 1.0f };
 	   }
 
 	   void SetGenericTextureArray(ID_TEXTURE id)
@@ -966,6 +969,9 @@ namespace ANON
 
 		   installation.LoadResource("!shadow.vs", *scratchBuffer, 64_kilobytes);
 		   idObjVS_Shadows = CreateObjectVertexShader("!shadow.vs", scratchBuffer->GetData(), scratchBuffer->Length());
+
+		   installation.LoadResource("!skinned.shadow.vs", *scratchBuffer, 64_kilobytes);
+		   idSkinnedObjVS_Shadows = CreateVertexShader("!skinned.shadow.vs", scratchBuffer->GetData(), scratchBuffer->Length(), DX11::GetSkinnedObjectVertexDesc(), DX11::NumberOfSkinnedObjectVertexElements());
 
 		   installation.LoadResource("!shadow.ps", *scratchBuffer, 64_kilobytes);
 		   idObjPS_Shadows = CreatePixelShader("!shadow.ps", scratchBuffer->GetData(), scratchBuffer->Length());
@@ -1920,7 +1926,7 @@ namespace ANON
 		   return Vec2i{ (int32)desc.Width, (int32)desc.Height };
 	   }
 
-	   void SyncViewport(ID_TEXTURE depthId)
+	   void ExpandViewportToEntireTexture(ID_TEXTURE depthId)
 	   {
 		   auto depth = GetTexture(depthId).texture;
 
@@ -1963,7 +1969,7 @@ namespace ANON
 		   this->shadowBufferId = ID_TEXTURE{ textures.size() };
 		   mapNameToTexture["ShadowBuffer"] = shadowBufferId;
 
-		   SyncViewport(mainDepthBufferId);
+		   ExpandViewportToEntireTexture(mainDepthBufferId);
 	   }
 
 	   ID_VERTEX_SHADER CreateVertexShader(cstr name, const byte* shaderCode, size_t shaderLength, const D3D11_INPUT_ELEMENT_DESC* vertexDesc, UINT nElements)
@@ -2909,6 +2915,11 @@ namespace ANON
 		   }
 	   }
 
+	   void RenderShadowBuffer()
+	   {
+
+	   }
+
 	   void RenderSpotlightLitScene(const Light& lightSubset, IScene& scene)
 	   {
 		   Light light = lightSubset;
@@ -2925,12 +2936,6 @@ namespace ANON
 			   auto shadowBind = GetTexture(phaseConfig.shadowBuffer);
 
 			   dc.OMSetRenderTargets(0, nullptr, shadowBind.depthView);
-
-			   UseShaders(idObjVS_Shadows, idObjPS_Shadows);
-
-			   DX11::CopyStructureToBuffer(dc, depthRenderStateBuffer, drd);
-			   dc.VSSetConstantBuffers(CBUFFER_INDEX_DEPTH_RENDER_DESC, 1, &depthRenderStateBuffer);
-			   dc.PSSetConstantBuffers(CBUFFER_INDEX_DEPTH_RENDER_DESC, 1, &depthRenderStateBuffer);
 
 			   D3D11_TEXTURE2D_DESC desc;
 			   shadowBind.texture->GetDesc(&desc);
@@ -2949,8 +2954,23 @@ namespace ANON
 
 			   dc.RSSetState(shadowRasterizering);
 
+			   
+			   UseShaders(idSkinnedObjVS_Shadows, idObjPS_Shadows);
+
+			   DX11::CopyStructureToBuffer(dc, depthRenderStateBuffer, drd);
+			   dc.VSSetConstantBuffers(CBUFFER_INDEX_DEPTH_RENDER_DESC, 1, &depthRenderStateBuffer);
+			   dc.PSSetConstantBuffers(CBUFFER_INDEX_DEPTH_RENDER_DESC, 1, &depthRenderStateBuffer);
+
 			   phase = RenderPhase_DetermineShadowVolumes;
-			   scene.RenderShadowPass(drd, *this);
+			   scene.RenderShadowPass(drd, *this, true);
+
+			   UseShaders(idObjVS_Shadows, idObjPS_Shadows);
+
+			   DX11::CopyStructureToBuffer(dc, depthRenderStateBuffer, drd);
+			   dc.VSSetConstantBuffers(CBUFFER_INDEX_DEPTH_RENDER_DESC, 1, &depthRenderStateBuffer);
+			   dc.PSSetConstantBuffers(CBUFFER_INDEX_DEPTH_RENDER_DESC, 1, &depthRenderStateBuffer);
+
+			   scene.RenderShadowPass(drd, *this, false);
 
 			   RenderTarget rt = GetCurrentRenderTarget();
 			   dc.OMSetRenderTargets(1, &rt.renderTargetView, rt.depthView);
@@ -2960,7 +2980,7 @@ namespace ANON
 			   ID_PIXEL_SHADER idPS = GetObjectShaderPixelId(phase);
 			   UseShaders(idObjVS, idPS);
 
-			   SyncViewport(phaseConfig.depthTarget);
+			   ExpandViewportToEntireTexture(phaseConfig.depthTarget);
 
 			   light.randoms = drd.randoms;
 			   light.time = drd.time;
@@ -2987,7 +3007,8 @@ namespace ANON
 			   dc.PSSetShaderResources(2, 1, &shadowBind.shaderView);
 			   dc.RSSetState(objectRasterizering);
 
-			   scene.RenderObjects(*this);
+			   scene.RenderObjects(*this, true);
+			   scene.RenderObjects(*this, false);
 
 			   Render3DGui();
 
@@ -3092,7 +3113,7 @@ namespace ANON
 		   if (UseShaders(idObjAmbientVS, idPS))
 		   {
 			   FLOAT blendFactorUnused[] = { 0,0,0,0 };
-			   SyncViewport(phaseConfig.depthTarget);
+			   ExpandViewportToEntireTexture(phaseConfig.depthTarget);
 
 			   if (builtFirstPass)
 			   {
@@ -3114,7 +3135,8 @@ namespace ANON
 			   DX11::CopyStructureToBuffer(dc, ambientBuffer, ad);
 			   dc.PSSetConstantBuffers(CBUFFER_INDEX_AMBIENT_LIGHT, 1, &ambientBuffer);
 
-			   scene.RenderObjects(*this);
+			   scene.RenderObjects(*this, true);
+			   scene.RenderObjects(*this, false);
 			   Render3DGui();
 
 			   dc.OMSetBlendState(alphaAdditiveBlend, blendFactorUnused, 0xffffffff);
@@ -3124,7 +3146,7 @@ namespace ANON
 		   phase = RenderPhase_None;
 	   }
 
-	   void SetAndClearRenderBuffers(const RGBA& clearColour)
+	   void ClearCurrentRenderBuffers(const RGBA& clearColour)
 	   {
 		   RenderTarget rt = GetCurrentRenderTarget();
 		   dc.OMSetRenderTargets(1, &rt.renderTargetView, rt.depthView);
@@ -3137,7 +3159,7 @@ namespace ANON
 		   }
 	   }
 
-	   void InitInvariantTextureViews()
+	   void InitFontAndMaterialAndSpriteShaderResourceViewsAndSamplers()
 	   {
 		   dc.PSSetShaderResources(TXUNIT_FONT, 1, &fontBinding);
 		   dc.PSSetShaderResources(TXUNIT_ENV_MAP, 1, &cubeTextureView);
@@ -3265,48 +3287,9 @@ namespace ANON
 		   }
 	   }
 
-	   void Render(Graphics::RenderPhaseConfig& config, IScene& scene) override
+	   void Render3DObjects(IScene& scene)
 	   {
-		   phaseConfig = config;
-
-		   if (!phaseConfig.shadowBuffer)
-		   {
-			   phaseConfig.shadowBuffer = shadowBufferId;
-			   if (GetTexture(phaseConfig.shadowBuffer).depthView == nullptr)
-			   {
-				   Throw(0, "No shadow depth buffer set for DX1AppRenderer::Render(...)");
-			   }
-		   }
-
-		   if (!phaseConfig.depthTarget)
-		   {
-			   phaseConfig.depthTarget = mainDepthBufferId;
-		   }
-
-		   trianglesThisFrame = 0;
-		   entitiesThisFrame = 0;
-
 		   auto now = OS::CpuTicks();
-		   AIcost = now - lastTick;
-
-		   if (mainBackBufferView.IsNull()) return;
-
-		   lastTextureId = ID_TEXTURE::Invalid();
-
-		   SyncViewport(phaseConfig.depthTarget);
-
-		   SetAndClearRenderBuffers(scene.GetClearColour());
-
-		   now = OS::CpuTicks();
-
-		   UpdateGlobalState(scene);
-
-		   RenderTarget rt = GetCurrentRenderTarget();
-		   dc.OMSetRenderTargets(1, &rt.renderTargetView, rt.depthView);
-
-		   RenderSkybox(scene);
-
-		   InitInvariantTextureViews();
 
 		   dc.RSSetState(objectRasterizering);
 		   dc.OMSetDepthStencilState(objDepthState, 0);
@@ -3323,7 +3306,7 @@ namespace ANON
 				   {
 					   RenderSpotlightLitScene(lights[i], scene);
 				   }
-				   catch (IException & ex)
+				   catch (IException& ex)
 				   {
 					   Throw(ex.ErrorCode(), "Error lighting scene with light #%d: %s", i, ex.Message());
 				   }
@@ -3333,7 +3316,46 @@ namespace ANON
 		   }
 
 		   objCost = OS::CpuTicks() - now;
-	   
+	   }
+
+	   void Render(Graphics::ENVIRONMENTAL_MAP envMap, IScene& scene) override
+	   {
+		   phaseConfig.EnvironmentalMap = envMap;
+		   phaseConfig.shadowBuffer = shadowBufferId;
+		   phaseConfig.depthTarget = mainDepthBufferId;
+
+		   if (GetTexture(phaseConfig.shadowBuffer).depthView == nullptr)
+		   {
+			   Throw(0, "No shadow depth buffer set for DX1AppRenderer::Render(...)");
+		   }
+
+		   trianglesThisFrame = 0;
+		   entitiesThisFrame = 0;
+
+		   auto now = OS::CpuTicks();
+		   AIcost = now - lastTick;
+
+		   if (mainBackBufferView.IsNull()) return;
+
+		   lastTextureId = ID_TEXTURE::Invalid();
+
+		   ExpandViewportToEntireTexture(phaseConfig.depthTarget);
+
+		   ClearCurrentRenderBuffers(scene.GetClearColour());
+
+		   now = OS::CpuTicks();
+
+		   UpdateGlobalState(scene);
+
+		   RenderTarget rt = GetCurrentRenderTarget();
+		   dc.OMSetRenderTargets(1, &rt.renderTargetView, rt.depthView);
+
+		   RenderSkybox(scene);
+
+		   InitFontAndMaterialAndSpriteShaderResourceViewsAndSamplers();
+
+		   Render3DObjects(scene);
+
 		   FLOAT blendFactorUnused[] = { 0,0,0,0 };
 		   dc.OMSetBlendState(plasmaBlend, blendFactorUnused, 0xffffffff);
 		   RenderParticles(plasma, idPlasmaPS, idParticleVS, idPlasmaGS);
@@ -3346,7 +3368,7 @@ namespace ANON
 
 		   now = OS::CpuTicks();
 
-		   if (!phaseConfig.renderTarget)  mainSwapChain->Present(1, 0);
+		   mainSwapChain->Present(1, 0);
 
 		   presentCost = OS::CpuTicks() - now;
 

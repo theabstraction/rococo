@@ -234,9 +234,9 @@ namespace Rococo
 		virtual RGBA GetClearColour() const = 0;
 		virtual void OnGuiResize(Vec2i screenSpan) = 0;
 		virtual void RenderGui(IGuiRenderContext& grc) = 0;
-		virtual void RenderObjects(IRenderContext& rc) = 0; // Do not change lights from here
+		virtual void RenderObjects(IRenderContext& rc, bool skinned) = 0; // Do not change lights from here
 		virtual const Light* GetLights(uint32& nCount) const = 0;	// Called prior to the shadow pass. 
-		virtual void RenderShadowPass(const DepthRenderData& drd, IRenderContext& rc) = 0; // Do not change lights from here
+		virtual void RenderShadowPass(const DepthRenderData& drd, IRenderContext& rc, bool skinned) = 0; // Do not change lights from here
 	};
 
 	ROCOCOAPI IApp
@@ -398,7 +398,7 @@ namespace Rococo
 		virtual ID_TEXTURE LoadTexture(IBuffer& rawImageBuffer, cstr uniqueName) = 0;
 		virtual Textures::ITextureArrayBuilder& SpriteBuilder() = 0;
 		virtual void OnSize(Vec2i span) = 0;
-		virtual void Render(Graphics::RenderPhaseConfig& config, IScene& scene) = 0;
+		virtual void Render(Graphics::ENVIRONMENTAL_MAP EnvironmentalMap, IScene& scene) = 0;
 		virtual void RemoveOverlay(IUIOverlay* overlay) = 0;
 		virtual void SetCursorBitmap(const Textures::BitmapLocation& sprite, Vec2i hotspotOffset) = 0;
 		virtual void SetCursorVisibility(bool isVisible) = 0;

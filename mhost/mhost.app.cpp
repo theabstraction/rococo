@@ -82,9 +82,9 @@ namespace MHost
 			platform.gui.Render(grc);
 		}
 
-		void RenderObjects(IRenderContext& rc)  override
+		void RenderObjects(IRenderContext& rc, bool skinned)  override
 		{
-			platform.scene.RenderObjects(rc);
+			platform.scene.RenderObjects(rc, skinned);
 		}
 
 		const Light* GetLights(uint32& nCount) const override
@@ -92,9 +92,9 @@ namespace MHost
 			return platform.scene.GetLights(nCount);
 		}
 
-		void RenderShadowPass(const DepthRenderData& drd, IRenderContext& rc)  override
+		void RenderShadowPass(const DepthRenderData& drd, IRenderContext& rc, bool skinned)  override
 		{
-			platform.scene.RenderShadowPass(drd, rc);
+			platform.scene.RenderShadowPass(drd, rc, skinned);
 		}
 	};
 
@@ -129,7 +129,7 @@ namespace MHost
 			return ID_CUBE_TEXTURE::Invalid();
 		}
 
-		void RenderObjects(IRenderContext& rc)  override
+		void RenderObjects(IRenderContext& rc, bool skinned)  override
 		{
 		}
 
@@ -138,7 +138,7 @@ namespace MHost
 			return nullptr;
 		}
 
-		void RenderShadowPass(const DepthRenderData& drd, IRenderContext& rc)  override
+		void RenderShadowPass(const DepthRenderData& drd, IRenderContext& rc, bool skinned)  override
 		{
 
 		}
@@ -210,11 +210,8 @@ namespace MHost
 
 			platform.gui.PushTop(busyPanel->Supervisor(), true);
 
-			Rococo::Graphics::RenderPhaseConfig config;
-			config.EnvironmentalMap = Rococo::Graphics::ENVIRONMENTAL_MAP_FIXED_CUBE;
-
 			EmptyScene emptyScene;
-			platform.renderer.Render(config, emptyScene);
+			platform.renderer.Render(Rococo::Graphics::ENVIRONMENTAL_MAP_FIXED_CUBE, emptyScene);
 			platform.gui.Pop();
 		}
 
@@ -400,11 +397,8 @@ namespace MHost
 			{
 				Throw(0, "GuiPopulator undefined");
 			}
-
-			Rococo::Graphics::RenderPhaseConfig config;
-			config.EnvironmentalMap = Rococo::Graphics::ENVIRONMENTAL_MAP_FIXED_CUBE;
 			sceneManager.populator = populator;
-			platform.renderer.Render(config, sceneManager);
+			platform.renderer.Render(Rococo::Graphics::ENVIRONMENTAL_MAP_FIXED_CUBE, sceneManager);
 		}
 
 		void PollKeyState(KeyState& keyState) override

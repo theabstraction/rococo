@@ -20,6 +20,7 @@ namespace
       std::vector<ID_ENTITY> entities;
 	  std::vector<ID_ENTITY> debugEntities;
 	  std::vector<ID_ENTITY> dynamics;
+	  std::vector<ID_ENTITY> statics;
       std::vector<ObjectInstance> drawQueue;
       Rococo::Graphics::ICameraSupervisor& camera;
 
@@ -80,7 +81,7 @@ namespace
 		  this->populator = populator;
 	  }
 
-	  void RenderShadowPass(const DepthRenderData& drd, IRenderContext& rc) override
+	  void RenderShadowPass(const DepthRenderData& drd, IRenderContext& rc, bool skinned) override
 	  {
 		  rc.Clear3DGuiTriangles();
 
@@ -89,29 +90,7 @@ namespace
 			  populator->PopulateShadowCasters(*this, drd);
 		  }
 
-		  drawQueue.clear();
-
-		  ID_SYS_MESH meshId;
-
-		  for (auto i : entities)
-		  {
-			  IEntity* entity = instances.GetEntity(i);
-			  if (!entity)
-			  {
-				  Throw(0, "Unexpected missing entity");
-			  }
-
-			  if (entity->MeshId() != meshId)
-			  {
-				  FlushDrawQueue_NoTexture(meshId, rc);
-				  meshId = entity->MeshId();
-			  }
-
-			  ObjectInstance instance{ entity->Model(), RGBA(0, 0, 0, 0) };
-			  drawQueue.push_back(instance);
-		  }
-
-		  FlushDrawQueue_NoTexture(meshId, rc);
+		  RenderEntities_InternalAnyPhase(rc, skinned);
 	  }
 
       void SetClearColour(float32 red, float32 green, float32 blue, float alpha) override
@@ -194,6 +173,7 @@ namespace
          entities.clear();
 		 debugEntities.clear();
 		 dynamics.clear();
+		 statics.clear();
       }
 
       void AddStatics(ID_ENTITY id) override
@@ -203,6 +183,7 @@ namespace
 			  Throw(0, "Scene.AddStatics: id was zero/invalid");
 		  }
           entities.push_back(id);
+		  statics.push_back(id);
       }
 
 	  void AddDebugObject(ID_ENTITY id) override
@@ -265,7 +246,99 @@ namespace
 		  }
 	  }
 
-      void RenderObjects(IRenderContext& rc) override
+	  void RenderEntities_InternalStatic(IRenderContext& r)
+	  {
+		  ID_SYS_MESH meshId;
+
+		  for (auto i : statics)
+		  {
+			  IEntity* entity = instances.GetEntity(i);
+			  if (!entity)
+			  {
+				  Throw(0, "Scene: Unexpected missing entity with id #%lld", i.value);
+			  }
+
+			  if (entity->MeshId() != meshId)
+			  {
+				  FlushDrawQueue(meshId, r);
+				  meshId = entity->MeshId();
+			  }
+
+			  ObjectInstance instance{ entity->Model(), RGBA(0, 0, 0, 0) };
+			  drawQueue.push_back(instance);
+		  }
+
+		  if (meshId) FlushDrawQueue(meshId, r);
+	  }
+
+	  void RenderEntities_InternalDynamic(IRenderContext& r)
+	  {
+		  ID_SYS_MESH meshId;
+
+		  for (auto i : debugEntities)
+		  {
+			  IEntity* entity = instances.GetEntity(i);
+			  if (!entity)
+			  {
+				  Throw(0, "Scene: Unexpected missing entity with id #%lld", i.value);
+			  }
+
+			  AddDebugBones(*entity, r, *debugTesselator, rigs);
+		  }
+
+		  for (auto i : dynamics)
+		  {
+			  IEntity* entity = instances.GetEntity(i);
+			  if (!entity)
+			  {
+				  Throw(0, "Scene: Unexpected missing entity with id #%lld", i.value);
+			  }
+
+			  auto* skeleton = entity->GetSkeleton(rigs.Skeles());
+
+			  if (entity->MeshId() != meshId)
+			  {
+				  FlushDrawQueue(meshId, r);
+				  meshId = entity->MeshId();
+			  }
+
+			  ObjectInstance instance{ entity->Model(), RGBA(0, 0, 0, 0) };
+			  drawQueue.push_back(instance);
+
+			  if (skeleton)
+			  {
+				  auto* root = skeleton->Root();
+				  if (root)
+				  {
+					  int index = 0;
+					  for (auto* child : *root)
+					  {
+						  AddBoneMatrix(root->GetMatrix(), *child, r, index);
+					  }
+				  }
+				  FlushDrawQueue(meshId, r);
+				  meshId = ID_SYS_MESH::Invalid();
+			  }
+		  }
+
+		  FlushDrawQueue(meshId, r);
+	  }
+
+	  void RenderEntities_InternalAnyPhase(IRenderContext& r, bool skinned)
+	  {
+		  drawQueue.clear();
+
+		  if (!skinned)
+		  {
+			  RenderEntities_InternalStatic(r);
+		  }
+		  else
+		  {
+			  RenderEntities_InternalDynamic(r);
+		  }
+	  }
+
+      void RenderObjects(IRenderContext& rc, bool skinned) override
       {
 		  debugTesselator->Clear();
 
@@ -274,57 +347,7 @@ namespace
 			  populator->PopulateScene(*this);
 		  }
 
-         drawQueue.clear();
-
-         ID_SYS_MESH meshId;
-
-		 for (auto i : debugEntities)
-		 {
-			 IEntity* entity = instances.GetEntity(i);
-			 if (!entity)
-			 {
-				 Throw(0, "Scene: Unexpected missing entity with id #%lld", i.value);
-			 }
-
-			 AddDebugBones(*entity, rc, *debugTesselator, rigs);
-		 }
-
-         for (auto i : entities)
-         {
-            IEntity* entity = instances.GetEntity(i);
-            if (!entity)
-            {
-               Throw(0, "Scene: Unexpected missing entity with id #%lld", i.value);
-            }
-
-			auto* skeleton = entity->GetSkeleton(rigs.Skeles());
-
-            if (entity->MeshId() != meshId)
-            {
-               FlushDrawQueue(meshId, rc);
-               meshId = entity->MeshId();
-            }
-           
-            ObjectInstance instance{ entity->Model(), RGBA(0, 0, 0, 0) };
-            drawQueue.push_back(instance);
-
-			if (skeleton)
-			{
-				auto* root = skeleton->Root();
-				if (root)
-				{
-					int index = 0;
-					for (auto* child : *root)
-					{
-						AddBoneMatrix(root->GetMatrix(), *child, rc, index);
-					}
-				}
-				FlushDrawQueue(meshId, rc);
-				meshId = ID_SYS_MESH::Invalid();
-			}
-         }
-
-         FlushDrawQueue(meshId, rc);
+		  RenderEntities_InternalAnyPhase(rc, skinned);
       }
 
       RGBA GetClearColour() const override
