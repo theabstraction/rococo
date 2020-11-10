@@ -409,10 +409,10 @@
 	(rod.SetMaterialBottom steel)
 	(rod.SetMaterialMiddle steel)
 	(rod.SetMaterialTop steel)
-	(rod.AddTube 0.4 0.05 0.05 10)
-	(rod.AddTube 0.4 0.05 0.05 10)
-	(rod.AddTube 0.4 0.05 0.05 10)
-	(rod.AddTube 0.4 0.05 0.05 10)
+	(rod.AddTube 0.4 0.02 0.03 10)
+	(rod.AddTube 0.4 0.03 0.04 10)
+	(rod.AddTube 0.4 0.04 0.05 10)
+	(rod.AddTube 0.4 0.05 0.06 10)
 	(rod.SetBlendWeightByHeight 0 1.0 0.0)
 	(rod.SetBlendWeightByHeight 1 0.0 1.0)
 	(rod.CopyToMeshBuilder "worm-mesh" true false true)
@@ -434,6 +434,8 @@
 	(Int64 wormBodyId = (instances.AddBody "worm-mesh" wormToWorld wormScale 0))
 	(instances.BindSkeletonToBody "worm" wormBodyId)
 	(scene.AddDynamicObject wormBodyId)
+	
+	(scene.AddDebugObject wormBodyId)
 
 	(instances.AddAnimationFrame wormBodyId "worm-straight" 4 false)
 	(instances.AddAnimationFrame wormBodyId "worm-bent" 4 true)

@@ -13,6 +13,7 @@ namespace
 	   ID_SYS_MESH id; // Mesh id as managed by the renderer
 	   AABB bounds; // Bounding box surrounding mesh
 	   ObjectVertex* pVertexArray;
+	   BoneWeights* pWeightArray;
 	   size_t nVertices;
 	   std::vector<Triangle> physicsHull;
    };
@@ -77,6 +78,7 @@ namespace
 			  auto mesh = i.second;
 			  renderer.DeleteMesh(mesh->id);
 			  delete[] mesh->pVertexArray;
+			  delete[] mesh->pWeightArray;
 			  delete mesh;
 		  }
 	  }
@@ -153,6 +155,7 @@ namespace
             auto mesh = i->second;
             renderer.DeleteMesh(mesh->id);
 			delete[] mesh->pVertexArray;
+			delete[] mesh->pWeightArray;
             meshes.erase(i);
 			idToName.erase(mesh->id);
 			delete mesh;
@@ -227,15 +230,20 @@ namespace
 
 	  void AddMesh(cr_m4x4 transform, const fstring& mesh)
 	  {
+		  if (*name == 0) Throw(0, "Call MeshBuilder.Begin() first");
+
 		  auto i = meshes.find((cstr)mesh);
 		  if (i == meshes.end())
 		  {
 			  Throw(0, "MeshBuilder::AddMesh(..., %s) fail. Mesh name not recognized", (cstr)mesh);
 		  }
 
-		  auto* v = i->second->pVertexArray;
+		  if (i->second->pWeightArray != nullptr)
+		  {
+			  Throw(0, "Cannot AddMesh(..., %s) as the the vertices are weighted", mesh.buffer);
+		  }
 
-		  if (*name == 0) Throw(0, "Call MeshBuilder.Begin() first");
+		  auto* v = i->second->pVertexArray;
 
 		  for (size_t j = 0; j < i->second->nVertices; j++)
 		  {
@@ -295,9 +303,15 @@ namespace
 		  }
 
 		  ObjectVertex* backup = nullptr;
+		  BoneWeights* backupWeights = nullptr;
 
 		  if (preserveCopy)
 		  {
+			  backupWeights = weights.empty() ? nullptr : new BoneWeights[weights.size()];
+			  if (backupWeights)
+			  {
+				  memcpy(backupWeights, weights.data(), weights.size() * sizeof(BoneWeights));
+			  }
 			  backup = new ObjectVertex[vertices.size()];
 			  memcpy(backup, &vertices[0], vertices.size() * sizeof(ObjectVertex));
 		  }
@@ -314,7 +328,9 @@ namespace
 			  {
 				  i->second->nVertices = vertices.size();
 				  delete[] i->second->pVertexArray;
+				  delete[] i->second->pWeightArray;
 				  i->second->pVertexArray = backup;
+				  i->second->pWeightArray = backupWeights;
 				  i->second->physicsHull = physicsHull;
 			  }
 			  else if (!physicsHull.empty())
@@ -322,13 +338,14 @@ namespace
 				  i->second->nVertices = 0;
 				  delete[] i->second->pVertexArray;
 				  i->second->pVertexArray = nullptr;
+				  i->second->pWeightArray = nullptr;
 				  i->second->physicsHull = physicsHull;
 			  }
 		  }
 		  else
 		  {
 			  auto id = renderer.CreateTriangleMesh(invisible ? nullptr : v, invisible ? 0 : (uint32)vertices.size(), pWeights);
-			  auto binding = new MeshBinding{ id, boundingBox, backup, vertices.size(), physicsHull };
+			  auto binding = new MeshBinding{ id, boundingBox, backup, backupWeights, vertices.size(), physicsHull };
 			  meshes[name] = binding;
 			  idToName[id] = MeshBindingEx(binding, name);
 		  }
@@ -370,7 +387,7 @@ namespace
 		  if (i->second->pVertexArray)
 		  {
 			  auto count = i->second->nVertices;
-			  buffer.Resize(count * 256 + 256);
+			  buffer.Resize(count * 256 + 256 + weights.size() * 128);
 
 			  StackStringBuilder sb((char*)buffer.GetData(), buffer.Length());
 
@@ -379,12 +396,23 @@ namespace
 
 			  for (size_t k = 0; k < count; ++k)
 			  {
-				  auto& v = i->second->pVertexArray[k];
+				  const auto& v = i->second->pVertexArray[k];
 				  sb << k / 3 << "," << k << "," << v.position.x << "," << v.position.y << "," << v.position.z << ",";
 				  sb << v.uv.x << "," << v.uv.y << "," << v.normal.x << "," << v.normal.y << "," << v.normal.z << ",";
 				  sb.AppendFormat("0x%8.8X", *(int*)(&v.material.colour));
 				  sb << ",";
 				  sb << v.material.materialId << "," << v.material.gloss << "\n";
+			  }
+
+			  if (i->second->pWeightArray)
+			  {
+				  sb << "BoneWeights\n\n";
+				  sb << "TriangleId,--Blank--,Index,weight,--Blank--,Index,weight)\n\n";
+				  for (size_t k = 0; k < count; ++k)
+				  {
+					  const auto& w = i->second->pWeightArray[k];
+					  sb.AppendFormat("%0.4d,\t\t,%0.0f,%4.4f,\t\t,%0.0f,%4.4f\n", k/3, w.bone0.index, w.bone0.weight, w.bone1.index, w.bone1.weight);
+				  }
 			  }
 		  }
 		  else

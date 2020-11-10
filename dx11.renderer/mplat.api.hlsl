@@ -67,13 +67,13 @@ float4x4 GetBoneMatrix(float index)
 	return boneMatrices[(int)index];
 }
 
-float4 Transform_Model_Via_Skinned(float4 v, BoneWeight_2Bones w)
+float4 Transform_Model_Vertices_Via_Bone_Weights(float4 v, BoneWeight_2Bones w)
 {
 	float4x4 skin0 = GetBoneMatrix(w.index0);
 	float4 v0 = mul(skin0, v);
 	float4x4 skin1 = GetBoneMatrix(w.index1);
 	float4 v1 = mul(skin1, v);
-	return lerp(v0, v1, w.weight0);
+	return lerp(v0, v1, w.weight1);
 }
 
 float4 Transform_World_To_Screen(float4 v)
