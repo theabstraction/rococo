@@ -2915,9 +2915,45 @@ namespace ANON
 		   }
 	   }
 
-	   void RenderShadowBuffer()
+	   void RenderToShadowBuffer(DepthRenderData& drd, ID_TEXTURE shadowBuffer, IScene& scene)
 	   {
+		   auto shadowBind = GetTexture(shadowBuffer);
 
+		   dc.OMSetRenderTargets(0, nullptr, shadowBind.depthView);
+
+		   D3D11_TEXTURE2D_DESC desc;
+		   shadowBind.texture->GetDesc(&desc);
+
+		   D3D11_VIEWPORT viewport = { 0 };
+		   viewport.Width = (FLOAT)desc.Width;
+		   viewport.Height = (FLOAT)desc.Height;
+		   viewport.MinDepth = 0.0f;
+		   viewport.MaxDepth = 1.0f;
+		   dc.RSSetViewports(1, &viewport);
+
+		   dc.ClearDepthStencilView(shadowBind.depthView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+		   FLOAT blendFactorUnused[] = { 0,0,0,0 };
+		   dc.OMSetBlendState(disableBlend, blendFactorUnused, 0xffffffff);
+
+		   dc.RSSetState(shadowRasterizering);
+
+		   UseShaders(idSkinnedObjVS_Shadows, idObjPS_Shadows);
+
+		   DX11::CopyStructureToBuffer(dc, depthRenderStateBuffer, drd);
+		   dc.VSSetConstantBuffers(CBUFFER_INDEX_DEPTH_RENDER_DESC, 1, &depthRenderStateBuffer);
+		   dc.PSSetConstantBuffers(CBUFFER_INDEX_DEPTH_RENDER_DESC, 1, &depthRenderStateBuffer);
+
+		   phase = RenderPhase_DetermineShadowVolumes;
+		   scene.RenderShadowPass(drd, *this, true);
+
+		   UseShaders(idObjVS_Shadows, idObjPS_Shadows);
+
+		   DX11::CopyStructureToBuffer(dc, depthRenderStateBuffer, drd);
+		   dc.VSSetConstantBuffers(CBUFFER_INDEX_DEPTH_RENDER_DESC, 1, &depthRenderStateBuffer);
+		   dc.PSSetConstantBuffers(CBUFFER_INDEX_DEPTH_RENDER_DESC, 1, &depthRenderStateBuffer);
+
+		   scene.RenderShadowPass(drd, *this, false);
 	   }
 
 	   void RenderSpotlightLitScene(const Light& lightSubset, IScene& scene)
@@ -2927,50 +2963,13 @@ namespace ANON
 		   DepthRenderData drd;
 		   if (PrepareDepthRenderFromLight(light, drd))
 		   {
-			   constexpr float f = 1.0f / rng.max();
+			   const float f = 1.0f / rng.max();
 			   drd.randoms.x = rng() * f;
 			   drd.randoms.y = rng() * f;
 			   drd.randoms.z = rng() * f;
 			   drd.randoms.w = rng() * f;
 
-			   auto shadowBind = GetTexture(phaseConfig.shadowBuffer);
-
-			   dc.OMSetRenderTargets(0, nullptr, shadowBind.depthView);
-
-			   D3D11_TEXTURE2D_DESC desc;
-			   shadowBind.texture->GetDesc(&desc);
-
-			   D3D11_VIEWPORT viewport = { 0 };
-			   viewport.Width = (FLOAT)desc.Width;
-			   viewport.Height = (FLOAT)desc.Height;
-			   viewport.MinDepth = 0.0f;
-			   viewport.MaxDepth = 1.0f;
-			   dc.RSSetViewports(1, &viewport);
-
-			   dc.ClearDepthStencilView(shadowBind.depthView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-
-			   FLOAT blendFactorUnused[] = { 0,0,0,0 };
-			   dc.OMSetBlendState(disableBlend, blendFactorUnused, 0xffffffff);
-
-			   dc.RSSetState(shadowRasterizering);
-
-			   
-			   UseShaders(idSkinnedObjVS_Shadows, idObjPS_Shadows);
-
-			   DX11::CopyStructureToBuffer(dc, depthRenderStateBuffer, drd);
-			   dc.VSSetConstantBuffers(CBUFFER_INDEX_DEPTH_RENDER_DESC, 1, &depthRenderStateBuffer);
-			   dc.PSSetConstantBuffers(CBUFFER_INDEX_DEPTH_RENDER_DESC, 1, &depthRenderStateBuffer);
-
-			   phase = RenderPhase_DetermineShadowVolumes;
-			   scene.RenderShadowPass(drd, *this, true);
-
-			   UseShaders(idObjVS_Shadows, idObjPS_Shadows);
-
-			   DX11::CopyStructureToBuffer(dc, depthRenderStateBuffer, drd);
-			   dc.VSSetConstantBuffers(CBUFFER_INDEX_DEPTH_RENDER_DESC, 1, &depthRenderStateBuffer);
-			   dc.PSSetConstantBuffers(CBUFFER_INDEX_DEPTH_RENDER_DESC, 1, &depthRenderStateBuffer);
-
-			   scene.RenderShadowPass(drd, *this, false);
+			   RenderToShadowBuffer(drd, phaseConfig.shadowBuffer, scene);
 
 			   RenderTarget rt = GetCurrentRenderTarget();
 			   dc.OMSetRenderTargets(1, &rt.renderTargetView, rt.depthView);
@@ -2993,6 +2992,8 @@ namespace ANON
 			   dc.PSSetConstantBuffers(CBUFFER_INDEX_CURRENT_SPOTLIGHT, 1, &lightStateBuffer);
 			   dc.GSSetConstantBuffers(CBUFFER_INDEX_CURRENT_SPOTLIGHT, 1, &lightStateBuffer);
 
+			   FLOAT blendFactorUnused[] = { 0,0,0,0 };
+
 			   if (builtFirstPass)
 			   {
 				   dc.OMSetBlendState(additiveBlend, blendFactorUnused, 0xffffffff);
@@ -3003,6 +3004,8 @@ namespace ANON
 				   dc.OMSetBlendState(disableBlend, blendFactorUnused, 0xffffffff);
 				   builtFirstPass = true;
 			   }
+
+			   auto shadowBind = GetTexture(phaseConfig.shadowBuffer);
 
 			   dc.PSSetShaderResources(2, 1, &shadowBind.shaderView);
 			   dc.RSSetState(objectRasterizering);
