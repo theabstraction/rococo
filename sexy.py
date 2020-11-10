@@ -1,4 +1,4 @@
-# filename = "C:/Blender/2.83/scripts/addons/sexy.py"
+# filename = "/work/rococo/sexy.py"
 # exec(compile(open(filename).read(), filename, 'exec'))
 
 import time
@@ -6,15 +6,15 @@ import bpy
  
 # write_vertex writes to 4 decimal places, which is 1/10th of a millimetre
 # since we are not modelling micrometre or smaller phenomena, this should be enough for our purposes
-def write_vertex (output, vertex, index):
+def write_vertex (output, vertex, u, v):
     p = vertex.co
     n = vertex.normal
-    output.write(" (%.2d %+4.4f %+4.4f %+4.4f\t%+4.4f %+4.4f %+4.4f\n" % (index, p.x, p.y, p.z, n.x, n.y, n.z))
+    output.write(" (%+4.4f %+4.4f %+4.4f)(%+4.4f %+4.4f %+4.4f)(%+4.4f %4.4f) mat)\n" % (p.x, p.y, p.z, n.x, n.y, n.z, u, v))
 
-    for g in vertex.groups:
-        output.write("\t(%2d %4.4f)\n" % (g.group, g.weight))
+    #for g in vertex.groups:
+    #    output.write("\t(%2d %4.4f)\n" % (g.group, g.weight))
    
-    output.write(" )\n")
+    #output.write(" )\n")
 
 def export_vertices(output, object, mesh ):
     index = 0
@@ -33,34 +33,68 @@ def export_vertices(output, object, mesh ):
     #            index = index + 1
         
     output.write(")\n")
+    
+def GetUV(uva, index):
+    if uva is None:
+        return (0,0)
+    return (uva.data[index].uv.x, uva.data[index].uv.y);
        
 def export_polygons(output, object, mesh):
-    output.write("(polygons // %d\n" % len(mesh.polygons))   
-    index = 0
+    index = 0 
     
+    uv = object.data.uv_layers.active  
+        
     for p in mesh.polygons:
-        output.write("(%d %d " % (index, p.material_index))
+        output.write("\t(\n\t\t(VertexTriangle t = \n")
         first = True
-
-        for i, j in zip(p.vertices, p.loop_indices):
-            uva = object.data.uv_layers.active
-            if uva is None:
-                if first:
-                    first = False
-                else:
-                    output.write(" ")
-                output.write("%3i" % i)
-            else:
-                if first:
-                    first = False
-                    output.write("\n")
-
-                uv = uva.data[j].uv
-                output.write(" (%3i %.4f %.4f)\n" % (i, uv.x, uv.y))
-        output.write(")\n")  
+        
+        output.write("\t\t\t(")
+        
+        indexA = p.vertices[0] 
+        vertexA = mesh.vertices[indexA]
+        uvA = GetUV(uv, indexA)
+        write_vertex(output, vertexA, uvA[0], uvA[1])
+        
+        #output.write("\n")
+        output.write("\t\t\t(")
+        
+        indexB = p.vertices[1] 
+        vertexB = mesh.vertices[indexB]
+        uvB = GetUV(uv, indexB)
+        write_vertex(output, vertexB, uvB[0], uvB[1])
+        
+        #output.write("\n")
+        output.write("\t\t\t(")
+        
+        indexC = p.vertices[2] 
+        vertexC = mesh.vertices[indexC]
+        uvC = GetUV(uv, indexC)
+        write_vertex(output, vertexC, uvC[0], uvC[1])
+        
+        #output.write("\n")
+        output.write("\t\t)\n")
+        
+        output.write("\t\t(mb.AddTriangleEx t) // %3i\n" % index)
+        output.write("\t)\n")
         index = index + 1
-    
-    output.write(")")
+
+        # for i, j in zip(p.vertices, p.loop_indices):
+        #    uva = object.data.uv_layers.active
+        #     if uva is None:
+        #        if first:
+        #            first = False
+        #        else:
+        #            output.write(" ")
+        #        output.write("%3i" % i)
+        #    else:
+        #         if first:
+        #            first = False
+        #            output.write("\n")
+        #
+        #        uv = uva.data[j].uv
+        #        output.write(" (%3i %.4f %.4f)\n" % (i, uv.x, uv.y))
+        # output.write(")\n")  
+        #index = index + 1
     
 def export_vec4(output, v, tabCount):
     i = 0
@@ -84,13 +118,13 @@ def export_transforms(output, object):
     
 def export_mesh_elements(output, mesh, object):
     if len(mesh.polygons) > 0:
-        output.write("(mesh \"%s\"\n" % object.name)
-        export_vertices(output, object, mesh)
-        export_polygons(output, object, mesh)
-        export_materials(output, mesh.materials)
-        export_transforms(output, object)
-        output.write("(shaders (pixels \"no-texture\"))\n")
-        output.write(") // %s\n" % object.name)
+    #   output.write("(mesh \"%s\"\n" % object.name)
+    #    export_vertices(output, object, mesh)
+         export_polygons(output, object, mesh)
+    #    export_materials(output, mesh.materials)
+    #    export_transforms(output, object)
+    #    output.write("(shaders (pixels \"no-texture\"))\n")
+    #    output.write(") // %s\n" % object.name)
 
 def export_mesh(output, object):
     if object.type == 'MESH' and object.name != "_mesh":
@@ -150,8 +184,8 @@ def export_pose(output, armature):
                     
 def export_geometry(output, object):
     export_mesh(output,object)
-    for child in object.children:
-        export_geometry(output,child)
+ #   for child in object.children:
+ #       export_geometry(output,child)
                     
     
 def export_materials(output, mats):
@@ -184,28 +218,30 @@ def export_object_to_file(object, filename):
 
     output.write("(' #file.created %s)\n" % timestring)
     output.write("(' #file.origin \"exported from blender %s with sexy.py\")\n\n" %  bpy.app.version_string)
-    output.write("(' #mesh.format (mesh <name> (for-each-vertex-in-mesh: (#vertex.format)) (for-each-polygon-in-mesh: (#polygon.format))))\n")
-    output.write("(' #vertex.format (Int32 index)(Float32 x)(Float32 y)(Float32 z)(Float32 nx)(Float32 ny)(Float32 nz)(for-each-group: (groupId weight)))\n")
-    output.write("(' #polygon.format (Int32 index)(Int32 matId) (for-each-vertex-in-polygon: (Int32 vertexIndex)(Float32 u)(Float32 v)))\n\n")
+   
     output.write("(' #include\n")
-    output.write('\t"!scripts/mplat.sxh.sxy"\n')
-    output.write('\t"!scripts/mplat.types.sxy"\n')
+    output.write('\t"!scripts/mplat_sxh.sxy"\n')
+    output.write('\t"!scripts/mplat_types.sxy"\n')
     output.write('\t"!scripts/types.sxy"\n')
     output.write(')\n\n')
 
-    output.write("(using Sys.Reflection)\n\n")
-    output.write("(function Main (Int32 id) -> (Int32 exitCode):\n")
-    output.write("(IExpression rig = '(")
-
-    output.write("\"%s\"\n" % object.name)
-    export_geometry(output, object)
+    output.write("(namespace EntryPoint)\n\n")
+    output.write("(using Rococo)\n")
+    output.write("(using Rococo.Graphics)\n\n")
     
-    if object.type == 'ARMATURE':
-        export_pose(output, object)
-
-    output.write("))\n")
-    output.write("(Rococo.LoadRig rig)\n)\n(namespace EntryPoint)\n(alias Main EntryPoint.Main)\n")
-    output.close()
+    output.write("(function Main (Int32 id) -> (Int32 exitCode):\n")
+    output.write("\t(Rococo.MaterialVertexData mat)\n")
+    output.write("\t(IMeshBuilder mb (MeshBuilder))\n")
+    output.write("\t// Vertex format: (Vec3 position)(Vec3 normal)(Vec2 uv)(MaterialVertexData mat)\n")
+    output.write("\t(mb.Begin \"%s\")\n" % object.name)
+    export_geometry(output, object)
+    output.write("\t(mb.End false false)\t//%s\n" % object.name)
+    output.write(")\n\n")
+    
+    output.write("(alias Main EntryPoint.Main)")
+    
+    #if object.type == 'ARMATURE':
+     #   export_pose(output, object)
 
 bl_info = {
     "name": "Export to Sexy Script Rig File (.sxy)",

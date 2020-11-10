@@ -75,6 +75,8 @@ namespace
 
 		float GetHeightAt(float x, float y, TriangleScan& scan) override
 		{
+			if (!quadtree) return 0;
+
 			GetTriangleAt(Vec2{ x,y }, scan);
 			
 			float height = 0;

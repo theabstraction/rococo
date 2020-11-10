@@ -319,7 +319,7 @@ namespace Rococo
 					try
 					{
 						IDE::ExecuteSexyScriptLoop(stats,
-							1024_kilobytes, 
+							4096_kilobytes, 
 							platform.ssFactory,
 							platform.sourceCache,
 							platform.debuggerWindow,

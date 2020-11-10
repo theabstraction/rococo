@@ -769,6 +769,22 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->GetSpriteSpec(resourceName, *loc);
 	}
+	void NativeMHostIEngineRunMPlatScript(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _scriptName;
+		ReadInput(_scriptName, _sf, -_offset);
+		fstring scriptName { _scriptName->buffer, _scriptName->length };
+
+
+		MHost::IEngine* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->RunMPlatScript(scriptName);
+	}
 	void NativeMHostIEngineSetNextScript(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -861,6 +877,7 @@ namespace MHost {
 		ss.AddNativeCall(ns, NativeMHostIEngineYieldForSystemMessages, nullptr, ("IEngineYieldForSystemMessages (Pointer hObject)(Int32 sleepMS) -> (Sys.SI.Seconds frameDT)"));
 		ss.AddNativeCall(ns, NativeMHostIEngineTryGetSpriteSpec, nullptr, ("IEngineTryGetSpriteSpec (Pointer hObject)(Sys.Type.IString resourceName)(MPlat.BitmapLocation loc) -> (Bool isSuccessful)"));
 		ss.AddNativeCall(ns, NativeMHostIEngineGetSpriteSpec, nullptr, ("IEngineGetSpriteSpec (Pointer hObject)(Sys.Type.IString resourceName)(MPlat.BitmapLocation loc) -> "));
+		ss.AddNativeCall(ns, NativeMHostIEngineRunMPlatScript, nullptr, ("IEngineRunMPlatScript (Pointer hObject)(Sys.Type.IString scriptName) -> "));
 		ss.AddNativeCall(ns, NativeMHostIEngineSetNextScript, nullptr, ("IEngineSetNextScript (Pointer hObject)(Sys.Type.IString scriptName) -> "));
 		ss.AddNativeCall(ns, NativeMHostIEngineCaptureMouse, nullptr, ("IEngineCaptureMouse (Pointer hObject) -> "));
 		ss.AddNativeCall(ns, NativeMHostIEngineReleaseMouse, nullptr, ("IEngineReleaseMouse (Pointer hObject) -> "));

@@ -1,59 +1,52 @@
-# filename = "C:/Blender/2.83/sexy.py"
-# >>> exec(compile(open(filename).read(), filename, 'exec'))
+# Blender Model SXY exporter
+# Copyright(c)2019-2020 Mark Anthony Taylor. All rights reserved.
+# This software was tested on Blender 2.901
 
-def print_vertex (vertex, index):
-   p = vertex.co
-   n = vertex.normal
-   print(" (%d\t" % index, "%+6f" % p.x, "%+6f" % p.y, "%+6f" % p.z, "\t%+6f" % n.x, "%+6f" % n.y, " %+6f" % n.z, ")")
+bl_info = {
+    "name": "Export Sexy-Rococo.MPlat 1.0.1 Format (.model.sxy)",
+    "description": "Exports the currently selected object as a Sexy Script file",
+    "author": "Mark Anthony Taylor",
+    "category": "Import-Export",
+    "version": (1,1),
+    "blender": (2, 9, 1),
+    "location": "File > Export",
+    "twitter": "@Shyreman",
+    "website": "www.shyreman.com",
+    "support": "TESTING"
+}
 
-def export_object( object, mesh ):
-    index = 0
+import bpy
+
+#def register():
+#    print('Sexy Exporter registered')
+
+#def unregister():
+#    print('Sexy Exporter unregistered')
+
+def write_obj(filepath):
+    out = file(filepath, 'w')
+    sce = bpy.data.scenes.active
+    ob = sce.objects.active
+    mesh = ob.getData(mesh=1)
     
-    print("(vertices")
-    for v in mesh.vertices:
-        print_vertex(v, index)
-        index = index + 1
-        
-    print(")")
-       
-
-    print("(polygons")   
-    index = 0
+    out.write('(\' file.type = blender.export (version 1.0.1))')
     
-    for p in mesh.polygons:
-        print("(%d " % index, end='')
-        print("(mat %d)" % p.material_index)
-        
-        first = True
-        
-        uva = object.data.uv_layers.active
-        if uva is None:
-            print("(")  
-            for i in p.vertices:
-                print("%i" % i, end='')        
-        else:
-            for i, j in zip(p.vertices, p.loop_indices):
-                uva = object.data.uv_layers.active
-                uv = uva.data[j].uv
-                print(" (%i\t%f %f)" % (i, uv.x, uv.y))
-            print(")")  
-            index = index + 1
+    out.write(' (ISExpression s = \'\n\t(vertices\n')
+    for vert in mesh.verts:
+        out.write( '\t(%f %f %f)\n' % (vert.co.x, vert.co.y, vert.co.z) )
     
-    print(")")
-        
+    out.write('\t)\n\t(faces\n')
+    
+    for face in mesh.faces:
+        out.write('\t(')
+        for vert in face.v:
+            out.write('%i ' % (vert.index + 1))
+        out.write(')\n')
+    out.close()
+    
+write_obj('C:\work\rococo\blender\export.out.sxy')
+    
+# Blender.Window.FileSelector(write_obj, "Export")
 
-objects = bpy.context.scene.objects
-for o in objects:
-    if o.type == 'MESH':
-        meshIndex = bpy.data.meshes.find(o.name)
-        if meshIndex != -1:
-            print("(mesh \"%s\"" % o.name)
-            export_object(o, bpy.data.meshes[meshIndex])
-            print(")")
-            
-mats = bpy.data.materials
-for m in mats:
-    if len(m.texture_paint_slots) >  0:
-        for t in m.texture_paint_slots:
-            print(t.name,'saved at',t.filepath)
-
+#if __name__ == "__main__":
+#    register()

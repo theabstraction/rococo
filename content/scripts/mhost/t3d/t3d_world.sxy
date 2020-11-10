@@ -45,6 +45,35 @@
 	(cameraOrientation = this.cameraOrientation)
 )
 
+(function MakeHuman (IString meshName) -> :
+	(IRodTesselator human (RodTesselator))
+	(human.Clear)
+	
+	(IInstances instances (Instances))
+	
+	(MaterialVertexData glass)
+	(AnyColour 0 255 0 255 0 255 48 224 -> glass.colour)
+	(instances.GetRandomMaterialId (#MaterialCategoryMarble) -> glass.id)
+	(glass.gloss = 0.2)
+	
+	(human.SetMaterialTop glass)
+	(human.SetMaterialMiddle glass)
+	(human.SetMaterialBottom glass)
+	(human.UseSmoothNormals)
+	
+	(Float32 length = 1.0)
+	(Float32 bottomWidth = (AnyFloat 0.15 0.25))
+	(Float32 topWidth = (bottomWidth * (AnyFloat 0.5 1)))
+	(Int32 divs = 5)
+	
+	(human.AddTube length bottomWidth topWidth divs)
+	
+	(human.AddTube 0.5 0.35 0.35 divs)
+	
+	
+	(human.CopyToMeshBuilder meshName false false true)
+)
+
 (function MakeBottle (IString meshName) -> :
 	(IRodTesselator bottle (RodTesselator))
 	(bottle.Clear)
@@ -242,8 +271,8 @@
 	
 	(Vec3 noScale = 1 1 1)
 	
-	(Int64 lightCodeId = (instances.AddBody "light.cone.1" lightConeModel noScale 0))
-	//(scene.AddStatics lightCodeId)
+	(Int64 lightConeId = (instances.AddBody "light.cone.1" lightConeModel noScale 0))
+	(scene.AddStatics lightConeId)
 	
 	(scene.SetLight light 0)
 )
@@ -373,7 +402,7 @@
 	(AddGeoff rb)
 	
 	(Vec3 pos = 1 1 0)
-	(world.SnapToLandscape pos 1.4)
+	(world.SnapToLandscape pos 0.1)
 	
 	(Matrix4x4 lowerSpineToWorld =
 		(1 0 0  pos.x)
@@ -381,11 +410,17 @@
 		(0 0 1  pos.z)
 		(0 0 0      1)
 	)
-		/*
-	(Int64 geoffId = (instances.AddSkeleton "geoff" lowerSpineToWorld))
-	(scene.AddDebugObject geoffId)
-	(scene.AddDynamicObject geoffId)
 	
+	(Vec3 geoffScale = 1 1 1)
+	
+	//(MakeHuman "human")
+
+	(Int64 geoffId = (instances.AddBody "skellie.001" lowerSpineToWorld geoffScale 0))
+	//(scene.AddDebugObject geoffId)
+	//(scene.AddDynamicObject geoffId)
+	
+	(scene.AddStatics geoffId)
+	/*
 	(instances.AddAnimationFrame geoffId "straight" 4 false)
 	(instances.AddAnimationFrame geoffId "6-o'clock" 4 true)
 	(instances.AddAnimationFrame geoffId "straight" 4 false)
@@ -480,8 +515,8 @@
 	(scene.Clear)
 	
 //	(AddBottle scene instances)
-//	(AddFloor scene instances)
-	(AddLandscape scene instances)
+	(AddFloor scene instances)
+//	(AddLandscape scene instances)
 	(AddLight scene instances this)
 	(AddRigs scene instances this)
 	

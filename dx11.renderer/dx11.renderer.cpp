@@ -2673,7 +2673,7 @@ namespace ANON
 
 		   if (overrideShader)
 		   {
-			   UseShaders(currentVertexShaderId, currentPixelShaderId);	   
+			   UseShaders(currentVertexShaderId, currentPixelShaderId);	 
 		   }
 		   
 		   if (m.alphaBlending)
@@ -2956,6 +2956,13 @@ namespace ANON
 		   scene.RenderShadowPass(drd, *this, false);
 	   }
 
+	   void SetupSpotlightConstants()
+	   {
+		   dc.VSSetConstantBuffers(CBUFFER_INDEX_CURRENT_SPOTLIGHT, 1, &lightStateBuffer);
+		   dc.PSSetConstantBuffers(CBUFFER_INDEX_CURRENT_SPOTLIGHT, 1, &lightStateBuffer);
+		   dc.GSSetConstantBuffers(CBUFFER_INDEX_CURRENT_SPOTLIGHT, 1, &lightStateBuffer);
+	   }
+
 	   void RenderSpotlightLitScene(const Light& lightSubset, IScene& scene)
 	   {
 		   Light light = lightSubset;
@@ -2988,9 +2995,7 @@ namespace ANON
 			   light.worldToShadowBuffer = drd.worldToScreen;
 
 			   DX11::CopyStructureToBuffer(dc, lightStateBuffer, light);
-			   dc.VSSetConstantBuffers(CBUFFER_INDEX_CURRENT_SPOTLIGHT, 1, &lightStateBuffer);
-			   dc.PSSetConstantBuffers(CBUFFER_INDEX_CURRENT_SPOTLIGHT, 1, &lightStateBuffer);
-			   dc.GSSetConstantBuffers(CBUFFER_INDEX_CURRENT_SPOTLIGHT, 1, &lightStateBuffer);
+			   SetupSpotlightConstants();
 
 			   FLOAT blendFactorUnused[] = { 0,0,0,0 };
 
@@ -3010,8 +3015,8 @@ namespace ANON
 			   dc.PSSetShaderResources(2, 1, &shadowBind.shaderView);
 			   dc.RSSetState(objectRasterizering);
 
-			   scene.RenderObjects(*this, true);
 			   scene.RenderObjects(*this, false);
+			   scene.RenderObjects(*this, true);
 
 			   Render3DGui();
 
@@ -3108,6 +3113,17 @@ namespace ANON
 		   guiCost = OS::CpuTicks() - now;
 	   }
 
+	   void SetAmbientConstants()
+	   {
+		   AmbientData ad;
+		   ad.localLight = ambientLight.ambient;
+		   ad.fogConstant = ambientLight.fogConstant;
+		   DX11::CopyStructureToBuffer(dc, ambientBuffer, ad);
+		   dc.PSSetConstantBuffers(CBUFFER_INDEX_AMBIENT_LIGHT, 1, &ambientBuffer);
+	   }
+
+	   Light ambientLight = { 0 };
+
 	   void RenderAmbient(IScene& scene, const Light& ambientLight)
 	   {
 		   phase = RenderPhase_DetermineAmbient;
@@ -3131,15 +3147,11 @@ namespace ANON
 
 			   dc.RSSetState(objectRasterizering);
 
-			   AmbientData ad;
-			   ad.localLight = ambientLight.ambient;
-			   ad.fogConstant = ambientLight.fogConstant;
+			   this->ambientLight = ambientLight;
+			   SetAmbientConstants();
 
-			   DX11::CopyStructureToBuffer(dc, ambientBuffer, ad);
-			   dc.PSSetConstantBuffers(CBUFFER_INDEX_AMBIENT_LIGHT, 1, &ambientBuffer);
-
-			   scene.RenderObjects(*this, true);
 			   scene.RenderObjects(*this, false);
+			   scene.RenderObjects(*this, true);
 			   Render3DGui();
 
 			   dc.OMSetBlendState(alphaAdditiveBlend, blendFactorUnused, 0xffffffff);

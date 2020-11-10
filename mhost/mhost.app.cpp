@@ -337,6 +337,18 @@ namespace MHost
 			ReleaseMouse();
 		}
 
+		void RunMPlatScript(const fstring& scriptName) override
+		{
+			struct CLOSURE : IEventCallback<ScriptCompileArgs>
+			{
+				void OnEvent(ScriptCompileArgs& args) override
+				{
+
+				}
+			} onCompile;
+			platform.utilities.RunEnvironmentScript(onCompile, 0, scriptName, true, false);
+		}
+
 		void Run() override
 		{
 			RunEnvironmentScript(platform, this, "!scripts/MHost/_Init/keys.sxy", true, false, *packageMHost, this);

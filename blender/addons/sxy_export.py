@@ -1,21 +1,20 @@
 # Blender Model SXY exporter
 # Copyright(c)2019-2020 Mark Anthony Taylor. All rights reserved.
-# This software was tested on Blender 2.81
+# This software was tested on Blender 2.901
 
 bl_info = {
-    "name": "Export S-expression 1.0.1 Format (.model.sxy)",
+    "name": "Export Sexy-Rococo.MPlat 1.0.1 Format (.model.sxy)",
 	"description": "Exports the currently selected object as a Sexy Script file",
 	"author": "Mark Anthony Taylor",
     "category": "Import-Export",
 	"version": (1,1),
-	"blender": (2, 81, 0),
+	"blender": (2, 9, 1),
 	"location": "File > Export",
 	"twitter": "@Shyreman",
 	"website": "www.shyreman.com",
 	"support": "TESTING"
 }
 
-import Blender
 import bpy
 
 def register():
@@ -44,4 +43,8 @@ def write_obj(filepath):
 			out.write('%i ' % (vert.index + 1))
 		out.write(')\n')
 	out.close()
+    
 Blender.Window.FileSelector(write_obj, "Export")
+
+if __name__ == "__main__":
+    register()

@@ -1347,6 +1347,8 @@ namespace Rococo
 
 		const Rococo::uint8* fstart = vm.Cpu().ProgramStart + po.ProgramMemory().GetFunctionAddress(section.Id);
 
+		size_t hilightIndex = pc - fstart;
+		// size_t dissassembleLength = min(64_kilobytes, functionLength);
 		size_t i = 0;
 		while (i < functionLength)
 		{
@@ -1376,8 +1378,10 @@ namespace Rococo
 					SafeFormat(assemblyLine, sizeof(assemblyLine), "// %s", symbol.Text);
 					debugger.AddDisassembly(RGBAb(32, 128, 0), assemblyLine);
 				}
+
+				debugger.AddDisassembly(RGBAb(0, 0, 0), "\n");
 			}
-			else
+			else if ((i < hilightIndex && (hilightIndex - i) < 1024) || (i > hilightIndex && (i - hilightIndex) < 1024))
 			{
 				SafeFormat(assemblyLine, sizeof(assemblyLine), " %p", fstart + i);
 				debugger.AddDisassembly(RGBAb(0, 0, 0), assemblyLine);
@@ -1389,9 +1393,9 @@ namespace Rococo
 					SafeFormat(assemblyLine, sizeof(assemblyLine), "// %s", symbol.Text);
 					debugger.AddDisassembly(RGBAb(0, 128, 0), assemblyLine);
 				}
-			}
 
-			debugger.AddDisassembly(RGBAb(0, 0, 0), "\n");
+				debugger.AddDisassembly(RGBAb(0, 0, 0), "\n");
+			}
 
 			if (rep.ByteCount == 0)
 			{

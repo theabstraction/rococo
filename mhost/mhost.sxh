@@ -65,6 +65,7 @@
 		(YieldForSystemMessages (Int32 sleepMS)->(Seconds frameDT))
 		(TryGetSpriteSpec (IString resourceName)(BitmapLocation loc) -> (Bool isSuccessful))
 		(GetSpriteSpec (IString resourceName)(BitmapLocation loc))
+		(RunMPlatScript (IString scriptName))
 		(SetNextScript (IString scriptName))
 		(CaptureMouse)
 		(ReleaseMouse)
