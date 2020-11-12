@@ -403,6 +403,41 @@ namespace
 	};
 }
 
+namespace
+{
+	class CriticalSection: public Rococo::OS::ICriticalSection
+	{
+	private:
+		CRITICAL_SECTION cs;
+
+	public:
+		CriticalSection()
+		{
+			InitializeCriticalSection(&cs);
+		}
+
+		virtual ~CriticalSection()
+		{
+			DeleteCriticalSection(&cs);
+		}
+
+		void Free() override
+		{
+			delete this;
+		}
+
+		void Lock() override
+		{
+			EnterCriticalSection(&cs);
+		}
+
+		void Unlock() override
+		{
+			LeaveCriticalSection(&cs);
+		}
+	};
+}
+
 namespace Rococo
 {
 	namespace OS
@@ -476,6 +511,11 @@ namespace Rococo
 					QueueUserAPC(WakeUp, (HANDLE)hThread, 0);
 					WaitForSingleObject((HANDLE)hThread, INFINITE);
 					DeleteCriticalSection(&sync);
+				}
+
+				virtual ICriticalSection* CreateCriticalSection()
+				{
+					return new CriticalSection();
 				}
 
 				static void WakeUp(ULONG_PTR data)
@@ -1230,17 +1270,17 @@ namespace
 		}
 	};
 
-	class CriticalSection : public ILock
+	class LocalCriticalSection : public ILock
 	{
 		CRITICAL_SECTION sysCS;
 
 	public:
-		CriticalSection()
+		LocalCriticalSection()
 		{
 			InitializeCriticalSection(&sysCS);
 		}
 
-		~CriticalSection()
+		~LocalCriticalSection()
 		{
 			DeleteCriticalSection(&sysCS);
 		}
@@ -1265,7 +1305,7 @@ namespace
 		unsigned threadId;
 		bool isRunning;
 
-		CriticalSection threadLock;
+		LocalCriticalSection threadLock;
 		std::vector<std::wstring> modifiedFiles;
 
 		IEventCallback<SysUnstableArgs>* onUnstable;

@@ -46,8 +46,8 @@
 	(instances.LoadMaterialArray "!textures/hv/materials/hi-rez/" 1024) 
 	
 	(IEngine engine (Engine))
-	(engine.SetNextScript "!scripts/mhost/t3d/t3d_init.sxy")
-//	(engine.SetNextScript "!scripts/mhost/rpg.sxy")
+//	(engine.SetNextScript "!scripts/mhost/t3d/t3d_init.sxy")
+	(engine.SetNextScript "!scripts/mhost/rpg.sxy")
 //	(engine.SetNextScript "!scripts/mhost/galaxians.sxy")
 //	(engine.SetNextScript "!scripts/mhost/harrier.sxy")
 )

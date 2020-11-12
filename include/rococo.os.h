@@ -41,12 +41,21 @@ namespace Rococo::OS
 
 	void WakeUp(IThreadControl& thread);
 
+	ROCOCOAPI ICriticalSection
+	{
+		virtual void Free() = 0;
+		virtual void Lock() = 0;
+		virtual void Unlock() = 0;
+	};
+
 	ROCOCOAPI IThreadSupervisor : public IThreadControl
 	{
+		virtual ICriticalSection * CreateCriticalSection() = 0;
 		virtual void Free() = 0;
 	};
 
 	[[nodiscard]] IThreadSupervisor* CreateRococoThread(IThreadJob* thread, uint32 stacksize);
+
 
 	[[nodiscard]] void* AllocBoundedMemory(size_t nBytes);
 	void FreeBoundedMemory(void* pMemory);
@@ -81,5 +90,21 @@ namespace Rococo::OS
 	void PollKeys(uint8 scanArray[256]);
 	void MakeContainerDirectory(char* filename);
 	void MakeContainerDirectory(wchar_t* filename);
+
+	class Lock
+	{
+	private:
+		ICriticalSection* sync;
+	public:
+		Lock(ICriticalSection* pSync): sync(pSync)
+		{
+			pSync->Lock();
+		}
+
+		~Lock()
+		{
+			sync->Unlock();
+		}
+	};
 }
 
