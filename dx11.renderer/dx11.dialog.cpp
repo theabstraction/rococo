@@ -84,7 +84,7 @@ namespace
          label = AddLabel(*dialogWindow, GuiRect(rect.left + 10, rect.top + 10, rect.right - 10, rect.bottom - 100), "Hint", 0, WS_BORDER);
          countdownTimerLabel = AddLabel(*dialogWindow, GuiRect(rect.left + 10, rect.bottom - 90, rect.right - 10, rect.bottom - 50), "Timer", 0, WS_BORDER);
          okButton = AddPushButton(*dialogWindow, GuiRect(210, rect.bottom - 40, 290, rect.bottom - 10), "OK", IDOK, BS_DEFPUSHBUTTON);
-         cancelButton = AddPushButton(*dialogWindow, GuiRect(310, rect.bottom - 40, 390, rect.bottom - 10), "Cance", IDCANCEL, 0);
+         cancelButton = AddPushButton(*dialogWindow, GuiRect(310, rect.bottom - 40, 390, rect.bottom - 10), "Cancel", IDCANCEL, 0);
 
          SetTimer(*dialogWindow, (UINT_PTR)dialogWindow, 100, nullptr);
       }

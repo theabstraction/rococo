@@ -15,7 +15,7 @@
 #include <rococo.io.h>
 
 #if _DEBUG
-# define SHADER_COMPILE_DEBUG_FLAGS D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+# define SHADER_COMPILE_DEBUG_FLAGS D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION
 #else
 # define SHADER_COMPILE_DEBUG_FLAGS 0
 #endif
@@ -25,18 +25,98 @@ using namespace Rococo::Graphics;
 
 namespace
 {
-	HRESULT CompilePixelShaderFromSource(const wchar_t* sourceFile, ID3DBlob** pShaderBlob, ID3DBlob** pErrorBlob)
+	struct IncludeResolver : ID3DInclude
 	{
-		UINT compileFlags = SHADER_COMPILE_DEBUG_FLAGS;
-		HRESULT hr = D3DCompileFromFile(sourceFile, nullptr, nullptr, "PSMain", "ps_5_0", compileFlags, 0, pShaderBlob, pErrorBlob);
+		IDX12ResourceResolver& resolver;
+		cstr root;
+
+		char lastError[1024] = "";
+		HRESULT hr = S_OK;
+
+		WideFilePath fullPath;
+
+		IncludeResolver(IDX12ResourceResolver& ref_resolver, cstr resourceName) : 
+			resolver(ref_resolver), root(resourceName) {}
+
+		STDMETHOD(Open)(D3D_INCLUDE_TYPE type,
+			cstr pFileName,
+			LPCVOID pParentData,
+			LPCVOID* ppData,
+			UINT* pBytes)
+		{
+			try
+			{
+				WideFilePath sysPath;
+				resolver.ConvertResourceNameToPath(root, sysPath.buf, sysPath.CAPACITY);
+
+				Rococo::OS::StripLastSubpath(sysPath.buf);
+
+				Format(fullPath, L"%ls%hs", sysPath.buf, pFileName);
+
+				Rococo::OS::ToSysPath(fullPath.buf);
+
+				struct CLOSURE : IEventCallback<const fstring>
+				{
+					LPCVOID* ppData;
+					UINT* pBytes;
+
+					void OnEvent(const fstring& filedata) override
+					{
+						auto* s = new char[filedata.length];
+						memcpy(s, filedata.buffer, filedata.length);
+						*ppData = s;
+						*pBytes = filedata.length;
+					}
+				} onLoad;
+
+				onLoad.ppData = ppData;
+				onLoad.pBytes = pBytes;
+
+				resolver.LoadResource_FreeThreaded(fullPath, onLoad);
+			}
+			catch (IException& ex)
+			{
+				char errCodeBuf[1024];
+				Rococo::OS::FormatErrorMessage(errCodeBuf, sizeof errCodeBuf, ex.ErrorCode());
+				SafeFormat(lastError, "\n%ls [%s]:\n\t 0x%X (%d)\n\t%s\n", fullPath.buf, ex.Message(), ex.ErrorCode(), ex.ErrorCode(), errCodeBuf);
+				hr = ex.ErrorCode();
+			}
+			return S_OK;
+		}
+
+		STDMETHOD(Close)(LPCVOID pData)
+		{
+			delete[] pData;
+			return S_OK;
+		}
+	};
+
+	D3D_SHADER_MACRO Shader_Macros[] = { {"MAXIMUM_JELLYBABIES", "50"}, {NULL,NULL} };
+
+	HRESULT CompileGenericShaderFromString(const fstring& srcCode, cstr target, cstr resourceName, ID3DBlob** pShaderBlob, ID3DBlob** pErrorBlob, ID3DInclude& includer)
+	{
+		UINT flags = SHADER_COMPILE_DEBUG_FLAGS | D3DCOMPILE_PACK_MATRIX_COLUMN_MAJOR;
+		UINT fxFlags = 0;
+		HRESULT hr = D3DCompile2(
+			srcCode.buffer,
+			srcCode.length,
+			resourceName,
+			NULL, /* macros = none. Consider generating macros automatically from C++ definitions */
+			&includer,
+			"main",
+			target,
+			flags, fxFlags, 0, NULL, 0, pShaderBlob, pErrorBlob);
 		return hr;
 	}
 
-	HRESULT CompileVertexShaderFromSource(const wchar_t* sourceFile, ID3DBlob** pShaderBlob, ID3DBlob** pErrorBlob)
+	HRESULT CompilePixelShaderFromString(const fstring& srcCode, cstr resourceName, ID3DBlob** pShaderBlob, ID3DBlob** pErrorBlob, ID3DInclude& includer)
 	{
-		UINT compileFlags = SHADER_COMPILE_DEBUG_FLAGS;
-		HRESULT hr = D3DCompileFromFile(sourceFile, nullptr, nullptr, "VSMain", "vs_5_0", compileFlags, 0, pShaderBlob, pErrorBlob);
-		return hr;
+		return CompileGenericShaderFromString(srcCode, "ps_5_0", resourceName, pShaderBlob, pErrorBlob, includer);
+	}
+
+	HRESULT CompileVertexShaderFromSource(const fstring& srcCode, cstr resourceName, ID3DBlob** pShaderBlob, ID3DBlob** pErrorBlob, ID3DInclude& includer)
+	{
+		return CompileGenericShaderFromString(srcCode, "vs_5_0", resourceName, pShaderBlob, pErrorBlob, includer);
 	}
 }
 
@@ -69,40 +149,11 @@ static_assert(sizeof U64ShaderId == sizeof uint64);
 
 struct ShaderItem
 {
-	ID3DBlob* errorBlob = nullptr;
+	char errMsg[1024] = "";
 	ID3DBlob* shaderBlob = nullptr;
 	ShaderType type = ShaderType::NONE;
 	HString resourceName;
 	HRESULT hr = 0;
-};
-
-struct ShaderView
-{
-	cstr resourceName;
-	HRESULT hr;
-	cstr errorString;
-	const void* blob;
-	size_t blobCapacity;
-	size_t errorLength;
-};
-
-ROCOCOAPI IShaderViewGrabber
-{
-	// N.B the shader thread is locked until OnGrab returns
-	// and the contents may change, so copy what you need and do not block within the method
-	virtual void OnGrab(const ShaderView & view) = 0;
-};
-
-ROCOCOAPI IShaderCache
-{
-	virtual	ID_PIXEL_SHADER AddPixelShader(const char* resourceName) = 0;
-	virtual ID_VERTEX_SHADER AddVertexShader(const char* resourceName) = 0;
-	virtual void GrabShaderObject(ID_PIXEL_SHADER pxId, IShaderViewGrabber& grabber) = 0;
-	virtual void GrabShaderObject(ID_VERTEX_SHADER vxId, IShaderViewGrabber& grabber) = 0;
-	virtual void ReloadShader(const char* resourceName) = 0;
-	virtual uint32 InputQueueLength() = 0;
-	virtual bool TryGrabAndPopNextError(IShaderViewGrabber& grabber) = 0;
-	virtual void Free() = 0;
 };
 
 using namespace Rococo::OS;
@@ -122,32 +173,36 @@ private:
 	
 	volatile bool isRunning = true;
 
-	void LoadShader_OnThread(ShaderId id, const wchar_t* filename)
+	void LoadShader_OnThread(ShaderId id, cstr resourceName, const wchar_t* filename)
 	{
+		IncludeResolver includer(resolver, resourceName);
+
 		struct CLOSURE : IEventCallback<const fstring>
 		{
-			const wchar_t* filename;
+			cstr resourceName;
 			ShaderId id;
 			HRESULT hr = NO_ERROR;
 			AutoRelease<ID3DBlob> shaderBlob;
 			AutoRelease<ID3DBlob> errorBlob;
+			ID3DInclude* includer;
 			void OnEvent(const fstring& s)
 			{
 				switch (id.type)
 				{
 				case ShaderType::PIXEL:
-					hr = CompilePixelShaderFromSource(filename, &shaderBlob, &errorBlob);
+					hr = CompilePixelShaderFromString(s, resourceName, &shaderBlob, &errorBlob, *includer);
 					break;
 				case ShaderType::VERTEX:
-					hr = CompileVertexShaderFromSource(filename, &shaderBlob, &errorBlob);
+					hr = CompilePixelShaderFromString(s, resourceName, &shaderBlob, &errorBlob, *includer);
 					break;
 				default:
 					hr = E_NOTIMPL;
 				}
 			}
 		} onLoad;
-		onLoad.filename = filename;
+		onLoad.resourceName = resourceName;
 		onLoad.id = id;
+		onLoad.includer = &includer;
 
 		try
 		{
@@ -164,31 +219,29 @@ private:
 				Throw(errHr, "Error creating error blob for shader %ls", filename);
 			}
 
-			SafeFormat((char*)onLoad.errorBlob->GetBufferPointer(), onLoad.errorBlob->GetBufferSize(), "Error loading %ls: %s", filename, ex.Message());
+			SafeFormat((char*)onLoad.errorBlob->GetBufferPointer(), onLoad.errorBlob->GetBufferSize(), "Error loading %ls: %s.", filename, ex.Message());
 		}
 
 		Lock lock(sync);
 
 		auto& s = shaders[id.index - 1];
 
-		if (s.errorBlob)
-		{
-			s.errorBlob->Release();
-		}
-
 		if (s.shaderBlob)
 		{
 			s.shaderBlob->Release();
 		}
 
-		s.errorBlob = onLoad.errorBlob;
-		if (s.errorBlob) s.errorBlob->AddRef();
+		if (onLoad.errorBlob || includer.hr != S_OK)
+		{
+			cstr mainErr = onLoad.errorBlob ? (cstr) onLoad.errorBlob->GetBufferPointer() : "";
+			SafeFormat(s.errMsg, "%s%s", includer.lastError, mainErr);
+		}
 
 		s.shaderBlob = onLoad.shaderBlob;
 		if (s.shaderBlob) s.shaderBlob->AddRef();
 		s.hr = onLoad.hr;
 
-		if (FAILED(s.hr) || s.errorBlob != nullptr)
+		if (FAILED(s.hr) || FAILED(includer.hr))
 		{
 			errorQueue.push_back(id);
 		}
@@ -198,7 +251,7 @@ private:
 	{
 		while (isRunning)
 		{
-			SleepEx(1000, TRUE);
+			tc.SleepUntilAysncEvent(1000);
 
 			while (isRunning)
 			{
@@ -215,12 +268,14 @@ private:
 
 				cstr shaderName = shaders[nextId.index - 1].resourceName;
 
+				U8FilePath resourceName;
+				Format(resourceName, "%s", shaderName);
 				WideFilePath shaderPath;
-				resolver.ConvertShortnameToPath(shaderName, shaderPath.buf, shaderPath.CAPACITY);
+				resolver.ConvertResourceNameToPath(shaderName, shaderPath.buf, shaderPath.CAPACITY);
 
 				sync->Unlock();
 
-				LoadShader_OnThread(nextId, shaderPath);
+				LoadShader_OnThread(nextId, resourceName, shaderPath);
 			}
 		}
 
@@ -242,11 +297,6 @@ public:
 
 		for (auto& s : shaders)
 		{
-			if (s.errorBlob)
-			{
-				s.errorBlob->Release();
-			}
-
 			if (s.shaderBlob)
 			{
 				s.shaderBlob->Release();
@@ -359,8 +409,7 @@ public:
 			ShaderView sv;
 			sv.blob = nullptr;
 			sv.blobCapacity = 0;
-			sv.errorString = s.errorBlob != nullptr ? (const char*)s.errorBlob->GetBufferPointer() : nullptr;
-			sv.errorLength = s.errorBlob != nullptr ? s.errorBlob->GetBufferSize() : 0;
+			sv.errorString = s.errMsg;
 			sv.hr = s.hr;
 			sv.resourceName = s.resourceName;
 			grabber.OnGrab(sv);
@@ -376,20 +425,17 @@ public:
 	{
 		volatile uint32 len;
 		sync->Lock();
-		len = inputQueue.size();
+		len = (uint32) inputQueue.size();
 		sync->Unlock();
 		return len;
 	}
 
 	void GrabBadId(IShaderViewGrabber& grabber)
 	{
-		auto err = "Bad shader id"_fstring;
-
 		ShaderView sv;
 		sv.blob = nullptr;
 		sv.blobCapacity = 0;
-		sv.errorLength = err.length;
-		sv.errorString = err.buffer;
+		sv.errorString = "Bad shader id";
 		sv.hr = E_INVALIDARG;
 		sv.resourceName = "<bad-id>";
 		grabber.OnGrab(sv);
@@ -426,8 +472,7 @@ public:
 					ShaderView sv;
 					sv.blob = s.shaderBlob != nullptr ? s.shaderBlob->GetBufferPointer() : nullptr;
 					sv.blobCapacity = s.shaderBlob != nullptr ? s.shaderBlob->GetBufferSize() : 0;
-					sv.errorString = s.errorBlob != nullptr ? (const char*) s.errorBlob->GetBufferPointer() : nullptr;
-					sv.errorLength = s.errorBlob != nullptr ? s.errorBlob->GetBufferSize() : 0;
+					sv.errorString = s.errMsg[0] != 0 ? s.errMsg : nullptr;
 					sv.hr = s.hr;
 					sv.resourceName = s.resourceName;
 					grabber.OnGrab(sv);
@@ -447,7 +492,10 @@ public:
 	}
 };
 
-IShaderCache* CreateShaderCache(IDX12ResourceResolver& resolver)
+namespace Rococo::Graphics
 {
-	return new ShaderCache(resolver);
+	IShaderCache* CreateShaderCache(IDX12ResourceResolver& resolver)
+	{
+		return new ShaderCache(resolver);
+	}
 }

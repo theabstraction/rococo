@@ -112,7 +112,7 @@ namespace ANON
 	class DX12RendererWindow : public IDX12RendererWindow, public Rococo::Windows::IWindow
 	{
 	private:
-		DX12WindowInternalContext& ic;
+		DX12WindowInternalContext ic;
 		IDX12RendererWindowEventHandler& evHandler; // The DX12 consumer's event handler
 		HWND hMainWnd = nullptr;
 		bool hasFocus = false;
@@ -164,7 +164,7 @@ namespace ANON
 			case WM_ACTIVATE:
 			{
 				auto state = 0xFFFF & wParam;
-				if (state == 0)
+				if (state != 0)
 				{
 					OnActivate();
 				}

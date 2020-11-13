@@ -10,6 +10,7 @@
 
 #pragma comment(lib, "D3d12.lib")
 #pragma comment(lib, "dxguid.lib")
+#pragma comment(lib, "D3DCompiler.lib")
 
 using namespace Rococo;
 using namespace Rococo::Graphics;
@@ -114,6 +115,7 @@ namespace ANON // Many debuggers will give us more debug info if we dont use tru
 		AutoRelease<ID3DBlob> signature;
 		AutoRelease<ID3D12RootSignature> rootSignature;
 		IDX12ResourceResolver& resolver;
+		AutoFree<IShaderCache> shaderCache;
 
 		void /* IDX12RendererWindowEventHandler */ OnActivate(IDX12RendererWindow* window)
 		{
@@ -132,7 +134,8 @@ namespace ANON // Many debuggers will give us more debug info if we dont use tru
 		}
 	public:
 		DX12RendererFactory(IDXGIFactory7& ref_factory, IDXGIAdapter& ref_adapter, IDXGIOutput& ref_output, IDX12ResourceResolver& ref_resolver):
-			factory(ref_factory), adapter(ref_adapter), output(ref_output), resolver(ref_resolver)
+			factory(ref_factory), adapter(ref_adapter), output(ref_output), resolver(ref_resolver),
+			shaderCache(CreateShaderCache(ref_resolver))
 		{
 			// N.B one must create the debug interfaces prior to creating the device
 			// otherwise D3D12 device functions may fail later on
@@ -169,6 +172,11 @@ namespace ANON // Many debuggers will give us more debug info if we dont use tru
 			AutoRelease<ID3DBlob> error;
 			VALIDATE_HR(D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error));
 			VALIDATE_HR(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rootSignature)));
+		}
+
+		IShaderCache& Shaders()
+		{
+			return *shaderCache;
 		}
 
 		IDX12RendererWindow* CreateDX12Window(DX12WindowCreateContext& context) override

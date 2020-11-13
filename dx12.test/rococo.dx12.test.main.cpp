@@ -6,6 +6,7 @@
 #include <rococo.dx12.h>
 #include <rococo.strings.h>
 #include <rococo.os.h>
+#include <rococo.renderer.h>
 
 #ifdef _DEBUG
 # pragma comment(lib, "rococo.windows.debug.lib")
@@ -22,7 +23,7 @@ void Main(HINSTANCE hInstance)
 {
 	struct : IDX12ResourceResolver
 	{
-		void ConvertShortnameToPath(const char* resourceName, wchar_t* sysPath, size_t charsInSysPath)
+		void ConvertResourceNameToPath(const char* resourceName, wchar_t* sysPath, size_t charsInSysPath)
 		{
 			if (strlen(resourceName) < 4)
 			{
@@ -34,13 +35,13 @@ void Main(HINSTANCE hInstance)
 				Throw(0, "The resource must begin with a ping character");
 			}
 
-			SecureFormat(sysPath, charsInSysPath, L"\\work\\rococo\\contents\\%hs", resourceName + 1);
+			SecureFormat(sysPath, charsInSysPath, L"\\work\\rococo\\content\\%hs", resourceName + 1);
 			Rococo::OS::ToSysPath(sysPath);
 		}
 
 		void LoadResource_FreeThreaded(const wchar_t* filename, IEventCallback<const fstring>& onLoad)
 		{
-			enum { MAX_LEN = 64_kilobytes - 1 };
+			enum { MAX_LEN = 64_kilobytes };
 			char buffer[MAX_LEN];
 			DWORD len;
 
@@ -66,7 +67,7 @@ void Main(HINSTANCE hInstance)
 				len = SetFilePointer(F.hFile, 0, NULL, FILE_END);
 				SetFilePointer(F.hFile, 0, NULL, FILE_BEGIN);
 
-				if (len > MAX_LEN)
+				if (len >= MAX_LEN - 1)
 				{
 					Throw(E_NOT_SUFFICIENT_BUFFER, "Maximum length %d kb exceeded.", MAX_LEN / 1024);
 				}
@@ -128,6 +129,8 @@ void Main(HINSTANCE hInstance)
 	};
 	AutoFree<IDX12RendererWindow> window = factory->CreateDX12Window(wcc);
 
+	auto id = factory->Shaders().AddPixelShader("!shaders/gui.ps.hlsl");
+
 	Rococo::OS::ticks start = Rococo::OS::CpuTicks();
 	MSG msg;
 	while (appState.isRunning)
@@ -147,6 +150,16 @@ void Main(HINSTANCE hInstance)
 		{
 			break;
 		}
+
+		struct CLOSURE : IShaderViewGrabber
+		{
+			void OnGrab(const ShaderView& e) override
+			{
+				Throw(e.hr, "Shader %s did not compile:\n %s", e.resourceName, e.errorString ? e.errorString : "???");
+			}
+		} errorHandler;
+
+		factory->Shaders().TryGrabAndPopNextError(errorHandler);
 	}
 
 	appState.ThrowOnError();

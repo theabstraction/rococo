@@ -309,8 +309,8 @@ namespace HV
 			id = object_manager->CreateObject("weapon.xbow.modern");
 			e.players.GetPlayer(0)->GetInventory()->SetId(i++, (uint64)id.value);
 
-			id = object_manager->CreateObject("weapon.sword.delta");
-			e.players.GetPlayer(0)->GetInventory()->SetId(i++, (uint64)id.value);
+		//	id = object_manager->CreateObject("weapon.sword.delta");
+		//	e.players.GetPlayer(0)->GetInventory()->SetId(i++, (uint64)id.value);
 
 			id = object_manager->CreateObject("weapon.sword.short");
 			e.players.GetPlayer(0)->GetInventory()->SetId(i++, (uint64)id.value);
