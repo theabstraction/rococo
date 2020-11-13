@@ -89,11 +89,13 @@
   <ItemGroup>
     <ClCompile Include="dx12.factory.cpp" />
     <ClCompile Include="dx12.pipeline.cpp" />
+    <ClCompile Include="dx12.renderer.cpp" />
     <ClCompile Include="dx12.resources.cpp" />
     <ClCompile Include="dx12.window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\rococo.dx12.h" />
+    <ClInclude Include="..\include\rococo.renderer.h" />
     <ClInclude Include="rococo.dx12-msoft.h" />
   </ItemGroup>
   <ItemGroup>

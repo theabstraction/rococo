@@ -27,12 +27,18 @@
     <ClCompile Include="dx12.resources.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="dx12.renderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\rococo.dx12.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="rococo.dx12-msoft.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\rococo.renderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -116,6 +116,7 @@ namespace ANON // Many debuggers will give us more debug info if we dont use tru
 		AutoRelease<ID3D12RootSignature> rootSignature;
 		IDX12ResourceResolver& resolver;
 		AutoFree<IShaderCache> shaderCache;
+		AutoFree<IPipelineBuilder> pipelineBuilder;
 
 		void /* IDX12RendererWindowEventHandler */ OnActivate(IDX12RendererWindow* window)
 		{
@@ -172,6 +173,9 @@ namespace ANON // Many debuggers will give us more debug info if we dont use tru
 			AutoRelease<ID3DBlob> error;
 			VALIDATE_HR(D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error));
 			VALIDATE_HR(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rootSignature)));
+
+			DX12WindowInternalContext ic{ factory, adapter, output, *device, *debug, *q, *commandAllocator, *rootSignature };
+			pipelineBuilder = CreatePipelineBuilder(ic, *shaderCache);
 		}
 
 		IShaderCache& Shaders()

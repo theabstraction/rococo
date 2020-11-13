@@ -8,15 +8,23 @@ struct ID3D12Debug3;
 struct ID3D12CommandQueue;
 struct ID3D12CommandAllocator;
 struct ID3D12RootSignature;
+struct D3D12_GRAPHICS_PIPELINE_STATE_DESC;
+struct ID3D12PipelineState;
+struct D3D12_INPUT_LAYOUT_DESC;
 
 namespace Rococo
 {
 	struct ID_PIXEL_SHADER;
 	struct ID_VERTEX_SHADER;
+
+	struct IRenderer;
 }
 
 namespace Rococo::Graphics
 {
+	D3D12_INPUT_LAYOUT_DESC GuiLayout();
+	void InitGuiPipelineState(D3D12_GRAPHICS_PIPELINE_STATE_DESC& desc);
+
 	struct ShaderView
 	{
 		cstr resourceName;
@@ -54,6 +62,12 @@ namespace Rococo::Graphics
 		virtual void Free() = 0;
 	};
 
+	ROCOCOAPI IDX12Renderer
+	{
+		virtual IRenderer & Renderer() = 0;
+		virtual void SetTargetWindow(IDX12RendererWindow * window) = 0;
+	};
+
 	ROCOCOAPI IDX12RendererWindowEventHandler
 	{
 		// While processing a windows message an exception was thrown
@@ -74,6 +88,16 @@ namespace Rococo::Graphics
 		ID3D12CommandAllocator& commandAllocator;
 		ID3D12RootSignature& rootSignature;
 	};
+
+	ROCOCOAPI IPipelineBuilder
+	{
+		virtual void Free() = 0;
+		virtual const char* LastError() const = 0;
+		virtual HRESULT SetShaders(D3D12_GRAPHICS_PIPELINE_STATE_DESC& desc, ID_VERTEX_SHADER vsId, ID_PIXEL_SHADER psId) = 0;
+		virtual ID3D12PipelineState* CreatePipelineState(D3D12_GRAPHICS_PIPELINE_STATE_DESC& desc) = 0;
+	};
+
+	IPipelineBuilder* CreatePipelineBuilder(DX12WindowInternalContext& ic, IShaderCache& shaders);
 
 	struct DX12WindowCreateContext
 	{

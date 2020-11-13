@@ -153,7 +153,7 @@ struct ShaderItem
 	ID3DBlob* shaderBlob = nullptr;
 	ShaderType type = ShaderType::NONE;
 	HString resourceName;
-	HRESULT hr = 0;
+	HRESULT hr = E_PENDING;
 };
 
 using namespace Rococo::OS;

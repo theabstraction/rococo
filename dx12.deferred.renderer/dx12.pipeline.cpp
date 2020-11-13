@@ -5,6 +5,7 @@
 #include <rococo.dx12.h>
 #include "rococo.dx12.helpers.inl"
 #include <rococo.auto-release.h>
+#include <rococo.renderer.h>
 
 #include <d3d12.h>
 #include <dxgi1_6.h>
@@ -13,11 +14,139 @@
 
 #include <vector>
 
+using namespace Rococo;
+using namespace Rococo::Graphics;
+
+namespace ANON
+{
+    D3D12_INPUT_ELEMENT_DESC guiVertexDesc[] =
+    {
+       { "position",	0, DXGI_FORMAT_R32G32_FLOAT,		0, D3D12_APPEND_ALIGNED_ELEMENT , D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+       { "texcoord",	0, DXGI_FORMAT_R32G32B32_FLOAT,		0, D3D12_APPEND_ALIGNED_ELEMENT , D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+       { "texcoord",	1, DXGI_FORMAT_R32G32B32A32_FLOAT,	0, D3D12_APPEND_ALIGNED_ELEMENT , D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+       { "color",	    0, DXGI_FORMAT_R8G8B8A8_UNORM,      0, D3D12_APPEND_ALIGNED_ELEMENT , D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+    };
+
+    struct PipelineBuilder : IPipelineBuilder
+    {
+        std::vector<char> psBuffer;
+        std::vector<char> vsBuffer;
+        char lastError[1024] = "";
+        DX12WindowInternalContext ic;
+        IShaderCache& shaders;
+
+        PipelineBuilder(DX12WindowInternalContext& ref_ic, IShaderCache& ref_shaders) :
+            ic(ref_ic), shaders(ref_shaders)
+        {
+
+        }
+
+        void Free() override
+        {
+            delete this;
+        }
+
+        const char* LastError() const override
+        {
+            return lastError;
+        }
+
+        HRESULT SetShaders(
+            D3D12_GRAPHICS_PIPELINE_STATE_DESC& desc,
+            ID_VERTEX_SHADER vsId,
+            ID_PIXEL_SHADER psId) override
+        {
+            lastError[0] = 0;
+            desc.VS = { 0,0 };
+            desc.PS = { 0,0 };
+
+            struct Grabber : IShaderViewGrabber
+            {
+                char* lastError;
+                std::vector<char>& buf;
+                HRESULT hr = S_OK;
+                void OnGrab(const ShaderView& view)
+                {
+                    hr = view.hr;
+                    if (view.blob != nullptr)
+                    {
+                        buf.resize(view.blobCapacity);
+                        memcpy(buf.data(), view.blob, view.blobCapacity);
+                    }
+
+                    SafeFormat(lastError, 1024, "%s", view.errorString);
+                }
+
+                Grabber(std::vector<char>& rbuf, char* rlastError) : buf(rbuf), lastError(rlastError) {}
+            } grabberVS(vsBuffer, lastError), grabberPS(psBuffer, lastError);
+
+            shaders.GrabShaderObject(vsId, grabberVS);
+
+            if FAILED(grabberVS.hr)
+            {
+                return grabberVS.hr;
+            }
+
+            shaders.GrabShaderObject(psId, grabberPS);
+
+            if FAILED(grabberPS.hr)
+            {
+                return grabberPS.hr;
+            }
+
+            desc.VS = { vsBuffer.data(), vsBuffer.size() };
+            desc.PS = { psBuffer.data(), psBuffer.size() };
+
+            return S_OK;
+        }
+
+        ID3D12PipelineState* CreatePipelineState(D3D12_GRAPHICS_PIPELINE_STATE_DESC& desc)
+        {
+            if (desc.VS.pShaderBytecode == nullptr)
+            {
+                Throw(E_INVALIDARG, "%s: VS shader not defined", __FUNCTION__);
+            }
+
+            if (desc.PS.pShaderBytecode == nullptr)
+            {
+                Throw(E_INVALIDARG, "%s: PS shader not defined", __FUNCTION__);
+            }
+
+            desc.pRootSignature = &ic.rootSignature;
+
+            ID3D12PipelineState* p = nullptr;
+            HRESULT hr = ic.device.CreateGraphicsPipelineState(&desc, _uuidof(ID3D12PipelineState), (void**)&p);
+            if FAILED(hr)
+            {
+                Throw(hr, "%s: ic.device.CreateGraphicsPipelineState failed", __FUNCTION__);
+            }
+            return p;
+        }
+    };
+} // ANON
+
 namespace Rococo::Graphics
 {
-    ROCOCOAPI IPixelShader
+    IPipelineBuilder* CreatePipelineBuilder(DX12WindowInternalContext& ic, IShaderCache& shaders)
     {
-    };
+        return new ANON::PipelineBuilder(ic, shaders);
+    }
+
+    D3D12_INPUT_LAYOUT_DESC GuiLayout() { return { ANON::guiVertexDesc, _countof(ANON::guiVertexDesc) }; }
+
+    void InitGuiPipelineState(D3D12_GRAPHICS_PIPELINE_STATE_DESC& desc)
+    {
+        desc.InputLayout = GuiLayout();
+        desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+        desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+        desc.DepthStencilState.DepthEnable = FALSE;
+        desc.DepthStencilState.StencilEnable = FALSE;
+        desc.SampleMask = UINT_MAX;
+        desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+        desc.NumRenderTargets = 1;
+        desc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+        desc.SampleDesc.Count = 1;
+    }
 
     class GraphicsPipelineState
     {
@@ -28,21 +157,6 @@ namespace Rococo::Graphics
         {
             /* Create the pipeline state, which includes compiling and loading shaders.
             {
-                // Define the vertex input layout.
-                D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
-                {
-                    { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-                    { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
-                };
-
-                // Describe and create the graphics pipeline state object (PSO).
-                D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
-                psoDesc.InputLayout = { inputElementDescs, _countof(inputElementDescs) };
-                psoDesc.pRootSignature = &ic.rootSignature;
-                psoDesc.VS = { reinterpret_cast<UINT8*>(vertexShader->GetBufferPointer()), vertexShader->GetBufferSize() };
-                psoDesc.PS = { reinterpret_cast<UINT8*>(pixelShader->GetBufferPointer()), pixelShader->GetBufferSize() };
-                psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-                psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
                 psoDesc.DepthStencilState.DepthEnable = FALSE;
                 psoDesc.DepthStencilState.StencilEnable = FALSE;
                 psoDesc.SampleMask = UINT_MAX;
