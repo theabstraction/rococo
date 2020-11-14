@@ -217,6 +217,36 @@ namespace ANON
 				return DefWindowProcA(hWnd, uMsg, wParam, lParam);
 			}
 		}
+
+		void ShowWindowVenue(IMathsVisitor& visitor)
+		{
+			POINT pt;
+			GetCursorPos(&pt);
+
+			visitor.ShowString("Abs Mouse Cursor:", "(%d %d)", pt.x, pt.y);
+
+			ScreenToClient(hMainWnd, &pt);
+
+			visitor.ShowString("Rel Mouse Cursor:", "(%d %d)", pt.x, pt.y);
+
+			visitor.ShowPointer("HANDLE", hMainWnd);
+			RECT rect;
+			GetClientRect(hMainWnd, &rect);
+			visitor.ShowString("-> Client Rect", "(%d %d) to (%d %d)", rect.left, rect.top, rect.right, rect.bottom);
+
+			GetWindowRect(hMainWnd, &rect);
+			visitor.ShowString("-> Window Rect", "(%d %d) to (%d %d)", rect.left, rect.top, rect.right, rect.bottom);
+
+			LONG x = GetWindowLongA(hMainWnd, GWL_STYLE);
+			visitor.ShowString("-> GWL_STYLE", "0x%8.8X", x);
+
+			x = GetWindowLongA(hMainWnd, GWL_EXSTYLE);
+			visitor.ShowString("-> GWL_EXSTYLE", "0x%8.8X", x);
+
+			HWND hParent = GetParent(hMainWnd);
+			if (hParent)	visitor.ShowPointer("-> Parent", hParent);
+			else			visitor.ShowString("-> Parent", "None (top-level window)");
+		}
 	public:
 		DX12RendererWindow(DX12WindowInternalContext& ref_ic, DX12WindowCreateContext& context) :
 			ic(ref_ic), evHandler(context.evHandler)

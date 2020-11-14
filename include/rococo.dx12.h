@@ -1,5 +1,7 @@
 #pragma once
 
+#include "rococo.renderer.h"
+
 struct IDXGIFactory7;
 struct IDXGIAdapter;
 struct IDXGIOutput;
@@ -18,12 +20,27 @@ namespace Rococo
 	struct ID_VERTEX_SHADER;
 
 	struct IRenderer;
+	struct SkyVertex;
+	struct ObjectVertex;
+	struct BoneWeights;
 }
 
 namespace Rococo::Graphics
 {
 	D3D12_INPUT_LAYOUT_DESC GuiLayout();
 	void InitGuiPipelineState(D3D12_GRAPHICS_PIPELINE_STATE_DESC& desc);
+
+	struct DX12WindowInternalContext
+	{
+		IDXGIFactory7& factory;
+		IDXGIAdapter& adapter;
+		IDXGIOutput& output;
+		ID3D12Device6& device;
+		ID3D12Debug3& debug;
+		ID3D12CommandQueue& q;
+		ID3D12CommandAllocator& commandAllocator;
+		ID3D12RootSignature& rootSignature;
+	};
 
 	struct ShaderView
 	{
@@ -33,6 +50,57 @@ namespace Rococo::Graphics
 		const void* blob;
 		size_t blobCapacity;
 	};
+
+	ROCOCOAPI IDX12TextureTable
+	{
+		virtual ID_TEXTURE LoadTexture(IBuffer & buffer, cstr uniqueName) = 0;
+		virtual void Free() = 0;
+	};
+
+	IDX12TextureTable* CreateTextureTable(DX12WindowInternalContext& ic);
+
+	ROCOCOAPI IDX12TextureArray
+	{
+		virtual void Free() = 0;
+		virtual int MaxWidth() const = 0;
+		virtual int TextureCount() const = 0;
+		virtual ID_TEXTURE LoadTexture(IBuffer& rawImageBuffer, cstr uniqueName) = 0;
+		virtual void ResetWidth(int32 width, int32 height) = 0;
+		virtual void Resize(int32 nElements) = 0;
+		virtual void WriteSubImage(int32 index, const GRAYSCALE* pixels, int32 width, int32 height) = 0;
+		virtual void WriteSubImage(int32 index, const RGBAb* pixels, const GuiRect& rect) = 0;
+	};
+
+	ROCOCOAPI IDX12MeshBuffers
+	{
+		virtual ID_SYS_MESH CreateSkyMesh(const SkyVertex * vertices, uint32 nVertices) = 0;
+		virtual ID_SYS_MESH CreateTriangleMesh(const ObjectVertex * vertices, uint32 nVertices, const BoneWeights * weights) = 0;
+		virtual void DeleteMesh(ID_SYS_MESH id) = 0;
+		virtual void GetDesc(char desc[256], ID_SYS_MESH id) = 0;
+		virtual void Clear() = 0;
+		virtual void Free() = 0;
+		virtual void SetShadowCasting(ID_SYS_MESH id, boolean32 isActive) = 0;
+		virtual void UpdateMesh(ID_SYS_MESH id, const ObjectVertex* vertices, uint32 nVertices, const BoneWeights* weights) = 0;
+	};
+
+	ROCOCOAPI IDX12MaterialList
+	{
+		virtual MaterialId GetMaterialId(cstr name) const = 0;
+	    virtual cstr GetMaterialTextureName(MaterialId id) const = 0;
+		virtual void GetMaterialArrayMetrics(MaterialArrayMetrics& metrics) const = 0;
+		virtual void LoadMaterialTextureArray(IMaterialTextureArrayBuilder& builder) = 0;
+		virtual void Free() = 0;
+	};
+	IDX12MaterialList* CreateMaterialList(DX12WindowInternalContext& ic);
+
+	IDX12MeshBuffers* CreateMeshBuffers(DX12WindowInternalContext& ic);
+
+	struct DX12TextureArraySpec
+	{
+
+	};
+
+	IDX12TextureArray* CreateDX12TextureArray(DX12TextureArraySpec& spec, DX12WindowInternalContext& ic);
 
 	// N.B the shader thread is locked until OnGrab returns
 	// and the contents may change, so copy what you need and do not block within the method
@@ -58,6 +126,7 @@ namespace Rococo::Graphics
 
 	ROCOCOAPI IDX12RendererWindow
 	{
+		virtual void ShowWindowVenue(IMathsVisitor & visitor) = 0;
 		virtual Rococo::Windows::IWindow & Window() = 0;
 		virtual void Free() = 0;
 	};
@@ -65,7 +134,7 @@ namespace Rococo::Graphics
 	ROCOCOAPI IDX12Renderer
 	{
 		virtual IRenderer & Renderer() = 0;
-		virtual void SetTargetWindow(IDX12RendererWindow * window) = 0;
+		virtual void SetTargetWindow(IDX12RendererWindow* window) = 0;
 	};
 
 	ROCOCOAPI IDX12RendererWindowEventHandler
@@ -75,18 +144,6 @@ namespace Rococo::Graphics
 
 		// Triggered when something has requested the window to close (such as ALT+F4 or clicking the top right cross)
 		virtual void OnCloseRequested(IDX12RendererWindow & window) = 0;
-	};
-
-	struct DX12WindowInternalContext
-	{
-		IDXGIFactory7& factory;
-		IDXGIAdapter& adapter;
-		IDXGIOutput& output;
-		ID3D12Device6& device;
-		ID3D12Debug3& debug;
-		ID3D12CommandQueue& q;
-		ID3D12CommandAllocator& commandAllocator;
-		ID3D12RootSignature& rootSignature;
 	};
 
 	ROCOCOAPI IPipelineBuilder

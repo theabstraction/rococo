@@ -38,8 +38,6 @@ namespace Rococo::Fonts
 		int32 imgHeight;
 	};
 
-	typedef uint8 GRAYSCALE;
-
 	ROCOCOAPI IArrayFont
 	{
 		virtual int32 NumberOfGlyphs() const = 0;

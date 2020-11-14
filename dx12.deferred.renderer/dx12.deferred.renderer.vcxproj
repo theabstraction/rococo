@@ -88,10 +88,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="dx12.factory.cpp" />
+    <ClCompile Include="dx12.materials.cpp" />
+    <ClCompile Include="dx12.meshes.cpp" />
     <ClCompile Include="dx12.pipeline.cpp" />
     <ClCompile Include="dx12.renderer.cpp" />
     <ClCompile Include="dx12.resources.cpp" />
+    <ClCompile Include="dx12.texture.array.cpp" />
     <ClCompile Include="dx12.window.cpp" />
+    <ClCompile Include="dx12.texture.table.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\rococo.dx12.h" />

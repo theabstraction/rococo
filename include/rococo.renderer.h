@@ -41,8 +41,6 @@ namespace Rococo
 		RGBAb colour;
 	};
 
-	typedef float MaterialId;
-
 	struct MaterialVertexData
 	{
 		RGBAb colour;

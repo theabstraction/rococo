@@ -583,11 +583,11 @@ namespace ANON
 			   size_t index = 0;
 			   void OnEvent(const Fonts::GlyphDesc& gd) override
 			   {
-				   struct : IImagePopulator<Fonts::GRAYSCALE>
+				   struct : IImagePopulator<GRAYSCALE>
 				   {
 					   size_t index;
 					   OSFont* font;
-					   void OnImage(const Fonts::GRAYSCALE* pixels, int32 width, int32 height) override
+					   void OnImage(const GRAYSCALE* pixels, int32 width, int32 height) override
 					   {
 						   font->array->WriteSubImage(index, pixels, { width, height });
 					   }
@@ -1128,7 +1128,7 @@ namespace ANON
 		   return *fonts;
 	   }
 
-	   D3D11_TEXTURE_ADDRESS_MODE From(AddressMode mode)
+	   D3D11_TEXTURE_ADDRESS_MODE From(Samplers::AddressMode mode)
 	   {
 		   switch (mode)
 		   {
