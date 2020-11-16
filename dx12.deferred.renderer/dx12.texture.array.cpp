@@ -21,10 +21,20 @@ namespace ANON
 {
 	class DX12TextureArray : public IDX12TextureArray
 	{
-	public:
-		DX12TextureArray(DX12TextureArraySpec& spec, DX12WindowInternalContext& ic)
-		{
+		CompileTimeStringConstant friendlyName;
+		int32 maxWidth = 1024;
+		int32 nTextureCount = 0;
+		Vec2i span{ 0,0 };
+		DX12TextureArraySpec spec;
+		DX12WindowInternalContext ic;
+		bool isMipMapped;
 
+		AutoRelease<ID3D12Resource> tx3D;
+	public:
+		DX12TextureArray(CompileTimeStringConstant pName, bool bIsMipMapped, DX12TextureArraySpec& refSpec, DX12WindowInternalContext& refIc):
+			friendlyName(pName), spec(refSpec), ic(refIc), isMipMapped(bIsMipMapped)
+		{
+			
 		}
 
 		virtual ~DX12TextureArray()
@@ -37,19 +47,41 @@ namespace ANON
 			delete this;
 		}
 
-		void ResetWidth(int32 width, int32 height) override
+		void SetDimensions(int32 width, int32 height, int nElements) override
 		{
-			Throw(0, "Not implemented");
-		}
+			span = { width, height };
+			nTextureCount = nElements;
 
-		void Resize(int32 nElements) override
-		{
-			Throw(0, "Not implemented");
+			tx3D = spec.txMemory.Commit2DArray(friendlyName, width, height, nElements, TextureInternalFormat::Greyscale_R8, isMipMapped);
 		}
 
 		void WriteSubImage(int32 index, const GRAYSCALE* pixels, int32 width, int32 height) override
 		{
-			Throw(0, "Not implemented");
+			DXGI_QUERY_VIDEO_MEMORY_INFO info;
+			ic.adapter.QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL, &info);
+			bool isUMA = info.AvailableForReservation == 0;
+
+			Throw(0, "Not implemented - I do not have the resources to develop this on all the required architecture");
+
+			if (isUMA)
+			{
+				uint32 srcRowPitch, srcDepthPitch;
+				D3D12_BOX box;
+				box.left = 0;
+				box.right = width;
+				box.top = 0;
+				box.bottom = height;
+				box.front = index;
+				box.back = index + 1;
+
+				srcRowPitch = width;
+				srcDepthPitch = width * height;
+				VALIDATE_HR(tx3D->WriteToSubresource(0, &box, pixels, srcRowPitch, srcDepthPitch));
+			}
+			else
+			{
+
+			}
 		}
 
 		void WriteSubImage(int32 index, const RGBAb* pixels, const GuiRect& rect) override
@@ -57,27 +89,22 @@ namespace ANON
 			Throw(0, "Not implemented");
 		}
 
-		ID_TEXTURE LoadTexture(IBuffer& rawImageBuffer, cstr uniqueName) override
-		{
-			Throw(0, "Not implemented");
-		}
-
 		int MaxWidth() const override
 		{
-			Throw(0, "Not implemented");
+			return maxWidth;
 		}
 
 		int TextureCount() const override
 		{
-			Throw(0, "Not implemented");
+			return nTextureCount;
 		}
 	};
 }
 
 namespace Rococo::Graphics
 {
-	IDX12TextureArray* CreateDX12TextureArray(DX12TextureArraySpec& spec, DX12WindowInternalContext& ic)
+	IDX12TextureArray* CreateDX12TextureArray(CompileTimeStringConstant friendlyName, bool isMipMapped, DX12TextureArraySpec& spec, DX12WindowInternalContext& ic)
 	{
-		return new ANON::DX12TextureArray(spec, ic);
+		return new ANON::DX12TextureArray(friendlyName, isMipMapped, spec, ic);
 	}
 }

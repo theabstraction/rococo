@@ -26,13 +26,14 @@ namespace ANON
 		AutoFree<IDX12TextureArray> materialArray;
 		stringmap<MaterialId> nameToMaterialId;
 		std::vector<std::string> idToMaterialName;
+		ITextureMemory& txMemory;
 		IInstallation& installation;
 	public:
-		DX12MaterialList(DX12WindowInternalContext& ref_ic, IInstallation& ref_installation) :
-			ic(ref_ic), installation(ref_installation)
+		DX12MaterialList(DX12WindowInternalContext& ref_ic, ITextureMemory& ref_txMemory, IInstallation& ref_installation) :
+			ic(ref_ic), installation(ref_installation), txMemory(ref_txMemory)
 		{
-			DX12TextureArraySpec spec;
-			materialArray = CreateDX12TextureArray(spec, ic);
+			DX12TextureArraySpec spec{ txMemory };
+			materialArray = CreateDX12TextureArray("materials", true, spec, ic);
 		}
 
 		MaterialId GetMaterialId(cstr name) const override
@@ -71,8 +72,7 @@ namespace ANON
 		void LoadMaterialTextureArray(IMaterialTextureArrayBuilder& builder) override
 		{
 			int32 txWidth = builder.TexelWidth();
-			materialArray->ResetWidth(txWidth, txWidth);
-			materialArray->Resize((int)builder.Count());
+			materialArray->SetDimensions(txWidth, txWidth, (int)builder.Count());
 			nameToMaterialId.clear();
 			idToMaterialName.clear();
 
@@ -153,8 +153,8 @@ namespace ANON
 
 namespace Rococo::Graphics
 {
-	IDX12MaterialList* CreateMaterialList(DX12WindowInternalContext& ic, IInstallation& installation)
+	IDX12MaterialList* CreateMaterialList(DX12WindowInternalContext& ic, ITextureMemory& txMemory, IInstallation& installation)
 	{
-		return new ANON::DX12MaterialList(ic, installation);
+		return new ANON::DX12MaterialList(ic, txMemory, installation);
 	}
 }

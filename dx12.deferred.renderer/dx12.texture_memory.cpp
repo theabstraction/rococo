@@ -43,6 +43,17 @@ namespace ANON
 		return sizeof(T) * nPixels;
 	}
 
+	inline uint64 GetSizeOfFormat(TextureInternalFormat f)
+	{
+		switch (f)
+		{
+		case TextureInternalFormat::RGBAb: return 4;
+		case TextureInternalFormat::Greyscale_R8: return 1;
+		default:
+			Throw(0, "Unknown format %d", f);
+		}
+	}
+
 	void AppendResourceDescriptors_Materials(std::vector<D3D12_RESOURCE_DESC>& descs, int32 span, uint16 nMaterials)
 	{
 		D3D12_RESOURCE_DESC desc;
@@ -117,6 +128,18 @@ namespace ANON
 
 		AutoRelease<ID3D12Heap> heap;
 
+		struct HeapInfo
+		{
+			uint64 heapPos;
+			uint64 nextPos;
+			D3D12_RESOURCE_DESC desc;
+			D3D12_RESOURCE_ALLOCATION_INFO info;
+			uint64 frontPadding;
+			CompileTimeStringConstant friendlyName;
+			ID3D12Resource* resource;
+		};
+
+		std::vector<HeapInfo> heapItems;
 	public:
 		MPLAT_DX12TxMemory(DX12WindowInternalContext ref_ic) : ic(ref_ic) 
 		{
@@ -164,6 +187,51 @@ namespace ANON
 		virtual ~MPLAT_DX12TxMemory()
 		{
 
+		}
+
+		ID3D12Resource* Commit(CompileTimeStringConstant friendlyName, const D3D12_RESOURCE_DESC& desc)
+		{
+			D3D12_RESOURCE_STATES states = D3D12_RESOURCE_STATE_GENERIC_READ;
+
+			D3D12_CLEAR_VALUE clear;
+			clear.Format = desc.Format;
+			clear.Color[0] = 0;
+			clear.Color[1] = 0;
+			clear.Color[2] = 0;
+			clear.Color[3] = 1.0f;
+
+			HeapInfo heapInfo;
+			heapInfo.info = ic.device.GetResourceAllocationInfo(0, 1, &desc);
+			heapInfo.friendlyName = friendlyName;
+			heapInfo.desc = desc;
+			heapInfo.heapPos = reserveAt;
+			heapInfo.frontPadding = (heapInfo.info.Alignment - reserveAt) % heapInfo.info.Alignment;
+			heapInfo.nextPos = reserveAt + heapInfo.frontPadding + heapInfo.info.SizeInBytes;
+
+			VALIDATE_HR(ic.device.CreatePlacedResource(heap, reserveAt, &desc, states, NULL, __uuidof(ID3D12Resource), (void**)&heapInfo.resource));
+
+			reserveAt = heapInfo.nextPos;
+
+			heapItems.push_back(heapInfo);
+
+			return heapInfo.resource;
+		}
+
+		ID3D12Resource* Commit2DArray(CompileTimeStringConstant friendlyName, int width, int height, int nElements, TextureInternalFormat format, bool mipMapped) override
+		{
+			D3D12_RESOURCE_DESC desc;
+			desc.Format = format == TextureInternalFormat::Greyscale_R8 ? DXGI_FORMAT_R8_UNORM : DXGI_FORMAT_R8G8B8A8_UNORM;
+			desc.Alignment = 0;
+			desc.DepthOrArraySize = nElements;
+			desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+			desc.Height = height;
+			desc.Width = width;
+			desc.MipLevels = mipMapped ? 0 : 1;
+			desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+			desc.SampleDesc = { 1,0 };
+			desc.Flags = D3D12_RESOURCE_FLAG_NONE;
+			auto r = Commit(friendlyName, desc);
+			return r;
 		}
 
 		void Commit(const TextureRecordData& data) override

@@ -88,10 +88,10 @@ namespace ANON
 		{
 			meshBuffers = CreateMeshBuffers(ic);
 
-			DX12TextureArraySpec spec;
-			spriteArray = CreateDX12TextureArray(spec, ic);
+			DX12TextureArraySpec spec{ txMemory };
+			spriteArray = CreateDX12TextureArray("sprites", false, spec, ic);
 			textures = CreateTextureTable(installation, ic);
-			materials = CreateMaterialList(ic, installation);
+			materials = CreateMaterialList(ic, txMemory, installation);
 			textureManager = CreateTextureManager(installation);
 		}
 
@@ -156,8 +156,8 @@ namespace ANON
 
 			AutoFree<Fonts::IArrayFontSupervisor> new_Font = Fonts::CreateOSFont(glyphs, spec);
 
-			DX12TextureArraySpec txSpec;
-			IDX12TextureArray* fontArray = CreateDX12TextureArray(txSpec, ic);
+			DX12TextureArraySpec txSpec{ this->textureMemory };
+			IDX12TextureArray* fontArray = CreateDX12TextureArray("os-fonts", false, txSpec, ic);
 			OSFont osFont{ new_Font, spec , fontArray };
 			osFonts.push_back(osFont); // osFonts manages lifetime, so we can release our references
 			new_Font.Release();
@@ -186,8 +186,7 @@ namespace ANON
 			addGlyphToTextureArray.font = &osFont;
 
 			auto& font = *osFont.arrayFont;
-			osFont.texArray2D->ResetWidth(font.Metrics().imgWidth, font.Metrics().imgHeight);
-			osFont.texArray2D->Resize(font.NumberOfGlyphs());
+			osFont.texArray2D->SetDimensions(font.Metrics().imgWidth, font.Metrics().imgHeight, font.NumberOfGlyphs());
 			osFont.arrayFont->ForEachGlyph(addGlyphToTextureArray);
 
 			return ID_FONT{ i + ID_FONT_OSFONT_OFFSET };

@@ -13,6 +13,7 @@ struct ID3D12RootSignature;
 struct D3D12_GRAPHICS_PIPELINE_STATE_DESC;
 struct ID3D12PipelineState;
 struct D3D12_INPUT_LAYOUT_DESC;
+struct ID3D12Resource;
 
 namespace Rococo
 {
@@ -27,6 +28,12 @@ namespace Rococo
 
 namespace Rococo::Graphics
 {
+	enum class TextureInternalFormat
+	{
+		Greyscale_R8,
+		RGBAb
+	};
+
 	D3D12_INPUT_LAYOUT_DESC GuiLayout();
 	void InitGuiPipelineState(D3D12_GRAPHICS_PIPELINE_STATE_DESC& desc);
 
@@ -65,9 +72,7 @@ namespace Rococo::Graphics
 		virtual void Free() = 0;
 		virtual int MaxWidth() const = 0;
 		virtual int TextureCount() const = 0;
-		virtual ID_TEXTURE LoadTexture(IBuffer& rawImageBuffer, cstr uniqueName) = 0;
-		virtual void ResetWidth(int32 width, int32 height) = 0;
-		virtual void Resize(int32 nElements) = 0;
+		virtual void SetDimensions(int32 width, int32 height, int nElements) = 0;
 		virtual void WriteSubImage(int32 index, const GRAYSCALE* pixels, int32 width, int32 height) = 0;
 		virtual void WriteSubImage(int32 index, const RGBAb* pixels, const GuiRect& rect) = 0;
 	};
@@ -87,12 +92,6 @@ namespace Rococo::Graphics
 	ITextureLoader* CreateTiffLoader(IInstallation& installation);
 	ITextureLoader* CreateJPEGLoader(IInstallation& installation);
 
-	enum class TextureInternalFormat
-	{
-		Greyscale_R8,
-		RGBAb
-	};
-
 	struct TextureMetaData
 	{
 		cstr name = nullptr;
@@ -107,9 +106,13 @@ namespace Rococo::Graphics
 		RGBAb* colourPixels = nullptr;
 	};
 
+	// A const char* to a string array that is valid and immutable for the duration of the the application
+	typedef const char* CompileTimeStringConstant;
+
 	ROCOCOAPI ITextureMemory
 	{
 		virtual void Commit(const TextureRecordData& data) = 0;
+		virtual ID3D12Resource* Commit2DArray(CompileTimeStringConstant friendlyName, int width, int height, int nElements, TextureInternalFormat format, bool isMipMapped) = 0;
 		virtual void Free() = 0;
 	};
 
@@ -135,16 +138,16 @@ namespace Rococo::Graphics
 		virtual void LoadMaterialTextureArray(IMaterialTextureArrayBuilder& builder) = 0;
 		virtual void Free() = 0;
 	};
-	IDX12MaterialList* CreateMaterialList(DX12WindowInternalContext& ic, IInstallation& installation);
+	IDX12MaterialList* CreateMaterialList(DX12WindowInternalContext& ic, ITextureMemory& txMemory, IInstallation& installation);
 
 	IDX12MeshBuffers* CreateMeshBuffers(DX12WindowInternalContext& ic);
 
 	struct DX12TextureArraySpec
 	{
-
+		ITextureMemory& txMemory;
 	};
 
-	IDX12TextureArray* CreateDX12TextureArray(DX12TextureArraySpec& spec, DX12WindowInternalContext& ic);
+	IDX12TextureArray* CreateDX12TextureArray(CompileTimeStringConstant friendlyName, bool isMipMapped, DX12TextureArraySpec& spec, DX12WindowInternalContext& ic);
 
 	// N.B the shader thread is locked until OnGrab returns
 	// and the contents may change, so copy what you need and do not block within the method

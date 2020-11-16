@@ -9,13 +9,23 @@
 #include <rococo.renderer.h>
 #include <rococo.strings.h>
 #include <vector>
+#include <rococo.mplat.h>
+#include <rococo.fonts.hq.h>
+
+#include <sexy.lib.s-parser.h>
+#include <sexy.lib.util.h>
+#include <sexy.lib.script.h>
 
 #ifdef _DEBUG
 # pragma comment(lib, "rococo.windows.debug.lib")
 # pragma comment(lib, "rococo.fonts.debug.lib")
+# pragma comment(lib, "rococo.mplat.debug.lib")
+# pragma comment(lib, "rococo.sexy.ide.debug.lib")
 #else
 # pragma comment(lib, "rococo.windows.lib")
 # pragma comment(lib, "rococo.fonts.lib")
+# pragma comment(lib, "rococo.mplat.lib")
+# pragma comment(lib, "rococo.sexy.ide.lib")
 #endif
 
 #pragma comment(lib, "dxgi.lib")
@@ -148,6 +158,17 @@ void Main(HINSTANCE hInstance)
 
 	auto guiPS = factory->Shaders().AddPixelShader("!shaders/gui.ps.hlsl");
 	auto guiVS = factory->Shaders().AddVertexShader("!shaders/gui.vs.hlsl");
+
+	renderer->SetTargetWindow(window);
+	auto& r = renderer->Renderer();
+
+	AutoFree<IHQFontsSupervisor> fonts = CreateHQFonts(r);
+	fonts->Build(HQFont_EditorFont);
+	fonts->AddRange(32, 120);
+	fonts->SetFaceName("Consolas"_fstring);
+	fonts->SetHeight(-11);
+	fonts->MakeBold();
+	fonts->Commit();
 
 	Rococo::OS::ticks start = Rococo::OS::CpuTicks();
 
