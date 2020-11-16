@@ -71,7 +71,6 @@ namespace ANON
 		{
 			Throw(0, "Not implemented");
 		}
-
 	};
 }
 

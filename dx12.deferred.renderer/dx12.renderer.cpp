@@ -70,23 +70,29 @@ namespace ANON
 		AutoFree<IDX12TextureArray> spriteArray;
 		AutoFree<IDX12TextureTable> textures;
 		AutoFree<IDX12MaterialList> materials;
+		AutoFree<ITextureManager> textureManager;
+		ITextureMemory& textureMemory;
 	public:
 		DX12Renderer(IInstallation& ref_installation,
 			DX12WindowInternalContext& ref_ic, 
+			ITextureMemory& txMemory,
 			IShaderCache& ref_shaders, 
-			IPipelineBuilder& ref_pipelineBuilder)
+			IPipelineBuilder& ref_pipelineBuilder
+			)
 			:
 			installation(ref_installation), 
 			ic(ref_ic), 
 			shaders(ref_shaders),
-			pipelineBuilder(ref_pipelineBuilder)
+			pipelineBuilder(ref_pipelineBuilder),
+			textureMemory(txMemory)
 		{
 			meshBuffers = CreateMeshBuffers(ic);
 
 			DX12TextureArraySpec spec;
 			spriteArray = CreateDX12TextureArray(spec, ic);
-			textures = CreateTextureTable(ic);
-			materials = CreateMaterialList(ic);
+			textures = CreateTextureTable(installation, ic);
+			materials = CreateMaterialList(ic, installation);
+			textureManager = CreateTextureManager(installation);
 		}
 
 		virtual ~DX12Renderer()
@@ -540,9 +546,10 @@ namespace Rococo::Graphics
 {
 	IDX12Renderer* CreateDX12Renderer(IInstallation& installation,
 		DX12WindowInternalContext& ic,
+		ITextureMemory& txMemory,
 		IShaderCache& shaders,
 		IPipelineBuilder& pipelineBuilder)
 	{
-		return new ANON::DX12Renderer(installation, ic, shaders, pipelineBuilder);
+		return new ANON::DX12Renderer(installation, ic, txMemory, shaders, pipelineBuilder);
 	}
 }

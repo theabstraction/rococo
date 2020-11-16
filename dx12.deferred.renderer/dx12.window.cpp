@@ -100,9 +100,9 @@ namespace ANON
 			context.rect.top,
 			Width(context.rect),
 			Height(context.rect),
-			context.hParentWnd,
+			(HWND) context.hParentWnd,
 			nullptr,
-			context.hResourceInstance,
+			(HINSTANCE) context.hResourceInstance,
 			nullptr
 		);
 
@@ -137,6 +137,29 @@ namespace ANON
 
 		}
 
+		HString msg;
+
+		void WaitForNextRenderAndDisplay(cstr message)
+		{
+			msg = message;
+
+			uint64 releaseAt = frameCount + 10;
+
+			while (releaseAt > frameCount)
+			{
+				MsgWaitForMultipleObjects(0, NULL, FALSE, 10, QS_ALLINPUT);
+
+				InvalidateRect(hMainWnd, NULL, TRUE);
+
+				MSG msg;
+				while (PeekMessageA(&msg, nullptr, 0, 0, PM_REMOVE))
+				{
+					TranslateMessage(&msg);
+					DispatchMessageA(&msg);
+				}
+			}
+		}
+
 		void OnActivate()
 		{
 			ic.factory.MakeWindowAssociation(hMainWnd, 0);
@@ -156,6 +179,8 @@ namespace ANON
 		{
 			return 0;
 		}
+
+		uint64 frameCount = 0;
 
 		LRESULT OnMessageProtected(UINT uMsg, WPARAM wParam, LPARAM lParam)
 		{
@@ -198,6 +223,21 @@ namespace ANON
 			case WM_CLOSE:
 				evHandler.OnCloseRequested(*this);
 				return 0L;
+			case WM_ERASEBKGND:
+				return 0L;
+			case WM_PAINT:
+				{
+					PAINTSTRUCT ps;
+					HDC dc = BeginPaint(hMainWnd, &ps);
+					FillRect(dc, &ps.rcPaint, (HBRUSH)(COLOR_WINDOW + 1));
+
+					RECT rect;
+					GetClientRect(hMainWnd, &rect);
+					DrawTextA(dc, msg, -1, &rect, DT_VCENTER | DT_CENTER | DT_SINGLELINE);
+					frameCount++;
+					EndPaint(hMainWnd, &ps);
+					return 0L;
+				}
 			}
 
 			return DefWindowProcA(hMainWnd, uMsg, wParam, lParam);
@@ -251,7 +291,7 @@ namespace ANON
 		DX12RendererWindow(DX12WindowInternalContext& ref_ic, DX12WindowCreateContext& context) :
 			ic(ref_ic), evHandler(context.evHandler)
 		{
-			RegisterWndHandler(context.hResourceInstance);
+			RegisterWndHandler((HINSTANCE) context.hResourceInstance);
 			hMainWnd = CreateWindowFromContext(context);
 			keyboardLayout = GetKeyboardLayout(0);
 
@@ -287,14 +327,6 @@ namespace ANON
 					ic.device.CreateRenderTargetView(renderTargets[i], nullptr, rtvHandle);
 					rtvHandle.Offset(1, rtvDescriptorSize);
 				}
-
-					/*
-				VALIDATE_HR(device.CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator,
-						ID3D12PipelineState * pInitialState,
-						REFIID                  riid,
-						void** ppCommandList
-					));
-				*/
 			}
 			catch (IException&)
 			{
@@ -305,8 +337,6 @@ namespace ANON
 
 		void Render()
 		{
-			//CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(rtvHeap->GetCPUDescriptorHandleForHeapStart(), frameIndex, rtvDescriptorSize);
-			//m_commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
 		}
 
 		void ActivateCustomWindowsProcedure()

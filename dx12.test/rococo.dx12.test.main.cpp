@@ -10,8 +10,10 @@
 
 #ifdef _DEBUG
 # pragma comment(lib, "rococo.windows.debug.lib")
+# pragma comment(lib, "rococo.fonts.debug.lib")
 #else
 # pragma comment(lib, "rococo.windows.lib")
+# pragma comment(lib, "rococo.fonts.lib")
 #endif
 
 #pragma comment(lib, "dxgi.lib")
@@ -90,7 +92,10 @@ void Main(HINSTANCE hInstance)
 		}
 	} resourceResolver;
 	AutoFree<IDX12FactoryContext> fcc = CreateDX12FactoryContext(0, 0, resourceResolver);
-	AutoFree<IDX12RendererFactory> factory = fcc->CreateFactory();
+	AutoFree<IDX12RendererFactory> factory = fcc->CreateFactory(1024_megabytes);
+	AutoFree<IOSSupervisor> os = GetOS();
+	AutoFree<IInstallationSupervisor> installation = CreateInstallation(L"content.indicator.txt", *os);
+	AutoFree<IPipelineBuilder> pipelineBuilder = CreatePipelineBuilder(factory->IC(), factory->Shaders());
 
 	struct : Rococo::Graphics::IDX12RendererWindowEventHandler
 	{
@@ -127,11 +132,18 @@ void Main(HINSTANCE hInstance)
 		GuiRect { 0, 0, 800, 600 },
 		appState
 	};
+
 	AutoFree<IDX12RendererWindow> window = factory->CreateDX12Window(wcc);
+	BringWindowToTop(window->Window());
+	window->WaitForNextRenderAndDisplay("Initializing DirectX12...");
+	AutoFree<ITextureMemory> textureMemory = Create_MPlat_Standard_TextureMemory(factory->IC());
+	AutoFree<IDX12Renderer> renderer = CreateDX12Renderer(*installation, factory->IC(), *textureMemory, factory->Shaders(), *pipelineBuilder);
+	window->WaitForNextRenderAndDisplay("Starting game...");
 
 	auto id = factory->Shaders().AddPixelShader("!shaders/gui.ps.hlsl");
 
 	Rococo::OS::ticks start = Rococo::OS::CpuTicks();
+
 	MSG msg;
 	while (appState.isRunning)
 	{

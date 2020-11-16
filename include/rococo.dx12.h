@@ -3,7 +3,7 @@
 #include "rococo.renderer.h"
 
 struct IDXGIFactory7;
-struct IDXGIAdapter;
+struct IDXGIAdapter4;
 struct IDXGIOutput;
 struct ID3D12Device6;
 struct ID3D12Debug3;
@@ -33,19 +33,20 @@ namespace Rococo::Graphics
 	struct DX12WindowInternalContext
 	{
 		IDXGIFactory7& factory;
-		IDXGIAdapter& adapter;
+		IDXGIAdapter4& adapter;
 		IDXGIOutput& output;
 		ID3D12Device6& device;
 		ID3D12Debug3& debug;
 		ID3D12CommandQueue& q;
 		ID3D12CommandAllocator& commandAllocator;
 		ID3D12RootSignature& rootSignature;
+		const uint32 adapterIndex;
 	};
 
 	struct ShaderView
 	{
 		cstr resourceName;
-		HRESULT hr;
+		int hr;
 		cstr errorString;
 		const void* blob;
 		size_t blobCapacity;
@@ -57,7 +58,7 @@ namespace Rococo::Graphics
 		virtual void Free() = 0;
 	};
 
-	IDX12TextureTable* CreateTextureTable(DX12WindowInternalContext& ic);
+	IDX12TextureTable* CreateTextureTable(IInstallation& installation, DX12WindowInternalContext& ic);
 
 	ROCOCOAPI IDX12TextureArray
 	{
@@ -70,6 +71,49 @@ namespace Rococo::Graphics
 		virtual void WriteSubImage(int32 index, const GRAYSCALE* pixels, int32 width, int32 height) = 0;
 		virtual void WriteSubImage(int32 index, const RGBAb* pixels, const GuiRect& rect) = 0;
 	};
+
+	ROCOCOAPI ILoadEvent
+	{
+		virtual void OnGreyscale(const GRAYSCALE * alphaPixels, Vec2i span) = 0;
+		virtual void OnRGBAb(const RGBAb* colourPixels, Vec2i span) = 0;
+	};
+
+	ROCOCOAPI ITextureLoader
+	{
+		virtual bool TryLoad(cstr resourceName, ILoadEvent & onLoad) = 0;
+		virtual void Free() = 0;
+	};
+
+	ITextureLoader* CreateTiffLoader(IInstallation& installation);
+	ITextureLoader* CreateJPEGLoader(IInstallation& installation);
+
+	enum class TextureInternalFormat
+	{
+		Greyscale_R8,
+		RGBAb
+	};
+
+	struct TextureMetaData
+	{
+		cstr name = nullptr;
+		Vec2i span = { 0,0 };
+		TextureInternalFormat format = TextureInternalFormat::Greyscale_R8;
+	};
+
+	struct TextureRecordData
+	{
+		TextureMetaData meta;
+		GRAYSCALE* alphaPixels = nullptr;
+		RGBAb* colourPixels = nullptr;
+	};
+
+	ROCOCOAPI ITextureMemory
+	{
+		virtual void Commit(const TextureRecordData& data) = 0;
+		virtual void Free() = 0;
+	};
+
+	ITextureMemory* Create_MPlat_Standard_TextureMemory(DX12WindowInternalContext& ic);
 
 	ROCOCOAPI IDX12MeshBuffers
 	{
@@ -91,7 +135,7 @@ namespace Rococo::Graphics
 		virtual void LoadMaterialTextureArray(IMaterialTextureArrayBuilder& builder) = 0;
 		virtual void Free() = 0;
 	};
-	IDX12MaterialList* CreateMaterialList(DX12WindowInternalContext& ic);
+	IDX12MaterialList* CreateMaterialList(DX12WindowInternalContext& ic, IInstallation& installation);
 
 	IDX12MeshBuffers* CreateMeshBuffers(DX12WindowInternalContext& ic);
 
@@ -124,8 +168,22 @@ namespace Rococo::Graphics
 		virtual void Free() = 0;
 	};
 
+	ROCOCOAPI ITextureManager
+	{
+		virtual void AddTextureLoader(ITextureLoader * loader) = 0;
+		virtual ID_TEXTURE Bind(cstr resourceName, TextureInternalFormat format) = 0;
+		virtual void Reload(cstr resourceName) = 0;
+		virtual TextureMetaData& GetById(ID_TEXTURE id) = 0;
+		virtual TextureMetaData& TryGetById(ID_TEXTURE id) noexcept = 0;
+		virtual void Commit(ID_TEXTURE id, ITextureMemory& memory) = 0;
+		virtual void Free() = 0;
+	};
+
+	ITextureManager* CreateTextureManager(IInstallation& installation);
+
 	ROCOCOAPI IDX12RendererWindow
 	{
+		virtual void WaitForNextRenderAndDisplay(cstr message) = 0;
 		virtual void ShowWindowVenue(IMathsVisitor & visitor) = 0;
 		virtual Rococo::Windows::IWindow & Window() = 0;
 		virtual void Free() = 0;
@@ -135,7 +193,18 @@ namespace Rococo::Graphics
 	{
 		virtual IRenderer & Renderer() = 0;
 		virtual void SetTargetWindow(IDX12RendererWindow* window) = 0;
+		virtual void Free() = 0;
 	};
+
+	ROCOCOAPI IPipelineBuilder
+	{
+		virtual void Free() = 0;
+		virtual const char* LastError() const = 0;
+		virtual int SetShaders(D3D12_GRAPHICS_PIPELINE_STATE_DESC& desc, ID_VERTEX_SHADER vsId, ID_PIXEL_SHADER psId) = 0;
+		virtual ID3D12PipelineState* CreatePipelineState(D3D12_GRAPHICS_PIPELINE_STATE_DESC& desc) = 0;
+	};
+
+	IDX12Renderer* CreateDX12Renderer(IInstallation& installation, DX12WindowInternalContext& ic, ITextureMemory& txMemory, IShaderCache& shaders, IPipelineBuilder& pipelineBuilder);
 
 	ROCOCOAPI IDX12RendererWindowEventHandler
 	{
@@ -146,27 +215,20 @@ namespace Rococo::Graphics
 		virtual void OnCloseRequested(IDX12RendererWindow & window) = 0;
 	};
 
-	ROCOCOAPI IPipelineBuilder
-	{
-		virtual void Free() = 0;
-		virtual const char* LastError() const = 0;
-		virtual HRESULT SetShaders(D3D12_GRAPHICS_PIPELINE_STATE_DESC& desc, ID_VERTEX_SHADER vsId, ID_PIXEL_SHADER psId) = 0;
-		virtual ID3D12PipelineState* CreatePipelineState(D3D12_GRAPHICS_PIPELINE_STATE_DESC& desc) = 0;
-	};
-
 	IPipelineBuilder* CreatePipelineBuilder(DX12WindowInternalContext& ic, IShaderCache& shaders);
 
 	struct DX12WindowCreateContext
 	{
 		const char* title;
-		HWND hParentWnd; // a HWND
-		HINSTANCE hResourceInstance;
+		void* hParentWnd; // a HWND
+		void* hResourceInstance;
 		GuiRect rect;
 		IDX12RendererWindowEventHandler& evHandler;
 	};
 
 	ROCOCOAPI IDX12RendererFactory
 	{
+		virtual DX12WindowInternalContext& IC() = 0;
 		virtual IDX12RendererWindow * CreateDX12Window(DX12WindowCreateContext & context) = 0;
 		virtual IShaderCache& Shaders() = 0;
 		virtual void Free() = 0;
@@ -174,7 +236,7 @@ namespace Rococo::Graphics
 
 	ROCOCOAPI IDX12FactoryContext
 	{
-		virtual IDX12RendererFactory* CreateFactory() = 0;
+		virtual IDX12RendererFactory* CreateFactory(uint64 required_VRAM) = 0;
 		virtual void ShowAdapterDialog(Windows::IWindow&  hParentWnd) = 0;
 		virtual void Free() = 0;
 	};

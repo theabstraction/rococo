@@ -42,6 +42,15 @@
     <ClCompile Include="dx12.materials.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="dx12.texture.manager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="dx12.tiffs_and_jpgs.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="dx12.texture_memory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\rococo.dx12.h">

@@ -53,20 +53,32 @@ namespace ANON // Many debuggers will give us more debug info if we dont use tru
 		AutoRelease<IDXGIFactory7> f;
 		AutoRelease<IDXGIAdapter4> adapter;
 		AutoRelease<IDXGIOutput> output;
+		AutoRelease<ID3D12Debug3> debug;
 
 		DXGI_ADAPTER_DESC3 adapterDesc;
 		DXGI_OUTPUT_DESC outputDesc;
 
 		IDX12ResourceResolver& resolver;
+
+		uint32 trueAdapterIndex;
 	public:
 		DX12FactoryContext(uint32 adapterIndex, uint32 outputIndex, IDX12ResourceResolver& ref_resolver):
-			resolver(ref_resolver)
+			resolver(ref_resolver),
+			trueAdapterIndex(adapterIndex)
 		{
+			// N.B one must create the debug interfaces prior to creating the device
+// otherwise D3D12 device functions may fail later on
+#ifdef _DEBUG
+			VALIDATE_HR(D3D12GetDebugInterface(IID_ID3D12Debug3, (void**)&debug));
+			debug->EnableDebugLayer();
+#endif
+
 			VALIDATE_HR(CreateDXGIFactory2(FACTORY_DEBUG_FLAGS, __uuidof(IDXGIFactory7), (void**)&f));
 
 			AutoRelease<IDXGIAdapter1> adapter1;
 			if FAILED(f->EnumAdapters1(adapterIndex, &adapter1))
 			{
+				trueAdapterIndex = 0;
 				VALIDATE_HR(f->EnumAdapters1(0, &adapter1));
 			}
 			else
@@ -74,6 +86,7 @@ namespace ANON // Many debuggers will give us more debug info if we dont use tru
 				if FAILED(D3D12CreateDevice(adapter1, D3D_FEATURE_LEVEL_12_0, _uuidof(ID3D12Device), nullptr))
 				{
 					adapter1 = nullptr;
+					trueAdapterIndex = 0;
 					VALIDATE_HR(f->EnumAdapters1(0, &adapter1));
 				}
 			}
@@ -89,7 +102,7 @@ namespace ANON // Many debuggers will give us more debug info if we dont use tru
 			output->GetDesc(&outputDesc);
 		}
 
-		IDX12RendererFactory* CreateFactory() override;
+		IDX12RendererFactory* CreateFactory(uint64 required_VRAM) override;
 
 		void ShowAdapterDialog(Rococo::Windows::IWindow& parent) override
 		{
@@ -106,10 +119,11 @@ namespace ANON // Many debuggers will give us more debug info if we dont use tru
 	{
 	private:
 		IDXGIFactory7& factory;
-		IDXGIAdapter& adapter;
+		IDXGIAdapter4& adapter;
+		ID3D12Debug3& debug;
 		IDXGIOutput& output;
+		uint32 adapterIndex;
 		AutoRelease<ID3D12Device6> device;
-		AutoRelease<ID3D12Debug3> debug;
 		AutoRelease<ID3D12CommandQueue> q;
 		AutoRelease<ID3D12CommandAllocator> commandAllocator;
 		AutoRelease<ID3DBlob> signature;
@@ -117,6 +131,7 @@ namespace ANON // Many debuggers will give us more debug info if we dont use tru
 		IDX12ResourceResolver& resolver;
 		AutoFree<IShaderCache> shaderCache;
 		AutoFree<IPipelineBuilder> pipelineBuilder;
+		DX12WindowInternalContext* ic = nullptr;
 
 		void /* IDX12RendererWindowEventHandler */ OnActivate(IDX12RendererWindow* window)
 		{
@@ -134,17 +149,10 @@ namespace ANON // Many debuggers will give us more debug info if we dont use tru
 
 		}
 	public:
-		DX12RendererFactory(IDXGIFactory7& ref_factory, IDXGIAdapter& ref_adapter, IDXGIOutput& ref_output, IDX12ResourceResolver& ref_resolver):
-			factory(ref_factory), adapter(ref_adapter), output(ref_output), resolver(ref_resolver),
-			shaderCache(CreateShaderCache(ref_resolver))
+		DX12RendererFactory(uint64 memoryRequired, ID3D12Debug3& refDebug, IDXGIFactory7& ref_factory, IDXGIAdapter4& ref_adapter, IDXGIOutput& ref_output, IDX12ResourceResolver& ref_resolver, uint32 iAdapterIndex):
+			debug(refDebug), factory(ref_factory), adapter(ref_adapter), output(ref_output),
+			resolver(ref_resolver), adapterIndex(iAdapterIndex), shaderCache(CreateShaderCache(ref_resolver))
 		{
-			// N.B one must create the debug interfaces prior to creating the device
-			// otherwise D3D12 device functions may fail later on
-#ifdef _DEBUG
-			VALIDATE_HR(D3D12GetDebugInterface(IID_ID3D12Debug3, (void**)&debug));
-			debug->EnableDebugLayer();
-#endif
-
 			HRESULT hr = D3D12CreateDevice(&adapter, D3D_FEATURE_LEVEL_12_0, _uuidof(ID3D12Device6), nullptr);
 			if FAILED(hr)
 			{
@@ -157,13 +165,26 @@ namespace ANON // Many debuggers will give us more debug info if we dont use tru
 			qDesc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL;
 			qDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
 			qDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-			qDesc.NodeMask = 0;
+			qDesc.NodeMask = 1 << adapterIndex;
 			hr = device->CreateCommandQueue(&qDesc, __uuidof(ID3D12CommandQueue), (void**)&q);
 			if FAILED(hr)
 			{
 				hr = device->GetDeviceRemovedReason();
 				Throw(hr, "Error creating DirectX12 command queue.");
 			}
+
+			/////////////////// We can't move this to the context because the device needs to be defined before SetVideoMemoryReservation works  /////////////////////
+			DXGI_QUERY_VIDEO_MEMORY_INFO localInfo, nonLocalInfo;
+			VALIDATE_HR(adapter.QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_LOCAL, &localInfo));
+
+			if (localInfo.AvailableForReservation < memoryRequired)
+			{
+				Throw(0, "The software requires a %llu megabytes to be reserved for video memory, but your hardware cannot provide it.", memoryRequired / 1_megabytes);
+			}
+
+			VALIDATE_HR(adapter.QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL, &nonLocalInfo));
+			VALIDATE_HR(adapter.SetVideoMemoryReservation(0, DXGI_MEMORY_SEGMENT_GROUP_LOCAL, memoryRequired));
+			///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 			VALIDATE_HR(device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandAllocator)))
 
@@ -174,8 +195,8 @@ namespace ANON // Many debuggers will give us more debug info if we dont use tru
 			VALIDATE_HR(D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error));
 			VALIDATE_HR(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rootSignature)));
 
-			DX12WindowInternalContext ic{ factory, adapter, output, *device, *debug, *q, *commandAllocator, *rootSignature };
-			pipelineBuilder = CreatePipelineBuilder(ic, *shaderCache);
+			ic = new DX12WindowInternalContext { factory, adapter, output, *device, debug, *q, *commandAllocator, *rootSignature, adapterIndex };
+			pipelineBuilder = CreatePipelineBuilder(*ic, *shaderCache);
 		}
 
 		IShaderCache& Shaders()
@@ -185,19 +206,24 @@ namespace ANON // Many debuggers will give us more debug info if we dont use tru
 
 		IDX12RendererWindow* CreateDX12Window(DX12WindowCreateContext& context) override
 		{
-			DX12WindowInternalContext ic{ factory, adapter, output, *device, *debug, *q, *commandAllocator, *rootSignature };
-			return Rococo::DX12Impl::CreateDX12Window(ic, context);
+			return Rococo::DX12Impl::CreateDX12Window(*ic, context);
 		}
 
 		void Free() override
 		{
 			delete this;
 		}
+
+		DX12WindowInternalContext& IC()
+		{
+			return *ic;
+		}
 	};
 
-	IDX12RendererFactory* DX12FactoryContext::CreateFactory()
+	IDX12RendererFactory* DX12FactoryContext::CreateFactory(uint64 memoryRequired)
 	{
-		return new ANON::DX12RendererFactory(*f, *adapter, *output, resolver);
+		memoryRequired = max(64_megabytes, memoryRequired);
+		return new ANON::DX12RendererFactory(memoryRequired, *debug, *f, *adapter, *output, resolver, trueAdapterIndex);
 	}
 }
 

@@ -51,7 +51,7 @@ namespace ANON
             return lastError;
         }
 
-        HRESULT SetShaders(
+        int SetShaders(
             D3D12_GRAPHICS_PIPELINE_STATE_DESC& desc,
             ID_VERTEX_SHADER vsId,
             ID_PIXEL_SHADER psId) override

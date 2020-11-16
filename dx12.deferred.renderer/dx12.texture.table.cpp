@@ -41,54 +41,20 @@ namespace ANON
 
 	std::vector<TextureItem> orderedTextureList;
 
-	struct IColourBitmapLoadEvent
-	{
-		virtual void OnLoad(const RGBAb* pixels, const Vec2i& span) = 0;
-	};
-
-	class TextureLoader
-	{
-		IInstallation& installation;
-		DX12WindowInternalContext& ic;
-		IExpandingBuffer& scratchBuffer;
-
-	public:
-		TextureLoader(IInstallation& installation, DX12WindowInternalContext& ic);
-		TextureBind LoadAlphaBitmap(cstr resourceName);
-		TextureBind LoadColourBitmap(cstr resourceName);
-		void LoadColourBitmapIntoAddress(cstr resourceName, IColourBitmapLoadEvent& onLoad);
-	};
-
 	class DX12TextureTable : public IDX12TextureTable
 	{
 	private:
-		TextureLoader loader;
 		std::vector<TextureBind> textures;
 		stringmap<ID_TEXTURE> mapNameToTexture;
 	public:
-		DX12TextureTable(IInstallation& installation, DX12WindowInternalContext& ic):
-			loader(installation, ic)
+		DX12TextureTable(IInstallation& installation, DX12WindowInternalContext& ic)
 		{
 
 		}
 
 		ID_TEXTURE LoadTexture(IBuffer& buffer, cstr uniqueName) override
 		{
-			auto i = mapNameToTexture.find(uniqueName);
-			if (i != mapNameToTexture.end())
-			{
-				return i->second;
-			}
-
-			auto bind = loader.LoadColourBitmap(uniqueName);
-			textures.push_back(bind);
-
-			auto id = ID_TEXTURE(textures.size());
-			mapNameToTexture.insert(uniqueName, id);
-
-			orderedTextureList.clear();
-
-			return id;
+			return ID_TEXTURE::Invalid();
 		}
 
 		void Free() override

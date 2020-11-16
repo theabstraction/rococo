@@ -94,6 +94,9 @@
     <ClCompile Include="dx12.renderer.cpp" />
     <ClCompile Include="dx12.resources.cpp" />
     <ClCompile Include="dx12.texture.array.cpp" />
+    <ClCompile Include="dx12.texture.manager.cpp" />
+    <ClCompile Include="dx12.texture_memory.cpp" />
+    <ClCompile Include="dx12.tiffs_and_jpgs.cpp" />
     <ClCompile Include="dx12.window.cpp" />
     <ClCompile Include="dx12.texture.table.cpp" />
   </ItemGroup>
