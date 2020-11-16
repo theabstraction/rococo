@@ -1509,6 +1509,11 @@ namespace
 
 		void Monitor(const wchar_t* absPath) override
 		{
+			if (!EndsWith(absPath, L"\\"))
+			{
+				Throw(0, "%s: [absPath] must end with '\\'", __FUNCTION__);
+			}
+
 			monitorDirectoryRoot = absPath;
 
 			if (isRunning || hMonitorDirectory != INVALID_HANDLE_VALUE)

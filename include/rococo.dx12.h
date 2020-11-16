@@ -162,6 +162,7 @@ namespace Rococo::Graphics
 		virtual ID_VERTEX_SHADER AddVertexShader(const char* resourceName) = 0;
 		virtual void GrabShaderObject(ID_PIXEL_SHADER pxId, IShaderViewGrabber& grabber) = 0;
 		virtual void GrabShaderObject(ID_VERTEX_SHADER vxId, IShaderViewGrabber& grabber) = 0;
+		virtual void GrabShaderObject(const char* resourceName, IShaderViewGrabber& grabber) = 0;
 		virtual void ReloadShader(const char* resourceName) = 0;
 		virtual uint32 InputQueueLength() = 0;
 		virtual bool TryGrabAndPopNextError(IShaderViewGrabber& grabber) = 0;
@@ -184,6 +185,7 @@ namespace Rococo::Graphics
 	ROCOCOAPI IDX12RendererWindow
 	{
 		virtual void WaitForNextRenderAndDisplay(cstr message) = 0;
+		virtual void SetText(cstr message) = 0;
 		virtual void ShowWindowVenue(IMathsVisitor & visitor) = 0;
 		virtual Rococo::Windows::IWindow & Window() = 0;
 		virtual void Free() = 0;

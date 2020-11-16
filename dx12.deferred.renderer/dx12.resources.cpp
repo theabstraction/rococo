@@ -114,7 +114,7 @@ namespace
 		return CompileGenericShaderFromString(srcCode, "ps_5_0", resourceName, pShaderBlob, pErrorBlob, includer);
 	}
 
-	HRESULT CompileVertexShaderFromSource(const fstring& srcCode, cstr resourceName, ID3DBlob** pShaderBlob, ID3DBlob** pErrorBlob, ID3DInclude& includer)
+	HRESULT CompileVertexShaderFromString(const fstring& srcCode, cstr resourceName, ID3DBlob** pShaderBlob, ID3DBlob** pErrorBlob, ID3DInclude& includer)
 	{
 		return CompileGenericShaderFromString(srcCode, "vs_5_0", resourceName, pShaderBlob, pErrorBlob, includer);
 	}
@@ -193,7 +193,7 @@ private:
 					hr = CompilePixelShaderFromString(s, resourceName, &shaderBlob, &errorBlob, *includer);
 					break;
 				case ShaderType::VERTEX:
-					hr = CompilePixelShaderFromString(s, resourceName, &shaderBlob, &errorBlob, *includer);
+					hr = CompileVertexShaderFromString(s, resourceName, &shaderBlob, &errorBlob, *includer);
 					break;
 				default:
 					hr = E_NOTIMPL;
@@ -365,11 +365,11 @@ public:
 	{
 		U64ShaderId u64Id;
 		u64Id.uValue.zero = 0;
-		u64Id.uValue.id = AddGenericShader(ShaderType::PIXEL, resourceName);
+		u64Id.uValue.id = AddGenericShader(ShaderType::VERTEX, resourceName);
 		return ID_VERTEX_SHADER(u64Id.u64Value);
 	}
 
-	void ReloadShader(const char* resourceName) override
+	ShaderId ResourceNameToId(const char* resourceName)
 	{
 		ShaderId id;
 		id.index = 0;
@@ -383,9 +383,16 @@ public:
 				id.type = s.type;
 				id.index = i + 1;
 				id.unused = 0;
-				break;
+				return id;
 			}
 		}
+
+		Throw(0, "%s: unknown shader %s", __FUNCTION__, resourceName);
+	}
+
+	void ReloadShader(const char* resourceName) override
+	{
+		ShaderId id = ResourceNameToId(resourceName);
 
 		if (id.index != 0)
 		{
@@ -489,6 +496,15 @@ public:
 	void GrabShaderObject(ID_VERTEX_SHADER vxId, IShaderViewGrabber& grabber) override
 	{
 		GrabShaderObject(vxId.value, grabber);
+	}
+
+	void GrabShaderObject(const char* resourceName, IShaderViewGrabber& grabber) override
+	{
+		U64ShaderId u64Id;
+		ShaderId id = ResourceNameToId(resourceName);
+		u64Id.uValue.id = id;
+		u64Id.uValue.zero = 0;
+		GrabShaderObject(u64Id.u64Value, grabber);
 	}
 };
 

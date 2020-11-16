@@ -83,12 +83,12 @@ namespace ANON
 		if (!context.hParentWnd)
 		{
 			exStyle = WS_EX_APPWINDOW;
-			style = WS_OVERLAPPEDWINDOW | WS_VISIBLE;
+			style = WS_OVERLAPPEDWINDOW;
 		}
 		else
 		{
 			exStyle = 0;
-			style = WS_CHILDWINDOW | WS_VISIBLE;
+			style = WS_CHILDWINDOW;
 		}
 
 		HWND hMainWnd = CreateWindowExA(
@@ -125,11 +125,13 @@ namespace ANON
 		std::vector<AutoRelease<ID3D12Resource>> renderTargets;
 		AutoRelease<ID3D12CommandAllocator> commandAllocator;
 		uint32 frameIndex = 0;
+		HFONT consoleFont = NULL;
 
 		virtual ~DX12RendererWindow()
 		{
 			if (hMainWnd) DestroyWindow(hMainWnd);
-			OnDeactivate();
+
+			if (consoleFont) DeleteObject((HGDIOBJ)consoleFont);
 		}
 
 		void RegisterRawInput()
@@ -157,6 +159,15 @@ namespace ANON
 					TranslateMessage(&msg);
 					DispatchMessageA(&msg);
 				}
+			}
+		}
+
+		void SetText(cstr text)
+		{
+			if (!Eq(msg, text))
+			{
+				msg = text;
+				InvalidateRect(hMainWnd, NULL, TRUE);
 			}
 		}
 
@@ -231,10 +242,15 @@ namespace ANON
 					HDC dc = BeginPaint(hMainWnd, &ps);
 					FillRect(dc, &ps.rcPaint, (HBRUSH)(COLOR_WINDOW + 1));
 
+					auto old = SelectObject(dc, (HGDIOBJ)consoleFont);
+
 					RECT rect;
 					GetClientRect(hMainWnd, &rect);
-					DrawTextA(dc, msg, -1, &rect, DT_VCENTER | DT_CENTER | DT_SINGLELINE);
+					DrawTextA(dc, msg, -1, &rect, DT_VCENTER | DT_LEFT);
 					frameCount++;
+
+					SelectObject(dc, old);
+
 					EndPaint(hMainWnd, &ps);
 					return 0L;
 				}
@@ -327,6 +343,12 @@ namespace ANON
 					ic.device.CreateRenderTargetView(renderTargets[i], nullptr, rtvHandle);
 					rtvHandle.Offset(1, rtvDescriptorSize);
 				}
+
+				LOGFONTA logFont = { 0 };
+				SafeFormat(logFont.lfFaceName, "Consolas");
+				logFont.lfHeight = -11;
+
+				consoleFont = CreateFontIndirectA(&logFont);
 			}
 			catch (IException&)
 			{
@@ -339,12 +361,11 @@ namespace ANON
 		{
 		}
 
-		void ActivateCustomWindowsProcedure()
+		void ActivateCustomWindowsProcedureAndMakeVisible()
 		{
 			SetWindowLongPtrA(hMainWnd, GWLP_USERDATA, (LONG_PTR)this);
 			SetWindowLongPtrA(hMainWnd, GWLP_WNDPROC, (LONG_PTR) OnMessage);
-			SetCursor(LoadCursor(nullptr, IDC_ARROW));
-			OnActivate();
+			ShowWindow(hMainWnd, SW_SHOW);
 		}
 
 		void Free() override
@@ -369,7 +390,7 @@ namespace Rococo::DX12Impl
 	IDX12RendererWindow* CreateDX12Window(DX12WindowInternalContext& ic, DX12WindowCreateContext& context)
 	{
 		auto* window = new ANON::DX12RendererWindow(ic, context);
-		window->ActivateCustomWindowsProcedure();
+		window->ActivateCustomWindowsProcedureAndMakeVisible();
 		return window;
 	}
 }

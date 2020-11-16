@@ -7,6 +7,8 @@
 #include <rococo.strings.h>
 #include <rococo.os.h>
 #include <rococo.renderer.h>
+#include <rococo.strings.h>
+#include <vector>
 
 #ifdef _DEBUG
 # pragma comment(lib, "rococo.windows.debug.lib")
@@ -138,11 +140,37 @@ void Main(HINSTANCE hInstance)
 	window->WaitForNextRenderAndDisplay("Initializing DirectX12...");
 	AutoFree<ITextureMemory> textureMemory = Create_MPlat_Standard_TextureMemory(factory->IC());
 	AutoFree<IDX12Renderer> renderer = CreateDX12Renderer(*installation, factory->IC(), *textureMemory, factory->Shaders(), *pipelineBuilder);
-	window->WaitForNextRenderAndDisplay("Starting game...");
+	window->SetText("");
 
-	auto id = factory->Shaders().AddPixelShader("!shaders/gui.ps.hlsl");
+	WideFilePath shaderDir;
+	installation->ConvertPingPathToSysPath("!shaders/", shaderDir);
+	os->Monitor(shaderDir);
+
+	auto guiPS = factory->Shaders().AddPixelShader("!shaders/gui.ps.hlsl");
+	auto guiVS = factory->Shaders().AddVertexShader("!shaders/gui.vs.hlsl");
 
 	Rococo::OS::ticks start = Rococo::OS::CpuTicks();
+
+	struct CLOSURE : IShaderViewGrabber
+	{
+		struct BadShader
+		{
+			HString msg;
+			HRESULT hr;
+			HString resourceName;
+		};
+		std::vector<BadShader> badShaders;
+
+		void OnGrab(const ShaderView& e) override
+		{
+			char msg[1024];
+			SafeFormat(msg, "Shader %s did not compile:\n%s", e.resourceName, e.errorString ? e.errorString : "???");
+			badShaders.push_back({ msg, e.hr, e.resourceName });
+		}
+	} errorHandler;
+
+	AutoFree<IStringBuilder> psb = CreateDynamicStringBuilder(1024);
+	auto& sb = psb->Builder();
 
 	MSG msg;
 	while (appState.isRunning)
@@ -157,21 +185,73 @@ void Main(HINSTANCE hInstance)
 
 		Rococo::OS::ticks now = Rococo::OS::CpuTicks();
 
-		enum { TIME_OUT_SECONDS = 10 };
+		enum { TIME_OUT_SECONDS = 120 };
 		if (now - start > Rococo::OS::CpuHz() * TIME_OUT_SECONDS)
 		{
 			break;
 		}
 
-		struct CLOSURE : IShaderViewGrabber
+		struct CLOSURE2 : IEventCallback<FileModifiedArgs>
 		{
-			void OnGrab(const ShaderView& e) override
+			std::vector<WideFilePath> updates;
+			void OnEvent(FileModifiedArgs& args) override
 			{
-				Throw(e.hr, "Shader %s did not compile:\n %s", e.resourceName, e.errorString ? e.errorString : "???");
+				if (EndsWith(args.sysPath, L".hlsl"))
+				{
+					WideFilePath update;
+					Format(update, L"%ls", args.sysPath);
+					updates.push_back(update);
+				}
 			}
-		} errorHandler;
+		} onFileChanged;
+
+		os->EnumerateModifiedFiles(onFileChanged);
+
+		if (!onFileChanged.updates.empty())
+		{
+			U8FilePath pingPath;
+			installation->ConvertSysPathToPingPath(onFileChanged.updates.back(), pingPath);
+			factory->Shaders().ReloadShader(pingPath);
+		}
 
 		factory->Shaders().TryGrabAndPopNextError(errorHandler);
+
+		if (!errorHandler.badShaders.empty())
+		{
+			sb.Clear();
+			for (auto& bad : errorHandler.badShaders)
+			{
+				char err[128];
+				Rococo::OS::FormatErrorMessage(err, 128, bad.hr);
+				sb << bad.msg.c_str() << "\n" << err << "\n";
+			}
+			window->SetText(*sb);
+
+			auto& s = factory->Shaders();
+
+			auto i = std::remove_if(errorHandler.badShaders.begin(), errorHandler.badShaders.end(), 
+				[&s](CLOSURE::BadShader& shader)
+				{
+					struct CLOSURE : IShaderViewGrabber
+					{
+						bool isOK = false;
+						void OnGrab(const ShaderView& e) override
+						{
+							isOK = SUCCEEDED(e.hr);
+						}
+					} grabber;
+					s.GrabShaderObject(shader.resourceName, grabber);
+					return grabber.isOK;
+				}
+			);
+
+			errorHandler.badShaders.erase(i, errorHandler.badShaders.end());
+
+			if (errorHandler.badShaders.empty())
+			{
+				window->SetText("");
+			}
+		}
 	}
 
 	appState.ThrowOnError();
