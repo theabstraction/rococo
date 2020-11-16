@@ -164,7 +164,9 @@ void Main(HINSTANCE hInstance)
 		void OnGrab(const ShaderView& e) override
 		{
 			char msg[1024];
-			SafeFormat(msg, "Shader %s did not compile:\n%s", e.resourceName, e.errorString ? e.errorString : "???");
+			char err[128];
+			Rococo::OS::FormatErrorMessage(err, 128, e.hr);
+			SafeFormat(msg, "Shader %s did not compile (code 0x%X - %s):\n%s", e.resourceName, e.hr, err, e.errorString ? e.errorString : "???");
 			badShaders.push_back({ msg, e.hr, e.resourceName });
 		}
 	} errorHandler;
@@ -221,9 +223,7 @@ void Main(HINSTANCE hInstance)
 			sb.Clear();
 			for (auto& bad : errorHandler.badShaders)
 			{
-				char err[128];
-				Rococo::OS::FormatErrorMessage(err, 128, bad.hr);
-				sb << bad.msg.c_str() << "\n" << err << "\n";
+				sb << bad.msg.c_str() << "\n";
 			}
 			window->SetText(*sb);
 

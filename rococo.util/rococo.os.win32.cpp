@@ -809,6 +809,19 @@ namespace Rococo
 			{
 				SafeFormat(message, sizeofBuffer, "Unknown error");
 			}
+			else
+			{
+				char* s;
+				for (s = message; *s != 0; s++)
+				{
+				}
+
+				if (s > message+1 && s[-1] == '\n')
+				{
+					s[-1] = 0;
+					s[-2] = 0;
+				}
+			}
 		}
 
 		bool TryGetColourFromDialog(RGBAb& colour, Windows::IWindow& window)
