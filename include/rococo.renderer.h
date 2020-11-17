@@ -111,11 +111,6 @@ namespace Rococo
 
 	struct IRenderer;
 
-	ROCOCO_ID(ID_VERTEX_SHADER, size_t, -1)
-	ROCOCO_ID(ID_PIXEL_SHADER, size_t, -1)
-	ROCOCO_ID(ID_GEOMETRY_SHADER, size_t, -1)
-	ROCOCO_ID(ID_CUBE_TEXTURE, size_t, 0);
-
 	namespace Textures
 	{
 		struct BitmapLocation;

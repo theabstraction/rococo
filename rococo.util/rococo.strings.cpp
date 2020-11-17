@@ -30,29 +30,29 @@ namespace
 		{
 		}
 
-		virtual const uint8* GetData() const
+		const uint8* GetData() const override
 		{
 			if (internalBuffer.empty()) return nullptr;
 			else return &internalBuffer[0];
 		}
 
-		virtual uint8* GetData()
+		uint8* GetData() override
 		{
 			if (internalBuffer.empty()) return nullptr;
 			else return &internalBuffer[0];
 		}
 
-		virtual size_t Length() const
+		size_t Length() const override
 		{
 			return internalBuffer.size();
 		}
 
-		virtual void Resize(size_t length)
+		void Resize(size_t length) override
 		{
 			internalBuffer.resize(length);
 		}
 
-		virtual void Free()
+		void Free() override
 		{
 			delete this;
 		}

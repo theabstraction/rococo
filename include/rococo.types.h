@@ -92,6 +92,8 @@ namespace Rococo
 	typedef size_t ID_BYTECODE;
 	typedef float MaterialId;
 
+	struct IExpandingBuffer;
+
 	struct fstring
 	{
 		cstr buffer;

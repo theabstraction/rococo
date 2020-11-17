@@ -1,127 +1,15 @@
-#include <rococo.os.win32.h>
-#include <rococo.window.h>
-#include <rococo.auto-release.h>
-#include <rococo.strings.h>
-#include <D3DCompiler.h>
-#include <vector>
-#include <rococo.renderer.h>
-#include <rococo.os.h>
+#include <rococo.DirectX.h>
 #include <rococo.io.h>
-#include "rococo.dx11.h"
+#include <rococo.os.h>
+#include <rococo.strings.h>
+#include <rococo.auto-release.h>
 
-#if _DEBUG
-# define SHADER_COMPILE_DEBUG_FLAGS D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION
-#else
-# define SHADER_COMPILE_DEBUG_FLAGS 0
-#endif
+#include <d3dcompiler.h>
+
+#include <vector>
 
 using namespace Rococo;
 using namespace Rococo::Graphics;
-
-namespace
-{
-	struct IncludeResolver : ID3DInclude
-	{
-		IInstallation& installation;
-		cstr root;
-
-		char lastError[1024] = "";
-		HRESULT hr = S_OK;
-
-		WideFilePath fullPath;
-
-		AutoFree<IExpandingBuffer> scratch = CreateExpandingBuffer(128_kilobytes);
-
-		IncludeResolver(IInstallation& ref_installation) :
-			installation(ref_installation) {}
-
-		STDMETHOD(Open)(D3D_INCLUDE_TYPE type,
-			cstr pFileName,
-			LPCVOID pParentData,
-			LPCVOID* ppData,
-			UINT* pBytes)
-		{
-			try
-			{
-				struct CLOSURE : IEventCallback<const fstring>
-				{
-					LPCVOID* ppData;
-					UINT* pBytes;
-
-					void OnEvent(const fstring& filedata) override
-					{
-						auto* s = new char[filedata.length];
-						memcpy(s, filedata.buffer, filedata.length);
-						*ppData = s;
-						*pBytes = filedata.length;
-					}
-				} onLoad;
-
-				onLoad.ppData = ppData;
-				onLoad.pBytes = pBytes;
-
-				installation.LoadResource(pFileName, *scratch, 1_megabytes);
-			}
-			catch (IException& ex)
-			{
-				char errCodeBuf[1024];
-				Rococo::OS::FormatErrorMessage(errCodeBuf, sizeof errCodeBuf, ex.ErrorCode());
-				SafeFormat(lastError, "\n%ls [%s]:\n\t 0x%X (%d)\n\t%s\n", fullPath.buf, ex.Message(), ex.ErrorCode(), ex.ErrorCode(), errCodeBuf);
-				hr = ex.ErrorCode();
-			}
-			return S_OK;
-		}
-
-		STDMETHOD(Close)(LPCVOID pData)
-		{
-			delete[] pData;
-			return S_OK;
-		}
-	};
-
-	D3D_SHADER_MACRO Shader_Macros[] = { {"MAXIMUM_JELLYBABIES", "50"}, {NULL,NULL} };
-
-	HRESULT CompileGenericShaderFromString(const fstring& srcCode, cstr target, cstr resourceName, ID3DBlob** pShaderBlob, ID3DBlob** pErrorBlob, ID3DInclude& includer)
-	{
-		UINT flags = SHADER_COMPILE_DEBUG_FLAGS | D3DCOMPILE_PACK_MATRIX_COLUMN_MAJOR;
-		UINT fxFlags = 0;
-		HRESULT hr = D3DCompile2(
-			srcCode.buffer,
-			srcCode.length,
-			resourceName,
-			NULL, /* macros = none. Consider generating macros automatically from C++ definitions */
-			&includer,
-			"main",
-			target,
-			flags, fxFlags, 0, NULL, 0, pShaderBlob, pErrorBlob);
-		return hr;
-	}
-
-	HRESULT CompilePixelShaderFromString(const fstring& srcCode, cstr resourceName, ID3DBlob** pShaderBlob, ID3DBlob** pErrorBlob, ID3DInclude& includer)
-	{
-		return CompileGenericShaderFromString(srcCode, "ps_5_0", resourceName, pShaderBlob, pErrorBlob, includer);
-	}
-
-	HRESULT CompileVertexShaderFromString(const fstring& srcCode, cstr resourceName, ID3DBlob** pShaderBlob, ID3DBlob** pErrorBlob, ID3DInclude& includer)
-	{
-		return CompileGenericShaderFromString(srcCode, "vs_5_0", resourceName, pShaderBlob, pErrorBlob, includer);
-	}
-}
-
-enum class ShaderType : uint32
-{
-	NONE,
-	VERTEX,
-	PIXEL
-};
-
-struct ShaderId
-{
-	uint32 index : 16;
-	uint32 unused : 12;
-	ShaderType type : 4;
-	operator uint32() { return *reinterpret_cast<uint32*>(this); }
-};
 
 union U64ShaderId
 {
@@ -138,7 +26,7 @@ static_assert(sizeof U64ShaderId == sizeof uint64);
 struct ShaderItem
 {
 	char errMsg[1024] = "";
-	ID3DBlob* shaderBlob = nullptr;
+	IExpandingBuffer* shaderBlob = nullptr;
 	ShaderType type = ShaderType::NONE;
 	HString resourceName;
 	HRESULT hr = E_PENDING;
@@ -155,6 +43,7 @@ namespace ANON
 		std::vector<ShaderId> inputQueue;
 		std::vector<ShaderId> errorQueue;
 		IInstallation& installation;
+		IShaderCompiler& compiler;
 		AutoFree<ICriticalSection> sync;
 
 		enum { MAX_SHADERS = 65534 };
@@ -163,41 +52,25 @@ namespace ANON
 
 		volatile bool isRunning = true;
 
-		IncludeResolver includer; // only used on the shader thread
-
-		void LoadShader_OnThread(ShaderId id, cstr resourceName, const wchar_t* filename)
+		void LoadShader_OnThread(ShaderId id, cstr resourceName)
 		{
-			includer.root = resourceName;
+			IExpandingBuffer* shaderBinary = nullptr;
 
 			HRESULT hr;
-			char error[2048] = "";
-
-			AutoRelease<ID3DBlob> shaderBlob;
-			AutoRelease<ID3DBlob> errorBlob;
+			char error[4096] = "";
 
 			try
-			{
-				AutoFree<IExpandingBuffer> buffer = CreateExpandingBuffer(64_kilobytes);
+			{	
+				AutoFree<IExpandingBuffer> buffer = CreateExpandingBuffer(0);
 				installation.LoadResource(resourceName, *buffer, 1_megabytes);
 
-				fstring s = to_fstring((cstr) buffer->GetData());
-
-				switch (id.type)
-				{
-				case ShaderType::PIXEL:
-					hr = CompilePixelShaderFromString(s, resourceName, &shaderBlob, &errorBlob, includer);
-					break;
-				case ShaderType::VERTEX:
-					hr = CompileVertexShaderFromString(s, resourceName, &shaderBlob, &errorBlob, includer);
-					break;
-				default:
-					hr = E_NOTIMPL;
-				}
+				fstring srcCode{ (cstr) buffer->GetData(), (int32) buffer->Length() };
+				shaderBinary = compiler.Compile(id.type, srcCode, resourceName);
 			}
 			catch (IException& ex)
 			{
 				hr = ex.ErrorCode();
-				SafeFormat(error, "Error loading %ls: %s", filename, ex.Message());
+				SafeFormat(error, "Error loading %s: %s", resourceName, ex.Message());
 			}
 
 			Lock lock(sync);
@@ -206,20 +79,19 @@ namespace ANON
 
 			if (s.shaderBlob)
 			{
-				s.shaderBlob->Release();
+				s.shaderBlob->Free();
 			}
 
-			if (*error || includer.hr != S_OK)
-			{
-				cstr mainErr = *error ? error : "";
-				SafeFormat(s.errMsg, "%s%s", includer.lastError, mainErr);
-			}
-
-			s.shaderBlob = shaderBlob;
-			if (s.shaderBlob) s.shaderBlob->AddRef();
 			s.hr = hr;
+			s.shaderBlob = shaderBinary;
 
-			if (FAILED(s.hr) || FAILED(includer.hr))
+			if (*error || hr != S_OK)
+			{
+				SafeFormat(s.errMsg, "%", error);
+				if (hr == S_OK) s.hr = E_FAIL;
+			}
+
+			if FAILED(s.hr)
 			{
 				errorQueue.push_back(id);
 			}
@@ -244,23 +116,20 @@ namespace ANON
 					ShaderId nextId = inputQueue.back();
 					inputQueue.pop_back();
 
-					cstr shaderName = shaders[nextId.index - 1].resourceName;
-
-					U8FilePath resourceName;
-					Format(resourceName, "%s", shaderName);
-					WideFilePath shaderPath;
-					installation.ConvertPingPathToSysPath(shaderName, shaderPath);
+					U8FilePath resourceName; // This will be valid after the unlock section
+					Format(resourceName, "%s", shaders[nextId.index - 1].resourceName);
 
 					sync->Unlock();
 
-					LoadShader_OnThread(nextId, resourceName, shaderPath);
+					LoadShader_OnThread(nextId, resourceName);
 				}
 			}
 
 			return 0;
 		}
 	public:
-		ShaderCache(IInstallation& ref_installation) : installation(ref_installation), includer(installation)
+		ShaderCache(IShaderCompiler& ref_compiler, IInstallation& ref_installation) : 
+			compiler(ref_compiler), installation(ref_installation)
 		{
 			thread = Rococo::OS::CreateRococoThread(this, 0);
 			sync = thread->CreateCriticalSection();
@@ -277,7 +146,7 @@ namespace ANON
 			{
 				if (s.shaderBlob)
 				{
-					s.shaderBlob->Release();
+					s.shaderBlob->Free();
 				}
 			}
 		}
@@ -455,9 +324,9 @@ namespace ANON
 						Lock lock(sync);
 
 						ShaderView sv;
-						sv.blob = s.shaderBlob != nullptr ? s.shaderBlob->GetBufferPointer() : nullptr;
-						sv.blobCapacity = s.shaderBlob != nullptr ? s.shaderBlob->GetBufferSize() : 0;
-						sv.errorString = s.errMsg[0] != 0 ? s.errMsg : nullptr;
+						sv.blob = s.shaderBlob != nullptr ? s.shaderBlob->GetData() : nullptr;
+						sv.blobCapacity = s.shaderBlob != nullptr ? s.shaderBlob->Length() : 0;
+						sv.errorString = s.errMsg;
 						sv.hr = s.hr;
 						sv.resourceName = s.resourceName;
 						grabber.OnGrab(sv);
@@ -489,8 +358,8 @@ namespace ANON
 
 namespace Rococo::Graphics
 {
-	IShaderCache* CreateShaderCache(IInstallation& installation)
+	IShaderCache* CreateShaderCache(IShaderCompiler& compiler, IInstallation& installation)
 	{
-		return new ANON::ShaderCache(installation);
+		return new ANON::ShaderCache(compiler, installation);
 	}
 }

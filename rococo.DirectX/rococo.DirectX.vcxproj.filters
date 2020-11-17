@@ -15,18 +15,18 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="dx11.deferred.renderer.cpp">
+    <ClCompile Include="rococo.DirectX.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="dx11.system.cpp">
+    <ClCompile Include="..\rococo.DirectX.cpp\rococo.DirectX.compiler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="dx11.window.cpp">
+    <ClCompile Include="rococo.shaders.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="rococo.dx11.h">
+    <ClInclude Include="..\include\rococo.DirectX.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

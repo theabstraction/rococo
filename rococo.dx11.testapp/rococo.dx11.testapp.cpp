@@ -21,12 +21,14 @@
 # pragma comment(lib, "rococo.mplat.debug.lib")
 # pragma comment(lib, "rococo.sexy.ide.debug.lib")
 # pragma comment(lib, "dx11.deferred.renderer.debug.lib")
+# pragma comment(lib, "rococo.DirectX.debug.lib")
 #else
 # pragma comment(lib, "rococo.windows.lib")
 # pragma comment(lib, "rococo.fonts.lib")
 # pragma comment(lib, "rococo.mplat.lib")
 # pragma comment(lib, "rococo.sexy.ide.lib")
 # pragma comment(lib, "dx11.deferred.renderer.lib")
+# pragma comment(lib, "rococo.DirectX.lib")
 #endif
 
 #include "..\dx11.deferred.renderer\rococo.dx11.h"

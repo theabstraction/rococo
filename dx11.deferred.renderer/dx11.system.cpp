@@ -2,6 +2,7 @@
 #include <rococo.os.win32.h>
 #include "rococo.dx11.h"
 #include <rococo.auto-release.h>
+#include <rococo.DirectX.h>
 
 #include <dxgi1_6.h>
 #include <d3d11_4.h>
@@ -29,9 +30,13 @@ namespace ANON
 		AutoRelease<ID3D11Device4> device4;
 		AutoRelease<ID3D11DeviceContext4> dc;
 
+		AutoFree<ID3DShaderCompiler> dxCompiler;
 		AutoFree<IShaderCache> shaders;
+
 	public:
-		DX11System(AdapterContext& ref_ac, IInstallation& installation): ac(ref_ac), shaders(CreateShaderCache(installation))
+		DX11System(AdapterContext& ref_ac, IInstallation& installation): ac(ref_ac),
+			dxCompiler(Rococo::Graphics::DirectX::CreateD3DCompiler(installation)),
+			shaders(Rococo::Graphics::CreateShaderCache(*dxCompiler, installation))
 		{
 			D3D_FEATURE_LEVEL levels[1] = { D3D_FEATURE_LEVEL_11_1 };
 			D3D_FEATURE_LEVEL level;
@@ -55,6 +60,11 @@ namespace ANON
 			VALIDATE_HR(context->QueryInterface(&dc));
 		}
 
+		IShaderCache& Shaders() override
+		{
+			return *shaders;
+		}
+
 		IDX11Window* CreateDX11Window(DX11WindowContext& wc)
 		{
 			return Rococo::Graphics::CreateDX11Window(ac.f, *device4, *dc, wc);
@@ -63,11 +73,6 @@ namespace ANON
 		void Free() override
 		{
 			delete this;
-		}
-
-		IShaderCache& Shaders()
-		{
-			return *shaders;
 		}
 	};
 }
