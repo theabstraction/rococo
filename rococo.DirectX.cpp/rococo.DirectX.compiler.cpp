@@ -85,7 +85,7 @@ namespace ANON
 			
 			if FAILED(hr)
 			{
-				Throw(hr, "%s", errorBlob->GetBufferPointer());
+				Throw(hr, "%s", msg);
 			}
 
 			constexpr uint32 minBlobSize = 20;
@@ -131,7 +131,7 @@ namespace ANON
 				// If there is a problem with an include file then we need to add it into the exception info
 				if (FAILED(lastHResult) || *lastError != 0)
 				{
-					Throw(lastHResult, "%s\n%s\n", ex.Message(), lastError);
+					Throw(lastHResult, "%s\n%s\n", lastError, ex.Message());
 				}
 				else
 				{
@@ -148,11 +148,24 @@ namespace ANON
 		cstr ReadFile_Create_And_Fill_Buffer(UINT& nBytes, cstr resourceName)
 		{
 			scratch->Resize(0);
-			installation.LoadResource(resourceName, *scratch, 1_megabytes);
 
-			nBytes = (uint32) scratch->Length();
-			auto* s = new char[nBytes];
+			if (*resourceName != '!' && *resourceName != '#')
+			{
+				// relativePath, assume child of "!shaders/"
+				U8FilePath fullPingPath;
+				Format(fullPingPath, "!shaders/%s", resourceName);
+				installation.LoadResource(fullPingPath, *scratch, 1_megabytes);
+			}
+			else
+			{
+				// pingPath
+				installation.LoadResource(resourceName, *scratch, 1_megabytes);
+			}
+
+			nBytes = (uint32) scratch->Length() + 1;
+			auto* s = new char[nBytes + 1];
 			memcpy(s, scratch->GetData(), nBytes);
+			s[nBytes] = 0;
 			return s;
 		}
 
@@ -165,10 +178,11 @@ namespace ANON
 				// The D3DInclude::Open method is noexcept, we must not allow an exception to leave the function
 				cstr fileData = ReadFile_Create_And_Fill_Buffer(*len, pFileName);
 				*ppData = fileData;
+				*len = (uint32) strlen(fileData);
 			}
 			catch (IException& ex)
 			{
-				SafeFormat(lastError, "%s", ex.Message());
+				SafeFormat(lastError, "Error #include \"%s\":\n\t%s\n", pFileName, ex.Message());
 				lastHResult = ex.ErrorCode();
 			}
 

@@ -29,7 +29,11 @@ namespace Rococo::Graphics
 
 	ROCOCOAPI IDX11Window
 	{
+		// Monitor and report shader errors. The cache reference must be valid for the monitor duration
+		// If null is passed monitoring ends.
+		virtual void MonitorShaderErrors(IShaderCache* cache) = 0;
 		virtual Rococo::Windows::IWindow& Window() = 0;
+		virtual void UpdateFrame() = 0;
 		virtual void Free() = 0;
 	};
 

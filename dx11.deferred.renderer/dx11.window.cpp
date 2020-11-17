@@ -10,6 +10,10 @@
 
 #include <rococo.io.h>
 
+#include <rococo.DirectX.h>
+
+#include <vector>
+
 using namespace Rococo;
 using namespace Rococo::Graphics;
 
@@ -131,21 +135,21 @@ namespace ANON
 		return hMainWnd;
 	}
 
-	class DX11Window: public IDX11Window, public Windows::IWindow
+	class DX11Window: public IDX11Window, public Windows::IWindow, public IShaderViewGrabber
 	{
 		IDXGIFactory7& dxgiFactory;
 		ID3D11Device4& device;
 		ID3D11DeviceContext4& dc;
 		DX11WindowContext wc;
 		HWND hMainWnd = nullptr;
-		HFONT consoleFont = NULL;
-		HString msg;
+		HFONT consoleFont = nullptr;
 		uint64 frameCount = 0;
 		bool hasFocus = false;
 		HKL keyboardLayout = nullptr;
 		AutoRelease<IDXGISwapChain4> swapChain;
 		AutoRelease<ID3D11RenderTargetView1> renderTargetView;
 		AutoFree<IExpandingBuffer> eventBuffer;
+		IShaderCache* shaders = nullptr;
 	public:
 		DX11Window(IDXGIFactory7& ref_dxgiFactory, ID3D11Device4& ref_device, ID3D11DeviceContext4& ref_dc, DX11WindowContext& ref_wc):
 			dxgiFactory(ref_dxgiFactory), device(ref_device), dc(ref_dc), wc(ref_wc), eventBuffer(CreateExpandingBuffer(128))
@@ -230,15 +234,6 @@ namespace ANON
 					TranslateMessage(&msg);
 					DispatchMessageA(&msg);
 				}
-			}
-		}
-
-		void SetText(cstr text)
-		{
-			if (!Eq(msg, text))
-			{
-				msg = text;
-				InvalidateRect(hMainWnd, NULL, TRUE);
 			}
 		}
 
@@ -349,7 +344,25 @@ namespace ANON
 
 					RECT rect;
 					GetClientRect(hMainWnd, &rect);
-					DrawTextA(dc, msg, -1, &rect, DT_VCENTER | DT_LEFT);
+
+					if (!badShaders.empty())
+					{
+						char buf[4096];
+						StackStringBuilder sb(buf, sizeof buf);
+
+						for (auto& bad : badShaders)
+						{
+							char hrMsg[256];
+							Rococo::OS::FormatErrorMessage(hrMsg, sizeof hrMsg, bad.hr);
+							sb << bad.resource;
+							sb.AppendFormat(": (%d / 0x%8.8X) %s\n", bad.hr, bad.hr, hrMsg);
+							sb << bad.msg.c_str();
+							sb << "\n\n";
+						}
+
+						DrawTextA(dc, buf, sb.Length(), &rect, DT_VCENTER | DT_LEFT);
+					}
+
 					frameCount++;
 
 					SelectObject(dc, old);
@@ -405,6 +418,82 @@ namespace ANON
 			HWND hParent = GetParent(hMainWnd);
 			if (hParent)	visitor.ShowPointer("-> Parent", hParent);
 			else			visitor.ShowString("-> Parent", "None (top-level window)");
+		}
+
+		void MonitorShaderErrors(IShaderCache* shaders) override
+		{
+			this->shaders = shaders;
+		}
+
+		struct BadShader
+		{
+			HString msg;
+			HString resource;
+			HRESULT hr;
+			ShaderId id;
+		};
+
+		std::vector<BadShader> badShaders;
+
+		void OnGrab(const ShaderView& s)
+		{
+			if FAILED(s.hr)
+			{
+				for (auto& t : badShaders)
+				{
+					if (t.id == s.id)
+					{
+						t.hr = s.hr;
+						t.msg = s.errorString;
+						t.resource = s.resourceName;
+						return;
+					}
+				}
+				badShaders.push_back({ s.errorString, s.resourceName, s.hr, s.id });
+			}
+		}
+
+		bool UpdateShaderState()
+		{
+			int updateCount = shaders->TryGrabAndPopNextError(*this) ? 1 : 0;
+
+			auto* pShaders = this->shaders;
+
+			auto i = std::remove_if(badShaders.begin(), badShaders.end(),
+				[pShaders](BadShader& bad)
+				{
+					struct CLOSURE : IShaderViewGrabber
+					{
+						bool success = false;
+						void OnGrab(const ShaderView& s)
+						{
+							if SUCCEEDED(s.hr)
+							{
+								success = true;
+							}
+						}
+					} g;
+					pShaders->GrabShaderObject(bad.id, g);
+					return g.success;
+				}
+			);
+
+			if (i != badShaders.end())
+			{
+				updateCount++;
+			}
+
+			badShaders.erase(i, badShaders.end());
+
+			return updateCount > 0;
+		}
+
+		void UpdateFrame() override
+		{
+			if (UpdateShaderState())
+			{
+				InvalidateRect(hMainWnd, nullptr, FALSE);
+			}
 		}
 	};
 }

@@ -56,7 +56,7 @@ namespace ANON
 		{
 			IExpandingBuffer* shaderBinary = nullptr;
 
-			HRESULT hr;
+			HRESULT hr = S_OK;
 			char error[4096] = "";
 
 			try
@@ -70,7 +70,7 @@ namespace ANON
 			catch (IException& ex)
 			{
 				hr = ex.ErrorCode();
-				SafeFormat(error, "Error loading %s: %s", resourceName, ex.Message());
+				SafeFormat(error, "Error loading %s:\n\t%s", resourceName, ex.Message());
 			}
 
 			Lock lock(sync);
@@ -87,7 +87,7 @@ namespace ANON
 
 			if (*error || hr != S_OK)
 			{
-				SafeFormat(s.errMsg, "%", error);
+				SafeFormat(s.errMsg, "%s", error);
 				if (hr == S_OK) s.hr = E_FAIL;
 			}
 
@@ -117,7 +117,7 @@ namespace ANON
 					inputQueue.pop_back();
 
 					U8FilePath resourceName; // This will be valid after the unlock section
-					Format(resourceName, "%s", shaders[nextId.index - 1].resourceName);
+					Format(resourceName, "%s", shaders[nextId.index - 1].resourceName.c_str());
 
 					sync->Unlock();
 
@@ -237,6 +237,30 @@ namespace ANON
 			Throw(0, "%s: unknown shader %s", __FUNCTION__, resourceName);
 		}
 
+		ShaderId SysNameToId(const wchar_t* sysName)
+		{
+			ShaderId id;
+			id.index = 0;
+
+			for (uint32 i = 0; i < shaders.size(); ++i)
+			{
+				const auto& s = shaders[i];
+
+				WideFilePath sysPath;
+				installation.ConvertPingPathToSysPath(s.resourceName, sysPath);
+
+				if (Eq(sysName, sysPath))
+				{
+					id.type = s.type;
+					id.index = i + 1;
+					id.unused = 0;
+					return id;
+				}
+			}
+
+			return ShaderId{ 0 };
+		}
+
 		void ReloadShader(const char* resourceName) override
 		{
 			ShaderId id = ResourceNameToId(resourceName);
@@ -245,6 +269,39 @@ namespace ANON
 			{
 				Lock lock(sync);
 				inputQueue.push_back(id);
+			}
+		}
+
+		bool IsAnIncludeFile(const wchar_t* sysPath)
+		{
+			if (EndsWith(sysPath, L"mplat.api.hlsl")) return true;
+			if (EndsWith(sysPath, L"mplat.types.hlsl")) return true;
+			return false;
+		}
+
+		void ReloadShader(const wchar_t* sysPath)
+		{
+			ShaderId id = SysNameToId(sysPath);
+
+			if (id.index != 0)
+			{
+				Lock lock(sync);
+				inputQueue.push_back(id);
+			}
+			else
+			{
+				if (IsAnIncludeFile(sysPath))
+				{
+					Lock lock(sync);
+					for (int i = 0; i < shaders.size(); ++i)
+					{
+						ShaderId id;
+						id.type = shaders[i].type;
+						id.index = i + 1;
+						id.unused = 0;
+						inputQueue.push_back(id);
+					}
+				}
 			}
 		}
 
@@ -266,6 +323,7 @@ namespace ANON
 				sv.errorString = s.errMsg;
 				sv.hr = s.hr;
 				sv.resourceName = s.resourceName;
+				sv.id = id;
 				grabber.OnGrab(sv);
 				return true;
 			}
@@ -329,6 +387,7 @@ namespace ANON
 						sv.errorString = s.errMsg;
 						sv.hr = s.hr;
 						sv.resourceName = s.resourceName;
+						sv.id = id;
 						grabber.OnGrab(sv);
 					}
 				}
@@ -345,10 +404,9 @@ namespace ANON
 			GrabShaderObject(vxId.value, grabber);
 		}
 
-		void GrabShaderObject(const char* resourceName, IShaderViewGrabber& grabber) override
+		void GrabShaderObject(ShaderId id, IShaderViewGrabber& grabber) override
 		{
 			U64ShaderId u64Id;
-			ShaderId id = ResourceNameToId(resourceName);
 			u64Id.uValue.id = id;
 			u64Id.uValue.zero = 0;
 			GrabShaderObject(u64Id.u64Value, grabber);

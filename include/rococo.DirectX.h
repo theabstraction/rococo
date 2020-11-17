@@ -19,8 +19,12 @@ namespace Rococo::Graphics
 		operator uint32() { return *reinterpret_cast<uint32*>(this); }
 	};
 
+	inline bool operator == (ShaderId a, ShaderId b) { return (uint32)a == (uint32)b; }
+	inline bool operator != (ShaderId a, ShaderId b) { return !(a == b); }
+
 	struct ShaderView
 	{
+		ShaderId id;
 		cstr resourceName;
 		int hr;
 		cstr errorString;
@@ -52,8 +56,9 @@ namespace Rococo::Graphics
 		virtual ID_VERTEX_SHADER AddVertexShader(const char* resourceName) = 0;
 		virtual void GrabShaderObject(ID_PIXEL_SHADER pxId, IShaderViewGrabber& grabber) = 0;
 		virtual void GrabShaderObject(ID_VERTEX_SHADER vxId, IShaderViewGrabber& grabber) = 0;
-		virtual void GrabShaderObject(const char* resourceName, IShaderViewGrabber& grabber) = 0;
+		virtual void GrabShaderObject(ShaderId id, IShaderViewGrabber& grabber) = 0;
 		virtual void ReloadShader(const char* resourceName) = 0;
+		virtual void ReloadShader(const wchar_t* sysPath) = 0;
 		virtual uint32 InputQueueLength() = 0;
 		virtual bool TryGrabAndPopNextError(IShaderViewGrabber& grabber) = 0;
 		virtual void Free() = 0;

@@ -10,6 +10,7 @@
 #include <vector>
 #include <rococo.mplat.h>
 #include <rococo.fonts.hq.h>
+#include <rococo.DirectX.h>
 
 #include <sexy.lib.s-parser.h>
 #include <sexy.lib.util.h>
@@ -43,10 +44,16 @@ using namespace Rococo::Graphics;
 
 void Main(HINSTANCE hInstance)
 {
+	// Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
+
 	AutoFree<IOSSupervisor> os = GetOS();
 	AutoFree<IInstallationSupervisor> installation = CreateInstallation(L"content.indicator.txt", *os);
 	AutoFree<IWin32AdapterContext> ac = CreateWin32AdapterContext(0, 0);
 	AutoFree<IDX11System> dx11 = CreateDX11System(ac->AC(), *installation);
+
+	WideFilePath shaderPath;
+	installation->ConvertPingPathToSysPath("!shaders/", shaderPath);
+	os->Monitor(shaderPath);
 
 	struct CONTEXT : IDX1RendererWindowEventHandler
 	{
@@ -86,6 +93,8 @@ void Main(HINSTANCE hInstance)
 
 	DX11WindowContext wc{ Windows::NoParent(), app, {800,600}, "DX11 Test Window", hInstance };
 	AutoFree<IDX11Window> window = dx11->CreateDX11Window(wc);
+	window->MonitorShaderErrors(&dx11->Shaders());
+	dx11->Shaders().AddPixelShader("!shaders/gui.ps.hlsl");
 
 	auto start = Rococo::OS::CpuTicks();
 
@@ -93,6 +102,23 @@ void Main(HINSTANCE hInstance)
 	while (app.isRunning)
 	{
 		MsgWaitForMultipleObjects(0, NULL, FALSE, 100, QS_ALLINPUT);
+
+		struct CLOSURE : IEventCallback<FileModifiedArgs>
+		{
+			IShaderCache* shaders;
+
+			void OnEvent(FileModifiedArgs& args) override
+			{
+				if (EndsWith(args.sysPath, L".hlsl"))
+				{
+					shaders->ReloadShader(args.sysPath);
+				}
+			}
+		} dispatchChanges;
+		dispatchChanges.shaders = &dx11->Shaders();
+		os->EnumerateModifiedFiles(dispatchChanges);
+
+		window->UpdateFrame();
 
 		while (PeekMessageA(&msg, nullptr, 0, 0, PM_REMOVE))
 		{
