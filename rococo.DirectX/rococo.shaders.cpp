@@ -16,8 +16,8 @@ union U64ShaderId
 	uint64 u64Value;
 	struct
 	{
-		uint32 zero;
 		ShaderId id;
+		uint32 zero;
 	} uValue;
 };
 
@@ -25,7 +25,7 @@ static_assert(sizeof U64ShaderId == sizeof uint64);
 
 struct ShaderItem
 {
-	char errMsg[1024] = "";
+	HString errMsg;
 	IExpandingBuffer* shaderBlob = nullptr;
 	ShaderType type = ShaderType::NONE;
 	HString resourceName;
@@ -87,7 +87,9 @@ namespace ANON
 
 			if (*error || hr != S_OK)
 			{
-				SafeFormat(s.errMsg, "%s", error);
+				char msg[4096];
+				SafeFormat(msg, "%s", error);
+				s.errMsg = msg;
 				if (hr == S_OK) s.hr = E_FAIL;
 			}
 
