@@ -15,13 +15,16 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="dx11.deferred.renderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="dx11.system.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="dx11.window.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="dx11.adapter.context.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="dx11.texture.cache.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
