@@ -148,8 +148,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="dx11.deferred.renderer.cpp" />
+    <ClCompile Include="dx11.adapter.context.cpp" />
     <ClCompile Include="dx11.system.cpp" />
+    <ClCompile Include="dx11.texture.cache.cpp" />
     <ClCompile Include="dx11.window.cpp" />
   </ItemGroup>
   <ItemGroup>
