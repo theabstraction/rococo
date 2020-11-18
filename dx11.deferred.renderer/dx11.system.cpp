@@ -12,7 +12,7 @@ using namespace Rococo::Graphics;
 
 namespace Rococo::Graphics
 {
-	IDX11Window* CreateDX11Window(IDXGIFactory7& factory, ID3D11Device4& device, ID3D11DeviceContext4& dc, DX11WindowContext& wc);
+	IDX11Window* CreateDX11Window(IDXGIFactory7& factory, ID3D11Device5& device, ID3D11DeviceContext4& dc, DX11WindowContext& wc);
 }
 
 namespace ANON
@@ -27,12 +27,12 @@ namespace ANON
 	{
 		AdapterContext& ac;
 
-		AutoRelease<ID3D11Device4> device4;
+		AutoRelease<ID3D11Device5> device5;
 		AutoRelease<ID3D11DeviceContext4> dc;
 
 		AutoFree<ID3DShaderCompiler> dxCompiler;
 		AutoFree<IShaderCache> shaders;
-
+		AutoFree<ITextureCache> textures;
 	public:
 		DX11System(AdapterContext& ref_ac, IInstallation& installation): ac(ref_ac),
 			dxCompiler(Rococo::Graphics::DirectX::CreateD3DCompiler(installation)),
@@ -56,8 +56,10 @@ namespace ANON
 				Throw(0, "Cannot initialize DX11.1 on this computer.");
 			}
 
-			VALIDATE_HR(device->QueryInterface(&device4));
+			VALIDATE_HR(device->QueryInterface(&device5));
 			VALIDATE_HR(context->QueryInterface(&dc));
+
+			textures = Rococo::Graphics::CreateTextureCache(installation, *device5, *dc);
 		}
 
 		IShaderCache& Shaders() override
@@ -65,9 +67,14 @@ namespace ANON
 			return *shaders;
 		}
 
+		ITextureCache& Textures() override
+		{
+			return *textures;
+		}
+
 		IDX11Window* CreateDX11Window(DX11WindowContext& wc)
 		{
-			return Rococo::Graphics::CreateDX11Window(ac.f, *device4, *dc, wc);
+			return Rococo::Graphics::CreateDX11Window(ac.f, *device5, *dc, wc);
 		}
 
 		void Free() override

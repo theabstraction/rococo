@@ -138,7 +138,7 @@ namespace ANON
 	class DX11Window: public IDX11Window, public Windows::IWindow, public IShaderViewGrabber
 	{
 		IDXGIFactory7& dxgiFactory;
-		ID3D11Device4& device;
+		ID3D11Device5& device;
 		ID3D11DeviceContext4& dc;
 		DX11WindowContext wc;
 		HWND hMainWnd = nullptr;
@@ -151,7 +151,7 @@ namespace ANON
 		AutoFree<IExpandingBuffer> eventBuffer;
 		IShaderCache* shaders = nullptr;
 	public:
-		DX11Window(IDXGIFactory7& ref_dxgiFactory, ID3D11Device4& ref_device, ID3D11DeviceContext4& ref_dc, DX11WindowContext& ref_wc):
+		DX11Window(IDXGIFactory7& ref_dxgiFactory, ID3D11Device5& ref_device, ID3D11DeviceContext4& ref_dc, DX11WindowContext& ref_wc):
 			dxgiFactory(ref_dxgiFactory), device(ref_device), dc(ref_dc), wc(ref_wc), eventBuffer(CreateExpandingBuffer(128))
 		{
 			RegisterWndHandler((HINSTANCE)wc.hResourceInstance);
@@ -500,7 +500,7 @@ namespace ANON
 
 namespace Rococo::Graphics
 {
-	IDX11Window* CreateDX11Window(IDXGIFactory7& dxgiFactory, ID3D11Device4& device, ID3D11DeviceContext4& dc, DX11WindowContext& wc)
+	IDX11Window* CreateDX11Window(IDXGIFactory7& dxgiFactory, ID3D11Device5& device, ID3D11DeviceContext4& dc, DX11WindowContext& wc)
 	{
 		auto* w = new ANON::DX11Window(dxgiFactory, device, dc, wc);
 		w->ActivateCustomWindowsProcedureAndMakeVisible();

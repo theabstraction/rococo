@@ -7,6 +7,8 @@
 struct IDXGIFactory7;
 struct IDXGIAdapter4;
 struct IDXGIOutput;
+struct ID3D11Device5;
+struct ID3D11DeviceContext4;
 
 namespace Rococo::Graphics
 {
@@ -54,9 +56,47 @@ namespace Rococo::Graphics
 		void* hResourceInstance;
 	};
 
+	enum class TextureType : uint32
+	{
+		TextureType_None,
+		TextureType_2D,
+		TextureType_2D_Array,
+		TextureType_2D_UVAtlas
+	};
+
+	struct TextureId
+	{
+		uint32 index : 24;
+		TextureType type : 4;
+		uint32 unused : 4;
+	};
+
+	static_assert(sizeof(TextureId) == sizeof(uint32));
+
+	ROCOCOAPI ITextureBuilder
+	{
+		virtual TextureId AddTx2D_Grey(cstr name) = 0;
+		virtual TextureId AddTx2DArray_Grey(cstr name, Vec2i span) = 0;
+		virtual TextureId AddTx2D_RGBAb(cstr name) = 0;
+		virtual TextureId AddTx2DArray_RGBAb(cstr name, Vec2i span) = 0;
+		virtual TextureId AddTx2D_UVAtlas(cstr name) = 0;
+		virtual int32 AddElementToArray(cstr name) = 0;
+		virtual void EnableMipMapping(TextureId id) = 0;
+	};
+
+	ROCOCOAPI ITextureCache : ITextureBuilder
+	{
+		virtual void ReloadAsset(TextureId id) = 0;
+		virtual bool AssignTextureToDC(TextureId id, uint32 textureUnit) = 0;
+		virtual void Free() = 0;
+	};
+
+	ITextureCache* CreateTextureCache(IInstallation& installation, ID3D11Device5& device, ID3D11DeviceContext4& dc);
+
 	ROCOCOAPI IDX11System
 	{
-		virtual IShaderCache & Shaders() = 0;
+		virtual ITextureCache & Textures() = 0;
+		virtual IShaderCache& Shaders() = 0;
 		virtual IDX11Window * CreateDX11Window(DX11WindowContext& context) = 0;
 		virtual void Free() = 0;
 	};

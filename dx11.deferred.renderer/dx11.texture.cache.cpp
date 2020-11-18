@@ -4,6 +4,7 @@
 #include <rococo.auto-release.h>
 #include <rococo.hashtable.h>
 #include <rococo.os.h>
+#include <rococo.textures.h>
 
 #include <d3d11_4.h>
 #include <dxgi1_6.h>
@@ -13,37 +14,125 @@
 
 using namespace Rococo;
 using namespace Rococo::Graphics;
-
-enum class TextureType: uint32
-{
-	TextureType_None,
-	TextureType_2D,
-	TextureType_2D_Array
-};
-
-struct TextureId
-{
-	uint32 index : 24;
-	TextureType type : 4;
-	uint32 unused : 4;
-};
-
-static_assert(sizeof(TextureId) == sizeof(uint32));
-
-ROCOCOAPI ITextureCache
-{
-	virtual TextureId AddTx2D_Grey(cstr name) = 0;
-	virtual TextureId AddTx2DArray_Grey(cstr name, Vec2i span) = 0;
-	virtual TextureId AddTx2D_RGBAb(cstr name) = 0;
-	virtual TextureId AddTx2DArray_RGBAb(cstr name, Vec2i span) = 0;
-	virtual int32 AddElementToArray(cstr name) = 0;
-	virtual void EnableMipMapping(TextureId id) = 0;
-	virtual void ReloadAsset(TextureId id) = 0;
-	virtual void Free() = 0;
-};
+using namespace Rococo::Textures;
 
 namespace ANON
 {
+	struct TifAndJPG_Loader : IResourceLoader
+	{
+		IInstallation& installation;
+
+		TifAndJPG_Loader(IInstallation& ref_installation) : installation(ref_installation) {}
+
+		void Load(cstr pingPath, IEventCallback<CompressedTextureBuffer>& onLoad) override
+		{
+			COMPRESSED_TYPE type;
+			auto ext = GetFileExtension(pingPath);
+			if (EqI(ext, ".tif") || EqI(ext, ".tiff"))
+			{
+				type = COMPRESSED_TYPE_TIF;
+			}
+			else if (EqI(ext, ".jpg") || EqI(ext, ".jpeg"))
+			{
+				type = COMPRESSED_TYPE_JPG;
+			}
+			else
+			{
+				Throw(0, "Unknown file type for UV Atlas image: %s", pingPath);
+			}
+
+			AutoFree<IExpandingBuffer> buffer = CreateExpandingBuffer(0);
+			installation.LoadResource(pingPath, *buffer, 64_megabytes);
+			Textures::CompressedTextureBuffer ctb{ buffer->GetData(), buffer->Length(), type };
+			onLoad.OnEvent(ctb);
+		}
+	};
+
+	struct UVAtlasBuilder : ITextureArray
+	{
+		ID3D11Device5& device;
+		ID3D11DeviceContext4& dc;
+		AutoRelease<ID3D11Texture2D1> tx2D;
+		uint32 count = 0;
+		int32 width = 0;
+
+		UVAtlasBuilder(ID3D11Device5& ref_device, ID3D11DeviceContext4& ref_dc) : device(ref_device), dc(ref_dc) {}
+
+		void AddTexture() override
+		{
+			if (tx2D)
+			{
+				Throw(0, "%s: Cannot add another texture to the texture atlas. The atlas is already fully specified", __FUNCTION__);
+			}
+			count++;
+		}
+
+		void Seal()
+		{
+			if (tx2D) return;
+			if (count == 0) Throw(0, "%s: The texture count was zero", __FUNCTION__);
+			if (width == 0) Throw(0, "%s: The texture width was zero", __FUNCTION__);
+
+			D3D11_TEXTURE2D_DESC1 desc;
+			desc.ArraySize = count;
+			desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+			desc.Height = width;
+			desc.Width = width;
+			desc.MipLevels = 1;
+			desc.SampleDesc = { 1, 0 };
+			desc.TextureLayout = D3D11_TEXTURE_LAYOUT_UNDEFINED;
+			desc.Usage = D3D11_USAGE_IMMUTABLE;
+			desc.CPUAccessFlags = 0;
+			desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+			desc.MiscFlags = 0;
+			VALIDATE_HR(device.CreateTexture2D1(&desc, nullptr, &tx2D));
+		}
+
+		void ResetWidth(int32 width) override
+		{
+			if (width > MaxWidth())
+			{
+				Throw(0, "%s: Cannot reset width. It is greater than the maximum of %d", __FUNCTION__, MaxWidth());
+			}
+
+			this->width = width;
+		}
+
+		void WriteSubImage(size_t index, const RGBAb* pixels, const GuiRect& targetLocation) override
+		{
+			Seal();
+
+			UINT subresourceIndex = D3D11CalcSubresource(0, (UINT)index, 1);
+
+			D3D11_BOX box;
+			box.left = targetLocation.left;
+			box.right = targetLocation.right;
+			box.back = 1;
+			box.front = 0;
+			box.top = targetLocation.top;
+			box.bottom = targetLocation.bottom;
+
+			auto lineSpan = (size_t)Width(targetLocation) * sizeof(RGBAb);
+			auto srcDepth = lineSpan * (size_t)Height(targetLocation);
+			dc.UpdateSubresource(tx2D, subresourceIndex, &box, pixels, (UINT)lineSpan, (UINT)srcDepth);
+		}
+
+		void WriteSubImage(size_t index, const uint8* grayScalePixels, Vec2i span) override
+		{
+			Throw(0, "Texture UV Atlas not supported for grayscale formats");
+		}
+
+		int32 MaxWidth() const override
+		{
+			return 2048;
+		}
+
+		size_t TextureCount() const override
+		{
+			return count;
+		}
+	};
+
 	void ValidateName(cstr fn, cstr name)
 	{
 		if (name == nullptr || *name == 0)
@@ -57,6 +146,7 @@ namespace ANON
 		if (ptr) ptr->Release();
 	}
 
+	// A Gremlin is like a Daemon, only smaller and greener
 	struct TextureGremlin
 	{
 		cstr resourceName = ""; // points to the key in the nameToIds table
@@ -71,15 +161,18 @@ namespace ANON
 		bool arrayFinalized = false;
 		Vec2i span{ 0,0 };
 		std::vector<HString> elements;
+		Textures::ITextureArrayBuilderSupervisor* uvAtlas = nullptr;
 
 		void Release()
 		{
 			ANON::Release(shaderResource);
 			ANON::Release(renderTarget);
 			ANON::Release(tx2D);
+			uvAtlas->Free();
 			shaderResource = nullptr;
 			renderTarget = nullptr;
 			tx2D = nullptr;
+			uvAtlas = nullptr;
 		}
 	};
 
@@ -87,7 +180,14 @@ namespace ANON
 
 	struct ITextureLoader
 	{
+		struct Atlas
+		{
+			ITextureArrayBuilderSupervisor* taBuilder;
+			ID3D11Texture2D1* tx2D;
+		};
+
 		virtual ID3D11Texture2D1* LoadTexture2D_Array(cstr resourceName, DXGI_FORMAT format, bool mipMap, Vec2i span, const char* elements[]) = 0;
+		virtual Atlas LoadTexture2D_UVAtlas(cstr resourceName, const char* elements[]) = 0;
 		virtual ID3D11Texture2D1* LoadTexture2D(cstr resourceName, DXGI_FORMAT format, bool mipMap) = 0;
 		virtual void Free() = 0;
 	};
@@ -212,7 +312,27 @@ namespace ANON
 			return LoadIfTiffsOrJpegs(installation, resourceName, onLoad) ? onLoad.tx2D : nullptr;
 		}
 
-		ID3D11Texture2D1* LoadTexture2D_Array(cstr resourceName, DXGI_FORMAT format, bool mipMap, Vec2i span, const char* elements[])  override
+		Atlas LoadTexture2D_UVAtlas(cstr resourceName , const char* elements[])
+		{
+			TifAndJPG_Loader imageLoader(installation);
+			UVAtlasBuilder uvaBuilder(device, dc);
+
+			AutoFree<ITextureArrayBuilderSupervisor> taBuilder = CreateTextureArrayBuilder(imageLoader, uvaBuilder);
+			int32 nElements = 0;
+			for (auto* e = elements; *e != nullptr; e++)
+			{
+				taBuilder->AddBitmap(resourceName);
+			}
+
+			taBuilder->BuildTextures(512);
+
+			Atlas atlas;
+			atlas.taBuilder = taBuilder.Release();
+			atlas.tx2D = uvaBuilder.tx2D.Detach();
+			return atlas;
+		}
+
+		ID3D11Texture2D1* LoadTexture2D_Array(cstr resourceName, DXGI_FORMAT format, bool mipMap, Vec2i span, const char* elements[])
 		{
 			int32 nElements = 0;
 			for (auto* e = elements; *e != nullptr; e++)
@@ -248,6 +368,7 @@ namespace ANON
 				{
 					DXGI_FORMAT format;
 					ID3D11Device5* device = nullptr;
+					ID3D11DeviceContext4* dc = nullptr;
 					ID3D11Texture2D1* tx2D = nullptr;
 					bool mipMap = false;
 					int index = 0;
@@ -258,38 +379,15 @@ namespace ANON
 						Throw(E_FAIL, "%s", message);
 					}
 
-					void OnRGBAImage(const Vec2i& span, const RGBAb* texels) override
+					void ValidateSpan(Vec2i span)
 					{
-						if (format != DXGI_FORMAT_R8G8B8A8_UNORM)
+						if (span != this->span)
 						{
-							Throw(E_FAIL, "The target image file was RGB/RGBA.");
-						}
-
-						D3D11_TEXTURE2D_DESC1 desc;
-						desc.ArraySize = 1;
-						desc.Format = format;
-						desc.Height = span.x;
-						desc.Width = span.y;
-						desc.MipLevels = mipMap ? 0 : 1;
-						desc.SampleDesc = { 1, 0 };
-						desc.TextureLayout = D3D11_TEXTURE_LAYOUT_UNDEFINED;
-						desc.Usage = D3D11_USAGE_IMMUTABLE;
-						desc.CPUAccessFlags = 0;
-						desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-						if (mipMap) desc.BindFlags |= D3D11_BIND_RENDER_TARGET;
-						desc.MiscFlags = mipMap ? D3D11_RESOURCE_MISC_GENERATE_MIPS : 0;
-						D3D11_SUBRESOURCE_DATA data;
-						data.pSysMem = texels;
-						data.SysMemSlicePitch = 0;
-						data.SysMemPitch = sizeof(RGBAb) * desc.Width;
-						HRESULT hr = device->CreateTexture2D1(&desc, &data, &tx2D);
-						if FAILED(hr)
-						{
-							Throw(hr, "device->CreateTexture2D1 failed");
+							Throw(0, "The source image had dimensions %d x %d. The requirement was %d x %d", span.x, span.y, this->span.x, this->span.y);
 						}
 					}
 
-					void WriteElement(const void* texels)
+					void WriteElement(const void* texels, size_t sizeofTexel)
 					{
 						UINT subresourceIndex = D3D11CalcSubresource(0, (UINT)index, 1);
 
@@ -301,16 +399,30 @@ namespace ANON
 						box.top = 0;
 						box.bottom = span.y;
 
-						UINT srcDepth = span.x * span.y * sizeof(RGBAb);
-						dc.UpdateSubresource(tb.texture, subresourceIndex, &box, pixels, span.x * sizeof(RGBAb), srcDepth);
+						auto srcDepth = (size_t) span.x * (size_t) span.y * sizeofTexel;
+						dc->UpdateSubresource(tx2D, subresourceIndex, &box, texels, (UINT)((size_t) span.x * sizeofTexel), (UINT) srcDepth);
+					}
+
+					void OnRGBAImage(const Vec2i& span, const RGBAb* texels) override
+					{
+						if (format != DXGI_FORMAT_R8G8B8A8_UNORM)
+						{
+							Throw(E_FAIL, "The target image file was RGB/RGBA, but the requirment is GREYSCALE.");
+						}
+
+						ValidateSpan(span);
+						WriteElement(texels, sizeof(RGBAb));
 					}
 
 					void OnAlphaImage(const Vec2i& span, const GRAYSCALE* texels) override
 					{
 						if (format != DXGI_FORMAT_R8_UNORM)
 						{
-							Throw(E_FAIL, "The target image file was greyscale.");
+							Throw(E_FAIL, "The target image file was greyscale, but the requirement is RGB/RGBA");
 						}
+
+						ValidateSpan(span);
+						WriteElement(texels, sizeof(GRAYSCALE));
 					}
 				} onLoad;
 				onLoad.format = format;
@@ -327,6 +439,7 @@ namespace ANON
 	{
 		IInstallation& installation;
 		ID3D11Device5& device;
+		ID3D11DeviceContext4& dc;
 
 		std::vector<TextureGremlin> textures;
 		stringmap<TextureId> nameToIds;
@@ -358,6 +471,18 @@ namespace ANON
 			t.errString = "";
 		}
 
+		void Update_OnThread(TextureId id, ITextureLoader::Atlas atlas)
+		{
+			Lock lock(sync);
+
+			auto& t = textures[id.index - 1];
+			t.Release();
+			t.uvAtlas = atlas.taBuilder;
+			t.tx2D = atlas.tx2D;
+			t.errNumber = S_OK;
+			t.errString = "";
+		}
+
 		void Reload_OnThread(TextureId id, DXGI_FORMAT format, cstr resourcePath, bool mipMap, Vec2i span, const char* elementNames[])
 		{
 			try
@@ -384,6 +509,13 @@ namespace ANON
 								Update_OnThread(id, tx2D);
 								return;
 							}
+							break;
+						}
+						case TextureType::TextureType_2D_UVAtlas:
+						{
+							auto atlas = l->LoadTexture2D_UVAtlas(resourcePath, elementNames);
+							Update_OnThread(id, atlas);
+							return;
 							break;
 						}
 					}
@@ -437,10 +569,11 @@ namespace ANON
 					Reload_OnThread(id, format, path, mipMapped, span, elementNames);
 				}
 			}
+			return 0;
 		}
 	public:
-		TextureCache(IInstallation& ref_installation, ID3D11Device5& ref_device):
-			installation(ref_installation), device(ref_device)
+		TextureCache(IInstallation& ref_installation, ID3D11Device5& ref_device, ID3D11DeviceContext4& ref_dc):
+			installation(ref_installation), device(ref_device), dc(ref_dc)
 		{
 			thread = CreateRococoThread(this, 0);
 			sync = thread->CreateCriticalSection();
@@ -448,6 +581,7 @@ namespace ANON
 
 		void Start()
 		{
+			// Resume the thread after the constructor has returned so V-Tables are ship shape
 			thread->Resume();
 		}
 
@@ -493,7 +627,7 @@ namespace ANON
 			return index;
 		}
 
-		TextureId AddGeneric(cstr name, TextureType type, DXGI_FORMAT format, Vec2i span
+		TextureId AddGeneric(cstr name, TextureType type, DXGI_FORMAT format, Vec2i span)
 		{
 			auto i = nameToIds.find(name);
 			if (i == nameToIds.end())
@@ -534,6 +668,65 @@ namespace ANON
 			return AddGeneric(name, TextureType::TextureType_2D_Array, DXGI_FORMAT_R8G8B8A8_UNORM, span);
 		}
 
+		TextureId AddTx2D_UVAtlas(cstr name) override
+		{
+			ValidateName(__FUNCTION__, name);
+			return AddGeneric(name, TextureType::TextureType_2D_UVAtlas, DXGI_FORMAT_R8G8B8A8_UNORM, { 0,0 });
+		}
+
+		bool AssignTextureToDC(TextureId id, uint32 textureUnit) override
+		{
+			auto index = id.index - 1;
+			if (index >= textures.size()) Throw(0, "%s: Bad id", __FUNCTION__);
+
+			auto& t = textures[index];
+
+			Lock lock(sync);
+
+			if (t.tx2D)
+			{
+				if (t.shaderResource == nullptr)
+				{
+					D3D11_TEXTURE2D_DESC1 txDesc;
+					t.tx2D->GetDesc1(&txDesc);
+
+					D3D11_SHADER_RESOURCE_VIEW_DESC1 desc;
+					desc.Format = t.format;
+					switch (t.type)
+					{
+					case TextureType::TextureType_2D:
+						desc.Texture2D.MipLevels = txDesc.MipLevels;
+						desc.Texture2D.MostDetailedMip = 0;
+						desc.Texture2D.PlaneSlice = 0;
+						desc.ViewDimension = D3D_SRV_DIMENSION_TEXTURE2D;
+						break;
+					case TextureType::TextureType_2D_Array:
+					case TextureType::TextureType_2D_UVAtlas:
+						desc.Texture2DArray.MipLevels = txDesc.MipLevels;
+						desc.Texture2DArray.ArraySize = txDesc.ArraySize;
+						desc.Texture2DArray.FirstArraySlice = 0;
+						desc.Texture2DArray.MostDetailedMip = 0;
+						desc.Texture2DArray.PlaneSlice = 0;
+						desc.ViewDimension = D3D_SRV_DIMENSION_TEXTURE2DARRAY;
+						break;
+					default:
+						Throw(0, "Unknown texture type %d", t.type);
+					}
+
+					VALIDATE_HR(device.CreateShaderResourceView1(t.tx2D, &desc, &t.shaderResource));
+				}
+
+				ID3D11ShaderResourceView* views[1] = { t.shaderResource };
+				dc.PSSetShaderResources(textureUnit, 1, views);
+				dc.VSSetShaderResources(textureUnit, 1, views);
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+
 		void EnableMipMapping(TextureId id) override
 		{
 			uint32 index = id.index - 1;
@@ -571,9 +764,9 @@ namespace ANON
 
 namespace Rococo::Graphics
 {
-	ITextureCache* CreateTextureCache(IInstallation& installation, ID3D11Device5& device)
+	ITextureCache* CreateTextureCache(IInstallation& installation, ID3D11Device5& device, ID3D11DeviceContext4& dc)
 	{
-		auto* t = new ANON::TextureCache(installation, device);
+		auto* t = new ANON::TextureCache(installation, device, dc);
 		t->Start();
 		return t;
 	}
