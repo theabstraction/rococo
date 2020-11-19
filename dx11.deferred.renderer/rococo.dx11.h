@@ -10,6 +10,11 @@ struct IDXGIOutput;
 struct ID3D11Device5;
 struct ID3D11DeviceContext4;
 
+namespace Rococo::Textures
+{
+	struct ITextureArrayBuilderSupervisor;
+}
+
 namespace Rococo::Graphics
 {
 	struct IShaderCache;
@@ -80,7 +85,7 @@ namespace Rococo::Graphics
 		virtual TextureId AddTx2D_RGBAb(cstr name) = 0;
 		virtual TextureId AddTx2DArray_RGBAb(cstr name, Vec2i span) = 0;
 		virtual TextureId AddTx2D_UVAtlas(cstr name) = 0;
-		virtual int32 AddElementToArray(cstr name) = 0;
+		virtual int32 AddElementToArray(TextureId, cstr name) = 0;
 		virtual void EnableMipMapping(TextureId id) = 0;
 	};
 

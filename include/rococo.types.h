@@ -259,6 +259,7 @@ namespace Rococo
 			Rococo::Free(t);
 		}
 
+		// Release our hold on the pointer, but does not free it. Then returns it
 		T* Release()
 		{
 			T* output = t;

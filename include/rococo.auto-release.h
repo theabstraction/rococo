@@ -45,12 +45,14 @@ namespace Rococo
 			return t;
 		}
 
-		bool IsNull() const
+		[[nodiscard]] bool IsNull() const
 		{
 			return t == nullptr;
 		}
 
-		T* Detach() // Release reference and set internal pointer to null
+		// Release reference and set internal pointer to null. You may need to AddRef first if you 
+		// are capturing the reference for later use
+		T* Detach()
 		{
 			T* result = t;
 			if (t)

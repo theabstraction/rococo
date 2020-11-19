@@ -243,7 +243,7 @@ namespace
 		  }
 	  }
 
-      int32 EvaluateRequiredTextureSpan(int32 minWidth)
+      int32 EvaluateRequiredTextureSpan(int32 minWidth, IEventCallback<BitmapUpdate>* onUpdate)
       {
          struct ANON : public IEventCallback<CompressedTextureBuffer>, public Imaging::IImageLoadEvents 
          {
@@ -296,7 +296,33 @@ namespace
          {
             onLoad.span = { 0,0 };
             onLoad.name = i->first.c_str();
-            loader.Load(i->first.c_str(), onLoad);
+
+            try
+            {
+                loader.Load(i->first.c_str(), onLoad);
+
+                if (onUpdate)
+                {
+                    BitmapUpdate bu;
+                    bu.name = i->first.c_str();
+                    bu.msg = "";
+                    bu.hr = 0;
+                    onUpdate->OnEvent(bu);
+                }
+            }
+            catch (IException& ex)
+            {
+                if (onUpdate)
+                {
+                    BitmapUpdate bu;
+                    bu.name = i->first.c_str();
+                    bu.msg = ex.Message();
+                    bu.hr = ex.ErrorCode();
+                    onUpdate->OnEvent(bu);
+                }
+
+                throw;
+            }
 
 			if (onLoad.span.x > textureArray.MaxWidth() || onLoad.span.y > textureArray.MaxWidth())
 			{
@@ -520,14 +546,14 @@ namespace
          }
       }
 
-      void BuildTextures(int32 minWidth) override
+      void BuildTextures(int32 minWidth, IEventCallback<BitmapUpdate>* onUpdate = nullptr) override
       {
           if (textureArray.TextureCount() != 0)
           {
               Throw(0, "Cannot add %s to the bitmap arrays - they have already been computed");
           }
 
-         int32 width = EvaluateRequiredTextureSpan(minWidth);
+         int32 width = EvaluateRequiredTextureSpan(minWidth, onUpdate);
 
          textureArray.ResetWidth(width);
 

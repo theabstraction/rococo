@@ -7,7 +7,7 @@
 #include <rococo.textures.h>
 
 #include <d3d11_4.h>
-#include <dxgi1_6.h>
+//#include <dxgi1_6.h>
 #include <vector>
 
 #include <rococo.imaging.h>
@@ -18,6 +18,28 @@ using namespace Rococo::Textures;
 
 namespace ANON
 {
+	struct ElementUpdate
+	{
+		HRESULT hr;
+		cstr message;
+		int32 elementIndex;
+		ID3D11Texture2D1* tx2D;
+	};
+
+	struct ITextureLoader
+	{
+		struct Atlas
+		{
+			Textures::ITextureArrayBuilderSupervisor* taBuilder;
+			ID3D11Texture2D1* tx2D;
+		};
+
+		virtual ID3D11Texture2D1* LoadTexture2D_Array(cstr resourceName, DXGI_FORMAT format, bool mipMap, Vec2i span, const char* elements[], IEventCallback<ElementUpdate>& onBadElement) = 0;
+		virtual Atlas LoadTexture2D_UVAtlas(cstr resourceName, const char* elements[], IEventCallback<ElementUpdate>& onUpdate) = 0;
+		virtual ID3D11Texture2D1* LoadTexture2D(cstr resourceName, DXGI_FORMAT format, bool mipMap) = 0;
+		virtual void Free() = 0;
+	};
+
 	struct TifAndJPG_Loader : IResourceLoader
 	{
 		IInstallation& installation;
@@ -81,7 +103,7 @@ namespace ANON
 			desc.MipLevels = 1;
 			desc.SampleDesc = { 1, 0 };
 			desc.TextureLayout = D3D11_TEXTURE_LAYOUT_UNDEFINED;
-			desc.Usage = D3D11_USAGE_IMMUTABLE;
+			desc.Usage = D3D11_USAGE_DEFAULT;
 			desc.CPUAccessFlags = 0;
 			desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 			desc.MiscFlags = 0;
@@ -146,6 +168,13 @@ namespace ANON
 		if (ptr) ptr->Release();
 	}
 
+	struct TextureElement
+	{
+		HString resourceName;
+		HRESULT hr;
+		HString err;
+	};
+
 	// A Gremlin is like a Daemon, only smaller and greener
 	struct TextureGremlin
 	{
@@ -156,19 +185,21 @@ namespace ANON
 		ID3D11RenderTargetView1* renderTarget = nullptr;
 		ID3D11Texture2D1* tx2D = nullptr;
 		HString errString;
-		HRESULT errNumber = S_OK;
+		HRESULT errNumber = E_PENDING;
 		bool isMipMapped = false;
 		bool arrayFinalized = false;
 		Vec2i span{ 0,0 };
-		std::vector<HString> elements;
+		std::vector<TextureElement> elements;
 		Textures::ITextureArrayBuilderSupervisor* uvAtlas = nullptr;
 
+		// Release cached resourced - N.B it does not erase key metrics, error codes or the element list
 		void Release()
 		{
 			ANON::Release(shaderResource);
 			ANON::Release(renderTarget);
 			ANON::Release(tx2D);
-			uvAtlas->Free();
+			if (uvAtlas) uvAtlas->Free();
+			uvAtlas = nullptr;
 			shaderResource = nullptr;
 			renderTarget = nullptr;
 			tx2D = nullptr;
@@ -178,24 +209,15 @@ namespace ANON
 
 	using namespace Rococo::OS;
 
-	struct ITextureLoader
-	{
-		struct Atlas
-		{
-			ITextureArrayBuilderSupervisor* taBuilder;
-			ID3D11Texture2D1* tx2D;
-		};
-
-		virtual ID3D11Texture2D1* LoadTexture2D_Array(cstr resourceName, DXGI_FORMAT format, bool mipMap, Vec2i span, const char* elements[]) = 0;
-		virtual Atlas LoadTexture2D_UVAtlas(cstr resourceName, const char* elements[]) = 0;
-		virtual ID3D11Texture2D1* LoadTexture2D(cstr resourceName, DXGI_FORMAT format, bool mipMap) = 0;
-		virtual void Free() = 0;
-	};
-
 	bool LoadIfTiffsOrJpegs(IInstallation& installation, cstr resourceName, Rococo::Imaging::IImageLoadEvents& onLoad)
 	{
 		auto* ext = GetFileExtension(resourceName);
-		if (EqI(ext, ".tiff") || EqI(ext, ".tif"))
+
+		if (ext == nullptr)
+		{
+			return false;
+		}
+		else if (EqI(ext, ".tiff") || EqI(ext, ".tif"))
 		{
 			AutoFree<IExpandingBuffer> buffer = CreateExpandingBuffer(0);
 			installation.LoadResource(resourceName, *buffer, 64_megabytes);
@@ -212,6 +234,54 @@ namespace ANON
 
 		return false;
 	}
+
+	class UVAtlas : public ITextureArrayBuilderSupervisor
+	{
+	private:
+		TifAndJPG_Loader imageLoader;
+		UVAtlasBuilder uvaBuilder;
+
+		AutoFree<ITextureArrayBuilderSupervisor> innerBuilder;
+	public:
+		UVAtlas(IInstallation& installation, ID3D11Device5& device, ID3D11DeviceContext4& dc):
+			imageLoader(installation),
+			uvaBuilder(device, dc)
+		{
+			innerBuilder = CreateTextureArrayBuilder(imageLoader, uvaBuilder);
+		}
+
+		ID3D11Texture2D1* TakeOwnershipOfTx2D()
+		{
+			uvaBuilder.tx2D->AddRef();
+			return uvaBuilder.tx2D.Detach();
+		}
+
+		void AddBitmap(cstr name) override
+		{
+			return innerBuilder->AddBitmap(name);
+		}
+
+		bool TryGetBitmapLocation(cstr name, BitmapLocation& location) override
+		{
+			return innerBuilder->TryGetBitmapLocation(name, location);
+		}
+
+		void BuildTextures(int32 minWidth, IEventCallback<BitmapUpdate>* onUpdate = nullptr) override
+		{
+			innerBuilder->BuildTextures(minWidth, onUpdate);
+		}
+
+		void Clear() override
+		{
+
+		}
+
+		void Free() override
+		{
+			innerBuilder = nullptr;
+			delete this;
+		}
+	};
 
 	class ImageFileTextureLoader : public ITextureLoader
 	{
@@ -259,7 +329,7 @@ namespace ANON
 					desc.MipLevels = mipMap ? 0 : 1;
 					desc.SampleDesc = { 1, 0 };
 					desc.TextureLayout = D3D11_TEXTURE_LAYOUT_UNDEFINED;
-					desc.Usage = D3D11_USAGE_IMMUTABLE;
+					desc.Usage = D3D11_USAGE_DEFAULT;
 					desc.CPUAccessFlags = 0;
 					desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 					if (mipMap) desc.BindFlags |= D3D11_BIND_RENDER_TARGET;
@@ -290,7 +360,7 @@ namespace ANON
 					desc.MipLevels = 1;
 					desc.SampleDesc = { 1, 0 };
 					desc.TextureLayout = D3D11_TEXTURE_LAYOUT_UNDEFINED;
-					desc.Usage = D3D11_USAGE_IMMUTABLE;
+					desc.Usage = D3D11_USAGE_DEFAULT;
 					desc.CPUAccessFlags = 0;
 					desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 					desc.MiscFlags = 0;
@@ -312,27 +382,47 @@ namespace ANON
 			return LoadIfTiffsOrJpegs(installation, resourceName, onLoad) ? onLoad.tx2D : nullptr;
 		}
 
-		Atlas LoadTexture2D_UVAtlas(cstr resourceName , const char* elements[])
+		Atlas LoadTexture2D_UVAtlas(cstr resourceName , const char* elements[], IEventCallback<ElementUpdate>& onUpdate)
 		{
-			TifAndJPG_Loader imageLoader(installation);
-			UVAtlasBuilder uvaBuilder(device, dc);
-
-			AutoFree<ITextureArrayBuilderSupervisor> taBuilder = CreateTextureArrayBuilder(imageLoader, uvaBuilder);
+			AutoFree<UVAtlas> uvAtlas = new UVAtlas(installation, device, dc);
 			int32 nElements = 0;
 			for (auto* e = elements; *e != nullptr; e++)
 			{
-				taBuilder->AddBitmap(resourceName);
+				uvAtlas->AddBitmap(*e);
 			}
 
-			taBuilder->BuildTextures(512);
+			struct CLOSURE : IEventCallback<BitmapUpdate>
+			{
+				const char** elements;
+				IEventCallback<ElementUpdate>* eu;
+				void OnEvent(BitmapUpdate& bu) override
+				{
+					// Route the update to the correct element in the texture
+					int32 index = 0;
+					for (auto* e = elements; *e != nullptr; e++)
+					{
+						if (Eq(bu.name, *e))
+						{
+							ElementUpdate update{ bu.hr, bu.msg, index, nullptr };
+							eu->OnEvent(update);
+							break;
+						}
+						index++;
+					}
+				}
+			} onBitmapUpdate;
+			onBitmapUpdate.elements = elements;
+			onBitmapUpdate.eu = &onUpdate;
+
+			uvAtlas->BuildTextures(512, &onBitmapUpdate);
 
 			Atlas atlas;
-			atlas.taBuilder = taBuilder.Release();
-			atlas.tx2D = uvaBuilder.tx2D.Detach();
+			atlas.tx2D = uvAtlas->TakeOwnershipOfTx2D();
+			atlas.taBuilder = uvAtlas.Release();
 			return atlas;
 		}
 
-		ID3D11Texture2D1* LoadTexture2D_Array(cstr resourceName, DXGI_FORMAT format, bool mipMap, Vec2i span, const char* elements[])
+		ID3D11Texture2D1* LoadTexture2D_Array(cstr resourceName, DXGI_FORMAT format, bool mipMap, Vec2i span, const char* elements[], IEventCallback<ElementUpdate>& onUpdate)
 		{
 			int32 nElements = 0;
 			for (auto* e = elements; *e != nullptr; e++)
@@ -348,7 +438,7 @@ namespace ANON
 			desc.MipLevels = mipMap ? 0 : 1;
 			desc.SampleDesc = { 1, 0 };
 			desc.TextureLayout = D3D11_TEXTURE_LAYOUT_UNDEFINED;
-			desc.Usage = D3D11_USAGE_IMMUTABLE;
+			desc.Usage = D3D11_USAGE_DEFAULT;
 			desc.CPUAccessFlags = 0;
 			desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 			if (mipMap) desc.BindFlags |= D3D11_BIND_RENDER_TARGET;
@@ -427,11 +517,35 @@ namespace ANON
 				} onLoad;
 				onLoad.format = format;
 				onLoad.device = &device;
+				onLoad.dc = &dc;
+				onLoad.tx2D = tx2D;
 				onLoad.mipMap = mipMap;
-				onLoad.index = index++;
+				onLoad.index = index;
 				onLoad.span = span;
-				LoadIfTiffsOrJpegs(installation, resourceName, onLoad);
+
+				try
+				{
+					if (!LoadIfTiffsOrJpegs(installation, *e, onLoad))
+					{
+						Throw(0, "Resource not recognized as TIFF or JIPEG", e, index);
+					}
+					else
+					{
+						ElementUpdate ok{ S_OK, "", index, tx2D };
+						onUpdate.OnEvent(ok);
+					}
+				}
+				catch (IException& ex)
+				{
+					ElementUpdate bad{ ex.ErrorCode(), ex.Message(), index, tx2D };
+					onUpdate.OnEvent( bad );
+				}
+
+				index++;
 			}
+
+			tx2D->AddRef();
+			return tx2D.Detach();
 		}
 	};
 
@@ -448,6 +562,8 @@ namespace ANON
 
 		AutoFree<IThreadSupervisor> thread;
 		AutoFree<ICriticalSection> sync;
+
+		ImageFileTextureLoader iftl;
 
 		std::vector<ITextureLoader*> loaders;
 
@@ -483,6 +599,15 @@ namespace ANON
 			t.errString = "";
 		}
 
+		void OnUpdateElement(TextureId id, ElementUpdate& update)
+		{
+			Lock lock(sync);
+
+			auto& t = textures[id.index - 1];
+			t.elements[update.elementIndex].hr = update.hr;
+			t.elements[update.elementIndex].err = update.message;
+		}
+
 		void Reload_OnThread(TextureId id, DXGI_FORMAT format, cstr resourcePath, bool mipMap, Vec2i span, const char* elementNames[])
 		{
 			try
@@ -503,7 +628,18 @@ namespace ANON
 						}
 						case TextureType::TextureType_2D_Array:
 						{
-							auto tx2D = l->LoadTexture2D_Array(resourcePath, format, mipMap, span, elementNames);
+							struct CLOSURE : IEventCallback<ElementUpdate>
+							{
+								TextureCache* This;
+								TextureId id;
+								void OnEvent(ElementUpdate& bad) override
+								{
+									This->OnUpdateElement(id, bad);
+								}
+							} onUpdate;
+							onUpdate.This = this;
+							onUpdate.id = id;
+							auto tx2D = l->LoadTexture2D_Array(resourcePath, format, mipMap, span, elementNames, onUpdate);
 							if (tx2D != nullptr)
 							{
 								Update_OnThread(id, tx2D);
@@ -513,19 +649,34 @@ namespace ANON
 						}
 						case TextureType::TextureType_2D_UVAtlas:
 						{
-							auto atlas = l->LoadTexture2D_UVAtlas(resourcePath, elementNames);
+							struct CLOSURE : IEventCallback<ElementUpdate>
+							{
+								TextureCache* This;
+								TextureId id;
+								void OnEvent(ElementUpdate& bad) override
+								{
+									This->OnUpdateElement(id, bad);
+								}
+							} onUpdate;
+							onUpdate.This = this;
+							onUpdate.id = id;
+							auto atlas = l->LoadTexture2D_UVAtlas(resourcePath, elementNames, onUpdate);
 							Update_OnThread(id, atlas);
 							return;
 							break;
 						}
 					}
 				}
+
+				Throw(0, "No texture loader could generate the texture");
 			}
 			catch (IException& ex)
 			{
 				SetError_OnThread(id, ex);
 			}
 		}
+
+		std::vector<cstr> elementProxy;
 
 		uint32 RunThread(IThreadControl& control) override
 		{
@@ -556,25 +707,27 @@ namespace ANON
 					bool mipMapped = t.isMipMapped;
 					Vec2i span = t.span;
 
-					auto* elementNames = (const char**)(_alloca((t.elements.size() + 1) * sizeof(const char*)));
+					elementProxy.resize(t.elements.size() + 1);
+
 					for (size_t i = 0; i < t.elements.size(); ++i)
 					{
-						elementNames[i] = t.elements[i];
+						elementProxy[i] = t.elements[i].resourceName;
 					}
 
-					elementNames[t.elements.size()] = nullptr;
+					elementProxy[t.elements.size()] = nullptr;
 
 					sync->Unlock();
 
-					Reload_OnThread(id, format, path, mipMapped, span, elementNames);
+					Reload_OnThread(id, format, path, mipMapped, span, elementProxy.data());
 				}
 			}
 			return 0;
 		}
 	public:
 		TextureCache(IInstallation& ref_installation, ID3D11Device5& ref_device, ID3D11DeviceContext4& ref_dc):
-			installation(ref_installation), device(ref_device), dc(ref_dc)
+			installation(ref_installation), device(ref_device), dc(ref_dc), iftl(ref_installation, ref_device, ref_dc)
 		{
+			loaders.push_back(&iftl);
 			thread = CreateRococoThread(this, 0);
 			sync = thread->CreateCriticalSection();
 		}
@@ -594,37 +747,29 @@ namespace ANON
 			return id;
 		}
 
-		int32 AddElementToArray(cstr name) override
+		int32 AddElementToArray(TextureId id, cstr name) override
 		{
-			if (textures.empty())Throw(0, "%s(%s): the texture cache is empty", __FUNCTION__, name);
+			ValidateName(__FUNCTION__, name);
 
-			auto& back = textures.back();
-			if (back.type != TextureType::TextureType_2D_Array)
+			uint32 index = id.index - 1;
+			if (index >= textures.size()) Throw(0, "%s(%s): Bad id", __FUNCTION__, name);
+
+			auto& t = textures[index];
+			if (t.type != TextureType::TextureType_2D_Array && t.type != TextureType::TextureType_2D_UVAtlas)
 			{
-				Throw(0, "%s(%s): The current texture in the texture cache is not an array", __FUNCTION__, name);
+				Throw(0, "%s(%s): The texture is not an array", __FUNCTION__, name);
 			}
 
-			if (name == nullptr || name[0] == 0)
-			{
-				if (back.elements.empty())
-				{
-					Throw(0, "%s: the element list was empty", __FUNCTION__);
-				}
-
-				back.arrayFinalized = true;
-				return (int32) back.elements.size();
-			}
-
-			if (back.arrayFinalized)
+			if (t.arrayFinalized)
 			{
 				Throw(0, "%s(%s): the array was finalized", __FUNCTION__, name);
 			}
 
 			Lock lock(sync);
 
-			int32 index = (int32) back.elements.size();
-			back.elements.push_back(name);
-			return index;
+			int32 elementIndex = (int32) t.elements.size();
+			t.elements.push_back({ name,E_PENDING,"" });
+			return elementIndex;
 		}
 
 		TextureId AddGeneric(cstr name, TextureType type, DXGI_FORMAT format, Vec2i span)
@@ -741,6 +886,12 @@ namespace ANON
 
 		void ReloadAsset(TextureId id) override
 		{
+			uint32 index = id.index - 1;
+			if (index >= (uint32)textures.size())
+			{
+				Throw(0, "%s: Bad Id", __FUNCTION__);
+			}
+
 			Lock lock(sync);		
 			inputQueue.push_back(id);
 		}

@@ -95,6 +95,19 @@ void Main(HINSTANCE hInstance)
 	AutoFree<IDX11Window> window = dx11->CreateDX11Window(wc);
 	window->MonitorShaderErrors(&dx11->Shaders());
 	dx11->Shaders().AddPixelShader("!shaders/gui.ps.hlsl");
+	auto idScalableFontTexture = dx11->Textures().AddTx2D_Grey("!font1.tif");
+	dx11->Textures().ReloadAsset(idScalableFontTexture);
+
+	auto idMats = dx11->Textures().AddTx2DArray_RGBAb("materials", { 1024,1024 });
+	dx11->Textures().AddElementToArray(idMats, "!textures/hv/materials/hi-rez/marble/blue.jpg");
+	dx11->Textures().AddElementToArray(idMats, "!textures/hv/materials/hi-rez/marble/brown.1.jpg");
+	dx11->Textures().EnableMipMapping(idMats);
+	dx11->Textures().ReloadAsset(idMats);
+
+	auto idSprites = dx11->Textures().AddTx2D_UVAtlas("sprites");
+	dx11->Textures().AddElementToArray(idSprites, "!textures/hv/icons/bastard.sword.tif");
+	dx11->Textures().AddElementToArray(idSprites, "!textures/hv/icons/mace.tif");
+	dx11->Textures().ReloadAsset(idSprites);
 
 	auto start = Rococo::OS::CpuTicks();
 

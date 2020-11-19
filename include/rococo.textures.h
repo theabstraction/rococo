@@ -32,11 +32,18 @@ namespace Rococo
          Vec2 pixelSpan;
       };
 
+      struct BitmapUpdate
+      {
+          cstr name;
+          int hr;
+          cstr msg;
+      };
+
       ROCOCOAPI ITextureArrayBuilder
       {
          virtual void AddBitmap(cstr name) = 0;
          virtual bool TryGetBitmapLocation(cstr name, BitmapLocation& location) = 0;
-         virtual void BuildTextures(int32 minWidth) = 0;
+         virtual void BuildTextures(int32 minWidth, IEventCallback<BitmapUpdate>* onUpdate = nullptr) = 0;
          virtual void Clear() = 0;
       };
 

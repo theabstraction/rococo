@@ -27,6 +27,9 @@
     <ClCompile Include="dx11.texture.cache.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="dx11.meshes.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="rococo.dx11.h">
