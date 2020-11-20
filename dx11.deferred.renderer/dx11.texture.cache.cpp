@@ -179,11 +179,12 @@ namespace ANON
 	struct TextureGremlin
 	{
 		cstr resourceName = ""; // points to the key in the nameToIds table
-		TextureType type = TextureType::TextureType_None;
+		TextureType type = TextureType::None;
 		DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN;
 		ID3D11ShaderResourceView1* shaderResource = nullptr;
 		ID3D11RenderTargetView1* renderTarget = nullptr;
 		ID3D11Texture2D1* tx2D = nullptr;
+		ID3D11DepthStencilView* depthStencilView = nullptr;
 		HString errString;
 		HRESULT errNumber = E_PENDING;
 		bool isMipMapped = false;
@@ -198,12 +199,14 @@ namespace ANON
 			ANON::Release(shaderResource);
 			ANON::Release(renderTarget);
 			ANON::Release(tx2D);
+			ANON::Release(depthStencilView);
 			if (uvAtlas) uvAtlas->Free();
 			uvAtlas = nullptr;
 			shaderResource = nullptr;
 			renderTarget = nullptr;
 			tx2D = nullptr;
 			uvAtlas = nullptr;
+			depthStencilView = nullptr;
 		}
 	};
 
@@ -616,7 +619,7 @@ namespace ANON
 				{
 					switch (id.type)
 					{
-						case TextureType::TextureType_2D:
+						case TextureType::T2D:
 						{
 							auto tx2D = l->LoadTexture2D(resourcePath, format, mipMap);
 							if (tx2D != nullptr)
@@ -626,7 +629,7 @@ namespace ANON
 							}
 							break;
 						}
-						case TextureType::TextureType_2D_Array:
+						case TextureType::T2D_Array:
 						{
 							struct CLOSURE : IEventCallback<ElementUpdate>
 							{
@@ -647,7 +650,7 @@ namespace ANON
 							}
 							break;
 						}
-						case TextureType::TextureType_2D_UVAtlas:
+						case TextureType::T2D_UVAtlas:
 						{
 							struct CLOSURE : IEventCallback<ElementUpdate>
 							{
@@ -755,7 +758,7 @@ namespace ANON
 			if (index >= textures.size()) Throw(0, "%s(%s): Bad id", __FUNCTION__, name);
 
 			auto& t = textures[index];
-			if (t.type != TextureType::TextureType_2D_Array && t.type != TextureType::TextureType_2D_UVAtlas)
+			if (t.type != TextureType::T2D_Array && t.type != TextureType::T2D_UVAtlas)
 			{
 				Throw(0, "%s(%s): The texture is not an array", __FUNCTION__, name);
 			}
@@ -789,37 +792,181 @@ namespace ANON
 			return i->second;
 		}
 
+		TextureId AddDepthStencil(cstr name, Vec2i span, uint32 depthBits, uint32 stencilBits) override
+		{
+			ValidateName(__FUNCTION__, name);
+
+			TextureId id;
+			if (depthBits == 24 && stencilBits == 8)
+			{
+				id = AddGeneric(name, TextureType::T2D, DXGI_FORMAT_D24_UNORM_S8_UINT, span);
+			}
+			else if (depthBits == 32 && stencilBits == 0)
+			{
+				id = AddGeneric(name, TextureType::T2D, DXGI_FORMAT_D32_FLOAT, span);
+			}
+			else
+			{
+				Throw(0, "Depth+Stencil bit format not recognized. Try 24+8 or 32+0");
+			}
+
+			auto& t = textures[id.index - 1];
+			t.Release();
+
+			D3D11_TEXTURE2D_DESC1 desc;
+			desc.ArraySize = 1;
+			desc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+			desc.CPUAccessFlags = 0;
+			desc.Format = t.format;
+			desc.Height = span.x;
+			desc.Width = span.y;
+			desc.MipLevels = 1;
+			desc.MiscFlags = 0;
+			desc.SampleDesc = { 1,0 };
+			desc.TextureLayout = D3D11_TEXTURE_LAYOUT_UNDEFINED;
+			desc.Usage = D3D11_USAGE_DEFAULT;
+			HRESULT hr = device.CreateTexture2D1(&desc, nullptr, &t.tx2D);
+			if FAILED(hr)
+			{
+				t.errNumber = hr;
+				char err[128];
+				SafeFormat(err, "device.CreateTexture2D1 failed for Depth-Stencil %u+%u", depthBits, stencilBits);
+				t.errString = err;
+				return id;
+			}
+
+			D3D11_DEPTH_STENCIL_VIEW_DESC viewDesc;
+			viewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+			viewDesc.Format = desc.Format;
+			viewDesc.Flags = 0;
+			viewDesc.Texture2D.MipSlice = 0;
+			hr = device.CreateDepthStencilView(t.tx2D, &viewDesc, &t.depthStencilView);
+			if FAILED(hr)
+			{
+				t.errNumber = hr;
+				char err[128];
+				SafeFormat(err, "device.CreateDepthStencilView failed for Depth-Stencil %u+%u", depthBits, stencilBits);
+				t.errString = err;
+				return id;
+			}
+
+			return id;
+		}
+
 		TextureId AddTx2D_Grey(cstr name) override
 		{
 			ValidateName(__FUNCTION__, name);
-			return AddGeneric(name, TextureType::TextureType_2D, DXGI_FORMAT_R8_UNORM, Vec2i{ 0,0 });
+			return AddGeneric(name, TextureType::T2D, DXGI_FORMAT_R8_UNORM, Vec2i{ 0,0 });
 		}
 
 		TextureId AddTx2D_RGBAb(cstr name) override
 		{
 			ValidateName(__FUNCTION__, name);
-			return AddGeneric(name, TextureType::TextureType_2D, DXGI_FORMAT_R8G8B8A8_UNORM, Vec2i{ 0,0 });
+			return AddGeneric(name, TextureType::T2D, DXGI_FORMAT_R8G8B8A8_UNORM, Vec2i{ 0,0 });
 		}
 
 		TextureId AddTx2DArray_Grey(cstr name, Vec2i span) override
 		{
 			ValidateName(__FUNCTION__, name);
-			return AddGeneric(name, TextureType::TextureType_2D_Array, DXGI_FORMAT_R8_UNORM, span);
+			return AddGeneric(name, TextureType::T2D_Array, DXGI_FORMAT_R8_UNORM, span);
 		}
 
 		TextureId AddTx2DArray_RGBAb(cstr name, Vec2i span) override
 		{
 			ValidateName(__FUNCTION__, name);
-			return AddGeneric(name, TextureType::TextureType_2D_Array, DXGI_FORMAT_R8G8B8A8_UNORM, span);
+			return AddGeneric(name, TextureType::T2D_Array, DXGI_FORMAT_R8G8B8A8_UNORM, span);
 		}
 
 		TextureId AddTx2D_UVAtlas(cstr name) override
 		{
 			ValidateName(__FUNCTION__, name);
-			return AddGeneric(name, TextureType::TextureType_2D_UVAtlas, DXGI_FORMAT_R8G8B8A8_UNORM, { 0,0 });
+			return AddGeneric(name, TextureType::T2D_UVAtlas, DXGI_FORMAT_R8G8B8A8_UNORM, { 0,0 });
 		}
 
-		bool AssignTextureToDC(TextureId id, uint32 textureUnit) override
+		void UseTexturesAsRenderTargets(const RenderTarget* targets, uint32 nTargets, TextureId idDepthStencil)
+		{
+			auto* pViewArray = (ID3D11RenderTargetView**)_alloca(sizeof(ID3D11RenderTargetView*) * nTargets);
+
+			Lock lock(sync);
+
+			for (uint32 i = 0; i < nTargets; i++)
+			{
+				auto& target = targets[i];
+				auto index = target.id.index - 1;
+				if (index >= textures.size()) Throw(0, "%s: Bad id at position %llu", __FUNCTION__, i);
+
+
+				auto& t = textures[index];
+
+				if (t.tx2D)
+				{
+					if (t.renderTarget)
+					{
+						D3D11_RENDER_TARGET_VIEW_DESC1 desc;
+						t.renderTarget->GetDesc1(&desc);
+						if (desc.Texture2D.MipSlice != target.mipMapIndex)
+						{
+							t.renderTarget->Release();
+							t.renderTarget = nullptr;
+						}
+					}
+
+					if (t.renderTarget == nullptr)
+					{
+						D3D11_TEXTURE2D_DESC1 txDesc;
+						t.tx2D->GetDesc1(&txDesc);
+
+						D3D11_RENDER_TARGET_VIEW_DESC1 rtDesc;
+
+						switch (t.type)
+						{
+						case TextureType::T2D:
+							rtDesc.Texture2D.MipSlice = target.mipMapIndex;
+							rtDesc.Texture2D.PlaneSlice = 0;
+							rtDesc.Format = txDesc.Format;
+							rtDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+							break;
+						case TextureType::T2D_Array:
+						case TextureType::T2D_UVAtlas:
+							Throw(0, "Texture %s assigned to render target %llu was an array", t.resourceName, i);
+						default:
+							Throw(0, "Unknown texture type %d", t.type);
+						}
+
+						HRESULT hr = device.CreateRenderTargetView1(t.tx2D, &rtDesc, &t.renderTarget);
+						if FAILED(hr)
+						{
+							Throw(hr, "Failed to use %s as render target", t.resourceName);
+						}
+					}
+					pViewArray[i] = t.renderTarget;
+				}
+			}
+
+			ID3D11DepthStencilView* depthView = nullptr;
+
+			if (idDepthStencil.index != 0)
+			{
+				auto dindex = idDepthStencil.index - 1;
+				if (dindex >= textures.size()) Throw(0, "%s: Bad depth stencil id", __FUNCTION__);
+				auto& d = textures[dindex];
+				if (d.tx2D == nullptr)
+				{
+					Throw(d.errNumber, "%s: the texture was not bound as a depth stencil object");
+
+					if (d.type != TextureType::DepthStencil)
+					{
+						Throw(d.errNumber, "%s: the texture was not a depth stencil object");
+					}
+
+					depthView = d.depthStencilView;
+				}
+			}
+
+			dc.OMSetRenderTargets(nTargets, nTargets > 0 ? pViewArray : nullptr, depthView);
+		}
+
+		bool AssignTextureToShaders(TextureId id, uint32 textureUnit) override
 		{
 			auto index = id.index - 1;
 			if (index >= textures.size()) Throw(0, "%s: Bad id", __FUNCTION__);
@@ -839,14 +986,14 @@ namespace ANON
 					desc.Format = t.format;
 					switch (t.type)
 					{
-					case TextureType::TextureType_2D:
+					case TextureType::T2D:
 						desc.Texture2D.MipLevels = txDesc.MipLevels;
 						desc.Texture2D.MostDetailedMip = 0;
 						desc.Texture2D.PlaneSlice = 0;
 						desc.ViewDimension = D3D_SRV_DIMENSION_TEXTURE2D;
 						break;
-					case TextureType::TextureType_2D_Array:
-					case TextureType::TextureType_2D_UVAtlas:
+					case TextureType::T2D_Array:
+					case TextureType::T2D_UVAtlas:
 						desc.Texture2DArray.MipLevels = txDesc.MipLevels;
 						desc.Texture2DArray.ArraySize = txDesc.ArraySize;
 						desc.Texture2DArray.FirstArraySlice = 0;
@@ -882,6 +1029,22 @@ namespace ANON
 
 			Lock lock(sync);
 			textures[index].isMipMapped = true;
+		}
+
+		void ClearRenderTarget(TextureId id, const RGBA& clearColour) override
+		{
+			uint32 index = id.index - 1;
+			if (index >= (uint32)textures.size())
+			{
+				Throw(0, "%s: Bad Id", __FUNCTION__);
+			}
+
+			Lock lock(sync);
+			auto* t = textures[index].renderTarget;
+			if (t)
+			{
+				dc.ClearRenderTargetView(t, &clearColour.red);
+			}
 		}
 
 		void ReloadAsset(TextureId id) override

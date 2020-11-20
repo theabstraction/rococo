@@ -138,8 +138,7 @@ namespace ANON
 	class DX11Window: public IDX11Window, public Windows::IWindow, public IShaderViewGrabber
 	{
 		IDXGIFactory7& dxgiFactory;
-		ID3D11Device5& device;
-		ID3D11DeviceContext4& dc;
+		IDX11System& system;
 		DX11WindowContext wc;
 		HWND hMainWnd = nullptr;
 		HFONT consoleFont = nullptr;
@@ -151,12 +150,14 @@ namespace ANON
 		AutoFree<IExpandingBuffer> eventBuffer;
 		IShaderCache* shaders = nullptr;
 	public:
-		DX11Window(IDXGIFactory7& ref_dxgiFactory, ID3D11Device5& ref_device, ID3D11DeviceContext4& ref_dc, DX11WindowContext& ref_wc):
-			dxgiFactory(ref_dxgiFactory), device(ref_device), dc(ref_dc), wc(ref_wc), eventBuffer(CreateExpandingBuffer(128))
+		DX11Window(IDX11System& ref_system, DX11WindowContext& ref_wc):
+			dxgiFactory(ref_system.Factory()), system(ref_system), wc(ref_wc), eventBuffer(CreateExpandingBuffer(128))
 		{
 			RegisterWndHandler((HINSTANCE)wc.hResourceInstance);
 			hMainWnd = CreateWindowFromContext(wc);
 			keyboardLayout = GetKeyboardLayout(0);
+
+			auto& device = system.Device();
 
 			try
 			{
@@ -500,9 +501,9 @@ namespace ANON
 
 namespace Rococo::Graphics
 {
-	IDX11Window* CreateDX11Window(IDXGIFactory7& dxgiFactory, ID3D11Device5& device, ID3D11DeviceContext4& dc, DX11WindowContext& wc)
+	IDX11Window* CreateDX11Window(IDX11System& system, DX11WindowContext& wc)
 	{
-		auto* w = new ANON::DX11Window(dxgiFactory, device, dc, wc);
+		auto* w = new ANON::DX11Window(system, wc);
 		w->ActivateCustomWindowsProcedureAndMakeVisible();
 		w->WaitFrames(10, 10);
 		return w;

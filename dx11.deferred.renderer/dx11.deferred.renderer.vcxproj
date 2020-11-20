@@ -150,6 +150,8 @@
   <ItemGroup>
     <ClCompile Include="dx11.adapter.context.cpp" />
     <ClCompile Include="dx11.meshes.cpp" />
+    <ClCompile Include="dx11.pipeline.cpp" />
+    <ClCompile Include="dx11.render.stage.basic.cpp" />
     <ClCompile Include="dx11.system.cpp" />
     <ClCompile Include="dx11.texture.cache.cpp" />
     <ClCompile Include="dx11.window.cpp" />

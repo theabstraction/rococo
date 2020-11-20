@@ -14,101 +14,6 @@
 using namespace Rococo;
 using namespace Rococo::Graphics;
 
-struct LayoutId
-{
-	uint32 index;
-};
-
-struct MeshId
-{
-	uint32 index : 22;
-	int32 vertexLayout : 10;
-};
-
-static_assert(sizeof(MeshId) == sizeof(uint32));
-
-struct MeshGremlin
-{
-	MeshId id;
-	HString name;
-	std::vector<float> data;
-};
-
-enum class HLSL_Semantic
-{
-	BINORMAL,
-	BLENDINDICES,
-	BLENDWEIGHT,
-	COLOR,
-	NORMAL,
-	POSITION,
-	POSITIONT,
-	PSIZE,
-	TANGENT,
-	TEXCOORD
-};
-
-ROCOCOAPI IVertexLayoutBuilder
-{
-	virtual void AddRGBAb(uint32 semanticIndex) = 0;
-	virtual void AddFloat(HLSL_Semantic semantic, uint32 semanticIndex) = 0;
-	virtual void AddFloat2(HLSL_Semantic semantic, uint32 semanticIndex) = 0;
-	virtual void AddFloat3(HLSL_Semantic semantic, uint32 semanticIndex) = 0;
-	virtual void AddFloat4(HLSL_Semantic semantic, uint32 semanticIndex) = 0;
-	virtual void Clear() = 0;
-	virtual LayoutId Commit(const fstring& name) = 0;
-	virtual void SetInputSlot(uint32 slot) = 0;
-};
-
-ROCOCOAPI IVertexLayouts
-{
-	virtual IVertexLayoutBuilder& GetBuilder() = 0;
-	virtual void SetInputLayout(LayoutId layoutIndex) = 0;
-};
-
-ROCOCOAPI IVertexLayoutBuilderSupervisor : public IVertexLayouts
-{
-	virtual void Free() = 0;
-};
-
-enum class MeshType: uint32
-{
-	Dynamic,
-	Immutable
-};
-
-struct MeshIndex
-{
-	uint32 index : 30;
-	MeshType type : 2;
-};
-
-static_assert(sizeof(MeshIndex) == sizeof(uint32));
-
-ROCOCOAPI IMeshPopulator
-{
-	virtual void Clear() = 0;
-	virtual void Reserve(size_t sizeofVertex, size_t nVertices) = 0;
-	virtual void AddVertex(const void* pData, size_t sizeofVertex) = 0;
-	virtual MeshIndex CommitDynamic(const fstring& name, const fstring& vertexLayout) = 0;
-	virtual MeshIndex CommitImmutable(const fstring& name, const fstring& vertexLayout) = 0;
-	virtual void SetStride(size_t sizeofVertex) = 0;
-
-	template<class T> void Add(const T& t)
-	{
-		AddVertex(&t, sizeof(t));
-	}
-
-	template<class T> void SetVertexType()
-	{
-		SetStride(sizeof(T));
-	}
-};
-
-ROCOCOAPI IMeshCache: public IMeshPopulator
-{
-};
-
 struct MeshGenie
 {
 	LayoutId layout;
@@ -120,23 +25,18 @@ struct MeshGenie
 
 namespace ANON
 {
-	struct VertexField
-	{
-
-	};
-
 	const std::unordered_map<HLSL_Semantic, cstr> mapSemanticToText =
 	{
-		{ HLSL_Semantic::BINORMAL,		"binormal"		},
-		{ HLSL_Semantic::BLENDINDICES,	"blendindices"	},
-		{ HLSL_Semantic::BLENDWEIGHT,	"blendweight"	},
-		{ HLSL_Semantic::COLOR,			"color"			},
-		{ HLSL_Semantic::NORMAL,		"normal"		},
-		{ HLSL_Semantic::POSITION,		"position"		},
-		{ HLSL_Semantic::POSITIONT,		"positiont"		},
-		{ HLSL_Semantic::PSIZE,			"psize"			},
-		{ HLSL_Semantic::TANGENT,		"tangent"		},
-		{ HLSL_Semantic::TEXCOORD,		"texcoord"		}
+		{ HLSL_Semantic::BINORMAL,     "binormal"    },
+		{ HLSL_Semantic::BLENDINDICES, "blendindices"},
+		{ HLSL_Semantic::BLENDWEIGHT,  "blendweight" },
+		{ HLSL_Semantic::COLOR,        "color"       },
+		{ HLSL_Semantic::NORMAL,       "normal"      },
+		{ HLSL_Semantic::POSITION,     "position"    },
+		{ HLSL_Semantic::POSITIONT,    "positiont"   },
+		{ HLSL_Semantic::PSIZE,        "psize"       },
+		{ HLSL_Semantic::TANGENT,      "tangent"     },
+		{ HLSL_Semantic::TEXCOORD,     "texcoord"    }
 	};
 
 	class LayoutBuilder: public IVertexLayoutBuilderSupervisor, private IVertexLayoutBuilder
@@ -178,12 +78,15 @@ namespace ANON
 
 		void CreateLayout(LayoutId id, const void* shaderSignature, size_t lenBytes)
 		{
-			if (id.index >= layouts.size())
+			uint32 index = id.index - 1;
+			if (index >= layouts.size())
 			{
 				Throw(0, "%s: bad layout index", __FUNCTION__);
 			}
 
-			auto& l = layouts[id.index];
+			auto& l = layouts[index];
+
+			if (l.layout) return;
 
 			ID3D11InputLayout* layout = nullptr;
 			HRESULT hr = device.CreateInputLayout(l.descs.data(), (uint32) l.descs.size(), shaderSignature, lenBytes, &layout);
@@ -195,16 +98,24 @@ namespace ANON
 			l.layout = layout;
 		}
 
-		void SetInputLayout(LayoutId id) override
+		bool SetInputLayout(LayoutId id) override
 		{
-			if (id.index >= layouts.size())
+			uint32 index = id.index - 1;
+			if (index >= layouts.size())
 			{
 				Throw(0, "%s: bad layout index", __FUNCTION__);
 			}
 
-			auto& l = layouts[id.index];
-			if (l.layout == nullptr) Throw(0, "%s: no layout created for %s", __FUNCTION__, l.name.c_str());
-			dc.IASetInputLayout(l.layout);
+			auto& l = layouts[index];
+			if (l.layout != nullptr)
+			{
+				dc.IASetInputLayout(l.layout);
+				return false;
+			}
+			else
+			{
+				return true;
+			}
 		}
 
 		void Clear() override
@@ -212,6 +123,10 @@ namespace ANON
 			descBuilder.name = "";
 			descBuilder.layout = nullptr;
 			descBuilder.descs.clear();
+
+			inputSlot = 0;
+			inputClass = D3D11_INPUT_PER_VERTEX_DATA;
+			instanceDataStepRate = 0;
 		}
 
 		LayoutId Commit(const fstring& name) override
@@ -223,26 +138,33 @@ namespace ANON
 				Throw(0, "%s: blank [name]", __FUNCTION__);
 			}
 
-			auto i = nameToLayout.find(name);
-			if (i != nameToLayout.end())
-			{
-				return i->second;
-			}
-
 			if (descBuilder.descs.empty())
 			{
 				Throw(0, "%s(%s): the builder was empty.", __FUNCTION__, name.buffer);
 			}
 
 			descBuilder.name = name;
-			layouts.push_back(descBuilder);
 
-			Clear();
+			auto i = nameToLayout.find(name);
+			if (i != nameToLayout.end())
+			{
+				layouts[i->second.index].layout = nullptr;
+				layouts[i->second.index] = descBuilder;
 
-			auto id = LayoutId{ (uint32)(layouts.size() - 1) };
+				Clear();
 
-			nameToLayout.insert(name, id);
-			return id;
+				return i->second;
+			}
+			else
+			{
+				layouts.push_back(descBuilder);
+
+				Clear();
+
+				auto id = LayoutId{ (uint32)layouts.size() };
+				nameToLayout.insert(name, id);
+				return id;
+			}
 		}
 
 		uint32 inputSlot = 0;
@@ -269,7 +191,7 @@ namespace ANON
 			desc.InputSlot = inputSlot;
 			desc.InputSlotClass = inputClass;
 			desc.InstanceDataStepRate = 0;
-			desc.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+			desc.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT; // oh yes it is
 		}
 
 		void AddRaw(HLSL_Semantic semantic, uint32 semanticIndex, DXGI_FORMAT format)
@@ -320,7 +242,7 @@ namespace ANON
 		}
 	};
 
-	class MeshCache : public IMeshCache 
+	class MeshCache : public IMeshCache, public IMeshPopulator
 	{
 		std::vector<uint8> tempData;
 		size_t sizeofVertex = 0;
@@ -332,12 +254,16 @@ namespace ANON
 
 		ID3D11Device5& device;
 		ID3D11DeviceContext4& dc;
-
 	public:
 		MeshCache(ID3D11Device5& ref_device, ID3D11DeviceContext4& ref_dc): 
 			layouts(ref_device, ref_dc), device(ref_device), dc(ref_dc)
 		{
 
+		}
+
+		IMeshPopulator& GetPopulator() override
+		{
+			return *this;
 		}
 
 		void Clear() override
@@ -346,7 +272,7 @@ namespace ANON
 			sizeofVertex = 0;
 		}
 
-		void Ready(MeshIndex id, uint32 slot)
+		bool UseAsVertexBufferSlot(MeshIndex id, uint32 slot) override
 		{
 			auto index = id.index - 1;
 			if (index >= meshes.size())
@@ -354,12 +280,11 @@ namespace ANON
 				Throw(0, "%s: bad MeshIndex id", __FUNCTION__);
 			}
 
-			auto& g = meshes[index];
+			auto& mesh = meshes[index];
 
 			uint32 offset = 0;
-			dc.IASetVertexBuffers(slot, 1, &g.buffer, &g.stride, &offset);
-			layouts.SetInputLayout(g.layout);
-			
+			dc.IASetVertexBuffers(slot, 1, &mesh.buffer, &mesh.stride, &offset);
+			return layouts.SetInputLayout(mesh.layout);		
 		}
 
 		void SetStride(size_t sizeofVertex) override
@@ -368,7 +293,7 @@ namespace ANON
 			this->sizeofVertex = sizeofVertex;
 		}
 
-		MeshIndex CommitDynamic(const fstring& name, const fstring& vertexLayout) override
+		MeshIndex CommitDynamicVertexBuffer(const fstring& name, const fstring& vertexLayout) override
 		{
 			if (name.length < 1) Throw(0, "%s: blank name", __FUNCTION__);
 
@@ -385,7 +310,7 @@ namespace ANON
 			D3D11_BUFFER_DESC desc;
 			desc.ByteWidth = (uint32)tempData.size();
 			desc.Usage = D3D11_USAGE_DYNAMIC;
-			desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+			desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 			desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 			desc.MiscFlags = 0;
 			desc.StructureByteStride = 0;
@@ -398,7 +323,7 @@ namespace ANON
 			if (i != nameToId.end())
 			{
 				auto& genie = meshes[i->second.index - 1];
-				if (i->second.type != MeshType::Dynamic)
+				if (i->second.type != MeshType::DynamicVertex)
 				{
 					Throw(0, "%s: %s is bound already. And it is not marked dynamic", __FUNCTION__, name.buffer);
 				}
@@ -430,7 +355,7 @@ namespace ANON
 
 				MeshIndex meshId;
 				meshId.index = meshes.size();
-				meshId.type = MeshType::Immutable;
+				meshId.type = MeshType::DynamicVertex;
 				nameToId.insert(name, meshId);
 
 				tempData.clear();
@@ -439,7 +364,7 @@ namespace ANON
 			}
 		}
 
-		MeshIndex CommitImmutable(const fstring& name, const fstring& vertexLayout) override
+		MeshIndex CommitImmutableVertexBuffer(const fstring& name, const fstring& vertexLayout) override
 		{
 			if (name.length < 1) Throw(0, "%s: blank name", __FUNCTION__);
 
@@ -456,8 +381,8 @@ namespace ANON
 			D3D11_BUFFER_DESC desc;
 			desc.ByteWidth = (uint32)tempData.size();
 			desc.Usage = D3D11_USAGE_IMMUTABLE;
-			desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-			desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+			desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+			desc.CPUAccessFlags = 0;
 			desc.MiscFlags = 0;
 			desc.StructureByteStride = 0;
 			D3D11_SUBRESOURCE_DATA data;
@@ -469,7 +394,7 @@ namespace ANON
 			if (i != nameToId.end())
 			{
 				auto& genie = meshes[i->second.index - 1];
-				if (i->second.type != MeshType::Immutable)
+				if (i->second.type != MeshType::ImmutableVertex)
 				{
 					Throw(0, "%s: %s is bound already. And it is not marked immutable", __FUNCTION__, name.buffer);
 				}
@@ -494,7 +419,7 @@ namespace ANON
 
 				MeshIndex meshId;
 				meshId.index = meshes.size();
-				meshId.type = MeshType::Immutable;
+				meshId.type = MeshType::ImmutableVertex;
 				nameToId.insert(name, meshId);
 
 				tempData.clear();
@@ -503,12 +428,145 @@ namespace ANON
 			}
 		}
 
-		void AddVertex(const void* pData, size_t sizeofVertex) override
+		MeshIndex CommitDynamicConstantBuffer(const fstring& name, const void* pData, size_t sizeofBuffer) override
 		{
-			const uint8* p = (const uint8*) pData;
+			if (name.length < 1) Throw(0, "%s: blank name", __FUNCTION__);
+
+			D3D11_BUFFER_DESC desc;
+			desc.ByteWidth = (uint32) sizeofBuffer;
+			desc.Usage = D3D11_USAGE_DYNAMIC;
+			desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+			desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+			desc.MiscFlags = 0;
+			desc.StructureByteStride = 0;
+			D3D11_SUBRESOURCE_DATA data;
+			data.pSysMem = pData;
+			data.SysMemPitch = 0;
+			data.SysMemSlicePitch = 0;
+
+			auto i = nameToId.find(name);
+			if (i != nameToId.end())
+			{
+				auto& genie = meshes[i->second.index - 1];
+				if (i->second.type != MeshType::DynamicConstant)
+				{
+					Throw(0, "%s: %s is bound already. And it is not marked dynamic constant", __FUNCTION__, name.buffer);
+				}
+
+				if (sizeofBuffer > genie.capacityInBytes)
+				{
+					Throw(0, "%s(%s) cannot update dynamic buffer. The vertex queue was longer than the buffer capacity", __FUNCTION__, name);
+				}
+
+				genie.activeBytes = 0;
+				D3D11_MAPPED_SUBRESOURCE x;
+				VALIDATE_HR(dc.Map(genie.buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &x));
+				memcpy(x.pData, pData, sizeofBuffer);
+				dc.Unmap(genie.buffer, 0);
+				genie.activeBytes = sizeofBuffer;
+				return i->second;
+			}
+			else
+			{
+				MeshGenie g;
+				g.layout = LayoutId();
+				g.capacityInBytes = desc.ByteWidth;
+				g.activeBytes = desc.ByteWidth;
+				g.stride = (uint32)sizeofVertex;
+				VALIDATE_HR(device.CreateBuffer(&desc, &data, &g.buffer));
+				meshes.push_back(g);
+
+				MeshIndex meshId;
+				meshId.index = meshes.size();
+				meshId.type = MeshType::DynamicConstant;
+				nameToId.insert(name, meshId);
+
+				return meshId;
+			}
+		}
+
+		void UpdateDynamicConstantBuffer(MeshIndex id, const void* pData, size_t sizeofBuffer) override
+		{
+			auto index = id.index - 1;
+			if (index >= meshes.size())
+			{
+				Throw(0, "%s: bad id", __FUNCTION__);
+			}
+
+			auto& genie = meshes[index];
+
+			if (sizeofBuffer > genie.capacityInBytes)
+			{
+				Throw(0, "%s: cannot update dynamic buffer. The vertex queue was longer than the buffer capacity", __FUNCTION__);
+			}
+
+			genie.activeBytes = 0;
+			D3D11_MAPPED_SUBRESOURCE x;
+			VALIDATE_HR(dc.Map(genie.buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &x));
+			memcpy(x.pData, pData, sizeofBuffer);
+			dc.Unmap(genie.buffer, 0);
+			genie.activeBytes = sizeofBuffer;
+		}
+
+		MeshIndex CommitImmutableConstantBuffer(const fstring& name) override
+		{
+			if (name.length < 1) Throw(0, "%s: blank name", __FUNCTION__);
+
+			D3D11_BUFFER_DESC desc;
+			desc.ByteWidth = (uint32)tempData.size();
+			desc.Usage = D3D11_USAGE_IMMUTABLE;
+			desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+			desc.CPUAccessFlags = 0;
+			desc.MiscFlags = 0;
+			desc.StructureByteStride = 0;
+			D3D11_SUBRESOURCE_DATA data;
+			data.pSysMem = tempData.data();
+			data.SysMemPitch = 0;
+			data.SysMemSlicePitch = 0;
+
+			auto i = nameToId.find(name);
+			if (i != nameToId.end())
+			{
+				auto& genie = meshes[i->second.index - 1];
+				if (i->second.type != MeshType::ImmutableConstant)
+				{
+					Throw(0, "%s: %s is bound already. And it is not marked immutable constant", __FUNCTION__, name.buffer);
+				}
+				genie.buffer = nullptr;
+				genie.capacityInBytes = 0;
+				genie.activeBytes = 0;
+				VALIDATE_HR(device.CreateBuffer(&desc, &data, &genie.buffer));
+				genie.capacityInBytes = desc.ByteWidth;
+				genie.activeBytes = desc.ByteWidth;
+				tempData.clear();
+				return i->second;
+			}
+			else
+			{
+				MeshGenie g;
+				g.layout = LayoutId();
+				g.capacityInBytes = desc.ByteWidth;
+				g.activeBytes = desc.ByteWidth;
+				g.stride = (uint32)sizeofVertex;
+				VALIDATE_HR(device.CreateBuffer(&desc, &data, &g.buffer));
+				meshes.push_back(g);
+
+				MeshIndex meshId;
+				meshId.index = meshes.size();
+				meshId.type = MeshType::ImmutableConstant;
+				nameToId.insert(name, meshId);
+
+				return meshId;
+			}
+		}
+
+		void AddVertex(const void* v, size_t sizeofVertex) override
+		{
+			size_t writeAt = tempData.size();
 			for (size_t i = 0; i < sizeofVertex; ++i)
 			{
-				tempData.push_back(p[i]);
+				tempData.resize(writeAt + sizeofVertex);
+				memcpy(tempData.data() + writeAt, v, sizeofVertex);
 			}
 		}
 

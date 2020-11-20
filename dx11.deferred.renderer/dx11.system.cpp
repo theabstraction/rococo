@@ -12,7 +12,7 @@ using namespace Rococo::Graphics;
 
 namespace Rococo::Graphics
 {
-	IDX11Window* CreateDX11Window(IDXGIFactory7& factory, ID3D11Device5& device, ID3D11DeviceContext4& dc, DX11WindowContext& wc);
+	IDX11Window* CreateDX11Window(IDX11System& system, DX11WindowContext& wc);
 }
 
 namespace ANON
@@ -62,6 +62,21 @@ namespace ANON
 			textures = Rococo::Graphics::CreateTextureCache(installation, *device5, *dc);
 		}
 
+		ID3D11Device5& Device() override
+		{
+			return *device5;
+		}
+
+		ID3D11DeviceContext4& DC() override
+		{
+			return *dc;
+		}
+
+		IDXGIFactory7& Factory() override
+		{
+			return ac.f;
+		}
+
 		IShaderCache& Shaders() override
 		{
 			return *shaders;
@@ -74,7 +89,7 @@ namespace ANON
 
 		IDX11Window* CreateDX11Window(DX11WindowContext& wc)
 		{
-			return Rococo::Graphics::CreateDX11Window(ac.f, *device5, *dc, wc);
+			return Rococo::Graphics::CreateDX11Window(*this, wc);
 		}
 
 		void Free() override
