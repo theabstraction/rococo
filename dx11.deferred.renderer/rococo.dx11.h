@@ -10,6 +10,19 @@ struct IDXGIOutput;
 struct ID3D11Device5;
 struct ID3D11DeviceContext4;
 struct ID3D11RenderTargetView1;
+struct ID3D11RenderTargetView;
+struct ID3D11DepthStencilView;
+struct ID3D11ShaderResourceView;
+struct ID3D11Texture2D1;
+struct ID3D11Resource;
+struct D3D11_BOX;
+struct ID3D11BlendState;
+struct ID3D11DepthStencilState;
+struct ID3D11RasterizerState;
+struct ID3D11InputLayout;
+struct ID3D11Buffer;
+enum D3D11_MAP;
+struct D3D11_MAPPED_SUBRESOURCE;
 
 namespace Rococo::Textures
 {
@@ -127,6 +140,8 @@ namespace Rococo::Graphics
 	};
 
 	IWin32AdapterContext* CreateWin32AdapterContext(int32 adapterIndex, int32 outputIndex);
+	
+	struct IPipelineSupervisor;
 
 	ROCOCOAPI IDX11Window
 	{
@@ -136,23 +151,6 @@ namespace Rococo::Graphics
 		virtual Rococo::Windows::IWindow& Window() = 0;
 		virtual void UpdateFrame() = 0;
 		virtual void Free() = 0;
-	};
-
-	ROCOCOAPI IDX1RendererWindowEventHandler
-	{
-		virtual void OnCloseRequested(IDX11Window & window) = 0;
-		virtual void OnMessageQueueException(IDX11Window& window, IException& ex) = 0;
-		virtual void OnKeyboardEvent(const RAWKEYBOARD& k, HKL hKeyboardLayout) = 0;
-		virtual void OnMouseEvent(const RAWMOUSE& m) = 0;
-	};
-
-	struct DX11WindowContext
-	{
-		Windows::IWindow& parent;
-		IDX1RendererWindowEventHandler& evHandler;
-		Vec2i windowedSpan;
-		cstr title;
-		void* hResourceInstance;
 	};
 
 	enum class TextureType : uint32
@@ -169,6 +167,27 @@ namespace Rococo::Graphics
 		uint32 index : 24 = 0;
 		TextureType type : 4 = TextureType::None;
 		uint32 unused : 4 = 0;
+
+		operator bool() const { return index != 0;  }
+	};
+
+	ROCOCOAPI IDX1RendererWindowEventHandler
+	{
+		virtual void OnCloseRequested(IDX11Window & window) = 0;
+		virtual void OnMessageQueueException(IDX11Window& window, IException& ex) = 0;
+		virtual void OnKeyboardEvent(const RAWKEYBOARD& k, HKL hKeyboardLayout) = 0;
+		virtual void OnMouseEvent(const RAWMOUSE& m) = 0;
+		virtual void OnResizeBackBuffer(TextureId idBackBuffer, Vec2i span) = 0;
+		virtual void OnUpdateFrame(TextureId idBackBuffer) = 0;
+	};
+
+	struct DX11WindowContext
+	{
+		Windows::IWindow& parent;
+		IDX1RendererWindowEventHandler& evHandler;
+		Vec2i windowedSpan;
+		cstr title;
+		void* hResourceInstance;
 	};
 
 	static_assert(sizeof(TextureId) == sizeof(uint32));
@@ -200,22 +219,58 @@ namespace Rococo::Graphics
 
 	ROCOCOAPI ITextureCache : ITextureBuilder
 	{
-		virtual void ReloadAsset(TextureId id) = 0;
 		virtual bool AssignTextureToShaders(TextureId id, uint32 textureUnit) = 0;
+		virtual void ClearDepthBuffer(TextureId id, float depth, uint8 stencilBits) = 0;
 		virtual void ClearRenderTarget(TextureId id, const RGBA& clearColour) = 0;
-		virtual	void UseTexturesAsRenderTargets(const RenderTarget* targets, uint32 nTargets, TextureId idDepthStencil) = 0;
+		virtual Vec2i GetSpan(TextureId id) const = 0;
+		virtual void ReloadAsset(TextureId id) = 0;
+		virtual void UpdateSpanFromSystem(TextureId id) = 0;
+		virtual	void UseTexturesAsRenderTargets(const RenderTarget* targets, uint32 nTargets, TextureId idDepthStencil) = 0;	
+	};
+
+	struct TextureViewFlags
+	{
+		uint32 ShaderResource : 1;
+		uint32 RenderTarget : 1;
+		uint32 DepthStencil : 1;
+	};
+
+	ROCOCOAPI ITextureSupervisor : ITextureCache
+	{
+		virtual TextureId AddTx2D_Direct(cstr name, ID3D11Texture2D1 * tx2D, TextureViewFlags flags) = 0;
 		virtual void Free() = 0;
 	};
 
-	ITextureCache* CreateTextureCache(IInstallation& installation, ID3D11Device5& device, ID3D11DeviceContext4& dc);
+	ROCOCOAPI IDX11DeviceContext
+	{
+		virtual void UpdateSubresource(ID3D11Resource& resource, uint32 subresourceIndex, const D3D11_BOX& box, const void* pixels, uint32 lineSpan, uint32 srcDepth) = 0;
+		virtual void OMSetRenderTargets(uint32 NumViews, ID3D11RenderTargetView* const* ppRenderTargetViews, ID3D11DepthStencilView* pDepthStencilView) = 0;
+		virtual void PSSetShaderResources(uint32 StartSlot, uint32 NumViews, ID3D11ShaderResourceView* const* ppShaderResourceViews) = 0;
+		virtual void VSSetShaderResources(uint32 StartSlot, uint32 NumViews, ID3D11ShaderResourceView* const* ppShaderResourceViews) = 0;
+		virtual void ClearRenderTargetView(ID3D11RenderTargetView* pRenderTargetView, const RGBA& colour) = 0;
+		virtual void ClearDepthStencilView(ID3D11DepthStencilView* pDepthStencilView, uint32 ClearFlags, float Depth, uint8 Stencil) = 0;
+		virtual void OMSetBlendState(ID3D11BlendState* pBlendState, const RGBA& blendFactor, uint32 sampleMask) = 0;
+		virtual void OMSetDepthStencilState(ID3D11DepthStencilState* pDepthStencilState, uint32 StencilRef) = 0;
+		virtual void RSSetScissorRects(uint32 NumRects, const RECT* pRects) = 0;
+		virtual void RSSetState(ID3D11RasterizerState* pRasterizerState) = 0;
+		virtual void IASetInputLayout(ID3D11InputLayout* pInputLayout) = 0;
+		virtual void GenerateMips(ID3D11ShaderResourceView* pShaderResourceView) = 0;
+		virtual void IASetVertexBuffers(uint32 StartSlot, uint32 NumBuffers, ID3D11Buffer* const* ppVertexBuffers, const uint32* pStrides, const uint32* pOffsets) = 0;
+		virtual HRESULT Map(ID3D11Resource* pResource, uint32 Subresource, D3D11_MAP MapType, uint32 MapFlags, D3D11_MAPPED_SUBRESOURCE* pMappedResource) = 0;
+		virtual void Unmap(ID3D11Resource* pResource, uint32 Subresource) = 0;
+	};
+
+	ITextureSupervisor* CreateTextureCache(IInstallation& installation, ID3D11Device5& device, IDX11DeviceContext& dc);
 
 	ROCOCOAPI IDX11System
 	{
+		virtual void Lock() = 0;
+		virtual void Unlock() = 0;
 		virtual ITextureCache & Textures() = 0;
 		virtual IShaderCache& Shaders() = 0;
 		virtual IDX11Window * CreateDX11Window(DX11WindowContext& context) = 0;
 		virtual ID3D11Device5& Device() = 0;
-		virtual ID3D11DeviceContext4& DC() = 0;
+		virtual IDX11DeviceContext& DC() = 0;
 		virtual IDXGIFactory7& Factory() = 0;
 		virtual void Free() = 0;
 	};
@@ -223,11 +278,6 @@ namespace Rococo::Graphics
 	IDX11System* CreateDX11System(AdapterContext& ac, IInstallation& installation);
 
 	void ValidateHR(HRESULT hr, const char* badcall, const char* function, const char* file, int lineNumber);
-
-	ROCOCOAPI IRenderStage
-	{
-
-	};
 
 	// D3D11_COMPARISON_FUNC
 	enum class ComparisonFunc
@@ -317,11 +367,11 @@ namespace Rococo::Graphics
 
 	enum class SamplerAddressMode : uint32
 	{
-		ADDRESS_WRAP = 1,
-		ADDRESS_MIRROR = 2,
-		ADDRESS_CLAMP = 3,
-		ADDRESS_BORDER = 4,
-		ADDRESS_MIRROR_ONCE = 5
+		WRAP = 1,
+		MIRROR = 2,
+		CLAMP = 3,
+		BORDER = 4,
+		MIRROR_ONCE = 5
 	};
 
 	struct Sampler
@@ -337,6 +387,29 @@ namespace Rococo::Graphics
 		float minLOD;
 	};
 
+	ROCOCOAPI IRenderStage
+	{
+		virtual void AddDepthStencilBuffer(TextureId id, float clearDepth, uint8 stencilBits) = 0;
+		virtual void AddInput(TextureId id, uint32 textureUnit, const Sampler & sampler) = 0;
+		virtual void AddOutput(TextureId id, uint32 renderTargetIndex, uint32 mipMapIndex, RenderTargetFlags flags, const RGBA& clearColour) = 0;
+		virtual void SetEnableDepth(bool isEnabled) = 0;
+		virtual void SetDepthComparison(ComparisonFunc func) = 0;
+		virtual void SetDepthWriteEnable(bool isEnabled) = 0;
+		virtual void ValidateUnit(cstr function, uint32 index) = 0;
+		virtual void SetEnableScissors(const GuiRect* pRect) = 0;
+		virtual void SetEnableMultisample(bool isEnabled) = 0;
+		virtual void SetEnableDepthClip(bool isEnabled) = 0;
+		virtual void SetWireframeRendering(bool isEnabled) = 0;
+		virtual void SetCullMode(int32 direction) = 0;
+		virtual void SetBlendOp(BlendOp op, uint32 unit = 0) = 0;
+		virtual void SetBlendAlphaOp(BlendOp op, uint32 unit = 0) = 0;
+		virtual void SetEnableBlend(BOOL bEnable, uint32 unit = 0) = 0;
+		virtual void SetSrcAlphaBlend(BlendValue value, uint32 unit = 0) = 0;
+		virtual void SetDestAlphaBlend(BlendValue value, uint32 unit = 0) = 0;
+		virtual void SetSrcBlend(BlendValue value, uint32 unit = 0) = 0;
+		virtual void SetDestBlend(BlendValue value, uint32 unit = 0) = 0;
+	};
+
 	ROCOCOAPI IRenderStageSupervisor : public IRenderStage
 	{
 		virtual void Execute() = 0;
@@ -344,6 +417,8 @@ namespace Rococo::Graphics
 		virtual uint32 AddRef() = 0;
 		virtual uint32 Release() = 0;
 	};
+
+	IRenderStageSupervisor* CreateRenderStageBasic(IDX11System& system);
 
 	ROCOCOAPI IPipelineBuilder
 	{
@@ -357,4 +432,6 @@ namespace Rococo::Graphics
 		virtual IPipelineBuilder& GetBuilder() = 0;
 		virtual void Free() = 0;
 	};
+
+	IPipelineSupervisor* CreatePipeline(IDX11System& system);
 }

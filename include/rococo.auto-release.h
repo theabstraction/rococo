@@ -14,11 +14,22 @@ namespace Rococo
 		{
 		}
 
-		AutoRelease& operator = (T* _t)
+		AutoRelease(AutoRelease<T>&& other)
+		{
+			t = other.t;
+			other.t = nullptr;
+		}
+
+		AutoRelease<T>& operator = (const T* _t)
 		{
 			if (t) t->Release();
-			t = _t;
+			t = const_cast<T*>(_t);
 			return *this;
+		}
+
+		AutoRelease(const AutoRelease<T>& src)
+		{
+			t = src.t;
 		}
 
 		AutoRelease(T* _t) : t(_t)

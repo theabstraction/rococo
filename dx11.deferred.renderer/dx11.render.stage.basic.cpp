@@ -108,7 +108,7 @@ namespace ANON
 			depthStencilState = nullptr;
 		}
 
-		void SetDepthWriteEnable(BOOL isEnabled)
+		void SetDepthWriteEnable(bool isEnabled)
 		{
 			depthStencilDesc.DepthWriteMask = isEnabled ? D3D11_DEPTH_WRITE_MASK_ALL : D3D11_DEPTH_WRITE_MASK_ZERO;
 			depthStencilState = nullptr;
@@ -232,13 +232,6 @@ namespace ANON
 			blendState = nullptr;
 		}
 
-		void Set(BlendValue value, uint32 unit = 0)
-		{
-			ValidateUnit(__FUNCTION__, unit);
-			blendDesc.RenderTarget[unit].DestBlend = (D3D11_BLEND)value;
-			blendState = nullptr;
-		}
-
 		void UseState()
 		{
 			auto& dc = system.DC();
@@ -248,7 +241,7 @@ namespace ANON
 				VALIDATE_HR(device.CreateBlendState(&blendDesc, &blendState));
 			}
 
-			dc.OMSetBlendState(blendState, &blendFactor.red, sampleMask);
+			dc.OMSetBlendState(blendState, blendFactor, sampleMask);
 
 			if (!rasterizerState)
 			{
@@ -304,14 +297,20 @@ namespace ANON
 			txUnits.push_back({id, textureUnit, desc});
 		}
 
-		void AddOutput(TextureId id, uint32 renderTargetIndex, uint32 mipMapIndex, RenderTargetFlags flags, const RGBA& clearColour)
+		void AddOutput(TextureId id, uint32 renderTargetIndex, uint32 mipMapIndex, RenderTargetFlags flags, const RGBA& clearColour) override
 		{
+			if (renderTargets.size() == 8) Throw(0, "%s: Max render targets reached", __FUNCTION__);
 			renderTargets.push_back( { id, renderTargetIndex, flags, clearColour });
 		}
 
-		void AddDepthStencilBuffer(TextureId id)
+		float clearDepth = 1.0f;
+		uint8 stencilBits = 0;
+
+		void AddDepthStencilBuffer(TextureId id, float clearDepth, uint8 stencilBits) override
 		{
-			idDepthStencilBuffer = id;
+			this->idDepthStencilBuffer = id;
+			this->clearDepth = clearDepth;
+			this->stencilBits = stencilBits;
 		}
 
 		void Execute() override
@@ -348,6 +347,11 @@ namespace ANON
 				{
 					textures.ClearRenderTarget(rt.id, rt.clearColour);
 				}
+			}
+
+			if (idDepthStencilBuffer)
+			{
+				textures.ClearDepthBuffer(idDepthStencilBuffer, this->clearDepth, this->stencilBits);
 			}
 
 			// Outputs

@@ -26,6 +26,7 @@ namespace ANON
 		};
 
 		std::vector<Stage> stages;
+
 	public:
 		Pipeline(IDX11System& ref_system): system(ref_system)
 		{
@@ -49,6 +50,7 @@ namespace ANON
 
 		void AddStage(cstr friendlyName, IRenderStageSupervisor* stage) override
 		{
+			stage->AddRef();
 			stages.push_back({ friendlyName, stage });
 		}
 

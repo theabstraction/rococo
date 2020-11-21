@@ -43,6 +43,12 @@ namespace Rococo
 		stringAllocator = (a == nullptr) ? &defaultAllocator : a;
 	}
 
+	HString::HString(HString&& other)
+	{
+		data = other.data;
+		other.data = &nullData;
+	}
+
 	HString::HString(cstr s)
 	{
 		if (s == nullptr)

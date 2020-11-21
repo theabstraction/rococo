@@ -146,12 +146,16 @@ namespace ANON
 		bool hasFocus = false;
 		HKL keyboardLayout = nullptr;
 		AutoRelease<IDXGISwapChain4> swapChain;
-		AutoRelease<ID3D11RenderTargetView1> renderTargetView;
 		AutoFree<IExpandingBuffer> eventBuffer;
 		IShaderCache* shaders = nullptr;
+		ITextureSupervisor& textures;
+
+		TextureId idBackBuffer;
+		TextureId idDepthBuffer;
 	public:
-		DX11Window(IDX11System& ref_system, DX11WindowContext& ref_wc):
-			dxgiFactory(ref_system.Factory()), system(ref_system), wc(ref_wc), eventBuffer(CreateExpandingBuffer(128))
+		DX11Window(IDX11System& ref_system, DX11WindowContext& ref_wc, ITextureSupervisor& ref_textures):
+			dxgiFactory(ref_system.Factory()), system(ref_system), wc(ref_wc), 
+			eventBuffer(CreateExpandingBuffer(128)), textures(ref_textures)
 		{
 			RegisterWndHandler((HINSTANCE)wc.hResourceInstance);
 			hMainWnd = CreateWindowFromContext(wc);
@@ -173,15 +177,31 @@ namespace ANON
 				AutoRelease<ID3D11Texture2D> backBuffer;
 				VALIDATE_HR(swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backBuffer));
 
-				AutoRelease<ID3D11RenderTargetView> rtv;
-				VALIDATE_HR(device.CreateRenderTargetView(backBuffer, nullptr, &rtv));
-				VALIDATE_HR(rtv->QueryInterface(&renderTargetView));
+				ID3D11Texture2D1* back1 = nullptr;
+				VALIDATE_HR(backBuffer->QueryInterface(&back1));
+
+				char backbuffername[32];
+				SafeFormat(backbuffername, "BackBuffer_H%X", hMainWnd);
+
+				TextureViewFlags flags;
+				flags.DepthStencil = false;
+				flags.RenderTarget = true;
+				flags.ShaderResource = false;
+				idBackBuffer = textures.AddTx2D_Direct(backbuffername, back1, flags);
+				
+				Vec2i span = textures.GetSpan(idBackBuffer);
+
+				char depthbuffername[32];
+				SafeFormat(depthbuffername, "DepthBuffer_H%X", hMainWnd);
+				idDepthBuffer = textures.AddDepthStencil(depthbuffername, span, 32, 0);
 
 				LOGFONTA logFont = { 0 };
 				SafeFormat(logFont.lfFaceName, "Consolas");
 				logFont.lfHeight = -11;
 
 				consoleFont = CreateFontIndirectA(&logFont);
+
+				wc.evHandler.OnResizeBackBuffer(idBackBuffer, span);
 			}
 			catch (IException&)
 			{
@@ -494,6 +514,14 @@ namespace ANON
 			if (UpdateShaderState())
 			{
 				InvalidateRect(hMainWnd, nullptr, FALSE);
+				return;
+			}
+			
+			if (badShaders.empty())
+			{
+				wc.evHandler.OnUpdateFrame(idBackBuffer);
+
+				swapChain->Present(1, 0);
 			}
 		}
 	};
@@ -501,9 +529,9 @@ namespace ANON
 
 namespace Rococo::Graphics
 {
-	IDX11Window* CreateDX11Window(IDX11System& system, DX11WindowContext& wc)
+	IDX11Window* CreateDX11Window(IDX11System& system, DX11WindowContext& wc, ITextureSupervisor& textures)
 	{
-		auto* w = new ANON::DX11Window(system, wc);
+		auto* w = new ANON::DX11Window(system, wc, textures);
 		w->ActivateCustomWindowsProcedureAndMakeVisible();
 		w->WaitFrames(10, 10);
 		return w;

@@ -42,7 +42,7 @@ namespace ANON
 	class LayoutBuilder: public IVertexLayoutBuilderSupervisor, private IVertexLayoutBuilder
 	{
 		ID3D11Device5& device;
-		ID3D11DeviceContext4& dc;
+		IDX11DeviceContext& dc;
 		struct VertexLayout
 		{
 			HString name;
@@ -52,10 +52,10 @@ namespace ANON
 
 		std::vector<VertexLayout> layouts;
 		stringmap<LayoutId> nameToLayout;
-		VertexLayout descBuilder;
-
+		std::vector<D3D11_INPUT_ELEMENT_DESC> descs;
+		HString descName;
 	public:
-		LayoutBuilder(ID3D11Device5& ref_device, ID3D11DeviceContext4& ref_dc): device(ref_device), dc(ref_dc)
+		LayoutBuilder(ID3D11Device5& ref_device, IDX11DeviceContext& ref_dc): device(ref_device), dc(ref_dc)
 		{
 			
 		}
@@ -120,9 +120,8 @@ namespace ANON
 
 		void Clear() override
 		{
-			descBuilder.name = "";
-			descBuilder.layout = nullptr;
-			descBuilder.descs.clear();
+			descName = "";
+			descs.clear();
 
 			inputSlot = 0;
 			inputClass = D3D11_INPUT_PER_VERTEX_DATA;
@@ -138,26 +137,26 @@ namespace ANON
 				Throw(0, "%s: blank [name]", __FUNCTION__);
 			}
 
-			if (descBuilder.descs.empty())
+			if (descs.empty())
 			{
 				Throw(0, "%s(%s): the builder was empty.", __FUNCTION__, name.buffer);
 			}
 
-			descBuilder.name = name;
+			descName = name;
 
 			auto i = nameToLayout.find(name);
 			if (i != nameToLayout.end())
 			{
 				layouts[i->second.index].layout = nullptr;
-				layouts[i->second.index] = descBuilder;
-
+				layouts[i->second.index].descs = descs;
+				layouts[i->second.index].name = name;
 				Clear();
 
 				return i->second;
 			}
 			else
 			{
-				layouts.push_back(descBuilder);
+				layouts.push_back(VertexLayout{ descName, descs, nullptr });
 
 				Clear();
 
@@ -199,7 +198,7 @@ namespace ANON
 			D3D11_INPUT_ELEMENT_DESC desc;
 			InitStandardDesc(desc, semantic, semanticIndex);
 
-			for (auto& line : descBuilder.descs)
+			for (auto& line : descs)
 			{
 				if (line.SemanticName == desc.SemanticName && line.SemanticIndex == desc.SemanticIndex)
 				{
@@ -208,7 +207,7 @@ namespace ANON
 			}
 
 			desc.Format = format;
-			descBuilder.descs.push_back(desc);
+			descs.push_back(desc);
 		}
 
 		void AddRGBAb(uint32 semanticIndex)
@@ -253,9 +252,9 @@ namespace ANON
 		LayoutBuilder layouts;
 
 		ID3D11Device5& device;
-		ID3D11DeviceContext4& dc;
+		IDX11DeviceContext& dc;
 	public:
-		MeshCache(ID3D11Device5& ref_device, ID3D11DeviceContext4& ref_dc): 
+		MeshCache(ID3D11Device5& ref_device, IDX11DeviceContext& ref_dc): 
 			layouts(ref_device, ref_dc), device(ref_device), dc(ref_dc)
 		{
 
@@ -588,7 +587,7 @@ namespace ANON
 
 namespace Rococo::Graphics
 {
-	IMeshCache* CreateMeshCache(ID3D11Device5& device, ID3D11DeviceContext4& dc)
+	IMeshCache* CreateMeshCache(ID3D11Device5& device, IDX11DeviceContext& dc)
 	{
 		return new ANON::MeshCache(device, dc);
 	}

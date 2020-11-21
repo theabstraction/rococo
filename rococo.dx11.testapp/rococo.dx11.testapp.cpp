@@ -15,6 +15,7 @@
 #include <sexy.lib.s-parser.h>
 #include <sexy.lib.util.h>
 #include <sexy.lib.script.h>
+#include <rococo.auto-release.h>
 
 #ifdef _DEBUG
 # pragma comment(lib, "rococo.windows.debug.lib")
@@ -44,7 +45,7 @@ using namespace Rococo::Graphics;
 
 void Main(HINSTANCE hInstance)
 {
-	// Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
+	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
 
 	AutoFree<IOSSupervisor> os = GetOS();
 	AutoFree<IInstallationSupervisor> installation = CreateInstallation(L"content.indicator.txt", *os);
@@ -55,11 +56,25 @@ void Main(HINSTANCE hInstance)
 	installation->ConvertPingPathToSysPath("!shaders/", shaderPath);
 	os->Monitor(shaderPath);
 
-	struct CONTEXT : IDX1RendererWindowEventHandler
+	AutoFree<IPipelineSupervisor> pipeline = CreatePipeline(*dx11);
+
+	struct CLOSURE : IDX1RendererWindowEventHandler
 	{
 		bool isRunning = true;
 		int err = 0;
 		HString msg;
+
+		IDX11System& system;
+		IPipelineSupervisor& pipeline;
+
+		TextureId idBackBuffer;
+		TextureId idDepthBuffer;
+
+		CLOSURE(IPipelineSupervisor& ref_pipeline, IDX11System& ref_system):
+			system(ref_system), pipeline(ref_pipeline)
+		{
+
+		}
 
 		void OnCloseRequested(IDX11Window& window) override
 		{
@@ -82,6 +97,19 @@ void Main(HINSTANCE hInstance)
 
 		}
 
+		void OnResizeBackBuffer(TextureId idBackBuffer, Vec2i span) override
+		{
+			system.Textures().UpdateSpanFromSystem(idBackBuffer);
+
+			this->idBackBuffer = idBackBuffer;
+			this->idDepthBuffer = system.Textures().AddDepthStencil("depth", span, 32, 0);
+		}
+
+		void OnUpdateFrame(TextureId idBackBuffer) override
+		{
+			pipeline.Execute();
+		}
+
 		void ThrowOnError()
 		{
 			if (err != 0 || msg.length() != 0)
@@ -89,7 +117,7 @@ void Main(HINSTANCE hInstance)
 				Throw(err, msg);
 			}
 		}
-	} app;
+	} app(*pipeline, *dx11);
 
 	DX11WindowContext wc{ Windows::NoParent(), app, {800,600}, "DX11 Test Window", hInstance };
 	AutoFree<IDX11Window> window = dx11->CreateDX11Window(wc);
@@ -108,6 +136,52 @@ void Main(HINSTANCE hInstance)
 	dx11->Textures().AddElementToArray(idSprites, "!textures/hv/icons/bastard.sword.tif");
 	dx11->Textures().AddElementToArray(idSprites, "!textures/hv/icons/mace.tif");
 	dx11->Textures().ReloadAsset(idSprites);
+
+	AutoRelease<IRenderStageSupervisor> guiLayer = CreateRenderStageBasic(*dx11);
+
+	RECT rect;
+	GetClientRect(window->Window(), &rect);
+	GuiRect guiRect{ 0, 0, rect.right, rect.bottom };
+	guiLayer->SetEnableScissors(&guiRect);
+
+	guiLayer->SetDepthWriteEnable(false);
+	guiLayer->SetEnableDepth(false);
+	guiLayer->SetSrcBlend(BlendValue::SRC_ALPHA);
+	guiLayer->SetDestBlend(BlendValue::INV_SRC_ALPHA);
+	guiLayer->SetEnableBlend(true);
+	guiLayer->SetBlendOp(BlendOp::ADD);
+	guiLayer->SetCullMode(0);
+
+	Sampler spriteDef;
+	spriteDef.filter = SamplerFilter::MIN_MAG_MIP_POINT;
+	spriteDef.maxAnisotropy = 1;
+	spriteDef.comparison = ComparisonFunc::ALWAYS;
+	spriteDef.maxLOD = 1000000.0f;
+	spriteDef.minLOD = 0;
+	spriteDef.mipLODBias = 0;
+	spriteDef.U = SamplerAddressMode::BORDER;
+	spriteDef.V = SamplerAddressMode::BORDER;
+	spriteDef.W = SamplerAddressMode::BORDER;
+	guiLayer->AddInput(idSprites, 7, spriteDef);
+
+	Sampler fontDef;
+	fontDef.filter = SamplerFilter::MIN_MAG_MIP_LINEAR;
+	fontDef.maxAnisotropy = 1;
+	fontDef.comparison = ComparisonFunc::ALWAYS;
+	fontDef.maxLOD = 1000000.0f;
+	fontDef.minLOD = 0;
+	fontDef.mipLODBias = 0;
+	fontDef.U = SamplerAddressMode::BORDER;
+	fontDef.V = SamplerAddressMode::BORDER;
+	fontDef.W = SamplerAddressMode::BORDER;
+	guiLayer->AddInput(idScalableFontTexture, 0, fontDef);
+
+	RenderTargetFlags flags;
+	flags.clearWhenAssigned = true;
+	guiLayer->AddOutput(app.idBackBuffer,  0, 0, flags, RGBA{ 0, 1, 0, 1});
+	guiLayer->AddDepthStencilBuffer(app.idDepthBuffer, 1.0f, 0);
+
+	pipeline->GetBuilder().AddStage("gui", guiLayer);
 
 	auto start = Rococo::OS::CpuTicks();
 

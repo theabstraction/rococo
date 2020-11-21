@@ -89,6 +89,7 @@ namespace Rococo
 	   HStringData* data;
    public:
 	   HString();
+	   HString(HString&& other);
 	   HString(const HString& s);
 	   HString(cstr s);
 	   HString& operator = (const HString& s);

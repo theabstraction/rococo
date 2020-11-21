@@ -73,12 +73,12 @@ namespace ANON
 	struct UVAtlasBuilder : ITextureArray
 	{
 		ID3D11Device5& device;
-		ID3D11DeviceContext4& dc;
+		IDX11DeviceContext& dc;
 		AutoRelease<ID3D11Texture2D1> tx2D;
 		uint32 count = 0;
 		int32 width = 0;
 
-		UVAtlasBuilder(ID3D11Device5& ref_device, ID3D11DeviceContext4& ref_dc) : device(ref_device), dc(ref_dc) {}
+		UVAtlasBuilder(ID3D11Device5& ref_device, IDX11DeviceContext& ref_dc) : device(ref_device), dc(ref_dc) {}
 
 		void AddTexture() override
 		{
@@ -136,7 +136,7 @@ namespace ANON
 
 			auto lineSpan = (size_t)Width(targetLocation) * sizeof(RGBAb);
 			auto srcDepth = lineSpan * (size_t)Height(targetLocation);
-			dc.UpdateSubresource(tx2D, subresourceIndex, &box, pixels, (UINT)lineSpan, (UINT)srcDepth);
+			dc.UpdateSubresource(*tx2D, subresourceIndex, box, pixels, (uint32)lineSpan, (uint32)srcDepth);
 		}
 
 		void WriteSubImage(size_t index, const uint8* grayScalePixels, Vec2i span) override
@@ -246,7 +246,7 @@ namespace ANON
 
 		AutoFree<ITextureArrayBuilderSupervisor> innerBuilder;
 	public:
-		UVAtlas(IInstallation& installation, ID3D11Device5& device, ID3D11DeviceContext4& dc):
+		UVAtlas(IInstallation& installation, ID3D11Device5& device, IDX11DeviceContext& dc):
 			imageLoader(installation),
 			uvaBuilder(device, dc)
 		{
@@ -290,9 +290,9 @@ namespace ANON
 	{
 		IInstallation& installation;
 		ID3D11Device5& device;
-		ID3D11DeviceContext4& dc;
+		IDX11DeviceContext& dc;
 	public:
-		ImageFileTextureLoader(IInstallation& ref_installation, ID3D11Device5& ref_device, ID3D11DeviceContext4& ref_dc):
+		ImageFileTextureLoader(IInstallation& ref_installation, ID3D11Device5& ref_device, IDX11DeviceContext& ref_dc):
 			installation(ref_installation), device(ref_device), dc(ref_dc)
 		{
 
@@ -461,7 +461,7 @@ namespace ANON
 				{
 					DXGI_FORMAT format;
 					ID3D11Device5* device = nullptr;
-					ID3D11DeviceContext4* dc = nullptr;
+					IDX11DeviceContext* dc = nullptr;
 					ID3D11Texture2D1* tx2D = nullptr;
 					bool mipMap = false;
 					int index = 0;
@@ -482,7 +482,10 @@ namespace ANON
 
 					void WriteElement(const void* texels, size_t sizeofTexel)
 					{
-						UINT subresourceIndex = D3D11CalcSubresource(0, (UINT)index, 1);
+						D3D11_TEXTURE2D_DESC desc;
+						tx2D->GetDesc(&desc);
+
+						UINT subresourceIndex = D3D11CalcSubresource(0, (UINT)index, desc.MipLevels);
 
 						D3D11_BOX box;
 						box.left = 0;
@@ -493,7 +496,7 @@ namespace ANON
 						box.bottom = span.y;
 
 						auto srcDepth = (size_t) span.x * (size_t) span.y * sizeofTexel;
-						dc->UpdateSubresource(tx2D, subresourceIndex, &box, texels, (UINT)((size_t) span.x * sizeofTexel), (UINT) srcDepth);
+						dc->UpdateSubresource(*tx2D, subresourceIndex, box, texels, (uint32)((size_t) span.x * sizeofTexel), (uint32) srcDepth);
 					}
 
 					void OnRGBAImage(const Vec2i& span, const RGBAb* texels) override
@@ -547,16 +550,23 @@ namespace ANON
 				index++;
 			}
 
+			if (mipMap)
+			{
+				AutoRelease<ID3D11ShaderResourceView> mipsView;
+				device.CreateShaderResourceView(tx2D, nullptr, &mipsView);
+				dc.GenerateMips(mipsView);
+			}
+
 			tx2D->AddRef();
 			return tx2D.Detach();
 		}
 	};
 
-	class TextureCache : public ITextureCache, private OS::IThreadJob
+	class TextureCache : public ITextureSupervisor, private OS::IThreadJob
 	{
 		IInstallation& installation;
 		ID3D11Device5& device;
-		ID3D11DeviceContext4& dc;
+		IDX11DeviceContext& dc;
 
 		std::vector<TextureGremlin> textures;
 		stringmap<TextureId> nameToIds;
@@ -727,7 +737,7 @@ namespace ANON
 			return 0;
 		}
 	public:
-		TextureCache(IInstallation& ref_installation, ID3D11Device5& ref_device, ID3D11DeviceContext4& ref_dc):
+		TextureCache(IInstallation& ref_installation, ID3D11Device5& ref_device, IDX11DeviceContext& ref_dc):
 			installation(ref_installation), device(ref_device), dc(ref_dc), iftl(ref_installation, ref_device, ref_dc)
 		{
 			loaders.push_back(&iftl);
@@ -813,9 +823,11 @@ namespace ANON
 			auto& t = textures[id.index - 1];
 			t.Release();
 
+			t.span = span;
+
 			D3D11_TEXTURE2D_DESC1 desc;
 			desc.ArraySize = 1;
-			desc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+			desc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
 			desc.CPUAccessFlags = 0;
 			desc.Format = t.format;
 			desc.Height = span.x;
@@ -835,12 +847,7 @@ namespace ANON
 				return id;
 			}
 
-			D3D11_DEPTH_STENCIL_VIEW_DESC viewDesc;
-			viewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-			viewDesc.Format = desc.Format;
-			viewDesc.Flags = 0;
-			viewDesc.Texture2D.MipSlice = 0;
-			hr = device.CreateDepthStencilView(t.tx2D, &viewDesc, &t.depthStencilView);
+			hr = device.CreateDepthStencilView(t.tx2D, nullptr, &t.depthStencilView);
 			if FAILED(hr)
 			{
 				t.errNumber = hr;
@@ -881,6 +888,113 @@ namespace ANON
 		{
 			ValidateName(__FUNCTION__, name);
 			return AddGeneric(name, TextureType::T2D_UVAtlas, DXGI_FORMAT_R8G8B8A8_UNORM, { 0,0 });
+		}
+
+		TextureId AddTx2D_Direct(cstr name, ID3D11Texture2D1* tx2D, TextureViewFlags flags) override
+		{
+			ValidateName(__FUNCTION__, name);
+			if (tx2D == nullptr) Throw(E_POINTER, "%s(%s,...). The pointer was null", __FUNCTION__, name);
+
+			D3D11_TEXTURE2D_DESC desc;
+			tx2D->GetDesc(&desc);
+
+			TextureType type;
+			switch (desc.ArraySize)
+			{
+			case 1:
+				type = TextureType::T2D;
+				break;
+			case 0:
+				Throw(0, "%s: unexpected desc.ArraySize = 0", __FUNCTION__);
+				break;
+			default:
+				type = TextureType::T2D_Array;
+			}
+
+			Vec2i span{ (int32) desc.Width, (int32) desc.Height };
+
+			TextureId id = AddGeneric(name, type, desc.Format, span);
+
+			auto& t = textures[id.index - 1];
+			
+			Lock lock(sync);
+
+			t.tx2D = tx2D;
+			t.isMipMapped = desc.MipLevels != 1;
+			t.format = desc.Format;
+
+			if (flags.DepthStencil)
+			{
+				HRESULT hr = device.CreateDepthStencilView(t.tx2D, nullptr, &t.depthStencilView);
+				if FAILED(hr)
+				{
+					t.errNumber = hr;
+					char err[128];
+					SafeFormat(err, "device.CreateDepthStencilView failed");
+					t.errString = err;
+				}
+			}
+
+			if (flags.RenderTarget)
+			{
+				HRESULT hr = device.CreateRenderTargetView1(t.tx2D, nullptr, &t.renderTarget);
+				if FAILED(hr)
+				{
+					t.errNumber = hr;
+					char err[128];
+					SafeFormat(err, "device.CreateRenderTargetView1 failed");
+					t.errString = err;
+				}
+			}
+
+			if (flags.ShaderResource)
+			{
+				HRESULT hr = device.CreateShaderResourceView1(t.tx2D, nullptr, &t.shaderResource);
+				if FAILED(hr)
+				{
+					t.errNumber = hr;
+					char err[128];
+					SafeFormat(err, "device.CreateShaderResourceView1 failed");
+					t.errString = err;
+				}
+			}
+
+			return id;
+		}
+
+		void UpdateSpanFromSystem(TextureId id) override
+		{
+			auto index = id.index - 1;
+			if (index >= textures.size())
+			{
+				Throw(0, "%s: Bad id", __FUNCTION__);
+			}
+
+			auto& t = textures[index];
+
+			Lock loc(sync);
+
+			if (t.tx2D == nullptr)
+			{
+				Throw(0, "%s: the system texture was null", __FUNCTION__);
+			}
+
+			D3D11_TEXTURE2D_DESC1 desc;
+			t.tx2D->GetDesc1(&desc);
+				
+			t.span = { (int32)desc.Width, (int32)desc.Height };
+		}
+
+		Vec2i GetSpan(TextureId id) const override
+		{
+			auto index = id.index - 1;
+			if (index >= textures.size())
+			{
+				Throw(0, "%s: Bad id", __FUNCTION__);
+			}
+
+			auto& t = textures[index];
+			return t.span;
 		}
 
 		void UseTexturesAsRenderTargets(const RenderTarget* targets, uint32 nTargets, TextureId idDepthStencil)
@@ -1043,7 +1157,31 @@ namespace ANON
 			auto* t = textures[index].renderTarget;
 			if (t)
 			{
-				dc.ClearRenderTargetView(t, &clearColour.red);
+				dc.ClearRenderTargetView(t, clearColour);
+			}
+			else
+			{
+				Throw(0, "%s: No RenderTargetView associated with the texture", __FUNCTION__);
+			}
+		}
+
+		void ClearDepthBuffer(TextureId id, float depth, uint8 stencil) override
+		{
+			uint32 index = id.index - 1;
+			if (index >= (uint32)textures.size())
+			{
+				Throw(0, "%s: Bad Id", __FUNCTION__);
+			}
+
+			Lock lock(sync);
+			auto* d = textures[index].depthStencilView;
+			if (d)
+			{
+				dc.ClearDepthStencilView(d, D3D11_CLEAR_DEPTH | D3D11_CLEAR_DEPTH, depth, stencil);
+			}
+			else
+			{
+				Throw(0, "%s: No DepthStencilView associated with the texture", __FUNCTION__);
 			}
 		}
 
@@ -1078,7 +1216,7 @@ namespace ANON
 
 namespace Rococo::Graphics
 {
-	ITextureCache* CreateTextureCache(IInstallation& installation, ID3D11Device5& device, ID3D11DeviceContext4& dc)
+	ITextureSupervisor* CreateTextureCache(IInstallation& installation, ID3D11Device5& device, IDX11DeviceContext& dc)
 	{
 		auto* t = new ANON::TextureCache(installation, device, dc);
 		t->Start();
