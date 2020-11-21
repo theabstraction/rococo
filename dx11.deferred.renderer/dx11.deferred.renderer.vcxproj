@@ -149,6 +149,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="dx11.adapter.context.cpp" />
+    <ClCompile Include="dx11.gui.cpp" />
     <ClCompile Include="dx11.meshes.cpp" />
     <ClCompile Include="dx11.pipeline.cpp" />
     <ClCompile Include="dx11.render.stage.basic.cpp" />

@@ -122,7 +122,6 @@ void Main(HINSTANCE hInstance)
 	DX11WindowContext wc{ Windows::NoParent(), app, {800,600}, "DX11 Test Window", hInstance };
 	AutoFree<IDX11Window> window = dx11->CreateDX11Window(wc);
 	window->MonitorShaderErrors(&dx11->Shaders());
-	dx11->Shaders().AddPixelShader("!shaders/gui.ps.hlsl");
 	auto idScalableFontTexture = dx11->Textures().AddTx2D_Grey("!font1.tif");
 	dx11->Textures().ReloadAsset(idScalableFontTexture);
 
@@ -137,20 +136,20 @@ void Main(HINSTANCE hInstance)
 	dx11->Textures().AddElementToArray(idSprites, "!textures/hv/icons/mace.tif");
 	dx11->Textures().ReloadAsset(idSprites);
 
-	AutoRelease<IRenderStageSupervisor> guiLayer = CreateRenderStageBasic(*dx11);
+	AutoRelease<IRenderStageSupervisor> guiStage = CreateRenderStageBasic(*dx11);
 
 	RECT rect;
 	GetClientRect(window->Window(), &rect);
 	GuiRect guiRect{ 0, 0, rect.right, rect.bottom };
-	guiLayer->SetEnableScissors(&guiRect);
+	guiStage->SetEnableScissors(&guiRect);
 
-	guiLayer->SetDepthWriteEnable(false);
-	guiLayer->SetEnableDepth(false);
-	guiLayer->SetSrcBlend(BlendValue::SRC_ALPHA);
-	guiLayer->SetDestBlend(BlendValue::INV_SRC_ALPHA);
-	guiLayer->SetEnableBlend(true);
-	guiLayer->SetBlendOp(BlendOp::ADD);
-	guiLayer->SetCullMode(0);
+	guiStage->SetDepthWriteEnable(false);
+	guiStage->SetEnableDepth(false);
+	guiStage->SetSrcBlend(BlendValue::SRC_ALPHA);
+	guiStage->SetDestBlend(BlendValue::INV_SRC_ALPHA);
+	guiStage->SetEnableBlend(true);
+	guiStage->SetBlendOp(BlendOp::ADD);
+	guiStage->SetCullMode(0);
 
 	Sampler spriteDef;
 	spriteDef.filter = SamplerFilter::MIN_MAG_MIP_POINT;
@@ -162,7 +161,7 @@ void Main(HINSTANCE hInstance)
 	spriteDef.U = SamplerAddressMode::BORDER;
 	spriteDef.V = SamplerAddressMode::BORDER;
 	spriteDef.W = SamplerAddressMode::BORDER;
-	guiLayer->AddInput(idSprites, 7, spriteDef);
+	guiStage->AddInput(idSprites, 7, spriteDef);
 
 	Sampler fontDef;
 	fontDef.filter = SamplerFilter::MIN_MAG_MIP_LINEAR;
@@ -174,14 +173,17 @@ void Main(HINSTANCE hInstance)
 	fontDef.U = SamplerAddressMode::BORDER;
 	fontDef.V = SamplerAddressMode::BORDER;
 	fontDef.W = SamplerAddressMode::BORDER;
-	guiLayer->AddInput(idScalableFontTexture, 0, fontDef);
+	guiStage->AddInput(idScalableFontTexture, 0, fontDef);
+
+	AutoFree<IRenderPhasePopulator> gui = CreateStandardGuiRenderPhase(*dx11, *guiStage);
+	guiStage->SetPopulator(gui);
 
 	RenderTargetFlags flags;
 	flags.clearWhenAssigned = true;
-	guiLayer->AddOutput(app.idBackBuffer,  0, 0, flags, RGBA{ 0, 1, 0, 1});
-	guiLayer->AddDepthStencilBuffer(app.idDepthBuffer, 1.0f, 0);
+	guiStage->AddOutput(app.idBackBuffer,  0, 0, flags, RGBA{ 0, 1, 0, 1});
+	guiStage->AddDepthStencilBuffer(app.idDepthBuffer, 1.0f, 0);
 
-	pipeline->GetBuilder().AddStage("gui", guiLayer);
+	pipeline->GetBuilder().AddStage("gui", guiStage);
 
 	auto start = Rococo::OS::CpuTicks();
 

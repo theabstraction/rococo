@@ -39,7 +39,7 @@ namespace ANON
 		{ HLSL_Semantic::TEXCOORD,     "texcoord"    }
 	};
 
-	class LayoutBuilder: public IVertexLayoutBuilderSupervisor, private IVertexLayoutBuilder
+	class LayoutBuilderImpl: public IVertexLayoutBuilderSupervisor, private IVertexLayoutBuilder
 	{
 		ID3D11Device5& device;
 		IDX11DeviceContext& dc;
@@ -55,7 +55,7 @@ namespace ANON
 		std::vector<D3D11_INPUT_ELEMENT_DESC> descs;
 		HString descName;
 	public:
-		LayoutBuilder(ID3D11Device5& ref_device, IDX11DeviceContext& ref_dc): device(ref_device), dc(ref_dc)
+		LayoutBuilderImpl(ID3D11Device5& ref_device, IDX11DeviceContext& ref_dc): device(ref_device), dc(ref_dc)
 		{
 			
 		}
@@ -69,6 +69,17 @@ namespace ANON
 				Throw(0, "%(%s) - name not found", __FUNCTION__, name.buffer);
 			}
 			return i->second;
+		}
+
+		bool IsValid(LayoutId id) const override
+		{
+			uint32 index = id.index - 1;
+			if (index >= layouts.size())
+			{
+				return false;
+			}
+
+			return layouts[index].layout;
 		}
 
 		IVertexLayoutBuilder& GetBuilder() override
@@ -249,7 +260,7 @@ namespace ANON
 		std::vector<MeshGenie> meshes;
 		stringmap<MeshIndex> nameToId;
 
-		LayoutBuilder layouts;
+		LayoutBuilderImpl layouts;
 
 		ID3D11Device5& device;
 		IDX11DeviceContext& dc;
@@ -258,6 +269,21 @@ namespace ANON
 			layouts(ref_device, ref_dc), device(ref_device), dc(ref_dc)
 		{
 
+		}
+
+		void Free() override
+		{
+			delete this;
+		}
+
+		IVertexLayoutBuilder& LayoutBuilder() override
+		{
+			return layouts.GetBuilder();
+		}
+
+		IVertexLayouts& Layouts() override
+		{
+			return layouts;
 		}
 
 		IMeshPopulator& GetPopulator() override
@@ -484,7 +510,7 @@ namespace ANON
 			}
 		}
 
-		void UpdateDynamicConstantBuffer(MeshIndex id, const void* pData, size_t sizeofBuffer) override
+		void UpdateBufferByByte(MeshIndex id, const void* pData, size_t sizeofBuffer)
 		{
 			auto index = id.index - 1;
 			if (index >= meshes.size())
@@ -492,11 +518,13 @@ namespace ANON
 				Throw(0, "%s: bad id", __FUNCTION__);
 			}
 
+			if (pData == nullptr || sizeofBuffer == 0) return;
+
 			auto& genie = meshes[index];
 
 			if (sizeofBuffer > genie.capacityInBytes)
 			{
-				Throw(0, "%s: cannot update dynamic buffer. The vertex queue was longer than the buffer capacity", __FUNCTION__);
+				Throw(0, "%s: cannot update dynamic buffer. The source was longer than the buffer capacity", __FUNCTION__);
 			}
 
 			genie.activeBytes = 0;
@@ -505,6 +533,16 @@ namespace ANON
 			memcpy(x.pData, pData, sizeofBuffer);
 			dc.Unmap(genie.buffer, 0);
 			genie.activeBytes = sizeofBuffer;
+		}
+
+		void UpdateDynamicConstantBufferByByte(MeshIndex id, const void* data, size_t sizeofBuffer) override
+		{
+			UpdateBufferByByte(id, data, sizeofBuffer);
+		}
+
+		void UpdateDynamicVertexBufferByByte(MeshIndex id, const void* data, size_t sizeofBuffer)
+		{
+			UpdateBufferByByte(id, data, sizeofBuffer);
 		}
 
 		MeshIndex CommitImmutableConstantBuffer(const fstring& name) override
@@ -580,8 +618,6 @@ namespace ANON
 				Throw(0, "%s. Bad allocation", __FUNCTION__);
 			}
 		}
-	public:
-		IVertexLayoutBuilderSupervisor& Layouts();
 	};
 }
 

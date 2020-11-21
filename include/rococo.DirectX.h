@@ -19,6 +19,18 @@ namespace Rococo::Graphics
 		operator uint32() { return *reinterpret_cast<uint32*>(this); }
 	};
 
+	union U64ShaderId
+	{
+		uint64 u64Value;
+		struct
+		{
+			ShaderId id;
+			uint32 zero;
+		} uValue;
+	};
+
+	static_assert(sizeof U64ShaderId == sizeof uint64);
+
 	inline bool operator == (ShaderId a, ShaderId b) { return (uint32)a == (uint32)b; }
 	inline bool operator != (ShaderId a, ShaderId b) { return !(a == b); }
 

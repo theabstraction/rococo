@@ -7,6 +7,8 @@
 #include <dxgi1_6.h>
 #include <d3d11_4.h>
 
+#include <vector>
+
 using namespace Rococo;
 using namespace Rococo::Graphics;
 
@@ -23,9 +25,10 @@ namespace ANON
 # define D3D11CreateDevice_Flags 0
 #endif
 
-	class DX11System: public IDX11System, public IDX11DeviceContext
+	class DX11System: public IDX11System, public IDX11DeviceContext, public IPainter
 	{
 		AdapterContext& ac;
+		IInstallation& installation;
 
 		AutoRelease<ID3D11Device5> device5;
 		AutoRelease<ID3D11DeviceContext4> dc;
@@ -33,12 +36,14 @@ namespace ANON
 		AutoFree<ID3DShaderCompiler> dxCompiler;
 		AutoFree<IShaderCache> shaders;
 		AutoFree<ITextureSupervisor> textures;
+		AutoFree<IMeshCache> meshes;
 
 		CRITICAL_SECTION sync;
 	public:
-		DX11System(AdapterContext& ref_ac, IInstallation& installation): ac(ref_ac),
-			dxCompiler(Rococo::Graphics::DirectX::CreateD3DCompiler(installation)),
-			shaders(Rococo::Graphics::CreateShaderCache(*dxCompiler, installation))
+		DX11System(AdapterContext& ref_ac, IInstallation& ref_installation): 
+			ac(ref_ac), installation(ref_installation),
+			dxCompiler(Rococo::Graphics::DirectX::CreateD3DCompiler(ref_installation)),
+			shaders(Rococo::Graphics::CreateShaderCache(*dxCompiler, ref_installation))
 		{
 			InitializeCriticalSection(&sync);
 
@@ -62,8 +67,13 @@ namespace ANON
 
 			VALIDATE_HR(device->QueryInterface(&device5));
 			VALIDATE_HR(context->QueryInterface(&dc));
+		}
 
+		// Define things that require a valid V-Table
+		void PostConstruct()
+		{
 			textures = Rococo::Graphics::CreateTextureCache(installation, *device5, *this);
+			meshes = CreateMeshCache(*device5, *this);
 		}
 
 		void Lock() override
@@ -221,6 +231,135 @@ namespace ANON
 		{
 			delete this;
 		}
+
+		IPainter& Painter()
+		{
+			return *this;
+		}
+
+		IMeshCache& Meshes()
+		{
+			return *meshes;
+		}
+
+		void Draw(uint32 vertexCount, uint32 startLocation) override
+		{
+			Lock();
+			dc->Draw(vertexCount, startLocation);
+			Unlock();
+		}
+
+		struct DX11Shader
+		{
+			AutoRelease<ID3D11PixelShader> ps;
+			AutoRelease<ID3D11VertexShader> vs;
+			ShaderId id;
+		};
+
+		std::vector<DX11Shader> dx11Shaders;
+
+		ID3D11VertexShader* GetVS(LayoutId layoutId, ID_VERTEX_SHADER idVS)
+		{
+			U64ShaderId uVSId;
+			uVSId.u64Value = idVS;
+
+			auto index = uVSId.uValue.id - 1;
+			ID3D11VertexShader* vs;
+			if (index >= dx11Shaders.size() || !(vs = dx11Shaders[index].vs))
+			{
+				struct CLOSURE : IShaderViewGrabber
+				{
+					DX11System* system;
+					AutoRelease<ID3D11VertexShader> vs;
+					LayoutId layoutId;
+					void OnGrab(const ShaderView& view)
+					{
+						if (view.hr == S_OK && view.blob != nullptr)
+						{
+							if (!system->Meshes().Layouts().IsValid(layoutId))
+							{
+								system->Meshes().Layouts().CreateLayout(layoutId, view.blob, view.blobCapacity);
+							}
+
+							if (!system->Meshes().Layouts().IsValid(layoutId))
+							{
+								return;
+							}
+
+							// Okay layout worked
+							system->Device().CreateVertexShader(view.blob, view.blobCapacity, nullptr, &vs);
+						}
+					}
+				} g;
+				g.system = this;
+				g.layoutId = layoutId;
+				shaders->GrabShaderObject(uVSId.uValue.id, g);
+
+				dx11Shaders[index].vs = vs = g.vs;
+			}
+			
+			return vs;
+		}
+
+		ID3D11PixelShader* GetPS(ID_PIXEL_SHADER idPS)
+		{
+			U64ShaderId uPSId;
+			uPSId.u64Value = idPS;
+
+			auto index = uPSId.uValue.id - 1;
+			ID3D11PixelShader* ps;
+			if (index >= dx11Shaders.size() || !(ps = dx11Shaders[index].ps))
+			{
+				struct CLOSURE : IShaderViewGrabber
+				{
+					DX11System* system;
+					ID3D11PixelShader* ps;
+
+					void OnGrab(const ShaderView& view)
+					{
+						if (view.hr == S_OK && view.blob != nullptr)
+						{
+							// Okay layout worked
+							system->Device().CreatePixelShader(view.blob, view.blobCapacity, nullptr, &ps);
+						}
+					}
+				} g;
+				g.system = this;
+				shaders->GrabShaderObject(uPSId.uValue.id, g);
+
+				dx11Shaders[index].ps = ps = g.ps;
+			}
+
+			return ps;
+		}
+
+		LayoutId lastLayoutId;
+
+		bool UseShaders(LayoutId layoutId, ID_VERTEX_SHADER idVS, ID_PIXEL_SHADER idPS) override
+		{
+			auto* ps = GetPS(idPS);
+			if (ps)
+			{
+				auto* vs = GetVS(layoutId, idVS);
+				{
+					if (layoutId.index != lastLayoutId.index)
+					{ 
+						if (meshes->Layouts().SetInputLayout(layoutId))
+						{
+							lastLayoutId = layoutId;
+							return true;
+						}
+						else
+						{
+							return false;
+						}
+					}
+					return true;
+				}
+			}
+
+			return false;
+		}
 	};
 }
 
@@ -228,6 +367,8 @@ namespace Rococo::Graphics
 {
 	IDX11System* CreateDX11System(AdapterContext& ac, IInstallation& installation)
 	{
-		return new ANON::DX11System(ac, installation);
+		auto* dx11 = new ANON::DX11System(ac, installation);
+		dx11->PostConstruct();
+		return dx11;
 	}
 }

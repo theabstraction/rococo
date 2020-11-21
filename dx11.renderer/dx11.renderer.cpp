@@ -854,16 +854,6 @@ namespace ANON
 
 	   ID_SYS_MESH skyMeshId;
 
-	   enum TXUNIT // The enum values must match the tXXX registers specified in mplat.api.hlsl
-	   {
-		   TXUNIT_FONT = 0,
-		   TXUNIT_SHADOW = 2,
-		   TXUNIT_ENV_MAP = 3,
-		   TXUNIT_SELECT = 4,
-		   TXUNIT_MATERIALS = 6,
-		   TXUNIT_SPRITES = 7,
-		   TXUNIT_GENERIC_TXARRAY = 8
-	   };
    public:
 	   Windows::IWindow& window;
 	   bool isBuildingAlphaBlendedSprites{ false };
@@ -1448,20 +1438,20 @@ namespace ANON
 		   }
 	   }
 
-	   virtual cstr GetMaterialTextureName(MaterialId id) const
+	   cstr GetMaterialTextureName(MaterialId id) const override
 	   {
 		   size_t index = (size_t)id;
 		   if (index >= materialArray.TextureCount()) return nullptr;
 		   return idToMaterialName[index].c_str();
 	   }
 
-	   virtual void GetMaterialArrayMetrics(MaterialArrayMetrics& metrics) const
+	   void GetMaterialArrayMetrics(MaterialArrayMetrics& metrics) const override
 	   {
 		   metrics.NumberOfElements = (int32) materialArray.TextureCount();
 		   metrics.Width = materialArray.MaxWidth();
 	   }
 
-	   virtual void GetMeshDesc(char desc[256], ID_SYS_MESH id)
+	   void GetMeshDesc(char desc[256], ID_SYS_MESH id) override
 	   {
 		   if (!id || id.value >= meshBuffers.size())
 		   {
@@ -3592,13 +3582,13 @@ namespace ANON
 		   }
 	   }
 
-	   void SetScissorRect(const Rococo::GuiRectf& rect) override
+	   void SetScissorRect(const Rococo::GuiRect& rect) override
 	   {
 		   D3D11_RECT d11Rect;
-		   d11Rect.left = (LONG) rect.left;
-		   d11Rect.top = (LONG)rect.top;
-		   d11Rect.right = (LONG)rect.right;
-		   d11Rect.bottom = (LONG)rect.bottom;
+		   d11Rect.left = rect.left;
+		   d11Rect.top = rect.top;
+		   d11Rect.right = rect.right;
+		   d11Rect.bottom = rect.bottom;
 		   dc.RSSetScissorRects(1, &d11Rect);
 	   }
 

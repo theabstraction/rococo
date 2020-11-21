@@ -96,6 +96,13 @@ namespace ANON
 			depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
 		}
 
+		IRenderPhasePopulator* populator = nullptr;
+
+		void SetPopulator(IRenderPhasePopulator* populator)
+		{
+			this->populator = populator;
+		}
+
 		void SetEnableDepth(bool isEnabled)
 		{
 			depthStencilDesc.DepthEnable = isEnabled ? TRUE : FALSE;
@@ -315,6 +322,8 @@ namespace ANON
 
 		void Execute() override
 		{
+			if (!populator) return;
+
 			try
 			{
 				hr = E_PENDING;
@@ -356,6 +365,8 @@ namespace ANON
 
 			// Outputs
 			textures.UseTexturesAsRenderTargets(renderTargets.data(), (uint32) renderTargets.size(), idDepthStencilBuffer);
+
+			populator->RenderStage(system.Painter());
 		}
 	};
 }

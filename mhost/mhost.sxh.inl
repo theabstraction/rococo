@@ -558,7 +558,7 @@ namespace
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Rococo::GuiRectf* rect;
+		Rococo::GuiRect* rect;
 		_offset += sizeof(rect);
 		ReadInput(rect, _sf, -_offset);
 
@@ -603,7 +603,7 @@ namespace MHost {
 		ss.AddNativeCall(ns, NativeMHostIGuiGetScreenSpan, nullptr, ("IGuiGetScreenSpan (Pointer hObject)(Sys.Maths.Vec2 span) -> "));
 		ss.AddNativeCall(ns, NativeMHostIGuiGetCursorPos, nullptr, ("IGuiGetCursorPos (Pointer hObject)(Sys.Maths.Vec2 pos) -> "));
 		ss.AddNativeCall(ns, NativeMHostIGuiSetGuiShaders, nullptr, ("IGuiSetGuiShaders (Pointer hObject)(Sys.Type.IString pixelShaderFilename) -> "));
-		ss.AddNativeCall(ns, NativeMHostIGuiSetScissorRect, nullptr, ("IGuiSetScissorRect (Pointer hObject)(Sys.Maths.Rectf rect) -> "));
+		ss.AddNativeCall(ns, NativeMHostIGuiSetScissorRect, nullptr, ("IGuiSetScissorRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
 		ss.AddNativeCall(ns, NativeMHostIGuiClearScissorRect, nullptr, ("IGuiClearScissorRect (Pointer hObject) -> "));
 	}
 }

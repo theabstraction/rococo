@@ -312,7 +312,7 @@ struct Gui : public MHost::IGui
 		return gc.Renderer().FontMetrics().NumberOfGlyphSets();
 	}
 
-	void SetScissorRect(const Rococo::GuiRectf& rect) override
+	void SetScissorRect(const Rococo::GuiRect& rect) override
 	{
 		gc.SetScissorRect(rect);
 	}

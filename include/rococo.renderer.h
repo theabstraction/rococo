@@ -109,6 +109,7 @@ namespace Rococo
 		GuiVertex bottomRight;
 	};
 
+	struct IRendererMetrics;
 	struct IRenderer;
 
 	namespace Textures
@@ -123,10 +124,10 @@ namespace Rococo
 		virtual void FlushLayer() = 0;
 		virtual Vec2i EvalSpan(const Vec2i& pos, Fonts::IDrawTextJob& job, const GuiRect* clipRect = nullptr) = 0;
 		virtual void RenderText(const Vec2i& pos, Fonts::IDrawTextJob& job, const GuiRect* clipRect = nullptr) = 0;
-		virtual IRenderer& Renderer() = 0;
+		virtual IRendererMetrics& Renderer() = 0;
 		virtual auto SelectTexture(ID_TEXTURE id)->Vec2i = 0; // select texture and returns span
 		virtual void SetGuiShader(cstr pixelShader) = 0;
-		virtual void SetScissorRect(const Rococo::GuiRectf& rect) = 0;
+		virtual void SetScissorRect(const Rococo::GuiRect& rect) = 0;
 		virtual void ClearScissorRect() = 0;
 
 		// Renders high quality text. To compute span without rendering, pass evaluateSpanOnly as true
@@ -363,7 +364,27 @@ namespace Rococo
 		virtual void ForEachElement(IEventCallback<TextureLoadData> & callback, bool readData) = 0;
 	};
 
-	ROCOCOAPI IRenderer
+	enum TXUNIT // The enum values must match the tXXX registers specified in mplat.api.hlsl
+	{
+		TXUNIT_FONT = 0,
+		TXUNIT_SHADOW = 2,
+		TXUNIT_ENV_MAP = 3,
+		TXUNIT_SELECT = 4,
+		TXUNIT_MATERIALS = 6,
+		TXUNIT_SPRITES = 7,
+		TXUNIT_GENERIC_TXARRAY = 8
+	};
+
+	ROCOCOAPI IRendererMetrics
+	{
+		virtual Fonts::ArrayFontMetrics GetFontMetrics(ID_FONT idFont) = 0;
+		virtual void GetGuiMetrics(GuiMetrics& metrics) const = 0;
+		virtual void GetMaterialArrayMetrics(MaterialArrayMetrics& metrics) const = 0;
+		virtual Textures::ITextureArrayBuilder& SpriteBuilder() = 0;
+		virtual Fonts::IFont& FontMetrics() = 0;
+	};
+
+	ROCOCOAPI IRenderer: IRendererMetrics
 	{
 		virtual ID_FONT CreateOSFont(Fonts::IArrayFontSet& glyphs, const Fonts::FontSpec & spec) = 0;
 		virtual void AddOverlay(int zorder, IUIOverlay * overlay) = 0;
@@ -378,10 +399,7 @@ namespace Rococo
 		virtual ID_CUBE_TEXTURE CreateCubeTexture(cstr path, cstr extension) = 0;
 		virtual void DeleteMesh(ID_SYS_MESH id) = 0;
 		virtual ID_TEXTURE FindTexture(cstr name) const = 0;
-		virtual Fonts::IFont& FontMetrics() = 0;
 		virtual void SetSysCursor(EWindowCursor id) = 0;
-		virtual void GetGuiMetrics(GuiMetrics& metrics) const = 0;
-		virtual void GetMaterialArrayMetrics(MaterialArrayMetrics& metrics) const = 0;
 		virtual void GetMeshDesc(char desc[256], ID_SYS_MESH id) = 0;
 		virtual bool TryGetTextureDesc(TextureDesc& desc, ID_TEXTURE id) const = 0;
 		virtual IInstallation& Installation() = 0;
@@ -389,7 +407,6 @@ namespace Rococo
 		virtual MaterialId GetMaterialId(cstr name) const = 0;
 		virtual cstr GetMaterialTextureName(MaterialId id) const = 0;
 		virtual ID_TEXTURE LoadTexture(IBuffer& rawImageBuffer, cstr uniqueName) = 0;
-		virtual Textures::ITextureArrayBuilder& SpriteBuilder() = 0;
 		virtual void OnSize(Vec2i span) = 0;
 		virtual void Render(Graphics::ENVIRONMENTAL_MAP EnvironmentalMap, IScene& scene) = 0;
 		virtual void RemoveOverlay(IUIOverlay* overlay) = 0;
@@ -410,7 +427,6 @@ namespace Rococo
 		virtual Windows::IWindow& Window() = 0;
 		virtual IMathsVenue* Venue() = 0;
 		virtual void Free() = 0;
-		virtual Fonts::ArrayFontMetrics GetFontMetrics(ID_FONT idFont) = 0;
 	};
 
 	namespace Graphics

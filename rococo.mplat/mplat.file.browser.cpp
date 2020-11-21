@@ -218,7 +218,7 @@ struct FileBrowserRC : public IFileBrowserRenderContext
 	void SetClipRect(const GuiRect& rect) override
 	{
 		gc.FlushLayer();
-		gc.SetScissorRect(ToF(rect));
+		gc.SetScissorRect(rect);
 	}
 };
 

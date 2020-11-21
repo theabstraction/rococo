@@ -36,6 +36,9 @@
     <ClCompile Include="dx11.render.stage.basic.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="dx11.gui.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="rococo.dx11.h">

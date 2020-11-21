@@ -75,11 +75,12 @@ namespace Rococo::Graphics
 	{
 		virtual [[nodiscard]] IVertexLayoutBuilder & GetBuilder() = 0;
 		virtual [[nodiscard]] bool SetInputLayout(LayoutId layoutIndex) = 0;
+		virtual [[nodiscard]] bool IsValid(LayoutId layoutIndex) const = 0;
+		virtual void CreateLayout(LayoutId id, const void* shaderSignature, size_t lenBytes) = 0;
 	};
 
 	ROCOCOAPI IVertexLayoutBuilderSupervisor : public IVertexLayouts
 	{
-		virtual void CreateLayout(LayoutId id, const void* shaderSignature, size_t lenBytes) = 0;
 		virtual void Free() = 0;
 	};
 
@@ -105,32 +106,34 @@ namespace Rococo::Graphics
 		virtual void Reserve(size_t sizeofVertex, size_t nVertices) = 0;
 		virtual void AddVertex(const void* pData, size_t sizeofVertex) = 0;
 		virtual MeshIndex CommitDynamicVertexBuffer(const fstring& name, const fstring& vertexLayout) = 0;
-		virtual void UpdateDynamicConstantBuffer(MeshIndex id, const void* pData, size_t sizeofBuffer) = 0;
+		virtual void UpdateDynamicConstantBufferByByte(MeshIndex id, const void* pData, size_t sizeofBuffer) = 0;
+		virtual void UpdateDynamicVertexBufferByByte(MeshIndex id, const void* data, size_t lenBytes) = 0;
 		virtual MeshIndex CommitImmutableVertexBuffer(const fstring& name, const fstring& vertexLayout) = 0;
 		virtual MeshIndex CommitDynamicConstantBuffer(const fstring& name, const void* data, size_t lenBytes) = 0;
 		virtual MeshIndex CommitImmutableConstantBuffer(const fstring& name) = 0;
 		virtual void SetStride(size_t sizeofVertex) = 0;
+		virtual IVertexLayoutBuilder& LayoutBuilder() = 0;
 
 		template<class T> void Add(const T& t)
 		{
 			AddVertex(&t, sizeof(t));
 		}
 
-		template<class T> void SetVertexType()
+		template<class T> MeshIndex CommitDynamicVertexBuffer(const fstring& name, const fstring& vertexLayout)
 		{
 			SetStride(sizeof(T));
+			return CommitDynamicVertexBuffer(name, vertexLayout);
 		}
 
 		template<class T> void UpdateDynamicConstantBuffer(MeshIndex id, const T& t)
 		{
-			UpdateDynamicConstantBuffer(id, &t, sizeof(T));
+			UpdateDynamicConstantBufferByByte(id, &t, sizeof(T));
 		}
-	};
 
-	ROCOCOAPI IMeshCache
-	{
-		virtual [[nodiscard]] IMeshPopulator & GetPopulator() = 0;
-		virtual [[nodiscard]] bool UseAsVertexBufferSlot(MeshIndex id, uint32 slot) = 0;
+		template<class T> void UpdateDynamicVertexBuffer(MeshIndex id, const T* t, size_t nElements)
+		{
+			UpdateDynamicVertexBufferByByte(id, t, sizeof(T) * nElements);
+		}
 	};
 
 	ROCOCOAPI IWin32AdapterContext
@@ -260,7 +263,28 @@ namespace Rococo::Graphics
 		virtual void Unmap(ID3D11Resource* pResource, uint32 Subresource) = 0;
 	};
 
+	ROCOCOAPI IPainter
+	{
+		virtual void Draw(uint32 vertexCount, uint32 startLocation) = 0;
+	};
+
+	ROCOCOAPI IRenderPhasePopulator
+	{
+		virtual void RenderStage(IPainter & painter) = 0;
+		virtual void Free() = 0;
+	};
+
 	ITextureSupervisor* CreateTextureCache(IInstallation& installation, ID3D11Device5& device, IDX11DeviceContext& dc);
+
+	ROCOCOAPI IMeshCache
+	{
+		virtual [[nodiscard]] IMeshPopulator & GetPopulator() = 0;
+		virtual [[nodiscard]] bool UseAsVertexBufferSlot(MeshIndex id, uint32 slot) = 0;
+		virtual IVertexLayouts& Layouts() = 0;
+		virtual void Free() = 0;
+	};
+
+	IMeshCache* CreateMeshCache(ID3D11Device5& device, IDX11DeviceContext& dc);
 
 	ROCOCOAPI IDX11System
 	{
@@ -272,7 +296,10 @@ namespace Rococo::Graphics
 		virtual ID3D11Device5& Device() = 0;
 		virtual IDX11DeviceContext& DC() = 0;
 		virtual IDXGIFactory7& Factory() = 0;
+		virtual IMeshCache& Meshes() = 0;
 		virtual void Free() = 0;
+		virtual IPainter& Painter() = 0;
+		virtual bool UseShaders(LayoutId layoutId, ID_VERTEX_SHADER idVS, ID_PIXEL_SHADER idPS) = 0;
 	};
 
 	IDX11System* CreateDX11System(AdapterContext& ac, IInstallation& installation);
@@ -413,7 +440,7 @@ namespace Rococo::Graphics
 	ROCOCOAPI IRenderStageSupervisor : public IRenderStage
 	{
 		virtual void Execute() = 0;
-
+		virtual void SetPopulator(IRenderPhasePopulator* populator) = 0;
 		virtual uint32 AddRef() = 0;
 		virtual uint32 Release() = 0;
 	};
@@ -434,4 +461,6 @@ namespace Rococo::Graphics
 	};
 
 	IPipelineSupervisor* CreatePipeline(IDX11System& system);
+
+	IRenderPhasePopulator* CreateStandardGuiRenderPhase(IDX11System& system, IRenderStage& stage);
 }

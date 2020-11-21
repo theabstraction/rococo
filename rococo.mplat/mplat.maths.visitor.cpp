@@ -472,7 +472,7 @@ namespace
 
 		   GuiRect strListRect{ absRect.left + 4, absRect.top, scrollRect.left - 8, absRect.bottom };
 		   gc.FlushLayer();
-		   gc.SetScissorRect(Dequantize(strListRect));
+		   gc.SetScissorRect(strListRect);
 		   RenderStringList(gc, strListRect, padding);
 		   gc.ClearScissorRect();
 		   gc.FlushLayer();

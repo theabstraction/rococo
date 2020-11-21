@@ -354,7 +354,7 @@ public:
 		Graphics::DrawRectangle(grc, absRect, bkColour1, bkColour2);
 
 		grc.FlushLayer();
-		grc.SetScissorRect(Dequantize(enumRect));
+		grc.SetScissorRect(enumRect);
 
 		struct ANON : IEventCallback<const ItemCallbackArgs>
 		{
@@ -382,7 +382,7 @@ public:
 		ForEachItem(renderAll, enumRect);
 
 		grc.FlushLayer();
-		grc.SetScissorRect(GuiRectf{ 0, 0, (float) metrics.screenSpan.x, (float) metrics.screenSpan.y });
+		grc.SetScissorRect(GuiRect{ 0, 0, metrics.screenSpan.x, metrics.screenSpan.y });
 
 		GuiRect scrollRect =
 		{

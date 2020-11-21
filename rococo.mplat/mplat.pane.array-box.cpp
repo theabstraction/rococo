@@ -262,7 +262,7 @@ struct PanelArrayBox : BasePane, IArrayBox, IObserver, IEventCallback<ScrollEven
 		if (args.value1 != nullptr)
 		{
 			grc.FlushLayer();
-			grc.SetScissorRect(Dequantize(absRect));
+			grc.SetScissorRect(absRect);
 			RenderRows(grc, *args.value1);
 			grc.FlushLayer();
 			grc.ClearScissorRect();

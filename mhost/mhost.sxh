@@ -45,7 +45,7 @@
 		(GetScreenSpan (Vec2 span))
 		(GetCursorPos (Vec2 pos))
 		(SetGuiShaders (IString pixelShaderFilename))
-		(SetScissorRect (const Rectf rect))
+		(SetScissorRect (const Recti rect))
 		(ClearScissorRect)
 	)
 )

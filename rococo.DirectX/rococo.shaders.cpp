@@ -11,18 +11,6 @@
 using namespace Rococo;
 using namespace Rococo::Graphics;
 
-union U64ShaderId
-{
-	uint64 u64Value;
-	struct
-	{
-		ShaderId id;
-		uint32 zero;
-	} uValue;
-};
-
-static_assert(sizeof U64ShaderId == sizeof uint64);
-
 struct ShaderItem
 {
 	HString errMsg;

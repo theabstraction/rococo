@@ -27,7 +27,7 @@
 	(GetScreenSpan (Sys.Maths.Vec2 span) -> )
 	(GetCursorPos (Sys.Maths.Vec2 pos) -> )
 	(SetGuiShaders (Sys.Type.IString pixelShaderFilename) -> )
-	(SetScissorRect (Sys.Maths.Rectf rect) -> )
+	(SetScissorRect (Sys.Maths.Recti rect) -> )
 	(ClearScissorRect  -> )
 )
 
@@ -50,7 +50,7 @@
 	(method ProxyIGui.GetScreenSpan (Sys.Maths.Vec2 span) ->  : (MHost.Native.IGuiGetScreenSpan this.hObject span))
 	(method ProxyIGui.GetCursorPos (Sys.Maths.Vec2 pos) ->  : (MHost.Native.IGuiGetCursorPos this.hObject pos))
 	(method ProxyIGui.SetGuiShaders (Sys.Type.IString pixelShaderFilename) ->  : (MHost.Native.IGuiSetGuiShaders this.hObject pixelShaderFilename))
-	(method ProxyIGui.SetScissorRect (Sys.Maths.Rectf rect) ->  : (MHost.Native.IGuiSetScissorRect this.hObject rect))
+	(method ProxyIGui.SetScissorRect (Sys.Maths.Recti rect) ->  : (MHost.Native.IGuiSetScissorRect this.hObject rect))
 	(method ProxyIGui.ClearScissorRect  ->  : (MHost.Native.IGuiClearScissorRect this.hObject ))
 
 (interface MHost.IEngine
