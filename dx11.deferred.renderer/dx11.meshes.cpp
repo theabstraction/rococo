@@ -121,11 +121,11 @@ namespace ANON
 			if (l.layout != nullptr)
 			{
 				dc.IASetInputLayout(l.layout);
-				return false;
+				return true;
 			}
 			else
 			{
-				return true;
+				return false;
 			}
 		}
 
@@ -269,6 +269,23 @@ namespace ANON
 			layouts(ref_device, ref_dc), device(ref_device), dc(ref_dc)
 		{
 
+		}
+
+		void Draw(MeshIndex id, uint32 startIndex, uint32 vertexCount)
+		{
+			auto index = id.index - 1;
+			if (vertexCount > 0 && index < meshes.size())
+			{
+				auto& m = meshes[index];
+				ID3D11Buffer* buffer = m.buffer;
+				if (buffer)
+				{
+					uint32 stride0 = m.stride;
+					uint32 offset0 = 0;
+					dc.IASetVertexBuffers(0, 1, &buffer, &stride0, &offset0);
+					dc.Draw(startIndex, vertexCount);
+				}
+			}
 		}
 
 		void Free() override

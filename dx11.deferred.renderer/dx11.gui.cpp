@@ -59,7 +59,7 @@ namespace ANON
 		IDX11System& system;
 		IRenderStage& stage;
 
-		std::vector<GuiTriangle> guiTriangles;
+		std::vector<GuiVertex> guiVertices;
 		MeshIndex idGuiMesh;
 		LayoutId idGuiVertex;
 		MeshIndex idGlobalStateConstants;
@@ -96,7 +96,7 @@ namespace ANON
 		GuiRenderPhase(IDX11System& ref_system, IRenderStage& ref_stage, IInstallation& installation, TextureId valIdSprites) :
 			system(ref_system), stage(ref_stage), idSprites(valIdSprites)
 		{
-			guiTriangles.reserve(1024);
+			guiVertices.reserve(1024);
 
 			hqFonts = CreateHQFonts(*this);
 
@@ -119,13 +119,13 @@ namespace ANON
 			idGuiVertex = lb.Commit("GuiVertex"_fstring);
 
 			m.Clear();
-			m.Reserve(sizeof GuiTriangle, MAX_TRIANGLE_BATCH_COUNT);
+			m.Reserve(sizeof GuiVertex, MAX_TRIANGLE_BATCH_COUNT * 3);
 			for (int i = 0; i < MAX_TRIANGLE_BATCH_COUNT; ++i)
 			{
-				GuiTriangle t = { 0 };
-				m.AddVertex(&t, sizeof GuiTriangle);
+				GuiVertex v = { 0 };
+				m.AddVertex(&v, sizeof GuiVertex);
 			}
-			idGuiMesh = m.CommitDynamicVertexBuffer<GuiTriangle>("gui.triangles"_fstring, "GuiVertex"_fstring);
+			idGuiMesh = m.CommitDynamicVertexBuffer<GuiVertex>("gui.triangles"_fstring, "GuiVertex"_fstring);
 			idGlobalStateConstants = m.CommitDynamicConstantBuffer("global.state"_fstring, &globalState, sizeof globalState);
 
 			idScalableFontTexture = system.Textures().AddTx2D_Grey("!font1.tif");
@@ -236,9 +236,11 @@ namespace ANON
 
 		void AddTriangle(const GuiVertex triangle[3]) override
 		{
-			guiTriangles.push_back((GuiTriangle&) triangle);
+			guiVertices.push_back(triangle[0]);
+			guiVertices.push_back(triangle[1]);
+			guiVertices.push_back(triangle[2]);
 
-			if (guiTriangles.size() == MAX_TRIANGLE_BATCH_COUNT)
+			if (guiVertices.size() == MAX_TRIANGLE_BATCH_COUNT * 3)
 			{
 				FlushLayer();
 			}
@@ -252,8 +254,9 @@ namespace ANON
 		void FlushLayer() override
 		{
 			auto& m = system.Meshes().GetPopulator();
-			m.UpdateDynamicVertexBuffer<GuiTriangle>(idGuiMesh, guiTriangles.data(), guiTriangles.size());
-			guiTriangles.clear();
+			m.UpdateDynamicVertexBuffer<GuiVertex>(idGuiMesh, guiVertices.data(), guiVertices.size());
+			system.Meshes().Draw(idGuiMesh, 0, (uint32) guiVertices.size());
+			guiVertices.clear();
 		}
 
 		Vec2i EvalSpan(const Vec2i& pos, Fonts::IDrawTextJob& job, const GuiRect* clipRect) override
@@ -458,7 +461,7 @@ namespace ANON
 
 			if (mode == IGuiRenderContext::RENDER)
 			{
-				if (system.UseShaders(idGuiVertex, idHQVS, idHQPS))
+				if (!system.UseShaders(idGuiVertex, idHQVS, idHQPS))
 				{
 					return;
 				}

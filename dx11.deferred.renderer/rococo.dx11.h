@@ -264,6 +264,7 @@ namespace Rococo::Graphics
 		virtual void Unmap(ID3D11Resource* pResource, uint32 Subresource) = 0;
 		virtual void PSSetConstantBuffers(uint32 startSlot, uint32 nBuffer, ID3D11Buffer* const* bufferArray) = 0;
 		virtual void VSSetConstantBuffers(uint32 startSlot, uint32 nBuffer, ID3D11Buffer* const* bufferArray) = 0;
+		virtual void Draw(uint32 startIndex, uint32 vertexCount) = 0;
 	};
 
 	ROCOCOAPI IPainter
@@ -293,6 +294,7 @@ namespace Rococo::Graphics
 		virtual [[nodiscard]] void ApplyConstantToPS(MeshIndex id, uint32 slot) = 0;
 		virtual [[nodiscard]] void ApplyConstantToVS(MeshIndex id, uint32 slot) = 0;
 		virtual [[nodiscard]] bool ApplyVertexBuffer(MeshIndex id, uint32 slot) = 0;
+		virtual void Draw(MeshIndex id, uint32 startIndex, uint32 vertexCount) = 0;
 		virtual [[nodiscard]] IVertexLayouts& Layouts() = 0;
 		virtual void Free() = 0;
 	};

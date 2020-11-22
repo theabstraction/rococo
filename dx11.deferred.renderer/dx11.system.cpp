@@ -38,6 +38,14 @@ namespace ANON
 		AutoFree<ITextureSupervisor> textures;
 		AutoFree<IMeshCache> meshes;
 
+		struct DX11Shader
+		{
+			AutoRelease<ID3D11PixelShader> ps;
+			AutoRelease<ID3D11VertexShader> vs;
+			ShaderId id;
+		};
+		std::vector<DX11Shader> dx11Shaders;
+
 		CRITICAL_SECTION sync;
 	public:
 		DX11System(AdapterContext& ref_ac, IInstallation& ref_installation): 
@@ -67,6 +75,16 @@ namespace ANON
 
 			VALIDATE_HR(device->QueryInterface(&device5));
 			VALIDATE_HR(context->QueryInterface(&dc));
+
+			enum { MAX_SHADERS = 128 };
+			dx11Shaders.resize(MAX_SHADERS);
+		}
+
+		virtual ~DX11System()
+		{
+			dx11Shaders.clear();
+			shaders = nullptr;
+			DeleteCriticalSection(&sync);
 		}
 
 		// Define things that require a valid V-Table
@@ -84,11 +102,6 @@ namespace ANON
 		void Unlock() override
 		{
 			LeaveCriticalSection(&sync);
-		}
-
-		virtual ~DX11System()
-		{
-			DeleteCriticalSection(&sync);
 		}
 
 		void GenerateMips(ID3D11ShaderResourceView* pShaderResourceView) override
@@ -259,33 +272,31 @@ namespace ANON
 		void Draw(uint32 vertexCount, uint32 startLocation) override
 		{
 			Lock();
+			dc->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 			dc->Draw(vertexCount, startLocation);
 			Unlock();
 		}
 
-		struct DX11Shader
-		{
-			AutoRelease<ID3D11PixelShader> ps;
-			AutoRelease<ID3D11VertexShader> vs;
-			ShaderId id;
-		};
-
-		std::vector<DX11Shader> dx11Shaders;
-
 		ID3D11VertexShader* GetVS(LayoutId layoutId, ID_VERTEX_SHADER idVS)
 		{
 			U64ShaderId uVSId;
-			uVSId.u64Value = idVS;
+			uVSId.u64Value = idVS.value;
 
-			auto index = uVSId.uValue.id - 1;
-			ID3D11VertexShader* vs;
-			if (index >= dx11Shaders.size() || !(vs = dx11Shaders[index].vs))
+			auto index = uVSId.uValue.id.index - 1;
+			ID3D11VertexShader* vs = nullptr;
+			if (index >= dx11Shaders.size())
+			{
+				return nullptr;
+			}
+			
+			if (!(vs = dx11Shaders[index].vs))
 			{
 				struct CLOSURE : IShaderViewGrabber
 				{
 					DX11System* system;
-					AutoRelease<ID3D11VertexShader> vs;
+					AutoRelease<ID3D11VertexShader> vs = nullptr;
 					LayoutId layoutId;
+					HRESULT hr = E_PENDING;
 					void OnGrab(const ShaderView& view)
 					{
 						if (view.hr == S_OK && view.blob != nullptr)
@@ -301,7 +312,7 @@ namespace ANON
 							}
 
 							// Okay layout worked
-							system->Device().CreateVertexShader(view.blob, view.blobCapacity, nullptr, &vs);
+							hr = system->Device().CreateVertexShader(view.blob, view.blobCapacity, nullptr, &vs);
 						}
 					}
 				} g;
@@ -309,7 +320,9 @@ namespace ANON
 				g.layoutId = layoutId;
 				shaders->GrabShaderObject(uVSId.uValue.id, g);
 
-				dx11Shaders[index].vs = vs = g.vs;
+				vs = g.vs;
+				dx11Shaders[index].vs = vs;
+				dx11Shaders[index].id = uVSId.uValue.id;
 			}
 			
 			return vs;
@@ -318,30 +331,41 @@ namespace ANON
 		ID3D11PixelShader* GetPS(ID_PIXEL_SHADER idPS)
 		{
 			U64ShaderId uPSId;
-			uPSId.u64Value = idPS;
+			uPSId.u64Value = idPS.value;
 
-			auto index = uPSId.uValue.id - 1;
-			ID3D11PixelShader* ps;
-			if (index >= dx11Shaders.size() || !(ps = dx11Shaders[index].ps))
+			auto index = uPSId.uValue.id.index - 1;
+			ID3D11PixelShader* ps = nullptr;
+			if (index >= dx11Shaders.size())
+			{
+				return nullptr;
+			}
+			
+			if (!(ps = dx11Shaders[index].ps))
 			{
 				struct CLOSURE : IShaderViewGrabber
 				{
 					DX11System* system;
-					ID3D11PixelShader* ps;
+					ID3D11PixelShader* ps = nullptr;
+					HRESULT hr = E_PENDING;
 
 					void OnGrab(const ShaderView& view)
 					{
 						if (view.hr == S_OK && view.blob != nullptr)
 						{
 							// Okay layout worked
-							system->Device().CreatePixelShader(view.blob, view.blobCapacity, nullptr, &ps);
+							hr = system->Device().CreatePixelShader(view.blob, view.blobCapacity, nullptr, &ps);
+						}
+						else
+						{
+							hr = view.hr;
 						}
 					}
 				} g;
 				g.system = this;
 				shaders->GrabShaderObject(uPSId.uValue.id, g);
-
-				dx11Shaders[index].ps = ps = g.ps;
+				ps = g.ps;
+				dx11Shaders[index].ps = ps;
+				dx11Shaders[index].id = uPSId.uValue.id;
 			}
 
 			return ps;
@@ -361,6 +385,10 @@ namespace ANON
 						if (meshes->Layouts().SetInputLayout(layoutId))
 						{
 							lastLayoutId = layoutId;
+							Lock();
+							dc->PSSetShader(ps, nullptr, 0);
+							dc->VSSetShader(vs, nullptr, 0);
+							Unlock();
 							return true;
 						}
 						else

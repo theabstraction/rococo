@@ -63,7 +63,7 @@ namespace Rococo
 
 		operator bool() const
 		{
-			return IsNull();
+			return !IsNull();
 		}
 
 		// Release reference and set internal pointer to null. You may need to AddRef first if you 
