@@ -153,6 +153,7 @@ namespace Rococo::Graphics
 		virtual void MonitorShaderErrors(IShaderCache* cache) = 0;
 		virtual Rococo::Windows::IWindow& Window() = 0;
 		virtual void UpdateFrame() = 0;
+		virtual Vec2i Span() const = 0;
 		virtual void Free() = 0;
 	};
 
@@ -226,6 +227,8 @@ namespace Rococo::Graphics
 		virtual void ClearDepthBuffer(TextureId id, float depth, uint8 stencilBits) = 0;
 		virtual void ClearRenderTarget(TextureId id, const RGBA& clearColour) = 0;
 		virtual Vec2i GetSpan(TextureId id) const = 0;
+		virtual Textures::ITextureArrayBuilder& GetSpriteBuilder(TextureId id) = 0;
+		virtual void InitAsBlankArray(TextureId id, uint32 nElements) = 0;
 		virtual void ReloadAsset(TextureId id) = 0;
 		virtual void UpdateSpanFromSystem(TextureId id) = 0;
 		virtual void UpdateArray(TextureId id, uint32 index, const GRAYSCALE* pixels, Vec2i span) = 0;
@@ -259,6 +262,8 @@ namespace Rococo::Graphics
 		virtual void IASetVertexBuffers(uint32 StartSlot, uint32 NumBuffers, ID3D11Buffer* const* ppVertexBuffers, const uint32* pStrides, const uint32* pOffsets) = 0;
 		virtual HRESULT Map(ID3D11Resource* pResource, uint32 Subresource, D3D11_MAP MapType, uint32 MapFlags, D3D11_MAPPED_SUBRESOURCE* pMappedResource) = 0;
 		virtual void Unmap(ID3D11Resource* pResource, uint32 Subresource) = 0;
+		virtual void PSSetConstantBuffers(uint32 startSlot, uint32 nBuffer, ID3D11Buffer* const* bufferArray) = 0;
+		virtual void VSSetConstantBuffers(uint32 startSlot, uint32 nBuffer, ID3D11Buffer* const* bufferArray) = 0;
 	};
 
 	ROCOCOAPI IPainter
@@ -273,13 +278,22 @@ namespace Rococo::Graphics
 		virtual void Free() = 0;
 	};
 
+	ROCOCOAPI IGuiRenderPhasePopulator : public IRenderPhasePopulator
+	{
+		virtual [[nodiscard]] IHQFonts & HQFonts() = 0;
+		virtual void UpdateCursor(Vec2i cursorPos) = 0;
+		virtual void UpdateSpan(Vec2i screenSpan) = 0;
+	};
+
 	ITextureSupervisor* CreateTextureCache(IInstallation& installation, ID3D11Device5& device, IDX11DeviceContext& dc);
 
 	ROCOCOAPI IMeshCache
 	{
 		virtual [[nodiscard]] IMeshPopulator & GetPopulator() = 0;
-		virtual [[nodiscard]] bool UseAsVertexBufferSlot(MeshIndex id, uint32 slot) = 0;
-		virtual IVertexLayouts& Layouts() = 0;
+		virtual [[nodiscard]] void ApplyConstantToPS(MeshIndex id, uint32 slot) = 0;
+		virtual [[nodiscard]] void ApplyConstantToVS(MeshIndex id, uint32 slot) = 0;
+		virtual [[nodiscard]] bool ApplyVertexBuffer(MeshIndex id, uint32 slot) = 0;
+		virtual [[nodiscard]] IVertexLayouts& Layouts() = 0;
 		virtual void Free() = 0;
 	};
 
@@ -289,16 +303,16 @@ namespace Rococo::Graphics
 	{
 		virtual void Lock() = 0;
 		virtual void Unlock() = 0;
-		virtual ITextureCache & Textures() = 0;
-		virtual IShaderCache& Shaders() = 0;
-		virtual IDX11Window * CreateDX11Window(DX11WindowContext& context) = 0;
-		virtual ID3D11Device5& Device() = 0;
-		virtual IDX11DeviceContext& DC() = 0;
-		virtual IDXGIFactory7& Factory() = 0;
-		virtual IMeshCache& Meshes() = 0;
+		virtual [[nodiscard]] ITextureCache & Textures() = 0;
+		virtual [[nodiscard]] IShaderCache& Shaders() = 0;
+		virtual [[nodiscard]] IDX11Window * CreateDX11Window(DX11WindowContext& context) = 0;
+		virtual [[nodiscard]] ID3D11Device5& Device() = 0;
+		virtual [[nodiscard]] IDX11DeviceContext& DC() = 0;
+		virtual [[nodiscard]] IDXGIFactory7& Factory() = 0;
+		virtual [[nodiscard]] IMeshCache& Meshes() = 0;
 		virtual void Free() = 0;
 		virtual IPainter& Painter() = 0;
-		virtual bool UseShaders(LayoutId layoutId, ID_VERTEX_SHADER idVS, ID_PIXEL_SHADER idPS) = 0;
+		virtual [[nodiscard]] bool UseShaders(LayoutId layoutId, ID_VERTEX_SHADER idVS, ID_PIXEL_SHADER idPS) = 0;
 	};
 
 	IDX11System* CreateDX11System(AdapterContext& ac, IInstallation& installation);
@@ -415,6 +429,8 @@ namespace Rococo::Graphics
 
 	ROCOCOAPI IRenderStage
 	{
+		virtual void ApplyConstantToPS(MeshIndex id, uint32 constantSlotIndex) = 0;
+		virtual void ApplyConstantToVS(MeshIndex id, uint32 constantSlotIndex) = 0;
 		virtual void AddDepthStencilBuffer(TextureId id, float clearDepth, uint8 stencilBits) = 0;
 		virtual void AddInput(TextureId id, uint32 textureUnit, const Sampler & sampler) = 0;
 		virtual void AddOutput(TextureId id, uint32 renderTargetIndex, uint32 mipMapIndex, RenderTargetFlags flags, const RGBA& clearColour) = 0;
@@ -461,5 +477,7 @@ namespace Rococo::Graphics
 
 	IPipelineSupervisor* CreatePipeline(IDX11System& system);
 
-	IRenderPhasePopulator* CreateStandardGuiRenderPhase(IDX11System& system, IRenderStage& stage);
+	IGuiRenderPhasePopulator* CreateStandardGuiRenderPhase(IDX11System& system, IRenderStage& stage, IInstallation& installation, TextureId idSprites);
+
+	void ConfigueStandardGuiStage(IRenderStageSupervisor& stage, const GuiRect& scissorRect, TextureId idSprites, TextureId idScalableFontTexture);
 }

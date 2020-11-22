@@ -7,6 +7,18 @@
 
 namespace Rococo
 {
+	enum CBUFFER_INDEX
+	{
+		CBUFFER_INDEX_GLOBAL_STATE = 0,
+		CBUFFER_INDEX_CURRENT_SPOTLIGHT = 1,
+		CBUFFER_INDEX_AMBIENT_LIGHT = 2,
+		CBUFFER_INDEX_DEPTH_RENDER_DESC = 3,
+		CBUFFER_INDEX_INSTANCE_BUFFER = 4,
+		CBUFFER_INDEX_SELECT_TEXTURE_DESC = 5,
+		CBUFFER_INDEX_SUNLIGHT = 6,
+		CBUFFER_INDEX_BONE_MATRICES = 7
+	};
+
 	namespace Fonts
 	{
 		struct FontSpec;
@@ -221,13 +233,17 @@ namespace Rococo
 	};
 #pragma pack(pop)
 
-	ROCOCOAPI IScene
+	ROCOCOAPI IScene2D
 	{
-		virtual void GetCamera(Matrix4x4 & camera, Matrix4x4 & world, Matrix4x4 & proj, Vec4 & eye, Vec4 & viewDir) = 0;
-		virtual ID_CUBE_TEXTURE GetSkyboxCubeId() const = 0;
 		virtual RGBA GetClearColour() const = 0;
 		virtual void OnGuiResize(Vec2i screenSpan) = 0;
 		virtual void RenderGui(IGuiRenderContext& grc) = 0;
+	};
+
+	ROCOCOAPI IScene: IScene2D
+	{
+		virtual void GetCamera(Matrix4x4 & camera, Matrix4x4 & world, Matrix4x4 & proj, Vec4 & eye, Vec4 & viewDir) = 0;
+		virtual ID_CUBE_TEXTURE GetSkyboxCubeId() const = 0;
 		virtual void RenderObjects(IRenderContext& rc, bool skinned) = 0; // Do not change lights from here
 		virtual const Light* GetLights(uint32& nCount) const = 0;	// Called prior to the shadow pass. 
 		virtual void RenderShadowPass(const DepthRenderData& drd, IRenderContext& rc, bool skinned) = 0; // Do not change lights from here
@@ -375,9 +391,14 @@ namespace Rococo
 		TXUNIT_GENERIC_TXARRAY = 8
 	};
 
+	namespace Graphics
+	{
+		struct IHQFonts;
+	}
+
 	ROCOCOAPI IRendererMetrics
 	{
-		virtual Fonts::ArrayFontMetrics GetFontMetrics(ID_FONT idFont) = 0;
+		virtual const Fonts::ArrayFontMetrics& GetFontMetrics(ID_FONT idFont) = 0;
 		virtual void GetGuiMetrics(GuiMetrics& metrics) const = 0;
 		virtual void GetMaterialArrayMetrics(MaterialArrayMetrics& metrics) const = 0;
 		virtual Textures::ITextureArrayBuilder& SpriteBuilder() = 0;

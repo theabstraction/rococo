@@ -17,6 +17,28 @@ using namespace Rococo::Graphics;
 
 namespace ANON
 {
+	class SpanEvaluator : public Fonts::IGlyphRenderer
+	{
+	public:
+		GuiRectf renderZone;
+
+		SpanEvaluator() : renderZone(10000, 10000, -10000, -10000)
+		{
+
+		}
+
+		void DrawGlyph(cr_vec2 t0, cr_vec2 t1, cr_vec2 p0, cr_vec2 p1, Fonts::FontColour colour) override
+		{
+			ExpandZoneToContain(renderZone, p0);
+			ExpandZoneToContain(renderZone, p1);
+		}
+
+		Vec2 Span() const
+		{
+			return Rococo::Span(renderZone);
+		}
+	};
+
 	bool operator == (const Fonts::FontSpec& a, const Fonts::FontSpec& b)
 	{
 		return
@@ -28,10 +50,11 @@ namespace ANON
 
 
 	struct GuiRenderPhase :
-		IRenderPhasePopulator,
+		IGuiRenderPhasePopulator,
 		public IGuiRenderContext,
 		public IRendererMetrics,
-		public IHQFontResource
+		public IHQFontResource,
+		public IGlyphRenderer
 	{
 		IDX11System& system;
 		IRenderStage& stage;
@@ -39,6 +62,7 @@ namespace ANON
 		std::vector<GuiTriangle> guiTriangles;
 		MeshIndex idGuiMesh;
 		LayoutId idGuiVertex;
+		MeshIndex idGlobalStateConstants;
 
 		IScene* scene = nullptr;
 
@@ -62,8 +86,15 @@ namespace ANON
 
 		enum { MAX_TRIANGLE_BATCH_COUNT = 4096 };
 
-		GuiRenderPhase(IDX11System& ref_system, IRenderStage& ref_stage) :
-			system(ref_system), stage(ref_stage)
+		AutoFree<Fonts::IFontSupervisor> scalableFonts;
+		TextureId idScalableFontTexture;
+
+		TextureId idSprites;
+
+		GlobalState globalState;
+
+		GuiRenderPhase(IDX11System& ref_system, IRenderStage& ref_stage, IInstallation& installation, TextureId valIdSprites) :
+			system(ref_system), stage(ref_stage), idSprites(valIdSprites)
 		{
 			guiTriangles.reserve(1024);
 
@@ -78,6 +109,7 @@ namespace ANON
 			auto& lb = m.LayoutBuilder();
 
 			static_assert(sizeof(GuiVertex) == 40);
+			static_assert(sizeof(GuiTriangle) == 120);
 
 			lb.Clear();
 			lb.AddFloat(HLSL_Semantic::POSITION, 0); // vec2
@@ -93,7 +125,20 @@ namespace ANON
 				GuiTriangle t = { 0 };
 				m.AddVertex(&t, sizeof GuiTriangle);
 			}
-			idGuiMesh = m.CommitDynamicVertexBuffer<GuiTriangle>("gui_triangles"_fstring, "GuiVertex"_fstring);
+			idGuiMesh = m.CommitDynamicVertexBuffer<GuiTriangle>("gui.triangles"_fstring, "GuiVertex"_fstring);
+			idGlobalStateConstants = m.CommitDynamicConstantBuffer("global.state"_fstring, &globalState, sizeof globalState);
+
+			idScalableFontTexture = system.Textures().AddTx2D_Grey("!font1.tif");
+			system.Textures().ReloadAsset(idScalableFontTexture);
+
+			cstr csvName = "!font1.csv";
+
+			AutoFree<IExpandingBuffer> csvBuf = CreateExpandingBuffer(0);
+			installation.LoadResource(csvName, *csvBuf, 256_kilobytes);
+			scalableFonts = Fonts::LoadFontCSV(csvName, (const char*)csvBuf->GetData(), csvBuf->Length());
+
+			stage.ApplyConstantToPS(idGlobalStateConstants, CBUFFER_INDEX_GLOBAL_STATE);
+			stage.ApplyConstantToVS(idGlobalStateConstants, CBUFFER_INDEX_GLOBAL_STATE);
 		}
 
 		virtual ~GuiRenderPhase()
@@ -120,13 +165,13 @@ namespace ANON
 			ID_FONT idFont ( i + ID_FONT_OSFONT_OFFSET );
 
 			AutoFree<Fonts::IArrayFontSupervisor> new_Font = Fonts::CreateOSFont(glyphs, spec);
-			AutoRelease<ID3D11Texture2D1> fontArray;
 
 			char hqName[64];
 			SafeFormat(hqName, "HQFONT_%d", idFont.value);
 
 			Vec2i span { new_Font->Metrics().imgWidth, new_Font->Metrics().imgWidth };
 			auto idFontArrayId = system.Textures().AddTx2DArray_Grey(hqName, span);
+			system.Textures().InitAsBlankArray(idFontArrayId, new_Font->NumberOfGlyphs());
 
 			OSFont osFont{ new_Font, spec , idFontArrayId };
 			osFonts.push_back(osFont);
@@ -213,12 +258,42 @@ namespace ANON
 
 		Vec2i EvalSpan(const Vec2i& pos, Fonts::IDrawTextJob& job, const GuiRect* clipRect) override
 		{
-			return Vec2i{ 0,0 };
+			char stackBuffer[128];
+			SpanEvaluator spanEvaluator;
+			Fonts::IGlyphRenderPipeline* pipeline = Fonts::CreateGlyphRenderPipeline(stackBuffer, sizeof(stackBuffer), spanEvaluator);
+
+			GuiRectf qrect(-10000.0f, -10000.0f, 10000.0f, 10000.0f);
+
+			if (clipRect != nullptr)
+			{
+				qrect.left = (float)clipRect->left;
+				qrect.right = (float)clipRect->right;
+				qrect.top = (float)clipRect->top;
+				qrect.bottom = (float)clipRect->bottom;
+			}
+			RouteDrawTextBasic(pos, job, *scalableFonts, *pipeline, qrect);
+
+			Vec2i span = Quantize(spanEvaluator.Span());
+			if (span.x < 0) span.x = 0;
+			if (span.y < 0) span.y = 0;
+			return span;
 		}
 
 		void RenderText(const Vec2i& pos, Fonts::IDrawTextJob& job, const GuiRect* clipRect) override
 		{
+			char stackBuffer[128];
+			Fonts::IGlyphRenderPipeline* pipeline = Fonts::CreateGlyphRenderPipeline(stackBuffer, sizeof(stackBuffer), *this);
 
+			GuiRectf qrect(-10000.0f, -10000.0f, 10000.0f, 10000.0f);
+
+			if (clipRect != nullptr)
+			{
+				qrect.left = (float)clipRect->left;
+				qrect.right = (float)clipRect->right;
+				qrect.top = (float)clipRect->top;
+				qrect.bottom = (float)clipRect->bottom;
+			}
+			RouteDrawTextBasic(pos, job, *scalableFonts, *pipeline, qrect);
 		}
 
 		IRendererMetrics& Renderer() override
@@ -230,6 +305,26 @@ namespace ANON
 		{
 			metrics.cursorPosition = { 0,0 };
 			metrics.screenSpan = { 1024, 768 };
+		}
+
+		GuiMetrics metrics{ {0,0},{ 1024, 768 } };
+
+		void UpdateCursor(Vec2i cursorPos) override
+		{
+			metrics.cursorPosition = cursorPos;
+		}
+
+		void UpdateSpan(Vec2i screenSpan) override
+		{
+			metrics.screenSpan = screenSpan;
+
+			globalState.guiScale.OOScreenWidth = 1.0f / screenSpan.x;
+			globalState.guiScale.OOScreenHeight = 1.0f / screenSpan.y;
+			globalState.guiScale.OOFontWidth = 1.0f / 1024.0f;
+			globalState.guiScale.OOSpriteWidth = 1.0f / 1024.0f;
+
+			auto& m = system.Meshes().GetPopulator();
+			m.UpdateDynamicConstantBuffer(idGlobalStateConstants, globalState);
 		}
 
 		auto SelectTexture(ID_TEXTURE id)->Vec2i override
@@ -383,31 +478,119 @@ namespace ANON
 			metrics.Width = 1024;
 		}
 
-		Fonts::ArrayFontMetrics GetFontMetrics(ID_FONT idFont)  override
+		const Fonts::ArrayFontMetrics& GetFontMetrics(ID_FONT idFont)  override
 		{
-			Fonts::ArrayFontMetrics metrics = { 0 };
-			return metrics;
+			int32 index = idFont.value - ID_FONT_OSFONT_OFFSET;
+			if (index < 0 || index >= (int32)osFonts.size())
+			{
+				Throw(0, "%s: ID_FONT parameter was unknown value", __FUNCTION__);
+			}
+
+			return osFonts[index].arrayFont->Metrics();
 		}
 
 		Textures::ITextureArrayBuilder& SpriteBuilder() override
 		{
-			Textures::ITextureArrayBuilder* s = nullptr;
-			return *s;
+			return system.Textures().GetSpriteBuilder(idSprites);
 		}
 
 		Fonts::IFont& FontMetrics() override
 		{
-			Fonts::IFont* font = nullptr;
-			return *font;
+			return *scalableFonts;
+		}
+
+		void DrawGlyph(cr_vec2 uvTopLeft, cr_vec2 uvBottomRight, cr_vec2 posTopLeft, cr_vec2 posBottomRight, Fonts::FontColour fcolour)
+		{
+			float x0 = posTopLeft.x;
+			float y0 = posTopLeft.y;
+			float x1 = posBottomRight.x;
+			float y1 = posBottomRight.y;
+
+			float u0 = uvTopLeft.x;
+			float v0 = uvTopLeft.y;
+			float u1 = uvBottomRight.x;
+			float v1 = uvBottomRight.y;
+
+			struct CLOSURE
+			{
+				static RGBAb FontColourToSysColour(Fonts::FontColour colour)
+				{
+					RGBAb* pCol = (RGBAb*)&colour;
+					return *pCol;
+				}
+			};
+
+			RGBAb colour = CLOSURE::FontColourToSysColour(fcolour);
+
+			SpriteVertexData drawFont{ 1.0f, 0.0f, 0.0f, 1.0f };
+
+			GuiTriangle t1
+			{
+				GuiVertex{ {x0, y0}, {{ u0, v0}, 1 }, drawFont, (RGBAb)colour },
+				GuiVertex{ {x0, y1}, {{ u0, v1}, 1 }, drawFont, (RGBAb)colour },
+				GuiVertex{ {x1, y1}, {{ u1, v1}, 1 }, drawFont, (RGBAb)colour }
+			};
+
+			GuiTriangle t2
+			{
+				GuiVertex{ {x0, y1}, {{ u0, v1}, 1 }, drawFont, (RGBAb)colour },
+				GuiVertex{ {x1, y1}, {{ u1, v1}, 1 }, drawFont, (RGBAb)colour },
+				GuiVertex{ {x0, y0}, {{ u0, v0}, 1 }, drawFont, (RGBAb)colour } // bottomRight
+			};
+
+			AddTriangle(&t1.a);
+			AddTriangle(&t2.a);
+		}
+
+		IHQFonts& HQFonts() override
+		{
+			return *hqFonts;
 		}
 	};
 }
 
 namespace Rococo::Graphics
 {
-	IRenderPhasePopulator* CreateStandardGuiRenderPhase(IDX11System& system, IRenderStage& stage)
+	IGuiRenderPhasePopulator* CreateStandardGuiRenderPhase(IDX11System& system, IRenderStage& stage, IInstallation& installation, TextureId idSprites)
 	{
-		return new ANON::GuiRenderPhase(system, stage);
+		return new ANON::GuiRenderPhase(system, stage, installation, idSprites);
+	}
+
+	void ConfigueStandardGuiStage(IRenderStageSupervisor& stage, const GuiRect& scissorRect, TextureId idSprites, TextureId idScalableFontTexture)
+	{
+		stage.SetEnableScissors(&scissorRect);
+
+		stage.SetDepthWriteEnable(false);
+		stage.SetEnableDepth(false);
+		stage.SetSrcBlend(BlendValue::SRC_ALPHA);
+		stage.SetDestBlend(BlendValue::INV_SRC_ALPHA);
+		stage.SetEnableBlend(true);
+		stage.SetBlendOp(BlendOp::ADD);
+		stage.SetCullMode(0);
+
+		Sampler spriteDef;
+		spriteDef.filter = SamplerFilter::MIN_MAG_MIP_POINT;
+		spriteDef.maxAnisotropy = 1;
+		spriteDef.comparison = ComparisonFunc::ALWAYS;
+		spriteDef.maxLOD = 1000000.0f;
+		spriteDef.minLOD = 0;
+		spriteDef.mipLODBias = 0;
+		spriteDef.U = SamplerAddressMode::BORDER;
+		spriteDef.V = SamplerAddressMode::BORDER;
+		spriteDef.W = SamplerAddressMode::BORDER;
+		stage.AddInput(idSprites, 7, spriteDef);
+
+		Sampler fontDef;
+		fontDef.filter = SamplerFilter::MIN_MAG_MIP_LINEAR;
+		fontDef.maxAnisotropy = 1;
+		fontDef.comparison = ComparisonFunc::ALWAYS;
+		fontDef.maxLOD = 1000000.0f;
+		fontDef.minLOD = 0;
+		fontDef.mipLODBias = 0;
+		fontDef.U = SamplerAddressMode::BORDER;
+		fontDef.V = SamplerAddressMode::BORDER;
+		fontDef.W = SamplerAddressMode::BORDER;
+		stage.AddInput(idScalableFontTexture, 0, fontDef);
 	}
 }
 

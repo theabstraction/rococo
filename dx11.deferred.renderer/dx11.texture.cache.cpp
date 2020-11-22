@@ -989,11 +989,34 @@ namespace ANON
 			UINT subresourceIndex = D3D11CalcSubresource(0, index, desc.MipLevels);
 
 			D3D11_BOX box;
+			box.left = 0;
+			box.right = span.x;
+			box.top = 0;
+			box.bottom = span.y;
+			box.front = 0;
+			box.back = 1;
 
 			uint32 lineSpan = span.x * sizeof(GRAYSCALE);
 			uint32 srcDepth = span.y * lineSpan;
 
 			dc.UpdateSubresource(*t.tx2D, subresourceIndex, box, pixels, lineSpan, srcDepth);
+		}
+
+		Textures::ITextureArrayBuilder& GetSpriteBuilder(TextureId id)
+		{
+			auto index = id.index - 1;
+			if (index >= textures.size())
+			{
+				Throw(0, "%s: Bad id", __FUNCTION__);
+			}
+
+			auto& t = textures[index];
+			if (t.uvAtlas)
+			{
+				Throw(0, "%s: texture %s has no atlas.", __FUNCTION__, t.resourceName);
+			}
+
+			return *t.uvAtlas;
 		}
 
 		void UpdateSpanFromSystem(TextureId id) override
@@ -1216,6 +1239,52 @@ namespace ANON
 			else
 			{
 				Throw(0, "%s: No DepthStencilView associated with the texture", __FUNCTION__);
+			}
+		}
+
+		void InitAsBlankArray(TextureId id, uint32 nElements) override
+		{
+			uint32 index = id.index - 1;
+			if (index >= (uint32)textures.size())
+			{
+				Throw(0, "%s: Bad Id", __FUNCTION__);
+			}
+
+			auto& t = textures[index];
+
+			if (t.type != TextureType::T2D_Array)
+			{
+				Throw(0, "%s: texture %s was not an array", __FUNCTION__, t.resourceName);
+			}
+			
+			Lock lock(sync);
+
+			// TODO - put a guard in in the case that ReloadAsset has been called with the same id
+			if (t.tx2D == nullptr)
+			{
+				D3D11_TEXTURE2D_DESC1 desc;
+				desc.ArraySize = nElements;
+				desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+				desc.CPUAccessFlags = 0;
+				desc.Format = t.format;
+				desc.Height = t.span.x;
+				desc.Width = t.span.y;
+				desc.MipLevels = t.isMipMapped ? 0 : 1;
+				desc.MiscFlags = 0;
+				desc.Usage = D3D11_USAGE_DEFAULT;
+				desc.SampleDesc = { 1,0 };
+				desc.TextureLayout = D3D11_TEXTURE_LAYOUT_UNDEFINED;
+				t.errNumber = device.CreateTexture2D1(&desc, nullptr, &t.tx2D);
+				if FAILED(t.errNumber)
+				{
+					char err[256];
+					SafeFormat(err, "device.CreateTexture2D1 failed");
+					t.errString = err;
+				}
+				else
+				{
+					t.errString = "";
+				}
 			}
 		}
 

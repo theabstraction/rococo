@@ -98,30 +98,30 @@ namespace ANON
 
 		IRenderPhasePopulator* populator = nullptr;
 
-		void SetPopulator(IRenderPhasePopulator* populator)
+		void SetPopulator(IRenderPhasePopulator* populator) override
 		{
 			this->populator = populator;
 		}
 
-		void SetEnableDepth(bool isEnabled)
+		void SetEnableDepth(bool isEnabled) override
 		{
 			depthStencilDesc.DepthEnable = isEnabled ? TRUE : FALSE;
 			depthStencilState = nullptr;
 		}
 
-		void SetDepthComparison(ComparisonFunc func)
+		void SetDepthComparison(ComparisonFunc func) override
 		{
 			depthStencilDesc.DepthFunc = (D3D11_COMPARISON_FUNC) func;
 			depthStencilState = nullptr;
 		}
 
-		void SetDepthWriteEnable(bool isEnabled)
+		void SetDepthWriteEnable(bool isEnabled) override
 		{
 			depthStencilDesc.DepthWriteMask = isEnabled ? D3D11_DEPTH_WRITE_MASK_ALL : D3D11_DEPTH_WRITE_MASK_ZERO;
 			depthStencilState = nullptr;
 		}
 
-		void ValidateUnit(cstr function, uint32 index)
+		void ValidateUnit(cstr function, uint32 index) override
 		{
 			if (index >= 8)
 			{
@@ -129,7 +129,7 @@ namespace ANON
 			}
 		}
 
-		void SetEnableScissors(const GuiRect* pRect)
+		void SetEnableScissors(const GuiRect* pRect) override
 		{
 			if (pRect)
 			{
@@ -154,25 +154,25 @@ namespace ANON
 			}
 		}
 
-		void SetEnableMultisample(bool isEnabled)
+		void SetEnableMultisample(bool isEnabled) override
 		{
 			rasterDesc.MultisampleEnable = isEnabled ? TRUE : FALSE;;
 			rasterizerState = nullptr;
 		}
 
-		void SetEnableDepthClip(bool isEnabled)
+		void SetEnableDepthClip(bool isEnabled) override
 		{
 			rasterDesc.DepthClipEnable = isEnabled ? TRUE : FALSE;;
 			rasterizerState = nullptr;
 		}
 
-		void SetWireframeRendering(bool isEnabled)
+		void SetWireframeRendering(bool isEnabled) override
 		{
 			rasterDesc.FillMode = isEnabled ? D3D11_FILL_WIREFRAME : D3D11_FILL_SOLID;
 			rasterizerState = nullptr;
 		}
 
-		void SetCullMode(int32 direction)
+		void SetCullMode(int32 direction) override
 		{
 			if (direction < 0)
 			{
@@ -190,49 +190,49 @@ namespace ANON
 			rasterizerState = nullptr;
 		}
 
-		void SetBlendOp(BlendOp op, uint32 unit = 0)
+		void SetBlendOp(BlendOp op, uint32 unit = 0) override
 		{
 			ValidateUnit(__FUNCTION__, unit);
 			blendDesc.RenderTarget[unit].BlendOp = (D3D11_BLEND_OP) op;
 			blendState = nullptr;
 		}
 
-		void SetBlendAlphaOp(BlendOp op, uint32 unit = 0)
+		void SetBlendAlphaOp(BlendOp op, uint32 unit = 0) override
 		{
 			ValidateUnit(__FUNCTION__, unit);
 			blendDesc.RenderTarget[unit].BlendOpAlpha = (D3D11_BLEND_OP)op;
 			blendState = nullptr;
 		}
 
-		void SetEnableBlend(BOOL bEnable, uint32 unit = 0)
+		void SetEnableBlend(BOOL bEnable, uint32 unit = 0) override
 		{
 			ValidateUnit(__FUNCTION__, unit);
 			blendDesc.RenderTarget[unit].BlendEnable = bEnable;
 			blendState = nullptr;
 		}
 
-		void SetSrcAlphaBlend(BlendValue value, uint32 unit = 0)
+		void SetSrcAlphaBlend(BlendValue value, uint32 unit = 0) override
 		{
 			ValidateUnit(__FUNCTION__, unit);
 			blendDesc.RenderTarget[unit].SrcBlendAlpha = (D3D11_BLEND) value;
 			blendState = nullptr;
 		}
 
-		void SetDestAlphaBlend(BlendValue value, uint32 unit = 0)
+		void SetDestAlphaBlend(BlendValue value, uint32 unit = 0) override
 		{
 			ValidateUnit(__FUNCTION__, unit);
 			blendDesc.RenderTarget[unit].DestBlendAlpha = (D3D11_BLEND)value;
 			blendState = nullptr;
 		}
 
-		void SetSrcBlend(BlendValue value, uint32 unit = 0)
+		void SetSrcBlend(BlendValue value, uint32 unit = 0) override
 		{
 			ValidateUnit(__FUNCTION__, unit);
 			blendDesc.RenderTarget[unit].SrcBlend = (D3D11_BLEND)value;
 			blendState = nullptr;
 		}
 
-		void SetDestBlend(BlendValue value, uint32 unit = 0)
+		void SetDestBlend(BlendValue value, uint32 unit = 0) override
 		{
 			ValidateUnit(__FUNCTION__, unit);
 			blendDesc.RenderTarget[unit].DestBlend = (D3D11_BLEND)value;
@@ -289,7 +289,26 @@ namespace ANON
 			return refcount;
 		}
 
-		void AddInput(TextureId id, uint32 textureUnit, const Sampler& sampler)
+		struct Constant
+		{
+			MeshIndex id;
+			uint32 constantSlotIndex;
+		};
+
+		std::vector<Constant> PSconstants;
+		std::vector<Constant> VSconstants;
+
+		void ApplyConstantToPS(MeshIndex id, uint32 constantSlotIndex) override
+		{
+			PSconstants.push_back({ id, constantSlotIndex });
+		}
+
+		void ApplyConstantToVS(MeshIndex id, uint32 constantSlotIndex) override
+		{
+			VSconstants.push_back({ id, constantSlotIndex });
+		}
+
+		void AddInput(TextureId id, uint32 textureUnit, const Sampler& sampler) override
 		{
 			D3D11_SAMPLER_DESC desc;
 			desc.Filter   = (D3D11_FILTER) sampler.filter;
@@ -346,6 +365,18 @@ namespace ANON
 			for (auto& unit : txUnits)
 			{
 				textures.AssignTextureToShaders(unit.id, unit.textureUnit);
+			}
+
+			auto& meshes = system.Meshes();
+
+			for (auto& constant : PSconstants)
+			{
+				meshes.ApplyConstantToPS(constant.id, constant.constantSlotIndex);
+			}
+
+			for (auto& constant : VSconstants)
+			{
+				meshes.ApplyConstantToVS(constant.id, constant.constantSlotIndex);
 			}
 
 			UseState();

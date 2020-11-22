@@ -702,7 +702,7 @@ namespace ANON
 		   }
 	   }
 
-	   Fonts::ArrayFontMetrics GetFontMetrics(ID_FONT idFont) override
+	   const Fonts::ArrayFontMetrics& GetFontMetrics(ID_FONT idFont) override
 	   {
 		   int32 index = idFont.value - ID_FONT_OSFONT_OFFSET;
 		   if (index < 0 || index >= (int32)osFonts.size())
@@ -1835,18 +1835,6 @@ namespace ANON
 		   auto i = nameToMaterialId.find(name);
 		   return i != nameToMaterialId.end() ? i->second : -1.0f;
 	   }
-
-	   enum CBUFFER_INDEX
-	   { 
-		   CBUFFER_INDEX_GLOBAL_STATE = 0,
-		   CBUFFER_INDEX_CURRENT_SPOTLIGHT = 1,
-		   CBUFFER_INDEX_AMBIENT_LIGHT = 2,
-		   CBUFFER_INDEX_DEPTH_RENDER_DESC = 3,
-		   CBUFFER_INDEX_INSTANCE_BUFFER = 4,
-		   CBUFFER_INDEX_SELECT_TEXTURE_DESC = 5,
-		   CBUFFER_INDEX_SUNLIGHT = 6,
-		   CBUFFER_INDEX_BONE_MATRICES = 7
-	   };
 
 	   ID_TEXTURE FindTexture(cstr name) const
 	   {

@@ -297,7 +297,7 @@ namespace ANON
 			sizeofVertex = 0;
 		}
 
-		bool UseAsVertexBufferSlot(MeshIndex id, uint32 slot) override
+		void ApplyConstantToPS(MeshIndex id, uint32 slot) override
 		{
 			auto index = id.index - 1;
 			if (index >= meshes.size())
@@ -306,6 +306,37 @@ namespace ANON
 			}
 
 			auto& mesh = meshes[index];
+
+			dc.PSSetConstantBuffers(slot, 1, &mesh.buffer);
+		}
+
+		void ApplyConstantToVS(MeshIndex id, uint32 slot) override
+		{
+			auto index = id.index - 1;
+			if (index >= meshes.size())
+			{
+				Throw(0, "%s: bad MeshIndex id", __FUNCTION__);
+			}
+
+			auto& mesh = meshes[index];
+
+			dc.VSSetConstantBuffers(slot, 1, &mesh.buffer);
+		}
+
+		bool ApplyVertexBuffer(MeshIndex id, uint32 slot) override
+		{
+			auto index = id.index - 1;
+			if (index >= meshes.size())
+			{
+				Throw(0, "%s: bad MeshIndex id", __FUNCTION__);
+			}
+
+			auto& mesh = meshes[index];
+
+			if (mesh.layout.index == 0)
+			{
+				Throw(0, "%s: no layout specified for the mesh", __FUNCTION__);
+			}
 
 			uint32 offset = 0;
 			dc.IASetVertexBuffers(slot, 1, &mesh.buffer, &mesh.stride, &offset);

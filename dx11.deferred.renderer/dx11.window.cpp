@@ -249,6 +249,13 @@ namespace ANON
 			return *this;
 		}
 
+		Vec2i Span() const override
+		{
+			RECT rect;
+			GetClientRect(hMainWnd, &rect);
+			return { rect.right, rect.bottom };
+		}
+
 		void WaitFrames(int nFrames, int msPerFrame)
 		{
 			uint64 releaseAt = frameCount + nFrames;

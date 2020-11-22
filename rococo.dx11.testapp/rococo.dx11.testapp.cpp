@@ -70,6 +70,8 @@ void Main(HINSTANCE hInstance)
 		TextureId idBackBuffer;
 		TextureId idDepthBuffer;
 
+		IGuiRenderPhasePopulator* gui = nullptr;
+
 		CLOSURE(IPipelineSupervisor& ref_pipeline, IDX11System& ref_system):
 			system(ref_system), pipeline(ref_pipeline)
 		{
@@ -94,7 +96,10 @@ void Main(HINSTANCE hInstance)
 
 		void OnMouseEvent(const RAWMOUSE& m) override
 		{
-
+			if (gui)
+			{
+				gui->UpdateCursor({ m.lLastX, m.lLastY });
+			}
 		}
 
 		void OnResizeBackBuffer(TextureId idBackBuffer, Vec2i span) override
@@ -103,6 +108,11 @@ void Main(HINSTANCE hInstance)
 
 			this->idBackBuffer = idBackBuffer;
 			this->idDepthBuffer = system.Textures().AddDepthStencil("depth", span, 32, 0);
+
+			if (gui)
+			{
+				gui->UpdateSpan(span);
+			}
 		}
 
 		void OnUpdateFrame(TextureId idBackBuffer) override
@@ -119,22 +129,14 @@ void Main(HINSTANCE hInstance)
 		}
 	} app(*pipeline, *dx11);
 
-	struct Scene : IScene
+	struct Scene : IScene2D
 	{
 	public:
-		void GetCamera(Matrix4x4& camera, Matrix4x4& world, Matrix4x4& proj, Vec4& eye, Vec4& viewDir) override
-		{
-
-		}
-
-		ID_CUBE_TEXTURE GetSkyboxCubeId() const override
-		{
-
-		}
+		ID_FONT idFont;
 
 		RGBA GetClearColour() const override
 		{
-
+			return RGBA();
 		}
 
 		void OnGuiResize(Vec2i screenSpan) override
@@ -148,26 +150,10 @@ void Main(HINSTANCE hInstance)
 			grc.Renderer().GetGuiMetrics(metrics);
 			int32 y = metrics.screenSpan.y >> 1;
 
-		//	GuiRect rect{ 0, metrics.screenSpan.x, y - 100, y + 100 };
-		//	RenderHQText_LeftAligned_VCentre(grc, fontId, rect, "Hello World!", RGBAb(255, 255, 255, 255));
+			GuiRect rect{ 0, metrics.screenSpan.x, y - 100, y + 100 };
+			RenderHQText_LeftAligned_VCentre(grc, idFont, rect, "Hello World!", RGBAb(255, 255, 255, 255));
 		}
-
-		void RenderObjects(IRenderContext& rc, bool skinned) override
-		{
-
-		}
-
-		const Light* GetLights(uint32& nCount) const override
-		{
-			nCount = 0;
-			return nullptr;
-		}
-
-		 void RenderShadowPass(const DepthRenderData& drd, IRenderContext& rc, bool skinned) override
-		 {
-
-		 }
-	};
+	} scene;
 
 	DX11WindowContext wc{ Windows::NoParent(), app, {800,600}, "DX11 Test Window", hInstance };
 	AutoFree<IDX11Window> window = dx11->CreateDX11Window(wc);
@@ -186,54 +172,32 @@ void Main(HINSTANCE hInstance)
 	dx11->Textures().AddElementToArray(idSprites, "!textures/hv/icons/mace.tif");
 	dx11->Textures().ReloadAsset(idSprites);
 
+	auto span = window->Span();
+	GuiRect scissorRect{ 0, 0, span.x, span.y };
+
 	AutoRelease<IRenderStageSupervisor> guiStage = CreateRenderStageBasic(*dx11);
+	ConfigueStandardGuiStage(*guiStage, scissorRect, idSprites, idScalableFontTexture);
 
-	RECT rect;
-	GetClientRect(window->Window(), &rect);
-	GuiRect guiRect{ 0, 0, rect.right, rect.bottom };
-	guiStage->SetEnableScissors(&guiRect);
-
-	guiStage->SetDepthWriteEnable(false);
-	guiStage->SetEnableDepth(false);
-	guiStage->SetSrcBlend(BlendValue::SRC_ALPHA);
-	guiStage->SetDestBlend(BlendValue::INV_SRC_ALPHA);
-	guiStage->SetEnableBlend(true);
-	guiStage->SetBlendOp(BlendOp::ADD);
-	guiStage->SetCullMode(0);
-
-	Sampler spriteDef;
-	spriteDef.filter = SamplerFilter::MIN_MAG_MIP_POINT;
-	spriteDef.maxAnisotropy = 1;
-	spriteDef.comparison = ComparisonFunc::ALWAYS;
-	spriteDef.maxLOD = 1000000.0f;
-	spriteDef.minLOD = 0;
-	spriteDef.mipLODBias = 0;
-	spriteDef.U = SamplerAddressMode::BORDER;
-	spriteDef.V = SamplerAddressMode::BORDER;
-	spriteDef.W = SamplerAddressMode::BORDER;
-	guiStage->AddInput(idSprites, 7, spriteDef);
-
-	Sampler fontDef;
-	fontDef.filter = SamplerFilter::MIN_MAG_MIP_LINEAR;
-	fontDef.maxAnisotropy = 1;
-	fontDef.comparison = ComparisonFunc::ALWAYS;
-	fontDef.maxLOD = 1000000.0f;
-	fontDef.minLOD = 0;
-	fontDef.mipLODBias = 0;
-	fontDef.U = SamplerAddressMode::BORDER;
-	fontDef.V = SamplerAddressMode::BORDER;
-	fontDef.W = SamplerAddressMode::BORDER;
-	guiStage->AddInput(idScalableFontTexture, 0, fontDef);
-
-	AutoFree<IRenderPhasePopulator> gui = CreateStandardGuiRenderPhase(*dx11, *guiStage);
+	AutoFree<IGuiRenderPhasePopulator> gui = CreateStandardGuiRenderPhase(*dx11, *guiStage, *installation, idSprites);
 	guiStage->SetPopulator(gui);
+	gui->UpdateSpan(span);
 
 	RenderTargetFlags flags;
 	flags.clearWhenAssigned = true;
 	guiStage->AddOutput(app.idBackBuffer,  0, 0, flags, RGBA{ 0, 1, 0, 1});
 	guiStage->AddDepthStencilBuffer(app.idDepthBuffer, 1.0f, 0);
 
+	app.gui = gui;
+
 	pipeline->GetBuilder().AddStage("gui", guiStage);
+
+	auto& hq = gui->HQFonts();
+	hq.Build(HQFont_EditorFont);
+	hq.AddRange(32, 127);
+	hq.MakeBold();
+	hq.SetHeight(36);
+	hq.SetFaceName("Tahoma"_fstring);
+	scene.idFont = hq.Commit();
 
 	auto start = Rococo::OS::CpuTicks();
 

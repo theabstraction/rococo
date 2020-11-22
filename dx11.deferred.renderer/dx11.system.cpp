@@ -126,6 +126,20 @@ namespace ANON
 			Unlock();
 		}
 
+		void PSSetConstantBuffers(uint32 startSlot, uint32 nBuffer, ID3D11Buffer* const * bufferArray) override
+		{
+			Lock();
+			dc->PSSetConstantBuffers(startSlot, nBuffer, bufferArray);
+			Unlock();
+		}
+
+		void VSSetConstantBuffers(uint32 startSlot, uint32 nBuffer, ID3D11Buffer* const* bufferArray) override
+		{
+			Lock();
+			dc->VSSetConstantBuffers(startSlot, nBuffer, bufferArray);
+			Unlock();
+		}
+
 		void ClearRenderTargetView(ID3D11RenderTargetView* pRenderTargetView, const RGBA& colour) override
 		{
 			Lock();
