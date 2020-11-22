@@ -6,7 +6,10 @@
 #include <rococo.fonts.h>
 #include <rococo.fonts.hq.h>
 #include <rococo.DirectX.h>
+#include <rococo.mplat.h>
+#include <rococo.strings.h>
 #include <vector>
+#include <d3d11_4.h>
 
 using namespace Rococo;
 using namespace Rococo::Fonts;
@@ -14,7 +17,21 @@ using namespace Rococo::Graphics;
 
 namespace ANON
 {
-	struct GuiRenderPhase : IRenderPhasePopulator, public IGuiRenderContext, public IRendererMetrics
+	bool operator == (const Fonts::FontSpec& a, const Fonts::FontSpec& b)
+	{
+		return
+			Eq(a.fontName, b.fontName) &&
+			a.height == b.height &&
+			a.italic == b.italic &&
+			a.weight == b.weight;
+	}
+
+
+	struct GuiRenderPhase :
+		IRenderPhasePopulator,
+		public IGuiRenderContext,
+		public IRendererMetrics,
+		public IHQFontResource
 	{
 		IDX11System& system;
 		IRenderStage& stage;
@@ -23,10 +40,25 @@ namespace ANON
 		MeshIndex idGuiMesh;
 		LayoutId idGuiVertex;
 
+		IScene* scene = nullptr;
+
 		ID_VERTEX_SHADER idGuiVS;
 		ID_PIXEL_SHADER idGuiPS;
 		ID_VERTEX_SHADER idHQVS;
 		ID_PIXEL_SHADER idHQPS;
+
+		AutoFree<Graphics::IHQFontsSupervisor> hqFonts;
+
+		enum { ID_FONT_OSFONT_OFFSET = 400 };
+
+		struct OSFont
+		{
+			Fonts::IArrayFontSupervisor* arrayFont;
+			Fonts::FontSpec spec;
+			TextureId idOSFontTextureArray;
+		};
+
+		std::vector<OSFont> osFonts;
 
 		enum { MAX_TRIANGLE_BATCH_COUNT = 4096 };
 
@@ -34,6 +66,8 @@ namespace ANON
 			system(ref_system), stage(ref_stage)
 		{
 			guiTriangles.reserve(1024);
+
+			hqFonts = CreateHQFonts(*this);
 
 			idGuiPS = system.Shaders().AddPixelShader("!shaders/gui.ps.hlsl");
 			idGuiVS = system.Shaders().AddVertexShader("!shaders/gui.vs.hlsl");
@@ -59,12 +93,86 @@ namespace ANON
 				GuiTriangle t = { 0 };
 				m.AddVertex(&t, sizeof GuiTriangle);
 			}
-			idGuiMesh = m.CommitDynamicVertexBuffer<GuiTriangle>("gui_vertices"_fstring, "GuiVertex"_fstring);
+			idGuiMesh = m.CommitDynamicVertexBuffer<GuiTriangle>("gui_triangles"_fstring, "GuiVertex"_fstring);
 		}
 
 		virtual ~GuiRenderPhase()
 		{
+			for (auto& os : osFonts)
+			{
+				os.arrayFont->Free();
+			}
+		}
 
+		ID_FONT CreateOSFont(Fonts::IArrayFontSet& glyphs, const Fonts::FontSpec& spec) override
+		{
+			int i = 0;
+			for (auto& osFont : osFonts)
+			{
+				if (osFont.spec == spec)
+				{
+					return ID_FONT{ i + ID_FONT_OSFONT_OFFSET };
+				}
+
+				i++;
+			}
+
+			ID_FONT idFont ( i + ID_FONT_OSFONT_OFFSET );
+
+			AutoFree<Fonts::IArrayFontSupervisor> new_Font = Fonts::CreateOSFont(glyphs, spec);
+			AutoRelease<ID3D11Texture2D1> fontArray;
+
+			char hqName[64];
+			SafeFormat(hqName, "HQFONT_%d", idFont.value);
+
+			Vec2i span { new_Font->Metrics().imgWidth, new_Font->Metrics().imgWidth };
+			auto idFontArrayId = system.Textures().AddTx2DArray_Grey(hqName, span);
+
+			OSFont osFont{ new_Font, spec , idFontArrayId };
+			osFonts.push_back(osFont);
+			new_Font.Release();
+
+			struct : IEventCallback<const Fonts::GlyphDesc>
+			{
+				OSFont* font;
+				size_t index = 0;
+				TextureId idFontArrayId;
+				IDX11System* system;
+
+				void OnEvent(const Fonts::GlyphDesc& gd) override
+				{
+					struct : IImagePopulator<GRAYSCALE>
+					{
+						size_t index;
+						OSFont* font;
+						IDX11System* system;
+						TextureId idFontArrayId;
+						void OnImage(const GRAYSCALE* pixels, int32 width, int32 height) override
+						{
+							system->Textures().UpdateArray(idFontArrayId, (uint32) index, pixels, Vec2i{ width, height });
+						}
+					} addImageToTextureArray;
+					addImageToTextureArray.system = system;
+					addImageToTextureArray.font = font;
+					addImageToTextureArray.index = index++;
+					addImageToTextureArray.idFontArrayId = idFontArrayId;
+					font->arrayFont->GenerateImage(gd.charCode, addImageToTextureArray);
+				}
+			} addGlyphToTextureArray;
+
+			addGlyphToTextureArray.font = &osFont;
+			addGlyphToTextureArray.idFontArrayId = idFontArrayId;
+			addGlyphToTextureArray.system = &system;
+
+			auto& font = *osFont.arrayFont;
+			osFont.arrayFont->ForEachGlyph(addGlyphToTextureArray);
+
+			return ID_FONT{ i + ID_FONT_OSFONT_OFFSET };
+		}
+
+		void SetScene(IScene* scene) override
+		{
+			this->scene = scene;
 		}
 
 		void Free() override
@@ -74,6 +182,10 @@ namespace ANON
 
 		void RenderStage(IPainter& painter) override
 		{
+			if (!scene) return;
+
+			scene->RenderGui(*this);
+
 			FlushLayer();
 		}
 
@@ -141,17 +253,6 @@ namespace ANON
 			stage.SetEnableScissors(nullptr);
 			FlushLayer();
 		}
-
-		enum { ID_FONT_OSFONT_OFFSET = 400 };
-
-		struct OSFont
-		{
-			Fonts::IArrayFontSupervisor* arrayFont;
-			Fonts::FontSpec spec;
-			TextureId idOSFontTextureArray;
-		};
-
-		std::vector<OSFont> osFonts;
 
 		void RenderHQText(ID_FONT id, Fonts::IHQTextJob& job, EMode mode = RENDER) override
 		{

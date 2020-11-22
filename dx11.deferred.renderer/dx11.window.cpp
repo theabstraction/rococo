@@ -14,6 +14,8 @@
 
 #include <vector>
 
+#include <CommCtrl.h>
+
 using namespace Rococo;
 using namespace Rococo::Graphics;
 
@@ -152,6 +154,8 @@ namespace ANON
 
 		TextureId idBackBuffer;
 		TextureId idDepthBuffer;
+
+		HWND hReportWnd;
 	public:
 		DX11Window(IDX11System& ref_system, DX11WindowContext& ref_wc, ITextureSupervisor& ref_textures):
 			dxgiFactory(ref_system.Factory()), system(ref_system), wc(ref_wc), 
@@ -183,11 +187,7 @@ namespace ANON
 				char backbuffername[32];
 				SafeFormat(backbuffername, "BackBuffer_H%X", hMainWnd);
 
-				TextureViewFlags flags;
-				flags.DepthStencil = false;
-				flags.RenderTarget = true;
-				flags.ShaderResource = false;
-				idBackBuffer = textures.AddTx2D_Direct(backbuffername, back1, flags);
+				idBackBuffer = textures.AddTx2D_Direct(backbuffername, back1);
 				
 				Vec2i span = textures.GetSpan(idBackBuffer);
 
@@ -222,6 +222,16 @@ namespace ANON
 			SetWindowLongPtrA(hMainWnd, GWLP_USERDATA, (LONG_PTR)this);
 			SetWindowLongPtrA(hMainWnd, GWLP_WNDPROC, (LONG_PTR)OnMessage);
 			ShowWindow(hMainWnd, SW_SHOW);
+
+			auto hDesktop = GetDesktopWindow();
+			RECT rect;
+			GetClientRect(hDesktop, &rect);
+			int32 width = rect.right - rect.left;
+
+			DWORD exStyle = 0;
+			DWORD style = WS_POPUP | WS_BORDER;
+			hReportWnd = CreateWindowExA(exStyle, WC_STATICA, "DebugPopup", style, 20, 20, width-40, 240, hMainWnd,
+				NULL, (HINSTANCE)wc.hResourceInstance, NULL);
 		}
 
 		void Free() override
@@ -357,37 +367,9 @@ namespace ANON
 				return 0L;
 			case WM_PAINT:
 				{
+					frameCount++;
 					PAINTSTRUCT ps;
 					HDC dc = BeginPaint(hMainWnd, &ps);
-					FillRect(dc, &ps.rcPaint, (HBRUSH)(COLOR_WINDOW + 1));
-
-					auto old = SelectObject(dc, (HGDIOBJ)consoleFont);
-
-					RECT rect;
-					GetClientRect(hMainWnd, &rect);
-
-					if (!badShaders.empty())
-					{
-						char buf[4096];
-						StackStringBuilder sb(buf, sizeof buf);
-
-						for (auto& bad : badShaders)
-						{
-							char hrMsg[256];
-							Rococo::OS::FormatErrorMessage(hrMsg, sizeof hrMsg, bad.hr);
-							sb << bad.resource;
-							sb.AppendFormat(": (%d / 0x%8.8X) %s\n", bad.hr, bad.hr, hrMsg);
-							sb << bad.msg.c_str();
-							sb << "\n\n";
-						}
-
-						DrawTextA(dc, buf, sb.Length(), &rect, DT_VCENTER | DT_LEFT);
-					}
-
-					frameCount++;
-
-					SelectObject(dc, old);
-
 					EndPaint(hMainWnd, &ps);
 					return 0L;
 				}
@@ -410,6 +392,41 @@ namespace ANON
 				return DefWindowProcA(hWnd, uMsg, wParam, lParam);
 			}
 		}
+
+		void ShowShaderErrors(HWND hWnd)
+		{
+			if (!badShaders.empty())
+			{
+				char buf[4096];
+				StackStringBuilder sb(buf, sizeof buf);
+
+				char windowTitle[1024];
+				GetWindowTextA(hMainWnd, windowTitle, 1024);
+
+				sb << windowTitle << "\n\n";
+
+				int index = 1;
+
+				for (auto& bad : badShaders)
+				{
+					char hrMsg[256];
+					Rococo::OS::FormatErrorMessage(hrMsg, sizeof hrMsg, bad.hr);
+					sb << index++ << ". " << bad.resource;
+					sb.AppendFormat(": (%d / 0x%8.8X) %s\n", bad.hr, bad.hr, hrMsg);
+					sb << bad.msg.c_str();
+					sb << "\n\n";
+				}
+
+				SetWindowTextA(hWnd, buf);
+				ShowWindow(hWnd, SW_SHOW);
+			}
+			else
+			{
+				SetWindowTextA(hWnd, "");
+				ShowWindow(hWnd, SW_HIDE);
+			}
+		}
+
 
 		void ShowWindowVenue(IMathsVisitor& visitor)
 		{
@@ -513,15 +530,14 @@ namespace ANON
 		{
 			if (UpdateShaderState())
 			{
-				InvalidateRect(hMainWnd, nullptr, FALSE);
+				ShowShaderErrors(this->hReportWnd);
 				return;
 			}
 			
 			if (badShaders.empty())
 			{
 				wc.evHandler.OnUpdateFrame(idBackBuffer);
-
-				swapChain->Present(1, 0);
+				if (swapChain) swapChain->Present(1, 0);
 			}
 		}
 	};

@@ -119,6 +119,56 @@ void Main(HINSTANCE hInstance)
 		}
 	} app(*pipeline, *dx11);
 
+	struct Scene : IScene
+	{
+	public:
+		void GetCamera(Matrix4x4& camera, Matrix4x4& world, Matrix4x4& proj, Vec4& eye, Vec4& viewDir) override
+		{
+
+		}
+
+		ID_CUBE_TEXTURE GetSkyboxCubeId() const override
+		{
+
+		}
+
+		RGBA GetClearColour() const override
+		{
+
+		}
+
+		void OnGuiResize(Vec2i screenSpan) override
+		{
+
+		}
+
+		void RenderGui(IGuiRenderContext& grc) override
+		{
+			GuiMetrics metrics;
+			grc.Renderer().GetGuiMetrics(metrics);
+			int32 y = metrics.screenSpan.y >> 1;
+
+		//	GuiRect rect{ 0, metrics.screenSpan.x, y - 100, y + 100 };
+		//	RenderHQText_LeftAligned_VCentre(grc, fontId, rect, "Hello World!", RGBAb(255, 255, 255, 255));
+		}
+
+		void RenderObjects(IRenderContext& rc, bool skinned) override
+		{
+
+		}
+
+		const Light* GetLights(uint32& nCount) const override
+		{
+			nCount = 0;
+			return nullptr;
+		}
+
+		 void RenderShadowPass(const DepthRenderData& drd, IRenderContext& rc, bool skinned) override
+		 {
+
+		 }
+	};
+
 	DX11WindowContext wc{ Windows::NoParent(), app, {800,600}, "DX11 Test Window", hInstance };
 	AutoFree<IDX11Window> window = dx11->CreateDX11Window(wc);
 	window->MonitorShaderErrors(&dx11->Shaders());

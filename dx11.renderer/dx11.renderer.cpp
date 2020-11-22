@@ -391,7 +391,8 @@ namespace ANON
 	   public IGuiRenderContext,
 	   public Fonts::IGlyphRenderer,
 	   public IResourceLoader,
-	   public IMathsVenue
+	   public IMathsVenue,
+	   public IHQFontResource
    {
    private:
 	   std::default_random_engine rng;
@@ -3596,6 +3597,11 @@ namespace ANON
 	   {
 		   D3D11_RECT rect = { 0, 0, screenSpan.x, screenSpan.y };
 		   dc.RSSetScissorRects(1, &rect);
+	   }
+
+	   IHQFontResource& HQFontsResources()
+	   {
+		   return *this;
 	   }
    };
 }

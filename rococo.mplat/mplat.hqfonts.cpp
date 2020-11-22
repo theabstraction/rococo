@@ -13,8 +13,8 @@ struct HQFonts : IHQFontsSupervisor, Fonts::IArrayFontSet
 {
 	std::unordered_set<char32_t> glyphs;
 
-	IRenderer& renderer;
-	HQFonts(IRenderer& _renderer) : renderer(_renderer) {}
+	IHQFontResource& hq;
+	HQFonts(IHQFontResource& _hq) : hq(_hq) {}
 	void Free() override { delete this; }
 
 	HQFont hqFontType = HQFont_TitleFont;
@@ -123,7 +123,7 @@ struct HQFonts : IHQFontsSupervisor, Fonts::IArrayFontSet
 			Throw(0, "%s: Sys font %s already defined", __FUNCTION__, ToShortString(hqFontType).buffer);
 		}
 
-		ID_FONT idFont = renderer.CreateOSFont(*this, spec);
+		ID_FONT idFont = hq.CreateOSFont(*this, spec);
 		sysFonts[hqFontType] = idFont;
 		return idFont;
 	}
@@ -152,9 +152,9 @@ namespace Rococo
 {
 	namespace Graphics
 	{
-		IHQFontsSupervisor* CreateHQFonts(IRenderer& renderer)
+		IHQFontsSupervisor* CreateHQFonts(IHQFontResource& hq)
 		{
-			return new HQFonts(renderer);
+			return new HQFonts(hq);
 		}
 	}
 }

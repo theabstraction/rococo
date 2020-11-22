@@ -820,7 +820,7 @@ namespace Rococo
 			virtual void Free() = 0;
 		};
 
-		IHQFontsSupervisor* CreateHQFonts(IRenderer& renderer);
+		IHQFontsSupervisor* CreateHQFonts(IHQFontResource& hq);
 	}
 
 	struct ISourceCache;

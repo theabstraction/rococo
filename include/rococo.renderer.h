@@ -384,9 +384,14 @@ namespace Rococo
 		virtual Fonts::IFont& FontMetrics() = 0;
 	};
 
+	ROCOCOAPI IHQFontResource
+	{
+		virtual ID_FONT CreateOSFont(Fonts::IArrayFontSet& glyphs, const Fonts::FontSpec& spec) = 0;
+	};
+
 	ROCOCOAPI IRenderer: IRendererMetrics
 	{
-		virtual ID_FONT CreateOSFont(Fonts::IArrayFontSet& glyphs, const Fonts::FontSpec & spec) = 0;
+		virtual IHQFontResource& HQFontsResources() = 0;
 		virtual void AddOverlay(int zorder, IUIOverlay * overlay) = 0;
 		virtual void AddFog(const ParticleVertex& fog) = 0;
 		virtual void AddPlasma(const ParticleVertex& p) = 0;

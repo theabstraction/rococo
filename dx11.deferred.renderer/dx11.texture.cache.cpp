@@ -890,7 +890,7 @@ namespace ANON
 			return AddGeneric(name, TextureType::T2D_UVAtlas, DXGI_FORMAT_R8G8B8A8_UNORM, { 0,0 });
 		}
 
-		TextureId AddTx2D_Direct(cstr name, ID3D11Texture2D1* tx2D, TextureViewFlags flags) override
+		TextureId AddTx2D_Direct(cstr name, ID3D11Texture2D1* tx2D) override
 		{
 			ValidateName(__FUNCTION__, name);
 			if (tx2D == nullptr) Throw(E_POINTER, "%s(%s,...). The pointer was null", __FUNCTION__, name);
@@ -923,7 +923,7 @@ namespace ANON
 			t.isMipMapped = desc.MipLevels != 1;
 			t.format = desc.Format;
 
-			if (flags.DepthStencil)
+			if ((desc.BindFlags & D3D11_BIND_DEPTH_STENCIL) != 0)
 			{
 				HRESULT hr = device.CreateDepthStencilView(t.tx2D, nullptr, &t.depthStencilView);
 				if FAILED(hr)
@@ -935,7 +935,7 @@ namespace ANON
 				}
 			}
 
-			if (flags.RenderTarget)
+			if ((desc.BindFlags & D3D11_BIND_RENDER_TARGET) != 0)
 			{
 				HRESULT hr = device.CreateRenderTargetView1(t.tx2D, nullptr, &t.renderTarget);
 				if FAILED(hr)
@@ -947,7 +947,7 @@ namespace ANON
 				}
 			}
 
-			if (flags.ShaderResource)
+			if ((desc.BindFlags & D3D11_BIND_SHADER_RESOURCE) != 0)
 			{
 				HRESULT hr = device.CreateShaderResourceView1(t.tx2D, nullptr, &t.shaderResource);
 				if FAILED(hr)
@@ -960,6 +960,40 @@ namespace ANON
 			}
 
 			return id;
+		}
+
+		void UpdateArray(TextureId id, uint32 index, const GRAYSCALE* pixels, Vec2i span) override
+		{
+			auto textureIndex = id.index - 1;
+			if (textureIndex >= textures.size())
+			{
+				Throw(0, "%s: Bad id", __FUNCTION__);
+			}
+
+			auto& t = textures[textureIndex];
+
+			Lock lock(sync);
+
+			if (!t.tx2D) Throw(t.errNumber, "%s: no texture exists for %s", __FUNCTION__, t.resourceName);
+
+			if (t.format != DXGI_FORMAT_R8_UNORM) Throw(0, "%s: %s not greyscale", __FUNCTION__, t.resourceName);
+
+			D3D11_TEXTURE2D_DESC desc;
+			t.tx2D->GetDesc(&desc);
+
+			if (span.x != desc.Width || span.y != desc.Height)
+			{
+				Throw(0, "%s: %s. Bad span", __FUNCTION__, t.resourceName);
+			}
+
+			UINT subresourceIndex = D3D11CalcSubresource(0, index, desc.MipLevels);
+
+			D3D11_BOX box;
+
+			uint32 lineSpan = span.x * sizeof(GRAYSCALE);
+			uint32 srcDepth = span.y * lineSpan;
+
+			dc.UpdateSubresource(*t.tx2D, subresourceIndex, box, pixels, lineSpan, srcDepth);
 		}
 
 		void UpdateSpanFromSystem(TextureId id) override

@@ -228,19 +228,17 @@ namespace Rococo::Graphics
 		virtual Vec2i GetSpan(TextureId id) const = 0;
 		virtual void ReloadAsset(TextureId id) = 0;
 		virtual void UpdateSpanFromSystem(TextureId id) = 0;
+		virtual void UpdateArray(TextureId id, uint32 index, const GRAYSCALE* pixels, Vec2i span) = 0;
 		virtual	void UseTexturesAsRenderTargets(const RenderTarget* targets, uint32 nTargets, TextureId idDepthStencil) = 0;	
 	};
 
-	struct TextureViewFlags
+	ROCOCOAPI IDX11TextureCache : ITextureCache
 	{
-		uint32 ShaderResource : 1;
-		uint32 RenderTarget : 1;
-		uint32 DepthStencil : 1;
+		virtual TextureId AddTx2D_Direct(cstr name, ID3D11Texture2D1* tx2D) = 0;
 	};
 
-	ROCOCOAPI ITextureSupervisor : ITextureCache
+	ROCOCOAPI ITextureSupervisor : IDX11TextureCache
 	{
-		virtual TextureId AddTx2D_Direct(cstr name, ID3D11Texture2D1 * tx2D, TextureViewFlags flags) = 0;
 		virtual void Free() = 0;
 	};
 
@@ -271,6 +269,7 @@ namespace Rococo::Graphics
 	ROCOCOAPI IRenderPhasePopulator
 	{
 		virtual void RenderStage(IPainter & painter) = 0;
+		virtual void SetScene(IScene* scene) = 0;
 		virtual void Free() = 0;
 	};
 

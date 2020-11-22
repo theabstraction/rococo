@@ -318,6 +318,30 @@ namespace ANON
 			this->sizeofVertex = sizeofVertex;
 		}
 
+		MeshIndex PushNewGenie(LayoutId id, const D3D11_BUFFER_DESC& desc, const uint8* pNewData, cstr name, MeshType type)
+		{
+			MeshGenie g;
+			g.layout = id;
+			g.capacityInBytes = desc.ByteWidth;
+			g.activeBytes = desc.ByteWidth;
+			g.stride = (uint32)sizeofVertex;
+
+			D3D11_SUBRESOURCE_DATA data;
+			data.pSysMem = pNewData;
+			data.SysMemPitch = 0;
+			data.SysMemSlicePitch = 0;
+
+			VALIDATE_HR(device.CreateBuffer(&desc, &data, &g.buffer));
+			g.buffer->AddRef();
+			meshes.push_back(g);
+
+			MeshIndex meshId;
+			meshId.index = meshes.size();
+			meshId.type = type;
+			nameToId.insert(name, meshId);
+			return meshId;
+		}
+
 		MeshIndex CommitDynamicVertexBuffer(const fstring& name, const fstring& vertexLayout) override
 		{
 			if (name.length < 1) Throw(0, "%s: blank name", __FUNCTION__);
@@ -339,10 +363,6 @@ namespace ANON
 			desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 			desc.MiscFlags = 0;
 			desc.StructureByteStride = 0;
-			D3D11_SUBRESOURCE_DATA data;
-			data.pSysMem = tempData.data();
-			data.SysMemPitch = 0;
-			data.SysMemSlicePitch = 0;
 
 			auto i = nameToId.find(name);
 			if (i != nameToId.end())
@@ -370,22 +390,7 @@ namespace ANON
 			}
 			else
 			{
-				MeshGenie g;
-				g.layout = layouts.Get(vertexLayout);
-				g.capacityInBytes = desc.ByteWidth;
-				g.activeBytes = desc.ByteWidth;
-				g.stride = (uint32) sizeofVertex;
-				VALIDATE_HR(device.CreateBuffer(&desc, &data, &g.buffer));
-				meshes.push_back(g);
-
-				MeshIndex meshId;
-				meshId.index = meshes.size();
-				meshId.type = MeshType::DynamicVertex;
-				nameToId.insert(name, meshId);
-
-				tempData.clear();
-
-				return meshId;
+				return PushNewGenie(layouts.Get(vertexLayout), desc, tempData.data(), name, MeshType::DynamicVertex);
 			}
 		}
 
@@ -410,10 +415,6 @@ namespace ANON
 			desc.CPUAccessFlags = 0;
 			desc.MiscFlags = 0;
 			desc.StructureByteStride = 0;
-			D3D11_SUBRESOURCE_DATA data;
-			data.pSysMem = tempData.data();
-			data.SysMemPitch = 0;
-			data.SysMemSlicePitch = 0;
 
 			auto i = nameToId.find(name);
 			if (i != nameToId.end())
@@ -423,33 +424,12 @@ namespace ANON
 				{
 					Throw(0, "%s: %s is bound already. And it is not marked immutable", __FUNCTION__, name.buffer);
 				}
-				genie.buffer = nullptr;
-				genie.capacityInBytes = 0;
-				genie.activeBytes = 0;
-				VALIDATE_HR(device.CreateBuffer(&desc, &data, &genie.buffer));
-				genie.capacityInBytes = desc.ByteWidth;
-				genie.activeBytes = desc.ByteWidth;
-				tempData.clear();
+				RebufferGenie(genie, desc, tempData.data());
 				return i->second;
 			}
 			else
 			{
-				MeshGenie g;
-				g.layout = layouts.Get(vertexLayout);
-				g.capacityInBytes = desc.ByteWidth;
-				g.activeBytes = desc.ByteWidth;
-				g.stride = (uint32) sizeofVertex;
-				VALIDATE_HR(device.CreateBuffer(&desc, &data, &g.buffer));
-				meshes.push_back(g);
-
-				MeshIndex meshId;
-				meshId.index = meshes.size();
-				meshId.type = MeshType::ImmutableVertex;
-				nameToId.insert(name, meshId);
-
-				tempData.clear();
-
-				return meshId;
+				return PushNewGenie(layouts.Get(vertexLayout), desc, tempData.data(), name, MeshType::ImmutableVertex);
 			}
 		}
 
@@ -464,10 +444,6 @@ namespace ANON
 			desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 			desc.MiscFlags = 0;
 			desc.StructureByteStride = 0;
-			D3D11_SUBRESOURCE_DATA data;
-			data.pSysMem = pData;
-			data.SysMemPitch = 0;
-			data.SysMemSlicePitch = 0;
 
 			auto i = nameToId.find(name);
 			if (i != nameToId.end())
@@ -493,21 +469,23 @@ namespace ANON
 			}
 			else
 			{
-				MeshGenie g;
-				g.layout = LayoutId();
-				g.capacityInBytes = desc.ByteWidth;
-				g.activeBytes = desc.ByteWidth;
-				g.stride = (uint32)sizeofVertex;
-				VALIDATE_HR(device.CreateBuffer(&desc, &data, &g.buffer));
-				meshes.push_back(g);
-
-				MeshIndex meshId;
-				meshId.index = meshes.size();
-				meshId.type = MeshType::DynamicConstant;
-				nameToId.insert(name, meshId);
-
-				return meshId;
+				return PushNewGenie(LayoutId(), desc, tempData.data(), name, MeshType::DynamicConstant);
 			}
+		}
+
+		void CopyBytesToDynamicGenie(MeshGenie& g, const void* pData, size_t sizeofBuffer)
+		{
+			if (sizeofBuffer > g.capacityInBytes)
+			{
+				Throw(0, "%s: cannot update dynamic buffer. The source was longer than the buffer capacity", __FUNCTION__);
+			}
+
+			g.activeBytes = 0;
+			D3D11_MAPPED_SUBRESOURCE x;
+			VALIDATE_HR(dc.Map(g.buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &x));
+			memcpy(x.pData, pData, sizeofBuffer);
+			dc.Unmap(g.buffer, 0);
+			g.activeBytes = sizeofBuffer;
 		}
 
 		void UpdateBufferByByte(MeshIndex id, const void* pData, size_t sizeofBuffer)
@@ -527,12 +505,7 @@ namespace ANON
 				Throw(0, "%s: cannot update dynamic buffer. The source was longer than the buffer capacity", __FUNCTION__);
 			}
 
-			genie.activeBytes = 0;
-			D3D11_MAPPED_SUBRESOURCE x;
-			VALIDATE_HR(dc.Map(genie.buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &x));
-			memcpy(x.pData, pData, sizeofBuffer);
-			dc.Unmap(genie.buffer, 0);
-			genie.activeBytes = sizeofBuffer;
+			CopyBytesToDynamicGenie(genie, pData, sizeofBuffer);
 		}
 
 		void UpdateDynamicConstantBufferByByte(MeshIndex id, const void* data, size_t sizeofBuffer) override
@@ -543,6 +516,19 @@ namespace ANON
 		void UpdateDynamicVertexBufferByByte(MeshIndex id, const void* data, size_t sizeofBuffer)
 		{
 			UpdateBufferByByte(id, data, sizeofBuffer);
+		}
+
+		void RebufferGenie(MeshGenie& g, const D3D11_BUFFER_DESC& desc, const uint8* pOverwriteData)
+		{
+			D3D11_SUBRESOURCE_DATA data = { 0 };
+			data.pSysMem = pOverwriteData;
+			g.buffer = nullptr;
+			g.capacityInBytes = 0;
+			g.activeBytes = 0;
+			VALIDATE_HR(device.CreateBuffer(&desc, &data, &g.buffer));
+			g.capacityInBytes = desc.ByteWidth;
+			g.activeBytes = desc.ByteWidth;
+			tempData.clear();
 		}
 
 		MeshIndex CommitImmutableConstantBuffer(const fstring& name) override
@@ -556,10 +542,6 @@ namespace ANON
 			desc.CPUAccessFlags = 0;
 			desc.MiscFlags = 0;
 			desc.StructureByteStride = 0;
-			D3D11_SUBRESOURCE_DATA data;
-			data.pSysMem = tempData.data();
-			data.SysMemPitch = 0;
-			data.SysMemSlicePitch = 0;
 
 			auto i = nameToId.find(name);
 			if (i != nameToId.end())
@@ -569,31 +551,14 @@ namespace ANON
 				{
 					Throw(0, "%s: %s is bound already. And it is not marked immutable constant", __FUNCTION__, name.buffer);
 				}
-				genie.buffer = nullptr;
-				genie.capacityInBytes = 0;
-				genie.activeBytes = 0;
-				VALIDATE_HR(device.CreateBuffer(&desc, &data, &genie.buffer));
-				genie.capacityInBytes = desc.ByteWidth;
-				genie.activeBytes = desc.ByteWidth;
-				tempData.clear();
+
+				RebufferGenie(genie, desc, tempData.data());
 				return i->second;
 			}
 			else
 			{
-				MeshGenie g;
-				g.layout = LayoutId();
-				g.capacityInBytes = desc.ByteWidth;
-				g.activeBytes = desc.ByteWidth;
-				g.stride = (uint32)sizeofVertex;
-				VALIDATE_HR(device.CreateBuffer(&desc, &data, &g.buffer));
-				meshes.push_back(g);
+				return PushNewGenie(LayoutId(), desc, tempData.data(), name, MeshType::ImmutableConstant);
 
-				MeshIndex meshId;
-				meshId.index = meshes.size();
-				meshId.type = MeshType::ImmutableConstant;
-				nameToId.insert(name, meshId);
-
-				return meshId;
 			}
 		}
 
