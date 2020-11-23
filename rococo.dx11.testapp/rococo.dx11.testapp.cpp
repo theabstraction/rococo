@@ -176,7 +176,7 @@ void Main(HINSTANCE hInstance)
 			grc.Renderer().GetGuiMetrics(metrics);
 			int32 y = metrics.screenSpan.y >> 1;
 
-			GuiRect rect{ 0, metrics.screenSpan.x, y - 100, y + 100 };
+			GuiRect rect{ 0, y - 100, metrics.screenSpan.x, y + 100 };
 			RenderHQText_LeftAligned_VCentre(grc, idFont, rect, "Hello World!", RGBAb(255, 255, 255, 255));
 		}
 	} scene;

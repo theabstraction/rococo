@@ -84,7 +84,7 @@ namespace ANON
 
 		std::vector<OSFont> osFonts;
 
-		enum { MAX_TRIANGLE_BATCH_COUNT = 4096 };
+		enum { MAX_TRIANGLE_BATCH_COUNT = 1024 };
 
 		AutoFree<Fonts::IFontSupervisor> scalableFonts;
 		TextureId idScalableFontTexture;
@@ -106,11 +106,11 @@ namespace ANON
 			idHQVS  = system.Shaders().AddVertexShader("!shaders/HQ-font.vs.hlsl");
 
 			auto& m = system.Meshes().GetPopulator();
-			auto& lb = m.LayoutBuilder();
 
 			static_assert(sizeof(GuiVertex) == 40);
 			static_assert(sizeof(GuiTriangle) == 120);
 
+			auto& lb = m.LayoutBuilder();
 			lb.Clear();
 			lb.AddFloat2(HLSL_Semantic::POSITION, 0); // vec2
 			lb.AddFloat3(HLSL_Semantic::TEXCOORD, 0); // vd
@@ -328,6 +328,8 @@ namespace ANON
 		void UpdateSpan(Vec2i screenSpan) override
 		{
 			metrics.screenSpan = screenSpan;
+
+			globalState = GlobalState{ 0 };
 
 			globalState.guiScale.OOScreenWidth = 1.0f / screenSpan.x;
 			globalState.guiScale.OOScreenHeight = 1.0f / screenSpan.y;
