@@ -112,7 +112,7 @@ namespace ANON
 			static_assert(sizeof(GuiTriangle) == 120);
 
 			lb.Clear();
-			lb.AddFloat(HLSL_Semantic::POSITION, 0); // vec2
+			lb.AddFloat2(HLSL_Semantic::POSITION, 0); // vec2
 			lb.AddFloat3(HLSL_Semantic::TEXCOORD, 0); // vd
 			lb.AddFloat4(HLSL_Semantic::TEXCOORD, 1); // sd
 			lb.AddRGBAb(0); // colour
@@ -225,9 +225,13 @@ namespace ANON
 			delete this;
 		}
 
-		void RenderStage(IPainter& painter) override
+		IPrepForDraw* prep;
+
+		void RenderStage(IPrepForDraw& prep) override
 		{
 			if (!scene) return;
+
+			this->prep = &prep;
 
 			scene->RenderGui(*this);
 
@@ -253,10 +257,14 @@ namespace ANON
 
 		void FlushLayer() override
 		{
-			auto& m = system.Meshes().GetPopulator();
-			m.UpdateDynamicVertexBuffer<GuiVertex>(idGuiMesh, guiVertices.data(), guiVertices.size());
-			system.Meshes().Draw(idGuiMesh, 0, (uint32) guiVertices.size());
-			guiVertices.clear();
+			if (!guiVertices.empty())
+			{
+				auto& m = system.Meshes().GetPopulator();
+				m.UpdateDynamicVertexBuffer<GuiVertex>(idGuiMesh, guiVertices.data(), guiVertices.size());
+				system.Meshes().ApplyVertexBuffer(idGuiMesh, 0);
+				system.Meshes().Draw(idGuiMesh, 0, (uint32)guiVertices.size());
+				guiVertices.clear();
+			}
 		}
 
 		Vec2i EvalSpan(const Vec2i& pos, Fonts::IDrawTextJob& job, const GuiRect* clipRect) override
@@ -452,25 +460,24 @@ namespace ANON
 			builder.evaluateSpanOnly = mode == IGuiRenderContext::EVALUATE_SPAN_ONLY;
 			builder.This = this;
 
-			if (mode == IGuiRenderContext::RENDER)
+			if (mode == IGuiRenderContext::EVALUATE_SPAN_ONLY)
 			{
-				FlushLayer();
+				job.Render(builder);
 			}
-
-			job.Render(builder);
-
-			if (mode == IGuiRenderContext::RENDER)
+			else
 			{
-				if (!system.UseShaders(idGuiVertex, idHQVS, idHQPS))
-				{
-					return;
-				}
-
 				FlushLayer();
 
-				if (!system.UseShaders(idGuiVertex, idGuiVS, idGuiPS))
+				if (system.Textures().AssignTextureToShaders(osFont.idOSFontTextureArray, TXUNIT_GENERIC_TXARRAY))
 				{
-					return;
+					if (system.UseShaders(idGuiVertex, idHQVS, idHQPS))
+					{
+						prep->OnShaderChange();
+						job.Render(builder);
+						FlushLayer();
+						system.UseShaders(idGuiVertex, idGuiVS, idGuiPS);
+						prep->OnShaderChange();
+					}
 				}
 			}
 		}
@@ -581,7 +588,7 @@ namespace Rococo::Graphics
 		spriteDef.U = SamplerAddressMode::BORDER;
 		spriteDef.V = SamplerAddressMode::BORDER;
 		spriteDef.W = SamplerAddressMode::BORDER;
-		stage.AddInput(idSprites, 7, spriteDef);
+		stage.AddInput(idSprites, TXUNIT_SPRITES, spriteDef);
 
 		Sampler fontDef;
 		fontDef.filter = SamplerFilter::MIN_MAG_MIP_LINEAR;
@@ -593,7 +600,21 @@ namespace Rococo::Graphics
 		fontDef.U = SamplerAddressMode::BORDER;
 		fontDef.V = SamplerAddressMode::BORDER;
 		fontDef.W = SamplerAddressMode::BORDER;
-		stage.AddInput(idScalableFontTexture, 0, fontDef);
+		stage.AddInput(idScalableFontTexture, TXUNIT_FONT, fontDef);
+
+		Sampler hqDef;
+		hqDef.filter = SamplerFilter::MIN_MAG_MIP_POINT;
+		hqDef.maxAnisotropy = 1;
+		hqDef.comparison = ComparisonFunc::ALWAYS;
+		hqDef.maxLOD = 1000000.0f;
+		hqDef.minLOD = 0;
+		hqDef.mipLODBias = 0;
+		hqDef.U = SamplerAddressMode::BORDER;
+		hqDef.V = SamplerAddressMode::BORDER;
+		hqDef.W = SamplerAddressMode::BORDER;
+
+		TextureId null;
+		stage.AddInput(null, TXUNIT_GENERIC_TXARRAY, hqDef);
 	}
 }
 

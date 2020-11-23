@@ -14,8 +14,8 @@ namespace Rococo::Graphics
 	struct ShaderId
 	{
 		uint32 index : 16;
-		uint32 unused : 12;
 		ShaderType type : 4;
+		uint32 unused : 12;
 		operator uint32() { return *reinterpret_cast<uint32*>(this); }
 	};
 

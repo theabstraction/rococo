@@ -283,7 +283,7 @@ namespace ANON
 					uint32 stride0 = m.stride;
 					uint32 offset0 = 0;
 					dc.IASetVertexBuffers(0, 1, &buffer, &stride0, &offset0);
-					dc.Draw(startIndex, vertexCount);
+					dc.Draw(vertexCount, startIndex);
 				}
 			}
 		}

@@ -9,7 +9,11 @@
 using namespace Rococo;
 using namespace Rococo::Graphics;
 
-#if _DEBUG
+#ifdef _DEBUG
+#define DEBUG_SHADERS
+#endif
+
+#ifdef DEBUG_SHADERS
 # define SHADER_COMPILE_DEBUG_FLAGS D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION
 #else
 # define SHADER_COMPILE_DEBUG_FLAGS 0
@@ -94,8 +98,10 @@ namespace ANON
 				Throw(0, "The compiler did not generate shader binary code. But it also did not say what the problem was.");
 			}
 
-			auto* buffer = CreateExpandingBuffer(shaderBlob->GetBufferSize());
-			memcpy(buffer->GetData(), shaderBlob->GetBufferPointer(), shaderBlob->GetBufferSize());
+			size_t blobSize = shaderBlob->GetBufferSize();
+			const void* blobData = shaderBlob->GetBufferPointer();
+			auto* buffer = CreateExpandingBuffer(blobSize);
+			memcpy(buffer->GetData(), blobData, blobSize);
 			return buffer;	
 		}
 

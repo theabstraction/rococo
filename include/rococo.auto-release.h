@@ -4,6 +4,11 @@
 
 namespace Rococo
 {
+	template<class T> void AddRef(T* t)
+	{
+		if (t) t->AddRef();
+	}
+
 	template<class T> class AutoRelease
 	{
 	private:
@@ -22,14 +27,17 @@ namespace Rococo
 
 		AutoRelease<T>& operator = (const T* _t)
 		{
-			if (t) t->Release();
-			t = const_cast<T*>(_t);
+			if (t != _t)
+			{
+				if (t) t->Release();
+				t = const_cast<T*>(_t);
+			}
 			return *this;
 		}
 
-		AutoRelease(const AutoRelease<T>& src)
+		AutoRelease(const AutoRelease<T>& src): t(src.t)
 		{
-			t = src.t;
+			AddRef(t);
 		}
 
 		AutoRelease(T* _t) : t(_t)

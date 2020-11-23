@@ -1593,12 +1593,14 @@ namespace
 				Throw(0, "Win32OS::LoadResource failed: File <%s> was too large at over %ld bytes", absPath, maxFileLength);
 			}
 
+			buffer.Resize(len.QuadPart + 1); // This gives us space for a nul terminating character
 			buffer.Resize(len.QuadPart);
 
 			int64 bytesLeft = len.QuadPart;
 			ptrdiff_t offset = 0;
 
 			uint8* data = (uint8*)buffer.GetData();
+			data[len.QuadPart] = 0;
 
 			while (bytesLeft > 0)
 			{

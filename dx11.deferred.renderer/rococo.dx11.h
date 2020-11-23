@@ -21,6 +21,7 @@ struct ID3D11DepthStencilState;
 struct ID3D11RasterizerState;
 struct ID3D11InputLayout;
 struct ID3D11Buffer;
+struct ID3D11SamplerState;
 enum D3D11_MAP;
 struct D3D11_MAPPED_SUBRESOURCE;
 
@@ -245,6 +246,14 @@ namespace Rococo::Graphics
 		virtual void Free() = 0;
 	};
 
+	struct DX11_VIEWPORT
+	{
+		Vec2 topLeft;
+		Vec2 span;
+		float MinDepth;
+		float MaxDepth;
+	};
+
 	ROCOCOAPI IDX11DeviceContext
 	{
 		virtual void UpdateSubresource(ID3D11Resource& resource, uint32 subresourceIndex, const D3D11_BOX& box, const void* pixels, uint32 lineSpan, uint32 srcDepth) = 0;
@@ -264,17 +273,19 @@ namespace Rococo::Graphics
 		virtual void Unmap(ID3D11Resource* pResource, uint32 Subresource) = 0;
 		virtual void PSSetConstantBuffers(uint32 startSlot, uint32 nBuffer, ID3D11Buffer* const* bufferArray) = 0;
 		virtual void VSSetConstantBuffers(uint32 startSlot, uint32 nBuffer, ID3D11Buffer* const* bufferArray) = 0;
-		virtual void Draw(uint32 startIndex, uint32 vertexCount) = 0;
+		virtual void Draw(uint32 vertexCount, uint32 startIndex) = 0;
+		virtual void RSSetViewports(uint32 numViewports, const DX11_VIEWPORT* viewportArray) = 0;
+		virtual void PSSetSamplers(uint32 startPosition, uint32 nSamplers, ID3D11SamplerState* const * samplers) = 0;
 	};
 
-	ROCOCOAPI IPainter
+	ROCOCOAPI IPrepForDraw
 	{
-		virtual void Draw(uint32 vertexCount, uint32 startLocation) = 0;
+		virtual void OnShaderChange() = 0;
 	};
 
 	ROCOCOAPI IRenderPhasePopulator
 	{
-		virtual void RenderStage(IPainter & painter) = 0;
+		virtual void RenderStage(IPrepForDraw& prep) = 0;
 		virtual void SetScene(IScene* scene) = 0;
 		virtual void Free() = 0;
 	};
@@ -313,7 +324,6 @@ namespace Rococo::Graphics
 		virtual [[nodiscard]] IDXGIFactory7& Factory() = 0;
 		virtual [[nodiscard]] IMeshCache& Meshes() = 0;
 		virtual void Free() = 0;
-		virtual IPainter& Painter() = 0;
 		virtual [[nodiscard]] bool UseShaders(LayoutId layoutId, ID_VERTEX_SHADER idVS, ID_PIXEL_SHADER idPS) = 0;
 	};
 
@@ -452,6 +462,7 @@ namespace Rococo::Graphics
 		virtual void SetDestAlphaBlend(BlendValue value, uint32 unit = 0) = 0;
 		virtual void SetSrcBlend(BlendValue value, uint32 unit = 0) = 0;
 		virtual void SetDestBlend(BlendValue value, uint32 unit = 0) = 0;
+		virtual void SetViewport(Vec2 topLeft, Vec2 span, float minDepth, float maxDepth) = 0;
 	};
 
 	ROCOCOAPI IRenderStageSupervisor : public IRenderStage

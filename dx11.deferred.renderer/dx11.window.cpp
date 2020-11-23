@@ -533,6 +533,8 @@ namespace ANON
 			return updateCount > 0;
 		}
 
+		HRESULT lastBadHR = S_OK;
+
 		void UpdateFrame() override
 		{
 			if (UpdateShaderState())
@@ -544,7 +546,14 @@ namespace ANON
 			if (badShaders.empty())
 			{
 				wc.evHandler.OnUpdateFrame(idBackBuffer);
-				if (swapChain) swapChain->Present(1, 0);
+				if (swapChain)
+				{
+					HRESULT hr = swapChain->Present(1, 0);
+					if FAILED(hr)
+					{
+						lastBadHR = hr;
+					}
+				}
 			}
 		}
 	};

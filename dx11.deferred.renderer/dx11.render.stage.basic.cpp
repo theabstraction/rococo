@@ -21,7 +21,7 @@ namespace ANON
 			t->Release();
 		}
 	}
-	class RenderStageBasic : public IRenderStageSupervisor
+	class RenderStageBasic : public IRenderStageSupervisor, public IPrepForDraw
 	{
 	private:
 		uint32 refcount = 1;
@@ -32,7 +32,7 @@ namespace ANON
 		{
 			TextureId id;
 			uint32 textureUnit;
-			D3D11_SAMPLER_DESC sampler;
+			AutoRelease<ID3D11SamplerState> sampler;
 		};
 		std::vector<TextureUnits> txUnits;
 
@@ -239,6 +239,16 @@ namespace ANON
 			blendState = nullptr;
 		}
 
+		DX11_VIEWPORT viewport{ {0,0},{1024,768},0,1 };
+
+		void SetViewport(Vec2 topLeft, Vec2 span, float minDepth, float maxDepth) override
+		{
+			viewport.topLeft = topLeft;
+			viewport.span = span;
+			viewport.MinDepth = minDepth;
+			viewport.MaxDepth = maxDepth;
+		}
+
 		void UseState()
 		{
 			auto& dc = system.DC();
@@ -268,6 +278,8 @@ namespace ANON
 			}
 
 			dc.OMSetDepthStencilState(depthStencilState, stencilRef);
+
+			dc.RSSetViewports(1, &viewport);
 		}
 
 		uint32 AddRef() override
@@ -320,7 +332,11 @@ namespace ANON
 			desc.MipLODBias = sampler.mipLODBias;
 			desc.MaxLOD = sampler.maxLOD;
 			desc.MinLOD = sampler.minLOD;
-			txUnits.push_back({id, textureUnit, desc});
+
+			ID3D11SamplerState* dx11Sampler = nullptr;
+			VALIDATE_HR(system.Device().CreateSamplerState(&desc, &dx11Sampler));
+			txUnits.push_back({id, textureUnit, nullptr});
+			txUnits.back().sampler = dx11Sampler;
 		}
 
 		void AddOutput(TextureId id, uint32 renderTargetIndex, uint32 mipMapIndex, RenderTargetFlags flags, const RGBA& clearColour) override
@@ -364,7 +380,12 @@ namespace ANON
 			// Inputs
 			for (auto& unit : txUnits)
 			{
-				textures.AssignTextureToShaders(unit.id, unit.textureUnit);
+				if (unit.id)
+				{
+					textures.AssignTextureToShaders(unit.id, unit.textureUnit);
+				}
+
+				system.DC().PSSetSamplers(unit.textureUnit, 1, &unit.sampler);
 			}
 
 			auto& meshes = system.Meshes();
@@ -397,7 +418,22 @@ namespace ANON
 			// Outputs
 			textures.UseTexturesAsRenderTargets(renderTargets.data(), (uint32) renderTargets.size(), idDepthStencilBuffer);
 
-			populator->RenderStage(system.Painter());
+			populator->RenderStage(*this);
+		}
+
+		void OnShaderChange()
+		{
+			auto& meshes = system.Meshes();
+
+			for (auto& constant : PSconstants)
+			{
+				meshes.ApplyConstantToPS(constant.id, constant.constantSlotIndex);
+			}
+
+			for (auto& constant : VSconstants)
+			{
+				meshes.ApplyConstantToVS(constant.id, constant.constantSlotIndex);
+			}
 		}
 	};
 }

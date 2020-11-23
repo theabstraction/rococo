@@ -25,7 +25,7 @@ namespace ANON
 # define D3D11CreateDevice_Flags 0
 #endif
 
-	class DX11System: public IDX11System, public IDX11DeviceContext, public IPainter
+	class DX11System: public IDX11System, public IDX11DeviceContext
 	{
 		AdapterContext& ac;
 		IInstallation& installation;
@@ -129,6 +129,13 @@ namespace ANON
 		{
 			Lock();
 			dc->PSSetShaderResources(StartSlot, NumViews, ppShaderResourceViews);
+			Unlock();
+		}
+
+		void PSSetSamplers(uint32 startPosition, uint32 nSamplers, ID3D11SamplerState* const * samplers) override
+		{
+			Lock();
+			dc->PSSetSamplers(startPosition, nSamplers, samplers);
 			Unlock();
 		}
 
@@ -259,11 +266,6 @@ namespace ANON
 			delete this;
 		}
 
-		IPainter& Painter()
-		{
-			return *this;
-		}
-
 		IMeshCache& Meshes()
 		{
 			return *meshes;
@@ -294,7 +296,7 @@ namespace ANON
 				struct CLOSURE : IShaderViewGrabber
 				{
 					DX11System* system;
-					AutoRelease<ID3D11VertexShader> vs = nullptr;
+					ID3D11VertexShader* vs = nullptr;
 					LayoutId layoutId;
 					HRESULT hr = E_PENDING;
 					void OnGrab(const ShaderView& view)
@@ -381,26 +383,32 @@ namespace ANON
 				auto* vs = GetVS(layoutId, idVS);
 				{
 					if (layoutId.index != lastLayoutId.index)
-					{ 
-						if (meshes->Layouts().SetInputLayout(layoutId))
-						{
-							lastLayoutId = layoutId;
-							Lock();
-							dc->PSSetShader(ps, nullptr, 0);
-							dc->VSSetShader(vs, nullptr, 0);
-							Unlock();
-							return true;
-						}
-						else
+					{
+						if (!meshes->Layouts().SetInputLayout(layoutId))
 						{
 							return false;
 						}
+
+						lastLayoutId = layoutId;
 					}
+
+					Lock();
+					dc->PSSetShader(ps, nullptr, 0);
+					dc->VSSetShader(vs, nullptr, 0);
+					Unlock();
 					return true;
 				}
 			}
 
 			return false;
+		}
+
+		void RSSetViewports(uint32 numViewports, const DX11_VIEWPORT* viewportArray) override
+		{
+			static_assert(sizeof DX11_VIEWPORT == sizeof D3D11_VIEWPORT);
+			Lock();
+			dc->RSSetViewports(numViewports, (const D3D11_VIEWPORT*)viewportArray);
+			Unlock();
 		}
 	};
 }

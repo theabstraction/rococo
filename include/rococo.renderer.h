@@ -19,6 +19,17 @@ namespace Rococo
 		CBUFFER_INDEX_BONE_MATRICES = 7
 	};
 
+	enum TXUNIT // The enum values must match the tXXX registers specified in mplat.api.hlsl
+	{
+		TXUNIT_FONT = 0,
+		TXUNIT_SHADOW = 2,
+		TXUNIT_ENV_MAP = 3,
+		TXUNIT_SELECT = 4,
+		TXUNIT_MATERIALS = 6,
+		TXUNIT_SPRITES = 7,
+		TXUNIT_GENERIC_TXARRAY = 8
+	};
+
 	namespace Fonts
 	{
 		struct FontSpec;
@@ -378,17 +389,6 @@ namespace Rococo
 	ROCOCOAPI ITextureLoadEnumerator
 	{
 		virtual void ForEachElement(IEventCallback<TextureLoadData> & callback, bool readData) = 0;
-	};
-
-	enum TXUNIT // The enum values must match the tXXX registers specified in mplat.api.hlsl
-	{
-		TXUNIT_FONT = 0,
-		TXUNIT_SHADOW = 2,
-		TXUNIT_ENV_MAP = 3,
-		TXUNIT_SELECT = 4,
-		TXUNIT_MATERIALS = 6,
-		TXUNIT_SPRITES = 7,
-		TXUNIT_GENERIC_TXARRAY = 8
 	};
 
 	namespace Graphics

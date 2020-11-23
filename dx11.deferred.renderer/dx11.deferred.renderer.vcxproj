@@ -158,6 +158,8 @@
     <ClCompile Include="dx11.window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\include\rococo.auto-release.h" />
+    <ClInclude Include="..\include\rococo.renderer.h" />
     <ClInclude Include="rococo.dx11.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
