@@ -286,6 +286,7 @@ namespace Rococo::Graphics
 	ROCOCOAPI IRenderPhasePopulator
 	{
 		virtual void RenderStage(IPrepForDraw& prep) = 0;
+		virtual void SetTargetSpan(Vec2i span) = 0;
 		virtual void SetScene(IScene* scene) = 0;
 		virtual void Free() = 0;
 	};
@@ -294,7 +295,6 @@ namespace Rococo::Graphics
 	{
 		virtual [[nodiscard]] IHQFonts & HQFonts() = 0;
 		virtual void UpdateCursor(Vec2i cursorPos) = 0;
-		virtual void UpdateSpan(Vec2i screenSpan) = 0;
 	};
 
 	ITextureSupervisor* CreateTextureCache(IInstallation& installation, ID3D11Device5& device, IDX11DeviceContext& dc);

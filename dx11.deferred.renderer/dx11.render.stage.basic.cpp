@@ -377,6 +377,8 @@ namespace ANON
 		{
 			auto& textures = system.Textures();
 
+			Vec2i span{ 0,0 };
+
 			// Inputs
 			for (auto& unit : txUnits)
 			{
@@ -386,6 +388,36 @@ namespace ANON
 				}
 
 				system.DC().PSSetSamplers(unit.textureUnit, 1, &unit.sampler);
+			}
+
+			for (auto& rt : renderTargets)
+			{
+				if (rt.flags.clearWhenAssigned)
+				{
+					textures.ClearRenderTarget(rt.id, rt.clearColour);
+				}
+
+				if (span.x == 0)
+				{
+					span = textures.GetSpan(rt.id);
+				}
+			}
+
+			if (idDepthStencilBuffer)
+			{
+				textures.ClearDepthBuffer(idDepthStencilBuffer, this->clearDepth, this->stencilBits);
+				if (span.x == 0)
+				{
+					span = textures.GetSpan(idDepthStencilBuffer);
+				}
+			}
+
+			// Outputs
+			textures.UseTexturesAsRenderTargets(renderTargets.data(), (uint32) renderTargets.size(), idDepthStencilBuffer);
+
+			if (span.x != 0)
+			{
+				populator->SetTargetSpan(span);
 			}
 
 			auto& meshes = system.Meshes();
@@ -401,22 +433,6 @@ namespace ANON
 			}
 
 			UseState();
-
-			for (auto& rt : renderTargets)
-			{
-				if (rt.flags.clearWhenAssigned)
-				{
-					textures.ClearRenderTarget(rt.id, rt.clearColour);
-				}
-			}
-
-			if (idDepthStencilBuffer)
-			{
-				textures.ClearDepthBuffer(idDepthStencilBuffer, this->clearDepth, this->stencilBits);
-			}
-
-			// Outputs
-			textures.UseTexturesAsRenderTargets(renderTargets.data(), (uint32) renderTargets.size(), idDepthStencilBuffer);
 
 			populator->RenderStage(*this);
 		}

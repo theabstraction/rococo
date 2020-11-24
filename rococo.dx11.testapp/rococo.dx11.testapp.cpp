@@ -108,11 +108,6 @@ void Main(HINSTANCE hInstance)
 
 			this->idBackBuffer = idBackBuffer;
 			this->idDepthBuffer = system.Textures().AddDepthStencil("depth", span, 32, 0);
-
-			if (gui)
-			{
-				gui->UpdateSpan(span);
-			}
 		}
 
 		void OnUpdateFrame(TextureId idBackBuffer) override
@@ -177,7 +172,7 @@ void Main(HINSTANCE hInstance)
 			int32 y = metrics.screenSpan.y >> 1;
 
 			GuiRect rect{ 0, y - 100, metrics.screenSpan.x, y + 100 };
-			RenderHQText_LeftAligned_VCentre(grc, idFont, rect, "Hello World!", RGBAb(255, 255, 255, 255));
+			RenderCentred(grc, idFont, rect, "Hello World!", RGBAb(255, 255, 255, 255));
 		}
 	} scene;
 
@@ -206,7 +201,6 @@ void Main(HINSTANCE hInstance)
 
 	AutoFree<IGuiRenderPhasePopulator> gui = CreateStandardGuiRenderPhase(*dx11, *guiStage, *installation, idSprites);
 	guiStage->SetPopulator(gui);
-	gui->UpdateSpan(span);
 
 	RenderTargetFlags flags;
 	flags.clearWhenAssigned = true;

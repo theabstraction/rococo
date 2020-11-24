@@ -314,30 +314,34 @@ namespace ANON
 
 		void GetGuiMetrics(GuiMetrics& metrics) const override
 		{
-			metrics.cursorPosition = { 0,0 };
-			metrics.screenSpan = { 1024, 768 };
+			metrics = this->metrics;
 		}
 
-		GuiMetrics metrics{ {0,0},{ 1024, 768 } };
+		GuiMetrics metrics{ {0,0},{0,0} };
 
 		void UpdateCursor(Vec2i cursorPos) override
 		{
 			metrics.cursorPosition = cursorPos;
 		}
 
-		void UpdateSpan(Vec2i screenSpan) override
+		void SetTargetSpan(Vec2i span) override
 		{
-			metrics.screenSpan = screenSpan;
-
+			metrics.screenSpan = span;
 			globalState = GlobalState{ 0 };
 
-			globalState.guiScale.OOScreenWidth = 1.0f / screenSpan.x;
-			globalState.guiScale.OOScreenHeight = 1.0f / screenSpan.y;
-			globalState.guiScale.OOFontWidth = 1.0f / 1024.0f;
-			globalState.guiScale.OOSpriteWidth = 1.0f / 1024.0f;
+			globalState.guiScale.OOScreenWidth = 1.0f / span.x;
+			globalState.guiScale.OOScreenHeight = 1.0f / span.y;
+
+			Vec2i spriteSpan = system.Textures().GetSpan(idSprites);
+			Vec2i scalableFontSpan = system.Textures().GetSpan(idScalableFontTexture);
+			globalState.guiScale.OOFontWidth = 1.0f / scalableFontSpan.x;
+			globalState.guiScale.OOSpriteWidth = 1.0f / spriteSpan.x;
 
 			auto& m = system.Meshes().GetPopulator();
 			m.UpdateDynamicConstantBuffer(idGlobalStateConstants, globalState);
+
+			stage.SetViewport({ 0,0 }, Dequantize(span), 0, 1);
+			stage.SetEnableScissors(nullptr);
 		}
 
 		auto SelectTexture(ID_TEXTURE id)->Vec2i override
