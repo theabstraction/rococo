@@ -587,6 +587,14 @@ namespace ANON
 			t.tx2D = txId;
 			t.errNumber = S_OK;
 			t.errString = "";
+
+			if (txId)
+			{
+				D3D11_TEXTURE2D_DESC desc;
+				txId->GetDesc(&desc);
+
+				t.span = Vec2i{ (int32) desc.Width, (int32) desc.Height };
+			}
 		}
 
 		void OnUpdateElement(TextureId id, ElementUpdate& update)
