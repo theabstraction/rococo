@@ -263,6 +263,7 @@ namespace ANON
 				m.UpdateDynamicVertexBuffer<GuiVertex>(idGuiMesh, guiVertices.data(), guiVertices.size());
 				system.Meshes().ApplyVertexBuffer(idGuiMesh, 0);
 				system.Meshes().Draw(idGuiMesh, 0, (uint32)guiVertices.size());
+
 				guiVertices.clear();
 			}
 		}
@@ -342,6 +343,8 @@ namespace ANON
 
 			stage.SetViewport({ 0,0 }, Dequantize(span), 0, 1);
 			stage.SetEnableScissors(nullptr);
+
+			system.UseShaders(idGuiVertex, idGuiVS, idGuiPS);
 		}
 
 		auto SelectTexture(ID_TEXTURE id)->Vec2i override
@@ -587,7 +590,7 @@ namespace Rococo::Graphics
 		Sampler spriteDef;
 		spriteDef.filter = SamplerFilter::MIN_MAG_MIP_POINT;
 		spriteDef.maxAnisotropy = 1;
-		spriteDef.comparison = ComparisonFunc::ALWAYS;
+		spriteDef.comparison = ComparisonFunc::NEVER;
 		spriteDef.maxLOD = 1000000.0f;
 		spriteDef.minLOD = 0;
 		spriteDef.mipLODBias = 0;
@@ -595,6 +598,8 @@ namespace Rococo::Graphics
 		spriteDef.V = SamplerAddressMode::BORDER;
 		spriteDef.W = SamplerAddressMode::BORDER;
 		stage.AddInput(idSprites, TXUNIT_SPRITES, spriteDef);
+
+		stage.AddInput(TextureId(), TXUNIT_MATERIALS, spriteDef);
 
 		Sampler fontDef;
 		fontDef.filter = SamplerFilter::MIN_MAG_MIP_LINEAR;

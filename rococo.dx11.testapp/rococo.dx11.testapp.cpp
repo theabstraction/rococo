@@ -34,6 +34,7 @@
 #endif
 
 #include "..\dx11.deferred.renderer\rococo.dx11.h"
+#include <rococo.textures.h>
 
 #pragma comment(lib, "dxguid.lib")
 #pragma comment(lib, "dxgi.lib")
@@ -42,6 +43,7 @@
 
 using namespace Rococo;
 using namespace Rococo::Graphics;
+using namespace Rococo::Textures;
 
 void Main(HINSTANCE hInstance)
 {
@@ -173,6 +175,12 @@ void Main(HINSTANCE hInstance)
 
 			GuiRect rect{ 0, y - 100, metrics.screenSpan.x, y + 100 };
 			RenderCentred(grc, idFont, rect, "Hello World!", RGBAb(255, 255, 255, 255));
+
+			BitmapLocation bitmap;
+			if (grc.Renderer().SpriteBuilder().TryGetBitmapLocation("!textures/hv/icons/bastard.sword.tif", bitmap))
+			{
+				Graphics::DrawSprite(Vec2i{ 10, 10 }, bitmap, grc);
+			}
 		}
 	} scene;
 

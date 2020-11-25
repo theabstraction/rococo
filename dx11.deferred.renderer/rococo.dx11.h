@@ -158,7 +158,7 @@ namespace Rococo::Graphics
 		virtual void Free() = 0;
 	};
 
-	enum class TextureType : uint32
+	enum class TextureType : uint64
 	{
 		None,
 		T2D,
@@ -169,12 +169,15 @@ namespace Rococo::Graphics
 
 	struct TextureId
 	{
-		uint32 index : 24 = 0;
+		uint64 index : 48 = 0;
 		TextureType type : 4 = TextureType::None;
-		uint32 unused : 4 = 0;
+		uint64 bitPlanes : 5;
+		uint64 bitsPerPlane : 7 = 0;
 
 		operator bool() const { return index != 0;  }
 	};
+
+	static_assert(sizeof(TextureId) == sizeof(uint64));
 
 	ROCOCOAPI IDX1RendererWindowEventHandler
 	{
@@ -194,8 +197,6 @@ namespace Rococo::Graphics
 		cstr title;
 		void* hResourceInstance;
 	};
-
-	static_assert(sizeof(TextureId) == sizeof(uint32));
 
 	struct RenderTargetFlags
 	{

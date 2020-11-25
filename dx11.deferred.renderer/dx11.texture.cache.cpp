@@ -18,6 +18,8 @@ using namespace Rococo::Textures;
 
 namespace ANON
 {
+	class UVAtlas;
+
 	struct ElementUpdate
 	{
 		HRESULT hr;
@@ -28,14 +30,8 @@ namespace ANON
 
 	struct ITextureLoader
 	{
-		struct Atlas
-		{
-			Textures::ITextureArrayBuilderSupervisor* taBuilder;
-			ID3D11Texture2D1* tx2D;
-		};
-
 		virtual ID3D11Texture2D1* LoadTexture2D_Array(cstr resourceName, DXGI_FORMAT format, bool mipMap, Vec2i span, const char* elements[], IEventCallback<ElementUpdate>& onBadElement) = 0;
-		virtual Atlas LoadTexture2D_UVAtlas(cstr resourceName, const char* elements[], IEventCallback<ElementUpdate>& onUpdate) = 0;
+		virtual ID3D11Texture2D1* LoadTexture2D_UVAtlas(UVAtlas* atlas, cstr resourceName, const char* elements[], IEventCallback<ElementUpdate>& onUpdate) = 0;
 		virtual ID3D11Texture2D1* LoadTexture2D(cstr resourceName, DXGI_FORMAT format, bool mipMap) = 0;
 		virtual void Free() = 0;
 	};
@@ -175,69 +171,6 @@ namespace ANON
 		HString err;
 	};
 
-	// A Gremlin is like a Daemon, only smaller and greener
-	struct TextureGremlin
-	{
-		cstr resourceName = ""; // points to the key in the nameToIds table
-		TextureType type = TextureType::None;
-		DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN;
-		ID3D11ShaderResourceView1* shaderResource = nullptr;
-		ID3D11RenderTargetView1* renderTarget = nullptr;
-		ID3D11Texture2D1* tx2D = nullptr;
-		ID3D11DepthStencilView* depthStencilView = nullptr;
-		HString errString;
-		HRESULT errNumber = E_PENDING;
-		bool isMipMapped = false;
-		bool arrayFinalized = false;
-		Vec2i span{ 0,0 };
-		std::vector<TextureElement> elements;
-		Textures::ITextureArrayBuilderSupervisor* uvAtlas = nullptr;
-
-		// Release cached resourced - N.B it does not erase key metrics, error codes or the element list
-		void Release()
-		{
-			ANON::Release(shaderResource);
-			ANON::Release(renderTarget);
-			ANON::Release(tx2D);
-			ANON::Release(depthStencilView);
-			if (uvAtlas) uvAtlas->Free();
-			uvAtlas = nullptr;
-			shaderResource = nullptr;
-			renderTarget = nullptr;
-			tx2D = nullptr;
-			uvAtlas = nullptr;
-			depthStencilView = nullptr;
-		}
-	};
-
-	using namespace Rococo::OS;
-
-	bool LoadIfTiffsOrJpegs(IInstallation& installation, cstr resourceName, Rococo::Imaging::IImageLoadEvents& onLoad)
-	{
-		auto* ext = GetFileExtension(resourceName);
-
-		if (ext == nullptr)
-		{
-			return false;
-		}
-		else if (EqI(ext, ".tiff") || EqI(ext, ".tif"))
-		{
-			AutoFree<IExpandingBuffer> buffer = CreateExpandingBuffer(0);
-			installation.LoadResource(resourceName, *buffer, 64_megabytes);
-			Rococo::Imaging::DecompressTiff(onLoad, buffer->GetData(), buffer->Length());
-			return true;
-		}
-		else if (EqI(ext, ".jpg") || EqI(ext, ".jpeg"))
-		{
-			AutoFree<IExpandingBuffer> buffer = CreateExpandingBuffer(0);
-			installation.LoadResource(resourceName, *buffer, 64_megabytes);
-			Rococo::Imaging::DecompressJPeg(onLoad, buffer->GetData(), buffer->Length());
-			return true;
-		}
-
-		return false;
-	}
-
 	class UVAtlas : public ITextureArrayBuilderSupervisor
 	{
 	private:
@@ -246,7 +179,7 @@ namespace ANON
 
 		AutoFree<ITextureArrayBuilderSupervisor> innerBuilder;
 	public:
-		UVAtlas(IInstallation& installation, ID3D11Device5& device, IDX11DeviceContext& dc):
+		UVAtlas(IInstallation& installation, ID3D11Device5& device, IDX11DeviceContext& dc) :
 			imageLoader(installation),
 			uvaBuilder(device, dc)
 		{
@@ -285,6 +218,66 @@ namespace ANON
 			delete this;
 		}
 	};
+
+	// A Gremlin is like a Daemon, only smaller and greener
+	struct TextureGremlin
+	{
+		cstr resourceName = ""; // points to the key in the nameToIds table
+		TextureType type = TextureType::None;
+		DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN;
+		ID3D11ShaderResourceView1* shaderResource = nullptr;
+		ID3D11RenderTargetView1* renderTarget = nullptr;
+		ID3D11Texture2D1* tx2D = nullptr;
+		ID3D11DepthStencilView* depthStencilView = nullptr;
+		HString errString;
+		HRESULT errNumber = E_PENDING;
+		bool isMipMapped = false;
+		bool arrayFinalized = false;
+		Vec2i span{ 0,0 };
+		std::vector<TextureElement> elements;
+		UVAtlas* uvAtlas = nullptr;
+
+		// Release cached resourced - N.B it does not erase key metrics, error codes or the element list
+		void Release()
+		{
+			ANON::Release(shaderResource);
+			ANON::Release(renderTarget);
+			ANON::Release(tx2D);
+			ANON::Release(depthStencilView);
+			shaderResource = nullptr;
+			renderTarget = nullptr;
+			tx2D = nullptr;
+			depthStencilView = nullptr;
+		}
+	};
+
+	using namespace Rococo::OS;
+
+	bool LoadIfTiffsOrJpegs(IInstallation& installation, cstr resourceName, Rococo::Imaging::IImageLoadEvents& onLoad)
+	{
+		auto* ext = GetFileExtension(resourceName);
+
+		if (ext == nullptr)
+		{
+			return false;
+		}
+		else if (EqI(ext, ".tiff") || EqI(ext, ".tif"))
+		{
+			AutoFree<IExpandingBuffer> buffer = CreateExpandingBuffer(0);
+			installation.LoadResource(resourceName, *buffer, 64_megabytes);
+			Rococo::Imaging::DecompressTiff(onLoad, buffer->GetData(), buffer->Length());
+			return true;
+		}
+		else if (EqI(ext, ".jpg") || EqI(ext, ".jpeg"))
+		{
+			AutoFree<IExpandingBuffer> buffer = CreateExpandingBuffer(0);
+			installation.LoadResource(resourceName, *buffer, 64_megabytes);
+			Rococo::Imaging::DecompressJPeg(onLoad, buffer->GetData(), buffer->Length());
+			return true;
+		}
+
+		return false;
+	}
 
 	class ImageFileTextureLoader : public ITextureLoader
 	{
@@ -385,9 +378,8 @@ namespace ANON
 			return LoadIfTiffsOrJpegs(installation, resourceName, onLoad) ? onLoad.tx2D : nullptr;
 		}
 
-		Atlas LoadTexture2D_UVAtlas(cstr resourceName , const char* elements[], IEventCallback<ElementUpdate>& onUpdate)
+		ID3D11Texture2D1* LoadTexture2D_UVAtlas(UVAtlas* uvAtlas, cstr resourceName , const char* elements[], IEventCallback<ElementUpdate>& onUpdate)
 		{
-			AutoFree<UVAtlas> uvAtlas = new UVAtlas(installation, device, dc);
 			int32 nElements = 0;
 			for (auto* e = elements; *e != nullptr; e++)
 			{
@@ -419,10 +411,7 @@ namespace ANON
 
 			uvAtlas->BuildTextures(512, &onBitmapUpdate);
 
-			Atlas atlas;
-			atlas.tx2D = uvAtlas->TakeOwnershipOfTx2D();
-			atlas.taBuilder = uvAtlas.Release();
-			return atlas;
+			return uvAtlas->TakeOwnershipOfTx2D();
 		}
 
 		ID3D11Texture2D1* LoadTexture2D_Array(cstr resourceName, DXGI_FORMAT format, bool mipMap, Vec2i span, const char* elements[], IEventCallback<ElementUpdate>& onUpdate)
@@ -600,18 +589,6 @@ namespace ANON
 			t.errString = "";
 		}
 
-		void Update_OnThread(TextureId id, ITextureLoader::Atlas atlas)
-		{
-			Lock lock(sync);
-
-			auto& t = textures[id.index - 1];
-			t.Release();
-			t.uvAtlas = atlas.taBuilder;
-			t.tx2D = atlas.tx2D;
-			t.errNumber = S_OK;
-			t.errString = "";
-		}
-
 		void OnUpdateElement(TextureId id, ElementUpdate& update)
 		{
 			Lock lock(sync);
@@ -621,7 +598,7 @@ namespace ANON
 			t.elements[update.elementIndex].err = update.message;
 		}
 
-		void Reload_OnThread(TextureId id, DXGI_FORMAT format, cstr resourcePath, bool mipMap, Vec2i span, const char* elementNames[])
+		void Reload_OnThread(UVAtlas* atlas, TextureId id, DXGI_FORMAT format, cstr resourcePath, bool mipMap, Vec2i span, const char* elementNames[])
 		{
 			try
 			{
@@ -673,8 +650,8 @@ namespace ANON
 							} onUpdate;
 							onUpdate.This = this;
 							onUpdate.id = id;
-							auto atlas = l->LoadTexture2D_UVAtlas(resourcePath, elementNames, onUpdate);
-							Update_OnThread(id, atlas);
+							auto tx2D = l->LoadTexture2D_UVAtlas(atlas, resourcePath, elementNames, onUpdate);
+							Update_OnThread(id, tx2D);
 							return;
 							break;
 						}
@@ -710,7 +687,7 @@ namespace ANON
 					auto id = inputQueue.back();
 					inputQueue.pop_back();
 
-					auto& t = textures[id.index - 1];
+					auto& t = textures[ToIndex(id, __FUNCTION__)];
 
 					// Copy members on the stack before unlocking
 
@@ -729,9 +706,11 @@ namespace ANON
 
 					elementProxy[t.elements.size()] = nullptr;
 
+					auto* atlas = t.uvAtlas;
+
 					sync->Unlock();
 
-					Reload_OnThread(id, format, path, mipMapped, span, elementProxy.data());
+					Reload_OnThread(atlas, id, format, path, mipMapped, span, elementProxy.data());
 				}
 			}
 			return 0;
@@ -751,12 +730,13 @@ namespace ANON
 			thread->Resume();
 		}
 
-		TextureId NextId(TextureType type)
+		TextureId NextId(TextureType type, uint32 bitPlanes, uint32 bitsPerPlane)
 		{
 			TextureId id;
 			id.index = (uint32) textures.size() + 1;
 			id.type = type;
-			id.unused = 0;
+			id.bitPlanes = bitPlanes;
+			id.bitsPerPlane = bitsPerPlane;
 			return id;
 		}
 
@@ -764,8 +744,7 @@ namespace ANON
 		{
 			ValidateName(__FUNCTION__, name);
 
-			uint32 index = id.index - 1;
-			if (index >= textures.size()) Throw(0, "%s(%s): Bad id", __FUNCTION__, name);
+			uint64 index = ToIndex(id, __FUNCTION__);
 
 			auto& t = textures[index];
 			if (t.type != TextureType::T2D_Array && t.type != TextureType::T2D_UVAtlas)
@@ -787,10 +766,35 @@ namespace ANON
 
 		TextureId AddGeneric(cstr name, TextureType type, DXGI_FORMAT format, Vec2i span)
 		{
+			uint32 bitPlanes, bitsPerPlane;
+
+			switch (format)
+			{
+			case DXGI_FORMAT_R8G8B8A8_UNORM:
+				bitPlanes = 4;
+				bitsPerPlane = 8;
+				break;
+			case DXGI_FORMAT_R8_UNORM:
+				bitPlanes = 1;
+				bitsPerPlane = 8;
+				break;
+			case DXGI_FORMAT_D32_FLOAT:
+				bitPlanes = 1;
+				bitsPerPlane = 32;
+				break;
+			case DXGI_FORMAT_D24_UNORM_S8_UINT:
+				bitPlanes = 0;
+				bitsPerPlane = 24;
+				break;
+			default:
+				bitPlanes = 0;
+				bitsPerPlane = 0;
+			}
+
 			auto i = nameToIds.find(name);
 			if (i == nameToIds.end())
 			{
-				i = nameToIds.insert(name, NextId(type)).first;
+				i = nameToIds.insert(name, NextId(type, bitPlanes, bitsPerPlane)).first;
 				TextureGremlin gremlin;
 				gremlin.type = type;
 				gremlin.resourceName = i->first;
@@ -887,7 +891,12 @@ namespace ANON
 		TextureId AddTx2D_UVAtlas(cstr name) override
 		{
 			ValidateName(__FUNCTION__, name);
-			return AddGeneric(name, TextureType::T2D_UVAtlas, DXGI_FORMAT_R8G8B8A8_UNORM, { 0,0 });
+			auto id = AddGeneric(name, TextureType::T2D_UVAtlas, DXGI_FORMAT_R8G8B8A8_UNORM, { 0,0 });
+			uint64 index = ToIndex(id, __FUNCTION__);
+
+			auto uvAtlas = new UVAtlas(installation, device, dc);
+			textures[index].uvAtlas = uvAtlas;
+			return id;
 		}
 
 		TextureId AddTx2D_Direct(cstr name, ID3D11Texture2D1* tx2D) override
@@ -964,13 +973,9 @@ namespace ANON
 
 		void UpdateArray(TextureId id, uint32 index, const GRAYSCALE* pixels, Vec2i span) override
 		{
-			auto textureIndex = id.index - 1;
-			if (textureIndex >= textures.size())
-			{
-				Throw(0, "%s: Bad id", __FUNCTION__);
-			}
+			auto textureindex = ToIndex(id, __FUNCTION__);
 
-			auto& t = textures[textureIndex];
+			auto& t = textures[textureindex];
 
 			Lock lock(sync);
 
@@ -1004,14 +1009,10 @@ namespace ANON
 
 		Textures::ITextureArrayBuilder& GetSpriteBuilder(TextureId id)
 		{
-			auto index = id.index - 1;
-			if (index >= textures.size())
-			{
-				Throw(0, "%s: Bad id", __FUNCTION__);
-			}
+			auto index = ToIndex(id, __FUNCTION__);
 
 			auto& t = textures[index];
-			if (t.uvAtlas)
+			if (!t.uvAtlas)
 			{
 				Throw(0, "%s: texture %s has no atlas.", __FUNCTION__, t.resourceName);
 			}
@@ -1021,11 +1022,7 @@ namespace ANON
 
 		void UpdateSpanFromSystem(TextureId id) override
 		{
-			auto index = id.index - 1;
-			if (index >= textures.size())
-			{
-				Throw(0, "%s: Bad id", __FUNCTION__);
-			}
+			auto index = ToIndex(id, __FUNCTION__);
 
 			auto& t = textures[index];
 
@@ -1044,11 +1041,7 @@ namespace ANON
 
 		Vec2i GetSpan(TextureId id) const override
 		{
-			auto index = id.index - 1;
-			if (index >= textures.size())
-			{
-				Throw(0, "%s: Bad id", __FUNCTION__);
-			}
+			auto index = ToIndex(id, __FUNCTION__);
 
 			auto& t = textures[index];
 			return t.span;
@@ -1139,8 +1132,7 @@ namespace ANON
 
 		bool AssignTextureToShaders(TextureId id, uint32 textureUnit) override
 		{
-			auto index = id.index - 1;
-			if (index >= textures.size()) Throw(0, "%s: Bad id", __FUNCTION__);
+			auto index = ToIndex(id, __FUNCTION__);
 
 			auto& t = textures[index];
 
@@ -1192,23 +1184,13 @@ namespace ANON
 
 		void EnableMipMapping(TextureId id) override
 		{
-			uint32 index = id.index - 1;
-			if (index >= (uint32) textures.size())
-			{
-				Throw(0, "%s: Bad Id", __FUNCTION__);
-			}
-
-			Lock lock(sync);
+			uint64 index = ToIndex(id, __FUNCTION__);
 			textures[index].isMipMapped = true;
 		}
 
 		void ClearRenderTarget(TextureId id, const RGBA& clearColour) override
 		{
-			uint32 index = id.index - 1;
-			if (index >= (uint32)textures.size())
-			{
-				Throw(0, "%s: Bad Id", __FUNCTION__);
-			}
+			uint64 index = ToIndex(id, __FUNCTION__);
 
 			Lock lock(sync);
 			auto* t = textures[index].renderTarget;
@@ -1224,11 +1206,7 @@ namespace ANON
 
 		void ClearDepthBuffer(TextureId id, float depth, uint8 stencil) override
 		{
-			uint32 index = id.index - 1;
-			if (index >= (uint32)textures.size())
-			{
-				Throw(0, "%s: Bad Id", __FUNCTION__);
-			}
+			uint64 index = ToIndex(id, __FUNCTION__);
 
 			Lock lock(sync);
 			auto* d = textures[index].depthStencilView;
@@ -1244,12 +1222,7 @@ namespace ANON
 
 		void InitAsBlankArray(TextureId id, uint32 nElements) override
 		{
-			uint32 index = id.index - 1;
-			if (index >= (uint32)textures.size())
-			{
-				Throw(0, "%s: Bad Id", __FUNCTION__);
-			}
-
+			uint64 index = ToIndex(id, __FUNCTION__);
 			auto& t = textures[index];
 
 			if (t.type != TextureType::T2D_Array)
@@ -1288,13 +1261,19 @@ namespace ANON
 			}
 		}
 
+		uint64 ToIndex(TextureId id, cstr src) const
+		{
+			uint64 index = id.index - 1;
+			if (index >= textures.size())
+			{
+				Throw(0, "%s: Bad Id", src);
+			}
+			return index;
+		}
+
 		void ReloadAsset(TextureId id) override
 		{
-			uint32 index = id.index - 1;
-			if (index >= (uint32)textures.size())
-			{
-				Throw(0, "%s: Bad Id", __FUNCTION__);
-			}
+			uint64 index = ToIndex(id, __FUNCTION__); // This will throw if the id is invalid
 
 			Lock lock(sync);		
 			inputQueue.push_back(id);
@@ -1307,6 +1286,7 @@ namespace ANON
 			for (auto& gremlin : textures)
 			{
 				gremlin.Release();
+				Rococo::Free(gremlin.uvAtlas);
 			}
 		}
 

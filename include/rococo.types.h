@@ -239,19 +239,34 @@ namespace Rococo
 	template<class T> class AutoFree
 	{
 	private:
-		T* t;
-		AutoFree(const AutoFree& src) = delete;
+		mutable T* t;
 	public:
 		AutoFree(T* _t = nullptr) : t(_t) {}
-
-		AutoFree& operator = (T* src)
+		AutoFree(AutoFree<T>&& src)
 		{
-			if (src != t)
-			{
-				Rococo::Free(t);
-				t = src;
-			}
+			t = src.t;
+			src.t = nullptr;
+		}
+
+		AutoFree<T>& operator = (T* src)
+		{
+			t = src;
 			return *this;
+		};
+
+		AutoFree<T>& operator = (const AutoFree<T>& src)
+		{
+			Rococo::Free(t);
+			t = src.t;
+			src.t = nullptr;
+			return *this;
+		}
+
+		AutoFree<T>& operator = (const AutoFree<T>&& src)
+		{
+			Rococo::Free(t);
+			t = src.t;
+			src.t = nullptr;
 		}
 
 		~AutoFree()
