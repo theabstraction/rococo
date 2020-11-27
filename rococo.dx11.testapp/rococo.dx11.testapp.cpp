@@ -181,6 +181,10 @@ void Main(HINSTANCE hInstance)
 			{
 				Graphics::DrawSprite(Vec2i{ 10, 10 }, bitmap, grc);
 			}
+
+			GuiRect rect2{ 0, 100, metrics.screenSpan.x, 130 };
+
+			RenderVerticalCentredText(grc, "An example of drawing text using a scalable font", RGBAb(255, 255, 255, 255), 50, { 50, 150 });
 		}
 	} scene;
 

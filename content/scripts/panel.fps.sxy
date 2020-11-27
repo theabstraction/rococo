@@ -50,7 +50,6 @@
 	(IPlayer player (Player 0))
 	
 	(IInventoryArray inventory = (player.GetInventory))
-	
 	(Recti doll = 10 80 210 560)
 	(inventory.ClearDolls)
 	(inventory.AddPaperDoll doll "!textures/hv/inventory/doll.male.tif")
