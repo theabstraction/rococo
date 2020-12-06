@@ -287,7 +287,26 @@ namespace ANON
 
 		void OnSize(Vec2i span)
 		{
+			Vec2i backBufferSpan = textures.GetSpan(idBackBuffer);
+			if (span != backBufferSpan)
+			{
+				// IDXGISwapChain::ResizeBuffers requires back buffer and depth buffer be released 
 
+				DXGI_SWAP_CHAIN_DESC1 desc;
+				GetSwapChainForWindow(hMainWnd, desc);
+				textures.Release(idBackBuffer);
+				textures.Release(idDepthBuffer);
+				VALIDATE_HR(swapChain->ResizeBuffers(desc.BufferCount, 0, 0, desc.Format, desc.Flags));
+
+				AutoRelease<ID3D11Texture2D> backBuffer;
+				VALIDATE_HR(swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backBuffer));
+
+				ID3D11Texture2D1* back1 = nullptr;
+				VALIDATE_HR(backBuffer->QueryInterface(&back1));
+
+				textures.SetTx2D_Direct(idBackBuffer, back1);
+				textures.ResizeDepthStencil(idDepthBuffer, span);
+			}
 		}
 
 		LRESULT RouteInput(HWND hWnd, WPARAM wParam, LPARAM lParam)
@@ -397,6 +416,32 @@ namespace ANON
 			{
 				This->wc.evHandler.OnMessageQueueException(*This, ex);
 				return DefWindowProcA(hWnd, uMsg, wParam, lParam);
+			}
+		}
+
+		void SwitchToFullscreenMode() override
+		{
+			BOOL isFullScreen;
+			AutoRelease<IDXGIOutput> output;
+			if SUCCEEDED(swapChain->GetFullscreenState(&isFullScreen, &output))
+			{
+				if (!isFullScreen)
+				{
+					swapChain->SetFullscreenState(true, nullptr);
+				}
+			}
+		}
+
+		void SwitchToWindowMode() override
+		{
+			BOOL isFullScreen;
+			AutoRelease<IDXGIOutput> output;
+			if SUCCEEDED(swapChain->GetFullscreenState(&isFullScreen, &output))
+			{
+				if (isFullScreen)
+				{
+					swapChain->SetFullscreenState(false, nullptr);
+				}
 			}
 		}
 

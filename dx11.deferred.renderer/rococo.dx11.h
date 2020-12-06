@@ -151,10 +151,14 @@ namespace Rococo::Graphics
 	{
 		// Monitor and report shader errors. The cache reference must be valid for the monitor duration
 		// If null is passed monitoring ends.
+
 		virtual void MonitorShaderErrors(IShaderCache* cache) = 0;
-		virtual Rococo::Windows::IWindow& Window() = 0;
+		virtual void SwitchToFullscreenMode() = 0;
+		virtual void SwitchToWindowMode() = 0;
 		virtual void UpdateFrame() = 0;
 		virtual Vec2i Span() const = 0;
+		virtual Rococo::Windows::IWindow& Window() = 0;
+
 		virtual void Free() = 0;
 	};
 
@@ -232,14 +236,17 @@ namespace Rococo::Graphics
 		virtual Textures::ITextureArrayBuilder& GetSpriteBuilder(TextureId id) = 0;
 		virtual void InitAsBlankArray(TextureId id, uint32 nElements) = 0;
 		virtual void ReloadAsset(TextureId id) = 0;
+		virtual void ResizeDepthStencil(TextureId id, Vec2i span) = 0;
 		virtual void UpdateSpanFromSystem(TextureId id) = 0;
 		virtual void UpdateArray(TextureId id, uint32 index, const GRAYSCALE* pixels, Vec2i span) = 0;
 		virtual	void UseTexturesAsRenderTargets(const RenderTarget* targets, uint32 nTargets, TextureId idDepthStencil) = 0;	
+		virtual void Release(TextureId id) = 0;
 	};
 
 	ROCOCOAPI IDX11TextureCache : ITextureCache
 	{
 		virtual TextureId AddTx2D_Direct(cstr name, ID3D11Texture2D1* tx2D) = 0;
+		virtual void SetTx2D_Direct(TextureId id, ID3D11Texture2D1* tx2D) = 0;
 	};
 
 	ROCOCOAPI ITextureSupervisor : IDX11TextureCache

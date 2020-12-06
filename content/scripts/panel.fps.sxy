@@ -53,7 +53,7 @@
 	(Recti doll = 10 80 210 560)
 	(inventory.ClearDolls)
 	(inventory.AddPaperDoll doll "!textures/hv/inventory/doll.male.tif")
-	
+
 	(InventoryLayoutRules layout)
 	(layout.borders = 4 4)
 	(layout.cellSpan = 64 64)

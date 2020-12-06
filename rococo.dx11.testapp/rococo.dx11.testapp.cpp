@@ -188,7 +188,7 @@ void Main(HINSTANCE hInstance)
 		}
 	} scene;
 
-	DX11WindowContext wc{ Windows::NoParent(), app, {800,600}, "DX11 Test Window", hInstance };
+	DX11WindowContext wc{ Windows::NoParent(), app, {1024,768}, "DX11 Test Window", hInstance };
 	AutoFree<IDX11Window> window = dx11->CreateDX11Window(wc);
 	window->MonitorShaderErrors(&dx11->Shaders());
 	auto idScalableFontTexture = dx11->Textures().AddTx2D_Grey("!font1.tif");

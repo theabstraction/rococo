@@ -979,6 +979,94 @@ namespace ANON
 			return id;
 		}
 
+		void ResizeDepthStencil(TextureId id, Vec2i span) override
+		{
+			uint64 index = ToIndex(id, __FUNCTION__);
+			auto& t = textures[index];
+
+			Lock lock(sync);
+
+			t.Release();
+
+			t.span = span;
+
+			D3D11_TEXTURE2D_DESC1 desc;
+			desc.ArraySize = 1;
+			desc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+			desc.CPUAccessFlags = 0;
+			desc.Format = t.format;
+			desc.Height = span.x;
+			desc.Width = span.y;
+			desc.MipLevels = 1;
+			desc.MiscFlags = 0;
+			desc.SampleDesc = { 1,0 };
+			desc.TextureLayout = D3D11_TEXTURE_LAYOUT_UNDEFINED;
+			desc.Usage = D3D11_USAGE_DEFAULT;
+			HRESULT hr = device.CreateTexture2D1(&desc, nullptr, &t.tx2D);
+			if FAILED(hr)
+			{
+				t.errNumber = hr;
+				char err[128];
+				SafeFormat(err, "%s: device.CreateTexture2D1 failed", __FUNCTION__);
+				t.errString = err;
+				return;
+			}
+
+			hr = device.CreateDepthStencilView(t.tx2D, nullptr, &t.depthStencilView);
+			if FAILED(hr)
+			{
+				t.errNumber = hr;
+				char err[128];
+				SafeFormat(err, "%s: device.CreateDepthStencilView failed", __FUNCTION__);
+				t.errString = err;
+			}
+		}
+
+		void SetTx2D_Direct(TextureId id, ID3D11Texture2D1* tx2D) override
+		{
+			uint64 index = ToIndex(id, __FUNCTION__);
+			auto& t = textures[index];
+
+			Lock lock(sync);
+
+			t.Release();
+
+			D3D11_TEXTURE2D_DESC desc;
+			tx2D->GetDesc(&desc);
+			t.span = { (int32) desc.Width, (int32) desc.Height };
+
+			if (t.format != desc.Format)
+			{
+				Throw(0, "%s: cannot set texture, the argument refers to a texture with a different format", __FUNCTION__);
+			}
+
+			t.tx2D = tx2D;
+
+			if ((desc.BindFlags & D3D11_BIND_RENDER_TARGET) != 0)
+			{
+				HRESULT hr = device.CreateRenderTargetView1(t.tx2D, nullptr, &t.renderTarget);
+				if FAILED(hr)
+				{
+					t.errNumber = hr;
+					char err[128];
+					SafeFormat(err, "device.CreateRenderTargetView1 failed");
+					t.errString = err;
+				}
+			}
+
+			if ((desc.BindFlags & D3D11_BIND_SHADER_RESOURCE) != 0)
+			{
+				HRESULT hr = device.CreateShaderResourceView1(t.tx2D, nullptr, &t.shaderResource);
+				if FAILED(hr)
+				{
+					t.errNumber = hr;
+					char err[128];
+					SafeFormat(err, "device.CreateShaderResourceView1 failed");
+					t.errString = err;
+				}
+			}
+		}
+
 		void UpdateArray(TextureId id, uint32 index, const GRAYSCALE* pixels, Vec2i span) override
 		{
 			auto textureindex = ToIndex(id, __FUNCTION__);
@@ -1194,6 +1282,14 @@ namespace ANON
 		{
 			uint64 index = ToIndex(id, __FUNCTION__);
 			textures[index].isMipMapped = true;
+		}
+
+		void Release(TextureId id) override
+		{
+			uint64 index = ToIndex(id, __FUNCTION__);
+			Lock lock(sync);
+			auto& t = textures[index];
+			t.Release();
 		}
 
 		void ClearRenderTarget(TextureId id, const RGBA& clearColour) override
