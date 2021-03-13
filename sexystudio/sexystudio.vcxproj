@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{47a7b3fc-2c2b-418d-a4e5-a00bbc98ae12}</ProjectGuid>
-    <RootNamespace>dx11deferredrenderer</RootNamespace>
+    <ProjectGuid>{8a8ee8bd-c917-4471-9b7a-3f23a6b432aa}</ProjectGuid>
+    <RootNamespace>sexystudio</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -40,13 +40,13 @@
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -78,13 +78,13 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)lib\</OutDir>
+    <OutDir>$(SolutionDir)bin\</OutDir>
     <IntDir>$(SolutionDir)temp\$(ProjectName)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName).debug</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)lib\</OutDir>
+    <OutDir>$(SolutionDir)bin\</OutDir>
     <IntDir>$(SolutionDir)temp\$(ProjectName)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -121,12 +121,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)include\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\include\;$(SolutionDir)sexy\common\</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(SolutionDir)\lib</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -137,31 +138,38 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)include\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\include\;$(SolutionDir)sexy\common\</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(SolutionDir)\lib</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="dx11.adapter.context.cpp" />
-    <ClCompile Include="dx11.forward.renderer.cpp" />
-    <ClCompile Include="dx11.gui.cpp" />
-    <ClCompile Include="dx11.meshes.cpp" />
-    <ClCompile Include="dx11.pipeline.cpp" />
-    <ClCompile Include="dx11.render.stage.basic.cpp" />
-    <ClCompile Include="dx11.system.cpp" />
-    <ClCompile Include="dx11.texture.cache.cpp" />
-    <ClCompile Include="dx11.window.cpp" />
+    <ClCompile Include="sexstudio.windows.ide.win32.cpp" />
+    <ClCompile Include="sexystudio.cpp" />
+    <ClCompile Include="sexystudio.delegates.cpp" />
+    <ClCompile Include="sexystudio.layouts.cpp" />
+    <ClCompile Include="sexystudio.widgets.cpp" />
+    <ClCompile Include="sexystudio.windows.button.cpp" />
+    <ClCompile Include="sexystudio.windows.main.cpp" />
+    <ClCompile Include="sexystudio.windows.child.cpp" />
+    <ClCompile Include="sexystudio.windows.toolbar.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\rococo.auto-release.h" />
-    <ClInclude Include="..\include\rococo.renderer.h" />
-    <ClInclude Include="rococo.dx11.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="sexystudio.impl.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="sexystudio.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="sexystudio.large.ico" />
+    <Image Include="sexystudio.small.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
