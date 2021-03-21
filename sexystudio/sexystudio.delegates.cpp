@@ -28,26 +28,17 @@ namespace
 			delete this;
 		}
 
-		void Layout(Rococo::Windows::IWindow& window) override
+		void Layout(IGuiWidget& widget) override
 		{
-			HWND hWndParent = GetParent(window);
-			if (!IsWindow(hWndParent)) Throw(0, "%s: Bad parent", __FUNCTION__);
-
-			RECT win32rect;
-			GetClientRect(window, &win32rect);
-
-			auto& guiRect = reinterpret_cast<GuiRect&>(win32rect);
+			Vec2i span = Widgets::GetSpan(widget);
+			GuiRect rect{ 0,0,span.x,span.y };
 
 			for (auto* l : layouts)
 			{
-				HWNDProxy parent(hWndParent);
-				l->Layout(parent, guiRect);
+				l->Layout(widget, rect);
 			}
-			
-			int32 width = guiRect.right - guiRect.left;
-			int32 height = guiRect.bottom - guiRect.top;
 
-			MoveWindow(window, guiRect.left, guiRect.top, width, height, TRUE);
+			Widgets::SetWidgetPosition(widget, rect);
 		}
 	};
 }

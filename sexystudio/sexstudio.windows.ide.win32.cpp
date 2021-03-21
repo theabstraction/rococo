@@ -1,11 +1,10 @@
+#include "sexystudio.api.h"
 #include "sexystudio.impl.h"
 #include <rococo.strings.h>
 #include "resource.h"
 
-#include <dwmapi.h>
-#pragma comment(lib, "Dwmapi.lib")
-
 #include <rococo.events.h>
+
 
 using namespace Rococo;
 using namespace Rococo::Events;
@@ -13,22 +12,6 @@ using namespace Rococo::SexyStudio;
 
 namespace
 {
-	void SetupDWM(HWND hMainWnd)
-	{
-		MARGINS margins;
-
-		margins.cxLeftWidth = 0;
-		margins.cxRightWidth = 0;
-		margins.cyBottomHeight = 0;
-		margins.cyTopHeight = 0;
-
-		HRESULT hr = DwmExtendFrameIntoClientArea(hMainWnd, &margins);
-		if FAILED(hr)
-		{
-			Throw(hr, "DwmExtendFrameIntoClientArea failed");
-		}
-	}
-
 	const DWORD ideExStyle = 0;
 	const DWORD ideStyle = WS_OVERLAPPEDWINDOW;
 
@@ -38,37 +21,22 @@ namespace
 		Rococo::Events::IPublisher& publisher;
 		Win32TopLevelWindow mainFrame;
 		AutoFree<IWidgetSetSupervisor> children;
-		AutoFree<IToolbar> frameBar;
 		EventIdRef evClose = { 0 };
 		EventIdRef evResize = { 0 };
+		Brush bkBrush;
 
-
-		Win32MainIDEWindow(Rococo::Events::IPublisher& _publisher):
+		Win32MainIDEWindow(Rococo::Events::IPublisher& _publisher) :
 			publisher(_publisher),
-			mainFrame(ideExStyle, ideStyle, *this)
+			mainFrame(ideExStyle, ideStyle, *this),
+			bkBrush { CreateSolidBrush(RGB(192, 192, 192)) }
 		{
 			children = CreateDefaultWidgetSet(mainFrame);
-			frameBar = CreateToolbar(*children);
-		}
-
-		IToolbar& FrameBar() override
-		{
-			return *frameBar;
 		}
 
 		LRESULT ProcessMessage(UINT msg, WPARAM wParam, LPARAM lParam) override
 		{
 			switch (msg)
 			{
-			case WM_NCCALCSIZE:
-				if (wParam == TRUE)
-				{
-					return 0L;
-				}
-				break;
-			case WM_ACTIVATE:
-				SetupDWM(mainFrame);
-				break;
 			case WM_CLOSE:
 				if (evClose.name == nullptr)
 				{
@@ -110,13 +78,15 @@ namespace
 			delete this;
 		}
 
+		RECT borderThickness = { 0 };
+
 		void SetVisible(bool isVisible) override
 		{
 			if (isVisible)
 			{
-				SetupDWM(mainFrame);
 				SetWindowPos(mainFrame, NULL, 0, 0, 800, 600, SWP_FRAMECHANGED);
 			}
+
 			ShowWindow(mainFrame, isVisible ? SW_SHOW : SW_HIDE);
 		}
 
@@ -146,21 +116,45 @@ namespace Rococo::SexyStudio
 
 	void UseDefaultFrameBarLayout(IToolbar& frameBar)
 	{
-		AnchorToParentLeft(frameBar.Layouts(), 0);
-		AnchorToParentRight(frameBar.Layouts(), 0);
-		AnchorToParentTop(frameBar.Layouts(), 0);
-		ExpandBottomFromTop(frameBar.Layouts(), 27);
+		Widgets::AnchorToParentLeft(frameBar, 0);
+		Widgets::AnchorToParentRight(frameBar, 0);
+		Widgets::AnchorToParentTop(frameBar, 0);
+		Widgets::ExpandBottomFromTop(frameBar, 48);
 		frameBar.SetSpacing(10, 20);
 	}
 
-	void AddDefaultCloseButton(IPublisher& publisher, IToolbar& frameBar, Rococo::Events::EventIdRef evClicked)
+	void AddDefaultRHSFrameButtons(IPublisher& publisher, IToolbar& frameBar, Rococo::Events::EventIdRef evClose, Rococo::Events::EventIdRef evMax, Rococo::Events::EventIdRef evMin)
 	{
-		auto* textButton = CreateButton(publisher, *frameBar.Children(), "X", evClicked);
-		frameBar.SetManualLayout(textButton);
+		auto* closeButton = CreateButtonByResource(publisher, *frameBar.Children(), IDI_IDE_CLOSE, evClose);
+		frameBar.SetManualLayout(closeButton);
 
-		AnchorToParentRight(textButton->Layouts(), 0);
-		AnchorToParentTop(textButton->Layouts(), 4);
-		ExpandLeftFromRight(textButton->Layouts(), 25);
-		ExpandBottomFromTop(textButton->Layouts(), 25);
+		Vec2i spanClose = Widgets::GetSpan(*closeButton);
+
+		Widgets::AnchorToParentRight(*closeButton, 4);
+		Widgets::AnchorToParentTop(*closeButton, 4);
+		Widgets::ExpandLeftFromRight(*closeButton, spanClose.x);
+		Widgets::ExpandBottomFromTop(*closeButton, spanClose.y);
+
+		auto* maxButton = CreateButtonByResource(publisher, *frameBar.Children(), IDI_IDE_MAXIMIZE, evMax);
+		frameBar.SetManualLayout(maxButton);
+
+		Vec2i spanMax = Widgets::GetSpan(*maxButton);
+
+		Widgets::AnchorToParentRight(*maxButton, 4 + spanClose.x + 4);
+		Widgets::AnchorToParentTop(*maxButton, 4);
+		Widgets::ExpandLeftFromRight(*maxButton, spanMax.x);
+		Widgets::ExpandBottomFromTop(*maxButton, spanMax.y);
+
+		auto* minButton = CreateButtonByResource(publisher, *frameBar.Children(), IDI_IDE_MINIMIZE, evMin);
+		frameBar.SetManualLayout(minButton);
+
+		Vec2i spanMin = Widgets::GetSpan(*minButton);
+
+		Widgets::AnchorToParentRight(*minButton, 4 + spanClose.x + 4 + spanMax.x + 4);
+		Widgets::AnchorToParentTop(*minButton, 4);
+		Widgets::ExpandLeftFromRight(*minButton, spanMin.x);
+		Widgets::ExpandBottomFromTop(*minButton, spanMin.y);
+
+		frameBar.Layout();
 	}
 }

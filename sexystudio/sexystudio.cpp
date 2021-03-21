@@ -4,6 +4,7 @@
 #include <rococo.libs.inl>
 #include "sexystudio.impl.h"
 #include "resource.h"
+#include "rococo.auto-release.h"
 
 #include <rococo.events.h>
 
@@ -39,12 +40,64 @@ struct Win32MessagePump : IMessagePump
 };
 
 auto evIDEClose = "EvIDEClose"_event;
+auto evIDEMin = "EvIDEMin"_event;
+auto evIDEMax = "EvIDEMax"_event;
+
+void BuildPropertySheets(IPublisher& publisher, ISplitScreen& screen)
+{
+	screen.SetVisible(true);
+
+	AutoRelease<ITab> projectTab = CreateTab();
+	projectTab->SetName("Projects");
+	projectTab->SetTooltip("Project View");
+
+	AutoRelease<ITab> propertyTab = CreateTab();
+	propertyTab->SetName("Properties");
+	propertyTab->SetTooltip("Property View");
+
+	ITabSplitter* tabs = CreateTabSplitter(publisher, *screen.Children());
+	tabs->SetVisible(true);
+
+	TabDefiniton propertyDef{ propertyTab };
+	tabs->AddTab(propertyDef);
+
+	TabDefiniton projectDef{ projectTab };
+	tabs->AddTab(projectDef);
+}
+
+void BuildSourceSheets(IPublisher& publisher, ISplitScreen& screen)
+{
+	screen.SetVisible(true);
+
+	AutoRelease<ITab> srcMainTab = CreateTab();
+	srcMainTab->SetName("main.cpp");
+	srcMainTab->SetTooltip("C:\\work\\main.cpp");
+
+	AutoRelease<ITab> srcAuxTab = CreateTab();
+	srcAuxTab->SetName("aux.cpp");
+	srcAuxTab->SetTooltip("C:\\work\\aux.cpp");
+
+	ITabSplitter* tabs = CreateTabSplitter(publisher, *screen.Children());
+	tabs->SetVisible(true);;
+
+	TabDefiniton src1Def{ srcMainTab };
+	tabs->AddTab(src1Def);
+
+	TabDefiniton src2Def{ srcAuxTab };
+	tabs->AddTab(src2Def);
+}
 
 void Main(IMessagePump& pump)
 {
+	AutoFree<IPublisherSupervisor> publisher(Rococo::Events::CreatePublisher());
+
+	AutoFree<IIDEFrameSupervisor> ide = CreateMainIDEFrame(*publisher);
+	Widgets::SetText(ide->Window(), "Sexy Studio");
+
 	struct IDEEvents : IObserver
 	{
 		IMessagePump* pump = nullptr;
+		IIDEFrameSupervisor* ide = nullptr;
 
 		void OnEvent(Rococo::Events::Event& ev) override
 		{
@@ -52,18 +105,43 @@ void Main(IMessagePump& pump)
 			{
 				pump->Quit();
 			}
+			else if (ev == evIDEMax)
+			{
+				Widgets::Maximize(ide->Window());
+			}
+			else if (ev == evIDEMin)
+			{
+				Widgets::Minimize(ide->Window());
+			}
 		}
 	} ideEvents;
 	ideEvents.pump = &pump;
+	ideEvents.ide = ide;
 
-	AutoFree<IPublisherSupervisor> publisher(Rococo::Events::CreatePublisher());
+	auto* splitscreen = CreateSplitScreen(*publisher, ide->Children());
+	Widgets::AnchorToParent(*splitscreen, 0, 0, 0, 0);
+
+	ide->Children().Add(splitscreen);
+
+	splitscreen->SetVisible(true);
+
+	splitscreen->SplitIntoColumns(400);
+	splitscreen->SetBackgroundColour(RGBAb(192, 128, 128));
+
+	auto* projectView = splitscreen->GetFirstHalf();
+	projectView->SetBackgroundColour(RGBAb(128, 192, 128));
+	auto* sourceView = splitscreen->GetSecondHalf();
+	sourceView->SetBackgroundColour(RGBAb(128, 128, 192));
+
+	BuildPropertySheets(*publisher, *projectView);
+	BuildSourceSheets(*publisher, *sourceView);
+
 	publisher->Subscribe(&ideEvents, evIDEClose);
+	publisher->Subscribe(&ideEvents, evIDEMax);
+	publisher->Subscribe(&ideEvents, evIDEMin);
 
-	AutoFree<IIDEFrameSupervisor> ide = CreateMainIDEFrame(*publisher);
-	UseDefaultFrameBarLayout(ide->FrameBar());
-	AddDefaultCloseButton(*publisher, ide->FrameBar(), evIDEClose);
-	ide->SetCloseEvent(evIDEClose);
 	ide->SetVisible(true);
+	splitscreen->Layout();
 
 	pump.MainLoop();
 }

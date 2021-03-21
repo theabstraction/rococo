@@ -95,6 +95,12 @@ IDI_ICON1               ICON                    "sexystudio.large.ico"
 
 IDI_ICON2               ICON                    "sexystudio.small.ico"
 
+IDI_IDE_CLOSE           ICON                    "close.ico"
+
+IDI_IDE_MINIMIZE        ICON                    "minimize.ico"
+
+IDI_IDE_MAXIMIZE        ICON                    "maximize.ico"
+
 #endif    // English (United Kingdom) resources
 /////////////////////////////////////////////////////////////////////////////
 

@@ -1,22 +1,53 @@
-#include "sexystudio.impl.h"
+#include "sexystudio.api.h"
 #include <rococo.maths.h>
 
-namespace Rococo::SexyStudio
+namespace Rococo::SexyStudio::Widgets
 {
 	// These functions create a layout object.
 	// These are applied in sequence to layout a child control relative to its parent
 
-	void AnchorToParentLeft(ILayoutControl& layouts, int pixelBorder)
+	void AnchorToParent(IGuiWidget& widget, int leftBorder, int topBorder, int rightBorder, int bottomBorder)
+	{
+		struct L : ILayout
+		{
+			int leftBorder = 0;
+			int topBorder = 0;
+			int rightBorder = 0;
+			int bottomBorder = 0;
+
+			void Layout(IGuiWidget& widget, GuiRect& rect) override
+			{
+				Vec2i parentSpan = GetParentSpan(widget);
+
+				rect.left = leftBorder;
+				rect.right = parentSpan.x - rightBorder;
+				rect.top = topBorder;
+				rect.bottom = parentSpan.y - bottomBorder;
+			}
+
+			void Free() override
+			{
+				delete this;
+			}
+		};
+
+		auto* l = new L();
+		l->leftBorder = leftBorder;
+		l->topBorder = topBorder;
+		l->rightBorder = rightBorder;
+		l->bottomBorder = bottomBorder;
+		widget.AddLayoutModifier(l);
+	}
+
+	void AnchorToParentLeft(IGuiWidget& widget, int pixelBorder)
 	{
 		struct L: ILayout
 		{
 			int pixelBorder = 0;
 
-			void Layout(IWindow& parent, GuiRect& rect) override
+			void Layout(IGuiWidget& widget, GuiRect& rect) override
 			{
-				RECT parentRect;
-				GetClientRect(parent, &parentRect);
-				rect.left = parentRect.left + pixelBorder;
+				rect.left = pixelBorder;
 			}
 
 			void Free() override
@@ -28,21 +59,19 @@ namespace Rococo::SexyStudio
 		auto* l = new L();
 		l->pixelBorder = pixelBorder;
 
-		layouts.AttachLayoutModifier(l);
+		widget.AddLayoutModifier(l);
 	}
 
-	void AnchorToParentRight(ILayoutControl& layouts, int pixelBorder)
+	void AnchorToParentRight(IGuiWidget& widget, int pixelBorder)
 	{
 		struct L : ILayout
 		{
 			int pixelBorder = 0;
 
-			void Layout(IWindow& parent, GuiRect& rect) override
+			void Layout(IGuiWidget& widget, GuiRect& rect) override
 			{
-				RECT parentRect;
-				GetClientRect(parent, &parentRect);
-				int width = Width(rect);
-				rect.right = parentRect.right - pixelBorder;
+				auto parentSpan = Widgets::GetParentSpan(widget);
+				rect.right = parentSpan.x - pixelBorder;
 			}
 
 			void Free() override
@@ -54,20 +83,18 @@ namespace Rococo::SexyStudio
 		auto* l = new L();
 		l->pixelBorder = pixelBorder;
 
-		layouts.AttachLayoutModifier(l);
+		widget.AddLayoutModifier(l);
 	}
 
-	void AnchorToParentTop(ILayoutControl& layouts, int pixelBorder)
+	void AnchorToParentTop(IGuiWidget& widget, int pixelBorder)
 	{
 		struct L : ILayout
 		{
 			int pixelBorder = 0;
 
-			void Layout(IWindow& parent, GuiRect& rect) override
+			void Layout(IGuiWidget& widget, GuiRect& rect) override
 			{
-				RECT parentRect;
-				GetClientRect(parent, &parentRect);
-				rect.top = parentRect.top + pixelBorder;
+				rect.top = pixelBorder;
 				int32 height = rect.bottom - rect.top;
 				rect.bottom = rect.top + height;
 			}
@@ -81,17 +108,17 @@ namespace Rococo::SexyStudio
 		auto* l = new L();
 		l->pixelBorder = pixelBorder;
 
-		layouts.AttachLayoutModifier(l);
+		widget.AddLayoutModifier(l);
 	}
 
-	void ExpandBottomFromTop(ILayoutControl& layouts, int pixels)
+	void ExpandBottomFromTop(IGuiWidget& widget, int pixels)
 	{
 		struct L : ILayout
 		{
 			int pixelHeight = 0;
-
-			void Layout(IWindow& parent, GuiRect& rect) override
+			void Layout(IGuiWidget& widget, GuiRect& rect) override
 			{
+				Vec2i parentSpan = Widgets::GetParentSpan(widget);
 				rect.bottom = rect.top + pixelHeight;
 			}
 
@@ -104,16 +131,16 @@ namespace Rococo::SexyStudio
 		auto* l = new L();
 		l->pixelHeight = pixels;
 
-		layouts.AttachLayoutModifier(l);
+		widget.AddLayoutModifier(l);
 	}
 
-	void ExpandLeftFromRight(ILayoutControl& layouts, int pixels)
+	void ExpandLeftFromRight(IGuiWidget& widget, int pixels)
 	{
 		struct L : ILayout
 		{
 			int pixels = 0;
 
-			void Layout(IWindow& parent, GuiRect& rect) override
+			void Layout(IGuiWidget& widget, GuiRect& rect) override
 			{
 				rect.left = rect.right - pixels;
 			}
@@ -127,6 +154,6 @@ namespace Rococo::SexyStudio
 		auto* l = new L();
 		l->pixels = pixels;
 
-		layouts.AttachLayoutModifier(l);
+		widget.AddLayoutModifier(l);
 	}
 }

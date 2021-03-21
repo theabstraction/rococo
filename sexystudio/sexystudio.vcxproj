@@ -158,10 +158,13 @@
     <ClCompile Include="sexystudio.windows.button.cpp" />
     <ClCompile Include="sexystudio.windows.main.cpp" />
     <ClCompile Include="sexystudio.windows.child.cpp" />
+    <ClCompile Include="sexystudio.windows.splitter.cpp" />
+    <ClCompile Include="sexystudio.windows.tabsplitter.cpp" />
     <ClCompile Include="sexystudio.windows.toolbar.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
+    <ClInclude Include="sexystudio.api.h" />
     <ClInclude Include="sexystudio.impl.h" />
   </ItemGroup>
   <ItemGroup>

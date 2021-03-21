@@ -8,12 +8,13 @@ using namespace Rococo::SexyStudio;
 
 namespace
 {
-	struct Button : IButtonWidget, IWin32WindowMessageLoopHandler, ILayoutControl
+	struct Button : IButtonWidget, IWin32WindowMessageLoopHandler
 	{
+		HBRUSH hBackBrush;
+		HBRUSH hHiBrush;
+
 		Rococo::Events::IPublisher& publisher;
 		Win32ChildWindow eventSinkWindow;
-
-		HWNDProxy hbuttonWnd = nullptr;
 
 		IWidgetSet& widgets;
 		HString text;
@@ -22,28 +23,40 @@ namespace
 
 		AutoFree<ILayoutSet> layouts = CreateLayoutSet();
 
-		Button(Rococo::Events::IPublisher& _publisher, IWidgetSet& _widgets, cstr _text, Rococo::Events::EventIdRef _evOnClick):
+		HICON icon = nullptr;
+		Vec2i iconSpan{ 0,0 };
+
+		Button(Rococo::Events::IPublisher& _publisher, IWidgetSet& _widgets, int16 resourceId, Rococo::Events::EventIdRef _evOnClick):
+			hBackBrush(CreateSolidBrush(RGB(192,192,192))),
+			hHiBrush(CreateSolidBrush(RGB(224, 224, 224))),
 			publisher(_publisher),
 			eventSinkWindow(_widgets.Parent(), *this),
-			widgets(_widgets), text(_text),
+			widgets(_widgets),
 			evOnClick(_evOnClick)
 		{
-			MoveWindow(eventSinkWindow, 0, 0, 20, 20, TRUE);
-
-			hbuttonWnd = CreateWindowExA(
-				0,
-				"BUTTON",
-				_text, 
-				WS_CHILD | WS_VISIBLE, 
-				0, 0, 
-				20, 20,
-				eventSinkWindow, NULL, GetMainInstance(), NULL);
-
-			if (hbuttonWnd == NULL)
+			icon = (HICON)LoadImageA(GetMainInstance(), MAKEINTRESOURCEA(resourceId), IMAGE_ICON, 0, 0, LR_SHARED);
+			
+			if (icon == nullptr)
 			{
-				Throw(GetLastError(), "%s: Could not create Button", __FUNCTION__);
+				Throw(GetLastError(), "Error loading icon with resource id %d", resourceId);
 			}
 
+			ICONINFO iconInfo;
+			GetIconInfo(icon, &iconInfo);
+			HDC dc = GetDC(eventSinkWindow);
+			BITMAPINFO info = { 0 };
+			info.bmiHeader.biSize = sizeof(info);
+
+			GetDIBits(dc, iconInfo.hbmColor, 0, 0, nullptr, &info, DIB_RGB_COLORS);
+
+			iconSpan = { info.bmiHeader.biWidth, info.bmiHeader.biHeight };
+
+			if (iconSpan.x > 40 || iconSpan.y > 40)
+			{
+				Throw(GetLastError(), "Icon with resource id %d was too large. 40x40 pixels is the maximum", resourceId);
+			}
+
+			MoveWindow(eventSinkWindow, 0, 0, 40, 40, TRUE);
 			ShowWindow(eventSinkWindow, SW_SHOW);
 
 			_widgets.Add(this);
@@ -51,10 +64,11 @@ namespace
 		
 		~Button()
 		{
-			DestroyWindow(hbuttonWnd);
+			DeleteObject(hHiBrush);
+			DeleteObject(hBackBrush);
 		}
 
-		void AttachLayoutModifier(ILayout* l) override
+		void AddLayoutModifier(ILayout* l) override
 		{
 			layouts->Add(l);
 		}
@@ -66,12 +80,7 @@ namespace
 
 		void Layout() override
 		{
-			layouts->Layout(eventSinkWindow);
-		}
-
-		ILayoutControl& Layouts() override
-		{
-			return *this;
+			layouts->Layout(*this);
 		}
 
 		IWindow& Window() override
@@ -89,23 +98,92 @@ namespace
 		void SetVisible(bool isVisible) override
 		{
 			ShowWindow(eventSinkWindow, isVisible ? SW_SHOW : SW_HIDE);
+			if (isVisible) InvalidateRect(eventSinkWindow, NULL, TRUE);
 		}
+
+		bool IsMouseInRect()
+		{
+			RECT rect;
+			GetWindowRect(eventSinkWindow, &rect);
+			POINT p;
+			GetCursorPos(&p);
+			return PtInRect(&rect, p);
+		}
+
+		bool isPressing = false;
 
 		LRESULT ProcessMessage(UINT msg, WPARAM wParam, LPARAM lParam)
 		{
 			switch (msg)
 			{
-			case WM_COMMAND:
+			case WM_LBUTTONDOWN:
 			{
-				auto* hdr = reinterpret_cast<NMHDR*>(lParam);
-				HWND hSrc = (HWND)lParam;
-				if (hSrc == hbuttonWnd)
-				{
-					OnClick();
-					return 0L;
-				}
-				break;
+				InvalidateRect(eventSinkWindow, NULL, FALSE);
+				SetCapture(eventSinkWindow);
+				isPressing = true;
+				return 0L;
 			}
+			case WM_LBUTTONUP:
+			{
+				InvalidateRect(eventSinkWindow, NULL, FALSE);
+				ReleaseCapture();
+				if (isPressing && IsMouseInRect()) OnClick();
+				isPressing = false;
+				return 0L;
+			}
+			
+			case WM_MOUSEMOVE:
+			{
+				if (isPressing) return FALSE;
+
+				TRACKMOUSEEVENT tme;
+				tme.cbSize = sizeof tme;
+				tme.dwHoverTime = 0;
+				tme.hwndTrack = eventSinkWindow;
+				tme.dwFlags = TME_LEAVE;
+				TrackMouseEvent(&tme);
+				InvalidateRect(eventSinkWindow, NULL, FALSE);
+				return FALSE;
+			}
+			case WM_MOUSELEAVE:
+			{
+				InvalidateRect(eventSinkWindow, NULL, FALSE);
+				return FALSE;
+			}
+			case WM_ERASEBKGND:
+				return TRUE;
+			case WM_PAINT:
+			{
+				RECT rect;
+				GetClientRect(eventSinkWindow, &rect);
+
+				BufferedPaintStruct ps(eventSinkWindow);
+
+				auto dc = ps.GetMemDC();
+
+				FillRect(dc, &rect, (HBRUSH) COLOR_WINDOW);
+
+				int x = (rect.right - iconSpan.x) >> 1;
+				int y = (rect.bottom - iconSpan.y) >> 1;
+
+				if (isPressing)
+				{
+					x += 1;
+					y += 1;
+				}
+
+				DrawIcon(dc, x, y, icon);
+
+				if (IsMouseInRect())
+				{
+					DrawEdge(dc, &rect, isPressing ? EDGE_BUMP : BDR_RAISEDINNER, BF_RECT);
+				}
+
+				ps.RenderToScreen();
+
+				return TRUE;
+			}
+			break;
 			}
 			return DefWindowProc(eventSinkWindow, msg, wParam, lParam);
 		}
@@ -119,8 +197,8 @@ namespace
 
 namespace Rococo::SexyStudio
 {
-	IButtonWidget* CreateButton(Rococo::Events::IPublisher& publisher, IWidgetSet& widgets, cstr text, Rococo::Events::EventIdRef evOnClick)
+	IButtonWidget* CreateButtonByResource(Rococo::Events::IPublisher& publisher, IWidgetSet& widgets, int16 resourceId, Rococo::Events::EventIdRef evOnClick)
 	{
-		return new Button(publisher, widgets, text, evOnClick);
+		return new Button(publisher, widgets, resourceId, evOnClick);
 	}
 }

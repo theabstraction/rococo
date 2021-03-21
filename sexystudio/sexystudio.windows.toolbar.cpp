@@ -8,7 +8,7 @@ using namespace Rococo::SexyStudio;
 
 namespace
 {
-	struct Toolbar: IToolbar, ILayoutControl, IWin32WindowMessageLoopHandler
+	struct Toolbar: IToolbar, IWin32WindowMessageLoopHandler
 	{
 		int leftBorder = 0;
 		int widgetGap = 0;
@@ -43,19 +43,14 @@ namespace
 			return children;
 		}
 
-		ILayoutControl& Layouts() override
-		{
-			return *this;
-		}
-
-		void AttachLayoutModifier(ILayout* l) override
+		void AddLayoutModifier(ILayout* l) override
 		{
 			layouts->Add(l);
 		}
 
 		void Layout()
 		{
-			layouts->Layout(backgroundWindow);
+			layouts->Layout(*this);
 
 			int x = leftBorder;
 

@@ -42,12 +42,21 @@
     <ClCompile Include="sexystudio.widgets.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="sexystudio.windows.splitter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sexystudio.windows.tabsplitter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sexystudio.impl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sexystudio.api.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
