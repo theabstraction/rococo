@@ -48,6 +48,18 @@
     <ClCompile Include="sexystudio.windows.tabsplitter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="sexystudio.windows.tree.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sexystudio.themes.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sexystudio.windows.variables.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sexystudio.projects.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h">

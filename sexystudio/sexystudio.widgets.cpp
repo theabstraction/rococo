@@ -10,10 +10,13 @@ namespace
 {
 	struct DefaultWidgetSet : IWidgetSetSupervisor
 	{
+		WidgetContext& context;
 		Rococo::Windows::IWindow& parent;
 		std::vector<IGuiWidget*> widgets;
 
-		DefaultWidgetSet(Rococo::Windows::IWindow& _parent): parent(_parent)
+		DefaultWidgetSet(Rococo::Windows::IWindow& _parent, WidgetContext& _context):
+			context(_context),
+			parent(_parent)
 		{
 
 		}
@@ -50,6 +53,11 @@ namespace
 		{
 			return parent;
 		}
+
+		WidgetContext& Context() override
+		{
+			return context;
+		}
 	};
 }
 
@@ -67,8 +75,8 @@ namespace Rococo::SexyStudio
 		return { rect.right - rect.left, rect.bottom - rect.top };
 	}
 
-	IWidgetSetSupervisor* CreateDefaultWidgetSet(Rococo::Windows::IWindow& parent)
+	IWidgetSetSupervisor* CreateDefaultWidgetSet(Rococo::Windows::IWindow& parent, WidgetContext& context)
 	{
-		return new DefaultWidgetSet(parent);
+		return new DefaultWidgetSet(parent, context);
 	}
 }

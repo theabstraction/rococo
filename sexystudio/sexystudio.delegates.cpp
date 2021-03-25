@@ -30,8 +30,8 @@ namespace
 
 		void Layout(IGuiWidget& widget) override
 		{
-			Vec2i span = Widgets::GetSpan(widget);
-			GuiRect rect{ 0,0,span.x,span.y };
+			GuiRect rect = Widgets::GetScreenRect(widget);
+			rect = Widgets::MapScreenToWindowRect(rect, widget);
 
 			for (auto* l : layouts)
 			{

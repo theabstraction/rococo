@@ -1,19 +1,17 @@
 #include "sexystudio.impl.h"
 #include <rococo.strings.h>
 
-#include <rococo.events.h>
-
 using namespace Rococo;
 using namespace Rococo::SexyStudio;
 
 namespace
 {
-	struct Button : IButtonWidget, IWin32WindowMessageLoopHandler
+	struct Button : IButtonWidget, IWin32WindowMessageLoopHandler, IWin32Painter
 	{
 		HBRUSH hBackBrush;
 		HBRUSH hHiBrush;
 
-		Rococo::Events::IPublisher& publisher;
+		WidgetContext& context;
 		Win32ChildWindow eventSinkWindow;
 
 		IWidgetSet& widgets;
@@ -26,10 +24,10 @@ namespace
 		HICON icon = nullptr;
 		Vec2i iconSpan{ 0,0 };
 
-		Button(Rococo::Events::IPublisher& _publisher, IWidgetSet& _widgets, int16 resourceId, Rococo::Events::EventIdRef _evOnClick):
+		Button(WidgetContext& _context, IWidgetSet& _widgets, int16 resourceId, Rococo::Events::EventIdRef _evOnClick):
 			hBackBrush(CreateSolidBrush(RGB(192,192,192))),
 			hHiBrush(CreateSolidBrush(RGB(224, 224, 224))),
-			publisher(_publisher),
+			context(_context),
 			eventSinkWindow(_widgets.Parent(), *this),
 			widgets(_widgets),
 			evOnClick(_evOnClick)
@@ -92,7 +90,7 @@ namespace
 		{ 
 			Rococo::Events::TEventArgs<ButtonClickContext> args;
 			args.value.sourceWidget = this;
-			publisher.Publish(args, evOnClick);
+			context.publisher.Publish(args, evOnClick);
 		}
 
 		void SetVisible(bool isVisible) override
@@ -111,6 +109,30 @@ namespace
 		}
 
 		bool isPressing = false;
+
+		void OnPaint(HDC dc) override
+		{
+			RECT rect;
+			GetClientRect(eventSinkWindow, &rect);
+
+			FillRect(dc, &rect, (HBRUSH)COLOR_WINDOW);
+
+			int x = (rect.right - iconSpan.x) >> 1;
+			int y = (rect.bottom - iconSpan.y) >> 1;
+
+			if (isPressing)
+			{
+				x += 1;
+				y += 1;
+			}
+
+			DrawIcon(dc, x, y, icon);
+
+			if (IsMouseInRect())
+			{
+				DrawEdge(dc, &rect, isPressing ? EDGE_BUMP : BDR_RAISEDINNER, BF_RECT);
+			}
+		}
 
 		LRESULT ProcessMessage(UINT msg, WPARAM wParam, LPARAM lParam)
 		{
@@ -154,34 +176,8 @@ namespace
 				return TRUE;
 			case WM_PAINT:
 			{
-				RECT rect;
-				GetClientRect(eventSinkWindow, &rect);
-
-				BufferedPaintStruct ps(eventSinkWindow);
-
-				auto dc = ps.GetMemDC();
-
-				FillRect(dc, &rect, (HBRUSH) COLOR_WINDOW);
-
-				int x = (rect.right - iconSpan.x) >> 1;
-				int y = (rect.bottom - iconSpan.y) >> 1;
-
-				if (isPressing)
-				{
-					x += 1;
-					y += 1;
-				}
-
-				DrawIcon(dc, x, y, icon);
-
-				if (IsMouseInRect())
-				{
-					DrawEdge(dc, &rect, isPressing ? EDGE_BUMP : BDR_RAISEDINNER, BF_RECT);
-				}
-
-				ps.RenderToScreen();
-
-				return TRUE;
+				PaintDoubleBuffered(eventSinkWindow, *this);
+				return 0L;
 			}
 			break;
 			}
@@ -197,8 +193,8 @@ namespace
 
 namespace Rococo::SexyStudio
 {
-	IButtonWidget* CreateButtonByResource(Rococo::Events::IPublisher& publisher, IWidgetSet& widgets, int16 resourceId, Rococo::Events::EventIdRef evOnClick)
+	IButtonWidget* CreateButtonByResource(WidgetContext& context, IWidgetSet& widgets, int16 resourceId, Rococo::Events::EventIdRef evOnClick)
 	{
-		return new Button(publisher, widgets, resourceId, evOnClick);
+		return new Button(context, widgets, resourceId, evOnClick);
 	}
 }

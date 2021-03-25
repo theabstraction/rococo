@@ -17,12 +17,18 @@ namespace Rococo::SexyStudio::Widgets
 
 			void Layout(IGuiWidget& widget, GuiRect& rect) override
 			{
-				Vec2i parentSpan = GetParentSpan(widget);
+				// Ignore the rectangle input
+				rect = GetScreenRect(widget);
+				Vec2i span = GetParentSpan(widget);
+				rect.right = rect.left + span.x;
+				rect.bottom = rect.bottom + span.y;
 
-				rect.left = leftBorder;
-				rect.right = parentSpan.x - rightBorder;
-				rect.top = topBorder;
-				rect.bottom = parentSpan.y - bottomBorder;
+				rect = Widgets::MapScreenToWindowRect(rect, widget);
+
+				rect.left += leftBorder;
+				rect.right -= rightBorder;
+				rect.top += topBorder;
+				rect.bottom -=  bottomBorder;
 			}
 
 			void Free() override

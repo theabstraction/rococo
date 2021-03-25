@@ -154,6 +154,8 @@
     <ClCompile Include="sexystudio.cpp" />
     <ClCompile Include="sexystudio.delegates.cpp" />
     <ClCompile Include="sexystudio.layouts.cpp" />
+    <ClCompile Include="sexystudio.projects.cpp" />
+    <ClCompile Include="sexystudio.themes.cpp" />
     <ClCompile Include="sexystudio.widgets.cpp" />
     <ClCompile Include="sexystudio.windows.button.cpp" />
     <ClCompile Include="sexystudio.windows.main.cpp" />
@@ -161,6 +163,8 @@
     <ClCompile Include="sexystudio.windows.splitter.cpp" />
     <ClCompile Include="sexystudio.windows.tabsplitter.cpp" />
     <ClCompile Include="sexystudio.windows.toolbar.cpp" />
+    <ClCompile Include="sexystudio.windows.tree.cpp" />
+    <ClCompile Include="sexystudio.windows.variables.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />

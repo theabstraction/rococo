@@ -16,11 +16,12 @@ namespace
 		Win32ChildWindow backgroundWindow;
 
 		AutoFree<ILayoutSet> layouts = CreateLayoutSet();
-		AutoFree<IWidgetSetSupervisor> children = CreateDefaultWidgetSet(backgroundWindow);
+		AutoFree<IWidgetSetSupervisor> children;
 
 		std::unordered_set<IGuiWidget*> manualLayouts;
 
-		Toolbar(IWidgetSet& widgets) : backgroundWindow(widgets.Parent(), *this)
+		Toolbar(IWidgetSet& widgets) : backgroundWindow(widgets.Parent(), *this),
+			children(CreateDefaultWidgetSet(backgroundWindow, widgets.Context()))
 		{
 		}
 

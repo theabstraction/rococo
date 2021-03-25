@@ -1,11 +1,55 @@
 #include "sexystudio.impl.h"
-#include "resource.h"
 #include <rococo.maths.h>
 
 using namespace Rococo;
 
 namespace Rococo::SexyStudio
 {
+	Font::Font(LOGFONTA logFont)
+	{
+		hFont = CreateFontIndirectA(&logFont);
+		if (hFont == nullptr)
+		{
+			Throw(GetLastError(), "%s: error creating font", __FUNCTION__);
+		}
+
+	}
+
+	Font::~Font()
+	{
+		DeleteFont(hFont);
+	}
+
+	void PaintDoubleBuffered(HWND hWnd, IWin32Painter& paint)
+	{
+		PAINTSTRUCT ps;
+		HDC dc = BeginPaint(hWnd, &ps);
+
+		RECT rect;
+		GetClientRect(hWnd, &rect);
+
+		HDC hNewDC;
+		BP_PAINTPARAMS args = { 0 };
+		args.cbSize = sizeof BP_PAINTPARAMS;
+		args.dwFlags = BPPF_ERASE;
+		HPAINTBUFFER hBufferedPaint = BeginBufferedPaint(dc, &rect, BPBF_COMPATIBLEBITMAP, &args, &hNewDC);
+		if (hBufferedPaint)
+		{
+			paint.OnPaint(hNewDC);
+			EndBufferedPaint(hBufferedPaint, TRUE);
+		}
+		else
+		{
+			paint.OnPaint(dc);
+		}
+		EndPaint(hWnd, &ps);
+	}
+
+	COLORREF ToCOLORREF(RGBAb b)
+	{
+		return RGB(b.red, b.green, b.blue);
+	}
+
 	const char* GetChildClassName()
 	{
 		return  "SexyStudioChild";
@@ -29,28 +73,8 @@ namespace Rococo::SexyStudio
 
 	static ATOM childClassAtom = 0;
 
-	struct Win32WindowContext
-	{
-		HDC hMemDC = nullptr;
-		HBITMAP hBitmap = nullptr;
-		HBITMAP hOldBitmap = nullptr;
-
-		~Win32WindowContext()
-		{
-			if (hMemDC != nullptr)
-			{
-				SelectObject(hMemDC, (HGDIOBJ)hOldBitmap);
-				if (hBitmap)
-				{
-					DeleteObject((HGDIOBJ)hBitmap);
-				}
-				DeleteDC(hMemDC);
-			}
-		}
-	};
-
-	Win32ChildWindow::Win32ChildWindow(HWND hParent, IWin32WindowMessageLoopHandler& _handler):
-		handler(_handler), windowContext(nullptr)
+	Win32ChildWindow::Win32ChildWindow(HWND hParent, IWin32WindowMessageLoopHandler& _handler, DWORD extraStyleFlags):
+		handler(_handler)
 	{
 		if (childClassAtom == 0)
 		{
@@ -63,7 +87,7 @@ namespace Rococo::SexyStudio
 			}
 		}
 
-		DWORD exStyle = 0;
+		DWORD exStyle = extraStyleFlags;
 		DWORD style = WS_CHILD;
 		HMENU hMenu = nullptr;
 	
@@ -83,7 +107,7 @@ namespace Rococo::SexyStudio
 
 		if (hWnd == nullptr)
 		{
-			Throw(0, "%s: could not create child window", __FUNCTION__);
+			Throw(GetLastError(), "%s: could not create child window", __FUNCTION__);
 		}
 
 		struct ANON
@@ -107,94 +131,110 @@ namespace Rococo::SexyStudio
 
 		SetWindowLongPtrA(hWnd, GWLP_USERDATA, (LONG_PTR)&handler);
 		SetWindowLongPtrA(hWnd, GWLP_WNDPROC, (LONG_PTR) ANON::RouteMessage);
-
-		windowContext = new Win32WindowContext();
 	}
 
 	Win32ChildWindow::~Win32ChildWindow()
 	{
 		DestroyWindow(hWnd);
-
-		delete windowContext;
 	}
 
-	BufferedPaintStruct::BufferedPaintStruct(Win32ChildWindow& _window) :
-		window(_window)
+	Win32PopupWindow::Win32PopupWindow(HWND hParent, IWin32WindowMessageLoopHandler& _handler, DWORD extraStyleFlags) :
+		handler(_handler)
 	{
-		HDC dc = BeginPaint(window, this);
-		if (dc == nullptr)
+		if (childClassAtom == 0)
 		{
-			memDC = nullptr;
-			return;
-		}
-
-		auto& context = *window.windowContext;
-
-		if (context.hMemDC == nullptr)
-		{
-			RECT rect;
-			GetClientRect(window, &rect);
-			context.hMemDC = memDC = CreateCompatibleDC(dc);
-			context.hBitmap = CreateCompatibleBitmap(dc, rect.right, rect.bottom);
-			if (context.hBitmap == nullptr)
+			WNDCLASSEXA childInfo;
+			PopulatChildClass(GetMainInstance(), childInfo);
+			childClassAtom = RegisterClassExA(&childInfo);
+			if (childClassAtom == 0)
 			{
-				DeleteDC(context.hMemDC);
-				context.hMemDC = nullptr;
-				Throw(GetLastError(), "%s CreateCompatibleBitmap failed.", __FUNCTION__);
+				Throw(GetLastError(), "Could not create child window class atom");
 			}
 		}
-		else
+
+		DWORD exStyle = extraStyleFlags;
+		DWORD style = WS_POPUP;
+		HMENU hMenu = nullptr;
+
+		hWnd = CreateWindowExA(
+			exStyle,
+			"SexyStudioChild",
+			"",
+			style,
+			0, // x
+			0, // y
+			0, // width
+			0, // height
+			hParent,
+			hMenu,
+			GetMainInstance(),
+			nullptr);
+
+		if (hWnd == nullptr)
 		{
-			memDC = context.hMemDC;
+			Throw(GetLastError(), "%s: could not create child window", __FUNCTION__);
 		}
 
-		SetMapMode(memDC, MM_TEXT);
-
-		// Target the context bitmap for writing
-		context.hOldBitmap = (HBITMAP)SelectObject(memDC, (HGDIOBJ)context.hBitmap);
-	}
-
-	void BufferedPaintStruct::RenderToScreen()
-	{
-		if (memDC)
+		struct ANON
 		{
-			auto& context = *window.windowContext;
+			static LRESULT WINAPI RouteMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+			{
+				auto* handler = (IWindowMessageHandler*)GetWindowLongPtrA(hWnd, GWLP_USERDATA);
 
-			RECT rect;
-			GetClientRect(window, &rect);
+				try
+				{
+					return handler->ProcessMessage(msg, wParam, lParam);
+				}
+				catch (IException& ex)
+				{
+					Rococo::SexyStudio::SetLastMessageError(ex);
+					return DefWindowProc(hWnd, msg, wParam, lParam);
+				}
+			}
 
-			BitBlt(hdc, 0, 0, rect.right, rect.bottom, memDC, 0, 0, SRCCOPY);
+		};
 
-			SelectObject(memDC, context.hOldBitmap);
-		}
+		SetWindowLongPtrA(hWnd, GWLP_USERDATA, (LONG_PTR)&handler);
+		SetWindowLongPtrA(hWnd, GWLP_WNDPROC, (LONG_PTR)ANON::RouteMessage);
 	}
 
-	BufferedPaintStruct::~BufferedPaintStruct()
+	Win32PopupWindow::~Win32PopupWindow()
 	{
-		EndPaint(window, this);
+		DestroyWindow(hWnd);
 	}
 
 	namespace Widgets
 	{
-		GuiRect GetRect(IGuiWidget& widget)
+		GuiRect GetScreenRect(IWindow& window)
 		{
 			RECT rect;
-			GetWindowRect(widget.Window(), &rect);
+			GetWindowRect(window, &rect);
 			return GuiRect{ rect.left, rect.top, rect.right, rect.bottom };
 		}
 
-		Vec2i GetSpan(IGuiWidget& widget)
+		Vec2i GetParentSpan(IWindow& window)
 		{
 			RECT rect;
-			GetClientRect(widget.Window(), &rect);
-			return { rect.right - rect.left, rect.bottom - rect.top };
+			GetClientRect(GetParent(window), &rect);
+			return { rect.right, rect.bottom };
 		}
 
-		Vec2i GetParentSpan(IGuiWidget& widget)
+		Vec2i GetSpan(IWindow& window)
 		{
 			RECT rect;
-			GetClientRect(GetParent(widget.Window()), &rect);
-			return { rect.right - rect.left, rect.bottom - rect.top };
+			GetClientRect(window, &rect);
+			return { rect.right, rect.bottom };
+		}
+
+		GuiRect MapScreenToWindowRect(const GuiRect& rect, IWindow& window)
+		{
+			POINT p1 = { rect.left, rect.top };
+			POINT p2 = { rect.right, rect.bottom };
+
+			ScreenToClient(GetParent(window), &p1);
+			ScreenToClient(GetParent(window), &p2);
+
+			return GuiRect{ p1.x, p1.y, p2.x, p2.y };
 		}
 
 		void SetText(IWindow& window, const char* text)
@@ -202,9 +242,16 @@ namespace Rococo::SexyStudio
 			SetWindowTextA(window, text);
 		}
 
-		void SetWidgetPosition(IGuiWidget& widget, const GuiRect& rect)
+		void SetSpan(IWindow& window, int32 dx, int32 dy)
 		{
-			MoveWindow(widget.Window(), rect.left, rect.top, Width(rect), Height(rect), TRUE);
+			RECT rect;
+			GetWindowRect(window, &rect);
+			MoveWindow(window, rect.left, rect.top, dx, dy, TRUE);
+		}
+
+		void SetWidgetPosition(IWindow& widget, const GuiRect& rect)
+		{
+			MoveWindow(widget, rect.left, rect.top, Width(rect), Height(rect), TRUE);
 		}
 
 		void Maximize(IWindow& window)

@@ -7,6 +7,10 @@
 #include "rococo.auto-release.h"
 
 #include <rococo.events.h>
+#include <rococo.strings.h>
+
+#include <uxtheme.h>
+#pragma comment(lib, "uxtheme.lib")
 
 using namespace Rococo;
 using namespace Rococo::SexyStudio;
@@ -43,56 +47,89 @@ auto evIDEClose = "EvIDEClose"_event;
 auto evIDEMin = "EvIDEMin"_event;
 auto evIDEMax = "EvIDEMax"_event;
 
-void BuildPropertySheets(IPublisher& publisher, ISplitScreen& screen)
+namespace Globals
 {
-	screen.SetVisible(true);
-
-	AutoRelease<ITab> projectTab = CreateTab();
-	projectTab->SetName("Projects");
-	projectTab->SetTooltip("Project View");
-
-	AutoRelease<ITab> propertyTab = CreateTab();
-	propertyTab->SetName("Properties");
-	propertyTab->SetTooltip("Property View");
-
-	ITabSplitter* tabs = CreateTabSplitter(publisher, *screen.Children());
-	tabs->SetVisible(true);
-
-	TabDefiniton propertyDef{ propertyTab };
-	tabs->AddTab(propertyDef);
-
-	TabDefiniton projectDef{ projectTab };
-	tabs->AddTab(projectDef);
+	char contentFolder[128] = "C:\\work\\rococo\\content";
 }
 
-void BuildSourceSheets(IPublisher& publisher, ISplitScreen& screen)
+namespace Rococo::SexyStudio
 {
-	screen.SetVisible(true);
+	void PopulateTreeWithSXYFiles(IGuiTree& tree, cstr contentFolder);
+}
 
-	AutoRelease<ITab> srcMainTab = CreateTab();
-	srcMainTab->SetName("main.cpp");
-	srcMainTab->SetTooltip("C:\\work\\main.cpp");
+void BuildPropertySheets(ISplitScreen& screen)
+{
+	screen.SetBackgroundColour(RGBAb(128, 192, 128));
 
-	AutoRelease<ITab> srcAuxTab = CreateTab();
-	srcAuxTab->SetName("aux.cpp");
-	srcAuxTab->SetTooltip("C:\\work\\aux.cpp");
+	ITabSplitter* tabs = CreateTabSplitter(*screen.Children());
+	tabs->SetVisible(true);
 
-	ITabSplitter* tabs = CreateTabSplitter(publisher, *screen.Children());
-	tabs->SetVisible(true);;
+	ITab& propTab = tabs->AddTab();
+	propTab.SetName("Properties");
+	propTab.SetTooltip("Property View");
 
-	TabDefiniton src1Def{ srcMainTab };
-	tabs->AddTab(src1Def);
+	ITab& projectTab = tabs->AddTab();
+	projectTab.SetName("Projects");
+	projectTab.SetTooltip("Project View");
 
-	TabDefiniton src2Def{ srcAuxTab };
-	tabs->AddTab(src2Def);
+	ITab& settingsTab = tabs->AddTab();
+	settingsTab.SetName("Settings");
+	settingsTab.SetTooltip("Global Configuration Settings");
+	IVariableList* globalSettings = CreateVariableList(settingsTab.Children());
+	globalSettings->SetVisible(true);
+
+	IAsciiStringEditor* contentEditor = globalSettings->AddAsciiString();
+	contentEditor->SetName("Content");
+	contentEditor->Bind(Globals::contentFolder, sizeof Globals::contentFolder);
+	contentEditor->SetVisible(true);
+
+	TreeStyle style;
+	style.hasButtons = true;
+	style.hasLines = true;
+
+	auto* tree = CreateTree(projectTab.Children(), style);
+	Widgets::AnchorToParent(*tree, 0, 0, 0, 0);
+	tree->SetVisible(true);
+
+	PopulateTreeWithSXYFiles(*tree, Globals::contentFolder);
+}
+
+void BuildSourceSheets(ISplitScreen& screen)
+{
+	screen.SetBackgroundColour(RGBAb(128, 128, 192));
+
+	ITabSplitter* tabs = CreateTabSplitter(*screen.Children());
+	tabs->SetVisible(true);
+
+	ITab& src1 = tabs->AddTab();
+	src1.SetName("main.cpp");
+	src1.SetTooltip("C:\\work\\main.cpp");
+
+	ITab& src2 = tabs->AddTab();
+	src2.SetName("aux.cpp");
+	src2.SetTooltip("C:\\work\\aux.cpp");
 }
 
 void Main(IMessagePump& pump)
 {
 	AutoFree<IPublisherSupervisor> publisher(Rococo::Events::CreatePublisher());
 
-	AutoFree<IIDEFrameSupervisor> ide = CreateMainIDEFrame(*publisher);
-	Widgets::SetText(ide->Window(), "Sexy Studio");
+	LOGFONTA lineEditorLF = { 0 };
+	lineEditorLF.lfHeight = -12;
+	lineEditorLF.lfCharSet = ANSI_CHARSET;
+	lineEditorLF.lfOutPrecision = OUT_DEFAULT_PRECIS;
+	lineEditorLF.lfClipPrecision = CLIP_DEFAULT_PRECIS;
+	lineEditorLF.lfQuality = CLEARTYPE_QUALITY;
+	SafeFormat(lineEditorLF.lfFaceName, "Consolas");
+
+	Font smallCaptionFont(lineEditorLF);
+
+	WidgetContext context{ *publisher, smallCaptionFont };
+	AutoFree<ITheme> theme = UseNamedTheme("Classic", context.publisher);
+
+	AutoFree<IIDEFrameSupervisor> ide = CreateMainIDEFrame(context);
+	Widgets::SetText(*ide, "Sexy Studio");
+	Widgets::SetSpan(*ide, 1024, 600);
 
 	struct IDEEvents : IObserver
 	{
@@ -117,31 +154,27 @@ void Main(IMessagePump& pump)
 	} ideEvents;
 	ideEvents.pump = &pump;
 	ideEvents.ide = ide;
-
-	auto* splitscreen = CreateSplitScreen(*publisher, ide->Children());
+	
+	auto* splitscreen = CreateSplitScreen(ide->Children());
 	Widgets::AnchorToParent(*splitscreen, 0, 0, 0, 0);
 
-	ide->Children().Add(splitscreen);
-
-	splitscreen->SetVisible(true);
-
-	splitscreen->SplitIntoColumns(400);
 	splitscreen->SetBackgroundColour(RGBAb(192, 128, 128));
 
-	auto* projectView = splitscreen->GetFirstHalf();
-	projectView->SetBackgroundColour(RGBAb(128, 192, 128));
-	auto* sourceView = splitscreen->GetSecondHalf();
-	sourceView->SetBackgroundColour(RGBAb(128, 128, 192));
+	splitscreen->SplitIntoColumns(400);
 
-	BuildPropertySheets(*publisher, *projectView);
-	BuildSourceSheets(*publisher, *sourceView);
+	auto* projectView = splitscreen->GetFirstHalf();
+	auto* sourceView = splitscreen->GetSecondHalf();
+
+	BuildPropertySheets(*projectView);
+	BuildSourceSheets(*sourceView);
 
 	publisher->Subscribe(&ideEvents, evIDEClose);
 	publisher->Subscribe(&ideEvents, evIDEMax);
 	publisher->Subscribe(&ideEvents, evIDEMin);
 
 	ide->SetVisible(true);
-	splitscreen->Layout();
+	splitscreen->SetVisible(true);
+	ide->LayoutChildren();
 
 	pump.MainLoop();
 }
@@ -157,10 +190,14 @@ int APIENTRY WinMain(
 
 	InitStudioWindows(hInstance, (LPCSTR)IDI_ICON1, (LPCSTR)IDI_ICON2);
 
+	BufferedPaintInit();
+
 	try
 	{
 		Win32MessagePump pump;
 		Main(pump);
+
+		BufferedPaintUnInit();
 		return 0;
 	}
 	catch (IException& ex)

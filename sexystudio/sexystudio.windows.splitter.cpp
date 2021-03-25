@@ -1,10 +1,7 @@
-#include "sexystudio.api.h"
 #include "sexystudio.impl.h"
 #include <rococo.strings.h>
-#include "resource.h"
-
-#include <rococo.events.h>
 #include <rococo.maths.h>
+
 
 using namespace Rococo;
 using namespace Rococo::Events;
@@ -13,12 +10,135 @@ using namespace Rococo::Windows;
 
 namespace
 {
-	struct SplitScreen : ISplitScreen, IWin32WindowMessageLoopHandler, IWindow
+	ROCOCOAPI IDragEvents
 	{
-		IPublisher& publisher;
+		virtual void OnBeginDrag() = 0;
+		virtual void OnDrag() = 0;
+		virtual void OnEndDrag() = 0;
+	};
 
+	struct SplitDragger : IGuiWidget, IWin32WindowMessageLoopHandler, IWindow, IWin32Painter
+	{
+		IDragEvents& dragEventsSink;
+		Win32ChildWindow window;
+
+		Brush bkBrush;
+		Brush bkBrushHi;
+
+		SplitDragger(IWidgetSet& widgets, IDragEvents& _dragEventSink) :
+			window(widgets.Parent(), *this),
+			dragEventsSink(_dragEventSink)
+		{
+			bkBrush = RGB(64, 64, 64);
+			bkBrushHi = RGB(96, 96, 96);
+
+			widgets.Add(this);
+		}
+
+		void OnPaint(HDC dc) override
+		{
+			RECT rect;
+			GetClientRect(window, &rect);
+
+			bool isLit = isDragging;
+
+			FillRect(dc, &rect, isLit ? bkBrushHi : bkBrush);
+			DrawEdge(dc, &rect, isLit ? BDR_SUNKENINNER | BDR_SUNKENOUTER : BDR_RAISEDINNER | BDR_RAISEDOUTER, 0);
+		}
+
+		POINT dragStart = { 0,0 };
+		POINT dragCurrent = { 0,0 };
+		bool isDragging = false;
+
+		LRESULT ProcessMessage(UINT msg, WPARAM wParam, LPARAM lParam)
+		{
+			switch (msg)
+			{
+			case WM_PAINT:
+				PaintDoubleBuffered(window, *this);
+				return 0L;
+			case WM_ERASEBKGND:
+				return TRUE;
+			case WM_LBUTTONDOWN:
+				GetCursorPos(&dragStart);
+				SetCapture(window);
+				dragEventsSink.OnBeginDrag();
+				isDragging = true;
+				return TRUE;
+			case WM_LBUTTONUP:
+				ReleaseCapture();
+				isDragging = false;
+				dragEventsSink.OnEndDrag();
+				return TRUE;
+			case WM_MOUSEMOVE:
+				GetCursorPos(&dragCurrent);
+				if (isDragging)
+				{
+					dragEventsSink.OnDrag();
+					break;
+				}
+
+				InvalidateRect(window, NULL, TRUE);
+				{
+					TRACKMOUSEEVENT me;
+					me.cbSize = sizeof TRACKMOUSEEVENT;
+					me.dwHoverTime = 0;
+					me.hwndTrack = window;
+					me.dwFlags = TME_LEAVE;
+					TrackMouseEvent(&me);
+				}
+				break;
+			case WM_MOUSELEAVE:
+				InvalidateRect(window, NULL, TRUE);
+				break;
+			case WM_SETCURSOR:
+				SetCursor(LoadCursor(NULL, (LPCWSTR) IDC_SIZEWE));
+				return 0L;
+			}
+			return DefWindowProcA(window, msg, wParam, lParam);
+		}
+
+		void Layout() override
+		{
+		}
+
+		void AddLayoutModifier(ILayout* l) override
+		{
+			Throw(0, "%s: Not permitted", __FUNCTION__);
+		}
+
+		operator HWND() const override
+		{
+			return window;
+		}
+
+		IWindow& Window() override
+		{
+			return *this;
+		}
+
+		void Free() override
+		{
+			delete this;
+		}
+
+		void SetVisible(bool isVisible) override
+		{
+			ShowWindow(window, isVisible ? SW_SHOW : SW_HIDE);
+		}
+
+		IWidgetSet* Children() override
+		{
+			return nullptr;
+		}
+	};
+
+	struct SplitScreen : ISplitScreen, IWin32WindowMessageLoopHandler, IWindow, IWin32Painter, IDragEvents
+	{
 		ISplitScreen* firstHalf = nullptr;
 		ISplitScreen* secondHalf = nullptr;
+		SplitDragger* dragger = nullptr;
+
 		Win32ChildWindow window;
 
 		AutoFree<IWidgetSetSupervisor> children;
@@ -32,19 +152,22 @@ namespace
 		} splitAs = ESplitDirection::None;
 
 		int32 splitPos = 0;
+		int32 shadowSplitPos = 0;
 
 		Brush bkBrush;
 
-		SplitScreen(IPublisher& _publisher, IWidgetSet& widgets):
-			publisher(_publisher),
+		Theme theme;
+
+		SplitScreen(IWidgetSet& widgets):
 			window(widgets.Parent(), *this)
 		{
-			children = CreateDefaultWidgetSet(window);
-			bkBrush.hBrush = CreateSolidBrush(GetSysColor(COLOR_BACKGROUND));
+			children = CreateDefaultWidgetSet(window, widgets.Context());
+			theme = GetTheme(widgets.Context().publisher);
+			bkBrush = ToCOLORREF(theme.normal.bkColor);
 			layoutRules = CreateLayoutSet();
 		}
 
-		void OnPaint(HDC dc)
+		void OnPaint(HDC dc) override
 		{
 			RECT rect;
 			GetClientRect(window, &rect);
@@ -52,18 +175,35 @@ namespace
 			DrawEdge(dc, &rect, BDR_RAISEDINNER | BDR_RAISEDOUTER, 0);
 		}
 
+		void OnBeginDrag() override
+		{
+			shadowSplitPos = splitPos;
+		}
+
+		void OnDrag() override
+		{
+			splitPos = shadowSplitPos + dragger->dragCurrent.x - dragger->dragStart.x;
+			Layout();
+		}
+
+		void OnEndDrag() override
+		{
+			shadowSplitPos = 0;
+		}
+
 		LRESULT ProcessMessage(UINT msg, WPARAM wParam, LPARAM lParam)
 		{
 			switch (msg)
 			{
 			case WM_PAINT:
-			{
-				PAINTSTRUCT ps;
-				HDC dc = BeginPaint(window, &ps);
-				OnPaint(dc);
-				EndPaint(window, &ps);
+				if (firstHalf || children->begin() != children->end())
+				{
+					break;
+				}
+				PaintDoubleBuffered(window, *this);
 				return 0L;
-			}
+			case WM_ERASEBKGND:
+				return TRUE;
 			}
 			return DefWindowProcA(window, msg, wParam, lParam);
 		}
@@ -80,18 +220,17 @@ namespace
 
 		GuiRect GetRect()  override
 		{
-			return Widgets::GetRect(*this);
+			auto screenRect = Widgets::GetScreenRect(*this);
+			return Widgets::MapScreenToWindowRect(screenRect, *this);
 		}
 
 		void Split()
 		{
 			if (!firstHalf)
 			{
-				firstHalf = CreateSplitScreen(publisher, *children);
-				secondHalf = CreateSplitScreen(publisher, *children);
-
-				children->Add(firstHalf);
-				children->Add(secondHalf);
+				firstHalf = CreateSplitScreen(*children);
+				secondHalf = CreateSplitScreen(*children);
+				dragger = new SplitDragger(*children, *this);
 			}
 		}
 
@@ -114,6 +253,21 @@ namespace
 
 		}
 
+		void SantizeSplitPosition()
+		{
+			if (splitPos < 100)
+			{
+				splitPos = 100;
+			}
+
+			RECT rect;
+			GetClientRect(window, &rect);
+			if (splitPos > rect.right - 100)
+			{
+				splitPos = rect.right - 100;
+			}
+		}
+
 		void Layout() override
 		{
 			layoutRules->Layout(*this);
@@ -123,29 +277,41 @@ namespace
 
 			if (firstHalf)
 			{
+				SantizeSplitPosition();
 				Vec2i spanA;
 				Vec2i spanB;
 				Vec2i a, b;
+
+				int32 draggerWidth = 8;
+
+				Vec2i draggerPos;
+				Vec2i draggerSpan;
 
 				switch (splitAs)
 				{
 				case ESplitDirection::Columns:
 					a = { 0, 0 };
-					b = { splitPos + 1, 0 };
+					b = { splitPos + draggerWidth, 0 };
 					spanA = { splitPos, rect.bottom - rect.top };
-					spanB = { rect.right - rect.left - splitPos, rect.bottom - rect.top };
+					spanB = { rect.right - rect.left - b.x, rect.bottom - rect.top };
+					draggerPos = { spanA.x, 0 };
+					draggerSpan = { draggerWidth, spanA.y };
 					break;
 				default:  // rows
 					a = { 0, 0 };
-					b = { 0, splitPos + 1 };
+					b = { 0, splitPos + draggerWidth };
 					spanA = { rect.right - rect.left, splitPos };
-					spanB = { rect.right - rect.left, rect.bottom - rect.top - splitPos};
+					spanB = { rect.right - rect.left, rect.bottom - rect.top - b.y};
+					draggerPos = { 0, spanA.y };
+					draggerSpan = { spanA.x, draggerWidth };
 				};
 
-				MoveWindow(firstHalf->Window(), a.x, a.y, spanA.x, spanA.y, TRUE);
-				MoveWindow(secondHalf->Window(), b.x, b.y, spanB.x, spanB.y, TRUE);
+				MoveWindow(firstHalf->Window(), a.x, a.y, spanA.x, spanA.y, FALSE);
+				MoveWindow(secondHalf->Window(), b.x, b.y, spanB.x, spanB.y, FALSE);
+				MoveWindow(dragger->Window(), draggerPos.x, draggerPos.y, draggerSpan.x, draggerSpan.y, FALSE);
 				firstHalf->Layout();
 				secondHalf->Layout();
+				InvalidateRect(window, NULL, TRUE);
 			}
 			else
 			{
@@ -179,6 +345,15 @@ namespace
 		void SetVisible(bool isVisible) override
 		{
 			ShowWindow(window, isVisible ? SW_SHOW : SW_HIDE);
+
+			if (firstHalf)
+			{
+				firstHalf->SetVisible(isVisible);
+				secondHalf->SetVisible(isVisible);
+				dragger->SetVisible(isVisible);
+			}
+
+			//InvalidateRect(window, NULL, TRUE);
 		}
 
 		IWidgetSet* Children() override
@@ -188,8 +363,7 @@ namespace
 
 		void SetBackgroundColour(RGBAb colour) override
 		{
-			DeleteObject((HGDIOBJ)bkBrush.hBrush);
-			bkBrush.hBrush = CreateSolidBrush(RGB(colour.red, colour.green, colour.blue));
+			bkBrush = RGB(colour.red, colour.green, colour.blue);
 			InvalidateRect(window, NULL, TRUE);
 		}
 	};
@@ -197,8 +371,10 @@ namespace
 
 namespace Rococo::SexyStudio
 {
-	ISplitScreen* CreateSplitScreen(IPublisher& publisher, IWidgetSet& widgets)
+	ISplitScreen* CreateSplitScreen(IWidgetSet& widgets)
 	{
-		return new SplitScreen(publisher, widgets);
+		auto* ss = new SplitScreen(widgets);
+		widgets.Add(ss);
+		return ss;
 	}
 }
