@@ -756,17 +756,6 @@ namespace Rococo
 		IUtilitiesSupervisor* CreateUtilities(IInstallation& installation, IRenderer& renderer);
 	}
 
-	namespace Audio
-	{
-		ROCOCOAPI ILegacySoundControlSupervisor : public ILegacySoundControl
-		{
-			 virtual void EnumerateDeviceDesc(IEventCallback<StringKeyValuePairArg> & cb) = 0;
-			 virtual void Free() = 0;
-		};
-
-		ILegacySoundControlSupervisor* CreateLegacySoundControl();
-	}
-
 	namespace Graphics
 	{
 		struct IMeshBuilder;
@@ -918,8 +907,6 @@ namespace Rococo
 		Tesselators& tesselators;
 
 		IMathsVisitorSupervisor& mathsVisitor;
-
-		Audio::ILegacySoundControl& legacySoundControl;
 
 		Audio::IAudio& audio;
 

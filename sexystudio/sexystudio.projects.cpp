@@ -1,6 +1,10 @@
 #include "sexystudio.impl.h"
+#include <sexy.types.h>
 #include <Sexy.S-Parser.h>
 #include <sexy.types.h>
+
+#include <sexy.lib.s-parser.h>
+#include <sexy.lib.util.h>
 
 namespace Rococo::SexyStudio
 {
@@ -22,14 +26,11 @@ namespace Rococo::SexyStudio
 		Auto<ISParser> sparser = Sexy_CreateSexParser_2_0(Rococo::Memory::CheckedAllocator());
 
 		Auto<ISourceCode> src = sparser->LoadSource(L"C:\\work\\rococo\\content\\scripts\\mhost\\harrier.sxy", { 1,1 });
-		Auto<ISParserTree> tree = sparser->CreateTree(*src);
+		Auto<ISParserTree> s_tree = sparser->CreateTree(*src);
 	}
 
 	void Run()
 	{
-		using namespace Rococo::Sex;
-		auto& s = *sparser;
-		
 		
 	}
 }

@@ -78,9 +78,6 @@
     <ClCompile Include="mplat.graphics.messaging.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mplat.audio.legacy.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="mplat.os.win32.venue.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

@@ -733,7 +733,7 @@ public:
 	void RefreshScript()
 	{
 		FreeAllChildren();
-		platform.utilities.RunEnvironmentScript(*this, scriptFilename.c_str(), false);
+		platform.utilities.RunEnvironmentScript(*this, scriptFilename.c_str(), true);
 	}
 
 	void Render(IGuiRenderContext& grc, const Vec2i& topLeft, const Modality& modality) override

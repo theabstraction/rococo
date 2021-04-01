@@ -104,7 +104,7 @@
       <AdditionalLibraryDirectories>$(SolutionDir)\lib</AdditionalLibraryDirectories>
     </Link>
     <CustomBuildStep>
-      <Command>..\sexy\Bin\x64Debug\sexy.bennyhill.exe $(ProjectDir) mhost.sxh mhost.sxh.h</Command>
+      <Command>..\sexy\Bin\x64Release\sexy.bennyhill.exe $(ProjectDir) mhost.sxh mhost.sxh.h</Command>
       <Inputs>mhost.sxh.h;mhost.sxh.inl</Inputs>
       <Outputs>mhost.sxh.h;,mhost.sxh.inl;mhost.script.types.h</Outputs>
     </CustomBuildStep>

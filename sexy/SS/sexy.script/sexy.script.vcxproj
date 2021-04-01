@@ -91,7 +91,7 @@
       <PrecompiledHeaderFile>Sexy.Script.StdAfx.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <MinimalRebuild>true</MinimalRebuild>
+      <MinimalRebuild>false</MinimalRebuild>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -105,20 +105,34 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="sexy.exceptions.cpp" />
-    <ClCompile Include="sexy.packages.cpp" />
-    <ClCompile Include="sexy.script.cpp" />
-    <ClCompile Include="sexy.script.helpers.cpp" />
+    <ClCompile Include="sexy.exceptions.cpp">
+      <MinimalRebuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</MinimalRebuild>
+    </ClCompile>
+    <ClCompile Include="sexy.packages.cpp">
+      <MinimalRebuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</MinimalRebuild>
+    </ClCompile>
+    <ClCompile Include="sexy.script.cpp">
+      <MinimalRebuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</MinimalRebuild>
+    </ClCompile>
+    <ClCompile Include="sexy.script.helpers.cpp">
+      <MinimalRebuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</MinimalRebuild>
+    </ClCompile>
     <ClCompile Include="sexy.script.os.mac.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <MinimalRebuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</MinimalRebuild>
     </ClCompile>
-    <ClCompile Include="sexy.script.os.win32.cpp" />
-    <ClCompile Include="sexy.script.s-builder.cpp" />
+    <ClCompile Include="sexy.script.os.win32.cpp">
+      <MinimalRebuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</MinimalRebuild>
+    </ClCompile>
+    <ClCompile Include="sexy.script.s-builder.cpp">
+      <MinimalRebuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</MinimalRebuild>
+    </ClCompile>
     <ClCompile Include="sexy.script.stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Sexy.Script.StdAfx.h</PrecompiledHeaderFile>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+      <MinimalRebuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</MinimalRebuild>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -142,6 +156,7 @@
     <None Include="sexy.script.exceptions.inl" />
     <ClCompile Include="sexy.script.expression.parser.cpp">
       <FileType>Document</FileType>
+      <MinimalRebuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</MinimalRebuild>
     </ClCompile>
     <None Include="sexy.script.factory.inl" />
     <None Include="sexy.script.functions.inl" />

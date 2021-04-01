@@ -30,13 +30,6 @@
 (macro Rococo.Graphics.SampleIndexEnvironmentalMap in out (out.AddAtomic "0x3"))
 (macro Rococo.Graphics.SampleIndexShadowMap in out (out.AddAtomic "0x4"))
 
-(namespace Rococo.Audio)
-(macro Rococo.Audio.ELegacySoundShapeSine in out (out.AddAtomic "0x0"))
-(macro Rococo.Audio.ELegacySoundShapeSquare in out (out.AddAtomic "0x1"))
-(macro Rococo.Audio.ELegacySoundShapeTriangle in out (out.AddAtomic "0x2"))
-(macro Rococo.Audio.ELegacySoundShapeSaw in out (out.AddAtomic "0x3"))
-(macro Rococo.Audio.ELegacySoundShapeNoise in out (out.AddAtomic "0x4"))
-
 (interface Rococo.IInventoryArray
 	(AddPaperDoll (Sys.Maths.Recti rect)(Sys.Type.IString pingPathToImage) -> )
 	(ClearDolls  -> )
@@ -719,31 +712,6 @@
 (factory Rococo.GetArchive Rococo.IArchive  :
 	(Pointer pObject = (Rococo.Native.GetHandleForIArchive0 ))
 	(construct ProxyIArchive pObject)
-)
-
-(interface Rococo.Audio.ILegacySoundControl
-	(SetMasterVolumne (Float32 gain) -> )
-	(SetChannelVolume (Int32 channel)(Float32 leftVolume)(Float32 rightVolume) -> )
-	(SetWave (Int32 channel)(Int32 waveShape)(Float32 freqHz)(Float32 dutyCycle) -> )
-	(PlayWave (Int32 channel) -> )
-	(Sustain (Int32 channel) -> )
-	(Release (Int32 channel) -> )
-	(SetEnvelope (Int32 channel)(Float32 attackSecs)(Float32 decaySecs)(Float32 sustainLevel)(Float32 releaseSecs) -> )
-)
-
-(class ProxyILegacySoundControl (implements Rococo.Audio.ILegacySoundControl) (Pointer hObject))
-	(method ProxyILegacySoundControl.Construct (Pointer hObject): (this.hObject = hObject))
-	(method ProxyILegacySoundControl.SetMasterVolumne (Float32 gain) ->  : (Rococo.Audio.Native.ILegacySoundControlSetMasterVolumne this.hObject gain))
-	(method ProxyILegacySoundControl.SetChannelVolume (Int32 channel)(Float32 leftVolume)(Float32 rightVolume) ->  : (Rococo.Audio.Native.ILegacySoundControlSetChannelVolume this.hObject channel leftVolume rightVolume))
-	(method ProxyILegacySoundControl.SetWave (Int32 channel)(Int32 waveShape)(Float32 freqHz)(Float32 dutyCycle) ->  : (Rococo.Audio.Native.ILegacySoundControlSetWave this.hObject channel waveShape freqHz dutyCycle))
-	(method ProxyILegacySoundControl.PlayWave (Int32 channel) ->  : (Rococo.Audio.Native.ILegacySoundControlPlayWave this.hObject channel))
-	(method ProxyILegacySoundControl.Sustain (Int32 channel) ->  : (Rococo.Audio.Native.ILegacySoundControlSustain this.hObject channel))
-	(method ProxyILegacySoundControl.Release (Int32 channel) ->  : (Rococo.Audio.Native.ILegacySoundControlRelease this.hObject channel))
-	(method ProxyILegacySoundControl.SetEnvelope (Int32 channel)(Float32 attackSecs)(Float32 decaySecs)(Float32 sustainLevel)(Float32 releaseSecs) ->  : (Rococo.Audio.Native.ILegacySoundControlSetEnvelope this.hObject channel attackSecs decaySecs sustainLevel releaseSecs))
-
-(factory Rococo.Audio.LegacySoundControl Rococo.Audio.ILegacySoundControl  :
-	(Pointer pObject = (Rococo.Audio.Native.GetHandleForILegacySoundControl0 ))
-	(construct ProxyILegacySoundControl pObject)
 )
 
 (interface Rococo.IInstallation

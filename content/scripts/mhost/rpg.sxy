@@ -296,7 +296,6 @@
 (class GameBundle (defines RPG.IBundle)
 	(ISpriteBuilder spriteBuilder)
 	(IEngine engine)
-	(ILegacySoundControl sound)
 	(IInputThread inputThread)
 	(ICoroutineControl coroutines)
 	(IScreen openingScreen)
@@ -315,7 +314,6 @@
 	(this.spriteBuilder = spriteBuilder)
 	
 	(this.engine = (Engine))
-	(this.sound = (Rococo.Audio.LegacySoundControl))
 	
 	(this.coroutines = (Coroutines))
 	
@@ -334,10 +332,6 @@
 
 (method GameBundle.Engine -> (IEngine engine):
 	(engine = this.engine)
-)
-
-(method GameBundle.Sound -> (ILegacySoundControl sound):
-	(sound = this.sound)
 )
 
 (method GameBundle.AddCoroutine -> (ICoroutine coroutine):

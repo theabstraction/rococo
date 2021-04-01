@@ -9,11 +9,6 @@ namespace Rococo // declarations herein are to help intellisense do its job.
 	struct IKeyboard;	
 	struct IPaneBuilder;
 
-	namespace Audio
-	{
-		struct ILegacySoundControl;
-	}
-
 	namespace Entities
 	{
 		struct IMobiles;
@@ -155,11 +150,6 @@ Rococo::Graphics::IMeshBuilder* FactoryConstructRococoGraphicsMeshBuilder(Rococo
    return mb;
 }
 
-Rococo::Audio::ILegacySoundControl* FactoryConstructRococoAudioLegacySoundControl(Rococo::Platform* platform)
-{
-	return &platform->legacySoundControl;
-}
-
 Rococo::IInstallationManager* FactoryConstructRococoInstallation(Rococo::Platform* p)
 {
 	return &p->installationManager;
@@ -278,6 +268,7 @@ namespace Rococo
 				{
 					if (addPlatform)
 					{
+						Audio::AddNativeCalls_RococoAudioIAudio(args.ss, &platform.audio);
 						Entities::AddNativeCalls_RococoEntitiesIRigBuilder(args.ss, &platform.rigs);
 						Graphics::AddNativeCalls_RococoGraphicsIMeshBuilder(args.ss, &platform.meshes);
 						Entities::AddNativeCalls_RococoEntitiesIInstances(args.ss, &platform.instances);
@@ -296,7 +287,6 @@ namespace Rococo
 						Graphics::AddNativeCalls_RococoGraphicsILandscapeTesselator(args.ss, &platform);
 						AddNativeCalls_RococoIKeyboard(args.ss, &platform.keyboard);
 						Entities::AddNativeCalls_RococoEntitiesIParticleSystem(args.ss, &platform);
-						Audio::AddNativeCalls_RococoAudioILegacySoundControl(args.ss, &platform);
 						Graphics::AddNativeCalls_RococoGraphicsIHQFonts(args.ss, &platform);
 						Rococo::AddNativeCalls_RococoIInstallationManager(args.ss, &platform);
 						AddNativeCalls_RococoIConfig(args.ss, &platform.config);

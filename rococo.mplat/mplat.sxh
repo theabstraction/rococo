@@ -665,18 +665,6 @@
 	)
 )
 
-(enum Int32
-	(as.sxy Rococo.Audio.ELegacySoundShape "../content/scripts/mplat")
-	(as.cpp Rococo.Audio.ELegacySoundShape "mplat")
-	(
-		(Sine 0)
-		(Square 1)
-		(Triangle 2)
-		(Saw 3)
-		(Noise 4)
-	)
-)
-
 (interface (as.sxy Rococo.Graphics.IRendererConfig "../content/scripts/mplat")
 	(as.cpp Rococo.Graphics.IRendererConfig "mplat")
 	(context factory Rococo.Platform)
@@ -696,22 +684,6 @@
 		(SaveVec3 (IString key)(const Vec3 value))
 	)
 	(factory Rococo.GetArchive)
-)
-
-
-(interface (as.sxy Rococo.Audio.ILegacySoundControl "../content/scripts/mplat")
-	(as.cpp Rococo.Audio.ILegacySoundControl "mplat")
-	(context factory Rococo.Platform)
-	(methods
-		(SetMasterVolumne (Float32 gain))
-		(SetChannelVolume (Int32 channel)(Float32 leftVolume)(Float32 rightVolume))
-		(SetWave (Int32 channel)(ELegacySoundShape waveShape)(Float32 freqHz)(Float32 dutyCycle))
-		(PlayWave (Int32 channel))
-		(Sustain (Int32 channel))
-		(Release (Int32 channel))
-		(SetEnvelope (Int32 channel)(Float32 attackSecs)(Float32 decaySecs)(Float32 sustainLevel)(Float32 releaseSecs))
-	)
-	(factory Rococo.Audio.LegacySoundControl)
 )
 
 (interface (as.sxy Rococo.IInstallation "../content/scripts/mplat")

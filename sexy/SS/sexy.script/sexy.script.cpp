@@ -2033,6 +2033,7 @@ namespace Anon
 		{
 			void* data = allocator.Allocate(sizeof(CScriptSystem));
 			CScriptSystem* ss = new (data) CScriptSystem(nativeSourceTrees, pip, logger, allocator);
+			ss->PublicProgramObject().VirtualMachine().Core().SetLogger(&logger);
 			return ss;
 		}
 

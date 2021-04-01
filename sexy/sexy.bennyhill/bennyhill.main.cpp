@@ -986,10 +986,13 @@ int main(int argc, char* argv[])
 	const char* scriptInput = argv[2];
 	const char* touchFile = argv[3];
 
-	printf("%s", scriptInput);
+	U8FilePath u8inputName;
+	Format(u8inputName, "%s%s", projectRoot, scriptInput);
+
+	puts(u8inputName);
 
 	int64 touchModifiedAt = GetLastModifiedDate(touchFile);
-	int64 scriptModifiedAt = GetLastModifiedDate(scriptInput);
+	int64 scriptModifiedAt = GetLastModifiedDate(u8inputName);
 
 	if (touchModifiedAt == 0 && strcmp(touchFile, "null") != 0)
 	{

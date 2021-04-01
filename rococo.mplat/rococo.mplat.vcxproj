@@ -94,9 +94,10 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <CustomBuildStep>
-      <Command>..\sexy\Bin\x64Debug\sexy.bennyhill.exe $(ProjectDir) mplat.sxh mplat.sxh.h</Command>
-      <Outputs>mplat.sxh.h;mplat.sxh.inl</Outputs>
+      <Command>..\sexy\Bin\x64Release\sexy.bennyhill.exe $(ProjectDir) mplat.sxh mplat.sxh.h</Command>
+      <Outputs>mplat.sxh.h</Outputs>
       <Inputs>mplat.sxh;config.xc</Inputs>
+      <Message>Passing mplat.sxh to Benny Hill</Message>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -105,7 +106,6 @@
   <ItemGroup>
     <ClCompile Include="mplat.archive.cpp" />
     <ClCompile Include="mplat.audio.decoders.cpp" />
-    <ClCompile Include="mplat.audio.legacy.cpp" />
     <ClCompile Include="mplat.audio.X2.cpp" />
     <ClCompile Include="mplat.bloody.cpp" />
     <ClCompile Include="mplat.config.cpp" />

@@ -71,33 +71,33 @@ namespace
 
 		}
 
-		IVirtualMachine* CreateVirtualMachine()
+		IVirtualMachine* CreateVirtualMachine() override
 		{
 			IVirtualMachine* vm = Rococo::VM::CreateVirtualMachine(*this);
 			return vm;
 		}
 
-		IAssembler* CreateAssembler()
+		IAssembler* CreateAssembler() override
 		{
 			return Rococo::VM::CreateAssembler(*this);
 		}
 
-		IProgramMemory* CreateProgramMemory(size_t capacity)
+		IProgramMemory* CreateProgramMemory(size_t capacity) override
 		{
 			return Rococo::VM::CreateProgramMemory(capacity);
 		}
 
-		IDisassembler* CreateDisassembler()
+		IDisassembler* CreateDisassembler() override
 		{
 			return Rococo::VM::CreateDisassembler(*this);
 		}
 
-		ISymbols* CreateSymbolTable()
+		ISymbols* CreateSymbolTable() override
 		{
 			return Rococo::VM::CreateSymbolTable(*this);
 		}
 
-		bool TryInvoke(ID_API_CALLBACK id, VariantValue* registers)
+		bool TryInvoke(ID_API_CALLBACK id, VariantValue* registers) override
 		{
 			TMapIdToCallback::const_iterator i = callbacks.find(id);
 			if (i != callbacks.end())
@@ -112,13 +112,13 @@ namespace
 			}
 		}
 
-		cstr GetCallbackSymbolName(ID_API_CALLBACK id)
+		cstr GetCallbackSymbolName(ID_API_CALLBACK id) override
 		{
 			TMapIdToCallback::const_iterator i = callbacks.find(id);
 			return (i != callbacks.end()) ? i->second.Symbol.c_str() : NULL;
 		}
 
-		ID_API_CALLBACK RegisterCallback(FN_API_CALLBACK callback, void* context, cstr symbol)
+		ID_API_CALLBACK RegisterCallback(FN_API_CALLBACK callback, void* context, cstr symbol) override
 		{
 			ID_API_CALLBACK id = nextId++;
 			ApiCallbackBinding binding;
@@ -129,22 +129,22 @@ namespace
 			return id;
 		}
 
-		void UnregisterCallback(ID_API_CALLBACK id)
+		void UnregisterCallback(ID_API_CALLBACK id) override
 		{
 			callbacks.erase(id);
 		}
 
-		virtual void Log(cstr text)
+		void Log(cstr text) override
 		{
 			if (logger != NULL) logger->Write(text);
 		}
 
-		virtual void SetLogger(ILog* log)
+		void SetLogger(ILog* log) override
 		{
 			logger = log;
 		}
 
-		virtual void Free()
+		void Free() override
 		{
 			delete this;
 		}

@@ -13482,6 +13482,10 @@ R"(
 
 	   vm.Push(77); // Allocate stack space for the int32 x
 	   EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+	   if (result == EXECUTERESULT_THROWN)
+	   {
+		   ValidateLogs();
+	   }
 	   ValidateExecution(result);
 	   int32 x = vm.PopInt32();
 

@@ -298,22 +298,6 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	int32 maxEntities = config->GetInt("mplat.instances.entities.max"_fstring);
 	if (maxEntities <= 0) Throw(0, "Int32 \"mplat.instances.entities.max\" defined in '!scripts/config_mplat.sxy' was not positive");
 
-	AutoFree<Audio::ILegacySoundControlSupervisor> legacySound = Audio::CreateLegacySoundControl();
-
-	OutputDebugStringA("\n\nLegacy Sound Description:");
-
-	struct ANON : public IEventCallback<StringKeyValuePairArg>
-	{
-		void OnEvent(StringKeyValuePairArg& arg)
-		{
-			char prefix[32];
-			SafeFormat(prefix, sizeof(prefix), "\n%s: ", arg.key);
-			OutputDebugStringA(prefix);
-			OutputDebugStringA(arg.value);
-		}
-	} logDesc;
-	legacySound->EnumerateDeviceDesc(logDesc);
-
 	OutputDebugStringA("\n\n");
 
 	Audio::AudioConfig audio_config{};
@@ -352,7 +336,7 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 		*os, *installation, *appControl, mainWindow->Renderer(), *sprites, *rendererConfig, *messaging, 
 		*sourceCache, *debuggerWindow, *publisher, *utilities, *gui, *keyboard, *config, *archive, *meshes,
 		*instances, *mobiles, *particles, *rigs, *spriteBuilder, *camera, *scene, tesselators, *mathsVisitor,
-		*legacySound, *audio, *ssFactory, title, *xbox360stick, *ims, *world
+		*audio, *ssFactory, title, *xbox360stick, *ims, *world
 	};
 
 	gui->PostConstruct(&platform);
