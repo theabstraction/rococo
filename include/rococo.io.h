@@ -11,9 +11,11 @@ namespace Rococo::IO
 		const wchar_t* fullPath;
 		const wchar_t* containerRelRoot;
 		const wchar_t* itemRelContainer;
+		void* containerContext;
+		void* outContext;
 		bool isDirectory;
 	};
-	void ForEachFileInDirectory(const wchar_t* directory, IEventCallback<FileItemData>& onFile, bool recurse);
+	void ForEachFileInDirectory(const wchar_t* directory, IEventCallback<FileItemData>& onFile, bool recurse, void* containerContext = nullptr);
 
 	struct FileAttributes
 	{

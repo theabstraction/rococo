@@ -78,7 +78,7 @@ namespace
 		void SetItemText(cstr text, ID_TREE_ITEM hItem) override
 		{
 			TV_ITEMA item = { 0 };
-			item.mask = TVIF_TEXT;
+			item.mask = TVIF_TEXT | TVIF_HANDLE;
 			item.pszText = const_cast<char*>(text);;
 			item.hItem = (HTREEITEM) hItem;
 			SendMessageA(hTreeWnd, TVM_SETITEMA, 0, (LPARAM)&item);

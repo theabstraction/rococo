@@ -49,7 +49,7 @@ auto evIDEMax = "EvIDEMax"_event;
 
 namespace Globals
 {
-	char contentFolder[128] = "C:\\work\\rococo\\content";
+	char contentFolder[128] = "C:\\work\\rococo\\content\\scripts\\";
 }
 
 namespace Rococo::SexyStudio
@@ -188,12 +188,12 @@ int APIENTRY WinMain(
 {
 	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
 
-	InitStudioWindows(hInstance, (LPCSTR)IDI_ICON1, (LPCSTR)IDI_ICON2);
-
-	BufferedPaintInit();
-
 	try
 	{
+		InitStudioWindows(hInstance, (LPCSTR)IDI_ICON1, (LPCSTR)IDI_ICON2);
+
+		BufferedPaintInit();
+
 		Win32MessagePump pump;
 		Main(pump);
 

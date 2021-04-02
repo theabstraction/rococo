@@ -2129,130 +2129,148 @@ namespace Rococo
 			}
 		}
 
-		void ForEachFileInDirectory(const wchar_t* filter, IEventCallback<FileItemData>& onFile, bool recurse)
+		bool IsDirectory(const WIN32_FIND_DATAW& fd)
 		{
-			struct AutoSearchHandle
-			{
-				HANDLE hSearch = INVALID_HANDLE_VALUE;
+			return (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
+		}
 
-				~AutoSearchHandle()
-				{
-					if (hSearch != INVALID_HANDLE_VALUE)
-					{
-						FindClose(hSearch);
-					}
-				}
+		void* RouteSearchResult(const WIN32_FIND_DATAW& findResult, const wchar_t* root, const wchar_t* containerRelRoot, void* containerContext, IEventCallback<FileItemData>& onFile)
+		{
+			WideFilePath fileName;
+			Format(fileName, L"%s%s%s", root, containerRelRoot, findResult.cFileName);
 
-				operator HANDLE () {
-					return hSearch;
-				}
-			};
+			FileItemData item;
+			item.fullPath = fileName;
+			item.itemRelContainer = findResult.cFileName;
+			item.containerRelRoot = containerRelRoot;
+			item.containerContext = containerContext;
+			item.outContext = nullptr;
+			item.isDirectory = IsDirectory(findResult);
+			onFile.OnEvent(item);
+			return item.outContext;
+		}
 
-			if (filter == nullptr || filter[0] == 0)
-			{
-				Throw(0, "%s: <filter> was blank.", __FUNCTION__);
-			}
+		void SearchSubdirectoryAndRecurse(const wchar_t* root, const wchar_t* containerDirectory, const wchar_t* subdirectory, void* subContext, IEventCallback<FileItemData>& onFile);
 
+		class SearchObject
+		{
+		private:
+			HANDLE hSearch = INVALID_HANDLE_VALUE;
+			WIN32_FIND_DATAW rootFindData;
 			wchar_t fullSearchFilter[_MAX_PATH];
-			wchar_t containerDirectory[_MAX_PATH];
+			wchar_t rootDirectory[_MAX_PATH];
 
-			auto finalChar = GetFinalNull(filter)[-1];
-			bool isSlashed = finalChar == L'\\' || finalChar == L'/';
-
-			DWORD status = GetFileAttributesW(filter);
-			
-			if (status != INVALID_FILE_ATTRIBUTES && ((status & FILE_ATTRIBUTE_DIRECTORY) != 0))
+		public:
+			SearchObject(const wchar_t* filter)
 			{
-				SafeFormat(fullSearchFilter, L"%s%s*.*", filter, isSlashed ? L"" : L"\\");
-				SafeFormat(containerDirectory, L"%s%s", filter, isSlashed ? L"" : L"\\");
-			}
-			else // Assume we have <dir>/*.ext or something similar
-			{
-				SafeFormat(fullSearchFilter, L"%s", filter);
-				SafeFormat(containerDirectory, L"%s", filter);
-				OS::MakeContainerDirectory(containerDirectory);
-			}
-
-			WIN32_FIND_DATAW findData;
-
-			AutoSearchHandle hSearch;
-			hSearch.hSearch = FindFirstFileW(fullSearchFilter, &findData);
-
-			if (hSearch.hSearch == INVALID_HANDLE_VALUE)
-			{
-				HRESULT hr = HRESULT_FROM_WIN32(GetLastError());
-				if (hr != ERROR_FILE_NOT_FOUND)
+				if (filter == nullptr || filter[0] == 0)
 				{
-					Throw(hr, "%s: %ls\n", __FUNCTION__, fullSearchFilter);
+					Throw(0, "%s: <filter> was blank.", __FUNCTION__);
 				}
-				return;
-			}
 
-			do
-			{
-				if ((findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
+				auto finalChar = GetFinalNull(filter)[-1];
+				bool isSlashed = finalChar == L'\\' || finalChar == L'/';
+
+				DWORD status = GetFileAttributesW(filter);
+
+				if (status != INVALID_FILE_ATTRIBUTES && ((status & FILE_ATTRIBUTE_DIRECTORY) != 0))
 				{
-					// We found a file
-
-					FileItemData item;
-					item.isDirectory = false;
-
-					wchar_t fullPath[MAX_PATH];
-					SafeFormat(fullPath, L"%s%s", containerDirectory, findData.cFileName);
-
-					item.fullPath = fullPath;
-					item.itemRelContainer = findData.cFileName;
-					item.containerRelRoot = L"";
-					onFile.OnEvent(item);
+					SafeFormat(fullSearchFilter, L"%s%s*.*", filter, isSlashed ? L"" : L"\\");
+					SafeFormat(rootDirectory, L"%s%s", filter, isSlashed ? L"" : L"\\");
 				}
-				else
+				else // Assume we have <dir>/*.ext or something similar
 				{
-					// We found a directory, so recurse
-					if (*findData.cFileName != '.')
+					SafeFormat(fullSearchFilter, L"%s", filter);
+					SafeFormat(rootDirectory, L"%s", filter);
+					OS::MakeContainerDirectory(rootDirectory);
+				}
+
+				hSearch = FindFirstFileW(fullSearchFilter, &rootFindData);
+
+				if (hSearch == INVALID_HANDLE_VALUE)
+				{
+					HRESULT hr = HRESULT_FROM_WIN32(GetLastError());
+					if (hr != ERROR_FILE_NOT_FOUND)
 					{
-						FileItemData item;
-						item.isDirectory = true;
+						Throw(hr, "%s: %ls\n", __FUNCTION__, fullSearchFilter);
+					}
+					return;
+				}
+			}
 
-						wchar_t fullPath[MAX_PATH];
-						SafeFormat(fullPath, L"%s%s", containerDirectory, findData.cFileName);
+			void RouteSearchResults(const wchar_t* root, IEventCallback<FileItemData>& onFile, void* containerContext, bool recurse)
+			{
+				if (root == nullptr)
+				{
+					root = rootDirectory;
+				}
+				do
+				{
+					auto* containerRelRoot = rootDirectory + wcslen(root);
 
-						item.fullPath = fullPath;
-						item.itemRelContainer = findData.cFileName;
-						item.containerRelRoot = L"";
-						onFile.OnEvent(item);
-
-						if (recurse)
+					if (IsDirectory(rootFindData))
+					{
+						if (*rootFindData.cFileName != '.')
 						{
-							struct : IEventCallback<FileItemData>
+							void* subContext = RouteSearchResult(rootFindData, root, containerRelRoot, containerContext, onFile);
+
+							if (recurse)
 							{
-								WideFilePath stem;
-								const wchar_t* root;
-
-								IEventCallback<FileItemData>* caller;
-								void OnEvent(FileItemData& item) override
-								{
-									FileItemData fromRoot;
-									fromRoot.isDirectory = item.isDirectory;
-									fromRoot.itemRelContainer = item.itemRelContainer;
-									fromRoot.containerRelRoot = stem;
-									fromRoot.fullPath = item.fullPath;
-									caller->OnEvent(fromRoot);
-								}
-							} subpathResult;
-
-							WideFilePath subpath;
-							Format(subpath, L"%s%s\\", containerDirectory, findData.cFileName);
-							subpathResult.caller = &onFile;
-
-							subpathResult.root = subpath;
-
-							Format(subpathResult.stem, L"%s\\", findData.cFileName);
-
-							ForEachFileInDirectory(subpath, subpathResult, recurse);
+								SearchSubdirectoryAndRecurse(root, containerRelRoot, rootFindData.cFileName, subContext, onFile);
+							}
 						}
 					}
+					else
+					{
+						RouteSearchResult(rootFindData, root, containerRelRoot, containerContext, onFile);
+					}
+				} while (FindNextFileW(hSearch, &rootFindData));
+			}
+
+			~SearchObject()
+			{
+				if (hSearch != INVALID_HANDLE_VALUE)
+				{
+					FindClose(hSearch);
 				}
-			} while (FindNextFileW(hSearch, &findData));
+			}
+		};
+
+		void SearchSubdirectoryAndRecurse(const wchar_t* root, const wchar_t* containerDirectory, const wchar_t* subdirectory, void* subContext, IEventCallback<FileItemData>& onFile)
+		{
+			struct ANON : IEventCallback<IO::FileItemData>
+			{
+				IEventCallback<FileItemData>* onFile;
+				const wchar_t* containerDirectory;
+
+				void OnEvent(IO::FileItemData& i) override
+				{
+					IO::FileItemData item;
+					item.containerContext = i.containerContext;
+					item.fullPath = i.fullPath;
+					item.outContext = nullptr;
+					item.isDirectory = i.isDirectory;
+					item.containerRelRoot = L"!";
+					item.itemRelContainer = i.itemRelContainer;
+					onFile->OnEvent(item);
+					i.outContext = item.outContext;
+				}
+			} cb;
+
+			WideFilePath fullDir;
+			Format(fullDir, L"%s%s%s", root, containerDirectory, subdirectory);
+
+			cb.onFile = &onFile;
+			cb.containerDirectory = fullDir;
+
+			SearchObject searchSub(fullDir);
+			searchSub.RouteSearchResults(root, cb, subContext, true);
+		}
+
+		void ForEachFileInDirectory(const wchar_t* filter, IEventCallback<FileItemData>& onFile, bool recurse, void* containerContext)
+		{
+			SearchObject searchObj(filter);
+			searchObj.RouteSearchResults(nullptr, onFile, containerContext, recurse);
 		}
 	} // IO
 

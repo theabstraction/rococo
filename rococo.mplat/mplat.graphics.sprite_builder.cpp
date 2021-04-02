@@ -47,7 +47,7 @@ namespace
             Sprites* sprites;
             U8FilePath containingDir;
 
-            virtual void OnEvent(IO::FileItemData& item)
+            void OnEvent(IO::FileItemData& item) override
             {
                U8FilePath contentRelativePath;
                cstr sep = EndsWith(containingDir, "/") ? "" : "/";
