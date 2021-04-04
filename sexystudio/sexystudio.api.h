@@ -138,6 +138,7 @@ namespace Rococo::SexyStudio
 	{
 		virtual void Bind(char* buffer, size_t capacityBytes) = 0;
 		virtual void SetText(cstr text) = 0;
+		virtual void SetUpdateEvent(EventIdRef id) = 0;
 		virtual cstr Text() const = 0;
 	};
 

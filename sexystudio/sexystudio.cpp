@@ -17,6 +17,7 @@ using namespace Rococo::SexyStudio;
 using namespace Rococo::Events;
 
 auto evClose = "EvMainIDEWindowCloseRequest"_event;
+auto evContentChange = "EvContentChange"_event; // TEventArg<cstr>
 
 ROCOCOAPI IMessagePump
 {
@@ -57,42 +58,67 @@ namespace Rococo::SexyStudio
 	void PopulateTreeWithSXYFiles(IGuiTree& tree, cstr contentFolder);
 }
 
-void BuildPropertySheets(ISplitScreen& screen)
+class PropertySheets: IObserver
 {
-	screen.SetBackgroundColour(RGBAb(128, 192, 128));
+private:
+	WidgetContext wc;
 
-	ITabSplitter* tabs = CreateTabSplitter(*screen.Children());
-	tabs->SetVisible(true);
+	IGuiTree* fileBrowser = nullptr;
 
-	ITab& propTab = tabs->AddTab();
-	propTab.SetName("Properties");
-	propTab.SetTooltip("Property View");
+	void OnEvent(Event& ev) override
+	{
+		if (ev == evContentChange)
+		{
+			PopulateTreeWithSXYFiles(*fileBrowser, Globals::contentFolder);
+		}
+	}
 
-	ITab& projectTab = tabs->AddTab();
-	projectTab.SetName("Projects");
-	projectTab.SetTooltip("Project View");
+public:
+	PropertySheets(ISplitScreen& screen): wc(screen.Children()->Context())
+	{
+		screen.SetBackgroundColour(RGBAb(128, 192, 128));
 
-	ITab& settingsTab = tabs->AddTab();
-	settingsTab.SetName("Settings");
-	settingsTab.SetTooltip("Global Configuration Settings");
-	IVariableList* globalSettings = CreateVariableList(settingsTab.Children());
-	globalSettings->SetVisible(true);
+		ITabSplitter* tabs = CreateTabSplitter(*screen.Children());
+		tabs->SetVisible(true);
 
-	IAsciiStringEditor* contentEditor = globalSettings->AddAsciiString();
-	contentEditor->SetName("Content");
-	contentEditor->Bind(Globals::contentFolder, sizeof Globals::contentFolder);
-	contentEditor->SetVisible(true);
+		ITab& propTab = tabs->AddTab();
+		propTab.SetName("Properties");
+		propTab.SetTooltip("Property View");
 
-	TreeStyle style;
-	style.hasButtons = true;
-	style.hasLines = true;
+		ITab& projectTab = tabs->AddTab();
+		projectTab.SetName("Projects");
+		projectTab.SetTooltip("Project View");
 
-	auto* tree = CreateTree(projectTab.Children(), style);
-	Widgets::AnchorToParent(*tree, 0, 0, 0, 0);
-	tree->SetVisible(true);
+		ITab& settingsTab = tabs->AddTab();
+		settingsTab.SetName("Settings");
+		settingsTab.SetTooltip("Global Configuration Settings");
+		IVariableList* globalSettings = CreateVariableList(settingsTab.Children());
+		globalSettings->SetVisible(true);
 
-	PopulateTreeWithSXYFiles(*tree, Globals::contentFolder);
-}
+		IAsciiStringEditor* contentEditor = globalSettings->AddAsciiString();
+		contentEditor->SetName("Content");
+		contentEditor->Bind(Globals::contentFolder, sizeof Globals::contentFolder);
+		contentEditor->SetVisible(true);
+		contentEditor->SetUpdateEvent(evContentChange);
+
+		TreeStyle style;
+		style.hasButtons = true;
+		style.hasLines = true;
+
+		fileBrowser = CreateTree(projectTab.Children(), style);
+		Widgets::AnchorToParent(*fileBrowser, 0, 0, 0, 0);
+		fileBrowser->SetVisible(true);
+
+		PopulateTreeWithSXYFiles(*fileBrowser, Globals::contentFolder);
+
+		wc.publisher.Subscribe(this, evContentChange);
+	}
+
+	~PropertySheets()
+	{
+		wc.publisher.Unsubscribe(this);
+	}
+};
 
 void BuildSourceSheets(ISplitScreen& screen)
 {
@@ -165,7 +191,7 @@ void Main(IMessagePump& pump)
 	auto* projectView = splitscreen->GetFirstHalf();
 	auto* sourceView = splitscreen->GetSecondHalf();
 
-	BuildPropertySheets(*projectView);
+	PropertySheets propertySheets(*projectView);
 	BuildSourceSheets(*sourceView);
 
 	publisher->Subscribe(&ideEvents, evIDEClose);

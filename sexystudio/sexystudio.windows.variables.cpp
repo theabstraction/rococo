@@ -70,6 +70,36 @@ namespace
 		HBRUSH backBrush;
 		HFONT hFont = nullptr;
 
+		EventIdRef evChangedEvent = { 0 };
+
+		WNDPROC defaultEditProc = nullptr;
+
+		static LRESULT CALLBACK ProcessEditorMessage(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam)
+		{
+			auto& This = *(AsciiStringEditor*)  GetWindowLongPtr(wnd, GWLP_USERDATA);
+
+			switch (msg)
+			{
+			case WM_KEYDOWN:
+				switch (wParam)
+				{
+					case VK_RETURN:
+						This.PublishChange();
+						return 0;
+				}
+			}
+			return CallWindowProc(This.defaultEditProc, wnd, msg, wParam, lParam);
+		}
+
+		void PublishChange()
+		{
+			TEventArgs<cstr> args;
+			args.value = boundBuffer;
+			GetWindowTextA(hWndEditor, boundBuffer, (int) capacity);
+			SetFocus(nullptr);
+			variables.Children()->Context().publisher.Publish(args, evChangedEvent);
+		}
+
 		AsciiStringEditor(IVariableList& _variables, HBRUSH _backBrush):
 			variables(_variables),
 			backWindow(variables.Children()->Parent(), *this),
@@ -84,6 +114,15 @@ namespace
 			SendMessage(hWndEditor, WM_SETFONT, (WPARAM) (HFONT) variables.Children()->Context().fontSmallLabel, 0);
 
 			theme = GetTheme(_variables.Children()->Context().publisher);
+
+			auto oldUserData = SetWindowLongPtr(hWndEditor, GWLP_USERDATA, (LONG_PTR)this);
+			if (oldUserData != 0)
+			{
+				DestroyWindow(hWndEditor);
+				Throw(0, "AsciiStringEditor -> this version of Windows appears to have hoarded the WC_EDIT GWLP_USERDATA pointer");
+
+			}
+			defaultEditProc = (WNDPROC)SetWindowLongPtr(hWndEditor, GWLP_WNDPROC, (LONG_PTR) ProcessEditorMessage);
 		}
 
 		LRESULT ProcessMessage(UINT msg, WPARAM wParam, LPARAM lParam)
@@ -97,16 +136,29 @@ namespace
 				return TRUE;
 			case WM_SIZE:
 				ResizeEditor(variables, hWndEditor);
+				break;
+			case WM_COMMAND:
+				break;
 			}
 			return DefWindowProc(backWindow, msg, wParam, lParam);
 		}
 
 		void Bind(char* buffer, size_t capacityBytes) override
 		{
+			if (capacityBytes > 1_megabytes)
+			{
+				Throw(0, "%s: sanity check failed. Capacity > 1 meg", __FUNCTION__);
+			}
+
 			this->boundBuffer = buffer;
 			this->capacity = capacityBytes;
 			SendMessageA(hWndEditor, EM_SETLIMITTEXT, capacityBytes, 0);
 			SetText(buffer);
+		}
+
+		void SetUpdateEvent(EventIdRef id) override
+		{
+			evChangedEvent = id;
 		}
 
 		void SetText(cstr text) override
