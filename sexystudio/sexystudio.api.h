@@ -137,14 +137,22 @@ namespace Rococo::SexyStudio
 	ROCOCOAPI IAsciiStringEditor : IGuiWidgetEditor
 	{
 		virtual void Bind(char* buffer, size_t capacityBytes) = 0;
+		virtual IWindow& OSEditor() = 0;
 		virtual void SetText(cstr text) = 0;
 		virtual void SetUpdateEvent(EventIdRef id) = 0;
 		virtual cstr Text() const = 0;
 	};
 
+	ROCOCOAPI IFilePathEditor : IGuiWidgetEditor
+	{
+		virtual void Bind(U8FilePath& path, uint32 maxChars) = 0;
+		virtual void SetUpdateEvent(EventIdRef id) = 0;
+	};
+
 	ROCOCOAPI IVariableList : IGuiWidget
 	{
-		virtual IAsciiStringEditor* AddAsciiString() = 0;
+		virtual IAsciiStringEditor* AddAsciiEditor() = 0;
+		virtual IFilePathEditor* AddFilePathEditor() = 0;
 
 		// Gives number of pixels from LHS of the list to the editor column
 		virtual int NameSpan() const = 0;

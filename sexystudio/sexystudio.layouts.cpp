@@ -21,7 +21,7 @@ namespace Rococo::SexyStudio::Widgets
 				rect = GetScreenRect(widget);
 				Vec2i span = GetParentSpan(widget);
 				rect.right = rect.left + span.x;
-				rect.bottom = rect.bottom + span.y;
+				rect.bottom = rect.top + span.y;
 
 				rect = Widgets::MapScreenToWindowRect(rect, widget);
 

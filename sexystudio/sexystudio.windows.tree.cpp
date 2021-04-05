@@ -16,7 +16,7 @@ namespace
 			eventSinkWindow(widgets.Parent(), *this)
 		{
 			DWORD exStyle = TVS_EX_AUTOHSCROLL | TVS_EX_DOUBLEBUFFER;
-			DWORD win32Style = WS_CHILD;
+			DWORD win32Style = WS_CHILD | WS_VSCROLL;
 
 			if (treeStyle.hasCheckBoxes) win32Style |= TVS_CHECKBOXES;
 			if (treeStyle.hasButtons) win32Style |= TVS_HASBUTTONS | TVS_LINESATROOT;

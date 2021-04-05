@@ -1,5 +1,8 @@
 #include "sexystudio.impl.h"
 #include <rococo.strings.h>
+#include <shobjidl.h>
+#include <shlobj_core.h>
+#include <rococo.auto-release.h>
 
 using namespace Rococo;
 using namespace Rococo::Events;
@@ -15,14 +18,13 @@ namespace
 		MoveWindow(hEditor, x, 0, rect.right - x, rect.bottom, TRUE);
 	}
 
-	void PaintName(const Theme& theme, IGuiWidgetEditor& editor, IVariableList& variables, HBRUSH backBrush, HFONT hFont)
+	void PaintName(const Theme& theme, IGuiWidgetEditor& editor, IVariableList& variables, HBRUSH backBrush)
 	{
 		struct Painter: IWin32Painter
 		{
 			const Theme* theme;
 			cstr name;
 			HBRUSH backBrush;
-			HFONT hFont;
 			IVariableList* variables;
 
 			void OnPaint(HDC dc) override
@@ -63,12 +65,11 @@ namespace
 		char* boundBuffer = nullptr;
 		size_t capacity = 0;
 
-		HWND hWndEditor;
+		HWNDProxy hWndEditor;
 
 		Theme theme;
 
 		HBRUSH backBrush;
-		HFONT hFont = nullptr;
 
 		EventIdRef evChangedEvent = { 0 };
 
@@ -84,6 +85,7 @@ namespace
 				switch (wParam)
 				{
 					case VK_RETURN:
+						SetFocus(nullptr);
 						This.PublishChange();
 						return 0;
 				}
@@ -96,7 +98,6 @@ namespace
 			TEventArgs<cstr> args;
 			args.value = boundBuffer;
 			GetWindowTextA(hWndEditor, boundBuffer, (int) capacity);
-			SetFocus(nullptr);
 			variables.Children()->Context().publisher.Publish(args, evChangedEvent);
 		}
 
@@ -105,7 +106,7 @@ namespace
 			backWindow(variables.Children()->Parent(), *this),
 			backBrush(_backBrush)
 		{
-			hWndEditor = CreateWindowExA(0, WC_EDITA, "", WS_CHILD, 0, 0, 100, 100, backWindow, NULL, NULL, NULL);
+			hWndEditor = CreateWindowExA(0, WC_EDITA, "", WS_CHILD | ES_AUTOHSCROLL, 0, 0, 100, 100, backWindow, NULL, NULL, NULL);
 			if (hWndEditor == NULL)
 			{
 				Throw(GetLastError(), "%s: failed to create window", __FUNCTION__);
@@ -125,12 +126,12 @@ namespace
 			defaultEditProc = (WNDPROC)SetWindowLongPtr(hWndEditor, GWLP_WNDPROC, (LONG_PTR) ProcessEditorMessage);
 		}
 
-		LRESULT ProcessMessage(UINT msg, WPARAM wParam, LPARAM lParam)
+		LRESULT ProcessMessage(UINT msg, WPARAM wParam, LPARAM lParam) override
 		{
 			switch (msg)
 			{
 			case WM_PAINT:
-				PaintName(theme, *this, variables, backBrush, hFont);
+				PaintName(theme, *this, variables, backBrush);
 				return 0L;
 			case WM_ERASEBKGND:
 				return TRUE;
@@ -154,6 +155,11 @@ namespace
 			this->capacity = capacityBytes;
 			SendMessageA(hWndEditor, EM_SETLIMITTEXT, capacityBytes, 0);
 			SetText(buffer);
+		}
+
+		IWindow& OSEditor() override
+		{
+			return hWndEditor;
 		}
 
 		void SetUpdateEvent(EventIdRef id) override
@@ -213,6 +219,194 @@ namespace
 		}
 	};
 
+	void BrowseFolder(U8FilePath& path, cstr title, HWND hWndParent)
+	{
+		BROWSEINFOA bi = { 0 };
+		bi.hwndOwner = hWndParent;
+		bi.lpszTitle = title;
+		LPITEMIDLIST pidl = SHBrowseForFolderA(&bi);
+		if (pidl != 0)
+		{
+			SHGetPathFromIDListA(pidl, path.buf);
+
+			IMalloc* imalloc = 0;
+			if (SUCCEEDED(SHGetMalloc(&imalloc)))
+			{
+				imalloc->Free(pidl);
+				imalloc->Release();
+			}
+		}
+	}
+
+	struct FilePathEditor : IFilePathEditor, IWin32WindowMessageLoopHandler
+	{
+		IVariableList& variables;
+		Win32ChildWindow backWindow;
+		HBRUSH backBrush;
+		HString name;
+		U8FilePath* filePath = nullptr;
+		uint32 maxPathLength = 0;
+		HWNDProxy hWndEditor;
+		HWNDProxy hWndButton;
+		Theme theme;
+		EventIdRef evChangedEvent = { 0 };
+		WNDPROC defaultEditProc = nullptr;
+
+		FilePathEditor(IVariableList& _variables, HBRUSH _backBrush):
+			variables(_variables), backBrush(_backBrush), backWindow(_variables.Children()->Parent(), *this)
+		{
+			hWndEditor = CreateWindowExA(0, WC_EDITA, "", WS_CHILD | ES_AUTOHSCROLL, 0, 0, 100, 100, backWindow, NULL, NULL, NULL);
+			if (hWndEditor == NULL)
+			{
+				Throw(GetLastError(), "%s: failed to create window", __FUNCTION__);
+			}
+
+			SendMessage(hWndEditor, WM_SETFONT, (WPARAM)(HFONT)variables.Children()->Context().fontSmallLabel, 0);
+
+			theme = GetTheme(_variables.Children()->Context().publisher);
+
+			auto oldUserData = SetWindowLongPtr(hWndEditor, GWLP_USERDATA, (LONG_PTR)this);
+			if (oldUserData != 0)
+			{
+				DestroyWindow(hWndEditor);
+				Throw(0, "AsciiStringEditor -> this version of Windows appears to have hoarded the WC_EDIT GWLP_USERDATA pointer");
+
+			}
+
+			defaultEditProc = (WNDPROC)SetWindowLongPtr(hWndEditor, GWLP_WNDPROC, (LONG_PTR)ProcessEditorMessage);
+
+			hWndButton = CreateWindowExA(0, WC_BUTTONA, "...", WS_CHILD, 0, 0, 100, 100, backWindow, NULL, NULL, NULL);
+		}
+
+		void ResizeEditor()
+		{
+			RECT rect;
+			GetClientRect(backWindow, &rect);
+			int32 namespan = variables.NameSpan();
+			int32 buttonWidth = 30;
+			int32 editorWidth = (rect.right - rect.left) - buttonWidth - namespan;
+			MoveWindow(hWndEditor, namespan, 0, editorWidth, rect.bottom, TRUE);
+			MoveWindow(hWndButton, rect.right - buttonWidth, 0, buttonWidth, rect.bottom, TRUE);
+		}
+
+		LRESULT ProcessMessage(UINT msg, WPARAM wParam, LPARAM lParam) override
+		{
+			switch (msg)
+			{
+			case WM_PAINT:
+				PaintName(theme, *this, variables, backBrush);
+				return 0L;
+			case WM_ERASEBKGND:
+				return TRUE;
+			case WM_SIZE:
+				ResizeEditor();
+				break;
+			case WM_COMMAND:
+				if (wParam == BN_CLICKED && lParam == (LPARAM)hWndButton.hWnd)
+				{
+					if (filePath)
+					{
+						try
+						{
+							BrowseFolder(*filePath, "Sexy Studio - Pick a Directory", hWndButton);
+							SetWindowTextA(hWndEditor, *filePath);
+							PublishChange();
+						}
+						catch (IException&)
+						{
+
+						}
+					}
+				}
+				break;
+			}
+			return DefWindowProc(backWindow, msg, wParam, lParam);
+		}
+
+		void Bind(U8FilePath& path, uint32 maxPathLength) override
+		{
+			filePath = &path;
+			this->maxPathLength = min(maxPathLength, (uint32) U8FilePath::CAPACITY);
+			SendMessageA(hWndEditor, EM_SETLIMITTEXT, maxPathLength, 0);
+			SendMessageA(hWndEditor, WM_SETTEXT, 0, (LPARAM)(cstr) filePath);
+		}
+
+		void SetUpdateEvent(EventIdRef id) override
+		{
+			evChangedEvent = id;
+		}
+
+		static LRESULT CALLBACK ProcessEditorMessage(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam)
+		{
+			auto& This = *(FilePathEditor*)GetWindowLongPtr(wnd, GWLP_USERDATA);
+
+			switch (msg)
+			{
+			case WM_KEYDOWN:
+				switch (wParam)
+				{
+				case VK_RETURN:
+					SetFocus(nullptr);
+					This.PublishChange();
+					return 0;
+				}
+			}
+			return CallWindowProc(This.defaultEditProc, wnd, msg, wParam, lParam);
+		}
+
+		void PublishChange()
+		{
+			if (filePath && evChangedEvent.name != nullptr)
+			{
+				TEventArgs<cstr> args;
+				args.value = *filePath;
+				GetWindowTextA(hWndEditor, filePath->buf, maxPathLength);
+				variables.Children()->Context().publisher.Publish(args, evChangedEvent);
+			}
+		}
+
+		cstr Name() const override
+		{
+			return name;
+		}
+
+		void SetName(cstr name) override
+		{
+			this->name = name;
+		}
+
+		void Layout() override
+		{
+		}
+
+		void AddLayoutModifier(ILayout* preprocessor) override
+		{
+			Throw(0, "Not implemented");
+		}
+
+		void Free() override
+		{
+			delete this;
+		}
+
+		void SetVisible(bool isVisible) override
+		{
+			ShowWindow(backWindow, isVisible ? SW_SHOW : SW_HIDE);
+			ShowWindow(hWndEditor, isVisible ? SW_SHOW : SW_HIDE);
+			ShowWindow(hWndButton, isVisible ? SW_SHOW : SW_HIDE);
+		}
+
+		IWidgetSet* Children()
+		{
+			return nullptr;
+		}
+
+		IWindow& Window()
+		{
+			return backWindow;
+		}
+	};
+
 	struct VariableList : IVariableList, IWin32WindowMessageLoopHandler, IWin32Painter
 	{
 		Win32ChildWindow window;
@@ -248,9 +442,16 @@ namespace
 			return DefWindowProc(window, msg, wParam, lParam);
 		}
 
-		IAsciiStringEditor* AddAsciiString() override
+		IAsciiStringEditor* AddAsciiEditor() override
 		{
 			auto* editor = new AsciiStringEditor(*this, bkBrush);
+			children->Add(editor);
+			return editor;
+		}
+
+		IFilePathEditor* AddFilePathEditor() override
+		{
+			auto* editor = new FilePathEditor(*this, bkBrush);
 			children->Add(editor);
 			return editor;
 		}

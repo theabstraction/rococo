@@ -12,6 +12,8 @@
 #include <uxtheme.h>
 #pragma comment(lib, "uxtheme.lib")
 
+#include <shobjidl.h>
+
 using namespace Rococo;
 using namespace Rococo::SexyStudio;
 using namespace Rococo::Events;
@@ -50,7 +52,7 @@ auto evIDEMax = "EvIDEMax"_event;
 
 namespace Globals
 {
-	char contentFolder[128] = "C:\\work\\rococo\\content\\scripts\\";
+	U8FilePath contentFolder{ "\\work\\rococo\\content\\scripts" };
 }
 
 namespace Rococo::SexyStudio
@@ -95,9 +97,9 @@ public:
 		IVariableList* globalSettings = CreateVariableList(settingsTab.Children());
 		globalSettings->SetVisible(true);
 
-		IAsciiStringEditor* contentEditor = globalSettings->AddAsciiString();
+		auto* contentEditor = globalSettings->AddFilePathEditor();
 		contentEditor->SetName("Content");
-		contentEditor->Bind(Globals::contentFolder, sizeof Globals::contentFolder);
+		contentEditor->Bind(Globals::contentFolder, 128);
 		contentEditor->SetVisible(true);
 		contentEditor->SetUpdateEvent(evContentChange);
 
@@ -216,6 +218,12 @@ int APIENTRY WinMain(
 
 	try
 	{
+		HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+		if FAILED(hr)
+		{
+			Throw(hr, "%s: CoInitializeEx failed", __FUNCTION__);
+		}
+
 		InitStudioWindows(hInstance, (LPCSTR)IDI_ICON1, (LPCSTR)IDI_ICON2);
 
 		BufferedPaintInit();

@@ -164,7 +164,7 @@ namespace Rococo::SexyStudio
 	struct HWNDProxy: Rococo::Windows::IWindow
 	{
 		HWND hWnd;
-		HWNDProxy(HWND _hWnd) : hWnd(_hWnd) {}
+		HWNDProxy(HWND _hWnd = nullptr) : hWnd(_hWnd) {}
 		operator HWND() const override { return hWnd;  }
 	};
 
