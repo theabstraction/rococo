@@ -95,6 +95,20 @@ IDI_ICON1               ICON                    "sexystudio.large.ico"
 
 IDI_ICON2               ICON                    "sexystudio.small.ico"
 
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDB_FOLDER_CLOSED       BITMAP                  "folder-close.bmp"
+
+IDB_FOLDER_OPEN         BITMAP                  "folder-open.bmp"
+
+IDB_FILETYPE_SXY        BITMAP                  "filetype-sxy.bmp"
+
+IDB_FILETYPE_UNKNOWN    BITMAP                  "filetype-unknown.bmp"
+
 #endif    // English (United Kingdom) resources
 /////////////////////////////////////////////////////////////////////////////
 

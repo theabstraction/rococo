@@ -49,6 +49,14 @@ namespace Rococo::SexyStudio
 		virtual void Layout(IGuiWidget& widget) = 0;
 	};
 
+	ROCOCOAPI ISXYMetaTable
+	{
+		virtual void Free() = 0;
+		virtual uint64 RefreshSXYStatus(cstr path) = 0;
+	};
+
+	ISXYMetaTable* CreateSXYMetaTable();
+
 	ROCOCOAPI IGuiWidget
 	{
 		/* Reshape this control and its children according to the layout controls.
@@ -111,12 +119,26 @@ namespace Rococo::SexyStudio
 
 	typedef int64 ID_TREE_ITEM;
 
+	ROCOCOAPI IGuiTreeRenderer
+	{
+		virtual void RenderItem() = 0;
+		virtual int GetExpandedImageIndex(uint64 contextId) const = 0;
+		virtual int GetContractedImageIndex(uint64 contextId) const = 0;
+	};
+
 	ROCOCOAPI IGuiTree : IGuiWidget
 	{
 		virtual ID_TREE_ITEM AppendItem(ID_TREE_ITEM branch) = 0;
-		virtual void EnableExpansionIcons(bool enable) = 0;
-		virtual void SetItemText(cstr text, ID_TREE_ITEM hItem) = 0;
 		virtual void Clear() = 0;
+		virtual void Collapse() = 0;
+		virtual void EnableExpansionIcons(bool enable) = 0;
+		virtual void SetContext(ID_TREE_ITEM idItem, uint64 contextId) = 0;
+		virtual void SetItemExpandedImage(ID_TREE_ITEM hItem, int imageIndex) = 0;
+		virtual void SetItemText(cstr text, ID_TREE_ITEM hItem) = 0;
+		virtual void SetItemImage(ID_TREE_ITEM hItem, int imageIndex) = 0;
+
+		// Define the list of image identifiers, each is an int32, example SetImageList(2, ID_FOLDER_CLOSED, ID_FOLDER_OPEN, ID_FILE)
+		virtual void SetImageList(uint32 nItems, ...) = 0;
 	};
 
 	struct TreeStyle
@@ -126,7 +148,7 @@ namespace Rococo::SexyStudio
 		bool hasLines = false;
 	};
 
-	IGuiTree* CreateTree(IWidgetSet& widgets, const TreeStyle& style);
+	IGuiTree* CreateTree(IWidgetSet& widgets, const TreeStyle& style, IGuiTreeRenderer* customRenderer = nullptr);
 
 	ROCOCOAPI IGuiWidgetEditor : IGuiWidget
 	{

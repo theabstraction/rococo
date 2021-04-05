@@ -84,5 +84,23 @@
     <Image Include="sexystudio.small.ico">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="sexystudio.folder-closed.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="bitmap1.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="folder-close.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="folder-open.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="filetype-sxy.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="filetype-unknown.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

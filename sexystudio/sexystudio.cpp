@@ -57,26 +57,45 @@ namespace Globals
 
 namespace Rococo::SexyStudio
 {
-	void PopulateTreeWithSXYFiles(IGuiTree& tree, cstr contentFolder);
+	void PopulateTreeWithSXYFiles(IGuiTree& tree, cstr contentFolder, ISXYMetaTable& metaTable);
 }
 
-class PropertySheets: IObserver
+class PropertySheets: IObserver, IGuiTreeRenderer
 {
 private:
 	WidgetContext wc;
 
 	IGuiTree* fileBrowser = nullptr;
 
+	AutoFree<ISXYMetaTable> metaTable;
+
 	void OnEvent(Event& ev) override
 	{
 		if (ev == evContentChange)
 		{
-			PopulateTreeWithSXYFiles(*fileBrowser, Globals::contentFolder);
+			PopulateTreeWithSXYFiles(*fileBrowser, Globals::contentFolder, *metaTable);
 		}
 	}
 
+	void RenderItem() override
+	{
+
+	}
+
+	int GetExpandedImageIndex(uint64 contextId) const override
+	{
+		return 1; // IDB_FOLDER_OPEN
+	}
+
+	int GetContractedImageIndex(uint64 contextId) const  override
+	{
+		return 0; // IDB_FOLDER_CLOSED
+	}
+
 public:
-	PropertySheets(ISplitScreen& screen): wc(screen.Children()->Context())
+	PropertySheets(ISplitScreen& screen): 
+		wc(screen.Children()->Context()),
+		metaTable(CreateSXYMetaTable())
 	{
 		screen.SetBackgroundColour(RGBAb(128, 192, 128));
 
@@ -107,11 +126,12 @@ public:
 		style.hasButtons = true;
 		style.hasLines = true;
 
-		fileBrowser = CreateTree(projectTab.Children(), style);
+		fileBrowser = CreateTree(projectTab.Children(), style, this);
 		Widgets::AnchorToParent(*fileBrowser, 0, 0, 0, 0);
 		fileBrowser->SetVisible(true);
+		fileBrowser->SetImageList(4, IDB_FOLDER_CLOSED, IDB_FOLDER_OPEN, IDB_FILETYPE_SXY, IDB_FILETYPE_UNKNOWN);
 
-		PopulateTreeWithSXYFiles(*fileBrowser, Globals::contentFolder);
+		PopulateTreeWithSXYFiles(*fileBrowser, Globals::contentFolder, *metaTable);
 
 		wc.publisher.Subscribe(this, evContentChange);
 	}
@@ -119,6 +139,11 @@ public:
 	~PropertySheets()
 	{
 		wc.publisher.Unsubscribe(this);
+	}
+
+	void CollapseTree()
+	{
+		fileBrowser->Collapse();
 	}
 };
 
@@ -203,6 +228,8 @@ void Main(IMessagePump& pump)
 	ide->SetVisible(true);
 	splitscreen->SetVisible(true);
 	ide->LayoutChildren();
+
+	propertySheets.CollapseTree();
 
 	pump.MainLoop();
 }

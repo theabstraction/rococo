@@ -8,6 +8,9 @@
 
 #include <rococo.io.h>
 
+#include <rococo.hashtable.h>
+#include <vector>
+
 namespace Rococo::SexyStudio
 {
 	using namespace Rococo::Sex;
@@ -18,7 +21,101 @@ namespace Rococo::SexyStudio
 		tree.SetItemText(srcTree.Source().Name(), branchId);
 	}
 
-	void PopulateTreeWithSXYFiles(IGuiTree& tree, cstr contentFolder)
+	struct SXYMeta
+	{
+		int errorCode = 0;
+		HString errorMessage;
+		size_t id = 0;
+	};
+
+	struct SXYMetaTable : ISXYMetaTable
+	{
+		Auto<ISParser> sparser;
+		stringmap<SXYMeta*> metadata;
+		std::vector<SXYMeta*> idToMeta;
+
+		enum { HR_FILE_TOO_LARGE = 0x20000001 };
+
+		SXYMetaTable() :
+			sparser(Sexy_CreateSexParser_2_0(Rococo::Memory::CheckedAllocator()))
+		{
+
+		}
+
+		~SXYMetaTable()
+		{
+			for (auto* meta : idToMeta)
+			{
+				delete meta;
+			}
+		}
+
+		void Free() override
+		{
+			delete this;
+		}
+
+		uint64 RefreshSXYStatus(cstr path) override
+		{
+			SXYMeta meta;
+
+			try
+			{
+				WIN32_FILE_ATTRIBUTE_DATA data;
+				if (!GetFileAttributesExA(path, GetFileExInfoStandard, &data))
+				{
+					Throw(GetLastError(), "Could not retrieve file attributes");
+				}
+
+				if (data.nFileSizeHigh > 0 || data.nFileSizeLow > 1_megabytes)
+				{
+					meta.errorCode = HR_FILE_TOO_LARGE;
+					meta.errorMessage = "file too large";
+				}
+
+				WideFilePath wPath;
+				Format(wPath, L"%hs", path);
+				Auto<ISourceCode> src = sparser->LoadSource(wPath, { 1,1 });
+
+				try
+				{
+					Auto<ISParserTree> s_tree = sparser->CreateTree(*src);
+				}
+				catch (IException&)
+				{
+					throw;
+				}
+			}
+			catch (IException& ex)
+			{
+				meta.errorCode = ex.ErrorCode();
+				meta.errorMessage = ex.Message();
+			}
+
+			auto i = metadata.find(path);
+			if (i == metadata.end())
+			{
+				meta.id = idToMeta.size() + 1;
+				auto* pCopy = new SXYMeta(meta);
+				metadata.insert(path, pCopy);
+				idToMeta.push_back(pCopy);
+			}
+			else
+			{
+				meta.id = i->second->id;
+				*i->second = meta;
+			}
+
+			return meta.id;
+		}
+	};
+
+	ISXYMetaTable* CreateSXYMetaTable()
+	{
+		return new SXYMetaTable();
+	}
+
+	void PopulateTreeWithSXYFiles(IGuiTree& tree, cstr contentFolder, ISXYMetaTable& metaTable)
 	{
 		tree.Clear();
 
@@ -28,6 +125,7 @@ namespace Rococo::SexyStudio
 		struct ANON : IEventCallback<IO::FileItemData>
 		{
 			IGuiTree* tree;
+			ISXYMetaTable* metaTable;
 
 			void OnEvent(IO::FileItemData& item) override
 			{
@@ -37,11 +135,34 @@ namespace Rococo::SexyStudio
 				Format(itemText, "%ws", item.itemRelContainer);
 				tree->SetItemText(itemText, idItem);
 
+				if (item.isDirectory)
+				{
+					tree->SetItemImage(idItem, 0);
+					tree->SetItemExpandedImage(idItem, 1);
+				}
+				else
+				{
+					if (Rococo::EndsWith(item.fullPath, L".sxy"))
+					{
+						U8FilePath u8Path;
+						Format(u8Path, "%ws", item.fullPath);
+						uint64 contextId = metaTable->RefreshSXYStatus(u8Path);
+						tree->SetContext(idItem, contextId);
+
+						tree->SetItemImage(idItem, 2);
+					}
+					else
+					{
+						tree->SetItemImage(idItem, 3);
+					}
+				}
+
 				item.outContext = (void*) idItem;
 			}
 		} cb;
 
 		cb.tree = &tree;
+		cb.metaTable = &metaTable;
 
 		WideFilePath path;
 		Format(path, L"%hs", contentFolder);

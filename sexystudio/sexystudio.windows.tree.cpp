@@ -11,10 +11,16 @@ namespace
 		Win32ChildWindow eventSinkWindow;
 		HWND hTreeWnd;
 		AutoFree<ILayoutSet> layouts = CreateLayoutSet();
+		IGuiTreeRenderer* customRenderer;
+		HIMAGELIST hImages = nullptr;
 
-		Tree(IWidgetSet& widgets, const TreeStyle& treeStyle):
-			eventSinkWindow(widgets.Parent(), *this)
+		Tree(IWidgetSet& widgets, const TreeStyle& treeStyle, IGuiTreeRenderer* _customRenderer):
+			eventSinkWindow(widgets.Parent(), *this),
+			customRenderer(_customRenderer)
 		{
+			enum { BITMAP_SPAN = 24 };
+			hImages = ImageList_Create(BITMAP_SPAN, BITMAP_SPAN, ILC_COLOR32 | ILC_MASK, 3, 1);
+
 			DWORD exStyle = TVS_EX_AUTOHSCROLL | TVS_EX_DOUBLEBUFFER;
 			DWORD win32Style = WS_CHILD | WS_VSCROLL;
 
@@ -37,6 +43,41 @@ namespace
 		~Tree()
 		{
 			DestroyWindow(hTreeWnd);
+			if (hImages) ImageList_Destroy(hImages);
+		}
+
+		void OnExpansionChanged(NMTREEVIEW& tv)
+		{
+			if (customRenderer)
+			{
+				int imageIndex;
+
+				if (tv.action == TVE_EXPAND)
+				{
+					imageIndex = customRenderer->GetExpandedImageIndex(tv.itemNew.lParam);
+				}
+				else
+				{
+					imageIndex = customRenderer->GetContractedImageIndex(tv.itemNew.lParam);
+				}
+
+				SetItemImage((ID_TREE_ITEM) tv.itemNew.hItem, imageIndex);
+			}
+		}
+
+		LRESULT OnNotifyFromTreeView(NMHDR* header, bool& callDefProc)
+		{
+			callDefProc = true;;
+
+			switch (header->code)
+			{
+			case TVN_ITEMEXPANDED:
+			case TVN_ITEMEXPANDING:
+				OnExpansionChanged((NMTREEVIEW&)*header);
+				return 0L;
+			}
+
+			return 0L;
 		}
 
 		LRESULT ProcessMessage(UINT msg, WPARAM wParam, LPARAM lParam) override
@@ -52,7 +93,25 @@ namespace
 					MoveWindow(hTreeWnd, 0, 0, width, height, TRUE);
 				}
 				break;
+			case WM_NOTIFY:
+				{
+					auto* pHeader = (NMHDR*)(lParam);
+					if (pHeader->hwndFrom == hTreeWnd)
+					{
+						bool callDefProc = false;
+						LRESULT retValue = OnNotifyFromTreeView(pHeader, callDefProc);
+						if (callDefProc)
+						{
+							break;
+						}
+						else
+						{
+							return retValue;
+						}
+					}
+				}
 			}
+
 			return DefWindowProcA(eventSinkWindow, msg, wParam, lParam);
 		}
 
@@ -61,18 +120,84 @@ namespace
 			TV_INSERTSTRUCTA item = { 0 };
 			item.hParent = (HTREEITEM)branch;
 			item.hInsertAfter = TVI_LAST;
-			item.itemex.mask = 0; 
+
 			HTREEITEM hItem = (HTREEITEM)SendMessageA(hTreeWnd, TVM_INSERTITEMA, 0, (LPARAM)&item);
 			if (hItem == 0)
 			{
 				Throw(GetLastError(), "%s: could not insert item in tree", __FUNCTION__);
 			}
+
 			return (ID_TREE_ITEM)hItem;
+		}
+
+		void CollapseBranchAndRecurse(HTREEITEM hItem)
+		{
+			auto state = TreeView_GetItemState(hTreeWnd, hItem, 0xFFFFFFFF);
+			TreeView_SetItemState(hTreeWnd, hItem, state & ~TVIS_EXPANDEDONCE, 0xFFFFFFFF);
+			auto hChild = TreeView_GetChild(hTreeWnd, hItem);
+			while (hChild)
+			{
+				CollapseBranchAndRecurse(hChild);
+				hChild = TreeView_GetNextSibling(hTreeWnd, hChild);
+			}
+		}
+
+		void Collapse() override
+		{
+			auto root = TreeView_GetRoot(hTreeWnd);
+			CollapseBranchAndRecurse(root);
+		}
+
+		void SetImageList(uint32 nItems, ...)
+		{
+			if (ImageList_GetImageCount(hImages) != 0)
+			{
+				Throw(0, "%s: the image list has already been defined", __FUNCTION__);
+			}
+
+			HINSTANCE hInstance = GetMainInstance();
+
+			va_list args;
+			va_start(args, nItems);
+
+			ImageList_SetBkColor(hImages, TreeView_GetBkColor(hTreeWnd));
+
+			for (uint32 i = 0; i < nItems; ++i)
+			{
+				uint32 id = va_arg(args, uint32);
+				HBITMAP hBitmap = (HBITMAP) LoadImageW(hInstance, MAKEINTRESOURCE(id), IMAGE_BITMAP, 0, 0, 0);
+				if (hBitmap == nullptr)
+				{
+					Throw(GetLastError(), "%s: LoadBitmap failed", __FUNCTION__);
+				}
+				ImageList_AddMasked(hImages, hBitmap, RGB(255,255,255));
+				DeleteObject(hBitmap);
+			}
+
+			va_end(args);
+
+			// Fail if not all of the images were added. 
+			if (ImageList_GetImageCount(hImages) != nItems)
+			{
+				Throw(0, "%s: ImageList failed to add all bitmaps", __FUNCTION__);
+			}
+
+			// Associate the image list with the tree-view control. 
+			TreeView_SetImageList(hTreeWnd, hImages, TVSIL_NORMAL);
 		}
 
 		void EnableExpansionIcons(bool enable) override
 		{
 			
+		}
+
+		void SetContext(ID_TREE_ITEM hItem, uint64 contextId) override
+		{
+			TV_ITEMA item = { 0 };
+			item.mask = TVIF_PARAM | TVIF_HANDLE;
+			item.lParam = (LPARAM)contextId;
+			item.hItem = (HTREEITEM)hItem;
+			SendMessageA(hTreeWnd, TVM_SETITEMA, 0, (LPARAM)&item);
 		}
 
 		void SetItemText(cstr text, ID_TREE_ITEM hItem) override
@@ -81,6 +206,25 @@ namespace
 			item.mask = TVIF_TEXT | TVIF_HANDLE;
 			item.pszText = const_cast<char*>(text);;
 			item.hItem = (HTREEITEM) hItem;
+			SendMessageA(hTreeWnd, TVM_SETITEMA, 0, (LPARAM)&item);
+		}
+
+		void SetItemImage(ID_TREE_ITEM hItem, int imageIndex) override
+		{
+			TV_ITEMA item = { 0 };
+			item.mask = TVIF_IMAGE | TVIF_HANDLE | TVIF_SELECTEDIMAGE;
+			item.hItem = (HTREEITEM)hItem;
+			item.iImage = imageIndex;
+			item.iSelectedImage = imageIndex;
+			SendMessageA(hTreeWnd, TVM_SETITEMA, 0, (LPARAM)&item);
+		}
+
+		void SetItemExpandedImage(ID_TREE_ITEM hItem, int imageIndex) override
+		{
+			TVITEMEXA item = { 0 };
+			item.mask =  TVIF_HANDLE | TVIF_EXPANDEDIMAGE;
+			item.hItem = (HTREEITEM)hItem;
+			item.iExpandedImage = imageIndex;
 			SendMessageA(hTreeWnd, TVM_SETITEMA, 0, (LPARAM)&item);
 		}
 
@@ -126,9 +270,9 @@ namespace
 
 namespace Rococo::SexyStudio
 {
-	IGuiTree* CreateTree(IWidgetSet& widgets, const TreeStyle& style)
+	IGuiTree* CreateTree(IWidgetSet& widgets, const TreeStyle& style, IGuiTreeRenderer* customRenderer)
 	{
-		auto* tree = new Tree(widgets, style);
+		auto* tree = new Tree(widgets, style, customRenderer);
 		widgets.Add(tree);
 		return tree;
 	}

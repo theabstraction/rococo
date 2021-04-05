@@ -308,7 +308,9 @@ namespace
 					{
 						try
 						{
-							BrowseFolder(*filePath, "Sexy Studio - Pick a Directory", hWndButton);
+							char title[128];
+							SafeFormat(title, "SexyStudio - %s", name.c_str());
+							BrowseFolder(*filePath, title, hWndButton);
 							SetWindowTextA(hWndEditor, *filePath);
 							PublishChange();
 						}

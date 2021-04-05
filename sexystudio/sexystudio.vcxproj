@@ -114,6 +114,12 @@
     <ResourceCompile Include="sexystudio.rc" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="bitmap1.bmp" />
+    <Image Include="filetype-sxy.bmp" />
+    <Image Include="filetype-unknown.bmp" />
+    <Image Include="folder-close.bmp" />
+    <Image Include="folder-open.bmp" />
+    <Image Include="sexystudio.folder-closed.bmp" />
     <Image Include="sexystudio.large.ico" />
     <Image Include="sexystudio.small.ico" />
   </ItemGroup>
