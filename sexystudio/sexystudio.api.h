@@ -36,6 +36,12 @@ namespace Rococo::SexyStudio
 		IOSFont& fontSmallLabel;
 	};
 
+	struct WaitCursorSection
+	{
+		WaitCursorSection();
+		~WaitCursorSection();
+	};
+
 	ROCOCOAPI ILayout
 	{
 		virtual void Layout(IGuiWidget& widget, GuiRect & rect) = 0;
@@ -49,10 +55,13 @@ namespace Rococo::SexyStudio
 		virtual void Layout(IGuiWidget& widget) = 0;
 	};
 
+	typedef uint64 ID_SXY_META;
+
 	ROCOCOAPI ISXYMetaTable
 	{
 		virtual void Free() = 0;
-		virtual uint64 RefreshSXYStatus(cstr path) = 0;
+		virtual ID_SXY_META RefreshSXYStatus(cstr path) = 0;
+		virtual bool TryGetError(ID_SXY_META metaId, int& errorCode, char* buffer, size_t nBytesInBuffer) = 0;
 	};
 
 	ISXYMetaTable* CreateSXYMetaTable();
@@ -65,7 +74,7 @@ namespace Rococo::SexyStudio
 		virtual void Layout() = 0;
 
 		// add a modifier - to modify the way this widget is layed out
-		virtual void AddLayoutModifier(ILayout* preprocessor) = 0;
+		virtual void AddLayoutModifier(ILayout* l) = 0;
 
 		// Release the memory associated with this widget, invalidating it.
 		virtual void Free() = 0;
@@ -200,6 +209,7 @@ namespace Rococo::SexyStudio
 		operator IWindow& () { return Window(); };
 		// Update child geometry. This is issued when the control is resized and also by calling SetVisible
 		virtual void LayoutChildren() = 0;
+		virtual void SetProgress(float progressPercent, cstr bannerText) = 0;
 	};
 
 	ROCOCOAPI IIDEFrameSupervisor : IIDEFrame

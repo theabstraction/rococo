@@ -57,13 +57,14 @@ namespace Globals
 
 namespace Rococo::SexyStudio
 {
-	void PopulateTreeWithSXYFiles(IGuiTree& tree, cstr contentFolder, ISXYMetaTable& metaTable);
+	void PopulateTreeWithSXYFiles(IGuiTree& tree, cstr contentFolder, ISXYMetaTable& metaTable, IIDEFrame& frame);
 }
 
 class PropertySheets: IObserver, IGuiTreeRenderer
 {
 private:
 	WidgetContext wc;
+	IIDEFrame& ideFrame;
 
 	IGuiTree* fileBrowser = nullptr;
 
@@ -73,7 +74,10 @@ private:
 	{
 		if (ev == evContentChange)
 		{
-			PopulateTreeWithSXYFiles(*fileBrowser, Globals::contentFolder, *metaTable);
+			WaitCursorSection waitSection;
+			ideFrame.SetProgress(0.0f, "Populating file browser...");
+			PopulateTreeWithSXYFiles(*fileBrowser, Globals::contentFolder, *metaTable, ideFrame);
+			ideFrame.SetProgress(100.0f, "Populated file browser");
 		}
 	}
 
@@ -93,8 +97,9 @@ private:
 	}
 
 public:
-	PropertySheets(ISplitScreen& screen): 
+	PropertySheets(ISplitScreen& screen, IIDEFrame& _ideFrame): 
 		wc(screen.Children()->Context()),
+		ideFrame(_ideFrame),
 		metaTable(CreateSXYMetaTable())
 	{
 		screen.SetBackgroundColour(RGBAb(128, 192, 128));
@@ -116,22 +121,33 @@ public:
 		IVariableList* globalSettings = CreateVariableList(settingsTab.Children());
 		globalSettings->SetVisible(true);
 
-		auto* contentEditor = globalSettings->AddFilePathEditor();
-		contentEditor->SetName("Content");
-		contentEditor->Bind(Globals::contentFolder, 128);
-		contentEditor->SetVisible(true);
-		contentEditor->SetUpdateEvent(evContentChange);
 
 		TreeStyle style;
 		style.hasButtons = true;
 		style.hasLines = true;
 
+		IVariableList* projectSettings = CreateVariableList(projectTab.Children());
+		projectSettings->SetVisible(true);
+
+		Widgets::AnchorToParentLeft(*projectSettings, 0);
+		Widgets::AnchorToParentRight(*projectSettings, 0);
+		Widgets::AnchorToParentTop(*projectSettings, 0);
+		Widgets::ExpandBottomFromTop(*projectSettings, 32);
+
+		auto* contentEditor = projectSettings->AddFilePathEditor();
+		contentEditor->SetName("Content");
+		contentEditor->Bind(Globals::contentFolder, 128);
+		contentEditor->SetVisible(true);
+		contentEditor->SetUpdateEvent(evContentChange);
+
 		fileBrowser = CreateTree(projectTab.Children(), style, this);
-		Widgets::AnchorToParent(*fileBrowser, 0, 0, 0, 0);
+		Widgets::AnchorToParent(*fileBrowser, 0, 32, 0, 0);
 		fileBrowser->SetVisible(true);
 		fileBrowser->SetImageList(4, IDB_FOLDER_CLOSED, IDB_FOLDER_OPEN, IDB_FILETYPE_SXY, IDB_FILETYPE_UNKNOWN);
 
-		PopulateTreeWithSXYFiles(*fileBrowser, Globals::contentFolder, *metaTable);
+		PopulateTreeWithSXYFiles(*fileBrowser, Globals::contentFolder, *metaTable, ideFrame);
+
+		ideFrame.SetProgress(100.0f, "Complete!");
 
 		wc.publisher.Subscribe(this, evContentChange);
 	}
@@ -218,7 +234,7 @@ void Main(IMessagePump& pump)
 	auto* projectView = splitscreen->GetFirstHalf();
 	auto* sourceView = splitscreen->GetSecondHalf();
 
-	PropertySheets propertySheets(*projectView);
+	PropertySheets propertySheets(*projectView, *ide);
 	BuildSourceSheets(*sourceView);
 
 	publisher->Subscribe(&ideEvents, evIDEClose);

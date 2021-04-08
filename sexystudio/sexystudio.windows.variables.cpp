@@ -192,7 +192,7 @@ namespace
 		{
 		}
 
-		void AddLayoutModifier(ILayout* preprocessor) override
+		void AddLayoutModifier(ILayout* l) override
 		{
 			Throw(0, "Not implemented");
 		}
@@ -381,7 +381,7 @@ namespace
 		{
 		}
 
-		void AddLayoutModifier(ILayout* preprocessor) override
+		void AddLayoutModifier(ILayout* l) override
 		{
 			Throw(0, "Not implemented");
 		}
@@ -415,6 +415,7 @@ namespace
 		AutoFree<IWidgetSetSupervisor> children;
 		Theme theme;
 		Brush bkBrush;
+		AutoFree<ILayoutSet> layoutRules;
 
 		VariableList(IWidgetSet& widgets):
 			window(widgets.Parent(), *this)
@@ -422,6 +423,7 @@ namespace
 			children = CreateDefaultWidgetSet(window, widgets.Context());
 			theme = GetTheme(widgets.Context().publisher);
 			bkBrush = ToCOLORREF(theme.normal.bkColor);
+			layoutRules = CreateLayoutSet();
 		}
 
 		void OnPaint(HDC dc) override
@@ -460,8 +462,9 @@ namespace
 
 		void Layout() override
 		{
-			Vec2i span = Widgets::GetParentSpan(window);
-			MoveWindow(window, 0, 0, span.x, span.y, TRUE);
+			layoutRules->Layout(*this);
+
+			Vec2i span = Widgets::GetSpan(window);
 
 			int32 x = 0;
 			int32 y = 4;
@@ -475,9 +478,9 @@ namespace
 			}
 		}
 
-		void AddLayoutModifier(ILayout* preprocessor) override
+		void AddLayoutModifier(ILayout* l) override
 		{
-			Throw(0, "Not implemented");
+			layoutRules->Add(l);
 		}
 
 		void Free() override

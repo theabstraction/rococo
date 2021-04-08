@@ -43,6 +43,16 @@ namespace Rococo::SexyStudio
 		return s_hInstance;
 	}
 
+	WaitCursorSection::WaitCursorSection()
+	{
+		SetCursor(LoadCursor(NULL, IDC_WAIT));
+	}
+
+	WaitCursorSection::~WaitCursorSection()
+	{
+		// In Windows the wait cursor will vanish when the SendMessage handler returns, so no implementation required here
+	}
+
 	void SetLastMessageError(IException& ex)
 	{
 		lastError = ex.ErrorCode();

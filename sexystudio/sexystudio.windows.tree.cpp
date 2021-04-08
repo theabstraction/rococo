@@ -233,9 +233,9 @@ namespace
 			layouts->Layout(*this);
 		}
 
-		void AddLayoutModifier(ILayout* preprocessor) override
+		void AddLayoutModifier(ILayout* l) override
 		{
-			layouts->Add(preprocessor);
+			layouts->Add(l);
 		}
 
 		void Free() override

@@ -123,11 +123,163 @@ namespace
 		}
 	};
 
+	enum { WM_PROGRESS_HIDE = WM_USER };
+
+	class Win32ProgressWindow : private IWin32WindowMessageLoopHandler, IWin32Painter
+	{
+		WidgetContext wc;
+		Win32PopupWindow window;
+		HString banner;
+		float percent = 0;
+
+	public:
+		Win32ProgressWindow(HWND hParent, WidgetContext& _wc): wc(_wc), window(hParent, *this)
+		{
+
+		}
+
+		void DrawRect(const RECT& rect, HDC dc, COLORREF colour)
+		{
+			HBRUSH hBrush = CreateSolidBrush(colour);
+			FillRect(dc, &rect, hBrush);
+			DeleteObject((HGDIOBJ)hBrush);
+		}
+
+		void OnPaint(HDC dc) override
+		{
+			auto oldFont = SelectObject(dc, wc.fontSmallLabel);
+
+			RECT rect;
+			GetClientRect(window, &rect);
+
+			COLORREF backColour = RGB(160, 160, 200);
+
+			DrawRect(rect, dc, backColour);
+
+			SetBkColor(dc, backColour);
+			SetTextColor(dc, RGB(0, 0, 0));
+
+			int xBorder = 4;
+
+			RECT bannerRect = rect;
+			bannerRect.left += xBorder;
+			bannerRect.right -= xBorder;
+			bannerRect.top += 20;
+			bannerRect.bottom = 200;
+
+			DrawTextA(dc, banner, -1, &bannerRect, DT_LEFT | DT_TOP);
+
+			int yCenter = rect.bottom / 2;
+
+			RECT progressBar = rect;
+			progressBar.left += xBorder;
+			progressBar.right -= xBorder;
+			progressBar.top = yCenter - 20;
+			progressBar.bottom = yCenter + 20;
+
+			SelectObject(dc, GetStockObject(BLACK_PEN));
+
+			POINT p;
+			MoveToEx(dc, progressBar.left, progressBar.top, &p);
+			LineTo(dc, progressBar.right, progressBar.top);
+			LineTo(dc, progressBar.right, progressBar.bottom);
+			LineTo(dc, progressBar.left, progressBar.bottom);
+			LineTo(dc, progressBar.left, progressBar.top);
+
+			progressBar.left += 1;
+			progressBar.right -= 1;
+			progressBar.top += 1;
+			progressBar.bottom -= 1;
+
+			RECT progressTextBar = progressBar;
+
+			int span = (int) ((progressBar.right - progressBar.left) * (percent / 100.0f));
+
+			progressBar.right = progressBar.left + span;
+
+			COLORREF barColour = RGB(0, 0, 255);
+
+			DrawRect(progressBar, dc, barColour);
+
+			SetBkColor(dc, RGB(255,255,255));
+
+			int xCenter = rect.right / 2;
+
+			progressTextBar.left = xCenter - 30;
+			progressTextBar.right = xCenter + 30;
+			progressTextBar.top += 8;
+			progressTextBar.bottom -= 8;
+
+			DrawRect(progressTextBar, dc, RGB(255, 255, 255));
+
+			char buf[32];
+			SafeFormat(buf, "%2.0f %%", percent);
+			DrawTextA(dc, buf, -1, &progressTextBar, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
+
+			SelectObject(dc, oldFont);
+		}
+
+		LRESULT ProcessMessage(UINT msg, WPARAM wParam, LPARAM lParam) override
+		{
+			switch (msg)
+			{
+			case WM_PAINT:
+				PaintDoubleBuffered(window, *this);
+				return 0L;
+			case WM_ERASEBKGND:
+				return TRUE;
+			case WM_PROGRESS_HIDE:
+				ShowWindow(window, SW_HIDE);
+				return 0L;
+			}
+			return DefWindowProc(window, msg, wParam, lParam);
+		}
+
+		void SetProgress(float progressPercent, cstr bannerText)
+		{
+			if (!IsWindowVisible(window))
+			{
+				Layout();
+			}
+
+			banner = bannerText;
+			percent = clamp(progressPercent, 0.0f, 100.0f);
+
+			ShowWindow(window, SW_SHOW);
+			if (progressPercent >= 100.0f)
+			{
+				PostMessage(window, WM_PROGRESS_HIDE, 0, 0);
+			}
+
+			InvalidateRect(window, NULL, FALSE);
+			UpdateWindow(window);
+		}
+
+		operator HWND() { return window; }
+
+		void Layout()
+		{
+			RECT parentRect;
+			if (GetClientRect(GetParent(window), &parentRect))
+			{
+				Vec2i span = { 600, 300 };
+				int x = (parentRect.right -  span.x) / 2;
+				int y = (parentRect.bottom - span.y) / 2;
+
+				POINT p = { x,y };
+				ClientToScreen(GetParent(window), &p);
+				
+				MoveWindow(window, p.x, p.y, span.x, span.y, FALSE);
+			}
+		}
+	};
+
 	class Win32MainIDEWindow : public IIDEFrameSupervisor, private IWin32WindowMessageLoopHandler, public IWin32Painter
 	{
 	public:
 		WidgetContext& context;
 		Win32TopLevelWindow mainFrame;
+		Win32ProgressWindow progressWindow;
 		TooltipWindow tooltipWindow;
 		AutoFree<IWidgetSetSupervisor> children;
 		EventIdRef evClose = { 0 };
@@ -136,7 +288,8 @@ namespace
 		Win32MainIDEWindow(WidgetContext& _context) :
 			context(_context),
 			mainFrame(ideExStyle, ideStyle, *this),
-			tooltipWindow(mainFrame, context)
+			tooltipWindow(mainFrame, context),
+			progressWindow((HWND) mainFrame, _context)
 		{
 			children = CreateDefaultWidgetSet(mainFrame, context);
 		}
@@ -158,6 +311,12 @@ namespace
 		{
 			switch (msg)
 			{
+			case WM_GETMINMAXINFO:
+				{
+					auto* m = (MINMAXINFO*)lParam;
+					m->ptMinTrackSize = { 800, 600 };
+				}
+				return 0;
 			case WM_ERASEBKGND:
 				return TRUE;
 			case WM_CLOSE:
@@ -172,7 +331,11 @@ namespace
 					context.publisher.Publish(args, evClose);
 				}
 				break;
+			case WM_MOVE:
+				progressWindow.Layout();
+				break;
 			case WM_SIZE:
+				progressWindow.Layout();
 				if (evResize.name != nullptr)
 				{
 					Rococo::Events::TEventArgs<IWidgetSet*> args;
@@ -219,6 +382,11 @@ namespace
 		void SetResizeEvent(const Rococo::Events::EventIdRef& evResize) override
 		{
 			this->evResize = evResize;
+		}
+
+		void SetProgress(float progressPercent, cstr bannerText) override
+		{
+			progressWindow.SetProgress(progressPercent, bannerText);
 		}
 	};
 }
