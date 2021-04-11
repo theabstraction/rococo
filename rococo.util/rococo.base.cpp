@@ -143,49 +143,79 @@ namespace Rococo
 
 namespace Rococo
 {
+	using namespace Rococo::Debugging;
+
+	struct RococoException : public IException, public IStackFrameEnumerator
+	{
+		char msg[2048];
+		int32 errorCode;
+
+		std::list<StackFrame> stackFrames;
+
+		cstr Message() const override
+		{
+			return msg;
+		}
+
+		int32 ErrorCode() const override
+		{
+			return errorCode;
+		}
+
+		IStackFrameEnumerator* StackFrames() override
+		{
+			return this;
+		}
+
+		void FormatEachStackFrame(IStackFrameFormatter& formatter) override
+		{
+			for (auto& i : stackFrames)
+			{
+				formatter.Format(i);
+			}
+		}
+	};
+
 	void Throw(int32 errorCode, cstr format, ...)
 	{
-		using namespace Rococo::Debugging;
-
 		va_list args;
 		va_start(args, format);
 
-		struct RococoException : public IException, public IStackFrameEnumerator
-		{
-			char msg[2048];
-			int32 errorCode;
-
-			std::list<StackFrame> stackFrames;
-
-			cstr Message() const override
-			{
-				return msg;
-			}
-
-			int32 ErrorCode() const override
-			{
-				return errorCode;
-			}
-
-			IStackFrameEnumerator* StackFrames() override
-			{
-				return this;
-			}
-
-			void FormatEachStackFrame(IStackFrameFormatter& formatter) override
-			{
-				for (auto& i : stackFrames)
-				{
-					formatter.Format(i);
-				}
-			}
-		} ex;
+		RococoException ex;
 
 		SafeVFormat(ex.msg, sizeof(ex.msg), format, args);
 
 		ex.errorCode = errorCode;
 
 		OS::BreakOnThrow((OS::BreakFlag)0x7FFFFFFF);
+
+		struct ANON : public IStackFrameFormatter
+		{
+			RococoException* ex;
+			void Format(const StackFrame& sf)
+			{
+				ex->stackFrames.push_back(sf);
+			}
+		} formatter;
+		formatter.ex = &ex;
+
+		FormatStackFrames(formatter);
+
+		throw ex;
+	}
+
+	void ThrowIllFormedSExpression(int32 errorCode, cstr format, ...)
+	{
+		va_list args;
+		va_start(args, format);
+
+		RococoException ex;
+
+		SafeVFormat(ex.msg, sizeof(ex.msg), format, args);
+
+		ex.errorCode = errorCode;
+
+		OS::BreakOnThrow(OS::BreakFlag_IllFormed_SExpression);
 
 		struct ANON : public IStackFrameFormatter
 		{

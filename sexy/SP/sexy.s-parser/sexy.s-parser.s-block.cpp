@@ -51,6 +51,11 @@
 
 #include <new>
 
+namespace Rococo
+{
+	void ThrowIllFormedSExpression(int32 errorCode, cstr format, ...);
+}
+
 namespace Anon
 {
 	using namespace Rococo;
@@ -342,7 +347,7 @@ namespace Anon
 
 		SParser(cstr _sExpression, size_t length, IExpressionBuilder& _builder) : sExpression(_sExpression), builder(_builder)
 		{
-			if (_sExpression == nullptr) Throw(0, "Parser::Parse - null expression forbidden");
+			if (_sExpression == nullptr) ThrowIllFormedSExpression(0, "Parser::Parse - null expression forbidden");
 			len = length;
 			end = sExpression + len;
 		}
@@ -357,7 +362,7 @@ namespace Anon
 
 				if (next != end)
 				{
-					Throw((int)(end - next), "Parser::Parse failed: too many close parenthesis characters");
+					ThrowIllFormedSExpression((int)(end - next), "Parser::Parse failed: too many close parenthesis characters");
 				}
 
 				builder.FinishCompound(sExpression, end, 0, root);
@@ -469,7 +474,7 @@ namespace Anon
 
 			if (depth != 0)
 			{
-				Throw((int)(next - sExpression), "Missing close parenthesis character before end of s-expression");
+				ThrowIllFormedSExpression((int)(next - sExpression), "Missing close parenthesis character before end of s-expression");
 			}
 
 			return next;

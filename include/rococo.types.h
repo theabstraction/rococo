@@ -544,6 +544,7 @@ namespace Rococo
 			BreakFlag_STC = 1,
 			BreakFlag_VM = 2,
 			BreakFlag_SS = 4,
+			BreakFlag_IllFormed_SExpression = 8,
 			BreakFlag_All = 0x7FFFFFFF
 		};
 

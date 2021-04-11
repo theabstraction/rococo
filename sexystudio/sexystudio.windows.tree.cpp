@@ -265,6 +265,40 @@ namespace
 		{
 			TreeView_DeleteAllItems(hTreeWnd);
 		}
+
+		void EnumerateChildren(ID_TREE_ITEM id, IEventCallback<TreeItemInfo>& cb) const override
+		{
+			ID_TREE_ITEM idChild = (ID_TREE_ITEM) SendMessage(hTreeWnd, TVM_GETNEXTITEM, TVGN_CHILD, id);
+			if (idChild != 0)
+			{
+				TreeItemInfo info{ idChild };
+				cb.OnEvent(info);
+
+				for (;;)
+				{
+					idChild = (ID_TREE_ITEM)SendMessage(hTreeWnd, TVM_GETNEXTITEM, TVGN_NEXT, idChild);
+					if (idChild != 0)
+					{
+						TreeItemInfo info{ idChild };
+						cb.OnEvent(info);
+					}
+					else
+					{
+						break;
+					}
+				}
+			}
+		}
+
+		void GetText(char* buffer, size_t capacity, ID_TREE_ITEM id) override
+		{
+			TV_ITEMA item = { 0 };
+			item.mask = TVIF_TEXT | TVIF_HANDLE;
+			item.pszText = buffer;
+			item.cchTextMax = (int) capacity;
+			item.hItem = (HTREEITEM)id;
+			SendMessageA(hTreeWnd, TVM_GETITEMA, 0, (LPARAM) &item);
+		}
 	};
 }
 

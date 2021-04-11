@@ -1,10 +1,108 @@
 #include "sexystudio.impl.h"
 #include <rococo.maths.h>
+#include <rococo.strings.h>
 
 using namespace Rococo;
 
 namespace Rococo::SexyStudio
 {
+	void AppendAncestorsToString(IWindow& window, StringBuilder& sb)
+	{
+		HWND hWnd = window;
+		while (hWnd !=  nullptr)
+		{
+			char buf[256];
+			if (!GetWindowTextA(hWnd, buf, sizeof buf))
+			{
+				sb.AppendFormat("(HWND 0x%llX)\r\n", hWnd);
+			}
+			else
+			{
+				sb.AppendFormat("(HWND '%s')\r\n", buf);
+			}
+
+			hWnd = GetParent(hWnd);
+		}
+	}
+
+	void AppendAncestorsAndRectsToString(IWindow& window, StringBuilder& sb)
+	{
+		HWND hWnd = window;
+		while (hWnd != nullptr)
+		{
+			char buf[256];
+			if (!GetWindowTextA(hWnd, buf, sizeof buf))
+			{
+				sb.AppendFormat("(HWND 0x%llX", hWnd);
+			}
+			else
+			{
+				sb.AppendFormat("(HWND '%s'", buf);
+			}
+
+			RECT rect;
+			GetWindowRect(window, &rect);
+			sb.AppendFormat(": %d %d %d %d)\r\n", hWnd, rect.left, rect.top, rect.right, rect.bottom);
+
+			hWnd = GetParent(hWnd);
+		}
+	}
+
+	void AppendDescendantsAndRectsToStringRecursive(HWND hWnd, StringBuilder& sb, int indent)
+	{
+		for (int i = 0; i < indent; ++i)
+		{
+			sb.AppendChar(' ');
+		}
+
+		char className[128];
+		RealGetWindowClassA(hWnd, className, sizeof className);
+
+		char buf[256];
+		if (!GetWindowTextA(hWnd, buf, sizeof buf))
+		{
+			sb.AppendFormat("(HWND %s 0x%llX", className, hWnd);
+		}
+		else
+		{
+			sb.AppendFormat("(HWND %s '%s'", className, buf);
+		}
+
+		RECT rect;
+		GetWindowRect(hWnd, &rect);
+		sb.AppendFormat(": %d %d %d %d)\r\n", rect.left, rect.top, rect.right, rect.bottom);
+
+		if (Eq("SysTreeView32", className))
+		{
+			return;
+		}
+
+		struct Context
+		{
+			static BOOL OnWindow(HWND hChildWnd, LPARAM param)
+			{
+				auto* context = (Context*)param;
+				if (GetParent(hChildWnd) == context->hParentWnd)
+				{
+					AppendDescendantsAndRectsToStringRecursive(hChildWnd, context->sb, context->indent + 1);
+				}
+
+				return TRUE;
+			}
+
+			StringBuilder& sb;
+			int indent;
+			HWND hParentWnd;
+		} context{ sb, indent, hWnd };
+
+		EnumChildWindows(hWnd, Context::OnWindow, (LPARAM) &context);
+	}
+
+	void AppendDescendantsAndRectsToString(IWindow& root, StringBuilder& sb)
+	{
+		AppendDescendantsAndRectsToStringRecursive(root, sb, 0);
+	}
+
 	Font::Font(LOGFONTA logFont)
 	{
 		hFont = CreateFontIndirectA(&logFont);
@@ -61,7 +159,7 @@ namespace Rococo::SexyStudio
 		classDef.cbSize = sizeof(classDef);
 		classDef.style = 0;
 		classDef.cbWndExtra = 0;
-		classDef.hbrBackground = (HBRUSH)COLOR_WINDOW;
+		classDef.hbrBackground = (HBRUSH) COLOR_WINDOW;
 		classDef.hCursor = LoadCursor(nullptr, IDC_ARROW);
 		classDef.hIcon = nullptr;
 		classDef.hIconSm = nullptr;
@@ -212,6 +310,12 @@ namespace Rococo::SexyStudio
 			return GuiRect{ rect.left, rect.top, rect.right, rect.bottom };
 		}
 
+		void ExpandToFillParentSpace(IWindow& window)
+		{
+			Vec2i span = GetParentSpan(window);
+			MoveWindow(window, 0, 0, span.x, span.y, TRUE);
+		}
+
 		Vec2i GetParentSpan(IWindow& window)
 		{
 			RECT rect;
@@ -244,9 +348,7 @@ namespace Rococo::SexyStudio
 
 		void SetSpan(IWindow& window, int32 dx, int32 dy)
 		{
-			RECT rect;
-			GetWindowRect(window, &rect);
-			MoveWindow(window, rect.left, rect.top, dx, dy, TRUE);
+			MoveWindow(window, 0, 0, dx, dy, TRUE);
 		}
 
 		void SetWidgetPosition(IWindow& widget, const GuiRect& rect)

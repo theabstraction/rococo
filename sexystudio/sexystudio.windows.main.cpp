@@ -13,7 +13,7 @@ namespace
 		classDef.cbSize = sizeof(classDef);
 		classDef.style = 0;
 		classDef.cbWndExtra = 0;
-		classDef.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
+		classDef.hbrBackground = (HBRUSH) GetStockObject(BLACK_BRUSH);
 		classDef.hCursor = LoadCursor(nullptr, IDC_ARROW);
 		classDef.hIcon = LoadIconA(hInstance, (cstr)IDI_ICON1);
 		classDef.hIconSm = LoadIconA(hInstance, (cstr)IDI_ICON2);

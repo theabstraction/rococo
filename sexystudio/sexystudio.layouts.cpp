@@ -18,17 +18,13 @@ namespace Rococo::SexyStudio::Widgets
 			void Layout(IGuiWidget& widget, GuiRect& rect) override
 			{
 				// Ignore the rectangle input
-				rect = GetScreenRect(widget);
 				Vec2i span = GetParentSpan(widget);
-				rect.right = rect.left + span.x;
-				rect.bottom = rect.top + span.y;
-
-				rect = Widgets::MapScreenToWindowRect(rect, widget);
-
-				rect.left += leftBorder;
-				rect.right -= rightBorder;
-				rect.top += topBorder;
-				rect.bottom -=  bottomBorder;
+				rect = GuiRect {
+					leftBorder,
+					topBorder,
+					span.x - rightBorder,
+					span.y - bottomBorder
+				};
 			}
 
 			void Free() override
@@ -77,6 +73,10 @@ namespace Rococo::SexyStudio::Widgets
 			void Layout(IGuiWidget& widget, GuiRect& rect) override
 			{
 				auto parentSpan = Widgets::GetParentSpan(widget);
+				if (parentSpan.x <= 0)
+				{
+					Throw(0, "%s: Bad parent span { %d, %d }", __FUNCTION__, parentSpan.x, parentSpan.y);
+				}
 				rect.right = parentSpan.x - pixelBorder;
 			}
 
@@ -101,8 +101,6 @@ namespace Rococo::SexyStudio::Widgets
 			void Layout(IGuiWidget& widget, GuiRect& rect) override
 			{
 				rect.top = pixelBorder;
-				int32 height = rect.bottom - rect.top;
-				rect.bottom = rect.top + height;
 			}
 
 			void Free() override
@@ -124,7 +122,10 @@ namespace Rococo::SexyStudio::Widgets
 			int pixelHeight = 0;
 			void Layout(IGuiWidget& widget, GuiRect& rect) override
 			{
-				Vec2i parentSpan = Widgets::GetParentSpan(widget);
+				if (rect.top < 0)
+				{
+					Throw(0, "%s: rec.top is %d (undefined)", __FUNCTION__, rect.top);
+				}
 				rect.bottom = rect.top + pixelHeight;
 			}
 

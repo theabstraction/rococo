@@ -133,6 +133,23 @@ namespace
 		}
 	};
 
+	bool HasChild(HWND hWnd)
+	{
+		struct ANON
+		{
+			static BOOL MarkFound(HWND hChildWnd, LPARAM param)
+			{
+				bool& found = *(bool*)param;
+				found = true;
+				return FALSE;
+			}
+		};
+		
+		bool found = false;
+		EnumChildWindows(hWnd, ANON::MarkFound, (LPARAM) &found);
+		return found;
+	}
+
 	struct SplitScreen : ISplitScreen, IWin32WindowMessageLoopHandler, IWindow, IWin32Painter, IDragEvents
 	{
 		ISplitScreen* firstHalf = nullptr;
@@ -158,13 +175,21 @@ namespace
 
 		Theme theme;
 
-		SplitScreen(IWidgetSet& widgets):
-			window(widgets.Parent(), *this)
+		// Recursively generated split screens manage their own layouts and so do not need anchors
+		// However the container for the recursive set needs to define how to arrange the outer set using anchors
+		bool useAnchors;
+
+		SplitScreen(IWidgetSet& widgets, bool _useAnchors):
+			window(widgets.Parent(), *this), useAnchors(_useAnchors)
 		{
 			children = CreateDefaultWidgetSet(window, widgets.Context());
 			theme = GetTheme(widgets.Context().publisher);
 			bkBrush = ToCOLORREF(theme.normal.bkColor);
 			layoutRules = CreateLayoutSet();
+
+			char windowName[256];
+			SafeFormat(windowName, "Splitter 0x%llx", (HWND)window);
+			SetWindowTextA(window, windowName);
 		}
 
 		void OnPaint(HDC dc) override
@@ -196,15 +221,21 @@ namespace
 			switch (msg)
 			{
 			case WM_PAINT:
-				if (firstHalf || children->begin() != children->end())
+				if (HasChild(window))
 				{
-					break;
+					PAINTSTRUCT ps;
+					HDC dc = BeginPaint(window, &ps);
+					EndPaint(window, &ps);
 				}
-				PaintDoubleBuffered(window, *this);
+				else
+				{
+					PaintDoubleBuffered(window, *this);
+				}
 				return 0L;
 			case WM_ERASEBKGND:
-				return TRUE;
+				return TRUE; 
 			}
+		
 			return DefWindowProcA(window, msg, wParam, lParam);
 		}
 
@@ -228,8 +259,12 @@ namespace
 		{
 			if (!firstHalf)
 			{
-				firstHalf = CreateSplitScreen(*children);
-				secondHalf = CreateSplitScreen(*children);
+				firstHalf = new SplitScreen(*children, false);
+				children->Add(firstHalf);
+
+				secondHalf = new SplitScreen(*children, false);
+				children->Add(secondHalf);
+
 				dragger = new SplitDragger(*children, *this);
 			}
 		}
@@ -270,7 +305,7 @@ namespace
 
 		void Layout() override
 		{
-			layoutRules->Layout(*this);
+			if (useAnchors) layoutRules->Layout(*this);
 
 			RECT rect;
 			GetClientRect(GetParent(window), &rect);
@@ -312,6 +347,7 @@ namespace
 				firstHalf->Layout();
 				secondHalf->Layout();
 				InvalidateRect(window, NULL, TRUE);
+				UpdateWindow(window);
 			}
 			else
 			{
@@ -353,7 +389,7 @@ namespace
 				dragger->SetVisible(isVisible);
 			}
 
-			//InvalidateRect(window, NULL, TRUE);
+			InvalidateRect(window, NULL, TRUE);
 		}
 
 		IWidgetSet* Children() override
@@ -373,7 +409,7 @@ namespace Rococo::SexyStudio
 {
 	ISplitScreen* CreateSplitScreen(IWidgetSet& widgets)
 	{
-		auto* ss = new SplitScreen(widgets);
+		auto* ss = new SplitScreen(widgets, true);
 		widgets.Add(ss);
 		return ss;
 	}

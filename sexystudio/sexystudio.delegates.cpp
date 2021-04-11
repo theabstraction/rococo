@@ -1,5 +1,6 @@
 #include "sexystudio.impl.h"
 #include <vector>
+#include <rococo.strings.h>
 
 using namespace Rococo;
 using namespace Rococo::SexyStudio;
@@ -30,12 +31,19 @@ namespace
 
 		void Layout(IGuiWidget& widget) override
 		{
-			GuiRect rect = Widgets::GetScreenRect(widget);
-			rect = Widgets::MapScreenToWindowRect(rect, widget);
+			GuiRect rect = { -1, -1, -1, -1 };
 
 			for (auto* l : layouts)
 			{
 				l->Layout(widget, rect);
+			}
+
+			if (rect.left < 0 || rect.right <= rect.left || rect.top < 0 || rect.bottom <= rect.top)
+			{
+				char ancestors[1024];
+				StackStringBuilder sb(ancestors, sizeof ancestors);
+				AppendAncestorsToString(widget, sb);
+				Throw(0, "%s: rect not properly defined: { %d, %d, %d, %d }.\r\nWindow hierarchy:\r\n%s", __FUNCTION__, rect.left, rect.top, rect.right, rect.bottom, ancestors);
 			}
 
 			Widgets::SetWidgetPosition(widget, rect);

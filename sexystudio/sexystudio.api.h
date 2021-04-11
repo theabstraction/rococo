@@ -18,6 +18,12 @@ namespace Rococo
 	{
 		struct IWindow;
 	}
+
+	namespace Sex
+	{
+		struct ISExpression;
+		typedef const ISExpression& cr_sex;
+	}
 }
 
 namespace Rococo::SexyStudio
@@ -35,6 +41,10 @@ namespace Rococo::SexyStudio
 		IPublisher& publisher;
 		IOSFont& fontSmallLabel;
 	};
+
+	void AppendAncestorsToString(IWindow& window, StringBuilder& sb);
+	void AppendAncestorsAndRectsToString(IWindow& window, StringBuilder& sb);
+	void AppendDescendantsAndRectsToString(IWindow& window, StringBuilder& sb);
 
 	struct WaitCursorSection
 	{
@@ -57,11 +67,21 @@ namespace Rococo::SexyStudio
 
 	typedef uint64 ID_SXY_META;
 
+	struct MetaInfo
+	{
+		cstr filename;
+		const Sex::ISExpression* pRoot;
+		int errorCode;
+		cstr errorMsg;
+		size_t fileLength;
+	};
+
 	ROCOCOAPI ISXYMetaTable
 	{
 		virtual void Free() = 0;
 		virtual ID_SXY_META RefreshSXYStatus(cstr path) = 0;
 		virtual bool TryGetError(ID_SXY_META metaId, int& errorCode, char* buffer, size_t nBytesInBuffer) = 0;
+		virtual void ForEverySXYFile(IEventCallback<MetaInfo>& cb) = 0;
 	};
 
 	ISXYMetaTable* CreateSXYMetaTable();
@@ -100,6 +120,8 @@ namespace Rococo::SexyStudio
 		void ExpandBottomFromTop(IGuiWidget& widget, int pixels);
 		void ExpandLeftFromRight(IGuiWidget& widget, int pixels);
 
+		void ExpandToFillParentSpace(IWindow& window);
+
 		Vec2i GetParentSpan(IWindow& window);
 		GuiRect GetScreenRect(IWindow& window);
 		Vec2i GetSpan(IWindow& widget);
@@ -135,6 +157,11 @@ namespace Rococo::SexyStudio
 		virtual int GetContractedImageIndex(uint64 contextId) const = 0;
 	};
 
+	struct TreeItemInfo
+	{
+		ID_TREE_ITEM idItem;
+	};
+
 	ROCOCOAPI IGuiTree : IGuiWidget
 	{
 		virtual ID_TREE_ITEM AppendItem(ID_TREE_ITEM branch) = 0;
@@ -145,6 +172,8 @@ namespace Rococo::SexyStudio
 		virtual void SetItemExpandedImage(ID_TREE_ITEM hItem, int imageIndex) = 0;
 		virtual void SetItemText(cstr text, ID_TREE_ITEM hItem) = 0;
 		virtual void SetItemImage(ID_TREE_ITEM hItem, int imageIndex) = 0;
+		virtual void EnumerateChildren(ID_TREE_ITEM id, IEventCallback<TreeItemInfo>& cb) const = 0;
+		virtual void GetText(char* buffer, size_t capacity, ID_TREE_ITEM id) = 0;
 
 		// Define the list of image identifiers, each is an int32, example SetImageList(2, ID_FOLDER_CLOSED, ID_FOLDER_OPEN, ID_FILE)
 		virtual void SetImageList(uint32 nItems, ...) = 0;

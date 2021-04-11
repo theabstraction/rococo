@@ -112,6 +112,8 @@ namespace
 				Throw(GetLastError(), "%s: failed to create window", __FUNCTION__);
 			}
 
+			SetWindowTextA(backWindow, "AsciiStringEditor");
+
 			SendMessage(hWndEditor, WM_SETFONT, (WPARAM) (HFONT) variables.Children()->Context().fontSmallLabel, 0);
 
 			theme = GetTheme(_variables.Children()->Context().publisher);
@@ -185,6 +187,7 @@ namespace
 
 		void SetName(cstr name) override
 		{
+			SetWindowTextA(backWindow, name);
 			this->name = name;
 		}
 
@@ -260,6 +263,8 @@ namespace
 			{
 				Throw(GetLastError(), "%s: failed to create window", __FUNCTION__);
 			}
+
+			SetWindowTextA(backWindow, "FilePathEditor");
 
 			SendMessage(hWndEditor, WM_SETFONT, (WPARAM)(HFONT)variables.Children()->Context().fontSmallLabel, 0);
 
@@ -374,6 +379,7 @@ namespace
 
 		void SetName(cstr name) override
 		{
+			SetWindowTextA(backWindow, name);
 			this->name = name;
 		}
 
@@ -424,6 +430,7 @@ namespace
 			theme = GetTheme(widgets.Context().publisher);
 			bkBrush = ToCOLORREF(theme.normal.bkColor);
 			layoutRules = CreateLayoutSet();
+			SetWindowTextA(window, "VariableList");
 		}
 
 		void OnPaint(HDC dc) override

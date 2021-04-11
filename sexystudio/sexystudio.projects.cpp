@@ -26,6 +26,9 @@ namespace Rococo::SexyStudio
 		int errorCode = 0;
 		HString errorMessage;
 		size_t id = 0;
+		uint64 fileLength = 0;
+		HString filename;
+		ISParserTree* s_tree = nullptr;
 	};
 
 	struct SXYMetaTable : ISXYMetaTable
@@ -50,12 +53,26 @@ namespace Rococo::SexyStudio
 			}
 		}
 
+		void ForEverySXYFile(IEventCallback<MetaInfo>& cb) override
+		{
+			for (auto* meta : idToMeta)
+			{
+				MetaInfo info;
+				info.errorCode = meta->errorCode;
+				info.errorMsg = meta->errorMessage;
+				info.fileLength = meta->fileLength;
+				info.filename = meta->filename;
+				info.pRoot = meta->s_tree != nullptr ? &meta->s_tree->Root() : nullptr;
+				cb.OnEvent(info);
+			}
+		}
+
 		void Free() override
 		{
 			delete this;
 		}
 
-		bool TryGetError(ID_SXY_META metaId, int& errorCode, char* buffer, size_t nBytesInBuffer)
+		bool TryGetError(ID_SXY_META metaId, int& errorCode, char* buffer, size_t nBytesInBuffer) override
 		{
 			if (metaId > idToMeta.size())
 			{
@@ -90,23 +107,31 @@ namespace Rococo::SexyStudio
 					Throw(GetLastError(), "Could not retrieve file attributes");
 				}
 
+				ULARGE_INTEGER len;
+				len.HighPart = data.nFileSizeHigh;
+				len.LowPart = data.nFileSizeLow;
+
+				meta.fileLength = len.QuadPart;
+
 				if (data.nFileSizeHigh > 0 || data.nFileSizeLow > 1_megabytes)
 				{
 					meta.errorCode = HR_FILE_TOO_LARGE;
 					meta.errorMessage = "file too large";
 				}
-
-				WideFilePath wPath;
-				Format(wPath, L"%hs", path);
-				Auto<ISourceCode> src = sparser->LoadSource(wPath, { 1,1 });
-
-				try
+				else
 				{
-					Auto<ISParserTree> s_tree = sparser->CreateTree(*src);
-				}
-				catch (IException&)
-				{
-					throw;
+					WideFilePath wPath;
+					Format(wPath, L"%hs", path);
+					Auto<ISourceCode> src = sparser->LoadSource(wPath, { 1,1 });
+
+					try
+					{
+						meta.s_tree = sparser->CreateTree(*src);
+					}
+					catch (IException&)
+					{
+						throw;
+					}
 				}
 			}
 			catch (IException& ex)
@@ -114,6 +139,8 @@ namespace Rococo::SexyStudio
 				meta.errorCode = ex.ErrorCode();
 				meta.errorMessage = ex.Message();
 			}
+
+			meta.filename = path;
 
 			auto i = metadata.find(path);
 			if (i == metadata.end())
@@ -165,9 +192,9 @@ namespace Rococo::SexyStudio
 				}
 				count += 1.0f;
 			}
-		} fileCounter;
+		} incFileCounter;
 
-		fileCounter.frame = &frame;
+		incFileCounter.frame = &frame;
 
 		struct ANONCOUNTER : IEventCallback<IO::FileItemData>
 		{
@@ -237,8 +264,8 @@ namespace Rococo::SexyStudio
 
 		try
 		{
-			Rococo::IO::ForEachFileInDirectory(path, fileCounter, true, nullptr);
-			cb.totalCount = fileCounter.count;
+			Rococo::IO::ForEachFileInDirectory(path, incFileCounter, true, nullptr);
+			cb.totalCount = incFileCounter.count;
 			Rococo::IO::ForEachFileInDirectory(path, cb, true, (void*) hRoot);
 		}
 		catch (IException& ex)
