@@ -185,6 +185,35 @@ public:
 
 ID_TREE_ITEM GetSubspace(IGuiTree& tree, ID_TREE_ITEM idCurrentNS, cstr subspace)
 {
+	/*
+	ID_TREE_ITEM idBranch = 0;
+
+	auto findMatchingSubspacesLambda = [&tree, &idBranch, idCurrentNS, subspace](TreeItemInfo& info)
+	{
+		char branch[256];
+		tree.GetText(branch, sizeof branch, info.idItem);
+
+		if (Eq(branch, subspace))
+		{
+			idBranch = info.idItem;
+		}
+	};
+
+	struct ANON1 : IEventCallback<TreeItemInfo>
+	{
+		void OnLambdaEvent(TreeItemInfo& info)
+		{
+
+		}
+
+		void OnEvent(TreeItemInfo& info) override
+		{
+			OnLambdaEvent(info);
+		}
+	}
+
+	*/
+
 	struct ANON: IEventCallback<TreeItemInfo>
 	{
 		IGuiTree* tree;
