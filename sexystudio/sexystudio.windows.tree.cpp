@@ -9,7 +9,7 @@ namespace
 	struct Tree : IGuiTree, IWin32WindowMessageLoopHandler
 	{
 		Win32ChildWindow eventSinkWindow;
-		HWND hTreeWnd;
+		HWNDProxy hTreeWnd;
 		AutoFree<ILayoutSet> layouts = CreateLayoutSet();
 		IGuiTreeRenderer* customRenderer;
 		HIMAGELIST hImages = nullptr;
@@ -44,6 +44,11 @@ namespace
 		{
 			DestroyWindow(hTreeWnd);
 			if (hImages) ImageList_Destroy(hImages);
+		}
+
+		virtual Windows::IWindow& TreeWindow()
+		{
+			return hTreeWnd;
 		}
 
 		void OnExpansionChanged(NMTREEVIEW& tv)

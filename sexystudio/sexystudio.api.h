@@ -177,6 +177,7 @@ namespace Rococo::SexyStudio
 
 		// Define the list of image identifiers, each is an int32, example SetImageList(2, ID_FOLDER_CLOSED, ID_FOLDER_OPEN, ID_FILE)
 		virtual void SetImageList(uint32 nItems, ...) = 0;
+		virtual Windows::IWindow& TreeWindow() = 0;
 	};
 
 	struct TreeStyle

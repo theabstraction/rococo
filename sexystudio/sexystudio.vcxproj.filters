@@ -102,5 +102,53 @@
     <Image Include="filetype-unknown.bmp">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="namespace.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="blank.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="blank.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="namespace.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="interface.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="method.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="struct.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="field.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="extends.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="attribute.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="function.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="input.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="output.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="enum.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="enum.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="alias.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

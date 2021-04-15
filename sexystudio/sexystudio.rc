@@ -109,6 +109,32 @@ IDB_FILETYPE_SXY        BITMAP                  "filetype-sxy.bmp"
 
 IDB_FILETYPE_UNKNOWN    BITMAP                  "filetype-unknown.bmp"
 
+IDB_BLANK               BITMAP                  "blank.bmp"
+
+IDB_NAMESPACE           BITMAP                  "namespace.bmp"
+
+IDB_INTERFACE           BITMAP                  "interface.bmp"
+
+IDB_METHOD              BITMAP                  "method.bmp"
+
+IDB_STRUCT              BITMAP                  "struct.bmp"
+
+IDB_FIELD               BITMAP                  "field.bmp"
+
+IDB_EXTENDS             BITMAP                  "extends.bmp"
+
+IDB_ATTRIBUTE           BITMAP                  "attribute.bmp"
+
+IDB_FUNCTION            BITMAP                  "function.bmp"
+
+IDB_INPUT               BITMAP                  "input.bmp"
+
+IDB_OUTPUT              BITMAP                  "output.bmp"
+
+IDB_ENUM                BITMAP                  "enum.bmp"
+
+IDB_ALIAS               BITMAP                  "alias.bmp"
+
 #endif    // English (United Kingdom) resources
 /////////////////////////////////////////////////////////////////////////////
 

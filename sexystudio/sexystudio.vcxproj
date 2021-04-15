@@ -114,14 +114,30 @@
     <ResourceCompile Include="sexystudio.rc" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="alias.bmp" />
+    <Image Include="attribute.bmp" />
     <Image Include="bitmap1.bmp" />
+    <Image Include="blank.bmp" />
+    <Image Include="blank.png" />
+    <Image Include="enum.bmp" />
+    <Image Include="enum.png" />
+    <Image Include="extends.bmp" />
+    <Image Include="field.bmp" />
     <Image Include="filetype-sxy.bmp" />
     <Image Include="filetype-unknown.bmp" />
     <Image Include="folder-close.bmp" />
     <Image Include="folder-open.bmp" />
+    <Image Include="function.bmp" />
+    <Image Include="input.bmp" />
+    <Image Include="interface.bmp" />
+    <Image Include="method.bmp" />
+    <Image Include="namespace.bmp" />
+    <Image Include="namespace.png" />
+    <Image Include="output.bmp" />
     <Image Include="sexystudio.folder-closed.bmp" />
     <Image Include="sexystudio.large.ico" />
     <Image Include="sexystudio.small.ico" />
+    <Image Include="struct.bmp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
