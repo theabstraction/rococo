@@ -1,11 +1,18 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28010.2026
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31205.134
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.jpg", "libjpg\libjpg.vcxproj", "{9F1F74CF-CF2A-4E7F-8073-756C85F2E7A7}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4DFB7957-92F6-498A-9C76-6B122790B928} = {4DFB7957-92F6-498A-9C76-6B122790B928}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.tiff", "libtiff\bloke.tiff\bloke.tiff.vcxproj", "{2AF865A5-02B2-4B64-9F89-E03E8CB9C933}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4DFB7957-92F6-498A-9C76-6B122790B928} = {4DFB7957-92F6-498A-9C76-6B122790B928}
+		{9F1F74CF-CF2A-4E7F-8073-756C85F2E7A7} = {9F1F74CF-CF2A-4E7F-8073-756C85F2E7A7}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.zlib", "zlib\rococo.zlib.vcxproj", "{4DFB7957-92F6-498A-9C76-6B122790B928}"
 EndProject

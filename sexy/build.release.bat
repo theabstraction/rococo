@@ -1,4 +1,4 @@
-cd \work\rococo\sexy\
+cd /D "%~dp0"
 del Bin\x64Release\*.exe
 del Bin\x64Release\*.dll
 del ..\lib\sexy*.Release.lib
