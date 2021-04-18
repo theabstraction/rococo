@@ -3,7 +3,7 @@
 // The SexyStudio Widget API. This file should be kept free of OS dependent data structures and functions
 // Widgets ineract with OS windows via IWindow interface on their Window method
 
-#include <rococo.types.h>
+#include <rococo.api.h>
 #include <rococo.events.h>
 
 namespace Rococo
@@ -23,6 +23,8 @@ namespace Rococo
 	{
 		struct ISExpression;
 		typedef const ISExpression& cr_sex;
+
+		bool IsCompound(cr_sex s);
 	}
 }
 
@@ -33,6 +35,7 @@ namespace Rococo::SexyStudio
 
 	using namespace Rococo::Events;
 	using namespace Rococo::Windows;
+	using namespace Rococo::Sex;
 
 	struct IOSFont;
 
@@ -42,9 +45,83 @@ namespace Rococo::SexyStudio
 		IOSFont& fontSmallLabel;
 	};
 
+
+	struct AtomicArg
+	{
+		bool Matches(cr_sex s, int index) const;
+		fstring operator()(cr_sex s, int index) const;
+	};
+
+	class ParseKeyword
+	{
+		fstring keyword;
+	public:
+		ParseKeyword(cstr _keyword);
+		bool Matches(cr_sex s, int index) const;
+		fstring operator()(cr_sex s, int index) const;
+	};
+
+	extern ParseKeyword keywordNamespace;
+	extern ParseKeyword keywordInterface;
+	extern ParseKeyword keywordStruct;
+	extern ParseKeyword keywordFunction;
+	extern ParseKeyword keywordMacro;
+	extern ParseKeyword keywordAlias;
+	extern AtomicArg ParseAtomic;
+
+	/* Two functions to allow manipulation of ISExpression's without having to include sexy headers*/
+
+	int Len(cr_sex s);
+
+	template<class ACTION, class FIRSTARG, class SECONDARG>
+	inline bool match_compound(cr_sex s, int nMaxArgs, FIRSTARG a, SECONDARG b, ACTION action)
+	{
+		if (!IsCompound(s)) return false;
+		if (Len(s) < 2) return false;
+		if (Len(s) > nMaxArgs) return false;
+
+		if (!a.Matches(s, 0)) return false;
+		if (!b.Matches(s, 1)) return false;
+
+		action(s, a(s, 0), b(s, 1));
+
+		return true;
+	}
+
+	template<class ACTION, class FIRSTARG, class SECONDARG, class THIRDARG>
+	inline bool match_compound(cr_sex s, int nMaxArgs, FIRSTARG a, SECONDARG b, THIRDARG c, ACTION action)
+	{
+		if (!IsCompound(s)) return false;
+		if (Len(s) < 3) return false;
+		if (Len(s) > nMaxArgs) return false;
+
+		if (!a.Matches(s, 0)) return false;
+		if (!b.Matches(s, 1)) return false;
+		if (!c.Matches(s, 2)) return false;
+
+		action(s, a(s, 0), b(s, 1), c(s, 2));
+
+		return true;
+	}
+
+	uint64 GetFileLength(cstr filename);
+
 	void AppendAncestorsToString(IWindow& window, StringBuilder& sb);
 	void AppendAncestorsAndRectsToString(IWindow& window, StringBuilder& sb);
 	void AppendDescendantsAndRectsToString(IWindow& window, StringBuilder& sb);
+
+	ROCOCOAPI ISexyDatabase
+	{
+		virtual void UpdateFile_SXY(cstr fullpathToSxy) = 0;
+		virtual void Clear() = 0;
+	};
+
+	ROCOCOAPI ISexyDatabaseSupervisor : ISexyDatabase
+	{
+		virtual void Free() = 0;
+	};
+
+	ISexyDatabaseSupervisor* CreateSexyDatabase();
 
 	struct WaitCursorSection
 	{

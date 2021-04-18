@@ -188,76 +188,6 @@ public:
 	ISXYMetaTable& Meta() { return *metaTable;  }
 };
 
-struct TAtomicArg
-{
-	bool Matches(cr_sex s)
-	{
-		return IsAtomic(s);
-	}
-
-	fstring operator()(cr_sex s)
-	{
-		return fstring{ s.String()->Buffer, s.String()->Length };
-	}
-};
-
-struct ParseKeyword
-{
-	fstring keyword;
-	ParseKeyword(cstr _keyword) : keyword(to_fstring(_keyword))
-	{
-	}
-
-	bool Matches(cr_sex s)
-	{
-		if (!IsAtomic(s)) return false;
-		return Eq(s.String()->Buffer, keyword);
-	}
-
-	fstring operator()(cr_sex s)
-	{
-		return keyword;
-	}
-};
-
-ParseKeyword keywordNamespace("namespace");
-ParseKeyword keywordInterface("interface");
-ParseKeyword keywordStruct("struct");
-ParseKeyword keywordFunction("function");
-ParseKeyword keywordMacro("macro");
-ParseKeyword keywordAlias("alias");
-TAtomicArg ParseAtomic;
-
-template<class ACTION, class FIRSTARG, class SECONDARG>
-bool match_compound(cr_sex s, int nMaxArgs, FIRSTARG a, SECONDARG b, ACTION action)
-{
-	if (!IsCompound(s)) return false;
-	if (s.NumberOfElements() < 2) return false;
-	if (s.NumberOfElements() > nMaxArgs) return false;
-
-	if (!a.Matches(s[0])) return false;
-	if (!b.Matches(s[1])) return false;
-
-	action(s, a(s[0]), b(s[1]));
-
-	return true;
-}
-
-template<class ACTION, class FIRSTARG, class SECONDARG, class THIRDARG>
-bool match_compound(cr_sex s, int nMaxArgs, FIRSTARG a, SECONDARG b, THIRDARG c, ACTION action)
-{
-	if (!IsCompound(s)) return false;
-	if (s.NumberOfElements() < 3) return false;
-	if (s.NumberOfElements() > nMaxArgs) return false;
-
-	if (!a.Matches(s[0])) return false;
-	if (!b.Matches(s[1])) return false;
-	if (!c.Matches(s[1])) return false;
-
-	action(s, a(s[0]), b(s[1]), c(s[2]));
-
-	return true;
-}
 
 struct TreeManager
 {
@@ -418,10 +348,7 @@ void TreeManager::InsertNamespaceUnique(IGuiTree& tree, ID_TREE_ITEM idNamespace
 	}
 }
 
-cstr AlwaysGetAtomic(cr_sex s)
-{
-	return IsAtomic(s) ? s.String()->Buffer : "<expected atomic argument>";
-}
+cstr AlwaysGetAtomic(cr_sex s);
 
 void TreeManager::InsertInterface(IGuiTree& tree, ID_TREE_ITEM idNamespace, cstr interfaceName, cr_sex sInterfaceDef)
 {

@@ -91,6 +91,7 @@
   <ItemGroup>
     <ClCompile Include="sexstudio.windows.ide.win32.cpp" />
     <ClCompile Include="sexystudio.cpp" />
+    <ClCompile Include="sexystudio.database.cpp" />
     <ClCompile Include="sexystudio.delegates.cpp" />
     <ClCompile Include="sexystudio.layouts.cpp" />
     <ClCompile Include="sexystudio.projects.cpp" />

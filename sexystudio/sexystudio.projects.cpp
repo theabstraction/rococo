@@ -36,6 +36,7 @@ namespace Rococo::SexyStudio
 		Auto<ISParser> sparser;
 		stringmap<SXYMeta*> metadata;
 		std::vector<SXYMeta*> idToMeta;
+		AutoFree<ISexyDatabaseSupervisor> database = CreateSexyDatabase();
 
 		enum { HR_FILE_TOO_LARGE = 0x20000001 };
 
@@ -97,6 +98,8 @@ namespace Rococo::SexyStudio
 
 		ID_SXY_META RefreshSXYStatus(cstr path) override
 		{
+			database->UpdateFile_SXY(path);
+
 			SXYMeta meta;
 
 			try
