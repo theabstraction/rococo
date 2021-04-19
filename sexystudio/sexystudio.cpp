@@ -80,6 +80,7 @@ private:
 	IIDEFrame& ideFrame;
 	IGuiTree* fileBrowser = nullptr;
 	AutoFree<ISexyDatabaseSupervisor> database;
+	ITab* projectTab = nullptr;
 
 	void OnEvent(Event& ev) override
 	{
@@ -111,6 +112,7 @@ private:
 		return 0; // IDB_FOLDER_CLOSED
 	}
 
+
 public:
 	PropertySheets(ISplitScreen& screen, IIDEFrame& _ideFrame): 
 		wc(screen.Children()->Context()),
@@ -128,9 +130,9 @@ public:
 		propTab.SetTooltip("Property View");
 		*/
 
-		ITab& projectTab = tabs->AddTab();
-		projectTab.SetName("Projects");
-		projectTab.SetTooltip("Project View");
+		projectTab = &tabs->AddTab();
+		projectTab->SetName("Projects");
+		projectTab->SetTooltip("Project View");
 
 		/*
 		ITab& settingsTab = tabs->AddTab();
@@ -142,7 +144,7 @@ public:
 		Widgets::AnchorToParent(*globalSettings, 0, 0, 0, 0);
 		*/
 
-		IVariableList* projectSettings = CreateVariableList(projectTab.Children());
+		IVariableList* projectSettings = CreateVariableList(projectTab->Children());
 		projectSettings->SetVisible(true);
 
 		Widgets::AnchorToParentTop(*projectSettings, 0);
@@ -160,7 +162,7 @@ public:
 		style.hasButtons = true;
 		style.hasLines = true;
 
-		fileBrowser = CreateTree(projectTab.Children(), style, this);
+		fileBrowser = CreateTree(projectTab->Children(), style, this);
 		Widgets::AnchorToParent(*fileBrowser, 0, 32, 0, 0);
 
 		fileBrowser->SetVisible(true);
@@ -168,7 +170,7 @@ public:
 
 		Widgets::AnchorToParent(*fileBrowser, 0, 32, 0, 0);
 
-		PopulateTreeWithSXYFiles(*fileBrowser, Globals::contentFolder, *database, ideFrame);
+	//	PopulateTreeWithSXYFiles(*fileBrowser, Globals::contentFolder, *database, ideFrame);
 
 		ideFrame.SetProgress(100.0f, "Complete!");
 
@@ -186,6 +188,11 @@ public:
 	}
 
 	ISexyDatabase& Database() { return *database;  }
+
+	void SelectProjectTab()
+	{
+		projectTab->Activate();
+	}
 };
 
 
@@ -223,6 +230,7 @@ private:
 	WidgetContext wc;
 	ISplitScreen& screen;
 	IGuiTree* classTree;
+	ITab* classTab = nullptr;
 
 	void AppendArguments(ID_TREE_ITEM idFunction, ISXYFunction& function)
 	{
@@ -448,14 +456,14 @@ public:
 		ITabSplitter* tabs = CreateTabSplitter(*screen.Children());
 		tabs->SetVisible(true);
 
-		auto& classView = tabs->AddTab();
-		classView.SetName("Class View");
+		classTab = &tabs->AddTab();
+		classTab->SetName("Class View");
 
 		TreeStyle style;
 		style.hasButtons = true;
 		style.hasCheckBoxes = false;
 		style.hasLines = true;
-		classTree = CreateTree(classView.Children(), style);
+		classTree = CreateTree(classTab->Children(), style);
 		classTree->SetImageList(13, IDB_BLANK, IDB_NAMESPACE, IDB_INTERFACE, IDB_METHOD, IDB_STRUCT, IDB_FIELD, IDB_EXTENDS, IDB_ATTRIBUTE, IDB_FUNCTION, IDB_INPUT, IDB_OUTPUT, IDB_ENUM, IDB_ALIAS);
 
 		SendMessageA(classTree->TreeWindow(), WM_SETFONT, (WPARAM) (HFONT) _wc.fontSmallLabel, 0);
@@ -470,6 +478,11 @@ public:
 	~SexyExplorer()
 	{
 		wc.publisher.Unsubscribe(this);
+	}
+
+	void SelectClassTreeTab()
+	{
+		classTab->Activate();
 	}
 };
 
@@ -548,6 +561,12 @@ void Main(IMessagePump& pump)
 	Rococo::SexyStudio::AppendDescendantsAndRectsToString(*ide, sb);
 
 	OutputDebugStringA(*sb);
+
+	propertySheets.SelectProjectTab();
+	explorer.SelectClassTreeTab();
+
+	TEventArgs<bool> nullArgs;
+	publisher->Publish(nullArgs, evContentChange);
 
 	pump.MainLoop();
 }
