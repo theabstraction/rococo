@@ -68,7 +68,7 @@ namespace Globals
 
 namespace Rococo::SexyStudio
 {
-	void PopulateTreeWithSXYFiles(IGuiTree& tree, cstr contentFolder, ISXYMetaTable& metaTable, IIDEFrame& frame);
+	void PopulateTreeWithSXYFiles(IGuiTree& tree, cstr contentFolder, ISexyDatabase& database, IIDEFrame& frame);
 }
 
 auto evMetaUpdated = "sexystudio.meta.updated"_event;
@@ -79,7 +79,7 @@ private:
 	WidgetContext wc;
 	IIDEFrame& ideFrame;
 	IGuiTree* fileBrowser = nullptr;
-	AutoFree<ISXYMetaTable> metaTable;
+	AutoFree<ISexyDatabaseSupervisor> database;
 
 	void OnEvent(Event& ev) override
 	{
@@ -87,11 +87,11 @@ private:
 		{
 			WaitCursorSection waitSection;
 			ideFrame.SetProgress(0.0f, "Populating file browser...");
-			PopulateTreeWithSXYFiles(*fileBrowser, Globals::contentFolder, *metaTable, ideFrame);
+			PopulateTreeWithSXYFiles(*fileBrowser, Globals::contentFolder, *database, ideFrame);
 			ideFrame.SetProgress(100.0f, "Populated file browser");
 
-			TEventArgs<ISXYMetaTable*> args;
-			args.value = metaTable;
+			TEventArgs<ISexyDatabase*> args;
+			args.value = database;
 			wc.publisher.Publish(args, evMetaUpdated);
 		}
 	}
@@ -115,7 +115,7 @@ public:
 	PropertySheets(ISplitScreen& screen, IIDEFrame& _ideFrame): 
 		wc(screen.Children()->Context()),
 		ideFrame(_ideFrame),
-		metaTable(CreateSXYMetaTable())
+		database(CreateSexyDatabase())
 	{
 		screen.SetBackgroundColour(RGBAb(128, 192, 128));
 
@@ -168,7 +168,7 @@ public:
 
 		Widgets::AnchorToParent(*fileBrowser, 0, 32, 0, 0);
 
-		PopulateTreeWithSXYFiles(*fileBrowser, Globals::contentFolder, *metaTable, ideFrame);
+		PopulateTreeWithSXYFiles(*fileBrowser, Globals::contentFolder, *database, ideFrame);
 
 		ideFrame.SetProgress(100.0f, "Complete!");
 
@@ -185,58 +185,9 @@ public:
 		fileBrowser->Collapse();
 	}
 
-	ISXYMetaTable& Meta() { return *metaTable;  }
+	ISexyDatabase& Database() { return *database;  }
 };
 
-
-struct TreeManager
-{
-	struct ItemDesc
-	{
-		enum class Type: int32 { NAMESPACE, OTHER };
-		Type type;
-		std::string name;
-	};
-
-	std::vector<ItemDesc*> items;
-
-	~TreeManager()
-	{
-		for (ItemDesc* i : items)
-		{
-			delete i;
-		}
-	}
-
-	void AddNS(ID_TREE_ITEM id, IGuiTree& tree, cstr desc)
-	{
-		ItemDesc* i = new ItemDesc;
-		i->name = desc;
-		i->type = ItemDesc::Type::NAMESPACE;
-		tree.SetContext(id, (uint64) i);
-	}
-
-	int Compare(LPARAM lParam1, LPARAM lParam2)
-	{
-		if (lParam1 == 0 && lParam2 == 0) return 0;
-		if (lParam1 == 0) return 1;
-		if (lParam2 == 0) return -1;
-
-		ItemDesc* desc1 = (ItemDesc*)lParam1;
-		ItemDesc* desc2 = (ItemDesc*)lParam2;
-
-		return strcmp(desc1->name.c_str(), desc2->name.c_str());
-	}
-
-	ID_TREE_ITEM GetSubspace(IGuiTree& tree, ID_TREE_ITEM idCurrentNS, cstr subspace);
-	void InsertNamespaceUnique(IGuiTree& tree, ID_TREE_ITEM idNamespace, cstr namespaceText);
-	void InsertInterface(IGuiTree& tree, ID_TREE_ITEM idNamespace, cstr interfaceName, cr_sex sInterfaceDef);
-	void InsertAlias(IGuiTree& tree, ID_TREE_ITEM idNamespace, cstr aliasFrom, cstr aliasTo, cr_sex sAliasDef);
-	void InsertMacro(IGuiTree& tree, ID_TREE_ITEM idNamespace, cstr macroName, cr_sex sMacroDef);
-	void InsertStruct(IGuiTree& tree, ID_TREE_ITEM idTypes, cstr structName, cr_sex sStructDef);
-	void InsertFunction(IGuiTree& tree, ID_TREE_ITEM idFunction, cstr fnName, cr_sex sFunctionDef);
-	void BuildNamespaces(IGuiTree& tree, ID_TREE_ITEM idNamespace, ID_TREE_ITEM idTypes, ID_TREE_ITEM idFunctions, cr_sex sRoot);
-};
 
 bool IsDotted(cstr name)
 {
@@ -249,408 +200,22 @@ bool IsDotted(cstr name)
 	return false;
 }
 
-void TreeManager::InsertAlias(IGuiTree& tree, ID_TREE_ITEM idNamespace, cstr aliasFrom, cstr aliasTo, cr_sex sAliasDef)
+enum class ClassImageIndex: int32
 {
-	cstr s;
-	for (s = aliasTo; *s != '.' && *s != 0; s++)
-	{
-	}
-
-	char* subspace = (char*)_alloca(s - aliasTo + 1);
-	memcpy(subspace, aliasTo, s - aliasTo);
-	subspace[s - aliasTo] = 0;
-
-	if (*s == 0)
-	{
-		// This is the interface short name rather than the subspace
-		auto idAlias = tree.AppendItem(idNamespace);
-
-		if (IsDotted(aliasFrom))
-		{
-			char srcDesc[256];
-			SafeFormat(srcDesc, 256, "alias %s as %s", aliasFrom, subspace);
-
-			char desc[256];
-			SafeFormat(desc, 256, "%-64s %s", srcDesc, sAliasDef.Tree().Source().Name());
-			tree.SetItemText(desc, idAlias);
-		}
-		else
-		{
-			char srcDesc[256];
-			SafeFormat(srcDesc, 256, "alias local %s as %s", aliasFrom, subspace);
-
-			char desc[256];
-			SafeFormat(desc, 256, "%s: %s", srcDesc, sAliasDef.Tree().Source().Name());
-			tree.SetItemText(desc, idAlias);
-		}
-
-		tree.SetItemImage(idAlias, 12);
-	}
-	else
-	{
-		ID_TREE_ITEM idSubspace = GetSubspace(tree, idNamespace, subspace);
-		InsertAlias(tree, idSubspace, aliasFrom, s + 1, sAliasDef);
-	}
-}
-
-ID_TREE_ITEM TreeManager::GetSubspace(IGuiTree& tree, ID_TREE_ITEM idCurrentNS, cstr subspace)
-{
-	struct ANON: IEventCallback<TreeItemInfo>
-	{
-		IGuiTree* tree;
-		ID_TREE_ITEM idBranch = 0;
-		cstr subspace;
-		void OnEvent(TreeItemInfo& info) override
-		{
-			char branch[256];
-			tree->GetText(branch, sizeof branch, info.idItem);
-
-			if (Eq(branch, subspace))
-			{
-				idBranch = info.idItem;
-			}
-		}
-	} findMatchingSubspace;
-	findMatchingSubspace.tree = &tree;
-	findMatchingSubspace.subspace = subspace;
-	tree.EnumerateChildren(idCurrentNS, findMatchingSubspace);
-
-	if (findMatchingSubspace.idBranch == 0)
-	{
-		auto idNewItem = tree.AppendItem(idCurrentNS);
-		tree.SetItemText(subspace, idNewItem);
-		tree.SetItemImage(idNewItem, 1);
-		AddNS(idNewItem, tree, subspace);
-		return idNewItem;
-	}
-	else
-	{
-		return findMatchingSubspace.idBranch;
-	}
-}
-
-void TreeManager::InsertNamespaceUnique(IGuiTree& tree, ID_TREE_ITEM idNamespace, cstr namespaceText)
-{
-	cstr s;
-	for (s = namespaceText; *s != '.' && *s != 0; s++)
-	{
-	}
-
-	char* subspace = (char*)_alloca(s - namespaceText + 1);
-	memcpy(subspace, namespaceText, s - namespaceText);
-	subspace[s - namespaceText] = 0;
-
-	ID_TREE_ITEM idSubspace = GetSubspace(tree, idNamespace, subspace);
-
-	if (*s != 0)
-	{
-		InsertNamespaceUnique(tree, idSubspace, s + 1);
-	}
-}
-
-cstr AlwaysGetAtomic(cr_sex s);
-
-void TreeManager::InsertInterface(IGuiTree& tree, ID_TREE_ITEM idNamespace, cstr interfaceName, cr_sex sInterfaceDef)
-{
-	cstr s;
-	for (s = interfaceName; *s != '.' && *s != 0; s++)
-	{
-	}
-
-	char* subspace = (char*)_alloca(s - interfaceName + 1);
-	memcpy(subspace, interfaceName, s - interfaceName);
-	subspace[s - interfaceName] = 0;
-
-	if (*s == 0)
-	{
-		// This is the interface short name rather than the subspace
-		auto idNewItem = tree.AppendItem(idNamespace);
-		char srcDesc[256];
-		SafeFormat(srcDesc, "interface: %-43s  %s", subspace, sInterfaceDef.Tree().Source().Name());
-		tree.SetItemText(srcDesc, idNewItem);
-
-		tree.SetItemImage(idNewItem, 2);
-
-		for (int i = 2; i < sInterfaceDef.NumberOfElements(); ++i)
-		{
-			cr_sex sMethod = sInterfaceDef[i];
-			if (sMethod.NumberOfElements() > 1 && IsAtomic(sMethod[0]))
-			{
-				cstr method = sMethod[0].String()->Buffer;
-				if (Eq(method, "extends") && sMethod.NumberOfElements() > 1)
-				{
-					auto idExtends = tree.AppendItem(idNewItem);
-					char methodDesc[256];
-					SafeFormat(methodDesc, "extends interface %s", AlwaysGetAtomic(sMethod[1]));
-					tree.SetItemText(methodDesc, idExtends);
-					tree.SetItemImage(idExtends, 6);
-				}
-				else if (Eq(method, "attribute") && sMethod.NumberOfElements() > 1)
-				{
-					auto idAttr = tree.AppendItem(idNewItem);
-					char methodDesc[256];
-					SafeFormat(methodDesc, "attribute %s", AlwaysGetAtomic(sMethod[1]));
-					tree.SetItemText(methodDesc, idAttr);
-					tree.SetItemImage(idAttr, 7);
-				}
-				else
-				{
-					auto idNewMethod = tree.AppendItem(idNewItem);
-					char methodDesc[256];
-					SafeFormat(methodDesc, "method: %s", sMethod[0].String()->Buffer);
-					tree.SetItemText(methodDesc, idNewMethod);
-					tree.SetItemImage(idNewMethod, 3);
-
-					bool isInput = true;
-
-					for (int i = 1; i < sMethod.NumberOfElements(); ++i)
-					{
-						cr_sex sArg = sMethod[i];
-
-						if (IsAtomic(sArg))
-						{
-							isInput = false;
-
-							if (i + 1 < sMethod.NumberOfElements() && !IsAtomic(sMethod[i + 1]))
-							{
-								auto idMap = tree.AppendItem(idNewMethod);
-								tree.SetItemText("->", idMap);
-							}
-							continue;
-						}
-
-						auto idArg = tree.AppendItem(idNewMethod);
-
-						char argText[256];
-						if (sArg.NumberOfElements() == 2)
-						{
-							cstr type = AlwaysGetAtomic(sArg[0]);
-							cstr localVarName = AlwaysGetAtomic(sArg[1]);
-
-							SafeFormat(argText, "(%s %s)", type, localVarName);
-
-							tree.SetItemText(argText, idArg);
-							tree.SetItemImage(idArg, isInput ? 9 : 10);
-						}
-						else
-						{
-							tree.SetItemText("<unknown arg>", idArg);
-						}
-					}
-				}
-			}
-		}
-	}
-	else
-	{
-		ID_TREE_ITEM idSubspace = GetSubspace(tree, idNamespace, subspace);
-		InsertInterface(tree, idSubspace, s + 1, sInterfaceDef);
-	}
-}
-
-void TreeManager::InsertMacro(IGuiTree& tree, ID_TREE_ITEM idNamespace, cstr macroName, cr_sex sMacroDef)
-{
-	cstr s;
-	for (s = macroName; *s != '.' && *s != 0; s++)
-	{
-	}
-
-	char* subspace = (char*)_alloca(s - macroName + 1);
-	memcpy(subspace, macroName, s - macroName);
-	subspace[s - macroName] = 0;
-
-	if (*s == 0)
-	{
-		if (sMacroDef.NumberOfElements() == 5)
-		{
-			cr_sex sDirective = sMacroDef[4];
-			if (sDirective.NumberOfElements() == 2)
-			{
-				if (Eq(AlwaysGetAtomic(sDirective[0]), "out.AddAtomic"))
-				{
-					if (IsStringLiteral(sDirective[1]))
-					{
-						auto idNewItem = tree.AppendItem(idNamespace);
-						char srcDesc[256];
-						SafeFormat(srcDesc, "enum { %-28s = %s }", subspace, sDirective[1].String()->Buffer);
-						char desc[256];
-						SafeFormat(desc,  "%-55s %s", srcDesc, sMacroDef.Tree().Source().Name());
-						tree.SetItemText(desc, idNewItem);
-						tree.SetItemImage(idNewItem, 11);
-						return;
-					}
-				}
-				auto idNewItem = tree.AppendItem(idNamespace);
-				char srcDesc[256];
-				SafeFormat(srcDesc, "macro: %-32s  %s", subspace, sMacroDef.Tree().Source().Name());
-				tree.SetItemText(srcDesc, idNewItem);
-			}
-		}
-	}
-	else
-	{
-		ID_TREE_ITEM idSubspace = GetSubspace(tree, idNamespace, subspace);
-		InsertMacro(tree, idSubspace, s + 1, sMacroDef);
-	}
-}
-
-
-void TreeManager::InsertStruct(IGuiTree& tree, ID_TREE_ITEM idTypes, cstr structName, cr_sex sStructDef)
-{
-	// This is the interface short name rather than the subspace
-	auto idNewItem = tree.AppendItem(idTypes);
-
-	char srcDesc[256];
-	SafeFormat(srcDesc, "struct %-32s %s", structName, sStructDef.Tree().Source().Name());
-	tree.SetItemText(srcDesc, idNewItem);
-	tree.SetItemImage(idNewItem, 4);
-
-	for (int i = 2; i < sStructDef.NumberOfElements(); ++i)
-	{
-		cr_sex sField = sStructDef[i];
-		if (sField.NumberOfElements() > 1)
-		{
-			cstr type = AlwaysGetAtomic(sField[0]);
-			cstr value = AlwaysGetAtomic(sField[1]);
-
-			char fieldDesc[256];
-			SafeFormat(fieldDesc, "%s %s", type, value);
-
-			auto idField = tree.AppendItem(idNewItem);
-			tree.SetItemText(fieldDesc, idField);
-			tree.SetItemImage(idField, 5);
-
-			for (int32 j = 2; j < sField.NumberOfElements(); j++)
-			{
-				cstr valueN = AlwaysGetAtomic(sField[j]);
-				char fieldDescN[256];
-				SafeFormat(fieldDescN, "%s %s", type, valueN);
-
-				auto idFieldN = tree.AppendItem(idNewItem);
-				tree.SetItemText(fieldDescN, idFieldN);
-				tree.SetItemImage(idFieldN, 5);
-			}
-		}
-	}
-}
-
-void TreeManager::InsertFunction(IGuiTree& tree, ID_TREE_ITEM idFunction, cstr fnName, cr_sex sFunctionDef)
-{
-	// This is the interface short name rather than the subspace
-	auto idNewItem = tree.AppendItem(idFunction);
-
-	char srcDesc[256];
-	SafeFormat(srcDesc, "%s", sFunctionDef.Tree().Source().Name());
-
-	char desc[256];
-	SafeFormat(desc, "%-32s %s", fnName, srcDesc);
-
-	tree.SetItemText(desc, idNewItem);
-	tree.SetItemImage(idNewItem, 8);
-
-	bool isInput = true;
-
-	for (int i = 2; i < sFunctionDef.NumberOfElements(); ++i)
-	{
-		cr_sex sArg = sFunctionDef[i];
-
-		if (IsAtomic(sArg))
-		{
-			if (Eq(sArg.String()->Buffer, ":"))
-			{
-				break;
-			}
-			else
-			{
-				isInput = false;
-
-				if (i + 1 < sFunctionDef.NumberOfElements() && !IsAtomic(sFunctionDef[i+1]))
-				{
-					auto idMap = tree.AppendItem(idNewItem);
-					tree.SetItemText("->", idMap);
-				}
-				continue;
-			}
-		}
-
-		auto idArg = tree.AppendItem(idNewItem);
-
-		char argText[256];
-		if (sArg.NumberOfElements() == 2)
-		{
-			cstr type = AlwaysGetAtomic(sArg[0]);
-			cstr localVarName = AlwaysGetAtomic(sArg[1]);
-
-			SafeFormat(argText, "(%s %s)", type, localVarName);
-
-			tree.SetItemText(argText, idArg);
-			tree.SetItemImage(idArg, isInput ? 9 : 10);
-		}
-		else
-		{
-			tree.SetItemText("<unknown arg>", idArg);
-		}
-	}
-}
-
-void TreeManager::BuildNamespaces(IGuiTree& tree, ID_TREE_ITEM idNamespace, ID_TREE_ITEM idTypes, ID_TREE_ITEM idFunctions, cr_sex sRoot)
-{
-	for (int i = 0; i < sRoot.NumberOfElements(); ++i)
-	{
-		if (match_compound(sRoot[i], 2, keywordNamespace, ParseAtomic,
-			[this, &tree, idNamespace](cr_sex s, const fstring& sKeyword, const fstring& nsText)
-			{
-				InsertNamespaceUnique(tree, idNamespace, nsText);
-			}
-		)) continue;
-		
-		enum { MAX_METHODS_AND_ATTRIBUTES_PER_INTERFACE = 32766};
-		if (match_compound(sRoot[i], MAX_METHODS_AND_ATTRIBUTES_PER_INTERFACE, keywordInterface, ParseAtomic,
-			[this, &tree, idNamespace](cr_sex s, const fstring& sKeyword, const fstring& nsText)
-			{
-				InsertInterface(tree, idNamespace, nsText, s);
-			}
-		)) continue;
-
-		enum { MAX_FIELDS_PER_STRUCT = 32766 };
-		if (match_compound(sRoot[i], MAX_FIELDS_PER_STRUCT + 2, keywordStruct, ParseAtomic,
-			[this, &tree, idTypes](cr_sex s, const fstring& sKeyword, const fstring& structName)
-			{
-				InsertStruct(tree, idTypes, structName, s);
-			}
-		)) continue;
-
-		enum { MAX_ARGS_PER_FUNCTION = 128 };
-		if (match_compound(sRoot[i], MAX_ARGS_PER_FUNCTION + 2, keywordFunction, ParseAtomic,
-			[this, &tree, idFunctions](cr_sex s, const fstring& sKeyword, const fstring& fnName)
-			{
-				InsertFunction(tree, idFunctions, fnName, s);
-			}
-		)) continue;
-
-		enum { MAX_MACRO_LEN = 128};
-		if (match_compound(sRoot[i], MAX_MACRO_LEN, keywordMacro, ParseAtomic,
-			[this, &tree, idNamespace](cr_sex s, const fstring& sKeyword, const fstring& macroName)
-			{
-				InsertMacro(tree, idNamespace, macroName, s);
-			}
-		)) continue;
-
-		enum { MAX_ALIAS_LEN = 3 };
-		if (match_compound(sRoot[i], MAX_ALIAS_LEN, keywordAlias, ParseAtomic, ParseAtomic,
-			[this, &tree, idNamespace](cr_sex s, const fstring& sKeyword, const fstring& aliasFrom, const fstring& aliasTo)
-			{
-				InsertAlias(tree, idNamespace, aliasFrom, aliasTo, s);
-			}
-		)) continue;
-	}
-}
-
-int CompareFuncNodes(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
-{
-	TreeManager& tm = *(TreeManager*)lParamSort;
-	return tm.Compare(lParam1, lParam2);
-}
+	BLANK,
+	NAMESPACE, 
+	INTERFACE,
+	METHOD,
+	STRUCT, 
+	FIELD, 
+	EXTENDS, 
+	ATTRIBUTE, 
+	FUNCTION,
+	INPUT, 
+	OUTPUT,
+	ENUM,
+	ALIAS
+};
 
 class SexyExplorer: IObserver
 {
@@ -659,79 +224,220 @@ private:
 	ISplitScreen& screen;
 	IGuiTree* classTree;
 
-	TreeManager treeManager;
-
-	void SortRecursive(ID_TREE_ITEM idBranch)
+	void AppendArguments(ID_TREE_ITEM idFunction, ISXYFunction& function)
 	{
-		HWND hTree = classTree->TreeWindow();
-
-		TVSORTCB sorter;
-		sorter.hParent = (HTREEITEM)idBranch;
-		sorter.lParam = (LPARAM)&treeManager;
-		sorter.lpfnCompare = CompareFuncNodes;
-
-		TreeView_SortChildrenCB(hTree, &sorter, &treeManager);
-
-		ID_TREE_ITEM idChild = (ID_TREE_ITEM) TreeView_GetChild(hTree, idBranch);
-		while (idChild != 0)
+		if (function.InputCount() + function.OutputCount() == 0)
 		{
-			TVITEMA item = { 0 };
-			item.mask = TVIF_HANDLE | TVIF_PARAM;
-			item.hItem = (HTREEITEM)idChild;
-			TreeView_GetItem(hTree, &item);
+			auto idNoArg = classTree->AppendItem(idFunction);
+			classTree->SetItemText(" - no arguments -", idNoArg);
+			classTree->SetItemImage(idNoArg, (int)ClassImageIndex::BLANK);
+		}
 
-			TreeManager::ItemDesc* desc = (TreeManager::ItemDesc*) item.lParam;
-			if (desc && desc->type == TreeManager::ItemDesc::Type::NAMESPACE)
+		for (int k = 0; k < function.InputCount(); ++k)
+		{
+			auto idInputArg = classTree->AppendItem(idFunction);
+			char desc[256];
+			SafeFormat(desc, "%s %s", function.InputType(k), function.InputName(k));
+			classTree->SetItemText(desc, idInputArg);
+			classTree->SetItemImage(idInputArg, (int)ClassImageIndex::INPUT);
+		}
+
+		if (function.OutputCount() > 0)
+		{
+			auto idMapArg = classTree->AppendItem(idFunction);
+			classTree->SetItemText("->", idMapArg);
+			classTree->SetItemImage(idMapArg, (int)ClassImageIndex::BLANK);
+
+			for (int k = 0; k < function.OutputCount(); ++k)
 			{
-				SortRecursive(idChild);
+				auto idOutputArg = classTree->AppendItem(idFunction);
+				char desc[256];
+				SafeFormat(desc, "%s %s", function.OutputType(k), function.OutputName(k));
+				classTree->SetItemText(desc, idOutputArg);
+				classTree->SetItemImage(idOutputArg, (int)ClassImageIndex::OUTPUT);
 			}
-			idChild = (ID_TREE_ITEM) TreeView_GetNextSibling(hTree, idChild);
 		}
 	}
 
-	void OnMetaChanged(ISXYMetaTable& meta)
+	void AppendInterfaces(ISxyNamespace& ns, ID_TREE_ITEM idNSNode)
+	{
+		for (int i = 0; i < ns.InterfaceCount(); ++i)
+		{
+			auto& interf = ns.GetInterface(i);
+			auto idInterface = classTree->AppendItem(idNSNode);
+
+			char desc[256];
+			SafeFormat(desc, "%-64.64s %s", interf.PublicName(), interf.SourcePath());
+
+			classTree->SetItemText(desc, idInterface);
+			classTree->SetItemImage(idInterface, (int)ClassImageIndex::INTERFACE);
+
+			cstr base = interf.Base();
+			if (base)
+			{
+				auto idBase = classTree->AppendItem(idInterface);
+
+				char desc[256];
+				SafeFormat(desc, "extends %s", base);
+				classTree->SetItemText(desc, idBase);
+				classTree->SetItemImage(idBase, (int)ClassImageIndex::EXTENDS);
+			}
+
+			for (int j = 0; j < interf.AttributeCount(); ++j)
+			{
+				cstr attr = interf.GetAttribute(j);
+				char desc[256];
+				SafeFormat(desc, "attribute %s", attr);
+				auto idAttr = classTree->AppendItem(idInterface);
+				classTree->SetItemText(desc, idAttr);
+				classTree->SetItemImage(idAttr, (int)ClassImageIndex::ATTRIBUTE);
+			}
+
+			for (int j = 0; j < interf.MethodCount(); ++j)
+			{
+				auto& method = interf.GetMethod(j);
+
+				auto idMethod = classTree->AppendItem(idInterface);
+				classTree->SetItemText(method.PublicName(), idMethod);
+				classTree->SetItemImage(idMethod, (int)ClassImageIndex::METHOD);
+
+				AppendArguments(idMethod, method);
+			}
+		}
+	}
+
+	void AppendTypes(ISxyNamespace& ns, ID_TREE_ITEM idNSNode, ISexyDatabase& database)
+	{
+		for (int i = 0; i < ns.TypeCount(); ++i)
+		{
+			auto& type = ns.GetType(i);
+			auto idType = classTree->AppendItem(idNSNode);
+			cstr publicName = type.PublicName();
+			auto* localType = type.LocalType();
+
+			char desc[256];
+			SafeFormat(desc, "%-64.64s %s", type.PublicName(), localType ? localType->SourcePath() : "");
+			classTree->SetItemText(desc, idType);
+			classTree->SetItemImage(idType, (int)ClassImageIndex::STRUCT);
+
+			if (localType)
+			{
+				for (int j = 0; j < localType->FieldCount(); ++j)
+				{
+					auto idField = classTree->AppendItem(idType);
+
+					auto field = localType->GetField(j);
+
+					char desc[256];
+					SafeFormat(desc, "%s %s", field.type, field.name);
+					classTree->SetItemText(desc, idField);
+					classTree->SetItemImage(idField, (int)ClassImageIndex::FIELD);
+				}
+			}
+		}
+	}
+
+	void AppendFunctions(ISxyNamespace& ns, ID_TREE_ITEM idNSNode, ISexyDatabase& database, bool appendSourceName)
+	{
+		for (int i = 0; i < ns.FunctionCount(); ++i)
+		{
+			auto& function = ns.GetFunction(i);
+			auto idFunction = classTree->AppendItem(idNSNode);
+			cstr publicName = function.PublicName();
+			auto* localFunction = function.LocalFunction();
+
+			char desc[256];
+			SafeFormat(desc, "%-64.64s %s", publicName, appendSourceName && localFunction ? localFunction->SourcePath() : "");
+			classTree->SetItemText(desc, idFunction);
+			classTree->SetItemImage(idFunction, (int)ClassImageIndex::FUNCTION);
+
+			if (localFunction)
+			{
+				AppendArguments(idFunction, *localFunction);
+			}
+		}
+	}
+
+	void AppendEnumerations(ISxyNamespace& ns, ID_TREE_ITEM idNSNode, ISexyDatabase& database)
+	{
+		if (ns.EnumCount() > 0)
+		{
+			auto idEnums = classTree->AppendItem(idNSNode);
+			classTree->SetItemText("Enumerations", idEnums);
+			classTree->SetItemImage(idEnums, (int)ClassImageIndex::ENUM);
+
+			for (int i = 0; i < ns.EnumCount(); ++i)
+			{
+				cstr enumName = ns.GetEnumName(i);
+				cstr enumText = ns.GetEnumValue(i);
+
+				auto idEnum = classTree->AppendItem(idEnums);
+
+				char desc[256];
+				SafeFormat(desc, "%s = %s", enumName, enumText);
+
+				char fulldesc[256];
+				SafeFormat(fulldesc, "%-64.64s %s", desc, ns.GetEnumSourcePath(i));
+				classTree->SetItemText(fulldesc, idEnum);
+				classTree->SetItemImage(idEnum, (int)ClassImageIndex::ENUM);
+			}
+		}
+	}
+
+	void AppendAliases(ISxyNamespace& ns, ID_TREE_ITEM idNSNode, ISexyDatabase& database)
+	{
+		for (int i = 0; i < ns.AliasCount(); ++i)
+		{
+			cstr from = ns.GetNSAliasFrom(i);
+			cstr to = ns.GetNSAliasTo(i);
+
+			auto idAlias = classTree->AppendItem(idNSNode);
+
+			char desc[256];
+			SafeFormat(desc, "%s (synonymous with %s)", to, from);
+
+			char fulldesc[256];
+			SafeFormat(fulldesc, "%-64.64s %s", desc, ns.GetAliasSourcePath(i));
+			classTree->SetItemText(fulldesc, idAlias);
+			classTree->SetItemImage(idAlias, (int)ClassImageIndex::ALIAS);
+		}
+	}
+
+	void AppendNamespaceRecursive(ISxyNamespace& ns, ID_TREE_ITEM idNSNode, ISexyDatabase& database)
+	{
+		for (int i = 0; i < ns.Length(); ++i)
+		{
+			auto& subspace = ns[i];
+			auto idBranch = classTree->AppendItem(idNSNode);
+			classTree->SetItemText(subspace.Name(), idBranch);
+			classTree->SetItemImage(idBranch, (int)ClassImageIndex::NAMESPACE);
+			AppendNamespaceRecursive(subspace, idBranch, database);
+		}
+
+		AppendEnumerations(ns, idNSNode, database);
+		AppendInterfaces(ns, idNSNode);
+		AppendTypes(ns, idNSNode, database);
+		AppendFunctions(ns, idNSNode, database, true);
+		AppendAliases(ns, idNSNode, database);
+	}
+
+	void OnMetaChanged(ISexyDatabase& database)
 	{
 		classTree->Clear();
 
-		struct : IEventCallback<MetaInfo>
-		{
-			IGuiTree* classTree;
-			ID_TREE_ITEM idNamespaces;
-			ID_TREE_ITEM idTypes;
-			ID_TREE_ITEM idFunction;
-			TreeManager* treeManager;
-			void OnEvent(MetaInfo& info) override
-			{
-				if (info.pRoot)
-				{
-					treeManager->BuildNamespaces(*classTree, idNamespaces, idTypes, idFunction, *info.pRoot);
-				}
-			}
-		} buildNamespaces;
-		buildNamespaces.idNamespaces = classTree->AppendItem(0);
-		buildNamespaces.classTree = classTree;
-		buildNamespaces.idTypes = classTree->AppendItem(0);
-		buildNamespaces.idFunction = classTree->AppendItem(0);
-		buildNamespaces.treeManager = &treeManager;
-		classTree->SetItemText("Namespaces", buildNamespaces.idNamespaces);
-		classTree->SetItemText("Types", buildNamespaces.idTypes);
-		classTree->SetItemText("Functions", buildNamespaces.idFunction);
+		ID_TREE_ITEM idNamespace = classTree->AppendItem(0);
+		classTree->SetItemText("Namespaces", idNamespace);
+		classTree->SetItemImage(idNamespace, (int) ClassImageIndex::NAMESPACE);
 
-		classTree->SetItemImage(buildNamespaces.idNamespaces, 1);
-		classTree->SetItemImage(buildNamespaces.idTypes, 4);
-		classTree->SetItemImage(buildNamespaces.idFunction, 8);
-
-		meta.ForEverySXYFile(buildNamespaces);
-
-		SortRecursive(buildNamespaces.idNamespaces);
+		AppendNamespaceRecursive(database.GetRootNamespace(), idNamespace, database);
 	}
 
 	void OnEvent(Event& ev) override
 	{
 		if (ev == evMetaUpdated)
 		{
-			auto& metaEv = As<TEventArgs<ISXYMetaTable*>>(ev);
-			OnMetaChanged(*metaEv.value);
+			auto& evDB = As<TEventArgs<ISexyDatabase*>>(ev);
+			OnMetaChanged(*evDB.value);
 		}
 	}
 public:

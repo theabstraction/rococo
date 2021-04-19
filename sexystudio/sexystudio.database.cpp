@@ -36,11 +36,6 @@ namespace Rococo::SexyStudio
 	ParseKeyword keywordAlias("alias");
 	AtomicArg ParseAtomic;
 
-	ROCOCOAPI ISXYFile
-	{
-
-	};
-
 	cr_sex GetElement(cr_sex s, int index)
 	{
 		return s[index];
@@ -78,20 +73,6 @@ namespace Rococo::SexyStudio
 	{
 		return keyword;
 	}
-
-	ROCOCOAPI ISxyNamespace
-	{
-		virtual int Length() const = 0;
-		virtual ISxyNamespace& operator[] (int index) = 0;
-		virtual cstr Name() = 0;
-		virtual ISxyNamespace& Update(cstr subspace) = 0;
-		virtual void UpdateInterface(cstr name, cr_sex sInterfaceDef, ISXYFile& file) = 0;
-		virtual void UpdateMacro(cstr name, cr_sex sMacroDef, ISXYFile& file) = 0;
-		virtual void SortRecursive() = 0;
-		virtual void AliasFunction(cstr localName, ISXYFile& file, cstr publicName) = 0;
-		virtual void AliasStruct(cstr localName, ISXYFile& file, cstr publicName) = 0;
-		virtual void AliasNSREf(cstr publicName, cr_sex sAliasDef, ISXYFile& file) = 0;
-	};
 }
 
 namespace ANON
@@ -105,25 +86,57 @@ namespace ANON
 		}
 	};
 
-	struct SXYMethodArgument
+	struct SXYMethod: ISXYFunction
 	{
-		cstr type;
-		cstr name;
-	};
-
-	struct SXYField
-	{
-		cstr type;
-		cstr name;
-	};
-
-	struct SXYMethod
-	{
-		cr_sex sMethod;
+		const ISExpression* psMethod;
 		cstr name = nullptr;
 		int mapIndex = -1;
+
+		int InputCount() const override
+		{
+			return mapIndex < 0 ? 0 : mapIndex - 1;
+		}
+
+		int OutputCount() const override
+		{
+			return mapIndex < 0 ? 0 : psMethod->NumberOfElements() - mapIndex - 1;
+		}
+
+		cstr SourcePath() const override
+		{
+			return "<no path>";
+		}
+
+		cstr InputType(int index) const override
+		{
+			cr_sex sArg = psMethod->GetElement(index + 1);
+			return AlwaysGetAtomic(sArg, 0);
+		}
+
+		cstr OutputType(int index) const override
+		{
+			cr_sex sArg = psMethod->GetElement(index + mapIndex + 1);
+			return AlwaysGetAtomic(sArg, 0);
+		}
+
+		cstr InputName(int index) const override
+		{
+			cr_sex sArg = psMethod->GetElement(index + 1);
+			return AlwaysGetAtomic(sArg, 1);
+		}
+
+		cstr OutputName(int index) const override
+		{
+			cr_sex sArg = psMethod->GetElement(index + mapIndex + 1);
+			return AlwaysGetAtomic(sArg, 1);
+		}
+
+		cstr PublicName() const
+		{
+			return name;
+		}
 		
-		SXYMethod(cr_sex _sMethod) : sMethod(_sMethod)
+		SXYMethod(cr_sex _sMethod) : psMethod(&_sMethod)
 		{
 			// Assumes s_Method.NumberOfElements >= 2 and s_Method[0] is atomic
 			// Example: (AppendPrefixAndGetName (IString prefix)->(IString name))
@@ -161,12 +174,12 @@ namespace ANON
 
 		int GetEndOutputIndex() const
 		{
-			return mapIndex < 0 ? 0 : sMethod.NumberOfElements();
+			return mapIndex < 0 ? 0 : psMethod->NumberOfElements();
 		}
 
 		SXYMethodArgument GetArg(int index) const
 		{
-			auto& sArg = sMethod[index];
+			auto& sArg = (*psMethod)[index];
 			if (sArg.NumberOfElements() == 2)
 			{
 				if (IsAtomic(sArg[0]) && IsAtomic(sArg[1]))
@@ -179,14 +192,50 @@ namespace ANON
 		}
 	};
 
-	struct SxyInterface
+	struct SxyInterface: ISXYInterface
 	{
+		SxyInterface(cstr name, ISXYFile& _source_file, cr_sex _sInterfaceDef):
+			shortName(name), source_file(_source_file), sInterfaceDef(_sInterfaceDef)
+		{
+
+		}
+
+		cstr SourcePath() const override
+		{
+			return sInterfaceDef.Tree().Source().Name();
+		}
+
+		int AttributeCount() const override
+		{
+			return (int)attributes.size();
+		}
+
+		cstr GetAttribute(int index) const
+		{
+			return attributes[index].GetName();
+		}
+
+		int MethodCount() const override
+		{
+			return (int) methods.size();
+		}
+
+		ISXYFunction& GetMethod(int index) override
+		{
+			return methods[index];
+		}
+
+		cstr PublicName() const override
+		{
+			return shortName.c_str();
+		}
+
 		std::string shortName;
 		ISXYFile& source_file;
 		cr_sex sInterfaceDef;
 		std::vector<SXYAttribute> attributes;
 		const ISExpression* base = nullptr;
-		cstr Base() const
+		cstr Base() const override
 		{
 			return base ? AlwaysGetAtomic(*base, 1) : nullptr;
 		}
@@ -226,18 +275,113 @@ namespace ANON
 
 	};
 
-	struct SXYPublicFunction
+	struct SXYPublicFunction: ISXYPublicFunction
 	{
+		SXYPublicFunction(cstr _publicName, cstr _localName, ISXYFile& _file) :
+			publicName(_publicName), localName(_localName), file(_file)
+		{
+
+		}
+
+		cstr PublicName() const override
+		{
+			return publicName.c_str();
+		}
+
 		std::string publicName;
 		std::string localName;
 		ISXYFile& file;
+
+		ISXYFunction* localFunction = nullptr;
+
+		ISXYFunction* LocalFunction() override
+		{
+			return localFunction;
+		}
 	};
 
-	struct SXYPublicStruct
+	struct SXYStruct: ISXYLocalType
+	{
+		cr_sex sStructDef;
+		int numberOfFields = 0;
+
+		int FieldCount() const override { return numberOfFields; }
+
+		SXYStruct(cr_sex _sStructDef) : sStructDef(_sStructDef)
+		{
+			// Assumes _StructDef.NumberOfElements > 0
+			for (int i = 2; i < _sStructDef.NumberOfElements(); ++i)
+			{
+				cr_sex sFieldDef = _sStructDef[i];
+				if (sFieldDef.NumberOfElements() > 1)
+				{
+					numberOfFields += sFieldDef.NumberOfElements() - 1;
+				}
+			}
+		}
+
+		cstr SourcePath() const
+		{
+			return sStructDef.Tree().Source().Name();
+		}
+
+		/* Example:
+		(struct Quaternion
+			(Float32 scalar)
+			(Float32 vi vj vk)
+		)
+		*/
+		SXYField GetField(int index) const override
+		{
+			if (index < 0 || index >= numberOfFields)
+			{
+				return SXYField{ nullptr, nullptr };
+			}
+
+			int fieldCount = 0;
+
+			for (int i = 2; i < sStructDef.NumberOfElements(); ++i)
+			{
+				cr_sex sFieldDef = sStructDef[i];
+				int nFieldsInExpression = sFieldDef.NumberOfElements() - 1;
+				if (index < fieldCount + nFieldsInExpression)
+				{
+					cstr type = AlwaysGetAtomic(sFieldDef, 0);
+					cstr name = AlwaysGetAtomic(sFieldDef, index - fieldCount + 1);
+					return SXYField{ type,name };
+				}
+				else
+				{
+					fieldCount += nFieldsInExpression;
+				}
+			}
+
+			return { nullptr,nullptr };
+		}
+	};
+
+	struct SXYPublicStruct: ISXYType
 	{
 		std::string publicName;
 		std::string localName;
 		ISXYFile& file;
+		ISXYLocalType* localType = nullptr;
+
+		SXYPublicStruct(cstr _publicName, cstr _localName, ISXYFile& _file):
+			publicName(_publicName), localName(_localName), file(_file)
+		{
+
+		}
+
+		cstr PublicName() const override
+		{
+			return publicName.c_str();
+		}
+
+		ISXYLocalType* LocalType() override
+		{
+			return localType;
+		}
 	};
 
 	struct SXYNSAlias
@@ -261,9 +405,79 @@ namespace ANON
 
 		SxyNamespace(cstr _name) : name(_name) {}
 
+		int AliasCount() const override
+		{
+			return (int) nsAlias.size();
+		}
+
+		cstr GetNSAliasFrom(int index) const override
+		{
+			return AlwaysGetAtomic(nsAlias[index].sAliasDef, 1);
+		}
+
+		cstr GetNSAliasTo(int index) const override
+		{
+			return nsAlias[index].publicName.c_str();
+		}
+
+		cstr GetAliasSourcePath(int index) const override
+		{
+			return nsAlias[index].sAliasDef.Tree().Source().Name();
+		}
+
+		int EnumCount() const override
+		{
+			return (int)enums.size();
+		}
+
+		cstr GetEnumName(int index) const override
+		{
+			return enums[index].shortName.c_str();
+		}
+
+		cstr GetEnumValue(int index) const override
+		{
+			return enums[index].GetMacroValue();
+		}
+
+		cstr GetEnumSourcePath(int index) const override
+		{
+			return enums[index].sMacroDef.Tree().Source().Name();
+		}
+
 		int Length() const override
 		{
 			return (int) subspaces.size();
+		}
+
+		int FunctionCount() const override
+		{
+			return (int)functions.size();
+		}
+
+		ISXYPublicFunction& GetFunction(int index)
+		{
+			return functions[index];
+		}
+
+		int InterfaceCount() const override
+		{
+			return (int) interfaces.size();
+		}
+
+		int TypeCount() const override
+		{
+			return (int)structures.size();
+		}
+
+		ISXYType& GetType(int index) override
+		{
+			return structures[index];
+		}
+
+		ISXYInterface& GetInterface(int index) override
+		{
+			return interfaces[index];
 		}
 
 		ISxyNamespace& operator[] (int index) override
@@ -299,12 +513,12 @@ namespace ANON
 		{
 			interfaces.push_back( { name, file, sInterfaceDef } );
 			auto& interf = interfaces.back();
-			for (int i = 0; i < sInterfaceDef.NumberOfElements(); ++i)
+			for (int i = 2; i < sInterfaceDef.NumberOfElements(); ++i)
 			{
 				auto& sChild = sInterfaceDef[i];
 				if (sInterfaceDef.NumberOfElements() >= 2)
 				{
-					cstr child = AlwaysGetAtomic(sInterfaceDef, 0);
+					cstr child = AlwaysGetAtomic(sChild, 0);
 					if (IsCapital(child[0]))
 					{
 						// methods have capital letters
@@ -322,12 +536,19 @@ namespace ANON
 					}
 				}
 			}
+
+			std::sort(interf.methods.begin(), interf.methods.end(), 
+				[](const SXYMethod& a, const SXYMethod& b)
+				{
+					return Compare(a.name, b.name) < 0;
+				}
+			);
 		}
 
 		void UpdateMacro(cstr name, cr_sex sMacroDef, ISXYFile& file) override
 		{
 			SXYMacro macro { name, file, sMacroDef };
-			if (macro.GetMacroValue() != nullptr)
+			if (macro.GetMacroValue() == nullptr)
 			{
 				macros.push_back(macro);
 			}
@@ -368,69 +589,60 @@ namespace ANON
 		}
 	};
 
-	struct SXYStruct
-	{
-		cr_sex sStructDef;
-		int numberOfFields = 0;
-
-		int FieldCount() const { return numberOfFields; }
-
-		SXYStruct(cr_sex _sStructDef) : sStructDef(_sStructDef)
-		{
-			// Assumes _StructDef.NumberOfElements > 0
-			for (int i = 1; i < _sStructDef.NumberOfElements(); ++i)
-			{
-				cr_sex sFieldDef = _sStructDef[i];
-				if (sFieldDef.NumberOfElements() > 1)
-				{
-					numberOfFields += sFieldDef.NumberOfElements() - 1;
-				}
-			}
-		}
-
-		/* Example:
-		(struct Quaternion
-			(Float32 scalar)
-			(Float32 vi vj vk)
-		)
-		*/
-		SXYField GetField(int index)
-		{
-			if (index < 0 || index >= numberOfFields)
-			{
-				return SXYField{ nullptr, nullptr };
-			}
-
-			int fieldCount = 0;
-
-			for (int i = 1; i < sStructDef.NumberOfElements(); ++i)
-			{
-				cr_sex sFieldDef = sStructDef[i];
-				int nFieldsInExpression = sFieldDef.NumberOfElements() - 1;
-				if (index < fieldCount + nFieldsInExpression)
-				{
-					cstr type = AlwaysGetAtomic(sFieldDef, 0);
-					cstr name = AlwaysGetAtomic(sFieldDef, fieldCount - index + 1);
-					return SXYField{ type,name };
-				}
-				else
-				{
-					fieldCount += nFieldsInExpression;
-				}
-			}
-		}
-	};
-
-	struct SXYFunction
+	struct SXYFunction: ISXYFunction
 	{
 		cr_sex sFunction;
 		cstr name = nullptr;
 		int mapIndex = -1;
 		int bodyIndex = -1;
 
+		cstr SourcePath() const override
+		{
+			return sFunction.Tree().Source().Name();
+		}
+
+		cstr PublicName() const override
+		{
+			return name;
+		}
+
+		int InputCount() const override
+		{
+			return mapIndex < 0 ? 0 : mapIndex - 2;
+		}
+
+		int OutputCount() const override
+		{
+			return bodyIndex - mapIndex - 1;
+		}
+
+		cstr InputType(int index) const override
+		{
+			cr_sex sArg = sFunction.GetElement(index + 2);
+			return AlwaysGetAtomic(sArg, 0);
+		}
+
+		cstr OutputType(int index) const override
+		{
+			cr_sex sArg = sFunction.GetElement(index + mapIndex + 1);
+			return AlwaysGetAtomic(sArg, 0);
+		}
+
+		cstr InputName(int index) const override
+		{
+			cr_sex sArg = sFunction.GetElement(index + 2);
+			return AlwaysGetAtomic(sArg, 1);
+		}
+
+		cstr OutputName(int index) const override
+		{
+			cr_sex sArg = sFunction.GetElement(index + mapIndex + 1);
+			return AlwaysGetAtomic(sArg, 1);
+		}
+
 		SXYFunction(cr_sex _sFunction) : sFunction(_sFunction)
 		{
-			name = AlwaysGetAtomic(_sFunction, 0);
+			name = AlwaysGetAtomic(_sFunction, 1);
 
 			for (int i = 1; i < _sFunction.NumberOfElements(); ++i)
 			{
@@ -442,7 +654,6 @@ namespace ANON
 						if (Eq(arg, "->"))
 						{
 							mapIndex = i;
-							break;
 						}
 					}
 					else // map index defined and the next legal atomic argument is ':' the body indicator
@@ -459,7 +670,7 @@ namespace ANON
 
 		int GetBeginInputIndex() const
 		{
-			return 1;
+			return 2;
 		}
 
 		int GetEndIndexIndex() const
@@ -522,7 +733,7 @@ namespace ANON
 	void CopyFinalNameToBuffer(char* buffer, size_t capacity, cstr fqName)
 	{
 		cstr s = fqName;
-		while (s != 0) s++;
+		while (*s != 0) s++;
 
 		while (s > fqName)
 		{
@@ -555,6 +766,45 @@ namespace ANON
 		~SexyDatabase()
 		{
 			
+		}
+
+		ISxyNamespace& GetRootNamespace()
+		{
+			return rootNS;
+		}
+
+		void ResolveRecursive(SxyNamespace& ns)
+		{
+			for (auto& s : ns.structures)
+			{
+				File_SXY& source = static_cast<File_SXY&>(s.file);
+				auto i = source.structures.find(s.localName.c_str());
+				if (i != source.structures.end())
+				{
+					s.localType = &i->second;
+				}
+			}
+
+			for (auto& f : ns.functions)
+			{
+				File_SXY& source = static_cast<File_SXY&>(f.file);
+				auto i = source.functions.find(f.localName.c_str());
+				if (i != source.functions.end())
+				{
+					f.localFunction = &i->second;
+				}
+			}
+
+			for (auto& subspace: ns.subspaces)
+			{
+				ResolveRecursive(*subspace);
+			}
+		}
+
+		void Sort() override
+		{
+			rootNS.SortRecursive();
+			ResolveRecursive(rootNS);
 		}
 
 		ISParserTree* TryGetTree(int& errorCode, char* errorBuffer, size_t errorCapacity, cstr filename)
@@ -634,7 +884,11 @@ namespace ANON
 		void Clear() override
 		{
 			filenameToFile.clear();
-
+			rootNS.subspaces.clear();
+			rootNS.enums.clear();
+			rootNS.functions.clear();
+			rootNS.structures.clear();
+			rootNS.interfaces.clear();
 		}
 
 		void Free() override
@@ -673,13 +927,17 @@ namespace ANON
 				return parent;
 			}
 
-			char* subspace = (char*)_alloca(nsIndex - ns + 1);
+			char subspace[256];
+			if (nsIndex - ns >= 255)
+			{
+				// Namespace too long
+				return parent;
+			}
+
 			memcpy(subspace, ns, nsIndex - ns);
 			subspace[nsIndex - ns] = 0;
-
 			auto& branch = parent.Update(subspace);
-
-			return InsertNamespaceRecursive(nsIndex + 1, branch);
+			return InsertNamespaceRecursiveSANSEnd(nsIndex + 1, branch);
 		}
 
 		void InsertNamespaceUnique(cr_sex s, cstr ns, File_SXY& file)
@@ -706,9 +964,12 @@ namespace ANON
 			}
 		}
 
-		void InsertInterface(cr_sex s, cstr fqName, File_SXY& file)
+		void InsertInterface(cr_sex s, const fstring& fqName, File_SXY& file)
 		{
-			InsertInterfaceRecursive(fqName, rootNS, file, s);
+			char* publicName = (char*)_alloca(fqName.length + 1);
+			CopyFinalNameToBuffer(publicName, fqName.length + 1, fqName);
+			ISxyNamespace& ns = InsertNamespaceRecursiveSANSEnd(fqName, rootNS);
+			ns.UpdateInterface(publicName, s, file);
 		}
 
 		void InsertStruct(cr_sex s, const fstring& structName, File_SXY& file)
@@ -760,7 +1021,9 @@ namespace ANON
 				return;
 			}
 
-			if (FindDot(aliasFrom))
+			cstr dot = FindDot(aliasFrom);
+
+			if (*dot == '.')
 			{
 				// A namespace mapping
 				ISxyNamespace& ns = InsertNamespaceRecursiveSANSEnd(aliasTo, rootNS);
@@ -822,9 +1085,17 @@ namespace ANON
 						InsertFunction(s, fnName, file);
 					}
 				)) continue;
+
+				enum { MAX_ARGS_PER_MACRO = 128 };
+				if (match_compound(sRoot[i], MAX_ARGS_PER_MACRO + 2, keywordMacro, ParseAtomic,
+					[this, &file](cr_sex s, const fstring& sKeyword, const fstring& macroName)
+					{
+						InsertMacro(s, macroName, file);
+					}
+				)) continue;
 			}
 
-			// Then comput the aliases
+			// Then compute the aliases
 			for (int i = 0; i < sRoot.NumberOfElements(); ++i)
 			{
 				enum { MAX_ALIAS_LEN = 3 };

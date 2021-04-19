@@ -21,161 +21,10 @@ namespace Rococo::SexyStudio
 		tree.SetItemText(srcTree.Source().Name(), branchId);
 	}
 
-	struct SXYMeta
-	{
-		int errorCode = 0;
-		HString errorMessage;
-		size_t id = 0;
-		uint64 fileLength = 0;
-		HString filename;
-		ISParserTree* s_tree = nullptr;
-	};
-
-	struct SXYMetaTable : ISXYMetaTable
-	{
-		Auto<ISParser> sparser;
-		stringmap<SXYMeta*> metadata;
-		std::vector<SXYMeta*> idToMeta;
-		AutoFree<ISexyDatabaseSupervisor> database = CreateSexyDatabase();
-
-		enum { HR_FILE_TOO_LARGE = 0x20000001 };
-
-		SXYMetaTable() :
-			sparser(Sexy_CreateSexParser_2_0(Rococo::Memory::CheckedAllocator()))
-		{
-
-		}
-
-		~SXYMetaTable()
-		{
-			for (auto* meta : idToMeta)
-			{
-				delete meta;
-			}
-		}
-
-		void ForEverySXYFile(IEventCallback<MetaInfo>& cb) override
-		{
-			for (auto* meta : idToMeta)
-			{
-				MetaInfo info;
-				info.errorCode = meta->errorCode;
-				info.errorMsg = meta->errorMessage;
-				info.fileLength = meta->fileLength;
-				info.filename = meta->filename;
-				info.pRoot = meta->s_tree != nullptr ? &meta->s_tree->Root() : nullptr;
-				cb.OnEvent(info);
-			}
-		}
-
-		void Free() override
-		{
-			delete this;
-		}
-
-		bool TryGetError(ID_SXY_META metaId, int& errorCode, char* buffer, size_t nBytesInBuffer) override
-		{
-			if (metaId > idToMeta.size())
-			{
-				if (buffer) SafeFormat(buffer, nBytesInBuffer, "Bad ID_SXY_META");
-				errorCode = E_INVALIDARG;
-				return true;
-			}
-
-			auto& meta = *idToMeta[metaId];
-
-			if (meta.errorCode != 0 || meta.errorMessage.length() > 0)
-			{
-				if (buffer) SafeFormat(buffer, nBytesInBuffer, "%s", meta.errorMessage.c_str());
-				errorCode = meta.errorCode;
-				return true;
-			}
-
-			errorCode = 0;
-			if (buffer) *buffer = 0;
-			return false;
-		}
-
-		ID_SXY_META RefreshSXYStatus(cstr path) override
-		{
-			database->UpdateFile_SXY(path);
-
-			SXYMeta meta;
-
-			try
-			{
-				WIN32_FILE_ATTRIBUTE_DATA data;
-				if (!GetFileAttributesExA(path, GetFileExInfoStandard, &data))
-				{
-					Throw(GetLastError(), "Could not retrieve file attributes");
-				}
-
-				ULARGE_INTEGER len;
-				len.HighPart = data.nFileSizeHigh;
-				len.LowPart = data.nFileSizeLow;
-
-				meta.fileLength = len.QuadPart;
-
-				if (data.nFileSizeHigh > 0 || data.nFileSizeLow > 1_megabytes)
-				{
-					meta.errorCode = HR_FILE_TOO_LARGE;
-					meta.errorMessage = "file too large";
-				}
-				else
-				{
-					WideFilePath wPath;
-					Format(wPath, L"%hs", path);
-					Auto<ISourceCode> src = sparser->LoadSource(wPath, { 1,1 });
-
-					try
-					{
-						meta.s_tree = sparser->CreateTree(*src);
-					}
-					catch (IException&)
-					{
-						throw;
-					}
-				}
-			}
-			catch (IException& ex)
-			{
-				meta.errorCode = ex.ErrorCode();
-				meta.errorMessage = ex.Message();
-			}
-
-			meta.filename = path;
-
-			auto i = metadata.find(path);
-			if (i == metadata.end())
-			{
-				meta.id = idToMeta.size() + 1;
-				auto* pCopy = new SXYMeta(meta);
-				metadata.insert(path, pCopy);
-				idToMeta.push_back(pCopy);
-			}
-			else
-			{
-				meta.id = i->second->id;
-				*i->second = meta;
-			}
-
-			return meta.id;
-		}
-	};
-
-	ISXYMetaTable* CreateSXYMetaTable()
-	{
-		return new SXYMetaTable();
-	}
-
-	void UpdateItem(IGuiTree& tree, ID_TREE_ITEM idTree, ID_SXY_META metaId)
-	{
-		
-	}
-
-	void PopulateTreeWithSXYFiles(IGuiTree& tree, cstr contentFolder, ISXYMetaTable& metaTable, IIDEFrame& frame)
+	void PopulateTreeWithSXYFiles(IGuiTree& tree, cstr contentFolder, ISexyDatabase& database, IIDEFrame& frame)
 	{
 		tree.Clear();
+		database.Clear();
 
 		auto hRoot = tree.AppendItem(0);
 		tree.SetItemText(contentFolder, hRoot);
@@ -202,7 +51,7 @@ namespace Rococo::SexyStudio
 		struct ANONCOUNTER : IEventCallback<IO::FileItemData>
 		{
 			IGuiTree* tree;
-			ISXYMetaTable* metaTable;
+			ISexyDatabase* database;
 			IIDEFrame* frame;
 			float totalCount = 0;
 			float count = 0;
@@ -241,10 +90,9 @@ namespace Rococo::SexyStudio
 						float percent = clamp(totalCount == 0 ? 50.0f : 100.0f * count / totalCount, 0.0f, 99.9f);
 						frame->SetProgress(percent, progressText);
 
-						ID_SXY_META id = metaTable->RefreshSXYStatus(u8Path);
-						tree->SetContext(idItem, id);
+						database->UpdateFile_SXY(u8Path);
 
-						UpdateItem(*tree, idItem, id);
+						tree->SetContext(idItem, 0);
 
 						tree->SetItemImage(idItem, 2);
 					}
@@ -259,7 +107,7 @@ namespace Rococo::SexyStudio
 		} cb;
 
 		cb.tree = &tree;
-		cb.metaTable = &metaTable;
+		cb.database = &database;
 		cb.frame = &frame;
 
 		WideFilePath path;
@@ -279,6 +127,8 @@ namespace Rococo::SexyStudio
 			tree.SetItemText(ex.Message(), hErrorMsg);
 			return;
 		}
+
+		database.Sort();
 	}
 
 	void Run()

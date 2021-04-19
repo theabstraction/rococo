@@ -110,10 +110,99 @@ namespace Rococo::SexyStudio
 	void AppendAncestorsAndRectsToString(IWindow& window, StringBuilder& sb);
 	void AppendDescendantsAndRectsToString(IWindow& window, StringBuilder& sb);
 
+	ROCOCOAPI ISXYFile
+	{
+
+	};
+
+	ROCOCOAPI ISXYFunction
+	{
+		virtual cstr PublicName() const = 0;
+		virtual int InputCount() const = 0;
+		virtual int OutputCount() const = 0;
+		virtual cstr InputType(int index) const = 0;
+		virtual cstr OutputType(int index) const = 0;
+		virtual cstr InputName(int index) const = 0;
+		virtual cstr OutputName(int index) const = 0;
+		virtual cstr SourcePath() const = 0;
+	};
+
+	ROCOCOAPI ISXYInterface
+	{
+		virtual cstr Base() const = 0;
+		virtual cstr PublicName() const = 0;
+		virtual int AttributeCount() const = 0;
+		virtual int MethodCount() const = 0;
+		virtual cstr GetAttribute(int index) const = 0;
+		virtual ISXYFunction& GetMethod(int index) = 0;
+		virtual cstr SourcePath() const = 0;
+	};
+
+	struct SXYMethodArgument
+	{
+		cstr type;
+		cstr name;
+	};
+
+	struct SXYField
+	{
+		cstr type;
+		cstr name;
+	};
+
+	ROCOCOAPI ISXYLocalType
+	{
+		virtual int FieldCount() const = 0;
+		virtual SXYField GetField(int index) const = 0;
+		virtual cstr SourcePath() const = 0;
+	};
+
+	ROCOCOAPI ISXYType
+	{
+		virtual cstr PublicName() const = 0;
+		virtual ISXYLocalType* LocalType() = 0;
+	};
+
+	ROCOCOAPI ISXYPublicFunction
+	{
+		virtual cstr PublicName() const = 0;
+		virtual ISXYFunction* LocalFunction() = 0;
+	};
+
+	ROCOCOAPI ISxyNamespace
+	{
+		virtual int AliasCount() const = 0;
+		virtual cstr GetNSAliasFrom(int index) const = 0;
+		virtual	cstr GetNSAliasTo(int index) const = 0;
+		virtual	cstr GetAliasSourcePath(int index) const = 0;
+		virtual ISXYInterface & GetInterface(int index) = 0;
+		virtual ISXYType& GetType(int index) = 0;
+		virtual ISXYPublicFunction& GetFunction(int index) = 0;
+		virtual int FunctionCount() const = 0;
+		virtual int InterfaceCount() const = 0;
+		virtual int TypeCount() const = 0;
+		virtual int Length() const = 0;
+		virtual ISxyNamespace& operator[] (int index) = 0;
+		virtual cstr Name() = 0;
+		virtual ISxyNamespace& Update(cstr subspace) = 0;
+		virtual void UpdateInterface(cstr name, cr_sex sInterfaceDef, ISXYFile& file) = 0;
+		virtual void UpdateMacro(cstr name, cr_sex sMacroDef, ISXYFile& file) = 0;
+		virtual void SortRecursive() = 0;
+		virtual void AliasFunction(cstr localName, ISXYFile& file, cstr publicName) = 0;
+		virtual void AliasStruct(cstr localName, ISXYFile& file, cstr publicName) = 0;
+		virtual void AliasNSREf(cstr publicName, cr_sex sAliasDef, ISXYFile& file) = 0;
+		virtual int EnumCount() const = 0;
+		virtual cstr GetEnumName(int index) const = 0;
+		virtual cstr GetEnumValue(int index) const = 0;
+		virtual cstr GetEnumSourcePath(int index) const = 0;
+	};
+
 	ROCOCOAPI ISexyDatabase
 	{
+		virtual void Sort() = 0;
 		virtual void UpdateFile_SXY(cstr fullpathToSxy) = 0;
 		virtual void Clear() = 0;
+		virtual ISxyNamespace& GetRootNamespace() = 0;
 	};
 
 	ROCOCOAPI ISexyDatabaseSupervisor : ISexyDatabase
@@ -141,27 +230,6 @@ namespace Rococo::SexyStudio
 		virtual void Free() = 0;
 		virtual void Layout(IGuiWidget& widget) = 0;
 	};
-
-	typedef uint64 ID_SXY_META;
-
-	struct MetaInfo
-	{
-		cstr filename;
-		const Sex::ISExpression* pRoot;
-		int errorCode;
-		cstr errorMsg;
-		size_t fileLength;
-	};
-
-	ROCOCOAPI ISXYMetaTable
-	{
-		virtual void Free() = 0;
-		virtual ID_SXY_META RefreshSXYStatus(cstr path) = 0;
-		virtual bool TryGetError(ID_SXY_META metaId, int& errorCode, char* buffer, size_t nBytesInBuffer) = 0;
-		virtual void ForEverySXYFile(IEventCallback<MetaInfo>& cb) = 0;
-	};
-
-	ISXYMetaTable* CreateSXYMetaTable();
 
 	ROCOCOAPI IGuiWidget
 	{
