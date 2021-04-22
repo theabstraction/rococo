@@ -70,7 +70,7 @@ namespace
 						Rococo::Throw(0, "Failed to create script system -> probably an environment problem");
 					}
 					tree = sources.GetSource(resourcePath);
-					InitSexyScript(*tree, debugger, *ss, sources, onCompile);
+					InitSexyScript(*tree, debugger, *ss, sources, onCompile, nullptr);
 					break;
 				}
 				catch (ParseException& ex)
@@ -205,7 +205,21 @@ namespace Rococo
 	{
 		namespace IDE
 		{
-			int32 ExecuteSexyScriptLoop(ScriptPerformanceStats& stats, size_t maxBytes, IScriptSystemFactory& factory, ISourceCache& sources, IDebuggerWindow& debugger, cstr resourcePath, int32 param, int32 maxScriptSizeBytes, IEventCallback<ScriptCompileArgs>& onCompile, IScriptExceptionHandler& exceptionHandler, OS::IAppControl& appControl, bool trace)
+			int32 ExecuteSexyScriptLoop(
+				ScriptPerformanceStats& stats,
+				size_t maxBytes,
+				IScriptSystemFactory& factory,
+				ISourceCache& sources,
+				IDebuggerWindow& debugger,
+				cstr resourcePath, 
+				int32 param, 
+				int32 maxScriptSizeBytes,
+				IEventCallback<ScriptCompileArgs>& onCompile, 
+				IScriptExceptionHandler& exceptionHandler,
+				OS::IAppControl& appControl, 
+				bool trace, 
+				StringBuilder* declarationBuilder
+			)
 			{
 				ScriptLogger logger(debugger);
 
@@ -245,7 +259,7 @@ namespace Rococo
 						OS::ticks start = OS::CpuTicks();
 						ISParserTree* tree = sources.GetSource(resourcePath);
 						stats.loadTime = OS::CpuTicks() - start;
-						int32 exitCode = ExecuteSexyScript(stats, *tree, debugger, ss, sources, param, onCompile, trace);
+						int32 exitCode = ExecuteSexyScript(stats, *tree, debugger, ss, sources, param, onCompile, trace, declarationBuilder);
 						return exitCode;
 					}
 					catch (ParseException& ex)

@@ -243,7 +243,7 @@ namespace Rococo
 			Rococo::Script::SetDefaultNativeSourcePath(srcpath);
 		}
 
-		void RunEnvironmentScript(ScriptPerformanceStats& stats, Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail, bool trace, int id, IEventCallback<cstr>* onScriptCrash)
+		void RunEnvironmentScript(ScriptPerformanceStats& stats, Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail, bool trace, int id, IEventCallback<cstr>* onScriptCrash, StringBuilder* declarationBuilder)
 		{
 			struct ScriptContext : public IEventCallback<ScriptCompileArgs>, public IDE::IScriptExceptionHandler
 			{
@@ -251,6 +251,7 @@ namespace Rococo
 				IEventCallback<ScriptCompileArgs>& onScriptEvent;
 				bool shutdownOnFail;
 				IEventCallback<cstr>* onScriptCrash;
+				StringBuilder* declarationBuilder;
 
 				void Free() override
 				{
@@ -319,7 +320,8 @@ namespace Rococo
 							*this, 
 							*this, 
 							platform.appControl,
-							trace);
+							trace,
+							declarationBuilder);
 					}
 					catch (IException&)
 					{
@@ -333,6 +335,7 @@ namespace Rococo
 
 			sc.addPlatform = addPlatform;
 			sc.shutdownOnFail = shutdownOnFail;
+			sc.declarationBuilder = declarationBuilder;
 
 			sc.Execute(name, stats, trace, id);
 		}
@@ -345,13 +348,15 @@ namespace Rococo
 			IScriptSystemFactory& ssf,
 			IDebuggerWindow& debugger,
 			ISourceCache& sources,
-			OS::IAppControl& appControl
+			OS::IAppControl& appControl,
+			StringBuilder* declarationBuilder
 		)
 		{
 			struct ScriptContext : public IEventCallback<ScriptCompileArgs>, public IDE::IScriptExceptionHandler
 			{
 				IEventCallback<ScriptCompileArgs>& onScriptEvent;
 				bool shutdownOnFail;
+				StringBuilder* declarationBuilder;
 
 				void Free() override
 				{
@@ -393,7 +398,8 @@ namespace Rococo
 							*this,
 							*this,
 							appControl,
-							false);
+							false,
+							declarationBuilder);
 					}
 					catch (IException&)
 					{
@@ -403,6 +409,8 @@ namespace Rococo
 
 			} sc(_onScriptEvent);
 
+			sc.declarationBuilder = declarationBuilder;
+
 			sc.Execute(name, stats, id, ssf, debugger, sources, appControl);
 		}
 
@@ -410,7 +418,8 @@ namespace Rococo
 			Script::IScriptSystemFactory& ssf,
 			IDebuggerWindow& debugger,
 			ISourceCache& sources,
-			OS::IAppControl& appControl
+			OS::IAppControl& appControl,
+			StringBuilder* declarationBuilder
 		)
 		{
 			struct : IEventCallback<ScriptCompileArgs>
@@ -427,7 +436,7 @@ namespace Rococo
 			ScriptPerformanceStats stats = { 0 };
 			RunBareScript(
 				stats, onCompile, "!scripts/config_mplat.sxy", 0,
-				ssf, debugger, sources, appControl
+				ssf, debugger, sources, appControl, declarationBuilder
 			);
 		}
 	} // M

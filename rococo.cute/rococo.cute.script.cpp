@@ -21,7 +21,7 @@ namespace Rococo { namespace Cute
 {
 	using namespace Rococo::Windows::IDE;
 
-	void ExecuteScript(cstr scriptFile, IInstallation& installation, IScriptSystemFactory& factory, ExecuteScriptSpec& spec, IEventCallback<ScriptCompileArgs>& onCompile, Rococo::Windows::IDE::IScriptExceptionHandler& exHandler, bool trace)
+	void ExecuteScript(cstr scriptFile, IInstallation& installation, IScriptSystemFactory& factory, ExecuteScriptSpec& spec, IEventCallback<ScriptCompileArgs>& onCompile, Rococo::Windows::IDE::IScriptExceptionHandler& exHandler, bool trace, StringBuilder* declarationBuilder)
 	{
 		if (scriptFile == nullptr || *scriptFile == 0)
 		{
@@ -50,7 +50,8 @@ namespace Rococo { namespace Cute
 			onCompile,
 			exHandler,
 			*appControl,
-			trace
+			trace,
+			declarationBuilder
 		);
 	}
 

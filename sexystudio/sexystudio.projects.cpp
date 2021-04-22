@@ -11,9 +11,45 @@
 #include <rococo.hashtable.h>
 #include <vector>
 
+#include <rococo.package.h>
+
 namespace Rococo::SexyStudio
 {
 	using namespace Rococo::Sex;
+
+	bool TryGetShortPackageName(U8FilePath& path, cstr packagePath)
+	{
+		auto* end = GetFinalNull(packagePath);
+		auto* start = packagePath;
+
+		char* p = const_cast<char*>(end);
+
+		p -= 5;
+
+		if (p < start || !Eq(p, ".sxyz"))
+		{
+			return false;
+		}
+
+		end = p;
+
+		p -= 1;
+
+		while (p >= start)
+		{
+			if (*p == '\\' || *p == '/')
+			{
+				p++;
+				memcpy(path.buf, p, end - p);
+				path.buf[end - p] = 0;
+				return true;
+			}
+
+			p--;
+		}
+
+		return false;
+	}
 
 	void PopulateBranchWithSTree(IGuiTree& tree, ISParserTree& srcTree)
 	{
@@ -129,6 +165,64 @@ namespace Rococo::SexyStudio
 		}
 
 		database.Sort();
+	}
+
+	void PopulateDatabaseFromPackageDirectory(IPackage& package, ISexyDatabase& database, cstr dirname)
+	{
+		struct ANON : IEventCallback<cstr>
+		{
+			IPackage* package;
+			ISexyDatabase* database;
+
+			void OnEvent(cstr filename)
+			{
+				PackageFileData pfd;
+				package->GetFileInfo(filename, pfd);
+				if (pfd.filesize < 1_megabytes)
+				{
+					database->UpdateFile_SXY_PackedItem(pfd.data, (int32)pfd.filesize, pfd.name);
+				}
+			}
+		} onFile;
+		onFile.package = &package;
+		onFile.database = &database;
+
+		package.BuildFileCache(dirname);
+		package.ForEachFileInCache(onFile);
+	}
+
+	void PopulateTreeWithPackages(cstr searchPath, cstr packageFolder, ISexyDatabase& database)
+	{
+		WideFilePath widePath;
+		Assign(widePath, packageFolder);
+
+		U8FilePath asciiName;
+		Format(asciiName, "%s", packageFolder);
+
+		U8FilePath packageShortName;
+		if (!TryGetShortPackageName(packageShortName, packageFolder))
+		{
+			Format(packageShortName, "-unknown-%llu", Rococo::OS::CpuTicks());
+		}
+
+		AutoFree<IPackageSupervisor> package = OpenZipPackage(widePath, packageShortName);
+
+		package->BuildDirectoryCache(searchPath);
+
+		struct ANON : IEventCallback<cstr>
+		{
+			IPackage* package;
+			ISexyDatabase* database;
+
+			void OnEvent(cstr dirname)
+			{
+				PopulateDatabaseFromPackageDirectory(*package, *database, dirname);
+			}
+		} onDir;
+		onDir.package = package;
+		onDir.database = &database;
+
+		package->ForEachDirInCache(onDir);
 	}
 
 	void Run()

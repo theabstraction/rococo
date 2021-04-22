@@ -184,7 +184,7 @@ namespace Rococo::SexyStudio
 		virtual int Length() const = 0;
 		virtual ISxyNamespace& operator[] (int index) = 0;
 		virtual cstr Name() = 0;
-		virtual ISxyNamespace& Update(cstr subspace) = 0;
+		virtual ISxyNamespace& Update(cstr subspace, cr_sex src) = 0;
 		virtual void UpdateInterface(cstr name, cr_sex sInterfaceDef, ISXYFile& file) = 0;
 		virtual void UpdateMacro(cstr name, cr_sex sMacroDef, ISXYFile& file) = 0;
 		virtual void SortRecursive() = 0;
@@ -201,9 +201,12 @@ namespace Rococo::SexyStudio
 	{
 		virtual void Sort() = 0;
 		virtual void UpdateFile_SXY(cstr fullpathToSxy) = 0;
+		virtual void UpdateFile_SXY_PackedItem(cstr data, int32 length, cstr path) = 0;
 		virtual void Clear() = 0;
 		virtual ISxyNamespace& GetRootNamespace() = 0;
 	};
+
+	void PopulateTreeWithPackages(cstr searchPath, cstr packageFolder, ISexyDatabase& database);
 
 	ROCOCOAPI ISexyDatabaseSupervisor : ISexyDatabase
 	{

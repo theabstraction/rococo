@@ -68,6 +68,7 @@
 #include <sexy.dispatch.inl>
 #include <rococo.package.h>
 #include <rococo.os.h>
+#include <rococo.strings.h>
 
 #define validate(_Expression) if (!(_Expression)) { ShowFailure(#_Expression, __FILE__, __LINE__); Abort(); }
 
@@ -390,6 +391,20 @@ namespace
 
 		ss.AddTree(tree());
 		ss.Compile();
+	}
+
+	void TestCreateDeclarations(IPublicScriptSystem& ss)
+	{
+		Auto<ISourceCode> sc(ss.SParser().ProxySourceBuffer("(namespace Sys.Data)", -1, Vec2i{ 0,0 }, "test2"));
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		ss.AddTree(tree());
+
+		AutoFree<IStringBuilder> sb = CreateDynamicStringBuilder(16384);
+		ss.Compile(&sb->Builder());
+
+		fstring result = *sb->Builder();
+		printf_s("%s", result.buffer);
 	}
 
 	bool SetProgramAndEntryPoint(IPublicProgramObject& object, const INamespace& ns, cstr fname)
@@ -13946,6 +13961,7 @@ R"(
 
 		TEST(TestRaw);
 		TEST(TestMinimumConstruct);
+	//	TEST(TestCreateDeclarations);
 		TEST(TestCreateNamespace);
 		TEST(TestAssignInt32Literal);
 		TEST(TestAssignFloat32Literal);

@@ -495,8 +495,67 @@ namespace ANON
 			return name.c_str();
 		}
 
-		ISxyNamespace& Update(cstr subspace) override
+		// Creates or updates namespace tree by breaking a path such as MHost/Widgets into MHost & Widgets
+		ISxyNamespace& MapPathToNamespace(cstr path)
 		{
+			cstr s = path;
+			while (*s != '/' && *s != 0)
+			{
+				s++;
+			}
+
+			if (*s == 0)
+			{
+				if (EndsWith(path, ".sxy"))
+				{
+					return *this;
+				}
+
+				for (auto& sub : subspaces)
+				{
+					if (Eq(sub->Name(), path))
+					{
+						return *sub;
+					}
+				}
+
+				subspaces.push_back(std::make_unique<SxyNamespace>(path));
+				return *subspaces[subspaces.size() - 1];
+			}
+			else
+			{
+				char* prefix = (char*)alloca(s - path + 1);
+				memcpy(prefix, path, s - path);
+				prefix[s - path] = 0;
+
+				for (auto& sub : subspaces)
+				{
+					if (Eq(sub->Name(), prefix))
+					{
+						return sub->MapPathToNamespace(s + 1);
+					}
+				}
+
+				subspaces.push_back(std::make_unique<SxyNamespace>(prefix));
+				return subspaces.back()->MapPathToNamespace(s + 1);
+			}
+		}
+
+		ISxyNamespace& Update(cstr subspace, cr_sex src) override
+		{
+			if (Eq(subspace, "$"))
+			{
+				// The dollar indicates we generate the namespace from the file path
+				cstr filename = src.Tree().Source().Name();
+				fstring pckPrefix = "[package]:"_fstring;
+				if (Compare(filename, pckPrefix, pckPrefix.length) == 0)
+				{
+					filename += pckPrefix.length;
+				}
+
+				return MapPathToNamespace(filename);
+			}
+
 			for (auto& s : subspaces)
 			{
 				if (Eq(s->Name(), subspace))
@@ -828,6 +887,49 @@ namespace ANON
 			}
 		}
 
+		void UpdateFile_SXY_PackedItem(cstr data, int32 length, cstr path) override
+		{
+			std::string filename = path;
+			auto i = filenameToFile.find(filename);
+			if (i == filenameToFile.end())
+			{
+				i = filenameToFile.insert(std::make_pair(filename, new File_SXY(filename))).first;
+				auto& file = *i->second;
+
+				U8FilePath name;
+				SafeFormat(name.buf, "[package]:%hs", path);
+
+				AutoRelease<ISourceCode> src;
+
+				try
+				{
+					src = sparser->DuplicateSourceBuffer(data, length, { 1,1 }, name);
+				}
+				catch (IException& ex)
+				{
+					file.errorCode = ex.ErrorCode();
+					file.errorMessage = ex.Message();
+					return;
+				}
+
+				try
+				{
+					file.s_tree = sparser->CreateTree(*src);
+					file.fileLength = file.s_tree->Source().SourceLength();
+				}
+				catch (IException& ex)
+				{
+					file.errorCode = ex.ErrorCode();
+					file.errorMessage = ex.Message();
+				}
+			}
+
+			if (i->second->s_tree)
+			{
+				ParseTree(*i->second->s_tree, *i->second);
+			}
+		}
+
 		void UpdateFile_SXY(cstr fullpathToSxy) override
 		{
 			std::string filename = fullpathToSxy;
@@ -867,6 +969,11 @@ namespace ANON
 						file.s_tree = sparser->CreateTree(*src);
 						file.fileLength = file.s_tree->Source().SourceLength();
 					}
+					catch (ParseException& pex)
+					{
+						file.errorCode = pex.ErrorCode();
+						file.errorMessage = pex.Message();
+					}
 					catch (IException& ex)
 					{
 						file.errorCode = ex.ErrorCode();
@@ -896,7 +1003,7 @@ namespace ANON
 			delete this;
 		}
 
-		ISxyNamespace& InsertNamespaceRecursive(cstr ns, ISxyNamespace& parent)
+		ISxyNamespace& InsertNamespaceRecursive(cstr ns, ISxyNamespace& parent, cr_sex src)
 		{
 			cstr nsIndex = FindDot(ns);
 			
@@ -904,7 +1011,7 @@ namespace ANON
 			memcpy(subspace, ns, nsIndex - ns);
 			subspace[nsIndex - ns] = 0;
 
-			auto& branch = parent.Update(subspace);
+			auto& branch = parent.Update(subspace, src);
 
 			if (*nsIndex == 0)
 			{
@@ -914,11 +1021,11 @@ namespace ANON
 			else
 			{
 				// We still have subspaces after the dot
-				return InsertNamespaceRecursive(nsIndex+1, branch);
+				return InsertNamespaceRecursive(nsIndex+1, branch, src);
 			}
 		}
 
-		ISxyNamespace& InsertNamespaceRecursiveSANSEnd(cstr ns, ISxyNamespace& parent)
+		ISxyNamespace& InsertNamespaceRecursiveSANSEnd(cstr ns, ISxyNamespace& parent, cr_sex src)
 		{
 			cstr nsIndex = FindDot(ns);
 
@@ -936,13 +1043,13 @@ namespace ANON
 
 			memcpy(subspace, ns, nsIndex - ns);
 			subspace[nsIndex - ns] = 0;
-			auto& branch = parent.Update(subspace);
-			return InsertNamespaceRecursiveSANSEnd(nsIndex + 1, branch);
+			auto& branch = parent.Update(subspace, src);
+			return InsertNamespaceRecursiveSANSEnd(nsIndex + 1, branch, src);
 		}
 
 		void InsertNamespaceUnique(cr_sex s, cstr ns, File_SXY& file)
 		{
-			InsertNamespaceRecursive(ns, rootNS);
+			InsertNamespaceRecursive(ns, rootNS, s);
 		}
 
 		void InsertInterfaceRecursive(cstr ns, ISxyNamespace& parent, File_SXY& file, cr_sex sInterfaceDef)
@@ -955,7 +1062,7 @@ namespace ANON
 				memcpy(subspace, ns, nsIndex - ns);
 				subspace[nsIndex - ns] = 0;
 
-				auto& branch = parent.Update(subspace);
+				auto& branch = parent.Update(subspace, sInterfaceDef);
 				InsertInterfaceRecursive(nsIndex + 1, branch, file, sInterfaceDef);
 			}
 			else
@@ -968,7 +1075,7 @@ namespace ANON
 		{
 			char* publicName = (char*)_alloca(fqName.length + 1);
 			CopyFinalNameToBuffer(publicName, fqName.length + 1, fqName);
-			ISxyNamespace& ns = InsertNamespaceRecursiveSANSEnd(fqName, rootNS);
+			ISxyNamespace& ns = InsertNamespaceRecursiveSANSEnd(fqName, rootNS, s);
 			ns.UpdateInterface(publicName, s, file);
 		}
 
@@ -992,7 +1099,7 @@ namespace ANON
 				memcpy(subspace, ns, nsIndex - ns);
 				subspace[nsIndex - ns] = 0;
 
-				auto& branch = parent.Update(subspace);
+				auto& branch = parent.Update(subspace, sMacroDef);
 				InsertMacroRecursive(nsIndex + 1, branch, file, sMacroDef);
 			}
 			else
@@ -1026,7 +1133,7 @@ namespace ANON
 			if (*dot == '.')
 			{
 				// A namespace mapping
-				ISxyNamespace& ns = InsertNamespaceRecursiveSANSEnd(aliasTo, rootNS);
+				ISxyNamespace& ns = InsertNamespaceRecursiveSANSEnd(aliasTo, rootNS, s);
 				ns.AliasNSREf(publicName, s, file);
 			}
 			else
@@ -1035,15 +1142,15 @@ namespace ANON
 				auto i = file.functions.find(aliasFrom);
 				if (i != file.functions.end())
 				{
-					ISxyNamespace& ns = InsertNamespaceRecursiveSANSEnd(aliasTo, rootNS);
-					ns.AliasFunction(aliasFrom, file, i->second.name);
+					ISxyNamespace& ns = InsertNamespaceRecursiveSANSEnd(aliasTo, rootNS, s);
+					ns.AliasFunction(aliasFrom, file, publicName);
 				}
 
 				auto j = file.structures.find(aliasFrom);
 				if (j != file.structures.end())
 				{
-					ISxyNamespace& ns = InsertNamespaceRecursiveSANSEnd(aliasTo, rootNS);
-					ns.AliasStruct(aliasFrom, file, j->second.sStructDef[1].String()->Buffer);
+					ISxyNamespace& ns = InsertNamespaceRecursiveSANSEnd(aliasTo, rootNS, s);
+					ns.AliasStruct(aliasFrom, file, publicName);
 				}
 			}
 		}

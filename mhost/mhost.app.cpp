@@ -29,7 +29,7 @@ namespace MHost
 	auto evPopulateBusyCategoryId = "busy.category"_event;
 	auto evPopulateBusyResourceId = "busy.resource"_event;
 
-	void RunEnvironmentScript(Platform& platform, IEngineSupervisor* engine, cstr name, bool releaseAfterUse, bool trace, IPackage& package, IEventCallback<cstr>* onScriptCrash);
+	void RunEnvironmentScript(Platform& platform, IEngineSupervisor* engine, cstr name, bool releaseAfterUse, bool trace, IPackage& package, IEventCallback<cstr>* onScriptCrash, StringBuilder* declarationBuilder);
 
 	namespace UI
 	{
@@ -303,6 +303,10 @@ namespace MHost
 			{
 
 			}
+			else if (Eq(pingPath, "!scripts/mhost/declarations.sxy"))
+			{
+				// The declarations file is for sexy-sense, and is not meant to be compiled at any time.
+			}
 			else if (Eq(ext, ".sxy"))
 			{
 				platform.gui.LogMessage("Updating script file");
@@ -351,7 +355,20 @@ namespace MHost
 
 		void Run() override
 		{
-			RunEnvironmentScript(platform, this, "!scripts/MHost/_Init/keys.sxy", true, false, *packageMHost, this);
+			AutoFree<IStringBuilder> sb = CreateDynamicStringBuilder(4096);
+			RunEnvironmentScript(platform, this, "!scripts/MHost/_Init/keys.sxy", true, false, *packageMHost, this, &sb->Builder());
+
+			WideFilePath wPath;
+			platform.installation.ConvertPingPathToSysPath("!scripts/mhost/declarations.sxy", wPath);
+
+			try
+			{
+				Rococo::OS::SaveAsciiTextFile(Rococo::OS::TargetDirectory_Root, wPath, *sb->Builder());
+			}
+			catch (...)
+			{
+
+			}
 
 			while (platform.appControl.IsRunning() && !isShutdown)
 			{
@@ -363,7 +380,7 @@ namespace MHost
 				U8FilePath currentScript;
 				Format(currentScript, "%s", mainScript.c_str());
 
-				RunEnvironmentScript(platform, this, currentScript, true, false, *packageMHost, this);
+				RunEnvironmentScript(platform, this, currentScript, true, false, *packageMHost, this, nullptr);
 				CleanupResources();
 			}
 		}

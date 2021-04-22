@@ -293,7 +293,7 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 
 	AutoFree<Rococo::Script::IScriptSystemFactory> ssFactory = CreateScriptSystemFactory_1_5_0_0(sourceCache->Allocator());
 
-	RunMPlatConfigScript(*config, *ssFactory, *debuggerWindow, *sourceCache, *appControl);
+	RunMPlatConfigScript(*config, *ssFactory, *debuggerWindow, *sourceCache, *appControl, nullptr);
 
 	int32 maxEntities = config->GetInt("mplat.instances.entities.max"_fstring);
 	if (maxEntities <= 0) Throw(0, "Int32 \"mplat.instances.entities.max\" defined in '!scripts/config_mplat.sxy' was not positive");

@@ -415,6 +415,34 @@ namespace Rococo
 
 	static const char* NativeModuleSrc = ("_NativeModule_");
 
+	void AppendNativeCallsAsAliases(IN const TMapFQNToNativeCall& nativeCalls, StringBuilder& sb)
+	{
+		sb.AppendFormat("(SexyDeclarations - containing %llu functions)\n", nativeCalls.size());
+
+		int index = 1;
+		for (auto i = nativeCalls.begin(); i != nativeCalls.end(); ++i)
+		{
+			cstr fqName = i->first.c_str();
+			NativeFunction& nf = *i->second;
+
+			NamespaceSplitter splitter(i->first.c_str());
+
+			cstr body, publicName;
+			if (!splitter.SplitTail(OUT body, OUT publicName))
+			{
+				char fullError[2048];
+				SafeFormat(fullError, 2048, ("%s: Expecting fully qualified name A.B.C.D."), nf.Archetype.c_str());
+				ParseException nativeError(Vec2i{ 0,0 }, Vec2i{ 0,0 }, NativeModuleSrc, fullError, (""), NULL);
+				Throw(nativeError);
+			}
+			
+			sb.AppendFormat("\n(function %s%d %s : <native>)\n", publicName, index, nf.Archetype.c_str() + strlen(publicName));
+			sb.AppendFormat("(alias %s%d %s)\n", publicName, index, i->first.c_str());
+
+			index++;
+		}
+	}
+
 	void InstallNativeCallNamespaces(IN const TMapFQNToNativeCall& nativeCalls, REF INamespaceBuilder& rootNS)
 	{
 		for(auto i = nativeCalls.begin(); i != nativeCalls.end(); ++i)
@@ -426,7 +454,7 @@ namespace Rococo
 			if (!splitter.SplitTail(OUT body, OUT publicName))
 			{
 				char fullError[2048];
-            SafeFormat(fullError, 2048, ("%s: Expecting fully qualified name A.B.C.D."), nf.Archetype.c_str());
+				SafeFormat(fullError, 2048, ("%s: Expecting fully qualified name A.B.C.D."), nf.Archetype.c_str());
 				ParseException nativeError(Vec2i{ 0,0 }, Vec2i{ 0,0 }, NativeModuleSrc, fullError, (""), NULL);
 				Throw(nativeError);
 			}
@@ -1743,7 +1771,7 @@ namespace Rococo
 			}
 		}
 
-		void Compile() override
+		void Compile(StringBuilder* declarationBuilder) override
 		{
 			Clear();
 
@@ -1770,6 +1798,11 @@ namespace Rococo
 			{
 				INativeLib* lib = *i;
 				lib->AddNativeCalls();
+			}
+
+			if (declarationBuilder)
+			{
+				AppendNativeCallsAsAliases(IN nativeCalls, *declarationBuilder);
 			}
 
 			InstallNativeCallNamespaces(IN nativeCalls, REF ProgramObject().GetRootNamespace());

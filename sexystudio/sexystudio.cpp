@@ -64,6 +64,8 @@ auto evIDEMax = "EvIDEMax"_event;
 namespace Globals
 {
 	U8FilePath contentFolder{ "\\work\\rococo\\content\\scripts" };
+	U8FilePath packageFolder{ "\\work\\rococo\\content\\packages\\mhost_1000.sxyz" };
+	U8FilePath searchPath{ "MHost/" };
 }
 
 namespace Rococo::SexyStudio
@@ -89,6 +91,7 @@ private:
 			WaitCursorSection waitSection;
 			ideFrame.SetProgress(0.0f, "Populating file browser...");
 			PopulateTreeWithSXYFiles(*fileBrowser, Globals::contentFolder, *database, ideFrame);
+			PopulateTreeWithPackages(Globals::searchPath, Globals::packageFolder, *database);
 			ideFrame.SetProgress(100.0f, "Populated file browser");
 
 			TEventArgs<ISexyDatabase*> args;
@@ -158,17 +161,21 @@ public:
 		contentEditor->SetVisible(true);
 		contentEditor->SetUpdateEvent(evContentChange);
 
+		auto* packagePathEditor = projectSettings->AddFilePathEditor();
+		packagePathEditor->SetName("Package Path");
+		packagePathEditor->Bind(Globals::packageFolder, 128);
+		packagePathEditor->SetVisible(true);
+		packagePathEditor->SetUpdateEvent(evContentChange);
+
 		TreeStyle style;
 		style.hasButtons = true;
 		style.hasLines = true;
 
 		fileBrowser = CreateTree(projectTab->Children(), style, this);
-		Widgets::AnchorToParent(*fileBrowser, 0, 32, 0, 0);
+		Widgets::AnchorToParent(*fileBrowser, 0, 64, 0, 0);
 
 		fileBrowser->SetVisible(true);
 		fileBrowser->SetImageList(4, IDB_FOLDER_CLOSED, IDB_FOLDER_OPEN, IDB_FILETYPE_SXY, IDB_FILETYPE_UNKNOWN);
-
-		Widgets::AnchorToParent(*fileBrowser, 0, 32, 0, 0);
 
 	//	PopulateTreeWithSXYFiles(*fileBrowser, Globals::contentFolder, *database, ideFrame);
 

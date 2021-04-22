@@ -260,7 +260,7 @@ namespace Rococo {
 			 */
 			virtual void LoadSubpackages(cstr namespaceFilter, cstr packageName) = 0;
 			virtual Compiler::IModule* AddTree(Sex::ISParserTree& tree) = 0;
-			virtual void Compile() = 0;
+			virtual void Compile(StringBuilder* declarationBuilder = nullptr) = 0;
 			virtual void DispatchToSexyClosure(void* pArgBuffer, const ArchetypeCallback& target) = 0;
 			virtual cstr GetSymbol(const void* ptr) const = 0;
 			virtual Compiler::IPublicProgramObject& PublicProgramObject() = 0;

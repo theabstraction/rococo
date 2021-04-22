@@ -32,7 +32,7 @@ namespace Rococo
 {
 	namespace MPlatImpl
 	{
-		void RunEnvironmentScript(ScriptPerformanceStats& stats, Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail, bool trace, int32 id, IEventCallback<cstr>* onScriptCrash);
+		void RunEnvironmentScript(ScriptPerformanceStats& stats, Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail, bool trace, int32 id, IEventCallback<cstr>* onScriptCrash, StringBuilder* declarationBuilder);
 	}
 }
 
@@ -316,16 +316,16 @@ public:
 		}
 	}
 
-	void RunEnvironmentScript(IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail = true, bool trace = false, IEventCallback<cstr>* onScriptCrash = nullptr)
+	void RunEnvironmentScript(IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail, bool trace, IEventCallback<cstr>* onScriptCrash, StringBuilder* declarationBuilder)
 	{
-		RunEnvironmentScript(_onScriptEvent, 0, name, addPlatform, shutdownOnFail, trace, onScriptCrash);
+		RunEnvironmentScript(_onScriptEvent, 0, name, addPlatform, shutdownOnFail, trace, onScriptCrash, declarationBuilder);
 	}
 
-	void RunEnvironmentScript(IEventCallback<ScriptCompileArgs>& _onScriptEvent, int32 id, const char* name, bool addPlatform, bool shutdownOnFail, bool trace, IEventCallback<cstr>* onScriptCrash = nullptr) override
+	void RunEnvironmentScript(IEventCallback<ScriptCompileArgs>& _onScriptEvent, int32 id, const char* name, bool addPlatform, bool shutdownOnFail, bool trace, IEventCallback<cstr>* onScriptCrash, StringBuilder* declarationBuilder) override
 	{
 		ScriptPerformanceStats stats = { 0 };
 
-		Rococo::MPlatImpl::RunEnvironmentScript(stats, *platform, _onScriptEvent, name, addPlatform, shutdownOnFail, trace, id, onScriptCrash);
+		Rococo::MPlatImpl::RunEnvironmentScript(stats, *platform, _onScriptEvent, name, addPlatform, shutdownOnFail, trace, id, onScriptCrash, declarationBuilder);
 
 		auto i = nameToStats.find(name);
 		if (i == nameToStats.end())

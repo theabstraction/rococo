@@ -79,7 +79,7 @@ namespace MHost
 		return obj;
 	}
 
-	void RunEnvironmentScript(Platform& platform, IEngineSupervisor* engine, cstr name, bool releaseAfterUse, bool trace, IPackage& package, IEventCallback<cstr>* onScriptCrash)
+	void RunEnvironmentScript(Platform& platform, IEngineSupervisor* engine, cstr name, bool releaseAfterUse, bool trace, IPackage& package, IEventCallback<cstr>* onScriptCrash, StringBuilder* declarationBuilder)
 	{
 		class ScriptContext : public IEventCallback<ScriptCompileArgs>
 		{
@@ -87,6 +87,7 @@ namespace MHost
 			IEngineSupervisor* engine;
 			IPackage& package;
 			const IStructure* exprStruct = nullptr;
+			StringBuilder* declarationBuilder = nullptr;
 
 			AutoFree<ISourceCache> privateSourceCache;
 
@@ -140,8 +141,8 @@ namespace MHost
 			}
 
 		public:
-			ScriptContext(Platform& _platform, IEngineSupervisor* _engine, IPackage& _package) :
-				platform(_platform), engine(_engine), package(_package)
+			ScriptContext(Platform& _platform, IEngineSupervisor* _engine, IPackage& _package, StringBuilder* _declarationBuilder) :
+				platform(_platform), engine(_engine), package(_package), declarationBuilder(_declarationBuilder)
 			{
 				privateSourceCache = CreateSourceCache(platform.installation);
 			}
@@ -150,10 +151,10 @@ namespace MHost
 
 			void Execute(cstr name, bool trace)
 			{
-				platform.utilities.RunEnvironmentScript(*this, name, true, true, trace, onScriptCrash);
+				platform.utilities.RunEnvironmentScript(*this, name, true, true, trace, onScriptCrash, declarationBuilder);
 				engine->SetRunningScriptContext(nullptr);
 			}
-		} sc(platform, engine, package);
+		} sc(platform, engine, package, declarationBuilder);
 
 		sc.onScriptCrash = onScriptCrash;
 

@@ -1661,7 +1661,7 @@ namespace Rococo
 		}
 	}
 
-	void InitSexyScript(ISParserTree& mainModule, IDebuggerWindow& debugger, Script::IPublicScriptSystem& ss, ISourceCache& sources, IEventCallback<ScriptCompileArgs>& onCompile)
+	void InitSexyScript(ISParserTree& mainModule, IDebuggerWindow& debugger, Script::IPublicScriptSystem& ss, ISourceCache& sources, IEventCallback<ScriptCompileArgs>& onCompile, StringBuilder* declarationBuilder)
 	{
 		using namespace Rococo::Script;
 		using namespace Rococo::Compiler;
@@ -1674,7 +1674,7 @@ namespace Rococo
 		Preprocess(mainModule.Root(), sources, ss);
 
 		ss.AddTree(mainModule);
-		ss.Compile();
+		ss.Compile(declarationBuilder);
 	}
 
 	void Execute(VM::IVirtualMachine& vm, Rococo::Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger, bool trace)
@@ -1817,13 +1817,13 @@ namespace Rococo
 		args.PopOutputs(argStack);
 	};
 
-	int ExecuteSexyScript(ScriptPerformanceStats& stats, ISParserTree& mainModule, IDebuggerWindow& debugger, Script::IPublicScriptSystem& ss, ISourceCache& sources, int32 param, IEventCallback<ScriptCompileArgs>& onCompile, bool trace)
+	int ExecuteSexyScript(ScriptPerformanceStats& stats, ISParserTree& mainModule, IDebuggerWindow& debugger, Script::IPublicScriptSystem& ss, ISourceCache& sources, int32 param, IEventCallback<ScriptCompileArgs>& onCompile, bool trace, StringBuilder* declarationBuilder)
 	{
 		using namespace Rococo::Script;
 		using namespace Rococo::Compiler;
 
 		OS::ticks start = OS::CpuTicks();
-		InitSexyScript(mainModule, debugger, ss, sources, onCompile);
+		InitSexyScript(mainModule, debugger, ss, sources, onCompile, declarationBuilder);
 
 		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace("EntryPoint");
 		if (ns == nullptr)

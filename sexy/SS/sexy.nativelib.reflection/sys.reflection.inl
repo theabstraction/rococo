@@ -393,7 +393,7 @@ namespace
 		ss.AddNativeCall(sysReflectionNative, NativeExpressionGetChild, &ss, ("ExpressionGetChild (Pointer sPtr) (Int32 index) ->  (Sys.Reflection.IExpression child)"), true);
 		ss.AddNativeCall(sysReflectionNative, NativeExpressionGetParent, &ss, ("ExpressionGetParent (Pointer sPtr) -> (Sys.Reflection.IExpression parent)"), true);
 		ss.AddNativeCall(sysReflectionNative, NativeExpressionChildCount, &ss, ("ExpressionChildCount (Pointer sPtr) -> (Int32 count)"), true);
-		ss.AddNativeCall(sysReflectionNative, NativeExpressionAppendTextTo, &ss, "ExpressionAppendTextTo  (Pointer sPtr) (Sys.Type.IStringBuilder sb)->)");
+		ss.AddNativeCall(sysReflectionNative, NativeExpressionAppendTextTo, &ss, "ExpressionAppendTextTo  (Pointer sPtr) (Sys.Type.IStringBuilder sb)->");
 		ss.AddNativeCall(sysReflectionNative, NativeGetExpressionText, &ss, ("GetExpressionText  (Pointer sPtr) -> (Sys.Type.IString name)"), true);
 		ss.AddNativeCall(sysReflectionNative, NativeGetExpressionType, &ss, ("GetExpressionType  (Pointer sPtr) -> (Sys.Type.Int32 type)"), true);
 		ss.AddNativeCall(sysReflectionNative, NativeExpressionThrow, &ss, ("ExpressionThrow  (Pointer sPtr)(Int32 errorCode)(Sys.Type.Pointer buffer) ->"), true);

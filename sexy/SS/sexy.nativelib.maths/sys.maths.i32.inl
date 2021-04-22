@@ -399,7 +399,7 @@ namespace Sys { namespace Maths { namespace I32 {
 		ss.AddNativeCall(ns, NativeSysMathsI32FromString, nullptr, "FromString (IString text)->(Int32 value)(Bool isOk)");
 		ss.AddNativeCall(ns, NativeSysMathsAddVec2iVec2i, nullptr, ("AddVec2iVec2i(Sys.Maths.Vec2i a)(Sys.Maths.Vec2i b)(Sys.Maths.Vec2i sum)->"));
 		ss.AddNativeCall(ns, NativeSysMathsSubtractVec2iVec2i, nullptr, ("SubtractVec2iVec2i(Sys.Maths.Vec2i a)(Sys.Maths.Vec2i b)(Sys.Maths.Vec2i diff)->"));
-		ss.AddNativeCall(ns, NativeSysMathsI32FromARGB, nullptr, "FromARGB (Int32 alphaByte)(Int32 redByte)(Int32 greenByte)(Int32 blueByte)->(Int32 argb))");
+		ss.AddNativeCall(ns, NativeSysMathsI32FromARGB, nullptr, "FromARGB (Int32 alphaByte)(Int32 redByte)(Int32 greenByte)(Int32 blueByte)->(Int32 argb)");
 
 		const INamespace& nsText = ss.AddNativeNamespace(("Sys.Type"));
 		ss.AddNativeCall(nsText, NativeSysTextIsAlphaNumeric, nullptr, "IsAlphaNumeric (Int32 c) -> (Bool isSo)");
