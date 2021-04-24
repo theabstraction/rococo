@@ -135,6 +135,8 @@ IDB_ENUM                BITMAP                  "enum.bmp"
 
 IDB_ALIAS               BITMAP                  "alias.bmp"
 
+IDB_FACTORY             BITMAP                  "factory.bmp"
+
 #endif    // English (United Kingdom) resources
 /////////////////////////////////////////////////////////////////////////////
 

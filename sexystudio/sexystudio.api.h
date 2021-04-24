@@ -127,6 +127,16 @@ namespace Rococo::SexyStudio
 		virtual cstr SourcePath() const = 0;
 	};
 
+	ROCOCOAPI ISXYFactory
+	{
+		virtual cstr PublicName() const = 0;
+		virtual int InputCount() const = 0;
+		virtual void GetDefinedInterface(char* buf, size_t capacity) const = 0;
+		virtual cstr InputType(int index) const = 0;
+		virtual cstr InputName(int index) const = 0;
+		virtual cstr SourcePath() const = 0;
+	};
+
 	ROCOCOAPI ISXYInterface
 	{
 		virtual cstr Base() const = 0;
@@ -178,6 +188,8 @@ namespace Rococo::SexyStudio
 		virtual ISXYInterface & GetInterface(int index) = 0;
 		virtual ISXYType& GetType(int index) = 0;
 		virtual ISXYPublicFunction& GetFunction(int index) = 0;
+		virtual ISXYFactory& GetFactory(int index) = 0;
+		virtual int FactoryCount() const = 0;
 		virtual int FunctionCount() const = 0;
 		virtual int InterfaceCount() const = 0;
 		virtual int TypeCount() const = 0;
@@ -185,6 +197,7 @@ namespace Rococo::SexyStudio
 		virtual ISxyNamespace& operator[] (int index) = 0;
 		virtual cstr Name() = 0;
 		virtual ISxyNamespace& Update(cstr subspace, cr_sex src) = 0;
+		virtual void UpdateFactory(cstr name, cr_sex sFactoryDef, ISXYFile& file) = 0;
 		virtual void UpdateInterface(cstr name, cr_sex sInterfaceDef, ISXYFile& file) = 0;
 		virtual void UpdateMacro(cstr name, cr_sex sMacroDef, ISXYFile& file) = 0;
 		virtual void SortRecursive() = 0;

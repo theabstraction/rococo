@@ -118,11 +118,13 @@
     <Image Include="alias.bmp" />
     <Image Include="attribute.bmp" />
     <Image Include="bitmap1.bmp" />
+    <Image Include="bitmap2.bmp" />
     <Image Include="blank.bmp" />
     <Image Include="blank.png" />
     <Image Include="enum.bmp" />
     <Image Include="enum.png" />
     <Image Include="extends.bmp" />
+    <Image Include="factory.bmp" />
     <Image Include="field.bmp" />
     <Image Include="filetype-sxy.bmp" />
     <Image Include="filetype-unknown.bmp" />

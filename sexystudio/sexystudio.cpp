@@ -228,7 +228,8 @@ enum class ClassImageIndex: int32
 	INPUT, 
 	OUTPUT,
 	ENUM,
-	ALIAS
+	ALIAS,
+	FACTORY
 };
 
 class SexyExplorer: IObserver
@@ -373,6 +374,43 @@ private:
 		}
 	}
 
+	void AppendFactories(ISxyNamespace& ns, ID_TREE_ITEM idNSNode, ISexyDatabase& database, bool appendSourceName)
+	{
+		for (int i = 0; i < ns.FactoryCount(); ++i)
+		{
+			auto& factory = ns.GetFactory(i);
+			auto idFactory = classTree->AppendItem(idNSNode);
+			cstr publicName = factory.PublicName();
+
+			char definedInterface[256];
+			factory.GetDefinedInterface(definedInterface, sizeof definedInterface);
+
+			char shortDesc[256];
+			SafeFormat(shortDesc, "%-24.24s --> (%s)", publicName, definedInterface);
+
+			char desc[256];
+			SafeFormat(desc, "%-64.64s %s", shortDesc, appendSourceName  ? factory.SourcePath() : "");
+			classTree->SetItemText(desc, idFactory);
+			classTree->SetItemImage(idFactory, (int)ClassImageIndex::FACTORY);
+
+			if (factory.InputCount()  == 0)
+			{
+				auto idNoArg = classTree->AppendItem(idFactory);
+				classTree->SetItemText(" - no arguments -", idNoArg);
+				classTree->SetItemImage(idNoArg, (int)ClassImageIndex::BLANK);
+			}
+
+			for (int k = 0; k < factory.InputCount(); ++k)
+			{
+				auto idInputArg = classTree->AppendItem(idFactory);
+				char desc[256];
+				SafeFormat(desc, "%s %s", factory.InputType(k), factory.InputName(k));
+				classTree->SetItemText(desc, idInputArg);
+				classTree->SetItemImage(idInputArg, (int)ClassImageIndex::INPUT);
+			}
+		}
+	}
+
 	void AppendEnumerations(ISxyNamespace& ns, ID_TREE_ITEM idNSNode, ISexyDatabase& database)
 	{
 		if (ns.EnumCount() > 0)
@@ -431,6 +469,7 @@ private:
 
 		AppendEnumerations(ns, idNSNode, database);
 		AppendInterfaces(ns, idNSNode);
+		AppendFactories(ns, idNSNode, database, true);
 		AppendTypes(ns, idNSNode, database);
 		AppendFunctions(ns, idNSNode, database, true);
 		AppendAliases(ns, idNSNode, database);
@@ -471,7 +510,7 @@ public:
 		style.hasCheckBoxes = false;
 		style.hasLines = true;
 		classTree = CreateTree(classTab->Children(), style);
-		classTree->SetImageList(13, IDB_BLANK, IDB_NAMESPACE, IDB_INTERFACE, IDB_METHOD, IDB_STRUCT, IDB_FIELD, IDB_EXTENDS, IDB_ATTRIBUTE, IDB_FUNCTION, IDB_INPUT, IDB_OUTPUT, IDB_ENUM, IDB_ALIAS);
+		classTree->SetImageList(14, IDB_BLANK, IDB_NAMESPACE, IDB_INTERFACE, IDB_METHOD, IDB_STRUCT, IDB_FIELD, IDB_EXTENDS, IDB_ATTRIBUTE, IDB_FUNCTION, IDB_INPUT, IDB_OUTPUT, IDB_ENUM, IDB_ALIAS, IDB_FACTORY);
 
 		SendMessageA(classTree->TreeWindow(), WM_SETFONT, (WPARAM) (HFONT) _wc.fontSmallLabel, 0);
 
