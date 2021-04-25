@@ -229,7 +229,8 @@ enum class ClassImageIndex: int32
 	OUTPUT,
 	ENUM,
 	ALIAS,
-	FACTORY
+	FACTORY,
+	ARCHETYPE
 };
 
 class SexyExplorer: IObserver
@@ -240,35 +241,35 @@ private:
 	IGuiTree* classTree;
 	ITab* classTab = nullptr;
 
-	void AppendArguments(ID_TREE_ITEM idFunction, ISXYFunction& function)
+	void AppendArguments(ID_TREE_ITEM idFunction, ISXYArchetype& archetype)
 	{
-		if (function.InputCount() + function.OutputCount() == 0)
+		if (archetype.InputCount() + archetype.OutputCount() == 0)
 		{
 			auto idNoArg = classTree->AppendItem(idFunction);
 			classTree->SetItemText(" - no arguments -", idNoArg);
 			classTree->SetItemImage(idNoArg, (int)ClassImageIndex::BLANK);
 		}
 
-		for (int k = 0; k < function.InputCount(); ++k)
+		for (int k = 0; k < archetype.InputCount(); ++k)
 		{
 			auto idInputArg = classTree->AppendItem(idFunction);
 			char desc[256];
-			SafeFormat(desc, "%s %s", function.InputType(k), function.InputName(k));
+			SafeFormat(desc, "%s %s", archetype.InputType(k), archetype.InputName(k));
 			classTree->SetItemText(desc, idInputArg);
 			classTree->SetItemImage(idInputArg, (int)ClassImageIndex::INPUT);
 		}
 
-		if (function.OutputCount() > 0)
+		if (archetype.OutputCount() > 0)
 		{
 			auto idMapArg = classTree->AppendItem(idFunction);
 			classTree->SetItemText("->", idMapArg);
 			classTree->SetItemImage(idMapArg, (int)ClassImageIndex::BLANK);
 
-			for (int k = 0; k < function.OutputCount(); ++k)
+			for (int k = 0; k < archetype.OutputCount(); ++k)
 			{
 				auto idOutputArg = classTree->AppendItem(idFunction);
 				char desc[256];
-				SafeFormat(desc, "%s %s", function.OutputType(k), function.OutputName(k));
+				SafeFormat(desc, "%s %s", archetype.OutputType(k), archetype.OutputName(k));
 				classTree->SetItemText(desc, idOutputArg);
 				classTree->SetItemImage(idOutputArg, (int)ClassImageIndex::OUTPUT);
 			}
@@ -350,6 +351,23 @@ private:
 					classTree->SetItemImage(idField, (int)ClassImageIndex::FIELD);
 				}
 			}
+		}
+	}
+
+	void AppendArchetypes(ISxyNamespace& ns, ID_TREE_ITEM idNSNode, ISexyDatabase& database, bool appendSourceName)
+	{
+		for (int i = 0; i < ns.ArchetypeCount(); ++i)
+		{
+			auto& archetype = ns.GetArchetype(i);
+			auto idArchetype = classTree->AppendItem(idNSNode);
+			cstr publicName = archetype.PublicName();
+
+			char desc[256];
+			SafeFormat(desc, "%-64.64s %s", publicName, appendSourceName ? archetype.SourcePath() : "");
+			classTree->SetItemText(desc, idArchetype);
+			classTree->SetItemImage(idArchetype, (int)ClassImageIndex::ARCHETYPE);
+
+			AppendArguments(idArchetype, archetype);
 		}
 	}
 
@@ -473,6 +491,7 @@ private:
 		AppendTypes(ns, idNSNode, database);
 		AppendFunctions(ns, idNSNode, database, true);
 		AppendAliases(ns, idNSNode, database);
+		AppendArchetypes(ns, idNSNode, database, true);
 	}
 
 	void OnMetaChanged(ISexyDatabase& database)
@@ -510,7 +529,7 @@ public:
 		style.hasCheckBoxes = false;
 		style.hasLines = true;
 		classTree = CreateTree(classTab->Children(), style);
-		classTree->SetImageList(14, IDB_BLANK, IDB_NAMESPACE, IDB_INTERFACE, IDB_METHOD, IDB_STRUCT, IDB_FIELD, IDB_EXTENDS, IDB_ATTRIBUTE, IDB_FUNCTION, IDB_INPUT, IDB_OUTPUT, IDB_ENUM, IDB_ALIAS, IDB_FACTORY);
+		classTree->SetImageList(15, IDB_BLANK, IDB_NAMESPACE, IDB_INTERFACE, IDB_METHOD, IDB_STRUCT, IDB_FIELD, IDB_EXTENDS, IDB_ATTRIBUTE, IDB_FUNCTION, IDB_INPUT, IDB_OUTPUT, IDB_ENUM, IDB_ALIAS, IDB_FACTORY, IDB_ARCHETYPE);
 
 		SendMessageA(classTree->TreeWindow(), WM_SETFONT, (WPARAM) (HFONT) _wc.fontSmallLabel, 0);
 

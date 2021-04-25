@@ -37,6 +37,7 @@ namespace Rococo::SexyStudio
 	ParseKeyword keywordMacro("macro");
 	ParseKeyword keywordAlias("alias");
 	ParseKeyword keywordFactory("factory");
+	ParseKeyword keywordArchetype("archetype");
 	AtomicArg ParseAtomic;
 
 	cr_sex GetElement(cr_sex s, int index)
@@ -505,6 +506,74 @@ namespace ANON
 		ISXYFile& file;
 	};
 
+	// archetype expressions have the format (archetype <FQ_NAME> (arg-type1 arg-name1)...(arg-typeN arg-nameN)->(out-type1 out-name1)...(out-typeN out-nameN))
+	struct SXYArchetype : ISXYArchetype
+	{
+		int mappingIndex = 0;
+
+		SXYArchetype(cstr _publicName, ISXYFile& _file, cr_sex _sDef) :
+			publicName(_publicName), sDef(_sDef), file(_file)
+		{
+			for (int i = 2; i < sDef.NumberOfElements(); ++i)
+			{
+				if (Eq(AlwaysGetAtomic(sDef, i), "->"))
+				{
+					mappingIndex = i;
+					break;
+				}
+			}
+		}
+
+		cstr PublicName() const override
+		{
+			return publicName.c_str();
+		}
+
+		int InputCount() const override
+		{
+			return mappingIndex > 0 ? mappingIndex - 2 : 0;
+		}
+
+		int OutputCount() const override
+		{
+			return mappingIndex > 0 ? sDef.NumberOfElements() - mappingIndex - 1 : 0;
+		}
+
+		cstr InputType(int index) const override
+		{
+			auto& sArg = sDef[index + 2];
+			return AlwaysGetAtomic(sArg, 0);
+		}
+
+		cstr OutputType(int index) const override
+		{
+			auto& sArg = sDef[mappingIndex + index + 1];
+			return AlwaysGetAtomic(sArg, 0);
+		}
+
+		cstr InputName(int index) const override
+		{
+			auto& sArg = sDef[index + 2];
+			return AlwaysGetAtomic(sArg, 1);
+		}
+
+		cstr OutputName(int index) const override
+		{
+			auto& sArg = sDef[mappingIndex + index + 1];
+			return AlwaysGetAtomic(sArg, 1);
+		}
+
+		cstr SourcePath() const override
+		{
+			return sDef.Tree().Source().Name();
+		}
+
+		cr_sex sDef;
+		std::string publicName;
+		ISXYFile& file;
+	};
+
+
 	struct SxyNamespace : ISxyNamespace
 	{
 		std::string name;
@@ -516,6 +585,7 @@ namespace ANON
 		std::vector<SXYPublicFunction> functions;
 		std::vector<SXYPublicStruct> structures;
 		std::vector<SXYNSAlias> nsAlias;
+		std::vector<SXYArchetype> archetypes;
 
 		SxyNamespace(cstr _name) : name(_name) {}
 
@@ -579,7 +649,17 @@ namespace ANON
 			return (int)functions.size();
 		}
 
-		ISXYPublicFunction& GetFunction(int index)
+		ISXYArchetype& GetArchetype(int index) override
+		{
+			return archetypes[index];
+		}
+
+		int ArchetypeCount() const override
+		{
+			return (int) archetypes.size();
+		}
+
+		ISXYPublicFunction& GetFunction(int index) override
 		{
 			return functions[index];
 		}
@@ -690,6 +770,11 @@ namespace ANON
 
 			subspaces.push_back(std::make_unique<SxyNamespace>(subspace));
 			return *subspaces[subspaces.size() - 1];
+		}
+
+		void UpdateArchetype(cstr name, cr_sex sArchetypeDef, ISXYFile& file) override
+		{
+			archetypes.push_back({ name, file, sArchetypeDef });
 		}
 
 		void UpdateFactory(cstr name, cr_sex sFactoryDef, ISXYFile& file) override
@@ -1200,6 +1285,14 @@ namespace ANON
 			}
 		}
 
+		void InsertArchetype(cr_sex s, const fstring& archetypeName, File_SXY& file)
+		{
+			char* publicName = (char*)_alloca(archetypeName.length + 1);
+			CopyFinalNameToBuffer(publicName, archetypeName.length + 1, archetypeName);
+			ISxyNamespace& ns = InsertNamespaceRecursiveSANSEnd(archetypeName, rootNS, s);
+			ns.UpdateArchetype(publicName, s, file);
+		}
+
 		void InsertFactory(cr_sex s, const fstring& factoryName, const fstring& factoryInterface, File_SXY& file)
 		{
 			char* publicName = (char*)_alloca(factoryName.length + 1);
@@ -1345,6 +1438,15 @@ namespace ANON
 					[this, &file](cr_sex s, const fstring& sKeyword, const fstring& factoryName, const fstring& factoryInterface)
 					{
 						InsertFactory(s, factoryName, factoryInterface, file);
+					}
+				)) continue;
+
+				// Example (factory $.NewUIStack $.IUIStack : (construct UIStack))
+				enum { MAX_ARGS_PER_ARCHETYPE = 128 };
+				if (match_compound(sRoot[i], MAX_ARGS_PER_ARCHETYPE, keywordArchetype, ParseAtomic,
+					[this, &file](cr_sex s, const fstring& sKeyword, const fstring& archetypeName)
+					{
+						InsertArchetype(s, archetypeName, file);
 					}
 				)) continue;
 			}

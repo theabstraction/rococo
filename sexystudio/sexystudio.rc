@@ -137,6 +137,8 @@ IDB_ALIAS               BITMAP                  "alias.bmp"
 
 IDB_FACTORY             BITMAP                  "factory.bmp"
 
+IDB_ARCHETYPE           BITMAP                  "archetype.bmp"
+
 #endif    // English (United Kingdom) resources
 /////////////////////////////////////////////////////////////////////////////
 

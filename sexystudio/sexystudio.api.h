@@ -115,7 +115,7 @@ namespace Rococo::SexyStudio
 
 	};
 
-	ROCOCOAPI ISXYFunction
+	ROCOCOAPI ISXYArchetype
 	{
 		virtual cstr PublicName() const = 0;
 		virtual int InputCount() const = 0;
@@ -126,6 +126,8 @@ namespace Rococo::SexyStudio
 		virtual cstr OutputName(int index) const = 0;
 		virtual cstr SourcePath() const = 0;
 	};
+
+	ROCOCOAPI ISXYFunction : ISXYArchetype{};
 
 	ROCOCOAPI ISXYFactory
 	{
@@ -185,10 +187,12 @@ namespace Rococo::SexyStudio
 		virtual cstr GetNSAliasFrom(int index) const = 0;
 		virtual	cstr GetNSAliasTo(int index) const = 0;
 		virtual	cstr GetAliasSourcePath(int index) const = 0;
+		virtual ISXYArchetype& GetArchetype(int index) = 0;
 		virtual ISXYInterface & GetInterface(int index) = 0;
 		virtual ISXYType& GetType(int index) = 0;
 		virtual ISXYPublicFunction& GetFunction(int index) = 0;
 		virtual ISXYFactory& GetFactory(int index) = 0;
+		virtual int ArchetypeCount() const = 0;
 		virtual int FactoryCount() const = 0;
 		virtual int FunctionCount() const = 0;
 		virtual int InterfaceCount() const = 0;
@@ -197,6 +201,7 @@ namespace Rococo::SexyStudio
 		virtual ISxyNamespace& operator[] (int index) = 0;
 		virtual cstr Name() = 0;
 		virtual ISxyNamespace& Update(cstr subspace, cr_sex src) = 0;
+		virtual void UpdateArchetype(cstr name, cr_sex sDef, ISXYFile& file) = 0;
 		virtual void UpdateFactory(cstr name, cr_sex sFactoryDef, ISXYFile& file) = 0;
 		virtual void UpdateInterface(cstr name, cr_sex sInterfaceDef, ISXYFile& file) = 0;
 		virtual void UpdateMacro(cstr name, cr_sex sMacroDef, ISXYFile& file) = 0;

@@ -116,6 +116,7 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="alias.bmp" />
+    <Image Include="archetype.bmp" />
     <Image Include="attribute.bmp" />
     <Image Include="bitmap1.bmp" />
     <Image Include="bitmap2.bmp" />
