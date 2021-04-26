@@ -38,7 +38,18 @@ namespace Rococo::SexyStudio
 	ParseKeyword keywordAlias("alias");
 	ParseKeyword keywordFactory("factory");
 	ParseKeyword keywordArchetype("archetype");
+	ParseKeyword keywordClass("class");
 	AtomicArg ParseAtomic;
+
+	cstr FindDot(cstr s)
+	{
+		while (*s != '.' && *s != 0)
+		{
+			s++;
+		}
+
+		return s;
+	}
 
 	cr_sex GetElement(cr_sex s, int index)
 	{
@@ -94,16 +105,18 @@ namespace ANON
 	{
 		const ISExpression* psMethod;
 		cstr name = nullptr;
-		int mapIndex = -1;
+		int mapIndex = 0;
+		int classOffset;
+		int finalArg;
 
 		int InputCount() const override
 		{
-			return mapIndex < 0 ? 0 : mapIndex - 1;
+			return mapIndex <= 0 ? 0 : mapIndex - 1 - classOffset;
 		}
 
 		int OutputCount() const override
 		{
-			return mapIndex < 0 ? 0 : psMethod->NumberOfElements() - mapIndex - 1;
+			return mapIndex <= 0 ? 0 : finalArg - mapIndex;
 		}
 
 		cstr SourcePath() const override
@@ -113,7 +126,7 @@ namespace ANON
 
 		cstr InputType(int index) const override
 		{
-			cr_sex sArg = psMethod->GetElement(index + 1);
+			cr_sex sArg = psMethod->GetElement(index + 1 + classOffset);
 			return AlwaysGetAtomic(sArg, 0);
 		}
 
@@ -125,7 +138,7 @@ namespace ANON
 
 		cstr InputName(int index) const override
 		{
-			cr_sex sArg = psMethod->GetElement(index + 1);
+			cr_sex sArg = psMethod->GetElement(index + 1 + classOffset);
 			return AlwaysGetAtomic(sArg, 1);
 		}
 
@@ -140,14 +153,20 @@ namespace ANON
 			return name;
 		}
 		
-		SXYMethod(cr_sex _sMethod) : psMethod(&_sMethod)
+		SXYMethod(cr_sex _sMethod, bool isClassMethod = false) : psMethod(&_sMethod), classOffset(isClassMethod ? 1 : 0),
+			finalArg(0)
 		{
 			// Assumes s_Method.NumberOfElements >= 2 and s_Method[0] is atomic
 			// Example: (AppendPrefixAndGetName (IString prefix)->(IString name))
 
-			name = AlwaysGetAtomic(_sMethod, 0);
+			name = AlwaysGetAtomic(_sMethod, classOffset);
 
-			for (int i = 1; i < _sMethod.NumberOfElements(); ++i)
+			if (isClassMethod)
+			{
+				name = FindDot(name) + 1;
+			}
+
+			for (int i = 1 + classOffset; i < _sMethod.NumberOfElements(); ++i)
 			{
 				if (IsAtomic(_sMethod[i]))
 				{
@@ -159,40 +178,31 @@ namespace ANON
 					}
 				}
 			}
-		}
 
-		int GetBeginInputIndex() const
-		{
-			return 1;
-		}
+			finalArg = _sMethod.NumberOfElements() - 1;
 
-		int GetEndIndexIndex() const
-		{
-			return mapIndex < 0 ? 1 :  mapIndex;
-		}
-
-		int GetBeginOutputIndex() const
-		{
-			return mapIndex + 1;
-		}
-
-		int GetEndOutputIndex() const
-		{
-			return mapIndex < 0 ? 0 : psMethod->NumberOfElements();
-		}
-
-		SXYMethodArgument GetArg(int index) const
-		{
-			auto& sArg = (*psMethod)[index];
-			if (sArg.NumberOfElements() == 2)
+			if (mapIndex)
 			{
-				if (IsAtomic(sArg[0]) && IsAtomic(sArg[1]))
+				if (isClassMethod)
 				{
-					return { sArg[0].String()->Buffer, sArg[1].String()->Buffer };
+					for (int i = mapIndex + 1; i < _sMethod.NumberOfElements(); ++i)
+					{
+						if (IsAtomic(_sMethod[i]))
+						{
+							cstr arg = _sMethod[i].String()->Buffer;
+							if (Eq(arg, ":"))
+							{
+								finalArg = i - 1;
+								break;
+							}
+						}
+					}
+				}
+				else
+				{
+					finalArg = _sMethod.NumberOfElements() - 1;
 				}
 			}
-
-			return { nullptr, nullptr };
 		}
 	};
 
@@ -327,6 +337,11 @@ namespace ANON
 		cstr GetAttribute(int index) const
 		{
 			return attributes[index].GetName();
+		}
+
+		cr_sex GetDefinition() const
+		{
+			return sInterfaceDef;
 		}
 
 		int MethodCount() const override
@@ -818,6 +833,73 @@ namespace ANON
 			);
 		}
 
+		void UpdateInterfaceViaDefinition(cstr interfacePublicName, cr_sex sClassDef, ISXYFile& file) override
+		{
+			interfaces.push_back({ interfacePublicName, file, sClassDef });
+
+			sexstring className = sClassDef[1].String();
+
+			auto& interf = interfaces.back();
+			for (int i = 2; i < sClassDef.NumberOfElements(); ++i)
+			{
+				auto& sChild = sClassDef[i];
+				if (sClassDef.NumberOfElements() >= 2)
+				{
+					cstr child = AlwaysGetAtomic(sChild, 0);
+					if (Eq(child, "attribute"))
+					{
+						interf.attributes.push_back({ sChild });
+					}
+					else if (Eq(child, "extends"))
+					{
+						// base interface
+						interf.base = &sChild;
+					}
+				}
+			}
+
+			cr_sex sRoot = sClassDef.Tree().Root();
+			for (int i = 0; i < sRoot.NumberOfElements(); ++i)
+			{
+				cr_sex sMethod = sRoot[i];
+				if (sMethod.NumberOfElements() >= 4)
+				{
+					// methods are expressed thus: (method <class-name>.<method-name> [inputs] -> [outputs]: [body])
+					if (Eq(AlwaysGetAtomic(sMethod, 0), "method"))
+					{
+						if (IsAtomic(sMethod[1]))
+						{
+							sexstring classAndMethod = sMethod[1].String();
+
+							auto* dot = FindDot(classAndMethod->Buffer);
+							if (*dot == '.')
+							{
+								if (dot - classAndMethod->Buffer == className->Length)
+								{
+									if (Compare(classAndMethod->Buffer, className->Buffer, className->Length) == 0)
+									{
+										// We have a class match for <class-name>.<method-name>
+										cstr methodName = dot + 1;
+										if (*methodName && !Eq(methodName, "Construct") && !Eq(methodName, "Destruct"))
+										{
+											interf.methods.push_back({ sMethod, true });
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+
+			std::sort(interf.methods.begin(), interf.methods.end(),
+				[](const SXYMethod& a, const SXYMethod& b)
+				{
+					return Compare(a.name, b.name) < 0;
+				}
+			);
+		}
+
 		void UpdateMacro(cstr name, cr_sex sMacroDef, ISXYFile& file) override
 		{
 			SXYMacro macro { name, file, sMacroDef };
@@ -992,16 +1074,6 @@ namespace ANON
 		std::string filename;
 		AutoRelease<ISParserTree> s_tree;
 	};
-
-	cstr FindDot(cstr s)
-	{
-		while (*s != '.' && *s != 0)
-		{
-			s++;
-		}
-		
-		return s;
-	}
 
 	void CopyFinalNameToBuffer(char* buffer, size_t capacity, cstr fqName)
 	{
@@ -1293,6 +1365,29 @@ namespace ANON
 			ns.UpdateArchetype(publicName, s, file);
 		}
 
+		void InsertClass(cr_sex s, const fstring& className, File_SXY& file)
+		{
+			for (int i = 2; i < s.NumberOfElements(); ++i)
+			{
+				cr_sex sArg = s[i];
+				if (sArg.NumberOfElements() == 2)
+				{
+					if (Eq(AlwaysGetAtomic(sArg, 0), "defines"))
+					{
+						if (IsAtomic(sArg[1]))
+						{
+							auto strFqName = sArg[1].String();
+							cstr fqName = strFqName->Buffer;
+							char* publicName = (char*)_alloca(strFqName->Length + 1);
+							CopyFinalNameToBuffer(publicName, strFqName->Length + 1, fqName);
+							ISxyNamespace& ns = InsertNamespaceRecursiveSANSEnd(fqName, rootNS, s);
+							ns.UpdateInterfaceViaDefinition(publicName, s, file);
+						}
+					}
+				}
+			}
+		}
+
 		void InsertFactory(cr_sex s, const fstring& factoryName, const fstring& factoryInterface, File_SXY& file)
 		{
 			char* publicName = (char*)_alloca(factoryName.length + 1);
@@ -1441,12 +1536,21 @@ namespace ANON
 					}
 				)) continue;
 
-				// Example (factory $.NewUIStack $.IUIStack : (construct UIStack))
+				// Example (archetype $.name (arg1 <name1>)...(argN <nameN>)->(out1 <name1>)...(outN <nameN>))
 				enum { MAX_ARGS_PER_ARCHETYPE = 128 };
 				if (match_compound(sRoot[i], MAX_ARGS_PER_ARCHETYPE, keywordArchetype, ParseAtomic,
 					[this, &file](cr_sex s, const fstring& sKeyword, const fstring& archetypeName)
 					{
 						InsertArchetype(s, archetypeName, file);
+					}
+				)) continue;
+
+				// Example (class Dog (defines Sys.IDog) ...))
+				enum { MAX_ARGS_PER_CLASS_DEFINITION = 1024 };
+				if (match_compound(sRoot[i], MAX_ARGS_PER_CLASS_DEFINITION, keywordClass, ParseAtomic,
+					[this, &file](cr_sex s, const fstring& sKeyword, const fstring& localClassName)
+					{
+						InsertClass(s, localClassName, file);
 					}
 				)) continue;
 			}

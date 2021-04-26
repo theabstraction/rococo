@@ -148,6 +148,7 @@ namespace Rococo::SexyStudio
 		virtual cstr GetAttribute(int index) const = 0;
 		virtual ISXYFunction& GetMethod(int index) = 0;
 		virtual cstr SourcePath() const = 0;
+		virtual cr_sex GetDefinition() const = 0;
 	};
 
 	struct SXYMethodArgument
@@ -204,6 +205,7 @@ namespace Rococo::SexyStudio
 		virtual void UpdateArchetype(cstr name, cr_sex sDef, ISXYFile& file) = 0;
 		virtual void UpdateFactory(cstr name, cr_sex sFactoryDef, ISXYFile& file) = 0;
 		virtual void UpdateInterface(cstr name, cr_sex sInterfaceDef, ISXYFile& file) = 0;
+		virtual void UpdateInterfaceViaDefinition(cstr name, cr_sex sInterfaceDef, ISXYFile& file) = 0;
 		virtual void UpdateMacro(cstr name, cr_sex sMacroDef, ISXYFile& file) = 0;
 		virtual void SortRecursive() = 0;
 		virtual void AliasFunction(cstr localName, ISXYFile& file, cstr publicName) = 0;

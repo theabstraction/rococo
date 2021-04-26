@@ -63,7 +63,7 @@ auto evIDEMax = "EvIDEMax"_event;
 
 namespace Globals
 {
-	U8FilePath contentFolder{ "\\work\\rococo\\content\\scripts" };
+	U8FilePath contentFolder{ "\\work\\rococo\\content\\scripts\\" };
 	U8FilePath packageFolder{ "\\work\\rococo\\content\\packages\\mhost_1000.sxyz" };
 	U8FilePath searchPath{ "MHost/" };
 }
@@ -91,7 +91,7 @@ private:
 			WaitCursorSection waitSection;
 			ideFrame.SetProgress(0.0f, "Populating file browser...");
 			PopulateTreeWithSXYFiles(*fileBrowser, Globals::contentFolder, *database, ideFrame);
-			PopulateTreeWithPackages(Globals::searchPath, Globals::packageFolder, *database);
+		//	PopulateTreeWithPackages(Globals::searchPath, Globals::packageFolder, *database);
 			ideFrame.SetProgress(100.0f, "Populated file browser");
 
 			TEventArgs<ISexyDatabase*> args;
@@ -283,8 +283,29 @@ private:
 			auto& interf = ns.GetInterface(i);
 			auto idInterface = classTree->AppendItem(idNSNode);
 
+			cstr className = nullptr;
+
+			cr_sex sDef = interf.GetDefinition();
+			if (Eq(sDef[0].String()->Buffer, "class"))
+			{
+				if (IsAtomic(sDef[1]))
+				{
+					className = sDef[1].String()->Buffer;
+				}
+			}
+
 			char desc[256];
-			SafeFormat(desc, "%-64.64s %s", interf.PublicName(), interf.SourcePath());
+
+			if (className)
+			{
+				char subdesc[128];
+				SafeFormat(subdesc, "%s (defined by %s)", interf.PublicName(), className);
+				SafeFormat(desc, "%-64.64s %s", subdesc, interf.SourcePath());
+			}
+			else
+			{
+				SafeFormat(desc, "%-64.64s %s", interf.PublicName(), interf.SourcePath());
+			}
 
 			classTree->SetItemText(desc, idInterface);
 			classTree->SetItemImage(idInterface, (int)ClassImageIndex::INTERFACE);
