@@ -56,6 +56,430 @@ namespace
 		PaintDoubleBuffered(editor.Window(), painter);
 	}
 
+	struct DropDownList : IDropDownList, IWin32WindowMessageLoopHandler
+	{
+		IVariableList& variables;
+		Win32ChildWindow backWindow;
+		HString name;
+		HWNDProxy hWndDropDown;
+		Theme theme;
+		HBRUSH backBrush;
+		WNDPROC defaultDropDownProc = nullptr;
+		EventIdRef evCharUpdateEvent = { 0 };
+
+		static LRESULT CALLBACK ProcessDropDownMessage(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam)
+		{
+			auto& This = *(DropDownList*)GetWindowLongPtr(wnd, GWLP_USERDATA);
+
+			switch (msg)
+			{
+			case WM_KEYDOWN:
+				switch (wParam)
+				{
+				case VK_RETURN:
+					return 0;
+				default:
+					LRESULT result = CallWindowProc(This.defaultDropDownProc, wnd, msg, wParam, lParam);
+					This.PublishCharChange();
+					return result;
+				}
+			}
+			return CallWindowProc(This.defaultDropDownProc, wnd, msg, wParam, lParam);
+		}
+
+		void PublishCharChange()
+		{
+			if (evCharUpdateEvent.name != nullptr)
+			{
+			}
+		}
+
+		DropDownList(IVariableList& _variables, HBRUSH _backBrush, bool addTextEditor) :
+			variables(_variables),
+			backWindow(variables.Children()->Parent(), *this),
+			backBrush(_backBrush)
+		{
+			DWORD style = WS_CHILD | ES_AUTOHSCROLL | CBS_HASSTRINGS;
+			style |= addTextEditor ? CBS_DROPDOWN : CBS_SIMPLE;
+			hWndDropDown = CreateWindowExA(0, WC_COMBOBOXA, "", style, 0, 0, 100, 100, backWindow, NULL, NULL, NULL);
+			if (hWndDropDown == NULL)
+			{
+				Throw(GetLastError(), "%s: failed to create window", __FUNCTION__);
+			}
+
+			SetWindowTextA(backWindow, "DropDownList");
+
+			SendMessage(hWndDropDown, WM_SETFONT, (WPARAM)(HFONT)variables.Children()->Context().fontSmallLabel, 0);
+
+			theme = GetTheme(_variables.Children()->Context().publisher);
+
+			auto oldUserData = SetWindowLongPtr(hWndDropDown, GWLP_USERDATA, (LONG_PTR)this);
+			if (oldUserData != 0)
+			{
+				DestroyWindow(hWndDropDown);
+				Throw(0, "DropDownList -> this version of Windows appears to have hoarded the WC_EDIT GWLP_USERDATA pointer");
+
+			}
+			defaultDropDownProc = (WNDPROC)SetWindowLongPtr(hWndDropDown, GWLP_WNDPROC, (LONG_PTR)ProcessDropDownMessage);
+		}
+
+		void AppendItem(cstr text) override
+		{
+			SendMessageA(hWndDropDown, CB_ADDSTRING, 0, (LPARAM) text);
+		}
+
+		void ClearItems() override
+		{
+			ComboBox_ResetContent(hWndDropDown);
+		}
+
+		LRESULT ProcessMessage(UINT msg, WPARAM wParam, LPARAM lParam) override
+		{
+			switch (msg)
+			{
+			case WM_PAINT:
+				PaintName(theme, *this, variables, backBrush);
+				return 0L;
+			case WM_ERASEBKGND:
+				return TRUE;
+			case WM_SIZE:
+				ResizeEditor(variables, hWndDropDown);
+				break;
+			case WM_COMMAND:
+				break;
+			}
+			return DefWindowProc(backWindow, msg, wParam, lParam);
+		}
+
+		IWindow& OSDropDown() override
+		{
+			return hWndDropDown;
+		}
+
+		cstr Name() const override
+		{
+			return name;
+		}
+
+		void SetName(cstr name) override
+		{
+			SetWindowTextA(backWindow, name);
+			this->name = name;
+		}
+
+		void Layout() override
+		{
+		}
+
+		void AddLayoutModifier(ILayout* l) override
+		{
+			Throw(0, "Not implemented");
+		}
+
+		void Free() override
+		{
+			delete this;
+		}
+
+		void SetVisible(bool isVisible) override
+		{
+			ShowWindow(backWindow, isVisible ? SW_SHOW : SW_HIDE);
+			ShowWindow(hWndDropDown, isVisible ? SW_SHOW : SW_HIDE);
+		}
+
+		IWidgetSet* Children()
+		{
+			return nullptr;
+		}
+
+		IWindow& Window()
+		{
+			return backWindow;
+		}
+	};
+
+	struct FloatingListWidget : IFloatingListWidget, IWin32WindowMessageLoopHandler
+	{
+		Win32PopupWindow backWindow;
+		HWNDProxy hWndList;
+		WNDPROC defaultFloatingListProc = nullptr;
+
+		static LRESULT CALLBACK ProcessListMessage(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam)
+		{
+			auto& This = *(FloatingListWidget*)GetWindowLongPtr(wnd, GWLP_USERDATA);
+			return CallWindowProc(This.defaultFloatingListProc, wnd, msg, wParam, lParam);
+		}
+
+		FloatingListWidget(IWindow& window, WidgetContext& wc) :
+			backWindow(GetWindowOwner(window) , *this, WS_EX_TOPMOST)
+		{
+			DWORD style = WS_CHILD | ES_AUTOHSCROLL | LBS_HASSTRINGS;
+			hWndList = CreateWindowExA(0, WC_LISTBOXA, "", style, 0, 0, 100, 100, backWindow, NULL, NULL, NULL);
+			if (hWndList == NULL)
+			{
+				Throw(GetLastError(), "%s: failed to create window", __FUNCTION__);
+			}
+
+			SetWindowTextA(backWindow, "FloatingListWidgetBackground");
+
+			SendMessage(hWndList, WM_SETFONT, (WPARAM)(HFONT) wc.fontSmallLabel, 0);
+
+			auto oldUserData = SetWindowLongPtr(hWndList, GWLP_USERDATA, (LONG_PTR)this);
+			if (oldUserData != 0)
+			{
+				DestroyWindow(hWndList);
+				Throw(0, "ListWidget -> this version of Windows appears to have hoarded the WC_LISTBOX GWLP_USERDATA pointer");
+
+			}
+			defaultFloatingListProc = (WNDPROC)SetWindowLongPtr(hWndList, GWLP_WNDPROC, (LONG_PTR)ProcessListMessage);
+		}
+
+		void AppendItem(cstr text) override
+		{
+			SendMessageA(hWndList, LB_ADDSTRING, 0, (LPARAM)text);
+		}
+
+		void ClearItems() override
+		{
+			ListBox_ResetContent(hWndList);
+		}
+
+		void ResizeChildToParent()
+		{
+			RECT rect;
+			GetClientRect(backWindow, &rect);
+			MoveWindow(hWndList, 0, 0, rect.right, rect.bottom, TRUE);
+		}
+
+		void CancelPopup()
+		{
+			SetVisible(false);
+
+			TRACKMOUSEEVENT ev;
+			ev.cbSize = sizeof ev;
+			ev.hwndTrack = backWindow;
+			ev.dwHoverTime = 0;
+			ev.dwFlags = TME_CANCEL | TME_NONCLIENT;
+			TrackMouseEvent(&ev);
+
+			hEditor = nullptr;
+		}
+
+		LRESULT ProcessMessage(UINT msg, WPARAM wParam, LPARAM lParam) override
+		{
+			switch (msg)
+			{
+			case WM_SIZE:
+				ResizeChildToParent();
+				break;
+			case WM_COMMAND:
+				break;
+			case WM_MOVE:
+				{
+					POINT p;
+					p.x = (int)(short)LOWORD(lParam); 
+					p.y = (int)(short)HIWORD(lParam); 
+					RECT rect;
+					GetClientRect(backWindow, &rect);
+					if (!PtInRect(&rect, p))
+					{
+						if (IsWindow(hEditor))
+						{
+							ClientToScreen(backWindow, &p);
+							GetWindowRect(hEditor, &rect);
+
+							if (!PtInRect(&rect, p))
+							{
+								CancelPopup();
+							}
+						}
+						else
+						{
+							CancelPopup();
+						}
+					}
+
+					return 0L;
+				}
+			}
+			return DefWindowProc(backWindow, msg, wParam, lParam);
+		}
+
+		IWindow& OSList() override
+		{
+			return hWndList;
+		}
+
+		void Layout() override
+		{
+		}
+
+		void AddLayoutModifier(ILayout* l) override
+		{
+			Throw(0, "Not implemented");
+		}
+
+		void Free() override
+		{
+			delete this;
+		}
+
+		void SetVisible(bool isVisible) override
+		{
+			ShowWindow(backWindow, isVisible ? SW_SHOW : SW_HIDE);
+			ShowWindow(hWndList, isVisible ? SW_SHOW : SW_HIDE);
+		}
+
+		IWidgetSet* Children()
+		{
+			return nullptr;
+		}
+
+		IWindow& Window()
+		{
+			return backWindow;
+		}
+
+		HWND hEditor = nullptr;
+
+		void RenderWhileMouseInEditorOrList(IWindow& editorWindow)
+		{
+			TRACKMOUSEEVENT ev;
+			ev.cbSize = sizeof ev;
+			ev.hwndTrack = backWindow;
+			ev.dwHoverTime = 0;
+			ev.dwFlags = TME_NONCLIENT;
+			if (TrackMouseEvent(&ev))
+			{
+				hEditor = editorWindow;
+			}
+			else
+			{
+				HRESULT hr = GetLastError();
+				Throw(hr, "RenderWhileMouseInEditorOrList: Bad call TrackMouseEvent");
+			}
+		}
+	};
+
+	struct ListWidget : IListWidget, IWin32WindowMessageLoopHandler
+	{
+		IVariableList& variables;
+		Win32ChildWindow backWindow;
+		HString name;
+		HWNDProxy hWndList;
+		Theme theme;
+		HBRUSH backBrush;
+		WNDPROC defaultListProc = nullptr;
+
+		static LRESULT CALLBACK ProcessListMessage(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam)
+		{
+			auto& This = *(DropDownList*)GetWindowLongPtr(wnd, GWLP_USERDATA);
+			return CallWindowProc(This.defaultDropDownProc, wnd, msg, wParam, lParam);
+		}
+
+		ListWidget(IVariableList& _variables, HBRUSH _backBrush) :
+			variables(_variables),
+			backWindow(variables.Children()->Parent(), *this),
+			backBrush(_backBrush)
+		{
+			DWORD style = WS_CHILD | ES_AUTOHSCROLL | LBS_HASSTRINGS;
+			hWndList = CreateWindowExA(0, WC_LISTBOXA, "", style, 0, 0, 100, 100, backWindow, NULL, NULL, NULL);
+			if (hWndList == NULL)
+			{
+				Throw(GetLastError(), "%s: failed to create window", __FUNCTION__);
+			}
+
+			SetWindowTextA(backWindow, "ListWidgetBackground");
+
+			SendMessage(hWndList, WM_SETFONT, (WPARAM)(HFONT)variables.Children()->Context().fontSmallLabel, 0);
+
+			theme = GetTheme(_variables.Children()->Context().publisher);
+
+			auto oldUserData = SetWindowLongPtr(hWndList, GWLP_USERDATA, (LONG_PTR)this);
+			if (oldUserData != 0)
+			{
+				DestroyWindow(hWndList);
+				Throw(0, "ListWidget -> this version of Windows appears to have hoarded the WC_EDIT GWLP_USERDATA pointer");
+
+			}
+			defaultListProc = (WNDPROC)SetWindowLongPtr(hWndList, GWLP_WNDPROC, (LONG_PTR)ProcessListMessage);
+		}
+
+		void AppendItem(cstr text) override
+		{
+			SendMessageA(hWndList, LB_ADDSTRING, 0, (LPARAM)text);
+		}
+
+		void ClearItems() override
+		{
+			ListBox_ResetContent(hWndList);
+		}
+
+		LRESULT ProcessMessage(UINT msg, WPARAM wParam, LPARAM lParam) override
+		{
+			switch (msg)
+			{
+			case WM_PAINT:
+				PaintName(theme, *this, variables, backBrush);
+				return 0L;
+			case WM_ERASEBKGND:
+				return TRUE;
+			case WM_SIZE:
+				ResizeEditor(variables, hWndList);
+				break;
+			case WM_COMMAND:
+				break;
+			}
+			return DefWindowProc(backWindow, msg, wParam, lParam);
+		}
+
+		IWindow& OSList() override
+		{
+			return hWndList;
+		}
+
+		cstr Name() const override
+		{
+			return name;
+		}
+
+		void SetName(cstr name) override
+		{
+			SetWindowTextA(backWindow, name);
+			this->name = name;
+		}
+
+		void Layout() override
+		{
+		}
+
+		void AddLayoutModifier(ILayout* l) override
+		{
+			Throw(0, "Not implemented");
+		}
+
+		void Free() override
+		{
+			delete this;
+		}
+
+		void SetVisible(bool isVisible) override
+		{
+			ShowWindow(backWindow, isVisible ? SW_SHOW : SW_HIDE);
+			ShowWindow(hWndList, isVisible ? SW_SHOW : SW_HIDE);
+		}
+
+		IWidgetSet* Children()
+		{
+			return nullptr;
+		}
+
+		IWindow& Window()
+		{
+			return backWindow;
+		}
+	};
+
 	struct AsciiStringEditor : IAsciiStringEditor, IWin32WindowMessageLoopHandler
 	{
 		IVariableList& variables;
@@ -72,6 +496,7 @@ namespace
 		HBRUSH backBrush;
 
 		EventIdRef evChangedEvent = { 0 };
+		EventIdRef evCharChangedEvent = { 0 };
 
 		WNDPROC defaultEditProc = nullptr;
 
@@ -93,12 +518,26 @@ namespace
 			return CallWindowProc(This.defaultEditProc, wnd, msg, wParam, lParam);
 		}
 
+		void PublishCharChange()
+		{
+			if (evCharChangedEvent.name != nullptr)
+			{
+				TEventArgs<cstr> args;
+				args.value = boundBuffer;
+				GetWindowTextA(hWndEditor, boundBuffer, (int)capacity);
+				variables.Children()->Context().publisher.Publish(args, evCharChangedEvent);
+			}
+		}
+
 		void PublishChange()
 		{
-			TEventArgs<cstr> args;
-			args.value = boundBuffer;
-			GetWindowTextA(hWndEditor, boundBuffer, (int) capacity);
-			variables.Children()->Context().publisher.Publish(args, evChangedEvent);
+			if (evChangedEvent.name != nullptr)
+			{
+				TEventArgs<cstr> args;
+				args.value = boundBuffer;
+				GetWindowTextA(hWndEditor, boundBuffer, (int)capacity);
+				variables.Children()->Context().publisher.Publish(args, evChangedEvent);
+			}
 		}
 
 		AsciiStringEditor(IVariableList& _variables, HBRUSH _backBrush):
@@ -141,6 +580,10 @@ namespace
 				ResizeEditor(variables, hWndEditor);
 				break;
 			case WM_COMMAND:
+				if (HIWORD(wParam) == EN_CHANGE)
+				{
+					PublishCharChange();
+				}
 				break;
 			}
 			return DefWindowProc(backWindow, msg, wParam, lParam);
@@ -167,6 +610,11 @@ namespace
 		void SetUpdateEvent(EventIdRef id) override
 		{
 			evChangedEvent = id;
+		}
+
+		void SetCharacterUpdateEvent(EventIdRef id) override
+		{
+			evCharChangedEvent = id;
 		}
 
 		void SetText(cstr text) override
@@ -460,6 +908,20 @@ namespace
 			return editor;
 		}
 
+		IDropDownList* AddDropDownList(bool addTextEditor) override
+		{
+			auto* dropDown = new DropDownList(*this, bkBrush, addTextEditor);
+			children->Add(dropDown);
+			return dropDown;
+		}
+
+		IListWidget* AddListWidget() override
+		{
+			auto* widget = new ListWidget(*this, bkBrush);
+			children->Add(widget);
+			return widget;
+		}
+
 		IFilePathEditor* AddFilePathEditor() override
 		{
 			auto* editor = new FilePathEditor(*this, bkBrush);
@@ -526,5 +988,10 @@ namespace Rococo::SexyStudio
 		auto* v = new VariableList(widgets);
 		widgets.Add(v);
 		return v;
+	}
+
+	IFloatingListWidget* CreateFloatingListWidget(IWindow& window, WidgetContext& wc)
+	{
+		return new FloatingListWidget(window, wc);
 	}
 }

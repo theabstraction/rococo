@@ -318,11 +318,15 @@ namespace Rococo::SexyStudio
 
 	typedef int64 ID_TREE_ITEM;
 
+	enum class EFolderIcon
+	{
+		FOLDER_CLOSED = 0,
+		FOLDER_OPEN = 1
+	};
+
 	ROCOCOAPI IGuiTreeRenderer
 	{
 		virtual void RenderItem() = 0;
-		virtual int GetExpandedImageIndex(uint64 contextId) const = 0;
-		virtual int GetContractedImageIndex(uint64 contextId) const = 0;
 	};
 
 	struct TreeItemInfo
@@ -367,10 +371,35 @@ namespace Rococo::SexyStudio
 	{
 		virtual void Bind(char* buffer, size_t capacityBytes) = 0;
 		virtual IWindow& OSEditor() = 0;
+		virtual void SetCharacterUpdateEvent(EventIdRef id) = 0;
 		virtual void SetText(cstr text) = 0;
 		virtual void SetUpdateEvent(EventIdRef id) = 0;
 		virtual cstr Text() const = 0;
 	};
+
+	ROCOCOAPI IDropDownList : IGuiWidgetEditor
+	{
+		virtual IWindow& OSDropDown() = 0;
+		virtual void AppendItem(cstr text) = 0;	
+		virtual void ClearItems() = 0;
+	};
+
+	ROCOCOAPI IListWidget : IGuiWidgetEditor
+	{
+		virtual IWindow & OSList() = 0;
+		virtual void AppendItem(cstr text) = 0;
+		virtual void ClearItems() = 0;
+	};
+
+	ROCOCOAPI IFloatingListWidget : IGuiWidget
+	{
+		virtual IWindow & OSList() = 0;
+		virtual void AppendItem(cstr text) = 0;
+		virtual void ClearItems() = 0;
+		virtual void RenderWhileMouseInEditorOrList(IWindow& editorWindow) = 0;
+	};
+
+	IFloatingListWidget* CreateFloatingListWidget(IWindow& window, WidgetContext& wc);
 
 	ROCOCOAPI IFilePathEditor : IGuiWidgetEditor
 	{
@@ -381,7 +410,9 @@ namespace Rococo::SexyStudio
 	ROCOCOAPI IVariableList : IGuiWidget
 	{
 		virtual IAsciiStringEditor* AddAsciiEditor() = 0;
+		virtual IDropDownList* AddDropDownList(bool addTextEditor) = 0;
 		virtual IFilePathEditor* AddFilePathEditor() = 0;
+		virtual IListWidget* AddListWidget() = 0;
 
 		// Gives number of pixels from LHS of the list to the editor column
 		virtual int NameSpan() const = 0;

@@ -31,6 +31,7 @@ using namespace Rococo::Sex;
 
 auto evClose = "EvMainIDEWindowCloseRequest"_event;
 auto evContentChange = "EvContentChange"_event; // TEventArg<cstr>
+auto evSearchChange = "EvSearchChange"_event; // TEventArg<cstr>
 
 ROCOCOAPI IMessagePump
 {
@@ -80,8 +81,8 @@ class PropertySheets: IObserver, IGuiTreeRenderer
 private:
 	WidgetContext wc;
 	IIDEFrame& ideFrame;
+	ISexyDatabase& database;
 	IGuiTree* fileBrowser = nullptr;
-	AutoFree<ISexyDatabaseSupervisor> database;
 	ITab* projectTab = nullptr;
 
 	void OnEvent(Event& ev) override
@@ -90,12 +91,12 @@ private:
 		{
 			WaitCursorSection waitSection;
 			ideFrame.SetProgress(0.0f, "Populating file browser...");
-			PopulateTreeWithSXYFiles(*fileBrowser, Globals::contentFolder, *database, ideFrame);
-		//	PopulateTreeWithPackages(Globals::searchPath, Globals::packageFolder, *database);
+			PopulateTreeWithSXYFiles(*fileBrowser, Globals::contentFolder, database, ideFrame);
+			PopulateTreeWithPackages(Globals::searchPath, Globals::packageFolder, database);
 			ideFrame.SetProgress(100.0f, "Populated file browser");
 
 			TEventArgs<ISexyDatabase*> args;
-			args.value = database;
+			args.value = &database;
 			wc.publisher.Publish(args, evMetaUpdated);
 		}
 	}
@@ -105,22 +106,11 @@ private:
 
 	}
 
-	int GetExpandedImageIndex(uint64 contextId) const override
-	{
-		return 1; // IDB_FOLDER_OPEN
-	}
-
-	int GetContractedImageIndex(uint64 contextId) const  override
-	{
-		return 0; // IDB_FOLDER_CLOSED
-	}
-
-
 public:
-	PropertySheets(ISplitScreen& screen, IIDEFrame& _ideFrame): 
+	PropertySheets(ISplitScreen& screen, IIDEFrame& _ideFrame, ISexyDatabase& _database): 
 		wc(screen.Children()->Context()),
 		ideFrame(_ideFrame),
-		database(CreateSexyDatabase())
+		database(_database)
 	{
 		screen.SetBackgroundColour(RGBAb(128, 192, 128));
 
@@ -153,7 +143,7 @@ public:
 		Widgets::AnchorToParentTop(*projectSettings, 0);
 		Widgets::AnchorToParentLeft(*projectSettings, 0);
 		Widgets::AnchorToParentRight(*projectSettings, 0);
-		Widgets::ExpandBottomFromTop(*projectSettings, 32);
+		Widgets::ExpandBottomFromTop(*projectSettings, 64);
 
 		auto* contentEditor = projectSettings->AddFilePathEditor();
 		contentEditor->SetName("Content");
@@ -194,7 +184,7 @@ public:
 		fileBrowser->Collapse();
 	}
 
-	ISexyDatabase& Database() { return *database;  }
+	ISexyDatabase& Database() { return database;  }
 
 	void SelectProjectTab()
 	{
@@ -238,6 +228,7 @@ class SexyExplorer: IObserver
 private:
 	WidgetContext wc;
 	ISplitScreen& screen;
+	ISexyDatabase& database;
 	IGuiTree* classTree;
 	ITab* classTab = nullptr;
 
@@ -526,6 +517,39 @@ private:
 		AppendNamespaceRecursive(database.GetRootNamespace(), idNamespace, database);
 	}
 
+	void OnSearchChange(cstr searchTerm)
+	{
+		searchResults->ClearItems();
+
+		auto& root = database.GetRootNamespace();
+
+		int count = 0;
+
+		for (int i = 0; i < root.Length(); ++i)
+		{
+			auto& ns = root[i];
+			if (Compare(ns.Name(), searchTerm, strlen(searchTerm)) == 0)
+			{
+				searchResults->AppendItem(ns.Name());
+				count++;
+			}
+		}
+
+		searchResults->SetVisible(count > 0);
+
+		if (count > 0)
+		{
+			GuiRect rect = Widgets::GetScreenRect(searchEditor->OSEditor());
+			rect.top = rect.bottom + 1;
+			rect.bottom = rect.top + 120;
+			Widgets::SetWidgetPosition(*searchResults, rect);
+		}
+
+		SetFocus(searchEditor->OSEditor());
+
+		searchResults->RenderWhileMouseInEditorOrList(searchEditor->OSEditor());
+	}
+
 	void OnEvent(Event& ev) override
 	{
 		if (ev == evMetaUpdated)
@@ -533,9 +557,18 @@ private:
 			auto& evDB = As<TEventArgs<ISexyDatabase*>>(ev);
 			OnMetaChanged(*evDB.value);
 		}
+		else if (ev == evSearchChange)
+		{
+			auto& search = As<TEventArgs<cstr>>(ev);
+			OnSearchChange(search.value);
+		}
 	}
+
+	char searchTerms[256];
+	IAsciiStringEditor* searchEditor = nullptr;
+	IFloatingListWidget* searchResults = nullptr;
 public:
-	SexyExplorer(WidgetContext _wc, ISplitScreen& _screen) : wc(_wc), screen(_screen)
+	SexyExplorer(WidgetContext _wc, ISplitScreen& _screen, ISexyDatabase& _database) : wc(_wc), screen(_screen), database(_database)
 	{
 		screen.SetBackgroundColour(RGBAb(128, 128, 192));
 
@@ -544,6 +577,25 @@ public:
 
 		classTab = &tabs->AddTab();
 		classTab->SetName("Class View");
+
+		IVariableList* searchBar = CreateVariableList(classTab->Children());
+		searchBar->SetVisible(true);
+
+		Widgets::AnchorToParentTop(*searchBar, 0);
+		Widgets::AnchorToParentLeft(*searchBar, 0);
+		Widgets::AnchorToParentRight(*searchBar, 0);
+		Widgets::ExpandBottomFromTop(*searchBar, 32);
+
+		searchEditor = searchBar->AddAsciiEditor();
+		searchEditor->SetName("Search Editor");
+		searchEditor->Bind(searchTerms, sizeof searchTerms);
+		searchEditor->SetVisible(true);
+		searchEditor->SetCharacterUpdateEvent(evSearchChange);
+
+		searchResults = CreateFloatingListWidget(_screen, wc);
+
+		GuiRect rect{ 300, 300, 450, 600 };
+		Widgets::SetWidgetPosition(*searchResults, rect);
 
 		TreeStyle style;
 		style.hasButtons = true;
@@ -554,11 +606,12 @@ public:
 
 		SendMessageA(classTree->TreeWindow(), WM_SETFONT, (WPARAM) (HFONT) _wc.fontSmallLabel, 0);
 
-		Widgets::AnchorToParent(*classTree, 0, 0, 0, 0);
+		Widgets::AnchorToParent(*classTree, 0, 32, 0, 0);
 
 		classTree->SetVisible(true);
 
 		wc.publisher.Subscribe(this, evMetaUpdated);
+		wc.publisher.Subscribe(this, evSearchChange);
 	}
 
 	~SexyExplorer()
@@ -575,6 +628,7 @@ public:
 void Main(IMessagePump& pump)
 {
 	AutoFree<IPublisherSupervisor> publisher(Rococo::Events::CreatePublisher());
+	AutoFree<ISexyDatabaseSupervisor> database = CreateSexyDatabase();
 
 	LOGFONTA lineEditorLF = { 0 };
 	lineEditorLF.lfHeight = -12;
@@ -627,8 +681,8 @@ void Main(IMessagePump& pump)
 	auto* projectView = splitscreen->GetFirstHalf();
 	auto* sourceView = splitscreen->GetSecondHalf();
 
-	PropertySheets propertySheets(*projectView, *ide);
-	SexyExplorer explorer(context, *sourceView);
+	PropertySheets propertySheets(*projectView, *ide, *database);
+	SexyExplorer explorer(context, *sourceView, *database);
 
 	publisher->Subscribe(&ideEvents, evIDEClose);
 	publisher->Subscribe(&ideEvents, evIDEMax);

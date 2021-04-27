@@ -55,17 +55,7 @@ namespace
 		{
 			if (customRenderer)
 			{
-				int imageIndex;
-
-				if (tv.action == TVE_EXPAND)
-				{
-					imageIndex = customRenderer->GetExpandedImageIndex(tv.itemNew.lParam);
-				}
-				else
-				{
-					imageIndex = customRenderer->GetContractedImageIndex(tv.itemNew.lParam);
-				}
-
+				int imageIndex = (int)(tv.action == TVE_EXPAND ? EFolderIcon::FOLDER_OPEN : EFolderIcon::FOLDER_CLOSED);
 				SetItemImage((ID_TREE_ITEM) tv.itemNew.hItem, imageIndex);
 			}
 		}
