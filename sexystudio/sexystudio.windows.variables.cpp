@@ -198,169 +198,6 @@ namespace
 		}
 	};
 
-	struct FloatingListWidget : IFloatingListWidget, IWin32WindowMessageLoopHandler
-	{
-		Win32PopupWindow backWindow;
-		HWNDProxy hWndList;
-		WNDPROC defaultFloatingListProc = nullptr;
-
-		static LRESULT CALLBACK ProcessListMessage(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam)
-		{
-			auto& This = *(FloatingListWidget*)GetWindowLongPtr(wnd, GWLP_USERDATA);
-			return CallWindowProc(This.defaultFloatingListProc, wnd, msg, wParam, lParam);
-		}
-
-		FloatingListWidget(IWindow& window, WidgetContext& wc) :
-			backWindow(GetWindowOwner(window) , *this, WS_EX_TOPMOST)
-		{
-			DWORD style = WS_CHILD | ES_AUTOHSCROLL | LBS_HASSTRINGS;
-			hWndList = CreateWindowExA(0, WC_LISTBOXA, "", style, 0, 0, 100, 100, backWindow, NULL, NULL, NULL);
-			if (hWndList == NULL)
-			{
-				Throw(GetLastError(), "%s: failed to create window", __FUNCTION__);
-			}
-
-			SetWindowTextA(backWindow, "FloatingListWidgetBackground");
-
-			SendMessage(hWndList, WM_SETFONT, (WPARAM)(HFONT) wc.fontSmallLabel, 0);
-
-			auto oldUserData = SetWindowLongPtr(hWndList, GWLP_USERDATA, (LONG_PTR)this);
-			if (oldUserData != 0)
-			{
-				DestroyWindow(hWndList);
-				Throw(0, "ListWidget -> this version of Windows appears to have hoarded the WC_LISTBOX GWLP_USERDATA pointer");
-
-			}
-			defaultFloatingListProc = (WNDPROC)SetWindowLongPtr(hWndList, GWLP_WNDPROC, (LONG_PTR)ProcessListMessage);
-		}
-
-		void AppendItem(cstr text) override
-		{
-			SendMessageA(hWndList, LB_ADDSTRING, 0, (LPARAM)text);
-		}
-
-		void ClearItems() override
-		{
-			ListBox_ResetContent(hWndList);
-		}
-
-		void ResizeChildToParent()
-		{
-			RECT rect;
-			GetClientRect(backWindow, &rect);
-			MoveWindow(hWndList, 0, 0, rect.right, rect.bottom, TRUE);
-		}
-
-		void CancelPopup()
-		{
-			SetVisible(false);
-
-			TRACKMOUSEEVENT ev;
-			ev.cbSize = sizeof ev;
-			ev.hwndTrack = backWindow;
-			ev.dwHoverTime = 0;
-			ev.dwFlags = TME_CANCEL | TME_NONCLIENT;
-			TrackMouseEvent(&ev);
-
-			hEditor = nullptr;
-		}
-
-		LRESULT ProcessMessage(UINT msg, WPARAM wParam, LPARAM lParam) override
-		{
-			switch (msg)
-			{
-			case WM_SIZE:
-				ResizeChildToParent();
-				break;
-			case WM_COMMAND:
-				break;
-			case WM_MOVE:
-				{
-					POINT p;
-					p.x = (int)(short)LOWORD(lParam); 
-					p.y = (int)(short)HIWORD(lParam); 
-					RECT rect;
-					GetClientRect(backWindow, &rect);
-					if (!PtInRect(&rect, p))
-					{
-						if (IsWindow(hEditor))
-						{
-							ClientToScreen(backWindow, &p);
-							GetWindowRect(hEditor, &rect);
-
-							if (!PtInRect(&rect, p))
-							{
-								CancelPopup();
-							}
-						}
-						else
-						{
-							CancelPopup();
-						}
-					}
-
-					return 0L;
-				}
-			}
-			return DefWindowProc(backWindow, msg, wParam, lParam);
-		}
-
-		IWindow& OSList() override
-		{
-			return hWndList;
-		}
-
-		void Layout() override
-		{
-		}
-
-		void AddLayoutModifier(ILayout* l) override
-		{
-			Throw(0, "Not implemented");
-		}
-
-		void Free() override
-		{
-			delete this;
-		}
-
-		void SetVisible(bool isVisible) override
-		{
-			ShowWindow(backWindow, isVisible ? SW_SHOW : SW_HIDE);
-			ShowWindow(hWndList, isVisible ? SW_SHOW : SW_HIDE);
-		}
-
-		IWidgetSet* Children()
-		{
-			return nullptr;
-		}
-
-		IWindow& Window()
-		{
-			return backWindow;
-		}
-
-		HWND hEditor = nullptr;
-
-		void RenderWhileMouseInEditorOrList(IWindow& editorWindow)
-		{
-			TRACKMOUSEEVENT ev;
-			ev.cbSize = sizeof ev;
-			ev.hwndTrack = backWindow;
-			ev.dwHoverTime = 0;
-			ev.dwFlags = TME_NONCLIENT;
-			if (TrackMouseEvent(&ev))
-			{
-				hEditor = editorWindow;
-			}
-			else
-			{
-				HRESULT hr = GetLastError();
-				Throw(hr, "RenderWhileMouseInEditorOrList: Bad call TrackMouseEvent");
-			}
-		}
-	};
-
 	struct ListWidget : IListWidget, IWin32WindowMessageLoopHandler
 	{
 		IVariableList& variables;
@@ -497,6 +334,7 @@ namespace
 
 		EventIdRef evChangedEvent = { 0 };
 		EventIdRef evCharChangedEvent = { 0 };
+		EventIdRef evMouseMoved = { 0 };
 
 		WNDPROC defaultEditProc = nullptr;
 
@@ -509,13 +347,29 @@ namespace
 			case WM_KEYDOWN:
 				switch (wParam)
 				{
-					case VK_RETURN:
-						SetFocus(nullptr);
-						This.PublishChange();
-						return 0;
+				case VK_RETURN:
+					SetFocus(nullptr);
+					This.PublishChange();
+					return 0;
 				}
+			case WM_MOUSEMOVE:
+			{
+				Vec2i p = { GET_X_LPARAM(lParam),GET_Y_LPARAM(lParam) };
+				This.OnMouseMove(p);
+				break;
+			}
 			}
 			return CallWindowProc(This.defaultEditProc, wnd, msg, wParam, lParam);
+		}
+
+		void OnMouseMove(Vec2i mousePosition)
+		{
+			if (evMouseMoved.name != nullptr)
+			{
+				TEventArgs<Vec2i> args;
+				args.value = mousePosition;
+				variables.Children()->Context().publisher.Publish(args, evMouseMoved);
+			}
 		}
 
 		void PublishCharChange()
@@ -610,6 +464,11 @@ namespace
 		void SetUpdateEvent(EventIdRef id) override
 		{
 			evChangedEvent = id;
+		}
+
+		void SetMouseMoveEvent(EventIdRef id) override
+		{
+			evMouseMoved = id;
 		}
 
 		void SetCharacterUpdateEvent(EventIdRef id) override
@@ -988,10 +847,5 @@ namespace Rococo::SexyStudio
 		auto* v = new VariableList(widgets);
 		widgets.Add(v);
 		return v;
-	}
-
-	IFloatingListWidget* CreateFloatingListWidget(IWindow& window, WidgetContext& wc)
-	{
-		return new FloatingListWidget(window, wc);
 	}
 }

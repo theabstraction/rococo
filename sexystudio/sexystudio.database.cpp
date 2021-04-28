@@ -94,10 +94,10 @@ namespace ANON
 {
 	struct SXYAttribute
 	{
-		cr_sex sAttribute;
+		const ISExpression* sAttribute;
 		cstr GetName() const
 		{
-			return AlwaysGetAtomic(sAttribute, 1);
+			return AlwaysGetAtomic(*sAttribute, 1);
 		}
 	};
 
@@ -253,7 +253,7 @@ namespace ANON
 	struct SxyFactory : ISXYFactory
 	{
 		SxyFactory(cstr name, ISXYFile& _source_file, cr_sex _sDef) :
-			shortName(name), source_file(_source_file), sDef(_sDef), bodyIndicator(0)
+			shortName(name), source_file(&_source_file), sDef(&_sDef), bodyIndicator(0)
 		{
 			// Factory expressions have the form (factory <name> <defined-interface> (arg1type arg1name) ...(argNtype argNname): ...)
 			for (int i = 3; i < _sDef.NumberOfElements(); ++i)
@@ -270,7 +270,7 @@ namespace ANON
 
 		cstr SourcePath() const override
 		{
-			return sDef.Tree().Source().Name();
+			return sDef->Tree().Source().Name();
 		}
 
 		cstr PublicName() const override
@@ -285,10 +285,10 @@ namespace ANON
 
 		void GetDefinedInterface(char* buf, size_t capacity) const override
 		{
-			cstr fqInterfaceName = AlwaysGetAtomic(sDef, 2);
+			cstr fqInterfaceName = AlwaysGetAtomic(*sDef, 2);
 			if (Compare(fqInterfaceName, "$.", 2) == 0)
 			{
-				ResolvePackageName(fqInterfaceName, buf, capacity, sDef);
+				ResolvePackageName(fqInterfaceName, buf, capacity, *sDef);
 			}
 			else
 			{
@@ -299,34 +299,34 @@ namespace ANON
 		cstr InputType(int index) const override
 		{
 			int i = 3 + index;
-			cr_sex sInput = sDef[i];
+			cr_sex sInput = sDef->GetElement(i);
 			return AlwaysGetAtomic(sInput, 0);
 		}
 
 		cstr InputName(int index) const  override
 		{
 			int i = 3 + index;
-			cr_sex sInput = sDef[i];
+			cr_sex sInput = sDef->GetElement(i);
 			return AlwaysGetAtomic(sInput, 1);
 		}
 
 		std::string shortName;
-		ISXYFile& source_file;
+		ISXYFile* source_file;
 		int bodyIndicator;
-		cr_sex sDef;
+		const ISExpression* sDef;
 	};
 
 	struct SxyInterface: ISXYInterface
 	{
 		SxyInterface(cstr name, ISXYFile& _source_file, cr_sex _sInterfaceDef):
-			shortName(name), source_file(_source_file), sInterfaceDef(_sInterfaceDef)
+			shortName(name), source_file(&_source_file), sInterfaceDef(&_sInterfaceDef)
 		{
 
 		}
 
 		cstr SourcePath() const override
 		{
-			return sInterfaceDef.Tree().Source().Name();
+			return sInterfaceDef->Tree().Source().Name();
 		}
 
 		int AttributeCount() const override
@@ -341,7 +341,7 @@ namespace ANON
 
 		cr_sex GetDefinition() const
 		{
-			return sInterfaceDef;
+			return *sInterfaceDef;
 		}
 
 		int MethodCount() const override
@@ -360,8 +360,8 @@ namespace ANON
 		}
 
 		std::string shortName;
-		ISXYFile& source_file;
-		cr_sex sInterfaceDef;
+		ISXYFile* source_file;
+		const ISExpression* sInterfaceDef;
 		std::vector<SXYAttribute> attributes;
 		const ISExpression* base = nullptr;
 		cstr Base() const override
@@ -407,7 +407,7 @@ namespace ANON
 	struct SXYPublicFunction: ISXYPublicFunction
 	{
 		SXYPublicFunction(cstr _publicName, cstr _localName, ISXYFile& _file) :
-			publicName(_publicName), localName(_localName), file(_file)
+			publicName(_publicName), localName(_localName), file(&_file)
 		{
 
 		}
@@ -419,7 +419,7 @@ namespace ANON
 
 		std::string publicName;
 		std::string localName;
-		ISXYFile& file;
+		ISXYFile* file;
 
 		ISXYFunction* localFunction = nullptr;
 
@@ -815,7 +815,7 @@ namespace ANON
 					}
 					else if (Eq(child, "attribute"))
 					{
-						interf.attributes.push_back( { sChild  } );
+						interf.attributes.push_back( { &sChild  } );
 					}
 					else if (Eq(child, "extends"))
 					{
@@ -848,7 +848,7 @@ namespace ANON
 					cstr child = AlwaysGetAtomic(sChild, 0);
 					if (Eq(child, "attribute"))
 					{
-						interf.attributes.push_back({ sChild });
+						interf.attributes.push_back({ &sChild });
 					}
 					else if (Eq(child, "extends"))
 					{
@@ -919,6 +919,27 @@ namespace ANON
 				[](const std::unique_ptr<SxyNamespace>& a, const std::unique_ptr<SxyNamespace>& b)->bool
 				{
 					return a->name < b->name;
+				}
+			);
+
+			std::sort(functions.begin(), functions.end(),
+				[](const SXYPublicFunction& a, const SXYPublicFunction& b)->bool
+				{
+					return Compare(a.PublicName(), b.PublicName()) < 0;
+				}
+			);
+			
+			std::sort(factories.begin(), factories.end(),
+				[](const SxyFactory& a, const SxyFactory& b)->bool
+				{
+					return Compare(a.PublicName(), b.PublicName()) < 0;
+				}
+			);
+
+			std::sort(interfaces.begin(), interfaces.end(),
+				[](const SxyInterface& a, const SxyInterface& b)->bool
+				{
+					return Compare(a.PublicName(), b.PublicName()) < 0;
 				}
 			);
 
@@ -1132,7 +1153,7 @@ namespace ANON
 
 			for (auto& f : ns.functions)
 			{
-				File_SXY& source = static_cast<File_SXY&>(f.file);
+				File_SXY& source = static_cast<File_SXY&>(*f.file);
 				auto i = source.functions.find(f.localName.c_str());
 				if (i != source.functions.end())
 				{

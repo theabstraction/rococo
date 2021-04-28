@@ -24,6 +24,8 @@
 #include <vector>
 #include <string>
 
+#include <unordered_map>
+
 using namespace Rococo;
 using namespace Rococo::SexyStudio;
 using namespace Rococo::Events;
@@ -32,6 +34,9 @@ using namespace Rococo::Sex;
 auto evClose = "EvMainIDEWindowCloseRequest"_event;
 auto evContentChange = "EvContentChange"_event; // TEventArg<cstr>
 auto evSearchChange = "EvSearchChange"_event; // TEventArg<cstr>
+auto evMoveAtSearch = "EvMoveAtSearch"_event; // TEventArgs<Vec2i>
+auto evDoubleClickSearchList = "EvDoubleClickSearchList"_event; // TEventArgs<cstr>
+auto evSearchSelected = "EvSearchSelected"_event; // TEventArg<cstr>
 
 ROCOCOAPI IMessagePump
 {
@@ -66,7 +71,7 @@ namespace Globals
 {
 	U8FilePath contentFolder{ "\\work\\rococo\\content\\scripts\\" };
 	U8FilePath packageFolder{ "\\work\\rococo\\content\\packages\\mhost_1000.sxyz" };
-	U8FilePath searchPath{ "MHost/" };
+	U8FilePath searchPath{ "" };
 }
 
 namespace Rococo::SexyStudio
@@ -94,6 +99,8 @@ private:
 			PopulateTreeWithSXYFiles(*fileBrowser, Globals::contentFolder, database, ideFrame);
 			PopulateTreeWithPackages(Globals::searchPath, Globals::packageFolder, database);
 			ideFrame.SetProgress(100.0f, "Populated file browser");
+
+			database.Sort();
 
 			TEventArgs<ISexyDatabase*> args;
 			args.value = &database;
@@ -492,6 +499,8 @@ private:
 		{
 			auto& subspace = ns[i];
 			auto idBranch = classTree->AppendItem(idNSNode);
+			mapNSToTreeItemId[&subspace] = idBranch;
+			mapTreeItemIdToNS[idBranch] = &subspace;
 			classTree->SetItemText(subspace.Name(), idBranch);
 			classTree->SetItemImage(idBranch, (int)ClassImageIndex::NAMESPACE);
 			AppendNamespaceRecursive(subspace, idBranch, database);
@@ -514,40 +523,244 @@ private:
 		classTree->SetItemText("Namespaces", idNamespace);
 		classTree->SetItemImage(idNamespace, (int) ClassImageIndex::NAMESPACE);
 
+		mapNSToTreeItemId.clear();
+		mapTreeItemIdToNS.clear();
+
 		AppendNamespaceRecursive(database.GetRootNamespace(), idNamespace, database);
+	}
+
+	std::vector<std::string> searchArrayResults;
+
+	bool isDirty = true;
+
+	std::unordered_map<ID_TREE_ITEM, ISxyNamespace*> mapTreeItemIdToNS;
+	std::unordered_map<ISxyNamespace*, ID_TREE_ITEM> mapNSToTreeItemId;
+
+	void RefreshResultList(bool populateIfEmpty)
+	{
+		if (!IsWindowVisible(searchResults->Window()))
+		{
+			GuiRect rect = Widgets::GetScreenRect(searchEditor->OSEditor());
+			rect.top = rect.bottom;
+			rect.bottom = rect.top + 120;
+			Widgets::SetWidgetPosition(*searchResults, rect);
+			searchResults->SetVisible(true);
+
+			SetFocus(searchEditor->OSEditor());
+			searchResults->RenderWhileMouseInEditorOrList(searchEditor->OSEditor());
+		}
+
+		if (!isDirty)
+		{
+			return;
+		}
+
+		if (populateIfEmpty && searchArrayResults.empty())
+		{
+			if (*Globals::searchPath == 0)
+			{
+				auto& root = database.GetRootNamespace();
+
+				for (int i = 0; i < root.Length(); ++i)
+				{
+					auto& ns = root[i];
+					searchArrayResults.push_back(ns.Name());
+				}
+			}
+		}
+
+		if (searchArrayResults.empty())
+		{
+			return;
+		}
+
+		searchResults->ClearItems();
+
+		for (auto& item : searchArrayResults)
+		{
+			searchResults->AppendItem(item.c_str());
+		}
+
+		isDirty = false;
+	}
+
+	void EnumerateNamesStartingWith(ISxyNamespace& ns, cstr prefix, IEventCallback<cstr>& cb)
+	{
+		for (int i = 0; i < ns.Length(); ++i)
+		{
+			auto& subspace = ns[i];
+			auto* name = ns[i].Name();
+			if (StartsWith(name, prefix))
+			{
+				cb.OnEvent(name);
+			}
+		}
+
+		for (int j = 0; j < ns.InterfaceCount(); ++j)
+		{
+			auto* name = ns.GetInterface(j).PublicName();
+			if (StartsWith(name, prefix))
+			{
+				cb.OnEvent(name);
+			}
+		}
+
+		for (int j = 0; j < ns.FunctionCount(); ++j)
+		{
+			auto* name = ns.GetFunction(j).PublicName();
+			if (StartsWith(name, prefix))
+			{
+				cb.OnEvent(name);
+			}
+		}
+
+		for (int j = 0; j < ns.FactoryCount(); ++j)
+		{
+			auto* name = ns.GetFactory(j).PublicName();
+			if (StartsWith(name, prefix))
+			{
+				cb.OnEvent(name);
+			}
+		}
+	}
+
+	void AppendToSearchTermsRecursive(ISxyNamespace& ns, cstr searchTerm, cstr fullSearchItem)
+	{
+		auto* dot = FindDot(searchTerm);
+		if (*dot == '.')
+		{
+			char subspaceName[256];
+			strncpy_s(subspaceName, searchTerm,  dot - searchTerm);
+
+			for (int i = 0; i < ns.Length(); ++i)
+			{
+				auto& subpsace = ns[i];
+				if (Eq(subpsace.Name(), subspaceName))
+				{
+					AppendToSearchTermsRecursive(subpsace, dot + 1, fullSearchItem);
+					return;
+				}
+			}
+		}
+		else
+		{
+			struct CLOSURE : IEventCallback<cstr>
+			{
+				cstr fullSearchItem;
+				cstr searchTerm;
+				SexyExplorer* This;
+
+				void OnEvent(cstr name) override
+				{
+					char fullName[256];
+					strncpy_s(fullName, fullSearchItem, searchTerm - fullSearchItem);
+					strncat_s(fullName, name, strlen(name));
+					This->searchArrayResults.push_back(fullName);
+				}
+			} cb;
+
+			cb.fullSearchItem = fullSearchItem;
+			cb.searchTerm = searchTerm;
+			cb.This = this;
+
+			EnumerateNamesStartingWith(ns, searchTerm, cb);
+		}
 	}
 
 	void OnSearchChange(cstr searchTerm)
 	{
+		isDirty = true;
+
+		searchArrayResults.clear();
+
 		searchResults->ClearItems();
 
 		auto& root = database.GetRootNamespace();
+		AppendToSearchTermsRecursive(root, searchTerm, searchTerm);
 
-		int count = 0;
+		RefreshResultList(!searchArrayResults.empty());
+	}
 
-		for (int i = 0; i < root.Length(); ++i)
+	void OnMouseMovedInSearchBar(Vec2i pos)
+	{
+		if (GetFocus() == searchEditor->OSEditor())
 		{
-			auto& ns = root[i];
-			if (Compare(ns.Name(), searchTerm, strlen(searchTerm)) == 0)
+			RefreshResultList(true);
+		}
+	}
+
+	void SetSearchTerm(cstr searchTerm)
+	{
+		SafeFormat(searchTerms, "%s", searchTerm);
+		searchEditor->Bind(searchTerms, sizeof searchTerms);
+		int endIndex = Edit_LineLength(searchEditor->OSEditor(), 0);
+		Edit_SetSel(searchEditor->OSEditor(), endIndex, endIndex);
+		RefreshResultList(true);
+	}
+
+	ISxyNamespace* FindSubspace(ISxyNamespace& branch, cstr name)
+	{
+		for (int i = 0; i < branch.Length(); ++i)
+		{
+			auto& subspace = branch[i];
+			if (Eq(subspace.Name(), name))
 			{
-				searchResults->AppendItem(ns.Name());
-				count++;
+				return &subspace;
 			}
 		}
 
-		searchResults->SetVisible(count > 0);
+		return nullptr;
+	}
 
-		if (count > 0)
+	void SearchSelectedRecursive(cstr searchTerm, ISxyNamespace& ns)
+	{
+		auto* dot = FindDot(searchTerm);
+		if (*dot == '.')
 		{
-			GuiRect rect = Widgets::GetScreenRect(searchEditor->OSEditor());
-			rect.top = rect.bottom + 1;
-			rect.bottom = rect.top + 120;
-			Widgets::SetWidgetPosition(*searchResults, rect);
+			char subspaceName[256];
+			strncpy_s(subspaceName, searchTerm, dot - searchTerm);
+
+			ISxyNamespace* subspace = FindSubspace(ns, subspaceName);
+			if (subspace)
+			{
+				SearchSelectedRecursive(dot + 1, *subspace);
+			}
+			// We could not find a match, so this namespace is taken to be the one to be highlighted
+		}
+		else
+		{
+			ISxyNamespace* subspace = FindSubspace(ns, searchTerm);
+			if (subspace)
+			{
+				auto i = mapNSToTreeItemId.find(subspace);
+				if (i != mapNSToTreeItemId.end())
+				{
+					TreeView_EnsureVisible(classTree->TreeWindow(), (HTREEITEM)i->second);
+					TreeView_SelectItem(classTree->TreeWindow(), (HTREEITEM)i->second);
+					return;
+				}
+			}
+
+			auto i = mapNSToTreeItemId.find(&ns);
+			if (i != mapNSToTreeItemId.end())
+			{
+				auto id = (ID_TREE_ITEM)TreeView_GetChild(classTree->TreeWindow(), i->second);
+				while (id != 0)
+				{
+					char buf[1024];
+					classTree->GetText(buf, sizeof buf, id);
+					if (StartsWith(buf, searchTerm))
+					{
+						TreeView_EnsureVisible(classTree->TreeWindow(), id);
+						TreeView_SelectItem(classTree->TreeWindow(), id);
+						return;
+					}
+
+					id = (ID_TREE_ITEM)TreeView_GetNextSibling(classTree->TreeWindow(), id);
+				}
+			}
 		}
 
-		SetFocus(searchEditor->OSEditor());
-
-		searchResults->RenderWhileMouseInEditorOrList(searchEditor->OSEditor());
 	}
 
 	void OnEvent(Event& ev) override
@@ -561,6 +774,23 @@ private:
 		{
 			auto& search = As<TEventArgs<cstr>>(ev);
 			OnSearchChange(search.value);
+		}
+		else if (ev == evMoveAtSearch)
+		{
+			auto& mousePosition = As<TEventArgs<Vec2i>>(ev);
+			OnMouseMovedInSearchBar(mousePosition);
+		}
+		else if (ev == evDoubleClickSearchList)
+		{
+			auto& selectedItem = As<TEventArgs<cstr>>(ev);
+			SetSearchTerm(selectedItem);
+		}
+		else if (ev == evSearchSelected)
+		{
+			auto& selectedItem = As<TEventArgs<cstr>>(ev);
+			SearchSelectedRecursive(selectedItem, database.GetRootNamespace());
+			searchResults->SetVisible(false);
+			SetFocus(classTree->TreeWindow());
 		}
 	}
 
@@ -591,8 +821,11 @@ public:
 		searchEditor->Bind(searchTerms, sizeof searchTerms);
 		searchEditor->SetVisible(true);
 		searchEditor->SetCharacterUpdateEvent(evSearchChange);
+		searchEditor->SetUpdateEvent(evSearchSelected);
+		searchEditor->SetMouseMoveEvent(evMoveAtSearch);
 
 		searchResults = CreateFloatingListWidget(_screen, wc);
+		searchResults->SetDoubleClickEvent(evDoubleClickSearchList);
 
 		GuiRect rect{ 300, 300, 450, 600 };
 		Widgets::SetWidgetPosition(*searchResults, rect);
@@ -612,6 +845,9 @@ public:
 
 		wc.publisher.Subscribe(this, evMetaUpdated);
 		wc.publisher.Subscribe(this, evSearchChange);
+		wc.publisher.Subscribe(this, evSearchSelected);
+		wc.publisher.Subscribe(this, evMoveAtSearch);
+		wc.publisher.Subscribe(this, evDoubleClickSearchList);
 	}
 
 	~SexyExplorer()

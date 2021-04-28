@@ -98,6 +98,7 @@
     <ClCompile Include="sexystudio.themes.cpp" />
     <ClCompile Include="sexystudio.widgets.cpp" />
     <ClCompile Include="sexystudio.windows.button.cpp" />
+    <ClCompile Include="sexystudio.windows.floating-list.cpp" />
     <ClCompile Include="sexystudio.windows.main.cpp" />
     <ClCompile Include="sexystudio.windows.child.cpp" />
     <ClCompile Include="sexystudio.windows.splitter.cpp" />

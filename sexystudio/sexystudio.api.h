@@ -372,6 +372,7 @@ namespace Rococo::SexyStudio
 		virtual void Bind(char* buffer, size_t capacityBytes) = 0;
 		virtual IWindow& OSEditor() = 0;
 		virtual void SetCharacterUpdateEvent(EventIdRef id) = 0;
+		virtual void SetMouseMoveEvent(EventIdRef id) = 0;
 		virtual void SetText(cstr text) = 0;
 		virtual void SetUpdateEvent(EventIdRef id) = 0;
 		virtual cstr Text() const = 0;
@@ -397,7 +398,10 @@ namespace Rococo::SexyStudio
 		virtual void AppendItem(cstr text) = 0;
 		virtual void ClearItems() = 0;
 		virtual void RenderWhileMouseInEditorOrList(IWindow& editorWindow) = 0;
+		virtual void SetDoubleClickEvent(EventIdRef id) = 0;
 	};
+
+	cstr FindDot(cstr s);
 
 	IFloatingListWidget* CreateFloatingListWidget(IWindow& window, WidgetContext& wc);
 
