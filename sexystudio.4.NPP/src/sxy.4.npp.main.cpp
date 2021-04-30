@@ -15,11 +15,20 @@
 //along with this program; if not, write to the Free Software
 //Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
+// Modifications to the original by Mark Anthony Taylor
+
+#include <rococo.types.h>
+#include <rococo.strings.h>
+
+#include <rococo.libs.inl>
+
+
 #include "PluginDefinition.h"
 
 extern FuncItem funcItem[nbFunc];
 extern NppData nppData;
 
+using namespace Rococo;
 
 BOOL APIENTRY DllMain(HANDLE hModule, DWORD  reasonForCall, LPVOID /*lpReserved*/)
 {
@@ -56,7 +65,12 @@ extern "C" __declspec(dllexport) void setInfo(NppData notpadPlusData)
 
 extern "C" __declspec(dllexport) const TCHAR * getName()
 {
-	return NPP_PLUGIN_NAME;
+	static wchar_t name[256] = { 0 };
+	if (*name == 0)
+	{
+		SafeFormat(name, 256, L"SexyStudio for Notepad++ (Build %hs)",  __DATE__);
+	}
+	return name;
 }
 
 extern "C" __declspec(dllexport) FuncItem * getFuncsArray(int *nbF)

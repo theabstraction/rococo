@@ -21,6 +21,8 @@
 //
 // All difinitions of plugin interface
 //
+
+#include <rococo.compiler.options.h>
 #include "PluginInterface.h"
 
 //-------------------------------------//
@@ -28,7 +30,6 @@
 //-------------------------------------//
 // Here define your plugin name
 //
-const TCHAR NPP_PLUGIN_NAME[] = TEXT("SexyStudio For Notepad++");
 
 //-----------------------------------------------//
 //-- STEP 2. DEFINE YOUR PLUGIN COMMAND NUMBER --//

@@ -26,6 +26,8 @@
 
 #include <unordered_map>
 
+#include <rococo.sexystudio.api.h>
+
 using namespace Rococo;
 using namespace Rococo::SexyStudio;
 using namespace Rococo::Events;
@@ -861,124 +863,225 @@ public:
 	}
 };
 
-void Main(IMessagePump& pump)
+LOGFONTA MakeDefaultFont()
 {
-	AutoFree<IPublisherSupervisor> publisher(Rococo::Events::CreatePublisher());
-	AutoFree<ISexyDatabaseSupervisor> database = CreateSexyDatabase();
-
-	LOGFONTA lineEditorLF = { 0 };
+	LOGFONTA lineEditorLF;
 	lineEditorLF.lfHeight = -12;
 	lineEditorLF.lfCharSet = ANSI_CHARSET;
 	lineEditorLF.lfOutPrecision = OUT_DEFAULT_PRECIS;
 	lineEditorLF.lfClipPrecision = CLIP_DEFAULT_PRECIS;
 	lineEditorLF.lfQuality = CLEARTYPE_QUALITY;
 	SafeFormat(lineEditorLF.lfFaceName, "Consolas");
-
-	Font smallCaptionFont(lineEditorLF);
-
-	WidgetContext context{ *publisher, smallCaptionFont };
-	AutoFree<ITheme> theme = UseNamedTheme("Classic", context.publisher);
-
-	AutoFree<IIDEFrameSupervisor> ide = CreateMainIDEFrame(context);
-	Widgets::SetText(*ide, "Sexy Studio");
-	Widgets::SetSpan(*ide, 1024, 600);
-
-	struct IDEEvents : IObserver
-	{
-		IMessagePump* pump = nullptr;
-		IIDEFrameSupervisor* ide = nullptr;
-
-		void OnEvent(Rococo::Events::Event& ev) override
-		{
-			if (ev == evIDEClose)
-			{
-				pump->Quit();
-			}
-			else if (ev == evIDEMax)
-			{
-				Widgets::Maximize(ide->Window());
-			}
-			else if (ev == evIDEMin)
-			{
-				Widgets::Minimize(ide->Window());
-			}
-		}
-	} ideEvents;
-	ideEvents.pump = &pump;
-	ideEvents.ide = ide;
-	
-	auto* splitscreen = CreateSplitScreen(ide->Children());
-	Widgets::AnchorToParent(*splitscreen, 0, 0, 0, 0);
-
-	splitscreen->SetBackgroundColour(RGBAb(192, 128, 128));
-
-	splitscreen->SplitIntoColumns(400);
-
-	auto* projectView = splitscreen->GetFirstHalf();
-	auto* sourceView = splitscreen->GetSecondHalf();
-
-	PropertySheets propertySheets(*projectView, *ide, *database);
-	SexyExplorer explorer(context, *sourceView, *database);
-
-	publisher->Subscribe(&ideEvents, evIDEClose);
-	publisher->Subscribe(&ideEvents, evIDEMax);
-	publisher->Subscribe(&ideEvents, evIDEMin);
-
-	ide->SetVisible(true);
-	splitscreen->SetVisible(true);
-	ide->LayoutChildren();
-
-	propertySheets.CollapseTree();
-
-	AutoFree<IStringBuilder> heapStringBuilder = CreateDynamicStringBuilder(1024);
-
-	auto& sb = heapStringBuilder->Builder();
-
-	Rococo::SexyStudio::AppendDescendantsAndRectsToString(*ide, sb);
-
-	OutputDebugStringA(*sb);
-
-	propertySheets.SelectProjectTab();
-	explorer.SelectClassTreeTab();
-
-	TEventArgs<bool> nullArgs;
-	publisher->Publish(nullArgs, evContentChange);
-
-	pump.MainLoop();
+	return lineEditorLF;
 }
 
-
-int APIENTRY WinMain(
-	_In_ HINSTANCE hInstance,
-	_In_opt_ HINSTANCE hPrevInstance,
-	_In_ LPSTR lpCmdLine,
-	_In_ int nShowCmd)
+struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 {
-	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All & ~Rococo::OS::BreakFlag_IllFormed_SExpression);
+	AutoFree<IPublisherSupervisor> publisher;
+	AutoFree<ISexyDatabaseSupervisor> database;
+	Font smallCaptionFont;
+	WidgetContext context;
+	AutoFree<ITheme> theme;
+	AutoFree<IIDEFrameSupervisor> ide;
+	AutoFree<ISplitScreen> splitScreen;
+	AutoFree<ISplitScreen> projectView;
+	AutoFree<ISplitScreen> sourceView;
 
-	try
+	PropertySheets* sheets;
+	SexyExplorer* explorer;
+
+	SexyStudioIDE():
+		publisher(Rococo::Events::CreatePublisher()),
+		database(CreateSexyDatabase()),
+		smallCaptionFont(MakeDefaultFont()),
+		context{ *publisher, smallCaptionFont },
+		theme{ UseNamedTheme("Classic", context.publisher) }
+	{
+		ide = CreateMainIDEFrame(context);
+		Widgets::SetText(*ide, "Sexy Studio");
+		Widgets::SetSpan(*ide, 1024, 600);
+
+		splitScreen = CreateSplitScreen(ide->Children());
+		Widgets::AnchorToParent(*splitScreen, 0, 0, 0, 0);
+
+		splitScreen->SetBackgroundColour(RGBAb(192, 128, 128));
+		splitScreen->SplitIntoColumns(400);
+
+		projectView = splitScreen->GetFirstHalf();
+		sourceView = splitScreen->GetSecondHalf();
+
+		sheets = new PropertySheets(*projectView, *ide, *database);
+		explorer = new SexyExplorer(context, *sourceView, *database);
+
+		publisher->Subscribe(this, evIDEClose);
+		publisher->Subscribe(this, evIDEMax);
+		publisher->Subscribe(this, evIDEMin);
+
+		ide->SetVisible(true);
+		splitScreen->SetVisible(true);
+		ide->LayoutChildren();
+
+		sheets->CollapseTree();
+
+		AutoFree<IStringBuilder> heapStringBuilder = CreateDynamicStringBuilder(1024);
+		auto& sb = heapStringBuilder->Builder();
+		Rococo::SexyStudio::AppendDescendantsAndRectsToString(*ide, sb);
+		puts(*sb);
+
+		sheets->SelectProjectTab();
+		explorer->SelectClassTreeTab();
+
+		TEventArgs<bool> nullArgs;
+		publisher->Publish(nullArgs, evContentChange);
+	}
+
+	~SexyStudioIDE()
+	{
+		delete explorer;
+		delete sheets;
+	}
+
+	bool isRunning = true;
+
+	bool IsRunning() const override
+	{
+		return isRunning;
+	}
+
+	void Free() override
+	{
+		delete this;
+	}
+
+	void OnEvent(Rococo::Events::Event& ev) override
+	{
+		if (ev == evIDEClose)
+		{
+			isRunning = false;
+		}
+		else if (ev == evIDEMax)
+		{
+			Widgets::Maximize(ide->Window());
+		}
+		else if (ev == evIDEMin)
+		{
+			Widgets::Minimize(ide->Window());
+		}
+	}
+};
+
+HINSTANCE g_hDllInstance = nullptr;
+
+BOOL WINAPI DllMain(HINSTANCE hDLL, DWORD fdwReason, LPVOID lpReserved)
+{
+	switch (fdwReason)
+	{
+	case DLL_PROCESS_ATTACH:
+		g_hDllInstance = hDLL;
+		break;
+
+	case DLL_THREAD_ATTACH:
+		// Do thread-specific initialization.
+		break;
+
+	case DLL_THREAD_DETACH:
+		// Do thread-specific cleanup.
+		break;
+
+	case DLL_PROCESS_DETACH:
+		// Perform any necessary cleanup.
+		break;
+	}
+	return TRUE;
+}
+
+cstr URL_base = "Rococo.SexyStudio.ISexyStudioBase";
+cstr URL_factory = "Rococo.SexyStudio.ISexyStudioFactory1";
+
+struct Factory: Rococo::SexyStudio::ISexyStudioFactory1
+{
+	cstr GetInterfaceURL(int index) override
+	{
+		switch (index)
+		{
+		case 0:
+			return URL_base;
+		case 1:
+			return URL_factory;
+		default:
+			return nullptr;
+		}
+	}
+
+	cstr GetMetaDataString(EMetaDataType index) override
+	{
+		switch (index)
+		{
+		case EMetaDataType::BuildDate:
+			return __DATE__ __TIME__;
+		case EMetaDataType::Copyright:
+			return "Copyright(c) 2021. All rights reserved.";
+		case EMetaDataType::Author:
+			return "Mark Anthony Taylor";
+		case EMetaDataType::Email:
+			return "mark.anthony.taylor@gmail.com";
+		default:
+			return nullptr;
+		}
+	}
+
+	ISexyStudioInstance1* CreateSexyIDE() override
+	{
+		return new SexyStudioIDE();
+	}
+
+	void Free() override
+	{
+		delete this;
+	}
+};
+
+static bool isInitialized = false;
+
+extern "C" _declspec(dllexport) int CreateSexyStudioFactory(void** ppInterface, const char* interfaceURL)
+{
+	if (!isInitialized)
 	{
 		HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
-		if FAILED(hr)
+		if (FAILED(hr))
 		{
-			Throw(hr, "%s: CoInitializeEx failed", __FUNCTION__);
+			return hr;
 		}
 
-		InitStudioWindows(hInstance, (LPCSTR)IDI_ICON1, (LPCSTR)IDI_ICON2);
+		Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All & ~Rococo::OS::BreakFlag_IllFormed_SExpression);
+
+		InitStudioWindows(g_hDllInstance, (LPCSTR)IDI_ICON1, (LPCSTR)IDI_ICON2);
 
 		BufferedPaintInit();
 
-		Win32MessagePump pump;
-		Main(pump);
+		struct CLOSURE
+		{
+			static void OnExit()
+			{
+				BufferedPaintUnInit();
+			}
+		};
 
-		BufferedPaintUnInit();
-		return 0;
+		atexit(CLOSURE::OnExit);
+
+		isInitialized = true;
 	}
-	catch (IException& ex)
+
+	if (ppInterface == nullptr || interfaceURL == nullptr)
 	{
-		Rococo::OS::ShowErrorBox(Windows::NoParent(), ex, "Sexy Studio - Error!");
-		return ex.ErrorCode();
+		return E_POINTER;
 	}
+
+	if (strcmp(interfaceURL, URL_base) || strcmp(interfaceURL, URL_factory))
+	{
+		*ppInterface = (void*) new Factory();
+		return S_OK;
+	}
+
+	return E_NOTIMPL;
 }
-
-
