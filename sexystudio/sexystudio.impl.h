@@ -142,7 +142,7 @@ namespace Rococo::SexyStudio
 		HWND hWnd;
 		IWin32WindowMessageLoopHandler& handler;
 	public:
-		Win32TopLevelWindow(DWORD exStyle, DWORD style, IWin32WindowMessageLoopHandler& handler);
+		Win32TopLevelWindow(DWORD exStyle, DWORD style, IWin32WindowMessageLoopHandler& handler, IWindow& topLevelWindow);
 		~Win32TopLevelWindow();
 		operator HWND() const override { return hWnd; }
 	};

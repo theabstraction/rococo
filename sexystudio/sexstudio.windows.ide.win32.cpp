@@ -285,9 +285,9 @@ namespace
 		EventIdRef evClose = { 0 };
 		EventIdRef evResize = { 0 };
 
-		Win32MainIDEWindow(WidgetContext& _context) :
+		Win32MainIDEWindow(WidgetContext& _context, IWindow& topLevelWindow) :
 			context(_context),
-			mainFrame(ideExStyle, ideStyle, *this),
+			mainFrame(ideExStyle, ideStyle, *this, topLevelWindow),
 			tooltipWindow(mainFrame, context),
 			progressWindow((HWND) mainFrame, _context)
 		{
@@ -393,9 +393,9 @@ namespace
 
 namespace Rococo::SexyStudio
 {
-	IIDEFrameSupervisor* CreateMainIDEFrame(WidgetContext& context)
+	IIDEFrameSupervisor* CreateMainIDEFrame(WidgetContext& context, IWindow& topLevelWindow)
 	{
-		return new Win32MainIDEWindow(context);
+		return new Win32MainIDEWindow(context, topLevelWindow);
 	}
 
 	void UseDefaultFrameBarLayout(IToolbar& frameBar)

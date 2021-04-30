@@ -87,7 +87,7 @@ namespace Rococo::SexyStudio
 		Windows::InitRococoWindows(hInstance, hLargeIcon, hSmallIcon, nullptr, nullptr);
 	}
 
-	Win32TopLevelWindow::Win32TopLevelWindow(DWORD exStyle, DWORD style, IWin32WindowMessageLoopHandler& _handler) : handler(_handler)
+	Win32TopLevelWindow::Win32TopLevelWindow(DWORD exStyle, DWORD style, IWin32WindowMessageLoopHandler& _handler, IWindow& topLevelWindow) : handler(_handler)
 	{
 		if (mainClassAtom == 0)
 		{
@@ -101,7 +101,7 @@ namespace Rococo::SexyStudio
 		}
 
 		HMENU hMenu = nullptr;
-		HWND hParent = nullptr;
+		HWND hParent = topLevelWindow;
 
 		hWnd = CreateWindowExA(
 			exStyle,

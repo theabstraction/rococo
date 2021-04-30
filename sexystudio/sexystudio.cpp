@@ -864,14 +864,14 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 	PropertySheets* sheets = nullptr;
 	SexyExplorer* explorer = nullptr;
 
-	SexyStudioIDE():
+	SexyStudioIDE(IWindow& topLevelWindow):
 		publisher(Rococo::Events::CreatePublisher()),
 		database(CreateSexyDatabase()),
 		smallCaptionFont(MakeDefaultFont()),
 		context{ *publisher, smallCaptionFont },
 		theme{ UseNamedTheme("Classic", context.publisher) }
 	{
-		ide = CreateMainIDEFrame(context);
+		ide = CreateMainIDEFrame(context, topLevelWindow);
 		Widgets::SetText(*ide, "Sexy Studio");
 		Widgets::SetSpan(*ide, 1024, 600);
 
@@ -913,6 +913,19 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 	{
 		delete explorer;
 		delete sheets;
+	}
+
+	void SetTitle(cstr title)
+	{
+		Widgets::SetText(ide->Window(), title);
+	}
+
+	void Activate()
+	{
+		ShowWindow(ide->Window(), SW_RESTORE);
+		SetForegroundWindow(ide->Window());
+		BringWindowToTop(ide->Window());
+		FlashWindow(ide->Window(), FALSE);
 	}
 
 	bool isRunning = true;
@@ -992,7 +1005,7 @@ struct Factory: Rococo::SexyStudio::ISexyStudioFactory1
 		switch (index)
 		{
 		case EMetaDataType::BuildDate:
-			return __DATE__ __TIME__;
+			return __DATE__ "@" __TIME__;
 		case EMetaDataType::Copyright:
 			return "Copyright(c) 2021. All rights reserved.";
 		case EMetaDataType::Author:
@@ -1004,9 +1017,9 @@ struct Factory: Rococo::SexyStudio::ISexyStudioFactory1
 		}
 	}
 
-	ISexyStudioInstance1* CreateSexyIDE() override
+	ISexyStudioInstance1* CreateSexyIDE(IWindow& topLevelParent) override
 	{
-		return new SexyStudioIDE();
+		return new SexyStudioIDE(topLevelParent);
 	}
 
 	void Free() override

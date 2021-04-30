@@ -34,7 +34,7 @@ void MainProtected(HINSTANCE hInstance, HMODULE hLib)
 	int nErr = CreateSexyStudioFactory((void**)&factory, interfaceURL);
 	if (nErr == 0)
 	{
-		AutoFree<ISexyStudioInstance1> instance = factory->CreateSexyIDE();
+		AutoFree<ISexyStudioInstance1> instance = factory->CreateSexyIDE(Rococo::Windows::NoParent());
 		
 		MSG msg;
 		while (instance->IsRunning() && GetMessage(&msg, NULL, 0, 0))

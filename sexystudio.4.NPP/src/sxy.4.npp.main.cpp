@@ -30,7 +30,7 @@ extern NppData nppData;
 
 using namespace Rococo;
 
-BOOL APIENTRY DllMain(HANDLE hModule, DWORD  reasonForCall, LPVOID /*lpReserved*/)
+BOOL APIENTRY DllMain(HANDLE hModule, DWORD reasonForCall, LPVOID /*lpReserved*/)
 {
 	try {
 
@@ -68,7 +68,11 @@ extern "C" __declspec(dllexport) const TCHAR * getName()
 	static wchar_t name[256] = { 0 };
 	if (*name == 0)
 	{
+#ifdef _DEBUG
+		SafeFormat(name, 256, L"SexyStudio for Notepad++ (Debug Build %hs)", __DATE__);
+#else
 		SafeFormat(name, 256, L"SexyStudio for Notepad++ (Build %hs)",  __DATE__);
+#endif
 	}
 	return name;
 }

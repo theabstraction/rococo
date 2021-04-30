@@ -17,13 +17,15 @@ namespace Rococo::SexyStudio
 
 	ROCOCOAPI ISexyStudioInstance1
 	{
+		virtual void SetTitle(cstr title) = 0;
+		virtual void Activate() = 0;
 		virtual bool IsRunning() const = 0;
 		virtual void Free() = 0;
 	};
 
 	ROCOCOAPI ISexyStudioFactory1: ISexyStudioBase
 	{
-		virtual ISexyStudioInstance1* CreateSexyIDE() = 0;
+		virtual ISexyStudioInstance1* CreateSexyIDE(Rococo::Windows::IWindow& topLevelParent) = 0;
 	};
 	
 	typedef int (*FN_CreateSexyStudioFactory)(void** ppInterface, const char* interfaceURL);

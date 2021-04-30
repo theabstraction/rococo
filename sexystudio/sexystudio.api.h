@@ -452,7 +452,7 @@ namespace Rococo::SexyStudio
 		virtual void SetResizeEvent(const EventIdRef& evResize) = 0;
 	};
 
-	IIDEFrameSupervisor* CreateMainIDEFrame(WidgetContext& context);
+	IIDEFrameSupervisor* CreateMainIDEFrame(WidgetContext& context, IWindow& topLevelWindow);
 
 	ROCOCOAPI IButtonWidget : IGuiWidget
 	{
