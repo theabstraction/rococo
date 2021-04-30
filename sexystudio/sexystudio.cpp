@@ -39,35 +39,11 @@ auto evSearchChange = "EvSearchChange"_event; // TEventArg<cstr>
 auto evMoveAtSearch = "EvMoveAtSearch"_event; // TEventArgs<Vec2i>
 auto evDoubleClickSearchList = "EvDoubleClickSearchList"_event; // TEventArgs<cstr>
 auto evSearchSelected = "EvSearchSelected"_event; // TEventArg<cstr>
-
-ROCOCOAPI IMessagePump
-{
-	virtual void MainLoop() = 0;
-	virtual void Quit() = 0;
-};
-
-struct Win32MessagePump : IMessagePump
-{
-	void MainLoop() override
-	{
-		MSG msg;
-		while (GetMessage(&msg, nullptr, 0, 0))
-		{
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-			AssertNoMessageError();
-		}
-	}
-
-	void Quit() override
-	{
-		PostQuitMessage(0);
-	}
-};
-
 auto evIDEClose = "EvIDEClose"_event;
 auto evIDEMin = "EvIDEMin"_event;
 auto evIDEMax = "EvIDEMax"_event;
+auto evMetaUpdated = "sexystudio.meta.updated"_event;
+
 
 namespace Globals
 {
@@ -80,8 +56,6 @@ namespace Rococo::SexyStudio
 {
 	void PopulateTreeWithSXYFiles(IGuiTree& tree, cstr contentFolder, ISexyDatabase& database, IIDEFrame& frame);
 }
-
-auto evMetaUpdated = "sexystudio.meta.updated"_event;
 
 class PropertySheets: IObserver, IGuiTreeRenderer
 {
@@ -865,7 +839,7 @@ public:
 
 LOGFONTA MakeDefaultFont()
 {
-	LOGFONTA lineEditorLF;
+	LOGFONTA lineEditorLF = { 0 };
 	lineEditorLF.lfHeight = -12;
 	lineEditorLF.lfCharSet = ANSI_CHARSET;
 	lineEditorLF.lfOutPrecision = OUT_DEFAULT_PRECIS;
@@ -883,12 +857,12 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 	WidgetContext context;
 	AutoFree<ITheme> theme;
 	AutoFree<IIDEFrameSupervisor> ide;
-	AutoFree<ISplitScreen> splitScreen;
-	AutoFree<ISplitScreen> projectView;
-	AutoFree<ISplitScreen> sourceView;
+	ISplitScreen* splitScreen = nullptr;
+	ISplitScreen* projectView = nullptr;
+	ISplitScreen* sourceView = nullptr;
 
-	PropertySheets* sheets;
-	SexyExplorer* explorer;
+	PropertySheets* sheets = nullptr;
+	SexyExplorer* explorer = nullptr;
 
 	SexyStudioIDE():
 		publisher(Rococo::Events::CreatePublisher()),

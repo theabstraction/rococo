@@ -138,6 +138,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sexystudio.4.notepad++", "sexystudio.4.NPP\vs.proj\SexyStudio.4.Notepad++.vcxproj", "{9D04DBD5-E12E-44E0-A683-6F43F21D533B}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sexystudio.app", "sexystudio.app\sexystudio.app.vcxproj", "{D60A33FA-ED87-44A0-A395-B8F987A241A1}"
+	ProjectSection(ProjectDependencies) = postProject
+		{8A8EE8BD-C917-4471-9B7A-3F23A6B432AA} = {8A8EE8BD-C917-4471-9B7A-3F23A6B432AA}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
