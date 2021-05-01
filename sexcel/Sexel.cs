@@ -10,7 +10,7 @@ using Microsoft.Office.Tools.Excel;
 namespace sexcel
 {
     public partial class Sexel
-    {  
+    {
         public static void ShowMessage(string msg)
         {
             System.Windows.Forms.MessageBox.Show(msg, "Sexel - Sexy Excel");
@@ -21,7 +21,7 @@ namespace sexcel
             string msg = "Sexel threw an exception\r\n";
 
             Exception i = ex;
-            while(i != null)
+            while (i != null)
             {
                 msg += "\r\nStackTrace:" + i.StackTrace + "\r\nMessage: " + i.Message;
                 i = i.InnerException;
@@ -61,7 +61,7 @@ namespace sexcel
                         cell.Font.Color = Excel.XlRgbColor.rgbGray;
                         Tables.Add(table);
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         Sexel.ShowMessage(ex.Message);
                     }
@@ -99,7 +99,7 @@ namespace sexcel
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 ShowMessage(ex);
             }
@@ -111,6 +111,178 @@ namespace sexcel
 
         private void Sexel_Shutdown(object sender, System.EventArgs e)
         {
+        }
+
+        private static string GetId(TableParser table)
+        {
+            Excel.Range item;
+            table.GetCellText(3, table.FirstRowIndex, out item);
+            return item.AddressLocal[true, true].Replace('$', ' ');
+        }
+
+        private static bool IsCapital(char c)
+        {
+            return (c >= 'A' && c <= 'Z');
+        }
+
+        private static bool IsLowerCase(char c)
+        {
+            return (c >= 'a' && c <= 'z');
+        }
+
+        private static bool IsDigit(char c)
+        {
+            return (c >= '0' && c <= '9');
+        }
+
+        private static bool IsAlphaNum(char c)
+        {
+            return IsCapital(c) || IsLowerCase(c) || IsDigit(c);
+        }
+
+        public static void AppendTableNameToLocalStructName(StringBuilder sb, string name, TableParser table)
+        {
+            bool isFirst = true;
+            int currentLength = sb.Length;
+
+            foreach (char c in name)
+            {
+                if (isFirst)
+                {
+                    if (IsCapital(c))
+                    {
+                        throw new Exception(string.Format("Table {0} -> the first character of the table name must be [A-Z]", GetId(table)));
+                    }
+
+                    sb.Append(c);
+                    isFirst = false;
+                }
+
+                if (c == ' ')
+                {
+                    continue;
+                }
+
+                if (!IsAlphaNum(c))
+                {
+                    throw new Exception(string.Format("Table {0} -> illegal character in table name. All characters must be alphanumeric", GetId(table)));
+                }
+
+                sb.Append(c);
+            }
+
+            if (currentLength == sb.Length)
+            {
+                throw new Exception(string.Format("Table {0} -> blank table name. All characters must be alphanumeric", GetId(table)));
+            }
+        }
+
+        private static readonly Dictionary<string, string> mapXlTypeToSXYType = new Dictionary<string, string>()
+        {
+            { "string",  "IString"  },
+            { "int",     "Int32"    },
+            { "long",    "Int64"    },
+            { "float",   "Float32"  },
+            { "double",  "Float64"  },
+            { "boolean", "Bool"     }
+        };
+
+        public static Dictionary<string,string> MapXlTypeToSXYType
+        {
+            get
+            {
+                return mapXlTypeToSXYType;
+            }
+        }
+
+        public static string AllTypes
+        {
+            get
+            {
+                return mapXlTypeToSXYType.Keys.ToString();
+            }
+        }
+
+        public static void AppendTableColumnTypeToSXYType(StringBuilder sb, string name, TableParser table)
+        {
+            string sxyType;
+            if (!MapXlTypeToSXYType.TryGetValue(name, out sxyType))
+            {
+                throw new Exception(string.Format("Table {0} -> Unknown type [{1}]. Must be one of [{2}]", GetId(table), name, AllTypes));
+            }
+
+            sb.Append(sxyType);
+        }
+        public static void AppendTableColumnNameToSXYIdentifier(StringBuilder sb, string name, TableParser table)
+        {
+            bool isFirst = true;
+            int currentLength = sb.Length;
+
+            foreach (char c in name)
+            {
+                if (isFirst)
+                {
+                    if (IsLowerCase(c))
+                    {
+                        throw new Exception(string.Format("Table {0} -> the first character of the table name must be a longer case letter [a-z]", GetId(table)));
+                    }
+
+                    sb.Append(c);
+                    isFirst = false;
+                }
+
+                if (!IsAlphaNum(c))
+                {
+                    throw new Exception(string.Format("Table {0} -> illegal character in table name. All characters must be alphanumeric", GetId(table)));
+                }
+
+                sb.Append(c);
+            }
+
+            if (currentLength == sb.Length)
+            {
+                throw new Exception(string.Format("Table {0} -> blank table name. All characters must be alphanumeric", GetId(table)));
+            }
+        }
+
+        public static void Append_SXY_Struct_To_SXY(StringBuilder sb, TableParser table)
+        {
+            sb.Append("(struct \n");
+            AppendTableNameToLocalStructName(sb, table.Name, table);
+
+            int typeRowIndex = table.FirstRowIndex + 1;
+            int nameRowIndex = table.FirstRowIndex + 2;
+
+            Excel.Range item;
+
+            for (int i = table.FirstColumnIndex; i < table.FinalColumnIndex; ++i)
+            {
+                string fieldName = table.GetCellText(i, nameRowIndex, out item);
+                string fieldType = table.GetCellText(i, typeRowIndex, out item);
+
+                sb.Append("    (");
+                AppendTableColumnTypeToSXYType(sb, fieldType, table);
+
+                sb.Append(" ");
+                AppendTableColumnNameToSXYIdentifier(sb, fieldName, table);
+                sb.Append(")\n");
+        }
+
+            sb.AppendFormat(")\n");
+        }
+        public static void ExportToSXY()
+        {
+            if (Tables.Items.Count == 0)
+            {
+                Sexel.ShowMessage("There were no tables to export. Sex-up the worksheet and try again.");
+            }
+
+            StringBuilder sb = new StringBuilder(4096);
+
+            foreach (TableParser table in Tables.Items)
+            {
+                Append_SXY_Struct_To_SXY(sb, table);
+            }
         }
 
         #region VSTO generated code

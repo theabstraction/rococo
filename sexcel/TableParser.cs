@@ -222,10 +222,17 @@ namespace sexcel
         {
             tables.Add(table);
         }
-
         public static void Clear()
         {
             tables.Clear();
+        }
+
+        public static IList<TableParser> Items
+        {
+            get
+            {
+                return tables;
+            }
         }
     }
 }

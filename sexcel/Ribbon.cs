@@ -29,5 +29,10 @@ namespace sexcel
                 Sexel.SexUpWorksheet();
             }
         }
+
+        private void exportSXY_Click(object sender, RibbonControlEventArgs e)
+        {
+            Sexel.ExportToSXY();
+        }
     }
 }

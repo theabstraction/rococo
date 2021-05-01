@@ -38,6 +38,7 @@ namespace sexcel
             this.tab1 = this.Factory.CreateRibbonTab();
             this.group1 = this.Factory.CreateRibbonGroup();
             this.format = this.Factory.CreateRibbonButton();
+            this.exportSXY = this.Factory.CreateRibbonButton();
             this.tab1.SuspendLayout();
             this.group1.SuspendLayout();
             this.SuspendLayout();
@@ -52,6 +53,7 @@ namespace sexcel
             // group1
             // 
             this.group1.Items.Add(this.format);
+            this.group1.Items.Add(this.exportSXY);
             this.group1.Label = "SexyScript";
             this.group1.Name = "group1";
             // 
@@ -61,6 +63,12 @@ namespace sexcel
             this.format.Name = "format";
             this.format.ScreenTip = "Improves the appearance of SexyScript compliant data blocks";
             this.format.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.format_Click);
+            // 
+            // exportSXY
+            // 
+            this.exportSXY.Label = "to SXY";
+            this.exportSXY.Name = "exportSXY";
+            this.exportSXY.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.exportSXY_Click);
             // 
             // Ribbon
             // 
@@ -81,6 +89,7 @@ namespace sexcel
         internal Microsoft.Office.Tools.Ribbon.RibbonTab tab1;
         internal Microsoft.Office.Tools.Ribbon.RibbonGroup group1;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton format;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton exportSXY;
     }
 
     partial class ThisRibbonCollection
