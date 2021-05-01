@@ -52,11 +52,19 @@ namespace sexcel
             {
                 case "string":
                     cell.Font.Bold = true;
-                    cell.Font.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.Blue);
+                    cell.Font.Color = Excel.XlRgbColor.rgbBlue;
                     break;
                 case "#table":
-                    var table = new TableParser(rowIndex, sheet);
-                    cell.Font.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.Gray);
+                    try
+                    {
+                        var table = new TableParser(rowIndex, sheet);
+                        cell.Font.Color = Excel.XlRgbColor.rgbGray;
+                        Tables.Add(table);
+                    }
+                    catch(Exception ex)
+                    {
+                        Sexel.ShowMessage(ex.Message);
+                    }
                     break;
             }
         }
@@ -65,6 +73,7 @@ namespace sexcel
         {
             try
             {
+                Tables.Clear();
                 Excel.Worksheet sheet = Globals.Sexel.Application.ActiveSheet;
                 if (sheet == null)
                 {

@@ -7,12 +7,18 @@ using Excel = Microsoft.Office.Interop.Excel;
 
 namespace sexcel
 {
-    class TableParser
+    public class TableParser
     {
         private int rowIndex;
         private string name;
         private Excel.Worksheet sheet;
         private int finalColumnIndex;
+        private int finalRowIndex;
+
+        private void SetBorderToBlack(Excel.Range item)
+        {
+            item.Borders.Color = Excel.XlRgbColor.rgbBlack;
+        }
 
         public string GetCellText(int i, int j, out Excel.Range item)
         {
@@ -42,6 +48,19 @@ namespace sexcel
                 return String.Empty;
             }
         }
+        public string GetFieldType(int i, out Excel.Range item)
+        {
+            return GetCellText(i, rowIndex + 1, out item);
+        }
+
+        public string GetFieldName(int i, out Excel.Range item)
+        {
+            return GetCellText(i, rowIndex + 2, out item);
+        }
+        public static string GetName(Excel.Range item)
+        {
+            return item.AddressLocal[true, true, Excel.XlReferenceStyle.xlA1].Replace('$', ' ');
+        }
 
         public TableParser(int rowIndex, Excel.Worksheet sheet)
         {
@@ -51,7 +70,7 @@ namespace sexcel
             Excel.Range item;
             name = GetCellText(3, rowIndex, out item);
 
-            if (name.Length == 0) return;
+            if (name.Length == 0) throw new Exception(string.Format("Expecting a valid table name string at {0}", GetName(item)));
 
             item.Font.Bold = true;
             item.Font.Size = 16;
@@ -67,10 +86,10 @@ namespace sexcel
             }
             else
             {
-                return;
+                throw new Exception(string.Format("Expecting [#types] at {0}", item.AddressLocal));
             }
 
-            for(int i = 3; i < sheet.Columns.Count; ++i)
+            for (int i = 3; i < sheet.Columns.Count; ++i)
             {
                 string typeString = GetCellText(i, rowIndex + 1, out item);
                 if (typeString.Length > 0)
@@ -84,16 +103,28 @@ namespace sexcel
                 }
             }
 
-            string columnNames = GetCellText(2, rowIndex + 2, out item);
-            if (typeIndex == "#types")
+            for (int i = 2; i <= finalColumnIndex + 1; ++i)
+            {
+                GetCellText(i, rowIndex + 1, out item);
+                item.Interior.Color = Excel.XlRgbColor.rgbLightYellow;
+                item.Borders.Color = Excel.XlRgbColor.rgbLightYellow;
+
+                GetCellText(i, rowIndex, out item);
+                item.Interior.Color = Excel.XlRgbColor.rgbLightSteelBlue;
+                item.Borders.Color = Excel.XlRgbColor.rgbLightSteelBlue;
+            }
+
+            string columnFields = GetCellText(2, rowIndex + 2, out item);
+            if (columnFields == "#fields")
             {
                 item.Font.Color = Excel.XlRgbColor.rgbGray;
             }
             else
             {
-                return;
+                throw new Exception(string.Format("Expecting [#fields] at {0}", GetName(item)));
             }
 
+            // names
             for (int i = 3; i <= finalColumnIndex; ++i)
             {
                 string fieldString = GetCellText(i, rowIndex + 2, out item);
@@ -104,9 +135,13 @@ namespace sexcel
                     item.Font.Bold = true;
                     item.Interior.Color = Excel.XlRgbColor.rgbBlue;
                 }
+                else
+                {
+                    throw new Exception(string.Format("Expecting data in field at {0}", GetName(item)));
+                }
             }
 
-            for (int j = rowIndex + 3; j < sheet.UsedRange.Rows.Count; ++j)
+            for (int j = rowIndex + 3; j <= sheet.UsedRange.Rows.Count; ++j)
             {
                 bool atLeastOneEntry = false;
 
@@ -122,12 +157,14 @@ namespace sexcel
 
                 if (atLeastOneEntry)
                 {
+                    finalRowIndex = j;
+
                     for (int i = 3; i <= finalColumnIndex; ++i)
                     {
                         string elementString = GetCellText(i, j, out item);
                         item.Font.Color = Excel.XlRgbColor.rgbBlack;
                         item.Font.Size = 11;
-                        item.Interior.Color = Excel.XlRgbColor.rgbLightGrey;
+                        item.Interior.Color = Excel.XlRgbColor.rgbSilver;
                         item.Borders.Color = Excel.XlRgbColor.rgbBlack;
                     }
                 }
@@ -136,17 +173,59 @@ namespace sexcel
                     break;
                 }
             }
-        }
 
-        public int RowIndex
-        {
-            get { return rowIndex; }
-        }
+            for (int i = rowIndex + 1; i <= finalRowIndex; ++i)
+            {
+                GetCellText(2, i, out item);
+                item.Interior.Color = Excel.XlRgbColor.rgbLightYellow;
+                item.Borders.Color = Excel.XlRgbColor.rgbLightYellow;
 
+                GetCellText(FinalColumnIndex + 1, i, out item);
+                item.Interior.Color = Excel.XlRgbColor.rgbLightYellow;
+                item.Borders.Color = Excel.XlRgbColor.rgbLightYellow;
+            }
+
+            for (int i = FirstColumnIndex - 1; i <= FinalColumnIndex + 1; ++i)
+            {
+                GetCellText(i, FinalRowIndex + 1, out item);
+                item.Interior.Color = Excel.XlRgbColor.rgbLightYellow;
+                item.Borders.Color = Excel.XlRgbColor.rgbLightYellow;
+            }
+        }
 
         public string Name
         {
             get { return name; }
+        }
+        public int FirstRowIndex
+        {
+            get { return rowIndex + 2; }
+        }
+        public int FinalRowIndex
+        {
+            get { return finalRowIndex; }
+        }
+        public int FirstColumnIndex
+        {
+            get { return 3; }
+        }
+        public int FinalColumnIndex
+        {
+            get { return finalColumnIndex; }
+        }
+    }
+    public static class Tables
+    {
+        private static List<TableParser> tables = new List<TableParser>();
+
+        public static void Add(TableParser table)
+        {
+            tables.Add(table);
+        }
+
+        public static void Clear()
+        {
+            tables.Clear();
         }
     }
 }
