@@ -156,9 +156,11 @@
     can be found.
   -->
   <ItemGroup>
+    <Compile Include="MetaData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Sexport.cs" />
     <Compile Include="TableParser.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

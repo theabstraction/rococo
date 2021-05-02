@@ -1,0 +1,13 @@
+﻿(struct MeleeWeaponsRow
+    (IString name)
+    (Float32 damage)
+    (IPingPath image)
+    (Kilograms weight)
+    (MaterialIndex material)
+    (Seconds speed)
+)
+
+(table MeleeWeapons
+	(Longsword		!image/weapons/longsword.tiff	2.5kg	cobaltSteel	)
+	(Mace		!image/weapons/mace.tiff	0.7kg	medievalIron	)
+)

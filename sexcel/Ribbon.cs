@@ -20,14 +20,16 @@ namespace sexcel
 
         private void format_Click(object sender, RibbonControlEventArgs e)
         {
-            if (!Sexel.IsSexyScript())
+            try
             {
-                Sexel.ShowMessage("#sexyscript missing from A1 to Z20");
+                Sexel.ValidateSexelFile();
             }
-            else
+            catch(Exception ex)
             {
-                Sexel.SexUpWorksheet();
+                Sexel.ShowMessage(ex.Message);
             }
+
+            Sexel.SexUpWorksheets();
         }
 
         private void exportSXY_Click(object sender, RibbonControlEventArgs e)

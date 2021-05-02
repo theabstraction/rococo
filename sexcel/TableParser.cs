@@ -9,16 +9,10 @@ namespace sexcel
 {
     public class TableParser
     {
-        private int rowIndex;
         private string name;
         private Excel.Worksheet sheet;
         private int finalColumnIndex;
         private int finalRowIndex;
-
-        private void SetBorderToBlack(Excel.Range item)
-        {
-            item.Borders.Color = Excel.XlRgbColor.rgbBlack;
-        }
 
         public string GetCellText(int i, int j, out Excel.Range item)
         {
@@ -50,51 +44,80 @@ namespace sexcel
         }
         public string GetFieldType(int i, out Excel.Range item)
         {
-            return GetCellText(i, rowIndex + 1, out item);
+            return GetCellText(i, 1, out item);
         }
 
         public string GetFieldName(int i, out Excel.Range item)
         {
-            return GetCellText(i, rowIndex + 2, out item);
+            return GetCellText(i, 2, out item);
         }
         public static string GetName(Excel.Range item)
         {
             return item.AddressLocal[true, true, Excel.XlReferenceStyle.xlA1].Replace('$', ' ');
         }
 
-        public TableParser(int rowIndex, Excel.Worksheet sheet)
+
+        public string Name
         {
+            get
+            {
+                return name;
+            }
+        }
+        void SetFieldTypesFormat()
+        {
+            Excel.Range item;
+            for (int i = 1; i < FinalColumnIndex; ++i)
+            {
+                GetCellText(i, 1, out item);
+                item.Interior.Color = Excel.XlRgbColor.rgbWhiteSmoke;
+                item.Borders.Color = Excel.XlRgbColor.rgbWhiteSmoke;
+            }
+        }
+
+        void SetDataFormat()
+        {
+            Excel.Range item;
+            for (int j = 3; j < finalRowIndex; ++j)
+            {
+                for (int i = 1; i < FinalColumnIndex; ++i)
+                {
+                    GetCellText(i,j, out item);
+                    item.Interior.Color = (j % 2) == 1 ? Excel.XlRgbColor.rgbWhite : Excel.XlRgbColor.rgbSilver;
+                    item.Font.Color = Excel.XlRgbColor.rgbBlack;
+                    item.Borders.Color = Excel.XlRgbColor.rgbBlack;
+                    item.Font.Name = "Consolas";
+                }
+            }
+        }
+
+        void SetFieldNamesFormat()
+        {
+            Excel.Range item;
+            for (int i = 1; i < FinalColumnIndex; ++i)
+            {
+                GetCellText(i, 2, out item);
+                item.Interior.Color = Excel.XlRgbColor.rgbDarkBlue;
+                item.Font.Color = Excel.XlRgbColor.rgbWhite;
+                item.Borders.Color = Excel.XlRgbColor.rgbBlack;
+            }
+        }
+
+        public TableParser(string name, Excel.Worksheet sheet)
+        {
+            this.name = name;
             this.sheet = sheet;
-            this.rowIndex = rowIndex;
+
+            const int fieldTypeRow = 1;
+            const int fieldNameRow = 2;
 
             Excel.Range item;
-            name = GetCellText(3, rowIndex, out item);
-
-            if (name.Length == 0) throw new Exception(string.Format("Expecting a valid table name string at {0}", GetName(item)));
-
-            item.Font.Bold = true;
-            item.Font.Size = 16;
-
-            Excel.Range row = sheet.Rows[rowIndex];
-            row.RowHeight = 24;
-            row.VerticalAlignment = Excel.XlVAlign.xlVAlignCenter;
-
-            string typeIndex = GetCellText(2, rowIndex + 1, out item);
-            if (typeIndex == "#types")
+            for (int i = 1; i <= sheet.UsedRange.Columns.Count; ++i)
             {
-                item.Font.Color = Excel.XlRgbColor.rgbGray;
-            }
-            else
-            {
-                throw new Exception(string.Format("Expecting [#types] at {0}", item.AddressLocal));
-            }
-
-            for (int i = 3; i < sheet.Columns.Count; ++i)
-            {
-                string typeString = GetCellText(i, rowIndex + 1, out item);
+                string typeString = GetCellText(i, fieldTypeRow, out item);
                 if (typeString.Length > 0)
                 {
-                    finalColumnIndex = i;
+                    finalColumnIndex = i + 1;
                     item.Font.Color = Excel.XlRgbColor.rgbGray;
                 }
                 else
@@ -103,49 +126,24 @@ namespace sexcel
                 }
             }
 
-            for (int i = 2; i <= finalColumnIndex + 1; ++i)
-            {
-                GetCellText(i, rowIndex + 1, out item);
-                item.Interior.Color = Excel.XlRgbColor.rgbLightYellow;
-                item.Borders.Color = Excel.XlRgbColor.rgbLightYellow;
-
-                GetCellText(i, rowIndex, out item);
-                item.Interior.Color = Excel.XlRgbColor.rgbLightSteelBlue;
-                item.Borders.Color = Excel.XlRgbColor.rgbLightSteelBlue;
-            }
-
-            string columnFields = GetCellText(2, rowIndex + 2, out item);
-            if (columnFields == "#fields")
-            {
-                item.Font.Color = Excel.XlRgbColor.rgbGray;
-            }
-            else
-            {
-                throw new Exception(string.Format("Expecting [#fields] at {0}", GetName(item)));
-            }
-
             // names
-            for (int i = 3; i <= finalColumnIndex; ++i)
+            for (int i = 1; i < finalColumnIndex; ++i)
             {
-                string fieldString = GetCellText(i, rowIndex + 2, out item);
-                if (fieldString.Length > 0)
+                string fieldName = GetCellText(i, fieldNameRow, out item);
+                if (fieldName.Length > 0)
                 {
-                    item.Font.Color = Excel.XlRgbColor.rgbWhite;
-                    item.Font.Size = 14;
-                    item.Font.Bold = true;
-                    item.Interior.Color = Excel.XlRgbColor.rgbBlue;
                 }
                 else
                 {
-                    throw new Exception(string.Format("Expecting data in field at {0}", GetName(item)));
+                    throw new Exception(string.Format("Expecting field name in field at {0}", GetName(item)));
                 }
             }
 
-            for (int j = rowIndex + 3; j <= sheet.UsedRange.Rows.Count; ++j)
+            for (int j = 3; j <= sheet.UsedRange.Rows.Count; ++j)
             {
                 bool atLeastOneEntry = false;
 
-                for (int i = 3; i <= finalColumnIndex; ++i)
+                for (int i = 1; i < finalColumnIndex; ++i)
                 {
                     string elementString = GetCellText(i, j, out item);
                     if (elementString.Length > 0)
@@ -157,16 +155,7 @@ namespace sexcel
 
                 if (atLeastOneEntry)
                 {
-                    finalRowIndex = j;
-
-                    for (int i = 3; i <= finalColumnIndex; ++i)
-                    {
-                        string elementString = GetCellText(i, j, out item);
-                        item.Font.Color = Excel.XlRgbColor.rgbBlack;
-                        item.Font.Size = 11;
-                        item.Interior.Color = Excel.XlRgbColor.rgbSilver;
-                        item.Borders.Color = Excel.XlRgbColor.rgbBlack;
-                    }
+                    finalRowIndex = j + 1;
                 }
                 else
                 {
@@ -174,32 +163,14 @@ namespace sexcel
                 }
             }
 
-            for (int i = rowIndex + 1; i <= finalRowIndex; ++i)
-            {
-                GetCellText(2, i, out item);
-                item.Interior.Color = Excel.XlRgbColor.rgbLightYellow;
-                item.Borders.Color = Excel.XlRgbColor.rgbLightYellow;
-
-                GetCellText(FinalColumnIndex + 1, i, out item);
-                item.Interior.Color = Excel.XlRgbColor.rgbLightYellow;
-                item.Borders.Color = Excel.XlRgbColor.rgbLightYellow;
-            }
-
-            for (int i = FirstColumnIndex - 1; i <= FinalColumnIndex + 1; ++i)
-            {
-                GetCellText(i, FinalRowIndex + 1, out item);
-                item.Interior.Color = Excel.XlRgbColor.rgbLightYellow;
-                item.Borders.Color = Excel.XlRgbColor.rgbLightYellow;
-            }
+            SetFieldTypesFormat();
+            SetDataFormat();
+            SetFieldNamesFormat();
         }
 
-        public string Name
-        {
-            get { return name; }
-        }
         public int FirstRowIndex
         {
-            get { return rowIndex + 2; }
+            get { return 3; }
         }
         public int FinalRowIndex
         {
@@ -207,7 +178,7 @@ namespace sexcel
         }
         public int FirstColumnIndex
         {
-            get { return 3; }
+            get { return 1; }
         }
         public int FinalColumnIndex
         {
