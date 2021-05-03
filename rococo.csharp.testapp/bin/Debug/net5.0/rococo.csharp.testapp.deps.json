@@ -1,0 +1,36 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v5.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v5.0": {
+      "rococo.csharp.testapp/1.0.0": {
+        "dependencies": {
+          "rococo.csharp.sexparser": "1.0.0"
+        },
+        "runtime": {
+          "rococo.csharp.testapp.dll": {}
+        }
+      },
+      "rococo.csharp.sexparser/1.0.0": {
+        "runtime": {
+          "rococo.csharp.sexparser.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "rococo.csharp.testapp/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "rococo.csharp.sexparser/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}
