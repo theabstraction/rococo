@@ -6,14 +6,48 @@ using System.Xml.Linq;
 using Excel = Microsoft.Office.Interop.Excel;
 using Office = Microsoft.Office.Core;
 using Microsoft.Office.Tools.Excel;
+using System.Windows.Forms;
 
 namespace sexcel
 {
     public partial class Sexel
     {
+        public string ContentFolder { get; set; }
         public static void ShowMessage(string msg)
         {
             System.Windows.Forms.MessageBox.Show(msg, "Sexel - Sexy Excel");
+        }
+
+        public static string GetSaveNameFromSXLFile(string initialFilename)
+        {
+            string title = string.Format("Microsoft Excel: Choose a filename to export the Sexel class");
+            dynamic result = Globals.Sexel.Application.GetSaveAsFilename(initialFilename, "Sexel File (*.sxl), *.sxl", 1, title);
+            if (result is string)
+            {
+                return result as string;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        public static string GetContentFolderFromDialog(string initialPath)
+        {
+            var dlg = new System.Windows.Forms.FolderBrowserDialog();
+            dlg.Description = "Microsoft Excel: Select the content path for the Rococo application";
+            dlg.RootFolder = Environment.SpecialFolder.MyComputer;
+            dlg.SelectedPath = initialPath;
+            dlg.ShowNewFolderButton = true;
+            var topLevelWindow = NativeWindow.FromHandle(new IntPtr(Globals.Sexel.Application.Hwnd));
+            if (dlg.ShowDialog(topLevelWindow) == DialogResult.OK)
+            {
+                return dlg.SelectedPath;
+            }
+            else
+            {
+                return null;
+            }
         }
 
         public static void ShowMessage(Exception ex)
@@ -88,25 +122,21 @@ namespace sexcel
         {
         }
 
-        public static void ExportToSXY()
+        public static void ExportToSXY(string filename)
         {
             if (Tables.Items.Count == 0)
             {
                 Sexel.ShowMessage("There were no tables to export. Sex-up the worksheet and try again.");
             }
 
-            StringBuilder sb = new StringBuilder(4096);
-
             try
             {
-                foreach (TableParser table in Tables.Items)
-                {
-                    Sexport.Append_SXY_Struct_To_SXY(sb, table);
-                    sb.Append("\n");
-                    Sexport.Append_SXY_Table_To_SXY(sb, table);
-                }
+                var sexport = new Sexport(filename);
+                sexport.AppendHeaders();
 
-                System.IO.File.WriteAllText("\\work\\rococo\\content\\sexel.sxl", sb.ToString(), Encoding.UTF8);
+                sexport.AppendClass();
+
+                System.IO.File.WriteAllText(filename, sexport.ToString(), Encoding.UTF8);
             }
             catch(Exception ex)
             {

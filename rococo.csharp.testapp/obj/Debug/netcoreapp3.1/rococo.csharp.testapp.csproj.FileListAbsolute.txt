@@ -1,0 +1,16 @@
+C:\work\rococo\rococo.csharp.testapp\bin\Debug\netcoreapp3.1\rococo.csharp.testapp.exe
+C:\work\rococo\rococo.csharp.testapp\bin\Debug\netcoreapp3.1\rococo.csharp.testapp.deps.json
+C:\work\rococo\rococo.csharp.testapp\bin\Debug\netcoreapp3.1\rococo.csharp.testapp.runtimeconfig.json
+C:\work\rococo\rococo.csharp.testapp\bin\Debug\netcoreapp3.1\rococo.csharp.testapp.runtimeconfig.dev.json
+C:\work\rococo\rococo.csharp.testapp\bin\Debug\netcoreapp3.1\rococo.csharp.testapp.dll
+C:\work\rococo\rococo.csharp.testapp\bin\Debug\netcoreapp3.1\rococo.csharp.testapp.pdb
+C:\work\rococo\rococo.csharp.testapp\bin\Debug\netcoreapp3.1\rococo.csharp.sexparser.dll
+C:\work\rococo\rococo.csharp.testapp\bin\Debug\netcoreapp3.1\rococo.csharp.sexparser.pdb
+C:\work\rococo\rococo.csharp.testapp\obj\Debug\netcoreapp3.1\rococo.csharp.testapp.csprojAssemblyReference.cache
+C:\work\rococo\rococo.csharp.testapp\obj\Debug\netcoreapp3.1\rococo.csharp.testapp.AssemblyInfoInputs.cache
+C:\work\rococo\rococo.csharp.testapp\obj\Debug\netcoreapp3.1\rococo.csharp.testapp.AssemblyInfo.cs
+C:\work\rococo\rococo.csharp.testapp\obj\Debug\netcoreapp3.1\rococo.csharp.testapp.csproj.CoreCompileInputs.cache
+C:\work\rococo\rococo.csharp.testapp\obj\Debug\netcoreapp3.1\rococo.csharp.testapp.csproj.CopyComplete
+C:\work\rococo\rococo.csharp.testapp\obj\Debug\netcoreapp3.1\rococo.csharp.testapp.dll
+C:\work\rococo\rococo.csharp.testapp\obj\Debug\netcoreapp3.1\rococo.csharp.testapp.pdb
+C:\work\rococo\rococo.csharp.testapp\obj\Debug\netcoreapp3.1\rococo.csharp.testapp.genruntimeconfig.cache

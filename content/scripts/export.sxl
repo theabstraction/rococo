@@ -1,0 +1,30 @@
+﻿(' generator: Sexel 1.0.0.0 from: "C:\work\rococo\content\tables\weapon.table.xml")
+
+(struct MeleeWeaponsRow
+    (IString name)
+    (Float32 damage)
+    (IPingPath image)
+    (Kilograms weight)
+    (MaterialIndex material)
+    (Seconds speed)
+)
+(alias MeleeWeaponsRow Asset.Tables.MeleeWeaponsRow)
+
+(class CSXL0WeaponTableAsset (defines Asset.Tables.IAssetWeaponTable)
+	(array<MeleeWeaponsRow> table1)
+)
+
+(method CSXL0WeaponTableAsset.MeleeWeapons -> (array<MeleeWeaponsRow> table):
+	(table = this.table1)
+)
+
+(method CSXL0.WeaponTableAsset.Construct :
+	(ConstructFromAppendix table1 "table1")
+)
+
+(factory Asset.Tables.NewWeaponTable Asset.Tables.IAssetWeaponTable: (construct CSXL0WeaponTable))
+
+(' table1 MeleeWeapons
+	(Longsword	12	!image/weapons/longsword.tiff	2.5kg	cobaltSteel	0.4)
+	(Mace	10	!image/weapons/mace.tiff	0.7kg	medievalIron	0.6)
+)

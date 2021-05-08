@@ -37,9 +37,13 @@ namespace sexcel
             {
                 return value as string;
             }
+            else if (value != null)
+            {
+                return value.ToString();
+            }
             else
             {
-                return String.Empty;
+                return "<null>";
             }
         }
         public string GetFieldType(int i, out Excel.Range item)
