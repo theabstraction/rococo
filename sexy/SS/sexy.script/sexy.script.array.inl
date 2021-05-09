@@ -47,6 +47,7 @@ namespace Rococo
 		   const IStructure* ElementType;
 		   int32 ElementLength;
 		   int32 LockNumber;
+		   int64 RefCount;
 	   };
 
 	   size_t SizeOfElement(const IStructure& type)
@@ -58,20 +59,65 @@ namespace Rococo
 	   {
 		   IScriptSystem& ss = *(IScriptSystem*) context;
 		   const IStructure* elementType = (const IStructure*) registers[VM::REGISTER_D4].vPtrValue;
-		   ArrayImage* a = (ArrayImage*) registers[VM::REGISTER_D5].vPtrValue;
 		   int32 capacity = registers[VM::REGISTER_D7].int32Value;
+		   size_t elementSize = SizeOfElement(*elementType);
+
+		   if (capacity < 0)
+		   {
+			   Throw(0, "Could not allocate array. Negative element count: %d", capacity);
+		   }
+
+		   if (elementSize > 0x7FFFFFFFLL)
+		   {
+			   Throw(0, "Could not allocate array. Element size was > 2GB");
+		   }
+
+		   size_t szCapacity = elementSize * (size_t)capacity;
+		   if (szCapacity > 0x7FFFFFFFLL)
+		   {
+			   Throw(0, "Could not allocate array. The maximum size is 2GB");
+		   }
+
+		   if (capacity < 0)
+		   {
+			   Throw(0, "Could not allocate array. Negative element count: %d", capacity);
+		   }
+
+		   ArrayImage* a = new ArrayImage();
 		
 		   a->ElementCapacity = capacity;
-		   a->ElementLength = (int32) SizeOfElement(*elementType);
+		   a->ElementLength = (int32) elementSize;
 		   a->ElementType = elementType;
 		   a->NumberOfElements = 0;
 		   a->LockNumber = 0;
-		   a->Start = ss.AlignedMalloc(16, capacity * a->ElementLength);
+
+		   try
+		   {
+			   a->Start = ss.AlignedMalloc(16, capacity * a->ElementLength);
+			   if (a->Start == nullptr)
+			   {
+				   throw std::exception("");
+			   }
+		   }
+		   catch (...)
+		   {
+			   delete a;
+			   Throw(0, "Could not allocate array with %d elements and %d bytes per element. ", capacity, a->ElementLength);
+		   }
+
+		   a->RefCount = 1;
+
+		   registers[VM::REGISTER_D5].vPtrValue = a;
+		   
 	   }
 
 	   void ArrayDelete(ArrayImage* a, IScriptSystem& ss)
 	   {
+		   // Delete the elements
 		   ss.AlignedFree(a->Start);
+
+		   // Now delete the structure
+		   delete a;
 	   }
 
 	   VM_CALLBACK(ArrayDelete)
@@ -602,7 +648,7 @@ namespace Rococo
 		   int inputStackAllocCount = PushInputs(ce, s, *constructor, true, 1);
 
 		   const ArrayCallbacks& callbacks = GetArrayCallbacks(ce);
-		   ce.Builder.AssignVariableRefToTemp(arrayInstance, Rococo::ROOT_TEMPDEPTH, 0); // array goes to D7
+		   ce.Builder.AssignVariableToTemp(arrayInstance, Rococo::ROOT_TEMPDEPTH, 0); // array goes to D7
 		   ce.Builder.Assembler().Append_Invoke(callbacks.ArrayPushAndGetRef); // This returns the address of the blank slot in D8
 
 		   inputStackAllocCount += CompileInstancePointerArgFromTemp(ce, Rococo::ROOT_TEMPDEPTH + 1);
@@ -713,7 +759,7 @@ namespace Rococo
 				   Throw(value, streamer);
 			   } // The value is in D7
 		
-			   ce.Builder.AssignVariableRefToTemp(instanceName, 0, 0); // array goes to D4
+			   ce.Builder.AssignVariableToTemp(instanceName, 0, 0); // array goes to D4
 
 			   switch(SizeOfElement(elementType))
 			   {
@@ -927,7 +973,7 @@ namespace Rococo
 		   } // D7 now contains the array index
 
 		
-		   ce.Builder.AssignVariableRefToTemp(instanceName, 0, 0); // array goes to D4
+		   ce.Builder.AssignVariableToTemp(instanceName, 0, 0); // array goes to D4
 
 		   const ArrayCallbacks& callbacks = GetArrayCallbacks(ce);
 
@@ -973,7 +1019,7 @@ namespace Rococo
 			   Throw(indexExpr, ("Expected expression to evaluate to type Int32 to serve as index to array"));
 		   } // D7 now contains the array index
 
-		   ce.Builder.AssignVariableRefToTemp(instanceName, 0, 0); // array goes to D4
+		   ce.Builder.AssignVariableToTemp(instanceName, 0, 0); // array goes to D4
 
 		   VariantValue v;
 		   v.int32Value = offset;
@@ -1181,6 +1227,8 @@ namespace Rococo
 
 	   void CompileEnumerateArray(CCompileEnvironment& ce, cr_sex s, int hashIndex)
 	   {	
+		   // TODO: Consider refactoring this code as an invoke to a function that implements a C++ loop that invokes the internal code section
+		   // as the bytecode is cumbersome and likely to conflict with other semantics.
 		   // (foreach i v # a (...) (...) )
 		   // (foreach v # a (...) (...) )
 		   // (foreach i v # (a <lower-bound> <upper-bound>) (...) (...) )
@@ -1233,7 +1281,7 @@ namespace Rococo
 		   AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 6, Rococo::ROOT_TEMPDEPTH + 6, BITCOUNT_POINTER);
 
 		   ce.Builder.AddSymbol(collectionName);
-		   ce.Builder.AssignVariableRefToTemp(collectionName, 9, 0); // Array ref is now in D13
+		   ce.Builder.AssignVariableToTemp(collectionName, 9, 0); // Array ref is now in D13
 				
 		   ce.Builder.AddSymbol("D12 - working index");
 		   AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 5, Rococo::ROOT_TEMPDEPTH + 5, BITCOUNT_POINTER);
@@ -1343,7 +1391,7 @@ namespace Rococo
 
 				   if (refDef.ResolvedType->InterfaceCount() == 0)
 				   {
-					   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayGetRefUnchecked); // returns pointer to element in D7, D12 is element index and D11 is array ref
+					   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayGetRefUnchecked); // returns pointer to element in D7, D12 is element index and D13 is array ref
 				   }
 				   else
 				   {
@@ -1376,11 +1424,11 @@ namespace Rococo
 		   const IStructure& elementType = GetElementTypeForArrayVariable(ce, *(const ISExpression*) s.Definition(), instanceName);
 		   if (RequiresDestruction(elementType))
 		   {
-			   ce.Builder.AssignVariableRefToTemp(instanceName, Rococo::ROOT_TEMPDEPTH);
+			   ce.Builder.AssignVariableToTemp(instanceName, Rococo::ROOT_TEMPDEPTH);
 			   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayDestructElements);
 		   }
 
-		   ce.Builder.AssignVariableRefToTemp(instanceName, Rococo::ROOT_TEMPDEPTH);
+		   ce.Builder.AssignVariableToTemp(instanceName, Rococo::ROOT_TEMPDEPTH);
 		   AppendInvoke(ce, GetArrayCallbacks(ce).ArrayDelete, *(const ISExpression*) s.Definition());
 	   }
 
@@ -1450,18 +1498,41 @@ namespace Rococo
 			   Throw(s[3], "Arrays cannot have class type elements. Use an interface to %s instead.", elementStruct->Name());
 		   }
 
-		   AddVariable(ce, NameString::From(arrayNameTxt), ce.StructArray());
+		  // AddVariableRef(ce, NameString::From(arrayNameTxt), ce.StructArray());
 
 		   CompileNumericExpression(ce, capacity, VARTYPE_Int32); // capacity to D7
-		   ce.Builder.AssignVariableRefToTemp(arrayNameTxt, 1); // Array goes to D5
 
 		   VariantValue v;
-		   v.vPtrValue = (void*) elementStruct;
+		   v.vPtrValue = (void*)elementStruct;
 		   ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, v, BITCOUNT_POINTER); // Element type to D4
 				
+		   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayInit);
+
 		   AddArrayDef(ce.Script, ce.Builder, arrayNameTxt, *elementStruct, s);
 
-		   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayInit);
+		   AddVariableRef(ce, NameString::From(arrayNameTxt), ce.StructArray());
+
+		   // Array ref is copied from D5, the result of the ArrayInit
+		   MemberDef def;
+		   ce.Builder.TryGetVariableByName(def, arrayNameTxt);
+		   ce.Builder.Assembler().Append_SetStackFrameValue(def.SFOffset + def.MemberOffset, VM::REGISTER_D5, BITCOUNT_POINTER);
+	   }
+
+	   void CompileArrayConstruct(CCompileEnvironment& ce, cr_sex conDef, const IMember& member, cstr fullName)
+	   {
+		   AssertNotTooManyElements(conDef, 3);
+		   cr_sex value = conDef.GetElement(2);
+		   CompileNumericExpression(ce, value, VARTYPE_Int32); // The capacity is now in D7
+
+		   VariantValue v;
+		   v.vPtrValue = (void*)member.UnderlyingGenericArg1Type();
+		   ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, v, BITCOUNT_POINTER); // Element type to D4
+
+		   AddArrayDef(ce.Script, ce.Builder, fullName, *member.UnderlyingGenericArg1Type(), conDef);
+
+		   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayInit); // new array pointer ends up in D5
+
+		   ce.Builder.AssignTempToVariable(1, fullName);
 	   }
    }//Script
 }//Sexy

@@ -1,23 +1,18 @@
 (namespace EntryPoint)
+	(alias Main EntryPoint.Main)
 
-(using EntryPoint)
-
-(struct Magic (Int32 a)(Int32 b))
-
-(archetype EntryPoint.IntToInt (Int32 x) -> (Int32 y))
-
-(function Do (Magic magic)-> :
-	(IntToInt f =
-			(closure (Int32 x) -> (Int32 y):
-				(magic.a = x)
-			)
-	)
-	(f 7)
-)
+(using Sys.Type)
 
 (function Main -> (Int32 result):
-	(Magic magic = 1 2)
-	(Do magic)
-	(result = magic.a)
+	(array Int32 a (10) )
+	
+	(Int32 i = 0)
+	(while (i < 10)
+		(a.Push (i + 10))
+		(i += 1)
+	)
+
+	(foreach i k # a
+		(result = (result + k))
+	)		
 )
-(alias Main EntryPoint.Main)

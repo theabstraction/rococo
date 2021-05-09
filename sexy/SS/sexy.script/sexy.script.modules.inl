@@ -724,6 +724,13 @@ namespace Rococo { namespace Script
 				return;
 			}
 
+			if (s == ce.StructArray())
+			{
+				ce.Builder.Assembler().Append_GetStackFrameValue(SFoffset, VM::REGISTER_D7, BITCOUNT_POINTER);
+				AppendInvoke(ce, GetArrayCallbacks(ce).ArrayDelete, *(const ISExpression*)s.Definition());
+				return;
+			}
+
 			// Regular class			
 			const IFunction* f = s.Module().FindFunction(destructorName);
 			if (f == NULL)
@@ -767,12 +774,7 @@ namespace Rococo { namespace Script
 	{
 		const IStructure& s = *instanceDef.ResolvedType;
 
-		if (s == ce.StructArray())
-		{
-			CompileArrayDestruct(ce, s, instanceName);		
-			return;
-		}
-		else if (s == ce.StructList())
+		if (s == ce.StructList())
 		{
 			ce.Builder.AssignVariableRefToTemp(instanceName, Rococo::ROOT_TEMPDEPTH);
 			AppendInvoke(ce, GetListCallbacks(ce).ListClear, sequence);
@@ -809,7 +811,11 @@ namespace Rococo { namespace Script
 			AppendInvokeDestructor(ce, instanceName, sequence, def);
 		}
 
-		if (*def.ResolvedType == ce.Object.Common().TypeNode())
+		if (*def.ResolvedType == ce.StructArray())
+		{
+			CompileArrayDestruct(ce, *def.ResolvedType, instanceName);
+		}
+		else if (*def.ResolvedType == ce.Object.Common().TypeNode())
 		{
 			// Expecting node to be by ARGUMENTUSAGE_BYVALUE and allocsize to be zero, as the only such here are pseudo variables
 			// After the pseudo variable we can expect the actual reference, a pointer type by value
@@ -1154,23 +1160,6 @@ namespace Rococo { namespace Script
 		ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, val, BITCOUNT_POINTER); // Value type to D4
 				
 		ce.Builder.Assembler().Append_Invoke(GetMapCallbacks(ce).MapInit);		
-	}
-
-	void CompileArrayConstruct(CCompileEnvironment& ce, cr_sex conDef, const IMember& member, cstr fullName)
-	{
-		AssertNotTooManyElements(conDef, 3);
-		cr_sex value = conDef.GetElement(2);
-		CompileNumericExpression(ce, value, VARTYPE_Int32); // The capacity is now in D7
-
-		ce.Builder.AssignVariableRefToTemp(fullName, 1); // Array goes to D5
-
-		VariantValue v;
-		v.vPtrValue = (void*) member.UnderlyingGenericArg1Type();
-		ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, v, BITCOUNT_POINTER); // Element type to D4
-				
-		AddArrayDef(ce.Script, ce.Builder, fullName, *member.UnderlyingGenericArg1Type(), conDef);
-
-		ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayInit);		
 	}
 
 	void CompileInvokeChildConstructor(CCompileEnvironment& ce, cr_sex conDef, const IMember& member, cstr instance)
@@ -1875,6 +1864,7 @@ namespace Rococo { namespace Script
 				s.AddMember(NameString::From(("_elementType")), TypeString::From(("Pointer")));
 				s.AddMember(NameString::From(("_elementSize")), TypeString::From(("Int32")));
 				s.AddMember(NameString::From(("_lock")), TypeString::From(("Int32")));
+				s.AddMember(NameString::From(("_refCount")), TypeString::From("Int64"));
 
 				ns->Alias(("_Array"), s);
 			}

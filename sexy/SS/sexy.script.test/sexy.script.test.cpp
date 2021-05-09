@@ -7199,10 +7199,9 @@ R"((namespace EntryPoint)
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
 
 		vm.Push(0); // Allocate stack space for the int32 result
-
 		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+
 		ValidateExecution(result);
-		
 		int32 x = vm.PopInt32();
 		validate(x == 1812);
 	}
@@ -13719,15 +13718,20 @@ R"(
 	   TEST(TestArrayStrongTyping3);
 
 	   TEST(TestConstructInArray);
-	   TEST(TestArrayForeachOnce);
-	   TEST(TestArrayForeachWithinForEach);
-	   TEST(TestArrayForeachAndThrow);
 	   TEST(TestArrayForeachEachElementInArray);
+	   TEST(TestArrayForeachAndThrow);
 	   TEST(TestArrayForeachEachElementInArrayWithoutIndex);
 	   TEST(TestArrayElementDeconstruct);
 	   TEST(TestArrayElementDeconstructWhenThrown);
 	   TEST(TestArrayWithinArrayDeconstruct);
 	   TEST(TestArrayElementLockRef);
+
+	   TEST(TestArrayRefMember);
+	   TEST(TestArrayWithEarlyReturn);
+	   TEST(TestArrayWithEarlyReturn2);
+
+	   TEST(TestArrayForeachOnce);
+	   TEST(TestArrayForeachWithinForEach);
 
 	   TEST(TestLinkedList);
 	   TEST(TestLinkedList2);
@@ -13911,14 +13915,9 @@ R"(
 		TEST(TestDeltaOperators3);
 		TEST(TestDeltaOperators4);
 
-		TEST(TestArrayRefMember);
-
-		TEST(TestArrayWithEarlyReturn);
-		TEST(TestArrayWithEarlyReturn2);
 		TEST(TestAssignStringToStruct);
 		TEST(TestCaptureStruct);
 		TEST(TestConstructFromInterface);
-		TEST(TestArrayForeachOnce);
 		TEST(TestAddRefWithLocalVariable);
 		TEST(TestGetSysMessage);
 		TEST(TestNullMemberInit);
@@ -14200,7 +14199,8 @@ R"(
 		int64 start, end, hz;
 		start = OS::CpuTicks();
 
-		TEST(TestNestedArrayEnumeration);
+		RunCollectionTests();
+	//	TEST(TestNestedArrayEnumeration);
 
 		RunPositiveSuccesses();
 		RunPositiveFailures();	

@@ -377,7 +377,14 @@ namespace Rococo { namespace Compiler { namespace Impl
 			underlyingType = _underlyingType;
 			underlyingGenericArg1Type = _genericArg1Type;
 			underlyingGenericArg2Type = _genericArg2Type;
-			sizeOfMember = (underlyingType == NULL) ? 0 : (isInterfaceRef ? sizeof(void*) : underlyingType->SizeOfStruct());
+			if (underlyingType && Eq(underlyingType->Name(), "_Array"))
+			{
+				sizeOfMember = sizeof(void*);
+			}
+			else
+			{
+				sizeOfMember = (underlyingType == NULL) ? 0 : (isInterfaceRef ? sizeof(void*) : underlyingType->SizeOfStruct());
+			}
 		}
 
 		StructureMember(cstr _name, cstr _type, cstr _genericArg1Type, cstr _genericArg2Type, bool _isInterfaceRef = false):

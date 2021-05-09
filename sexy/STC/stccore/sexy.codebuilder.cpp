@@ -2271,7 +2271,7 @@ namespace Anon
 
 			UseStackFrameFor(*this, def);
 
-			if (def.Usage == ARGUMENTUSAGE_BYREFERENCE)
+			if (def.Usage == ARGUMENTUSAGE_BYREFERENCE && def.IsContained)
 			{
 				Assembler().Append_GetStackFrameMember(VM::REGISTER_D4 + tempIndex, def.SFOffset, def.MemberOffset, bitCount);
 			}

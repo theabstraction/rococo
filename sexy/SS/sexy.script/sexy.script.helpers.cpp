@@ -871,6 +871,11 @@ namespace Rococo
 					   const uint8** ppInstance = (const uint8**)(instance + suboffset);
 					   enumCallback.OnMember(ss, childName, member, *ppInstance, (int) suboffset, recurseDepth + 1);
 				   }
+				   else if (member.UnderlyingType() && Eq(member.UnderlyingType()->Name(), "_Array"))
+				   {
+					   const uint8** ppInstance = (const uint8**)(instance + suboffset);
+					   enumCallback.OnMember(ss, childName, member, *ppInstance, (int)suboffset, recurseDepth + 1);
+				   }
 				   else
 				   {
 					   enumCallback.OnMember(ss, childName, member, instance + suboffset, (int) suboffset, recurseDepth + 1);
