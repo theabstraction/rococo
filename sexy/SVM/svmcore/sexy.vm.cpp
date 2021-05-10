@@ -928,7 +928,7 @@ namespace Anon
 			{
 				try
 				{	
-					while(true)
+					for(;;)
 					{
 						Advance();
 					}

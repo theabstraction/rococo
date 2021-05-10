@@ -2267,16 +2267,28 @@ namespace Anon
 		{
 			def.MemberOffset += memberOffsetCorrection;
 
-			BITCOUNT bitCount = GetBitCountFromStruct(def);
-
 			UseStackFrameFor(*this, def);
 
-			if (def.Usage == ARGUMENTUSAGE_BYREFERENCE && def.IsContained)
+			if (def.Usage == ARGUMENTUSAGE_BYREFERENCE)
 			{
-				Assembler().Append_GetStackFrameMember(VM::REGISTER_D4 + tempIndex, def.SFOffset, def.MemberOffset, bitCount);
+				if (def.IsContained)
+				{
+					Assembler().Append_GetStackFrameMember(VM::REGISTER_D4 + tempIndex, def.SFOffset, def.MemberOffset, BITCOUNT_POINTER);
+				}
+				else if (srcType->VarType() != VARTYPE_Derivative)
+				{		
+					BITCOUNT bits = GetBitCount(srcType->VarType());
+					// Pointer to primitive. Currently these only exist as a result of (foreach x # array ...) operations
+					Assembler().Append_GetStackFrameMember(VM::REGISTER_D4 + tempIndex, def.SFOffset, def.MemberOffset, bits);
+				}
+				else
+				{
+					Assembler().Append_GetStackFrameValue(def.SFOffset, VM::REGISTER_D4 + tempIndex, BITCOUNT_POINTER);
+				}
 			}
 			else // def.Usage is by value
 			{
+				BITCOUNT bitCount = GetBitCountFromStruct(def);
 				Assembler().Append_GetStackFrameValue(def.SFOffset + def.MemberOffset, VM::REGISTER_D4 + tempIndex, bitCount);
 			}
 
