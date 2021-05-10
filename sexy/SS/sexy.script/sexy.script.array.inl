@@ -894,7 +894,7 @@ namespace Rococo
 		   }
 
 		   ce.Builder.PopLastVariables(1, true);
-		   ce.Builder.AssignVariableRefToTemp(instance, 1, 0); // The array is in D5
+		   ce.Builder.AssignVariableToTemp(instance, 1, 0); // The array is in D5
 
 		   const ArrayCallbacks& callbacks = GetArrayCallbacks(ce);
 

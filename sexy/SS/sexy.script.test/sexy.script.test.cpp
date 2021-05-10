@@ -14199,7 +14199,6 @@ R"(
 		int64 start, end, hz;
 		start = OS::CpuTicks();
 
-		RunCollectionTests();
 	//	TEST(TestNestedArrayEnumeration);
 
 		RunPositiveSuccesses();

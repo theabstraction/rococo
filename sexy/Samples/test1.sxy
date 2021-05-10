@@ -3,25 +3,29 @@
 
 (using Sys.Type)
 
-(function BuildArray (array Int32 a)-> :
-	(Int32 i = 0)
-	(while (i < 10)
-		(a.Push (i + 10))
-		(i += 1)
-	)
-)
+(struct Sanctuary (array Int32 kennelIds))
 
-(function SumElements (array Int32 a)-> (Int32 sum):
-	(foreach i k # a
-		(sum += k)
-	)	
+(method Sanctuary.Construct (Int32 capacity)
+	-> (construct kennelIds capacity)		
+	:
 )
-
 
 (function Main -> (Int32 result):
-	(array Int32 a (10) )
-	
-	(BuildArray a)
+	(Sanctuary sanctuary (10) ) // Create a sanctuary with a capacity of 10 kennels
+	(sanctuary.kennelIds 9 0) // Define and null the ten entries by setting entry 9 to 0
 
-	(result = (SumElements a))
+	(try
+		(
+			(foreach i k # (sanctuary.kennelIds 0 9) // Enumerate over all 10 kennels
+				(Sys.Throw -1 "Test: foreach throw")
+				(result += i) // Sum the index to result
+			)
+		)
+	catch ex
+		(
+			(Sys.Print ex.Message)
+			(result = 1999)
+		)
+	)
+	(sanctuary.kennelIds.Pop)
 )
