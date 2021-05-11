@@ -1166,7 +1166,7 @@ namespace Rococo
 		   AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 6, Rococo::ROOT_TEMPDEPTH + 6, BITCOUNT_POINTER);
 
 		   ce.Builder.AddSymbol(collectionName);
-		   ce.Builder.AssignVariableRefToTemp(collectionName, 9, 0); // Array ref is now in D13
+		   ce.Builder.AssignVariableToTemp(collectionName, 9, 0); // Array ref is now in D13
 				
 		   ce.Builder.AddSymbol(("(foreach...")); 
 
