@@ -13719,7 +13719,6 @@ R"(
 
 	   TEST(TestConstructInArray);
 	   TEST(TestArrayForeachEachElementInArray);
-	   TEST(TestArrayForeachAndThrow);
 	   TEST(TestArrayForeachEachElementInArrayWithoutIndex);
 	   TEST(TestArrayElementDeconstruct);
 	   TEST(TestArrayElementDeconstructWhenThrown);
@@ -13732,6 +13731,8 @@ R"(
 
 	   TEST(TestArrayForeachOnce);
 	   TEST(TestArrayForeachWithinForEach);
+
+	   TEST(TestArrayForeachAndThrow);
 
 	   TEST(TestLinkedList);
 	   TEST(TestLinkedList2);
@@ -14199,6 +14200,7 @@ R"(
 		int64 start, end, hz;
 		start = OS::CpuTicks();
 
+		TEST(TestArrayWithinArrayDeconstruct);
 	//	TEST(TestNestedArrayEnumeration);
 
 		RunPositiveSuccesses();

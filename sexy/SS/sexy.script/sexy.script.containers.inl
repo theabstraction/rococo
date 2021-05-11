@@ -52,8 +52,9 @@ namespace Rococo
 			{
 				if (type == ss.ProgramObject().Common().TypeArray())
 				{
-					DestroyElements(*(ArrayImage*)(sf + offset), ss);
-					ArrayDelete((ArrayImage*)(sf + offset), ss);
+					ArrayImage* a = *(ArrayImage**)(sf + offset);
+					DestroyElements(*a, ss);
+					ArrayDelete(a, ss);
 				}
 				else
 				{

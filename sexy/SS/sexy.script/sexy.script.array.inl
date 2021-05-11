@@ -704,7 +704,7 @@ namespace Rococo
 				   // No constructor, so need to copy element
 				   cr_sex value = s.GetElement(1);
 				   CompileGetStructRef(ce, value, elementType, "newArrayElement"); // The address of the value is in D7
-				   ce.Builder.AssignVariableRefToTemp(instanceName, 0, 0); // array goes to D4
+				   ce.Builder.AssignVariableToTemp(instanceName, 0, 0); // array goes to D4
 
 				   if (elementType.InterfaceCount() > 0)
 				   {
