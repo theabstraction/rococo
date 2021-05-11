@@ -795,6 +795,7 @@ namespace Rococo
 			arrayCallbacks.ArrayPopOut64 = core.RegisterCallback(OnInvokeArrayPopOut64, this, ("ArrayPopOut64"));
 			arrayCallbacks.ArrayDestructElements = core.RegisterCallback(OnInvokeArrayDestructElements, this, ("ArrayDestructElements"));
 			arrayCallbacks.ArrayGetInterfaceUnchecked = core.RegisterCallback(OnInvokeArrayGetInterfaceUnchecked, this, ("ArrayGetInterface"));
+			arrayCallbacks.ArrayGetLength = core.RegisterCallback(OnInvokeArrayGetLength, this, "ArrayGetLength");
 
 			listCallbacks.ListInit = core.RegisterCallback(OnInvokeListInit, this, ("ListInit"));
 			listCallbacks.ListAppend = core.RegisterCallback(OnInvokeListAppend, this, ("ListAppend"));

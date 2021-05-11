@@ -484,6 +484,7 @@ namespace Rococo
 		  ID_API_CALLBACK ArrayGetRefUnchecked;
 		  ID_API_CALLBACK ArrayDestructElements;
 		  ID_API_CALLBACK ArrayGetInterfaceUnchecked;
+          ID_API_CALLBACK ArrayGetLength;
 	  };
 
       struct ListCallbacks

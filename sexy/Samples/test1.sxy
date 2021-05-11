@@ -1,13 +1,34 @@
 (namespace EntryPoint)
-(struct Entity (Int32 x y))
-(struct World (array Entity entities))
-(method World.Construct -> (construct entities 2) : )
+	(alias Main EntryPoint.Main)
+
+(using Sys.Type)
+
+(struct DogKennel (array Int32 dogIds))
+(struct Sanctuary (array DogKennel kennels))
+
+(method DogKennel.Construct (Int32 capacity)
+	-> (construct dogIds capacity) 	
+	:
+)
+
+(method Sanctuary.Construct (Int32 kennelCapacity)
+	-> (construct kennels kennelCapacity)		
+	:
+)
+
 (function Main -> (Int32 result):
-	(Entity e0 = 3 5)
-	(World world ())
-	(world.entities.Push e0)
-	(foreach e # (world.entities 0)
-		(result = e.x)
+	(Sanctuary sanctuary (4) ) // Create a sanctuary with a capacity of 4 kennels
+	(sanctuary.kennels.Push 4) // Push/construct a new kennel in the sanctuary using 4 as argument to constructor
+	(sanctuary.kennels.Push 4) // Push/construct a new kennel in the sanctuary using 4 as argument to constructor
+	(sanctuary.kennels.Push 4) // Push/construct a new kennel in the sanctuary using 4 as argument to constructor
+	(sanctuary.kennels.Push 4) // Push/construct a new kennel in the sanctuary using 4 as argument to constructor
+	(foreach i k # (sanctuary.kennels 0 3) // Enumerate over all 4 kennesl
+		(k.dogIds.Push i) // Put a new dog id in the kennel
+		(k.dogIds.Push i) // Put a new dog id in the kennel
+		(k.dogIds.Push i) // Put a new dog id in the kennel
+		(k.dogIds.Push i) // Put a new dog id in the kennel
+		(foreach j d # (k.dogIds 0 3) // Enumerate through kennel
+			(result = (result + d)) // Sum the dogid to result
+		) // Sum the dogid to result
 	)
 )
-(alias Main EntryPoint.Main)

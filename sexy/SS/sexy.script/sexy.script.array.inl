@@ -563,6 +563,12 @@ namespace Rococo
 
 	   }
 
+	   VM_CALLBACK(ArrayGetLength)
+	   {
+		   ArrayImage* a = (ArrayImage*)registers[VM::REGISTER_D4].vPtrValue;
+		   registers[VM::REGISTER_D6].int32Value = a ? a->ElementLength : 0;
+	   }
+
 	   VM_CALLBACK(ArrayGetInterfaceUnchecked)
 	   {
 		   ArrayImage* a = (ArrayImage*)registers[VM::REGISTER_D13].vPtrValue;
@@ -1066,10 +1072,11 @@ namespace Rococo
 
 	   void CompileValidateIndexLowerThanArrayElementCount(CCompileEnvironment& ce, cr_sex s, int indexTempDepth, cstr arrayName)
 	   {
-		   TokenBuffer arrayLenName;
-		   StringPrint(arrayLenName, ("%s._length"), arrayName);
+		   ce.Builder.AssignVariableToTemp(arrayName, 0, 0); // This shifts the array pointer to D4
 
-		   ce.Builder.AssignVariableToTemp(arrayLenName, 2, 0);
+		   const ArrayCallbacks& callbacks = GetArrayCallbacks(ce);
+
+		   ce.Builder.Assembler().Append_Invoke(callbacks.ArrayGetLength); // the length is now written to D6
 
 		   ce.Builder.AddSymbol(("ValidateIndexLowerThanArrayElementCount..."));
 		   ce.Builder.Assembler().Append_IntSubtract(VM::REGISTER_D6, BITCOUNT_32, VM::REGISTER_D4 + indexTempDepth);
