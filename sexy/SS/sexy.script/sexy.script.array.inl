@@ -566,7 +566,7 @@ namespace Rococo
 	   VM_CALLBACK(ArrayGetLength)
 	   {
 		   ArrayImage* a = (ArrayImage*)registers[VM::REGISTER_D4].vPtrValue;
-		   registers[VM::REGISTER_D6].int32Value = a ? a->ElementLength : 0;
+		   registers[VM::REGISTER_D6].int32Value = a ? a->NumberOfElements : 0;
 	   }
 
 	   VM_CALLBACK(ArrayGetInterfaceUnchecked)
