@@ -1,34 +1,31 @@
 (namespace EntryPoint)
-	(alias Main EntryPoint.Main)
+ (alias Main EntryPoint.Main)
 
 (using Sys.Type)
 
-(struct DogKennel (array Int32 dogIds))
-(struct Sanctuary (array DogKennel kennels))
+(struct Sanctuary (array Int32 kennelIds))
 
-(method DogKennel.Construct (Int32 capacity)
-	-> (construct dogIds capacity) 	
-	:
-)
-
-(method Sanctuary.Construct (Int32 kennelCapacity)
-	-> (construct kennels kennelCapacity)		
+(method Sanctuary.Construct (Int32 capacity)
+	-> (construct kennelIds capacity)		
 	:
 )
 
 (function Main -> (Int32 result):
-	(Sanctuary sanctuary (4) ) // Create a sanctuary with a capacity of 4 kennels
-	(sanctuary.kennels.Push 4) // Push/construct a new kennel in the sanctuary using 4 as argument to constructor
-	(sanctuary.kennels.Push 4) // Push/construct a new kennel in the sanctuary using 4 as argument to constructor
-	(sanctuary.kennels.Push 4) // Push/construct a new kennel in the sanctuary using 4 as argument to constructor
-	(sanctuary.kennels.Push 4) // Push/construct a new kennel in the sanctuary using 4 as argument to constructor
-	(foreach i k # (sanctuary.kennels 0 3) // Enumerate over all 4 kennesl
-		(k.dogIds.Push i) // Put a new dog id in the kennel
-		(k.dogIds.Push i) // Put a new dog id in the kennel
-		(k.dogIds.Push i) // Put a new dog id in the kennel
-		(k.dogIds.Push i) // Put a new dog id in the kennel
-		(foreach j d # (k.dogIds 0 3) // Enumerate through kennel
-			(result = (result + d)) // Sum the dogid to result
-		) // Sum the dogid to result
+	(Sanctuary sanctuary (10) ) // Create a sanctuary with a capacity of 10 kennels
+	(sanctuary.kennelIds 9 0) // Define and null the ten entries by setting entry 9 to 0
+
+	(try
+		(
+			(foreach i k # (sanctuary.kennelIds 0 9) // Enumerate over all 10 kennels
+				(Sys.Throw -1 "Test: foreach throw")
+				(result = (result + i)) // Sum the index to result
+			)
+		)
+	catch ex
+		(
+			(Sys.Print ex.Message)
+			(result = 1999)
+		)
 	)
+	(sanctuary.kennelIds.Pop)
 )

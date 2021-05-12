@@ -787,7 +787,7 @@ namespace Rococo
 		   AssertNotTooFewElements(s, 1);
 		   AssertNotTooManyElements(s, 1);
 	
-		   ce.Builder.AssignVariableRefToTemp(instanceName, Rococo::ROOT_TEMPDEPTH, 0); // array goes to D7
+		   ce.Builder.AssignVariableToTemp(instanceName, Rococo::ROOT_TEMPDEPTH, 0); // array goes to D7
 
 		   const ArrayCallbacks& callbacks = GetArrayCallbacks(ce);
 		   ce.Builder.Assembler().Append_Invoke(callbacks.ArrayPop);
@@ -798,7 +798,7 @@ namespace Rococo
 		   AssertNotTooFewElements(s, 1);
 		   AssertNotTooManyElements(s, 1);
 
-		   ce.Builder.AssignVariableRefToTemp(instanceName, Rococo::ROOT_TEMPDEPTH, 0); // array goes to D7
+		   ce.Builder.AssignVariableToTemp(instanceName, Rococo::ROOT_TEMPDEPTH, 0); // array goes to D7
 
 		   const ArrayCallbacks& callbacks = GetArrayCallbacks(ce);
 		   ce.Builder.Assembler().Append_Invoke(callbacks.ArrayClear);
@@ -814,7 +814,7 @@ namespace Rococo
 			   Throw(s, streamer);
 		   }
 
-		   ce.Builder.AssignVariableRefToTemp(instanceName, 0, 0); // array goes to D4
+		   ce.Builder.AssignVariableToTemp(instanceName, 0, 0); // array goes to D4
 
 		   switch(GetBitCount(requiredType))
 		   {
@@ -1076,7 +1076,7 @@ namespace Rococo
 
 		   const ArrayCallbacks& callbacks = GetArrayCallbacks(ce);
 
-		   ce.Builder.Assembler().Append_Invoke(callbacks.ArrayGetLength); // the length is now written to D6
+		   AppendInvoke(ce, callbacks.ArrayGetLength, s); // the length is now written to D6
 
 		   ce.Builder.AddSymbol(("ValidateIndexLowerThanArrayElementCount..."));
 		   ce.Builder.Assembler().Append_IntSubtract(VM::REGISTER_D6, BITCOUNT_32, VM::REGISTER_D4 + indexTempDepth);
@@ -1090,6 +1090,7 @@ namespace Rococo
 		   fnThrow.Code().GetCodeSection(section);
 		
 		   ce.Builder.Assembler().Append_CallById(section.Id);
+		   MarkStackRollback(ce, s);
 		   ce.Builder.AddSymbol(("ValidateIndexLowerThanArrayElementCount..."));
 		   ce.Builder.Assembler().Append_NoOperation();
 
@@ -1341,7 +1342,7 @@ namespace Rococo
 				   ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D11, BITCOUNT_32); // D11 contains the final index throughout the entire iteration
 			   }		
 
-			   CompileValidateIndexLowerThanArrayElementCount(ce, collection, 7, collectionName);
+			    CompileValidateIndexLowerThanArrayElementCount(ce, collection, 7, collectionName);
 		   }
 		   else
 		   {
