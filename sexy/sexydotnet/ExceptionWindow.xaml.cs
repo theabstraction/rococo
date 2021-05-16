@@ -30,6 +30,12 @@ namespace SexyDotNet
             textStackTrace.Text = Exceptions.Format(ex);
         }
 
+        public void SetException(SexyDotNet.Host.CompileError ex)
+        {
+            textMessage.Text = string.Format("{0}. line {1} pos {2} of {3}", ex.Message, ex.Start.Line, ex.Start.Pos, ex.SourceFile);
+            textType.Text = ex.GetType().FullName;
+            textStackTrace.Text = Exceptions.Format(ex);
+        }
         private void buttonCopy_Click(object sender, RoutedEventArgs e)
         {
             Clipboard.SetText(textStackTrace.Text);

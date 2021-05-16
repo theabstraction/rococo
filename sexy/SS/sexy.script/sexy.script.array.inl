@@ -113,18 +113,25 @@ namespace Rococo
 
 	   void ArrayDelete(ArrayImage* a, IScriptSystem& ss)
 	   {
-		   // Delete the elements
-		   ss.AlignedFree(a->Start);
+			// Delete the elements
+			ss.AlignedFree(a->Start);
 
-		   // Now delete the structure
-		   delete a;
+			// Now delete the structure
+			delete a;
 	   }
 
-	   VM_CALLBACK(ArrayDelete)
+	   VM_CALLBACK(ArrayReleaseRef)
 	   {
 		   IScriptSystem& ss = *(IScriptSystem*) context;
 		   ArrayImage* a = (ArrayImage*) registers[VM::REGISTER_D7].vPtrValue;
-		   ArrayDelete(a, ss);
+		   if (a)
+		   {
+			   a->RefCount--;
+			   if (a->RefCount == 0)
+			   {
+				   ArrayDelete(a, ss);
+			   }
+		   }
 	   }
 
 	   void DestroyElements(ArrayImage& a, IScriptSystem& ss)
@@ -233,9 +240,15 @@ namespace Rococo
 
 	   VM_CALLBACK(ArraySet32)
 	   {
-		   const int index = registers[VM::REGISTER_D4].int32Value;
+		   ArrayImage* a = (ArrayImage*)registers[VM::REGISTER_D5].vPtrValue;
 
-		   ArrayImage* a = (ArrayImage*) registers[VM::REGISTER_D5].vPtrValue;
+		   if (a == nullptr)
+		   {
+			   IScriptSystem& ss = *(IScriptSystem*)context;
+			   ss.ThrowFromNativeCode(ERANGE, "Array.Set failed: the array reference was null");
+		   }
+
+		   const int index = registers[VM::REGISTER_D4].int32Value;
 		   int32 value = registers[VM::REGISTER_D7].int32Value;
 
 		   if (index >= 0 && index < a->NumberOfElements)
@@ -540,6 +553,28 @@ namespace Rococo
 		   }
 	   }
 
+	   VM_CALLBACK(ArrayAssign)
+	   {
+		   ArrayImage* target = (ArrayImage*)registers[VM::REGISTER_D4].vPtrValue;
+		   ArrayImage* source = (ArrayImage*)registers[VM::REGISTER_D5].vPtrValue;
+
+		   if (target == source) return;
+
+		   if (source != nullptr)
+		   {
+			   source->RefCount++;
+		   }
+
+		   if (target != nullptr)
+		   {
+			   source->RefCount--;
+			   if (source->RefCount == 0)
+			   {
+				   ArrayDelete(target, *(IScriptSystem*)context);
+			   }
+		   }
+	   }
+
 	   VM_CALLBACK(ArrayGetRefUnchecked)
 	   {
 		   ArrayImage* a = (ArrayImage*) registers[VM::REGISTER_D13].vPtrValue;
@@ -567,6 +602,12 @@ namespace Rococo
 	   {
 		   ArrayImage* a = (ArrayImage*)registers[VM::REGISTER_D4].vPtrValue;
 		   registers[VM::REGISTER_D6].int32Value = a ? a->NumberOfElements : 0;
+	   }
+
+	   VM_CALLBACK(ArrayGetLastIndex)
+	   {
+		   ArrayImage* a = (ArrayImage*)registers[VM::REGISTER_D13].vPtrValue;
+		   registers[VM::REGISTER_D11].int32Value = (a ? a->NumberOfElements : 0) - 1;
 	   }
 
 	   VM_CALLBACK(ArrayGetInterfaceUnchecked)
@@ -1235,8 +1276,6 @@ namespace Rococo
 
 	   void CompileEnumerateArray(CCompileEnvironment& ce, cr_sex s, int hashIndex)
 	   {	
-		   // TODO: Consider refactoring this code as an invoke to a function that implements a C++ loop that invokes the internal code section
-		   // as the bytecode is cumbersome and likely to conflict with other semantics.
 		   // (foreach i v # a (...) (...) )
 		   // (foreach v # a (...) (...) )
 		   // (foreach i v # (a <lower-bound> <upper-bound>) (...) (...) )
@@ -1346,13 +1385,8 @@ namespace Rococo
 		   }
 		   else
 		   {
-			   TokenBuffer arrayLengthName;
-			   StringPrint(arrayLengthName, "%s._length", collectionName);
-			   ce.Builder.AssignVariableToTemp(arrayLengthName, 7, 0);
-
-			   VariantValue minusOne;
-			   minusOne.int32Value = -1;
-			   ce.Builder.Assembler().Append_AddImmediate(VM::REGISTER_D11, BITCOUNT_32, VM::REGISTER_D11, minusOne);
+			   ce.Builder.AddSymbol("(D13 array)->(D11 lastIndex)");
+			   AppendInvoke(ce, GetArrayCallbacks(ce).ArrayGetLastIndex, s);
 		   }
 		
 		   // We may be nested in a function that overwrites D10, which is used as the result of D10-11
@@ -1480,10 +1514,10 @@ namespace Rococo
 		   Throw(valueExpr, streamer);						
 	   }
 
-	   // Example: (array Int32 a 4)
+	   // Example: (array Int32 a 4)...but also (array Int32 a)....this latter definition specifies an array reference
 	   void CompileArrayDeclaration(CCompileEnvironment& ce, cr_sex s)
 	   {
-		   AssertNotTooFewElements(s, 4);
+		   AssertNotTooFewElements(s, 3);
 		   AssertNotTooManyElements(s, 4);
 
 		   cr_sex typeName = GetAtomicArg(s, 1);
@@ -1493,7 +1527,7 @@ namespace Rococo
 
 		   AssertLocalIdentifier(arrayName);
 
-		   cr_sex capacity = s.GetElement(3);
+		   const ISExpression* scapacity = s.NumberOfElements() == 4 ? &s.GetElement(3) : nullptr;
 
 		   // (array <element-type-name> <array-name> <capacity>
 		   const IStructure& arrayStruct = ce.StructArray();
@@ -1506,24 +1540,37 @@ namespace Rococo
 			   Throw(s[3], "Arrays cannot have class type elements. Use an interface to %s instead.", elementStruct->Name());
 		   }
 
-		  // AddVariableRef(ce, NameString::From(arrayNameTxt), ce.StructArray());
-
-		   CompileNumericExpression(ce, capacity, VARTYPE_Int32); // capacity to D7
-
-		   VariantValue v;
-		   v.vPtrValue = (void*)elementStruct;
-		   ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, v, BITCOUNT_POINTER); // Element type to D4
-				
-		   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayInit);
-
 		   AddArrayDef(ce.Script, ce.Builder, arrayNameTxt, *elementStruct, s);
+
+		   if (scapacity)
+		   {
+			   AddSymbol(ce.Builder, "int32 capacity");
+			   CompileNumericExpression(ce, *scapacity, VARTYPE_Int32); // capacity to D7
+
+			   VariantValue v;
+			   v.vPtrValue = (void*)elementStruct;
+			   AddSymbol(ce.Builder, "type %s", GetFriendlyName(*elementStruct));
+			   ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, v, BITCOUNT_POINTER); // Element type to D4
+
+			   AddSymbol(ce.Builder, "(D4,D7)->(D5)", arrayNameTxt);
+			   AppendInvoke(ce, GetArrayCallbacks(ce).ArrayInit, s);
+		   }
 
 		   AddVariableRef(ce, NameString::From(arrayNameTxt), ce.StructArray());
 
-		   // Array ref is copied from D5, the result of the ArrayInit
-		   MemberDef def;
-		   ce.Builder.TryGetVariableByName(def, arrayNameTxt);
-		   ce.Builder.Assembler().Append_SetStackFrameValue(def.SFOffset + def.MemberOffset, VM::REGISTER_D5, BITCOUNT_POINTER);
+		   if (scapacity)
+		   {
+			   AddSymbol(ce.Builder, "assign array '%s' to SF", arrayNameTxt);
+
+			   // Array ref is copied from D5, the result of the ArrayInit
+			   MemberDef def;
+			   ce.Builder.TryGetVariableByName(def, arrayNameTxt);
+			   ce.Builder.Assembler().Append_SetStackFrameValue(def.SFOffset + def.MemberOffset, VM::REGISTER_D5, BITCOUNT_POINTER);
+		   }
+		   else
+		   {
+			   ce.Builder.AssignPointer(NameString::From(arrayNameTxt), nullptr);
+		   }
 	   }
 
 	   void CompileArrayConstruct(CCompileEnvironment& ce, cr_sex conDef, const IMember& member, cstr fullName)

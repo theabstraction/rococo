@@ -89,17 +89,16 @@ namespace Rococo
 
 		bool RequiresDestruction(const IStructure& s)
 		{
+			if (IsContainerType(s.VarType())) { return true; }
 			if (IsPrimitiveType(s.VarType())) return false;
 			if (IsNullType(s)) return true;
 
 			TokenBuffer destrName;
 			SafeFormat(destrName.Text, TokenBuffer::MAX_TOKEN_CHARS, ("%s.Destruct"), s.Name());
 			if (s.Module().FindFunction(destrName) != NULL) return true;
-			if (AreEqual(s.Name(), ("_Array"))) return true;
+
 			if (AreEqual(s.Name(), ("_Lock"))) return true;
 			if (AreEqual(s.Name(), ("_Node"))) return true;
-			if (AreEqual(s.Name(), ("_List"))) return true;
-			if (AreEqual(s.Name(), ("_Map"))) return true;
 			if (AreEqual(s.Name(), ("_MapNode"))) return true;
 
 			for (int i = 0; i < s.MemberCount(); ++i)
@@ -144,26 +143,30 @@ namespace Rococo
 		{
 			if (IsPrimitiveType(type.VarType())) return;
 
-			if (AreEqual(type.Name(), ("_Array")))
+			switch (type.VarType())
 			{
-				ArrayImage* a = (ArrayImage*)item;
-				DestroyElements(*a, ss);
-				ArrayDelete(a, ss);
-				return;
+			case VARTYPE_Array:
+				{
+					ArrayImage* a = (ArrayImage*)item;
+					DestroyElements(*a, ss);
+					ArrayDelete(a, ss);
+					return;
+				}
+			case VARTYPE_List:
+				{
+					ListImage* l = (ListImage*)item;
+					ListClear(*l, ss);
+					return;
+				}
+			case VARTYPE_Map:
+				{
+					MapImage* m = (MapImage*)item;
+					MapClear(m, ss);
+					return;
+				}
 			}
-			else if (AreEqual(type.Name(), ("_List")))
-			{
-				ListImage* l = (ListImage*)item;
-				ListClear(*l, ss);
-				return;
-			}
-			else if (AreEqual(type.Name(), ("_Map")))
-			{
-				MapImage* m = (MapImage*)item;
-				MapClear(m, ss);
-				return;
-			}
-			else if (type.InterfaceCount() > 0)
+			
+			if (type.InterfaceCount() > 0)
 			{
 				InterfacePointer pInterface = *(InterfacePointer*)item;
 				ss.ProgramObject().DecrementRefCount(pInterface);

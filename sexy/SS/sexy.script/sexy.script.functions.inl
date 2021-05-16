@@ -450,7 +450,7 @@ namespace Rococo
 		  }
 
 		  VARTYPE vType = def.ResolvedType->VarType();
-		  if (vType != VARTYPE_Derivative)
+		  if (vType != VARTYPE_Derivative && !IsContainerType(vType))
 		  {
 			  if (expectingStructRef)
 			  {
@@ -588,7 +588,7 @@ namespace Rococo
 			      Throw(inputExpression, streamer);
 		      }
 	      }
-	      else if (inputType == VARTYPE_Derivative)
+	      else if (inputType == VARTYPE_Derivative || IsContainerType(inputType))
 	      {
 		      ce.Builder.AddSymbol(inputName); 
 		      if (!TryCompilePushStructRef(ce, inputExpression, true, inputStruct, inputName, genericArg1))
@@ -2122,25 +2122,19 @@ namespace Rococo
 
 	      const IStructure& c = *def.ResolvedType;
 		
-	      if (c.VarType() != VARTYPE_Derivative)
-	      {
-		      return false;
-	      }
-
-	      if (c == ce.StructArray())
-	      {
-		      return TryCompileAsArrayCall(ce, s, instanceName, methodName);
-	      }
-
-	      if (c == ce.StructList())
-	      {
-		      return TryCompileAsListCall(ce, s, instanceName, methodName);
-	      }
-
-	      if (c == ce.StructMap())
-	      {
-		      return TryCompileAsMapCall(ce, s, instanceName, methodName);
-	      }
+		  switch (c.VarType())
+		  {
+		  case VARTYPE_Array:
+				return TryCompileAsArrayCall(ce, s, instanceName, methodName);
+		  case VARTYPE_List:
+			  return TryCompileAsListCall(ce, s, instanceName, methodName);
+		  case VARTYPE_Map:
+			  return TryCompileAsMapCall(ce, s, instanceName, methodName);
+		  case VARTYPE_Derivative:
+			  break;
+		  default:
+			  return false;
+		  }
 
 	      if (c == ce.Object.Common().TypeMapNode())
 	      {

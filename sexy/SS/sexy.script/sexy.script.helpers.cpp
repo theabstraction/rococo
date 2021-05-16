@@ -202,6 +202,9 @@ namespace Rococo
             else SafeFormat(buffer, bufferCapacity, "%d", value, value);
          }
          break;
+		 case VARTYPE_Array:
+		 case VARTYPE_List:
+		 case VARTYPE_Map:
          case VARTYPE_Derivative:
             SafeFormat(buffer, bufferCapacity, "");
             break;
@@ -829,7 +832,7 @@ namespace Rococo
 
 	   SCRIPTEXPORT_API bool GetMembers(IPublicScriptSystem& ss, const IStructure& s, cstr parentName, const uint8* instance, ptrdiff_t offset, MemberEnumeratorCallback& enumCallback, int recurseDepth)
 	   {
-		   if (s.VarType() != VARTYPE_Derivative) return true;
+		   if (s.VarType() != VARTYPE_Derivative && !IsContainerType(s.VarType())) return true;
 
 		   TRY_PROTECTED
 		   {
@@ -871,7 +874,7 @@ namespace Rococo
 					   const uint8** ppInstance = (const uint8**)(instance + suboffset);
 					   enumCallback.OnMember(ss, childName, member, *ppInstance, (int) suboffset, recurseDepth + 1);
 				   }
-				   else if (member.UnderlyingType() && Eq(member.UnderlyingType()->Name(), "_Array"))
+				   else if (member.UnderlyingType() && member.UnderlyingType()->VarType() == VARTYPE_Array)
 				   {
 					   const uint8** ppInstance = (const uint8**)(instance + suboffset);
 					   enumCallback.OnMember(ss, childName, member, *ppInstance, (int)suboffset, recurseDepth + 1);

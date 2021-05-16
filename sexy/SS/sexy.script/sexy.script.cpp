@@ -771,6 +771,7 @@ namespace Rococo
 
 			jitId = core.RegisterCallback(Compile_JIT, this, "Compile_JIT");
 
+			arrayCallbacks.ArrayAssign = core.RegisterCallback(OnInvokeArrayAssign, this, "ArrayAssign");
 			arrayCallbacks.ArrayGetRefUnchecked = core.RegisterCallback(OnInvokeArrayGetRefUnchecked, this, ("ArrayGetRefUnchecked"));
 			arrayCallbacks.ArrayLock = core.RegisterCallback(OnInvokeArrayLock, this, ("ArrayLock"));
 			arrayCallbacks.ArrayUnlock = core.RegisterCallback(OnInvokeArrayUnlock, this, ("ArrayUnlock"));
@@ -786,7 +787,7 @@ namespace Rococo
 			arrayCallbacks.ArrayGetMember64 = core.RegisterCallback(OnInvokeArrayGetMember64, this, ("ArrayGetMember64"));
 			arrayCallbacks.ArrayGetByRef = core.RegisterCallback(OnInvokeArrayGetByRef, this, ("ArrayGetByRef"));
 			arrayCallbacks.ArrayInit = core.RegisterCallback(OnInvokeArrayInit, this, ("ArrayInit"));
-			arrayCallbacks.ArrayDelete = core.RegisterCallback(OnInvokeArrayDelete, this, ("ArrayDelete"));
+			arrayCallbacks.ArrayDelete = core.RegisterCallback(OnInvokeArrayReleaseRef, this, "ArrayReleaseRef");
 			arrayCallbacks.ArraySet32 = core.RegisterCallback(OnInvokeArraySet32, this, ("ArraySet32"));
 			arrayCallbacks.ArraySet64 = core.RegisterCallback(OnInvokeArraySet64, this, ("ArraySet64"));
 			arrayCallbacks.ArraySetByRef = core.RegisterCallback(OnInvokeArraySetByRef, this, ("ArraySetByRef"));
@@ -796,6 +797,7 @@ namespace Rococo
 			arrayCallbacks.ArrayDestructElements = core.RegisterCallback(OnInvokeArrayDestructElements, this, ("ArrayDestructElements"));
 			arrayCallbacks.ArrayGetInterfaceUnchecked = core.RegisterCallback(OnInvokeArrayGetInterfaceUnchecked, this, ("ArrayGetInterface"));
 			arrayCallbacks.ArrayGetLength = core.RegisterCallback(OnInvokeArrayGetLength, this, "ArrayGetLength");
+			arrayCallbacks.ArrayGetLastIndex = core.RegisterCallback(OnInvokeArrayGetLastIndex, this, "ArrayGetLastIndex");
 
 			listCallbacks.ListInit = core.RegisterCallback(OnInvokeListInit, this, ("ListInit"));
 			listCallbacks.ListAppend = core.RegisterCallback(OnInvokeListAppend, this, ("ListAppend"));

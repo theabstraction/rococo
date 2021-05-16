@@ -325,7 +325,7 @@ namespace Rococo { namespace Script
 		const sexstring idString = id.String();
 		const sexstring firstTypeString = elementType.String();
 
-		if (!AreEqual(type, ("_Array")) && ! AreEqual(type, ("_List")))
+		if (!AreEqual(type, ("_Array")) && !AreEqual(type, ("_List")))
 		{
 			Throw(*id.Parent(), ("Unexpected type in generic input definition"));
 		}
@@ -459,7 +459,7 @@ namespace Rococo { namespace Script
 				cr_sex elementType = GetAtomicArg(inputItem, 1);
 				cr_sex sexIdentifier = GetAtomicArg(inputItem, 2);
 
-				AddGenericInput(f, ("_Array"), sexIdentifier, elementType, inputItem, script);				
+				AddGenericInput(f, "_Array", sexIdentifier, elementType, inputItem, script);				
 			}
 			else if (AreEqual(sexType.String(), ("list")))
 			{
@@ -814,6 +814,14 @@ namespace Rococo { namespace Script
 		if (*def.ResolvedType == ce.StructArray())
 		{
 			CompileArrayDestruct(ce, *def.ResolvedType, instanceName);
+		}
+		else if (*def.ResolvedType == ce.StructMap())
+		{
+			AppendInvokeDestructor(ce, instanceName, sequence, def);
+		}
+		else if (*def.ResolvedType == ce.StructList())
+		{
+			AppendInvokeDestructor(ce, instanceName, sequence, def);
 		}
 		else if (*def.ResolvedType == ce.Object.Common().TypeNode())
 		{
@@ -1856,17 +1864,17 @@ namespace Rococo { namespace Script
 				StructurePrototype prototype(MEMBERALIGN_4, INSTANCEALIGN_16, true, NULL, false);
 				const ISExpression* src = NULL;
 
-				IStructureBuilder& s = module.DeclareStructure(("_Array"), prototype, NULL);
+				IStructureBuilder& s = module.DeclareStructure("_Array", prototype, NULL);
 
-				s.AddMember(NameString::From(("_start")), TypeString::From(("Pointer")));
-				s.AddMember(NameString::From(("_length")), TypeString::From(("Int32")));
-				s.AddMember(NameString::From(("_elementCapacity")), TypeString::From(("Int32")));
-				s.AddMember(NameString::From(("_elementType")), TypeString::From(("Pointer")));
-				s.AddMember(NameString::From(("_elementSize")), TypeString::From(("Int32")));
-				s.AddMember(NameString::From(("_lock")), TypeString::From(("Int32")));
-				s.AddMember(NameString::From(("_refCount")), TypeString::From("Int64"));
+				s.AddMember(NameString::From("_start"), TypeString::From("Pointer"));
+				s.AddMember(NameString::From("_length"), TypeString::From("Int32"));
+				s.AddMember(NameString::From("_elementCapacity"), TypeString::From("Int32"));
+				s.AddMember(NameString::From("_elementType"), TypeString::From("Pointer"));
+				s.AddMember(NameString::From("_elementSize"), TypeString::From("Int32"));
+				s.AddMember(NameString::From("_lock"), TypeString::From("Int32"));
+				s.AddMember(NameString::From("_refCount"), TypeString::From("Int64"));
 
-				ns->Alias(("_Array"), s);
+				ns->Alias("_Array", s);
 			}
 			{
 				StructurePrototype prototype(MEMBERALIGN_4, INSTANCEALIGN_16, true, NULL, false);

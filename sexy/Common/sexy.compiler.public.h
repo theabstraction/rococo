@@ -102,9 +102,35 @@ namespace Rococo {
 			cstr c_str() const { return s; }
 		};
 
+		inline bool IsContainerType(VARTYPE v)
+		{
+			switch (v)
+			{
+			case VARTYPE_Array:
+				return true;
+			case VARTYPE_List:
+				return true;
+			case VARTYPE_Map:
+				return true;
+			}
+
+			return false;
+		}
+
 		inline bool IsPrimitiveType(VARTYPE v)
 		{
-			return v != VARTYPE_Bad && v != VARTYPE_Derivative && v != VARTYPE_Closure;
+			switch (v)
+			{
+			case VARTYPE_Bad:
+			case VARTYPE_Derivative:
+			case VARTYPE_Closure:
+			case VARTYPE_Array:
+			case VARTYPE_List:
+			case VARTYPE_Map:
+				return false;
+			default:
+				return true;
+			}
 		}
 
 		inline bool IsNumericType(VARTYPE v)

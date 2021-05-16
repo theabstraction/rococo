@@ -2670,6 +2670,47 @@ namespace Rococo
 			}
 		}
 
+		void AssignArrayToArray(CCompileEnvironment& ce, cr_sex s, const MemberDef& lhs, cstr lhsString, cstr rhsString)
+		{
+			MemberDef rhs;
+			if (!ce.Builder.TryGetVariableByName(OUT rhs, rhsString) || rhs.ResolvedType != &ce.StructArray()) 
+			{
+				Throw(s, "Expecting array type %s", rhsString);
+			}
+
+			auto* lhsType = ce.Script.GetElementTypeForArrayVariable(ce.Builder, lhsString);
+			if (lhsType == nullptr)
+			{
+				Throw(s, "Could not lhs identify array type %s", lhsString);
+			}
+
+			auto* rhsType = ce.Script.GetElementTypeForArrayVariable(ce.Builder, rhsString);
+			if (rhsType == nullptr)
+			{
+				Throw(s, "Could not rhs identify array type %s", rhsString);
+			}
+
+			if (&lhsType->ElementType != &rhsType->ElementType)
+			{
+				cstr lhsName = GetFriendlyName(lhsType->ElementType);
+				cstr rhsName = GetFriendlyName(rhsType->ElementType);
+				Throw(s, "Could not assign array. LHS is (array %s). RHS is (array %s)", lhsName, rhsName);
+			}
+
+			if (lhs.location != VARLOCATION_TEMP)
+			{
+				Throw(s, "Could not assign array. The target has to be a local variable");
+			}
+
+			ce.Builder.AssignVariableToTemp(lhsString, 0, 0); // D4 has the LHS reference
+			ce.Builder.AssignVariableToTemp(rhsString, 1, 0); // D5 has the RHS reference
+			AppendInvoke(ce, GetArrayCallbacks(ce).ArrayAssign, s);
+		
+			UseStackFrameFor(ce.Builder, lhs);
+			ce.Builder.Assembler().Append_SetStackFrameValue(lhs.SFOffset + lhs.MemberOffset, VM::REGISTER_D5, BITCOUNT_POINTER);
+			RestoreStackFrameFor(ce.Builder, lhs);
+		}
+
 		void AssignVariableToVariable(CCompileEnvironment& ce, cr_sex exceptionSource, cstr lhs, cstr rhs)
 		{
 			try
@@ -2733,8 +2774,15 @@ namespace Rococo
 					}
 				}
 
-				ce.Builder.AddSymbol(symbol);
-				ce.Builder.AssignVariableToVariable(rhs, lhs);
+				if (def.ResolvedType == &ce.StructArray())
+				{
+					AssignArrayToArray(ce, exceptionSource, def, lhs, rhs);
+				}
+				else
+				{
+					ce.Builder.AddSymbol(symbol);
+					ce.Builder.AssignVariableToVariable(rhs, lhs);
+				}
 			}
 			catch (IException& e)
 			{

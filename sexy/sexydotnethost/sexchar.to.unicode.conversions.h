@@ -143,7 +143,7 @@ namespace
 		switch(type)
 		{
 		case VARTYPE_Bad:
-         SafeFormat(rvalue, bufferLen, SEXTEXT("Bad type"));
+			SafeFormat(rvalue, bufferLen, SEXTEXT("Bad type"));
 			break;
 		case VARTYPE_Bool:
 			{
@@ -153,30 +153,36 @@ namespace
 			}
 			break;
 		case VARTYPE_Derivative:
-         SafeFormat(rvalue, bufferLen, SEXTEXT(""));
+		case VARTYPE_Array:
+		case VARTYPE_List:
+		case VARTYPE_Map:
+			{
+				const uint64** pValue = (const uint64*)pVariableData;
+				SafeFormat(rvalue, bufferLen, SEXTEXT("-> 0x%llX"), *pValue);
+			}
 			break;
 		case VARTYPE_Int32:
 			{
 				const int32* pValue = (const int32*) pVariableData;
-            SafeFormat(rvalue, bufferLen, SEXTEXT("%d (%8.8x)"), *pValue, *pValue);
+				SafeFormat(rvalue, bufferLen, SEXTEXT("%d (%8.8x)"), *pValue, *pValue);
 			}
 			break;
 		case VARTYPE_Int64:
 			{
 				const int64* pValue = (const int64*) pVariableData;
-            SafeFormat(rvalue, bufferLen, SEXTEXT("%lld (%8llx)"), *pValue, *pValue);
+				SafeFormat(rvalue, bufferLen, SEXTEXT("%lld (%8llx)"), *pValue, *pValue);
 			}
 			break;
 		case VARTYPE_Float32:
 			{
 				const float32* pValue = (const float32*) pVariableData;
-            SafeFormat(rvalue, bufferLen, SEXTEXT("%g"), *pValue);
+				SafeFormat(rvalue, bufferLen, SEXTEXT("%g"), *pValue);
 			}
 			break;
 		case VARTYPE_Float64:
 			{
 				const float64* pValue = (const float64*) pVariableData;
-            SafeFormat(rvalue, bufferLen, SEXTEXT("%lg"), *pValue);
+				SafeFormat(rvalue, bufferLen, SEXTEXT("%lg"), *pValue);
 			}
 			break;
 		case VARTYPE_Pointer:
@@ -203,11 +209,11 @@ namespace
 				};
 
 				const Closure* pValue = (const Closure*)pVariableData;
-            SafeFormat(rvalue, bufferLen, SEXTEXT("Id: %llu. SF: 0x%llX"), pValue->id, (size_t) pValue->parentSF);
+				SafeFormat(rvalue, bufferLen, SEXTEXT("Id: %llu. SF: 0x%llX"), pValue->id, (size_t) pValue->parentSF);
 			}
 			break;
 		default:
-         SafeFormat(rvalue, bufferLen, SEXTEXT("Unknown type"));
+			SafeFormat(rvalue, bufferLen, SEXTEXT("Unknown type"));
 		}
 	}
 

@@ -6339,6 +6339,36 @@ R"((namespace EntryPoint)
 		validate(x == 256);
 	}
 
+	void TestArrayProxy(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Type)"
+
+			"(function Main -> (Int32 result):"
+			"	(array Int32 a 4)"
+			"	(a.Push 36)"
+			"   (array Int32 proxy)"
+			"   (proxy = a)"
+			"	(result = (proxy 0))"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, "TestArrayProxy");
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		int x = vm.PopInt32();
+		validate(x == 36);
+	}
+
 	void TestArrayInt32(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -13673,6 +13703,48 @@ R"(
 
    void RunCollectionTests()
    {
+	   TEST(TestArrayRef);
+	   TEST(TestArrayElementIsClass);
+	   TEST(TestArrayInt32);
+	   TEST(TestArrayInt32_2);
+	   TEST(TestArrayInt32_3);
+	   TEST(TestArrayInt32_4);
+	   TEST(TestArrayInt32_5);
+	   TEST(TestArrayInt32_6);
+	   TEST(TestArrayInt32_7);
+	   TEST(TestArrayInt32_8);
+	   TEST(TestArrayInt32_9);
+	   TEST(TestArrayFloat64);
+	   TEST(TestArrayStruct);
+	   TEST(TestArrayStruct_2);
+	   TEST(TestArrayStruct_3);
+	   TEST(TestEmptyArrayOfInterfaces);
+	   TEST(TestArrayOfInterfacesBuilder);
+
+	   TEST(TestPushStructToArray);
+	   TEST(TestArrayStrongTyping);
+	   TEST(TestArrayStrongTyping2);
+	   TEST(TestArrayStrongTyping3);
+
+	   TEST(TestConstructInArray);
+	   TEST(TestArrayForeachEachElementInArray);
+	   TEST(TestArrayForeachEachElementInArrayWithoutIndex);
+	   TEST(TestArrayElementDeconstruct);
+	   TEST(TestArrayElementDeconstructWhenThrown);
+	   TEST(TestArrayWithinArrayDeconstruct);
+	   TEST(TestArrayElementLockRef);
+
+	   TEST(TestArrayRefMember);
+	   TEST(TestArrayWithEarlyReturn);
+	   TEST(TestArrayWithEarlyReturn2);
+
+	   TEST(TestArrayForeachOnce);
+	   TEST(TestArrayForeachWithinForEach);
+
+	   TEST(TestArrayForeachAndThrow);
+	   TEST(TestArrayProxy);
+	   TEST(TestArrayClear);
+
 	   TEST(TestMap);
 	   TEST(TestMap2);
 	   TEST(TestMap3);
@@ -13697,42 +13769,6 @@ R"(
 	   TEST(TestMapStrongTyping);
 	   TEST(TestMapThrowAndCleanup);
 	   TEST(TestMapThrowAndCleanup2);
-
-	   TEST(TestArrayElementIsClass);
-	   TEST(TestArrayInt32);
-	   TEST(TestArrayInt32_2);
-	   TEST(TestArrayInt32_3);
-	   TEST(TestArrayInt32_4);
-	   TEST(TestArrayInt32_5);
-	   TEST(TestArrayInt32_6);
-	   TEST(TestArrayInt32_7);
-	   TEST(TestArrayInt32_8);
-	   TEST(TestArrayInt32_9);
-	   TEST(TestArrayFloat64);
-	   TEST(TestArrayStruct);
-	   TEST(TestArrayStruct_2);
-	   TEST(TestArrayStruct_3);
-
-	   TEST(TestArrayStrongTyping);
-	   TEST(TestArrayStrongTyping2);
-	   TEST(TestArrayStrongTyping3);
-
-	   TEST(TestConstructInArray);
-	   TEST(TestArrayForeachEachElementInArray);
-	   TEST(TestArrayForeachEachElementInArrayWithoutIndex);
-	   TEST(TestArrayElementDeconstruct);
-	   TEST(TestArrayElementDeconstructWhenThrown);
-	   TEST(TestArrayWithinArrayDeconstruct);
-	   TEST(TestArrayElementLockRef);
-
-	   TEST(TestArrayRefMember);
-	   TEST(TestArrayWithEarlyReturn);
-	   TEST(TestArrayWithEarlyReturn2);
-
-	   TEST(TestArrayForeachOnce);
-	   TEST(TestArrayForeachWithinForEach);
-
-	   TEST(TestArrayForeachAndThrow);
 
 	   TEST(TestLinkedList);
 	   TEST(TestLinkedList2);
@@ -13838,7 +13874,6 @@ R"(
 	{
 		validate(true);
 
-		TEST(TestPushStructToArray);
 		TEST(TestClosureInputToStruct);
 		TEST(TestListDeleteHeadAndThrow);
 		TEST(TestListReverseEnumeration);
@@ -13852,14 +13887,9 @@ R"(
 
 		TEST(TestSerialize);
 
-		TEST(TestEmptyArrayOfInterfaces);
-		TEST(TestArrayOfInterfacesBuilder);
-
 		TEST(TestClamp1);
 		TEST(TestClamp2);
 		TEST(TestClamp3);
-
-		TEST(TestArrayClear);
 
 		TEST(TestSearchSubstring);
 		TEST(TestRightSearchSubstring);
@@ -13882,7 +13912,6 @@ R"(
 
 		TEST(TestDynamicDispatch);
 		TEST(TestPushSecondInterface);
-		TEST(TestMapValueInterface);
 		TEST(TestStructArgFromStructArg);
 		TEST(TestStringArray);
 		TEST(TestCompareInterfaces);
@@ -14200,7 +14229,10 @@ R"(
 		int64 start, end, hz;
 		start = OS::CpuTicks();
 
-		TEST(TestArrayWithinArrayDeconstruct);
+		TEST(TestMap);
+	//	TEST(TestArrayProxy);
+
+	//	TEST(TestArrayWithinArrayDeconstruct);
 	//	TEST(TestNestedArrayEnumeration);
 
 		RunPositiveSuccesses();

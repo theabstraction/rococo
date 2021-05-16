@@ -460,6 +460,7 @@ namespace Rococo
 
 	  struct ArrayCallbacks
 	  {
+          ID_API_CALLBACK ArrayAssign;
 		  ID_API_CALLBACK ArrayClear;
 		  ID_API_CALLBACK ArrayPushAndGetRef;
 		  ID_API_CALLBACK ArrayPush32;
@@ -475,7 +476,7 @@ namespace Rococo
 		  ID_API_CALLBACK ArraySet64;
 		  ID_API_CALLBACK ArraySetByRef;
 		  ID_API_CALLBACK ArrayInit;
-		  ID_API_CALLBACK ArrayDelete;
+          ID_API_CALLBACK ArrayDelete;
 		  ID_API_CALLBACK ArrayPop;
 		  ID_API_CALLBACK ArrayPopOut32;
 		  ID_API_CALLBACK ArrayPopOut64;
@@ -485,6 +486,7 @@ namespace Rococo
 		  ID_API_CALLBACK ArrayDestructElements;
 		  ID_API_CALLBACK ArrayGetInterfaceUnchecked;
           ID_API_CALLBACK ArrayGetLength;
+          ID_API_CALLBACK ArrayGetLastIndex; // D13 points to array, D11 gives last index (-1 for empty arrays)
 	  };
 
       struct ListCallbacks

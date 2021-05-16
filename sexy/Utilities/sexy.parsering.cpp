@@ -334,6 +334,9 @@ namespace Rococo { namespace Compiler
 		case VARTYPE_Float32: return BITCOUNT_32;
 		case VARTYPE_Float64: return BITCOUNT_64;
 		case VARTYPE_Derivative: return BITCOUNT_POINTER;
+		case VARTYPE_Array: return BITCOUNT_POINTER;
+		case VARTYPE_List: return BITCOUNT_POINTER;
+		case VARTYPE_Map: return BITCOUNT_POINTER;
 		case VARTYPE_Pointer: return BITCOUNT_POINTER;
 		case VARTYPE_Closure: return BITCOUNT_128;
 		default:

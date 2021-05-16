@@ -216,7 +216,29 @@ namespace Rococo { namespace Compiler { namespace Impl
 
 		IStructureBuilder& DeclareStructure(cstr name, const StructurePrototype& prototype, const void* definition) override
 		{
-			Structure* s = new Structure(name, prototype, *this, prototype.archetype != NULL ? VARTYPE_Closure : VARTYPE_Derivative, definition);
+			VARTYPE type;
+			if (Eq(name, "_Array"))
+			{
+				type = VARTYPE_Array;
+			}
+			else if (Eq(name, "_List"))
+			{
+				type = VARTYPE_List;
+			}
+			else if (Eq(name, "_Map"))
+			{
+				type = VARTYPE_Map;
+			}
+			else if (prototype.archetype != NULL)
+			{
+				type = VARTYPE_Closure;
+			}
+			else
+			{
+				type = VARTYPE_Derivative;
+			}
+
+			Structure* s = new Structure(name, prototype, *this, type, definition);
 			structures.Register(s->Name(), *s);
 			return *s;
 		}
