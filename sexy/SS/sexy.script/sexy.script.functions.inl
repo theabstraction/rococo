@@ -1099,7 +1099,7 @@ namespace Rococo
 		      TokenBuffer field;
 		      if (AreEqual(("Length"), methodName))
 		      {
-			      StringPrint(field, ("%s._length"), instance);
+			      StringPrint(field, ("%s._length"), instance); !!!
 			      ValidateReturnType(s, returnType, VARTYPE_Int32);
 		      }
 		      else if (AreEqual(("Capacity"), methodName))

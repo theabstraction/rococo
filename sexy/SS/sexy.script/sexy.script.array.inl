@@ -39,17 +39,6 @@ namespace Rococo
    {
 	   void DeleteMembers(IScriptSystem& ss, const IStructure& type, uint8* pInstance);
 
-	   struct ArrayImage
-	   {
-		   void* Start;
-		   int32 NumberOfElements;
-		   int32 ElementCapacity;
-		   const IStructure* ElementType;
-		   int32 ElementLength;
-		   int32 LockNumber;
-		   int64 RefCount;
-	   };
-
 	   size_t SizeOfElement(const IStructure& type)
 	   {
 		   return type.InterfaceCount() > 0 ? sizeof(size_t) : type.SizeOfStruct();

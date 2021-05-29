@@ -954,6 +954,13 @@ namespace Rococo
 
 	using namespace Rococo::Debugger;
 
+	inline ObjectStub* InterfaceToInstance(InterfacePointer i)
+	{
+		auto* p = ((uint8*)i) + (*i)->OffsetToInstance;
+		auto* obj = (ObjectStub*)p;
+		return obj;
+	}
+
 	struct MemberEnumeratorPopulator: MemberEnumeratorCallback
 	{
 		TREE_NODE_ID parentId;
@@ -970,11 +977,6 @@ namespace Rococo
 		{
 			index++;
 
-			if (AreEqual(childName, "player.image1"))
-			{
-				index *= 1;
-			}
-
 			if (parentStruct)
 			{
 				if (index == 1)
@@ -988,11 +990,11 @@ namespace Rococo
 					char classDesc[256];
 					if (header->refCount == ObjectStub::NO_REF_COUNT)
 					{
-						SafeFormat(classDesc, sizeof(classDesc), "[%+d] %s DestructorId: %lld. Refcount: n/a", (sfItem - instance), concreteStruct->Name(), header->Desc->DestructorId);
+						SafeFormat(classDesc, "[%+d] %s DestructorId: %lld. Refcount: n/a", (sfItem - instance), concreteStruct->Name(), header->Desc->DestructorId);
 					}
 					else
 					{
-						SafeFormat(classDesc, sizeof(classDesc), "[%+d] %s DestructorId: %lld. Refcount: %lld", (sfItem - instance), concreteStruct->Name(), header->Desc->DestructorId, header->refCount);
+						SafeFormat(classDesc, "[%+d] %s DestructorId: %lld. Refcount: %lld", (sfItem - instance), concreteStruct->Name(), header->Desc->DestructorId, header->refCount);
 					}
 
 
@@ -1002,10 +1004,10 @@ namespace Rococo
 
 					for (int i = 0; i < concreteStruct->InterfaceCount(); ++i)
 					{
-						auto& interface = parentStruct->GetInterface(i);
+						auto& interface = concreteStruct->GetInterface(i);
 						auto* vTable = concreteStruct->GetVirtualTable(i + 1);
 						char interfaceDesc[256];
-						SafeFormat(interfaceDesc, sizeof(interfaceDesc), "Implements %s. vTable %p", interface.Name(), vTable);
+						SafeFormat(interfaceDesc, "Implements %s. vTable %p", interface.Name(), vTable);
 
 						auto inode = tree->AddChild(node, interfaceDesc, CheckState_NoCheckBox);
 
@@ -1013,10 +1015,15 @@ namespace Rococo
 						if (instanceVTable != (VirtualTable*)vTable)
 						{
 							char vTableDesc[256];
-							SafeFormat(vTableDesc, sizeof(vTableDesc), "vTable mismatch. Expecting %p, but found %p", vTable, instanceVTable);
+							SafeFormat(vTableDesc, "vTable mismatch. Expecting %p, but found %p", vTable, instanceVTable);
 							auto vnode = tree->AddChild(inode, vTableDesc, CheckState_NoCheckBox);
 						}
 
+						if (header->Desc->TypeInfo == &interface.NullObjectType())
+						{
+							// The object is a null object so there are no other valid interface pointers
+							break;
+						}
 					}
 					return;
 				}
@@ -1035,27 +1042,27 @@ namespace Rococo
 				{
 					InterfacePointer p = InterfacePointer(sfItem);
 					auto* s = (CClassSysTypeStringBuilder*)(sfItem + (*p)->OffsetToInstance);
-					SafeFormat(value, sizeof(value), "%s", s->buffer);
+					SafeFormat(value, "%s", s->buffer);
 				}
 				CATCH_PROTECTED
 				{
-					SafeFormat(value, sizeof(value), "IString: <Bad pointer>");
+					SafeFormat(value, "IString: <Bad pointer>");
 				}
 			}
 			else
 			{
-				FormatValue(ss, value, sizeof(value), member.UnderlyingType()->VarType(), sfItem);
+				FormatValue(ss, value, sizeof value, member.UnderlyingType()->VarType(), sfItem);
 			}
 
 			char memberDesc[256];
 
 			if (member.UnderlyingType()->InterfaceCount() != 0)
 			{
-				SafeFormat(memberDesc, sizeof(memberDesc), "[%+d] ->  %p %s: %s", offset, sfItem, member.Name(), value);
+				SafeFormat(memberDesc, "[%+d] ->  %p %s: %s", offset, sfItem, member.Name(), value);
 			}
 			else
 			{
-				SafeFormat(memberDesc, sizeof(memberDesc), "[%+d] %p %s: %s", (sfItem - instance), sfItem, member.Name(), value);
+				SafeFormat(memberDesc, "[%+d] %p %s: %s", (sfItem - instance), sfItem, member.Name(), value);
 			}
 
 			auto node = tree->AddChild(parentId, memberDesc, CheckState_NoCheckBox);
@@ -1081,7 +1088,99 @@ namespace Rococo
 				subMember.tree = tree;
 				subMember.depth = depth;
 
-				GetMembers(ss, *member.UnderlyingType(), member.Name(), subInstance, 0, subMember, 1);
+				GetMembers(ss, *member.UnderlyingType(), member.Name(), subInstance, 0, subMember, recurseDepth);
+			}
+			else if (member.UnderlyingType()->VarType() == VARTYPE_Array)
+			{
+				MemberEnumeratorPopulator subMember;
+
+				if (member.UnderlyingType()->InterfaceCount() != 0)
+				{
+					subMember.parentStruct = member.UnderlyingType();
+				}
+
+				auto* subInstance = *(const uint8**) sfItem;
+
+				char arrayDesc[256];
+
+				if (subInstance == nullptr)
+				{
+					auto node = tree->AddChild(parentId, "null reference", CheckState_NoCheckBox);
+					return;
+				}
+					
+				ArrayImage& a = *(ArrayImage*)subInstance;
+
+				SafeFormat(arrayDesc, "%d of %d elements of type %s and %d bytes each (total %d KB)", a.NumberOfElements, a.ElementCapacity, GetFriendlyName(*a.ElementType), a.ElementLength, (a.ElementLength * a.NumberOfElements) / 1024);
+				
+				tree->AddChild(node, arrayDesc, CheckState_NoCheckBox);
+
+				SafeFormat(arrayDesc, "RefCount: %d. Modification %s", a.RefCount, a.LockNumber > 0 ? "prohibited" : "allowed");
+
+				tree->AddChild(node, arrayDesc, CheckState_NoCheckBox);
+
+				if (a.Start == nullptr)
+				{
+					tree->AddChild(node, "item pointer is null", CheckState_NoCheckBox);
+				}
+				else
+				{
+					const uint8* pInstance = (const uint8*) a.Start;
+
+					char itemDesc[256];
+					SafeFormat(itemDesc, "C-array start 0x%llX", pInstance);
+					auto indexNode = tree->AddChild(node, itemDesc, CheckState_NoCheckBox);
+					for (int i = 0; i < a.NumberOfElements; ++i)
+					{
+						enum { MAX_ITEMS_DEBUGGED_PER_ARRAY = 20 };
+						if (i > MAX_ITEMS_DEBUGGED_PER_ARRAY)
+						{
+							tree->AddChild(indexNode, "...", CheckState_NoCheckBox);
+							break;
+						}
+
+						char item[256];
+						SafeFormat(item, "#%d", i);
+
+						char itemEx[256];
+
+						if (Eq(a.ElementType->Name(), "_Null_Sys_Type_IString"))
+						{
+							InterfacePointer pInterface = *(InterfacePointer*)pInstance;
+							auto* stub = (CStringConstant*)InterfaceToInstance(pInterface);
+							SafeFormat(itemEx, "0x%llX - #%d: %s", pInstance, i, stub->pointer);
+							auto childNode = tree->AddChild(indexNode, itemEx, CheckState_NoCheckBox);
+						}
+						else
+						{
+
+							SafeFormat(itemEx, "0x%llX - #%d", pInstance, i);
+							auto childNode = tree->AddChild(indexNode, itemEx, CheckState_NoCheckBox);
+
+							MemberEnumeratorPopulator subMember;
+
+							if (a.ElementType->InterfaceCount() != 0)
+							{
+								subMember.parentStruct = a.ElementType;
+							}
+
+							auto* subInstance = pInstance;
+
+							if (IsNullType(*a.ElementType))
+							{
+								InterfacePointer pInterface = *(InterfacePointer*)pInstance;
+								subInstance = (const uint8*)pInterface;
+							}
+							subMember.instance = subInstance;
+							subMember.parentId = childNode;
+							subMember.tree = tree;
+							subMember.depth = depth;
+
+							GetMembers(ss, *a.ElementType, item, subInstance, 0, subMember, recurseDepth);
+						}
+						pInstance += a.ElementLength;
+					}
+				}
 			}
 		}
 	};
@@ -1116,7 +1215,6 @@ namespace Rococo
 				addMember.depth = depth + 1;
 				addMember.instance = v.instance;
 
-				VirtualTable* pTable = (VirtualTable*) (v.instance);
 				InterfacePointer pInterf = (InterfacePointer)(v.instance);
 				if (v.s) GetMembers(*ss, *v.s, v.parentName, v.instance, 0, addMember, 1);
 			}

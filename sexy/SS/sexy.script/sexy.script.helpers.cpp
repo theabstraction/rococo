@@ -229,7 +229,8 @@ namespace Rococo
          case VARTYPE_Float64:
          {
             const double* pValue = (const double*)pVariableData;
-            SafeFormat(buffer, bufferCapacity, "%lg", *pValue);
+			double value = *pValue;
+            SafeFormat(buffer, bufferCapacity, "%lg", value);
          }
          break;
          case VARTYPE_Pointer:
@@ -712,6 +713,7 @@ namespace Rococo
 					   TRY_PROTECTED
 					   {
 						   object = (ObjectStub*)(pInterface + (*(InterfacePointer)pInterface)->OffsetToInstance);
+						   pVariableData = (uint8*)object;
 					   }
 					   CATCH_PROTECTED
 					   {
@@ -744,7 +746,7 @@ namespace Rococo
 				   }
 
 				   variable.s = def.ResolvedType;
-				   variable.instance = (const uint8*)pVariableData;
+				   variable.instance = pVariableData;
 				   variable.parentName = nullptr;
 
 				   if (lastPseudo != NULL && lastPseudoName != NULL)
@@ -834,10 +836,16 @@ namespace Rococo
 	   {
 		   if (s.VarType() != VARTYPE_Derivative && !IsContainerType(s.VarType())) return true;
 
+		   if (recurseDepth > 5)
+		   {
+			   return false;
+		   }
+
 		   TRY_PROTECTED
 		   {
 
 			   ObjectStub* concreteInstancePtr = NULL;
+			//   InterfacePointer pInterface = *(InterfacePointer*)(instance);
 			   const IStructure* concreteType = GetConcreteType(s, instance, offset, concreteInstancePtr);
 			   const IStructure* specimen;
 
@@ -876,8 +884,8 @@ namespace Rococo
 				   }
 				   else if (member.UnderlyingType() && member.UnderlyingType()->VarType() == VARTYPE_Array)
 				   {
-					   const uint8** ppInstance = (const uint8**)(instance + suboffset);
-					   enumCallback.OnMember(ss, childName, member, *ppInstance, (int)suboffset, recurseDepth + 1);
+					   const ArrayImage* a = *(const ArrayImage**)(instance + suboffset);
+					   enumCallback.OnMember(ss, childName, member, instance + suboffset, (int)suboffset, recurseDepth + 1);
 				   }
 				   else
 				   {
