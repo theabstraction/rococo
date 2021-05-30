@@ -72,6 +72,8 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)\lib</AdditionalLibraryDirectories>
+      <StackReserveSize>
+      </StackReserveSize>
     </Link>
     <CustomBuildStep>
       <Command>..\sexy\Bin\x64Debug\sexy.bennyhill.exe $(ProjectDir) mhost.sxh mhost.sxh.h</Command>
@@ -102,6 +104,8 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)\lib</AdditionalLibraryDirectories>
+      <StackReserveSize>
+      </StackReserveSize>
     </Link>
     <CustomBuildStep>
       <Command>..\sexy\Bin\x64Release\sexy.bennyhill.exe $(ProjectDir) mhost.sxh mhost.sxh.h</Command>

@@ -149,6 +149,14 @@ namespace SexyDotNet
                 isCompiled = true;
                 if (EvCompiled != null) EvCompiled();
             }
+            catch(CompileError cex)
+            {
+                var errBox = new ExceptionWindow();
+                errBox.SetException(cex);
+                errBox.ShowDialog();
+
+                scriptLanguage = null;
+            }
             catch (Exception ex)
             {
                 var errBox = new ExceptionWindow();

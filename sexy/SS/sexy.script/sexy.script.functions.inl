@@ -450,7 +450,7 @@ namespace Rococo
 		  }
 
 		  VARTYPE vType = def.ResolvedType->VarType();
-		  if (vType != VARTYPE_Derivative)
+		  if (vType != VARTYPE_Derivative && !IsContainerType(vType))
 		  {
 			  if (expectingStructRef)
 			  {
@@ -588,7 +588,7 @@ namespace Rococo
 			      Throw(inputExpression, streamer);
 		      }
 	      }
-	      else if (inputType == VARTYPE_Derivative)
+	      else if (inputType == VARTYPE_Derivative || IsContainerType(inputType))
 	      {
 		      ce.Builder.AddSymbol(inputName); 
 		      if (!TryCompilePushStructRef(ce, inputExpression, true, inputStruct, inputName, genericArg1))
@@ -1096,16 +1096,23 @@ namespace Rococo
       {
 	      if (instanceStruct == ce.StructArray())
 	      {
-		      TokenBuffer field;
+			  const ArrayCallbacks& callbacks = GetArrayCallbacks(ce);
+
 		      if (AreEqual(("Length"), methodName))
 		      {
-			      StringPrint(field, ("%s._length"), instance);
-			      ValidateReturnType(s, returnType, VARTYPE_Int32);
+				  ce.Builder.AssignVariableToTemp(instance, 0, 0); // This shifts the array pointer to D4			 
+				  AddSymbol(ce.Builder, "D7 = %s.Length", instance);
+				  AppendInvoke(ce, callbacks.ArrayReturnLength, s); // the length is now written to D7
+				  ValidateReturnType(s, returnType, VARTYPE_Int32);
+				  return true;
 		      }
 		      else if (AreEqual(("Capacity"), methodName))
 		      {
-			      StringPrint(field, ("%s._elementCapacity"), instance);
-			      ValidateReturnType(s, returnType, VARTYPE_Int32);
+				  ce.Builder.AssignVariableToTemp(instance, 0, 0); // This shifts the array pointer to D4
+				  AddSymbol(ce.Builder, "D7 = %s.Capacity", instance);
+				  AppendInvoke(ce, callbacks.ArrayReturnCapacity, s); // the length is now written to D7
+				  ValidateReturnType(s, returnType, VARTYPE_Int32);
+				  return true;
 		      }
 		      else if (AreEqual(("PopOut"), methodName))
 		      {
@@ -1115,12 +1122,8 @@ namespace Rococo
 		      }
 		      else
 		      {
-			      Throw(s, ("The property is not recognized for array types. Known properties for arrays: Length, Capacity & PopOut"));
+			      Throw(s, "The property is not recognized for array types. Known properties for arrays: Length, Capacity & PopOut");
 		      }
-
-		      ce.Builder.AddSymbol(field);
-		      ce.Builder.AssignVariableToTemp(field, Rococo::ROOT_TEMPDEPTH, 0);
-		      return true;
 	      }
 
 	      return false;
@@ -2122,25 +2125,19 @@ namespace Rococo
 
 	      const IStructure& c = *def.ResolvedType;
 		
-	      if (c.VarType() != VARTYPE_Derivative)
-	      {
-		      return false;
-	      }
-
-	      if (c == ce.StructArray())
-	      {
-		      return TryCompileAsArrayCall(ce, s, instanceName, methodName);
-	      }
-
-	      if (c == ce.StructList())
-	      {
-		      return TryCompileAsListCall(ce, s, instanceName, methodName);
-	      }
-
-	      if (c == ce.StructMap())
-	      {
-		      return TryCompileAsMapCall(ce, s, instanceName, methodName);
-	      }
+		  switch (c.VarType())
+		  {
+		  case VARTYPE_Array:
+				return TryCompileAsArrayCall(ce, s, instanceName, methodName);
+		  case VARTYPE_List:
+			  return TryCompileAsListCall(ce, s, instanceName, methodName);
+		  case VARTYPE_Map:
+			  return TryCompileAsMapCall(ce, s, instanceName, methodName);
+		  case VARTYPE_Derivative:
+			  break;
+		  default:
+			  return false;
+		  }
 
 	      if (c == ce.Object.Common().TypeMapNode())
 	      {

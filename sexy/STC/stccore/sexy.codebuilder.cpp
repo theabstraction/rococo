@@ -406,14 +406,17 @@ namespace Anon
 
 		const IStructure* argType = NULL;
 
-		if (type.VarType() == VARTYPE_Derivative)
+		switch (type.VarType())
 		{
-			// Derivative types are passed by ref, os the arg type is pointer
+		case VARTYPE_Array:
+		case VARTYPE_List:
+		case VARTYPE_Map:
+		case VARTYPE_Derivative:
 			argType = &Module().Object().Common().TypePointer();
-		}
-		else
-		{
+			break;
+		default:
 			argType = &type;
+			break;
 		}
 
 		Variable *v = new Variable(Assembler().WritePosition(), NameString::From(name), *argType, sectionIndex, userData, -1, VARLOCATION_TEMP, false);
@@ -1274,8 +1277,21 @@ namespace Anon
 			}
 			Variable* v = new Variable(arg, /* section index */ 0, arg.Userdata(), varOffset);
 
+			int32 dx;
 			// Derivative types are always passed by reference (a pointer)
-			int32 dx = (v->ResolvedType().VarType() == VARTYPE_Derivative) ? (int32) sizeof(size_t) : (int32)v->AllocSize();
+			switch (v->ResolvedType().VarType())
+			{
+			case VARTYPE_Derivative:
+			case VARTYPE_Array:
+			case VARTYPE_List:
+			case VARTYPE_Map:
+				dx = (int32)sizeof size_t;
+				break;
+			default:
+				dx = (int32)v->AllocSize();
+				break;
+			}
+			
 			sfOffset -= dx;
 			v->SetStackPosition(sfOffset);
 			variables.push_back(v);
@@ -1553,7 +1569,9 @@ namespace Anon
 
 		VARTYPE vType = def.ResolvedType->VarType();
 
-		if (!((vType == VARTYPE_Derivative && def.ResolvedType->InterfaceCount() > 0) || vType == VARTYPE_Pointer))
+		bool isArray = def.ResolvedType->VarType() == VARTYPE_Array;
+
+		if (!(isArray || (vType == VARTYPE_Derivative && def.ResolvedType->InterfaceCount() > 0) || vType == VARTYPE_Pointer))
 		{
 			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Could not assign '%p' to [%s]. Variable must of type Pointer."), ptr, name.c_str());
 		}
@@ -1562,7 +1580,7 @@ namespace Anon
 
 		UseStackFrameFor(*this, def);
 		
-		if (def.Usage == ARGUMENTUSAGE_BYVALUE)
+		if (def.Usage == ARGUMENTUSAGE_BYVALUE || isArray)
 		{
 			Assembler().Append_SetStackFrameImmediate(def.SFOffset + def.MemberOffset, value, GetBitCount(vType));
 		}
@@ -1832,6 +1850,12 @@ namespace Anon
 		const IStructure* srcType = sourceDef.ResolvedType;
 		const IStructure* trgType = targetDef.ResolvedType;
 
+		if (srcType->VarType() == VARTYPE_Array)
+		{
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Array to array assignment must be handled at a higher level", target);
+			return;
+		}
+
 		if (srcType != trgType)
 		{
 			if (!TryAssignClassInterfaceToInterface(source, target, srcType, trgType))
@@ -1979,6 +2003,10 @@ namespace Anon
 	BITCOUNT GetBitCountFromStruct(const MemberDef& def)
 	{
 		if (def.ResolvedType->InterfaceCount() > 0)
+		{
+			return BITCOUNT_POINTER;
+		}
+		else if (def.ResolvedType->VarType() == VARTYPE_Array)
 		{
 			return BITCOUNT_POINTER;
 		}
@@ -2267,16 +2295,32 @@ namespace Anon
 		{
 			def.MemberOffset += memberOffsetCorrection;
 
-			BITCOUNT bitCount = GetBitCountFromStruct(def);
-
 			UseStackFrameFor(*this, def);
 
 			if (def.Usage == ARGUMENTUSAGE_BYREFERENCE)
 			{
-				Assembler().Append_GetStackFrameMember(VM::REGISTER_D4 + tempIndex, def.SFOffset, def.MemberOffset, bitCount);
+				if (def.IsContained)
+				{
+					Assembler().Append_GetStackFrameMember(VM::REGISTER_D4 + tempIndex, def.SFOffset, def.MemberOffset, BITCOUNT_POINTER);
+				}
+				else if (srcType->VarType() == VARTYPE_Array)
+				{
+					Assembler().Append_GetStackFrameValue(def.SFOffset, VM::REGISTER_D4 + tempIndex, BITCOUNT_POINTER);
+				}
+				else if (srcType->VarType() != VARTYPE_Derivative)
+				{		
+					BITCOUNT bits = GetBitCount(srcType->VarType());
+					// Pointer to primitive. Currently these only exist as a result of (foreach x # array ...) operations
+					Assembler().Append_GetStackFrameMember(VM::REGISTER_D4 + tempIndex, def.SFOffset, def.MemberOffset, bits);
+				}
+				else
+				{
+					Assembler().Append_GetStackFrameValue(def.SFOffset, VM::REGISTER_D4 + tempIndex, BITCOUNT_POINTER);
+				}
 			}
 			else // def.Usage is by value
 			{
+				BITCOUNT bitCount = GetBitCountFromStruct(def);
 				Assembler().Append_GetStackFrameValue(def.SFOffset + def.MemberOffset, VM::REGISTER_D4 + tempIndex, bitCount);
 			}
 

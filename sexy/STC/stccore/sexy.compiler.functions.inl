@@ -155,7 +155,18 @@ namespace Anon
 			{
 				if (direction == ARGDIRECTION_INPUT)
 				{
-					usage = (VARTYPE_Derivative == resolvedType->VarType()) ? ARGUMENTUSAGE_BYREFERENCE : ARGUMENTUSAGE_BYVALUE;
+					switch (resolvedType->VarType())
+					{
+					case VARTYPE_Derivative:
+					case VARTYPE_Array:
+					case VARTYPE_List:
+					case VARTYPE_Map:
+						usage = ARGUMENTUSAGE_BYREFERENCE;
+						break;
+					default:
+						usage = ARGUMENTUSAGE_BYVALUE;
+						break;
+					}
 				}
 				else
 				{

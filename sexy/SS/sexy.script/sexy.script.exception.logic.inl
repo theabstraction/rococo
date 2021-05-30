@@ -191,7 +191,7 @@ namespace Rococo::Script
 				int32* pLock = (int32*)(locker->ContainerPtr + locker->locMemberOffset);
 				*pLock = 0;
 			}
-			else if (AreEqual(type.Name(), ("_Array")))
+			else if (type.VarType() == VARTYPE_Array)
 			{
 				ArrayImage* a = (ArrayImage*)instance;
 				if (RequiresDestruction(*a->ElementType))
@@ -205,12 +205,12 @@ namespace Rococo::Script
 				NodeRef* nr = (NodeRef*)instance;
 				if (nr->NodePtr != NULL) ReleaseNode(nr->NodePtr, ss);
 			}
-			else if (AreEqual(type.Name(), ("_List")))
+			else if (type.VarType() == VARTYPE_List)
 			{
 				ListImage* l = (ListImage*)instance;
 				ListClear(*l, ss);
 			}
-			else if (AreEqual(type.Name(), ("_Map")))
+			else if (type.VarType() == VARTYPE_Map)
 			{
 				MapImage* m = (MapImage*)instance;
 				MapClear(m, ss);

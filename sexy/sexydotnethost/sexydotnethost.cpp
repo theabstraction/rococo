@@ -499,7 +499,7 @@ namespace SexyDotNet { namespace Host
 			}
 					
 			const IStructure& s = *def.ResolvedType;
-			if (s.VarType() == VARTYPE_Derivative)
+			if (s.VarType() == VARTYPE_Derivative || IsContainerType(s.VarType()))
 			{
 				const Rococo::uint8* pInstance = GetInstance(def, pseudoType, SF);
 				if (pInstance != NULL)

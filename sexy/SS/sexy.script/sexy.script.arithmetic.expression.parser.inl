@@ -273,6 +273,9 @@ namespace Rococo
 			case VARTYPE_Bool: return ("Bool");
 			case VARTYPE_Pointer: return ("Pointer");
 			case VARTYPE_Closure: return ("Archetype");
+			case VARTYPE_Array: return "Array";
+			case VARTYPE_List: return "List";
+			case VARTYPE_Map: return "Map";
 			default: return ("unknown-type");
 			}
 		}

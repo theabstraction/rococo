@@ -373,6 +373,17 @@ namespace Rococo {
 		SCRIPTEXPORT_API cstr GetInstanceVarName(cstr name, const Rococo::Compiler::IStructure* pseudoType);
 		SCRIPTEXPORT_API bool FindVariableByName(Rococo::Compiler::MemberDef& def, const Rococo::Compiler::IStructure*& pseudoType, const Rococo::uint8*& SF, IPublicScriptSystem& ss, cstr searchName, size_t callOffset);
 		SCRIPTEXPORT_API const Rococo::Compiler::IStructure* FindStructure(IPublicScriptSystem& ss, cstr fullyQualifiedName);
+
+		struct ArrayImage
+		{
+			void* Start;
+			int32 NumberOfElements;
+			int32 ElementCapacity;
+			const IStructure* ElementType;
+			int32 ElementLength;
+			int32 LockNumber;
+			int64 RefCount;
+		};
 }}
 
 namespace Rococo {

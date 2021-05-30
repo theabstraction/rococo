@@ -161,8 +161,11 @@ namespace
 				else  SafeFormat(rvalue, bufferLen, ("%d (%8.8x)"), value, value);
 			}
 			break;
+		case VARTYPE_Array:
+		case VARTYPE_List:
+		case VARTYPE_Map:
 		case VARTYPE_Derivative:
-			SafeFormat(rvalue, bufferLen, "%8llX -> %8llX", (int64) pVariableData, (int64) *(void**)pVariableData);
+			SafeFormat(rvalue, bufferLen, "%llX -> %llX", (int64) pVariableData, (int64) *(void**)pVariableData);
 			break;
 		case VARTYPE_Int32:
 			{

@@ -338,7 +338,13 @@ namespace Rococo
 		VARTYPE_Derivative,
 		VARTYPE_Bad,
 		VARTYPE_Closure,
-		VARTYPE_AnyNumeric // Not really a type, passed to a function to indicate any numeric type is valid
+		VARTYPE_AnyNumeric, // Not really a type, passed to a function to indicate any numeric type is valid
+		VARTYPE_Array,
+		VARTYPE_List,
+		VARTYPE_Map,
+		VARTYPE_ListNode,
+		VARTYPE_MapNode,
+		VARTYPE_Lock
 	};
 
 	namespace Sex

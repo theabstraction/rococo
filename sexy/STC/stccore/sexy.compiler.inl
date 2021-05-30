@@ -377,7 +377,14 @@ namespace Rococo { namespace Compiler { namespace Impl
 			underlyingType = _underlyingType;
 			underlyingGenericArg1Type = _genericArg1Type;
 			underlyingGenericArg2Type = _genericArg2Type;
-			sizeOfMember = (underlyingType == NULL) ? 0 : (isInterfaceRef ? sizeof(void*) : underlyingType->SizeOfStruct());
+			if (underlyingType && underlyingType->VarType() == VARTYPE_Array)
+			{
+				sizeOfMember = sizeof(void*);
+			}
+			else
+			{
+				sizeOfMember = (underlyingType == NULL) ? 0 : (isInterfaceRef ? sizeof(void*) : underlyingType->SizeOfStruct());
+			}
 		}
 
 		StructureMember(cstr _name, cstr _type, cstr _genericArg1Type, cstr _genericArg2Type, bool _isInterfaceRef = false):
@@ -438,43 +445,43 @@ namespace Rococo { namespace Compiler { namespace Impl
 		Structure(cstr _name, const StructurePrototype& _prototype, IModuleBuilder& _module, VARTYPE type, const void* _definition);
 		~Structure();
 
-      virtual void Free() { delete this; }
+        void Free() override { delete this; }
 
-		virtual void AddInterface(cstr interfaceFullName);
-		virtual int InterfaceCount() const;
-		virtual const IInterface& GetInterface(int index) const;
-		virtual IInterfaceBuilder& GetInterface(int index);
-		virtual bool HasInterfaceMembers() const;
+		void AddInterface(cstr interfaceFullName) override;
+		int InterfaceCount() const override;
+		const IInterface& GetInterface(int index) const override;
+		IInterfaceBuilder& GetInterface(int index) override;
+		bool HasInterfaceMembers() const override;
 
-		virtual void AddMember(const NameString& _name, const TypeString& _type, cstr _genericArgType1 = NULL, cstr _genericArgType2 = NULL);
-		virtual void AddInterfaceMember(const NameString& _name, const TypeString& _type);
-		virtual void Seal();
-		virtual int MemberCount() const;
-		virtual IProgramObject& Object();
-		virtual IPublicProgramObject& Object() const;
-		virtual cstr Name() const;
-		virtual const VARTYPE VarType() const;
-		virtual const StructurePrototype& Prototype() const;
-		virtual IModuleBuilder& Module() { return module; }
-		virtual const IModule& Module() const { return module; }
-		virtual int SizeOfStruct() const;
-		virtual bool IsResolved() const { return sizeOfStruct > 0; }
-		virtual const ID_BYTECODE* GetVirtualTable(int interfaceIndex) const;
-		virtual void ExpandAllocSize(int minimumByteCount);
-		virtual const void* Definition() const { return definition; }
-		virtual const IFunction* Constructor() const { return constructor; }
-		virtual void SetConstructor(const IFunction* _cons) { constructor = _cons;}
+		void AddMember(const NameString& _name, const TypeString& _type, cstr _genericArgType1 = NULL, cstr _genericArgType2 = NULL) override;
+		void AddInterfaceMember(const NameString& _name, const TypeString& _type) override;
+		void Seal() override;
+		int MemberCount() const override;
+		IProgramObject& Object() override;
+		IPublicProgramObject& Object() const override;
+		cstr Name() const override;
+		const VARTYPE VarType() const override;
+		const StructurePrototype& Prototype() const override;
+		IModuleBuilder& Module() override { return module; }
+		const IModule& Module() const override { return module; }
+		int SizeOfStruct() const override;
+		bool IsResolved() const override { return sizeOfStruct > 0; }
+		const ID_BYTECODE* GetVirtualTable(int interfaceIndex) const override;
+		void ExpandAllocSize(int minimumByteCount) override;
+		const void* Definition() const override { return definition; }
+		const IFunction* Constructor() const override { return constructor; }
+		void SetConstructor(const IFunction* _cons) override { constructor = _cons;}
 	
 		void ExpandToNullObjects();
 		void AddMemberRaw(const NameString& _memberName, const TypeString& _type);
 
 		StructureMember& GetMemberRef(int index);
-		IMemberBuilder& GetMember(int index);
-		const IMember& GetMember(int index) const;
-		const IArchetype* Archetype() const { return prototype.archetype; }
-		void Update();
+		IMemberBuilder& GetMember(int index) override;
+		const IMember& GetMember(int index) const override;
+		const IArchetype* Archetype() const override { return prototype.archetype; }
+		void Update() override;
 		bool ResolveInterfaces(ILog& log, bool reportErrors, const void** pSrcError);
-		virtual ID_BYTECODE GetDestructorId() const;	
+		virtual ID_BYTECODE GetDestructorId() const;
 	};
 
 	typedef std::list<Structure*> TStructureList;
