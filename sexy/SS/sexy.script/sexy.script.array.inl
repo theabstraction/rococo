@@ -593,6 +593,18 @@ namespace Rococo
 		   registers[VM::REGISTER_D6].int32Value = a ? a->NumberOfElements : 0;
 	   }
 
+	   VM_CALLBACK(ArrayReturnLength)
+	   {
+		   ArrayImage* a = (ArrayImage*)registers[VM::REGISTER_D4].vPtrValue;
+		   registers[VM::REGISTER_D7].int32Value = a ? a->NumberOfElements : 0;
+	   }
+
+	   VM_CALLBACK(ArrayReturnCapacity)
+	   {
+		   ArrayImage* a = (ArrayImage*)registers[VM::REGISTER_D4].vPtrValue;
+		   registers[VM::REGISTER_D7].int32Value = a ? a->ElementCapacity : 0;
+	   }
+
 	   VM_CALLBACK(ArrayGetLastIndex)
 	   {
 		   ArrayImage* a = (ArrayImage*)registers[VM::REGISTER_D13].vPtrValue;

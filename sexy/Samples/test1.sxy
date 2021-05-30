@@ -4,6 +4,6 @@
 (using Sys.Type)
 
 (function Main -> (Int32 result):
-	(map IString Int32 a)
-	(result = a.Length)
+	(array Int32 a 4)
+	(result = a.Capacity)
 )

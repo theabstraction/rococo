@@ -1096,16 +1096,23 @@ namespace Rococo
       {
 	      if (instanceStruct == ce.StructArray())
 	      {
-		      TokenBuffer field;
+			  const ArrayCallbacks& callbacks = GetArrayCallbacks(ce);
+
 		      if (AreEqual(("Length"), methodName))
 		      {
-			      StringPrint(field, ("%s._length"), instance); !!!
-			      ValidateReturnType(s, returnType, VARTYPE_Int32);
+				  ce.Builder.AssignVariableToTemp(instance, 0, 0); // This shifts the array pointer to D4			 
+				  AddSymbol(ce.Builder, "D7 = %s.Length", instance);
+				  AppendInvoke(ce, callbacks.ArrayReturnLength, s); // the length is now written to D7
+				  ValidateReturnType(s, returnType, VARTYPE_Int32);
+				  return true;
 		      }
 		      else if (AreEqual(("Capacity"), methodName))
 		      {
-			      StringPrint(field, ("%s._elementCapacity"), instance);
-			      ValidateReturnType(s, returnType, VARTYPE_Int32);
+				  ce.Builder.AssignVariableToTemp(instance, 0, 0); // This shifts the array pointer to D4
+				  AddSymbol(ce.Builder, "D7 = %s.Capacity", instance);
+				  AppendInvoke(ce, callbacks.ArrayReturnCapacity, s); // the length is now written to D7
+				  ValidateReturnType(s, returnType, VARTYPE_Int32);
+				  return true;
 		      }
 		      else if (AreEqual(("PopOut"), methodName))
 		      {
@@ -1115,12 +1122,8 @@ namespace Rococo
 		      }
 		      else
 		      {
-			      Throw(s, ("The property is not recognized for array types. Known properties for arrays: Length, Capacity & PopOut"));
+			      Throw(s, "The property is not recognized for array types. Known properties for arrays: Length, Capacity & PopOut");
 		      }
-
-		      ce.Builder.AddSymbol(field);
-		      ce.Builder.AssignVariableToTemp(field, Rococo::ROOT_TEMPDEPTH, 0);
-		      return true;
 	      }
 
 	      return false;

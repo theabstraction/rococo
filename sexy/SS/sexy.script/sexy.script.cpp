@@ -798,6 +798,8 @@ namespace Rococo
 			arrayCallbacks.ArrayGetInterfaceUnchecked = core.RegisterCallback(OnInvokeArrayGetInterfaceUnchecked, this, ("ArrayGetInterface"));
 			arrayCallbacks.ArrayGetLength = core.RegisterCallback(OnInvokeArrayGetLength, this, "ArrayGetLength");
 			arrayCallbacks.ArrayGetLastIndex = core.RegisterCallback(OnInvokeArrayGetLastIndex, this, "ArrayGetLastIndex");
+			arrayCallbacks.ArrayReturnLength = core.RegisterCallback(OnInvokeArrayReturnLength, this, "ArrayReturnLength");
+			arrayCallbacks.ArrayReturnCapacity = core.RegisterCallback(OnInvokeArrayReturnCapacity, this, "ArrayReturnCapacity");
 
 			listCallbacks.ListInit = core.RegisterCallback(OnInvokeListInit, this, ("ListInit"));
 			listCallbacks.ListAppend = core.RegisterCallback(OnInvokeListAppend, this, ("ListAppend"));
