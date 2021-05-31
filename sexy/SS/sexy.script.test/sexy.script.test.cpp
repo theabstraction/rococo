@@ -7319,50 +7319,6 @@ R"((namespace EntryPoint)
 		validate(x == 1812);
 	}
 
-	void TestArrayForeachOnce(IPublicScriptSystem& ss)
-	{
-		cstr srcCode = 
-		"(namespace EntryPoint)"
-		" (alias Main EntryPoint.Main)"
-  
-		"(using Sys.Type)"
-
-		"(struct DogKennel (array Int32 dogIds))"
-		"(struct Sanctuary (array DogKennel kennels))"
-
-		"(method DogKennel.Construct (Int32 capacity)"
-		"	-> (construct dogIds capacity) "	
-		"	:"
-		")"
-
-		"(method Sanctuary.Construct (Int32 kennelCapacity)"
-		"	-> (construct kennels kennelCapacity)"		
-		"	:"
-		")"
-  
-		"(function Main -> (Int32 result):"
-		"	(Sanctuary sanctuary (4) )" // Create a sanctuary with a capacity of 4 kennels
-		"	(sanctuary.kennels.Push 4)" // Push/construct a new kennel in the sanctuary using 4 as argument to constructor
-		"	(foreach i k # (sanctuary.kennels 0 0)" // Get a ref to the first kennel
-		"		(k.dogIds.Push 1812)" // Put a new dog id in the first kennel
-		"		(result = (k.dogIds 0))" // Return the first dog id
-		"	)"
-		")";
-
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 },"TestArrayInStruct4");
-		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
-
-		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
-
-		vm.Push(0); // Allocate stack space for the int32 result
-
-		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
-		ValidateExecution(result);
-		
-		int32 x = vm.PopInt32();
-		validate(x == 1812);
-	}
-
 	void TestClamp1(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -7468,13 +7424,13 @@ R"((namespace EntryPoint)
 		"	(sanctuary.kennels.Push 4)" // Push/construct a new kennel in the sanctuary using 4 as argument to constructor
 		"	(sanctuary.kennels.Push 4)" // Push/construct a new kennel in the sanctuary using 4 as argument to constructor
 		"	(sanctuary.kennels.Push 4)" // Push/construct a new kennel in the sanctuary using 4 as argument to constructor
-		"	(foreach i k # (sanctuary.kennels 0 3)" // Enumerate over all 4 kennesl
-		"		(k.dogIds.Push i)" // Put a new dog id in the kennel
-		"		(k.dogIds.Push i)" // Put a new dog id in the kennel
-		"		(k.dogIds.Push i)" // Put a new dog id in the kennel
-		"		(k.dogIds.Push i)" // Put a new dog id in the kennel
-		"		(foreach j d # (k.dogIds 0 3)" // Enumerate through kennel
-		"			(result = (result + d))" // Sum the dogid to result
+		"	(foreach k # sanctuary.kennels" // Enumerate over all 4 kennesl
+		"		(k.dogIds.Push 1)" // Put a new dog id in the kennel
+		"		(k.dogIds.Push 2)" // Put a new dog id in the kennel
+		"		(k.dogIds.Push 3)" // Put a new dog id in the kennel
+		"		(k.dogIds.Push 4)" // Put a new dog id in the kennel
+		"		(foreach d # k.dogIds" // Enumerate through kennel
+		"			(result += d)" // Sum the dogid to result
 		"		)" // Sum the dogid to result
 		"	)"
 		")";
@@ -7490,7 +7446,7 @@ R"((namespace EntryPoint)
 		ValidateExecution(result);
 		
 		int32 x = vm.PopInt32();
-		validate(x == 24);
+		validate(x == 40);
 	}
 
 	void TestArrayForeachAndThrow(IPublicScriptSystem& ss)
@@ -7514,9 +7470,8 @@ R"((namespace EntryPoint)
 
 		"	(try"
 		"		("
-		"			(foreach i k # (sanctuary.kennelIds 0 9)" // Enumerate over all 10 kennels
+		"			(foreach k # sanctuary.kennelIds" // Enumerate over all 10 kennels
 		"				(Sys.Throw -1 \"Test: foreach throw\")"
-		"				(result = (result + i))" // Sum the index to result
 		"			)"
 		"		)"
 		"	catch ex"
@@ -7589,7 +7544,7 @@ R"((namespace EntryPoint)
 		validate(x == 45);
 	}
 
-	void TestArrayForeachEachElementInArray(IPublicScriptSystem& ss)
+	void TestArrayForeachElementInArray(IPublicScriptSystem& ss)
 	{
 		cstr srcCode = 
 		"(namespace EntryPoint)"
@@ -7603,12 +7558,12 @@ R"((namespace EntryPoint)
 		"		(a.Push (i + 10))"
 		"	)"
 
-		"	(foreach i k # a"
-		"		(result = (result + k))"
+		"	(foreach k # a"
+		"		(result += k)"
 		"	)"		
 		")";
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 },"TestArrayForeachEachElementInArray");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 },"TestArrayForeachElementInArray");
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -12198,6 +12153,35 @@ R"((namespace EntryPoint)
 		validate(x == 4);
 	}
 
+	void TestDeltaOperators5(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = "(namespace EntryPoint)"
+			"(using Sys.Maths)"
+			"(using EntryPoint)"
+			"(function Main -> (Float32 result) :"
+			"	(Vec2 v = 9 3)"
+			"	(Float32 y = 5)"
+			"	(y += v.x)"
+			"   (result = y)"
+			")"
+			"(alias Main EntryPoint.Main)"
+			;
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0.0f); // add our output to the stack
+
+		Rococo::EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateLogs();
+		validate(result == Rococo::EXECUTERESULT_TERMINATED);
+
+		auto x = vm.PopFloat32();
+		validate(x == 14);
+	}
+
 	void TestDeltaOperators4(IPublicScriptSystem& ss)
 	{
 		cstr srcCode = "(namespace EntryPoint)"
@@ -12734,12 +12718,12 @@ R"(
 		(vectors.Push Vec2f (3 5))
 		(vectors.Push Vec2f (7 9))
 
-		(foreach i v # vectors
-			(foreach j w # vectors
-				(z = (z + (i * v.x)))
-				(z = (z + (i * v.y)))
-				(z = (z + (j * w.x)))
-				(z = (z + (j * w.y)))
+		(foreach v # vectors
+			(foreach w # vectors
+				(z += v.x)
+				(z += v.y)
+				(z += w.x)
+				(z += w.y)
 			)
 		)
 	)
@@ -12757,7 +12741,7 @@ R"(
 		validate(result == Rococo::EXECUTERESULT_TERMINATED);
 
 		auto x1 = vm.PopFloat32();
-		validate(x1 = 34.0f);
+		validate(x1 == 96.0f);
 	}
 
 	void TestClosureArg(IPublicScriptSystem& ss)
@@ -13815,7 +13799,7 @@ R"(
 	   TEST(TestNestedArrayEnumeration);
 
 	   TEST(TestConstructInArray);
-	   TEST(TestArrayForeachEachElementInArray);
+	   TEST(TestArrayForeachElementInArray);
 	   TEST(TestArrayForeachEachElementInArrayWithoutIndex);
 	   TEST(TestArrayElementDeconstruct);
 	   TEST(TestArrayElementDeconstructWhenThrown);
@@ -13826,7 +13810,6 @@ R"(
 	   TEST(TestArrayWithEarlyReturn);
 	   TEST(TestArrayWithEarlyReturn2);
 
-	   TEST(TestArrayForeachOnce);
 	   TEST(TestArrayForeachWithinForEach);
 
 	   TEST(TestArrayForeachAndThrow);
@@ -14034,6 +14017,7 @@ R"(
 		TEST(TestDeltaOperators2);
 		TEST(TestDeltaOperators3);
 		TEST(TestDeltaOperators4);
+		TEST(TestDeltaOperators5);
 
 		TEST(TestAssignStringToStruct);
 		TEST(TestCaptureStruct);
@@ -14334,6 +14318,9 @@ int main(int argc, char* argv[])
 {
 	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
 
+	TEST(TestArrayForeachWithinForEach);
+	TEST(TestNestedArrayEnumeration);
+	TEST(TestDeltaOperators5);
 	TEST(TestArrayInt32Reassign);
 	//_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF | _CRTDBG_CHECK_ALWAYS_DF);
 

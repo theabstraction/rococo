@@ -1301,9 +1301,7 @@ namespace Rococo
 		//   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayUnlock); // Enable popping of the array after enumeration has finished
 	   }
 
-		// (foreach i v # <collection-name> (...) (...) )
-		// (foreach i v # (<collection-name> <lower-bound> <upper-bound>) (...) (...) )
-		// (foreach v # (<collection-name> <lower-bound> <upper-bound>) (...) (...) )
+		// (foreach v # <collection-name> (...) (...) )
 	   cstr GetCollectionNameFromForeachExpression(cr_sex scollection)
 	   {
 		   if (IsCompound(scollection))
@@ -1326,39 +1324,21 @@ namespace Rococo
 
 	   void CompileEnumerateArray(CCompileEnvironment& ce, cr_sex s, int hashIndex)
 	   {	
-		   // (foreach i v # a (...) (...) )
 		   // (foreach v # a (...) (...) )
-		   // (foreach i v # (a <lower-bound> <upper-bound>) (...) (...) )
-		   // (foreach v # (a <lower-bound> <upper-bound>) (...) (...) )
 
-		   cr_sex collection = s[hashIndex + 1];
-		   cstr collectionName = GetCollectionNameFromForeachExpression(collection);
-
-		   cstr indexName;
-		   cstr refName;
-
-		   if (hashIndex == 2)
+		   if (hashIndex != 2)
 		   {
-			   // (foreach v # a (...) (...) ) or
-			   // (foreach v # (a <lower-bound> <upper-bound>) (...) (...) )
-			   indexName = nullptr;
-			   cr_sex refExpr = s[1];
-			   AssertLocalIdentifier(refExpr);
-			   refName = refExpr.String()->Buffer;
+			   Throw(s, "Expecting # at position 2");
 		   }
-		   else
-		   {
-			   // (foreach i v # a (...) (...) )
-		       // (foreach i v # (a <lower-bound> <upper-bound>) (...) (...) )
-			   cr_sex indexExpr = s[1];
-			   indexName = indexExpr.String()->Buffer;
-			   AssertLocalIdentifier(indexExpr);
 
-			   cr_sex refExpr = s[2];
-			   AssertLocalIdentifier(refExpr);
-			   refName = refExpr.String()->Buffer;			
-			   AddVariable(ce, NameString::From(indexName), ce.Object.Common().TypeInt32());
-		   }
+		   cr_sex collectionNameExpr = GetAtomicArg(s, 3);
+
+		   cstr collectionName = collectionNameExpr.String()->Buffer;
+
+			// (foreach v # a (...) )
+			cr_sex refExpr = s[1];
+			AssertLocalIdentifier(refExpr);
+			cstr refName = refExpr.String()->Buffer; 
 
 		   const IStructure& elementType = GetElementTypeForArrayVariable(ce, s, collectionName);
 
@@ -1385,59 +1365,16 @@ namespace Rococo
 
 		   ce.Builder.AddSymbol("(foreach..."); 
 
-		   if (IsCompound(collection))
-		   {
-			   cr_sex startIndexExpr = collection.GetElement(1);
-		
-			   int32 startIndexValue;
-			   if (TryParseAsIndexPositiveLiteralInt32(OUT startIndexValue, startIndexExpr))
-			   {
-				   VariantValue v;
-				   v.int32Value = startIndexValue;
-				   ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D12, v, BITCOUNT_32);
-			   }
-			   else
-			   {
-				   if (!TryCompileArithmeticExpression(ce, startIndexExpr, true, VARTYPE_Int32)) Throw(startIndexExpr, ("Failed to parse expression as (Int32 startIndex)"));
-				   CompileValidateIndexPositive(ce, collection, Rococo::ROOT_TEMPDEPTH); // index now validated to be positive
-				   ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D12, BITCOUNT_32); // D12 contains the working index throughout the entire iteration
-			   }
-		   }
-		   else
-		   {
-			   VariantValue zero;
-			   zero.int32Value = 0;
-			   ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D12, zero, BITCOUNT_32);
-		   }
+		   VariantValue zero;
+		   zero.int32Value = 0;
+		   ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D12, zero, BITCOUNT_32);
 		
 		   // We may be nested in a function that overwrites D11, so save it
 		   ce.Builder.AddSymbol("D11 - final index");
 		   AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 4, Rococo::ROOT_TEMPDEPTH + 4, BITCOUNT_POINTER);
 
-		   if (IsCompound(collection))
-		   {
-			   cr_sex endIndexExpr = collection[2];
-
-			   int32 endIndexValue;
-			   if (TryParseAsIndexPositiveLiteralInt32(OUT endIndexValue, endIndexExpr))
-			   {
-				   VariantValue v;
-				   v.int32Value = endIndexValue;
-				   ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D11, v, BITCOUNT_32);
-			   }
-			   else
-			   {
-				   if (!TryCompileArithmeticExpression(ce, endIndexExpr, true, VARTYPE_Int32)) Throw(endIndexExpr, "Failed to parse expression as (Int32 endIndex)");
-				   ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D11, BITCOUNT_32); // D11 contains the final index throughout the entire iteration
-			   }		
-
-			    CompileValidateIndexLowerThanArrayElementCount(ce, collection, 7, collectionName);
-		   }
-		   else
-		   {
-			   ce.Builder.AddSymbol("(D13 array)->(D11 lastIndex)");
-			   AppendInvoke(ce, GetArrayCallbacks(ce).ArrayGetLastIndex, s);
-		   }
+		   ce.Builder.AddSymbol("(D13 array)->(D11 lastIndex)");
+		AppendInvoke(ce, GetArrayCallbacks(ce).ArrayGetLastIndex, s);
 		
 		   // We may be nested in a function that overwrites D10, which is used as the result of D10-11
 		   AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 3, Rococo::ROOT_TEMPDEPTH + 3, BITCOUNT_POINTER);
@@ -1463,12 +1400,11 @@ namespace Rococo
 
 		   struct BodySection: public ICompileSection
 		   {			
-			   BodySection(cr_sex _s, CCompileEnvironment& _ce, cstr _indexName, cstr _refName, int _firstBodyIndex, int _lastBodyIndex):
-				   s(_s), ce(_ce), indexName(_indexName), refName(_refName), firstBodyIndex(_firstBodyIndex), lastBodyIndex(_lastBodyIndex) {}
+			   BodySection(CCompileEnvironment& _ce, cr_sex _s, int _firstBodyIndex, int _lastBodyIndex, cstr _refName):
+				   ce(_ce), s(_s), refName(_refName), firstBodyIndex(_firstBodyIndex), lastBodyIndex(_lastBodyIndex) {}
 
-			   cr_sex s;
 			   CCompileEnvironment& ce;
-			   cstr indexName;
+			   cr_sex s;
 			   cstr refName;
 			   int firstBodyIndex;
 			   int lastBodyIndex;
@@ -1492,7 +1428,6 @@ namespace Rococo
 
 				   ce.Builder.Assembler().Append_SetStackFrameValue(refDef.SFOffset, VM::REGISTER_D7, BITCOUNT_POINTER);
 
-				   if (indexName != NULL) ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH + 5, indexName); // index is now = running index
 				   VariantValue one;
 				   one.int32Value = 1;
 				   ce.Builder.Assembler().Append_AddImmediate(VM::REGISTER_D12, BITCOUNT_32, VM::REGISTER_D12, one); // increment the running index
@@ -1502,7 +1437,7 @@ namespace Rococo
 				   builder.PopControlFlowPoint();
 				   ce.Builder.AddSymbol("...while }");
 			   }
-		   } bodySection(s, ce, indexName, refName, hashIndex + 2, s.NumberOfElements()-1);
+		   } bodySection(ce, s, hashIndex + 2, s.NumberOfElements()-1, refName);
 
 		   ce.Builder.AppendWhileDo(loopCriterion, CONDITION_IF_GREATER_OR_EQUAL, bodySection);
 		
