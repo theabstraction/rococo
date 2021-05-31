@@ -85,7 +85,7 @@ namespace Rococo
 			   a->Start = ss.AlignedMalloc(16, capacity * a->ElementLength);
 			   if (a->Start == nullptr)
 			   {
-				   throw std::exception("");
+				   throw 0;
 			   }
 		   }
 		   catch (...)
@@ -156,75 +156,136 @@ namespace Rococo
 		   DestroyElements(*a, ss);
 	   }
 
+	   void ArrayDoubleCapacity(ArrayImage& a, IScriptSystem& ss)
+	   {
+		   int64 currentLengthInBytes = (int64) a.ElementCapacity * (int64) a.ElementLength;
+		   if (currentLengthInBytes >= (int64) 1024_megabytes)
+		   {
+			   ss.ThrowFromNativeCode(ERANGE, "ArrayDoubleCapacity failed: the array was at maximum capacity");
+		   }
+
+		   try
+		   {
+			   auto* newBuffer = (char*)ss.AlignedMalloc(16, (int32) currentLengthInBytes * 2);
+			   if (newBuffer == nullptr) throw 0;
+
+			   memcpy(newBuffer, a.Start, currentLengthInBytes);
+			   memset(newBuffer + currentLengthInBytes, 0, currentLengthInBytes);
+
+			   ss.AlignedFree(a.Start);
+			   a.Start = newBuffer;
+		   }
+		   catch (...)
+		   {
+			   ss.ThrowFromNativeCode(ERANGE, "ArrayDoubleCapacity failed: out of heap memory");
+		   }
+
+		   a.ElementCapacity *= 2;
+	   }
+
 	   VM_CALLBACK(ArrayPushAndGetRef)
 	   {
-		   ArrayImage* a = (ArrayImage*) registers[VM::REGISTER_D7].vPtrValue;
+		   ArrayImage* a = (ArrayImage*)registers[VM::REGISTER_D7].vPtrValue;
 
-		   if (a->NumberOfElements < a->ElementCapacity)
+		   if (a->LockNumber > 0)
 		   {
-			   uint8* pElement = ((uint8* )a->Start) + a->NumberOfElements * a->ElementLength;
-			   memset(pElement, 0, a->ElementLength);
-			   a->NumberOfElements++;
-			   registers[VM::REGISTER_D8].vPtrValue = pElement;
+			   IScriptSystem& ss = *(IScriptSystem*)context;
+			   ss.ThrowFromNativeCode(ERANGE, "Array.PushAndGetRef failed: the array was locked for enumeration");
 		   }
-		   else
+
+		   if (a->NumberOfElements >= a->ElementCapacity)
 		   {
-			   IScriptSystem& ss = *(IScriptSystem*) context;
-			   ss.ThrowFromNativeCode(ERANGE, ("Array.Push failed: the array was full"));
+			   ArrayDoubleCapacity(*a, *(IScriptSystem*)context);
 		   }
+
+		   uint8* pElement = ((uint8*)a->Start) + a->NumberOfElements * a->ElementLength;
+		   memset(pElement, 0, a->ElementLength);
+		   a->NumberOfElements++;
+		   registers[VM::REGISTER_D8].vPtrValue = pElement;
 	   }
 
 	   VM_CALLBACK(ArrayPush32)
 	   {
-		   ArrayImage* a = (ArrayImage*) registers[VM::REGISTER_D4].vPtrValue;
+		   ArrayImage* a = (ArrayImage*)registers[VM::REGISTER_D4].vPtrValue;
 		   int32 value = registers[VM::REGISTER_D7].int32Value;
 
-		   if (a->NumberOfElements < a->ElementCapacity)
+		   if (a->LockNumber > 0)
 		   {
-			   int32* intBuffer = (int32*) a->Start;
-			   intBuffer[a->NumberOfElements++] = value;
+			   IScriptSystem& ss = *(IScriptSystem*)context;
+			   ss.ThrowFromNativeCode(ERANGE, "Array.ArrayPush32 failed: the array was locked for enumeration");
 		   }
-		   else
+
+		   if (a->NumberOfElements >= a->ElementCapacity)
 		   {
-			   IScriptSystem& ss = *(IScriptSystem*) context;
-			   ss.ThrowFromNativeCode(ERANGE, ("Array.Push failed: the array was full"));
+			   ArrayDoubleCapacity(*a, *(IScriptSystem*)context);
 		   }
+
+		   int32* intBuffer = (int32*)a->Start;
+		   intBuffer[a->NumberOfElements++] = value;
 	   }
 
 	   VM_CALLBACK(ArrayPushInterface)
 	   {
 		   ArrayImage* a = (ArrayImage*)registers[VM::REGISTER_D4].vPtrValue;
-		   InterfacePointer pObject = (InterfacePointer) registers[VM::REGISTER_D7].vPtrValue;
+		   InterfacePointer pObject = (InterfacePointer)registers[VM::REGISTER_D7].vPtrValue;
 
 		   IScriptSystem& ss = *(IScriptSystem*)context;
 
-		   if (a->NumberOfElements < a->ElementCapacity)
+		   if (a->LockNumber > 0)
 		   {
-			   InterfacePointer* intBuffer = (InterfacePointer*) a->Start;
-			   intBuffer[a->NumberOfElements++] = pObject;
-			   ss.ProgramObject().IncrementRefCount(pObject);
+			   IScriptSystem& ss = *(IScriptSystem*)context;
+			   ss.ThrowFromNativeCode(ERANGE, "Array.ArrayPushInterface failed: the array was locked for enumeration");
 		   }
-		   else
+
+		   if (a->NumberOfElements >= a->ElementCapacity)
 		   {
-			   ss.ThrowFromNativeCode(ERANGE, ("Array.Push failed: the array was full"));
+			   ArrayDoubleCapacity(*a, *(IScriptSystem*)context);
 		   }
+
+		   InterfacePointer* intBuffer = (InterfacePointer*)a->Start;
+		   intBuffer[a->NumberOfElements++] = pObject;
+		   ss.ProgramObject().IncrementRefCount(pObject);
 	   }
 
 	   VM_CALLBACK(ArrayPush64)
 	   {
-		   ArrayImage* a = (ArrayImage*) registers[VM::REGISTER_D4].vPtrValue;
+		   ArrayImage* a = (ArrayImage*)registers[VM::REGISTER_D4].vPtrValue;
 		   int64 value = registers[VM::REGISTER_D7].int64Value;
 
-		   if (a->NumberOfElements < a->ElementCapacity)
+		   if (a->LockNumber > 0)
 		   {
-			   int64* intBuffer = (int64*) a->Start;
-			   intBuffer[a->NumberOfElements++] = value;
+			   IScriptSystem& ss = *(IScriptSystem*)context;
+			   ss.ThrowFromNativeCode(ERANGE, "Array.ArrayPush64 failed: the array was locked for enumeration");
 		   }
-		   else
+
+		   if (a->NumberOfElements >= a->ElementCapacity)
 		   {
-			   IScriptSystem& ss = *(IScriptSystem*) context;
-			   ss.ThrowFromNativeCode(ERANGE, ("Array.Push failed: the array was full"));
+			   ArrayDoubleCapacity(*a, *(IScriptSystem*)context);
 		   }
+
+		   int64* intBuffer = (int64*)a->Start;
+		   intBuffer[a->NumberOfElements++] = value;
+	   }
+
+	   VM_CALLBACK(ArrayPushByRef)
+	   {
+		   ArrayImage* a = (ArrayImage*)registers[VM::REGISTER_D4].vPtrValue;
+		   const void* pValue = registers[VM::REGISTER_D7].vTable;
+
+		   if (a->LockNumber > 0)
+		   {
+			   IScriptSystem& ss = *(IScriptSystem*)context;
+			   ss.ThrowFromNativeCode(ERANGE, "Array.ArrayPushByRef failed: the array was locked for enumeration");
+		   }
+
+		   if (a->NumberOfElements >= a->ElementCapacity)
+		   {
+			   ArrayDoubleCapacity(*a, *(IScriptSystem*)context);
+		   }
+
+		   void* pTargetElement = ((uint8*)a->Start) + (a->ElementLength * a->NumberOfElements);
+		   AlignedMemcpy(pTargetElement, pValue, a->ElementLength);
+		   a->NumberOfElements++;
 	   }
 
 	   VM_CALLBACK(ArraySet32)
@@ -431,24 +492,6 @@ namespace Rococo
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*) context;
 			   ss.ThrowFromNativeCode(ERANGE, ("Array.PopOut failed: the array was empty"));
-		   }
-	   }
-
-	   VM_CALLBACK(ArrayPushByRef)
-	   {
-		   ArrayImage* a = (ArrayImage*) registers[VM::REGISTER_D4].vPtrValue;
-		   const void* pValue = registers[VM::REGISTER_D7].vTable;
-
-		   if (a->NumberOfElements < a->ElementCapacity)
-		   {
-			   void* pTargetElement = ((uint8*) a->Start) + (a->ElementLength * a->NumberOfElements);
-			   AlignedMemcpy(pTargetElement, pValue, a->ElementLength);
-			   a->NumberOfElements++;
-		   }
-		   else
-		   {
-			   IScriptSystem& ss = *(IScriptSystem*) context;
-			   ss.ThrowFromNativeCode(ERANGE, ("Array.Push failed: the array was full"));
 		   }
 	   }
 

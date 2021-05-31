@@ -6396,6 +6396,35 @@ R"((namespace EntryPoint)
 		validate(x == 4);
 	}
 
+	void TestArrayInt32Expand(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Type)"
+
+			"(function Main -> (Int32 result):"
+			"	(array Int32 a 1)"
+			"	(a.Push 7)"
+			"	(a.Push 8)"
+			"	(result = a.Capacity)"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, "TestArrayInt32Expand");
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		int x = vm.PopInt32();
+		validate(x == 2);
+	}
+
 	void TestArrayOfArchetypes(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -6680,37 +6709,6 @@ R"((namespace EntryPoint)
 
 		int x = vm.PopInt32();
 		validate(x == 6);
-	}
-
-	void TestArrayPushOverflow(IPublicScriptSystem& ss)
-	{
-		cstr srcCode =
-			"(namespace EntryPoint)"
-			" (alias Main EntryPoint.Main)"
-
-			"(using Sys.Type)"
-
-			"(struct Haha (Float64 a b c d))"
-
-			"(function Main -> (Int32 result):"
-			"	(array Haha laughs 2)"
-			"	(Haha haha = 1 2 3 4)"
-			"	(laughs.Push haha)"
-			"	(laughs.Push haha)"
-			"	(laughs.Push haha)"
-			"	(result = laughs.Length)"
-			")";
-
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 },  __FUNCTION__);
-		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
-
-		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
-
-		vm.Push(0); // Allocate stack space for the int32 result
-
-		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
-		validate(result == EXECUTERESULT_THROWN);
-		s_logger.Clear();
 	}
 
 	void TestThrowInConstructor(IPublicScriptSystem& ss)
@@ -13773,6 +13771,7 @@ R"(
 	   TEST(TestReturnArrayRefAndIgnore);
 	   TEST(TestArrayElementIsClass);
 	   TEST(TestArrayInt32);
+	   TEST(TestArrayInt32Expand);
 	   TEST(TestArrayInt32_2);
 	   TEST(TestArrayInt32_3);
 	   TEST(TestArrayInt32_4);
@@ -13813,6 +13812,8 @@ R"(
 	   TEST(TestArrayForeachAndThrow);
 	   TEST(TestArrayProxy);
 	   TEST(TestArrayClear);
+
+	   TEST(TestReturnArrayRefAndIgnore);
 
 	   TEST(TestMap);
 	   TEST(TestMap2);
@@ -14274,7 +14275,6 @@ R"(
 	void RunPositiveFailures()
 	{
 		TEST(TestThrowInConstructor);
-		TEST(TestArrayPushOverflow);
 		TEST(TestMissingMethod);
 		TEST(TestDuplicateVariable);
 		TEST(TestDuplicateFunctionError);
@@ -14314,7 +14314,7 @@ int main(int argc, char* argv[])
 {
 	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
 
-	TEST(TestReturnArrayRefAndIgnore);
+	TEST(TestArrayInt32Expand);
 	//_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF | _CRTDBG_CHECK_ALWAYS_DF);
 
 	try
