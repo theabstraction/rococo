@@ -2037,7 +2037,7 @@ namespace Anon
 
 		UseStackFrameFor(*this, def);
 
-		if (def.location == VARLOCATION_OUTPUT || def.Usage != ARGUMENTUSAGE_BYREFERENCE)
+		if ((def.ResolvedType->VarType() == VARTYPE_Array && !def.IsContained) || def.location == VARLOCATION_OUTPUT || def.Usage != ARGUMENTUSAGE_BYREFERENCE)
 		{
 			Assembler().Append_SetStackFrameValue(def.SFOffset + def.MemberOffset, VM::REGISTER_D4 + srcIndex, bitCount);
 		}

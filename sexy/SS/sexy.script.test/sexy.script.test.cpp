@@ -7003,6 +7003,71 @@ R"((namespace EntryPoint)
 		validate(x == 7);
 	}
 
+	void TestReturnArrayRef(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Type)"
+
+			"(function GetArray -> (array Int32 result):"
+			"	(array Int32 temp 4)"
+			"	(temp.Push 5)"
+			"	(result = temp)"
+			")"
+
+			"(function Main -> (Int32 result):"
+			"	(array Int32 a = (GetArray))"
+			"	(result = (a 0))"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, "TestReturnArrayRef");
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		int x = vm.PopInt32();
+		validate(x == 5);
+	}
+
+	void TestReturnArrayRefAndIgnore(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Type)"
+
+			"(function GetArray -> (array Int32 result):"
+			"	(array Int32 temp 4)"
+			"	(temp.Push 5)"
+			"	(result = temp)"
+			")"
+
+			"(function Main -> (Int32 result):"
+			"	(GetArray)"
+			"	(result = 7)"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, "TestReturnArrayRefAndIgnore");
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ParseException ex;
+		validate(s_logger.TryGetNextException(ex));
+		validate(strstr(ex.Message(), "Expecting assignment") != nullptr);
+	}
+
 	void TestArrayStrongTyping(IPublicScriptSystem& ss)
 	{
 		cstr srcCode = 
@@ -13704,6 +13769,8 @@ R"(
    void RunCollectionTests()
    {
 	   TEST(TestArrayRef);
+	   TEST(TestReturnArrayRef);
+	   TEST(TestReturnArrayRefAndIgnore);
 	   TEST(TestArrayElementIsClass);
 	   TEST(TestArrayInt32);
 	   TEST(TestArrayInt32_2);
@@ -13725,6 +13792,8 @@ R"(
 	   TEST(TestArrayStrongTyping);
 	   TEST(TestArrayStrongTyping2);
 	   TEST(TestArrayStrongTyping3);
+
+	   TEST(TestNestedArrayEnumeration);
 
 	   TEST(TestConstructInArray);
 	   TEST(TestArrayForeachEachElementInArray);
@@ -14229,12 +14298,6 @@ R"(
 		int64 start, end, hz;
 		start = OS::CpuTicks();
 
-		TEST(TestMap);
-	//	TEST(TestArrayProxy);
-
-	//	TEST(TestArrayWithinArrayDeconstruct);
-	//	TEST(TestNestedArrayEnumeration);
-
 		RunPositiveSuccesses();
 		RunPositiveFailures();	
 		RunCollectionTests();
@@ -14251,6 +14314,7 @@ int main(int argc, char* argv[])
 {
 	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
 
+	TEST(TestReturnArrayRefAndIgnore);
 	//_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF | _CRTDBG_CHECK_ALWAYS_DF);
 
 	try

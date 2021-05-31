@@ -304,6 +304,14 @@ namespace Anon
 			return *a;
 		}
 
+		IArgumentBuilder& AddArrayOutput(const NameString& name, const TypeString& genericType, void* userdata)
+		{
+			FunctionArgument* a = new FunctionArgument(name, TypeString::From("_Array"), genericType, ARGDIRECTION_OUTPUT, *this, userdata);
+			args.push_back(a);
+			outputCount++;
+			return *a;
+		}
+
 		virtual const IArgument* GetArgumentByName(cstr name) const
 		{
 			for(auto i = args.begin(); i != args.end(); ++i)

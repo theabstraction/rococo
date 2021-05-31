@@ -396,6 +396,20 @@ namespace Rococo { namespace Script
 		Resolve(arg, typeString->Buffer, idString->Buffer, f.Name(), type);
 	}
 
+	void AddArrayOutput(IFunctionBuilder& f, cr_sex genericArg, cr_sex id, cr_sex src, CScript& script)
+	{
+		AssertQualifiedIdentifier(genericArg);
+		AssertLocalIdentifier(id);
+
+		const sexstring genericArgString = genericArg.String();
+		const sexstring idString = id.String();
+
+		IArgumentBuilder& arg = f.AddArrayOutput(NameString::From(idString), TypeString::From(genericArgString), (void*)&src);
+		Resolve(arg, "_Array", idString->Buffer, f.Name(), src, genericArgString->Buffer);
+
+		AddArrayDef(script, f.Builder(), idString->Buffer, *arg.GenericTypeArg1(), src);
+	}
+
 	void AddOutput(IFunctionBuilder& f, cr_sex type, cr_sex id, cr_sex src)
 	{
 		AssertQualifiedIdentifier(type);
@@ -606,19 +620,34 @@ namespace Rococo { namespace Script
 		AddThisPointer(constructor, constructorDef, script);
 	}
 
-	void AddOutputs(REF IFunctionBuilder& f, int outputStart, int outputEnd, cr_sex fdef)
+	void AddOutputs(REF IFunctionBuilder& f, int outputStart, int outputEnd, cr_sex fdef, CScript& script)
 	{
 		for(int i = outputStart; i <= outputEnd; ++i)
 		{
 			cr_sex outputItem = fdef.GetElement(i);
 			AssertCompound(outputItem);
 			AssertNotTooFewElements(outputItem, 2);
-			AssertNotTooManyElements(outputItem, 2);
+			AssertNotTooManyElements(outputItem, 3);
 
 			cr_sex sexType = GetAtomicArg(outputItem, 0);
-			cr_sex sexIdentifier = GetAtomicArg(outputItem, 1);
 
-			AddOutput(f, sexType, sexIdentifier, outputItem);
+			if (outputItem.NumberOfElements() == 3)
+			{
+				cr_sex genericArg = GetAtomicArg(outputItem, 1);
+
+				if (!Eq(sexType.String()->Buffer, "array"))
+				{
+					Throw(sexType, "Expecting 'array' at this position");
+				}
+
+				cr_sex arrayIdentifier = GetAtomicArg(outputItem, 2);
+				AddArrayOutput(f, genericArg, arrayIdentifier, outputItem, script);
+			}
+			else
+			{
+				cr_sex sexIdentifier = GetAtomicArg(outputItem, 1);
+				AddOutput(f, sexType, sexIdentifier, outputItem);
+			}
 		}
 	}
 
@@ -694,7 +723,7 @@ namespace Rococo { namespace Script
 		int bodyIndex = GetIndexOf(mapIndex, fdef, (":"));
 		if (bodyIndex == -1) Throw(fdef, ("Expecting body indicator token ':' after the mapping token and inside the function definition"));
 
-		AddOutputs(f, mapIndex+1, bodyIndex-1, fdef);
+		AddOutputs(f, mapIndex+1, bodyIndex-1, fdef, script);
 		AddInputs(f, fdef, 2, mapIndex-1, script);
 
 		if (f.IsVirtualMethod())

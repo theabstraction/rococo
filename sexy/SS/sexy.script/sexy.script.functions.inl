@@ -696,8 +696,16 @@ namespace Rococo
 	      int total = 0;
 	      for(int i = 0; i < a.NumberOfOutputs(); i++)
 	      {
-		      const IStructure& s = a.GetArgument(i);			
-		      total += s.VarType() == VARTYPE_Derivative ? sizeof(size_t) : s.SizeOfStruct();
+		      const IStructure& s = a.GetArgument(i);	
+			  switch (s.VarType())
+			  {
+			  case VARTYPE_Derivative:
+			  case VARTYPE_Array:
+				  total += sizeof size_t;
+				  break;
+			  default:
+				  total += s.SizeOfStruct();
+			  }
 	      }
 
 	      return total;
@@ -766,20 +774,34 @@ namespace Rococo
       void ValidateSingleOutputAndType(CCompileEnvironment& ce, cr_sex s, const IArchetype& callee, VARTYPE returnType, const IArchetype* returnArchetype, const IStructure* returnTypeStruct)
       {
 	      ValidateSingleOutput(s, callee.NumberOfOutputs());
-	      const IStructure& argStruct = callee.GetArgument(0);
-	      if (argStruct.Archetype() != returnArchetype)
-	      {
-		      Throw(s, ("The function does not return the correct archetype required by the function call"));
-	      }
 
-	      if (returnTypeStruct != NULL && returnTypeStruct != &argStruct)
-	      {
-		      sexstringstream<1024> streamer;
-		      streamer.sb << ("Function returns ") <<  GetFriendlyName(argStruct) << (" but expression expects ") << GetFriendlyName(*returnTypeStruct);
-		      Throw(s, streamer);
-	      }
+		  const IStructure* argStruct;
 
-	      ValidateCorrectOutput(s, argStruct, returnType);
+		  switch (returnType)
+		  {
+		  case VARTYPE_Array:
+			  argStruct = callee.GetGenericArg1(0);
+			  if (argStruct == nullptr || callee.GetArgument(0).VarType() != VARTYPE_Array)
+			  {
+				  Throw(s, "Expecting output to be an array");
+			  }
+			  if (returnTypeStruct != argStruct)
+			  {
+				  sexstringstream<1024> streamer;
+				  streamer.sb << "Function returns " << GetFriendlyName(*argStruct) << " but expression expects an array of type " << GetFriendlyName(*returnTypeStruct);
+				  Throw(s, streamer);
+			  }
+			  break;
+		  default:
+			  argStruct = &callee.GetArgument(0);
+			  if (returnTypeStruct != NULL && returnTypeStruct != argStruct)
+			  {
+				  sexstringstream<1024> streamer;
+				  streamer.sb << "Function returns " << GetFriendlyName(*argStruct) << " but expression expects " << GetFriendlyName(*returnTypeStruct);
+				  Throw(s, streamer);
+			  }
+			  ValidateCorrectOutput(s, *argStruct, returnType);
+		  }
       }
 
       void ReturnOutput(CCompileEnvironment& ce, int outputOffset, VARTYPE returnType)
@@ -800,33 +822,33 @@ namespace Rococo
 	      }
       }
 
-      int AllocFunctionOutput(CCompileEnvironment& ce, const IArchetype& callee, cr_sex s)
-      {
-	      int outputStackAllocByteCount = GetOutputStackByteCount(callee, s);
-	      if (outputStackAllocByteCount > 0)
-	      {
-		      int total = 0;
-		      for(int i = 0; i < callee.NumberOfOutputs(); i++)
-		      {
-			      const IStructure& s = callee.GetArgument(i);			
-			      AddArgVariable(("output"), ce, s);
-		      }
+	  int AllocFunctionOutput(CCompileEnvironment& ce, const IArchetype& callee, cr_sex s)
+	  {
+		  int outputStackAllocByteCount = GetOutputStackByteCount(callee, s);
+		  if (outputStackAllocByteCount > 0)
+		  {
+			  int total = 0;
+			  for (int i = 0; i < callee.NumberOfOutputs(); i++)
+			  {
+				  const IStructure& s = callee.GetArgument(i);
+				  AddArgVariable(("output"), ce, s);
+			  }
 
-		      char stackAllocHint[256];
-            SafeFormat(stackAllocHint, 256, ("Output for %s"), callee.Name());
-		      ce.Builder.AddSymbol(stackAllocHint);
+			  char stackAllocHint[256];
+			  SafeFormat(stackAllocHint, 256, ("Output for %s"), callee.Name());
+			  ce.Builder.AddSymbol(stackAllocHint);
 
-		      ce.Builder.Assembler().Append_StackAlloc(outputStackAllocByteCount);
-	      }
+			  ce.Builder.Assembler().Append_StackAlloc(outputStackAllocByteCount);
+		  }
 
-	      return outputStackAllocByteCount;
-      }
+		  return outputStackAllocByteCount;
+	  }
 
-      void RepairStack(CCompileEnvironment& ce, cr_sex s, const IArchetype& callee, int extraArgs)
-      {
-	      MarkStackRollback(ce, s);
-	      ce.Builder.PopLastVariables(callee.NumberOfInputs() + callee.NumberOfOutputs() + extraArgs, true);
-      }
+	  void RepairStack(CCompileEnvironment& ce, cr_sex s, const IArchetype& callee, int extraArgs)
+	  {
+		  MarkStackRollback(ce, s);
+		  ce.Builder.PopLastVariables(callee.NumberOfInputs() + callee.NumberOfOutputs() + extraArgs, true);
+	  }
 
       int CompileVirtualCallKernel(CCompileEnvironment& ce, bool callAtomic, const IArchetype& callee, cr_sex s, int interfaceIndex, int methodIndex, cstr instanceName, const IInterface& interfaceRef)
       {
@@ -1522,7 +1544,13 @@ namespace Rococo
 	      {
 		      int outputIndex = outputCount - 1 - i;
 		      const IStructure& arg = callee.GetArgument(outputIndex);
-		      outputOffset -= GetOutputArgSize(arg);						
+		      outputOffset -= GetOutputArgSize(arg);		
+
+			  if (arg.VarType() == VARTYPE_Array)
+			  {
+				 ValidateAssignment(invocation);
+			  }
+
 		      CompilePopOutputToVariable(arg, ce.Builder, inputEnd+1, outputIndex, outputOffset, invocation);			
 	      }
       }
@@ -1714,8 +1742,37 @@ namespace Rococo
 	      ce.Builder.AssignClosureParentSFtoD6();
       }
 
+	  void ValidateAssignment(cr_sex callDef)
+	  {
+		  bool isAssignment = false;
+
+		  cr_sex sParent = *callDef.Parent();
+		  for (int32 i = 1; i < sParent.NumberOfElements(); ++i)
+		  {
+			  if (&sParent[i] == &callDef)
+			  {
+				  cr_sex sAssign = sParent[i - 1];
+				  if (IsAtomic(sAssign) && Eq(sAssign.String()->Buffer, "="))
+				  {
+					  return;
+				  }
+				  break;
+			  }
+		  }
+
+		  if (!isAssignment)
+		  {
+			  Throw(callDef, "Expecting assignment, as the function returns a value that must be referenced.");
+		  }
+	  }
+
       bool TryCompileFunctionCallAndReturnValue(CCompileEnvironment& ce, cr_sex s, VARTYPE type, const IStructure* derivedType, const IArchetype* returnArchetype)
       {
+		  if (type == VARTYPE_Array)
+		  {
+			  ValidateAssignment(s);
+		  }
+
 	      cr_sex firstArg = IsCompound(s) ? s.GetElement(0) : s;
 
 	      if (IsAtomic(firstArg)) 

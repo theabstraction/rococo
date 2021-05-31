@@ -3,7 +3,13 @@
 
 (using Sys.Type)
 
+(function GetArray -> (array Int32 result):
+	(array Int32 temp 4)
+	(temp.Push 5)
+	(result = temp)
+)
+
 (function Main -> (Int32 result):
-	(array Int32 a 4)
-	(result = a.Capacity)
+	(GetArray)
+	(result = 7)
 )

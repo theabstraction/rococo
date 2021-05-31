@@ -1515,9 +1515,65 @@ namespace Rococo
 		   Throw(valueExpr, streamer);						
 	   }
 
+	   void CompileArrayDeclarationAndAssign(CCompileEnvironment& ce, cr_sex s)
+	   {
+		   // (array Int32 a = (this.GetArray))
+		   if (s.NumberOfElements() != 5)
+		   {
+			   Throw(s, "Expecting array declaration with assign consisting of five elements");
+		   }
+
+		   cr_sex assignChar = GetAtomicArg(s, 3);
+
+		   if (!Eq(assignChar.String()->Buffer, "="))
+		   {
+			   Throw(assignChar, "Expecting array assignment operator = at this position");
+		   }
+
+		   cr_sex typeName = GetAtomicArg(s, 1);
+		   cr_sex arrayName = GetAtomicArg(s, 2);
+
+		   cstr arrayNameTxt = arrayName.String()->Buffer;
+
+		   AssertLocalIdentifier(arrayName);
+
+		   const IStructure& arrayStruct = ce.StructArray();
+
+		   const IStructure* elementStruct = MatchStructure(typeName, ce.Builder.Module());
+		   if (elementStruct == NULL) ThrowTokenNotFound(s, typeName.String()->Buffer, ce.Builder.Module().Name(), ("type"));
+
+		   if (elementStruct->InterfaceCount() != 0 && !IsNullType(*elementStruct))
+		   {
+			   Throw(s, "Arrays cannot have class type elements. Use an interface to %s instead.", elementStruct->Name());
+		   }
+
+		   AddArrayDef(ce.Script, ce.Builder, arrayNameTxt, *elementStruct, s);
+
+		   AddVariableRef(ce, NameString::From(arrayNameTxt), ce.StructArray());
+
+		   // The assignment may throw an exception, so we need to null out the reference 
+		   ce.Builder.AssignPointer(NameString::From(arrayNameTxt), nullptr);
+
+		   if (TryCompileFunctionCallAndReturnValue(ce, s[4], VARTYPE_Array, elementStruct, nullptr))
+		   {
+				AddSymbol(ce.Builder, "D7 -> %s", (cstr)arrayNameTxt);
+				ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, arrayNameTxt);
+		   }
+		   else
+		   {
+			   Throw(s, "The RHS of the array assignment must be a method or function call that returns an array of type %s", GetFriendlyName(*elementStruct));
+		   }
+	   }
+
 	   // Example: (array Int32 a 4)...but also (array Int32 a)....this latter definition specifies an array reference
+	   // We can also initialize from  a function or method (array Int32 a = (container.GetArray))
 	   void CompileArrayDeclaration(CCompileEnvironment& ce, cr_sex s)
 	   {
+		   if (s.NumberOfElements() == 5)
+		   {
+			   CompileArrayDeclarationAndAssign(ce, s);
+			   return;
+		   }
 		   AssertNotTooFewElements(s, 3);
 		   AssertNotTooManyElements(s, 4);
 
@@ -1538,7 +1594,7 @@ namespace Rococo
 
 		   if (elementStruct->InterfaceCount() != 0 && !IsNullType(*elementStruct))
 		   {
-			   Throw(s[3], "Arrays cannot have class type elements. Use an interface to %s instead.", elementStruct->Name());
+			   Throw(s, "Arrays cannot have class type elements. Use an interface to %s instead.", elementStruct->Name());
 		   }
 
 		   AddArrayDef(ce.Script, ce.Builder, arrayNameTxt, *elementStruct, s);

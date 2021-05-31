@@ -2681,13 +2681,13 @@ namespace Rococo
 			auto* lhsType = ce.Script.GetElementTypeForArrayVariable(ce.Builder, lhsString);
 			if (lhsType == nullptr)
 			{
-				Throw(s, "Could not lhs identify array type %s", lhsString);
+				Throw(s, "Could not get element type for %s", lhsString);
 			}
 
 			auto* rhsType = ce.Script.GetElementTypeForArrayVariable(ce.Builder, rhsString);
 			if (rhsType == nullptr)
 			{
-				Throw(s, "Could not rhs identify array type %s", rhsString);
+				Throw(s, "Could not get element type for %s", rhsString);
 			}
 
 			if (&lhsType->ElementType != &rhsType->ElementType)
@@ -2697,9 +2697,9 @@ namespace Rococo
 				Throw(s, "Could not assign array. LHS is (array %s). RHS is (array %s)", lhsName, rhsName);
 			}
 
-			if (lhs.location != VARLOCATION_TEMP)
+			if (lhs.location != VARLOCATION_TEMP && lhs.location != VARLOCATION_OUTPUT)
 			{
-				Throw(s, "Could not assign array. The target has to be a local variable");
+				Throw(s, "Could not assign array. The target has to be an output or temporary/local variable");
 			}
 
 			ce.Builder.AssignVariableToTemp(lhsString, 0, 0); // D4 has the LHS reference

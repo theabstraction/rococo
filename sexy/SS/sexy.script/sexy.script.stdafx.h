@@ -140,10 +140,11 @@ namespace Rococo
          }
       };
 
+      void ValidateAssignment(cr_sex callDef);
       void InitClassMembers(CCompileEnvironment& ce, cstr id);
       void StreamSTCEX(StringBuilder& sb, const Compiler::STCException& ex);
       bool TryCompileFunctionCallAndReturnValue(CCompileEnvironment& ce, cr_sex s, VARTYPE type, const IStructure* derivedType, const IArchetype* returnArchetype);
-
+     
       class CScripts;
 
       struct CBindFnDefToExpression
