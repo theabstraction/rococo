@@ -6527,15 +6527,6 @@ R"((namespace EntryPoint)
 		"	(a.Push 2)"
 		"	(a.Push 3)"
 		"	(a.Push 4)"
-		"	(try"
-		"		("
-		"			(a.Push 5)"
-		"		)"
-		"	catch ex"
-		"		("
-		"			(Sys.Print ex.Message)"
-		"		)"
-		"	)"
 		"	(result = (a 3))"
 		")";
 
@@ -6553,6 +6544,35 @@ R"((namespace EntryPoint)
 		validate(x == 4);
 	}
 
+	void TestArrayInt32Reassign(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Type)"
+
+			"(function Main -> (Int32 result):"
+			"	(array Int32 a 1)"
+			"	(a.Push 2492)"
+			"	(a.Set 0 1470)"
+			"	(result = (a 0))"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, "TestArrayInt32Reassign");
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		int x = vm.PopInt32();
+		validate(x == 1470);
+	}
+
 	void TestArrayInt32_5(IPublicScriptSystem& ss)
 	{
 		cstr srcCode = 
@@ -6565,7 +6585,7 @@ R"((namespace EntryPoint)
 		"	(array Int32 a 4)"
 		"	(a.Push 2492)"
 		"	(a.Push 1232)"
-		"	(a 1 1470)"
+		"	(a.Set 1 1470)"
 		"	(a.Push 1132)"
 		"	(result = (a 1))"
 		")";
@@ -6750,7 +6770,7 @@ R"((namespace EntryPoint)
  
 		"(function Main -> (Int32 result):"
 		"	(array Int32 a 4)"
-		"	(a 3 2492)"
+		"	(a.Set 3 2492)"
 		"	(result = a.Length)"
 		")";
 
@@ -6845,7 +6865,7 @@ R"((namespace EntryPoint)
 		"(function Main -> (Int32 result):"
 		"	(array Vec3i a 4)"
 		"	(Vec3i v = 1 2 3)"
-		"	(a 3 v)"
+		"	(a.Set 3 v)"
 		"	(Vec3i w)"
 		"	(w = (a 3))"
 		"	(result = w.y)"
@@ -6978,7 +6998,7 @@ R"((namespace EntryPoint)
 		"(using Sys.Type)"
 
 		"(function FillArray (array Int32 a) -> : "
-		"	(a 3 7)"
+		"	(a.Set 3 7)"
 		")"
   
 		"(function Main -> (Int32 result):"
@@ -7490,7 +7510,7 @@ R"((namespace EntryPoint)
   
 		"(function Main -> (Int32 result):"
 		"	(Sanctuary sanctuary (10) )" // Create a sanctuary with a capacity of 10 kennels
-		"	(sanctuary.kennelIds 9 0)" // Define and null the ten entries by setting entry 9 to 0
+		"	(sanctuary.kennelIds.Set 9 0)" // Define and null the ten entries by setting entry 9 to 0
 
 		"	(try"
 		"		("
@@ -14314,7 +14334,7 @@ int main(int argc, char* argv[])
 {
 	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
 
-	TEST(TestArrayInt32Expand);
+	TEST(TestArrayInt32Reassign);
 	//_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF | _CRTDBG_CHECK_ALWAYS_DF);
 
 	try

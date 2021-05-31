@@ -395,7 +395,7 @@ namespace Rococo
       void ValidateUnusedVariable(cr_sex identifierExpr, ICodeBuilder& builder);
       void AssertGetVariable(OUT MemberDef& def, cstr name, CCompileEnvironment& ce, cr_sex exceptionSource);
       void CompileAsPopOutFromArray(CCompileEnvironment& ce, cr_sex s, cstr instanceName, VARTYPE requiredType);
-      void CompileArraySet(CCompileEnvironment& ce, cr_sex s);
+      void CompileArraySet(CCompileEnvironment& ce, cr_sex s, cstr arrayName);
       void CompileGetArrayElement(CCompileEnvironment& ce, cr_sex s, cstr instanceName, VARTYPE varType, const IStructure* structType);
       void CompileGetArraySubelement(CCompileEnvironment& ce, cr_sex indexExpr, cr_sex subItemName, cstr instanceName, VARTYPE type, const IStructure* structType);
 

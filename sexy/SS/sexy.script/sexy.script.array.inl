@@ -56,6 +56,13 @@ namespace Rococo
 			   Throw(0, "Could not allocate array. Negative element count: %d", capacity);
 		   }
 
+		   if (capacity == 0)
+		   {
+			   // array.Capacity returns 0 in the case of a null array, so prohibit zero and 
+			   // that function can then be used to tell if an array is non-null.
+			   Throw(0, "Could not allocate array. Zero capacity");
+		   }
+
 		   if (elementSize > 0x7FFFFFFFLL)
 		   {
 			   Throw(0, "Could not allocate array. Element size was > 2GB");
@@ -65,11 +72,6 @@ namespace Rococo
 		   if (szCapacity > 0x7FFFFFFFLL)
 		   {
 			   Throw(0, "Could not allocate array. The maximum size is 2GB");
-		   }
-
-		   if (capacity < 0)
-		   {
-			   Throw(0, "Could not allocate array. Negative element count: %d", capacity);
 		   }
 
 		   ArrayImage* a = new ArrayImage();
@@ -943,12 +945,11 @@ namespace Rococo
 		   ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, targetToken);
 	   }
 
-	   void CompileArraySet(CCompileEnvironment& ce, cr_sex s)
+	   void CompileArraySet(CCompileEnvironment& ce, cr_sex s, cstr arrayName)
 	   {
 		   AssertNotTooFewElements(s, 3);
 		   AssertNotTooFewElements(s, 3);
 
-		   cstr instance = s.GetElement(0).String()->Buffer;
 		   cr_sex index = s.GetElement(1);
 		   if (!TryCompileArithmeticExpression(ce, index, true, VARTYPE_Int32))
 		   {
@@ -957,7 +958,7 @@ namespace Rococo
 
 		   AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH, 0, BITCOUNT_32); // save the value to D7 for popping to D4
 		
-		   const IStructure& elementType = GetElementTypeForArrayVariable(ce, s, instance);
+		   const IStructure& elementType = GetElementTypeForArrayVariable(ce, s, arrayName);
 
 		   cr_sex value = s.GetElement(2);
 
@@ -985,7 +986,7 @@ namespace Rococo
 		   }
 
 		   ce.Builder.PopLastVariables(1, true);
-		   ce.Builder.AssignVariableToTemp(instance, 1, 0); // The array is in D5
+		   ce.Builder.AssignVariableToTemp(arrayName, 1, 0); // The array is in D5
 
 		   const ArrayCallbacks& callbacks = GetArrayCallbacks(ce);
 
@@ -1010,30 +1011,35 @@ namespace Rococo
 			   }
 			   break;
 		   default:
-			   Throw(value, ("Bad type"));
+			   Throw(value, "Bad type");
 		   }
 	   }
 
 	   bool TryCompileAsArrayCall(CCompileEnvironment& ce, cr_sex s, cstr instanceName, cstr methodName)
 	   {
- 		   if (AreEqual(methodName, ("Push")))
+ 		   if (AreEqual(methodName, "Push"))
 		   {
 			   CompileAsPushToArray(ce, s, instanceName);
 			   return true;
 		   }
-		   else if (AreEqual(methodName, ("Pop")))
+		   else if (AreEqual(methodName, "Pop"))
 		   {
 			   CompileAsPopFromArray(ce, s, instanceName);
 			   return true;
 		   }
-		   else if (AreEqual(methodName, ("PopOut")))
+		   else if (AreEqual(methodName, "PopOut"))
 		   {
 			   CompileAsPopOutFromArrayToVariable(ce, s, instanceName);
 			   return true;
 		   }
-		   else if (AreEqual(methodName, ("Clear")))
+		   else if (AreEqual(methodName, "Clear"))
 		   {
 			   CompileAsClearArray(ce, s, instanceName);
+			   return true;
+		   }
+		   else if (AreEqual(methodName, "Set"))
+		   {
+			   CompileArraySet(ce, s, instanceName);
 			   return true;
 		   }
 		   return false;
