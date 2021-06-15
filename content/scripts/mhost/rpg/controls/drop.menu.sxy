@@ -127,7 +127,9 @@
 	(this.isActive = true)
 )
 
-(method DropValueMenu.Construct (Int32 maxItems) (IEventHandler subscriber)-> (construct items maxItems):
+(method DropValueMenu.Construct (Int32 maxItems) (IEventHandler subscriber):
+	(array ValueCell items maxItems)
+	(this.items = items)
 	(this.outerRect = -1 -1 -1 -1)
 	(this.selection = -1)
 	(this.fontIndex = 0)
@@ -245,7 +247,8 @@
 		
 	(Float32 y = overlayInnerRect.top)
 		
-	(foreach i item # this.items
+	(Int32 i = 0)
+	(foreach item # this.items
 		(Rectf itemRect)
 		(itemRect.left = (overlayInnerRect.left + (this.fontHeight * 0.25)))
 		(itemRect.right = (overlayInnerRect.right - (this.fontHeight * 0.25)))
@@ -264,6 +267,8 @@
 			(this.subscriber.OnSelectionChanged oscArgs)
 			(break)
 		)
+		
+		(i += 1)
 	)
 )
 

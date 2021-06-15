@@ -748,6 +748,14 @@ namespace
 		rep.ByteCount = 3;
 	}
 
+	void FormatSetSFMemberPtrFromD5(const Ins& I, OUT IDisassembler::Rep& rep)
+	{
+		int32 offset = *(int32*)(I.ToPC() + 1);
+		int32 memberOffset = *(int32*)(I.ToPC() + 5);
+		format(rep, ("*%d.%d=D5"), offset, memberOffset);
+		rep.ByteCount = 9;
+	}
+
 	void FormatGetStackFrameValueAndExtendToPointer(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
 		const int32* pOffset = (const int32*) (I.ToPC() + 2);
@@ -1233,6 +1241,7 @@ namespace
 		EnableFormatter(GetStackFrameMemberPtrAndDeref);
 		EnableFormatter(SetSFValueFromSFValueLong);
 		EnableFormatter(SetSFMemberRefFromSFValue);
+		EnableFormatter(SetSFMemberPtrFromD5);
 	}
 
 	class Disassembler final: public IDisassembler

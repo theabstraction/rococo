@@ -61,6 +61,25 @@ namespace
 		sum->y = a->y + b->y;
 	}
 
+	void NativeSysMathsRectfToRecti(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+
+		GuiRect* b;
+		_offset += sizeof(b);
+		ReadInput(b, _sf, -_offset);
+
+		const GuiRectf* a;
+		_offset += sizeof(a);
+		ReadInput(a, _sf, -_offset);
+
+		b->left = (int32)a->left;
+		b->bottom = (int32)a->bottom;
+		b->right = (int32)a->right;
+		b->top = (int32)a->top;
+	}
+
 	void NativeSysMathsSubtractVec2fVec2f(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -701,5 +720,6 @@ namespace Sys { namespace Maths { namespace F32 {
 		ss.AddNativeCall(ns, NativeSysMathsIsEqVec2fVec2f, nullptr, ("IsEqVec2fVec2f(Sys.Maths.Vec2 a)(Sys.Maths.Vec2  b)->(Bool result)"));
 		ss.AddNativeCall(ns, NativeSysMathsIsNotEqVec3fVec3f, nullptr, ("IsNotEqVec3fVec3f(Sys.Maths.Vec3 a)(Sys.Maths.Vec3 b)->(Bool result)"));
 		ss.AddNativeCall(ns, NativeSysMathsIsEqVec3fVec3f, nullptr, ("IsEqVec3fVec3f(Sys.Maths.Vec3 a)(Sys.Maths.Vec3  b)->(Bool result)"));
+		ss.AddNativeCall(ns, NativeSysMathsRectfToRecti, nullptr, "RectfToRecti (Sys.Maths.Rectf rectf)(Sys.Maths.Recti recti)->");
 	}
 }}}

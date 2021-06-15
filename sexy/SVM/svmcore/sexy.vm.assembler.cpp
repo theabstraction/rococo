@@ -545,6 +545,13 @@ namespace
 			}
 		}
 
+		void Append_SetStackFramePtrFromD5(int SFoffset, int memberOffset) override
+		{
+			AddSingleByteInstruction(Opcodes::SetSFMemberPtrFromD5);
+			AddArgument(SFoffset);
+			AddArgument(memberOffset);
+		}
+
 		void Append_GetStackFrameMemberPtrAndDeref(DINDEX Dtarget, int SFoffset, int memberOffset) override
 		{
 			ArgsGetStackFrameMemberPtrAndDeref args;

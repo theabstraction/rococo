@@ -33,7 +33,9 @@
 	(IStringBuilder lastFontName)
 )
 
-(method Credits.Construct (IUIStack uistack)->(construct creditLines 20): 
+(method Credits.Construct (IUIStack uistack):
+	(array IString creditLines 20)
+	(this.creditLines = creditLines)
 	(this.outerRect = 0 0 0 0)
 	(this.uistack = uistack)
 	(this.isScrolling = false)

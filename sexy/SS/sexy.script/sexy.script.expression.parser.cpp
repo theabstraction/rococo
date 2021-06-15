@@ -91,7 +91,7 @@ namespace Rococo
 
 		void PushVariableRef(cr_sex s, ICodeBuilder& builder, const MemberDef& def, cstr name, int interfaceIndex)
 		{
-			if (IsNullType(*def.ResolvedType))
+			if (IsNullType(*def.ResolvedType) || (def.ResolvedType->VarType() == VARTYPE_Array && def.IsContained))
 			{
 				MemberDef refDef;
 				builder.TryGetVariableByName(OUT refDef, name);
@@ -1323,6 +1323,12 @@ namespace Rococo
 							InitSubmembers(ce, *memberType, sfMemberOffset);
 						}
 					}
+					else if (memberType->VarType() == VARTYPE_Array)
+					{
+						VariantValue nullRef;
+						nullRef.vPtrValue = nullptr;
+						ce.Builder.Assembler().Append_SetStackFrameImmediate(sfMemberOffset, nullRef, BITCOUNT_POINTER);
+					}
 					else
 					{
 						InitSubmembers(ce, *memberType, sfMemberOffset);
@@ -1356,6 +1362,11 @@ namespace Rococo
 			{
 				const IMember& member = s.GetMember(i);
 				const IStructure* memberType = member.UnderlyingType();
+
+				if (memberType->VarType() == VARTYPE_Array)
+				{
+					return true;
+				}
 			
 				if (memberType->Prototype().IsClass)
 				{
@@ -1610,11 +1621,7 @@ namespace Rococo
 		{
 			if (IsPrimitiveType(s.VarType())) return;
 
-			if (s == ce.StructArray())
-			{
-				Throw(decl, ("Objects of the given type cannot be default constructed as one of the members is an array.\r\nProvide an explicit constructor and declare instances using the syntax: ( <type> <name> ( <arg1>...<argN> ) )"));
-			}
-			else if (s == ce.StructList())
+			if (s == ce.StructList())
 			{
 				Throw(decl, ("Objects of the given type cannot be default constructed as one of the members is a linked list.\r\nProvide an explicit constructor and declare instances using the syntax: ( <type> <name> ( <arg1>...<argN> ) )"));
 			}
@@ -1655,22 +1662,60 @@ namespace Rococo
 			ce.Builder.AssignTempToVariable(0, id);
 		}
 
-		void CompileAsDefaultVariableDeclaration(CCompileEnvironment& ce, const IStructure& st, cstr id, cr_sex decl, bool initializeValues)
+		void CompileAsDefaultVariableDeclaration(CCompileEnvironment& ce, const IStructure& type, cstr id, cr_sex sDef, bool initializeValues)
 		{	
-			if (st.Prototype().IsClass)
+			if (type.Prototype().IsClass)
 			{
-				 CompileClassAsDefaultVariableDeclaration(ce, st, id, decl, initializeValues);
+				 CompileClassAsDefaultVariableDeclaration(ce, type, id, sDef, initializeValues);
 			}
 			else
 			{
-				AddSymbol(ce.Builder, ("%s %s"), GetFriendlyName(st), id);
-				AssertDefaultConstruction(ce, decl, st);
-				AddVariable(ce, NameString::From(id), st);
+				char constructorName[256];
+				SafeFormat(constructorName, "%s.Construct", type.Name());
+				auto* constructor = type.Module().FindFunction(constructorName);
 
-				if (initializeValues)
+				AddSymbol(ce.Builder, "%s %s", GetFriendlyName(type), id);
+				AssertDefaultConstruction(ce, sDef, type);
+				AddVariable(ce, NameString::From(id), type);
+				
+				if (constructor)
 				{
-					InitClassMembers(ce, id);
-					InitDefaultReferences(decl, ce, id, st);
+					if (constructor->NumberOfInputs() > 1)
+					{
+						// Something in addition to the implicit 'this' pointer
+
+						char buf[1024];
+						StackStringBuilder ssb(buf, sizeof buf);
+						ssb.AppendFormat("Constructor missing arguments, so default construction not permitted.\t");
+						ssb.AppendFormat("Format is: \n\t(%s ", constructorName);
+
+						for (int i = 0; i < constructor->NumberOfInputs() - 1; ++i)
+						{
+							auto& arg = constructor->GetArgument(i);
+							cstr argName = constructor->GetArgName(i);
+							ssb.AppendFormat("(%s %s) ", GetFriendlyName(arg), argName);
+						}
+						Throw(sDef, "%s)\n", (cstr)*ssb);
+					}
+
+					// Invoke constructor
+					int inputStackAllocCount = PushInputs(ce, sDef, *constructor, true, 0);
+					inputStackAllocCount += CompileInstancePointerArg(ce, id);
+
+					AppendFunctionCallAssembly(ce, *constructor);
+
+					ce.Builder.MarkExpression(sDef.Parent());
+
+					RepairStack(ce, *sDef.Parent(), *constructor);
+					ce.Builder.AssignClosureParentSFtoD6();
+				}	
+				else
+				{
+					if (initializeValues)
+					{
+						InitClassMembers(ce, id);
+						InitDefaultReferences(sDef, ce, id, type);
+					}
 				}
 			}
 		}
@@ -2678,26 +2723,15 @@ namespace Rococo
 				Throw(s, "Expecting array type %s", rhsString);
 			}
 
-			auto* lhsType = ce.Script.GetElementTypeForArrayVariable(ce.Builder, lhsString);
-			if (lhsType == nullptr)
+			const IStructure& lhsType = GetElementTypeForArrayVariable(ce, s, lhsString);
+			const IStructure& rhsType = GetElementTypeForArrayVariable(ce, s, rhsString);
+
+			if (&lhsType != &rhsType)
 			{
-				Throw(s, "Could not get element type for %s", lhsString);
+				Throw(s, "Could not assign array. LHS is (array %s). RHS is (array %s)", GetFriendlyName(lhsType), GetFriendlyName(rhsType));
 			}
 
-			auto* rhsType = ce.Script.GetElementTypeForArrayVariable(ce.Builder, rhsString);
-			if (rhsType == nullptr)
-			{
-				Throw(s, "Could not get element type for %s", rhsString);
-			}
-
-			if (&lhsType->ElementType != &rhsType->ElementType)
-			{
-				cstr lhsName = GetFriendlyName(lhsType->ElementType);
-				cstr rhsName = GetFriendlyName(rhsType->ElementType);
-				Throw(s, "Could not assign array. LHS is (array %s). RHS is (array %s)", lhsName, rhsName);
-			}
-
-			if (lhs.location != VARLOCATION_TEMP && lhs.location != VARLOCATION_OUTPUT)
+			if (!StartsWith(lhsString, "this.") && lhs.location != VARLOCATION_TEMP && lhs.location != VARLOCATION_OUTPUT)
 			{
 				Throw(s, "Could not assign array. The target has to be an output or temporary/local variable");
 			}
@@ -2707,7 +2741,15 @@ namespace Rococo
 			AppendInvoke(ce, GetArrayCallbacks(ce).ArrayAssign, s);
 		
 			UseStackFrameFor(ce.Builder, lhs);
-			ce.Builder.Assembler().Append_SetStackFrameValue(lhs.SFOffset + lhs.MemberOffset, VM::REGISTER_D5, BITCOUNT_POINTER);
+
+			if (!lhs.IsContained)
+			{
+				ce.Builder.Assembler().Append_SetStackFrameValue(lhs.SFOffset + lhs.MemberOffset, VM::REGISTER_D5, BITCOUNT_POINTER);
+			}
+			else
+			{
+				ce.Builder.Assembler().Append_SetStackFramePtrFromD5(lhs.SFOffset, lhs.MemberOffset);
+			}
 			RestoreStackFrameFor(ce.Builder, lhs);
 		}
 

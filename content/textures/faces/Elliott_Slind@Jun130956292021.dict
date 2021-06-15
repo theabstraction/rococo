@@ -1,0 +1,12 @@
+// Rococo::Sex::S-Parser is recommended for parsing this file
+
+(' S-Format-Dictionary-v1.0 ( 
+	(I32 Strength 181)
+	(I32 Agility 312)
+	(I32 Wellness 325)
+	(I32 Psyche 62)
+	(I32 Ego 94)
+	(I32 Maths 99)
+	(STR Name "Elliott Slind")
+	(STR Portrait "!textures/faces/male/male.asian.2.jpg")
+))

@@ -1183,6 +1183,64 @@ namespace Rococo
 				}
 			}
 		}
+
+		void OnArrayMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const struct ArrayImage* array, const uint8* sfItem, int offset, int recurseDepth) override
+		{
+			index++;
+
+			char name[256];
+
+			if (array->ElementType->InterfaceCount() > 0)
+			{
+				SafeFormat(name, "%s: array of interfaces of type %s", childName, array->ElementType->GetInterface(0).Name());
+			}
+			else
+			{
+				SafeFormat(name, "%s: array of objects of type %s", childName, GetFriendlyName(*array->ElementType));
+			}
+			
+			auto node = tree->AddChild(parentId, name, CheckState_NoCheckBox);
+
+			char metrics[256];
+			SafeFormat(metrics, "%d of %d elements", array->NumberOfElements, array->ElementCapacity);
+			tree->AddChild(node, metrics, CheckState_NoCheckBox);
+
+			char info[256];
+			SafeFormat(info, "Private: Refcount %d. Enum: %s ", array->RefCount, array->LockNumber > 0 ? "locked" : "unlocked");
+			tree->AddChild(node, info, CheckState_NoCheckBox);
+
+			if (array->NumberOfElements > 0)
+			{
+				auto elements = tree->AddChild(node, "#-Elements-#", CheckState_NoCheckBox);
+				for (int i = 0; i < array->NumberOfElements; ++i)
+				{
+					char sindex[16];
+					SafeFormat(sindex, "[%d]", i);
+					auto element = tree->AddChild(elements, sindex, CheckState_NoCheckBox);
+
+					auto* subInstance = ((const uint8*)array->Start) + array->ElementLength * i;
+
+					if (array->ElementType->InterfaceCount() > 0)
+					{
+						const uint8* puint8Interface = *(const uint8**)subInstance;
+						subInstance = puint8Interface;
+						auto* object = InterfaceToInstance((InterfacePointer)subInstance);
+
+						char concreteInfo[256];
+						SafeFormat(concreteInfo, "%s", GetFriendlyName(*object->Desc->TypeInfo));
+						auto node = tree->AddChild(element, concreteInfo, CheckState_NoCheckBox);
+					}
+					else
+					{
+						char concreteInfo[256];
+						SafeFormat(concreteInfo, "%s", GetFriendlyName(*array->ElementType));
+						auto node = tree->AddChild(element, concreteInfo, CheckState_NoCheckBox);
+					}
+
+					if (i > 20) break;
+				}
+			}
+		}
 	};
 
 	struct VariableEnumeratorPopulator : public IVariableEnumeratorCallback

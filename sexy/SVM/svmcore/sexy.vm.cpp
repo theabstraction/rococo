@@ -294,6 +294,8 @@ namespace Anon
 
 			ActivateInstruction(SetSFValueFromSFMemberByRef);
 
+			ActivateInstruction(SetSFMemberPtrFromD5);
+
 			static_assert(sizeof(VariantValue) == sizeof(size_t), "Bad packing size");
 			static_assert(BITCOUNT_POINTER == sizeof(size_t) * 8, "Bad BITCOUNT_POINTER");
 		}
@@ -1153,6 +1155,24 @@ namespace Anon
 			void** ppSource = (void**)(cpu.SF() + SFOffset);
 			uint8* pMember = ((uint8*) *ppSource) + memberOffset;
 			target.int32Value = *(int32*) pMember;
+		}
+
+		OPCODE_CALLBACK(SetSFMemberPtrFromD5)
+		{
+			const Ins* I = NextInstruction();
+
+			cpu.AdvancePC(1);
+			int32 SFOffset = *(int32*)cpu.PC();
+
+			cpu.AdvancePC(4);
+
+			int32 memberOffset = *(int32*)cpu.PC();
+			cpu.AdvancePC(4);
+
+			void** ppSource = (void**)(cpu.SF() + SFOffset);
+			void* pStructure = *ppSource;
+			uint8* pMember = ((uint8*)pStructure) + memberOffset;
+			*((uint64*) pMember) = cpu.D[5].uint64Value;
 		}
 
 		OPCODE_CALLBACK(GetStackFrameMember64)

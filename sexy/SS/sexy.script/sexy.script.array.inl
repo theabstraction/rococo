@@ -766,16 +766,8 @@ namespace Rococo
 				   Throw(s, "Expecting either (%s.Push <arg>), (%s.Push ( element-constructor-args...)) or (%s.Push %s (memberwise-constructor-args...)", instanceName, instanceName, instanceName, GetFriendlyName(elementType));
 			   }
 
-			   if (IsNullType(elementType))
-			   {
-				   ce.Builder.AssignVariableToTemp(instanceName, Rococo::ROOT_TEMPDEPTH, 0); // array goes to D7
-				   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayPushAndGetRef); // D8 now contains the ref to the newly created element
-			   }
-			   else
-			   {
-				   ce.Builder.AssignVariableRefToTemp(instanceName, Rococo::ROOT_TEMPDEPTH, 0); // array goes to D7
-				   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayPushAndGetRef); // D8 now contains the ref to the newly created element
-			   }
+			   ce.Builder.AssignVariableToTemp(instanceName, Rococo::ROOT_TEMPDEPTH, 0);
+			   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayPushAndGetRef);
 
 			   cr_sex memberwiseArgs = s.GetElement(2);
 			   if (!IsNull(memberwiseArgs) && !IsCompound(memberwiseArgs))

@@ -31,7 +31,9 @@
 	(construct ListBuilder uiControl maxRows)
 )
 
-(method ListBuilder.Construct (IUIControl uiControl)(Int32 maxRows) -> (construct rows maxRows):
+(method ListBuilder.Construct (IUIControl uiControl)(Int32 maxRows):
+	(array IListRow rows maxRows)
+	(this.rows = rows)
 	(this.outerRect = -1 -1 -1 -1)
 	(this.verticalScrollBar = (NewVerticalScrollBar uiControl))
 	(this.totalSpan = 0 0)
@@ -115,7 +117,10 @@
 			(rowRect.right = (this.vscrollRect.left - 1))
 			(rowRect.top = ((this.outerRect.top + 1) + y0))
 			(rowRect.bottom = ((this.outerRect.top + 1) + y1)) 
-			(g.SetScissorRect rowRect)
+			
+			(Recti iRowRect)
+			(Sys.Maths.F32.RectfToRecti rowRect iRowRect)
+			(g.SetScissorRect iRowRect)
 			(row.Render g rowRect)
 			(g.ClearScissorRect)
 			

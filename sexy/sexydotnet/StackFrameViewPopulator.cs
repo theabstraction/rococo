@@ -143,8 +143,8 @@ namespace SexyDotNet
             if (panel.Children.Count == 0)
             {
                 panel.Children.Add(new TextBox { Width = 110, IsReadOnly = true });
-                panel.Children.Add(new TextBox { Width = 100, IsReadOnly = true });
-                panel.Children.Add(new TextBox { Width = 100, IsReadOnly = true });
+                panel.Children.Add(new TextBox { Width = 150, IsReadOnly = true });
+                panel.Children.Add(new TextBox { Width = 150, IsReadOnly = true });
                 panel.Children.Add(new TextBox { Width = 240, TextAlignment = TextAlignment.Right, IsReadOnly = true });
             }
 
