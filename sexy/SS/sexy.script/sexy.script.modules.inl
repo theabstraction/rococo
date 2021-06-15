@@ -561,9 +561,9 @@ namespace Rococo { namespace Script
 		for(int i = 0; i < type->MemberCount(); ++i)
 		{
 			const IMember& m = type->GetMember(i);
-			if (m.UnderlyingGenericArg1Type() != NULL) 
+			if (m.UnderlyingGenericArg1Type() != NULL && m.UnderlyingType()->VarType() != VARTYPE_Array) 
 			{
-				// Generic containers need to be constructed
+				// Lists and maps need to be constructed
 				ValidateChildConstructorExists(startPos, endPos, constructorDef, m);
 			}
 			else
@@ -842,7 +842,7 @@ namespace Rococo { namespace Script
 
 		if (*def.ResolvedType == ce.StructArray())
 		{
-			CompileArrayDestruct(ce, *def.ResolvedType, instanceName);
+			//CompileArrayDestruct(ce, *def.ResolvedType, instanceName); TODO -> delete this comment
 		}
 		else if (*def.ResolvedType == ce.StructMap())
 		{
@@ -1203,8 +1203,11 @@ namespace Rococo { namespace Script
 	{		
 		// (construct member <arg1>...<argN>)
 		const IFunction* childConstructorFn = member.UnderlyingType()->Constructor();
-		if (childConstructorFn == NULL) ThrowTokenNotFound(conDef, member.UnderlyingType()->Name(), member.UnderlyingType()->Module().Name(), ("Constructor"));
-
+		if (childConstructorFn == NULL)
+		{
+			Throw(conDef, "[%s] of type %s: superfluous child constructor", member.Name(), GetFriendlyName(*member.UnderlyingType()));
+		}
+		
 		int inputCount = childConstructorFn->NumberOfInputs();
 
 		if (inputCount < conDef.NumberOfElements() - 1)
@@ -1230,11 +1233,7 @@ namespace Rococo { namespace Script
 
 	void CompileConstructMember(CCompileEnvironment& ce, cr_sex conDef, const IMember& member, cstr instance)
 	{
-		if (*member.UnderlyingType() == ce.StructArray())
-		{
-			CompileArrayConstruct(ce, conDef, member, instance);
-		}
-		else if (*member.UnderlyingType() == ce.StructList())
+		if (*member.UnderlyingType() == ce.StructList())
 		{
 			CompileListConstruct(ce, conDef, member, instance);
 		}
@@ -1311,7 +1310,7 @@ namespace Rococo { namespace Script
 
 			CCompileEnvironment ce(script, builder);
 
-			InitClassMembers(ce, "this");
+			InitClassMembers(ce, "this"); // 03062021 TODO - delete this comment
 		
 			CompileConstructChildren(ce, mapIndex+1, bodyIndex-1, constructorDef, *type);
 
@@ -2375,12 +2374,24 @@ namespace Rococo { namespace Script
 
    const ArrayDef* CScript::GetElementTypeForArrayVariable(ICodeBuilder& builder, cstr arrayName)
    {
-      BuilderAndNameKey key;
-      key.Builder = &builder;
-      key.Name = arrayName;
+	   BuilderAndNameKey key;
+	   key.Builder = &builder;
+	   key.Name = arrayName;
 
-      TMapNameToArrayDef::const_iterator i = mapNameToArrayDef.find(key);
-      return i == mapNameToArrayDef.end() ? NULL : &i->second;
+	   TMapNameToArrayDef::const_iterator i = mapNameToArrayDef.find(key);
+	   if (i != mapNameToArrayDef.end())
+	   {
+		   return &i->second;
+	   }
+
+	   auto* parent = builder.Owner().Parent();
+	   if (parent != nullptr)
+	   {
+		   return CScript::GetElementTypeForArrayVariable(parent->Builder(), arrayName);
+	   }
+
+	   return nullptr;
+
    }
 
    const ListDef* CScript::GetListDef(ICodeBuilder& builder, cstr listName)

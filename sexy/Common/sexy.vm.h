@@ -355,6 +355,7 @@ namespace Rococo { namespace VM
 			int32 targetMemberOffset;
 		};
 
+		virtual void Append_SetStackFramePtrFromD5(int SFoffset, int memberOffset) = 0;
 		virtual void Append_SetSFMemberRefFromSFMemberByRef(int32 sourceSFOffset, int32 sourceMemberOffset, int32 targetSFOffset, int32 targetMemberOffset, size_t nBytesSource) = 0;
 		virtual void Append_CopySFVariableFromRef(int32 targetSFOffset, int32 sourceSFOffset, int32 sourceMemberOffset, size_t nBytesSource) = 0;
 		virtual void Append_SetSFMemberByRefFromRegister(DINDEX Dsource, int32 sfOffset, int32 memberOffset, BITCOUNT bitcount) = 0;

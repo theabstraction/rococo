@@ -35,7 +35,9 @@
 	(IStringBuilder tempSB)
 )
 
-(method AttributeControl.Construct -> (construct cells 6): 
+(method AttributeControl.Construct :
+	(array AttributeCell cells 6)
+	(this.cells = cells)
 	(this.outerRect = -1 -1 -1 -1)
 	
 	(AttributeCell strength = "Strength" 100)

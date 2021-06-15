@@ -6339,6 +6339,119 @@ R"((namespace EntryPoint)
 		validate(x == 256);
 	}
 
+	void TestArrayPushViaClosure(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Type)"
+
+			"(archetype Sys.VoidToVoid -> )"
+
+			"(function Main -> (Int32 result):"
+			"	(array IString items 1)"
+			"   (Sys.VoidToVoid f = (closure -> : (items.Push \"Geoff\")))"
+			"   (f)"
+			"   (IString item = (items 0))"
+			"   (result = item.Length)"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, "TestArrayPushViaClosure");
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		int x = vm.PopInt32();
+		validate(x == 5);
+	}
+
+	void TestArrayPushViaClosure3(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Type)"
+
+			"(archetype Sys.VoidToVoid -> )"
+
+			"(struct People (array IString items))"
+
+			"(method People.Construct :"
+			"	(array IString items 1)"
+			"   (this.items = items)"
+			")"
+
+			"(function AppendToArray (IString name)(array IString items)-> :"
+			"	(items.Push name)"
+			")"
+
+			"(function Main -> (Int32 result):"
+			"	(People people)"
+			"   (Sys.VoidToVoid f = (closure -> : (AppendToArray \"Geoff\"  people.items)))"
+			"   (f)"
+			"   (IString item = (people.items 0))"
+			"   (result = item.Length)"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		int x = vm.PopInt32();
+		validate(x == 5);
+	}
+
+	void TestArrayPushViaClosure2(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Type)"
+
+			"(archetype Sys.VoidToVoid -> )"
+
+			"(struct People (array IString items))"
+			"(method People.Construct :"
+			"	(array IString items 1)"
+			"   (this.items = items)"
+			")"
+
+			"(function Main -> (Int32 result):"
+			"	(People people)"
+			"   (Sys.VoidToVoid f = (closure -> : (people.items.Push \"Geoff\")))"
+			"   (f)"
+			"   (IString item = (people.items 0))"
+			"   (result = item.Length)"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, "TestArrayPushViaClosure2");
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		int x = vm.PopInt32();
+		validate(x == 5);
+	}
+
 	void TestArrayProxy(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -6394,6 +6507,35 @@ R"((namespace EntryPoint)
 
 		int x = vm.PopInt32();
 		validate(x == 4);
+	}
+
+	void TestArrayInt32Expand(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Type)"
+
+			"(function Main -> (Int32 result):"
+			"	(array Int32 a 1)"
+			"	(a.Push 7)"
+			"	(a.Push 8)"
+			"	(result = a.Capacity)"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, "TestArrayInt32Expand");
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		int x = vm.PopInt32();
+		validate(x == 2);
 	}
 
 	void TestArrayOfArchetypes(IPublicScriptSystem& ss)
@@ -6498,15 +6640,6 @@ R"((namespace EntryPoint)
 		"	(a.Push 2)"
 		"	(a.Push 3)"
 		"	(a.Push 4)"
-		"	(try"
-		"		("
-		"			(a.Push 5)"
-		"		)"
-		"	catch ex"
-		"		("
-		"			(Sys.Print ex.Message)"
-		"		)"
-		"	)"
 		"	(result = (a 3))"
 		")";
 
@@ -6524,6 +6657,35 @@ R"((namespace EntryPoint)
 		validate(x == 4);
 	}
 
+	void TestArrayInt32Reassign(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Type)"
+
+			"(function Main -> (Int32 result):"
+			"	(array Int32 a 1)"
+			"	(a.Push 2492)"
+			"	(a.Set 0 1470)"
+			"	(result = (a 0))"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, "TestArrayInt32Reassign");
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		int x = vm.PopInt32();
+		validate(x == 1470);
+	}
+
 	void TestArrayInt32_5(IPublicScriptSystem& ss)
 	{
 		cstr srcCode = 
@@ -6536,7 +6698,7 @@ R"((namespace EntryPoint)
 		"	(array Int32 a 4)"
 		"	(a.Push 2492)"
 		"	(a.Push 1232)"
-		"	(a 1 1470)"
+		"	(a.Set 1 1470)"
 		"	(a.Push 1132)"
 		"	(result = (a 1))"
 		")";
@@ -6682,37 +6844,6 @@ R"((namespace EntryPoint)
 		validate(x == 6);
 	}
 
-	void TestArrayPushOverflow(IPublicScriptSystem& ss)
-	{
-		cstr srcCode =
-			"(namespace EntryPoint)"
-			" (alias Main EntryPoint.Main)"
-
-			"(using Sys.Type)"
-
-			"(struct Haha (Float64 a b c d))"
-
-			"(function Main -> (Int32 result):"
-			"	(array Haha laughs 2)"
-			"	(Haha haha = 1 2 3 4)"
-			"	(laughs.Push haha)"
-			"	(laughs.Push haha)"
-			"	(laughs.Push haha)"
-			"	(result = laughs.Length)"
-			")";
-
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 },  __FUNCTION__);
-		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
-
-		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
-
-		vm.Push(0); // Allocate stack space for the int32 result
-
-		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
-		validate(result == EXECUTERESULT_THROWN);
-		s_logger.Clear();
-	}
-
 	void TestThrowInConstructor(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -6752,7 +6883,7 @@ R"((namespace EntryPoint)
  
 		"(function Main -> (Int32 result):"
 		"	(array Int32 a 4)"
-		"	(a 3 2492)"
+		"	(a.Set 3 2492)"
 		"	(result = a.Length)"
 		")";
 
@@ -6847,7 +6978,7 @@ R"((namespace EntryPoint)
 		"(function Main -> (Int32 result):"
 		"	(array Vec3i a 4)"
 		"	(Vec3i v = 1 2 3)"
-		"	(a 3 v)"
+		"	(a.Set 3 v)"
 		"	(Vec3i w)"
 		"	(w = (a 3))"
 		"	(result = w.y)"
@@ -6980,7 +7111,7 @@ R"((namespace EntryPoint)
 		"(using Sys.Type)"
 
 		"(function FillArray (array Int32 a) -> : "
-		"	(a 3 7)"
+		"	(a.Set 3 7)"
 		")"
   
 		"(function Main -> (Int32 result):"
@@ -7279,9 +7410,11 @@ R"((namespace EntryPoint)
 		"	(this.dogId = id)"
 		")"
 
-		"(method Sanctuary.Construct (Int32 maxKennels)"
-		"	-> (construct kennels maxKennels): )"		
-  
+		"(method Sanctuary.Construct (Int32 maxKennels):"
+		"	(array DogKennel kennels maxKennels)"
+		"   (this.kennels = kennels)"
+		")"
+
 		"(function Main -> (Int32 result):"
 		"	(Sanctuary sanctuary (4) )"
 		"	(sanctuary.kennels.Push 1812)" // This should invoke the DogKennel constructor into the memory slot of the first array element
@@ -7297,50 +7430,6 @@ R"((namespace EntryPoint)
 		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
 
 		ValidateExecution(result);
-		int32 x = vm.PopInt32();
-		validate(x == 1812);
-	}
-
-	void TestArrayForeachOnce(IPublicScriptSystem& ss)
-	{
-		cstr srcCode = 
-		"(namespace EntryPoint)"
-		" (alias Main EntryPoint.Main)"
-  
-		"(using Sys.Type)"
-
-		"(struct DogKennel (array Int32 dogIds))"
-		"(struct Sanctuary (array DogKennel kennels))"
-
-		"(method DogKennel.Construct (Int32 capacity)"
-		"	-> (construct dogIds capacity) "	
-		"	:"
-		")"
-
-		"(method Sanctuary.Construct (Int32 kennelCapacity)"
-		"	-> (construct kennels kennelCapacity)"		
-		"	:"
-		")"
-  
-		"(function Main -> (Int32 result):"
-		"	(Sanctuary sanctuary (4) )" // Create a sanctuary with a capacity of 4 kennels
-		"	(sanctuary.kennels.Push 4)" // Push/construct a new kennel in the sanctuary using 4 as argument to constructor
-		"	(foreach i k # (sanctuary.kennels 0 0)" // Get a ref to the first kennel
-		"		(k.dogIds.Push 1812)" // Put a new dog id in the first kennel
-		"		(result = (k.dogIds 0))" // Return the first dog id
-		"	)"
-		")";
-
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 },"TestArrayInStruct4");
-		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
-
-		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
-
-		vm.Push(0); // Allocate stack space for the int32 result
-
-		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
-		ValidateExecution(result);
-		
 		int32 x = vm.PopInt32();
 		validate(x == 1812);
 	}
@@ -7423,6 +7512,41 @@ R"((namespace EntryPoint)
 		validate(x == 4);
 	}
 
+	void TestArrayInStructWithThis(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Type)"
+
+			"(struct DogKennel (array Int32 dogIds))"
+
+			"(method DogKennel.Construct (Int32 capacity):"
+			"	(array Int32 dogIds capacity) "
+			"	(this.dogIds = dogIds)"
+			")"
+
+			"(function Main -> (Int32 result):"
+			"	(DogKennel kennel ( 5 ))" //
+			"   (kennel.dogIds.Push 1812)"
+			"   (result = (kennel.dogIds 0))"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, "TestArrayInStructWithThis");
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		int32 x = vm.PopInt32();
+		validate(x == 1812);
+	}
+
 	void TestArrayForeachWithinForEach(IPublicScriptSystem& ss)
 	{
 		cstr srcCode = 
@@ -7434,14 +7558,14 @@ R"((namespace EntryPoint)
 		"(struct DogKennel (array Int32 dogIds))"
 		"(struct Sanctuary (array DogKennel kennels))"
 
-		"(method DogKennel.Construct (Int32 capacity)"
-		"	-> (construct dogIds capacity) "	
-		"	:"
+		"(method DogKennel.Construct (Int32 capacity):"
+		"	(array Int32 dogIds capacity) "	
+		"	(this.dogIds = dogIds)"
 		")"
 
-		"(method Sanctuary.Construct (Int32 kennelCapacity)"
-		"	-> (construct kennels kennelCapacity)"		
-		"	:"
+		"(method Sanctuary.Construct (Int32 kennelCapacity):"
+		"	(array DogKennel kennels kennelCapacity) "
+		"	(this.kennels = kennels)"		
 		")"
   
 		"(function Main -> (Int32 result):"
@@ -7450,13 +7574,13 @@ R"((namespace EntryPoint)
 		"	(sanctuary.kennels.Push 4)" // Push/construct a new kennel in the sanctuary using 4 as argument to constructor
 		"	(sanctuary.kennels.Push 4)" // Push/construct a new kennel in the sanctuary using 4 as argument to constructor
 		"	(sanctuary.kennels.Push 4)" // Push/construct a new kennel in the sanctuary using 4 as argument to constructor
-		"	(foreach i k # (sanctuary.kennels 0 3)" // Enumerate over all 4 kennesl
-		"		(k.dogIds.Push i)" // Put a new dog id in the kennel
-		"		(k.dogIds.Push i)" // Put a new dog id in the kennel
-		"		(k.dogIds.Push i)" // Put a new dog id in the kennel
-		"		(k.dogIds.Push i)" // Put a new dog id in the kennel
-		"		(foreach j d # (k.dogIds 0 3)" // Enumerate through kennel
-		"			(result = (result + d))" // Sum the dogid to result
+		"	(foreach k # sanctuary.kennels" // Enumerate over all 4 kennesl
+		"		(k.dogIds.Push 1)" // Put a new dog id in the kennel
+		"		(k.dogIds.Push 2)" // Put a new dog id in the kennel
+		"		(k.dogIds.Push 3)" // Put a new dog id in the kennel
+		"		(k.dogIds.Push 4)" // Put a new dog id in the kennel
+		"		(foreach d # k.dogIds" // Enumerate through kennel
+		"			(result += d)" // Sum the dogid to result
 		"		)" // Sum the dogid to result
 		"	)"
 		")";
@@ -7472,7 +7596,7 @@ R"((namespace EntryPoint)
 		ValidateExecution(result);
 		
 		int32 x = vm.PopInt32();
-		validate(x == 24);
+		validate(x == 40);
 	}
 
 	void TestArrayForeachAndThrow(IPublicScriptSystem& ss)
@@ -7485,20 +7609,19 @@ R"((namespace EntryPoint)
 
 		"(struct Sanctuary (array Int32 kennelIds))"
 
-		"(method Sanctuary.Construct (Int32 capacity)"
-		"	-> (construct kennelIds capacity)"		
-		"	:"
+		"(method Sanctuary.Construct (Int32 capacity):"
+		"	(array Int32 kennelIds capacity)"		
+		"	(this.kennelIds = kennelIds)"
 		")"
   
 		"(function Main -> (Int32 result):"
 		"	(Sanctuary sanctuary (10) )" // Create a sanctuary with a capacity of 10 kennels
-		"	(sanctuary.kennelIds 9 0)" // Define and null the ten entries by setting entry 9 to 0
+		"	(sanctuary.kennelIds.Set 9 0)" // Define and null the ten entries by setting entry 9 to 0
 
 		"	(try"
 		"		("
-		"			(foreach i k # (sanctuary.kennelIds 0 9)" // Enumerate over all 10 kennels
+		"			(foreach k # sanctuary.kennelIds" // Enumerate over all 10 kennels
 		"				(Sys.Throw -1 \"Test: foreach throw\")"
-		"				(result = (result + i))" // Sum the index to result
 		"			)"
 		"		)"
 		"	catch ex"
@@ -7571,7 +7694,7 @@ R"((namespace EntryPoint)
 		validate(x == 45);
 	}
 
-	void TestArrayForeachEachElementInArray(IPublicScriptSystem& ss)
+	void TestArrayForeachElementInArray(IPublicScriptSystem& ss)
 	{
 		cstr srcCode = 
 		"(namespace EntryPoint)"
@@ -7585,12 +7708,12 @@ R"((namespace EntryPoint)
 		"		(a.Push (i + 10))"
 		"	)"
 
-		"	(foreach i k # a"
-		"		(result = (result + k))"
+		"	(foreach k # a"
+		"		(result += k)"
 		"	)"		
 		")";
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 },"TestArrayForeachEachElementInArray");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 },"TestArrayForeachElementInArray");
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -7715,8 +7838,10 @@ R"((namespace EntryPoint)
 		"(factory Sys.NewTest Sys.ITest (Int32 id) : (construct Test id))\n"
 
 		"(struct Axis (array Sys.ITest tests))\n"
-		"(method Axis.Construct (Int32 testsPerAxis) -> (construct tests testsPerAxis):)\n"
- 
+		"(method Axis.Construct (Int32 testsPerAxis):"
+		"	(array Sys.ITest tests testsPerAxis)"
+		"   (this.tests = tests)"
+		")"
 		"(function Main -> (Int32 result):\n"
 		"	(array Axis axes 3 )\n"
 		"	(axes.Push 3)\n" // N.B 3 here is the argument passed to Axis.Construct, which sets the testPerAxis value to 3
@@ -12180,6 +12305,35 @@ R"((namespace EntryPoint)
 		validate(x == 4);
 	}
 
+	void TestDeltaOperators5(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = "(namespace EntryPoint)"
+			"(using Sys.Maths)"
+			"(using EntryPoint)"
+			"(function Main -> (Float32 result) :"
+			"	(Vec2 v = 9 3)"
+			"	(Float32 y = 5)"
+			"	(y += v.x)"
+			"   (result = y)"
+			")"
+			"(alias Main EntryPoint.Main)"
+			;
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0.0f); // add our output to the stack
+
+		Rococo::EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateLogs();
+		validate(result == Rococo::EXECUTERESULT_TERMINATED);
+
+		auto x = vm.PopFloat32();
+		validate(x == 14);
+	}
+
 	void TestDeltaOperators4(IPublicScriptSystem& ss)
 	{
 		cstr srcCode = "(namespace EntryPoint)"
@@ -12298,7 +12452,7 @@ R"((namespace EntryPoint)
 			"(namespace EntryPoint)"
 			"(struct Entity (Int32 x y)(IString s))"
 			"(struct World (array Entity entities))"
-			"(method World.Construct -> (construct entities 2) : )"
+			"(method World.Construct : (array Entity entities 2)(this.entities = entities))"
 			"(function Main -> (Int32 result):"
 			"	(Entity e0 = 3 5 \"Hello World\")"
 			"	(Entity e1 = 7 9 \"Goodbye Universe\")"
@@ -12716,12 +12870,12 @@ R"(
 		(vectors.Push Vec2f (3 5))
 		(vectors.Push Vec2f (7 9))
 
-		(foreach i v # vectors
-			(foreach j w # vectors
-				(z = (z + (i * v.x)))
-				(z = (z + (i * v.y)))
-				(z = (z + (j * w.x)))
-				(z = (z + (j * w.y)))
+		(foreach v # vectors
+			(foreach w # vectors
+				(z += v.x)
+				(z += v.y)
+				(z += w.x)
+				(z += w.y)
 			)
 		)
 	)
@@ -12739,7 +12893,7 @@ R"(
 		validate(result == Rococo::EXECUTERESULT_TERMINATED);
 
 		auto x1 = vm.PopFloat32();
-		validate(x1 = 34.0f);
+		validate(x1 == 96.0f);
 	}
 
 	void TestClosureArg(IPublicScriptSystem& ss)
@@ -13768,11 +13922,14 @@ R"(
 
    void RunCollectionTests()
    {
+	   TEST(TestArrayInt32Reassign);
+	   TEST(TestArrayInStructWithThis);
 	   TEST(TestArrayRef);
 	   TEST(TestReturnArrayRef);
 	   TEST(TestReturnArrayRefAndIgnore);
 	   TEST(TestArrayElementIsClass);
 	   TEST(TestArrayInt32);
+	   TEST(TestArrayInt32Expand);
 	   TEST(TestArrayInt32_2);
 	   TEST(TestArrayInt32_3);
 	   TEST(TestArrayInt32_4);
@@ -13795,8 +13952,11 @@ R"(
 
 	   TEST(TestNestedArrayEnumeration);
 
+	   TEST(TestArrayPushViaClosure);
+	   TEST(TestArrayPushViaClosure2);
+	   TEST(TestArrayPushViaClosure3);
 	   TEST(TestConstructInArray);
-	   TEST(TestArrayForeachEachElementInArray);
+	   TEST(TestArrayForeachElementInArray);
 	   TEST(TestArrayForeachEachElementInArrayWithoutIndex);
 	   TEST(TestArrayElementDeconstruct);
 	   TEST(TestArrayElementDeconstructWhenThrown);
@@ -13807,12 +13967,13 @@ R"(
 	   TEST(TestArrayWithEarlyReturn);
 	   TEST(TestArrayWithEarlyReturn2);
 
-	   TEST(TestArrayForeachOnce);
 	   TEST(TestArrayForeachWithinForEach);
 
 	   TEST(TestArrayForeachAndThrow);
 	   TEST(TestArrayProxy);
 	   TEST(TestArrayClear);
+
+	   TEST(TestReturnArrayRefAndIgnore);
 
 	   TEST(TestMap);
 	   TEST(TestMap2);
@@ -13867,6 +14028,9 @@ R"(
 	   TEST(TestListStruct3);
 
 	   TEST(TestListStrongTyping);
+
+	   TEST(TestListDeleteHeadAndThrow);
+	   TEST(TestListReverseEnumeration);
    }
 
    void TestMaths()
@@ -13943,18 +14107,10 @@ R"(
 	{
 		validate(true);
 
-		TEST(TestClosureInputToStruct);
-		TEST(TestListDeleteHeadAndThrow);
-		TEST(TestListReverseEnumeration);
-
 		TEST(TestPackage);
 
 		TEST(TestUseDefaultNamespace);
 		TEST(TestUseDefaultNamespace2);
-
-		TEST(TestStringSplit);
-
-		TEST(TestSerialize);
 
 		TEST(TestClamp1);
 		TEST(TestClamp2);
@@ -13976,8 +14132,6 @@ R"(
 		TEST(TestExpressionAppendTo);
 
 		TEST2(TestCoroutine1);
-
-		TEST(TestStringBuilderLength1);
 
 		TEST(TestDynamicDispatch);
 		TEST(TestPushSecondInterface);
@@ -14013,10 +14167,10 @@ R"(
 		TEST(TestDeltaOperators2);
 		TEST(TestDeltaOperators3);
 		TEST(TestDeltaOperators4);
+		TEST(TestDeltaOperators5);
 
 		TEST(TestAssignStringToStruct);
 		TEST(TestCaptureStruct);
-		TEST(TestConstructFromInterface);
 		TEST(TestAddRefWithLocalVariable);
 		TEST(TestGetSysMessage);
 		TEST(TestNullMemberInit);
@@ -14117,6 +14271,8 @@ R"(
 		TEST(TestStructure3);
 		TEST(TestStructure4);
 
+		TEST(TestSerialize);
+
 		TEST(TestWhileLoop1);
 		TEST(TestNestedWhileLoops);
 		TEST(TestWhileLoopBreak);
@@ -14173,6 +14329,8 @@ R"(
 
 		TEST(TestClassDefinesInterface);
 
+		TEST(TestStringSplit);
+
 		TEST(TestInterfacePropagation);
 		TEST(TestInstancePropagation);
 		TEST(TestInstanceMemberPropagation);
@@ -14208,7 +14366,6 @@ R"(
 		TEST(TestMemberwiseInit);
 
 		TEST(TestInternalDestructorsCalled);
-		TEST(TestInternalDestructorsCalled2);
 
 		TEST(TestTryFinallyWithoutThrow);
 		TEST(TestDeepCatch);
@@ -14230,15 +14387,10 @@ R"(
 
 		TEST(TestReturnInterfaceEx);
 
-		TEST(TestSysThrow);
-		TEST(TestSysThrow2);
-
 		TEST(TestSearchSubstring);
 		TEST(TestRightSearchSubstring);
 		TEST(TestAppendSubstring);
 		TEST(TestStringbuilderTruncate);
-
-		TEST(TestReflectionGetChild_BadIndex);
 
 		TEST(TestEssentialInterface);
 
@@ -14269,12 +14421,21 @@ R"(
 		TEST(TestMacroAsArgument1);
 		TEST(TestSubstitution);
 		TEST(TestReflectionGetCurrentExpression);
+
+		TEST(TestClosureInputToStruct);
+
+		TEST(TestSysThrow);
+		TEST(TestSysThrow2);
+		TEST(TestConstructFromInterface);
+		TEST(TestInternalDestructorsCalled2);
+		TEST(TestReflectionGetChild_BadIndex);
+		TEST(TestStringBuilderLength1);
+
 	}
 
 	void RunPositiveFailures()
 	{
 		TEST(TestThrowInConstructor);
-		TEST(TestArrayPushOverflow);
 		TEST(TestMissingMethod);
 		TEST(TestDuplicateVariable);
 		TEST(TestDuplicateFunctionError);
@@ -14314,7 +14475,6 @@ int main(int argc, char* argv[])
 {
 	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
 
-	TEST(TestReturnArrayRefAndIgnore);
 	//_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF | _CRTDBG_CHECK_ALWAYS_DF);
 
 	try

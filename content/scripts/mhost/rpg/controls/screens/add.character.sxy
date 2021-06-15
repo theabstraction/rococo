@@ -211,7 +211,12 @@
 	(this.rollButton.Enable)
 )
 
-(method AddCharacterScreen.Construct (IBundle bundle) -> (construct malePortraits 100)(construct femalePortraits 100): 
+(method AddCharacterScreen.Construct (IBundle bundle):
+	(array IString malePortraits 100)
+	(array IString femalePortraits 100)
+	(this.malePortraits = malePortraits)
+	(this.femalePortraits = femalePortraits)
+	
 	(this.bundle = bundle)
 	
 	(this.uistack = (MHost.Graphics.NewUIStack))
@@ -633,7 +638,7 @@
 
 (method AddCharacterScreen.UpdatePortrait -> :
 	(IEngine engine = this.bundle.Engine)
-	
+
 	(if ((this.malePortraits.Length) == 0)
 		(MPlat.OnFileName appendToList =
 			(closure (IString fileName) -> :

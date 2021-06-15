@@ -3,13 +3,26 @@
 
 (using Sys.Type)
 
-(function GetArray -> (array Int32 result):
-	(array Int32 temp 4)
-	(temp.Push 5)
-	(result = temp)
+(archetype Sys.VoidToVoid -> )
+
+(struct People (array IString items))
+
+(method People.Construct :
+	(array IString items 1)
+	(this.items = items)
 )
 
 (function Main -> (Int32 result):
-	(GetArray)
-	(result = 7)
+	(People people)
+	
+	(Sys.VoidToVoid f = 
+		(closure -> :
+			(people.items.Push "Geoff")
+		)
+	)
+	
+	(f)
+	
+	(IString item = (people.items 0))
+	(result = item.Length)
 )

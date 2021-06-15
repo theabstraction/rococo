@@ -246,6 +246,7 @@ namespace Rococo { namespace VM
 			GetStackFrameValueAndExtendToPointer,
 			SetSFValueFromSFValueLong,
 			SetSFMemberRefFromSFValue,
+			SetSFMemberPtrFromD5,
 			IllegalOverflowOp
 		};
 

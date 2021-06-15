@@ -10,4 +10,3 @@ C:\work\rococo\sexcel\obj\Debug\sexcel.csproj.CoreCompileInputs.cache
 C:\work\rococo\sexcel\obj\Debug\sexcel.csproj.CopyComplete
 C:\work\rococo\sexcel\obj\Debug\sexcel.dll
 C:\work\rococo\sexcel\obj\Debug\sexcel.pdb
-C:\work\rococo\sexcel\obj\Debug\sexcel.csproj.AssemblyReference.cache

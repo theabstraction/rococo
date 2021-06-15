@@ -2389,8 +2389,7 @@ namespace Rococo
 
 		      if (type == &ce.StructArray())
 		      {
-			      CompileArraySet(ce, s);
-			      return true;
+				  Throw(s, "A directive that consists of an array name followed by optional arguments is illegal");
 		      }
 
 		      const IArchetype* a = type->Archetype();

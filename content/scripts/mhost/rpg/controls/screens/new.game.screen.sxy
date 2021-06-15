@@ -77,6 +77,10 @@
 (method PlayerRow.Render (IGui g)(Rectf rect)-> :
 	(g.DrawBorder rect 4 0xFFFFFFFF 0xFFAFAFAF 0xFF8F8F8F 0xFF5F5F5F)
 	
+	(if ((rect.left == rect.right) or (rect.top == rect.bottom) )
+		(return)
+	)
+	
 	(Rectf faceRect)
 	(faceRect.left = rect.left)
 	(faceRect.right = (rect.left + (rect.bottom - rect.top)))
@@ -171,7 +175,6 @@
 (function AddCharRow (IListBuilder roster) (IString filename)(IEngine engine)-> :
 	(CharRow data)
 	(IExpression s = (MHost.OS.LoadExpression filename))
-	
 	/* Example expression:
 	
 	(' S-Format-Dictionary-v1.0 
@@ -201,7 +204,9 @@
 	(roster.AddRow row1)
 )
 
-(method NewGameScreen.Construct (IBundle bundle) -> (construct slots 5): 
+(method NewGameScreen.Construct (IBundle bundle):
+	(array Slot slots 5)
+	(this.slots = slots)
 	(this.bundle = bundle)
 	(this.uistack = (MHost.Graphics.NewUIStack))
 	(this.screenSpan = -1 -1)
@@ -276,6 +281,7 @@
 	
 	(this.slots.Clear)
 	(ICharDataStore nullChar)
+
 	(this.slots.Push Slot (slot0 nullChar))
 	(this.slots.Push Slot (slot1 nullChar))
 	(this.slots.Push Slot (slot2 nullChar))
@@ -421,23 +427,30 @@
 	
 	// Find which slot is under the cursor and set it to the selected row,
 	// and remove all references to the selected row in the remaining slots
-	(foreach i slot # this.slots
+	
+	(Int32 i = 0)
+	(foreach slot # this.slots
 		(if (IsPointInRect pos slot.rect)
 			(cds.AssignToSlot i)
 			(slot.charData.AssignToSlot -2) // this tells the character at the slot it is no longer assigned
 			(slot.charData = cds)
 			
-			(foreach j slotJ # this.slots
+			(Int32 j = 0)
+			(foreach slotJ # this.slots
 				(if (i != j)
 					(if (slotJ.charData ==  cds)
 						(slotJ.charData = 0)
 					)
 				)
+				
+				(j += 1)
 			)
 
 			(this.SyncUI)
 			(break) // Allow execution to return to the uistack as we need to tell the drag and drop source the drop occured
 		)
+		
+		(i += 1)
 	)
 	
 	(this.selectedRow = 0)

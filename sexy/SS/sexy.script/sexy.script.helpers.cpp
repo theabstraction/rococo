@@ -885,7 +885,7 @@ namespace Rococo
 				   else if (member.UnderlyingType() && member.UnderlyingType()->VarType() == VARTYPE_Array)
 				   {
 					   const ArrayImage* a = *(const ArrayImage**)(instance + suboffset);
-					   enumCallback.OnMember(ss, childName, member, instance + suboffset, (int)suboffset, recurseDepth + 1);
+					   enumCallback.OnArrayMember(ss, childName, member, a, instance + suboffset, (int)suboffset, recurseDepth + 1);
 				   }
 				   else
 				   {

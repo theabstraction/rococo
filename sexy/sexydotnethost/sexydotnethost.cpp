@@ -434,7 +434,24 @@ namespace SexyDotNet { namespace Host
 
 		ListVariableDescBuilder(TVariableList& _listVars, VariableKind _vk): listVars(_listVars), parentKind(_vk) {}
 
-		virtual void OnMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const uint8* sfItem, int offset, int depth)
+		bool IsIString(const IStructure& s) const
+		{
+			if (s.InterfaceCount() > 0)
+			{
+				const auto& pInterface0 =s.GetInterface(0);
+				for (auto* pInterface = &pInterface0; pInterface != nullptr; pInterface = pInterface->Base())
+				{
+					if (Eq(pInterface->Name(), "IString"))
+					{
+						return true;
+					}
+				}
+			}
+
+			return false;
+		}
+
+		void OnMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const uint8* sfItem, int offset, int depth) override
 		{
 			if (depth > 5) return;
 
@@ -446,7 +463,25 @@ namespace SexyDotNet { namespace Host
 			char value[NativeVariableDesc::VALUE_CAPACITY];
 			FormatValue(ss, value, NativeVariableDesc::VALUE_CAPACITY, member.UnderlyingType()->VarType(), sfItem);
 
-			CopyAsciiToTochar(desc.Value, NativeVariableDesc::VALUE_CAPACITY, value);
+			if (IsIString(*member.UnderlyingType()))
+			{
+				ObjectStub* object;
+				__try
+				{
+					object = (ObjectStub*)(sfItem + (*(InterfacePointer)sfItem)->OffsetToInstance);
+					const auto* cstring = reinterpret_cast<const CStringConstant*>(object);
+					SafeFormat(desc.Value, "%s: '%64s'", value, cstring->pointer);
+				}
+				__except(0)
+				{
+					SafeFormat(desc.Value, "%s", value);
+				}
+			}
+			else
+			{
+				SafeFormat(desc.Value, "%s", value);
+			}
+
 			desc.Address = sfItem;
 
 			desc.Location = parentKind;
@@ -455,6 +490,155 @@ namespace SexyDotNet { namespace Host
 
 			ListVariableDescBuilder builder(listVars, parentKind);
 			GetMembers(ss, *member.UnderlyingType(), childName, sfItem, 0, builder, depth);
+		}
+
+		void OnArrayMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const ArrayImage* pArray, const uint8* sfItem, int offset, int depth) override
+		{
+			if (depth > 5) return;
+
+			NativeVariableDesc desc;
+			SafeFormat(desc.Name, NativeVariableDesc::NAME_CAPACITY, childName);
+			if (member.UnderlyingGenericArg1Type()->InterfaceCount() > 0)
+			{
+				SafeFormat(desc.Type, NativeVariableDesc::TYPE_CAPACITY, "array %s", member.UnderlyingGenericArg1Type()->GetInterface(0).Name());
+			}
+			else
+			{
+				SafeFormat(desc.Type, NativeVariableDesc::TYPE_CAPACITY, "array %s", member.UnderlyingGenericArg1Type()->Name());
+			}
+
+			SafeFormat(desc.Value, "0x%p", pArray);
+
+			desc.Address = sfItem;
+
+			desc.Location = parentKind;
+
+			listVars.push_back(desc);
+
+			if (pArray == nullptr)
+			{
+				return;
+			}
+
+			NativeVariableDesc ptrDesc;
+			SafeFormat(ptrDesc.Name, "#.C-Array-Ptr");
+			SafeFormat(ptrDesc.Type, "void*");
+			SafeFormat(ptrDesc.Value, "0x%p", pArray->Start);
+			ptrDesc.Address = (const uint8*)&pArray->Start;
+			ptrDesc.Location = parentKind;
+			listVars.push_back(ptrDesc);
+
+			NativeVariableDesc lenDesc;
+			SafeFormat(lenDesc.Name, "#.Length");
+			SafeFormat(lenDesc.Type, "Int32");
+			SafeFormat(lenDesc.Value, "%d", pArray->NumberOfElements);
+			lenDesc.Address = (const uint8*) &pArray->NumberOfElements;
+			lenDesc.Location = parentKind;
+			listVars.push_back(lenDesc);
+
+			NativeVariableDesc capacityDesc;
+			SafeFormat(capacityDesc.Name, "#.Capacity");
+			SafeFormat(capacityDesc.Type, "Int32");
+			SafeFormat(capacityDesc.Value, "%d", pArray->ElementCapacity);
+			capacityDesc.Address = (const uint8*)&pArray->ElementCapacity;
+			capacityDesc.Location = parentKind;
+			listVars.push_back(capacityDesc);	
+
+			NativeVariableDesc typeDesc;
+			SafeFormat(typeDesc.Name, "#.ElementType");
+			SafeFormat(typeDesc.Type, "IStructure");
+			SafeFormat(typeDesc.Value, "%s", GetFriendlyName(*pArray->ElementType));
+			typeDesc.Address = (const uint8*)&pArray->ElementType;
+			typeDesc.Location = parentKind;
+			listVars.push_back(typeDesc);
+
+			NativeVariableDesc sizeDesc;
+			SafeFormat(sizeDesc.Name, "#.ElementLength");
+			SafeFormat(sizeDesc.Type, "Int32");
+			SafeFormat(sizeDesc.Value, "%d", pArray->ElementLength);
+			sizeDesc.Address = (const uint8*)&pArray->ElementLength;
+			sizeDesc.Location = parentKind;
+			listVars.push_back(sizeDesc);
+			
+			NativeVariableDesc lockDesc;
+			SafeFormat(lockDesc.Name, "#.LockNumber");
+			SafeFormat(lockDesc.Type, "Int32");
+			SafeFormat(lockDesc.Value, "%d", pArray->LockNumber);
+			lockDesc.Address = (const uint8*)&pArray->LockNumber;
+			lockDesc.Location = parentKind;
+			listVars.push_back(lockDesc);
+
+			NativeVariableDesc refDesc;
+			SafeFormat(refDesc.Name, "#.RefCount");
+			SafeFormat(refDesc.Type, "Int32");
+			SafeFormat(refDesc.Value, "%lld", pArray->RefCount);
+			refDesc.Address = (const uint8*)&pArray->RefCount;
+			refDesc.Location = parentKind;
+			listVars.push_back(refDesc);	
+
+			enum { MAX_ITEMS_VISIBLE = 20 };
+
+			for (int i = 0; i < pArray->NumberOfElements; ++i)
+			{
+				const uint8* pElement = ((const uint8*)pArray->Start) + pArray->ElementLength * i;
+
+				NativeVariableDesc itemDesc;
+				SafeFormat(itemDesc.Name, "%s.#item_%d", childName, i);
+				SafeFormat(itemDesc.Type, "Element");
+				SafeFormat(itemDesc.Value, "");
+				itemDesc.Address = (const uint8*) pElement;
+				itemDesc.Location = parentKind;
+
+				ListVariableDescBuilder builder(listVars, parentKind); 
+
+				ObjectStub* object = nullptr;
+
+				if (pArray->ElementType->InterfaceCount() > 0)
+				{
+					// element is an interface pointer
+					pElement = *(const uint8**)pElement;
+
+					__try
+					{
+						object = (ObjectStub*)(pElement + (*(InterfacePointer)pElement)->OffsetToInstance);
+						const auto* type = object->Desc->TypeInfo;
+						cstr name = GetFriendlyName(*type);
+						SafeFormat(itemDesc.Type, "Element -> %s", name);
+					}
+					__except (0)
+					{
+						object = nullptr;
+					}
+				}
+
+				listVars.push_back(itemDesc);
+
+				if (object && IsIString(*pArray->ElementType))
+				{				
+					__try
+					{
+						const auto* cstring = reinterpret_cast<const CStringConstant*>(object);
+
+						NativeVariableDesc textDesc;
+						SafeFormat(textDesc.Name, "%s.#item_%d.(cstr)buffer", childName, i);
+						SafeFormat(textDesc.Type, "const char*");
+						SafeFormat(textDesc.Value, cstring->pointer);
+						textDesc.Address = (const uint8*)pElement;
+						textDesc.Location = parentKind;
+						listVars.push_back(textDesc);
+					}
+					__except (0)
+					{
+						
+					}
+				}
+
+				GetMembers(ss, *pArray->ElementType, itemDesc.Name, pElement, 0, builder, depth);
+
+				if (i > MAX_ITEMS_VISIBLE) break;
+			}
+
+			
 		}
 	};
 

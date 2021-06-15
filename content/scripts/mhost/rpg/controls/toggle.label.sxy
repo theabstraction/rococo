@@ -49,7 +49,9 @@
 (method ToggleLabel.DisableGlow -> : (this.glowing = false))
 (method ToggleLabel.EnableGlow -> : (this.glowing = true))
 
-(method ToggleLabel.Construct (Int32 nItems)->(construct items nItems):
+(method ToggleLabel.Construct (Int32 nItems):
+	(array ValueCell items nItems)
+	(this.items = items)
 	(this.outerRect = -1 -1 -1 -1)
 	(this.selection = -1)
 	(this.innerRect = -1 -1 -1 -1)
