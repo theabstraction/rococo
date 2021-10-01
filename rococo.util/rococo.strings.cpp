@@ -826,4 +826,28 @@ namespace Rococo
 		xxh::hash_t<64> hash = xxh::xxhash<64>(buffer, nBytesLength);
 		return hash;
 	}
+
+	// This is very slow algorithm that requires deep stack recursion for even modest sized strings
+	int LevenshteinDistance(cstr source, cstr target)
+	{
+		int lenSrc = StringLength(source);
+		int lenTarget = StringLength(target);
+
+		if (lenSrc == 0) { return lenTarget; }
+		if (lenTarget == 0) { return lenSrc;  }
+
+		int distance = toupper(source[lenSrc - 1]) == toupper(target[lenTarget - 1]) ? 0 : 1;
+
+		char* sourcePrefix = (char*)alloca(lenSrc);
+		char* targetPrefix = (char*)alloca(lenTarget);
+
+		memcpy(sourcePrefix, source, lenSrc - 1);
+		memcpy(targetPrefix, target, lenTarget - 1);
+		sourcePrefix[lenSrc - 1] = 0;
+		targetPrefix[lenTarget - 1] = 0;
+
+		return min(min(LevenshteinDistance(sourcePrefix, target) + 1,
+			LevenshteinDistance(source, targetPrefix)) + 1,
+			LevenshteinDistance(sourcePrefix, targetPrefix) + distance);
+	}
 }

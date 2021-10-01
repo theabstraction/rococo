@@ -204,4 +204,6 @@ namespace Rococo
    int32 CompareI(cstr a, cstr b);
    int32 CompareI(cstr a, cstr b, int64 count);
    int32 Compare(cstr a, cstr b, int64 count);
+
+   int LevenshteinDistance(cstr source, cstr target);
 }

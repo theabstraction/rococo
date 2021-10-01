@@ -63,7 +63,7 @@ void pluginInit(HANDLE hModule)
 
         if (!GetModuleFileNameW((HMODULE)hModule, directory.buf, directory.CAPACITY))
         {
-            Throw(GetLastError(), "Cannot GetModuleFileNameW for the plugin");
+            Throw(GetLastError(), "GetModuleFileNameW failed");
         }
 
         Rococo::OS::StripLastSubpath(directory.buf);
@@ -135,8 +135,9 @@ void commandMenuInit()
         //            ShortcutKey *shortcut,          // optional. Define a shortcut to trigger this command
         //            bool check0nInit                // optional. Make this menu item be checked visually
         //            );
-        setCommand(0, TEXT("Show Sexy IDE"), ShowSexyIDE, NULL, false);
+        setCommand(0, TEXT("Show Sexy IDE"), showSexyIDE, NULL, false);
         setCommand(1, TEXT("About Sexy IDE..."), helloDlg, NULL, false);
+        setCommand(1, TEXT("Generate Autocomplete data..."), generateAutocompleteData, NULL, false);
     }
 }
 
@@ -168,10 +169,7 @@ bool setCommand(size_t index, TCHAR *cmdName, PFUNCPLUGINCMD pFunc, ShortcutKey 
     return true;
 }
 
-//----------------------------------------------//
-//-- STEP 4. DEFINE YOUR ASSOCIATED FUNCTIONS --//
-//----------------------------------------------//
-void ShowSexyIDE()
+void NewSexyIDESingleton()
 {
     struct CLOSURE : Rococo::Windows::IWindow
     {
@@ -196,6 +194,34 @@ void ShowSexyIDE()
     if (sexyIDE)
     {
         sexyIDE->SetTitle("SexyStudio For Notepad++");
+    }
+}
+
+void generateAutocompleteData()
+{
+    NewSexyIDESingleton();
+
+    if (sexyIDE)
+    {
+        WideFilePath path;
+        ::SendMessage(nppData._nppHandle, NPPM_GETNPPDIRECTORY, path.CAPACITY, (LPARAM) path.buf);
+
+        WideFilePath autocompletionFile;
+        Format(autocompletionFile, L"%ls\\autoCompletion\\sxy.xml", path.buf);
+
+        sexyIDE->NPP_GenerateAutocompleteFile(autocompletionFile);
+    }
+}
+
+//----------------------------------------------//
+//-- STEP 4. DEFINE YOUR ASSOCIATED FUNCTIONS --//
+//----------------------------------------------//
+void showSexyIDE()
+{
+    NewSexyIDESingleton();
+
+    if (sexyIDE)
+    {
         sexyIDE->Activate();
     }
     /*

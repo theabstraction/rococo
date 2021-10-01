@@ -21,12 +21,17 @@
 
 #include <stdio.h>
 
+#include <list>
 #include <vector>
 #include <string>
 
 #include <unordered_map>
 
 #include <rococo.sexystudio.api.h>
+
+#include <algorithm>
+
+#include <rococo.strings.h>
 
 using namespace Rococo;
 using namespace Rococo::SexyStudio;
@@ -366,6 +371,13 @@ private:
 		}
 	}
 
+	std::unordered_map<ISXYPublicFunction*, ID_TREE_ITEM> mapPublicFunctionToTreeItem;
+
+	void MapFunctionToClassTree(ISXYPublicFunction& function, ID_TREE_ITEM itemId)
+	{
+		mapPublicFunctionToTreeItem[&function] = itemId;
+	}
+
 	void AppendFunctions(ISxyNamespace& ns, ID_TREE_ITEM idNSNode, ISexyDatabase& database, bool appendSourceName)
 	{
 		for (int i = 0; i < ns.FunctionCount(); ++i)
@@ -374,6 +386,8 @@ private:
 			auto idFunction = classTree->AppendItem(idNSNode);
 			cstr publicName = function.PublicName();
 			auto* localFunction = function.LocalFunction();
+
+			MapFunctionToClassTree(function, idFunction);
 
 			char desc[256];
 			SafeFormat(desc, "%-64.64s %s", publicName, appendSourceName && localFunction ? localFunction->SourcePath() : "");
@@ -501,18 +515,37 @@ private:
 
 		mapNSToTreeItemId.clear();
 		mapTreeItemIdToNS.clear();
+		mapPublicFunctionToTreeItem.clear();
 
 		AppendNamespaceRecursive(database.GetRootNamespace(), idNamespace, database);
 	}
 
-	std::vector<std::string> searchArrayResults;
+	struct SearchItem
+	{
+		std::string text;
+		ISxyNamespace* ns;
+		ISXYPublicFunction* function;
+	};
+
+	std::vector<SearchItem> searchArrayResults;
 
 	bool isDirty = true;
 
 	std::unordered_map<ID_TREE_ITEM, ISxyNamespace*> mapTreeItemIdToNS;
 	std::unordered_map<ISxyNamespace*, ID_TREE_ITEM> mapNSToTreeItemId;
 
-	void RefreshResultList(bool populateIfEmpty)
+	void AddRootSubspacesToSearchResults()
+	{
+		auto& root = database.GetRootNamespace();
+
+		for (int i = 0; i < root.Length(); ++i)
+		{
+			auto& ns = root[i];
+			searchArrayResults.push_back({ ns.Name(), &ns, nullptr });
+		}
+	}
+
+	void RefreshResultList()
 	{
 		if (!IsWindowVisible(searchResults->Window()))
 		{
@@ -531,18 +564,9 @@ private:
 			return;
 		}
 
-		if (populateIfEmpty && searchArrayResults.empty())
+		if (searchArrayResults.empty() && *Globals::searchPath == 0)
 		{
-			if (*Globals::searchPath == 0)
-			{
-				auto& root = database.GetRootNamespace();
-
-				for (int i = 0; i < root.Length(); ++i)
-				{
-					auto& ns = root[i];
-					searchArrayResults.push_back(ns.Name());
-				}
-			}
+			AddRootSubspacesToSearchResults();
 		}
 
 		if (searchArrayResults.empty())
@@ -554,7 +578,7 @@ private:
 
 		for (auto& item : searchArrayResults)
 		{
-			searchResults->AppendItem(item.c_str());
+			searchResults->AppendItem(item.text.c_str());
 		}
 
 		isDirty = false;
@@ -600,6 +624,145 @@ private:
 		}
 	}
 
+	struct FuzzyMatch
+	{
+		std::string candidate;
+		int levenshteinDistance;
+		ISxyNamespace* ns;
+		ISXYPublicFunction* publicFunction;
+	};
+
+	std::vector<FuzzyMatch> fuzzyMatches;
+
+	std::list<char> searchBuffer;
+	std::list<char> candidateBuffer;
+
+	// Shyreman's-Amazing-Fuzzy-String-Matching algorithm
+	bool AppendFuzzyStringMatch(cstr searchTerm, cstr candidate, ISxyNamespace* ns, ISXYPublicFunction* publicFunction)
+	{
+		if (Eq(searchTerm, candidate))
+		{
+			fuzzyMatches.push_back({ candidate, 0, ns, publicFunction });
+			return true;
+		}
+
+		if (StartsWith(candidate, searchTerm))
+		{
+			fuzzyMatches.push_back({ candidate, StringLength(candidate) - StringLength(searchTerm), ns, publicFunction });
+			return true;
+		}
+
+		searchBuffer.clear();
+		candidateBuffer.clear();
+
+		for (cstr s = searchTerm; *s != 0; ++s)
+		{
+			searchBuffer.push_back(*s);
+		}
+
+		for (cstr t = candidate; *t != 0; ++t)
+		{
+			candidateBuffer.push_back(*t);
+		}
+
+		bool match = false;
+		int score = 0;
+
+		while (!searchBuffer.empty())
+		{
+			char c = searchBuffer.front();
+			searchBuffer.pop_front();
+
+			for (auto i = candidateBuffer.begin(); i != candidateBuffer.end(); ++i)
+			{
+				if (c == *i)
+				{
+					match = true;
+					candidateBuffer.erase(i);
+					break;
+				}
+
+				if (toupper(c) == toupper(*i))
+				{
+					match = true;
+					score += 1;
+					candidateBuffer.erase(i);
+					break;
+				}
+
+				score += 2;
+			}
+		}
+
+		score += 2 * (int) candidateBuffer.size();
+
+		if (match) fuzzyMatches.push_back(FuzzyMatch { candidate, score, ns, publicFunction });
+
+		return match;
+	}
+
+	void AppendFuzzyStringMatchSubspacesAndPublicFunctions(cstr searchTerm, ISxyNamespace& ns)
+	{
+		for (int i = 0; i < ns.Length(); ++i)
+		{
+			auto& subspace = ns[i];
+			if (subspace.Name()[0] != 0)
+			{
+				AppendFuzzyStringMatch(searchTerm, subspace.Name(), &subspace, nullptr);
+			}
+			AppendFuzzyStringMatchSubspacesAndPublicFunctions(searchTerm, subspace);
+		}
+
+		for (int i = 0; i < ns.FunctionCount(); ++i)
+		{
+			auto& f = ns.GetFunction(i);		
+			AppendFuzzyStringMatch(searchTerm, f.PublicName(), &ns, &f);
+		}
+	}
+
+	void AppendFuzzyItemsToSearchTerms(ISxyNamespace& ns, cstr searchTerm)
+	{
+		fuzzyMatches.clear();
+		AppendFuzzyStringMatchSubspacesAndPublicFunctions(searchTerm, ns);
+		std::stable_sort(fuzzyMatches.begin(), fuzzyMatches.end(),
+			[](const FuzzyMatch& a, const FuzzyMatch& b) -> bool
+			{
+				return a.levenshteinDistance < b.levenshteinDistance;
+			}
+		);
+
+		enum { MAX_SEARCH_RESULTS = 30 };
+		for (int i = 0; i < MAX_SEARCH_RESULTS; i++)
+		{
+			if (i >= (int32)fuzzyMatches.size())
+			{
+				break;
+			}
+
+			char matchDisplayText[256];
+			StackStringBuilder ssb(matchDisplayText, sizeof matchDisplayText);
+
+			if (fuzzyMatches[i].ns != nullptr)
+			{
+				AppendFullName(*fuzzyMatches[i].ns, ssb);
+
+				if (fuzzyMatches[i].publicFunction != nullptr)
+				{
+					ssb << "." << fuzzyMatches[i].publicFunction->PublicName();
+					searchArrayResults.push_back({ std::string(matchDisplayText),&ns,fuzzyMatches[i].publicFunction });
+				}
+				else
+				{
+					searchArrayResults.push_back({ std::string(matchDisplayText),&ns,nullptr });
+				}
+			}
+			else
+			{
+				searchArrayResults.push_back({ fuzzyMatches[i].candidate, &ns, nullptr });
+			}
+		}
+	}
+
 	void AppendToSearchTermsRecursive(ISxyNamespace& ns, cstr searchTerm, cstr fullSearchItem)
 	{
 		auto* dot = FindDot(searchTerm);
@@ -620,26 +783,18 @@ private:
 		}
 		else
 		{
-			struct CLOSURE : IEventCallback<cstr>
+			for (int j = 0; j < ns.FunctionCount(); ++j)
 			{
-				cstr fullSearchItem;
-				cstr searchTerm;
-				SexyExplorer* This;
-
-				void OnEvent(cstr name) override
+				auto& function = ns.GetFunction(j);
+				auto* name = function.PublicName();
+				if (StartsWith(name, searchTerm))
 				{
 					char fullName[256];
 					strncpy_s(fullName, fullSearchItem, searchTerm - fullSearchItem);
 					strncat_s(fullName, name, strlen(name));
-					This->searchArrayResults.push_back(fullName);
+					searchArrayResults.push_back({ fullName,&ns,&function });
 				}
-			} cb;
-
-			cb.fullSearchItem = fullSearchItem;
-			cb.searchTerm = searchTerm;
-			cb.This = this;
-
-			EnumerateNamesStartingWith(ns, searchTerm, cb);
+			}
 		}
 	}
 
@@ -654,14 +809,19 @@ private:
 		auto& root = database.GetRootNamespace();
 		AppendToSearchTermsRecursive(root, searchTerm, searchTerm);
 
-		RefreshResultList(!searchArrayResults.empty());
+		if (*searchTerm != 0 && searchArrayResults.empty())
+		{
+			AppendFuzzyItemsToSearchTerms(root, searchTerm);
+		}
+
+		RefreshResultList();
 	}
 
 	void OnMouseMovedInSearchBar(Vec2i pos)
 	{
 		if (GetFocus() == searchEditor->OSEditor())
 		{
-			RefreshResultList(true);
+			RefreshResultList();
 		}
 	}
 
@@ -671,7 +831,7 @@ private:
 		searchEditor->Bind(searchTerms, sizeof searchTerms);
 		int endIndex = Edit_LineLength(searchEditor->OSEditor(), 0);
 		Edit_SetSel(searchEditor->OSEditor(), endIndex, endIndex);
-		RefreshResultList(true);
+		RefreshResultList();
 	}
 
 	ISxyNamespace* FindSubspace(ISxyNamespace& branch, cstr name)
@@ -736,7 +896,21 @@ private:
 				}
 			}
 		}
+	}
 
+	void HilightClassItem(const SearchItem& item)
+	{
+		classTree->Collapse();
+		
+		if (item.function != nullptr)
+		{
+			auto i = mapPublicFunctionToTreeItem.find(item.function);
+			if (i != mapPublicFunctionToTreeItem.end())
+			{
+				auto id = i->second;
+				classTree->ExpandAt(id);
+			}
+		}
 	}
 
 	void OnEvent(Event& ev) override
@@ -758,8 +932,16 @@ private:
 		}
 		else if (ev == evDoubleClickSearchList)
 		{
-			auto& selectedItem = As<TEventArgs<cstr>>(ev);
-			SetSearchTerm(selectedItem);
+			auto& selectedItem = As<TEventArgs<std::pair<cstr, int>>>(ev);
+			SetSearchTerm(selectedItem.value.first);
+			int index = selectedItem.value.second;
+			if (index >= 0 && index < searchArrayResults.size())
+			{
+				if (searchArrayResults[index].text == selectedItem.value.first)
+				{
+					HilightClassItem(searchArrayResults[index]);
+				}
+			}
 		}
 		else if (ev == evSearchSelected)
 		{
@@ -928,6 +1110,18 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 		FlashWindow(ide->Window(), FALSE);
 	}
 
+	void NPP_GenerateAutocompleteFile(const wchar_t* targetFullPath) override
+	{
+		try
+		{
+			database->NPP_GenerateAutocompleteFile(targetFullPath);
+		}
+		catch (IException& ex)
+		{
+			Rococo::OS::ShowErrorBox(ide->Window(), ex, "Error generating auto-completion data");
+		}
+	}
+
 	bool isRunning = true;
 
 	bool IsRunning() const override
@@ -1064,7 +1258,7 @@ extern "C" _declspec(dllexport) int CreateSexyStudioFactory(void** ppInterface, 
 		return E_POINTER;
 	}
 
-	if (strcmp(interfaceURL, URL_base) || strcmp(interfaceURL, URL_factory))
+	if (Eq(interfaceURL, URL_base) || Eq(interfaceURL, URL_factory))
 	{
 		*ppInterface = (void*) new Factory();
 		return S_OK;

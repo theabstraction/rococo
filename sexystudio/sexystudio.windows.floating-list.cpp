@@ -134,8 +134,8 @@ namespace
 
 					SendMessageA(hWndList, LB_GETTEXT, index, (LPARAM)scratch.data());
 
-					TEventArgs<cstr> args;
-					args.value = scratch.data();
+					TEventArgs<std::pair<cstr,int>> args;
+					args.value = std::make_pair(scratch.data(),index);
 					wc.publisher.Publish(args, evDoubleClick);
 				}
 			}

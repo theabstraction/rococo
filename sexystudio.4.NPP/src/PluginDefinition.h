@@ -37,7 +37,7 @@
 //
 // Here define the number of your plugin commands
 //
-const int nbFunc = 2;
+const int nbFunc = 3;
 
 
 //
@@ -71,7 +71,8 @@ bool setCommand(size_t index, TCHAR *cmdName, PFUNCPLUGINCMD pFunc, ShortcutKey 
 //
 // Your plugin command functions
 //
-void ShowSexyIDE();
+void showSexyIDE();
 void helloDlg();
+void generateAutocompleteData();
 
 #endif //PLUGINDEFINITION_H

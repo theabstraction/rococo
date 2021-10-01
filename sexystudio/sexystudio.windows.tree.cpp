@@ -143,6 +143,12 @@ namespace
 			CollapseBranchAndRecurse(root);
 		}
 
+		void ExpandAt(ID_TREE_ITEM id) override
+		{
+			auto hItem = (HTREEITEM) id;
+			TreeView_SelectItem(hTreeWnd, hItem);
+		}
+ 
 		void SetImageList(uint32 nItems, ...)
 		{
 			if (ImageList_GetImageCount(hImages) != 0)

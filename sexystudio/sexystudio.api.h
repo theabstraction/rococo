@@ -193,6 +193,7 @@ namespace Rococo::SexyStudio
 		virtual ISXYType& GetType(int index) = 0;
 		virtual ISXYPublicFunction& GetFunction(int index) = 0;
 		virtual ISXYFactory& GetFactory(int index) = 0;
+		virtual ISxyNamespace* GetParent() = 0;
 		virtual int ArchetypeCount() const = 0;
 		virtual int FactoryCount() const = 0;
 		virtual int FunctionCount() const = 0;
@@ -217,8 +218,11 @@ namespace Rococo::SexyStudio
 		virtual cstr GetEnumSourcePath(int index) const = 0;
 	};
 
+	void AppendFullName(ISxyNamespace& ns, struct StringBuilder& sb);
+
 	ROCOCOAPI ISexyDatabase
 	{
+		virtual void NPP_GenerateAutocompleteFile(const wchar_t* targetFullPath) = 0;
 		virtual void Sort() = 0;
 		virtual void UpdateFile_SXY(cstr fullpathToSxy) = 0;
 		virtual void UpdateFile_SXY_PackedItem(cstr data, int32 length, cstr path) = 0;
@@ -340,6 +344,7 @@ namespace Rococo::SexyStudio
 		virtual void Clear() = 0;
 		virtual void Collapse() = 0;
 		virtual void EnableExpansionIcons(bool enable) = 0;
+		virtual void ExpandAt(ID_TREE_ITEM idItem) = 0;
 		virtual void SetContext(ID_TREE_ITEM idItem, uint64 contextId) = 0;
 		virtual void SetItemExpandedImage(ID_TREE_ITEM hItem, int imageIndex) = 0;
 		virtual void SetItemText(cstr text, ID_TREE_ITEM hItem) = 0;

@@ -11,6 +11,8 @@
 
 #include <rococo.auto-release.h>
 
+#include <rococo.io.h>
+
 using namespace Rococo;
 using namespace Rococo::Sex;
 using namespace Rococo::SexyStudio;
@@ -601,8 +603,9 @@ namespace ANON
 		std::vector<SXYPublicStruct> structures;
 		std::vector<SXYNSAlias> nsAlias;
 		std::vector<SXYArchetype> archetypes;
+		SxyNamespace* parent;
 
-		SxyNamespace(cstr _name) : name(_name) {}
+		SxyNamespace(cstr _name, SxyNamespace* _parent) : name(_name), parent(_parent) {}
 
 		int AliasCount() const override
 		{
@@ -617,6 +620,11 @@ namespace ANON
 		cstr GetNSAliasTo(int index) const override
 		{
 			return nsAlias[index].publicName.c_str();
+		}
+
+		ISxyNamespace* GetParent() override
+		{
+			return parent;
 		}
 
 		cstr GetAliasSourcePath(int index) const override
@@ -738,7 +746,7 @@ namespace ANON
 					}
 				}
 
-				subspaces.push_back(std::make_unique<SxyNamespace>(path));
+				subspaces.push_back(std::make_unique<SxyNamespace>(path, this));
 				return *subspaces[subspaces.size() - 1];
 			}
 			else
@@ -755,7 +763,7 @@ namespace ANON
 					}
 				}
 
-				subspaces.push_back(std::make_unique<SxyNamespace>(prefix));
+				subspaces.push_back(std::make_unique<SxyNamespace>(prefix, this));
 				return subspaces.back()->MapPathToNamespace(s + 1);
 			}
 		}
@@ -783,7 +791,7 @@ namespace ANON
 				}
 			}
 
-			subspaces.push_back(std::make_unique<SxyNamespace>(subspace));
+			subspaces.push_back(std::make_unique<SxyNamespace>(subspace, this));
 			return *subspaces[subspaces.size() - 1];
 		}
 
@@ -1124,7 +1132,7 @@ namespace ANON
 
 		SexyDatabase(): 
 			sparser(Sexy_CreateSexParser_2_0(Rococo::Memory::CheckedAllocator())),
-			rootNS("")
+			rootNS("", nullptr)
 		{
 
 		}
@@ -1308,6 +1316,51 @@ namespace ANON
 		void Free() override
 		{
 			delete this;
+		}
+
+		void NPP_AppendAllChildrenFromRoot(ISxyNamespace& ns, StringBuilder& sb)
+		{
+			sb << "    <KeyWord name = \"";
+			AppendFullName(ns, sb);
+			sb << "\">\n";
+
+			for (int i = 0; i < ns.Length(); ++i)
+			{
+				NPP_AppendAllChildrenFromRoot(ns[i], sb);
+			}
+
+			for (int i = 0; i < ns.FunctionCount(); ++i)
+			{
+				sb << "    <KeyWord name = \"";
+
+				AppendFullName(ns, sb);
+				sb << ".";
+				sb << ns.GetFunction(i).PublicName();
+				sb << "\">\n";
+			}
+		}
+
+		void NPP_GenerateAutocompleteFile(const wchar_t* targetFullPath) override
+		{
+			AutoFree<IStringBuilder> dsb = CreateDynamicStringBuilder(4096);
+			auto& sb = dsb->Builder();
+
+			sb << "<? xml version = \"1.0\" encoding = \"UTF - 8\" ?>\n";
+
+			sb << "<NotepadPlus>\n";
+			sb << "  <AutoComplete>\n";
+
+			auto& root = GetRootNamespace();
+			for (int i = 0; i < root.Length(); ++i)
+			{
+				NPP_AppendAllChildrenFromRoot(root[i], sb);
+			}
+
+			sb << "  </AutoComplete>\n";
+			sb << "</NotepadPlus>\n";
+
+			AutoFree<Rococo::IO::IBinaryArchive> archive = Rococo::IO::CreateNewBinaryFile(targetFullPath);
+			archive->Write(1, sb.Length(), (*sb).buffer);			
 		}
 
 		ISxyNamespace& InsertNamespaceRecursive(cstr ns, ISxyNamespace& parent, cr_sex src)
@@ -1596,5 +1649,30 @@ namespace Rococo::SexyStudio
 	ISexyDatabaseSupervisor* CreateSexyDatabase()
 	{
 		return new ANON::SexyDatabase();
+	}
+
+	void AppendFullName(ISxyNamespace& ns, StringBuilder& sb)
+	{
+		std::vector<cstr> genealogy;
+
+		for (ISxyNamespace* i = &ns; i != nullptr; i = i->GetParent())
+		{
+			genealogy.push_back(i->Name());
+		}
+
+		// The final namespace is the root which has no name
+		genealogy.pop_back();
+
+		int depth = 0;
+
+		for (auto i = genealogy.rbegin(); i != genealogy.rend(); i++, depth++)
+		{
+			if (depth > 0)
+			{
+				sb << ".";
+			}
+
+			sb << *i;
+		}
 	}
 }

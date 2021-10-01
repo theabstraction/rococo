@@ -59,7 +59,7 @@ namespace Rococo
 					hFile = CreateFileW(sysPath, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 					if (hFile == INVALID_HANDLE_VALUE)
 					{
-						Throw(GetLastError(), "Error creating file");
+						Throw(GetLastError(), "Error creating file %ls", sysPath);
 					}
 				}
 
