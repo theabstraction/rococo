@@ -418,7 +418,7 @@ namespace Anon
 
 		void SaveTo(const fstring& pingPath) override
 		{
-			AutoFree<Rococo::IStringBuilder> isb = CreateDynamicStringBuilder(map.size() * 64);
+			AutoFree<Rococo::IDynamicStringBuilder> isb = CreateDynamicStringBuilder(map.size() * 64);
 
 			auto& sb = isb->Builder();
 

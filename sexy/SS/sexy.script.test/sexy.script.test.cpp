@@ -400,7 +400,7 @@ namespace
 
 		ss.AddTree(tree());
 
-		AutoFree<IStringBuilder> sb = CreateDynamicStringBuilder(16384);
+		AutoFree<IDynamicStringBuilder> sb = CreateDynamicStringBuilder(16384);
 		ss.Compile(&sb->Builder());
 
 		fstring result = *sb->Builder();

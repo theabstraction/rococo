@@ -58,7 +58,7 @@ namespace
 		}
 	};
 
-	struct DynamicStringBuilder : StringBuilder, public IStringBuilder
+	struct DynamicStringBuilder : StringBuilder, public IDynamicStringBuilder
 	{
 		std::vector<char> internalBuffer;
 
@@ -811,7 +811,7 @@ namespace Rococo
 
    const char* GetSubString(const char* s, const char *subString) { return strstr(s, subString); }
 
-   IStringBuilder* CreateDynamicStringBuilder(size_t initialCapacity)
+   IDynamicStringBuilder* CreateDynamicStringBuilder(size_t initialCapacity)
    {
 	   return new DynamicStringBuilder(initialCapacity);
    }

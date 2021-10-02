@@ -355,7 +355,7 @@ namespace MHost
 
 		void Run() override
 		{
-			AutoFree<IStringBuilder> sb = CreateDynamicStringBuilder(4096);
+			AutoFree<IDynamicStringBuilder> sb = CreateDynamicStringBuilder(4096);
 			RunEnvironmentScript(platform, this, "!scripts/MHost/_Init/keys.sxy", true, false, *packageMHost, this, &sb->Builder());
 
 			WideFilePath wPath;

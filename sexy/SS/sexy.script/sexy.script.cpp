@@ -1434,7 +1434,7 @@ namespace Rococo
 		{
 			auto& nsRoot = progObjProxy->GetRootNamespace();
 
-			AutoFree<IStringBuilder> sbc ( CreateDynamicStringBuilder(65536) );
+			AutoFree<IDynamicStringBuilder> sbc ( CreateDynamicStringBuilder(65536) );
 
 			auto& sb = sbc->Builder();
 
@@ -1466,7 +1466,7 @@ namespace Rococo
 
 		void Publish_NS_API(const INamespace& ns, NativeCallEnvironment& nce, int depth)
 		{
-			AutoFree<IStringBuilder> sbc ( CreateDynamicStringBuilder(65536) );
+			AutoFree<IDynamicStringBuilder> sbc ( CreateDynamicStringBuilder(65536) );
 			sbc->Builder() << "<html><style>" <<
 				"ul { font-family: \"Courier New\"; }" <<
 				".factory { color:blue; font-weight: bold; } " <<

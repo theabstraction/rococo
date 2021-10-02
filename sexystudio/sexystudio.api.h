@@ -199,7 +199,7 @@ namespace Rococo::SexyStudio
 		virtual int FunctionCount() const = 0;
 		virtual int InterfaceCount() const = 0;
 		virtual int TypeCount() const = 0;
-		virtual int Length() const = 0;
+		virtual int SubspaceCount() const = 0;
 		virtual ISxyNamespace& operator[] (int index) = 0;
 		virtual cstr Name() = 0;
 		virtual ISxyNamespace& Update(cstr subspace, cr_sex src) = 0;

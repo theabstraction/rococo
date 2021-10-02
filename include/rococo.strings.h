@@ -142,13 +142,13 @@ namespace Rococo
 	   enum eOpenType { BUILD_EXISTING = 0 };
    };
 
-   struct IStringBuilder
+   struct IDynamicStringBuilder
    {
 	   virtual StringBuilder& Builder() = 0;
 	   virtual void Free() = 0;
    };
 
-   IStringBuilder* CreateDynamicStringBuilder(size_t initialCapacity);
+   IDynamicStringBuilder* CreateDynamicStringBuilder(size_t initialCapacity);
 
    bool IsPointerValid(const void* ptr);
 

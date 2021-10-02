@@ -676,7 +676,7 @@ namespace ANON
 			return enums[index].sMacroDef.Tree().Source().Name();
 		}
 
-		int Length() const override
+		int SubspaceCount() const override
 		{
 			return (int) subspaces.size();
 		}
@@ -1380,7 +1380,7 @@ namespace ANON
 				}
 			}
 
-			for (int i = 0; i < ns.Length(); ++i)
+			for (int i = 0; i < ns.SubspaceCount(); ++i)
 			{
 				if (!Eq(ns[i].Name(), "Native"))
 				{
@@ -1394,7 +1394,7 @@ namespace ANON
 			std::unordered_map<std::string, int> exportList;
 
 			auto& root = GetRootNamespace();
-			for (int i = 0; i < root.Length(); ++i)
+			for (int i = 0; i < root.SubspaceCount(); ++i)
 			{
 				AppendAllChildrenFromRoot(prefix, exportList, root[i], 0);
 			}
@@ -1467,7 +1467,7 @@ namespace ANON
 				}
 			}
 			
-			for (int i = 0; i < ns.Length(); ++i)
+			for (int i = 0; i < ns.SubspaceCount(); ++i)
 			{
 				if (GetHintForCandidateByNS(ns[i], prefix, args))
 				{

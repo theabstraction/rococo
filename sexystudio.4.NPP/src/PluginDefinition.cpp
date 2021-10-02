@@ -263,7 +263,7 @@ void ParseToken(HWND hScintilla, cstr token, cstr endOfToken)
     char prefix[1024];
     strncpy_s(prefix, token, endOfToken - token);
 
-    static AutoFree<IStringBuilder> dsb = CreateDynamicStringBuilder(1024);
+    static AutoFree<IDynamicStringBuilder> dsb = CreateDynamicStringBuilder(1024);
     auto& sb = dsb->Builder();
     sb.Clear();
 
@@ -423,11 +423,9 @@ void onModified(SCNotification& notifyCode)
 
 }
 
-#include <rococo.strings.h>
-
 void helloDlg()
 {
-    AutoFree<IStringBuilder> dsb = CreateDynamicStringBuilder(1024);
+    AutoFree<IDynamicStringBuilder> dsb = CreateDynamicStringBuilder(1024);
     auto& sb = dsb->Builder();
     if (factory)
     {

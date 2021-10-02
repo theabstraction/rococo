@@ -485,7 +485,7 @@ private:
 
 	void AppendNamespaceRecursive(ISxyNamespace& ns, ID_TREE_ITEM idNSNode, ISexyDatabase& database)
 	{
-		for (int i = 0; i < ns.Length(); ++i)
+		for (int i = 0; i < ns.SubspaceCount(); ++i)
 		{
 			auto& subspace = ns[i];
 			auto idBranch = classTree->AppendItem(idNSNode);
@@ -538,7 +538,7 @@ private:
 	{
 		auto& root = database.GetRootNamespace();
 
-		for (int i = 0; i < root.Length(); ++i)
+		for (int i = 0; i < root.SubspaceCount(); ++i)
 		{
 			auto& ns = root[i];
 			searchArrayResults.push_back({ ns.Name(), &ns, nullptr });
@@ -586,7 +586,7 @@ private:
 
 	void EnumerateNamesStartingWith(ISxyNamespace& ns, cstr prefix, IEventCallback<cstr>& cb)
 	{
-		for (int i = 0; i < ns.Length(); ++i)
+		for (int i = 0; i < ns.SubspaceCount(); ++i)
 		{
 			auto& subspace = ns[i];
 			auto* name = ns[i].Name();
@@ -703,7 +703,7 @@ private:
 
 	void AppendFuzzyStringMatchSubspacesAndPublicFunctions(cstr searchTerm, ISxyNamespace& ns)
 	{
-		for (int i = 0; i < ns.Length(); ++i)
+		for (int i = 0; i < ns.SubspaceCount(); ++i)
 		{
 			auto& subspace = ns[i];
 			if (subspace.Name()[0] != 0)
@@ -771,7 +771,7 @@ private:
 			char subspaceName[256];
 			strncpy_s(subspaceName, searchTerm,  dot - searchTerm);
 
-			for (int i = 0; i < ns.Length(); ++i)
+			for (int i = 0; i < ns.SubspaceCount(); ++i)
 			{
 				auto& subpsace = ns[i];
 				if (Eq(subpsace.Name(), subspaceName))
@@ -836,7 +836,7 @@ private:
 
 	ISxyNamespace* FindSubspace(ISxyNamespace& branch, cstr name)
 	{
-		for (int i = 0; i < branch.Length(); ++i)
+		for (int i = 0; i < branch.SubspaceCount(); ++i)
 		{
 			auto& subspace = branch[i];
 			if (Eq(subspace.Name(), name))
@@ -1079,7 +1079,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 
 		sheets->CollapseTree();
 
-		AutoFree<IStringBuilder> heapStringBuilder = CreateDynamicStringBuilder(1024);
+		AutoFree<IDynamicStringBuilder> heapStringBuilder = CreateDynamicStringBuilder(1024);
 		auto& sb = heapStringBuilder->Builder();
 		Rococo::SexyStudio::AppendDescendantsAndRectsToString(*ide, sb);
 		puts(*sb);
