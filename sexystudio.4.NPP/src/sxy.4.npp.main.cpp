@@ -83,19 +83,25 @@ extern "C" __declspec(dllexport) FuncItem * getFuncsArray(int *nbF)
 	return funcItem;
 }
 
+void onModified(SCNotification& notifyCode);
+void onCharAdded(HWND hScintilla, char c);
+
 extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 {
 	switch (notifyCode->nmhdr.code) 
 	{
 		case NPPN_SHUTDOWN:
-		{
 			commandMenuCleanUp();
-		}
-		break;
-
-		default:
-			return;
+			break;
+		case SCN_MODIFIED:
+			onModified(*notifyCode);
+			break;
+		case SCN_CHARADDED:
+			onCharAdded((HWND) notifyCode->nmhdr.hwndFrom, static_cast<char>(notifyCode->ch));
+			break;
 	}
+
+	return;
 }
 
 

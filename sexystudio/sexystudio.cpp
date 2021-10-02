@@ -1110,16 +1110,9 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 		FlashWindow(ide->Window(), FALSE);
 	}
 
-	void NPP_GenerateAutocompleteFile(const wchar_t* targetFullPath) override
+	void ForEachAutoCompleteCandidate(cstr prefix, IEnumerator<cstr>& action) override
 	{
-		try
-		{
-			database->NPP_GenerateAutocompleteFile(targetFullPath);
-		}
-		catch (IException& ex)
-		{
-			Rococo::OS::ShowErrorBox(ide->Window(), ex, "Error generating auto-completion data");
-		}
+		database->ForEachAutoCompleteCandidate(prefix, action);
 	}
 
 	bool isRunning = true;

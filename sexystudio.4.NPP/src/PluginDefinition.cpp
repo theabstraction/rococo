@@ -24,6 +24,8 @@
 #include <rococo.os.win32.h>
 #include <rococo.window.h>
 
+#include <rococo.strings.h>
+
 #include "PluginDefinition.h"
 #include "menuCmdID.h"
 
@@ -93,6 +95,31 @@ void pluginInit(HANDLE hModule)
         {
             Throw(nErr, "CreateSexyStudioFactory with URL %s failed", interfaceURL);
         }
+
+        struct CLOSURE : Rococo::Windows::IWindow
+        {
+            HWND hWnd;
+            operator HWND() const override
+            {
+                return hWnd;
+            }
+        } topLevelWindow;
+
+        // N.B making the IDE a child of the Notepad++ window is a lot more obstructive than having no parent
+        topLevelWindow.hWnd = nppData._nppHandle;
+
+        if (sexyIDE == nullptr)
+        {
+            if (factory)
+            {
+                sexyIDE = factory->CreateSexyIDE(topLevelWindow);
+            }
+        }
+
+        if (sexyIDE)
+        {
+            sexyIDE->SetTitle("SexyStudio For Notepad++");
+        }
     }
     catch (IException& ex)
     {
@@ -137,7 +164,7 @@ void commandMenuInit()
         //            );
         setCommand(0, TEXT("Show Sexy IDE"), showSexyIDE, NULL, false);
         setCommand(1, TEXT("About Sexy IDE..."), helloDlg, NULL, false);
-        setCommand(1, TEXT("Generate Autocomplete data..."), generateAutocompleteData, NULL, false);
+    //  setCommand(2, TEXT("Generate Autocomplete data..."), generateAutocompleteData, NULL, false);
     }
 }
 
@@ -169,47 +196,11 @@ bool setCommand(size_t index, TCHAR *cmdName, PFUNCPLUGINCMD pFunc, ShortcutKey 
     return true;
 }
 
-void NewSexyIDESingleton()
-{
-    struct CLOSURE : Rococo::Windows::IWindow
-    {
-        HWND hWnd;
-        operator HWND() const override
-        {
-            return hWnd;
-        }
-    } topLevelWindow;
-
-    // N.B making the IDE a child of the Notepad++ window is a lot more obstructive than having no parent
-    topLevelWindow.hWnd = nppData._nppHandle;
-
-    if (sexyIDE == nullptr)
-    {
-        if (factory)
-        {
-            sexyIDE = factory->CreateSexyIDE(topLevelWindow);
-        }
-    }
-
-    if (sexyIDE)
-    {
-        sexyIDE->SetTitle("SexyStudio For Notepad++");
-    }
-}
-
 void generateAutocompleteData()
 {
-    NewSexyIDESingleton();
-
     if (sexyIDE)
     {
-        WideFilePath path;
-        ::SendMessage(nppData._nppHandle, NPPM_GETNPPDIRECTORY, path.CAPACITY, (LPARAM) path.buf);
 
-        WideFilePath autocompletionFile;
-        Format(autocompletionFile, L"%ls\\autoCompletion\\sxy.xml", path.buf);
-
-        sexyIDE->NPP_GenerateAutocompleteFile(autocompletionFile);
     }
 }
 
@@ -218,8 +209,6 @@ void generateAutocompleteData()
 //----------------------------------------------//
 void showSexyIDE()
 {
-    NewSexyIDESingleton();
-
     if (sexyIDE)
     {
         sexyIDE->Activate();
@@ -239,6 +228,138 @@ void showSexyIDE()
     // Scintilla control has no Unicode mode, so we use (char *) here
     ::SendMessage(curScintilla, SCI_SETTEXT, 0, (LPARAM)"Hello, Notepad++!");
     */
+}
+
+bool HasFlags(int fields, int flags)
+{
+    return (fields & flags) == flags;
+}
+
+void ParseToken(HWND hScintilla, cstr token, cstr endOfToken)
+{
+    using namespace Rococo;
+
+    char prefix[1024];
+    errno_t err = strncpy_s(prefix, token, endOfToken - token);
+
+    static AutoFree<IStringBuilder> dsb = CreateDynamicStringBuilder(1024);
+    auto& sb = dsb->Builder();
+    sb.Clear();
+
+    WideFilePath path;
+    ::SendMessage(nppData._nppHandle, NPPM_GETNPPDIRECTORY, path.CAPACITY, (LPARAM)path.buf);
+
+    WideFilePath autocompletionFile;
+    Format(autocompletionFile, L"%ls\\autoCompletion\\sexy.xml", path.buf);
+
+    struct ANON : IEnumerator<cstr>
+    {
+        StringBuilder& sb;
+
+        bool first = true;
+
+        void operator()(cstr item) override
+        {
+            if (first)
+            {
+                first = false;
+            }
+            else
+            {
+                 sb << " ";
+            }
+
+            sb << item;       
+        }
+
+        ANON(StringBuilder& _sb) : sb(_sb) {}
+    } appendToString(sb);
+    sexyIDE->ForEachAutoCompleteCandidate(prefix, appendToString);
+
+    const fstring& sbString = *dsb->Builder();
+
+    SendMessageA(hScintilla, SCI_AUTOCSETCANCELATSTART, false, 0);
+    SendMessageA(hScintilla, SCI_USERLISTSHOW, 1, (LPARAM) sbString.buffer);
+
+    static errno_t x = err;
+}
+
+void onCharAdded(HWND hScintilla, char c)
+{
+    size_t bufferLength = SendMessageA(hScintilla, SCI_GETCURLINE, 0, 0);
+
+    if (bufferLength == 0 || bufferLength > 1024)
+    {
+        return;
+    }
+    
+    char line[1024];
+    ptrdiff_t caretPos = SendMessageA(hScintilla, SCI_GETCURLINE, bufferLength, (LPARAM)line);
+
+    size_t lineLength = bufferLength - 1;
+
+    size_t lineNumber = SendMessageA(hScintilla, SCI_LINEFROMPOSITION, 0, 0);
+    ptrdiff_t lineStartPosition = SendMessageA(hScintilla, SCI_POSITIONFROMLINE, lineNumber, 0);
+       
+    line[lineLength] = 0;
+
+    auto delta = caretPos - lineStartPosition;
+
+    if (caretPos <= lineStartPosition)
+    {
+        return;
+    }
+
+    if (delta > lineLength || delta == 0)
+    {
+        return;
+    }
+
+    cstr pos = line + delta;
+    while (pos > line)
+    {
+        pos--;
+
+        switch (*pos)
+        {
+        case '(':
+            pos++;
+            goto foundFunction;
+        case ')':
+        case ' ':
+        case '\t':
+            return;
+        }
+    }
+
+    return;
+
+ foundFunction:
+
+    cstr endOfLine = line + lineLength;
+
+    cstr endOfToken = pos;
+    while (endOfToken < endOfLine)
+    {
+        switch (*endOfToken)
+        {
+        case ')':
+            return;
+        case ' ':
+        case '\t':
+            ParseToken(hScintilla, pos, endOfToken);
+            break;
+        }
+
+        endOfToken++;
+    }
+
+    ParseToken(hScintilla, pos, endOfToken);
+}
+
+void onModified(SCNotification& notifyCode)
+{
+
 }
 
 #include <rococo.strings.h>

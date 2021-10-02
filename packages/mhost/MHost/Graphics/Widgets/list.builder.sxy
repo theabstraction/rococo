@@ -36,7 +36,6 @@
 	(this.rows = rows)
 	(this.outerRect = -1 -1 -1 -1)
 	(this.verticalScrollBar = (NewVerticalScrollBar uiControl))
-	(this.totalSpan = 0 0)
 )
 
 (method ListBuilder.OnMouseUp (MouseClickArgs args)-> :

@@ -17,7 +17,7 @@ namespace Rococo::SexyStudio
 
 	ROCOCOAPI ISexyStudioInstance1
 	{
-		virtual void NPP_GenerateAutocompleteFile(const wchar_t* targetFullPath) = 0;
+		virtual void ForEachAutoCompleteCandidate(cstr prefix, IEnumerator<cstr>& action) = 0;
 		virtual void SetTitle(cstr title) = 0;
 		virtual void Activate() = 0;
 		virtual bool IsRunning() const = 0;

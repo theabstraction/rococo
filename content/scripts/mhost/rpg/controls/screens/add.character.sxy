@@ -647,7 +647,7 @@
 		)
 		(MPlat.OS.EnumerateFiles "!textures/faces/male/*.jpg" appendToList)
 	)
-	
+		
 	(if ((this.femalePortraits.Length) == 0)	
 		(MPlat.OnFileName appendToList =
 			(closure (IString fileName) -> :

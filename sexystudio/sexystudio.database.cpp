@@ -1318,49 +1318,58 @@ namespace ANON
 			delete this;
 		}
 
-		void NPP_AppendAllChildrenFromRoot(ISxyNamespace& ns, StringBuilder& sb)
+		void AppendAllChildrenFromRoot(cstr prefix, std::unordered_map<std::string, int>& exportList, ISxyNamespace& ns)
 		{
-			sb << "    <KeyWord name = \"";
-			AppendFullName(ns, sb);
-			sb << "\">\n";
+			char name[256];
+			StackStringBuilder nameBuilder(name, sizeof name);
+			AppendFullName(ns, nameBuilder);
 
-			for (int i = 0; i < ns.Length(); ++i)
+			if (StartsWith(name, prefix))
 			{
-				NPP_AppendAllChildrenFromRoot(ns[i], sb);
+				exportList.insert(std::make_pair(std::string(name), 0));
 			}
 
 			for (int i = 0; i < ns.FunctionCount(); ++i)
 			{
-				sb << "    <KeyWord name = \"";
+				nameBuilder.Clear();
+				AppendFullName(ns, nameBuilder);
+				nameBuilder << ".";
+				nameBuilder << ns.GetFunction(i).PublicName();
 
-				AppendFullName(ns, sb);
-				sb << ".";
-				sb << ns.GetFunction(i).PublicName();
-				sb << "\">\n";
+				if (StartsWith(name, prefix))
+				{
+					exportList.insert(std::make_pair(std::string(name), 0));
+				}
+			}
+
+			for (int i = 0; i < ns.Length(); ++i)
+			{
+				AppendAllChildrenFromRoot(prefix, exportList, ns[i]);
 			}
 		}
 
-		void NPP_GenerateAutocompleteFile(const wchar_t* targetFullPath) override
+		void ForEachAutoCompleteCandidate(cstr prefix, IEnumerator<cstr>& action) override
 		{
-			AutoFree<IStringBuilder> dsb = CreateDynamicStringBuilder(4096);
-			auto& sb = dsb->Builder();
-
-			sb << "<? xml version = \"1.0\" encoding = \"UTF - 8\" ?>\n";
-
-			sb << "<NotepadPlus>\n";
-			sb << "  <AutoComplete>\n";
+			std::unordered_map<std::string, int> exportList;
 
 			auto& root = GetRootNamespace();
 			for (int i = 0; i < root.Length(); ++i)
 			{
-				NPP_AppendAllChildrenFromRoot(root[i], sb);
+				AppendAllChildrenFromRoot(prefix, exportList, root[i]);
 			}
 
-			sb << "  </AutoComplete>\n";
-			sb << "</NotepadPlus>\n";
+			std::vector<std::string> sortedList;
+			for (auto& i : exportList)
+			{
+				sortedList.push_back(i.first);
+			}
 
-			AutoFree<Rococo::IO::IBinaryArchive> archive = Rococo::IO::CreateNewBinaryFile(targetFullPath);
-			archive->Write(1, sb.Length(), (*sb).buffer);			
+			std::stable_sort(sortedList.begin(), sortedList.end());
+	
+			for (auto i : sortedList)
+			{
+				action(i.c_str());
+			}
 		}
 
 		ISxyNamespace& InsertNamespaceRecursive(cstr ns, ISxyNamespace& parent, cr_sex src)
