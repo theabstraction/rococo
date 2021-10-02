@@ -1115,6 +1115,11 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 		database->ForEachAutoCompleteCandidate(prefix, action);
 	}
 
+	void GetHintForCandidate(cstr prefix, char args[1024]) override
+	{
+		database->GetHintForCandidate(prefix, args);
+	}
+
 	bool isRunning = true;
 
 	bool IsRunning() const override

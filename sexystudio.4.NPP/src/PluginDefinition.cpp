@@ -235,12 +235,33 @@ bool HasFlags(int fields, int flags)
     return (fields & flags) == flags;
 }
 
+enum { USERLIST_SEXY_AUTOCOMPLETE = 12345678 };
+
+static ptrdiff_t autoCompleteCandidatePosition = 0;
+static char callTipArgs[1024] = { 0 };
+
+void onCalltipClicked(HWND hScintilla, int argValue)
+{
+    if (callTipArgs[0] != 0)
+    {
+        ptrdiff_t caretPos = SendMessageA(hScintilla, SCI_GETCURRENTPOS, 0, 0);
+        if (autoCompleteCandidatePosition > 0 && autoCompleteCandidatePosition < caretPos)
+        {
+            SendMessageA(hScintilla, SCI_SETSELECTIONSTART, caretPos, 0);
+            SendMessageA(hScintilla, SCI_SETSELECTIONEND, caretPos, 0);
+            SendMessageA(hScintilla, SCI_REPLACESEL, 0, (LPARAM)callTipArgs);
+            SendMessageA(hScintilla, SCI_CALLTIPCANCEL, 0, 0);
+            callTipArgs[0] = 0;
+        }
+    }
+}
+
 void ParseToken(HWND hScintilla, cstr token, cstr endOfToken)
 {
     using namespace Rococo;
 
     char prefix[1024];
-    errno_t err = strncpy_s(prefix, token, endOfToken - token);
+    strncpy_s(prefix, token, endOfToken - token);
 
     static AutoFree<IStringBuilder> dsb = CreateDynamicStringBuilder(1024);
     auto& sb = dsb->Builder();
@@ -256,18 +277,16 @@ void ParseToken(HWND hScintilla, cstr token, cstr endOfToken)
     {
         StringBuilder& sb;
 
-        bool first = true;
+        int count = 0;
 
         void operator()(cstr item) override
         {
-            if (first)
+            if (count > 0)
             {
-                first = false;
+                sb << " ";
             }
-            else
-            {
-                 sb << " ";
-            }
+
+            count++;
 
             sb << item;       
         }
@@ -278,13 +297,27 @@ void ParseToken(HWND hScintilla, cstr token, cstr endOfToken)
 
     const fstring& sbString = *dsb->Builder();
 
-    SendMessageA(hScintilla, SCI_AUTOCSETCANCELATSTART, false, 0);
-    SendMessageA(hScintilla, SCI_USERLISTSHOW, 1, (LPARAM) sbString.buffer);
+    callTipArgs[0] = 0;
 
-    static errno_t x = err;
+    if (appendToString.count == 1)
+    {
+        sexyIDE->GetHintForCandidate(prefix, callTipArgs);
+        if (callTipArgs[0] != 0)
+        {
+            ptrdiff_t caretPos = SendMessageA(hScintilla, SCI_GETCURRENTPOS, 0, 0);
+            SendMessageA(hScintilla, SCI_CALLTIPSHOW, caretPos, (LPARAM)callTipArgs);
+            return;
+        }
+    }
+    
+    if (appendToString.count > 0)
+    {
+        SendMessageA(hScintilla, SCI_AUTOCSETCANCELATSTART, false, 0);
+        SendMessageA(hScintilla, SCI_USERLISTSHOW, USERLIST_SEXY_AUTOCOMPLETE, (LPARAM)sbString.buffer);
+    }
 }
 
-void onCharAdded(HWND hScintilla, char c)
+void UpdateAutoComplete(HWND hScintilla)
 {
     size_t bufferLength = SendMessageA(hScintilla, SCI_GETCURLINE, 0, 0);
 
@@ -294,12 +327,15 @@ void onCharAdded(HWND hScintilla, char c)
     }
     
     char line[1024];
-    ptrdiff_t caretPos = SendMessageA(hScintilla, SCI_GETCURLINE, bufferLength, (LPARAM)line);
+    SendMessageA(hScintilla, SCI_GETCURLINE, bufferLength, (LPARAM)line);
+    ptrdiff_t caretPos = SendMessageA(hScintilla, SCI_GETCURRENTPOS, 0, 0);
 
     size_t lineLength = bufferLength - 1;
 
-    size_t lineNumber = SendMessageA(hScintilla, SCI_LINEFROMPOSITION, 0, 0);
+    size_t lineNumber = SendMessageA(hScintilla, SCI_LINEFROMPOSITION, caretPos, 0);
     ptrdiff_t lineStartPosition = SendMessageA(hScintilla, SCI_POSITIONFROMLINE, lineNumber, 0);
+
+    autoCompleteCandidatePosition = caretPos;
        
     line[lineLength] = 0;
 
@@ -328,15 +364,19 @@ void onCharAdded(HWND hScintilla, char c)
         case ')':
         case ' ':
         case '\t':
+            autoCompleteCandidatePosition = 0;
             return;
         }
+
+        autoCompleteCandidatePosition--;
     }
 
+    autoCompleteCandidatePosition = 0;
     return;
 
  foundFunction:
 
-    cstr endOfLine = line + lineLength;
+    cstr endOfLine = line + delta;
 
     cstr endOfToken = pos;
     while (endOfToken < endOfLine)
@@ -355,6 +395,27 @@ void onCharAdded(HWND hScintilla, char c)
     }
 
     ParseToken(hScintilla, pos, endOfToken);
+}
+
+void onUserItemSelected(HWND hScintilla, int idList, cstr item)
+{
+    if (idList == USERLIST_SEXY_AUTOCOMPLETE)
+    {
+        ptrdiff_t caretPos = SendMessageA(hScintilla, SCI_GETCURRENTPOS, 0, 0);
+        if (autoCompleteCandidatePosition > 0 && autoCompleteCandidatePosition < caretPos)
+        {
+            SendMessageA(hScintilla, SCI_SETSELECTIONSTART, autoCompleteCandidatePosition, 0);
+            SendMessageA(hScintilla, SCI_SETSELECTIONEND, caretPos, 0);
+            SendMessageA(hScintilla, SCI_REPLACESEL, 0, (LPARAM)item);
+
+            UpdateAutoComplete(hScintilla);
+        }
+    }
+}
+
+void onCharAdded(HWND hScintilla, char c)
+{
+    UpdateAutoComplete(hScintilla);
 }
 
 void onModified(SCNotification& notifyCode)

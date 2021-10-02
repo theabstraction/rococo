@@ -85,6 +85,8 @@ extern "C" __declspec(dllexport) FuncItem * getFuncsArray(int *nbF)
 
 void onModified(SCNotification& notifyCode);
 void onCharAdded(HWND hScintilla, char c);
+void onUserItemSelected(HWND hScintilla, int idList, cstr item);
+void onCalltipClicked(HWND hScintilla, int argValue);
 
 extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 {
@@ -99,6 +101,11 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 		case SCN_CHARADDED:
 			onCharAdded((HWND) notifyCode->nmhdr.hwndFrom, static_cast<char>(notifyCode->ch));
 			break;
+		case SCN_USERLISTSELECTION:
+			onUserItemSelected((HWND)notifyCode->nmhdr.hwndFrom, (int) notifyCode->wParam, notifyCode->text);
+			break;
+		case SCN_CALLTIPCLICK:
+			onCalltipClicked((HWND)notifyCode->nmhdr.hwndFrom, (int)notifyCode->wParam);
 	}
 
 	return;

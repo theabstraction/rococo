@@ -30,6 +30,20 @@ cstr AlwaysGetAtomic(cr_sex s, int index)
 	return IsAtomic(s[index]) ? s[index].String()->Buffer : "<expected atomic argument>";
 }
 
+int CountDots(cstr text)
+{
+	int dots = 0;
+	while (*text != 0)
+	{
+		if (*text == '.')
+		{
+			dots++;
+		}
+		text++;
+	}
+	return dots;
+}
+
 namespace Rococo::SexyStudio
 {
 	ParseKeyword keywordNamespace("namespace");
@@ -1318,8 +1332,14 @@ namespace ANON
 			delete this;
 		}
 
-		void AppendAllChildrenFromRoot(cstr prefix, std::unordered_map<std::string, int>& exportList, ISxyNamespace& ns)
+		void AppendAllChildrenFromRoot(cstr prefix, std::unordered_map<std::string, int>& exportList, ISxyNamespace& ns, int depth)
 		{
+			int dots = CountDots(prefix);
+			if (depth > dots)
+			{
+				return;
+			}
+
 			char name[256];
 			StackStringBuilder nameBuilder(name, sizeof name);
 			AppendFullName(ns, nameBuilder);
@@ -1329,22 +1349,43 @@ namespace ANON
 				exportList.insert(std::make_pair(std::string(name), 0));
 			}
 
-			for (int i = 0; i < ns.FunctionCount(); ++i)
+			if (StartsWith(prefix, name))
 			{
-				nameBuilder.Clear();
-				AppendFullName(ns, nameBuilder);
-				nameBuilder << ".";
-				nameBuilder << ns.GetFunction(i).PublicName();
-
-				if (StartsWith(name, prefix))
+				for (int i = 0; i < ns.FunctionCount(); ++i)
 				{
-					exportList.insert(std::make_pair(std::string(name), 0));
+					nameBuilder.Clear();
+					AppendFullName(ns, nameBuilder);
+					nameBuilder << ".";
+					nameBuilder << ns.GetFunction(i).PublicName();
+
+					if (ns.GetFunction(i).PublicName()[0] != '_' && StartsWith(name, prefix))
+					{
+						exportList.insert(std::make_pair(std::string(name), 0));
+					}
+				}
+
+				for (int i = 0; i < ns.InterfaceCount(); ++i)
+				{
+					auto& interf = ns.GetInterface(i);
+
+					nameBuilder.Clear();
+					AppendFullName(ns, nameBuilder);
+					nameBuilder << ".";
+					nameBuilder << interf.PublicName();
+
+					if (StartsWith(name, prefix))
+					{
+						exportList.insert(std::make_pair(std::string(name), 0));
+					}
 				}
 			}
 
 			for (int i = 0; i < ns.Length(); ++i)
 			{
-				AppendAllChildrenFromRoot(prefix, exportList, ns[i]);
+				if (!Eq(ns[i].Name(), "Native"))
+				{
+					AppendAllChildrenFromRoot(prefix, exportList, ns[i], depth + 1);
+				}
 			}
 		}
 
@@ -1355,7 +1396,7 @@ namespace ANON
 			auto& root = GetRootNamespace();
 			for (int i = 0; i < root.Length(); ++i)
 			{
-				AppendAllChildrenFromRoot(prefix, exportList, root[i]);
+				AppendAllChildrenFromRoot(prefix, exportList, root[i], 0);
 			}
 
 			std::vector<std::string> sortedList;
@@ -1369,6 +1410,80 @@ namespace ANON
 			for (auto i : sortedList)
 			{
 				action(i.c_str());
+			}
+		}
+
+		bool GetHintForCandidateByNS(ISxyNamespace& ns, cstr prefix, char args[1024])
+		{
+			char name[256];
+			StackStringBuilder nameBuilder(name, sizeof name);
+			AppendFullName(ns, nameBuilder);
+
+			if (!StartsWith(prefix, name))
+			{
+				return false;
+			}
+
+			if (Eq(name, prefix))
+			{
+				SafeFormat(args, 1024, "(namespace %s)", name);
+				return true;
+			}
+
+			for (int i = 0; i < ns.FunctionCount(); ++i)
+			{
+				nameBuilder.Clear();
+				AppendFullName(ns, nameBuilder);
+				nameBuilder << ".";
+
+				auto& f = ns.GetFunction(i);
+				nameBuilder << f.PublicName();
+
+				auto* l = f.LocalFunction();
+
+				if (l && Eq(name, prefix))
+				{
+					StackStringBuilder argBuilder(args, 1024);
+
+					for (int j = 0; j < l->InputCount(); ++j)
+					{
+						cstr inputName = l->InputName(j);
+						cstr inputType = l->InputType(j);
+						argBuilder.AppendFormat(" (%s %s)", inputType, inputName);
+					}
+
+					argBuilder << " -> ";
+
+					for (int j = 0; j < l->OutputCount(); ++j)
+					{
+						cstr outputName = l->OutputName(j);
+						cstr outputType = l->OutputType(j);
+						argBuilder.AppendFormat("(%s %s)", outputType, outputName);
+					}
+
+					argBuilder << ")";
+
+					return true;
+				}
+			}
+			
+			for (int i = 0; i < ns.Length(); ++i)
+			{
+				if (GetHintForCandidateByNS(ns[i], prefix, args))
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		void GetHintForCandidate(cstr prefix, char args[1024]) override
+		{
+			auto& root = GetRootNamespace();
+			if (!GetHintForCandidateByNS(root, prefix, args))
+			{
+				args[0] = 0;
 			}
 		}
 
