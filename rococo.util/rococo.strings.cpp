@@ -850,4 +850,65 @@ namespace Rococo
 			LevenshteinDistance(source, targetPrefix)) + 1,
 			LevenshteinDistance(sourcePrefix, targetPrefix) + distance);
 	}
+
+	bool StartsWith(substring_ref token, const fstring& prefix)
+	{
+		size_t len = token.end - token.start;
+		return prefix.length <= len && strncmp(prefix, token.start, prefix.length) == 0;
+	}
+
+	ptrdiff_t Length(substring_ref token)
+	{
+		return token.end - token.start;
+	}
+
+	bool Eq(const fstring& a, substring_ref b)
+	{
+		if (a.length != Length(b))
+		{
+			return false;
+		}
+
+		cstr p = a.buffer;
+		cstr q = b.start;
+		for (; q != b.end; ++q, ++p)
+		{
+			if (*p != *q) return false;
+		}
+
+		return true;
+	}
+
+	bool Eq(substring_ref a, const fstring& b)
+	{
+		return Eq(b, a);
+	}
+
+	bool IsEmpty(substring_ref token)
+	{
+		return token.start == token.end;
+	}
+
+	bool Eq(substring_ref a, substring_ref b)
+	{
+		auto lenA = Length(a);
+		auto lenB = Length(b);
+
+		if (lenA != lenB)
+		{
+			return false;
+		}
+
+		cstr p = a.start;
+		cstr q = b.start;
+		for (; p < a.end; p++, q++)
+		{
+			if (*p != *q)
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
 }

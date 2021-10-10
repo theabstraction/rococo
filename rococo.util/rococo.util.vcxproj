@@ -127,6 +127,7 @@
     <ClCompile Include="rococo.sprites.cpp" />
     <ClCompile Include="rococo.strings.cpp" />
     <ClCompile Include="rococo.texture.builder.cpp" />
+    <ClCompile Include="rococo.sxytype-inference.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\rococo.bitmaps.h" />
@@ -150,6 +151,7 @@
     <ClInclude Include="..\include\rococo.textures.h" />
     <ClInclude Include="..\include\rococo.types.h" />
     <ClInclude Include="..\include\rococo.window.h" />
+    <ClInclude Include="..\include\rococo.sxytype-inference.h" />
     <ClInclude Include="xxhash.hpp" />
   </ItemGroup>
   <ItemGroup>

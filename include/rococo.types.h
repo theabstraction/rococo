@@ -102,6 +102,16 @@ namespace Rococo
 		constexpr operator cstr() const noexcept { return buffer; }
 	};
 
+	// A substring of a larger string. If start == end, length is zero, otherwise start points to the first valid char, and end just after the last valid char.
+	struct Substring
+	{
+		cstr start;
+		cstr end;
+	};
+
+	// An immutable substring
+	typedef const Substring& substring_ref;
+
 	template<class T> struct FilePath
 	{
 		enum { CAPACITY = 260 };

@@ -944,8 +944,39 @@ void TestOctree()
 	printf("100,000 item deletion time from Octree: %f seconds\n", dt / (double)OS::CpuHz());
 }
 
+#include <rococo.sxytype-inference.h>
+
+void TestCodeInference()
+{
+	cstr bad_code = 
+R"(
+	(function IncCat (Float32 catastrophe)(mangy cat)(Int32 cat) -> : (cat += 1))
+)";
+
+	using namespace Rococo::Sexy;
+
+	BadlyFormattedTypeInferenceEngine engine(bad_code);
+	cstr cat1 = strstr(bad_code, "cat");
+	cstr cat2 = strstr(cat1 + 1, "cat");
+	cstr cat3 = strstr(cat2 + 1, "cat");
+
+	// cat4 points to the third instance of cat. Our engine is to be used for autocompletion, in this case, we want to infer the type of cat, which should yield 'Int32'
+	// (mangy cat) is a syntax error, but our type inference engine does not require code to be 100% correct.
+	cstr cat4 = strstr(cat3 + 1, "cat");
+
+	VALIDATE(cat4 != nullptr);
+
+	auto inference = engine.InferVariableType({ cat4, cat4 + 3 });
+	VALIDATE(Length(inference.declarationType) > 0);
+	VALIDATE(Length(inference.declarationVariable) > 0);
+	TypeInferenceType tit;
+	engine.GetType(tit, inference);
+	VALIDATE(Eq(tit.buf, "Int32"));
+}
+
 void test()
 {
+	TestCodeInference();
 	TestQuadtree();
 	return;
 	TestOctree();

@@ -222,8 +222,8 @@ namespace Rococo::SexyStudio
 
 	ROCOCOAPI ISexyDatabase
 	{
-		virtual void ForEachAutoCompleteCandidate(cstr prefix, IEnumerator<cstr>& action) = 0;
-		virtual void GetHintForCandidate(cstr prefix, char args[1024]) = 0;
+		virtual void ForEachAutoCompleteCandidate(substring_ref prefix, IEnumerator<cstr>& action) = 0;
+		virtual void GetHintForCandidate(substring_ref prefix, char args[1024]) = 0;
 		virtual void Sort() = 0;
 		virtual void UpdateFile_SXY(cstr fullpathToSxy) = 0;
 		virtual void UpdateFile_SXY_PackedItem(cstr data, int32 length, cstr path) = 0;

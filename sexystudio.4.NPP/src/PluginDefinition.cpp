@@ -29,6 +29,8 @@
 #include "PluginDefinition.h"
 #include "menuCmdID.h"
 
+#include <vector>
+
 using namespace Rococo;
 using namespace Rococo::SexyStudio;
 
@@ -256,22 +258,57 @@ void onCalltipClicked(HWND hScintilla, int argValue)
     }
 }
 
-void ParseToken(HWND hScintilla, cstr token, cstr endOfToken)
+#include <rococo.sxytype-inference.h>
+
+thread_local std::vector<char> src_buffer;
+
+bool TryGetType(HWND hScintilla, substring_ref token, char type[256], ptrdiff_t caretPos)
 {
-    using namespace Rococo;
+    if (caretPos <= 0)
+        return false;
 
-    char prefix[1024];
-    strncpy_s(prefix, token, endOfToken - token);
+    src_buffer.resize(caretPos + 1);
 
-    static AutoFree<IDynamicStringBuilder> dsb = CreateDynamicStringBuilder(1024);
+    SendMessageA(hScintilla, SCI_GETTEXT, caretPos + 1, (LPARAM)src_buffer.data());
+
+    cstr end = src_buffer.data() + caretPos;
+    cstr start = src_buffer.data();
+
+    using namespace Rococo::Sexy;
+    BadlyFormattedTypeInferenceEngine engine(src_buffer.data());
+
+    auto inference = engine.InferVariableType({ end - Length(token), end });
+    if (inference.declarationType.start != inference.declarationType.end)
+    {
+        TypeInferenceType tit;
+        engine.GetType(tit, inference);
+        SafeFormat(type, 256, "%s", tit.buf);
+        return true;
+    }
+    else
+    {
+        *type = 0;
+        return false;
+    }
+}
+
+void ShowAutocompleteDataForVariable(HWND hScintilla, substring_ref token)
+{
+    ptrdiff_t caretPos = SendMessageA(hScintilla, SCI_GETCURRENTPOS, 0, 0);
+
+    char type[256];
+    if (TryGetType(hScintilla, token, type, caretPos))
+    {
+        SendMessageA(hScintilla, SCI_CALLTIPSHOW, caretPos, (LPARAM)type);
+    }
+}
+
+thread_local AutoFree<IDynamicStringBuilder> dsb = CreateDynamicStringBuilder(1024);
+
+void ShowAutocompleteDataForType(HWND hScintilla, substring_ref token)
+{
     auto& sb = dsb->Builder();
     sb.Clear();
-
-    WideFilePath path;
-    ::SendMessage(nppData._nppHandle, NPPM_GETNPPDIRECTORY, path.CAPACITY, (LPARAM)path.buf);
-
-    WideFilePath autocompletionFile;
-    Format(autocompletionFile, L"%ls\\autoCompletion\\sexy.xml", path.buf);
 
     struct ANON : IEnumerator<cstr>
     {
@@ -288,12 +325,12 @@ void ParseToken(HWND hScintilla, cstr token, cstr endOfToken)
 
             count++;
 
-            sb << item;       
+            sb << item;
         }
 
         ANON(StringBuilder& _sb) : sb(_sb) {}
     } appendToString(sb);
-    sexyIDE->ForEachAutoCompleteCandidate(prefix, appendToString);
+    sexyIDE->ForEachAutoCompleteCandidate(token, appendToString);
 
     const fstring& sbString = *dsb->Builder();
 
@@ -301,7 +338,7 @@ void ParseToken(HWND hScintilla, cstr token, cstr endOfToken)
 
     if (appendToString.count == 1)
     {
-        sexyIDE->GetHintForCandidate(prefix, callTipArgs);
+        sexyIDE->GetHintForCandidate(token, callTipArgs);
         if (callTipArgs[0] != 0)
         {
             ptrdiff_t caretPos = SendMessageA(hScintilla, SCI_GETCURRENTPOS, 0, 0);
@@ -309,7 +346,7 @@ void ParseToken(HWND hScintilla, cstr token, cstr endOfToken)
             return;
         }
     }
-    
+
     if (appendToString.count > 0)
     {
         SendMessageA(hScintilla, SCI_AUTOCSETCANCELATSTART, false, 0);
@@ -317,84 +354,182 @@ void ParseToken(HWND hScintilla, cstr token, cstr endOfToken)
     }
 }
 
-void UpdateAutoComplete(HWND hScintilla)
+#include <vector>
+
+static std::vector<fstring> keywords 
 {
-    size_t bufferLength = SendMessageA(hScintilla, SCI_GETCURLINE, 0, 0);
+    "method"_fstring, "function"_fstring, "class"_fstring, "struct"_fstring
+};
 
-    if (bufferLength == 0 || bufferLength > 1024)
+bool IsEndOfToken(char c)
+{
+    switch (c)
     {
-        return;
+    case '(':
+    case ')':
+    case ' ':
+    case '\r':
+    case '\n':
+    case '\t':
+        return true;
     }
+
+    return false;
+}
+
+bool TryParseToken(HWND hScintilla, substring_ref token)
+{
+    using namespace Rococo;
+
+    size_t len = token.end - token.start;
     
-    char line[1024];
-    SendMessageA(hScintilla, SCI_GETCURLINE, bufferLength, (LPARAM)line);
-    ptrdiff_t caretPos = SendMessageA(hScintilla, SCI_GETCURRENTPOS, 0, 0);
-
-    size_t lineLength = bufferLength - 1;
-
-    size_t lineNumber = SendMessageA(hScintilla, SCI_LINEFROMPOSITION, caretPos, 0);
-    ptrdiff_t lineStartPosition = SendMessageA(hScintilla, SCI_POSITIONFROMLINE, lineNumber, 0);
-
-    autoCompleteCandidatePosition = caretPos;
-       
-    line[lineLength] = 0;
-
-    auto delta = caretPos - lineStartPosition;
-
-    if (caretPos <= lineStartPosition)
+    for (auto keyword : keywords)
     {
-        return;
-    }
-
-    if (delta > lineLength || delta == 0)
-    {
-        return;
-    }
-
-    cstr pos = line + delta;
-    while (pos > line)
-    {
-        pos--;
-
-        switch (*pos)
+        if (StartsWith(token, keyword))
         {
-        case '(':
-            pos++;
-            goto foundFunction;
-        case ')':
-        case ' ':
-        case '\t':
-            autoCompleteCandidatePosition = 0;
-            return;
+            if (len > keyword.length && IsEndOfToken(token.start[keyword.length]))
+            {
+                // We found a keyword, but we do not need to parse it
+                return false;
+            }
+        }
+    }
+
+    if (islower(*token.start))
+    {
+        ShowAutocompleteDataForVariable(hScintilla, token);
+        return true;
+    }
+    else if (isupper(*token.start) && len > 2)
+    {
+        ShowAutocompleteDataForType(hScintilla, token);
+        return true;
+    }
+
+    return false;
+}
+
+class ScintillaLine
+{
+private:
+    enum { MAX_LINE_LENGTH = 1024 };
+    char line[MAX_LINE_LENGTH];
+    size_t lineLength;
+
+public:
+    ScintillaLine() : lineLength(0)
+    {
+        line[0] = 0;
+    }
+
+    operator substring_ref() const
+    {
+        return { line, line + lineLength };
+    }
+
+    bool TryGetCurrentLine(HWND hScintilla)
+    {
+        size_t bufferLength = SendMessageA(hScintilla, SCI_GETCURLINE, 0, 0);
+
+        if (bufferLength == 0 || bufferLength > MAX_LINE_LENGTH)
+        {
+            return false;
         }
 
-        autoCompleteCandidatePosition--;
+        SendMessageA(hScintilla, SCI_GETCURLINE, bufferLength, (LPARAM)line);
+
+        lineLength = bufferLength - 1;
+        line[lineLength] = 0;
+
+        return true;
+    }
+
+    cstr begin() const
+    {
+        return line;
+    }
+
+    cstr end() const
+    {
+        return line + lineLength;
+    }
+};
+
+class ScintillaCursor
+{
+private:
+    ptrdiff_t caretPos = 0;
+    size_t lineNumber = 0;
+    ptrdiff_t lineStartPosition = 0;
+    ptrdiff_t column;
+
+public:
+    ScintillaCursor(HWND hScintilla)
+    {
+        caretPos = SendMessageA(hScintilla, SCI_GETCURRENTPOS, 0, 0);
+        lineNumber = SendMessageA(hScintilla, SCI_LINEFROMPOSITION, caretPos, 0);
+        lineStartPosition = SendMessageA(hScintilla, SCI_POSITIONFROMLINE, lineNumber, 0);
+        column = caretPos - lineStartPosition;
+    }
+
+    ptrdiff_t CaretPos() const
+    {
+        return caretPos;
+    }
+
+    size_t LineNumber() const
+    {
+        return lineNumber;
+    }
+
+    ptrdiff_t LineStartPosition() const
+    {
+        return lineStartPosition;
+    }
+
+    ptrdiff_t ColumnNumber() const
+    {
+        return column;
+    }
+};
+
+void UpdateAutoComplete(HWND hScintilla)
+{
+    ScintillaLine currentLine;
+    if (!currentLine.TryGetCurrentLine(hScintilla))
+    {
+        return;
+    }
+
+    ScintillaCursor cursor(hScintilla);
+
+    autoCompleteCandidatePosition = cursor.CaretPos();
+
+    cstr lastCandidateInLine = currentLine.end();
+
+    for(cstr p = currentLine.end(); p >= currentLine.begin(); p--)
+    {
+        switch (*p)
+        {
+        case '(':
+            {
+                cstr candidate = p + 1;
+                if (candidate == lastCandidateInLine)
+                {
+                    return;
+                }
+                else if (TryParseToken(hScintilla, { candidate,  lastCandidateInLine }))
+                {
+                    auto candidateColumn = candidate - currentLine.begin();
+                    lastCandidateInLine = currentLine.begin() + candidateColumn;
+                    autoCompleteCandidatePosition = cursor.LineStartPosition() + candidateColumn;
+                    return;
+                }
+            }
+        }
     }
 
     autoCompleteCandidatePosition = 0;
-    return;
-
- foundFunction:
-
-    cstr endOfLine = line + delta;
-
-    cstr endOfToken = pos;
-    while (endOfToken < endOfLine)
-    {
-        switch (*endOfToken)
-        {
-        case ')':
-            return;
-        case ' ':
-        case '\t':
-            ParseToken(hScintilla, pos, endOfToken);
-            break;
-        }
-
-        endOfToken++;
-    }
-
-    ParseToken(hScintilla, pos, endOfToken);
 }
 
 void onUserItemSelected(HWND hScintilla, int idList, cstr item)

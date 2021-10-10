@@ -17,8 +17,8 @@ namespace Rococo::SexyStudio
 
 	ROCOCOAPI ISexyStudioInstance1
 	{
-		virtual void ForEachAutoCompleteCandidate(cstr prefix, IEnumerator<cstr>& action) = 0;
-		virtual void GetHintForCandidate(cstr prefix, char args[1024]) = 0;
+		virtual void ForEachAutoCompleteCandidate(substring_ref prefix, IEnumerator<cstr>& action) = 0;
+		virtual void GetHintForCandidate(substring_ref prefix, char args[1024]) = 0;
 		virtual void SetTitle(cstr title) = 0;
 		virtual void Activate() = 0;
 		virtual bool IsRunning() const = 0;

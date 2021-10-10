@@ -206,4 +206,11 @@ namespace Rococo
    int32 Compare(cstr a, cstr b, int64 count);
 
    int LevenshteinDistance(cstr source, cstr target);
+
+   bool StartsWith(substring_ref token, const fstring& prefix);
+   ptrdiff_t Length(substring_ref token);
+   bool Eq(const fstring& a, substring_ref b);
+   bool Eq(substring_ref a, const fstring& b);
+   bool Eq(substring_ref a, substring_ref b);
+   bool IsEmpty(substring_ref token);
 }

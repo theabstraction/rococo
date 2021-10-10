@@ -1110,12 +1110,12 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 		FlashWindow(ide->Window(), FALSE);
 	}
 
-	void ForEachAutoCompleteCandidate(cstr prefix, IEnumerator<cstr>& action) override
+	void ForEachAutoCompleteCandidate(substring_ref prefix, IEnumerator<cstr>& action) override
 	{
 		database->ForEachAutoCompleteCandidate(prefix, action);
 	}
 
-	void GetHintForCandidate(cstr prefix, char args[1024]) override
+	void GetHintForCandidate(substring_ref prefix, char args[1024]) override
 	{
 		database->GetHintForCandidate(prefix, args);
 	}

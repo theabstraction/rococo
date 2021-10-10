@@ -30,17 +30,28 @@ cstr AlwaysGetAtomic(cr_sex s, int index)
 	return IsAtomic(s[index]) ? s[index].String()->Buffer : "<expected atomic argument>";
 }
 
-int CountDots(cstr text)
+int CountDots(substring_ref prefix)
 {
 	int dots = 0;
-	while (*text != 0)
+
+	for (auto p = prefix.start; p < prefix.end; ++p)
 	{
-		if (*text == '.')
+		char c = *p;
+
+		switch (c)
 		{
+		case '(':
+		case ')':
+		case '\r':
+		case '\n':
+		case '\t':
+			return dots;
+		case '.':
 			dots++;
+			break;
 		}
-		text++;
 	}
+
 	return dots;
 }
 
@@ -1332,7 +1343,7 @@ namespace ANON
 			delete this;
 		}
 
-		void AppendAllChildrenFromRoot(cstr prefix, std::unordered_map<std::string, int>& exportList, ISxyNamespace& ns, int depth)
+		void AppendAllChildrenFromRoot(substring_ref prefix, std::unordered_map<std::string, int>& exportList, ISxyNamespace& ns, int depth)
 		{
 			int dots = CountDots(prefix);
 			if (depth > dots)
@@ -1344,12 +1355,13 @@ namespace ANON
 			StackStringBuilder nameBuilder(name, sizeof name);
 			AppendFullName(ns, nameBuilder);
 
-			if (StartsWith(name, prefix))
+
+			if (StartsWith(name, prefix.start))
 			{
 				exportList.insert(std::make_pair(std::string(name), 0));
 			}
 
-			if (StartsWith(prefix, name))
+			if (StartsWith(prefix.start, name))
 			{
 				for (int i = 0; i < ns.FunctionCount(); ++i)
 				{
@@ -1358,7 +1370,7 @@ namespace ANON
 					nameBuilder << ".";
 					nameBuilder << ns.GetFunction(i).PublicName();
 
-					if (ns.GetFunction(i).PublicName()[0] != '_' && StartsWith(name, prefix))
+					if (ns.GetFunction(i).PublicName()[0] != '_' && StartsWith(name, prefix.start))
 					{
 						exportList.insert(std::make_pair(std::string(name), 0));
 					}
@@ -1373,7 +1385,7 @@ namespace ANON
 					nameBuilder << ".";
 					nameBuilder << interf.PublicName();
 
-					if (StartsWith(name, prefix))
+					if (StartsWith(name, prefix.start))
 					{
 						exportList.insert(std::make_pair(std::string(name), 0));
 					}
@@ -1389,7 +1401,7 @@ namespace ANON
 			}
 		}
 
-		void ForEachAutoCompleteCandidate(cstr prefix, IEnumerator<cstr>& action) override
+		void ForEachAutoCompleteCandidate(substring_ref prefix, IEnumerator<cstr>& action) override
 		{
 			std::unordered_map<std::string, int> exportList;
 
@@ -1413,18 +1425,18 @@ namespace ANON
 			}
 		}
 
-		bool GetHintForCandidateByNS(ISxyNamespace& ns, cstr prefix, char args[1024])
+		bool GetHintForCandidateByNS(ISxyNamespace& ns, substring_ref prefix, char args[1024])
 		{
 			char name[256];
 			StackStringBuilder nameBuilder(name, sizeof name);
 			AppendFullName(ns, nameBuilder);
 
-			if (!StartsWith(prefix, name))
+			if (!StartsWith(prefix, *nameBuilder))
 			{
 				return false;
 			}
 
-			if (Eq(name, prefix))
+			if (nameBuilder.Length() == Length(prefix))
 			{
 				SafeFormat(args, 1024, "(namespace %s)", name);
 				return true;
@@ -1441,7 +1453,7 @@ namespace ANON
 
 				auto* l = f.LocalFunction();
 
-				if (l && Eq(name, prefix))
+				if (l && Eq(*nameBuilder, prefix))
 				{
 					StackStringBuilder argBuilder(args, 1024);
 
@@ -1478,7 +1490,7 @@ namespace ANON
 			return false;
 		}
 
-		void GetHintForCandidate(cstr prefix, char args[1024]) override
+		void GetHintForCandidate(substring_ref prefix, char args[1024]) override
 		{
 			auto& root = GetRootNamespace();
 			if (!GetHintForCandidateByNS(root, prefix, args))
