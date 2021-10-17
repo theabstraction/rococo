@@ -857,6 +857,12 @@ namespace Rococo
 		return prefix.length <= len && strncmp(prefix, token.start, prefix.length) == 0;
 	}
 
+	bool StartsWith(cstr token, substring_ref prefix)
+	{
+		size_t len = Length(prefix);
+		return strncmp(token, prefix.start, len) == 0;
+	}
+
 	ptrdiff_t Length(substring_ref token)
 	{
 		return token.end - token.start;

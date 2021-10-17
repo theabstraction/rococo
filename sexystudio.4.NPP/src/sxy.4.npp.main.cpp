@@ -99,6 +99,7 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 			onModified(*notifyCode);
 			break;
 		case SCN_CHARADDED:
+
 			onCharAdded((HWND) notifyCode->nmhdr.hwndFrom, static_cast<char>(notifyCode->ch));
 			break;
 		case SCN_USERLISTSELECTION:

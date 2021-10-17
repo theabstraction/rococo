@@ -262,22 +262,71 @@ void onCalltipClicked(HWND hScintilla, int argValue)
 
 thread_local std::vector<char> src_buffer;
 
-bool TryGetType(HWND hScintilla, substring_ref token, char type[256], ptrdiff_t caretPos)
+cstr GetFirstNonAlphaPointer(substring_ref s)
 {
-    if (caretPos <= 0)
+    for (cstr p = s.start; p < s.end; ++p)
+    {
+        if (!IsAlphaNumeric(*p))
+        {
+            return p;
+        }
+    }
+
+    return s.end;
+}
+
+cstr GetFirstNonTypeCharPointer(substring_ref s)
+{
+    bool inDot = false;
+
+    for (cstr p = s.start; p < s.end; ++p)
+    {
+        if (!inDot)
+        {
+            if (*p == '.')
+            {
+                inDot = true;
+                continue;
+            }
+        }
+
+        if (IsAlphaNumeric(*p))
+        {
+            if (inDot)
+            {
+                inDot = false;
+            }
+
+            continue;
+        }
+
+        return p;
+    }
+
+    return s.end;
+}
+
+bool TryGetType(HWND hScintilla, substring_ref candidate, char type[256], ptrdiff_t caretPos)
+{
+    if (caretPos <= 0 || candidate.start == nullptr || !islower(*candidate.start))
+    {
         return false;
+    }
 
-    src_buffer.resize(caretPos + 1);
+    src_buffer.resize(caretPos+1);
 
-    SendMessageA(hScintilla, SCI_GETTEXT, caretPos + 1, (LPARAM)src_buffer.data());
+    Substring token = { candidate.start, GetFirstNonAlphaPointer(candidate) };
+
+    SendMessageA(hScintilla, SCI_GETTEXT, caretPos+1, (LPARAM)src_buffer.data());
 
     cstr end = src_buffer.data() + caretPos;
-    cstr start = src_buffer.data();
 
     using namespace Rococo::Sexy;
     BadlyFormattedTypeInferenceEngine engine(src_buffer.data());
 
-    auto inference = engine.InferVariableType({ end - Length(token), end });
+    cstr start = end - Length(token);
+
+    auto inference = engine.InferVariableType({ start, end });
     if (inference.declarationType.start != inference.declarationType.end)
     {
         TypeInferenceType tit;
@@ -292,12 +341,12 @@ bool TryGetType(HWND hScintilla, substring_ref token, char type[256], ptrdiff_t 
     }
 }
 
-void ShowAutocompleteDataForVariable(HWND hScintilla, substring_ref token)
+void ShowAutocompleteDataForVariable(HWND hScintilla, substring_ref candidate)
 {
     ptrdiff_t caretPos = SendMessageA(hScintilla, SCI_GETCURRENTPOS, 0, 0);
 
     char type[256];
-    if (TryGetType(hScintilla, token, type, caretPos))
+    if (TryGetType(hScintilla, candidate, type, caretPos))
     {
         SendMessageA(hScintilla, SCI_CALLTIPSHOW, caretPos, (LPARAM)type);
     }
@@ -305,8 +354,10 @@ void ShowAutocompleteDataForVariable(HWND hScintilla, substring_ref token)
 
 thread_local AutoFree<IDynamicStringBuilder> dsb = CreateDynamicStringBuilder(1024);
 
-void ShowAutocompleteDataForType(HWND hScintilla, substring_ref token)
+void ShowAutocompleteDataForType(HWND hScintilla, substring_ref candidate)
 {
+    Substring token = { candidate.start, GetFirstNonTypeCharPointer(candidate) };
+
     auto& sb = dsb->Builder();
     sb.Clear();
 
@@ -377,17 +428,17 @@ bool IsEndOfToken(char c)
     return false;
 }
 
-bool TryParseToken(HWND hScintilla, substring_ref token)
+bool TryParseToken(HWND hScintilla, substring_ref candidate)
 {
     using namespace Rococo;
 
-    size_t len = token.end - token.start;
+    size_t len = candidate.end - candidate.start;
     
     for (auto keyword : keywords)
     {
-        if (StartsWith(token, keyword))
+        if (StartsWith(candidate, keyword))
         {
-            if (len > keyword.length && IsEndOfToken(token.start[keyword.length]))
+            if (len > keyword.length && IsEndOfToken(candidate.start[keyword.length]))
             {
                 // We found a keyword, but we do not need to parse it
                 return false;
@@ -395,14 +446,14 @@ bool TryParseToken(HWND hScintilla, substring_ref token)
         }
     }
 
-    if (islower(*token.start))
+    if (islower(*candidate.start))
     {
-        ShowAutocompleteDataForVariable(hScintilla, token);
+        ShowAutocompleteDataForVariable(hScintilla, candidate);
         return true;
     }
-    else if (isupper(*token.start) && len > 2)
+    else if (isupper(*candidate.start) && len > 2)
     {
-        ShowAutocompleteDataForType(hScintilla, token);
+        ShowAutocompleteDataForType(hScintilla, candidate);
         return true;
     }
 

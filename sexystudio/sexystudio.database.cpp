@@ -1355,8 +1355,9 @@ namespace ANON
 			StackStringBuilder nameBuilder(name, sizeof name);
 			AppendFullName(ns, nameBuilder);
 
+			int len = Length(prefix);
 
-			if (StartsWith(name, prefix.start))
+			if (StartsWith(name, prefix))
 			{
 				exportList.insert(std::make_pair(std::string(name), 0));
 			}
@@ -1370,7 +1371,7 @@ namespace ANON
 					nameBuilder << ".";
 					nameBuilder << ns.GetFunction(i).PublicName();
 
-					if (ns.GetFunction(i).PublicName()[0] != '_' && StartsWith(name, prefix.start))
+					if (ns.GetFunction(i).PublicName()[0] != '_' && StartsWith(name, prefix))
 					{
 						exportList.insert(std::make_pair(std::string(name), 0));
 					}
@@ -1385,7 +1386,7 @@ namespace ANON
 					nameBuilder << ".";
 					nameBuilder << interf.PublicName();
 
-					if (StartsWith(name, prefix.start))
+					if (StartsWith(name, prefix))
 					{
 						exportList.insert(std::make_pair(std::string(name), 0));
 					}

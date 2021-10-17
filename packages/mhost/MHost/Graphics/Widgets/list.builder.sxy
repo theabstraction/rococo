@@ -60,7 +60,7 @@
 )
 
 (method ListBuilder.GetRect (Rectf rect)-> :
-	(rect = this.outerRect)
+	(rect = this.outerRect)	
 )
 
 (method ListBuilder.AddRow (IListRow row)-> :
@@ -68,7 +68,6 @@
 	
 	(Vec2 span)
 	(row.GetSpan span)
-	
 	(this.totalSpan.x = (Sys.Maths.F32.MaxOf span.x this.totalSpan.x))
 	(this.totalSpan.y += span.y)
 	
