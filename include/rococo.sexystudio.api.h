@@ -1,3 +1,8 @@
+namespace Rococo::AutoComplete
+{
+	struct ISexyEditor;
+}
+
 namespace Rococo::SexyStudio
 {
 	enum class EMetaDataType: int
@@ -17,10 +22,13 @@ namespace Rococo::SexyStudio
 
 	ROCOCOAPI ISexyStudioInstance1
 	{
+		virtual void ReplaceCurrentSelectionWithCallTip(Rococo::AutoComplete::ISexyEditor& editor) = 0;
 		virtual void ForEachAutoCompleteCandidate(substring_ref prefix, IEnumerator<cstr>& action) = 0;
 		virtual void GetHintForCandidate(substring_ref prefix, char args[1024]) = 0;
+		virtual void ReplaceSelectedText(Rococo::AutoComplete::ISexyEditor& editor, cstr item) = 0;
 		virtual void SetTitle(cstr title) = 0;
 		virtual void Activate() = 0;
+		virtual void UpdateAutoComplete(Rococo::AutoComplete::ISexyEditor& editor) = 0;
 		virtual bool IsRunning() const = 0;
 		virtual void Free() = 0;
 	};

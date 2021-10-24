@@ -31,8 +31,11 @@
 
 #include <vector>
 
+#include <rococo.auto-complete.h>
+
 using namespace Rococo;
 using namespace Rococo::SexyStudio;
+using namespace Rococo::AutoComplete;
 
 //
 // The plugin data that Notepad++ needs
@@ -226,203 +229,13 @@ bool IsPluginValid()
     return sexyIDE != nullptr;
 }
 
-//----------------------------------------------//
-//-- STEP 4. DEFINE YOUR ASSOCIATED FUNCTIONS --//
-//----------------------------------------------//
 void showSexyIDE()
 {
     if (sexyIDE)
     {
         sexyIDE->Activate();
     }
-    /*
-    // Open a new document
-    ::SendMessage(nppData._nppHandle, NPPM_MENUCOMMAND, 0, IDM_FILE_NEW);
-
-    // Get the current scintilla
-    int which = -1;
-    ::SendMessage(nppData._nppHandle, NPPM_GETCURRENTSCINTILLA, 0, (LPARAM)&which);
-    if (which == -1)
-        return;
-    HWND curScintilla = (which == 0)?nppData._scintillaMainHandle:nppData._scintillaSecondHandle;
-
-    // Say hello now :
-    // Scintilla control has no Unicode mode, so we use (char *) here
-    ::SendMessage(curScintilla, SCI_SETTEXT, 0, (LPARAM)"Hello, Notepad++!");
-    */
 }
-
-bool HasFlags(int fields, int flags)
-{
-    return (fields & flags) == flags;
-}
-
-static ptrdiff_t autoCompleteCandidatePosition = 0;
-static char callTipArgs[1024] = { 0 };
-
-void onCalltipClicked(HWND hScintilla, int argValue)
-{
-    if (callTipArgs[0] != 0)
-    {
-        ptrdiff_t caretPos = SendMessageA(hScintilla, SCI_GETCURRENTPOS, 0, 0);
-        if (autoCompleteCandidatePosition > 0 && autoCompleteCandidatePosition < caretPos)
-        {
-            SendMessageA(hScintilla, SCI_SETSELECTIONSTART, caretPos, 0);
-            SendMessageA(hScintilla, SCI_SETSELECTIONEND, caretPos, 0);
-            SendMessageA(hScintilla, SCI_REPLACESEL, 0, (LPARAM)callTipArgs);
-            SendMessageA(hScintilla, SCI_CALLTIPCANCEL, 0, 0);
-            callTipArgs[0] = 0;
-        }
-    }
-}
-
-#include <rococo.sxytype-inference.h>
-
-thread_local std::vector<char> src_buffer;
-
-cstr GetFirstNonAlphaPointer(substring_ref s)
-{
-    for (cstr p = s.start; p < s.end; ++p)
-    {
-        if (!IsAlphaNumeric(*p))
-        {
-            return p;
-        }
-    }
-
-    return s.end;
-}
-
-cstr GetFirstNonTypeCharPointer(substring_ref s)
-{
-    bool inDot = false;
-
-    for (cstr p = s.start; p < s.end; ++p)
-    {
-        if (!inDot)
-        {
-            if (*p == '.')
-            {
-                inDot = true;
-                continue;
-            }
-        }
-
-        if (IsAlphaNumeric(*p))
-        {
-            if (inDot)
-            {
-                inDot = false;
-            }
-
-            continue;
-        }
-
-        return p;
-    }
-
-    return s.end;
-}
-
-class EditorLine
-{
-public:
-    enum { MAX_LINE_LENGTH = 1024 };
-
-private:    
-    char line[MAX_LINE_LENGTH];
-    size_t lineLength;
-
-public:
-    EditorLine() : lineLength(0)
-    {
-        line[0] = 0;
-    }
-
-    char* Data()
-    {
-        return line;
-    }
-
-    void SetLength(size_t length)
-    {
-        lineLength = length;
-        line[length] = 0;
-    }
-
-    operator substring_ref() const
-    {
-        return { line, line + lineLength };
-    }
-
-    cstr begin() const
-    {
-        return line;
-    }
-
-    cstr end() const
-    {
-        return line + lineLength;
-    }
-};
-
-struct EditorCursor
-{
-    int64 caretPos = 0;
-    size_t lineNumber = 0;
-    int64 lineStartPosition = 0;
-    int64 column;
-
-    ptrdiff_t CaretPos() const
-    {
-        return caretPos;
-    }
-
-    size_t LineNumber() const
-    {
-        return lineNumber;
-    }
-
-    ptrdiff_t LineStartPosition() const
-    {
-        return lineStartPosition;
-    }
-
-    ptrdiff_t ColumnNumber() const
-    {
-        return column;
-    }
-};
-
-ROCOCOAPI ISexyEditor
-{
-    // Return the length of the document
-    virtual int64 GetDocLength() const = 0;
-
-    // Retrieve the first len-1 chars in the document and null terminate it 
-    virtual int64 GetText(int64 len, char* buffer) = 0;
-
-    // Get the caret position of the editor
-    virtual int64 GetCaretPos() const = 0;
-
-    // Show call tip at caret position
-    virtual void ShowCallTipAtCaretPos(cstr tip) const = 0;
-
-    // Make autocomplete disappear when the caret moved
-    virtual void SetAutoCompleteCancelWhenCaretMoved() = 0;
-
-    // Show the autocomplete list
-    virtual void ShowAutoCompleteList(cstr spaceSeparatedItems) = 0;
-
-    // Get cursor metrics
-    virtual void GetCursor(EditorCursor& cursor) const = 0;
-
-    // Get the current line being edited
-    virtual bool TryGetCurrentLine(EditorLine& line) const = 0;
-
-    // Remove text and startPos,endPos and replace with the null terminated item text
-    virtual void ReplaceText(int64 startPos, int64 endPos, cstr item) const = 0;
-};
 
 enum { USERLIST_SEXY_AUTOCOMPLETE = 12345678 };
 
@@ -495,217 +308,32 @@ public:
     }
 };
 
-bool TryGetType(ISexyEditor& editor, substring_ref candidate, char type[256], ptrdiff_t caretPos)
+void onCalltipClicked(HWND hScintilla, int argValue)
 {
-    if (caretPos <= 0 || candidate.start == nullptr || !islower(*candidate.start))
+    if (sexyIDE)
     {
-        return false;
+        SexyEditor_Scintilla editor(hScintilla);
+        sexyIDE->ReplaceCurrentSelectionWithCallTip(editor);
+        SendMessageA(hScintilla, SCI_CALLTIPCANCEL, 0, 0);
     }
-
-    src_buffer.resize(caretPos+1);
-
-    Substring token = { candidate.start, GetFirstNonAlphaPointer(candidate) };
-
-    editor.GetText(caretPos + 1, src_buffer.data());
-
-    cstr end = src_buffer.data() + caretPos;
-
-    using namespace Rococo::Sexy;
-    BadlyFormattedTypeInferenceEngine engine(src_buffer.data());
-
-    cstr start = end - Length(token);
-
-    auto inference = engine.InferVariableType({ start, end });
-    if (inference.declarationType.start != inference.declarationType.end)
-    {
-        TypeInferenceType tit;
-        engine.GetType(tit, inference);
-        SafeFormat(type, 256, "%s", tit.buf);
-        return true;
-    }
-    else
-    {
-        *type = 0;
-        return false;
-    }
-}
-
-void ShowAutocompleteDataForVariable(ISexyEditor& editor, substring_ref candidate)
-{
-    int64 caretPos = editor.GetCaretPos();
-
-    char type[256];
-    if (TryGetType(editor, candidate, type, caretPos))
-    {
-        editor.ShowCallTipAtCaretPos(type);
-    }
-}
-
-thread_local AutoFree<IDynamicStringBuilder> dsb = CreateDynamicStringBuilder(1024);
-
-void ShowAutocompleteDataForType(ISexyEditor& editor, substring_ref candidate)
-{
-    Substring token = { candidate.start, GetFirstNonTypeCharPointer(candidate) };
-
-    auto& sb = dsb->Builder();
-    sb.Clear();
-
-    struct ANON : IEnumerator<cstr>
-    {
-        StringBuilder& sb;
-
-        int count = 0;
-
-        void operator()(cstr item) override
-        {
-            if (count > 0)
-            {
-                sb << " ";
-            }
-
-            count++;
-
-            sb << item;
-        }
-
-        ANON(StringBuilder& _sb) : sb(_sb) {}
-    } appendToString(sb);
-    sexyIDE->ForEachAutoCompleteCandidate(token, appendToString);
-
-    const fstring& sbString = *dsb->Builder();
-
-    callTipArgs[0] = 0;
-
-    if (appendToString.count == 1)
-    {
-        sexyIDE->GetHintForCandidate(token, callTipArgs);
-        if (callTipArgs[0] != 0)
-        {
-            editor.ShowCallTipAtCaretPos(callTipArgs);
-            return;
-        }
-    }
-
-    if (appendToString.count > 0)
-    {
-        editor.SetAutoCompleteCancelWhenCaretMoved();
-        editor.ShowAutoCompleteList(sbString.buffer);
-    }
-}
-
-#include <vector>
-
-static std::vector<fstring> keywords 
-{
-    "method"_fstring, "function"_fstring, "class"_fstring, "struct"_fstring
-};
-
-bool IsEndOfToken(char c)
-{
-    switch (c)
-    {
-    case '(':
-    case ')':
-    case ' ':
-    case '\r':
-    case '\n':
-    case '\t':
-        return true;
-    }
-
-    return false;
-}
-
-bool TryParseToken(ISexyEditor& editor, substring_ref candidate)
-{
-    using namespace Rococo;
-
-    size_t len = candidate.end - candidate.start;
-    
-    for (auto keyword : keywords)
-    {
-        if (StartsWith(candidate, keyword))
-        {
-            if (len > keyword.length && IsEndOfToken(candidate.start[keyword.length]))
-            {
-                // We found a keyword, but we do not need to parse it
-                return false;
-            }
-        }
-    }
-
-    if (islower(*candidate.start))
-    {
-        ShowAutocompleteDataForVariable(editor, candidate);
-        return true;
-    }
-    else if (isupper(*candidate.start) && len > 2)
-    {
-        ShowAutocompleteDataForType(editor, candidate);
-        return true;
-    }
-
-    return false;
-}
-
-void UpdateAutoComplete(ISexyEditor& editor)
-{
-    EditorLine currentLine;
-    if (!editor.TryGetCurrentLine(currentLine))
-    {
-        return;
-    }
-
-    EditorCursor cursor;
-    editor.GetCursor(cursor);
-  
-    autoCompleteCandidatePosition = cursor.CaretPos();
-
-    cstr lastCandidateInLine = currentLine.end();
-
-    for(cstr p = currentLine.end(); p >= currentLine.begin(); p--)
-    {
-        switch (*p)
-        {
-        case '(':
-            {
-                cstr candidate = p + 1;
-                if (candidate == lastCandidateInLine)
-                {
-                    return;
-                }
-                else if (TryParseToken(editor, { candidate,  lastCandidateInLine }))
-                {
-                    auto candidateColumn = candidate - currentLine.begin();
-                    lastCandidateInLine = currentLine.begin() + candidateColumn;
-                    autoCompleteCandidatePosition = cursor.LineStartPosition() + candidateColumn;
-                    return;
-                }
-            }
-        }
-    }
-
-    autoCompleteCandidatePosition = 0;
 }
 
 void onUserItemSelected(HWND hScintilla, int idList, cstr item)
 {
-    if (idList == USERLIST_SEXY_AUTOCOMPLETE)
+    if (sexyIDE && idList == USERLIST_SEXY_AUTOCOMPLETE)
     {
         SexyEditor_Scintilla editor(hScintilla);
-        ptrdiff_t caretPos = editor.GetCaretPos();
-        if (autoCompleteCandidatePosition > 0 && autoCompleteCandidatePosition < caretPos)
-        {
-            editor.ReplaceText(autoCompleteCandidatePosition, caretPos, item);
-            UpdateAutoComplete(editor);
-        }
+        sexyIDE->ReplaceSelectedText(editor, item);
     }
 }
 
 void onCharAdded(HWND hScintilla, char c)
 {
-    SexyEditor_Scintilla editor(hScintilla);
-    UpdateAutoComplete(editor);
+    if (sexyIDE)
+    {
+        SexyEditor_Scintilla editor(hScintilla);
+        sexyIDE->UpdateAutoComplete(editor);
+    }
 }
 
 void onModified(SCNotification& notifyCode)
@@ -732,13 +360,13 @@ void helloDlg()
         wchar_t fullDesc[1024];
         SafeFormat(fullDesc, L"%hs", (cstr) *sb);
 
-        ::MessageBoxW(nppData._nppHandle, fullDesc, L"SexyIDE 4 Notepad++", MB_OK);
+        ::MessageBoxW(nppData._nppHandle, fullDesc, L"SexyStudio 4 Notepad++", MB_OK);
     }
     else
     {
         WideFilePath pathToDLL;
         GetDllPath(pathToDLL);
 
-        ::MessageBoxW(nppData._nppHandle, pathToDLL, L"SexyIDE 4 Notepad++. Could not load DLL:", MB_OK);
+        ::MessageBoxW(nppData._nppHandle, pathToDLL, L"SexyStudio 4 Notepad++. Could not load DLL:", MB_OK);
     }
 }

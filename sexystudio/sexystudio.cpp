@@ -33,6 +33,10 @@
 
 #include <rococo.strings.h>
 
+#include <rococo.auto-complete.h>
+
+#include <rococo.sxytype-inference.h>
+
 using namespace Rococo;
 using namespace Rococo::SexyStudio;
 using namespace Rococo::Events;
@@ -1031,6 +1035,75 @@ LOGFONTA MakeDefaultFont()
 	return lineEditorLF;
 }
 
+using namespace Rococo::AutoComplete;
+
+static std::vector<fstring> keywords
+{
+	"method"_fstring, "function"_fstring, "class"_fstring, "struct"_fstring
+};
+
+static bool IsEndOfToken(char c)
+{
+	switch (c)
+	{
+	case '(':
+	case ')':
+	case ' ':
+	case '\r':
+	case '\n':
+	case '\t':
+		return true;
+	}
+
+	return false;
+}
+
+cstr GetFirstNonAlphaPointer(substring_ref s)
+{
+	for (cstr p = s.start; p < s.end; ++p)
+	{
+		if (!IsAlphaNumeric(*p))
+		{
+			return p;
+		}
+	}
+
+	return s.end;
+}
+
+cstr GetFirstNonTypeCharPointer(substring_ref s)
+{
+	bool inDot = false;
+
+	for (cstr p = s.start; p < s.end; ++p)
+	{
+		if (!inDot)
+		{
+			if (*p == '.')
+			{
+				inDot = true;
+				continue;
+			}
+		}
+
+		if (IsAlphaNumeric(*p))
+		{
+			if (inDot)
+			{
+				inDot = false;
+			}
+
+			continue;
+		}
+
+		return p;
+	}
+
+	return s.end;
+}
+
+thread_local AutoFree<IDynamicStringBuilder> dsb = CreateDynamicStringBuilder(1024);
+
 struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 {
 	AutoFree<IPublisherSupervisor> publisher;
@@ -1045,6 +1118,150 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 
 	PropertySheets* sheets = nullptr;
 	SexyExplorer* explorer = nullptr;
+
+	int64 autoCompleteCandidatePosition = 0;
+	char callTipArgs[1024] = { 0 };
+
+	std::vector<char> src_buffer;
+
+	void ReplaceCurrentSelectionWithCallTip(Rococo::AutoComplete::ISexyEditor& editor)
+	{
+		int64 caretPos = editor.GetCaretPos();
+
+		if (*callTipArgs != 0 && autoCompleteCandidatePosition > 0 && autoCompleteCandidatePosition < caretPos)
+		{
+			editor.ReplaceText(caretPos, caretPos, callTipArgs);
+			callTipArgs[0] = 0;
+		}
+	}
+
+	bool TryGetType(ISexyEditor& editor, substring_ref candidate, char type[256], ptrdiff_t caretPos)
+	{
+		if (caretPos <= 0 || candidate.start == nullptr || !islower(*candidate.start))
+		{
+			return false;
+		}
+
+		src_buffer.resize(caretPos + 1);
+
+		Substring token = { candidate.start, GetFirstNonAlphaPointer(candidate) };
+
+		editor.GetText(caretPos + 1, src_buffer.data());
+
+		cstr end = src_buffer.data() + caretPos;
+
+		using namespace Rococo::Sexy;
+		BadlyFormattedTypeInferenceEngine engine(src_buffer.data());
+
+		cstr start = end - Length(token);
+
+		auto inference = engine.InferVariableType({ start, end });
+		if (inference.declarationType.start != inference.declarationType.end)
+		{
+			TypeInferenceType tit;
+			engine.GetType(tit, inference);
+			SafeFormat(type, 256, "%s", tit.buf);
+			return true;
+		}
+		else
+		{
+			*type = 0;
+			return false;
+		}
+	}
+
+	void ShowAutocompleteDataForVariable(ISexyEditor& editor, substring_ref candidate)
+	{
+		int64 caretPos = editor.GetCaretPos();
+
+		char type[256];
+		if (TryGetType(editor, candidate, type, caretPos))
+		{
+			editor.ShowCallTipAtCaretPos(type);
+		}
+	}
+
+	void ShowAutocompleteDataForType(ISexyEditor& editor, substring_ref candidate)
+	{
+		Substring token = { candidate.start, GetFirstNonTypeCharPointer(candidate) };
+
+		auto& sb = dsb->Builder();
+		sb.Clear();
+
+		struct ANON : IEnumerator<cstr>
+		{
+			StringBuilder& sb;
+
+			int count = 0;
+
+			void operator()(cstr item) override
+			{
+				if (count > 0)
+				{
+					sb << " ";
+				}
+
+				count++;
+
+				sb << item;
+			}
+
+			ANON(StringBuilder& _sb) : sb(_sb) {}
+		} appendToString(sb);
+		ForEachAutoCompleteCandidate(token, appendToString);
+
+		const fstring& sbString = *dsb->Builder();
+
+		callTipArgs[0] = 0;
+
+		if (appendToString.count == 1)
+		{
+			GetHintForCandidate(token, callTipArgs);
+			if (callTipArgs[0] != 0)
+			{
+				editor.ShowCallTipAtCaretPos(callTipArgs);
+				return;
+			}
+		}
+
+		if (appendToString.count > 0)
+		{
+			editor.SetAutoCompleteCancelWhenCaretMoved();
+			editor.ShowAutoCompleteList(sbString.buffer);
+		}
+	}
+
+	bool TryParseToken(ISexyEditor& editor, substring_ref candidate)
+	{
+		using namespace Rococo;
+
+		size_t len = candidate.end - candidate.start;
+
+		for (auto keyword : keywords)
+		{
+			if (StartsWith(candidate, keyword))
+			{
+				if (len > keyword.length && IsEndOfToken(candidate.start[keyword.length]))
+				{
+					// We found a keyword, but we do not need to parse it
+					return false;
+				}
+			}
+		}
+
+		if (islower(*candidate.start))
+		{
+			ShowAutocompleteDataForVariable(editor, candidate);
+			return true;
+		}
+		else if (isupper(*candidate.start) && len > 2)
+		{
+			ShowAutocompleteDataForType(editor, candidate);
+			return true;
+		}
+
+		return false;
+	}
 
 	SexyStudioIDE(IWindow& topLevelWindow):
 		publisher(Rococo::Events::CreatePublisher()),
@@ -1097,12 +1314,62 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 		delete sheets;
 	}
 
-	void SetTitle(cstr title)
+	void ReplaceSelectedText(Rococo::AutoComplete::ISexyEditor& editor, cstr item)
+	{
+		int64 caretPos = editor.GetCaretPos();
+		if (autoCompleteCandidatePosition > 0 && autoCompleteCandidatePosition < caretPos)
+		{
+			editor.ReplaceText(autoCompleteCandidatePosition, caretPos, item);
+			UpdateAutoComplete(editor);
+		}
+	}
+
+	void UpdateAutoComplete(Rococo::AutoComplete::ISexyEditor& editor) override
+	{
+		EditorLine currentLine;
+		if (!editor.TryGetCurrentLine(currentLine))
+		{
+			return;
+		}
+
+		EditorCursor cursor;
+		editor.GetCursor(cursor);
+
+		autoCompleteCandidatePosition = cursor.CaretPos();
+
+		cstr lastCandidateInLine = currentLine.end();
+
+		for (cstr p = currentLine.end(); p >= currentLine.begin(); p--)
+		{
+			switch (*p)
+			{
+			case '(':
+			{
+				cstr candidate = p + 1;
+				if (candidate == lastCandidateInLine)
+				{
+					return;
+				}
+				else if (TryParseToken(editor, { candidate,  lastCandidateInLine }))
+				{
+					auto candidateColumn = candidate - currentLine.begin();
+					lastCandidateInLine = currentLine.begin() + candidateColumn;
+					autoCompleteCandidatePosition = cursor.LineStartPosition() + candidateColumn;
+					return;
+				}
+			}
+			}
+		}
+
+		autoCompleteCandidatePosition = 0;
+	}
+
+	void SetTitle(cstr title) override
 	{
 		Widgets::SetText(ide->Window(), title);
 	}
 
-	void Activate()
+	void Activate() override
 	{
 		ShowWindow(ide->Window(), SW_RESTORE);
 		SetForegroundWindow(ide->Window());
