@@ -1,7 +1,22 @@
-cd /D "%~dp0"
-del "C:\Program Files\Notepad++\plugins\sexystudio.4.notepad++\*.dll"  
-del "C:\Program Files\Notepad++\plugins\sexystudio.4.notepad++.debug\*.dll"  
-copy "..\bin\sexystudio.4.notepad++.dll"       "C:\Program Files\Notepad++\plugins\sexystudio.4.notepad++"  
-copy "..\bin\sexystudio.dll"                   "C:\Program Files\Notepad++\plugins\sexystudio.4.notepad++" 
-copy "..\bin\sexystudio.4.notepad++.debug.dll" "C:\Program Files\Notepad++\plugins\sexystudio.4.notepad++.debug"  
-copy "..\bin\sexystudio.debug.dll"             "C:\Program Files\Notepad++\plugins\sexystudio.4.notepad++.debug" 
+@echo off
+
+set notepad_root=%ProgramFiles%\Notepad++
+set notepad_dir=%notepad_root%\plugins\sexystudio.4.notepad++
+set boot_dll=%~dp0..\bin\sexystudio.4.notepad++.dll
+
+if exist "%notepad_dir%" (
+	if exist "%notepad_dir%\sexystudio.4.notepad++.dll" del "%notepad_dir%\sexystudio.4.notepad++.dll"
+) else (
+    mkdir  "%notepad_dir%" 
+)
+
+rem dir %boot_dll%
+rem dir "%notepad_dir%"
+
+if exist %boot_dll% (
+  copy "%boot_dll%" "%notepad_dir%\"
+  echo "Installed %boot_dll% to %notepad_dir%"
+) else (
+  echo "Could not find %boot_dll%" 
+)
+

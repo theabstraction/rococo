@@ -63,15 +63,20 @@ extern "C" __declspec(dllexport) void setInfo(NppData notpadPlusData)
 	commandMenuInit();
 }
 
+bool IsPluginValid();
+
 extern "C" __declspec(dllexport) const TCHAR * getName()
 {
-	static wchar_t name[256] = { 0 };
+	static wchar_t name[128] = { 0 };
+
+	cstr ps = IsPluginValid() ? "": "(Could not load the Autocomplete DLL)";
+
 	if (*name == 0)
 	{
 #ifdef _DEBUG
-		SafeFormat(name, 256, L"SexyStudio for Notepad++ (Debug Build %hs)", __DATE__);
+		SafeFormat(name, sizeof name, L"SexyStudio for Notepad++ (Debug Build %hs)%hs", __TIMESTAMP__, ps);
 #else
-		SafeFormat(name, 256, L"SexyStudio for Notepad++ (Build %hs)",  __DATE__);
+		SafeFormat(name, sizeof name, L"SexyStudio for Notepad++ (Build %hs)%hs", __TIMESTAMP__, ps);
 #endif
 	}
 	return name;
@@ -79,7 +84,7 @@ extern "C" __declspec(dllexport) const TCHAR * getName()
 
 extern "C" __declspec(dllexport) FuncItem * getFuncsArray(int *nbF)
 {
-	*nbF = nbFunc;
+	*nbF = IsPluginValid() ? nbFunc : 1;
 	return funcItem;
 }
 
@@ -99,7 +104,6 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 			onModified(*notifyCode);
 			break;
 		case SCN_CHARADDED:
-
 			onCharAdded((HWND) notifyCode->nmhdr.hwndFrom, static_cast<char>(notifyCode->ch));
 			break;
 		case SCN_USERLISTSELECTION:
