@@ -1355,7 +1355,7 @@ namespace ANON
 			StackStringBuilder nameBuilder(name, sizeof name);
 			AppendFullName(ns, nameBuilder);
 
-			int len = Length(prefix);
+			int64 len = Length(prefix);
 
 			if (StartsWith(name, prefix))
 			{
@@ -1400,6 +1400,47 @@ namespace ANON
 					AppendAllChildrenFromRoot(prefix, exportList, ns[i], depth + 1);
 				}
 			}
+		}
+
+		bool AppendFieldsFromType(ISxyNamespace& ns, cstr variableName, cstr typeString, IEnumerator<cstr>& action)
+		{
+			for (int i = 0; i < ns.SubspaceCount(); ++i)
+			{
+				int typeCount = ns[i].TypeCount();
+				for (int j = 0; j < typeCount; ++j)
+				{
+					auto& type = ns[i].GetType(j);
+					if (Eq(type.PublicName(), typeString))
+					{
+						auto* localType = type.LocalType();
+						if (localType)
+						{
+							for (int k = 0; k < localType->FieldCount(); ++k)
+							{
+								auto field = localType->GetField(k);
+								char withDotPrefix[128];
+								SafeFormat(withDotPrefix, "%s.%s", variableName, field.name);
+								action(withDotPrefix);
+							}
+
+							return true;
+						}
+					}
+				}
+
+				if (AppendFieldsFromType(ns[i], variableName, typeString, action))
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		bool EnumerateVariableAndFieldList(cstr variableName, cstr typeString, IEnumerator<cstr>& action) override
+		{
+			auto& root = GetRootNamespace();
+			return AppendFieldsFromType(root, variableName, typeString, action);
 		}
 
 		void ForEachAutoCompleteCandidate(substring_ref prefix, IEnumerator<cstr>& action) override

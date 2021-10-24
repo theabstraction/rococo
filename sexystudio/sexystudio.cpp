@@ -1135,7 +1135,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 		}
 	}
 
-	bool TryGetType(ISexyEditor& editor, substring_ref candidate, char type[256], ptrdiff_t caretPos)
+	bool TryGetType(ISexyEditor& editor, substring_ref candidate, char type[256], char name[256], ptrdiff_t caretPos)
 	{
 		if (caretPos <= 0 || candidate.start == nullptr || !islower(*candidate.start))
 		{
@@ -1161,7 +1161,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 			TypeInferenceType tit;
 			engine.GetType(tit, inference);
 			SafeFormat(type, 256, "%s", tit.buf);
-			return true;
+			return SubstringToString(name, 256, { start,end });
 		}
 		else
 		{
@@ -1175,9 +1175,40 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 		int64 caretPos = editor.GetCaretPos();
 
 		char type[256];
-		if (TryGetType(editor, candidate, type, caretPos))
+		char name[256];
+		if (TryGetType(editor, candidate, type, name, caretPos))
 		{
-			editor.ShowCallTipAtCaretPos(type);
+			auto& sb = dsb->Builder();
+			sb.Clear();
+
+			struct ANON : IEnumerator<cstr>
+			{
+				StringBuilder& sb;
+
+				int count = 0;
+
+				void operator()(cstr item) override
+				{
+					if (count > 0)
+					{
+						sb << " ";
+					}
+
+					count++;
+
+					sb << item;
+				}
+
+				ANON(StringBuilder& _sb) : sb(_sb) {}
+			} appendToString(sb);
+			if (database->EnumerateVariableAndFieldList(name, type, appendToString))
+			{
+				editor.ShowAutoCompleteList(*sb);
+			}
+			else
+			{
+				editor.ShowCallTipAtCaretPos(type);
+			}
 		}
 	}
 

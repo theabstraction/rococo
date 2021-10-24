@@ -868,6 +868,25 @@ namespace Rococo
 		return token.end - token.start;
 	}
 
+	bool SubstringToString(char* outputBuffer, size_t sizeofOutputBuffer, substring_ref substring)
+	{
+		if (Length(substring) >= sizeofOutputBuffer)
+		{
+			return false;
+		}
+
+		char* writePtr = outputBuffer;
+		cstr readPtr = substring.start;
+		while (readPtr < substring.end)
+		{
+			*writePtr++ = *readPtr++;
+		}
+
+		*writePtr = 0;
+
+		return true;
+	}
+
 	bool Eq(const fstring& a, substring_ref b)
 	{
 		if (a.length != Length(b))

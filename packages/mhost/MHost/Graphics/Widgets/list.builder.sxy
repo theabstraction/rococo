@@ -70,7 +70,6 @@
 	(row.GetSpan span)
 	(this.totalSpan.x = (Sys.Maths.F32.MaxOf span.x this.totalSpan.x))
 	(this.totalSpan.y += span.y)
-	
 	(this.verticalScrollBar.SetDocumentLength this.totalSpan.y)
 	(this.verticalScrollBar.SetPageSize this.verticalScrollBar.GetSliderRange)
 )
@@ -126,7 +125,7 @@
 			
 			(if (IsPointInRect cursorPos rowRect)
 				(this.lastRowUnderCursor = row)
-			)
+			)			
 		)
 	)
 	
