@@ -10,6 +10,8 @@ namespace Rococo::Sexy
 		Substring declarationVariable;
 	};
 
+	inline TypeInference TypeInference_None() { return TypeInference{ Substring_Null(), Substring_Null() }; }
+
 	struct TypeInferenceType
 	{
 		char buf[256];
@@ -32,6 +34,7 @@ namespace Rococo::Sexy
 		BadlyFormattedTypeInferenceEngine(cstr _textBuffer);
 
 		TypeInference InferVariableType(substring_ref token);
+		TypeInference InferContainerClass(substring_ref token);
 		static void GetType(TypeInferenceType& type, const TypeInference& inference);
 	};
 }

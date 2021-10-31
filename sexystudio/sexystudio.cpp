@@ -1170,6 +1170,164 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 		}
 	}
 
+	struct SpaceSeparatedStringItems : IEnumerator<cstr>
+	{
+		StringBuilder& sb;
+
+		int count = 0;
+
+		void operator()(cstr item) override
+		{
+			if (count > 0)
+			{
+				sb << " ";
+			}
+
+			count++;
+
+			sb << item;
+		}
+
+		SpaceSeparatedStringItems(StringBuilder& _sb) : sb(_sb) {}
+	};
+
+	bool FindNext(Substring& cursor, substring_ref document, cstr token)
+	{
+		if (document.empty() || *token == 0)
+		{
+			cursor = Substring_Null();
+			return false;
+		}
+
+		fstring fsToken = to_fstring(token);
+
+		if (cursor.empty())
+		{
+			cursor.start = document.start;
+		}
+
+		cursor.end = cursor.start + fsToken.length;
+
+		while (cursor.end < document.end)
+		{
+			if (Eq(cursor, fsToken))
+			{
+				return true;
+			}
+
+			cursor.start++;
+			cursor.end++;
+		}
+
+		cursor = Substring_Null();
+		return false;
+	}
+
+	cstr GetClosingParenthesis(substring_ref candidate)
+	{
+		int count = 1;
+		for (cstr p = candidate.start; p < candidate.end; p++)
+		{
+			if (*p == '(')
+			{
+				count++;
+			}
+			else if (*p == ')')
+			{
+				count--;
+
+				if (count == 0)
+				{
+					return p;
+				}
+			}
+		}
+
+		return nullptr;
+	}
+
+	void EnumerateFieldsOfClass(substring_ref classDef, IEnumerator<cstr>& cb)
+	{
+		// classDef will be (<type1> <name1>)...(<typeN> <nameN>)
+
+
+	}
+
+	cstr FirstNonWhiteSpace(cstr start, cstr end)
+	{
+		for (cstr p = start; p < end; p++)
+		{
+			if (!isspace(*p))
+			{
+				return p;
+			}
+		}
+
+		return nullptr;
+	}
+
+	void EnumerateFieldsOfClass(cstr className, IEnumerator<cstr>& cb, ISexyEditor& editor)
+	{
+		auto fsName = to_fstring(className);
+
+		int64 len = editor.GetDocLength();
+		if (len > 10 && len < 1_megabytes)
+		{
+			std::vector<char> fullDoc;
+			fullDoc.resize(len + 1);
+			editor.GetText(len + 1, fullDoc.data());
+
+			Substring doc{ fullDoc.data(), fullDoc.data() + fullDoc.size() };
+			Substring cursor = Substring_Null();
+			while (FindNext(cursor, doc, "class"))
+			{
+				for (cstr p = cursor.start-1; p > doc.start; p--)
+				{
+					if (!isblank(*p))
+					{
+						if (*p == '(')
+						{
+							cstr name = FirstNonWhiteSpace(cursor.end, doc.end);
+							if (!name)
+							{
+								return;
+							}
+
+							cstr lastNameChar = name + strlen(className);
+							if (lastNameChar > doc.end)
+							{
+								return;
+							}
+
+							if (!Eq(Substring{ name, lastNameChar }, fsName))
+							{
+								continue;
+							}
+
+							if (!isspace(*lastNameChar) && *lastNameChar != '(')
+							{
+								continue;
+							}
+
+							// We matched (class <class-name> ...)
+							cstr lastParenthesis = GetClosingParenthesis(Substring{ lastNameChar, doc.end });
+							if (lastParenthesis)
+							{
+								Substring classDef{ cursor.end, lastParenthesis - 1 };
+								EnumerateFieldsOfClass(classDef, cb);
+							}
+						}
+						else
+						{
+							// Something appeared between the ( and the class name, so we cannot interpret the S-expression as a class definition
+							return;
+						}
+					}
+				}
+			}
+		};
+	};
+
 	void ShowAutocompleteDataForVariable(ISexyEditor& editor, substring_ref candidate)
 	{
 		int64 caretPos = editor.GetCaretPos();
@@ -1181,27 +1339,14 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 			auto& sb = dsb->Builder();
 			sb.Clear();
 
-			struct ANON : IEnumerator<cstr>
+			SpaceSeparatedStringItems appendToString(sb);
+
+			if (Eq(name, "this"))
 			{
-				StringBuilder& sb;
+				EnumerateFieldsOfClass(type, appendToString, editor);
 
-				int count = 0;
-
-				void operator()(cstr item) override
-				{
-					if (count > 0)
-					{
-						sb << " ";
-					}
-
-					count++;
-
-					sb << item;
-				}
-
-				ANON(StringBuilder& _sb) : sb(_sb) {}
-			} appendToString(sb);
-			if (database->EnumerateVariableAndFieldList(name, type, appendToString))
+			}
+			else if (database->EnumerateVariableAndFieldList(name, type, appendToString))
 			{
 				editor.ShowAutoCompleteList(*sb);
 			}

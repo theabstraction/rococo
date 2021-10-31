@@ -208,8 +208,35 @@ namespace Rococo::Sexy
 		return q;
 	}
 
+	TypeInference BadlyFormattedTypeInferenceEngine::InferContainerClass(substring_ref token)
+	{
+		cstr methodPos = FindFirstLeftOccurenceOfFunctionLikeKeyword(token.start - fsMethod.length, fsMethod);
+		if (!methodPos)
+		{
+			return TypeInference_None();
+		}
+
+		// methodPos = <classname>.<methodname> (args ...)-> : (this.... )
+
+		for (cstr p = methodPos; p < token.start; p++)
+		{
+			if (*p == '.')
+			{
+				return TypeInference { Substring{ methodPos, p }, token };
+			}
+		}
+
+
+		return TypeInference_None();
+	}
+
 	TypeInference BadlyFormattedTypeInferenceEngine::InferVariableType(substring_ref token)
 	{
+		if (Eq(token, "this"_fstring))
+		{
+			return InferContainerClass(token);
+		}
+
 		cstr endGuard = max(textBuffer, token.start - 1); // We want to go back a bit, because we dont expect to find '(function' immediately before the candidate
 
 		// Algorithm -> iterate backwards from tokenBegin and search for '(method' or '(function' to identify the containing function where the type is defined

@@ -107,7 +107,11 @@ namespace Rococo
 	{
 		cstr start;
 		cstr end;
+
+		bool empty() const { return end <= start; }
 	};
+
+	inline Substring Substring_Null() { return { nullptr,nullptr }; }
 
 	// An immutable substring
 	typedef const Substring& substring_ref;

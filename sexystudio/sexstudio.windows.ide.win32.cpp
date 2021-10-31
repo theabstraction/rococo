@@ -335,16 +335,19 @@ namespace
 				progressWindow.Layout();
 				break;
 			case WM_SIZE:
-				progressWindow.Layout();
-				if (evResize.name != nullptr)
+				if (wParam != SIZE_MINIMIZED)
 				{
-					Rococo::Events::TEventArgs<IWidgetSet*> args;
-					args.value = children;
-					context.publisher.Publish(args, evResize);
-				}
-				else
-				{
-					LayoutChildren();
+					progressWindow.Layout();
+					if (evResize.name != nullptr)
+					{
+						Rococo::Events::TEventArgs<IWidgetSet*> args;
+						args.value = children;
+						context.publisher.Publish(args, evResize);
+					}
+					else
+					{
+						LayoutChildren();
+					}
 				}
 				return 0L;
 			}

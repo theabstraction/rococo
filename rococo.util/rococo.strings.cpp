@@ -870,7 +870,7 @@ namespace Rococo
 
 	bool SubstringToString(char* outputBuffer, size_t sizeofOutputBuffer, substring_ref substring)
 	{
-		if (Length(substring) >= sizeofOutputBuffer)
+		if (Length(substring) >= (ptrdiff_t) sizeofOutputBuffer)
 		{
 			return false;
 		}
