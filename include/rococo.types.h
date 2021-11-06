@@ -109,12 +109,40 @@ namespace Rococo
 		cstr end;
 
 		bool empty() const { return end <= start; }
+
+		operator bool() const { return !empty(); }
 	};
 
 	inline Substring Substring_Null() { return { nullptr,nullptr }; }
 
 	// An immutable substring
 	typedef const Substring& substring_ref;
+
+	ROCOCOAPI IStringPopulator
+	{
+	   virtual void Populate(cstr text) = 0;
+	};
+
+	// Duplicates the item as a null terminated string on the stack, then invokes the populator with a reference to the string pointer
+	void Populate(substring_ref item, IStringPopulator& populator);
+
+	// Copies the item into the buffer, truncating data if required, and terminating with a nul character
+	void CopyWithTruncate(substring_ref item, char* buffer, size_t capacity);
+
+	ROCOCOAPI IFieldEnumerator
+	{
+		virtual void OnMemberVariable(cstr name, cstr type) = 0;
+	};
+
+	namespace Sexy
+	{
+		// Type inference API
+
+		void ForEachFieldOfClassDef(cstr className, substring_ref classDef, IFieldEnumerator& cb);
+		Substring GetClassDefinition(cstr className, substring_ref doc);
+	}
+
+	Substring RightOfFirstChar(char c, substring_ref token);
 
 	template<class T> struct FilePath
 	{
@@ -136,11 +164,6 @@ namespace Rococo
 	struct BoneAngles;
 
 	typedef WindowHandle WindowRef;
-
-	ROCOCOAPI IStringPopulator
-	{
-	   virtual void Populate(cstr text) = 0;
-	};
 
 	inline constexpr fstring operator"" _fstring (cstr msg, size_t length) noexcept
 	{

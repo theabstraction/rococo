@@ -33,8 +33,9 @@ namespace Rococo::Sexy
 	public:
 		BadlyFormattedTypeInferenceEngine(cstr _textBuffer);
 
-		TypeInference InferVariableType(substring_ref token);
+		TypeInference InferParentVariableType(substring_ref token);
 		TypeInference InferContainerClass(substring_ref token);
+		TypeInference InferParentMember(const TypeInference& classInference, substring_ref token);
 		static void GetType(TypeInferenceType& type, const TypeInference& inference);
 	};
 }

@@ -966,7 +966,7 @@ R"(
 
 	VALIDATE(cat4 != nullptr);
 
-	auto inference = engine.InferVariableType({ cat4, cat4 + 3 });
+	auto inference = engine.InferParentVariableType({ cat4, cat4 + 3 });
 	VALIDATE(Length(inference.declarationType) > 0);
 	VALIDATE(Length(inference.declarationVariable) > 0);
 	TypeInferenceType tit;

@@ -322,6 +322,43 @@ namespace Rococo
 		return ANON::jenkins_one_at_a_time_hash(s, length);
 	}
 
+	void Populate(substring_ref item, IStringPopulator& populator)
+	{
+		if (!item) return;
+
+		auto len = Length(item);
+		char* stackbuffer = (char*) alloca(len + 1);
+		memcpy_s(stackbuffer, len + 1, item.start, len);
+		stackbuffer[len] = 0;
+
+		populator.Populate(stackbuffer);
+	}
+
+	Substring RightOfFirstChar(char c, substring_ref token)
+	{
+		Substring result = token;
+		for (cstr p = token.start; p < token.end; ++p)
+		{
+			if (*p == c)
+			{
+				result.start = p + 1;
+				break;
+			}
+		}
+		return result;
+	}
+
+	void CopyWithTruncate(substring_ref item, char* buffer, size_t capacity)
+	{
+		if (!buffer || capacity == 0) return;
+		if (!item) *buffer = 0;
+
+		size_t len = Length(item);
+		size_t writeLength = min(len, capacity - 1);
+		memcpy(buffer, item.start, writeLength);
+		buffer[writeLength] = 0;
+	}
+
 	// N.B sexy script language string length is int32 with max 2^31-1 chars
 	int32 StringLength(const char* s)
 	{

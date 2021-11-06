@@ -1058,11 +1058,11 @@ static bool IsEndOfToken(char c)
 	return false;
 }
 
-cstr GetFirstNonAlphaPointer(substring_ref s)
+cstr GetFirstNonTokenPointer(substring_ref s)
 {
 	for (cstr p = s.start; p < s.end; ++p)
 	{
-		if (!IsAlphaNumeric(*p))
+		if (!IsAlphaNumeric(*p) && *p != '.')
 		{
 			return p;
 		}
@@ -1144,7 +1144,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 
 		src_buffer.resize(caretPos + 1);
 
-		Substring token = { candidate.start, GetFirstNonAlphaPointer(candidate) };
+		Substring token = { candidate.start, GetFirstNonTokenPointer(candidate) };
 
 		editor.GetText(caretPos + 1, src_buffer.data());
 
@@ -1155,13 +1155,26 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 
 		cstr start = end - Length(token);
 
-		auto inference = engine.InferVariableType({ start, end });
-		if (inference.declarationType.start != inference.declarationType.end)
+		if (end - start > 1 && end[-1] == '.') end--; // Hide terminating dot
+
+		Substring searchTerm{ start, end };
+
+		static auto thisDot = "this."_fstring;
+
+		auto inference = engine.InferParentVariableType(searchTerm);
+		if (inference.declarationType)
 		{
+			if (StartsWith(searchTerm, thisDot) && Length(searchTerm) > thisDot.length)
+			{
+				// We inferred the parent type of the member variable
+				Substring parentNameAndChildren = RightOfFirstChar('.', searchTerm);
+				searchTerm = RightOfFirstChar('.', parentNameAndChildren);
+			}
+
 			TypeInferenceType tit;
 			engine.GetType(tit, inference);
 			SafeFormat(type, 256, "%s", tit.buf);
-			return SubstringToString(name, 256, { start,end });
+			return SubstringToString(name, 256, searchTerm);
 		}
 		else
 		{
@@ -1191,145 +1204,53 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 		SpaceSeparatedStringItems(StringBuilder& _sb) : sb(_sb) {}
 	};
 
-	bool FindNext(Substring& cursor, substring_ref document, cstr token)
+	void EnumerateFieldsOfClass(cstr prefix, cstr className, IEnumerator<cstr>& cb, ISexyEditor& editor)
 	{
-		if (document.empty() || *token == 0)
-		{
-			cursor = Substring_Null();
-			return false;
-		}
-
-		fstring fsToken = to_fstring(token);
-
-		if (cursor.empty())
-		{
-			cursor.start = document.start;
-		}
-
-		cursor.end = cursor.start + fsToken.length;
-
-		while (cursor.end < document.end)
-		{
-			if (Eq(cursor, fsToken))
-			{
-				return true;
-			}
-
-			cursor.start++;
-			cursor.end++;
-		}
-
-		cursor = Substring_Null();
-		return false;
-	}
-
-	cstr GetClosingParenthesis(substring_ref candidate)
-	{
-		int count = 1;
-		for (cstr p = candidate.start; p < candidate.end; p++)
-		{
-			if (*p == '(')
-			{
-				count++;
-			}
-			else if (*p == ')')
-			{
-				count--;
-
-				if (count == 0)
-				{
-					return p;
-				}
-			}
-		}
-
-		return nullptr;
-	}
-
-	void EnumerateFieldsOfClass(substring_ref classDef, IEnumerator<cstr>& cb)
-	{
-		// classDef will be (<type1> <name1>)...(<typeN> <nameN>)
-
-
-	}
-
-	cstr FirstNonWhiteSpace(cstr start, cstr end)
-	{
-		for (cstr p = start; p < end; p++)
-		{
-			if (!isspace(*p))
-			{
-				return p;
-			}
-		}
-
-		return nullptr;
-	}
-
-	void EnumerateFieldsOfClass(cstr className, IEnumerator<cstr>& cb, ISexyEditor& editor)
-	{
-		auto fsName = to_fstring(className);
-
 		int64 len = editor.GetDocLength();
-		if (len > 10 && len < 1_megabytes)
+		if (len < 10 || len >(int64)1_megabytes)
 		{
-			std::vector<char> fullDoc;
-			fullDoc.resize(len + 1);
-			editor.GetText(len + 1, fullDoc.data());
+			return;
+		}
 
-			Substring doc{ fullDoc.data(), fullDoc.data() + fullDoc.size() };
-			Substring cursor = Substring_Null();
-			while (FindNext(cursor, doc, "class"))
+		std::vector<char> docBuffer;
+		docBuffer.resize(len + 1);
+		editor.GetText(len + 1, docBuffer.data());
+
+		Substring doc{ docBuffer.data(), docBuffer.data() + docBuffer.size() };
+
+		substring_ref def = Rococo::Sexy::GetClassDefinition(className, doc);
+		if (def)
+		{
+			struct ANON: IFieldEnumerator
 			{
-				for (cstr p = cursor.start-1; p > doc.start; p--)
+				cstr prefix;
+				IEnumerator<cstr>& cb;
+
+				void OnMemberVariable(cstr name, cstr type) override
 				{
-					if (!isblank(*p))
+					if (Eq(type, "implements"_fstring))
 					{
-						if (*p == '(')
-						{
-							cstr name = FirstNonWhiteSpace(cursor.end, doc.end);
-							if (!name)
-							{
-								return;
-							}
 
-							cstr lastNameChar = name + strlen(className);
-							if (lastNameChar > doc.end)
-							{
-								return;
-							}
-
-							if (!Eq(Substring{ name, lastNameChar }, fsName))
-							{
-								continue;
-							}
-
-							if (!isspace(*lastNameChar) && *lastNameChar != '(')
-							{
-								continue;
-							}
-
-							// We matched (class <class-name> ...)
-							cstr lastParenthesis = GetClosingParenthesis(Substring{ lastNameChar, doc.end });
-							if (lastParenthesis)
-							{
-								Substring classDef{ cursor.end, lastParenthesis - 1 };
-								EnumerateFieldsOfClass(classDef, cb);
-							}
-						}
-						else
-						{
-							// Something appeared between the ( and the class name, so we cannot interpret the S-expression as a class definition
-							return;
-						}
+					}
+					else
+					{
+						char publishName[128];
+						SafeFormat(publishName, "%s%s", prefix, name);
+						cb(publishName);
 					}
 				}
-			}
-		};
+
+				ANON(IEnumerator<cstr>& _cb, cstr _prefix) : cb(_cb), prefix(_prefix) {}
+			} copyWithPrefix(cb, prefix);
+
+			Rococo::Sexy::ForEachFieldOfClassDef(className, def, copyWithPrefix);
+		}	
 	};
 
 	void ShowAutocompleteDataForVariable(ISexyEditor& editor, substring_ref candidate)
 	{
+		static auto thisDot = "this."_fstring;
+
 		int64 caretPos = editor.GetCaretPos();
 
 		char type[256];
@@ -1343,10 +1264,25 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 
 			if (Eq(name, "this"))
 			{
-				EnumerateFieldsOfClass(type, appendToString, editor);
-
+				EnumerateFieldsOfClass("this.", type, appendToString, editor);
+				if (sb.Length() > 0)
+				{
+					editor.ShowAutoCompleteList(*sb);
+				}
+				else
+				{
+					editor.ShowCallTipAtCaretPos(type);
+				}
 			}
-			else if (database->EnumerateVariableAndFieldList(name, type, appendToString))
+			else if (StartsWith(candidate, thisDot))
+			{
+				Substring thisSubstring{ candidate.start, candidate.start + 5 };
+				if (database->EnumerateVariableAndFieldList(thisSubstring, name, type, appendToString))
+				{
+					editor.ShowAutoCompleteList(*sb);
+				}
+			}
+			else if (database->EnumerateVariableAndFieldList(candidate, name, type, appendToString))
 			{
 				editor.ShowAutoCompleteList(*sb);
 			}

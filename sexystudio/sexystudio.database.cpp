@@ -1402,7 +1402,7 @@ namespace ANON
 			}
 		}
 
-		bool AppendFieldsFromType(ISxyNamespace& ns, cstr variableName, cstr typeString, IEnumerator<cstr>& action)
+		bool AppendFieldsFromType(substring_ref prefix, ISxyNamespace& ns, cstr variableName, cstr typeString, IEnumerator<cstr>& action)
 		{
 			for (int i = 0; i < ns.SubspaceCount(); ++i)
 			{
@@ -1419,7 +1419,10 @@ namespace ANON
 							{
 								auto field = localType->GetField(k);
 								char withDotPrefix[128];
-								SafeFormat(withDotPrefix, "%s.%s", variableName, field.name);
+
+								char prefixBuffer[128];
+								CopyWithTruncate(prefix, prefixBuffer, sizeof prefixBuffer);
+								SafeFormat(withDotPrefix, "%s%s.%s", prefixBuffer, variableName, field.name);
 								action(withDotPrefix);
 							}
 
@@ -1428,7 +1431,7 @@ namespace ANON
 					}
 				}
 
-				if (AppendFieldsFromType(ns[i], variableName, typeString, action))
+				if (AppendFieldsFromType(prefix, ns[i], variableName, typeString, action))
 				{
 					return true;
 				}
@@ -1437,10 +1440,10 @@ namespace ANON
 			return false;
 		}
 
-		bool EnumerateVariableAndFieldList(cstr variableName, cstr typeString, IEnumerator<cstr>& action) override
+		bool EnumerateVariableAndFieldList(substring_ref prefix, cstr variableName, cstr typeString, IEnumerator<cstr>& action) override
 		{
 			auto& root = GetRootNamespace();
-			return AppendFieldsFromType(root, variableName, typeString, action);
+			return AppendFieldsFromType(prefix, root, variableName, typeString, action);
 		}
 
 		void ForEachAutoCompleteCandidate(substring_ref prefix, IEnumerator<cstr>& action) override
