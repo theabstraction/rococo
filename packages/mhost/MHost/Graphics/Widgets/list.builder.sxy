@@ -46,8 +46,6 @@
 		(IEventHandler vscrollHandler = this.verticalScrollBar.Handler)
 		(vscrollHandler.OnMouseUp args)
 	)
-	
-	(this.totalSpan
 )
 
 (method ListBuilder.OnMouseDown (MouseClickArgs args)-> :
@@ -59,8 +57,6 @@
 		(IEventHandler vscrollHandler = this.verticalScrollBar.Handler)
 		(vscrollHandler.OnMouseDown args)
 	)
-	
-	(thi
 )
 
 (method ListBuilder.GetRect (Rectf rect)-> :
@@ -130,7 +126,6 @@
 			(if (IsPointInRect cursorPos rowRect)
 				(this.lastRowUnderCursor = row)
 			)
-			(this
 		)
 	)
 	

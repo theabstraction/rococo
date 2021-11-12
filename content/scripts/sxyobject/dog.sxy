@@ -1,0 +1,31 @@
+(interface Sys.IDog
+	(Bark -> )
+)
+
+(class Dog (implements Sys.IDog)	
+)
+
+(method Dog.Bark -> :
+	(Sys.Print "Woof")
+)
+
+(factory Sys.NewDog Sys.IDog :
+	(construct Dog)
+)
+
+(method Dog.Construct :
+)
+
+(function CreateNewDog -> (Sys.IDog dog):
+	(Sys.IDog newDog (Sys.NewDog))
+	(dog = newDog)
+	(yield)
+)
+
+(namespace EntryPoint)
+	(alias CreateNewDog EntryPoint.CreateObject)
+
+// .cpp:
+//    Sys.IDog* dog = script("dog.sxy").Create();
+//    dog->Bark();
+//    ReleaseRef(dog);
