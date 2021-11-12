@@ -23,7 +23,6 @@ namespace Rococo::SexyStudio
 	ROCOCOAPI ISexyStudioInstance1
 	{
 		virtual void ReplaceCurrentSelectionWithCallTip(Rococo::AutoComplete::ISexyEditor& editor) = 0;
-		virtual void ForEachAutoCompleteCandidate(substring_ref prefix, IEnumerator<cstr>& action) = 0;
 		virtual void GetHintForCandidate(substring_ref prefix, char args[1024]) = 0;
 		virtual void ReplaceSelectedText(Rococo::AutoComplete::ISexyEditor& editor, cstr item) = 0;
 		virtual void SetTitle(cstr title) = 0;
@@ -38,13 +37,13 @@ namespace Rococo::SexyStudio
 		virtual ISexyStudioInstance1* CreateSexyIDE(Rococo::Windows::IWindow& topLevelParent) = 0;
 	};
 	
+	// The name of the interface is passed in the interface parameter. If any parameter is invalid or the URL recognized the function returns a non-zero error code.
+	// If the interface is recognized  and all other parameters are correct the function returns zero.
+	// The caller is required to call the Free method of the interface to free up memory.
+	// Currently the only recognized interface URLs are "Rococo.SexyStudio.ISexyStudioFactory1" and "Rococo.SexyStudio.ISexyStudioBase"
+	// int CreateSexyStudioFactory)(void** ppInterface, const char* interfaceURL) is defined in the SexyStudio DLL
+	// and retrieved by LoadLibrary and GetProcAddress. See the Win32 documentation for more info on these two functions.
+	// N.B CreateSexyStudioFactory is not thread safe and all calls to the function should be done from the same thread
 	typedef int (*FN_CreateSexyStudioFactory)(void** ppInterface, const char* interfaceURL);
 }
 
-// The name of the interface is passed in the interface parameter. If any parameter is invalid or the URL recognized the function returns a non-zero error code.
-// If the interface is recognized  and all other parameters are correct the function returns zero.
-// The caller is required to call the Free method of the interface to free up memory.
-// Currently the only recognized interface URLs are "Rococo.SexyStudio.ISexyStudioFactory1" and "Rococo.SexyStudio.ISexyStudioBase"
-// int CreateSexyStudioFactory)(void** ppInterface, const char* interfaceURL) is defined in the SexyStudio DLL
-// and retrieved by LoadLibrary and GetProcAddress. See the Win32 documentation for more info on these two functions.
-// N.B CreateSexyStudioFactory is not thread safe and all calls to the function should be done from the same thread

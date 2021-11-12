@@ -334,6 +334,119 @@ namespace Rococo
 		populator.Populate(stackbuffer);
 	}
 
+	namespace Sexy
+	{
+		bool IsNotTokenChar(char c)
+		{
+			return !IsAlphaNumeric(c) && c != '.';
+		}
+
+		bool IsSexyKeyword(substring_ref candidate)
+		{
+			size_t len = Length(candidate);
+
+			static std::vector<fstring> keywords
+			{
+				"method"_fstring, "function"_fstring, "class"_fstring, "struct"_fstring
+			};
+
+			for (auto keyword : keywords)
+			{
+				if (StartsWith(candidate, keyword))
+				{
+					if (len > keyword.length && IsNotTokenChar(candidate.start[keyword.length]))
+					{
+						// We found a keyword, but we do not need to parse it
+						return true;
+					}
+				}
+			}
+
+			return false;
+		}
+
+		cstr GetFirstNonTokenPointer(substring_ref s)
+		{
+			if (!s) return nullptr;
+
+			for (cstr p = s.start; p < s.end; ++p)
+			{
+				if (!Rococo::Sexy::IsNotTokenChar(*p))
+				{
+					return p;
+				}
+			}
+
+			return s.end;
+		}
+
+		cstr GetFirstNonTokenPointerFromRight(substring_ref doc, cstr startPosition)
+		{
+			if (!startPosition || !doc) return nullptr;
+
+			for (cstr p = startPosition - 1; p >= doc.start; p--)
+			{
+				if (Rococo::Sexy::IsNotTokenChar(*p))
+				{
+					return p;
+				}
+			}
+
+			return nullptr;
+		}
+
+		cstr GetFirstNonTypeCharPointer(substring_ref s)
+		{
+			bool inDot = false;
+
+			for (cstr p = s.start; p < s.end; ++p)
+			{
+				if (!inDot)
+				{
+					if (*p == '.')
+					{
+						inDot = true;
+						continue;
+					}
+				}
+
+				if (IsAlphaNumeric(*p))
+				{
+					if (inDot)
+					{
+						inDot = false;
+					}
+
+					continue;
+				}
+
+				return p;
+			}
+
+			return s.end;
+		}
+
+		Substring GetFirstTokenFromLeft(substring_ref s)
+		{
+			return s ? Substring { s.start, Rococo::Sexy::GetFirstNonTypeCharPointer(s) } : Substring_Null();
+		}
+	}
+
+	cstr ReverseFind(char c, substring_ref token)
+	{
+		if (!token) return nullptr;
+
+		for (cstr p = token.end - 1; p >= token.start; p--)
+		{
+			if (*p == c)
+			{
+				return p;
+			}
+		}
+
+		return nullptr;
+	}
+
 	Substring RightOfFirstChar(char c, substring_ref token)
 	{
 		Substring result = token;

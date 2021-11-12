@@ -88,6 +88,17 @@ void GetDllPath(WideFilePath& pathToDLL)
 // It will be called while plugin loading   
 void pluginInit(HANDLE hModule)
 {
+    struct CLOSURE : Rococo::Windows::IWindow
+    {
+        HWND hWnd;
+        operator HWND() const override
+        {
+            return hWnd;
+        }
+    } topLevelWindow;
+
+    topLevelWindow.hWnd = nppData._nppHandle;
+
     try
     {
         WideFilePath pathToDLL;
@@ -115,18 +126,6 @@ void pluginInit(HANDLE hModule)
             Throw(nErr, "CreateSexyStudioFactory with URL %s failed", interfaceURL);
         }
 
-        struct CLOSURE : Rococo::Windows::IWindow
-        {
-            HWND hWnd;
-            operator HWND() const override
-            {
-                return hWnd;
-            }
-        } topLevelWindow;
-
-        // N.B making the IDE a child of the Notepad++ window is a lot more obstructive than having no parent
-        topLevelWindow.hWnd = nppData._nppHandle;
-
         if (sexyIDE == nullptr)
         {
             if (factory)
@@ -142,7 +141,7 @@ void pluginInit(HANDLE hModule)
     }
     catch (IException& ex)
     {
-        Rococo::OS::ShowErrorBox(Rococo::Windows::NoParent(), ex, ErrorCaption);
+        Rococo::OS::ShowErrorBox(topLevelWindow, ex, ErrorCaption);
     }
 }
 
@@ -237,9 +236,11 @@ void showSexyIDE()
     }
 }
 
-enum { USERLIST_SEXY_AUTOCOMPLETE = 12345678 };
+enum { USERLIST_SEXY_AUTOCOMPLETE = 0x07112021 };
 
-class SexyEditor_Scintilla: public ISexyEditor
+thread_local AutoFree<IDynamicStringBuilder> autocompleteStringBuilder = CreateDynamicStringBuilder(1024);
+
+class SexyEditor_Scintilla : public ISexyEditor, IAutoCompleteBuilder
 {
     HWND hScintilla;
 
@@ -305,6 +306,30 @@ public:
         SendMessageA(hScintilla, SCI_SETSELECTIONSTART, startPos, 0);
         SendMessageA(hScintilla, SCI_SETSELECTIONEND, endPos, 0);
         SendMessageA(hScintilla, SCI_REPLACESEL, 0, (LPARAM)item);
+    }
+
+    IAutoCompleteBuilder& AutoCompleteBuilder() override
+    {
+        return *this;
+    }
+
+    void AddItem(cstr item) override
+    {
+        auto& sb = autocompleteStringBuilder->Builder();
+        if (sb.Length() > 0)
+        {
+            sb.AppendChar(' ');
+        }
+
+        sb.AppendFormat("%s", item);
+    }
+
+    void ShowAndClearItems() override
+    {
+        auto& sb = autocompleteStringBuilder->Builder();
+        SetAutoCompleteCancelWhenCaretMoved();
+        ShowAutoCompleteList(*sb);
+        sb.Clear();
     }
 };
 

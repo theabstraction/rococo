@@ -13,29 +13,20 @@
 #pragma comment(lib, "uxtheme.lib")
 
 #include <shobjidl.h>
-
 #include <sexy.types.h>
 #include <Sexy.S-Parser.h>
-
 #include <malloc.h>
-
 #include <stdio.h>
-
 #include <list>
 #include <vector>
 #include <string>
-
 #include <unordered_map>
-
 #include <rococo.sexystudio.api.h>
-
 #include <algorithm>
-
 #include <rococo.strings.h>
-
 #include <rococo.auto-complete.h>
-
 #include <rococo.sxytype-inference.h>
+#include <rococo.auto-complete.h>
 
 using namespace Rococo;
 using namespace Rococo::SexyStudio;
@@ -1037,73 +1028,6 @@ LOGFONTA MakeDefaultFont()
 
 using namespace Rococo::AutoComplete;
 
-static std::vector<fstring> keywords
-{
-	"method"_fstring, "function"_fstring, "class"_fstring, "struct"_fstring
-};
-
-static bool IsEndOfToken(char c)
-{
-	switch (c)
-	{
-	case '(':
-	case ')':
-	case ' ':
-	case '\r':
-	case '\n':
-	case '\t':
-		return true;
-	}
-
-	return false;
-}
-
-cstr GetFirstNonTokenPointer(substring_ref s)
-{
-	for (cstr p = s.start; p < s.end; ++p)
-	{
-		if (!IsAlphaNumeric(*p) && *p != '.')
-		{
-			return p;
-		}
-	}
-
-	return s.end;
-}
-
-cstr GetFirstNonTypeCharPointer(substring_ref s)
-{
-	bool inDot = false;
-
-	for (cstr p = s.start; p < s.end; ++p)
-	{
-		if (!inDot)
-		{
-			if (*p == '.')
-			{
-				inDot = true;
-				continue;
-			}
-		}
-
-		if (IsAlphaNumeric(*p))
-		{
-			if (inDot)
-			{
-				inDot = false;
-			}
-
-			continue;
-		}
-
-		return p;
-	}
-
-	return s.end;
-}
-
-thread_local AutoFree<IDynamicStringBuilder> dsb = CreateDynamicStringBuilder(1024);
-
 struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 {
 	AutoFree<IPublisherSupervisor> publisher;
@@ -1135,54 +1059,6 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 		}
 	}
 
-	bool TryGetType(ISexyEditor& editor, substring_ref candidate, char type[256], char name[256], ptrdiff_t caretPos)
-	{
-		if (caretPos <= 0 || candidate.start == nullptr || !islower(*candidate.start))
-		{
-			return false;
-		}
-
-		src_buffer.resize(caretPos + 1);
-
-		Substring token = { candidate.start, GetFirstNonTokenPointer(candidate) };
-
-		editor.GetText(caretPos + 1, src_buffer.data());
-
-		cstr end = src_buffer.data() + caretPos;
-
-		using namespace Rococo::Sexy;
-		BadlyFormattedTypeInferenceEngine engine(src_buffer.data());
-
-		cstr start = end - Length(token);
-
-		if (end - start > 1 && end[-1] == '.') end--; // Hide terminating dot
-
-		Substring searchTerm{ start, end };
-
-		static auto thisDot = "this."_fstring;
-
-		auto inference = engine.InferParentVariableType(searchTerm);
-		if (inference.declarationType)
-		{
-			if (StartsWith(searchTerm, thisDot) && Length(searchTerm) > thisDot.length)
-			{
-				// We inferred the parent type of the member variable
-				Substring parentNameAndChildren = RightOfFirstChar('.', searchTerm);
-				searchTerm = RightOfFirstChar('.', parentNameAndChildren);
-			}
-
-			TypeInferenceType tit;
-			engine.GetType(tit, inference);
-			SafeFormat(type, 256, "%s", tit.buf);
-			return SubstringToString(name, 256, searchTerm);
-		}
-		else
-		{
-			*type = 0;
-			return false;
-		}
-	}
-
 	struct SpaceSeparatedStringItems : IEnumerator<cstr>
 	{
 		StringBuilder& sb;
@@ -1204,27 +1080,14 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 		SpaceSeparatedStringItems(StringBuilder& _sb) : sb(_sb) {}
 	};
 
-	void EnumerateFieldsOfClass(cstr prefix, cstr className, IEnumerator<cstr>& cb, ISexyEditor& editor)
+	template<class ACTION> bool EnumerateFieldsOfClass(cstr className, substring_ref doc, ACTION& action)
 	{
-		int64 len = editor.GetDocLength();
-		if (len < 10 || len >(int64)1_megabytes)
-		{
-			return;
-		}
-
-		std::vector<char> docBuffer;
-		docBuffer.resize(len + 1);
-		editor.GetText(len + 1, docBuffer.data());
-
-		Substring doc{ docBuffer.data(), docBuffer.data() + docBuffer.size() };
-
 		substring_ref def = Rococo::Sexy::GetClassDefinition(className, doc);
 		if (def)
 		{
 			struct ANON: IFieldEnumerator
 			{
-				cstr prefix;
-				IEnumerator<cstr>& cb;
+				ACTION& action;
 
 				void OnMemberVariable(cstr name, cstr type) override
 				{
@@ -1234,40 +1097,86 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 					}
 					else
 					{
-						char publishName[128];
-						SafeFormat(publishName, "%s%s", prefix, name);
-						cb(publishName);
+						action(name);
 					}
 				}
 
-				ANON(IEnumerator<cstr>& _cb, cstr _prefix) : cb(_cb), prefix(_prefix) {}
-			} copyWithPrefix(cb, prefix);
+				ANON(ACTION& _action) : action(_action) {}
+			} buildList(action);
 
-			Rococo::Sexy::ForEachFieldOfClassDef(className, def, copyWithPrefix);
+			Rococo::Sexy::ForEachFieldOfClassDef(className, def, buildList);
+			return true;
 		}	
+
+		return false;
 	};
 
-	void ShowAutocompleteDataForVariable(ISexyEditor& editor, substring_ref candidate)
+	struct RouteTextToAutoComplete: IEnumerator<cstr>
+	{
+		IAutoCompleteBuilder& builder;
+
+		bool atLeastOneItem = false;
+
+		RouteTextToAutoComplete(ISexyEditor& _editor):
+			builder(_editor.AutoCompleteBuilder())
+		{
+
+		}
+
+		~RouteTextToAutoComplete()
+		{
+			if (atLeastOneItem)
+			{
+				builder.ShowAndClearItems();
+			}
+		}
+
+		void operator()(cstr item)
+		{
+			atLeastOneItem = true;
+			builder.AddItem(item);
+		}
+	};
+
+	void ShowAutocompleteDataForVariable(ISexyEditor& editor, substring_ref candidate, int64 tokenDisplacementFromCaret)
 	{
 		static auto thisDot = "this."_fstring;
 
 		int64 caretPos = editor.GetCaretPos();
 
+		RouteTextToAutoComplete routeTextToAutoComplete(editor);
+
+		int64 nCharsAndNull = editor.GetDocLength();
+		src_buffer.resize(nCharsAndNull);
+		editor.GetText(nCharsAndNull, src_buffer.data());
+
+		Substring doc;
+		doc.start = src_buffer.data();
+		doc.end = doc.start + nCharsAndNull - 1;
+
+		cstr docCaretPos = doc.start + caretPos;
+		cstr start = docCaretPos - tokenDisplacementFromCaret;
+		cstr end = start + Length(candidate);
+
+		Substring candidateInDoc{ start, end };
+
 		char type[256];
 		char name[256];
-		if (TryGetType(editor, candidate, type, name, caretPos))
+		bool isThis;
+		if (Rococo::Sexy::TryGetLocalTypeFromCurrentDocument(type, name, isThis, candidateInDoc, doc))
 		{
-			auto& sb = dsb->Builder();
-			sb.Clear();
-
-			SpaceSeparatedStringItems appendToString(sb);
-
-			if (Eq(name, "this"))
+			if (isThis)
 			{
-				EnumerateFieldsOfClass("this.", type, appendToString, editor);
-				if (sb.Length() > 0)
+				auto addFieldToAutocomplete = [&editor](cstr fieldName)
 				{
-					editor.ShowAutoCompleteList(*sb);
+					char qualifiedFieldName[128];
+					SafeFormat(qualifiedFieldName, "this.%s", fieldName);
+					editor.AutoCompleteBuilder().AddItem(qualifiedFieldName);
+				};
+
+				if (EnumerateFieldsOfClass(type, doc, addFieldToAutocomplete))
+				{
+					editor.AutoCompleteBuilder().ShowAndClearItems();
 				}
 				else
 				{
@@ -1277,14 +1186,10 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 			else if (StartsWith(candidate, thisDot))
 			{
 				Substring thisSubstring{ candidate.start, candidate.start + 5 };
-				if (database->EnumerateVariableAndFieldList(thisSubstring, name, type, appendToString))
-				{
-					editor.ShowAutoCompleteList(*sb);
-				}
+				database->EnumerateVariableAndFieldList(thisSubstring, name, type, routeTextToAutoComplete);
 			}
-			else if (database->EnumerateVariableAndFieldList(candidate, name, type, appendToString))
+			else if (database->EnumerateVariableAndFieldList(candidate, name, type, routeTextToAutoComplete))
 			{
-				editor.ShowAutoCompleteList(*sb);
 			}
 			else
 			{
@@ -1295,78 +1200,41 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 
 	void ShowAutocompleteDataForType(ISexyEditor& editor, substring_ref candidate)
 	{
-		Substring token = { candidate.start, GetFirstNonTypeCharPointer(candidate) };
+		Substring token = Rococo::Sexy::GetFirstTokenFromLeft(candidate);
 
-		auto& sb = dsb->Builder();
-		sb.Clear();
-
-		struct ANON : IEnumerator<cstr>
-		{
-			StringBuilder& sb;
-
-			int count = 0;
-
-			void operator()(cstr item) override
-			{
-				if (count > 0)
-				{
-					sb << " ";
-				}
-
-				count++;
-
-				sb << item;
-			}
-
-			ANON(StringBuilder& _sb) : sb(_sb) {}
-		} appendToString(sb);
-		ForEachAutoCompleteCandidate(token, appendToString);
-
-		const fstring& sbString = *dsb->Builder();
+		RouteTextToAutoComplete routeTextToAutoComplete(editor);
+		database->ForEachAutoCompleteCandidate(token, routeTextToAutoComplete);
 
 		callTipArgs[0] = 0;
 
-		if (appendToString.count == 1)
+		if (!routeTextToAutoComplete.atLeastOneItem)
 		{
 			GetHintForCandidate(token, callTipArgs);
 			if (callTipArgs[0] != 0)
 			{
 				editor.ShowCallTipAtCaretPos(callTipArgs);
-				return;
 			}
-		}
-
-		if (appendToString.count > 0)
-		{
-			editor.SetAutoCompleteCancelWhenCaretMoved();
-			editor.ShowAutoCompleteList(sbString.buffer);
 		}
 	}
 
-	bool TryParseToken(ISexyEditor& editor, substring_ref candidate)
+	bool TryAddTokenOptionsToAutocomplete(ISexyEditor& editor, substring_ref candidate, int64 displacementFromCaret)
 	{
 		using namespace Rococo;
 
-		size_t len = candidate.end - candidate.start;
-
-		for (auto keyword : keywords)
+		if (!candidate)
 		{
-			if (StartsWith(candidate, keyword))
-			{
-				if (len > keyword.length && IsEndOfToken(candidate.start[keyword.length]))
-				{
-					// We found a keyword, but we do not need to parse it
-					return false;
-				}
-			}
+			return false;
 		}
-
-		if (islower(*candidate.start))
+		else if (Rococo::Sexy::IsSexyKeyword(candidate))
 		{
-			ShowAutocompleteDataForVariable(editor, candidate);
+			return false;
+		}
+		else if (islower(*candidate.start))
+		{
+			ShowAutocompleteDataForVariable(editor, candidate, displacementFromCaret);
 			return true;
 		}
-		else if (isupper(*candidate.start) && len > 2)
+		else if (isupper(*candidate.start))
 		{
 			ShowAutocompleteDataForType(editor, candidate);
 			return true;
@@ -1449,31 +1317,37 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 
 		autoCompleteCandidatePosition = cursor.CaretPos();
 
-		cstr lastCandidateInLine = currentLine.end();
+		Substring substringLine{ currentLine.begin(), currentLine.end() };
 
-		for (cstr p = currentLine.end(); p >= currentLine.begin(); p--)
+		cstr endTokenPtr = substringLine.start + cursor.ColumnNumber();
+
+		if (endTokenPtr > substringLine.start && (IsAlphaNumeric(endTokenPtr[-1]) || endTokenPtr[-1] == '.'))
 		{
-			switch (*p)
+			autoCompleteCandidatePosition = cursor.CaretPos();
+
+			cstr openingToken = Rococo::Sexy::GetFirstNonTokenPointerFromRight(substringLine, endTokenPtr);
+			if (openingToken == nullptr)
 			{
-			case '(':
-			{
-				cstr candidate = p + 1;
-				if (candidate == lastCandidateInLine)
-				{
-					return;
-				}
-				else if (TryParseToken(editor, { candidate,  lastCandidateInLine }))
-				{
-					auto candidateColumn = candidate - currentLine.begin();
-					lastCandidateInLine = currentLine.begin() + candidateColumn;
-					autoCompleteCandidatePosition = cursor.LineStartPosition() + candidateColumn;
-					return;
-				}
+				openingToken = substringLine.start;
 			}
+			else
+			{
+				openingToken++; // this takes us into the alphanumeric string
+			}
+			
+			Substring searchToken = Rococo::Sexy::GetFirstTokenFromLeft({ openingToken, substringLine.end });
+
+			int64 displacementFromCaret = endTokenPtr - openingToken;
+
+			if (TryAddTokenOptionsToAutocomplete(editor, searchToken, displacementFromCaret))
+			{
+				autoCompleteCandidatePosition = openingToken - substringLine.start + cursor.lineStartPosition;
+			}
+			else
+			{
+				autoCompleteCandidatePosition = 0;
 			}
 		}
-
-		autoCompleteCandidatePosition = 0;
 	}
 
 	void SetTitle(cstr title) override
@@ -1489,11 +1363,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 		FlashWindow(ide->Window(), FALSE);
 	}
 
-	void ForEachAutoCompleteCandidate(substring_ref prefix, IEnumerator<cstr>& action) override
-	{
-		database->ForEachAutoCompleteCandidate(prefix, action);
-	}
-
+	// Buffer should be 1024 bytes
 	void GetHintForCandidate(substring_ref prefix, char args[1024]) override
 	{
 		database->GetHintForCandidate(prefix, args);

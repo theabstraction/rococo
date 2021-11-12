@@ -15,26 +15,28 @@ namespace
 
 	}
 
-	bool FindNext(Substring& cursor, substring_ref document, cstr token)
+	bool FindNext(Substring& cursor, substring_ref document, const fstring& token)
 	{
-		if (document.empty() || *token == 0)
+		if (document.empty() || token.length == 0)
 		{
 			cursor = Substring_Null();
 			return false;
 		}
 
-		fstring fsToken = to_fstring(token);
-
 		if (cursor.empty())
 		{
 			cursor.start = document.start;
 		}
+		else
+		{
+			cursor.start = cursor.end;
+		}
 
-		cursor.end = cursor.start + fsToken.length;
+		cursor.end = cursor.start + token.length;
 
 		while (cursor.end < document.end)
 		{
-			if (Eq(cursor, fsToken))
+			if (Eq(cursor, token))
 			{
 				return true;
 			}
@@ -109,9 +111,9 @@ namespace Rococo::Sexy
 		auto fsName = to_fstring(className);
 		Substring cursor = Substring_Null();
 
-		while (FindNext(cursor, doc, "class"))
+		while (FindNext(cursor, doc, "class"_fstring))
 		{
-			for (cstr p = cursor.start - 1; p > doc.start; p--)
+			for (cstr p = cursor.start-1; p >= doc.start; p--)
 			{
 				if (!isblank(*p))
 				{
@@ -495,6 +497,34 @@ namespace Rococo::Sexy
 		return q;
 	}
 
+	TypeInference BadlyFormattedTypeInferenceEngine::InferLocalVariableVariableType(substring_ref token)
+	{
+		cstr endGuard = max(textBuffer, token.start - 1); // We want to go back a bit, because we dont expect to find '(function' immediately before the candidate
+
+		// Algorithm -> iterate backwards from tokenBegin and search for '(method' or '(function' to identify the containing function where the type is defined
+		cstr functionPos = FindFirstLeftOccurenceOfFunctionLikeKeyword(token.start - fsFunction.length, fsFunction);
+		if (functionPos == nullptr)
+		{
+			functionPos = FindFirstLeftOccurenceOfFunctionLikeKeyword(token.start - fsMethod.length, fsMethod);
+		}
+
+		if (functionPos == nullptr)
+		{
+			return TypeInference{ {nullptr, nullptr},{nullptr, nullptr} };
+		}
+
+		// A variable could be declared as input, output or local variable, we advance and search for (<type> <variable>...)
+		for (auto d = FindNextPossibleDeclaration({ functionPos, endGuard }); !IsEmpty(d.declarationType); d = FindNextPossibleDeclaration({ d.declarationType.start, endGuard }))
+		{
+			if (Eq(d.declarationVariable, token))
+			{
+				return d;
+			}
+		}
+
+		return TypeInference{ {nullptr, nullptr},{nullptr, nullptr} };
+	}
+
 	TypeInference BadlyFormattedTypeInferenceEngine::InferParentMember(const TypeInference& classInference, substring_ref name)
 	{
 		if (!classInference.declarationType) return TypeInference_None();
@@ -533,7 +563,7 @@ namespace Rococo::Sexy
 
 	TypeInference BadlyFormattedTypeInferenceEngine::InferContainerClass(substring_ref token)
 	{
-		cstr methodPos = FindFirstLeftOccurenceOfFunctionLikeKeyword(token.start - fsMethod.length, fsMethod);
+		cstr methodPos = FindFirstLeftOccurenceOfFunctionLikeKeyword(token.start, fsMethod);
 		if (!methodPos)
 		{
 			return TypeInference_None();
@@ -553,57 +583,70 @@ namespace Rococo::Sexy
 		return TypeInference_None();
 	}
 
-	TypeInference BadlyFormattedTypeInferenceEngine::InferParentVariableType(substring_ref token)
+	/* Example tokens, and the response:
+	'this' and 'this.' .........................[type] the class for which the containing method applies. Name returned is 'this'
+	<local-variable-name>.......................the [type] defined in the containing function/method that declares the variable. Name returned is <local-variable-name>
+	'this.<member-variable>'....................the member [type] defined in the class for which the containing method applies. Name returned is <member-variable>
+	<local-variable-name>.<children>'...........the member [type] defined in the class for which the containing method applies. Name returned is <member-variable>.<children>
+	*/
+	bool TryGetLocalTypeFromCurrentDocument(char type[256], char name[256], bool& isThis, substring_ref token, substring_ref document)
 	{
-		if (Eq(token, "this"_fstring))
+		static auto thisRaw = "this"_fstring;
+		static auto thisDot = "this."_fstring;
+
+		if (!token || !document || !islower(*token.start))
 		{
-			return InferContainerClass(token);
-		}
-		else if (Length(token) > 5 && StartsWith(token, "this."_fstring))
-		{
-			Substring thisToken = { token.start, token.start + 4 };
-			TypeInference classType = InferContainerClass(thisToken);
-			return InferParentMember(classType, { thisToken.end+1, token.end });
+			return false;
 		}
 
-		cstr endGuard = max(textBuffer, token.start - 1); // We want to go back a bit, because we dont expect to find '(function' immediately before the candidate
+		using namespace Rococo::Sexy;
 
-		// Algorithm -> iterate backwards from tokenBegin and search for '(method' or '(function' to identify the containing function where the type is defined
-		cstr functionPos = FindFirstLeftOccurenceOfFunctionLikeKeyword(token.start - fsFunction.length, fsFunction);
-		if (functionPos == nullptr)
+		Substring searchTerm = token;
+
+		BadlyFormattedTypeInferenceEngine engine(document.start);
+
+		if (Eq(token, thisRaw)) // 'this'
 		{
-			functionPos = FindFirstLeftOccurenceOfFunctionLikeKeyword(token.start - fsMethod.length, fsMethod);
+			isThis = true;
+			SafeFormat(name, 256, "this");
+			auto classInference = engine.InferContainerClass(token);
+			CopyWithTruncate(classInference.declarationType, type, 256);
+			return SubstringToString(name, 256, searchTerm);
 		}
-
-		if (functionPos == nullptr)
+		else if (Eq(token, thisDot)) // 'this.'
 		{
-			return TypeInference{ {nullptr, nullptr},{nullptr, nullptr} };
+			isThis = true;
+			SafeFormat(name, 256, "this");
+			auto classInference = engine.InferContainerClass({ token.start, token.end - 1 });
+			CopyWithTruncate(classInference.declarationType, type, 256);
+			return SubstringToString(name, 256, searchTerm);
 		}
-
-		// A variable could be declared as input, output or local variable, we advance and search for (<type> <variable>...)
-		for (auto d = FindNextPossibleDeclaration({ functionPos, endGuard }); !IsEmpty(d.declarationType); d = FindNextPossibleDeclaration({ d.declarationType.start, endGuard }))
+		else if (StartsWith(token, thisDot)) // 'this.<member-variable>'
 		{
-			if (Eq(d.declarationVariable, token))
+			auto classInference = engine.InferContainerClass({ token.start, token.start + thisRaw.length });
+
+			Substring memberName{ token.start + thisDot.length,token.end };
+			CopyWithTruncate(memberName, name, 256);
+			auto memberInference = engine.InferParentMember(classInference, memberName);
+			CopyWithTruncate(memberInference.declarationType, type, 256);
+			return true;
+		}
+		else
+		{
+			auto localVariableInference =  engine.InferLocalVariableVariableType(searchTerm);
+			if (localVariableInference.declarationType)
 			{
-				return d;
+				CopyWithTruncate(localVariableInference.declarationType, type, 256);
+				CopyWithTruncate(searchTerm, name, 256);
+				return true;
+			}
+			else
+			{
+				*name = 0;
+				*type = 0;
+				return false;
 			}
 		}
-
-		return TypeInference{ {nullptr, nullptr},{nullptr, nullptr} };
 	}
 
-	void BadlyFormattedTypeInferenceEngine::GetType(TypeInferenceType& type, const TypeInference& inference)
-	{
-		char* q = type.buf;
-
-		if (sizeof TypeInferenceType > Length(inference.declarationType))
-		{
-			for (cstr p = inference.declarationType.start; p < inference.declarationType.end; p++, q++)
-			{
-				*q = *p;
-			}
-		}
-
-		*q = 0;
-	}
 } // Rococo::Sexy

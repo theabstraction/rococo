@@ -12,11 +12,6 @@ namespace Rococo::Sexy
 
 	inline TypeInference TypeInference_None() { return TypeInference{ Substring_Null(), Substring_Null() }; }
 
-	struct TypeInferenceType
-	{
-		char buf[256];
-	};
-
 	// An engine that attempts to infer the type of a variable by iterating through the source code that precedes it use. The source code is not required to be syntactically perfect
 	class BadlyFormattedTypeInferenceEngine
 	{
@@ -33,9 +28,10 @@ namespace Rococo::Sexy
 	public:
 		BadlyFormattedTypeInferenceEngine(cstr _textBuffer);
 
-		TypeInference InferParentVariableType(substring_ref token);
+		TypeInference InferLocalVariableVariableType(substring_ref token);
 		TypeInference InferContainerClass(substring_ref token);
 		TypeInference InferParentMember(const TypeInference& classInference, substring_ref token);
-		static void GetType(TypeInferenceType& type, const TypeInference& inference);
 	};
+
+	bool TryGetLocalTypeFromCurrentDocument(char type[256], char name[256], bool& isThis, substring_ref candidate, substring_ref document);
 }

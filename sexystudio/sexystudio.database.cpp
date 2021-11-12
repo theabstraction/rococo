@@ -1371,7 +1371,7 @@ namespace ANON
 					nameBuilder << ".";
 					nameBuilder << ns.GetFunction(i).PublicName();
 
-					if (ns.GetFunction(i).PublicName()[0] != '_' && StartsWith(name, prefix))
+					if (ns.GetFunction(i).PublicName()[0] != '_' && StartsWith(name, prefix) && nameBuilder.Length() > Length(prefix))
 					{
 						exportList.insert(std::make_pair(std::string(name), 0));
 					}
@@ -1386,7 +1386,7 @@ namespace ANON
 					nameBuilder << ".";
 					nameBuilder << interf.PublicName();
 
-					if (StartsWith(name, prefix))
+					if (StartsWith(name, prefix) && nameBuilder.Length() > Length(prefix))
 					{
 						exportList.insert(std::make_pair(std::string(name), 0));
 					}

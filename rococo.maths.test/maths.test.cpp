@@ -966,12 +966,10 @@ R"(
 
 	VALIDATE(cat4 != nullptr);
 
-	auto inference = engine.InferParentVariableType({ cat4, cat4 + 3 });
+	auto inference = engine.InferLocalVariableVariableType({ cat4, cat4 + 3 });
 	VALIDATE(Length(inference.declarationType) > 0);
 	VALIDATE(Length(inference.declarationVariable) > 0);
-	TypeInferenceType tit;
-	engine.GetType(tit, inference);
-	VALIDATE(Eq(tit.buf, "Int32"));
+	VALIDATE(Eq(inference.declarationType, "Int32"_fstring));
 }
 
 void test()

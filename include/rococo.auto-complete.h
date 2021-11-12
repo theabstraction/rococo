@@ -74,6 +74,12 @@ namespace Rococo
 			}
 		};
 
+		ROCOCOAPI IAutoCompleteBuilder
+		{
+			virtual void AddItem(cstr item) = 0;
+			virtual void ShowAndClearItems() = 0;
+		};
+
 		ROCOCOAPI ISexyEditor
 		{
 			// Return the length of the document
@@ -102,6 +108,9 @@ namespace Rococo
 
 			// Remove text and startPos,endPos and replace with the null terminated item text
 			virtual void ReplaceText(int64 startPos, int64 endPos, cstr item) const = 0;
+
+			// Get the builder
+			virtual IAutoCompleteBuilder& AutoCompleteBuilder() = 0;
 		};
 	}
 }

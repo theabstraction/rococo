@@ -140,9 +140,17 @@ namespace Rococo
 
 		void ForEachFieldOfClassDef(cstr className, substring_ref classDef, IFieldEnumerator& cb);
 		Substring GetClassDefinition(cstr className, substring_ref doc);
+		bool IsSexyKeyword(substring_ref candidate);
+		bool IsNotTokenChar(char c);
+		cstr GetFirstNonTokenPointer(substring_ref s);
+		cstr GetFirstNonTypeCharPointer(substring_ref s);
+		Substring GetFirstTokenFromLeft(substring_ref s);
+		// Given a document and a position to the right of the start of the doc, return first pointer of none type char found, or null if everything was of type until doc.start
+		cstr GetFirstNonTokenPointerFromRight(substring_ref doc, cstr startPosition);
 	}
 
 	Substring RightOfFirstChar(char c, substring_ref token);
+	cstr ReverseFind(char c, substring_ref token);
 
 	template<class T> struct FilePath
 	{
