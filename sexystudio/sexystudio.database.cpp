@@ -1402,7 +1402,7 @@ namespace ANON
 			}
 		}
 
-		bool AppendFieldsFromType(substring_ref prefix, ISxyNamespace& ns, cstr variableName, cstr typeString, IEnumerator<cstr>& action)
+		ISXYType* RecursivelySearchForType(ISxyNamespace& ns, cstr typeString)
 		{
 			for (int i = 0; i < ns.SubspaceCount(); ++i)
 			{
@@ -1412,41 +1412,97 @@ namespace ANON
 					auto& type = ns[i].GetType(j);
 					if (Eq(type.PublicName(), typeString))
 					{
-						auto* localType = type.LocalType();
-						if (localType)
-						{
-							for (int k = 0; k < localType->FieldCount(); ++k)
-							{
-								auto field = localType->GetField(k);
-								char withDotPrefix[128];
-
-								char prefixBuffer[128];
-								CopyWithTruncate(prefix, prefixBuffer, sizeof prefixBuffer);
-								SafeFormat(withDotPrefix, "%s%s.%s", prefixBuffer, variableName, field.name);
-								action(withDotPrefix);
-							}
-
-							return true;
-						}
+						return &type;
 					}
 				}
 
-				if (AppendFieldsFromType(prefix, ns[i], variableName, typeString, action))
+				auto* localType = RecursivelySearchForType(ns[i], typeString);
+				if (localType)
 				{
+					return localType;
+				}
+			}
+
+			return nullptr;
+		}
+
+		void AppendFieldsFromTypeRef(ISXYType& type, ISexyFieldEnumerator& fieldEnumerator)
+		{
+			auto* localType = type.LocalType();
+			if (localType)
+			{
+				for (int k = 0; k < localType->FieldCount(); ++k)
+				{
+					auto field = localType->GetField(k);
+					fieldEnumerator.OnField(field.name);
+				}
+			}
+		}
+
+		cstr FindFieldTypeByName(ISXYLocalType& localType, substring_ref qualifiedVariableName)
+		{
+			Substring child = RightOfFirstChar('.', qualifiedVariableName);
+
+			Substring parent{ qualifiedVariableName.start, child.end };
+
+			for (int k = 0; k < localType.FieldCount(); ++k)
+			{
+				auto field = localType.GetField(k);
+				if (Eq(parent, to_fstring(field.name)))
+				{
+					return field.type;
+				}
+			}
+
+			return nullptr;
+		}
+
+		bool AppendFieldsFromType(substring_ref variableName, ISxyNamespace& ns, cstr typeString, ISexyFieldEnumerator& fieldEnumerator)
+		{
+			// Variable name may be qualified, e.g: rect.left. In this case the typeString refers to the root of the namespace.
+			// So we need to find the type, then advance the namespace to the child, i.e left, 
+			ISXYType* type = RecursivelySearchForType(ns, typeString);
+
+			fieldEnumerator.OnHintFound(typeString);
+			
+			Substring parent = variableName;
+			
+			Substring childVariable = RightOfFirstChar('.', parent);
+			if (childVariable.start == parent.start)
+			{
+				if (type)
+				{
+					AppendFieldsFromTypeRef(*type, fieldEnumerator);
 					return true;
 				}
+				else
+				{
+					return false;
+				}
+			}
+
+			auto* localType = type->LocalType();
+			if (!localType)
+			{
+				return false;
+			}
+#
+			cstr fieldType = FindFieldTypeByName(*localType, childVariable);
+			if (fieldType)
+			{
+				return AppendFieldsFromType(childVariable, ns, fieldType, fieldEnumerator);
 			}
 
 			return false;
 		}
 
-		bool EnumerateVariableAndFieldList(substring_ref prefix, cstr variableName, cstr typeString, IEnumerator<cstr>& action) override
+		bool EnumerateVariableAndFieldList(substring_ref variableName, cstr typeString, ISexyFieldEnumerator& fieldEnumerator) override
 		{
 			auto& root = GetRootNamespace();
-			return AppendFieldsFromType(prefix, root, variableName, typeString, action);
+			return AppendFieldsFromType(variableName, root, typeString, fieldEnumerator);
 		}
 
-		void ForEachAutoCompleteCandidate(substring_ref prefix, IEnumerator<cstr>& action) override
+		void ForEachAutoCompleteCandidate(substring_ref prefix, ISexyFieldEnumerator& fieldEnumerator) override
 		{
 			std::unordered_map<std::string, int> exportList;
 
@@ -1466,7 +1522,7 @@ namespace ANON
 	
 			for (auto i : sortedList)
 			{
-				action(i.c_str());
+				fieldEnumerator.OnField(i.c_str());
 			}
 		}
 

@@ -220,10 +220,16 @@ namespace Rococo::SexyStudio
 
 	void AppendFullName(ISxyNamespace& ns, struct StringBuilder& sb);
 
+	ROCOCOAPI ISexyFieldEnumerator
+	{
+		virtual void OnField(cstr fieldName) = 0;
+		virtual void OnHintFound(cstr hint) = 0;
+	};
+
 	ROCOCOAPI ISexyDatabase
 	{
-		virtual bool EnumerateVariableAndFieldList(substring_ref prefix, cstr variableName, cstr typeString, IEnumerator<cstr>& builder) = 0;
-		virtual void ForEachAutoCompleteCandidate(substring_ref prefix, IEnumerator<cstr>& builder) = 0;
+		virtual bool EnumerateVariableAndFieldList(substring_ref variable, cstr typeString, ISexyFieldEnumerator& fieldEnumerator) = 0;
+		virtual void ForEachAutoCompleteCandidate(substring_ref prefix, ISexyFieldEnumerator& fieldEnumerator) = 0;
 		virtual void GetHintForCandidate(substring_ref prefix, char args[1024]) = 0;
 		virtual void Sort() = 0;
 		virtual void UpdateFile_SXY(cstr fullpathToSxy) = 0;

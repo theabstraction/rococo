@@ -33,5 +33,5 @@ namespace Rococo::Sexy
 		TypeInference InferParentMember(const TypeInference& classInference, substring_ref token);
 	};
 
-	bool TryGetLocalTypeFromCurrentDocument(char type[256], char name[256], bool& isThis, substring_ref candidate, substring_ref document);
+	bool TryGetLocalTypeFromCurrentDocument(char type[256], bool& isThis, substring_ref candidate, substring_ref document);
 }

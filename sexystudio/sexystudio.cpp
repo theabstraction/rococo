@@ -1111,14 +1111,17 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 		return false;
 	};
 
-	struct RouteTextToAutoComplete: IEnumerator<cstr>
+	struct RouteTextToAutoComplete: ISexyFieldEnumerator
 	{
 		IAutoCompleteBuilder& builder;
+		substring_ref prefix;
 
 		bool atLeastOneItem = false;
 
-		RouteTextToAutoComplete(ISexyEditor& _editor):
-			builder(_editor.AutoCompleteBuilder())
+		HString hint;
+
+		RouteTextToAutoComplete(IAutoCompleteBuilder& _builder, substring_ref _prefix):
+			builder(_builder), prefix(_prefix)
 		{
 
 		}
@@ -1131,10 +1134,23 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 			}
 		}
 
-		void operator()(cstr item)
+		void OnField(cstr fieldName) override
 		{
 			atLeastOneItem = true;
+
+			char prefixString[128];
+			CopyWithTruncate(prefix, prefixString, sizeof prefixString);
+
+			cstr separator = (prefix && prefix.end[-1] == '.') ? "" : ".";
+
+			char item[256];
+			SafeFormat(item, "%s%s%s", prefixString, separator, fieldName);
 			builder.AddItem(item);
+		}
+
+		void OnHintFound(cstr hintText) override
+		{
+			hint = hintText;
 		}
 	};
 
@@ -1144,7 +1160,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 
 		int64 caretPos = editor.GetCaretPos();
 
-		RouteTextToAutoComplete routeTextToAutoComplete(editor);
+		RouteTextToAutoComplete routeTextToAutoComplete(editor.AutoCompleteBuilder(), candidate);
 
 		int64 nCharsAndNull = editor.GetDocLength();
 		src_buffer.resize(nCharsAndNull);
@@ -1160,10 +1176,20 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 
 		Substring candidateInDoc{ start, end };
 
+		Substring variable = { candidateInDoc.start, candidateInDoc.end };
+		if (variable && variable.end[-1] == '.')
+		{
+			variable.end--;
+		}
+
+		if (StartsWith(variable, thisDot))
+		{
+			variable.start += thisDot.length;
+		}
+
 		char type[256];
-		char name[256];
 		bool isThis;
-		if (Rococo::Sexy::TryGetLocalTypeFromCurrentDocument(type, name, isThis, candidateInDoc, doc))
+		if (Rococo::Sexy::TryGetLocalTypeFromCurrentDocument(type, isThis, candidateInDoc, doc))
 		{
 			if (isThis)
 			{
@@ -1180,20 +1206,17 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 				}
 				else
 				{
-					editor.ShowCallTipAtCaretPos(type);
+					cstr finalType = routeTextToAutoComplete.hint.length() > 0 ? routeTextToAutoComplete.hint.c_str() : type;
+					editor.ShowCallTipAtCaretPos(finalType);
 				}
-			}
-			else if (StartsWith(candidate, thisDot))
-			{
-				Substring thisSubstring{ candidate.start, candidate.start + 5 };
-				database->EnumerateVariableAndFieldList(thisSubstring, name, type, routeTextToAutoComplete);
-			}
-			else if (database->EnumerateVariableAndFieldList(candidate, name, type, routeTextToAutoComplete))
-			{
 			}
 			else
 			{
-				editor.ShowCallTipAtCaretPos(type);
+				if (!database->EnumerateVariableAndFieldList(variable, type, routeTextToAutoComplete))
+				{					
+					cstr finalType = routeTextToAutoComplete.hint.length() > 0 ? routeTextToAutoComplete.hint.c_str() : type;
+					editor.ShowCallTipAtCaretPos(finalType);
+				}
 			}
 		}
 	}
@@ -1202,7 +1225,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 	{
 		Substring token = Rococo::Sexy::GetFirstTokenFromLeft(candidate);
 
-		RouteTextToAutoComplete routeTextToAutoComplete(editor);
+		RouteTextToAutoComplete routeTextToAutoComplete(editor.AutoCompleteBuilder(), candidate);
 		database->ForEachAutoCompleteCandidate(token, routeTextToAutoComplete);
 
 		callTipArgs[0] = 0;

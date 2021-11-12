@@ -584,12 +584,12 @@ namespace Rococo::Sexy
 	}
 
 	/* Example tokens, and the response:
-	'this' and 'this.' .........................[type] the class for which the containing method applies. Name returned is 'this'
-	<local-variable-name>.......................the [type] defined in the containing function/method that declares the variable. Name returned is <local-variable-name>
-	'this.<member-variable>'....................the member [type] defined in the class for which the containing method applies. Name returned is <member-variable>
-	<local-variable-name>.<children>'...........the member [type] defined in the class for which the containing method applies. Name returned is <member-variable>.<children>
+	'this' and 'this.' .........................[type] the class for which the containing method applies.
+	<local-variable-name>.......................the [type] defined in the containing function/method that declares the variable.
+	'this.<member-variable>'....................the member [type] defined in the class for which the containing method applies
+	<local-variable-name>.<children>'...........the member [type] defined in the class for which the containing method applies.
 	*/
-	bool TryGetLocalTypeFromCurrentDocument(char type[256], char name[256], bool& isThis, substring_ref token, substring_ref document)
+	bool TryGetLocalTypeFromCurrentDocument(char type[256], bool& isThis, substring_ref token, substring_ref document)
 	{
 		static auto thisRaw = "this"_fstring;
 		static auto thisDot = "this."_fstring;
@@ -608,41 +608,37 @@ namespace Rococo::Sexy
 		if (Eq(token, thisRaw)) // 'this'
 		{
 			isThis = true;
-			SafeFormat(name, 256, "this");
 			auto classInference = engine.InferContainerClass(token);
 			CopyWithTruncate(classInference.declarationType, type, 256);
-			return SubstringToString(name, 256, searchTerm);
+			return true;
 		}
 		else if (Eq(token, thisDot)) // 'this.'
 		{
 			isThis = true;
-			SafeFormat(name, 256, "this");
 			auto classInference = engine.InferContainerClass({ token.start, token.end - 1 });
 			CopyWithTruncate(classInference.declarationType, type, 256);
-			return SubstringToString(name, 256, searchTerm);
+			return true;
 		}
 		else if (StartsWith(token, thisDot)) // 'this.<member-variable>'
 		{
 			auto classInference = engine.InferContainerClass({ token.start, token.start + thisRaw.length });
-
+			isThis = false;
 			Substring memberName{ token.start + thisDot.length,token.end };
-			CopyWithTruncate(memberName, name, 256);
 			auto memberInference = engine.InferParentMember(classInference, memberName);
 			CopyWithTruncate(memberInference.declarationType, type, 256);
 			return true;
 		}
 		else
 		{
+			isThis = false;
 			auto localVariableInference =  engine.InferLocalVariableVariableType(searchTerm);
 			if (localVariableInference.declarationType)
 			{
 				CopyWithTruncate(localVariableInference.declarationType, type, 256);
-				CopyWithTruncate(searchTerm, name, 256);
 				return true;
 			}
 			else
 			{
-				*name = 0;
 				*type = 0;
 				return false;
 			}
