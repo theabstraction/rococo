@@ -1,0 +1,11 @@
+// Sexy S-Expression Format file consisting of compound statements
+// Each statement has format (<sxy-type> <c++-type>) these map Sexy types to their corresponding C++ types
+// This file is used by rococo.wrappergen.exe by passing it as the argument to -symbols:
+(Float32 float)
+(Float64 double)
+(Bool boolean32)
+(Int32 int32)
+(Int64 int64)
+(Vec2f Vec2)
+(Vec3f Vec3)
+(Vec4f Vec4)

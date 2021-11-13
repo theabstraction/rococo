@@ -1,5 +1,8 @@
+(using Sys.Maths)
+
 (interface Sys.IDog
 	(Bark -> )
+	(TryEatMeat (Vec3 constFoodPosition)(Float32 foodQuality)->(Bool success))
 )
 
 (class Dog (implements Sys.IDog)	
@@ -7,6 +10,10 @@
 
 (method Dog.Bark -> :
 	(Sys.Print "Woof")
+)
+
+(method Dog.TryEatMeat (Vec3 foodPosition)(Float32 foodQuality)->(Bool success):
+	(success = (foodQuality > 0.75))
 )
 
 (factory Sys.NewDog Sys.IDog :
