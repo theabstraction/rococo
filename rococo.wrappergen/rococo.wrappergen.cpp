@@ -23,6 +23,12 @@ using namespace Rococo;
 using namespace Rococo::Sex;
 using namespace Rococo::Script;
 
+struct Context
+{
+	stringmap<HString> mapSexyToCpp;
+	HString apiNS;
+};
+
 struct Logger : Rococo::ILog
 {
     void Write(cstr text) override
@@ -135,7 +141,7 @@ class MarshalBuilder: public IMarshalBuilder, public ICallback<const IFunction,c
     int braceCount = 0;
     uint32 namehash;
     HString filename;
-    stringmap<HString>& symbols;
+    Context& context;
 private:
     void pad(int tabCount)
     {
@@ -146,15 +152,15 @@ private:
     }
 
 public:
-    MarshalBuilder(cstr _filename, stringmap<HString>& _symbols): filename(_filename), symbols(_symbols)
+    MarshalBuilder(cstr _filename, Context& _context): filename(_filename), context(_context)
     {
         namehash = (uint32) Hash(_filename);        
     }
 
     cstr ToCppType(cstr sexyType)
     {
-        auto i = symbols.find(sexyType);
-        if (i == symbols.end())
+        auto i = context.mapSexyToCpp.find(sexyType);
+        if (i == context.mapSexyToCpp.end())
         {
             return sexyType;
         }
@@ -206,6 +212,36 @@ public:
 		va_end(args);
 	}
 
+    void write_method_CPP(const IArchetype& method)
+    {
+		cstr returnType = method.NumberOfOutputs() == 0 ? "void" : method.GetArgument(0).Name();
+		writeraw("%s %s(", ToCppType(returnType), method.Name());
+
+		int nElements = method.NumberOfInputs() + method.NumberOfOutputs() - 1;
+
+		// Input #0 is the interface pointer
+		for (int j = method.NumberOfOutputs(); j < nElements; ++j)
+		{
+			if (j > method.NumberOfOutputs())
+			{
+				writeraw(", ");
+			}
+
+			bool isConstant = IsConstant(method, j);
+
+			auto& argType = method.GetArgument(j);
+			cstr argName = method.GetArgName(j);
+
+			auto fsConst = "const"_fstring;
+
+			cstr passByQualifier = argType.VarType() == VARTYPE_Derivative ? "&" : "";
+			cstr constQualifier = isConstant ? "const " : "";
+			cstr modifiedName = isConstant ? (argName + fsConst.length) : argName;
+
+			writeraw("%s%s%s arg_%s", constQualifier, ToCppType(argType.Name()), passByQualifier, modifiedName);
+		}
+    }
+
     void AddCreateObjectMarshalCode(const Rococo::Compiler::IFunction& function) override
     {
         if (function.NumberOfOutputs() != 1)
@@ -220,34 +256,74 @@ public:
             Throw(0, "%s: Expecting output of interface type", arg.Name());
         }
 
+        if (context.apiNS.length() == 0)
+        {
+            write("namespace Rococo::WrappedAPI");
+        }
+        else
+        {
+            write("namespace %s", context.apiNS.c_str());
+        }
+
+        openbrace();
+
         auto& interface = arg.GetInterface(0);
         cstr name = interface.Name();
 
+		write("ROCOCOAPI %s", name);
+		openbrace(); // open interface
+		for (int i = 0; i < interface.MethodCount(); ++i)
+		{
+			auto& method = interface.GetMethod(i);
+			pad(braceCount);
+			writeraw("virtual ");
+			write_method_CPP(method);
+			writeraw(") = 0;");
+			write("");
+		}
+		closebrace(";"); // close interface
+
+        write("");
+
+        write("ROCOCOAPI %sSupervisor: public %s", name, name);
+        openbrace(); // open supervisor interface
+        write("virtual void Free() = 0;");
+        closebrace(";"); // close supervisor interface
+
+        closebrace(); // close namespace
+
+        write("");
+
         write("namespace ns%s%u // %s", name, namehash, filename.c_str());// namespace open
         openbrace();
+        write("using namespace Rococo;");
+        write("using namespace Rococo::Compiler;");
+        write("using namespace Rococo::Script;");
+        write("using namespace Rococo::VM;");
+        write("using namespace %s;", context.apiNS.c_str());
 
-        write("typedef %sProxyPtr InterfacePointer;", name);
+        write("typedef InterfacePointer %sProxyPtr;", name);
 
-        write("struct Concrete%s : public %s", name, name);
+        write("struct Concrete%s : public %sSupervisor", name, name);
         openbrace();
 
         write("AutoFree<IPublicScriptSystem> ss;");
         write("ISexyScriptClasses& ssc;");
         write("IVirtualMachine* vm = nullptr;");
-        write("IFunction* fnCreateObject = nullptr;");
+        write("const IFunction* fnCreateObject = nullptr;");
         write("%sProxyPtr sxyNativePtr = nullptr;", name);
         write("");
 
         write("Concrete%s(ISexyScriptClasses& _ssc): ssc(_ssc)", name);
         openbrace(); // constructor open
 
-        write("ss = ssc.CreateScript(\"%s\");", filename.c_str());
-        write("fnCreateObject = ssc.GetEntryFunction(ss, \"CreateObject\");");
+        write("ss = ssc.CreateScript(R\"(%s)\");", filename.c_str());
+        write("fnCreateObject = ssc.GetEntryFunction(*ss, \"CreateObject\");");
         write("validate(fnCreateObject, ssc);");
-		write("vm = &ssc.SetProgramAndEntryPoint(ss, \"CreateObject\");");
+		write("vm = ssc.SetProgramAndEntryPoint(*ss, *fnCreateObject);");
 
         write("vm->Push(nullptr); // Allocate stack space for the interface pointer result");
-        write("EXECUTERESULT result = vm.ExecuteFunction();");
+        write("EXECUTERESULT result = ssc.ExecuteFunction(*vm);");
         write("sxyNativePtr = (%sProxyPtr) vm->PopInt64();", name, name);
         write("validate(sxyNativePtr, ssc);");
 
@@ -278,42 +354,21 @@ public:
         {
             write("");
             pad(braceCount);
+
             auto& method = interface.GetMethod(i);
-            cstr returnType = method.NumberOfOutputs() == 0 ? "void" : method.GetArgument(0).Name();
-            writeraw("%s %s(", ToCppType(returnType), method.Name());
 
-            int nElements = method.NumberOfInputs() + method.NumberOfOutputs() - 1;
-
-            // Input #0 is the interface pointer
-            for (int j = method.NumberOfOutputs(); j < nElements; ++j)
-            {
-                if (j > method.NumberOfOutputs())
-                {
-                    writeraw(", ");
-                }
-
-                bool isConstant = IsConstant(method, j);
-
-                auto& argType = method.GetArgument(j);
-                cstr argName = method.GetArgName(j);
-
-                auto fsConst = "const"_fstring;
-
-                cstr passByQualifier = argType.VarType() == VARTYPE_Derivative ? "&" : "";
-                cstr constQualifier = isConstant ? "const " : "";
-                cstr modifiedName = isConstant ? (argName + fsConst.length) : argName;
-
-                writeraw("%s%s%s arg_%s", constQualifier, ToCppType(argType.Name()), passByQualifier, modifiedName);
-            }
+            write_method_CPP(method);
 
             writeraw(")\n");
            
             openbrace(); // method open
 
+            int nElements = method.NumberOfInputs() + method.NumberOfOutputs() - 1;
+
             for (int j = 0; j < method.NumberOfOutputs(); ++j)
             {
                 auto& outputType = method.GetArgument(j);
-                cstr defaultArg = outputType.SizeOfStruct() == 8 ? "0LL" : "0L";
+                cstr defaultArg = outputType.SizeOfStruct() == 8 ? "(int64)0" : "(int32)0";
                 write("vm->Push(%s); // %s", defaultArg, method.GetArgName(j));
             }
 
@@ -352,14 +407,16 @@ public:
 			}
 
             write("vm->Push(sxyNativePtr);");
-			write("ExecuteMethod(vm, ssc, sxyNativePtr, %d); // %s.%s", i, name, method.Name());
+			write("ExecuteMethod(*vm, ssc, sxyNativePtr, %d); // %s.%s", i, name, method.Name());
 
 			for (int j = method.NumberOfOutputs(); j >= 0; --j)
 			{
 				auto& outputType = method.GetArgument(j);
                 if (outputType.SizeOfStruct() == 4)
                 {
-                    write("%s arg_%s = vm->Pop<%s>();", ToCppType(outputType.Name()), method.GetArgName(j), outputType.Name());
+                    cstr popType =  method.GetArgument(j).SizeOfStruct() == 4 ? "Int32" : "Int64";
+                    cstr cppOutputType = ToCppType(outputType.Name());
+                    write("%s arg_%s = (%s) vm->Pop%s();", cppOutputType, method.GetArgName(j), cppOutputType, popType);
                 }
 			}
 
@@ -511,6 +568,12 @@ void LoadSymbolMap(cstr symbolFile, stringmap<HString>& symbolMap)
 
 }
 
+void PrintUsage(int argc, char* argv[])
+{
+	printf("Usage: %s <sexy-native-path> <options> <filepath.sxy> ... <filepathN.sxy>\n", argv[0]);
+	printf("<options>: -symbols:<symbol-file-path>");
+}
+
 int main(int argc, char* argv[])
 {
     AutoFree<IAllocatorSupervisor> allocator = Memory::CreateBlockAllocator(0, 0);
@@ -518,12 +581,11 @@ int main(int argc, char* argv[])
 
     if (argc < 3)
     {
-        printf("Usage: wrappergen.exe <sexy-native-path> <options> <filepath.sxy> ... <filepathN.sxy>\n");
-        printf("<options>: -symbols:<symbol-file-path>");
+        PrintUsage(argc, argv);
         return -1;
     }
 
-    stringmap<HString> mapSexyToCpp;
+    Context context;
 
 	Rococo::Compiler::ProgramInitParameters pip;
 	pip.addCoroutineLib = true;
@@ -538,7 +600,7 @@ int main(int argc, char* argv[])
         cstr argi = argv[i];
         if (EndsWith(argi, ".sxy"))
         {
-            MarshalBuilder builder(argi, mapSexyToCpp);
+            MarshalBuilder builder(argi, context);
 
             try
             {
@@ -552,16 +614,24 @@ int main(int argc, char* argv[])
         }
         else if (Eq(argi, "?") || Eq(argi, "-help"))
         {
-            printf("Usage: wrappergen.exe <filepath.sxy> ... <filepathN.sxy>\n");
+            PrintUsage(argc, argv);
+            return -1;
         }
         else
         {
-            static auto fsSymbolPrefix = "-symbols:"_fstring;
-            if (StartsWith(argi, fsSymbolPrefix))
-            {
-                cstr symbolFile = argi + fsSymbolPrefix.length;
-                LoadSymbolMap(symbolFile, mapSexyToCpp);
-            }
+			static auto fsSymbolPrefix = "-symbols:"_fstring;
+			if (StartsWith(argi, fsSymbolPrefix))
+			{
+				cstr symbolFile = argi + fsSymbolPrefix.length;
+				LoadSymbolMap(symbolFile, context.mapSexyToCpp);
+			}
+
+			static auto fsNSPrefix = "-ns:"_fstring;
+			if (StartsWith(argi, fsNSPrefix))
+			{
+				cstr apiNS = argi + fsNSPrefix.length;
+                context.apiNS = apiNS;
+			}
         }
     }
 
