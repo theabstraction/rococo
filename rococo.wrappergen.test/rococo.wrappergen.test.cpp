@@ -1,11 +1,14 @@
 // rococo.wrappergen.test.cpp : This file contains the 'main' function. Program execution begins and ends there.
 //
-
+#include <rococo.api.h>
 #include <iostream>
+#include <rococo.libs.inl>
+
+void test();
 
 int main()
 {
-    std::cout << "Hello World!\n";
+    test();
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu

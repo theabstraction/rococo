@@ -172,8 +172,6 @@ public:
 
     ~MarshalBuilder()
     {
-		closebrace(";"); // class close
-		closebrace(); // namespace close
     }
 
     void openbrace()
@@ -238,7 +236,7 @@ public:
 			cstr constQualifier = isConstant ? "const " : "";
 			cstr modifiedName = isConstant ? (argName + fsConst.length) : argName;
 
-			writeraw("%s%s%s arg_%s", constQualifier, ToCppType(argType.Name()), passByQualifier, modifiedName);
+			writeraw("%s%s%s %s%s", constQualifier, ToCppType(argType.Name()), passByQualifier, argPrefix, modifiedName);
 		}
     }
 
@@ -270,24 +268,25 @@ public:
         auto& interface = arg.GetInterface(0);
         cstr name = interface.Name();
 
-		write("ROCOCOAPI %s", name);
-		openbrace(); // open interface
-		for (int i = 0; i < interface.MethodCount(); ++i)
-		{
-			auto& method = interface.GetMethod(i);
-			pad(braceCount);
-			writeraw("virtual ");
-			write_method_CPP(method);
-			writeraw(") = 0;");
-			write("");
-		}
-		closebrace(";"); // close interface
+        write("ROCOCOAPI %s", name);
+        openbrace(); // open interface
+        for (int i = 0; i < interface.MethodCount(); ++i)
+        {
+            auto& method = interface.GetMethod(i);
+            pad(braceCount);
+            writeraw("virtual ");
+            write_method_CPP(method);
+            writeraw(") = 0;");
+            write("");
+        }
+        closebrace(";"); // close interface
 
         write("");
 
         write("ROCOCOAPI %sSupervisor: public %s", name, name);
         openbrace(); // open supervisor interface
         write("virtual void Free() = 0;");
+        write("static cstr InterfaceName() { return R\"(%sSupervisor)\"; }", name);
         closebrace(";"); // close supervisor interface
 
         closebrace(); // close namespace
@@ -345,7 +344,7 @@ public:
 
 		write("");
 
-        write("static %s* CreateObject(ISexyScriptClasses& ssc)", name);
+        write("static %sSupervisor* CreateObject(ISexyScriptClasses& ssc)", name);
         openbrace(); // method open
         write("return new Concrete%s(ssc);", name);
         closebrace(); // method close
@@ -390,16 +389,16 @@ public:
                 {
                     if (isConstant)
                     {
-                        writeraw("(void*) const_cast<%s*>(&arg_%s)", ToCppType(argType.Name()), modifiedName);
+                        writeraw("(void*) const_cast<%s*>(&%s%s)", ToCppType(argType.Name()), argPrefix, modifiedName);
                     }
                     else
                     {
-                        writeraw("(void*) &arg_%s", modifiedName);
+                        writeraw("(void*) &%s%s", argPrefix, modifiedName);
                     }
                 }
                 else
                 {
-                    writeraw("arg_%s", modifiedName);
+                    writeraw("%s%s", argPrefix, modifiedName);
                 }
                    
                 writeraw(");");
@@ -416,17 +415,25 @@ public:
                 {
                     cstr popType =  method.GetArgument(j).SizeOfStruct() == 4 ? "Int32" : "Int64";
                     cstr cppOutputType = ToCppType(outputType.Name());
-                    write("%s arg_%s = (%s) vm->Pop%s();", cppOutputType, method.GetArgName(j), cppOutputType, popType);
+                    write("%s %s%s = (%s) vm->Pop%s();", cppOutputType, argPrefix, method.GetArgName(j), cppOutputType, popType);
                 }
 			}
 
             if (method.NumberOfOutputs() > 0)
             {
-                write("return arg_%s;", method.GetArgName(0));
+                write("return %s%s;", argPrefix, method.GetArgName(0));
             }
 
             closebrace(); // method close
         }
+
+		closebrace(";"); // class close
+
+        write("");
+        write("static Rococo::Script::RegisterWrapper<Concrete%s> register_%s%u(R\"(%s)\"); ", name, name, namehash, filename.c_str());
+        write("");
+
+		closebrace(); // namespace close
     }
 
     void AddFunctionsFromNamespace(const INamespace& ns)
