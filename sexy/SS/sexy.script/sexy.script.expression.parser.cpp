@@ -2346,6 +2346,47 @@ namespace Rococo
 			return false;
 		}
 
+		void CompileReflect(CCompileEnvironment& ce, cr_sex s)
+		{
+			// (reflect <function-id> <variable>)
+			AssertNotTooFewElements(s, 3);
+			AssertNotTooManyElements(s, 3);
+
+			cr_sex sFunctionId = s[1];
+			cr_sex sVariable = s[2];
+
+			AssertAtomic(sFunctionId);
+			AssertAtomic(sVariable);
+
+			auto functionId = sFunctionId.String();
+			auto variableName = sVariable.String();
+
+			MemberDef variableDef;
+			if (!ce.Builder.TryGetVariableByName(variableDef, variableName->Buffer))
+			{
+				Throw(sVariable, "(serialize <function-id <variable-name>): Could not identify the source variable");
+			}
+
+			ID_API_CALLBACK id = ce.SS.TryGetRawReflectionCallbackId(functionId->Buffer);
+			if (!id)
+			{
+				Throw(sFunctionId, "(serialize <function-id <variable-name>): Could not match function-id to any known reflection function");
+			}
+
+			VariantValue name;
+			name.vPtrValue = (void*)variableName->Buffer;
+			ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, name, BITCOUNT_POINTER); // D4 gets the name
+
+			VariantValue v;
+			v.vPtrValue = (void*)variableDef.ResolvedType;
+			ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D5, v, BITCOUNT_POINTER); // D5 gets the type
+
+			ce.Builder.AssignVariableRefToTemp(variableName->Buffer, 2); // D6 gets the reference
+
+
+			ce.Builder.Assembler().Append_Invoke(id);
+		}
+
 		void CompileSerializeFromInterface(cr_sex s, CCompileEnvironment& ce, const MemberDef& srcDef, const MemberDef& trgDef)
 		{
 			if (trgDef.ResolvedType->VarType() != VARTYPE_Derivative)
@@ -2360,7 +2401,7 @@ namespace Rococo
 			ce.Builder.AssignVariableRefToTemp(trgName, 3); // D7
 
 			VariantValue v;
-			v.vPtrValue = (void*) trgDef.ResolvedType;
+			v.vPtrValue = (void*)trgDef.ResolvedType;
 			ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, v, BITCOUNT_POINTER);
 
 			ce.Builder.Assembler().Append_Invoke(ce.SS.GetIdSerializeCallback());
@@ -2679,6 +2720,11 @@ namespace Rococo
 			else if (AreEqual(token, "serialize"))
 			{
 				CompileSerialize(ce, s);
+				return true;
+			}
+			else if (AreEqual(token, "reflect"))
+			{
+				CompileReflect(ce, s);
 				return true;
 			}
 			else

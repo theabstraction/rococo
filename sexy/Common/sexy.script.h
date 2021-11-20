@@ -235,12 +235,41 @@ namespace Rococo {
 			virtual void Free() = 0;
 		};
 
+		typedef void (*FN_RAW_NATIVE_REFLECTION_CALL)(void* context, cstr localName, const IStructure& type, void* data);
+
+		struct RawReflectionBinding
+		{
+			void* context;
+			FN_RAW_NATIVE_REFLECTION_CALL fnCall;
+			ID_API_CALLBACK callbackId = 0;
+		};
+
+		template<class CONTEXT>
+		class TReflectionCall
+		{
+		public:
+			typedef void (*FN_NATIVE_REFLECTION_CALL)(CONTEXT* context, cstr localName, const IStructure& type, void* data);
+
+			static FN_RAW_NATIVE_REFLECTION_CALL ToRaw(FN_NATIVE_REFLECTION_CALL fnReflect)
+			{
+				return reinterpret_cast<FN_RAW_NATIVE_REFLECTION_CALL>(fnReflect);
+			}
+		};
+
 		ROCOCOAPI IPublicScriptSystem : public IFreeable
 		{
 			virtual void AddCommonSource(const char* dynamicLinkLibOfNativeCalls) = 0;
 			virtual void AddNativeCall(const Compiler::INamespace& ns, FN_NATIVE_CALL callback, void* context, cstr archetype, bool checkName = true, int popBytes = 0) = 0; // Example: AddNativeCall(ns, ANON::CpuHz, NULL, "CpuHz -> (Int64 hz)");
 			virtual const Compiler::INamespace& AddNativeNamespace(cstr name) = 0;
 			virtual void AddNativeLibrary(const char *sexyLibraryFile) = 0;
+
+			virtual void AddRawNativeReflectionCall(cstr functionName, FN_RAW_NATIVE_REFLECTION_CALL, void* context) = 0;
+
+			template<class CONTEXT> void AddNativeReflectionCall(cstr functionName, typename TReflectionCall<CONTEXT>::FN_NATIVE_REFLECTION_CALL fnCall, CONTEXT* context)
+			{
+				AddRawNativeReflectionCall(functionName, TReflectionCall<CONTEXT>::ToRaw(fnCall), (void*)context);
+			}
+
 			virtual void RegisterPackage(IPackage* package) = 0;
 
 			/*
@@ -331,6 +360,7 @@ namespace Rococo {
 			virtual const MethodInfo GetMethodByName(cstr methodName,  const Rococo::Compiler::IStructure& concreteClassType) = 0;
 
 			virtual ID_API_CALLBACK GetIdSerializeCallback() const = 0;
+			virtual ID_API_CALLBACK TryGetRawReflectionCallbackId(cstr functionId) const = 0;
 		};
 
 		void SetDefaultNativeSourcePath(const wchar_t* pathname);

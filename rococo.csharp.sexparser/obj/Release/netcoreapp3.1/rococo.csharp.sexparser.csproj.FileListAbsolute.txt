@@ -7,4 +7,3 @@ C:\work\rococo\rococo.csharp.sexparser\obj\Release\netcoreapp3.1\rococo.csharp.s
 C:\work\rococo\rococo.csharp.sexparser\obj\Release\netcoreapp3.1\rococo.csharp.sexparser.dll
 C:\work\rococo\rococo.csharp.sexparser\obj\Release\netcoreapp3.1\rococo.csharp.sexparser.pdb
 C:\work\rococo\rococo.csharp.sexparser\obj\Release\netcoreapp3.1\rococo.csharp.sexparser.GeneratedMSBuildEditorConfig.editorconfig
-C:\work\rococo\rococo.csharp.sexparser\obj\Release\netcoreapp3.1\rococo.csharp.sexparser.csproj.AssemblyReference.cache

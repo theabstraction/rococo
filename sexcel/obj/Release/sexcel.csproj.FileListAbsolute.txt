@@ -3,7 +3,6 @@ C:\work\rococo\sexcel\bin\Release\sexcel.pdb
 C:\work\rococo\sexcel\bin\Release\sexcel.dll.manifest
 C:\work\rococo\sexcel\bin\Release\sexcel.vsto
 C:\work\rococo\sexcel\bin\Release\Microsoft.Office.Tools.Common.v4.0.Utilities.dll
-C:\work\rococo\sexcel\obj\Release\sexcel.csproj.AssemblyReference.cache
 C:\work\rococo\sexcel\obj\Release\sexcel.Properties.Resources.resources
 C:\work\rococo\sexcel\obj\Release\sexcel.Ribbon.resources
 C:\work\rococo\sexcel\obj\Release\sexcel.csproj.GenerateResource.cache

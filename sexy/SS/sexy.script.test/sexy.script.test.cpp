@@ -3082,7 +3082,7 @@ R"((namespace EntryPoint)
 		{
 			static void CpuHz(NativeCallEnvironment& e)
 			{				
-            int64 hz = 170;
+				int64 hz = 170;
 				WriteOutput(0, hz, e);
 			}
 
@@ -13920,6 +13920,95 @@ R"(
 	   ValidateLogs();
    }
 
+   void TestAddNativeReflectionCall(IPublicScriptSystem& ss)
+   {
+	   static int callCount = 0;
+
+	   struct Reflector
+	   {
+		   static void ValidateVec2i(int64* context, cstr localName, const IStructure& type, void* data)
+		   {
+			   validate(context != nullptr);
+			   validate(*context == 42);
+			   const Vec2i* pVec = (const Vec2i*) data;
+			   validate(pVec != nullptr);
+			   validate(pVec->x == 5);
+			   validate(pVec->y == 6);
+			   callCount++;
+		   }
+
+		   static void ValidateFloat64(int64* context, cstr localName, const IStructure& type, void* data)
+		   {
+			   validate(context != nullptr);
+			   validate(*context == 42);
+			   const double* pValue = (const double*)data;
+			   validate(pValue != nullptr);
+			   validate(*pValue == 7);
+			   callCount++;
+		   }
+
+		   // This demos how a reflection function should obtain the concrete type from the stub by using InterfaceToInstance on the data argument.
+		   static void ValidateStringConstant(int64* context, cstr localName, const IStructure& type, void* data)
+		   {
+			   // Note here, the type is a Null-IString(i.e an IString interface)
+			   validate(context != nullptr);
+			   validate(*context == 42);
+			   InterfacePointer pInterface = (InterfacePointer)data;
+			   auto* stub = InterfaceToInstance(pInterface);
+			   // The type in the stub is a StringConstant, because the IString was initialized to a StringConstant object
+			   // If we wanted to do type inference we should inspect stub->Desc->TypeInfo which provides the type of the concrete object (a StringConstant)
+			   auto* sc = (CStringConstant*) stub;
+			   validate(Eq("St-Bernards", sc->pointer));
+			   callCount++;
+		   }
+	   };
+
+	   int64 context = 42;
+
+	   // In our demo we use 3 difference functions for each data type in the sample code, but a real system would probably
+	   // make do with one function and then use the type argument in the callback function to decide how to interpret the data
+	   // The reflect keyword does not care about the type supplied to the reflection function
+	   ss.AddNativeReflectionCall("ValidateVec2i", Reflector::ValidateVec2i, &context);
+	   ss.AddNativeReflectionCall("ValidateFloat64", Reflector::ValidateFloat64, &context);
+	   ss.AddNativeReflectionCall("ValidateStringConstant", Reflector::ValidateStringConstant, &context);
+		
+	   cstr src =
+		   "(namespace EntryPoint) \n"
+		   "(using Sys) \n"
+		   "(using Sys.Type) \n"
+		   "(using Sys.Maths)\n"
+		   "(using Sys.Reflection)\n"
+
+		   "(struct ArchiveContext"
+				"(IString fileName)"
+		   ")"
+
+		   "(function Main -> (Int32 result): \n"	
+		   "	(Vec2i v = 5 6)\n"
+		   "	(reflect ValidateVec2i v)\n"
+		   "	(Float64 galaxyFactor = 7)\n"
+		   "	(reflect ValidateFloat64 galaxyFactor)\n"
+		   "    (IString dog = \"St-Bernards\")"
+		   "    (reflect ValidateStringConstant dog)"
+		   ")\n"
+		   "(alias Main EntryPoint.Main) \n";
+
+	   Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(src, -1, Vec2i{ 0,0 }, __FUNCTION__);
+	   Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+	   VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+	   vm.Push(77); // Allocate stack space for the int32 x
+
+	   vm.Core().SetLogger(&s_logger);
+	   EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+	   validate(result == EXECUTERESULT_TERMINATED);
+
+	   validate(callCount == 3);
+
+	   ValidateLogs();
+   }
+
    void RunCollectionTests()
    {
 	   TEST(TestArrayInt32Reassign);
@@ -14458,6 +14547,8 @@ R"(
 	{
 		int64 start, end, hz;
 		start = OS::CpuTicks();
+
+		TEST(TestAddNativeReflectionCall);
 
 		RunPositiveSuccesses();
 		RunPositiveFailures();	

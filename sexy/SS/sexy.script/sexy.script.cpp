@@ -463,6 +463,34 @@ namespace Rococo
 		}
 	}
 
+	void InstallRawReflections(stringmap<RawReflectionBinding*>& rawReflections, Rococo::VM::ICore& core)
+	{
+		struct ANON
+		{
+			static void CALLTYPE_C RouteToRawReflection(VariantValue* registers, void* context)
+			{
+				RawReflectionBinding& reflect = *(RawReflectionBinding*)context;
+				auto* name = reinterpret_cast<cstr>(registers[VM::REGISTER_D4].vPtrValue);
+				auto* type = reinterpret_cast<const IStructure*>(registers[VM::REGISTER_D5].vPtrValue);
+				auto* value = registers[VM::REGISTER_D6].vPtrValue;
+				reflect.fnCall(reflect.context, name, *type, value);
+			}
+		};
+
+		int counter = 0;
+
+		for (auto& i : rawReflections)
+		{
+			cstr functionName = i.first;
+			auto* binding = i.second;
+
+			char symbol[256];
+			SafeFormat(symbol, "Reflect-C++: %s%d", functionName, counter++);
+
+			binding->callbackId = core.RegisterCallback(ANON::RouteToRawReflection, binding, symbol);
+		}
+	}
+
    // This may well be one of the most CPU intensive functions where there are huge numbers of scripts that
    // need compiling per execution session. I guess having TMapFQNToNativeCall & f->TryResolveArguments() compiled once
    // globally would be a great optimization -> MAT
@@ -876,6 +904,11 @@ namespace Rococo
 			{
 				NativeFunction* nf = i->second;
 				delete nf;
+			}
+
+			for (auto& i : rawReflectionBindings)
+			{
+				delete i.second;
 			}
 
 			for (auto i = nativeLibs.begin(); i != nativeLibs.end(); ++i)
@@ -1816,6 +1849,7 @@ namespace Rococo
 
 			InstallNullFunction();
 			InstallNativeCalls(IN nativeCalls, REF ProgramObject().GetRootNamespace());
+			InstallRawReflections(IN rawReflectionBindings, ProgramObject().VirtualMachine().Core());
 
 			scripts->CompileBytecode();
 
@@ -1881,6 +1915,48 @@ namespace Rococo
 				ParseException ex(e.Start(), e.End(), archetype, e.Message(), e.Specimen(), NULL);
 				throw ex;
 			}
+		}
+
+		stringmap<RawReflectionBinding*> rawReflectionBindings;
+
+		void AddRawNativeReflectionCall(cstr functionId, FN_RAW_NATIVE_REFLECTION_CALL fnCall, void* context) override
+		{
+			if (functionId == nullptr)
+			{
+				Throw(0, "AddRawNativeReflectionCall: <functionId> was nullptr");
+			}
+
+			if (!isupper(*functionId))
+			{
+				Throw(0, "AddRawNativeReflectionCall: <%s> expecting first character to be a capital letter", functionId);
+			}
+
+			for (cstr c = functionId + 1; *c != 0; c++)
+			{
+				if (!IsAlphaNumeric(*c))
+				{
+					Throw(0, "AddRawNativeReflectionCall: <%s> expecting trailing character to be alphanumerics", functionId);
+				}
+			}
+
+			if (fnCall == nullptr)
+			{
+				Throw(0, "AddRawNativeReflectionCall: %s: <fnCall> was nullptr", functionId);
+			}
+
+			auto i = rawReflectionBindings.find(functionId);
+			if (i != rawReflectionBindings.end())
+			{
+				Throw(0, "Duplicate function-id specified in %s(%s ...)", __FUNCTION__, functionId);
+			}
+
+			rawReflectionBindings.insert(functionId, new RawReflectionBinding { context, fnCall });
+		}
+
+		ID_API_CALLBACK TryGetRawReflectionCallbackId(cstr functionId) const override
+		{
+			auto i = rawReflectionBindings.find(functionId);
+			return i == rawReflectionBindings.end() ? 0 : i->second->callbackId;
 		}
 		
 		enum { MAX_NATIVE_SRC_LEN = 32768 };
