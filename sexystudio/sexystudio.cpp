@@ -12,6 +12,12 @@
 #include <uxtheme.h>
 #pragma comment(lib, "uxtheme.lib")
 
+#ifdef _DEBUG
+# pragma comment(lib, "rococo.sexy.utils.debug.lib")
+#else
+# pragma comment(lib, "rococo.sexy.utils.lib")
+#endif
+
 #include <shobjidl.h>
 #include <sexy.types.h>
 #include <Sexy.S-Parser.h>

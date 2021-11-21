@@ -2383,19 +2383,22 @@ namespace Rococo
 			}
 
 			VariantValue v;
-			v.vPtrValue = (void*)lhsVariableDef.ResolvedType;
+			v.vPtrValue = (void*)&s;
 			ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, v, BITCOUNT_POINTER); // D4 gets the lhs type
 
-			ce.Builder.AssignVariableRefToTemp(lhsVariableName->Buffer, 1); // D5 gets the lhs reference
+			v.vPtrValue = (void*)lhsVariableDef.ResolvedType;
+			ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D5, v, BITCOUNT_POINTER); // D5 gets the lhs type
+
+			ce.Builder.AssignVariableRefToTemp(lhsVariableName->Buffer, 2); // D6 gets the lhs reference
 
 			VariantValue name;
 			name.vPtrValue = (void*)lhsVariableName->Buffer;
-			ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D6, name, BITCOUNT_POINTER); // D6 gets the rhs name
+			ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7, name, BITCOUNT_POINTER); // D7 gets the rhs name
 
 			v.vPtrValue = (void*)rhsVariableDef.ResolvedType;
-			ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7, v, BITCOUNT_POINTER); // D7 gets the rhs type
+			ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D8, v, BITCOUNT_POINTER); // D8 gets the rhs type
 
-			ce.Builder.AssignVariableRefToTemp(rhsVariableName->Buffer, 4); // D8 gets the rhs reference
+			ce.Builder.AssignVariableRefToTemp(rhsVariableName->Buffer, 4); // D9 gets the rhs reference
 
 
 			ce.Builder.Assembler().Append_Invoke(id);

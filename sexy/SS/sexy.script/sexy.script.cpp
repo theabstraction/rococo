@@ -470,12 +470,13 @@ namespace Rococo
 			static void CALLTYPE_C RouteToRawReflection(VariantValue* registers, void* context)
 			{
 				RawReflectionBinding& reflect = *(RawReflectionBinding*)context;
-				auto* lhsType = reinterpret_cast<const IStructure*>(registers[VM::REGISTER_D4].vPtrValue);
-				auto* lhsValue = registers[VM::REGISTER_D5].vPtrValue;
-				auto* rhsName = reinterpret_cast<cstr>(registers[VM::REGISTER_D6].vPtrValue);
-				auto* rhsType = reinterpret_cast<const IStructure*>(registers[VM::REGISTER_D7].vPtrValue);
-				auto* rhsValue = registers[VM::REGISTER_D8].vPtrValue;
-				reflect.fnCall(reflect.context, *lhsType, lhsValue, rhsName, *rhsType, rhsValue);
+				auto* sInvocation = reinterpret_cast<const ISExpression*>(registers[VM::REGISTER_D4].vPtrValue);
+				auto* lhsType = reinterpret_cast<const IStructure*>(registers[VM::REGISTER_D5].vPtrValue);
+				auto* lhsValue = registers[VM::REGISTER_D6].vPtrValue;
+				auto* rhsName = reinterpret_cast<cstr>(registers[VM::REGISTER_D7].vPtrValue);
+				auto* rhsType = reinterpret_cast<const IStructure*>(registers[VM::REGISTER_D8].vPtrValue);
+				auto* rhsValue = registers[VM::REGISTER_D9].vPtrValue;
+				reflect.fnCall(reflect.context, *sInvocation, *lhsType, lhsValue, rhsName, *rhsType, rhsValue);
 			}
 		};
 

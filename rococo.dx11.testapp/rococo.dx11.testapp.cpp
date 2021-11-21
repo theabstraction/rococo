@@ -24,6 +24,7 @@
 # pragma comment(lib, "rococo.sexy.ide.debug.lib")
 # pragma comment(lib, "dx11.deferred.renderer.debug.lib")
 # pragma comment(lib, "rococo.DirectX.debug.lib")
+# pragma comment(lib, "rococo.sexy.utils.debug.lib")
 #else
 # pragma comment(lib, "rococo.windows.lib")
 # pragma comment(lib, "rococo.fonts.lib")
@@ -31,6 +32,7 @@
 # pragma comment(lib, "rococo.sexy.ide.lib")
 # pragma comment(lib, "dx11.deferred.renderer.lib")
 # pragma comment(lib, "rococo.DirectX.lib")
+# pragma comment(lib, "rococo.sexy.utils.lib")
 #endif
 
 #include "..\dx11.deferred.renderer\rococo.dx11.h"

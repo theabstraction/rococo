@@ -98,8 +98,7 @@
       </Command>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>
-      </Command>
+      <Command>$(SolutionDir)shutdown.npp.bat</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -128,7 +127,7 @@
       </Command>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>$(ProjectDir)..\shutdown.npp.bat</Command>
+      <Command>$(SolutionDir)shutdown.npp.bat</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

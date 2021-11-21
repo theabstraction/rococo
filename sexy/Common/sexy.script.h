@@ -235,7 +235,7 @@ namespace Rococo {
 			virtual void Free() = 0;
 		};
 
-		typedef void (*FN_RAW_NATIVE_REFLECTION_CALL)(void* context, const IStructure& lhsType, void* lhsData, cstr rhsName, const IStructure& rhsType, void* rhsData);
+		typedef void (*FN_RAW_NATIVE_REFLECTION_CALL)(void* context, Rococo::Sex::cr_sex sInvocation, const IStructure& lhsType, void* lhsData, cstr rhsName, const IStructure& rhsType, void* rhsData);
 
 		struct RawReflectionBinding
 		{
@@ -248,7 +248,7 @@ namespace Rococo {
 		class TReflectionCall
 		{
 		public:
-			typedef void (*FN_NATIVE_REFLECTION_CALL)(CONTEXT* context, const IStructure& lhsType, void* lhsData, cstr rhsName, const IStructure& rhsType, void* rhsData);
+			typedef void (*FN_NATIVE_REFLECTION_CALL)(CONTEXT* context, Rococo::Sex::cr_sex sInvocation, const IStructure& lhsType, void* lhsData, cstr rhsName, const IStructure& rhsType, void* rhsData);
 
 			static FN_RAW_NATIVE_REFLECTION_CALL ToRaw(FN_NATIVE_REFLECTION_CALL fnReflect)
 			{

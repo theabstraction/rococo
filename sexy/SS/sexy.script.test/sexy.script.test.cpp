@@ -13926,7 +13926,7 @@ R"(
 
 	   struct Reflector
 	   {
-		   static void ValidateVec2i(int64* context, const IStructure& lhsType, void* lhsData, cstr localName, const IStructure& type, void* data)
+		   static void ValidateVec2i(int64* context, cr_sex s, const IStructure& lhsType, void* lhsData, cstr localName, const IStructure& type, void* data)
 		   {
 			   int32* lhsValue = (int32*)lhsData;
 			   validate(*lhsValue == 5);
@@ -13940,7 +13940,7 @@ R"(
 			   callCount++;
 		   }
 
-		   static void ValidateFloat64(int64* context, const IStructure& lhsType, void * lhsData, cstr localName, const IStructure& type, void* data)
+		   static void ValidateFloat64(int64* context, cr_sex s, const IStructure& lhsType, void * lhsData, cstr localName, const IStructure& type, void* data)
 		   {
 			   validate(context != nullptr);
 			   validate(*context == 42);
@@ -13951,7 +13951,7 @@ R"(
 		   }
 
 		   // This demos how a reflection function should obtain the concrete type from the stub by using InterfaceToInstance on the data argument.
-		   static void ValidateStringConstant(int64* context, const IStructure& lhsType, void* lhsData, cstr localName, const IStructure& type, void* data)
+		   static void ValidateStringConstant(int64* context, cr_sex s, const IStructure& lhsType, void* lhsData, cstr localName, const IStructure& type, void* data)
 		   {
 			   // Note here, the type is a Null-IString(i.e an IString interface)
 			   validate(context != nullptr);

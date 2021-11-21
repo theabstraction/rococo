@@ -2,6 +2,7 @@
 
 (' #include 
 	"!scripts/mplat_pane_sxh.sxy"
+	"!scripts/mplat_types.sxy"
 	"!scripts/types.sxy"
 )
 
@@ -24,14 +25,13 @@
 (function AddLabel (IString text)(IPaneContainer builder)(IString cmd)(Bool defer)-> :
 	(Recti rect = 0 0 20 90)
 	(ILabelPane label = (builder.AddLabel 0 text rect))
-	(IPane labelBase = label.Base)
-	(labelBase.SetColourFont 0xFFD0D0D0 0xFFFFFFFF)
-	(labelBase.SetColourBk1  0x00000000 0xFF200000)
-	(labelBase.SetColourBk2  0x00000000 0xFF800000)
-	(labelBase.SetColourEdge1 0x00000000 0xFFFFFFFF)
-	(labelBase.SetColourEdge2 0x00000000 0xFFFFFFFF)
+	(label.SetColourFont 0xFFD0D0D0 0xFFFFFFFF)
+	(label.SetColourBk1  0x00000000 0xFF200000)
+	(label.SetColourBk2  0x00000000 0xFF800000)
+	(label.SetColourEdge1 0x00000000 0xFFFFFFFF)
+	(label.SetColourEdge2 0x00000000 0xFFFFFFFF)
 	(if (cmd.Length > 0)
-		(labelBase.SetCommand 1 defer cmd)
+		(label.SetCommand 1 defer cmd)
 	)
 	(label.SetAlignment 0 0 0 0)
 )
@@ -39,25 +39,22 @@
 (function Main (Int32 id)->(Int32 exitCode):
 	(IPaneBuilder builder (PaneBuilder))
 	(IPaneContainer root = builder.Root)
-	(IPane pane = root.Base)
-	(SetOpaqueBackground pane)
+	(SetOpaqueBackground root)
 	
 	(Recti screen)
-	(pane.GetRect screen)
+	(root.GetRect screen)
 	
 	(Recti containerRect)
 	(InflateRect -16 -16 screen containerRect)
 	(IPaneContainer container = (root.AddContainer containerRect))
-	(IPane cbase = container.Base)
-	(cbase.SetColourBk1   0xE0101010 0xE0101010)
-	(cbase.SetColourBk2   0xE0202020 0xE0202020)
+	(container.SetColourBk1   0xE0101010 0xE0101010)
+	(container.SetColourBk2   0xE0202020 0xE0202020)
 	
 	(Recti menuRect = 10 10 500 558)
 	
 	(IPaneContainer menu = (container.AddContainer menuRect))
-	(IPane mbase = menu.Base)
-	(mbase.SetColourBk1   0xE0101010 0xE0101010)
-	(mbase.SetColourBk2   0xE0202020 0xE0202020)
+	(menu.SetColourBk1   0xE0101010 0xE0101010)
+	(menu.SetColourBk2   0xE0202020 0xE0202020)
 	
 	(AddLabel "New Game" menu "gui.pop" false)
 	(AddLabel "Load Game" menu "" false)
@@ -66,7 +63,7 @@
 	(AddLabel "Credits" menu "gui.push.credits" false)
 	(AddLabel "Quit" menu "gui.push.quit" false)
 	
-	(mbase.AlignLeftEdges 4 false)
-	(mbase.AlignRightEdges 4 false)
-	(mbase.LayoutVertically 4 -1)
+	(menu.AlignLeftEdges 4 false)
+	(menu.AlignRightEdges 4 false)
+	(menu.LayoutVertically 4 -1)
 )

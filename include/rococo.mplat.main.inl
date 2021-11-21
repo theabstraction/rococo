@@ -22,9 +22,11 @@
 #ifdef _DEBUG
 # pragma comment(lib, "rococo.sexy.ide.debug.lib")
 # pragma comment(lib, "rococo.file.browser.debug.lib")
+# pragma comment(lib, "rococo.sexy.utils.debug.lib")
 #else
 # pragma comment(lib, "rococo.sexy.ide.lib")
 # pragma comment(lib, "rococo.file.browser.lib")
+# pragma comment(lib, "rococo.sexy.utils.lib")
 #endif
 
 #pragma comment(lib, "xinput.lib")

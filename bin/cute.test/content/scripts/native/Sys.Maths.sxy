@@ -160,8 +160,8 @@
 	
 	(Vec2i span)
 	(GetSpan container span)
-	(rect.right = (span.x + (2 * dx)))
-	(rect.bottom = (span.y + (2 * dy)))
+	(rect.right = (span.x + dx))
+	(rect.bottom = (span.y + dy))
 )
 
 (alias Vec2i Sys.Maths.Vec2i)

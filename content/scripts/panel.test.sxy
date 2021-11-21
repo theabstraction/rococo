@@ -2,9 +2,9 @@
 
 (' #include 
 	"!scripts/mplat_pane_sxh.sxy"
+	"!scripts/mplat_types.sxy"
 	"!scripts/types.sxy"
 )
-
 
 (namespace EntryPoint)
 	(alias Main EntryPoint.Main)
@@ -20,33 +20,30 @@
 )
 
 (function SetDefaultLabelStyle (ILabelPane label)-> :
-	(SetTransparentBackground label.Base)
+	(SetTransparentBackground label)
 	(label.SetAlignment 1 0 0 0)
 )
 
 (function AddLabelAndAttribute (IString text)(IString key)(IPaneContainer container)(Int32 x0)(Int32 y0)(Int32 x1)(Int32 y1)-> :
 	(Recti rect = x0 y0 x1 y1)
 	(ILabelPane label = (container.AddLabel 8 text rect))
-	(IPane labelBase = label.Base)
-	(labelBase.SetColourFont 0xFFE0E0E0 0xFFFFFFFF)
+	(label.SetColourFont 0xFFE0E0E0 0xFFFFFFFF)
 	(SetDefaultLabelStyle label)
 	
 	(Int32 x2 = (x1 + 26))
 	(Recti attrRect = x1 y0 x2 y1)
 	(ITextOutputPane textOut = (container.AddTextOutput 8 key attrRect))
-	(SetTransparentBackground textOut.Base)
+	(SetTransparentBackground textOut)
 	(textOut.SetAlignment 1 0 0 0)
 )
 	
 (function Main (Int32 id)->(Int32 exitCode):
 	(IPaneBuilder builder (PaneBuilder))
 	(IPaneContainer root = builder.Root)
-	(IPane pane = root.Base)
 	(Recti button = 20 20 64 112)
 	(IPaneContainer p1 = (root.AddContainer button))
-	(IPane base = p1.Base)
-	(base.SetColourBk1   0xFF000000 0xFF000000)
-	(base.SetColourBk2   0xFF000000 0xFF000000)
+	(p1.SetColourBk1   0xFF000000 0xFF000000)
+	(p1.SetColourBk2   0xFF000000 0xFF000000)
 	
 	(Int32 x0 = (button.left + 2))
 	(Int32 x1 = (x0 + 110))

@@ -16,10 +16,12 @@
 # pragma comment(lib, "rococo.maths.debug.lib")
 # pragma comment(lib, "rococo.util.debug.lib")
 # pragma comment(lib, "rococo.mplat.debug.lib")
+# pragma comment(lib, "rococo.sexy.utils.debug.lib")
 #else
 # pragma comment(lib, "rococo.maths.lib")
 # pragma comment(lib, "rococo.util.lib")
 # pragma comment(lib, "rococo.mplat.lib")
+# pragma comment(lib, "rococo.sexy.utils.lib")
 #endif
 
 #include <stdio.h>
