@@ -13926,8 +13926,11 @@ R"(
 
 	   struct Reflector
 	   {
-		   static void ValidateVec2i(int64* context, cstr localName, const IStructure& type, void* data)
+		   static void ValidateVec2i(int64* context, const IStructure& lhsType, void* lhsData, cstr localName, const IStructure& type, void* data)
 		   {
+			   int32* lhsValue = (int32*)lhsData;
+			   validate(*lhsValue == 5);
+			   validate(Eq("Int32", lhsType.Name()));
 			   validate(context != nullptr);
 			   validate(*context == 42);
 			   const Vec2i* pVec = (const Vec2i*) data;
@@ -13937,7 +13940,7 @@ R"(
 			   callCount++;
 		   }
 
-		   static void ValidateFloat64(int64* context, cstr localName, const IStructure& type, void* data)
+		   static void ValidateFloat64(int64* context, const IStructure& lhsType, void * lhsData, cstr localName, const IStructure& type, void* data)
 		   {
 			   validate(context != nullptr);
 			   validate(*context == 42);
@@ -13948,7 +13951,7 @@ R"(
 		   }
 
 		   // This demos how a reflection function should obtain the concrete type from the stub by using InterfaceToInstance on the data argument.
-		   static void ValidateStringConstant(int64* context, cstr localName, const IStructure& type, void* data)
+		   static void ValidateStringConstant(int64* context, const IStructure& lhsType, void* lhsData, cstr localName, const IStructure& type, void* data)
 		   {
 			   // Note here, the type is a Null-IString(i.e an IString interface)
 			   validate(context != nullptr);
@@ -13965,9 +13968,9 @@ R"(
 
 	   int64 context = 42;
 
-	   // In our demo we use 3 difference functions for each data type in the sample code, but a real system would probably
+	   // In our demo we use 3 different functions for each data type in the sample code, but a real system would probably
 	   // make do with one function and then use the type argument in the callback function to decide how to interpret the data
-	   // The reflect keyword does not care about the type supplied to the reflection function
+	   // The reflect keyword does not care about the types supplied to the reflection function
 	   ss.AddNativeReflectionCall("ValidateVec2i", Reflector::ValidateVec2i, &context);
 	   ss.AddNativeReflectionCall("ValidateFloat64", Reflector::ValidateFloat64, &context);
 	   ss.AddNativeReflectionCall("ValidateStringConstant", Reflector::ValidateStringConstant, &context);
@@ -13985,11 +13988,12 @@ R"(
 
 		   "(function Main -> (Int32 result): \n"	
 		   "	(Vec2i v = 5 6)\n"
-		   "	(reflect ValidateVec2i v)\n"
+		   "    (Int32 reflectionControl = 5)"
+		   "	(reflect ValidateVec2i reflectionControl v)\n"
 		   "	(Float64 galaxyFactor = 7)\n"
-		   "	(reflect ValidateFloat64 galaxyFactor)\n"
+		   "	(reflect ValidateFloat64 reflectionControl galaxyFactor)\n"
 		   "    (IString dog = \"St-Bernards\")"
-		   "    (reflect ValidateStringConstant dog)"
+		   "    (reflect ValidateStringConstant reflectionControl dog)"
 		   ")\n"
 		   "(alias Main EntryPoint.Main) \n";
 
