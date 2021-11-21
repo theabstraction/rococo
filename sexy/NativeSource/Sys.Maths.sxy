@@ -137,6 +137,8 @@
 	(span.y = (rect.bottom - rect.top))
 )
 
+(using Sys.Maths.I32)
+
 (function GetCentredRect (Int32 dx)(Int32 dy)(Recti container)(Recti centredRect)-> :
 	(Vec2i span)
 	(GetSpan container span)

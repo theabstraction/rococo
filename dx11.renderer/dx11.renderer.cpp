@@ -3182,7 +3182,7 @@ namespace ANON
 		   g.guiScale.OOScreenWidth = 1.0f / screenSpan.x;
 		   g.guiScale.OOScreenHeight = 1.0f / screenSpan.y;
 		   g.guiScale.OOFontWidth = fonts->TextureSpan().z;
-		   g.guiScale.OOSpriteWidth = 1.0f / spriteArray.width;
+		   g.guiScale.OOSpriteWidth = spriteArray.width == 0 ? 1.0f : (1.0f / spriteArray.width);
 
 		   DX11::CopyStructureToBuffer(dc, globalStateBuffer, g);
 

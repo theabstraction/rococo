@@ -2,6 +2,7 @@
 
 (' #include 
 	"!scripts/mplat_pane_sxh.sxy"
+	"!scripts/mplat_types.sxy"
 	"!scripts/types.sxy"
 )
 
@@ -30,43 +31,39 @@
 (function AddLabel (IString text)(IPaneContainer builder)(IString cmd)(Bool defer)-> :
 	(Recti rect = 0 0 20 70)
 	(ILabelPane label = (builder.AddLabel 0 text rect))
-	(IPane labelBase = label.Base)
-	(labelBase.SetColourFont 0xFFD0D0D0 0xFFFFFFFF)
-	(labelBase.SetColourBk1  0x00000000 0xFF200000)
-	(labelBase.SetColourBk2  0x00000000 0xFF800000)
-	(labelBase.SetColourEdge1 0xFF404040 0xFFBFBFBF)
-	(labelBase.SetColourEdge2 0xFF606060 0xFFFFFFFF)
-	(labelBase.SetCommand 1 defer cmd)
+	(label.SetColourFont 0xFFD0D0D0 0xFFFFFFFF)
+	(label.SetColourBk1  0x00000000 0xFF200000)
+	(label.SetColourBk2  0x00000000 0xFF800000)
+	(label.SetColourEdge1 0xFF404040 0xFFBFBFBF)
+	(label.SetColourEdge2 0xFF606060 0xFFFFFFFF)
+	(label.SetCommand 1 defer cmd)
 	(label.SetAlignment 0 0 0 0)
 )
 
 (function AddTitleLabel (IString text)(IPaneContainer builder)-> :
 	(Recti rect = 0 0 20 90)
 	(ILabelPane label = (builder.AddLabel 0 text rect))
-	(IPane labelBase = label.Base)
-	(labelBase.SetColourFont 0xFFFFFFFF 0xFFFFFFFF)
-	(labelBase.SetColourBk1  0x00000000 0x00000000)
-	(labelBase.SetColourBk2  0x00000000 0x00000000)
-	(labelBase.SetColourEdge1 0x00000000 0x00000000)
-	(labelBase.SetColourEdge2 0x00000000 0x00000000)
+	(label.SetColourFont 0xFFFFFFFF 0xFFFFFFFF)
+	(label.SetColourBk1  0x00000000 0x00000000)
+	(label.SetColourBk2  0x00000000 0x00000000)
+	(label.SetColourEdge1 0x00000000 0x00000000)
+	(label.SetColourEdge2 0x00000000 0x00000000)
 	(label.SetAlignment 0 0 0 0)
 )
 
 (function AddSlider (IString text)(IPaneContainer builder)(Float32 minValue)(Float32 maxValue)-> :
 	(Recti rect = 0 0 20 90)
 	(ISlider slider = (builder.AddSlider 1 text rect minValue maxValue))
-	(IPane sbase = slider.Base)
-	(sbase.SetColourFont 0xFFD0D0D0 0xFFFFFFFF)
-	(sbase.SetColourBk1  0x8F006000 0xFF008000)
-	(sbase.SetColourBk2  0x8F008800 0xFF00A800)
-	(sbase.SetColourEdge1 0xDFFFFFFF 0xFFFFFFFF)
-	(sbase.SetColourEdge2 0xDFFFFFFF 0xFFFFFFFF)
+	(slider.SetColourFont 0xFFD0D0D0 0xFFFFFFFF)
+	(slider.SetColourBk1  0x8F006000 0xFF008000)
+	(slider.SetColourBk2  0x8F008800 0xFF00A800)
+	(slider.SetColourEdge1 0xDFFFFFFF 0xFFFFFFFF)
+	(slider.SetColourEdge2 0xDFFFFFFF 0xFFFFFFFF)
 )
 
 (function Main (Int32 id)->(Int32 exitCode):
 	(IPaneBuilder builder (PaneBuilder))
-	(IPaneContainer root = builder.Root)
-	(IPane pane = root.Base)
+	(IPaneContainer pane = builder.Root)
 	(SetOpaqueBackground pane)
 	
 	(Recti screen)
@@ -74,10 +71,9 @@
 	
 	(Recti containerRect)
 	(InflateRect -16 -16 screen containerRect)
-	(IPaneContainer container = (root.AddContainer containerRect))
-	(IPane cbase = container.Base)
-	(cbase.SetColourBk1   0xE0101010 0xE0101010)
-	(cbase.SetColourBk2   0xE0202020 0xE0202020)
+	(IPaneContainer container = (pane.AddContainer containerRect))
+	(container.SetColourBk1   0xE0101010 0xE0101010)
+	(container.SetColourBk2   0xE0202020 0xE0202020)
 	
 	(AddTitleLabel "Sound" container)
 	(AddSlider "Master Volume" container 0 1)
@@ -86,17 +82,16 @@
 	(AddSlider "FX Volume" container 0 1)
 	(AddSlider "Background Volume" container 0 1)
 	
-	(cbase.AlignLeftEdges 40 false)
-	(cbase.AlignRightEdges 40 false)
-	(cbase.LayoutVertically 4 -1)
+	(container.AlignLeftEdges 40 false)
+	(container.AlignRightEdges 40 false)
+	(container.LayoutVertically 4 -1)
 	
 	(Recti menuRect = 10 10 180 140)
 	(IPaneContainer menu = (container.AddContainer menuRect))
-	(IPane mbase = menu.Base)
-	(SetTransparentBackground mbase)
+	(SetTransparentBackground menu)
 	
 	(AddLabel "Back" menu "gui.pop" false)
-	(mbase.AlignLeftEdges 4 false)
-	(mbase.AlignRightEdges 4 false)
-	(mbase.LayoutVertically 4 -1)
+	(menu.AlignLeftEdges 4 false)
+	(menu.AlignRightEdges 4 false)
+	(menu.LayoutVertically 4 -1)
 )

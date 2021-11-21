@@ -1,0 +1,52 @@
+(' #file.type rococo)
+
+(' #include 
+	"!scripts/types.sxy"
+	"!scripts/mplat_sxh.sxy"
+	"!scripts/mplat_types.sxy"
+)
+
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+	
+(using Rococo)
+(using Rococo.Graphics)
+(using Rococo.Entities)
+(using Sys.Type)
+
+(function Main (Int32 id)->(Int32 exitCode):
+	(IInstances instances (Instances))
+	(instances.SetMaterialMacro "!textures/hv/materials/hi-rez/" )
+	(instances.LoadMaterialArray "#m/" 1024)
+	
+	(IHQFonts fonts (HQFonts))
+	(fonts.Build (#HQFontEditorFont))
+	(fonts.SetFaceName "Courier New")
+	(fonts.MakeBold)
+	(fonts.AddRange 32 127)
+	(fonts.AddCharacters "£")
+	(fonts.SetHeight 24)
+	(fonts.Commit)
+
+	(fonts.Build (#HQFontTitleFont))
+	(fonts.SetFaceName "Tahoma")
+	//(fonts.MakeBold)
+	(fonts.AddRange 32 127)
+	(fonts.SetHeight 80)
+	(fonts.Commit)
+	
+	(fonts.Build (#HQFontDebuggerFont))
+	(fonts.SetFaceName "Consolas")
+	//(fonts.MakeBold)
+	(fonts.AddRange 32 127)
+	(fonts.AddCharacters "£")
+	(fonts.SetHeight 28)
+	(fonts.Commit)
+
+	(fonts.Build (#HQFontInfoFont))
+	(fonts.SetFaceName "Times New Roman")
+	(fonts.AddRange 32 127)
+	(fonts.AddCharacters "£")
+	(fonts.SetHeight 28)
+	(fonts.Commit)
+)

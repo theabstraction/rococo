@@ -208,7 +208,14 @@ struct TestApp : IApp, private IScene, public IEventCallback<FileModifiedArgs>
 
    void OnCreate() override
    {
+	   struct NoExtraNativeLibs : IEventCallback<ScriptCompileArgs>
+	   {
+		   void OnEvent(ScriptCompileArgs& args)
+		   {
 
+		   }
+	   } noExtras;
+       platform.utilities.RunEnvironmentScript(noExtras, "!scripts/test.app.created.sxy", true);
    }
 
    ID_CUBE_TEXTURE GetSkyboxCubeId() const
