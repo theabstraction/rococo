@@ -159,3 +159,9 @@
 (method Structure.Name -> (IString name):
 	(Sys.Reflection.Native.GetStructName this.structPtr -> name)
 )
+
+(struct SexyAssetFile
+	(Sys.Type.IString pingPath)
+)
+
+(alias SexyAssetFile Sys.Reflection.SexyAssetFile)

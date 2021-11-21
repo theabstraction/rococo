@@ -14,16 +14,22 @@ namespace ANON
 		StringBuilder& sb;
 		HString pingPath;
 		IInstallation& installation;
+		char indentChar = '\t';
 
 		bool addHumanReadableReferences;
 
 		int indent = 0;
 
+		void Indent()
+		{
+			sb.AppendChar(indentChar);
+		}
+
 		void AppendIndents()
 		{
 			for (int i = 0; i < indent; ++i)
 			{
-				sb <<",";
+				Indent();
 			}
 		}
 
@@ -38,59 +44,102 @@ namespace ANON
 
 		void AppendHeader(cstr name, cstr type, cstr moduleName) override
 		{
-			sb.AppendFormat("%s,%s,%s\n", name, type, moduleName);
+			sb.AppendFormat("%s", type);
+			Indent();
+			sb.AppendFormat("%s", name);
+			Indent();
+			sb.AppendFormat("\"%s\"", moduleName);
+			sb.AppendChar('\n');
 		}
 
-		void AppendValue(int32 value) override
+		void AppendValue(cstr fieldName, int32 value) override
 		{
 			AppendIndents();
-			sb.AppendFormat("I,0x%X", value);
+			sb.AppendFormat("I");
+			Indent();
+			sb.AppendFormat("%s", fieldName);
+			Indent();
+			sb.AppendFormat("0x%X", value);
 
 			if (addHumanReadableReferences)
 			{
-				sb.AppendFormat(",%d", value);
+				Indent();
+				sb.AppendFormat("%d", value);
 			}
+			sb.AppendChar('\n');
 		}
 
-		void AppendValue(int64 value) override
+		void AppendValue(cstr fieldName, int64 value) override
 		{
 			AppendIndents();
-			sb.AppendFormat("L,0x%XLL", value);
+			sb.AppendFormat("L");
+			Indent();
+			sb.AppendFormat("%s", fieldName);
+			Indent();
+			sb.AppendFormat("0x%XLL", value);
+
 			if (addHumanReadableReferences)
 			{
-				sb.AppendFormat(",%lld", value);
+				Indent();
+				sb.AppendFormat("\t%lld", value);
 			}
+			sb.AppendChar('\n');
 		}
 
-		void AppendValue(float value) override
+		void AppendValue(cstr fieldName, float value) override
 		{
 			AppendIndents();
-			sb.AppendFormat("F,0x%X", *(int*)(float*) &value);
+			sb.AppendFormat("F");
+			Indent();
+			sb.AppendFormat("%s", fieldName);
+			Indent();
+			sb.AppendFormat("0x%X", *(int*)(float*)&value);
+
 			if (addHumanReadableReferences)
 			{
-				sb.AppendFormat(",%g", value);
+				Indent();
+				sb.AppendFormat("%g", value);
 			}
+			sb.AppendChar('\n');
 		}
 
-		void AppendValue(double value) override
+		void AppendValue(cstr fieldName, double value) override
 		{
 			AppendIndents();
-			sb.AppendFormat("D,0x%XLL", *(int64*)(float*)&value);
+			sb.AppendFormat("D");
+			Indent();
+			sb.AppendFormat("%s", fieldName);
+			Indent();
+			sb.AppendFormat("0x%XLL", *(int64*)(double*)&value);
+
 			if (addHumanReadableReferences)
 			{
-				sb.AppendFormat(",%llg", value);
+				Indent();
+				sb.AppendFormat("%llg", value);
 			}
+			sb.AppendChar('\n');
 		}
 
-		void AppendValue(bool value) override
+		void AppendValue(cstr fieldName, bool value) override
 		{
 			AppendIndents();
-			sb.AppendFormat("B,%s", value ? "1": "0");
+			sb.AppendFormat("?");
+			Indent();
+			sb.AppendFormat("%s", fieldName);
+			Indent();
+			sb.AppendFormat("%s", value ? "Y" : "N");
+			sb.AppendChar('\n');
 		}
 
 		void EnterMembers(cstr name, cstr type, cstr moduleName) override
 		{
-			sb.AppendFormat("%s,%s,%s\n", name, type, moduleName);
+			AppendIndents();
+			sb.AppendFormat("%s", type);
+			Indent();
+			sb.AppendFormat("%s", name);
+			Indent();
+			sb.AppendFormat("\"%s\"", moduleName);
+			sb.AppendChar('\n');
 			indent++;
 		}
 

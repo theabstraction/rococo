@@ -33,9 +33,6 @@
     <ClCompile Include="sexy.parsering.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="sexy.s-parser.util.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="sexy.strings.2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

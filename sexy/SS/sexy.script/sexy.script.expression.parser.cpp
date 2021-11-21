@@ -2382,26 +2382,39 @@ namespace Rococo
 				Throw(sFunctionId, "(serialize <function-id> <lhs-variable-name> <rhs-variable-name>): Could not match function-id to any known reflection function");
 			}
 
+			ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D10, BITCOUNT_POINTER);
+			ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D11, BITCOUNT_POINTER);
+			ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D12, BITCOUNT_POINTER);
+			ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D13, BITCOUNT_POINTER);
+			ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D14, BITCOUNT_POINTER);
+			ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D15, BITCOUNT_POINTER);
+
 			VariantValue v;
 			v.vPtrValue = (void*)&s;
-			ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, v, BITCOUNT_POINTER); // D4 gets the lhs type
+			ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D10, v, BITCOUNT_POINTER); // D10 gets the lhs type
 
 			v.vPtrValue = (void*)lhsVariableDef.ResolvedType;
-			ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D5, v, BITCOUNT_POINTER); // D5 gets the lhs type
+			ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D11, v, BITCOUNT_POINTER); // D1 gets the lhs type
 
-			ce.Builder.AssignVariableRefToTemp(lhsVariableName->Buffer, 2); // D6 gets the lhs reference
+			ce.Builder.AssignVariableRefToTemp(lhsVariableName->Buffer, 8); // D12 gets the lhs reference
 
 			VariantValue name;
 			name.vPtrValue = (void*)lhsVariableName->Buffer;
-			ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7, name, BITCOUNT_POINTER); // D7 gets the rhs name
+			ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D13, name, BITCOUNT_POINTER); // D13 gets the rhs name
 
 			v.vPtrValue = (void*)rhsVariableDef.ResolvedType;
-			ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D8, v, BITCOUNT_POINTER); // D8 gets the rhs type
+			ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D14, v, BITCOUNT_POINTER); // D14 gets the rhs type
 
-			ce.Builder.AssignVariableRefToTemp(rhsVariableName->Buffer, 4); // D9 gets the rhs reference
-
+			ce.Builder.AssignVariableRefToTemp(rhsVariableName->Buffer, 11); // D15 gets the rhs reference
 
 			ce.Builder.Assembler().Append_Invoke(id);
+
+			ce.Builder.Assembler().Append_RestoreRegister(VM::REGISTER_D15, BITCOUNT_POINTER);
+			ce.Builder.Assembler().Append_RestoreRegister(VM::REGISTER_D14, BITCOUNT_POINTER);
+			ce.Builder.Assembler().Append_RestoreRegister(VM::REGISTER_D13, BITCOUNT_POINTER);
+			ce.Builder.Assembler().Append_RestoreRegister(VM::REGISTER_D12, BITCOUNT_POINTER);
+			ce.Builder.Assembler().Append_RestoreRegister(VM::REGISTER_D11, BITCOUNT_POINTER);
+			ce.Builder.Assembler().Append_RestoreRegister(VM::REGISTER_D10, BITCOUNT_POINTER);
 		}
 
 		void CompileSerializeFromInterface(cr_sex s, CCompileEnvironment& ce, const MemberDef& srcDef, const MemberDef& trgDef)

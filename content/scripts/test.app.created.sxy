@@ -13,6 +13,14 @@
 (using Rococo.Graphics)
 (using Rococo.Entities)
 (using Sys.Type)
+(using Sys.Maths)
+
+(struct GlobalState
+	(Float64 age)
+	(Vec3 position)
+	(Matrix4x4 world)
+	(Bool isActive)
+)
 
 (function Main (Int32 id)->(Int32 exitCode):
 	(IInstances instances (Instances))
@@ -49,4 +57,20 @@
 	(fonts.AddCharacters "£")
 	(fonts.SetHeight 28)
 	(fonts.Commit)
+
+	(Sys.Reflection.SexyAssetFile destination = "!scripts/test/asset.sxya")
+	
+	(GlobalState globalState = 
+		17.6 // age
+		(1.4 2.5 7.6) // position
+		( // world
+			(1 0 0 0)
+			(0 1 0 0)
+			(0 0 1 0)
+			(0 0 0 1)
+		)
+		false
+	)
+	
+	(reflect SaveAsset destination globalState)
 )

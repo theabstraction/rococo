@@ -9,7 +9,10 @@
 #include <algorithm>
 #include <string>
 
+#include <rococo.asset.generator.h>
+
 using namespace Rococo;
+using namespace Rococo::Assets;
 using namespace Rococo::Events;
 
 struct TestAttributes: IObserver
@@ -74,8 +77,12 @@ struct TestApp : IApp, private IScene, public IEventCallback<FileModifiedArgs>
 
    TestAttributes attributes;
 
+   AutoFree<IAssetGenerator> assetGenerator;
+
    TestApp(Platform& _platform): platform(_platform), attributes(platform.publisher)
    {
+      assetGenerator = Rococo::Assets::CreateAssetGenerator_CSV(platform.installation, true);
+
       introPanel = platform.gui.BindPanelToScript("!scripts/panel.intro.sxy");
       testPanel = platform.gui.BindPanelToScript("!scripts/panel.test.sxy");
       soundPanel = platform.gui.BindPanelToScript("!scripts/panel.sound.sxy");
@@ -208,14 +215,21 @@ struct TestApp : IApp, private IScene, public IEventCallback<FileModifiedArgs>
 
    void OnCreate() override
    {
-	   struct NoExtraNativeLibs : IEventCallback<ScriptCompileArgs>
+	   struct LinkAssetGeneratorCallback : IEventCallback<ScriptCompileArgs>
 	   {
-		   void OnEvent(ScriptCompileArgs& args)
+		   LinkAssetGeneratorCallback(IAssetGenerator& _generator) :
+			   generator(_generator)
 		   {
 
 		   }
-	   } noExtras;
-       platform.utilities.RunEnvironmentScript(noExtras, "!scripts/test.app.created.sxy", true);
+
+		   IAssetGenerator& generator;
+		   void OnEvent(ScriptCompileArgs& args)
+		   {
+			   LinkAssetGenerator(generator, args.ss);
+		   }
+	   } addArchiver(*assetGenerator);
+       platform.utilities.RunEnvironmentScript(addArchiver, "!scripts/test.app.created.sxy", true);
    }
 
    ID_CUBE_TEXTURE GetSkyboxCubeId() const
