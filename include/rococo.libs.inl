@@ -10,6 +10,7 @@
 #  pragma comment(lib, "rococo.zlib.debug.lib")
 #  pragma comment(lib, "rococo.maths.debug.lib")
 #  pragma comment(lib, "rococo.sexy.ide.debug.lib")
+#  pragma comment(lib, "rococo.misc.utils.debug.lib")
 # else
 #  pragma comment(lib, "rococo.windows.lib")
 #  pragma comment(lib, "rococo.util.lib")
@@ -18,6 +19,7 @@
 #  pragma comment(lib, "rococo.zlib.lib")
 #  pragma comment(lib, "rococo.maths.lib")
 #  pragma comment(lib, "rococo.sexy.ide.lib")
+#  pragma comment(lib, "rococo.misc.utils.lib")
 # endif
 
 # endif

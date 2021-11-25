@@ -1,5 +1,5 @@
 #include <rococo.mplat.dynamic.inl>
-
+#include <rococo.libs.inl>
 using namespace Rococo;
 
 namespace Test

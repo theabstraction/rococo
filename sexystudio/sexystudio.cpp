@@ -13,9 +13,9 @@
 #pragma comment(lib, "uxtheme.lib")
 
 #ifdef _DEBUG
-# pragma comment(lib, "rococo.sexy.utils.debug.lib")
+# pragma comment(lib, "rococo.misc.utils.debug.lib")
 #else
-# pragma comment(lib, "rococo.sexy.utils.lib")
+# pragma comment(lib, "rococo.misc.utils.lib")
 #endif
 
 #include <shobjidl.h>

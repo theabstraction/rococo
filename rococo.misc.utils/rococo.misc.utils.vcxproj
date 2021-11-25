@@ -12,6 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="rococo.assets.CSV.cpp" />
+    <ClCompile Include="rococo.CSV_parser.cpp" />
     <ClCompile Include="rococo.ide.stdout.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -24,6 +25,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\rococo.asset.generator.h" />
+    <ClInclude Include="..\include\rococo.csv.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
@@ -31,6 +33,7 @@
     <ProjectGuid>{815ca790-e189-4e07-b9a7-ce5682473794}</ProjectGuid>
     <RootNamespace>rococosexyutils</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>rococo.misc.utils</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">

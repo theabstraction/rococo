@@ -16,12 +16,12 @@
 # pragma comment(lib, "rococo.maths.debug.lib")
 # pragma comment(lib, "rococo.util.debug.lib")
 # pragma comment(lib, "rococo.mplat.debug.lib")
-# pragma comment(lib, "rococo.sexy.utils.debug.lib")
+# pragma comment(lib, "rococo.misc.utils.debug.lib")
 #else
 # pragma comment(lib, "rococo.maths.lib")
 # pragma comment(lib, "rococo.util.lib")
 # pragma comment(lib, "rococo.mplat.lib")
-# pragma comment(lib, "rococo.sexy.utils.lib")
+# pragma comment(lib, "rococo.misc.utils.lib")
 #endif
 
 #include <stdio.h>
@@ -974,8 +974,154 @@ R"(
 	VALIDATE(Eq(inference.declarationType, "Int32"_fstring));
 }
 
+#include <rococo.csv.h>
+
+void TestCSVLoader()
+{
+	cstr specimen =
+R"(Space	Holiday	"Alan \"Nice man\" Smith"
+Whiskey	Datum	"
+Banner!
+"
+)";
+
+	using namespace Rococo::IO;
+
+	AutoFree<ITabbedCSVTokenizer> tokenizer = CreateTabbedCSVTokenizer();
+
+	struct ANON : ICSVTokenParser
+	{
+		void OnBadChar(Vec2i cursorPosition, char value) override
+		{
+			VALIDATE(false);
+		}
+
+		void OnToken(int row, int column, cstr token) override
+		{
+			printf("%d %d: %s\n", row, column, token);
+		}
+
+		void Free() override
+		{
+
+		}
+
+		void Reset() override
+		{
+
+		}
+	} parser;
+
+	tokenizer->Tokenize(specimen, parser);
+}
+
+void TestCSVAssetParser()
+{
+	cstr archiveFile =
+R"(AssetBuilder_CSV
+GlobalState	destination	"!scripts/test.app.created.sxy"
+D	age	0x9999999ALL	17.6
+Vec3f	position	"Sys.Maths.sxy"
+	F	x	0x3FB33333	1.4
+	F	y	0x40200000	2.5
+	F	z	0x40F33333	7.6
+Matrix4x4f	world	"Sys.Maths.sxy"
+	Vec4f	r0	"Sys.Maths.sxy"
+		F	x	0x3F800000	1
+		F	y	0x0	0
+		F	z	0x0	0
+		F	w	0x0	0
+	Vec4f	r1	"Sys.Maths.sxy"
+		F	x	0x0	0
+		F	y	0x3F800000	1
+		F	z	0x0	0
+		F	w	0x0	0
+	Vec4f	r2	"Sys.Maths.sxy"
+		F	x	0x0	0
+		F	y	0x0	0
+		F	z	0x3F800000	1
+		F	w	0x0	0
+	Vec4f	r3	"Sys.Maths.sxy"
+		F	x	0x0	0
+		F	y	0x0	0
+		F	z	0x0	0
+		F	w	0x3F800000	1
+?	isActive	N
+)";
+
+
+	using namespace Rococo::IO;
+
+	struct ANON: IMemberBuilder
+	{
+		int indent = 0;
+
+		void PrintIndent()
+		{
+			for (int i = 0; i < indent; i++)
+			{
+				putc('\t', stdout);
+			}
+		}
+
+		void AddBooleanMember(cstr name, bool value) override
+		{
+			PrintIndent();
+			printf("(bool %s = %s)\n", name, value ? "true" : "false");
+		}
+
+		void AddDoubleMember(cstr name, double value) override
+		{
+			PrintIndent();
+			printf("(double %s = %lg)\n", name, value);
+		}
+
+		void AddFloatMember(cstr name, float value)  override
+		{
+			PrintIndent();
+			printf("(float %s = %g)\n", name, value);
+		}
+
+		void AddInt32Member(cstr name, int32 value) override
+		{
+			PrintIndent();
+			printf("(int32 %s = %d)\n", name, value);
+		}
+
+		void AddInt64Member(cstr name, int64 value) override
+		{
+			PrintIndent();
+			printf("(int64 %s = %lld)\n", name, value);
+		}
+
+		void AddDerivativeMember(cstr type, cstr name, cstr sourceFile) override
+		{
+			PrintIndent();
+			printf("(%s %s\n", type, name);
+			indent++;
+		}
+
+		void ReturnToParent() override
+		{
+			indent--;
+			PrintIndent();
+			printf(")\n");
+		}
+
+	} memberBuilder;
+
+	AutoFree<ICSVTokenParser> parser = CreateSXYAParser(memberBuilder);
+
+	AutoFree<ITabbedCSVTokenizer> tokenizer = CreateTabbedCSVTokenizer();
+	tokenizer->Tokenize(archiveFile, *parser);
+}
+
 void test()
 {
+	TestCSVAssetParser();
+	return;
+	TestCSVLoader();
+	return;
 	TestCodeInference();
 	TestQuadtree();
 	return;

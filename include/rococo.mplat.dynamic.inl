@@ -3,15 +3,12 @@
 #include <rococo.os.win32.h>
 #include <rococo.mplat.h>
 #include <mplat.to.app.events.inl>
+#include <rococo.libs.inl>
 
 #ifdef _DEBUG
-# pragma comment(lib, "rococo.util.debug.lib")
 # pragma comment(lib, "rococo.maths.debug.lib")
-# pragma comment(lib, "rococo.sexy.utils.debug.lib")
 #else
-# pragma comment(lib, "rococo.util.lib")
 # pragma comment(lib, "rococo.maths.lib")
-# pragma comment(lib, "rococo.sexy.utils.lib")
 #endif
 
 #include <rococo.window.h>
