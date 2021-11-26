@@ -17,6 +17,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="rococo.member.builder.cpp" />
     <ClCompile Include="rococo.postbox.cpp" />
     <ClCompile Include="rococo.sexy.reflect.cpp" />
     <ClCompile Include="rococo.sprites.cpp" />

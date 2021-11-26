@@ -10,10 +10,13 @@
 #include <string>
 
 #include <rococo.asset.generator.h>
+#include <rococo.csv.h>
 
 using namespace Rococo;
+using namespace Rococo::IO;
 using namespace Rococo::Assets;
 using namespace Rococo::Events;
+using namespace Rococo::Sexy;
 
 struct TestAttributes: IObserver
 {
@@ -78,10 +81,12 @@ struct TestApp : IApp, private IScene, public IEventCallback<FileModifiedArgs>
    TestAttributes attributes;
 
    AutoFree<IAssetGenerator> assetGenerator;
+   AutoFree<IAssetLoader> assetLoader;
 
    TestApp(Platform& _platform): platform(_platform), attributes(platform.publisher)
    {
       assetGenerator = Rococo::Assets::CreateAssetGenerator_CSV(platform.installation, true);
+      assetLoader = Rococo::Sexy::CreateAssetLoader(platform.installation);
 
       introPanel = platform.gui.BindPanelToScript("!scripts/panel.intro.sxy");
       testPanel = platform.gui.BindPanelToScript("!scripts/panel.test.sxy");
@@ -217,18 +222,22 @@ struct TestApp : IApp, private IScene, public IEventCallback<FileModifiedArgs>
    {
 	   struct LinkAssetGeneratorCallback : IEventCallback<ScriptCompileArgs>
 	   {
-		   LinkAssetGeneratorCallback(IAssetGenerator& _generator) :
-			   generator(_generator)
+		   LinkAssetGeneratorCallback(IAssetGenerator& _generator, IAssetLoader& _loader) :
+			   generator(_generator),
+               loader(_loader)
 		   {
 
 		   }
 
 		   IAssetGenerator& generator;
+           IAssetLoader& loader;
+
 		   void OnEvent(ScriptCompileArgs& args)
 		   {
 			   LinkAssetGenerator(generator, args.ss);
+               LinkAssetLoader(loader, args.ss);
 		   }
-	   } addArchiver(*assetGenerator);
+       } addArchiver(*assetGenerator, *assetLoader);
        platform.utilities.RunEnvironmentScript(addArchiver, "!scripts/test.app.created.sxy", true);
    }
 

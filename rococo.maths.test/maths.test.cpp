@@ -1052,7 +1052,7 @@ Matrix4x4f	world	"Sys.Maths.sxy"
 
 	using namespace Rococo::IO;
 
-	struct ANON: IMemberBuilder
+	struct ANON: Rococo::Sexy::IMemberBuilder
 	{
 		int indent = 0;
 

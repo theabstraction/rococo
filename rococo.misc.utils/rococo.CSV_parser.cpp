@@ -1,10 +1,12 @@
 #include <rococo.api.h>
 #include <rococo.io.h>
-#include <rococo.csv.h>
 #include <rococo.strings.h>
 #include <vector>
 
+#include <rococo.csv.h>
+
 #include <sexy.types.h>
+#include <sexy.compiler.public.h>
 
 using namespace Rococo;
 using namespace Rococo::IO;
@@ -12,6 +14,7 @@ using namespace Rococo::IO;
 namespace
 {
 	using namespace Rococo::IO;
+	using namespace Rococo::Sexy;
 
 	struct CSV_SexyAssetParser : ICSVTokenParser
 	{
@@ -99,6 +102,11 @@ namespace
 			tokenHandler = &CSV_SexyAssetParser::OnMemberDef;
 		}
 
+		static float BinaryToFloat(uint32 binaryRepresentation)
+		{
+			return *(float*)(&binaryRepresentation);
+		}
+
 		void OnMemberValueFloat(int row, int column, cstr token)
 		{
 			if (defRow != row || defColumn != column)
@@ -106,10 +114,10 @@ namespace
 				Throw(0, "Expecting float hex value at row %d column %d", defRow, defColumn);
 			}
 
-			int32 hexValue = 0;
+			uint32 hexValue = 0;
 			sscanf_s(token, "%x", &hexValue);
 
-			float floatValue = *(float*)(&hexValue);
+			float floatValue = BinaryToFloat(hexValue);
 
 			memberBuilder.AddFloatMember(memberNameBuffer, floatValue);
 
@@ -119,6 +127,11 @@ namespace
 			tokenHandler = &CSV_SexyAssetParser::OnMemberDef;
 		}
 
+		static double BinaryToDouble(uint64 binaryRepresentation)
+		{
+			return *(double*)(&binaryRepresentation);
+		}
+
 		void OnMemberValueDouble(int row, int column, cstr token)
 		{
 			if (defRow != row || defColumn != column)
@@ -126,10 +139,10 @@ namespace
 				Throw(0, "Expecting double hex value at row %d column %d", defRow, defColumn);
 			}
 
-			int64 hexValue = 0;
+			uint64 hexValue = 0;
 			sscanf_s(token, "%llx", &hexValue);
 
-			double doubleValue = *(double*)(&hexValue);
+			double doubleValue = BinaryToDouble(hexValue);
 
 			memberBuilder.AddDoubleMember(memberNameBuffer, doubleValue);
 

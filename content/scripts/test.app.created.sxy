@@ -58,7 +58,7 @@
 	(fonts.SetHeight 28)
 	(fonts.Commit)
 
-	(Sys.Reflection.SexyAssetFile destination = "!scripts/test/asset.sxya")
+	(Sys.Reflection.SexyAssetFile assetFile = "!scripts/test/asset.sxya")
 	
 	(GlobalState globalState = 
 		17.6 // age
@@ -72,5 +72,12 @@
 		false
 	)
 	
-	(reflect SaveAsset destination globalState)
+	// save the global state to !scripts/test/asset.sxya
+	(reflect SaveAsset assetFile globalState)
+
+	// restor the global state from !scripts/test/asset.sxya
+	(GlobalState copiedStateState)
+	(reflect LoadAsset assetFile copiedStateState)
+	
+	(debug)
 )

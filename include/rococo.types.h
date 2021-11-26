@@ -198,6 +198,11 @@ namespace Rococo
 		struct IWindow;
 	}
 
+	namespace Compiler
+	{
+		struct IStructure;
+	}
+
 	class Sync
 	{
 		ILock& lock;

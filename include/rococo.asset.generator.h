@@ -7,6 +7,11 @@ namespace Rococo::Script
 	struct IPublicScriptSystem;
 }
 
+namespace Rococo::Sexy 
+{
+	struct IAssetLoader;
+}
+
 namespace Rococo::Assets
 {
 	ROCOCOAPI IAssetBuilder
@@ -34,6 +39,11 @@ namespace Rococo::Assets
 	// (reflect SaveAsset <SexyFileAsset-variable> <target-object>) 
 	// to serialize a target-object to the supplied asset generator
 	void LinkAssetGenerator(IAssetGenerator& generator, Rococo::Script::IPublicScriptSystem& ss);
+
+	// Enables Sexy semantic:
+	// (reflect LoadAsset <SexyFileAsset-variable> <target-object>) 
+	// to serialize a target-object from the supplied asset loader
+	void LinkAssetLoader(Rococo::Sexy::IAssetLoader& loader, Rococo::Script::IPublicScriptSystem& ss);
 
 	// Create a CSV asset generator. These allow creation of files that save objects in CSV format.
 	IAssetGenerator* CreateAssetGenerator_CSV(IInstallation& installation, bool addHumanReadableReferences);

@@ -1,6 +1,6 @@
 AssetBuilder_CSV
-GlobalState	destination	"!scripts/test.app.created.sxy"
-D	age	0x9999999ALL	17.6
+GlobalState	assetFile	"!scripts/test.app.created.sxy"
+D	age	0x403199999999999A	17.6
 Vec3f	position	"Sys.Maths.sxy"
 	F	x	0x3FB33333	1.4
 	F	y	0x40200000	2.5

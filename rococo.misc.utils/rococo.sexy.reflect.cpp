@@ -8,9 +8,12 @@
 #include <rococo.strings.h>
 
 #include <rococo.asset.generator.h>
+#include <rococo.csv.h>
 
 using namespace Rococo;
+using namespace Rococo::IO;
 using namespace Rococo::Sex;
+using namespace Rococo::Sexy;
 using namespace Rococo::Assets;
 using namespace Rococo::Compiler;
 
@@ -159,10 +162,30 @@ static void SaveAssetWithSexyGenerator(IAssetGenerator* generator, cr_sex s, con
 	}
 }
 
+static void LoadAssetWithSexyParser(IAssetLoader* loader, cr_sex s, const IStructure& lhsType, void* lhsData, cstr rhsName, const IStructure& assetType, void* assetData)
+{
+	Validate_Type_Is_SexyAssetFile(s[2], lhsType);
+
+	auto* assetFile = reinterpret_cast<SexyAssetFile*>(lhsData);
+	auto filename = GetString(assetFile->ipStringFilename);
+
+	if (!EndsWith(filename, ".sxya"))
+	{
+		Throw(s[2], "Expecting filename inside the SexyAssetFile to end with .sxya");
+	}
+
+	loader->LoadAndParse(filename, assetType, assetData);
+}
+
 namespace Rococo::Assets
 {
 	void LinkAssetGenerator(IAssetGenerator& generator, Rococo::Script::IPublicScriptSystem& ss)
 	{
 		ss.AddNativeReflectionCall("SaveAsset", ::SaveAssetWithSexyGenerator, &generator);
+	}
+
+	void LinkAssetLoader(IAssetLoader& loader, Rococo::Script::IPublicScriptSystem& ss)
+	{
+		ss.AddNativeReflectionCall("LoadAsset", ::LoadAssetWithSexyParser, &loader);
 	}
 }

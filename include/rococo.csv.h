@@ -2,7 +2,7 @@
 
 #include <rococo.types.h>
 
-namespace Rococo::IO
+namespace Rococo::Sexy
 {
 	// interface to set member variables of a derivative structure. A derivative structure can be recursive, containing a hierarchy of substructures of arbitrary type
 	ROCOCOAPI IMemberBuilder
@@ -29,6 +29,26 @@ namespace Rococo::IO
 		virtual void ReturnToParent() = 0;
 	};
 
+	ROCOCOAPI ISexyObjectBuilder
+	{
+		virtual IMemberBuilder& MemberBuilder() = 0;
+		virtual void SelectTarget(const Rococo::Compiler::IStructure& type, void* pObject) = 0;
+		virtual void Free() = 0;
+	};
+
+	ROCOCOAPI IAssetLoader
+	{
+		virtual void Free() = 0;
+	
+		// Attempt to load some asset, identified with a sourceFilename URL, and overwrite the destination object with data.
+		virtual void LoadAndParse(cstr sourceFilename, const Rococo::Compiler::IStructure& destinationType, void* destinationAssetData) = 0;
+	};
+
+	IAssetLoader* CreateAssetLoader(IInstallation& installation);
+}
+
+namespace Rococo::IO
+{
 	ROCOCOAPI ICSVTokenParser
 	{
 		virtual void OnBadChar(Vec2i cursorPosition, char value) = 0;
@@ -45,5 +65,5 @@ namespace Rococo::IO
 
 	ITabbedCSVTokenizer* CreateTabbedCSVTokenizer();
 
-	ICSVTokenParser* CreateSXYAParser(IMemberBuilder& memberBuilder);
+	ICSVTokenParser* CreateSXYAParser(Rococo::Sexy::IMemberBuilder& memberBuilder);
 }

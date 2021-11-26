@@ -86,6 +86,11 @@ namespace ANON
 			sb.AppendChar('\n');
 		}
 
+		static uint32 FloatToBinary(float value)
+		{
+			return *(uint32*)&value;
+		}
+
 		void AppendValue(cstr fieldName, float value) override
 		{
 			AppendIndents();
@@ -93,7 +98,7 @@ namespace ANON
 			Indent();
 			sb.AppendFormat("%s", fieldName);
 			Indent();
-			sb.AppendFormat("0x%X", *(int*)(float*)&value);
+			sb.AppendFormat("0x%X", FloatToBinary(value));
 
 			if (addHumanReadableReferences)
 			{
@@ -103,6 +108,11 @@ namespace ANON
 			sb.AppendChar('\n');
 		}
 
+		static uint64 DoubleToBinary(double value)
+		{
+			return *(uint64*)&value;
+		}
+
 		void AppendValue(cstr fieldName, double value) override
 		{
 			AppendIndents();
@@ -110,7 +120,7 @@ namespace ANON
 			Indent();
 			sb.AppendFormat("%s", fieldName);
 			Indent();
-			sb.AppendFormat("0x%XLL", *(int64*)(double*)&value);
+			sb.AppendFormat("0x%llX", DoubleToBinary(value));
 
 			if (addHumanReadableReferences)
 			{

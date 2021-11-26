@@ -36,6 +36,8 @@
 #ifndef sexy_compiler_public_h
 # define sexy_compiler_public_h
 
+#include <sexy.types.h>
+
 namespace Rococo { namespace VM
 {
 	struct IVirtualMachine;
