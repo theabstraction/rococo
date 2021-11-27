@@ -13926,37 +13926,37 @@ R"(
 
 	   struct Reflector
 	   {
-		   static void ValidateVec2i(int64* context, cr_sex s, const IStructure& lhsType, void* lhsData, cstr localName, const IStructure& type, void* data)
+		   static void ValidateVec2i(int64* context, ReflectionArguments& args)
 		   {
-			   int32* lhsValue = (int32*)lhsData;
+			   int32* lhsValue = (int32*)args.lhsData;
 			   validate(*lhsValue == 5);
-			   validate(Eq("Int32", lhsType.Name()));
+			   validate(Eq("Int32", args.lhsType.Name()));
 			   validate(context != nullptr);
 			   validate(*context == 42);
-			   const Vec2i* pVec = (const Vec2i*) data;
+			   const Vec2i* pVec = (const Vec2i*) args.rhsData;
 			   validate(pVec != nullptr);
 			   validate(pVec->x == 5);
 			   validate(pVec->y == 6);
 			   callCount++;
 		   }
 
-		   static void ValidateFloat64(int64* context, cr_sex s, const IStructure& lhsType, void * lhsData, cstr localName, const IStructure& type, void* data)
+		   static void ValidateFloat64(int64* context, ReflectionArguments& args)
 		   {
 			   validate(context != nullptr);
 			   validate(*context == 42);
-			   const double* pValue = (const double*)data;
+			   const double* pValue = (const double*)args.rhsData;
 			   validate(pValue != nullptr);
 			   validate(*pValue == 7);
 			   callCount++;
 		   }
 
 		   // This demos how a reflection function should obtain the concrete type from the stub by using InterfaceToInstance on the data argument.
-		   static void ValidateStringConstant(int64* context, cr_sex s, const IStructure& lhsType, void* lhsData, cstr localName, const IStructure& type, void* data)
+		   static void ValidateStringConstant(int64* context, ReflectionArguments& args)
 		   {
 			   // Note here, the type is a Null-IString(i.e an IString interface)
 			   validate(context != nullptr);
 			   validate(*context == 42);
-			   InterfacePointer pInterface = (InterfacePointer)data;
+			   InterfacePointer pInterface = (InterfacePointer)args.rhsData;
 			   auto* stub = InterfaceToInstance(pInterface);
 			   // The type in the stub is a StringConstant, because the IString was initialized to a StringConstant object
 			   // If we wanted to do type inference we should inspect stub->Desc->TypeInfo which provides the type of the concrete object (a StringConstant)

@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Script Files">
+      <UniqueIdentifier>{1059369c-8d66-49c5-ae41-194a250c72a1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="mplat.test.main.cpp">
@@ -29,5 +32,13 @@
     <ClInclude Include="..\include\rococo.mplat.main.inl">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\content\scripts\test\asset.sxya">
+      <Filter>Script Files</Filter>
+    </None>
+    <None Include="..\content\scripts\test.app.created.sxy">
+      <Filter>Script Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

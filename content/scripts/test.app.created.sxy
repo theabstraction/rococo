@@ -16,6 +16,7 @@
 (using Sys.Maths)
 
 (struct GlobalState
+	(IString dogName)
 	(Float64 age)
 	(Vec3 position)
 	(Matrix4x4 world)
@@ -60,7 +61,10 @@
 
 	(Sys.Reflection.SexyAssetFile assetFile = "!scripts/test/asset.sxya")
 	
+	(IString dogName = NullString)
+	
 	(GlobalState globalState = 
+		dogName
 		17.6 // age
 		(1.4 2.5 7.6) // position
 		( // world

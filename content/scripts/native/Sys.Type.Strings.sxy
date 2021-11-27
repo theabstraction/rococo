@@ -325,3 +325,8 @@
 (factory Sys.Type.AllocAligned IBuffer (Int32 capacity) (Int32 alignment):
 	(construct AlignedHeap capacity alignment)
 )
+
+(function NullString -> (IString nullString):
+)
+
+(alias NullString Sys.Type.NullString)

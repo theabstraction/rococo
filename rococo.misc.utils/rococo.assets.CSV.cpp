@@ -44,11 +44,35 @@ namespace ANON
 
 		void AppendHeader(cstr name, cstr type, cstr moduleName) override
 		{
+			AppendIndents();
 			sb.AppendFormat("%s", type);
 			Indent();
 			sb.AppendFormat("%s", name);
 			Indent();
 			sb.AppendFormat("\"%s\"", moduleName);
+			sb.AppendChar('\n');
+		}
+
+		void AppendInterfaceType(cstr type, cstr name, cstr moduleName)
+		{
+			AppendIndents();
+			sb.AppendFormat("$");
+			Indent();
+			sb.AppendFormat("%s", name);
+			Indent();
+			sb.AppendFormat("%s", type);
+			Indent();
+			sb.AppendFormat("\"%s\"", moduleName);
+		}
+
+		void AppendObjectRef(cstr type, cstr moduleName, cstr objectValueName) override
+		{
+			Indent();
+			sb.AppendFormat("%s", type);
+			Indent();
+			sb.AppendFormat("\"%s\"", moduleName);
+			Indent();
+			sb.AppendFormat("%s", objectValueName);
 			sb.AppendChar('\n');
 		}
 
@@ -72,7 +96,7 @@ namespace ANON
 		void AppendValue(cstr fieldName, int64 value) override
 		{
 			AppendIndents();
-			sb.AppendFormat("L");
+			sb.AppendFormat("l");
 			Indent();
 			sb.AppendFormat("%s", fieldName);
 			Indent();
@@ -94,7 +118,7 @@ namespace ANON
 		void AppendValue(cstr fieldName, float value) override
 		{
 			AppendIndents();
-			sb.AppendFormat("F");
+			sb.AppendFormat("f");
 			Indent();
 			sb.AppendFormat("%s", fieldName);
 			Indent();
@@ -116,7 +140,7 @@ namespace ANON
 		void AppendValue(cstr fieldName, double value) override
 		{
 			AppendIndents();
-			sb.AppendFormat("D");
+			sb.AppendFormat("d");
 			Indent();
 			sb.AppendFormat("%s", fieldName);
 			Indent();

@@ -468,15 +468,22 @@ namespace Rococo
 		struct ANON
 		{
 			static void CALLTYPE_C RouteToRawReflection(VariantValue* registers, void* context)
-			{
+			{				
 				RawReflectionBinding& reflect = *(RawReflectionBinding*)context;
+				auto* ss = reinterpret_cast<IPublicScriptSystem*>(registers[VM::REGISTER_D9].vPtrValue);
 				auto* sInvocation = reinterpret_cast<const ISExpression*>(registers[VM::REGISTER_D10].vPtrValue);
 				auto* lhsType = reinterpret_cast<const IStructure*>(registers[VM::REGISTER_D11].vPtrValue);
 				auto* lhsValue = registers[VM::REGISTER_D12].vPtrValue;
 				auto* rhsName = reinterpret_cast<cstr>(registers[VM::REGISTER_D13].vPtrValue);
 				auto* rhsType = reinterpret_cast<const IStructure*>(registers[VM::REGISTER_D14].vPtrValue);
 				auto* rhsValue = registers[VM::REGISTER_D15].vPtrValue;
-				reflect.fnCall(reflect.context, *sInvocation, *lhsType, lhsValue, rhsName, *rhsType, rhsValue);
+
+				ReflectionArguments args
+				{
+					*sInvocation, *lhsType, lhsValue, rhsName, *rhsType, rhsValue, *ss
+				};
+
+				reflect.fnCall(reflect.context, args);
 			}
 		};
 
@@ -924,6 +931,32 @@ namespace Rococo
 
 			progObjProxy = nullptr;
 			if (stringPool) stringPool->Free();
+		}
+
+		InterfacePointer GetUniversalNullObject(cstr instanceType, cstr instanceSource)
+		{
+			if (!StartsWith(instanceType, "_Null"))
+			{
+				Throw(0, "No universal object found for %s of \"%s\". instance type was not a universal null object", instanceType, instanceSource);
+			}
+
+			for (int i = 0; i < progObjProxy->ModuleCount(); ++i)
+			{
+				auto& m = progObjProxy->GetModule(i);
+				if (Eq(m.Name(), instanceSource))
+				{
+					auto* type = m.FindStructure(instanceType);
+					if (!type)
+					{
+						Throw(0, "No universal object found for %s of \"%s\". Source found, but type unrecognized", instanceType, instanceSource);
+					}
+
+					ObjectStub* stub = type->GetInterface(0).UniversalNullInstance();
+					return stub->pVTables;
+				}
+			}
+
+			Throw(0, "No universal object found for %s of \"%s\". Source unrecognized", instanceType, instanceSource);
 		}
 
 		void RegisterPackage(IPackage* package) override

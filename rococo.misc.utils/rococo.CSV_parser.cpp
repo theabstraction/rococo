@@ -156,7 +156,7 @@ namespace
 		{
 			if (defRow != row || defColumn != column)
 			{
-				Throw(0, "Expecting double hex value at row %d column %d", defRow, defColumn);
+				Throw(0, "Expecting <source-file> at row %d column %d", defRow, defColumn);
 			}
 
 			memberBuilder.AddDerivativeMember(memberTypeBuffer, memberNameBuffer, token);
@@ -165,6 +165,81 @@ namespace
 			defColumn -= 1; // Go back 2 then forward one, as sub-members are a column advance over their parents
 
 			tokenHandler = &CSV_SexyAssetParser::OnMemberDef;
+		}
+
+		char interfaceDefSourceNameBuffer[Rococo::IO::MAX_PATHLEN];
+		char instanceType[Rococo::MAX_FQ_NAME_LEN + 1];
+		char instanceSource[Rococo::IO::MAX_PATHLEN];
+
+		void OnInstanceRefName(int row, int column, cstr token)
+		{
+			if (defRow != row || defColumn != column)
+			{
+				Throw(0, "Expecting <instance-ref> at row %d column %d", defRow, defColumn);
+			}
+
+			memberBuilder.AddInterfaceMember(memberNameBuffer, memberTypeBuffer, interfaceDefSourceNameBuffer, instanceType, instanceSource, token);
+
+			defColumn -= 6;
+			++defRow;
+
+			tokenHandler = &CSV_SexyAssetParser::OnMemberDef;
+		}
+
+		void OnInstanceSource(int row, int column, cstr token)
+		{
+			if (defRow != row || defColumn != column)
+			{
+				Throw(0, "Expecting <instance-source> at row %d column %d", defRow, defColumn);
+			}
+
+			CopyString(instanceSource, sizeof instanceSource, token);
+
+			defColumn++;
+
+			tokenHandler = &CSV_SexyAssetParser::OnInstanceRefName;
+		}
+
+		void OnInstanceType(int row, int column, cstr token)
+		{
+			if (defRow != row || defColumn != column)
+			{
+				Throw(0, "Expecting <instance-type> at row %d column %d", defRow, defColumn);
+			}
+
+			CopyString(instanceType, sizeof instanceType, token);
+
+			defColumn++;
+
+			tokenHandler = &CSV_SexyAssetParser::OnInstanceSource;
+		}
+
+		void OnMemberInterfaceSource(int row, int column, cstr source)
+		{
+			if (defRow != row || defColumn != column)
+			{
+				Throw(0, "Expecting <source-file> at row %d column %d", defRow, defColumn);
+			}
+
+			CopyString(interfaceDefSourceNameBuffer, sizeof interfaceDefSourceNameBuffer, source);
+
+			defColumn++;
+
+			tokenHandler = &CSV_SexyAssetParser::OnInstanceType;
+		}
+
+		void OnMemberInterfaceType(int row, int column, cstr token)
+		{
+			if (defRow != row || defColumn != column)
+			{
+				Throw(0, "Expecting <source-file> at row %d column %d", defRow, defColumn);
+			}
+
+			CopyString(memberTypeBuffer, sizeof memberTypeBuffer, token);
+
+			defColumn++;
+
+			tokenHandler = &CSV_SexyAssetParser::OnMemberInterfaceSource;
 		}
 
 		void OnMemberName(int row, int column, cstr token)
@@ -178,27 +253,35 @@ namespace
 
 			defColumn++;
 
-			tokenHandler = &CSV_SexyAssetParser::OnMemberName;
-
-			if (Eq(memberTypeBuffer, "D"))
+			if (Eq(memberTypeBuffer, "d"))
 			{
 				primitiveLine = true;
 				tokenHandler = &CSV_SexyAssetParser::OnMemberValueDouble;
 			}
-			else if (Eq(memberTypeBuffer, "F"))
+			else if (Eq(memberTypeBuffer, "f"))
 			{
 				primitiveLine = true;
 				tokenHandler = &CSV_SexyAssetParser::OnMemberValueFloat;
 			}
-			else if (Eq(memberTypeBuffer, "I"))
+			else if (Eq(memberTypeBuffer, "i"))
 			{
 				primitiveLine = true;
 				tokenHandler = &CSV_SexyAssetParser::OnMemberValueInt32;
+			}
+			else if (Eq(memberTypeBuffer, "l"))
+			{
+				primitiveLine = true;
+				tokenHandler = &CSV_SexyAssetParser::OnMemberValueInt64;
 			}
 			else if (Eq(memberTypeBuffer, "?"))
 			{
 				primitiveLine = true;
 				tokenHandler = &CSV_SexyAssetParser::OnMemberValueBool;
+			}
+			else if (Eq(memberTypeBuffer, "$"))
+			{
+				primitiveLine = true;
+				tokenHandler = &CSV_SexyAssetParser::OnMemberInterfaceType;
 			}
 			else
 			{
@@ -284,7 +367,14 @@ namespace
 
 		void OnToken(int row, int column, cstr token) override
 		{
-			(this->*tokenHandler)(row, column, token);
+			try
+			{
+				(this->*tokenHandler)(row, column, token);
+			}
+			catch (IException& e)
+			{
+				Throw(e.ErrorCode(), "Error parsing token %s at row %d column %d\n%s", token, row, column, e.Message());
+			}			
 		}
 
 		void Free() override
@@ -430,7 +520,6 @@ namespace
 						token.clear();
 
 						cursor.x++;
-						column++;
 
 						state = STATE_TERMINATING_STRING_LITERAL;
 					}

@@ -2382,6 +2382,7 @@ namespace Rococo
 				Throw(sFunctionId, "(serialize <function-id> <lhs-variable-name> <rhs-variable-name>): Could not match function-id to any known reflection function");
 			}
 
+			ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D9,  BITCOUNT_POINTER);
 			ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D10, BITCOUNT_POINTER);
 			ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D11, BITCOUNT_POINTER);
 			ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D12, BITCOUNT_POINTER);
@@ -2390,6 +2391,9 @@ namespace Rococo
 			ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D15, BITCOUNT_POINTER);
 
 			VariantValue v;
+			v.vPtrValue = (void*)&ce.SS;
+			ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D9, v, BITCOUNT_POINTER); // D9 gets the IPublicScriptSystem ref
+
 			v.vPtrValue = (void*)&s;
 			ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D10, v, BITCOUNT_POINTER); // D10 gets the lhs type
 
@@ -2415,6 +2419,7 @@ namespace Rococo
 			ce.Builder.Assembler().Append_RestoreRegister(VM::REGISTER_D12, BITCOUNT_POINTER);
 			ce.Builder.Assembler().Append_RestoreRegister(VM::REGISTER_D11, BITCOUNT_POINTER);
 			ce.Builder.Assembler().Append_RestoreRegister(VM::REGISTER_D10, BITCOUNT_POINTER);
+			ce.Builder.Assembler().Append_RestoreRegister(VM::REGISTER_D9, BITCOUNT_POINTER);
 		}
 
 		void CompileSerializeFromInterface(cr_sex s, CCompileEnvironment& ce, const MemberDef& srcDef, const MemberDef& trgDef)

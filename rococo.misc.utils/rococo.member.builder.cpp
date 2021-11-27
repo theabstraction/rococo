@@ -4,6 +4,8 @@
 #include <rococo.os.h>
 #include <sexy.compiler.public.h>
 #include <rococo.strings.h>
+#include <sexy.vm.cpu.h>
+#include <sexy.script.h>
 
 #include <vector>
 
@@ -33,15 +35,28 @@ namespace
 		// Gives the next member to be overwritten
 		std::vector<int> memberIndexStack;
 
+		Rococo::Script::IPublicScriptSystem* scriptSystem = nullptr;
+
+		SexyObjectBuilder()
+		{
+
+		}
+
 		void Free() override
 		{
 			delete this;
 		}
 
-		void SelectTarget(const Rococo::Compiler::IStructure& type, void* pObject)
+		void ResolveInstances(IMapNameToInstance& mapper) override
+		{
+
+		}
+
+		void SelectTarget(const Rococo::Compiler::IStructure& type, void* pObject, Rococo::Script::IPublicScriptSystem& ss) override
 		{
 			this->type = &type;
 			this->pObject = (uint8*) pObject;
+			this->scriptSystem = &ss;
 
 			if (type.InterfaceCount() > 0)
 			{
@@ -372,6 +387,54 @@ namespace
 			}
 		}
 
+		void AddInterfaceMember(cstr name, cstr interfaceType, cstr interfaceSource, cstr instanceType, cstr instanceSource, OBJECT_NAME objectName) override
+		{
+			const Rococo::Compiler::IMember* member = GetBestMatchingMember(name);
+
+			if (!member)
+			{
+				Throw(0, "%s %s. No member found", interfaceType, name);
+			}
+
+			auto& type = *member->UnderlyingType();
+
+			if (type.InterfaceCount() != 1)
+			{
+				Throw(0, "%s. Member was not of interface type", name, interfaceType);
+			}
+
+			if (!Eq(type.GetInterface(0).Name(), interfaceType))
+			{
+				Throw(0, "%s. Member was of interface type %s, not of interface type", name, type.GetInterface(0).Name(), interfaceType);
+			}
+
+			if (!Eq(type.Module().Name(), interfaceSource))
+			{
+				Throw(0, "%s. Interface source was  %s, not %s", name, type.Module().Name(), interfaceSource);
+			}
+
+			if (Eq(objectName, "0"))
+			{
+				// We need to get the universal null object for the specified instance type
+				InterfacePointer pNullObject = scriptSystem->GetUniversalNullObject(instanceType, instanceSource);
+				WritePrimitive(pNullObject);
+			}
+			else
+			{
+				Throw(0, "Unhandled object name: %s", objectName);
+			}			
+		}
+
+		void AddInterface(const Rococo::Compiler::IMember& member, const IInterface& expectedType, cstr type, cstr name, cstr sourceFile)
+		{
+			if (!Eq(expectedType.Name(), type))
+			{
+				Throw(0, "%s %s. Mismatches interface type %s", expectedType.Name(), name, type);
+			}
+
+			memberIndexStack.push_back(0);
+		}
+
 		void AddDerivativeMember(cstr type, cstr name, cstr sourceFile) override
 		{
 			const Rococo::Compiler::IMember* member = GetBestMatchingMember(name);
@@ -382,6 +445,13 @@ namespace
 			}
 			
 			auto* memberType = member->UnderlyingType();
+
+			if (memberType->InterfaceCount() > 0)
+			{
+				auto& interface0 = memberType->GetInterface(0);
+				AddInterface(*member, interface0, type, name, sourceFile);
+				return;
+			}
 
 			if (!Eq(memberType->Name(), type))
 			{
@@ -419,7 +489,9 @@ namespace
 		AutoFree<ICSVTokenParser> sxyaParser = CreateSXYAParser(objectBuilder);
 		AutoFree<ITabbedCSVTokenizer> tabbedTokenizer = CreateTabbedCSVTokenizer();
 		
-		SexyAssetLoader(IInstallation& _installation) : installation(_installation)
+		SexyAssetLoader(IInstallation& _installation) :
+			installation(_installation),
+			objectBuilder()
 		{
 		}
 
@@ -428,12 +500,12 @@ namespace
 			delete this;
 		}
 
-		void LoadAndParse(cstr pingPath, const IStructure& assetType, void* assetData) override
+		void LoadAndParse(cstr pingPath, const IStructure& assetType, void* assetData, Rococo::Script::IPublicScriptSystem& ss) override
 		{
 			WideFilePath sysPath;
 			installation.ConvertPingPathToSysPath(pingPath, sysPath);
 
-			objectBuilder.SelectTarget(assetType, assetData);
+			objectBuilder.SelectTarget(assetType, assetData, ss);
 
 			struct ANON: IEventCallback<cstr>
 			{
@@ -448,7 +520,14 @@ namespace
 
 			parse.This = this;
 
-			Rococo::OS::LoadAsciiTextFile(parse, sysPath);
+			try
+			{
+				Rococo::OS::LoadAsciiTextFile(parse, sysPath);
+			}
+			catch (IException& e)
+			{
+				Throw(e.ErrorCode(), "Error loading asset %s:\n%s", pingPath, e.Message());
+			}
 		}
 	};
 }

@@ -4,9 +4,23 @@
 
 namespace Rococo::Sexy
 {
+	ROCOCOAPI IMapNameToInstance
+	{
+		virtual void* Find(cstr objectName) = 0;
+	};
+
+	ROCOCOAPI IMapNameToInstanceSupervisor : public IMapNameToInstance
+	{
+		virtual void Free() = 0;
+	};
+
+	IMapNameToInstanceSupervisor* CreateNameToInstanceMap();
+
 	// interface to set member variables of a derivative structure. A derivative structure can be recursive, containing a hierarchy of substructures of arbitrary type
 	ROCOCOAPI IMemberBuilder
 	{
+		typedef cstr OBJECT_NAME;
+
 		// Add a boolean32 primitive
 		virtual void AddBooleanMember(cstr name, bool value) = 0;
 
@@ -27,12 +41,18 @@ namespace Rococo::Sexy
 
 		// After AddDerivativeMember, this resumes building the parent member
 		virtual void ReturnToParent() = 0;
+
+		// Add an interface pointer and point it to an object. If object name is "0" then the instance is the universal null object of the specified instance type
+		virtual void AddInterfaceMember(cstr name, cstr interfaceType, cstr interfaceSource, cstr instanceType, cstr instanceSource, OBJECT_NAME objectName) = 0;
+
+		// Add an object keyed by a name - used to resolve the name specified in AddInterfaceMember
+		virtual void ResolveInstances(IMapNameToInstance& mapper) = 0;
 	};
 
 	ROCOCOAPI ISexyObjectBuilder
 	{
 		virtual IMemberBuilder& MemberBuilder() = 0;
-		virtual void SelectTarget(const Rococo::Compiler::IStructure& type, void* pObject) = 0;
+		virtual void SelectTarget(const Rococo::Compiler::IStructure& type, void* pObject, Rococo::Script::IPublicScriptSystem& ss) = 0;
 		virtual void Free() = 0;
 	};
 
@@ -41,7 +61,7 @@ namespace Rococo::Sexy
 		virtual void Free() = 0;
 	
 		// Attempt to load some asset, identified with a sourceFilename URL, and overwrite the destination object with data.
-		virtual void LoadAndParse(cstr sourceFilename, const Rococo::Compiler::IStructure& destinationType, void* destinationAssetData) = 0;
+		virtual void LoadAndParse(cstr sourceFilename, const Rococo::Compiler::IStructure& destinationType, void* destinationAssetData, Rococo::Script::IPublicScriptSystem& ss) = 0;
 	};
 
 	IAssetLoader* CreateAssetLoader(IInstallation& installation);

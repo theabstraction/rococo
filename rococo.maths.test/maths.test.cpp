@@ -1051,8 +1051,9 @@ Matrix4x4f	world	"Sys.Maths.sxy"
 
 
 	using namespace Rococo::IO;
+	using namespace Rococo::Sexy;
 
-	struct ANON: Rococo::Sexy::IMemberBuilder
+	struct ANON: IMemberBuilder
 	{
 		int indent = 0;
 
@@ -1094,6 +1095,12 @@ Matrix4x4f	world	"Sys.Maths.sxy"
 			printf("(int64 %s = %lld)\n", name, value);
 		}
 
+		void AddInterfaceMember(cstr name, cstr interfaceType, cstr interfaceSource, cstr instanceType, cstr instanceSource, OBJECT_NAME objectName)
+		{
+			PrintIndent();
+			printf("(%s %s = %s) // %s\n", interfaceType, name, objectName, instanceType);
+		}
+
 		void AddDerivativeMember(cstr type, cstr name, cstr sourceFile) override
 		{
 			PrintIndent();
@@ -1106,6 +1113,11 @@ Matrix4x4f	world	"Sys.Maths.sxy"
 			indent--;
 			PrintIndent();
 			printf(")\n");
+		}
+
+		void ResolveInstances(IMapNameToInstance& mapper) override
+		{
+
 		}
 
 	} memberBuilder;

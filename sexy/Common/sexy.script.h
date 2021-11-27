@@ -235,7 +235,18 @@ namespace Rococo {
 			virtual void Free() = 0;
 		};
 
-		typedef void (*FN_RAW_NATIVE_REFLECTION_CALL)(void* context, Rococo::Sex::cr_sex sInvocation, const IStructure& lhsType, void* lhsData, cstr rhsName, const IStructure& rhsType, void* rhsData);
+		struct ReflectionArguments
+		{
+			Rococo::Sex::cr_sex s;
+			const IStructure& lhsType;
+			void* lhsData;
+			cstr rhsName;
+			const IStructure& rhsType;
+			void* rhsData;
+			IPublicScriptSystem& ss;
+		};
+
+		typedef void (*FN_RAW_NATIVE_REFLECTION_CALL)(void* context, ReflectionArguments& args);
 
 		struct RawReflectionBinding
 		{
@@ -248,7 +259,7 @@ namespace Rococo {
 		class TReflectionCall
 		{
 		public:
-			typedef void (*FN_NATIVE_REFLECTION_CALL)(CONTEXT* context, Rococo::Sex::cr_sex sInvocation, const IStructure& lhsType, void* lhsData, cstr rhsName, const IStructure& rhsType, void* rhsData);
+			typedef void (*FN_NATIVE_REFLECTION_CALL)(CONTEXT* context, ReflectionArguments& args);
 
 			static FN_RAW_NATIVE_REFLECTION_CALL ToRaw(FN_NATIVE_REFLECTION_CALL fnReflect)
 			{
@@ -307,6 +318,8 @@ namespace Rococo {
 			virtual void EnumRepresentations(IRepresentationEnumeratorCallback& callback) = 0;
 			virtual CReflectedClass* GetRepresentation(void* pSourceInstance) = 0;
 			virtual CReflectedClass* Represent(const Rococo::Compiler::IStructure& st, void* pSourceInstance) = 0;
+
+			virtual InterfacePointer GetUniversalNullObject(cstr instanceType, cstr instanceSource) = 0;
 		};
 
 		ROCOCOAPI IScriptSystemFactory : public IFreeable
