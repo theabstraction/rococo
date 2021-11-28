@@ -76,13 +76,45 @@ fstring GetString(InterfacePointer ip)
 	return fstring{ stringBase->pointer, stringBase->length };
 }
 
+using namespace Rococo::Script;
+
 struct Asset
 {
+	IPublicScriptSystem & ss;
 	int objectCount = 0;
 
-	Asset()
-	{
+	const IStructure* structStringConstant = nullptr;
 
+	Asset(IPublicScriptSystem& _ss): ss(_ss)
+	{
+		structStringConstant = &GetType("StringConstant", "Sys.Type.Strings.sxy");
+	}
+
+	const IStructure& GetType(cstr localName, cstr source)
+	{
+		auto* type = FindType(localName, source);
+		if (type == nullptr)
+		{
+			Throw(0, "Cannot find type %s from %s", localName, source);
+		}
+		return *type;
+	}
+
+	const IStructure* FindType(cstr localName, cstr source)
+	{
+		auto& ppo = ss.PublicProgramObject();
+
+		for (int i = 0; i < ppo.ModuleCount(); ++i)
+		{
+			auto& module = ppo.GetModule(i);
+			if (Eq(module.Name(), source))
+			{
+				auto* pStruct = module.FindStructure(localName);
+				return pStruct;
+			}
+		}
+
+		return nullptr;
 	}
 
 	template<class T>
@@ -110,6 +142,13 @@ struct Asset
 
 		ObjectStub* stub = InterfaceToInstance(pInterface);
 		auto& objectType = *stub->Desc->TypeInfo;
+
+		if (&objectType == structStringConstant)
+		{
+			auto* sc = reinterpret_cast<CStringConstant*>(stub);
+			builder.AppendStringConstant(name, sc->pointer, sc->length);
+			return;
+		}
 
 		builder.AppendInterfaceType(interfaceType.Name(), name, assetType.Module().Name());
 
@@ -193,7 +232,7 @@ static void SaveAssetWithSexyGenerator(IAssetGenerator* generator, Rococo::Scrip
 	AutoFree<IAssetBuilder> builder = generator->CreateAssetBuilder(filename);
 	builder->AppendHeader(args.rhsName, args.rhsType.Name(), args.rhsType.Module().Name());
 
-	Asset asset;
+	Asset asset(args.ss);
 
 	if (IsPrimitiveType(args.rhsType.VarType()))
 	{

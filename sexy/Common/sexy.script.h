@@ -267,6 +267,16 @@ namespace Rococo {
 			}
 		};
 
+#pragma pack(push,1)
+		struct CStringConstant
+		{
+			ObjectStub header;
+			int32 length;
+			cstr pointer;
+			void* srcExpression;
+		};
+#pragma pack(pop)
+
 		ROCOCOAPI IPublicScriptSystem : public IFreeable
 		{
 			virtual void AddCommonSource(const char* dynamicLinkLibOfNativeCalls) = 0;
@@ -280,6 +290,9 @@ namespace Rococo {
 			{
 				AddRawNativeReflectionCall(functionName, TReflectionCall<CONTEXT>::ToRaw(fnCall), (void*)context);
 			}
+
+			virtual CStringConstant* GetStringReflection(cstr s, int32 stringLength = -1) = 0;
+			virtual CStringConstant* DuplicateStringAsConstant(cstr source, int32 stringLength = -1) = 0;
 
 			virtual void RegisterPackage(IPackage* package) = 0;
 
@@ -319,6 +332,7 @@ namespace Rococo {
 			virtual CReflectedClass* GetRepresentation(void* pSourceInstance) = 0;
 			virtual CReflectedClass* Represent(const Rococo::Compiler::IStructure& st, void* pSourceInstance) = 0;
 
+			// Returns the interface pointer for the specified null object. If an interface is not matched the function throws an exception
 			virtual InterfacePointer GetUniversalNullObject(cstr instanceType, cstr instanceSource) = 0;
 		};
 
@@ -326,16 +340,6 @@ namespace Rococo {
 		{
 			virtual IPublicScriptSystem* CreateScriptSystem(const Rococo::Compiler::ProgramInitParameters& pip, ILog& logger) = 0;
 		};
-
-#pragma pack(push,1)
-		struct CStringConstant
-		{
-			ObjectStub header;
-			int32 length;
-			cstr pointer;
-			void* srcExpression;
-		};
-#pragma pack(pop)
 
 		struct ScriptCallbacks
 		{
@@ -359,7 +363,6 @@ namespace Rococo {
 			virtual Compiler::IProgramObject& ProgramObject() = 0;
 
 			virtual const CClassExpression* GetExpressionReflection(const Sex::ISExpression& s) = 0;
-			virtual CStringConstant* GetStringReflection(cstr s) = 0;
 			virtual CScriptSystemClass* GetScriptSystemClass() = 0;
 			virtual CReflectedClass* GetReflectedClass(void* ptr) = 0;
 			virtual CReflectedClass* CreateReflectionClass(cstr className, void* context) = 0;
@@ -369,7 +372,7 @@ namespace Rococo {
 			virtual void AlignedFree(void* buffer) = 0;
 			virtual int NextID() = 0;
 			virtual const ScriptCallbacks& GetScriptCallbacks() = 0;
-			virtual cstr GetPersistentString(cstr txt) = 0;
+			virtual cstr GetPersistentString(cstr text, int textLength = -1) = 0;
 			virtual const MethodInfo GetMethodByName(cstr methodName,  const Rococo::Compiler::IStructure& concreteClassType) = 0;
 
 			virtual ID_API_CALLBACK GetIdSerializeCallback() const = 0;

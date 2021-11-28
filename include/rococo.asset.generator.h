@@ -19,6 +19,7 @@ namespace Rococo::Assets
 		virtual void AppendHeader(cstr name, cstr typename, cstr moduleName) = 0;
 		virtual void AppendInterfaceType(cstr interfaceType, cstr name, cstr moduleName) = 0;
 		virtual void AppendObjectRef(cstr type, cstr moduleName, cstr objectValueName) = 0;
+		virtual void AppendStringConstant(cstr name, cstr buffer, int32 length) = 0;
 		virtual void AppendValue(cstr fieldName, int32 value) = 0;
 		virtual void AppendValue(cstr fieldName, int64 value) = 0;
 		virtual void AppendValue(cstr fieldName, float value) = 0;

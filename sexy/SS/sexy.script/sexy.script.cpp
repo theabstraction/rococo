@@ -680,7 +680,12 @@ namespace Rococo
 		typedef std::unordered_map<const Sex::ISExpression*, Script::CClassExpression*> TSReflectMap;
 		TSReflectMap sreflectMap;
 
-		std::unordered_map<std::string, uint64> persistentStrings;
+		struct CharSequence
+		{
+			std::vector<char> buffer;
+		};
+
+		std::vector<CharSequence> persistentStrings;
 
 		AutoFree<ISexyPackagerSupervisor> packager;
 
@@ -986,17 +991,18 @@ namespace Rococo
 			return stringPool->FastStringBuilderType();
 		}
 
-		cstr GetPersistentString(cstr txt) override
+		cstr GetPersistentString(cstr text, int textLength = -1) override
 		{
-			auto i = persistentStrings.find(txt);
-			if (i != persistentStrings.end())
-			{
-				return i->first.c_str();
-			}
-			else
-			{
-				return persistentStrings.insert(std::make_pair(std::string(txt), 0)).first->first.c_str();
-			}
+			if (textLength < 0) textLength = StringLength(text);
+
+			CharSequence cs;
+			cs.buffer.resize((size_t)(textLength + 1));
+			memcpy_s(cs.buffer.data(), cs.buffer.size(), text, textLength);
+			cs.buffer[textLength] = 0;
+
+			persistentStrings.push_back(cs);
+
+			return persistentStrings.back().buffer.data();
 		}
 
 		typedef std::unordered_map<std::string, MethodInfo> TMapNameToMethod;
@@ -1381,8 +1387,10 @@ namespace Rococo
 			}
 		}
 
-		CStringConstant* GetStringReflection(cstr s) override
+		CStringConstant* GetStringReflection(cstr s, int stringLength) override
 		{
+			if (stringLength < 0) stringLength = StringLength(s);
+
 			auto i = reflectedStrings.find(s);
 			if (i == reflectedStrings.end())
 			{
@@ -1396,7 +1404,7 @@ namespace Rococo
 #endif
 				CStringConstant* pSC = (CStringConstant*)DynamicCreateClass(stringConstantStruct, 0);
 				pSC->pointer = s;
-				pSC->length = StringLength(s);
+				pSC->length = stringLength;
 				pSC->srcExpression = NULL;
 				reflectedStrings.insert(std::make_pair(s, pSC));
 				return pSC;
@@ -1405,6 +1413,22 @@ namespace Rococo
 			{
 				return i->second;
 			}
+		}
+
+		CStringConstant* DuplicateStringAsConstant(cstr source, int32 stringLength = -1) override
+		{
+			if (source == nullptr)
+			{
+				const IStructure& stringConstantStruct = *SysTypeMemoModule().FindStructure(("StringConstant"));
+
+				CStringConstant* pSC = (CStringConstant*)DynamicCreateClass(stringConstantStruct, 0);
+				pSC->pointer = nullptr;
+				pSC->length = 0;
+				pSC->srcExpression = NULL;
+				return pSC;
+			}
+			cstr persistentString = GetPersistentString(source, stringLength);
+			return GetStringReflection(persistentString, stringLength);
 		}
 
 		CScriptSystemClass* GetScriptSystemClass() override

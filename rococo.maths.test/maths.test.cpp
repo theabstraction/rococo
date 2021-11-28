@@ -996,7 +996,7 @@ Banner!
 			VALIDATE(false);
 		}
 
-		void OnToken(int row, int column, cstr token) override
+		void OnToken(int row, int column, cstr token, int stringLength) override
 		{
 			printf("%d %d: %s\n", row, column, token);
 		}
@@ -1099,6 +1099,12 @@ Matrix4x4f	world	"Sys.Maths.sxy"
 		{
 			PrintIndent();
 			printf("(%s %s = %s) // %s\n", interfaceType, name, objectName, instanceType);
+		}
+
+		void AddStringConstant(cstr name, cstr text, int32 textLength)
+		{
+			PrintIndent();
+			printf("(IString %s = \"%s\") // %d chars\n", name, text, textLength);
 		}
 
 		void AddDerivativeMember(cstr type, cstr name, cstr sourceFile) override

@@ -15,6 +15,7 @@ namespace
 	using namespace Rococo::IO;
 	using namespace Rococo::Compiler;
 	using namespace Rococo::Sexy;
+	using namespace Rococo::Script;
 
 	inline ObjectStub* InterfaceToInstance(InterfacePointer i)
 	{
@@ -25,17 +26,19 @@ namespace
 
 	struct SexyObjectBuilder: ISexyObjectBuilder, IMemberBuilder
 	{
-		const Rococo::Compiler::IStructure* type = nullptr;
+		const IStructure* type = nullptr;
 		uint8* pObject = nullptr;
 		ObjectStub* objectStub = nullptr;
 		uint8* writePosition = nullptr;
 		uint8* writeCursor = nullptr;
-		const Rococo::Compiler::IStructure* objectType = nullptr;
+		const IStructure* objectType = nullptr;
 
 		// Gives the next member to be overwritten
 		std::vector<int> memberIndexStack;
 
-		Rococo::Script::IPublicScriptSystem* scriptSystem = nullptr;
+		IPublicScriptSystem* scriptSystem = nullptr;
+
+		const IStructure* typeIString = nullptr;
 
 		SexyObjectBuilder()
 		{
@@ -74,6 +77,22 @@ namespace
 
 			memberIndexStack.clear();
 			memberIndexStack.push_back(0); // 0 gives the member index, and since the stack depth is 1, the index refers to the top level member array
+
+			auto& rootNS = ss.PublicProgramObject().GetRootNamespace();
+			auto* sysType = rootNS.FindSubspace("Sys.Type");
+			if (!sysType)
+			{
+				Throw(0, "Could not find Sys.Type");
+			}
+
+			auto* interfaceIstring = sysType->FindInterface("IString");
+
+			if (interfaceIstring == nullptr)
+			{
+				Throw(0, "Could not find Sys.Type.IString");
+			}
+
+			typeIString = &interfaceIstring->NullObjectType();
 		}
 
 		IMemberBuilder& MemberBuilder()
@@ -241,9 +260,9 @@ namespace
 			return memberAndOffset.member;
 		}
 
-		const Rococo::Compiler::IMember* GetBestMatchingMember(cstr name)
+		const IMember* GetBestMatchingMember(cstr name)
 		{
-			const Rococo::Compiler::IMember* member = GetMemberRefAndUpdateWriteCursor();
+			const IMember* member = GetMemberRefAndUpdateWriteCursor();
 			if (member)
 			{
 				if (!Eq(member->Name(), name))
@@ -297,7 +316,7 @@ namespace
 
 		void AddBooleanMember(cstr name, bool value) override
 		{
-			const Rococo::Compiler::IMember* member = GetBestMatchingMember(name);
+			const IMember* member = GetBestMatchingMember(name);
 			
 			if (!member)
 			{
@@ -316,7 +335,7 @@ namespace
 
 		void AddDoubleMember(cstr name, double value) override
 		{
-			const Rococo::Compiler::IMember* member = GetBestMatchingMember(name);
+			const IMember* member = GetBestMatchingMember(name);
 
 			if (!member)
 			{
@@ -335,7 +354,7 @@ namespace
 
 		void AddFloatMember(cstr name, float value) override
 		{
-			const Rococo::Compiler::IMember* member = GetBestMatchingMember(name);
+			const IMember* member = GetBestMatchingMember(name);
 
 			if (!member)
 			{
@@ -353,7 +372,7 @@ namespace
 
 		void AddInt32Member(cstr name, int32 value) override
 		{
-			const Rococo::Compiler::IMember* member = GetBestMatchingMember(name);
+			const IMember* member = GetBestMatchingMember(name);
 
 			if (!member)
 			{
@@ -371,7 +390,7 @@ namespace
 
 		void AddInt64Member(cstr name, int64 value) override
 		{
-			const Rococo::Compiler::IMember* member = GetBestMatchingMember(name);
+			const IMember* member = GetBestMatchingMember(name);
 
 			if (!member)
 			{
@@ -385,6 +404,26 @@ namespace
 			{
 				WriteNull(*member->UnderlyingType());
 			}
+		}
+
+		void AddStringConstant(cstr name, cstr text, int32 stringLength)
+		{
+			const IMember* member = GetBestMatchingMember(name);
+
+			if (!member)
+			{
+				Throw(0, "%s: No member found", name);
+			}
+
+			auto& type = *member->UnderlyingType();
+
+			if (typeIString != &type)
+			{
+				Throw(0, "Expected %s to be of type Sys.Type.IString, but was of type %s", name, type.Name());
+			}
+
+			CStringConstant* sc = scriptSystem->DuplicateStringAsConstant(text, stringLength);
+			WritePrimitive(sc->header.pVTables);
 		}
 
 		void AddInterfaceMember(cstr name, cstr interfaceType, cstr interfaceSource, cstr instanceType, cstr instanceSource, OBJECT_NAME objectName) override

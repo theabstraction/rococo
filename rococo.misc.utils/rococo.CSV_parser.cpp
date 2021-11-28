@@ -18,7 +18,7 @@ namespace
 
 	struct CSV_SexyAssetParser : ICSVTokenParser
 	{
-		typedef void (CSV_SexyAssetParser::*FN_STATE)(int row, int column, cstr token);
+		typedef void (CSV_SexyAssetParser::*FN_STATE)(int row, int column, cstr token, int32 stringLength);
 
 		std::vector<int> memberIndex;
 		IMemberBuilder& memberBuilder;
@@ -49,7 +49,7 @@ namespace
 
 		bool primitiveLine = false;
 
-		void OnMemberValueBool(int row, int column, cstr token)
+		void OnMemberValueBool(int row, int column, cstr token, int32 stringLength)
 		{
 			if (defRow != row || defColumn != column)
 			{
@@ -66,7 +66,7 @@ namespace
 			tokenHandler = &CSV_SexyAssetParser::OnMemberDef;
 		}
 
-		void OnMemberValueInt32(int row, int column, cstr token)
+		void OnMemberValueInt32(int row, int column, cstr token, int32 stringLength)
 		{
 			if (defRow != row || defColumn != column)
 			{
@@ -84,7 +84,7 @@ namespace
 			tokenHandler = &CSV_SexyAssetParser::OnMemberDef;
 		}
 
-		void OnMemberValueInt64(int row, int column, cstr token)
+		void OnMemberValueInt64(int row, int column, cstr token, int32 stringLength)
 		{
 			if (defRow != row || defColumn != column)
 			{
@@ -107,7 +107,7 @@ namespace
 			return *(float*)(&binaryRepresentation);
 		}
 
-		void OnMemberValueFloat(int row, int column, cstr token)
+		void OnMemberValueFloat(int row, int column, cstr token, int32 stringLength)
 		{
 			if (defRow != row || defColumn != column)
 			{
@@ -132,7 +132,7 @@ namespace
 			return *(double*)(&binaryRepresentation);
 		}
 
-		void OnMemberValueDouble(int row, int column, cstr token)
+		void OnMemberValueDouble(int row, int column, cstr token, int32 stringLength)
 		{
 			if (defRow != row || defColumn != column)
 			{
@@ -152,7 +152,7 @@ namespace
 			tokenHandler = &CSV_SexyAssetParser::OnMemberDef;
 		}
 
-		void OnMemberDerivativeSource(int row, int column, cstr token)
+		void OnMemberDerivativeSource(int row, int column, cstr token, int32 stringLength)
 		{
 			if (defRow != row || defColumn != column)
 			{
@@ -171,7 +171,7 @@ namespace
 		char instanceType[Rococo::MAX_FQ_NAME_LEN + 1];
 		char instanceSource[Rococo::IO::MAX_PATHLEN];
 
-		void OnInstanceRefName(int row, int column, cstr token)
+		void OnInstanceRefName(int row, int column, cstr token, int32 stringLength)
 		{
 			if (defRow != row || defColumn != column)
 			{
@@ -186,7 +186,7 @@ namespace
 			tokenHandler = &CSV_SexyAssetParser::OnMemberDef;
 		}
 
-		void OnInstanceSource(int row, int column, cstr token)
+		void OnInstanceSource(int row, int column, cstr token, int32 stringLength)
 		{
 			if (defRow != row || defColumn != column)
 			{
@@ -200,7 +200,21 @@ namespace
 			tokenHandler = &CSV_SexyAssetParser::OnInstanceRefName;
 		}
 
-		void OnInstanceType(int row, int column, cstr token)
+		std::vector<char> stringConstantBuffer;
+
+		void OnStringConstant(int row, int column, cstr token, int32 stringLength)
+		{
+			stringConstantBuffer.clear();
+			stringConstantBuffer.resize(stringLength + 1);
+			memcpy_s(stringConstantBuffer.data(), stringConstantBuffer.size(), token, stringLength);
+			stringConstantBuffer[stringLength] = 0;
+
+			defColumn++;
+
+			tokenHandler = &CSV_SexyAssetParser::OnStringConstantLength;
+		}
+
+		void OnInstanceType(int row, int column, cstr token, int32 stringLength)
 		{
 			if (defRow != row || defColumn != column)
 			{
@@ -214,7 +228,7 @@ namespace
 			tokenHandler = &CSV_SexyAssetParser::OnInstanceSource;
 		}
 
-		void OnMemberInterfaceSource(int row, int column, cstr source)
+		void OnMemberInterfaceSource(int row, int column, cstr source, int32 stringLength)
 		{
 			if (defRow != row || defColumn != column)
 			{
@@ -228,7 +242,7 @@ namespace
 			tokenHandler = &CSV_SexyAssetParser::OnInstanceType;
 		}
 
-		void OnMemberInterfaceType(int row, int column, cstr token)
+		void OnMemberInterfaceType(int row, int column, cstr token, int32 stringLength)
 		{
 			if (defRow != row || defColumn != column)
 			{
@@ -242,7 +256,28 @@ namespace
 			tokenHandler = &CSV_SexyAssetParser::OnMemberInterfaceSource;
 		}
 
-		void OnMemberName(int row, int column, cstr token)
+		void OnStringConstantLength(int row, int column, cstr token, int32 stringLength)
+		{
+			if (defRow != row || defColumn != column)
+			{
+				Throw(0, "Expecting <source-file> at row %d column %d", defRow, defColumn);
+			}
+
+			int stringConstantLength = atoi(token);
+			if (stringConstantLength + 1 != (int32) stringConstantBuffer.size())
+			{
+				Throw(0, "Expecting string constant buffer length to be %d, but it was %llu", (stringConstantLength + 1), stringConstantBuffer.size());
+			}
+
+			memberBuilder.AddStringConstant(memberNameBuffer, stringConstantBuffer.data(), stringConstantLength);
+
+			defColumn -= 3;
+			defRow++;
+
+			tokenHandler = &CSV_SexyAssetParser::OnMemberDef;
+		}
+
+		void OnMemberName(int row, int column, cstr token, int32 stringLength)
 		{
 			if (defRow != row)
 			{
@@ -278,10 +313,15 @@ namespace
 				primitiveLine = true;
 				tokenHandler = &CSV_SexyAssetParser::OnMemberValueBool;
 			}
-			else if (Eq(memberTypeBuffer, "$"))
+			else if (Eq(memberTypeBuffer, "@"))
 			{
 				primitiveLine = true;
 				tokenHandler = &CSV_SexyAssetParser::OnMemberInterfaceType;
+			}
+			else if (Eq(memberTypeBuffer, "$"))
+			{
+				primitiveLine = true;
+				tokenHandler = &CSV_SexyAssetParser::OnStringConstant;
 			}
 			else
 			{
@@ -291,7 +331,7 @@ namespace
 			}
 		}
 
-		void OnMemberDef(int row, int column, cstr token)
+		void OnMemberDef(int row, int column, cstr token, int32 stringLength)
 		{
 			if (primitiveLine && defRow == row + 1)
 			{
@@ -319,7 +359,7 @@ namespace
 			tokenHandler = &CSV_SexyAssetParser::OnMemberName;
 		}
 
-		void OnArchiveType(int row, int column, cstr token)
+		void OnArchiveType(int row, int column, cstr token, int32 stringLength)
 		{
 			if (*token == 0 || row != 2 || column != 1)
 			{
@@ -330,7 +370,7 @@ namespace
 			tokenHandler = &CSV_SexyAssetParser::OnArchiveName;
 		}
 
-		void OnArchiveName(int row, int column, cstr token)
+		void OnArchiveName(int row, int column, cstr token, int32 stringLength)
 		{
 			if (*token == 0 || row != 2 || column != 2)
 			{
@@ -341,7 +381,7 @@ namespace
 			tokenHandler = &CSV_SexyAssetParser::OnArchiveTypeSource;
 		}
 
-		void OnArchiveTypeSource(int row, int column, cstr token)
+		void OnArchiveTypeSource(int row, int column, cstr token, int32 stringLength)
 		{
 			if (*token == 0 || row != 2 || column != 3)
 			{
@@ -355,7 +395,7 @@ namespace
 			defColumn = 1;
 		}
 
-		void OnSignature(int row, int column, cstr token)
+		void OnSignature(int row, int column, cstr token, int32 stringLength)
 		{
 			if (!Eq(token, "AssetBuilder_CSV") || row != 1 || column != 1)
 			{
@@ -365,11 +405,11 @@ namespace
 			tokenHandler = &CSV_SexyAssetParser::OnArchiveType;
 		}
 
-		void OnToken(int row, int column, cstr token) override
+		void OnToken(int row, int column, cstr token, int32 stringLengthPlusNul) override
 		{
 			try
 			{
-				(this->*tokenHandler)(row, column, token);
+				(this->*tokenHandler)(row, column, token, stringLengthPlusNul - 1);
 			}
 			catch (IException& e)
 			{
@@ -470,7 +510,7 @@ namespace
 					else if (c == '\t')
 					{
 						AppendChar(0);
-						tokenParser.OnToken(row, column, token.data());
+						tokenParser.OnToken(row, column, token.data(), (int32) token.size());
 						token.clear();
 
 						cursor.x++;
@@ -481,7 +521,7 @@ namespace
 					else if (c == '\n')
 					{
 						AppendChar(0);
-						tokenParser.OnToken(row, column, token.data());
+						tokenParser.OnToken(row, column, token.data(), (int32) token.size());
 						token.clear();
 
 						column = 1;
@@ -516,7 +556,7 @@ namespace
 					else if (c == '"')
 					{
 						AppendChar(0);
-						tokenParser.OnToken(row, column, token.data());
+						tokenParser.OnToken(row, column, token.data(), (int32) token.size());
 						token.clear();
 
 						cursor.x++;

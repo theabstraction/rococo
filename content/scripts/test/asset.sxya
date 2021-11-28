@@ -1,6 +1,7 @@
 AssetBuilder_CSV
 GlobalState	assetFile	"!scripts/test.app.created.sxy"
-$	dogName	IString	"Sys.Type.Strings.sxy"	_Null_Sys_Type_IString	"Sys.Type.Strings.sxy"	0
+$	catName	"Meow-meow"	9
+@	dogName	IString	"Sys.Type.Strings.sxy"	_Null_Sys_Type_IString	"Sys.Type.Strings.sxy"	0
 d	age	0x403199999999999A	17.6
 Vec3f	position	"Sys.Maths.sxy"
 	f	x	0x3FB33333	1.4

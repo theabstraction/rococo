@@ -56,7 +56,7 @@ namespace ANON
 		void AppendInterfaceType(cstr type, cstr name, cstr moduleName)
 		{
 			AppendIndents();
-			sb.AppendFormat("$");
+			sb.AppendFormat("@");
 			Indent();
 			sb.AppendFormat("%s", name);
 			Indent();
@@ -76,10 +76,46 @@ namespace ANON
 			sb.AppendChar('\n');
 		}
 
+		void AppendStringConstant(cstr name, cstr buffer, int32 length) override
+		{
+			AppendIndents();
+			sb.AppendFormat("$");
+			Indent();
+			sb.AppendFormat("%s", name);
+			Indent();
+			sb.AppendChar('"');
+
+			for(int32 i = 0; i < length; i++)
+			{ 
+				switch (buffer[i])
+				{
+				case '\t':
+					sb.AppendFormat("\\t");
+					break;
+				case '"':
+					sb.AppendFormat("\\\"");
+					break;
+				case '\\':
+					sb.AppendFormat("\\\\");
+					break;
+				case '\0':
+					sb.AppendFormat("\\0");
+					break;
+				default:
+					sb.AppendChar(buffer[i]);
+					break;
+				}
+			}
+
+			sb.AppendChar('"');
+			Indent();
+			sb.AppendFormat("%d\n", length);
+		}
+
 		void AppendValue(cstr fieldName, int32 value) override
 		{
 			AppendIndents();
-			sb.AppendFormat("I");
+			sb.AppendFormat("i");
 			Indent();
 			sb.AppendFormat("%s", fieldName);
 			Indent();

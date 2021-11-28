@@ -36,6 +36,9 @@ namespace Rococo::Sexy
 		// Add an int64 primitive
 		virtual void AddInt64Member(cstr name, int64 value) = 0;
 
+		// Add an IString ref to a ConstantBuffer@Sys.Type.Strings.sxy
+		virtual void AddStringConstant(cstr name, cstr text, int32 stringLength) = 0;
+
 		// Descend into derivative sub-member 
 		virtual void AddDerivativeMember(cstr type, cstr name, cstr sourceFile) = 0;
 
@@ -72,7 +75,7 @@ namespace Rococo::IO
 	ROCOCOAPI ICSVTokenParser
 	{
 		virtual void OnBadChar(Vec2i cursorPosition, char value) = 0;
-		virtual void OnToken(int row, int column, cstr token) = 0;
+		virtual void OnToken(int row, int column, cstr token, int stringLengthPlusNul) = 0;
 		virtual void Reset() = 0;
 		virtual void Free() = 0;
 	};
