@@ -243,6 +243,79 @@ namespace
 			}
 			delete this;
 		}
+
+		FastStringBuilder* Create(int32 capacity)
+		{
+			if (capacity == 64)
+			{
+				if (freeList_64.empty())
+				{
+					auto* sb64 = new FastStringBuilder_64();
+					allocList[(char*)sb64] = 0;
+					return &sb64->header;
+				}
+				else
+				{
+					auto* tail = freeList_64.back();
+					freeList_64.pop_back();
+					return &tail->header;
+				}
+			}
+			else if (capacity == 260)
+			{
+				if (freeList_260.empty())
+				{
+					auto* sb260 = new FastStringBuilder_260();
+					allocList[(char*)sb260] = 0;
+					return &sb260->header;
+				}
+				else
+				{
+					auto* tail = freeList_260.back();
+					freeList_260.pop_back();
+					return &tail->header;
+				}
+			}
+			else if (capacity == 1024)
+			{
+				if (freeList_1024.empty())
+				{
+					auto* sb1024 = new FastStringBuilder_1024();
+					allocList[(char*)sb1024] = 0;
+					return &sb1024->header;
+				}
+				else
+				{
+					auto* tail = freeList_1024.back();
+					freeList_1024.pop_back();
+					return &tail->header;
+				}
+			}
+			else
+			{
+				auto* sb = (FastStringBuilder*) new char[sizeof(FastStringBuilder) + capacity];
+				allocList[(char*)sb] = 0;
+				return sb;
+			}
+		}
+
+		FastStringBuilder* CreateAndInitFields(int32 capacity) override
+		{
+			auto* sb = Create(capacity);
+
+			sb->buffer = ((char*)sb) + sizeof(FastStringBuilder);
+			sb->buffer[0] = 0;
+			sb->capacity = capacity;
+			sb->length = 0;
+			sb->formatBase = 10;
+			sb->spec = SPEC_F;
+			sb->stub.Desc = (ObjectDesc*) typeFastStringBuilder->GetVirtualTable(0);
+			sb->stub.refCount = 1;
+			sb->stub.pVTables[0] = (VirtualTable*) typeFastStringBuilder->GetVirtualTable(1);
+			SafeFormat(sb->prefix, 8, "%s", "%4.4");
+
+			return sb;
+		}
 	};
 
 	void NewStringBuilder(NativeCallEnvironment& e)
@@ -255,69 +328,7 @@ namespace
 		if (capacity <= 0) Throw(0, "NewStringBuilder failed. Capacity needs to be positive");
 		if (capacity >= 1024_megabytes) Throw(0, "NewStringBuilder failed. Capacity needs to be less than 1 gigabyte");
 
-		FastStringBuilder* sb;
-
-		if (capacity == 64)
-		{
-			if (pool.freeList_64.empty())
-			{
-				auto* sb64 = new FastStringBuilder_64();
-				pool.allocList[(char*)sb64] = 0;
-				sb = &sb64->header;
-			}
-			else
-			{
-				auto* tail = pool.freeList_64.back();
-				pool.freeList_64.pop_back();
-				sb = &tail->header;
-			}
-		}
-		else if (capacity == 260)
-		{
-			if (pool.freeList_260.empty())
-			{
-				auto* sb260 = new FastStringBuilder_260();
-				pool.allocList[(char*)sb260] = 0;
-				sb = &sb260->header;
-			}
-			else
-			{
-				auto* tail = pool.freeList_260.back();
-				pool.freeList_260.pop_back();
-				sb = &tail->header;
-			}
-		}
-		else if(capacity == 1024)
-		{
-			if (pool.freeList_1024.empty())
-			{
-				auto* sb1024 = new FastStringBuilder_1024();
-				pool.allocList[(char*)sb1024] = 0;
-				sb = &sb1024->header;
-			}
-			else
-			{
-				auto* tail = pool.freeList_1024.back();
-				pool.freeList_1024.pop_back();
-				sb = &tail->header;
-			}
-		}
-		else
-		{
-			sb = (FastStringBuilder*) new char[sizeof(FastStringBuilder) + capacity];
-			pool.allocList[(char*) sb] = 0;
-		}
-
-		sb->buffer = ((char*) sb) + sizeof(FastStringBuilder);
-		sb->buffer[0] = 0;
-		sb->capacity = capacity;
-		sb->length = 0;
-		sb->formatBase = 10;
-		sb->spec = SPEC_F;
-		sb->stub.Desc = (ObjectDesc*)pool.typeFastStringBuilder->GetVirtualTable(0);
-		sb->stub.refCount = 1;
-		sb->stub.pVTables[0] = (VirtualTable*) pool.typeFastStringBuilder->GetVirtualTable(1);
-		SafeFormat(sb->prefix, 8, "%s", "%4.4");
+		FastStringBuilder* sb = pool.CreateAndInitFields(capacity);
 
 		WriteOutput(0, (void*)&sb->stub.pVTables[0], e);
 	}

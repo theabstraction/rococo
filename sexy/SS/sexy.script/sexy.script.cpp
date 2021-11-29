@@ -1415,6 +1415,30 @@ namespace Rococo
 			}
 		}
 
+		FastStringBuilder* CreateAndPopulateFastStringBuilder(const fstring& text, int32 capacity)
+		{
+			if (!stringPool)
+			{
+				Throw(0, "%s: No string pool", __FUNCTION__);
+			}
+
+			if (capacity < 1 || capacity > 1024_megabytes)
+			{
+				Throw(0, "CreateAndPopulateFastStringBuilder: capacity must be greater than zero and less than 1 gigabyte. %d was specified", capacity);
+			}
+
+			if (text.length >= capacity || text.length < 0)
+			{
+				Throw(0, "CreateAndPopulateFastStringBuilder(..., %d,%d): must range from 0 to capacity - 1", text.length, capacity);
+			}
+
+			auto* sb = stringPool->CreateAndInitFields(capacity);
+			memcpy_s(sb->buffer, sb->capacity, text, text.length);
+			sb->buffer[text.length] = 0;
+			sb->length = text.length;
+			return sb;
+		}
+
 		CStringConstant* DuplicateStringAsConstant(cstr source, int32 stringLength = -1) override
 		{
 			if (source == nullptr)

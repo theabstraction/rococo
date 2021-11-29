@@ -38,7 +38,8 @@ namespace
 
 		IPublicScriptSystem* scriptSystem = nullptr;
 
-		const IStructure* typeIString = nullptr;
+		mutable const IStructure* typeIString = nullptr;
+		mutable const IStructure* typeIStringBuilder = nullptr;
 
 		SexyObjectBuilder()
 		{
@@ -53,6 +54,54 @@ namespace
 		void ResolveInstances(IMapNameToInstance& mapper) override
 		{
 
+		}
+
+		bool IsIString(const IStructure& type) const
+		{
+			if (typeIString == nullptr)
+			{
+				auto& rootNS = scriptSystem->PublicProgramObject().GetRootNamespace();
+				auto* sysType = rootNS.FindSubspace("Sys.Type");
+				if (!sysType)
+				{
+					Throw(0, "Could not find Sys.Type");
+				}
+
+				auto* interfaceIString = sysType->FindInterface("IString");
+
+				if (interfaceIString == nullptr)
+				{
+					Throw(0, "Could not find Sys.Type.IString");
+				}
+
+				typeIString = &interfaceIString->NullObjectType();
+			}
+
+			return typeIString == &type;
+		}
+
+		bool IsIStringBuilder(const IStructure& type) const
+		{
+			if (typeIStringBuilder == nullptr)
+			{
+				auto& rootNS = scriptSystem->PublicProgramObject().GetRootNamespace();
+				auto* sysType = rootNS.FindSubspace("Sys.Type");
+				if (!sysType)
+				{
+					Throw(0, "Could not find Sys.Type");
+				}
+
+				auto* interfaceIStringBuilder = sysType->FindInterface("IStringBuilder");
+
+				if (interfaceIStringBuilder == nullptr)
+				{
+					Throw(0, "Could not find Sys.Type.IStringBuilder");
+				}
+
+				typeIStringBuilder = &interfaceIStringBuilder->NullObjectType();
+			}
+
+			return typeIStringBuilder == &type;
 		}
 
 		void SelectTarget(const Rococo::Compiler::IStructure& type, void* pObject, Rococo::Script::IPublicScriptSystem& ss) override
@@ -406,6 +455,26 @@ namespace
 			}
 		}
 
+		void AddFastStringBuilder(cstr name, fstring text, int32 capacity, cstr objectRefName)
+		{
+			const IMember* member = GetBestMatchingMember(name);
+
+			if (!member)
+			{
+				Throw(0, "%s: No member found", name);
+			}
+
+			auto& type = *member->UnderlyingType();
+
+			if (!IsIStringBuilder(type) && !IsIString(type))
+			{
+				Throw(0, "Expected %s to be of type IStringBuilder or IString, but was of type %s", name, type.Name());
+			}
+
+			FastStringBuilder* fb = scriptSystem->CreateAndPopulateFastStringBuilder(text, capacity);
+			WritePrimitive(fb->stub.pVTables);
+		}
+
 		void AddStringConstant(cstr name, cstr text, int32 stringLength)
 		{
 			const IMember* member = GetBestMatchingMember(name);
@@ -417,7 +486,7 @@ namespace
 
 			auto& type = *member->UnderlyingType();
 
-			if (typeIString != &type)
+			if (!IsIString(type))
 			{
 				Throw(0, "Expected %s to be of type Sys.Type.IString, but was of type %s", name, type.Name());
 			}

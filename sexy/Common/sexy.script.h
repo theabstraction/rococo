@@ -293,6 +293,7 @@ namespace Rococo {
 
 			virtual CStringConstant* GetStringReflection(cstr s, int32 stringLength = -1) = 0;
 			virtual CStringConstant* DuplicateStringAsConstant(cstr source, int32 stringLength = -1) = 0;
+			virtual FastStringBuilder* CreateAndPopulateFastStringBuilder(const fstring& text, int32 capacity) = 0;
 
 			virtual void RegisterPackage(IPackage* package) = 0;
 

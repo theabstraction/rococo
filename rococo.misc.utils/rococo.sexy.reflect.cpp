@@ -83,14 +83,42 @@ struct Asset
 	IPublicScriptSystem & ss;
 	int objectCount = 0;
 
-	const IStructure* structStringConstant = nullptr;
+	mutable const IStructure* structStringConstant = nullptr;
+	mutable const IStructure* structfastStringBuilder = nullptr;
+
+	bool IsFastStringBuilderType(const IStructure& type) const
+	{
+		if (!structfastStringBuilder)
+		{
+			structfastStringBuilder = &GetType("FastStringBuilder", "Sys.Type.Strings.sxy");
+			if (!structfastStringBuilder)
+			{
+				Throw(0, "Cannot get FastStringBuilder type");
+			}
+		}
+
+		return structfastStringBuilder == &type;
+	}
+
+	bool IsStringConstantType(const IStructure& type) const
+	{
+		if (!structStringConstant)
+		{
+			structStringConstant = &GetType("StringConstant", "Sys.Type.Strings.sxy");
+			if (!structStringConstant)
+			{
+				Throw(0, "Cannot get StringConstant type");
+			}
+		}
+
+		return structStringConstant == &type;
+	}
 
 	Asset(IPublicScriptSystem& _ss): ss(_ss)
 	{
-		structStringConstant = &GetType("StringConstant", "Sys.Type.Strings.sxy");
 	}
 
-	const IStructure& GetType(cstr localName, cstr source)
+	const IStructure& GetType(cstr localName, cstr source) const
 	{
 		auto* type = FindType(localName, source);
 		if (type == nullptr)
@@ -100,7 +128,7 @@ struct Asset
 		return *type;
 	}
 
-	const IStructure* FindType(cstr localName, cstr source)
+	const IStructure* FindType(cstr localName, cstr source) const
 	{
 		auto& ppo = ss.PublicProgramObject();
 
@@ -143,7 +171,7 @@ struct Asset
 		ObjectStub* stub = InterfaceToInstance(pInterface);
 		auto& objectType = *stub->Desc->TypeInfo;
 
-		if (&objectType == structStringConstant)
+		if (IsStringConstantType(objectType))
 		{
 			auto* sc = reinterpret_cast<CStringConstant*>(stub);
 			builder.AppendStringConstant(name, sc->pointer, sc->length);
@@ -151,6 +179,8 @@ struct Asset
 		}
 
 		builder.AppendInterfaceType(interfaceType.Name(), name, assetType.Module().Name());
+
+		builder.AppendObjectDesc(objectType.Name(), objectType.Module().Name());
 
 		char objectName[64];
 
@@ -162,8 +192,18 @@ struct Asset
 		{
 			SafeFormat(objectName, "Object%d-%s", objectCount, objectType.Name());
 		}
+		
+		builder.AppendSimpleString(objectName);
 
-		builder.AppendObjectRef(objectType.Name(), objectType.Module().Name(), objectName);
+		if (IsFastStringBuilderType(objectType))
+		{
+			auto* fb = reinterpret_cast<FastStringBuilder*>(stub);
+			builder.AppendFString(fstring{ fb->buffer, fb->length });
+			builder.AppendInt32(fb->length);
+			builder.AppendInt32(fb->capacity);
+		}
+		
+		builder.NextLine();		
 	}
 
 	const uint8* SaveAssetField_Recursive(cr_sex s, IAssetBuilder& builder, cstr name, const IStructure& assetType, const uint8* assetData)

@@ -16,6 +16,7 @@
 (using Sys.Maths)
 
 (struct GlobalState
+	(IString squirrelName)
 	(IString catName)
 	(IString dogName)
 	(Float64 age)
@@ -63,8 +64,11 @@
 	(Sys.Reflection.SexyAssetFile assetFile = "!scripts/test/asset.sxya")
 	
 	(IString dogName = NullString)
+	(IStringBuilder squirrelName = (NewParagraphBuilder))
+	(#build squirrelName "Geoff")
 	
 	(GlobalState globalState = 
+		squirrelName
 		"Meow-meow"
 		dogName
 		17.6 // age

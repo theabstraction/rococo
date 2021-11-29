@@ -65,28 +65,12 @@ namespace ANON
 			sb.AppendFormat("\"%s\"", moduleName);
 		}
 
-		void AppendObjectRef(cstr type, cstr moduleName, cstr objectValueName) override
+		void AppendCharSequence(cstr buffer, int32 length)
 		{
-			Indent();
-			sb.AppendFormat("%s", type);
-			Indent();
-			sb.AppendFormat("\"%s\"", moduleName);
-			Indent();
-			sb.AppendFormat("%s", objectValueName);
-			sb.AppendChar('\n');
-		}
-
-		void AppendStringConstant(cstr name, cstr buffer, int32 length) override
-		{
-			AppendIndents();
-			sb.AppendFormat("$");
-			Indent();
-			sb.AppendFormat("%s", name);
-			Indent();
 			sb.AppendChar('"');
 
-			for(int32 i = 0; i < length; i++)
-			{ 
+			for (int32 i = 0; i < length; i++)
+			{
 				switch (buffer[i])
 				{
 				case '\t':
@@ -108,6 +92,41 @@ namespace ANON
 			}
 
 			sb.AppendChar('"');
+		}
+
+		void AppendFString(const fstring& text) override
+		{
+			Indent();
+			AppendCharSequence(text.buffer, text.length);
+		}
+
+		void AppendInt32(int32 value) override
+		{
+			Indent();
+			sb.AppendFormat("%d", value);
+		}
+
+		void NextLine() override
+		{
+			sb.AppendChar('\n');
+		}
+
+		void AppendObjectDesc(cstr type, cstr moduleName) override
+		{
+			Indent();
+			sb.AppendFormat("%s", type);
+			Indent();
+			sb.AppendFormat("\"%s\"", moduleName);
+		}
+
+		void AppendStringConstant(cstr name, cstr buffer, int32 length) override
+		{
+			AppendIndents();
+			sb.AppendFormat("$");
+			Indent();
+			sb.AppendFormat("%s", name);
+			Indent();
+			AppendCharSequence(buffer, length);
 			Indent();
 			sb.AppendFormat("%d\n", length);
 		}
@@ -199,6 +218,12 @@ namespace ANON
 			Indent();
 			sb.AppendFormat("%s", value ? "Y" : "N");
 			sb.AppendChar('\n');
+		}
+
+		virtual void AppendSimpleString(cstr text) override
+		{
+			Indent();
+			sb.AppendFormat("%s", text);
 		}
 
 		void EnterMembers(cstr name, cstr type, cstr moduleName) override

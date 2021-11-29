@@ -1,5 +1,6 @@
 AssetBuilder_CSV
 GlobalState	assetFile	"!scripts/test.app.created.sxy"
+@	squirrelName	IString	"Sys.Type.Strings.sxy"	FastStringBuilder	"Sys.Type.Strings.sxy"	Object0-FastStringBuilder	"Geoff"	5	1024
 $	catName	"Meow-meow"	9
 @	dogName	IString	"Sys.Type.Strings.sxy"	_Null_Sys_Type_IString	"Sys.Type.Strings.sxy"	0
 d	age	0x403199999999999A	17.6

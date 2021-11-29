@@ -50,6 +50,8 @@ namespace Rococo::Sexy
 
 		// Add an object keyed by a name - used to resolve the name specified in AddInterfaceMember
 		virtual void ResolveInstances(IMapNameToInstance& mapper) = 0;
+
+		virtual void AddFastStringBuilder(cstr name, fstring text, int32 capacity, cstr objectRefName) = 0;
 	};
 
 	ROCOCOAPI ISexyObjectBuilder

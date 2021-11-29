@@ -107,6 +107,7 @@ namespace Rococo
 		  virtual AllocatorBinding* GetBinding() = 0;
 		  virtual void SetStringBuilderType(const IStructure* typeFastStringBuilder) = 0;
 		  virtual const IStructure* FastStringBuilderType() const = 0;
+          virtual FastStringBuilder* CreateAndInitFields(int32 capacity) = 0;
 	  };
 
 	  IStringPool* NewStringPool();

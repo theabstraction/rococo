@@ -1114,6 +1114,13 @@ Matrix4x4f	world	"Sys.Maths.sxy"
 			indent++;
 		}
 
+		void AddFastStringBuilder(cstr name, fstring text, int32 capacity, cstr objectRefName)
+		{
+			PrintIndent();
+			printf("(IStringBuilder %s = \"%s\" %d %d) // %s\n", name, text.buffer, text.length, capacity, objectRefName);
+			indent++;
+		}
+
 		void ReturnToParent() override
 		{
 			indent--;

@@ -170,6 +170,76 @@ namespace
 		char interfaceDefSourceNameBuffer[Rococo::IO::MAX_PATHLEN];
 		char instanceType[Rococo::MAX_FQ_NAME_LEN + 1];
 		char instanceSource[Rococo::IO::MAX_PATHLEN];
+		std::vector<char> stringConstantBuffer;
+
+		void OnStringConstant(int row, int column, cstr token, int32 stringLength)
+		{
+			stringConstantBuffer.clear();
+			stringConstantBuffer.resize(stringLength + 1);
+			memcpy_s(stringConstantBuffer.data(), stringConstantBuffer.size(), token, stringLength);
+			stringConstantBuffer[stringLength] = 0;
+
+			defColumn++;
+
+			tokenHandler = &CSV_SexyAssetParser::OnStringConstantLength;
+		}
+
+		void OnFastStringBuilderCapacity(int row, int column, cstr token, int32 stringLength)
+		{
+			if (defRow != row || defColumn != column)
+			{
+				Throw(0, "Expecting <string-constant> at row %d column %d", defRow, defColumn);
+			}
+
+			fstring text{ stringConstantBuffer.data(), (int32)stringConstantBuffer.size()-1 };
+
+			int32 capacity = atoi(token);
+			if (capacity < text.length)
+			{
+				Throw(0, "Expecting <string-buffer-capacity=%d> at row %d column %d to be no greater than the length of the string constant: %d characters", capacity, defRow, defColumn, text.length);
+			}
+
+			tokenHandler = &CSV_SexyAssetParser::OnMemberDef;
+
+			memberBuilder.AddFastStringBuilder(memberNameBuffer, text, capacity, refName);
+
+			defColumn -= 9;
+			defRow++;
+		}
+
+		void OnFastStringBuilderLength(int row, int column, cstr token, int32 stringLength)
+		{
+			if (defRow != row || defColumn != column)
+			{
+				Throw(0, "Expecting <string-constant> at row %d column %d", defRow, defColumn);
+			}
+
+			int32 expectedLength = atoi(token);
+			if (expectedLength + 1 != (int32) stringConstantBuffer.size())
+			{
+				Throw(0, "Expecting <string-constant> at row %d column %d to be of %d characters in length", defRow, defColumn-1, expectedLength);
+			}
+
+			tokenHandler = &CSV_SexyAssetParser::OnFastStringBuilderCapacity;
+			defColumn++;
+		}
+
+		void OnFastStringBuilderName(int row, int column, cstr token, int32 stringLength)
+		{
+			if (defRow != row || defColumn != column)
+			{
+				Throw(0, "Expecting <string-constant> at row %d column %d", defRow, defColumn);
+			}
+
+			stringConstantBuffer.resize((size_t) (stringLength + 1));
+			memcpy_s(stringConstantBuffer.data(), stringConstantBuffer.size(), token, stringLength);
+			stringConstantBuffer[stringLength] = 0;
+
+			tokenHandler = &CSV_SexyAssetParser::OnFastStringBuilderLength;
+			defColumn++;
+		}
+
+		char refName[64];
 
 		void OnInstanceRefName(int row, int column, cstr token, int32 stringLength)
 		{
@@ -178,12 +248,24 @@ namespace
 				Throw(0, "Expecting <instance-ref> at row %d column %d", defRow, defColumn);
 			}
 
-			memberBuilder.AddInterfaceMember(memberNameBuffer, memberTypeBuffer, interfaceDefSourceNameBuffer, instanceType, instanceSource, token);
+			SecureFormat(refName, sizeof refName, "%s", token);
 
-			defColumn -= 6;
-			++defRow;
+			if (Eq(instanceType, "FastStringBuilder") && Eq(instanceSource, "Sys.Type.Strings.sxy"))
+			{
+				// Special case, FastStringBuilder has string / length / capacity elements appended to the line following the reference name
 
-			tokenHandler = &CSV_SexyAssetParser::OnMemberDef;
+				tokenHandler = &CSV_SexyAssetParser::OnFastStringBuilderName;
+				defColumn++;
+			}
+			else
+			{
+				memberBuilder.AddInterfaceMember(memberNameBuffer, memberTypeBuffer, interfaceDefSourceNameBuffer, instanceType, instanceSource, token);
+
+				defColumn -= 6;
+				++defRow;
+
+				tokenHandler = &CSV_SexyAssetParser::OnMemberDef;
+			}
 		}
 
 		void OnInstanceSource(int row, int column, cstr token, int32 stringLength)
@@ -198,20 +280,6 @@ namespace
 			defColumn++;
 
 			tokenHandler = &CSV_SexyAssetParser::OnInstanceRefName;
-		}
-
-		std::vector<char> stringConstantBuffer;
-
-		void OnStringConstant(int row, int column, cstr token, int32 stringLength)
-		{
-			stringConstantBuffer.clear();
-			stringConstantBuffer.resize(stringLength + 1);
-			memcpy_s(stringConstantBuffer.data(), stringConstantBuffer.size(), token, stringLength);
-			stringConstantBuffer[stringLength] = 0;
-
-			defColumn++;
-
-			tokenHandler = &CSV_SexyAssetParser::OnStringConstantLength;
 		}
 
 		void OnInstanceType(int row, int column, cstr token, int32 stringLength)
