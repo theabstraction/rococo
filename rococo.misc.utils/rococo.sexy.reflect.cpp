@@ -10,6 +10,9 @@
 #include <rococo.asset.generator.h>
 #include <rococo.csv.h>
 
+#include <unordered_map>
+#include <vector>
+
 using namespace Rococo;
 using namespace Rococo::IO;
 using namespace Rococo::Sex;
@@ -78,13 +81,37 @@ fstring GetString(InterfacePointer ip)
 
 using namespace Rococo::Script;
 
+struct ObjectDef
+{
+	ObjectDef(cstr name, ObjectStub* _stub, int32 _index) : objectName(name), stub(_stub), index(_index)
+	{
+
+	}
+
+	HString objectName;
+	ObjectStub* stub;
+	int index;
+};
+
 struct Asset
 {
 	IPublicScriptSystem & ss;
-	int objectCount = 0;
 
 	mutable const IStructure* structStringConstant = nullptr;
 	mutable const IStructure* structfastStringBuilder = nullptr;
+
+	std::unordered_map<ObjectStub*, ObjectDef*> refToObject;
+	std::vector<ObjectDef*> exportQueue;
+
+	uint32 nextIndex = 1;
+
+	~Asset()
+	{
+		for (auto i : refToObject)
+		{
+			delete i.second;
+		}
+	}
 
 	bool IsFastStringBuilderType(const IStructure& type) const
 	{
@@ -114,7 +141,9 @@ struct Asset
 		return structStringConstant == &type;
 	}
 
-	Asset(IPublicScriptSystem& _ss): ss(_ss)
+	IAssetBuilder& builder;
+
+	Asset(IPublicScriptSystem& _ss, IAssetBuilder& _builder): ss(_ss), builder(_builder)
 	{
 	}
 
@@ -148,17 +177,21 @@ struct Asset
 	template<class T>
 	const uint8* AppendPrimitiveAndReturnAdvancedPointer(const uint8* pField, IAssetBuilder& builder, cstr fieldName)
 	{
-		builder.AppendValue(fieldName, *(T*)pField);
+		if (!StartsWith(fieldName, "_"))
+		{
+			builder.AppendValue(fieldName, *(T*)pField);
+		}
+
 		return pField + sizeof(T);
 	}
 
-	const uint8* SaveAssetFields_Recursive(cr_sex s, IAssetBuilder& builder, cstr name, const IStructure& assetType, const uint8* assetData)
+	const uint8* SaveDerivativeFields_Recursive(cr_sex s, IAssetBuilder& builder, cstr name, const IStructure& assetType, const uint8* assetData)
 	{
 		const uint8* pMember = assetData;
 		for (int i = 0; i < assetType.MemberCount(); ++i)
 		{
 			auto& member = assetType.GetMember(i);
-			pMember = SaveAssetField_Recursive(s, builder, member.Name(), *member.UnderlyingType(), pMember);
+			pMember = SavePrimitiveField_Recursive(s, builder, member.Name(), *member.UnderlyingType(), pMember);
 		}
 
 		return pMember;
@@ -182,20 +215,45 @@ struct Asset
 
 		builder.AppendObjectDesc(objectType.Name(), objectType.Module().Name());
 
-		char objectName[64];
+		bool isFastStringBuilder = IsFastStringBuilderType(objectType);
 
-		if (StartsWith(objectType.Name(), "_Null"))
+		ObjectDef* def;
+		bool newDefinition = false;
+
+		auto i = refToObject.find(stub);
+		if (i == refToObject.end())
 		{
-			SafeFormat(objectName, "0");
+			char objectName[64];
+
+			bool isNullObject = StartsWith(objectType.Name(), "_Null");
+
+			if (isNullObject)
+			{
+				SafeFormat(objectName, "0");
+			}
+			else
+			{
+				SafeFormat(objectName, "#Object%d", nextIndex);
+			}
+
+			def = new ObjectDef(objectName, stub, nextIndex++);
+			refToObject.insert(std::make_pair(stub, def));
+
+			newDefinition = true;
+
+			if (!isFastStringBuilder && !isNullObject)
+			{
+				exportQueue.push_back(def);
+			}
 		}
 		else
 		{
-			SafeFormat(objectName, "Object%d-%s", objectCount, objectType.Name());
+			def = i->second;
 		}
 		
-		builder.AppendSimpleString(objectName);
+		builder.AppendSimpleString(def->objectName);
 
-		if (IsFastStringBuilderType(objectType))
+		if (isFastStringBuilder && newDefinition)
 		{
 			auto* fb = reinterpret_cast<FastStringBuilder*>(stub);
 			builder.AppendFString(fstring{ fb->buffer, fb->length });
@@ -206,7 +264,7 @@ struct Asset
 		builder.NextLine();		
 	}
 
-	const uint8* SaveAssetField_Recursive(cr_sex s, IAssetBuilder& builder, cstr name, const IStructure& assetType, const uint8* assetData)
+	const uint8* SavePrimitiveField_Recursive(cr_sex s, IAssetBuilder& builder, cstr name, const IStructure& assetType, const uint8* assetData)
 	{
 		const uint8* pField = assetData;
 		switch (assetType.VarType())
@@ -235,7 +293,7 @@ struct Asset
 			pField += sizeof(void*);
 			break;
 		case VARTYPE_Derivative:
-			if (assetType.InterfaceCount() > 0)
+			if (assetType.InterfaceCount() == 1)
 			{
 				// We have an interface reference
 				InterfacePointer pInterface = *(InterfacePointer*)pField;
@@ -245,7 +303,7 @@ struct Asset
 			else
 			{
 				builder.EnterMembers(name, assetType.Name(), assetType.Module().Name());
-				pField = SaveAssetFields_Recursive(s, builder, name, assetType, assetData);
+				pField = SaveDerivativeFields_Recursive(s, builder, name, assetType, assetData);
 				builder.LeaveMembers();
 			}
 			break;
@@ -254,10 +312,29 @@ struct Asset
 		}
 		return pField;
 	}
+
+	void SaveObject(ObjectDef& def, cr_sex sSrcExpression)
+	{
+		builder.NextLine();
+		builder.AppendHeader(def.objectName, def.stub->Desc->TypeInfo->Name(), def.stub->Desc->TypeInfo->Module().Name());
+
+		SaveDerivativeFields_Recursive(sSrcExpression, builder, def.objectName, *def.stub->Desc->TypeInfo, (const uint8*) def.stub);
+	}
+
+	void SaveQueuedObjects(cr_sex sourceExpression)
+	{
+		while (!exportQueue.empty())
+		{
+			ObjectDef* nextObject = exportQueue.back();
+			exportQueue.pop_back();
+
+			SaveObject(*nextObject, sourceExpression);
+		}
+	}
 };
 
-// s has format (reflect SaveAsset <SexyAssetFile-variable> <object-type>)
-static void SaveAssetWithSexyGenerator(IAssetGenerator* generator, Rococo::Script::ReflectionArguments& args)
+// args.s has format (reflect SaveAsset <SexyAssetFile-variable> <object-type>)
+static void SaveAssetWithSexyGenerator(IAssetGenerator* generator, ReflectionArguments& args)
 {
 	Validate_Type_Is_SexyAssetFile(args.s[2], args.lhsType);
 
@@ -270,21 +347,30 @@ static void SaveAssetWithSexyGenerator(IAssetGenerator* generator, Rococo::Scrip
 	}
 
 	AutoFree<IAssetBuilder> builder = generator->CreateAssetBuilder(filename);
-	builder->AppendHeader(args.rhsName, args.rhsType.Name(), args.rhsType.Module().Name());
 
-	Asset asset(args.ss);
+	builder->AppendHeader("#Object0", args.rhsType.Name(), args.rhsType.Module().Name());
+
+	Asset asset(args.ss, *builder);
 
 	if (IsPrimitiveType(args.rhsType.VarType()))
 	{
-		asset.SaveAssetField_Recursive(args.s, *builder, args.rhsName, args.rhsType, (const uint8*)args.rhsData);
+		asset.SavePrimitiveField_Recursive(args.s, *builder, args.rhsName, args.rhsType, (const uint8*)args.rhsData);
 	}
 	else
 	{
-		asset.SaveAssetFields_Recursive(args.s, *builder, args.rhsName, args.rhsType, (const uint8*)args.rhsData);
+		if (args.rhsType.InterfaceCount() == 1)
+		{
+			InterfacePointer pInterface = *(InterfacePointer*) args.rhsData;
+			ObjectStub* rootObject = InterfaceToInstance(pInterface);
+			asset.refToObject[rootObject] = new ObjectDef("#Object0", rootObject, 0);
+		}
+		asset.SaveDerivativeFields_Recursive(args.s, *builder, args.rhsName, args.rhsType, (const uint8*)args.rhsData);
 	}
+
+	asset.SaveQueuedObjects(args.s);
 }
 
-static void LoadAssetWithSexyParser(IAssetLoader* loader, Rococo::Script::ReflectionArguments& args)
+static void LoadAssetWithSexyParser(IAssetLoader* loader, ReflectionArguments& args)
 {
 	Validate_Type_Is_SexyAssetFile(args.s[2], args.lhsType);
 
@@ -301,12 +387,12 @@ static void LoadAssetWithSexyParser(IAssetLoader* loader, Rococo::Script::Reflec
 
 namespace Rococo::Assets
 {
-	void LinkAssetGenerator(IAssetGenerator& generator, Rococo::Script::IPublicScriptSystem& ss)
+	void LinkAssetGenerator(IAssetGenerator& generator, IPublicScriptSystem& ss)
 	{
 		ss.AddNativeReflectionCall("SaveAsset", ::SaveAssetWithSexyGenerator, &generator);
 	}
 
-	void LinkAssetLoader(IAssetLoader& loader, Rococo::Script::IPublicScriptSystem& ss)
+	void LinkAssetLoader(IAssetLoader& loader, IPublicScriptSystem& ss)
 	{
 		ss.AddNativeReflectionCall("LoadAsset", ::LoadAssetWithSexyParser, &loader);
 	}

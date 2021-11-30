@@ -45,9 +45,9 @@ namespace ANON
 		void AppendHeader(cstr name, cstr type, cstr moduleName) override
 		{
 			AppendIndents();
-			sb.AppendFormat("%s", type);
-			Indent();
 			sb.AppendFormat("%s", name);
+			Indent();
+			sb.AppendFormat("%s", type);
 			Indent();
 			sb.AppendFormat("\"%s\"", moduleName);
 			sb.AppendChar('\n');

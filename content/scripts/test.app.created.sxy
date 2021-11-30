@@ -16,6 +16,7 @@
 (using Sys.Maths)
 
 (struct GlobalState
+	(Sys.IDog dog)
 	(IString squirrelName)
 	(IString catName)
 	(IString dogName)
@@ -23,6 +24,27 @@
 	(Vec3 position)
 	(Matrix4x4 world)
 	(Bool isActive)
+)
+
+(class Dog (defines Sys.IDog)
+	(Float32 barkDecibels)
+	(Int32 barkHz)
+	(Int64 barkWatts)
+	(Float64 bitePressureNewtons)
+)
+
+(method Dog.Construct :
+)
+
+(method Dog.Init -> :
+	(this.barkDecibels = 120)
+	(this.barkHz = 4000)
+	(this.barkWatts = 20)
+	(this.bitePressureNewtons = 9050)
+)
+
+(factory Sys.NewDog Sys.IDog :
+	(construct Dog)
 )
 
 (function Main (Int32 id)->(Int32 exitCode):
@@ -66,8 +88,12 @@
 	(IString dogName = NullString)
 	(IStringBuilder squirrelName = (NewParagraphBuilder))
 	(#build squirrelName "Geoff")
+
+	(Sys.IDog dog (Sys.NewDog))
+	(dog.Init)
 	
 	(GlobalState globalState = 
+		dog
 		squirrelName
 		"Meow-meow"
 		dogName

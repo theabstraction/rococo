@@ -1,6 +1,7 @@
 AssetBuilder_CSV
-GlobalState	assetFile	"!scripts/test.app.created.sxy"
-@	squirrelName	IString	"Sys.Type.Strings.sxy"	FastStringBuilder	"Sys.Type.Strings.sxy"	Object0-FastStringBuilder	"Geoff"	5	1024
+#Object0	GlobalState	"!scripts/test.app.created.sxy"
+@	dog	IDog	"!scripts/test.app.created.sxy"	Dog	"!scripts/test.app.created.sxy"	#Object1
+@	squirrelName	IString	"Sys.Type.Strings.sxy"	FastStringBuilder	"Sys.Type.Strings.sxy"	#Object2	"Geoff"	5	1024
 $	catName	"Meow-meow"	9
 @	dogName	IString	"Sys.Type.Strings.sxy"	_Null_Sys_Type_IString	"Sys.Type.Strings.sxy"	0
 d	age	0x403199999999999A	17.6
@@ -30,3 +31,9 @@ Matrix4x4f	world	"Sys.Maths.sxy"
 		f	z	0x0	0
 		f	w	0x3F800000	1
 ?	isActive	N
+
+#Object1	Dog	"!scripts/test.app.created.sxy"
+f	barkDecibels	0x42F00000	120
+i	barkHz	0xFA0	4000
+l	barkWatts	0x14LL		20
+d	bitePressureNewtons	0x40C1AD0000000000	9050
