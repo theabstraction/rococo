@@ -9,6 +9,8 @@
 
 #include <vector>
 
+#include <rococo.hashtable.h>
+
 namespace
 {
 	using namespace Rococo;
@@ -22,6 +24,20 @@ namespace
 		auto* p = ((uint8*)i) + (*i)->OffsetToInstance;
 		auto* obj = (ObjectStub*)p;
 		return obj;
+	}
+
+	int GetIntefaceIndex(const IStructure& concreteType, const IInterface* interfaceType)
+	{
+		for (int j = 0; j < concreteType.InterfaceCount(); ++j)
+		{
+			auto& interfaceJ = concreteType.GetInterface(j);
+			if (&interfaceJ == interfaceType)
+			{
+				return j;
+			}
+		}
+
+		Throw(0, "%s does not support interface %s of %s", concreteType.Name(), interfaceType->Name(), interfaceType->NullObjectType().Module().Name());
 	}
 
 	struct SexyObjectBuilder: ISexyObjectBuilder, IMemberBuilder
@@ -41,19 +57,49 @@ namespace
 		mutable const IStructure* typeIString = nullptr;
 		mutable const IStructure* typeIStringBuilder = nullptr;
 
+		struct RequiredInterfaceRef
+		{
+			const IInterface* pInterfaceType;
+			InterfacePointer* ppInterface;
+		};
+
+		struct DeserializedObject
+		{
+			ObjectStub* stub = nullptr;
+			std::vector<RequiredInterfaceRef> requiredInterfaces;
+		};
+
+		stringmap<DeserializedObject> objects;
+
+		struct UndefinedReference
+		{
+
+		};
+
 		SexyObjectBuilder()
 		{
 
 		}
 
+		void AddNewObject(cstr name, cstr type, cstr sourceFile) override
+		{
+			auto i = objects.find(name);
+			if (i == objects.end())
+			{
+				DeserializedObject object;
+				i = objects.insert(name, object).first;
+			}
+
+			i->second.stub = scriptSystem->CreateScriptObject(type, sourceFile);
+
+			auto* stub = i->second.stub;
+
+			SelectTarget(*stub->Desc->TypeInfo, stub, *scriptSystem);
+		}
+
 		void Free() override
 		{
 			delete this;
-		}
-
-		void ResolveInstances(IMapNameToInstance& mapper) override
-		{
-
 		}
 
 		bool IsIString(const IStructure& type) const
@@ -115,7 +161,8 @@ namespace
 				InterfacePointer ip = (InterfacePointer)pObject;
 				objectStub = InterfaceToInstance(ip);
 				objectType = objectStub->Desc->TypeInfo;
-				writePosition = ((uint8*)objectStub) + sizeof(objectStub) + sizeof(VirtualTable*) * objectType->InterfaceCount();
+				int32 extraVTables = objectType->InterfaceCount() - 1;
+				writePosition = ((uint8*)objectStub) + sizeof(ObjectStub) + sizeof(VirtualTable*) * (size_t) extraVTables;
 			}
 			else
 			{
@@ -126,22 +173,6 @@ namespace
 
 			memberIndexStack.clear();
 			memberIndexStack.push_back(0); // 0 gives the member index, and since the stack depth is 1, the index refers to the top level member array
-
-			auto& rootNS = ss.PublicProgramObject().GetRootNamespace();
-			auto* sysType = rootNS.FindSubspace("Sys.Type");
-			if (!sysType)
-			{
-				Throw(0, "Could not find Sys.Type");
-			}
-
-			auto* interfaceIstring = sysType->FindInterface("IString");
-
-			if (interfaceIstring == nullptr)
-			{
-				Throw(0, "Could not find Sys.Type.IString");
-			}
-
-			typeIString = &interfaceIstring->NullObjectType();
 		}
 
 		IMemberBuilder& MemberBuilder()
@@ -511,7 +542,9 @@ namespace
 				Throw(0, "%s. Member was not of interface type", name, interfaceType);
 			}
 
-			if (!Eq(type.GetInterface(0).Name(), interfaceType))
+			auto& interface0 = type.GetInterface(0);
+
+			if (!Eq(interface0.Name(), interfaceType))
 			{
 				Throw(0, "%s. Member was of interface type %s, not of interface type", name, type.GetInterface(0).Name(), interfaceType);
 			}
@@ -529,7 +562,24 @@ namespace
 			}
 			else
 			{
-				Throw(0, "Unhandled object name: %s", objectName);
+				if (objectName[0] != '#')
+				{
+					Throw(0, "Unhandled object name: %s", objectName);
+				}
+
+				auto i = objects.find(objectName);
+				if (i == objects.end())
+				{
+					DeserializedObject newObject;
+					i = objects.insert(objectName, newObject).first;
+				}
+
+				RequiredInterfaceRef ref;
+				ref.pInterfaceType = &interface0;
+				ref.ppInterface = (InterfacePointer*)writePosition;
+				i->second.requiredInterfaces.push_back(ref);
+
+				writePosition += sizeof InterfacePointer;
 			}			
 		}
 
@@ -588,6 +638,25 @@ namespace
 			}
 			memberIndexStack.back()++;
 		}
+
+		void ResolveReferences()
+		{
+			for (auto& i : objects)
+			{
+				cstr name = i.first;
+				auto& object = i.second;
+
+				auto& concreteType = *object.stub->Desc->TypeInfo;
+
+				for (auto& requiredInterfaceRef : object.requiredInterfaces)
+				{
+					int interfaceIndex = GetIntefaceIndex(concreteType, requiredInterfaceRef.pInterfaceType);
+
+					InterfacePointer ip = object.stub->pVTables + interfaceIndex;
+					*requiredInterfaceRef.ppInterface = ip;
+				}
+			}
+		}
 	};
 
 	struct SexyAssetLoader: IAssetLoader
@@ -631,6 +700,7 @@ namespace
 			try
 			{
 				Rococo::OS::LoadAsciiTextFile(parse, sysPath);
+				objectBuilder.ResolveReferences();
 			}
 			catch (IException& e)
 			{

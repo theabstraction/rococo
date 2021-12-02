@@ -996,6 +996,11 @@ Banner!
 			VALIDATE(false);
 		}
 
+		void OnBlankLine(Vec2i cursorPositiion) override
+		{
+			printf("%d, %d: blank-line\n", cursorPositiion.x, cursorPositiion.y);
+		}
+
 		void OnToken(int row, int column, cstr token, int stringLength) override
 		{
 			printf("%d %d: %s\n", row, column, token);
@@ -1128,9 +1133,10 @@ Matrix4x4f	world	"Sys.Maths.sxy"
 			printf(")\n");
 		}
 
-		void ResolveInstances(IMapNameToInstance& mapper) override
+		void AddNewObject(cstr name, cstr type, cstr source)
 		{
-
+			indent = 0;
+			printf("\n(%s %s) // %s\n", name, type, source);
 		}
 
 	} memberBuilder;

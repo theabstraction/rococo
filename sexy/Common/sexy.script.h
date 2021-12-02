@@ -291,6 +291,8 @@ namespace Rococo {
 				AddRawNativeReflectionCall(functionName, TReflectionCall<CONTEXT>::ToRaw(fnCall), (void*)context);
 			}
 
+			virtual ObjectStub* CreateScriptObject(cstr type, cstr sourceFile) = 0;
+
 			virtual CStringConstant* GetStringReflection(cstr s, int32 stringLength = -1) = 0;
 			virtual CStringConstant* DuplicateStringAsConstant(cstr source, int32 stringLength = -1) = 0;
 			virtual FastStringBuilder* CreateAndPopulateFastStringBuilder(const fstring& text, int32 capacity) = 0;
@@ -306,7 +308,7 @@ namespace Rococo {
 			  namespace and subspaces are matched so 'Sys.Math' would match Sys/Maths/I32/Double.sxy. 
 			  If the [namespaceFilter] is blank all files in all namespaces are matched. If no matches 
 			  occur an IException is thrown. Filename container paths that do not map to legal Sexy 
-			  namespace strings by subsituting slash for dot (/ -> .) are not enumerated and will not match. 
+			  namespace strings by substituting slash for dot (/ -> .) are not enumerated and will not match. 
 			  All matching files have are added to the module list and their default namespace
 			  set to their subspace mapped from their file path prefix.
 			  

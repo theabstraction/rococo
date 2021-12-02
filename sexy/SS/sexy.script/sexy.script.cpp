@@ -647,6 +647,25 @@ namespace Rococo
 		s->AddMember(NameString::From(("_vTable1")), TypeString::From(("Pointer")));
 	}
 
+	const IStructure& GetTypeForSource(IProgramObject& po, cstr concreteType, cstr sourceFile)
+	{
+		for (int i = 0; i < po.ModuleCount(); ++i)
+		{
+			auto& m = po.GetModule(i);
+			if (Eq(m.Name(), sourceFile))
+			{
+				auto* type = m.FindStructure(concreteType);
+				if (!type)
+				{
+					Throw(0, "No object found for %s of \"%s\". Source found, but type unrecognized", concreteType, sourceFile);
+				}
+				return *type;
+			}
+		}
+
+		Throw(0, "No universal object found for %s of \"%s\". Source not found", concreteType, sourceFile);
+	}
+
 	class CScriptSystem : public IScriptSystem
 	{
 	private:
@@ -938,30 +957,49 @@ namespace Rococo
 			if (stringPool) stringPool->Free();
 		}
 
-		InterfacePointer GetUniversalNullObject(cstr instanceType, cstr instanceSource)
+		ObjectStub* CreateScriptObject(cstr instanceType, cstr instanceSource) override
+		{
+			if (StartsWith(instanceType, "_Null"))
+			{
+				InterfacePointer ip = GetUniversalNullObject(instanceType, instanceSource);
+				return InterfaceToInstance(ip);
+			}
+
+			const IStructure& type = GetTypeForSource(*progObjProxy, instanceType, instanceSource);
+
+			int allocSize = type.SizeOfStruct();
+
+			auto& allocator = progObjProxy->GetDefaultObjectAllocator();
+
+			auto* object = (ObjectStub*) allocator.AllocateObject(allocSize);
+			memset(object, 0, allocSize);
+
+			object->Desc = (ObjectDesc*)type.GetVirtualTable(0);
+			object->refCount = 1;
+
+			int nInterfaces = type.InterfaceCount();
+			for (int i = 0; i < nInterfaces; ++i)
+			{
+				object->pVTables[i] = (VirtualTable*)type.GetVirtualTable(i + 1);
+			}
+
+			return object;
+		}
+
+		InterfacePointer GetUniversalNullObject(cstr instanceType, cstr instanceSource) override
 		{
 			if (!StartsWith(instanceType, "_Null"))
 			{
 				Throw(0, "No universal object found for %s of \"%s\". instance type was not a universal null object", instanceType, instanceSource);
 			}
 
-			for (int i = 0; i < progObjProxy->ModuleCount(); ++i)
+			const IStructure& type = GetTypeForSource(*progObjProxy, instanceType, instanceSource);
+			if (type.InterfaceCount() < 1)
 			{
-				auto& m = progObjProxy->GetModule(i);
-				if (Eq(m.Name(), instanceSource))
-				{
-					auto* type = m.FindStructure(instanceType);
-					if (!type)
-					{
-						Throw(0, "No universal object found for %s of \"%s\". Source found, but type unrecognized", instanceType, instanceSource);
-					}
-
-					ObjectStub* stub = type->GetInterface(0).UniversalNullInstance();
-					return stub->pVTables;
-				}
+				Throw(0, "No universal object found for %s of \"%s\". Interface count was zero", instanceType, instanceSource);
 			}
-
-			Throw(0, "No universal object found for %s of \"%s\". Source unrecognized", instanceType, instanceSource);
+			ObjectStub* stub = type.GetInterface(0).UniversalNullInstance();
+			return stub->pVTables;
 		}
 
 		void RegisterPackage(IPackage* package) override

@@ -4,18 +4,6 @@
 
 namespace Rococo::Sexy
 {
-	ROCOCOAPI IMapNameToInstance
-	{
-		virtual void* Find(cstr objectName) = 0;
-	};
-
-	ROCOCOAPI IMapNameToInstanceSupervisor : public IMapNameToInstance
-	{
-		virtual void Free() = 0;
-	};
-
-	IMapNameToInstanceSupervisor* CreateNameToInstanceMap();
-
 	// interface to set member variables of a derivative structure. A derivative structure can be recursive, containing a hierarchy of substructures of arbitrary type
 	ROCOCOAPI IMemberBuilder
 	{
@@ -48,10 +36,10 @@ namespace Rococo::Sexy
 		// Add an interface pointer and point it to an object. If object name is "0" then the instance is the universal null object of the specified instance type
 		virtual void AddInterfaceMember(cstr name, cstr interfaceType, cstr interfaceSource, cstr instanceType, cstr instanceSource, OBJECT_NAME objectName) = 0;
 
-		// Add an object keyed by a name - used to resolve the name specified in AddInterfaceMember
-		virtual void ResolveInstances(IMapNameToInstance& mapper) = 0;
-
 		virtual void AddFastStringBuilder(cstr name, fstring text, int32 capacity, cstr objectRefName) = 0;
+
+		// We are done adding members to the object and we need to build another object
+		virtual void AddNewObject(cstr name, cstr type, cstr sourceFile) = 0;
 	};
 
 	ROCOCOAPI ISexyObjectBuilder
@@ -77,6 +65,7 @@ namespace Rococo::IO
 	ROCOCOAPI ICSVTokenParser
 	{
 		virtual void OnBadChar(Vec2i cursorPosition, char value) = 0;
+		virtual void OnBlankLine(Vec2i cursorPosition) = 0;
 		virtual void OnToken(int row, int column, cstr token, int stringLengthPlusNul) = 0;
 		virtual void Reset() = 0;
 		virtual void Free() = 0;

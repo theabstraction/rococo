@@ -56,9 +56,9 @@ namespace ANON
 		void AppendInterfaceType(cstr type, cstr name, cstr moduleName)
 		{
 			AppendIndents();
-			sb.AppendFormat("@");
-			Indent();
 			sb.AppendFormat("%s", name);
+			Indent();
+			sb.AppendFormat("@");
 			Indent();
 			sb.AppendFormat("%s", type);
 			Indent();
@@ -122,9 +122,9 @@ namespace ANON
 		void AppendStringConstant(cstr name, cstr buffer, int32 length) override
 		{
 			AppendIndents();
-			sb.AppendFormat("$");
-			Indent();
 			sb.AppendFormat("%s", name);
+			Indent();
+			sb.AppendFormat("$");
 			Indent();
 			AppendCharSequence(buffer, length);
 			Indent();
@@ -134,9 +134,9 @@ namespace ANON
 		void AppendValue(cstr fieldName, int32 value) override
 		{
 			AppendIndents();
-			sb.AppendFormat("i");
-			Indent();
 			sb.AppendFormat("%s", fieldName);
+			Indent();
+			sb.AppendFormat("i");
 			Indent();
 			sb.AppendFormat("0x%X", value);
 
@@ -151,9 +151,9 @@ namespace ANON
 		void AppendValue(cstr fieldName, int64 value) override
 		{
 			AppendIndents();
-			sb.AppendFormat("l");
-			Indent();
 			sb.AppendFormat("%s", fieldName);
+			Indent();
+			sb.AppendFormat("l");
 			Indent();
 			sb.AppendFormat("0x%XLL", value);
 
@@ -173,9 +173,9 @@ namespace ANON
 		void AppendValue(cstr fieldName, float value) override
 		{
 			AppendIndents();
-			sb.AppendFormat("f");
-			Indent();
 			sb.AppendFormat("%s", fieldName);
+			Indent();
+			sb.AppendFormat("f");
 			Indent();
 			sb.AppendFormat("0x%X", FloatToBinary(value));
 
@@ -195,12 +195,11 @@ namespace ANON
 		void AppendValue(cstr fieldName, double value) override
 		{
 			AppendIndents();
-			sb.AppendFormat("d");
-			Indent();
 			sb.AppendFormat("%s", fieldName);
 			Indent();
+			sb.AppendFormat("d");
+			Indent();
 			sb.AppendFormat("0x%llX", DoubleToBinary(value));
-
 			if (addHumanReadableReferences)
 			{
 				Indent();
@@ -212,9 +211,9 @@ namespace ANON
 		void AppendValue(cstr fieldName, bool value) override
 		{
 			AppendIndents();
-			sb.AppendFormat("?");
-			Indent();
 			sb.AppendFormat("%s", fieldName);
+			Indent();
+			sb.AppendFormat("?");
 			Indent();
 			sb.AppendFormat("%s", value ? "Y" : "N");
 			sb.AppendChar('\n');
@@ -229,9 +228,9 @@ namespace ANON
 		void EnterMembers(cstr name, cstr type, cstr moduleName) override
 		{
 			AppendIndents();
-			sb.AppendFormat("%s", type);
-			Indent();
 			sb.AppendFormat("%s", name);
+			Indent();
+			sb.AppendFormat("%s", type);
 			Indent();
 			sb.AppendFormat("\"%s\"", moduleName);
 			sb.AppendChar('\n');

@@ -345,14 +345,14 @@ namespace
 			tokenHandler = &CSV_SexyAssetParser::OnMemberDef;
 		}
 
-		void OnMemberName(int row, int column, cstr token, int32 stringLength)
+		void OnMemberType(int row, int column, cstr token, int32 stringLength)
 		{
 			if (defRow != row)
 			{
 				Throw(0, "Expecting member name at row %d column %d", defRow, defColumn);
 			}
 
-			CopyString(memberNameBuffer, sizeof memberNameBuffer, token);
+			CopyString(memberTypeBuffer, sizeof memberTypeBuffer, token);
 
 			defColumn++;
 
@@ -399,6 +399,37 @@ namespace
 			}
 		}
 
+		void OnObjectSource(int row, int column, cstr token, int32 stringLength)
+		{
+			if (defRow != row || defColumn != column)
+			{
+				Throw(0, "Expecting name at row %d column %d", defRow, defColumn);
+			}
+
+			
+			memberBuilder.AddNewObject(memberNameBuffer, memberTypeBuffer, token);
+
+			defColumn = 1;
+			defRow++;
+
+			tokenHandler = &CSV_SexyAssetParser::OnMemberDef;
+		}
+
+
+		void OnObjectType(int row, int column, cstr token, int32 stringLength)
+		{
+			if (defRow != row || defColumn != column)
+			{
+				Throw(0, "Expecting name at row %d column %d", defRow, defColumn);
+			}
+
+			CopyString(memberTypeBuffer, sizeof memberTypeBuffer, token);
+
+			defColumn++;
+
+			tokenHandler = &CSV_SexyAssetParser::OnObjectSource;
+		}
+
 		void OnMemberDef(int row, int column, cstr token, int32 stringLength)
 		{
 			if (primitiveLine && defRow == row + 1)
@@ -417,14 +448,49 @@ namespace
 
 			if (defRow != row || defColumn != column)
 			{
-				Throw(0, "Expecting member type at row %d column %d", defRow, defColumn);
+				Throw(0, "Expecting name at row %d column %d", defRow, defColumn);
 			}
 
-			CopyString(memberTypeBuffer, sizeof memberTypeBuffer, token);
+			CopyString(memberNameBuffer, sizeof memberNameBuffer, token);
 
 			defColumn++;
 
-			tokenHandler = &CSV_SexyAssetParser::OnMemberName;
+			tokenHandler = &CSV_SexyAssetParser::OnMemberType;
+		}
+
+		void OnObjectName(int row, int column, cstr token, int32 stringLength)
+		{
+			if (defRow != row || defColumn != column)
+			{
+				Throw(0, "Expecting object name at row %d column %d", defRow, defColumn);
+			}
+
+			CopyString(memberNameBuffer, sizeof memberNameBuffer, token);
+
+			defColumn++;
+
+			tokenHandler = &CSV_SexyAssetParser::OnObjectType;
+		}
+
+		void OnBlankLine(Vec2i cursorPosition) override
+		{
+			if (tokenHandler != &CSV_SexyAssetParser::OnMemberDef)
+			{
+				Throw(0, "Unexpected blank line at (%d,%d)", cursorPosition.x, cursorPosition.y);
+			}
+
+			while (defColumn > 1)
+			{
+				// We are done building the previously defined object
+				defColumn--;
+
+				memberBuilder.ReturnToParent();
+			}
+
+			defColumn = 1;
+			defRow++;
+
+			tokenHandler = &CSV_SexyAssetParser::OnObjectName;
 		}
 
 		void OnArchiveType(int row, int column, cstr token, int32 stringLength)
@@ -553,6 +619,8 @@ namespace
 						cursor.x = 1;
 						row++;
 						cursor.y++;
+
+						tokenParser.OnBlankLine(cursor);
 					}
 					else if (c <= 32)
 					{

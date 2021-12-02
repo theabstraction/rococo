@@ -317,6 +317,7 @@ namespace Anon
 	public:
 		ILog& Log() override { return log; }
 		void Free() override { delete this; }
+		IScriptObjectAllocator& GetDefaultObjectAllocator() override { return defaultAllocator; }
 		IModuleBuilder& GetModule(int index) override { return *modules[index]; }
 		const IModule& GetModule(int index)  const override { return *modules[index]; }
 		int ModuleCount() const override { return (int32)modules.size(); }
