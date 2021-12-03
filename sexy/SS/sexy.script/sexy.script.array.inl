@@ -189,10 +189,18 @@ namespace Rococo
 	   {
 		   ArrayImage* a = (ArrayImage*)registers[VM::REGISTER_D7].vPtrValue;
 
+		   if (a == nullptr)
+		   {
+			   IScriptSystem& ss = *(IScriptSystem*)context;
+			   ss.ThrowFromNativeCode(ERANGE, "Array.PushAndGetRef failed: null array");
+			   return;
+		   }
+
 		   if (a->LockNumber > 0)
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*)context;
 			   ss.ThrowFromNativeCode(ERANGE, "Array.PushAndGetRef failed: the array was locked for enumeration");
+			   return;
 		   }
 
 		   if (a->NumberOfElements >= a->ElementCapacity)
@@ -763,7 +771,7 @@ namespace Rococo
 			   cr_sex memberwiseIndicator = GetAtomicArg(s, 1);
 			   if (!AreEqual(memberwiseIndicator.String(), GetFriendlyName(elementType)))
 			   {
-				   Throw(s, "Expecting either (%s.Push <arg>), (%s.Push ( element-constructor-args...)) or (%s.Push %s (memberwise-constructor-args...)", instanceName, instanceName, instanceName, GetFriendlyName(elementType));
+				   Throw(s, "Expecting either (%s.Push <arg>), (%s.Push ( element-constructor-args...)) or (%s.Push %s (memberwise-constructor-args...).", instanceName, instanceName, instanceName, GetFriendlyName(elementType));
 			   }
 
 			   ce.Builder.AssignVariableToTemp(instanceName, Rococo::ROOT_TEMPDEPTH, 0);
@@ -1034,7 +1042,13 @@ namespace Rococo
 			   CompileArraySet(ce, s, instanceName);
 			   return true;
 		   }
-		   return false;
+		   else
+		   {
+			   char hint[256];
+			   SafeFormat(hint, "Is the desired semantic %s.[Push|Pop|PopOut|Clear|Set]? %s not found.", instanceName, methodName);
+			   ce.Object.Log().Write(hint);
+			   return false;
+		   }
 	   }
 
 	   void ValidateElementType(CCompileEnvironment& ce, cr_sex s, cstr instanceName, VARTYPE type, const IStructure* structType)

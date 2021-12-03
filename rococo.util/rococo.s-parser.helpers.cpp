@@ -1190,6 +1190,11 @@ namespace Rococo
 
 			char name[256];
 
+			if (array == nullptr)
+			{
+				SafeFormat(name, "%s: null array", childName);
+				return;
+			}
 			if (array->ElementType->InterfaceCount() > 0)
 			{
 				SafeFormat(name, "%s: array of interfaces of type %s", childName, array->ElementType->GetInterface(0).Name());

@@ -16,6 +16,7 @@
 (using Sys.Maths)
 
 (struct GlobalState
+	(array Vec2 points)
 	(IString dogName)
 	(Sys.IDog dog)
 	(IString squirrelName)
@@ -24,6 +25,40 @@
 	(Vec3 position)
 	(Matrix4x4 world)
 	(Bool isActive)
+)
+
+(method GlobalState.Construct : 
+	(array Vec2 points 2)
+	(this.points = points)
+)
+
+(function GlobalStateInit (GlobalState gs) -> :
+	(gs.points.Push Vec2f (5 7))
+	(gs.points.Push Vec2f (8 9))
+
+	(IString dogName = NullString)
+	(IStringBuilder squirrelName = (NewParagraphBuilder))
+	(#build squirrelName "Geoff")
+
+	(Sys.IDog dog (Sys.NewDog))
+	(gs.dog = dog)
+	(gs.dogName = dogName)
+	(gs.squirrelName = squirrelName)
+
+	(gs.catName = "Meow-Meow")
+
+	(gs.age = 17.6)
+
+	(gs.world =
+		(1 0 0 0)
+		(0 1 0 0)
+		(0 0 1 0)
+		(0 0 0 1)
+	)
+
+	(gs.position = 1.4 2.5 7.6)
+
+	(gs.isActive = true)
 )
 
 (class Dog (defines Sys.IDog)
@@ -85,28 +120,8 @@
 
 	(Sys.Reflection.SexyAssetFile assetFile = "!scripts/test/asset.sxya")
 	
-	(IString dogName = NullString)
-	(IStringBuilder squirrelName = (NewParagraphBuilder))
-	(#build squirrelName "Geoff")
-
-	(Sys.IDog dog (Sys.NewDog))
-	(dog.Init)
-	
-	(GlobalState globalState = 
-		dogName
-		dog
-		squirrelName
-		"Meow-meow"
-		17.6 // age
-		(1.4 2.5 7.6) // position
-		( // world
-			(1 0 0 0)
-			(0 1 0 0)
-			(0 0 1 0)
-			(0 0 0 1)
-		)
-		false
-	)
+	(GlobalState globalState)
+	(GlobalStateInit globalState)
 	
 	// save the global state to !scripts/test/asset.sxya
 	(reflect SaveAsset assetFile globalState)
