@@ -26,11 +26,16 @@ namespace Rococo::Assets
 		virtual void AppendValue(cstr fieldName, float value) = 0;
 		virtual void AppendValue(cstr fieldName, double value) = 0;
 		virtual void AppendValue(cstr fieldName, bool value) = 0;
-
+		virtual void AppendArrayMeta(cstr fieldName, cstr elementType, cstr elementSource, int32 numberOfElements, int32 elementCapacity) = 0;
 		virtual void AppendFString(const fstring& text) = 0;
 		virtual void AppendInt32(int32 value) = 0;
+		virtual void AppendInt64(int64 value) = 0;
+		virtual void AppendFloat32(float32 value) = 0;
+		virtual void AppendFloat64(float64 value) = 0;
+		virtual void AppendBool(bool value) = 0;
 		virtual void NextLine() = 0;
 
+		virtual void EnterArray() = 0;
 		virtual void EnterMembers(cstr name, cstr typename, cstr moduleName) = 0;
 		virtual void LeaveMembers() = 0;
 

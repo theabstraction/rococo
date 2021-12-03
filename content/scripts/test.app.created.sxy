@@ -69,6 +69,7 @@
 )
 
 (method Dog.Construct :
+	(this.Init)
 )
 
 (method Dog.Init -> :

@@ -2006,7 +2006,7 @@ R"(
 )
 
 (function Main -> (Float32 result):
-	(array Slot slots 1)
+	(array Slot slots)
 	(Rectf rect = 1 2 10 11)
 	(slots.Push Slot (rect  7))
 	(Slot s0)
@@ -6491,7 +6491,7 @@ R"((namespace EntryPoint)
 		"(using Sys.Type)"
   
 		"(function Main -> (Int32 result):"
-		"	(array Int32 a 4)"
+		"	(array Int32 a)"
 		"	(result = a.Capacity)"
 		")";
 
@@ -6506,7 +6506,7 @@ R"((namespace EntryPoint)
 		ValidateExecution(result);
 
 		int x = vm.PopInt32();
-		validate(x == 4);
+		validate(x == 0);
 	}
 
 	void TestArrayInt32Expand(IPublicScriptSystem& ss)
@@ -14015,12 +14015,6 @@ R"(
 
    void RunCollectionTests()
    {
-	   TEST(TestArrayInt32Reassign);
-	   TEST(TestArrayInStructWithThis);
-	   TEST(TestArrayRef);
-	   TEST(TestReturnArrayRef);
-	   TEST(TestReturnArrayRefAndIgnore);
-	   TEST(TestArrayElementIsClass);
 	   TEST(TestArrayInt32);
 	   TEST(TestArrayInt32Expand);
 	   TEST(TestArrayInt32_2);
@@ -14031,6 +14025,12 @@ R"(
 	   TEST(TestArrayInt32_7);
 	   TEST(TestArrayInt32_8);
 	   TEST(TestArrayInt32_9);
+	   TEST(TestArrayInt32Reassign);
+	   TEST(TestArrayInStructWithThis);
+	   TEST(TestArrayRef);
+	   TEST(TestReturnArrayRef);
+	   TEST(TestReturnArrayRefAndIgnore);
+	   TEST(TestArrayElementIsClass);
 	   TEST(TestArrayFloat64);
 	   TEST(TestArrayStruct);
 	   TEST(TestArrayStruct_2);
@@ -14523,6 +14523,7 @@ R"(
 		TEST(TestInternalDestructorsCalled2);
 		TEST(TestReflectionGetChild_BadIndex);
 		TEST(TestStringBuilderLength1);
+		TEST(TestAddNativeReflectionCall);
 
 	}
 
@@ -14552,11 +14553,11 @@ R"(
 		int64 start, end, hz;
 		start = OS::CpuTicks();
 
-		TEST(TestAddNativeReflectionCall);
-
+		RunCollectionTests();
+		
 		RunPositiveSuccesses();
 		RunPositiveFailures();	
-		RunCollectionTests();
+		
 
 		end = OS::CpuTicks();
 		hz = OS::CpuHz();

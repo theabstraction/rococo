@@ -264,6 +264,71 @@ struct Asset
 		builder.NextLine();		
 	}
 
+	void SaveValues(IAssetBuilder& builder, const IStructure& type, const uint8* pVariable)
+	{
+		const uint8* readPtr = pVariable;
+
+		for (int j = 0; j < type.MemberCount(); ++j)
+		{
+			auto& member = type.GetMember(j);
+			auto& memberType = *member.UnderlyingType();
+
+			switch (memberType.VarType())
+			{
+			case VARTYPE_Int32:
+				builder.AppendInt32(*(const int32*)readPtr);
+				break;
+			case VARTYPE_Int64:
+				builder.AppendInt64(*(const int64*)readPtr);
+				break;
+			case VARTYPE_Float32:
+				builder.AppendFloat32(*(const float32*)readPtr);
+				break;
+			case VARTYPE_Float64:
+				builder.AppendFloat64(*(const float64*)readPtr);
+				break;
+			case VARTYPE_Bool:
+				builder.AppendBool((*(const boolean32*)readPtr) == 1 ? true : false);
+				break;
+			case VARTYPE_Derivative:
+				builder.AppendFString("???"_fstring);
+				break;
+			case VARTYPE_Pointer:
+				Throw(0, "Cannot save pointer values");
+				break;
+			}
+
+			readPtr += member.SizeOfMember();
+		}
+
+		builder.NextLine();
+	}
+
+	void SaveArray(cr_sex s, IAssetBuilder& builder, cstr name, const IStructure& assetType, ArrayImage* arrayData)
+	{
+		if (!arrayData)
+		{
+			return;
+		}
+
+		auto& elementType = *arrayData->ElementType;
+
+		builder.AppendArrayMeta(name, elementType.Name(), elementType.Module().Name(), arrayData->NumberOfElements, arrayData->ElementCapacity);
+		builder.EnterArray();
+
+		auto* start = (const uint8*)arrayData->Start;
+
+		auto* readPtr = start;
+
+		for (int i = 0; i < arrayData->NumberOfElements; ++i)
+		{
+			SaveValues(builder, elementType, readPtr);
+			readPtr += arrayData->ElementLength;
+		}
+
+		builder.LeaveMembers();
+	}
+
 	const uint8* SavePrimitiveField_Recursive(cr_sex s, IAssetBuilder& builder, cstr name, const IStructure& assetType, const uint8* assetData)
 	{
 		const uint8* pField = assetData;
@@ -306,6 +371,10 @@ struct Asset
 				pField = SaveDerivativeFields_Recursive(s, builder, name, assetType, assetData);
 				builder.LeaveMembers();
 			}
+			break;
+		case VARTYPE_Array:
+			SaveArray(s, builder, name, assetType, *(ArrayImage**) assetData);
+			pField += sizeof(ArrayImage*);
 			break;
 		default:
 			Throw(s, "Only derivative and primitive value types are currently handled. type %s cannot be saved", assetType.Name());

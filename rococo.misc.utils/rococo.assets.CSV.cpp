@@ -65,6 +65,23 @@ namespace ANON
 			sb.AppendFormat("\"%s\"", moduleName);
 		}
 
+		void AppendArrayMeta(cstr fieldName, cstr elementType, cstr elementSource, int32 numberOfElements, int32 elementCapacity)
+		{
+			AppendIndents();
+			sb.AppendFormat("%s", fieldName);
+			Indent();
+			sb.AppendFormat("[]");
+			Indent();
+			sb.AppendFormat("%s", elementType);
+			Indent();
+			sb.AppendFormat("\"%s\"", elementSource);
+			Indent();
+			sb.AppendFormat("%d", numberOfElements);
+			Indent();
+			sb.AppendFormat("%d", elementCapacity);
+			NextLine();
+		}
+
 		void AppendCharSequence(cstr buffer, int32 length)
 		{
 			sb.AppendChar('"');
@@ -104,6 +121,30 @@ namespace ANON
 		{
 			Indent();
 			sb.AppendFormat("%d", value);
+		}
+
+		void AppendInt64(int64 value) override
+		{
+			Indent();
+			sb.AppendFormat("%lld", value);
+		}
+
+		void AppendFloat32(float32 value) override
+		{
+			Indent();
+			sb.AppendFormat("%f", value);
+		}
+
+		void AppendFloat64(float64 value) override
+		{
+			Indent();
+			sb.AppendFormat("%llf", value);
+		}
+
+		void AppendBool(bool value) override
+		{
+			Indent();
+			sb.AppendFormat("%s", value ? "Y" : "N");
 		}
 
 		void NextLine() override
@@ -155,7 +196,7 @@ namespace ANON
 			Indent();
 			sb.AppendFormat("l");
 			Indent();
-			sb.AppendFormat("0x%XLL", value);
+			sb.AppendFormat("0x%llX", value);
 
 			if (addHumanReadableReferences)
 			{
@@ -219,10 +260,16 @@ namespace ANON
 			sb.AppendChar('\n');
 		}
 
-		virtual void AppendSimpleString(cstr text) override
+		void AppendSimpleString(cstr text) override
 		{
 			Indent();
 			sb.AppendFormat("%s", text);
+		}
+
+		void EnterArray() override
+		{
+			AppendIndents();
+			indent++;
 		}
 
 		void EnterMembers(cstr name, cstr type, cstr moduleName) override
