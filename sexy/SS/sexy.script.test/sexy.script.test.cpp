@@ -2006,7 +2006,7 @@ R"(
 )
 
 (function Main -> (Float32 result):
-	(array Slot slots)
+	(array Slot slots 1)
 	(Rectf rect = 1 2 10 11)
 	(slots.Push Slot (rect  7))
 	(Slot s0)
@@ -14015,6 +14015,7 @@ R"(
 
    void RunCollectionTests()
    {
+	   TEST(TestPushStructToArray);
 	   TEST(TestArrayInt32);
 	   TEST(TestArrayInt32Expand);
 	   TEST(TestArrayInt32_2);
@@ -14038,7 +14039,6 @@ R"(
 	   TEST(TestEmptyArrayOfInterfaces);
 	   TEST(TestArrayOfInterfacesBuilder);
 
-	   TEST(TestPushStructToArray);
 	   TEST(TestArrayStrongTyping);
 	   TEST(TestArrayStrongTyping2);
 	   TEST(TestArrayStrongTyping3);

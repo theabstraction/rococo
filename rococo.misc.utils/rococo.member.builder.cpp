@@ -69,7 +69,13 @@ namespace
 			std::vector<RequiredInterfaceRef> requiredInterfaces;
 		};
 
+		struct RequiredArray
+		{
+			ArrayImage** pImageWritePosition;
+		};
+
 		stringmap<DeserializedObject> objects;
+		stringmap<ArrayImage*> arrays;
 
 		struct UndefinedReference
 		{
@@ -79,6 +85,41 @@ namespace
 		SexyObjectBuilder()
 		{
 
+		}
+
+		void AddArrayRefMember(cstr name, cstr arrayRefName) override
+		{
+			const IMember* member = GetBestMatchingMember(name);
+			if (member == nullptr)
+			{
+				// No array found in target, nothing to write
+				return;
+			}
+
+			if (member->UnderlyingType()->VarType() != VARTYPE_Array)
+			{
+				Throw(0, "Cannot load %s. The target member %s is not an array", arrayRefName, name);
+			}
+
+			auto& elementType = *member->UnderlyingGenericArg1Type();
+			
+			auto i = arrays.find(name);
+			if (i == arrays.end())
+			{
+				auto* image = scriptSystem->CreateArrayImage(elementType);
+				i = arrays.insert(name, image).first;		
+			}
+			else
+			{
+				if (i->second->ElementType != &elementType)
+				{
+					Throw(0, "Cannot load %s. The target member [%s] type %s is not the same as the array type %s", arrayRefName, name, i->second->ElementType->Name(), elementType.Name());
+				}
+
+				i->second->RefCount++;
+			}
+			
+			WritePrimitive(i->second);
 		}
 
 		void AddNewObject(cstr name, cstr type, cstr sourceFile) override
@@ -431,7 +472,6 @@ namespace
 			}
 		}
 
-
 		void AddFloatMember(cstr name, float value) override
 		{
 			const IMember* member = GetBestMatchingMember(name);
@@ -655,6 +695,8 @@ namespace
 					InterfacePointer ip = object.stub->pVTables + interfaceIndex;
 					*requiredInterfaceRef.ppInterface = ip;
 				}
+
+				object.stub->refCount = (int64) object.requiredInterfaces.size();
 			}
 		}
 	};

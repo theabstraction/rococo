@@ -275,6 +275,17 @@ namespace Rococo {
 			cstr pointer;
 			void* srcExpression;
 		};
+
+		struct ArrayImage
+		{
+			void* Start;
+			int32 NumberOfElements;
+			int32 ElementCapacity;
+			const IStructure* ElementType;
+			int32 ElementLength;
+			int32 LockNumber;
+			int64 RefCount;
+		};
 #pragma pack(pop)
 
 		ROCOCOAPI IPublicScriptSystem : public IFreeable
@@ -292,6 +303,7 @@ namespace Rococo {
 			}
 
 			virtual ObjectStub* CreateScriptObject(cstr type, cstr sourceFile) = 0;
+			virtual ArrayImage* CreateArrayImage(const IStructure& type) = 0;
 
 			virtual CStringConstant* GetStringReflection(cstr s, int32 stringLength = -1) = 0;
 			virtual CStringConstant* DuplicateStringAsConstant(cstr source, int32 stringLength = -1) = 0;
@@ -423,17 +435,6 @@ namespace Rococo {
 		SCRIPTEXPORT_API cstr GetInstanceVarName(cstr name, const Rococo::Compiler::IStructure* pseudoType);
 		SCRIPTEXPORT_API bool FindVariableByName(Rococo::Compiler::MemberDef& def, const Rococo::Compiler::IStructure*& pseudoType, const Rococo::uint8*& SF, IPublicScriptSystem& ss, cstr searchName, size_t callOffset);
 		SCRIPTEXPORT_API const Rococo::Compiler::IStructure* FindStructure(IPublicScriptSystem& ss, cstr fullyQualifiedName);
-
-		struct ArrayImage
-		{
-			void* Start;
-			int32 NumberOfElements;
-			int32 ElementCapacity;
-			const IStructure* ElementType;
-			int32 ElementLength;
-			int32 LockNumber;
-			int64 RefCount;
-		};
 }}
 
 namespace Rococo {

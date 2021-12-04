@@ -40,6 +40,8 @@ namespace Rococo::Sexy
 
 		// We are done adding members to the object and we need to build another object
 		virtual void AddNewObject(cstr name, cstr type, cstr sourceFile) = 0;
+
+		virtual void AddArrayRefMember(cstr name, cstr arrayRefName) = 0;
 	};
 
 	ROCOCOAPI ISexyObjectBuilder

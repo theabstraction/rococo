@@ -44,13 +44,9 @@ namespace Rococo
 		   return type.InterfaceCount() > 0 ? sizeof(size_t) : type.SizeOfStruct();
 	   }
 
-	   VM_CALLBACK(ArrayInit)
-	   {
-		   IScriptSystem& ss = *(IScriptSystem*) context;
-		   const IStructure* elementType = (const IStructure*) registers[VM::REGISTER_D4].vPtrValue;
-		   int32 capacity = registers[VM::REGISTER_D7].int32Value;
-		   size_t elementSize = SizeOfElement(*elementType);
 
+	   ArrayImage* CreateArrayImage(IScriptSystem& ss, const IStructure& elementType, int32 capacity)
+	   {
 		   if (capacity < 0)
 		   {
 			   Throw(0, "Could not allocate array. Negative element count: %d", capacity);
@@ -62,6 +58,8 @@ namespace Rococo
 			   // that function can then be used to tell if an array is non-null.
 			   Throw(0, "Could not allocate array. Zero capacity");
 		   }
+
+		   int elementSize = elementType.SizeOfStruct();
 
 		   if (elementSize > 0x7FFFFFFFLL)
 		   {
@@ -75,10 +73,10 @@ namespace Rococo
 		   }
 
 		   ArrayImage* a = new ArrayImage();
-		
+
 		   a->ElementCapacity = capacity;
-		   a->ElementLength = (int32) elementSize;
-		   a->ElementType = elementType;
+		   a->ElementLength = (int32)elementSize;
+		   a->ElementType = &elementType;
 		   a->NumberOfElements = 0;
 		   a->LockNumber = 0;
 
@@ -98,9 +96,20 @@ namespace Rococo
 
 		   a->RefCount = 1;
 
-		   registers[VM::REGISTER_D5].vPtrValue = a;
-		   
+		   return a;
 	   }
+
+	   VM_CALLBACK(ArrayInit)
+	   {
+		   IScriptSystem& ss = *(IScriptSystem*)context;
+		   const IStructure* elementType = (const IStructure*)registers[VM::REGISTER_D4].vPtrValue;
+		   int32 capacity = registers[VM::REGISTER_D7].int32Value;
+
+		   ArrayImage* a = CreateArrayImage(ss, *elementType, capacity);
+
+		   registers[VM::REGISTER_D5].vPtrValue = a;
+	   }
+
 
 	   void ArrayDelete(ArrayImage* a, IScriptSystem& ss)
 	   {

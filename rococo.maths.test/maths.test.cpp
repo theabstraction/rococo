@@ -1070,6 +1070,12 @@ Matrix4x4f	world	"Sys.Maths.sxy"
 			}
 		}
 
+		void AddArrayRefMember(cstr name, cstr arrayRefName)
+		{
+			PrintIndent();
+			printf("(array %s = %s)\n", name, arrayRefName);
+		}
+
 		void AddBooleanMember(cstr name, bool value) override
 		{
 			PrintIndent();

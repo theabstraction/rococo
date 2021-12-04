@@ -345,18 +345,19 @@ namespace
 			tokenHandler = &CSV_SexyAssetParser::OnMemberDef;
 		}
 
-		void OnArrayTypeDef(int row, int column, cstr token, int32 stringLength)
+		void OnArrayRefName(int row, int column, cstr token, int32 stringLength)
 		{
 			if (defRow != row || defColumn != column)
 			{
-				Throw(0, "Expecting <array-type> at row %d column %d", defRow, defColumn);
+				Throw(0, "Expecting <array-ref-name> at row %d column %d", defRow, defColumn);
 			}
 
-			CopyString(memberTypeBuffer, sizeof memberTypeBuffer, token);
+			memberBuilder.AddArrayRefMember(memberNameBuffer, token);
 
-			defColumn++;
+			defColumn -= 2;
+			defRow++;
 
-			Throw(0, "Array serialization not implemented");
+			tokenHandler = &CSV_SexyAssetParser::OnMemberDef;
 		}
 
 		void OnMemberType(int row, int column, cstr token, int32 stringLength)
@@ -407,7 +408,7 @@ namespace
 			}
 			else if (Eq(memberTypeBuffer, "[]"))
 			{
-				tokenHandler = &CSV_SexyAssetParser::OnArrayTypeDef;
+				tokenHandler = &CSV_SexyAssetParser::OnArrayRefName;
 			}
 			else
 			{
