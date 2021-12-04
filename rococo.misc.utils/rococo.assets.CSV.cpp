@@ -25,7 +25,7 @@ namespace ANON
 			sb.AppendChar(indentChar);
 		}
 
-		void AppendIndents()
+		void AppendIndents() override
 		{
 			for (int i = 0; i < indent; ++i)
 			{
@@ -63,6 +63,14 @@ namespace ANON
 			sb.AppendFormat("%s", type);
 			Indent();
 			sb.AppendFormat("\"%s\"", moduleName);
+		}
+
+		void AppendSimpleMemberDef(cstr name, cstr simpleType)
+		{
+			AppendIndents();
+			AppendSimpleString(name);
+			AppendSimpleString(simpleType);
+			NextLine();
 		}
 
 		void AppendArrayMeta(cstr fieldName, cstr elementType, cstr elementSource, int32 numberOfElements, int32 elementCapacity)
@@ -270,6 +278,29 @@ namespace ANON
 		{
 			AppendIndents();
 			indent++;
+		}
+
+		void ArrayItemStart(int32 index) override
+		{
+			AppendIndents();
+			sb.AppendFormat("[%d]", index);
+			NextLine();
+			indent++;
+		}
+
+		void ArrayItemEnd() override
+		{
+			indent--;
+		}
+
+		void EnterMemberFormat(cstr type, cstr moduleName) override
+		{
+			indent++;
+			AppendIndents();
+			sb.AppendFormat("%s", type);
+			Indent();
+			sb.AppendFormat("\"%s\"", moduleName);
+			sb.AppendChar('\n');
 		}
 
 		void EnterMembers(cstr name, cstr type, cstr moduleName) override

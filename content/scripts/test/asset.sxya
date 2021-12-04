@@ -1,8 +1,15 @@
 AssetBuilder_CSV
 #Object0	GlobalState	"!scripts/test.app.created.sxy"
 points	[]	Vec2f	"Sys.Maths.sxy"	2	2
-	5.000000	7.000000
-	8.000000	9.000000
+	Vec2f	"Sys.Maths.sxy"
+		x	f
+		y	f
+	[0]
+	5.000000
+	7.000000
+	[1]
+	8.000000
+	9.000000
 dogName	@	IString	"Sys.Type.Strings.sxy"	_Null_Sys_Type_IString	"Sys.Type.Strings.sxy"	0
 dog	@	IDog	"!scripts/test.app.created.sxy"	Dog	"!scripts/test.app.created.sxy"	#Object2
 squirrelName	@	IString	"Sys.Type.Strings.sxy"	FastStringBuilder	"Sys.Type.Strings.sxy"	#Object3	"Geoff"	5	1024

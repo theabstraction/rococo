@@ -298,10 +298,57 @@ struct Asset
 				break;
 			}
 
+			builder.NextLine();
+
 			readPtr += member.SizeOfMember();
 		}
+	}
 
-		builder.NextLine();
+	void SaveMemberFormat(const IStructure& type)
+	{
+		for (int j = 0; j < type.MemberCount(); ++j)
+		{
+			auto& member = type.GetMember(j);
+			auto& memberType = *member.UnderlyingType();
+
+			switch (memberType.VarType())
+			{
+			case VARTYPE_Int32:
+				builder.AppendSimpleMemberDef(member.Name(), "i");
+				break;
+			case VARTYPE_Int64:
+				builder.AppendSimpleMemberDef(member.Name(), "l");
+				break;
+			case VARTYPE_Float32:
+				builder.AppendSimpleMemberDef(member.Name(), "f");
+				break;
+			case VARTYPE_Float64:
+				builder.AppendSimpleMemberDef(member.Name(), "d");
+				break;
+			case VARTYPE_Bool:
+				builder.AppendSimpleMemberDef(member.Name(), "?");
+				break;
+			case VARTYPE_Derivative:
+				if (StartsWith(memberType.Name(), "_Null"))
+				{
+					builder.AppendHeader(member.Name(), memberType.GetInterface(0).Name(), memberType.Module().Name());
+				}
+				else
+				{
+					builder.EnterMembers(member.Name(), memberType.Name(), memberType.Module().Name());
+					SaveMemberFormat(memberType);
+					builder.LeaveMembers();
+				}
+				
+				break;
+			case VARTYPE_Pointer:
+				builder.AppendSimpleMemberDef(member.Name(), "*");
+				break;
+			default:
+				Throw(0, "Cannot save unhandled var type values");
+				break;
+			}
+		}
 	}
 
 	void SaveArray(cr_sex s, IAssetBuilder& builder, cstr name, const IStructure& assetType, ArrayImage* arrayData)
@@ -314,6 +361,11 @@ struct Asset
 		auto& elementType = *arrayData->ElementType;
 
 		builder.AppendArrayMeta(name, elementType.Name(), elementType.Module().Name(), arrayData->NumberOfElements, arrayData->ElementCapacity);
+
+		builder.EnterMemberFormat(elementType.Name(), elementType.Module().Name());
+		SaveMemberFormat(elementType);
+		builder.LeaveMembers();
+
 		builder.EnterArray();
 
 		auto* start = (const uint8*)arrayData->Start;
@@ -322,7 +374,9 @@ struct Asset
 
 		for (int i = 0; i < arrayData->NumberOfElements; ++i)
 		{
+			builder.ArrayItemStart(i);
 			SaveValues(builder, elementType, readPtr);
+			builder.ArrayItemEnd();
 			readPtr += arrayData->ElementLength;
 		}
 

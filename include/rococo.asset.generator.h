@@ -16,9 +16,11 @@ namespace Rococo::Assets
 {
 	ROCOCOAPI IAssetBuilder
 	{
+		virtual void AppendIndents() = 0;
 		virtual void AppendHeader(cstr name, cstr typename, cstr moduleName) = 0;
 		virtual void AppendInterfaceType(cstr interfaceType, cstr name, cstr moduleName) = 0;
 		virtual void AppendObjectDesc(cstr type, cstr moduleName) = 0;
+		virtual void AppendSimpleMemberDef(cstr name, cstr simpleType) = 0;
 		virtual void AppendStringConstant(cstr name, cstr buffer, int32 length) = 0;
 		virtual void AppendSimpleString(cstr text) = 0;
 		virtual void AppendValue(cstr fieldName, int32 value) = 0;
@@ -33,9 +35,12 @@ namespace Rococo::Assets
 		virtual void AppendFloat32(float32 value) = 0;
 		virtual void AppendFloat64(float64 value) = 0;
 		virtual void AppendBool(bool value) = 0;
+		virtual void ArrayItemStart(int32 index) = 0;
+		virtual void ArrayItemEnd() = 0;
 		virtual void NextLine() = 0;
 
 		virtual void EnterArray() = 0;
+		virtual void EnterMemberFormat(cstr typename, cstr moduleName) = 0;
 		virtual void EnterMembers(cstr name, cstr typename, cstr moduleName) = 0;
 		virtual void LeaveMembers() = 0;
 
