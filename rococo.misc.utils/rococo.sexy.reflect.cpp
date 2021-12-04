@@ -83,13 +83,25 @@ using namespace Rococo::Script;
 
 struct ObjectDef
 {
+	ObjectDef()
+	{
+
+	}
+
 	ObjectDef(cstr name, ObjectStub* _stub, int32 _index) : objectName(name), stub(_stub), index(_index)
 	{
 
 	}
 
 	HString objectName;
-	ObjectStub* stub;
+	ObjectStub* stub = nullptr;
+	int index = 0;
+};
+
+struct ArrayDef
+{
+	HString arrayName;
+	ArrayImage* image;
 	int index;
 };
 
@@ -100,17 +112,15 @@ struct Asset
 	mutable const IStructure* structStringConstant = nullptr;
 	mutable const IStructure* structfastStringBuilder = nullptr;
 
-	std::unordered_map<ObjectStub*, ObjectDef*> refToObject;
-	std::vector<ObjectDef*> exportQueue;
+	std::unordered_map<ObjectStub*, ObjectDef> refToObject;
+	std::vector<ObjectDef> exportQueue;
+	std::unordered_map<ArrayImage*, ArrayDef> refToArray;
+	std::vector<ArrayDef> arrayExportQueue;
 
 	uint32 nextIndex = 1;
 
 	~Asset()
 	{
-		for (auto i : refToObject)
-		{
-			delete i.second;
-		}
 	}
 
 	bool IsFastStringBuilderType(const IStructure& type) const
@@ -217,7 +227,7 @@ struct Asset
 
 		bool isFastStringBuilder = IsFastStringBuilderType(objectType);
 
-		ObjectDef* def;
+		ObjectDef def;
 		bool newDefinition = false;
 
 		auto i = refToObject.find(stub);
@@ -236,7 +246,7 @@ struct Asset
 				SafeFormat(objectName, "#Object%d", nextIndex);
 			}
 
-			def = new ObjectDef(objectName, stub, nextIndex++);
+			def = ObjectDef(objectName, stub, nextIndex++);
 			refToObject.insert(std::make_pair(stub, def));
 
 			newDefinition = true;
@@ -251,7 +261,7 @@ struct Asset
 			def = i->second;
 		}
 		
-		builder.AppendSimpleString(def->objectName);
+		builder.AppendSimpleString(def.objectName);
 
 		if (isFastStringBuilder && newDefinition)
 		{
@@ -351,16 +361,44 @@ struct Asset
 		}
 	}
 
+	int32 nextArrayIndex = 1;
+
 	void SaveArray(cr_sex s, IAssetBuilder& builder, cstr name, const IStructure& assetType, ArrayImage* arrayData)
 	{
 		if (!arrayData)
 		{
+			builder.AppendArrayRef(name, "null");
 			return;
 		}
 
-		auto& elementType = *arrayData->ElementType;
+		char arrayName[32];
+		SafeFormat(arrayName, "array%d", nextArrayIndex++);
 
-		builder.AppendArrayMeta(name, elementType.Name(), elementType.Module().Name(), arrayData->NumberOfElements, arrayData->ElementCapacity);
+		auto i = refToArray.find(arrayData);
+		if (i == refToArray.end())
+		{
+			ArrayDef def;
+			def.index = nextArrayIndex;
+			def.arrayName = arrayName;
+			def.image = arrayData;
+
+			i = refToArray.insert(std::make_pair(arrayData, def)).first;
+
+			arrayExportQueue.push_back(def);
+		}
+
+		builder.AppendArrayRef(name, arrayName);
+	}
+
+	void SaveArray(ArrayDef& def)
+	{
+		builder.NextLine();
+
+		auto& arrayData = *def.image;
+
+		auto& elementType = *arrayData.ElementType;
+
+		builder.AppendArrayMeta(def.arrayName, elementType.Name(), elementType.Module().Name(), arrayData.NumberOfElements, arrayData.ElementCapacity);
 
 		builder.EnterMemberFormat(elementType.Name(), elementType.Module().Name());
 		SaveMemberFormat(elementType);
@@ -368,16 +406,16 @@ struct Asset
 
 		builder.EnterArray();
 
-		auto* start = (const uint8*)arrayData->Start;
+		auto* start = (const uint8*)arrayData.Start;
 
 		auto* readPtr = start;
 
-		for (int i = 0; i < arrayData->NumberOfElements; ++i)
+		for (int i = 0; i < arrayData.NumberOfElements; ++i)
 		{
 			builder.ArrayItemStart(i);
 			SaveValues(builder, elementType, readPtr);
 			builder.ArrayItemEnd();
-			readPtr += arrayData->ElementLength;
+			readPtr += arrayData.ElementLength;
 		}
 
 		builder.LeaveMembers();
@@ -448,10 +486,18 @@ struct Asset
 	{
 		while (!exportQueue.empty())
 		{
-			ObjectDef* nextObject = exportQueue.back();
+			ObjectDef nextObject = exportQueue.back();
 			exportQueue.pop_back();
 
-			SaveObject(*nextObject, sourceExpression);
+			SaveObject(nextObject, sourceExpression);
+		}
+
+		while (!arrayExportQueue.empty())
+		{
+			ArrayDef def = arrayExportQueue.back();
+			arrayExportQueue.pop_back();
+
+			SaveArray(def);
 		}
 	}
 };
@@ -485,7 +531,7 @@ static void SaveAssetWithSexyGenerator(IAssetGenerator* generator, ReflectionArg
 		{
 			InterfacePointer pInterface = *(InterfacePointer*) args.rhsData;
 			ObjectStub* rootObject = InterfaceToInstance(pInterface);
-			asset.refToObject[rootObject] = new ObjectDef("#Object0", rootObject, 0);
+			asset.refToObject[rootObject] = ObjectDef("#Object0", rootObject, 0);
 		}
 		asset.SaveDerivativeFields_Recursive(args.s, *builder, args.rhsName, args.rhsType, (const uint8*)args.rhsData);
 	}

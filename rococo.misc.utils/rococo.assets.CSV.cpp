@@ -53,7 +53,18 @@ namespace ANON
 			sb.AppendChar('\n');
 		}
 
-		void AppendInterfaceType(cstr type, cstr name, cstr moduleName)
+		void AppendArrayRef(cstr fieldName, cstr arrayRefName) override
+		{
+			AppendIndents();
+			sb.AppendFormat("%s", fieldName);
+			Indent();
+			sb.AppendFormat("[]", fieldName);
+			Indent();
+			sb.AppendFormat("%s", arrayRefName);
+			sb.AppendChar('\n');
+		}
+
+		void AppendInterfaceType(cstr type, cstr name, cstr moduleName) override
 		{
 			AppendIndents();
 			sb.AppendFormat("%s", name);
