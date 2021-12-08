@@ -15,8 +15,19 @@
 (using Sys.Type)
 (using Sys.Maths)
 
+(struct Material
+	(Vec2 indexAndShine)
+)
+
+(struct Point
+	(Vec2 position)
+	(Vec2 uv)
+	(Float32 alpha)
+	(Material material)
+)
+
 (struct GlobalState
-	(array Vec2 points)
+	(array Point points)
 	(IString dogName)
 	(Sys.IDog dog)
 	(IString squirrelName)
@@ -28,13 +39,13 @@
 )
 
 (method GlobalState.Construct : 
-	(array Vec2 points 2)
+	(array Point points 2)
 	(this.points = points)
 )
 
 (function GlobalStateInit (GlobalState gs) -> :
-	(gs.points.Push Vec2f (5 7))
-	(gs.points.Push Vec2f (8 9))
+	(gs.points.Push Point ((5 7)(0 1) 0.75((7 8))))
+	(gs.points.Push Point ((8 9)(1 0) 0.25((6 5))))
 
 	(IString dogName = NullString)
 	(IStringBuilder squirrelName = (NewParagraphBuilder))

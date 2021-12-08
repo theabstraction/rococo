@@ -80,6 +80,7 @@ namespace ANON
 		{
 			AppendIndents();
 			AppendSimpleString(name);
+			Indent();
 			AppendSimpleString(simpleType);
 			NextLine();
 		}
@@ -138,31 +139,26 @@ namespace ANON
 
 		void AppendInt32(int32 value) override
 		{
-			Indent();
 			sb.AppendFormat("%d", value);
 		}
 
 		void AppendInt64(int64 value) override
 		{
-			Indent();
 			sb.AppendFormat("%lld", value);
 		}
 
 		void AppendFloat32(float32 value) override
 		{
-			Indent();
 			sb.AppendFormat("%f", value);
 		}
 
 		void AppendFloat64(float64 value) override
 		{
-			Indent();
 			sb.AppendFormat("%llf", value);
 		}
 
 		void AppendBool(bool value) override
 		{
-			Indent();
 			sb.AppendFormat("%s", value ? "Y" : "N");
 		}
 
@@ -281,27 +277,22 @@ namespace ANON
 
 		void AppendSimpleString(cstr text) override
 		{
-			Indent();
 			sb.AppendFormat("%s", text);
 		}
 
 		void EnterArray() override
 		{
-			AppendIndents();
-			indent++;
+			indent = 0;
 		}
 
 		void ArrayItemStart(int32 index) override
 		{
-			AppendIndents();
 			sb.AppendFormat("[%d]", index);
 			NextLine();
-			indent++;
 		}
 
 		void ArrayItemEnd() override
 		{
-			indent--;
 		}
 
 		void EnterMemberFormat(cstr type, cstr moduleName) override
@@ -312,6 +303,11 @@ namespace ANON
 			Indent();
 			sb.AppendFormat("\"%s\"", moduleName);
 			sb.AppendChar('\n');
+		}
+
+		void EnterMemberValues() override
+		{
+			indent++;
 		}
 
 		void EnterMembers(cstr name, cstr type, cstr moduleName) override

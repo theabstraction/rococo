@@ -276,7 +276,7 @@ struct Asset
 
 	void SaveValues(IAssetBuilder& builder, const IStructure& type, const uint8* pVariable)
 	{
-		const uint8* readPtr = pVariable;
+ 		const uint8* readPtr = pVariable;
 
 		for (int j = 0; j < type.MemberCount(); ++j)
 		{
@@ -286,29 +286,45 @@ struct Asset
 			switch (memberType.VarType())
 			{
 			case VARTYPE_Int32:
+				builder.AppendIndents();
 				builder.AppendInt32(*(const int32*)readPtr);
+				builder.NextLine();
 				break;
 			case VARTYPE_Int64:
+				builder.AppendIndents();
 				builder.AppendInt64(*(const int64*)readPtr);
+				builder.NextLine();
 				break;
 			case VARTYPE_Float32:
+				builder.AppendIndents();
 				builder.AppendFloat32(*(const float32*)readPtr);
+				builder.NextLine();
 				break;
 			case VARTYPE_Float64:
+				builder.AppendIndents();
 				builder.AppendFloat64(*(const float64*)readPtr);
+				builder.NextLine();
 				break;
 			case VARTYPE_Bool:
+				builder.AppendIndents();
 				builder.AppendBool((*(const boolean32*)readPtr) == 1 ? true : false);
+				builder.NextLine();
 				break;
 			case VARTYPE_Derivative:
-				builder.AppendFString("???"_fstring);
+				builder.AppendIndents();
+				builder.AppendSimpleString("(");
+				builder.NextLine();
+				builder.EnterMemberValues();
+				SaveValues(builder, memberType, readPtr);
+				builder.LeaveMembers();
+				builder.AppendIndents();
+				builder.AppendSimpleString(")");
+				builder.NextLine();
 				break;
 			case VARTYPE_Pointer:
 				Throw(0, "Cannot save pointer values");
 				break;
 			}
-
-			builder.NextLine();
 
 			readPtr += member.SizeOfMember();
 		}
@@ -345,7 +361,7 @@ struct Asset
 				}
 				else
 				{
-					builder.EnterMembers(member.Name(), memberType.Name(), memberType.Module().Name());
+ 					builder.EnterMembers(member.Name(), memberType.Name(), memberType.Module().Name());
 					SaveMemberFormat(memberType);
 					builder.LeaveMembers();
 				}

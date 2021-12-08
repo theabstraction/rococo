@@ -43,6 +43,7 @@ namespace Rococo::Assets
 		virtual void EnterArray() = 0;
 		virtual void EnterMemberFormat(cstr typename, cstr moduleName) = 0;
 		virtual void EnterMembers(cstr name, cstr typename, cstr moduleName) = 0;
+		virtual void EnterMemberValues() = 0;
 		virtual void LeaveMembers() = 0;
 
 		virtual void Free() = 0;
