@@ -400,9 +400,9 @@ struct Asset
 
 		builder.AppendArrayMeta(def.arrayName, elementType.Name(), elementType.Module().Name(), arrayData.NumberOfElements, arrayData.ElementCapacity);
 
-		builder.EnterMemberFormat(elementType.Name(), elementType.Module().Name());
+		//builder.EnterMemberFormat(elementType.Name(), elementType.Module().Name());
 		SaveMemberFormat(elementType);
-		builder.LeaveMembers();
+		//builder.LeaveMembers();
 
 		builder.EnterArray();
 

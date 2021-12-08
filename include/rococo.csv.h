@@ -41,7 +41,19 @@ namespace Rococo::Sexy
 		// We are done adding members to the object and we need to build another object
 		virtual void AddNewObject(cstr name, cstr type, cstr sourceFile) = 0;
 
+		// Create a new array object, and allow references to it by name
+		// SetArrayBuildIndex will make other build operations write to the array until a new container definition is specified
+		virtual void AddArrayDefinition(cstr refName, cstr elementType, cstr elementTypeSource, int32 length, int32 capacity) = 0;
+
+		// Tells the builder which array item is to be overwritten. Called following AddArrayDefinition
+		virtual void SetArrayWriteIndex(int32 index) = 0;
+
+		// Add a member variable to an object, which is a reference to an array.
 		virtual void AddArrayRefMember(cstr name, cstr arrayRefName) = 0;
+
+		virtual void AddContainerItemF32(int elementMemberIndex, int32 memberDepth, cstr memberName) = 0;
+
+		virtual void AddF32ItemValue(int itemIndex, float value) = 0;
 	};
 
 	ROCOCOAPI ISexyObjectBuilder

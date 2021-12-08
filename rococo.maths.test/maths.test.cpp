@@ -1145,6 +1145,25 @@ Matrix4x4f	world	"Sys.Maths.sxy"
 			printf("\n(%s %s) // %s\n", name, type, source);
 		}
 
+		void AddArrayDefinition(cstr refName, cstr elementType, cstr elementTypeSource, int32 length, int32 capacity) override
+		{
+			printf("\n(Array<%s/%s> %s %d %d)\n", elementType, elementTypeSource, refName, length, capacity);
+		}
+
+		void SetArrayWriteIndex(int32 index) override
+		{
+			printf("\n(ArrayWrite [ %d ])\n", index);
+		}
+
+		void AddContainerItemF32(int elementMemberIndex, int32 memberDepth, cstr memberName) override
+		{
+			printf("\n([%d] depth %d : %s)", elementMemberIndex, memberDepth, memberName);
+		}
+
+		void AddF32ItemValue(int32 itemIndex, float value) override
+		{
+			printf("\n([%d] Value: %f)", itemIndex, value);
+		}
 	} memberBuilder;
 
 	AutoFree<ICSVTokenParser> parser = CreateSXYAParser(memberBuilder);

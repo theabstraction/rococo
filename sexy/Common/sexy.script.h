@@ -302,7 +302,14 @@ namespace Rococo {
 				AddRawNativeReflectionCall(functionName, TReflectionCall<CONTEXT>::ToRaw(fnCall), (void*)context);
 			}
 
+			virtual void* AlignedMalloc(int32 alignment, int32 capacity) = 0;
+			virtual void AlignedFree(void* buffer) = 0;
+
 			virtual ObjectStub* CreateScriptObject(cstr type, cstr sourceFile) = 0;
+
+			// Create a blank array with 0 capacity and no elements. The implementation should allocate memory, set the capacity > 0 and assign elements prior
+			// to allowing the script to process the array. Use ss.AlignedMalloc(16, capacity * a->ElementLength); and assign to the Start variable to set the size.
+			// Use ss.AlignedFree to clean up the memory.
 			virtual ArrayImage* CreateArrayImage(const IStructure& type) = 0;
 
 			virtual CStringConstant* GetStringReflection(cstr s, int32 stringLength = -1) = 0;
@@ -383,8 +390,6 @@ namespace Rococo {
 			virtual CReflectedClass* CreateReflectionClass(cstr className, void* context) = 0;
 			virtual bool ConstructExpressionBuilder(CClassExpressionBuilder& builderContainer, Rococo::Sex::ISExpressionBuilder* builder) = 0;
 			virtual const void* GetMethodMap() = 0;
-			virtual void* AlignedMalloc(int32 alignment, int32 capacity) = 0;
-			virtual void AlignedFree(void* buffer) = 0;
 			virtual int NextID() = 0;
 			virtual const ScriptCallbacks& GetScriptCallbacks() = 0;
 			virtual cstr GetPersistentString(cstr text, int textLength = -1) = 0;

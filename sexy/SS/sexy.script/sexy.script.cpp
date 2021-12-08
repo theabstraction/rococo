@@ -988,7 +988,7 @@ namespace Rococo
 
 		ArrayImage* CreateArrayImage(const IStructure& elementType) override
 		{
-			return Rococo::Script::CreateArrayImage(*this, elementType, 1);
+			return Rococo::Script::CreateArrayImage(*this, elementType, 0);
 		}
 
 		InterfacePointer GetUniversalNullObject(cstr instanceType, cstr instanceSource) override

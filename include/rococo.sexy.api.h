@@ -8,6 +8,11 @@ namespace Rococo
 	struct IDebuggerWindow;
 	struct IInstallation;
 
+	namespace Compiler
+	{
+		struct IStructure;
+	}
+
 	namespace Script
 	{
 		struct IPublicScriptSystem;

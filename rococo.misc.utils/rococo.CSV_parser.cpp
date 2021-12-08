@@ -18,7 +18,7 @@ namespace
 
 	struct CSV_SexyAssetParser : ICSVTokenParser
 	{
-		typedef void (CSV_SexyAssetParser::*FN_STATE)(int row, int column, cstr token, int32 stringLength);
+		typedef void (CSV_SexyAssetParser::* FN_STATE)(int row, int column, cstr token, int32 stringLength);
 
 		std::vector<int> memberIndex;
 		IMemberBuilder& memberBuilder;
@@ -30,7 +30,7 @@ namespace
 		char archiveName[Rococo::MAX_FQ_NAME_LEN + 1]; // The variable name. Very often 'this'. Limited to legal Sexy variable names.
 		char archiveSource[Rococo::IO::MAX_PATHLEN]; // The source file wherein the local type is defined. For example Vec2 is Sys.Maths.sxy
 
-		CSV_SexyAssetParser(IMemberBuilder& _memberBuilder):
+		CSV_SexyAssetParser(IMemberBuilder& _memberBuilder) :
 			memberBuilder(_memberBuilder)
 		{
 
@@ -191,7 +191,7 @@ namespace
 				Throw(0, "Expecting <string-constant> at row %d column %d", defRow, defColumn);
 			}
 
-			fstring text{ stringConstantBuffer.data(), (int32)stringConstantBuffer.size()-1 };
+			fstring text{ stringConstantBuffer.data(), (int32)stringConstantBuffer.size() - 1 };
 
 			int32 capacity = atoi(token);
 			if (capacity < text.length)
@@ -215,9 +215,9 @@ namespace
 			}
 
 			int32 expectedLength = atoi(token);
-			if (expectedLength + 1 != (int32) stringConstantBuffer.size())
+			if (expectedLength + 1 != (int32)stringConstantBuffer.size())
 			{
-				Throw(0, "Expecting <string-constant> at row %d column %d to be of %d characters in length", defRow, defColumn-1, expectedLength);
+				Throw(0, "Expecting <string-constant> at row %d column %d to be of %d characters in length", defRow, defColumn - 1, expectedLength);
 			}
 
 			tokenHandler = &CSV_SexyAssetParser::OnFastStringBuilderCapacity;
@@ -231,7 +231,7 @@ namespace
 				Throw(0, "Expecting <string-constant> at row %d column %d", defRow, defColumn);
 			}
 
-			stringConstantBuffer.resize((size_t) (stringLength + 1));
+			stringConstantBuffer.resize((size_t)(stringLength + 1));
 			memcpy_s(stringConstantBuffer.data(), stringConstantBuffer.size(), token, stringLength);
 			stringConstantBuffer[stringLength] = 0;
 
@@ -332,7 +332,7 @@ namespace
 			}
 
 			int stringConstantLength = atoi(token);
-			if (stringConstantLength + 1 != (int32) stringConstantBuffer.size())
+			if (stringConstantLength + 1 != (int32)stringConstantBuffer.size())
 			{
 				Throw(0, "Expecting string constant buffer length to be %d, but it was %llu", (stringConstantLength + 1), stringConstantBuffer.size());
 			}
@@ -418,6 +418,8 @@ namespace
 			}
 		}
 
+		char memberTypeSource[Rococo::IO::MAX_PATHLEN];
+
 		void OnObjectSource(int row, int column, cstr token, int32 stringLength)
 		{
 			if (defRow != row || defColumn != column)
@@ -425,7 +427,6 @@ namespace
 				Throw(0, "Expecting name at row %d column %d", defRow, defColumn);
 			}
 
-			
 			memberBuilder.AddNewObject(memberNameBuffer, memberTypeBuffer, token);
 
 			defColumn = 1;
@@ -434,19 +435,225 @@ namespace
 			tokenHandler = &CSV_SexyAssetParser::OnMemberDef;
 		}
 
+		int arrayCapacity;
 
-		void OnObjectType(int row, int column, cstr token, int32 stringLength)
+		int32 arrayIndex;
+
+		int32 itemIndex;
+
+		std::vector<HString> elementTypes;
+
+		void OnElementValue(int row, int column, cstr token, int32 stringLength)
+		{
+			if (defRow != row)
+			{
+				Throw(0, "Expecting element value at row %d", defRow);
+			}
+
+			defRow++;
+
+			if (*token == '[')
+			{
+				// Human readable index indicator - which we skip
+				return;
+			}
+
+			cstr typeName = elementTypes[itemIndex];
+			if (Eq(typeName, "f"))
+			{
+				memberBuilder.AddF32ItemValue(itemIndex, (float) atof(token));
+			}
+
+			itemIndex++;
+
+			if (itemIndex >= numberOfElementMembers)
+			{
+				itemIndex = 0;
+				arrayIndex++;
+
+				if (arrayIndex == arrayLength)
+				{
+					tokenHandler = &CSV_SexyAssetParser::OnObjectName;
+					return;
+				}
+			}
+
+			tokenHandler = &CSV_SexyAssetParser::OnElementValue;
+		}
+
+		void OnArrayIndex(int row, int column, cstr token, int32 stringLength)
+		{
+			// [<index>]
+			// N.B according to docs atoi will ignore the trailing ]
+			arrayIndex = atoi(token + 1);
+
+			defRow++;
+			defColumn = 1;
+
+			itemIndex = 0;
+
+			tokenHandler = &CSV_SexyAssetParser::OnElementValue;
+
+			memberBuilder.SetArrayWriteIndex(arrayIndex);
+		}
+
+		int elementMemberIndex;
+
+		int numberOfElementMembers = 0;
+
+		void OnElementTypeMemberType(int row, int column, cstr token, int32 stringLength)
 		{
 			if (defRow != row || defColumn != column)
 			{
-				Throw(0, "Expecting name at row %d column %d", defRow, defColumn);
+				Throw(0, "Expecting member type of array element type at row %d column %d", defRow, defColumn);
+			}
+
+			elementTypes.push_back(token);
+
+			defRow++;
+			defColumn = 1;
+
+			if (Eq(token, "f"))
+			{
+				// Float32
+				memberBuilder.AddContainerItemF32(elementMemberIndex, column - 1, elementTypeMemberName);
+			}
+			else
+			{
+				Throw(0, "Unhandled type");
+			}
+
+			elementMemberIndex++;
+			numberOfElementMembers++;
+
+			tokenHandler = &CSV_SexyAssetParser::OnArrayElementTypeMemberName;
+		}
+
+		char elementTypeMemberName[Rococo::NAMESPACE_MAX_LENGTH];
+
+		void OnArrayElementTypeMemberName(int row, int column, cstr token, int32 stringLength)
+		{
+			if (defRow != row)
+			{
+				Throw(0, "Expecting element type member name at row %d", defRow);
+			}
+
+			if (*token == '[')
+			{
+				elementMemberIndex = 0;
+				OnArrayIndex(row, column, token, stringLength);
+				return;
+			}
+
+			CopyString(elementTypeMemberName, sizeof elementTypeMemberName, token);
+
+			defColumn = column + 1;
+
+			tokenHandler = &CSV_SexyAssetParser::OnElementTypeMemberType;
+		}
+
+		void OnArrayCapacity(int row, int column, cstr token, int32 stringLength)
+		{
+			if (defRow != row || defColumn != column)
+			{
+				Throw(0, "Expecting array capacity at row %d column %d", defRow, defColumn);
+			}
+
+			arrayCapacity = atoi(token);
+
+			if (arrayCapacity == 0)
+			{
+				Throw(0, "Zero length array capacity not permitted (row %d column %d)", defRow, defColumn);
+			}
+
+			if (arrayCapacity < arrayLength)
+			{
+				Throw(0, "Array capacity %d smaller than array length %d (row %d column %d)", arrayCapacity, arrayLength, defRow, defColumn);
+			}
+
+			numberOfElementMembers = 0;
+
+			defColumn = 1;
+			defRow++;
+
+			memberBuilder.AddArrayDefinition(memberNameBuffer, memberTypeBuffer, memberTypeSource, arrayLength, arrayCapacity);
+
+			elementMemberIndex = 0;
+
+			if (arrayLength > 0)
+			{
+				tokenHandler = &CSV_SexyAssetParser::OnArrayElementTypeMemberName;
+			}
+			else
+			{
+				tokenHandler = &CSV_SexyAssetParser::OnArrayRefName;
+			}
+
+			elementTypes.clear();
+		}
+
+		int arrayLength;
+
+		void OnArrayLength(int row, int column, cstr token, int32 stringLength)
+		{
+			if (defRow != row || defColumn != column)
+			{
+				Throw(0, "Expecting array length at row %d column %d", defRow, defColumn);
+			}
+
+			arrayLength = atoi(token);
+
+			defColumn++;
+
+			tokenHandler = &CSV_SexyAssetParser::OnArrayCapacity;
+		}
+
+		void OnArrayTypeSource(int row, int column, cstr token, int32 stringLength)
+		{
+			if (defRow != row || defColumn != column)
+			{
+				Throw(0, "Expecting array element type source at row %d column %d", defRow, defColumn);
+			}
+
+			CopyString(memberTypeSource, sizeof memberTypeSource, token);
+
+			defColumn++;
+
+			tokenHandler = &CSV_SexyAssetParser::OnArrayLength;
+		}
+
+		void OnArrayType(int row, int column, cstr token, int32 stringLength)
+		{
+			if (defRow != row || defColumn != column)
+			{
+				Throw(0, "Expecting array element type at row %d column %d", defRow, defColumn);
 			}
 
 			CopyString(memberTypeBuffer, sizeof memberTypeBuffer, token);
 
 			defColumn++;
 
-			tokenHandler = &CSV_SexyAssetParser::OnObjectSource;
+			tokenHandler = &CSV_SexyAssetParser::OnArrayTypeSource;
+		}
+
+		void OnObjectType(int row, int column, cstr token, int32 stringLength)
+		{
+			if (defRow != row || defColumn != column)
+			{
+				Throw(0, "Expecting type at row %d column %d", defRow, defColumn);
+			}
+
+			defColumn++;
+
+			if (Eq(token, "[]"))
+			{
+				tokenHandler = &CSV_SexyAssetParser::OnArrayType;
+			}
+			else
+			{
+				CopyString(memberTypeBuffer, sizeof memberTypeBuffer, token);
+				tokenHandler = &CSV_SexyAssetParser::OnObjectSource;
+			}
 		}
 
 		void OnMemberDef(int row, int column, cstr token, int32 stringLength)

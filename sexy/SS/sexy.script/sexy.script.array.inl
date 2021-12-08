@@ -52,13 +52,6 @@ namespace Rococo
 			   Throw(0, "Could not allocate array. Negative element count: %d", capacity);
 		   }
 
-		   if (capacity == 0)
-		   {
-			   // array.Capacity returns 0 in the case of a null array, so prohibit zero and 
-			   // that function can then be used to tell if an array is non-null.
-			   Throw(0, "Could not allocate array. Zero capacity");
-		   }
-
 		   int elementSize = elementType.SizeOfStruct();
 
 		   if (elementSize > 0x7FFFFFFFLL)
@@ -82,11 +75,7 @@ namespace Rococo
 
 		   try
 		   {
-			   a->Start = ss.AlignedMalloc(16, capacity * a->ElementLength);
-			   if (a->Start == nullptr)
-			   {
-				   throw 0;
-			   }
+			   a->Start = capacity == 0 ? nullptr : ss.AlignedMalloc(16, capacity * a->ElementLength);
 		   }
 		   catch (...)
 		   {
@@ -104,6 +93,13 @@ namespace Rococo
 		   IScriptSystem& ss = *(IScriptSystem*)context;
 		   const IStructure* elementType = (const IStructure*)registers[VM::REGISTER_D4].vPtrValue;
 		   int32 capacity = registers[VM::REGISTER_D7].int32Value;
+
+		   if (capacity == 0)
+		   {
+			   // array.Capacity returns 0 in the case of a null array, so prohibit zero and 
+			   // that function can then be used to tell if an array is non-null.
+			   Throw(0, "Could not allocate array. Zero capacity");
+		   }
 
 		   ArrayImage* a = CreateArrayImage(ss, *elementType, capacity);
 

@@ -19,6 +19,31 @@ namespace
 	using namespace Rococo::Sexy;
 	using namespace Rococo::Script;
 
+	const Rococo::Compiler::IStructure* FindStructure(IPublicScriptSystem& ss, cstr localTypeName, cstr moduleName, bool throwOnError = true)
+	{
+		auto& obj = ss.PublicProgramObject();
+		for (int i = 0; i < obj.ModuleCount(); ++i)
+		{
+			auto& module = obj.GetModule(i);
+			if (Eq(module.Name(), moduleName))
+			{
+				auto* type = module.FindStructure(localTypeName);
+				if (!type && throwOnError)
+				{
+					Throw(0, "%s(ss, %s, %s, true) failed. Could not find structure in module.", __FUNCTION__, localTypeName, moduleName);
+				}
+				return type;
+			}
+		}
+
+		if (throwOnError)
+		{
+			Throw(0, "%s(ss, %s, %s, true) failed. Could not find module.", __FUNCTION__, localTypeName, moduleName);
+		}
+
+		return nullptr;
+	}
+
 	inline ObjectStub* InterfaceToInstance(InterfacePointer i)
 	{
 		auto* p = ((uint8*)i) + (*i)->OffsetToInstance;
@@ -103,11 +128,11 @@ namespace
 
 			auto& elementType = *member->UnderlyingGenericArg1Type();
 			
-			auto i = arrays.find(name);
+			auto i = arrays.find(arrayRefName);
 			if (i == arrays.end())
 			{
 				auto* image = scriptSystem->CreateArrayImage(elementType);
-				i = arrays.insert(name, image).first;		
+				i = arrays.insert(arrayRefName, image).first;
 			}
 			else
 			{
@@ -120,6 +145,55 @@ namespace
 			}
 			
 			WritePrimitive(i->second);
+		}
+
+		struct ElementMemberDesc
+		{
+			int elementMemberIndex;
+			std::vector<int32> indexSet;
+			ptrdiff_t memberDataOffset;
+		};
+
+		std::vector<ElementMemberDesc> containerElements;
+
+		void AddContainerItemF32(int elementMemberIndex, int32 memberDepth, cstr memberName) override
+		{
+			auto& type = *currentArray->ElementType;
+
+			const IMember* member = GetBestMatchingMember(memberName);
+
+			if (member == nullptr)
+			{
+				// We have no match for the element, but this may mean the archive was written before the field was deleted and we want to load what we can.
+				containerElements.push_back(ElementMemberDesc{});
+				containerElements.back().elementMemberIndex = elementMemberIndex;
+				containerElements.back().memberDataOffset = -1;
+				return;
+			}
+
+			if (member->UnderlyingType()->VarType() != VARTYPE_Float32)
+			{
+				Throw(0, "%s failed. Element type was %s of %s. Expected a Float32", __FUNCTION__, type.Name(), type.Module().Name());
+			}
+
+			containerElements.push_back(ElementMemberDesc{});
+			containerElements.back().elementMemberIndex = elementMemberIndex;
+			containerElements.back().memberDataOffset = writeCursor - writePosition;
+		}
+
+		void AddF32ItemValue(int32 itemIndex, float value)
+		{
+			if (itemIndex >= (int32) containerElements.size())
+			{
+				Throw(0, "%s: Bad index (%d)", __FUNCTION__, itemIndex);
+			}
+
+			if (containerElements[itemIndex].memberDataOffset > 0)
+			{
+				uint8* memberData = containerElements[itemIndex].memberDataOffset + writePosition;
+				auto* floatMemberData = (float*)memberData;
+				*floatMemberData = value;
+			}
 		}
 
 		void AddNewObject(cstr name, cstr type, cstr sourceFile) override
@@ -698,6 +772,69 @@ namespace
 
 				object.stub->refCount = (int64) object.requiredInterfaces.size();
 			}
+		}
+
+		ArrayImage* currentArray = nullptr;
+		uint8* currentArrayBuffer = nullptr;
+
+		void AddArrayDefinition(cstr refName, cstr elementType, cstr elementTypeSource, int32 length, int32 capacity) override
+		{
+			auto* type = FindStructure(*scriptSystem, elementType, elementTypeSource);
+			if (!type)
+			{
+				Throw(0, "Could not resolve type %s of %s", elementType, elementTypeSource);
+			}
+
+			auto i = arrays.find(refName);
+			if (i == arrays.end())
+			{
+				auto* image = scriptSystem->CreateArrayImage(*type);
+				i = arrays.insert(refName, image).first;
+			}
+			else
+			{
+				if (i->second->ElementType != type)
+				{
+					Throw(0, "Cannot load %s.\nThe array has already been defined as being type %s of %s.\nThe operation requested a type %s of %s.", refName, i->second->ElementType->Name(), i->second->ElementType->Module().Name(), type->Name(), type->Module().Name());
+				}
+			}
+
+			auto* image = i->second;
+
+			// Edge case -> capacity * image->ElementType->SizeOfStruct() may not fit in an int32
+
+			int64 totalLen = (int64)capacity * (int64)image->ElementLength;
+			if (totalLen > 0x7FFFFFFFLL)
+			{
+				Throw(0, "Max capacity exceeded attempting to reserve %d elements for %s", capacity, refName);
+			}
+
+			void* elementBuffer = scriptSystem->AlignedMalloc(16, capacity * image->ElementLength);
+			if (elementBuffer == nullptr)
+			{
+				Throw(0, "Could not reserve %d elements for %s", capacity, refName);
+			}
+
+			image->Start = elementBuffer;
+			image->ElementCapacity = capacity;
+			image->NumberOfElements = length;
+
+			currentArray = image;
+			currentArrayBuffer = (uint8*) image->Start;
+
+			SelectTarget(*currentArray->ElementType, nullptr, *scriptSystem);
+		}
+
+		void SetArrayWriteIndex(int32 index) override
+		{
+			if (index > currentArray->ElementLength)
+			{
+				Throw(0, "%s. Bad index", __FUNCTION__);
+			}
+
+			auto* elementPtr = currentArrayBuffer + index * currentArray->ElementLength;
+
+			SelectTarget(*currentArray->ElementType, elementPtr, *scriptSystem);
 		}
 	};
 

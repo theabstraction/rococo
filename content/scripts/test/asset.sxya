@@ -40,9 +40,8 @@ barkWatts	l	0x14		20
 bitePressureNewtons	d	0x40C1AD0000000000	9050
 
 array1	[]	Vec2f	"Sys.Maths.sxy"	2	2
-	Vec2f	"Sys.Maths.sxy"
-		x	f
-		y	f
+	x	f
+	y	f
 	[0]
 	5.000000
 	7.000000
