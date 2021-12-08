@@ -19,31 +19,6 @@ namespace
 	using namespace Rococo::Sexy;
 	using namespace Rococo::Script;
 
-	const Rococo::Compiler::IStructure* FindStructure(IPublicScriptSystem& ss, cstr localTypeName, cstr moduleName, bool throwOnError = true)
-	{
-		auto& obj = ss.PublicProgramObject();
-		for (int i = 0; i < obj.ModuleCount(); ++i)
-		{
-			auto& module = obj.GetModule(i);
-			if (Eq(module.Name(), moduleName))
-			{
-				auto* type = module.FindStructure(localTypeName);
-				if (!type && throwOnError)
-				{
-					Throw(0, "%s(ss, %s, %s, true) failed. Could not find structure in module.", __FUNCTION__, localTypeName, moduleName);
-				}
-				return type;
-			}
-		}
-
-		if (throwOnError)
-		{
-			Throw(0, "%s(ss, %s, %s, true) failed. Could not find module.", __FUNCTION__, localTypeName, moduleName);
-		}
-
-		return nullptr;
-	}
-
 	inline ObjectStub* InterfaceToInstance(InterfacePointer i)
 	{
 		auto* p = ((uint8*)i) + (*i)->OffsetToInstance;
@@ -102,10 +77,23 @@ namespace
 		stringmap<DeserializedObject> objects;
 		stringmap<ArrayImage*> arrays;
 
-		struct UndefinedReference
+		struct ElementMemberDesc
 		{
-
+			int elementMemberIndex;
+			std::vector<int32> indexSet;
+			ptrdiff_t memberDataOffset;
 		};
+
+		struct Container
+		{
+			std::vector<ElementMemberDesc> elements;
+		} container;
+
+		struct ArrayBuilder
+		{
+			ArrayImage* image = nullptr;
+			uint8* elementBuffer = nullptr;
+		} arrayBuilder;
 
 		SexyObjectBuilder()
 		{
@@ -147,50 +135,39 @@ namespace
 			WritePrimitive(i->second);
 		}
 
-		struct ElementMemberDesc
-		{
-			int elementMemberIndex;
-			std::vector<int32> indexSet;
-			ptrdiff_t memberDataOffset;
-		};
-
-		std::vector<ElementMemberDesc> containerElements;
-
 		void AddContainerItemF32(int elementMemberIndex, int32 memberDepth, cstr memberName) override
 		{
-			auto& type = *currentArray->ElementType;
-
 			const IMember* member = GetBestMatchingMember(memberName);
 
 			if (member == nullptr)
 			{
 				// We have no match for the element, but this may mean the archive was written before the field was deleted and we want to load what we can.
-				containerElements.push_back(ElementMemberDesc{});
-				containerElements.back().elementMemberIndex = elementMemberIndex;
-				containerElements.back().memberDataOffset = -1;
+				container.elements.push_back(ElementMemberDesc{});
+				container.elements.back().elementMemberIndex = elementMemberIndex;
+				container.elements.back().memberDataOffset = -1;
 				return;
 			}
 
 			if (member->UnderlyingType()->VarType() != VARTYPE_Float32)
 			{
-				Throw(0, "%s failed. Element type was %s of %s. Expected a Float32", __FUNCTION__, type.Name(), type.Module().Name());
+				Throw(0, "%s failed. Element type was %s of %s. Expected a Float32", __FUNCTION__, type->Name(), type->Module().Name());
 			}
 
-			containerElements.push_back(ElementMemberDesc{});
-			containerElements.back().elementMemberIndex = elementMemberIndex;
-			containerElements.back().memberDataOffset = writeCursor - writePosition;
+			container.elements.push_back(ElementMemberDesc{});
+			container.elements.back().elementMemberIndex = elementMemberIndex;
+			container.elements.back().memberDataOffset = writeCursor - writePosition;
 		}
 
 		void AddF32ItemValue(int32 itemIndex, float value)
 		{
-			if (itemIndex >= (int32) containerElements.size())
+			if (itemIndex >= (int32) container.elements.size())
 			{
 				Throw(0, "%s: Bad index (%d)", __FUNCTION__, itemIndex);
 			}
 
-			if (containerElements[itemIndex].memberDataOffset > 0)
+			if (container.elements[itemIndex].memberDataOffset > 0)
 			{
-				uint8* memberData = containerElements[itemIndex].memberDataOffset + writePosition;
+				uint8* memberData = container.elements[itemIndex].memberDataOffset + writePosition;
 				auto* floatMemberData = (float*)memberData;
 				*floatMemberData = value;
 			}
@@ -271,7 +248,7 @@ namespace
 			this->pObject = (uint8*) pObject;
 			this->scriptSystem = &ss;
 
-			if (type.InterfaceCount() > 0)
+			if (type.InterfaceCount() > 0 && pObject != nullptr)
 			{
 				InterfacePointer ip = (InterfacePointer)pObject;
 				objectStub = InterfaceToInstance(ip);
@@ -774,9 +751,6 @@ namespace
 			}
 		}
 
-		ArrayImage* currentArray = nullptr;
-		uint8* currentArrayBuffer = nullptr;
-
 		void AddArrayDefinition(cstr refName, cstr elementType, cstr elementTypeSource, int32 length, int32 capacity) override
 		{
 			auto* type = FindStructure(*scriptSystem, elementType, elementTypeSource);
@@ -819,22 +793,22 @@ namespace
 			image->ElementCapacity = capacity;
 			image->NumberOfElements = length;
 
-			currentArray = image;
-			currentArrayBuffer = (uint8*) image->Start;
+			arrayBuilder.image = image;
+			arrayBuilder.elementBuffer = (uint8*) image->Start;
 
-			SelectTarget(*currentArray->ElementType, nullptr, *scriptSystem);
+			SelectTarget(*arrayBuilder.image->ElementType, nullptr, *scriptSystem);
 		}
 
 		void SetArrayWriteIndex(int32 index) override
 		{
-			if (index > currentArray->ElementLength)
+			if (index > arrayBuilder.image->ElementLength)
 			{
 				Throw(0, "%s. Bad index", __FUNCTION__);
 			}
 
-			auto* elementPtr = currentArrayBuffer + index * currentArray->ElementLength;
+			auto* elementPtr = arrayBuilder.elementBuffer + index * arrayBuilder.image->ElementLength;
 
-			SelectTarget(*currentArray->ElementType, elementPtr, *scriptSystem);
+			SelectTarget(*arrayBuilder.image->ElementType, elementPtr, *scriptSystem);
 		}
 	};
 
@@ -899,5 +873,33 @@ namespace Rococo::Sexy
 	IAssetLoader* CreateAssetLoader(IInstallation& installation)
 	{
 		return new SexyAssetLoader(installation);
+	}
+}
+
+namespace Rococo::Script
+{
+	const IStructure* FindStructure(IPublicScriptSystem& ss, cstr localTypeName, cstr moduleName, bool throwOnError)
+	{
+		auto& obj = ss.PublicProgramObject();
+		for (int i = 0; i < obj.ModuleCount(); ++i)
+		{
+			auto& module = obj.GetModule(i);
+			if (Eq(module.Name(), moduleName))
+			{
+				auto* type = module.FindStructure(localTypeName);
+				if (!type && throwOnError)
+				{
+					Throw(0, "%s(ss, %s, %s, true) failed. Could not find structure in module.", __FUNCTION__, localTypeName, moduleName);
+				}
+				return type;
+			}
+		}
+
+		if (throwOnError)
+		{
+			Throw(0, "%s(ss, %s, %s, true) failed. Could not find module.", __FUNCTION__, localTypeName, moduleName);
+		}
+
+		return nullptr;
 	}
 }

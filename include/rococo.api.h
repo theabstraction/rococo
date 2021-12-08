@@ -162,6 +162,7 @@ namespace Rococo
 	namespace Script
 	{
 		struct IPublicScriptSystem;
+		const Rococo::Compiler::IStructure* FindStructure(IPublicScriptSystem& ss, cstr localTypeName, cstr moduleName, bool throwOnError = true);
 	}
 
 	namespace Sex
