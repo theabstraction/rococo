@@ -54,6 +54,12 @@ namespace Rococo::Sexy
 		virtual void AddContainerItemF32(int elementMemberIndex, int32 memberDepth, cstr memberName) = 0;
 
 		virtual void AddF32ItemValue(int itemIndex, float value) = 0;
+
+		virtual void AddContainerItemDerivative(int32 memberDepth, cstr name, cstr type, cstr typeSource) = 0;
+
+		virtual void EnterDerivedContainerItem() = 0;
+
+		virtual void LeaveDerivedContainerItem() = 0;
 	};
 
 	ROCOCOAPI ISexyObjectBuilder

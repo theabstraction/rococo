@@ -175,6 +175,22 @@ namespace ANON
 			sb.AppendFormat("\"%s\"", moduleName);
 		}
 
+		void AppendObjectRef(cstr objectRef) override
+		{
+			Indent();
+			AppendSimpleString(objectRef);
+		}
+
+		void AppendStringBuilderData(cstr text, int32 nCharsInText, int32 stringBuilderCapacity)
+		{
+			Indent();
+			AppendCharSequence(text, nCharsInText);
+			Indent();
+			AppendInt32(nCharsInText);
+			Indent();
+			AppendInt32(stringBuilderCapacity);
+		}
+
 		void AppendStringConstant(cstr name, cstr buffer, int32 length) override
 		{
 			AppendIndents();

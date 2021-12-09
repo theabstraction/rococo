@@ -1,9 +1,9 @@
 AssetBuilder_CSV
 #Object0	GlobalState	"!scripts/test.app.created.sxy"
 points	[]	array1
-dogName	@	IString	"Sys.Type.Strings.sxy"	_Null_Sys_Type_IString	"Sys.Type.Strings.sxy"0
-dog	@	IDog	"!scripts/test.app.created.sxy"	Dog	"!scripts/test.app.created.sxy"#Object2
-squirrelName	@	IString	"Sys.Type.Strings.sxy"	FastStringBuilder	"Sys.Type.Strings.sxy"#Object3	"Geoff"51024
+dogName	@	IString	"Sys.Type.Strings.sxy"	_Null_Sys_Type_IString	"Sys.Type.Strings.sxy"	0
+dog	@	IDog	"!scripts/test.app.created.sxy"	Dog	"!scripts/test.app.created.sxy"	#Object2
+squirrelName	@	IString	"Sys.Type.Strings.sxy"	FastStringBuilder	"Sys.Type.Strings.sxy"	#Object3	"Geoff"	5	1024
 catName	$	"Meow-Meow"	9
 age	d	0x403199999999999A	17.6
 position	Vec3f	"Sys.Maths.sxy"

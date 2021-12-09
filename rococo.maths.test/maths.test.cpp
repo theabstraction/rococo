@@ -1157,12 +1157,28 @@ Matrix4x4f	world	"Sys.Maths.sxy"
 
 		void AddContainerItemF32(int elementMemberIndex, int32 memberDepth, cstr memberName) override
 		{
-			printf("\n([%d] depth %d : %s)", elementMemberIndex, memberDepth, memberName);
+			printf("\n([%d] depth %d : %s)\n", elementMemberIndex, memberDepth, memberName);
+		}
+
+		void AddContainerItemDerivative(int32 memberDepth, cstr name, cstr type, cstr typeSource) override
+		{
+			printf("\n(derived member depth %d : %s %s %s)\n", memberDepth, name, type, typeSource);
 		}
 
 		void AddF32ItemValue(int32 itemIndex, float value) override
 		{
-			printf("\n([%d] Value: %f)", itemIndex, value);
+			printf("\n([%d] Value: %f)\n", itemIndex, value);
+		}
+
+
+		void EnterDerivedContainerItem() override
+		{
+			printf("(\n");
+		}
+
+		void LeaveDerivedContainerItem() override
+		{
+			printf(")\n");
 		}
 	} memberBuilder;
 

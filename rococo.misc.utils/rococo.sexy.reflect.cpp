@@ -261,14 +261,12 @@ struct Asset
 			def = i->second;
 		}
 		
-		builder.AppendSimpleString(def.objectName);
+		builder.AppendObjectRef(def.objectName);
 
 		if (isFastStringBuilder && newDefinition)
 		{
 			auto* fb = reinterpret_cast<FastStringBuilder*>(stub);
-			builder.AppendFString(fstring{ fb->buffer, fb->length });
-			builder.AppendInt32(fb->length);
-			builder.AppendInt32(fb->capacity);
+			builder.AppendStringBuilderData( fb->buffer, fb->length, fb->capacity);
 		}
 		
 		builder.NextLine();		

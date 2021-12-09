@@ -158,6 +158,23 @@ namespace
 			container.elements.back().memberDataOffset = writeCursor - writePosition;
 		}
 
+		void AddContainerItemDerivative(int32 memberDepth, cstr name, cstr type, cstr typeSource) override
+		{
+			const IMember* member = GetBestMatchingMember(name);
+
+			if (member != nullptr)
+			{
+				if (!Eq(member->UnderlyingType()->Name(), type) || !Eq(member->UnderlyingType()->Module().Name(), typeSource))
+				{
+					Throw(0, "%s failed. Element type was %s of %s. Expected a %s of %s", __FUNCTION__, type, typeSource, member->UnderlyingType()->Name(), member->UnderlyingType()->Module().Name());
+				}
+
+				container.elements.push_back(ElementMemberDesc{});
+				container.elements.back().elementMemberIndex = -1;
+				container.elements.back().memberDataOffset = -1;
+			}
+		}
+
 		void AddF32ItemValue(int32 itemIndex, float value)
 		{
 			if (itemIndex >= (int32) container.elements.size())
@@ -718,6 +735,16 @@ namespace
 			{
 				memberIndexStack.push_back(0);
 			}
+		}
+
+		void EnterDerivedContainerItem() override
+		{
+			
+		}
+
+		void LeaveDerivedContainerItem() override
+		{
+			
 		}
 
 		void ReturnToParent() override

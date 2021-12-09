@@ -435,13 +435,17 @@ namespace
 			tokenHandler = &CSV_SexyAssetParser::OnMemberDef;
 		}
 
-		int arrayCapacity;
-
-		int32 arrayIndex;
-
-		int32 itemIndex;
-
-		std::vector<HString> elementTypes;
+		struct ArrayBuilder
+		{
+			int32 arrayCapacity;
+			int32 arrayIndex;
+			int32 itemIndex;
+			std::vector<HString> elementTypes;
+			int32 elementMemberIndex;
+			int32 numberOfElementMembers = 0;
+			char elementTypeMemberName[Rococo::NAMESPACE_MAX_LENGTH];
+			char elementTypeMemberType[Rococo::IO::MAX_PATHLEN];
+		} array;
 
 		void OnElementValue(int row, int column, cstr token, int32 stringLength)
 		{
@@ -458,20 +462,20 @@ namespace
 				return;
 			}
 
-			cstr typeName = elementTypes[itemIndex];
+			cstr typeName = array.elementTypes[array.itemIndex];
 			if (Eq(typeName, "f"))
 			{
-				memberBuilder.AddF32ItemValue(itemIndex, (float) atof(token));
+				memberBuilder.AddF32ItemValue(array.itemIndex, (float) atof(token));
 			}
 
-			itemIndex++;
+			array.itemIndex++;
 
-			if (itemIndex >= numberOfElementMembers)
+			if (array.itemIndex >= array.numberOfElementMembers)
 			{
-				itemIndex = 0;
-				arrayIndex++;
+				array.itemIndex = 0;
+				array.arrayIndex++;
 
-				if (arrayIndex == arrayLength)
+				if (array.arrayIndex == arrayLength)
 				{
 					tokenHandler = &CSV_SexyAssetParser::OnObjectName;
 					return;
@@ -485,21 +489,35 @@ namespace
 		{
 			// [<index>]
 			// N.B according to docs atoi will ignore the trailing ]
-			arrayIndex = atoi(token + 1);
+			array.arrayIndex = atoi(token + 1);
 
 			defRow++;
 			defColumn = 1;
 
-			itemIndex = 0;
+			array.itemIndex = 0;
 
 			tokenHandler = &CSV_SexyAssetParser::OnElementValue;
 
-			memberBuilder.SetArrayWriteIndex(arrayIndex);
+			memberBuilder.SetArrayWriteIndex(array.arrayIndex);
 		}
 
-		int elementMemberIndex;
+		void OnArrayElementTypeMemberSource(int row, int column, cstr token, int32 stringLength)
+		{
+			if (defRow != row || defColumn != column)
+			{
+				Throw(0, "Expecting array element member type source at row %d column %d", defRow, defColumn);
+			}
 
-		int numberOfElementMembers = 0;
+			memberBuilder.AddContainerItemDerivative(column - 1, array.elementTypeMemberName, array.elementTypeMemberType, token);
+
+			defRow++;
+			defColumn = 1;
+
+			//array.elementMemberIndex++;
+			//array.numberOfElementMembers++;
+
+			tokenHandler = &CSV_SexyAssetParser::OnArrayElementTypeMemberName;
+		}
 
 		void OnElementTypeMemberType(int row, int column, cstr token, int32 stringLength)
 		{
@@ -508,28 +526,28 @@ namespace
 				Throw(0, "Expecting member type of array element type at row %d column %d", defRow, defColumn);
 			}
 
-			elementTypes.push_back(token);
+			if (Eq(token, "f"))
+			{
+				// Float32
+				array.elementTypes.push_back(token);
+				memberBuilder.AddContainerItemF32(array.elementMemberIndex, column - 1, array.elementTypeMemberName);
+			}
+			else
+			{
+				CopyString(array.elementTypeMemberType, sizeof array.elementTypeMemberType, token);
+				tokenHandler = &CSV_SexyAssetParser::OnArrayElementTypeMemberSource;
+				defColumn++;
+				return;
+			}
 
 			defRow++;
 			defColumn = 1;
 
-			if (Eq(token, "f"))
-			{
-				// Float32
-				memberBuilder.AddContainerItemF32(elementMemberIndex, column - 1, elementTypeMemberName);
-			}
-			else
-			{
-				Throw(0, "Unhandled type");
-			}
-
-			elementMemberIndex++;
-			numberOfElementMembers++;
+			array.elementMemberIndex++;
+			array.numberOfElementMembers++;
 
 			tokenHandler = &CSV_SexyAssetParser::OnArrayElementTypeMemberName;
 		}
-
-		char elementTypeMemberName[Rococo::NAMESPACE_MAX_LENGTH];
 
 		void OnArrayElementTypeMemberName(int row, int column, cstr token, int32 stringLength)
 		{
@@ -540,12 +558,27 @@ namespace
 
 			if (*token == '[')
 			{
-				elementMemberIndex = 0;
+				// Human readable index hint
+				array.elementMemberIndex = 0;
 				OnArrayIndex(row, column, token, stringLength);
 				return;
 			}
+			else if (*token == '(')
+			{
+				// Enter member of derived type
+				memberBuilder.EnterDerivedContainerItem();
+				defRow++;
+				return;
+			}
+			else if (*token == ')')
+			{
+				// Return to sibling of parent members
+				memberBuilder.LeaveDerivedContainerItem();
+				defRow++;
+				return;
+			}
 
-			CopyString(elementTypeMemberName, sizeof elementTypeMemberName, token);
+			CopyString(array.elementTypeMemberName, sizeof array.elementTypeMemberName, token);
 
 			defColumn = column + 1;
 
@@ -559,26 +592,26 @@ namespace
 				Throw(0, "Expecting array capacity at row %d column %d", defRow, defColumn);
 			}
 
-			arrayCapacity = atoi(token);
+			array.arrayCapacity = atoi(token);
 
-			if (arrayCapacity == 0)
+			if (array.arrayCapacity == 0)
 			{
 				Throw(0, "Zero length array capacity not permitted (row %d column %d)", defRow, defColumn);
 			}
 
-			if (arrayCapacity < arrayLength)
+			if (array.arrayCapacity < arrayLength)
 			{
-				Throw(0, "Array capacity %d smaller than array length %d (row %d column %d)", arrayCapacity, arrayLength, defRow, defColumn);
+				Throw(0, "Array capacity %d smaller than array length %d (row %d column %d)", array.arrayCapacity, arrayLength, defRow, defColumn);
 			}
 
-			numberOfElementMembers = 0;
+			array.numberOfElementMembers = 0;
 
 			defColumn = 1;
 			defRow++;
 
-			memberBuilder.AddArrayDefinition(memberNameBuffer, memberTypeBuffer, memberTypeSource, arrayLength, arrayCapacity);
+			memberBuilder.AddArrayDefinition(memberNameBuffer, memberTypeBuffer, memberTypeSource, arrayLength, array.arrayCapacity);
 
-			elementMemberIndex = 0;
+			array.elementMemberIndex = 0;
 
 			if (arrayLength > 0)
 			{
@@ -589,7 +622,7 @@ namespace
 				tokenHandler = &CSV_SexyAssetParser::OnArrayRefName;
 			}
 
-			elementTypes.clear();
+			array.elementTypes.clear();
 		}
 
 		int arrayLength;
