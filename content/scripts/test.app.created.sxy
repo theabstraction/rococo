@@ -133,14 +133,34 @@
 	(Sys.Reflection.SexyAssetFile assetFile = "!scripts/test/asset.sxya")
 	
 	(GlobalState globalState)
+
 	(GlobalStateInit globalState)
+	
+		
+	(Point p0)
+	
+	(debug)
+	
+	(p0 = (globalState.points 0))
+	
+	(Point p1)
+	(p1	= (globalState.points 1))
+	
 	
 	// save the global state to !scripts/test/asset.sxya
 	(reflect SaveAsset assetFile globalState)
 
 	// restor the global state from !scripts/test/asset.sxya
-	(GlobalState copiedStateState)
-	(reflect LoadAsset assetFile copiedStateState)
+	(GlobalState copiedState)
+	(reflect LoadAsset assetFile copiedState)
+	
+	(debug)
+	
+	//(Point p0)
+	//(p0 = (copiedState.points 0))
+	
+	//(Point p1)
+	//(p1	= (copiedState.points 1))
 	
 	(debug)
 )

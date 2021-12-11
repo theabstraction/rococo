@@ -12483,6 +12483,43 @@ R"((namespace EntryPoint)
 		validate(x == 3);
 	}
 
+	void TestArrayRefMember2(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			"(struct Entity (Sys.Maths.Vec2i position))"
+			"(struct World (array Entity entities))"
+			"(method World.Construct : (array Entity entities 2)(this.entities = entities))"
+			"(function Main -> (Int32 result):"
+			"	(Entity e0 = (3 5))"
+			"	(Entity e1 = (7 9))"
+			"   (World world ())"
+			"   (world.entities.Push e0)"
+			"   (world.entities.Push e1)"
+			"   (Entity e)"
+			"	(e = (world.entities 0))"
+			"   (result = e.position.y)"
+			")"
+			"(alias Main EntryPoint.Main)"
+			;
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0x3); // add our output to the stack
+
+		Rococo::EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+
+		int output = vm.PopInt32();
+
+		ValidateLogs();
+		validate(result == Rococo::EXECUTERESULT_TERMINATED);
+
+		validate(output == 5);
+	}
+
 	void TestStringArray(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -14057,6 +14094,7 @@ R"(
 	   TEST(TestArrayElementLockRef);
 
 	   TEST(TestArrayRefMember);
+	   TEST(TestArrayRefMember2);
 	   TEST(TestArrayWithEarlyReturn);
 	   TEST(TestArrayWithEarlyReturn2);
 
@@ -14552,6 +14590,8 @@ R"(
 	{
 		int64 start, end, hz;
 		start = OS::CpuTicks();
+
+		TEST(TestArrayRefMember2);
 
 		RunCollectionTests();
 		

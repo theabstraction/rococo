@@ -309,15 +309,7 @@ struct Asset
 				builder.NextLine();
 				break;
 			case VARTYPE_Derivative:
-				builder.AppendIndents();
-				builder.AppendSimpleString("(");
-				builder.NextLine();
-				builder.EnterMemberValues();
 				SaveValues(builder, memberType, readPtr);
-				builder.LeaveMembers();
-				builder.AppendIndents();
-				builder.AppendSimpleString(")");
-				builder.NextLine();
 				break;
 			case VARTYPE_Pointer:
 				Throw(0, "Cannot save pointer values");
