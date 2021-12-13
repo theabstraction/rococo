@@ -43,27 +43,33 @@ array1	[]	Point	"!scripts/test.app.created.sxy"	2	2
 position	Vec2f	"Sys.Maths.sxy"
 	x	f
 	y	f
-uv	Vec2f	"Sys.Maths.sxy"
-	x	f
-	y	f
-alpha	f
+uv	Vec2i	"Sys.Maths.sxy"
+	x	i
+	y	i
+alpha	d
 material	Material	"!scripts/test.app.created.sxy"
 	indexAndShine	Vec2f	"Sys.Maths.sxy"
 		x	f
 		y	f
+isMirrored	?
+masterIndex	l
 [0]
 5.000000
 7.000000
-0.000000
-1.000000
+0
+1
 0.750000
 7.000000
 8.000000
+Y
+17
 [1]
 8.000000
 9.000000
-1.000000
-0.000000
+1
+0
 0.250000
 6.000000
 5.000000
+N
+78

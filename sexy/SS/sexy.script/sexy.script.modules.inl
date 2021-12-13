@@ -1124,7 +1124,7 @@ namespace Rococo { namespace Script
 				if (IsAtomic(arg))
 				{
 					cstr svalue = arg.String()->Buffer;
-					if (svalue[0] == '-' || isdigit(svalue[0]))
+					if (svalue[0] == '-' || isdigit(svalue[0]) || Eq(svalue, "true") || Eq(svalue,"false"))
 					{
 						VariantValue value;
 						if (Parse::TryParse(OUT value, mtype.VarType(), svalue) == Parse::PARSERESULT_GOOD)

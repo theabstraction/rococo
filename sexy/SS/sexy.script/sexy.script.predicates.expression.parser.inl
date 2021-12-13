@@ -267,6 +267,10 @@ namespace Rococo
                ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D4 + tempdepth, GetBitCount(type));
             }
          }
+         else if (Eq(id, "true") || Eq(id, "false"))
+         {
+             return VARTYPE_Bool;
+         }
          else if (isdigit(id[0]))
          {
             VariantValue value;

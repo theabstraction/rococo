@@ -21,9 +21,11 @@
 
 (struct Point
 	(Vec2 position)
-	(Vec2 uv)
-	(Float32 alpha)
+	(Vec2i uv)
+	(Float64 alpha)
 	(Material material)
+	(Bool isMirrored)
+	(Int64 masterIndex)
 )
 
 (struct GlobalState
@@ -44,9 +46,9 @@
 )
 
 (function GlobalStateInit (GlobalState gs) -> :
-	(gs.points.Push Point ((5 7)(0 1) 0.75((7 8))))
-	(gs.points.Push Point ((8 9)(1 0) 0.25((6 5))))
-
+	(gs.points.Push Point ((5 7)(0 1) 0.75((7 8)) true 17))
+	(gs.points.Push Point ((8 9)(1 0) 0.25((6 5)) false 78))
+	
 	(IString dogName = NullString)
 	(IStringBuilder squirrelName = (NewParagraphBuilder))
 	(#build squirrelName "Geoff")

@@ -12483,6 +12483,41 @@ R"((namespace EntryPoint)
 		validate(x == 3);
 	}
 
+	void TestArrayPushBool(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			"(struct Entity (Bool isCat))"
+
+			"(function Main -> (Int32 result):"
+			"	(array Entity entities 1)"
+			"   (entities.Push Entity (true))"
+			"   (Entity e)"
+			"	(e = (entities 0))"
+			"   (if (e.isCat)"
+			"		(result = 72)"
+			"   )"
+			")"
+			"(alias Main EntryPoint.Main)"
+			;
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0x3); // add our output to the stack
+
+		Rococo::EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+
+		int output = vm.PopInt32();
+
+		ValidateLogs();
+		validate(result == Rococo::EXECUTERESULT_TERMINATED);
+
+		validate(output == 72);
+	}
+
 	void TestArrayRefMember2(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -14104,6 +14139,8 @@ R"(
 	   TEST(TestArrayProxy);
 	   TEST(TestArrayClear);
 
+	   TEST(TestArrayPushBool);
+
 	   TEST(TestReturnArrayRefAndIgnore);
 
 	   TEST(TestMap);
@@ -14591,6 +14628,7 @@ R"(
 		int64 start, end, hz;
 		start = OS::CpuTicks();
 
+		TEST(TestArrayPushBool);
 		TEST(TestArrayRefMember2);
 
 		RunCollectionTests();

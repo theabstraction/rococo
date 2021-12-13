@@ -1,28 +1,13 @@
 (namespace EntryPoint)
-	(alias Main EntryPoint.Main)
-
-(using Sys.Type)
-
-(archetype Sys.VoidToVoid -> )
-
-(struct People (array IString items))
-
-(method People.Construct :
-	(array IString items 1)
-	(this.items = items)
-)
+(struct Entity (Bool isCat))
 
 (function Main -> (Int32 result):
-	(People people)
-	
-	(Sys.VoidToVoid f = 
-		(closure -> :
-			(people.items.Push "Geoff")
-		)
+	(array Entity entities 1)
+	(entities.Push Entity (true))
+	(Entity e)
+	(e = (entities 0))
+	(if e.isCat
+		(result = 72)
 	)
-	
-	(f)
-	
-	(IString item = (people.items 0))
-	(result = item.Length)
 )
+(alias Main EntryPoint.Main)
