@@ -466,6 +466,22 @@ namespace
 			{
 				memberBuilder.AddF32ItemValue(array.itemIndex, (float) atof(token));
 			}
+			else if (Eq(typeName, "d"))
+			{
+				memberBuilder.AddF64ItemValue(array.itemIndex, atof(token));
+			}
+			else if (Eq(typeName, "i"))
+			{
+				memberBuilder.AddI32ItemValue(array.itemIndex, atoi(token));
+			}
+			else if (Eq(typeName, "l"))
+			{
+				memberBuilder.AddI64ItemValue(array.itemIndex, atoll(token));
+			}
+			else if (Eq(typeName, "?"))
+			{
+				memberBuilder.AddBoolItemValue(array.itemIndex, Eq(token, "Y"));
+			}
 			else
 			{
 				Throw(0, "Unhandled type");
@@ -550,9 +566,33 @@ namespace
 
 			if (Eq(token, "f"))
 			{
-				// Float32
+				// Float32 - f
 				array.elementTypes.push_back(token);
 				memberBuilder.AddContainerItemF32(array.elementMemberIndex, column - 2, array.elementTypeMemberName);
+			}
+			else if (Eq(token, "d"))
+			{
+				// Float64 - d
+				array.elementTypes.push_back(token);
+				memberBuilder.AddContainerItemF64(array.elementMemberIndex, column - 2, array.elementTypeMemberName);
+			}
+			else if (Eq(token, "i"))
+			{
+				// Int32 - i
+				array.elementTypes.push_back(token);
+				memberBuilder.AddContainerItemI32(array.elementMemberIndex, column - 2, array.elementTypeMemberName);
+			}
+			else if (Eq(token, "l"))
+			{
+				// Int64 - l
+				array.elementTypes.push_back(token);
+				memberBuilder.AddContainerItemI64(array.elementMemberIndex, column - 2, array.elementTypeMemberName);
+			}
+			else if (Eq(token, "?"))
+			{
+				// boolean - ?
+				array.elementTypes.push_back(token);
+				memberBuilder.AddContainerItemBool(array.elementMemberIndex, column - 2, array.elementTypeMemberName);
 			}
 			else
 			{

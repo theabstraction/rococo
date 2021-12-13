@@ -52,8 +52,16 @@ namespace Rococo::Sexy
 		virtual void AddArrayRefMember(cstr name, cstr arrayRefName) = 0;
 
 		virtual void AddContainerItemF32(int elementMemberIndex, int32 memberDepth, cstr memberName) = 0;
+		virtual void AddContainerItemF64(int elementMemberIndex, int32 memberDepth, cstr memberName) = 0;
+		virtual void AddContainerItemI32(int elementMemberIndex, int32 memberDepth, cstr memberName) = 0;
+		virtual void AddContainerItemI64(int elementMemberIndex, int32 memberDepth, cstr memberName) = 0;
+		virtual void AddContainerItemBool(int elementMemberIndex, int32 memberDepth, cstr memberName) = 0;
 
 		virtual void AddF32ItemValue(int itemIndex, float value) = 0;
+		virtual void AddF64ItemValue(int itemIndex, double value) = 0;
+		virtual void AddI32ItemValue(int itemIndex, int32 value) = 0;
+		virtual void AddI64ItemValue(int itemIndex, int64 value) = 0;
+		virtual void AddBoolItemValue(int itemIndex, bool value) = 0;
 
 		virtual void AddContainerItemDerivative(int32 memberDepth, cstr name, cstr type, cstr typeSource) = 0;
 

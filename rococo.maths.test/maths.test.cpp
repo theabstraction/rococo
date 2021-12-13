@@ -1157,7 +1157,27 @@ Matrix4x4f	world	"Sys.Maths.sxy"
 
 		void AddContainerItemF32(int elementMemberIndex, int32 memberDepth, cstr memberName) override
 		{
-			printf("\n([%d] depth %d : %s)\n", elementMemberIndex, memberDepth, memberName);
+			printf("\n(F32 [%d] depth %d : %s)\n", elementMemberIndex, memberDepth, memberName);
+		}
+
+		void AddContainerItemF64(int elementMemberIndex, int32 memberDepth, cstr memberName) override
+		{
+			printf("\n(F64 [%d] depth %d : %s)\n", elementMemberIndex, memberDepth, memberName);
+		}
+
+		void AddContainerItemI32(int elementMemberIndex, int32 memberDepth, cstr memberName) override
+		{
+			printf("\n(I32 [%d] depth %d : %s)\n", elementMemberIndex, memberDepth, memberName);
+		}
+
+		void AddContainerItemI64(int elementMemberIndex, int32 memberDepth, cstr memberName) override
+		{
+			printf("\n(I64 [%d] depth %d : %s)\n", elementMemberIndex, memberDepth, memberName);
+		}
+
+		void AddContainerItemBool(int elementMemberIndex, int32 memberDepth, cstr memberName) override
+		{
+			printf("\n(Boolean32 I64 [%d] depth %d : %s)\n", elementMemberIndex, memberDepth, memberName);
 		}
 
 		void AddContainerItemDerivative(int32 memberDepth, cstr name, cstr type, cstr typeSource) override
@@ -1170,6 +1190,25 @@ Matrix4x4f	world	"Sys.Maths.sxy"
 			printf("\n([%d] Value: %f)\n", itemIndex, value);
 		}
 
+		void AddF64ItemValue(int32 itemIndex, double value) override
+		{
+			printf("\n([%d] Value: %lf)\n", itemIndex, value);
+		}
+
+		void AddI32ItemValue(int32 itemIndex, int32 value) override
+		{
+			printf("\n([%d] Value: %d)\n", itemIndex, value);
+		}
+
+		void AddI64ItemValue(int32 itemIndex, int64 value) override
+		{
+			printf("\n([%d] Value: %lld)\n", itemIndex, value);
+		}
+
+		void AddBoolItemValue(int32 itemIndex, bool value) override
+		{
+			printf("\n([%d] Value: %s)\n", itemIndex, value ? "true" : "false");
+		}
 
 		void EnterDerivedContainerItem() override
 		{

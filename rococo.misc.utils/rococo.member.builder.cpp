@@ -305,7 +305,7 @@ namespace
 			WritePrimitive(i->second);
 		}
 
-		void AddContainerItemF32(int elementMemberIndex, int32 memberDepth, cstr memberName) override
+		void AddContainerItem(int elementMemberIndex, int32 memberDepth, cstr memberName, VARTYPE validType)
 		{
 			memberRefManager.RollbackToAncestor(memberDepth + 1);
 
@@ -318,15 +318,40 @@ namespace
 				return;
 			}
 
-			if (member->UnderlyingType()->VarType() != VARTYPE_Float32)
+			if (member->UnderlyingType()->VarType() != validType)
 			{
 				container.elements.push_back(ElementMemberDesc{ nullptr, 0 });
 				return;
 			}
 
-			container.elements.push_back(ElementMemberDesc{member, writeCursor - writePosition });
+			container.elements.push_back(ElementMemberDesc{ member, writeCursor - writePosition });
 
 			memberRefManager.MoveToNextSibling();
+		}
+
+		void AddContainerItemF32(int elementMemberIndex, int32 memberDepth, cstr memberName) override
+		{
+			AddContainerItem(elementMemberIndex, memberDepth, memberName, VARTYPE_Float32);
+		}
+
+		void AddContainerItemF64(int elementMemberIndex, int32 memberDepth, cstr memberName) override
+		{
+			AddContainerItem(elementMemberIndex, memberDepth, memberName, VARTYPE_Float64);
+		}
+
+		void AddContainerItemI32(int elementMemberIndex, int32 memberDepth, cstr memberName) override
+		{
+			AddContainerItem(elementMemberIndex, memberDepth, memberName, VARTYPE_Int32);
+		}
+
+		void AddContainerItemI64(int elementMemberIndex, int32 memberDepth, cstr memberName) override
+		{
+			AddContainerItem(elementMemberIndex, memberDepth, memberName, VARTYPE_Int64);
+		}
+
+		void AddContainerItemBool(int elementMemberIndex, int32 memberDepth, cstr memberName) override
+		{
+			AddContainerItem(elementMemberIndex, memberDepth, memberName, VARTYPE_Bool);
 		}
 
 		void AddContainerItemDerivative(int32 memberDepth, cstr name, cstr type, cstr typeSource) override
@@ -347,19 +372,45 @@ namespace
 			memberRefManager.DescendToFirstChild();
 		}
 
-		void AddF32ItemValue(int32 itemIndex, float value)
+		template<class T> void AddItemValue(int32 itemIndex, T value)
 		{
-			if (itemIndex >= (int32) container.elements.size())
+			if (itemIndex >= (int32)container.elements.size())
 			{
 				Throw(0, "%s: Bad index (%d)", __FUNCTION__, itemIndex);
 			}
 
 			if (container.elements[itemIndex].member != nullptr)
 			{
-				uint8* memberData = container.elements[itemIndex].memberDataOffset + writePosition;
-				auto* floatMemberData = (float*)memberData;
-				*floatMemberData = value;
+				uint8* rawMemberData = container.elements[itemIndex].memberDataOffset + writePosition;
+				auto* memberData = (T*)rawMemberData;
+				*memberData = value;
 			}
+		}
+
+		void AddF32ItemValue(int32 itemIndex, float value)
+		{
+			AddItemValue(itemIndex, value);
+		}
+
+		void AddF64ItemValue(int32 itemIndex, double value)
+		{
+			AddItemValue(itemIndex, value);
+		}
+
+		void AddI32ItemValue(int32 itemIndex, int32 value)
+		{
+			AddItemValue(itemIndex, value);
+		}
+
+		void AddI64ItemValue(int32 itemIndex, int64 value)
+		{
+			AddItemValue(itemIndex, value);
+		}
+
+		void AddBoolItemValue(int32 itemIndex, bool value)
+		{
+			boolean32 bValue = value ? 1 : 0;
+			AddItemValue(itemIndex, bValue);
 		}
 
 		void AddNewObject(cstr name, cstr type, cstr sourceFile) override
