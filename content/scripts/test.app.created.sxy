@@ -136,17 +136,6 @@
 
 	(GlobalStateInit globalState)
 	
-		
-	(Point p0)
-	
-	(debug)
-	
-	(p0 = (globalState.points 0))
-	
-	(Point p1)
-	(p1	= (globalState.points 1))
-	
-	
 	// save the global state to !scripts/test/asset.sxya
 	(reflect SaveAsset assetFile globalState)
 
@@ -154,13 +143,11 @@
 	(GlobalState copiedState)
 	(reflect LoadAsset assetFile copiedState)
 	
-	(debug)
+	(Point p0)
+	(p0 = (copiedState.points 0))
 	
-	//(Point p0)
-	//(p0 = (copiedState.points 0))
-	
-	//(Point p1)
-	//(p1	= (copiedState.points 1))
+	(Point p1)
+	(p1	= (copiedState.points 1))
 	
 	(debug)
 )

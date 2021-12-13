@@ -49,8 +49,177 @@ namespace
 		uint8* writeCursor = nullptr;
 		const IStructure* objectType = nullptr;
 
-		// Gives the next member to be overwritten
-		std::vector<int> memberIndexStack;
+		struct MemberAndOffset
+		{
+			const IMember* member;
+			int offset;
+		};
+
+		class MemberRefManager
+		{
+			// The array of member indices that identifies the next expected member used by this API.
+			// Index N + 1 gives the child index of the member with Index N
+			// E.g memberIndexStack = { 0, 2, 7} => type.member[0].member[2].member[7]
+			std::vector<int> memberIndexStack;
+
+		public:
+			MemberAndOffset GetMemberAndOffsetForStackPosition(const IStructure& parentType, int stackPosition)
+			{
+				int offset = 0;
+				int nextMemberIndex = memberIndexStack[stackPosition];
+
+				const IMember* childMember = nullptr;
+				if (nextMemberIndex < parentType.MemberCount())
+				{
+					childMember = &parentType.GetMember(nextMemberIndex);
+					if (childMember == nullptr)
+					{
+						return { nullptr, 0 };
+					}
+
+					offset += GetWriteOffset(parentType, nextMemberIndex);
+				}
+
+				return { childMember, offset };
+			}
+
+			MemberAndOffset GetMemberAndOffset(const IStructure& type)
+			{
+				int structureMemberIndex = GetRoot();
+
+				const IMember* member = nullptr;
+
+				if (structureMemberIndex < type.MemberCount())
+				{
+					member = &type.GetMember(structureMemberIndex);
+				}
+
+				if (!member)
+				{
+					return { nullptr, 0 };
+				}
+
+				int offset = GetWriteOffset(type, structureMemberIndex);
+
+				const IStructure* parentType = member->UnderlyingType();
+
+				for (int i = 1; i < memberIndexStack.size(); ++i)
+				{
+					MemberAndOffset childMemberAndOffset = GetMemberAndOffsetForStackPosition(*parentType, i);
+					offset += childMemberAndOffset.offset;
+					if (childMemberAndOffset.member == nullptr)
+					{
+						return { nullptr, 0 };
+					}
+					parentType = childMemberAndOffset.member->UnderlyingType();
+					member = childMemberAndOffset.member;
+				}
+
+				return { member, offset };
+			}
+
+			MemberAndOffset FindMember(const IStructure& type, cstr name)
+			{
+				int offset = 0;
+
+				if (memberIndexStack.size() == 1)
+				{
+					// We are editing the top level members
+					int memberIndex = GetMemberIndex(name, type);
+					if (memberIndex < 0)
+					{
+						return { nullptr, 0 };
+					}
+					else
+					{
+						memberIndexStack[0] = memberIndex;
+						auto result = GetMemberAndOffsetForStackPosition(type, 0);
+						return result;
+					}
+				}
+
+				const IStructure* parentType = &type;
+
+				for (int i = 1; i < memberIndexStack.size() - 1; ++i)
+				{
+					MemberAndOffset childMemberAndOffset = GetMemberAndOffsetForStackPosition(*parentType, i);
+					if (childMemberAndOffset.member == nullptr)
+					{
+						return {nullptr, 0};
+					}
+					offset += childMemberAndOffset.offset;
+					parentType = childMemberAndOffset.member->UnderlyingType();
+				}
+
+				MemberAndOffset memberAndOffset{ nullptr, 0 };
+
+				int memberIndex = GetMemberIndex(name, *parentType);
+				if (memberIndex < 0)
+				{
+					return { nullptr, 0 };
+				}
+				else
+				{
+					memberIndexStack.back() = memberIndex;
+					memberAndOffset = GetMemberAndOffsetForStackPosition(type, (int)(memberIndexStack.size() - 1));
+					offset += memberAndOffset.offset;
+				}
+
+				return memberAndOffset;
+			}
+
+			static int GetWriteOffset(const IStructure& s, int memberIndex)
+			{
+				int offset = 0;
+
+				for (int i = 0; i < memberIndex; ++i)
+				{
+					auto& member = s.GetMember(i);
+					offset += member.SizeOfMember();
+				}
+
+				return offset;
+			}
+
+			void MoveToNextSibling()
+			{
+				auto& refIndex = memberIndexStack.back();
+				refIndex++;
+			}
+
+			void RollbackToAncestor(size_t targetDepth)
+			{
+				while (targetDepth < memberIndexStack.size())
+				{
+					memberIndexStack.pop_back();
+				}
+			}
+
+			void DescendToFirstChild()
+			{
+				memberIndexStack.push_back(0);
+			}
+
+			void InitToFirstChild()
+			{
+				memberIndexStack.clear();
+				DescendToFirstChild();
+			}
+
+			int GetRoot() const
+			{
+				return memberIndexStack[0];
+			}
+
+			void MoveToParent()
+			{
+				memberIndexStack.pop_back();
+				if (memberIndexStack.empty())
+				{
+					Throw(0, "%s called too many times. Algorithmic error", __FUNCTION__);
+				}
+			}
+		} memberRefManager;
 
 		IPublicScriptSystem* scriptSystem = nullptr;
 
@@ -79,16 +248,17 @@ namespace
 
 		struct ElementMemberDesc
 		{
-			int elementMemberIndex;
-			std::vector<int32> indexSet;
+			const IMember* member;
 			ptrdiff_t memberDataOffset;
 		};
 
+		// The target container to build 
 		struct Container
 		{
 			std::vector<ElementMemberDesc> elements;
 		} container;
 
+		// The target array to build
 		struct ArrayBuilder
 		{
 			ArrayImage* image = nullptr;
@@ -137,42 +307,44 @@ namespace
 
 		void AddContainerItemF32(int elementMemberIndex, int32 memberDepth, cstr memberName) override
 		{
+			memberRefManager.RollbackToAncestor(memberDepth + 1);
+
 			const IMember* member = GetBestMatchingMember(memberName);
 
 			if (member == nullptr)
 			{
 				// We have no match for the element, but this may mean the archive was written before the field was deleted and we want to load what we can.
-				container.elements.push_back(ElementMemberDesc{});
-				container.elements.back().elementMemberIndex = elementMemberIndex;
-				container.elements.back().memberDataOffset = -1;
+				container.elements.push_back(ElementMemberDesc{ nullptr, 0 });
 				return;
 			}
 
 			if (member->UnderlyingType()->VarType() != VARTYPE_Float32)
 			{
-				Throw(0, "%s failed. Element type was %s of %s. Expected a Float32", __FUNCTION__, type->Name(), type->Module().Name());
+				container.elements.push_back(ElementMemberDesc{ nullptr, 0 });
+				return;
 			}
 
-			container.elements.push_back(ElementMemberDesc{});
-			container.elements.back().elementMemberIndex = elementMemberIndex;
-			container.elements.back().memberDataOffset = writeCursor - writePosition;
+			container.elements.push_back(ElementMemberDesc{member, writeCursor - writePosition });
+
+			memberRefManager.MoveToNextSibling();
 		}
 
 		void AddContainerItemDerivative(int32 memberDepth, cstr name, cstr type, cstr typeSource) override
 		{
+			memberRefManager.RollbackToAncestor(memberDepth + 1);
+
 			const IMember* member = GetBestMatchingMember(name);
 
 			if (member != nullptr)
 			{
-				if (!Eq(member->UnderlyingType()->Name(), type) || !Eq(member->UnderlyingType()->Module().Name(), typeSource))
+				auto& mtype = *member->UnderlyingType();
+				if (!Eq(mtype.Name(), type) || !Eq(mtype.Module().Name(), typeSource))
 				{
 					Throw(0, "%s failed. Element type was %s of %s. Expected a %s of %s", __FUNCTION__, type, typeSource, member->UnderlyingType()->Name(), member->UnderlyingType()->Module().Name());
 				}
-
-				container.elements.push_back(ElementMemberDesc{});
-				container.elements.back().elementMemberIndex = -1;
-				container.elements.back().memberDataOffset = -1;
 			}
+
+			memberRefManager.DescendToFirstChild();
 		}
 
 		void AddF32ItemValue(int32 itemIndex, float value)
@@ -182,7 +354,7 @@ namespace
 				Throw(0, "%s: Bad index (%d)", __FUNCTION__, itemIndex);
 			}
 
-			if (container.elements[itemIndex].memberDataOffset > 0)
+			if (container.elements[itemIndex].member != nullptr)
 			{
 				uint8* memberData = container.elements[itemIndex].memberDataOffset + writePosition;
 				auto* floatMemberData = (float*)memberData;
@@ -280,8 +452,7 @@ namespace
 				writePosition = ((uint8*) pObject);
 			}
 
-			memberIndexStack.clear();
-			memberIndexStack.push_back(0); // 0 gives the member index, and since the stack depth is 1, the index refers to the top level member array
+			memberRefManager.InitToFirstChild();
 		}
 
 		IMemberBuilder& MemberBuilder()
@@ -289,89 +460,20 @@ namespace
 			return *this;
 		}
 
-		int GetWriteOffset(const IStructure& s, int memberIndex)
-		{
-			int offset = 0;
-
-			for (int i = 0; i < memberIndex; ++i)
-			{
-				auto& member = s.GetMember(i);
-				offset += member.SizeOfMember();
-			}
-
-			return offset;
-		}
-
-		struct MemberAndOffset
-		{
-			const IMember* member;
-			int offset;
-		};
-
-		MemberAndOffset GetMemberAndOffsetForStackPosition(const IStructure& parentType, int stackPosition)
-		{
-			int offset = 0;
-			int nextMemberIndex = memberIndexStack[stackPosition];
-
-			const IMember* childMember = nullptr;
-			if (nextMemberIndex < parentType.MemberCount())
-			{
-				childMember = &parentType.GetMember(nextMemberIndex);
-				if (childMember == nullptr)
-				{
-					return { nullptr, 0 };
-				}
-
-				offset += GetWriteOffset(parentType, nextMemberIndex);
-			}
-
-			return { childMember, offset };
-		}
-
 		const Rococo::Compiler::IMember* GetMemberRefAndUpdateWriteCursor()
 		{
-			int structureMemberIndex = memberIndexStack[0];
+			MemberAndOffset k = memberRefManager.GetMemberAndOffset(*type);
 
-			const Rococo::Compiler::IMember* member = nullptr;
-
-			if (structureMemberIndex < type->MemberCount())
+			if (k.member)
 			{
-				member = &type->GetMember(structureMemberIndex);
-			}
-
-			if (!member)
-			{
-				return nullptr;
-			}
-
-			int offset = GetWriteOffset(*type, structureMemberIndex);
-
-			const IStructure* parentType = member->UnderlyingType();
-
-			for (int i = 1; i < memberIndexStack.size(); ++i)
-			{
-				MemberAndOffset childMemberAndOffset = GetMemberAndOffsetForStackPosition(*parentType, i);
-				offset += childMemberAndOffset.offset;
-				if (childMemberAndOffset.member == nullptr)
-				{
-					writeCursor = nullptr;
-					return nullptr;
-				}
-
-				parentType = childMemberAndOffset.member->UnderlyingType();
-				member = childMemberAndOffset.member;
-			}
-
-			if (member)
-			{
-				writeCursor = writePosition + (ptrdiff_t)offset;
+				writeCursor = writePosition + (ptrdiff_t)k.offset;
 			}
 			else
 			{
 				writeCursor = nullptr;
 			}
 
-			return member;
+			return k.member;
 		}
 
 		static int GetMemberIndex(cstr name, const IStructure& s)
@@ -390,63 +492,16 @@ namespace
 
 		const Rococo::Compiler::IMember* FindMemberAndUpdateWriteCursor(cstr name)
 		{
-			int offset = 0;
+			auto k = memberRefManager.FindMember(*type, name);
 
-			if (memberIndexStack.size() == 1)
-			{
-				// We are editing the top level members
-				int memberIndex = GetMemberIndex(name, *type);
-				if (memberIndex < 0)
-				{
-					writeCursor = nullptr;
-					return nullptr;
-				}
-				else
-				{
-					memberIndexStack[0] = memberIndex;
-					auto result = GetMemberAndOffsetForStackPosition(*type, 0);
-					writeCursor = writePosition + (ptrdiff_t)result.offset;
-					return result.member;
-				}
-			}
-
-			const IStructure* parentType = type;
-
-			for (int i = 1; i < memberIndexStack.size()-1; ++i)
-			{
-				MemberAndOffset childMemberAndOffset = GetMemberAndOffsetForStackPosition(*parentType, i);
-				if (childMemberAndOffset.member == nullptr)
-				{
-					return nullptr;
-				}
-				offset += childMemberAndOffset.offset;
-				parentType = childMemberAndOffset.member->UnderlyingType();
-			}
-
-			MemberAndOffset memberAndOffset{ nullptr, 0 };
-
-			int memberIndex = GetMemberIndex(name, *parentType);
-			if (memberIndex < 0)
-			{
-				return nullptr;
-			}
-			else
-			{
-				memberIndexStack.back() = memberIndex;
-				memberAndOffset = GetMemberAndOffsetForStackPosition(*type, (int) (memberIndexStack.size() - 1));
-				offset += memberAndOffset.offset;
-			}
-
-			if (memberAndOffset.member)
-			{
-				writeCursor = writePosition + (ptrdiff_t)offset;
-			}
-			else
+			if (k.member == nullptr)
 			{
 				writeCursor = nullptr;
+				return nullptr;
 			}
 
-			return memberAndOffset.member;
+			writeCursor = writePosition + (ptrdiff_t) k.offset;
+			return k.member;
 		}
 
 		const IMember* GetBestMatchingMember(cstr name)
@@ -472,8 +527,7 @@ namespace
 			auto* primitiveWritePosition = reinterpret_cast<PRIMITIVE*>(writePosition);
 			*primitiveWritePosition = value;
 			writePosition += sizeof PRIMITIVE;
-			int& lastIndex = memberIndexStack.back();
-			lastIndex++;
+			memberRefManager.MoveToNextSibling();
 		}
 
 		void WriteNull(const IStructure& memberType)
@@ -499,8 +553,7 @@ namespace
 				Throw(0, "No default serialization for %s", memberType.Name());
 			}
 
-			int& lastIndex = memberIndexStack.back();
-			lastIndex++;
+			memberRefManager.MoveToNextSibling();
 		}
 
 		void AddBooleanMember(cstr name, bool value) override
@@ -698,7 +751,7 @@ namespace
 				Throw(0, "%s %s. Mismatches interface type %s", expectedType.Name(), name, type);
 			}
 
-			memberIndexStack.push_back(0);
+			memberRefManager.DescendToFirstChild();
 		}
 
 		void AddDerivativeMember(cstr type, cstr name, cstr sourceFile) override
@@ -733,7 +786,7 @@ namespace
 			}
 			else
 			{
-				memberIndexStack.push_back(0);
+				memberRefManager.DescendToFirstChild();
 			}
 		}
 
@@ -749,12 +802,8 @@ namespace
 
 		void ReturnToParent() override
 		{
-			memberIndexStack.pop_back();
-			if (memberIndexStack.empty())
-			{
-				Throw(0, "%s called too many times. Algorithmic error", __FUNCTION__);
-			}
-			memberIndexStack.back()++;
+			memberRefManager.MoveToParent();
+			memberRefManager.MoveToNextSibling();
 		}
 
 		void ResolveReferences()

@@ -458,7 +458,6 @@ namespace
 
 			if (*token == '[')
 			{
-				// Human readable index indicator - which we skip
 				return;
 			}
 
@@ -466,6 +465,10 @@ namespace
 			if (Eq(typeName, "f"))
 			{
 				memberBuilder.AddF32ItemValue(array.itemIndex, (float) atof(token));
+			}
+			else
+			{
+				Throw(0, "Unhandled type");
 			}
 
 			array.itemIndex++;
@@ -478,8 +481,21 @@ namespace
 				if (array.arrayIndex == arrayLength)
 				{
 					tokenHandler = &CSV_SexyAssetParser::OnObjectName;
-					return;
 				}
+				else
+				{
+					if (array.arrayIndex == arrayLength)
+					{
+						tokenHandler = &CSV_SexyAssetParser::OnObjectName;
+					}
+					else
+					{
+						tokenHandler = &CSV_SexyAssetParser::OnElementValue;
+						memberBuilder.SetArrayWriteIndex(array.arrayIndex);
+					}
+				}
+
+				return;
 			}
 
 			tokenHandler = &CSV_SexyAssetParser::OnElementValue;
@@ -496,9 +512,15 @@ namespace
 
 			array.itemIndex = 0;
 
-			tokenHandler = &CSV_SexyAssetParser::OnElementValue;
-
-			memberBuilder.SetArrayWriteIndex(array.arrayIndex);
+			if (array.arrayIndex == arrayLength)
+			{
+				tokenHandler = &CSV_SexyAssetParser::OnObjectName;
+			}
+			else
+			{
+				tokenHandler = &CSV_SexyAssetParser::OnElementValue;
+				memberBuilder.SetArrayWriteIndex(array.arrayIndex);
+			}
 		}
 
 		void OnArrayElementTypeMemberSource(int row, int column, cstr token, int32 stringLength)
@@ -508,7 +530,7 @@ namespace
 				Throw(0, "Expecting array element member type source at row %d column %d", defRow, defColumn);
 			}
 
-			memberBuilder.AddContainerItemDerivative(column - 1, array.elementTypeMemberName, array.elementTypeMemberType, token);
+			memberBuilder.AddContainerItemDerivative(column - 3, array.elementTypeMemberName, array.elementTypeMemberType, token);
 
 			defRow++;
 			defColumn = 1;
@@ -530,7 +552,7 @@ namespace
 			{
 				// Float32
 				array.elementTypes.push_back(token);
-				memberBuilder.AddContainerItemF32(array.elementMemberIndex, column - 1, array.elementTypeMemberName);
+				memberBuilder.AddContainerItemF32(array.elementMemberIndex, column - 2, array.elementTypeMemberName);
 			}
 			else
 			{
