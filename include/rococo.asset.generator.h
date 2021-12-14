@@ -21,6 +21,7 @@ namespace Rococo::Assets
 		virtual void AppendInterfaceType(cstr interfaceType, cstr name, cstr moduleName) = 0;
 		virtual void AppendObjectDesc(cstr type, cstr moduleName) = 0;
 		virtual void AppendObjectRef(cstr objectRef) = 0;
+		virtual void AddInterfaceElementType(cstr type, cstr module) = 0;
 		virtual void AppendSimpleMemberDef(cstr name, cstr simpleType) = 0;
 		virtual void AppendStringConstant(cstr name, cstr buffer, int32 length) = 0;
 		virtual void AppendSimpleString(cstr text) = 0;

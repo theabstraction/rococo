@@ -461,30 +461,66 @@ namespace
 				return;
 			}
 
-			cstr typeName = array.elementTypes[array.itemIndex];
-			if (Eq(typeName, "f"))
+			if (array.elementTypes.empty())
 			{
-				memberBuilder.AddF32ItemValue(array.itemIndex, (float) atof(token));
-			}
-			else if (Eq(typeName, "d"))
-			{
-				memberBuilder.AddF64ItemValue(array.itemIndex, atof(token));
-			}
-			else if (Eq(typeName, "i"))
-			{
-				memberBuilder.AddI32ItemValue(array.itemIndex, atoi(token));
-			}
-			else if (Eq(typeName, "l"))
-			{
-				memberBuilder.AddI64ItemValue(array.itemIndex, atoll(token));
-			}
-			else if (Eq(typeName, "?"))
-			{
-				memberBuilder.AddBoolItemValue(array.itemIndex, Eq(token, "Y"));
+				// There are no element types, which means the array->ElementType is a primitive or interface type
+				if (Eq(array.elementTypeMemberType, "Float32"))
+				{
+					memberBuilder.AddF32ItemValue(array.itemIndex, (float)atof(token));
+				}
+				else if (Eq(array.elementTypeMemberType, "Float64"))
+				{
+					memberBuilder.AddF64ItemValue(array.itemIndex, atof(token));
+				}
+				else if (Eq(array.elementTypeMemberType, "Int32"))
+				{
+					memberBuilder.AddI32ItemValue(array.itemIndex, atoi(token));
+				}
+				else if (Eq(array.elementTypeMemberType, "Int64"))
+				{
+					memberBuilder.AddI64ItemValue(array.itemIndex, atoll(token));
+				}
+				else if (Eq(array.elementTypeMemberType, "Boolean32"))
+				{
+					memberBuilder.AddBoolItemValue(array.itemIndex, Eq(token, "Y"));
+				}
+				else if (*token == '#')
+				{
+					// Object Reference
+					memberBuilder.AddObjectRefValue(array.itemIndex, token);
+				}
+				else
+				{
+					Throw(0, "Unhandled type");
+				}
 			}
 			else
 			{
-				Throw(0, "Unhandled type");
+				cstr typeName = array.elementTypes[array.itemIndex];
+				if (Eq(typeName, "f"))
+				{
+					memberBuilder.AddF32ItemValue(array.itemIndex, (float)atof(token));
+				}
+				else if (Eq(typeName, "d"))
+				{
+					memberBuilder.AddF64ItemValue(array.itemIndex, atof(token));
+				}
+				else if (Eq(typeName, "i"))
+				{
+					memberBuilder.AddI32ItemValue(array.itemIndex, atoi(token));
+				}
+				else if (Eq(typeName, "l"))
+				{
+					memberBuilder.AddI64ItemValue(array.itemIndex, atoll(token));
+				}
+				else if (Eq(typeName, "?"))
+				{
+					memberBuilder.AddBoolItemValue(array.itemIndex, Eq(token, "Y"));
+				}
+				else
+				{
+					Throw(0, "Unhandled type");
+				}
 			}
 
 			array.itemIndex++;
@@ -500,15 +536,8 @@ namespace
 				}
 				else
 				{
-					if (array.arrayIndex == arrayLength)
-					{
-						tokenHandler = &CSV_SexyAssetParser::OnObjectName;
-					}
-					else
-					{
-						tokenHandler = &CSV_SexyAssetParser::OnElementValue;
-						memberBuilder.SetArrayWriteIndex(array.arrayIndex);
-					}
+					tokenHandler = &CSV_SexyAssetParser::OnElementValue;
+					memberBuilder.SetArrayWriteIndex(array.arrayIndex);
 				}
 
 				return;
@@ -795,23 +824,30 @@ namespace
 
 		void OnBlankLine(Vec2i cursorPosition) override
 		{
-			if (tokenHandler != &CSV_SexyAssetParser::OnMemberDef)
+			if (tokenHandler == &CSV_SexyAssetParser::OnMemberDef)
+			{
+				while (defColumn > 1)
+				{
+					// We are done building the previously defined object
+					defColumn--;
+
+					memberBuilder.ReturnToParent();
+				}
+
+				defColumn = 1;
+				defRow++;
+
+				tokenHandler = &CSV_SexyAssetParser::OnObjectName;
+			}
+			else if (tokenHandler == &CSV_SexyAssetParser::OnObjectName)
+			{
+				defColumn = 1;
+				defRow++;
+			}
+			else
 			{
 				Throw(0, "Unexpected blank line at (%d,%d)", cursorPosition.x, cursorPosition.y);
 			}
-
-			while (defColumn > 1)
-			{
-				// We are done building the previously defined object
-				defColumn--;
-
-				memberBuilder.ReturnToParent();
-			}
-
-			defColumn = 1;
-			defRow++;
-
-			tokenHandler = &CSV_SexyAssetParser::OnObjectName;
 		}
 
 		void OnArchiveType(int row, int column, cstr token, int32 stringLength)

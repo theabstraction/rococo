@@ -11,6 +11,14 @@
 
 #include <rococo.hashtable.h>
 
+namespace Rococo::Compiler
+{
+	bool IsNullType(const IStructure& type)
+	{
+		return StartsWith(type.Name(), "_Null");
+	}
+}
+
 namespace
 {
 	using namespace Rococo;
@@ -181,6 +189,11 @@ namespace
 				return offset;
 			}
 
+			void InitToTypeItself()
+			{
+				memberIndexStack.clear();
+			}
+
 			void MoveToNextSibling()
 			{
 				auto& refIndex = memberIndexStack.back();
@@ -202,7 +215,7 @@ namespace
 
 			void InitToFirstChild()
 			{
-				memberIndexStack.clear();
+				InitToTypeItself();
 				DescendToFirstChild();
 			}
 
@@ -411,6 +424,31 @@ namespace
 		{
 			boolean32 bValue = value ? 1 : 0;
 			AddItemValue(itemIndex, bValue);
+		}
+
+		void AddObjectRefValue(int itemIndex, cstr objectName)
+		{
+			if (container.elements.size() > 0 && itemIndex >= (int32)container.elements.size())
+			{
+				Throw(0, "%s: Bad index (%d)", __FUNCTION__, itemIndex);
+			}
+
+			uint8* rawMemberData = writePosition;
+			auto* memberData = (InterfacePointer*)rawMemberData;
+
+			auto i = objects.find(objectName);
+			if (i == objects.end())
+			{
+				DeserializedObject newObject;
+				i = objects.insert(objectName, newObject).first;
+			}
+
+			RequiredInterfaceRef ref;
+			ref.pInterfaceType = &type->GetInterface(0);
+			ref.ppInterface = memberData;
+			i->second.requiredInterfaces.push_back(ref);
+
+			writePosition += sizeof InterfacePointer;
 		}
 
 		void AddNewObject(cstr name, cstr type, cstr sourceFile) override
@@ -928,14 +966,24 @@ namespace
 
 		void SetArrayWriteIndex(int32 index) override
 		{
-			if (index > arrayBuilder.image->ElementLength)
+			if (index > arrayBuilder.image->NumberOfElements)
 			{
 				Throw(0, "%s. Bad index", __FUNCTION__);
 			}
 
 			auto* elementPtr = arrayBuilder.elementBuffer + index * arrayBuilder.image->ElementLength;
 
-			SelectTarget(*arrayBuilder.image->ElementType, elementPtr, *scriptSystem);
+			if (IsNullType(*arrayBuilder.image->ElementType))
+			{
+				objectStub = nullptr;
+				objectType = arrayBuilder.image->ElementType;
+				writePosition = elementPtr;
+				memberRefManager.InitToTypeItself();
+			}
+			else
+			{
+				SelectTarget(*arrayBuilder.image->ElementType, elementPtr, *scriptSystem);
+			}
 		}
 	};
 

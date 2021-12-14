@@ -1210,6 +1210,11 @@ Matrix4x4f	world	"Sys.Maths.sxy"
 			printf("\n([%d] Value: %s)\n", itemIndex, value ? "true" : "false");
 		}
 
+		void AddObjectRefValue(int32 itemIndex, cstr objectName) override
+		{
+			printf("\n([%d] Ref: %s)\n", itemIndex, objectName);
+		}
+
 		void EnterDerivedContainerItem() override
 		{
 			printf("(\n");

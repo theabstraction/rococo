@@ -52,7 +52,7 @@ namespace Rococo
 			   Throw(0, "Could not allocate array. Negative element count: %d", capacity);
 		   }
 
-		   int elementSize = elementType.SizeOfStruct();
+		   int elementSize = elementType.InterfaceCount() > 0 ? sizeof(InterfacePointer) : elementType.SizeOfStruct();
 
 		   if (elementSize > 0x7FFFFFFFLL)
 		   {

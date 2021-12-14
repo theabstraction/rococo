@@ -1,9 +1,10 @@
 AssetBuilder_CSV
 #Object0	GlobalState	"!scripts/test.app.created.sxy"
 points	[]	array1
+cats	[]	array2
 dogName	@	IString	"Sys.Type.Strings.sxy"	_Null_Sys_Type_IString	"Sys.Type.Strings.sxy"	0
-dog	@	IDog	"!scripts/test.app.created.sxy"	Dog	"!scripts/test.app.created.sxy"	#Object2
-squirrelName	@	IString	"Sys.Type.Strings.sxy"	FastStringBuilder	"Sys.Type.Strings.sxy"	#Object3	"Geoff"	5	1024
+dog	@	IDog	"!scripts/test.app.created.sxy"	Dog	"!scripts/test.app.created.sxy"	#IDog2
+squirrelName	@	IString	"Sys.Type.Strings.sxy"	FastStringBuilder	"Sys.Type.Strings.sxy"	#IStringBuilder3	"Geoff"	5	1024
 catName	$	"Meow-Meow"	9
 age	d	0x403199999999999A	17.6
 position	Vec3f	"Sys.Maths.sxy"
@@ -33,24 +34,30 @@ world	Matrix4x4f	"Sys.Maths.sxy"
 		w	f	0x3F800000	1
 isActive	?	Y
 
-#Object2	Dog	"!scripts/test.app.created.sxy"
+#IDog2	Dog	"!scripts/test.app.created.sxy"
 barkDecibels	f	0x42F00000	120
 barkHz	i	0xFA0	4000
 barkWatts	l	0x14		20
 bitePressureNewtons	d	0x40C1AD0000000000	9050
 
+array2	[]	_Null_Sys_ICat	"!scripts/test.app.created.sxy"	2	2
+[0]
+#ICat4
+[1]
+#ICat4
+
 array1	[]	Point	"!scripts/test.app.created.sxy"	2	2
 position	Vec2f	"Sys.Maths.sxy"
-	x	f
-	y	f
+x	f
+y	f
 uv	Vec2i	"Sys.Maths.sxy"
-	x	i
-	y	i
+x	i
+y	i
 alpha	d
 material	Material	"!scripts/test.app.created.sxy"
-	indexAndShine	Vec2f	"Sys.Maths.sxy"
-		x	f
-		y	f
+indexAndShine	Vec2f	"Sys.Maths.sxy"
+	x	f
+	y	f
 isMirrored	?
 masterIndex	l
 [0]
@@ -73,3 +80,9 @@ Y
 5.000000
 N
 78
+
+#ICat4	Cat	"!scripts/test.app.created.sxy"
+mewDecibels	f	0x42E60000	115
+mewkHz	i	0x1F54	8020
+mewWatts	l	0xF		15
+bitePressureNewtons	d	0x40C1AD0000000000	9050

@@ -30,6 +30,7 @@
 
 (struct GlobalState
 	(array Point points)
+	(array Sys.ICat cats)
 	(IString dogName)
 	(Sys.IDog dog)
 	(IString squirrelName)
@@ -43,12 +44,19 @@
 (method GlobalState.Construct : 
 	(array Point points 2)
 	(this.points = points)
+
+	(array Sys.ICat cats 2)
+	(this.cats = cats)
 )
 
 (function GlobalStateInit (GlobalState gs) -> :
 	(gs.points.Push Point ((5 7)(0 1) 0.75((7 8)) true 17))
 	(gs.points.Push Point ((8 9)(1 0) 0.25((6 5)) false 78))
-	
+
+	(Sys.ICat cat (Sys.NewCat))
+	(gs.cats.Push cat)
+	(gs.cats.Push cat)
+
 	(IString dogName = NullString)
 	(IStringBuilder squirrelName = (NewParagraphBuilder))
 	(#build squirrelName "Geoff")
@@ -96,6 +104,28 @@
 	(construct Dog)
 )
 
+(class Cat (defines Sys.ICat)
+	(Float32 mewDecibels)
+	(Int32 mewkHz)
+	(Int64 mewWatts)
+	(Float64 bitePressureNewtons)
+)
+
+(method Cat.Construct :
+	(this.Init)
+)
+
+(method Cat.Init -> :
+	(this.mewDecibels = 115)
+	(this.mewkHz = 8020)
+	(this.mewWatts = 15)
+	(this.bitePressureNewtons = 9050)
+)
+
+(factory Sys.NewCat Sys.ICat :
+	(construct Cat)
+)
+
 (function Main (Int32 id)->(Int32 exitCode):
 	(IInstances instances (Instances))
 	(instances.SetMaterialMacro "!textures/hv/materials/hi-rez/" )
@@ -141,7 +171,7 @@
 	// save the global state to !scripts/test/asset.sxya
 	(reflect SaveAsset assetFile globalState)
 
-	// restor the global state from !scripts/test/asset.sxya
+	// load the global state from !scripts/test/asset.sxya
 	(GlobalState copiedState)
 	(reflect LoadAsset assetFile copiedState)
 	
@@ -150,6 +180,12 @@
 	
 	(Point p1)
 	(p1	= (copiedState.points 1))
+	
+	(Sys.ICat cat0)
+	(cat0 = (copiedState.cats 0))
+	
+	(Sys.ICat cat1)
+	(cat1 = (copiedState.cats 1))
 	
 	(debug)
 )

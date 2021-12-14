@@ -14628,14 +14628,11 @@ R"(
 		int64 start, end, hz;
 		start = OS::CpuTicks();
 
-		TEST(TestArrayPushBool);
-		TEST(TestArrayRefMember2);
+		TEST(TestArrayOfInterfacesBuilder);
 
-		RunCollectionTests();
-		
 		RunPositiveSuccesses();
 		RunPositiveFailures();	
-		
+		RunCollectionTests();
 
 		end = OS::CpuTicks();
 		hz = OS::CpuHz();

@@ -64,6 +64,18 @@ namespace ANON
 			sb.AppendChar('\n');
 		}
 
+		void AddInterfaceElementType(cstr type, cstr module) override
+		{
+			sb.AppendChar('_');
+			Indent();
+			sb.AppendChar('@');
+			Indent();
+			sb.AppendFormat("%s", type);
+			Indent();
+			sb.AppendFormat("%s", module);
+			NextLine();
+		}
+
 		void AppendInterfaceType(cstr type, cstr name, cstr moduleName) override
 		{
 			AppendIndents();

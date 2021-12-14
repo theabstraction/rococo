@@ -1197,11 +1197,11 @@ namespace Rococo
 			}
 			if (array->ElementType->InterfaceCount() > 0)
 			{
-				SafeFormat(name, "%s: array of interfaces of type %s", childName, array->ElementType->GetInterface(0).Name());
+				SafeFormat(name, "%s: array of interfaces of type %s. Size %d", childName, array->ElementType->GetInterface(0).Name(), array->ElementLength);
 			}
 			else
 			{
-				SafeFormat(name, "%s: array of objects of type %s", childName, GetFriendlyName(*array->ElementType));
+				SafeFormat(name, "%s: array of objects of type %s. Size %d", childName, GetFriendlyName(*array->ElementType), array->ElementLength);
 			}
 			
 			auto node = tree->AddChild(parentId, name, CheckState_NoCheckBox);
