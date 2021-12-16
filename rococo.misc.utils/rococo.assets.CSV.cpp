@@ -53,13 +53,8 @@ namespace ANON
 			sb.AppendChar('\n');
 		}
 
-		void AppendArrayRef(cstr fieldName, cstr arrayRefName) override
+		void AppendArrayRef(cstr arrayRefName) override
 		{
-			AppendIndents();
-			sb.AppendFormat("%s", fieldName);
-			Indent();
-			sb.AppendFormat("[]", fieldName);
-			Indent();
 			sb.AppendFormat("%s", arrayRefName);
 			sb.AppendChar('\n');
 		}
@@ -88,7 +83,7 @@ namespace ANON
 			sb.AppendFormat("\"%s\"", moduleName);
 		}
 
-		void AppendSimpleMemberDef(cstr name, cstr simpleType)
+		void AppendSimpleMemberDef(cstr name, cstr simpleType) override
 		{
 			AppendIndents();
 			AppendSimpleString(name);
@@ -97,7 +92,20 @@ namespace ANON
 			NextLine();
 		}
 
-		void AppendArrayMeta(cstr fieldName, cstr elementType, cstr elementSource, int32 numberOfElements, int32 elementCapacity)
+		void AppendArrayMemberDef(cstr name, cstr elementType, cstr elementModule) override
+		{
+			AppendIndents();
+			AppendSimpleString(name);
+			Indent();
+			AppendSimpleString("[]");
+			Indent();
+			AppendSimpleString(elementType);
+			Indent();
+			AppendSimpleString(elementModule);
+			NextLine();
+		}
+
+		void AppendArrayMeta(cstr fieldName, cstr elementType, cstr elementSource, int32 numberOfElements, int32 elementCapacity) override
 		{
 			AppendIndents();
 			sb.AppendFormat("%s", fieldName);
@@ -181,10 +189,10 @@ namespace ANON
 
 		void AppendObjectDesc(cstr type, cstr moduleName) override
 		{
-			Indent();
 			sb.AppendFormat("%s", type);
 			Indent();
 			sb.AppendFormat("\"%s\"", moduleName);
+			NextLine();
 		}
 
 		void AppendObjectRef(cstr objectRef) override

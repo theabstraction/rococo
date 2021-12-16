@@ -119,6 +119,15 @@ struct Asset
 
 	uint32 nextIndex = 1;
 
+	IAssetBuilder& builder;
+
+	cr_sex s;
+
+	Asset(IPublicScriptSystem& _ss, IAssetBuilder& _builder, cr_sex _s) : ss(_ss), builder(_builder), s(_s)
+	{
+
+	}
+
 	~Asset()
 	{
 	}
@@ -151,12 +160,6 @@ struct Asset
 		return structStringConstant == &type;
 	}
 
-	IAssetBuilder& builder;
-
-	Asset(IPublicScriptSystem& _ss, IAssetBuilder& _builder) : ss(_ss), builder(_builder)
-	{
-	}
-
 	const IStructure& GetType(cstr localName, cstr source) const
 	{
 		auto* type = FindType(localName, source);
@@ -185,7 +188,7 @@ struct Asset
 	}
 
 	template<class T>
-	const uint8* AppendPrimitiveAndReturnAdvancedPointer(const uint8* pField, IAssetBuilder& builder, cstr fieldName)
+	const uint8* AppendPrimitiveAndReturnAdvancedPointer(const uint8* pField, cstr fieldName)
 	{
 		if (!StartsWith(fieldName, "_"))
 		{
@@ -195,7 +198,7 @@ struct Asset
 		return pField + sizeof(T);
 	}
 
-	const uint8* SaveDerivativeFields_Recursive(cr_sex s, IAssetBuilder& builder, cstr name, const IStructure& assetType, const uint8* assetData)
+	const uint8* SaveDerivativeFields_Recursive(cstr name, const IStructure& assetType, const uint8* assetData)
 	{
 		const uint8* pMember = assetData;
 		for (int i = 0; i < assetType.MemberCount(); ++i)
@@ -203,7 +206,7 @@ struct Asset
 			auto& member = assetType.GetMember(i);
 			try
 			{
-				pMember = SavePrimitiveField_Recursive(s, builder, member.Name(), *member.UnderlyingType(), pMember);
+			//	pMember = SavePrimitiveField_Recursive(s, builder, member.Name(), *member.UnderlyingType(), pMember);
 			}
 			catch (IException& ex)
 			{
@@ -214,7 +217,7 @@ struct Asset
 		return pMember;
 	}
 
-	void SaveInterfaceRefAndObject(cr_sex s, IAssetBuilder& builder, cstr name, const IStructure& assetType, InterfacePointer pInterface)
+	void SaveInterfaceRefAndObject(cstr name, const IStructure& assetType, InterfacePointer pInterface)
 	{
 		auto& interfaceType = assetType.GetInterface(0);
 
@@ -279,7 +282,7 @@ struct Asset
 		builder.NextLine();
 	}
 
-	void SaveMembers(IAssetBuilder& builder, const IStructure& type, const uint8* pVariable)
+	void SaveMembers(const IStructure& type, const uint8* pVariable)
 	{
 		const uint8* readPtr = pVariable;
 
@@ -287,12 +290,19 @@ struct Asset
 		{
 			auto& member = type.GetMember(j);
 			auto& memberType = *member.UnderlyingType();
-			SaveValues(builder, memberType, readPtr);
+			SaveValues(memberType, member.Name(), readPtr);
 			readPtr += member.SizeOfMember();
+		}
+
+		size_t finalOffset = readPtr - pVariable;
+
+		if (finalOffset != type.SizeOfStruct())
+		{
+			Throw(0, "Bad maths");
 		}
 	}
 
-	void SaveValues(IAssetBuilder& builder, const IStructure& type, const uint8* pVariable)
+	void SaveValues(const IStructure& type, cstr name, const uint8* pVariable)
 	{
 		switch (type.VarType())
 		{
@@ -321,43 +331,18 @@ struct Asset
 			builder.AppendBool((*(const boolean32*)pVariable) == 1 ? true : false);
 			builder.NextLine();
 			break;
+		case VARTYPE_Array:
+			SaveArray(s, builder, name, type, *(ArrayImage**)pVariable);
+			break;
 		case VARTYPE_Derivative:
-			if (StartsWith(type.Name(), "_Null_"))
+			if (type.InterfaceCount() > 0)
 			{
-				// Interface
-				ObjectStub* stub = InterfaceToInstance(*(InterfacePointer*) pVariable);
-
-				auto i = refToObject.find(stub);
-				if (i == refToObject.end())
-				{
-					char objectName[64];
-
-					bool isNullObject = StartsWith(stub->Desc->TypeInfo->Name(), "_Null");
-
-					if (isNullObject)
-					{
-						SafeFormat(objectName, "0");
-					}
-					else
-					{
-						SafeFormat(objectName, "#%s%d", type.GetInterface(0).Name(), nextIndex);
-					}
-
-					ObjectDef def = ObjectDef(objectName, stub, nextIndex++);
-					refToObject.insert(std::make_pair(stub, def));
-
-					i = refToObject.insert(std::make_pair(stub, def)).first;
-
-					exportQueue.push_back(def);
-				}
-
-				builder.AppendIndents();
-				builder.AppendSimpleString(i->second.objectName);
-				builder.NextLine();
+				auto** ip = (InterfacePointer*) pVariable;
+				SaveInterfaceRefAndObject(name, type, *ip);
 			}
 			else
 			{
-				SaveMembers(builder, type, pVariable);
+				SaveMembers(type, pVariable);
 			}
 			break;
 		default:
@@ -366,7 +351,13 @@ struct Asset
 		}
 	}
 
-	void SaveMemberFormat(const IStructure& type)
+	void SaveTypeAndMemberFormat(const IStructure& type)
+	{
+		builder.AppendObjectDesc(type.Name(), type.Module().Name());
+		SaveMembers(type);
+	}
+
+	void SaveMembers(const IStructure& type)
 	{
 		for (int j = 0; j < type.MemberCount(); ++j)
 		{
@@ -398,13 +389,16 @@ struct Asset
 				else
 				{
  					builder.EnterMembers(member.Name(), memberType.Name(), memberType.Module().Name());
-					SaveMemberFormat(memberType);
+					SaveMembers(memberType);
 					builder.LeaveMembers();
 				}
 				
 				break;
 			case VARTYPE_Pointer:
 				builder.AppendSimpleMemberDef(member.Name(), "*");
+				break;
+			case VARTYPE_Array:
+				builder.AppendArrayMemberDef(member.Name(), member.UnderlyingGenericArg1Type()->Name(), member.UnderlyingGenericArg1Type()->Module().Name());
 				break;
 			default:
 				Throw(0, "Cannot save unhandled var type values");
@@ -419,7 +413,8 @@ struct Asset
 	{
 		if (!arrayData)
 		{
-			builder.AppendArrayRef(name, "null");
+			builder.AppendSimpleString("<null>");
+			builder.NextLine();
 			return;
 		}
 
@@ -439,7 +434,36 @@ struct Asset
 			arrayExportQueue.push_back(def);
 		}
 
-		builder.AppendArrayRef(name, arrayName);
+		builder.AppendArrayRef(arrayName);
+	}
+
+	void SaveNonContainerObject(const IStructure& type, cstr name, const uint8* rawObjectData)
+	{
+		if (IsContainerType(type.VarType()))
+		{
+			Throw(0, "To save an array, list or map, embed it in a struct or a class and save the containing object.");
+		}
+
+		builder.AppendSimpleString(name);
+		builder.NextLine();
+
+		SaveTypeAndMemberFormat(type);
+		builder.AppendSimpleString("#");
+		builder.NextLine();
+		SaveValues(type, name, rawObjectData);
+		builder.NextLine();
+	}
+
+	void SaveSexyObject(const IStructure& type, cstr name, ObjectStub* stub)
+	{
+		builder.AppendSimpleString(name);
+		builder.NextLine();
+
+		SaveTypeAndMemberFormat(type);
+		builder.AppendSimpleString("#");
+		builder.NextLine();
+		SaveInterfaceRefAndObject(name, type, stub->pVTables);
+		builder.NextLine();
 	}
 
 	void SaveArray(ArrayDef& def)
@@ -458,7 +482,7 @@ struct Asset
 		}
 		else
 		{
-			SaveMemberFormat(elementType);
+			SaveTypeAndMemberFormat(elementType);
 		}
 
 		builder.EnterArray();
@@ -472,7 +496,7 @@ struct Asset
 			try
 			{
 				builder.ArrayItemStart(i);
-				SaveValues(builder, elementType, readPtr);
+				SaveValues(elementType, def.arrayName, readPtr);
 				builder.ArrayItemEnd();
 				readPtr += arrayData.ElementLength;
 			}
@@ -484,8 +508,8 @@ struct Asset
 
 		builder.LeaveMembers();
 	}
-
-	const uint8* SavePrimitiveField_Recursive(cr_sex s, IAssetBuilder& builder, cstr name, const IStructure& assetType, const uint8* assetData)
+	/*
+	const uint8* SavePrimitiveField_Recursive(cr_sex s, IAssetBuilder& builder, const IStructure& assetType, const uint8* assetData)
 	{
 		const uint8* pField = assetData;
 		switch (assetType.VarType())
@@ -529,24 +553,28 @@ struct Asset
 			}
 			break;
 		case VARTYPE_Array:
-			SaveArray(s, builder, name, assetType, *(ArrayImage**) assetData);
+		{
+			ArrayImage* assetData = *(ArrayImage**)assetData;
+			if (assetData == nullptr)
+			{
+				builder.AppendSimpleString("<null>");
+				builder.NextLine();
+			}
+			else
+			{
+				refToArray.find()
+			}
 			pField += sizeof(ArrayImage*);
+		}
 			break;
 		default:
 			Throw(s, "Only derivative and primitive value types are currently handled. type %s cannot be saved", assetType.Name());
 		}
 		return pField;
 	}
+	*/
 
-	void SaveObject(ObjectDef& def, cr_sex sSrcExpression)
-	{
-		builder.NextLine();
-		builder.AppendHeader(def.objectName, def.stub->Desc->TypeInfo->Name(), def.stub->Desc->TypeInfo->Module().Name());
-
-		SaveDerivativeFields_Recursive(sSrcExpression, builder, def.objectName, *def.stub->Desc->TypeInfo, (const uint8*) def.stub);
-	}
-
-	void SaveQueuedObjects(cr_sex sourceExpression)
+	void SaveQueuedObjects()
 	{
 		while (!exportQueue.empty() || !arrayExportQueue.empty())
 		{
@@ -555,7 +583,7 @@ struct Asset
 				ObjectDef nextObject = exportQueue.back();
 				exportQueue.pop_back();
 
-				SaveObject(nextObject, sourceExpression);
+				SaveSexyObject(*nextObject.stub->Desc->TypeInfo, nextObject.objectName, nextObject.stub);
 			}
 
 			while (!arrayExportQueue.empty())
@@ -583,34 +611,21 @@ static void SaveAssetWithSexyGenerator(IAssetGenerator* generator, ReflectionArg
 	}
 
 	AutoFree<IAssetBuilder> builder = generator->CreateAssetBuilder(filename);
+	
+	Asset asset(args.ss, *builder, args.s);
 
-	builder->AppendHeader("#Object0", args.rhsType.Name(), args.rhsType.Module().Name());
+	auto& type = args.rhsType;
 
-	Asset asset(args.ss, *builder);
-
-	if (IsPrimitiveType(args.rhsType.VarType()))
+	try
 	{
-		try
-		{
-			asset.SavePrimitiveField_Recursive(args.s, *builder, args.rhsName, args.rhsType, (const uint8*)args.rhsData);
-		}
-		catch (IException& ex)
-		{
-			Throw(ex.ErrorCode(), "Error saving %s of %s:\n%s", args.rhsType.Name(), args.rhsType.Module().Name(), ex.Message());
-		}
+		asset.SaveNonContainerObject(type, "#Object0", (const uint8*)args.rhsData);
 	}
-	else
+	catch (IException& ex)
 	{
-		if (args.rhsType.InterfaceCount() == 1)
-		{
-			InterfacePointer pInterface = *(InterfacePointer*) args.rhsData;
-			ObjectStub* rootObject = InterfaceToInstance(pInterface);
-			asset.refToObject[rootObject] = ObjectDef("#Object0", rootObject, 0);
-		}
-		asset.SaveDerivativeFields_Recursive(args.s, *builder, args.rhsName, args.rhsType, (const uint8*)args.rhsData);
+		Throw(args.s, "Error saving %s of %s:\n%s\n", type.Name(), type.Module().Name(), ex.Message());
 	}
 
-	asset.SaveQueuedObjects(args.s);
+	asset.SaveQueuedObjects();
 }
 
 static void LoadAssetWithSexyParser(IAssetLoader* loader, ReflectionArguments& args)
