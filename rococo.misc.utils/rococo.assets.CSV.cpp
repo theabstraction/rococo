@@ -153,7 +153,6 @@ namespace ANON
 
 		void AppendFString(const fstring& text) override
 		{
-			Indent();
 			AppendCharSequence(text.buffer, text.length);
 		}
 

@@ -187,36 +187,6 @@ struct Asset
 		return nullptr;
 	}
 
-	template<class T>
-	const uint8* AppendPrimitiveAndReturnAdvancedPointer(const uint8* pField, cstr fieldName)
-	{
-		if (!StartsWith(fieldName, "_"))
-		{
-			builder.AppendValue(fieldName, *(T*)pField);
-		}
-
-		return pField + sizeof(T);
-	}
-
-	const uint8* SaveDerivativeFields_Recursive(cstr name, const IStructure& assetType, const uint8* assetData)
-	{
-		const uint8* pMember = assetData;
-		for (int i = 0; i < assetType.MemberCount(); ++i)
-		{
-			auto& member = assetType.GetMember(i);
-			try
-			{
-			//	pMember = SavePrimitiveField_Recursive(s, builder, member.Name(), *member.UnderlyingType(), pMember);
-			}
-			catch (IException& ex)
-			{
-				Throw(ex.ErrorCode(), "Error saving %s member %s of %s of %s:\n%s", name, member.Name(), assetType.Name(), assetType.Module().Name(), ex.Message());
-			}
-		}
-
-		return pMember;
-	}
-
 	void SaveInterfaceRefAndObject(cstr name, const IStructure& assetType, InterfacePointer pInterface)
 	{
 		auto& interfaceType = assetType.GetInterface(0);
@@ -224,61 +194,23 @@ struct Asset
 		ObjectStub* stub = InterfaceToInstance(pInterface);
 		auto& objectType = *stub->Desc->TypeInfo;
 
-		if (IsStringConstantType(objectType))
-		{
-			auto* sc = reinterpret_cast<CStringConstant*>(stub);
-			builder.AppendStringConstant(name, sc->pointer, sc->length);
-			return;
-		}
-
-		builder.AppendInterfaceType(interfaceType.Name(), name, assetType.Module().Name());
-
-		builder.AppendObjectDesc(objectType.Name(), objectType.Module().Name());
-
-		bool isFastStringBuilder = IsFastStringBuilderType(objectType);
-
-		ObjectDef def;
 		bool newDefinition = false;
 
 		auto i = refToObject.find(stub);
 		if (i == refToObject.end())
 		{
-			char objectName[64];
-
-			bool isNullObject = StartsWith(objectType.Name(), "_Null");
-
-			if (isNullObject)
-			{
-				SafeFormat(objectName, "0");
-			}
-			else
-			{
-				SafeFormat(objectName, "#%s%d", objectType.GetInterface(0).Name(), nextIndex);
-			}
-
-			def = ObjectDef(objectName, stub, nextIndex++);
-			refToObject.insert(std::make_pair(stub, def));
+			char objectName[Rococo::NAMESPACE_MAX_LENGTH];
+			SecureFormat(objectName, "#%s%d", objectType.GetInterface(0).Name(), nextIndex);
+			
+			ObjectDef def = ObjectDef(objectName, stub, nextIndex++);
+			i = refToObject.insert(std::make_pair(stub, def)).first;
 
 			newDefinition = true;
 
-			if (!isFastStringBuilder && !isNullObject)
-			{
-				exportQueue.push_back(def);
-			}
-		}
-		else
-		{
-			def = i->second;
+			exportQueue.push_back(def);
 		}
 
-		builder.AppendObjectRef(def.objectName);
-
-		if (isFastStringBuilder && newDefinition)
-		{
-			auto* fb = reinterpret_cast<FastStringBuilder*>(stub);
-			builder.AppendStringBuilderData(fb->buffer, fb->length, fb->capacity);
-		}
-
+		builder.AppendSimpleString(i->second.objectName);
 		builder.NextLine();
 	}
 
@@ -290,7 +222,12 @@ struct Asset
 		{
 			auto& member = type.GetMember(j);
 			auto& memberType = *member.UnderlyingType();
-			SaveValues(memberType, member.Name(), readPtr);
+
+			if (member.Name()[0] != '_')
+			{
+				SaveValues(memberType, member.Name(), readPtr);
+			}
+
 			readPtr += member.SizeOfMember();
 		}
 
@@ -298,7 +235,7 @@ struct Asset
 
 		if (finalOffset != type.SizeOfStruct())
 		{
-			Throw(0, "Bad maths");
+			Throw(0, "%s: Bad maths", __FUNCTION__);
 		}
 	}
 
@@ -335,7 +272,7 @@ struct Asset
 			SaveArray(s, builder, name, type, *(ArrayImage**)pVariable);
 			break;
 		case VARTYPE_Derivative:
-			if (type.InterfaceCount() > 0)
+			if (IsNullType(type))
 			{
 				auto** ip = (InterfacePointer*) pVariable;
 				SaveInterfaceRefAndObject(name, type, *ip);
@@ -359,7 +296,14 @@ struct Asset
 
 	void SaveMembers(const IStructure& type)
 	{
-		for (int j = 0; j < type.MemberCount(); ++j)
+		int startIndex = 0;
+
+		if (type.Prototype().IsClass)
+		{
+			startIndex = 2 + type.InterfaceCount();
+		}
+
+		for (int j = startIndex; j < type.MemberCount(); ++j)
 		{
 			auto& member = type.GetMember(j);
 			auto& memberType = *member.UnderlyingType();
@@ -451,7 +395,6 @@ struct Asset
 		builder.AppendSimpleString("#");
 		builder.NextLine();
 		SaveValues(type, name, rawObjectData);
-		builder.NextLine();
 	}
 
 	void SaveSexyObject(const IStructure& type, cstr name, ObjectStub* stub)
@@ -459,17 +402,44 @@ struct Asset
 		builder.AppendSimpleString(name);
 		builder.NextLine();
 
-		SaveTypeAndMemberFormat(type);
-		builder.AppendSimpleString("#");
-		builder.NextLine();
-		SaveInterfaceRefAndObject(name, type, stub->pVTables);
-		builder.NextLine();
+		if (IsFastStringBuilderType(type))
+		{
+			auto& fsb = *(FastStringBuilder*)stub;
+			builder.AppendSimpleString("_SB\t");
+			builder.AppendInt32(fsb.length);
+			builder.AppendSimpleString("\t");
+			builder.AppendInt32(fsb.capacity);
+			builder.AppendSimpleString("\t");
+			builder.AppendFString(fstring{ fsb.buffer, fsb.length });
+			builder.NextLine();
+		}
+		else if (IsStringConstantType(type))
+		{
+			auto& sc = *(CStringConstant*)stub;
+			builder.AppendSimpleString("_SC\t");
+			builder.AppendInt32(sc.length);
+			builder.AppendSimpleString("\t");
+			builder.AppendFString(fstring{ sc.pointer, sc.length });
+			builder.NextLine();
+		}
+		else if (IsNullType(type))
+		{
+			builder.AppendSimpleString(type.Name());
+			builder.AppendSimpleString("\t");
+			builder.AppendSimpleString(type.Module().Name());
+			builder.NextLine();
+		}
+		else
+		{
+			SaveTypeAndMemberFormat(type);
+			builder.AppendSimpleString("#");
+			builder.NextLine();
+			SaveValues(type, name, (const uint8*) stub);
+		}
 	}
 
 	void SaveArray(ArrayDef& def)
 	{
-		builder.NextLine();
-
 		auto& arrayData = *def.image;
 
 		auto& elementType = *arrayData.ElementType;
@@ -508,78 +478,15 @@ struct Asset
 
 		builder.LeaveMembers();
 	}
-	/*
-	const uint8* SavePrimitiveField_Recursive(cr_sex s, IAssetBuilder& builder, const IStructure& assetType, const uint8* assetData)
-	{
-		const uint8* pField = assetData;
-		switch (assetType.VarType())
-		{
-		case VARTYPE_Int32:
-			pField = AppendPrimitiveAndReturnAdvancedPointer<int32>(pField, builder, name);
-			break;
-		case VARTYPE_Float32:
-			pField = AppendPrimitiveAndReturnAdvancedPointer<float>(pField, builder, name);
-			break;
-		case VARTYPE_Int64:
-			pField = AppendPrimitiveAndReturnAdvancedPointer<int64>(pField, builder, name);
-			break;
-		case VARTYPE_Float64:
-			pField = AppendPrimitiveAndReturnAdvancedPointer<double>(pField, builder, name);
-			break;
-		case VARTYPE_Bool:
-		{
-			auto* pBoolean32 = (boolean32*)pField;
-			boolean32 value = *pBoolean32;
-			pField += sizeof(boolean32);
-			builder.AppendValue(name, value == 1 ? true : false);
-		}
-		break;
-		case VARTYPE_Pointer: // Pointers are not serialized
-			pField += sizeof(void*);
-			break;
-		case VARTYPE_Derivative:
-			if (assetType.InterfaceCount() == 1)
-			{
-				// We have an interface reference
-				InterfacePointer pInterface = *(InterfacePointer*)pField;
-				pField += sizeof(InterfacePointer);
-				SaveInterfaceRefAndObject(s, builder, name, assetType, pInterface);
-			}
-			else
-			{
-				builder.EnterMembers(name, assetType.Name(), assetType.Module().Name());
-				pField = SaveDerivativeFields_Recursive(s, builder, name, assetType, assetData);
-				builder.LeaveMembers();
-			}
-			break;
-		case VARTYPE_Array:
-		{
-			ArrayImage* assetData = *(ArrayImage**)assetData;
-			if (assetData == nullptr)
-			{
-				builder.AppendSimpleString("<null>");
-				builder.NextLine();
-			}
-			else
-			{
-				refToArray.find()
-			}
-			pField += sizeof(ArrayImage*);
-		}
-			break;
-		default:
-			Throw(s, "Only derivative and primitive value types are currently handled. type %s cannot be saved", assetType.Name());
-		}
-		return pField;
-	}
-	*/
-
+	
 	void SaveQueuedObjects()
 	{
 		while (!exportQueue.empty() || !arrayExportQueue.empty())
 		{
 			while (!exportQueue.empty())
 			{
+				builder.NextLine();
+
 				ObjectDef nextObject = exportQueue.back();
 				exportQueue.pop_back();
 
@@ -588,6 +495,8 @@ struct Asset
 
 			while (!arrayExportQueue.empty())
 			{
+				builder.NextLine();
+
 				ArrayDef def = arrayExportQueue.back();
 				arrayExportQueue.pop_back();
 

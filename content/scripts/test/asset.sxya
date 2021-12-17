@@ -37,13 +37,10 @@ isActive	?
 #
 array1
 array2
-dogName	@	IString	"Sys.Type.Strings.sxy"_Null_Sys_Type_IString	"Sys.Type.Strings.sxy"
-	0
-dog	@	IDog	"!scripts/test.app.created.sxy"Dog	"!scripts/test.app.created.sxy"
-	#IDog2
-squirrelName	@	IString	"Sys.Type.Strings.sxy"FastStringBuilder	"Sys.Type.Strings.sxy"
-	#IStringBuilder3	"Geoff"	5	1024
-catName	$	"Meow-Meow"	9
+#IString1
+#IDog2
+#IStringBuilder3
+#IString4
 17.600000
 1.400000
 2.500000
@@ -66,27 +63,32 @@ catName	$	"Meow-Meow"	9
 1.000000
 Y
 
+#IString4
+_SC	9	"Meow-Meow"
+
+#IStringBuilder3
+_SB	5	1024	"Geoff"
+
 #IDog2
 Dog	"!scripts/test.app.created.sxy"
-_typeInfo	*
-_refCount	l
-_vTable1	*
 barkDecibels	f
 barkHz	i
 barkWatts	l
 bitePressureNewtons	d
 #
-#IDog2	@	IDog	"!scripts/test.app.created.sxy"Dog	"!scripts/test.app.created.sxy"
-	#IDog2
+120.000000
+4000
+20
+9050.000000
 
+#IString1
+_Null_Sys_Type_IString	Sys.Type.Strings.sxy
 
 array2	[]	_Null_Sys_ICat	"!scripts/test.app.created.sxy"	2	2
 [0]
-array2	@	ICat	"!scripts/test.app.created.sxy"Cat	"!scripts/test.app.created.sxy"
-	#ICat4
+#ICat5
 [1]
-array2	@	ICat	"!scripts/test.app.created.sxy"Cat	"!scripts/test.app.created.sxy"
-	#ICat4
+#ICat5
 
 array1	[]	Point	"!scripts/test.app.created.sxy"	2	2
 Point	"!scripts/test.app.created.sxy"
@@ -123,16 +125,15 @@ Y
 5.000000
 N
 78
-#ICat4
+
+#ICat5
 Cat	"!scripts/test.app.created.sxy"
-_typeInfo	*
-_refCount	l
-_vTable1	*
 mewDecibels	f
 mewkHz	i
 mewWatts	l
 bitePressureNewtons	d
 #
-#ICat4	@	ICat	"!scripts/test.app.created.sxy"Cat	"!scripts/test.app.created.sxy"
-	#ICat4
-
+115.000000
+8020
+15
+9050.000000
