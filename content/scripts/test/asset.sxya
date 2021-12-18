@@ -1,34 +1,33 @@
-AssetBuilder_CSV
 #Object0
-GlobalState	"!scripts/test.app.created.sxy"
-points	[]	Point	!scripts/test.app.created.sxy
-cats	[]	_Null_Sys_ICat	!scripts/test.app.created.sxy
-dogName	IString	"Sys.Type.Strings.sxy"
-dog	IDog	"!scripts/test.app.created.sxy"
-squirrelName	IString	"Sys.Type.Strings.sxy"
-catName	IString	"Sys.Type.Strings.sxy"
+GlobalState	!scripts/test.app.created.sxy
+points	Point	!scripts/test.app.created.sxy
+cats	_Null_Sys_ICat	!scripts/test.app.created.sxy
+dogName	IString	Sys.Type.Strings.sxy
+dog	IDog	!scripts/test.app.created.sxy
+squirrelName	IString	Sys.Type.Strings.sxy
+catName	IString	Sys.Type.Strings.sxy
 age	d
-position	Vec3f	"Sys.Maths.sxy"
+position	Vec3f	Sys.Maths.sxy
 	x	f
 	y	f
 	z	f
-world	Matrix4x4f	"Sys.Maths.sxy"
-	r0	Vec4f	"Sys.Maths.sxy"
+world	Matrix4x4f	Sys.Maths.sxy
+	r0	Vec4f	Sys.Maths.sxy
 		x	f
 		y	f
 		z	f
 		w	f
-	r1	Vec4f	"Sys.Maths.sxy"
+	r1	Vec4f	Sys.Maths.sxy
 		x	f
 		y	f
 		z	f
 		w	f
-	r2	Vec4f	"Sys.Maths.sxy"
+	r2	Vec4f	Sys.Maths.sxy
 		x	f
 		y	f
 		z	f
 		w	f
-	r3	Vec4f	"Sys.Maths.sxy"
+	r3	Vec4f	Sys.Maths.sxy
 		x	f
 		y	f
 		z	f
@@ -64,13 +63,13 @@ array2
 Y
 
 #IString4
-_SC	9	"Meow-Meow"
+_SC	1495860280	"Meow-Meow"
 
 #IStringBuilder3
-_SB	5	1024	"Geoff"
+_SB	1544493106	-2026242048	"Geoff"
 
 #IDog2
-Dog	"!scripts/test.app.created.sxy"
+Dog	!scripts/test.app.created.sxy
 barkDecibels	f
 barkHz	i
 barkWatts	l
@@ -84,25 +83,25 @@ bitePressureNewtons	d
 #IString1
 _Null_Sys_Type_IString	Sys.Type.Strings.sxy
 
-array2	[]	_Null_Sys_ICat	"!scripts/test.app.created.sxy"	2	2
+array2	2	2
 [0]
 #ICat5
 [1]
 #ICat5
 
-array1	[]	Point	"!scripts/test.app.created.sxy"	2	2
-Point	"!scripts/test.app.created.sxy"
-position	Vec2f	"Sys.Maths.sxy"
-x	f
-y	f
-uv	Vec2i	"Sys.Maths.sxy"
-x	i
-y	i
-alpha	d
-material	Material	"!scripts/test.app.created.sxy"
-indexAndShine	Vec2f	"Sys.Maths.sxy"
+array1	2	2
+Point	!scripts/test.app.created.sxy
+position	Vec2f	Sys.Maths.sxy
 	x	f
 	y	f
+uv	Vec2i	Sys.Maths.sxy
+	x	i
+	y	i
+alpha	d
+material	Material	!scripts/test.app.created.sxy
+	indexAndShine	Vec2f	Sys.Maths.sxy
+		x	f
+		y	f
 isMirrored	?
 masterIndex	l
 [0]
@@ -127,7 +126,7 @@ N
 78
 
 #ICat5
-Cat	"!scripts/test.app.created.sxy"
+Cat	!scripts/test.app.created.sxy
 mewDecibels	f
 mewkHz	i
 mewWatts	l

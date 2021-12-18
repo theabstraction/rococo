@@ -85,7 +85,7 @@ struct TestApp : IApp, private IScene, public IEventCallback<FileModifiedArgs>
 
    TestApp(Platform& _platform): platform(_platform), attributes(platform.publisher)
    {
-      assetGenerator = Rococo::Assets::CreateAssetGenerator_CSV(platform.installation, true);
+      assetGenerator = Rococo::Assets::CreateAssetGenerator_SexyContentFile(platform.installation);
       assetLoader = Rococo::Sexy::CreateAssetLoader(platform.installation);
 
       introPanel = platform.gui.BindPanelToScript("!scripts/panel.intro.sxy");

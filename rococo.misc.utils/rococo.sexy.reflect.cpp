@@ -105,7 +105,7 @@ struct ArrayDef
 	int index;
 };
 
-struct Asset
+struct AssetBuilder
 {
 	IPublicScriptSystem& ss;
 
@@ -119,16 +119,16 @@ struct Asset
 
 	uint32 nextIndex = 1;
 
-	IAssetBuilder& builder;
+	StringBuilder& sb;
 
 	cr_sex s;
 
-	Asset(IPublicScriptSystem& _ss, IAssetBuilder& _builder, cr_sex _s) : ss(_ss), builder(_builder), s(_s)
+	AssetBuilder(IPublicScriptSystem& _ss, cr_sex _s, StringBuilder& _sb) : ss(_ss), s(_s), sb(_sb)
 	{
 
 	}
 
-	~Asset()
+	~AssetBuilder()
 	{
 	}
 
@@ -210,8 +210,8 @@ struct Asset
 			exportQueue.push_back(def);
 		}
 
-		builder.AppendSimpleString(i->second.objectName);
-		builder.NextLine();
+		sb.AppendFormat(i->second.objectName);
+		sb.AppendChar('\n');
 	}
 
 	void SaveMembers(const IStructure& type, const uint8* pVariable)
@@ -244,32 +244,22 @@ struct Asset
 		switch (type.VarType())
 		{
 		case VARTYPE_Int32:
-			builder.AppendIndents();
-			builder.AppendInt32(*(const int32*)pVariable);
-			builder.NextLine();
+			sb.AppendFormat("%d\n", *(const int32*)pVariable);
 			break;
 		case VARTYPE_Int64:
-			builder.AppendIndents();
-			builder.AppendInt64(*(const int64*)pVariable);
-			builder.NextLine();
+			sb.AppendFormat("%lld\n", *(const int64*)pVariable);
 			break;
 		case VARTYPE_Float32:
-			builder.AppendIndents();
-			builder.AppendFloat32(*(const float32*)pVariable);
-			builder.NextLine();
+			sb.AppendFormat("%f\n", *(const float32*)pVariable);
 			break;
 		case VARTYPE_Float64:
-			builder.AppendIndents();
-			builder.AppendFloat64(*(const float64*)pVariable);
-			builder.NextLine();
+			sb.AppendFormat("%lf\n", *(const float64*)pVariable);
 			break;
 		case VARTYPE_Bool:
-			builder.AppendIndents();
-			builder.AppendBool((*(const boolean32*)pVariable) == 1 ? true : false);
-			builder.NextLine();
+			sb.AppendFormat("%s\n", (*(const boolean32*)pVariable) == 1 ? "Y" : "N");
 			break;
 		case VARTYPE_Array:
-			SaveArray(s, builder, name, type, *(ArrayImage**)pVariable);
+			SaveArrayRef(s, name, type, *(ArrayImage**)pVariable);
 			break;
 		case VARTYPE_Derivative:
 			if (IsNullType(type))
@@ -288,13 +278,19 @@ struct Asset
 		}
 	}
 
-	void SaveTypeAndMemberFormat(const IStructure& type)
+	void AppendTypeNameAndModule(const IStructure& type)
 	{
-		builder.AppendObjectDesc(type.Name(), type.Module().Name());
-		SaveMembers(type);
+		sb.AppendFormat("%s\t%s", type.Name(), type.Module().Name());
 	}
 
-	void SaveMembers(const IStructure& type)
+	void SaveTypeAndMemberFormat(const IStructure& type)
+	{
+		AppendTypeNameAndModule(type);
+		sb.AppendChar('\n');
+		SaveMembers(type, 0);
+	}
+
+	void SaveMembers(const IStructure& type, int depth)
 	{
 		int startIndex = 0;
 
@@ -308,41 +304,50 @@ struct Asset
 			auto& member = type.GetMember(j);
 			auto& memberType = *member.UnderlyingType();
 
+			for (int i = 0; i < depth; i++)
+			{
+				sb.AppendChar('\t');
+			}
+
+			sb.AppendFormat(member.Name());
+			sb.AppendChar('\t');
+
 			switch (memberType.VarType())
 			{
 			case VARTYPE_Int32:
-				builder.AppendSimpleMemberDef(member.Name(), "i");
+				sb.AppendFormat("i\n");
 				break;
 			case VARTYPE_Int64:
-				builder.AppendSimpleMemberDef(member.Name(), "l");
+				sb.AppendFormat("l\n");
 				break;
 			case VARTYPE_Float32:
-				builder.AppendSimpleMemberDef(member.Name(), "f");
+				sb.AppendFormat("f\n");
 				break;
 			case VARTYPE_Float64:
-				builder.AppendSimpleMemberDef(member.Name(), "d");
+				sb.AppendFormat("d\n");
 				break;
 			case VARTYPE_Bool:
-				builder.AppendSimpleMemberDef(member.Name(), "?");
+				sb.AppendFormat("?\n");
 				break;
 			case VARTYPE_Derivative:
 				if (StartsWith(memberType.Name(), "_Null"))
 				{
-					builder.AppendHeader(member.Name(), memberType.GetInterface(0).Name(), memberType.Module().Name());
+					sb.AppendFormat("%s\t%s\n", memberType.GetInterface(0).Name(), memberType.Module().Name());
 				}
 				else
 				{
- 					builder.EnterMembers(member.Name(), memberType.Name(), memberType.Module().Name());
-					SaveMembers(memberType);
-					builder.LeaveMembers();
+					AppendTypeNameAndModule(memberType);
+					sb.AppendChar('\n');
+					SaveMembers(memberType, depth + 1);
 				}
 				
 				break;
 			case VARTYPE_Pointer:
-				builder.AppendSimpleMemberDef(member.Name(), "*");
+				sb.AppendFormat("*\n");
 				break;
 			case VARTYPE_Array:
-				builder.AppendArrayMemberDef(member.Name(), member.UnderlyingGenericArg1Type()->Name(), member.UnderlyingGenericArg1Type()->Module().Name());
+				AppendTypeNameAndModule(*member.UnderlyingGenericArg1Type());
+				sb.AppendChar('\n');
 				break;
 			default:
 				Throw(0, "Cannot save unhandled var type values");
@@ -353,12 +358,11 @@ struct Asset
 
 	int32 nextArrayIndex = 1;
 
-	void SaveArray(cr_sex s, IAssetBuilder& builder, cstr name, const IStructure& assetType, ArrayImage* arrayData)
+	void SaveArrayRef(cr_sex s, cstr name, const IStructure& assetType, ArrayImage* arrayData)
 	{
 		if (!arrayData)
 		{
-			builder.AppendSimpleString("<null>");
-			builder.NextLine();
+			sb.AppendFormat("<null>\n");
 			return;
 		}
 
@@ -378,7 +382,8 @@ struct Asset
 			arrayExportQueue.push_back(def);
 		}
 
-		builder.AppendArrayRef(arrayName);
+		sb.AppendFormat("%s\n", arrayName);
+		return;
 	}
 
 	void SaveNonContainerObject(const IStructure& type, cstr name, const uint8* rawObjectData)
@@ -388,52 +393,70 @@ struct Asset
 			Throw(0, "To save an array, list or map, embed it in a struct or a class and save the containing object.");
 		}
 
-		builder.AppendSimpleString(name);
-		builder.NextLine();
+		sb.AppendFormat("%s\n", name);
 
 		SaveTypeAndMemberFormat(type);
-		builder.AppendSimpleString("#");
-		builder.NextLine();
+		sb.AppendFormat("#\n", name);
 		SaveValues(type, name, rawObjectData);
+	}
+
+	// Encoded a text string in tabbed CSV format to the string builder. Note that the text can include null characters.
+	void AppendEncodedFString(const fstring& text)
+	{
+		sb.AppendChar('"');
+
+		for (int32 i = 0; i < text.length; i++)
+		{
+			switch (text.buffer[i])
+			{
+			case '\t':
+				sb.AppendFormat("\\t");
+				break;
+			case '"':
+				sb.AppendFormat("\\\"");
+				break;
+			case '\\':
+				sb.AppendFormat("\\\\");
+				break;
+			case '\0':
+				sb.AppendFormat("\\0");
+				break;
+			default:
+				sb.AppendChar(text.buffer[i]);
+				break;
+			}
+		}
+
+		sb.AppendChar('"');
 	}
 
 	void SaveSexyObject(const IStructure& type, cstr name, ObjectStub* stub)
 	{
-		builder.AppendSimpleString(name);
-		builder.NextLine();
+		sb.AppendFormat("%s\n", name);
 
 		if (IsFastStringBuilderType(type))
 		{
 			auto& fsb = *(FastStringBuilder*)stub;
-			builder.AppendSimpleString("_SB\t");
-			builder.AppendInt32(fsb.length);
-			builder.AppendSimpleString("\t");
-			builder.AppendInt32(fsb.capacity);
-			builder.AppendSimpleString("\t");
-			builder.AppendFString(fstring{ fsb.buffer, fsb.length });
-			builder.NextLine();
+			sb.AppendFormat("_SB\t%d\t%d\t");
+			AppendEncodedFString(fstring{ fsb.buffer, fsb.length });
+			sb.AppendChar('\n');
 		}
 		else if (IsStringConstantType(type))
 		{
 			auto& sc = *(CStringConstant*)stub;
-			builder.AppendSimpleString("_SC\t");
-			builder.AppendInt32(sc.length);
-			builder.AppendSimpleString("\t");
-			builder.AppendFString(fstring{ sc.pointer, sc.length });
-			builder.NextLine();
+			sb.AppendFormat("_SC\t%d\t");
+			AppendEncodedFString(fstring{ sc.pointer, sc.length });
+			sb.AppendChar('\n');
 		}
 		else if (IsNullType(type))
 		{
-			builder.AppendSimpleString(type.Name());
-			builder.AppendSimpleString("\t");
-			builder.AppendSimpleString(type.Module().Name());
-			builder.NextLine();
+			AppendTypeNameAndModule(type);
+			sb.AppendChar('\n');
 		}
 		else
 		{
 			SaveTypeAndMemberFormat(type);
-			builder.AppendSimpleString("#");
-			builder.NextLine();
+			sb.AppendFormat("#\n");
 			SaveValues(type, name, (const uint8*) stub);
 		}
 	}
@@ -444,8 +467,8 @@ struct Asset
 
 		auto& elementType = *arrayData.ElementType;
 
-		builder.AppendArrayMeta(def.arrayName, elementType.Name(), elementType.Module().Name(), arrayData.NumberOfElements, arrayData.ElementCapacity);
-
+		sb.AppendFormat("%s\t%d\t%d\n", def.arrayName.c_str(), arrayData.NumberOfElements, arrayData.ElementCapacity);
+		
 		if (StartsWith(elementType.Name(), "_Null_") || IsPrimitiveType(elementType.VarType()))
 		{
 			// The type is stated in the meta data.
@@ -455,8 +478,6 @@ struct Asset
 			SaveTypeAndMemberFormat(elementType);
 		}
 
-		builder.EnterArray();
-
 		auto* start = (const uint8*)arrayData.Start;
 
 		auto* readPtr = start;
@@ -465,9 +486,8 @@ struct Asset
 		{
 			try
 			{
-				builder.ArrayItemStart(i);
+				sb.AppendFormat("[%d]\n", i);
 				SaveValues(elementType, def.arrayName, readPtr);
-				builder.ArrayItemEnd();
 				readPtr += arrayData.ElementLength;
 			}
 			catch (IException& ex)
@@ -475,17 +495,17 @@ struct Asset
 				Throw(ex.ErrorCode(), "Error saving element %d of array<%s of %s> %s:\n%s", i, def.image->ElementType->Name(), def.image->ElementType->Module().Name(), def.arrayName.c_str(), ex.Message());
 			}
 		}
-
-		builder.LeaveMembers();
 	}
 	
 	void SaveQueuedObjects()
 	{
+		// When you save a queued object it can entail creating new objects that are queued for saving
+
 		while (!exportQueue.empty() || !arrayExportQueue.empty())
 		{
 			while (!exportQueue.empty())
 			{
-				builder.NextLine();
+				sb.AppendChar('\n');
 
 				ObjectDef nextObject = exportQueue.back();
 				exportQueue.pop_back();
@@ -495,7 +515,7 @@ struct Asset
 
 			while (!arrayExportQueue.empty())
 			{
-				builder.NextLine();
+				sb.AppendChar('\n');
 
 				ArrayDef def = arrayExportQueue.back();
 				arrayExportQueue.pop_back();
@@ -519,22 +539,24 @@ static void SaveAssetWithSexyGenerator(IAssetGenerator* generator, ReflectionArg
 		Throw(args.s[2], "Expecting filename inside the SexyAssetFile to end with .sxya");
 	}
 
-	AutoFree<IAssetBuilder> builder = generator->CreateAssetBuilder(filename);
-	
-	Asset asset(args.ss, *builder, args.s);
+	auto& sb = generator->GetReusableStringBuilder();
+
+	AssetBuilder assetBuilder(args.ss, args.s, sb);
 
 	auto& type = args.rhsType;
 
 	try
 	{
-		asset.SaveNonContainerObject(type, "#Object0", (const uint8*)args.rhsData);
+		assetBuilder.SaveNonContainerObject(type, "#Object0", (const uint8*)args.rhsData);
 	}
 	catch (IException& ex)
 	{
 		Throw(args.s, "Error saving %s of %s:\n%s\n", type.Name(), type.Module().Name(), ex.Message());
 	}
 
-	asset.SaveQueuedObjects();
+	assetBuilder.SaveQueuedObjects();
+	
+	generator->Generate(filename, *sb);
 }
 
 static void LoadAssetWithSexyParser(IAssetLoader* loader, ReflectionArguments& args)

@@ -14,48 +14,11 @@ namespace Rococo::Sexy
 
 namespace Rococo::Assets
 {
-	ROCOCOAPI IAssetBuilder
-	{
-		virtual void AppendIndents() = 0;
-		virtual void AppendHeader(cstr name, cstr typename, cstr moduleName) = 0;
-		virtual void AppendInterfaceType(cstr interfaceType, cstr name, cstr moduleName) = 0;
-		virtual void AppendObjectDesc(cstr type, cstr moduleName) = 0;
-		virtual void AppendObjectRef(cstr objectRef) = 0;
-		virtual void AddInterfaceElementType(cstr type, cstr module) = 0;
-		virtual void AppendSimpleMemberDef(cstr name, cstr simpleType) = 0;
-		virtual void AppendStringConstant(cstr name, cstr buffer, int32 length) = 0;
-		virtual void AppendSimpleString(cstr text) = 0;
-		virtual void AppendStringBuilderData(cstr text, int32 nCharsInText, int32 stringBuilderCapacity) = 0;
-		virtual void AppendValue(cstr fieldName, int32 value) = 0;
-		virtual void AppendValue(cstr fieldName, int64 value) = 0;
-		virtual void AppendValue(cstr fieldName, float value) = 0;
-		virtual void AppendValue(cstr fieldName, double value) = 0;
-		virtual void AppendValue(cstr fieldName, bool value) = 0;
-		virtual void AppendArrayMeta(cstr fieldName, cstr elementType, cstr elementSource, int32 numberOfElements, int32 elementCapacity) = 0;
-		virtual void AppendArrayMemberDef(cstr name, cstr elementType, cstr elementModule) = 0;
-		virtual void AppendArrayRef(cstr arrayRefName) = 0;
-		virtual void AppendFString(const fstring& text) = 0;
-		virtual void AppendInt32(int32 value) = 0;
-		virtual void AppendInt64(int64 value) = 0;
-		virtual void AppendFloat32(float32 value) = 0;
-		virtual void AppendFloat64(float64 value) = 0;
-		virtual void AppendBool(bool value) = 0;
-		virtual void ArrayItemStart(int32 index) = 0;
-		virtual void ArrayItemEnd() = 0;
-		virtual void NextLine() = 0;
-
-		virtual void EnterArray() = 0;
-		virtual void EnterMemberFormat(cstr typename, cstr moduleName) = 0;
-		virtual void EnterMembers(cstr name, cstr typename, cstr moduleName) = 0;
-		virtual void EnterMemberValues() = 0;
-		virtual void LeaveMembers() = 0;
-
-		virtual void Free() = 0;
-	};
-
 	ROCOCOAPI IAssetGenerator
 	{
-		virtual IAssetBuilder* CreateAssetBuilder(const fstring& pingPath) = 0;
+		// Obtain a string builder for building strings, specific to this class instance.
+		virtual StringBuilder& GetReusableStringBuilder() = 0;
+		virtual void Generate(cstr id, const fstring& stringSerialziation) = 0;
 		virtual void Free() = 0;
 	};
 
@@ -69,6 +32,6 @@ namespace Rococo::Assets
 	// to serialize a target-object from the supplied asset loader
 	void LinkAssetLoader(Rococo::Sexy::IAssetLoader& loader, Rococo::Script::IPublicScriptSystem& ss);
 
-	// Create a CSV asset generator. These allow creation of files that save objects in CSV format.
-	IAssetGenerator* CreateAssetGenerator_CSV(IInstallation& installation, bool addHumanReadableReferences);
+	// Create an asset file generator, the target being a file saved to a Sexy content directory
+	IAssetGenerator* CreateAssetGenerator_SexyContentFile(IInstallation& installation);
 }

@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="rococo.assets.CSV.cpp" />
+    <ClCompile Include="rococo.asset.generator.cpp" />
     <ClCompile Include="rococo.CSV_parser.cpp" />
     <ClCompile Include="rococo.ide.stdout.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
