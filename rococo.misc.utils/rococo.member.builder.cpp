@@ -11,14 +11,6 @@
 
 #include <rococo.hashtable.h>
 
-namespace Rococo::Compiler
-{
-	bool IsNullType(const IStructure& type)
-	{
-		return StartsWith(type.Name(), "_Null");
-	}
-}
-
 namespace
 {
 	using namespace Rococo;

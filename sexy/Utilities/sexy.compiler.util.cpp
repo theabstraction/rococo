@@ -84,11 +84,6 @@ namespace Rococo { namespace Compiler
 		return NULL;
 	}
 
-	bool IsNullType(const IStructure& s)
-	{
-		return s.InterfaceCount() != 0 && (AreEqual(s.Name(), ("_Null"), 5));
-	}
-
 	bool GetMethodIndices(OUT int& interfaceIndex, OUT int& methodIndex, const IStructure& s, cstr interfaceName, cstr methodName)
 	{
 		interfaceIndex = -1;

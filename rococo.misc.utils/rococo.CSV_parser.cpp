@@ -888,9 +888,9 @@ namespace
 
 		void OnSignature(int row, int column, cstr token, int32 stringLength)
 		{
-			if (!Eq(token, "AssetBuilder_CSV") || row != 1 || column != 1)
+			if (!Eq(token, "AssetBuilder_TabbedCSV_1.0") || row != 1 || column != 1)
 			{
-				Throw(0, "Expecting AssetBuilder_CSV at row 1 column 1");
+				Throw(0, "Expecting AssetBuilder_TabbedCSV_1.0 at row 1 column 1");
 			}
 
 			tokenHandler = &CSV_SexyAssetParser::OnArchiveType;

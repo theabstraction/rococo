@@ -540,6 +540,8 @@ static void SaveAssetWithSexyGenerator(IAssetGenerator* generator, ReflectionArg
 	}
 
 	auto& sb = generator->GetReusableStringBuilder();
+	sb.Clear();
+	sb.AppendFormat("AssetBuilder_TabbedCSV_1.0\n");
 
 	AssetBuilder assetBuilder(args.ss, args.s, sb);
 

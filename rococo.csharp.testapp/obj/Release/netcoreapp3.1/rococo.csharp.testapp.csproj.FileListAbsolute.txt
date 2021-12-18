@@ -7,6 +7,7 @@ C:\work\rococo\rococo.csharp.testapp\bin\Release\netcoreapp3.1\rococo.csharp.tes
 C:\work\rococo\rococo.csharp.testapp\bin\Release\netcoreapp3.1\rococo.csharp.sexparser.dll
 C:\work\rococo\rococo.csharp.testapp\bin\Release\netcoreapp3.1\rococo.csharp.sexparser.pdb
 C:\work\rococo\rococo.csharp.testapp\obj\Release\netcoreapp3.1\rococo.csharp.testapp.csproj.AssemblyReference.cache
+C:\work\rococo\rococo.csharp.testapp\obj\Release\netcoreapp3.1\rococo.csharp.testapp.GeneratedMSBuildEditorConfig.editorconfig
 C:\work\rococo\rococo.csharp.testapp\obj\Release\netcoreapp3.1\rococo.csharp.testapp.AssemblyInfoInputs.cache
 C:\work\rococo\rococo.csharp.testapp\obj\Release\netcoreapp3.1\rococo.csharp.testapp.AssemblyInfo.cs
 C:\work\rococo\rococo.csharp.testapp\obj\Release\netcoreapp3.1\rococo.csharp.testapp.csproj.CoreCompileInputs.cache
@@ -14,4 +15,3 @@ C:\work\rococo\rococo.csharp.testapp\obj\Release\netcoreapp3.1\rococo.csharp.tes
 C:\work\rococo\rococo.csharp.testapp\obj\Release\netcoreapp3.1\rococo.csharp.testapp.dll
 C:\work\rococo\rococo.csharp.testapp\obj\Release\netcoreapp3.1\rococo.csharp.testapp.pdb
 C:\work\rococo\rococo.csharp.testapp\obj\Release\netcoreapp3.1\rococo.csharp.testapp.genruntimeconfig.cache
-C:\work\rococo\rococo.csharp.testapp\obj\Release\netcoreapp3.1\rococo.csharp.testapp.GeneratedMSBuildEditorConfig.editorconfig

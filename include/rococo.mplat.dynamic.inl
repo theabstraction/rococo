@@ -4,13 +4,6 @@
 #include <rococo.mplat.h>
 #include <mplat.to.app.events.inl>
 #include <rococo.libs.inl>
-
-#ifdef _DEBUG
-# pragma comment(lib, "rococo.maths.debug.lib")
-#else
-# pragma comment(lib, "rococo.maths.lib")
-#endif
-
 #include <rococo.window.h>
 
 namespace Rococo

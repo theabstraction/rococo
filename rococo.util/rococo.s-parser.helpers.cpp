@@ -2045,3 +2045,11 @@ namespace Rococo
 		debugger.Run(populator, dc);
 	}
 }
+
+namespace Rococo::Compiler
+{
+	bool IsNullType(const IStructure& type)
+	{
+		return StartsWith(type.Name(), "_Null");
+	}
+}
