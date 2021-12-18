@@ -49,107 +49,14 @@ namespace
 
 		bool primitiveLine = false;
 
-		void OnMemberValueBool(int row, int column, cstr token, int32 stringLength)
-		{
-			if (defRow != row || defColumn != column)
-			{
-				Throw(0, "Expecting bool value at row %d column %d", defRow, defColumn);
-			}
-
-			bool value = Eq(token, "Y");
-
-			memberBuilder.AddInt32Member(memberNameBuffer, value);
-
-			defRow++;
-			defColumn -= 2;
-
-			tokenHandler = &CSV_SexyAssetParser::OnMemberDef;
-		}
-
-		void OnMemberValueInt32(int row, int column, cstr token, int32 stringLength)
-		{
-			if (defRow != row || defColumn != column)
-			{
-				Throw(0, "Expecting int32 hex value at row %d column %d", defRow, defColumn);
-			}
-
-			int32 hexValue = 0;
-			sscanf_s(token, "%x", &hexValue);
-
-			memberBuilder.AddInt32Member(memberNameBuffer, hexValue);
-
-			defRow++;
-			defColumn -= 2;
-
-			tokenHandler = &CSV_SexyAssetParser::OnMemberDef;
-		}
-
-		void OnMemberValueInt64(int row, int column, cstr token, int32 stringLength)
-		{
-			if (defRow != row || defColumn != column)
-			{
-				Throw(0, "Expecting int64 hex value at row %d column %d", defRow, defColumn);
-			}
-
-			int64 hexValue = 0;
-			sscanf_s(token, "%llx", &hexValue);
-
-			memberBuilder.AddInt64Member(memberNameBuffer, hexValue);
-
-			defRow++;
-			defColumn -= 2;
-
-			tokenHandler = &CSV_SexyAssetParser::OnMemberDef;
-		}
-
 		static float BinaryToFloat(uint32 binaryRepresentation)
 		{
 			return *(float*)(&binaryRepresentation);
 		}
 
-		void OnMemberValueFloat(int row, int column, cstr token, int32 stringLength)
-		{
-			if (defRow != row || defColumn != column)
-			{
-				Throw(0, "Expecting float hex value at row %d column %d", defRow, defColumn);
-			}
-
-			uint32 hexValue = 0;
-			sscanf_s(token, "%x", &hexValue);
-
-			float floatValue = BinaryToFloat(hexValue);
-
-			memberBuilder.AddFloatMember(memberNameBuffer, floatValue);
-
-			defRow++;
-			defColumn -= 2;
-
-			tokenHandler = &CSV_SexyAssetParser::OnMemberDef;
-		}
-
 		static double BinaryToDouble(uint64 binaryRepresentation)
 		{
 			return *(double*)(&binaryRepresentation);
-		}
-
-		void OnMemberValueDouble(int row, int column, cstr token, int32 stringLength)
-		{
-			if (defRow != row || defColumn != column)
-			{
-				Throw(0, "Expecting double hex value at row %d column %d", defRow, defColumn);
-			}
-
-			uint64 hexValue = 0;
-			sscanf_s(token, "%llx", &hexValue);
-
-			double doubleValue = BinaryToDouble(hexValue);
-
-			memberBuilder.AddDoubleMember(memberNameBuffer, doubleValue);
-
-			defRow++;
-			defColumn -= 2;
-
-			tokenHandler = &CSV_SexyAssetParser::OnMemberDef;
 		}
 
 		void OnMemberDerivativeSource(int row, int column, cstr token, int32 stringLength)
@@ -259,7 +166,7 @@ namespace
 			}
 			else
 			{
-				memberBuilder.AddInterfaceMember(memberNameBuffer, memberTypeBuffer, interfaceDefSourceNameBuffer, instanceType, instanceSource, token);
+		//		memberBuilder.AddInterfaceMember(memberNameBuffer, memberTypeBuffer, interfaceDefSourceNameBuffer, instanceType, instanceSource, token);
 
 				defColumn -= 6;
 				++defRow;
@@ -352,70 +259,12 @@ namespace
 				Throw(0, "Expecting <array-ref-name> at row %d column %d", defRow, defColumn);
 			}
 
-			memberBuilder.AddArrayRefMember(memberNameBuffer, token);
+			//memberBuilder.AddArrayRefMember(memberNameBuffer, token);
 
 			defColumn -= 2;
 			defRow++;
 
 			tokenHandler = &CSV_SexyAssetParser::OnMemberDef;
-		}
-
-		void OnMemberType(int row, int column, cstr token, int32 stringLength)
-		{
-			if (defRow != row)
-			{
-				Throw(0, "Expecting member name at row %d column %d", defRow, defColumn);
-			}
-
-			CopyString(memberTypeBuffer, sizeof memberTypeBuffer, token);
-
-			defColumn++;
-
-			if (Eq(memberTypeBuffer, "d"))
-			{
-				primitiveLine = true;
-				tokenHandler = &CSV_SexyAssetParser::OnMemberValueDouble;
-			}
-			else if (Eq(memberTypeBuffer, "f"))
-			{
-				primitiveLine = true;
-				tokenHandler = &CSV_SexyAssetParser::OnMemberValueFloat;
-			}
-			else if (Eq(memberTypeBuffer, "i"))
-			{
-				primitiveLine = true;
-				tokenHandler = &CSV_SexyAssetParser::OnMemberValueInt32;
-			}
-			else if (Eq(memberTypeBuffer, "l"))
-			{
-				primitiveLine = true;
-				tokenHandler = &CSV_SexyAssetParser::OnMemberValueInt64;
-			}
-			else if (Eq(memberTypeBuffer, "?"))
-			{
-				primitiveLine = true;
-				tokenHandler = &CSV_SexyAssetParser::OnMemberValueBool;
-			}
-			else if (Eq(memberTypeBuffer, "@"))
-			{
-				primitiveLine = true;
-				tokenHandler = &CSV_SexyAssetParser::OnMemberInterfaceType;
-			}
-			else if (Eq(memberTypeBuffer, "$"))
-			{
-				primitiveLine = true;
-				tokenHandler = &CSV_SexyAssetParser::OnStringConstant;
-			}
-			else if (Eq(memberTypeBuffer, "[]"))
-			{
-				tokenHandler = &CSV_SexyAssetParser::OnArrayRefName;
-			}
-			else
-			{
-				primitiveLine = false;
-				// Value was not primitive
-				tokenHandler = &CSV_SexyAssetParser::OnMemberDerivativeSource;
-			}
 		}
 
 		char memberTypeSource[Rococo::IO::MAX_PATHLEN];
@@ -427,7 +276,7 @@ namespace
 				Throw(0, "Expecting name at row %d column %d", defRow, defColumn);
 			}
 
-			memberBuilder.AddNewObject(memberNameBuffer, memberTypeBuffer, token);
+			memberBuilder.BuildObject(memberNameBuffer, memberTypeBuffer, token);
 
 			defColumn = 1;
 			defRow++;
@@ -439,15 +288,96 @@ namespace
 		{
 			int32 arrayCapacity;
 			int32 arrayIndex;
-			int32 itemIndex;
-			std::vector<HString> elementTypes;
-			int32 elementMemberIndex;
-			int32 numberOfElementMembers = 0;
 			char elementTypeMemberName[Rococo::NAMESPACE_MAX_LENGTH];
-			char elementTypeMemberType[Rococo::IO::MAX_PATHLEN];
+			char elementTypeMemberType[Rococo::NAMESPACE_MAX_LENGTH];
 		} array;
 
-		void OnElementValue(int row, int column, cstr token, int32 stringLength)
+		std::vector<HString> memberTypes;
+		char principalTypeName[Rococo::NAMESPACE_MAX_LENGTH] = { 0 };
+		int32 activeMemberIndex = 0;
+
+		void BuildValue(cstr token)
+		{
+			if (memberTypes.empty())
+			{
+				if (activeMemberIndex > 0)
+				{
+					Throw(0, "Bad active member index");
+				}
+
+				// There are no element types, which means the array->ElementType is a primitive or interface type
+				if (Eq(principalTypeName, "Float32"))
+				{
+					memberBuilder.AddF32ItemValue(activeMemberIndex, (float)atof(token));
+				}
+				else if (Eq(principalTypeName, "Float64"))
+				{
+					memberBuilder.AddF64ItemValue(activeMemberIndex, atof(token));
+				}
+				else if (Eq(principalTypeName, "Int32"))
+				{
+					memberBuilder.AddI32ItemValue(activeMemberIndex, atoi(token));
+				}
+				else if (Eq(principalTypeName, "Int64"))
+				{
+					memberBuilder.AddI64ItemValue(activeMemberIndex, atoll(token));
+				}
+				else if (Eq(principalTypeName, "Boolean32"))
+				{
+					memberBuilder.AddBoolItemValue(activeMemberIndex, Eq(token, "Y"));
+				}
+				else if (*token == '#')
+				{
+					// Object Reference
+					memberBuilder.AddObjectRefValue(activeMemberIndex, token);
+				}
+				else
+				{
+					Throw(0, "Unhandled type");
+				}
+			}
+			else
+			{
+				if (activeMemberIndex > memberTypes.size())
+				{
+					Throw(0, "Bad active member index");
+				}
+
+				cstr typeName = memberTypes[activeMemberIndex];
+				if (Eq(typeName, "f"))
+				{
+					memberBuilder.AddF32ItemValue(activeMemberIndex, (float)atof(token));
+				}
+				else if (Eq(typeName, "d"))
+				{
+					memberBuilder.AddF64ItemValue(activeMemberIndex, atof(token));
+				}
+				else if (Eq(typeName, "i"))
+				{
+					memberBuilder.AddI32ItemValue(activeMemberIndex, atoi(token));
+				}
+				else if (Eq(typeName, "l"))
+				{
+					memberBuilder.AddI64ItemValue(activeMemberIndex, atoll(token));
+				}
+				else if (Eq(typeName, "?"))
+				{
+					memberBuilder.AddBoolItemValue(activeMemberIndex, Eq(token, "Y"));
+				}
+				else if (Eq(typeName, "[]"))
+				{
+					memberBuilder.AddArrayRefValue(activeMemberIndex, token);
+				}
+				else
+				{
+					Throw(0, "Unhandled type");
+				}
+
+				activeMemberIndex++;
+			}
+		}
+
+		void OnArrayValue(int row, int column, cstr token, int32 stringLength)
 		{
 			if (defRow != row)
 			{
@@ -461,89 +391,25 @@ namespace
 				return;
 			}
 
-			if (array.elementTypes.empty())
-			{
-				// There are no element types, which means the array->ElementType is a primitive or interface type
-				if (Eq(array.elementTypeMemberType, "Float32"))
-				{
-					memberBuilder.AddF32ItemValue(array.itemIndex, (float)atof(token));
-				}
-				else if (Eq(array.elementTypeMemberType, "Float64"))
-				{
-					memberBuilder.AddF64ItemValue(array.itemIndex, atof(token));
-				}
-				else if (Eq(array.elementTypeMemberType, "Int32"))
-				{
-					memberBuilder.AddI32ItemValue(array.itemIndex, atoi(token));
-				}
-				else if (Eq(array.elementTypeMemberType, "Int64"))
-				{
-					memberBuilder.AddI64ItemValue(array.itemIndex, atoll(token));
-				}
-				else if (Eq(array.elementTypeMemberType, "Boolean32"))
-				{
-					memberBuilder.AddBoolItemValue(array.itemIndex, Eq(token, "Y"));
-				}
-				else if (*token == '#')
-				{
-					// Object Reference
-					memberBuilder.AddObjectRefValue(array.itemIndex, token);
-				}
-				else
-				{
-					Throw(0, "Unhandled type");
-				}
-			}
-			else
-			{
-				cstr typeName = array.elementTypes[array.itemIndex];
-				if (Eq(typeName, "f"))
-				{
-					memberBuilder.AddF32ItemValue(array.itemIndex, (float)atof(token));
-				}
-				else if (Eq(typeName, "d"))
-				{
-					memberBuilder.AddF64ItemValue(array.itemIndex, atof(token));
-				}
-				else if (Eq(typeName, "i"))
-				{
-					memberBuilder.AddI32ItemValue(array.itemIndex, atoi(token));
-				}
-				else if (Eq(typeName, "l"))
-				{
-					memberBuilder.AddI64ItemValue(array.itemIndex, atoll(token));
-				}
-				else if (Eq(typeName, "?"))
-				{
-					memberBuilder.AddBoolItemValue(array.itemIndex, Eq(token, "Y"));
-				}
-				else
-				{
-					Throw(0, "Unhandled type");
-				}
-			}
+			BuildValue(token);
 
-			array.itemIndex++;
-
-			if (array.itemIndex >= array.numberOfElementMembers)
+			if (activeMemberIndex >= memberTypes.size())
 			{
-				array.itemIndex = 0;
+				activeMemberIndex = 0;
+
 				array.arrayIndex++;
 
-				if (array.arrayIndex == arrayLength)
+				if (array.arrayIndex >= arrayLength)
 				{
 					tokenHandler = &CSV_SexyAssetParser::OnObjectName;
 				}
 				else
 				{
-					tokenHandler = &CSV_SexyAssetParser::OnElementValue;
 					memberBuilder.SetArrayWriteIndex(array.arrayIndex);
 				}
-
-				return;
 			}
 
-			tokenHandler = &CSV_SexyAssetParser::OnElementValue;
+			tokenHandler = &CSV_SexyAssetParser::OnArrayValue;
 		}
 
 		void OnArrayIndex(int row, int column, cstr token, int32 stringLength)
@@ -555,7 +421,7 @@ namespace
 			defRow++;
 			defColumn = 1;
 
-			array.itemIndex = 0;
+			activeMemberIndex = 0;
 
 			if (array.arrayIndex == arrayLength)
 			{
@@ -563,7 +429,7 @@ namespace
 			}
 			else
 			{
-				tokenHandler = &CSV_SexyAssetParser::OnElementValue;
+				tokenHandler = &CSV_SexyAssetParser::OnArrayValue;
 				memberBuilder.SetArrayWriteIndex(array.arrayIndex);
 			}
 		}
@@ -588,56 +454,82 @@ namespace
 
 		void OnElementTypeMemberType(int row, int column, cstr token, int32 stringLength)
 		{
+			OnMemberType(row, column, token, stringLength);
+		}
+
+		void OnMemberValue(int row, int column, cstr token, int32 stringLength)
+		{
+			if (defRow != row || column != 1)
+			{
+				Throw(0, "Expecting element value at row %d and column 1", defRow);
+			}
+
+			defRow++;
+
+			BuildValue(token);
+
+			if (activeMemberIndex >= memberTypes.size())
+			{
+				tokenHandler = &CSV_SexyAssetParser::OnObjectName;
+			}
+		}
+
+		void OnMemberType(int row, int column, cstr token, int32 stringLength)
+		{
 			if (defRow != row || defColumn != column)
 			{
 				Throw(0, "Expecting member type of array element type at row %d column %d", defRow, defColumn);
 			}
 
+			int32 index = (int32) memberTypes.size();
+
 			if (Eq(token, "f"))
 			{
 				// Float32 - f
-				array.elementTypes.push_back(token);
-				memberBuilder.AddContainerItemF32(array.elementMemberIndex, column - 2, array.elementTypeMemberName);
+				memberTypes.push_back(token);
+				memberBuilder.AddTypeF32(index, column - 2, memberNameBuffer);
 			}
 			else if (Eq(token, "d"))
 			{
 				// Float64 - d
-				array.elementTypes.push_back(token);
-				memberBuilder.AddContainerItemF64(array.elementMemberIndex, column - 2, array.elementTypeMemberName);
+				memberTypes.push_back(token);
+				memberBuilder.AddTypeF64(index, column - 2, memberNameBuffer);
 			}
 			else if (Eq(token, "i"))
 			{
 				// Int32 - i
-				array.elementTypes.push_back(token);
-				memberBuilder.AddContainerItemI32(array.elementMemberIndex, column - 2, array.elementTypeMemberName);
+				memberTypes.push_back(token);
+				memberBuilder.AddTypeI32(index, column - 2, memberNameBuffer);
 			}
 			else if (Eq(token, "l"))
 			{
 				// Int64 - l
-				array.elementTypes.push_back(token);
-				memberBuilder.AddContainerItemI64(array.elementMemberIndex, column - 2, array.elementTypeMemberName);
+				memberTypes.push_back(token);
+				memberBuilder.AddTypeI64(index, column - 2, memberNameBuffer);
 			}
 			else if (Eq(token, "?"))
 			{
 				// boolean - ?
-				array.elementTypes.push_back(token);
-				memberBuilder.AddContainerItemBool(array.elementMemberIndex, column - 2, array.elementTypeMemberName);
+				memberTypes.push_back(token);
+				memberBuilder.AddTypeBool(index, column - 2, memberNameBuffer);
+			}
+			else if (Eq(token, "[]"))
+			{
+				memberTypes.push_back(token);
+				memberBuilder.AddTypeArrayRef(index, column - 2, memberNameBuffer);
 			}
 			else
 			{
-				CopyString(array.elementTypeMemberType, sizeof array.elementTypeMemberType, token);
-				tokenHandler = &CSV_SexyAssetParser::OnArrayElementTypeMemberSource;
+				CopyString(memberTypeBuffer, sizeof memberTypeBuffer, token);
 				defColumn++;
+				tokenHandler = &CSV_SexyAssetParser::OnMemberDerivativeSource;
 				return;
 			}
 
 			defRow++;
-			defColumn = 1;
+			defColumn--;
 
-			array.elementMemberIndex++;
-			array.numberOfElementMembers++;
-
-			tokenHandler = &CSV_SexyAssetParser::OnArrayElementTypeMemberName;
+			tokenHandler = &CSV_SexyAssetParser::OnMemberDef;
 		}
 
 		void OnArrayElementTypeMemberName(int row, int column, cstr token, int32 stringLength)
@@ -650,7 +542,7 @@ namespace
 			if (*token == '[')
 			{
 				// Human readable index hint
-				array.elementMemberIndex = 0;
+				activeMemberIndex = 0;
 				OnArrayIndex(row, column, token, stringLength);
 				return;
 			}
@@ -695,14 +587,12 @@ namespace
 				Throw(0, "Array capacity %d smaller than array length %d (row %d column %d)", array.arrayCapacity, arrayLength, defRow, defColumn);
 			}
 
-			array.numberOfElementMembers = 0;
-
 			defColumn = 1;
 			defRow++;
 
 			memberBuilder.AddArrayDefinition(memberNameBuffer, memberTypeBuffer, memberTypeSource, arrayLength, array.arrayCapacity);
 
-			array.elementMemberIndex = 0;
+			activeMemberIndex = 0;
 
 			if (arrayLength > 0)
 			{
@@ -713,7 +603,7 @@ namespace
 				tokenHandler = &CSV_SexyAssetParser::OnArrayRefName;
 			}
 
-			array.elementTypes.clear();
+			memberTypes.clear();
 		}
 
 		int arrayLength;
@@ -769,7 +659,9 @@ namespace
 
 			defColumn++;
 
-			if (Eq(token, "[]"))
+			CopyString(memberTypeBuffer, sizeof memberTypeBuffer, token);
+
+			if (StartsWith(memberNameBuffer, "array"))
 			{
 				tokenHandler = &CSV_SexyAssetParser::OnArrayType;
 			}
@@ -801,11 +693,18 @@ namespace
 				Throw(0, "Expecting name at row %d column %d", defRow, defColumn);
 			}
 
-			CopyString(memberNameBuffer, sizeof memberNameBuffer, token);
-
-			defColumn++;
-
-			tokenHandler = &CSV_SexyAssetParser::OnMemberType;
+			if (column == 1 && *token == '#')
+			{
+				defRow++;
+				activeMemberIndex = 0;
+				tokenHandler = &CSV_SexyAssetParser::OnMemberValue;
+			}
+			else
+			{
+				CopyString(memberNameBuffer, sizeof memberNameBuffer, token);
+				defColumn++;
+				tokenHandler = &CSV_SexyAssetParser::OnMemberType;
+			}
 		}
 
 		void OnObjectName(int row, int column, cstr token, int32 stringLength)
@@ -850,42 +749,6 @@ namespace
 			}
 		}
 
-		void OnArchiveType(int row, int column, cstr token, int32 stringLength)
-		{
-			if (*token == 0 || row != 2 || column != 1)
-			{
-				Throw(0, "Expecting <archive-type> at row 2 column 1");
-			}
-
-			CopyString(archiveType, sizeof archiveType, token);
-			tokenHandler = &CSV_SexyAssetParser::OnArchiveName;
-		}
-
-		void OnArchiveName(int row, int column, cstr token, int32 stringLength)
-		{
-			if (*token == 0 || row != 2 || column != 2)
-			{
-				Throw(0, "Expecting <archive-name> at row 2 column 2");
-			}
-
-			CopyString(archiveName, sizeof archiveName, token);
-			tokenHandler = &CSV_SexyAssetParser::OnArchiveTypeSource;
-		}
-
-		void OnArchiveTypeSource(int row, int column, cstr token, int32 stringLength)
-		{
-			if (*token == 0 || row != 2 || column != 3)
-			{
-				Throw(0, "Expecting <archive-source> at row 2 column 3");
-			}
-
-			CopyString(archiveSource, sizeof archiveSource, token);
-			tokenHandler = &CSV_SexyAssetParser::OnMemberDef;
-
-			defRow = 3;
-			defColumn = 1;
-		}
-
 		void OnSignature(int row, int column, cstr token, int32 stringLength)
 		{
 			if (!Eq(token, "AssetBuilder_TabbedCSV_1.0") || row != 1 || column != 1)
@@ -893,7 +756,10 @@ namespace
 				Throw(0, "Expecting AssetBuilder_TabbedCSV_1.0 at row 1 column 1");
 			}
 
-			tokenHandler = &CSV_SexyAssetParser::OnArchiveType;
+			defRow = 2;
+			defColumn = 1;
+
+			tokenHandler = &CSV_SexyAssetParser::OnObjectName;
 		}
 
 		void OnToken(int row, int column, cstr token, int32 stringLengthPlusNul) override

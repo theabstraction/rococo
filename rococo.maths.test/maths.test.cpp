@@ -1076,42 +1076,6 @@ Matrix4x4f	world	"Sys.Maths.sxy"
 			printf("(array %s = %s)\n", name, arrayRefName);
 		}
 
-		void AddBooleanMember(cstr name, bool value) override
-		{
-			PrintIndent();
-			printf("(bool %s = %s)\n", name, value ? "true" : "false");
-		}
-
-		void AddDoubleMember(cstr name, double value) override
-		{
-			PrintIndent();
-			printf("(double %s = %lg)\n", name, value);
-		}
-
-		void AddFloatMember(cstr name, float value)  override
-		{
-			PrintIndent();
-			printf("(float %s = %g)\n", name, value);
-		}
-
-		void AddInt32Member(cstr name, int32 value) override
-		{
-			PrintIndent();
-			printf("(int32 %s = %d)\n", name, value);
-		}
-
-		void AddInt64Member(cstr name, int64 value) override
-		{
-			PrintIndent();
-			printf("(int64 %s = %lld)\n", name, value);
-		}
-
-		void AddInterfaceMember(cstr name, cstr interfaceType, cstr interfaceSource, cstr instanceType, cstr instanceSource, OBJECT_NAME objectName)
-		{
-			PrintIndent();
-			printf("(%s %s = %s) // %s\n", interfaceType, name, objectName, instanceType);
-		}
-
 		void AddStringConstant(cstr name, cstr text, int32 textLength)
 		{
 			PrintIndent();
@@ -1139,7 +1103,7 @@ Matrix4x4f	world	"Sys.Maths.sxy"
 			printf(")\n");
 		}
 
-		void AddNewObject(cstr name, cstr type, cstr source)
+		void BuildObject(cstr name, cstr type, cstr source)
 		{
 			indent = 0;
 			printf("\n(%s %s) // %s\n", name, type, source);
@@ -1155,29 +1119,34 @@ Matrix4x4f	world	"Sys.Maths.sxy"
 			printf("\n(ArrayWrite [ %d ])\n", index);
 		}
 
-		void AddContainerItemF32(int elementMemberIndex, int32 memberDepth, cstr memberName) override
+		void AddTypeF32(int memberIndex, int32 memberDepth, cstr memberName) override
 		{
-			printf("\n(F32 [%d] depth %d : %s)\n", elementMemberIndex, memberDepth, memberName);
+			printf("\n(F32 [%d] depth %d : %s)\n", memberIndex, memberDepth, memberName);
 		}
 
-		void AddContainerItemF64(int elementMemberIndex, int32 memberDepth, cstr memberName) override
+		void AddTypeF64(int memberIndex, int32 memberDepth, cstr memberName) override
 		{
-			printf("\n(F64 [%d] depth %d : %s)\n", elementMemberIndex, memberDepth, memberName);
+			printf("\n(F64 [%d] depth %d : %s)\n", memberIndex, memberDepth, memberName);
 		}
 
-		void AddContainerItemI32(int elementMemberIndex, int32 memberDepth, cstr memberName) override
+		void AddTypeI32(int memberIndex, int32 memberDepth, cstr memberName) override
 		{
-			printf("\n(I32 [%d] depth %d : %s)\n", elementMemberIndex, memberDepth, memberName);
+			printf("\n(I32 [%d] depth %d : %s)\n", memberIndex, memberDepth, memberName);
 		}
 
-		void AddContainerItemI64(int elementMemberIndex, int32 memberDepth, cstr memberName) override
+		void AddTypeI64(int memberIndex, int32 memberDepth, cstr memberName) override
 		{
-			printf("\n(I64 [%d] depth %d : %s)\n", elementMemberIndex, memberDepth, memberName);
+			printf("\n(I64 [%d] depth %d : %s)\n", memberIndex, memberDepth, memberName);
 		}
 
-		void AddContainerItemBool(int elementMemberIndex, int32 memberDepth, cstr memberName) override
+		void AddTypeBool(int memberIndex, int32 memberDepth, cstr memberName) override
 		{
-			printf("\n(Boolean32 I64 [%d] depth %d : %s)\n", elementMemberIndex, memberDepth, memberName);
+			printf("\n(Boolean32 I64 [%d] depth %d : %s)\n", memberIndex, memberDepth, memberName);
+		}
+
+		void AddTypeArrayRef(int memberIndex, int32 memberDepth, cstr memberName) override
+		{
+			printf("\n(array [%d] depth %d : %s)\n", memberIndex, memberDepth, memberName);
 		}
 
 		void AddContainerItemDerivative(int32 memberDepth, cstr name, cstr type, cstr typeSource) override
@@ -1213,6 +1182,11 @@ Matrix4x4f	world	"Sys.Maths.sxy"
 		void AddObjectRefValue(int32 itemIndex, cstr objectName) override
 		{
 			printf("\n([%d] Ref: %s)\n", itemIndex, objectName);
+		}
+
+		void AddArrayRefValue(int itemIndex, cstr arrayName) override
+		{
+			printf("\n([%d] Ref: %s)\n", itemIndex, arrayName);
 		}
 
 		void EnterDerivedContainerItem() override
