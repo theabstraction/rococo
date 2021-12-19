@@ -330,9 +330,9 @@ struct AssetBuilder
 				sb.AppendFormat("?\n");
 				break;
 			case VARTYPE_Derivative:
-				if (StartsWith(memberType.Name(), "_Null"))
+				if (IsNullType(memberType))
 				{
-					sb.AppendFormat("%s\t%s\n", memberType.GetInterface(0).Name(), memberType.Module().Name());
+					sb.AppendFormat("@\t%s\t%s\n", memberType.GetInterface(0).Name(), memberType.Module().Name());
 				}
 				else
 				{
@@ -460,7 +460,7 @@ struct AssetBuilder
 		}
 	}
 
-	void SaveArray(ArrayDef& def)
+	void SaveArray(const ArrayDef& def)
 	{
 		auto& arrayData = *def.image;
 

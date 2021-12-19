@@ -13,7 +13,7 @@ namespace Rococo::Sexy
 		virtual void AddStringConstant(cstr name, cstr text, int32 stringLength) = 0;
 
 		// Descend into derivative sub-member 
-		virtual void AddDerivativeMember(cstr type, cstr name, cstr sourceFile) = 0;
+		
 
 		// After AddDerivativeMember, this resumes building the parent member
 		virtual void ReturnToParent() = 0;
@@ -30,12 +30,14 @@ namespace Rococo::Sexy
 		// Tells the builder which array item is to be overwritten. Called following AddArrayDefinition
 		virtual void SetArrayWriteIndex(int32 index) = 0;
 
-		virtual void AddTypeF32(int memberIndex, int32 memberDepth, cstr memberName) = 0;
-		virtual void AddTypeF64(int memberIndex, int32 memberDepth, cstr memberName) = 0;
-		virtual void AddTypeI32(int memberIndex, int32 memberDepth, cstr memberName) = 0;
-		virtual void AddTypeI64(int memberIndex, int32 memberDepth, cstr memberName) = 0;
-		virtual void AddTypeBool(int memberIndex, int32 memberDepth, cstr memberName) = 0;
-		virtual void AddTypeArrayRef(int memberIndex, int32 memberDepth, cstr memberName) = 0;
+		virtual void AddTypeDerivative(int32 memberDepth, cstr type, cstr memberName, cstr sourceFile) = 0;
+		virtual void AddTypeInterface(int32 memberDepth, cstr interfaceType, cstr memberName, cstr sourceFile) = 0;
+		virtual void AddTypeF32(int32 memberDepth, cstr memberName) = 0;
+		virtual void AddTypeF64(int32 memberDepth, cstr memberName) = 0;
+		virtual void AddTypeI32(int32 memberDepth, cstr memberName) = 0;
+		virtual void AddTypeI64(int32 memberDepth, cstr memberName) = 0;
+		virtual void AddTypeBool(int32 memberDepth, cstr memberName) = 0;
+		virtual void AddTypeArrayRef(int32 memberDepth, cstr memberName) = 0;
 
 		virtual void AddF32ItemValue(int itemIndex, float value) = 0;
 		virtual void AddF64ItemValue(int itemIndex, double value) = 0;

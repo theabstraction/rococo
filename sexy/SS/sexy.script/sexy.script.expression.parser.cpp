@@ -2812,10 +2812,12 @@ namespace Rococo
 				Throw(s, "Could not assign array. LHS is (array %s). RHS is (array %s)", GetFriendlyName(lhsType), GetFriendlyName(rhsType));
 			}
 
+			/*
 			if (!StartsWith(lhsString, "this.") && lhs.location != VARLOCATION_TEMP && lhs.location != VARLOCATION_OUTPUT)
 			{
 				Throw(s, "Could not assign array. The target has to be an output or temporary/local variable");
 			}
+			*/
 
 			ce.Builder.AssignVariableToTemp(lhsString, 0, 0); // D4 has the LHS reference
 			ce.Builder.AssignVariableToTemp(rhsString, 1, 0); // D5 has the RHS reference

@@ -307,19 +307,20 @@ namespace
 				}
 
 				uint8* rawMemberData = container.elements[memberIndex].memberDataOffset + writePosition;
-				auto* memberData = (ArrayImage**)rawMemberData;
-				if (*memberData != nullptr)
+				auto* ppA = (ArrayImage**)rawMemberData;
+				if (*ppA != nullptr)
 				{
 					// If we allowed the C++ to overwrite an array, we would need to handle the case of reference counts going to zero,
 					// which entails invoking proper destructors for each array element. We eliminate the complexities by ensuring this will not happen.
 					// It is up to the script programmer to ensure arrays are nulled out prior to deserialization.
-					Throw(0, "Cannot load %s. The target member array [%s] is not null. Overwriting of existing arrays is not permitted", arrayName, member->Name());
+					auto* a = *ppA;
+					Throw(0, "Cannot load %s. The target member array [%s] is not null. Overwriting of existing arrays is not permitted.\nThe length was %d and the capacity was %d", arrayName, member->Name(), a->NumberOfElements, a->ElementCapacity);
 				}
-				*memberData = i->second;
+				*ppA = i->second;
 			}
 		}
 
-		void AddMemberType(int memberIndex, int32 memberDepth, cstr memberName, VARTYPE validType)
+		void AddMemberType(int32 memberDepth, cstr memberName, VARTYPE validType)
 		{
 			memberRefManager.RollbackToAncestor(memberDepth + 1);
 
@@ -343,34 +344,65 @@ namespace
 			memberRefManager.MoveToNextSibling();
 		}
 
-		void AddTypeF32(int memberIndex, int32 memberDepth, cstr memberName) override
+		void AddTypeF32(int32 memberDepth, cstr memberName) override
 		{
-			AddMemberType(memberIndex, memberDepth, memberName, VARTYPE_Float32);
+			AddMemberType(memberDepth, memberName, VARTYPE_Float32);
 		}
 
-		void AddTypeF64(int memberIndex, int32 memberDepth, cstr memberName) override
+		void AddTypeF64(int32 memberDepth, cstr memberName) override
 		{
-			AddMemberType(memberIndex, memberDepth, memberName, VARTYPE_Float64);
+			AddMemberType(memberDepth, memberName, VARTYPE_Float64);
 		}
 
-		void AddTypeI32(int memberIndex, int32 memberDepth, cstr memberName) override
+		void AddTypeI32(int32 memberDepth, cstr memberName) override
 		{
-			AddMemberType(memberIndex, memberDepth, memberName, VARTYPE_Int32);
+			AddMemberType(memberDepth, memberName, VARTYPE_Int32);
 		}
 
-		void AddTypeI64(int memberIndex, int32 memberDepth, cstr memberName) override
+		void AddTypeI64(int32 memberDepth, cstr memberName) override
 		{
-			AddMemberType(memberIndex, memberDepth, memberName, VARTYPE_Int64);
+			AddMemberType(memberDepth, memberName, VARTYPE_Int64);
 		}
 
-		void AddTypeBool(int memberIndex, int32 memberDepth, cstr memberName) override
+		void AddTypeBool(int32 memberDepth, cstr memberName) override
 		{
-			AddMemberType(memberIndex, memberDepth, memberName, VARTYPE_Bool);
+			AddMemberType(memberDepth, memberName, VARTYPE_Bool);
 		}
 
-		void AddTypeArrayRef(int memberIndex, int32 memberDepth, cstr memberName) override
+		void AddTypeArrayRef(int32 memberDepth, cstr memberName) override
 		{
-			AddMemberType(memberIndex, memberDepth, memberName, VARTYPE_Array);
+			AddMemberType(memberDepth, memberName, VARTYPE_Array);
+		}
+
+		void AddTypeInterface(int32 memberDepth, cstr interfaceType, cstr memberName, cstr sourceFile)
+		{
+			memberRefManager.RollbackToAncestor(memberDepth + 1);
+
+			const IMember* member = GetBestMatchingMember(memberName);
+
+			if (member != nullptr)
+			{
+				auto& mtype = *member->UnderlyingType();
+				if (!IsNullType(mtype))
+				{
+					Throw(0, "%s failed. Element type was %s of %s. Expected null type (interface type)", __FUNCTION__, mtype.Name(), mtype.Module().Name());
+				}
+
+				auto& i = mtype.GetInterface(0);
+
+				if (!Eq(i.Name(), interfaceType))
+				{
+					Throw(0, "%s failed. Member interface was %s of %s. Expected interface type %s of %s", __FUNCTION__, i.Name(), mtype.Module().Name(), interfaceType, sourceFile);
+				}
+
+				container.elements.push_back(ElementMemberDesc{ member, writeCursor - writePosition });
+			}
+			else
+			{
+				container.elements.push_back(ElementMemberDesc{ nullptr, 0 });
+			}
+
+			memberRefManager.DescendToFirstChild();
 		}
 
 		void AddContainerItemDerivative(int32 memberDepth, cstr name, cstr type, cstr typeSource) override
@@ -439,8 +471,8 @@ namespace
 				Throw(0, "%s: Bad index (%d)", __FUNCTION__, itemIndex);
 			}
 
-			uint8* rawMemberData = writePosition;
-			auto* memberData = (InterfacePointer*)rawMemberData;
+			uint8* rawMemberData = container.elements[itemIndex].memberDataOffset + writePosition;
+			auto* pInterface = (InterfacePointer**)rawMemberData;
 
 			auto i = objects.find(objectName);
 			if (i == objects.end())
@@ -449,24 +481,23 @@ namespace
 				i = objects.insert(objectName, newObject).first;
 			}
 
-			RequiredInterfaceRef ref;
-			ref.pInterfaceType = &type->GetInterface(0);
-			ref.ppInterface = memberData;
-			i->second.requiredInterfaces.push_back(ref);
+			auto* member = container.elements[itemIndex].member;
+			auto& memberType = *member->UnderlyingType();
 
-			writePosition += sizeof InterfacePointer;
+			RequiredInterfaceRef ref;
+			ref.pInterfaceType = &memberType.GetInterface(0);
+			ref.ppInterface = *pInterface;
+			i->second.requiredInterfaces.push_back(ref);
 		}
 
 		void BuildObject(cstr name, cstr type, cstr sourceFile) override
 		{
 			auto i = objects.find(name);
-			if (i != objects.end())
+			if (i == objects.end())
 			{
-				Throw(0, "Cannot build object %s. An object with that name was already found in the archive.");
+				DeserializedObject object;
+				i = objects.insert(name, object).first;
 			}
-
-			DeserializedObject object;
-			i = objects.insert(name, object).first;
 
 			if (Eq(name, "#Object0"))
 			{
@@ -786,17 +817,7 @@ namespace
 		}
 		*/
 
-		void AddInterface(const Rococo::Compiler::IMember& member, const IInterface& expectedType, cstr type, cstr name, cstr sourceFile)
-		{
-			if (!Eq(expectedType.Name(), type))
-			{
-				Throw(0, "%s %s. Mismatches interface type %s", expectedType.Name(), name, type);
-			}
-
-			memberRefManager.DescendToFirstChild();
-		}
-
-		void AddDerivativeMember(cstr type, cstr name, cstr sourceFile) override
+		void AddTypeDerivative(int memberDepth, cstr type, cstr name, cstr sourceFile) override
 		{
 			const Rococo::Compiler::IMember* member = GetBestMatchingMember(name);
 			
@@ -807,10 +828,9 @@ namespace
 			
 			auto* memberType = member->UnderlyingType();
 
-			if (memberType->InterfaceCount() > 0)
+			if (IsNullType(*memberType))
 			{
-				auto& interface0 = memberType->GetInterface(0);
-				AddInterface(*member, interface0, type, name, sourceFile);
+				Throw(0, "Bad algorithm");
 				return;
 			}
 

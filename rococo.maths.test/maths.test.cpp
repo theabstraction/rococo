@@ -1082,13 +1082,6 @@ Matrix4x4f	world	"Sys.Maths.sxy"
 			printf("(IString %s = \"%s\") // %d chars\n", name, text, textLength);
 		}
 
-		void AddDerivativeMember(cstr type, cstr name, cstr sourceFile) override
-		{
-			PrintIndent();
-			printf("(%s %s\n", type, name);
-			indent++;
-		}
-
 		void AddFastStringBuilder(cstr name, fstring text, int32 capacity, cstr objectRefName)
 		{
 			PrintIndent();
@@ -1119,34 +1112,44 @@ Matrix4x4f	world	"Sys.Maths.sxy"
 			printf("\n(ArrayWrite [ %d ])\n", index);
 		}
 
-		void AddTypeF32(int memberIndex, int32 memberDepth, cstr memberName) override
+		void AddTypeF32(int32 memberDepth, cstr memberName) override
 		{
-			printf("\n(F32 [%d] depth %d : %s)\n", memberIndex, memberDepth, memberName);
+			printf("\n(F32 depth %d : %s)\n", memberDepth, memberName);
 		}
 
-		void AddTypeF64(int memberIndex, int32 memberDepth, cstr memberName) override
+		void AddTypeF64(int32 memberDepth, cstr memberName) override
 		{
-			printf("\n(F64 [%d] depth %d : %s)\n", memberIndex, memberDepth, memberName);
+			printf("\n(F64 depth %d : %s)\n", memberDepth, memberName);
 		}
 
-		void AddTypeI32(int memberIndex, int32 memberDepth, cstr memberName) override
+		void AddTypeI32(int32 memberDepth, cstr memberName) override
 		{
-			printf("\n(I32 [%d] depth %d : %s)\n", memberIndex, memberDepth, memberName);
+			printf("\n(I32 depth %d : %s)\n", memberDepth, memberName);
 		}
 
-		void AddTypeI64(int memberIndex, int32 memberDepth, cstr memberName) override
+		void AddTypeI64(int32 memberDepth, cstr memberName) override
 		{
-			printf("\n(I64 [%d] depth %d : %s)\n", memberIndex, memberDepth, memberName);
+			printf("\n(I64 depth %d : %s)\n", memberDepth, memberName);
 		}
 
-		void AddTypeBool(int memberIndex, int32 memberDepth, cstr memberName) override
+		void AddTypeBool(int32 memberDepth, cstr memberName) override
 		{
-			printf("\n(Boolean32 I64 [%d] depth %d : %s)\n", memberIndex, memberDepth, memberName);
+			printf("\n(Boolean32 I64 depth %d : %s)\n", memberDepth, memberName);
 		}
 
-		void AddTypeArrayRef(int memberIndex, int32 memberDepth, cstr memberName) override
+		void AddTypeArrayRef(int32 memberDepth, cstr memberName) override
 		{
-			printf("\n(array [%d] depth %d : %s)\n", memberIndex, memberDepth, memberName);
+			printf("\n(array depth %d : %s)\n", memberDepth, memberName);
+		}
+
+		void AddTypeInterface(int32 memberDepth, cstr interfaceType, cstr memberName, cstr sourceFile)
+		{
+			printf("\n(interface depth %d : %s %s of %s)\n", memberDepth, memberName, interfaceType, sourceFile);
+		}
+
+		void AddTypeDerivative(int32 memberDepth, cstr type, cstr memberName, cstr sourceFile)
+		{
+			printf("\n(derivative depth %d : %s Type %s of %s)\n", memberDepth, memberName, type, sourceFile);
 		}
 
 		void AddContainerItemDerivative(int32 memberDepth, cstr name, cstr type, cstr typeSource) override

@@ -2,10 +2,10 @@ AssetBuilder_TabbedCSV_1.0
 #Object0	GlobalState	!scripts/test.app.created.sxy
 points	[]
 cats	[]
-dogName	IString	Sys.Type.Strings.sxy
-dog	IDog	!scripts/test.app.created.sxy
-squirrelName	IString	Sys.Type.Strings.sxy
-catName	IString	Sys.Type.Strings.sxy
+dogName	@	IString	Sys.Type.Strings.sxy
+dog	@	IDog	!scripts/test.app.created.sxy
+squirrelName	@	IString	Sys.Type.Strings.sxy
+catName	@	IString	Sys.Type.Strings.sxy
 age	d
 position	Vec3f	Sys.Maths.sxy
 	x	f
