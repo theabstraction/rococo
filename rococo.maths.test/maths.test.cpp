@@ -1082,10 +1082,10 @@ Matrix4x4f	world	"Sys.Maths.sxy"
 			printf("(IString %s = \"%s\") // %d chars\n", name, text, textLength);
 		}
 
-		void AddFastStringBuilder(cstr name, fstring text, int32 capacity, cstr objectRefName)
+		void AddFastStringBuilder(cstr objectRefName, fstring text, int32 capacity)
 		{
 			PrintIndent();
-			printf("(IStringBuilder %s = \"%s\" %d %d) // %s\n", name, text.buffer, text.length, capacity, objectRefName);
+			printf("(IStringBuilder %s = \"%s\" %d %d)\n", objectRefName, text.buffer, text.length, capacity);
 			indent++;
 		}
 

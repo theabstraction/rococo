@@ -718,44 +718,52 @@ namespace
 			memberRefManager.MoveToNextSibling();
 		}
 
-		void AddFastStringBuilder(cstr name, fstring text, int32 capacity, cstr objectRefName)
+		void AddFastStringBuilder(cstr objectRefName, fstring text, int32 capacity)
 		{
-			const IMember* member = GetBestMatchingMember(name);
-
-			if (!member)
-			{
-				Throw(0, "%s: No member found", name);
-			}
-
-			auto& type = *member->UnderlyingType();
-
-			if (!IsIStringBuilder(type) && !IsIString(type))
-			{
-				Throw(0, "Expected %s to be of type IStringBuilder or IString, but was of type %s", name, type.Name());
-			}
-
 			FastStringBuilder* fb = scriptSystem->CreateAndPopulateFastStringBuilder(text, capacity);
-			WritePrimitive(fb->stub.pVTables);
+
+			auto i = objects.find(objectRefName);
+			if (i == objects.end())
+			{
+				DeserializedObject newObject;
+				i = objects.insert(objectRefName, newObject).first;
+			}
+
+			i->second.stub = &fb->stub;
+
+			for (auto& requiredInterface : i->second.requiredInterfaces)
+			{
+				if (requiredInterface.ppInterface)
+				{
+					*requiredInterface.ppInterface = fb->stub.pVTables;
+				}
+			}
+
+			i->second.requiredInterfaces.clear();
 		}
 
-		void AddStringConstant(cstr name, cstr text, int32 stringLength)
+		void AddStringConstant(cstr stringRefName, cstr text, int32 stringLength)
 		{
-			const IMember* member = GetBestMatchingMember(name);
-
-			if (!member)
-			{
-				Throw(0, "%s: No member found", name);
-			}
-
-			auto& type = *member->UnderlyingType();
-
-			if (!IsIString(type))
-			{
-				Throw(0, "Expected %s to be of type Sys.Type.IString, but was of type %s", name, type.Name());
-			}
-
 			CStringConstant* sc = scriptSystem->DuplicateStringAsConstant(text, stringLength);
-			WritePrimitive(sc->header.pVTables);
+			
+			auto i = objects.find(stringRefName);
+			if (i == objects.end())
+			{
+				DeserializedObject newObject;
+				i = objects.insert(stringRefName, newObject).first;
+			}
+
+			i->second.stub = &sc->header;
+
+			for (auto& requiredInterface : i->second.requiredInterfaces)
+			{
+				if (requiredInterface.ppInterface)
+				{
+					*requiredInterface.ppInterface = sc->header.pVTables;
+				}
+			}
+
+			i->second.requiredInterfaces.clear();
 		}
 
 		/*

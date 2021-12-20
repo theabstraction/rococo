@@ -10,7 +10,7 @@ namespace Rococo::Sexy
 		typedef cstr OBJECT_NAME;
 
 		// Add an IString ref to a ConstantBuffer@Sys.Type.Strings.sxy
-		virtual void AddStringConstant(cstr name, cstr text, int32 stringLength) = 0;
+		virtual void AddStringConstant(cstr stringNameRef, cstr text, int32 stringLength) = 0;
 
 		// Descend into derivative sub-member 
 		
@@ -18,7 +18,7 @@ namespace Rococo::Sexy
 		// After AddDerivativeMember, this resumes building the parent member
 		virtual void ReturnToParent() = 0;
 
-		virtual void AddFastStringBuilder(cstr name, fstring text, int32 capacity, cstr objectRefName) = 0;
+		virtual void AddFastStringBuilder(cstr opbjectNameRef, fstring text, int32 capacity) = 0;
 
 		// Readies the system for the specified object. If name is #Object0, we are building the root object
 		virtual void BuildObject(cstr name, cstr type, cstr sourceFile) = 0;
