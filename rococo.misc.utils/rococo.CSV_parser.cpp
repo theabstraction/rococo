@@ -246,7 +246,6 @@ namespace
 		} array;
 
 		std::vector<HString> memberTypes;
-		char principalTypeName[Rococo::NAMESPACE_MAX_LENGTH] = { 0 };
 		int32 activeMemberIndex = 0;
 
 		void BuildValueAndAdvanceMemberIndex(cstr token)
@@ -259,27 +258,27 @@ namespace
 				}
 
 				// There are no element types, which means the array->ElementType is a primitive or interface type
-				if (Eq(principalTypeName, "Float32"))
+				if (Eq(memberTypeBuffer, "Float32") && Eq(memberTypeSource, "Sys.Types.sxy"))
 				{
 					memberBuilder.AddF32ItemValue(activeMemberIndex, (float)atof(token));
 				}
-				else if (Eq(principalTypeName, "Float64"))
+				else if (Eq(memberTypeBuffer, "Float64") && Eq(memberTypeSource, "Sys.Types.sxy"))
 				{
 					memberBuilder.AddF64ItemValue(activeMemberIndex, atof(token));
 				}
-				else if (Eq(principalTypeName, "Int32"))
+				else if (Eq(memberTypeBuffer, "Int32") && Eq(memberTypeSource, "Sys.Types.sxy"))
 				{
 					memberBuilder.AddI32ItemValue(activeMemberIndex, atoi(token));
 				}
-				else if (Eq(principalTypeName, "Int64"))
+				else if (Eq(memberTypeBuffer, "Int64") && Eq(memberTypeSource, "Sys.Types.sxy"))
 				{
 					memberBuilder.AddI64ItemValue(activeMemberIndex, atoll(token));
 				}
-				else if (Eq(principalTypeName, "Boolean32"))
+				else if (Eq(memberTypeBuffer, "Boolean32") && Eq(memberTypeSource, "Sys.Types.sxy"))
 				{
 					memberBuilder.AddBoolItemValue(activeMemberIndex, Eq(token, "Y"));
 				}
-				else if (Eq(principalTypeName, "@"))
+				else if (StartsWith(memberTypeBuffer, "_Null_"))
 				{
 					// Object Reference
 					memberBuilder.AddObjectRefValue(activeMemberIndex, token);
@@ -343,14 +342,9 @@ namespace
 
 			defRow++;
 
-			if (*token == '[')
-			{
-				return;
-			}
-
 			BuildValueAndAdvanceMemberIndex(token);
 
-			if (activeMemberIndex >= memberTypes.size())
+			if (memberTypes.empty() || activeMemberIndex >= memberTypes.size())
 			{
 				activeMemberIndex = 0;
 
@@ -363,10 +357,9 @@ namespace
 				else
 				{
 					memberBuilder.SetArrayWriteIndex(array.arrayIndex);
+					tokenHandler = &CSV_SexyAssetParser::OnArrayIndex;
 				}
 			}
-
-			tokenHandler = &CSV_SexyAssetParser::OnArrayValue;
 		}
 
 		void OnArrayIndex(int row, int column, cstr token, int32 stringLength)
@@ -503,6 +496,8 @@ namespace
 
 			if (*token == '[')
 			{
+				// Note, if our array is of primitives, then the element type is given by the memberTypeBuffer variable, and we expect an array index after the array def line
+				
 				// Human readable index hint
 				activeMemberIndex = 0;
 				OnArrayIndex(row, column, token, stringLength);
@@ -556,16 +551,7 @@ namespace
 
 			activeMemberIndex = 0;
 
-			if (arrayLength > 0)
-			{
-				tokenHandler = &CSV_SexyAssetParser::OnArrayElementTypeMemberName;
-			}
-			else
-			{
-				tokenHandler = &CSV_SexyAssetParser::OnArrayRefName;
-			}
-
-			memberTypes.clear();
+			tokenHandler = &CSV_SexyAssetParser::OnArrayElementTypeMemberName;
 		}
 
 		int arrayLength;

@@ -466,12 +466,25 @@ namespace
 
 		void AddObjectRefValue(int itemIndex, cstr objectName)
 		{
-			if (container.elements.size() > 0 && itemIndex >= (int32)container.elements.size())
+			uint8* rawMemberData;
+
+			if (!container.elements.empty())
 			{
-				Throw(0, "%s: Bad index (%d)", __FUNCTION__, itemIndex);
+				if (itemIndex >= (int32)container.elements.size())
+				{
+					Throw(0, "%s: Bad index (%d)", __FUNCTION__, itemIndex);
+				}
+				rawMemberData = container.elements[itemIndex].memberDataOffset + writePosition;
+			}
+			else
+			{
+				if (elementType == nullptr)
+				{
+					Throw(0, "%s failed. ElementType was nullptr", __FUNCTION__);
+				}
+				rawMemberData = writePosition;
 			}
 
-			uint8* rawMemberData = container.elements[itemIndex].memberDataOffset + writePosition;
 			auto* pInterface = (InterfacePointer**)rawMemberData;
 
 			auto i = objects.find(objectName);
@@ -481,17 +494,29 @@ namespace
 				i = objects.insert(objectName, newObject).first;
 			}
 
-			auto* member = container.elements[itemIndex].member;
-			auto& memberType = *member->UnderlyingType();
-
 			RequiredInterfaceRef ref;
-			ref.pInterfaceType = &memberType.GetInterface(0);
+
+			if (!container.elements.empty())
+			{
+				auto* member = container.elements[itemIndex].member;
+				auto& memberType = *member->UnderlyingType();
+
+				ref.pInterfaceType = &memberType.GetInterface(0);
+			}
+			else
+			{ 
+				ref.pInterfaceType = &elementType->GetInterface(0);	
+			}
+
 			ref.ppInterface = *pInterface;
 			i->second.requiredInterfaces.push_back(ref);
 		}
 
 		void BuildObject(cstr name, cstr type, cstr sourceFile) override
 		{
+			container.elements.clear();
+			elementType = nullptr;
+
 			auto i = objects.find(name);
 			if (i == objects.end())
 			{
@@ -912,23 +937,27 @@ namespace
 			}
 		}
 
-		void AddArrayDefinition(cstr refName, cstr elementType, cstr elementTypeSource, int32 length, int32 capacity) override
+		const IStructure* elementType = nullptr;
+
+		void AddArrayDefinition(cstr refName, cstr elementTypeName, cstr elementTypeSource, int32 length, int32 capacity) override
 		{
-			auto* type = FindStructure(*scriptSystem, elementType, elementTypeSource);
-			if (!type)
+			container.elements.clear();
+
+			elementType = FindStructure(*scriptSystem, elementTypeName, elementTypeSource);
+			if (!elementType)
 			{
-				Throw(0, "Could not resolve type %s of %s", elementType, elementTypeSource);
+				Throw(0, "Could not resolve type %s of %s", elementTypeName, elementTypeSource);
 			}
 
 			auto i = arrays.find(refName);
 			if (i == arrays.end())
 			{
-				auto* image = scriptSystem->CreateArrayImage(*type);
+				auto* image = scriptSystem->CreateArrayImage(*elementType);
 				i = arrays.insert(refName, image).first;
 			}
 			else
 			{
-				if (i->second->ElementType != type)
+				if (i->second->ElementType != elementType)
 				{
 					Throw(0, "Cannot load %s.\nThe array has already been defined as being type %s of %s.\nThe operation requested a type %s of %s.", refName, i->second->ElementType->Name(), i->second->ElementType->Module().Name(), type->Name(), type->Module().Name());
 				}
