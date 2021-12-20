@@ -3522,6 +3522,30 @@ R"((namespace EntryPoint)
 		validate(x == 0);
 	}
 
+	void TestNullIString(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			"(alias Main EntryPoint.Main)"
+			"(function Main -> (Int32 result):"
+			"    (Sys.Type.IString s)"
+			"    (s.Length -> result)"
+			")"
+			;
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+
+		ValidateExecution(result);
+		int32 x = vm.PopInt32();
+		validate(x == 0);
+	}
+
 	void TestDuplicateFunctionError(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -14087,6 +14111,7 @@ R"(
 
    void RunCollectionTests()
    {
+	   TEST(TestArrayOfInterfacesBuilder);
 	   TEST(TestPushStructToArray);
 	   TEST(TestArrayInt32);
 	   TEST(TestArrayInt32Expand);
@@ -14274,6 +14299,8 @@ R"(
 	void RunPositiveSuccesses()
 	{
 		validate(true);
+
+		TEST(TestNullIString);
 
 		TEST(TestPackage);
 
@@ -14627,8 +14654,6 @@ R"(
 	{
 		int64 start, end, hz;
 		start = OS::CpuTicks();
-
-		TEST(TestArrayOfInterfacesBuilder);
 
 		RunPositiveSuccesses();
 		RunPositiveFailures();	

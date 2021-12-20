@@ -47,6 +47,8 @@ namespace Rococo::Sexy
 		virtual void AddArrayRefValue(int itemIndex, cstr arrayName) = 0;
 		virtual void AddObjectRefValue(int itemIndex, cstr objectName) = 0;
 
+		virtual void AddNullObject(cstr objectNameRef, cstr nullType, cstr nullTypeModule) = 0;
+
 		virtual void AddContainerItemDerivative(int32 memberDepth, cstr name, cstr type, cstr typeSource) = 0;
 
 		virtual void EnterDerivedContainerItem() = 0;

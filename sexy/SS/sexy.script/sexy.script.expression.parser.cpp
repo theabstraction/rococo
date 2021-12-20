@@ -1655,8 +1655,10 @@ namespace Rococo
 			AssertDefaultConstruction(ce, decl, st);
 			AddInterfaceVariable(ce, NameString::From(id), st);
 
+			ObjectStub* stub = st.GetInterface(0).UniversalNullInstance();
+
 			VariantValue value;
-			value.vPtrValue = GetInterfacePtrFromNullInstancePtr(st.GetInterface(0).UniversalNullInstance());
+			value.vPtrValue = GetInterfacePtrFromNullInstancePtr(stub);
 
 			ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, value, BITCOUNT_POINTER);
 			ce.Builder.AssignTempToVariable(0, id);

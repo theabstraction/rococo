@@ -1192,6 +1192,11 @@ Matrix4x4f	world	"Sys.Maths.sxy"
 			printf("\n([%d] Ref: %s)\n", itemIndex, arrayName);
 		}
 
+		void AddNullObject(cstr objectNameRef, cstr nullType, cstr nullTypeModule) override
+		{
+			printf("\n(%s %s %s)\n", objectNameRef, nullType, nullTypeModule);
+		}
+
 		void EnterDerivedContainerItem() override
 		{
 			printf("(\n");

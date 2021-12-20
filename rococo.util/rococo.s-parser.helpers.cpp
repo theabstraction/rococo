@@ -1036,7 +1036,7 @@ namespace Rococo
 			char value[256];
 
 			auto* name = member.UnderlyingType()->Name();
-			if (Eq(name, "_Null_Sys_Type_IString"))
+			if (Eq(name, "_Null_Sys_Type_IStringBuilder"))
 			{
 				TRY_PROTECTED
 				{

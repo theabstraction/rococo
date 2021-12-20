@@ -579,6 +579,11 @@ namespace
 
 			arrayLength = atoi(token);
 
+			if (arrayLength < 0)
+			{
+				Throw(0, "Expecting positive array length at row %d column %d", defRow, defColumn);
+			}
+
 			defColumn++;
 
 			tokenHandler = &CSV_SexyAssetParser::OnArrayCapacity;
@@ -612,6 +617,21 @@ namespace
 			tokenHandler = &CSV_SexyAssetParser::OnArrayTypeSource;
 		}
 
+		void OnNullObjectSource(int row, int column, cstr token, int32 stringLength)
+		{
+			if (defRow != row || defColumn != column)
+			{
+				Throw(0, "Expecting <null object source> at row %d column %d", defRow, defColumn);
+			}
+
+			defColumn = 1;
+			defRow++;
+
+			memberBuilder.AddNullObject(memberNameBuffer, memberTypeBuffer, token);
+
+			tokenHandler = &CSV_SexyAssetParser::OnObjectName;
+		}
+
 		void OnObjectType(int row, int column, cstr token, int32 stringLength)
 		{
 			if (defRow != row || defColumn != column)
@@ -633,18 +653,18 @@ namespace
 				tokenHandler = &CSV_SexyAssetParser::OnFastStringBuilderLength;
 				return;
 			}
-			else
+			else if (StartsWith(token, "_Null_"))
 			{
 				CopyString(memberTypeBuffer, sizeof memberTypeBuffer, token);
 
-				if (StartsWith(memberNameBuffer, "array"))
-				{
-					tokenHandler = &CSV_SexyAssetParser::OnArrayType;
-				}
-				else
-				{
-					tokenHandler = &CSV_SexyAssetParser::OnObjectSource;
-				}
+				// Null object definition.
+				tokenHandler = &CSV_SexyAssetParser::OnNullObjectSource;
+				return;
+			}
+			else
+			{
+				CopyString(memberTypeBuffer, sizeof memberTypeBuffer, token);
+				tokenHandler = &CSV_SexyAssetParser::OnObjectSource;
 			}
 		}
 
@@ -694,7 +714,21 @@ namespace
 
 			defColumn++;
 
-			tokenHandler = &CSV_SexyAssetParser::OnObjectType;
+			memberTypes.clear();
+			activeMemberIndex = 0;
+
+			if (StartsWith(memberNameBuffer, "array"))
+			{
+				tokenHandler = &CSV_SexyAssetParser::OnArrayType;
+			}
+			else if (*memberNameBuffer == '#')
+			{
+				tokenHandler = &CSV_SexyAssetParser::OnObjectType;
+			}
+			else
+			{
+				Throw(0, "Expecting object name at row %d column %d (Either array<suffix> or #Object<suffix>)", defRow, defColumn);
+			}
 		}
 
 		void OnBlankLine(Vec2i cursorPosition) override

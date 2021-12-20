@@ -718,6 +718,26 @@ namespace
 			memberRefManager.MoveToNextSibling();
 		}
 
+		void PopulateRequiredInterface(DeserializedObject& object)
+		{
+			for (auto& requiredInterface : object.requiredInterfaces)
+			{
+				if (requiredInterface.ppInterface)
+				{
+					auto& type = *object.stub->Desc->TypeInfo;
+					for (int i = 0; i < type.InterfaceCount(); i++)
+					{
+						if (requiredInterface.pInterfaceType == &type.GetInterface(i))
+						{
+							*requiredInterface.ppInterface = object.stub->pVTables + i;
+						}
+					}
+				}
+			}
+
+			object.requiredInterfaces.clear();
+		}
+
 		void AddFastStringBuilder(cstr objectRefName, fstring text, int32 capacity)
 		{
 			FastStringBuilder* fb = scriptSystem->CreateAndPopulateFastStringBuilder(text, capacity);
@@ -730,16 +750,6 @@ namespace
 			}
 
 			i->second.stub = &fb->stub;
-
-			for (auto& requiredInterface : i->second.requiredInterfaces)
-			{
-				if (requiredInterface.ppInterface)
-				{
-					*requiredInterface.ppInterface = fb->stub.pVTables;
-				}
-			}
-
-			i->second.requiredInterfaces.clear();
 		}
 
 		void AddStringConstant(cstr stringRefName, cstr text, int32 stringLength)
@@ -754,16 +764,21 @@ namespace
 			}
 
 			i->second.stub = &sc->header;
+		}
 
-			for (auto& requiredInterface : i->second.requiredInterfaces)
+		void AddNullObject(cstr objectNameRef, cstr nullType, cstr nullTypeModule) override
+		{
+			auto* nullObjectInterface = scriptSystem->GetUniversalNullObject(nullType, nullTypeModule);
+			auto* nullObjectStub = InterfaceToInstance(nullObjectInterface);
+
+			auto i = objects.find(objectNameRef);
+			if (i == objects.end())
 			{
-				if (requiredInterface.ppInterface)
-				{
-					*requiredInterface.ppInterface = sc->header.pVTables;
-				}
+				DeserializedObject newObject;
+				i = objects.insert(objectNameRef, newObject).first;
 			}
 
-			i->second.requiredInterfaces.clear();
+			i->second.stub = nullObjectStub;
 		}
 
 		/*
