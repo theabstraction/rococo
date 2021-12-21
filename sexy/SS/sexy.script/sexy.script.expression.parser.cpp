@@ -1655,8 +1655,10 @@ namespace Rococo
 			AssertDefaultConstruction(ce, decl, st);
 			AddInterfaceVariable(ce, NameString::From(id), st);
 
+			ObjectStub* stub = st.GetInterface(0).UniversalNullInstance();
+
 			VariantValue value;
-			value.vPtrValue = GetInterfacePtrFromNullInstancePtr(st.GetInterface(0).UniversalNullInstance());
+			value.vPtrValue = GetInterfacePtrFromNullInstancePtr(stub);
 
 			ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, value, BITCOUNT_POINTER);
 			ce.Builder.AssignTempToVariable(0, id);
@@ -2812,10 +2814,12 @@ namespace Rococo
 				Throw(s, "Could not assign array. LHS is (array %s). RHS is (array %s)", GetFriendlyName(lhsType), GetFriendlyName(rhsType));
 			}
 
+			/*
 			if (!StartsWith(lhsString, "this.") && lhs.location != VARLOCATION_TEMP && lhs.location != VARLOCATION_OUTPUT)
 			{
 				Throw(s, "Could not assign array. The target has to be an output or temporary/local variable");
 			}
+			*/
 
 			ce.Builder.AssignVariableToTemp(lhsString, 0, 0); // D4 has the LHS reference
 			ce.Builder.AssignVariableToTemp(rhsString, 1, 0); // D5 has the RHS reference

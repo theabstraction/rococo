@@ -1,11 +1,11 @@
-#Object0
-GlobalState	!scripts/test.app.created.sxy
-points	Point	!scripts/test.app.created.sxy
-cats	_Null_Sys_ICat	!scripts/test.app.created.sxy
-dogName	IString	Sys.Type.Strings.sxy
-dog	IDog	!scripts/test.app.created.sxy
-squirrelName	IString	Sys.Type.Strings.sxy
-catName	IString	Sys.Type.Strings.sxy
+AssetBuilder_TabbedCSV_1.0
+#Object0	GlobalState	!scripts/test.app.created.sxy
+points	[]
+cats	[]
+dogName	@	IString	Sys.Type.Strings.sxy
+dog	@	IDog	!scripts/test.app.created.sxy
+squirrelName	@	IString	Sys.Type.Strings.sxy
+catName	@	IString	Sys.Type.Strings.sxy
 age	d
 position	Vec3f	Sys.Maths.sxy
 	x	f
@@ -62,14 +62,11 @@ array2
 1.000000
 Y
 
-#IString4
-_SC	745021160	"Meow-Meow"
+#IString4	_SC	9	"Meow-Meow"
 
-#IStringBuilder3
-_SB	757564337	-2020605952	"Geoff"
+#IStringBuilder3	_SB	5	1024	"Geoff"
 
-#IDog2
-Dog	!scripts/test.app.created.sxy
+#IDog2	Dog	!scripts/test.app.created.sxy
 barkDecibels	f
 barkHz	i
 barkWatts	l
@@ -80,17 +77,15 @@ bitePressureNewtons	d
 20
 9050.000000
 
-#IString1
-_Null_Sys_Type_IString	Sys.Type.Strings.sxy
+#IString1	_Null_Sys_Type_IString	Sys.Type.Strings.sxy
 
-array2	2	2
+array2	_Null_Sys_ICat	!scripts/test.app.created.sxy	2	2
 [0]
 #ICat5
 [1]
 #ICat5
 
-array1	2	2
-Point	!scripts/test.app.created.sxy
+array1	Point	!scripts/test.app.created.sxy	2	2
 position	Vec2f	Sys.Maths.sxy
 	x	f
 	y	f
@@ -125,8 +120,7 @@ Y
 N
 78
 
-#ICat5
-Cat	!scripts/test.app.created.sxy
+#ICat5	Cat	!scripts/test.app.created.sxy
 mewDecibels	f
 mewkHz	i
 mewWatts	l

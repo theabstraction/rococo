@@ -103,6 +103,9 @@
     <None Include="..\content\scripts\test.app.created.sxy" />
     <None Include="..\content\scripts\test\asset.sxya" />
   </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="rococo.natvis" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

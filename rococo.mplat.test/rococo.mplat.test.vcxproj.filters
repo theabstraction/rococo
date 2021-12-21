@@ -41,4 +41,7 @@
       <Filter>Script Files</Filter>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="rococo.natvis" />
+  </ItemGroup>
 </Project>

@@ -957,6 +957,11 @@ namespace Rococo
 			if (stringPool) stringPool->Free();
 		}
 
+		const IStructure& GetTypeForSource(cstr concreteType, cstr sourceFile)
+		{
+			return ::GetTypeForSource(*progObjProxy, concreteType, sourceFile);
+		}
+
 		ObjectStub* CreateScriptObject(cstr instanceType, cstr instanceSource) override
 		{
 			if (StartsWith(instanceType, "_Null"))
@@ -965,7 +970,7 @@ namespace Rococo
 				return InterfaceToInstance(ip);
 			}
 
-			const IStructure& type = GetTypeForSource(*progObjProxy, instanceType, instanceSource);
+			const IStructure& type = GetTypeForSource(instanceType, instanceSource);
 
 			int allocSize = type.SizeOfStruct();
 
@@ -998,7 +1003,7 @@ namespace Rococo
 				Throw(0, "No universal object found for %s of \"%s\". instance type was not a universal null object", instanceType, instanceSource);
 			}
 
-			const IStructure& type = GetTypeForSource(*progObjProxy, instanceType, instanceSource);
+			const IStructure& type = GetTypeForSource(instanceType, instanceSource);
 			if (type.InterfaceCount() < 1)
 			{
 				Throw(0, "No universal object found for %s of \"%s\". Interface count was zero", instanceType, instanceSource);

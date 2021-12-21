@@ -214,7 +214,7 @@ struct AssetBuilder
 		sb.AppendChar('\n');
 	}
 
-	void SaveMembers(const IStructure& type, const uint8* pVariable)
+	void SaveMemberValues(const IStructure& type, const uint8* pVariable)
 	{
 		const uint8* readPtr = pVariable;
 
@@ -269,7 +269,7 @@ struct AssetBuilder
 			}
 			else
 			{
-				SaveMembers(type, pVariable);
+				SaveMemberValues(type, pVariable);
 			}
 			break;
 		default:
@@ -287,10 +287,10 @@ struct AssetBuilder
 	{
 		AppendTypeNameAndModule(type);
 		sb.AppendChar('\n');
-		SaveMembers(type, 0);
+		SaveMemberTypes(type, 0);
 	}
 
-	void SaveMembers(const IStructure& type, int depth)
+	void SaveMemberTypes(const IStructure& type, int depth)
 	{
 		int startIndex = 0;
 
@@ -330,15 +330,15 @@ struct AssetBuilder
 				sb.AppendFormat("?\n");
 				break;
 			case VARTYPE_Derivative:
-				if (StartsWith(memberType.Name(), "_Null"))
+				if (IsNullType(memberType))
 				{
-					sb.AppendFormat("%s\t%s\n", memberType.GetInterface(0).Name(), memberType.Module().Name());
+					sb.AppendFormat("@\t%s\t%s\n", memberType.GetInterface(0).Name(), memberType.Module().Name());
 				}
 				else
 				{
 					AppendTypeNameAndModule(memberType);
 					sb.AppendChar('\n');
-					SaveMembers(memberType, depth + 1);
+					SaveMemberTypes(memberType, depth + 1);
 				}
 				
 				break;
@@ -346,8 +346,7 @@ struct AssetBuilder
 				sb.AppendFormat("*\n");
 				break;
 			case VARTYPE_Array:
-				AppendTypeNameAndModule(*member.UnderlyingGenericArg1Type());
-				sb.AppendChar('\n');
+				sb.AppendFormat("[]\n");
 				break;
 			default:
 				Throw(0, "Cannot save unhandled var type values");
@@ -393,7 +392,7 @@ struct AssetBuilder
 			Throw(0, "To save an array, list or map, embed it in a struct or a class and save the containing object.");
 		}
 
-		sb.AppendFormat("%s\n", name);
+		sb.AppendFormat("%s\t", name);
 
 		SaveTypeAndMemberFormat(type);
 		sb.AppendFormat("#\n", name);
@@ -432,19 +431,19 @@ struct AssetBuilder
 
 	void SaveSexyObject(const IStructure& type, cstr name, ObjectStub* stub)
 	{
-		sb.AppendFormat("%s\n", name);
+		sb.AppendFormat("%s\t", name);
 
 		if (IsFastStringBuilderType(type))
 		{
 			auto& fsb = *(FastStringBuilder*)stub;
-			sb.AppendFormat("_SB\t%d\t%d\t");
+			sb.AppendFormat("_SB\t%d\t%d\t", fsb.length, fsb.capacity);
 			AppendEncodedFString(fstring{ fsb.buffer, fsb.length });
 			sb.AppendChar('\n');
 		}
 		else if (IsStringConstantType(type))
 		{
 			auto& sc = *(CStringConstant*)stub;
-			sb.AppendFormat("_SC\t%d\t");
+			sb.AppendFormat("_SC\t%d\t", sc.length);
 			AppendEncodedFString(fstring{ sc.pointer, sc.length });
 			sb.AppendChar('\n');
 		}
@@ -461,13 +460,13 @@ struct AssetBuilder
 		}
 	}
 
-	void SaveArray(ArrayDef& def)
+	void SaveArray(const ArrayDef& def)
 	{
 		auto& arrayData = *def.image;
 
 		auto& elementType = *arrayData.ElementType;
 
-		sb.AppendFormat("%s\t%d\t%d\n", def.arrayName.c_str(), arrayData.NumberOfElements, arrayData.ElementCapacity);
+		sb.AppendFormat("%s\t%s\t%s\t%d\t%d\n", def.arrayName.c_str(), elementType.Name(), elementType.Module().Name(), arrayData.NumberOfElements, arrayData.ElementCapacity);
 		
 		if (StartsWith(elementType.Name(), "_Null_") || IsPrimitiveType(elementType.VarType()))
 		{
@@ -475,7 +474,7 @@ struct AssetBuilder
 		}
 		else
 		{
-			SaveTypeAndMemberFormat(elementType);
+			SaveMemberTypes(elementType, 0);
 		}
 
 		auto* start = (const uint8*)arrayData.Start;

@@ -26,12 +26,25 @@ namespace
 		return obj;
 	}
 
+	bool DoesInterfaceOrBaseMatch(const IInterface& target, const IInterface& sourceWithPossibleBase)
+	{
+		for (const IInterface* i = &sourceWithPossibleBase; i != nullptr; i = i->Base())
+		{
+			if (i == &target)
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	int GetIntefaceIndex(const IStructure& concreteType, const IInterface* interfaceType)
 	{
 		for (int j = 0; j < concreteType.InterfaceCount(); ++j)
 		{
-			auto& interfaceJ = concreteType.GetInterface(j);
-			if (&interfaceJ == interfaceType)
+			auto& interface = concreteType.GetInterface(j);
+			if (DoesInterfaceOrBaseMatch(*interfaceType, interface))
 			{
 				return j;
 			}
@@ -48,6 +61,8 @@ namespace
 		uint8* writePosition = nullptr;
 		uint8* writeCursor = nullptr;
 		const IStructure* objectType = nullptr;
+		const Rococo::Compiler::IStructure* rootType = nullptr;
+		void* pRootObject = nullptr;
 
 		struct MemberAndOffset
 		{
@@ -275,42 +290,50 @@ namespace
 
 		}
 
-		void AddArrayRefMember(cstr name, cstr arrayRefName) override
+		void AddArrayRefValue(int memberIndex, cstr arrayName) override
 		{
-			const IMember* member = GetBestMatchingMember(name);
-			if (member == nullptr)
+			if (memberIndex >= container.elements.size())
 			{
-				// No array found in target, nothing to write
-				return;
+				Throw(0, "%s: Bad index (%d)", __FUNCTION__, memberIndex);
 			}
 
-			if (member->UnderlyingType()->VarType() != VARTYPE_Array)
-			{
-				Throw(0, "Cannot load %s. The target member %s is not an array", arrayRefName, name);
-			}
+			auto* member = container.elements[memberIndex].member;
 
-			auto& elementType = *member->UnderlyingGenericArg1Type();
-			
-			auto i = arrays.find(arrayRefName);
-			if (i == arrays.end())
+			if (member != nullptr)
 			{
-				auto* image = scriptSystem->CreateArrayImage(elementType);
-				i = arrays.insert(arrayRefName, image).first;
-			}
-			else
-			{
-				if (i->second->ElementType != &elementType)
+				auto& elementType = *member->UnderlyingGenericArg1Type();
+
+				auto i = arrays.find(arrayName);
+				if (i == arrays.end())
 				{
-					Throw(0, "Cannot load %s. The target member [%s] type %s is not the same as the array type %s", arrayRefName, name, i->second->ElementType->Name(), elementType.Name());
+					auto* image = scriptSystem->CreateArrayImage(elementType);
+					i = arrays.insert(arrayName, image).first;
+				}
+				else
+				{
+					if (i->second->ElementType != &elementType)
+					{
+						Throw(0, "Cannot load %s. The target member [%s] type %s is not the same as the array type %s", arrayName, member->Name(), member->UnderlyingGenericArg1Type()->Name(), i->second->ElementType->Name());
+					}
+
+					i->second->RefCount++;
 				}
 
-				i->second->RefCount++;
+				uint8* rawMemberData = container.elements[memberIndex].memberDataOffset + writePosition;
+				auto* ppA = (ArrayImage**)rawMemberData;
+				if (*ppA != nullptr)
+				{
+					// If we allowed the C++ to overwrite an array, we would need to handle the case of reference counts going to zero,
+					// which entails invoking proper destructors for each array element. We eliminate the complexities by ensuring this will not happen.
+					// It is up to the script programmer to ensure arrays are nulled out prior to deserialization.
+					auto* a = *ppA;
+					Throw(0, "Cannot load %s. The target member array [%s] is not null. Overwriting of existing arrays is not permitted.\nThe length was %d and the capacity was %d", arrayName, member->Name(), a->NumberOfElements, a->ElementCapacity);
+				}
+				*ppA = i->second;
 			}
-			
-			WritePrimitive(i->second);
 		}
 
-		void AddContainerItem(int elementMemberIndex, int32 memberDepth, cstr memberName, VARTYPE validType)
+		void AddMemberType(int32 memberDepth, cstr memberName, VARTYPE validType)
 		{
 			memberRefManager.RollbackToAncestor(memberDepth + 1);
 
@@ -334,29 +357,65 @@ namespace
 			memberRefManager.MoveToNextSibling();
 		}
 
-		void AddContainerItemF32(int elementMemberIndex, int32 memberDepth, cstr memberName) override
+		void AddTypeF32(int32 memberDepth, cstr memberName) override
 		{
-			AddContainerItem(elementMemberIndex, memberDepth, memberName, VARTYPE_Float32);
+			AddMemberType(memberDepth, memberName, VARTYPE_Float32);
 		}
 
-		void AddContainerItemF64(int elementMemberIndex, int32 memberDepth, cstr memberName) override
+		void AddTypeF64(int32 memberDepth, cstr memberName) override
 		{
-			AddContainerItem(elementMemberIndex, memberDepth, memberName, VARTYPE_Float64);
+			AddMemberType(memberDepth, memberName, VARTYPE_Float64);
 		}
 
-		void AddContainerItemI32(int elementMemberIndex, int32 memberDepth, cstr memberName) override
+		void AddTypeI32(int32 memberDepth, cstr memberName) override
 		{
-			AddContainerItem(elementMemberIndex, memberDepth, memberName, VARTYPE_Int32);
+			AddMemberType(memberDepth, memberName, VARTYPE_Int32);
 		}
 
-		void AddContainerItemI64(int elementMemberIndex, int32 memberDepth, cstr memberName) override
+		void AddTypeI64(int32 memberDepth, cstr memberName) override
 		{
-			AddContainerItem(elementMemberIndex, memberDepth, memberName, VARTYPE_Int64);
+			AddMemberType(memberDepth, memberName, VARTYPE_Int64);
 		}
 
-		void AddContainerItemBool(int elementMemberIndex, int32 memberDepth, cstr memberName) override
+		void AddTypeBool(int32 memberDepth, cstr memberName) override
 		{
-			AddContainerItem(elementMemberIndex, memberDepth, memberName, VARTYPE_Bool);
+			AddMemberType(memberDepth, memberName, VARTYPE_Bool);
+		}
+
+		void AddTypeArrayRef(int32 memberDepth, cstr memberName) override
+		{
+			AddMemberType(memberDepth, memberName, VARTYPE_Array);
+		}
+
+		void AddTypeInterface(int32 memberDepth, cstr interfaceType, cstr memberName, cstr sourceFile)
+		{
+			memberRefManager.RollbackToAncestor(memberDepth + 1);
+
+			const IMember* member = GetBestMatchingMember(memberName);
+
+			if (member != nullptr)
+			{
+				auto& mtype = *member->UnderlyingType();
+				if (!IsNullType(mtype))
+				{
+					Throw(0, "%s failed. Element type was %s of %s. Expected null type (interface type)", __FUNCTION__, mtype.Name(), mtype.Module().Name());
+				}
+
+				auto& i = mtype.GetInterface(0);
+
+				if (!Eq(i.Name(), interfaceType))
+				{
+					Throw(0, "%s failed. Member interface was %s of %s. Expected interface type %s of %s", __FUNCTION__, i.Name(), mtype.Module().Name(), interfaceType, sourceFile);
+				}
+
+				container.elements.push_back(ElementMemberDesc{ member, writeCursor - writePosition });
+			}
+			else
+			{
+				container.elements.push_back(ElementMemberDesc{ nullptr, 0 });
+			}
+
+			memberRefManager.DescendToFirstChild();
 		}
 
 		void AddContainerItemDerivative(int32 memberDepth, cstr name, cstr type, cstr typeSource) override
@@ -420,13 +479,26 @@ namespace
 
 		void AddObjectRefValue(int itemIndex, cstr objectName)
 		{
-			if (container.elements.size() > 0 && itemIndex >= (int32)container.elements.size())
+			uint8* rawMemberData;
+
+			if (!container.elements.empty())
 			{
-				Throw(0, "%s: Bad index (%d)", __FUNCTION__, itemIndex);
+				if (itemIndex >= (int32)container.elements.size())
+				{
+					Throw(0, "%s: Bad index (%d)", __FUNCTION__, itemIndex);
+				}
+				rawMemberData = container.elements[itemIndex].memberDataOffset + writePosition;
+			}
+			else
+			{
+				if (elementType == nullptr)
+				{
+					Throw(0, "%s failed. ElementType was nullptr", __FUNCTION__);
+				}
+				rawMemberData = writePosition;
 			}
 
-			uint8* rawMemberData = writePosition;
-			auto* memberData = (InterfacePointer*)rawMemberData;
+			auto* pInterface = (InterfacePointer*)rawMemberData;
 
 			auto i = objects.find(objectName);
 			if (i == objects.end())
@@ -436,27 +508,66 @@ namespace
 			}
 
 			RequiredInterfaceRef ref;
-			ref.pInterfaceType = &type->GetInterface(0);
-			ref.ppInterface = memberData;
-			i->second.requiredInterfaces.push_back(ref);
 
-			writePosition += sizeof InterfacePointer;
-		}
-
-		void AddNewObject(cstr name, cstr type, cstr sourceFile) override
-		{
-			auto i = objects.find(name);
-			if (i == objects.end())
+			if (!container.elements.empty())
 			{
-				DeserializedObject object;
-				i = objects.insert(name, object).first;
+				auto* member = container.elements[itemIndex].member;
+				auto& memberType = *member->UnderlyingType();
+
+				ref.pInterfaceType = &memberType.GetInterface(0);
+			}
+			else
+			{ 
+				ref.pInterfaceType = &elementType->GetInterface(0);	
 			}
 
-			i->second.stub = scriptSystem->CreateScriptObject(type, sourceFile);
+			ref.ppInterface = pInterface;
+			i->second.requiredInterfaces.push_back(ref);
+		}
 
-			auto* stub = i->second.stub;
+		void CacheStub(const IStructure& objectType, cstr name, void* data)
+		{
+			// In the event that the object has an interface, then it will have a stub, otherwise its a struct or primitive and is not cached
+			if (objectType.InterfaceCount() > 0)
+			{
+				auto i = objects.find(name);
+				if (i == objects.end())
+				{
+					DeserializedObject object;
+					i = objects.insert(name, object).first;
+				}
 
-			SelectTarget(*stub->Desc->TypeInfo, stub, *scriptSystem);
+				i->second.stub = (ObjectStub*) data;
+			}
+		}
+
+		void BuildObject(cstr name, cstr type, cstr sourceFile) override
+		{
+			container.elements.clear();
+			elementType = nullptr;
+			
+			const IStructure& objectType = scriptSystem->GetTypeForSource(type, sourceFile);
+
+			if (Eq(name, "#Object0"))
+			{
+				if (!Eq(rootType->Name(), type))
+				{
+					Throw(0, "Type mismatch: the root object in the archive is %s of %s. Expected %s of %s.", type, sourceFile, rootType->Name(), rootType->Module().Name());
+				}
+				else if (!Eq(rootType->Module().Name(), sourceFile))
+				{
+					Throw(0, "Module mismatch: the root object in the archive is %s of %s. Expected %s of %s.", type, sourceFile, rootType->Name(), rootType->Module().Name());
+				}
+
+				CacheStub(objectType, name, pRootObject);
+				SelectTarget(*rootType, pRootObject);
+			}
+			else
+			{
+				ObjectStub* newObject = scriptSystem->CreateScriptObject(type, sourceFile);
+				CacheStub(objectType, name, newObject);
+				SelectTarget(objectType, newObject);
+			}
 		}
 
 		void Free() override
@@ -512,11 +623,30 @@ namespace
 			return typeIStringBuilder == &type;
 		}
 
-		void SelectTarget(const Rococo::Compiler::IStructure& type, void* pObject, Rococo::Script::IPublicScriptSystem& ss) override
+		void SelectScriptSystem(Rococo::Script::IPublicScriptSystem& ss) override
+		{
+			this->scriptSystem = &ss;
+		}
+
+		void SelectRootTarget(const Rococo::Compiler::IStructure& rootType, void* pRootObject)
+		{
+			this->rootType = &rootType;
+			this->pRootObject = pRootObject;
+
+			if (rootType.VarType() != VARTYPE_Derivative)
+			{
+				Throw(0, "The target object was not of derivative type. The target object must be a class or struct");
+			}
+			else if (IsNullType(rootType))
+			{
+				Throw(0, "The target object was an interface reference. The target object must be a class or struct.");
+			}
+		}
+
+		void SelectTarget(const Rococo::Compiler::IStructure& type, void* pObject) override
 		{
 			this->type = &type;
 			this->pObject = (uint8*) pObject;
-			this->scriptSystem = &ss;
 
 			if (type.InterfaceCount() > 0 && pObject != nullptr)
 			{
@@ -637,137 +767,70 @@ namespace
 			memberRefManager.MoveToNextSibling();
 		}
 
-		void AddBooleanMember(cstr name, bool value) override
+		void PopulateRequiredInterface(DeserializedObject& object)
 		{
-			const IMember* member = GetBestMatchingMember(name);
-			
-			if (!member)
+			for (auto& requiredInterface : object.requiredInterfaces)
 			{
-				Throw(0, "boolean32 %s. No member found", name);
+				if (requiredInterface.ppInterface)
+				{
+					auto& type = *object.stub->Desc->TypeInfo;
+					for (int i = 0; i < type.InterfaceCount(); i++)
+					{
+						if (requiredInterface.pInterfaceType == &type.GetInterface(i))
+						{
+							*requiredInterface.ppInterface = object.stub->pVTables + i;
+						}
+					}
+				}
 			}
-			else if (member->UnderlyingType()->VarType() == VARTYPE_Bool)
-			{
-				boolean32 bValue = value ? 1 : 0;
-				WritePrimitive(bValue);
-			}
-			else
-			{
-				WriteNull(*member->UnderlyingType());
-			}
+
+			object.requiredInterfaces.clear();
 		}
 
-		void AddDoubleMember(cstr name, double value) override
+		void AddFastStringBuilder(cstr objectRefName, fstring text, int32 capacity)
 		{
-			const IMember* member = GetBestMatchingMember(name);
-
-			if (!member)
-			{
-				Throw(0, "double %s. No member found", name);
-			}
-			else if (member->UnderlyingType()->VarType() == VARTYPE_Float64)
-			{
-				WritePrimitive(value);
-			}
-			else
-			{
-				WriteNull(*member->UnderlyingType());
-			}
-		}
-
-		void AddFloatMember(cstr name, float value) override
-		{
-			const IMember* member = GetBestMatchingMember(name);
-
-			if (!member)
-			{
-				Throw(0, "float %s. No member found", name);
-			}
-			else if (member->UnderlyingType()->VarType() == VARTYPE_Float32)
-			{
-				WritePrimitive(value);
-			}
-			else
-			{
-				WriteNull(*member->UnderlyingType());
-			}
-		}
-
-		void AddInt32Member(cstr name, int32 value) override
-		{
-			const IMember* member = GetBestMatchingMember(name);
-
-			if (!member)
-			{
-				Throw(0, "int32 %s. No member found", name);
-			}
-			else if (member->UnderlyingType()->VarType() == VARTYPE_Int32)
-			{
-				WritePrimitive(value);
-			}
-			else
-			{
-				WriteNull(*member->UnderlyingType());
-			}
-		}
-
-		void AddInt64Member(cstr name, int64 value) override
-		{
-			const IMember* member = GetBestMatchingMember(name);
-
-			if (!member)
-			{
-				Throw(0, "int64 %s. No member found", name);
-			}
-			else if (member->UnderlyingType()->VarType() == VARTYPE_Int64)
-			{
-				WritePrimitive(value);
-			}
-			else
-			{
-				WriteNull(*member->UnderlyingType());
-			}
-		}
-
-		void AddFastStringBuilder(cstr name, fstring text, int32 capacity, cstr objectRefName)
-		{
-			const IMember* member = GetBestMatchingMember(name);
-
-			if (!member)
-			{
-				Throw(0, "%s: No member found", name);
-			}
-
-			auto& type = *member->UnderlyingType();
-
-			if (!IsIStringBuilder(type) && !IsIString(type))
-			{
-				Throw(0, "Expected %s to be of type IStringBuilder or IString, but was of type %s", name, type.Name());
-			}
-
 			FastStringBuilder* fb = scriptSystem->CreateAndPopulateFastStringBuilder(text, capacity);
-			WritePrimitive(fb->stub.pVTables);
+
+			auto i = objects.find(objectRefName);
+			if (i == objects.end())
+			{
+				DeserializedObject newObject;
+				i = objects.insert(objectRefName, newObject).first;
+			}
+
+			i->second.stub = &fb->stub;
 		}
 
-		void AddStringConstant(cstr name, cstr text, int32 stringLength)
+		void AddStringConstant(cstr stringRefName, cstr text, int32 stringLength)
 		{
-			const IMember* member = GetBestMatchingMember(name);
-
-			if (!member)
-			{
-				Throw(0, "%s: No member found", name);
-			}
-
-			auto& type = *member->UnderlyingType();
-
-			if (!IsIString(type))
-			{
-				Throw(0, "Expected %s to be of type Sys.Type.IString, but was of type %s", name, type.Name());
-			}
-
 			CStringConstant* sc = scriptSystem->DuplicateStringAsConstant(text, stringLength);
-			WritePrimitive(sc->header.pVTables);
+			
+			auto i = objects.find(stringRefName);
+			if (i == objects.end())
+			{
+				DeserializedObject newObject;
+				i = objects.insert(stringRefName, newObject).first;
+			}
+
+			i->second.stub = &sc->header;
 		}
 
+		void AddNullObject(cstr objectNameRef, cstr nullType, cstr nullTypeModule) override
+		{
+			auto* nullObjectInterface = scriptSystem->GetUniversalNullObject(nullType, nullTypeModule);
+			auto* nullObjectStub = InterfaceToInstance(nullObjectInterface);
+
+			auto i = objects.find(objectNameRef);
+			if (i == objects.end())
+			{
+				DeserializedObject newObject;
+				i = objects.insert(objectNameRef, newObject).first;
+			}
+
+			i->second.stub = nullObjectStub;
+		}
+
+		/*
 		void AddInterfaceMember(cstr name, cstr interfaceType, cstr interfaceSource, cstr instanceType, cstr instanceSource, OBJECT_NAME objectName) override
 		{
 			const Rococo::Compiler::IMember* member = GetBestMatchingMember(name);
@@ -824,18 +887,9 @@ namespace
 				writePosition += sizeof InterfacePointer;
 			}			
 		}
+		*/
 
-		void AddInterface(const Rococo::Compiler::IMember& member, const IInterface& expectedType, cstr type, cstr name, cstr sourceFile)
-		{
-			if (!Eq(expectedType.Name(), type))
-			{
-				Throw(0, "%s %s. Mismatches interface type %s", expectedType.Name(), name, type);
-			}
-
-			memberRefManager.DescendToFirstChild();
-		}
-
-		void AddDerivativeMember(cstr type, cstr name, cstr sourceFile) override
+		void AddTypeDerivative(int memberDepth, cstr type, cstr name, cstr sourceFile) override
 		{
 			const Rococo::Compiler::IMember* member = GetBestMatchingMember(name);
 			
@@ -846,10 +900,9 @@ namespace
 			
 			auto* memberType = member->UnderlyingType();
 
-			if (memberType->InterfaceCount() > 0)
+			if (IsNullType(*memberType))
 			{
-				auto& interface0 = memberType->GetInterface(0);
-				AddInterface(*member, interface0, type, name, sourceFile);
+				Throw(0, "Bad algorithm");
 				return;
 			}
 
@@ -908,23 +961,27 @@ namespace
 			}
 		}
 
-		void AddArrayDefinition(cstr refName, cstr elementType, cstr elementTypeSource, int32 length, int32 capacity) override
+		const IStructure* elementType = nullptr;
+
+		void AddArrayDefinition(cstr refName, cstr elementTypeName, cstr elementTypeSource, int32 length, int32 capacity) override
 		{
-			auto* type = FindStructure(*scriptSystem, elementType, elementTypeSource);
-			if (!type)
+			container.elements.clear();
+
+			elementType = FindStructure(*scriptSystem, elementTypeName, elementTypeSource);
+			if (!elementType)
 			{
-				Throw(0, "Could not resolve type %s of %s", elementType, elementTypeSource);
+				Throw(0, "Could not resolve type %s of %s", elementTypeName, elementTypeSource);
 			}
 
 			auto i = arrays.find(refName);
 			if (i == arrays.end())
 			{
-				auto* image = scriptSystem->CreateArrayImage(*type);
+				auto* image = scriptSystem->CreateArrayImage(*elementType);
 				i = arrays.insert(refName, image).first;
 			}
 			else
 			{
-				if (i->second->ElementType != type)
+				if (i->second->ElementType != elementType)
 				{
 					Throw(0, "Cannot load %s.\nThe array has already been defined as being type %s of %s.\nThe operation requested a type %s of %s.", refName, i->second->ElementType->Name(), i->second->ElementType->Module().Name(), type->Name(), type->Module().Name());
 				}
@@ -953,7 +1010,7 @@ namespace
 			arrayBuilder.image = image;
 			arrayBuilder.elementBuffer = (uint8*) image->Start;
 
-			SelectTarget(*arrayBuilder.image->ElementType, nullptr, *scriptSystem);
+			SelectTarget(*arrayBuilder.image->ElementType, nullptr);
 		}
 
 		void SetArrayWriteIndex(int32 index) override
@@ -974,7 +1031,7 @@ namespace
 			}
 			else
 			{
-				SelectTarget(*arrayBuilder.image->ElementType, elementPtr, *scriptSystem);
+				SelectTarget(*arrayBuilder.image->ElementType, elementPtr);
 			}
 		}
 	};
@@ -1002,7 +1059,8 @@ namespace
 			WideFilePath sysPath;
 			installation.ConvertPingPathToSysPath(pingPath, sysPath);
 
-			objectBuilder.SelectTarget(assetType, assetData, ss);
+			objectBuilder.SelectScriptSystem(ss);
+			objectBuilder.SelectRootTarget(assetType, assetData);
 
 			struct ANON: IEventCallback<cstr>
 			{

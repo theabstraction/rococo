@@ -42,14 +42,14 @@
 )
 
 (method GlobalState.Construct : 
-	(array Point points 2)
-	(this.points = points)
-
-	(array Sys.ICat cats 2)
-	(this.cats = cats)
 )
 
 (function GlobalStateInit (GlobalState gs) -> :
+	(array Point points 2)
+	(gs.points = points)
+
+	(array Sys.ICat cats 2)
+	(gs.cats = cats)
 	(gs.points.Push Point ((5 7)(0 1) 0.75((7 8)) true 17))
 	(gs.points.Push Point ((8 9)(1 0) 0.25((6 5)) false 78))
 
