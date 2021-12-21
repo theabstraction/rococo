@@ -356,6 +356,9 @@ namespace Rococo {
 
 			// Returns the interface pointer for the specified null object. If an interface is not matched the function throws an exception
 			virtual InterfacePointer GetUniversalNullObject(cstr instanceType, cstr instanceSource) = 0;
+
+			// Returns the specified type, otherwise throws an exception
+			virtual const IStructure& GetTypeForSource(cstr concreteType, cstr sourceFile) = 0;
 		};
 
 		ROCOCOAPI IScriptSystemFactory : public IFreeable

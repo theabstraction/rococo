@@ -26,12 +26,25 @@ namespace
 		return obj;
 	}
 
+	bool DoesInterfaceOrBaseMatch(const IInterface& target, const IInterface& sourceWithPossibleBase)
+	{
+		for (const IInterface* i = &sourceWithPossibleBase; i != nullptr; i = i->Base())
+		{
+			if (i == &target)
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	int GetIntefaceIndex(const IStructure& concreteType, const IInterface* interfaceType)
 	{
 		for (int j = 0; j < concreteType.InterfaceCount(); ++j)
 		{
-			auto& interfaceJ = concreteType.GetInterface(j);
-			if (&interfaceJ == interfaceType)
+			auto& interface = concreteType.GetInterface(j);
+			if (DoesInterfaceOrBaseMatch(*interfaceType, interface))
 			{
 				return j;
 			}
@@ -485,7 +498,7 @@ namespace
 				rawMemberData = writePosition;
 			}
 
-			auto* pInterface = (InterfacePointer**)rawMemberData;
+			auto* pInterface = (InterfacePointer*)rawMemberData;
 
 			auto i = objects.find(objectName);
 			if (i == objects.end())
@@ -508,21 +521,32 @@ namespace
 				ref.pInterfaceType = &elementType->GetInterface(0);	
 			}
 
-			ref.ppInterface = *pInterface;
+			ref.ppInterface = pInterface;
 			i->second.requiredInterfaces.push_back(ref);
+		}
+
+		void CacheStub(const IStructure& objectType, cstr name, void* data)
+		{
+			// In the event that the object has an interface, then it will have a stub, otherwise its a struct or primitive and is not cached
+			if (objectType.InterfaceCount() > 0)
+			{
+				auto i = objects.find(name);
+				if (i == objects.end())
+				{
+					DeserializedObject object;
+					i = objects.insert(name, object).first;
+				}
+
+				i->second.stub = (ObjectStub*) data;
+			}
 		}
 
 		void BuildObject(cstr name, cstr type, cstr sourceFile) override
 		{
 			container.elements.clear();
 			elementType = nullptr;
-
-			auto i = objects.find(name);
-			if (i == objects.end())
-			{
-				DeserializedObject object;
-				i = objects.insert(name, object).first;
-			}
+			
+			const IStructure& objectType = scriptSystem->GetTypeForSource(type, sourceFile);
 
 			if (Eq(name, "#Object0"))
 			{
@@ -535,14 +559,14 @@ namespace
 					Throw(0, "Module mismatch: the root object in the archive is %s of %s. Expected %s of %s.", type, sourceFile, rootType->Name(), rootType->Module().Name());
 				}
 
-				// N.B the root object might not be an object stub, but in this case it will not be referenced by any other object
-				i->second.stub = (ObjectStub*) pRootObject;
+				CacheStub(objectType, name, pRootObject);
 				SelectTarget(*rootType, pRootObject);
 			}
 			else
 			{
-				i->second.stub = scriptSystem->CreateScriptObject(type, sourceFile);
-				SelectTarget(*i->second.stub->Desc->TypeInfo, i->second.stub);
+				ObjectStub* newObject = scriptSystem->CreateScriptObject(type, sourceFile);
+				CacheStub(objectType, name, newObject);
+				SelectTarget(objectType, newObject);
 			}
 		}
 
