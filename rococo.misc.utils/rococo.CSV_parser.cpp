@@ -59,19 +59,29 @@ namespace
 			return *(double*)(&binaryRepresentation);
 		}
 
-		void OnMemberDerivativeSource(int row, int column, cstr token, int32 stringLength)
+		void BuildDerivativeType(int row, int column, cstr token, int32 stringLength, cstr memberName)
 		{
 			if (defRow != row || defColumn != column)
 			{
 				Throw(0, "Expecting <source-file> at row %d column %d", defRow, defColumn);
 			}
 
-			memberBuilder.AddTypeDerivative(column - 2, memberTypeBuffer, memberNameBuffer, token);
+			memberBuilder.AddTypeDerivative(column - 2, memberTypeBuffer, memberName, token);
 
 			defRow++;
 			defColumn -= 1; // Go back 2 then forward one, as sub-members are a column advance over their parents
+		}
 
+		void OnMemberDerivativeSource(int row, int column, cstr token, int32 stringLength)
+		{
+			BuildDerivativeType(row, column, token, stringLength, memberNameBuffer);
 			tokenHandler = &CSV_SexyAssetParser::OnMemberDef;
+		}
+
+		void OnElementMemberDerivativeSource(int row, int column, cstr token, int32 stringLength)
+		{
+			BuildDerivativeType(row, column, token, stringLength, array.elementTypeMemberName);
+			tokenHandler = &CSV_SexyAssetParser::OnElementMemberDef;
 		}
 
 		void OnMemberInterfaceSource(int row, int column, cstr token, int32 stringLength)
@@ -90,6 +100,12 @@ namespace
 			tokenHandler = &CSV_SexyAssetParser::OnMemberDef;
 		}
 
+		void OnElementMemberInterfaceSource(int row, int column, cstr token, int32 stringLength)
+		{
+			OnMemberInterfaceSource(row, column, token, stringLength);
+			tokenHandler = &CSV_SexyAssetParser::OnElementMemberDef;
+		}
+
 		void OnMemberInterfaceName(int row, int column, cstr token, int32 stringLength)
 		{
 			if (defRow != row || defColumn != column)
@@ -102,6 +118,12 @@ namespace
 			defColumn++;
 
 			tokenHandler = &CSV_SexyAssetParser::OnMemberInterfaceSource;
+		}
+
+		void OnElementMemberInterfaceName(int row, int column, cstr token, int32 stringLength)
+		{
+			OnMemberInterfaceName(row, column, token, stringLength);
+			tokenHandler = &CSV_SexyAssetParser::OnElementMemberInterfaceSource;
 		}
 
 		char interfaceDefSourceNameBuffer[Rococo::IO::MAX_PATHLEN];
@@ -402,9 +424,31 @@ namespace
 			tokenHandler = &CSV_SexyAssetParser::OnArrayElementTypeMemberName;
 		}
 
-		void OnElementTypeMemberType(int row, int column, cstr token, int32 stringLength)
+		void OnElementMemberValue(int row, int column, cstr token, int32 stringLength)
 		{
-			OnMemberType(row, column, token, stringLength);
+			if (defRow != row || column != 1)
+			{
+				Throw(0, "Expecting element value at row %d and column 1", defRow);
+			}
+
+			defRow++;
+
+			BuildValueAndAdvanceMemberIndex(token);
+
+			if (activeMemberIndex >= memberTypes.size())
+			{
+				activeMemberIndex = 0;
+				array.arrayIndex++;
+
+				if (array.arrayIndex < array.arrayCapacity)
+				{
+					memberBuilder.SetArrayWriteIndex(array.arrayIndex);
+				}
+				else
+				{
+					tokenHandler = &CSV_SexyAssetParser::OnObjectName;
+				}
+			}
 		}
 
 		void OnMemberValue(int row, int column, cstr token, int32 stringLength)
@@ -424,6 +468,78 @@ namespace
 			}
 		}
 
+		bool TryBuildSimpleType(int32 memberDepth, cstr token)
+		{
+			if (Eq(token, "f"))
+			{
+				// Float32 - f
+				memberTypes.push_back(token);
+				memberBuilder.AddTypeF32(memberDepth, memberNameBuffer);
+			}
+			else if (Eq(token, "d"))
+			{
+				// Float64 - d
+				memberTypes.push_back(token);
+				memberBuilder.AddTypeF64(memberDepth, memberNameBuffer);
+			}
+			else if (Eq(token, "i"))
+			{
+				// Int32 - i
+				memberTypes.push_back(token);
+				memberBuilder.AddTypeI32(memberDepth, memberNameBuffer);
+			}
+			else if (Eq(token, "l"))
+			{
+				// Int64 - l
+				memberTypes.push_back(token);
+				memberBuilder.AddTypeI64(memberDepth, memberNameBuffer);
+			}
+			else if (Eq(token, "?"))
+			{
+				// boolean - ?
+				memberTypes.push_back(token);
+				memberBuilder.AddTypeBool(memberDepth, memberNameBuffer);
+			}
+			else if (Eq(token, "[]"))
+			{
+				memberTypes.push_back(token);
+				memberBuilder.AddTypeArrayRef(memberDepth, memberNameBuffer);
+			}
+			else
+			{
+				return false;
+			}
+
+			return true;
+		}
+
+		void OnElementTypeMemberType(int row, int column, cstr token, int32 stringLength)
+		{
+			if (defRow != row || defColumn != column)
+			{
+				Throw(0, "Expecting member type of array element type at row %d column %d", defRow, defColumn);
+			}
+
+			if (TryBuildSimpleType(column - 2, token))
+			{
+				defRow++;
+				defColumn--;
+				tokenHandler = &CSV_SexyAssetParser::OnElementMemberDef;
+			}
+			else if (Eq(token, "@"))
+			{
+				CopyString(memberTypeBuffer, sizeof memberTypeBuffer, token);
+				defColumn++;
+				tokenHandler = &CSV_SexyAssetParser::OnElementMemberInterfaceName;
+			}
+			else
+			{
+				CopyString(memberTypeBuffer, sizeof memberTypeBuffer, token);
+				defColumn++;
+				tokenHandler = &CSV_SexyAssetParser::OnElementMemberDerivativeSource;
+			}
+		}
+
 		void OnMemberType(int row, int column, cstr token, int32 stringLength)
 		{
 			if (defRow != row || defColumn != column)
@@ -431,60 +547,24 @@ namespace
 				Throw(0, "Expecting member type of array element type at row %d column %d", defRow, defColumn);
 			}
 
-			if (Eq(token, "f"))
+			if (TryBuildSimpleType(column - 2, token))
 			{
-				// Float32 - f
-				memberTypes.push_back(token);
-				memberBuilder.AddTypeF32(column - 2, memberNameBuffer);
-			}
-			else if (Eq(token, "d"))
-			{
-				// Float64 - d
-				memberTypes.push_back(token);
-				memberBuilder.AddTypeF64(column - 2, memberNameBuffer);
-			}
-			else if (Eq(token, "i"))
-			{
-				// Int32 - i
-				memberTypes.push_back(token);
-				memberBuilder.AddTypeI32(column - 2, memberNameBuffer);
-			}
-			else if (Eq(token, "l"))
-			{
-				// Int64 - l
-				memberTypes.push_back(token);
-				memberBuilder.AddTypeI64(column - 2, memberNameBuffer);
-			}
-			else if (Eq(token, "?"))
-			{
-				// boolean - ?
-				memberTypes.push_back(token);
-				memberBuilder.AddTypeBool(column - 2, memberNameBuffer);
-			}
-			else if (Eq(token, "[]"))
-			{
-				memberTypes.push_back(token);
-				memberBuilder.AddTypeArrayRef(column - 2, memberNameBuffer);
+				defRow++;
+				defColumn--;
+				tokenHandler = &CSV_SexyAssetParser::OnMemberDef;
 			}
 			else if (Eq(token, "@"))
 			{
 				CopyString(memberTypeBuffer, sizeof memberTypeBuffer, token);
 				defColumn++;
 				tokenHandler = &CSV_SexyAssetParser::OnMemberInterfaceName;
-				return;
 			}
 			else
 			{
 				CopyString(memberTypeBuffer, sizeof memberTypeBuffer, token);
 				defColumn++;
 				tokenHandler = &CSV_SexyAssetParser::OnMemberDerivativeSource;
-				return;
 			}
-
-			defRow++;
-			defColumn--;
-
-			tokenHandler = &CSV_SexyAssetParser::OnMemberDef;
 		}
 
 		void OnArrayElementTypeMemberName(int row, int column, cstr token, int32 stringLength)
@@ -654,14 +734,8 @@ namespace
 			}
 		}
 
-		void OnMemberDef(int row, int column, cstr token, int32 stringLength)
+		void UpdateMemberDepth(int row, int column)
 		{
-			if (primitiveLine && defRow == row + 1)
-			{
-				// Human readable token at the end of a line - discard
-				return;
-			}
-
 			while (column < defColumn)
 			{
 				// We are done building the previously defined member variable. We need to add this member to the parent member, not the previous member
@@ -674,6 +748,29 @@ namespace
 			{
 				Throw(0, "Expecting name at row %d column %d", defRow, defColumn);
 			}
+		}
+
+		void OnElementMemberDef(int row, int column, cstr token, int32 stringLength)
+		{
+			UpdateMemberDepth(row, column);
+
+			if (column == 1 && *token == '[')
+			{
+				defRow++;
+				activeMemberIndex = 0;
+				tokenHandler = &CSV_SexyAssetParser::OnElementMemberValue;
+			}
+			else
+			{
+				CopyString(array.elementTypeMemberName, sizeof array.elementTypeMemberName, token);
+				defColumn++;
+				tokenHandler = &CSV_SexyAssetParser::OnElementTypeMemberType;
+			}
+		}
+
+		void OnMemberDef(int row, int column, cstr token, int32 stringLength)
+		{
+			UpdateMemberDepth(row, column);
 
 			if (column == 1 && *token == '#')
 			{
