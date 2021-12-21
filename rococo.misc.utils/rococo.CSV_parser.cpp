@@ -395,7 +395,7 @@ namespace
 
 			activeMemberIndex = 0;
 
-			if (array.arrayIndex == arrayLength)
+			if (array.arrayIndex >= arrayLength)
 			{
 				tokenHandler = &CSV_SexyAssetParser::OnObjectName;
 			}
@@ -442,7 +442,8 @@ namespace
 
 				if (array.arrayIndex < array.arrayCapacity)
 				{
-					memberBuilder.SetArrayWriteIndex(array.arrayIndex);
+					tokenHandler = &CSV_SexyAssetParser::OnArrayIndex;
+					//memberBuilder.SetArrayWriteIndex(array.arrayIndex);
 				}
 				else
 				{
@@ -802,6 +803,7 @@ namespace
 
 			if (StartsWith(memberNameBuffer, "array"))
 			{
+				array.arrayIndex = 0;
 				tokenHandler = &CSV_SexyAssetParser::OnArrayType;
 			}
 			else if (*memberNameBuffer == '#')
