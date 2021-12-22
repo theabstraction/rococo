@@ -248,18 +248,24 @@ namespace
 
 		struct RequiredInterfaceRef
 		{
+			// The type of interface we need to define
 			const IInterface* pInterfaceType;
+
+			// The address in memory of the interface pointer to overwrite
 			InterfacePointer* ppInterface;
 		};
 
 		struct DeserializedObject
 		{
 			ObjectStub* stub = nullptr;
+
+			// The set of interface pointers that need to be overwritten with the object
 			std::vector<RequiredInterfaceRef> requiredInterfaces;
 		};
 
 		struct RequiredArray
 		{
+			// The address in memory of the array pointer to overwrite
 			ArrayImage** pImageWritePosition;
 		};
 
@@ -269,12 +275,15 @@ namespace
 		struct ElementMemberDesc
 		{
 			const IMember* member;
+
+			// The number of bytes from the begining of the element to the member
 			ptrdiff_t memberDataOffset;
 		};
 
 		// The target container to build 
 		struct Container
 		{
+			// The set of primitive members that make up the data of a type
 			std::vector<ElementMemberDesc> elements;
 		} container;
 
@@ -830,65 +839,6 @@ namespace
 			i->second.stub = nullObjectStub;
 		}
 
-		/*
-		void AddInterfaceMember(cstr name, cstr interfaceType, cstr interfaceSource, cstr instanceType, cstr instanceSource, OBJECT_NAME objectName) override
-		{
-			const Rococo::Compiler::IMember* member = GetBestMatchingMember(name);
-
-			if (!member)
-			{
-				Throw(0, "%s %s. No member found", interfaceType, name);
-			}
-
-			auto& type = *member->UnderlyingType();
-
-			if (type.InterfaceCount() != 1)
-			{
-				Throw(0, "%s. Member was not of interface type", name, interfaceType);
-			}
-
-			auto& interface0 = type.GetInterface(0);
-
-			if (!Eq(interface0.Name(), interfaceType))
-			{
-				Throw(0, "%s. Member was of interface type %s, not of interface type", name, type.GetInterface(0).Name(), interfaceType);
-			}
-
-			if (!Eq(type.Module().Name(), interfaceSource))
-			{
-				Throw(0, "%s. Interface source was  %s, not %s", name, type.Module().Name(), interfaceSource);
-			}
-
-			if (Eq(objectName, "0"))
-			{
-				// We need to get the universal null object for the specified instance type
-				InterfacePointer pNullObject = scriptSystem->GetUniversalNullObject(instanceType, instanceSource);
-				WritePrimitive(pNullObject);
-			}
-			else
-			{
-				if (objectName[0] != '#')
-				{
-					Throw(0, "Unhandled object name: %s", objectName);
-				}
-
-				auto i = objects.find(objectName);
-				if (i == objects.end())
-				{
-					DeserializedObject newObject;
-					i = objects.insert(objectName, newObject).first;
-				}
-
-				RequiredInterfaceRef ref;
-				ref.pInterfaceType = &interface0;
-				ref.ppInterface = (InterfacePointer*)writePosition;
-				i->second.requiredInterfaces.push_back(ref);
-
-				writePosition += sizeof InterfacePointer;
-			}			
-		}
-		*/
-
 		void AddTypeDerivative(int memberDepth, cstr type, cstr name, cstr sourceFile) override
 		{
 			const Rococo::Compiler::IMember* member = GetBestMatchingMember(name);
@@ -924,16 +874,6 @@ namespace
 			}
 		}
 
-		void EnterDerivedContainerItem() override
-		{
-			
-		}
-
-		void LeaveDerivedContainerItem() override
-		{
-			
-		}
-
 		void ReturnToParent() override
 		{
 			memberRefManager.MoveToParent();
@@ -967,11 +907,7 @@ namespace
 		{
 			container.elements.clear();
 
-			elementType = FindStructure(*scriptSystem, elementTypeName, elementTypeSource);
-			if (!elementType)
-			{
-				Throw(0, "Could not resolve type %s of %s", elementTypeName, elementTypeSource);
-			}
+			elementType = &scriptSystem->GetTypeForSource(elementTypeName, elementTypeSource);
 
 			auto i = arrays.find(refName);
 			if (i == arrays.end())
@@ -1036,12 +972,11 @@ namespace
 		}
 	};
 
-	struct SexyAssetLoader: IAssetLoader
+	struct SexyAssetLoader: IAssetLoader, IEventCallback<cstr>
 	{
 		IInstallation& installation;
 		SexyObjectBuilder objectBuilder;
 		AutoFree<ICSVTokenParser> sxyaParser = CreateSXYAParser(objectBuilder);
-		AutoFree<ITabbedCSVTokenizer> tabbedTokenizer = CreateTabbedCSVTokenizer();
 		
 		SexyAssetLoader(IInstallation& _installation) :
 			installation(_installation),
@@ -1054,6 +989,12 @@ namespace
 			delete this;
 		}
 
+		void OnEvent(cstr csvString) override
+		{
+			Rococo::IO::ParseTabbedCSVString(csvString, *sxyaParser);
+			objectBuilder.ResolveReferences();
+		}
+
 		void LoadAndParse(cstr pingPath, const IStructure& assetType, void* assetData, Rococo::Script::IPublicScriptSystem& ss) override
 		{
 			WideFilePath sysPath;
@@ -1062,23 +1003,9 @@ namespace
 			objectBuilder.SelectScriptSystem(ss);
 			objectBuilder.SelectRootTarget(assetType, assetData);
 
-			struct ANON: IEventCallback<cstr>
-			{
-				SexyAssetLoader* This = nullptr;
-
-				void OnEvent(cstr csvString) override
-				{
-					// Tokenize the CSV file, which sends tokens into the sxyaParser, which populates the asset via objectBuilder
-					This->tabbedTokenizer->Tokenize(csvString, *This->sxyaParser);
-				}
-			} parse;
-
-			parse.This = this;
-
 			try
 			{
-				Rococo::OS::LoadAsciiTextFile(parse, sysPath);
-				objectBuilder.ResolveReferences();
+				Rococo::OS::LoadAsciiTextFile(*this, sysPath);				
 			}
 			catch (IException& e)
 			{
@@ -1101,30 +1028,3 @@ namespace Rococo::Sexy
 	}
 }
 
-namespace Rococo::Script
-{
-	const IStructure* FindStructure(IPublicScriptSystem& ss, cstr localTypeName, cstr moduleName, bool throwOnError)
-	{
-		auto& obj = ss.PublicProgramObject();
-		for (int i = 0; i < obj.ModuleCount(); ++i)
-		{
-			auto& module = obj.GetModule(i);
-			if (Eq(module.Name(), moduleName))
-			{
-				auto* type = module.FindStructure(localTypeName);
-				if (!type && throwOnError)
-				{
-					Throw(0, "%s(ss, %s, %s, true) failed. Could not find structure in module.", __FUNCTION__, localTypeName, moduleName);
-				}
-				return type;
-			}
-		}
-
-		if (throwOnError)
-		{
-			Throw(0, "%s(ss, %s, %s, true) failed. Could not find module.", __FUNCTION__, localTypeName, moduleName);
-		}
-
-		return nullptr;
-	}
-}

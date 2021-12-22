@@ -987,8 +987,6 @@ Banner!
 
 	using namespace Rococo::IO;
 
-	AutoFree<ITabbedCSVTokenizer> tokenizer = CreateTabbedCSVTokenizer();
-
 	struct ANON : ICSVTokenParser
 	{
 		void OnBadChar(Vec2i cursorPosition, char value) override
@@ -1017,7 +1015,7 @@ Banner!
 		}
 	} parser;
 
-	tokenizer->Tokenize(specimen, parser);
+	ParseTabbedCSVString(specimen, parser);
 }
 
 void TestCSVAssetParser()
@@ -1196,22 +1194,11 @@ Matrix4x4f	world	"Sys.Maths.sxy"
 		{
 			printf("\n(%s %s %s)\n", objectNameRef, nullType, nullTypeModule);
 		}
-
-		void EnterDerivedContainerItem() override
-		{
-			printf("(\n");
-		}
-
-		void LeaveDerivedContainerItem() override
-		{
-			printf(")\n");
-		}
 	} memberBuilder;
 
 	AutoFree<ICSVTokenParser> parser = CreateSXYAParser(memberBuilder);
 
-	AutoFree<ITabbedCSVTokenizer> tokenizer = CreateTabbedCSVTokenizer();
-	tokenizer->Tokenize(archiveFile, *parser);
+	ParseTabbedCSVString(archiveFile, *parser);
 }
 
 void test()

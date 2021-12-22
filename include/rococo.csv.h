@@ -12,9 +12,6 @@ namespace Rococo::Sexy
 		// Add an IString ref to a ConstantBuffer@Sys.Type.Strings.sxy
 		virtual void AddStringConstant(cstr stringNameRef, cstr text, int32 stringLength) = 0;
 
-		// Descend into derivative sub-member 
-		
-
 		// After AddDerivativeMember, this resumes building the parent member
 		virtual void ReturnToParent() = 0;
 
@@ -50,10 +47,6 @@ namespace Rococo::Sexy
 		virtual void AddNullObject(cstr objectNameRef, cstr nullType, cstr nullTypeModule) = 0;
 
 		virtual void AddContainerItemDerivative(int32 memberDepth, cstr name, cstr type, cstr typeSource) = 0;
-
-		virtual void EnterDerivedContainerItem() = 0;
-
-		virtual void LeaveDerivedContainerItem() = 0;
 	};
 
 	ROCOCOAPI ISexyObjectBuilder
@@ -87,13 +80,7 @@ namespace Rococo::IO
 		virtual void Free() = 0;
 	};
 
-	ROCOCOAPI ITabbedCSVTokenizer
-	{
-		virtual void Tokenize(cstr csvString, ICSVTokenParser & tokenParser) = 0;
-		virtual void Free() = 0;
-	};
-
-	ITabbedCSVTokenizer* CreateTabbedCSVTokenizer();
+	void ParseTabbedCSVString(cstr csvString, ICSVTokenParser& tokenParser);
 
 	ICSVTokenParser* CreateSXYAParser(Rococo::Sexy::IMemberBuilder& memberBuilder);
 }

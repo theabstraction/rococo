@@ -15,95 +15,99 @@
 
 using namespace Rococo;
 using namespace Rococo::IO;
+using namespace Rococo::Script;
 using namespace Rococo::Sex;
 using namespace Rococo::Sexy;
 using namespace Rococo::Assets;
 using namespace Rococo::Compiler;
 
-struct SexyAssetFile
+namespace
 {
-	InterfacePointer ipStringFilename;
-};
-
-void Validate_Type_Is_SexyAssetFile(cr_sex s, const IStructure& type)
-{
-	if (!Eq(type.Name(), "SexyAssetFile"))
+	struct SexyAssetFile
 	{
-		Throw(s, "Expecting type to be a SexyAssetFile");
+		InterfacePointer ipStringFilename;
+	};
+
+	void Validate_Type_Is_SexyAssetFile(cr_sex s, const IStructure& type)
+	{
+		if (!Eq(type.Name(), "SexyAssetFile"))
+		{
+			Throw(s, "Expecting type to be a SexyAssetFile");
+		}
+
+		if (type.VarType() != VARTYPE_Derivative)
+		{
+			Throw(s, "Expecting type SexyAssetFile to be a struct");
+		}
+
+		if (type.MemberCount() != 1)
+		{
+			Throw(s, "Expecting type SexyAssetFile to be a struct with 1 member");
+		}
+
+		auto& member0 = type.GetMember(0);
+		if (!member0.IsInterfaceVariable())
+		{
+			Throw(s, "Expecting an interface variable in position 0 of SexyAssetType");
+		}
+
+		auto* member0Type = member0.UnderlyingType();
+		if (!Eq(member0Type->Name(), "_Null_Sys_Type_IString"))
+		{
+			Throw(s, "Expecting a Sys.Type.IString in position 0 of SexyAssetType");
+		}
 	}
 
-	if (type.VarType() != VARTYPE_Derivative)
+	inline ObjectStub* InterfaceToInstance(InterfacePointer i)
 	{
-		Throw(s, "Expecting type SexyAssetFile to be a struct");
+		auto* p = ((uint8*)i) + (*i)->OffsetToInstance;
+		auto* obj = (ObjectStub*)p;
+		return obj;
 	}
 
-	if (type.MemberCount() != 1)
+	
+	fstring GetString(InterfacePointer ip)
 	{
-		Throw(s, "Expecting type SexyAssetFile to be a struct with 1 member");
+		// All concrete IString objects, even the Null IString has two members (Int32 length) and (cstr pointer) that immediately follow the object stub, thus:
+		#pragma pack(push,1)
+		struct StringBase
+		{
+			ObjectStub header;
+			int32 length;
+			cstr pointer;
+		};
+		#pragma pack(pop)
+
+		auto* stub = InterfaceToInstance(ip);
+		auto* stringBase = reinterpret_cast<StringBase*>(stub);
+		return fstring{ stringBase->pointer, stringBase->length };
 	}
 
-	auto& member0 = type.GetMember(0);
-	if (!member0.IsInterfaceVariable())
+	struct ObjectDef
 	{
-		Throw(s, "Expecting an interface variable in position 0 of SexyAssetType");
-	}
+		ObjectDef()
+		{
 
-	auto* member0Type = member0.UnderlyingType();
-	if (!Eq(member0Type->Name(), "_Null_Sys_Type_IString"))
+		}
+
+		ObjectDef(cstr name, ObjectStub* _stub, int32 _index) : objectName(name), stub(_stub), index(_index)
+		{
+
+		}
+
+		HString objectName;
+		ObjectStub* stub = nullptr;
+		int index = 0;
+	};
+
+	struct ArrayDef
 	{
-		Throw(s, "Expecting a Sys.Type.IString in position 0 of SexyAssetType");
-	}
+		HString arrayName;
+		ArrayImage* image;
+		int index;
+	};
+
 }
-
-inline ObjectStub* InterfaceToInstance(InterfacePointer i)
-{
-	auto* p = ((uint8*)i) + (*i)->OffsetToInstance;
-	auto* obj = (ObjectStub*)p;
-	return obj;
-}
-
-// All concrete IString objects, even the Null IString has two members (Int32 length) and (cstr pointer) that immediately follow the object stub, thus:
-#pragma pack(push,1)
-struct StringBase
-{
-	ObjectStub header;
-	int32 length;
-	cstr pointer;
-};
-#pragma pack(pop)
-
-fstring GetString(InterfacePointer ip)
-{
-	auto* stub = InterfaceToInstance(ip);
-	auto* stringBase = reinterpret_cast<StringBase*>(stub);
-	return fstring{ stringBase->pointer, stringBase->length };
-}
-
-using namespace Rococo::Script;
-
-struct ObjectDef
-{
-	ObjectDef()
-	{
-
-	}
-
-	ObjectDef(cstr name, ObjectStub* _stub, int32 _index) : objectName(name), stub(_stub), index(_index)
-	{
-
-	}
-
-	HString objectName;
-	ObjectStub* stub = nullptr;
-	int index = 0;
-};
-
-struct ArrayDef
-{
-	HString arrayName;
-	ArrayImage* image;
-	int index;
-};
 
 struct AssetBuilder
 {
@@ -112,6 +116,7 @@ struct AssetBuilder
 	mutable const IStructure* structStringConstant = nullptr;
 	mutable const IStructure* structfastStringBuilder = nullptr;
 
+	// N.B TODO - if the asset builder was used for network serialization then these dynamic allocation classes could prove a bottleneck.
 	std::unordered_map<ObjectStub*, ObjectDef> refToObject;
 	std::vector<ObjectDef> exportQueue;
 	std::unordered_map<ArrayImage*, ArrayDef> refToArray;
@@ -136,7 +141,7 @@ struct AssetBuilder
 	{
 		if (!structfastStringBuilder)
 		{
-			structfastStringBuilder = &GetType("FastStringBuilder", "Sys.Type.Strings.sxy");
+			structfastStringBuilder = &ss.GetTypeForSource("FastStringBuilder", "Sys.Type.Strings.sxy");
 			if (!structfastStringBuilder)
 			{
 				Throw(0, "Cannot get FastStringBuilder type");
@@ -150,7 +155,7 @@ struct AssetBuilder
 	{
 		if (!structStringConstant)
 		{
-			structStringConstant = &GetType("StringConstant", "Sys.Type.Strings.sxy");
+			structStringConstant = &ss.GetTypeForSource("StringConstant", "Sys.Type.Strings.sxy");
 			if (!structStringConstant)
 			{
 				Throw(0, "Cannot get StringConstant type");
@@ -158,33 +163,6 @@ struct AssetBuilder
 		}
 
 		return structStringConstant == &type;
-	}
-
-	const IStructure& GetType(cstr localName, cstr source) const
-	{
-		auto* type = FindType(localName, source);
-		if (type == nullptr)
-		{
-			Throw(0, "Cannot find type %s from %s", localName, source);
-		}
-		return *type;
-	}
-
-	const IStructure* FindType(cstr localName, cstr source) const
-	{
-		auto& ppo = ss.PublicProgramObject();
-
-		for (int i = 0; i < ppo.ModuleCount(); ++i)
-		{
-			auto& module = ppo.GetModule(i);
-			if (Eq(module.Name(), source))
-			{
-				auto* pStruct = module.FindStructure(localName);
-				return pStruct;
-			}
-		}
-
-		return nullptr;
 	}
 
 	void SaveInterfaceRefAndObject(cstr name, const IStructure& assetType, InterfacePointer pInterface)
@@ -533,7 +511,7 @@ static void SaveAssetWithSexyGenerator(IAssetGenerator* generator, ReflectionArg
 	auto* assetFile = reinterpret_cast<SexyAssetFile*>(args.lhsData);
 	auto filename = GetString(assetFile->ipStringFilename);
 
-	if (!EndsWith(filename, ".sxya"))
+	if (filename.length == 0 || !EndsWith(filename, ".sxya"))
 	{
 		Throw(args.s[2], "Expecting filename inside the SexyAssetFile to end with .sxya");
 	}
@@ -542,22 +520,20 @@ static void SaveAssetWithSexyGenerator(IAssetGenerator* generator, ReflectionArg
 	sb.Clear();
 	sb.AppendFormat("AssetBuilder_TabbedCSV_1.0\n");
 
-	AssetBuilder assetBuilder(args.ss, args.s, sb);
-
 	auto& type = args.rhsType;
 
 	try
 	{
+		AssetBuilder assetBuilder(args.ss, args.s, sb);
 		assetBuilder.SaveNonContainerObject(type, "#Object0", (const uint8*)args.rhsData);
+		assetBuilder.SaveQueuedObjects();
+
+		generator->Generate(filename, *sb);
 	}
 	catch (IException& ex)
 	{
 		Throw(args.s, "Error saving %s of %s:\n%s\n", type.Name(), type.Module().Name(), ex.Message());
 	}
-
-	assetBuilder.SaveQueuedObjects();
-	
-	generator->Generate(filename, *sb);
 }
 
 static void LoadAssetWithSexyParser(IAssetLoader* loader, ReflectionArguments& args)
@@ -567,12 +543,19 @@ static void LoadAssetWithSexyParser(IAssetLoader* loader, ReflectionArguments& a
 	auto* assetFile = reinterpret_cast<SexyAssetFile*>(args.lhsData);
 	auto filename = GetString(assetFile->ipStringFilename);
 
-	if (!EndsWith(filename, ".sxya"))
+	if (filename.length == 0 || !EndsWith(filename, ".sxya"))
 	{
 		Throw(args.s[2], "Expecting filename inside the SexyAssetFile to end with .sxya");
 	}
 
-	loader->LoadAndParse(filename, args.rhsType, args.rhsData, args.ss);
+	try
+	{
+		loader->LoadAndParse(filename, args.rhsType, args.rhsData, args.ss);
+	}
+	catch (IException& ex)
+	{
+		Throw(args.s, "%s", ex.Message());
+	}
 }
 
 namespace Rococo::Assets

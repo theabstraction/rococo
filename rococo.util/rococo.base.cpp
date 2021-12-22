@@ -232,6 +232,29 @@ namespace Rococo
 		throw ex;
 	}
 
+	namespace Maths::IEEE475
+	{
+		float BinaryToFloat(uint32 binaryRepresentation)
+		{
+			return *(float*)(&binaryRepresentation);
+		}
+
+		double BinaryToDouble(uint64 binaryRepresentation)
+		{
+			return *(double*)(&binaryRepresentation);
+		}
+
+		uint32 FloatToBinary(float f)
+		{
+			return *(uint32*)(&f);
+		}
+
+		uint64 BinaryToDouble(double d)
+		{
+			return *(uint64*)(&d);
+		}
+	}
+
 	namespace OS
 	{
 		void LoadAsciiTextFile(IEventCallback<cstr>& onLoad, const wchar_t* filename)

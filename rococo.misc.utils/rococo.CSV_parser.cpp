@@ -24,11 +24,6 @@ namespace
 		IMemberBuilder& memberBuilder;
 
 		FN_STATE tokenHandler = &CSV_SexyAssetParser::OnSignature;
-		int currentColumn = 1;
-
-		char archiveType[Rococo::MAX_FQ_NAME_LEN + 1]; // The local type. For example, if a Sys.Maths.Vec2 were archived, the type would be Vec2f
-		char archiveName[Rococo::MAX_FQ_NAME_LEN + 1]; // The variable name. Very often 'this'. Limited to legal Sexy variable names.
-		char archiveSource[Rococo::IO::MAX_PATHLEN]; // The source file wherein the local type is defined. For example Vec2 is Sys.Maths.sxy
 
 		CSV_SexyAssetParser(IMemberBuilder& _memberBuilder) :
 			memberBuilder(_memberBuilder)
@@ -44,20 +39,8 @@ namespace
 		int defRow = 1;
 		int defColumn = 1;
 
-		char memberTypeBuffer[Rococo::MAX_FQ_NAME_LEN + 1];
-		char memberNameBuffer[Rococo::MAX_FQ_NAME_LEN + 1];
-
-		bool primitiveLine = false;
-
-		static float BinaryToFloat(uint32 binaryRepresentation)
-		{
-			return *(float*)(&binaryRepresentation);
-		}
-
-		static double BinaryToDouble(uint64 binaryRepresentation)
-		{
-			return *(double*)(&binaryRepresentation);
-		}
+		char typeBuffer[Rococo::MAX_FQ_NAME_LEN + 1];
+		char nameBuffer[Rococo::MAX_FQ_NAME_LEN + 1];
 
 		void BuildDerivativeType(int row, int column, cstr token, int32 stringLength, cstr memberName)
 		{
@@ -66,7 +49,7 @@ namespace
 				Throw(0, "Expecting <source-file> at row %d column %d", defRow, defColumn);
 			}
 
-			memberBuilder.AddTypeDerivative(column - 2, memberTypeBuffer, memberName, token);
+			memberBuilder.AddTypeDerivative(column - 2, typeBuffer, memberName, token);
 
 			defRow++;
 			defColumn -= 1; // Go back 2 then forward one, as sub-members are a column advance over their parents
@@ -74,7 +57,7 @@ namespace
 
 		void OnMemberDerivativeSource(int row, int column, cstr token, int32 stringLength)
 		{
-			BuildDerivativeType(row, column, token, stringLength, memberNameBuffer);
+			BuildDerivativeType(row, column, token, stringLength, nameBuffer);
 			tokenHandler = &CSV_SexyAssetParser::OnMemberDef;
 		}
 
@@ -91,8 +74,8 @@ namespace
 				Throw(0, "Expecting <interface-source-file> at row %d column %d", defRow, defColumn);
 			}
 
-			memberTypes.push_back("@");
-			memberBuilder.AddTypeInterface(column - 3, memberTypeBuffer, memberNameBuffer, token);
+			memberTypes.push_back(VARTYPE_Derivative);
+			memberBuilder.AddTypeInterface(column - 3, typeBuffer, nameBuffer, token);
 
 			defRow++;
 			defColumn -= 3;
@@ -113,7 +96,7 @@ namespace
 				Throw(0, "Expecting <interface-name> at row %d column %d", defRow, defColumn);
 			}
 
-			CopyString(memberTypeBuffer, sizeof memberTypeBuffer, token);
+			CopyString(typeBuffer, sizeof typeBuffer, token);
 			
 			defColumn++;
 
@@ -175,7 +158,7 @@ namespace
 				Throw(0, "Expected string length to be %d at row %d column %d", stringConstantLength, defRow, defColumn);
 			}
 
-			memberBuilder.AddFastStringBuilder(memberNameBuffer, fstring{ token, stringLength }, stringBuilderCapacity);
+			memberBuilder.AddFastStringBuilder(nameBuffer, fstring{ token, stringLength }, stringBuilderCapacity);
 
 			tokenHandler = &CSV_SexyAssetParser::OnObjectName;
 			defColumn = 1;
@@ -189,7 +172,7 @@ namespace
 				Throw(0, "Expecting <source-file> at row %d column %d", defRow, defColumn);
 			}
 
-			CopyString(memberTypeBuffer, sizeof memberTypeBuffer, token);
+			CopyString(typeBuffer, sizeof typeBuffer, token);
 
 			defColumn++;
 
@@ -205,7 +188,7 @@ namespace
 				Throw(0, "Expecting string constant buffer length to be %d, but it was %d", (stringConstantLength + 1), stringLength);
 			}
 
-			memberBuilder.AddStringConstant(memberNameBuffer, token, stringLength);
+			memberBuilder.AddStringConstant(nameBuffer, token, stringLength);
 
 			defColumn = 1;
 			defRow++;
@@ -234,7 +217,7 @@ namespace
 				Throw(0, "Expecting <array-ref-name> at row %d column %d", defRow, defColumn);
 			}
 
-			//memberBuilder.AddArrayRefMember(memberNameBuffer, token);
+			//memberBuilder.AddArrayRefMember(nameBuffer, token);
 
 			defColumn -= 2;
 			defRow++;
@@ -251,7 +234,7 @@ namespace
 				Throw(0, "Expecting name at row %d column %d", defRow, defColumn);
 			}
 
-			memberBuilder.BuildObject(memberNameBuffer, memberTypeBuffer, token);
+			memberBuilder.BuildObject(nameBuffer, typeBuffer, token);
 
 			defColumn = 1;
 			defRow++;
@@ -267,7 +250,7 @@ namespace
 			char elementTypeMemberType[Rococo::NAMESPACE_MAX_LENGTH];
 		} array;
 
-		std::vector<HString> memberTypes;
+		std::vector<VARTYPE> memberTypes;
 		int32 activeMemberIndex = 0;
 
 		void BuildValueAndAdvanceMemberIndex(cstr token)
@@ -280,27 +263,27 @@ namespace
 				}
 
 				// There are no element types, which means the array->ElementType is a primitive or interface type
-				if (Eq(memberTypeBuffer, "Float32") && Eq(memberTypeSource, "Sys.Types.sxy"))
+				if (Eq(typeBuffer, "Float32") && Eq(memberTypeSource, "Sys.Types.sxy"))
 				{
 					memberBuilder.AddF32ItemValue(activeMemberIndex, (float)atof(token));
 				}
-				else if (Eq(memberTypeBuffer, "Float64") && Eq(memberTypeSource, "Sys.Types.sxy"))
+				else if (Eq(typeBuffer, "Float64") && Eq(memberTypeSource, "Sys.Types.sxy"))
 				{
 					memberBuilder.AddF64ItemValue(activeMemberIndex, atof(token));
 				}
-				else if (Eq(memberTypeBuffer, "Int32") && Eq(memberTypeSource, "Sys.Types.sxy"))
+				else if (Eq(typeBuffer, "Int32") && Eq(memberTypeSource, "Sys.Types.sxy"))
 				{
 					memberBuilder.AddI32ItemValue(activeMemberIndex, atoi(token));
 				}
-				else if (Eq(memberTypeBuffer, "Int64") && Eq(memberTypeSource, "Sys.Types.sxy"))
+				else if (Eq(typeBuffer, "Int64") && Eq(memberTypeSource, "Sys.Types.sxy"))
 				{
 					memberBuilder.AddI64ItemValue(activeMemberIndex, atoll(token));
 				}
-				else if (Eq(memberTypeBuffer, "Boolean32") && Eq(memberTypeSource, "Sys.Types.sxy"))
+				else if (Eq(typeBuffer, "Boolean32") && Eq(memberTypeSource, "Sys.Types.sxy"))
 				{
 					memberBuilder.AddBoolItemValue(activeMemberIndex, Eq(token, "Y"));
 				}
-				else if (StartsWith(memberTypeBuffer, "_Null_"))
+				else if (StartsWith(typeBuffer, "_Null_"))
 				{
 					// Object Reference
 					memberBuilder.AddObjectRefValue(activeMemberIndex, token);
@@ -317,37 +300,31 @@ namespace
 					Throw(0, "Bad active member index");
 				}
 
-				cstr typeName = memberTypes[activeMemberIndex];
-				if (Eq(typeName, "f"))
+				VARTYPE typeName = memberTypes[activeMemberIndex];
+				switch (typeName)
 				{
+				case VARTYPE_Float32:
 					memberBuilder.AddF32ItemValue(activeMemberIndex, (float)atof(token));
-				}
-				else if (Eq(typeName, "d"))
-				{
+					break;
+				case VARTYPE_Float64:
 					memberBuilder.AddF64ItemValue(activeMemberIndex, atof(token));
-				}
-				else if (Eq(typeName, "i"))
-				{
+					break;
+				case VARTYPE_Int32:
 					memberBuilder.AddI32ItemValue(activeMemberIndex, atoi(token));
-				}
-				else if (Eq(typeName, "l"))
-				{
+					break;
+				case VARTYPE_Int64:
 					memberBuilder.AddI64ItemValue(activeMemberIndex, atoll(token));
-				}
-				else if (Eq(typeName, "?"))
-				{
+					break;
+				case VARTYPE_Bool:
 					memberBuilder.AddBoolItemValue(activeMemberIndex, Eq(token, "Y"));
-				}
-				else if (Eq(typeName, "[]"))
-				{
+					break;
+				case VARTYPE_Array:
 					memberBuilder.AddArrayRefValue(activeMemberIndex, token);
-				}
-				else if (Eq(typeName, "@"))
-				{
+					break;
+				case VARTYPE_Derivative:
 					memberBuilder.AddObjectRefValue(activeMemberIndex, token);
-				}
-				else
-				{
+					break;
+				default:
 					Throw(0, "Unhandled type");
 				}
 
@@ -418,9 +395,6 @@ namespace
 			defRow++;
 			defColumn = 1;
 
-			//array.elementMemberIndex++;
-			//array.numberOfElementMembers++;
-
 			tokenHandler = &CSV_SexyAssetParser::OnArrayElementTypeMemberName;
 		}
 
@@ -473,38 +447,33 @@ namespace
 		{
 			if (Eq(token, "f"))
 			{
-				// Float32 - f
-				memberTypes.push_back(token);
-				memberBuilder.AddTypeF32(memberDepth, memberNameBuffer);
+				memberTypes.push_back(VARTYPE_Float32);
+				memberBuilder.AddTypeF32(memberDepth, nameBuffer);
 			}
 			else if (Eq(token, "d"))
 			{
-				// Float64 - d
-				memberTypes.push_back(token);
-				memberBuilder.AddTypeF64(memberDepth, memberNameBuffer);
+				memberTypes.push_back(VARTYPE_Float64);
+				memberBuilder.AddTypeF64(memberDepth, nameBuffer);
 			}
 			else if (Eq(token, "i"))
 			{
-				// Int32 - i
-				memberTypes.push_back(token);
-				memberBuilder.AddTypeI32(memberDepth, memberNameBuffer);
+				memberTypes.push_back(VARTYPE_Int32);
+				memberBuilder.AddTypeI32(memberDepth, nameBuffer);
 			}
 			else if (Eq(token, "l"))
 			{
-				// Int64 - l
-				memberTypes.push_back(token);
-				memberBuilder.AddTypeI64(memberDepth, memberNameBuffer);
+				memberTypes.push_back(VARTYPE_Int64);
+				memberBuilder.AddTypeI64(memberDepth, nameBuffer);
 			}
 			else if (Eq(token, "?"))
 			{
-				// boolean - ?
-				memberTypes.push_back(token);
-				memberBuilder.AddTypeBool(memberDepth, memberNameBuffer);
+				memberTypes.push_back(VARTYPE_Bool);
+				memberBuilder.AddTypeBool(memberDepth, nameBuffer);
 			}
 			else if (Eq(token, "[]"))
 			{
-				memberTypes.push_back(token);
-				memberBuilder.AddTypeArrayRef(memberDepth, memberNameBuffer);
+				memberTypes.push_back(VARTYPE_Array);
+				memberBuilder.AddTypeArrayRef(memberDepth, nameBuffer);
 			}
 			else
 			{
@@ -529,13 +498,13 @@ namespace
 			}
 			else if (Eq(token, "@"))
 			{
-				CopyString(memberTypeBuffer, sizeof memberTypeBuffer, token);
+				CopyString(typeBuffer, sizeof typeBuffer, token);
 				defColumn++;
 				tokenHandler = &CSV_SexyAssetParser::OnElementMemberInterfaceName;
 			}
 			else
 			{
-				CopyString(memberTypeBuffer, sizeof memberTypeBuffer, token);
+				CopyString(typeBuffer, sizeof typeBuffer, token);
 				defColumn++;
 				tokenHandler = &CSV_SexyAssetParser::OnElementMemberDerivativeSource;
 			}
@@ -556,13 +525,13 @@ namespace
 			}
 			else if (Eq(token, "@"))
 			{
-				CopyString(memberTypeBuffer, sizeof memberTypeBuffer, token);
+				CopyString(typeBuffer, sizeof typeBuffer, token);
 				defColumn++;
 				tokenHandler = &CSV_SexyAssetParser::OnMemberInterfaceName;
 			}
 			else
 			{
-				CopyString(memberTypeBuffer, sizeof memberTypeBuffer, token);
+				CopyString(typeBuffer, sizeof typeBuffer, token);
 				defColumn++;
 				tokenHandler = &CSV_SexyAssetParser::OnMemberDerivativeSource;
 			}
@@ -577,25 +546,11 @@ namespace
 
 			if (*token == '[')
 			{
-				// Note, if our array is of primitives, then the element type is given by the memberTypeBuffer variable, and we expect an array index after the array def line
+				// Note, if our array is of primitives, then the element type is given by the typeBuffer variable, and we expect an array index after the array def line
 				
 				// Human readable index hint
 				activeMemberIndex = 0;
 				OnArrayIndex(row, column, token, stringLength);
-				return;
-			}
-			else if (*token == '(')
-			{
-				// Enter member of derived type
-				memberBuilder.EnterDerivedContainerItem();
-				defRow++;
-				return;
-			}
-			else if (*token == ')')
-			{
-				// Return to sibling of parent members
-				memberBuilder.LeaveDerivedContainerItem();
-				defRow++;
 				return;
 			}
 
@@ -628,7 +583,7 @@ namespace
 			defColumn = 1;
 			defRow++;
 
-			memberBuilder.AddArrayDefinition(memberNameBuffer, memberTypeBuffer, memberTypeSource, arrayLength, array.arrayCapacity);
+			memberBuilder.AddArrayDefinition(nameBuffer, typeBuffer, memberTypeSource, arrayLength, array.arrayCapacity);
 
 			activeMemberIndex = 0;
 
@@ -677,7 +632,7 @@ namespace
 				Throw(0, "Expecting array element type at row %d column %d", defRow, defColumn);
 			}
 
-			CopyString(memberTypeBuffer, sizeof memberTypeBuffer, token);
+			CopyString(typeBuffer, sizeof typeBuffer, token);
 
 			defColumn++;
 
@@ -694,7 +649,7 @@ namespace
 			defColumn = 1;
 			defRow++;
 
-			memberBuilder.AddNullObject(memberNameBuffer, memberTypeBuffer, token);
+			memberBuilder.AddNullObject(nameBuffer, typeBuffer, token);
 
 			tokenHandler = &CSV_SexyAssetParser::OnObjectName;
 		}
@@ -722,7 +677,7 @@ namespace
 			}
 			else if (StartsWith(token, "_Null_"))
 			{
-				CopyString(memberTypeBuffer, sizeof memberTypeBuffer, token);
+				CopyString(typeBuffer, sizeof typeBuffer, token);
 
 				// Null object definition.
 				tokenHandler = &CSV_SexyAssetParser::OnNullObjectSource;
@@ -730,7 +685,7 @@ namespace
 			}
 			else
 			{
-				CopyString(memberTypeBuffer, sizeof memberTypeBuffer, token);
+				CopyString(typeBuffer, sizeof typeBuffer, token);
 				tokenHandler = &CSV_SexyAssetParser::OnObjectSource;
 			}
 		}
@@ -781,7 +736,7 @@ namespace
 			}
 			else
 			{
-				CopyString(memberNameBuffer, sizeof memberNameBuffer, token);
+				CopyString(nameBuffer, sizeof nameBuffer, token);
 				defColumn++;
 				tokenHandler = &CSV_SexyAssetParser::OnMemberType;
 			}
@@ -794,19 +749,19 @@ namespace
 				Throw(0, "Expecting object name at row %d column %d", defRow, defColumn);
 			}
 
-			CopyString(memberNameBuffer, sizeof memberNameBuffer, token);
+			CopyString(nameBuffer, sizeof nameBuffer, token);
 
 			defColumn++;
 
 			memberTypes.clear();
 			activeMemberIndex = 0;
 
-			if (StartsWith(memberNameBuffer, "array"))
+			if (StartsWith(nameBuffer, "array"))
 			{
 				array.arrayIndex = 0;
 				tokenHandler = &CSV_SexyAssetParser::OnArrayType;
 			}
-			else if (*memberNameBuffer == '#')
+			else if (*nameBuffer == '#')
 			{
 				tokenHandler = &CSV_SexyAssetParser::OnObjectType;
 			}
@@ -877,235 +832,220 @@ namespace
 		void Reset() override
 		{
 			tokenHandler = &CSV_SexyAssetParser::OnSignature;
-			currentColumn = 1;
 			memberIndex.clear();
 		}
 	};
 
-	struct TabbedCSVStreamTokenizer : ITabbedCSVTokenizer
+	static thread_local std::vector<char> csv_token;
+
+	static void AppendChar(char c)
 	{
-		std::vector<char> token;
+		csv_token.push_back(c);
+	}
 
-		TabbedCSVStreamTokenizer()
+	static void Tokenize(cstr csvString, ICSVTokenParser& tokenParser)
+	{
+		int row = 1;
+		int column = 1;
+
+		Vec2i cursor = { 1,1 };
+
+		enum EState 
 		{
+			STATE_EXPECTING_TOKEN,
+			STATE_READING_SIMPLE_TOKEN, 
+			STATE_READING_STRING_LITERAL,
+			STATE_READING_STRING_LITERAL_ESCAPE,
+			STATE_TERMINATING_STRING_LITERAL
+		} state = STATE_EXPECTING_TOKEN;
 
-		}
+		csv_token.clear();
 
-		void AppendChar(char c)
+		cstr p = csvString;
+		for (; ; p++)
 		{
-			token.push_back(c);
-		}
+			char c = *p;
 
-		void Tokenize(cstr csvString, ICSVTokenParser& tokenParser) override
-		{
-			int row = 1;
-			int column = 1;
-
-			Vec2i cursor = { 1,1 };
-
-			enum EState 
+			switch (state)
 			{
-				STATE_EXPECTING_TOKEN,
-				STATE_READING_SIMPLE_TOKEN, 
-				STATE_READING_STRING_LITERAL,
-				STATE_READING_STRING_LITERAL_ESCAPE,
-				STATE_TERMINATING_STRING_LITERAL
-			} state = STATE_EXPECTING_TOKEN;
-
-			token.clear();
-
-			cstr p = csvString;
-			for (; ; p++)
-			{
-				char c = *p;
-
-				switch (state)
+			case STATE_EXPECTING_TOKEN:
+				if (c == 0)
 				{
-				case STATE_EXPECTING_TOKEN:
-					if (c == 0)
-					{
-						goto end;
-					}
-					else if (c == '\t')
-					{
-						column++;
-						cursor.x++;
-					}
-					else if (c == '\n')
-					{
-						column = 1;
-						cursor.x = 1;
-						row++;
-						cursor.y++;
-
-						tokenParser.OnBlankLine(cursor);
-					}
-					else if (c <= 32)
-					{
-						tokenParser.OnBadChar(cursor, c);
-					}
-					else if (c == '"')
-					{
-						state = STATE_READING_STRING_LITERAL;
-						cursor.x++;
-					}
-					else
-					{
-						cursor.x++;
-						state = STATE_READING_SIMPLE_TOKEN;
-						AppendChar(c);
-					}
-					break;
-				case STATE_READING_SIMPLE_TOKEN:
-					if (c == 0)
-					{
-						goto end;
-					}
-					else if (c == '\t')
-					{
-						AppendChar(0);
-						tokenParser.OnToken(row, column, token.data(), (int32) token.size());
-						token.clear();
-
-						cursor.x++;
-						column++;
-
-						state = STATE_EXPECTING_TOKEN;
-					}
-					else if (c == '\n')
-					{
-						AppendChar(0);
-						tokenParser.OnToken(row, column, token.data(), (int32) token.size());
-						token.clear();
-
-						column = 1;
-						cursor.x = 1;
-						row++;
-						cursor.y++;
-
-						state = STATE_EXPECTING_TOKEN;
-					}
-					else if (c <= 32)
-					{
-						tokenParser.OnBadChar(cursor, c);
-						return;
-					}
-					else if (c == '"')
-					{
-						tokenParser.OnBadChar(cursor, c);
-						return;
-					}
-					else
-					{
-						cursor.x++;
-						AppendChar(c);
-					}
-					break;
-				case STATE_READING_STRING_LITERAL:
-					if (c == 0)
-					{
-						tokenParser.OnBadChar(cursor, c);
-						return;
-					}
-					else if (c == '"')
-					{
-						AppendChar(0);
-						tokenParser.OnToken(row, column, token.data(), (int32) token.size());
-						token.clear();
-
-						cursor.x++;
-
-						state = STATE_TERMINATING_STRING_LITERAL;
-					}
-					else if (c == '\n')
-					{
-						AppendChar('\n');
-						cursor.x = 1;
-						cursor.y++;
-					}
-					else if (c <= 32)
-					{
-						AppendChar(c);
-						cursor.x++;
-					}
-					else if (c == '\\')
-					{
-						state = STATE_READING_STRING_LITERAL_ESCAPE;
-						cursor.x++;
-					}
-					else
-					{
-						AppendChar(c);
-						cursor.x++;
-					}
-					break;
-				case STATE_READING_STRING_LITERAL_ESCAPE:
-					if (c == 0)
-					{
-						tokenParser.OnBadChar(cursor, c);
-						return;
-					}
-					else if (c == '"')
-					{
-						AppendChar('"');
-						state = STATE_READING_STRING_LITERAL;
-						cursor.x++;
-					}
-					else if (c == '\\')
-					{
-						AppendChar('\\');
-						state = STATE_READING_STRING_LITERAL;
-						cursor.x++;
-					}
-					else
-					{
-						tokenParser.OnBadChar(cursor, c);
-					}
-					break;
-				case STATE_TERMINATING_STRING_LITERAL:
-					if (c == 0)
-					{
-						goto end;
-					}
-					else if (c == '\t')
-					{
-						cursor.x++;
-						column++;
-						state = STATE_EXPECTING_TOKEN;
-					}
-					else if (c == '\n')
-					{
-						cursor.x = 1;
-						cursor.y++;
-						column = 1;
-						row++;
-						state = STATE_EXPECTING_TOKEN;
-					}
-					else
-					{
-						tokenParser.OnBadChar(cursor, c);
-					}
-					break;
+					goto end;
 				}
+				else if (c == '\t')
+				{
+					column++;
+					cursor.x++;
+				}
+				else if (c == '\n')
+				{
+					column = 1;
+					cursor.x = 1;
+					row++;
+					cursor.y++;
+
+					tokenParser.OnBlankLine(cursor);
+				}
+				else if (c <= 32)
+				{
+					tokenParser.OnBadChar(cursor, c);
+				}
+				else if (c == '"')
+				{
+					state = STATE_READING_STRING_LITERAL;
+					cursor.x++;
+				}
+				else
+				{
+					cursor.x++;
+					state = STATE_READING_SIMPLE_TOKEN;
+					AppendChar(c);
+				}
+				break;
+			case STATE_READING_SIMPLE_TOKEN:
+				if (c == 0)
+				{
+					goto end;
+				}
+				else if (c == '\t')
+				{
+					AppendChar(0);
+					tokenParser.OnToken(row, column, csv_token.data(), (int32)csv_token.size());
+					csv_token.clear();
+
+					cursor.x++;
+					column++;
+
+					state = STATE_EXPECTING_TOKEN;
+				}
+				else if (c == '\n')
+				{
+					AppendChar(0);
+					tokenParser.OnToken(row, column, csv_token.data(), (int32)csv_token.size());
+					csv_token.clear();
+
+					column = 1;
+					cursor.x = 1;
+					row++;
+					cursor.y++;
+
+					state = STATE_EXPECTING_TOKEN;
+				}
+				else if (c <= 32)
+				{
+					tokenParser.OnBadChar(cursor, c);
+					return;
+				}
+				else if (c == '"')
+				{
+					tokenParser.OnBadChar(cursor, c);
+					return;
+				}
+				else
+				{
+					cursor.x++;
+					AppendChar(c);
+				}
+				break;
+			case STATE_READING_STRING_LITERAL:
+				if (c == 0)
+				{
+					tokenParser.OnBadChar(cursor, c);
+					return;
+				}
+				else if (c == '"')
+				{
+					AppendChar(0);
+					tokenParser.OnToken(row, column, csv_token.data(), (int32)csv_token.size());
+					csv_token.clear();
+
+					cursor.x++;
+
+					state = STATE_TERMINATING_STRING_LITERAL;
+				}
+				else if (c == '\n')
+				{
+					AppendChar('\n');
+					cursor.x = 1;
+					cursor.y++;
+				}
+				else if (c <= 32)
+				{
+					AppendChar(c);
+					cursor.x++;
+				}
+				else if (c == '\\')
+				{
+					state = STATE_READING_STRING_LITERAL_ESCAPE;
+					cursor.x++;
+				}
+				else
+				{
+					AppendChar(c);
+					cursor.x++;
+				}
+				break;
+			case STATE_READING_STRING_LITERAL_ESCAPE:
+				if (c == 0)
+				{
+					tokenParser.OnBadChar(cursor, c);
+					return;
+				}
+				else if (c == '"')
+				{
+					AppendChar('"');
+					state = STATE_READING_STRING_LITERAL;
+					cursor.x++;
+				}
+				else if (c == '\\')
+				{
+					AppendChar('\\');
+					state = STATE_READING_STRING_LITERAL;
+					cursor.x++;
+				}
+				else
+				{
+					tokenParser.OnBadChar(cursor, c);
+				}
+				break;
+			case STATE_TERMINATING_STRING_LITERAL:
+				if (c == 0)
+				{
+					goto end;
+				}
+				else if (c == '\t')
+				{
+					cursor.x++;
+					column++;
+					state = STATE_EXPECTING_TOKEN;
+				}
+				else if (c == '\n')
+				{
+					cursor.x = 1;
+					cursor.y++;
+					column = 1;
+					row++;
+					state = STATE_EXPECTING_TOKEN;
+				}
+				else
+				{
+					tokenParser.OnBadChar(cursor, c);
+				}
+				break;
 			}
-
-		end:
-			return;
 		}
 
-		void Free() override
-		{
-			delete this;
-		}
-	};
-}
+	end:
+		return;
+	}
+};
 
 namespace Rococo::IO
 {
-	// In a tabbed CSV stream we have columns, delimited by the TAB character
-	ITabbedCSVTokenizer* CreateTabbedCSVTokenizer()
+	void ParseTabbedCSVString(cstr csvString, ICSVTokenParser& tokenParser)
 	{
-		return new TabbedCSVStreamTokenizer();
+		Tokenize(csvString, tokenParser);
 	}
 
 	ICSVTokenParser* CreateSXYAParser(IMemberBuilder& memberBuilder)

@@ -26,6 +26,14 @@ namespace Rococo
 		void BuildExceptionString(char* buffer, size_t capacity, IException& ex, bool appendStack);
 	}
 
+	namespace Maths::IEEE475
+	{
+		float BinaryToFloat(uint32 binaryRepresentation);
+		double BinaryToDouble(uint64 binaryRepresentation);
+		uint32 FloatToBinary(float f);
+		uint64 BinaryToDouble(double d);
+	}
+
 	struct Quat;
 
 	ROCOCO_ID(ID_FONT, int32, -1);
@@ -75,6 +83,7 @@ namespace Rococo
 	void Assign(U8FilePath& dest, const wchar_t* wideSrc);
 	void Assign(WideFilePath& dest, const char* src);
 
+	// Maximum fully qualified name length. Names categories include variables a.b.c.d and functions A.B.C.D and methods a.b.c.D
 	enum { MAX_FQ_NAME_LEN = 127 };
 	void ValidateFQNameIdentifier(cstr fqName);
 
@@ -162,7 +171,6 @@ namespace Rococo
 	namespace Script
 	{
 		struct IPublicScriptSystem;
-		const Rococo::Compiler::IStructure* FindStructure(IPublicScriptSystem& ss, cstr localTypeName, cstr moduleName, bool throwOnError = true);
 	}
 
 	namespace Sex
