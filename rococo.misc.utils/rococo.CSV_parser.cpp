@@ -852,6 +852,8 @@ namespace
 			STATE_TERMINATING_STRING_LITERAL
 		} state = STATE_EXPECTING_TOKEN;
 
+		tokenParser.row = 0;
+
 		cstr p = csvString;
 		for (; ; p++)
 		{
@@ -877,6 +879,7 @@ namespace
 					row++;
 					cursor.y++;
 
+					tokenParser.row = row;
 					tokenParser.OnBlankLine(cursor);
 				}
 				else if (c <= 32)
@@ -912,6 +915,7 @@ namespace
 				}
 				else if (c == '\n')
 				{
+					tokenParser.row = row;
 					tokenParser.EndRaw(p);
 					tokenParser.Submit(row, column);
 					tokenParser.OnNewLine();
@@ -953,6 +957,7 @@ namespace
 				}
 				else if (c == '\n')
 				{
+					tokenParser.row = row;
 					tokenParser.AppendStringLiteral('\n');
 					cursor.x = 1;
 					cursor.y++;
@@ -1009,6 +1014,7 @@ namespace
 				}
 				else if (c == '\n')
 				{
+					tokenParser.row = row;
 					cursor.x = 1;
 					cursor.y++;
 					column = 1;
@@ -1033,6 +1039,7 @@ ROCOCOAPI ICSVLine
 {
 	virtual size_t TokenCount() const = 0;
 	virtual cstr operator[](size_t index) const = 0;
+	virtual int Row() const = 0;
 };
 
 ROCOCOAPI ICSVLineParser
@@ -1041,17 +1048,23 @@ ROCOCOAPI ICSVLineParser
 	virtual void OnLine(const ICSVLine& line) = 0;
 };
 
+thread_local std::vector<VARTYPE> memberTypes;
+
 struct CSV_Line_by_Line_SexyAssetParser: ICSVLineParser
 {
 	typedef void (CSV_Line_by_Line_SexyAssetParser::* FN_STATE)(const ICSVLine& line);
 	FN_STATE state = &CSV_Line_by_Line_SexyAssetParser::OnSignature;
 	IMemberBuilder& builder;
 
-	std::vector<VARTYPE> memberTypes;
 	int32 activeMemberIndex = 0;
 
 	char objectType[Rococo::MAX_FQ_NAME_LEN + 1];
 	char objectModule[Rococo::MAX_FQ_NAME_LEN + 1];
+
+	CSV_Line_by_Line_SexyAssetParser(IMemberBuilder& _builder): builder(_builder)
+	{
+
+	}
 
 	bool TryBuildSimpleType(int32 memberDepth, cstr token, cstr name)
 	{
@@ -1109,11 +1122,21 @@ struct CSV_Line_by_Line_SexyAssetParser: ICSVLineParser
 
 	void BuildMember(const ICSVLine& line)
 	{
+		if (arrayIndex == 0 && line.TokenCount() == 1)
+		{
+			if (*line[0] == '[')
+			{
+				// An index
+				state = &CSV_Line_by_Line_SexyAssetParser::OnArrayValue;
+				return;
+			}
+		}
+
 		int indent = 0;
 
 		for (; indent < line.TokenCount(); indent++)
 		{
-			if (line[indent][0] != 0)
+			if (*line[indent] != 0)
 			{
 				break;
 			}
@@ -1146,16 +1169,17 @@ struct CSV_Line_by_Line_SexyAssetParser: ICSVLineParser
 			cstr memberInterfaceType = line[indent + 2];
 			cstr memberInterfaceModule = line[indent + 3];
 
-			if (Eq(refChar, "@"))
+			if (!Eq(refChar, "@"))
 			{
 				Throw(0, "Could not parse '%s %s %s %s' as '<member-name> @ <interface-type> <interface-module>'", memberName, refChar, memberInterfaceType, memberInterfaceModule);
 			}
 
-			builder.AddTypeInterface(indent, memberName, memberInterfaceType, memberInterfaceModule);
+			memberTypes.push_back(VARTYPE_Derivative);
+			builder.AddTypeInterface(indent, memberInterfaceType, memberName, memberInterfaceModule);
 		}
 		else
 		{
-			Throw(0, "Could not parse line. Expecting 2, 3 or 4 tokens");
+			Throw(0, "Could not build member. Expecting 2, 3 or 4 tokens");
 		}
 	}
 
@@ -1332,13 +1356,35 @@ struct CSV_Line_by_Line_SexyAssetParser: ICSVLineParser
 
 		if (line.TokenCount() == 3)
 		{
+			cstr name = line[0];
+			if (*name == '#')
+			{
+				if (StartsWith(line[1], "_Null_"))
+				{
+					builder.AddNullObject(line[0], line[1], line[2]);
+				}
+				else
+				{
+					CopyString(objectType, sizeof objectType, line[1]);
+					CopyString(objectModule, sizeof objectModule, line[2]);
+					builder.BuildObject(line[0], objectType, objectModule);
+					state = &CSV_Line_by_Line_SexyAssetParser::OnObjectMember;
+				}
+				return;
+			}
+		}
+
+		if (line.TokenCount() == 4)
+		{
 			if (*line[0], "#")
 			{
-				CopyString(objectType, sizeof objectType, line[1]);
-				CopyString(objectModule, sizeof objectModule, line[2]);
-				builder.BuildObject(line[0], line[1], line[2]);
-				state = &CSV_Line_by_Line_SexyAssetParser::OnObjectMember;
-				return;
+				if (Eq(line[1], "_SC"))
+				{
+					int len = atoi(line[2]);
+					cstr stringText = line[2];
+					builder.AddStringConstant(line[1], stringText, len);
+					return;
+				}
 			}
 		}
 
@@ -1348,13 +1394,42 @@ struct CSV_Line_by_Line_SexyAssetParser: ICSVLineParser
 			{
 				arrayLength = atoi(line[3]);
 				arrayCapacity = atoi(line[4]);
+				
+				CopyString(objectType, sizeof objectType, line[1]);
+				CopyString(objectModule, sizeof objectModule, line[2]);
+
 				builder.AddArrayDefinition(line[0], line[1], line[2], arrayLength, arrayCapacity);
-				state = &CSV_Line_by_Line_SexyAssetParser::OnArrayMember;
+
+				activeMemberIndex = 0;
+				arrayIndex = 0;
+
+				if (!StartsWith(objectType, "_Null_"))
+				{
+					state = &CSV_Line_by_Line_SexyAssetParser::OnArrayMember;
+				}
+				else
+				{
+					state = &CSV_Line_by_Line_SexyAssetParser::OnArrayIndex;
+				}
+
 				return;
+			}
+
+			if (*line[0] == '#')
+			{
+				if (Eq(line[1], "_SB"))
+				{
+					int32 sbLength = atoi(line[2]);
+					int32 sbCapacity = atoi(line[3]);
+					cstr text = line[4];
+
+					builder.AddFastStringBuilder(line[0], fstring{ text, sbLength }, sbCapacity);
+					return;
+				}
 			}
 		}
 
-		Throw(0, "Expecting '#<object-name> <type> <module>' or 'array<suffix> <element-type> <element-module> <length> <capacity>'");
+		Throw(0, "Expecting '#<object-name> <type> <module>'\n or 'array<suffix> <element-type> <element-module> <length> <capacity>'\n or #<string-name> _SC <length> <string-text>");
 	}
 
 	void OnBadChar(Vec2i cursor, char c) override
@@ -1383,6 +1458,8 @@ namespace Rococo::IO
 		{
 			ICSVTokenParser& tokenParser;
 			cstr startRaw;
+
+			int row = 0;
 
 			void OnBlankLine(Vec2i cursor)
 			{
@@ -1439,6 +1516,34 @@ namespace Rococo::IO
 	thread_local std::vector<CSVToken> csv_tokens;
 	thread_local size_t tokenIndex = 0;
 
+	struct CSVLine : ICSVLine
+	{
+		std::vector<CSVToken>& tokens;
+
+		int row = 0;
+		size_t tokenIndex;
+
+		CSVLine(std::vector<CSVToken>& _tokens, int _row, size_t _tokenIndex): tokens(_tokens), row(_row), tokenIndex(_tokenIndex)
+		{
+
+		}
+		
+		size_t TokenCount() const override
+		{
+			return tokenIndex;
+		}
+
+		cstr operator[] (size_t index) const override
+		{
+			return !tokens[index].s.empty() ? tokens[index].s.data() : "";
+		}
+
+		int Row() const override
+		{
+			return row;
+		}
+	};
+
 	void ClearStringLiterals()
 	{
 		for (auto& sl : csv_tokens)
@@ -1452,6 +1557,8 @@ namespace Rococo::IO
 		struct LINE_PARSER
 		{
 			ICSVLineParser& lineParser;
+
+			int row = 0;
 
 			void ResetBuilder()
 			{
@@ -1502,7 +1609,7 @@ namespace Rococo::IO
 						csv_tokens.push_back(CSVToken());
 					}
 
-					auto& s = csv_tokens[tokenIndex++].s;
+					auto& s = csv_tokens[tokenIndex].s;
 
 					for (auto p = startRaw; p != endRaw; p++)
 					{
@@ -1513,24 +1620,26 @@ namespace Rococo::IO
 
 					startRaw = nullptr;
 				}
+
+				tokenIndex++;
 			}
 
 			void OnNewLine()
 			{
-				struct CSVLine : ICSVLine
+				CSVLine line(csv_tokens, row, tokenIndex);
+				
+				if (tokenIndex > 0)
 				{
-					size_t TokenCount() const override
+					try
 					{
-						return tokenIndex;
+						lineParser.OnLine(line);
+						tokenIndex = 0;
 					}
-
-					cstr operator[] (size_t index) const override
+					catch (IException& ex)
 					{
-						return csv_tokens[index].s.data();
+						Throw(ex.ErrorCode(), "Error at row %d:\n%s", row, ex.Message());
 					}
-				} line;
-
-				if (tokenIndex > 0) lineParser.OnLine(line);
+				}
 
 				ResetBuilder();
 			}
@@ -1539,8 +1648,9 @@ namespace Rococo::IO
 		parser.OnNewLine();
 	}
 
-	ICSVTokenParser* CreateSXYAParser(IMemberBuilder& memberBuilder)
+	void ParseTabbedCSV_AssetFile(cstr csvString, IMemberBuilder& builder)
 	{
-		return new CSV_SexyAssetParser(memberBuilder);
+		CSV_Line_by_Line_SexyAssetParser parser(builder);
+		ParseTabbedCSVString(csvString, parser);
 	}
 }

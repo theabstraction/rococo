@@ -976,7 +976,7 @@ namespace
 	{
 		IInstallation& installation;
 		SexyObjectBuilder objectBuilder;
-		AutoFree<ICSVTokenParser> sxyaParser = CreateSXYAParser(objectBuilder);
+		// AutoFree<ICSVTokenParser> sxyaParser = CreateSXYAParser(objectBuilder);
 		
 		SexyAssetLoader(IInstallation& _installation) :
 			installation(_installation),
@@ -991,7 +991,7 @@ namespace
 
 		void OnEvent(cstr csvString) override
 		{
-			Rococo::IO::ParseTabbedCSVString(csvString, *sxyaParser);
+			Rococo::IO::ParseTabbedCSV_AssetFile(csvString, objectBuilder);
 			objectBuilder.ResolveReferences();
 		}
 

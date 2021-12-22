@@ -80,7 +80,9 @@ namespace Rococo::IO
 		virtual void Free() = 0;
 	};
 
+	void ParseTabbedCSV_AssetFile(cstr csvString, Rococo::Sexy::IMemberBuilder& builder);
+
 	void ParseTabbedCSVString(cstr csvString, ICSVTokenParser& tokenParser);
 
-	ICSVTokenParser* CreateSXYAParser(Rococo::Sexy::IMemberBuilder& memberBuilder);
+	//ICSVTokenParser* CreateSXYAParser(Rococo::Sexy::IMemberBuilder& memberBuilder);
 }
