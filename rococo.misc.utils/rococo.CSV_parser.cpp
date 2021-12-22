@@ -836,14 +836,7 @@ namespace
 		}
 	};
 
-	static thread_local std::vector<char> csv_token;
-
-	static void AppendChar(char c)
-	{
-		csv_token.push_back(c);
-	}
-
-	static void Tokenize(cstr csvString, ICSVTokenParser& tokenParser)
+	template<class PARSER> void Tokenize(cstr csvString, PARSER& tokenParser)
 	{
 		int row = 1;
 		int column = 1;
@@ -858,8 +851,6 @@ namespace
 			STATE_READING_STRING_LITERAL_ESCAPE,
 			STATE_TERMINATING_STRING_LITERAL
 		} state = STATE_EXPECTING_TOKEN;
-
-		csv_token.clear();
 
 		cstr p = csvString;
 		for (; ; p++)
@@ -900,7 +891,7 @@ namespace
 				{
 					cursor.x++;
 					state = STATE_READING_SIMPLE_TOKEN;
-					AppendChar(c);
+					tokenParser.AppendChar(c);
 				}
 				break;
 			case STATE_READING_SIMPLE_TOKEN:
@@ -910,9 +901,12 @@ namespace
 				}
 				else if (c == '\t')
 				{
+					tokenParser.Submit(row, column);
+					/*
 					AppendChar(0);
 					tokenParser.OnToken(row, column, csv_token.data(), (int32)csv_token.size());
 					csv_token.clear();
+					*/
 
 					cursor.x++;
 					column++;
@@ -921,9 +915,12 @@ namespace
 				}
 				else if (c == '\n')
 				{
+					tokenParser.Submit(row, column);
+					/*
 					AppendChar(0);
 					tokenParser.OnToken(row, column, csv_token.data(), (int32)csv_token.size());
 					csv_token.clear();
+					*/
 
 					column = 1;
 					cursor.x = 1;
@@ -945,7 +942,7 @@ namespace
 				else
 				{
 					cursor.x++;
-					AppendChar(c);
+					tokenParser.AppendChar(c);
 				}
 				break;
 			case STATE_READING_STRING_LITERAL:
@@ -956,9 +953,12 @@ namespace
 				}
 				else if (c == '"')
 				{
+					tokenParser.Submit(row, column);
+					/*
 					AppendChar(0);
 					tokenParser.OnToken(row, column, csv_token.data(), (int32)csv_token.size());
 					csv_token.clear();
+					*/
 
 					cursor.x++;
 
@@ -966,13 +966,13 @@ namespace
 				}
 				else if (c == '\n')
 				{
-					AppendChar('\n');
+					tokenParser.AppendChar('\n');
 					cursor.x = 1;
 					cursor.y++;
 				}
 				else if (c <= 32)
 				{
-					AppendChar(c);
+					tokenParser.AppendChar(c);
 					cursor.x++;
 				}
 				else if (c == '\\')
@@ -982,7 +982,7 @@ namespace
 				}
 				else
 				{
-					AppendChar(c);
+					tokenParser.AppendChar(c);
 					cursor.x++;
 				}
 				break;
@@ -994,13 +994,13 @@ namespace
 				}
 				else if (c == '"')
 				{
-					AppendChar('"');
+					tokenParser.AppendChar('"');
 					state = STATE_READING_STRING_LITERAL;
 					cursor.x++;
 				}
 				else if (c == '\\')
 				{
-					AppendChar('\\');
+					tokenParser.AppendChar('\\');
 					state = STATE_READING_STRING_LITERAL;
 					cursor.x++;
 				}
@@ -1041,11 +1041,69 @@ namespace
 	}
 };
 
+struct CSVToken
+{
+	Substring text;
+	bool isEncoded;
+};
+
+ROCOCOAPI ICSVLine
+{
+	virtual int32 TokenCount() const = 0;
+	virtual const CSVToken* Tokens() const = 0;
+};
+
+ROCOCOAPI ICSVLineParser
+{
+	virtual void OnLine(const ICSVLine& line) = 0;
+	virtual void Decode(const CSVToken& token, IStringPopulator& populator) = 0;
+};
+
+void Tokenize(cstr csvString, ICSVLineParser& parser)
+{
+
+}
+
 namespace Rococo::IO
 {
 	void ParseTabbedCSVString(cstr csvString, ICSVTokenParser& tokenParser)
 	{
-		Tokenize(csvString, tokenParser);
+		thread_local std::vector<char> csv_token;
+
+		csv_token.clear();
+
+		struct CELL_PARSER
+		{
+			ICSVTokenParser& tokenParser;
+
+			void OnBlankLine(Vec2i cursor)
+			{
+				tokenParser.OnBlankLine(cursor);
+			}
+
+			void OnBadChar(Vec2i cursor, char c)
+			{
+				tokenParser.OnBadChar(cursor, c);
+			}
+
+			void AppendChar(char c)
+			{
+				csv_token.push_back(c);
+			}
+
+			void Submit(int row, int column)
+			{
+				AppendChar(0);
+				tokenParser.OnToken(row, column, csv_token.data(), (int32) csv_token.size());
+				csv_token.clear();
+			}
+		} parser{ tokenParser };
+		Tokenize<CELL_PARSER>(csvString, parser);
+	}
+
+	void ParseTabbedCSVString(cstr csvString, ICSVLineParser& lineParser)
+	{
+		//Tokenize(csvString, lineParser);
 	}
 
 	ICSVTokenParser* CreateSXYAParser(IMemberBuilder& memberBuilder)
