@@ -1041,6 +1041,333 @@ ROCOCOAPI ICSVLineParser
 	virtual void OnLine(const ICSVLine& line) = 0;
 };
 
+struct CSV_Line_by_Line_SexyAssetParser: ICSVLineParser
+{
+	typedef void (CSV_Line_by_Line_SexyAssetParser::* FN_STATE)(const ICSVLine& line);
+	FN_STATE state = &CSV_Line_by_Line_SexyAssetParser::OnSignature;
+	IMemberBuilder& builder;
+
+	std::vector<VARTYPE> memberTypes;
+	int32 activeMemberIndex = 0;
+
+	char objectType[Rococo::MAX_FQ_NAME_LEN + 1];
+	char objectModule[Rococo::MAX_FQ_NAME_LEN + 1];
+
+	bool TryBuildSimpleType(int32 memberDepth, cstr token, cstr name)
+	{
+		if (Eq(token, "f"))
+		{
+			memberTypes.push_back(VARTYPE_Float32);
+			builder.AddTypeF32(memberDepth, name);
+		}
+		else if (Eq(token, "d"))
+		{
+			memberTypes.push_back(VARTYPE_Float64);
+			builder.AddTypeF64(memberDepth, name);
+		}
+		else if (Eq(token, "i"))
+		{
+			memberTypes.push_back(VARTYPE_Int32);
+			builder.AddTypeI32(memberDepth, name);
+		}
+		else if (Eq(token, "l"))
+		{
+			memberTypes.push_back(VARTYPE_Int64);
+			builder.AddTypeI64(memberDepth, name);
+		}
+		else if (Eq(token, "?"))
+		{
+			memberTypes.push_back(VARTYPE_Bool);
+			builder.AddTypeBool(memberDepth, name);
+		}
+		else if (Eq(token, "[]"))
+		{
+			memberTypes.push_back(VARTYPE_Array);
+			builder.AddTypeArrayRef(memberDepth, name);
+		}
+		else
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	void OnSignature(const ICSVLine& line)
+	{
+		if (line.TokenCount() == 1)
+		{
+			if (Eq(line[0], "AssetBuilder_TabbedCSV_1.0"))
+			{
+				state = &CSV_Line_by_Line_SexyAssetParser::OnObjectLine;
+				return;
+			}
+		}
+
+		Throw(0, "Expecting match to AssetBuilder_TabbedCSV_1.0 on first line of the file");
+	}
+
+	void BuildMember(const ICSVLine& line)
+	{
+		int indent = 0;
+
+		for (; indent < line.TokenCount(); indent++)
+		{
+			if (line[indent][0] != 0)
+			{
+				break;
+			}
+		}
+
+		size_t definiteTokens = line.TokenCount() - indent;
+
+		if (definiteTokens == 2)
+		{
+			cstr memberName = line[indent];
+			cstr memberTypeToken = line[indent + 1];
+
+			if (!TryBuildSimpleType(indent, memberTypeToken, memberName))
+			{
+				Throw(0, "Could not parse '%s %s' as a name v type pair", memberName, memberTypeToken);
+			}
+		}
+		else if (definiteTokens == 3)
+		{
+			cstr memberName = line[indent];
+			cstr memberDerivedType = line[indent + 1];
+			cstr memberDerivedModule = line[indent + 2];
+
+			builder.AddContainerItemDerivative(indent, memberName, memberDerivedType, memberDerivedModule);
+		}
+		else if (definiteTokens == 4)
+		{
+			cstr memberName = line[indent];
+			cstr refChar = line[indent + 1];
+			cstr memberInterfaceType = line[indent + 2];
+			cstr memberInterfaceModule = line[indent + 3];
+
+			if (Eq(refChar, "@"))
+			{
+				Throw(0, "Could not parse '%s %s %s %s' as '<member-name> @ <interface-type> <interface-module>'", memberName, refChar, memberInterfaceType, memberInterfaceModule);
+			}
+
+			builder.AddTypeInterface(indent, memberName, memberInterfaceType, memberInterfaceModule);
+		}
+		else
+		{
+			Throw(0, "Could not parse line. Expecting 2, 3 or 4 tokens");
+		}
+	}
+
+	void OnObjectMember(const ICSVLine& line)
+	{
+		if (line.TokenCount() == 1)
+		{
+			if (Eq(line[0], "#"))
+			{
+
+				activeMemberIndex = 0;
+				state = &CSV_Line_by_Line_SexyAssetParser::OnObjectValue;
+				return;
+			}
+		}
+
+		BuildMember(line);
+	}
+
+	void BuildValueAndAdvanceMemberIndex(cstr token)
+	{
+		if (memberTypes.empty())
+		{
+			if (activeMemberIndex > 0)
+			{
+				Throw(0, "Bad active member index");
+			}
+
+			// There are no element types, which means the array->ElementType is a primitive or interface type
+			if (Eq(objectType, "Float32") && Eq(objectModule, "Sys.Types.sxy"))
+			{
+				builder.AddF32ItemValue(activeMemberIndex, (float)atof(token));
+			}
+			else if (Eq(objectType, "Float64") && Eq(objectModule, "Sys.Types.sxy"))
+			{
+				builder.AddF64ItemValue(activeMemberIndex, atof(token));
+			}
+			else if (Eq(objectType, "Int32") && Eq(objectModule, "Sys.Types.sxy"))
+			{
+				builder.AddI32ItemValue(activeMemberIndex, atoi(token));
+			}
+			else if (Eq(objectType, "Int64") && Eq(objectModule, "Sys.Types.sxy"))
+			{
+				builder.AddI64ItemValue(activeMemberIndex, atoll(token));
+			}
+			else if (Eq(objectType, "Boolean32") && Eq(objectModule, "Sys.Types.sxy"))
+			{
+				builder.AddBoolItemValue(activeMemberIndex, Eq(token, "Y"));
+			}
+			else if (StartsWith(objectType, "_Null_"))
+			{
+				// Object Reference
+				builder.AddObjectRefValue(activeMemberIndex, token);
+			}
+			else
+			{
+				Throw(0, "Unhandled type");
+			}
+		}
+		else
+		{
+			if (activeMemberIndex > memberTypes.size())
+			{
+				Throw(0, "Bad active member index");
+			}
+
+			VARTYPE typeName = memberTypes[activeMemberIndex];
+			switch (typeName)
+			{
+			case VARTYPE_Float32:
+				builder.AddF32ItemValue(activeMemberIndex, (float)atof(token));
+				break;
+			case VARTYPE_Float64:
+				builder.AddF64ItemValue(activeMemberIndex, atof(token));
+				break;
+			case VARTYPE_Int32:
+				builder.AddI32ItemValue(activeMemberIndex, atoi(token));
+				break;
+			case VARTYPE_Int64:
+				builder.AddI64ItemValue(activeMemberIndex, atoll(token));
+				break;
+			case VARTYPE_Bool:
+				builder.AddBoolItemValue(activeMemberIndex, Eq(token, "Y"));
+				break;
+			case VARTYPE_Array:
+				builder.AddArrayRefValue(activeMemberIndex, token);
+				break;
+			case VARTYPE_Derivative:
+				builder.AddObjectRefValue(activeMemberIndex, token);
+				break;
+			default:
+				Throw(0, "Unhandled type");
+			}
+
+			activeMemberIndex++;
+		}
+	}
+
+	void OnObjectValue(const ICSVLine& line)
+	{
+		if (line.TokenCount() != 1)
+		{
+			Throw(0, "Expecting one member value on the line, but the token count was %llu", line.TokenCount());
+		}
+
+		BuildValueAndAdvanceMemberIndex(line[0]);
+
+		if (activeMemberIndex == memberTypes.size())
+		{
+			state = &CSV_Line_by_Line_SexyAssetParser::OnObjectLine;
+		}
+	}
+
+	int arrayIndex = 0;
+	int arrayLength = 0;
+	int arrayCapacity = 0;
+
+	void OnArrayIndex(const ICSVLine& line)
+	{
+		if (line.TokenCount() == 1)
+		{
+			if (*line[0] == '[')
+			{
+				state = &CSV_Line_by_Line_SexyAssetParser::OnArrayValue;
+				return;
+			}
+		}
+
+		Throw(0, "Expecting [array-index]");
+	}
+
+	void OnArrayValue(const ICSVLine& line)
+	{
+		if (line.TokenCount() != 1)
+		{
+			Throw(0, "Expecting one member value on the line, but the token count was %llu", line.TokenCount());
+		}
+
+		BuildValueAndAdvanceMemberIndex(line[0]);
+
+		if (activeMemberIndex >= memberTypes.size())
+		{
+			activeMemberIndex = 0;
+			arrayIndex++;
+			if (arrayIndex >= arrayLength)
+			{
+				state = &CSV_Line_by_Line_SexyAssetParser::OnObjectLine;
+			}
+			else
+			{
+				state = &CSV_Line_by_Line_SexyAssetParser::OnArrayIndex;
+			}
+		}
+	}
+
+	void OnArrayMember(const ICSVLine& line)
+	{
+		if (line.TokenCount() == 1)
+		{
+			if (*line[0] == '[')
+			{
+				arrayIndex = 0;
+				activeMemberIndex = 0;
+				state = &CSV_Line_by_Line_SexyAssetParser::OnArrayValue;
+			}
+		}
+
+		BuildMember(line);
+	}
+
+	void OnObjectLine(const ICSVLine& line)
+	{
+		memberTypes.clear();
+
+		if (line.TokenCount() == 3)
+		{
+			if (*line[0], "#")
+			{
+				CopyString(objectType, sizeof objectType, line[1]);
+				CopyString(objectModule, sizeof objectModule, line[2]);
+				builder.BuildObject(line[0], line[1], line[2]);
+				state = &CSV_Line_by_Line_SexyAssetParser::OnObjectMember;
+				return;
+			}
+		}
+
+		if (line.TokenCount() == 5)
+		{		
+			if (StartsWith(line[0], "array"))
+			{
+				arrayLength = atoi(line[3]);
+				arrayCapacity = atoi(line[4]);
+				builder.AddArrayDefinition(line[0], line[1], line[2], arrayLength, arrayCapacity);
+				state = &CSV_Line_by_Line_SexyAssetParser::OnArrayMember;
+				return;
+			}
+		}
+
+		Throw(0, "Expecting '#<object-name> <type> <module>' or 'array<suffix> <element-type> <element-module> <length> <capacity>'");
+	}
+
+	void OnBadChar(Vec2i cursor, char c) override
+	{
+
+	}
+
+	void OnLine(const ICSVLine& line) override
+	{
+		(this->*state)(line);
+	}
+};
+
 namespace
 {
 	thread_local std::vector<char> csv_token;
