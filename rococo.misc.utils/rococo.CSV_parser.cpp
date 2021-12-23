@@ -1330,6 +1330,7 @@ struct CSV_Line_by_Line_SexyAssetParser: ICSVLineParser
 			}
 			else
 			{
+				builder.SetArrayWriteIndex(arrayIndex);
 				state = &CSV_Line_by_Line_SexyAssetParser::OnArrayIndex;
 			}
 		}
@@ -1344,6 +1345,8 @@ struct CSV_Line_by_Line_SexyAssetParser: ICSVLineParser
 				arrayIndex = 0;
 				activeMemberIndex = 0;
 				state = &CSV_Line_by_Line_SexyAssetParser::OnArrayValue;
+				builder.SetArrayWriteIndex(0);
+				return;
 			}
 		}
 
@@ -1381,8 +1384,8 @@ struct CSV_Line_by_Line_SexyAssetParser: ICSVLineParser
 				if (Eq(line[1], "_SC"))
 				{
 					int len = atoi(line[2]);
-					cstr stringText = line[2];
-					builder.AddStringConstant(line[1], stringText, len);
+					cstr stringText = line[3];
+					builder.AddStringConstant(line[0], stringText, len);
 					return;
 				}
 			}
@@ -1409,6 +1412,7 @@ struct CSV_Line_by_Line_SexyAssetParser: ICSVLineParser
 				}
 				else
 				{
+					builder.SetArrayWriteIndex(0);
 					state = &CSV_Line_by_Line_SexyAssetParser::OnArrayIndex;
 				}
 
@@ -1615,12 +1619,14 @@ namespace Rococo::IO
 					{
 						s.push_back(*p);		
 					}
-
 					s.push_back(0);
-
 					startRaw = nullptr;
 				}
-
+				else
+				{
+					auto& s = csv_tokens[tokenIndex].s;
+					s.push_back(0);
+				}
 				tokenIndex++;
 			}
 

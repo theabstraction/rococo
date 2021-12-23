@@ -29,10 +29,10 @@
 )
 
 (struct GlobalState
+	(Sys.IDog dog)
 	(array Point points)
 	(array Sys.ICat cats)
 	(IString dogName)
-	(Sys.IDog dog)
 	(IString squirrelName)
 	(IString catName)
 	(Float64 age)
