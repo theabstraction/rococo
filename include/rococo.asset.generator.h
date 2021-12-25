@@ -7,11 +7,6 @@ namespace Rococo::Script
 	struct IPublicScriptSystem;
 }
 
-namespace Rococo::Sexy 
-{
-	struct IAssetLoader;
-}
-
 namespace Rococo::Assets
 {
 	ROCOCOAPI IAssetGenerator
@@ -30,7 +25,7 @@ namespace Rococo::Assets
 	// Enables Sexy semantic:
 	// (reflect LoadAsset <SexyFileAsset-variable> <target-object>) 
 	// to serialize a target-object from the supplied asset loader
-	void LinkAssetLoader(Rococo::Sexy::IAssetLoader& loader, Rococo::Script::IPublicScriptSystem& ss);
+	void LinkAssetLoader(IInstallation& installation, Rococo::Script::IPublicScriptSystem& ss);
 
 	// Create an asset file generator, the target being a file saved to a Sexy content directory
 	IAssetGenerator* CreateAssetGenerator_SexyContentFile(IInstallation& installation);

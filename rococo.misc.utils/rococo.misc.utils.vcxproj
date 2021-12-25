@@ -12,7 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="rococo.asset.generator.cpp" />
-    <ClCompile Include="rococo.CSV_parser.cpp" />
+    <ClCompile Include="rococo.CSVAssetParser.cpp" />
     <ClCompile Include="rococo.ide.stdout.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -27,6 +27,9 @@
   <ItemGroup>
     <ClInclude Include="..\include\rococo.asset.generator.h" />
     <ClInclude Include="..\include\rococo.csv.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\include\rococo.csv.inl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

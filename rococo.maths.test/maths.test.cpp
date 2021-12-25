@@ -976,52 +976,8 @@ R"(
 
 #include <rococo.csv.h>
 
-void TestCSVLoader()
-{
-	cstr specimen =
-R"(Space	Holiday	"Alan \"Nice man\" Smith"
-Whiskey	Datum	"
-Banner!
-"
-)";
-
-	using namespace Rococo::IO;
-
-	struct ANON : ICSVTokenParser
-	{
-		void OnBadChar(Vec2i cursorPosition, char value) override
-		{
-			VALIDATE(false);
-		}
-
-		void OnBlankLine(Vec2i cursorPositiion) override
-		{
-			printf("%d, %d: blank-line\n", cursorPositiion.x, cursorPositiion.y);
-		}
-
-		void OnToken(int row, int column, cstr token, int stringLength) override
-		{
-			printf("%d %d: %s\n", row, column, token);
-		}
-
-		void Free() override
-		{
-
-		}
-
-		void Reset() override
-		{
-
-		}
-	} parser;
-
-	ParseTabbedCSVString(specimen, parser);
-}
-
 void test()
 {
-	TestCSVLoader();
-	return;
 	TestCodeInference();
 	TestQuadtree();
 	return;

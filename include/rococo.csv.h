@@ -57,32 +57,14 @@ namespace Rococo::Sexy
 		virtual void SelectRootTarget(const Rococo::Compiler::IStructure& rootType, void* pRootObject) = 0;
 		virtual void Free() = 0;
 	};
-
-	ROCOCOAPI IAssetLoader
-	{
-		virtual void Free() = 0;
-	
-		// Attempt to load some asset, identified with a sourceFilename URL, and overwrite the destination object with data.
-		virtual void LoadAndParse(cstr sourceFilename, const Rococo::Compiler::IStructure& destinationType, void* destinationAssetData, Rococo::Script::IPublicScriptSystem& ss) = 0;
-	};
-
-	IAssetLoader* CreateAssetLoader(IInstallation& installation);
 }
 
 namespace Rococo::IO
 {
-	ROCOCOAPI ICSVTokenParser
-	{
-		virtual void OnBadChar(Vec2i cursorPosition, char value) = 0;
-		virtual void OnBlankLine(Vec2i cursorPosition) = 0;
-		virtual void OnToken(int row, int column, cstr token, int stringLengthPlusNul) = 0;
-		virtual void Reset() = 0;
-		virtual void Free() = 0;
-	};
-
+	// Parse the CSV string and invoke member builder functions to build the object hierarchy.
+	// The implementation is guaranteed to take responsibility for minimizing dynamic memory allocation.
 	void ParseTabbedCSV_AssetFile(cstr csvString, Rococo::Sexy::IMemberBuilder& builder);
 
-	void ParseTabbedCSVString(cstr csvString, ICSVTokenParser& tokenParser);
-
-	//ICSVTokenParser* CreateSXYAParser(Rococo::Sexy::IMemberBuilder& memberBuilder);
+	// Given a sexy object of given type, overwrites its fields with the object tree at the specified ping path. 
+	void LoadAndParseSexyObjectTree(IInstallation& installation, cstr pingPath, const Rococo::Compiler::IStructure& assetType, void* assetData, Rococo::Script::IPublicScriptSystem& ss);
 }

@@ -81,13 +81,11 @@ struct TestApp : IApp, private IScene, public IEventCallback<FileModifiedArgs>
    TestAttributes attributes;
 
    AutoFree<IAssetGenerator> assetGenerator;
-   AutoFree<IAssetLoader> assetLoader;
 
    TestApp(Platform& _platform): platform(_platform), attributes(platform.publisher)
    {
       assetGenerator = Rococo::Assets::CreateAssetGenerator_SexyContentFile(platform.installation);
-      assetLoader = Rococo::Sexy::CreateAssetLoader(platform.installation);
-
+     
       introPanel = platform.gui.BindPanelToScript("!scripts/panel.intro.sxy");
       testPanel = platform.gui.BindPanelToScript("!scripts/panel.test.sxy");
       soundPanel = platform.gui.BindPanelToScript("!scripts/panel.sound.sxy");
@@ -222,22 +220,21 @@ struct TestApp : IApp, private IScene, public IEventCallback<FileModifiedArgs>
    {
 	   struct LinkAssetGeneratorCallback : IEventCallback<ScriptCompileArgs>
 	   {
-		   LinkAssetGeneratorCallback(IAssetGenerator& _generator, IAssetLoader& _loader) :
-			   generator(_generator),
-               loader(_loader)
+		   LinkAssetGeneratorCallback(IAssetGenerator& _generator, IInstallation& _installation) :
+			   generator(_generator), installation(_installation)
 		   {
 
 		   }
 
+           IInstallation& installation;
 		   IAssetGenerator& generator;
-           IAssetLoader& loader;
 
 		   void OnEvent(ScriptCompileArgs& args)
 		   {
 			   LinkAssetGenerator(generator, args.ss);
-               LinkAssetLoader(loader, args.ss);
+               LinkAssetLoader(installation, args.ss);
 		   }
-       } addArchiver(*assetGenerator, *assetLoader);
+       } addArchiver(*assetGenerator, platform.installation);
        platform.utilities.RunEnvironmentScript(addArchiver, "!scripts/test.app.created.sxy", true);
    }
 

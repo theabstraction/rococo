@@ -536,7 +536,7 @@ static void SaveAssetWithSexyGenerator(IAssetGenerator* generator, ReflectionArg
 	}
 }
 
-static void LoadAssetWithSexyParser(IAssetLoader* loader, ReflectionArguments& args)
+static void LoadAssetWithSexyParser(IInstallation* installation, ReflectionArguments& args)
 {
 	Validate_Type_Is_SexyAssetFile(args.s[2], args.lhsType);
 
@@ -550,7 +550,7 @@ static void LoadAssetWithSexyParser(IAssetLoader* loader, ReflectionArguments& a
 
 	try
 	{
-		loader->LoadAndParse(filename, args.rhsType, args.rhsData, args.ss);
+		Rococo::IO::LoadAndParseSexyObjectTree(*installation, filename, args.rhsType, args.rhsData, args.ss);
 	}
 	catch (IException& ex)
 	{
@@ -565,7 +565,7 @@ namespace Rococo::Assets
 		ss.AddNativeReflectionCall("SaveAsset", ::SaveAssetWithSexyGenerator, &generator);
 	}
 
-	void LinkAssetLoader(IAssetLoader& loader, IPublicScriptSystem& ss)
+	void LinkAssetLoader(IInstallation& loader, IPublicScriptSystem& ss)
 	{
 		ss.AddNativeReflectionCall("LoadAsset", ::LoadAssetWithSexyParser, &loader);
 	}

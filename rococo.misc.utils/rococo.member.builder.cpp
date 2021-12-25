@@ -662,8 +662,7 @@ namespace
 				InterfacePointer ip = (InterfacePointer)pObject;
 				objectStub = InterfaceToInstance(ip);
 				objectType = objectStub->Desc->TypeInfo;
-				int32 extraVTables = objectType->InterfaceCount() - 1;
-				writePosition = ((uint8*)objectStub) + sizeof(ObjectStub) + sizeof(VirtualTable*) * (size_t) extraVTables;
+				writePosition = (uint8*)objectStub; // Although the write position is the object stub, the member offsets will be set to beyond the vtables
 			}
 			else
 			{
@@ -971,60 +970,39 @@ namespace
 			}
 		}
 	};
-
-	struct SexyAssetLoader: IAssetLoader, IEventCallback<cstr>
-	{
-		IInstallation& installation;
-		SexyObjectBuilder objectBuilder;
-		// AutoFree<ICSVTokenParser> sxyaParser = CreateSXYAParser(objectBuilder);
-		
-		SexyAssetLoader(IInstallation& _installation) :
-			installation(_installation),
-			objectBuilder()
-		{
-		}
-
-		void Free() override
-		{
-			delete this;
-		}
-
-		void OnEvent(cstr csvString) override
-		{
-			Rococo::IO::ParseTabbedCSV_AssetFile(csvString, objectBuilder);
-			objectBuilder.ResolveReferences();
-		}
-
-		void LoadAndParse(cstr pingPath, const IStructure& assetType, void* assetData, Rococo::Script::IPublicScriptSystem& ss) override
-		{
-			WideFilePath sysPath;
-			installation.ConvertPingPathToSysPath(pingPath, sysPath);
-
-			objectBuilder.SelectScriptSystem(ss);
-			objectBuilder.SelectRootTarget(assetType, assetData);
-
-			try
-			{
-				Rococo::OS::LoadAsciiTextFile(*this, sysPath);				
-			}
-			catch (IException& e)
-			{
-				Throw(e.ErrorCode(), "Error loading asset %s:\n%s", pingPath, e.Message());
-			}
-		}
-	};
 }
 
-namespace Rococo::Sexy
+namespace Rococo::IO
 {
-	ISexyObjectBuilder* CreateSexyObjectBuilder()
+	void LoadAndParseSexyObjectTree(IInstallation& installation, cstr pingPath, const IStructure& assetType, void* assetData, Rococo::Script::IPublicScriptSystem& ss)
 	{
-		return new SexyObjectBuilder();
-	}
+		WideFilePath sysPath;
+		installation.ConvertPingPathToSysPath(pingPath, sysPath);
 
-	IAssetLoader* CreateAssetLoader(IInstallation& installation)
-	{
-		return new SexyAssetLoader(installation);
+		SexyObjectBuilder objectBuilder;
+		objectBuilder.SelectScriptSystem(ss);
+		objectBuilder.SelectRootTarget(assetType, assetData);
+
+		try
+		{
+			struct : IEventCallback<cstr>
+			{
+				SexyObjectBuilder* objectBuilder;
+				void OnEvent(cstr csvString) override
+				{
+					Rococo::IO::ParseTabbedCSV_AssetFile(csvString, *objectBuilder);
+					objectBuilder->ResolveReferences();
+				}
+			} cb;
+			
+			cb.objectBuilder = &objectBuilder;
+
+			Rococo::OS::LoadAsciiTextFile(cb, sysPath);
+		}
+		catch (IException& e)
+		{
+			Throw(e.ErrorCode(), "Error loading asset %s:\n%s", pingPath, e.Message());
+		}
 	}
 }
 
