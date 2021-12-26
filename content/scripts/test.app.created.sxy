@@ -167,12 +167,11 @@
 	(reflect SaveAsset assetFile a)
 	
 	(Int32Array b)
+	(b.elements.Null)
 	(reflect LoadAsset assetFile b)
 
 	(Int32 length = b.elements.Length)
 	(Validate (length == 0))
-
-	(debug)
 )
 
 (function TestGlobalStateTransfer -> :

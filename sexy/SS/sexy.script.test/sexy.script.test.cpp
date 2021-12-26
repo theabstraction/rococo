@@ -6541,10 +6541,21 @@ R"((namespace EntryPoint)
 
 			"(using Sys.Type)"
 
+			"(struct Int32Array"
+			"	(array Int32 elements)"
+			")"
+
+			"(function NullArray (Int32Array a)-> :"
+			"	(a.elements.Null)"
+			")"
+
 			"(function Main -> (Int32 result):"
-			"	(array Int32 a 2)"
-			"	(a.Null)"
-			"	(result = a.Capacity)"
+			//"	(array Int32 a 2)"
+			//"	(a.Null)"
+			//"	(a.Null)"
+			"	(Int32Array b)"
+			"   (NullArray b)"
+			"	(result = b.elements.Capacity)"
 			")";
 
 		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);

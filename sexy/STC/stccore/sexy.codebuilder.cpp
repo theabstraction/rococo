@@ -1547,7 +1547,7 @@ namespace Anon
 			value.vPtrValue = NULL;
 
 			UseStackFrameFor(*this, def);
-			if (!def.IsContained)
+			if (!def.IsContained || def.Usage == ARGUMENTUSAGE_BYVALUE)
 			{
 				Assembler().Append_SetStackFrameImmediate(def.SFOffset + def.MemberOffset, value, GetBitCount(vType));
 			}
