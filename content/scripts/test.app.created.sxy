@@ -160,9 +160,6 @@
 	(array Int32 elements)
 )
 
-(method Int32Array.Construct :
-)
-
 (function TestEmptyArrayTransfer -> :
 	(Sys.Reflection.SexyAssetFile assetFile = "!scripts/test/asset.sxya")
 

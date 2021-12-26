@@ -6533,6 +6533,34 @@ R"((namespace EntryPoint)
 		validate(x == 0);
 	}
 
+	void TestArrayNull(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Type)"
+
+			"(function Main -> (Int32 result):"
+			"	(array Int32 a 2)"
+			"	(a.Null)"
+			"	(result = a.Capacity)"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		int x = vm.PopInt32();
+		validate(x == 0);
+	}
+
 	void TestArrayInt32Expand(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -14111,6 +14139,7 @@ R"(
 
    void RunCollectionTests()
    {
+	   TEST(TestArrayNull);
 	   TEST(TestArrayOfInterfacesBuilder);
 	   TEST(TestPushStructToArray);
 	   TEST(TestArrayInt32);
@@ -14654,6 +14683,8 @@ R"(
 	{
 		int64 start, end, hz;
 		start = OS::CpuTicks();
+
+		TEST(TestArrayNull);
 
 		RunPositiveSuccesses();
 		RunPositiveFailures();	

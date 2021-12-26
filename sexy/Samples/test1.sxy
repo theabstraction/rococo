@@ -1,13 +1,10 @@
 (namespace EntryPoint)
-(struct Entity (Bool isCat))
+	(alias Main EntryPoint.Main)
+
+(using Sys.Type)
 
 (function Main -> (Int32 result):
-	(array Entity entities 1)
-	(entities.Push Entity (true))
-	(Entity e)
-	(e = (entities 0))
-	(if e.isCat
-		(result = 72)
-	)
+	(array Int32 a 2)
+	(a.Null)
+	(result = a.Capacity)
 )
-(alias Main EntryPoint.Main)

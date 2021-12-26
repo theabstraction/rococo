@@ -1514,26 +1514,50 @@ namespace Anon
 		{
 			if (def.ResolvedType->InterfaceCount() == 0)
 			{
-				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Could not assign '%s' to [%s]. The variable is not of atomic type and has no interface."), literalValue, name.c_str());
+				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Could not assign '%s' to [%s]. The variable is not of atomic type and has no interface.", literalValue, name.c_str());
 			}
 
 			const IInterface& interf = def.ResolvedType->GetInterface(0);
 
-			if (!AreEqual(("0"), literalValue))
+			if (!AreEqual("0", literalValue))
 			{
-				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Could not assign a non zero literal to interface [%s]"), name.c_str());
+				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Could not assign a non zero literal to interface [%s]", name.c_str());
 			}
 
 			value.vPtrValue =  interf.UniversalNullInstance()->pVTables;
 		}
 		else if (vType == VARTYPE_Pointer)
 		{
-			if (!AreEqual(("0"), literalValue))
+			if (!AreEqual("0", literalValue))
 			{
-				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Could not assign a non zero literal to pointer [%s]"), name.c_str());
+				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Could not assign a non zero literal to array [%s]", name.c_str());
 			}
 
 			value.vPtrValue = NULL;
+
+
+		}
+		else if (vType == VARTYPE_Array)
+		{
+			if (!AreEqual("0", literalValue))
+			{
+				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Could not assign a non zero literal to array [%s]", name.c_str());
+			}
+
+			value.vPtrValue = NULL;
+
+			UseStackFrameFor(*this, def);
+			if (!def.IsContained)
+			{
+				Assembler().Append_SetStackFrameImmediate(def.SFOffset + def.MemberOffset, value, GetBitCount(vType));
+			}
+			else //ByRef
+			{
+				Assembler().Append_SetRegisterImmediate(VM::REGISTER_D5, value, GetBitCount(vType));
+				Assembler().Append_SetSFMemberByRefFromRegister(VM::REGISTER_D5, def.SFOffset, def.MemberOffset, GetBitCount(vType));
+			}
+			RestoreStackFrameFor(*this, def);
+			return;
 		}
 		else
 		{

@@ -3506,7 +3506,9 @@ namespace Rococo { namespace Script
 		{
 			const IMember& m = child.GetMember(i);
 
-			if (!IsPrimitiveType(m.UnderlyingType()->VarType()))
+			auto type = m.UnderlyingType()->VarType();
+
+			if (!IsPrimitiveType(type) && type != VARTYPE_Array)
 			{
 				if (m.UnderlyingGenericArg1Type())
 				{

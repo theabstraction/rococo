@@ -896,6 +896,19 @@ namespace Rococo
 		   ce.Builder.Assembler().Append_Invoke(callbacks.ArrayClear);
 	   }
 
+	   void CompileAsNullifyArray(CCompileEnvironment& ce, cr_sex s, cstr instanceName)
+	   {
+		   AssertNotTooFewElements(s, 1);
+		   AssertNotTooManyElements(s, 1);
+
+		   ce.Builder.AssignVariableToTemp(instanceName, Rococo::ROOT_TEMPDEPTH, 0); // array goes to D7
+
+		   const ArrayCallbacks& callbacks = GetArrayCallbacks(ce);
+		   ce.Builder.Assembler().Append_Invoke(callbacks.ArrayDelete);
+
+		   ce.Builder.AssignLiteral(NameString::From(instanceName), "0");
+	   }
+
 	   void CompileAsPopOutFromArray(CCompileEnvironment& ce, cr_sex s, cstr instanceName, VARTYPE requiredType)
 	   {
 		   const IStructure& elementType = GetElementTypeForArrayVariable(ce, s, instanceName);
@@ -1042,6 +1055,11 @@ namespace Rococo
 			   CompileAsClearArray(ce, s, instanceName);
 			   return true;
 		   }
+		   else if (AreEqual(methodName, "Null"))
+		   {
+			   CompileAsNullifyArray(ce, s, instanceName);
+			   return true;
+		   }
 		   else if (AreEqual(methodName, "Set"))
 		   {
 			   CompileArraySet(ce, s, instanceName);
@@ -1050,7 +1068,7 @@ namespace Rococo
 		   else
 		   {
 			   char hint[256];
-			   SafeFormat(hint, "Is the desired semantic %s.[Push|Pop|PopOut|Clear|Set]? %s not found.", instanceName, methodName);
+			   SafeFormat(hint, "Is the desired semantic %s.[Push|Pop|PopOut|Clear|Set|Null]? %s not found.", instanceName, methodName);
 			   ce.Object.Log().Write(hint);
 			   return false;
 		   }
