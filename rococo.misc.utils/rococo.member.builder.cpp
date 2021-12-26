@@ -312,20 +312,31 @@ namespace
 			{
 				auto& elementType = *member->UnderlyingGenericArg1Type();
 
-				auto i = arrays.find(arrayName);
-				if (i == arrays.end())
+				ArrayImage* image;
+
+				if (Eq(arrayName, "<null>"))
 				{
-					auto* image = scriptSystem->CreateArrayImage(elementType);
-					i = arrays.insert(arrayName, image).first;
+					image = nullptr;
 				}
 				else
 				{
-					if (i->second->ElementType != &elementType)
+					auto i = arrays.find(arrayName);
+					if (i == arrays.end())
 					{
-						Throw(0, "Cannot load %s. The target member [%s] type %s is not the same as the array type %s", arrayName, member->Name(), member->UnderlyingGenericArg1Type()->Name(), i->second->ElementType->Name());
+						auto* image = scriptSystem->CreateArrayImage(elementType);
+						i = arrays.insert(arrayName, image).first;
+					}
+					else
+					{
+						if (i->second->ElementType != &elementType)
+						{
+							Throw(0, "Cannot load %s. The target member [%s] type %s is not the same as the array type %s", arrayName, member->Name(), member->UnderlyingGenericArg1Type()->Name(), i->second->ElementType->Name());
+						}
+
+						i->second->RefCount++;
 					}
 
-					i->second->RefCount++;
+					image = i->second;
 				}
 
 				uint8* rawMemberData = container.elements[memberIndex].memberDataOffset + writePosition;
@@ -338,7 +349,7 @@ namespace
 					auto* a = *ppA;
 					Throw(0, "Cannot load %s. The target member array [%s] is not null. Overwriting of existing arrays is not permitted.\nThe length was %d and the capacity was %d", arrayName, member->Name(), a->NumberOfElements, a->ElementCapacity);
 				}
-				*ppA = i->second;
+				*ppA = image;
 			}
 		}
 

@@ -277,6 +277,11 @@ struct AssetBuilder
 			startIndex = 2 + type.InterfaceCount();
 		}
 
+		if (IsPrimitiveType(type.VarType()))
+		{
+			Throw(0, "Primitive type cannot be archived directly. To archive a primitive place within a structure and archive the structure");
+		}
+
 		for (int j = startIndex; j < type.MemberCount(); ++j)
 		{
 			auto& member = type.GetMember(j);

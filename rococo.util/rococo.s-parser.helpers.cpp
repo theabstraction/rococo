@@ -1036,13 +1036,16 @@ namespace Rococo
 			char value[256];
 
 			auto* name = member.UnderlyingType()->Name();
-			if (Eq(name, "_Null_Sys_Type_IStringBuilder"))
+			if (Eq(name, "_Null_Sys_Type_IStringBuilder") || (Eq(name, "_Null_Sys_Type_IString")))
 			{
 				TRY_PROTECTED
 				{
+					// In the event that we have an IString, or IString derived interface, such as IStringBuilder
+					// Then we can use the pointer member of string constant to determine the text buffer.
+					// This is guaranteed to work for all implementations of IString, including a null IString;
 					InterfacePointer p = InterfacePointer(sfItem);
-					auto* s = (CClassSysTypeStringBuilder*)(sfItem + (*p)->OffsetToInstance);
-					SafeFormat(value, "%s", s->buffer);
+					auto* s = (CStringConstant*)(sfItem + (*p)->OffsetToInstance);
+					SafeFormat(value, "%s", s->pointer);
 				}
 				CATCH_PROTECTED
 				{
@@ -1192,16 +1195,17 @@ namespace Rococo
 
 			if (array == nullptr)
 			{
-				SafeFormat(name, "%s: null array", childName);
+				SafeFormat(name, "array<> %s: null", childName);
+				auto node = tree->AddChild(parentId, name, CheckState_NoCheckBox);
 				return;
 			}
 			if (array->ElementType->InterfaceCount() > 0)
 			{
-				SafeFormat(name, "%s: array of interfaces of type %s. Size %d", childName, array->ElementType->GetInterface(0).Name(), array->ElementLength);
+				SafeFormat(name, "%s: array of interfaces of type %s (%d bytes each)", childName, array->ElementType->GetInterface(0).Name(), array->ElementLength);
 			}
 			else
 			{
-				SafeFormat(name, "%s: array of objects of type %s. Size %d", childName, GetFriendlyName(*array->ElementType), array->ElementLength);
+				SafeFormat(name, "%s: array of objects of type %s (%d bytes each)s", childName, GetFriendlyName(*array->ElementType), array->ElementLength);
 			}
 			
 			auto node = tree->AddChild(parentId, name, CheckState_NoCheckBox);

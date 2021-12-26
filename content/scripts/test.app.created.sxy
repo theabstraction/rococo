@@ -126,6 +126,87 @@
 	(construct Cat)
 )
 
+(function Validate (Bool isOk) -> :
+	(if (not isOk)
+		(debug)
+	)
+)
+
+(function TestInt32Transfer -> :
+	(Sys.Reflection.SexyAssetFile assetFile = "!scripts/test/asset.sxya")
+
+	(Vec2i v = 6 7)
+	(reflect SaveAsset assetFile v)
+	
+	(Vec2i w)
+	(reflect LoadAsset assetFile w)
+
+	(Validate ((w.x == 6) and (w.y == 7)))
+)
+
+(function TestFloat32Transfer -> :
+	(Sys.Reflection.SexyAssetFile assetFile = "!scripts/test/asset.sxya")
+
+	(Vec2 v = 6 7)
+	(reflect SaveAsset assetFile v)
+	
+	(Vec2 w)
+	(reflect LoadAsset assetFile w)
+
+	(Validate ((w.x == 6) and (w.y == 7)))
+)
+
+(struct Int32Array
+	(array Int32 elements)
+)
+
+(method Int32Array.Construct :
+)
+
+(function TestEmptyArrayTransfer -> :
+	(Sys.Reflection.SexyAssetFile assetFile = "!scripts/test/asset.sxya")
+
+	(Int32Array a)
+	(reflect SaveAsset assetFile a)
+	
+	(Int32Array b)
+	(reflect LoadAsset assetFile b)
+
+	(Int32 length = b.elements.Length)
+	(Validate (length == 0))
+
+	(debug)
+)
+
+(function TestGlobalStateTransfer -> :
+	(Sys.Reflection.SexyAssetFile assetFile = "!scripts/test/asset.sxya")
+	
+	(GlobalState globalState)
+
+	(GlobalStateInit globalState)
+	
+	// save the global state to !scripts/test/asset.sxya
+	(reflect SaveAsset assetFile globalState)
+
+	// load the global state from !scripts/test/asset.sxya
+	(GlobalState copiedState)
+	(reflect LoadAsset assetFile copiedState)
+	
+	(Point p0)
+	(p0 = (copiedState.points 0))
+	
+	(Point p1)
+	(p1	= (copiedState.points 1))
+	
+	(Sys.ICat cat0)
+	(cat0 = (copiedState.cats 0))
+	
+	(Sys.ICat cat1)
+	(cat1 = (copiedState.cats 1))
+	
+	(debug)
+)
+
 (function Main (Int32 id)->(Int32 exitCode):
 	(IInstances instances (Instances))
 	(instances.SetMaterialMacro "!textures/hv/materials/hi-rez/" )
@@ -162,30 +243,8 @@
 	(fonts.SetHeight 28)
 	(fonts.Commit)
 
-	(Sys.Reflection.SexyAssetFile assetFile = "!scripts/test/asset.sxya")
-	
-	(GlobalState globalState)
-
-	(GlobalStateInit globalState)
-	
-	// save the global state to !scripts/test/asset.sxya
-	(reflect SaveAsset assetFile globalState)
-
-	// load the global state from !scripts/test/asset.sxya
-	(GlobalState copiedState)
-	(reflect LoadAsset assetFile copiedState)
-	
-	(Point p0)
-	(p0 = (copiedState.points 0))
-	
-	(Point p1)
-	(p1	= (copiedState.points 1))
-	
-	(Sys.ICat cat0)
-	(cat0 = (copiedState.cats 0))
-	
-	(Sys.ICat cat1)
-	(cat1 = (copiedState.cats 1))
-	
-	(debug)
+	(TestInt32Transfer)
+	(TestFloat32Transfer)
+	(TestEmptyArrayTransfer)
+	(TestGlobalStateTransfer)
 )
