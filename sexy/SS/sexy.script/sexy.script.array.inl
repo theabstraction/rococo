@@ -97,7 +97,7 @@ namespace Rococo
 		   if (capacity == 0)
 		   {
 			   // array.Capacity returns 0 in the case of a null array, so prohibit zero and 
-			   // that function can then be used to tell if an array is non-null.
+			   // thus the Capacity method can then be used to tell if an array is non-null.
 			   Throw(0, "Could not allocate array. Zero capacity");
 		   }
 
@@ -614,8 +614,8 @@ namespace Rococo
 
 		   if (target != nullptr)
 		   {
-			   source->RefCount--;
-			   if (source->RefCount == 0)
+			   target->RefCount--;
+			   if (target->RefCount == 0)
 			   {
 				   ArrayDelete(target, *(IScriptSystem*)context);
 			   }
@@ -904,7 +904,7 @@ namespace Rococo
 		   ce.Builder.AssignVariableToTemp(instanceName, Rococo::ROOT_TEMPDEPTH, 0); // array goes to D7
 
 		   const ArrayCallbacks& callbacks = GetArrayCallbacks(ce);
-		   ce.Builder.Assembler().Append_Invoke(callbacks.ArrayDelete);
+		   ce.Builder.Assembler().Append_Invoke(callbacks.ArrayRelease);
 
 		   ce.Builder.AssignLiteral(NameString::From(instanceName), "0");
 	   }
@@ -1485,7 +1485,7 @@ namespace Rococo
 		   }
 
 		   ce.Builder.AssignVariableToTemp(instanceName, Rococo::ROOT_TEMPDEPTH);
-		   AppendInvoke(ce, GetArrayCallbacks(ce).ArrayDelete, *(const ISExpression*) s.Definition());
+		   AppendInvoke(ce, GetArrayCallbacks(ce).ArrayRelease, *(const ISExpression*) s.Definition());
 	   }
 
 	   void CompileNumericExpression(CCompileEnvironment& ce, cr_sex valueExpr, VARTYPE type)

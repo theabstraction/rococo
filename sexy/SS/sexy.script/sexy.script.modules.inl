@@ -756,7 +756,7 @@ namespace Rococo { namespace Script
 			if (s == ce.StructArray())
 			{
 				ce.Builder.Assembler().Append_GetStackFrameValue(SFoffset, VM::REGISTER_D7, BITCOUNT_POINTER);
-				AppendInvoke(ce, GetArrayCallbacks(ce).ArrayDelete, *(const ISExpression*)s.Definition());
+				AppendInvoke(ce, GetArrayCallbacks(ce).ArrayRelease, *(const ISExpression*)s.Definition());
 				return;
 			}
 
@@ -842,7 +842,7 @@ namespace Rococo { namespace Script
 
 		if (*def.ResolvedType == ce.StructArray())
 		{
-			//CompileArrayDestruct(ce, *def.ResolvedType, instanceName); TODO -> delete this comment
+			CompileArrayDestruct(ce, *def.ResolvedType, instanceName);
 		}
 		else if (*def.ResolvedType == ce.StructMap())
 		{

@@ -1,5 +1,7 @@
 AssetBuilder_TabbedCSV_1.0
-#Object0	Int32Array	!scripts/test.app.created.sxy
-elements	[]
+#Object0	Vec2f	Sys.Maths.sxy
+x	f
+y	f
 #
-<null>
+6.000000
+7.000000

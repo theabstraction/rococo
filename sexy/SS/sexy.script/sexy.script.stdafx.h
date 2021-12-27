@@ -478,7 +478,7 @@ namespace Rococo
 		  ID_API_CALLBACK ArraySet64;
 		  ID_API_CALLBACK ArraySetByRef;
 		  ID_API_CALLBACK ArrayInit;
-          ID_API_CALLBACK ArrayDelete;
+          ID_API_CALLBACK ArrayRelease;
 		  ID_API_CALLBACK ArrayPop;
 		  ID_API_CALLBACK ArrayPopOut32;
 		  ID_API_CALLBACK ArrayPopOut64;

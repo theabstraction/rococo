@@ -2821,13 +2821,18 @@ namespace Rococo
 			}
 			*/
 
+			//AddSymbol(ce.Builder, "%s -> D4", lhsString);
 			ce.Builder.AssignVariableToTemp(lhsString, 0, 0); // D4 has the LHS reference
+
+			//AddSymbol(ce.Builder, "%s -> D5", rhsString);
 			ce.Builder.AssignVariableToTemp(rhsString, 1, 0); // D5 has the RHS reference
+
+			AddSymbol(ce.Builder, "*D5 = *D4. No output");
 			AppendInvoke(ce, GetArrayCallbacks(ce).ArrayAssign, s);
 		
 			UseStackFrameFor(ce.Builder, lhs);
 
-			if (!lhs.IsContained)
+			if (!lhs.IsContained || lhs.Usage == ARGUMENTUSAGE_BYVALUE)
 			{
 				ce.Builder.Assembler().Append_SetStackFrameValue(lhs.SFOffset + lhs.MemberOffset, VM::REGISTER_D5, BITCOUNT_POINTER);
 			}

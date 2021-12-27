@@ -7,12 +7,9 @@
 	(array Int32 elements)
 )
 
-(function NullArray (Int32Array a)-> :
-	(a.elements.Null)
-)
-
 (function Main -> (Int32 result):
-	(Int32Array b)
-	(NullArray b)
-	(result = b.elements.Capacity)
+	(array Int32 a 1)
+//	(Int32Array b)
+//	(b.elements = a)
+//	(result = b.elements.Capacity)
 )

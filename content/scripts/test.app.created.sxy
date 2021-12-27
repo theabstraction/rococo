@@ -164,14 +164,24 @@
 	(Sys.Reflection.SexyAssetFile assetFile = "!scripts/test/asset.sxya")
 
 	(Int32Array a)
-	(reflect SaveAsset assetFile a)
+//	(reflect SaveAsset assetFile a)
 	
 	(Int32Array b)
-	(b.elements.Null)
-	(reflect LoadAsset assetFile b)
+//	(reflect LoadAsset assetFile b)
 
-	(Int32 length = b.elements.Length)
-	(Validate (length == 0))
+	(Int32 length)
+//	(length = b.elements.Length)
+//	(Validate (length == 0))
+	
+	(array Int32 newElements 1)
+	(a.elements = newElements)
+//	(reflect SaveAsset assetFile a)
+
+//	(reflect LoadAsset assetFile b)
+
+//	(length = b.elements.Length)
+//	(Validate (length == 0))
+	
 )
 
 (function TestGlobalStateTransfer -> :
