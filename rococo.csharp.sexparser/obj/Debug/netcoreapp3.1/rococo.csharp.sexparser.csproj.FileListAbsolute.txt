@@ -7,4 +7,3 @@ C:\work\rococo\rococo.csharp.sexparser\obj\Debug\netcoreapp3.1\rococo.csharp.sex
 C:\work\rococo\rococo.csharp.sexparser\obj\Debug\netcoreapp3.1\rococo.csharp.sexparser.csproj.CoreCompileInputs.cache
 C:\work\rococo\rococo.csharp.sexparser\obj\Debug\netcoreapp3.1\rococo.csharp.sexparser.dll
 C:\work\rococo\rococo.csharp.sexparser\obj\Debug\netcoreapp3.1\rococo.csharp.sexparser.pdb
-C:\work\rococo\rococo.csharp.sexparser\obj\Debug\netcoreapp3.1\rococo.csharp.sexparser.csproj.AssemblyReference.cache

@@ -109,6 +109,13 @@ namespace Rococo
 
 	   void ArrayDelete(ArrayImage* a, IScriptSystem& ss)
 	   {
+		   const IStructure& elementType = *a->ElementType;
+
+		   if (RequiresDestruction(elementType))
+		   {
+			   DestroyElements(*a, ss);
+		   }
+
 			// Delete the elements
 			ss.AlignedFree(a->Start);
 
@@ -1477,15 +1484,14 @@ namespace Rococo
 
 	   void CompileArrayDestruct(CCompileEnvironment& ce, const IStructure& s, cstr instanceName)
 	   {
-		   const IStructure& elementType = GetElementTypeForArrayVariable(ce, *(const ISExpression*) s.Definition(), instanceName);
-		   if (RequiresDestruction(elementType))
+		   MemberDef def;
+		   ce.Builder.TryGetVariableByName(def, instanceName);
+
+		   if (!def.IsContained || def.Usage == ARGUMENTUSAGE_BYVALUE)
 		   {
 			   ce.Builder.AssignVariableToTemp(instanceName, Rococo::ROOT_TEMPDEPTH);
-			   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayDestructElements);
+			   AppendInvoke(ce, GetArrayCallbacks(ce).ArrayRelease, *(const ISExpression*)s.Definition());
 		   }
-
-		   ce.Builder.AssignVariableToTemp(instanceName, Rococo::ROOT_TEMPDEPTH);
-		   AppendInvoke(ce, GetArrayCallbacks(ce).ArrayRelease, *(const ISExpression*) s.Definition());
 	   }
 
 	   void CompileNumericExpression(CCompileEnvironment& ce, cr_sex valueExpr, VARTYPE type)

@@ -663,6 +663,16 @@ namespace Rococo
 			}
 		}
 
+		if (Eq(sourceFile, "!Intrinsics!"))
+		{
+			auto* type = po.IntrinsicModule().FindStructure(concreteType);
+			if (!type)
+			{
+				Throw(0, "No object found for %s of \"%s\". Source found, but type unrecognized", concreteType, sourceFile);
+			}
+			return *type;
+		}
+
 		Throw(0, "No universal object found for %s of \"%s\". Source not found", concreteType, sourceFile);
 	}
 

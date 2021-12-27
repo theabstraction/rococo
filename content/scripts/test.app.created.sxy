@@ -54,6 +54,8 @@
 	(gs.points.Push Point ((8 9)(1 0) 0.25((6 5)) false 78))
 
 	(Sys.ICat cat (Sys.NewCat))
+	
+	(debug)
 	(gs.cats.Push cat)
 	(gs.cats.Push cat)
 
@@ -164,23 +166,23 @@
 	(Sys.Reflection.SexyAssetFile assetFile = "!scripts/test/asset.sxya")
 
 	(Int32Array a)
-//	(reflect SaveAsset assetFile a)
+	(reflect SaveAsset assetFile a)
 	
 	(Int32Array b)
-//	(reflect LoadAsset assetFile b)
+	(reflect LoadAsset assetFile b)
 
 	(Int32 length)
-//	(length = b.elements.Length)
-//	(Validate (length == 0))
+	(length = b.elements.Length)
+	(Validate (length == 0))
 	
 	(array Int32 newElements 1)
 	(a.elements = newElements)
-//	(reflect SaveAsset assetFile a)
+	(reflect SaveAsset assetFile a)
 
-//	(reflect LoadAsset assetFile b)
+	(reflect LoadAsset assetFile b)
 
-//	(length = b.elements.Length)
-//	(Validate (length == 0))
+	(length = b.elements.Length)
+	(Validate (length == 0))
 	
 )
 

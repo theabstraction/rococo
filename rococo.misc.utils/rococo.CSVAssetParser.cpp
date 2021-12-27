@@ -384,7 +384,11 @@ struct CSV_Line_by_Line_SexyAssetParser: ICSVLineParser
 				activeMemberIndex = 0;
 				arrayIndex = 0;
 
-				if (!StartsWith(objectType, "_Null_"))
+				if (arrayLength == 0)
+				{
+					state = &CSV_Line_by_Line_SexyAssetParser::OnObjectLine;
+				}
+				else if (!StartsWith(objectType, "_Null_"))
 				{
 					state = &CSV_Line_by_Line_SexyAssetParser::OnArrayMember;
 				}
