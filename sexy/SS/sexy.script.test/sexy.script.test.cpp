@@ -9712,13 +9712,14 @@ R"((namespace EntryPoint)
 		"(using Sys.Type)"
 
 		"(struct Vec4Map (map Int32 Vec4 a))"
-		"(method Vec4Map.Construct -> (construct a () ) : )"
 
 		"(struct Vec4 (Int32 x y z w))"
 		"(method Vec4.Construct (Int32 x) (Int32 y) (Int32 z) -> : (this.x = x) (this.y = y) (this.z = z) (this.w = 1))" 
   
 		"(function Main -> (Int32 result):"
-		"	(Vec4Map m () )"
+		"	(Vec4Map m)"
+		"   (map Int32 Vec4 a)"
+		"	(m.a = a)"
 		"	(m.a.Insert 45 Vec4 (1 2 3))"
 		"	(m.a.Insert 23 Vec4 (5 6 7))"
 		"	(m.a.Insert -6 Vec4 (8 9 10))"
@@ -14731,6 +14732,8 @@ R"(
 		int64 start, end, hz;
 		start = OS::CpuTicks();
 
+		TEST(TestMapInStruct);
+		TEST(TestMap);
 		TEST(TestArrayAssignEmpty);
 		TEST(TestArrayNull);
 

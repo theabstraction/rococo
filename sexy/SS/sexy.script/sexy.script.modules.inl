@@ -1237,10 +1237,6 @@ namespace Rococo { namespace Script
 		{
 			CompileListConstruct(ce, conDef, member, instance);
 		}
-		else if (*member.UnderlyingType() == ce.StructMap())
-		{
-			CompileMapConstruct(ce, conDef, member, instance);
-		}
 		else
 		{
 			CompileInvokeChildConstructor(ce, conDef, member, instance);
@@ -1960,13 +1956,7 @@ namespace Rococo { namespace Script
 				s.AddMember(NameString::From(("_valueType")), TypeString::From(("Pointer")));				
 				s.AddMember(NameString::From(("_nullNode")), TypeString::From(("Pointer")));		
 				s.AddMember(NameString::From(("_head")), TypeString::From(("Pointer")));	
-				s.AddMember(NameString::From(("_tail")), TypeString::From(("Pointer")));	
-				s.AddMember(NameString::From(("_stdVec1")), TypeString::From(("Pointer")));
-				s.AddMember(NameString::From(("_stdVec2")), TypeString::From(("Pointer")));
-				s.AddMember(NameString::From(("_stdVec3")), TypeString::From(("Pointer")));
-				s.AddMember(NameString::From(("_stdVec4")), TypeString::From(("Pointer")));
-				s.AddMember(NameString::From(("_stdVec5")), TypeString::From(("Pointer")));
-				s.AddMember(NameString::From(("_keyResolver")), TypeString::From(("Pointer")));
+				s.AddMember(NameString::From(("_tail")), TypeString::From(("Pointer")));
 
 				ns->Alias(mapName, s);
 			}
@@ -2080,15 +2070,7 @@ namespace Rococo { namespace Script
 			}
 
 			const IStructure* mapNode = programObject.GetModule(0).FindStructure(("_Map"));
-			if (mapNode->SizeOfStruct() < sizeof(MapImage))
-			{
-				Vec2i start, end;
-				start.x = end.x = 0;
-				start.y = end.y = 0;
-				ParseException ex(start, end, "Sexy Script System", "_Map was too small to represent a MapImage. Add a few fake pointers in the _Map definition.", "", NULL);
-				throw ex;
-			}
-
+			
 			programObject.InitCommon();
 
 			struct FnctorValidateConcreteClasses
@@ -3508,7 +3490,7 @@ namespace Rococo { namespace Script
 
 			auto type = m.UnderlyingType()->VarType();
 
-			if (!IsPrimitiveType(type) && type != VARTYPE_Array)
+			if (!IsPrimitiveType(type) && type != VARTYPE_Array && type != VARTYPE_Map)
 			{
 				if (m.UnderlyingGenericArg1Type())
 				{
@@ -4148,6 +4130,70 @@ namespace Rococo { namespace Script
 		}
 
 		return variableDef->ElementType;
+	}
+
+	const IStructure& GetKeyTypeForMapVariable(CCompileEnvironment& ce, cr_sex src, cstr mapName)
+	{
+		NamespaceSplitter splitter(mapName);
+
+		cstr instance, mapMember;
+		if (splitter.SplitTail(instance, mapMember))
+		{
+			const IStructure* s = ce.Builder.GetVarStructure(instance);
+			if (s == NULL)
+			{
+				ThrowTokenNotFound(src, instance, ce.Builder.Owner().Name(), ("variable"));
+			}
+
+			int offset = 0;
+			const IMember* m = FindMember(*s, mapMember, REF offset);
+			if (m == NULL)
+			{
+				ThrowTokenNotFound(src, mapMember, instance, ("member"));
+			}
+
+			return *m->UnderlyingGenericArg1Type();
+		}
+
+		const MapDef* variableDef = ce.Script.GetMapDef(ce.Builder, mapName);
+		if (variableDef == NULL)
+		{
+			ThrowTokenNotFound(src, mapName, ce.Builder.Owner().Name(), ("member"));
+		}
+
+		return variableDef->KeyType;
+	}
+
+	const IStructure& GetValueTypeForMapVariable(CCompileEnvironment& ce, cr_sex src, cstr mapName)
+	{
+		NamespaceSplitter splitter(mapName);
+
+		cstr instance, mapMember;
+		if (splitter.SplitTail(instance, mapMember))
+		{
+			const IStructure* s = ce.Builder.GetVarStructure(instance);
+			if (s == NULL)
+			{
+				ThrowTokenNotFound(src, instance, ce.Builder.Owner().Name(), ("variable"));
+			}
+
+			int offset = 0;
+			const IMember* m = FindMember(*s, mapMember, REF offset);
+			if (m == NULL)
+			{
+				ThrowTokenNotFound(src, mapMember, instance, ("member"));
+			}
+
+			return *m->UnderlyingGenericArg2Type();
+		}
+
+		const MapDef* variableDef = ce.Script.GetMapDef(ce.Builder, mapName);
+		if (variableDef == NULL)
+		{
+			ThrowTokenNotFound(src, mapName, ce.Builder.Owner().Name(), ("member"));
+		}
+
+		return variableDef->ValueType;
 	}
 
 	void AddArrayDef(CScript& script, ICodeBuilder& builder, cstr arrayName, const IStructure& elementType, cr_sex s)

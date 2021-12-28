@@ -909,6 +909,7 @@ namespace Rococo
 			listCallbacks.NodeGoPrevious = core.RegisterCallback(OnInvokeNodeGoPrevious, this, ("NodeGoPrevious"));
 			listCallbacks.NodeGoNext = core.RegisterCallback(OnInvokeNodeGoNext, this, ("NodeGoNext"));
 
+			mapCallbacks.MapAssign = core.RegisterCallback(OnInvokeMapAssign, this, "MapAssign");
 			mapCallbacks.MapClear = core.RegisterCallback(OnInvokeMapClear, this, ("MapClear"));
 			mapCallbacks.NodeEnumNext = core.RegisterCallback(OnInvokeMapNodeEnumNext, this, ("MapNodeEnumNext"));
 			mapCallbacks.MapGetHead = core.RegisterCallback(OnInvokeMapGetHead, this, ("MapGetHead"));

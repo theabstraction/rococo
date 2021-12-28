@@ -288,6 +288,8 @@ namespace Rococo {
 		};
 #pragma pack(pop)
 
+		struct MapImage;
+
 		ROCOCOAPI IPublicScriptSystem : public IFreeable
 		{
 			virtual void AddCommonSource(const char* dynamicLinkLibOfNativeCalls) = 0;

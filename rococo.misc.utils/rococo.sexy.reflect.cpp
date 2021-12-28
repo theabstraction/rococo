@@ -13,6 +13,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include <rococo.sexy.map.expert.h>
+
 using namespace Rococo;
 using namespace Rococo::IO;
 using namespace Rococo::Script;
@@ -107,6 +109,12 @@ namespace
 		int index;
 	};
 
+	struct MapDef
+	{
+		HString mapName;
+		MapImage* image;
+		int index;
+	};
 }
 
 struct AssetBuilder
@@ -120,7 +128,9 @@ struct AssetBuilder
 	std::unordered_map<ObjectStub*, ObjectDef> refToObject;
 	std::vector<ObjectDef> exportQueue;
 	std::unordered_map<ArrayImage*, ArrayDef> refToArray;
+	std::unordered_map<MapImage*, MapDef> refToMap;
 	std::vector<ArrayDef> arrayExportQueue;
+	std::vector<MapDef> mapExportQueue;
 
 	uint32 nextIndex = 1;
 
@@ -239,6 +249,9 @@ struct AssetBuilder
 		case VARTYPE_Array:
 			SaveArrayRef(s, name, type, *(ArrayImage**)pVariable);
 			break;
+		case VARTYPE_Map:
+			SaveMapRef(s, name, type, *(Rococo::Script::MapImage**)pVariable);
+			break;
 		case VARTYPE_Derivative:
 			if (IsNullType(type))
 			{
@@ -331,6 +344,9 @@ struct AssetBuilder
 			case VARTYPE_Array:
 				sb.AppendFormat("[]\n");
 				break;
+			case VARTYPE_Map:
+				sb.AppendFormat("->\n");
+				break;
 			default:
 				Throw(0, "Cannot save unhandled var type values");
 				break;
@@ -365,7 +381,35 @@ struct AssetBuilder
 		}
 
 		sb.AppendFormat("%s\n", arrayName);
-		return;
+	}
+
+	int32 nextMapIndex = 1;
+
+	void SaveMapRef(cr_sex s, cstr name, const IStructure& assetType, MapImage* mapData)
+	{
+		if (!mapData)
+		{
+			sb.AppendFormat("<null>\n");
+			return;
+		}
+
+		char mapName[32];
+		SafeFormat(mapName, "map%d", nextMapIndex++);
+
+		auto i = refToMap.find(mapData);
+		if (i == refToMap.end())
+		{
+			MapDef def;
+			def.index = nextArrayIndex;
+			def.mapName = mapName;
+			def.image = mapData;
+
+			i = refToMap.insert(std::make_pair(mapData, def)).first;
+
+			mapExportQueue.push_back(def);
+		}
+
+		sb.AppendFormat("%s\n", mapName);
 	}
 
 	void SaveNonContainerObject(const IStructure& type, cstr name, const uint8* rawObjectData)
@@ -478,6 +522,44 @@ struct AssetBuilder
 			}
 		}
 	}
+
+	void SaveMap(const MapDef& def)
+	{
+		auto& mapData = *def.image;
+/*
+		auto& elementType = *arrayData.ElementType;
+
+		sb.AppendFormat("%s\t%s\t%s\t%d\t%d\n", def.arrayName.c_str(), elementType.Name(), elementType.Module().Name(), arrayData.NumberOfElements, arrayData.ElementCapacity);
+
+		if (StartsWith(elementType.Name(), "_Null_") || IsPrimitiveType(elementType.VarType()))
+		{
+			// The type is stated in the meta data.
+		}
+		else
+		{
+			SaveMemberTypes(elementType, 0);
+		}
+
+		auto* start = (const uint8*)arrayData.Start;
+
+		auto* readPtr = start;
+
+		for (int i = 0; i < arrayData.NumberOfElements; ++i)
+		{
+			try
+			{
+				sb.AppendFormat("[%d]\n", i);
+				SaveValues(elementType, def.arrayName, readPtr);
+				readPtr += arrayData.ElementLength;
+			}
+			catch (IException& ex)
+			{
+				Throw(ex.ErrorCode(), "Error saving element %d of array<%s of %s> %s:\n%s", i, def.image->ElementType->Name(), def.image->ElementType->Module().Name(), def.arrayName.c_str(), ex.Message());
+			}
+		}
+
+		*/
+	}
 	
 	void SaveQueuedObjects()
 	{
@@ -503,6 +585,16 @@ struct AssetBuilder
 				arrayExportQueue.pop_back();
 
 				SaveArray(def);
+			}
+
+			while (!mapExportQueue.empty())
+			{
+				sb.AppendChar('\n');
+
+				MapDef def = mapExportQueue.back();
+				mapExportQueue.pop_back();
+
+				SaveMap(def);
 			}
 		}
 	}
