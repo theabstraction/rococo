@@ -65,6 +65,7 @@ namespace Rococo::Script
     {
         int32 NumberOfElements;
         int32 reserved;
+        int64 refCount;
         const Rococo::Compiler::IStructure* KeyType;
         const Rococo::Compiler::IStructure* ValueType;
         MapNode* NullNode;

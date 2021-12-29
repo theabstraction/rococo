@@ -910,21 +910,22 @@ namespace Rococo
 			listCallbacks.NodeGoNext = core.RegisterCallback(OnInvokeNodeGoNext, this, ("NodeGoNext"));
 
 			mapCallbacks.MapAssign = core.RegisterCallback(OnInvokeMapAssign, this, "MapAssign");
-			mapCallbacks.MapClear = core.RegisterCallback(OnInvokeMapClear, this, ("MapClear"));
-			mapCallbacks.NodeEnumNext = core.RegisterCallback(OnInvokeMapNodeEnumNext, this, ("MapNodeEnumNext"));
-			mapCallbacks.MapGetHead = core.RegisterCallback(OnInvokeMapGetHead, this, ("MapGetHead"));
-			mapCallbacks.MapInit = core.RegisterCallback(OnInvokeMapInit, this, ("MapInit"));
-			mapCallbacks.MapInsert32 = core.RegisterCallback(OnInvokeMapInsert32, this, ("MapInsert32"));
-			mapCallbacks.MapInsert64 = core.RegisterCallback(OnInvokeMapInsert64, this, ("MapInsert64"));
-			mapCallbacks.MapInsertValueByRef = core.RegisterCallback(OnInvokeMapInsertValueByRef, this, ("MapInsertValueByRef"));
-			mapCallbacks.MapInsertAndGetRef = core.RegisterCallback(OnInvokeMapInsertAndGetRef, this, ("MapInsertAndGetRef"));
-			mapCallbacks.MapInsertInterface = core.RegisterCallback(OnInvokeMapInsertInterface, this, ("MapInsertInterface"));
-			mapCallbacks.MapTryGet = core.RegisterCallback(OnInvokeMapTryGet, this, ("MapTryGet"));
-			mapCallbacks.MapNodeGet32 = core.RegisterCallback(OnInvokeMapNodeGet32, this, ("MapNodeGet32"));
-			mapCallbacks.MapNodeGet64 = core.RegisterCallback(OnInvokeMapNodeGet64, this, ("MapNodeGet64"));
-			mapCallbacks.MapNodeGetRef = core.RegisterCallback(OnInvokeMapNodeGetRef, this, ("MapNodeGetRef"));
-			mapCallbacks.MapNodePop = core.RegisterCallback(OnInvokeMapNodePop, this, ("MapNodePop"));
-			mapCallbacks.MapNodeReleaseRef = core.RegisterCallback(OnInvokeMapNodeReleaseRef, this, ("MapNodeReleaseRef"));
+			mapCallbacks.MapRelease = core.RegisterCallback(OnInvokeMapRelease, this, "MapRelease");
+			mapCallbacks.NodeEnumNext = core.RegisterCallback(OnInvokeMapNodeEnumNext, this, "MapNodeEnumNext");
+			mapCallbacks.MapGetHead = core.RegisterCallback(OnInvokeMapGetHead, this, "MapGetHead");
+			mapCallbacks.MapInit = core.RegisterCallback(OnInvokeMapInit, this, "MapInit");
+			mapCallbacks.MapInsert32 = core.RegisterCallback(OnInvokeMapInsert32, this, "MapInsert32");
+			mapCallbacks.MapInsert64 = core.RegisterCallback(OnInvokeMapInsert64, this, "MapInsert64");
+			mapCallbacks.MapInsertValueByRef = core.RegisterCallback(OnInvokeMapInsertValueByRef, this, "MapInsertValueByRef");
+			mapCallbacks.MapInsertAndGetRef = core.RegisterCallback(OnInvokeMapInsertAndGetRef, this, "MapInsertAndGetRef");
+			mapCallbacks.MapInsertInterface = core.RegisterCallback(OnInvokeMapInsertInterface, this, "MapInsertInterface");
+			mapCallbacks.MapTryGet = core.RegisterCallback(OnInvokeMapTryGet, this, "MapTryGet");
+			mapCallbacks.MapNodeGet32 = core.RegisterCallback(OnInvokeMapNodeGet32, this, "MapNodeGet32");
+			mapCallbacks.MapNodeGet64 = core.RegisterCallback(OnInvokeMapNodeGet64, this, "MapNodeGet64");
+			mapCallbacks.MapNodeGetRef = core.RegisterCallback(OnInvokeMapNodeGetRef, this, "MapNodeGetRef");
+			mapCallbacks.MapNodePop = core.RegisterCallback(OnInvokeMapNodePop, this, "MapNodePop");
+			mapCallbacks.MapNodeReleaseRef = core.RegisterCallback(OnInvokeMapNodeReleaseRef, this, "MapNodeReleaseRef");
+			mapCallbacks.MapGetLength = core.RegisterCallback(OnInvokeMapGetLength, this, "MapGetLength");
 
 			callbacks.idThrowNullRef = core.RegisterCallback(OnInvokeThrowNullRef, this, "ThrowNullRef");
 			callbacks.idTestD4neqD5_retBoolD7 = core.RegisterCallback(OnInvokeTestD4neqD5_retBoolD7, &ProgramObject().VirtualMachine(), "TestD4neqD5_retBoolD7");

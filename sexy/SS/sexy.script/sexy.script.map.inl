@@ -151,11 +151,18 @@ namespace Rococo
             ss.AlignedFree(m);
         }
 
-        VM_CALLBACK(MapClear)
+        VM_CALLBACK(MapRelease)
         {
             IScriptSystem& ss = *(IScriptSystem*)context;
             MapImage* m = (MapImage*)registers[VM::REGISTER_D7].vPtrValue;
-            MapClear(m, ss);
+            if (m)
+            {
+                m->refCount--;
+                if (m->refCount <= 0)
+                {
+                    MapClear(m, ss);
+                }
+            }
         }
 
         VM_CALLBACK(MapGetHead)
@@ -165,6 +172,14 @@ namespace Rococo
             MapNode* head = m->Head;
             if (head != NULL) head->AddRef();
             registers[VM::REGISTER_D7].vPtrValue = head;
+        }
+
+        VM_CALLBACK(MapGetLength)
+        {
+            IScriptSystem& ss = *(IScriptSystem*)context;
+            MapImage* m = (MapImage*)registers[VM::REGISTER_D13].vPtrValue;
+            int32 length = m ? m->NumberOfElements : 0;
+            registers[VM::REGISTER_D7].int32Value = length;
         }
 
         VM_CALLBACK(MapNodeEnumNext)
@@ -511,6 +526,7 @@ namespace Rococo
             m->NullNode = CreateMapNode(m, ss);
             m->NullNode->IsExistant = 0;
             m->Head = m->Tail = NULL;
+            m->refCount = 1;
 
             InitializeNullObjectAtLocation(GetValuePointer(m->NullNode), *m->ValueType);
         }
@@ -665,16 +681,12 @@ namespace Rococo
 
             if (source != nullptr)
             {
-               // source->RefCount++;
+                source->refCount++;
             }
 
             if (target != nullptr)
             {
-               // target->RefCount--;
-               // if (target->RefCount == 0)
-                {
-                    MapClear(target, *(IScriptSystem*)context);
-                }
+                OnInvokeMapRelease(registers, context);
             }
         }
 
@@ -1027,14 +1039,14 @@ namespace Rococo
                 if (valType == VARTYPE_Derivative)
                 {
                     sexstringstream<1024> streamer;
-                    streamer.sb << ("The node is for a map with a derivative value type ") << GetFriendlyName(mnd.mapdef.ValueType) << (", and does not support the Value property") << GetTypeName(returnType);
+                    streamer.sb << "The node is for a map with a derivative value type " << GetFriendlyName(mnd.mapdef.ValueType) << ", and does not support the Value property" << GetTypeName(returnType);
                     Throw(s, streamer);
                 }
 
                 if (returnType != VARTYPE_AnyNumeric && valType != returnType)
                 {
                     sexstringstream<1024> streamer;
-                    streamer.sb << ("The node is for a map with value type ") << GetFriendlyName(mnd.mapdef.ValueType) << (" but the context requires a type ") << GetTypeName(returnType);
+                    streamer.sb << "The node is for a map with value type " << GetFriendlyName(mnd.mapdef.ValueType) << " but the context requires a type " << GetTypeName(returnType);
                     Throw(s, streamer);
                 }
 
@@ -1061,13 +1073,13 @@ namespace Rococo
                     AppendInvoke(ce, ((int)BITCOUNT_POINTER == 32) ? GetMapCallbacks(ce).MapNodeGet32 : GetMapCallbacks(ce).MapNodeGet64, s);
                     break;
                 default:
-                    Throw(s, ("Unexpected type in map invoke"));
+                    Throw(s, "Unexpected type in map invoke");
                     break;
                 }
             }
             else
             {
-                Throw(s, ("The property is not recognized for map node types. Known properties for maps: Exists, Value"));
+                Throw(s, "The property is not recognized for map node types. Known properties for maps: Exists, Value");
             }
 
             return true;
@@ -1108,16 +1120,15 @@ namespace Rococo
 
             const MapDef& mapdef = GetMapDef(ce, s, collectionName);
 
-            ce.Builder.AddSymbol(("(foreach..."));
+            ce.Builder.AddSymbol("(foreach...");
 
             ce.Builder.AddSymbol(collectionName);
             AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 6, Rococo::ROOT_TEMPDEPTH + 6, BITCOUNT_POINTER);
-            ce.Builder.AssignVariableRefToTemp(collectionName, 9, 0);	// Map ref is in D13
+            ce.Builder.AssignVariableToTemp(collectionName, 9, 0);	// Map ref is in D13
+
+            AppendInvoke(ce, GetMapCallbacks(ce).MapGetLength, collection); // MapGetLength takes map ref at D13 and assigns map length to D7
 
             //////////////////////////////////////////////////////// Test map to see if it is empty //////////////////////////////////////////////////////
-            TokenBuffer collectionLength;
-            StringPrint(collectionLength, ("%s._length"), collectionName);
-            ce.Builder.AssignVariableToTemp(collectionLength, Rococo::ROOT_TEMPDEPTH);
             ce.Builder.Assembler().Append_Test(VM::REGISTER_D7, BITCOUNT_32);
             size_t bailoutPos = ce.Builder.Assembler().WritePosition();
             ce.Builder.Assembler().Append_BranchIf(CONDITION_IF_EQUAL, 0);

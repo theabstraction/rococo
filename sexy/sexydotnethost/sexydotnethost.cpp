@@ -15,6 +15,8 @@
 #include "sexydotnethost.h"
 #include "sexy.lib.util.h"
 
+#include <rococo.sexy.map.expert.h>
+
 #include <vector>
 
 namespace Rococo
@@ -640,6 +642,83 @@ namespace SexyDotNet { namespace Host
 
 			
 		}
+
+		void OnMapMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const MapImage* pMap, const uint8* sfItem, int offset, int depth) override
+		{
+			if (depth > 5) return;
+
+			NativeVariableDesc desc;
+			SafeFormat(desc.Name, NativeVariableDesc::NAME_CAPACITY, childName);
+			if (member.UnderlyingGenericArg1Type()->InterfaceCount() > 0)
+			{
+				SafeFormat(desc.Type, NativeVariableDesc::TYPE_CAPACITY, "map %s %s", member.UnderlyingGenericArg1Type()->GetInterface(0).Name(), member.UnderlyingGenericArg2Type()->Name());
+			}
+			else
+			{
+				SafeFormat(desc.Type, NativeVariableDesc::TYPE_CAPACITY, "map %s %s ", member.UnderlyingGenericArg1Type()->Name(), member.UnderlyingGenericArg2Type()->Name());
+			}
+
+			SafeFormat(desc.Value, "0x%p", pMap);
+
+			desc.Address = sfItem;
+
+			desc.Location = parentKind;
+
+			listVars.push_back(desc);
+
+			if (pMap == nullptr)
+			{
+				return;
+			}
+
+			NativeVariableDesc lenDesc;
+			SafeFormat(lenDesc.Name, "NumberOfElements");
+			SafeFormat(lenDesc.Type, "int32");
+			SafeFormat(lenDesc.Value, "0x%d", pMap->NumberOfElements);
+			lenDesc.Address = (const uint8*)&pMap->NumberOfElements;
+			lenDesc.Location = parentKind;
+			listVars.push_back(lenDesc);
+
+			NativeVariableDesc refDesc;
+			SafeFormat(refDesc.Name, "Reference Count");
+			SafeFormat(refDesc.Type, "Int64");
+			SafeFormat(refDesc.Value, "%ld", pMap->refCount);
+			refDesc.Address = (const uint8*)&pMap->refCount;
+			refDesc.Location = parentKind;
+			listVars.push_back(refDesc);
+
+			NativeVariableDesc keyTypeDesc;
+			SafeFormat(keyTypeDesc.Name, "KeyType");
+			SafeFormat(keyTypeDesc.Type, "IStructure");
+			SafeFormat(keyTypeDesc.Value, "%s", GetFriendlyName(*pMap->KeyType));
+			keyTypeDesc.Address = (const uint8*) &pMap->KeyType;
+			keyTypeDesc.Location = parentKind;
+			listVars.push_back(keyTypeDesc);
+
+			NativeVariableDesc valueTypeDesc;
+			SafeFormat(valueTypeDesc.Name, "ValueType");
+			SafeFormat(valueTypeDesc.Type, "IStructure");
+			SafeFormat(valueTypeDesc.Value, "%s", GetFriendlyName(*pMap->ValueType));
+			valueTypeDesc.Address = (const uint8*) &pMap->ValueType;
+			valueTypeDesc.Location = parentKind;
+			listVars.push_back(valueTypeDesc);
+
+			NativeVariableDesc headDesc;
+			SafeFormat(headDesc.Name, "Head");
+			SafeFormat(headDesc.Type, "Int32");
+			SafeFormat(headDesc.Value, "%p", pMap->Head);
+			headDesc.Address = (const uint8*)&pMap->Head;
+			headDesc.Location = parentKind;
+			listVars.push_back(headDesc);
+
+			NativeVariableDesc tailDesc;
+			SafeFormat(tailDesc.Name, "Tail");
+			SafeFormat(tailDesc.Type, "Int32");
+			SafeFormat(tailDesc.Value, "%p", pMap->Tail);
+			tailDesc.Address = (const uint8*)&pMap->Tail;
+			tailDesc.Location = parentKind;
+			listVars.push_back(tailDesc);
+		}
 	};
 
 	List<VariableDesc>^ SexyScriptLanguage::GetElements(String^ variableName, Int32 callDepth)
@@ -688,16 +767,35 @@ namespace SexyDotNet { namespace Host
 				const Rococo::uint8* pInstance = GetInstance(def, pseudoType, SF);
 				if (pInstance != NULL)
 				{
-					size_t subMemberOffset = 0;
-						
-					TVariableList nativeVars;
-					ListVariableDescBuilder builder(nativeVars, vk);
-					GetMembers(ss, s, sxchVariableName, pInstance, 0, builder, 0);
-
-					for(auto i = nativeVars.begin(); i != nativeVars.end(); ++i)
+					if (s.VarType() == VARTYPE_Map)
 					{
-						const NativeVariableDesc& desc = *i;
-						vars->Add(VariableDesc(def.SFOffset, gcnew String(desc.Name), gcnew String(desc.Type), gcnew String(desc.Value), desc.Location, IntPtr((void*)desc.Address)));
+						auto* m = (MapImage*)pInstance;
+						char buffer[32];
+						SafeFormat(buffer, "%d", m->NumberOfElements);
+						vars->Add(VariableDesc(def.SFOffset, gcnew String("NumberOfElements"), gcnew String("Int32"), gcnew String(buffer), VariableKind::Local, IntPtr((void*)m)));
+
+						SafeFormat(buffer, "%ld", m->refCount);
+						vars->Add(VariableDesc(def.SFOffset, gcnew String("Reference Count"), gcnew String("Int64"), gcnew String(buffer), VariableKind::Local, IntPtr((void*)m)));
+
+						SafeFormat(buffer, "%s", GetFriendlyName(*m->KeyType));
+						vars->Add(VariableDesc(def.SFOffset, gcnew String("KeyType"), gcnew String("IStructure"), gcnew String(buffer), VariableKind::Local, IntPtr((void*)m->KeyType)));
+
+						SafeFormat(buffer, "%s", GetFriendlyName(*m->ValueType));
+						vars->Add(VariableDesc(def.SFOffset, gcnew String("ValueType"), gcnew String("IStructure"), gcnew String(buffer), VariableKind::Local, IntPtr((void*)m->ValueType)));
+					}
+					else
+					{
+						size_t subMemberOffset = 0;
+
+						TVariableList nativeVars;
+						ListVariableDescBuilder builder(nativeVars, vk);
+						GetMembers(ss, s, sxchVariableName, pInstance, 0, builder, 0);
+
+						for (auto i = nativeVars.begin(); i != nativeVars.end(); ++i)
+						{
+							const NativeVariableDesc& desc = *i;
+							vars->Add(VariableDesc(def.SFOffset, gcnew String(desc.Name), gcnew String(desc.Type), gcnew String(desc.Value), desc.Location, IntPtr((void*)desc.Address)));
+						}
 					}
 				}
 			}

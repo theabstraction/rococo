@@ -749,7 +749,7 @@ namespace Rococo { namespace Script
 			if (s == ce.StructMap())
 			{
 				ce.Builder.Assembler().Append_GetStackFrameAddress(VM::REGISTER_D7, SFoffset);
-				AppendInvoke(ce, GetMapCallbacks(ce).MapClear,  *(const ISExpression*) s.Definition());
+				AppendInvoke(ce, GetMapCallbacks(ce).MapRelease,  *(const ISExpression*) s.Definition());
 				return;
 			}
 
@@ -812,7 +812,7 @@ namespace Rococo { namespace Script
 		else if (s == ce.StructMap())
 		{
 			ce.Builder.AssignVariableRefToTemp(instanceName, Rococo::ROOT_TEMPDEPTH);
-			AppendInvoke(ce, GetMapCallbacks(ce).MapClear, sequence);
+			AppendInvoke(ce, GetMapCallbacks(ce).MapRelease, sequence);
 			return;
 		}
 		else if (AreEqual(s.Name(), "_Lock") && AreEqual(instanceName, "_array", 6))

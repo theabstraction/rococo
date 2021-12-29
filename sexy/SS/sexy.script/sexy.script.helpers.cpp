@@ -887,6 +887,11 @@ namespace Rococo
 					   const ArrayImage* a = *(const ArrayImage**)(instance + suboffset);
 					   enumCallback.OnArrayMember(ss, childName, member, a, instance + suboffset, (int)suboffset, recurseDepth + 1);
 				   }
+				   else if (member.UnderlyingType() && member.UnderlyingType()->VarType() == VARTYPE_Map)
+				   {
+					   const MapImage* a = *(const MapImage**)(instance + suboffset);
+					   enumCallback.OnMapMember(ss, childName, member, a, instance + suboffset, (int)suboffset, recurseDepth + 1);
+				   }
 				   else
 				   {
 					   enumCallback.OnMember(ss, childName, member, instance + suboffset, (int) suboffset, recurseDepth + 1);

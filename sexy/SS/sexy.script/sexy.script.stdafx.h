@@ -541,7 +541,7 @@ namespace Rococo
          ID_API_CALLBACK MapInsertValueByRef;
 		 ID_API_CALLBACK MapInsertInterface;
          ID_API_CALLBACK MapInsertAndGetRef;
-         ID_API_CALLBACK MapClear;
+         ID_API_CALLBACK MapRelease;
          ID_API_CALLBACK MapTryGet;
          ID_API_CALLBACK MapNodeGet32;
          ID_API_CALLBACK MapNodeGet64;
@@ -550,6 +550,7 @@ namespace Rococo
          ID_API_CALLBACK MapGetHead;
          ID_API_CALLBACK NodeEnumNext;
          ID_API_CALLBACK MapNodeReleaseRef;
+         ID_API_CALLBACK MapGetLength;
       };
 
       const ArrayCallbacks& GetArrayCallbacks(CCompileEnvironment& ce);

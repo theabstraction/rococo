@@ -417,7 +417,8 @@ namespace Rococo {
 
 		ROCOCOAPI MemberEnumeratorCallback
 		{
-			virtual void OnArrayMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const struct ArrayImage* array, const uint8* sfItem, int offset, int recurseDepth) = 0;
+			virtual void OnMapMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const MapImage* array, const uint8* sfItem, int offset, int recurseDepth) = 0;
+			virtual void OnArrayMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const ArrayImage* array, const uint8* sfItem, int offset, int recurseDepth) = 0;
 			virtual void OnMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const uint8* sfItem, int offset, int recurseDepth) = 0;
 		};
 
