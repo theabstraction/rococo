@@ -33,6 +33,8 @@
 
 namespace Rococo::Script
 {
+	void ReleaseMap(MapImage* m, IScriptSystem& ss);
+
 	struct ContainerLock
 	{
 		uint8* ContainerPtr;
@@ -212,8 +214,8 @@ namespace Rococo::Script
 			}
 			else if (type.VarType() == VARTYPE_Map)
 			{
-				MapImage* m = (MapImage*)instance;
-				MapClear(m, ss);
+				MapImage* m = *(MapImage**)instance;
+				ReleaseMap(m, ss);
 			}
 			else if (AreEqual(type.Name(), ("_MapNode")))
 			{

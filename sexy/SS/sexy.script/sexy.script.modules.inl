@@ -561,7 +561,7 @@ namespace Rococo { namespace Script
 		for(int i = 0; i < type->MemberCount(); ++i)
 		{
 			const IMember& m = type->GetMember(i);
-			if (m.UnderlyingGenericArg1Type() != NULL && m.UnderlyingType()->VarType() != VARTYPE_Array) 
+			if (m.UnderlyingGenericArg1Type() != NULL && m.UnderlyingType()->VarType() != VARTYPE_Array && m.UnderlyingType()->VarType() != VARTYPE_Map)
 			{
 				// Lists and maps need to be constructed
 				ValidateChildConstructorExists(startPos, endPos, constructorDef, m);
@@ -748,7 +748,7 @@ namespace Rococo { namespace Script
 
 			if (s == ce.StructMap())
 			{
-				ce.Builder.Assembler().Append_GetStackFrameAddress(VM::REGISTER_D7, SFoffset);
+				ce.Builder.Assembler().Append_GetStackFrameValue(SFoffset, VM::REGISTER_D7, BITCOUNT_POINTER);
 				AppendInvoke(ce, GetMapCallbacks(ce).MapRelease,  *(const ISExpression*) s.Definition());
 				return;
 			}
@@ -811,7 +811,7 @@ namespace Rococo { namespace Script
 		}
 		else if (s == ce.StructMap())
 		{
-			ce.Builder.AssignVariableRefToTemp(instanceName, Rococo::ROOT_TEMPDEPTH);
+			ce.Builder.AssignVariableToTemp(instanceName, Rococo::ROOT_TEMPDEPTH);
 			AppendInvoke(ce, GetMapCallbacks(ce).MapRelease, sequence);
 			return;
 		}
@@ -1950,13 +1950,7 @@ namespace Rococo { namespace Script
 
 				IStructureBuilder& s = module.DeclareStructure(mapName, prototype, NULL);
 
-				s.AddMember(NameString::From(("_length")), TypeString::From(("Int32")));
-				s.AddMember(NameString::From(("_reserved")), TypeString::From(("Int32")));
-				s.AddMember(NameString::From(("_keyType")), TypeString::From(("Pointer")));
-				s.AddMember(NameString::From(("_valueType")), TypeString::From(("Pointer")));				
-				s.AddMember(NameString::From(("_nullNode")), TypeString::From(("Pointer")));		
-				s.AddMember(NameString::From(("_head")), TypeString::From(("Pointer")));	
-				s.AddMember(NameString::From(("_tail")), TypeString::From(("Pointer")));
+				s.AddMember(NameString::From(("_mapImage")), TypeString::From(("Pointer")));
 
 				ns->Alias(mapName, s);
 			}

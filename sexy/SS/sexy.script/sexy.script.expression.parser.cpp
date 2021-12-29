@@ -2193,6 +2193,10 @@ namespace Rococo
 				{
 					NoteDestructorPositions(ce, *def.ResolvedType, def.SFOffset);
 				}
+				else if (def.Usage == ARGUMENTUSAGE_BYREFERENCE && def.ResolvedType->VarType() == VARTYPE_Map)
+				{
+					NoteDestructorPositions(ce, *def.ResolvedType, def.SFOffset);
+				}
 			}
 		}
 

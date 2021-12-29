@@ -37,6 +37,9 @@ namespace Rococo
 {
     namespace Script
     {
+        bool HasClassMembers(const IStructure& s);
+        void InitSubmembers(CCompileEnvironment& ce, const IStructure& s, int sfMemberOffset);
+
         inline TMapNodes& GetRow(int hashcode, MapImage& img)
         {
             int32 i = (hashcode & 0x7FFFFFFF) % img.rows.size();
@@ -99,7 +102,7 @@ namespace Rococo
             if (n->IsExistant)
             {
             //   DestroyObject(*n->Container->KeyType, (uint8*)GetKeyPointer(n), ss);
-            DestroyObject(*n->Container->ValueType, (uint8*)GetValuePointer(n), ss);
+                DestroyObject(*n->Container->ValueType, (uint8*)GetValuePointer(n), ss);
             }
             ss.AlignedFree(n);
         }
@@ -151,10 +154,8 @@ namespace Rococo
             ss.AlignedFree(m);
         }
 
-        VM_CALLBACK(MapRelease)
+        void ReleaseMap(MapImage* m, IScriptSystem& ss)
         {
-            IScriptSystem& ss = *(IScriptSystem*)context;
-            MapImage* m = (MapImage*)registers[VM::REGISTER_D7].vPtrValue;
             if (m)
             {
                 m->refCount--;
@@ -163,6 +164,13 @@ namespace Rococo
                     MapClear(m, ss);
                 }
             }
+        }
+
+        VM_CALLBACK(MapRelease)
+        {
+            IScriptSystem& ss = *(IScriptSystem*)context;
+            MapImage* m = (MapImage*)registers[VM::REGISTER_D7].vPtrValue;
+            ReleaseMap(m, ss);
         }
 
         VM_CALLBACK(MapGetHead)
@@ -546,6 +554,7 @@ namespace Rococo
             if (m == nullptr)
             {
                 ss.ThrowFromNativeCode(0, "Insert failed. Map was null");
+                return;
             }
             MapNode* n = InsertKey(*m, registers[VM::REGISTER_D8], ss);
             int32 value = registers[VM::REGISTER_D7].int32Value;
@@ -559,6 +568,7 @@ namespace Rococo
             if (m == nullptr)
             {
                 ss.ThrowFromNativeCode(0, "Insert failed. Map was null");
+                return;
             }
             MapNode* n = InsertKey(*m, registers[VM::REGISTER_D8], ss);
             int64 value = registers[VM::REGISTER_D7].int64Value;
@@ -572,6 +582,7 @@ namespace Rococo
             if (m == nullptr)
             {
                 ss.ThrowFromNativeCode(0, "Insert failed. Map was null");
+                return;
             }
 		    MapNode* n = InsertKey(*m, registers[VM::REGISTER_D8], ss);
 		    InterfacePointer value = (InterfacePointer) registers[VM::REGISTER_D7].vPtrValue;
@@ -586,6 +597,7 @@ namespace Rococo
             if (m == nullptr)
             {
                 ss.ThrowFromNativeCode(0, "Insert failed. Map was null");
+                return;
             }
             MapNode* n = InsertKey(*m, registers[VM::REGISTER_D8], ss);
             const void* valueSrc = registers[VM::REGISTER_D7].vPtrValue;
@@ -599,6 +611,7 @@ namespace Rococo
             if (m == nullptr)
             {
                 ss.ThrowFromNativeCode(0, "Insert failed. Map was null");
+                return;
             }
             MapNode* n = InsertKey(*m, registers[VM::REGISTER_D8], ss);
             registers[VM::REGISTER_D7].vPtrValue = GetValuePointer(n);
@@ -611,6 +624,7 @@ namespace Rococo
             {
                 IScriptSystem& ss = *(IScriptSystem*)context;
                 ss.ThrowFromNativeCode(0, "TryGet failed. Map was null");
+                return;
             }
             MapNode* node = static_cast<IKeyResolver&>(m->KeyResolver).FindItem(registers[VM::REGISTER_D8], *m);
             node->AddRef();
@@ -636,6 +650,7 @@ namespace Rococo
             if (m == nullptr)
             {
                 ss.ThrowFromNativeCode(0, "Map Node-Get failed. Map was null");
+                return;
             }
             registers[VM::REGISTER_D7].int64Value = *(int64*)GetValuePointer(m);
             if (!m->IsExistant) ss.ThrowFromNativeCode(-1, ("MapNodeGet64 failed. The node did not represent an entry in the map"));
@@ -648,9 +663,16 @@ namespace Rococo
             if (m == nullptr)
             {
                 ss.ThrowFromNativeCode(0, "Map Node-Get failed. Map was null");
+                return;
             }
+
             registers[VM::REGISTER_D7].vPtrValue = GetValuePointer(m);
-            if (!m->IsExistant) ss.ThrowFromNativeCode(-1, ("MapNodeGetRef failed. The node did not represent an entry in the map"));
+
+            if (!m->IsExistant)
+            {
+                ss.ThrowFromNativeCode(-1, ("MapNodeGetRef failed. The node did not represent an entry in the map"));
+                return;
+            }
         }
 
         VM_CALLBACK(MapNodePop)
@@ -660,8 +682,15 @@ namespace Rococo
             if (m == nullptr)
             {
                 ss.ThrowFromNativeCode(0, "Map Node-Pop failed. Map was null");
+                return;
             }
-            if (!m->IsExistant) ss.ThrowFromNativeCode(-1, ("MapNodePop failed. The node did not represent an entry in the map"));
+
+            if (!m->IsExistant)
+            {
+                ss.ThrowFromNativeCode(-1, ("MapNodePop failed. The node did not represent an entry in the map"));
+                return;
+            }
+
             else static_cast<IKeyResolver&>(m->Container->KeyResolver).Delete(m, ss);
         }
 
@@ -700,47 +729,56 @@ namespace Rococo
         {
             if (def.KeyType == ce.Object.Common().SysTypeIString().NullObjectType())
             {
-            if (!TryCompileStringLiteralInputToTemp(ce, keyExpr, Rococo::ROOT_TEMPDEPTH + 1, ce.Object.Common().SysTypeIString().NullObjectType())) // key ptr goes to D8
-            {
-                Throw(keyExpr, ("Expecting string literal as key"));
-            }
+                if (!TryCompileStringLiteralInputToTemp(ce, keyExpr, Rococo::ROOT_TEMPDEPTH + 1, ce.Object.Common().SysTypeIString().NullObjectType())) // key ptr goes to D8
+                {
+                    Throw(keyExpr, ("Expecting string literal as key"));
+                }
             }
             else
             {
-            VARTYPE keyVarType = def.KeyType.VarType();
-            if (IsPrimitiveType(keyVarType))
-            {
-			    if (IsAtomic(keyExpr))
-			    {
-				    cstr svalue = keyExpr.String()->Buffer;
-				    if (svalue[0] == '-' || isdigit(svalue[0]))
-				    {
-					    VariantValue value;
-					    if (Parse::TryParse(OUT value, keyVarType, svalue) == Parse::PARSERESULT_GOOD)
-					    {
-						    ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4 + tempIndex, value, GetBitCount(keyVarType));
-						    return;
-					    }
-				    }
-			    }
+                VARTYPE keyVarType = def.KeyType.VarType();
+                if (IsPrimitiveType(keyVarType))
+                {
+			        if (IsAtomic(keyExpr))
+			        {
+				        cstr svalue = keyExpr.String()->Buffer;
+				        if (svalue[0] == '-' || isdigit(svalue[0]))
+				        {
+					        VariantValue value;
+					        if (Parse::TryParse(OUT value, keyVarType, svalue) == Parse::PARSERESULT_GOOD)
+					        {
+						        ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4 + tempIndex, value, GetBitCount(keyVarType));
+						        return;
+					        }
+				        }
+			        }
 
-                CompileNumericExpression(ce, keyExpr, keyVarType); // D7 now contains the key
-                ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D4 + tempIndex, GetBitCount(keyVarType));
-            }
-            else
-            {
-                Throw(keyExpr, ("Expecting IString or numeric as key"));
-            }
+                    CompileNumericExpression(ce, keyExpr, keyVarType); // D7 now contains the key
+                    ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D4 + tempIndex, GetBitCount(keyVarType));
+                }
+                else
+                {
+                    Throw(keyExpr, ("Expecting IString or numeric as key"));
+                }
             }
         }
 
         void ConstructExplicitByRef(CCompileEnvironment& ce, cr_sex args, int tempDepth, const IStructure& type)
         {
+            // The space has been allocated on the map and the reference is in REGISTER_(tempDepth + D4)
+
             const IFunction& constructor = *type.Constructor();
+
+            if (type.VarType() == VARTYPE_Derivative && type.MemberCount() > 0)
+            {
+                ce.Builder.Assembler().Append_SwapRegister(VM::REGISTER_D4 + tempDepth, VM::REGISTER_SF);
+                InitSubmembers(ce, type, 0);
+                ce.Builder.Assembler().Append_SwapRegister(VM::REGISTER_D4 + tempDepth, VM::REGISTER_SF);
+            }
 
             int inputStackAllocCount = 0;
             inputStackAllocCount = PushInputs(ce, args, constructor, true, 0);
-            inputStackAllocCount += CompileInstancePointerArgFromTemp(ce, Rococo::ROOT_TEMPDEPTH);
+            inputStackAllocCount += CompileInstancePointerArgFromTemp(ce, tempDepth);
 
             AppendFunctionCallAssembly(ce, constructor);
 
@@ -754,10 +792,10 @@ namespace Rococo
         {
             if (args.NumberOfElements() != type.MemberCount())
             {
-            sexstringstream<1024> streamer;
-            streamer.sb << ("The number of arguments supplied in the memberwise constructor is ") << args.NumberOfElements()
-                << (", while the number of members in ") << GetFriendlyName(type) << (" is ") << type.MemberCount();
-            Throw(args, streamer);
+                sexstringstream<1024> streamer;
+                streamer.sb << ("The number of arguments supplied in the memberwise constructor is ") << args.NumberOfElements()
+                    << (", while the number of members in ") << GetFriendlyName(type) << (" is ") << type.MemberCount();
+                Throw(args, streamer);
             }
 
             AddArchiveRegister(ce, 6, 6, BITCOUNT_POINTER); // save D10
@@ -773,11 +811,11 @@ namespace Rococo
             const IFunction* constructor = type.Constructor();
             if (constructor != NULL)
             {
-            ConstructExplicitByRef(ce, args, tempDepth, type);
+                 ConstructExplicitByRef(ce, args, tempDepth, type);
             }
             else
             {
-            ConstructMemberwiseByRef(ce, args, tempDepth, type);
+                ConstructMemberwiseByRef(ce, args, tempDepth, type);
             }
         }
 
@@ -997,92 +1035,83 @@ namespace Rococo
         {
             if (instanceStruct == ce.StructMap())
             {
-            if (!IsAtomic(s) && s.NumberOfElements() != 1) return false;
+                if (!IsAtomic(s) && s.NumberOfElements() != 1) return false;
 
-            TokenBuffer field;
-            if (AreEqual(("Length"), methodName))
-            {
-                StringPrint(field, ("%s._length"), instance);
-                ValidateReturnType(s, returnType, VARTYPE_Int32);
-                outputType = VARTYPE_Int32;
-            }
-            else
-            {
-                Throw(s, ("The property is not recognized for map types. Known properties for maps: Length"));
-            }
-
-            ce.Builder.AddSymbol(field);
-            ce.Builder.AssignVariableToTemp(field, Rococo::ROOT_TEMPDEPTH, 0);
-            return true;
+                ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D13, BITCOUNT_POINTER);
+                AddSymbol(ce.Builder, "%s -> D13", instance);
+                ce.Builder.AssignVariableToTemp(instance, 9, 0); // Reference to the map goes to D13
+                AppendInvoke(ce, GetMapCallbacks(ce).MapGetLength, s);
+                ce.Builder.Assembler().Append_RestoreRegister(VM::REGISTER_D13, BITCOUNT_POINTER);
+                return true;
             }
             else if (instanceStruct == ce.Object.Common().TypeMapNode())
             {
-            const MapNodeDef& mnd = GetMapNodeDef(ce, s, instance);
+                const MapNodeDef& mnd = GetMapNodeDef(ce, s, instance);
 
-            if (!IsAtomic(s) && s.NumberOfElements() != 1) return false;
+                if (!IsAtomic(s) && s.NumberOfElements() != 1) return false;
 
-            TokenBuffer field;
-            if (AreEqual("Exists", methodName))
-            {
-                StringPrint(field, ("%s._exists"), instance);
-                ValidateReturnType(s, returnType, VARTYPE_Bool);
-                ce.Builder.AddSymbol(field);
-                ce.Builder.AssignVariableToTemp(field, Rococo::ROOT_TEMPDEPTH, 0);
-                outputType = VARTYPE_Bool;
-            }
-            else if (AreEqual(("Value"), methodName))
-            {
-                ce.Builder.AssignVariableRefToTemp(instance, Rococo::ROOT_TEMPDEPTH, 0); // node goes to D7
-
-                VARTYPE valType = mnd.mapdef.ValueType.VarType();
-
-                if (valType == VARTYPE_Derivative)
+                TokenBuffer field;
+                if (AreEqual("Exists", methodName))
                 {
-                    sexstringstream<1024> streamer;
-                    streamer.sb << "The node is for a map with a derivative value type " << GetFriendlyName(mnd.mapdef.ValueType) << ", and does not support the Value property" << GetTypeName(returnType);
-                    Throw(s, streamer);
+                    StringPrint(field, "%s._exists", instance);
+                    ValidateReturnType(s, returnType, VARTYPE_Bool);
+                    ce.Builder.AddSymbol(field);
+                    ce.Builder.AssignVariableToTemp(field, Rococo::ROOT_TEMPDEPTH, 0);
+                    outputType = VARTYPE_Bool;
+                }
+                else if (AreEqual("Value", methodName))
+                {
+                    ce.Builder.AssignVariableRefToTemp(instance, Rococo::ROOT_TEMPDEPTH, 0); // node goes to D7
+
+                    VARTYPE valType = mnd.mapdef.ValueType.VarType();
+
+                    if (valType == VARTYPE_Derivative)
+                    {
+                        sexstringstream<1024> streamer;
+                        streamer.sb << "The node is for a map with a derivative value type " << GetFriendlyName(mnd.mapdef.ValueType) << ", and does not support the Value property" << GetTypeName(returnType);
+                        Throw(s, streamer);
+                    }
+
+                    if (returnType != VARTYPE_AnyNumeric && valType != returnType)
+                    {
+                        sexstringstream<1024> streamer;
+                        streamer.sb << "The node is for a map with value type " << GetFriendlyName(mnd.mapdef.ValueType) << " but the context requires a type " << GetTypeName(returnType);
+                        Throw(s, streamer);
+                    }
+
+                    if (returnType == VARTYPE_AnyNumeric)
+                    {
+                        returnType = valType;
+                    }
+
+                    outputType = valType;
+
+                    switch (returnType)
+                    {
+                    case VARTYPE_Bool:
+                    case VARTYPE_Int32:
+                    case VARTYPE_Float32:
+                        AppendInvoke(ce, GetMapCallbacks(ce).MapNodeGet32, s);
+                        break;
+                    case VARTYPE_Int64:
+                    case VARTYPE_Float64:
+                    case VARTYPE_Closure:
+                        AppendInvoke(ce, GetMapCallbacks(ce).MapNodeGet64, s);
+                        break;
+                    case VARTYPE_Pointer:
+                        AppendInvoke(ce, ((int)BITCOUNT_POINTER == 32) ? GetMapCallbacks(ce).MapNodeGet32 : GetMapCallbacks(ce).MapNodeGet64, s);
+                        break;
+                    default:
+                        Throw(s, "Unexpected type in map invoke");
+                        break;
+                    }
+                }
+                else
+                {
+                    Throw(s, "The property is not recognized for map node types. Known properties for maps: Exists, Value");
                 }
 
-                if (returnType != VARTYPE_AnyNumeric && valType != returnType)
-                {
-                    sexstringstream<1024> streamer;
-                    streamer.sb << "The node is for a map with value type " << GetFriendlyName(mnd.mapdef.ValueType) << " but the context requires a type " << GetTypeName(returnType);
-                    Throw(s, streamer);
-                }
-
-                if (returnType == VARTYPE_AnyNumeric)
-                {
-                    returnType = valType;
-                }
-
-                outputType = valType;
-
-                switch (returnType)
-                {
-                case VARTYPE_Bool:
-                case VARTYPE_Int32:
-                case VARTYPE_Float32:
-                    AppendInvoke(ce, GetMapCallbacks(ce).MapNodeGet32, s);
-                    break;
-                case VARTYPE_Int64:
-                case VARTYPE_Float64:
-                case VARTYPE_Closure:
-                    AppendInvoke(ce, GetMapCallbacks(ce).MapNodeGet64, s);
-                    break;
-                case VARTYPE_Pointer:
-                    AppendInvoke(ce, ((int)BITCOUNT_POINTER == 32) ? GetMapCallbacks(ce).MapNodeGet32 : GetMapCallbacks(ce).MapNodeGet64, s);
-                    break;
-                default:
-                    Throw(s, "Unexpected type in map invoke");
-                    break;
-                }
-            }
-            else
-            {
-                Throw(s, "The property is not recognized for map node types. Known properties for maps: Exists, Value");
-            }
-
-            return true;
+                return true;
             }
 
             return false;
