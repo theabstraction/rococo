@@ -25,6 +25,8 @@
 #include <rococo.sexy.api.h>
 #include <rococo.package.h>
 
+#include <rococo.sexy.map.expert.h>
+
 #ifdef _WIN32
 # include <malloc.h>
 # include <excpt.h>
@@ -1187,28 +1189,58 @@ namespace Rococo
 			}
 		}
 
+		void OnMapMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const MapImage* m, const uint8* sfItem, int offset, int recurseDepth) override
+		{
+			index++;
+
+			char name[256];
+
+			if (!m)
+			{
+				SafeFormat(name, "map<%s to %s> %s: null", GetFriendlyName(*member.UnderlyingGenericArg1Type()), GetFriendlyName(*member.UnderlyingGenericArg2Type()), childName);
+			}
+			else
+			{
+				SafeFormat(name, "map<%s to %s> %s", GetFriendlyName(*member.UnderlyingGenericArg1Type()), GetFriendlyName(*member.UnderlyingGenericArg2Type()), childName);
+			}
+
+			auto node = tree->AddChild(parentId, name, CheckState_NoCheckBox);
+
+			if (!m)
+			{
+				return;
+			}
+
+			char metrics[256];
+			SafeFormat(metrics, "%d entries", m->NumberOfElements);
+			tree->AddChild(node, metrics, CheckState_NoCheckBox);
+
+			char refCount[256];
+			SafeFormat(refCount, "%d references", m->refCount);
+			tree->AddChild(node, refCount, CheckState_NoCheckBox);
+		}
+
 		void OnArrayMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const struct ArrayImage* array, const uint8* sfItem, int offset, int recurseDepth) override
 		{
 			index++;
 
 			char name[256];
 
-			if (array == nullptr)
+			if (!array)
 			{
-				SafeFormat(name, "array<> %s: null", childName);
-				auto node = tree->AddChild(parentId, name, CheckState_NoCheckBox);
-				return;
-			}
-			if (array->ElementType->InterfaceCount() > 0)
-			{
-				SafeFormat(name, "%s: array of interfaces of type %s (%d bytes each)", childName, array->ElementType->GetInterface(0).Name(), array->ElementLength);
+				SafeFormat(name, "array<%s> %s: null", GetFriendlyName(*member.UnderlyingGenericArg1Type()), childName);
 			}
 			else
 			{
-				SafeFormat(name, "%s: array of objects of type %s (%d bytes each)s", childName, GetFriendlyName(*array->ElementType), array->ElementLength);
+				SafeFormat(name, "array<%s> %s", GetFriendlyName(*member.UnderlyingGenericArg1Type()), childName);
 			}
 			
 			auto node = tree->AddChild(parentId, name, CheckState_NoCheckBox);
+
+			if (!array)
+			{
+				return;
+			}
 
 			char metrics[256];
 			SafeFormat(metrics, "%d of %d elements", array->NumberOfElements, array->ElementCapacity);
