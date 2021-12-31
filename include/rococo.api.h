@@ -31,7 +31,7 @@ namespace Rococo
 		float BinaryToFloat(uint32 binaryRepresentation);
 		double BinaryToDouble(uint64 binaryRepresentation);
 		uint32 FloatToBinary(float f);
-		uint64 BinaryToDouble(double d);
+		uint64 DoubleToBinary(double d);
 	}
 
 	struct Quat;

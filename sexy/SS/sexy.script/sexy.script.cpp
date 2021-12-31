@@ -1008,6 +1008,11 @@ namespace Rococo
 			return Rococo::Script::CreateArrayImage(*this, elementType, 0);
 		}
 
+		MapImage* CreateMapImage(const IStructure& keyType, const IStructure& valueType) override
+		{
+			return Rococo::Script::CreateMapImage(*this, keyType, valueType);
+		}
+
 		InterfacePointer GetUniversalNullObject(cstr instanceType, cstr instanceSource) override
 		{
 			if (!StartsWith(instanceType, "_Null"))

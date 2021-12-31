@@ -35,6 +35,7 @@ namespace Rococo::Sexy
 		virtual void AddTypeI64(int32 memberDepth, cstr memberName) = 0;
 		virtual void AddTypeBool(int32 memberDepth, cstr memberName) = 0;
 		virtual void AddTypeArrayRef(int32 memberDepth, cstr memberName) = 0;
+		virtual void AddTypeMapRef(int32 memberDepth, cstr memberName) = 0;
 
 		virtual void AddF32ItemValue(int itemIndex, float value) = 0;
 		virtual void AddF64ItemValue(int itemIndex, double value) = 0;
@@ -43,6 +44,7 @@ namespace Rococo::Sexy
 		virtual void AddBoolItemValue(int itemIndex, bool value) = 0;
 		virtual void AddArrayRefValue(int itemIndex, cstr arrayName) = 0;
 		virtual void AddObjectRefValue(int itemIndex, cstr objectName) = 0;
+		virtual void AddMapRefValue(int itemIndex, cstr mapName) = 0;
 
 		virtual void AddNullObject(cstr objectNameRef, cstr nullType, cstr nullTypeModule) = 0;
 

@@ -76,6 +76,11 @@ struct CSV_Line_by_Line_SexyAssetParser: ICSVLineParser
 			memberTypes.push_back(VARTYPE_Array);
 			builder.AddTypeArrayRef(memberDepth, name);
 		}
+		else if (Eq(token, "->"))
+		{
+			memberTypes.push_back(VARTYPE_Map);
+			builder.AddTypeMapRef(memberDepth, name);
+		}
 		else
 		{
 			return false;
@@ -247,6 +252,9 @@ struct CSV_Line_by_Line_SexyAssetParser: ICSVLineParser
 				break;
 			case VARTYPE_Derivative:
 				builder.AddObjectRefValue(activeMemberIndex, token);
+				break;
+			case VARTYPE_Map:
+				builder.AddMapRefValue(activeMemberIndex, token);
 				break;
 			default:
 				Throw(0, "Unhandled type");

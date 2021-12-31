@@ -495,23 +495,18 @@ namespace Rococo
 		    }
 	    }
 
-        VM_CALLBACK(MapInit)
+        MapImage* CreateMapImage(IScriptSystem& ss, const IStructure& keyType, const IStructure& valueType)
         {
-            IScriptSystem& ss = *(IScriptSystem*)context;
             auto* p = ss.AlignedMalloc(16, sizeof MapImage);
             auto* m = new (p) MapImage;
-            registers[VM::REGISTER_D7].vPtrValue = m;
 
-            const IStructure* keyType = (const IStructure*)registers[VM::REGISTER_D5].vPtrValue;
-            const IStructure* valueType = (const IStructure*)registers[VM::REGISTER_D4].vPtrValue;
-
-            if (*keyType == ss.ProgramObject().Common().SysTypeIString().NullObjectType())
+            if (keyType == ss.ProgramObject().Common().SysTypeIString().NullObjectType())
             {
                 InitInlineStringKeyResolver(m);
             }
-            else  if (IsPrimitiveType(keyType->VarType()))
+            else  if (IsPrimitiveType(keyType.VarType()))
             {
-                if (keyType->SizeOfStruct() == 4)
+                if (keyType.SizeOfStruct() == 4)
                 {
                     InitBitcount32KeyResolver(m);
                 }
@@ -524,19 +519,36 @@ namespace Rococo
             {
                 ss.AlignedFree(p);
                 ss.ThrowFromNativeCode(-1, ("Derivative key type not implemented. Legal types: Int32, Int64, Float32, Float64, Bool, IString"));
-                return;
+                return nullptr;
             }
 
             m->NumberOfElements = 0;
             m->reserved = 0;
-            m->KeyType = keyType;
-            m->ValueType = valueType;
+            m->KeyType = &keyType;
+            m->ValueType = &valueType;
             m->NullNode = CreateMapNode(m, ss);
             m->NullNode->IsExistant = 0;
             m->Head = m->Tail = NULL;
             m->refCount = 1;
 
             InitializeNullObjectAtLocation(GetValuePointer(m->NullNode), *m->ValueType);
+            return m;
+        }
+
+        VM_CALLBACK(MapInit)
+        {
+            IScriptSystem& ss = *(IScriptSystem*)context;
+
+            const IStructure* keyType = (const IStructure*)registers[VM::REGISTER_D5].vPtrValue;
+            const IStructure* valueType = (const IStructure*)registers[VM::REGISTER_D4].vPtrValue;
+
+            MapImage* m = CreateMapImage(ss, *keyType, *valueType);
+            registers[VM::REGISTER_D7].vPtrValue = m;
+
+            if (m == nullptr)
+            {
+                ss.ThrowFromNativeCode(-1, ("Derivative key type not implemented. Legal types: Int32, Int64, Float32, Float64, Bool, IString"));
+            }
         }
 
         MapNode* InsertKey(MapImage& theMap, VariantValue source, IScriptSystem& ss)

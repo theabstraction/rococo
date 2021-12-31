@@ -75,6 +75,10 @@ namespace Rococo::Script
         TNodeRows rows;
         NullResolver KeyResolver;
     };
-}
+
+    uint8* GetKeyPointer(MapNode* m);
+    uint8* GetValuePointer(MapNode* m);
+
+} // Rococo::Script
 
 #pragma pack(pop)

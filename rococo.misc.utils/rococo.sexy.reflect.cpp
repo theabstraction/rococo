@@ -526,46 +526,90 @@ struct AssetBuilder
 	void SaveMap(const MapDef& def)
 	{
 		auto& mapData = *def.image;
-/*
-		auto& elementType = *arrayData.ElementType;
 
-		sb.AppendFormat("%s\t%s\t%s\t%d\t%d\n", def.arrayName.c_str(), elementType.Name(), elementType.Module().Name(), arrayData.NumberOfElements, arrayData.ElementCapacity);
+		auto& keyType = *mapData.KeyType;
+		auto& valueType = *mapData.ValueType;
 
-		if (StartsWith(elementType.Name(), "_Null_") || IsPrimitiveType(elementType.VarType()))
+		sb.AppendFormat("%s\t%s\t%s\t%d\n", def.mapName.c_str(), keyType.Name(), valueType.Name(), mapData.NumberOfElements);
+
+		if (StartsWith(valueType.Name(), "_Null_") || IsPrimitiveType(valueType.VarType()))
 		{
 			// The type is stated in the meta data.
 		}
 		else
 		{
-			SaveMemberTypes(elementType, 0);
+			SaveMemberTypes(valueType, 0);
 		}
 
-		auto* start = (const uint8*)arrayData.Start;
-
-		auto* readPtr = start;
-
-		for (int i = 0; i < arrayData.NumberOfElements; ++i)
+		auto* node = mapData.Head;
+		while (node != nullptr)
 		{
-			try
-			{
-				sb.AppendFormat("[%d]\n", i);
-				SaveValues(elementType, def.arrayName, readPtr);
-				readPtr += arrayData.ElementLength;
-			}
-			catch (IException& ex)
-			{
-				Throw(ex.ErrorCode(), "Error saving element %d of array<%s of %s> %s:\n%s", i, def.image->ElementType->Name(), def.image->ElementType->Module().Name(), def.arrayName.c_str(), ex.Message());
-			}
-		}
+			const uint8* keyPtr = GetKeyPointer(node);
 
-		*/
+			switch (keyType.VarType())
+			{
+			case VARTYPE_Bool:
+				{		
+					auto* bValue = (const boolean32*)keyPtr;
+					sb.AppendFormat("[%s]\n", *bValue == 1 ? "Y" : "N");
+				}
+				break;
+			case VARTYPE_Int32:
+				{
+					auto* iValue = (const int32*)keyPtr;
+					sb.AppendFormat("[%d]\n", *iValue);
+				}
+				break;
+			case VARTYPE_Int64:
+				{
+					auto* lValue = (const int64*)keyPtr;
+					sb.AppendFormat("[%ld]\n", *lValue);
+				}
+				break;
+			case VARTYPE_Float32:
+				{
+					auto* fValue = (const float32*)keyPtr;
+					uint32 binValue = Rococo::Maths::IEEE475::FloatToBinary(*fValue);
+					sb.AppendFormat("[0x%X]\n", binValue);
+				}
+				break;
+			case VARTYPE_Float64:
+				{
+					auto* dValue = (const float64*)keyPtr;
+					uint64 binValue = Rococo::Maths::IEEE475::DoubleToBinary(*dValue);
+					sb.AppendFormat("[0x%llX]\n", binValue);
+					break;
+				}
+				break;
+			case VARTYPE_Derivative:
+				if (Eq(keyType.Name(), "_Null_Sys_Type_IString") && Eq(keyType.Module().Name(), "Sys.Type.Strings.sxy"))
+				{
+					auto* s = (const InlineString*)keyPtr;
+					sb.AppendFormat("[");
+					AppendEncodedFString(fstring{ s->buffer, s->length });
+					sb.AppendFormat("]\n");
+				}
+				else
+				{
+					Throw(0, "Unrecognized derivative key type");
+				}
+				break;
+			default:
+				Throw(0, "Unrecognized key type");
+			}
+
+			const uint8* valuePtr = GetValuePointer(node);
+			SaveValues(valueType, def.mapName, valuePtr);
+
+			node = node->Next;
+		}
 	}
 	
 	void SaveQueuedObjects()
 	{
 		// When you save a queued object it can entail creating new objects that are queued for saving
 
-		while (!exportQueue.empty() || !arrayExportQueue.empty())
+		while (!exportQueue.empty() || !arrayExportQueue.empty() || !mapExportQueue.empty())
 		{
 			while (!exportQueue.empty())
 			{

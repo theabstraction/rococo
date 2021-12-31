@@ -11,6 +11,8 @@
 
 #include <rococo.hashtable.h>
 
+#include <rococo.sexy.map.expert.h>
+
 namespace
 {
 	using namespace Rococo;
@@ -271,6 +273,7 @@ namespace
 
 		stringmap<DeserializedObject> objects;
 		stringmap<ArrayImage*> arrays;
+		stringmap<MapImage*> maps;
 
 		struct ElementMemberDesc
 		{
@@ -297,6 +300,66 @@ namespace
 		SexyObjectBuilder()
 		{
 
+		}
+
+		void AddMapRefValue(int itemIndex, cstr mapName) override
+		{
+			if (itemIndex >= container.elements.size())
+			{
+				Throw(0, "%s: Bad index (%d)", __FUNCTION__, itemIndex);
+			}
+
+			auto* member = container.elements[itemIndex].member;
+
+			if (member != nullptr)
+			{
+				auto& keyType = *member->UnderlyingGenericArg1Type();
+				auto& valueType = *member->UnderlyingGenericArg2Type();
+
+				MapImage* image;
+
+				if (Eq(mapName, "<null>"))
+				{
+					image = nullptr;
+				}
+				else
+				{
+					auto i = maps.find(mapName);
+					if (i == maps.end())
+					{
+						MapImage* image = scriptSystem->CreateMapImage(keyType, valueType);
+						i = maps.insert(mapName, image).first;
+					}
+					else
+					{
+						if (i->second->KeyType != &keyType)
+						{
+							Throw(0, "Cannot load %s. The target member [%s] key type %s is not the same as the map key type %s", mapName, member->Name(), GetFriendlyName(*member->UnderlyingGenericArg1Type()), GetFriendlyName(*i->second->KeyType));
+						}
+
+						if (i->second->ValueType != &valueType)
+						{
+							Throw(0, "Cannot load %s. The target member [%s] value type %s is not the same as the map value type %s", mapName, member->Name(), GetFriendlyName(*member->UnderlyingGenericArg2Type()), GetFriendlyName(*i->second->ValueType));
+						}
+
+						i->second->refCount++;
+					}
+
+					image = i->second;
+				}
+
+				uint8* rawMemberData = container.elements[itemIndex].memberDataOffset + writePosition;
+				auto* ppA = (MapImage**)rawMemberData;
+				if (*ppA != nullptr)
+				{
+					// If we allowed the C++ to overwrite an array, we would need to handle the case of reference counts going to zero,
+					// which entails invoking proper destructors for each array element. We eliminate the complexities by ensuring this will not happen.
+					// It is up to the script programmer to ensure arrays are nulled out prior to deserialization.
+					auto* currentMap = *ppA;
+					Throw(0, "Cannot load %s. The target member map [%s] is not null. Overwriting of existing maps is not permitted.\nThe length was %d", mapName, member->Name(), currentMap->NumberOfElements);
+				}
+				*ppA = image;
+			}
 		}
 
 		void AddArrayRefValue(int memberIndex, cstr arrayName) override
@@ -405,6 +468,11 @@ namespace
 		void AddTypeArrayRef(int32 memberDepth, cstr memberName) override
 		{
 			AddMemberType(memberDepth, memberName, VARTYPE_Array);
+		}
+
+		void AddTypeMapRef(int32 memberDepth, cstr memberName) override
+		{
+			AddMemberType(memberDepth, memberName, VARTYPE_Map);
 		}
 
 		void AddTypeInterface(int32 memberDepth, cstr interfaceType, cstr memberName, cstr sourceFile)
