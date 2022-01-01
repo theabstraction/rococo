@@ -27,6 +27,13 @@ namespace Rococo::Sexy
 		// Tells the builder which array item is to be overwritten. Called following AddArrayDefinition
 		virtual void SetArrayWriteIndex(int32 index) = 0;
 
+		// Create a new map object, and allow references to it by name
+		// SetMapBuildKey will make other build operations write to the map value until a new container definition is specified
+		virtual void AddMapDefinition(cstr refName, cstr keyType, cstr keyTypeSource, cstr valueType, cstr valueTypeSource, int32 length) = 0;
+
+		// Tell the builder to parse and set a new map node to the selected key
+		virtual void SetMapKey(const fstring& keyValue) = 0;
+
 		virtual void AddTypeDerivative(int32 memberDepth, cstr type, cstr memberName, cstr sourceFile) = 0;
 		virtual void AddTypeInterface(int32 memberDepth, cstr interfaceType, cstr memberName, cstr sourceFile) = 0;
 		virtual void AddTypeF32(int32 memberDepth, cstr memberName) = 0;
@@ -63,10 +70,17 @@ namespace Rococo::Sexy
 
 namespace Rococo::IO
 {
+	using namespace Rococo::Script;
+	using namespace Rococo::Sexy;
+	using namespace Rococo::Compiler;
+
 	// Parse the CSV string and invoke member builder functions to build the object hierarchy.
 	// The implementation is guaranteed to take responsibility for minimizing dynamic memory allocation.
-	void ParseTabbedCSV_AssetFile(cstr csvString, Rococo::Sexy::IMemberBuilder& builder);
+	void ParseTabbedCSV_AssetFile(cstr csvString, IMemberBuilder& builder);
 
-	// Given a sexy object of given type, overwrites its fields with the object tree at the specified ping path. 
-	void LoadAndParseSexyObjectTree(IInstallation& installation, cstr pingPath, const Rococo::Compiler::IStructure& assetType, void* assetData, Rococo::Script::IPublicScriptSystem& ss);
+	// Parse a CSV string and build up the targeted Sexy asset. This function is used by LoadAndParseSexyObjectTree to do the hard work
+	void ParseSexyObjectTree(cstr treeAsCSVString, const IStructure& assetType, void* assetData, IPublicScriptSystem& ss);
+
+	// Given a sexy object of given type, overwrites its fields with the object tree at the specified ping path with the CSV data specified by the ping path. 
+	void LoadAndParseSexyObjectTree(IInstallation& installation, cstr pingPath, const IStructure& assetType, void* assetData, IPublicScriptSystem& ss);
 }

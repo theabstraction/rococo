@@ -159,7 +159,7 @@
 )
 
 (struct MapStringToInt64
-	(map IString Int32 elements)
+	(map IString Int64 elements)
 )
 
 (function TestNullMapTransfer -> :

@@ -4,6 +4,6 @@ elements	->
 #
 map1
 
-map1	_Null_Sys_Type_IString	Int64	1
-["apple"]
+map1	_Null_Sys_Type_IString	Sys.Type.Strings.sxy	Int64	!Intrinsics!	1
+@	"apple"
 8

@@ -16,7 +16,7 @@ using namespace Rococo::IO;
 ROCOCOAPI ICSVLine
 {
 	virtual size_t TokenCount() const = 0;
-	virtual cstr operator[](size_t index) const = 0;
+	virtual fstring operator[](size_t index) const = 0;
 	virtual int Row() const = 0;
 };
 
@@ -322,6 +322,63 @@ struct CSV_Line_by_Line_SexyAssetParser: ICSVLineParser
 		}
 	}
 
+	void OnMapValue(const ICSVLine& line)
+	{
+		if (line.TokenCount() != 1)
+		{
+			Throw(0, "Expecting one member value on the line, but the token count was %llu", line.TokenCount());
+		}
+
+		BuildValueAndAdvanceMemberIndex(line[0]);
+
+		if (activeMemberIndex >= memberTypes.size())
+		{
+			activeMemberIndex = 0;
+			mapIndex++;
+			if (mapIndex >= mapLength)
+			{
+				state = &CSV_Line_by_Line_SexyAssetParser::OnObjectLine;
+			}
+			else
+			{
+				state = &CSV_Line_by_Line_SexyAssetParser::OnMapKey;
+			}
+		}
+	}
+
+	void OnMapKey(const ICSVLine& line)
+	{
+		if (line.TokenCount() == 2)
+		{
+			if (*line[0] == '@')
+			{
+				builder.SetMapKey(line[1]);
+				state = &CSV_Line_by_Line_SexyAssetParser::OnMapValue;
+				return;
+			}
+		}
+
+		Throw(0, "Expecting @ <map-key>");
+	}
+
+	void OnMapMember(const ICSVLine& line)
+	{
+		if (line.TokenCount() == 2)
+		{
+			if (*line[0] == '@')
+			{
+				OnMapKey(line);
+				return;
+				activeMemberIndex = 0;
+				state = &CSV_Line_by_Line_SexyAssetParser::OnMapValue;
+				builder.SetMapKey(line[1]);
+				return;
+			}
+		}
+
+		BuildMember(line);
+	}
+
 	void OnArrayMember(const ICSVLine& line)
 	{
 		if (line.TokenCount() == 1)
@@ -338,6 +395,13 @@ struct CSV_Line_by_Line_SexyAssetParser: ICSVLineParser
 
 		BuildMember(line);
 	}
+
+	int32 mapLength = 0;
+	int32 mapIndex = 0;
+	char mapKeyType[Rococo::MAX_FQ_NAME_LEN+1];
+	char mapKeySource[Rococo::IO::MAX_PATHLEN];
+	char mapValueType[Rococo::MAX_FQ_NAME_LEN + 1];
+	char mapValueSource[Rococo::IO::MAX_PATHLEN];
 
 	void OnObjectLine(const ICSVLine& line)
 	{
@@ -365,7 +429,7 @@ struct CSV_Line_by_Line_SexyAssetParser: ICSVLineParser
 
 		if (line.TokenCount() == 4)
 		{
-			if (*line[0], "#")
+			if (*(line[0]), "#")
 			{
 				if (Eq(line[1], "_SC"))
 				{
@@ -374,6 +438,39 @@ struct CSV_Line_by_Line_SexyAssetParser: ICSVLineParser
 					builder.AddStringConstant(line[0], stringText, len);
 					return;
 				}
+			}
+		}
+
+		if (line.TokenCount() == 6)
+		{
+			if (StartsWith(line[0], "map"))
+			{
+				CopyString(mapKeyType, sizeof mapKeyType, line[1]);
+				CopyString(mapKeySource, sizeof mapKeySource, line[2]);
+				CopyString(mapValueType, sizeof mapValueType, line[3]);
+				CopyString(mapValueSource, sizeof mapValueSource, line[4]);
+				mapLength = atoi(line[5]);
+
+				builder.AddMapDefinition(line[0], line[1], line[2], line[3], line[4], mapLength);
+
+				activeMemberIndex = 0;
+				mapIndex = 0;
+
+				if (mapLength == 0)
+				{
+					state = &CSV_Line_by_Line_SexyAssetParser::OnObjectLine;
+				}
+				else if (!StartsWith(mapValueType, "_Null_"))
+				{
+					state = &CSV_Line_by_Line_SexyAssetParser::OnMapMember;
+				}
+				else
+				{
+					state = &CSV_Line_by_Line_SexyAssetParser::OnMapKey;
+				}
+
+
+				return;
 			}
 		}
 
@@ -467,9 +564,9 @@ namespace Rococo::IO
 			return tokenIndex;
 		}
 
-		cstr operator[] (size_t index) const override
+		fstring operator[] (size_t index) const override
 		{
-			return !tokens[index].s.empty() ? tokens[index].s.data() : "";
+			return !tokens[index].s.empty() ? fstring{ tokens[index].s.data(), (int32) tokens[index].s.size()-1 } : ""_fstring;
 		}
 
 		int Row() const override

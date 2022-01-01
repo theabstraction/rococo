@@ -84,8 +84,13 @@ namespace Rococo::OS
 	void SaveClipBoardText(cstr text, Windows::IWindow& window);
 	bool TryGetColourFromDialog(RGBAb& colour, Windows::IWindow& window);
 	cstr GetAsciiCommandLine();
-	void LoadAsciiTextFile(char* data, size_t capacity, const wchar_t* filename);
+
+	// Open a file and fit into buffer. In the case of a truncation an IException is thrown. The function returns the number of bytes copied to the buffer.
+	size_t LoadAsciiTextFile(char* data, size_t capacity, const wchar_t* filename);
+
+	// Open a file and invokes a callback with a pointer to content. The file is closed at the point that the callback is invoked. 
 	void LoadAsciiTextFile(IEventCallback<cstr>& onLoad, const wchar_t* filename);
+
 	void GetEnvVariable(wchar_t* data, size_t capacity, const wchar_t* envVariable);
 	void PollKeys(uint8 scanArray[256]);
 	void MakeContainerDirectory(char* filename);

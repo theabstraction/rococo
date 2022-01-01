@@ -530,7 +530,7 @@ struct AssetBuilder
 		auto& keyType = *mapData.KeyType;
 		auto& valueType = *mapData.ValueType;
 
-		sb.AppendFormat("%s\t%s\t%s\t%d\n", def.mapName.c_str(), keyType.Name(), valueType.Name(), mapData.NumberOfElements);
+		sb.AppendFormat("%s\t%s\t%s\t%s\t%s\t%d\n", def.mapName.c_str(), keyType.Name(), keyType.Module().Name(), valueType.Name(), valueType.Module().Name(), mapData.NumberOfElements);
 
 		if (StartsWith(valueType.Name(), "_Null_") || IsPrimitiveType(valueType.VarType()))
 		{
@@ -585,9 +585,9 @@ struct AssetBuilder
 				if (Eq(keyType.Name(), "_Null_Sys_Type_IString") && Eq(keyType.Module().Name(), "Sys.Type.Strings.sxy"))
 				{
 					auto* s = (const InlineString*)keyPtr;
-					sb.AppendFormat("[");
+					sb.AppendFormat("@\t");
 					AppendEncodedFString(fstring{ s->buffer, s->length });
-					sb.AppendFormat("]\n");
+					sb.AppendFormat("\n");
 				}
 				else
 				{

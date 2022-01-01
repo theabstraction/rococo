@@ -979,6 +979,50 @@ namespace
 			}
 		}
 
+		const IStructure* mapKeyType = nullptr;
+		const IStructure* mapValueType = nullptr;
+
+		void AddMapDefinition(cstr refName, cstr keyType, cstr keyTypeSource, cstr valueType, cstr valueTypeSource, int32 length) override
+		{
+			mapKeyType = &scriptSystem->GetTypeForSource(keyType, keyTypeSource);
+			mapValueType = &scriptSystem->GetTypeForSource(valueType, valueTypeSource);
+
+			auto i = maps.find(refName);
+			if (i == maps.end())
+			{
+				auto* image = scriptSystem->CreateMapImage(*mapKeyType, *mapValueType);
+				i = maps.insert(refName, image).first;
+			}
+			else
+			{
+				if (i->second->KeyType != mapKeyType)
+				{
+					Throw(0, "Cannot load %s.\nThe map key type has already been defined as being type %s of %s.\nThe operation requested a type %s of %s.", refName, i->second->KeyType->Name(), i->second->KeyType->Module().Name(), mapKeyType->Name(), mapKeyType->Module().Name());
+				}
+
+				if (i->second->ValueType != mapValueType)
+				{
+					Throw(0, "Cannot load %s.\nThe map value type has already been defined as being type %s of %s.\nThe operation requested a type %s of %s.", refName, i->second->ValueType->Name(), i->second->ValueType->Module().Name(), mapValueType->Name(), mapValueType->Module().Name());
+				}
+			}
+		}
+
+		void SetMapKey(const fstring& keyText)
+		{
+			void* elementPtr = nullptr;
+
+			if (IsIString(*mapKeyType))
+			{
+				Throw(0, "SetMapKey - Not implemented");
+			}
+			else
+			{
+				Throw(0, "SetMapKey - Not implemented");
+			}
+
+			SelectTarget(*mapValueType, elementPtr);
+		}
+
 		const IStructure* elementType = nullptr;
 
 		void AddArrayDefinition(cstr refName, cstr elementTypeName, cstr elementTypeSource, int32 length, int32 capacity) override
@@ -1053,28 +1097,39 @@ namespace
 
 namespace Rococo::IO
 {
+	void ParseSexyObjectTree(cstr treeAsCSVString, const IStructure& assetType, void* assetData, Rococo::Script::IPublicScriptSystem& ss)
+	{
+		SexyObjectBuilder objectBuilder;
+		objectBuilder.SelectScriptSystem(ss);
+		objectBuilder.SelectRootTarget(assetType, assetData);
+
+		Rococo::IO::ParseTabbedCSV_AssetFile(treeAsCSVString, objectBuilder);
+
+		objectBuilder.ResolveReferences();
+	}
+
 	void LoadAndParseSexyObjectTree(IInstallation& installation, cstr pingPath, const IStructure& assetType, void* assetData, Rococo::Script::IPublicScriptSystem& ss)
 	{
 		WideFilePath sysPath;
 		installation.ConvertPingPathToSysPath(pingPath, sysPath);
 
-		SexyObjectBuilder objectBuilder;
-		objectBuilder.SelectScriptSystem(ss);
-		objectBuilder.SelectRootTarget(assetType, assetData);
-
 		try
 		{
 			struct : IEventCallback<cstr>
 			{
-				SexyObjectBuilder* objectBuilder;
+				const IStructure* assetType = nullptr;
+				void* assetData = nullptr;
+				Rococo::Script::IPublicScriptSystem* ss = nullptr;
+
 				void OnEvent(cstr csvString) override
 				{
-					Rococo::IO::ParseTabbedCSV_AssetFile(csvString, *objectBuilder);
-					objectBuilder->ResolveReferences();
+					ParseSexyObjectTree(csvString, *assetType, assetData, *ss);
 				}
 			} cb;
 			
-			cb.objectBuilder = &objectBuilder;
+			cb.assetType = &assetType;
+			cb.assetData = assetData;
+			cb.ss = &ss;
 
 			Rococo::OS::LoadAsciiTextFile(cb, sysPath);
 		}

@@ -2865,7 +2865,7 @@ namespace Rococo
 			const IStructure& rhsKeyType = GetKeyTypeForMapVariable(ce, s, rhsString);
 
 			const IStructure& lhsValueType = GetValueTypeForMapVariable(ce, s, lhsString);
-			const IStructure& rhsValueType = GetValueTypeForMapVariable(ce, s, lhsString);
+			const IStructure& rhsValueType = GetValueTypeForMapVariable(ce, s, rhsString);
 
 			if (&lhsKeyType != &rhsKeyType)
 			{
