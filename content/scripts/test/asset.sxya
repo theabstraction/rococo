@@ -1,9 +1,7 @@
 AssetBuilder_TabbedCSV_1.0
-#Object0	MapStringToInt64	!scripts/test.app.created.sxy
-elements	->
+#Object0	Int32Array	!scripts/test.app.created.sxy
+elements	[]
 #
-map1
+array1
 
-map1	_Null_Sys_Type_IString	Sys.Type.Strings.sxy	Int64	!Intrinsics!	1
-@	"apple"
-8
+array1	Int32	!Intrinsics!	0	1
