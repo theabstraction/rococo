@@ -158,6 +158,62 @@
 	(Validate ((w.x == 6) and (w.y == 7)))
 )
 
+(struct MapStringToInt64
+	(map IString Int64 elements)
+)
+
+(function TestNullMapTransfer -> :
+	(Sys.Reflection.SexyAssetFile assetFile = "!scripts/test/asset.sxya")
+
+	(MapStringToInt64 a)
+	(reflect SaveAsset assetFile a)
+	
+	(MapStringToInt64 b)
+	(reflect LoadAsset assetFile b)
+
+	(Int32 length)
+	(length = b.elements.Length)
+	(Validate (length == 0))	
+)
+
+(function TestEmptyMapTransfer -> :
+	(Sys.Reflection.SexyAssetFile assetFile = "!scripts/test/asset.sxya")
+
+	(MapStringToInt64 a)
+	(map IString Int64 temp)
+	(a.elements = temp)
+	(reflect SaveAsset assetFile a)
+	
+	(MapStringToInt64 b)
+	(reflect LoadAsset assetFile b)
+
+	(Int32 length)
+	(length = b.elements.Length)
+	(Validate (length == 0))	
+)
+
+(function TestOneEntryMapTransfer -> :
+	(Sys.Reflection.SexyAssetFile assetFile = "!scripts/test/asset.sxya")
+
+	(MapStringToInt64 a)
+	(map IString Int64 temp)
+	(a.elements = temp)
+	(temp.Insert "apple" 8)
+	(reflect SaveAsset assetFile a)
+
+	(MapStringToInt64 b)
+	(reflect LoadAsset assetFile b)
+
+	(Int32 length)
+	(length = b.elements.Length)
+	(Validate (length == 1))	
+
+	(node apple = (b.elements "apple"))
+
+	(Int64 appleValue = apple.Value)
+	(Validate (appleValue == 8))
+)
+
 (struct Int32Array
 	(array Int32 elements)
 )
@@ -251,6 +307,9 @@
 	(fonts.SetHeight 28)
 	(fonts.Commit)
 
+	(TestOneEntryMapTransfer)
+	(TestEmptyMapTransfer)
+	(TestNullMapTransfer)
 	(TestInt32Transfer)
 	(TestFloat32Transfer)
 	(TestEmptyArrayTransfer)

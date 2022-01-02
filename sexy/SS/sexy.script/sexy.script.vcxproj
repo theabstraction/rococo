@@ -136,6 +136,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\include\rococo.sexy.map.expert.h" />
     <ClInclude Include="..\..\Common\sexy.compiler.public.h" />
     <ClInclude Include="..\..\Common\sexy.debug.types.h" />
     <ClInclude Include="..\..\Common\sexy.stdstrings.h" />

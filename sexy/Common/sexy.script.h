@@ -288,6 +288,8 @@ namespace Rococo {
 		};
 #pragma pack(pop)
 
+		struct MapImage;
+
 		ROCOCOAPI IPublicScriptSystem : public IFreeable
 		{
 			virtual void AddCommonSource(const char* dynamicLinkLibOfNativeCalls) = 0;
@@ -311,6 +313,10 @@ namespace Rococo {
 			// to allowing the script to process the array. Use ss.AlignedMalloc(16, capacity * a->ElementLength); and assign to the Start variable to set the size.
 			// Use ss.AlignedFree to clean up the memory.
 			virtual ArrayImage* CreateArrayImage(const IStructure& type) = 0;
+
+			// Create a blank map with no elements. The implementation should allocate memory with ss.AlignedMalloc(16, capacity * a->ElementLength); 
+			// and assign to the Start variable to set the size. // Use ss.AlignedFree to clean up the memory.
+			virtual MapImage* CreateMapImage(const IStructure& keyType, const IStructure& valueType) = 0;
 
 			virtual CStringConstant* GetStringReflection(cstr s, int32 stringLength = -1) = 0;
 			virtual CStringConstant* DuplicateStringAsConstant(cstr source, int32 stringLength = -1) = 0;
@@ -415,7 +421,8 @@ namespace Rococo {
 
 		ROCOCOAPI MemberEnumeratorCallback
 		{
-			virtual void OnArrayMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const struct ArrayImage* array, const uint8* sfItem, int offset, int recurseDepth) = 0;
+			virtual void OnMapMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const MapImage* m, const uint8* sfItem, int offset, int recurseDepth) = 0;
+			virtual void OnArrayMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const ArrayImage* array, const uint8* sfItem, int offset, int recurseDepth) = 0;
 			virtual void OnMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const uint8* sfItem, int offset, int recurseDepth) = 0;
 		};
 

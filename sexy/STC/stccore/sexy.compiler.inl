@@ -377,7 +377,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 			underlyingType = _underlyingType;
 			underlyingGenericArg1Type = _genericArg1Type;
 			underlyingGenericArg2Type = _genericArg2Type;
-			if (underlyingType && underlyingType->VarType() == VARTYPE_Array)
+			if (underlyingType && (underlyingType->VarType() == VARTYPE_Array || underlyingType->VarType() == VARTYPE_Map))
 			{
 				sizeOfMember = sizeof(void*);
 			}

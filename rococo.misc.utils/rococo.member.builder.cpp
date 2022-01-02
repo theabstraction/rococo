@@ -11,6 +11,8 @@
 
 #include <rococo.hashtable.h>
 
+#include <rococo.sexy.map.expert.h>
+
 namespace
 {
 	using namespace Rococo;
@@ -271,6 +273,7 @@ namespace
 
 		stringmap<DeserializedObject> objects;
 		stringmap<ArrayImage*> arrays;
+		stringmap<MapImage*> maps;
 
 		struct ElementMemberDesc
 		{
@@ -297,6 +300,66 @@ namespace
 		SexyObjectBuilder()
 		{
 
+		}
+
+		void AddMapRefValue(int itemIndex, cstr mapName) override
+		{
+			if (itemIndex >= container.elements.size())
+			{
+				Throw(0, "%s: Bad index (%d)", __FUNCTION__, itemIndex);
+			}
+
+			auto* member = container.elements[itemIndex].member;
+
+			if (member != nullptr)
+			{
+				auto& keyType = *member->UnderlyingGenericArg1Type();
+				auto& valueType = *member->UnderlyingGenericArg2Type();
+
+				MapImage* image;
+
+				if (Eq(mapName, "<null>"))
+				{
+					image = nullptr;
+				}
+				else
+				{
+					auto i = maps.find(mapName);
+					if (i == maps.end())
+					{
+						MapImage* image = scriptSystem->CreateMapImage(keyType, valueType);
+						i = maps.insert(mapName, image).first;
+					}
+					else
+					{
+						if (i->second->KeyType != &keyType)
+						{
+							Throw(0, "Cannot load %s. The target member [%s] key type %s is not the same as the map key type %s", mapName, member->Name(), GetFriendlyName(*member->UnderlyingGenericArg1Type()), GetFriendlyName(*i->second->KeyType));
+						}
+
+						if (i->second->ValueType != &valueType)
+						{
+							Throw(0, "Cannot load %s. The target member [%s] value type %s is not the same as the map value type %s", mapName, member->Name(), GetFriendlyName(*member->UnderlyingGenericArg2Type()), GetFriendlyName(*i->second->ValueType));
+						}
+
+						i->second->refCount++;
+					}
+
+					image = i->second;
+				}
+
+				uint8* rawMemberData = container.elements[itemIndex].memberDataOffset + writePosition;
+				auto* ppA = (MapImage**)rawMemberData;
+				if (*ppA != nullptr)
+				{
+					// If we allowed the C++ to overwrite an array, we would need to handle the case of reference counts going to zero,
+					// which entails invoking proper destructors for each array element. We eliminate the complexities by ensuring this will not happen.
+					// It is up to the script programmer to ensure arrays are nulled out prior to deserialization.
+					auto* currentMap = *ppA;
+					Throw(0, "Cannot load %s. The target member map [%s] is not null. Overwriting of existing maps is not permitted.\nThe length was %d", mapName, member->Name(), currentMap->NumberOfElements);
+				}
+				*ppA = image;
+			}
 		}
 
 		void AddArrayRefValue(int memberIndex, cstr arrayName) override
@@ -405,6 +468,11 @@ namespace
 		void AddTypeArrayRef(int32 memberDepth, cstr memberName) override
 		{
 			AddMemberType(memberDepth, memberName, VARTYPE_Array);
+		}
+
+		void AddTypeMapRef(int32 memberDepth, cstr memberName) override
+		{
+			AddMemberType(memberDepth, memberName, VARTYPE_Map);
 		}
 
 		void AddTypeInterface(int32 memberDepth, cstr interfaceType, cstr memberName, cstr sourceFile)
@@ -911,6 +979,89 @@ namespace
 			}
 		}
 
+		const IStructure* mapKeyType = nullptr;
+		const IStructure* mapValueType = nullptr;
+		MapImage* targetMap = nullptr;
+		Rococo::Script::MapNode* targetNode = nullptr;
+
+		void AddMapDefinition(cstr refName, cstr keyType, cstr keyTypeSource, cstr valueType, cstr valueTypeSource, int32 length) override
+		{
+			mapKeyType = &scriptSystem->GetTypeForSource(keyType, keyTypeSource);
+			mapValueType = &scriptSystem->GetTypeForSource(valueType, valueTypeSource);
+
+			auto i = maps.find(refName);
+			if (i == maps.end())
+			{
+				auto* image = scriptSystem->CreateMapImage(*mapKeyType, *mapValueType);
+				i = maps.insert(refName, image).first;
+			}
+			else
+			{
+				if (i->second->KeyType != mapKeyType)
+				{
+					Throw(0, "Cannot load %s.\nThe map key type has already been defined as being type %s of %s.\nThe operation requested a type %s of %s.", refName, i->second->KeyType->Name(), i->second->KeyType->Module().Name(), mapKeyType->Name(), mapKeyType->Module().Name());
+				}
+
+				if (i->second->ValueType != mapValueType)
+				{
+					Throw(0, "Cannot load %s.\nThe map value type has already been defined as being type %s of %s.\nThe operation requested a type %s of %s.", refName, i->second->ValueType->Name(), i->second->ValueType->Module().Name(), mapValueType->Name(), mapValueType->Module().Name());
+				}
+			}
+
+			targetMap = i->second;
+		}
+
+		void SetMapKey(const fstring& keyText)
+		{
+			void* elementPtr = nullptr;
+
+			VariantValue key;
+
+			if (IsIString(*mapKeyType))
+			{
+				auto* sc = scriptSystem->DuplicateStringAsConstant(keyText, keyText.length);
+				key.vPtrValue = sc;
+			}
+			else 
+			{
+				switch (mapKeyType->VarType())
+				{
+				case VARTYPE_Int32:
+					key.int32Value = atoi(keyText);
+					break;
+				case VARTYPE_Int64:
+					key.int64Value = atoll(keyText);
+					break;
+				case VARTYPE_Float32:
+					{
+						uint32 binRepresentation;
+						sscanf_s(keyText, "%x", &binRepresentation);
+						key.floatValue = Rococo::Maths::IEEE475::BinaryToFloat(binRepresentation);
+					}
+					break;
+				case VARTYPE_Float64:
+					{
+						uint64 binRepresentation;
+						sscanf_s(keyText, "%llx", &binRepresentation);
+						key.doubleValue = Rococo::Maths::IEEE475::BinaryToDouble(binRepresentation);
+					}
+					break;
+				case VARTYPE_Bool:
+					{
+						boolean32 value = (*keyText == 'Y') ? 1 : 0;
+						key.int32Value = value;
+					}
+					break;
+				default:
+					Throw(0, "%s - Key type %s Not implemented", __FUNCTION__, GetFriendlyName(*mapKeyType));
+				}	
+			}
+
+			targetNode = InsertKey(*targetMap, key, reinterpret_cast<IScriptSystem&>(*scriptSystem));
+			elementPtr = GetValuePointer(targetNode);
+			SelectTarget(*mapValueType, elementPtr);
+		}
+
 		const IStructure* elementType = nullptr;
 
 		void AddArrayDefinition(cstr refName, cstr elementTypeName, cstr elementTypeSource, int32 length, int32 capacity) override
@@ -985,28 +1136,39 @@ namespace
 
 namespace Rococo::IO
 {
+	void ParseSexyObjectTree(cstr treeAsCSVString, const IStructure& assetType, void* assetData, Rococo::Script::IPublicScriptSystem& ss)
+	{
+		SexyObjectBuilder objectBuilder;
+		objectBuilder.SelectScriptSystem(ss);
+		objectBuilder.SelectRootTarget(assetType, assetData);
+
+		Rococo::IO::ParseTabbedCSV_AssetFile(treeAsCSVString, objectBuilder);
+
+		objectBuilder.ResolveReferences();
+	}
+
 	void LoadAndParseSexyObjectTree(IInstallation& installation, cstr pingPath, const IStructure& assetType, void* assetData, Rococo::Script::IPublicScriptSystem& ss)
 	{
 		WideFilePath sysPath;
 		installation.ConvertPingPathToSysPath(pingPath, sysPath);
 
-		SexyObjectBuilder objectBuilder;
-		objectBuilder.SelectScriptSystem(ss);
-		objectBuilder.SelectRootTarget(assetType, assetData);
-
 		try
 		{
 			struct : IEventCallback<cstr>
 			{
-				SexyObjectBuilder* objectBuilder;
+				const IStructure* assetType = nullptr;
+				void* assetData = nullptr;
+				Rococo::Script::IPublicScriptSystem* ss = nullptr;
+
 				void OnEvent(cstr csvString) override
 				{
-					Rococo::IO::ParseTabbedCSV_AssetFile(csvString, *objectBuilder);
-					objectBuilder->ResolveReferences();
+					ParseSexyObjectTree(csvString, *assetType, assetData, *ss);
 				}
 			} cb;
 			
-			cb.objectBuilder = &objectBuilder;
+			cb.assetType = &assetType;
+			cb.assetData = assetData;
+			cb.ss = &ss;
 
 			Rococo::OS::LoadAsciiTextFile(cb, sysPath);
 		}

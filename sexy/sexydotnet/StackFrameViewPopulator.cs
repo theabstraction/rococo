@@ -329,7 +329,10 @@ namespace SexyDotNet
                 foreach (var v in variables)
                 {
                     string head, tail;
-                    Strings.SplitHead(v.Name, out head, out tail);
+                    if (!Strings.SplitHead(v.Name, out head, out tail))
+                    {
+                        tail = v.Name;
+                    }
 
                     Add(targetView, topLevel, tail, v.Type, v.Value, v.Address.ToString("X"), item.SF, item.PC);
                 }

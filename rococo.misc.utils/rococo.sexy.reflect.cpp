@@ -13,6 +13,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include <rococo.sexy.map.expert.h>
+
 using namespace Rococo;
 using namespace Rococo::IO;
 using namespace Rococo::Script;
@@ -107,6 +109,12 @@ namespace
 		int index;
 	};
 
+	struct MapDef
+	{
+		HString mapName;
+		MapImage* image;
+		int index;
+	};
 }
 
 struct AssetBuilder
@@ -120,7 +128,9 @@ struct AssetBuilder
 	std::unordered_map<ObjectStub*, ObjectDef> refToObject;
 	std::vector<ObjectDef> exportQueue;
 	std::unordered_map<ArrayImage*, ArrayDef> refToArray;
+	std::unordered_map<MapImage*, MapDef> refToMap;
 	std::vector<ArrayDef> arrayExportQueue;
+	std::vector<MapDef> mapExportQueue;
 
 	uint32 nextIndex = 1;
 
@@ -239,6 +249,9 @@ struct AssetBuilder
 		case VARTYPE_Array:
 			SaveArrayRef(s, name, type, *(ArrayImage**)pVariable);
 			break;
+		case VARTYPE_Map:
+			SaveMapRef(s, name, type, *(Rococo::Script::MapImage**)pVariable);
+			break;
 		case VARTYPE_Derivative:
 			if (IsNullType(type))
 			{
@@ -331,6 +344,9 @@ struct AssetBuilder
 			case VARTYPE_Array:
 				sb.AppendFormat("[]\n");
 				break;
+			case VARTYPE_Map:
+				sb.AppendFormat("->\n");
+				break;
 			default:
 				Throw(0, "Cannot save unhandled var type values");
 				break;
@@ -365,7 +381,35 @@ struct AssetBuilder
 		}
 
 		sb.AppendFormat("%s\n", arrayName);
-		return;
+	}
+
+	int32 nextMapIndex = 1;
+
+	void SaveMapRef(cr_sex s, cstr name, const IStructure& assetType, MapImage* mapData)
+	{
+		if (!mapData)
+		{
+			sb.AppendFormat("<null>\n");
+			return;
+		}
+
+		char mapName[32];
+		SafeFormat(mapName, "map%d", nextMapIndex++);
+
+		auto i = refToMap.find(mapData);
+		if (i == refToMap.end())
+		{
+			MapDef def;
+			def.index = nextArrayIndex;
+			def.mapName = mapName;
+			def.image = mapData;
+
+			i = refToMap.insert(std::make_pair(mapData, def)).first;
+
+			mapExportQueue.push_back(def);
+		}
+
+		sb.AppendFormat("%s\n", mapName);
 	}
 
 	void SaveNonContainerObject(const IStructure& type, cstr name, const uint8* rawObjectData)
@@ -478,12 +522,94 @@ struct AssetBuilder
 			}
 		}
 	}
+
+	void SaveMap(const MapDef& def)
+	{
+		auto& mapData = *def.image;
+
+		auto& keyType = *mapData.KeyType;
+		auto& valueType = *mapData.ValueType;
+
+		sb.AppendFormat("%s\t%s\t%s\t%s\t%s\t%d\n", def.mapName.c_str(), keyType.Name(), keyType.Module().Name(), valueType.Name(), valueType.Module().Name(), mapData.NumberOfElements);
+
+		if (StartsWith(valueType.Name(), "_Null_") || IsPrimitiveType(valueType.VarType()))
+		{
+			// The type is stated in the meta data.
+		}
+		else
+		{
+			SaveMemberTypes(valueType, 0);
+		}
+
+		auto* node = mapData.Head;
+		while (node != nullptr)
+		{
+			const uint8* keyPtr = GetKeyPointer(node);
+
+			switch (keyType.VarType())
+			{
+			case VARTYPE_Bool:
+				{		
+					auto* bValue = (const boolean32*)keyPtr;
+					sb.AppendFormat("[%s]\n", *bValue == 1 ? "Y" : "N");
+				}
+				break;
+			case VARTYPE_Int32:
+				{
+					auto* iValue = (const int32*)keyPtr;
+					sb.AppendFormat("[%d]\n", *iValue);
+				}
+				break;
+			case VARTYPE_Int64:
+				{
+					auto* lValue = (const int64*)keyPtr;
+					sb.AppendFormat("[%ld]\n", *lValue);
+				}
+				break;
+			case VARTYPE_Float32:
+				{
+					auto* fValue = (const float32*)keyPtr;
+					uint32 binValue = Rococo::Maths::IEEE475::FloatToBinary(*fValue);
+					sb.AppendFormat("[0x%X]\n", binValue);
+				}
+				break;
+			case VARTYPE_Float64:
+				{
+					auto* dValue = (const float64*)keyPtr;
+					uint64 binValue = Rococo::Maths::IEEE475::DoubleToBinary(*dValue);
+					sb.AppendFormat("[0x%llX]\n", binValue);
+					break;
+				}
+				break;
+			case VARTYPE_Derivative:
+				if (Eq(keyType.Name(), "_Null_Sys_Type_IString") && Eq(keyType.Module().Name(), "Sys.Type.Strings.sxy"))
+				{
+					auto* s = (const InlineString*)keyPtr;
+					sb.AppendFormat("@\t");
+					AppendEncodedFString(fstring{ s->buffer, s->length });
+					sb.AppendFormat("\n");
+				}
+				else
+				{
+					Throw(0, "Unrecognized derivative key type");
+				}
+				break;
+			default:
+				Throw(0, "Unrecognized key type");
+			}
+
+			const uint8* valuePtr = GetValuePointer(node);
+			SaveValues(valueType, def.mapName, valuePtr);
+
+			node = node->Next;
+		}
+	}
 	
 	void SaveQueuedObjects()
 	{
 		// When you save a queued object it can entail creating new objects that are queued for saving
 
-		while (!exportQueue.empty() || !arrayExportQueue.empty())
+		while (!exportQueue.empty() || !arrayExportQueue.empty() || !mapExportQueue.empty())
 		{
 			while (!exportQueue.empty())
 			{
@@ -503,6 +629,16 @@ struct AssetBuilder
 				arrayExportQueue.pop_back();
 
 				SaveArray(def);
+			}
+
+			while (!mapExportQueue.empty())
+			{
+				sb.AppendChar('\n');
+
+				MapDef def = mapExportQueue.back();
+				mapExportQueue.pop_back();
+
+				SaveMap(def);
 			}
 		}
 	}

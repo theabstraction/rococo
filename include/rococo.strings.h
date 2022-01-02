@@ -83,6 +83,7 @@ namespace Rococo
 	   size_t refCount;
    };
 
+   // Heap based persistent string
    class HString
    {
    private:

@@ -534,13 +534,14 @@ namespace Rococo
 
       struct MapCallbacks
       {
+         ID_API_CALLBACK MapAssign;
          ID_API_CALLBACK MapInit;
          ID_API_CALLBACK MapInsert32;
          ID_API_CALLBACK MapInsert64;
          ID_API_CALLBACK MapInsertValueByRef;
 		 ID_API_CALLBACK MapInsertInterface;
          ID_API_CALLBACK MapInsertAndGetRef;
-         ID_API_CALLBACK MapClear;
+         ID_API_CALLBACK MapRelease;
          ID_API_CALLBACK MapTryGet;
          ID_API_CALLBACK MapNodeGet32;
          ID_API_CALLBACK MapNodeGet64;
@@ -549,12 +550,15 @@ namespace Rococo
          ID_API_CALLBACK MapGetHead;
          ID_API_CALLBACK NodeEnumNext;
          ID_API_CALLBACK MapNodeReleaseRef;
+         ID_API_CALLBACK MapGetLength;
       };
 
       const ArrayCallbacks& GetArrayCallbacks(CCompileEnvironment& ce);
       const ListCallbacks& GetListCallbacks(CCompileEnvironment& ce);
       const MapCallbacks& GetMapCallbacks(CCompileEnvironment& ce);
 
+      const IStructure& GetKeyTypeForMapVariable(CCompileEnvironment& ce, cr_sex src, cstr mapName);
+      const IStructure& GetValueTypeForMapVariable(CCompileEnvironment& ce, cr_sex src, cstr mapName);
       const IStructure& GetElementTypeForArrayVariable(CCompileEnvironment& ce, cr_sex src, cstr arrayName);
       const IStructure& GetListDef(CCompileEnvironment& ce, cr_sex src, cstr name);
       const MapDef GetMapDef(CCompileEnvironment& ce, cr_sex src, cstr name);

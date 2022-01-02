@@ -160,7 +160,7 @@ namespace Rococo
 				}
 			case VARTYPE_Map:
 				{
-					MapImage* m = (MapImage*)item;
+					MapImage* m = *(MapImage**)item;
 					MapClear(m, ss);
 					return;
 				}

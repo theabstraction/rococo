@@ -1329,6 +1329,12 @@ namespace Rococo
 						nullRef.vPtrValue = nullptr;
 						ce.Builder.Assembler().Append_SetStackFrameImmediate(sfMemberOffset, nullRef, BITCOUNT_POINTER);
 					}
+					else if (memberType->VarType() == VARTYPE_Map)
+					{
+						VariantValue nullRef;
+						nullRef.vPtrValue = nullptr;
+						ce.Builder.Assembler().Append_SetStackFrameImmediate(sfMemberOffset, nullRef, BITCOUNT_POINTER);
+					}
 					else
 					{
 						InitSubmembers(ce, *memberType, sfMemberOffset);
@@ -1627,7 +1633,7 @@ namespace Rococo
 			}
 			else if (s == ce.StructMap())
 			{
-				Throw(decl, ("Objects of the given type cannot be default constructed as one of the members is a map.\r\nProvide an explicit constructor and declare instances using the syntax: ( <type> <name> ( <arg1>...<argN> ) )"));
+				// Throw(decl, ("Objects of the given type cannot be default constructed as one of the members is a map.\r\nProvide an explicit constructor and declare instances using the syntax: ( <type> <name> ( <arg1>...<argN> ) )"));
 			}
 
 			for(int i = 0; i < s.MemberCount(); ++i)
@@ -2184,6 +2190,10 @@ namespace Rococo
 					NoteDestructorPositions(ce, *def.ResolvedType, def.SFOffset);
 				}
 				else if (def.Usage == ARGUMENTUSAGE_BYREFERENCE && (*def.ResolvedType == ce.Object.Common().TypeNode() || *def.ResolvedType == ce.Object.Common().TypeMapNode()))
+				{
+					NoteDestructorPositions(ce, *def.ResolvedType, def.SFOffset);
+				}
+				else if (def.Usage == ARGUMENTUSAGE_BYREFERENCE && def.ResolvedType->VarType() == VARTYPE_Map)
 				{
 					NoteDestructorPositions(ce, *def.ResolvedType, def.SFOffset);
 				}
@@ -2843,6 +2853,49 @@ namespace Rococo
 			RestoreStackFrameFor(ce.Builder, lhs);
 		}
 
+		void AssignMapToMap(CCompileEnvironment& ce, cr_sex s, const MemberDef& lhs, cstr lhsString, cstr rhsString)
+		{
+			MemberDef rhs;
+			if (!ce.Builder.TryGetVariableByName(OUT rhs, rhsString) || rhs.ResolvedType->VarType() != VARTYPE_Map)
+			{
+				Throw(s, "Expecting map type %s", rhsString);
+			}
+
+			const IStructure& lhsKeyType = GetKeyTypeForMapVariable(ce, s, lhsString);
+			const IStructure& rhsKeyType = GetKeyTypeForMapVariable(ce, s, rhsString);
+
+			const IStructure& lhsValueType = GetValueTypeForMapVariable(ce, s, lhsString);
+			const IStructure& rhsValueType = GetValueTypeForMapVariable(ce, s, rhsString);
+
+			if (&lhsKeyType != &rhsKeyType)
+			{
+				Throw(s, "Could not assign map. LHS is (map with key type %s). RHS is (map with key type %s)", GetFriendlyName(lhsKeyType), GetFriendlyName(rhsKeyType));
+			}
+
+			if (&lhsValueType != &rhsValueType)
+			{
+				Throw(s, "Could not assign map. LHS is (map with value type %s). RHS is (map with value type %s)", GetFriendlyName(lhsValueType), GetFriendlyName(rhsValueType));
+			}
+
+			ce.Builder.AssignVariableToTemp(lhsString, 0, 0); // D4 has the LHS reference
+			ce.Builder.AssignVariableToTemp(rhsString, 1, 0); // D5 has the RHS reference
+
+			AddSymbol(ce.Builder, "*D5 = *D4. No output");
+			AppendInvoke(ce, GetMapCallbacks(ce).MapAssign, s);
+
+			UseStackFrameFor(ce.Builder, lhs);
+
+			if (!lhs.IsContained || lhs.Usage == ARGUMENTUSAGE_BYVALUE)
+			{
+				ce.Builder.Assembler().Append_SetStackFrameValue(lhs.SFOffset + lhs.MemberOffset, VM::REGISTER_D5, BITCOUNT_POINTER);
+			}
+			else
+			{
+				ce.Builder.Assembler().Append_SetStackFramePtrFromD5(lhs.SFOffset, lhs.MemberOffset);
+			}
+			RestoreStackFrameFor(ce.Builder, lhs);
+		}
+
 		void AssignVariableToVariable(CCompileEnvironment& ce, cr_sex exceptionSource, cstr lhs, cstr rhs)
 		{
 			try
@@ -2909,6 +2962,10 @@ namespace Rococo
 				if (def.ResolvedType == &ce.StructArray())
 				{
 					AssignArrayToArray(ce, exceptionSource, def, lhs, rhs);
+				}
+				else if (def.ResolvedType == &ce.StructMap())
+				{
+					AssignMapToMap(ce, exceptionSource, def, lhs, rhs);
 				}
 				else
 				{

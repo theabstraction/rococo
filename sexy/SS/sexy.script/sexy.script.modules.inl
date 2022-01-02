@@ -561,7 +561,7 @@ namespace Rococo { namespace Script
 		for(int i = 0; i < type->MemberCount(); ++i)
 		{
 			const IMember& m = type->GetMember(i);
-			if (m.UnderlyingGenericArg1Type() != NULL && m.UnderlyingType()->VarType() != VARTYPE_Array) 
+			if (m.UnderlyingGenericArg1Type() != NULL && m.UnderlyingType()->VarType() != VARTYPE_Array && m.UnderlyingType()->VarType() != VARTYPE_Map)
 			{
 				// Lists and maps need to be constructed
 				ValidateChildConstructorExists(startPos, endPos, constructorDef, m);
@@ -748,8 +748,8 @@ namespace Rococo { namespace Script
 
 			if (s == ce.StructMap())
 			{
-				ce.Builder.Assembler().Append_GetStackFrameAddress(VM::REGISTER_D7, SFoffset);
-				AppendInvoke(ce, GetMapCallbacks(ce).MapClear,  *(const ISExpression*) s.Definition());
+				ce.Builder.Assembler().Append_GetStackFrameValue(SFoffset, VM::REGISTER_D7, BITCOUNT_POINTER);
+				AppendInvoke(ce, GetMapCallbacks(ce).MapRelease,  *(const ISExpression*) s.Definition());
 				return;
 			}
 
@@ -811,8 +811,8 @@ namespace Rococo { namespace Script
 		}
 		else if (s == ce.StructMap())
 		{
-			ce.Builder.AssignVariableRefToTemp(instanceName, Rococo::ROOT_TEMPDEPTH);
-			AppendInvoke(ce, GetMapCallbacks(ce).MapClear, sequence);
+			ce.Builder.AssignVariableToTemp(instanceName, Rococo::ROOT_TEMPDEPTH);
+			AppendInvoke(ce, GetMapCallbacks(ce).MapRelease, sequence);
 			return;
 		}
 		else if (AreEqual(s.Name(), "_Lock") && AreEqual(instanceName, "_array", 6))
@@ -1236,10 +1236,6 @@ namespace Rococo { namespace Script
 		if (*member.UnderlyingType() == ce.StructList())
 		{
 			CompileListConstruct(ce, conDef, member, instance);
-		}
-		else if (*member.UnderlyingType() == ce.StructMap())
-		{
-			CompileMapConstruct(ce, conDef, member, instance);
 		}
 		else
 		{
@@ -1954,19 +1950,7 @@ namespace Rococo { namespace Script
 
 				IStructureBuilder& s = module.DeclareStructure(mapName, prototype, NULL);
 
-				s.AddMember(NameString::From(("_length")), TypeString::From(("Int32")));
-				s.AddMember(NameString::From(("_reserved")), TypeString::From(("Int32")));
-				s.AddMember(NameString::From(("_keyType")), TypeString::From(("Pointer")));
-				s.AddMember(NameString::From(("_valueType")), TypeString::From(("Pointer")));				
-				s.AddMember(NameString::From(("_nullNode")), TypeString::From(("Pointer")));		
-				s.AddMember(NameString::From(("_head")), TypeString::From(("Pointer")));	
-				s.AddMember(NameString::From(("_tail")), TypeString::From(("Pointer")));	
-				s.AddMember(NameString::From(("_stdVec1")), TypeString::From(("Pointer")));
-				s.AddMember(NameString::From(("_stdVec2")), TypeString::From(("Pointer")));
-				s.AddMember(NameString::From(("_stdVec3")), TypeString::From(("Pointer")));
-				s.AddMember(NameString::From(("_stdVec4")), TypeString::From(("Pointer")));
-				s.AddMember(NameString::From(("_stdVec5")), TypeString::From(("Pointer")));
-				s.AddMember(NameString::From(("_keyResolver")), TypeString::From(("Pointer")));
+				s.AddMember(NameString::From(("_mapImage")), TypeString::From(("Pointer")));
 
 				ns->Alias(mapName, s);
 			}
@@ -2080,15 +2064,7 @@ namespace Rococo { namespace Script
 			}
 
 			const IStructure* mapNode = programObject.GetModule(0).FindStructure(("_Map"));
-			if (mapNode->SizeOfStruct() < sizeof(MapImage))
-			{
-				Vec2i start, end;
-				start.x = end.x = 0;
-				start.y = end.y = 0;
-				ParseException ex(start, end, "Sexy Script System", "_Map was too small to represent a MapImage. Add a few fake pointers in the _Map definition.", "", NULL);
-				throw ex;
-			}
-
+			
 			programObject.InitCommon();
 
 			struct FnctorValidateConcreteClasses
@@ -3508,7 +3484,7 @@ namespace Rococo { namespace Script
 
 			auto type = m.UnderlyingType()->VarType();
 
-			if (!IsPrimitiveType(type) && type != VARTYPE_Array)
+			if (!IsPrimitiveType(type) && type != VARTYPE_Array && type != VARTYPE_Map)
 			{
 				if (m.UnderlyingGenericArg1Type())
 				{
@@ -4148,6 +4124,70 @@ namespace Rococo { namespace Script
 		}
 
 		return variableDef->ElementType;
+	}
+
+	const IStructure& GetKeyTypeForMapVariable(CCompileEnvironment& ce, cr_sex src, cstr mapName)
+	{
+		NamespaceSplitter splitter(mapName);
+
+		cstr instance, mapMember;
+		if (splitter.SplitTail(instance, mapMember))
+		{
+			const IStructure* s = ce.Builder.GetVarStructure(instance);
+			if (s == NULL)
+			{
+				ThrowTokenNotFound(src, instance, ce.Builder.Owner().Name(), ("variable"));
+			}
+
+			int offset = 0;
+			const IMember* m = FindMember(*s, mapMember, REF offset);
+			if (m == NULL)
+			{
+				ThrowTokenNotFound(src, mapMember, instance, ("member"));
+			}
+
+			return *m->UnderlyingGenericArg1Type();
+		}
+
+		const MapDef* variableDef = ce.Script.GetMapDef(ce.Builder, mapName);
+		if (variableDef == NULL)
+		{
+			ThrowTokenNotFound(src, mapName, ce.Builder.Owner().Name(), ("member"));
+		}
+
+		return variableDef->KeyType;
+	}
+
+	const IStructure& GetValueTypeForMapVariable(CCompileEnvironment& ce, cr_sex src, cstr mapName)
+	{
+		NamespaceSplitter splitter(mapName);
+
+		cstr instance, mapMember;
+		if (splitter.SplitTail(instance, mapMember))
+		{
+			const IStructure* s = ce.Builder.GetVarStructure(instance);
+			if (s == NULL)
+			{
+				ThrowTokenNotFound(src, instance, ce.Builder.Owner().Name(), ("variable"));
+			}
+
+			int offset = 0;
+			const IMember* m = FindMember(*s, mapMember, REF offset);
+			if (m == NULL)
+			{
+				ThrowTokenNotFound(src, mapMember, instance, ("member"));
+			}
+
+			return *m->UnderlyingGenericArg2Type();
+		}
+
+		const MapDef* variableDef = ce.Script.GetMapDef(ce.Builder, mapName);
+		if (variableDef == NULL)
+		{
+			ThrowTokenNotFound(src, mapName, ce.Builder.Owner().Name(), ("member"));
+		}
+
+		return variableDef->ValueType;
 	}
 
 	void AddArrayDef(CScript& script, ICodeBuilder& builder, cstr arrayName, const IStructure& elementType, cr_sex s)

@@ -701,6 +701,7 @@ namespace Rococo
 			  {
 			  case VARTYPE_Derivative:
 			  case VARTYPE_Array:
+			  case VARTYPE_Map:
 				  total += sizeof size_t;
 				  break;
 			  default:

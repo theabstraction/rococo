@@ -9367,6 +9367,43 @@ R"((namespace EntryPoint)
 		validate(x == 155);
 	}
 
+	void TestMap8(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Type)"
+
+			"(struct MapStringToInt32"
+				"(map IString Int32 elements)"
+			")"
+
+			"(function Main -> (Int32 result):"
+			""
+			"	(MapStringToInt32 a)"
+			"	(map IString Int32 elements)"
+			"	(a.elements = elements)"
+			"	(a.elements.Insert \"Joe\" 90)"
+			"	(node n = (a.elements \"Joe\"))"
+			"	(result = n.Value)"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, "TestMap8");
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		validate(ss.ValidateMemory());
+
+		int x = vm.PopInt32();
+		validate(x == 90);
+	}
+
 	void TestMapOverwriteValue(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -9712,13 +9749,14 @@ R"((namespace EntryPoint)
 		"(using Sys.Type)"
 
 		"(struct Vec4Map (map Int32 Vec4 a))"
-		"(method Vec4Map.Construct -> (construct a () ) : )"
 
 		"(struct Vec4 (Int32 x y z w))"
 		"(method Vec4.Construct (Int32 x) (Int32 y) (Int32 z) -> : (this.x = x) (this.y = y) (this.z = z) (this.w = 1))" 
   
 		"(function Main -> (Int32 result):"
-		"	(Vec4Map m () )"
+		"	(Vec4Map m)"
+		"   (map Int32 Vec4 a)"
+		"	(m.a = a)"
 		"	(m.a.Insert 45 Vec4 (1 2 3))"
 		"	(m.a.Insert 23 Vec4 (5 6 7))"
 		"	(m.a.Insert -6 Vec4 (8 9 10))"
@@ -9755,7 +9793,10 @@ R"((namespace EntryPoint)
 		"(method Vec4.Construct (Int32 x) (Int32 y) (Int32 z) -> : (this.x = x) (this.y = y) (this.z = z) (this.w = 1))" 
 
 		"(struct Vec4Map (map Int32 Vec4 a))"
-		"(method Vec4Map.Construct -> (construct a () ) : )"
+		"(method Vec4Map.Construct : "
+			"(map Int32 Vec4 a)"
+			"(this.a = a)"
+		")"
 
 		"(function Main -> (Int32 result):"
 		"	(map Int32 Vec4Map m)"
@@ -14731,6 +14772,11 @@ R"(
 		int64 start, end, hz;
 		start = OS::CpuTicks();
 
+		TEST(TestMap8);
+		TEST(TestMapThrowAndCleanup);
+		TEST(TestMapInMap);
+		TEST(TestMapInStruct);
+		TEST(TestMap);
 		TEST(TestArrayAssignEmpty);
 		TEST(TestArrayNull);
 

@@ -1,15 +1,18 @@
 (namespace EntryPoint)
-	(alias Main EntryPoint.Main)
+ (alias Main EntryPoint.Main)
 
 (using Sys.Type)
 
-(struct Int32Array
-	(array Int32 elements)
+(struct MapStringToInt32
+	(map IString Int32 elements)
 )
 
 (function Main -> (Int32 result):
-	(array Int32 a 1)
-//	(Int32Array b)
-//	(b.elements = a)
-//	(result = b.elements.Capacity)
+
+	(MapStringToInt32 a)
+	(map IString Int32 elements)
+	(a.elements = elements)
+	(a.elements.Insert "Joe" 90)
+	(node n = (a.elements "Joe"))
+	(result = n.Value)
 )
