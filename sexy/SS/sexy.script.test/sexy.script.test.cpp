@@ -9367,6 +9367,43 @@ R"((namespace EntryPoint)
 		validate(x == 155);
 	}
 
+	void TestMap8(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Type)"
+
+			"(struct MapStringToInt32"
+				"(map IString Int32 elements)"
+			")"
+
+			"(function Main -> (Int32 result):"
+			""
+			"	(MapStringToInt32 a)"
+			"	(map IString Int32 elements)"
+			"	(a.elements = elements)"
+			"	(a.elements.Insert \"Joe\" 90)"
+			"	(node n = (a.elements \"Joe\"))"
+			"	(result = n.Value)"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, "TestMap8");
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		validate(ss.ValidateMemory());
+
+		int x = vm.PopInt32();
+		validate(x == 90);
+	}
+
 	void TestMapOverwriteValue(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -14735,6 +14772,7 @@ R"(
 		int64 start, end, hz;
 		start = OS::CpuTicks();
 
+		TEST(TestMap8);
 		TEST(TestMapThrowAndCleanup);
 		TEST(TestMapInMap);
 		TEST(TestMapInStruct);

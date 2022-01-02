@@ -79,6 +79,7 @@ namespace Rococo::Script
     uint8* GetKeyPointer(MapNode* m);
     uint8* GetValuePointer(MapNode* m);
 
+    MapNode* InsertKey(MapImage& theMap, VariantValue source, IScriptSystem& ss);
 } // Rococo::Script
 
 #pragma pack(pop)

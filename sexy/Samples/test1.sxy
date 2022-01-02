@@ -1,24 +1,18 @@
 (namespace EntryPoint)
-	(alias Main EntryPoint.Main)
+ (alias Main EntryPoint.Main)
 
 (using Sys.Type)
 
-(struct Vec4 (Int32 x y z w))
-(method Vec4.Construct (Int32 x) (Int32 y) (Int32 z) -> : (this.x = x) (this.y = y) (this.z = z) (this.w = 1)) 
-
-(struct Vec4Map 
-	(map Int32 Vec4 a)
-)
-
-(method Vec4Map.Construct : 
-	(map Int32 Vec4 a)
-	(this.a = a)
+(struct MapStringToInt32
+	(map IString Int32 elements)
 )
 
 (function Main -> (Int32 result):
-	(map Int32 Vec4Map m)
-	(m.Insert 45 Vec4Map ())
-	(node n = (m 45))
-	(Vec4Map subMap = & n)
-	(subMap.a.Insert 22 Vec4 (199 233 455))
+
+	(MapStringToInt32 a)
+	(map IString Int32 elements)
+	(a.elements = elements)
+	(a.elements.Insert "Joe" 90)
+	(node n = (a.elements "Joe"))
+	(result = n.Value)
 )

@@ -981,6 +981,8 @@ namespace
 
 		const IStructure* mapKeyType = nullptr;
 		const IStructure* mapValueType = nullptr;
+		MapImage* targetMap = nullptr;
+		Rococo::Script::MapNode* targetNode = nullptr;
 
 		void AddMapDefinition(cstr refName, cstr keyType, cstr keyTypeSource, cstr valueType, cstr valueTypeSource, int32 length) override
 		{
@@ -1005,21 +1007,58 @@ namespace
 					Throw(0, "Cannot load %s.\nThe map value type has already been defined as being type %s of %s.\nThe operation requested a type %s of %s.", refName, i->second->ValueType->Name(), i->second->ValueType->Module().Name(), mapValueType->Name(), mapValueType->Module().Name());
 				}
 			}
+
+			targetMap = i->second;
 		}
 
 		void SetMapKey(const fstring& keyText)
 		{
 			void* elementPtr = nullptr;
 
+			VariantValue key;
+
 			if (IsIString(*mapKeyType))
 			{
-				Throw(0, "SetMapKey - Not implemented");
+				auto* sc = scriptSystem->DuplicateStringAsConstant(keyText, keyText.length);
+				key.vPtrValue = sc;
 			}
-			else
+			else 
 			{
-				Throw(0, "SetMapKey - Not implemented");
+				switch (mapKeyType->VarType())
+				{
+				case VARTYPE_Int32:
+					key.int32Value = atoi(keyText);
+					break;
+				case VARTYPE_Int64:
+					key.int64Value = atoll(keyText);
+					break;
+				case VARTYPE_Float32:
+					{
+						uint32 binRepresentation;
+						sscanf_s(keyText, "%x", &binRepresentation);
+						key.floatValue = Rococo::Maths::IEEE475::BinaryToFloat(binRepresentation);
+					}
+					break;
+				case VARTYPE_Float64:
+					{
+						uint64 binRepresentation;
+						sscanf_s(keyText, "%llx", &binRepresentation);
+						key.doubleValue = Rococo::Maths::IEEE475::BinaryToDouble(binRepresentation);
+					}
+					break;
+				case VARTYPE_Bool:
+					{
+						boolean32 value = (*keyText == 'Y') ? 1 : 0;
+						key.int32Value = value;
+					}
+					break;
+				default:
+					Throw(0, "%s - Key type %s Not implemented", __FUNCTION__, GetFriendlyName(*mapKeyType));
+				}	
 			}
 
+			targetNode = InsertKey(*targetMap, key, reinterpret_cast<IScriptSystem&>(*scriptSystem));
+			elementPtr = GetValuePointer(targetNode);
 			SelectTarget(*mapValueType, elementPtr);
 		}
 

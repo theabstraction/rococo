@@ -192,23 +192,23 @@ struct CSV_Line_by_Line_SexyAssetParser: ICSVLineParser
 			}
 
 			// There are no element types, which means the array->ElementType is a primitive or interface type
-			if (Eq(objectType, "Float32") && Eq(objectModule, "Sys.Types.sxy"))
+			if (Eq(objectType, "Float32") && Eq(objectModule, "!Intrinsics!"))
 			{
 				builder.AddF32ItemValue(activeMemberIndex, (float)atof(token));
 			}
-			else if (Eq(objectType, "Float64") && Eq(objectModule, "Sys.Types.sxy"))
+			else if (Eq(objectType, "Float64") && Eq(objectModule, "!Intrinsics!"))
 			{
 				builder.AddF64ItemValue(activeMemberIndex, atof(token));
 			}
-			else if (Eq(objectType, "Int32") && Eq(objectModule, "Sys.Types.sxy"))
+			else if (Eq(objectType, "Int32") && Eq(objectModule, "!Intrinsics!"))
 			{
 				builder.AddI32ItemValue(activeMemberIndex, atoi(token));
 			}
-			else if (Eq(objectType, "Int64") && Eq(objectModule, "Sys.Types.sxy"))
+			else if (Eq(objectType, "Int64") && Eq(objectModule, "!Intrinsics!"))
 			{
 				builder.AddI64ItemValue(activeMemberIndex, atoll(token));
 			}
-			else if (Eq(objectType, "Boolean32") && Eq(objectModule, "Sys.Types.sxy"))
+			else if (Eq(objectType, "Boolean32") && Eq(objectModule, "!Intrinsics!"))
 			{
 				builder.AddBoolItemValue(activeMemberIndex, Eq(token, "Y"));
 			}
@@ -353,6 +353,7 @@ struct CSV_Line_by_Line_SexyAssetParser: ICSVLineParser
 			if (*line[0] == '@')
 			{
 				builder.SetMapKey(line[1]);
+				activeMemberIndex = 0;
 				state = &CSV_Line_by_Line_SexyAssetParser::OnMapValue;
 				return;
 			}
@@ -368,10 +369,6 @@ struct CSV_Line_by_Line_SexyAssetParser: ICSVLineParser
 			if (*line[0] == '@')
 			{
 				OnMapKey(line);
-				return;
-				activeMemberIndex = 0;
-				state = &CSV_Line_by_Line_SexyAssetParser::OnMapValue;
-				builder.SetMapKey(line[1]);
 				return;
 			}
 		}
@@ -450,6 +447,9 @@ struct CSV_Line_by_Line_SexyAssetParser: ICSVLineParser
 				CopyString(mapValueType, sizeof mapValueType, line[3]);
 				CopyString(mapValueSource, sizeof mapValueSource, line[4]);
 				mapLength = atoi(line[5]);
+
+				CopyString(objectType, sizeof objectType, mapValueType);
+				CopyString(objectModule, sizeof objectModule, mapValueSource);
 
 				builder.AddMapDefinition(line[0], line[1], line[2], line[3], line[4], mapLength);
 

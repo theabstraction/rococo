@@ -200,15 +200,24 @@
 	(a.elements = temp)
 	(temp.Insert "apple" 8)
 	(reflect SaveAsset assetFile a)
-	
-	(MapStringToInt64 b)
-	(reflect LoadAsset assetFile b)
+
+	(node first = (a.elements "apple"))
+	(Int64 appleValue1 = first.Value)
 
 	(debug)
 
+	(MapStringToInt64 b)
+	(reflect LoadAsset assetFile b)
+
 	(Int32 length)
 	(length = b.elements.Length)
-	(Validate (length == 0))	
+	(Validate (length == 1))	
+
+	(node apple = (b.elements "apple"))
+	(debug)
+	(Int64 appleValue = apple.Value)
+	(Validate (appleValue == 8))
+	(debug)
 )
 
 (struct Int32Array
