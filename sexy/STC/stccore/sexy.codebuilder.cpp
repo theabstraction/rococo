@@ -2063,6 +2063,7 @@ namespace Anon
 
 		if ((def.ResolvedType->VarType() == VARTYPE_Array && !def.IsContained) 
 			|| (def.ResolvedType->VarType() == VARTYPE_Map && !def.IsContained)
+			|| (def.ResolvedType->VarType() == VARTYPE_List && !def.IsContained)
 			|| def.location == VARLOCATION_OUTPUT
 			|| def.Usage != ARGUMENTUSAGE_BYREFERENCE)
 		{
@@ -2330,7 +2331,7 @@ namespace Anon
 				{
 					Assembler().Append_GetStackFrameMember(VM::REGISTER_D4 + tempIndex, def.SFOffset, def.MemberOffset, BITCOUNT_POINTER);
 				}
-				else if (srcType->VarType() == VARTYPE_Array || srcType->VarType() == VARTYPE_Map)
+				else if (srcType->VarType() == VARTYPE_Array || srcType->VarType() == VARTYPE_Map || srcType->VarType() == VARTYPE_List)
 				{
 					Assembler().Append_GetStackFrameValue(def.SFOffset, VM::REGISTER_D4 + tempIndex, BITCOUNT_POINTER);
 				}

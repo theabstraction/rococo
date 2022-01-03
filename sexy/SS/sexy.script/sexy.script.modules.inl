@@ -325,7 +325,7 @@ namespace Rococo { namespace Script
 		const sexstring idString = id.String();
 		const sexstring firstTypeString = elementType.String();
 
-		if (!AreEqual(type, ("_Array")) && !AreEqual(type, ("_List")))
+		if (!AreEqual(type, "_Array") && !AreEqual(type, "_List"))
 		{
 			Throw(*id.Parent(), ("Unexpected type in generic input definition"));
 		}
@@ -333,11 +333,11 @@ namespace Rococo { namespace Script
 		IArgumentBuilder& arg = f.AddInput(NameString::From(idString), TypeString::From(type), TypeString::From(firstTypeString), (void*) &src);			
 		Resolve(arg, type, idString->Buffer, f.Name(), *id.Parent(), firstTypeString->Buffer);
 
-		if (AreEqual(type, ("_Array")))
+		if (AreEqual(type, "_Array"))
 		{
 			AddArrayDef(script, f.Builder(), id.String()->Buffer, *arg.GenericTypeArg1(), src);
 		}
-		else if (AreEqual(type, ("_List")))
+		else if (AreEqual(type, "_List"))
 		{
 			AddListDef(script, f.Builder(), id.String()->Buffer, *arg.GenericTypeArg1(), src);
 		}
@@ -475,7 +475,7 @@ namespace Rococo { namespace Script
 
 				AddGenericInput(f, "_Array", sexIdentifier, elementType, inputItem, script);				
 			}
-			else if (AreEqual(sexType.String(), ("list")))
+			else if (AreEqual(sexType.String(), "list"))
 			{
 				AssertNotTooFewElements(inputItem, 3);
 				AssertNotTooManyElements(inputItem, 3);
@@ -483,7 +483,7 @@ namespace Rococo { namespace Script
 				cr_sex elementType = GetAtomicArg(inputItem, 1);
 				cr_sex sexIdentifier = GetAtomicArg(inputItem, 2);
 				
-				AddGenericInput(f, ("_List"), sexIdentifier, elementType, inputItem, script);				
+				AddGenericInput(f, "_List", sexIdentifier, elementType, inputItem, script);				
 			}
 			else if (AreEqual(sexType.String(), ("map")))
 			{
@@ -561,9 +561,8 @@ namespace Rococo { namespace Script
 		for(int i = 0; i < type->MemberCount(); ++i)
 		{
 			const IMember& m = type->GetMember(i);
-			if (m.UnderlyingGenericArg1Type() != NULL && m.UnderlyingType()->VarType() != VARTYPE_Array && m.UnderlyingType()->VarType() != VARTYPE_Map)
+			if (m.UnderlyingGenericArg1Type() != NULL && m.UnderlyingType()->VarType() != VARTYPE_Array && m.UnderlyingType()->VarType() != VARTYPE_Map && m.UnderlyingType()->VarType() != VARTYPE_List)
 			{
-				// Lists and maps need to be constructed
 				ValidateChildConstructorExists(startPos, endPos, constructorDef, m);
 			}
 			else
@@ -741,8 +740,8 @@ namespace Rococo { namespace Script
 		{
 			if (s == ce.StructList())
 			{
-				ce.Builder.Assembler().Append_GetStackFrameAddress(VM::REGISTER_D7, SFoffset);
-				AppendInvoke(ce, GetListCallbacks(ce).ListClear, *(const ISExpression*) s.Definition());
+				ce.Builder.Assembler().Append_GetStackFrameValue(SFoffset, VM::REGISTER_D7, BITCOUNT_POINTER);
+				AppendInvoke(ce, GetListCallbacks(ce).ListRelease, *(const ISExpression*) s.Definition());
 				return;
 			}
 
@@ -805,8 +804,8 @@ namespace Rococo { namespace Script
 
 		if (s == ce.StructList())
 		{
-			ce.Builder.AssignVariableRefToTemp(instanceName, Rococo::ROOT_TEMPDEPTH);
-			AppendInvoke(ce, GetListCallbacks(ce).ListClear, sequence);
+			ce.Builder.AssignVariableToTemp(instanceName, Rococo::ROOT_TEMPDEPTH);
+			AppendInvoke(ce, GetListCallbacks(ce).ListRelease, sequence);
 			return;
 		}
 		else if (s == ce.StructMap())
@@ -1904,15 +1903,8 @@ namespace Rococo { namespace Script
 				StructurePrototype prototype(MEMBERALIGN_4, INSTANCEALIGN_16, true, NULL, false);
 				const ISExpression* src = NULL;
 
-				IStructureBuilder& s = module.DeclareStructure(("_List"), prototype, NULL);
-
-				s.AddMember(NameString::From(("_length")), TypeString::From(("Int32")));
-				s.AddMember(NameString::From(("_lock")), TypeString::From(("Int32")));
-				s.AddMember(NameString::From(("_elementType")), TypeString::From(("Pointer")));												
-				s.AddMember(NameString::From(("_head")), TypeString::From(("Pointer")));			
-				s.AddMember(NameString::From(("_tail")), TypeString::From(("Pointer")));
-				s.AddMember(NameString::From(("_elementSize")), TypeString::From(("Int32")));
-			
+				IStructureBuilder& s = module.DeclareStructure("_List", prototype, NULL);
+				s.AddMember(NameString::From(("_ListImage")), TypeString::From(("Pointer")));
 				ns->Alias(("_List"), s);
 			}
 			{
@@ -3484,7 +3476,7 @@ namespace Rococo { namespace Script
 
 			auto type = m.UnderlyingType()->VarType();
 
-			if (!IsPrimitiveType(type) && type != VARTYPE_Array && type != VARTYPE_Map)
+			if (!IsPrimitiveType(type) && type != VARTYPE_Array && type != VARTYPE_Map && type != VARTYPE_List)
 			{
 				if (m.UnderlyingGenericArg1Type())
 				{

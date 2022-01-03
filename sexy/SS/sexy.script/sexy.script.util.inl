@@ -135,7 +135,7 @@ namespace Rococo
 		struct MapImage;
 
 		void DestroyElements(ArrayImage& a, IScriptSystem& ss);
-		void ListClear(ListImage& l, IScriptSystem& ss);
+		void ListRelease(ListImage* l, IScriptSystem& ss);
 		void MapClear(MapImage* m, IScriptSystem& ss);
 		void ArrayDelete(ArrayImage* a, IScriptSystem& ss);
 
@@ -147,15 +147,15 @@ namespace Rococo
 			{
 			case VARTYPE_Array:
 				{
-					ArrayImage* a = (ArrayImage*)item;
+					ArrayImage* a = *(ArrayImage**)item;
 					DestroyElements(*a, ss);
 					ArrayDelete(a, ss);
 					return;
 				}
 			case VARTYPE_List:
 				{
-					ListImage* l = (ListImage*)item;
-					ListClear(*l, ss);
+					ListImage* l = *(ListImage**)item;
+					ListRelease(l, ss);
 					return;
 				}
 			case VARTYPE_Map:

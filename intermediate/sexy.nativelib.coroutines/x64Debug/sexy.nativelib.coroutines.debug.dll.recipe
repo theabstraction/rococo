@@ -2,9 +2,6 @@
 <Project>
   <ProjectOutputs>
     <ProjectOutput>
-      <FullPath>C:\work\rococo\sexy\Bin\x64Debug\sexy.bennyhill.exe</FullPath>
-    </ProjectOutput>
-    <ProjectOutput>
       <FullPath>C:\work\rococo\sexy\NativeSource\sexy.nativelib.coroutines.debug.dll</FullPath>
     </ProjectOutput>
   </ProjectOutputs>
