@@ -1,18 +1,21 @@
 (namespace EntryPoint)
- (alias Main EntryPoint.Main)
+	(alias Main EntryPoint.Main)
 
 (using Sys.Type)
 
-(struct MapStringToInt32
-	(map IString Int32 elements)
+(struct Dog (list Int32 boneIds))
+
+(method Dog.Construct -> : 
+	(list Int32 boneIds)
+	(this.boneIds = boneIds)
 )
 
 (function Main -> (Int32 result):
-
-	(MapStringToInt32 a)
-	(map IString Int32 elements)
-	(a.elements = elements)
-	(a.elements.Insert "Joe" 90)
-	(node n = (a.elements "Joe"))
-	(result = n.Value)
+	(list Dog dogs)
+	(dogs.Append ())
+	(node head = dogs.Head)
+	(Dog firstDog = & head)
+	(firstDog.boneIds.Append 27)
+	(node bone = firstDog.boneIds.Head)
+	(result = bone.Value)
 )

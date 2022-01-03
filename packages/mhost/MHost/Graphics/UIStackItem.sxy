@@ -14,7 +14,9 @@
 	(list UIStackItem children)
 )
 
-(method UIStackItem.Construct -> (construct children ()): 
+(method UIStackItem.Construct -> : 
+	(list UIStackItem newChildren)
+	(this.children = newChildren)
 )
 
 (alias UIStackItem $.UIStackItem)

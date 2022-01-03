@@ -873,41 +873,44 @@ namespace Rococo
 			arrayCallbacks.ArrayReturnLength = core.RegisterCallback(OnInvokeArrayReturnLength, this, "ArrayReturnLength");
 			arrayCallbacks.ArrayReturnCapacity = core.RegisterCallback(OnInvokeArrayReturnCapacity, this, "ArrayReturnCapacity");
 
-			listCallbacks.ListInit = core.RegisterCallback(OnInvokeListInit, this, ("ListInit"));
-			listCallbacks.ListAppend = core.RegisterCallback(OnInvokeListAppend, this, ("ListAppend"));
-			listCallbacks.ListAppendAndGetRef = core.RegisterCallback(OnInvokeListAppendAndGetRef, this, ("ListAppendAndGetRef"));
-			listCallbacks.ListAppend32 = core.RegisterCallback(OnInvokeListAppend32, this, ("ListAppend32"));
-			listCallbacks.ListAppend64 = core.RegisterCallback(OnInvokeListAppend64, this, ("ListAppend64"));
-			listCallbacks.ListAppendInterface = core.RegisterCallback(OnInvokeListAppendInterface, this, ("ListAppendInterface"));
-			listCallbacks.ListPrepend = core.RegisterCallback(OnInvokeListPrepend, this, ("ListPrepend"));
-			listCallbacks.ListPrependAndGetRef = core.RegisterCallback(OnInvokeListPrependAndGetRef, this, ("ListPrependAndGetRef"));
-			listCallbacks.ListPrepend32 = core.RegisterCallback(OnInvokeListPrepend32, this, ("ListPrepend32"));
-			listCallbacks.ListPrepend64 = core.RegisterCallback(OnInvokeListPrepend64, this, ("ListPrepend64"));
-			listCallbacks.ListPrependInterface = core.RegisterCallback(OnInvokeListPrependInterface, this, ("ListPrependInterface"));
-			listCallbacks.ListGetHead = core.RegisterCallback(OnInvokeListGetHead, this, ("ListGetHead"));
-			listCallbacks.ListGetTail = core.RegisterCallback(OnInvokeListGetTail, this, ("ListGetTail"));
-			listCallbacks.NodeGet32 = core.RegisterCallback(OnInvokeNodeGet32, this, ("NodeGet32"));
-			listCallbacks.NodeGet64 = core.RegisterCallback(OnInvokeNodeGet64, this, ("NodeGet64"));
-			listCallbacks.NodeGetInterface = core.RegisterCallback(OnInvokeNodeGetInterface, this, ("NodeGetInterface"));
-			listCallbacks.NodeGetElementRef = core.RegisterCallback(OnInvokeNodeGetElementRef, this, ("NodeGetElementRef"));
-			listCallbacks.NodeNext = core.RegisterCallback(OnInvokeNodeNext, this, ("NodeNext"));
-			listCallbacks.NodePrevious = core.RegisterCallback(OnInvokeNodePrevious, this, ("NodePrevious"));
-			listCallbacks.NodeAppend = core.RegisterCallback(OnInvokeNodeAppend, this, ("NodeAppend"));
-			listCallbacks.NodeAppendInterface = core.RegisterCallback(OnInvokeNodeAppendInterface, this, ("NodeAppendInterface"));
-			listCallbacks.NodeAppend32 = core.RegisterCallback(OnInvokeNodeAppend32, this, ("NodeAppend32"));
-			listCallbacks.NodeAppend64 = core.RegisterCallback(OnInvokeNodeAppend64, this, ("NodeAppend64"));
-			listCallbacks.NodePrepend = core.RegisterCallback(OnInvokeNodePrepend, this, ("NodePrepend"));
-			listCallbacks.NodePrependInterface = core.RegisterCallback(OnInvokeNodePrependInterface, this, ("NodePrependInterface"));
-			listCallbacks.NodePrepend32 = core.RegisterCallback(OnInvokeNodePrepend32, this, ("NodePrepend32"));
-			listCallbacks.NodePrepend64 = core.RegisterCallback(OnInvokeNodePrepend64, this, ("NodePrepend64"));
-			listCallbacks.NodePop = core.RegisterCallback(OnInvokeNodePop, this, ("NodePop"));
-			listCallbacks.NodeEnumNext = core.RegisterCallback(OnInvokeNodeEnumNext, this, ("NodeEnumNext"));
-			listCallbacks.NodeHasNext = core.RegisterCallback(OnInvokeNodeHasNext, this, ("NodeHasNext"));
-			listCallbacks.NodeHasPrevious = core.RegisterCallback(OnInvokeNodeHasPrevious, this, ("NodeHasPrevious"));
-			listCallbacks.NodeReleaseRef = core.RegisterCallback(OnInvokeNodeReleaseRef, this, ("NodeReleaseRef"));
-			listCallbacks.ListClear = core.RegisterCallback(OnInvokeListClear, this, ("ListClear"));
-			listCallbacks.NodeGoPrevious = core.RegisterCallback(OnInvokeNodeGoPrevious, this, ("NodeGoPrevious"));
-			listCallbacks.NodeGoNext = core.RegisterCallback(OnInvokeNodeGoNext, this, ("NodeGoNext"));
+			listCallbacks.ListInit = core.RegisterCallback(OnInvokeListInit, this, "ListInit");
+			listCallbacks.ListAppend = core.RegisterCallback(OnInvokeListAppend, this, "ListAppend");
+			listCallbacks.ListAppendAndGetRef = core.RegisterCallback(OnInvokeListAppendAndGetRef, this, "ListAppendAndGetRef");
+			listCallbacks.ListAppend32 = core.RegisterCallback(OnInvokeListAppend32, this, "ListAppend32");
+			listCallbacks.ListAppend64 = core.RegisterCallback(OnInvokeListAppend64, this, "ListAppend64");
+			listCallbacks.ListAppendInterface = core.RegisterCallback(OnInvokeListAppendInterface, this, "ListAppendInterface");
+			listCallbacks.ListPrepend = core.RegisterCallback(OnInvokeListPrepend, this, "ListPrepend");
+			listCallbacks.ListPrependAndGetRef = core.RegisterCallback(OnInvokeListPrependAndGetRef, this, "ListPrependAndGetRef");
+			listCallbacks.ListPrepend32 = core.RegisterCallback(OnInvokeListPrepend32, this, "ListPrepend32");
+			listCallbacks.ListPrepend64 = core.RegisterCallback(OnInvokeListPrepend64, this, "ListPrepend64");
+			listCallbacks.ListPrependInterface = core.RegisterCallback(OnInvokeListPrependInterface, this, "ListPrependInterface");
+			listCallbacks.ListGetHead = core.RegisterCallback(OnInvokeListGetHead, this, "ListGetHead");
+			listCallbacks.ListGetTail = core.RegisterCallback(OnInvokeListGetTail, this, "ListGetTail");
+			listCallbacks.ListGetLength = core.RegisterCallback(OnInvokeListGetLength, this, "ListGetLength");
+			listCallbacks.NodeGet32 = core.RegisterCallback(OnInvokeNodeGet32, this, "NodeGet32");
+			listCallbacks.NodeGet64 = core.RegisterCallback(OnInvokeNodeGet64, this, "NodeGet64");
+			listCallbacks.NodeGetInterface = core.RegisterCallback(OnInvokeNodeGetInterface, this, "NodeGetInterface");
+			listCallbacks.NodeGetElementRef = core.RegisterCallback(OnInvokeNodeGetElementRef, this, "NodeGetElementRef");
+			listCallbacks.NodeNext = core.RegisterCallback(OnInvokeNodeNext, this, "NodeNext");
+			listCallbacks.NodePrevious = core.RegisterCallback(OnInvokeNodePrevious, this, "NodePrevious");
+			listCallbacks.NodeAppend = core.RegisterCallback(OnInvokeNodeAppend, this, "NodeAppend");
+			listCallbacks.NodeAppendInterface = core.RegisterCallback(OnInvokeNodeAppendInterface, this, "NodeAppendInterface");
+			listCallbacks.NodeAppend32 = core.RegisterCallback(OnInvokeNodeAppend32, this, "NodeAppend32");
+			listCallbacks.NodeAppend64 = core.RegisterCallback(OnInvokeNodeAppend64, this, "NodeAppend64");
+			listCallbacks.NodePrepend = core.RegisterCallback(OnInvokeNodePrepend, this, "NodePrepend");
+			listCallbacks.NodePrependInterface = core.RegisterCallback(OnInvokeNodePrependInterface, this, "NodePrependInterface");
+			listCallbacks.NodePrepend32 = core.RegisterCallback(OnInvokeNodePrepend32, this, "NodePrepend32");
+			listCallbacks.NodePrepend64 = core.RegisterCallback(OnInvokeNodePrepend64, this, "NodePrepend64");
+			listCallbacks.NodePop = core.RegisterCallback(OnInvokeNodePop, this, "NodePop");
+			listCallbacks.NodeEnumNext = core.RegisterCallback(OnInvokeNodeEnumNext, this, "NodeEnumNext");
+			listCallbacks.NodeHasNext = core.RegisterCallback(OnInvokeNodeHasNext, this, "NodeHasNext");
+			listCallbacks.NodeHasPrevious = core.RegisterCallback(OnInvokeNodeHasPrevious, this, "NodeHasPrevious");
+			listCallbacks.NodeReleaseRef = core.RegisterCallback(OnInvokeNodeReleaseRef, this, "NodeReleaseRef");
+			listCallbacks.ListRelease = core.RegisterCallback(OnInvokeListRelease, this, "ListRelease");
+			listCallbacks.ListClear = core.RegisterCallback(OnInvokeListClear, this, "ListClear");
+			listCallbacks.ListAssign = core.RegisterCallback(OnInvokeListAssign, this, "ListAssign");
+			listCallbacks.NodeGoPrevious = core.RegisterCallback(OnInvokeNodeGoPrevious, this, "NodeGoPrevious");
+			listCallbacks.NodeGoNext = core.RegisterCallback(OnInvokeNodeGoNext, this, "NodeGoNext");
 
 			mapCallbacks.MapAssign = core.RegisterCallback(OnInvokeMapAssign, this, "MapAssign");
 			mapCallbacks.MapRelease = core.RegisterCallback(OnInvokeMapRelease, this, "MapRelease");
@@ -2226,7 +2229,7 @@ namespace Rococo
 	{
 		if (arrayStruct == NULL)
 		{
-			arrayStruct = Object.Common().SysNative().FindStructure(("_Array"));
+			arrayStruct = Object.Common().SysNative().FindStructure("_Array");
 		}
 
 		return *arrayStruct;
@@ -2236,7 +2239,7 @@ namespace Rococo
 	{
 		if (listStruct == NULL)
 		{
-			listStruct = Object.Common().SysNative().FindStructure(("_List"));
+			listStruct = Object.Common().SysNative().FindStructure("_List");
 		}
 
 		return *listStruct;
@@ -2246,7 +2249,7 @@ namespace Rococo
 	{
 		if (mapStruct == NULL)
 		{
-			mapStruct = Object.Common().SysNative().FindStructure(("_Map"));
+			mapStruct = Object.Common().SysNative().FindStructure("_Map");
 		}
 
 		return *mapStruct;

@@ -286,7 +286,48 @@ namespace Rococo {
 			int32 LockNumber;
 			int64 RefCount;
 		};
+
+		struct ListImage;
+
+#ifdef POINTERS_ARE_64_BIT
+		struct ListNode
+		{
+			ListImage* Container;
+			const IStructure* ElementType;
+			ListNode* Previous;
+			ListNode* Next;
+			int32 RefCount;
+			int32 padding;
+			char Element[4]; // N.B this is 16-bit aligned to the instance pointer in 32-bit and 64-bit mode
+		};
+#else
+		struct ListNode
+		{
+			ListImage* Container;
+			const IStructure* ElementType;
+			ListNode* Previous;
+			ListNode* Next;
+			int32 RefCount;
+			char padding[12];
+			char Element[4]; // N.B this is 16-bit aligned to the instance pointer in 32-bit and 64-bit mode
+		};
+#endif
 #pragma pack(pop)
+		struct NodeRef
+		{
+			ListNode* NodePtr;
+		};
+
+		struct ListImage
+		{
+			int64 refCount;
+			int32 NumberOfElements;
+			int32 LockNumber;
+			const IStructure* ElementType;
+			ListNode* Head;
+			ListNode* Tail;
+			int32 ElementSize;
+		};
 
 		struct MapImage;
 
@@ -421,6 +462,7 @@ namespace Rococo {
 
 		ROCOCOAPI MemberEnumeratorCallback
 		{
+			virtual void OnListMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const ListImage* l, const uint8* sfItem, int offset, int recurseDepth) = 0;
 			virtual void OnMapMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const MapImage* m, const uint8* sfItem, int offset, int recurseDepth) = 0;
 			virtual void OnArrayMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const ArrayImage* array, const uint8* sfItem, int offset, int recurseDepth) = 0;
 			virtual void OnMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const uint8* sfItem, int offset, int recurseDepth) = 0;

@@ -494,6 +494,59 @@ namespace SexyDotNet { namespace Host
 			GetMembers(ss, *member.UnderlyingType(), childName, sfItem, 0, builder, depth);
 		}
 
+		void OnListMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const ListImage* l, const uint8* sfItem, int offset, int recurseDepth)
+		{
+			if (recurseDepth > 5) return;
+
+			NativeVariableDesc desc;
+			SafeFormat(desc.Name, NativeVariableDesc::NAME_CAPACITY, childName);
+			SafeFormat(desc.Type, NativeVariableDesc::TYPE_CAPACITY, "list %s", GetFriendlyName(*member.UnderlyingGenericArg1Type()));
+			SafeFormat(desc.Value, "0x%p", l);
+
+			desc.Address = sfItem;
+
+			desc.Location = parentKind;
+
+			listVars.push_back(desc);
+
+			if (l == nullptr)
+			{
+				return;
+			}
+
+			NativeVariableDesc lenDesc;
+			SafeFormat(lenDesc.Name, "#.Length");
+			SafeFormat(lenDesc.Type, "Int32");
+			SafeFormat(lenDesc.Value, "%d", l->NumberOfElements);
+			lenDesc.Address = (const uint8*)&l->NumberOfElements;
+			lenDesc.Location = parentKind;
+			listVars.push_back(lenDesc);
+
+			NativeVariableDesc typeDesc;
+			SafeFormat(typeDesc.Name, "#.ElementType");
+			SafeFormat(typeDesc.Type, "IStructure");
+			SafeFormat(typeDesc.Value, "%s", GetFriendlyName(*l->ElementType));
+			typeDesc.Address = (const uint8*)&l->ElementType;
+			typeDesc.Location = parentKind;
+			listVars.push_back(typeDesc);
+
+			NativeVariableDesc sizeDesc;
+			SafeFormat(sizeDesc.Name, "#.Head");
+			SafeFormat(sizeDesc.Type, "Pointer");
+			SafeFormat(sizeDesc.Value, "0x%p", l->Head);
+			sizeDesc.Address = (const uint8*)&l->Head;
+			sizeDesc.Location = parentKind;
+			listVars.push_back(sizeDesc);
+
+			NativeVariableDesc lockDesc;
+			SafeFormat(lockDesc.Name, "#.Tail");
+			SafeFormat(lockDesc.Type, "Pointer");
+			SafeFormat(lockDesc.Value, "0x%p", l->Tail);
+			lockDesc.Address = (const uint8*)&l->Tail;
+			lockDesc.Location = parentKind;
+			listVars.push_back(lockDesc);
+		}
+
 		void OnArrayMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const ArrayImage* pArray, const uint8* sfItem, int offset, int depth) override
 		{
 			if (depth > 5) return;
@@ -638,9 +691,7 @@ namespace SexyDotNet { namespace Host
 				GetMembers(ss, *pArray->ElementType, itemDesc.Name, pElement, 0, builder, depth);
 
 				if (i > MAX_ITEMS_VISIBLE) break;
-			}
-
-			
+			}	
 		}
 
 		void OnMapMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const MapImage* pMap, const uint8* sfItem, int offset, int depth) override
@@ -782,6 +833,27 @@ namespace SexyDotNet { namespace Host
 
 						SafeFormat(buffer, "%s", GetFriendlyName(*m->ValueType));
 						vars->Add(VariableDesc(def.SFOffset, gcnew String("ValueType"), gcnew String("IStructure"), gcnew String(buffer), VariableKind::Local, IntPtr((void*)m->ValueType)));
+					}
+					else if (s.VarType() == VARTYPE_List)
+					{
+						auto* l = (ListImage*) pInstance;
+
+						char buffer[32];
+
+						SafeFormat(buffer, "%lld", l->refCount);
+						vars->Add(VariableDesc(def.SFOffset, gcnew String("Reference Count"), gcnew String("Int64"), gcnew String(buffer), VariableKind::Local, IntPtr((void*)&l->refCount)));
+
+						SafeFormat(buffer, "%d", l->NumberOfElements);
+						vars->Add(VariableDesc(def.SFOffset, gcnew String("NumberOfElements"), gcnew String("Int32"), gcnew String(buffer), VariableKind::Local, IntPtr((void*)&l->NumberOfElements)));
+
+						SafeFormat(buffer, "%s", GetFriendlyName(*l->ElementType));
+						vars->Add(VariableDesc(def.SFOffset, gcnew String("ElementType"), gcnew String("IStructure"), gcnew String(buffer), VariableKind::Local, IntPtr((void*)&l->ElementType)));
+
+						SafeFormat(buffer, "0x%p", l->Head);
+						vars->Add(VariableDesc(def.SFOffset, gcnew String("Head"), gcnew String("Pointer"), gcnew String(buffer), VariableKind::Local, IntPtr((void*)&l->Head)));
+
+						SafeFormat(buffer, "0x%p", l->Tail);
+						vars->Add(VariableDesc(def.SFOffset, gcnew String("Tail"), gcnew String("Pointer"), gcnew String(buffer), VariableKind::Local, IntPtr((void*)&l->Tail)));
 					}
 					else
 					{

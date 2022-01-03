@@ -181,7 +181,7 @@ namespace Rococo
 					s.AddMember(NameString::From(nameExpr.String()), TypeString::From(("_Array")), elementType->Buffer);
 				}	
 			}
-			else if (AreEqual(type, ("list")))
+			else if (AreEqual(type, "list"))
 			{
 				cr_sex elementTypeExpr = GetAtomicArg(field, 1);
 				sexstring elementType = elementTypeExpr.String();
@@ -193,10 +193,10 @@ namespace Rococo
 					cr_sex nameExpr = field.GetElement(i);
 					AssertLocalIdentifier(nameExpr);			
 
-					s.AddMember(NameString::From(nameExpr.String()), TypeString::From(("_List")), elementType->Buffer);
+					s.AddMember(NameString::From(nameExpr.String()), TypeString::From("_List"), elementType->Buffer);
 				}	
 			}
-			else if (AreEqual(type, ("map")))
+			else if (AreEqual(type, "map"))
 			{
 				cr_sex keyTypeExpr = GetAtomicArg(field, 1);
 				cr_sex valueTypeExpr = GetAtomicArg(field, 2);
@@ -211,7 +211,7 @@ namespace Rococo
 					cr_sex nameExpr = field.GetElement(i);
 					AssertLocalIdentifier(nameExpr);			
 
-					s.AddMember(NameString::From(nameExpr.String()), TypeString::From(("_Map")), keyType->Buffer, valueType->Buffer);
+					s.AddMember(NameString::From(nameExpr.String()), TypeString::From("_Map"), keyType->Buffer, valueType->Buffer);
 				}	
 			}
 			else
@@ -1323,13 +1323,7 @@ namespace Rococo
 							InitSubmembers(ce, *memberType, sfMemberOffset);
 						}
 					}
-					else if (memberType->VarType() == VARTYPE_Array)
-					{
-						VariantValue nullRef;
-						nullRef.vPtrValue = nullptr;
-						ce.Builder.Assembler().Append_SetStackFrameImmediate(sfMemberOffset, nullRef, BITCOUNT_POINTER);
-					}
-					else if (memberType->VarType() == VARTYPE_Map)
+					else if (memberType->VarType() == VARTYPE_Array || memberType->VarType() == VARTYPE_Map || memberType->VarType() == VARTYPE_List)
 					{
 						VariantValue nullRef;
 						nullRef.vPtrValue = nullptr;
@@ -1370,6 +1364,16 @@ namespace Rococo
 				const IStructure* memberType = member.UnderlyingType();
 
 				if (memberType->VarType() == VARTYPE_Array)
+				{
+					return true;
+				}
+
+				if (memberType->VarType() == VARTYPE_List)
+				{
+					return true;
+				}
+
+				if (memberType->VarType() == VARTYPE_Map)
 				{
 					return true;
 				}
@@ -1623,26 +1627,6 @@ namespace Rococo
 			AssignTempToVariableRef(ce, Rococo::ROOT_TEMPDEPTH, id); // The id variable is now pointing to the element
 		}
 
-		void AssertDefaultConstruction(CCompileEnvironment& ce, cr_sex decl, const IStructure& s)
-		{
-			if (IsPrimitiveType(s.VarType())) return;
-
-			if (s == ce.StructList())
-			{
-				Throw(decl, ("Objects of the given type cannot be default constructed as one of the members is a linked list.\r\nProvide an explicit constructor and declare instances using the syntax: ( <type> <name> ( <arg1>...<argN> ) )"));
-			}
-			else if (s == ce.StructMap())
-			{
-				// Throw(decl, ("Objects of the given type cannot be default constructed as one of the members is a map.\r\nProvide an explicit constructor and declare instances using the syntax: ( <type> <name> ( <arg1>...<argN> ) )"));
-			}
-
-			for(int i = 0; i < s.MemberCount(); ++i)
-			{
-				const IMember& m = s.GetMember(i);
-				AssertDefaultConstruction(ce, decl, *m.UnderlyingType());
-			}
-		}
-
 		void* GetInterfacePtrFromNullInstancePtr(void* instancePtr);
 
 		void CompileClassAsDefaultVariableDeclaration(CCompileEnvironment& ce, const IStructure& st, cstr id, cr_sex decl, bool initializeValues)
@@ -1658,7 +1642,6 @@ namespace Rococo
 			}
 
 			AddSymbol(ce.Builder, ("%s %s"), GetFriendlyName(st), id);
-			AssertDefaultConstruction(ce, decl, st);
 			AddInterfaceVariable(ce, NameString::From(id), st);
 
 			ObjectStub* stub = st.GetInterface(0).UniversalNullInstance();
@@ -1683,7 +1666,6 @@ namespace Rococo
 				auto* constructor = type.Module().FindFunction(constructorName);
 
 				AddSymbol(ce.Builder, "%s %s", GetFriendlyName(type), id);
-				AssertDefaultConstruction(ce, sDef, type);
 				AddVariable(ce, NameString::From(id), type);
 				
 				if (constructor)
@@ -2853,6 +2835,42 @@ namespace Rococo
 			RestoreStackFrameFor(ce.Builder, lhs);
 		}
 
+		void AssignListToList(CCompileEnvironment& ce, cr_sex s, const MemberDef& lhs, cstr lhsString, cstr rhsString)
+		{
+			MemberDef rhs;
+			if (!ce.Builder.TryGetVariableByName(OUT rhs, rhsString) || rhs.ResolvedType->VarType() != VARTYPE_List)
+			{
+				Throw(s, "Expecting list type %s", rhsString);
+			}
+
+
+			const IStructure& lhsType = GetListDef(ce, s, lhsString);
+			const IStructure& rhsType = GetListDef(ce, s, rhsString);
+
+			if (&lhsType != &rhsType)
+			{
+				Throw(s, "Could not assign list. LHS is (list with type %s). RHS is (list with type %s)", GetFriendlyName(lhsType), GetFriendlyName(rhsType));
+			}
+
+			ce.Builder.AssignVariableToTemp(lhsString, 0, 0); // D4 has the LHS reference
+			ce.Builder.AssignVariableToTemp(rhsString, 1, 0); // D5 has the RHS reference
+
+			AddSymbol(ce.Builder, "*D5 = *D4. No output");
+			AppendInvoke(ce, GetListCallbacks(ce).ListAssign, s);
+
+			UseStackFrameFor(ce.Builder, lhs);
+
+			if (!lhs.IsContained || lhs.Usage == ARGUMENTUSAGE_BYVALUE)
+			{
+				ce.Builder.Assembler().Append_SetStackFrameValue(lhs.SFOffset + lhs.MemberOffset, VM::REGISTER_D5, BITCOUNT_POINTER);
+			}
+			else
+			{
+				ce.Builder.Assembler().Append_SetStackFramePtrFromD5(lhs.SFOffset, lhs.MemberOffset);
+			}
+			RestoreStackFrameFor(ce.Builder, lhs);
+		}
+
 		void AssignMapToMap(CCompileEnvironment& ce, cr_sex s, const MemberDef& lhs, cstr lhsString, cstr rhsString)
 		{
 			MemberDef rhs;
@@ -2966,6 +2984,10 @@ namespace Rococo
 				else if (def.ResolvedType == &ce.StructMap())
 				{
 					AssignMapToMap(ce, exceptionSource, def, lhs, rhs);
+				}
+				else if (def.ResolvedType == &ce.StructList())
+				{
+					AssignListToList(ce, exceptionSource, def, lhs, rhs);
 				}
 				else
 				{

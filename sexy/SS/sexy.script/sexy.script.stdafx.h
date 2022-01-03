@@ -501,7 +501,9 @@ namespace Rococo
          ID_API_CALLBACK ListAppend32;
          ID_API_CALLBACK ListAppend64;
 		 ID_API_CALLBACK ListAppendInterface;
+         ID_API_CALLBACK ListAssign;
          ID_API_CALLBACK ListClear;
+         ID_API_CALLBACK ListRelease;
          ID_API_CALLBACK ListPrepend;
          ID_API_CALLBACK ListPrependAndGetRef;
          ID_API_CALLBACK ListPrepend32;
@@ -509,6 +511,7 @@ namespace Rococo
 		 ID_API_CALLBACK ListPrependInterface;
          ID_API_CALLBACK ListGetTail;
          ID_API_CALLBACK ListGetHead;
+         ID_API_CALLBACK ListGetLength;
          ID_API_CALLBACK NodeGet32;
          ID_API_CALLBACK NodeGet64;
 		 ID_API_CALLBACK NodeGetInterface;

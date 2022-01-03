@@ -8340,18 +8340,18 @@ R"((namespace EntryPoint)
   
 		"(using Sys.Type)"
 
-		"(struct Stuff (list Int32 a))"
+		"(struct Int32List (list Int32 elements))"
 
-		"(method Stuff.Construct -> (construct a()) : )"
-  
 		"(function Main -> (Int32 result):"
-		"	(Stuff stuff())"
-		"	(stuff.a.Append 17)"
-		"	(stuff.a.Prepend 34)"
-		"	(node tail = stuff.a.Tail)"
+		"	(Int32List stuff)"
+		"	(list Int32 a)"
+		"   (stuff.elements = a)"
+		"	(stuff.elements.Append 17)"
+		"	(stuff.elements.Prepend 34)"
+		"	(node tail = stuff.elements.Tail)"
 		"	(result = (result + tail.Value))"
-		"	(foreach n # stuff.a (result = (result + n.Value)))"
-		"	(result = (result + stuff.a.Length))"
+		"	(foreach n # stuff.elements (result = (result + n.Value)))"
+		"	(result = (result + stuff.elements.Length))"
 		")";
 
 		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 },"TestLinkedList11");
@@ -8527,7 +8527,10 @@ R"((namespace EntryPoint)
 
 		"(struct Dog (list Int32 boneIds))"
 
-		"(method Dog.Construct -> (construct boneIds ()) : )"
+		"(method Dog.Construct -> : "
+			"(list Int32 boneIds)"
+			"(this.boneIds = boneIds)"
+		")"
   
 		"(function Main -> (Int32 result):"
 		"	(list Dog dogs)"
@@ -14227,6 +14230,38 @@ R"(
 
    void RunCollectionTests()
    {
+	   TEST(TestLinkedListOfLists);
+	   TEST(TestLinkedListForeach3);
+	   TEST(TestLinkedList11);
+	   TEST(TestLinkedList);
+	   TEST(TestLinkedList2);
+	   TEST(TestLinkedList3);
+	   TEST(TestLinkedList4);
+	   TEST(TestLinkedList6);
+	   TEST(TestLinkedList7);
+	   TEST(TestLinkedList8);
+	   TEST(TestLinkedList9);
+	   TEST(TestLinkedList10);
+	   TEST(TestLinkedListOfInterfaces);
+	   TEST(TestLinkedListOfInterfaces2);
+	   TEST(TestLinkedListForeach1);
+	   TEST(TestLinkedListForeach2);
+	   TEST(TestLinkedListForeach4);
+	   TEST(TestLinkedListForeach5);
+	   TEST(TestLinkedListForeach6);
+	   TEST(TestLinkedListForeach7);
+	   TEST(TestLinkedListForeach8);
+	   TEST(TestLinkedListOfArchetypes);
+
+	   TEST(TestListStruct);
+	   TEST(TestListStruct2);
+	   TEST(TestListStruct3);
+
+	   TEST(TestListStrongTyping);
+
+	   TEST(TestListDeleteHeadAndThrow);
+	   TEST(TestListReverseEnumeration);
+
 	   TEST(TestArrayNull);
 	   TEST(TestArrayOfInterfacesBuilder);
 	   TEST(TestPushStructToArray);
@@ -14292,6 +14327,9 @@ R"(
 	   TEST(TestMap5);
 	   TEST(TestMap6);
 	   TEST(TestMap7);
+	   TEST(TestMap8);
+	   TEST(TestArrayAssignEmpty);
+	   TEST(TestArrayNull);
 	   TEST(TestMapValueInterface);
 	   TEST(TestMapOfArchetypes);
 	   TEST(TestMapOverwriteValue);
@@ -14309,38 +14347,6 @@ R"(
 	   TEST(TestMapStrongTyping);
 	   TEST(TestMapThrowAndCleanup);
 	   TEST(TestMapThrowAndCleanup2);
-
-	   TEST(TestLinkedList);
-	   TEST(TestLinkedList2);
-	   TEST(TestLinkedList3);
-	   TEST(TestLinkedList4);
-	   TEST(TestLinkedList6);
-	   TEST(TestLinkedList7);
-	   TEST(TestLinkedList8);
-	   TEST(TestLinkedList9);
-	   TEST(TestLinkedList10);
-	   TEST(TestLinkedList11);
-	   TEST(TestLinkedListOfInterfaces);
-	   TEST(TestLinkedListOfInterfaces2);
-	   TEST(TestLinkedListForeach1);
-	   TEST(TestLinkedListForeach2);
-	   TEST(TestLinkedListForeach3);
-	   TEST(TestLinkedListForeach4);
-	   TEST(TestLinkedListForeach5);
-	   TEST(TestLinkedListForeach6);
-	   TEST(TestLinkedListForeach7);
-	   TEST(TestLinkedListForeach8);
-	   TEST(TestLinkedListOfArchetypes);
-	   TEST(TestLinkedListOfLists);
-
-	   TEST(TestListStruct);
-	   TEST(TestListStruct2);
-	   TEST(TestListStruct3);
-
-	   TEST(TestListStrongTyping);
-
-	   TEST(TestListDeleteHeadAndThrow);
-	   TEST(TestListReverseEnumeration);
    }
 
    void TestMaths()
@@ -14772,17 +14778,9 @@ R"(
 		int64 start, end, hz;
 		start = OS::CpuTicks();
 
-		TEST(TestMap8);
-		TEST(TestMapThrowAndCleanup);
-		TEST(TestMapInMap);
-		TEST(TestMapInStruct);
-		TEST(TestMap);
-		TEST(TestArrayAssignEmpty);
-		TEST(TestArrayNull);
-
+		RunCollectionTests();
 		RunPositiveSuccesses();
 		RunPositiveFailures();	
-		RunCollectionTests();
 
 		end = OS::CpuTicks();
 		hz = OS::CpuHz();
