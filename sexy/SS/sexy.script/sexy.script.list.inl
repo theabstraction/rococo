@@ -35,48 +35,6 @@ namespace Rococo
 {
 	namespace Script
 	{
-		struct ListImage;
-
-#ifdef POINTERS_ARE_64_BIT
-		struct ListNode
-		{
-			ListImage* Container;
-			const IStructure* ElementType;
-			ListNode* Previous;
-			ListNode* Next;
-			int32 RefCount;
-			int32 padding;
-			char Element[4]; // N.B this is 16-bit aligned to the instance pointer in 32-bit and 64-bit mode
-		};
-#else
-		struct ListNode
-		{
-			ListImage* Container;
-			const IStructure* ElementType;
-			ListNode* Previous;
-			ListNode* Next;
-			int32 RefCount;
-			char padding[12];
-			char Element[4]; // N.B this is 16-bit aligned to the instance pointer in 32-bit and 64-bit mode
-		};
-#endif
-
-		struct NodeRef
-		{
-			ListNode* NodePtr;
-		};
-
-		struct ListImage
-		{
-			int64 refCount;
-			int32 NumberOfElements;
-			int32 LockNumber;
-			const IStructure* ElementType;
-			ListNode* Head;
-			ListNode* Tail;
-			int32 ElementSize;
-		};
-
 		ListNode* CreateNewNode(ListImage* l, IScriptSystem& ss)
 		{
 			ListNode* n = (ListNode*)ss.AlignedMalloc(16, sizeof(ListNode) + l->ElementSize - 4);
