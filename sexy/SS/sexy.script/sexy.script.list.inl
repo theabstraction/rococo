@@ -236,8 +236,15 @@ namespace Rococo
 			ListImage* l = (ListImage*)registers[VM::REGISTER_D4].vPtrValue;
 			IScriptSystem& ss = *(IScriptSystem*)context;
 
-			ListNode* newNode = AppendToList(l, ss);
-			AlignedMemcpy(newNode->Element, src, l->ElementSize);
+			if (l)
+			{
+				ListNode* newNode = AppendToList(l, ss);
+				AlignedMemcpy(newNode->Element, src, l->ElementSize);
+			}
+			else
+			{
+				ss.ThrowFromNativeCode(-1, "ListAppend: the list was null");
+			}
 		}
 
 		VM_CALLBACK(ListClear)
@@ -333,8 +340,15 @@ namespace Rococo
 			ListImage* l = (ListImage*)registers[VM::REGISTER_D4].vPtrValue;
 			IScriptSystem& ss = *(IScriptSystem*)context;
 
-			ListNode* newNode = AppendToList(l, ss);
-			*((int64*)newNode->Element) = src;
+			if (l)
+			{
+				ListNode* newNode = AppendToList(l, ss);
+				*((int64*)newNode->Element) = src;
+			}
+			else
+			{
+				ss.ThrowFromNativeCode(0, "Append failed - the list was null");
+			}
 		}
 
 		VM_CALLBACK(ListAppendInterface)
@@ -343,11 +357,18 @@ namespace Rococo
 			ListImage* l = (ListImage*)registers[VM::REGISTER_D4].vPtrValue;
 			IScriptSystem& ss = *(IScriptSystem*)context;
 
-			ListNode* newNode = AppendToList(l, ss);
+			if (l)
+			{
+				ListNode* newNode = AppendToList(l, ss);
 
-			*(InterfacePointer*)newNode->Element = src;
+				*(InterfacePointer*)newNode->Element = src;
 
-			ss.ProgramObject().IncrementRefCount(src);
+				ss.ProgramObject().IncrementRefCount(src);
+			}
+			else
+			{
+				ss.ThrowFromNativeCode(0, "Append failed - the list was null");
+			}
 		}
 
 		VM_CALLBACK(NodeAppendInterface)
@@ -379,8 +400,15 @@ namespace Rococo
 			ListImage* l = (ListImage*)registers[VM::REGISTER_D4].vPtrValue;
 			IScriptSystem& ss = *(IScriptSystem*)context;
 
-			ListNode* newNode = PrependToList(l, ss);
-			AlignedMemcpy(newNode->Element, src, l->ElementSize);
+			if (l)
+			{
+				ListNode* newNode = PrependToList(l, ss);
+				AlignedMemcpy(newNode->Element, src, l->ElementSize);
+			}
+			else
+			{
+				ss.ThrowFromNativeCode(0, "Prepend failed - the list was null");
+			}
 		}
 
 		VM_CALLBACK(NodePrepend)
@@ -412,8 +440,15 @@ namespace Rococo
 			ListImage* l = (ListImage*)registers[VM::REGISTER_D4].vPtrValue;
 			IScriptSystem& ss = *(IScriptSystem*)context;
 
-			ListNode* newNode = PrependToList(l, ss);
-			*((int32*)newNode->Element) = src;
+			if (l)
+			{
+				ListNode* newNode = PrependToList(l, ss);
+				*((int32*)newNode->Element) = src;
+			}
+			else
+			{
+				ss.ThrowFromNativeCode(0, "Prepend failed - the list was null");
+			}
 		}
 
 		VM_CALLBACK(NodePrepend32)
@@ -432,11 +467,16 @@ namespace Rococo
 			ListImage* l = (ListImage*)registers[VM::REGISTER_D4].vPtrValue;
 			IScriptSystem& ss = *(IScriptSystem*)context;
 
-			ListNode* newNode = PrependToList(l, ss);
-
-			*(InterfacePointer*)newNode->Element = src;
-
-			ss.ProgramObject().IncrementRefCount(src);
+			if (l)
+			{
+				ListNode* newNode = PrependToList(l, ss);
+				*(InterfacePointer*)newNode->Element = src;
+				ss.ProgramObject().IncrementRefCount(src);
+			}
+			else
+			{
+				ss.ThrowFromNativeCode(0, "Prepend failed - the list was null");
+			}
 		}
 
 		VM_CALLBACK(ListPrepend64)
@@ -445,8 +485,15 @@ namespace Rococo
 			ListImage* l = (ListImage*)registers[VM::REGISTER_D4].vPtrValue;
 			IScriptSystem& ss = *(IScriptSystem*)context;
 
-			ListNode* newNode = PrependToList(l, ss);
-			*((int64*)newNode->Element) = src;
+			if (l)
+			{
+				ListNode* newNode = PrependToList(l, ss);
+				*((int64*)newNode->Element) = src;
+			}
+			else
+			{
+				ss.ThrowFromNativeCode(0, "Prepend failed - the list was null");
+			}
 		}
 
 		VM_CALLBACK(NodePrepend64)
@@ -526,9 +573,9 @@ namespace Rococo
 			IScriptSystem& ss = *(IScriptSystem*)context;
 			ListImage* l = (ListImage*)registers[VM::REGISTER_D7].vPtrValue;
 
-			if (l->Head == NULL)
+			if (!l || !l->Head)
 			{
-				ss.ThrowFromNativeCode(-1, ("The list was empty"));
+				ss.ThrowFromNativeCode(-1, "ListGetHead: The list was empty");
 				return;
 			}
 
@@ -552,7 +599,7 @@ namespace Rococo
 
 			if (!l || !l->Tail)
 			{
-				ss.ThrowFromNativeCode(-1, ("The list was empty"));
+				ss.ThrowFromNativeCode(-1, "ListGetTail: The list was empty");
 				return;
 			}
 
@@ -619,7 +666,7 @@ namespace Rococo
 			ListNode* n = (ListNode*)registers[VM::REGISTER_D7].vPtrValue;
 			if (n->Previous == nullptr)
 			{
-				ss.ThrowFromNativeCode(-1, ("The node had no predecessor"));
+				ss.ThrowFromNativeCode(-1, "The node had no predecessor");
 				return;
 			}
 
@@ -633,8 +680,15 @@ namespace Rococo
 			ListImage* l = (ListImage*)registers[VM::REGISTER_D4].vPtrValue;
 			IScriptSystem& ss = *(IScriptSystem*)context;
 
-			ListNode* newNode = AppendToList(l, ss);
-			registers[VM::REGISTER_D7].vPtrValue = newNode->Element;
+			if (l)
+			{
+				ListNode* newNode = AppendToList(l, ss);
+				registers[VM::REGISTER_D7].vPtrValue = newNode->Element;
+			}
+			else
+			{
+				ss.ThrowFromNativeCode(-1, "ListAppendAndGetRef: null list");
+			}
 		}
 
 		VM_CALLBACK(ListPrependAndGetRef)
@@ -642,8 +696,15 @@ namespace Rococo
 			ListImage* l = (ListImage*)registers[VM::REGISTER_D4].vPtrValue;
 			IScriptSystem& ss = *(IScriptSystem*)context;
 
-			ListNode* newNode = PrependToList(l, ss);
-			registers[VM::REGISTER_D7].vPtrValue = newNode->Element;
+			if (l)
+			{
+				ListNode* newNode = PrependToList(l, ss);
+				registers[VM::REGISTER_D7].vPtrValue = newNode->Element;
+			}
+			else
+			{
+				ss.ThrowFromNativeCode(-1, "ListPrependAndGetRef: null list");
+			}
 		}
 
 		void CompileAsClearList(CCompileEnvironment& ce, cr_sex s, cstr instanceName)

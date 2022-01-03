@@ -1189,6 +1189,37 @@ namespace Rococo
 			}
 		}
 
+		void OnListMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const ListImage* l, const uint8* sfItem, int offset, int recurseDepth) override
+		{
+			index++;
+
+			char name[256];
+
+			if (!l)
+			{
+				SafeFormat(name, "list<%s> %s: null", GetFriendlyName(*member.UnderlyingGenericArg1Type()), childName);
+			}
+			else
+			{
+				SafeFormat(name, "list<%s> %s", GetFriendlyName(*member.UnderlyingGenericArg1Type()), childName);
+			}
+
+			auto node = tree->AddChild(parentId, name, CheckState_NoCheckBox);
+
+			if (!l)
+			{
+				return;
+			}
+
+			char metrics[256];
+			SafeFormat(metrics, "%d elements", l->NumberOfElements);
+			tree->AddChild(node, metrics, CheckState_NoCheckBox);
+
+			char refCount[256];
+			SafeFormat(refCount, "%lld references", l->refCount);
+			tree->AddChild(node, refCount, CheckState_NoCheckBox);
+		}
+
 		void OnMapMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const MapImage* m, const uint8* sfItem, int offset, int recurseDepth) override
 		{
 			index++;
