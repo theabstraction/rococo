@@ -514,7 +514,7 @@ struct CSV_Line_by_Line_SexyAssetParser: ICSVLineParser
 			{
 				CopyString(elementValueType, sizeof elementValueType, line[1]);
 				CopyString(elementValueSource, sizeof elementValueSource, line[2]);
-				listLength = atoi(line[5]);
+				listLength = atoi(line[3]);
 
 				CopyString(objectType, sizeof objectType, elementValueType);
 				CopyString(objectModule, sizeof objectModule, elementValueSource);
@@ -524,7 +524,7 @@ struct CSV_Line_by_Line_SexyAssetParser: ICSVLineParser
 				activeMemberIndex = 0;
 				listIndex = 0;
 
-				if (listIndex == 0)
+				if (listLength == 0)
 				{
 					state = &CSV_Line_by_Line_SexyAssetParser::OnObjectLine;
 				}

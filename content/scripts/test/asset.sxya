@@ -1,7 +1,7 @@
 AssetBuilder_TabbedCSV_1.0
-#Object0	ListInt32	!scripts/test.app.created.sxy
-elements	...
+#Object0	Vec2f	Sys.Maths.sxy
+x	f
+y	f
 #
-list0
-
-list0	Int32	!Intrinsics!	0
+6.000000
+7.000000

@@ -1184,6 +1184,7 @@ namespace Rococo
 					if (st.InterfaceCount() > 0)
 					{
 						ce.Builder.Assembler().Append_Invoke(GetListCallbacks(ce).NodeGetInterface); // value goes to D7
+						outType = st.VarType();
 						return true;
 					}
 
@@ -1202,6 +1203,7 @@ namespace Rococo
 						Throw(s, "Node.Value only supports primitive types and interfaces");
 					}
 
+					outType = st.VarType();
 					return true;
 				}
 				else if (Eq("HasNext", methodName))

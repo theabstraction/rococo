@@ -8076,6 +8076,40 @@ R"((namespace EntryPoint)
 		validate(x == 7);
 	}
 
+	void TestLinkedListNodeInline(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(struct ListInt32"
+			"	(list Int32 elements)"
+			")"
+
+			"(namespace EntryPoint)"
+			"	(alias Main EntryPoint.Main)"
+
+			"(function Main -> (Int32 result):"
+			"	(list Int32 elements)"
+			"	(elements.Append 7)"
+			"	(node n = elements.Head)"
+			"	(if (n.Value == 7)"
+			"		(result = 3)"
+			"	)"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		validate(ss.ValidateMemory());
+
+		int x = vm.PopInt32();
+		validate(x == 3);
+	}
+
 	void TestLinkedList(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -14260,6 +14294,7 @@ R"(
 
    void RunCollectionTests()
    {
+	   TEST(TestLinkedListNodeInline);
 	   TEST(TestLinkedListContained);
 	   TEST(TestLinkedListOfLists);
 	   TEST(TestLinkedListForeach3);

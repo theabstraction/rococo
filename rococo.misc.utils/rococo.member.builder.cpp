@@ -586,15 +586,23 @@ namespace
 
 		template<class T> void AddItemValue(int32 itemIndex, T value)
 		{
-			if (itemIndex >= (int32)container.elements.size())
+			if (!container.elements.empty())
 			{
-				Throw(0, "%s: Bad index (%d)", __FUNCTION__, itemIndex);
-			}
+				if (itemIndex >= (int32)container.elements.size())
+				{
+					Throw(0, "%s: Bad index (%d)", __FUNCTION__, itemIndex);
+				}
 
-			if (container.elements[itemIndex].member != nullptr)
+				if (container.elements[itemIndex].member != nullptr)
+				{
+					uint8* rawMemberData = container.elements[itemIndex].memberDataOffset + writePosition;
+					auto* memberData = (T*)rawMemberData;
+					*memberData = value;
+				}
+			}
+			else
 			{
-				uint8* rawMemberData = container.elements[itemIndex].memberDataOffset + writePosition;
-				auto* memberData = (T*)rawMemberData;
+				auto* memberData = (T*)writePosition;
 				*memberData = value;
 			}
 		}
