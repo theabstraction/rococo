@@ -81,6 +81,11 @@ struct CSV_Line_by_Line_SexyAssetParser: ICSVLineParser
 			memberTypes.push_back(VARTYPE_Map);
 			builder.AddTypeMapRef(memberDepth, name);
 		}
+		else if (Eq(token, "..."))
+		{
+			memberTypes.push_back(VARTYPE_List);
+			builder.AddTypeListRef(memberDepth, name);
+		}
 		else
 		{
 			return false;
@@ -256,6 +261,9 @@ struct CSV_Line_by_Line_SexyAssetParser: ICSVLineParser
 			case VARTYPE_Map:
 				builder.AddMapRefValue(activeMemberIndex, token);
 				break;
+			case VARTYPE_List:
+				builder.AddListRefValue(activeMemberIndex, token);
+				break;
 			default:
 				Throw(0, "Unhandled type");
 			}
@@ -397,12 +405,78 @@ struct CSV_Line_by_Line_SexyAssetParser: ICSVLineParser
 	int32 mapIndex = 0;
 	char mapKeyType[Rococo::MAX_FQ_NAME_LEN+1];
 	char mapKeySource[Rococo::IO::MAX_PATHLEN];
-	char mapValueType[Rococo::MAX_FQ_NAME_LEN + 1];
-	char mapValueSource[Rococo::IO::MAX_PATHLEN];
+	char elementValueType[Rococo::MAX_FQ_NAME_LEN + 1];
+	char elementValueSource[Rococo::IO::MAX_PATHLEN];
+
+	int32 listLength = 0;
+	int32 listIndex = 0;
+
+	void OnListValue(const ICSVLine& line)
+	{
+		if (line.TokenCount() != 1)
+		{
+			Throw(0, "Expecting one member value on the line, but the token count was %llu", line.TokenCount());
+		}
+
+		BuildValueAndAdvanceMemberIndex(line[0]);
+
+		if (activeMemberIndex >= memberTypes.size())
+		{
+			activeMemberIndex = 0;
+			listIndex++;
+			if (listIndex >= listLength)
+			{
+				state = &CSV_Line_by_Line_SexyAssetParser::OnObjectLine;
+			}
+			else
+			{
+				builder.AppendNewListNode(listIndex);
+				state = &CSV_Line_by_Line_SexyAssetParser::OnListIndex;
+			}
+		}
+	}
+
+	void OnListIndex(const ICSVLine& line)
+	{
+		if (line.TokenCount() == 1)
+		{
+			if (*line[0] == '[')
+			{
+				state = &CSV_Line_by_Line_SexyAssetParser::OnListValue;
+				return;
+			}
+		}
+
+		Throw(0, "Expecting [list-index]");
+	}
+
+	void OnListMember(const ICSVLine& line)
+	{
+		if (line.TokenCount() == 1)
+		{
+			if (*line[0] == '[')
+			{
+				listIndex = 0;
+				activeMemberIndex = 0;
+				state = &CSV_Line_by_Line_SexyAssetParser::OnListValue;
+				builder.AppendNewListNode(listIndex);
+				return;
+			}
+		}
+
+		BuildMember(line);
+	}
 
 	void OnObjectLine(const ICSVLine& line)
 	{
 		memberTypes.clear();
+
+		if (line.TokenCount() == 0)
+		{
+			return;
+		}
+
+		fstring token0 = line[0];
 
 		if (line.TokenCount() == 3)
 		{
@@ -426,7 +500,7 @@ struct CSV_Line_by_Line_SexyAssetParser: ICSVLineParser
 
 		if (line.TokenCount() == 4)
 		{
-			if (*(line[0]), "#")
+			if (*token0.buffer == '#')
 			{
 				if (Eq(line[1], "_SC"))
 				{
@@ -436,6 +510,36 @@ struct CSV_Line_by_Line_SexyAssetParser: ICSVLineParser
 					return;
 				}
 			}
+			else if (StartsWith(line[0], "list"))
+			{
+				CopyString(elementValueType, sizeof elementValueType, line[1]);
+				CopyString(elementValueSource, sizeof elementValueSource, line[2]);
+				listLength = atoi(line[5]);
+
+				CopyString(objectType, sizeof objectType, elementValueType);
+				CopyString(objectModule, sizeof objectModule, elementValueSource);
+
+				builder.AddListDefinition(line[0], elementValueType, elementValueSource, listLength);
+
+				activeMemberIndex = 0;
+				listIndex = 0;
+
+				if (listIndex == 0)
+				{
+					state = &CSV_Line_by_Line_SexyAssetParser::OnObjectLine;
+				}
+				else if (!StartsWith(elementValueType, "_Null_"))
+				{
+					state = &CSV_Line_by_Line_SexyAssetParser::OnListMember;
+				}
+				else
+				{
+					state = &CSV_Line_by_Line_SexyAssetParser::OnListIndex;
+				}
+
+
+				return;
+			}
 		}
 
 		if (line.TokenCount() == 6)
@@ -444,12 +548,12 @@ struct CSV_Line_by_Line_SexyAssetParser: ICSVLineParser
 			{
 				CopyString(mapKeyType, sizeof mapKeyType, line[1]);
 				CopyString(mapKeySource, sizeof mapKeySource, line[2]);
-				CopyString(mapValueType, sizeof mapValueType, line[3]);
-				CopyString(mapValueSource, sizeof mapValueSource, line[4]);
+				CopyString(elementValueType, sizeof elementValueType, line[3]);
+				CopyString(elementValueSource, sizeof elementValueSource, line[4]);
 				mapLength = atoi(line[5]);
 
-				CopyString(objectType, sizeof objectType, mapValueType);
-				CopyString(objectModule, sizeof objectModule, mapValueSource);
+				CopyString(objectType, sizeof objectType, elementValueType);
+				CopyString(objectModule, sizeof objectModule, elementValueSource);
 
 				builder.AddMapDefinition(line[0], line[1], line[2], line[3], line[4], mapLength);
 
@@ -460,7 +564,7 @@ struct CSV_Line_by_Line_SexyAssetParser: ICSVLineParser
 				{
 					state = &CSV_Line_by_Line_SexyAssetParser::OnObjectLine;
 				}
-				else if (!StartsWith(mapValueType, "_Null_"))
+				else if (!StartsWith(elementValueType, "_Null_"))
 				{
 					state = &CSV_Line_by_Line_SexyAssetParser::OnMapMember;
 				}

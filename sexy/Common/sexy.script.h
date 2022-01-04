@@ -356,8 +356,14 @@ namespace Rococo {
 			virtual ArrayImage* CreateArrayImage(const IStructure& type) = 0;
 
 			// Create a blank map with no elements. The implementation should allocate memory with ss.AlignedMalloc(16, capacity * a->ElementLength); 
-			// and assign to the Start variable to set the size. // Use ss.AlignedFree to clean up the memory.
+			// and use ss.AlignedFree to clean up the memory.
 			virtual MapImage* CreateMapImage(const IStructure& keyType, const IStructure& valueType) = 0;
+
+			// Creates a blank linked list with no elements. The implementation should allocate memory with ss.AlignedMalloc(16, capacity * a->ElementLength); 
+			// and use ss.AlignedFree to clean up the memory.
+			virtual ListImage* CreateListImage(const IStructure& valueType) = 0;
+
+			virtual uint8* AppendListNode(ListImage& image) = 0;
 
 			virtual CStringConstant* GetStringReflection(cstr s, int32 stringLength = -1) = 0;
 			virtual CStringConstant* DuplicateStringAsConstant(cstr source, int32 stringLength = -1) = 0;

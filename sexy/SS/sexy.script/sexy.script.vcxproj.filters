@@ -65,6 +65,9 @@
     <ClInclude Include="..\..\..\include\rococo.sexy.map.expert.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Common\sexy.script.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="sexy.script.asserts.inl">

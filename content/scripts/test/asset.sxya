@@ -1,7 +1,7 @@
 AssetBuilder_TabbedCSV_1.0
-#Object0	Int32Array	!scripts/test.app.created.sxy
-elements	[]
+#Object0	ListInt32	!scripts/test.app.created.sxy
+elements	...
 #
-array1
+list0
 
-array1	Int32	!Intrinsics!	0	1
+list0	Int32	!Intrinsics!	0

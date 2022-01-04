@@ -273,6 +273,7 @@ namespace
 
 		stringmap<DeserializedObject> objects;
 		stringmap<ArrayImage*> arrays;
+		stringmap<ListImage*> lists;
 		stringmap<MapImage*> maps;
 
 		struct ElementMemberDesc
@@ -300,6 +301,60 @@ namespace
 		SexyObjectBuilder()
 		{
 
+		}
+
+		void AddListRefValue(int itemIndex, cstr listName) override
+		{
+			if (itemIndex >= container.elements.size())
+			{
+				Throw(0, "%s: Bad index (%d)", __FUNCTION__, itemIndex);
+			}
+
+			auto* member = container.elements[itemIndex].member;
+
+			if (member != nullptr)
+			{
+				auto& valueType = *member->UnderlyingGenericArg1Type();
+
+				ListImage* image;
+
+				if (Eq(listName, "<null>"))
+				{
+					image = nullptr;
+				}
+				else
+				{
+					auto i = lists.find(listName);
+					if (i == lists.end())
+					{
+						image = scriptSystem->CreateListImage(valueType);
+						i = lists.insert(listName, image).first;
+					}
+					else
+					{
+						if (i->second->ElementType != &valueType)
+						{
+							Throw(0, "Cannot load %s. The target member [%s] value type %s is not the same as the list value type %s", listName, member->Name(), GetFriendlyName(valueType), GetFriendlyName(*i->second->ElementType));
+						}
+
+						i->second->refCount++;
+					}
+
+					image = i->second;
+				}
+
+				uint8* rawMemberData = container.elements[itemIndex].memberDataOffset + writePosition;
+				auto* ppA = (ListImage**)rawMemberData;
+				if (*ppA != nullptr)
+				{
+					// If we allowed the C++ to overwrite an array, we would need to handle the case of reference counts going to zero,
+					// which entails invoking proper destructors for each array element. We eliminate the complexities by ensuring this will not happen.
+					// It is up to the script programmer to ensure arrays are nulled out prior to deserialization.
+					auto* currentList = *ppA;
+					Throw(0, "Cannot load %s. The target member list [%s] is not null. Overwriting of existing lists is not permitted.\nThe length was %d", listName, member->Name(), currentList->NumberOfElements);
+				}
+				*ppA = image;
+			}
 		}
 
 		void AddMapRefValue(int itemIndex, cstr mapName) override
@@ -468,6 +523,11 @@ namespace
 		void AddTypeArrayRef(int32 memberDepth, cstr memberName) override
 		{
 			AddMemberType(memberDepth, memberName, VARTYPE_Array);
+		}
+
+		void AddTypeListRef(int32 memberDepth, cstr memberName) override
+		{
+			AddMemberType(memberDepth, memberName, VARTYPE_List);
 		}
 
 		void AddTypeMapRef(int32 memberDepth, cstr memberName) override
@@ -1130,6 +1190,43 @@ namespace
 			{
 				SelectTarget(*arrayBuilder.image->ElementType, elementPtr);
 			}
+		}
+
+		ListImage* currentList = nullptr;
+
+		void AddListDefinition(cstr refName, cstr valueType, cstr valueTypeSource, int32 length) override
+		{
+			container.elements.clear();
+
+			elementType = &scriptSystem->GetTypeForSource(valueType, valueTypeSource);
+
+			auto i = lists.find(refName);
+			if (i == lists.end())
+			{
+				auto* image = scriptSystem->CreateListImage(*elementType);
+				i = lists.insert(refName, image).first;
+			}
+			else
+			{
+				if (i->second->ElementType != elementType)
+				{
+					Throw(0, "Cannot load %s.\nThe list has already been defined as being type %s of %s.\nThe operation requested a type %s of %s.", refName, GetFriendlyName(*i->second->ElementType), i->second->ElementType->Module().Name(), GetFriendlyName(*type), type->Module().Name());
+				}
+			}
+
+			auto* image = i->second;
+
+			image->NumberOfElements = 0;
+
+			currentList = image;
+
+			SelectTarget(*elementType, nullptr);
+		}
+
+		void AppendNewListNode(int32 indexHint) override
+		{
+			uint8* elementPtr = scriptSystem->AppendListNode(*currentList);
+			SelectTarget(*currentList->ElementType, elementPtr);
 		}
 	};
 }

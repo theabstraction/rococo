@@ -34,6 +34,12 @@ namespace Rococo::Sexy
 		// Tell the builder to parse and set a new map node to the selected key
 		virtual void SetMapKey(const fstring& keyValue) = 0;
 
+		// Tell the builder to prepare for a list definition
+		virtual void AddListDefinition(cstr refName, cstr valueType, cstr valueTypeSource, int32 length) = 0;
+
+		// Tells the builder to write a new node. Index = 0 => head. [Index (N + 1) => (node N->Next)] The call will be repeated with the index incremented each time.
+		virtual void AppendNewListNode(int32 index) = 0;
+
 		virtual void AddTypeDerivative(int32 memberDepth, cstr type, cstr memberName, cstr sourceFile) = 0;
 		virtual void AddTypeInterface(int32 memberDepth, cstr interfaceType, cstr memberName, cstr sourceFile) = 0;
 		virtual void AddTypeF32(int32 memberDepth, cstr memberName) = 0;
@@ -42,6 +48,7 @@ namespace Rococo::Sexy
 		virtual void AddTypeI64(int32 memberDepth, cstr memberName) = 0;
 		virtual void AddTypeBool(int32 memberDepth, cstr memberName) = 0;
 		virtual void AddTypeArrayRef(int32 memberDepth, cstr memberName) = 0;
+		virtual void AddTypeListRef(int32 memberDepth, cstr memberName) = 0;
 		virtual void AddTypeMapRef(int32 memberDepth, cstr memberName) = 0;
 
 		virtual void AddF32ItemValue(int itemIndex, float value) = 0;
@@ -52,6 +59,7 @@ namespace Rococo::Sexy
 		virtual void AddArrayRefValue(int itemIndex, cstr arrayName) = 0;
 		virtual void AddObjectRefValue(int itemIndex, cstr objectName) = 0;
 		virtual void AddMapRefValue(int itemIndex, cstr mapName) = 0;
+		virtual void AddListRefValue(int itemIndex, cstr mapName) = 0;
 
 		virtual void AddNullObject(cstr objectNameRef, cstr nullType, cstr nullTypeModule) = 0;
 

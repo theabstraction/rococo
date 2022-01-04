@@ -115,6 +115,13 @@ namespace
 		MapImage* image;
 		int index;
 	};
+
+	struct ListDef
+	{
+		HString listName;
+		ListImage* image;
+		int index;
+	};
 }
 
 struct AssetBuilder
@@ -129,8 +136,10 @@ struct AssetBuilder
 	std::vector<ObjectDef> exportQueue;
 	std::unordered_map<ArrayImage*, ArrayDef> refToArray;
 	std::unordered_map<MapImage*, MapDef> refToMap;
+	std::unordered_map<ListImage*, ListDef> refToList;
 	std::vector<ArrayDef> arrayExportQueue;
 	std::vector<MapDef> mapExportQueue;
+	std::vector<ListDef> listExportQueue;
 
 	uint32 nextIndex = 1;
 
@@ -252,6 +261,9 @@ struct AssetBuilder
 		case VARTYPE_Map:
 			SaveMapRef(s, name, type, *(Rococo::Script::MapImage**)pVariable);
 			break;
+		case VARTYPE_List:
+			SaveListRef(s, name, type, *(Rococo::Script::ListImage**)pVariable);
+			break;
 		case VARTYPE_Derivative:
 			if (IsNullType(type))
 			{
@@ -264,7 +276,7 @@ struct AssetBuilder
 			}
 			break;
 		default:
-			Throw(0, "Unhandled type");
+			Throw(0, "Unhandled type (%s %s)", GetFriendlyName(type), name);
 			break;
 		}
 	}
@@ -344,11 +356,14 @@ struct AssetBuilder
 			case VARTYPE_Array:
 				sb.AppendFormat("[]\n");
 				break;
+			case VARTYPE_List:
+				sb.AppendFormat("...\n");
+				break;
 			case VARTYPE_Map:
 				sb.AppendFormat("->\n");
 				break;
 			default:
-				Throw(0, "Cannot save unhandled var type values");
+				Throw(0, "Cannot save unhandled type (%s %s)", GetFriendlyName(memberType), member.Name());
 				break;
 			}
 		}
@@ -410,6 +425,35 @@ struct AssetBuilder
 		}
 
 		sb.AppendFormat("%s\n", mapName);
+	}
+
+	int32 nextListIndex = 0;
+
+	void SaveListRef(cr_sex s, cstr name, const IStructure& assetType, ListImage* listData)
+	{
+		if (!listData)
+		{
+			sb.AppendFormat("<null>\n");
+			return;
+		}
+
+		char listName[32];
+		SafeFormat(listName, "list%d", nextListIndex++);
+
+		auto i = refToList.find(listData);
+		if (i == refToList.end())
+		{
+			ListDef def;
+			def.index = nextArrayIndex;
+			def.listName = listName;
+			def.image = listData;
+
+			i = refToList.insert(std::make_pair(listData, def)).first;
+
+			listExportQueue.push_back(def);
+		}
+
+		sb.AppendFormat("%s\n", listName);
 	}
 
 	void SaveNonContainerObject(const IStructure& type, cstr name, const uint8* rawObjectData)
@@ -523,6 +567,39 @@ struct AssetBuilder
 		}
 	}
 
+	void SaveList(const ListDef& def)
+	{
+		auto& listData = *def.image;
+
+		auto& elementType = *listData.ElementType;
+
+		sb.AppendFormat("%s\t%s\t%s\t%d\n", def.listName.c_str(), elementType.Name(), elementType.Module().Name(), listData.NumberOfElements);
+
+		if (StartsWith(elementType.Name(), "_Null_") || IsPrimitiveType(elementType.VarType()))
+		{
+			// The type is stated in the meta data.
+		}
+		else
+		{
+			SaveMemberTypes(elementType, 0);
+		}
+
+		int index = 0;
+
+		for(auto* i = listData.Head; i != nullptr; i = i->Next)
+		{
+			try
+			{
+				sb.AppendFormat("[%d]\n", index++);
+				SaveValues(elementType, def.listName, (const uint8*)i->Element);
+			}
+			catch (IException& ex)
+			{
+				Throw(ex.ErrorCode(), "Error saving element %d of list<%s of %s> %s:\n%s", i, def.image->ElementType->Name(), def.image->ElementType->Module().Name(), def.listName.c_str(), ex.Message());
+			}
+		}
+	}
+
 	void SaveMap(const MapDef& def)
 	{
 		auto& mapData = *def.image;
@@ -609,7 +686,7 @@ struct AssetBuilder
 	{
 		// When you save a queued object it can entail creating new objects that are queued for saving
 
-		while (!exportQueue.empty() || !arrayExportQueue.empty() || !mapExportQueue.empty())
+		while (!exportQueue.empty() || !arrayExportQueue.empty() || !mapExportQueue.empty() || !listExportQueue.empty())
 		{
 			while (!exportQueue.empty())
 			{
@@ -639,6 +716,16 @@ struct AssetBuilder
 				mapExportQueue.pop_back();
 
 				SaveMap(def);
+			}
+
+			while (!listExportQueue.empty())
+			{
+				sb.AppendChar('\n');
+
+				ListDef def = listExportQueue.back();
+				listExportQueue.pop_back();
+
+				SaveList(def);
 			}
 		}
 	}

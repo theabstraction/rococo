@@ -148,6 +148,21 @@
 	(reflect LoadAsset assetFile b)
 
 	(Validate (b.elements.Length == 0))
+)
+
+(function TestEmptyListTransfer -> :
+	(Sys.Reflection.SexyAssetFile assetFile = "!scripts/test/asset.sxya")
+
+	(ListInt32 a)
+	(list Int32 newElements)
+	(a.elements = newElements)
+
+	(reflect SaveAsset assetFile a)
+	
+	(ListInt32 b)
+	(reflect LoadAsset assetFile b)
+
+	(Validate (b.elements.Length == 0))
 
 	(debug)
 )
@@ -325,6 +340,7 @@
 	(fonts.SetHeight 28)
 	(fonts.Commit)
 
+	(TestEmptyListTransfer)
 	(TestNullListTransfer)
 	(TestOneEntryMapTransfer)
 	(TestEmptyMapTransfer)

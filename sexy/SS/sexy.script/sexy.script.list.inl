@@ -62,21 +62,28 @@ namespace Rococo::Script
 		n->RefCount++;
 	}
 
-	VM_CALLBACK(ListInit)
+	ListImage* CreateListImage(IScriptSystem& ss, const IStructure& valueType)
 	{
-		IScriptSystem& ss = *(IScriptSystem*)context;
 		auto* p = ss.AlignedMalloc(16, sizeof ListImage);
-		const IStructure* elementType = (const IStructure*)registers[VM::REGISTER_D5].vPtrValue;
+
 		ListImage* l = new (p) ListImage;
 
 		l->refCount = 1;
-		l->ElementSize = elementType->InterfaceCount() != 0 ? sizeof(size_t) : elementType->SizeOfStruct();
-		l->ElementType = elementType;
+		l->ElementSize = valueType.InterfaceCount() != 0 ? sizeof(size_t) : valueType.SizeOfStruct();
+		l->ElementType = &valueType;
 		l->LockNumber = 0;
 		l->NumberOfElements = 0;
 		l->Head = NULL;
 		l->Tail = NULL;
 
+		return l;
+	}
+
+	VM_CALLBACK(ListInit)
+	{
+		IScriptSystem& ss = *(IScriptSystem*)context;
+		const IStructure* elementType = (const IStructure*)registers[VM::REGISTER_D5].vPtrValue;
+		auto* l = CreateListImage(ss, *elementType);
 		registers[VM::REGISTER_D4].vPtrValue = l;
 	}
 
@@ -102,6 +109,13 @@ namespace Rococo::Script
 		l->NumberOfElements++;
 
 		return newNode;
+	}
+
+	// This function is used by reflection APIs to manually create a new node
+	uint8* AppendListNode(IScriptSystem& ss, ListImage& l)
+	{
+		ListNode* newNode = AppendToList(&l, ss);
+		return (uint8*)newNode->Element;
 	}
 
 	ListNode* AppendToNode(ListNode* n, IScriptSystem& ss)
