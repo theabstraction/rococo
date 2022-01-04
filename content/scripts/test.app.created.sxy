@@ -134,6 +134,24 @@
 	)
 )
 
+(struct ListInt32
+	(list Int32 elements)
+)
+
+(function TestNullListTransfer -> :
+	(Sys.Reflection.SexyAssetFile assetFile = "!scripts/test/asset.sxya")
+
+	(ListInt32 a)
+	(reflect SaveAsset assetFile a)
+	
+	(ListInt32 b)
+	(reflect LoadAsset assetFile b)
+
+	(Validate (b.elements.Length == 0))
+
+	(debug)
+)
+
 (function TestInt32Transfer -> :
 	(Sys.Reflection.SexyAssetFile assetFile = "!scripts/test/asset.sxya")
 
@@ -307,6 +325,7 @@
 	(fonts.SetHeight 28)
 	(fonts.Commit)
 
+	(TestNullListTransfer)
 	(TestOneEntryMapTransfer)
 	(TestEmptyMapTransfer)
 	(TestNullMapTransfer)

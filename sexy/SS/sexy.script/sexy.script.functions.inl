@@ -1148,7 +1148,7 @@ namespace Rococo
 			return false;
 		}
 
-		bool TryCompileAsInlineListAndReturnValue(CCompileEnvironment& ce, cr_sex s, cstr instance, cstr methodName, VARTYPE returnType, const IStructure& instanceStruct)
+		bool TryCompileAsInlineListAndReturnValue(CCompileEnvironment& ce, cr_sex s, cstr instance, cstr methodName, VARTYPE returnType, const IStructure& instanceStruct, VARTYPE& outType)
 		{
 			if (instanceStruct == ce.StructList())
 			{
@@ -1160,11 +1160,13 @@ namespace Rococo
 					ce.Builder.AddSymbol(instance);
 					ce.Builder.AssignVariableToTemp(instance, Rococo::ROOT_TEMPDEPTH, 0); // list ref goes to D7
 					ce.Builder.Assembler().Append_Invoke(GetListCallbacks(ce).ListGetLength); // list length goes to D7
+					outType = VARTYPE_Int32;
 					return true;
 				}
 				else
 				{
 					Throw(s, "The property is not recognized for list types. Known properties for lists: Length");
+					outType = VARTYPE_Bad;
 					return false;
 				}
 			}
@@ -1373,7 +1375,8 @@ namespace Rococo
 				return true;
 			}
 
-			if (TryCompileAsInlineListAndReturnValue(ce, s, instance, methodName, returnType, *instanceStruct))
+			VARTYPE outType;
+			if (TryCompileAsInlineListAndReturnValue(ce, s, instance, methodName, returnType, *instanceStruct, outType))
 			{
 				return true;
 			}
@@ -1426,12 +1429,12 @@ namespace Rococo
 				return true;
 			}
 
-			if (TryCompileAsInlineListAndReturnValue(ce, s, instance, methodName, returnType, *instanceStruct))
+			VARTYPE outputType;
+			if (TryCompileAsInlineListAndReturnValue(ce, s, instance, methodName, returnType, *instanceStruct, outputType))
 			{
 				return true;
 			}
 
-			VARTYPE outputType;
 			if (TryCompileAsInlineMapAndReturnValue(ce, s, instance, methodName, returnType, *instanceStruct, OUT outputType))
 			{
 				return true;
@@ -1471,7 +1474,7 @@ namespace Rococo
 
 			if (instanceStruct == NULL)
 			{
-				return VARTYPE_Bad;
+				Throw(s, "Unknown variable '%s'", instance);
 			}
 
 			if (!IsCapital(methodName[0]))
@@ -1481,6 +1484,11 @@ namespace Rococo
 
 			VARTYPE outputType;
 			if (TryCompileAsInlineMapAndReturnValue(ce, s, instance, methodName, VARTYPE_AnyNumeric, *instanceStruct, outputType))
+			{
+				return outputType;
+			}
+
+			if (TryCompileAsInlineListAndReturnValue(ce, s, instance, methodName, VARTYPE_AnyNumeric, *instanceStruct, outputType))
 			{
 				return outputType;
 			}
