@@ -128,6 +128,27 @@
 	(construct Cat)
 )
 
+(class Gorilla (defines Sys.IGorilla)
+	(attribute not-serialized)
+	(Int32 age)
+)
+
+(method Gorilla.Construct :
+	(this.age = 20)
+)
+
+(method Gorilla.Age -> (Int32 age) :
+	(age = this.age)
+)
+
+(factory Sys.NewGorilla Sys.IGorilla :
+	(construct Gorilla)
+)
+
+(struct GorillaData
+	(Sys.IGorilla gorilla)
+)
+
 (function Validate (Bool isOk) -> :
 	(if (not isOk)
 		(debug)
@@ -439,6 +460,22 @@
 	(debug)
 )
 
+(function TestNotSerialized -> :
+	(Sys.Reflection.SexyAssetFile assetFile = "!scripts/test/asset.sxya")
+	(Sys.IGorilla newGorilla (Sys.NewGorilla))
+
+	(GorillaData a)
+	(a.gorilla = newGorilla)
+
+	(reflect SaveAsset assetFile a)
+
+	(GorillaData b)
+	(reflect LoadAsset assetFile b)
+
+	(Validate (a.gorilla ?))
+	(Validate (not (b.gorilla ?)))
+)
+
 (function Main (Int32 id)->(Int32 exitCode):
 	(IInstances instances (Instances))
 	(instances.SetMaterialMacro "!textures/hv/materials/hi-rez/" )
@@ -474,6 +511,8 @@
 	(fonts.AddCharacters "£")
 	(fonts.SetHeight 28)
 	(fonts.Commit)
+
+	(TestNotSerialized)
 
 	(TestNullListTransfer)
 	(TestEmptyListTransfer)

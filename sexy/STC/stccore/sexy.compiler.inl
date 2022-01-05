@@ -493,7 +493,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		ID_BYTECODE GetDestructorId() const override;
 
 		int32 AttributeCount() const override;
-		Rococo::Sex::cr_sex GetAttributeDef(int32 index, bool& isCustom) override;
+		Rococo::Sex::cr_sex GetAttributeDef(int32 index, bool& isCustom) const override;
 	};
 
 	typedef std::list<Structure*> TStructureList;

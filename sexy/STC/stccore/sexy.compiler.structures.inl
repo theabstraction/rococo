@@ -72,7 +72,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		return (int32)attributes.size();
 	}
 
-	Rococo::Sex::cr_sex Structure::GetAttributeDef(int32 index, bool& isCustom)
+	Rococo::Sex::cr_sex Structure::GetAttributeDef(int32 index, bool& isCustom) const
 	{
 		if (index < 0 || index >= attributes.size())
 		{

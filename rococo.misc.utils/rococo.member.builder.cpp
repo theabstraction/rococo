@@ -704,6 +704,11 @@ namespace
 			
 			const IStructure& objectType = scriptSystem->GetTypeForSource(type, sourceFile);
 
+			if (!Rococo::Script::IsSerializable(objectType))
+			{
+				Throw(0, "Bad object %s of type %s defined in %s. Type is not serializable.", name, type, sourceFile);
+			}
+
 			if (Eq(name, "#Object0"))
 			{
 				if (!Eq(rootType->Name(), type))

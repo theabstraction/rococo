@@ -124,6 +124,28 @@ namespace
 	};
 }
 
+namespace Rococo::Script
+{
+	bool IsSerializable(const IStructure& type)
+	{
+		for (int i = 0; i < type.AttributeCount(); ++i)
+		{
+			bool isCustom;
+			cr_sex attributeDef = type.GetAttributeDef(i, isCustom);
+			if (!isCustom)
+			{
+				cr_sex sName = attributeDef[1];
+				if (Eq(sName.String()->Buffer, "not-serialized"))
+				{
+					return false;
+				}
+			}
+		}
+
+		return true;
+	}
+}
+
 struct AssetBuilder
 {
 	IPublicScriptSystem& ss;
@@ -189,7 +211,11 @@ struct AssetBuilder
 		auto& interfaceType = assetType.GetInterface(0);
 
 		ObjectStub* stub = InterfaceToInstance(pInterface);
-		auto& objectType = *stub->Desc->TypeInfo;
+		
+		bool isSerializable = IsSerializable(*stub->Desc->TypeInfo);
+
+		auto& objectType = isSerializable ? *stub->Desc->TypeInfo : interfaceType.NullObjectType();
+		if (!isSerializable) stub = interfaceType.UniversalNullInstance();
 
 		bool newDefinition = false;
 
@@ -467,7 +493,16 @@ struct AssetBuilder
 
 		SaveTypeAndMemberFormat(type);
 		sb.AppendFormat("#\n", name);
-		SaveValues(type, name, rawObjectData);
+
+		if (IsNullType(type))
+		{
+			auto* ip = (InterfacePointer)rawObjectData;
+			SaveInterfaceRefAndObject(name, type, ip);
+		}
+		else
+		{
+			SaveValues(type, name, rawObjectData);
+		}
 	}
 
 	// Encoded a text string in tabbed CSV format to the string builder. Note that the text can include null characters.

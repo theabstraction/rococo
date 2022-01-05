@@ -2,6 +2,11 @@
 
 #include <rococo.types.h>
 
+namespace Rococo::Script
+{
+	bool IsSerializable(const Rococo::Compiler::IStructure& type);
+}
+
 namespace Rococo::Sexy
 {
 	// interface to set member variables of a derivative structure. A derivative structure can be recursive, containing a hierarchy of substructures of arbitrary type
