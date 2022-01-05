@@ -127,13 +127,57 @@ namespace Rococo
 			return -1;
 		}
 
+		void AddAttribute(IStructureBuilder& s, cr_sex attributeDef)
+		{
+			cr_sex sAttributeType = GetAtomicArg(attributeDef, 1);
+
+			bool isCustom = false;
+
+			if (sAttributeType.Type() == EXPRESSION_TYPE_ATOMIC)
+			{
+				// A system attribute
+			}
+			else if (sAttributeType.Type() == EXPRESSION_TYPE_STRING_LITERAL)
+			{
+				// A user-defined attribute
+				isCustom = true;
+			}
+			else
+			{
+				Throw(sAttributeType, "Expecting either an atomic or string literal token for the literal type. Atomic tokens are used for system attributes. String literals for user defined custom attributes");
+			}
+
+			sexstring attributeType = sAttributeType.String();
+
+			if (!isCustom)
+			{
+				if (AreEqual(attributeType, "not-serialized"))
+				{
+					// This is used by the Rococo LoadAsset and SaveAsset API to indicate the object should be replaced by a null-object when serialized
+				}
+				else
+				{
+					Throw(sAttributeType, "Unknown system attribute. Expecting 'not-serialized'");
+				}
+			}
+
+			s.AddAttribute(attributeDef, isCustom);
+		}
+
 		void AddMember(IStructureBuilder& s, cr_sex field)
 		{
 			AssertCompound(field);
-			AssertNotTooFewElements(field, 2);
 
 			cr_sex argTypeExpr = GetAtomicArg(field, 0);
 			sexstring type = argTypeExpr.String();
+
+			AssertNotTooFewElements(field, 2);
+
+			if (AreEqual(type, "attribute"))
+			{
+				AddAttribute(s, field);
+				return;
+			}
 
 			if (s.Prototype().IsClass)
 			{

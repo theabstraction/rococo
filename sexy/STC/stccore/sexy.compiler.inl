@@ -422,6 +422,13 @@ namespace Rococo { namespace Compiler { namespace Impl
 
 	typedef std::vector<StructureMember> TStructureMembers;
 
+	struct StructureAttribute
+	{
+		// Reference to the attribute definition. It will be non-null, and attributeDef[1] will have a string that defines the name
+		const Rococo::Sex::ISExpression* attributeDef;
+		bool isCustom; // If true, the attribute has been name checked as a system attribute, otherwise it is for user to handle
+	};
+
 	class Structure: public IStructureBuilder
 	{
 	private:
@@ -434,6 +441,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		VARTYPE type;
 		typedef std::vector<stdstring> TInterfaceNames;
 		typedef std::vector<IInterfaceBuilder*> TInterfaces;
+		std::vector<StructureAttribute> attributes;
 		TInterfaceNames interfaceNames;
 		TInterfaces interfaces;
 		mutable ID_BYTECODE destructorId;
@@ -447,6 +455,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 
         void Free() override { delete this; }
 
+		void AddAttribute(Rococo::Sex::cr_sex sourceDef, bool isCustom) override;
 		void AddInterface(cstr interfaceFullName) override;
 		int InterfaceCount() const override;
 		const IInterface& GetInterface(int index) const override;
@@ -481,7 +490,10 @@ namespace Rococo { namespace Compiler { namespace Impl
 		const IArchetype* Archetype() const override { return prototype.archetype; }
 		void Update() override;
 		bool ResolveInterfaces(ILog& log, bool reportErrors, const void** pSrcError);
-		virtual ID_BYTECODE GetDestructorId() const;
+		ID_BYTECODE GetDestructorId() const override;
+
+		int32 AttributeCount() const override;
+		Rococo::Sex::cr_sex GetAttributeDef(int32 index, bool& isCustom) override;
 	};
 
 	typedef std::list<Structure*> TStructureList;

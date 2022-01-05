@@ -61,6 +61,29 @@ namespace Rococo { namespace Compiler { namespace Impl
 		}
 	}
 
+	void Structure::AddAttribute(Rococo::Sex::cr_sex sourceDef, bool isCustom)
+	{
+		if (attributes.size() >= 256) Throw(sourceDef, "Maximum attribute count of 256 reached. Use a better methodology for packing meta data into a type");
+		attributes.push_back({ &sourceDef, isCustom });
+	}
+
+	int32 Structure::AttributeCount() const
+	{
+		return (int32)attributes.size();
+	}
+
+	Rococo::Sex::cr_sex Structure::GetAttributeDef(int32 index, bool& isCustom)
+	{
+		if (index < 0 || index >= attributes.size())
+		{
+			Rococo::Throw(0, "%s. Bad index", __FUNCTION__);
+		}
+
+		auto& a = attributes[index];
+		isCustom = a.isCustom;
+		return *a.attributeDef;
+	}
+
 	void Structure::AddInterface(cstr interfaceFullName)
 	{
 		interfaceNames.push_back(interfaceFullName);

@@ -13040,6 +13040,35 @@ R"((namespace EntryPoint)
 		validate(result == Rococo::EXECUTERESULT_TERMINATED);
 	}
 
+	void TestClassAttribute(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(using Sys.Type)\n"
+			"(class Dog (defines Sys.IDog)\n"
+			"	(attribute not-serialized)"
+			")\n"
+			"(method Dog.Woof -> (IString bark): \n"
+			"	(bark = \"&nWoof&n&n\")\n"
+			")\n"
+			"(method Dog.Construct : )\n"
+			"(factory Sys.Dog Sys.IDog  : (construct Dog))\n"
+			"(namespace EntryPoint)\n"
+			"(function Main -> :\n"
+			"	(Sys.IDog dog(Sys.Dog))\n"
+			"	(Sys.Print dog.Woof)\n"
+			")\n"
+			"(alias Main EntryPoint.Main)\n";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 1,1 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		Rococo::EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateLogs();
+		validate(result == Rococo::EXECUTERESULT_TERMINATED);
+	}
+
 	void TestClassDefinesInterface(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -14489,6 +14518,8 @@ R"(
 	{
 		validate(true);
 
+		TEST(TestClassAttribute);
+
 		TEST(TestNullIString);
 
 		TEST(TestPackage);
@@ -14815,7 +14846,6 @@ R"(
 		TEST(TestReflectionGetChild_BadIndex);
 		TEST(TestStringBuilderLength1);
 		TEST(TestAddNativeReflectionCall);
-
 	}
 
 	void RunPositiveFailures()
@@ -14844,10 +14874,10 @@ R"(
 		int64 start, end, hz;
 		start = OS::CpuTicks();
 
+		RunPositiveSuccesses();	
+		RunPositiveFailures();
 		RunCollectionTests();
-		RunPositiveSuccesses();
-		RunPositiveFailures();	
-
+	
 		end = OS::CpuTicks();
 		hz = OS::CpuHz();
 

@@ -353,6 +353,12 @@ namespace Rococo {
 			virtual ID_BYTECODE GetDestructorId() const = 0;
 			virtual const void* Definition() const = 0;
 			virtual const IFunction* Constructor() const = 0;
+
+			virtual int32 AttributeCount() const = 0;
+
+			// Retrieve the ith attribute. isCustom is an out parameter, and is set to true if element 1 of the returned attributeDef was a system attribute
+			// System attributes are specified by using atomic tokens rather than string literals and are validated against the known list of system attributes.
+			virtual Rococo::Sex::cr_sex GetAttributeDef(int32 index, bool& isCustom) = 0;
 		};
 
 		inline bool operator == (const IStructure& a, const IStructure& b) { return &a == &b; }

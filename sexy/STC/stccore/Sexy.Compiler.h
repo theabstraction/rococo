@@ -125,8 +125,9 @@ namespace Rococo { namespace Compiler
 	
 	ROCOCOAPI IStructureBuilder : public IStructure
 	{
-      virtual void Free() = 0;
+        virtual void Free() = 0;
 		virtual IModuleBuilder& Module() = 0;
+		virtual void AddAttribute(const Rococo::Sex::ISExpression& sourceDef, bool isCustom) = 0;
 		virtual void AddInterface(cstr interfaceFullName) = 0;		
 		virtual void AddMember(const NameString& name, const TypeString& type, cstr genericArg1 = nullptr, cstr genericArg2 = nullptr) = 0;
 		virtual void AddInterfaceMember(const NameString& name, const TypeString& type) = 0;
