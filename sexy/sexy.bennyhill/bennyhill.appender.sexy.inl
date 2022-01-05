@@ -378,7 +378,7 @@ namespace
 		}
 		else
 		{
-			appender.Append((" (implements %s) (Pointer hObject))\n"), ic.asSexyInterface);
+			appender.Append((" (implements %s) (Pointer hObject) (attribute not-serialized))\n"), ic.asSexyInterface);
 		}
 		
 		NamespaceSplitter splitter(ic.asSexyInterface);

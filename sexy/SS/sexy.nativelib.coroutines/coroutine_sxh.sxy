@@ -5,7 +5,7 @@
 	(ReleaseAll  -> )
 )
 
-(class ProxyICoroutineControl (implements Sys.ICoroutineControl) (Pointer hObject))
+(class ProxyICoroutineControl (implements Sys.ICoroutineControl) (Pointer hObject) (attribute not-serialized))
 	(method ProxyICoroutineControl.Construct (Pointer hObject): (this.hObject = hObject))
 	(method ProxyICoroutineControl.Add (Sys.ICoroutine coroutine) -> (Int64 id) : (Sys.Native.ICoroutineControlAdd this.hObject coroutine -> id))
 	(method ProxyICoroutineControl.Continue  -> (Int64 id) : (Sys.Native.ICoroutineControlContinue this.hObject  -> id))

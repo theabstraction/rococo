@@ -190,7 +190,7 @@
 	(Commit (Sys.Type.IString uniqueName) -> )
 )
 
-(class ProxyIObjectPrototypeBuilder (implements HV.IObjectPrototypeBuilder) (Pointer hObject))
+(class ProxyIObjectPrototypeBuilder (implements HV.IObjectPrototypeBuilder) (Pointer hObject) (attribute not-serialized))
 	(method ProxyIObjectPrototypeBuilder.Construct (Pointer hObject): (this.hObject = hObject))
 	(method ProxyIObjectPrototypeBuilder.AddDynamics (HV.ObjectDynamics dynamics) ->  : (HV.Native.IObjectPrototypeBuilderAddDynamics this.hObject dynamics))
 	(method ProxyIObjectPrototypeBuilder.AddMeleeData (HV.MeleeData melee) ->  : (HV.Native.IObjectPrototypeBuilderAddMeleeData this.hObject melee))
@@ -216,7 +216,7 @@
 	(AppendName (Sys.Type.IStringBuilder sb) -> )
 )
 
-(class ProxyIObjectPrototypeBase (implements HV.IObjectPrototypeBase) (Pointer hObject))
+(class ProxyIObjectPrototypeBase (implements HV.IObjectPrototypeBase) (Pointer hObject) (attribute not-serialized))
 	(method ProxyIObjectPrototypeBase.AppendName (Sys.Type.IStringBuilder sb) ->  : (HV.Native.IObjectPrototypeBaseAppendName this.hObject sb))
 
 (interface HV.IPlayer
@@ -225,7 +225,7 @@
 	(GetInventory  -> (Rococo.IInventoryArray inventory))
 )
 
-(class ProxyIPlayer (implements HV.IPlayer) (Pointer hObject))
+(class ProxyIPlayer (implements HV.IPlayer) (Pointer hObject) (attribute not-serialized))
 	(method ProxyIPlayer.Construct (Pointer hObject): (this.hObject = hObject))
 	(method ProxyIPlayer.SetPlayerEntity (Int64 id) ->  : (HV.Native.IPlayerSetPlayerEntity this.hObject id))
 	(method ProxyIPlayer.GetPlayerEntity  -> (Int64 id) : (HV.Native.IPlayerGetPlayerEntity this.hObject  -> id))
@@ -241,7 +241,7 @@
 	(GetFloatRange (Sys.Type.IString variableName)(Sys.Maths.Vec2 values)(Float32 defaultLeft)(Float32 defaultRight)(Float32 minValue)(Float32 maxValue) -> )
 )
 
-(class ProxyIScriptConfig (implements HV.IScriptConfig) (Pointer hObject))
+(class ProxyIScriptConfig (implements HV.IScriptConfig) (Pointer hObject) (attribute not-serialized))
 	(method ProxyIScriptConfig.Construct (Pointer hObject): (this.hObject = hObject))
 	(method ProxyIScriptConfig.GetFloat (Sys.Type.IString variableName)(Float32 default)(Float32 minValue)(Float32 maxValue) -> (Float32 value) : (HV.Native.IScriptConfigGetFloat this.hObject variableName default minValue maxValue -> value))
 	(method ProxyIScriptConfig.GetFloatRange (Sys.Type.IString variableName)(Sys.Maths.Vec2 values)(Float32 defaultLeft)(Float32 defaultRight)(Float32 minValue)(Float32 maxValue) ->  : (HV.Native.IScriptConfigGetFloatRange this.hObject variableName values defaultLeft defaultRight minValue maxValue))
@@ -256,7 +256,7 @@
 	(IsSloped  -> (Bool isSloped))
 )
 
-(class ProxyICorridor (implements HV.ICorridor) (Pointer hObject))
+(class ProxyICorridor (implements HV.ICorridor) (Pointer hObject) (attribute not-serialized))
 	(method ProxyICorridor.Construct (Pointer hObject): (this.hObject = hObject))
 	(method ProxyICorridor.GetSpan (Sys.Maths.Vec3 span) ->  : (HV.Native.ICorridorGetSpan this.hObject span))
 	(method ProxyICorridor.IsSloped  -> (Bool isSloped) : (HV.Native.ICorridorIsSloped this.hObject  -> isSloped))
@@ -276,7 +276,7 @@
 	(AddTag (Sys.Type.IString text) -> )
 )
 
-(class ProxyISectorAIBuilder (implements HV.ISectorAIBuilder) (Pointer hObject))
+(class ProxyISectorAIBuilder (implements HV.ISectorAIBuilder) (Pointer hObject) (attribute not-serialized))
 	(method ProxyISectorAIBuilder.Construct (Pointer hObject): (this.hObject = hObject))
 	(method ProxyISectorAIBuilder.ClearTriggers  ->  : (HV.Native.ISectorAIBuilderClearTriggers this.hObject ))
 	(method ProxyISectorAIBuilder.AddTrigger (Sys.Type.IString name) ->  : (HV.Native.ISectorAIBuilderAddTrigger this.hObject name))
@@ -307,7 +307,7 @@
 	(SetCorridorScriptF32 (Sys.Type.IString name)(Float32 value) -> )
 )
 
-(class ProxyISectors (implements HV.ISectors) (Pointer hObject))
+(class ProxyISectors (implements HV.ISectors) (Pointer hObject) (attribute not-serialized))
 	(method ProxyISectors.Construct (Pointer hObject): (this.hObject = hObject))
 	(method ProxyISectors.AddVertex (Float32 x)(Float32 y) ->  : (HV.Native.ISectorsAddVertex this.hObject x y))
 	(method ProxyISectors.Clear  ->  : (HV.Native.ISectorsClear this.hObject ))
@@ -350,7 +350,7 @@
 	(UseUpFacingQuads (Int64 id) -> )
 )
 
-(class ProxyISectorLayout (implements HV.ISectorLayout) (Pointer hObject))
+(class ProxyISectorLayout (implements HV.ISectorLayout) (Pointer hObject) (attribute not-serialized))
 	(method ProxyISectorLayout.Exists  -> (Bool exists) : (HV.Native.ISectorLayoutExists this.hObject  -> exists))
 	(method ProxyISectorLayout.CountSquares  -> (Int32 sqCount) : (HV.Native.ISectorLayoutCountSquares this.hObject  -> sqCount))
 	(method ProxyISectorLayout.GetSquare (Int32 sqIndex)(Rococo.AAB2d sq) ->  : (HV.Native.ISectorLayoutGetSquare this.hObject sqIndex sq))
@@ -378,7 +378,7 @@
 	(GetSelectedSector  -> (HV.ISectorLayout layout))
 )
 
-(class ProxyISectorEnumerator (implements HV.ISectorEnumerator) (Pointer hObject))
+(class ProxyISectorEnumerator (implements HV.ISectorEnumerator) (Pointer hObject) (attribute not-serialized))
 	(method ProxyISectorEnumerator.Construct (Pointer hObject): (this.hObject = hObject))
 	(method ProxyISectorEnumerator.Count  -> (Int32 nCount) : (HV.Native.ISectorEnumeratorCount this.hObject  -> nCount))
 	(method ProxyISectorEnumerator.GetSector (Int32 index) -> (HV.ISectorLayout layout) : (HV.Native.ISectorEnumeratorGetSector this.hObject index -> layout))
@@ -399,7 +399,7 @@
 	(GetMaterial (Rococo.MaterialVertexData mat)(Sys.Type.IString componentClass) -> )
 )
 
-(class ProxyISectorComponents (implements HV.ISectorComponents) (Pointer hObject))
+(class ProxyISectorComponents (implements HV.ISectorComponents) (Pointer hObject) (attribute not-serialized))
 	(method ProxyISectorComponents.Construct (Pointer hObject): (this.hObject = hObject))
 	(method ProxyISectorComponents.AddTriangle (Rococo.VertexTriangle t) ->  : (HV.Native.ISectorComponentsAddTriangle this.hObject t))
 	(method ProxyISectorComponents.AddPhysicsHull (Sys.Maths.Triangle t) ->  : (HV.Native.ISectorComponentsAddPhysicsHull this.hObject t))
@@ -421,7 +421,7 @@
 	(CountTriangles  -> (Int32 triangles))
 )
 
-(class ProxyITriangleList (implements HV.ITriangleList) (Pointer hObject))
+(class ProxyITriangleList (implements HV.ITriangleList) (Pointer hObject) (attribute not-serialized))
 	(method ProxyITriangleList.AddTriangleByVertices (Rococo.ObjectVertex a)(Rococo.ObjectVertex b)(Rococo.ObjectVertex c) ->  : (HV.Native.ITriangleListAddTriangleByVertices this.hObject a b c))
 	(method ProxyITriangleList.AddTriangle (Rococo.VertexTriangle abc) ->  : (HV.Native.ITriangleListAddTriangle this.hObject abc))
 	(method ProxyITriangleList.AddQuad (Rococo.ObjectVertex a)(Rococo.ObjectVertex b)(Rococo.ObjectVertex c)(Rococo.ObjectVertex d) ->  : (HV.Native.ITriangleListAddQuad this.hObject a b c d))
@@ -437,7 +437,7 @@
 	(GetMaterial (Rococo.MaterialVertexData mat)(Sys.Type.IString componentClass) -> )
 )
 
-(class ProxyISectorWallTesselator (implements HV.ISectorWallTesselator) (Pointer hObject))
+(class ProxyISectorWallTesselator (implements HV.ISectorWallTesselator) (Pointer hObject) (attribute not-serialized))
 	(method ProxyISectorWallTesselator.Construct (Pointer hObject): (this.hObject = hObject))
 	(method ProxyISectorWallTesselator.NumberOfSegments  -> (Int32 count) : (HV.Native.ISectorWallTesselatorNumberOfSegments this.hObject  -> count))
 	(method ProxyISectorWallTesselator.NumberOfGaps  -> (Int32 count) : (HV.Native.ISectorWallTesselatorNumberOfGaps this.hObject  -> count))
@@ -467,7 +467,7 @@
 	(GetGap (Int32 gapIndex)(HV.GapSegment segment) -> )
 )
 
-(class ProxyISectorFloorTesselator (implements HV.ISectorFloorTesselator) (Pointer hObject))
+(class ProxyISectorFloorTesselator (implements HV.ISectorFloorTesselator) (Pointer hObject) (attribute not-serialized))
 	(method ProxyISectorFloorTesselator.Construct (Pointer hObject): (this.hObject = hObject))
 	(method ProxyISectorFloorTesselator.NumberOfSquares  -> (Int32 count) : (HV.Native.ISectorFloorTesselatorNumberOfSquares this.hObject  -> count))
 	(method ProxyISectorFloorTesselator.FoundationsExist  -> (Bool exists) : (HV.Native.ISectorFloorTesselatorFoundationsExist this.hObject  -> exists))

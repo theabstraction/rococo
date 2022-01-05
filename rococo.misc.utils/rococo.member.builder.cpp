@@ -804,6 +804,11 @@ namespace
 			}
 		}
 
+		void Nullify(const IStructure& assetType, void* assetData)
+		{
+			// Not implemented - called when an exception is thrown during serialization and we need to undo our changes.
+		}
+
 		void SelectTarget(const Rococo::Compiler::IStructure& type, void* pObject) override
 		{
 			this->type = &type;
@@ -1252,9 +1257,16 @@ namespace Rococo::IO
 		objectBuilder.SelectScriptSystem(ss);
 		objectBuilder.SelectRootTarget(assetType, assetData);
 
-		Rococo::IO::ParseTabbedCSV_AssetFile(treeAsCSVString, objectBuilder);
-
-		objectBuilder.ResolveReferences();
+		try
+		{
+			Rococo::IO::ParseTabbedCSV_AssetFile(treeAsCSVString, objectBuilder);
+			objectBuilder.ResolveReferences();
+		}
+		catch (IException&)
+		{
+			objectBuilder.Nullify(assetType, assetData);
+			throw;
+		}
 	}
 
 	void LoadAndParseSexyObjectTree(IInstallation& installation, cstr pingPath, const IStructure& assetType, void* assetData, Rococo::Script::IPublicScriptSystem& ss)
