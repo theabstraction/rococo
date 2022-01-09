@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29519.181
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32014.148
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.windows", "rococo.windows\rococo.windows.vcxproj", "{997A007C-24B0-44FE-A27E-0EE006D74128}"
 EndProject
@@ -141,15 +141,18 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sexystudio", "sexystudio\se
 		{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D} = {D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}
 		{B9B1C849-B75F-4C56-AD56-01D36F3FDA05} = {B9B1C849-B75F-4C56-AD56-01D36F3FDA05}
 		{426AEC64-C529-4ADF-9A49-B4E7A3D6C710} = {426AEC64-C529-4ADF-9A49-B4E7A3D6C710}
+		{997A007C-24B0-44FE-A27E-0EE006D74128} = {997A007C-24B0-44FE-A27E-0EE006D74128}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sexystudio.4.notepad++", "sexystudio.4.NPP\vs.proj\SexyStudio.4.Notepad++.vcxproj", "{9D04DBD5-E12E-44E0-A683-6F43F21D533B}"
 	ProjectSection(ProjectDependencies) = postProject
+		{997A007C-24B0-44FE-A27E-0EE006D74128} = {997A007C-24B0-44FE-A27E-0EE006D74128}
 		{8A8EE8BD-C917-4471-9B7A-3F23A6B432AA} = {8A8EE8BD-C917-4471-9B7A-3F23A6B432AA}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sexystudio.app", "sexystudio.app\sexystudio.app.vcxproj", "{D60A33FA-ED87-44A0-A395-B8F987A241A1}"
 	ProjectSection(ProjectDependencies) = postProject
+		{997A007C-24B0-44FE-A27E-0EE006D74128} = {997A007C-24B0-44FE-A27E-0EE006D74128}
 		{815CA790-E189-4E07-B9A7-CE5682473794} = {815CA790-E189-4E07-B9A7-CE5682473794}
 		{8A8EE8BD-C917-4471-9B7A-3F23A6B432AA} = {8A8EE8BD-C917-4471-9B7A-3F23A6B432AA}
 	EndProjectSection
@@ -163,6 +166,7 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.wrappergen", "rococo.wrappergen\rococo.wrappergen.vcxproj", "{E2B539B4-8755-4E6E-BAEA-87A6A4722E1E}"
 	ProjectSection(ProjectDependencies) = postProject
 		{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D} = {D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}
+		{997A007C-24B0-44FE-A27E-0EE006D74128} = {997A007C-24B0-44FE-A27E-0EE006D74128}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.wrappergen.test", "rococo.wrappergen.test\rococo.wrappergen.test.vcxproj", "{5D65B10D-1F50-4D14-A518-221785D5E2A4}"
