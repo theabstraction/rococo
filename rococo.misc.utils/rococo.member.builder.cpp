@@ -804,9 +804,54 @@ namespace
 			}
 		}
 
+		void NullifyDerivativeMember(const IMember& member, const IStructure& type, void* memberData)
+		{
+			// This function is not well tested. As they say in Terrahawks, 'expect the unexpected'
+			if (IsNullType(*member.UnderlyingType()))
+			{
+				InterfacePointer* ip = (InterfacePointer*)memberData;
+
+				auto* stub = type.GetInterface(0).UniversalNullInstance();
+				*ip = stub->pVTables;
+			}
+			else
+			{
+				Nullify(type, memberData);
+			}
+		}
+
 		void Nullify(const IStructure& assetType, void* assetData)
 		{
-			// Not implemented - called when an exception is thrown during serialization and we need to undo our changes.
+			// This function is not well tested. As they say in Terrahawks, 'expect the unexpected'
+
+			if (assetType.VarType() != VARTYPE_Derivative)
+			{
+				Throw(0, "%s: Error, the asset object was not of derivative type.", __FUNCTION__);
+			}
+			else if (IsNullType(assetType))
+			{
+				Throw(0, "%s: Error, the asset object was an interface reference.", __FUNCTION__);
+			}			
+
+			size_t offset = 0;
+
+			for (int i = 0; i < assetType.MemberCount(); ++i)
+			{
+				auto& member = assetType.GetMember(i);
+				auto& memberType = *member.UnderlyingType();
+
+				switch (memberType.VarType())
+				{
+				case VARTYPE_Derivative:
+					NullifyDerivativeMember(member, memberType, ((uint8*) assetData) + offset);
+					break;
+				default:
+					memset(assetData, 0, assetType.SizeOfStruct());
+					break;
+				}
+				
+				offset += member.SizeOfMember();
+			}
 		}
 
 		void SelectTarget(const Rococo::Compiler::IStructure& type, void* pObject) override
@@ -1034,6 +1079,38 @@ namespace
 		{
 			memberRefManager.MoveToParent();
 			memberRefManager.MoveToNextSibling();
+		}
+
+		void DeleteNewObjects()
+		{
+			// This function is not well tested. As they say in Terrahawks, 'expect the unexpected'
+			for (auto& i : objects)
+			{
+				cstr name = i.first;
+				auto& object = i.second;
+
+				if (object.stub)
+				{
+					scriptSystem->AlignedFree(object.stub);
+				}
+			}
+
+			for (auto& a : arrays)
+			{
+				scriptSystem->AlignedFree(a.second);
+			}
+
+			for (auto& l : lists)
+			{
+				scriptSystem->AlignedFree(l.second);
+			}
+
+			for (auto& m : maps)
+			{
+				scriptSystem->AlignedFree(m.second);
+			}
+
+			objects.clear();
 		}
 
 		void ResolveReferences()
@@ -1265,6 +1342,7 @@ namespace Rococo::IO
 		catch (IException&)
 		{
 			objectBuilder.Nullify(assetType, assetData);
+			objectBuilder.DeleteNewObjects();
 			throw;
 		}
 	}
