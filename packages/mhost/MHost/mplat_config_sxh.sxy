@@ -9,7 +9,7 @@
 	(GetText (Sys.Type.IString name)(Sys.Type.IStringBuilder text) -> )
 )
 
-(class ProxyIConfig (implements Rococo.IConfig) (Pointer hObject))
+(class ProxyIConfig (implements Rococo.IConfig) (Pointer hObject) (attribute not-serialized))
 	(method ProxyIConfig.Construct (Pointer hObject): (this.hObject = hObject))
 	(method ProxyIConfig.Int (Sys.Type.IString name)(Int32 value) ->  : (Rococo.Native.IConfigInt this.hObject name value))
 	(method ProxyIConfig.Float (Sys.Type.IString name)(Float32 value) ->  : (Rococo.Native.IConfigFloat this.hObject name value))

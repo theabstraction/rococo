@@ -23,7 +23,7 @@
 	(SetPopulator (Int32 stateIndex)(Sys.Type.IString populatorName) -> )
 )
 
-(class ProxyIPane (implements Rococo.IPane) (Pointer hObject))
+(class ProxyIPane (implements Rococo.IPane) (Pointer hObject) (attribute not-serialized))
 	(method ProxyIPane.SetColourBk1 (Int32 normal)(Int32 hilight) ->  : (Rococo.Native.IPaneSetColourBk1 this.hObject normal hilight))
 	(method ProxyIPane.SetColourBk2 (Int32 normal)(Int32 hilight) ->  : (Rococo.Native.IPaneSetColourBk2 this.hObject normal hilight))
 	(method ProxyIPane.SetColourEdge1 (Int32 normal)(Int32 hilight) ->  : (Rococo.Native.IPaneSetColourEdge1 this.hObject normal hilight))
@@ -52,7 +52,7 @@
 	(SetPopupPoint (Sys.Maths.Vec2i position) -> )
 )
 
-(class ProxyIContextMenu (implements Rococo.IContextMenu) (Pointer hObject))
+(class ProxyIContextMenu (implements Rococo.IContextMenu) (Pointer hObject) (attribute not-serialized))
 	(method ProxyIContextMenu.AddString (Int32 branchId)(Sys.Type.IString displayName)(Sys.Type.IString eventName)(Sys.Type.IString shortcutKey) ->  : (Rococo.Native.IContextMenuAddString this.hObject branchId displayName eventName shortcutKey))
 	(method ProxyIContextMenu.AddSubMenu (Sys.Type.IString displayName)(Int32 parentBrancId) -> (Int32 newChildBranchId) : (Rococo.Native.IContextMenuAddSubMenu this.hObject displayName parentBrancId -> newChildBranchId))
 	(method ProxyIContextMenu.Clear (Int32 branchId) ->  : (Rococo.Native.IContextMenuClear this.hObject branchId))
@@ -64,7 +64,7 @@
 	(NoOperation  -> )
 )
 
-(class ProxyIContextMenuPane (implements Rococo.IContextMenuPane) (Pointer hObject))
+(class ProxyIContextMenuPane (implements Rococo.IContextMenuPane) (Pointer hObject) (attribute not-serialized))
 	(method ProxyIContextMenuPane.SetColourBk1 (Int32 normal)(Int32 hilight) ->  : (Rococo.Native.IContextMenuPaneSetColourBk1 this.hObject normal hilight))
 	(method ProxyIContextMenuPane.SetColourBk2 (Int32 normal)(Int32 hilight) ->  : (Rococo.Native.IContextMenuPaneSetColourBk2 this.hObject normal hilight))
 	(method ProxyIContextMenuPane.SetColourEdge1 (Int32 normal)(Int32 hilight) ->  : (Rococo.Native.IContextMenuPaneSetColourEdge1 this.hObject normal hilight))
@@ -91,7 +91,7 @@
 	(SetFocusColours (Int32 col1)(Int32 col2) -> )
 )
 
-(class ProxyIEnumListPane (implements Rococo.IEnumListPane) (Pointer hObject))
+(class ProxyIEnumListPane (implements Rococo.IEnumListPane) (Pointer hObject) (attribute not-serialized))
 	(method ProxyIEnumListPane.SetColourBk1 (Int32 normal)(Int32 hilight) ->  : (Rococo.Native.IEnumListPaneSetColourBk1 this.hObject normal hilight))
 	(method ProxyIEnumListPane.SetColourBk2 (Int32 normal)(Int32 hilight) ->  : (Rococo.Native.IEnumListPaneSetColourBk2 this.hObject normal hilight))
 	(method ProxyIEnumListPane.SetColourEdge1 (Int32 normal)(Int32 hilight) ->  : (Rococo.Native.IEnumListPaneSetColourEdge1 this.hObject normal hilight))
@@ -121,7 +121,7 @@
 	(SetScrollToItemEvent (Sys.Type.IString eventText) -> )
 )
 
-(class ProxyIArrayBox (implements Rococo.IArrayBox) (Pointer hObject))
+(class ProxyIArrayBox (implements Rococo.IArrayBox) (Pointer hObject) (attribute not-serialized))
 	(method ProxyIArrayBox.SetColourBk1 (Int32 normal)(Int32 hilight) ->  : (Rococo.Native.IArrayBoxSetColourBk1 this.hObject normal hilight))
 	(method ProxyIArrayBox.SetColourBk2 (Int32 normal)(Int32 hilight) ->  : (Rococo.Native.IArrayBoxSetColourBk2 this.hObject normal hilight))
 	(method ProxyIArrayBox.SetColourEdge1 (Int32 normal)(Int32 hilight) ->  : (Rococo.Native.IArrayBoxSetColourEdge1 this.hObject normal hilight))
@@ -159,7 +159,7 @@
 	(AddEnumList (Int32 fontIndex)(Sys.Type.IString populateEvent)(Sys.Maths.Recti rect) -> (Rococo.IEnumListPane enumList))
 )
 
-(class ProxyIPaneContainer (implements Rococo.IPaneContainer) (Pointer hObject))
+(class ProxyIPaneContainer (implements Rococo.IPaneContainer) (Pointer hObject) (attribute not-serialized))
 	(method ProxyIPaneContainer.SetColourBk1 (Int32 normal)(Int32 hilight) ->  : (Rococo.Native.IPaneContainerSetColourBk1 this.hObject normal hilight))
 	(method ProxyIPaneContainer.SetColourBk2 (Int32 normal)(Int32 hilight) ->  : (Rococo.Native.IPaneContainerSetColourBk2 this.hObject normal hilight))
 	(method ProxyIPaneContainer.SetColourEdge1 (Int32 normal)(Int32 hilight) ->  : (Rococo.Native.IPaneContainerSetColourEdge1 this.hObject normal hilight))
@@ -195,7 +195,7 @@
 	(SetTabPopulator (Sys.Type.IString populatorName) -> )
 )
 
-(class ProxyITabContainer (implements Rococo.ITabContainer) (Pointer hObject))
+(class ProxyITabContainer (implements Rococo.ITabContainer) (Pointer hObject) (attribute not-serialized))
 	(method ProxyITabContainer.SetColourBk1 (Int32 normal)(Int32 hilight) ->  : (Rococo.Native.ITabContainerSetColourBk1 this.hObject normal hilight))
 	(method ProxyITabContainer.SetColourBk2 (Int32 normal)(Int32 hilight) ->  : (Rococo.Native.ITabContainerSetColourBk2 this.hObject normal hilight))
 	(method ProxyITabContainer.SetColourEdge1 (Int32 normal)(Int32 hilight) ->  : (Rococo.Native.ITabContainerSetColourEdge1 this.hObject normal hilight))
@@ -226,7 +226,7 @@
 	(SetCaptionEvent (Sys.Type.IString eventId) -> )
 )
 
-(class ProxyIFramePane (implements Rococo.IFramePane) (Pointer hObject))
+(class ProxyIFramePane (implements Rococo.IFramePane) (Pointer hObject) (attribute not-serialized))
 	(method ProxyIFramePane.SetColourBk1 (Int32 normal)(Int32 hilight) ->  : (Rococo.Native.IFramePaneSetColourBk1 this.hObject normal hilight))
 	(method ProxyIFramePane.SetColourBk2 (Int32 normal)(Int32 hilight) ->  : (Rococo.Native.IFramePaneSetColourBk2 this.hObject normal hilight))
 	(method ProxyIFramePane.SetColourEdge1 (Int32 normal)(Int32 hilight) ->  : (Rococo.Native.IFramePaneSetColourEdge1 this.hObject normal hilight))
@@ -267,7 +267,7 @@
 	(SetAlignment (Int32 horz)(Int32 vert)(Int32 paddingX)(Int32 paddingY) -> )
 )
 
-(class ProxyIRadioButton (implements Rococo.IRadioButton) (Pointer hObject))
+(class ProxyIRadioButton (implements Rococo.IRadioButton) (Pointer hObject) (attribute not-serialized))
 	(method ProxyIRadioButton.SetColourBk1 (Int32 normal)(Int32 hilight) ->  : (Rococo.Native.IRadioButtonSetColourBk1 this.hObject normal hilight))
 	(method ProxyIRadioButton.SetColourBk2 (Int32 normal)(Int32 hilight) ->  : (Rococo.Native.IRadioButtonSetColourBk2 this.hObject normal hilight))
 	(method ProxyIRadioButton.SetColourEdge1 (Int32 normal)(Int32 hilight) ->  : (Rococo.Native.IRadioButtonSetColourEdge1 this.hObject normal hilight))
@@ -293,7 +293,7 @@
 	(SetEnableEvent (Sys.Type.IString enablerEventName)(Int32 grey1)(Int32 grey2) -> )
 )
 
-(class ProxyILabelPane (implements Rococo.ILabelPane) (Pointer hObject))
+(class ProxyILabelPane (implements Rococo.ILabelPane) (Pointer hObject) (attribute not-serialized))
 	(method ProxyILabelPane.SetColourBk1 (Int32 normal)(Int32 hilight) ->  : (Rococo.Native.ILabelPaneSetColourBk1 this.hObject normal hilight))
 	(method ProxyILabelPane.SetColourBk2 (Int32 normal)(Int32 hilight) ->  : (Rococo.Native.ILabelPaneSetColourBk2 this.hObject normal hilight))
 	(method ProxyILabelPane.SetColourEdge1 (Int32 normal)(Int32 hilight) ->  : (Rococo.Native.ILabelPaneSetColourEdge1 this.hObject normal hilight))
@@ -318,7 +318,7 @@
 (interface Rococo.ISlider (extends Rococo.IPane)
 )
 
-(class ProxyISlider (implements Rococo.ISlider) (Pointer hObject))
+(class ProxyISlider (implements Rococo.ISlider) (Pointer hObject) (attribute not-serialized))
 	(method ProxyISlider.SetColourBk1 (Int32 normal)(Int32 hilight) ->  : (Rococo.Native.ISliderSetColourBk1 this.hObject normal hilight))
 	(method ProxyISlider.SetColourBk2 (Int32 normal)(Int32 hilight) ->  : (Rococo.Native.ISliderSetColourBk2 this.hObject normal hilight))
 	(method ProxyISlider.SetColourEdge1 (Int32 normal)(Int32 hilight) ->  : (Rococo.Native.ISliderSetColourEdge1 this.hObject normal hilight))
@@ -341,7 +341,7 @@
 (interface Rococo.IScroller (extends Rococo.IPane)
 )
 
-(class ProxyIScroller (implements Rococo.IScroller) (Pointer hObject))
+(class ProxyIScroller (implements Rococo.IScroller) (Pointer hObject) (attribute not-serialized))
 	(method ProxyIScroller.SetColourBk1 (Int32 normal)(Int32 hilight) ->  : (Rococo.Native.IScrollerSetColourBk1 this.hObject normal hilight))
 	(method ProxyIScroller.SetColourBk2 (Int32 normal)(Int32 hilight) ->  : (Rococo.Native.IScrollerSetColourBk2 this.hObject normal hilight))
 	(method ProxyIScroller.SetColourEdge1 (Int32 normal)(Int32 hilight) ->  : (Rococo.Native.IScrollerSetColourEdge1 this.hObject normal hilight))
@@ -366,7 +366,7 @@
 	(SetActivateKey (Sys.Type.IString key) -> )
 )
 
-(class ProxyITextOutputPane (implements Rococo.ITextOutputPane) (Pointer hObject))
+(class ProxyITextOutputPane (implements Rococo.ITextOutputPane) (Pointer hObject) (attribute not-serialized))
 	(method ProxyITextOutputPane.SetColourBk1 (Int32 normal)(Int32 hilight) ->  : (Rococo.Native.ITextOutputPaneSetColourBk1 this.hObject normal hilight))
 	(method ProxyITextOutputPane.SetColourBk2 (Int32 normal)(Int32 hilight) ->  : (Rococo.Native.ITextOutputPaneSetColourBk2 this.hObject normal hilight))
 	(method ProxyITextOutputPane.SetColourEdge1 (Int32 normal)(Int32 hilight) ->  : (Rococo.Native.ITextOutputPaneSetColourEdge1 this.hObject normal hilight))
@@ -392,7 +392,7 @@
 	(Root  -> (Rococo.IPaneContainer container))
 )
 
-(class ProxyIPaneBuilder (implements Rococo.IPaneBuilder) (Pointer hObject))
+(class ProxyIPaneBuilder (implements Rococo.IPaneBuilder) (Pointer hObject) (attribute not-serialized))
 	(method ProxyIPaneBuilder.Construct (Pointer hObject): (this.hObject = hObject))
 	(method ProxyIPaneBuilder.Root  -> (Rococo.IPaneContainer container) : (Rococo.Native.IPaneBuilderRoot this.hObject  -> container))
 

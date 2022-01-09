@@ -31,7 +31,7 @@
 	(ClearScissorRect  -> )
 )
 
-(class ProxyIGui (implements MHost.IGui) (Pointer hObject))
+(class ProxyIGui (implements MHost.IGui) (Pointer hObject) (attribute not-serialized))
 	(method ProxyIGui.DrawTriangle (MPlat.GuiTriangle t) ->  : (MHost.Native.IGuiDrawTriangle this.hObject t))
 	(method ProxyIGui.DrawQuad (MPlat.GuiQuad q) ->  : (MHost.Native.IGuiDrawQuad this.hObject q))
 	(method ProxyIGui.DrawBorder (Sys.Maths.Rectf rect)(Float32 pxThickness)(Int32 tl)(Int32 tr)(Int32 bl)(Int32 br) ->  : (MHost.Native.IGuiDrawBorder this.hObject rect pxThickness tl tr bl br))
@@ -72,7 +72,7 @@
 	(SetOverlayToggleKey (Int32 vkeyCode) -> )
 )
 
-(class ProxyIEngine (implements MHost.IEngine) (Pointer hObject))
+(class ProxyIEngine (implements MHost.IEngine) (Pointer hObject) (attribute not-serialized))
 	(method ProxyIEngine.Construct (Pointer hObject): (this.hObject = hObject))
 	(method ProxyIEngine.PollKeyState (MHost.OS.KeyState keys) ->  : (MHost.Native.IEnginePollKeyState this.hObject keys))
 	(method ProxyIEngine.GetNextMouseDelta (Sys.Maths.Vec2 delta) ->  : (MHost.Native.IEngineGetNextMouseDelta this.hObject delta))
@@ -115,7 +115,7 @@
 	(SaveTo (Sys.Type.IString pingPath) -> )
 )
 
-(class ProxyIDictionaryStream (implements MHost.IDictionaryStream) (Pointer hObject))
+(class ProxyIDictionaryStream (implements MHost.IDictionaryStream) (Pointer hObject) (attribute not-serialized))
 	(method ProxyIDictionaryStream.Construct (Pointer hObject): (this.hObject = hObject))
 	(method ProxyIDictionaryStream.AddBool (Sys.Type.IString name)(Bool value) ->  : (MHost.Native.IDictionaryStreamAddBool this.hObject name value))
 	(method ProxyIDictionaryStream.AddI32 (Sys.Type.IString name)(Int32 value) ->  : (MHost.Native.IDictionaryStreamAddI32 this.hObject name value))

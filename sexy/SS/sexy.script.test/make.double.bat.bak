@@ -1,3 +1,5 @@
 cd %~dp0
-cd ..\..\..
+cd ..
+cd ..
+cd ..
 bin\rococo.packager.exe  sexy\SS\sexy.script.test\double sexy\SS\sexy.script.test\double.sxyz

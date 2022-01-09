@@ -1812,20 +1812,26 @@ namespace Rococo
 					CoTaskMemFree(path);
 
 					hFile = CreateFileW(fullpath, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+
+					if (hFile == INVALID_HANDLE_VALUE)
+					{
+						Throw(GetLastError(), "Cannot create file %ls", fullpath);
+					}
 				}
 				break;
 			case TargetDirectory_Root:
 				hFile = CreateFileW(filename, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+
+				if (hFile == INVALID_HANDLE_VALUE)
+				{
+					Throw(GetLastError(), "Cannot create file %ls in root directory");
+				}
 				break;
 			default:
 				Throw(0, "Rococo::OS::SaveAsciiTextFile(... %ls): Unrecognized target directory", filename);
 				break;
 			}
 
-			if (hFile == INVALID_HANDLE_VALUE)
-			{
-				Throw(GetLastError(), "Cannot create file %ls in user directory", filename);
-			}
 			DWORD bytesWritten;
 			bool status = WriteFile(hFile, text.buffer, (DWORD)text.length, &bytesWritten, NULL);
 			int err = GetLastError();

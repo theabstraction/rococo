@@ -51,7 +51,7 @@
 	(ComputeSpan (Rococo.InventoryLayoutRules rules)(Sys.Maths.Vec2i span) -> )
 )
 
-(class ProxyIInventoryArray (implements Rococo.IInventoryArray) (Pointer hObject))
+(class ProxyIInventoryArray (implements Rococo.IInventoryArray) (Pointer hObject) (attribute not-serialized))
 	(method ProxyIInventoryArray.AddPaperDoll (Sys.Maths.Recti rect)(Sys.Type.IString pingPathToImage) ->  : (Rococo.Native.IInventoryArrayAddPaperDoll this.hObject rect pingPathToImage))
 	(method ProxyIInventoryArray.ClearDolls  ->  : (Rococo.Native.IInventoryArrayClearDolls this.hObject ))
 	(method ProxyIInventoryArray.DollCount  -> (Int32 nDolls) : (Rococo.Native.IInventoryArrayDollCount this.hObject  -> nDolls))
@@ -88,7 +88,7 @@
 	(CommitToPose (Sys.Type.IString name) -> (Int64 id))
 )
 
-(class ProxyIRigBuilder (implements Rococo.Entities.IRigBuilder) (Pointer hObject))
+(class ProxyIRigBuilder (implements Rococo.Entities.IRigBuilder) (Pointer hObject) (attribute not-serialized))
 	(method ProxyIRigBuilder.Construct (Pointer hObject): (this.hObject = hObject))
 	(method ProxyIRigBuilder.ClearBuilder  ->  : (Rococo.Entities.Native.IRigBuilderClearBuilder this.hObject ))
 	(method ProxyIRigBuilder.ClearPoses  ->  : (Rococo.Entities.Native.IRigBuilderClearPoses this.hObject ))
@@ -114,7 +114,7 @@
 	(SetMusic (Sys.Type.IString musicFile) -> )
 )
 
-(class ProxyIAudio (implements Rococo.Audio.IAudio) (Pointer hObject))
+(class ProxyIAudio (implements Rococo.Audio.IAudio) (Pointer hObject) (attribute not-serialized))
 	(method ProxyIAudio.Construct (Pointer hObject): (this.hObject = hObject))
 	(method ProxyIAudio.SetMusic (Sys.Type.IString musicFile) ->  : (Rococo.Audio.Native.IAudioSetMusic this.hObject musicFile))
 
@@ -131,7 +131,7 @@
 	(SaveCppHeader  -> )
 )
 
-(class ProxyIKeyboard (implements Rococo.IKeyboard) (Pointer hObject))
+(class ProxyIKeyboard (implements Rococo.IKeyboard) (Pointer hObject) (attribute not-serialized))
 	(method ProxyIKeyboard.Construct (Pointer hObject): (this.hObject = hObject))
 	(method ProxyIKeyboard.ClearActions  ->  : (Rococo.Native.IKeyboardClearActions this.hObject ))
 	(method ProxyIKeyboard.GetVKeyFromName (Sys.Type.IString name) -> (Int32 vkCode) : (Rococo.Native.IKeyboardGetVKeyFromName this.hObject name -> vkCode))
@@ -151,7 +151,7 @@
 	(LoadAllSprites  -> )
 )
 
-(class ProxyISpriteBuilder (implements Rococo.Graphics.ISpriteBuilder) (Pointer hObject))
+(class ProxyISpriteBuilder (implements Rococo.Graphics.ISpriteBuilder) (Pointer hObject) (attribute not-serialized))
 	(method ProxyISpriteBuilder.Construct (Pointer hObject): (this.hObject = hObject))
 	(method ProxyISpriteBuilder.Clear  ->  : (Rococo.Graphics.Native.ISpriteBuilderClear this.hObject ))
 	(method ProxyISpriteBuilder.AddSprite (Sys.Type.IString resourceName) ->  : (Rococo.Graphics.Native.ISpriteBuilderAddSprite this.hObject resourceName))
@@ -168,7 +168,7 @@
 	(AppendPingPath (Int64 id)(Sys.Type.IStringBuilder sb) -> )
 )
 
-(class ProxyISprites (implements Rococo.Graphics.ISprites) (Pointer hObject))
+(class ProxyISprites (implements Rococo.Graphics.ISprites) (Pointer hObject) (attribute not-serialized))
 	(method ProxyISprites.Construct (Pointer hObject): (this.hObject = hObject))
 	(method ProxyISprites.TryGetId (Sys.Type.IString pingPath) -> (Int64 id) : (Rococo.Graphics.Native.ISpritesTryGetId this.hObject pingPath -> id))
 	(method ProxyISprites.AppendPingPath (Int64 id)(Sys.Type.IStringBuilder sb) ->  : (Rococo.Graphics.Native.ISpritesAppendPingPath this.hObject id sb))
@@ -184,7 +184,7 @@
 	(SetAngles (Int64 id)(Sys.Maths.FPSAngles angles) -> )
 )
 
-(class ProxyIMobiles (implements Rococo.Entities.IMobiles) (Pointer hObject))
+(class ProxyIMobiles (implements Rococo.Entities.IMobiles) (Pointer hObject) (attribute not-serialized))
 	(method ProxyIMobiles.Construct (Pointer hObject): (this.hObject = hObject))
 	(method ProxyIMobiles.Link (Int64 id) ->  : (Rococo.Entities.Native.IMobilesLink this.hObject id))
 	(method ProxyIMobiles.GetAngles (Int64 id)(Sys.Maths.FPSAngles angles) ->  : (Rococo.Entities.Native.IMobilesGetAngles this.hObject id angles))
@@ -205,7 +205,7 @@
 	(Snuff (Int64 id) -> )
 )
 
-(class ProxyIParticleSystem (implements Rococo.Entities.IParticleSystem) (Pointer hObject))
+(class ProxyIParticleSystem (implements Rococo.Entities.IParticleSystem) (Pointer hObject) (attribute not-serialized))
 	(method ProxyIParticleSystem.Construct (Pointer hObject): (this.hObject = hObject))
 	(method ProxyIParticleSystem.ApplySpectrum (Int64 id) ->  : (Rococo.Entities.Native.IParticleSystemApplySpectrum this.hObject id))
 	(method ProxyIParticleSystem.ClearSpectrum  ->  : (Rococo.Entities.Native.IParticleSystemClearSpectrum this.hObject ))
@@ -237,7 +237,7 @@
 	(AspectRatio  -> (Float32 widthOverHeight))
 )
 
-(class ProxyICamera (implements Rococo.Graphics.ICamera) (Pointer hObject))
+(class ProxyICamera (implements Rococo.Graphics.ICamera) (Pointer hObject) (attribute not-serialized))
 	(method ProxyICamera.Construct (Pointer hObject): (this.hObject = hObject))
 	(method ProxyICamera.Clear  ->  : (Rococo.Graphics.Native.ICameraClear this.hObject ))
 	(method ProxyICamera.SetRHProjection (Sys.Maths.Degrees fov)(Float32 near)(Float32 far) ->  : (Rococo.Graphics.Native.ICameraSetRHProjection this.hObject fov near far))
@@ -270,7 +270,7 @@
 	(SetSkyBox (Int64 cubeId) -> )
 )
 
-(class ProxyISceneBuilder (implements Rococo.Graphics.ISceneBuilder) (Pointer hObject))
+(class ProxyISceneBuilder (implements Rococo.Graphics.ISceneBuilder) (Pointer hObject) (attribute not-serialized))
 	(method ProxyISceneBuilder.Construct (Pointer hObject): (this.hObject = hObject))
 	(method ProxyISceneBuilder.AddStatics (Int64 entityId) ->  : (Rococo.Graphics.Native.ISceneBuilderAddStatics this.hObject entityId))
 	(method ProxyISceneBuilder.AddDebugObject (Int64 entityId) ->  : (Rococo.Graphics.Native.ISceneBuilderAddDebugObject this.hObject entityId))
@@ -290,7 +290,7 @@
 	(Log (Sys.Type.IString message) -> )
 )
 
-(class ProxyIMessaging (implements Rococo.Graphics.IMessaging) (Pointer hObject))
+(class ProxyIMessaging (implements Rococo.Graphics.IMessaging) (Pointer hObject) (attribute not-serialized))
 	(method ProxyIMessaging.Construct (Pointer hObject): (this.hObject = hObject))
 	(method ProxyIMessaging.Log (Sys.Type.IString message) ->  : (Rococo.Graphics.Native.IMessagingLog this.hObject message))
 
@@ -320,7 +320,7 @@
 	(Clear  -> )
 )
 
-(class ProxyIInstances (implements Rococo.Entities.IInstances) (Pointer hObject))
+(class ProxyIInstances (implements Rococo.Entities.IInstances) (Pointer hObject) (attribute not-serialized))
 	(method ProxyIInstances.Construct (Pointer hObject): (this.hObject = hObject))
 	(method ProxyIInstances.AddBody (Sys.Type.IString modelName)(Sys.Maths.Matrix4x4 model)(Sys.Maths.Vec3 scale)(Int64 parentId) -> (Int64 entityId) : (Rococo.Entities.Native.IInstancesAddBody this.hObject modelName model scale parentId -> entityId))
 	(method ProxyIInstances.AddGhost (Sys.Maths.Matrix4x4 model)(Int64 parentId) -> (Int64 entityId) : (Rococo.Entities.Native.IInstancesAddGhost this.hObject model parentId -> entityId))
@@ -362,7 +362,7 @@
 	(Span (Sys.Maths.Vec3 span)(Sys.Type.IString fqName) -> )
 )
 
-(class ProxyIMeshBuilder (implements Rococo.Graphics.IMeshBuilder) (Pointer hObject))
+(class ProxyIMeshBuilder (implements Rococo.Graphics.IMeshBuilder) (Pointer hObject) (attribute not-serialized))
 	(method ProxyIMeshBuilder.Construct (Pointer hObject): (this.hObject = hObject))
 	(method ProxyIMeshBuilder.AddMesh (Sys.Maths.Matrix4x4 transform)(Sys.Type.IString sourceName) ->  : (Rococo.Graphics.Native.IMeshBuilderAddMesh this.hObject transform sourceName))
 	(method ProxyIMeshBuilder.AddTriangleEx (Rococo.VertexTriangle t) ->  : (Rococo.Graphics.Native.IMeshBuilderAddTriangleEx this.hObject t))
@@ -400,7 +400,7 @@
 	(SetTransform (Sys.Maths.Matrix4x4 transform) -> )
 )
 
-(class ProxyIRimTesselator (implements Rococo.Graphics.IRimTesselator) (Pointer hObject))
+(class ProxyIRimTesselator (implements Rococo.Graphics.IRimTesselator) (Pointer hObject) (attribute not-serialized))
 	(method ProxyIRimTesselator.Construct (Pointer hObject): (this.hObject = hObject))
 	(method ProxyIRimTesselator.AddPoint (Sys.Maths.Vec2 p) ->  : (Rococo.Graphics.Native.IRimTesselatorAddPoint this.hObject p))
 	(method ProxyIRimTesselator.AddPointXY (Float32 x)(Float32 y) ->  : (Rococo.Graphics.Native.IRimTesselatorAddPointXY this.hObject x y))
@@ -441,7 +441,7 @@
 	(GetBasis (Sys.Maths.Matrix4x4 transform) -> )
 )
 
-(class ProxyIFieldTesselator (implements Rococo.Graphics.IFieldTesselator) (Pointer hObject))
+(class ProxyIFieldTesselator (implements Rococo.Graphics.IFieldTesselator) (Pointer hObject) (attribute not-serialized))
 	(method ProxyIFieldTesselator.Construct (Pointer hObject): (this.hObject = hObject))
 	(method ProxyIFieldTesselator.Destruct  ->  : (Rococo.Graphics.Native.IFieldTesselatorDestruct this.hObject ))
 	(method ProxyIFieldTesselator.InitByFixedCellWidth (Sys.Maths.Quadf positions)(Float32 maxCellWidth)(Float32 maxCellHeight) ->  : (Rococo.Graphics.Native.IFieldTesselatorInitByFixedCellWidth this.hObject positions maxCellWidth maxCellHeight))
@@ -493,7 +493,7 @@
 	(Translate (Sys.Maths.Vec3 v) -> )
 )
 
-(class ProxyIQuadStackTesselator (implements Rococo.Graphics.IQuadStackTesselator) (Pointer hObject))
+(class ProxyIQuadStackTesselator (implements Rococo.Graphics.IQuadStackTesselator) (Pointer hObject) (attribute not-serialized))
 	(method ProxyIQuadStackTesselator.Construct (Pointer hObject): (this.hObject = hObject))
 	(method ProxyIQuadStackTesselator.AddCuboid (Float32 v0)(Float32 v1)(Float32 t0)(Float32 t1)(Float32 thickness)(Float32 uvScale)(Rococo.MaterialVertexData rodMat) ->  : (Rococo.Graphics.Native.IQuadStackTesselatorAddCuboid this.hObject v0 v1 t0 t1 thickness uvScale rodMat))
 	(method ProxyIQuadStackTesselator.AddCuboidAbs (Sys.SI.Metres dx0)(Sys.SI.Metres dy0)(Sys.SI.Metres dx1)(Sys.SI.Metres dy1)(Sys.SI.Metres thickness)(Float32 uvScale)(Rococo.MaterialVertexData rodMat) ->  : (Rococo.Graphics.Native.IQuadStackTesselatorAddCuboidAbs this.hObject dx0 dy0 dx1 dy1 thickness uvScale rodMat))
@@ -557,7 +557,7 @@
 	(UseSmoothNormals  -> )
 )
 
-(class ProxyIRodTesselator (implements Rococo.Graphics.IRodTesselator) (Pointer hObject))
+(class ProxyIRodTesselator (implements Rococo.Graphics.IRodTesselator) (Pointer hObject) (attribute not-serialized))
 	(method ProxyIRodTesselator.Construct (Pointer hObject): (this.hObject = hObject))
 	(method ProxyIRodTesselator.AddBox (Sys.SI.Metres length)(Sys.Maths.Vec2 a)(Sys.Maths.Vec2 b)(Sys.Maths.Vec2 c)(Sys.Maths.Vec2 d) ->  : (Rococo.Graphics.Native.IRodTesselatorAddBox this.hObject length a b c d))
 	(method ProxyIRodTesselator.AddPyramid (Sys.SI.Metres length)(Sys.Maths.Vec2 a)(Sys.Maths.Vec2 b)(Sys.Maths.Vec2 c)(Sys.Maths.Vec2 d) ->  : (Rococo.Graphics.Native.IRodTesselatorAddPyramid this.hObject length a b c d))
@@ -605,7 +605,7 @@
 	(TranslateEachCell (Sys.Maths.Vec3 delta) -> )
 )
 
-(class ProxyILandscapeTesselator (implements Rococo.Graphics.ILandscapeTesselator) (Pointer hObject))
+(class ProxyILandscapeTesselator (implements Rococo.Graphics.ILandscapeTesselator) (Pointer hObject) (attribute not-serialized))
 	(method ProxyILandscapeTesselator.Construct (Pointer hObject): (this.hObject = hObject))
 	(method ProxyILandscapeTesselator.AddQuadField (Int32 base2exponentDivisions)(Sys.SI.Metres span) ->  : (Rococo.Graphics.Native.ILandscapeTesselatorAddQuadField this.hObject base2exponentDivisions span))
 	(method ProxyILandscapeTesselator.Clear  ->  : (Rococo.Graphics.Native.ILandscapeTesselatorClear this.hObject ))
@@ -633,7 +633,7 @@
 	(TrySetFont (Sys.Type.IString name)(Float32 dotSize) -> (Bool isSet))
 )
 
-(class ProxyITextTesselator (implements Rococo.Graphics.ITextTesselator) (Pointer hObject))
+(class ProxyITextTesselator (implements Rococo.Graphics.ITextTesselator) (Pointer hObject) (attribute not-serialized))
 	(method ProxyITextTesselator.Construct (Pointer hObject): (this.hObject = hObject))
 	(method ProxyITextTesselator.AddBlankQuad (Sys.Maths.Quadf positions)(Int32 paperColour) ->  : (Rococo.Graphics.Native.ITextTesselatorAddBlankQuad this.hObject positions paperColour))
 	(method ProxyITextTesselator.AddLeftAlignedText (Int32 colour)(Sys.Type.IString text) ->  : (Rococo.Graphics.Native.ITextTesselatorAddLeftAlignedText this.hObject colour text))
@@ -663,7 +663,7 @@
 	(GetSysFont (Int32 font) -> (Int32 fontId))
 )
 
-(class ProxyIHQFonts (implements Rococo.Graphics.IHQFonts) (Pointer hObject))
+(class ProxyIHQFonts (implements Rococo.Graphics.IHQFonts) (Pointer hObject) (attribute not-serialized))
 	(method ProxyIHQFonts.Construct (Pointer hObject): (this.hObject = hObject))
 	(method ProxyIHQFonts.Build (Int32 font) ->  : (Rococo.Graphics.Native.IHQFontsBuild this.hObject font))
 	(method ProxyIHQFonts.Clear  ->  : (Rococo.Graphics.Native.IHQFontsClear this.hObject ))
@@ -686,7 +686,7 @@
 	(SetSampler (Rococo.SampleStateDef ssd)(Int32 index) -> )
 )
 
-(class ProxyIRendererConfig (implements Rococo.Graphics.IRendererConfig) (Pointer hObject))
+(class ProxyIRendererConfig (implements Rococo.Graphics.IRendererConfig) (Pointer hObject) (attribute not-serialized))
 	(method ProxyIRendererConfig.Construct (Pointer hObject): (this.hObject = hObject))
 	(method ProxyIRendererConfig.SetSampler (Rococo.SampleStateDef ssd)(Int32 index) ->  : (Rococo.Graphics.Native.IRendererConfigSetSampler this.hObject ssd index))
 
@@ -702,7 +702,7 @@
 	(SaveVec3 (Sys.Type.IString key)(Sys.Maths.Vec3 value) -> )
 )
 
-(class ProxyIArchive (implements Rococo.IArchive) (Pointer hObject))
+(class ProxyIArchive (implements Rococo.IArchive) (Pointer hObject) (attribute not-serialized))
 	(method ProxyIArchive.Construct (Pointer hObject): (this.hObject = hObject))
 	(method ProxyIArchive.LoadF32 (Sys.Type.IString key)(Float32 defaultValue) -> (Float32 value) : (Rococo.Native.IArchiveLoadF32 this.hObject key defaultValue -> value))
 	(method ProxyIArchive.SaveF32 (Sys.Type.IString key)(Float32 value) ->  : (Rococo.Native.IArchiveSaveF32 this.hObject key value))
@@ -718,7 +718,7 @@
 	(SetPingPathMacro (Sys.Type.IString key)(Sys.Type.IString pingPathValue) -> )
 )
 
-(class ProxyIInstallation (implements Rococo.IInstallation) (Pointer hObject))
+(class ProxyIInstallation (implements Rococo.IInstallation) (Pointer hObject) (attribute not-serialized))
 	(method ProxyIInstallation.Construct (Pointer hObject): (this.hObject = hObject))
 	(method ProxyIInstallation.SetPingPathMacro (Sys.Type.IString key)(Sys.Type.IString pingPathValue) ->  : (Rococo.Native.IInstallationSetPingPathMacro this.hObject key pingPathValue))
 
@@ -734,7 +734,7 @@
 	(New (Sys.SI.Metres span)(Sys.SI.Metres minSpan) -> )
 )
 
-(class ProxyIWorldBuilder (implements Rococo.IWorldBuilder) (Pointer hObject))
+(class ProxyIWorldBuilder (implements Rococo.IWorldBuilder) (Pointer hObject) (attribute not-serialized))
 	(method ProxyIWorldBuilder.Construct (Pointer hObject): (this.hObject = hObject))
 	(method ProxyIWorldBuilder.AddMeshToQuadtree (Int64 id) ->  : (Rococo.Native.IWorldBuilderAddMeshToQuadtree this.hObject id))
 	(method ProxyIWorldBuilder.GetHeightAt (Float32 x)(Float32 y)(Rococo.TriangleScan t) -> (Float32 height) : (Rococo.Native.IWorldBuilderGetHeightAt this.hObject x y t -> height))

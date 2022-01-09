@@ -14518,6 +14518,8 @@ R"(
 	{
 		validate(true);
 
+		TEST(TestPublishAPI);
+
 		TEST(TestClassAttribute);
 
 		TEST(TestNullIString);
@@ -14541,7 +14543,6 @@ R"(
 		TEST(TestCallPrivateMethod);
 		TEST(TestCallPrivateMethod2);
 
-		TEST(TestPublishAPI);
 		TEST(TestStaticCast1);
 		TEST(TestDynamicCast2);
 		TEST(TestExpressionAppendTo);

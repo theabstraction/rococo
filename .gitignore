@@ -48,5 +48,10 @@ GisephoneFonts/FontGenerator/bin/
 GisephoneFonts/FontGenerator/obj/**
 #GisephoneFonts/FontGenerator/obj/x64/Debug/
 #GisephoneFonts/FontGenerator/obj/x64/Release/
-
-
+rococo/csharp.sexparser/obj/
+rococo.csharp.testapp/bin/
+rococo.csharp.testapp/obj/
+sexcel/bin/
+sexcel/obj/
+intermediate/
+intermediate/*.recipe

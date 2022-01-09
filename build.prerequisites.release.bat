@@ -1,5 +1,6 @@
-mkdir \work\rococo\content\packages
+cd %~dp0
+mkdir content\packages
 echo "Building 3rd party libraries"
-call \work\rococo\build.3rd_party.release.bat
+call build.3rd_party.release.bat
 echo "Building Sexy Scripting Language"
-call \work\rococo\sexy\build.release.bat
+call sexy\build.release.bat
