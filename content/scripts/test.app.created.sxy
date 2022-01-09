@@ -55,7 +55,6 @@
 
 	(Sys.ICat cat (Sys.NewCat))
 	
-	(debug)
 	(gs.cats.Push cat)
 	(gs.cats.Push cat)
 
@@ -111,6 +110,7 @@
 	(Int32 mewkHz)
 	(Int64 mewWatts)
 	(Float64 bitePressureNewtons)
+	(Pointer pKitten)
 )
 
 (method Cat.Construct :
@@ -443,6 +443,9 @@
 
 	// load the global state from !scripts/test/asset.sxya
 	(GlobalState copiedState)
+
+
+
 	(reflect LoadAsset assetFile copiedState)
 	
 	(Point p0)

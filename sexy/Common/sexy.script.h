@@ -348,19 +348,20 @@ namespace Rococo {
 			virtual void* AlignedMalloc(int32 alignment, int32 capacity) = 0;
 			virtual void AlignedFree(void* buffer) = 0;
 
+			// Create an object, use AlignedFree to free up the memory (generally when reference count hits zero)
 			virtual ObjectStub* CreateScriptObject(cstr type, cstr sourceFile) = 0;
 
 			// Create a blank array with 0 capacity and no elements. The implementation should allocate memory, set the capacity > 0 and assign elements prior
 			// to allowing the script to process the array. Use ss.AlignedMalloc(16, capacity * a->ElementLength); and assign to the Start variable to set the size.
-			// Use ss.AlignedFree to clean up the memory.
+			// Use ss.AlignedFree to clean up the memory (generally when reference count hits zero)
 			virtual ArrayImage* CreateArrayImage(const IStructure& type) = 0;
 
 			// Create a blank map with no elements. The implementation should allocate memory with ss.AlignedMalloc(16, capacity * a->ElementLength); 
-			// and use ss.AlignedFree to clean up the memory.
+			// and use ss.AlignedFree to clean up the memory (generally when reference count hits zero)
 			virtual MapImage* CreateMapImage(const IStructure& keyType, const IStructure& valueType) = 0;
 
 			// Creates a blank linked list with no elements. The implementation should allocate memory with ss.AlignedMalloc(16, capacity * a->ElementLength); 
-			// and use ss.AlignedFree to clean up the memory.
+			// and use ss.AlignedFree to clean up the memory (generally when reference count hits zero)
 			virtual ListImage* CreateListImage(const IStructure& valueType) = 0;
 
 			virtual uint8* AppendListNode(ListImage& image) = 0;
