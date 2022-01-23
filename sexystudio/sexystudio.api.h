@@ -32,6 +32,7 @@ namespace Rococo::SexyStudio
 {
 	struct IGuiWidget;
 	struct IWidgetSet;
+	struct ISexyStudioEventHandler;
 
 	using namespace Rococo::Events;
 	using namespace Rococo::Windows;
@@ -167,6 +168,7 @@ namespace Rococo::SexyStudio
 	{
 		virtual int FieldCount() const = 0;
 		virtual SXYField GetField(int index) const = 0;
+		virtual cstr LocalName() const = 0;
 		virtual cstr SourcePath() const = 0;
 	};
 
@@ -228,9 +230,9 @@ namespace Rococo::SexyStudio
 
 	ROCOCOAPI ISexyDatabase
 	{
-		virtual bool EnumerateVariableAndFieldList(substring_ref variable, cstr typeString, ISexyFieldEnumerator& fieldEnumerator) = 0;
-		virtual void ForEachAutoCompleteCandidate(substring_ref prefix, ISexyFieldEnumerator& fieldEnumerator) = 0;
-		virtual void GetHintForCandidate(substring_ref prefix, char args[1024]) = 0;
+		virtual bool EnumerateVariableAndFieldList(cr_substring variable, cstr typeString, ISexyFieldEnumerator& fieldEnumerator) = 0;
+		virtual void ForEachAutoCompleteCandidate(cr_substring prefix, ISexyFieldEnumerator& fieldEnumerator) = 0;
+		virtual void GetHintForCandidate(cr_substring prefix, char args[1024]) = 0;
 		virtual void Sort() = 0;
 		virtual void UpdateFile_SXY(cstr fullpathToSxy) = 0;
 		virtual void UpdateFile_SXY_PackedItem(cstr data, int32 length, cstr path) = 0;
@@ -465,7 +467,7 @@ namespace Rococo::SexyStudio
 		virtual void SetResizeEvent(const EventIdRef& evResize) = 0;
 	};
 
-	IIDEFrameSupervisor* CreateMainIDEFrame(WidgetContext& context, IWindow& topLevelWindow);
+	IIDEFrameSupervisor* CreateMainIDEFrame(WidgetContext& context, IWindow& topLevelWindow, ISexyStudioEventHandler& evHandler);
 
 	ROCOCOAPI IButtonWidget : IGuiWidget
 	{

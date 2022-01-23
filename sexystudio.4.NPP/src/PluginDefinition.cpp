@@ -51,9 +51,7 @@ HMODULE hFactoryModule = nullptr;
 ISexyStudioFactory1* factory = nullptr;
 ISexyStudioInstance1* sexyIDE = nullptr;
 
-static auto DLL_NAME = L"sexystudio.dll";
-
-cstr ErrorCaption = "SexyStudio 4 Notepad++ - error!";
+static cstr ErrorCaption = "SexyStudio 4 Notepad++ - error!";
 
 void GetDllPath(WideFilePath& pathToDLL)
 {
@@ -79,9 +77,24 @@ void GetDllPath(WideFilePath& pathToDLL)
 
     if (*pathToDLL.buf == 0)
     {
+#ifdef _DEBUG
+        Format(pathToDLL, L"C:\\work\\rococo\\bin\\sexystudio.debug.dll");
+#else
         Format(pathToDLL, L"C:\\work\\rococo\\bin\\sexystudio.dll");
+#endif
     }
 }
+
+struct SexyStudioEventHandler: ISexyStudioEventHandler
+{
+    EIDECloseResponse OnIDEClose(IWindow& topLevelParent) override
+    {
+        ShowWindow(topLevelParent, SW_HIDE);
+        return EIDECloseResponse::Continue;
+    }
+};
+
+static SexyStudioEventHandler static_SexyStudioEventHandler;
 
 //
 // Initialize your plugin data here
@@ -113,7 +126,7 @@ void pluginInit(HANDLE hModule)
         FARPROC proc = GetProcAddress(hFactoryModule, "CreateSexyStudioFactory");
         if (proc == nullptr)
         {
-            Throw(GetLastError(), "Could not find CreateSexyStudioFactory in %ls", DLL_NAME);
+            Throw(GetLastError(), "Could not find CreateSexyStudioFactory in %ls", pathToDLL);
         }
 
         auto CreateSexyStudioFactory = (Rococo::SexyStudio::FN_CreateSexyStudioFactory)proc;
@@ -130,7 +143,7 @@ void pluginInit(HANDLE hModule)
         {
             if (factory)
             {
-                sexyIDE = factory->CreateSexyIDE(topLevelWindow);
+                sexyIDE = factory->CreateSexyIDE(topLevelWindow, static_SexyStudioEventHandler);
             }
         }
 
@@ -265,6 +278,7 @@ public:
     void ShowCallTipAtCaretPos(cstr tip) const
     {
         int64 caretPos = GetCaretPos();
+        SendMessageA(hScintilla, SCI_CALLTIPCANCEL, 0, 0);
         SendMessageA(hScintilla, SCI_CALLTIPSHOW, caretPos, (LPARAM) tip);
     }
 

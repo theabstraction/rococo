@@ -30,7 +30,7 @@ namespace Rococo
 				line[length] = 0;
 			}
 
-			operator substring_ref() const
+			operator cr_substring() const
 			{
 				return { line, line + lineLength };
 			}

@@ -111,12 +111,13 @@ namespace Rococo
 		bool empty() const { return end <= start; }
 
 		operator bool() const { return !empty(); }
+		int64 Length() const { return end - start; }
 	};
 
 	inline Substring Substring_Null() { return { nullptr,nullptr }; }
 
 	// An immutable substring
-	typedef const Substring& substring_ref;
+	typedef const Substring& cr_substring;
 
 	ROCOCOAPI IStringPopulator
 	{
@@ -124,10 +125,10 @@ namespace Rococo
 	};
 
 	// Duplicates the item as a null terminated string on the stack, then invokes the populator with a reference to the string pointer
-	void Populate(substring_ref item, IStringPopulator& populator);
+	void Populate(cr_substring item, IStringPopulator& populator);
 
 	// Copies the item into the buffer, truncating data if required, and terminating with a nul character
-	void CopyWithTruncate(substring_ref item, char* buffer, size_t capacity);
+	void CopyWithTruncate(cr_substring item, char* buffer, size_t capacity);
 
 	ROCOCOAPI IFieldEnumerator
 	{
@@ -138,19 +139,19 @@ namespace Rococo
 	{
 		// Type inference API
 
-		void ForEachFieldOfClassDef(cstr className, substring_ref classDef, IFieldEnumerator& cb);
-		Substring GetClassDefinition(cstr className, substring_ref doc);
-		bool IsSexyKeyword(substring_ref candidate);
+		void ForEachFieldOfClassDef(cstr className, cr_substring classDef, IFieldEnumerator& cb);
+		Substring GetClassDefinition(cstr className, cr_substring doc);
+		bool IsSexyKeyword(cr_substring candidate);
 		bool IsNotTokenChar(char c);
-		cstr GetFirstNonTokenPointer(substring_ref s);
-		cstr GetFirstNonTypeCharPointer(substring_ref s);
-		Substring GetFirstTokenFromLeft(substring_ref s);
+		cstr GetFirstNonTokenPointer(cr_substring s);
+		cstr GetFirstNonTypeCharPointer(cr_substring s);
+		Substring GetFirstTokenFromLeft(cr_substring s);
 		// Given a document and a position to the right of the start of the doc, return first pointer of none type char found, or null if everything was of type until doc.start
-		cstr GetFirstNonTokenPointerFromRight(substring_ref doc, cstr startPosition);
+		cstr GetFirstNonTokenPointerFromRight(cr_substring doc, cstr startPosition);
 	}
 
-	Substring RightOfFirstChar(char c, substring_ref token);
-	cstr ReverseFind(char c, substring_ref token);
+	Substring RightOfFirstChar(char c, cr_substring token);
+	cstr ReverseFind(char c, cr_substring token);
 
 	template<class T> struct FilePath
 	{

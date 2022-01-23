@@ -15,7 +15,7 @@ namespace
 
 	}
 
-	bool FindNext(Substring& cursor, substring_ref document, const fstring& token)
+	bool FindNext(Substring& cursor, cr_substring document, const fstring& token)
 	{
 		if (document.empty() || token.length == 0)
 		{
@@ -49,7 +49,7 @@ namespace
 		return false;
 	}
 
-	cstr GetClosingParenthesis(substring_ref candidate)
+	cstr GetClosingParenthesis(cr_substring candidate)
 	{
 		int count = 1;
 		for (cstr p = candidate.start; p < candidate.end; p++)
@@ -106,7 +106,7 @@ namespace Rococo::Sexy
 	static const fstring fsMethod = "method"_fstring;
 
 	// Expamd t
-	Substring GetClassDefinition(cstr className, substring_ref doc)
+	Substring GetClassDefinition(cstr className, cr_substring doc)
 	{
 		auto fsName = to_fstring(className);
 		Substring cursor = Substring_Null();
@@ -157,7 +157,7 @@ namespace Rococo::Sexy
 	}
 
 	template<class T>
-	void TEnumerateFieldsOfClassDef(cstr className, substring_ref classDef, T& t)
+	void TEnumerateFieldsOfClassDef(cstr className, cr_substring classDef, T& t)
 	{
 		// classDef will be Name (<type1> <name1>)...(<typeN> <nameN>)
 
@@ -300,9 +300,9 @@ namespace Rococo::Sexy
 		}
 	}
 
-	void ForEachFieldOfClassDef(cstr className, substring_ref classDef, IFieldEnumerator& cb)
+	void ForEachFieldOfClassDef(cstr className, cr_substring classDef, IFieldEnumerator& cb)
 	{
-		auto invokeCallback = [&cb](substring_ref name, substring_ref type)
+		auto invokeCallback = [&cb](cr_substring name, cr_substring type)
 		{
 			char nameBuffer[128];
 			char typeBuffer[128];
@@ -333,7 +333,7 @@ namespace Rococo::Sexy
 		return nullptr;
 	}
 
-	cstr BadlyFormattedTypeInferenceEngine::FindNextMatchedChar(substring_ref token, char match)
+	cstr BadlyFormattedTypeInferenceEngine::FindNextMatchedChar(cr_substring token, char match)
 	{
 		if (token.start != token.end)
 		{
@@ -349,7 +349,7 @@ namespace Rococo::Sexy
 		return nullptr;
 	}
 
-	cstr BadlyFormattedTypeInferenceEngine::GetEndOfPadding(substring_ref token)
+	cstr BadlyFormattedTypeInferenceEngine::GetEndOfPadding(cr_substring token)
 	{
 		for (cstr q = token.start; q < token.end; q++)
 		{
@@ -391,7 +391,7 @@ namespace Rococo::Sexy
 		return nullptr;
 	}
 
-	cstr BadlyFormattedTypeInferenceEngine::FindLastTypeChar(substring_ref token)
+	cstr BadlyFormattedTypeInferenceEngine::FindLastTypeChar(cr_substring token)
 	{
 		for (cstr p = token.start; p != token.end; p++)
 		{
@@ -416,7 +416,7 @@ namespace Rococo::Sexy
 		return nullptr;
 	}
 
-	cstr BadlyFormattedTypeInferenceEngine::FindLastVariableChar(substring_ref token)
+	cstr BadlyFormattedTypeInferenceEngine::FindLastVariableChar(cr_substring token)
 	{
 		for (cstr p = token.start; p != token.end; p++)
 		{
@@ -441,7 +441,7 @@ namespace Rococo::Sexy
 		return nullptr;
 	}
 
-	TypeInference BadlyFormattedTypeInferenceEngine::FindNextPossibleDeclaration(substring_ref specimen)
+	TypeInference BadlyFormattedTypeInferenceEngine::FindNextPossibleDeclaration(cr_substring specimen)
 	{
 		for (cstr p = FindNextMatchedChar(specimen, '('); p != nullptr; p = FindNextMatchedChar({ p, specimen.end }, '('))
 		{
@@ -482,7 +482,7 @@ namespace Rococo::Sexy
 		return TypeInference{ {nullptr, nullptr},{nullptr,nullptr} };
 	}
 
-	cstr BadlyFormattedTypeInferenceEngine::GetMatchEnd(substring_ref token, cstr candidate, cstr endGuard)
+	cstr BadlyFormattedTypeInferenceEngine::GetMatchEnd(cr_substring token, cstr candidate, cstr endGuard)
 	{
 		cstr p;
 		cstr q = candidate;
@@ -497,8 +497,21 @@ namespace Rococo::Sexy
 		return q;
 	}
 
-	TypeInference BadlyFormattedTypeInferenceEngine::InferLocalVariableVariableType(substring_ref token)
+	TypeInference BadlyFormattedTypeInferenceEngine::InferLocalVariableVariableType(cr_substring candidate)
 	{
+		Substring token = candidate;
+		if (token.Length() > 1)
+		{
+			for (cstr i = token.start; i != token.end; ++i)
+			{
+				if (*i == '.')
+				{
+					token.end = i;
+					break;
+				}
+			}
+		}
+
 		cstr endGuard = max(textBuffer, token.start - 1); // We want to go back a bit, because we dont expect to find '(function' immediately before the candidate
 
 		// Algorithm -> iterate backwards from tokenBegin and search for '(method' or '(function' to identify the containing function where the type is defined
@@ -525,7 +538,7 @@ namespace Rococo::Sexy
 		return TypeInference{ {nullptr, nullptr},{nullptr, nullptr} };
 	}
 
-	TypeInference BadlyFormattedTypeInferenceEngine::InferParentMember(const TypeInference& classInference, substring_ref name)
+	TypeInference BadlyFormattedTypeInferenceEngine::InferParentMember(const TypeInference& classInference, cr_substring name)
 	{
 		if (!classInference.declarationType) return TypeInference_None();
 
@@ -541,7 +554,7 @@ namespace Rococo::Sexy
 
 		TypeInference matchType = TypeInference_None();
 
-		auto searchForNameAndSetType = [&matchType, &parentMember](substring_ref memberType, substring_ref memberName)
+		auto searchForNameAndSetType = [&matchType, &parentMember](cr_substring memberType, cr_substring memberName)
 		{
 			if (Eq(memberName, parentMember))
 			{
@@ -561,7 +574,7 @@ namespace Rococo::Sexy
 		return matchType;
 	}
 
-	TypeInference BadlyFormattedTypeInferenceEngine::InferContainerClass(substring_ref token)
+	TypeInference BadlyFormattedTypeInferenceEngine::InferContainerClass(cr_substring token)
 	{
 		cstr methodPos = FindFirstLeftOccurenceOfFunctionLikeKeyword(token.start, fsMethod);
 		if (!methodPos)
@@ -589,7 +602,7 @@ namespace Rococo::Sexy
 	'this.<member-variable>'....................the member [type] defined in the class for which the containing method applies
 	<local-variable-name>.<children>'...........the member [type] defined in the class for which the containing method applies.
 	*/
-	bool TryGetLocalTypeFromCurrentDocument(char type[256], bool& isThis, substring_ref token, substring_ref document)
+	bool TryGetLocalTypeFromCurrentDocument(char type[256], bool& isThis, cr_substring token, cr_substring document)
 	{
 		static auto thisRaw = "this"_fstring;
 		static auto thisDot = "this."_fstring;
@@ -632,6 +645,7 @@ namespace Rococo::Sexy
 		{
 			isThis = false;
 			auto localVariableInference =  engine.InferLocalVariableVariableType(searchTerm);
+
 			if (localVariableInference.declarationType)
 			{
 				CopyWithTruncate(localVariableInference.declarationType, type, 256);

@@ -18,20 +18,20 @@ namespace Rococo::Sexy
 		cstr textBuffer;
 
 		cstr FindFirstPrecedingChar(cstr lastChar, char match);
-		cstr FindNextMatchedChar(substring_ref token, char match);
-		cstr GetEndOfPadding(substring_ref token);
+		cstr FindNextMatchedChar(cr_substring token, char match);
+		cstr GetEndOfPadding(cr_substring token);
 		cstr FindFirstLeftOccurenceOfFunctionLikeKeyword(cstr lastChar, const fstring& token);
-		cstr FindLastTypeChar(substring_ref token);
-		cstr FindLastVariableChar(substring_ref token);
-		TypeInference FindNextPossibleDeclaration(substring_ref specimen);
-		cstr GetMatchEnd(substring_ref token, cstr candidate, cstr endGuard);
+		cstr FindLastTypeChar(cr_substring token);
+		cstr FindLastVariableChar(cr_substring token);
+		TypeInference FindNextPossibleDeclaration(cr_substring specimen);
+		cstr GetMatchEnd(cr_substring token, cstr candidate, cstr endGuard);
 	public:
 		BadlyFormattedTypeInferenceEngine(cstr _textBuffer);
 
-		TypeInference InferLocalVariableVariableType(substring_ref token);
-		TypeInference InferContainerClass(substring_ref token);
-		TypeInference InferParentMember(const TypeInference& classInference, substring_ref token);
+		TypeInference InferLocalVariableVariableType(cr_substring token);
+		TypeInference InferContainerClass(cr_substring token);
+		TypeInference InferParentMember(const TypeInference& classInference, cr_substring token);
 	};
 
-	bool TryGetLocalTypeFromCurrentDocument(char type[256], bool& isThis, substring_ref candidate, substring_ref document);
+	bool TryGetLocalTypeFromCurrentDocument(char type[256], bool& isThis, cr_substring candidate, cr_substring document);
 }

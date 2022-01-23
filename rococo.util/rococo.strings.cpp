@@ -322,7 +322,7 @@ namespace Rococo
 		return ANON::jenkins_one_at_a_time_hash(s, length);
 	}
 
-	void Populate(substring_ref item, IStringPopulator& populator)
+	void Populate(cr_substring item, IStringPopulator& populator)
 	{
 		if (!item) return;
 
@@ -341,7 +341,7 @@ namespace Rococo
 			return !IsAlphaNumeric(c) && c != '.';
 		}
 
-		bool IsSexyKeyword(substring_ref candidate)
+		bool IsSexyKeyword(cr_substring candidate)
 		{
 			size_t len = Length(candidate);
 
@@ -365,7 +365,7 @@ namespace Rococo
 			return false;
 		}
 
-		cstr GetFirstNonTokenPointer(substring_ref s)
+		cstr GetFirstNonTokenPointer(cr_substring s)
 		{
 			if (!s) return nullptr;
 
@@ -380,7 +380,7 @@ namespace Rococo
 			return s.end;
 		}
 
-		cstr GetFirstNonTokenPointerFromRight(substring_ref doc, cstr startPosition)
+		cstr GetFirstNonTokenPointerFromRight(cr_substring doc, cstr startPosition)
 		{
 			if (!startPosition || !doc) return nullptr;
 
@@ -395,7 +395,7 @@ namespace Rococo
 			return nullptr;
 		}
 
-		cstr GetFirstNonTypeCharPointer(substring_ref s)
+		cstr GetFirstNonTypeCharPointer(cr_substring s)
 		{
 			bool inDot = false;
 
@@ -426,13 +426,13 @@ namespace Rococo
 			return s.end;
 		}
 
-		Substring GetFirstTokenFromLeft(substring_ref s)
+		Substring GetFirstTokenFromLeft(cr_substring s)
 		{
 			return s ? Substring { s.start, Rococo::Sexy::GetFirstNonTypeCharPointer(s) } : Substring_Null();
 		}
 	}
 
-	cstr ReverseFind(char c, substring_ref token)
+	cstr ReverseFind(char c, cr_substring token)
 	{
 		if (!token) return nullptr;
 
@@ -447,7 +447,7 @@ namespace Rococo
 		return nullptr;
 	}
 
-	Substring RightOfFirstChar(char c, substring_ref token)
+	Substring RightOfFirstChar(char c, cr_substring token)
 	{
 		Substring result = token;
 		for (cstr p = token.start; p < token.end; ++p)
@@ -461,7 +461,7 @@ namespace Rococo
 		return result;
 	}
 
-	void CopyWithTruncate(substring_ref item, char* buffer, size_t capacity)
+	void CopyWithTruncate(cr_substring item, char* buffer, size_t capacity)
 	{
 		if (!buffer || capacity == 0) return;
 		if (!item) *buffer = 0;
@@ -1001,24 +1001,24 @@ namespace Rococo
 			LevenshteinDistance(sourcePrefix, targetPrefix) + distance);
 	}
 
-	bool StartsWith(substring_ref token, const fstring& prefix)
+	bool StartsWith(cr_substring token, const fstring& prefix)
 	{
 		size_t len = token.end - token.start;
 		return prefix.length <= len && strncmp(prefix, token.start, prefix.length) == 0;
 	}
 
-	bool StartsWith(cstr token, substring_ref prefix)
+	bool StartsWith(cstr token, cr_substring prefix)
 	{
 		size_t len = Length(prefix);
 		return strncmp(token, prefix.start, len) == 0;
 	}
 
-	ptrdiff_t Length(substring_ref token)
+	ptrdiff_t Length(cr_substring token)
 	{
 		return token.end - token.start;
 	}
 
-	bool SubstringToString(char* outputBuffer, size_t sizeofOutputBuffer, substring_ref substring)
+	bool SubstringToString(char* outputBuffer, size_t sizeofOutputBuffer, cr_substring substring)
 	{
 		if (Length(substring) >= (ptrdiff_t) sizeofOutputBuffer)
 		{
@@ -1037,7 +1037,7 @@ namespace Rococo
 		return true;
 	}
 
-	bool Eq(const fstring& a, substring_ref b)
+	bool Eq(const fstring& a, cr_substring b)
 	{
 		if (a.length != Length(b))
 		{
@@ -1054,17 +1054,17 @@ namespace Rococo
 		return true;
 	}
 
-	bool Eq(substring_ref a, const fstring& b)
+	bool Eq(cr_substring a, const fstring& b)
 	{
 		return Eq(b, a);
 	}
 
-	bool IsEmpty(substring_ref token)
+	bool IsEmpty(cr_substring token)
 	{
 		return token.start == token.end;
 	}
 
-	bool Eq(substring_ref a, substring_ref b)
+	bool Eq(cr_substring a, cr_substring b)
 	{
 		auto lenA = Length(a);
 		auto lenB = Length(b);

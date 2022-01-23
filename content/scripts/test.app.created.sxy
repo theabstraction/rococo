@@ -81,6 +81,8 @@
 	(gs.position = 1.4 2.5 7.6)
 
 	(gs.isActive = true)
+	
+	(Matrix4x4 m)
 )
 
 (class Dog (defines Sys.IDog)

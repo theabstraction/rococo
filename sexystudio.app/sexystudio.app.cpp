@@ -34,7 +34,15 @@ void MainProtected(HINSTANCE hInstance, HMODULE hLib)
 	int nErr = CreateSexyStudioFactory((void**)&factory, interfaceURL);
 	if (nErr == 0)
 	{
-		AutoFree<ISexyStudioInstance1> instance = factory->CreateSexyIDE(Rococo::Windows::NoParent());
+		struct ANON : ISexyStudioEventHandler
+		{
+			EIDECloseResponse OnIDEClose(IWindow& topLevelParent) override
+			{
+				return EIDECloseResponse::Shutdown;
+			}
+		} eventHandler;
+
+		AutoFree<ISexyStudioInstance1> instance = factory->CreateSexyIDE(Rococo::Windows::NoParent(), eventHandler);
 		
 		MSG msg;
 		while (instance->IsRunning() && GetMessage(&msg, NULL, 0, 0))
@@ -59,7 +67,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 	// path now contains the directory
 	WideFilePath pathToDLL;
-	Format(pathToDLL, L"%ls\\%ls", directory.buf, DLL_NAME);
+	Format(pathToDLL, L"%ls%ls", directory.buf, DLL_NAME);
 
 	auto hLib = LoadLibraryW(pathToDLL);
 	if (hLib == nullptr)

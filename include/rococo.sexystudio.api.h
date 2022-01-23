@@ -1,3 +1,7 @@
+#pragma once
+
+#include <rococo.api.h>
+
 namespace Rococo::AutoComplete
 {
 	struct ISexyEditor;
@@ -5,6 +9,14 @@ namespace Rococo::AutoComplete
 
 namespace Rococo::SexyStudio
 {
+	struct ISexyDatabase;
+}
+
+namespace Rococo::SexyStudio
+{
+	using namespace Rococo::Windows;
+	using namespace Rococo::AutoComplete;
+
 	enum class EMetaDataType: int
 	{
 		BuildDate = 0,
@@ -20,21 +32,39 @@ namespace Rococo::SexyStudio
 		virtual void Free() = 0;
 	};
 
+	enum class EIDECloseResponse
+	{
+		Continue,
+		Shutdown
+	};
+
+	ROCOCOAPI ISexyStudioEventHandler
+	{
+		virtual EIDECloseResponse OnIDEClose(IWindow & topLevelParent) = 0;
+	};
+
 	ROCOCOAPI ISexyStudioInstance1
 	{
-		virtual void ReplaceCurrentSelectionWithCallTip(Rococo::AutoComplete::ISexyEditor& editor) = 0;
-		virtual void GetHintForCandidate(substring_ref prefix, char args[1024]) = 0;
-		virtual void ReplaceSelectedText(Rococo::AutoComplete::ISexyEditor& editor, cstr item) = 0;
+		virtual IWindow& GetIDEFrame() = 0;
+		virtual void ReplaceCurrentSelectionWithCallTip(ISexyEditor& editor) = 0;
+		/* 
+			cr_substring candidate - some substring in .sxy source text
+			char args[1024] - output buffer
+		*/
+
+		virtual Rococo::SexyStudio::ISexyDatabase& GetDatabase() = 0;
+		virtual void GetHintForCandidate(cr_substring candidate, char args[1024]) = 0;
+		virtual void ReplaceSelectedText(ISexyEditor& editor, cstr item) = 0;
 		virtual void SetTitle(cstr title) = 0;
 		virtual void Activate() = 0;
-		virtual void UpdateAutoComplete(Rococo::AutoComplete::ISexyEditor& editor) = 0;
+		virtual void UpdateAutoComplete(ISexyEditor& editor) = 0;
 		virtual bool IsRunning() const = 0;
 		virtual void Free() = 0;
 	};
 
 	ROCOCOAPI ISexyStudioFactory1: ISexyStudioBase
 	{
-		virtual ISexyStudioInstance1* CreateSexyIDE(Rococo::Windows::IWindow& topLevelParent) = 0;
+		virtual ISexyStudioInstance1* CreateSexyIDE(IWindow& topLevelParent, ISexyStudioEventHandler& eventHandler) = 0;
 	};
 	
 	// The name of the interface is passed in the interface parameter. If any parameter is invalid or the URL recognized the function returns a non-zero error code.

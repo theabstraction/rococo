@@ -1,7 +1,9 @@
 #include "sexystudio.impl.h"
 #include <rococo.strings.h>
+#include <rococo.sexystudio.api.h>
 #include <vector>
 #include "resource.h"
+
 
 using namespace Rococo;
 using namespace Rococo::Events;
@@ -284,12 +286,14 @@ namespace
 		AutoFree<IWidgetSetSupervisor> children;
 		EventIdRef evClose = { 0 };
 		EventIdRef evResize = { 0 };
+		ISexyStudioEventHandler& eventHandler;
 
-		Win32MainIDEWindow(WidgetContext& _context, IWindow& topLevelWindow) :
+		Win32MainIDEWindow(WidgetContext& _context, IWindow& topLevelWindow, ISexyStudioEventHandler& evHandler) :
 			context(_context),
 			mainFrame(ideExStyle, ideStyle, *this, topLevelWindow),
 			tooltipWindow(mainFrame, context),
-			progressWindow((HWND) mainFrame, _context)
+			progressWindow((HWND) mainFrame, _context),
+			eventHandler(evHandler)
 		{
 			children = CreateDefaultWidgetSet(mainFrame, context);
 		}
@@ -322,7 +326,11 @@ namespace
 			case WM_CLOSE:
 				if (evClose.name == nullptr)
 				{
-					PostQuitMessage(0);
+					auto result = eventHandler.OnIDEClose(Window());
+					if (result == EIDECloseResponse::Shutdown)
+					{
+						PostQuitMessage(0);
+					}
 				}
 				else
 				{
@@ -330,7 +338,7 @@ namespace
 					args.value.sourceWidget = nullptr;
 					context.publisher.Publish(args, evClose);
 				}
-				break;
+				return TRUE;
 			case WM_MOVE:
 				progressWindow.Layout();
 				break;
@@ -396,9 +404,9 @@ namespace
 
 namespace Rococo::SexyStudio
 {
-	IIDEFrameSupervisor* CreateMainIDEFrame(WidgetContext& context, IWindow& topLevelWindow)
+	IIDEFrameSupervisor* CreateMainIDEFrame(WidgetContext& context, IWindow& topLevelWindow, ISexyStudioEventHandler& eventHandler)
 	{
-		return new Win32MainIDEWindow(context, topLevelWindow);
+		return new Win32MainIDEWindow(context, topLevelWindow, eventHandler);
 	}
 
 	void UseDefaultFrameBarLayout(IToolbar& frameBar)

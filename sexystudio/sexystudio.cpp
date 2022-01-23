@@ -1054,6 +1054,8 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 
 	std::vector<char> src_buffer;
 
+	ISexyStudioEventHandler& eventHandler;
+
 	void ReplaceCurrentSelectionWithCallTip(Rococo::AutoComplete::ISexyEditor& editor)
 	{
 		int64 caretPos = editor.GetCaretPos();
@@ -1086,9 +1088,9 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 		SpaceSeparatedStringItems(StringBuilder& _sb) : sb(_sb) {}
 	};
 
-	template<class ACTION> bool EnumerateFieldsOfClass(cstr className, substring_ref doc, ACTION& action)
+	template<class ACTION> bool EnumerateFieldsOfClass(cstr className, cr_substring doc, ACTION& action)
 	{
-		substring_ref def = Rococo::Sexy::GetClassDefinition(className, doc);
+		cr_substring def = Rococo::Sexy::GetClassDefinition(className, doc);
 		if (def)
 		{
 			struct ANON: IFieldEnumerator
@@ -1120,13 +1122,13 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 	struct RouteTextToAutoComplete: ISexyFieldEnumerator
 	{
 		IAutoCompleteBuilder& builder;
-		substring_ref prefix;
+		cr_substring prefix;
 
 		bool atLeastOneItem = false;
 
 		HString hint;
 
-		RouteTextToAutoComplete(IAutoCompleteBuilder& _builder, substring_ref _prefix):
+		RouteTextToAutoComplete(IAutoCompleteBuilder& _builder, cr_substring _prefix):
 			builder(_builder), prefix(_prefix)
 		{
 
@@ -1144,14 +1146,21 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 		{
 			atLeastOneItem = true;
 
-			char prefixString[128];
-			CopyWithTruncate(prefix, prefixString, sizeof prefixString);
+			if (Length(prefix) > 0)
+			{
+				char prefixString[128];
+				CopyWithTruncate(prefix, prefixString, sizeof prefixString);
 
-			cstr separator = (prefix && prefix.end[-1] == '.') ? "" : ".";
+				cstr separator = (prefix && prefix.end[-1] == '.') ? "" : ".";
 
-			char item[256];
-			SafeFormat(item, "%s%s%s", prefixString, separator, fieldName);
-			builder.AddItem(item);
+				char item[256];
+				SafeFormat(item, "%s%s%s", prefixString, separator, fieldName);
+				builder.AddItem(item);
+			}
+			else
+			{
+				builder.AddItem(fieldName);
+			}
 		}
 
 		void OnHintFound(cstr hintText) override
@@ -1160,7 +1169,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 		}
 	};
 
-	void ShowAutocompleteDataForVariable(ISexyEditor& editor, substring_ref candidate, int64 tokenDisplacementFromCaret)
+	void ShowAutocompleteDataForVariable(ISexyEditor& editor, cr_substring candidate, int64 tokenDisplacementFromCaret)
 	{
 		static auto thisDot = "this."_fstring;
 
@@ -1218,7 +1227,11 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 			}
 			else
 			{
-				if (!database->EnumerateVariableAndFieldList(variable, type, routeTextToAutoComplete))
+				if (database->EnumerateVariableAndFieldList(variable, type, routeTextToAutoComplete))
+				{
+
+				}
+				else
 				{					
 					cstr finalType = routeTextToAutoComplete.hint.length() > 0 ? routeTextToAutoComplete.hint.c_str() : type;
 					editor.ShowCallTipAtCaretPos(finalType);
@@ -1227,11 +1240,11 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 		}
 	}
 
-	void ShowAutocompleteDataForType(ISexyEditor& editor, substring_ref candidate)
+	void ShowAutocompleteDataForType(ISexyEditor& editor, cr_substring candidate)
 	{
 		Substring token = Rococo::Sexy::GetFirstTokenFromLeft(candidate);
 
-		RouteTextToAutoComplete routeTextToAutoComplete(editor.AutoCompleteBuilder(), candidate);
+		RouteTextToAutoComplete routeTextToAutoComplete(editor.AutoCompleteBuilder(), Substring_Null());
 		database->ForEachAutoCompleteCandidate(token, routeTextToAutoComplete);
 
 		callTipArgs[0] = 0;
@@ -1246,7 +1259,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 		}
 	}
 
-	bool TryAddTokenOptionsToAutocomplete(ISexyEditor& editor, substring_ref candidate, int64 displacementFromCaret)
+	bool TryAddTokenOptionsToAutocomplete(ISexyEditor& editor, cr_substring candidate, int64 displacementFromCaret)
 	{
 		using namespace Rococo;
 
@@ -1272,14 +1285,25 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 		return false;
 	}
 
-	SexyStudioIDE(IWindow& topLevelWindow):
+	IWindow& GetIDEFrame()
+	{
+		return ide->Window();
+	}
+
+	ISexyDatabase& GetDatabase()
+	{
+		return *database;
+	}
+
+	SexyStudioIDE(IWindow& topLevelWindow, ISexyStudioEventHandler& evHandler):
 		publisher(Rococo::Events::CreatePublisher()),
 		database(CreateSexyDatabase()),
 		smallCaptionFont(MakeDefaultFont()),
 		context{ *publisher, smallCaptionFont },
-		theme{ UseNamedTheme("Classic", context.publisher) }
+		theme{ UseNamedTheme("Classic", context.publisher) },
+		eventHandler(evHandler)
 	{
-		ide = CreateMainIDEFrame(context, topLevelWindow);
+		ide = CreateMainIDEFrame(context, topLevelWindow, evHandler);
 		Widgets::SetText(*ide, "Sexy Studio");
 		Widgets::SetSpan(*ide, 1024, 600);
 
@@ -1393,7 +1417,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 	}
 
 	// Buffer should be 1024 bytes
-	void GetHintForCandidate(substring_ref prefix, char args[1024]) override
+	void GetHintForCandidate(cr_substring prefix, char args[1024]) override
 	{
 		database->GetHintForCandidate(prefix, args);
 	}
@@ -1487,9 +1511,9 @@ struct Factory: Rococo::SexyStudio::ISexyStudioFactory1
 		}
 	}
 
-	ISexyStudioInstance1* CreateSexyIDE(IWindow& topLevelParent) override
+	ISexyStudioInstance1* CreateSexyIDE(IWindow& topLevelParent, ISexyStudioEventHandler& eventHandler) override
 	{
-		return new SexyStudioIDE(topLevelParent);
+		return new SexyStudioIDE(topLevelParent, eventHandler);
 	}
 
 	void Free() override

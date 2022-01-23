@@ -30,7 +30,7 @@ cstr AlwaysGetAtomic(cr_sex s, int index)
 	return IsAtomic(s[index]) ? s[index].String()->Buffer : "<expected atomic argument>";
 }
 
-int CountDots(substring_ref prefix)
+int CountDots(cr_substring prefix)
 {
 	int dots = 0;
 
@@ -474,6 +474,11 @@ namespace ANON
 					numberOfFields += sFieldDef.NumberOfElements() - 1;
 				}
 			}
+		}
+
+		cstr LocalName() const
+		{
+			return sStructDef[1].String()->Buffer;
 		}
 
 		cstr SourcePath() const
@@ -1343,7 +1348,7 @@ namespace ANON
 			delete this;
 		}
 
-		void AppendAllChildrenFromRoot(substring_ref prefix, std::unordered_map<std::string, int>& exportList, ISxyNamespace& ns, int depth)
+		void AppendAllChildrenFromRoot(cr_substring prefix, std::unordered_map<std::string, int>& exportList, ISxyNamespace& ns, int depth)
 		{
 			int dots = CountDots(prefix);
 			if (depth > dots)
@@ -1423,6 +1428,21 @@ namespace ANON
 				}
 			}
 
+			// We did not find a public type that matched the typestring, but perhaps there is a local type
+
+			for (int i = 0; i < ns.SubspaceCount(); ++i)
+			{
+				int typeCount = ns[i].TypeCount();
+				for (int j = 0; j < typeCount; ++j)
+				{
+					auto& type = ns[i].GetType(j);
+					if (Eq(type.LocalType()->LocalName(), typeString))
+					{
+						return &type;
+					}
+				}
+			}
+
 			return nullptr;
 		}
 
@@ -1439,7 +1459,7 @@ namespace ANON
 			}
 		}
 
-		cstr FindFieldTypeByName(ISXYLocalType& localType, substring_ref qualifiedVariableName)
+		cstr FindFieldTypeByName(ISXYLocalType& localType, cr_substring qualifiedVariableName)
 		{
 			Substring child = RightOfFirstChar('.', qualifiedVariableName);
 
@@ -1457,7 +1477,7 @@ namespace ANON
 			return nullptr;
 		}
 
-		bool AppendFieldsFromType(substring_ref variableName, ISxyNamespace& ns, cstr typeString, ISexyFieldEnumerator& fieldEnumerator)
+		bool AppendFieldsFromType(cr_substring variableName, ISxyNamespace& ns, cstr typeString, ISexyFieldEnumerator& fieldEnumerator)
 		{
 			// Variable name may be qualified, e.g: rect.left. In this case the typeString refers to the root of the namespace.
 			// So we need to find the type, then advance the namespace to the child, i.e left, 
@@ -1496,13 +1516,18 @@ namespace ANON
 			return false;
 		}
 
-		bool EnumerateVariableAndFieldList(substring_ref variableName, cstr typeString, ISexyFieldEnumerator& fieldEnumerator) override
+		bool EnumerateVariableAndFieldList(cr_substring candidate, cstr typeString, ISexyFieldEnumerator& fieldEnumerator) override
 		{
+			Substring variableName = candidate;
+			if (variableName.Length() > 1 && variableName.end[-1] == '.')
+			{
+				variableName.end--;
+			}
 			auto& root = GetRootNamespace();
 			return AppendFieldsFromType(variableName, root, typeString, fieldEnumerator);
 		}
 
-		void ForEachAutoCompleteCandidate(substring_ref prefix, ISexyFieldEnumerator& fieldEnumerator) override
+		void ForEachAutoCompleteCandidate(cr_substring prefix, ISexyFieldEnumerator& fieldEnumerator) override
 		{
 			std::unordered_map<std::string, int> exportList;
 
@@ -1526,7 +1551,7 @@ namespace ANON
 			}
 		}
 
-		bool GetHintForCandidateByNS(ISxyNamespace& ns, substring_ref prefix, char args[1024])
+		bool GetHintForCandidateByNS(ISxyNamespace& ns, cr_substring prefix, char args[1024])
 		{
 			char name[256];
 			StackStringBuilder nameBuilder(name, sizeof name);
@@ -1591,7 +1616,7 @@ namespace ANON
 			return false;
 		}
 
-		void GetHintForCandidate(substring_ref prefix, char args[1024]) override
+		void GetHintForCandidate(cr_substring prefix, char args[1024]) override
 		{
 			auto& root = GetRootNamespace();
 			if (!GetHintForCandidateByNS(root, prefix, args))

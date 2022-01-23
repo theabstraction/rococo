@@ -208,12 +208,12 @@ namespace Rococo
 
    int LevenshteinDistance(cstr source, cstr target);
 
-   bool StartsWith(substring_ref token, const fstring& prefix);
-   bool StartsWith(cstr token, substring_ref prefix);
-   ptrdiff_t Length(substring_ref token);
-   bool SubstringToString(char* name, size_t sizeofName, substring_ref substring);
-   bool Eq(const fstring& a, substring_ref b);
-   bool Eq(substring_ref a, const fstring& b);
-   bool Eq(substring_ref a, substring_ref b);
-   bool IsEmpty(substring_ref token);
+   bool StartsWith(cr_substring token, const fstring& prefix);
+   bool StartsWith(cstr token, cr_substring prefix);
+   ptrdiff_t Length(cr_substring token);
+   bool SubstringToString(char* name, size_t sizeofName, cr_substring substring);
+   bool Eq(const fstring& a, cr_substring b);
+   bool Eq(cr_substring a, const fstring& b);
+   bool Eq(cr_substring a, cr_substring b);
+   bool IsEmpty(cr_substring token);
 }
