@@ -1,0 +1,5 @@
+﻿ <Project>
+	<PropertyGroup>
+		<MSBuildProjectExtensionsPath>$(SolutionDir)intermediate/CSharp</MSBuildProjectExtensionsPath>
+	</PropertyGroup>
+</Project>

@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "rococo.cpp_master": {
+      "commandName": "Project",
+      "commandLineArgs": "test.xml",
+      "workingDirectory": "$(ProjectDir)"
+    }
+  }
+}
