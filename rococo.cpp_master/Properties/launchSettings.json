@@ -2,7 +2,7 @@
   "profiles": {
     "rococo.cpp_master": {
       "commandName": "Project",
-      "commandLineArgs": "test.xml",
+      "commandLineArgs": "..\\rococo.components.test\\test.xml $(SolutionDir)",
       "workingDirectory": "$(ProjectDir)"
     }
   }

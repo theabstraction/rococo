@@ -2,7 +2,7 @@
 
 using namespace Rococo;
 
-namespace Rococo::Components
+namespace Rococo::Components::Development
 {
 	struct ENTITY_HANDLE
 	{

@@ -30,7 +30,7 @@ public class ConsoleArguments
     {
         get
         {
-            if (args == null || args.Length == 0)
+            if (args == null || args.Length < 2)
             {
                 return String.Empty;
             }
@@ -41,12 +41,20 @@ public class ConsoleArguments
         }
     }
 
-}
-
-public struct ComponentDefinition
-{
-    public string ComponentInterface;
-    public string ComponentImplementation;
+    public string SolutionPath
+    {
+        get
+        {
+            if (args == null || args.Length < 2)
+            {
+                return String.Empty;
+            }
+            else
+            {
+                return args[1];
+            }
+        }
+    }
 }
 
 public static class XmlAttributeParser
@@ -68,42 +76,58 @@ public static class XmlAttributeParser
     }
 }
 
-public class ComponentCodeGenerator
+internal class CPPMasterContext
 {
-    public void GenerateCode(ComponentDefinition def)
+    private ConsoleArguments commandLineArgs;
+    private ComponentCodeGenerator componentGenerator;
+    public CPPMasterContext(ConsoleArguments commandLineArgs)
     {
-        throw new NotImplementedException();
+        this.commandLineArgs = commandLineArgs;
+        componentGenerator = new ComponentCodeGenerator(commandLineArgs.SolutionPath);
     }
-}
-
-public class CPPMasterApplication
-{
-    static public void ParseComponentDefinition(XPathNavigator nodeComponent)
+    public void Generate()
     {
-        ComponentDefinition def;
-        def.ComponentInterface = XmlAttributeParser.ToString(nodeComponent, "Interface");
-        def.ComponentImplementation = XmlAttributeParser.ToString(nodeComponent, "Class");
-
-        Console.WriteLine("Generating code for component '{0}' that implements '{1}'", def.ComponentImplementation, def.ComponentInterface);
-
-        ComponentCodeGenerator generator = new ComponentCodeGenerator();
-
-        generator.GenerateCode(def);
+        using (var textFile = System.IO.File.OpenText(commandLineArgs.ControlFile))
+        {
+            try
+            {
+                ParseXmlFile(textFile);
+            }
+            catch (Exception ex)
+            {
+                throw new XmlException("Error parsering " + commandLineArgs.ControlFile, ex);
+            }
+        }
     }
 
-    static void ParseXmlFile(StreamReader reader)
+    private void ParseXmlFile(StreamReader reader)
     {
+        // N.B we use XPath rather than XMLDocument because we want line info for error reporting
         using (XmlReader xmlReader = XmlReader.Create(reader))
-        { 
+        {
             XPathDocument controlDoc = new XPathDocument(xmlReader);
             XPathNavigator xpathNav = controlDoc.CreateNavigator();
+
+            string savePath;
+            string declarationPath;
+       
+            var cppNode = xpathNav.SelectSingleNode("/CPP");
+            if (cppNode != null)
+            {
+                savePath = XmlAttributeParser.ToString(cppNode, "ComponentHeader");
+                declarationPath = XmlAttributeParser.ToString(cppNode, "Declarations");
+            }
+            else 
+            {
+                savePath = commandLineArgs.SolutionPath + "intermediate\\components.h";
+                declarationPath = commandLineArgs.SolutionPath + "intermediate\\component.declarations.h";
+            }
 
             string xpathQuery = "/CPP/Component";
 
             XPathExpression xpathExpr = xpathNav.Compile(xpathQuery);
-
             XPathNodeIterator componentIterator = xpathNav.Select(xpathExpr);
-
+            
             while (componentIterator.MoveNext())
             {
                 var n = componentIterator.Current;
@@ -111,7 +135,7 @@ public class CPPMasterApplication
                 {
                     try
                     {
-                        ParseComponentDefinition(n);
+                        ParseComponentDefinition(n, savePath, declarationPath);
                     }
                     catch (Exception ex)
                     {
@@ -130,9 +154,26 @@ public class CPPMasterApplication
         }
     }
 
+    private void ParseComponentDefinition(XPathNavigator nodeComponent, string savePath, string declarationPath)
+    {
+        ComponentDefinition def;
+        def.ComponentInterface = XmlAttributeParser.ToString(nodeComponent, "Interface");
+        def.ComponentSavePath = savePath;
+        def.componentDeclarationsFilename = declarationPath;
+
+        Console.WriteLine("Generating code for component '{0}' in '{1}'", def.ComponentInterface, savePath);
+
+        componentGenerator.GenerateCode(def);
+    }
+}
+
+public class CPPMasterApplication
+{
     static public void MainProtected(string[] args)
     {
         ConsoleArguments commandLineArgs = new ConsoleArguments(args);
+
+        // Usage: cpp_master.exe <control-file> <solution-path>
 
         string controlFileName = commandLineArgs.ControlFile;
         if (controlFileName.Length == 0)
@@ -141,16 +182,15 @@ public class CPPMasterApplication
             return;
         }
 
-        var textFile = System.IO.File.OpenText(controlFileName);
+        string solutionPath = commandLineArgs.SolutionPath;
+        if (solutionPath.Length == 0)
+        {
+            Console.WriteLine("CPPMaster: No solution specified");
+            return;
+        }
 
-        try
-        {
-            ParseXmlFile(textFile);
-        }
-        catch(Exception ex)
-        {
-            throw new XmlException("Error parsering " + controlFileName, ex);
-        }
+        CPPMasterContext context = new CPPMasterContext(commandLineArgs);
+        context.Generate();
     }
 
     static public void Main(string[] args)

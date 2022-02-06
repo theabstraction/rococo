@@ -38,7 +38,7 @@ void validate(bool condition, const char* expr, const char* filename, int lineNu
 
 bool Approx(float f, float g)
 {
-	return ::fabsf(f - g) < 0.0001f;
+	return ::fabsf(f - g) < 0.00011f;
 }
 
 bool Approx(cr_vec3 f, cr_vec3 g)

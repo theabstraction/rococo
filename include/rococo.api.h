@@ -11,6 +11,20 @@ namespace DirectX
 
 namespace Rococo
 {
+	ROCOCOAPI IFreeListAllocator
+	{
+		// Returns a buffer with a byte size equal to the value supplied to the fast allocator factory.
+		virtual void* AllocateBuffer() = 0;
+		virtual void FreeBuffer(void* buffer) = 0;
+	};
+
+	ROCOCOAPI IFreeListAllocatorSupervisor : IFreeListAllocator
+	{
+		virtual void Free() = 0;
+	};
+
+	IFreeListAllocatorSupervisor* CreateFreeListAllocator(size_t elementSize);
+
 	namespace OS
 	{
 		void TripDebugger();
