@@ -23,4 +23,17 @@ namespace Rococo::Components::Sys
 	{
 		virtual IFireComponent* ConstructInPlace(void* pMemory) = 0;
 	};
+
+	ROCOCOAPI IWaterComponent
+	{
+		virtual void Flood() = 0;
+		virtual bool Deprecate() = 0;
+		virtual void Free() = 0;
+		virtual bool IsReadyToDelete() const = 0;
+	};
+
+	ROCOCOAPI IWaterComponentFactory : IComponentFactory
+	{
+		virtual IWaterComponent* ConstructInPlace(void* pMemory) = 0;
+	};
 }

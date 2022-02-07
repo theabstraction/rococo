@@ -90,11 +90,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="rococo.components.test.cpp" />
+    <ClCompile Include="sys\examples\test.components.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\rococo.component.entities.h" />
     <ClInclude Include="components.h" />
-    <ClInclude Include="sys\examples\fire.component.h" />
+    <ClInclude Include="sys\examples\test.components.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,52 +1,16 @@
-#pragma once
-
-#include <rococo.api.h>
-#include <list>
-#include <unordered_map>
-#include "rococo.component.entities.h"
-#include "components.h"
-
-// Meta data:
-// Generated at: Feb 6 2022 18.39.22 UTC
-// Based on the template file: C:\work\rococo\rococo.cpp_master\component.template.h
-
-
-namespace Rococo::Components::Sys
-{
-	using namespace Rococo::Components;
-
-	ROCOCOAPI IFireComponentTable
-	{
-		virtual void Free() = 0;
-		virtual IFireComponent* AddNew(EntityIndex id) = 0;
-		virtual IFireComponent* Find(EntityIndex id) = 0;
-		virtual void Deprecate(EntityIndex id) = 0;
-		virtual void Flush() = 0;
-	};
-}
-
-/*
-	Requirements of a component container.
-	1. Fast allocation and fast release of individual elements
-	2. Fast enumeration
-	3. Constant time lookup by ENTITY_ID
-	4. Constant time insertion and removal
-	5. Dynamic expansion of container
- */
-
 namespace ANON
 {
 	using namespace Rococo;
 	using namespace Rococo::Components::Sys;
 
-	struct ComponentInterfaceTable : IFireComponentTable
+	struct Implementation_IComponentInterfaceTable : IComponentInterfaceTable
 	{
-		IFireComponentFactory& componentFactory;
-		std::unordered_map<EntityIndex, IFireComponent*, EntityIndexHasher, EntityIndexComparer> rows;
+		IComponentInterfaceFactory& componentFactory;
+		std::unordered_map<EntityIndex, IComponentInterface*, EntityIndexHasher, EntityIndexComparer> rows;
 		std::list<EntityIndex> deprecatedList;
 		AutoFree<IFreeListAllocatorSupervisor> componentAllocator;
 
-		ComponentInterfaceTable(IFireComponentFactory& factory): componentFactory(factory), rows(1024)
+		Implementation_IComponentInterfaceTable(IComponentInterfaceFactory& factory): componentFactory(factory), rows(1024)
 		{
 			componentAllocator = CreateFreeListAllocator(factory.SizeOfConstructedObject());
 		}
@@ -56,9 +20,9 @@ namespace ANON
 			delete this;
 		}
 
-		IFireComponent* AddNew(EntityIndex index) override
+		IComponentInterface* AddNew(EntityIndex index) override
 		{
-			std::pair<EntityIndex, IFireComponent*> nullItem(index, nullptr);
+			std::pair<EntityIndex, IComponentInterface*> nullItem(index, nullptr);
 			auto insertion = rows.insert(nullItem);
 			if (!insertion.second)
 			{
@@ -70,7 +34,7 @@ namespace ANON
 			try
 			{
 				void* pComponentMemory = componentAllocator->AllocateBuffer();
-				IFireComponent* component = componentFactory.ConstructInPlace(pComponentMemory);
+				IComponentInterface* component = componentFactory.ConstructInPlace(pComponentMemory);
 				if (component == nullptr)
 				{
 					Throw(0, "%s: factory.ConstructInPlace returned null");
@@ -85,7 +49,7 @@ namespace ANON
 			}
 		}
 
-		IFireComponent* Find(EntityIndex index) override
+		IComponentInterface* Find(EntityIndex index) override
 		{
 			auto i = rows.find(index);
 			return i != rows.end() ? i->second : nullptr;
@@ -134,8 +98,8 @@ namespace ANON
 
 namespace Rococo::Components::Sys::Factories
 {
-	IFireComponentTable* NewComponentInterfaceTable(IFireComponentFactory& factory)
+	IComponentInterfaceTable* NewComponentInterfaceTable(IComponentInterfaceFactory& factory)
 	{
-		return new ANON::ComponentInterfaceTable(factory);
+		return new ANON::Implementation_IComponentInterfaceTable(factory);
 	}
 }

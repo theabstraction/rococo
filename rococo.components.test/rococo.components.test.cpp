@@ -1,4 +1,4 @@
-#include "sys\examples\fire.component.h"
+#include "sys\examples\test.components.h"
 
 #ifdef _DEBUG
 # pragma comment(lib, "rococo.components.debug.lib")
@@ -7,6 +7,8 @@
 #endif
 
 #include <rococo.libs.inl>
+
+using namespace Rococo::Components::Sys;
 
 namespace ANON
 {
@@ -55,6 +57,52 @@ namespace ANON
 			return sizeof FireComponent;
 		}
 	};
+
+	struct WaterComponent : IWaterComponent
+	{
+		bool isDeprecated = false;
+
+		bool Deprecate() override
+		{
+			if (isDeprecated)
+			{
+				return false;
+			}
+			else
+			{
+				isDeprecated = true;
+				return true;
+			}
+		}
+
+		void Free() override
+		{
+			delete this;
+		}
+
+		bool IsReadyToDelete() const override
+		{
+			return isDeprecated;
+		}
+
+		void Flood() override
+		{
+			printf("Water!");
+		}
+	};
+
+	struct WaterComponentFactory : IWaterComponentFactory
+	{
+		IWaterComponent* ConstructInPlace(void* pMemory) override
+		{
+			return new (pMemory) WaterComponent();
+		}
+
+		size_t SizeOfConstructedObject() override
+		{
+			return sizeof WaterComponent;
+		}
+	};
 }
 
 
@@ -65,9 +113,9 @@ int main()
 	using namespace Rococo::Components::Sys::Factories;
 
 	ANON::FireComponentFactory fireFactory;
-	
-	AutoFree<IFireComponentTable> table = NewComponentInterfaceTable(fireFactory);
+	ANON::WaterComponentFactory waterFactory;
 
-	EntityIndex index = { 1,7 };
-	auto* fire = table->AddNew(index);
+	ComponentFactories factories{ fireFactory, waterFactory };
+	
+	AutoFree<IComponentTablesSupervisor> tables = CreateComponentTables(factories);
 }

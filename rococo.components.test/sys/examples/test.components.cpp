@@ -1,0 +1,279 @@
+#include "test.components.h"
+// Generated at: Feb 07 2022 T UTC
+// Based on the template file: C:\work\rococo\rococo.cpp_master\component.template.cpp
+
+namespace ANON
+{
+	using namespace Rococo;
+	using namespace Rococo::Components::Sys;
+
+	struct Implementation_IFireComponentTable : IFireComponentTable
+	{
+		IFireComponentFactory& componentFactory;
+		std::unordered_map<EntityIndex, IFireComponent*, EntityIndexHasher, EntityIndexComparer> rows;
+		std::list<EntityIndex> deprecatedList;
+		AutoFree<IFreeListAllocatorSupervisor> componentAllocator;
+
+		Implementation_IFireComponentTable(IFireComponentFactory& factory): componentFactory(factory), rows(1024)
+		{
+			componentAllocator = CreateFreeListAllocator(factory.SizeOfConstructedObject());
+		}
+
+		void Free() override
+		{
+			delete this;
+		}
+
+		IFireComponent* AddNew(EntityIndex index) override
+		{
+			std::pair<EntityIndex, IFireComponent*> nullItem(index, nullptr);
+			auto insertion = rows.insert(nullItem);
+			if (!insertion.second)
+			{
+				Throw(0, "%s: a component with the given id already exists", __FUNCTION__, index.id);
+			}
+
+			auto i = insertion.first;
+
+			try
+			{
+				void* pComponentMemory = componentAllocator->AllocateBuffer();
+				IFireComponent* component = componentFactory.ConstructInPlace(pComponentMemory);
+				if (component == nullptr)
+				{
+					Throw(0, "%s: factory.ConstructInPlace returned null");
+				}
+				i->second = component;
+				return component;
+			}
+			catch (...)
+			{
+				rows.erase(i);
+				throw;
+			}
+		}
+
+		IFireComponent* Find(EntityIndex index) override
+		{
+			auto i = rows.find(index);
+			return i != rows.end() ? i->second : nullptr;
+		}
+
+		void Deprecate(EntityIndex index) override
+		{
+			auto i = rows.find(index);
+			if (i != rows.end())
+			{
+				auto* component = i->second;
+				if (component->Deprecate())
+				{
+					deprecatedList.push_back(index);
+				}
+			}
+		}
+
+		void Flush() override
+		{
+			auto i = deprecatedList.begin();
+			while (i != deprecatedList.end())
+			{
+				auto it = rows.find(*i);
+				if (it != rows.end())
+				{
+					auto* component = it->second;
+					if (component->IsReadyToDelete())
+					{
+						i = deprecatedList.erase(i);
+						component->Free();
+					}
+					else
+					{
+						i++;
+					}
+				}
+				else
+				{
+					i = deprecatedList.erase(i);
+				}
+			}
+		}
+	};
+}
+
+namespace Rococo::Components::Sys::Factories
+{
+	IFireComponentTable* NewComponentInterfaceTable(IFireComponentFactory& factory)
+	{
+		return new ANON::Implementation_IFireComponentTable(factory);
+	}
+}
+
+namespace ANON
+{
+	using namespace Rococo;
+	using namespace Rococo::Components::Sys;
+
+	struct Implementation_IWaterComponentTable : IWaterComponentTable
+	{
+		IWaterComponentFactory& componentFactory;
+		std::unordered_map<EntityIndex, IWaterComponent*, EntityIndexHasher, EntityIndexComparer> rows;
+		std::list<EntityIndex> deprecatedList;
+		AutoFree<IFreeListAllocatorSupervisor> componentAllocator;
+
+		Implementation_IWaterComponentTable(IWaterComponentFactory& factory): componentFactory(factory), rows(1024)
+		{
+			componentAllocator = CreateFreeListAllocator(factory.SizeOfConstructedObject());
+		}
+
+		void Free() override
+		{
+			delete this;
+		}
+
+		IWaterComponent* AddNew(EntityIndex index) override
+		{
+			std::pair<EntityIndex, IWaterComponent*> nullItem(index, nullptr);
+			auto insertion = rows.insert(nullItem);
+			if (!insertion.second)
+			{
+				Throw(0, "%s: a component with the given id already exists", __FUNCTION__, index.id);
+			}
+
+			auto i = insertion.first;
+
+			try
+			{
+				void* pComponentMemory = componentAllocator->AllocateBuffer();
+				IWaterComponent* component = componentFactory.ConstructInPlace(pComponentMemory);
+				if (component == nullptr)
+				{
+					Throw(0, "%s: factory.ConstructInPlace returned null");
+				}
+				i->second = component;
+				return component;
+			}
+			catch (...)
+			{
+				rows.erase(i);
+				throw;
+			}
+		}
+
+		IWaterComponent* Find(EntityIndex index) override
+		{
+			auto i = rows.find(index);
+			return i != rows.end() ? i->second : nullptr;
+		}
+
+		void Deprecate(EntityIndex index) override
+		{
+			auto i = rows.find(index);
+			if (i != rows.end())
+			{
+				auto* component = i->second;
+				if (component->Deprecate())
+				{
+					deprecatedList.push_back(index);
+				}
+			}
+		}
+
+		void Flush() override
+		{
+			auto i = deprecatedList.begin();
+			while (i != deprecatedList.end())
+			{
+				auto it = rows.find(*i);
+				if (it != rows.end())
+				{
+					auto* component = it->second;
+					if (component->IsReadyToDelete())
+					{
+						i = deprecatedList.erase(i);
+						component->Free();
+					}
+					else
+					{
+						i++;
+					}
+				}
+				else
+				{
+					i = deprecatedList.erase(i);
+				}
+			}
+		}
+	};
+}
+
+namespace Rococo::Components::Sys::Factories
+{
+	IWaterComponentTable* NewComponentInterfaceTable(IWaterComponentFactory& factory)
+	{
+		return new ANON::Implementation_IWaterComponentTable(factory);
+	}
+}
+
+namespace ANON
+{
+	using namespace Rococo::Components;
+
+	struct Impl_AllComponentTables : IComponentTablesSupervisor
+	{
+		AutoFree<IFireComponentTable> fireComponentTable;
+		AutoFree<IWaterComponentTable> waterComponentTable;
+
+		Impl_AllComponentTables(ComponentFactories& factories)
+		{
+			fireComponentTable = Factories::NewComponentInterfaceTable(factories.fireComponentfactory);
+			waterComponentTable = Factories::NewComponentInterfaceTable(factories.waterComponentfactory);
+		}
+
+		IFireComponent* AddFireComponent(EntityIndex index, ActiveComponents& ac) override
+		{
+			ac.hasFireComponent = true;
+			return fireComponentTable->AddNew(index);
+		}
+
+		IWaterComponent* AddWaterComponent(EntityIndex index, ActiveComponents& ac) override
+		{
+			ac.hasWaterComponent = true;
+			return waterComponentTable->AddNew(index);
+		}
+
+		void Deprecate(EntityIndex index, const ActiveComponents& ac) override
+		{
+			if (ac.hasFireComponent)
+			{
+				fireComponentTable->Deprecate(index);
+			}
+
+			if (ac.hasWaterComponent)
+			{
+				waterComponentTable->Deprecate(index);
+			}
+		}
+
+		IFireComponentTable& GetFireComponentTable()
+		{
+			return *fireComponentTable;
+		}
+
+		IWaterComponentTable& GetWaterComponentTable()
+		{
+			return *waterComponentTable;
+		}
+
+		void Free() override
+		{
+			delete this;
+		}
+	};
+}
+namespace Rococo::Components::Sys::Factories
+{
+	IComponentTables* CreateComponentTables(ComponentFactories& factories)
+	{
+		return new ANON::Impl_AllComponentTables(factories);
+	}
+}

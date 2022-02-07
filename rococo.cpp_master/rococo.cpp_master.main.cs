@@ -59,7 +59,7 @@ public class ConsoleArguments
 
 public static class XmlAttributeParser
 {
-    public static string ToString(XPathNavigator node, string attributeKey)
+    public static string ToString(XPathNavigator node, string attributeKey, bool validateNonEmpty = true)
     {
         if (!node.HasAttributes)
         {
@@ -67,7 +67,7 @@ public static class XmlAttributeParser
         }
 
         string value = node.GetAttribute(attributeKey, "");
-        if (value == null || value.Length == 0)
+        if (value == null || (validateNonEmpty && value.Length == 0))
         {
             throw new XmlException("No attribute defined: " + attributeKey);
         }
@@ -92,6 +92,7 @@ internal class CPPMasterContext
             try
             {
                 ParseXmlFile(textFile);
+                componentGenerator.Commit();
             }
             catch (Exception ex)
             {
@@ -108,26 +109,29 @@ internal class CPPMasterContext
             XPathDocument controlDoc = new XPathDocument(xmlReader);
             XPathNavigator xpathNav = controlDoc.CreateNavigator();
 
-            string savePath;
-            string declarationPath;
+            string targetHeader = string.Empty;
+            string targetSource = string.Empty;
+            string srcIncludePath = string.Empty;
+            string declarationIncludePath = string.Empty;
        
             var cppNode = xpathNav.SelectSingleNode("/CPP");
             if (cppNode != null)
             {
-                savePath = XmlAttributeParser.ToString(cppNode, "ComponentHeader");
-                declarationPath = XmlAttributeParser.ToString(cppNode, "Declarations");
+                targetHeader = XmlAttributeParser.ToString(cppNode, "TargetHeader");
+                targetSource = XmlAttributeParser.ToString(cppNode, "TargetSource");
+                srcIncludePath = XmlAttributeParser.ToString(cppNode, "SrcInclude");
+                declarationIncludePath = XmlAttributeParser.ToString(cppNode, "DeclarationsInclude");
             }
             else 
             {
-                savePath = commandLineArgs.SolutionPath + "intermediate\\components.h";
-                declarationPath = commandLineArgs.SolutionPath + "intermediate\\component.declarations.h";
+                throw new XmlException("Expecting section /CPP");
             }
 
             string xpathQuery = "/CPP/Component";
 
             XPathExpression xpathExpr = xpathNav.Compile(xpathQuery);
             XPathNodeIterator componentIterator = xpathNav.Select(xpathExpr);
-            
+
             while (componentIterator.MoveNext())
             {
                 var n = componentIterator.Current;
@@ -135,7 +139,16 @@ internal class CPPMasterContext
                 {
                     try
                     {
-                        ParseComponentDefinition(n, savePath, declarationPath);
+                        ComponentDefinition def;
+                        def.ComponentInterface = XmlAttributeParser.ToString(n, "Interface");
+                        def.targetHeader = targetHeader;
+                        def.targetSource = targetSource;
+                        def.sourceInclude = srcIncludePath;
+                        def.declarationsInclude = declarationIncludePath;
+
+                        Console.WriteLine("Generating code for component '{0}' in '{1}' and '{2}'", def.ComponentInterface, targetHeader, targetSource);
+
+                        componentGenerator.GenerateCode(def);
                     }
                     catch (Exception ex)
                     {
@@ -152,18 +165,6 @@ internal class CPPMasterContext
                 }
             }
         }
-    }
-
-    private void ParseComponentDefinition(XPathNavigator nodeComponent, string savePath, string declarationPath)
-    {
-        ComponentDefinition def;
-        def.ComponentInterface = XmlAttributeParser.ToString(nodeComponent, "Interface");
-        def.ComponentSavePath = savePath;
-        def.componentDeclarationsFilename = declarationPath;
-
-        Console.WriteLine("Generating code for component '{0}' in '{1}'", def.ComponentInterface, savePath);
-
-        componentGenerator.GenerateCode(def);
     }
 }
 
