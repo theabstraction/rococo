@@ -1,6 +1,6 @@
 #pragma once
 
-// Generated at: Feb 10 2022 22:00 UTC
+// Generated at: Feb 10 2022 22:19 UTC
 // Based on the template file: C:\work\rococo\rococo.cpp_master\component.template.h
 #include <rococo.types.h>
 #include <rococo.component.entities.h>
@@ -30,6 +30,23 @@ namespace Rococo::Components::Sys
     {
         bool hasFireComponent : 1;
         bool hasWaterComponent : 1;
+    };
+
+    // Rococo component object
+    ROCOCOAPI IRCObject
+    {
+        virtual EntityIndex Index() const = 0;
+        virtual ActiveComponents GetActiveComponents() const = 0;
+    };
+
+    ROCOCOAPI IRCObjectTable
+    {
+        virtual const IRCObject* FindRaw(EntityIndex index) const = 0;
+    };
+
+    ROCOCOAPI IRCObjectTableSupervisor: IRCObjectTable
+    {
+        virtual void Free() = 0;
     };
 
     ROCOCOAPI IComponentTables

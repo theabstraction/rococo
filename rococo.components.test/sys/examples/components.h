@@ -7,9 +7,7 @@ namespace Rococo::Components::Sys
 	ROCOCOAPI IFireComponent
 	{
 		virtual void Burn() = 0;
-		virtual bool Deprecate() = 0;
 		virtual void Free() = 0;
-		virtual bool IsReadyToDelete() const = 0;
 	};
 
 	// Base class for component factories, you should derive from this class and add a method 'virtual IMyComponent* ConstructInPlace(void* pMemory) = 0;'
@@ -27,9 +25,7 @@ namespace Rococo::Components::Sys
 	ROCOCOAPI IWaterComponent
 	{
 		virtual void Flood() = 0;
-		virtual bool Deprecate() = 0;
 		virtual void Free() = 0;
-		virtual bool IsReadyToDelete() const = 0;
 	};
 
 	ROCOCOAPI IWaterComponentFactory : IComponentFactory

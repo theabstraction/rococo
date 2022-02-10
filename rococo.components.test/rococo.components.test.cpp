@@ -17,29 +17,9 @@ namespace ANON
 {
 	struct FireComponent : IFireComponent
 	{
-		bool isDeprecated = false;
-
-		bool Deprecate() override
-		{
-			if (isDeprecated)
-			{
-				return false;
-			}
-			else
-			{
-				isDeprecated = true;
-				return true;
-			}
-		}
-
 		void Free() override
 		{
 			delete this;
-		}
-
-		bool IsReadyToDelete() const override
-		{
-			return isDeprecated;
 		}
 
 		void Burn() override
@@ -63,29 +43,9 @@ namespace ANON
 
 	struct WaterComponent : IWaterComponent
 	{
-		bool isDeprecated = false;
-
-		bool Deprecate() override
-		{
-			if (isDeprecated)
-			{
-				return false;
-			}
-			else
-			{
-				isDeprecated = true;
-				return true;
-			}
-		}
-
 		void Free() override
 		{
 			delete this;
-		}
-
-		bool IsReadyToDelete() const override
-		{
-			return isDeprecated;
 		}
 
 		void Flood() override
@@ -113,12 +73,11 @@ int main()
 {
 	using namespace Rococo;
 	using namespace Rococo::Components::Sys;
-	using namespace Rococo::Components::Sys::Factories;
 
 	ANON::FireComponentFactory fireFactory;
 	ANON::WaterComponentFactory waterFactory;
 
 	ComponentFactories factories{ fireFactory, waterFactory };
 	
-	AutoFree<IComponentTablesSupervisor> tables = CreateComponentTables(factories);
+	AutoFree<IComponentTablesSupervisor> tables = Factories::CreateComponentTables(factories);
 }

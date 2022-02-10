@@ -30,6 +30,23 @@ namespace Rococo::Components::Sys
 // #END_INSTANCED#
     };
 
+    // Rococo component object
+    ROCOCOAPI IRCObject
+    {
+        virtual EntityIndex Index() const = 0;
+        virtual ActiveComponents GetActiveComponents() const = 0;
+    };
+
+    ROCOCOAPI IRCObjectTable
+    {
+        virtual const IRCObject* FindRaw(EntityIndex index) const = 0;
+    };
+
+    ROCOCOAPI IRCObjectTableSupervisor: IRCObjectTable
+    {
+        virtual void Free() = 0;
+    };
+
     ROCOCOAPI IComponentTables
     {
 // #BEGIN_INSTANCED#

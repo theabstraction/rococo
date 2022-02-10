@@ -1,7 +1,6 @@
 #include "test.components.h"
 // Generated at: Feb 10 2022 P UTC
 // Based on the template file: C:\work\rococo\rococo.cpp_master\component.template.cpp
-
 #include <rococo.api.h>
 #include <list>
 #include <unordered_map>
@@ -395,6 +394,38 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			delete this;
 		}
 	};
+
+	struct RCObject : IRCObject
+	{
+		EntityIndex index;
+		ActiveComponents ac;
+
+		EntityIndex Index() const override
+		{
+			return index;
+		}
+
+		ActiveComponents GetActiveComponents() const override
+		{
+			return ac;
+		}
+	};
+
+	struct RCObjectTable: IRCObjectTableSupervisor
+	{
+		std::unordered_map<EntityIndex, RCObject, EntityIndexHasher, EntityIndexComparer> objects;
+
+		const IRCObject* FindRaw(EntityIndex index) const override
+		{
+			auto i = objects.find(index);
+			return i != objects.end() ? &i->second : nullptr;
+		}
+
+		void Free() override
+		{
+			delete this;
+		}
+	};
 } // COMPONENT_IMPLEMENTATION_NAMESPACE
 
 namespace Rococo::Components::Sys::Factories
@@ -402,6 +433,11 @@ namespace Rococo::Components::Sys::Factories
 	IComponentTablesSupervisor* CreateComponentTables(ComponentFactories& factories)
 	{
 		return new COMPONENT_IMPLEMENTATION_NAMESPACE::AllComponentTables(factories);
+	}
+
+	IRCObjectTableSupervisor* CreateObjectTable()
+	{
+		return new RCObjectTable();
 	}
 }
 
