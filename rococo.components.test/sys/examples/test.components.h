@@ -1,84 +1,56 @@
 #pragma once
 
-// Generated at: Feb 07 2022 T UTC
+// Generated at: Feb 10 2022 22:00 UTC
 // Based on the template file: C:\work\rococo\rococo.cpp_master\component.template.h
-
-#include <rococo.api.h>
-#include <list>
-#include <unordered_map>
-#include "rococo.component.entities.h"
+#include <rococo.types.h>
+#include <rococo.component.entities.h>
 #include "components.h"
 
-
 namespace Rococo::Components::Sys
 {
 	using namespace Rococo::Components;
 
-	ROCOCOAPI IFireComponentTable
+    template<class T>
+	ROCOCOAPI IComponentTable
 	{
 		virtual void Free() = 0;
-		virtual IFireComponent* AddNew(EntityIndex id) = 0;
-		virtual IFireComponent* Find(EntityIndex id) = 0;
+		virtual Ref<T> AddNew(EntityIndex id) = 0;
+		[[nodiscard]] virtual Ref<T> Find(EntityIndex id) = 0;
 		virtual void Deprecate(EntityIndex id) = 0;
 		virtual void Flush() = 0;
 	};
-}
 
-namespace Rococo::Components::Sys::Factories
-{
-	IFireComponentTable* NewComponentInterfaceTable(IFireComponentFactory& factory);
-}
+    struct ComponentFactories
+    {
+        IFireComponentFactory& fireComponentFactory;
+        IWaterComponentFactory& waterComponentFactory;
+    };
 
-namespace Rococo::Components::Sys
-{
-	using namespace Rococo::Components;
+    struct ActiveComponents
+    {
+        bool hasFireComponent : 1;
+        bool hasWaterComponent : 1;
+    };
 
-	ROCOCOAPI IWaterComponentTable
-	{
-		virtual void Free() = 0;
-		virtual IWaterComponent* AddNew(EntityIndex id) = 0;
-		virtual IWaterComponent* Find(EntityIndex id) = 0;
-		virtual void Deprecate(EntityIndex id) = 0;
-		virtual void Flush() = 0;
-	};
-}
+    ROCOCOAPI IComponentTables
+    {
+        virtual Ref<IFireComponent> AddFireComponent(EntityIndex index, ActiveComponents & ac) = 0;
+        virtual Ref<IWaterComponent> AddWaterComponent(EntityIndex index, ActiveComponents & ac) = 0;
 
-namespace Rococo::Components::Sys::Factories
-{
-	IWaterComponentTable* NewComponentInterfaceTable(IWaterComponentFactory& factory);
-}
+        virtual void Deprecate(EntityIndex index, const ActiveComponents& ac) = 0;
 
-namespace Rococo::Components::Sys
-{
-	using namespace Rococo::Components;
+        [[nodiscard]] virtual IComponentTable<IFireComponent>& GetFireComponentTable() = 0;
+        [[nodiscard]] virtual IComponentTable<IWaterComponent>& GetWaterComponentTable() = 0;
+    };
 
-	struct ComponentFactories
-	{
-		IFireComponentFactory& fireComponentfactory;
-		IWaterComponentFactory& waterComponentfactory;
-	};
+    ROCOCOAPI IComponentTablesSupervisor : IComponentTables
+    {
+        virtual void Free() = 0;
+    };
 
-	struct ActiveComponents
-	{
-		bool hasFireComponent: 1;
-		bool hasWaterComponent: 1;
-	};
+    namespace Factories
+    {
+        [[nodiscard]] IComponentTablesSupervisor* CreateComponentTables(ComponentFactories& factories);
+    }
+} // Rococo::Components::Sys
 
-	ROCOCOAPI IComponentTables
-	{
-		virtual IFireComponent* AddFireComponent(EntityIndex index, ActiveComponents& ac) = 0;
-		virtual IWaterComponent* AddWaterComponent(EntityIndex index, ActiveComponents& ac) = 0;
-
-		virtual void Deprecate(EntityIndex index, const ActiveComponents& ac) = 0;
-
-		virtual IFireComponentTable& GetFireComponentTable() = 0;
-		virtual IWaterComponentTable& GetWaterComponentTable() = 0;
-	};
-
-	ROCOCOAPI IComponentTablesSupervisor: IComponentTables
-	{
-		virtual void Free() = 0;
-	};
-
-	IComponentTablesSupervisor* CreateComponentTables(ComponentFactories& factories);
-}

@@ -132,6 +132,8 @@ internal class CPPMasterContext
             XPathExpression xpathExpr = xpathNav.Compile(xpathQuery);
             XPathNodeIterator componentIterator = xpathNav.Select(xpathExpr);
 
+            componentGenerator.Prepare(targetHeader, targetSource, srcIncludePath, declarationIncludePath);
+
             while (componentIterator.MoveNext())
             {
                 var n = componentIterator.Current;
@@ -141,10 +143,6 @@ internal class CPPMasterContext
                     {
                         ComponentDefinition def;
                         def.ComponentInterface = XmlAttributeParser.ToString(n, "Interface");
-                        def.targetHeader = targetHeader;
-                        def.targetSource = targetSource;
-                        def.sourceInclude = srcIncludePath;
-                        def.declarationsInclude = declarationIncludePath;
 
                         Console.WriteLine("Generating code for component '{0}' in '{1}' and '{2}'", def.ComponentInterface, targetHeader, targetSource);
 

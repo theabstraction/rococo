@@ -8,6 +8,9 @@
 
 #include <rococo.libs.inl>
 
+#include <stdio.h>
+#include <new>
+
 using namespace Rococo::Components::Sys;
 
 namespace ANON

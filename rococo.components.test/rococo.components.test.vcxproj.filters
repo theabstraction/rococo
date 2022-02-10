@@ -23,14 +23,19 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="components.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\rococo.component.entities.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sys\examples\test.components.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="sys\examples\components.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="test.xml">
+      <Filter>Resource Files</Filter>
+    </Xml>
   </ItemGroup>
 </Project>

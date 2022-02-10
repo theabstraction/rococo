@@ -94,8 +94,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\rococo.component.entities.h" />
-    <ClInclude Include="components.h" />
+    <ClInclude Include="sys\examples\components.h" />
     <ClInclude Include="sys\examples\test.components.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="test.xml" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
