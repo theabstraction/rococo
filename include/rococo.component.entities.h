@@ -4,37 +4,39 @@
 
 namespace Rococo::Components
 {
-	typedef uint32 ENTITY_TABLE_ID;
-	typedef uint32 ENTITY_SALT;
+	typedef uint32 ROID_TABLE_INDEX;
+	typedef uint32 ROID_SALT;
 
 #pragma pack(push, 1)
-	struct EntityIndex
+	// Rococo Object ID - a transient object identifier used in the Rococo::Components System.
+	struct ROID
 	{
-		ENTITY_SALT salt;
-		ENTITY_TABLE_ID id;
+		union
+		{
+			struct
+			{
+				ROID_SALT salt;
+				ROID_TABLE_INDEX index;
+			};
 
-		typedef uint64 ENTITY_PRIMITIVE;
-
-		ENTITY_PRIMITIVE AsPrimitive() const { return *(int64*)this; }
+			uint64 asUint64 = 0;
+		};
 	};
 #pragma pack(pop)
 
-	struct EntityIndexHasher
+	inline bool operator == (const ROID& a, const ROID& b)
 	{
-		size_t operator()(EntityIndex index) const
-		{
-			return (size_t)index.id;
-		}
-	};
-
-	inline bool operator == (const EntityIndex& a, const EntityIndex& b)
-	{
-		return a.AsPrimitive() == b.AsPrimitive();
+		return a.asUint64 == b.asUint64;
 	}
 
-	struct EntityIndexComparer
+	struct STDROID
 	{
-		bool operator()(const EntityIndex& a, const EntityIndex& b) const
+		size_t operator()(const ROID& roid) const noexcept
+		{
+			return roid.index;
+		}
+
+		bool operator()(const ROID& a, const ROID& b) const noexcept
 		{
 			return a == b;
 		}

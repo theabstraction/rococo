@@ -11,6 +11,9 @@
 #include <stdio.h>
 #include <new>
 
+#include <rococo.api.h>
+
+
 using namespace Rococo::Components::Sys;
 
 namespace ANON
@@ -79,5 +82,5 @@ int main()
 
 	ComponentFactories factories{ fireFactory, waterFactory };
 	
-	AutoFree<IComponentTablesSupervisor> tables = Factories::CreateComponentTables(factories);
+	AutoFree<IRCObjectTableSupervisor> tables = Factories::Create_RCO_EntityComponentSystem(factories, 4_megabytes);
 }
