@@ -80,7 +80,7 @@ namespace Rococo
       }
    };
 
-   typedef std::vector<const Rococo::Sex::ISExpression*> TExpressions;
+   typedef std::vector<const Rococo::Sex::ISExpression*, Memory::SexyAllocator<const ISExpression*>> TExpressions;
 
    struct InterfaceContext
    {
@@ -113,7 +113,7 @@ namespace Rococo
    {
       InterfaceContext ic;
       const Rococo::Sex::ISExpression* sdef;
-	  std::vector<const ISExpression*> methodArray;
+	  std::vector<const ISExpression*, Memory::SexyAllocator<const ISExpression*>> methodArray;
    };
 
    struct EnumContext
@@ -125,7 +125,7 @@ namespace Rococo
       char appendSexyFile[_MAX_PATH];
       char appendCppHeaderFile[_MAX_PATH];
       char appendCppImplFile[_MAX_PATH];
-      std::vector<std::pair<stdstring, int64>> values;
+      std::vector<std::pair<stdstring, int64>, Memory::SexyAllocator<std::pair<stdstring, int64>>> values;
 
       EnumContext()
       {
@@ -155,9 +155,9 @@ namespace Rococo
 
       TTypeMap primitives;
       TTypeMap structs;
-      std::unordered_map<Rococo::stdstring, InterfaceDef*> interfaces;
-      std::vector<EnumDef> enums;
-	  mutable std::unordered_map < Rococo::stdstring, uint32> namespaces;
+      std::unordered_map<rstdstring, InterfaceDef*, std::hash<rstdstring>, std::equal_to<rstdstring>, Memory::SexyAllocator<std::pair<const rstdstring,InterfaceDef*>>> interfaces;
+      std::vector<EnumDef, Memory::SexyAllocator<EnumDef>> enums;
+	  mutable std::unordered_map<Rococo::rstdstring, uint32, std::hash<rstdstring>, std::equal_to<rstdstring>, Memory::SexyAllocator<std::pair<const rstdstring, uint32>>> namespaces;
    };
 
    Rococo::cstr StringFrom(Rococo::Sex::cr_sex s);

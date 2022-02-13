@@ -270,6 +270,7 @@ namespace Rococo
 			virtual const ISExpression* Parent() const = 0;
 			virtual const ISExpression* GetOriginal() const = 0;
 			virtual bool operator == (const char* token) const = 0;
+			virtual void Free() = 0;
 		};
 
 		inline bool operator != (const ISExpression& s, const char* token)

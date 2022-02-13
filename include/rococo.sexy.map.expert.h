@@ -9,6 +9,8 @@
 #include <list>
 #include <vector>
 
+#include <rococo.stl.allocators.h>
+
 #pragma pack(push, 1)
 
 namespace Rococo::Compiler
@@ -43,8 +45,8 @@ namespace Rococo::Script
         }
     };
 
-    typedef std::list<MapNode*> TMapNodes;
-    typedef std::vector<TMapNodes> TNodeRows;
+    typedef std::list<MapNode*, Memory::SexyAllocator<MapNode*>> TMapNodes;
+    typedef std::vector<TMapNodes, Memory::SexyAllocator<TMapNodes>> TNodeRows;
 
     struct IKeyResolver
     {

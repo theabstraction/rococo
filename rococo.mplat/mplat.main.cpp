@@ -16,6 +16,7 @@
 #include <rococo.ide.h>
 #include <mplat.audio.h>
 #include <objbase.h>
+#include <rococo.stl.allocators.h>
 
 //////////////////////// XAUDIO2 and Media Foundation stuff for audio decoding ////////////////////
 #pragma comment(lib, "wmcodecdspuuid.lib")
@@ -289,9 +290,10 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	AutoFree<OS::IAppControlSupervisor> appControl(OS::CreateAppControl());
 	AutoFree<IDebuggerWindow> debuggerWindow(CreateDebuggerWindow(mainWindow->Window(), debuggerEventHandler->GetMenuCallback(), *appControl));
 
+	Rococo::Memory::SetSexyAllocator(&sourceCache->Allocator());
 	Rococo::MPlatImpl::InitScriptSystem(*installation);
 
-	AutoFree<Rococo::Script::IScriptSystemFactory> ssFactory = CreateScriptSystemFactory_1_5_0_0(sourceCache->Allocator());
+	AutoFree<Rococo::Script::IScriptSystemFactory> ssFactory = CreateScriptSystemFactory_1_5_0_0();
 
 	RunMPlatConfigScript(*config, *ssFactory, *debuggerWindow, *sourceCache, *appControl, nullptr);
 

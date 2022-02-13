@@ -122,7 +122,7 @@ namespace Rococo
 		IStructureBuilder* MatchStructure(ILog& logger, cstr type, IModuleBuilder& module);
 	}
 
-	typedef std::unordered_map<stdstring, ISParserTree*> TMapNameToSTree;
+	typedef std::unordered_map<stdstring, ISParserTree*, std::hash<stdstring>, std::equal_to<stdstring>, Memory::SexyAllocator<std::pair<const stdstring, ISParserTree*>>> TMapNameToSTree;
 }
 
 #ifdef _WIN32
@@ -381,7 +381,7 @@ namespace Rococo
 	{
 		NativeCallEnvironment e;
 		FN_NATIVE_CALL NativeCallback;
-		stdstring Archetype;
+		rstdstring Archetype;
 
 		NativeFunction(IPublicScriptSystem& ss, const IFunction& f, CPU& cpu, void* context): e(ss, f, cpu, context) {}		
 	};
@@ -404,8 +404,8 @@ namespace Rococo
 		WriteOutput(0, nullLen, e);
 	}
 
-	typedef std::unordered_map<stdstring,NativeFunction*> TMapFQNToNativeCall;
-	typedef std::list<INativeLib*> TNativeLibs;
+	typedef std::unordered_map<stdstring,NativeFunction*, std::hash<stdstring>, std::equal_to<stdstring>, Memory::SexyAllocator<std::pair<const stdstring, NativeFunction*>>> TMapFQNToNativeCall;
+	typedef std::list<INativeLib*, Memory::SexyAllocator<INativeLib*>> TNativeLibs;
 	
 	void CALLTYPE_C RouteToNative(VariantValue* registers, void* context)
 	{
@@ -594,9 +594,9 @@ namespace Rococo
 
 		AssertNotTooFewElements(archetype, 2);
 
-		enum {MAX_ARGS_PER_NATIVE_CALL = 40};
+		enum { MAX_ARGS_PER_NATIVE_CALL = 40 };
 		AssertNotTooManyElements(archetype, MAX_ARGS_PER_NATIVE_CALL);
-		
+
 		cr_sex fnameArg = GetAtomicArg(archetype, 0);
 		cstr publicName = fnameArg.String()->Buffer;
 
@@ -613,9 +613,18 @@ namespace Rococo
 
 		if (checkName) AssertValidFunctionName(fnameArg);
 
+		TokenBuffer fullyQualifiedName;
+		StringPrint(fullyQualifiedName, ("%s.%s"), ns.FullName()->Buffer, publicName);
+
+		auto i = nativeCalls.find(fullyQualifiedName.Text);
+		if (i != nativeCalls.end())
+		{
+			Throw(archetype, "%s: Duplicate native call name: %s", __func__, fullyQualifiedName.Text);
+		}
+
 		IFunctionBuilder& f = module.DeclareFunction(FunctionPrototype(nativeName, false), &archetype, popBytes);
 
-		for(int i = mapIndex+1; i < archetype.NumberOfElements(); ++i)
+		for (int i = mapIndex + 1; i < archetype.NumberOfElements(); ++i)
 		{
 			cr_sex outputDef = archetype.GetElement(i);
 			cstr type = GetArgTypeFromExpression(outputDef);
@@ -623,7 +632,7 @@ namespace Rococo
 			f.AddOutput(NameString::From(name), TypeString::From(type), (void*)&outputDef);
 		}
 
-		for(int i = 1; i < mapIndex; ++i)
+		for (int i = 1; i < mapIndex; ++i)
 		{
 			cr_sex inputDef = archetype.GetElement(i);
 			cstr type = GetArgTypeFromExpression(inputDef);
@@ -631,13 +640,11 @@ namespace Rococo
 			f.AddInput(NameString::From(name), TypeString::From(type), (void*)&inputDef);
 		}
 
-		TokenBuffer fullyQualifiedName;
-		StringPrint(fullyQualifiedName, ("%s.%s"), ns.FullName()->Buffer, publicName);
-
 		NativeFunction* nf = new NativeFunction(ss, f, ss.ProgramObject().VirtualMachine().Cpu(), context);
 		nf->NativeCallback = callback;
 		nf->Archetype = tree.Source().SourceStart();
-		nativeCalls[fullyQualifiedName.Text] = nf;
+
+		nativeCalls.insert(std::make_pair(rstdstring(fullyQualifiedName.Text), nf));
 	}
 
 	void AddNullFields(IStructureBuilder* s)
@@ -706,15 +713,15 @@ namespace Rococo
 
 		TMapMethodToMember methodMap;
 
-		typedef std::unordered_map<const Sex::ISExpression*, Script::CClassExpression*> TSReflectMap;
+		typedef std::unordered_map<const Sex::ISExpression*, Script::CClassExpression*, std::hash<const Sex::ISExpression*>, std::equal_to<const Sex::ISExpression*>, Memory::SexyAllocator<std::pair<const Sex::ISExpression* const, Script::CClassExpression*>>> TSReflectMap;
 		TSReflectMap sreflectMap;
 
 		struct CharSequence
 		{
-			std::vector<char> buffer;
+			std::vector<char, Memory::SexyAllocator<char>> buffer;
 		};
 
-		std::vector<CharSequence> persistentStrings;
+		std::vector<CharSequence, Memory::SexyAllocator<CharSequence>> persistentStrings;
 
 		AutoFree<ISexyPackagerSupervisor> packager;
 
@@ -738,13 +745,13 @@ namespace Rococo
 			return this->progObjProxy->GetModule(0);
 		}
 
-		typedef std::unordered_map<cstr, CStringConstant*> TReflectedStrings;
+		typedef std::unordered_map<cstr, CStringConstant*, std::hash<cstr>, std::equal_to<cstr>, Memory::SexyAllocator<std::pair<cstr const, CStringConstant*>>> TReflectedStrings;
 		TReflectedStrings reflectedStrings;
 
-		typedef std::unordered_map<const void*, stdstring> TSymbols;
+		typedef std::unordered_map<const void*, stdstring, std::hash<const void*>, std::equal_to<const void*>, Memory::SexyAllocator<std::pair<const void* const, stdstring>>> TSymbols;
 		TSymbols symbols;
 
-		typedef std::unordered_map<void*, CReflectedClass*> TReflectedPointers;
+		typedef std::unordered_map<void*, CReflectedClass*, std::hash<void*>, std::equal_to<void*>, Memory::SexyAllocator<std::pair<void* const, CReflectedClass*>>> TReflectedPointers;
 		TReflectedPointers reflectedPointers;
 		TReflectedPointers representations;
 
@@ -755,7 +762,6 @@ namespace Rococo
 		ListCallbacks listCallbacks;
 		MapCallbacks mapCallbacks;
 
-		IAllocator& allocator;
 		TMapNameToSTree& nativeSources;
 		int nextId;
 
@@ -763,17 +769,15 @@ namespace Rococo
 		CScriptSystem(
 			TMapNameToSTree& _nativeSources, 
 			const ProgramInitParameters& pip, 
-			ILog& _logger, 
-			IAllocator& _allocator) :
+			ILog& _logger) :
 
-			allocator(_allocator), 
 			progObjProxy(CreateProgramObject_1_0_0_0(pip, _logger)), 
 			nativeCallIndex(1), 
 			stringConstantStruct(NULL),
 			reflectionRoot(NULL), 
 			nextId(0), 
 			nativeSources(_nativeSources), 
-			sexParserProxy(Sexy_CreateSexParser_2_0(_allocator)),
+			sexParserProxy(Sexy_CreateSexParser_2_0(Memory::GetSexyAllocator())),
 			packager(CreatePackager(*this))
 		{
 			try
@@ -947,30 +951,7 @@ namespace Rococo
 			return callbacks;
 		}
 
-		~CScriptSystem()
-		{
-			for (auto i = nativeCalls.begin(); i != nativeCalls.end(); ++i)
-			{
-				NativeFunction* nf = i->second;
-				delete nf;
-			}
-
-			for (auto& i : rawReflectionBindings)
-			{
-				delete i.second;
-			}
-
-			for (auto i = nativeLibs.begin(); i != nativeLibs.end(); ++i)
-			{
-				INativeLib* lib = *i;
-				lib->Release();
-			}
-
-			delete scripts;
-
-			progObjProxy = nullptr;
-			if (stringPool) stringPool->Free();
-		}
+		~CScriptSystem();
 
 		const IStructure& GetTypeForSource(cstr concreteType, cstr sourceFile)
 		{
@@ -1083,8 +1064,8 @@ namespace Rococo
 			return persistentStrings.back().buffer.data();
 		}
 
-		typedef std::unordered_map<std::string, MethodInfo> TMapNameToMethod;
-		typedef std::unordered_map<const Rococo::Compiler::IStructure*, TMapNameToMethod> TMapTypeToMethodMap;
+		typedef std::unordered_map<rstdstring, MethodInfo, std::hash<rstdstring>, std::equal_to<rstdstring>, Memory::SexyAllocator<std::pair<const rstdstring, MethodInfo >>> TMapNameToMethod;
+		typedef std::unordered_map<const Rococo::Compiler::IStructure*, TMapNameToMethod, std::hash<const Rococo::Compiler::IStructure*>, std::equal_to<const Rococo::Compiler::IStructure*>, Memory::SexyAllocator<std::pair<const Rococo::Compiler::IStructure* const, TMapNameToMethod>>> TMapTypeToMethodMap;
 		TMapTypeToMethodMap typeToMethodMap;
 
 		TMapTypeToMethodMap::iterator CacheAllMethods(const Rococo::Compiler::IStructure& concreteClassType)
@@ -2028,9 +2009,8 @@ namespace Rococo
 
 		void Free() override
 		{
-			auto& allocator = this->allocator;
 			this->~CScriptSystem();
-			allocator.FreeData(this);
+			Memory::FreeSexyMemory(this, sizeof CScriptSystem);
 		}
 
 		Sex::ISParserTree* GetSourceCode(const IModule& module) const override
@@ -2044,18 +2024,18 @@ namespace Rococo
 
 			if (callback == NULL)
 			{
-				Rococo::Throw(0, ("ScriptSystem::AddNativeCall(...callback...): The [callback] pointer was NULL"));
+				Rococo::Throw(0, "ScriptSystem::AddNativeCall(...callback...): The [callback] pointer was NULL");
 			}
 
 			if (archetype == NULL)
 			{
-				Rococo::Throw(0, ("ScriptSystem::AddNativeCall(...archetype...): The [archetype] pointer was NULL"));
+				Rococo::Throw(0, "ScriptSystem::AddNativeCall(...archetype...): The [archetype] pointer was NULL");
 			}
 
 			size_t len = StringLength(archetype);
 			if (len > (MAX_ARCHETYPE_LEN - 1))
 			{
-				Rococo::Throw(0, ("ScriptSystem::AddNativeCall(...archetype...): The [archetype] string length exceed the maximum"));
+				Rococo::Throw(0, "ScriptSystem::AddNativeCall(...archetype...): The [archetype] string length exceed the maximum");
 			}
 
 			char sxArchetype[MAX_ARCHETYPE_LEN];
@@ -2122,7 +2102,7 @@ namespace Rococo
 		}
 		
 		enum { MAX_NATIVE_SRC_LEN = 32768 };
-		std::vector<char> sourceBuffer;
+		std::vector<char, Memory::SexyAllocator<char>> sourceBuffer;
 
 		void AddCommonSource(const char *sexySourceFile) override
 		{
@@ -2204,7 +2184,32 @@ namespace Rococo
 			progObjProxy->Log().Write(msg);
 			progObjProxy->VirtualMachine().Throw();
 		}
-	};
+	}; // CScriptSystem
+
+	CScriptSystem::~CScriptSystem()
+	{
+		for (auto i = nativeCalls.begin(); i != nativeCalls.end(); ++i)
+		{
+			NativeFunction* nf = i->second;
+			delete nf;
+		}
+
+		for (auto& i : rawReflectionBindings)
+		{
+			delete i.second;
+		}
+
+		for (auto i = nativeLibs.begin(); i != nativeLibs.end(); ++i)
+		{
+			INativeLib* lib = *i;
+			lib->Release();
+		}
+
+		delete scripts;
+
+		progObjProxy = nullptr;
+		if (stringPool) stringPool->Free();
+	}
 
 	ID_API_CALLBACK JITCallbackId(IScriptSystem& ss)
 	{
@@ -2286,11 +2291,9 @@ namespace Anon
 {
 	struct SSFactory : public Rococo::Script::IScriptSystemFactory
 	{
-		IAllocator& allocator;
 		TMapNameToSTree nativeSourceTrees;
 
-		SSFactory(IAllocator& _allocator):
-			allocator(_allocator)
+		SSFactory()
 		{
 
 		}
@@ -2307,27 +2310,26 @@ namespace Anon
 
 		IPublicScriptSystem* CreateScriptSystem(const Rococo::Compiler::ProgramInitParameters& pip, ILog& logger) override
 		{
-			void* data = allocator.Allocate(sizeof(CScriptSystem));
-			CScriptSystem* ss = new (data) CScriptSystem(nativeSourceTrees, pip, logger, allocator);
+			void* data = Memory::AllocateSexyMemory(sizeof(CScriptSystem));
+			CScriptSystem* ss = new (data) CScriptSystem(nativeSourceTrees, pip, logger);
 			ss->PublicProgramObject().VirtualMachine().Core().SetLogger(&logger);
 			return ss;
 		}
 
 		void Free() override
 		{
-			IAllocator& allocator = this->allocator;
 			this->~SSFactory();
-			allocator.FreeData(this);
+			Memory::FreeSexyMemory(this, sizeof SSFactory);
 		}
 	};
 }
 
-extern "C" SCRIPTEXPORT_API Rococo::Script::IScriptSystemFactory* CreateScriptSystemFactory_1_5_0_0(IAllocator& allocator)
+extern "C" SCRIPTEXPORT_API Rococo::Script::IScriptSystemFactory* CreateScriptSystemFactory_1_5_0_0()
 {
 	try
 	{
-		void* data = allocator.Allocate(sizeof(Anon::SSFactory));
-		auto* factory = new (data) Anon::SSFactory(allocator);
+		void* data = Memory::GetSexyAllocator().Allocate(sizeof(Anon::SSFactory));
+		auto* factory = new (data) Anon::SSFactory();
 		return factory;
 	}
 	catch(Rococo::IException& ex)
@@ -2344,5 +2346,17 @@ namespace Rococo { namespace Script
 	NativeCallEnvironment::NativeCallEnvironment(IPublicScriptSystem& _ss, const  Compiler::IFunction& _function, CPU& _cpu, void* _context):
 		ss(_ss), function(_function), code(_function.Code()), cpu(_cpu), context(_context)
 	{
+	}
+
+	CScriptSystemProxy::CScriptSystemProxy(const Rococo::Compiler::ProgramInitParameters& pip, ILog& logger)
+	{
+		factory = CreateScriptSystemFactory_1_5_0_0();
+		ss = factory->CreateScriptSystem(pip, logger);
+	}
+
+	CScriptSystemProxy::~CScriptSystemProxy()
+	{
+		if (ss) ss->Free();
+		if (factory) factory->Free();
 	}
 }}

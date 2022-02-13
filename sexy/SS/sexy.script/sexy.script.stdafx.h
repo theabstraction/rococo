@@ -160,7 +160,7 @@ namespace Rococo
          const ISExpression* StructDef;
          IStructureBuilder* Struct;
       };
-      typedef std::vector<CBindStructDefToExpression> TStructureDefinitions;
+      typedef std::vector<CBindStructDefToExpression, Memory::SexyAllocator<CBindStructDefToExpression>> TStructureDefinitions;
 
       struct CClosureDef
       {
@@ -169,7 +169,7 @@ namespace Rococo
          CClosureDef(cr_sex closureExpr, IFunctionBuilder& closure) : ClosureExpr(&closureExpr), Closure(&closure) {}
       };
 
-      typedef std::vector<CClosureDef> TClosures;
+      typedef std::vector<CClosureDef, Memory::SexyAllocator<CClosureDef>> TClosures;
 
       struct CNullDef
       {
@@ -179,9 +179,9 @@ namespace Rococo
          INamespaceBuilder* NS;
       };
 
-      typedef std::vector<CNullDef> TNullObjectDefs;
-      typedef std::vector<CStringConstant*> TStringConstants;
-      typedef std::vector<IMacroBuilder*> TMacros;
+      typedef std::vector<CNullDef, Memory::SexyAllocator<CNullDef>> TNullObjectDefs;
+      typedef std::vector<CStringConstant*, Memory::SexyAllocator<CStringConstant*>> TStringConstants;
+      typedef std::vector<IMacroBuilder*, Memory::SexyAllocator<IMacroBuilder*>> TMacros;
 
       struct BuilderAndNameKey
       {
@@ -245,19 +245,19 @@ namespace Rococo
       };
 
 
-      typedef std::unordered_map<BuilderAndNameKey, ArrayDef, hashBuilderAndNameKey> TMapNameToArrayDef;
-      typedef std::unordered_map<BuilderAndNameKey, ListDef, hashBuilderAndNameKey> TMapNameToListDef;
-      typedef std::unordered_map<BuilderAndNameKey, NodeDef, hashBuilderAndNameKey> TMapNameToNodeDef;
-      typedef std::unordered_map<BuilderAndNameKey, MapDef, hashBuilderAndNameKey> TMapNameToMapDef;
-      typedef std::unordered_map<BuilderAndNameKey, MapNodeDef, hashBuilderAndNameKey> TMapNameToMapNodeDef;
+      typedef std::unordered_map<BuilderAndNameKey, ArrayDef, hashBuilderAndNameKey, std::equal_to<BuilderAndNameKey>, Memory::SexyAllocator<std::pair<const BuilderAndNameKey, ArrayDef>>> TMapNameToArrayDef;
+      typedef std::unordered_map<BuilderAndNameKey, ListDef, hashBuilderAndNameKey, std::equal_to<BuilderAndNameKey>, Memory::SexyAllocator<std::pair<const BuilderAndNameKey, ListDef>>> TMapNameToListDef;
+      typedef std::unordered_map<BuilderAndNameKey, NodeDef, hashBuilderAndNameKey, std::equal_to<BuilderAndNameKey>, Memory::SexyAllocator<std::pair<const BuilderAndNameKey, NodeDef>>> TMapNameToNodeDef;
+      typedef std::unordered_map<BuilderAndNameKey, MapDef, hashBuilderAndNameKey, std::equal_to<BuilderAndNameKey>, Memory::SexyAllocator<std::pair<const BuilderAndNameKey, MapDef>>> TMapNameToMapDef;
+      typedef std::unordered_map<BuilderAndNameKey, MapNodeDef, hashBuilderAndNameKey, std::equal_to<BuilderAndNameKey>, Memory::SexyAllocator<std::pair<const BuilderAndNameKey, MapNodeDef>>> TMapNameToMapNodeDef;
       typedef stringmap<GlobalValue> TGlobalVariables;
 
 	  struct TransformData
 	  {
 		  IExpressionTransform* transform;
 	  };
-	  typedef std::unordered_map<const ISExpression*, TransformData> TTransformMap;
-      typedef std::vector<const ISExpression*> TExceptionBlocks;
+	  typedef std::unordered_map<const ISExpression*, TransformData, std::hash<const ISExpression*>, std::equal_to<const ISExpression*>, Memory::SexyAllocator<std::pair<const ISExpression* const, TransformData>>> TTransformMap;
+      typedef std::vector<const ISExpression*, Memory::SexyAllocator<const ISExpression*>> TExceptionBlocks;
 
       struct CBindNSExpressionToModule
       {
@@ -272,7 +272,7 @@ namespace Rococo
          return a.E->String()->Length < b.E->String()->Length;
       }
 
-      typedef std::vector<CBindNSExpressionToModule> TNamespaceDefinitions;
+      typedef std::vector<CBindNSExpressionToModule, Memory::SexyAllocator<CBindNSExpressionToModule>> TNamespaceDefinitions;
 
       class CScript
       {
@@ -386,7 +386,7 @@ namespace Rococo
          IFunctionBuilder& GetNullFunction(const IArchetype& archetype);
       };
 
-      typedef std::unordered_map<void*, void*> TAllocationMap;
+      typedef std::unordered_map<void*, void*, std::hash<void*>, std::equal_to<void*>, Memory::SexyAllocator<std::pair<void* const, void*>>> TAllocationMap;
 
       void GetAtomicValue(CCompileEnvironment& ce, cr_sex parent, cstr id, VARTYPE type);
 	  void AppendDeconstructTailVariables(CCompileEnvironment& ce, cr_sex sequence, bool expire, int tailCount);

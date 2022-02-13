@@ -34,6 +34,7 @@
 #include "sexy.vm.stdafx.h"
 #include <unordered_map>
 #include <string>
+#include <rococo.stl.allocators.h>
 
 using namespace Rococo;
 using namespace Rococo::VM;
@@ -43,9 +44,9 @@ namespace
 	class SourceImage final: public ISourceFile
 	{
 	private:
-		std::string sourceName;
+		rstdstring sourceName;
 		
-		typedef std::vector<size_t> TOffsets;
+		typedef std::vector<size_t,Memory::SexyAllocator<size_t>> TOffsets;
 		TOffsets rowOffsets;
 
 	public:
@@ -88,10 +89,10 @@ namespace
 	class Symbols final: public ISymbols
 	{
    private:
-		typedef std::unordered_map<size_t,VM::FileData> TOffsetToSymbol;
+		typedef std::unordered_map<size_t,VM::FileData, std::hash<size_t>, std::equal_to<size_t>, Memory::SexyAllocator<std::pair<const size_t, VM::FileData>>> TOffsetToSymbol;
 		TOffsetToSymbol symbolMap;
 
-		typedef std::vector<SourceImage*> TImages;
+		typedef std::vector<SourceImage*, Memory::SexyAllocator<SourceImage*>> TImages;
 		TImages images;
 		
 	public:

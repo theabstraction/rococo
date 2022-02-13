@@ -534,7 +534,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		return true;
 	}
 
-	typedef std::unordered_map<IStructureBuilder*,int> TStructureSet;
+	typedef std::unordered_map<IStructureBuilder*,int, std::hash<IStructureBuilder*>, std::equal_to<IStructureBuilder*>, Memory::SexyAllocator<std::pair<IStructureBuilder* const, int>>> TStructureSet;
 
 	void AddDependency(TStructureSet& x, IStructureBuilder& y)
 	{

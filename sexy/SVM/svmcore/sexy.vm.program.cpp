@@ -35,6 +35,7 @@
 #include "sexy.vm.os.h"
 
 #include <algorithm>
+#include <rococo.stl.allocators.h>
 
 using namespace Rococo;
 using namespace Rococo::VM;
@@ -57,7 +58,7 @@ namespace Anon
 			size_t UsedLength;
 		};
 
-		typedef std::unordered_map<ID_BYTECODE,FunctionDef> TFunctions;
+		typedef std::unordered_map<ID_BYTECODE,FunctionDef, std::hash<ID_BYTECODE>, std::equal_to<ID_BYTECODE>, Memory::SexyAllocator<std::pair<const ID_BYTECODE, FunctionDef>>> TFunctions;
 		TFunctions functions;
 
 		int version;

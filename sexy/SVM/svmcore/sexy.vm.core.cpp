@@ -51,7 +51,7 @@ namespace Rococo { namespace VM
 	{
 		FN_API_CALLBACK Callback;
 		void* Context;
-		stdstring Symbol;
+		rstdstring Symbol;
 	};
 }} // Rococo::VM
 
@@ -62,7 +62,7 @@ namespace
 	private:
 		ILog* logger;
 		ID_API_CALLBACK nextId;
-		typedef std::unordered_map<ID_API_CALLBACK, ApiCallbackBinding> TMapIdToCallback;
+		typedef std::unordered_map < ID_API_CALLBACK, ApiCallbackBinding, std::hash<ID_API_CALLBACK>, std::equal_to<ID_API_CALLBACK>, Memory::SexyAllocator<std::pair<const ID_API_CALLBACK, ApiCallbackBinding>>> TMapIdToCallback;
 		TMapIdToCallback callbacks;
 	public:
 		Core(const CoreSpec& spec):

@@ -38,6 +38,7 @@
 #include <rococo.api.h>
 
 #include <rococo.allocators.h> // provides _aligned_malloc
+#include <rococo.stl.allocators.h>
 
 #ifdef _WIN32
 # include <excpt.h>
@@ -92,7 +93,7 @@ namespace Anon
 		uint32 reserved;
 	};
 
-	typedef std::vector<unsigned char> TMemory;
+	typedef std::vector<unsigned char, Memory::SexyAllocator<unsigned char>> TMemory;
 
 	bool IsOpcodeCall(Opcodes::OPCODE opcode)
 	{
@@ -133,7 +134,7 @@ namespace Anon
 
 		IStepCallback* stepCallback;
 
-		std::vector<uint8> globalData;
+		std::vector<uint8, Memory::SexyAllocator<uint8>> globalData;
 
 		TMemory breakpoints;
 

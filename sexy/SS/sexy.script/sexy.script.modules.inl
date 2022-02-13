@@ -1683,9 +1683,9 @@ namespace Rococo { namespace Script
 	{
 		friend CScript;
 	private:
-		typedef std::unordered_map<ISParserTree*,CScript*> TMapTreeToScript;
+		typedef std::unordered_map<ISParserTree*,CScript*,std::hash<ISParserTree*>, std::equal_to<ISParserTree*>, Memory::SexyAllocator<std::pair<ISParserTree* const, CScript*>>>  TMapTreeToScript;
 		TMapTreeToScript scriptMap;
-		typedef std::vector<std::pair<ISParserTree*,CScript*>> TScriptVector;
+		typedef std::vector<std::pair<ISParserTree*,CScript*>, Memory::SexyAllocator<std::pair<ISParserTree*, CScript*>>> TScriptVector;
 		TScriptVector scripts;
 
 		IProgramObject& programObject;
@@ -1694,7 +1694,7 @@ namespace Rococo { namespace Script
 		CDefaultExceptionLogic exceptionLogic;
 		IScriptSystem& system;
 		int globalBaseIndex;
-		std::unordered_map<const IArchetype*, IFunctionBuilder*> nullArchetypeFunctions;
+		std::unordered_map<const IArchetype*, IFunctionBuilder*, std::hash<const IArchetype*>, std::equal_to<const IArchetype*>, Memory::SexyAllocator<std::pair<const IArchetype* const, IFunctionBuilder* >>> nullArchetypeFunctions;
 
 		bool canInlineString;		
 	public:
@@ -2498,6 +2498,11 @@ namespace Rococo { namespace Script
    CScript::~CScript()
    {
       tree.Release();
+
+	  for (auto t : mapExpressionToTransform)
+	  {
+		  t.second.transform->Free();
+	  }
 
       for (auto i = stringConstants.begin(); i != stringConstants.end(); ++i)
       {

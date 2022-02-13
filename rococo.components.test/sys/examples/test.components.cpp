@@ -1,12 +1,16 @@
 #include "test.components.h"
-// Generated at: Feb 11 2022 P UTC
+// Generated at: Feb 13 2022 P UTC
 // Based on the template file: C:\work\rococo\rococo.cpp_master\component.template.cpp
 #include <rococo.api.h>
 #include <list>
 #include <unordered_map>
 #include "rococo.component.entities.h"
 
+#ifdef _DEBUG
+#define COMPONENT_IMPLEMENTATION_NAMESPACE ECS
+#else
 #define COMPONENT_IMPLEMENTATION_NAMESPACE
+#endif
 
 namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 {
@@ -40,6 +44,11 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			return referenceCount;
 		}
 
+		ROID GetRoid() const override
+		{
+			return id;
+		}
+
 		int64 ReleaseRef() override
 		{
 			return --referenceCount;
@@ -54,7 +63,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		}
 	};
 
-	struct FireComponentTable : IComponentTable<IFireComponent>
+	struct FireComponentTable
 	{
 		struct ComponentDesc
 		{
@@ -63,28 +72,24 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 
 		IFireComponentFactory& componentFactory;
 		std::unordered_map<ROID, ComponentDesc, STDROID, STDROID> rows;
-		std::list<ROID> deprecatedList;
+		std::vector<ROID> deprecatedList;
+		std::vector<ROID> stubbornList;
 		AutoFree<IFreeListAllocatorSupervisor> componentAllocator;
 		size_t componentSize;
+		int enumLock = 0;
 
 		FireComponentTable(IFireComponentFactory& factory) : componentFactory(factory), rows(1024), componentSize(factory.SizeOfConstructedObject())
 		{
 			componentAllocator = CreateFreeListAllocator(componentSize + sizeof FireComponentLife);
 		}
 
-		void Free() override
+		Ref<IFireComponent> AddNew(ROID id)
 		{
-			delete this;
-		}
+			if (enumLock > 0)
+			{
+				Throw(0, "%s failed: the components were locked for enumeration", __func__);
+			}
 
-		FireComponentLife& GetLife(IFireComponent& i)
-		{
-			uint8* objectBuffer = (uint8*)&i;
-			return *(FireComponentLife*)(objectBuffer + componentSize);
-		}
-
-		Ref<IFireComponent> AddNew(ROID id) override
-		{
 			std::pair<ROID, ComponentDesc> nullItem(id, ComponentDesc());
 			auto insertion = rows.insert(nullItem);
 			if (!insertion.second)
@@ -116,16 +121,40 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			}
 		}
 
-		Ref<IFireComponent> Find(ROID id) override
+		void CollectGarbage()
 		{
-			auto i = rows.find(id);
-			auto& c = i->second;
-			auto* pInterfaceBuffer = (uint8*)c.interfacePointer;
+			if (enumLock > 0)
+			{
+				return;
+			}
 
-			return i != rows.end() ? Ref<IFireComponent>(*c.interfacePointer, GetLife(*c.interfacePointer)) : Ref<IFireComponent>();
+			while (!deprecatedList.empty())
+			{
+				ROID id = deprecatedList.back();
+				deprecatedList.pop_back();
+
+				auto it = rows.find(id);
+				if (it != rows.end())
+				{
+					auto& component = it->second;
+					auto& life = GetLife(*component.interfacePointer);
+					if (life.isDeprecated && life.referenceCount <= 0)
+					{
+						componentFactory.Destruct(component.interfacePointer);
+						componentAllocator->FreeBuffer(component.interfacePointer);
+						rows.erase(it);
+					}
+					else
+					{
+						stubbornList.push_back(id);
+					}
+				}
+			}
+
+			deprecatedList.swap(stubbornList);
 		}
-
-		void Deprecate(ROID id) override
+		
+		void Deprecate(ROID id)
 		{
 			auto i = rows.find(id);
 			if (i != rows.end())
@@ -136,31 +165,62 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			}
 		}
 
-		void Flush() override
+		void Enumerate(IComponentCallback<IFireComponent>& cb)
 		{
-			auto i = deprecatedList.begin();
-			while (i != deprecatedList.end())
+			enumLock++;
+			try
 			{
-				auto it = rows.find(*i);
-				if (it != rows.end())
+				for (auto& row : rows)
 				{
-					auto& component = it->second;
-					auto& life = GetLife(*component.interfacePointer);
-					if (life.isDeprecated && life.referenceCount <= 0)
+					if (cb.OnComponent(row.first, *row.second.interfacePointer) == IComponentCallback<IFireComponent>::BREAK)
 					{
-						i = deprecatedList.erase(i);
-						component.interfacePointer->Free();
+						break;
 					}
-					else
-					{
-						i++;
-					}
-				}
-				else
-				{
-					i = deprecatedList.erase(i);
 				}
 			}
+			catch (...)
+			{
+				enumLock--;
+				throw;
+			}
+			enumLock--;
+		}
+
+		Ref<IFireComponent> Find(ROID id)
+		{
+			auto i = rows.find(id);
+			auto& c = i->second;
+			auto* pInterfaceBuffer = (uint8*)c.interfacePointer;
+
+			return i != rows.end() ? Ref<IFireComponent>(*c.interfacePointer, GetLife(*c.interfacePointer)) : Ref<IFireComponent>();
+		}
+
+		size_t GetFireComponentIDs(ROID* roidOutput, size_t nElementsInOutput)
+		{
+			if (roidOutput != nullptr)
+			{
+				size_t nElements = min(nElementsInOutput, rows.size());
+
+				auto* roid = roidOutput;
+				auto* rend = roid + nElements;
+
+				for (auto row : rows)
+				{
+					if (roid == rend) break;
+					*roid++ = row.first;
+				}
+
+				return nElements;
+			}
+
+			return rows.size();
+		}
+
+
+		FireComponentLife& GetLife(IFireComponent& i)
+		{
+			uint8* objectBuffer = (uint8*)&i;
+			return *(FireComponentLife*)(objectBuffer + componentSize);
 		}
 	};
 
@@ -205,6 +265,11 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			return referenceCount;
 		}
 
+		ROID GetRoid() const override
+		{
+			return id;
+		}
+
 		int64 ReleaseRef() override
 		{
 			return --referenceCount;
@@ -219,7 +284,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		}
 	};
 
-	struct WaterComponentTable : IComponentTable<IWaterComponent>
+	struct WaterComponentTable
 	{
 		struct ComponentDesc
 		{
@@ -228,28 +293,24 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 
 		IWaterComponentFactory& componentFactory;
 		std::unordered_map<ROID, ComponentDesc, STDROID, STDROID> rows;
-		std::list<ROID> deprecatedList;
+		std::vector<ROID> deprecatedList;
+		std::vector<ROID> stubbornList;
 		AutoFree<IFreeListAllocatorSupervisor> componentAllocator;
 		size_t componentSize;
+		int enumLock = 0;
 
 		WaterComponentTable(IWaterComponentFactory& factory) : componentFactory(factory), rows(1024), componentSize(factory.SizeOfConstructedObject())
 		{
 			componentAllocator = CreateFreeListAllocator(componentSize + sizeof WaterComponentLife);
 		}
 
-		void Free() override
+		Ref<IWaterComponent> AddNew(ROID id)
 		{
-			delete this;
-		}
+			if (enumLock > 0)
+			{
+				Throw(0, "%s failed: the components were locked for enumeration", __func__);
+			}
 
-		WaterComponentLife& GetLife(IWaterComponent& i)
-		{
-			uint8* objectBuffer = (uint8*)&i;
-			return *(WaterComponentLife*)(objectBuffer + componentSize);
-		}
-
-		Ref<IWaterComponent> AddNew(ROID id) override
-		{
 			std::pair<ROID, ComponentDesc> nullItem(id, ComponentDesc());
 			auto insertion = rows.insert(nullItem);
 			if (!insertion.second)
@@ -281,16 +342,40 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			}
 		}
 
-		Ref<IWaterComponent> Find(ROID id) override
+		void CollectGarbage()
 		{
-			auto i = rows.find(id);
-			auto& c = i->second;
-			auto* pInterfaceBuffer = (uint8*)c.interfacePointer;
+			if (enumLock > 0)
+			{
+				return;
+			}
 
-			return i != rows.end() ? Ref<IWaterComponent>(*c.interfacePointer, GetLife(*c.interfacePointer)) : Ref<IWaterComponent>();
+			while (!deprecatedList.empty())
+			{
+				ROID id = deprecatedList.back();
+				deprecatedList.pop_back();
+
+				auto it = rows.find(id);
+				if (it != rows.end())
+				{
+					auto& component = it->second;
+					auto& life = GetLife(*component.interfacePointer);
+					if (life.isDeprecated && life.referenceCount <= 0)
+					{
+						componentFactory.Destruct(component.interfacePointer);
+						componentAllocator->FreeBuffer(component.interfacePointer);
+						rows.erase(it);
+					}
+					else
+					{
+						stubbornList.push_back(id);
+					}
+				}
+			}
+
+			deprecatedList.swap(stubbornList);
 		}
-
-		void Deprecate(ROID id) override
+		
+		void Deprecate(ROID id)
 		{
 			auto i = rows.find(id);
 			if (i != rows.end())
@@ -301,31 +386,62 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			}
 		}
 
-		void Flush() override
+		void Enumerate(IComponentCallback<IWaterComponent>& cb)
 		{
-			auto i = deprecatedList.begin();
-			while (i != deprecatedList.end())
+			enumLock++;
+			try
 			{
-				auto it = rows.find(*i);
-				if (it != rows.end())
+				for (auto& row : rows)
 				{
-					auto& component = it->second;
-					auto& life = GetLife(*component.interfacePointer);
-					if (life.isDeprecated && life.referenceCount <= 0)
+					if (cb.OnComponent(row.first, *row.second.interfacePointer) == IComponentCallback<IWaterComponent>::BREAK)
 					{
-						i = deprecatedList.erase(i);
-						component.interfacePointer->Free();
+						break;
 					}
-					else
-					{
-						i++;
-					}
-				}
-				else
-				{
-					i = deprecatedList.erase(i);
 				}
 			}
+			catch (...)
+			{
+				enumLock--;
+				throw;
+			}
+			enumLock--;
+		}
+
+		Ref<IWaterComponent> Find(ROID id)
+		{
+			auto i = rows.find(id);
+			auto& c = i->second;
+			auto* pInterfaceBuffer = (uint8*)c.interfacePointer;
+
+			return i != rows.end() ? Ref<IWaterComponent>(*c.interfacePointer, GetLife(*c.interfacePointer)) : Ref<IWaterComponent>();
+		}
+
+		size_t GetWaterComponentIDs(ROID* roidOutput, size_t nElementsInOutput)
+		{
+			if (roidOutput != nullptr)
+			{
+				size_t nElements = min(nElementsInOutput, rows.size());
+
+				auto* roid = roidOutput;
+				auto* rend = roid + nElements;
+
+				for (auto row : rows)
+				{
+					if (roid == rend) break;
+					*roid++ = row.first;
+				}
+
+				return nElements;
+			}
+
+			return rows.size();
+		}
+
+
+		WaterComponentLife& GetLife(IWaterComponent& i)
+		{
+			uint8* objectBuffer = (uint8*)&i;
+			return *(WaterComponentLife*)(objectBuffer + componentSize);
 		}
 	};
 
@@ -344,49 +460,41 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 	}
 
 
-	struct AllComponentTables : IComponentTables
+	struct AllComponentTables
 	{
-		AutoFree<IComponentTable<IFireComponent>> fireComponentTable;
-		AutoFree<IComponentTable<IWaterComponent>> waterComponentTable;
+		int dummy;
+		FireComponentTable fireComponentTable;
+		WaterComponentTable waterComponentTable;
 
-		AllComponentTables(ComponentFactories& factories)
-		{
-			fireComponentTable = new COMPONENT_IMPLEMENTATION_NAMESPACE::FireComponentTable(factories.fireComponentFactory);
-			waterComponentTable = new COMPONENT_IMPLEMENTATION_NAMESPACE::WaterComponentTable(factories.waterComponentFactory);
+		AllComponentTables(ComponentFactories& factories):
+			dummy(0)
+					,fireComponentTable(factories.fireComponentFactory)
+					,waterComponentTable(factories.waterComponentFactory)
+				{
 		}
 
 		Ref<IFireComponent> AddFireComponent(ROID id, ActiveComponents& ac)
 		{
 			ac.hasFireComponent = true;
-			return fireComponentTable->AddNew(id);
+			return fireComponentTable.AddNew(id);
 		}
 
 		Ref<IWaterComponent> AddWaterComponent(ROID id, ActiveComponents& ac)
 		{
 			ac.hasWaterComponent = true;
-			return waterComponentTable->AddNew(id);
+			return waterComponentTable.AddNew(id);
 		}
 
-		void Deprecate(ROID id, const ActiveComponents& ac) override
+		void Deprecate(ROID id, const ActiveComponents& ac)
 		{
 			if (ac.hasFireComponent)
 			{
-				fireComponentTable->Deprecate(id);
+				fireComponentTable.Deprecate(id);
 			}
 			if (ac.hasWaterComponent)
 			{
-				waterComponentTable->Deprecate(id);
+				waterComponentTable.Deprecate(id);
 			}
-		}
-
-		IComponentTable<IFireComponent>& GetFireComponentTable() override
-		{
-			return *fireComponentTable;
-		}
-
-		IComponentTable<IWaterComponent>& GetWaterComponentTable() override
-		{
-			return *waterComponentTable;
 		}
 	};
 
@@ -431,17 +539,19 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 
 			this->maxTableEntries = maxTableSize > 4000'000ULL ? 4000'000 : (uint32) maxTableSize;
 
-			freeIds.resize(this->maxTableEntries);
+			freeIds.reserve(this->maxTableEntries);
 
 			activeIds.reserve(maxTableEntries);
 
-			for (uint32 i = 1; i < maxTableEntries; i++)
+			for (uint32 i = maxTableEntries - 1; i > 0; i--)
 			{
 				ROID roid;
 				roid.index = i;
 				roid.salt = 1;
 				freeIds.push_back(roid);
 			}
+
+			handleTable.resize(maxTableEntries);
 		}
 
 		size_t ActiveRoidCount() const override
@@ -475,10 +585,10 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 
 			return Ref<IWaterComponent>();
 		}
-
-		IComponentTables& Components()
+		void CollectGarbage() override
 		{
-			return components;
+			components.fireComponentTable.CollectGarbage();
+			components.waterComponentTable.CollectGarbage();
 		}
 
 		bool Deprecate(ROID roid) override
@@ -556,7 +666,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 				{
 					if (object.ac.hasFireComponent)
 					{
-						components.GetFireComponentTable().Deprecate(id);
+						components.fireComponentTable.Deprecate(id);
 						object.ac.hasFireComponent = false;
 						return true;
 					}
@@ -574,7 +684,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 				{
 					if (object.ac.hasWaterComponent)
 					{
-						components.GetWaterComponentTable().Deprecate(id);
+						components.waterComponentTable.Deprecate(id);
 						object.ac.hasWaterComponent = false;
 						return true;
 					}
@@ -625,6 +735,14 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 				deprecationList.clear();
 			}
 		}
+		void EnumerateFireComponents(IComponentCallback<IFireComponent>& cb)
+		{
+			components.fireComponentTable.Enumerate(cb);
+		}
+		void EnumerateWaterComponents(IComponentCallback<IWaterComponent>& cb)
+		{
+			components.waterComponentTable.Enumerate(cb);
+		}
 
 		Ref<IFireComponent> GetFireComponent(ROID id)
 		{
@@ -635,8 +753,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 				{
 					if (object.ac.hasFireComponent)
 					{
-						auto& table = components.GetFireComponentTable();
-						return table.Find(id);
+						return components.fireComponentTable.Find(id);
 					}
 				}
 			}
@@ -653,8 +770,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 				{
 					if (object.ac.hasWaterComponent)
 					{
-						auto& table = components.GetWaterComponentTable();
-						return table.Find(id);
+						return components.waterComponentTable.Find(id);
 					}
 				}
 			}
@@ -662,6 +778,15 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			return Ref<IWaterComponent>();
 		}
 
+		size_t GetFireComponentIDs(ROID* roidOutput, size_t nElementsInOutput) override
+		{
+			return components.fireComponentTable.GetFireComponentIDs(roidOutput, nElementsInOutput);
+		}
+
+		size_t GetWaterComponentIDs(ROID* roidOutput, size_t nElementsInOutput) override
+		{
+			return components.waterComponentTable.GetWaterComponentIDs(roidOutput, nElementsInOutput);
+		}
 		bool IsActive(ROID id) const override
 		{
 			if (id.index == 0 || id.index >= maxTableEntries)
@@ -723,7 +848,7 @@ namespace Rococo::Components::Sys::Factories
 {
 	IRCObjectTableSupervisor* Create_RCO_EntityComponentSystem(ComponentFactories& factories, uint64 maxSizeInBytes)
 	{
-		return new RCObjectTable(factories, maxSizeInBytes);
+		return new COMPONENT_IMPLEMENTATION_NAMESPACE::RCObjectTable(factories, maxSizeInBytes);
 	}
 }
 

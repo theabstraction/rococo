@@ -70,6 +70,8 @@
 #include <rococo.os.h>
 #include <rococo.strings.h>
 
+#include <rococo.stl.allocators.h>
+
 #define validate(_Expression) if (!(_Expression)) { ShowFailure(#_Expression, __FILE__, __LINE__); Abort(); }
 
 #define TEST(test) Test(#test, test, false)
@@ -297,63 +299,70 @@ namespace
 
 	void Test(const char* name, FN_TEST fnTest, bool addinCoroutines)
 	{
-		printf("<<<<<< %s\r\n", name);
-		
-		ProgramInitParameters pip;
-		pip.addCoroutineLib = addinCoroutines;
-		pip.useDebugLibs = addinCoroutines;
-		pip.MaxProgramBytes = 32768;
+		Memory::RecordAllocations(-1);
+		Memory::ValidateNothingAllocated();
+		{
+
+			printf("<<<<<< %s\r\n", name);
+
+			ProgramInitParameters pip;
+			pip.addCoroutineLib = addinCoroutines;
+			pip.useDebugLibs = addinCoroutines;
+			pip.MaxProgramBytes = 32768;
 
 #ifdef _DEBUG
-		pip.useDebugLibs = true;
+			pip.useDebugLibs = true;
 #endif
-		IAllocator& allocator = Rococo::Memory::CheckedAllocator();
-		CScriptSystemProxy ssp(pip, s_logger, allocator);
-		
-      auto& ss = ssp();
-		if (!IsPointerValid(&ss)) exit(-1);
 
-		try
-		{
-			fnTest(ss);
-			ValidateLogs();
-			size_t leakCount = ss.PublicProgramObject().FreeLeakedObjects();
-			if (leakCount > 0)
+			CScriptSystemProxy ssp(pip, s_logger);
+
+			auto& ss = ssp();
+			if (!IsPointerValid(&ss)) exit(-1);
+
+			try
 			{
-				Throw(0, "Warning %llu leaked objects", leakCount);
+				fnTest(ss);
+				ValidateLogs();
+				size_t leakCount = ss.PublicProgramObject().FreeLeakedObjects();
+				if (leakCount > 0)
+				{
+					Throw(0, "Warning %llu leaked objects", leakCount);
+				}
 			}
-		}
-		catch (STCException& e)
-		{
-			WriteToStandardOutput("Error: %s\r\nSource: %s\r\n.Code %d", e.Message(), e.Source(), e.Code());
-			exit(e.Code());
-		}
-		catch (ParseException& e)
-		{
-			PrintParseException(e);
-			exit(-1);
-		}
-		catch (IException& ose)
-		{
-         if (ose.ErrorCode() != 0)
-         {
-            char osMessage[256];
-            FormatSysMessage(osMessage, 256, ose.ErrorCode());
-            WriteToStandardOutput("Error code%d~%x,%s\r\n%s\r\n", ose.ErrorCode(), ose.ErrorCode(), ose.Message(), osMessage);
-         }
-         else
-         {
-            WriteToStandardOutput("%s", ose.Message());
-         }
-			exit(-1);
-		}
-		catch(std::exception& stdex)
-		{
-			printf("std::exception: %s\r\n", stdex.what());
-			exit(-1);
-		}
+			catch (STCException& e)
+			{
+				WriteToStandardOutput("Error: %s\r\nSource: %s\r\n.Code %d", e.Message(), e.Source(), e.Code());
+				exit(e.Code());
+			}
+			catch (ParseException& e)
+			{
+				PrintParseException(e);
+				exit(-1);
+			}
+			catch (IException& ose)
+			{
+				if (ose.ErrorCode() != 0)
+				{
+					char osMessage[256];
+					FormatSysMessage(osMessage, 256, ose.ErrorCode());
+					WriteToStandardOutput("Error code%d~%x,%s\r\n%s\r\n", ose.ErrorCode(), ose.ErrorCode(), ose.Message(), osMessage);
+				}
+				else
+				{
+					WriteToStandardOutput("%s", ose.Message());
+				}
+				exit(-1);
+			}
+			catch (std::exception& stdex)
+			{
+				printf("std::exception: %s\r\n", stdex.what());
+				exit(-1);
+			}
 
-		printf("%s >>>>>>\r\n\r\n", name);
+			printf("%s >>>>>>\r\n\r\n", name);
+		}
+		MARK_MEMORY(name);
+		Memory::ValidateNothingAllocated();
 	}
 
 	void TestConstruction(IPublicScriptSystem& ss)
@@ -365,8 +374,8 @@ namespace
 #ifdef _DEBUG
 			pip.useDebugLibs = true;
 #endif
-			IAllocator& allocator = Rococo::Memory::CheckedAllocator();
-			CScriptSystemProxy ssp(pip, s_logger, allocator);
+
+			CScriptSystemProxy ssp(pip, s_logger);
 			validate(&ssp() != NULL);
 			validate(&ssp().PublicProgramObject() != NULL);
 		}
@@ -14514,9 +14523,45 @@ R"(
 	   TEST(TestLimitsFloat64);
    }
 
+   void TestMemoryIsGood()
+   {
+	   ProgramInitParameters pip;
+	   pip.addCoroutineLib = false;
+	   pip.useDebugLibs = false;
+	   pip.MaxProgramBytes = 32768;
+
+#ifdef _DEBUG
+	   pip.useDebugLibs = true;
+#endif
+
+
+	   Memory::ValidateNothingAllocated();
+
+	   {
+		   CScriptSystemProxy ssp(pip, s_logger);
+	   }
+
+	   Memory::ValidateNothingAllocated();
+   }
+
+
 	void RunPositiveSuccesses()
 	{
 		validate(true);
+
+		TEST(TestOperatorOverload3);
+		TEST(TestStaticCast1);
+		TEST(TestCreateNamespace);
+		TEST(TestAssignInt32Literal);
+		TEST(TestAssignFloat32Literal);
+		TEST(TestAssignFloat64Literal);
+		TEST(TestAssignInt64Literal);
+		TEST(TestAssignInt32Variable);
+		TEST(TestAssignInt64Variable);
+		TEST(TestAssignFloat32Variable);
+		TEST(TestAssignFloat64Variable);
+		TEST(TestAssignMatrixVariable);
+		TEST(TestAssignVectorVariableByRef);
 
 		TEST(TestPublishAPI);
 
@@ -14524,7 +14569,7 @@ R"(
 
 		TEST(TestNullIString);
 
-		TEST(TestPackage);
+	//	TEST(TestPackage);
 
 		TEST(TestUseDefaultNamespace);
 		TEST(TestUseDefaultNamespace2);
@@ -14543,7 +14588,6 @@ R"(
 		TEST(TestCallPrivateMethod);
 		TEST(TestCallPrivateMethod2);
 
-		TEST(TestStaticCast1);
 		TEST(TestDynamicCast2);
 		TEST(TestExpressionAppendTo);
 
@@ -14600,7 +14644,6 @@ R"(
 		TEST(TestMemberwise2);
 		TEST(TestNullObject);
 		TEST(TestNullArchetype);
-		TEST(TestOperatorOverload3);
 		TEST(TestOperatorOverload);
 
 		//	TEST(TestArrayOfArchetypes); // -> currently disabled, since arrays are 32-bit and 64-bits only, and closures are 128 bits.
@@ -14630,17 +14673,6 @@ R"(
 		TEST(TestRaw);
 		TEST(TestMinimumConstruct);
 	//	TEST(TestCreateDeclarations);
-		TEST(TestCreateNamespace);
-		TEST(TestAssignInt32Literal);
-		TEST(TestAssignFloat32Literal);
-		TEST(TestAssignFloat64Literal);
-		TEST(TestAssignInt64Literal);
-		TEST(TestAssignInt32Variable);
-		TEST(TestAssignInt64Variable);
-		TEST(TestAssignFloat32Variable);
-		TEST(TestAssignFloat64Variable);
-		TEST(TestAssignMatrixVariable);
-		TEST(TestAssignVectorVariableByRef);
 		TEST(TestLocalVariable);
 		TEST(TestBooleanLiteralVsLiteralMatches);
 		TEST(TestBooleanMismatch);
@@ -14875,6 +14907,12 @@ R"(
 		int64 start, end, hz;
 		start = OS::CpuTicks();
 
+		TEST(TestMap2);
+
+		Memory::ValidateNothingAllocated();
+
+		TestMemoryIsGood();
+
 		RunPositiveSuccesses();	
 		RunPositiveFailures();
 		RunCollectionTests();
@@ -14889,7 +14927,7 @@ R"(
 
 int main(int argc, char* argv[])
 {
-	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
+	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_None);
 
 	//_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF | _CRTDBG_CHECK_ALWAYS_DF);
 

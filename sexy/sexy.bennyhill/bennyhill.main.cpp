@@ -636,7 +636,7 @@ void ParseEnum(cr_sex senumDef, ParseContext& pc)
 	pc.enums.push_back(def);
 }
 
-void ParseInterface(cr_sex interfaceDef, ParseContext& pc, std::vector<std::string>& defOrder)
+void ParseInterface(cr_sex interfaceDef, ParseContext& pc, std::vector<rstdstring, Memory::SexyAllocator<rstdstring>>& defOrder)
 {
 	InterfaceContext ic;
 
@@ -849,7 +849,7 @@ void ParseInterfaceFile(cr_sex root, ParseContext& pc)
 	bool hasConfig = false;
 	bool hasFunctions = false;
 
-	std::vector<std::string> interfaceDefOrder;
+	std::vector<rstdstring, Memory::SexyAllocator<rstdstring>> interfaceDefOrder;
 
 	for (int i = 0; i < root.NumberOfElements(); ++i)
 	{

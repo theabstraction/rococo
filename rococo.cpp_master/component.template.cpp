@@ -3,7 +3,11 @@
 #include <unordered_map>
 #include "rococo.component.entities.h"
 
+#ifdef _DEBUG
+#define COMPONENT_IMPLEMENTATION_NAMESPACE ECS
+#else
 #define COMPONENT_IMPLEMENTATION_NAMESPACE
+#endif
 
 namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 {
@@ -38,6 +42,11 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			return referenceCount;
 		}
 
+		ROID GetRoid() const override
+		{
+			return id;
+		}
+
 		int64 ReleaseRef() override
 		{
 			return --referenceCount;
@@ -52,7 +61,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		}
 	};
 
-	struct ComponentVariableTable : IComponentTable<IComponentInterface>
+	struct ComponentVariableTable
 	{
 		struct ComponentDesc
 		{
@@ -61,28 +70,24 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 
 		IComponentInterfaceFactory& componentFactory;
 		std::unordered_map<ROID, ComponentDesc, STDROID, STDROID> rows;
-		std::list<ROID> deprecatedList;
+		std::vector<ROID> deprecatedList;
+		std::vector<ROID> stubbornList;
 		AutoFree<IFreeListAllocatorSupervisor> componentAllocator;
 		size_t componentSize;
+		int enumLock = 0;
 
 		ComponentVariableTable(IComponentInterfaceFactory& factory) : componentFactory(factory), rows(1024), componentSize(factory.SizeOfConstructedObject())
 		{
 			componentAllocator = CreateFreeListAllocator(componentSize + sizeof ComponentVariableLife);
 		}
 
-		void Free() override
+		Ref<IComponentInterface> AddNew(ROID id)
 		{
-			delete this;
-		}
+			if (enumLock > 0)
+			{
+				Throw(0, "%s failed: the components were locked for enumeration", __func__);
+			}
 
-		ComponentVariableLife& GetLife(IComponentInterface& i)
-		{
-			uint8* objectBuffer = (uint8*)&i;
-			return *(ComponentVariableLife*)(objectBuffer + componentSize);
-		}
-
-		Ref<IComponentInterface> AddNew(ROID id) override
-		{
 			std::pair<ROID, ComponentDesc> nullItem(id, ComponentDesc());
 			auto insertion = rows.insert(nullItem);
 			if (!insertion.second)
@@ -114,16 +119,40 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			}
 		}
 
-		Ref<IComponentInterface> Find(ROID id) override
+		void CollectGarbage()
 		{
-			auto i = rows.find(id);
-			auto& c = i->second;
-			auto* pInterfaceBuffer = (uint8*)c.interfacePointer;
+			if (enumLock > 0)
+			{
+				return;
+			}
 
-			return i != rows.end() ? Ref<IComponentInterface>(*c.interfacePointer, GetLife(*c.interfacePointer)) : Ref<IComponentInterface>();
+			while (!deprecatedList.empty())
+			{
+				ROID id = deprecatedList.back();
+				deprecatedList.pop_back();
+
+				auto it = rows.find(id);
+				if (it != rows.end())
+				{
+					auto& component = it->second;
+					auto& life = GetLife(*component.interfacePointer);
+					if (life.isDeprecated && life.referenceCount <= 0)
+					{
+						componentFactory.Destruct(component.interfacePointer);
+						componentAllocator->FreeBuffer(component.interfacePointer);
+						rows.erase(it);
+					}
+					else
+					{
+						stubbornList.push_back(id);
+					}
+				}
+			}
+
+			deprecatedList.swap(stubbornList);
 		}
-
-		void Deprecate(ROID id) override
+		
+		void Deprecate(ROID id)
 		{
 			auto i = rows.find(id);
 			if (i != rows.end())
@@ -134,31 +163,62 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			}
 		}
 
-		void Flush() override
+		void Enumerate(IComponentCallback<IComponentInterface>& cb)
 		{
-			auto i = deprecatedList.begin();
-			while (i != deprecatedList.end())
+			enumLock++;
+			try
 			{
-				auto it = rows.find(*i);
-				if (it != rows.end())
+				for (auto& row : rows)
 				{
-					auto& component = it->second;
-					auto& life = GetLife(*component.interfacePointer);
-					if (life.isDeprecated && life.referenceCount <= 0)
+					if (cb.OnComponent(row.first, *row.second.interfacePointer) == IComponentCallback<IComponentInterface>::BREAK)
 					{
-						i = deprecatedList.erase(i);
-						component.interfacePointer->Free();
+						break;
 					}
-					else
-					{
-						i++;
-					}
-				}
-				else
-				{
-					i = deprecatedList.erase(i);
 				}
 			}
+			catch (...)
+			{
+				enumLock--;
+				throw;
+			}
+			enumLock--;
+		}
+
+		Ref<IComponentInterface> Find(ROID id)
+		{
+			auto i = rows.find(id);
+			auto& c = i->second;
+			auto* pInterfaceBuffer = (uint8*)c.interfacePointer;
+
+			return i != rows.end() ? Ref<IComponentInterface>(*c.interfacePointer, GetLife(*c.interfacePointer)) : Ref<IComponentInterface>();
+		}
+
+		size_t GetComponentVariableIDs(ROID* roidOutput, size_t nElementsInOutput)
+		{
+			if (roidOutput != nullptr)
+			{
+				size_t nElements = min(nElementsInOutput, rows.size());
+
+				auto* roid = roidOutput;
+				auto* rend = roid + nElements;
+
+				for (auto row : rows)
+				{
+					if (roid == rend) break;
+					*roid++ = row.first;
+				}
+
+				return nElements;
+			}
+
+			return rows.size();
+		}
+
+
+		ComponentVariableLife& GetLife(IComponentInterface& i)
+		{
+			uint8* objectBuffer = (uint8*)&i;
+			return *(ComponentVariableLife*)(objectBuffer + componentSize);
 		}
 	};
 
@@ -178,43 +238,38 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 
 // #END_INSTANCED#
 
-	struct AllComponentTables : IComponentTables
+	struct AllComponentTables
 	{
+		int dummy;
 // #BEGIN_INSTANCED#
-		AutoFree<IComponentTable<IComponentVariable>> componentVariableTable;
+		ComponentVariableTable componentVariableTable;
 // #END_INSTANCED#
 
-		AllComponentTables(ComponentFactories& factories)
+		AllComponentTables(ComponentFactories& factories):
+			dummy(0)
+		// #BEGIN_INSTANCED#
+			,componentVariableTable(factories.componentVariableFactory)
+		// #END_INSTANCED#
 		{
-// #BEGIN_INSTANCED#
-			componentVariableTable = new COMPONENT_IMPLEMENTATION_NAMESPACE::ComponentVariableTable(factories.componentVariableFactory);
-// #END_INSTANCED#
 		}
 // #BEGIN_INSTANCED#
 
 		Ref<IComponentInterface> AddComponentVariable(ROID id, ActiveComponents& ac)
 		{
 			ac.hasComponentVariable = true;
-			return componentVariableTable->AddNew(id);
+			return componentVariableTable.AddNew(id);
 		}
 // #END_INSTANCED#
 
-		void Deprecate(ROID id, const ActiveComponents& ac) override
+		void Deprecate(ROID id, const ActiveComponents& ac)
 		{
 // #BEGIN_INSTANCED#
 			if (ac.hasComponentVariable)
 			{
-				componentVariableTable->Deprecate(id);
+				componentVariableTable.Deprecate(id);
 			}
 // #END_INSTANCED#
 		}
-// #BEGIN_INSTANCED#
-
-		IComponentTable<IComponentVariable>& GetComponentVariableTable() override
-		{
-			return *componentVariableTable;
-		}
-// #END_INSTANCED#
 	};
 
 #pragma pack(push,4)
@@ -258,17 +313,19 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 
 			this->maxTableEntries = maxTableSize > 4000'000ULL ? 4000'000 : (uint32) maxTableSize;
 
-			freeIds.resize(this->maxTableEntries);
+			freeIds.reserve(this->maxTableEntries);
 
 			activeIds.reserve(maxTableEntries);
 
-			for (uint32 i = 1; i < maxTableEntries; i++)
+			for (uint32 i = maxTableEntries - 1; i > 0; i--)
 			{
 				ROID roid;
 				roid.index = i;
 				roid.salt = 1;
 				freeIds.push_back(roid);
 			}
+
+			handleTable.resize(maxTableEntries);
 		}
 
 		size_t ActiveRoidCount() const override
@@ -291,10 +348,11 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			return Ref<IComponentInterface>();
 		}
 // #END_INSTANCED#
-
-		IComponentTables& Components()
+		void CollectGarbage() override
 		{
-			return components;
+// #BEGIN_INSTANCED#
+			components.componentVariableTable.CollectGarbage();
+// #END_INSTANCED#
 		}
 
 		bool Deprecate(ROID roid) override
@@ -373,7 +431,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 				{
 					if (object.ac.hasComponentVariable)
 					{
-						components.GetComponentVariableTable().Deprecate(id);
+						components.componentVariableTable.Deprecate(id);
 						object.ac.hasComponentVariable = false;
 						return true;
 					}
@@ -426,6 +484,12 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			}
 		}
 // #BEGIN_INSTANCED#
+		void EnumerateComponentVariables(IComponentCallback<IComponentInterface>& cb)
+		{
+			components.componentVariableTable.Enumerate(cb);
+		}
+// #END_INSTANCED#
+// #BEGIN_INSTANCED#
 
 		Ref<IComponentInterface> GetComponentVariable(ROID id)
 		{
@@ -436,8 +500,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 				{
 					if (object.ac.hasComponentVariable)
 					{
-						auto& table = components.GetComponentVariableTable();
-						return table.Find(id);
+						return components.componentVariableTable.Find(id);
 					}
 				}
 			}
@@ -445,7 +508,13 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			return Ref<IComponentInterface>();
 		}
 // #END_INSTANCED#
+// #BEGIN_INSTANCED#
 
+		size_t GetComponentVariableIDs(ROID* roidOutput, size_t nElementsInOutput) override
+		{
+			return components.componentVariableTable.GetComponentVariableIDs(roidOutput, nElementsInOutput);
+		}
+// #END_INSTANCED#
 		bool IsActive(ROID id) const override
 		{
 			if (id.index == 0 || id.index >= maxTableEntries)
@@ -507,7 +576,7 @@ namespace Rococo::Components::Sys::Factories
 {
 	IRCObjectTableSupervisor* Create_RCO_EntityComponentSystem(ComponentFactories& factories, uint64 maxSizeInBytes)
 	{
-		return new RCObjectTable(factories, maxSizeInBytes);
+		return new COMPONENT_IMPLEMENTATION_NAMESPACE::RCObjectTable(factories, maxSizeInBytes);
 	}
 }
 

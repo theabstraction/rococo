@@ -583,8 +583,7 @@ void PrintUsage(int argc, char* argv[])
 
 int main(int argc, char* argv[])
 {
-    AutoFree<IAllocatorSupervisor> allocator = Memory::CreateBlockAllocator(0, 0);
-    AutoFree<IScriptSystemFactory> ssFactory = CreateScriptSystemFactory_1_5_0_0(*allocator);
+    AutoFree<IScriptSystemFactory> ssFactory = CreateScriptSystemFactory_1_5_0_0();
 
     if (argc < 3)
     {

@@ -7,7 +7,6 @@ namespace Rococo::Components::Sys
 	ROCOCOAPI IFireComponent
 	{
 		virtual void Burn() = 0;
-		virtual void Free() = 0;
 	};
 
 	// Base class for component factories, you should derive from this class and add a method 'virtual IMyComponent* ConstructInPlace(void* pMemory) = 0;'
@@ -20,16 +19,17 @@ namespace Rococo::Components::Sys
 	ROCOCOAPI IFireComponentFactory : IComponentFactory
 	{
 		virtual IFireComponent* ConstructInPlace(void* pMemory) = 0;
+		virtual void Destruct(IFireComponent* component) = 0;
 	};
 
 	ROCOCOAPI IWaterComponent
 	{
 		virtual void Flood() = 0;
-		virtual void Free() = 0;
 	};
 
 	ROCOCOAPI IWaterComponentFactory : IComponentFactory
 	{
 		virtual IWaterComponent* ConstructInPlace(void* pMemory) = 0;
+		virtual void Destruct(IWaterComponent* component) = 0;
 	};
 }

@@ -94,7 +94,7 @@ namespace
 		return AreEqual(a.c_str(), b.c_str());
 	}
 
-	typedef std::unordered_set<CSymbol,hashSymbol> TSymbols;
+	typedef std::unordered_set<CSymbol,hashSymbol, std::equal_to<CSymbol>, Memory::SexyAllocator<CSymbol>> TSymbols;
 
 	cstr AddSymbol(TSymbols& symbols, cstr symbol)
 	{

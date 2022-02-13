@@ -290,7 +290,7 @@ namespace
 		if (pc.namespaces.find(ns) == pc.namespaces.end())
 		{
 			appender.Append("(namespace %s)\n", ns);
-			pc.namespaces[std::string(ns)] = 1;
+			pc.namespaces[rstdstring(ns)] = 1;
 		}
 	}
 

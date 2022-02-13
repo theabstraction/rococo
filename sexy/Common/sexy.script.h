@@ -542,36 +542,28 @@ namespace Rococo {
    }
 }
 
+namespace Rococo {
+	namespace Script
+	{
+		class CScriptSystemProxy
+		{
+		private:
+			IScriptSystemFactory* factory;
+			IPublicScriptSystem* ss;
+
+		public:
+			IPublicScriptSystem& operator()() { return *ss; }
+
+			CScriptSystemProxy(const Rococo::Compiler::ProgramInitParameters& pip, ILog& logger);
+
+			~CScriptSystemProxy();
+		};
+	}
+}
 
 #ifndef THIS_IS_THE_SEXY_CORE_LIBRARY
-
 // Ensure the allocator used for CreateScriptV_1_4_0_0(...) is in scope when you call Sexy_CleanupGlobalSources to clean up global resources
-extern "C" SCRIPTEXPORT_API Rococo::Script::IScriptSystemFactory* CreateScriptSystemFactory_1_5_0_0(Rococo::IAllocator& allocator);
-
-namespace Rococo { namespace Script
-{
-	class CScriptSystemProxy
-	{
-	private:
-		IScriptSystemFactory* factory;
-		IPublicScriptSystem* ss;
-
-	public:
-		IPublicScriptSystem& operator()() { return *ss; }
-
-		CScriptSystemProxy(const Rococo::Compiler::ProgramInitParameters& pip, ILog& logger, IAllocator& allocator)
-		{
-			factory = CreateScriptSystemFactory_1_5_0_0(allocator);
-			ss = factory->CreateScriptSystem(pip, logger);
-		}
-
-		~CScriptSystemProxy()
-		{
-			if (ss) ss->Free();
-			if (factory) factory->Free();
-		}
-	};	
-}}
+extern "C" SCRIPTEXPORT_API Rococo::Script::IScriptSystemFactory* CreateScriptSystemFactory_1_5_0_0();
 
 #endif
 

@@ -50,6 +50,7 @@
 #endif
 
 #include <new>
+#include <rococo.stl.allocators.h>
 
 namespace Rococo
 {
@@ -641,6 +642,11 @@ namespace Anon
 		{
 		}
 
+		void Free() override
+		{
+			Throw(0, "%s: S_Block expressions do not support method Free.", __func__);
+		}
+
 		void AddSibling(ISExpressionLinkBuilder* sibling) override
 		{
 			if (next == nullptr)
@@ -725,6 +731,11 @@ namespace Anon
 
 		LiteralExpression(ptrdiff_t startOffset, ptrdiff_t endOffset) : offsets { (int32)startOffset, (int32)endOffset }
 		{
+		}
+
+		void Free() override
+		{
+			Throw(0, "%s: S_Block expressions do not support method Free.", __func__);
 		}
 
 		void AddSibling(ISExpressionLinkBuilder* sibling) override
@@ -818,6 +829,11 @@ namespace Anon
 		LinkOrArray children;
 		int32 numberOfChildren = 0;
 		ISExpressionLinkBuilder* lastChild = nullptr;
+
+		void Free() override
+		{
+			Throw(0, "%s: S_Block expressions do not support method Free.", __func__);
+		}
 
 		void SetOffsets(int32 startOffset, int32 endOffset) override
 		{
@@ -923,6 +939,11 @@ namespace Anon
 		CodeOffsets offsets;
 		LinkOrArray children;
 		int32 numberOfChildren;
+
+		void Free() override
+		{
+			Throw(0, "%s: S_Block expressions do not support method Free.", __func__);
+		}
 
 		void SetOffsets(int32 start, int32 end) override
 		{
@@ -1612,7 +1633,9 @@ namespace Anon
 			refcount--;
 			if (refcount == 0)
 			{
-				delete this;
+				auto& allocator = this->allocator;
+				this->~SParser_2_0();	
+				allocator.FreeData(this);
 				return 0;
 			}
 			else
@@ -1635,7 +1658,8 @@ namespace Rococo
 				Rococo::Throw(0, "CreateSParser: %llu must not be less than 8 nor more than %llu. Recommended size is 32768", maxStringLength, ABS_MAX_STRING_LENGTH);
 			}
 
-			return new Anon::SParser_2_0(allocator, maxStringLength);
+			auto* buffer = allocator.Allocate(sizeof Anon::SParser_2_0);
+			return new (buffer) Anon::SParser_2_0(allocator, maxStringLength);
 		}
 
 		void TestBlockAllocator(cstr sExpression)

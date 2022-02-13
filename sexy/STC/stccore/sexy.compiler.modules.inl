@@ -42,10 +42,10 @@ namespace Rococo { namespace Compiler { namespace Impl
 		IProgramObject& object;
 		FunctionRegistry functions;
 		StructRegistry structures;
-		typedef std::vector<Anon::Function*> TClosures;
+		typedef std::vector<Anon::Function*, Memory::SexyAllocator<Anon::Function*>> TClosures;
 		TClosures closures;
 
-		typedef std::vector<INamespaceBuilder*> TPrefixes;
+		typedef std::vector<INamespaceBuilder*, Memory::SexyAllocator<INamespaceBuilder*>> TPrefixes;
 		TPrefixes prefixes;
 
 		/* lol */ mutable const INamespace* defaultNamespace = nullptr;

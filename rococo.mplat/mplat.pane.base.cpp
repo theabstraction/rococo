@@ -725,7 +725,7 @@ public:
 			// may want to do something sophisticated with the panels, so give them
 			// more of the MPLAT API to work with.
 
-			Rococo::Entities::AddNativeCalls_RococoEntitiesIInstances(args.ss, &platform.instances);
+		//	Rococo::Entities::AddNativeCalls_RococoEntitiesIInstances(args.ss, &platform.instances);
 			onCompile->OnEvent(args);
 		}
 	}

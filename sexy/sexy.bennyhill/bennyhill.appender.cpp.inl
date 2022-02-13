@@ -531,7 +531,7 @@ namespace Rococo
 		}
 
 		bool outputIsInterface = false;
-		std::vector<stdstring> outputPrefix;
+		std::vector<stdstring,Memory::SexyAllocator<stdstring>> outputPrefix;
 		for (int i = outputStart; i < method.NumberOfElements(); ++i)
 		{
 			cr_sex s = method.GetElement(i);

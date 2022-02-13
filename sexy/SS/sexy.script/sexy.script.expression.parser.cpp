@@ -939,16 +939,24 @@ namespace Rococo
 
 	   cstr GetOperationPrefix(cstr op)
 	   {
-		  static std::unordered_map<stdstring, cstr> mapOperatorToFunctionPrex =
-		  {
-			 { ("+"), ("Add") },
-			 { ("-"), ("Subtract") },
-			 { ("*"), ("Multiply") },
-			 { ("/"), ("Divide") }
-		  };
+		   if (op[0] == 0 || op[1] != 0)
+		   {
+			   return nullptr;
+		   }
 
-		  auto i = mapOperatorToFunctionPrex.find(op);
-		  return (i == mapOperatorToFunctionPrex.end()) ? nullptr : i->second;
+		   switch (*op)
+		   {
+		   case '+':
+			   return "Add";
+		   case '-':
+			   return "Substract";
+		   case '*':
+			   return "Multiply";
+		   case '/':
+				return "Divide";
+		   default:
+			   return nullptr;
+		   }
 	   }
 
 	   int PushBinaryOperatorInputs(CCompileEnvironment& ce, cr_sex s, const IStructure& type, const IArchetype& callee, int firstArgIndex, const IStructure& atype, const IStructure& btype)

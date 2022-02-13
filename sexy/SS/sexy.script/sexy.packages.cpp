@@ -75,8 +75,8 @@ namespace
 	struct PackageNamespaceToken
 	{
 		char token[PACKAGE_TOKEN_CAPACITY];
-		std::vector<PackageNamespaceToken> subspaces;
-		std::vector<PackedFile> files;
+		std::vector<PackageNamespaceToken, Memory::SexyAllocator<PackageNamespaceToken>> subspaces;
+		std::vector<PackedFile, Memory::SexyAllocator<PackedFile>> files;
 
 		PackageNamespaceToken(const char* text, int32 nSubspaces)
 		{

@@ -162,15 +162,15 @@ namespace Anon
 		bool CanCaptureClosures() const { return canCaptureClosureData; }
 	};
 
-	typedef std::vector<Variable*> TVariables;
-	typedef std::vector<ControlFlowData> TControlStack;
-	typedef std::unordered_map<size_t,StackRecoveryData> TMapCodeOffsetToStackCorrection;
-	typedef std::vector<int> TInstancePositions;
-	typedef std::vector<int> TSectionStack;
+	typedef std::vector<Variable*,Memory::SexyAllocator<Variable*>> TVariables;
+	typedef std::vector<ControlFlowData, Memory::SexyAllocator<ControlFlowData>> TControlStack;
+	typedef std::unordered_map<size_t,StackRecoveryData, std::hash<size_t>, std::equal_to<size_t>, Memory::SexyAllocator<std::pair<const size_t, StackRecoveryData>>> TMapCodeOffsetToStackCorrection;
+	typedef std::vector<int, Memory::SexyAllocator<int>> TInstancePositions;
+	typedef std::vector<int, Memory::SexyAllocator<int>> TSectionStack;
 
-	typedef std::unordered_map<size_t,SymbolValue> TPCSymbols;
+	typedef std::unordered_map<size_t,SymbolValue, std::hash<size_t>, std::equal_to<size_t>, Memory::SexyAllocator<std::pair<const size_t, SymbolValue>>> TPCSymbols;
 
-	typedef std::vector<const IStructure*> TTypeVector;
+	typedef std::vector<const IStructure*, Memory::SexyAllocator<const IStructure*>> TTypeVector;
 
 	class CodeBuilder: public ICodeBuilder
 	{

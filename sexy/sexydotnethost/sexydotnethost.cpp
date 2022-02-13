@@ -925,10 +925,6 @@ namespace SexyDotNet { namespace Host
 		
 		CStepCallback* sc = (CStepCallback*) stepCallbackHandle.ToPointer();
 		delete sc;
-
-		IAllocatorSupervisor* allocator = (IAllocatorSupervisor*) nativeAllocator.ToPointer();
-		allocator->Free();
-		nativeAllocator = IntPtr::Zero;
 	}
 
 	void CStepCallback::OnStep(Rococo::VM::IDebugger& debugger)

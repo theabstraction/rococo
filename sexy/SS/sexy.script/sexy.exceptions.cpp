@@ -17,7 +17,7 @@ namespace Rococo::Script
 		size_t HandlerOffset;
 	};
 
-	typedef std::vector<ExceptionHandler> TExceptionHandlers;
+	typedef std::vector<ExceptionHandler, Memory::SexyAllocator<ExceptionHandler>> TExceptionHandlers;
 
 	IFunctionBuilder* GetFunctionForAddress(const uint8* pc, IProgramObject& programObject);
 

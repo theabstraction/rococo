@@ -51,6 +51,11 @@ namespace
 		ExpressionBuilder* parent;
 		mutable sexstring_header text;
 
+		void Free() override
+		{
+			Throw(0, "LeafExpressions should be deleted by their parent.");
+		}
+
 		const Vec2i Start() const override
 		{
 			return { 0,0 };
@@ -107,12 +112,17 @@ namespace
 
 	struct ExpressionBuilder: public ISExpressionBuilder
 	{
-		std::vector<ISExpression*> children;
+		std::vector<ISExpression*, Memory::SexyAllocator<ISExpression*>> children;
 		ExpressionBuilder* parent;
 
 		ExpressionBuilder(ExpressionBuilder* _parent): parent(_parent)
 		{
 
+		}
+
+		void Free() override
+		{
+			delete this;
 		}
 
 		~ExpressionBuilder()
@@ -126,7 +136,7 @@ namespace
 					delete[](char*)s;
 					break;
 				default:
-					Free((ExpressionBuilder*)s);
+					s->Free();
 					break;
 				}
 			}

@@ -148,7 +148,7 @@ namespace Rococo::Script
 		}
 
 		ReleaseNode(m->NullNode, ss);
-
+		m->~MapImage();
 		ss.AlignedFree(m);
 	}
 

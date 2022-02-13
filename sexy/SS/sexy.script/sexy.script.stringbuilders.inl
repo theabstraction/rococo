@@ -213,10 +213,10 @@ namespace
 
 		const IStructure* typeFastStringBuilder;
 
-		std::vector<FastStringBuilder_64*> freeList_64; // For tokens and such. Could be smaller, but then dwarfed by the FastStringBuilder object
-		std::vector<FastStringBuilder_260*> freeList_260; // For file paths and whatever
-		std::vector<FastStringBuilder_1024*> freeList_1024; // Paragraphs
-		std::unordered_map<char*,uint32> allocList;
+		std::vector<FastStringBuilder_64*, Memory::SexyAllocator<FastStringBuilder_64*>> freeList_64; // For tokens and such. Could be smaller, but then dwarfed by the FastStringBuilder object
+		std::vector<FastStringBuilder_260*, Memory::SexyAllocator<FastStringBuilder_260*>> freeList_260; // For file paths and whatever
+		std::vector<FastStringBuilder_1024*, Memory::SexyAllocator<FastStringBuilder_1024*>> freeList_1024; // Paragraphs
+		std::unordered_map<char*,uint32,std::hash<char*>, std::equal_to<char*>, Memory::SexyAllocator<std::pair<char* const, uint32>>> allocList;
 
 		void SetStringBuilderType(const IStructure* typeFastStringBuilder) override
 		{

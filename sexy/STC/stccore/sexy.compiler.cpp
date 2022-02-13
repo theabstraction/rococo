@@ -85,7 +85,7 @@ namespace Anon
 
 	struct DefaultScriptObjectAllocator : IScriptObjectAllocator
 	{
-		std::unordered_set<ObjectStub*> objects;
+		std::unordered_set<ObjectStub*,std::hash<ObjectStub*>, std::equal_to<ObjectStub*>, Memory::SexyAllocator<ObjectStub*>> objects;
 
 		~DefaultScriptObjectAllocator()
 		{
@@ -297,7 +297,7 @@ namespace Anon
 	class ProgramObject : public IProgramObject, private IAllocatorMap
 	{
 	private:
-		typedef std::vector<Module*> TModules;
+		typedef std::vector<Module*, Memory::SexyAllocator<Module*>> TModules;
 		TModules modules; // The set of all modules, except the intrinsics
 		Namespace* rootNS;
 		Module* intrinsics;
@@ -308,15 +308,15 @@ namespace Anon
 		TSymbols symbols;
 		CommonStructures* common;
 
-		std::vector<IStructure*> systemStructures;
+		std::vector<IStructure*, Memory::SexyAllocator<IStructure*>> systemStructures;
 
 		DefaultScriptObjectAllocator defaultAllocator;
-		std::unordered_map<const IStructure*, AllocatorBinding*> allocators;
+		std::unordered_map<const IStructure*, AllocatorBinding*, std::hash<const IStructure*>, std::equal_to<const IStructure*>, Memory::SexyAllocator<std::pair<const IStructure* const, AllocatorBinding*>>> allocators;
 
 		CallbackIds callbackIds;
 	public:
 		ILog& Log() override { return log; }
-		void Free() override { delete this; }
+		void Free() override;
 		IScriptObjectAllocator& GetDefaultObjectAllocator() override { return defaultAllocator; }
 		IModuleBuilder& GetModule(int index) override { return *modules[index]; }
 		const IModule& GetModule(int index)  const override { return *modules[index]; }
@@ -394,29 +394,7 @@ namespace Anon
 			allocators.clear();
 		}
 
-		~ProgramObject()
-		{
-			ClearCustomAllocators();
-
-			ClearSymbols(symbols);
-
-			for (auto i = modules.begin(); i != modules.end(); ++i)
-			{
-				Module* m = *i;
-				delete m;
-			}
-
-			modules.clear();
-
-			delete rootNS;
-			delete intrinsics;
-
-			virtualMachine->Free();
-			program->Release();
-			svmCore->Free();
-
-			delete common;
-		}
+		~ProgramObject();
 
 		IAllocatorMap& AllocatorMap() override
 		{
@@ -541,6 +519,35 @@ namespace Anon
 			return true;
 		}
 	};
+
+	ProgramObject::~ProgramObject()
+	{
+		ClearCustomAllocators();
+
+		ClearSymbols(symbols);
+
+		for (auto i = modules.begin(); i != modules.end(); ++i)
+		{
+			Module* m = *i;
+			delete m;
+		}
+
+		modules.clear();
+
+		delete rootNS;
+		delete intrinsics;
+
+		virtualMachine->Free();
+		program->Release();
+		svmCore->Free();
+
+		delete common;
+	}
+
+	void ProgramObject::Free()
+	{
+		delete this;
+	}
 }
 
 namespace Rococo
@@ -727,7 +734,7 @@ namespace Rococo
 
 			return NULL;
 		}
-	}
+	};
 } // Rococo::Compiler
 
 namespace Rococo

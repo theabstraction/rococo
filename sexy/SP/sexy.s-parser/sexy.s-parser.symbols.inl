@@ -44,7 +44,7 @@ namespace ANON
 	class CHashedSymbols
 	{
 	private:
-		typedef std::unordered_map<sexstring_key,sexstring,hash_sexstring_key> TSymbolPtrs;
+		typedef std::unordered_map<sexstring_key,sexstring,hash_sexstring_key,std::equal_to<sexstring_key>, Memory::SexyAllocator<std::pair<const sexstring_key, sexstring>>> TSymbolPtrs;
 		TSymbolPtrs symbols;
 
 	public:
@@ -83,7 +83,7 @@ namespace ANON
 	class CSequentialSymbols
 	{
 	private:
-		typedef std::vector<sexstring> TSymbolPtrs;
+		typedef std::vector<sexstring, Memory::SexyAllocator<sexstring>> TSymbolPtrs;
 		TSymbolPtrs symbols;
 
 	public:

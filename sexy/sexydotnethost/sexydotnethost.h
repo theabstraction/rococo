@@ -251,7 +251,6 @@ namespace SexyDotNet { namespace Host
 		String^ currentViewedSourceCode;
 		String^ currentViewedFilename;
 		IntPtr stepCallbackHandle;
-		IntPtr nativeAllocator;
 
 		bool goodstate;
 		bool initializedVM;
@@ -292,10 +291,7 @@ namespace SexyDotNet { namespace Host
 			pip.addCoroutineLib = true;
 			pip.useDebugLibs = true;
 
-			IAllocatorSupervisor* allocator = Rococo::Memory::CreateBlockAllocator(16, 0);
-			nativeAllocator = IntPtr(allocator);
-
-			auto* factory = CreateScriptSystemFactory_1_5_0_0(*allocator);
+			auto* factory = CreateScriptSystemFactory_1_5_0_0();
 			nativeFactory = IntPtr(factory);
 			if (nativeFactory.ToPointer() == nullptr)
 			{

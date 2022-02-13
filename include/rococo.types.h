@@ -301,6 +301,10 @@ namespace Rococo
 
 		AutoFree<T>& operator = (T* src)
 		{
+			if (t != nullptr && t != src)
+			{
+				Rococo::Free(t);
+			}
 			t = src;
 			return *this;
 		};

@@ -32,10 +32,16 @@
     <ClInclude Include="sys\examples\components.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\rococo.stl.allocators.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Xml Include="test.xml">
       <Filter>Resource Files</Filter>
     </Xml>
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="..\rococo.natvis" />
   </ItemGroup>
 </Project>

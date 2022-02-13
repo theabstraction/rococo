@@ -21,6 +21,11 @@ namespace Rococo::Components
 
 			uint64 asUint64 = 0;
 		};
+
+		operator bool() const
+		{
+			return asUint64 != 0;
+		}
 	};
 #pragma pack(pop)
 
@@ -50,6 +55,8 @@ namespace Rococo::Components
 
 		virtual bool Deprecate() = 0;
 		virtual bool IsDeprecated() const = 0;
+
+		virtual ROID GetRoid() const = 0;
 	};
 
 	// A reference counted object containing references to both an interface and an associated lifetime manager
@@ -142,6 +149,16 @@ namespace Rococo::Components
 		operator bool() const
 		{
 			return component != nullptr;
+		}
+
+		int64 GetRefCount() const
+		{
+			return life == nullptr ? 0 : life->GetRefCount();
+		}
+
+		virtual ROID GetRoid() const
+		{
+			return life == nullptr ? ROID() : life->GetRoid();
 		}
 	};
 }

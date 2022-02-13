@@ -291,7 +291,6 @@ namespace Rococo
 						Graphics::AddNativeCalls_RococoGraphicsIHQFonts(args.ss, &platform);
 						Rococo::AddNativeCalls_RococoIInstallationManager(args.ss, &platform);
 						AddNativeCalls_RococoIConfig(args.ss, &platform.config);
-						Audio::AddNativeCalls_RococoAudioIAudio(args.ss, &platform.audio);
 						Rococo::AddNativeCalls_RococoIArchive(args.ss, &platform);
 						Rococo::AddNativeCalls_RococoIWorldBuilder(args.ss, &platform);
 

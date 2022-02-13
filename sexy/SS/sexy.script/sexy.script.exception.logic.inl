@@ -58,7 +58,7 @@ namespace Rococo::Script
 	};
 #pragma pack(pop)
 
-	typedef std::vector<ExceptionHandler> TExceptionHandlers;
+	typedef std::vector<ExceptionHandler, Memory::SexyAllocator<ExceptionHandler>> TExceptionHandlers;
 
 	int GetNullSize(const IStructure& type)
 	{
