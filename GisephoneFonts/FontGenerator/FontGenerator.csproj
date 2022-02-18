@@ -148,12 +148,6 @@
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\WindowFontAPI\WindowFontAPI.vcxproj">
-      <Project>{6D76C0BE-96B8-4C1F-8B7A-FEBAB295AE96}</Project>
-      <Name>WindowFontAPI</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
       <Visible>False</Visible>
       <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
@@ -184,6 +178,12 @@
       <ProductName>Windows Installer 3.1</ProductName>
       <Install>true</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\rococo.fonts.api\rococo.fonts.api.vcxproj">
+      <Project>{5803a0c3-085a-43bf-8586-873f6690d087}</Project>
+      <Name>rococo.fonts.api</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

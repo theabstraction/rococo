@@ -1407,6 +1407,30 @@ namespace ANON
 			}
 		}
 
+		ISXYInterface* RecursivelySearchForInterface(ISxyNamespace& ns, cstr typeString)
+		{
+			for (int i = 0; i < ns.SubspaceCount(); ++i)
+			{
+				int interfaceCount = ns[i].InterfaceCount();
+				for (int j = 0; j < interfaceCount; ++j)
+				{
+					auto& refInterface = ns[i].GetInterface(j);
+					if (Eq(refInterface.PublicName(), typeString))
+					{
+						return &refInterface;
+					}
+				}
+
+				auto* pInterface = RecursivelySearchForInterface(ns[i], typeString);
+				if (pInterface)
+				{
+					return pInterface;
+				}
+			}
+
+			return nullptr;
+		}
+
 		ISXYType* RecursivelySearchForType(ISxyNamespace& ns, cstr typeString)
 		{
 			for (int i = 0; i < ns.SubspaceCount(); ++i)
@@ -1483,6 +1507,11 @@ namespace ANON
 			// So we need to find the type, then advance the namespace to the child, i.e left, 
 			ISXYType* type = RecursivelySearchForType(ns, typeString);
 
+			if (!type)
+			{
+				return false;
+			}
+
 			fieldEnumerator.OnHintFound(typeString);
 			
 			Substring parent = variableName;
@@ -1516,15 +1545,47 @@ namespace ANON
 			return false;
 		}
 
+		bool AppendMethodsFromType(cr_substring variableName, ISxyNamespace& ns, cstr typeString, ISexyFieldEnumerator& fieldEnumerator)
+		{
+			// Variable name may be qualified, e.g: rect.left. In this case the typeString refers to the root of the namespace.
+			// So we need to find the type, then advance the namespace to the child, i.e left, 
+			ISXYInterface* pInterfaceType = RecursivelySearchForInterface(ns, typeString);
+
+			if (!pInterfaceType)
+			{
+				return false;
+			}
+
+			fieldEnumerator.OnHintFound(typeString);
+
+			if (variableName.end[-1] == '.')
+			{
+				for (int k = 0; k < pInterfaceType->MethodCount(); ++k)
+				{
+					auto& method = pInterfaceType->GetMethod(k);
+					fieldEnumerator.OnField(method.PublicName());
+				}
+			}
+
+			return true;
+		}
+
 		bool EnumerateVariableAndFieldList(cr_substring candidate, cstr typeString, ISexyFieldEnumerator& fieldEnumerator) override
 		{
 			Substring variableName = candidate;
-			if (variableName.Length() > 1 && variableName.end[-1] == '.')
+			if (variableName && variableName.end[-1] == '.')
 			{
 				variableName.end--;
 			}
 			auto& root = GetRootNamespace();
-			return AppendFieldsFromType(variableName, root, typeString, fieldEnumerator);
+			if (AppendFieldsFromType(variableName, root, typeString, fieldEnumerator))
+			{
+				return true;
+			}
+			else
+			{
+				return AppendMethodsFromType(candidate, root, typeString, fieldEnumerator);
+			}
 		}
 
 		void ForEachAutoCompleteCandidate(cr_substring prefix, ISexyFieldEnumerator& fieldEnumerator) override

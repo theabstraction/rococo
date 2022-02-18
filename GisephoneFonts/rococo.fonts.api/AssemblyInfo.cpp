@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include <Windows.h>
 
 using namespace System;
 using namespace System::Reflection;
@@ -14,9 +14,9 @@ using namespace System::Security::Permissions;
 [assembly:AssemblyTitleAttribute("WindowFontAPI")];
 [assembly:AssemblyDescriptionAttribute("")];
 [assembly:AssemblyConfigurationAttribute("")];
-[assembly:AssemblyCompanyAttribute("Microsoft")];
+[assembly:AssemblyCompanyAttribute("Nineteenth Century Software")];
 [assembly:AssemblyProductAttribute("WindowFontAPI")];
-[assembly:AssemblyCopyrightAttribute("Copyright (c) Microsoft 2010")];
+[assembly:AssemblyCopyrightAttribute("Copyright (c) Mark Anthon Taylor 2010")];
 [assembly:AssemblyTrademarkAttribute("")];
 [assembly:AssemblyCultureAttribute("")];
 

@@ -82,7 +82,7 @@
 
 	(gs.isActive = true)
 	
-	(Matrix4x4 m)
+	(IStringBuilder sb)
 )
 
 (class Dog (defines Sys.IDog)

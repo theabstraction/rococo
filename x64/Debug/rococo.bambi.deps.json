@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": "net6.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    "net6.0": {
+      "rococo.bambi/1.0.0": {
+        "runtime": {
+          "rococo.bambi.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "rococo.bambi/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

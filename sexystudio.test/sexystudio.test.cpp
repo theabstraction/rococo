@@ -179,13 +179,70 @@ void TestDeduceMatrix4x4Fields(ISexyDatabase& database)
 	printf("*** End of %s ***\n", __FUNCTION__);
 }
 
+void TestDeduceMethods(ISexyDatabase& database)
+{
+	cstr file =
+		R"<CODE>(
+	(using Sys.Type)
+	(using Sys.Maths)
+	(function Main (Int32 id) -> (Int32 exitCode):
+		(IStringBuilder sb = (NewParagraphBuilder))
+		(sb.
+	)
+)<CODE>";
+
+	printf("*** Start of %s ***\n", __FUNCTION__);
+
+	printf("File: %s\n", file);
+
+	Substring sfile = { file, file + strlen(file) };
+
+	cstr lastS = Rococo::ReverseFind('s', sfile);
+
+	Substring sb = { lastS, lastS + 3 };
+
+	struct ANON : ISexyFieldEnumerator
+	{
+		int fieldCount = 0;
+		int hintCount = 0;
+
+		void OnField(cstr fieldName) override
+		{
+			printf("Method: %s\n", fieldName);
+			fieldCount++;
+		}
+
+		void OnHintFound(cstr hint) override
+		{
+			printf("Hint: %s\n", hint);
+			hintCount++;
+		}
+	} fieldEnumerator;
+
+	char type[256];
+	bool isThis;
+	if (!Rococo::Sexy::TryGetLocalTypeFromCurrentDocument(type, isThis, sb, sfile) || !Eq(type, "IStringBuilder"))
+	{
+		Throw(0, "Bad inference - type should be IStringBuilder");
+	}
+
+	database.EnumerateVariableAndFieldList(sb, type, fieldEnumerator);
+
+	// We give a bit of range on this method in the case that IStringBuilder is modified in the future
+	if (fieldEnumerator.fieldCount < 15 || fieldEnumerator.fieldCount > 30) Throw(0, "Bad fieldCount: %s", __FUNCTION__);
+	if (fieldEnumerator.hintCount != 1) Throw(0, "Bad hint count: %s", __FUNCTION__);
+
+	printf("*** End of %s ***\n", __FUNCTION__);
+}
+
 void RunTests(ISexyDatabase& database)
 {
 	printf("Running tests...\n");
 
 //	TestDeduceVec2Fields(database);
 //	TestDeduceVec2Fields2(database);
-	TestDeduceMatrix4x4Fields(database);
+	TestDeduceMethods(database);
+//	TestDeduceMatrix4x4Fields(database);
 
 	printf("\nTests completed\n");
 }
