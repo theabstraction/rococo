@@ -449,16 +449,18 @@ namespace Rococo
 
 	Substring RightOfFirstChar(char c, cr_substring token)
 	{
-		Substring result = token;
-		for (cstr p = token.start; p < token.end; ++p)
+		if (token)
 		{
-			if (*p == c)
+			for (cstr p = token.start; p < token.end; ++p)
 			{
-				result.start = p + 1;
-				break;
+				if (*p == c)
+				{
+					return Substring{ p + 1, token.end };
+				}
 			}
 		}
-		return result;
+
+		return Substring_Null();
 	}
 
 	void CopyWithTruncate(cr_substring item, char* buffer, size_t capacity)

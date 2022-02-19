@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <BaseOutputPath>$(SolutionDir)bin</BaseOutputPath>
-    <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
+    <BaseIntermediateOutputPath>$(SolutionDir)intermediate\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
     <Copyright>copyright (c)2022 Mark Anthony Taylor.</Copyright>
     <RootNamespace>Rococo.CPPMaster</RootNamespace>
     <StartupObject>CPPMasterApplication</StartupObject>

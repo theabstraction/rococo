@@ -643,6 +643,7 @@ namespace Rococo::Sexy
 		}
 		else
 		{
+			// a.b.c.d -> should return typeof(a)
 			isThis = false;
 			auto localVariableInference =  engine.InferLocalVariableVariableType(searchTerm);
 

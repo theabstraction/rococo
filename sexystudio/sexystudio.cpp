@@ -1192,11 +1192,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 		Substring candidateInDoc{ start, end };
 
 		Substring variable = { candidateInDoc.start, candidateInDoc.end };
-		if (variable && variable.end[-1] == '.')
-		{
-			variable.end--;
-		}
-
+		
 		if (StartsWith(variable, thisDot))
 		{
 			variable.start += thisDot.length;

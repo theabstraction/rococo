@@ -83,6 +83,8 @@
 	(gs.isActive = true)
 	
 	(IStringBuilder sb)
+	
+	(Matrix4x4 m)
 )
 
 (class Dog (defines Sys.IDog)
@@ -93,7 +95,6 @@
 )
 
 (method Dog.Construct :
-	(this.Init)
 )
 
 (method Dog.Init -> :

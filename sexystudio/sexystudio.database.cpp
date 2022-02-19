@@ -1486,8 +1486,7 @@ namespace ANON
 		cstr FindFieldTypeByName(ISXYLocalType& localType, cr_substring qualifiedVariableName)
 		{
 			Substring child = RightOfFirstChar('.', qualifiedVariableName);
-
-			Substring parent{ qualifiedVariableName.start, child.end };
+			Substring parent = (child) ? Substring { qualifiedVariableName.start, child.start - 1 } : qualifiedVariableName;
 
 			for (int k = 0; k < localType.FieldCount(); ++k)
 			{
@@ -1517,7 +1516,7 @@ namespace ANON
 			Substring parent = variableName;
 			
 			Substring childVariable = RightOfFirstChar('.', parent);
-			if (childVariable.start == parent.start)
+			if (!childVariable)
 			{
 				if (type)
 				{
@@ -1539,6 +1538,7 @@ namespace ANON
 			cstr fieldType = FindFieldTypeByName(*localType, childVariable);
 			if (fieldType)
 			{
+				fieldEnumerator.OnHintFound(fieldType);
 				return AppendFieldsFromType(childVariable, ns, fieldType, fieldEnumerator);
 			}
 
@@ -1584,6 +1584,26 @@ namespace ANON
 			}
 			else
 			{
+				if (!candidate) return false;
+
+				if (candidate.end[-1] != '.')
+				{
+					// We only append methods if the last character is a dot
+					return false;
+				}
+
+				for (cstr i = candidate.end - 2; i >= candidate.start; --i)
+				{
+					if (*i == '.')
+					{
+						if (!islower(i[1]))
+						{
+							// Not a type character
+							return false;
+						}
+					}
+				}
+
 				return AppendMethodsFromType(candidate, root, typeString, fieldEnumerator);
 			}
 		}

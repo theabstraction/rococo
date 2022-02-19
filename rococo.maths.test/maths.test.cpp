@@ -974,11 +974,35 @@ R"(
 	VALIDATE(Eq(inference.declarationType, "Int32"_fstring));
 }
 
+void TestCodeInferenceInterfaces()
+{
+	cstr bad_code =
+		R"(
+	(function IncCat (Sys.Type.IStringBuilder sb) -> : (sb.Append))
+)";
+
+	using namespace Rococo::Sexy;
+
+	BadlyFormattedTypeInferenceEngine engine(bad_code);
+	cstr sbPos = strstr(bad_code, "sb.");
+
+	VALIDATE(sbPos != nullptr);
+
+	auto inference = engine.InferLocalVariableVariableType({ sbPos, sbPos + 3 });
+	VALIDATE(Length(inference.declarationType) > 0);
+	VALIDATE(Length(inference.declarationVariable) > 0);
+	VALIDATE(Eq(inference.declarationType, "Sys.Type.IStringBuilder"_fstring));
+
+	auto inference2 = engine.InferLocalVariableVariableType({ sbPos, sbPos + 6 });
+	VALIDATE(inference2.declarationType);
+}
+
 #include <rococo.csv.h>
 
 void test()
 {
 	TestCodeInference();
+	TestCodeInferenceInterfaces();
 	TestQuadtree();
 	return;
 	TestOctree();
