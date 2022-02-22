@@ -28,25 +28,25 @@ namespace Rococo
 #endif
    
    template<size_t CAPACITY, typename... Args> 
-   inline int SafeFormat(char (&buffer)[CAPACITY], cstr format, Args... args)
+   inline int SafeFormat(_Out_writes_(CAPACITY) _Null_terminated_ char (&buffer)[CAPACITY], _Printf_format_string_ cstr format, Args... args)
    {
 	   return SafeFormat(buffer, CAPACITY, format, args...);
    }
    
    template<size_t CAPACITY, typename... Args> 
-   inline int SafeFormat(wchar_t (&buffer)[CAPACITY], const wchar_t* format, Args... args)
+   inline int SafeFormat(_Out_writes_(CAPACITY) _Null_terminated_ wchar_t (&buffer)[CAPACITY], _Printf_format_string_ const wchar_t* format, Args... args)
    {
 	   return SafeFormat(buffer, CAPACITY, format, args...);
    }
    
    template<size_t CAPACITY, typename... Args>
-   inline int SecureFormat(char(&buffer)[CAPACITY], cstr format, Args... args)
+   inline int SecureFormat(_Out_writes_(CAPACITY) _Null_terminated_ char(&buffer)[CAPACITY], _Printf_format_string_ cstr format, Args... args)
    {
 	   return SecureFormat(buffer, CAPACITY, format, args...);
    }
 
    template<size_t CAPACITY, typename... Args>
-   inline int SecureFormat(wchar_t(&buffer)[CAPACITY], const wchar_t* format, Args... args)
+   inline int SecureFormat(_Out_writes_(CAPACITY) _Null_terminated_ wchar_t(&buffer)[CAPACITY], _Printf_format_string_ const wchar_t* format, Args... args)
    {
 	   return SecureFormat(buffer, CAPACITY, format, args...);
    }
@@ -127,7 +127,7 @@ namespace Rococo
 
    struct StringBuilder
    {
-	   virtual StringBuilder& AppendFormat(const char* format, ...) = 0;
+	   virtual StringBuilder& AppendFormat(_Printf_format_string_ const char* format, ...) = 0;
 	   virtual StringBuilder& operator << (cstr text) = 0;
 	   virtual StringBuilder& AppendChar(char c) = 0;
 	   virtual StringBuilder& operator << (int32 value) = 0;
@@ -163,7 +163,7 @@ namespace Rococo
 	   StackStringBuilder(char* _buffer, size_t _capacity);
 	   StackStringBuilder(char* _buffer, size_t _capacity, eOpenType type);
 	   fstring operator * () const override { return fstring{ buffer, length }; }
-	   StringBuilder& AppendFormat(const char* format, ...) override;
+	   StringBuilder& AppendFormat(_Printf_format_string_ const char* format, ...) override;
 	   StringBuilder& operator << (cstr text) override;
 	   StringBuilder& AppendChar(char c) override;
 	   StringBuilder& operator << (int32 value)  override;

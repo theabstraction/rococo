@@ -32,8 +32,8 @@ using namespace Rococo;
 
 BOOL APIENTRY DllMain(HANDLE hModule, DWORD reasonForCall, LPVOID /*lpReserved*/)
 {
-	try {
-
+	try
+	{
 		switch (reasonForCall)
 		{
 			case DLL_PROCESS_ATTACH:
@@ -51,7 +51,10 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD reasonForCall, LPVOID /*lpReserved*/
 				break;
 		}
 	}
-	catch (...) { return FALSE; }
+	catch (...)
+	{
+		return FALSE;
+	}
 
     return TRUE;
 }
@@ -69,14 +72,14 @@ extern "C" __declspec(dllexport) const TCHAR * getName()
 {
 	static wchar_t name[128] = { 0 };
 
-	cstr ps = IsPluginValid() ? "": "(Could not load the Autocomplete DLL)";
+	cstr errMsg = IsPluginValid() ? "": " (Could not load the Autocomplete DLL)";
 
 	if (*name == 0)
 	{
 #ifdef _DEBUG
-		SafeFormat(name, sizeof name, L"SexyStudio for Notepad++ (Debug Build %hs)%hs", __TIMESTAMP__, ps);
+		SafeFormat(name, sizeof name, L"SexyStudio for Notepad++ (Debug Build %hs)%hs", __TIMESTAMP__, errMsg);
 #else
-		SafeFormat(name, sizeof name, L"SexyStudio for Notepad++ (Build %hs)%hs", __TIMESTAMP__, ps);
+		SafeFormat(name, sizeof name, L"SexyStudio for Notepad++ (Build %hs)%hs", __TIMESTAMP__, errMsg);
 #endif
 	}
 	return name;

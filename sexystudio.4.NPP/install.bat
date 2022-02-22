@@ -15,7 +15,6 @@ rem dir "%notepad_dir%"
 
 if exist %boot_dll% (
   copy "%boot_dll%" "%notepad_dir%\"
-  echo "Installed %boot_dll% to %notepad_dir%"
 ) else (
   echo "Could not find %boot_dll%" 
 )

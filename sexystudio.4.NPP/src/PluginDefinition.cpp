@@ -370,6 +370,7 @@ void onCharAdded(HWND hScintilla, char c)
 {
     if (sexyIDE)
     {
+        SendMessageA(hScintilla, SCI_CALLTIPCANCEL, 0, 0);
         SexyEditor_Scintilla editor(hScintilla);
         sexyIDE->UpdateAutoComplete(editor);
     }

@@ -1255,6 +1255,19 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 		}
 	}
 
+	void ShowFunctionArgumentsForType(ISexyEditor& editor, cr_substring candidate)
+	{
+		Substring token = Rococo::Sexy::GetFirstTokenFromLeft(candidate);
+
+		callTipArgs[0] = 0;
+
+		GetHintForCandidate(token, callTipArgs);
+		if (callTipArgs[0] != 0)
+		{
+			editor.ShowCallTipAtCaretPos(callTipArgs);
+		}
+	}
+
 	bool TryAddTokenOptionsToAutocomplete(ISexyEditor& editor, cr_substring candidate, int64 displacementFromCaret)
 	{
 		using namespace Rococo;
@@ -1353,6 +1366,36 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 		}
 	}
 
+	void SetHintToFunctionArguments(Rococo::AutoComplete::ISexyEditor& editor, const ISXYFunction& f, bool appendCloseParenthesis = true)
+	{
+		StackStringBuilder sb(callTipArgs, sizeof callTipArgs);
+		
+		for (int i = 0; i < f.InputCount(); ++i)
+		{
+			sb.AppendChar('(');
+			sb << f.InputType(i);
+			sb.AppendChar(' ');
+			sb << f.InputName(i);
+			sb.AppendChar(')');
+		}
+
+		sb << " -> ";
+
+		for (int j = 0; j < f.OutputCount(); ++j)
+		{
+			sb.AppendChar('(');
+			sb << f.OutputType(j);
+			sb.AppendChar(' ');
+			sb << f.OutputName(j);
+			sb.AppendChar(')');
+		}
+
+		if (appendCloseParenthesis)
+		{
+			sb.AppendChar(')');
+		}
+	}
+
 	void UpdateAutoComplete(Rococo::AutoComplete::ISexyEditor& editor) override
 	{
 		EditorLine currentLine;
@@ -1395,6 +1438,88 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 			else
 			{
 				autoCompleteCandidatePosition = 0;
+			}
+		}
+		else if (endTokenPtr > substringLine.start && (endTokenPtr[-1] == ' ' || endTokenPtr[-1] == '\t'))
+		{
+			// Potentially we have a method or function call followed by a space, which is a prompt to show the function arguments
+			endTokenPtr--;
+			if (endTokenPtr > substringLine.start && IsAlphaNumeric(endTokenPtr[-1]))
+			{
+				autoCompleteCandidatePosition = cursor.CaretPos();
+
+				cstr openingToken = Rococo::Sexy::GetFirstNonTokenPointerFromRight(substringLine, endTokenPtr);
+				if (openingToken == nullptr)
+				{
+					openingToken = substringLine.start;
+				}
+				else
+				{
+					openingToken++; // this takes us into the alphanumeric string
+				}
+				
+				Substring searchToken = Rococo::Sexy::GetFirstTokenFromLeft({ openingToken, substringLine.end });
+				autoCompleteCandidatePosition = openingToken - substringLine.start + cursor.lineStartPosition;
+
+				if (isupper(*openingToken))
+				{
+					// Potentially a function call
+					ShowFunctionArgumentsForType(editor, searchToken);
+					
+				}
+				else if (islower(*openingToken))
+				{
+					// Potentially a method call
+					cstr separator = Rococo::ReverseFind('.', searchToken);
+					if (separator && *separator == '.')
+					{
+						if (isupper(separator[1]))
+						{
+							// Potential method name, with left of separator being the interface variable
+							char type[256];
+							bool isThis;
+
+							int64 nCharsAndNull = editor.GetDocLength();
+							src_buffer.resize(nCharsAndNull);
+							editor.GetText(nCharsAndNull, src_buffer.data());
+
+							Substring doc;
+							doc.start = src_buffer.data();
+							doc.end = doc.start + nCharsAndNull - 1;
+
+							int64 caretPos = editor.GetCaretPos();
+
+							int64 displacementFromCaret = endTokenPtr - openingToken + 1;
+
+							cstr docCaretPos = doc.start + caretPos;
+							cstr start = docCaretPos - displacementFromCaret;
+							cstr end = start + Length(searchToken);
+
+							Substring candidateInDoc{ start, end};
+
+							Substring methodName{ separator + 1, searchToken.end };
+
+							if (Rococo::Sexy::TryGetLocalTypeFromCurrentDocument(type, isThis, candidateInDoc, doc))
+							{
+								auto* pInterface = database->FindInterface(type);
+								if (pInterface)
+								{
+									for (int i = 0; i < pInterface->MethodCount(); ++i)
+									{
+										auto& method = pInterface->GetMethod(i);
+										auto sMethod = to_fstring(method.PublicName());
+										if (Eq(sMethod, methodName))
+										{
+											SetHintToFunctionArguments(editor, method);
+											editor.ShowCallTipAtCaretPos(callTipArgs);
+											break;
+										}
+									}
+								}
+							}
+						}
+					}
+				}
 			}
 		}
 	}

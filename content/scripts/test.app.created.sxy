@@ -85,6 +85,7 @@
 	(IStringBuilder sb)
 	
 	(Matrix4x4 m)
+	(m.r0.x = 1.0)
 )
 
 (class Dog (defines Sys.IDog)

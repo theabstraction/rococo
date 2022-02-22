@@ -16,6 +16,7 @@ typedef __int64 ptrdiff_t;
 
 #ifdef _WIN32
 # define TIGHTLY_PACKED
+# include <sal.h>
 #else
 # define TIGHTLY_PACKED __attribute__((packed))
 # endif
@@ -265,7 +266,7 @@ namespace Rococo
 	};
 
 	[[ noreturn ]]
-	void Throw(int32 errorCode, cstr format, ...);
+	void Throw(int32 errorCode, _Printf_format_string_ cstr format, ...);
 
 	template<class T> struct IEventCallback
 	{

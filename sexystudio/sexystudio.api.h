@@ -230,14 +230,15 @@ namespace Rococo::SexyStudio
 
 	ROCOCOAPI ISexyDatabase
 	{
+		virtual void Clear() = 0;
 		virtual bool EnumerateVariableAndFieldList(cr_substring variable, cstr typeString, ISexyFieldEnumerator& fieldEnumerator) = 0;
+		virtual ISXYInterface* FindInterface(cstr typeString) = 0;
 		virtual void ForEachAutoCompleteCandidate(cr_substring prefix, ISexyFieldEnumerator& fieldEnumerator) = 0;
 		virtual void GetHintForCandidate(cr_substring prefix, char args[1024]) = 0;
+		virtual ISxyNamespace& GetRootNamespace() = 0;
 		virtual void Sort() = 0;
 		virtual void UpdateFile_SXY(cstr fullpathToSxy) = 0;
 		virtual void UpdateFile_SXY_PackedItem(cstr data, int32 length, cstr path) = 0;
-		virtual void Clear() = 0;
-		virtual ISxyNamespace& GetRootNamespace() = 0;
 	};
 
 	void PopulateTreeWithPackages(cstr searchPath, cstr packageFolder, ISexyDatabase& database);

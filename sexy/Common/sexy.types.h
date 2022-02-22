@@ -357,7 +357,7 @@ namespace Rococo
 		void AssertNotTooManyElements(cr_sex e, int32 maxElements);
 		void AssertNotTooFewElements(cr_sex e, int32 minElements);
 		cr_sex GetAtomicArg(cr_sex e, int argIndex);
-		[[noreturn]] void Throw(cr_sex e, cstr message, ...);
+		[[noreturn]] void Throw(cr_sex e, _Printf_format_string_ cstr format, ...);
 	}
 }// Sexy
 

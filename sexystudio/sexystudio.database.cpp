@@ -1407,6 +1407,11 @@ namespace ANON
 			}
 		}
 
+		ISXYInterface* FindInterface(cstr typeString) override
+		{
+			return RecursivelySearchForInterface(GetRootNamespace(), typeString);
+		}
+
 		ISXYInterface* RecursivelySearchForInterface(ISxyNamespace& ns, cstr typeString)
 		{
 			for (int i = 0; i < ns.SubspaceCount(); ++i)
@@ -1668,7 +1673,7 @@ namespace ANON
 					{
 						cstr inputName = l->InputName(j);
 						cstr inputType = l->InputType(j);
-						argBuilder.AppendFormat(" (%s %s)", inputType, inputName);
+						argBuilder.AppendFormat("(%s %s)", inputType, inputName);
 					}
 
 					argBuilder << " -> ";

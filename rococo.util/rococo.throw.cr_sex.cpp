@@ -130,7 +130,7 @@ namespace Rococo
          throw ex;
       }
 
-      void Throw(cr_sex e, cstr format, ...)
+      void Throw(cr_sex e, _Printf_format_string_ cstr format, ...)
       {
          va_list args;
          va_start(args, format);
