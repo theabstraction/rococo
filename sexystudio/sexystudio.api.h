@@ -233,19 +233,34 @@ namespace Rococo::SexyStudio
 		virtual void Clear() = 0;
 		virtual bool EnumerateVariableAndFieldList(cr_substring variable, cstr typeString, ISexyFieldEnumerator& fieldEnumerator) = 0;
 		virtual ISXYInterface* FindInterface(cstr typeString) = 0;
+		virtual void FocusProject(cstr projectFilePath) = 0;
 		virtual void ForEachAutoCompleteCandidate(cr_substring prefix, ISexyFieldEnumerator& fieldEnumerator) = 0;
 		virtual void GetHintForCandidate(cr_substring prefix, char args[1024]) = 0;
 		virtual ISxyNamespace& GetRootNamespace() = 0;
+		virtual void PingPathToSysPath(cstr pingPath, U8FilePath& sysPath) = 0;
 		virtual void Sort() = 0;
 		virtual void UpdateFile_SXY(cstr fullpathToSxy) = 0;
 		virtual void UpdateFile_SXY_PackedItem(cstr data, int32 length, cstr path) = 0;
 	};
 
-	void PopulateTreeWithPackages(cstr searchPath, cstr packageFolder, ISexyDatabase& database);
+	void BuildDatabaseFromProject(ISexyDatabase& database, cr_sex sProjectRoot, cstr projectPath);
+
+	typedef int64 ID_TREE_ITEM;
+
+	ROCOCOAPI ITreeOfStringsMap
+	{
+		virtual void Add(ID_TREE_ITEM item, cstr text) = 0;
+		virtual void Clear() = 0;
+		virtual cstr Find(ID_TREE_ITEM item) = 0;
+		virtual void Free() = 0;
+	};
+
+	void PopulateTreeWithPackages(cstr searchPath, cstr packageFolder, ISexyDatabase& database, ITreeOfStringsMap& treeOfStrings);
 
 	ROCOCOAPI ISexyDatabaseSupervisor : ISexyDatabase
 	{
 		virtual void Free() = 0;
+		virtual void SetScriptPath(cstr scriptFolder) = 0;
 	};
 
 	ISexyDatabaseSupervisor* CreateSexyDatabase();
@@ -331,8 +346,6 @@ namespace Rococo::SexyStudio
 		virtual WidgetContext& Context() = 0;
 	};
 
-	typedef int64 ID_TREE_ITEM;
-
 	enum class EFolderIcon
 	{
 		FOLDER_CLOSED = 0,
@@ -347,6 +360,17 @@ namespace Rococo::SexyStudio
 	struct TreeItemInfo
 	{
 		ID_TREE_ITEM idItem;
+	};
+
+	ROCOCOAPI IPopupMenuBuilder
+	{
+		virtual void AppendMenuItem(uint16 id, cstr text) = 0;
+	};
+
+	ROCOCOAPI IPopupMenu: IPopupMenuBuilder
+	{
+		virtual void ClearPopupMenu() = 0;
+		virtual void ShowPopupMenu(Vec2i pos) = 0;
 	};
 
 	ROCOCOAPI IGuiTree : IGuiWidget
@@ -366,11 +390,13 @@ namespace Rococo::SexyStudio
 		// Define the list of image identifiers, each is an int32, example SetImageList(2, ID_FOLDER_CLOSED, ID_FOLDER_OPEN, ID_FILE)
 		virtual void SetImageList(uint32 nItems, ...) = 0;
 		virtual Windows::IWindow& TreeWindow() = 0;
+		virtual IPopupMenu& PopupMenu() = 0;
 	};
 
 	ROCOCOAPI IGuiTreeEvents
 	{
 		virtual void OnItemContextClick(IGuiTree& tree, ID_TREE_ITEM hItem, Vec2i pos) = 0;
+		virtual void OnCommand(uint16 id) = 0;
 	};
 
 	struct TreeStyle
@@ -381,6 +407,8 @@ namespace Rococo::SexyStudio
 	};
 
 	IGuiTree* CreateTree(IWidgetSet& widgets, const TreeStyle& style, IGuiTreeEvents& eventHandler, IGuiTreeRenderer* customRenderer = nullptr);
+
+	ITreeOfStringsMap* CreateTreeOfStrings();
 
 	ROCOCOAPI IGuiWidgetEditor : IGuiWidget
 	{

@@ -13,9 +13,45 @@
 
 #include <rococo.package.h>
 
+namespace
+{
+	using namespace Rococo::SexyStudio;
+
+	struct TreeOfStrings : ITreeOfStringsMap
+	{
+		std::unordered_map<ID_TREE_ITEM, HString> items;
+
+		void Add(ID_TREE_ITEM item, cstr text) override
+		{
+			items[item] = text;
+		}
+
+		void Clear() override
+		{
+			items.clear();
+		}
+
+		cstr Find(ID_TREE_ITEM item) override
+		{
+			auto i = items.find(item);
+			return i != items.end() ? i->second.c_str() : nullptr;
+		}
+
+		void Free() override
+		{
+			delete this;
+		}
+	};
+}
+
 namespace Rococo::SexyStudio
 {
 	using namespace Rococo::Sex;
+
+	ITreeOfStringsMap* CreateTreeOfStrings()
+	{
+		return new TreeOfStrings();
+	}
 
 	bool TryGetShortPackageName(U8FilePath& path, cstr packagePath)
 	{
@@ -57,7 +93,7 @@ namespace Rococo::SexyStudio
 		tree.SetItemText(branchId, srcTree.Source().Name());
 	}
 
-	void PopulateTreeWithSXYFiles(IGuiTree& tree, cstr contentFolder, ISexyDatabase& database, IIDEFrame& frame)
+	void PopulateTreeWithSXYFiles(IGuiTree& tree, cstr contentFolder, ISexyDatabase& database, IIDEFrame& frame, ITreeOfStringsMap& treeOfStrings)
 	{
 		tree.Clear();
 		database.Clear();
@@ -89,6 +125,7 @@ namespace Rococo::SexyStudio
 			IGuiTree* tree;
 			ISexyDatabase* database;
 			IIDEFrame* frame;
+			ITreeOfStringsMap* treeOfStrings;
 			float totalCount = 0;
 			float count = 0;
 
@@ -131,6 +168,8 @@ namespace Rococo::SexyStudio
 						tree->SetContext(idItem, 0);
 
 						tree->SetItemImage(idItem, 2);
+
+						treeOfStrings->Add(idItem, u8Path);
 					}
 					else
 					{
@@ -145,6 +184,7 @@ namespace Rococo::SexyStudio
 		cb.tree = &tree;
 		cb.database = &database;
 		cb.frame = &frame;
+		cb.treeOfStrings = &treeOfStrings;
 
 		WideFilePath path;
 		Format(path, L"%hs", contentFolder);
@@ -191,7 +231,7 @@ namespace Rococo::SexyStudio
 		package.ForEachFileInCache(onFile);
 	}
 
-	void PopulateTreeWithPackages(cstr searchPath, cstr packageFolder, ISexyDatabase& database)
+	void PopulateTreeWithPackages(cstr searchPath, cstr packageFolder, ISexyDatabase& database, ITreeOfStringsMap& treeOfStrings)
 	{
 		WideFilePath widePath;
 		Assign(widePath, packageFolder);
@@ -223,6 +263,61 @@ namespace Rococo::SexyStudio
 		onDir.database = &database;
 
 		package->ForEachDirInCache(onDir);
+	}
+
+	void BuildDatabaseFromProject(ISexyDatabase& database, cr_sex sProjectRoot, cstr projectPath)
+	{
+		database.Clear();
+		database.UpdateFile_SXY(projectPath);
+
+		cstr natives[] =
+		{
+			"!scripts/native/Sys.Maths.sxy",
+			"!scripts/native/Sys.Reflection.sxy",
+			"!scripts/native/Sys.Type.Strings.sxy",
+			"!scripts/native/Sys.Type.sxy",
+		};
+
+		for (auto nativePath : natives)
+		{
+			U8FilePath sysPath;
+			database.PingPathToSysPath(nativePath, sysPath);
+			database.UpdateFile_SXY(sysPath);
+		}
+
+		for (int i = 0; i < sProjectRoot.NumberOfElements(); ++i)
+		{
+			auto& sTopLevelItem = sProjectRoot[i];
+			if (sTopLevelItem.NumberOfElements() > 3)
+			{
+				cr_sex sQuote = GetAtomicArg(sTopLevelItem, 0);
+				cr_sex sDirective = GetAtomicArg(sTopLevelItem, 1);
+
+				if (Eq(sQuote.String()->Buffer, "'"))
+				{
+					// Raw s-expression
+
+					if (Eq(sDirective.String()->Buffer, "#include"))
+					{
+						// Include statement
+
+						for (int j = 2; j < sTopLevelItem.NumberOfElements(); ++j)
+						{
+							cr_sex sPingPath = sTopLevelItem[j];
+
+							if (sPingPath.Type() == EXPRESSION_TYPE_STRING_LITERAL)
+							{
+								cstr pingPath = sPingPath.String()->Buffer;
+
+								U8FilePath sysPath;
+								database.PingPathToSysPath(pingPath, sysPath);
+								database.UpdateFile_SXY(sysPath);
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 
 	void Run()

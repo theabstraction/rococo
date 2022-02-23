@@ -1157,8 +1157,11 @@ namespace ANON
 	{
 		AutoRelease<ISParser> sparser;
 		ANON::SxyNamespace rootNS;
-
 		std::unordered_map<std::string, std::unique_ptr<File_SXY>> filenameToFile;
+		WideFilePath scriptFolder;
+
+		AutoFree<IOSSupervisor> os = GetOS();
+		AutoFree<IInstallationSupervisor> installation;
 
 		SexyDatabase(): 
 			sparser(Sexy_CreateSexParser_2_0(Rococo::Memory::CheckedAllocator())),
@@ -1172,9 +1175,43 @@ namespace ANON
 			
 		}
 
+		void SetScriptPath(cstr scriptFolder) override
+		{
+			Format(this->scriptFolder, L"%hs", scriptFolder);
+			installation = CreateInstallationDirect(this->scriptFolder, *os);
+		}
+
+		void PingPathToSysPath(cstr pingPath, U8FilePath& sysPath) override
+		{
+			// Ping paths have the format !directory/filename.
+
+			if (!installation)
+			{
+				Throw(0, "%s: no installation. Call SetScriptPath first", __FUNCTION__);
+			}
+			
+			WideFilePath wideSysPath;
+			installation->ConvertPingPathToSysPath(pingPath, wideSysPath);
+
+			Format(sysPath, "%ls", wideSysPath.buf);
+		}
+
 		ISxyNamespace& GetRootNamespace()
 		{
 			return rootNS;
+		}
+
+		void FocusProject(cstr projectFilePath)
+		{
+			WideFilePath wPath;
+			Assign(wPath, projectFilePath);
+
+			AutoRelease<ISourceCode> src = sparser->LoadSource(wPath, { 1,1 });
+			AutoRelease<ISParserTree> tree;
+
+			tree = sparser->CreateTree(*src);
+			
+			BuildDatabaseFromProject(*this, tree->Root(), projectFilePath);
 		}
 
 		void ResolveRecursive(SxyNamespace& ns)
@@ -1228,6 +1265,10 @@ namespace ANON
 					errorCode = file.errorCode;
 					if (errorBuffer) SafeFormat(errorBuffer, errorCapacity, "%s", file.errorMessage.c_str());
 					return nullptr;
+				}
+				else
+				{
+					return file.s_tree;
 				}
 			}
 		}

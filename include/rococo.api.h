@@ -27,6 +27,7 @@ namespace Rococo
 
 	namespace OS
 	{
+		void ShellOpenDocument(cstr path);
 		void TripDebugger();
 		void PrintDebug(const char* format, ...);
 		void ShowErrorBox(Windows::IWindow& parent, IException& ex, cstr caption);

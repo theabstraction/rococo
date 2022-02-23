@@ -201,6 +201,7 @@ namespace Rococo
 	IOSSupervisor* GetOS();
 
 	IInstallationSupervisor* CreateInstallation(const wchar_t* contentIndicatorName, IOS& os);
+	IInstallationSupervisor* CreateInstallationDirect(const wchar_t* contentDirectory, IOS& os);
 
 	bool DoesModifiedFilenameMatchResourceName(cstr modifiedFilename, cstr resourceName);
 

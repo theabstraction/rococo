@@ -18,6 +18,7 @@
 # pragma comment(lib, "rococo.misc.utils.lib")
 #endif
 
+#include <rococo.os.h>
 #include <shobjidl.h>
 #include <sexy.types.h>
 #include <Sexy.S-Parser.h>
@@ -53,14 +54,14 @@ auto evMetaUpdated = "sexystudio.meta.updated"_event;
 
 namespace Globals
 {
-	U8FilePath contentFolder{ "\\work\\rococo\\content\\scripts\\" };
+	U8FilePath contentFolder{ "\\work\\rococo\\content\\" };
 	U8FilePath packageFolder{ "\\work\\rococo\\content\\packages\\mhost_1000.sxyz" };
 	U8FilePath searchPath{ "" };
 }
 
 namespace Rococo::SexyStudio
 {
-	void PopulateTreeWithSXYFiles(IGuiTree& tree, cstr contentFolder, ISexyDatabase& database, IIDEFrame& frame);
+	void PopulateTreeWithSXYFiles(IGuiTree& tree, cstr contentFolder, ISexyDatabase& database, IIDEFrame& frame, ITreeOfStringsMap& treeOfStrings);
 }
 
 class PropertySheets: IObserver, IGuiTreeRenderer, IGuiTreeEvents
@@ -69,6 +70,7 @@ private:
 	WidgetContext wc;
 	IIDEFrame& ideFrame;
 	ISexyDatabase& database;
+	AutoFree<ITreeOfStringsMap> idToStringMap = CreateTreeOfStrings();
 	IGuiTree* fileBrowser = nullptr;
 	ITab* projectTab = nullptr;
 
@@ -78,8 +80,9 @@ private:
 		{
 			WaitCursorSection waitSection;
 			ideFrame.SetProgress(0.0f, "Populating file browser...");
-			PopulateTreeWithSXYFiles(*fileBrowser, Globals::contentFolder, database, ideFrame);
-			PopulateTreeWithPackages(Globals::searchPath, Globals::packageFolder, database);
+
+			PopulateTreeWithSXYFiles(*fileBrowser, Globals::contentFolder, database, ideFrame, *idToStringMap);
+			PopulateTreeWithPackages(Globals::searchPath, Globals::packageFolder, database, *idToStringMap);
 			ideFrame.SetProgress(100.0f, "Populated file browser");
 
 			database.Sort();
@@ -156,8 +159,6 @@ public:
 		fileBrowser->SetVisible(true);
 		fileBrowser->SetImageList(4, IDB_FOLDER_CLOSED, IDB_FOLDER_OPEN, IDB_FILETYPE_SXY, IDB_FILETYPE_UNKNOWN);
 
-	//	PopulateTreeWithSXYFiles(*fileBrowser, Globals::contentFolder, *database, ideFrame);
-
 		ideFrame.SetProgress(100.0f, "Complete!");
 
 		wc.publisher.Subscribe(this, evContentChange);
@@ -180,9 +181,67 @@ public:
 		projectTab->Activate();
 	}
 
+	enum { COMMAND_OPEN_FILE = 1001, COMMAND_FOCUS_PROJECT };
+	HString popupTargetFile;
+
+	void OpenFile(cstr path)
+	{
+		try
+		{
+			Rococo::OS::ShellOpenDocument(path);
+		}
+		catch (IException& ex)
+		{ 
+			Rococo::OS::ShowErrorBox(ideFrame.Window(), ex, "SexyStudio - Error");
+		}
+	}
+
+	void OnCommand(uint16 id) override
+	{
+		if (popupTargetFile.length() == 0)
+		{
+			return;
+		}
+
+		if (id == COMMAND_OPEN_FILE)
+		{
+			OpenFile(popupTargetFile.c_str());
+		}
+		else if (id == COMMAND_FOCUS_PROJECT)
+		{
+			try
+			{
+				database.FocusProject(popupTargetFile);
+
+				database.Sort();
+
+				TEventArgs<ISexyDatabase*> args;
+				args.value = &database;
+				wc.publisher.Publish(args, evMetaUpdated);
+			}
+			catch (IException& ex)
+			{
+				Rococo::OS::ShowErrorBox(ideFrame.Window(), ex, "SexyStudio - Error");
+			}
+		}
+	}
+
 	void OnItemContextClick(IGuiTree& tree, ID_TREE_ITEM hItem, Vec2i pos) override
 	{
+		cstr filePath = idToStringMap->Find(hItem);
+		if (!filePath)
+		{
+			return;
+		}
 
+		popupTargetFile = filePath;
+
+		auto& popup = tree.PopupMenu();
+
+		popup.ClearPopupMenu();
+		popup.AppendMenuItem(COMMAND_OPEN_FILE, "Open");
+		popup.AppendMenuItem(COMMAND_FOCUS_PROJECT, "Focus Project");
+		popup.ShowPopupMenu(pos);
 	}
 };
 
@@ -225,6 +284,12 @@ private:
 	ISexyDatabase& database;
 	IGuiTree* classTree;
 	ITab* classTab = nullptr;
+
+	void OnCommand(uint16 id) override
+	{
+
+	}
+
 
 	void OnItemContextClick(IGuiTree& tree, ID_TREE_ITEM hItem, Vec2i pos) override
 	{
@@ -1334,6 +1399,8 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 
 		projectView = splitScreen->GetFirstHalf();
 		sourceView = splitScreen->GetSecondHalf();
+
+		database->SetScriptPath(Globals::contentFolder);
 
 		sheets = new PropertySheets(*projectView, *ide, *database);
 		explorer = new SexyExplorer(context, *sourceView, *database);

@@ -475,6 +475,15 @@ namespace Rococo
 			}
 		}
 
+		void ShellOpenDocument(cstr documentFilePath)
+		{
+			auto result = (INT_PTR) ShellExecuteA(NULL, "open", documentFilePath, NULL, NULL, SW_SHOW);
+			if (result < 32)
+			{
+				Throw(GetLastError(), "%s: '%s'", __FUNCTION__, documentFilePath);
+			}
+		}
+
 		void WakeUp(IThreadControl& thread)
 		{
 			struct ANON
@@ -966,6 +975,11 @@ namespace
 		{
 			GetContentDirectory(contentIndicatorName, contentDirectory, os);
 			len = (int32)wcslen(contentDirectory);
+		}
+
+		Installation(IOS& _os, const wchar_t* contentPath) : os(_os)
+		{
+			len = Format(contentDirectory, L"%ls", contentPath);
 		}
 
 		void Free()  override
@@ -1643,6 +1657,11 @@ namespace Rococo
 	IInstallationSupervisor* CreateInstallation(const wchar_t* contentIndicatorName, IOS& os)
 	{
 		return new Installation(contentIndicatorName, os);
+	}
+
+	IInstallationSupervisor* CreateInstallationDirect(const wchar_t* contentDirectory, IOS& os)
+	{
+		return new Installation(os, contentDirectory);
 	}
 
 	ThreadLock::ThreadLock()

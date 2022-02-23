@@ -665,10 +665,10 @@ namespace Rococo
 			DeleteObject(br);
 		}
 
-      void StandardWindowHandler::OnPretranslateMessage(MSG& msg)
-      {
+		void StandardWindowHandler::OnPretranslateMessage(MSG& msg)
+		{
 
-      }
+		}
 
 		void StandardWindowHandler::OnGetMinMaxInfo(HWND hWnd, MINMAXINFO& info)
 		{

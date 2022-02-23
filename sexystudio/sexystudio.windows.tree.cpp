@@ -6,7 +6,7 @@ using namespace Rococo::SexyStudio;
 namespace
 {
 	// Is it a bird, is it a plane? No it's a tree.
-	struct Tree : IGuiTree, IWin32WindowMessageLoopHandler
+	struct Tree : IGuiTree, IWin32WindowMessageLoopHandler, IPopupMenu
 	{
 		Win32ChildWindow eventSinkWindow;
 		HWNDProxy hTreeWnd;
@@ -14,6 +14,7 @@ namespace
 		IGuiTreeEvents& eventHandler;
 		IGuiTreeRenderer* customRenderer;
 		HIMAGELIST hImages = nullptr;
+		HMENU hPopupMenu = nullptr;
 
 		Tree(IWidgetSet& widgets, const TreeStyle& treeStyle, IGuiTreeEvents& _eventHandler, IGuiTreeRenderer* _customRenderer):
 			eventSinkWindow(widgets.Parent(), *this),
@@ -48,7 +49,39 @@ namespace
 			if (hImages) ImageList_Destroy(hImages);
 		}
 
-		virtual Windows::IWindow& TreeWindow()
+		IPopupMenu& PopupMenu() override
+		{
+			return *this;
+		}
+
+		void ClearPopupMenu() override
+		{
+			if (hPopupMenu)
+			{
+				DestroyMenu(hPopupMenu);
+				hPopupMenu = NULL;
+			}
+		}
+
+		void AppendMenuItem(uint16 id, cstr text) override
+		{
+			if (!hPopupMenu)
+			{
+				hPopupMenu = CreatePopupMenu();
+			}
+
+			AppendMenuA(hPopupMenu, MF_STRING | MF_ENABLED, id, text);
+		}
+
+		void ShowPopupMenu(Vec2i pos) override
+		{
+			if (hPopupMenu)
+			{
+				TrackPopupMenuEx(hPopupMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_HORPOSANIMATION, pos.x, pos.y, eventSinkWindow, NULL);
+			}
+		}
+
+		Windows::IWindow& TreeWindow() override
 		{
 			return hTreeWnd;
 		}
@@ -64,7 +97,7 @@ namespace
 
 		LRESULT OnNotifyFromTreeView(NMHDR* header, bool& callDefProc)
 		{
-			callDefProc = true;;
+			callDefProc = true;
 
 			switch (header->code)
 			{
@@ -72,31 +105,29 @@ namespace
 			case TVN_ITEMEXPANDING:
 				OnExpansionChanged((NMTREEVIEW&)*header);
 				return 0L;
+			case NM_RCLICK:
+				{
+					DWORD dwpos = GetMessagePos();
+					POINT pos{ (LONG)GET_X_LPARAM(dwpos), (LONG)GET_Y_LPARAM(dwpos) };
+					POINT clientPos = pos;
+					ScreenToClient(hTreeWnd, &clientPos);
+
+					TVHITTESTINFO data = { 0 };
+					data.pt = clientPos;
+					TreeView_HitTest(hTreeWnd, &data);
+					
+					callDefProc = false;
+
+					if (data.flags & TVHT_ONITEM && data.hItem != NULL)
+					{
+						TreeView_SelectItem(hTreeWnd, data.hItem);
+						eventHandler.OnItemContextClick(*this, (ID_TREE_ITEM)data.hItem, Vec2i{ pos.x, pos.y });
+					}
+					return 0L;
+				}
 			}
 
 			return 0L;
-		}
-
-		HTREEITEM mouseTarget = NULL;
-
-		void OnRightButtonDown(WPARAM vKeyCodes, POINT pos)
-		{
-			TVHITTESTINFO data = { 0 };
-			data.pt = pos;
-			TreeView_HitTest(hTreeWnd, &data);
-			mouseTarget = data.hItem;
-		}
-
-		void OnRightButtonUp(WPARAM vKeyCodes, POINT pos)
-		{
-			TVHITTESTINFO data = { 0 };
-			data.pt = pos;
-			TreeView_HitTest(hTreeWnd, &data);
-
-			if (data.hItem != NULL && data.hItem == mouseTarget)
-			{
-				eventHandler.OnItemContextClick(*this, (ID_TREE_ITEM)mouseTarget, Vec2i{ pos.x, pos.y });
-			}
 		}
 
 		LRESULT ProcessMessage(UINT msg, WPARAM wParam, LPARAM lParam) override
@@ -112,12 +143,6 @@ namespace
 					MoveWindow(hTreeWnd, 0, 0, width, height, TRUE);
 				}
 				break;
-			case WM_RBUTTONDOWN:
-				OnRightButtonDown(wParam, { (LONG)GET_X_LPARAM(lParam), (LONG)GET_Y_LPARAM(lParam) });
-				return 0L;
-			case WM_RBUTTONUP:
-				OnRightButtonUp(wParam, { (LONG)GET_X_LPARAM(lParam), (LONG)GET_Y_LPARAM(lParam) });
-				return 0L;
 			case WM_NOTIFY:
 				{
 					auto* pHeader = (NMHDR*)(lParam);
@@ -134,6 +159,14 @@ namespace
 							return retValue;
 						}
 					}
+					break;
+				}
+			case WM_COMMAND:
+				if (HIWORD(wParam) == 0)
+				{
+					WORD id = LOWORD(wParam);
+					eventHandler.OnCommand(id);
+					return 0L;
 				}
 			}
 
