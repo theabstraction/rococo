@@ -11,11 +11,13 @@ namespace
 		Win32ChildWindow eventSinkWindow;
 		HWNDProxy hTreeWnd;
 		AutoFree<ILayoutSet> layouts = CreateLayoutSet();
+		IGuiTreeEvents& eventHandler;
 		IGuiTreeRenderer* customRenderer;
 		HIMAGELIST hImages = nullptr;
 
-		Tree(IWidgetSet& widgets, const TreeStyle& treeStyle, IGuiTreeRenderer* _customRenderer):
+		Tree(IWidgetSet& widgets, const TreeStyle& treeStyle, IGuiTreeEvents& _eventHandler, IGuiTreeRenderer* _customRenderer):
 			eventSinkWindow(widgets.Parent(), *this),
+			eventHandler(_eventHandler),
 			customRenderer(_customRenderer)
 		{
 			enum { BITMAP_SPAN = 24 };
@@ -75,6 +77,28 @@ namespace
 			return 0L;
 		}
 
+		HTREEITEM mouseTarget = NULL;
+
+		void OnRightButtonDown(WPARAM vKeyCodes, POINT pos)
+		{
+			TVHITTESTINFO data = { 0 };
+			data.pt = pos;
+			TreeView_HitTest(hTreeWnd, &data);
+			mouseTarget = data.hItem;
+		}
+
+		void OnRightButtonUp(WPARAM vKeyCodes, POINT pos)
+		{
+			TVHITTESTINFO data = { 0 };
+			data.pt = pos;
+			TreeView_HitTest(hTreeWnd, &data);
+
+			if (data.hItem != NULL && data.hItem == mouseTarget)
+			{
+				eventHandler.OnItemContextClick(*this, (ID_TREE_ITEM)mouseTarget, Vec2i{ pos.x, pos.y });
+			}
+		}
+
 		LRESULT ProcessMessage(UINT msg, WPARAM wParam, LPARAM lParam) override
 		{
 			switch (msg)
@@ -88,6 +112,12 @@ namespace
 					MoveWindow(hTreeWnd, 0, 0, width, height, TRUE);
 				}
 				break;
+			case WM_RBUTTONDOWN:
+				OnRightButtonDown(wParam, { (LONG)GET_X_LPARAM(lParam), (LONG)GET_Y_LPARAM(lParam) });
+				return 0L;
+			case WM_RBUTTONUP:
+				OnRightButtonUp(wParam, { (LONG)GET_X_LPARAM(lParam), (LONG)GET_Y_LPARAM(lParam) });
+				return 0L;
 			case WM_NOTIFY:
 				{
 					auto* pHeader = (NMHDR*)(lParam);
@@ -201,11 +231,11 @@ namespace
 			SendMessageA(hTreeWnd, TVM_SETITEMA, 0, (LPARAM)&item);
 		}
 
-		void SetItemText(cstr text, ID_TREE_ITEM hItem) override
+		void SetItemText(ID_TREE_ITEM hItem, cstr text) override
 		{
 			TV_ITEMA item = { 0 };
 			item.mask = TVIF_TEXT | TVIF_HANDLE;
-			item.pszText = const_cast<char*>(text);;
+			item.pszText = const_cast<char*>(text);
 			item.hItem = (HTREEITEM) hItem;
 			SendMessageA(hTreeWnd, TVM_SETITEMA, 0, (LPARAM)&item);
 		}
@@ -305,9 +335,9 @@ namespace
 
 namespace Rococo::SexyStudio
 {
-	IGuiTree* CreateTree(IWidgetSet& widgets, const TreeStyle& style, IGuiTreeRenderer* customRenderer)
+	IGuiTree* CreateTree(IWidgetSet& widgets, const TreeStyle& style, IGuiTreeEvents& eventHandler, IGuiTreeRenderer* customRenderer)
 	{
-		auto* tree = new Tree(widgets, style, customRenderer);
+		auto* tree = new Tree(widgets, style, eventHandler, customRenderer);
 		widgets.Add(tree);
 		return tree;
 	}

@@ -91,8 +91,8 @@ namespace Rococo
 	}
 #endif
 
-	int32 Format(U8FilePath& path, cstr format, ...);
-	int32 Format(WideFilePath& path, const wchar_t* format, ...);
+	int32 Format(U8FilePath& path, _Printf_format_string_ cstr format, ...);
+	int32 Format(WideFilePath& path, _Printf_format_string_ const wchar_t* format, ...);
 
 	void Assign(U8FilePath& dest, const wchar_t* wideSrc);
 	void Assign(WideFilePath& dest, const char* src);

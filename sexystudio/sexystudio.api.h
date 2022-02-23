@@ -358,7 +358,7 @@ namespace Rococo::SexyStudio
 		virtual void ExpandAt(ID_TREE_ITEM idItem) = 0;
 		virtual void SetContext(ID_TREE_ITEM idItem, uint64 contextId) = 0;
 		virtual void SetItemExpandedImage(ID_TREE_ITEM hItem, int imageIndex) = 0;
-		virtual void SetItemText(cstr text, ID_TREE_ITEM hItem) = 0;
+		virtual void SetItemText(ID_TREE_ITEM hItem, cstr text) = 0;
 		virtual void SetItemImage(ID_TREE_ITEM hItem, int imageIndex) = 0;
 		virtual void EnumerateChildren(ID_TREE_ITEM id, IEventCallback<TreeItemInfo>& cb) const = 0;
 		virtual void GetText(char* buffer, size_t capacity, ID_TREE_ITEM id) = 0;
@@ -368,6 +368,11 @@ namespace Rococo::SexyStudio
 		virtual Windows::IWindow& TreeWindow() = 0;
 	};
 
+	ROCOCOAPI IGuiTreeEvents
+	{
+		virtual void OnItemContextClick(IGuiTree& tree, ID_TREE_ITEM hItem, Vec2i pos) = 0;
+	};
+
 	struct TreeStyle
 	{
 		bool hasCheckBoxes = false;
@@ -375,7 +380,7 @@ namespace Rococo::SexyStudio
 		bool hasLines = false;
 	};
 
-	IGuiTree* CreateTree(IWidgetSet& widgets, const TreeStyle& style, IGuiTreeRenderer* customRenderer = nullptr);
+	IGuiTree* CreateTree(IWidgetSet& widgets, const TreeStyle& style, IGuiTreeEvents& eventHandler, IGuiTreeRenderer* customRenderer = nullptr);
 
 	ROCOCOAPI IGuiWidgetEditor : IGuiWidget
 	{

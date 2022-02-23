@@ -54,7 +54,7 @@ namespace Rococo::SexyStudio
 	void PopulateBranchWithSTree(IGuiTree& tree, ISParserTree& srcTree)
 	{
 		auto branchId = tree.AppendItem(0);
-		tree.SetItemText(srcTree.Source().Name(), branchId);
+		tree.SetItemText(branchId, srcTree.Source().Name());
 	}
 
 	void PopulateTreeWithSXYFiles(IGuiTree& tree, cstr contentFolder, ISexyDatabase& database, IIDEFrame& frame)
@@ -63,7 +63,7 @@ namespace Rococo::SexyStudio
 		database.Clear();
 
 		auto hRoot = tree.AppendItem(0);
-		tree.SetItemText(contentFolder, hRoot);
+		tree.SetItemText(hRoot, contentFolder);
 
 		struct ANON : IEventCallback<IO::FileItemData>
 		{
@@ -100,7 +100,7 @@ namespace Rococo::SexyStudio
 
 				U8FilePath itemText;
 				Format(itemText, "%ws", item.itemRelContainer);
-				tree->SetItemText(itemText, idItem);
+				tree->SetItemText(idItem, itemText);
 
 				if (item.isDirectory)
 				{
@@ -158,9 +158,9 @@ namespace Rococo::SexyStudio
 		catch (IException& ex)
 		{
 			auto hError = tree.AppendItem(hRoot);
-			tree.SetItemText("Error recursing content folder", hError);
+			tree.SetItemText(hError, "Error recursing content folder");
 			auto hErrorMsg = tree.AppendItem(hError);
-			tree.SetItemText(ex.Message(), hErrorMsg);
+			tree.SetItemText(hErrorMsg, ex.Message());
 			return;
 		}
 

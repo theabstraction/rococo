@@ -63,7 +63,7 @@ namespace Rococo::SexyStudio
 	void PopulateTreeWithSXYFiles(IGuiTree& tree, cstr contentFolder, ISexyDatabase& database, IIDEFrame& frame);
 }
 
-class PropertySheets: IObserver, IGuiTreeRenderer
+class PropertySheets: IObserver, IGuiTreeRenderer, IGuiTreeEvents
 {
 private:
 	WidgetContext wc;
@@ -150,7 +150,7 @@ public:
 		style.hasButtons = true;
 		style.hasLines = true;
 
-		fileBrowser = CreateTree(projectTab->Children(), style, this);
+		fileBrowser = CreateTree(projectTab->Children(), style, *this, this);
 		Widgets::AnchorToParent(*fileBrowser, 0, 64, 0, 0);
 
 		fileBrowser->SetVisible(true);
@@ -178,6 +178,11 @@ public:
 	void SelectProjectTab()
 	{
 		projectTab->Activate();
+	}
+
+	void OnItemContextClick(IGuiTree& tree, ID_TREE_ITEM hItem, Vec2i pos) override
+	{
+
 	}
 };
 
@@ -212,7 +217,7 @@ enum class ClassImageIndex: int32
 	ARCHETYPE
 };
 
-class SexyExplorer: IObserver
+class SexyExplorer: IObserver, IGuiTreeEvents
 {
 private:
 	WidgetContext wc;
@@ -221,12 +226,17 @@ private:
 	IGuiTree* classTree;
 	ITab* classTab = nullptr;
 
+	void OnItemContextClick(IGuiTree& tree, ID_TREE_ITEM hItem, Vec2i pos) override
+	{
+
+	}
+
 	void AppendArguments(ID_TREE_ITEM idFunction, ISXYArchetype& archetype)
 	{
 		if (archetype.InputCount() + archetype.OutputCount() == 0)
 		{
 			auto idNoArg = classTree->AppendItem(idFunction);
-			classTree->SetItemText(" - no arguments -", idNoArg);
+			classTree->SetItemText(idNoArg, " - no arguments -");
 			classTree->SetItemImage(idNoArg, (int)ClassImageIndex::BLANK);
 		}
 
@@ -235,14 +245,14 @@ private:
 			auto idInputArg = classTree->AppendItem(idFunction);
 			char desc[256];
 			SafeFormat(desc, "%s %s", archetype.InputType(k), archetype.InputName(k));
-			classTree->SetItemText(desc, idInputArg);
+			classTree->SetItemText(idInputArg, desc);
 			classTree->SetItemImage(idInputArg, (int)ClassImageIndex::INPUT);
 		}
 
 		if (archetype.OutputCount() > 0)
 		{
 			auto idMapArg = classTree->AppendItem(idFunction);
-			classTree->SetItemText("->", idMapArg);
+			classTree->SetItemText(idMapArg, "->");
 			classTree->SetItemImage(idMapArg, (int)ClassImageIndex::BLANK);
 
 			for (int k = 0; k < archetype.OutputCount(); ++k)
@@ -250,7 +260,7 @@ private:
 				auto idOutputArg = classTree->AppendItem(idFunction);
 				char desc[256];
 				SafeFormat(desc, "%s %s", archetype.OutputType(k), archetype.OutputName(k));
-				classTree->SetItemText(desc, idOutputArg);
+				classTree->SetItemText(idOutputArg, desc);
 				classTree->SetItemImage(idOutputArg, (int)ClassImageIndex::OUTPUT);
 			}
 		}
@@ -287,7 +297,7 @@ private:
 				SafeFormat(desc, "%-64.64s %s", interf.PublicName(), interf.SourcePath());
 			}
 
-			classTree->SetItemText(desc, idInterface);
+			classTree->SetItemText(idInterface, desc);
 			classTree->SetItemImage(idInterface, (int)ClassImageIndex::INTERFACE);
 
 			cstr base = interf.Base();
@@ -297,7 +307,7 @@ private:
 
 				char desc[256];
 				SafeFormat(desc, "extends %s", base);
-				classTree->SetItemText(desc, idBase);
+				classTree->SetItemText(idBase, desc);
 				classTree->SetItemImage(idBase, (int)ClassImageIndex::EXTENDS);
 			}
 
@@ -307,7 +317,7 @@ private:
 				char desc[256];
 				SafeFormat(desc, "attribute %s", attr);
 				auto idAttr = classTree->AppendItem(idInterface);
-				classTree->SetItemText(desc, idAttr);
+				classTree->SetItemText(idAttr, desc);
 				classTree->SetItemImage(idAttr, (int)ClassImageIndex::ATTRIBUTE);
 			}
 
@@ -316,7 +326,7 @@ private:
 				auto& method = interf.GetMethod(j);
 
 				auto idMethod = classTree->AppendItem(idInterface);
-				classTree->SetItemText(method.PublicName(), idMethod);
+				classTree->SetItemText(idMethod, method.PublicName());
 				classTree->SetItemImage(idMethod, (int)ClassImageIndex::METHOD);
 
 				AppendArguments(idMethod, method);
@@ -335,7 +345,7 @@ private:
 
 			char desc[256];
 			SafeFormat(desc, "%-64.64s %s", type.PublicName(), localType ? localType->SourcePath() : "");
-			classTree->SetItemText(desc, idType);
+			classTree->SetItemText(idType, desc);
 			classTree->SetItemImage(idType, (int)ClassImageIndex::STRUCT);
 
 			if (localType)
@@ -348,7 +358,7 @@ private:
 
 					char desc[256];
 					SafeFormat(desc, "%s %s", field.type, field.name);
-					classTree->SetItemText(desc, idField);
+					classTree->SetItemText(idField, desc);
 					classTree->SetItemImage(idField, (int)ClassImageIndex::FIELD);
 				}
 			}
@@ -365,7 +375,7 @@ private:
 
 			char desc[256];
 			SafeFormat(desc, "%-64.64s %s", publicName, appendSourceName ? archetype.SourcePath() : "");
-			classTree->SetItemText(desc, idArchetype);
+			classTree->SetItemText(idArchetype, desc);
 			classTree->SetItemImage(idArchetype, (int)ClassImageIndex::ARCHETYPE);
 
 			AppendArguments(idArchetype, archetype);
@@ -392,7 +402,7 @@ private:
 
 			char desc[256];
 			SafeFormat(desc, "%-64.64s %s", publicName, appendSourceName && localFunction ? localFunction->SourcePath() : "");
-			classTree->SetItemText(desc, idFunction);
+			classTree->SetItemText(idFunction, desc);
 			classTree->SetItemImage(idFunction, (int)ClassImageIndex::FUNCTION);
 
 			if (localFunction)
@@ -418,13 +428,13 @@ private:
 
 			char desc[256];
 			SafeFormat(desc, "%-64.64s %s", shortDesc, appendSourceName  ? factory.SourcePath() : "");
-			classTree->SetItemText(desc, idFactory);
+			classTree->SetItemText(idFactory, desc);
 			classTree->SetItemImage(idFactory, (int)ClassImageIndex::FACTORY);
 
 			if (factory.InputCount()  == 0)
 			{
 				auto idNoArg = classTree->AppendItem(idFactory);
-				classTree->SetItemText(" - no arguments -", idNoArg);
+				classTree->SetItemText(idNoArg, " - no arguments -");
 				classTree->SetItemImage(idNoArg, (int)ClassImageIndex::BLANK);
 			}
 
@@ -433,7 +443,7 @@ private:
 				auto idInputArg = classTree->AppendItem(idFactory);
 				char desc[256];
 				SafeFormat(desc, "%s %s", factory.InputType(k), factory.InputName(k));
-				classTree->SetItemText(desc, idInputArg);
+				classTree->SetItemText(idInputArg, desc);
 				classTree->SetItemImage(idInputArg, (int)ClassImageIndex::INPUT);
 			}
 		}
@@ -444,7 +454,7 @@ private:
 		if (ns.EnumCount() > 0)
 		{
 			auto idEnums = classTree->AppendItem(idNSNode);
-			classTree->SetItemText("Enumerations", idEnums);
+			classTree->SetItemText(idEnums, "Enumerations");
 			classTree->SetItemImage(idEnums, (int)ClassImageIndex::ENUM);
 
 			for (int i = 0; i < ns.EnumCount(); ++i)
@@ -459,7 +469,7 @@ private:
 
 				char fulldesc[256];
 				SafeFormat(fulldesc, "%-64.64s %s", desc, ns.GetEnumSourcePath(i));
-				classTree->SetItemText(fulldesc, idEnum);
+				classTree->SetItemText(idEnum, fulldesc);
 				classTree->SetItemImage(idEnum, (int)ClassImageIndex::ENUM);
 			}
 		}
@@ -479,7 +489,7 @@ private:
 
 			char fulldesc[256];
 			SafeFormat(fulldesc, "%-64.64s %s", desc, ns.GetAliasSourcePath(i));
-			classTree->SetItemText(fulldesc, idAlias);
+			classTree->SetItemText(idAlias, fulldesc);
 			classTree->SetItemImage(idAlias, (int)ClassImageIndex::ALIAS);
 		}
 	}
@@ -492,7 +502,7 @@ private:
 			auto idBranch = classTree->AppendItem(idNSNode);
 			mapNSToTreeItemId[&subspace] = idBranch;
 			mapTreeItemIdToNS[idBranch] = &subspace;
-			classTree->SetItemText(subspace.Name(), idBranch);
+			classTree->SetItemText(idBranch, subspace.Name());
 			classTree->SetItemImage(idBranch, (int)ClassImageIndex::NAMESPACE);
 			AppendNamespaceRecursive(subspace, idBranch, database);
 		}
@@ -511,7 +521,7 @@ private:
 		classTree->Clear();
 
 		ID_TREE_ITEM idNamespace = classTree->AppendItem(0);
-		classTree->SetItemText("Namespaces", idNamespace);
+		classTree->SetItemText(idNamespace, "Namespaces");
 		classTree->SetItemImage(idNamespace, (int) ClassImageIndex::NAMESPACE);
 
 		mapNSToTreeItemId.clear();
@@ -993,7 +1003,7 @@ public:
 		style.hasButtons = true;
 		style.hasCheckBoxes = false;
 		style.hasLines = true;
-		classTree = CreateTree(classTab->Children(), style);
+		classTree = CreateTree(classTab->Children(), style, *this);
 		classTree->SetImageList(15, IDB_BLANK, IDB_NAMESPACE, IDB_INTERFACE, IDB_METHOD, IDB_STRUCT, IDB_FIELD, IDB_EXTENDS, IDB_ATTRIBUTE, IDB_FUNCTION, IDB_INPUT, IDB_OUTPUT, IDB_ENUM, IDB_ALIAS, IDB_FACTORY, IDB_ARCHETYPE);
 
 		SendMessageA(classTree->TreeWindow(), WM_SETFONT, (WPARAM) (HFONT) _wc.fontSmallLabel, 0);
@@ -1597,8 +1607,8 @@ BOOL WINAPI DllMain(HINSTANCE hDLL, DWORD fdwReason, LPVOID lpReserved)
 	return TRUE;
 }
 
-cstr URL_base = "Rococo.SexyStudio.ISexyStudioBase";
-cstr URL_factory = "Rococo.SexyStudio.ISexyStudioFactory1";
+const char* const URL_base = "Rococo.SexyStudio.ISexyStudioBase";
+const char* const URL_factory = "Rococo.SexyStudio.ISexyStudioFactory1";
 
 struct Factory: Rococo::SexyStudio::ISexyStudioFactory1
 {
