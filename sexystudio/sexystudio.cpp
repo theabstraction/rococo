@@ -64,6 +64,18 @@ namespace Rococo::SexyStudio
 	void PopulateTreeWithSXYFiles(IGuiTree& tree, cstr contentFolder, ISexyDatabase& database, IIDEFrame& frame, ITreeOfStringsMap& treeOfStrings);
 }
 
+void OpenFile(IWindow& mainWindow, cstr path)
+{
+	try
+	{
+		Rococo::OS::ShellOpenDocument(path);
+	}
+	catch (IException& ex)
+	{
+		Rococo::OS::ShowErrorBox(mainWindow, ex, "SexyStudio - Error");
+	}
+}
+
 class PropertySheets: IObserver, IGuiTreeRenderer, IGuiTreeEvents
 {
 private:
@@ -184,18 +196,6 @@ public:
 	enum { COMMAND_OPEN_FILE = 1001, COMMAND_FOCUS_PROJECT };
 	HString popupTargetFile;
 
-	void OpenFile(cstr path)
-	{
-		try
-		{
-			Rococo::OS::ShellOpenDocument(path);
-		}
-		catch (IException& ex)
-		{ 
-			Rococo::OS::ShowErrorBox(ideFrame.Window(), ex, "SexyStudio - Error");
-		}
-	}
-
 	void OnCommand(uint16 id) override
 	{
 		if (popupTargetFile.length() == 0)
@@ -205,7 +205,7 @@ public:
 
 		if (id == COMMAND_OPEN_FILE)
 		{
-			OpenFile(popupTargetFile.c_str());
+			OpenFile(ideFrame.Window(), popupTargetFile.c_str());
 		}
 		else if (id == COMMAND_FOCUS_PROJECT)
 		{
@@ -285,15 +285,96 @@ private:
 	IGuiTree* classTree;
 	ITab* classTab = nullptr;
 
+	enum { OPEN_ITEM = 1001 };	
+	
+	HString popupSourceModule;
+
 	void OnCommand(uint16 id) override
 	{
-
+		if (id == OPEN_ITEM && popupSourceModule.length() > 0)
+		{
+			OpenFile(screen.Window(), popupSourceModule);
+		}
 	}
-
 
 	void OnItemContextClick(IGuiTree& tree, ID_TREE_ITEM hItem, Vec2i pos) override
 	{
+		popupSourceModule = "";
 
+		auto i = idToFunction.find(hItem);
+		if (i != idToFunction.end())
+		{
+			auto* src = i->second->LocalFunction()->SourcePath();
+			if (src)
+			{
+				popupSourceModule = src;
+
+				auto& popup = tree.PopupMenu();
+				popup.ClearPopupMenu();
+				popup.AppendMenuItem(OPEN_ITEM, "Open");
+				popup.ShowPopupMenu(pos);
+			}
+		}
+
+		auto j = idToInterface.find(hItem);
+		if (j != idToInterface.end())
+		{
+			auto* src = j->second->SourcePath();
+			if (src)
+			{
+				popupSourceModule = src;
+
+				auto& popup = tree.PopupMenu();
+				popup.ClearPopupMenu();
+				popup.AppendMenuItem(OPEN_ITEM, "Open");
+				popup.ShowPopupMenu(pos);
+			}
+		}
+
+		auto k = idToFactory.find(hItem);
+		if (k != idToFactory.end())
+		{
+			auto* src = k->second->SourcePath();
+			if (src)
+			{
+				popupSourceModule = src;
+
+				auto& popup = tree.PopupMenu();
+				popup.ClearPopupMenu();
+				popup.AppendMenuItem(OPEN_ITEM, "Open");
+				popup.ShowPopupMenu(pos);
+			}
+		}
+
+		auto l = idToType.find(hItem);
+		if (l != idToType.end())
+		{
+			auto* src = l->second->LocalType()->SourcePath();
+			if (src)
+			{
+				popupSourceModule = src;
+
+				auto& popup = tree.PopupMenu();
+				popup.ClearPopupMenu();
+				popup.AppendMenuItem(OPEN_ITEM, "Open");
+				popup.ShowPopupMenu(pos);
+			}
+		}
+
+		auto m = idToArchetype.find(hItem);
+		if (m != idToArchetype.end())
+		{
+			auto* src = m->second->SourcePath();
+			if (src)
+			{
+				popupSourceModule = src;
+
+				auto& popup = tree.PopupMenu();
+				popup.ClearPopupMenu();
+				popup.AppendMenuItem(OPEN_ITEM, "Open");
+				popup.ShowPopupMenu(pos);
+			}
+		}
 	}
 
 	void AppendArguments(ID_TREE_ITEM idFunction, ISXYArchetype& archetype)
@@ -331,12 +412,16 @@ private:
 		}
 	}
 
+	std::unordered_map<ID_TREE_ITEM, ISXYInterface*> idToInterface;
+
 	void AppendInterfaces(ISxyNamespace& ns, ID_TREE_ITEM idNSNode)
 	{
 		for (int i = 0; i < ns.InterfaceCount(); ++i)
 		{
 			auto& interf = ns.GetInterface(i);
 			auto idInterface = classTree->AppendItem(idNSNode);
+
+			idToInterface[idInterface] = &interf;
 
 			cstr className = nullptr;
 
@@ -399,6 +484,8 @@ private:
 		}
 	}
 
+	std::unordered_map<ID_TREE_ITEM, ISXYType*> idToType;
+
 	void AppendTypes(ISxyNamespace& ns, ID_TREE_ITEM idNSNode, ISexyDatabase& database)
 	{
 		for (int i = 0; i < ns.TypeCount(); ++i)
@@ -407,6 +494,8 @@ private:
 			auto idType = classTree->AppendItem(idNSNode);
 			cstr publicName = type.PublicName();
 			auto* localType = type.LocalType();
+
+			idToType[idType] = &type;
 
 			char desc[256];
 			SafeFormat(desc, "%-64.64s %s", type.PublicName(), localType ? localType->SourcePath() : "");
@@ -430,6 +519,8 @@ private:
 		}
 	}
 
+	std::unordered_map<ID_TREE_ITEM, ISXYArchetype*> idToArchetype;
+
 	void AppendArchetypes(ISxyNamespace& ns, ID_TREE_ITEM idNSNode, ISexyDatabase& database, bool appendSourceName)
 	{
 		for (int i = 0; i < ns.ArchetypeCount(); ++i)
@@ -437,6 +528,8 @@ private:
 			auto& archetype = ns.GetArchetype(i);
 			auto idArchetype = classTree->AppendItem(idNSNode);
 			cstr publicName = archetype.PublicName();
+
+			idToArchetype[idArchetype] = &archetype;
 
 			char desc[256];
 			SafeFormat(desc, "%-64.64s %s", publicName, appendSourceName ? archetype.SourcePath() : "");
@@ -454,6 +547,8 @@ private:
 		mapPublicFunctionToTreeItem[&function] = itemId;
 	}
 
+	std::unordered_map<ID_TREE_ITEM, ISXYPublicFunction*> idToFunction;
+
 	void AppendFunctions(ISxyNamespace& ns, ID_TREE_ITEM idNSNode, ISexyDatabase& database, bool appendSourceName)
 	{
 		for (int i = 0; i < ns.FunctionCount(); ++i)
@@ -462,6 +557,8 @@ private:
 			auto idFunction = classTree->AppendItem(idNSNode);
 			cstr publicName = function.PublicName();
 			auto* localFunction = function.LocalFunction();
+
+			idToFunction[idFunction] = &function;
 
 			MapFunctionToClassTree(function, idFunction);
 
@@ -477,6 +574,8 @@ private:
 		}
 	}
 
+	std::unordered_map<ID_TREE_ITEM, ISXYFactory*> idToFactory;
+
 	void AppendFactories(ISxyNamespace& ns, ID_TREE_ITEM idNSNode, ISexyDatabase& database, bool appendSourceName)
 	{
 		for (int i = 0; i < ns.FactoryCount(); ++i)
@@ -484,6 +583,8 @@ private:
 			auto& factory = ns.GetFactory(i);
 			auto idFactory = classTree->AppendItem(idNSNode);
 			cstr publicName = factory.PublicName();
+
+			idToFactory[idFactory] = &factory;
 
 			char definedInterface[256];
 			factory.GetDefinedInterface(definedInterface, sizeof definedInterface);
@@ -592,6 +693,12 @@ private:
 		mapNSToTreeItemId.clear();
 		mapTreeItemIdToNS.clear();
 		mapPublicFunctionToTreeItem.clear();
+
+		idToArchetype.clear();
+		idToFactory.clear();
+		idToFunction.clear();
+		idToInterface.clear();
+		idToType.clear();
 
 		AppendNamespaceRecursive(database.GetRootNamespace(), idNamespace, database);
 	}
