@@ -94,7 +94,7 @@ private:
 			ideFrame.SetProgress(0.0f, "Populating file browser...");
 
 			PopulateTreeWithSXYFiles(*fileBrowser, Globals::contentFolder, database, ideFrame, *idToStringMap);
-			PopulateTreeWithPackages(Globals::searchPath, Globals::packageFolder, database, *idToStringMap);
+			PopulateTreeWithPackages(Globals::searchPath, Globals::packageFolder, database);
 			ideFrame.SetProgress(100.0f, "Populated file browser");
 
 			database.Sort();
@@ -1831,12 +1831,17 @@ static bool isInitialized = false;
 
 extern "C" _declspec(dllexport) int CreateSexyStudioFactory(void** ppInterface, const char* interfaceURL)
 {
+	if (ppInterface == nullptr || interfaceURL == nullptr)
+	{
+		return E_POINTER;
+	}
+
 	if (!isInitialized)
 	{
 		HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
 		if (FAILED(hr))
 		{
-			return hr;
+			return CO_E_NOTINITIALIZED;
 		}
 
 		Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All & ~Rococo::OS::BreakFlag_IllFormed_SExpression);
@@ -1856,11 +1861,6 @@ extern "C" _declspec(dllexport) int CreateSexyStudioFactory(void** ppInterface, 
 		atexit(CLOSURE::OnExit);
 
 		isInitialized = true;
-	}
-
-	if (ppInterface == nullptr || interfaceURL == nullptr)
-	{
-		return E_POINTER;
 	}
 
 	if (Eq(interfaceURL, URL_base) || Eq(interfaceURL, URL_factory))

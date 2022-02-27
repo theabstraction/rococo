@@ -228,6 +228,13 @@ namespace Rococo::SexyStudio
 		virtual void OnHintFound(cstr hint) = 0;
 	};
 
+	ROCOCOAPI ISolution
+	{
+		virtual cstr GetDeclarationPathForInclude(cstr includeName, int& priority) = 0;
+		virtual cstr GetDeclarationPathForImport(cstr packageName, int& priority) = 0;
+		virtual cstr GetPackagePingPath(cstr packageName) = 0;
+	};
+
 	ROCOCOAPI ISexyDatabase
 	{
 		virtual void Clear() = 0;
@@ -241,6 +248,8 @@ namespace Rococo::SexyStudio
 		virtual void Sort() = 0;
 		virtual void UpdateFile_SXY(cstr fullpathToSxy) = 0;
 		virtual void UpdateFile_SXY_PackedItem(cstr data, int32 length, cstr path) = 0;
+
+		virtual ISolution& Solution() = 0;
 	};
 
 	void BuildDatabaseFromProject(ISexyDatabase& database, cr_sex sProjectRoot, cstr projectPath);
@@ -255,7 +264,7 @@ namespace Rococo::SexyStudio
 		virtual void Free() = 0;
 	};
 
-	void PopulateTreeWithPackages(cstr searchPath, cstr packageFolder, ISexyDatabase& database, ITreeOfStringsMap& treeOfStrings);
+	void PopulateTreeWithPackages(cstr searchPath, cstr packageFolder, ISexyDatabase& database);
 
 	ROCOCOAPI ISexyDatabaseSupervisor : ISexyDatabase
 	{

@@ -733,7 +733,30 @@ public:
 	void RefreshScript()
 	{
 		FreeAllChildren();
-		platform.utilities.RunEnvironmentScript(*this, scriptFilename.c_str(), true);
+
+		static bool hasPublishedDeclarations = false;
+		if (!hasPublishedDeclarations)
+		{
+			AutoFree<IDynamicStringBuilder> sb = CreateDynamicStringBuilder(4096);
+			platform.utilities.RunEnvironmentScript(*this, scriptFilename.c_str(), true, false, false, nullptr, &sb->Builder());
+
+			WideFilePath wPath;
+			platform.installation.ConvertPingPathToSysPath("!scripts/mplat/pane_declarations.sxy", wPath);
+
+			try
+			{
+				Rococo::OS::SaveAsciiTextFile(Rococo::OS::TargetDirectory_Root, wPath, *sb->Builder());
+				hasPublishedDeclarations = true;
+			}
+			catch (...)
+			{
+
+			}
+		}
+		else
+		{
+			platform.utilities.RunEnvironmentScript(*this, scriptFilename.c_str(), true);
+		}
 	}
 
 	void Render(IGuiRenderContext& grc, const Vec2i& topLeft, const Modality& modality) override

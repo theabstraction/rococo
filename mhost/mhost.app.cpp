@@ -29,7 +29,7 @@ namespace MHost
 	auto evPopulateBusyCategoryId = "busy.category"_event;
 	auto evPopulateBusyResourceId = "busy.resource"_event;
 
-	void RunEnvironmentScript(Platform& platform, IEngineSupervisor* engine, cstr name, bool releaseAfterUse, bool trace, IPackage& package, IEventCallback<cstr>* onScriptCrash, StringBuilder* declarationBuilder);
+	void RunMHostEnvironmentScript(Platform& platform, IEngineSupervisor* engine, cstr name, bool releaseAfterUse, bool trace, IPackage& package, IEventCallback<cstr>* onScriptCrash, StringBuilder* declarationBuilder);
 
 	namespace UI
 	{
@@ -341,6 +341,14 @@ namespace MHost
 			ReleaseMouse();
 		}
 
+		struct NoEventArgs : IEventCallback<ScriptCompileArgs>
+		{
+			void OnEvent(ScriptCompileArgs& args) override
+			{
+
+			}
+		};
+
 		void RunMPlatScript(const fstring& scriptName) override
 		{
 			struct CLOSURE : IEventCallback<ScriptCompileArgs>
@@ -353,13 +361,13 @@ namespace MHost
 			platform.utilities.RunEnvironmentScript(onCompile, 0, scriptName, true, false);
 		}
 
-		void Run() override
+		void CreateMHostDeclarations()
 		{
 			AutoFree<IDynamicStringBuilder> sb = CreateDynamicStringBuilder(4096);
-			RunEnvironmentScript(platform, this, "!scripts/MHost/_Init/keys.sxy", true, false, *packageMHost, this, &sb->Builder());
+			RunMHostEnvironmentScript(platform, this, "!scripts/MHost/_Init/create_declarations.sxy", true, false, *packageMHost, this, &sb->Builder());
 
 			WideFilePath wPath;
-			platform.installation.ConvertPingPathToSysPath("!scripts/mhost/declarations.sxy", wPath);
+			platform.installation.ConvertPingPathToSysPath("!scripts/MHost/declarations.sxy", wPath);
 
 			try
 			{
@@ -369,6 +377,55 @@ namespace MHost
 			{
 
 			}
+		}
+
+		void CreateMPlatPlatformDeclarations()
+		{
+			NoEventArgs noEventArgs;
+
+			AutoFree<IDynamicStringBuilder> sb = CreateDynamicStringBuilder(4096);
+			platform.utilities.RunEnvironmentScript(noEventArgs, "!scripts/mplat/create_platform_declarations.sxy", true, false, false, nullptr, &sb->Builder());
+
+			WideFilePath wPath;
+			platform.installation.ConvertPingPathToSysPath("!scripts/mplat/platform_declarations.sxy", wPath);
+
+			try
+			{
+				Rococo::OS::SaveAsciiTextFile(Rococo::OS::TargetDirectory_Root, wPath, *sb->Builder());
+			}
+			catch (...)
+			{
+
+			}
+		}
+
+		void CreateSysDeclarations()
+		{
+			NoEventArgs noEventArgs;
+
+			AutoFree<IDynamicStringBuilder> sb = CreateDynamicStringBuilder(4096);
+			platform.utilities.RunEnvironmentScript(noEventArgs, "!scripts/native/create_declarations.sxy", false, false, false, nullptr, &sb->Builder());
+
+			WideFilePath wPath;
+			platform.installation.ConvertPingPathToSysPath("!scripts/native/declarations.sxy", wPath);
+
+			try
+			{
+				Rococo::OS::SaveAsciiTextFile(Rococo::OS::TargetDirectory_Root, wPath, *sb->Builder());
+			}
+			catch (...)
+			{
+
+			}
+		}
+
+		void Run() override
+		{
+			CreateMHostDeclarations();
+			CreateMPlatPlatformDeclarations();
+			CreateSysDeclarations();
+
+			RunMHostEnvironmentScript(platform, this, "!scripts/MHost/_Init/keys.sxy", true, false, *packageMHost, this, nullptr);
 
 			while (platform.appControl.IsRunning() && !isShutdown)
 			{
@@ -380,7 +437,7 @@ namespace MHost
 				U8FilePath currentScript;
 				Format(currentScript, "%s", mainScript.c_str());
 
-				RunEnvironmentScript(platform, this, currentScript, true, false, *packageMHost, this, nullptr);
+				RunMHostEnvironmentScript(platform, this, currentScript, true, false, *packageMHost, this, nullptr);
 				CleanupResources();
 			}
 		}

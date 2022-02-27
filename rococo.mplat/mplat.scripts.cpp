@@ -243,7 +243,7 @@ namespace Rococo
 			Rococo::Script::SetDefaultNativeSourcePath(srcpath);
 		}
 
-		void RunEnvironmentScript(ScriptPerformanceStats& stats, Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail, bool trace, int id, IEventCallback<cstr>* onScriptCrash, StringBuilder* declarationBuilder)
+		void RunEnvironmentScriptImpl(ScriptPerformanceStats& stats, Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail, bool trace, int id, IEventCallback<cstr>* onScriptCrash, StringBuilder* declarationBuilder)
 		{
 			struct ScriptContext : public IEventCallback<ScriptCompileArgs>, public IDE::IScriptExceptionHandler
 			{

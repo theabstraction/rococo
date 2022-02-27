@@ -1843,7 +1843,7 @@ namespace Rococo
 
 				if (hFile == INVALID_HANDLE_VALUE)
 				{
-					Throw(GetLastError(), "Cannot create file %ls in root directory");
+					Throw(GetLastError(), "Cannot create file %ls in root directory", filename);
 				}
 				break;
 			default:

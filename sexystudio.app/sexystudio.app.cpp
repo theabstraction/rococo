@@ -53,7 +53,7 @@ void MainProtected(HINSTANCE hInstance, HMODULE hLib)
 	}
 	else
 	{
-		Throw(nErr, "CreateSexyStudioFactory did not recognize interface %s", interfaceURL);
+		Throw(nErr, "CreateSexyStudioFactory(&factory, %s) failed", interfaceURL);
 	}
 }
 
@@ -65,7 +65,6 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	if (!GetModuleFileNameW(NULL, directory.buf, directory.CAPACITY)) return GetLastError();
 	Rococo::OS::StripLastSubpath(directory.buf);
 
-	// path now contains the directory
 	WideFilePath pathToDLL;
 	Format(pathToDLL, L"%ls%ls", directory.buf, DLL_NAME);
 

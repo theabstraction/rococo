@@ -3,6 +3,8 @@
 #include <Sexy.S-Parser.h>
 #include <sexy.types.h>
 
+#include <rococo.auto-release.h>
+
 #include <sexy.lib.s-parser.h>
 #include <sexy.lib.util.h>
 
@@ -46,6 +48,7 @@ namespace
 
 namespace Rococo::SexyStudio
 {
+	using namespace Rococo;
 	using namespace Rococo::Sex;
 
 	ITreeOfStringsMap* CreateTreeOfStrings()
@@ -231,7 +234,7 @@ namespace Rococo::SexyStudio
 		package.ForEachFileInCache(onFile);
 	}
 
-	void PopulateTreeWithPackages(cstr searchPath, cstr packageFolder, ISexyDatabase& database, ITreeOfStringsMap& treeOfStrings)
+	void PopulateTreeWithPackages(cstr searchPath, cstr packageFolder, ISexyDatabase& database)
 	{
 		WideFilePath widePath;
 		Assign(widePath, packageFolder);
@@ -285,10 +288,13 @@ namespace Rococo::SexyStudio
 			database.UpdateFile_SXY(sysPath);
 		}
 
+		int bestPriority = INT_MAX;
+		cstr bestDeclarationsFile = nullptr;
+
 		for (int i = 0; i < sProjectRoot.NumberOfElements(); ++i)
 		{
 			auto& sTopLevelItem = sProjectRoot[i];
-			if (sTopLevelItem.NumberOfElements() > 3)
+			if (sTopLevelItem.NumberOfElements() >= 3)
 			{
 				cr_sex sQuote = GetAtomicArg(sTopLevelItem, 0);
 				cr_sex sDirective = GetAtomicArg(sTopLevelItem, 1);
@@ -305,18 +311,72 @@ namespace Rococo::SexyStudio
 						{
 							cr_sex sPingPath = sTopLevelItem[j];
 
-							if (sPingPath.Type() == EXPRESSION_TYPE_STRING_LITERAL)
+							if (IsStringLiteral(sPingPath))
 							{
 								cstr pingPath = sPingPath.String()->Buffer;
 
 								U8FilePath sysPath;
 								database.PingPathToSysPath(pingPath, sysPath);
 								database.UpdateFile_SXY(sysPath);
+
+								int priority;
+								cstr declarations = database.Solution().GetDeclarationPathForInclude(pingPath, priority);
+								if (declarations)
+								{
+									if (priority < bestPriority)
+									{
+										bestPriority = priority;
+										bestDeclarationsFile = declarations;
+									}
+								}
+							}
+						}
+					}
+					else if (Eq(sDirective.String()->Buffer, "#import"))
+					{
+						// Import statement
+
+						for (int j = 2; j < sTopLevelItem.NumberOfElements(); ++j)
+						{
+							cr_sex sPackage = sTopLevelItem[j];
+							if (sPackage.NumberOfElements() == 2)
+							{
+								cr_sex sPackageName = sPackage[0];
+
+								if (IsAtomic(sPackageName))
+								{
+									cstr packageName = sPackageName.String()->Buffer;
+
+									cstr packagePath = database.Solution().GetPackagePingPath(packageName);
+
+									U8FilePath sysPackagePath;
+									database.PingPathToSysPath(packagePath, sysPackagePath);
+
+									PopulateTreeWithPackages("", sysPackagePath, database);
+
+									int priority;
+									cstr declarations = database.Solution().GetDeclarationPathForImport(packageName, priority);
+									if (declarations)
+									{
+										if (priority < bestPriority)
+										{
+											bestPriority = priority;
+											bestDeclarationsFile = declarations;
+										}
+									}
+								}
 							}
 						}
 					}
 				}
 			}
+		}
+
+		if (bestDeclarationsFile)
+		{
+			U8FilePath sysPath;
+			database.PingPathToSysPath(bestDeclarationsFile, sysPath);
+			database.UpdateFile_SXY(sysPath);
 		}
 	}
 

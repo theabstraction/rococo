@@ -1,0 +1,11 @@
+(' #file.type rococo.script.declarations.generator)
+
+(' #import (mhost "MHost"))
+
+(function Main (Int32 id)->(Int32 exitCode):
+	// Note this file is executed by MHOST with the declaration builder set, creating the declarations.sxy file.
+	(Sys.Print "Generated MHOST declarations&n")
+)
+
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)

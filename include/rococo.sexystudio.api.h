@@ -47,12 +47,12 @@ namespace Rococo::SexyStudio
 	{
 		virtual IWindow& GetIDEFrame() = 0;
 		virtual void ReplaceCurrentSelectionWithCallTip(ISexyEditor& editor) = 0;
-		/* 
+		virtual Rococo::SexyStudio::ISexyDatabase& GetDatabase() = 0;
+
+		/*
 			cr_substring candidate - some substring in .sxy source text
 			char args[1024] - output buffer
 		*/
-
-		virtual Rococo::SexyStudio::ISexyDatabase& GetDatabase() = 0;
 		virtual void GetHintForCandidate(cr_substring candidate, char args[1024]) = 0;
 		virtual void ReplaceSelectedText(ISexyEditor& editor, cstr item) = 0;
 		virtual void SetTitle(cstr title) = 0;
@@ -74,6 +74,7 @@ namespace Rococo::SexyStudio
 	// int CreateSexyStudioFactory)(void** ppInterface, const char* interfaceURL) is defined in the SexyStudio DLL
 	// and retrieved by LoadLibrary and GetProcAddress. See the Win32 documentation for more info on these two functions.
 	// N.B CreateSexyStudioFactory is not thread safe and all calls to the function should be done from the same thread
+	// Returns an error code on failure, 0 on success.
 	typedef int (*FN_CreateSexyStudioFactory)(void** ppInterface, const char* interfaceURL);
 }
 

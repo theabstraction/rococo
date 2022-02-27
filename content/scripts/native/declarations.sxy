@@ -1,0 +1,517 @@
+(SexyDeclarations - containing 172 functions)
+
+(function GetStructCount1  (Pointer modulePtr) -> (Int32 structCount) : <native>)
+(alias GetStructCount1 Sys.Reflection.Native.GetStructCount)
+
+(function FastStringBuilderClear2  (Sys.Type.IStringBuilder sb) -> : <native>)
+(alias FastStringBuilderClear2 Sys.Native.FastStringBuilderClear)
+
+(function CreateMemoString3  (Pointer src) (Int32 srcLen) -> (Pointer dest) (Int32 destLength) : <native>)
+(alias CreateMemoString3 Sys.Native.CreateMemoString)
+
+(function AppendCTime4  (Sys.Type.IStringBuilder sb)->(Int32 nChars) : <native>)
+(alias AppendCTime4 Sys.OS.AppendCTime)
+
+(function AddVec2iVec2i5 (Sys.Maths.Vec2i a)(Sys.Maths.Vec2i b)(Sys.Maths.Vec2i sum)-> : <native>)
+(alias AddVec2iVec2i5 Sys.Maths.I32.AddVec2iVec2i)
+
+(function NativePrint6  (Sys.Type.Pointer s) -> (Int32 charCount) : <native>)
+(alias NativePrint6 Sys.Type.NativePrint)
+
+(function NewStringBuilder7  (Int32 capacity) -> (Sys.Type.IStringBuilder sb) : <native>)
+(alias NewStringBuilder7 Sys.Native.NewStringBuilder)
+
+(function ToFloat648 (Float32 x) -> (Float64 value) : <native>)
+(alias ToFloat648 Sys.Maths.F32.ToFloat64)
+
+(function ModuleCount9  -> (Int32 count) : <native>)
+(alias ModuleCount9 Sys.Reflection.Native.ModuleCount)
+
+(function DestructStringBuilder10  (Sys.Type.IStringBuilder sb)-> : <native>)
+(alias DestructStringBuilder10 Sys.Native.DestructStringBuilder)
+
+(function FastStringBuilderSetFormat11   (Sys.Type.IStringBuilder sb) (Int32 precision) (Int32 width) (Bool isZeroPrefixed) (Bool isRightAligned)-> : <native>)
+(alias FastStringBuilderSetFormat11 Sys.Native.FastStringBuilderSetFormat)
+
+(function ErrorFunction12 (Float32 x) -> (Float32 y) : <native>)
+(alias ErrorFunction12 Sys.Maths.F32.ErrorFunction)
+
+(function FreeMemoString13  (Pointer src) -> : <native>)
+(alias FreeMemoString13 Sys.Native.FreeMemoString)
+
+(function MinValue14  -> (Int32 value) : <native>)
+(alias MinValue14 Sys.Maths.I32.MinValue)
+
+(function RectfToRecti15  (Sys.Maths.Rectf rectf)(Sys.Maths.Recti recti)-> : <native>)
+(alias RectfToRecti15 Sys.Maths.F32.RectfToRecti)
+
+(function _DynamicCast16  (Pointer interface) (Pointer instanceRef) -> : <native>)
+(alias _DynamicCast16 Sys.Native._DynamicCast)
+
+(function FastStringBuilderAppendSubstring17  (Sys.Type.IStringBuilder sb) (Pointer s) (Int32 sLen) (Int32 startPos) (Int32 charsToAppend) -> : <native>)
+(alias FastStringBuilderAppendSubstring17 Sys.Native.FastStringBuilderAppendSubstring)
+
+(function PublishAPI18  -> : <native>)
+(alias PublishAPI18 Sys.Native.PublishAPI)
+
+(function ExpressionBuilderAddCopy19  (Pointer builderPtr) (Pointer xpressPtr) -> : <native>)
+(alias ExpressionBuilderAddCopy19 Sys.Reflection.Native.ExpressionBuilderAddCopy)
+
+(function StringCompare20   (Pointer s) (Pointer t) -> (Int32 diff) : <native>)
+(alias StringCompare20 Sys.Native.StringCompare)
+
+(function StringCompareI21   (Pointer s) (Pointer t) -> (Int32 diff) : <native>)
+(alias StringCompareI21 Sys.Native.StringCompareI)
+
+(function StringFindLeft22  (Pointer containerBuffer) (Int32 containerLength) (Int32 startPos) (Pointer substringBuffer) (Int32 substringLength) (Bool caseIndependent)-> (Int32 position) : <native>)
+(alias StringFindLeft22 Sys.Native.StringFindLeft)
+
+(function FastStringBuilderAppendPointer23  (Sys.Type.IStringBuilder sb) (Pointer x) -> : <native>)
+(alias FastStringBuilderAppendPointer23 Sys.Native.FastStringBuilderAppendPointer)
+
+(function StringFindRight24  (Pointer containerBuffer) (Int32 containerLength) (Int32 rightPos) (Pointer substringBuffer) (Int32 substringLength) (Bool caseIndependent)-> (Int32 position) : <native>)
+(alias StringFindRight24 Sys.Native.StringFindRight)
+
+(function ExpressionBuilderAddAtomic25  (Pointer builderPtr) (Pointer strBuffer) -> : <native>)
+(alias ExpressionBuilderAddAtomic25 Sys.Reflection.Native.ExpressionBuilderAddAtomic)
+
+(function FastStringBuilderAppendInt3226  (Sys.Type.IStringBuilder sb) (Int32 x) -> : <native>)
+(alias FastStringBuilderAppendInt3226 Sys.Native.FastStringBuilderAppendInt32)
+
+(function GetStruct27  (Pointer modulePtr) (Int32 index) -> (Sys.Reflection.IStructure structure) : <native>)
+(alias GetStruct27 Sys.Reflection.Native.GetStruct)
+
+(function AlignedMalloc28  (Int32 capacity) (Int32 alignment)-> (Pointer data) : <native>)
+(alias AlignedMalloc28 Sys.Native.AlignedMalloc)
+
+(function MinValue29  -> (Int64 value) : <native>)
+(alias MinValue29 Sys.Maths.I64.MinValue)
+
+(function FastStringBuilderAppendChar30  (Sys.Type.IStringBuilder sb) (Int32 asciiValue) -> : <native>)
+(alias FastStringBuilderAppendChar30 Sys.Native.FastStringBuilderAppendChar)
+
+(function MaxOf31 (Float32 x)(Float32 y) -> (Float32 maxValue) : <native>)
+(alias MaxOf31 Sys.Maths.F32.MaxOf)
+
+(function AlignedFree32  (Pointer data)-> : <native>)
+(alias AlignedFree32 Sys.Native.AlignedFree)
+
+(function GetModuleName33  (Pointer modulePtr) -> (Sys.Type.IString name) : <native>)
+(alias GetModuleName33 Sys.Reflection.Native.GetModuleName)
+
+(function FastStringBuilderAppendIString34  (Sys.Type.IStringBuilder sb) (Pointer src) (Int32 srclength) -> : <native>)
+(alias FastStringBuilderAppendIString34 Sys.Native.FastStringBuilderAppendIString)
+
+(function GetStructName35  (Pointer structPtr) -> (Sys.Type.IString name) : <native>)
+(alias GetStructName35 Sys.Reflection.Native.GetStructName)
+
+(function ExpressionGetParent36  (Pointer sPtr) -> (Sys.Reflection.IExpression parent) : <native>)
+(alias ExpressionGetParent36 Sys.Reflection.Native.ExpressionGetParent)
+
+(function IsNan37 (Float64 x) -> (Bool isNan) : <native>)
+(alias IsNan37 Sys.Maths.F64.IsNan)
+
+(function FastStringBuilderAppendInt6438  (Sys.Type.IStringBuilder sb) (Int64 x) -> : <native>)
+(alias FastStringBuilderAppendInt6438 Sys.Native.FastStringBuilderAppendInt64)
+
+(function FastStringBuilderAppendFloat3239  (Sys.Type.IStringBuilder sb) (Float32 x) -> : <native>)
+(alias FastStringBuilderAppendFloat3239 Sys.Native.FastStringBuilderAppendFloat32)
+
+(function FastStringBuilderAppendFloat6440  (Sys.Type.IStringBuilder sb) (Float64 x) -> : <native>)
+(alias FastStringBuilderAppendFloat6440 Sys.Native.FastStringBuilderAppendFloat64)
+
+(function BitwiseXor41 (Int32 x)(Int32 y) -> (Int32 result) : <native>)
+(alias BitwiseXor41 Sys.Maths.I32.BitwiseXor)
+
+(function AddVec2fVec2f42 (Sys.Maths.Vec2 a)(Sys.Maths.Vec2 b)(Sys.Maths.Vec2 sum)-> : <native>)
+(alias AddVec2fVec2f42 Sys.Maths.F32.AddVec2fVec2f)
+
+(function FastStringBuilderAppendBool43  (Sys.Type.IStringBuilder sb) (Bool x) -> : <native>)
+(alias FastStringBuilderAppendBool43 Sys.Native.FastStringBuilderAppendBool)
+
+(function GetExpressionType44   (Pointer sPtr) -> (Sys.Type.Int32 type) : <native>)
+(alias GetExpressionType44 Sys.Reflection.Native.GetExpressionType)
+
+(function FastStringBuilderAppendAsDecimal45  (Sys.Type.IStringBuilder sb) -> : <native>)
+(alias FastStringBuilderAppendAsDecimal45 Sys.Native.FastStringBuilderAppendAsDecimal)
+
+(function FastStringBuilderAppendAsHex46  (Sys.Type.IStringBuilder sb) ->  : <native>)
+(alias FastStringBuilderAppendAsHex46 Sys.Native.FastStringBuilderAppendAsHex)
+
+(function FastStringBuilderAppendAsSpec47  (Sys.Type.IStringBuilder sb) (Int32 type) ->  : <native>)
+(alias FastStringBuilderAppendAsSpec47 Sys.Native.FastStringBuilderAppendAsSpec)
+
+(function FastStringBuilderSetLength48  (Sys.Type.IStringBuilder sb)(Int32 length) -> : <native>)
+(alias FastStringBuilderSetLength48 Sys.Native.FastStringBuilderSetLength)
+
+(function RightShift49 (Int32 x)(Int32 bitCount) -> (Int32 value) : <native>)
+(alias RightShift49 Sys.Maths.I32.RightShift)
+
+(function FastStringBuilderSetCase50  (Sys.Type.IStringBuilder sb) (Int32 start) (Int32 end) (Bool toUpper)-> : <native>)
+(alias FastStringBuilderSetCase50 Sys.Native.FastStringBuilderSetCase)
+
+(function ClockHz51  -> (Int64 hz) : <native>)
+(alias ClockHz51 Sys.OS.ClockHz)
+
+(function ClockTicks52  -> (Int64 tickCount) : <native>)
+(alias ClockTicks52 Sys.OS.ClockTicks)
+
+(function QuietNan53  -> (Float32 value) : <native>)
+(alias QuietNan53 Sys.Maths.F32.QuietNan)
+
+(function ExpressionBuilderAddCopyToString54  (Pointer builderPtr) (Pointer xpressPtr) -> : <native>)
+(alias ExpressionBuilderAddCopyToString54 Sys.Reflection.Native.ExpressionBuilderAddCopyToString)
+
+(function MaxOf55 (Int64 x)(Int64 y) -> (Int64 maxValue) : <native>)
+(alias MaxOf55 Sys.Maths.I64.MaxOf)
+
+(function _throw56  (Sys.Type.Pointer ex)-> : <native>)
+(alias _throw56 Sys.Type._throw)
+
+(function ExpressionThrow57   (Pointer sPtr)(Int32 errorCode)(Sys.Type.Pointer buffer) -> : <native>)
+(alias ExpressionThrow57 Sys.Reflection.Native.ExpressionThrow)
+
+(function GetSysMessage58  (Sys.Type.Pointer msgHandle) -> (Sys.Type.IString message) : <native>)
+(alias GetSysMessage58 Sys.Type.GetSysMessage)
+
+(function ExpressionGetChild59  (Pointer sPtr) (Int32 index) ->  (Sys.Reflection.IExpression child) : <native>)
+(alias ExpressionGetChild59 Sys.Reflection.Native.ExpressionGetChild)
+
+(function ArcTan60 (Float32 x) -> (Float32 value) : <native>)
+(alias ArcTan60 Sys.Maths.F32.ArcTan)
+
+(function ExpressionChildCount61  (Pointer sPtr) -> (Int32 count) : <native>)
+(alias ExpressionChildCount61 Sys.Reflection.Native.ExpressionChildCount)
+
+(function Abs62 (Float32 x) -> (Float32 value) : <native>)
+(alias Abs62 Sys.Maths.F32.Abs)
+
+(function ToInt6463 (Float32 x) -> (Int64 value) : <native>)
+(alias ToInt6463 Sys.Maths.F32.ToInt64)
+
+(function ExpressionAppendTextTo64   (Pointer sPtr) (Sys.Type.IStringBuilder sb)-> : <native>)
+(alias ExpressionAppendTextTo64 Sys.Reflection.Native.ExpressionAppendTextTo)
+
+(function GetExpressionText65   (Pointer sPtr) -> (Sys.Type.IString name) : <native>)
+(alias GetExpressionText65 Sys.Reflection.Native.GetExpressionText)
+
+(function GetScriptSystem66  -> (Sys.Reflection.IScriptSystem ss) : <native>)
+(alias GetScriptSystem66 Sys.Reflection.Native.GetScriptSystem)
+
+(function IsQuietNan67 (Float64 x) -> (Bool isNan) : <native>)
+(alias IsQuietNan67 Sys.Maths.F64.IsQuietNan)
+
+(function GetModule68  (Int32 index) -> (Sys.Reflection.IModule module) : <native>)
+(alias GetModule68 Sys.Reflection.Native.GetModule)
+
+(function ExpressionBuilderSubstitute69  (Pointer builderPtr) (Pointer inputPtr) (Pointer formatPtr) -> (Int32 errorCount) : <native>)
+(alias ExpressionBuilderSubstitute69 Sys.Reflection.Native.ExpressionBuilderSubstitute)
+
+(function ErrorFunction70 (Float64 x) -> (Float64 y) : <native>)
+(alias ErrorFunction70 Sys.Maths.F64.ErrorFunction)
+
+(function ExpressionBuilderAddCompound71  (Pointer builderPtr) -> (Sys.Reflection.IExpressionBuilder child) : <native>)
+(alias ExpressionBuilderAddCompound71 Sys.Reflection.Native.ExpressionBuilderAddCompound)
+
+(function Mod72 (Float32 x)(Float32 y) -> (Float32 xMody) : <native>)
+(alias Mod72 Sys.Maths.F32.Mod)
+
+(function Clamp73 (Float32 x)(Float32 lower)(Float32 upper) -> (Float32 value) : <native>)
+(alias Clamp73 Sys.Maths.F32.Clamp)
+
+(function Sin74 (Float32 radians) -> (Float32 value) : <native>)
+(alias Sin74 Sys.Maths.F32.Sin)
+
+(function ToInt3275 (Float32 x) -> (Int32 value) : <native>)
+(alias ToInt3275 Sys.Maths.F32.ToInt32)
+
+(function Tan76 (Float32 radians) -> (Float32 value) : <native>)
+(alias Tan76 Sys.Maths.F32.Tan)
+
+(function Cos77 (Float32 radians) -> (Float32 value) : <native>)
+(alias Cos77 Sys.Maths.F32.Cos)
+
+(function ArcSin78 (Float32 x) -> (Float32 value) : <native>)
+(alias ArcSin78 Sys.Maths.F32.ArcSin)
+
+(function ArcCos79 (Float32 x) -> (Float32 value) : <native>)
+(alias ArcCos79 Sys.Maths.F32.ArcCos)
+
+(function ArcTanYX80 (Float32 y)(Float32 x) -> (Float32 value) : <native>)
+(alias ArcTanYX80 Sys.Maths.F32.ArcTanYX)
+
+(function ArcTan81 (Float64 x) -> (Float64 value) : <native>)
+(alias ArcTan81 Sys.Maths.F64.ArcTan)
+
+(function Sinh82 (Float32 x) -> (Float32 value) : <native>)
+(alias Sinh82 Sys.Maths.F32.Sinh)
+
+(function ToInt3283 (Int64 x) -> (Int32 value) : <native>)
+(alias ToInt3283 Sys.Maths.I64.ToInt32)
+
+(function Cosh84 (Float32 x) -> (Float32 value) : <native>)
+(alias Cosh84 Sys.Maths.F32.Cosh)
+
+(function Abs85 (Int32 x) -> (Int32 value) : <native>)
+(alias Abs85 Sys.Maths.I32.Abs)
+
+(function Tanh86 (Float32 x) -> (Float32 value) : <native>)
+(alias Tanh86 Sys.Maths.F32.Tanh)
+
+(function Exp87 (Float32 x) -> (Float32 value) : <native>)
+(alias Exp87 Sys.Maths.F32.Exp)
+
+(function Floor88 (Float32 x) -> (Float32 value) : <native>)
+(alias Floor88 Sys.Maths.F32.Floor)
+
+(function Ceiling89 (Float32 x) -> (Float32 value) : <native>)
+(alias Ceiling89 Sys.Maths.F32.Ceiling)
+
+(function Power90 (Float32 base)(Float32 exponent) -> (Float32 value) : <native>)
+(alias Power90 Sys.Maths.F32.Power)
+
+(function LogN91 (Float32 x) -> (Float32 value) : <native>)
+(alias LogN91 Sys.Maths.F32.LogN)
+
+(function Log1092 (Float32 x) -> (Float32 value) : <native>)
+(alias Log1092 Sys.Maths.F32.Log10)
+
+(function SquareRoot93 (Float32 x) -> (Float32 value) : <native>)
+(alias SquareRoot93 Sys.Maths.F32.SquareRoot)
+
+(function MinOf94 (Float32 x)(Float32 y) -> (Float32 minValue) : <native>)
+(alias MinOf94 Sys.Maths.F32.MinOf)
+
+(function RoundToNearest95 (Float32 x) -> (Float32 y) : <native>)
+(alias RoundToNearest95 Sys.Maths.F32.RoundToNearest)
+
+(function IsInfinity96 (Float32 x) -> (Bool isInfinity) : <native>)
+(alias IsInfinity96 Sys.Maths.F32.IsInfinity)
+
+(function IsFinite97 (Float32 x) -> (Bool isFinite) : <native>)
+(alias IsFinite97 Sys.Maths.F32.IsFinite)
+
+(function IsNormal98 (Float32 x) -> (Bool isNormal) : <native>)
+(alias IsNormal98 Sys.Maths.F32.IsNormal)
+
+(function IsNan99 (Float32 x) -> (Bool isNan) : <native>)
+(alias IsNan99 Sys.Maths.F32.IsNan)
+
+(function IsSignalNan100 (Float32 x) -> (Bool isNan) : <native>)
+(alias IsSignalNan100 Sys.Maths.F32.IsSignalNan)
+
+(function IsQuietNan101 (Float32 x) -> (Bool isNan) : <native>)
+(alias IsQuietNan101 Sys.Maths.F32.IsQuietNan)
+
+(function MinValue102  -> (Float32 value) : <native>)
+(alias MinValue102 Sys.Maths.F32.MinValue)
+
+(function MaxValue103  -> (Float32 value) : <native>)
+(alias MaxValue103 Sys.Maths.F32.MaxValue)
+
+(function SubtractVec2fVec2f104 (Sys.Maths.Vec2 a)(Sys.Maths.Vec2 b)(Sys.Maths.Vec2 diff)-> : <native>)
+(alias SubtractVec2fVec2f104 Sys.Maths.F32.SubtractVec2fVec2f)
+
+(function ToFloat32105 (Int32 x) -> (Float32 value) : <native>)
+(alias ToFloat32105 Sys.Maths.I32.ToFloat32)
+
+(function MultiplyVec2fFloat32106 (Sys.Maths.Vec2 a)(Float32 scale)(Sys.Maths.Vec2 product)-> : <native>)
+(alias MultiplyVec2fFloat32106 Sys.Maths.F32.MultiplyVec2fFloat32)
+
+(function DivideVec2fFloat32107 (Sys.Maths.Vec2 a)(Float32 scale)(Sys.Maths.Vec2 product)-> : <native>)
+(alias DivideVec2fFloat32107 Sys.Maths.F32.DivideVec2fFloat32)
+
+(function BitwiseNot108 (Int32 x) -> (Int32 notX) : <native>)
+(alias BitwiseNot108 Sys.Maths.I32.BitwiseNot)
+
+(function IsNotEqVec2fVec2f109 (Sys.Maths.Vec2 a)(Sys.Maths.Vec2 b)->(Bool result) : <native>)
+(alias IsNotEqVec2fVec2f109 Sys.Maths.F32.IsNotEqVec2fVec2f)
+
+(function IsEqVec2fVec2f110 (Sys.Maths.Vec2 a)(Sys.Maths.Vec2  b)->(Bool result) : <native>)
+(alias IsEqVec2fVec2f110 Sys.Maths.F32.IsEqVec2fVec2f)
+
+(function IsNotEqVec3fVec3f111 (Sys.Maths.Vec3 a)(Sys.Maths.Vec3 b)->(Bool result) : <native>)
+(alias IsNotEqVec3fVec3f111 Sys.Maths.F32.IsNotEqVec3fVec3f)
+
+(function IsEqVec3fVec3f112 (Sys.Maths.Vec3 a)(Sys.Maths.Vec3  b)->(Bool result) : <native>)
+(alias IsEqVec3fVec3f112 Sys.Maths.F32.IsEqVec3fVec3f)
+
+(function Clamp113 (Float64 x)(Float64 lower)(Float64 upper) -> (Float64 value) : <native>)
+(alias Clamp113 Sys.Maths.F64.Clamp)
+
+(function Mod114 (Int32 numerator)(Int32 denominator) -> (Int32 remainder) : <native>)
+(alias Mod114 Sys.Maths.I32.Mod)
+
+(function Sin115 (Float64 radians) -> (Float64 value) : <native>)
+(alias Sin115 Sys.Maths.F64.Sin)
+
+(function Cos116 (Float64 radians) -> (Float64 value) : <native>)
+(alias Cos116 Sys.Maths.F64.Cos)
+
+(function Tan117 (Float64 radians) -> (Float64 value) : <native>)
+(alias Tan117 Sys.Maths.F64.Tan)
+
+(function ArcSin118 (Float64 x) -> (Float64 value) : <native>)
+(alias ArcSin118 Sys.Maths.F64.ArcSin)
+
+(function ArcCos119 (Float64 x) -> (Float64 value) : <native>)
+(alias ArcCos119 Sys.Maths.F64.ArcCos)
+
+(function ArcTanYX120 (Float64 y)(Float64 x) -> (Float64 value) : <native>)
+(alias ArcTanYX120 Sys.Maths.F64.ArcTanYX)
+
+(function Abs121 (Float64 x) -> (Float64 value) : <native>)
+(alias Abs121 Sys.Maths.F64.Abs)
+
+(function Sinh122 (Float64 x) -> (Float64 value) : <native>)
+(alias Sinh122 Sys.Maths.F64.Sinh)
+
+(function Cosh123 (Float64 x) -> (Float64 value) : <native>)
+(alias Cosh123 Sys.Maths.F64.Cosh)
+
+(function Log10124 (Float64 x) -> (Float64 value) : <native>)
+(alias Log10124 Sys.Maths.F64.Log10)
+
+(function Tanh125 (Float64 x) -> (Float64 value) : <native>)
+(alias Tanh125 Sys.Maths.F64.Tanh)
+
+(function Exp126 (Float64 x) -> (Float64 value) : <native>)
+(alias Exp126 Sys.Maths.F64.Exp)
+
+(function Floor127 (Float64 x) -> (Float64 value) : <native>)
+(alias Floor127 Sys.Maths.F64.Floor)
+
+(function Ceiling128 (Float64 x) -> (Float64 value) : <native>)
+(alias Ceiling128 Sys.Maths.F64.Ceiling)
+
+(function Power129 (Float64 base)(Float64 exponent) -> (Float64 value) : <native>)
+(alias Power129 Sys.Maths.F64.Power)
+
+(function LogN130 (Float64 x) -> (Float64 value) : <native>)
+(alias LogN130 Sys.Maths.F64.LogN)
+
+(function SquareRoot131 (Float64 x) -> (Float64 value) : <native>)
+(alias SquareRoot131 Sys.Maths.F64.SquareRoot)
+
+(function MaxOf132 (Float64 x)(Float64 y) -> (Float64 maxValue) : <native>)
+(alias MaxOf132 Sys.Maths.F64.MaxOf)
+
+(function MinOf133 (Float64 x)(Float64 y) -> (Float64 minValue) : <native>)
+(alias MinOf133 Sys.Maths.F64.MinOf)
+
+(function RoundToNearest134 (Float64 x) -> (Float64 y) : <native>)
+(alias RoundToNearest134 Sys.Maths.F64.RoundToNearest)
+
+(function IsInfinity135 (Float64 x) -> (Bool isInfinity) : <native>)
+(alias IsInfinity135 Sys.Maths.F64.IsInfinity)
+
+(function IsSignalNan136 (Float64 x) -> (Bool isNan) : <native>)
+(alias IsSignalNan136 Sys.Maths.F64.IsSignalNan)
+
+(function IsNormal137 (Float64 x) -> (Bool isNormal) : <native>)
+(alias IsNormal137 Sys.Maths.F64.IsNormal)
+
+(function IsFinite138 (Float64 x) -> (Bool isFinite) : <native>)
+(alias IsFinite138 Sys.Maths.F64.IsFinite)
+
+(function QuietNan139  -> (Float64 value) : <native>)
+(alias QuietNan139 Sys.Maths.F64.QuietNan)
+
+(function MinValue140  -> (Float64 value) : <native>)
+(alias MinValue140 Sys.Maths.F64.MinValue)
+
+(function MaxValue141  -> (Float64 value) : <native>)
+(alias MaxValue141 Sys.Maths.F64.MaxValue)
+
+(function ToInt32142 (Float64 x) -> (Int32 value) : <native>)
+(alias ToInt32142 Sys.Maths.F64.ToInt32)
+
+(function ToInt64143 (Float64 x) -> (Int64 value) : <native>)
+(alias ToInt64143 Sys.Maths.F64.ToInt64)
+
+(function ToFloat32144 (Float64 x) -> (Float32 value) : <native>)
+(alias ToFloat32144 Sys.Maths.F64.ToFloat32)
+
+(function Clamp145 (Int32 x)(Int32 lower)(Int32 upper) -> (Int32 value) : <native>)
+(alias Clamp145 Sys.Maths.I32.Clamp)
+
+(function LeftShift146 (Int32 x)(Int32 bitCount) -> (Int32 value) : <native>)
+(alias LeftShift146 Sys.Maths.I32.LeftShift)
+
+(function MaxOf147 (Int32 x)(Int32 y) -> (Int32 maxValue) : <native>)
+(alias MaxOf147 Sys.Maths.I32.MaxOf)
+
+(function MinOf148 (Int32 x)(Int32 y) -> (Int32 minValue) : <native>)
+(alias MinOf148 Sys.Maths.I32.MinOf)
+
+(function MaxValue149  -> (Int32 value) : <native>)
+(alias MaxValue149 Sys.Maths.I32.MaxValue)
+
+(function ToInt64150 (Int32 x) -> (Int64 value) : <native>)
+(alias ToInt64150 Sys.Maths.I32.ToInt64)
+
+(function ToFloat64151 (Int32 x) -> (Float64 value) : <native>)
+(alias ToFloat64151 Sys.Maths.I32.ToFloat64)
+
+(function BitwiseAnd152 (Int32 x)(Int32 y) -> (Int32 result) : <native>)
+(alias BitwiseAnd152 Sys.Maths.I32.BitwiseAnd)
+
+(function BitwiseOr153 (Int32 x)(Int32 y) -> (Int32 result) : <native>)
+(alias BitwiseOr153 Sys.Maths.I32.BitwiseOr)
+
+(function HasFlags154 (Int32 flags)(Int32 flag) -> (Bool result) : <native>)
+(alias HasFlags154 Sys.Maths.I32.HasFlags)
+
+(function FromString155  (IString text)->(Int32 value)(Bool isOk) : <native>)
+(alias FromString155 Sys.Maths.I32.FromString)
+
+(function SubtractVec2iVec2i156 (Sys.Maths.Vec2i a)(Sys.Maths.Vec2i b)(Sys.Maths.Vec2i diff)-> : <native>)
+(alias SubtractVec2iVec2i156 Sys.Maths.I32.SubtractVec2iVec2i)
+
+(function FromARGB157  (Int32 alphaByte)(Int32 redByte)(Int32 greenByte)(Int32 blueByte)->(Int32 argb) : <native>)
+(alias FromARGB157 Sys.Maths.I32.FromARGB)
+
+(function IsAlphaNumeric158  (Int32 c) -> (Bool isSo) : <native>)
+(alias IsAlphaNumeric158 Sys.Type.IsAlphaNumeric)
+
+(function Clamp159 (Int64 x)(Int64 lower)(Int64 upper) -> (Int64 value) : <native>)
+(alias Clamp159 Sys.Maths.I64.Clamp)
+
+(function Abs160 (Int64 x) -> (Int64 value) : <native>)
+(alias Abs160 Sys.Maths.I64.Abs)
+
+(function LeftShift161 (Int64 x)(Int64 bitCount) -> (Int64 value) : <native>)
+(alias LeftShift161 Sys.Maths.I64.LeftShift)
+
+(function RightShift162 (Int64 x)(Int64 bitCount) -> (Int64 value) : <native>)
+(alias RightShift162 Sys.Maths.I64.RightShift)
+
+(function MinOf163 (Int64 x)(Int64 y) -> (Int64 minValue) : <native>)
+(alias MinOf163 Sys.Maths.I64.MinOf)
+
+(function MaxValue164  -> (Int64 value) : <native>)
+(alias MaxValue164 Sys.Maths.I64.MaxValue)
+
+(function Mod165 (Int64 numerator)(Int64 denominator) -> (Int64 remainder) : <native>)
+(alias Mod165 Sys.Maths.I64.Mod)
+
+(function ToFloat32166 (Int64 x) -> (Float32 value) : <native>)
+(alias ToFloat32166 Sys.Maths.I64.ToFloat32)
+
+(function ToFloat64167 (Int64 x) -> (Float64 value) : <native>)
+(alias ToFloat64167 Sys.Maths.I64.ToFloat64)
+
+(function GetHandleForICoroutineControl0168   -> (Pointer hObject) : <native>)
+(alias GetHandleForICoroutineControl0168 Sys.Native.GetHandleForICoroutineControl0)
+
+(function ICoroutineControlAdd169  (Pointer hObject)(Sys.ICoroutine coroutine) -> (Int64 id) : <native>)
+(alias ICoroutineControlAdd169 Sys.Native.ICoroutineControlAdd)
+
+(function ICoroutineControlContinue170  (Pointer hObject) -> (Int64 id) : <native>)
+(alias ICoroutineControlContinue170 Sys.Native.ICoroutineControlContinue)
+
+(function ICoroutineControlRelease171  (Pointer hObject)(Int64 id) ->  : <native>)
+(alias ICoroutineControlRelease171 Sys.Native.ICoroutineControlRelease)
+
+(function ICoroutineControlReleaseAll172  (Pointer hObject) ->  : <native>)
+(alias ICoroutineControlReleaseAll172 Sys.Native.ICoroutineControlReleaseAll)

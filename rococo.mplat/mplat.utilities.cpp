@@ -32,7 +32,7 @@ namespace Rococo
 {
 	namespace MPlatImpl
 	{
-		void RunEnvironmentScript(ScriptPerformanceStats& stats, Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail, bool trace, int32 id, IEventCallback<cstr>* onScriptCrash, StringBuilder* declarationBuilder);
+		void RunEnvironmentScriptImpl(ScriptPerformanceStats& stats, Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail, bool trace, int32 id, IEventCallback<cstr>* onScriptCrash, StringBuilder* declarationBuilder);
 	}
 }
 
@@ -325,7 +325,7 @@ public:
 	{
 		ScriptPerformanceStats stats = { 0 };
 
-		Rococo::MPlatImpl::RunEnvironmentScript(stats, *platform, _onScriptEvent, name, addPlatform, shutdownOnFail, trace, id, onScriptCrash, declarationBuilder);
+		Rococo::MPlatImpl::RunEnvironmentScriptImpl(stats, *platform, _onScriptEvent, name, addPlatform, shutdownOnFail, trace, id, onScriptCrash, declarationBuilder);
 
 		auto i = nameToStats.find(name);
 		if (i == nameToStats.end())

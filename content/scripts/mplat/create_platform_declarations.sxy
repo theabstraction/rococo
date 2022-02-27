@@ -1,0 +1,14 @@
+(' #file.type rococo.mplat.panel)
+
+(' #include 
+	"!scripts/mplat_types.sxy"
+	"!scripts/types.sxy"
+)
+
+(function Main (Int32 id)->(Int32 exitCode):
+	// Note this file is executed by MHOST with the declaration builder set, creating the rococo declarations.sxy file.
+	(Sys.Print "Generated Rococo MPLAT declarations file")
+)
+
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)

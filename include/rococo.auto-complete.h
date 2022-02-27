@@ -80,6 +80,8 @@ namespace Rococo
 			virtual void ShowAndClearItems() = 0;
 		};
 
+		// Every editor that works with SexyStudio will implement this interface.
+		// An example is in the SexyStudio for Notepad++ module.
 		ROCOCOAPI ISexyEditor
 		{
 			// Return the length of the document

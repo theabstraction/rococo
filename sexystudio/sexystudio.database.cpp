@@ -1153,15 +1153,159 @@ namespace ANON
 		if (buffer && capacity) *buffer = 0;
 	}
 
+	struct DeclarationAssociation
+	{
+		HString key;
+		HString value;
+		bool isImport;
+	};
+
+	struct SolutionFile: ISolution
+	{
+		std::vector<DeclarationAssociation> declarationAssocations;
+		stringmap<HString> packages;
+
+		void ParseSolution(cr_sex sRoot)
+		{
+			declarationAssocations.clear();
+
+			for (int i = 0; i < sRoot.NumberOfElements(); ++i)
+			{
+				cr_sex sDirective = sRoot[i];
+				if (sDirective.NumberOfElements() == 4)
+				{
+					cr_sex sCommand = GetAtomicArg(sDirective, 0);
+					cstr cmd = sCommand.String()->Buffer;
+					if (Eq(cmd, "included"))
+					{
+						cr_sex sKey = sDirective[1];
+						if (!IsStringLiteral(sKey))
+						{
+							Throw(sKey, "Expecting string literal - <include-path>");
+						}
+
+						cr_sex sMap = sDirective[2];
+						if (!IsAtomic(sMap))
+						{
+							Throw(sMap, "Expecting map operator ->");
+						}
+
+						cr_sex sValue = sDirective[3];
+						if (!IsStringLiteral(sValue))
+						{
+							Throw(sKey, "Expecting string literal - <declaration-path>");
+						}
+
+						declarationAssocations.push_back({ sKey.String()->Buffer, sValue.String()->Buffer, false });
+						continue;
+					}
+					else if (Eq(cmd, "imported"))
+					{
+						cr_sex sKey = sDirective[1];
+						if (!IsAtomic(sKey))
+						{
+							Throw(sKey, "Expecting atomic - <import-package-name>");
+						}
+
+						cr_sex sMap = sDirective[2];
+						if (!IsAtomic(sMap))
+						{
+							Throw(sMap, "Expecting map operator ->");
+						}
+
+						cr_sex sValue = sDirective[3];
+						if (!IsStringLiteral(sValue))
+						{
+							Throw(sKey, "Expecting string literal - <declaration-path>");
+						}
+
+						declarationAssocations.push_back({ sKey.String()->Buffer, sValue.String()->Buffer, true });
+						continue;
+					}
+					else if (Eq(cmd, "package"))
+					{
+						cr_sex sKey = sDirective[1];
+						if (!IsAtomic(sKey))
+						{
+							Throw(sKey, "Expecting atomic - <import-package-name>");
+						}
+
+						cr_sex sMap = sDirective[2];
+						if (!IsAtomic(sMap))
+						{
+							Throw(sMap, "Expecting map operator ->");
+						}
+
+						cr_sex sValue = sDirective[3];
+						if (!IsStringLiteral(sValue))
+						{
+							Throw(sKey, "Expecting string literal - <package-ping-path>");
+						}
+
+						packages.insert(sKey.String()->Buffer, sValue.String()->Buffer);
+						continue;
+					}
+					else if (!Eq(cmd, "'"))
+					{
+						// Raw literal
+						continue;
+					}
+
+					Throw(sDirective, "Unknown directive");
+				}
+			}
+		}
+
+		cstr GetDeclarationPathForInclude(cstr includeName, int& priority) override
+		{
+			priority = 0;
+			for (auto& a : declarationAssocations)
+			{
+				if (!a.isImport && Eq(includeName, a.key.c_str()))
+				{
+					return a.value.c_str();
+				}
+
+				priority++;
+			}
+
+			return nullptr;
+		}
+
+		cstr GetDeclarationPathForImport(cstr packageName, int& priority) override
+		{
+			priority = 0;
+			for (auto& a : declarationAssocations)
+			{
+				if (a.isImport && Eq(packageName, a.key.c_str()))
+				{
+					return a.value.c_str();
+				}
+
+				priority++;
+			}
+
+			return nullptr;
+		}
+
+		cstr GetPackagePingPath(cstr packageName) override
+		{
+			auto i = packages.find(packageName);
+			return i != packages.end() ? i->second.c_str() : nullptr;
+		}
+	};
+
 	struct SexyDatabase : ISexyDatabaseSupervisor
 	{
 		AutoRelease<ISParser> sparser;
 		ANON::SxyNamespace rootNS;
 		std::unordered_map<std::string, std::unique_ptr<File_SXY>> filenameToFile;
-		WideFilePath scriptFolder;
+		WideFilePath contentFolder;
 
 		AutoFree<IOSSupervisor> os = GetOS();
 		AutoFree<IInstallationSupervisor> installation;
+
+		SolutionFile solutionFile;
 
 		SexyDatabase(): 
 			sparser(Sexy_CreateSexParser_2_0(Rococo::Memory::CheckedAllocator())),
@@ -1175,10 +1319,31 @@ namespace ANON
 			
 		}
 
-		void SetScriptPath(cstr scriptFolder) override
+		ISolution& Solution()
 		{
-			Format(this->scriptFolder, L"%hs", scriptFolder);
-			installation = CreateInstallationDirect(this->scriptFolder, *os);
+			return solutionFile;
+		}
+
+		void SetScriptPath(cstr contentFolder) override
+		{
+			Format(this->contentFolder, L"%hs", contentFolder);
+			installation = CreateInstallationDirect(this->contentFolder, *os);
+
+			WideFilePath associationPath;
+			installation->ConvertPingPathToSysPath("!scripts/native/sexystudio.solution.sxyq", associationPath);
+
+			AutoRelease<ISourceCode> src = sparser->LoadSource(associationPath, { 1,1 });
+			AutoRelease<ISParserTree> tree;
+
+			try
+			{
+				AutoRelease<ISParserTree> tree = sparser->CreateTree(*src);
+				solutionFile.ParseSolution(tree->Root());
+			}
+			catch (ParseException& ex)
+			{
+				Throw(ex.ErrorCode(), "%ls error %s line column %d line %d", associationPath.buf, ex.Message(), ex.Start().x, ex.Start().y);
+			}
 		}
 
 		void PingPathToSysPath(cstr pingPath, U8FilePath& sysPath) override
@@ -1201,7 +1366,7 @@ namespace ANON
 			return rootNS;
 		}
 
-		void FocusProject(cstr projectFilePath)
+		void FocusProject(cstr projectFilePath) override
 		{
 			WideFilePath wPath;
 			Assign(wPath, projectFilePath);
