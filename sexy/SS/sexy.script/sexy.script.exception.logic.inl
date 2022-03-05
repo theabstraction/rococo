@@ -470,8 +470,8 @@ namespace Rococo::Script
 				}
 			};
 
-			ss.AddNativeCall(ns, ANON::Throw, this, ("_throw (Sys.Type.Pointer ex)->"), false);		
-			ss.AddNativeCall(ns, ANON::GetSysMessage, &ss, ("GetSysMessage (Sys.Type.Pointer msgHandle) -> (Sys.Type.IString message)"));
+			ss.AddNativeCall(ns, ANON::Throw, this, "_throw (Sys.Type.Pointer ex)->", __FUNCTION__, __LINE__, false);		
+			ss.AddNativeCall(ns, ANON::GetSysMessage, &ss, "GetSysMessage (Sys.Type.Pointer msgHandle) -> (Sys.Type.IString message)", __FUNCTION__, __LINE__);
 		}
 
 		void ThrowFromNativeCode(int32 errorCode, cstr staticRefMessage)

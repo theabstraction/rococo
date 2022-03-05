@@ -585,26 +585,26 @@ namespace MHost {
 	void AddNativeCalls_MHostIGui(Rococo::Script::IPublicScriptSystem& ss, MHost::IGui* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("MHost.Native"));
-		ss.AddNativeCall(ns, NativeMHostIGuiDrawTriangle, nullptr, ("IGuiDrawTriangle (Pointer hObject)(MPlat.GuiTriangle t) -> "));
-		ss.AddNativeCall(ns, NativeMHostIGuiDrawQuad, nullptr, ("IGuiDrawQuad (Pointer hObject)(MPlat.GuiQuad q) -> "));
-		ss.AddNativeCall(ns, NativeMHostIGuiDrawBorder, nullptr, ("IGuiDrawBorder (Pointer hObject)(Sys.Maths.Rectf rect)(Float32 pxThickness)(Int32 tl)(Int32 tr)(Int32 bl)(Int32 br) -> "));
-		ss.AddNativeCall(ns, NativeMHostIGuiFillRect, nullptr, ("IGuiFillRect (Pointer hObject)(Sys.Maths.Rectf rect)(Int32 colour) -> "));
-		ss.AddNativeCall(ns, NativeMHostIGuiDrawColouredSprite, nullptr, ("IGuiDrawColouredSprite (Pointer hObject)(Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(MPlat.BitmapLocation loc)(Float32 blendFactor)(Int32 colour) -> "));
-		ss.AddNativeCall(ns, NativeMHostIGuiDrawLeftAligned, nullptr, ("IGuiDrawLeftAligned (Pointer hObject)(Sys.Maths.Rectf rect)(Sys.Type.IString text)(Int32 fontIndex)(Int32 fontHeight)(Int32 colour)(Float32 rightHardEdge)(Float32 rightSoftEdge) -> "));
-		ss.AddNativeCall(ns, NativeMHostIGuiDrawScaledColouredSprite, nullptr, ("IGuiDrawScaledColouredSprite (Pointer hObject)(Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(MPlat.BitmapLocation loc)(Float32 blendFactor)(Int32 colour)(Float32 scaleFactor) -> "));
-		ss.AddNativeCall(ns, NativeMHostIGuiDrawSprite, nullptr, ("IGuiDrawSprite (Pointer hObject)(Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(MPlat.BitmapLocation loc) -> "));
-		ss.AddNativeCall(ns, NativeMHostIGuiStretchSprite, nullptr, ("IGuiStretchSprite (Pointer hObject)(Sys.Maths.Rectf rect)(MPlat.BitmapLocation loc) -> "));
-		ss.AddNativeCall(ns, NativeMHostIGuiDrawClippedText, nullptr, ("IGuiDrawClippedText (Pointer hObject)(Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Int32 colour)(Sys.Maths.Rectf clipRect) -> "));
-		ss.AddNativeCall(ns, NativeMHostIGuiDrawTextWithCaret, nullptr, ("IGuiDrawTextWithCaret (Pointer hObject)(Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Int32 colour)(Sys.Maths.Rectf clipRect)(Int32 caretPos) -> "));
-		ss.AddNativeCall(ns, NativeMHostIGuiDrawText, nullptr, ("IGuiDrawText (Pointer hObject)(Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Int32 colour) -> "));
-		ss.AddNativeCall(ns, NativeMHostIGuiEvalTextSpan, nullptr, ("IGuiEvalTextSpan (Pointer hObject)(Sys.Type.IString text)(Int32 fontIndex)(Int32 fontHeight)(Sys.Maths.Vec2 pixelSpan) -> "));
-		ss.AddNativeCall(ns, NativeMHostIGuiGetFontDescription, nullptr, ("IGuiGetFontDescription (Pointer hObject)(Int32 fontIndex)(Sys.Type.IStringBuilder familyName)(MHost.Graphics.FontDesc fd) -> "));
-		ss.AddNativeCall(ns, NativeMHostIGuiGetNumberOfFonts, nullptr, ("IGuiGetNumberOfFonts (Pointer hObject) -> (Int32 numberOfFonts)"));
-		ss.AddNativeCall(ns, NativeMHostIGuiGetScreenSpan, nullptr, ("IGuiGetScreenSpan (Pointer hObject)(Sys.Maths.Vec2 span) -> "));
-		ss.AddNativeCall(ns, NativeMHostIGuiGetCursorPos, nullptr, ("IGuiGetCursorPos (Pointer hObject)(Sys.Maths.Vec2 pos) -> "));
-		ss.AddNativeCall(ns, NativeMHostIGuiSetGuiShaders, nullptr, ("IGuiSetGuiShaders (Pointer hObject)(Sys.Type.IString pixelShaderFilename) -> "));
-		ss.AddNativeCall(ns, NativeMHostIGuiSetScissorRect, nullptr, ("IGuiSetScissorRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
-		ss.AddNativeCall(ns, NativeMHostIGuiClearScissorRect, nullptr, ("IGuiClearScissorRect (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeMHostIGuiDrawTriangle, nullptr, ("IGuiDrawTriangle (Pointer hObject)(MPlat.GuiTriangle t) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIGuiDrawQuad, nullptr, ("IGuiDrawQuad (Pointer hObject)(MPlat.GuiQuad q) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIGuiDrawBorder, nullptr, ("IGuiDrawBorder (Pointer hObject)(Sys.Maths.Rectf rect)(Float32 pxThickness)(Int32 tl)(Int32 tr)(Int32 bl)(Int32 br) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIGuiFillRect, nullptr, ("IGuiFillRect (Pointer hObject)(Sys.Maths.Rectf rect)(Int32 colour) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIGuiDrawColouredSprite, nullptr, ("IGuiDrawColouredSprite (Pointer hObject)(Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(MPlat.BitmapLocation loc)(Float32 blendFactor)(Int32 colour) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIGuiDrawLeftAligned, nullptr, ("IGuiDrawLeftAligned (Pointer hObject)(Sys.Maths.Rectf rect)(Sys.Type.IString text)(Int32 fontIndex)(Int32 fontHeight)(Int32 colour)(Float32 rightHardEdge)(Float32 rightSoftEdge) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIGuiDrawScaledColouredSprite, nullptr, ("IGuiDrawScaledColouredSprite (Pointer hObject)(Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(MPlat.BitmapLocation loc)(Float32 blendFactor)(Int32 colour)(Float32 scaleFactor) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIGuiDrawSprite, nullptr, ("IGuiDrawSprite (Pointer hObject)(Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(MPlat.BitmapLocation loc) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIGuiStretchSprite, nullptr, ("IGuiStretchSprite (Pointer hObject)(Sys.Maths.Rectf rect)(MPlat.BitmapLocation loc) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIGuiDrawClippedText, nullptr, ("IGuiDrawClippedText (Pointer hObject)(Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Int32 colour)(Sys.Maths.Rectf clipRect) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIGuiDrawTextWithCaret, nullptr, ("IGuiDrawTextWithCaret (Pointer hObject)(Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Int32 colour)(Sys.Maths.Rectf clipRect)(Int32 caretPos) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIGuiDrawText, nullptr, ("IGuiDrawText (Pointer hObject)(Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Int32 colour) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIGuiEvalTextSpan, nullptr, ("IGuiEvalTextSpan (Pointer hObject)(Sys.Type.IString text)(Int32 fontIndex)(Int32 fontHeight)(Sys.Maths.Vec2 pixelSpan) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIGuiGetFontDescription, nullptr, ("IGuiGetFontDescription (Pointer hObject)(Int32 fontIndex)(Sys.Type.IStringBuilder familyName)(MHost.Graphics.FontDesc fd) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIGuiGetNumberOfFonts, nullptr, ("IGuiGetNumberOfFonts (Pointer hObject) -> (Int32 numberOfFonts)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIGuiGetScreenSpan, nullptr, ("IGuiGetScreenSpan (Pointer hObject)(Sys.Maths.Vec2 span) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIGuiGetCursorPos, nullptr, ("IGuiGetCursorPos (Pointer hObject)(Sys.Maths.Vec2 pos) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIGuiSetGuiShaders, nullptr, ("IGuiSetGuiShaders (Pointer hObject)(Sys.Type.IString pixelShaderFilename) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIGuiSetScissorRect, nullptr, ("IGuiSetScissorRect (Pointer hObject)(Sys.Maths.Recti rect) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIGuiClearScissorRect, nullptr, ("IGuiClearScissorRect (Pointer hObject) -> "), __FILE__, __LINE__);
 	}
 }
 // BennyHill generated Sexy native functions for MHost::IEngine 
@@ -866,23 +866,23 @@ namespace MHost {
 	void AddNativeCalls_MHostIEngine(Rococo::Script::IPublicScriptSystem& ss, MHost::IEngine* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("MHost.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForMHostEngine, _nceContext, ("GetHandleForIEngine0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeMHostIEnginePollKeyState, nullptr, ("IEnginePollKeyState (Pointer hObject)(MHost.OS.KeyState keys) -> "));
-		ss.AddNativeCall(ns, NativeMHostIEngineGetNextMouseDelta, nullptr, ("IEngineGetNextMouseDelta (Pointer hObject)(Sys.Maths.Vec2 delta) -> "));
-		ss.AddNativeCall(ns, NativeMHostIEngineGetNextMouseEvent, nullptr, ("IEngineGetNextMouseEvent (Pointer hObject)(MHost.OS.MouseEvent me) -> (Bool wasPopped)"));
-		ss.AddNativeCall(ns, NativeMHostIEngineGetNextKeyboardEvent, nullptr, ("IEngineGetNextKeyboardEvent (Pointer hObject)(MHost.OS.KeyboardEvent ke) -> (Bool wasPopped)"));
-		ss.AddNativeCall(ns, NativeMHostIEngineRender, nullptr, ("IEngineRender (Pointer hObject)(MHost.GuiPopulator populator) -> "));
-		ss.AddNativeCall(ns, NativeMHostIEngineIsRunning, nullptr, ("IEngineIsRunning (Pointer hObject) -> (Bool isRunning)"));
-		ss.AddNativeCall(ns, NativeMHostIEngineShutdown, nullptr, ("IEngineShutdown (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeMHostIEngineYieldForSystemMessages, nullptr, ("IEngineYieldForSystemMessages (Pointer hObject)(Int32 sleepMS) -> (Sys.SI.Seconds frameDT)"));
-		ss.AddNativeCall(ns, NativeMHostIEngineTryGetSpriteSpec, nullptr, ("IEngineTryGetSpriteSpec (Pointer hObject)(Sys.Type.IString resourceName)(MPlat.BitmapLocation loc) -> (Bool isSuccessful)"));
-		ss.AddNativeCall(ns, NativeMHostIEngineGetSpriteSpec, nullptr, ("IEngineGetSpriteSpec (Pointer hObject)(Sys.Type.IString resourceName)(MPlat.BitmapLocation loc) -> "));
-		ss.AddNativeCall(ns, NativeMHostIEngineRunMPlatScript, nullptr, ("IEngineRunMPlatScript (Pointer hObject)(Sys.Type.IString scriptName) -> "));
-		ss.AddNativeCall(ns, NativeMHostIEngineSetNextScript, nullptr, ("IEngineSetNextScript (Pointer hObject)(Sys.Type.IString scriptName) -> "));
-		ss.AddNativeCall(ns, NativeMHostIEngineCaptureMouse, nullptr, ("IEngineCaptureMouse (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeMHostIEngineReleaseMouse, nullptr, ("IEngineReleaseMouse (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeMHostIEngineCursorPosition, nullptr, ("IEngineCursorPosition (Pointer hObject)(Sys.Maths.Vec2 cursorPosition) -> "));
-		ss.AddNativeCall(ns, NativeMHostIEngineSetOverlayToggleKey, nullptr, ("IEngineSetOverlayToggleKey (Pointer hObject)(Int32 vkeyCode) -> "));
+		ss.AddNativeCall(ns, NativeGetHandleForMHostEngine, _nceContext, ("GetHandleForIEngine0  -> (Pointer hObject)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIEnginePollKeyState, nullptr, ("IEnginePollKeyState (Pointer hObject)(MHost.OS.KeyState keys) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIEngineGetNextMouseDelta, nullptr, ("IEngineGetNextMouseDelta (Pointer hObject)(Sys.Maths.Vec2 delta) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIEngineGetNextMouseEvent, nullptr, ("IEngineGetNextMouseEvent (Pointer hObject)(MHost.OS.MouseEvent me) -> (Bool wasPopped)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIEngineGetNextKeyboardEvent, nullptr, ("IEngineGetNextKeyboardEvent (Pointer hObject)(MHost.OS.KeyboardEvent ke) -> (Bool wasPopped)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIEngineRender, nullptr, ("IEngineRender (Pointer hObject)(MHost.GuiPopulator populator) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIEngineIsRunning, nullptr, ("IEngineIsRunning (Pointer hObject) -> (Bool isRunning)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIEngineShutdown, nullptr, ("IEngineShutdown (Pointer hObject) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIEngineYieldForSystemMessages, nullptr, ("IEngineYieldForSystemMessages (Pointer hObject)(Int32 sleepMS) -> (Sys.SI.Seconds frameDT)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIEngineTryGetSpriteSpec, nullptr, ("IEngineTryGetSpriteSpec (Pointer hObject)(Sys.Type.IString resourceName)(MPlat.BitmapLocation loc) -> (Bool isSuccessful)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIEngineGetSpriteSpec, nullptr, ("IEngineGetSpriteSpec (Pointer hObject)(Sys.Type.IString resourceName)(MPlat.BitmapLocation loc) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIEngineRunMPlatScript, nullptr, ("IEngineRunMPlatScript (Pointer hObject)(Sys.Type.IString scriptName) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIEngineSetNextScript, nullptr, ("IEngineSetNextScript (Pointer hObject)(Sys.Type.IString scriptName) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIEngineCaptureMouse, nullptr, ("IEngineCaptureMouse (Pointer hObject) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIEngineReleaseMouse, nullptr, ("IEngineReleaseMouse (Pointer hObject) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIEngineCursorPosition, nullptr, ("IEngineCursorPosition (Pointer hObject)(Sys.Maths.Vec2 cursorPosition) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIEngineSetOverlayToggleKey, nullptr, ("IEngineSetOverlayToggleKey (Pointer hObject)(Int32 vkeyCode) -> "), __FILE__, __LINE__);
 	}
 }
 // BennyHill generated Sexy native functions for MHost::IDictionaryStream 
@@ -1220,22 +1220,22 @@ namespace MHost {
 	void AddNativeCalls_MHostIDictionaryStream(Rococo::Script::IPublicScriptSystem& ss, Rococo::IInstallation* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("MHost.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForMHostDictionaryStream, _nceContext, ("GetHandleForIDictionaryStream0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeMHostIDictionaryStreamAddBool, nullptr, ("IDictionaryStreamAddBool (Pointer hObject)(Sys.Type.IString name)(Bool value) -> "));
-		ss.AddNativeCall(ns, NativeMHostIDictionaryStreamAddI32, nullptr, ("IDictionaryStreamAddI32 (Pointer hObject)(Sys.Type.IString name)(Int32 value) -> "));
-		ss.AddNativeCall(ns, NativeMHostIDictionaryStreamAddI64, nullptr, ("IDictionaryStreamAddI64 (Pointer hObject)(Sys.Type.IString name)(Int64 value) -> "));
-		ss.AddNativeCall(ns, NativeMHostIDictionaryStreamAddF32, nullptr, ("IDictionaryStreamAddF32 (Pointer hObject)(Sys.Type.IString name)(Float32 value) -> "));
-		ss.AddNativeCall(ns, NativeMHostIDictionaryStreamAddF64, nullptr, ("IDictionaryStreamAddF64 (Pointer hObject)(Sys.Type.IString name)(Float64 value) -> "));
-		ss.AddNativeCall(ns, NativeMHostIDictionaryStreamAddString, nullptr, ("IDictionaryStreamAddString (Pointer hObject)(Sys.Type.IString name)(Sys.Type.IString value) -> "));
-		ss.AddNativeCall(ns, NativeMHostIDictionaryStreamGetBool, nullptr, ("IDictionaryStreamGetBool (Pointer hObject)(Sys.Type.IString name)(Bool defaultValue) -> (Bool value)"));
-		ss.AddNativeCall(ns, NativeMHostIDictionaryStreamGetInt32, nullptr, ("IDictionaryStreamGetInt32 (Pointer hObject)(Sys.Type.IString name)(Int32 defaultValue) -> (Int32 value)"));
-		ss.AddNativeCall(ns, NativeMHostIDictionaryStreamGetInt64, nullptr, ("IDictionaryStreamGetInt64 (Pointer hObject)(Sys.Type.IString name)(Int64 defaultValue) -> (Int64 value)"));
-		ss.AddNativeCall(ns, NativeMHostIDictionaryStreamGetFloat32, nullptr, ("IDictionaryStreamGetFloat32 (Pointer hObject)(Sys.Type.IString name)(Float32 defaultValue) -> (Float32 value)"));
-		ss.AddNativeCall(ns, NativeMHostIDictionaryStreamGetFloat64, nullptr, ("IDictionaryStreamGetFloat64 (Pointer hObject)(Sys.Type.IString name)(Float64 defaultValue) -> (Float64 value)"));
-		ss.AddNativeCall(ns, NativeMHostIDictionaryStreamAppendString, nullptr, ("IDictionaryStreamAppendString (Pointer hObject)(Sys.Type.IString name)(Sys.Type.IString defaultString)(Sys.Type.IStringBuilder sb) -> "));
-		ss.AddNativeCall(ns, NativeMHostIDictionaryStreamClear, nullptr, ("IDictionaryStreamClear (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeMHostIDictionaryStreamProhibitOverwrite, nullptr, ("IDictionaryStreamProhibitOverwrite (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeMHostIDictionaryStreamLoadFrom, nullptr, ("IDictionaryStreamLoadFrom (Pointer hObject)(Sys.Type.IString pingPath) -> "));
-		ss.AddNativeCall(ns, NativeMHostIDictionaryStreamSaveTo, nullptr, ("IDictionaryStreamSaveTo (Pointer hObject)(Sys.Type.IString pingPath) -> "));
+		ss.AddNativeCall(ns, NativeGetHandleForMHostDictionaryStream, _nceContext, ("GetHandleForIDictionaryStream0  -> (Pointer hObject)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIDictionaryStreamAddBool, nullptr, ("IDictionaryStreamAddBool (Pointer hObject)(Sys.Type.IString name)(Bool value) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIDictionaryStreamAddI32, nullptr, ("IDictionaryStreamAddI32 (Pointer hObject)(Sys.Type.IString name)(Int32 value) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIDictionaryStreamAddI64, nullptr, ("IDictionaryStreamAddI64 (Pointer hObject)(Sys.Type.IString name)(Int64 value) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIDictionaryStreamAddF32, nullptr, ("IDictionaryStreamAddF32 (Pointer hObject)(Sys.Type.IString name)(Float32 value) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIDictionaryStreamAddF64, nullptr, ("IDictionaryStreamAddF64 (Pointer hObject)(Sys.Type.IString name)(Float64 value) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIDictionaryStreamAddString, nullptr, ("IDictionaryStreamAddString (Pointer hObject)(Sys.Type.IString name)(Sys.Type.IString value) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIDictionaryStreamGetBool, nullptr, ("IDictionaryStreamGetBool (Pointer hObject)(Sys.Type.IString name)(Bool defaultValue) -> (Bool value)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIDictionaryStreamGetInt32, nullptr, ("IDictionaryStreamGetInt32 (Pointer hObject)(Sys.Type.IString name)(Int32 defaultValue) -> (Int32 value)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIDictionaryStreamGetInt64, nullptr, ("IDictionaryStreamGetInt64 (Pointer hObject)(Sys.Type.IString name)(Int64 defaultValue) -> (Int64 value)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIDictionaryStreamGetFloat32, nullptr, ("IDictionaryStreamGetFloat32 (Pointer hObject)(Sys.Type.IString name)(Float32 defaultValue) -> (Float32 value)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIDictionaryStreamGetFloat64, nullptr, ("IDictionaryStreamGetFloat64 (Pointer hObject)(Sys.Type.IString name)(Float64 defaultValue) -> (Float64 value)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIDictionaryStreamAppendString, nullptr, ("IDictionaryStreamAppendString (Pointer hObject)(Sys.Type.IString name)(Sys.Type.IString defaultString)(Sys.Type.IStringBuilder sb) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIDictionaryStreamClear, nullptr, ("IDictionaryStreamClear (Pointer hObject) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIDictionaryStreamProhibitOverwrite, nullptr, ("IDictionaryStreamProhibitOverwrite (Pointer hObject) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIDictionaryStreamLoadFrom, nullptr, ("IDictionaryStreamLoadFrom (Pointer hObject)(Sys.Type.IString pingPath) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIDictionaryStreamSaveTo, nullptr, ("IDictionaryStreamSaveTo (Pointer hObject)(Sys.Type.IString pingPath) -> "), __FILE__, __LINE__);
 	}
 }

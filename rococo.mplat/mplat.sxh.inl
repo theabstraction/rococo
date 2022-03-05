@@ -799,24 +799,24 @@ namespace Rococo {
 	void AddNativeCalls_RococoIPane(Rococo::Script::IPublicScriptSystem& ss, Rococo::IPane* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
-		ss.AddNativeCall(ns, NativeRococoIPaneSetColourBk1, nullptr, ("IPaneSetColourBk1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoIPaneSetColourBk2, nullptr, ("IPaneSetColourBk2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoIPaneSetColourEdge1, nullptr, ("IPaneSetColourEdge1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoIPaneSetColourEdge2, nullptr, ("IPaneSetColourEdge2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoIPaneSetColourFont, nullptr, ("IPaneSetColourFont (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoIPaneIsVisible, nullptr, ("IPaneIsVisible (Pointer hObject) -> (Bool isVisible)"));
-		ss.AddNativeCall(ns, NativeRococoIPaneIsNormalized, nullptr, ("IPaneIsNormalized (Pointer hObject) -> (Bool isNormalized)"));
-		ss.AddNativeCall(ns, NativeRococoIPaneSetVisible, nullptr, ("IPaneSetVisible (Pointer hObject)(Bool isVisible) -> "));
-		ss.AddNativeCall(ns, NativeRococoIPaneGetRect, nullptr, ("IPaneGetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
-		ss.AddNativeCall(ns, NativeRococoIPaneSetRect, nullptr, ("IPaneSetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
-		ss.AddNativeCall(ns, NativeRococoIPaneSetBkImage, nullptr, ("IPaneSetBkImage (Pointer hObject)(Sys.Type.IString pingPath) -> "));
-		ss.AddNativeCall(ns, NativeRococoIPaneAlignLeftEdges, nullptr, ("IPaneAlignLeftEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
-		ss.AddNativeCall(ns, NativeRococoIPaneAlignRightEdges, nullptr, ("IPaneAlignRightEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
-		ss.AddNativeCall(ns, NativeRococoIPaneAlignTopEdges, nullptr, ("IPaneAlignTopEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
-		ss.AddNativeCall(ns, NativeRococoIPaneAlignBottomEdges, nullptr, ("IPaneAlignBottomEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
-		ss.AddNativeCall(ns, NativeRococoIPaneLayoutVertically, nullptr, ("IPaneLayoutVertically (Pointer hObject)(Int32 vertBorder)(Int32 vertSpacing) -> "));
-		ss.AddNativeCall(ns, NativeRococoIPaneSetCommand, nullptr, ("IPaneSetCommand (Pointer hObject)(Int32 stateIndex)(Bool deferAction)(Sys.Type.IString text) -> "));
-		ss.AddNativeCall(ns, NativeRococoIPaneSetPopulator, nullptr, ("IPaneSetPopulator (Pointer hObject)(Int32 stateIndex)(Sys.Type.IString populatorName) -> "));
+		ss.AddNativeCall(ns, NativeRococoIPaneSetColourBk1, nullptr, ("IPaneSetColourBk1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIPaneSetColourBk2, nullptr, ("IPaneSetColourBk2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIPaneSetColourEdge1, nullptr, ("IPaneSetColourEdge1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIPaneSetColourEdge2, nullptr, ("IPaneSetColourEdge2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIPaneSetColourFont, nullptr, ("IPaneSetColourFont (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIPaneIsVisible, nullptr, ("IPaneIsVisible (Pointer hObject) -> (Bool isVisible)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIPaneIsNormalized, nullptr, ("IPaneIsNormalized (Pointer hObject) -> (Bool isNormalized)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIPaneSetVisible, nullptr, ("IPaneSetVisible (Pointer hObject)(Bool isVisible) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIPaneGetRect, nullptr, ("IPaneGetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIPaneSetRect, nullptr, ("IPaneSetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIPaneSetBkImage, nullptr, ("IPaneSetBkImage (Pointer hObject)(Sys.Type.IString pingPath) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIPaneAlignLeftEdges, nullptr, ("IPaneAlignLeftEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIPaneAlignRightEdges, nullptr, ("IPaneAlignRightEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIPaneAlignTopEdges, nullptr, ("IPaneAlignTopEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIPaneAlignBottomEdges, nullptr, ("IPaneAlignBottomEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIPaneLayoutVertically, nullptr, ("IPaneLayoutVertically (Pointer hObject)(Int32 vertBorder)(Int32 vertSpacing) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIPaneSetCommand, nullptr, ("IPaneSetCommand (Pointer hObject)(Int32 stateIndex)(Bool deferAction)(Sys.Type.IString text) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIPaneSetPopulator, nullptr, ("IPaneSetPopulator (Pointer hObject)(Int32 stateIndex)(Sys.Type.IString populatorName) -> "), __FILE__, __LINE__);
 	}
 }
 // BennyHill generated Sexy native functions for Rococo::IInventoryArray 
@@ -1138,24 +1138,24 @@ namespace Rococo {
 	void AddNativeCalls_RococoIInventoryArray(Rococo::Script::IPublicScriptSystem& ss, Rococo::IInventoryArray* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
-		ss.AddNativeCall(ns, NativeRococoIInventoryArrayAddPaperDoll, nullptr, ("IInventoryArrayAddPaperDoll (Pointer hObject)(Sys.Maths.Recti rect)(Sys.Type.IString pingPathToImage) -> "));
-		ss.AddNativeCall(ns, NativeRococoIInventoryArrayClearDolls, nullptr, ("IInventoryArrayClearDolls (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeRococoIInventoryArrayDollCount, nullptr, ("IInventoryArrayDollCount (Pointer hObject) -> (Int32 nDolls)"));
-		ss.AddNativeCall(ns, NativeRococoIInventoryArrayGetDoll, nullptr, ("IInventoryArrayGetDoll (Pointer hObject)(Int32 dollIndex)(Sys.Maths.Recti rect)(Sys.Type.IStringBuilder sb)(MPlat.BitmapLocation bitmap) -> (Bool isOK)"));
-		ss.AddNativeCall(ns, NativeRococoIInventoryArraySetDollBitmap, nullptr, ("IInventoryArraySetDollBitmap (Pointer hObject)(Int32 dollIndex)(MPlat.BitmapLocation bitmap) -> "));
-		ss.AddNativeCall(ns, NativeRococoIInventoryArrayFlags, nullptr, ("IInventoryArrayFlags (Pointer hObject)(Int32 index) -> (Int64 flags)"));
-		ss.AddNativeCall(ns, NativeRococoIInventoryArrayGetIndexAt, nullptr, ("IInventoryArrayGetIndexAt (Pointer hObject)(Sys.Maths.Vec2i pos) -> (Int32 index)"));
-		ss.AddNativeCall(ns, NativeRococoIInventoryArrayGetRect, nullptr, ("IInventoryArrayGetRect (Pointer hObject)(Int32 index)(Sys.Maths.Recti rect) -> "));
-		ss.AddNativeCall(ns, NativeRococoIInventoryArrayId, nullptr, ("IInventoryArrayId (Pointer hObject)(Int32 index) -> (Int64 flags)"));
-		ss.AddNativeCall(ns, NativeRococoIInventoryArrayItemCount, nullptr, ("IInventoryArrayItemCount (Pointer hObject)(Int32 index) -> (Int64 flags)"));
-		ss.AddNativeCall(ns, NativeRococoIInventoryArrayLayoutAsRect, nullptr, ("IInventoryArrayLayoutAsRect (Pointer hObject)(Rococo.InventoryLayoutRules rules) -> "));
-		ss.AddNativeCall(ns, NativeRococoIInventoryArrayNumberOfItems, nullptr, ("IInventoryArrayNumberOfItems (Pointer hObject) -> (Int32 nItems)"));
-		ss.AddNativeCall(ns, NativeRococoIInventoryArraySetFlags, nullptr, ("IInventoryArraySetFlags (Pointer hObject)(Int32 index)(Int64 flags) -> "));
-		ss.AddNativeCall(ns, NativeRococoIInventoryArraySetId, nullptr, ("IInventoryArraySetId (Pointer hObject)(Int32 index)(Int64 id) -> "));
-		ss.AddNativeCall(ns, NativeRococoIInventoryArraySetItemCount, nullptr, ("IInventoryArraySetItemCount (Pointer hObject)(Int32 index)(Int64 count) -> "));
-		ss.AddNativeCall(ns, NativeRococoIInventoryArraySetRect, nullptr, ("IInventoryArraySetRect (Pointer hObject)(Int32 index)(Sys.Maths.Recti rect) -> "));
-		ss.AddNativeCall(ns, NativeRococoIInventoryArraySwap, nullptr, ("IInventoryArraySwap (Pointer hObject)(Int32 i)(Int32 j) -> "));
-		ss.AddNativeCall(ns, NativeRococoIInventoryArrayComputeSpan, nullptr, ("IInventoryArrayComputeSpan (Pointer hObject)(Rococo.InventoryLayoutRules rules)(Sys.Maths.Vec2i span) -> "));
+		ss.AddNativeCall(ns, NativeRococoIInventoryArrayAddPaperDoll, nullptr, ("IInventoryArrayAddPaperDoll (Pointer hObject)(Sys.Maths.Recti rect)(Sys.Type.IString pingPathToImage) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIInventoryArrayClearDolls, nullptr, ("IInventoryArrayClearDolls (Pointer hObject) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIInventoryArrayDollCount, nullptr, ("IInventoryArrayDollCount (Pointer hObject) -> (Int32 nDolls)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIInventoryArrayGetDoll, nullptr, ("IInventoryArrayGetDoll (Pointer hObject)(Int32 dollIndex)(Sys.Maths.Recti rect)(Sys.Type.IStringBuilder sb)(MPlat.BitmapLocation bitmap) -> (Bool isOK)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIInventoryArraySetDollBitmap, nullptr, ("IInventoryArraySetDollBitmap (Pointer hObject)(Int32 dollIndex)(MPlat.BitmapLocation bitmap) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIInventoryArrayFlags, nullptr, ("IInventoryArrayFlags (Pointer hObject)(Int32 index) -> (Int64 flags)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIInventoryArrayGetIndexAt, nullptr, ("IInventoryArrayGetIndexAt (Pointer hObject)(Sys.Maths.Vec2i pos) -> (Int32 index)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIInventoryArrayGetRect, nullptr, ("IInventoryArrayGetRect (Pointer hObject)(Int32 index)(Sys.Maths.Recti rect) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIInventoryArrayId, nullptr, ("IInventoryArrayId (Pointer hObject)(Int32 index) -> (Int64 flags)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIInventoryArrayItemCount, nullptr, ("IInventoryArrayItemCount (Pointer hObject)(Int32 index) -> (Int64 flags)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIInventoryArrayLayoutAsRect, nullptr, ("IInventoryArrayLayoutAsRect (Pointer hObject)(Rococo.InventoryLayoutRules rules) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIInventoryArrayNumberOfItems, nullptr, ("IInventoryArrayNumberOfItems (Pointer hObject) -> (Int32 nItems)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIInventoryArraySetFlags, nullptr, ("IInventoryArraySetFlags (Pointer hObject)(Int32 index)(Int64 flags) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIInventoryArraySetId, nullptr, ("IInventoryArraySetId (Pointer hObject)(Int32 index)(Int64 id) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIInventoryArraySetItemCount, nullptr, ("IInventoryArraySetItemCount (Pointer hObject)(Int32 index)(Int64 count) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIInventoryArraySetRect, nullptr, ("IInventoryArraySetRect (Pointer hObject)(Int32 index)(Sys.Maths.Recti rect) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIInventoryArraySwap, nullptr, ("IInventoryArraySwap (Pointer hObject)(Int32 i)(Int32 j) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIInventoryArrayComputeSpan, nullptr, ("IInventoryArrayComputeSpan (Pointer hObject)(Rococo.InventoryLayoutRules rules)(Sys.Maths.Vec2i span) -> "), __FILE__, __LINE__);
 	}
 }
 // BennyHill generated Sexy native functions for Rococo::IContextMenu 
@@ -1291,12 +1291,12 @@ namespace Rococo {
 	void AddNativeCalls_RococoIContextMenu(Rococo::Script::IPublicScriptSystem& ss, Rococo::IContextMenu* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
-		ss.AddNativeCall(ns, NativeRococoIContextMenuAddString, nullptr, ("IContextMenuAddString (Pointer hObject)(Int32 branchId)(Sys.Type.IString displayName)(Sys.Type.IString eventName)(Sys.Type.IString shortcutKey) -> "));
-		ss.AddNativeCall(ns, NativeRococoIContextMenuAddSubMenu, nullptr, ("IContextMenuAddSubMenu (Pointer hObject)(Sys.Type.IString displayName)(Int32 parentBrancId) -> (Int32 newChildBranchId)"));
-		ss.AddNativeCall(ns, NativeRococoIContextMenuClear, nullptr, ("IContextMenuClear (Pointer hObject)(Int32 branchId) -> "));
-		ss.AddNativeCall(ns, NativeRococoIContextMenuSetNextBackColour, nullptr, ("IContextMenuSetNextBackColour (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoIContextMenuSetNextStringColour, nullptr, ("IContextMenuSetNextStringColour (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoIContextMenuSetPopupPoint, nullptr, ("IContextMenuSetPopupPoint (Pointer hObject)(Sys.Maths.Vec2i position) -> "));
+		ss.AddNativeCall(ns, NativeRococoIContextMenuAddString, nullptr, ("IContextMenuAddString (Pointer hObject)(Int32 branchId)(Sys.Type.IString displayName)(Sys.Type.IString eventName)(Sys.Type.IString shortcutKey) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIContextMenuAddSubMenu, nullptr, ("IContextMenuAddSubMenu (Pointer hObject)(Sys.Type.IString displayName)(Int32 parentBrancId) -> (Int32 newChildBranchId)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIContextMenuClear, nullptr, ("IContextMenuClear (Pointer hObject)(Int32 branchId) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIContextMenuSetNextBackColour, nullptr, ("IContextMenuSetNextBackColour (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIContextMenuSetNextStringColour, nullptr, ("IContextMenuSetNextStringColour (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIContextMenuSetPopupPoint, nullptr, ("IContextMenuSetPopupPoint (Pointer hObject)(Sys.Maths.Vec2i position) -> "), __FILE__, __LINE__);
 	}
 }
 // BennyHill generated Sexy native functions for Rococo::Entities::IRigBuilder 
@@ -1626,21 +1626,21 @@ namespace Rococo { namespace Entities {
 	void AddNativeCalls_RococoEntitiesIRigBuilder(Rococo::Script::IPublicScriptSystem& ss, Rococo::Entities::IRigs* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Entities.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForRococoEntitiesRigBuilder, _nceContext, ("GetHandleForIRigBuilder0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderClearBuilder, nullptr, ("IRigBuilderClearBuilder (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderClearPoses, nullptr, ("IRigBuilderClearPoses (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderClearSkeletons, nullptr, ("IRigBuilderClearSkeletons (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderAddBone, nullptr, ("IRigBuilderAddBone (Pointer hObject)(Sys.Type.IString name) -> "));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderAddBoneX, nullptr, ("IRigBuilderAddBoneX (Pointer hObject)(Sys.Type.IString name)(Sys.Type.IString parent)(Sys.SI.Metres length)(Float32 dx)(Float32 dy)(Float32 dz)(Sys.Maths.Degrees rX)(Sys.Maths.Degrees rY)(Sys.Maths.Degrees rZ) -> "));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderSetLength, nullptr, ("IRigBuilderSetLength (Pointer hObject)(Sys.Type.IString name)(Sys.SI.Metres length) -> "));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderSetScale, nullptr, ("IRigBuilderSetScale (Pointer hObject)(Sys.Type.IString name)(Float32 sx)(Float32 sy)(Float32 sz) -> "));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderSetVec3OffsetFromParent, nullptr, ("IRigBuilderSetVec3OffsetFromParent (Pointer hObject)(Sys.Type.IString name)(Sys.Maths.Vec3 positionOffset) -> "));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderSetOffsetFromParent, nullptr, ("IRigBuilderSetOffsetFromParent (Pointer hObject)(Sys.Type.IString name)(Float32 dx)(Float32 dy)(Float32 dz) -> "));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderSetQuatFromParent, nullptr, ("IRigBuilderSetQuatFromParent (Pointer hObject)(Sys.Type.IString name)(Sys.Maths.Quat quatFromParent)(Bool validateQuat) -> "));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderSetRotationFromParent, nullptr, ("IRigBuilderSetRotationFromParent (Pointer hObject)(Sys.Type.IString name)(Sys.Maths.Degrees rX)(Sys.Maths.Degrees rY)(Sys.Maths.Degrees rZ) -> "));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderSetParentOfChild, nullptr, ("IRigBuilderSetParentOfChild (Pointer hObject)(Sys.Type.IString parent)(Sys.Type.IString ofChild) -> "));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderCommitToSkeleton, nullptr, ("IRigBuilderCommitToSkeleton (Pointer hObject)(Sys.Type.IString name) -> (Int64 id)"));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderCommitToPose, nullptr, ("IRigBuilderCommitToPose (Pointer hObject)(Sys.Type.IString name) -> (Int64 id)"));
+		ss.AddNativeCall(ns, NativeGetHandleForRococoEntitiesRigBuilder, _nceContext, ("GetHandleForIRigBuilder0  -> (Pointer hObject)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderClearBuilder, nullptr, ("IRigBuilderClearBuilder (Pointer hObject) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderClearPoses, nullptr, ("IRigBuilderClearPoses (Pointer hObject) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderClearSkeletons, nullptr, ("IRigBuilderClearSkeletons (Pointer hObject) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderAddBone, nullptr, ("IRigBuilderAddBone (Pointer hObject)(Sys.Type.IString name) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderAddBoneX, nullptr, ("IRigBuilderAddBoneX (Pointer hObject)(Sys.Type.IString name)(Sys.Type.IString parent)(Sys.SI.Metres length)(Float32 dx)(Float32 dy)(Float32 dz)(Sys.Maths.Degrees rX)(Sys.Maths.Degrees rY)(Sys.Maths.Degrees rZ) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderSetLength, nullptr, ("IRigBuilderSetLength (Pointer hObject)(Sys.Type.IString name)(Sys.SI.Metres length) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderSetScale, nullptr, ("IRigBuilderSetScale (Pointer hObject)(Sys.Type.IString name)(Float32 sx)(Float32 sy)(Float32 sz) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderSetVec3OffsetFromParent, nullptr, ("IRigBuilderSetVec3OffsetFromParent (Pointer hObject)(Sys.Type.IString name)(Sys.Maths.Vec3 positionOffset) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderSetOffsetFromParent, nullptr, ("IRigBuilderSetOffsetFromParent (Pointer hObject)(Sys.Type.IString name)(Float32 dx)(Float32 dy)(Float32 dz) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderSetQuatFromParent, nullptr, ("IRigBuilderSetQuatFromParent (Pointer hObject)(Sys.Type.IString name)(Sys.Maths.Quat quatFromParent)(Bool validateQuat) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderSetRotationFromParent, nullptr, ("IRigBuilderSetRotationFromParent (Pointer hObject)(Sys.Type.IString name)(Sys.Maths.Degrees rX)(Sys.Maths.Degrees rY)(Sys.Maths.Degrees rZ) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderSetParentOfChild, nullptr, ("IRigBuilderSetParentOfChild (Pointer hObject)(Sys.Type.IString parent)(Sys.Type.IString ofChild) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderCommitToSkeleton, nullptr, ("IRigBuilderCommitToSkeleton (Pointer hObject)(Sys.Type.IString name) -> (Int64 id)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderCommitToPose, nullptr, ("IRigBuilderCommitToPose (Pointer hObject)(Sys.Type.IString name) -> (Int64 id)"), __FILE__, __LINE__);
 	}
 }}
 // BennyHill generated Sexy native functions for Rococo::IContextMenuPane 
@@ -1974,25 +1974,25 @@ namespace Rococo {
 	void AddNativeCalls_RococoIContextMenuPane(Rococo::Script::IPublicScriptSystem& ss, Rococo::IContextMenuPane* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
-		ss.AddNativeCall(ns, NativeRococoIContextMenuPaneSetColourBk1, nullptr, ("IContextMenuPaneSetColourBk1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoIContextMenuPaneSetColourBk2, nullptr, ("IContextMenuPaneSetColourBk2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoIContextMenuPaneSetColourEdge1, nullptr, ("IContextMenuPaneSetColourEdge1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoIContextMenuPaneSetColourEdge2, nullptr, ("IContextMenuPaneSetColourEdge2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoIContextMenuPaneSetColourFont, nullptr, ("IContextMenuPaneSetColourFont (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoIContextMenuPaneIsVisible, nullptr, ("IContextMenuPaneIsVisible (Pointer hObject) -> (Bool isVisible)"));
-		ss.AddNativeCall(ns, NativeRococoIContextMenuPaneIsNormalized, nullptr, ("IContextMenuPaneIsNormalized (Pointer hObject) -> (Bool isNormalized)"));
-		ss.AddNativeCall(ns, NativeRococoIContextMenuPaneSetVisible, nullptr, ("IContextMenuPaneSetVisible (Pointer hObject)(Bool isVisible) -> "));
-		ss.AddNativeCall(ns, NativeRococoIContextMenuPaneGetRect, nullptr, ("IContextMenuPaneGetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
-		ss.AddNativeCall(ns, NativeRococoIContextMenuPaneSetRect, nullptr, ("IContextMenuPaneSetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
-		ss.AddNativeCall(ns, NativeRococoIContextMenuPaneSetBkImage, nullptr, ("IContextMenuPaneSetBkImage (Pointer hObject)(Sys.Type.IString pingPath) -> "));
-		ss.AddNativeCall(ns, NativeRococoIContextMenuPaneAlignLeftEdges, nullptr, ("IContextMenuPaneAlignLeftEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
-		ss.AddNativeCall(ns, NativeRococoIContextMenuPaneAlignRightEdges, nullptr, ("IContextMenuPaneAlignRightEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
-		ss.AddNativeCall(ns, NativeRococoIContextMenuPaneAlignTopEdges, nullptr, ("IContextMenuPaneAlignTopEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
-		ss.AddNativeCall(ns, NativeRococoIContextMenuPaneAlignBottomEdges, nullptr, ("IContextMenuPaneAlignBottomEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
-		ss.AddNativeCall(ns, NativeRococoIContextMenuPaneLayoutVertically, nullptr, ("IContextMenuPaneLayoutVertically (Pointer hObject)(Int32 vertBorder)(Int32 vertSpacing) -> "));
-		ss.AddNativeCall(ns, NativeRococoIContextMenuPaneSetCommand, nullptr, ("IContextMenuPaneSetCommand (Pointer hObject)(Int32 stateIndex)(Bool deferAction)(Sys.Type.IString text) -> "));
-		ss.AddNativeCall(ns, NativeRococoIContextMenuPaneSetPopulator, nullptr, ("IContextMenuPaneSetPopulator (Pointer hObject)(Int32 stateIndex)(Sys.Type.IString populatorName) -> "));
-		ss.AddNativeCall(ns, NativeRococoIContextMenuPaneNoOperation, nullptr, ("IContextMenuPaneNoOperation (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeRococoIContextMenuPaneSetColourBk1, nullptr, ("IContextMenuPaneSetColourBk1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIContextMenuPaneSetColourBk2, nullptr, ("IContextMenuPaneSetColourBk2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIContextMenuPaneSetColourEdge1, nullptr, ("IContextMenuPaneSetColourEdge1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIContextMenuPaneSetColourEdge2, nullptr, ("IContextMenuPaneSetColourEdge2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIContextMenuPaneSetColourFont, nullptr, ("IContextMenuPaneSetColourFont (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIContextMenuPaneIsVisible, nullptr, ("IContextMenuPaneIsVisible (Pointer hObject) -> (Bool isVisible)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIContextMenuPaneIsNormalized, nullptr, ("IContextMenuPaneIsNormalized (Pointer hObject) -> (Bool isNormalized)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIContextMenuPaneSetVisible, nullptr, ("IContextMenuPaneSetVisible (Pointer hObject)(Bool isVisible) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIContextMenuPaneGetRect, nullptr, ("IContextMenuPaneGetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIContextMenuPaneSetRect, nullptr, ("IContextMenuPaneSetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIContextMenuPaneSetBkImage, nullptr, ("IContextMenuPaneSetBkImage (Pointer hObject)(Sys.Type.IString pingPath) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIContextMenuPaneAlignLeftEdges, nullptr, ("IContextMenuPaneAlignLeftEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIContextMenuPaneAlignRightEdges, nullptr, ("IContextMenuPaneAlignRightEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIContextMenuPaneAlignTopEdges, nullptr, ("IContextMenuPaneAlignTopEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIContextMenuPaneAlignBottomEdges, nullptr, ("IContextMenuPaneAlignBottomEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIContextMenuPaneLayoutVertically, nullptr, ("IContextMenuPaneLayoutVertically (Pointer hObject)(Int32 vertBorder)(Int32 vertSpacing) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIContextMenuPaneSetCommand, nullptr, ("IContextMenuPaneSetCommand (Pointer hObject)(Int32 stateIndex)(Bool deferAction)(Sys.Type.IString text) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIContextMenuPaneSetPopulator, nullptr, ("IContextMenuPaneSetPopulator (Pointer hObject)(Int32 stateIndex)(Sys.Type.IString populatorName) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIContextMenuPaneNoOperation, nullptr, ("IContextMenuPaneNoOperation (Pointer hObject) -> "), __FILE__, __LINE__);
 	}
 }
 // BennyHill generated Sexy native functions for Rococo::Audio::IAudio 
@@ -2036,8 +2036,8 @@ namespace Rococo { namespace Audio {
 	void AddNativeCalls_RococoAudioIAudio(Rococo::Script::IPublicScriptSystem& ss, Rococo::Audio::IAudio* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Audio.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForRococoAudioGetAudio, _nceContext, ("GetHandleForIAudio0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeRococoAudioIAudioSetMusic, nullptr, ("IAudioSetMusic (Pointer hObject)(Sys.Type.IString musicFile) -> "));
+		ss.AddNativeCall(ns, NativeGetHandleForRococoAudioGetAudio, _nceContext, ("GetHandleForIAudio0  -> (Pointer hObject)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoAudioIAudioSetMusic, nullptr, ("IAudioSetMusic (Pointer hObject)(Sys.Type.IString musicFile) -> "), __FILE__, __LINE__);
 	}
 }}
 // BennyHill generated Sexy native functions for Rococo::IEnumListPane 
@@ -2421,27 +2421,27 @@ namespace Rococo {
 	void AddNativeCalls_RococoIEnumListPane(Rococo::Script::IPublicScriptSystem& ss, Rococo::IEnumListPane* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
-		ss.AddNativeCall(ns, NativeRococoIEnumListPaneSetColourBk1, nullptr, ("IEnumListPaneSetColourBk1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoIEnumListPaneSetColourBk2, nullptr, ("IEnumListPaneSetColourBk2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoIEnumListPaneSetColourEdge1, nullptr, ("IEnumListPaneSetColourEdge1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoIEnumListPaneSetColourEdge2, nullptr, ("IEnumListPaneSetColourEdge2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoIEnumListPaneSetColourFont, nullptr, ("IEnumListPaneSetColourFont (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoIEnumListPaneIsVisible, nullptr, ("IEnumListPaneIsVisible (Pointer hObject) -> (Bool isVisible)"));
-		ss.AddNativeCall(ns, NativeRococoIEnumListPaneIsNormalized, nullptr, ("IEnumListPaneIsNormalized (Pointer hObject) -> (Bool isNormalized)"));
-		ss.AddNativeCall(ns, NativeRococoIEnumListPaneSetVisible, nullptr, ("IEnumListPaneSetVisible (Pointer hObject)(Bool isVisible) -> "));
-		ss.AddNativeCall(ns, NativeRococoIEnumListPaneGetRect, nullptr, ("IEnumListPaneGetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
-		ss.AddNativeCall(ns, NativeRococoIEnumListPaneSetRect, nullptr, ("IEnumListPaneSetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
-		ss.AddNativeCall(ns, NativeRococoIEnumListPaneSetBkImage, nullptr, ("IEnumListPaneSetBkImage (Pointer hObject)(Sys.Type.IString pingPath) -> "));
-		ss.AddNativeCall(ns, NativeRococoIEnumListPaneAlignLeftEdges, nullptr, ("IEnumListPaneAlignLeftEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
-		ss.AddNativeCall(ns, NativeRococoIEnumListPaneAlignRightEdges, nullptr, ("IEnumListPaneAlignRightEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
-		ss.AddNativeCall(ns, NativeRococoIEnumListPaneAlignTopEdges, nullptr, ("IEnumListPaneAlignTopEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
-		ss.AddNativeCall(ns, NativeRococoIEnumListPaneAlignBottomEdges, nullptr, ("IEnumListPaneAlignBottomEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
-		ss.AddNativeCall(ns, NativeRococoIEnumListPaneLayoutVertically, nullptr, ("IEnumListPaneLayoutVertically (Pointer hObject)(Int32 vertBorder)(Int32 vertSpacing) -> "));
-		ss.AddNativeCall(ns, NativeRococoIEnumListPaneSetCommand, nullptr, ("IEnumListPaneSetCommand (Pointer hObject)(Int32 stateIndex)(Bool deferAction)(Sys.Type.IString text) -> "));
-		ss.AddNativeCall(ns, NativeRococoIEnumListPaneSetPopulator, nullptr, ("IEnumListPaneSetPopulator (Pointer hObject)(Int32 stateIndex)(Sys.Type.IString populatorName) -> "));
-		ss.AddNativeCall(ns, NativeRococoIEnumListPaneAddEnumCategory, nullptr, ("IEnumListPaneAddEnumCategory (Pointer hObject)(Sys.Type.IString key)(Int32 value) -> "));
-		ss.AddNativeCall(ns, NativeRococoIEnumListPaneSetArrowColours, nullptr, ("IEnumListPaneSetArrowColours (Pointer hObject)(Int32 normal)(Int32 hilighted)(Int32 disabled) -> "));
-		ss.AddNativeCall(ns, NativeRococoIEnumListPaneSetFocusColours, nullptr, ("IEnumListPaneSetFocusColours (Pointer hObject)(Int32 col1)(Int32 col2) -> "));
+		ss.AddNativeCall(ns, NativeRococoIEnumListPaneSetColourBk1, nullptr, ("IEnumListPaneSetColourBk1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIEnumListPaneSetColourBk2, nullptr, ("IEnumListPaneSetColourBk2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIEnumListPaneSetColourEdge1, nullptr, ("IEnumListPaneSetColourEdge1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIEnumListPaneSetColourEdge2, nullptr, ("IEnumListPaneSetColourEdge2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIEnumListPaneSetColourFont, nullptr, ("IEnumListPaneSetColourFont (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIEnumListPaneIsVisible, nullptr, ("IEnumListPaneIsVisible (Pointer hObject) -> (Bool isVisible)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIEnumListPaneIsNormalized, nullptr, ("IEnumListPaneIsNormalized (Pointer hObject) -> (Bool isNormalized)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIEnumListPaneSetVisible, nullptr, ("IEnumListPaneSetVisible (Pointer hObject)(Bool isVisible) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIEnumListPaneGetRect, nullptr, ("IEnumListPaneGetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIEnumListPaneSetRect, nullptr, ("IEnumListPaneSetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIEnumListPaneSetBkImage, nullptr, ("IEnumListPaneSetBkImage (Pointer hObject)(Sys.Type.IString pingPath) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIEnumListPaneAlignLeftEdges, nullptr, ("IEnumListPaneAlignLeftEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIEnumListPaneAlignRightEdges, nullptr, ("IEnumListPaneAlignRightEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIEnumListPaneAlignTopEdges, nullptr, ("IEnumListPaneAlignTopEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIEnumListPaneAlignBottomEdges, nullptr, ("IEnumListPaneAlignBottomEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIEnumListPaneLayoutVertically, nullptr, ("IEnumListPaneLayoutVertically (Pointer hObject)(Int32 vertBorder)(Int32 vertSpacing) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIEnumListPaneSetCommand, nullptr, ("IEnumListPaneSetCommand (Pointer hObject)(Int32 stateIndex)(Bool deferAction)(Sys.Type.IString text) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIEnumListPaneSetPopulator, nullptr, ("IEnumListPaneSetPopulator (Pointer hObject)(Int32 stateIndex)(Sys.Type.IString populatorName) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIEnumListPaneAddEnumCategory, nullptr, ("IEnumListPaneAddEnumCategory (Pointer hObject)(Sys.Type.IString key)(Int32 value) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIEnumListPaneSetArrowColours, nullptr, ("IEnumListPaneSetArrowColours (Pointer hObject)(Int32 normal)(Int32 hilighted)(Int32 disabled) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIEnumListPaneSetFocusColours, nullptr, ("IEnumListPaneSetFocusColours (Pointer hObject)(Int32 col1)(Int32 col2) -> "), __FILE__, __LINE__);
 	}
 }
 // BennyHill generated Sexy native functions for Rococo::IArrayBox 
@@ -2841,28 +2841,28 @@ namespace Rococo {
 	void AddNativeCalls_RococoIArrayBox(Rococo::Script::IPublicScriptSystem& ss, Rococo::IArrayBox* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
-		ss.AddNativeCall(ns, NativeRococoIArrayBoxSetColourBk1, nullptr, ("IArrayBoxSetColourBk1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoIArrayBoxSetColourBk2, nullptr, ("IArrayBoxSetColourBk2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoIArrayBoxSetColourEdge1, nullptr, ("IArrayBoxSetColourEdge1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoIArrayBoxSetColourEdge2, nullptr, ("IArrayBoxSetColourEdge2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoIArrayBoxSetColourFont, nullptr, ("IArrayBoxSetColourFont (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoIArrayBoxIsVisible, nullptr, ("IArrayBoxIsVisible (Pointer hObject) -> (Bool isVisible)"));
-		ss.AddNativeCall(ns, NativeRococoIArrayBoxIsNormalized, nullptr, ("IArrayBoxIsNormalized (Pointer hObject) -> (Bool isNormalized)"));
-		ss.AddNativeCall(ns, NativeRococoIArrayBoxSetVisible, nullptr, ("IArrayBoxSetVisible (Pointer hObject)(Bool isVisible) -> "));
-		ss.AddNativeCall(ns, NativeRococoIArrayBoxGetRect, nullptr, ("IArrayBoxGetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
-		ss.AddNativeCall(ns, NativeRococoIArrayBoxSetRect, nullptr, ("IArrayBoxSetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
-		ss.AddNativeCall(ns, NativeRococoIArrayBoxSetBkImage, nullptr, ("IArrayBoxSetBkImage (Pointer hObject)(Sys.Type.IString pingPath) -> "));
-		ss.AddNativeCall(ns, NativeRococoIArrayBoxAlignLeftEdges, nullptr, ("IArrayBoxAlignLeftEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
-		ss.AddNativeCall(ns, NativeRococoIArrayBoxAlignRightEdges, nullptr, ("IArrayBoxAlignRightEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
-		ss.AddNativeCall(ns, NativeRococoIArrayBoxAlignTopEdges, nullptr, ("IArrayBoxAlignTopEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
-		ss.AddNativeCall(ns, NativeRococoIArrayBoxAlignBottomEdges, nullptr, ("IArrayBoxAlignBottomEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
-		ss.AddNativeCall(ns, NativeRococoIArrayBoxLayoutVertically, nullptr, ("IArrayBoxLayoutVertically (Pointer hObject)(Int32 vertBorder)(Int32 vertSpacing) -> "));
-		ss.AddNativeCall(ns, NativeRococoIArrayBoxSetCommand, nullptr, ("IArrayBoxSetCommand (Pointer hObject)(Int32 stateIndex)(Bool deferAction)(Sys.Type.IString text) -> "));
-		ss.AddNativeCall(ns, NativeRococoIArrayBoxSetPopulator, nullptr, ("IArrayBoxSetPopulator (Pointer hObject)(Int32 stateIndex)(Sys.Type.IString populatorName) -> "));
-		ss.AddNativeCall(ns, NativeRococoIArrayBoxSetFocusColours, nullptr, ("IArrayBoxSetFocusColours (Pointer hObject)(Int32 col1)(Int32 col2) -> "));
-		ss.AddNativeCall(ns, NativeRococoIArrayBoxSetLineBorders, nullptr, ("IArrayBoxSetLineBorders (Pointer hObject)(Int32 left)(Int32 top)(Int32 right)(Int32 bottom) -> "));
-		ss.AddNativeCall(ns, NativeRococoIArrayBoxSetItemSelectEvent, nullptr, ("IArrayBoxSetItemSelectEvent (Pointer hObject)(Sys.Type.IString eventText) -> "));
-		ss.AddNativeCall(ns, NativeRococoIArrayBoxSetScrollToItemEvent, nullptr, ("IArrayBoxSetScrollToItemEvent (Pointer hObject)(Sys.Type.IString eventText) -> "));
+		ss.AddNativeCall(ns, NativeRococoIArrayBoxSetColourBk1, nullptr, ("IArrayBoxSetColourBk1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIArrayBoxSetColourBk2, nullptr, ("IArrayBoxSetColourBk2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIArrayBoxSetColourEdge1, nullptr, ("IArrayBoxSetColourEdge1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIArrayBoxSetColourEdge2, nullptr, ("IArrayBoxSetColourEdge2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIArrayBoxSetColourFont, nullptr, ("IArrayBoxSetColourFont (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIArrayBoxIsVisible, nullptr, ("IArrayBoxIsVisible (Pointer hObject) -> (Bool isVisible)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIArrayBoxIsNormalized, nullptr, ("IArrayBoxIsNormalized (Pointer hObject) -> (Bool isNormalized)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIArrayBoxSetVisible, nullptr, ("IArrayBoxSetVisible (Pointer hObject)(Bool isVisible) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIArrayBoxGetRect, nullptr, ("IArrayBoxGetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIArrayBoxSetRect, nullptr, ("IArrayBoxSetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIArrayBoxSetBkImage, nullptr, ("IArrayBoxSetBkImage (Pointer hObject)(Sys.Type.IString pingPath) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIArrayBoxAlignLeftEdges, nullptr, ("IArrayBoxAlignLeftEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIArrayBoxAlignRightEdges, nullptr, ("IArrayBoxAlignRightEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIArrayBoxAlignTopEdges, nullptr, ("IArrayBoxAlignTopEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIArrayBoxAlignBottomEdges, nullptr, ("IArrayBoxAlignBottomEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIArrayBoxLayoutVertically, nullptr, ("IArrayBoxLayoutVertically (Pointer hObject)(Int32 vertBorder)(Int32 vertSpacing) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIArrayBoxSetCommand, nullptr, ("IArrayBoxSetCommand (Pointer hObject)(Int32 stateIndex)(Bool deferAction)(Sys.Type.IString text) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIArrayBoxSetPopulator, nullptr, ("IArrayBoxSetPopulator (Pointer hObject)(Int32 stateIndex)(Sys.Type.IString populatorName) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIArrayBoxSetFocusColours, nullptr, ("IArrayBoxSetFocusColours (Pointer hObject)(Int32 col1)(Int32 col2) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIArrayBoxSetLineBorders, nullptr, ("IArrayBoxSetLineBorders (Pointer hObject)(Int32 left)(Int32 top)(Int32 right)(Int32 bottom) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIArrayBoxSetItemSelectEvent, nullptr, ("IArrayBoxSetItemSelectEvent (Pointer hObject)(Sys.Type.IString eventText) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIArrayBoxSetScrollToItemEvent, nullptr, ("IArrayBoxSetScrollToItemEvent (Pointer hObject)(Sys.Type.IString eventText) -> "), __FILE__, __LINE__);
 	}
 }
 // BennyHill generated Sexy native functions for Rococo::IPaneContainer 
@@ -3488,35 +3488,35 @@ namespace Rococo {
 	void AddNativeCalls_RococoIPaneContainer(Rococo::Script::IPublicScriptSystem& ss, Rococo::IPaneContainer* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
-		ss.AddNativeCall(ns, NativeRococoIPaneContainerSetColourBk1, nullptr, ("IPaneContainerSetColourBk1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoIPaneContainerSetColourBk2, nullptr, ("IPaneContainerSetColourBk2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoIPaneContainerSetColourEdge1, nullptr, ("IPaneContainerSetColourEdge1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoIPaneContainerSetColourEdge2, nullptr, ("IPaneContainerSetColourEdge2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoIPaneContainerSetColourFont, nullptr, ("IPaneContainerSetColourFont (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoIPaneContainerIsVisible, nullptr, ("IPaneContainerIsVisible (Pointer hObject) -> (Bool isVisible)"));
-		ss.AddNativeCall(ns, NativeRococoIPaneContainerIsNormalized, nullptr, ("IPaneContainerIsNormalized (Pointer hObject) -> (Bool isNormalized)"));
-		ss.AddNativeCall(ns, NativeRococoIPaneContainerSetVisible, nullptr, ("IPaneContainerSetVisible (Pointer hObject)(Bool isVisible) -> "));
-		ss.AddNativeCall(ns, NativeRococoIPaneContainerGetRect, nullptr, ("IPaneContainerGetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
-		ss.AddNativeCall(ns, NativeRococoIPaneContainerSetRect, nullptr, ("IPaneContainerSetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
-		ss.AddNativeCall(ns, NativeRococoIPaneContainerSetBkImage, nullptr, ("IPaneContainerSetBkImage (Pointer hObject)(Sys.Type.IString pingPath) -> "));
-		ss.AddNativeCall(ns, NativeRococoIPaneContainerAlignLeftEdges, nullptr, ("IPaneContainerAlignLeftEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
-		ss.AddNativeCall(ns, NativeRococoIPaneContainerAlignRightEdges, nullptr, ("IPaneContainerAlignRightEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
-		ss.AddNativeCall(ns, NativeRococoIPaneContainerAlignTopEdges, nullptr, ("IPaneContainerAlignTopEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
-		ss.AddNativeCall(ns, NativeRococoIPaneContainerAlignBottomEdges, nullptr, ("IPaneContainerAlignBottomEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
-		ss.AddNativeCall(ns, NativeRococoIPaneContainerLayoutVertically, nullptr, ("IPaneContainerLayoutVertically (Pointer hObject)(Int32 vertBorder)(Int32 vertSpacing) -> "));
-		ss.AddNativeCall(ns, NativeRococoIPaneContainerSetCommand, nullptr, ("IPaneContainerSetCommand (Pointer hObject)(Int32 stateIndex)(Bool deferAction)(Sys.Type.IString text) -> "));
-		ss.AddNativeCall(ns, NativeRococoIPaneContainerSetPopulator, nullptr, ("IPaneContainerSetPopulator (Pointer hObject)(Int32 stateIndex)(Sys.Type.IString populatorName) -> "));
-		ss.AddNativeCall(ns, NativeRococoIPaneContainerAddArrayBox, nullptr, ("IPaneContainerAddArrayBox (Pointer hObject)(Int32 fontIndex)(Sys.Type.IString populatorEvent)(Sys.Maths.Recti rect) -> (Rococo.IArrayBox box)"));
-		ss.AddNativeCall(ns, NativeRococoIPaneContainerAddContainer, nullptr, ("IPaneContainerAddContainer (Pointer hObject)(Sys.Maths.Recti rect) -> (Rococo.IPaneContainer container)"));
-		ss.AddNativeCall(ns, NativeRococoIPaneContainerAddFrame, nullptr, ("IPaneContainerAddFrame (Pointer hObject)(Sys.Maths.Recti rect) -> (Rococo.IFramePane frame)"));
-		ss.AddNativeCall(ns, NativeRococoIPaneContainerAddTabContainer, nullptr, ("IPaneContainerAddTabContainer (Pointer hObject)(Int32 tabHeight)(Int32 fontIndex)(Sys.Maths.Recti rect) -> (Rococo.ITabContainer container)"));
-		ss.AddNativeCall(ns, NativeRococoIPaneContainerAddLabel, nullptr, ("IPaneContainerAddLabel (Pointer hObject)(Int32 fontIndex)(Sys.Type.IString text)(Sys.Maths.Recti rect) -> (Rococo.ILabelPane label)"));
-		ss.AddNativeCall(ns, NativeRococoIPaneContainerAddSlider, nullptr, ("IPaneContainerAddSlider (Pointer hObject)(Int32 fontIndex)(Sys.Type.IString text)(Sys.Maths.Recti rect)(Float32 minValue)(Float32 maxValue) -> (Rococo.ISlider slider)"));
-		ss.AddNativeCall(ns, NativeRococoIPaneContainerAddScroller, nullptr, ("IPaneContainerAddScroller (Pointer hObject)(Sys.Type.IString key)(Sys.Maths.Recti rect)(Bool isVertical) -> (Rococo.IScroller scroller)"));
-		ss.AddNativeCall(ns, NativeRococoIPaneContainerAddTextOutput, nullptr, ("IPaneContainerAddTextOutput (Pointer hObject)(Int32 fontIndex)(Sys.Type.IString key)(Sys.Maths.Recti rect) -> (Rococo.ITextOutputPane textBox)"));
-		ss.AddNativeCall(ns, NativeRococoIPaneContainerAddRadioButton, nullptr, ("IPaneContainerAddRadioButton (Pointer hObject)(Int32 fontIndex)(Sys.Type.IString text)(Sys.Type.IString key)(Sys.Type.IString value)(Sys.Maths.Recti rect) -> (Rococo.IRadioButton radio)"));
-		ss.AddNativeCall(ns, NativeRococoIPaneContainerAddContextMenu, nullptr, ("IPaneContainerAddContextMenu (Pointer hObject)(Sys.Type.IString key)(Sys.Maths.Recti rect) -> (Rococo.IContextMenuPane menu)"));
-		ss.AddNativeCall(ns, NativeRococoIPaneContainerAddEnumList, nullptr, ("IPaneContainerAddEnumList (Pointer hObject)(Int32 fontIndex)(Sys.Type.IString populateEvent)(Sys.Maths.Recti rect) -> (Rococo.IEnumListPane enumList)"));
+		ss.AddNativeCall(ns, NativeRococoIPaneContainerSetColourBk1, nullptr, ("IPaneContainerSetColourBk1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIPaneContainerSetColourBk2, nullptr, ("IPaneContainerSetColourBk2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIPaneContainerSetColourEdge1, nullptr, ("IPaneContainerSetColourEdge1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIPaneContainerSetColourEdge2, nullptr, ("IPaneContainerSetColourEdge2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIPaneContainerSetColourFont, nullptr, ("IPaneContainerSetColourFont (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIPaneContainerIsVisible, nullptr, ("IPaneContainerIsVisible (Pointer hObject) -> (Bool isVisible)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIPaneContainerIsNormalized, nullptr, ("IPaneContainerIsNormalized (Pointer hObject) -> (Bool isNormalized)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIPaneContainerSetVisible, nullptr, ("IPaneContainerSetVisible (Pointer hObject)(Bool isVisible) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIPaneContainerGetRect, nullptr, ("IPaneContainerGetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIPaneContainerSetRect, nullptr, ("IPaneContainerSetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIPaneContainerSetBkImage, nullptr, ("IPaneContainerSetBkImage (Pointer hObject)(Sys.Type.IString pingPath) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIPaneContainerAlignLeftEdges, nullptr, ("IPaneContainerAlignLeftEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIPaneContainerAlignRightEdges, nullptr, ("IPaneContainerAlignRightEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIPaneContainerAlignTopEdges, nullptr, ("IPaneContainerAlignTopEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIPaneContainerAlignBottomEdges, nullptr, ("IPaneContainerAlignBottomEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIPaneContainerLayoutVertically, nullptr, ("IPaneContainerLayoutVertically (Pointer hObject)(Int32 vertBorder)(Int32 vertSpacing) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIPaneContainerSetCommand, nullptr, ("IPaneContainerSetCommand (Pointer hObject)(Int32 stateIndex)(Bool deferAction)(Sys.Type.IString text) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIPaneContainerSetPopulator, nullptr, ("IPaneContainerSetPopulator (Pointer hObject)(Int32 stateIndex)(Sys.Type.IString populatorName) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIPaneContainerAddArrayBox, nullptr, ("IPaneContainerAddArrayBox (Pointer hObject)(Int32 fontIndex)(Sys.Type.IString populatorEvent)(Sys.Maths.Recti rect) -> (Rococo.IArrayBox box)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIPaneContainerAddContainer, nullptr, ("IPaneContainerAddContainer (Pointer hObject)(Sys.Maths.Recti rect) -> (Rococo.IPaneContainer container)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIPaneContainerAddFrame, nullptr, ("IPaneContainerAddFrame (Pointer hObject)(Sys.Maths.Recti rect) -> (Rococo.IFramePane frame)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIPaneContainerAddTabContainer, nullptr, ("IPaneContainerAddTabContainer (Pointer hObject)(Int32 tabHeight)(Int32 fontIndex)(Sys.Maths.Recti rect) -> (Rococo.ITabContainer container)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIPaneContainerAddLabel, nullptr, ("IPaneContainerAddLabel (Pointer hObject)(Int32 fontIndex)(Sys.Type.IString text)(Sys.Maths.Recti rect) -> (Rococo.ILabelPane label)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIPaneContainerAddSlider, nullptr, ("IPaneContainerAddSlider (Pointer hObject)(Int32 fontIndex)(Sys.Type.IString text)(Sys.Maths.Recti rect)(Float32 minValue)(Float32 maxValue) -> (Rococo.ISlider slider)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIPaneContainerAddScroller, nullptr, ("IPaneContainerAddScroller (Pointer hObject)(Sys.Type.IString key)(Sys.Maths.Recti rect)(Bool isVertical) -> (Rococo.IScroller scroller)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIPaneContainerAddTextOutput, nullptr, ("IPaneContainerAddTextOutput (Pointer hObject)(Int32 fontIndex)(Sys.Type.IString key)(Sys.Maths.Recti rect) -> (Rococo.ITextOutputPane textBox)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIPaneContainerAddRadioButton, nullptr, ("IPaneContainerAddRadioButton (Pointer hObject)(Int32 fontIndex)(Sys.Type.IString text)(Sys.Type.IString key)(Sys.Type.IString value)(Sys.Maths.Recti rect) -> (Rococo.IRadioButton radio)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIPaneContainerAddContextMenu, nullptr, ("IPaneContainerAddContextMenu (Pointer hObject)(Sys.Type.IString key)(Sys.Maths.Recti rect) -> (Rococo.IContextMenuPane menu)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIPaneContainerAddEnumList, nullptr, ("IPaneContainerAddEnumList (Pointer hObject)(Int32 fontIndex)(Sys.Type.IString populateEvent)(Sys.Maths.Recti rect) -> (Rococo.IEnumListPane enumList)"), __FILE__, __LINE__);
 	}
 }
 // BennyHill generated Sexy native functions for Rococo::ITabContainer 
@@ -3882,26 +3882,26 @@ namespace Rococo {
 	void AddNativeCalls_RococoITabContainer(Rococo::Script::IPublicScriptSystem& ss, Rococo::ITabContainer* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
-		ss.AddNativeCall(ns, NativeRococoITabContainerSetColourBk1, nullptr, ("ITabContainerSetColourBk1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoITabContainerSetColourBk2, nullptr, ("ITabContainerSetColourBk2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoITabContainerSetColourEdge1, nullptr, ("ITabContainerSetColourEdge1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoITabContainerSetColourEdge2, nullptr, ("ITabContainerSetColourEdge2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoITabContainerSetColourFont, nullptr, ("ITabContainerSetColourFont (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoITabContainerIsVisible, nullptr, ("ITabContainerIsVisible (Pointer hObject) -> (Bool isVisible)"));
-		ss.AddNativeCall(ns, NativeRococoITabContainerIsNormalized, nullptr, ("ITabContainerIsNormalized (Pointer hObject) -> (Bool isNormalized)"));
-		ss.AddNativeCall(ns, NativeRococoITabContainerSetVisible, nullptr, ("ITabContainerSetVisible (Pointer hObject)(Bool isVisible) -> "));
-		ss.AddNativeCall(ns, NativeRococoITabContainerGetRect, nullptr, ("ITabContainerGetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
-		ss.AddNativeCall(ns, NativeRococoITabContainerSetRect, nullptr, ("ITabContainerSetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
-		ss.AddNativeCall(ns, NativeRococoITabContainerSetBkImage, nullptr, ("ITabContainerSetBkImage (Pointer hObject)(Sys.Type.IString pingPath) -> "));
-		ss.AddNativeCall(ns, NativeRococoITabContainerAlignLeftEdges, nullptr, ("ITabContainerAlignLeftEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
-		ss.AddNativeCall(ns, NativeRococoITabContainerAlignRightEdges, nullptr, ("ITabContainerAlignRightEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
-		ss.AddNativeCall(ns, NativeRococoITabContainerAlignTopEdges, nullptr, ("ITabContainerAlignTopEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
-		ss.AddNativeCall(ns, NativeRococoITabContainerAlignBottomEdges, nullptr, ("ITabContainerAlignBottomEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
-		ss.AddNativeCall(ns, NativeRococoITabContainerLayoutVertically, nullptr, ("ITabContainerLayoutVertically (Pointer hObject)(Int32 vertBorder)(Int32 vertSpacing) -> "));
-		ss.AddNativeCall(ns, NativeRococoITabContainerSetCommand, nullptr, ("ITabContainerSetCommand (Pointer hObject)(Int32 stateIndex)(Bool deferAction)(Sys.Type.IString text) -> "));
-		ss.AddNativeCall(ns, NativeRococoITabContainerSetPopulator, nullptr, ("ITabContainerSetPopulator (Pointer hObject)(Int32 stateIndex)(Sys.Type.IString populatorName) -> "));
-		ss.AddNativeCall(ns, NativeRococoITabContainerAddTab, nullptr, ("ITabContainerAddTab (Pointer hObject)(Int32 tabWidth)(Sys.Type.IString caption)(Sys.Type.IString panelText) -> "));
-		ss.AddNativeCall(ns, NativeRococoITabContainerSetTabPopulator, nullptr, ("ITabContainerSetTabPopulator (Pointer hObject)(Sys.Type.IString populatorName) -> "));
+		ss.AddNativeCall(ns, NativeRococoITabContainerSetColourBk1, nullptr, ("ITabContainerSetColourBk1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoITabContainerSetColourBk2, nullptr, ("ITabContainerSetColourBk2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoITabContainerSetColourEdge1, nullptr, ("ITabContainerSetColourEdge1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoITabContainerSetColourEdge2, nullptr, ("ITabContainerSetColourEdge2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoITabContainerSetColourFont, nullptr, ("ITabContainerSetColourFont (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoITabContainerIsVisible, nullptr, ("ITabContainerIsVisible (Pointer hObject) -> (Bool isVisible)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoITabContainerIsNormalized, nullptr, ("ITabContainerIsNormalized (Pointer hObject) -> (Bool isNormalized)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoITabContainerSetVisible, nullptr, ("ITabContainerSetVisible (Pointer hObject)(Bool isVisible) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoITabContainerGetRect, nullptr, ("ITabContainerGetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoITabContainerSetRect, nullptr, ("ITabContainerSetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoITabContainerSetBkImage, nullptr, ("ITabContainerSetBkImage (Pointer hObject)(Sys.Type.IString pingPath) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoITabContainerAlignLeftEdges, nullptr, ("ITabContainerAlignLeftEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoITabContainerAlignRightEdges, nullptr, ("ITabContainerAlignRightEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoITabContainerAlignTopEdges, nullptr, ("ITabContainerAlignTopEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoITabContainerAlignBottomEdges, nullptr, ("ITabContainerAlignBottomEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoITabContainerLayoutVertically, nullptr, ("ITabContainerLayoutVertically (Pointer hObject)(Int32 vertBorder)(Int32 vertSpacing) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoITabContainerSetCommand, nullptr, ("ITabContainerSetCommand (Pointer hObject)(Int32 stateIndex)(Bool deferAction)(Sys.Type.IString text) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoITabContainerSetPopulator, nullptr, ("ITabContainerSetPopulator (Pointer hObject)(Int32 stateIndex)(Sys.Type.IString populatorName) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoITabContainerAddTab, nullptr, ("ITabContainerAddTab (Pointer hObject)(Int32 tabWidth)(Sys.Type.IString caption)(Sys.Type.IString panelText) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoITabContainerSetTabPopulator, nullptr, ("ITabContainerSetTabPopulator (Pointer hObject)(Sys.Type.IString populatorName) -> "), __FILE__, __LINE__);
 	}
 }
 // BennyHill generated Sexy native functions for Rococo::IFramePane 
@@ -4627,41 +4627,41 @@ namespace Rococo {
 	void AddNativeCalls_RococoIFramePane(Rococo::Script::IPublicScriptSystem& ss, Rococo::IFramePane* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
-		ss.AddNativeCall(ns, NativeRococoIFramePaneSetColourBk1, nullptr, ("IFramePaneSetColourBk1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoIFramePaneSetColourBk2, nullptr, ("IFramePaneSetColourBk2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoIFramePaneSetColourEdge1, nullptr, ("IFramePaneSetColourEdge1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoIFramePaneSetColourEdge2, nullptr, ("IFramePaneSetColourEdge2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoIFramePaneSetColourFont, nullptr, ("IFramePaneSetColourFont (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoIFramePaneIsVisible, nullptr, ("IFramePaneIsVisible (Pointer hObject) -> (Bool isVisible)"));
-		ss.AddNativeCall(ns, NativeRococoIFramePaneIsNormalized, nullptr, ("IFramePaneIsNormalized (Pointer hObject) -> (Bool isNormalized)"));
-		ss.AddNativeCall(ns, NativeRococoIFramePaneSetVisible, nullptr, ("IFramePaneSetVisible (Pointer hObject)(Bool isVisible) -> "));
-		ss.AddNativeCall(ns, NativeRococoIFramePaneGetRect, nullptr, ("IFramePaneGetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
-		ss.AddNativeCall(ns, NativeRococoIFramePaneSetRect, nullptr, ("IFramePaneSetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
-		ss.AddNativeCall(ns, NativeRococoIFramePaneSetBkImage, nullptr, ("IFramePaneSetBkImage (Pointer hObject)(Sys.Type.IString pingPath) -> "));
-		ss.AddNativeCall(ns, NativeRococoIFramePaneAlignLeftEdges, nullptr, ("IFramePaneAlignLeftEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
-		ss.AddNativeCall(ns, NativeRococoIFramePaneAlignRightEdges, nullptr, ("IFramePaneAlignRightEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
-		ss.AddNativeCall(ns, NativeRococoIFramePaneAlignTopEdges, nullptr, ("IFramePaneAlignTopEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
-		ss.AddNativeCall(ns, NativeRococoIFramePaneAlignBottomEdges, nullptr, ("IFramePaneAlignBottomEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
-		ss.AddNativeCall(ns, NativeRococoIFramePaneLayoutVertically, nullptr, ("IFramePaneLayoutVertically (Pointer hObject)(Int32 vertBorder)(Int32 vertSpacing) -> "));
-		ss.AddNativeCall(ns, NativeRococoIFramePaneSetCommand, nullptr, ("IFramePaneSetCommand (Pointer hObject)(Int32 stateIndex)(Bool deferAction)(Sys.Type.IString text) -> "));
-		ss.AddNativeCall(ns, NativeRococoIFramePaneSetPopulator, nullptr, ("IFramePaneSetPopulator (Pointer hObject)(Int32 stateIndex)(Sys.Type.IString populatorName) -> "));
-		ss.AddNativeCall(ns, NativeRococoIFramePaneAddArrayBox, nullptr, ("IFramePaneAddArrayBox (Pointer hObject)(Int32 fontIndex)(Sys.Type.IString populatorEvent)(Sys.Maths.Recti rect) -> (Rococo.IArrayBox box)"));
-		ss.AddNativeCall(ns, NativeRococoIFramePaneAddContainer, nullptr, ("IFramePaneAddContainer (Pointer hObject)(Sys.Maths.Recti rect) -> (Rococo.IPaneContainer container)"));
-		ss.AddNativeCall(ns, NativeRococoIFramePaneAddFrame, nullptr, ("IFramePaneAddFrame (Pointer hObject)(Sys.Maths.Recti rect) -> (Rococo.IFramePane frame)"));
-		ss.AddNativeCall(ns, NativeRococoIFramePaneAddTabContainer, nullptr, ("IFramePaneAddTabContainer (Pointer hObject)(Int32 tabHeight)(Int32 fontIndex)(Sys.Maths.Recti rect) -> (Rococo.ITabContainer container)"));
-		ss.AddNativeCall(ns, NativeRococoIFramePaneAddLabel, nullptr, ("IFramePaneAddLabel (Pointer hObject)(Int32 fontIndex)(Sys.Type.IString text)(Sys.Maths.Recti rect) -> (Rococo.ILabelPane label)"));
-		ss.AddNativeCall(ns, NativeRococoIFramePaneAddSlider, nullptr, ("IFramePaneAddSlider (Pointer hObject)(Int32 fontIndex)(Sys.Type.IString text)(Sys.Maths.Recti rect)(Float32 minValue)(Float32 maxValue) -> (Rococo.ISlider slider)"));
-		ss.AddNativeCall(ns, NativeRococoIFramePaneAddScroller, nullptr, ("IFramePaneAddScroller (Pointer hObject)(Sys.Type.IString key)(Sys.Maths.Recti rect)(Bool isVertical) -> (Rococo.IScroller scroller)"));
-		ss.AddNativeCall(ns, NativeRococoIFramePaneAddTextOutput, nullptr, ("IFramePaneAddTextOutput (Pointer hObject)(Int32 fontIndex)(Sys.Type.IString key)(Sys.Maths.Recti rect) -> (Rococo.ITextOutputPane textBox)"));
-		ss.AddNativeCall(ns, NativeRococoIFramePaneAddRadioButton, nullptr, ("IFramePaneAddRadioButton (Pointer hObject)(Int32 fontIndex)(Sys.Type.IString text)(Sys.Type.IString key)(Sys.Type.IString value)(Sys.Maths.Recti rect) -> (Rococo.IRadioButton radio)"));
-		ss.AddNativeCall(ns, NativeRococoIFramePaneAddContextMenu, nullptr, ("IFramePaneAddContextMenu (Pointer hObject)(Sys.Type.IString key)(Sys.Maths.Recti rect) -> (Rococo.IContextMenuPane menu)"));
-		ss.AddNativeCall(ns, NativeRococoIFramePaneAddEnumList, nullptr, ("IFramePaneAddEnumList (Pointer hObject)(Int32 fontIndex)(Sys.Type.IString populateEvent)(Sys.Maths.Recti rect) -> (Rococo.IEnumListPane enumList)"));
-		ss.AddNativeCall(ns, NativeRococoIFramePaneGetChildRect, nullptr, ("IFramePaneGetChildRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
-		ss.AddNativeCall(ns, NativeRococoIFramePaneContainer, nullptr, ("IFramePaneContainer (Pointer hObject) -> (Rococo.IPaneContainer container)"));
-		ss.AddNativeCall(ns, NativeRococoIFramePaneSetLayoutAlgorithm, nullptr, ("IFramePaneSetLayoutAlgorithm (Pointer hObject)(Int32 layout) -> "));
-		ss.AddNativeCall(ns, NativeRococoIFramePaneSetMinMaxSpan, nullptr, ("IFramePaneSetMinMaxSpan (Pointer hObject)(Int32 minDX)(Int32 minDY)(Int32 maxDX)(Int32 maxDY) -> "));
-		ss.AddNativeCall(ns, NativeRococoIFramePaneSetCaption, nullptr, ("IFramePaneSetCaption (Pointer hObject)(Sys.Type.IString caption) -> "));
-		ss.AddNativeCall(ns, NativeRococoIFramePaneSetCaptionEvent, nullptr, ("IFramePaneSetCaptionEvent (Pointer hObject)(Sys.Type.IString eventId) -> "));
+		ss.AddNativeCall(ns, NativeRococoIFramePaneSetColourBk1, nullptr, ("IFramePaneSetColourBk1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIFramePaneSetColourBk2, nullptr, ("IFramePaneSetColourBk2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIFramePaneSetColourEdge1, nullptr, ("IFramePaneSetColourEdge1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIFramePaneSetColourEdge2, nullptr, ("IFramePaneSetColourEdge2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIFramePaneSetColourFont, nullptr, ("IFramePaneSetColourFont (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIFramePaneIsVisible, nullptr, ("IFramePaneIsVisible (Pointer hObject) -> (Bool isVisible)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIFramePaneIsNormalized, nullptr, ("IFramePaneIsNormalized (Pointer hObject) -> (Bool isNormalized)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIFramePaneSetVisible, nullptr, ("IFramePaneSetVisible (Pointer hObject)(Bool isVisible) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIFramePaneGetRect, nullptr, ("IFramePaneGetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIFramePaneSetRect, nullptr, ("IFramePaneSetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIFramePaneSetBkImage, nullptr, ("IFramePaneSetBkImage (Pointer hObject)(Sys.Type.IString pingPath) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIFramePaneAlignLeftEdges, nullptr, ("IFramePaneAlignLeftEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIFramePaneAlignRightEdges, nullptr, ("IFramePaneAlignRightEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIFramePaneAlignTopEdges, nullptr, ("IFramePaneAlignTopEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIFramePaneAlignBottomEdges, nullptr, ("IFramePaneAlignBottomEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIFramePaneLayoutVertically, nullptr, ("IFramePaneLayoutVertically (Pointer hObject)(Int32 vertBorder)(Int32 vertSpacing) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIFramePaneSetCommand, nullptr, ("IFramePaneSetCommand (Pointer hObject)(Int32 stateIndex)(Bool deferAction)(Sys.Type.IString text) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIFramePaneSetPopulator, nullptr, ("IFramePaneSetPopulator (Pointer hObject)(Int32 stateIndex)(Sys.Type.IString populatorName) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIFramePaneAddArrayBox, nullptr, ("IFramePaneAddArrayBox (Pointer hObject)(Int32 fontIndex)(Sys.Type.IString populatorEvent)(Sys.Maths.Recti rect) -> (Rococo.IArrayBox box)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIFramePaneAddContainer, nullptr, ("IFramePaneAddContainer (Pointer hObject)(Sys.Maths.Recti rect) -> (Rococo.IPaneContainer container)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIFramePaneAddFrame, nullptr, ("IFramePaneAddFrame (Pointer hObject)(Sys.Maths.Recti rect) -> (Rococo.IFramePane frame)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIFramePaneAddTabContainer, nullptr, ("IFramePaneAddTabContainer (Pointer hObject)(Int32 tabHeight)(Int32 fontIndex)(Sys.Maths.Recti rect) -> (Rococo.ITabContainer container)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIFramePaneAddLabel, nullptr, ("IFramePaneAddLabel (Pointer hObject)(Int32 fontIndex)(Sys.Type.IString text)(Sys.Maths.Recti rect) -> (Rococo.ILabelPane label)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIFramePaneAddSlider, nullptr, ("IFramePaneAddSlider (Pointer hObject)(Int32 fontIndex)(Sys.Type.IString text)(Sys.Maths.Recti rect)(Float32 minValue)(Float32 maxValue) -> (Rococo.ISlider slider)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIFramePaneAddScroller, nullptr, ("IFramePaneAddScroller (Pointer hObject)(Sys.Type.IString key)(Sys.Maths.Recti rect)(Bool isVertical) -> (Rococo.IScroller scroller)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIFramePaneAddTextOutput, nullptr, ("IFramePaneAddTextOutput (Pointer hObject)(Int32 fontIndex)(Sys.Type.IString key)(Sys.Maths.Recti rect) -> (Rococo.ITextOutputPane textBox)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIFramePaneAddRadioButton, nullptr, ("IFramePaneAddRadioButton (Pointer hObject)(Int32 fontIndex)(Sys.Type.IString text)(Sys.Type.IString key)(Sys.Type.IString value)(Sys.Maths.Recti rect) -> (Rococo.IRadioButton radio)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIFramePaneAddContextMenu, nullptr, ("IFramePaneAddContextMenu (Pointer hObject)(Sys.Type.IString key)(Sys.Maths.Recti rect) -> (Rococo.IContextMenuPane menu)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIFramePaneAddEnumList, nullptr, ("IFramePaneAddEnumList (Pointer hObject)(Int32 fontIndex)(Sys.Type.IString populateEvent)(Sys.Maths.Recti rect) -> (Rococo.IEnumListPane enumList)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIFramePaneGetChildRect, nullptr, ("IFramePaneGetChildRect (Pointer hObject)(Sys.Maths.Recti rect) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIFramePaneContainer, nullptr, ("IFramePaneContainer (Pointer hObject) -> (Rococo.IPaneContainer container)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIFramePaneSetLayoutAlgorithm, nullptr, ("IFramePaneSetLayoutAlgorithm (Pointer hObject)(Int32 layout) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIFramePaneSetMinMaxSpan, nullptr, ("IFramePaneSetMinMaxSpan (Pointer hObject)(Int32 minDX)(Int32 minDY)(Int32 maxDX)(Int32 maxDY) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIFramePaneSetCaption, nullptr, ("IFramePaneSetCaption (Pointer hObject)(Sys.Type.IString caption) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIFramePaneSetCaptionEvent, nullptr, ("IFramePaneSetCaptionEvent (Pointer hObject)(Sys.Type.IString eventId) -> "), __FILE__, __LINE__);
 	}
 }
 // BennyHill generated Sexy native functions for Rococo::IRadioButton 
@@ -5011,25 +5011,25 @@ namespace Rococo {
 	void AddNativeCalls_RococoIRadioButton(Rococo::Script::IPublicScriptSystem& ss, Rococo::IRadioButton* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
-		ss.AddNativeCall(ns, NativeRococoIRadioButtonSetColourBk1, nullptr, ("IRadioButtonSetColourBk1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoIRadioButtonSetColourBk2, nullptr, ("IRadioButtonSetColourBk2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoIRadioButtonSetColourEdge1, nullptr, ("IRadioButtonSetColourEdge1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoIRadioButtonSetColourEdge2, nullptr, ("IRadioButtonSetColourEdge2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoIRadioButtonSetColourFont, nullptr, ("IRadioButtonSetColourFont (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoIRadioButtonIsVisible, nullptr, ("IRadioButtonIsVisible (Pointer hObject) -> (Bool isVisible)"));
-		ss.AddNativeCall(ns, NativeRococoIRadioButtonIsNormalized, nullptr, ("IRadioButtonIsNormalized (Pointer hObject) -> (Bool isNormalized)"));
-		ss.AddNativeCall(ns, NativeRococoIRadioButtonSetVisible, nullptr, ("IRadioButtonSetVisible (Pointer hObject)(Bool isVisible) -> "));
-		ss.AddNativeCall(ns, NativeRococoIRadioButtonGetRect, nullptr, ("IRadioButtonGetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
-		ss.AddNativeCall(ns, NativeRococoIRadioButtonSetRect, nullptr, ("IRadioButtonSetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
-		ss.AddNativeCall(ns, NativeRococoIRadioButtonSetBkImage, nullptr, ("IRadioButtonSetBkImage (Pointer hObject)(Sys.Type.IString pingPath) -> "));
-		ss.AddNativeCall(ns, NativeRococoIRadioButtonAlignLeftEdges, nullptr, ("IRadioButtonAlignLeftEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
-		ss.AddNativeCall(ns, NativeRococoIRadioButtonAlignRightEdges, nullptr, ("IRadioButtonAlignRightEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
-		ss.AddNativeCall(ns, NativeRococoIRadioButtonAlignTopEdges, nullptr, ("IRadioButtonAlignTopEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
-		ss.AddNativeCall(ns, NativeRococoIRadioButtonAlignBottomEdges, nullptr, ("IRadioButtonAlignBottomEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
-		ss.AddNativeCall(ns, NativeRococoIRadioButtonLayoutVertically, nullptr, ("IRadioButtonLayoutVertically (Pointer hObject)(Int32 vertBorder)(Int32 vertSpacing) -> "));
-		ss.AddNativeCall(ns, NativeRococoIRadioButtonSetCommand, nullptr, ("IRadioButtonSetCommand (Pointer hObject)(Int32 stateIndex)(Bool deferAction)(Sys.Type.IString text) -> "));
-		ss.AddNativeCall(ns, NativeRococoIRadioButtonSetPopulator, nullptr, ("IRadioButtonSetPopulator (Pointer hObject)(Int32 stateIndex)(Sys.Type.IString populatorName) -> "));
-		ss.AddNativeCall(ns, NativeRococoIRadioButtonSetAlignment, nullptr, ("IRadioButtonSetAlignment (Pointer hObject)(Int32 horz)(Int32 vert)(Int32 paddingX)(Int32 paddingY) -> "));
+		ss.AddNativeCall(ns, NativeRococoIRadioButtonSetColourBk1, nullptr, ("IRadioButtonSetColourBk1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIRadioButtonSetColourBk2, nullptr, ("IRadioButtonSetColourBk2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIRadioButtonSetColourEdge1, nullptr, ("IRadioButtonSetColourEdge1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIRadioButtonSetColourEdge2, nullptr, ("IRadioButtonSetColourEdge2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIRadioButtonSetColourFont, nullptr, ("IRadioButtonSetColourFont (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIRadioButtonIsVisible, nullptr, ("IRadioButtonIsVisible (Pointer hObject) -> (Bool isVisible)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIRadioButtonIsNormalized, nullptr, ("IRadioButtonIsNormalized (Pointer hObject) -> (Bool isNormalized)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIRadioButtonSetVisible, nullptr, ("IRadioButtonSetVisible (Pointer hObject)(Bool isVisible) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIRadioButtonGetRect, nullptr, ("IRadioButtonGetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIRadioButtonSetRect, nullptr, ("IRadioButtonSetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIRadioButtonSetBkImage, nullptr, ("IRadioButtonSetBkImage (Pointer hObject)(Sys.Type.IString pingPath) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIRadioButtonAlignLeftEdges, nullptr, ("IRadioButtonAlignLeftEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIRadioButtonAlignRightEdges, nullptr, ("IRadioButtonAlignRightEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIRadioButtonAlignTopEdges, nullptr, ("IRadioButtonAlignTopEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIRadioButtonAlignBottomEdges, nullptr, ("IRadioButtonAlignBottomEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIRadioButtonLayoutVertically, nullptr, ("IRadioButtonLayoutVertically (Pointer hObject)(Int32 vertBorder)(Int32 vertSpacing) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIRadioButtonSetCommand, nullptr, ("IRadioButtonSetCommand (Pointer hObject)(Int32 stateIndex)(Bool deferAction)(Sys.Type.IString text) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIRadioButtonSetPopulator, nullptr, ("IRadioButtonSetPopulator (Pointer hObject)(Int32 stateIndex)(Sys.Type.IString populatorName) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIRadioButtonSetAlignment, nullptr, ("IRadioButtonSetAlignment (Pointer hObject)(Int32 horz)(Int32 vert)(Int32 paddingX)(Int32 paddingY) -> "), __FILE__, __LINE__);
 	}
 }
 // BennyHill generated Sexy native functions for Rococo::ILabelPane 
@@ -5403,26 +5403,26 @@ namespace Rococo {
 	void AddNativeCalls_RococoILabelPane(Rococo::Script::IPublicScriptSystem& ss, Rococo::ILabelPane* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
-		ss.AddNativeCall(ns, NativeRococoILabelPaneSetColourBk1, nullptr, ("ILabelPaneSetColourBk1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoILabelPaneSetColourBk2, nullptr, ("ILabelPaneSetColourBk2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoILabelPaneSetColourEdge1, nullptr, ("ILabelPaneSetColourEdge1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoILabelPaneSetColourEdge2, nullptr, ("ILabelPaneSetColourEdge2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoILabelPaneSetColourFont, nullptr, ("ILabelPaneSetColourFont (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoILabelPaneIsVisible, nullptr, ("ILabelPaneIsVisible (Pointer hObject) -> (Bool isVisible)"));
-		ss.AddNativeCall(ns, NativeRococoILabelPaneIsNormalized, nullptr, ("ILabelPaneIsNormalized (Pointer hObject) -> (Bool isNormalized)"));
-		ss.AddNativeCall(ns, NativeRococoILabelPaneSetVisible, nullptr, ("ILabelPaneSetVisible (Pointer hObject)(Bool isVisible) -> "));
-		ss.AddNativeCall(ns, NativeRococoILabelPaneGetRect, nullptr, ("ILabelPaneGetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
-		ss.AddNativeCall(ns, NativeRococoILabelPaneSetRect, nullptr, ("ILabelPaneSetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
-		ss.AddNativeCall(ns, NativeRococoILabelPaneSetBkImage, nullptr, ("ILabelPaneSetBkImage (Pointer hObject)(Sys.Type.IString pingPath) -> "));
-		ss.AddNativeCall(ns, NativeRococoILabelPaneAlignLeftEdges, nullptr, ("ILabelPaneAlignLeftEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
-		ss.AddNativeCall(ns, NativeRococoILabelPaneAlignRightEdges, nullptr, ("ILabelPaneAlignRightEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
-		ss.AddNativeCall(ns, NativeRococoILabelPaneAlignTopEdges, nullptr, ("ILabelPaneAlignTopEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
-		ss.AddNativeCall(ns, NativeRococoILabelPaneAlignBottomEdges, nullptr, ("ILabelPaneAlignBottomEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
-		ss.AddNativeCall(ns, NativeRococoILabelPaneLayoutVertically, nullptr, ("ILabelPaneLayoutVertically (Pointer hObject)(Int32 vertBorder)(Int32 vertSpacing) -> "));
-		ss.AddNativeCall(ns, NativeRococoILabelPaneSetCommand, nullptr, ("ILabelPaneSetCommand (Pointer hObject)(Int32 stateIndex)(Bool deferAction)(Sys.Type.IString text) -> "));
-		ss.AddNativeCall(ns, NativeRococoILabelPaneSetPopulator, nullptr, ("ILabelPaneSetPopulator (Pointer hObject)(Int32 stateIndex)(Sys.Type.IString populatorName) -> "));
-		ss.AddNativeCall(ns, NativeRococoILabelPaneSetAlignment, nullptr, ("ILabelPaneSetAlignment (Pointer hObject)(Int32 horz)(Int32 vert)(Int32 paddingX)(Int32 paddingY) -> "));
-		ss.AddNativeCall(ns, NativeRococoILabelPaneSetEnableEvent, nullptr, ("ILabelPaneSetEnableEvent (Pointer hObject)(Sys.Type.IString enablerEventName)(Int32 grey1)(Int32 grey2) -> "));
+		ss.AddNativeCall(ns, NativeRococoILabelPaneSetColourBk1, nullptr, ("ILabelPaneSetColourBk1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoILabelPaneSetColourBk2, nullptr, ("ILabelPaneSetColourBk2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoILabelPaneSetColourEdge1, nullptr, ("ILabelPaneSetColourEdge1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoILabelPaneSetColourEdge2, nullptr, ("ILabelPaneSetColourEdge2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoILabelPaneSetColourFont, nullptr, ("ILabelPaneSetColourFont (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoILabelPaneIsVisible, nullptr, ("ILabelPaneIsVisible (Pointer hObject) -> (Bool isVisible)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoILabelPaneIsNormalized, nullptr, ("ILabelPaneIsNormalized (Pointer hObject) -> (Bool isNormalized)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoILabelPaneSetVisible, nullptr, ("ILabelPaneSetVisible (Pointer hObject)(Bool isVisible) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoILabelPaneGetRect, nullptr, ("ILabelPaneGetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoILabelPaneSetRect, nullptr, ("ILabelPaneSetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoILabelPaneSetBkImage, nullptr, ("ILabelPaneSetBkImage (Pointer hObject)(Sys.Type.IString pingPath) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoILabelPaneAlignLeftEdges, nullptr, ("ILabelPaneAlignLeftEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoILabelPaneAlignRightEdges, nullptr, ("ILabelPaneAlignRightEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoILabelPaneAlignTopEdges, nullptr, ("ILabelPaneAlignTopEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoILabelPaneAlignBottomEdges, nullptr, ("ILabelPaneAlignBottomEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoILabelPaneLayoutVertically, nullptr, ("ILabelPaneLayoutVertically (Pointer hObject)(Int32 vertBorder)(Int32 vertSpacing) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoILabelPaneSetCommand, nullptr, ("ILabelPaneSetCommand (Pointer hObject)(Int32 stateIndex)(Bool deferAction)(Sys.Type.IString text) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoILabelPaneSetPopulator, nullptr, ("ILabelPaneSetPopulator (Pointer hObject)(Int32 stateIndex)(Sys.Type.IString populatorName) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoILabelPaneSetAlignment, nullptr, ("ILabelPaneSetAlignment (Pointer hObject)(Int32 horz)(Int32 vert)(Int32 paddingX)(Int32 paddingY) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoILabelPaneSetEnableEvent, nullptr, ("ILabelPaneSetEnableEvent (Pointer hObject)(Sys.Type.IString enablerEventName)(Int32 grey1)(Int32 grey2) -> "), __FILE__, __LINE__);
 	}
 }
 // BennyHill generated Sexy native functions for Rococo::ISlider 
@@ -5746,24 +5746,24 @@ namespace Rococo {
 	void AddNativeCalls_RococoISlider(Rococo::Script::IPublicScriptSystem& ss, Rococo::ISlider* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
-		ss.AddNativeCall(ns, NativeRococoISliderSetColourBk1, nullptr, ("ISliderSetColourBk1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoISliderSetColourBk2, nullptr, ("ISliderSetColourBk2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoISliderSetColourEdge1, nullptr, ("ISliderSetColourEdge1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoISliderSetColourEdge2, nullptr, ("ISliderSetColourEdge2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoISliderSetColourFont, nullptr, ("ISliderSetColourFont (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoISliderIsVisible, nullptr, ("ISliderIsVisible (Pointer hObject) -> (Bool isVisible)"));
-		ss.AddNativeCall(ns, NativeRococoISliderIsNormalized, nullptr, ("ISliderIsNormalized (Pointer hObject) -> (Bool isNormalized)"));
-		ss.AddNativeCall(ns, NativeRococoISliderSetVisible, nullptr, ("ISliderSetVisible (Pointer hObject)(Bool isVisible) -> "));
-		ss.AddNativeCall(ns, NativeRococoISliderGetRect, nullptr, ("ISliderGetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
-		ss.AddNativeCall(ns, NativeRococoISliderSetRect, nullptr, ("ISliderSetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
-		ss.AddNativeCall(ns, NativeRococoISliderSetBkImage, nullptr, ("ISliderSetBkImage (Pointer hObject)(Sys.Type.IString pingPath) -> "));
-		ss.AddNativeCall(ns, NativeRococoISliderAlignLeftEdges, nullptr, ("ISliderAlignLeftEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
-		ss.AddNativeCall(ns, NativeRococoISliderAlignRightEdges, nullptr, ("ISliderAlignRightEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
-		ss.AddNativeCall(ns, NativeRococoISliderAlignTopEdges, nullptr, ("ISliderAlignTopEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
-		ss.AddNativeCall(ns, NativeRococoISliderAlignBottomEdges, nullptr, ("ISliderAlignBottomEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
-		ss.AddNativeCall(ns, NativeRococoISliderLayoutVertically, nullptr, ("ISliderLayoutVertically (Pointer hObject)(Int32 vertBorder)(Int32 vertSpacing) -> "));
-		ss.AddNativeCall(ns, NativeRococoISliderSetCommand, nullptr, ("ISliderSetCommand (Pointer hObject)(Int32 stateIndex)(Bool deferAction)(Sys.Type.IString text) -> "));
-		ss.AddNativeCall(ns, NativeRococoISliderSetPopulator, nullptr, ("ISliderSetPopulator (Pointer hObject)(Int32 stateIndex)(Sys.Type.IString populatorName) -> "));
+		ss.AddNativeCall(ns, NativeRococoISliderSetColourBk1, nullptr, ("ISliderSetColourBk1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoISliderSetColourBk2, nullptr, ("ISliderSetColourBk2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoISliderSetColourEdge1, nullptr, ("ISliderSetColourEdge1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoISliderSetColourEdge2, nullptr, ("ISliderSetColourEdge2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoISliderSetColourFont, nullptr, ("ISliderSetColourFont (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoISliderIsVisible, nullptr, ("ISliderIsVisible (Pointer hObject) -> (Bool isVisible)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoISliderIsNormalized, nullptr, ("ISliderIsNormalized (Pointer hObject) -> (Bool isNormalized)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoISliderSetVisible, nullptr, ("ISliderSetVisible (Pointer hObject)(Bool isVisible) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoISliderGetRect, nullptr, ("ISliderGetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoISliderSetRect, nullptr, ("ISliderSetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoISliderSetBkImage, nullptr, ("ISliderSetBkImage (Pointer hObject)(Sys.Type.IString pingPath) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoISliderAlignLeftEdges, nullptr, ("ISliderAlignLeftEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoISliderAlignRightEdges, nullptr, ("ISliderAlignRightEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoISliderAlignTopEdges, nullptr, ("ISliderAlignTopEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoISliderAlignBottomEdges, nullptr, ("ISliderAlignBottomEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoISliderLayoutVertically, nullptr, ("ISliderLayoutVertically (Pointer hObject)(Int32 vertBorder)(Int32 vertSpacing) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoISliderSetCommand, nullptr, ("ISliderSetCommand (Pointer hObject)(Int32 stateIndex)(Bool deferAction)(Sys.Type.IString text) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoISliderSetPopulator, nullptr, ("ISliderSetPopulator (Pointer hObject)(Int32 stateIndex)(Sys.Type.IString populatorName) -> "), __FILE__, __LINE__);
 	}
 }
 // BennyHill generated Sexy native functions for Rococo::IScroller 
@@ -6087,24 +6087,24 @@ namespace Rococo {
 	void AddNativeCalls_RococoIScroller(Rococo::Script::IPublicScriptSystem& ss, Rococo::IScroller* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
-		ss.AddNativeCall(ns, NativeRococoIScrollerSetColourBk1, nullptr, ("IScrollerSetColourBk1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoIScrollerSetColourBk2, nullptr, ("IScrollerSetColourBk2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoIScrollerSetColourEdge1, nullptr, ("IScrollerSetColourEdge1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoIScrollerSetColourEdge2, nullptr, ("IScrollerSetColourEdge2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoIScrollerSetColourFont, nullptr, ("IScrollerSetColourFont (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoIScrollerIsVisible, nullptr, ("IScrollerIsVisible (Pointer hObject) -> (Bool isVisible)"));
-		ss.AddNativeCall(ns, NativeRococoIScrollerIsNormalized, nullptr, ("IScrollerIsNormalized (Pointer hObject) -> (Bool isNormalized)"));
-		ss.AddNativeCall(ns, NativeRococoIScrollerSetVisible, nullptr, ("IScrollerSetVisible (Pointer hObject)(Bool isVisible) -> "));
-		ss.AddNativeCall(ns, NativeRococoIScrollerGetRect, nullptr, ("IScrollerGetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
-		ss.AddNativeCall(ns, NativeRococoIScrollerSetRect, nullptr, ("IScrollerSetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
-		ss.AddNativeCall(ns, NativeRococoIScrollerSetBkImage, nullptr, ("IScrollerSetBkImage (Pointer hObject)(Sys.Type.IString pingPath) -> "));
-		ss.AddNativeCall(ns, NativeRococoIScrollerAlignLeftEdges, nullptr, ("IScrollerAlignLeftEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
-		ss.AddNativeCall(ns, NativeRococoIScrollerAlignRightEdges, nullptr, ("IScrollerAlignRightEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
-		ss.AddNativeCall(ns, NativeRococoIScrollerAlignTopEdges, nullptr, ("IScrollerAlignTopEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
-		ss.AddNativeCall(ns, NativeRococoIScrollerAlignBottomEdges, nullptr, ("IScrollerAlignBottomEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
-		ss.AddNativeCall(ns, NativeRococoIScrollerLayoutVertically, nullptr, ("IScrollerLayoutVertically (Pointer hObject)(Int32 vertBorder)(Int32 vertSpacing) -> "));
-		ss.AddNativeCall(ns, NativeRococoIScrollerSetCommand, nullptr, ("IScrollerSetCommand (Pointer hObject)(Int32 stateIndex)(Bool deferAction)(Sys.Type.IString text) -> "));
-		ss.AddNativeCall(ns, NativeRococoIScrollerSetPopulator, nullptr, ("IScrollerSetPopulator (Pointer hObject)(Int32 stateIndex)(Sys.Type.IString populatorName) -> "));
+		ss.AddNativeCall(ns, NativeRococoIScrollerSetColourBk1, nullptr, ("IScrollerSetColourBk1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIScrollerSetColourBk2, nullptr, ("IScrollerSetColourBk2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIScrollerSetColourEdge1, nullptr, ("IScrollerSetColourEdge1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIScrollerSetColourEdge2, nullptr, ("IScrollerSetColourEdge2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIScrollerSetColourFont, nullptr, ("IScrollerSetColourFont (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIScrollerIsVisible, nullptr, ("IScrollerIsVisible (Pointer hObject) -> (Bool isVisible)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIScrollerIsNormalized, nullptr, ("IScrollerIsNormalized (Pointer hObject) -> (Bool isNormalized)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIScrollerSetVisible, nullptr, ("IScrollerSetVisible (Pointer hObject)(Bool isVisible) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIScrollerGetRect, nullptr, ("IScrollerGetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIScrollerSetRect, nullptr, ("IScrollerSetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIScrollerSetBkImage, nullptr, ("IScrollerSetBkImage (Pointer hObject)(Sys.Type.IString pingPath) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIScrollerAlignLeftEdges, nullptr, ("IScrollerAlignLeftEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIScrollerAlignRightEdges, nullptr, ("IScrollerAlignRightEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIScrollerAlignTopEdges, nullptr, ("IScrollerAlignTopEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIScrollerAlignBottomEdges, nullptr, ("IScrollerAlignBottomEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIScrollerLayoutVertically, nullptr, ("IScrollerLayoutVertically (Pointer hObject)(Int32 vertBorder)(Int32 vertSpacing) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIScrollerSetCommand, nullptr, ("IScrollerSetCommand (Pointer hObject)(Int32 stateIndex)(Bool deferAction)(Sys.Type.IString text) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIScrollerSetPopulator, nullptr, ("IScrollerSetPopulator (Pointer hObject)(Int32 stateIndex)(Sys.Type.IString populatorName) -> "), __FILE__, __LINE__);
 	}
 }
 // BennyHill generated Sexy native functions for Rococo::ITextOutputPane 
@@ -6470,26 +6470,26 @@ namespace Rococo {
 	void AddNativeCalls_RococoITextOutputPane(Rococo::Script::IPublicScriptSystem& ss, Rococo::ITextOutputPane* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
-		ss.AddNativeCall(ns, NativeRococoITextOutputPaneSetColourBk1, nullptr, ("ITextOutputPaneSetColourBk1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoITextOutputPaneSetColourBk2, nullptr, ("ITextOutputPaneSetColourBk2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoITextOutputPaneSetColourEdge1, nullptr, ("ITextOutputPaneSetColourEdge1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoITextOutputPaneSetColourEdge2, nullptr, ("ITextOutputPaneSetColourEdge2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoITextOutputPaneSetColourFont, nullptr, ("ITextOutputPaneSetColourFont (Pointer hObject)(Int32 normal)(Int32 hilight) -> "));
-		ss.AddNativeCall(ns, NativeRococoITextOutputPaneIsVisible, nullptr, ("ITextOutputPaneIsVisible (Pointer hObject) -> (Bool isVisible)"));
-		ss.AddNativeCall(ns, NativeRococoITextOutputPaneIsNormalized, nullptr, ("ITextOutputPaneIsNormalized (Pointer hObject) -> (Bool isNormalized)"));
-		ss.AddNativeCall(ns, NativeRococoITextOutputPaneSetVisible, nullptr, ("ITextOutputPaneSetVisible (Pointer hObject)(Bool isVisible) -> "));
-		ss.AddNativeCall(ns, NativeRococoITextOutputPaneGetRect, nullptr, ("ITextOutputPaneGetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
-		ss.AddNativeCall(ns, NativeRococoITextOutputPaneSetRect, nullptr, ("ITextOutputPaneSetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "));
-		ss.AddNativeCall(ns, NativeRococoITextOutputPaneSetBkImage, nullptr, ("ITextOutputPaneSetBkImage (Pointer hObject)(Sys.Type.IString pingPath) -> "));
-		ss.AddNativeCall(ns, NativeRococoITextOutputPaneAlignLeftEdges, nullptr, ("ITextOutputPaneAlignLeftEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
-		ss.AddNativeCall(ns, NativeRococoITextOutputPaneAlignRightEdges, nullptr, ("ITextOutputPaneAlignRightEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
-		ss.AddNativeCall(ns, NativeRococoITextOutputPaneAlignTopEdges, nullptr, ("ITextOutputPaneAlignTopEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
-		ss.AddNativeCall(ns, NativeRococoITextOutputPaneAlignBottomEdges, nullptr, ("ITextOutputPaneAlignBottomEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "));
-		ss.AddNativeCall(ns, NativeRococoITextOutputPaneLayoutVertically, nullptr, ("ITextOutputPaneLayoutVertically (Pointer hObject)(Int32 vertBorder)(Int32 vertSpacing) -> "));
-		ss.AddNativeCall(ns, NativeRococoITextOutputPaneSetCommand, nullptr, ("ITextOutputPaneSetCommand (Pointer hObject)(Int32 stateIndex)(Bool deferAction)(Sys.Type.IString text) -> "));
-		ss.AddNativeCall(ns, NativeRococoITextOutputPaneSetPopulator, nullptr, ("ITextOutputPaneSetPopulator (Pointer hObject)(Int32 stateIndex)(Sys.Type.IString populatorName) -> "));
-		ss.AddNativeCall(ns, NativeRococoITextOutputPaneSetAlignment, nullptr, ("ITextOutputPaneSetAlignment (Pointer hObject)(Int32 horz)(Int32 vert)(Int32 paddingX)(Int32 paddingY) -> "));
-		ss.AddNativeCall(ns, NativeRococoITextOutputPaneSetActivateKey, nullptr, ("ITextOutputPaneSetActivateKey (Pointer hObject)(Sys.Type.IString key) -> "));
+		ss.AddNativeCall(ns, NativeRococoITextOutputPaneSetColourBk1, nullptr, ("ITextOutputPaneSetColourBk1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoITextOutputPaneSetColourBk2, nullptr, ("ITextOutputPaneSetColourBk2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoITextOutputPaneSetColourEdge1, nullptr, ("ITextOutputPaneSetColourEdge1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoITextOutputPaneSetColourEdge2, nullptr, ("ITextOutputPaneSetColourEdge2 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoITextOutputPaneSetColourFont, nullptr, ("ITextOutputPaneSetColourFont (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoITextOutputPaneIsVisible, nullptr, ("ITextOutputPaneIsVisible (Pointer hObject) -> (Bool isVisible)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoITextOutputPaneIsNormalized, nullptr, ("ITextOutputPaneIsNormalized (Pointer hObject) -> (Bool isNormalized)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoITextOutputPaneSetVisible, nullptr, ("ITextOutputPaneSetVisible (Pointer hObject)(Bool isVisible) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoITextOutputPaneGetRect, nullptr, ("ITextOutputPaneGetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoITextOutputPaneSetRect, nullptr, ("ITextOutputPaneSetRect (Pointer hObject)(Sys.Maths.Recti rect) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoITextOutputPaneSetBkImage, nullptr, ("ITextOutputPaneSetBkImage (Pointer hObject)(Sys.Type.IString pingPath) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoITextOutputPaneAlignLeftEdges, nullptr, ("ITextOutputPaneAlignLeftEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoITextOutputPaneAlignRightEdges, nullptr, ("ITextOutputPaneAlignRightEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoITextOutputPaneAlignTopEdges, nullptr, ("ITextOutputPaneAlignTopEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoITextOutputPaneAlignBottomEdges, nullptr, ("ITextOutputPaneAlignBottomEdges (Pointer hObject)(Int32 borderPixels)(Bool preserveSpan) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoITextOutputPaneLayoutVertically, nullptr, ("ITextOutputPaneLayoutVertically (Pointer hObject)(Int32 vertBorder)(Int32 vertSpacing) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoITextOutputPaneSetCommand, nullptr, ("ITextOutputPaneSetCommand (Pointer hObject)(Int32 stateIndex)(Bool deferAction)(Sys.Type.IString text) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoITextOutputPaneSetPopulator, nullptr, ("ITextOutputPaneSetPopulator (Pointer hObject)(Int32 stateIndex)(Sys.Type.IString populatorName) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoITextOutputPaneSetAlignment, nullptr, ("ITextOutputPaneSetAlignment (Pointer hObject)(Int32 horz)(Int32 vert)(Int32 paddingX)(Int32 paddingY) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoITextOutputPaneSetActivateKey, nullptr, ("ITextOutputPaneSetActivateKey (Pointer hObject)(Sys.Type.IString key) -> "), __FILE__, __LINE__);
 	}
 }
 // BennyHill generated Sexy native functions for Rococo::IPaneBuilder 
@@ -6531,8 +6531,8 @@ namespace Rococo {
 	void AddNativeCalls_RococoIPaneBuilder(Rococo::Script::IPublicScriptSystem& ss, Rococo::IPaneBuilder* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForRococoPaneBuilder, _nceContext, ("GetHandleForIPaneBuilder0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeRococoIPaneBuilderRoot, nullptr, ("IPaneBuilderRoot (Pointer hObject) -> (Rococo.IPaneContainer container)"));
+		ss.AddNativeCall(ns, NativeGetHandleForRococoPaneBuilder, _nceContext, ("GetHandleForIPaneBuilder0  -> (Pointer hObject)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIPaneBuilderRoot, nullptr, ("IPaneBuilderRoot (Pointer hObject) -> (Rococo.IPaneContainer container)"), __FILE__, __LINE__);
 	}
 }
 // BennyHill generated Sexy native functions for Rococo::IKeyboard 
@@ -6640,12 +6640,12 @@ namespace Rococo {
 	void AddNativeCalls_RococoIKeyboard(Rococo::Script::IPublicScriptSystem& ss, Rococo::IKeyboard* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForRococoKeyboard, _nceContext, ("GetHandleForIKeyboard0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeRococoIKeyboardClearActions, nullptr, ("IKeyboardClearActions (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeRococoIKeyboardGetVKeyFromName, nullptr, ("IKeyboardGetVKeyFromName (Pointer hObject)(Sys.Type.IString name) -> (Int32 vkCode)"));
-		ss.AddNativeCall(ns, NativeRococoIKeyboardSetKeyName, nullptr, ("IKeyboardSetKeyName (Pointer hObject)(Sys.Type.IString name)(Int32 vkeyCode) -> "));
-		ss.AddNativeCall(ns, NativeRococoIKeyboardBindAction, nullptr, ("IKeyboardBindAction (Pointer hObject)(Sys.Type.IString keyName)(Sys.Type.IString actionName) -> "));
-		ss.AddNativeCall(ns, NativeRococoIKeyboardSaveCppHeader, nullptr, ("IKeyboardSaveCppHeader (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeGetHandleForRococoKeyboard, _nceContext, ("GetHandleForIKeyboard0  -> (Pointer hObject)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIKeyboardClearActions, nullptr, ("IKeyboardClearActions (Pointer hObject) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIKeyboardGetVKeyFromName, nullptr, ("IKeyboardGetVKeyFromName (Pointer hObject)(Sys.Type.IString name) -> (Int32 vkCode)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIKeyboardSetKeyName, nullptr, ("IKeyboardSetKeyName (Pointer hObject)(Sys.Type.IString name)(Int32 vkeyCode) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIKeyboardBindAction, nullptr, ("IKeyboardBindAction (Pointer hObject)(Sys.Type.IString keyName)(Sys.Type.IString actionName) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIKeyboardSaveCppHeader, nullptr, ("IKeyboardSaveCppHeader (Pointer hObject) -> "), __FILE__, __LINE__);
 	}
 }
 // BennyHill generated Sexy native functions for Rococo::IConfig 
@@ -6829,15 +6829,15 @@ namespace Rococo {
 	void AddNativeCalls_RococoIConfig(Rococo::Script::IPublicScriptSystem& ss, Rococo::IConfig* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForRococoConfig, _nceContext, ("GetHandleForIConfig0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeRococoIConfigInt, nullptr, ("IConfigInt (Pointer hObject)(Sys.Type.IString name)(Int32 value) -> "));
-		ss.AddNativeCall(ns, NativeRococoIConfigFloat, nullptr, ("IConfigFloat (Pointer hObject)(Sys.Type.IString name)(Float32 value) -> "));
-		ss.AddNativeCall(ns, NativeRococoIConfigBool, nullptr, ("IConfigBool (Pointer hObject)(Sys.Type.IString name)(Bool value) -> "));
-		ss.AddNativeCall(ns, NativeRococoIConfigText, nullptr, ("IConfigText (Pointer hObject)(Sys.Type.IString name)(Sys.Type.IString value) -> "));
-		ss.AddNativeCall(ns, NativeRococoIConfigGetInt, nullptr, ("IConfigGetInt (Pointer hObject)(Sys.Type.IString name) -> (Int32 value)"));
-		ss.AddNativeCall(ns, NativeRococoIConfigGetFloat, nullptr, ("IConfigGetFloat (Pointer hObject)(Sys.Type.IString name) -> (Float32 value)"));
-		ss.AddNativeCall(ns, NativeRococoIConfigGetBool, nullptr, ("IConfigGetBool (Pointer hObject)(Sys.Type.IString name) -> (Bool value)"));
-		ss.AddNativeCall(ns, NativeRococoIConfigGetText, nullptr, ("IConfigGetText (Pointer hObject)(Sys.Type.IString name)(Sys.Type.IStringBuilder text) -> "));
+		ss.AddNativeCall(ns, NativeGetHandleForRococoConfig, _nceContext, ("GetHandleForIConfig0  -> (Pointer hObject)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIConfigInt, nullptr, ("IConfigInt (Pointer hObject)(Sys.Type.IString name)(Int32 value) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIConfigFloat, nullptr, ("IConfigFloat (Pointer hObject)(Sys.Type.IString name)(Float32 value) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIConfigBool, nullptr, ("IConfigBool (Pointer hObject)(Sys.Type.IString name)(Bool value) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIConfigText, nullptr, ("IConfigText (Pointer hObject)(Sys.Type.IString name)(Sys.Type.IString value) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIConfigGetInt, nullptr, ("IConfigGetInt (Pointer hObject)(Sys.Type.IString name) -> (Int32 value)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIConfigGetFloat, nullptr, ("IConfigGetFloat (Pointer hObject)(Sys.Type.IString name) -> (Float32 value)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIConfigGetBool, nullptr, ("IConfigGetBool (Pointer hObject)(Sys.Type.IString name) -> (Bool value)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIConfigGetText, nullptr, ("IConfigGetText (Pointer hObject)(Sys.Type.IString name)(Sys.Type.IStringBuilder text) -> "), __FILE__, __LINE__);
 	}
 }
 // BennyHill generated Sexy native functions for Rococo::Graphics::ISpriteBuilder 
@@ -6917,11 +6917,11 @@ namespace Rococo { namespace Graphics {
 	void AddNativeCalls_RococoGraphicsISpriteBuilder(Rococo::Script::IPublicScriptSystem& ss, Rococo::Graphics::ISpriteBuilder* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Graphics.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForRococoGraphicsSpriteBuilder, _nceContext, ("GetHandleForISpriteBuilder0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeRococoGraphicsISpriteBuilderClear, nullptr, ("ISpriteBuilderClear (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsISpriteBuilderAddSprite, nullptr, ("ISpriteBuilderAddSprite (Pointer hObject)(Sys.Type.IString resourceName) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsISpriteBuilderAddEachSpriteInDirectory, nullptr, ("ISpriteBuilderAddEachSpriteInDirectory (Pointer hObject)(Sys.Type.IString directoryName) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsISpriteBuilderLoadAllSprites, nullptr, ("ISpriteBuilderLoadAllSprites (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeGetHandleForRococoGraphicsSpriteBuilder, _nceContext, ("GetHandleForISpriteBuilder0  -> (Pointer hObject)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsISpriteBuilderClear, nullptr, ("ISpriteBuilderClear (Pointer hObject) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsISpriteBuilderAddSprite, nullptr, ("ISpriteBuilderAddSprite (Pointer hObject)(Sys.Type.IString resourceName) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsISpriteBuilderAddEachSpriteInDirectory, nullptr, ("ISpriteBuilderAddEachSpriteInDirectory (Pointer hObject)(Sys.Type.IString directoryName) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsISpriteBuilderLoadAllSprites, nullptr, ("ISpriteBuilderLoadAllSprites (Pointer hObject) -> "), __FILE__, __LINE__);
 	}
 }}
 // BennyHill generated Sexy native functions for Rococo::Graphics::ISprites 
@@ -6985,9 +6985,9 @@ namespace Rococo { namespace Graphics {
 	void AddNativeCalls_RococoGraphicsISprites(Rococo::Script::IPublicScriptSystem& ss, Rococo::Graphics::ISprites* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Graphics.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForRococoGraphicsSprites, _nceContext, ("GetHandleForISprites0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeRococoGraphicsISpritesTryGetId, nullptr, ("ISpritesTryGetId (Pointer hObject)(Sys.Type.IString pingPath) -> (Int64 id)"));
-		ss.AddNativeCall(ns, NativeRococoGraphicsISpritesAppendPingPath, nullptr, ("ISpritesAppendPingPath (Pointer hObject)(Int64 id)(Sys.Type.IStringBuilder sb) -> "));
+		ss.AddNativeCall(ns, NativeGetHandleForRococoGraphicsSprites, _nceContext, ("GetHandleForISprites0  -> (Pointer hObject)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsISpritesTryGetId, nullptr, ("ISpritesTryGetId (Pointer hObject)(Sys.Type.IString pingPath) -> (Int64 id)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsISpritesAppendPingPath, nullptr, ("ISpritesAppendPingPath (Pointer hObject)(Int64 id)(Sys.Type.IStringBuilder sb) -> "), __FILE__, __LINE__);
 	}
 }}
 // BennyHill generated Sexy native functions for Rococo::Entities::IMobiles 
@@ -7065,10 +7065,10 @@ namespace Rococo { namespace Entities {
 	void AddNativeCalls_RococoEntitiesIMobiles(Rococo::Script::IPublicScriptSystem& ss, Rococo::Entities::IMobiles* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Entities.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForRococoEntitiesMobiles, _nceContext, ("GetHandleForIMobiles0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIMobilesLink, nullptr, ("IMobilesLink (Pointer hObject)(Int64 id) -> "));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIMobilesGetAngles, nullptr, ("IMobilesGetAngles (Pointer hObject)(Int64 id)(Sys.Maths.FPSAngles angles) -> "));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIMobilesSetAngles, nullptr, ("IMobilesSetAngles (Pointer hObject)(Int64 id)(Sys.Maths.FPSAngles angles) -> "));
+		ss.AddNativeCall(ns, NativeGetHandleForRococoEntitiesMobiles, _nceContext, ("GetHandleForIMobiles0  -> (Pointer hObject)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoEntitiesIMobilesLink, nullptr, ("IMobilesLink (Pointer hObject)(Int64 id) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoEntitiesIMobilesGetAngles, nullptr, ("IMobilesGetAngles (Pointer hObject)(Int64 id)(Sys.Maths.FPSAngles angles) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoEntitiesIMobilesSetAngles, nullptr, ("IMobilesSetAngles (Pointer hObject)(Int64 id)(Sys.Maths.FPSAngles angles) -> "), __FILE__, __LINE__);
 	}
 }}
 // BennyHill generated Sexy native functions for Rococo::Entities::IParticleSystem 
@@ -7218,14 +7218,14 @@ namespace Rococo { namespace Entities {
 	void AddNativeCalls_RococoEntitiesIParticleSystem(Rococo::Script::IPublicScriptSystem& ss, Rococo::Platform* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Entities.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForRococoEntitiesParticleSystem, _nceContext, ("GetHandleForIParticleSystem0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIParticleSystemApplySpectrum, nullptr, ("IParticleSystemApplySpectrum (Pointer hObject)(Int64 id) -> "));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIParticleSystemClearSpectrum, nullptr, ("IParticleSystemClearSpectrum (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIParticleSystemSetSpectrum, nullptr, ("IParticleSystemSetSpectrum (Pointer hObject)(Sys.Maths.Vec4 colour)(Float32 relativeLifeTime) -> "));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIParticleSystemAddDust, nullptr, ("IParticleSystemAddDust (Pointer hObject)(Int32 particles)(Sys.SI.Metres meanParticleSize)(Sys.SI.Metres range)(Sys.SI.Metres minHeight)(Sys.SI.Metres maxHeight)(Int32 colour)(Int64 id) -> "));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIParticleSystemAddVerticalFlame, nullptr, ("IParticleSystemAddVerticalFlame (Pointer hObject)(Rococo.FlameDef flameDef)(Int64 id) -> "));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIParticleSystemClear, nullptr, ("IParticleSystemClear (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIParticleSystemSnuff, nullptr, ("IParticleSystemSnuff (Pointer hObject)(Int64 id) -> "));
+		ss.AddNativeCall(ns, NativeGetHandleForRococoEntitiesParticleSystem, _nceContext, ("GetHandleForIParticleSystem0  -> (Pointer hObject)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoEntitiesIParticleSystemApplySpectrum, nullptr, ("IParticleSystemApplySpectrum (Pointer hObject)(Int64 id) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoEntitiesIParticleSystemClearSpectrum, nullptr, ("IParticleSystemClearSpectrum (Pointer hObject) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoEntitiesIParticleSystemSetSpectrum, nullptr, ("IParticleSystemSetSpectrum (Pointer hObject)(Sys.Maths.Vec4 colour)(Float32 relativeLifeTime) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoEntitiesIParticleSystemAddDust, nullptr, ("IParticleSystemAddDust (Pointer hObject)(Int32 particles)(Sys.SI.Metres meanParticleSize)(Sys.SI.Metres range)(Sys.SI.Metres minHeight)(Sys.SI.Metres maxHeight)(Int32 colour)(Int64 id) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoEntitiesIParticleSystemAddVerticalFlame, nullptr, ("IParticleSystemAddVerticalFlame (Pointer hObject)(Rococo.FlameDef flameDef)(Int64 id) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoEntitiesIParticleSystemClear, nullptr, ("IParticleSystemClear (Pointer hObject) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoEntitiesIParticleSystemSnuff, nullptr, ("IParticleSystemSnuff (Pointer hObject)(Int64 id) -> "), __FILE__, __LINE__);
 	}
 }}
 // BennyHill generated Sexy native functions for Rococo::Graphics::ICamera 
@@ -7459,21 +7459,21 @@ namespace Rococo { namespace Graphics {
 	void AddNativeCalls_RococoGraphicsICamera(Rococo::Script::IPublicScriptSystem& ss, Rococo::Graphics::ICamera* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Graphics.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForRococoGraphicsCamera, _nceContext, ("GetHandleForICamera0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeRococoGraphicsICameraClear, nullptr, ("ICameraClear (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsICameraSetRHProjection, nullptr, ("ICameraSetRHProjection (Pointer hObject)(Sys.Maths.Degrees fov)(Float32 near)(Float32 far) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsICameraSetPosition, nullptr, ("ICameraSetPosition (Pointer hObject)(Sys.Maths.Vec3 position) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsICameraSetOrientation, nullptr, ("ICameraSetOrientation (Pointer hObject)(Sys.Maths.Quat orientation) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsICameraFollowEntity, nullptr, ("ICameraFollowEntity (Pointer hObject)(Int64 id) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsICameraMoveToEntity, nullptr, ("ICameraMoveToEntity (Pointer hObject)(Int64 id) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsICameraOrientateWithEntity, nullptr, ("ICameraOrientateWithEntity (Pointer hObject)(Int64 id)(Int32 flags) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsICameraOrientateToEntity, nullptr, ("ICameraOrientateToEntity (Pointer hObject)(Int64 id)(Int32 flags) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsICameraGetPosition, nullptr, ("ICameraGetPosition (Pointer hObject)(Sys.Maths.Vec3 position) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsICameraGetOrientation, nullptr, ("ICameraGetOrientation (Pointer hObject)(Sys.Maths.Quat orientation) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsICameraGetWorld, nullptr, ("ICameraGetWorld (Pointer hObject)(Sys.Maths.Matrix4x4 world) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsICameraGetWorldAndProj, nullptr, ("ICameraGetWorldAndProj (Pointer hObject)(Sys.Maths.Matrix4x4 worldAndProj) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsICameraGetProjection, nullptr, ("ICameraGetProjection (Pointer hObject)(Sys.Maths.Matrix4x4 proj) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsICameraAspectRatio, nullptr, ("ICameraAspectRatio (Pointer hObject) -> (Float32 widthOverHeight)"));
+		ss.AddNativeCall(ns, NativeGetHandleForRococoGraphicsCamera, _nceContext, ("GetHandleForICamera0  -> (Pointer hObject)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsICameraClear, nullptr, ("ICameraClear (Pointer hObject) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsICameraSetRHProjection, nullptr, ("ICameraSetRHProjection (Pointer hObject)(Sys.Maths.Degrees fov)(Float32 near)(Float32 far) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsICameraSetPosition, nullptr, ("ICameraSetPosition (Pointer hObject)(Sys.Maths.Vec3 position) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsICameraSetOrientation, nullptr, ("ICameraSetOrientation (Pointer hObject)(Sys.Maths.Quat orientation) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsICameraFollowEntity, nullptr, ("ICameraFollowEntity (Pointer hObject)(Int64 id) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsICameraMoveToEntity, nullptr, ("ICameraMoveToEntity (Pointer hObject)(Int64 id) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsICameraOrientateWithEntity, nullptr, ("ICameraOrientateWithEntity (Pointer hObject)(Int64 id)(Int32 flags) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsICameraOrientateToEntity, nullptr, ("ICameraOrientateToEntity (Pointer hObject)(Int64 id)(Int32 flags) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsICameraGetPosition, nullptr, ("ICameraGetPosition (Pointer hObject)(Sys.Maths.Vec3 position) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsICameraGetOrientation, nullptr, ("ICameraGetOrientation (Pointer hObject)(Sys.Maths.Quat orientation) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsICameraGetWorld, nullptr, ("ICameraGetWorld (Pointer hObject)(Sys.Maths.Matrix4x4 world) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsICameraGetWorldAndProj, nullptr, ("ICameraGetWorldAndProj (Pointer hObject)(Sys.Maths.Matrix4x4 worldAndProj) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsICameraGetProjection, nullptr, ("ICameraGetProjection (Pointer hObject)(Sys.Maths.Matrix4x4 proj) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsICameraAspectRatio, nullptr, ("ICameraAspectRatio (Pointer hObject) -> (Float32 widthOverHeight)"), __FILE__, __LINE__);
 	}
 }}
 // BennyHill generated Sexy native functions for Rococo::Graphics::ISceneBuilder 
@@ -7621,15 +7621,15 @@ namespace Rococo { namespace Graphics {
 	void AddNativeCalls_RococoGraphicsISceneBuilder(Rococo::Script::IPublicScriptSystem& ss, Rococo::Graphics::ISceneBuilder* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Graphics.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForRococoGraphicsSceneBuilder, _nceContext, ("GetHandleForISceneBuilder0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeRococoGraphicsISceneBuilderAddStatics, nullptr, ("ISceneBuilderAddStatics (Pointer hObject)(Int64 entityId) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsISceneBuilderAddDebugObject, nullptr, ("ISceneBuilderAddDebugObject (Pointer hObject)(Int64 entityId) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsISceneBuilderAddDynamicObject, nullptr, ("ISceneBuilderAddDynamicObject (Pointer hObject)(Int64 entityId) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsISceneBuilderClear, nullptr, ("ISceneBuilderClear (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsISceneBuilderClearLights, nullptr, ("ISceneBuilderClearLights (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsISceneBuilderSetClearColour, nullptr, ("ISceneBuilderSetClearColour (Pointer hObject)(Float32 red)(Float32 green)(Float32 blue)(Float32 alpha) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsISceneBuilderSetLight, nullptr, ("ISceneBuilderSetLight (Pointer hObject)(Rococo.LightSpec light)(Int32 index) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsISceneBuilderSetSkyBox, nullptr, ("ISceneBuilderSetSkyBox (Pointer hObject)(Int64 cubeId) -> "));
+		ss.AddNativeCall(ns, NativeGetHandleForRococoGraphicsSceneBuilder, _nceContext, ("GetHandleForISceneBuilder0  -> (Pointer hObject)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsISceneBuilderAddStatics, nullptr, ("ISceneBuilderAddStatics (Pointer hObject)(Int64 entityId) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsISceneBuilderAddDebugObject, nullptr, ("ISceneBuilderAddDebugObject (Pointer hObject)(Int64 entityId) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsISceneBuilderAddDynamicObject, nullptr, ("ISceneBuilderAddDynamicObject (Pointer hObject)(Int64 entityId) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsISceneBuilderClear, nullptr, ("ISceneBuilderClear (Pointer hObject) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsISceneBuilderClearLights, nullptr, ("ISceneBuilderClearLights (Pointer hObject) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsISceneBuilderSetClearColour, nullptr, ("ISceneBuilderSetClearColour (Pointer hObject)(Float32 red)(Float32 green)(Float32 blue)(Float32 alpha) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsISceneBuilderSetLight, nullptr, ("ISceneBuilderSetLight (Pointer hObject)(Rococo.LightSpec light)(Int32 index) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsISceneBuilderSetSkyBox, nullptr, ("ISceneBuilderSetSkyBox (Pointer hObject)(Int64 cubeId) -> "), __FILE__, __LINE__);
 	}
 }}
 // BennyHill generated Sexy native functions for Rococo::Graphics::IMessaging 
@@ -7673,8 +7673,8 @@ namespace Rococo { namespace Graphics {
 	void AddNativeCalls_RococoGraphicsIMessaging(Rococo::Script::IPublicScriptSystem& ss, Rococo::Platform* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Graphics.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForRococoGraphicsMessaging, _nceContext, ("GetHandleForIMessaging0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIMessagingLog, nullptr, ("IMessagingLog (Pointer hObject)(Sys.Type.IString message) -> "));
+		ss.AddNativeCall(ns, NativeGetHandleForRococoGraphicsMessaging, _nceContext, ("GetHandleForIMessaging0  -> (Pointer hObject)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIMessagingLog, nullptr, ("IMessagingLog (Pointer hObject)(Sys.Type.IString message) -> "), __FILE__, __LINE__);
 	}
 }}
 // BennyHill generated Sexy native functions for Rococo::Entities::IInstances 
@@ -8048,25 +8048,25 @@ namespace Rococo { namespace Entities {
 	void AddNativeCalls_RococoEntitiesIInstances(Rococo::Script::IPublicScriptSystem& ss, Rococo::Entities::IInstances* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Entities.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForRococoEntitiesInstances, _nceContext, ("GetHandleForIInstances0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesAddBody, nullptr, ("IInstancesAddBody (Pointer hObject)(Sys.Type.IString modelName)(Sys.Maths.Matrix4x4 model)(Sys.Maths.Vec3 scale)(Int64 parentId) -> (Int64 entityId)"));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesAddGhost, nullptr, ("IInstancesAddGhost (Pointer hObject)(Sys.Maths.Matrix4x4 model)(Int64 parentId) -> (Int64 entityId)"));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesAddSkeleton, nullptr, ("IInstancesAddSkeleton (Pointer hObject)(Sys.Type.IString skeleton)(Sys.Maths.Matrix4x4 model) -> (Int64 entityId)"));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesAddAnimationFrame, nullptr, ("IInstancesAddAnimationFrame (Pointer hObject)(Int64 id)(Sys.Type.IString frameName)(Sys.SI.Seconds duration)(Bool loop) -> "));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesBindSkeletonToBody, nullptr, ("IInstancesBindSkeletonToBody (Pointer hObject)(Sys.Type.IString skeleton)(Int64 idBody) -> "));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesCreateCubeTexture, nullptr, ("IInstancesCreateCubeTexture (Pointer hObject)(Sys.Type.IString folder)(Sys.Type.IString extension) -> (Int64 cubeId)"));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesDelete, nullptr, ("IInstancesDelete (Pointer hObject)(Int64 id) -> "));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesLoadMaterialArray, nullptr, ("IInstancesLoadMaterialArray (Pointer hObject)(Sys.Type.IString folder)(Int32 txWidth) -> "));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesGetMaterialCateogry, nullptr, ("IInstancesGetMaterialCateogry (Pointer hObject)(Float32 id) -> (Int32 category)"));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesCountMaterialsInCategory, nullptr, ("IInstancesCountMaterialsInCategory (Pointer hObject)(Int32 category) -> (Int32 count)"));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesGetMaterialId, nullptr, ("IInstancesGetMaterialId (Pointer hObject)(Int32 category)(Int32 index) -> (Float32 id)"));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesGetMaterialDirect, nullptr, ("IInstancesGetMaterialDirect (Pointer hObject)(Sys.Type.IString pingPath) -> (Float32 id)"));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesGetRandomMaterialId, nullptr, ("IInstancesGetRandomMaterialId (Pointer hObject)(Int32 category) -> (Float32 id)"));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesGetScale, nullptr, ("IInstancesGetScale (Pointer hObject)(Int64 entityId)(Sys.Maths.Vec3 scale) -> "));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesSetMaterialMacro, nullptr, ("IInstancesSetMaterialMacro (Pointer hObject)(Sys.Type.IString pingPath) -> "));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesSetScale, nullptr, ("IInstancesSetScale (Pointer hObject)(Int64 entityId)(Sys.Maths.Vec3 scale) -> "));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesTryGetModelToWorldMatrix, nullptr, ("IInstancesTryGetModelToWorldMatrix (Pointer hObject)(Int64 entityId)(Sys.Maths.Matrix4x4 position) -> (Bool existant)"));
-		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesClear, nullptr, ("IInstancesClear (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeGetHandleForRococoEntitiesInstances, _nceContext, ("GetHandleForIInstances0  -> (Pointer hObject)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesAddBody, nullptr, ("IInstancesAddBody (Pointer hObject)(Sys.Type.IString modelName)(Sys.Maths.Matrix4x4 model)(Sys.Maths.Vec3 scale)(Int64 parentId) -> (Int64 entityId)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesAddGhost, nullptr, ("IInstancesAddGhost (Pointer hObject)(Sys.Maths.Matrix4x4 model)(Int64 parentId) -> (Int64 entityId)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesAddSkeleton, nullptr, ("IInstancesAddSkeleton (Pointer hObject)(Sys.Type.IString skeleton)(Sys.Maths.Matrix4x4 model) -> (Int64 entityId)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesAddAnimationFrame, nullptr, ("IInstancesAddAnimationFrame (Pointer hObject)(Int64 id)(Sys.Type.IString frameName)(Sys.SI.Seconds duration)(Bool loop) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesBindSkeletonToBody, nullptr, ("IInstancesBindSkeletonToBody (Pointer hObject)(Sys.Type.IString skeleton)(Int64 idBody) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesCreateCubeTexture, nullptr, ("IInstancesCreateCubeTexture (Pointer hObject)(Sys.Type.IString folder)(Sys.Type.IString extension) -> (Int64 cubeId)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesDelete, nullptr, ("IInstancesDelete (Pointer hObject)(Int64 id) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesLoadMaterialArray, nullptr, ("IInstancesLoadMaterialArray (Pointer hObject)(Sys.Type.IString folder)(Int32 txWidth) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesGetMaterialCateogry, nullptr, ("IInstancesGetMaterialCateogry (Pointer hObject)(Float32 id) -> (Int32 category)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesCountMaterialsInCategory, nullptr, ("IInstancesCountMaterialsInCategory (Pointer hObject)(Int32 category) -> (Int32 count)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesGetMaterialId, nullptr, ("IInstancesGetMaterialId (Pointer hObject)(Int32 category)(Int32 index) -> (Float32 id)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesGetMaterialDirect, nullptr, ("IInstancesGetMaterialDirect (Pointer hObject)(Sys.Type.IString pingPath) -> (Float32 id)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesGetRandomMaterialId, nullptr, ("IInstancesGetRandomMaterialId (Pointer hObject)(Int32 category) -> (Float32 id)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesGetScale, nullptr, ("IInstancesGetScale (Pointer hObject)(Int64 entityId)(Sys.Maths.Vec3 scale) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesSetMaterialMacro, nullptr, ("IInstancesSetMaterialMacro (Pointer hObject)(Sys.Type.IString pingPath) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesSetScale, nullptr, ("IInstancesSetScale (Pointer hObject)(Int64 entityId)(Sys.Maths.Vec3 scale) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesTryGetModelToWorldMatrix, nullptr, ("IInstancesTryGetModelToWorldMatrix (Pointer hObject)(Int64 entityId)(Sys.Maths.Matrix4x4 position) -> (Bool existant)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesClear, nullptr, ("IInstancesClear (Pointer hObject) -> "), __FILE__, __LINE__);
 	}
 }}
 // BennyHill generated Sexy native functions for Rococo::Graphics::IMeshBuilder 
@@ -8350,20 +8350,20 @@ namespace Rococo { namespace Graphics {
 	void AddNativeCalls_RococoGraphicsIMeshBuilder(Rococo::Script::IPublicScriptSystem& ss, Rococo::Graphics::IMeshBuilder* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Graphics.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForRococoGraphicsMeshBuilder, _nceContext, ("GetHandleForIMeshBuilder0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderAddMesh, nullptr, ("IMeshBuilderAddMesh (Pointer hObject)(Sys.Maths.Matrix4x4 transform)(Sys.Type.IString sourceName) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderAddTriangleEx, nullptr, ("IMeshBuilderAddTriangleEx (Pointer hObject)(Rococo.VertexTriangle t) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderAddTriangle, nullptr, ("IMeshBuilderAddTriangle (Pointer hObject)(Rococo.ObjectVertex a)(Rococo.ObjectVertex b)(Rococo.ObjectVertex c) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderAddBoneWeights, nullptr, ("IMeshBuilderAddBoneWeights (Pointer hObject)(Rococo.BoneWeights a)(Rococo.BoneWeights b)(Rococo.BoneWeights c) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderAddPhysicsHull, nullptr, ("IMeshBuilderAddPhysicsHull (Pointer hObject)(Sys.Maths.Triangle t) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderBegin, nullptr, ("IMeshBuilderBegin (Pointer hObject)(Sys.Type.IString meshName) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderEnd, nullptr, ("IMeshBuilderEnd (Pointer hObject)(Bool preserveCopy)(Bool invisible) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderClear, nullptr, ("IMeshBuilderClear (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderDelete, nullptr, ("IMeshBuilderDelete (Pointer hObject)(Sys.Type.IString fqName) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderSetShadowCasting, nullptr, ("IMeshBuilderSetShadowCasting (Pointer hObject)(Sys.Type.IString fqName)(Bool isActive) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderSetSpecialAmbientShader, nullptr, ("IMeshBuilderSetSpecialAmbientShader (Pointer hObject)(Sys.Type.IString fqName)(Sys.Type.IString vsAmbientPingPath)(Sys.Type.IString psAmbientPingPath)(Bool alphaBlending) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderSetSpecialSpotlightShader, nullptr, ("IMeshBuilderSetSpecialSpotlightShader (Pointer hObject)(Sys.Type.IString fqName)(Sys.Type.IString vsSpotlightPingPath)(Sys.Type.IString psSpotlightPingPath)(Bool alphaBlending) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderSpan, nullptr, ("IMeshBuilderSpan (Pointer hObject)(Sys.Maths.Vec3 span)(Sys.Type.IString fqName) -> "));
+		ss.AddNativeCall(ns, NativeGetHandleForRococoGraphicsMeshBuilder, _nceContext, ("GetHandleForIMeshBuilder0  -> (Pointer hObject)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderAddMesh, nullptr, ("IMeshBuilderAddMesh (Pointer hObject)(Sys.Maths.Matrix4x4 transform)(Sys.Type.IString sourceName) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderAddTriangleEx, nullptr, ("IMeshBuilderAddTriangleEx (Pointer hObject)(Rococo.VertexTriangle t) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderAddTriangle, nullptr, ("IMeshBuilderAddTriangle (Pointer hObject)(Rococo.ObjectVertex a)(Rococo.ObjectVertex b)(Rococo.ObjectVertex c) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderAddBoneWeights, nullptr, ("IMeshBuilderAddBoneWeights (Pointer hObject)(Rococo.BoneWeights a)(Rococo.BoneWeights b)(Rococo.BoneWeights c) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderAddPhysicsHull, nullptr, ("IMeshBuilderAddPhysicsHull (Pointer hObject)(Sys.Maths.Triangle t) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderBegin, nullptr, ("IMeshBuilderBegin (Pointer hObject)(Sys.Type.IString meshName) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderEnd, nullptr, ("IMeshBuilderEnd (Pointer hObject)(Bool preserveCopy)(Bool invisible) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderClear, nullptr, ("IMeshBuilderClear (Pointer hObject) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderDelete, nullptr, ("IMeshBuilderDelete (Pointer hObject)(Sys.Type.IString fqName) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderSetShadowCasting, nullptr, ("IMeshBuilderSetShadowCasting (Pointer hObject)(Sys.Type.IString fqName)(Bool isActive) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderSetSpecialAmbientShader, nullptr, ("IMeshBuilderSetSpecialAmbientShader (Pointer hObject)(Sys.Type.IString fqName)(Sys.Type.IString vsAmbientPingPath)(Sys.Type.IString psAmbientPingPath)(Bool alphaBlending) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderSetSpecialSpotlightShader, nullptr, ("IMeshBuilderSetSpecialSpotlightShader (Pointer hObject)(Sys.Type.IString fqName)(Sys.Type.IString vsSpotlightPingPath)(Sys.Type.IString psSpotlightPingPath)(Bool alphaBlending) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderSpan, nullptr, ("IMeshBuilderSpan (Pointer hObject)(Sys.Maths.Vec3 span)(Sys.Type.IString fqName) -> "), __FILE__, __LINE__);
 	}
 }}
 // BennyHill generated Sexy native functions for Rococo::Graphics::IRimTesselator 
@@ -8627,21 +8627,21 @@ namespace Rococo { namespace Graphics {
 	void AddNativeCalls_RococoGraphicsIRimTesselator(Rococo::Script::IPublicScriptSystem& ss, Rococo::Graphics::IRimTesselator* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Graphics.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForRococoGraphicsRimTesselator, _nceContext, ("GetHandleForIRimTesselator0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIRimTesselatorAddPoint, nullptr, ("IRimTesselatorAddPoint (Pointer hObject)(Sys.Maths.Vec2 p) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIRimTesselatorAddPointXY, nullptr, ("IRimTesselatorAddPointXY (Pointer hObject)(Float32 x)(Float32 y) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIRimTesselatorCloseLoop, nullptr, ("IRimTesselatorCloseLoop (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIRimTesselatorMakeElipse, nullptr, ("IRimTesselatorMakeElipse (Pointer hObject)(Int32 numberOfSides)(Float32 sx)(Float32 sy) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIRimTesselatorClear, nullptr, ("IRimTesselatorClear (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIRimTesselatorClearFaces, nullptr, ("IRimTesselatorClearFaces (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIRimTesselatorScale, nullptr, ("IRimTesselatorScale (Pointer hObject)(Float32 sx)(Float32 sy) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIRimTesselatorPerimeterVertices, nullptr, ("IRimTesselatorPerimeterVertices (Pointer hObject) -> (Int32 count)"));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIRimTesselatorGetRimQuad, nullptr, ("IRimTesselatorGetRimQuad (Pointer hObject)(Float32 zHigh)(Float32 zLow)(Int32 index)(Sys.Maths.Quadf quad) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIRimTesselatorGetRimVertex, nullptr, ("IRimTesselatorGetRimVertex (Pointer hObject)(Int32 index)(Sys.Maths.Vec2 p) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIRimTesselatorTesselateUniform, nullptr, ("IRimTesselatorTesselateUniform (Pointer hObject) -> (Int32 nTrianglesPerFace)"));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIRimTesselatorGetBottomTriangle, nullptr, ("IRimTesselatorGetBottomTriangle (Pointer hObject)(Int32 index)(Sys.Maths.Triangle pos)(Sys.Maths.Triangle2d uv)(Float32 z) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIRimTesselatorGetTopTriangle, nullptr, ("IRimTesselatorGetTopTriangle (Pointer hObject)(Int32 index)(Sys.Maths.Triangle pos)(Sys.Maths.Triangle2d uv)(Float32 z) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIRimTesselatorSetTransform, nullptr, ("IRimTesselatorSetTransform (Pointer hObject)(Sys.Maths.Matrix4x4 transform) -> "));
+		ss.AddNativeCall(ns, NativeGetHandleForRococoGraphicsRimTesselator, _nceContext, ("GetHandleForIRimTesselator0  -> (Pointer hObject)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRimTesselatorAddPoint, nullptr, ("IRimTesselatorAddPoint (Pointer hObject)(Sys.Maths.Vec2 p) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRimTesselatorAddPointXY, nullptr, ("IRimTesselatorAddPointXY (Pointer hObject)(Float32 x)(Float32 y) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRimTesselatorCloseLoop, nullptr, ("IRimTesselatorCloseLoop (Pointer hObject) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRimTesselatorMakeElipse, nullptr, ("IRimTesselatorMakeElipse (Pointer hObject)(Int32 numberOfSides)(Float32 sx)(Float32 sy) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRimTesselatorClear, nullptr, ("IRimTesselatorClear (Pointer hObject) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRimTesselatorClearFaces, nullptr, ("IRimTesselatorClearFaces (Pointer hObject) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRimTesselatorScale, nullptr, ("IRimTesselatorScale (Pointer hObject)(Float32 sx)(Float32 sy) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRimTesselatorPerimeterVertices, nullptr, ("IRimTesselatorPerimeterVertices (Pointer hObject) -> (Int32 count)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRimTesselatorGetRimQuad, nullptr, ("IRimTesselatorGetRimQuad (Pointer hObject)(Float32 zHigh)(Float32 zLow)(Int32 index)(Sys.Maths.Quadf quad) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRimTesselatorGetRimVertex, nullptr, ("IRimTesselatorGetRimVertex (Pointer hObject)(Int32 index)(Sys.Maths.Vec2 p) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRimTesselatorTesselateUniform, nullptr, ("IRimTesselatorTesselateUniform (Pointer hObject) -> (Int32 nTrianglesPerFace)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRimTesselatorGetBottomTriangle, nullptr, ("IRimTesselatorGetBottomTriangle (Pointer hObject)(Int32 index)(Sys.Maths.Triangle pos)(Sys.Maths.Triangle2d uv)(Float32 z) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRimTesselatorGetTopTriangle, nullptr, ("IRimTesselatorGetTopTriangle (Pointer hObject)(Int32 index)(Sys.Maths.Triangle pos)(Sys.Maths.Triangle2d uv)(Float32 z) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRimTesselatorSetTransform, nullptr, ("IRimTesselatorSetTransform (Pointer hObject)(Sys.Maths.Matrix4x4 transform) -> "), __FILE__, __LINE__);
 	}
 }}
 // BennyHill generated Sexy native functions for Rococo::Graphics::IFieldTesselator 
@@ -9021,23 +9021,23 @@ namespace Rococo { namespace Graphics {
 	void AddNativeCalls_RococoGraphicsIFieldTesselator(Rococo::Script::IPublicScriptSystem& ss, Rococo::Graphics::IFieldTesselator* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Graphics.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForRococoGraphicsFieldTesselator, _nceContext, ("GetHandleForIFieldTesselator0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorDestruct, nullptr, ("IFieldTesselatorDestruct (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorInitByFixedCellWidth, nullptr, ("IFieldTesselatorInitByFixedCellWidth (Pointer hObject)(Sys.Maths.Quadf positions)(Float32 maxCellWidth)(Float32 maxCellHeight) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorInitByDivisions, nullptr, ("IFieldTesselatorInitByDivisions (Pointer hObject)(Sys.Maths.Quadf positions)(Int32 xDivs)(Int32 yDivs) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorSetUV, nullptr, ("IFieldTesselatorSetUV (Pointer hObject)(Sys.Maths.Vec2 uvA)(Sys.Maths.Vec2 uvC) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorNumberOfColumns, nullptr, ("IFieldTesselatorNumberOfColumns (Pointer hObject) -> (Int32 cols)"));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorNumberOfRows, nullptr, ("IFieldTesselatorNumberOfRows (Pointer hObject) -> (Int32 rows)"));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorGetFlatSubQuad, nullptr, ("IFieldTesselatorGetFlatSubQuad (Pointer hObject)(Int32 i)(Int32 j)(Rococo.QuadVertices subQuad) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorGetPerturbedSubQuad, nullptr, ("IFieldTesselatorGetPerturbedSubQuad (Pointer hObject)(Int32 i)(Int32 j)(Rococo.QuadVertices q) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorGetStackBondedBrick, nullptr, ("IFieldTesselatorGetStackBondedBrick (Pointer hObject)(Int32 i)(Int32 j)(Rococo.QuadVertices q)(Sys.SI.Metres cementWidth) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorGetStretchBondedBrick, nullptr, ("IFieldTesselatorGetStretchBondedBrick (Pointer hObject)(Int32 i)(Int32 j)(Rococo.QuadVertices q)(Rococo.QuadVertices top)(Rococo.QuadVertices left)(Rococo.QuadVertices right)(Rococo.QuadVertices bottom)(Sys.SI.Metres cementWidth)(Sys.SI.Metres extrusionBase) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorGetBrickJoinRight, nullptr, ("IFieldTesselatorGetBrickJoinRight (Pointer hObject)(Int32 i)(Int32 j)(Rococo.QuadVertices q)(Sys.SI.Metres cementWidth) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorGetBrickBedTop, nullptr, ("IFieldTesselatorGetBrickBedTop (Pointer hObject)(Int32 row)(Rococo.QuadVertices q)(Sys.SI.Metres cementWidth) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorPerturbField, nullptr, ("IFieldTesselatorPerturbField (Pointer hObject)(Int32 i)(Int32 j)(Float32 dH) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorLevelField, nullptr, ("IFieldTesselatorLevelField (Pointer hObject)(Int32 i0)(Int32 j0)(Int32 i1)(Int32 j1)(Float32 dH) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorRandomizeField, nullptr, ("IFieldTesselatorRandomizeField (Pointer hObject)(Int32 i)(Int32 j)(Float32 minValue)(Float32 maxValue) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorGetBasis, nullptr, ("IFieldTesselatorGetBasis (Pointer hObject)(Sys.Maths.Matrix4x4 transform) -> "));
+		ss.AddNativeCall(ns, NativeGetHandleForRococoGraphicsFieldTesselator, _nceContext, ("GetHandleForIFieldTesselator0  -> (Pointer hObject)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorDestruct, nullptr, ("IFieldTesselatorDestruct (Pointer hObject) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorInitByFixedCellWidth, nullptr, ("IFieldTesselatorInitByFixedCellWidth (Pointer hObject)(Sys.Maths.Quadf positions)(Float32 maxCellWidth)(Float32 maxCellHeight) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorInitByDivisions, nullptr, ("IFieldTesselatorInitByDivisions (Pointer hObject)(Sys.Maths.Quadf positions)(Int32 xDivs)(Int32 yDivs) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorSetUV, nullptr, ("IFieldTesselatorSetUV (Pointer hObject)(Sys.Maths.Vec2 uvA)(Sys.Maths.Vec2 uvC) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorNumberOfColumns, nullptr, ("IFieldTesselatorNumberOfColumns (Pointer hObject) -> (Int32 cols)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorNumberOfRows, nullptr, ("IFieldTesselatorNumberOfRows (Pointer hObject) -> (Int32 rows)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorGetFlatSubQuad, nullptr, ("IFieldTesselatorGetFlatSubQuad (Pointer hObject)(Int32 i)(Int32 j)(Rococo.QuadVertices subQuad) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorGetPerturbedSubQuad, nullptr, ("IFieldTesselatorGetPerturbedSubQuad (Pointer hObject)(Int32 i)(Int32 j)(Rococo.QuadVertices q) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorGetStackBondedBrick, nullptr, ("IFieldTesselatorGetStackBondedBrick (Pointer hObject)(Int32 i)(Int32 j)(Rococo.QuadVertices q)(Sys.SI.Metres cementWidth) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorGetStretchBondedBrick, nullptr, ("IFieldTesselatorGetStretchBondedBrick (Pointer hObject)(Int32 i)(Int32 j)(Rococo.QuadVertices q)(Rococo.QuadVertices top)(Rococo.QuadVertices left)(Rococo.QuadVertices right)(Rococo.QuadVertices bottom)(Sys.SI.Metres cementWidth)(Sys.SI.Metres extrusionBase) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorGetBrickJoinRight, nullptr, ("IFieldTesselatorGetBrickJoinRight (Pointer hObject)(Int32 i)(Int32 j)(Rococo.QuadVertices q)(Sys.SI.Metres cementWidth) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorGetBrickBedTop, nullptr, ("IFieldTesselatorGetBrickBedTop (Pointer hObject)(Int32 row)(Rococo.QuadVertices q)(Sys.SI.Metres cementWidth) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorPerturbField, nullptr, ("IFieldTesselatorPerturbField (Pointer hObject)(Int32 i)(Int32 j)(Float32 dH) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorLevelField, nullptr, ("IFieldTesselatorLevelField (Pointer hObject)(Int32 i0)(Int32 j0)(Int32 i1)(Int32 j1)(Float32 dH) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorRandomizeField, nullptr, ("IFieldTesselatorRandomizeField (Pointer hObject)(Int32 i)(Int32 j)(Float32 minValue)(Float32 maxValue) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorGetBasis, nullptr, ("IFieldTesselatorGetBasis (Pointer hObject)(Sys.Maths.Matrix4x4 transform) -> "), __FILE__, __LINE__);
 	}
 }}
 // BennyHill generated Sexy native functions for Rococo::Graphics::IQuadStackTesselator 
@@ -9565,32 +9565,32 @@ namespace Rococo { namespace Graphics {
 	void AddNativeCalls_RococoGraphicsIQuadStackTesselator(Rococo::Script::IPublicScriptSystem& ss, Rococo::Graphics::IQuadStackTesselator* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Graphics.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForRococoGraphicsQuadStackTesselator, _nceContext, ("GetHandleForIQuadStackTesselator0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorAddCuboid, nullptr, ("IQuadStackTesselatorAddCuboid (Pointer hObject)(Float32 v0)(Float32 v1)(Float32 t0)(Float32 t1)(Float32 thickness)(Float32 uvScale)(Rococo.MaterialVertexData rodMat) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorAddCuboidAbs, nullptr, ("IQuadStackTesselatorAddCuboidAbs (Pointer hObject)(Sys.SI.Metres dx0)(Sys.SI.Metres dy0)(Sys.SI.Metres dx1)(Sys.SI.Metres dy1)(Sys.SI.Metres thickness)(Float32 uvScale)(Rococo.MaterialVertexData rodMat) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorClear, nullptr, ("IQuadStackTesselatorClear (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorClearInput, nullptr, ("IQuadStackTesselatorClearInput (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorClearOutput, nullptr, ("IQuadStackTesselatorClearOutput (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorCopyInputToOutput, nullptr, ("IQuadStackTesselatorCopyInputToOutput (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorDestruct, nullptr, ("IQuadStackTesselatorDestruct (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorIntrude, nullptr, ("IQuadStackTesselatorIntrude (Pointer hObject)(Sys.Maths.Rectf window)(Float32 depth)(Float32 depthUvScale)(Rococo.MaterialVertexData rimMat)(Rococo.MaterialVertexData innerMat) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorMoveInputToOutput, nullptr, ("IQuadStackTesselatorMoveInputToOutput (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorMoveOutputToInput, nullptr, ("IQuadStackTesselatorMoveOutputToInput (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorMoveOutputToInputWithMat, nullptr, ("IQuadStackTesselatorMoveOutputToInputWithMat (Pointer hObject)(Rococo.MaterialVertexData mat) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorMoveOutputToInputWithNormalDotRange, nullptr, ("IQuadStackTesselatorMoveOutputToInputWithNormalDotRange (Pointer hObject)(Sys.Maths.Vec3 normal)(Float32 minDot)(Float32 maxDot) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorMoveInputToOutputWithNormalDotRange, nullptr, ("IQuadStackTesselatorMoveInputToOutputWithNormalDotRange (Pointer hObject)(Sys.Maths.Vec3 normal)(Float32 minDot)(Float32 maxDot) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorPushQuad, nullptr, ("IQuadStackTesselatorPushQuad (Pointer hObject)(Rococo.QuadVertices quad)(Rococo.MaterialVertexData material) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorPopOutputAsTriangles, nullptr, ("IQuadStackTesselatorPopOutputAsTriangles (Pointer hObject)(Rococo.VertexTriangle topRight)(Rococo.VertexTriangle bottomLeft) -> (Bool wasPopped)"));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorScaleEdges, nullptr, ("IQuadStackTesselatorScaleEdges (Pointer hObject)(Float32 left)(Float32 right)(Float32 low)(Float32 high)(Bool preserveUVs) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorSetBasis, nullptr, ("IQuadStackTesselatorSetBasis (Pointer hObject)(Sys.Maths.Vec3 tangent)(Sys.Maths.Vec3 normal)(Sys.Maths.Vec3 vertical) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorSetMaterial, nullptr, ("IQuadStackTesselatorSetMaterial (Pointer hObject)(Rococo.MaterialVertexData mat) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorSetTextureRect, nullptr, ("IQuadStackTesselatorSetTextureRect (Pointer hObject)(Sys.Maths.Rectf rect) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorShrink, nullptr, ("IQuadStackTesselatorShrink (Pointer hObject)(Sys.Maths.Rectf rect) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorSplitThreeColumns, nullptr, ("IQuadStackTesselatorSplitThreeColumns (Pointer hObject)(Rococo.MaterialVertexData c1)(Rococo.MaterialVertexData c2)(Rococo.MaterialVertexData c3)(Float32 x0)(Float32 x1) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorSplitThreeRows, nullptr, ("IQuadStackTesselatorSplitThreeRows (Pointer hObject)(Rococo.MaterialVertexData r1)(Rococo.MaterialVertexData r2)(Rococo.MaterialVertexData r3)(Float32 y0)(Float32 y1) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorSplitAcrossTangent, nullptr, ("IQuadStackTesselatorSplitAcrossTangent (Pointer hObject)(Float32 v)(Int32 topColour)(Int32 middleColour)(Int32 lowColour)(Rococo.MaterialVertexData topMat)(Rococo.MaterialVertexData bottomMat) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorTileMosaic, nullptr, ("IQuadStackTesselatorTileMosaic (Pointer hObject)(Rococo.MaterialVertexData a)(Rococo.MaterialVertexData b)(Sys.Maths.Rectf uvRect)(Sys.SI.Metres roughSize) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorTranslate, nullptr, ("IQuadStackTesselatorTranslate (Pointer hObject)(Sys.Maths.Vec3 v) -> "));
+		ss.AddNativeCall(ns, NativeGetHandleForRococoGraphicsQuadStackTesselator, _nceContext, ("GetHandleForIQuadStackTesselator0  -> (Pointer hObject)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorAddCuboid, nullptr, ("IQuadStackTesselatorAddCuboid (Pointer hObject)(Float32 v0)(Float32 v1)(Float32 t0)(Float32 t1)(Float32 thickness)(Float32 uvScale)(Rococo.MaterialVertexData rodMat) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorAddCuboidAbs, nullptr, ("IQuadStackTesselatorAddCuboidAbs (Pointer hObject)(Sys.SI.Metres dx0)(Sys.SI.Metres dy0)(Sys.SI.Metres dx1)(Sys.SI.Metres dy1)(Sys.SI.Metres thickness)(Float32 uvScale)(Rococo.MaterialVertexData rodMat) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorClear, nullptr, ("IQuadStackTesselatorClear (Pointer hObject) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorClearInput, nullptr, ("IQuadStackTesselatorClearInput (Pointer hObject) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorClearOutput, nullptr, ("IQuadStackTesselatorClearOutput (Pointer hObject) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorCopyInputToOutput, nullptr, ("IQuadStackTesselatorCopyInputToOutput (Pointer hObject) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorDestruct, nullptr, ("IQuadStackTesselatorDestruct (Pointer hObject) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorIntrude, nullptr, ("IQuadStackTesselatorIntrude (Pointer hObject)(Sys.Maths.Rectf window)(Float32 depth)(Float32 depthUvScale)(Rococo.MaterialVertexData rimMat)(Rococo.MaterialVertexData innerMat) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorMoveInputToOutput, nullptr, ("IQuadStackTesselatorMoveInputToOutput (Pointer hObject) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorMoveOutputToInput, nullptr, ("IQuadStackTesselatorMoveOutputToInput (Pointer hObject) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorMoveOutputToInputWithMat, nullptr, ("IQuadStackTesselatorMoveOutputToInputWithMat (Pointer hObject)(Rococo.MaterialVertexData mat) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorMoveOutputToInputWithNormalDotRange, nullptr, ("IQuadStackTesselatorMoveOutputToInputWithNormalDotRange (Pointer hObject)(Sys.Maths.Vec3 normal)(Float32 minDot)(Float32 maxDot) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorMoveInputToOutputWithNormalDotRange, nullptr, ("IQuadStackTesselatorMoveInputToOutputWithNormalDotRange (Pointer hObject)(Sys.Maths.Vec3 normal)(Float32 minDot)(Float32 maxDot) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorPushQuad, nullptr, ("IQuadStackTesselatorPushQuad (Pointer hObject)(Rococo.QuadVertices quad)(Rococo.MaterialVertexData material) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorPopOutputAsTriangles, nullptr, ("IQuadStackTesselatorPopOutputAsTriangles (Pointer hObject)(Rococo.VertexTriangle topRight)(Rococo.VertexTriangle bottomLeft) -> (Bool wasPopped)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorScaleEdges, nullptr, ("IQuadStackTesselatorScaleEdges (Pointer hObject)(Float32 left)(Float32 right)(Float32 low)(Float32 high)(Bool preserveUVs) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorSetBasis, nullptr, ("IQuadStackTesselatorSetBasis (Pointer hObject)(Sys.Maths.Vec3 tangent)(Sys.Maths.Vec3 normal)(Sys.Maths.Vec3 vertical) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorSetMaterial, nullptr, ("IQuadStackTesselatorSetMaterial (Pointer hObject)(Rococo.MaterialVertexData mat) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorSetTextureRect, nullptr, ("IQuadStackTesselatorSetTextureRect (Pointer hObject)(Sys.Maths.Rectf rect) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorShrink, nullptr, ("IQuadStackTesselatorShrink (Pointer hObject)(Sys.Maths.Rectf rect) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorSplitThreeColumns, nullptr, ("IQuadStackTesselatorSplitThreeColumns (Pointer hObject)(Rococo.MaterialVertexData c1)(Rococo.MaterialVertexData c2)(Rococo.MaterialVertexData c3)(Float32 x0)(Float32 x1) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorSplitThreeRows, nullptr, ("IQuadStackTesselatorSplitThreeRows (Pointer hObject)(Rococo.MaterialVertexData r1)(Rococo.MaterialVertexData r2)(Rococo.MaterialVertexData r3)(Float32 y0)(Float32 y1) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorSplitAcrossTangent, nullptr, ("IQuadStackTesselatorSplitAcrossTangent (Pointer hObject)(Float32 v)(Int32 topColour)(Int32 middleColour)(Int32 lowColour)(Rococo.MaterialVertexData topMat)(Rococo.MaterialVertexData bottomMat) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorTileMosaic, nullptr, ("IQuadStackTesselatorTileMosaic (Pointer hObject)(Rococo.MaterialVertexData a)(Rococo.MaterialVertexData b)(Sys.Maths.Rectf uvRect)(Sys.SI.Metres roughSize) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorTranslate, nullptr, ("IQuadStackTesselatorTranslate (Pointer hObject)(Sys.Maths.Vec3 v) -> "), __FILE__, __LINE__);
 	}
 }}
 // BennyHill generated Sexy native functions for Rococo::Graphics::IRodTesselator 
@@ -10114,35 +10114,35 @@ namespace Rococo { namespace Graphics {
 	void AddNativeCalls_RococoGraphicsIRodTesselator(Rococo::Script::IPublicScriptSystem& ss, Rococo::Platform* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Graphics.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForRococoGraphicsRodTesselator, _nceContext, ("GetHandleForIRodTesselator0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorAddBox, nullptr, ("IRodTesselatorAddBox (Pointer hObject)(Sys.SI.Metres length)(Sys.Maths.Vec2 a)(Sys.Maths.Vec2 b)(Sys.Maths.Vec2 c)(Sys.Maths.Vec2 d) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorAddPyramid, nullptr, ("IRodTesselatorAddPyramid (Pointer hObject)(Sys.SI.Metres length)(Sys.Maths.Vec2 a)(Sys.Maths.Vec2 b)(Sys.Maths.Vec2 c)(Sys.Maths.Vec2 d) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorAddPrism, nullptr, ("IRodTesselatorAddPrism (Pointer hObject)(Sys.SI.Metres length)(Sys.Maths.Vec2 a)(Sys.Maths.Vec2 b)(Sys.Maths.Vec2 c) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorAddSphere, nullptr, ("IRodTesselatorAddSphere (Pointer hObject)(Sys.SI.Metres radius)(Int32 nRings)(Int32 nDivs) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorAddTorus, nullptr, ("IRodTesselatorAddTorus (Pointer hObject)(Sys.SI.Metres innerRadius)(Sys.SI.Metres outerRadius)(Int32 nRings)(Int32 nDivs) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorAddBowl, nullptr, ("IRodTesselatorAddBowl (Pointer hObject)(Sys.SI.Metres radius1)(Sys.SI.Metres radius2)(Int32 nRings)(Int32 startRing)(Int32 endRing)(Int32 nDivs) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorAddTube, nullptr, ("IRodTesselatorAddTube (Pointer hObject)(Sys.SI.Metres length)(Sys.SI.Metres bottomRadius)(Sys.SI.Metres topRadius)(Int32 nDivs) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorAddVertex, nullptr, ("IRodTesselatorAddVertex (Pointer hObject)(Sys.Maths.Vec2 v) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorAdvance, nullptr, ("IRodTesselatorAdvance (Pointer hObject)(Sys.SI.Metres distance) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorClear, nullptr, ("IRodTesselatorClear (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorClearVertices, nullptr, ("IRodTesselatorClearVertices (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorCloseLoop, nullptr, ("IRodTesselatorCloseLoop (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorCopyToMeshBuilder, nullptr, ("IRodTesselatorCopyToMeshBuilder (Pointer hObject)(Sys.Type.IString meshName)(Bool preserveMesh)(Bool invisible)(Bool castsShadows) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorDestruct, nullptr, ("IRodTesselatorDestruct (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorGetOrigin, nullptr, ("IRodTesselatorGetOrigin (Pointer hObject)(Sys.Maths.Vec3 origin) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorPopNextTriangle, nullptr, ("IRodTesselatorPopNextTriangle (Pointer hObject)(Rococo.VertexTriangle t) -> (Bool wasPopped)"));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorRaiseBox, nullptr, ("IRodTesselatorRaiseBox (Pointer hObject)(Sys.SI.Metres length) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorRaisePyramid, nullptr, ("IRodTesselatorRaisePyramid (Pointer hObject)(Sys.SI.Metres length) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorScale, nullptr, ("IRodTesselatorScale (Pointer hObject)(Float32 sx)(Float32 sy)(Float32 sz) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorSetBlendWeightByHeight, nullptr, ("IRodTesselatorSetBlendWeightByHeight (Pointer hObject)(Int32 boneIndex)(Float32 lowerValue)(Float32 upperValue) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorSetMaterialBottom, nullptr, ("IRodTesselatorSetMaterialBottom (Pointer hObject)(Rococo.MaterialVertexData bottom) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorSetMaterialMiddle, nullptr, ("IRodTesselatorSetMaterialMiddle (Pointer hObject)(Rococo.MaterialVertexData middle) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorSetMaterialTop, nullptr, ("IRodTesselatorSetMaterialTop (Pointer hObject)(Rococo.MaterialVertexData top) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorSetOrigin, nullptr, ("IRodTesselatorSetOrigin (Pointer hObject)(Sys.Maths.Vec3 origin) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorSetUVScale, nullptr, ("IRodTesselatorSetUVScale (Pointer hObject)(Float32 sUV) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorTransformVertices, nullptr, ("IRodTesselatorTransformVertices (Pointer hObject)(Sys.Maths.Matrix4x4 m) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorUseFaceNormals, nullptr, ("IRodTesselatorUseFaceNormals (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorUseSmoothNormals, nullptr, ("IRodTesselatorUseSmoothNormals (Pointer hObject) -> "));
+		ss.AddNativeCall(ns, NativeGetHandleForRococoGraphicsRodTesselator, _nceContext, ("GetHandleForIRodTesselator0  -> (Pointer hObject)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorAddBox, nullptr, ("IRodTesselatorAddBox (Pointer hObject)(Sys.SI.Metres length)(Sys.Maths.Vec2 a)(Sys.Maths.Vec2 b)(Sys.Maths.Vec2 c)(Sys.Maths.Vec2 d) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorAddPyramid, nullptr, ("IRodTesselatorAddPyramid (Pointer hObject)(Sys.SI.Metres length)(Sys.Maths.Vec2 a)(Sys.Maths.Vec2 b)(Sys.Maths.Vec2 c)(Sys.Maths.Vec2 d) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorAddPrism, nullptr, ("IRodTesselatorAddPrism (Pointer hObject)(Sys.SI.Metres length)(Sys.Maths.Vec2 a)(Sys.Maths.Vec2 b)(Sys.Maths.Vec2 c) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorAddSphere, nullptr, ("IRodTesselatorAddSphere (Pointer hObject)(Sys.SI.Metres radius)(Int32 nRings)(Int32 nDivs) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorAddTorus, nullptr, ("IRodTesselatorAddTorus (Pointer hObject)(Sys.SI.Metres innerRadius)(Sys.SI.Metres outerRadius)(Int32 nRings)(Int32 nDivs) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorAddBowl, nullptr, ("IRodTesselatorAddBowl (Pointer hObject)(Sys.SI.Metres radius1)(Sys.SI.Metres radius2)(Int32 nRings)(Int32 startRing)(Int32 endRing)(Int32 nDivs) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorAddTube, nullptr, ("IRodTesselatorAddTube (Pointer hObject)(Sys.SI.Metres length)(Sys.SI.Metres bottomRadius)(Sys.SI.Metres topRadius)(Int32 nDivs) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorAddVertex, nullptr, ("IRodTesselatorAddVertex (Pointer hObject)(Sys.Maths.Vec2 v) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorAdvance, nullptr, ("IRodTesselatorAdvance (Pointer hObject)(Sys.SI.Metres distance) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorClear, nullptr, ("IRodTesselatorClear (Pointer hObject) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorClearVertices, nullptr, ("IRodTesselatorClearVertices (Pointer hObject) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorCloseLoop, nullptr, ("IRodTesselatorCloseLoop (Pointer hObject) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorCopyToMeshBuilder, nullptr, ("IRodTesselatorCopyToMeshBuilder (Pointer hObject)(Sys.Type.IString meshName)(Bool preserveMesh)(Bool invisible)(Bool castsShadows) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorDestruct, nullptr, ("IRodTesselatorDestruct (Pointer hObject) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorGetOrigin, nullptr, ("IRodTesselatorGetOrigin (Pointer hObject)(Sys.Maths.Vec3 origin) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorPopNextTriangle, nullptr, ("IRodTesselatorPopNextTriangle (Pointer hObject)(Rococo.VertexTriangle t) -> (Bool wasPopped)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorRaiseBox, nullptr, ("IRodTesselatorRaiseBox (Pointer hObject)(Sys.SI.Metres length) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorRaisePyramid, nullptr, ("IRodTesselatorRaisePyramid (Pointer hObject)(Sys.SI.Metres length) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorScale, nullptr, ("IRodTesselatorScale (Pointer hObject)(Float32 sx)(Float32 sy)(Float32 sz) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorSetBlendWeightByHeight, nullptr, ("IRodTesselatorSetBlendWeightByHeight (Pointer hObject)(Int32 boneIndex)(Float32 lowerValue)(Float32 upperValue) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorSetMaterialBottom, nullptr, ("IRodTesselatorSetMaterialBottom (Pointer hObject)(Rococo.MaterialVertexData bottom) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorSetMaterialMiddle, nullptr, ("IRodTesselatorSetMaterialMiddle (Pointer hObject)(Rococo.MaterialVertexData middle) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorSetMaterialTop, nullptr, ("IRodTesselatorSetMaterialTop (Pointer hObject)(Rococo.MaterialVertexData top) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorSetOrigin, nullptr, ("IRodTesselatorSetOrigin (Pointer hObject)(Sys.Maths.Vec3 origin) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorSetUVScale, nullptr, ("IRodTesselatorSetUVScale (Pointer hObject)(Float32 sUV) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorTransformVertices, nullptr, ("IRodTesselatorTransformVertices (Pointer hObject)(Sys.Maths.Matrix4x4 m) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorUseFaceNormals, nullptr, ("IRodTesselatorUseFaceNormals (Pointer hObject) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorUseSmoothNormals, nullptr, ("IRodTesselatorUseSmoothNormals (Pointer hObject) -> "), __FILE__, __LINE__);
 	}
 }}
 // BennyHill generated Sexy native functions for Rococo::Graphics::ILandscapeTesselator 
@@ -10320,16 +10320,16 @@ namespace Rococo { namespace Graphics {
 	void AddNativeCalls_RococoGraphicsILandscapeTesselator(Rococo::Script::IPublicScriptSystem& ss, Rococo::Platform* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Graphics.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForRococoGraphicsLandscapeTesselator, _nceContext, ("GetHandleForILandscapeTesselator0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeRococoGraphicsILandscapeTesselatorAddQuadField, nullptr, ("ILandscapeTesselatorAddQuadField (Pointer hObject)(Int32 base2exponentDivisions)(Sys.SI.Metres span) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsILandscapeTesselatorClear, nullptr, ("ILandscapeTesselatorClear (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsILandscapeTesselatorCommitToMesh, nullptr, ("ILandscapeTesselatorCommitToMesh (Pointer hObject)(Sys.Type.IString meshName) -> (Int32 id)"));
-		ss.AddNativeCall(ns, NativeRococoGraphicsILandscapeTesselatorGenerateByRecursiveSubdivision, nullptr, ("ILandscapeTesselatorGenerateByRecursiveSubdivision (Pointer hObject)(Sys.SI.Metres maxAltitude) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsILandscapeTesselatorGetBounds, nullptr, ("ILandscapeTesselatorGetBounds (Pointer hObject)(Sys.Maths.Vec3 minPoint)(Sys.Maths.Vec3 maxPoint) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsILandscapeTesselatorRaiseMountain, nullptr, ("ILandscapeTesselatorRaiseMountain (Pointer hObject)(Sys.Maths.Vec3 atPosition)(Sys.SI.Metres deltaHeight)(Sys.SI.Metres spread) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsILandscapeTesselatorSetHeights, nullptr, ("ILandscapeTesselatorSetHeights (Pointer hObject)(Sys.Maths.Vec2i p0)(Sys.Maths.Vec2i p1)(Sys.SI.Metres height) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsILandscapeTesselatorSetSeed, nullptr, ("ILandscapeTesselatorSetSeed (Pointer hObject)(Int64 seedNumber) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsILandscapeTesselatorTranslateEachCell, nullptr, ("ILandscapeTesselatorTranslateEachCell (Pointer hObject)(Sys.Maths.Vec3 delta) -> "));
+		ss.AddNativeCall(ns, NativeGetHandleForRococoGraphicsLandscapeTesselator, _nceContext, ("GetHandleForILandscapeTesselator0  -> (Pointer hObject)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsILandscapeTesselatorAddQuadField, nullptr, ("ILandscapeTesselatorAddQuadField (Pointer hObject)(Int32 base2exponentDivisions)(Sys.SI.Metres span) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsILandscapeTesselatorClear, nullptr, ("ILandscapeTesselatorClear (Pointer hObject) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsILandscapeTesselatorCommitToMesh, nullptr, ("ILandscapeTesselatorCommitToMesh (Pointer hObject)(Sys.Type.IString meshName) -> (Int32 id)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsILandscapeTesselatorGenerateByRecursiveSubdivision, nullptr, ("ILandscapeTesselatorGenerateByRecursiveSubdivision (Pointer hObject)(Sys.SI.Metres maxAltitude) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsILandscapeTesselatorGetBounds, nullptr, ("ILandscapeTesselatorGetBounds (Pointer hObject)(Sys.Maths.Vec3 minPoint)(Sys.Maths.Vec3 maxPoint) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsILandscapeTesselatorRaiseMountain, nullptr, ("ILandscapeTesselatorRaiseMountain (Pointer hObject)(Sys.Maths.Vec3 atPosition)(Sys.SI.Metres deltaHeight)(Sys.SI.Metres spread) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsILandscapeTesselatorSetHeights, nullptr, ("ILandscapeTesselatorSetHeights (Pointer hObject)(Sys.Maths.Vec2i p0)(Sys.Maths.Vec2i p1)(Sys.SI.Metres height) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsILandscapeTesselatorSetSeed, nullptr, ("ILandscapeTesselatorSetSeed (Pointer hObject)(Int64 seedNumber) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsILandscapeTesselatorTranslateEachCell, nullptr, ("ILandscapeTesselatorTranslateEachCell (Pointer hObject)(Sys.Maths.Vec3 delta) -> "), __FILE__, __LINE__);
 	}
 }}
 // BennyHill generated Sexy native functions for Rococo::Graphics::ITextTesselator 
@@ -10487,15 +10487,15 @@ namespace Rococo { namespace Graphics {
 	void AddNativeCalls_RococoGraphicsITextTesselator(Rococo::Script::IPublicScriptSystem& ss, Rococo::Platform* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Graphics.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForRococoGraphicsTextTesselator, _nceContext, ("GetHandleForITextTesselator0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeRococoGraphicsITextTesselatorAddBlankQuad, nullptr, ("ITextTesselatorAddBlankQuad (Pointer hObject)(Sys.Maths.Quadf positions)(Int32 paperColour) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsITextTesselatorAddLeftAlignedText, nullptr, ("ITextTesselatorAddLeftAlignedText (Pointer hObject)(Int32 colour)(Sys.Type.IString text) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsITextTesselatorClear, nullptr, ("ITextTesselatorClear (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsITextTesselatorSaveMesh, nullptr, ("ITextTesselatorSaveMesh (Pointer hObject)(Sys.Type.IString meshName) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsITextTesselatorSetUVScale, nullptr, ("ITextTesselatorSetUVScale (Pointer hObject)(Float32 scaleFactor) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsITextTesselatorSetFormatQuad, nullptr, ("ITextTesselatorSetFormatQuad (Pointer hObject)(Sys.Maths.Quadf positions) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsITextTesselatorTrySetFontIndex, nullptr, ("ITextTesselatorTrySetFontIndex (Pointer hObject)(Int32 index) -> (Bool isSet)"));
-		ss.AddNativeCall(ns, NativeRococoGraphicsITextTesselatorTrySetFont, nullptr, ("ITextTesselatorTrySetFont (Pointer hObject)(Sys.Type.IString name)(Float32 dotSize) -> (Bool isSet)"));
+		ss.AddNativeCall(ns, NativeGetHandleForRococoGraphicsTextTesselator, _nceContext, ("GetHandleForITextTesselator0  -> (Pointer hObject)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsITextTesselatorAddBlankQuad, nullptr, ("ITextTesselatorAddBlankQuad (Pointer hObject)(Sys.Maths.Quadf positions)(Int32 paperColour) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsITextTesselatorAddLeftAlignedText, nullptr, ("ITextTesselatorAddLeftAlignedText (Pointer hObject)(Int32 colour)(Sys.Type.IString text) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsITextTesselatorClear, nullptr, ("ITextTesselatorClear (Pointer hObject) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsITextTesselatorSaveMesh, nullptr, ("ITextTesselatorSaveMesh (Pointer hObject)(Sys.Type.IString meshName) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsITextTesselatorSetUVScale, nullptr, ("ITextTesselatorSetUVScale (Pointer hObject)(Float32 scaleFactor) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsITextTesselatorSetFormatQuad, nullptr, ("ITextTesselatorSetFormatQuad (Pointer hObject)(Sys.Maths.Quadf positions) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsITextTesselatorTrySetFontIndex, nullptr, ("ITextTesselatorTrySetFontIndex (Pointer hObject)(Int32 index) -> (Bool isSet)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsITextTesselatorTrySetFont, nullptr, ("ITextTesselatorTrySetFont (Pointer hObject)(Sys.Type.IString name)(Float32 dotSize) -> (Bool isSet)"), __FILE__, __LINE__);
 	}
 }}
 // BennyHill generated Sexy native functions for Rococo::Graphics::IHQFonts 
@@ -10673,18 +10673,18 @@ namespace Rococo { namespace Graphics {
 	void AddNativeCalls_RococoGraphicsIHQFonts(Rococo::Script::IPublicScriptSystem& ss, Rococo::Platform* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Graphics.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForRococoGraphicsHQFonts, _nceContext, ("GetHandleForIHQFonts0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIHQFontsBuild, nullptr, ("IHQFontsBuild (Pointer hObject)(Int32 font) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIHQFontsClear, nullptr, ("IHQFontsClear (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIHQFontsSetFaceName, nullptr, ("IHQFontsSetFaceName (Pointer hObject)(Sys.Type.IString name) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIHQFontsSetHeight, nullptr, ("IHQFontsSetHeight (Pointer hObject)(Int32 dyPixels) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIHQFontsMakeItalics, nullptr, ("IHQFontsMakeItalics (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIHQFontsMakeBold, nullptr, ("IHQFontsMakeBold (Pointer hObject) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIHQFontsAddUnicode32Char, nullptr, ("IHQFontsAddUnicode32Char (Pointer hObject)(Int32 unicodeValue) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIHQFontsAddCharacters, nullptr, ("IHQFontsAddCharacters (Pointer hObject)(Sys.Type.IString s) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIHQFontsAddRange, nullptr, ("IHQFontsAddRange (Pointer hObject)(Int32 unicodeStarChar)(Int32 unicodeEndChar) -> "));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIHQFontsCommit, nullptr, ("IHQFontsCommit (Pointer hObject) -> (Int32 fontId)"));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIHQFontsGetSysFont, nullptr, ("IHQFontsGetSysFont (Pointer hObject)(Int32 font) -> (Int32 fontId)"));
+		ss.AddNativeCall(ns, NativeGetHandleForRococoGraphicsHQFonts, _nceContext, ("GetHandleForIHQFonts0  -> (Pointer hObject)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIHQFontsBuild, nullptr, ("IHQFontsBuild (Pointer hObject)(Int32 font) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIHQFontsClear, nullptr, ("IHQFontsClear (Pointer hObject) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIHQFontsSetFaceName, nullptr, ("IHQFontsSetFaceName (Pointer hObject)(Sys.Type.IString name) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIHQFontsSetHeight, nullptr, ("IHQFontsSetHeight (Pointer hObject)(Int32 dyPixels) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIHQFontsMakeItalics, nullptr, ("IHQFontsMakeItalics (Pointer hObject) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIHQFontsMakeBold, nullptr, ("IHQFontsMakeBold (Pointer hObject) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIHQFontsAddUnicode32Char, nullptr, ("IHQFontsAddUnicode32Char (Pointer hObject)(Int32 unicodeValue) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIHQFontsAddCharacters, nullptr, ("IHQFontsAddCharacters (Pointer hObject)(Sys.Type.IString s) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIHQFontsAddRange, nullptr, ("IHQFontsAddRange (Pointer hObject)(Int32 unicodeStarChar)(Int32 unicodeEndChar) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIHQFontsCommit, nullptr, ("IHQFontsCommit (Pointer hObject) -> (Int32 fontId)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIHQFontsGetSysFont, nullptr, ("IHQFontsGetSysFont (Pointer hObject)(Int32 font) -> (Int32 fontId)"), __FILE__, __LINE__);
 	}
 }}
 // BennyHill generated Sexy native functions for Rococo::Graphics::IRendererConfig 
@@ -10730,8 +10730,8 @@ namespace Rococo { namespace Graphics {
 	void AddNativeCalls_RococoGraphicsIRendererConfig(Rococo::Script::IPublicScriptSystem& ss, Rococo::Platform* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Graphics.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForRococoGraphicsRendererConfig, _nceContext, ("GetHandleForIRendererConfig0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeRococoGraphicsIRendererConfigSetSampler, nullptr, ("IRendererConfigSetSampler (Pointer hObject)(Rococo.SampleStateDef ssd)(Int32 index) -> "));
+		ss.AddNativeCall(ns, NativeGetHandleForRococoGraphicsRendererConfig, _nceContext, ("GetHandleForIRendererConfig0  -> (Pointer hObject)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoGraphicsIRendererConfigSetSampler, nullptr, ("IRendererConfigSetSampler (Pointer hObject)(Rococo.SampleStateDef ssd)(Int32 index) -> "), __FILE__, __LINE__);
 	}
 }}
 // BennyHill generated Sexy native functions for Rococo::IArchive 
@@ -10853,11 +10853,11 @@ namespace Rococo {
 	void AddNativeCalls_RococoIArchive(Rococo::Script::IPublicScriptSystem& ss, Rococo::Platform* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForRococoGetArchive, _nceContext, ("GetHandleForIArchive0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeRococoIArchiveLoadF32, nullptr, ("IArchiveLoadF32 (Pointer hObject)(Sys.Type.IString key)(Float32 defaultValue) -> (Float32 value)"));
-		ss.AddNativeCall(ns, NativeRococoIArchiveSaveF32, nullptr, ("IArchiveSaveF32 (Pointer hObject)(Sys.Type.IString key)(Float32 value) -> "));
-		ss.AddNativeCall(ns, NativeRococoIArchiveLoadVec3, nullptr, ("IArchiveLoadVec3 (Pointer hObject)(Sys.Type.IString key)(Sys.Maths.Vec3 targetVariable)(Float32 defaultX)(Float32 defaultY)(Float32 defaultZ) -> "));
-		ss.AddNativeCall(ns, NativeRococoIArchiveSaveVec3, nullptr, ("IArchiveSaveVec3 (Pointer hObject)(Sys.Type.IString key)(Sys.Maths.Vec3 value) -> "));
+		ss.AddNativeCall(ns, NativeGetHandleForRococoGetArchive, _nceContext, ("GetHandleForIArchive0  -> (Pointer hObject)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIArchiveLoadF32, nullptr, ("IArchiveLoadF32 (Pointer hObject)(Sys.Type.IString key)(Float32 defaultValue) -> (Float32 value)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIArchiveSaveF32, nullptr, ("IArchiveSaveF32 (Pointer hObject)(Sys.Type.IString key)(Float32 value) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIArchiveLoadVec3, nullptr, ("IArchiveLoadVec3 (Pointer hObject)(Sys.Type.IString key)(Sys.Maths.Vec3 targetVariable)(Float32 defaultX)(Float32 defaultY)(Float32 defaultZ) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIArchiveSaveVec3, nullptr, ("IArchiveSaveVec3 (Pointer hObject)(Sys.Type.IString key)(Sys.Maths.Vec3 value) -> "), __FILE__, __LINE__);
 	}
 }
 // BennyHill generated Sexy native functions for Rococo::IInstallationManager 
@@ -10907,8 +10907,8 @@ namespace Rococo {
 	void AddNativeCalls_RococoIInstallationManager(Rococo::Script::IPublicScriptSystem& ss, Rococo::Platform* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForRococoInstallation, _nceContext, ("GetHandleForIInstallation0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeRococoIInstallationManagerSetPingPathMacro, nullptr, ("IInstallationSetPingPathMacro (Pointer hObject)(Sys.Type.IString key)(Sys.Type.IString pingPathValue) -> "));
+		ss.AddNativeCall(ns, NativeGetHandleForRococoInstallation, _nceContext, ("GetHandleForIInstallation0  -> (Pointer hObject)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIInstallationManagerSetPingPathMacro, nullptr, ("IInstallationSetPingPathMacro (Pointer hObject)(Sys.Type.IString key)(Sys.Type.IString pingPathValue) -> "), __FILE__, __LINE__);
 	}
 }
 // BennyHill generated Sexy native functions for Rococo::IWorldBuilder 
@@ -11010,10 +11010,10 @@ namespace Rococo {
 	void AddNativeCalls_RococoIWorldBuilder(Rococo::Script::IPublicScriptSystem& ss, Rococo::Platform* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForRococoWorldBuilder, _nceContext, ("GetHandleForIWorldBuilder0  -> (Pointer hObject)"));
-		ss.AddNativeCall(ns, NativeRococoIWorldBuilderAddMeshToQuadtree, nullptr, ("IWorldBuilderAddMeshToQuadtree (Pointer hObject)(Int64 id) -> "));
-		ss.AddNativeCall(ns, NativeRococoIWorldBuilderGetHeightAt, nullptr, ("IWorldBuilderGetHeightAt (Pointer hObject)(Float32 x)(Float32 y)(Rococo.TriangleScan t) -> (Float32 height)"));
-		ss.AddNativeCall(ns, NativeRococoIWorldBuilderGetTriangleAt, nullptr, ("IWorldBuilderGetTriangleAt (Pointer hObject)(Sys.Maths.Vec2 position)(Rococo.TriangleScan t) -> "));
-		ss.AddNativeCall(ns, NativeRococoIWorldBuilderNew, nullptr, ("IWorldBuilderNew (Pointer hObject)(Sys.SI.Metres span)(Sys.SI.Metres minSpan) -> "));
+		ss.AddNativeCall(ns, NativeGetHandleForRococoWorldBuilder, _nceContext, ("GetHandleForIWorldBuilder0  -> (Pointer hObject)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIWorldBuilderAddMeshToQuadtree, nullptr, ("IWorldBuilderAddMeshToQuadtree (Pointer hObject)(Int64 id) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIWorldBuilderGetHeightAt, nullptr, ("IWorldBuilderGetHeightAt (Pointer hObject)(Float32 x)(Float32 y)(Rococo.TriangleScan t) -> (Float32 height)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIWorldBuilderGetTriangleAt, nullptr, ("IWorldBuilderGetTriangleAt (Pointer hObject)(Sys.Maths.Vec2 position)(Rococo.TriangleScan t) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoIWorldBuilderNew, nullptr, ("IWorldBuilderNew (Pointer hObject)(Sys.SI.Metres span)(Sys.SI.Metres minSpan) -> "), __FILE__, __LINE__);
 	}
 }

@@ -385,7 +385,7 @@ void AppendNativeRegistration(const FunctionDesc& desc, const CppType& ns, const
 		AppendOutputPair(outputFile, outputDef, pc);
 	}
 
-	outputFile.Append(("\"));"));
+	outputFile.Append(("\"), __FILE__, __LINE__);"));
 }
 
 void ParseFunctions(cr_sex functionSetDef, const ParseContext& pc)

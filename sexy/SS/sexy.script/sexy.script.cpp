@@ -382,8 +382,11 @@ namespace Rococo
 		NativeCallEnvironment e;
 		FN_NATIVE_CALL NativeCallback;
 		rstdstring Archetype;
+		rstdstring sourceFile;
+		int lineNumber;
 
-		NativeFunction(IPublicScriptSystem& ss, const IFunction& f, CPU& cpu, void* context): e(ss, f, cpu, context) {}		
+		NativeFunction(IPublicScriptSystem& ss, const IFunction& f, CPU& cpu, void* context, cstr _sourceFile, int _lineNumber): 
+			e(ss, f, cpu, context), sourceFile(_sourceFile), lineNumber(_lineNumber) {}
 	};
 
 	struct CommonSource
@@ -436,7 +439,7 @@ namespace Rococo
 				Throw(nativeError);
 			}
 			
-			sb.AppendFormat("\n(function %s%d %s : <native>)\n", publicName, index, nf.Archetype.c_str() + strlen(publicName));
+			sb.AppendFormat("\n(function %s%d %s : (source \"%s\" %d))\n", publicName, index, nf.Archetype.c_str() + strlen(publicName), nf.sourceFile.c_str(), nf.lineNumber);
 			sb.AppendFormat("(alias %s%d %s)\n", publicName, index, i->first.c_str());
 
 			index++;
@@ -581,7 +584,7 @@ namespace Rococo
 		nf->NativeCallback(nf->e);
 	}
 
-	void AddNativeCallViaTree(REF TMapFQNToNativeCall& nativeCalls, REF IModuleBuilder& module, REF IScriptSystem& ss, IN const INamespace& ns, IN FN_NATIVE_CALL callback, void* context, IN Sex::ISParserTree& tree, IN int nativeCallIndex, bool checkName, int popBytes)
+	void AddNativeCallViaTree(REF TMapFQNToNativeCall& nativeCalls, REF IModuleBuilder& module, REF IScriptSystem& ss, IN const INamespace& ns, IN FN_NATIVE_CALL callback, void* context, IN Sex::ISParserTree& tree, IN int nativeCallIndex, cstr sourceFile, int lineNumber, bool checkName, int popBytes)
 	{
 		cr_sex archetype = tree.Root();
 		AssertCompound(archetype);
@@ -640,7 +643,7 @@ namespace Rococo
 			f.AddInput(NameString::From(name), TypeString::From(type), (void*)&inputDef);
 		}
 
-		NativeFunction* nf = new NativeFunction(ss, f, ss.ProgramObject().VirtualMachine().Cpu(), context);
+		NativeFunction* nf = new NativeFunction(ss, f, ss.ProgramObject().VirtualMachine().Cpu(), context, sourceFile, lineNumber);
 		nf->NativeCallback = callback;
 		nf->Archetype = tree.Source().SourceStart();
 
@@ -1560,7 +1563,7 @@ namespace Rococo
 			sysTypes.Alias(("Bool"), *nativeBool);
 			sysTypes.Alias(("Pointer"), *nativePtr);
 
-			AddNativeCall(sysTypes, Print, NULL, ("NativePrint (Sys.Type.Pointer s) -> (Int32 charCount)"), false);
+			AddNativeCall(sysTypes, Print, NULL, "NativePrint (Sys.Type.Pointer s) -> (Int32 charCount)", __FILE__, __LINE__, false, 0);
 		}
 
 		const INamespace& AddNativeNamespace(cstr name) override
@@ -1570,34 +1573,34 @@ namespace Rococo
 
 		void DefineSysNative(const INamespace& sysNative)
 		{
-			AddNativeCall(sysNative, NewStringBuilder, stringPool, "NewStringBuilder (Int32 capacity) -> (Sys.Type.IStringBuilder sb)", false);
-			AddNativeCall(sysNative, DestructStringBuilder, stringPool, "DestructStringBuilder (Sys.Type.IStringBuilder sb)->", false);
-			AddNativeCall(sysNative, CreateMemoString, &memoAllocator, ("CreateMemoString (Pointer src) (Int32 srcLen) -> (Pointer dest) (Int32 destLength)"), false);
-			AddNativeCall(sysNative, FreeMemoString, &memoAllocator, ("FreeMemoString (Pointer src) ->"), false);
-			AddNativeCall(sysNative, DynamicCast, nullptr, ("_DynamicCast (Pointer interface) (Pointer instanceRef) ->"), false);
-			AddNativeCall(sysNative, StringCompare, NULL, ("StringCompare  (Pointer s) (Pointer t) -> (Int32 diff)"), false);
-			AddNativeCall(sysNative, StringCompareI, NULL, ("StringCompareI  (Pointer s) (Pointer t) -> (Int32 diff)"), false);
-			AddNativeCall(sysNative, StringFindLeft, NULL, ("StringFindLeft (Pointer containerBuffer) (Int32 containerLength) (Int32 startPos) (Pointer substringBuffer) (Int32 substringLength) (Bool caseIndependent)-> (Int32 position)"), false);
-			AddNativeCall(sysNative, StringFindRight, NULL, ("StringFindRight (Pointer containerBuffer) (Int32 containerLength) (Int32 rightPos) (Pointer substringBuffer) (Int32 substringLength) (Bool caseIndependent)-> (Int32 position)"), false);
-			AddNativeCall(sysNative, ::AlignedMalloc, this, ("AlignedMalloc (Int32 capacity) (Int32 alignment)-> (Pointer data)"), false);
-			AddNativeCall(sysNative, ::AlignedFree, this, ("AlignedFree (Pointer data)->"), false);
-			AddNativeCall(sysNative, CScriptSystem::_PublishAPI, this, "PublishAPI ->", false);
-			AddNativeCall(sysNative, FastStringBuilderAppendIString, stringPool, ("FastStringBuilderAppendIString (Sys.Type.IStringBuilder sb) (Pointer src) (Int32 srclength) ->"), false);
-			AddNativeCall(sysNative, FastStringBuilderAppendChar, stringPool, ("FastStringBuilderAppendChar (Sys.Type.IStringBuilder sb) (Int32 asciiValue) ->"), false);
-			AddNativeCall(sysNative, FastStringBuilderAppendInt32, stringPool, ("FastStringBuilderAppendInt32 (Sys.Type.IStringBuilder sb) (Int32 x) ->"), false);
-			AddNativeCall(sysNative, FastStringBuilderAppendInt64, stringPool, ("FastStringBuilderAppendInt64 (Sys.Type.IStringBuilder sb) (Int64 x) ->"), false);
-			AddNativeCall(sysNative, FastStringBuilderAppendFloat32, stringPool, ("FastStringBuilderAppendFloat32 (Sys.Type.IStringBuilder sb) (Float32 x) ->"), false);
-			AddNativeCall(sysNative, FastStringBuilderAppendFloat64, stringPool, ("FastStringBuilderAppendFloat64 (Sys.Type.IStringBuilder sb) (Float64 x) ->"), false);
-			AddNativeCall(sysNative, FastStringBuilderAppendBool, stringPool, ("FastStringBuilderAppendBool (Sys.Type.IStringBuilder sb) (Bool x) ->"), false);
-			AddNativeCall(sysNative, FastStringBuilderAppendPointer, stringPool, ("FastStringBuilderAppendPointer (Sys.Type.IStringBuilder sb) (Pointer x) ->"), false);
-			AddNativeCall(sysNative, FastStringBuilderClear, stringPool, ("FastStringBuilderClear (Sys.Type.IStringBuilder sb) ->"), false);
-			AddNativeCall(sysNative, FastStringBuilderAppendAsDecimal, stringPool, ("FastStringBuilderAppendAsDecimal (Sys.Type.IStringBuilder sb) ->"), false);
-			AddNativeCall(sysNative, FastStringBuilderAppendAsHex, stringPool, ("FastStringBuilderAppendAsHex (Sys.Type.IStringBuilder sb) -> "), false);
-			AddNativeCall(sysNative, FastStringBuilderAppendAsSpec, stringPool, ("FastStringBuilderAppendAsSpec (Sys.Type.IStringBuilder sb) (Int32 type) -> "), false);
-			AddNativeCall(sysNative, FastStringBuilderSetFormat, stringPool, ("FastStringBuilderSetFormat  (Sys.Type.IStringBuilder sb) (Int32 precision) (Int32 width) (Bool isZeroPrefixed) (Bool isRightAligned)->"), false);
-			AddNativeCall(sysNative, FastStringBuilderAppendSubstring, stringPool, ("FastStringBuilderAppendSubstring (Sys.Type.IStringBuilder sb) (Pointer s) (Int32 sLen) (Int32 startPos) (Int32 charsToAppend) ->"), false);
-			AddNativeCall(sysNative, FastStringBuilderSetLength, stringPool, ("FastStringBuilderSetLength (Sys.Type.IStringBuilder sb)(Int32 length) ->"), false);
-			AddNativeCall(sysNative, FastStringBuilderSetCase, stringPool, ("FastStringBuilderSetCase (Sys.Type.IStringBuilder sb) (Int32 start) (Int32 end) (Bool toUpper)->"), false);
+			AddNativeCall(sysNative, NewStringBuilder, stringPool, "NewStringBuilder (Int32 capacity) -> (Sys.Type.IStringBuilder sb)", __FILE__, __LINE__, false, 0);
+			AddNativeCall(sysNative, DestructStringBuilder, stringPool, "DestructStringBuilder (Sys.Type.IStringBuilder sb)->", __FILE__, __LINE__, false, 0);
+			AddNativeCall(sysNative, CreateMemoString, &memoAllocator, ("CreateMemoString (Pointer src) (Int32 srcLen) -> (Pointer dest) (Int32 destLength)"), __FILE__, __LINE__, false, 0);
+			AddNativeCall(sysNative, FreeMemoString, &memoAllocator, ("FreeMemoString (Pointer src) ->"), __FILE__, __LINE__, false, 0);
+			AddNativeCall(sysNative, DynamicCast, nullptr, ("_DynamicCast (Pointer interface) (Pointer instanceRef) ->"), __FILE__, __LINE__, false, 0);
+			AddNativeCall(sysNative, StringCompare, NULL, ("StringCompare  (Pointer s) (Pointer t) -> (Int32 diff)"), __FILE__, __LINE__, false, 0);
+			AddNativeCall(sysNative, StringCompareI, NULL, ("StringCompareI  (Pointer s) (Pointer t) -> (Int32 diff)"), __FILE__, __LINE__, false, 0);
+			AddNativeCall(sysNative, StringFindLeft, NULL, ("StringFindLeft (Pointer containerBuffer) (Int32 containerLength) (Int32 startPos) (Pointer substringBuffer) (Int32 substringLength) (Bool caseIndependent)-> (Int32 position)"), __FILE__, __LINE__, false, 0);
+			AddNativeCall(sysNative, StringFindRight, NULL, ("StringFindRight (Pointer containerBuffer) (Int32 containerLength) (Int32 rightPos) (Pointer substringBuffer) (Int32 substringLength) (Bool caseIndependent)-> (Int32 position)"), __FILE__, __LINE__, false, 0);
+			AddNativeCall(sysNative, ::AlignedMalloc, this, ("AlignedMalloc (Int32 capacity) (Int32 alignment)-> (Pointer data)"), __FILE__, __LINE__, false, 0);
+			AddNativeCall(sysNative, ::AlignedFree, this, ("AlignedFree (Pointer data)->"), __FILE__, __LINE__, false, 0);
+			AddNativeCall(sysNative, CScriptSystem::_PublishAPI, this, "PublishAPI ->", __FILE__, __LINE__, false, 0);
+			AddNativeCall(sysNative, FastStringBuilderAppendIString, stringPool, ("FastStringBuilderAppendIString (Sys.Type.IStringBuilder sb) (Pointer src) (Int32 srclength) ->"), __FILE__, __LINE__, false, 0);
+			AddNativeCall(sysNative, FastStringBuilderAppendChar, stringPool, ("FastStringBuilderAppendChar (Sys.Type.IStringBuilder sb) (Int32 asciiValue) ->"), __FILE__, __LINE__, false, 0);
+			AddNativeCall(sysNative, FastStringBuilderAppendInt32, stringPool, ("FastStringBuilderAppendInt32 (Sys.Type.IStringBuilder sb) (Int32 x) ->"), __FILE__, __LINE__, false, 0);
+			AddNativeCall(sysNative, FastStringBuilderAppendInt64, stringPool, ("FastStringBuilderAppendInt64 (Sys.Type.IStringBuilder sb) (Int64 x) ->"), __FILE__, __LINE__, false, 0);
+			AddNativeCall(sysNative, FastStringBuilderAppendFloat32, stringPool, ("FastStringBuilderAppendFloat32 (Sys.Type.IStringBuilder sb) (Float32 x) ->"), __FILE__, __LINE__, false, 0);
+			AddNativeCall(sysNative, FastStringBuilderAppendFloat64, stringPool, ("FastStringBuilderAppendFloat64 (Sys.Type.IStringBuilder sb) (Float64 x) ->"), __FILE__, __LINE__, false, 0);
+			AddNativeCall(sysNative, FastStringBuilderAppendBool, stringPool, ("FastStringBuilderAppendBool (Sys.Type.IStringBuilder sb) (Bool x) ->"), __FILE__, __LINE__, false, 0);
+			AddNativeCall(sysNative, FastStringBuilderAppendPointer, stringPool, ("FastStringBuilderAppendPointer (Sys.Type.IStringBuilder sb) (Pointer x) ->"), __FILE__, __LINE__, false, 0);
+			AddNativeCall(sysNative, FastStringBuilderClear, stringPool, ("FastStringBuilderClear (Sys.Type.IStringBuilder sb) ->"), __FILE__, __LINE__, false, 0);
+			AddNativeCall(sysNative, FastStringBuilderAppendAsDecimal, stringPool, ("FastStringBuilderAppendAsDecimal (Sys.Type.IStringBuilder sb) ->"), __FILE__, __LINE__, false, 0);
+			AddNativeCall(sysNative, FastStringBuilderAppendAsHex, stringPool, ("FastStringBuilderAppendAsHex (Sys.Type.IStringBuilder sb) -> "), __FILE__, __LINE__, false, 0);
+			AddNativeCall(sysNative, FastStringBuilderAppendAsSpec, stringPool, ("FastStringBuilderAppendAsSpec (Sys.Type.IStringBuilder sb) (Int32 type) -> "), __FILE__, __LINE__, false, 0);
+			AddNativeCall(sysNative, FastStringBuilderSetFormat, stringPool, ("FastStringBuilderSetFormat  (Sys.Type.IStringBuilder sb) (Int32 precision) (Int32 width) (Bool isZeroPrefixed) (Bool isRightAligned)->"), __FILE__, __LINE__, false, 0);
+			AddNativeCall(sysNative, FastStringBuilderAppendSubstring, stringPool, ("FastStringBuilderAppendSubstring (Sys.Type.IStringBuilder sb) (Pointer s) (Int32 sLen) (Int32 startPos) (Int32 charsToAppend) ->"), __FILE__, __LINE__, false, 0);
+			AddNativeCall(sysNative, FastStringBuilderSetLength, stringPool, ("FastStringBuilderSetLength (Sys.Type.IStringBuilder sb)(Int32 length) ->"), __FILE__, __LINE__, false, 0);
+			AddNativeCall(sysNative, FastStringBuilderSetCase, stringPool, ("FastStringBuilderSetCase (Sys.Type.IStringBuilder sb) (Int32 start) (Int32 end) (Bool toUpper)->"), __FILE__, __LINE__, false, 0);
 		}
 
 		static void _PublishAPI(NativeCallEnvironment& nce)
@@ -1959,7 +1962,7 @@ namespace Rococo
 			stringPool = NewStringPool();
 
 			INamespaceBuilder& sysOS = progObjProxy->GetRootNamespace().AddNamespace("Sys.OS", ADDNAMESPACEFLAGS_CREATE_ROOTS);
-			AddNativeCall(sysOS, NativeAppendCTime, NULL, "AppendCTime (Sys.Type.IStringBuilder sb)->(Int32 nChars)", false);
+			AddNativeCall(sysOS, NativeAppendCTime, NULL, "AppendCTime (Sys.Type.IStringBuilder sb)->(Int32 nChars)", __FILE__, __LINE__, false, 0);
 
 			INamespaceBuilder& sysTypes = progObjProxy->GetRootNamespace().AddNamespace("Sys.Type", ADDNAMESPACEFLAGS_CREATE_ROOTS);
 			DefinePrimitives(sysTypes);
@@ -1967,8 +1970,8 @@ namespace Rococo
 			INamespaceBuilder& sysNative = progObjProxy->GetRootNamespace().AddNamespace("Sys.Native", ADDNAMESPACEFLAGS_CREATE_ROOTS);
 			DefineSysNative(sysNative);
 
-			AddNativeCall(sysOS, NativeSysOSClockHz, nullptr, "ClockHz -> (Int64 hz)", false);
-			AddNativeCall(sysOS, NativeSysOSClockTicks, nullptr, "ClockTicks -> (Int64 tickCount)", false);
+			AddNativeCall(sysOS, NativeSysOSClockHz, nullptr, "ClockHz -> (Int64 hz)", __FILE__, __LINE__, false, 0);
+			AddNativeCall(sysOS, NativeSysOSClockTicks, nullptr, "ClockTicks -> (Int64 tickCount)", __FILE__, __LINE__, false, 0);
 			
 			const void* pSrcError = nullptr;
 			progObjProxy->ResolveNativeTypes(&pSrcError);
@@ -2018,7 +2021,7 @@ namespace Rococo
 			return scripts->GetSourceCode(module);
 		}
 
-		void AddNativeCall(const Compiler::INamespace& ns, FN_NATIVE_CALL callback, void* context, cstr archetype, bool checkName, int popBytes = 0) override
+		void AddNativeCall(const Compiler::INamespace& ns, FN_NATIVE_CALL callback, void* context, cstr archetype, cstr sourceFile, int lineNumber, bool checkName, int popBytes) override
 		{
 			enum { MAX_ARCHETYPE_LEN = 1024 };
 
@@ -2049,7 +2052,7 @@ namespace Rococo
 			{
 				Auto<ISParserTree> tree = SParser().CreateTree(src());
 
-				AddNativeCallViaTree(REF nativeCalls, REF ProgramObject().IntrinsicModule(), IN *this, IN ns, IN callback, IN context, IN tree(), IN nativeCallIndex, IN checkName, IN popBytes);
+				AddNativeCallViaTree(REF nativeCalls, REF ProgramObject().IntrinsicModule(), IN *this, IN ns, IN callback, IN context, IN tree(), IN nativeCallIndex, IN sourceFile, IN lineNumber, IN checkName, IN popBytes);
 				nativeCallIndex++;
 			}
 			catch (ParseException& e)

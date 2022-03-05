@@ -295,7 +295,7 @@ namespace Rococo
 						Rococo::AddNativeCalls_RococoIWorldBuilder(args.ss, &platform);
 
 						const INamespace& ns = args.ss.AddNativeNamespace("MPlat.OS");
-						args.ss.AddNativeCall(ns, NativeEnumerateFiles, &platform, "EnumerateFiles (Sys.Type.IString filter)(MPlat.OnFileName callback)->");
+						args.ss.AddNativeCall(ns, NativeEnumerateFiles, &platform, "EnumerateFiles (Sys.Type.IString filter)(MPlat.OnFileName callback)->", __FUNCTION__, __LINE__);
 					}
 
 					onScriptEvent.OnEvent(args);

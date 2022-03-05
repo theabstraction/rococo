@@ -25,5 +25,3 @@
 	(Sys.Geometry.F32.TryGetCommonSegment (Vec3 a)(Vec3 b)(Quad p)(Quad q)-> (Bool matched): Rococo::Maths::TryGetCommonSegment)
 
 )
-
-

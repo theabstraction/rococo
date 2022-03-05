@@ -957,7 +957,7 @@ namespace Rococo
 						AppendInputPair(appender, arg, pc);
 					}
 
-					appender.Append((" -> (Pointer hObject)\"));\n"));
+					appender.Append((" -> (Pointer hObject)\"), __FILE__, __LINE__);\n"));
 				}
 			}
 
@@ -967,8 +967,8 @@ namespace Rococo
 				{
 					cr_sex method = methods[k]->GetElement(t);
 					cstr methodName = StringFrom(method.GetElement(0));
-					appender.Append(("\t\tss.AddNativeCall(ns, Native%s%s, %s, (\""), ic.asCppInterface.CompressedName(), methodName, ic.isSingleton ? ("_nceContext") : ("nullptr"));
-					appender.Append(("%s%s "), shortName, methodName);
+					appender.Append("\t\tss.AddNativeCall(ns, Native%s%s, %s, (\"", ic.asCppInterface.CompressedName(), methodName, ic.isSingleton ? "_nceContext" : "nullptr");
+					appender.Append("%s%s ", shortName, methodName);
 					if (!ic.isSingleton)
 					{
 						appender.Append(("(Pointer hObject)"));
@@ -988,7 +988,7 @@ namespace Rococo
 						AppendOutputPair(appender, arg, pc);
 					}
 
-					appender.Append(("\"));\n"));
+					appender.Append("\"), __FILE__, __LINE__);\n");
 				}
 			}
 		}
