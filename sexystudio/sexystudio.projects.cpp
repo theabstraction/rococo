@@ -234,7 +234,34 @@ namespace Rococo::SexyStudio
 		package.ForEachFileInCache(onFile);
 	}
 
-	void PopulateTreeWithPackages(cstr searchPath, cstr packageFolder, ISexyDatabase& database)
+	void PopulateDatabaseWithPackagesRecursive(IPackage& package, ISexyDatabase& database, cstr searchPath)
+	{
+		package.BuildDirectoryCache(searchPath);
+
+		struct ANON : IEventCallback<cstr>
+		{
+			IPackage* package;
+			ISexyDatabase* database;
+			std::vector<HString> subdirectories;
+
+			void OnEvent(cstr dirname)
+			{
+				PopulateDatabaseFromPackageDirectory(*package, *database, dirname);
+				subdirectories.push_back(dirname);
+			}
+		} onDir;
+		onDir.package = &package;
+		onDir.database = &database;
+
+		package.ForEachDirInCache(onDir);
+
+		for (auto& subdir : onDir.subdirectories)
+		{
+			PopulateDatabaseWithPackagesRecursive(package, database, subdir);
+		}
+	}
+
+	void PopulateTreeWithPackages(cstr packageFolder, ISexyDatabase& database)
 	{
 		WideFilePath widePath;
 		Assign(widePath, packageFolder);
@@ -250,22 +277,7 @@ namespace Rococo::SexyStudio
 
 		AutoFree<IPackageSupervisor> package = OpenZipPackage(widePath, packageShortName);
 
-		package->BuildDirectoryCache(searchPath);
-
-		struct ANON : IEventCallback<cstr>
-		{
-			IPackage* package;
-			ISexyDatabase* database;
-
-			void OnEvent(cstr dirname)
-			{
-				PopulateDatabaseFromPackageDirectory(*package, *database, dirname);
-			}
-		} onDir;
-		onDir.package = package;
-		onDir.database = &database;
-
-		package->ForEachDirInCache(onDir);
+		PopulateDatabaseWithPackagesRecursive(*package, database, "");
 	}
 
 	void BuildDatabaseFromProject(ISexyDatabase& database, cr_sex sProjectRoot, cstr projectPath)
@@ -352,7 +364,7 @@ namespace Rococo::SexyStudio
 									U8FilePath sysPackagePath;
 									database.PingPathToSysPath(packagePath, sysPackagePath);
 
-									PopulateTreeWithPackages("", sysPackagePath, database);
+									PopulateTreeWithPackages(sysPackagePath, database);
 
 									int priority;
 									cstr declarations = database.Solution().GetDeclarationPathForImport(packageName, priority);

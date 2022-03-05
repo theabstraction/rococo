@@ -1164,10 +1164,13 @@ namespace ANON
 	{
 		std::vector<DeclarationAssociation> declarationAssocations;
 		stringmap<HString> packages;
+		stringmap<HString> mapPrefixToPackageSource;
 
 		void ParseSolution(cr_sex sRoot)
 		{
 			declarationAssocations.clear();
+			mapPrefixToPackageSource.clear();
+			packages.clear();
 
 			for (int i = 0; i < sRoot.NumberOfElements(); ++i)
 			{
@@ -1245,6 +1248,34 @@ namespace ANON
 						packages.insert(sKey.String()->Buffer, sValue.String()->Buffer);
 						continue;
 					}
+					else if (Eq(cmd, "map-prefix-to-source"))
+					{
+						cr_sex sKey = sDirective[1];
+						if (!IsStringLiteral(sKey))
+						{
+							Throw(sKey, "Expecting string literal - <file-name-prefix>");
+						}
+
+						cr_sex sMap = sDirective[2];
+						if (!IsAtomic(sMap))
+						{
+							Throw(sMap, "Expecting map operator ->");
+						}
+
+						cr_sex sValue = sDirective[3];
+						if (!IsStringLiteral(sValue))
+						{
+							Throw(sValue, "Expecting string literal - <source-folder>");
+						}
+
+						if (!EndsWith(sValue.String()->Buffer, "\\"))
+						{
+							Throw(sValue, "Expecting <source-folder> to end with backslash '\\'");
+						}
+
+						mapPrefixToPackageSource.insert(sKey.String()->Buffer, sValue.String()->Buffer);
+						continue;
+					}
 					else if (!Eq(cmd, "'"))
 					{
 						// Raw literal
@@ -1293,6 +1324,19 @@ namespace ANON
 			auto i = packages.find(packageName);
 			return i != packages.end() ? i->second.c_str() : nullptr;
 		}
+
+		cstr GetPackageSourceFolder(cstr packagePath) override
+		{
+			for (auto i : mapPrefixToPackageSource)
+			{
+				if (StartsWith(packagePath, i.first))
+				{
+					return i.second;
+				}
+			}
+
+			return nullptr;
+		}
 	};
 
 	struct SexyDatabase : ISexyDatabaseSupervisor
@@ -1324,9 +1368,10 @@ namespace ANON
 			return solutionFile;
 		}
 
-		void SetScriptPath(cstr contentFolder) override
+		void SetContentPath(cstr contentFolder) override
 		{
 			Format(this->contentFolder, L"%hs", contentFolder);
+
 			installation = CreateInstallationDirect(this->contentFolder, *os);
 
 			WideFilePath associationPath;
@@ -2006,8 +2051,8 @@ namespace ANON
 						{
 							auto strFqName = sArg[1].String();
 							cstr fqName = strFqName->Buffer;
-							char* publicName = (char*)_alloca(strFqName->Length + 1);
-							CopyFinalNameToBuffer(publicName, strFqName->Length + 1, fqName);
+							char publicName[128];
+							CopyFinalNameToBuffer(publicName, sizeof publicName, fqName);
 							ISxyNamespace& ns = InsertNamespaceRecursiveSANSEnd(fqName, rootNS, s);
 							ns.UpdateInterfaceViaDefinition(publicName, s, file);
 						}
@@ -2026,8 +2071,8 @@ namespace ANON
 
 		void InsertInterface(cr_sex s, const fstring& fqName, File_SXY& file)
 		{
-			char* publicName = (char*)_alloca(fqName.length + 1);
-			CopyFinalNameToBuffer(publicName, fqName.length + 1, fqName);
+			char publicName[128];
+			CopyFinalNameToBuffer(publicName, sizeof publicName, fqName);
 			ISxyNamespace& ns = InsertNamespaceRecursiveSANSEnd(fqName, rootNS, s);
 			ns.UpdateInterface(publicName, s, file);
 		}
@@ -2066,14 +2111,40 @@ namespace ANON
 			InsertMacroRecursive(fqMacroName, rootNS, file, s);
 		}
 
-		void InsertAlias(cr_sex s, const fstring& aliasFrom, const fstring& aliasTo, File_SXY& file)
+		void InsertAlias(cr_sex s, const fstring& aliasFrom, const fstring& const_aliasTo, File_SXY& file)
 		{
 			// We have two sorts of alias: 
 			//     1) from one namespace to another (alias Sys.Type.Float32 Sys.OpenGL.GLfloat)
 			//     2) a local object to a namespace (alias Main EntryPoint.Main)
 
-			char* publicName = (char*)_alloca(aliasTo.length + 1);
-			CopyFinalNameToBuffer(publicName, aliasTo.length + 1, aliasTo);
+			char publicName[Rococo::NAMESPACE_MAX_LENGTH];
+			char implicitName[Rococo::NAMESPACE_MAX_LENGTH];
+
+			fstring aliasTo;
+
+			if (Eq(const_aliasTo, "$"_fstring))
+			{
+				CopyString(publicName, Rococo::NAMESPACE_MAX_LENGTH, aliasFrom);
+
+				CopyString(implicitName, Rococo::NAMESPACE_MAX_LENGTH, file.filename.c_str());
+				cstr lastSlash = Rococo::ReverseFind('/', Substring { implicitName, implicitName + strlen(implicitName) } );
+				if (lastSlash)
+				{
+					*const_cast<char*>(lastSlash) = 0;
+				}
+
+				ReplaceChar(implicitName, Rococo::NAMESPACE_MAX_LENGTH, '/', '.');
+
+				StringCat(implicitName, ".", sizeof implicitName);
+				StringCat(implicitName, aliasFrom, sizeof implicitName);
+
+				aliasTo = to_fstring(implicitName);
+			}
+			else
+			{
+				CopyFinalNameToBuffer(publicName, sizeof publicName, const_aliasTo);
+				aliasTo = const_aliasTo;
+			}
 
 			if (*publicName == 0)
 			{

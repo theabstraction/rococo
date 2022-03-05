@@ -55,6 +55,7 @@ auto evMetaUpdated = "sexystudio.meta.updated"_event;
 namespace Globals
 {
 	U8FilePath contentFolder{ "\\work\\rococo\\content\\" };
+	U8FilePath packageSource { "\\work\\rococo\\packages\\" };
 	U8FilePath packageFolder{ "\\work\\rococo\\content\\packages\\mhost_1000.sxyz" };
 	U8FilePath searchPath{ "" };
 }
@@ -64,11 +65,36 @@ namespace Rococo::SexyStudio
 	void PopulateTreeWithSXYFiles(IGuiTree& tree, cstr contentFolder, ISexyDatabase& database, IIDEFrame& frame, ITreeOfStringsMap& treeOfStrings);
 }
 
-void OpenFile(IWindow& mainWindow, cstr path)
+void OpenFile(ISolution& solution, IWindow& mainWindow, cstr path)
 {
 	try
 	{
-		Rococo::OS::ShellOpenDocument(path);
+		auto packagePrefix = "[package]:"_fstring;
+
+		if (StartsWith(path, packagePrefix))
+		{
+			cstr packagePath = path + packagePrefix.length;
+			
+			U8FilePath packageFilepath;
+			CopyString(packageFilepath.buf, U8FilePath::CAPACITY, Globals::packageSource);
+
+			cstr srcFile = solution.GetPackageSourceFolder(packagePath);
+			if (!srcFile)
+			{
+				Throw(0, "Cannot find package source code for %s. Use map-prefix-to-source in the solution file to specify the location of the package source code", packagePath);
+			}
+
+			StringCat(packageFilepath.buf, srcFile, U8FilePath::CAPACITY);
+
+			StringCat(packageFilepath.buf, packagePath, U8FilePath::CAPACITY);
+			ReplaceChar(packageFilepath.buf, U8FilePath::CAPACITY, '/', '\\');
+
+			Rococo::OS::ShellOpenDocument(packageFilepath);
+		}
+		else
+		{
+			Rococo::OS::ShellOpenDocument(path);
+		}
 	}
 	catch (IException& ex)
 	{
@@ -93,8 +119,10 @@ private:
 			WaitCursorSection waitSection;
 			ideFrame.SetProgress(0.0f, "Populating file browser...");
 
-			PopulateTreeWithSXYFiles(*fileBrowser, Globals::contentFolder, database, ideFrame, *idToStringMap);
-			PopulateTreeWithPackages(Globals::searchPath, Globals::packageFolder, database);
+			U8FilePath scriptPath;
+			Format(scriptPath, "%hsscripts\\", Globals::contentFolder.buf);
+			PopulateTreeWithSXYFiles(*fileBrowser, scriptPath, database, ideFrame, *idToStringMap);
+			PopulateTreeWithPackages(Globals::packageFolder, database);
 			ideFrame.SetProgress(100.0f, "Populated file browser");
 
 			database.Sort();
@@ -151,7 +179,10 @@ public:
 
 		auto* contentEditor = projectSettings->AddFilePathEditor();
 		contentEditor->SetName("Content");
-		contentEditor->Bind(Globals::contentFolder, 128);
+
+		U8FilePath scriptPath;
+		Format(scriptPath, "%sscripts\\", Globals::contentFolder);
+		contentEditor->Bind(scriptPath, 128);
 		contentEditor->SetVisible(true);
 		contentEditor->SetUpdateEvent(evContentChange);
 
@@ -205,7 +236,7 @@ public:
 
 		if (id == COMMAND_OPEN_FILE)
 		{
-			OpenFile(ideFrame.Window(), popupTargetFile.c_str());
+			OpenFile(database.Solution(), ideFrame.Window(), popupTargetFile.c_str());
 		}
 		else if (id == COMMAND_FOCUS_PROJECT)
 		{
@@ -293,7 +324,7 @@ private:
 	{
 		if (id == OPEN_ITEM && popupSourceModule.length() > 0)
 		{
-			OpenFile(screen.Window(), popupSourceModule);
+			OpenFile(database.Solution(), screen.Window(), popupSourceModule);
 		}
 	}
 
@@ -1507,7 +1538,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 		projectView = splitScreen->GetFirstHalf();
 		sourceView = splitScreen->GetSecondHalf();
 
-		database->SetScriptPath(Globals::contentFolder);
+		database->SetContentPath(Globals::contentFolder);
 
 		sheets = new PropertySheets(*projectView, *ide, *database);
 		explorer = new SexyExplorer(context, *sourceView, *database);

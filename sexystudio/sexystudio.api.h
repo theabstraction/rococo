@@ -233,6 +233,7 @@ namespace Rococo::SexyStudio
 		virtual cstr GetDeclarationPathForInclude(cstr includeName, int& priority) = 0;
 		virtual cstr GetDeclarationPathForImport(cstr packageName, int& priority) = 0;
 		virtual cstr GetPackagePingPath(cstr packageName) = 0;
+		virtual cstr GetPackageSourceFolder(cstr packagePath) = 0;
 	};
 
 	ROCOCOAPI ISexyDatabase
@@ -264,12 +265,12 @@ namespace Rococo::SexyStudio
 		virtual void Free() = 0;
 	};
 
-	void PopulateTreeWithPackages(cstr searchPath, cstr packageFolder, ISexyDatabase& database);
+	void PopulateTreeWithPackages(cstr packageFolder, ISexyDatabase& database);
 
 	ROCOCOAPI ISexyDatabaseSupervisor : ISexyDatabase
 	{
 		virtual void Free() = 0;
-		virtual void SetScriptPath(cstr scriptFolder) = 0;
+		virtual void SetContentPath(cstr contentFolder) = 0;
 	};
 
 	ISexyDatabaseSupervisor* CreateSexyDatabase();

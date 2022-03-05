@@ -1,4 +1,4 @@
-(' #file.type sexystudio.declarations.association)
+(' #file.type sexystudio.solution)
 
 /*
 	Here we bind declaration files to files included and imported by sxy files.
@@ -8,7 +8,6 @@
 	(imported <import-name> -> <declaration-name>
 	
 	and
-	
 	
 	(included <include-name> -> (declaration-name>
     
@@ -24,5 +23,10 @@
 (included "!scripts/mplat_pane_sxh.sxy" -> "!scripts/mplat/pane_declarations.sxy")
 (included "!scripts/mplat_sxh.sxy" -> "!scripts/mplat/platform_declarations.sxy")
 
-// Here we map package names to package paths
-(package mhost -> "!packages/mhost_1000.sxyz")
+// Here we map package names to package paths.
+(package mhost -> "!packages/mhost_1000.sxyz") // This will allow sexystudio to parse (' #import mhost)
+
+// Specify which package subfolder contains the source folders for the package
+// (map-prefix-to-source <file-name-prefix> <source-folder>) -> resolve path name '[package]:$file-name-prefix/root/filename.sxy' to 'content\..\packages\<source-folder>\root\filename.sxy'
+
+(map-prefix-to-source "MHost/" -> "mhost\") // Resolve path-name '[package]:MHost/subfolders/filename.sxy' to 'content\..\packages\mhost\MHost\subfolders\filename.sxy'

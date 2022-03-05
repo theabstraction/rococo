@@ -1003,6 +1003,19 @@ namespace Rococo
 			LevenshteinDistance(sourcePrefix, targetPrefix) + distance);
 	}
 
+	void ReplaceChar(char* buffer, size_t capacity, char target, char replacement)
+	{
+		for (char* c = buffer; c < buffer + capacity; c++)
+		{
+			if (*c == 0) return;
+
+			if (*c == target)
+			{
+				*c = replacement;
+			}
+		}
+	}
+
 	bool StartsWith(cr_substring token, const fstring& prefix)
 	{
 		size_t len = token.end - token.start;

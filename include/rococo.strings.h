@@ -216,4 +216,6 @@ namespace Rococo
    bool Eq(cr_substring a, const fstring& b);
    bool Eq(cr_substring a, cr_substring b);
    bool IsEmpty(cr_substring token);
+
+   void ReplaceChar(char* buffer, size_t capacity, char target, char replacement);
 }
