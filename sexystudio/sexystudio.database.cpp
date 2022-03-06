@@ -135,6 +135,8 @@ namespace ANON
 		int mapIndex = 0;
 		int classOffset;
 		int finalArg;
+		sexstring cppSource = nullptr;
+		int lineNumber = 0;
 
 		int InputCount() const override
 		{
@@ -148,7 +150,12 @@ namespace ANON
 
 		cstr SourcePath() const override
 		{
-			return "<no path>";
+			return cppSource ? cppSource->Buffer : "<no path>";
+		}
+
+		int LineNumber() const override
+		{
+			return lineNumber;
 		}
 
 		cstr InputType(int index) const override
@@ -230,6 +237,46 @@ namespace ANON
 					finalArg = _sMethod.NumberOfElements() - 1;
 				}
 			}
+
+			if (mapIndex)
+			{
+				return;
+			}
+
+			// Check to see if there is an expression (source "<path>" <line-number) in the last element of the function
+
+			cr_sex sFinalExpression = _sMethod[_sMethod.NumberOfElements() - 1];
+			if (sFinalExpression.NumberOfElements() != 3)
+			{
+				return;
+			}
+
+			cr_sex sFinalDirective = sFinalExpression[0];
+			if (!IsAtomic(sFinalDirective))
+			{
+				return;
+			}
+
+			if (!Eq(sFinalDirective.String()->Buffer, "source"))
+			{
+				return;
+			}
+
+			cr_sex sSourceFile = sFinalExpression[1];
+			if (!IsStringLiteral(sSourceFile))
+			{
+				return;
+			}
+
+			cppSource = sSourceFile.String();
+
+			cr_sex sLineNumber = sFinalExpression[2];
+			if (!IsAtomic(sLineNumber))
+			{
+				return;
+			}
+
+			lineNumber = atoi(sLineNumber.String()->Buffer);
 		}
 	};
 
@@ -613,6 +660,11 @@ namespace ANON
 		cstr SourcePath() const override
 		{
 			return sDef.Tree().Source().Name();
+		}
+
+		int LineNumber() const override
+		{
+			return sDef.Start().y;
 		}
 
 		cr_sex sDef;
@@ -1009,10 +1061,17 @@ namespace ANON
 		cstr name = nullptr;
 		int mapIndex = -1;
 		int bodyIndex = -1;
+		sexstring cpp_source = nullptr;
+		int lineNumber = 0;
 
 		cstr SourcePath() const override
 		{
-			return sFunction.Tree().Source().Name();
+			return cpp_source ? cpp_source->Buffer : sFunction.Tree().Source().Name();
+		}
+
+		int LineNumber() const override
+		{
+			return lineNumber;
 		}
 
 		cstr PublicName() const override
@@ -1058,6 +1117,8 @@ namespace ANON
 		{
 			name = AlwaysGetAtomic(_sFunction, 1);
 
+			lineNumber = _sFunction.Start().y;
+
 			for (int i = 1; i < _sFunction.NumberOfElements(); ++i)
 			{
 				if (IsAtomic(_sFunction[i]))
@@ -1080,6 +1141,46 @@ namespace ANON
 					}
 				}
 			}
+
+			if (bodyIndex == -1)
+			{
+				return;
+			}
+
+			// Check to see if there is an expression (source "<path>" <line-number) in the last element of the function
+
+			cr_sex sFinalExpression = _sFunction[_sFunction.NumberOfElements() - 1];
+			if (sFinalExpression.NumberOfElements() != 3)
+			{
+				return;
+			}
+
+			cr_sex sFinalDirective = sFinalExpression[0];
+			if (!IsAtomic(sFinalDirective))
+			{
+				return;
+			}
+
+			if (!Eq(sFinalDirective.String()->Buffer, "source"))
+			{
+				return;
+			}
+
+			cr_sex sSourceFile = sFinalExpression[1];
+			if (!IsStringLiteral(sSourceFile))
+			{
+				return;
+			}
+
+			cpp_source = sSourceFile.String();
+
+			cr_sex sLineNumber = sFinalExpression[2];
+			if (!IsAtomic(sLineNumber))
+			{
+				return;
+			}
+
+			lineNumber = atoi(sLineNumber.String()->Buffer);
 		}
 
 		int GetBeginInputIndex() const

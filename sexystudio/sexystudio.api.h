@@ -126,6 +126,7 @@ namespace Rococo::SexyStudio
 		virtual cstr InputName(int index) const = 0;
 		virtual cstr OutputName(int index) const = 0;
 		virtual cstr SourcePath() const = 0;
+		virtual int LineNumber() const = 0;
 	};
 
 	ROCOCOAPI ISXYFunction : ISXYArchetype{};
