@@ -265,6 +265,11 @@ void MainProtected(HMODULE hLib)
 	{
 		struct ANON : ISexyStudioEventHandler
 		{
+			bool TryOpenEditor(cstr filename, int lineNumber) override
+			{
+				return false;
+			}
+
 			EIDECloseResponse OnIDEClose(IWindow& topLevelParent) override
 			{
 				return EIDECloseResponse::Shutdown;

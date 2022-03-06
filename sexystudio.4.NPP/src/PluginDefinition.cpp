@@ -87,6 +87,18 @@ void GetDllPath(WideFilePath& pathToDLL)
 
 struct SexyStudioEventHandler: ISexyStudioEventHandler
 {
+    bool TryOpenEditor(cstr filename, int lineNumber) override
+    {
+        WideFilePath wPath;
+        Assign(wPath, filename);
+        if (SendMessage(nppData._nppHandle, NPPM_DOOPEN, 0, (LPARAM)wPath.buf))
+        {
+            SendMessage(nppData._scintillaMainHandle, SCI_GOTOLINE, lineNumber - 1, 0);
+            return true;
+        }
+        return false;
+    }
+
     EIDECloseResponse OnIDEClose(IWindow& topLevelParent) override
     {
         ShowWindow(topLevelParent, SW_HIDE);

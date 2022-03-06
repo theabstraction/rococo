@@ -51,21 +51,12 @@ auto evIDEMin = "EvIDEMin"_event;
 auto evIDEMax = "EvIDEMax"_event;
 auto evMetaUpdated = "sexystudio.meta.updated"_event;
 
-
-namespace Globals
-{
-	U8FilePath contentFolder{ "\\work\\rococo\\content\\" };
-	U8FilePath packageSource { "\\work\\rococo\\packages\\" };
-	U8FilePath packageFolder{ "\\work\\rococo\\content\\packages\\mhost_1000.sxyz" };
-	U8FilePath searchPath{ "" };
-}
-
 namespace Rococo::SexyStudio
 {
-	void PopulateTreeWithSXYFiles(IGuiTree& tree, cstr contentFolder, ISexyDatabase& database, IIDEFrame& frame, ITreeOfStringsMap& treeOfStrings);
+	void PopulateTreeWithSXYFiles(IGuiTree& tree, ISexyDatabase& database, IIDEFrame& frame, ISourceTree& sourceTree);
 }
 
-void OpenFile(ISolution& solution, IWindow& mainWindow, cstr path)
+void OpenSexyFile(ISexyStudioEventHandler& evHandler, ISolution& solution, IWindow& mainWindow, cstr path, int lineNumber)
 {
 	try
 	{
@@ -76,7 +67,7 @@ void OpenFile(ISolution& solution, IWindow& mainWindow, cstr path)
 			cstr packagePath = path + packagePrefix.length;
 			
 			U8FilePath packageFilepath;
-			CopyString(packageFilepath.buf, U8FilePath::CAPACITY, Globals::packageSource);
+			CopyString(packageFilepath.buf, U8FilePath::CAPACITY, solution.GetPackageRoot());
 
 			cstr srcFile = solution.GetPackageSourceFolder(packagePath);
 			if (!srcFile)
@@ -89,11 +80,17 @@ void OpenFile(ISolution& solution, IWindow& mainWindow, cstr path)
 			StringCat(packageFilepath.buf, packagePath, U8FilePath::CAPACITY);
 			ReplaceChar(packageFilepath.buf, U8FilePath::CAPACITY, '/', '\\');
 
-			Rococo::OS::ShellOpenDocument(packageFilepath);
+			if (!evHandler.TryOpenEditor(packageFilepath, lineNumber))
+			{
+				Rococo::OS::ShellOpenDocument(packageFilepath);
+			}
 		}
 		else
 		{
-			Rococo::OS::ShellOpenDocument(path);
+			if (!evHandler.TryOpenEditor(path, lineNumber))
+			{
+				Rococo::OS::ShellOpenDocument(path);
+			}
 		}
 	}
 	catch (IException& ex)
@@ -108,7 +105,7 @@ private:
 	WidgetContext wc;
 	IIDEFrame& ideFrame;
 	ISexyDatabase& database;
-	AutoFree<ITreeOfStringsMap> idToStringMap = CreateTreeOfStrings();
+	AutoFree<ISourceTree> idToSourceeMap = CreateSourceTree();
 	IGuiTree* fileBrowser = nullptr;
 	ITab* projectTab = nullptr;
 
@@ -119,10 +116,7 @@ private:
 			WaitCursorSection waitSection;
 			ideFrame.SetProgress(0.0f, "Populating file browser...");
 
-			U8FilePath scriptPath;
-			Format(scriptPath, "%hsscripts\\", Globals::contentFolder.buf);
-			PopulateTreeWithSXYFiles(*fileBrowser, scriptPath, database, ideFrame, *idToStringMap);
-			PopulateTreeWithPackages(Globals::packageFolder, database);
+			PopulateTreeWithSXYFiles(*fileBrowser, database, ideFrame, *idToSourceeMap);
 			ideFrame.SetProgress(100.0f, "Populated file browser");
 
 			database.Sort();
@@ -181,16 +175,10 @@ public:
 		contentEditor->SetName("Content");
 
 		U8FilePath scriptPath;
-		Format(scriptPath, "%sscripts\\", Globals::contentFolder);
+		Format(scriptPath, "%sscripts\\", database.Solution().GetContentFolder());
 		contentEditor->Bind(scriptPath, 128);
 		contentEditor->SetVisible(true);
 		contentEditor->SetUpdateEvent(evContentChange);
-
-		auto* packagePathEditor = projectSettings->AddFilePathEditor();
-		packagePathEditor->SetName("Package Path");
-		packagePathEditor->Bind(Globals::packageFolder, 128);
-		packagePathEditor->SetVisible(true);
-		packagePathEditor->SetUpdateEvent(evContentChange);
 
 		TreeStyle style;
 		style.hasButtons = true;
@@ -226,6 +214,7 @@ public:
 
 	enum { COMMAND_OPEN_FILE = 1001, COMMAND_FOCUS_PROJECT };
 	HString popupTargetFile;
+	int popupTargetFileLine = 0;
 
 	void OnCommand(uint16 id) override
 	{
@@ -236,7 +225,7 @@ public:
 
 		if (id == COMMAND_OPEN_FILE)
 		{
-			OpenFile(database.Solution(), ideFrame.Window(), popupTargetFile.c_str());
+			OpenSexyFile(ideFrame.Events(), database.Solution(), ideFrame.Window(), popupTargetFile.c_str(), popupTargetFileLine);
 		}
 		else if (id == COMMAND_FOCUS_PROJECT)
 		{
@@ -259,13 +248,14 @@ public:
 
 	void OnItemContextClick(IGuiTree& tree, ID_TREE_ITEM hItem, Vec2i pos) override
 	{
-		cstr filePath = idToStringMap->Find(hItem);
-		if (!filePath)
+		auto src = idToSourceeMap->Find(hItem);
+		if (!src.SourcePath)
 		{
 			return;
 		}
 
-		popupTargetFile = filePath;
+		popupTargetFile = src.SourcePath;
+		popupTargetFileLine = src.LineNumber;
 
 		auto& popup = tree.PopupMenu();
 
@@ -315,16 +305,18 @@ private:
 	ISexyDatabase& database;
 	IGuiTree* classTree;
 	ITab* classTab = nullptr;
+	ISexyStudioEventHandler& eventHandler;
 
 	enum { OPEN_ITEM = 1001 };	
 	
 	HString popupSourceModule;
+	int popupSourceModuleLineNumber = 0;
 
 	void OnCommand(uint16 id) override
 	{
 		if (id == OPEN_ITEM && popupSourceModule.length() > 0)
 		{
-			OpenFile(database.Solution(), screen.Window(), popupSourceModule);
+			OpenSexyFile(eventHandler, database.Solution(), screen.Window(), popupSourceModule, popupSourceModuleLineNumber);
 		}
 	}
 
@@ -339,6 +331,7 @@ private:
 			if (src)
 			{
 				popupSourceModule = src;
+				popupSourceModuleLineNumber = i->second->LocalFunction()->LineNumber();
 
 				auto& popup = tree.PopupMenu();
 				popup.ClearPopupMenu();
@@ -354,6 +347,7 @@ private:
 			if (src)
 			{
 				popupSourceModule = src;
+				popupSourceModuleLineNumber = 1;
 
 				auto& popup = tree.PopupMenu();
 				popup.ClearPopupMenu();
@@ -369,6 +363,7 @@ private:
 			if (src)
 			{
 				popupSourceModule = src;
+				popupSourceModuleLineNumber = k->second->LineNumber();
 
 				auto& popup = tree.PopupMenu();
 				popup.ClearPopupMenu();
@@ -384,6 +379,7 @@ private:
 			if (src)
 			{
 				popupSourceModule = src;
+				popupSourceModuleLineNumber = l->second->LocalType()->LineNumber();
 
 				auto& popup = tree.PopupMenu();
 				popup.ClearPopupMenu();
@@ -399,6 +395,7 @@ private:
 			if (src)
 			{
 				popupSourceModule = src;
+				popupSourceModuleLineNumber = m->second->LineNumber();
 
 				auto& popup = tree.PopupMenu();
 				popup.ClearPopupMenu();
@@ -778,7 +775,7 @@ private:
 			return;
 		}
 
-		if (searchArrayResults.empty() && *Globals::searchPath == 0)
+		if (searchArrayResults.empty())
 		{
 			AddRootSubspacesToSearchResults();
 		}
@@ -1170,7 +1167,8 @@ private:
 	IAsciiStringEditor* searchEditor = nullptr;
 	IFloatingListWidget* searchResults = nullptr;
 public:
-	SexyExplorer(WidgetContext _wc, ISplitScreen& _screen, ISexyDatabase& _database) : wc(_wc), screen(_screen), database(_database)
+	SexyExplorer(WidgetContext _wc, ISplitScreen& _screen, ISexyDatabase& _database, ISexyStudioEventHandler& _eventHandler) : 
+		wc(_wc), screen(_screen), database(_database), eventHandler(_eventHandler)
 	{
 		screen.SetBackgroundColour(RGBAb(128, 128, 192));
 
@@ -1405,6 +1403,8 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 		Substring candidateInDoc{ start, end };
 
 		Substring variable = { candidateInDoc.start, candidateInDoc.end };
+
+		U8FilePath contentFolder{ "C:\\content" };
 		
 		if (StartsWith(variable, thisDot))
 		{
@@ -1538,10 +1538,14 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 		projectView = splitScreen->GetFirstHalf();
 		sourceView = splitScreen->GetSecondHalf();
 
-		database->SetContentPath(Globals::contentFolder);
+		U8FilePath contentPath;
+
+		Rococo::OS::GetConfigVariable(contentPath.buf, contentPath.CAPACITY, "\\work\\rococo\\content\\", OS::ConfigSection{ "ContentPath" }, OS::ConfigRootName{ "SexyStudio" });
+
+		database->SetContentPath(contentPath);
 
 		sheets = new PropertySheets(*projectView, *ide, *database);
-		explorer = new SexyExplorer(context, *sourceView, *database);
+		explorer = new SexyExplorer(context, *sourceView, *database, eventHandler);
 
 		publisher->Subscribe(this, evIDEClose);
 		publisher->Subscribe(this, evIDEMax);

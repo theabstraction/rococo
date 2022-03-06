@@ -40,6 +40,8 @@ namespace Rococo::SexyStudio
 
 	ROCOCOAPI ISexyStudioEventHandler
 	{
+		// Use the host to open a file with given name and line number. Returns false to allow the default implementation to handle it.
+		virtual bool TryOpenEditor(cstr filePath, int lineNumber) = 0;
 		virtual EIDECloseResponse OnIDEClose(IWindow & topLevelParent) = 0;
 	};
 

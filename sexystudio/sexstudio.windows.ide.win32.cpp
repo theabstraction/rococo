@@ -298,6 +298,11 @@ namespace
 			children = CreateDefaultWidgetSet(mainFrame, context);
 		}
 
+		ISexyStudioEventHandler& Events()
+		{
+			return eventHandler;
+		}
+
 		void LayoutChildren() override
 		{
 			for (auto* child : *children)

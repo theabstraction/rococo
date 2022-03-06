@@ -19,13 +19,18 @@ namespace
 {
 	using namespace Rococo::SexyStudio;
 
-	struct TreeOfStrings : ITreeOfStringsMap
+	struct SourceTree : ISourceTree
 	{
-		std::unordered_map<ID_TREE_ITEM, HString> items;
-
-		void Add(ID_TREE_ITEM item, cstr text) override
+		struct Item
 		{
-			items[item] = text;
+			HString path;
+			int lineNumber;
+		};
+		std::unordered_map<ID_TREE_ITEM, Item> items;
+
+		void Add(ID_TREE_ITEM item, cstr text, int lineNumber) override
+		{
+			items[item] = { text, lineNumber };
 		}
 
 		void Clear() override
@@ -33,10 +38,10 @@ namespace
 			items.clear();
 		}
 
-		cstr Find(ID_TREE_ITEM item) override
+		SourceAndLine Find(ID_TREE_ITEM item) const override
 		{
 			auto i = items.find(item);
-			return i != items.end() ? i->second.c_str() : nullptr;
+			return i != items.end() ? SourceAndLine { i->second.path.c_str(), i->second.lineNumber } : SourceAndLine { nullptr, 0 };
 		}
 
 		void Free() override
@@ -51,9 +56,9 @@ namespace Rococo::SexyStudio
 	using namespace Rococo;
 	using namespace Rococo::Sex;
 
-	ITreeOfStringsMap* CreateTreeOfStrings()
+	ISourceTree* CreateSourceTree()
 	{
-		return new TreeOfStrings();
+		return new SourceTree();
 	}
 
 	bool TryGetShortPackageName(U8FilePath& path, cstr packagePath)
@@ -96,13 +101,13 @@ namespace Rococo::SexyStudio
 		tree.SetItemText(branchId, srcTree.Source().Name());
 	}
 
-	void PopulateTreeWithSXYFiles(IGuiTree& tree, cstr contentFolder, ISexyDatabase& database, IIDEFrame& frame, ITreeOfStringsMap& treeOfStrings)
+	void PopulateTreeWithSXYFiles(IGuiTree& tree, ISexyDatabase& database, IIDEFrame& frame, ISourceTree& sourceTree)
 	{
 		tree.Clear();
 		database.Clear();
 
 		auto hRoot = tree.AppendItem(0);
-		tree.SetItemText(hRoot, contentFolder);
+		tree.SetItemText(hRoot, database.Solution().GetContentFolder());
 
 		struct ANON : IEventCallback<IO::FileItemData>
 		{
@@ -128,7 +133,7 @@ namespace Rococo::SexyStudio
 			IGuiTree* tree;
 			ISexyDatabase* database;
 			IIDEFrame* frame;
-			ITreeOfStringsMap* treeOfStrings;
+			ISourceTree* sourceTree;
 			float totalCount = 0;
 			float count = 0;
 
@@ -172,7 +177,7 @@ namespace Rococo::SexyStudio
 
 						tree->SetItemImage(idItem, 2);
 
-						treeOfStrings->Add(idItem, u8Path);
+						sourceTree->Add(idItem, u8Path, 1);
 					}
 					else
 					{
@@ -187,10 +192,10 @@ namespace Rococo::SexyStudio
 		cb.tree = &tree;
 		cb.database = &database;
 		cb.frame = &frame;
-		cb.treeOfStrings = &treeOfStrings;
+		cb.sourceTree = &sourceTree;
 
 		WideFilePath path;
-		Format(path, L"%hs", contentFolder);
+		Format(path, L"%hs", database.Solution().GetContentFolder());
 
 		try
 		{

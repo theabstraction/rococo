@@ -138,6 +138,7 @@ namespace Rococo::SexyStudio
 		virtual void GetDefinedInterface(char* buf, size_t capacity) const = 0;
 		virtual cstr InputType(int index) const = 0;
 		virtual cstr InputName(int index) const = 0;
+		virtual int LineNumber() const = 0;
 		virtual cstr SourcePath() const = 0;
 	};
 
@@ -171,6 +172,7 @@ namespace Rococo::SexyStudio
 		virtual SXYField GetField(int index) const = 0;
 		virtual cstr LocalName() const = 0;
 		virtual cstr SourcePath() const = 0;
+		virtual int LineNumber() const = 0;
 	};
 
 	ROCOCOAPI ISXYType
@@ -231,10 +233,13 @@ namespace Rococo::SexyStudio
 
 	ROCOCOAPI ISolution
 	{
+		virtual cstr GetContentFolder() = 0;
 		virtual cstr GetDeclarationPathForInclude(cstr includeName, int& priority) = 0;
 		virtual cstr GetDeclarationPathForImport(cstr packageName, int& priority) = 0;
 		virtual cstr GetPackagePingPath(cstr packageName) = 0;
+		virtual cstr GetPackageRoot() = 0;
 		virtual cstr GetPackageSourceFolder(cstr packagePath) = 0;
+		virtual void SetContentFolder(cstr path) = 0;
 	};
 
 	ROCOCOAPI ISexyDatabase
@@ -258,11 +263,17 @@ namespace Rococo::SexyStudio
 
 	typedef int64 ID_TREE_ITEM;
 
-	ROCOCOAPI ITreeOfStringsMap
+	struct SourceAndLine
 	{
-		virtual void Add(ID_TREE_ITEM item, cstr text) = 0;
+		cstr SourcePath;
+		int LineNumber;
+	};
+
+	ROCOCOAPI ISourceTree
+	{
+		virtual void Add(ID_TREE_ITEM item, cstr text, int lineNumber) = 0;
 		virtual void Clear() = 0;
-		virtual cstr Find(ID_TREE_ITEM item) = 0;
+		virtual SourceAndLine Find(ID_TREE_ITEM item) const = 0;
 		virtual void Free() = 0;
 	};
 
@@ -419,7 +430,7 @@ namespace Rococo::SexyStudio
 
 	IGuiTree* CreateTree(IWidgetSet& widgets, const TreeStyle& style, IGuiTreeEvents& eventHandler, IGuiTreeRenderer* customRenderer = nullptr);
 
-	ITreeOfStringsMap* CreateTreeOfStrings();
+	ISourceTree* CreateSourceTree();
 
 	ROCOCOAPI IGuiWidgetEditor : IGuiWidget
 	{
@@ -503,6 +514,7 @@ namespace Rococo::SexyStudio
 		// Update child geometry. This is issued when the control is resized and also by calling SetVisible
 		virtual void LayoutChildren() = 0;
 		virtual void SetProgress(float progressPercent, cstr bannerText) = 0;
+		virtual ISexyStudioEventHandler& Events() = 0;
 	};
 
 	ROCOCOAPI IIDEFrameSupervisor : IIDEFrame

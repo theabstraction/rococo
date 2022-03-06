@@ -12,6 +12,7 @@
 #include <rococo.auto-release.h>
 
 #include <rococo.io.h>
+#include <rococo.os.h>
 
 using namespace Rococo;
 using namespace Rococo::Sex;
@@ -347,6 +348,11 @@ namespace ANON
 			return sDef->Tree().Source().Name();
 		}
 
+		int LineNumber() const override
+		{
+			return sDef->Start().y;
+		}
+
 		cstr PublicName() const override
 		{
 			return shortName.c_str();
@@ -531,6 +537,11 @@ namespace ANON
 		cstr SourcePath() const
 		{
 			return sStructDef.Tree().Source().Name();
+		}
+
+		int LineNumber() const
+		{
+			return sStructDef.Start().y;
 		}
 
 		/* Example:
@@ -1266,6 +1277,26 @@ namespace ANON
 		std::vector<DeclarationAssociation> declarationAssocations;
 		stringmap<HString> packages;
 		stringmap<HString> mapPrefixToPackageSource;
+		U8FilePath contentPath;
+		U8FilePath packageRoot;
+
+		cstr GetPackageRoot() override
+		{
+			return packageRoot;
+		}
+
+		cstr GetContentFolder() override
+		{
+			return contentPath;
+		}
+
+		void SetContentFolder(cstr path) override
+		{
+			Format(contentPath, "%s", path);
+			Format(packageRoot, "%s", path);
+			Rococo::OS::MakeContainerDirectory(packageRoot.buf);
+			StringCat(packageRoot.buf, "packages\\", U8FilePath::CAPACITY);
+		}
 
 		void ParseSolution(cr_sex sRoot)
 		{
@@ -1445,7 +1476,6 @@ namespace ANON
 		AutoRelease<ISParser> sparser;
 		ANON::SxyNamespace rootNS;
 		std::unordered_map<std::string, std::unique_ptr<File_SXY>> filenameToFile;
-		WideFilePath contentFolder;
 
 		AutoFree<IOSSupervisor> os = GetOS();
 		AutoFree<IInstallationSupervisor> installation;
@@ -1471,9 +1501,12 @@ namespace ANON
 
 		void SetContentPath(cstr contentFolder) override
 		{
-			Format(this->contentFolder, L"%hs", contentFolder);
+			solutionFile.SetContentFolder(contentFolder);
 
-			installation = CreateInstallationDirect(this->contentFolder, *os);
+			WideFilePath wContentFolder;
+			Assign(wContentFolder, contentFolder);
+
+			installation = CreateInstallationDirect(wContentFolder, *os);
 
 			WideFilePath associationPath;
 			installation->ConvertPingPathToSysPath("!scripts/native/sexystudio.solution.sxyq", associationPath);

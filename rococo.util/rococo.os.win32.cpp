@@ -2608,4 +2608,80 @@ namespace Rococo::OS
 
 		return len.QuadPart;
 	}
+
+	class AutoHKEY
+	{
+		HKEY hKey = nullptr;
+	public:
+		AutoHKEY()
+		{
+
+		}
+
+		AutoHKEY(HKEY _hKey) : hKey(_hKey)
+		{
+
+		}
+
+		~AutoHKEY()
+		{
+			if (!hKey)
+			{
+				RegCloseKey(hKey);
+			}
+		}
+
+		HKEY* operator& () { return &hKey; }
+
+		operator HKEY() { return hKey;  }
+	};
+
+	void GetConfigVariable(char* textBuffer, size_t lenBytes, cstr defaultValue, ConfigSection section, ConfigRootName root, cstr organization)
+	{
+		SecureFormat(textBuffer, lenBytes, "%s", defaultValue);
+
+		AutoHKEY hKeySoftware;
+		auto status = RegOpenKeyA(HKEY_CURRENT_USER, "Software", &hKeySoftware);
+		if (status != ERROR_SUCCESS)
+		{
+			return;
+		}
+
+		if (!organization) organization = "Rococo - 19th Century Software";
+
+		AutoHKEY hKeyOrganization;
+		status = RegOpenKeyA(hKeySoftware, organization, &hKeyOrganization);
+		
+		if (status != ERROR_SUCCESS)
+		{
+			status = RegCreateKeyA(hKeySoftware, organization, &hKeyOrganization);
+		}
+
+		if (status != ERROR_SUCCESS)
+		{
+			return;
+		}
+
+		AutoHKEY hKeyRoot;
+		status = RegOpenKeyA(hKeyOrganization, root.rootName, &hKeyRoot);
+
+		if (status != ERROR_SUCCESS)
+		{
+			status = RegCreateKeyA(hKeyOrganization, root.rootName, &hKeyRoot);
+		}
+
+		if (status != ERROR_SUCCESS)
+		{
+			return;
+		}
+
+		DWORD dwType = REG_SZ;
+		DWORD sizeofBuffer = (DWORD)lenBytes;
+		status = RegGetValueA(hKeyRoot, NULL, section.sectionName, REG_SZ, &dwType, textBuffer, &sizeofBuffer);
+		if (status != ERROR_SUCCESS)
+		{
+			DWORD len = strlen(defaultValue) + 1;
+			RegSetValueA(hKeyRoot, section.sectionName, REG_SZ, defaultValue, len);
+		}
+	}
 } // Rococo::OS

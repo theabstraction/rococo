@@ -4,6 +4,18 @@
 
 namespace Rococo::OS
 {
+	struct ConfigSection
+	{
+		cstr sectionName;
+	};
+
+	struct ConfigRootName
+	{
+		cstr rootName;
+	};
+
+	void GetConfigVariable(char* textBuffer, size_t lenBytes, cstr defaultValue, ConfigSection section, ConfigRootName rootName, cstr organization = nullptr);
+
 	ROCOCOAPI IAppControl
 	{
 		virtual bool IsRunning() const = 0;
