@@ -117,6 +117,11 @@ private:
 			WaitCursorSection waitSection;
 			ideFrame.SetProgress(0.0f, "Populating file browser...");
 
+			if (!EndsWith(contentPath, "\\"))
+			{
+				StringCat(contentPath.buf, "\\", U8FilePath::CAPACITY);
+			}
+
 			database.Solution().SetContentFolder(contentPath);
 
 			Rococo::OS::SetConfigVariable(contentPath, OS::ConfigSection{ "ContentPath" }, OS::ConfigRootName{ "SexyStudio" });
@@ -1546,7 +1551,14 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 		U8FilePath contentPath;
 		Rococo::OS::GetConfigVariable(contentPath, "\\work\\rococo\\content\\", OS::ConfigSection{ "ContentPath" }, OS::ConfigRootName{ "SexyStudio" });
 
-		database->SetContentPath(contentPath);
+		try
+		{
+			database->SetContentPath(contentPath);
+		}
+		catch (IException& ex)
+		{
+			Rococo::OS::ShowErrorBox(topLevelWindow, ex, "Sexy Studio Error");
+		}
 
 		sheets = new PropertySheets(*projectView, *ide, *database);
 		explorer = new SexyExplorer(context, *sourceView, *database, eventHandler);

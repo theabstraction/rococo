@@ -194,14 +194,21 @@ namespace Rococo::SexyStudio
 		cb.frame = &frame;
 		cb.sourceTree = &sourceTree;
 
-		WideFilePath path;
-		Format(path, L"%hs", database.Solution().GetContentFolder());
+		WideFilePath scriptPath;
+		Format(scriptPath, L"%hs", database.Solution().GetScriptFolder());
+
+		if (!Rococo::IO::IsDirectory(scriptPath))
+		{
+			auto hError = tree.AppendItem(hRoot);
+			tree.SetItemText(hError, "...directory not found");
+			return;
+		}
 
 		try
 		{
-			Rococo::IO::ForEachFileInDirectory(path, incFileCounter, true, nullptr);
+			Rococo::IO::ForEachFileInDirectory(scriptPath, incFileCounter, true, nullptr);
 			cb.totalCount = incFileCounter.count;
-			Rococo::IO::ForEachFileInDirectory(path, cb, true, (void*) hRoot);
+			Rococo::IO::ForEachFileInDirectory(scriptPath, cb, true, (void*) hRoot);
 		}
 		catch (IException& ex)
 		{

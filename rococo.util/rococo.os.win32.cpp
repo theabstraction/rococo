@@ -1918,7 +1918,7 @@ namespace Rococo
 		bool IsDirectory(const wchar_t* filename)
 		{
 			DWORD flags = GetFileAttributesW(filename);
-			return (flags & FILE_ATTRIBUTE_DIRECTORY) != 0;
+			return (flags != INVALID_FILE_ATTRIBUTES && flags & FILE_ATTRIBUTE_DIRECTORY) != 0;
 		}
 
 		template<class T> struct ComObject
@@ -2698,7 +2698,7 @@ namespace Rococo::OS
 			size_t len = strlen(value) + 1;
 			if (len < 1_megabytes)
 			{
-				LSTATUS status = RegSetValueA(hConfigRoot, section.sectionName, REG_SZ, value, (DWORD)len);
+				LSTATUS status = RegSetKeyValueA(hConfigRoot, NULL, section.sectionName, REG_SZ, value, (DWORD)len);
 				if (status != ERROR_SUCCESS)
 				{
 					Throw(status, "%s: RegSetValueA(..., %s, ...) returned an error code", __FUNCTION__, section.sectionName);
