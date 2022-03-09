@@ -177,6 +177,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sexystudio.test", "sexystud
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.components.test", "rococo.components.test\rococo.components.test.vcxproj", "{06677414-7E0E-49A9-83B8-DC6C2FAF0F27}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9EE9F966-EC4D-470E-8DBD-1E8BF67EADB5} = {9EE9F966-EC4D-470E-8DBD-1E8BF67EADB5}
+		{997A007C-24B0-44FE-A27E-0EE006D74128} = {997A007C-24B0-44FE-A27E-0EE006D74128}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FontGenerator", "GisephoneFonts\FontGenerator\FontGenerator.csproj", "{1658528C-598E-438A-AC72-75E16A47CBF4}"
 EndProject

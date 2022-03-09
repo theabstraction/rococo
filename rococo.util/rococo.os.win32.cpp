@@ -2680,7 +2680,7 @@ namespace Rococo::OS
 		status = RegGetValueA(hKeyRoot, NULL, section.sectionName, REG_SZ, &dwType, textBuffer, &sizeofBuffer);
 		if (status != ERROR_SUCCESS)
 		{
-			DWORD len = strlen(defaultValue) + 1;
+			DWORD len = (DWORD) (strlen(defaultValue) + 1);
 			RegSetValueA(hKeyRoot, section.sectionName, REG_SZ, defaultValue, len);
 		}
 	}

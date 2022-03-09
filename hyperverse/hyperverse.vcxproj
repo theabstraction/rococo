@@ -76,7 +76,7 @@
       <Command>copy.sexy.to.game.debug.bat $(SolutionDir)</Command>
     </PreBuildEvent>
     <CustomBuildStep>
-      <Command>..\sexy\Bin\x64Release\sexy.bennyhill.exe $(ProjectDir) hv.sxh hv.sxh.h</Command>
+      <Command>..\sexy\Bin\x64Debug\sexy.bennyhill.exe $(ProjectDir) hv.sxh hv.sxh.h</Command>
       <Outputs>hv.sxh.h;hv.sxh.inl</Outputs>
       <Inputs>hv.sxh;config.xc</Inputs>
     </CustomBuildStep>
