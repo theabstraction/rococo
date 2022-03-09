@@ -2636,22 +2636,20 @@ namespace Rococo::OS
 		operator HKEY() { return hKey;  }
 	};
 
-	void GetConfigVariable(char* textBuffer, size_t lenBytes, cstr defaultValue, ConfigSection section, ConfigRootName root, cstr organization)
+	template<class T> void RunInConfig(ConfigRootName root, cstr organization, T& t)
 	{
-		SecureFormat(textBuffer, lenBytes, "%s", defaultValue);
-
 		AutoHKEY hKeySoftware;
 		auto status = RegOpenKeyA(HKEY_CURRENT_USER, "Software", &hKeySoftware);
 		if (status != ERROR_SUCCESS)
 		{
-			return;
+			Throw(status, "%s: Cannot open registry Software section", __FUNCTION__);
 		}
 
 		if (!organization) organization = "Rococo - 19th Century Software";
 
 		AutoHKEY hKeyOrganization;
 		status = RegOpenKeyA(hKeySoftware, organization, &hKeyOrganization);
-		
+
 		if (status != ERROR_SUCCESS)
 		{
 			status = RegCreateKeyA(hKeySoftware, organization, &hKeyOrganization);
@@ -2659,7 +2657,7 @@ namespace Rococo::OS
 
 		if (status != ERROR_SUCCESS)
 		{
-			return;
+			Throw(status, "%s: Cannot open or create registry 'Software/%s' section", __FUNCTION__, organization);
 		}
 
 		AutoHKEY hKeyRoot;
@@ -2668,20 +2666,50 @@ namespace Rococo::OS
 		if (status != ERROR_SUCCESS)
 		{
 			status = RegCreateKeyA(hKeyOrganization, root.rootName, &hKeyRoot);
+
 		}
 
 		if (status != ERROR_SUCCESS)
 		{
-			return;
+			Throw(status, "%s: Cannot open or create registry 'Software/%s/%s' section", __FUNCTION__, organization, root.rootName);
 		}
 
-		DWORD dwType = REG_SZ;
-		DWORD sizeofBuffer = (DWORD)lenBytes;
-		status = RegGetValueA(hKeyRoot, NULL, section.sectionName, REG_SZ, &dwType, textBuffer, &sizeofBuffer);
-		if (status != ERROR_SUCCESS)
+		t(hKeyRoot);
+	}
+
+	void GetConfigVariable(char* textBuffer, size_t lenBytes, cstr defaultValue, ConfigSection section, ConfigRootName root, cstr organization)
+	{
+		SecureFormat(textBuffer, lenBytes, "%s", defaultValue);
+
+		auto readValue = [textBuffer, lenBytes, section](HKEY hConfigRoot)
 		{
-			DWORD len = (DWORD) (strlen(defaultValue) + 1);
-			RegSetValueA(hKeyRoot, section.sectionName, REG_SZ, defaultValue, len);
-		}
+			DWORD dwType = REG_SZ;
+			DWORD sizeofBuffer = (DWORD)lenBytes;
+			LSTATUS status = RegGetValueA(hConfigRoot, NULL, section.sectionName, REG_SZ, &dwType, textBuffer, &sizeofBuffer);
+		};
+
+		RunInConfig(root, organization, readValue);
+	}
+
+	void SetConfigVariable(cstr value, ConfigSection section, ConfigRootName root, cstr organization)
+	{
+		auto writeValue = [value, section](HKEY hConfigRoot)
+		{
+			size_t len = strlen(value) + 1;
+			if (len < 1_megabytes)
+			{
+				LSTATUS status = RegSetValueA(hConfigRoot, section.sectionName, REG_SZ, value, (DWORD)len);
+				if (status != ERROR_SUCCESS)
+				{
+					Throw(status, "%s: RegSetValueA(..., %s, ...) returned an error code", __FUNCTION__, section.sectionName);
+				}
+			}
+			else
+			{
+				Throw(0, "%s: maximum string length is 1 megabytes", __FUNCTION__);
+			}
+		};
+
+		RunInConfig(root, organization, writeValue);
 	}
 } // Rococo::OS

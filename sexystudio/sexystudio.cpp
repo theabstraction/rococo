@@ -108,6 +108,7 @@ private:
 	AutoFree<ISourceTree> idToSourceeMap = CreateSourceTree();
 	IGuiTree* fileBrowser = nullptr;
 	ITab* projectTab = nullptr;
+	U8FilePath contentPath;
 
 	void OnEvent(Event& ev) override
 	{
@@ -115,6 +116,10 @@ private:
 		{
 			WaitCursorSection waitSection;
 			ideFrame.SetProgress(0.0f, "Populating file browser...");
+
+			database.Solution().SetContentFolder(contentPath);
+
+			Rococo::OS::SetConfigVariable(contentPath, OS::ConfigSection{ "ContentPath" }, OS::ConfigRootName{ "SexyStudio" });
 
 			PopulateTreeWithSXYFiles(*fileBrowser, database, ideFrame, *idToSourceeMap);
 			ideFrame.SetProgress(100.0f, "Populated file browser");
@@ -138,6 +143,8 @@ public:
 		ideFrame(_ideFrame),
 		database(_database)
 	{
+		Format(contentPath, "%s", database.Solution().GetContentFolder());
+
 		screen.SetBackgroundColour(RGBAb(128, 192, 128));
 
 		ITabSplitter* tabs = CreateTabSplitter(*screen.Children());
@@ -174,9 +181,7 @@ public:
 		auto* contentEditor = projectSettings->AddFilePathEditor();
 		contentEditor->SetName("Content");
 
-		U8FilePath scriptPath;
-		Format(scriptPath, "%sscripts\\", database.Solution().GetContentFolder());
-		contentEditor->Bind(scriptPath, 128);
+		contentEditor->Bind(contentPath, 128);
 		contentEditor->SetVisible(true);
 		contentEditor->SetUpdateEvent(evContentChange);
 
@@ -1539,8 +1544,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 		sourceView = splitScreen->GetSecondHalf();
 
 		U8FilePath contentPath;
-
-		Rococo::OS::GetConfigVariable(contentPath.buf, contentPath.CAPACITY, "\\work\\rococo\\content\\", OS::ConfigSection{ "ContentPath" }, OS::ConfigRootName{ "SexyStudio" });
+		Rococo::OS::GetConfigVariable(contentPath, "\\work\\rococo\\content\\", OS::ConfigSection{ "ContentPath" }, OS::ConfigRootName{ "SexyStudio" });
 
 		database->SetContentPath(contentPath);
 
@@ -1557,10 +1561,12 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 
 		sheets->CollapseTree();
 
+		/* Uncomment to put some HWND debugging info to the console
 		AutoFree<IDynamicStringBuilder> heapStringBuilder = CreateDynamicStringBuilder(1024);
 		auto& sb = heapStringBuilder->Builder();
 		Rococo::SexyStudio::AppendDescendantsAndRectsToString(*ide, sb);
 		puts(*sb);
+		*/
 
 		sheets->SelectProjectTab();
 		explorer->SelectClassTreeTab();

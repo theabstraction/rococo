@@ -233,12 +233,13 @@ namespace Rococo::SexyStudio
 
 	ROCOCOAPI ISolution
 	{
-		virtual cstr GetContentFolder() = 0;
-		virtual cstr GetDeclarationPathForInclude(cstr includeName, int& priority) = 0;
-		virtual cstr GetDeclarationPathForImport(cstr packageName, int& priority) = 0;
-		virtual cstr GetPackagePingPath(cstr packageName) = 0;
-		virtual cstr GetPackageRoot() = 0;
-		virtual cstr GetPackageSourceFolder(cstr packagePath) = 0;
+		virtual cstr GetContentFolder() const = 0;
+		virtual cstr GetScriptFolder() const = 0;
+		virtual cstr GetDeclarationPathForInclude(cstr includeName, int& priority) const  = 0;
+		virtual cstr GetDeclarationPathForImport(cstr packageName, int& priority) const = 0;
+		virtual cstr GetPackagePingPath(cstr packageName) const = 0;
+		virtual cstr GetPackageRoot() const = 0;
+		virtual cstr GetPackageSourceFolder(cstr packagePath) const = 0;
 		virtual void SetContentFolder(cstr path) = 0;
 	};
 

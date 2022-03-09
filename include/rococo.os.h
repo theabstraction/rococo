@@ -14,7 +14,18 @@ namespace Rococo::OS
 		cstr rootName;
 	};
 
+
+	// Gets a null terminated OS config string with lenBytes capacity. If not found, fills with the defaultValue. If organization is null the library default name is chosen 
 	void GetConfigVariable(char* textBuffer, size_t lenBytes, cstr defaultValue, ConfigSection section, ConfigRootName rootName, cstr organization = nullptr);
+
+	// Gets U8 file path from the OS config. If not found, fills with the defaultValue. If organization is null the library default name is chosen 
+	inline void GetConfigVariable(U8FilePath& path, cstr defaultValue, ConfigSection section, ConfigRootName rootName, cstr organization = nullptr)
+	{
+		GetConfigVariable(path.buf, path.CAPACITY, defaultValue, section, rootName, organization);
+	}
+
+	// Sets the value of a config string in the OS. The maximum length is 1 megabyte.
+	void SetConfigVariable(cstr value, ConfigSection section, ConfigRootName rootName, cstr organization = nullptr);
 
 	ROCOCOAPI IAppControl
 	{

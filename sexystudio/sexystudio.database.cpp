@@ -1279,21 +1279,28 @@ namespace ANON
 		stringmap<HString> mapPrefixToPackageSource;
 		U8FilePath contentPath;
 		U8FilePath packageRoot;
+		U8FilePath scriptPath;
 
-		cstr GetPackageRoot() override
+		cstr GetPackageRoot() const override
 		{
 			return packageRoot;
 		}
 
-		cstr GetContentFolder() override
+		cstr GetContentFolder() const override
 		{
 			return contentPath;
+		}
+
+		cstr GetScriptFolder() const override
+		{
+			return scriptPath;
 		}
 
 		void SetContentFolder(cstr path) override
 		{
 			Format(contentPath, "%s", path);
 			Format(packageRoot, "%s", path);
+			Format(scriptPath, "%sscripts\\", path);
 			Rococo::OS::MakeContainerDirectory(packageRoot.buf);
 			StringCat(packageRoot.buf, "packages\\", U8FilePath::CAPACITY);
 		}
@@ -1419,7 +1426,7 @@ namespace ANON
 			}
 		}
 
-		cstr GetDeclarationPathForInclude(cstr includeName, int& priority) override
+		cstr GetDeclarationPathForInclude(cstr includeName, int& priority) const override
 		{
 			priority = 0;
 			for (auto& a : declarationAssocations)
@@ -1435,7 +1442,7 @@ namespace ANON
 			return nullptr;
 		}
 
-		cstr GetDeclarationPathForImport(cstr packageName, int& priority) override
+		cstr GetDeclarationPathForImport(cstr packageName, int& priority) const override
 		{
 			priority = 0;
 			for (auto& a : declarationAssocations)
@@ -1451,13 +1458,13 @@ namespace ANON
 			return nullptr;
 		}
 
-		cstr GetPackagePingPath(cstr packageName) override
+		cstr GetPackagePingPath(cstr packageName) const override
 		{
 			auto i = packages.find(packageName);
 			return i != packages.end() ? i->second.c_str() : nullptr;
 		}
 
-		cstr GetPackageSourceFolder(cstr packagePath) override
+		cstr GetPackageSourceFolder(cstr packagePath) const override
 		{
 			for (auto i : mapPrefixToPackageSource)
 			{

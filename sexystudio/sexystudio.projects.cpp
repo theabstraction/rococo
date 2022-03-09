@@ -107,7 +107,7 @@ namespace Rococo::SexyStudio
 		database.Clear();
 
 		auto hRoot = tree.AppendItem(0);
-		tree.SetItemText(hRoot, database.Solution().GetContentFolder());
+		tree.SetItemText(hRoot, database.Solution().GetScriptFolder());
 
 		struct ANON : IEventCallback<IO::FileItemData>
 		{
