@@ -7,7 +7,7 @@
     <Nullable>enable</Nullable>
     <BaseOutputPath>$(SolutionDir)bin</BaseOutputPath>
     <BaseIntermediateOutputPath>$(SolutionDir)intermediate\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
-    <Copyright>copyright (c)2022 Mark Anthony Taylor.</Copyright>
+    <Copyright>Copyright (c)2022 Mark Anthony Taylor.</Copyright>
     <RootNamespace>Rococo.CPPMaster</RootNamespace>
     <StartupObject>CPPMasterApplication</StartupObject>
     <PlatformTarget>x64</PlatformTarget>

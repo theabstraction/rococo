@@ -192,6 +192,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "rococo.csharp.testapp", "ro
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "rococo.cpp_master", "rococo.cpp_master\rococo.cpp_master.csproj", "{9EE9F966-EC4D-470E-8DBD-1E8BF67EADB5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "rococo.carpenter", "rococo.carpenter\rococo.carpenter.csproj", "{0E64BB46-5773-490F-ADDB-7F0E8E76C15C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -556,6 +558,18 @@ Global
 		{9EE9F966-EC4D-470E-8DBD-1E8BF67EADB5}.Release|x64.Build.0 = Release|Any CPU
 		{9EE9F966-EC4D-470E-8DBD-1E8BF67EADB5}.Release|x86.ActiveCfg = Release|Any CPU
 		{9EE9F966-EC4D-470E-8DBD-1E8BF67EADB5}.Release|x86.Build.0 = Release|Any CPU
+		{0E64BB46-5773-490F-ADDB-7F0E8E76C15C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0E64BB46-5773-490F-ADDB-7F0E8E76C15C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0E64BB46-5773-490F-ADDB-7F0E8E76C15C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0E64BB46-5773-490F-ADDB-7F0E8E76C15C}.Debug|x64.Build.0 = Debug|Any CPU
+		{0E64BB46-5773-490F-ADDB-7F0E8E76C15C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0E64BB46-5773-490F-ADDB-7F0E8E76C15C}.Debug|x86.Build.0 = Debug|Any CPU
+		{0E64BB46-5773-490F-ADDB-7F0E8E76C15C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0E64BB46-5773-490F-ADDB-7F0E8E76C15C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0E64BB46-5773-490F-ADDB-7F0E8E76C15C}.Release|x64.ActiveCfg = Release|Any CPU
+		{0E64BB46-5773-490F-ADDB-7F0E8E76C15C}.Release|x64.Build.0 = Release|Any CPU
+		{0E64BB46-5773-490F-ADDB-7F0E8E76C15C}.Release|x86.ActiveCfg = Release|Any CPU
+		{0E64BB46-5773-490F-ADDB-7F0E8E76C15C}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
