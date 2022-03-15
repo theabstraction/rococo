@@ -538,6 +538,11 @@ namespace Rococo.Carpenter
         }
 
         string[] GetRow(int row);
+
+        string TableName
+        {
+            get;
+        }
     }
 
     public class ExcelTableSheet : ExcelSheet, ITable
@@ -580,7 +585,7 @@ namespace Rococo.Carpenter
 
             for (int i = 0; i < rowCells0.Count; i++)
             {
-                columns[i] = new ColumnDesc { Title = AsString(rowCells0[i]), TypeInfo = AsString(rowCells1[i]) };
+                columns[i] = new ColumnDesc { TypeInfo = AsString(rowCells0[i]), Title = AsString(rowCells1[i])  };
             }
         }
 
@@ -597,6 +602,14 @@ namespace Rococo.Carpenter
             get
             {
                  return xlRows.Count - 2;
+            }
+        }
+
+        public string TableName
+        {
+            get 
+            {
+                return base.SheetMeta.Name;
             }
         }
 
@@ -669,6 +682,11 @@ namespace Rococo.Carpenter
             get;
         }
 
+        public string CppNamespace
+        {
+            get;
+        }
+
         public string CppInterface
         {
             get;
@@ -690,6 +708,11 @@ namespace Rococo.Carpenter
         }
 
         public MetaDataAccessType MetaDataAccess
+        {
+            get;
+        }
+
+        public string RuleSetName
         {
             get;
         }
@@ -727,6 +750,12 @@ namespace Rococo.Carpenter
             private set;
         }
 
+        public string CppNamespace
+        {
+            get;
+            private set;
+        }
+
         public string CppInterface
         {
             get;
@@ -755,6 +784,14 @@ namespace Rococo.Carpenter
         {
             get;
             private set;
+        }
+
+        public string RuleSetName
+        {
+            get
+            {
+                return base.SheetMeta.Name;
+            }
         }
 
         private bool OnExport(string[] args, Semantic semantic)
@@ -873,6 +910,19 @@ namespace Rococo.Carpenter
 
             return true;
         }
+        private bool OnCppNamespace(string[] args, Semantic semantic)
+        {
+            string value;
+
+            if (!semantic.TryMatchString(out value, 0, args))
+            {
+                return false;
+            }
+
+            CppNamespace = value;
+
+            return true;
+        }
 
         private bool OnImmutable(string[] args, Semantic semantic)
         {
@@ -942,6 +992,12 @@ namespace Rococo.Carpenter
                     new SemanticAttribute("AccessMethod", typeof(string))
                 },
                 OnMetaData));
+            parser.AddSemantic(
+                new Semantic("C++ Namespace", new SemanticAttribute[]
+                {
+                    new SemanticAttribute("DottedNamespace", typeof(string))
+                },
+                OnCppNamespace));
             parser.AddSemantic(new Semantic("Immutable", new SemanticAttribute[] { }, OnImmutable));
             parser.AddSemantic(new Semantic("Mutable", new SemanticAttribute[] { }, OnMutable));
         }

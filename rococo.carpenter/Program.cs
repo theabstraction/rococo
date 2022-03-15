@@ -81,6 +81,8 @@ namespace Rococo.Carpenter
                     throw new FileNotFoundException(fullPath);
                 }
 
+                CPPCore.ExcelSource = fullPath;
+
                 try
                 {
                     Publish(fullPath);
@@ -96,6 +98,7 @@ namespace Rococo.Carpenter
             try
             {
                 PublishEachTable(TableFilenames.filenames);
+                CPPCore.Commit();
             }
             catch(Exception ex)
             {
