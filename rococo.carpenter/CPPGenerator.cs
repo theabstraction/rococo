@@ -183,7 +183,38 @@ namespace Rococo.Carpenter
         }
     }
 
+    public class EnumDef
+    {
+        private List<string> keys = new List<string> ();
+        private HashSet<string> uniqueKeys = new HashSet<string> ();
+        public void AddKey(string item)
+        {
+            if (uniqueKeys.Contains (item))
+            {
+                return;
+            }
 
+            uniqueKeys.Add(item);
+            keys.Add(item);
+
+            keyArray = null;
+        }
+
+        private string[] keyArray = null;
+
+        public string[] Keys
+        {
+            get
+            {
+                if (keyArray == null)
+                {
+                    keyArray = keys.ToArray();
+                }
+
+                return keyArray;
+            }
+        }
+    }
     public class CPPGenerator
     {
         public string Repository
@@ -366,6 +397,12 @@ namespace Rococo.Carpenter
                     {
                         throw new Exception("Unknown type in column '" + c.TypeInfo + "'");
                     }
+
+                    string aliasPrefix = "Type-";
+
+                    underlyingTypes.Add(type);
+                    enumNames.Add(null);
+                    fullTypes.Add(c.TypeInfo.Substring(aliasPrefix.Length));
                 }
 
                 FieldNames = fieldNames.ToArray();
@@ -510,6 +547,77 @@ namespace Rococo.Carpenter
             sb.AppendFormat("{0} {1}", FullTypeNames[fieldIndex], FieldNames[fieldIndex]);
         }
 
+        Dictionary<string, EnumDef> enumDefs = new Dictionary<string, EnumDef>();
+
+        public void AppendEnumDef(StringBuilder sb, string enumName)
+        {
+            EnumDef def;
+            if (enumDefs.TryGetValue(enumName, out def))
+            {
+                return;
+            }
+
+            def = new EnumDef();
+
+            enumDefs.Add(enumName, def);
+
+            for(int i = 0; i < EnumNames.Length; i++)
+            {
+                if (EnumNames[i] == enumName)
+                {
+                    // We found a column at column index i populated by enum names, so add them all to the enum type
+
+                    for (int j = 0; j < Table.NumberOfRows; ++j)
+                    {
+                        IItemSequence rowItems = Table.GetRow(j);
+                        var item = rowItems.GetItemText(i);
+                       
+                        if (item != null && item.Length > 0)
+                        {
+                            def.AddKey(item);
+                        }
+                    }
+                }
+            }
+
+            AppendTab(sb);
+
+            TypeDefinition typeDef;
+            Types.TryGetType(enumName, out typeDef);
+
+            sb.AppendFormat("enum class {0}: {1}", enumName, typeDef.SysType.ToString());
+            sb.Append(enumName);
+
+            sb.AppendLine();
+            AppendTab(sb);
+            sb.AppendLine("{");
+
+            bool first = true;
+
+            foreach(var item in def.Keys)
+            {
+                if (first)
+                {
+                    first = false;
+                }
+                else 
+                {
+                    sb.AppendLine(", ");
+                }
+
+                AppendTab(sb);
+                AppendTab(sb);
+
+
+                sb.Append(item.Replace(" ", ""));
+            }
+
+            sb.AppendLine();
+            AppendTab(sb);
+            sb.AppendLine("};");
+            sb.AppendLine();
+        }
+
         public void AppendInterface()
         {
             var sb = HeaderBuilder;
@@ -517,6 +625,15 @@ namespace Rococo.Carpenter
             sb.Append("namespace ");
             sb.AppendLine(CppNamespace);
             sb.AppendLine("{");
+
+            for(int i = 0; i < FieldTypes.Length; ++i)
+            {
+                string enumName = EnumNames[i];
+                if (enumName != null)
+                {
+                    AppendEnumDef(sb, enumName);
+                }                
+            }
 
             AppendTab(sb);
             sb.AppendFormat("struct {0}", RowStructName);
@@ -548,7 +665,7 @@ namespace Rococo.Carpenter
                 AppendTab(sb);
                 AppendTab(sb);
                 sb.AppendFormat("virtual fstring Get{0}() const = 0;", ms.Key);
-                sb.AppendLine(";");
+                sb.AppendLine();
             }
 
             AppendTab(sb);
@@ -627,31 +744,85 @@ namespace Rococo.Carpenter
             }
         }
 
+        public static string MakeNonEmptyString(string item, string defaultValue)
+        {
+            if (item == null || item.Length == 0) return defaultValue;
+            return item;
+        }
+
+        public static void AppendSanitizedItem(StringBuilder sb, string item, UnderlyingType type)
+        {
+            switch (type)
+            {
+                case UnderlyingType.Bool:
+                    sb.Append(item == "0" ? "false" : "true");
+                    break;
+                case UnderlyingType.Int32:
+                    sb.Append(Int32.Parse(MakeNonEmptyString(item, "0")));
+                    break;
+                case UnderlyingType.Int64:
+                    sb.Append(Int64.Parse(MakeNonEmptyString(item, "0")));
+                    break;
+                case UnderlyingType.Float32:
+                    sb.Append(float.Parse(MakeNonEmptyString(item, "0")));
+                    break;
+                case UnderlyingType.Float64:
+                    sb.Append(double.Parse(MakeNonEmptyString(item, "0")));
+                    break;
+                default:
+                    sb.Append(item);
+                    break;
+            }
+        }
+
         public void AppendTableImplementation()
         {
             var sb = SourceBuilder;
 
-            sb.AppendFormat("static {0} defaultRows[{1}] = ", RowStructName, Table.NumberOfRows);
+            sb.AppendFormat("static {0}{1} defaultRows[{2}] = ", Rules.IsMutable ? "" : "const ", RowStructName, Table.NumberOfRows);
             sb.AppendLine();
             sb.AppendLine("{");
 
             for(int i = 0; i < Table.NumberOfRows; i++)
             {
-                AppendTab(sb);
-                string[] row = Table.GetRow(i);
-
-                sb.AppendLine("{");
-                AppendTab(sb);
-                AppendTab(sb);
-
-                foreach (string s in row)
+                if (i > 0)
                 {
-                    sb.AppendFormat("{0},\t", s);
+                    sb.AppendLine(",");
+                }
+                AppendTab(sb);
+                var row = Table.GetRow(i);
+
+                sb.AppendFormat("{{ // #{0}", i);
+                sb.AppendLine();
+                AppendTab(sb);
+                AppendTab(sb);
+
+                for (int j = 0; j < row.Length; ++j)
+                {
+                    if (j != 0)
+                    {
+                        sb.Append(", ");
+                    }
+
+                    string item = row.GetItemText(j);
+
+                    if (EnumNames[j] != null)
+                    {
+                        sb.AppendFormat("{0}::{1}", EnumNames[j], item.Replace(" ", ""));
+                    }
+                    else
+                    {
+                        AppendSanitizedItem(sb, item, FieldTypes[j]);
+                    }
                 }
 
                 sb.AppendLine();
+
+                AppendTab(sb);
+                sb.Append("}");
             }
 
+            sb.AppendLine();
             sb.AppendLine("};");
             sb.AppendLine();
 

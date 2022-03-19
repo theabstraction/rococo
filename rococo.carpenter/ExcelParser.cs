@@ -243,12 +243,10 @@ namespace Rococo.Carpenter
             private set;
         }
         public string AsString(Cell cell)
-        {
-            var value = cell.InnerText;
-
-            if (Strings != null && cell.DataType == CellValues.SharedString)
+        { 
+            if (Strings != null && cell.DataType != null && cell.DataType == CellValues.SharedString)
             {
-                return Strings.ElementAt(int.Parse(value)).InnerText;
+                return Strings.ElementAt(int.Parse(cell.InnerText)).InnerText;
             }
             else
             {
@@ -521,6 +519,37 @@ namespace Rococo.Carpenter
 
     public struct ColumnDesc
     {
+        public static string ExtractColumnRef(string cellRef)
+        {
+            if (cellRef == null)
+            {
+                throw new ArgumentException("It is not permitted for the celLRef to be null");
+            }
+
+            for (int i = 0; i < cellRef.Length; i++)
+            {
+                if (char.IsDigit(cellRef[i]))
+                {
+                    return cellRef.Substring(0, i);
+                }
+            }
+
+            throw new ArgumentException("Expecting non-digit somewhere in the celLRef ref");
+        }
+
+        private string columnRef;
+        public string ColumnRef
+        {
+            get
+            {
+                return columnRef;
+            }
+            set
+            {
+                columnRef = ExtractColumnRef(value);
+            }
+        }
+
         public string TypeInfo { get; set; }
         public string Title { get; set; }
     }
@@ -537,13 +566,60 @@ namespace Rococo.Carpenter
             get;
         }
 
-        string[] GetRow(int row);
+        IItemSequence GetRow(int row);
 
         string TableName
         {
             get;
         }
     }
+
+    public interface IItemSequence
+    {
+        int Length
+        {
+            get;
+        }
+
+        abstract string GetItemText(int index);
+    }
+
+    public sealed class ItemSequence: IItemSequence
+    {
+        private readonly Cell[] cells;
+        private ExcelSheet owner;
+
+        public int Length
+        {
+            get
+            {
+                return cells == null ? 0 : cells.Length;
+            }
+        }
+
+        public ItemSequence(Cell[] cells, ExcelSheet owner)
+        {
+            this.cells = cells;
+            this.owner = owner;
+        }
+
+        public string GetItemText(int index)
+        {
+            if (cells == null)
+            {
+                return string.Empty;
+            }
+
+            var cell = cells[index];
+            if (cell == null)
+            {
+                return string.Empty;
+            }
+
+            return owner.AsString(cell);
+        }
+    }
+
 
     public class ExcelTableSheet : ExcelSheet, ITable
     {
@@ -585,7 +661,7 @@ namespace Rococo.Carpenter
 
             for (int i = 0; i < rowCells0.Count; i++)
             {
-                columns[i] = new ColumnDesc { TypeInfo = AsString(rowCells0[i]), Title = AsString(rowCells1[i])  };
+                columns[i] = new ColumnDesc { TypeInfo = AsString(rowCells0[i]), Title = AsString(rowCells1[i]), ColumnRef = rowCells0[i].CellReference  };
             }
         }
 
@@ -613,7 +689,36 @@ namespace Rococo.Carpenter
             }
         }
 
-        public string[] GetRow(int row)
+        // For every column, returns a cell under the column in the given row. If undefined in Excel, yields a null cell
+        public Cell[] GetItemsUnderColumns(Row row)
+        {
+            List<Cell> nonEmptyCells = row.Elements<Cell>().ToList();
+
+            int currentColumn = 0;
+
+            // We have one string for every column
+            Cell[] cellsUnderColumns = new Cell[columns.Length];
+            for (int i = 0; i < nonEmptyCells.Count; i++)
+            {
+                var nonEmptyCell = nonEmptyCells[i];
+
+                string columnRef = ColumnDesc.ExtractColumnRef(nonEmptyCell.CellReference);
+
+                for (int j = currentColumn; j < columns.Length; j++)
+                {
+                    var col = columns[j];
+                    if (col.ColumnRef == columnRef)
+                    {
+                        cellsUnderColumns[j] = nonEmptyCell;
+                        currentColumn = j + 1;
+                    }
+                }
+            }
+
+            return cellsUnderColumns;
+        }
+
+        public IItemSequence GetRow(int row)
         {
             int xlRowNumber = row + 2;
             if (xlRowNumber >= xlRows.Count)
@@ -623,20 +728,7 @@ namespace Rococo.Carpenter
 
             var xlRow = xlRows[xlRowNumber];
 
-            List<Cell> cells = xlRow.Elements<Cell>().ToList();
-
-            if (cells.Count < columns.Length)
-            {
-                throw new Exception("Missing elements for table at row " + xlRow.RowIndex);
-            }
-
-            string[] output = new string[columns.Length];
-            for (int i = 0; i < columns.Length; i++)
-            {
-                output[i] = AsString(cells[i]);
-            }
-
-            return output;
+            return new ItemSequence(GetItemsUnderColumns(xlRow), this);
         }
     }
 
