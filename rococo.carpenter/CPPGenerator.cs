@@ -189,13 +189,14 @@ namespace Rococo.Carpenter
         private HashSet<string> uniqueKeys = new HashSet<string> ();
         public void AddKey(string item)
         {
-            if (uniqueKeys.Contains (item))
+            string shortenedItem = item.Replace(" ", "");
+            if (uniqueKeys.Contains (shortenedItem))
             {
                 return;
             }
 
-            uniqueKeys.Add(item);
-            keys.Add(item);
+            uniqueKeys.Add(shortenedItem);
+            keys.Add(shortenedItem);
 
             keyArray = null;
         }
@@ -585,8 +586,7 @@ namespace Rococo.Carpenter
             TypeDefinition typeDef;
             Types.TryGetType(enumName, out typeDef);
 
-            sb.AppendFormat("enum class {0}: {1}", enumName, typeDef.SysType.ToString());
-            sb.Append(enumName);
+            sb.AppendFormat("enum class {0}: int", enumName);
 
             sb.AppendLine();
             AppendTab(sb);
@@ -609,12 +609,17 @@ namespace Rococo.Carpenter
                 AppendTab(sb);
 
 
-                sb.Append(item.Replace(" ", ""));
+                sb.Append(item);
             }
 
             sb.AppendLine();
             AppendTab(sb);
             sb.AppendLine("};");
+            sb.AppendLine();
+
+            AppendTab(sb);
+            sb.AppendFormat("bool TryParse(const fstring& text, {0}& result);", enumName);
+            sb.AppendLine();
             sb.AppendLine();
         }
 
@@ -1014,6 +1019,181 @@ namespace Rococo.Carpenter
             sb.AppendLine("}");
         }
 
+        public void AppendTypeFunctions()
+        {
+            var sb = SourceBuilder;
+
+            if (enumDefs.Count == 0) return;
+
+            const int MIN_ELEMENTS_FOR_MAP = 8;
+
+            sb.AppendLine();
+
+            foreach (var def in enumDefs)
+            {
+                if (def.Value.Keys.Length >= MIN_ELEMENTS_FOR_MAP)
+                {
+                    sb.AppendLine("#include <string>");
+                    sb.AppendLine("#include <unodered_map>");
+                    sb.AppendLine();
+                    break;
+                }
+            }
+
+            sb.AppendFormat("namespace {0}", CppNamespace);
+            sb.AppendLine();
+            sb.AppendLine("{");
+
+            bool firstDef = true;
+
+            foreach(var def in enumDefs)
+            {
+                if (firstDef)
+                {
+                    firstDef = false;
+                }
+                else
+                {
+                    sb.AppendLine();
+                }
+
+                AppendTab(sb);
+                sb.AppendFormat("bool TryParse(const fstring& text, {0}& result)", def.Key);
+                sb.AppendLine();
+                AppendTab(sb);
+                sb.AppendLine("{");
+
+                AppendTab(sb);
+                AppendTab(sb);
+
+                if (def.Value.Keys.Length >= MIN_ELEMENTS_FOR_MAP)
+                {
+                    sb.AppendFormat("static constexpr std::unordered_map<std::string, {0}> bindings = ", def.Key);
+                    sb.AppendLine();
+                }
+                else
+                {
+                    sb.AppendFormat("struct Binding {{ cstr key; {0} value; }}; ", def.Key);
+                    sb.AppendLine();
+
+                    AppendTab(sb);
+                    AppendTab(sb);
+
+                    sb.Append("static constexpr Binding bindings[] = ");
+                    sb.AppendLine();
+                }
+
+
+                bool first = true;
+
+                int count = 1;
+                bool startingNewLine = true;
+
+                foreach(var value in def.Value.Keys)
+                {
+                    if (first)
+                    {
+                        first = false;
+                    }
+                    else
+                    {
+                        sb.Append(",");
+
+                        startingNewLine = (count++ % 4) == 0;
+
+                        if (startingNewLine)
+                        {
+                            sb.AppendLine();
+                        }
+                    }
+
+                    if (startingNewLine)
+                    {
+                        AppendTab(sb);
+                        AppendTab(sb);
+                    }
+
+                    sb.Append("{");
+                    sb.AppendFormat("\"{0}\",{1}::{0}", value, def.Key);
+                    sb.Append("}");
+                }
+
+                sb.AppendLine(";");
+
+                sb.AppendLine();
+                AppendTab(sb);
+                AppendTab(sb);
+
+                if (def.Value.Keys.Length >= MIN_ELEMENTS_FOR_MAP)
+                {
+                    sb.AppendLine("auto i = bindings.find(text);");
+
+                    AppendTab(sb);
+                    AppendTab(sb);
+                    sb.AppendLine("if (i != bindings.end())");
+                    AppendTab(sb);
+                    AppendTab(sb);
+                    sb.AppendLine("{");
+                    AppendTab(sb);
+                    AppendTab(sb);
+                    AppendTab(sb);
+                    sb.AppendLine("result = i->second;");
+                    AppendTab(sb);
+                    AppendTab(sb);
+                    AppendTab(sb);
+                    sb.AppendLine("return true;");
+                    AppendTab(sb);
+                    AppendTab(sb);
+                    sb.AppendLine("}");
+                }
+                else
+                {
+                    sb.AppendLine("for(auto& b: bindings)");
+                    AppendTab(sb);
+                    AppendTab(sb);
+                    sb.AppendLine("{");
+                    AppendTab(sb);
+                    AppendTab(sb);
+                    AppendTab(sb);
+                    sb.AppendLine("if (strcmp(b.key, text) == 0)");
+                    AppendTab(sb);
+                    AppendTab(sb);
+                    AppendTab(sb);
+                    sb.AppendLine("{");
+                    AppendTab(sb);
+                    AppendTab(sb);
+                    AppendTab(sb);
+                    AppendTab(sb);
+                    sb.AppendLine("result = b.value;");
+                    AppendTab(sb);
+                    AppendTab(sb);
+                    AppendTab(sb);
+                    AppendTab(sb);
+                    sb.AppendLine("return true;");
+                    AppendTab(sb);
+                    AppendTab(sb);
+                    AppendTab(sb);
+
+                    sb.AppendLine("}");
+                    AppendTab(sb);
+                    AppendTab(sb);
+                    sb.AppendLine("}");
+
+                }
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendFormat("result = {0}::{1};", def.Key, def.Value.Keys[0]);
+                sb.AppendLine();
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendLine("return false;");
+                AppendTab(sb);
+                sb.AppendLine("}");
+            }
+
+            sb.AppendLine("}");
+        }
+
         public void GoProtected()
         {
             SourceBuilder = CPPCore.OpenFile(FullSourcePath);
@@ -1034,6 +1214,8 @@ namespace Rococo.Carpenter
             }
 
             AppendTableImplementation();
+
+            AppendTypeFunctions();
         }
 
         public void Go()
