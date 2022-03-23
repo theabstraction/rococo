@@ -620,6 +620,9 @@ namespace Rococo.Carpenter
             AppendTab(sb);
             sb.AppendFormat("bool TryParse(const fstring& text, {0}& result);", enumName);
             sb.AppendLine();
+            AppendTab(sb);
+            sb.AppendFormat("fstring ToString({0} value);", enumName);
+            sb.AppendLine();
             sb.AppendLine();
         }
 
@@ -1056,6 +1059,40 @@ namespace Rococo.Carpenter
                 {
                     sb.AppendLine();
                 }
+
+                AppendTab(sb);
+                sb.AppendFormat("fstring ToString({0} value)", def.Key);
+                sb.AppendLine();
+                AppendTab(sb);
+                sb.AppendLine("{");
+
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendLine("switch(value)");
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendLine("{");
+
+                foreach (var item in def.Value.Keys)
+                {
+                    AppendTab(sb);
+                    AppendTab(sb);
+                    sb.AppendFormat("case {0}: return \"{0}\"_fstring;", item);
+                    sb.AppendLine();
+                }
+
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendFormat("default: return {{nullptr,0}};");
+                sb.AppendLine();
+
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendLine("}");
+
+                AppendTab(sb);
+                sb.AppendLine("}");
+
 
                 AppendTab(sb);
                 sb.AppendFormat("bool TryParse(const fstring& text, {0}& result)", def.Key);

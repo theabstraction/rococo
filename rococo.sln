@@ -121,6 +121,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.packager", "rococo.p
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dx11.deferred.renderer", "dx11.deferred.renderer\dx11.deferred.renderer.vcxproj", "{47A7B3FC-2C2B-418D-A4E5-A00BBC98AE12}"
 	ProjectSection(ProjectDependencies) = postProject
+		{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D} = {D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}
 		{3C7ADE1B-6EFE-41D4-8779-A7ED80A0B7CA} = {3C7ADE1B-6EFE-41D4-8779-A7ED80A0B7CA}
 	EndProjectSection
 EndProject
@@ -178,6 +179,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sexystudio.test", "sexystud
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.components.test", "rococo.components.test\rococo.components.test.vcxproj", "{06677414-7E0E-49A9-83B8-DC6C2FAF0F27}"
 	ProjectSection(ProjectDependencies) = postProject
+		{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D} = {D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}
 		{9EE9F966-EC4D-470E-8DBD-1E8BF67EADB5} = {9EE9F966-EC4D-470E-8DBD-1E8BF67EADB5}
 		{997A007C-24B0-44FE-A27E-0EE006D74128} = {997A007C-24B0-44FE-A27E-0EE006D74128}
 	EndProjectSection
@@ -192,7 +194,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "rococo.csharp.testapp", "ro
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "rococo.cpp_master", "rococo.cpp_master\rococo.cpp_master.csproj", "{9EE9F966-EC4D-470E-8DBD-1E8BF67EADB5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "rococo.carpenter", "rococo.carpenter\rococo.carpenter.csproj", "{0E64BB46-5773-490F-ADDB-7F0E8E76C15C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "rococo.carpenter", "rococo.carpenter\rococo.carpenter.csproj", "{0E64BB46-5773-490F-ADDB-7F0E8E76C15C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
