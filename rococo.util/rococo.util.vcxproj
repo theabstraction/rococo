@@ -121,6 +121,7 @@
     <ClCompile Include="rococo.parsering.cpp" />
     <ClCompile Include="rococo.s-parser.helpers.cpp" />
     <ClCompile Include="rococo.strings.cpp" />
+    <ClCompile Include="rococo.tables.cpp" />
     <ClCompile Include="rococo.throw.cr_sex.cpp" />
   </ItemGroup>
   <ItemGroup>

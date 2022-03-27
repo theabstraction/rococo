@@ -124,6 +124,49 @@ namespace Rococo::IO
 
 	void Print(IBinaryWriter& writer, const char* format, ...);
 	void SaveUserFile(cstr filename, cstr s);
+
+	ROCOCOAPI ITableRowData
+	{
+		virtual int32 NextInt32() = 0;
+		virtual int32 NextInt64() = 0;
+		virtual int32 NextFloat32() = 0;
+		virtual int32 NextFloat64() = 0;
+		virtual bool NextBool() = 0;
+		virtual Substring NextString() = 0;
+	};
+
+	struct TableRowHeaders
+	{
+		int NumberOfRows;
+		cstr ExcelFile;
+		cstr OtherFile;
+	};
+
+	enum class ColumnType: int32
+	{
+		UnderlyingTypeInt32,
+		UnderlyingTypeInt64,
+		UnderlyingTypeFloat32,
+		UnderlyingTypeFloat64,
+		UnderlyingTypeBool,
+		UnderlyingTypeUTF8
+	};
+
+	struct ColumnHeader
+	{
+		cstr name;
+		ColumnType type;
+	};
+
+	ROCOCOAPI ITableRowBuilder
+	{
+		virtual void OnColumns(int numberOfColumns, const ColumnHeader* headers) = 0;
+		virtual void OnHeaders(const TableRowHeaders& headers) = 0;
+		virtual void OnRow(ITableRowData & row) = 0;
+	};
+
+	void ValidateHeader(const ColumnHeader& archiveHeader, ColumnType cppType, cstr archiveFile);
+	void ParseTableRows(IBinarySource& source, ITableRowBuilder& builder);
 }
 
 namespace Rococo

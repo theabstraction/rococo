@@ -5,25 +5,16 @@ using System.Text;
 
 namespace Rococo.Carpenter
 {
-    public class EnumObject
-    {
-        private List<string> values = new List<string>();
-        public void Add(string fieldName)
-        {
-            foreach(string s in values)
-            {
-                if (s == fieldName)
-                {
-                    return;
-                }
-            }
-
-            values.Add(fieldName);
-        }
-    }
-
     public static class CPPCore
     {
+        public static string GetBinName(IRules rules, ITable table)
+        {
+            string repo = rules.CppRepo.Replace("$(ROCOCO)", Environment.Solution);
+            string spacelessTableName = table.TableName.Replace(" ", "_");
+            string fullname = repo + rules.CppSource.Replace(".cpp", ".") + spacelessTableName + ".bin";
+            return fullname;
+        }
+
         static Dictionary<string, StringBuilder> openFiles = new Dictionary<string, StringBuilder>();
         public static StringBuilder OpenFile(string filename)
         {
@@ -36,40 +27,48 @@ namespace Rococo.Carpenter
             return sb;
         }
 
-        public static Dictionary<string, EnumObject> enums = new Dictionary<string, EnumObject>();
+        private static Dictionary<string, EnumDef> enums = new Dictionary<string, EnumDef>();
 
-        public static EnumObject Find(string enumObjectName)
+        public static EnumDef FindEnumDef(string name)
         {
-            EnumObject obj;
-            if (!enums.TryGetValue(enumObjectName, out obj))
-            {
-                return null;
-            }
-
-            return obj;
+            EnumDef result = null;
+            return enums.TryGetValue(name, out result) ? result : null;
         }
 
-        public static void Add(string enumObjectName, string fieldName)
+        public static EnumDef FindElseCreateEnumDef(string name)
         {
-            EnumObject obj;
-            if (!enums.TryGetValue(enumObjectName, out obj))
+            EnumDef result = null;
+            if (enums.TryGetValue(name, out result))
             {
-                obj = new EnumObject();
-                enums.Add(enumObjectName, obj);
-                obj.Add(fieldName);
+                return result;
             }
 
-            obj.Add(fieldName);
+            result = new EnumDef(name);
+            enums.Add(name, result);
+            return result;
+        }
+
+        public static bool HasEnumDefs
+        {
+            get
+            {
+                return enums.Count > 0;
+            }
+        }
+
+        public static IDictionary<string, EnumDef> EnumDefs
+        {
+            get { return enums; }
         }
 
         public static string ExcelSource
         {
-            get;set;
+            get; set;
         }
 
         public static string GetCppType(UnderlyingType type, bool isMutable)
         {
-            switch(type)
+            switch (type)
             {
                 case UnderlyingType.String:
                     return isMutable ? "HString" : "fstring";
@@ -90,7 +89,7 @@ namespace Rococo.Carpenter
 
         public static void Commit()
         {
-            foreach(var i in openFiles)
+            foreach (var i in openFiles)
             {
                 File.WriteAllText(i.Key, i.Value.ToString());
             }
@@ -185,6 +184,32 @@ namespace Rococo.Carpenter
 
     public class EnumDef
     {
+        public string Name
+        {
+            get;
+            private set;
+        }
+
+        public EnumDef(string name)
+        {
+            this.Name = name;
+        }
+
+        public bool TryGetIndex(string key, out int index)
+        {
+            for(int i = 0; i < this.keys.Count; i++)
+            {
+                if (this.keys[i] == key)
+                {
+                    index = i;
+                    return true;
+                }
+            }
+
+            index = -1;
+            return false;
+        }
+
         private List<string> keys = new List<string> ();
         private HashSet<string> uniqueKeys = new HashSet<string> ();
         public void AddKey(string item)
@@ -215,8 +240,31 @@ namespace Rococo.Carpenter
                 return keyArray;
             }
         }
+
+        public override string ToString()
+        {
+            return string.Format("{0}: with {1} values", Name, Keys.Length);
+        }
     }
-    public class CPPGenerator
+
+    public interface IParsedColumnData
+    {
+        public ColumnHeader[] ColumnHeaders
+        {
+            get;
+        }
+    }
+
+    public struct ColumnHeader
+    {
+        public UnderlyingType UnderlyingType;
+        public string Name;
+        public string EnumName;
+        public string FullTypeName;
+        public bool IsAliasType;
+    }
+
+    public class CPPGenerator: IParsedColumnData
     {
         public string Repository
         {
@@ -282,24 +330,10 @@ namespace Rococo.Carpenter
             private set;
         }
 
-        public UnderlyingType[] FieldTypes
+        public ColumnHeader[] ColumnHeaders
         {
-            get;private set;
-        }
-
-        public string[] FieldNames
-        {
-            get; private set;
-        }
-
-        public string[] EnumNames
-        {
-            get; private set;
-        }
-
-        public string[] FullTypeNames
-        {
-            get; private set;
+            get;
+            private set;
         }
 
         void SetCppNamespace(string dottedNamespace)
@@ -347,10 +381,7 @@ namespace Rococo.Carpenter
                 ValidateRules();
                 SetStructName(Rules.CppInterface);
 
-                List<string> fieldNames = new List<string>();
-                List<UnderlyingType> underlyingTypes = new List<UnderlyingType>();
-                List<string> enumNames = new List<string>();
-                List<string> fullTypes = new List<string>();
+                List<ColumnHeader> columnHeaders = new List<ColumnHeader>();
 
                 foreach (var c in Table.Columns)
                 {
@@ -366,31 +397,25 @@ namespace Rococo.Carpenter
                         throw new Exception("Expecting column title to begin with capital letter: " + c.Title);
                     }
 
-                    fieldNames.Add(String.Format("{0}{1}", char.ToLower(q), c.Title.Substring(1)));
+                    string fieldName = String.Format("{0}{1}", char.ToLower(q), c.Title.Substring(1));
 
                     UnderlyingType type;
                     if (Enum.TryParse(c.TypeInfo, out type))
                     {
-                        underlyingTypes.Add(type);
-                        enumNames.Add(null);
-                        fullTypes.Add(CPPCore.GetCppType(type, Rules.IsMutable));
+                        columnHeaders.Add(new ColumnHeader { EnumName = null, UnderlyingType = type, FullTypeName = CPPCore.GetCppType(type, Rules.IsMutable), Name = fieldName, IsAliasType = false });
                         continue;
                     }
 
                     if (c.TypeInfo == "Index")
                     {
-                        underlyingTypes.Add(UnderlyingType.Int32);
-                        enumNames.Add(null);
-                        fullTypes.Add(c.TypeInfo);
+                        columnHeaders.Add(new ColumnHeader { EnumName = null, UnderlyingType = UnderlyingType.Int32, FullTypeName = c.TypeInfo, Name = fieldName, IsAliasType = false });
                         continue;
                     }
 
                     string enumType;
                     if (TryParseAsEnumType(c.TypeInfo, out enumType))
                     {
-                        underlyingTypes.Add(UnderlyingType.Int32);
-                        enumNames.Add(enumType);
-                        fullTypes.Add(enumType);
+                        columnHeaders.Add(new ColumnHeader { EnumName = enumType, UnderlyingType = UnderlyingType.Int32, FullTypeName = enumType, Name = fieldName, IsAliasType = false });
                         continue;
                     }
 
@@ -401,17 +426,10 @@ namespace Rococo.Carpenter
 
                     string aliasPrefix = "Type-";
 
-                    underlyingTypes.Add(type);
-                    enumNames.Add(null);
-                    fullTypes.Add(c.TypeInfo.Substring(aliasPrefix.Length));
+                    columnHeaders.Add(new ColumnHeader { EnumName = null, UnderlyingType = type, FullTypeName = c.TypeInfo.Substring(aliasPrefix.Length), Name = fieldName, IsAliasType = true });
                 }
 
-                FieldNames = fieldNames.ToArray();
-                FieldTypes = underlyingTypes.ToArray();
-                EnumNames = enumNames.ToArray();
-                FullTypeNames = fullTypes.ToArray();
-
-
+                ColumnHeaders = columnHeaders.ToArray();
             }
             catch (Exception ex)
             {
@@ -545,26 +563,23 @@ namespace Rococo.Carpenter
 
         public void AppendRowField(int fieldIndex, StringBuilder sb)
         {
-            sb.AppendFormat("{0} {1}", FullTypeNames[fieldIndex], FieldNames[fieldIndex]);
+            sb.AppendFormat("{0} {1}", ColumnHeaders[fieldIndex].FullTypeName, ColumnHeaders[fieldIndex].Name);
         }
-
-        Dictionary<string, EnumDef> enumDefs = new Dictionary<string, EnumDef>();
 
         public void AppendEnumDef(StringBuilder sb, string enumName)
         {
-            EnumDef def;
-            if (enumDefs.TryGetValue(enumName, out def))
+            EnumDef def = CPPCore.FindEnumDef(enumName);
+
+            if (def != null)
             {
                 return;
             }
 
-            def = new EnumDef();
+            def = CPPCore.FindElseCreateEnumDef(enumName);
 
-            enumDefs.Add(enumName, def);
-
-            for(int i = 0; i < EnumNames.Length; i++)
+            for(int i = 0; i < ColumnHeaders.Length; i++)
             {
-                if (EnumNames[i] == enumName)
+                if (ColumnHeaders[i].EnumName == enumName)
                 {
                     // We found a column at column index i populated by enum names, so add them all to the enum type
 
@@ -594,20 +609,30 @@ namespace Rococo.Carpenter
 
             bool first = true;
 
+            int count = 1;
+
             foreach(var item in def.Keys)
             {
                 if (first)
                 {
                     first = false;
+
+                    AppendTab(sb);
+                    AppendTab(sb);;
                 }
-                else 
+                else
                 {
-                    sb.AppendLine(", ");
+                    if ((count++ % 12) == 0)
+                    {
+                        sb.AppendLine(",");
+                        AppendTab(sb);
+                        AppendTab(sb);
+                    }
+                    else
+                    {
+                        sb.Append(", ");
+                    }
                 }
-
-                AppendTab(sb);
-                AppendTab(sb);
-
 
                 sb.Append(item);
             }
@@ -626,21 +651,80 @@ namespace Rococo.Carpenter
             sb.AppendLine();
         }
 
+        HashSet<string> requiredNamespaces = new HashSet<string>();
+
+        public void AppendTypedefs()
+        {
+            var sb = HeaderBuilder;
+
+            HashSet<string> aliasTypes = new HashSet<string>();
+
+            for (int i = 0; i < ColumnHeaders.Length; ++i)
+            {
+                var h = ColumnHeaders[i];
+                if (h.IsAliasType)
+                {
+                    if (aliasTypes.Add(h.FullTypeName))
+                    {
+                        TypeDefinition typedef;
+                        if (Types.TryGetType(h.FullTypeName, out typedef))
+                        {                           
+                            string ns = typedef.NameSpace.Replace(".", "::");
+
+                            sb.Append("namespace ");
+                            sb.Append(ns);
+                            sb.AppendLine();
+                            sb.AppendLine("{");
+
+                            AppendTab(sb);
+                            sb.AppendFormat("typedef {0} {1};", CPPCore.GetCppType(h.UnderlyingType, false), typedef.LocalName);
+                            sb.AppendLine();
+
+                            sb.AppendLine("}");
+
+                            sb.AppendLine();
+
+                            requiredNamespaces.Add(ns);
+                        }
+                        else
+                        {
+                            throw new Exception("No typedef for " + h.FullTypeName + ". Add a definition in the Types worksheet or correct spelling");
+                        }
+                    }
+                }
+            }
+        }
+
+        public void AppendUsingDirectives(StringBuilder sb)
+        {
+            foreach (var ns in requiredNamespaces)
+            {
+                AppendTab(sb);
+                sb.AppendFormat("using namespace {0};", ns);
+                sb.AppendLine();
+            }
+        }
+
         public void AppendInterface()
         {
             var sb = HeaderBuilder;
+
+            AppendTypedefs();
 
             sb.Append("namespace ");
             sb.AppendLine(CppNamespace);
             sb.AppendLine("{");
 
-            for(int i = 0; i < FieldTypes.Length; ++i)
+            AppendUsingDirectives(sb);
+
+            for (int i = 0; i < ColumnHeaders.Length; ++i)
             {
-                string enumName = EnumNames[i];
-                if (enumName != null)
+                var h = ColumnHeaders[i];
+                if (h.EnumName != null)
                 {
-                    AppendEnumDef(sb, enumName);
-                }                
+                    sb.AppendLine();
+                    AppendEnumDef(sb, h.EnumName);
+                }
             }
 
             AppendTab(sb);
@@ -650,7 +734,7 @@ namespace Rococo.Carpenter
             sb.AppendLine("{");
 
             var columns = Table.Columns;
-            for(int i = 0; i < FieldTypes.Length; ++i)
+            for(int i = 0; i < ColumnHeaders.Length; ++i)
             {
                 AppendTab(sb);
                 AppendTab(sb);
@@ -693,14 +777,18 @@ namespace Rococo.Carpenter
             AppendTab(sb);
             sb.AppendFormat("virtual const int32 NumberOfRows() const = 0;", RowStructName);
             sb.AppendLine();
-            AppendTab(sb);
-            AppendTab(sb);
-            sb.AppendFormat("virtual const {0}* begin() const = 0;", RowStructName);
-            sb.AppendLine();
-            AppendTab(sb);
-            AppendTab(sb);
-            sb.AppendFormat("virtual const {0}* end() const = 0;", RowStructName);
-            sb.AppendLine();
+
+            if (Rules.Lifetime == TableLifetime.Static)
+            {
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendFormat("virtual const {0}* begin() const = 0;", RowStructName);
+                sb.AppendLine();
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendFormat("virtual const {0}* end() const = 0;", RowStructName);
+                sb.AppendLine();
+            }
 
             if (Rules.MetaDataAccess == MetaDataAccessType.Composition)
             {
@@ -718,6 +806,7 @@ namespace Rococo.Carpenter
             if (Rules.Lifetime == TableLifetime.Dynamic)
             {
                 sb.AppendLine();
+                AppendTab(sb);
                 sb.AppendFormat("ROCOCOAPI {0}Supervisor: {0}", Rules.CppInterface);
                 sb.AppendLine();
                 AppendTab(sb);
@@ -783,56 +872,286 @@ namespace Rococo.Carpenter
             }
         }
 
+        public void AppendTableDeclaration()
+        {
+            var sb = SourceBuilder;
+
+            if (Rules.Lifetime == TableLifetime.Singleton)
+            {
+                sb.Append("static ");
+            }
+
+            sb.AppendFormat("std::vector<{0}> rows;", RowStructName);
+
+            sb.AppendLine();
+        }
+
+        public void AppendLoadRows()
+        {
+            var sb = SourceBuilder;
+
+            sb.AppendFormat("static void Load{0}s(std::vector<{0}>& rows)", RowStructName);
+            sb.AppendLine("");
+            sb.AppendLine("{");
+            AppendTab(sb);
+            sb.AppendFormat("const char* source = \"{0}\";", CPPCore.GetBinName(Rules, Table)).Replace("\\", "\\\\");
+            sb.AppendLine();
+
+            AppendTab(sb);
+            sb.AppendLine("WideFilePath sysPath;");
+            AppendTab(sb);
+            sb.AppendLine("Assign(sysPath, source);");
+            AppendTab(sb);
+            sb.AppendLine("AutoFree<IBinarySource> binarySource = Rococo::IO::ReadBinarySource(sysPath);");
+            sb.AppendLine();
+
+            AppendTab(sb);
+            sb.AppendLine("struct ANON : ITableRowBuilder");
+            AppendTab(sb);
+            sb.AppendLine("{");
+
+            AppendTab(sb);
+            AppendTab(sb);
+            sb.AppendLine("const char* source = nullptr;");
+            AppendTab(sb);
+            AppendTab(sb);
+            sb.AppendFormat("std::vector<{0}>* rows = nullptr;", RowStructName);
+            sb.AppendLine();
+            sb.AppendLine();
+
+            AppendTab(sb);
+            AppendTab(sb);
+            sb.AppendLine("void OnColumns(int numberOfColumns, const ColumnHeader* headers) override");
+            AppendTab(sb);
+            AppendTab(sb);
+            sb.AppendLine("{");
+
+
+            AppendTab(sb);
+            AppendTab(sb);
+            AppendTab(sb);
+            sb.AppendFormat("if (numberOfColumns != {0}) Throw(0, \"%s: Found %d columns. Expecting {0} columns in %s\", __FUNCTION__, numberOfColumns, source);", ColumnHeaders.Length);
+            sb.AppendLine();
+
+            for(int i = 0; i < ColumnHeaders.Length; i++)
+            {
+                AppendTab(sb);
+                AppendTab(sb);
+                AppendTab(sb);
+
+                sb.AppendFormat("ValidateHeader(headers[{0}], ColumnType::UnderlyingType", i);
+
+                switch (ColumnHeaders[i].UnderlyingType)
+                {
+                    case UnderlyingType.Int32:
+                        sb.Append("Int32");
+                        break;
+                    case UnderlyingType.Int64:
+                        sb.Append("Int64");
+                        break;
+                    case UnderlyingType.Float32:
+                        sb.Append("Float32");
+                        break;
+                    case UnderlyingType.Float64:
+                        sb.Append("Float64");
+                        break;
+                    case UnderlyingType.Bool:
+                        sb.Append("Bool");
+                        break;
+                    default:
+                        throw new Exception("Unknown type" + ColumnHeaders[i].UnderlyingType);
+                            
+                }
+
+                sb.AppendLine(", source);");
+            }
+
+            AppendTab(sb);
+            AppendTab(sb);
+            sb.AppendLine("}");
+            sb.AppendLine();
+
+            AppendTab(sb);
+            AppendTab(sb);
+            sb.AppendLine("void OnHeaders(const TableRowHeaders& headers) override");
+
+            AppendTab(sb);
+            AppendTab(sb);
+            sb.AppendLine("{");
+
+            AppendTab(sb);
+            AppendTab(sb);
+            AppendTab(sb);
+            sb.AppendLine("rows->reserve(headers.NumberOfRows);");
+
+            AppendTab(sb);
+            AppendTab(sb);
+            sb.AppendLine("}");
+            sb.AppendLine();
+
+            AppendTab(sb);
+            AppendTab(sb);
+            sb.AppendLine("void OnRow(ITableRowData& archiveData)");
+
+            AppendTab(sb);
+            AppendTab(sb);
+            sb.AppendLine("{");
+
+            AppendTab(sb);
+            AppendTab(sb);
+            AppendTab(sb);
+            sb.AppendFormat("{0} row;", RowStructName);
+            sb.AppendLine();
+
+            foreach(var column in ColumnHeaders)
+            {
+                AppendTab(sb);
+                AppendTab(sb);
+                AppendTab(sb);
+
+                if (column.IsAliasType)
+                {
+                    TypeDefinition def;
+                    Types.TryGetType(column.FullTypeName, out def);
+                    sb.AppendFormat("row.{0} = ({1}::{2}) archiveData.Next", column.Name, def.NameSpace.Replace(".", "::"), def.LocalName);
+                }
+                else
+                {
+                    sb.AppendFormat("row.{0} = ({1}) archiveData.Next", column.Name, column.FullTypeName);
+                }
+
+                switch(column.UnderlyingType)
+                {
+                    case UnderlyingType.Int32:
+                        sb.Append("Int32");
+                        break;
+                    case UnderlyingType.Int64:
+                        sb.Append("Int64");
+                        break;
+                    case UnderlyingType.Float32:
+                        sb.Append("Float32");
+                        break;
+                    case UnderlyingType.Float64:
+                        sb.Append("Float64");
+                        break;
+                    case UnderlyingType.Bool:
+                        sb.Append("Bool");
+                        break;
+                }
+
+                sb.AppendLine("();");
+            }
+
+            AppendTab(sb);
+            AppendTab(sb);
+            AppendTab(sb);
+            sb.AppendLine("rows->push_back(row);");
+
+            AppendTab(sb);
+            AppendTab(sb);
+            sb.AppendLine("}");
+
+            AppendTab(sb);
+            sb.AppendLine("} builder;");
+            sb.AppendLine();
+
+            AppendTab(sb);
+            sb.AppendLine("builder.source = source;");
+            AppendTab(sb);
+            sb.AppendLine("builder.rows = &rows;");
+            sb.AppendLine();
+
+            AppendTab(sb);
+            sb.AppendLine("ParseTableRows(*binarySource, builder);");
+
+            sb.AppendLine("}");
+            sb.AppendLine();
+        }
+
         public void AppendTableImplementation()
         {
             var sb = SourceBuilder;
 
-            sb.AppendFormat("static {0}{1} defaultRows[{2}] = ", Rules.IsMutable ? "" : "const ", RowStructName, Table.NumberOfRows);
-            sb.AppendLine();
-            sb.AppendLine("{");
-
-            for(int i = 0; i < Table.NumberOfRows; i++)
+            if (Rules.Lifetime != TableLifetime.Static)
             {
-                if (i > 0)
-                {
-                    sb.AppendLine(",");
-                }
-                AppendTab(sb);
-                var row = Table.GetRow(i);
-
-                sb.AppendFormat("{{ // #{0}", i);
+                sb.AppendLine("#include <rococo.api.h>");
+                sb.AppendLine("#include <rococo.io.h>");
                 sb.AppendLine();
-                AppendTab(sb);
-                AppendTab(sb);
-
-                for (int j = 0; j < row.Length; ++j)
-                {
-                    if (j != 0)
-                    {
-                        sb.Append(", ");
-                    }
-
-                    string item = row.GetItemText(j);
-
-                    if (EnumNames[j] != null)
-                    {
-                        sb.AppendFormat("{0}::{1}", EnumNames[j], item.Replace(" ", ""));
-                    }
-                    else
-                    {
-                        AppendSanitizedItem(sb, item, FieldTypes[j]);
-                    }
-                }
-
+                sb.AppendLine("#include <vector>");
                 sb.AppendLine();
-
-                AppendTab(sb);
-                sb.Append("}");
             }
 
+            sb.AppendLine("using namespace Rococo;");
+
+            if (Rules.Lifetime != TableLifetime.Static)
+            {
+                sb.AppendLine("using namespace Rococo::IO;");
+            }
+
+            sb.Append("using namespace ");
+            sb.Append(CppNamespace);
+            sb.AppendLine(";");
             sb.AppendLine();
-            sb.AppendLine("};");
-            sb.AppendLine();
+
+            if (Rules.Lifetime == TableLifetime.Static)
+            {
+                sb.AppendFormat("static {0}{1} defaultRows[{2}] = ", Rules.IsMutable ? "" : "const ", RowStructName, Table.NumberOfRows);
+                sb.AppendLine();
+                sb.AppendLine("{");
+
+                for (int i = 0; i < Table.NumberOfRows; i++)
+                {
+                    if (i > 0)
+                    {
+                        sb.AppendLine(",");
+                    }
+                    AppendTab(sb);
+                    var row = Table.GetRow(i);
+
+                    sb.AppendFormat("{{ // #{0}", i);
+                    sb.AppendLine();
+                    AppendTab(sb);
+                    AppendTab(sb);
+
+                    for (int j = 0; j < row.Length; ++j)
+                    {
+                        if (j != 0)
+                        {
+                            sb.Append(", ");
+                        }
+
+                        string item = row.GetItemText(j);
+
+                        if (ColumnHeaders[j].EnumName != null)
+                        {
+                            sb.AppendFormat("{0}::{1}", ColumnHeaders[j].EnumName, item.Replace(" ", ""));
+                        }
+                        else
+                        {
+                            AppendSanitizedItem(sb, item, ColumnHeaders[j].UnderlyingType);
+                        }
+                    }
+
+                    sb.AppendLine();
+
+                    AppendTab(sb);
+                    sb.Append("}");
+                }
+
+                sb.AppendLine();
+                sb.AppendLine("};");
+                sb.AppendLine();
+            }
+            else if (Rules.Lifetime == TableLifetime.Singleton)
+            {
+                AppendTableDeclaration();
+                sb.AppendLine();
+            }
+
+            if (Rules.Lifetime != TableLifetime.Static)
+            {
+                AppendLoadRows();
+            }
 
             sb.AppendLine("namespace ANON");
             sb.AppendLine("{");
@@ -841,7 +1160,7 @@ namespace Rococo.Carpenter
             sb.AppendLine();
             sb.AppendLine();
             AppendTab(sb);
-            sb.AppendFormat("struct {0}_Implementation: {1}", CppTableName, Rules.CppInterface);
+            sb.AppendFormat("struct {0}_Implementation: {1}Supervisor", CppTableName, Rules.CppInterface);
 
             if (Rules.MetaDataAccess == MetaDataAccessType.Composition)
             {
@@ -851,6 +1170,35 @@ namespace Rococo.Carpenter
             sb.AppendLine();
             AppendTab(sb);
             sb.AppendLine("{");
+
+            if (Rules.Lifetime == TableLifetime.Dynamic)
+            {
+                AppendTab(sb);
+                AppendTab(sb);
+                AppendTableDeclaration();
+                sb.AppendLine();
+            }
+
+            if (Rules.Lifetime != TableLifetime.Static)
+            {
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendLine("void Free() override");
+
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendLine("{");
+
+                AppendTab(sb);
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendLine("delete this;");
+
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendLine("}");
+                sb.AppendLine("");
+            }
 
             AppendTab(sb);
             AppendTab(sb);
@@ -863,7 +1211,16 @@ namespace Rococo.Carpenter
             AppendTab(sb);
             AppendTab(sb);
             AppendTab(sb);
-            sb.AppendFormat("return defaultRows[index];");
+
+            if (Rules.Lifetime == TableLifetime.Static)
+            {
+                sb.AppendFormat("return defaultRows[index];");
+            }
+            else
+            {
+                sb.AppendFormat("return rows[index];");
+            }
+
             sb.AppendLine();
 
             AppendTab(sb);
@@ -882,7 +1239,16 @@ namespace Rococo.Carpenter
             AppendTab(sb);
             AppendTab(sb);
             AppendTab(sb);
-            sb.AppendFormat("return {0};", Table.NumberOfRows);
+
+            if (Rules.Lifetime == TableLifetime.Static)
+            {
+                sb.AppendFormat("return {0};", Table.NumberOfRows);
+            }
+            else
+            {
+                sb.AppendFormat("return (int32) rows.size();");
+            }
+
             sb.AppendLine();
 
             AppendTab(sb);
@@ -890,42 +1256,45 @@ namespace Rococo.Carpenter
             sb.AppendLine("}");
             sb.AppendLine();
 
-            AppendTab(sb);
-            AppendTab(sb);
-            sb.AppendFormat("const {0}* begin() const override", RowStructName);
-            sb.AppendLine();
-            AppendTab(sb);
-            AppendTab(sb);
-            sb.AppendLine("{");
+            if (Rules.Lifetime == TableLifetime.Static)
+            {
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendFormat("const {0}* begin() const override", RowStructName);
+                sb.AppendLine();
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendLine("{");
 
-            AppendTab(sb);
-            AppendTab(sb);
-            AppendTab(sb);
-            sb.AppendFormat("return defaultRows;");
-            sb.AppendLine();
+                AppendTab(sb);
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendFormat("return defaultRows;");
+                sb.AppendLine();
 
-            AppendTab(sb);
-            AppendTab(sb);
-            sb.AppendLine("}");
-            sb.AppendLine();
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendLine("}");
+                sb.AppendLine();
 
-            AppendTab(sb);
-            AppendTab(sb);
-            sb.AppendFormat("const {0}* end() const override", RowStructName);
-            sb.AppendLine();
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendFormat("const {0}* end() const override", RowStructName);
+                sb.AppendLine();
 
-            AppendTab(sb);
-            AppendTab(sb);
-            sb.AppendLine("{");
-            AppendTab(sb);
-            AppendTab(sb);
-            AppendTab(sb);
-            sb.AppendFormat("return defaultRows + {0};", Table.NumberOfRows);
-            sb.AppendLine();
-            AppendTab(sb);
-            AppendTab(sb);
-            sb.AppendLine("}");
-            sb.AppendLine();
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendLine("{");
+                AppendTab(sb);
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendFormat("return defaultRows + {0};", Table.NumberOfRows);
+                sb.AppendLine();
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendLine("}");
+                sb.AppendLine();
+            }
 
             if (Rules.MetaDataAccess == MetaDataAccessType.Composition)
             {
@@ -962,7 +1331,7 @@ namespace Rococo.Carpenter
                 AppendTab(sb);
                 AppendTab(sb);
                 AppendTab(sb);
-                sb.AppendFormat("return \"{0}\"", ms.Value.value);
+                sb.AppendFormat("return \"{0}\"_fstring;", ms.Value.value);
                 sb.AppendLine();
 
                 AppendTab(sb);
@@ -985,7 +1354,7 @@ namespace Rococo.Carpenter
             {
                 AppendTab(sb);
 
-                sb.AppendFormat("{0}Supervisor* {1}();", Rules.CppInterface, Rules.CppFactory);
+                sb.AppendFormat("{0}Supervisor* {1}()", Rules.CppInterface, Rules.CppFactory);
                 sb.AppendLine();
 
                 AppendTab(sb);
@@ -1026,18 +1395,18 @@ namespace Rococo.Carpenter
         {
             var sb = SourceBuilder;
 
-            if (enumDefs.Count == 0) return;
+            if (!CPPCore.HasEnumDefs) return;
 
             const int MIN_ELEMENTS_FOR_MAP = 8;
 
             sb.AppendLine();
 
-            foreach (var def in enumDefs)
+            foreach (var def in CPPCore.EnumDefs)
             {
                 if (def.Value.Keys.Length >= MIN_ELEMENTS_FOR_MAP)
                 {
                     sb.AppendLine("#include <string>");
-                    sb.AppendLine("#include <unodered_map>");
+                    sb.AppendLine("#include <unordered_map>");
                     sb.AppendLine();
                     break;
                 }
@@ -1049,7 +1418,7 @@ namespace Rococo.Carpenter
 
             bool firstDef = true;
 
-            foreach(var def in enumDefs)
+            foreach(var def in CPPCore.EnumDefs)
             {
                 if (firstDef)
                 {
@@ -1068,10 +1437,17 @@ namespace Rococo.Carpenter
 
                 AppendTab(sb);
                 AppendTab(sb);
+                sb.AppendFormat("using enum {0};", def.Key);
+                sb.AppendLine();
+                sb.AppendLine();
+
+                AppendTab(sb);
+                AppendTab(sb);
                 sb.AppendLine("switch(value)");
                 AppendTab(sb);
                 AppendTab(sb);
                 sb.AppendLine("{");
+
 
                 foreach (var item in def.Value.Keys)
                 {
@@ -1093,6 +1469,7 @@ namespace Rococo.Carpenter
                 AppendTab(sb);
                 sb.AppendLine("}");
 
+                sb.AppendLine();
 
                 AppendTab(sb);
                 sb.AppendFormat("bool TryParse(const fstring& text, {0}& result)", def.Key);
@@ -1102,10 +1479,15 @@ namespace Rococo.Carpenter
 
                 AppendTab(sb);
                 AppendTab(sb);
+                sb.AppendFormat("using enum {0};", def.Key);
+                sb.AppendLine();
+
+                AppendTab(sb);
+                AppendTab(sb);
 
                 if (def.Value.Keys.Length >= MIN_ELEMENTS_FOR_MAP)
                 {
-                    sb.AppendFormat("static constexpr std::unordered_map<std::string, {0}> bindings = ", def.Key);
+                    sb.AppendFormat("static std::unordered_map<std::string, {0}> bindings = {{", def.Key);
                     sb.AppendLine();
                 }
                 else
@@ -1116,7 +1498,7 @@ namespace Rococo.Carpenter
                     AppendTab(sb);
                     AppendTab(sb);
 
-                    sb.Append("static constexpr Binding bindings[] = ");
+                    sb.Append("static Binding bindings[] = {");
                     sb.AppendLine();
                 }
 
@@ -1148,14 +1530,18 @@ namespace Rococo.Carpenter
                     {
                         AppendTab(sb);
                         AppendTab(sb);
+                        AppendTab(sb);
                     }
 
                     sb.Append("{");
-                    sb.AppendFormat("\"{0}\",{1}::{0}", value, def.Key);
+                    sb.AppendFormat("\"{0}\", {0}", value);
                     sb.Append("}");
                 }
 
-                sb.AppendLine(";");
+                sb.AppendLine();
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendLine("};");
 
                 sb.AppendLine();
                 AppendTab(sb);
@@ -1163,7 +1549,7 @@ namespace Rococo.Carpenter
 
                 if (def.Value.Keys.Length >= MIN_ELEMENTS_FOR_MAP)
                 {
-                    sb.AppendLine("auto i = bindings.find(text);");
+                    sb.AppendLine("auto i = bindings.find(text.buffer);");
 
                     AppendTab(sb);
                     AppendTab(sb);

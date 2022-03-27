@@ -1170,6 +1170,13 @@ namespace Rococo.Carpenter
 
                     var gen = new CPPGenerator(types, metaData, table, r.Value);
                     gen.Go();
+
+                    if (r.Value.Lifetime != TableLifetime.Static)
+                    {
+                        // Table is loaded dynamically when needed
+                        var binaryDataTableGenerator = new BinaryGenerator(types, metaData, table, r.Value, gen);
+                        binaryDataTableGenerator.Go();
+                    }
                 }
             }
         }
