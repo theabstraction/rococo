@@ -7,12 +7,11 @@ namespace Rococo.Carpenter
 {
     public static class CPPCore
     {
-        public static string GetBinName(IRules rules, ITable table)
-        {
-            string repo = rules.CppRepo.Replace("$(ROCOCO)", Environment.Solution);
+        public static string GetPingPathArchiveName(IRules rules, ITable table)
+        {      
             string spacelessTableName = table.TableName.Replace(" ", "_");
-            string fullname = repo + rules.CppSource.Replace(".cpp", ".") + spacelessTableName + ".bin";
-            return fullname;
+            string fullname = rules.CppSource.Replace(".cpp", ".") + spacelessTableName + ".bin";
+            return "!" + fullname.Replace("\\", "/");
         }
 
         static Dictionary<string, StringBuilder> openFiles = new Dictionary<string, StringBuilder>();
@@ -790,6 +789,19 @@ namespace Rococo.Carpenter
                 sb.AppendLine();
             }
 
+            if (Rules.Lifetime == TableLifetime.Dynamic)
+            {
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendFormat("// load a table from a binary archive. If [tablePingPath] is null, defaults to {0}", CPPCore.GetPingPathArchiveName(Rules, Table));
+                sb.AppendLine();
+
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendFormat("virtual void Load(const IInstallation& installation, cstr tablePingPath = nullptr) = 0;");
+                sb.AppendLine();
+            }
+
             if (Rules.MetaDataAccess == MetaDataAccessType.Composition)
             {
                 AppendTab(sb);
@@ -890,19 +902,12 @@ namespace Rococo.Carpenter
         {
             var sb = SourceBuilder;
 
-            sb.AppendFormat("static void Load{0}s(std::vector<{0}>& rows)", RowStructName);
+            sb.AppendFormat("static void Append{0}s(std::vector<{0}>& rows, const IInstallation& installation, const char* source)", RowStructName);
             sb.AppendLine("");
             sb.AppendLine("{");
             AppendTab(sb);
-            sb.AppendFormat("const char* source = \"{0}\";", CPPCore.GetBinName(Rules, Table)).Replace("\\", "\\\\");
+            sb.AppendFormat("if (!source || !*source) source = \"{0}\";", CPPCore.GetPingPathArchiveName(Rules, Table));
             sb.AppendLine();
-
-            AppendTab(sb);
-            sb.AppendLine("WideFilePath sysPath;");
-            AppendTab(sb);
-            sb.AppendLine("Assign(sysPath, source);");
-            AppendTab(sb);
-            sb.AppendLine("AutoFree<IBinarySource> binarySource = Rococo::IO::ReadBinarySource(sysPath);");
             sb.AppendLine();
 
             AppendTab(sb);
@@ -1062,7 +1067,7 @@ namespace Rococo.Carpenter
             sb.AppendLine();
 
             AppendTab(sb);
-            sb.AppendLine("ParseTableRows(*binarySource, builder);");
+            sb.AppendLine("ParseTableRows(installation, source, builder);");
 
             sb.AppendLine("}");
             sb.AppendLine();
@@ -1290,6 +1295,33 @@ namespace Rococo.Carpenter
                 AppendTab(sb);
                 sb.AppendFormat("return defaultRows + {0};", Table.NumberOfRows);
                 sb.AppendLine();
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendLine("}");
+                sb.AppendLine();
+            }
+
+            if (Rules.Lifetime == TableLifetime.Dynamic)
+            {
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendFormat("void Load(const IInstallation& installation, cstr tablePingPath) override");
+                sb.AppendLine();
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendLine("{");
+
+                AppendTab(sb);
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendLine("rows.clear();");
+
+                AppendTab(sb);
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendFormat("Append{0}s(rows, installation, tablePingPath);", RowStructName);
+                sb.AppendLine();
+
                 AppendTab(sb);
                 AppendTab(sb);
                 sb.AppendLine("}");

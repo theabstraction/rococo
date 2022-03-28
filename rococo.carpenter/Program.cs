@@ -27,6 +27,23 @@ namespace Rococo.Carpenter
             }
         }
 
+        public static string PingPathToSysPath(string pingPath)
+        {
+            if (pingPath == null || pingPath.Length == 0)
+            {
+                throw new Exception("No ping path specified");
+            }
+
+            if (pingPath[0] != '!')
+            {
+                throw new Exception("Ping path did not begin with !: " + pingPath);
+            }
+
+            string content = Environment.Solution + "content\\";
+            string sysPath = content + pingPath.Substring(1).Replace('/', System.IO.Path.DirectorySeparatorChar);
+            return sysPath;
+        }
+
         private static string solution = string.Empty;
 
         public static string Solution

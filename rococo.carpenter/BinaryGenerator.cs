@@ -147,6 +147,7 @@ namespace Rococo.Carpenter
             writer.Write("EndMagic]");
             writer.Write(String.Format("Source: {0}", CPPCore.ExcelSource));
             writer.Write(String.Format("Table: {0}", Table.TableName));
+            writer.Write(Table.NumberOfRows);
             writer.Write("[BeginColumns:");
             writer.Write(Columns.ColumnHeaders.Length);
             writer.Write("Types");
@@ -169,7 +170,6 @@ namespace Rococo.Carpenter
 
             writer.Write("EndColumns]");
             writer.Write("[BeginRows");
-            writer.Write(Table.NumberOfRows);
 
             for (int i = 0; i < Table.NumberOfRows; i++)
             {
@@ -187,13 +187,15 @@ namespace Rococo.Carpenter
             }
             writer.Write("EndRows]");
 
-            string fullname = CPPCore.GetBinName(Rules, Table);
-            Console.WriteLine("Writing binary file " + fullname);
+            string pingPath = CPPCore.GetPingPathArchiveName(Rules, Table);
+            Console.WriteLine("Writing binary file " + pingPath);
+
+            string sysPath = Environment.PingPathToSysPath(pingPath);
 
             byte[] buffer = new byte[memoryStream.Length];
             memoryStream.Seek(0, SeekOrigin.Begin);
             memoryStream.Read(buffer, 0, buffer.Length);
-            System.IO.File.WriteAllBytes(fullname, buffer);
+            System.IO.File.WriteAllBytes(sysPath, buffer);
         }
     }
 }

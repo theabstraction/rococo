@@ -84,6 +84,7 @@ namespace Rococo
 	struct Metres;
 
 	struct IPackage;
+	struct IInstallation;
 
 	typedef const Vec2& cr_vec2;
 	typedef const Vec3& cr_vec3;

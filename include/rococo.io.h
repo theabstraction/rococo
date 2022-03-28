@@ -128,18 +128,20 @@ namespace Rococo::IO
 	ROCOCOAPI ITableRowData
 	{
 		virtual int32 NextInt32() = 0;
-		virtual int32 NextInt64() = 0;
-		virtual int32 NextFloat32() = 0;
-		virtual int32 NextFloat64() = 0;
+		virtual int64 NextInt64() = 0;
+		virtual float NextFloat32() = 0;
+		virtual double NextFloat64() = 0;
 		virtual bool NextBool() = 0;
-		virtual Substring NextString() = 0;
+
+		// Retrieve a string. Valid until the next method call or the calling function returns.
+		virtual fstring NextTempString() = 0;
 	};
 
 	struct TableRowHeaders
 	{
 		int NumberOfRows;
 		cstr ExcelFile;
-		cstr OtherFile;
+		cstr TableName;
 	};
 
 	enum class ColumnType: int32
@@ -167,6 +169,8 @@ namespace Rococo::IO
 
 	void ValidateHeader(const ColumnHeader& archiveHeader, ColumnType cppType, cstr archiveFile);
 	void ParseTableRows(IBinarySource& source, ITableRowBuilder& builder);
+	void ParseTableRows(cstr sourcePath, ITableRowBuilder& builder);
+	void ParseTableRows(const IInstallation& installation, cstr pingPath, ITableRowBuilder& builder);
 }
 
 namespace Rococo
