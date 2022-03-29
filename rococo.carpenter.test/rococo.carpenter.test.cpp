@@ -2,6 +2,7 @@
 
 #include <rococo.api.h>
 #include <..\tables\rococo.periodic-table.h>
+#include <..\tables\localized-text-table.h>
 #include <cstdio>
 #include <rococo.io.h>
 
@@ -11,9 +12,12 @@
 #  pragma comment(lib, "rococo.util.lib")
 #endif
 
+#include <codecvt>
+
 using namespace Rococo;
 using namespace Rococo::OS;
 using namespace Rococo::Science::Materials;
+using namespace Rococo::Strings;
 
 int main()
 {
@@ -34,7 +38,17 @@ int main()
             {
                 Throw(0, "Bad helium");
             }
+
+            puts(ToString(helium.element));
         }
+
+        ILocalizedText& lt = LocalizedText();
+        puts("\n");
+        puts(lt.Meta().GetTitle());
+        puts("\n");
+        auto& marcus = lt.GetRow((int32)TextId::Introduction_MarcusAndronicus);
+        puts(marcus.english);
+
         return 0;
     }
     catch (IException& ex)

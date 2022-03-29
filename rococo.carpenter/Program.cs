@@ -63,7 +63,8 @@ namespace Rococo.Carpenter
     {
         internal static string[] filenames = 
         { 
-            "tables\\periodic-table.xlsx" 
+            "tables\\periodic-table.xlsx",
+            "tables\\localization-text-table.xlsx"
         };
     }
 

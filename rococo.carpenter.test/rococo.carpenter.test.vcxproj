@@ -86,6 +86,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\tables\localized-text-table.cpp" />
     <ClCompile Include="..\tables\rococo.periodic-table.cpp" />
     <ClCompile Include="rococo.carpenter.test.cpp" />
   </ItemGroup>

@@ -34,7 +34,7 @@ namespace Rococo.Carpenter
             return enums.TryGetValue(name, out result) ? result : null;
         }
 
-        public static EnumDef FindElseCreateEnumDef(string name)
+        public static EnumDef FindElseCreateEnumDef(string name, string source)
         {
             EnumDef result = null;
             if (enums.TryGetValue(name, out result))
@@ -42,17 +42,22 @@ namespace Rococo.Carpenter
                 return result;
             }
 
-            result = new EnumDef(name);
+            result = new EnumDef(name, source);
             enums.Add(name, result);
             return result;
         }
 
-        public static bool HasEnumDefs
+        public static bool HasEnumDefs(string source)
         {
-            get
+            foreach(var e in enums)
             {
-                return enums.Count > 0;
+                if (e.Value.PrimarySourceFile == source)
+                {
+                    return true;
+                }               
             }
+
+            return false;
         }
 
         public static IDictionary<string, EnumDef> EnumDefs
@@ -189,9 +194,16 @@ namespace Rococo.Carpenter
             private set;
         }
 
-        public EnumDef(string name)
+        public string PrimarySourceFile
+        {
+            get;
+            private set;
+        }
+
+        public EnumDef(string name, string primarySourceFile)
         {
             this.Name = name;
+            this.PrimarySourceFile = primarySourceFile;
         }
 
         public bool TryGetIndex(string key, out int index)
@@ -574,7 +586,7 @@ namespace Rococo.Carpenter
                 return;
             }
 
-            def = CPPCore.FindElseCreateEnumDef(enumName);
+            def = CPPCore.FindElseCreateEnumDef(enumName, this.Rules.CppSource);
 
             for(int i = 0; i < ColumnHeaders.Length; i++)
             {
@@ -859,6 +871,33 @@ namespace Rococo.Carpenter
             return item;
         }
 
+        public static bool RequiresEscapement(string text)
+        {
+            foreach(char c in text)
+            {
+                if (c < 32 || c > 127 || c == '"' || c == '\\')
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public static void AppendCPPString(StringBuilder sb, string item)
+        {
+            if (!RequiresEscapement(item))
+            {
+                sb.Append('"');
+                sb.Append(item);
+                sb.Append('"');
+                return;
+            }
+
+            string raw = item.Contains("[RAW]") ? "#RAW#" : "[RAW]";
+            sb.AppendFormat("u8R\"{0}({1}){0}\"", raw, item);
+        }
+
         public static void AppendSanitizedItem(StringBuilder sb, string item, UnderlyingType type)
         {
             switch (type)
@@ -878,9 +917,13 @@ namespace Rococo.Carpenter
                 case UnderlyingType.Float64:
                     sb.Append(double.Parse(MakeNonEmptyString(item, "0")));
                     break;
-                default:
-                    sb.Append(item);
+                case UnderlyingType.String:
+                    sb.Append("to_fstring((cstr)");
+                    AppendCPPString(sb, item);
+                    sb.Append(")");
                     break;
+                default:
+                    throw new Exception("Cannot handle type " + type);
             }
         }
 
@@ -1077,9 +1120,10 @@ namespace Rococo.Carpenter
         {
             var sb = SourceBuilder;
 
+            sb.AppendLine("#include <rococo.api.h>");
+
             if (Rules.Lifetime != TableLifetime.Static)
             {
-                sb.AppendLine("#include <rococo.api.h>");
                 sb.AppendLine("#include <rococo.io.h>");
                 sb.AppendLine();
                 sb.AppendLine("#include <vector>");
@@ -1165,7 +1209,7 @@ namespace Rococo.Carpenter
             sb.AppendLine();
             sb.AppendLine();
             AppendTab(sb);
-            sb.AppendFormat("struct {0}_Implementation: {1}Supervisor", CppTableName, Rules.CppInterface);
+            sb.AppendFormat("struct {0}_Implementation: {1}{2}", CppTableName, Rules.CppInterface, Rules.Lifetime == TableLifetime.Static ? "" : "Supervisor");
 
             if (Rules.MetaDataAccess == MetaDataAccessType.Composition)
             {
@@ -1427,21 +1471,30 @@ namespace Rococo.Carpenter
         {
             var sb = SourceBuilder;
 
-            if (!CPPCore.HasEnumDefs) return;
+            if (!CPPCore.HasEnumDefs(Rules.CppSource)) return;
 
             const int MIN_ELEMENTS_FOR_MAP = 8;
 
             sb.AppendLine();
 
+            bool includedHeaders = false;
+
             foreach (var def in CPPCore.EnumDefs)
             {
-                if (def.Value.Keys.Length >= MIN_ELEMENTS_FOR_MAP)
+                if (def.Value.PrimarySourceFile == Rules.CppSource && def.Value.Keys.Length >= MIN_ELEMENTS_FOR_MAP)
                 {
                     sb.AppendLine("#include <string>");
                     sb.AppendLine("#include <unordered_map>");
                     sb.AppendLine();
+                    includedHeaders = true;
                     break;
                 }
+            }
+
+            if (!includedHeaders)
+            {
+                sb.Append("#include <string.h>"); // for strcmp
+                sb.AppendLine();
             }
 
             sb.AppendFormat("namespace {0}", CppNamespace);
@@ -1452,6 +1505,11 @@ namespace Rococo.Carpenter
 
             foreach(var def in CPPCore.EnumDefs)
             {
+                if (def.Value.PrimarySourceFile != Rules.CppSource)
+                {
+                    continue;
+                }
+
                 if (firstDef)
                 {
                     firstDef = false;
@@ -1479,7 +1537,6 @@ namespace Rococo.Carpenter
                 AppendTab(sb);
                 AppendTab(sb);
                 sb.AppendLine("{");
-
 
                 foreach (var item in def.Value.Keys)
                 {

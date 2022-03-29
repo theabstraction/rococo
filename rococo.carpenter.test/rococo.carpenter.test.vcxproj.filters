@@ -21,5 +21,8 @@
     <ClCompile Include="..\tables\rococo.periodic-table.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\tables\localized-text-table.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
