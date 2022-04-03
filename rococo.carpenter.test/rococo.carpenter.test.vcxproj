@@ -88,7 +88,11 @@
   <ItemGroup>
     <ClCompile Include="..\tables\localized-text-table.cpp" />
     <ClCompile Include="..\tables\rococo.periodic-table.cpp" />
+    <ClCompile Include="..\tables\rococo.quotes.cpp" />
     <ClCompile Include="rococo.carpenter.test.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\tables\rococo.quotes.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

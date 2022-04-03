@@ -59,18 +59,9 @@ namespace Rococo.Carpenter
         }
     }
 
-    internal static class TableFilenames
+    public class Carpenter
     {
-        internal static string[] filenames = 
-        { 
-            "tables\\periodic-table.xlsx",
-            "tables\\localization-text-table.xlsx"
-        };
-    }
-
-    internal class Program
-    {
-        static void Publish(string tableFilename)
+        static private void Publish(string tableFilename)
         {
             Console.Write("Exporting " + tableFilename + "...");
 
@@ -83,9 +74,9 @@ namespace Rococo.Carpenter
                 }
             }
         }
-        static void PublishEachTable(string[] filenames)
+        static private void PublishEachTable(string[] filenames)
         {
-            foreach (var filename in TableFilenames.filenames)
+            foreach (var filename in filenames)
             {
                 string fullPath = Environment.Solution + filename;
 
@@ -111,11 +102,11 @@ namespace Rococo.Carpenter
                 }
             }
         }
-        static void Main(string[] args)
+        static public void GenerateTables(string[] filenames)
         {
             try
             {
-                PublishEachTable(TableFilenames.filenames);
+                PublishEachTable(filenames);
                 CPPCore.Commit();
             }
             catch(Exception ex)

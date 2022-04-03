@@ -35,6 +35,12 @@
     <ClInclude Include="..\include\rococo.stl.allocators.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\tables\rococo.quotes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\tables\localized-text-table.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Xml Include="test.xml">

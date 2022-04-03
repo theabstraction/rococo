@@ -3,8 +3,10 @@
 #include <rococo.api.h>
 #include <..\tables\rococo.periodic-table.h>
 #include <..\tables\localized-text-table.h>
+#include <..\tables\rococo.quotes.h>
 #include <cstdio>
 #include <rococo.io.h>
+#include <rococo.strings.h>
 
 # ifdef _DEBUG
 #  pragma comment(lib, "rococo.util.debug.lib")
@@ -19,12 +21,23 @@ using namespace Rococo::OS;
 using namespace Rococo::Science::Materials;
 using namespace Rococo::Strings;
 
+void validate(bool condition, cstr expression, cstr location, int line)
+{
+    if (!condition)
+    {
+       Throw(0, "Error: %s, %s #%d\n", expression, location, line);
+    }
+}
+
+#define VALIDATE(expression) validate((expression), #expression, __FILE__, __LINE__)
+
+
 int main()
 {
     try
     {
         AutoFree<IPeriodicTableSupervisor> periodicTable = GetPeriodicTable();
-        puts(periodicTable->Meta().GetTitle());
+        VALIDATE(Eq(periodicTable->Meta().GetTitle(), "Periodic Table of the Elements"));
 
         AutoFree<IOSSupervisor> os = GetOS();
         AutoFree<IInstallationSupervisor> installation = CreateInstallation(L"content.indicator.txt", *os);
@@ -39,16 +52,14 @@ int main()
                 Throw(0, "Bad helium");
             }
 
-            puts(ToString(helium.element));
+            VALIDATE(Eq("Helium"_fstring, ToString(helium.element)));
         }
 
         ILocalizedText& lt = LocalizedText();
-        puts("\n");
-        puts(lt.Meta().GetTitle());
-        puts("\n");
+        VALIDATE(Eq(lt.Meta().GetTitle(), "Localization Table"));
         auto& marcus = lt.GetRow((int32)TextId::Introduction_MarcusAndronicus);
-        puts(marcus.english);
-
+        VALIDATE(StartsWith(marcus.english, "Princes,"));
+        puts("All tests succeeded");
         return 0;
     }
     catch (IException& ex)

@@ -24,5 +24,13 @@
     <ClCompile Include="..\tables\localized-text-table.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\tables\rococo.quotes.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\tables\rococo.quotes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

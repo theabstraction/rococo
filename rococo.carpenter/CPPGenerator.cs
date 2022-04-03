@@ -827,7 +827,7 @@ namespace Rococo.Carpenter
 
             sb.AppendLine();
 
-            if (Rules.Lifetime == TableLifetime.Dynamic)
+            if (Rules.Lifetime != TableLifetime.Static)
             {
                 sb.AppendLine();
                 AppendTab(sb);
@@ -847,7 +847,7 @@ namespace Rococo.Carpenter
                 sb.AppendFormat("{0}Supervisor* {1}();", Rules.CppInterface, Rules.CppFactory);
                 sb.AppendLine();
             }
-            else // Static or singleton
+            else // Static
             {
                 AppendTab(sb);
                 sb.AppendFormat("{0}& {1}();", Rules.CppInterface, Rules.CppFactory);
@@ -1006,6 +1006,9 @@ namespace Rococo.Carpenter
                     case UnderlyingType.Bool:
                         sb.Append("Bool");
                         break;
+                    case UnderlyingType.String:
+                        sb.Append("UTF8");
+                        break;
                     default:
                         throw new Exception("Unknown type" + ColumnHeaders[i].UnderlyingType);
                             
@@ -1084,6 +1087,9 @@ namespace Rococo.Carpenter
                         break;
                     case UnderlyingType.Bool:
                         sb.Append("Bool");
+                        break;
+                    case UnderlyingType.String:
+                        sb.Append("TempString");
                         break;
                 }
 
@@ -1426,7 +1432,7 @@ namespace Rococo.Carpenter
             sb.AppendLine();
             sb.AppendLine("{");
 
-            if (Rules.Lifetime == TableLifetime.Dynamic)
+            if (Rules.Lifetime != TableLifetime.Static)
             {
                 AppendTab(sb);
 
