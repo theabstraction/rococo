@@ -716,6 +716,40 @@ namespace Rococo.Carpenter
             }
         }
 
+        public bool HasInterfaceForRow
+        {
+            get
+            {
+               if (Rules.Lifetime != TableLifetime.Static)
+               {
+                    foreach(var column in ColumnHeaders)
+                    {
+                        if (column.UnderlyingType == UnderlyingType.String)
+                        {
+                            return true;
+                        }
+                    }
+               }
+
+                return false;
+            }
+        }
+
+        public string GetFunctionNameForHeader(ColumnHeader  header)
+        {
+            StringBuilder sb = new StringBuilder();
+            string name = header.Name;
+            sb.Append(char.ToUpper(name[0]));
+            sb.Append(name, 1, name.Length - 1);
+            return sb.ToString();
+        }
+
+        public string GetFunctionNameForHeader(int index)
+        {
+            ColumnHeader header = ColumnHeaders[index];
+            return GetFunctionNameForHeader(header);
+        }
+
         public void AppendInterface()
         {
             var sb = HeaderBuilder;
@@ -739,7 +773,8 @@ namespace Rococo.Carpenter
             }
 
             AppendTab(sb);
-            sb.AppendFormat("struct {0}", RowStructName);
+
+            sb.AppendFormat("{0} {1}{2}", HasInterfaceForRow ? "ROCOCOAPI" : "struct", HasInterfaceForRow ? "I" : "", RowStructName);
             sb.AppendLine();
             AppendTab(sb);
             sb.AppendLine("{");
@@ -749,8 +784,18 @@ namespace Rococo.Carpenter
             {
                 AppendTab(sb);
                 AppendTab(sb);
-                AppendRowField(i, sb);
-                sb.AppendLine(";");
+
+                if (HasInterfaceForRow)
+                {
+                    sb.Append("virtual ");
+                    sb.AppendFormat("{0} Get{1}() const = 0;", ColumnHeaders[i].FullTypeName, GetFunctionNameForHeader(i));
+                    sb.AppendLine();
+                }
+                else
+                {
+                    AppendRowField(i, sb);
+                    sb.AppendLine(";");
+                }
             }
 
             AppendTab(sb);
@@ -782,7 +827,7 @@ namespace Rococo.Carpenter
             sb.AppendLine("{");
             AppendTab(sb);
             AppendTab(sb);
-            sb.AppendFormat("virtual const {0}& GetRow(int32 index) const = 0;", RowStructName);
+            sb.AppendFormat("virtual const {0}{1}& GetRow(int32 index) const = 0;", HasInterfaceForRow ? "I" : "", RowStructName);
             sb.AppendLine();
             AppendTab(sb);
             AppendTab(sb);
@@ -1136,6 +1181,11 @@ namespace Rococo.Carpenter
                 sb.AppendLine();
             }
 
+            if (HasInterfaceForRow)
+            {
+                sb.AppendLine("#include <rococo.strings.h>");
+            }
+
             sb.AppendLine("using namespace Rococo;");
 
             if (Rules.Lifetime != TableLifetime.Static)
@@ -1147,6 +1197,50 @@ namespace Rococo.Carpenter
             sb.Append(CppNamespace);
             sb.AppendLine(";");
             sb.AppendLine();
+
+            if (HasInterfaceForRow)
+            {
+                sb.Append("namespace ");
+                sb.Append(CppNamespace);
+                sb.AppendLine();
+                sb.AppendLine("{");
+                AppendTab(sb);
+                sb.AppendFormat("struct {0}: I{0}", RowStructName);
+                sb.AppendLine("");
+                AppendTab(sb);
+                sb.AppendLine("{");
+
+                foreach(var header in ColumnHeaders)
+                {
+                    AppendTab(sb);
+                    AppendTab(sb);
+                    sb.AppendFormat("{0} {1};", header.UnderlyingType == UnderlyingType.String ? "HString" : header.FullTypeName, header.Name);
+                    sb.AppendLine();
+                }
+
+                sb.AppendLine();
+
+                foreach (var header in ColumnHeaders)
+                {
+                    AppendTab(sb);
+                    AppendTab(sb);
+                    if (header.UnderlyingType == UnderlyingType.String)
+                    {
+                        sb.AppendFormat("{0} Get{1}() const override {{ return fstring {{ {2}.c_str(), (int32) {2}.length() }}; }}", header.FullTypeName, GetFunctionNameForHeader(header), header.Name);
+                    }
+                    else
+                    {
+                        sb.AppendFormat("{0} Get{1}() const override {{ return {2}; }}", header.FullTypeName, GetFunctionNameForHeader(header), header.Name);
+                    }
+                   
+                    sb.AppendLine();
+                }
+
+                AppendTab(sb);
+                sb.AppendLine("};");
+                sb.AppendLine("}");
+                sb.AppendLine();
+            }
 
             if (Rules.Lifetime == TableLifetime.Static)
             {
@@ -1257,7 +1351,7 @@ namespace Rococo.Carpenter
 
             AppendTab(sb);
             AppendTab(sb);
-            sb.AppendFormat("const {0}& GetRow(int32 index) const override", RowStructName);
+            sb.AppendFormat("const {0}{1}& GetRow(int32 index) const override", HasInterfaceForRow ? "I" : "", RowStructName);
             sb.AppendLine();
             AppendTab(sb);
             AppendTab(sb);
@@ -1497,7 +1591,7 @@ namespace Rococo.Carpenter
                 }
             }
 
-            if (!includedHeaders)
+            if (!includedHeaders && !HasInterfaceForRow)
             {
                 sb.Append("#include <string.h>"); // for strcmp
                 sb.AppendLine();
