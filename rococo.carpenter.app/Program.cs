@@ -8,9 +8,10 @@ namespace Rococo.Carpenter
         {
             string[] filenames =
             {
-                "tables\\periodic-table.xlsx",
-                "tables\\localization-text-table.xlsx",
-                "tables\\quotes-table.xlsx"
+            //    "tables\\periodic-table.xlsx",
+            //    "tables\\localization-text-table.xlsx",
+            //    "tables\\quotes-table.xlsx",
+                "tables\\users.demo.xlsx"
             };
 
             Carpenter.GenerateTables(filenames);

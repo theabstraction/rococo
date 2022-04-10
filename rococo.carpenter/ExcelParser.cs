@@ -808,6 +808,11 @@ namespace Rococo.Carpenter
         {
             get;
         }
+
+        public IEnumerable<string> KeyNames
+        {
+            get;
+        }
     }
 
     public class ExcelRulesSheet : ExcelSheet, IRules
@@ -886,6 +891,16 @@ namespace Rococo.Carpenter
             }
         }
 
+        private HashSet<string> keyNames = new HashSet<string>();
+
+        public IEnumerable<string> KeyNames
+        {
+            get
+            {
+                return keyNames;
+            }
+        }
+
         private bool OnExport(string[] args, Semantic semantic)
         {
             string target;
@@ -933,6 +948,19 @@ namespace Rococo.Carpenter
             }
 
             Lifetime = value;
+
+            return true;
+        }
+        private bool OnKeyName(string[] args, Semantic semantic)
+        {
+            string columnTitle = string.Empty;
+
+            if (!semantic.TryMatchString(out columnTitle, 0, args))
+            {
+                return false;
+            }
+
+            keyNames.Add(columnTitle);
 
             return true;
         }
@@ -1092,6 +1120,10 @@ namespace Rococo.Carpenter
                 OnCppNamespace));
             parser.AddSemantic(new Semantic("Immutable", new SemanticAttribute[] { }, OnImmutable));
             parser.AddSemantic(new Semantic("Mutable", new SemanticAttribute[] { }, OnMutable));
+            parser.AddSemantic(new Semantic("Key", new SemanticAttribute[]
+                {
+                    new SemanticAttribute("KeyColumn", typeof(string))
+                }, OnKeyName));
         }
 
         public override void Parse()

@@ -31,6 +31,7 @@ void validate(bool condition, cstr expression, cstr location, int line)
 
 #define VALIDATE(expression) validate((expression), #expression, __FILE__, __LINE__)
 
+using namespace Rococo::Quotes;
 
 int main()
 {
@@ -60,6 +61,14 @@ int main()
         auto& marcus = lt.GetRow((int32)TextId::Introduction_MarcusAndronicus);
         VALIDATE(StartsWith(marcus.english, "Princes,"));
         puts("All tests succeeded");
+
+        AutoFree<IQuotesSupervisor> quotes = GetQuoteTable(*installation);
+        auto& johnson = quotes->GetRow((int32)QuoteId::DoctorJohnson1);
+        fstring q = johnson.GetText();
+
+        VALIDATE(StartsWith(q, "No man"));
+        VALIDATE(EndsWith(q, "money."));
+
         return 0;
     }
     catch (IException& ex)

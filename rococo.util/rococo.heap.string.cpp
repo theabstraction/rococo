@@ -133,6 +133,16 @@ namespace Rococo
 		FreeHeapStringData(data);
 	}
 
+	const fstring HString::to_fstring() const
+	{
+		if (length() >= 0x80000000LL)
+		{
+			Throw(0, "HString to Fstring -> length was too large for size_t to int32 conversion");
+		}
+
+		return fstring{ c_str(), (int32)length() };
+	}
+
 	size_t FastHash(cstr text, size_t length)
 	{
 		int64 nBigWords = length >> 3;

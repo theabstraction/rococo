@@ -89,10 +89,14 @@
     <ClCompile Include="..\tables\localized-text-table.cpp" />
     <ClCompile Include="..\tables\rococo.periodic-table.cpp" />
     <ClCompile Include="..\tables\rococo.quotes.cpp" />
+    <ClCompile Include="..\tables\users.demo.cpp" />
     <ClCompile Include="rococo.carpenter.test.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\tables\localized-text-table.h" />
+    <ClInclude Include="..\tables\rococo.periodic-table.h" />
     <ClInclude Include="..\tables\rococo.quotes.h" />
+    <ClInclude Include="..\tables\users.demo.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

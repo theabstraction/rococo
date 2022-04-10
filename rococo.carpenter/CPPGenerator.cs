@@ -83,7 +83,7 @@ namespace Rococo.Carpenter
                 case UnderlyingType.Int32:
                     return "int32";
                 case UnderlyingType.Int64:
-                    return "int64;";
+                    return "int64";
                 case UnderlyingType.Bool:
                     return "bool";
                 default:
@@ -275,7 +275,7 @@ namespace Rococo.Carpenter
         public bool IsAliasType;
     }
 
-    public class CPPGenerator: IParsedColumnData
+    public class CPPGenerator : IParsedColumnData
     {
         public string Repository
         {
@@ -319,7 +319,7 @@ namespace Rococo.Carpenter
 
         public ITypes Types
         {
-            get; 
+            get;
             private set;
         }
 
@@ -375,7 +375,7 @@ namespace Rococo.Carpenter
         {
             RowStructName = interfaceName.Substring(1) + "_Row";
         }
-        
+
         public CPPGenerator(ITypes types, IMetaData metaData, ITable table, IRules rules)
         {
             Types = types;
@@ -562,6 +562,10 @@ namespace Rococo.Carpenter
 
             sb.AppendFormat("#include \"{0}\"", Rules.CppHeader);
             sb.AppendLine();
+            if (Rules.KeyNames.GetEnumerator().MoveNext())
+            {
+                sb.AppendLine("#include <rococo.hashtable.h>");
+            }
             sb.AppendLine();
         }
 
@@ -588,7 +592,7 @@ namespace Rococo.Carpenter
 
             def = CPPCore.FindElseCreateEnumDef(enumName, this.Rules.CppSource);
 
-            for(int i = 0; i < ColumnHeaders.Length; i++)
+            for (int i = 0; i < ColumnHeaders.Length; i++)
             {
                 if (ColumnHeaders[i].EnumName == enumName)
                 {
@@ -598,7 +602,7 @@ namespace Rococo.Carpenter
                     {
                         IItemSequence rowItems = Table.GetRow(j);
                         var item = rowItems.GetItemText(i);
-                       
+
                         if (item != null && item.Length > 0)
                         {
                             def.AddKey(item);
@@ -622,14 +626,14 @@ namespace Rococo.Carpenter
 
             int count = 1;
 
-            foreach(var item in def.Keys)
+            foreach (var item in def.Keys)
             {
                 if (first)
                 {
                     first = false;
 
                     AppendTab(sb);
-                    AppendTab(sb);;
+                    AppendTab(sb); ;
                 }
                 else
                 {
@@ -679,7 +683,7 @@ namespace Rococo.Carpenter
                     {
                         TypeDefinition typedef;
                         if (Types.TryGetType(h.FullTypeName, out typedef))
-                        {                           
+                        {
                             string ns = typedef.NameSpace.Replace(".", "::");
 
                             sb.Append("namespace ");
@@ -720,22 +724,22 @@ namespace Rococo.Carpenter
         {
             get
             {
-               if (Rules.Lifetime != TableLifetime.Static)
-               {
-                    foreach(var column in ColumnHeaders)
+                if (Rules.Lifetime != TableLifetime.Static)
+                {
+                    foreach (var column in ColumnHeaders)
                     {
                         if (column.UnderlyingType == UnderlyingType.String)
                         {
                             return true;
                         }
                     }
-               }
+                }
 
                 return false;
             }
         }
 
-        public string GetFunctionNameForHeader(ColumnHeader  header)
+        public string GetFunctionNameForHeader(ColumnHeader header)
         {
             StringBuilder sb = new StringBuilder();
             string name = header.Name;
@@ -780,7 +784,7 @@ namespace Rococo.Carpenter
             sb.AppendLine("{");
 
             var columns = Table.Columns;
-            for(int i = 0; i < ColumnHeaders.Length; ++i)
+            for (int i = 0; i < ColumnHeaders.Length; ++i)
             {
                 AppendTab(sb);
                 AppendTab(sb);
@@ -808,7 +812,7 @@ namespace Rococo.Carpenter
             AppendTab(sb);
             sb.AppendLine("{");
 
-            foreach(var ms in MetaData.StringVariables)
+            foreach (var ms in MetaData.StringVariables)
             {
                 AppendTab(sb);
                 AppendTab(sb);
@@ -865,16 +869,24 @@ namespace Rococo.Carpenter
                 AppendTab(sb);
                 sb.AppendFormat("virtual const {0}& Meta() const = 0;", MetaDataInterfaceName);
                 sb.AppendLine();
-                AppendTab(sb);
             }
 
+            foreach(string key in Rules.KeyNames)
+            {
+                var header = FindColumnByTitle(key);
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendFormat("virtual const {0}{1}* FindRowBy{2}({3} {4}) const = 0;", HasInterfaceForRow ? "I" : "", RowStructName, key, header.FullTypeName, HeaderNameToVariableName(key));
+                sb.AppendLine();
+            }
+
+            AppendTab(sb);
             sb.AppendLine("};");
 
             sb.AppendLine();
 
-            if (Rules.Lifetime != TableLifetime.Static)
+            if (Rules.Lifetime == TableLifetime.Dynamic)
             {
-                sb.AppendLine();
                 AppendTab(sb);
                 sb.AppendFormat("ROCOCOAPI {0}Supervisor: {0}", Rules.CppInterface);
                 sb.AppendLine();
@@ -890,6 +902,25 @@ namespace Rococo.Carpenter
                 AppendTab(sb);
 
                 sb.AppendFormat("{0}Supervisor* {1}();", Rules.CppInterface, Rules.CppFactory);
+                sb.AppendLine();
+            }
+            else if (Rules.Lifetime == TableLifetime.Singleton)
+            {
+                AppendTab(sb);
+                sb.AppendFormat("ROCOCOAPI {0}Supervisor: {0}", Rules.CppInterface);
+                sb.AppendLine();
+                AppendTab(sb);
+                sb.AppendLine("{");
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendLine("virtual void Free() = 0;");
+                AppendTab(sb);
+                sb.AppendLine("};");
+
+                sb.AppendLine();
+                AppendTab(sb);
+
+                sb.AppendFormat("{0}Supervisor* {1}(IInstallation& installation);", Rules.CppInterface, Rules.CppFactory);
                 sb.AppendLine();
             }
             else // Static
@@ -918,7 +949,7 @@ namespace Rococo.Carpenter
 
         public static bool RequiresEscapement(string text)
         {
-            foreach(char c in text)
+            foreach (char c in text)
             {
                 if (c < 32 || c > 127 || c == '"' || c == '\\')
                 {
@@ -986,11 +1017,37 @@ namespace Rococo.Carpenter
             sb.AppendLine();
         }
 
+        public string HeaderNameToVariableName(string header)
+        {
+            return string.Format("{0}{1}", char.ToLower(header[0]), header.Substring(1));
+        }
+
+
         public void AppendLoadRows()
         {
             var sb = SourceBuilder;
 
-            sb.AppendFormat("static void Append{0}s(std::vector<{0}>& rows, const IInstallation& installation, const char* source)", RowStructName);
+            sb.AppendFormat("static void Append{0}s(", RowStructName);
+
+            foreach (var key in Rules.KeyNames)
+            {
+                var header = FindColumnByTitle(key);
+                if (header.Name == String.Empty)
+                {
+                    throw new Exception(String.Format("Key '{0}' in rules does not match a column title", key));
+                }
+
+                if (header.UnderlyingType == UnderlyingType.String)
+                {
+                    sb.AppendFormat("stringmap<size_t> {0}_to_index, ", header.Name);
+                }
+                else
+                {
+                    sb.AppendFormat("std::unordered_map<{0}, size_t> {1}_to_index, ", header.FullTypeName, HeaderNameToVariableName(header.Name));
+                }
+            }
+
+            sb.AppendFormat("std::vector<{0}>& rows, const IInstallation& installation, const char* source)", RowStructName);
             sb.AppendLine("");
             sb.AppendLine("{");
             AppendTab(sb);
@@ -1163,8 +1220,64 @@ namespace Rococo.Carpenter
             AppendTab(sb);
             sb.AppendLine("ParseTableRows(installation, source, builder);");
 
+            foreach(var key in Rules.KeyNames)
+            {
+                sb.AppendLine();
+                AppendTab(sb);
+                sb.AppendLine("for (size_t i = 0; i < rows.size(); ++i)");
+                AppendTab(sb);
+                sb.AppendLine("{");
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendLine("auto & r = rows[i];");
+                AppendTab(sb);
+                AppendTab(sb);
+
+                var header = FindColumnByTitle(key);
+                if (header.UnderlyingType == UnderlyingType.String)
+                {
+                    sb.AppendFormat("auto j = {0}_to_index.insert(r.ownerId, i);", HeaderNameToVariableName(key));
+                }
+                else
+                {
+                    sb.AppendFormat("auto j = {0}_to_index.insert(std::make_pair(r.{0}, i));", HeaderNameToVariableName(key));
+                }
+
+                sb.AppendLine();
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendLine("if (!j.second)");
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendLine("{");
+                AppendTab(sb);
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendFormat("Throw(0, \" %s: Duplicate '{0}' at row %llu. First seen at row %llu\", source, i, j.first->second);", key);
+                sb.AppendLine();
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendLine("}");
+                AppendTab(sb);
+                sb.AppendLine("}");
+            }
+
             sb.AppendLine("}");
             sb.AppendLine();
+        }
+
+        public ColumnHeader FindColumnByTitle(string title)
+        {
+            foreach(var header in ColumnHeaders)
+            {
+                if (string.Compare(header.Name, title, true) == 0)
+                {
+                    return header;
+                }
+            }
+
+            ColumnHeader nullHeader = new ColumnHeader() { Name = String.Empty };
+            return nullHeader;
         }
 
         public void AppendTableImplementation()
@@ -1184,6 +1297,11 @@ namespace Rococo.Carpenter
             if (HasInterfaceForRow)
             {
                 sb.AppendLine("#include <rococo.strings.h>");
+            }
+
+            if (Rules.Lifetime == TableLifetime.Singleton)
+            {
+                sb.AppendLine("#include <atomic>");
             }
 
             sb.AppendLine("using namespace Rococo;");
@@ -1224,14 +1342,7 @@ namespace Rococo.Carpenter
                 {
                     AppendTab(sb);
                     AppendTab(sb);
-                    if (header.UnderlyingType == UnderlyingType.String)
-                    {
-                        sb.AppendFormat("{0} Get{1}() const override {{ return fstring {{ {2}.c_str(), (int32) {2}.length() }}; }}", header.FullTypeName, GetFunctionNameForHeader(header), header.Name);
-                    }
-                    else
-                    {
-                        sb.AppendFormat("{0} Get{1}() const override {{ return {2}; }}", header.FullTypeName, GetFunctionNameForHeader(header), header.Name);
-                    }
+                    sb.AppendFormat("{0} Get{1}() const override {{ return {2}; }}", header.FullTypeName, GetFunctionNameForHeader(header), header.Name);
                    
                     sb.AppendLine();
                 }
@@ -1297,6 +1408,31 @@ namespace Rococo.Carpenter
                 sb.AppendLine();
             }
 
+            foreach(var key in Rules.KeyNames)
+            {
+                var header = FindColumnByTitle(key);
+                if (header.Name == String.Empty)
+                {
+                    throw new Exception(String.Format("Key '{0}' in rules does not match a column title", key));
+                }
+
+                if (header.UnderlyingType == UnderlyingType.String)
+                {
+                    sb.AppendFormat("static stringmap<size_t> {0}_to_index;", header.Name);
+                    sb.AppendLine();
+                }
+                else
+                {
+                    sb.AppendFormat("static std::unordered_map<{0}, size_t> {1}_to_index;", header.FullTypeName, HeaderNameToVariableName(header.Name));
+                    sb.AppendLine();
+                }
+            }
+
+            if (Rules.KeyNames.GetEnumerator().MoveNext())
+            {
+                sb.AppendLine();
+            }
+
             if (Rules.Lifetime != TableLifetime.Static)
             {
                 AppendLoadRows();
@@ -1320,6 +1456,40 @@ namespace Rococo.Carpenter
             AppendTab(sb);
             sb.AppendLine("{");
 
+            if (Rules.Lifetime == TableLifetime.Singleton)
+            {
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendLine("std::atomic<int32> referenceCount = 0;");
+                sb.AppendLine();
+
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendFormat("{0}_Implementation(IInstallation& installation)", CppTableName);
+                sb.AppendLine();
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendLine("{");
+
+                AppendTab(sb);
+                AppendTab(sb);
+                AppendTab(sb);
+
+                sb.AppendFormat("if (referenceCount.fetch_add(1) == 0) Append{0}s(", RowStructName);
+
+                foreach(var key in Rules.KeyNames)
+                {
+                    sb.AppendFormat("{0}_to_index, ", HeaderNameToVariableName(key));
+                }
+
+                sb.Append("rows, installation, nullptr);");
+                sb.AppendLine();
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendLine("}");
+                sb.AppendLine();
+            }
+
             if (Rules.Lifetime == TableLifetime.Dynamic)
             {
                 AppendTab(sb);
@@ -1337,6 +1507,14 @@ namespace Rococo.Carpenter
                 AppendTab(sb);
                 AppendTab(sb);
                 sb.AppendLine("{");
+
+                if (Rules.Lifetime == TableLifetime.Singleton)
+                {
+                    AppendTab(sb);
+                    AppendTab(sb);
+                    AppendTab(sb);
+                    sb.AppendLine("if (referenceCount.fetch_sub(1) == 1) { rows.clear(); rows.shrink_to_fit(); }");
+                }
 
                 AppendTab(sb);
                 AppendTab(sb);
@@ -1493,6 +1671,32 @@ namespace Rococo.Carpenter
                 sb.AppendLine("}");
             }
 
+            foreach(string key in Rules.KeyNames)
+            {
+                var header = FindColumnByTitle(key);
+                sb.AppendLine();
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendFormat("const {0}{1}* FindRowBy{2}({3} {4}) const override", HasInterfaceForRow ? "I" : "", RowStructName, key, header.FullTypeName, HeaderNameToVariableName(key));
+                sb.AppendLine();
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendLine("{");
+                AppendTab(sb);
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendFormat("auto i = {0}_to_index.find({0});", HeaderNameToVariableName(key));
+                sb.AppendLine();
+                AppendTab(sb);
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendFormat("return i != {0}_to_index.end() ? &i->second : nullptr;", HeaderNameToVariableName(key));
+                sb.AppendLine();
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendLine("}");
+            }
+            
             foreach (var ms in MetaData.StringVariables)
             {
                 sb.AppendLine();
@@ -1526,7 +1730,7 @@ namespace Rococo.Carpenter
             sb.AppendLine();
             sb.AppendLine("{");
 
-            if (Rules.Lifetime != TableLifetime.Static)
+            if (Rules.Lifetime == TableLifetime.Dynamic)
             {
                 AppendTab(sb);
 
@@ -1544,7 +1748,25 @@ namespace Rococo.Carpenter
                 AppendTab(sb);
                 sb.AppendLine("}");
             }
-            else // Static or singleton
+            else if (Rules.Lifetime == TableLifetime.Singleton)
+            {
+                AppendTab(sb);
+
+                sb.AppendFormat("{0}Supervisor* {1}(IInstallation& installation)", Rules.CppInterface, Rules.CppFactory);
+                sb.AppendLine();
+
+                AppendTab(sb);
+                sb.AppendLine("{");
+
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendFormat("return new ANON::{0}_Implementation(installation);", CppTableName);
+                sb.AppendLine();
+
+                AppendTab(sb);
+                sb.AppendLine("}");
+            }
+            else // Static
             {
                 AppendTab(sb);
                 sb.AppendFormat("{0}& {1}()", Rules.CppInterface, Rules.CppFactory);
@@ -1584,6 +1806,7 @@ namespace Rococo.Carpenter
                 if (def.Value.PrimarySourceFile == Rules.CppSource && def.Value.Keys.Length >= MIN_ELEMENTS_FOR_MAP)
                 {
                     sb.AppendLine("#include <string>");
+
                     sb.AppendLine("#include <unordered_map>");
                     sb.AppendLine();
                     includedHeaders = true;

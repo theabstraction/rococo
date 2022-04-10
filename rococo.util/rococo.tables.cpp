@@ -184,6 +184,10 @@ namespace Rococo::IO
 			{
 				type = ColumnType::UnderlyingTypeBool;
 			}
+			else if (Eq(typeString, "String"))
+			{
+				type = ColumnType::UnderlyingTypeUTF8;
+			}
 			else
 			{
 				Throw(0, "Unhandled type in column #%d", i);

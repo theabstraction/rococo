@@ -102,9 +102,16 @@ namespace Rococo
 		   return data->currentBuffer;
 	   }
 
+	   const fstring to_fstring() const;
+
+	   operator fstring() const
+	   {
+		   return to_fstring();
+	   }
+
 	   operator cstr() const
 	   {
-		   return data->currentBuffer;
+		   return c_str();
 	   }
 
 	   size_t length() const

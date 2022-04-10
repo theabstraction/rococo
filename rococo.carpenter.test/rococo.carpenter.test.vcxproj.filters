@@ -27,9 +27,21 @@
     <ClCompile Include="..\tables\rococo.quotes.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\tables\users.demo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\tables\rococo.quotes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\tables\rococo.periodic-table.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\tables\localized-text-table.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\tables\users.demo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
