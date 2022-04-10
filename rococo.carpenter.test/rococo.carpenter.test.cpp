@@ -4,6 +4,8 @@
 #include <..\tables\rococo.periodic-table.h>
 #include <..\tables\localized-text-table.h>
 #include <..\tables\rococo.quotes.h>
+#include <..\tables\users.demo.h>
+
 #include <cstdio>
 #include <rococo.io.h>
 #include <rococo.strings.h>
@@ -32,6 +34,7 @@ void validate(bool condition, cstr expression, cstr location, int line)
 #define VALIDATE(expression) validate((expression), #expression, __FILE__, __LINE__)
 
 using namespace Rococo::Quotes;
+using namespace Rococo::Test::UserDemo;
 
 int main()
 {
@@ -65,6 +68,16 @@ int main()
         AutoFree<IQuotesSupervisor> quotes = GetQuoteTable(*installation);
         auto& johnson = quotes->GetRow((int32)QuoteId::DoctorJohnson1);
         fstring q = johnson.GetText();
+
+        AutoFree<IUsersSupervisor> users = GetUserTable(*installation);
+
+        int ownerIndex = -1;
+        auto* mark = users->FindRowByOwnerId("mark@z.geoff"_fstring, ownerIndex);
+        VALIDATE(mark != nullptr && mark->GetPurchaseId() == 1175);
+        VALIDATE(ownerIndex == 0);
+        auto* stan = users->FindRowByOwnerId("stan@z.geoff"_fstring, ownerIndex);
+        VALIDATE(stan == nullptr && ownerIndex == -1);
+
 
         VALIDATE(StartsWith(q, "No man"));
         VALIDATE(EndsWith(q, "money."));

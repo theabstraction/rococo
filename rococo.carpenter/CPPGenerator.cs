@@ -876,7 +876,7 @@ namespace Rococo.Carpenter
                 var header = FindColumnByTitle(key);
                 AppendTab(sb);
                 AppendTab(sb);
-                sb.AppendFormat("virtual const {0}{1}* FindRowBy{2}({3} {4}) const = 0;", HasInterfaceForRow ? "I" : "", RowStructName, key, header.FullTypeName, HeaderNameToVariableName(key));
+                sb.AppendFormat("virtual const {0}{1}* FindRowBy{2}({3} {4}, int32& index) const = 0;", HasInterfaceForRow ? "I" : "", RowStructName, key, header.FullTypeName, HeaderNameToVariableName(key));
                 sb.AppendLine();
             }
 
@@ -1039,11 +1039,11 @@ namespace Rococo.Carpenter
 
                 if (header.UnderlyingType == UnderlyingType.String)
                 {
-                    sb.AppendFormat("stringmap<size_t> {0}_to_index, ", header.Name);
+                    sb.AppendFormat("stringmap<size_t>& {0}_to_index, ", header.Name);
                 }
                 else
                 {
-                    sb.AppendFormat("std::unordered_map<{0}, size_t> {1}_to_index, ", header.FullTypeName, HeaderNameToVariableName(header.Name));
+                    sb.AppendFormat("std::unordered_map<{0}, size_t>& {1}_to_index, ", header.FullTypeName, HeaderNameToVariableName(header.Name));
                 }
             }
 
@@ -1677,7 +1677,7 @@ namespace Rococo.Carpenter
                 sb.AppendLine();
                 AppendTab(sb);
                 AppendTab(sb);
-                sb.AppendFormat("const {0}{1}* FindRowBy{2}({3} {4}) const override", HasInterfaceForRow ? "I" : "", RowStructName, key, header.FullTypeName, HeaderNameToVariableName(key));
+                sb.AppendFormat("const {0}{1}* FindRowBy{2}({3} {4}, int32& index) const override", HasInterfaceForRow ? "I" : "", RowStructName, key, header.FullTypeName, HeaderNameToVariableName(key));
                 sb.AppendLine();
                 AppendTab(sb);
                 AppendTab(sb);
@@ -1690,7 +1690,12 @@ namespace Rococo.Carpenter
                 AppendTab(sb);
                 AppendTab(sb);
                 AppendTab(sb);
-                sb.AppendFormat("return i != {0}_to_index.end() ? &i->second : nullptr;", HeaderNameToVariableName(key));
+                sb.AppendFormat("if (i != {0}_to_index.end()) {{ index = (int32) i->second; return &rows[index]; }}", HeaderNameToVariableName(key));
+                sb.AppendLine();
+                AppendTab(sb);
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.Append("else { index = -1; return nullptr; }");
                 sb.AppendLine();
                 AppendTab(sb);
                 AppendTab(sb);
