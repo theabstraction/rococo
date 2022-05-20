@@ -947,7 +947,7 @@ namespace
 		{
 			auto* primitiveWritePosition = reinterpret_cast<PRIMITIVE*>(writePosition);
 			*primitiveWritePosition = value;
-			writePosition += sizeof PRIMITIVE;
+			writePosition += sizeof(PRIMITIVE);
 			memberRefManager.MoveToNextSibling();
 		}
 

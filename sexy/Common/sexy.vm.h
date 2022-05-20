@@ -160,7 +160,7 @@ namespace Rococo { namespace VM
 
 	struct ExecutionFlags
 	{
-		ExecutionFlags() { }
+		ExecutionFlags(): ThrowToQuit(false), RunProtected(true), CorrectSF(true) {  }
 		ExecutionFlags(bool throwToQuit, bool runProtected, bool correctSF = true):
 			ThrowToQuit(throwToQuit), RunProtected(runProtected), CorrectSF(correctSF) {}
 

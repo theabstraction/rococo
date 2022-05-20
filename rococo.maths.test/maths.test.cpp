@@ -999,8 +999,53 @@ void TestCodeInferenceInterfaces()
 
 #include <rococo.csv.h>
 
+#include <rococo.functional.h>
+
+using namespace Rococo;
+
+void EnumerateDogs(Function<void(cstr dogName)> callback)
+{
+	Function<void(cstr dogName)> f = callback;
+	Function<void(cstr dogName)> g = f;
+	Function<void(cstr dogName)> h;
+	h = g;
+
+	Function<void(cstr dogName)> nullCallback;
+	f = nullCallback;
+
+	nullCallback.InvokeElseDefault("Baby");
+
+	f.Invoke("Rover");
+	g.Invoke("Lady");
+	h.Invoke("Bruno");
+}
+
+void EnumerateCats(SmallStackFunction<void(cstr catName)> callback)
+{
+	SmallStackFunction<void(cstr catName)> f = callback;
+	SmallStackFunction<void(cstr catName)> g = f;
+	SmallStackFunction<void(cstr catName)> h;
+	h = g;
+
+	SmallStackFunction<void(cstr catName)> nullCallback;
+	nullCallback.InvokeElseDefault("Baby");
+
+	f.Invoke("Fluffy");
+	g.Invoke("Doll");
+	h.Invoke("Mitten");
+}
+
+void TestDelegates()
+{
+	Matrix4x4 i {1,2};
+	EnumerateDogs([i](cstr dogName) { printf("dogName: %s\n", dogName); });
+	EnumerateCats([i](cstr catName) { printf("catName: %s\n", catName); });
+}
+
 void test()
 {
+	TestDelegates();
+
 	TestCodeInference();
 	TestCodeInferenceInterfaces();
 	TestQuadtree();
