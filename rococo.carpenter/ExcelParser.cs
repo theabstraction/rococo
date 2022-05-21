@@ -764,6 +764,11 @@ namespace Rococo.Carpenter
             get;
         }
 
+        public string SexyHeader
+        {
+            get;
+        }
+
         public string CppSource
         {
             get;
@@ -825,11 +830,19 @@ namespace Rococo.Carpenter
 
         public bool TargetSexy
         {
+            get
+            {
+                return SexyHeader != null && SexyHeader.EndsWith(".sxh");
+            }
+        }
+
+        public string CppHeader
+        {
             get;
             private set;
         }
 
-        public string CppHeader
+        public string SexyHeader
         {
             get;
             private set;
@@ -913,13 +926,9 @@ namespace Rococo.Carpenter
             {
                 TargetCPP = true;
             }
-            else if (target == "Sexy")
-            {
-                TargetSexy = true;
-            }
             else
             {
-                throw new SemanticException(0, "Unknown target. Must be one of C++|Sexy");
+                throw new SemanticException(0, "Unknown target. Must be 'C=++'");
             }
 
             return true;
@@ -934,6 +943,24 @@ namespace Rococo.Carpenter
             }
 
             CppHeader = value;
+
+            return true;
+        }
+
+        private bool OnSexyHeader(string[] args, Semantic semantic)
+        {
+            string value;
+            if (!semantic.TryMatchString(out value, 0, args))
+            {
+                return false;
+            }
+
+            if (!value.EndsWith(".sxh"))
+            {
+                throw new SemanticException(0, "Expecting Sexy Header to end with '.sxh'");
+            }
+
+            SexyHeader = value;
 
             return true;
         }
@@ -1073,6 +1100,13 @@ namespace Rococo.Carpenter
                 OnCPPHeader)
             );
             parser.AddSemantic(
+               new Semantic("Sexy Header", new SemanticAttribute[]
+               {
+                    new SemanticAttribute("SexyHeaderFile", typeof(string))
+               },
+               OnSexyHeader)
+           );
+            parser.AddSemantic(
                new Semantic("C++ Source", new SemanticAttribute[]
                {
                   new SemanticAttribute("C++SourceFile", typeof(string))
@@ -1208,6 +1242,12 @@ namespace Rococo.Carpenter
                         // Table is loaded dynamically when needed
                         var binaryDataTableGenerator = new BinaryGenerator(types, metaData, table, r.Value, gen);
                         binaryDataTableGenerator.Go();
+                    }
+
+                    if (r.Value.TargetSexy)
+                    {
+                        var genSexy = new SexyGenerator(gen, types, metaData, table, r.Value);
+                        genSexy.Go();
                     }
                 }
             }

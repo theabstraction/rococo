@@ -4,8 +4,45 @@ using DocumentFormat.OpenXml.Packaging;
 
 namespace Rococo.Carpenter
 {
-    public static class Environment
+
+    static class Environment
     {
+        private static string xcBase = null;
+        public static string XCBase
+        {
+            get
+            {
+                if (xcBase != null)
+                {
+                    return xcBase;
+                }
+
+                xcBase = System.IO.File.ReadAllText(XCBaseFile);
+                return xcBase;
+            }
+        }
+
+        private static string xcBaseFile = null;
+
+        public static string XCBaseFile
+        {
+            get
+            {
+                return xcBaseFile;
+
+            }
+            internal set
+            {
+                string candidate = Environment.Solution + value;
+                if (!File.Exists(candidate))
+                {
+                    throw new Exception(string.Format("Cannot find XC file: " + candidate));
+                }
+
+                xcBaseFile = candidate;
+            }
+        }
+
         private static string GetSolutionDir()
         {
             string thePath = System.IO.Directory.GetCurrentDirectory();
@@ -102,12 +139,15 @@ namespace Rococo.Carpenter
                 }
             }
         }
-        static public void GenerateTables(string[] filenames)
+        static public void GenerateTables(string[] filenames, string XCbaseFile)
         {
             try
             {
+                Environment.XCBaseFile = XCbaseFile;
+                
                 PublishEachTable(filenames);
                 CPPCore.Commit();
+                SexyCore.Commit();
             }
             catch(Exception ex)
             {

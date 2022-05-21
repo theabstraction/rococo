@@ -48,11 +48,13 @@
     <OutDir>$(SolutionDir)bin\</OutDir>
     <IntDir>$(SolutionDir)temp\$(ProjectName)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName).debug</TargetName>
+    <CustomBuildBeforeTargets>BuildGenerateSources</CustomBuildBeforeTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)bin\</OutDir>
     <IntDir>$(SolutionDir)temp\$(ProjectName)\$(Configuration)\</IntDir>
+    <CustomBuildBeforeTargets>BuildGenerateSources</CustomBuildBeforeTargets>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -68,6 +70,11 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)\lib</AdditionalLibraryDirectories>
     </Link>
+    <CustomBuildStep>
+      <Command>..\sexy\Bin\x64Release\sexy.bennyhill.exe $(SolutionDir)tables\ rococo.tables.test.sxh rococo.tables.test.sxh.h</Command>
+      <Inputs>..\tables\rococo.tables.test.sxh.h;..\tables\rococo.tables.test.sxh.inl</Inputs>
+      <Outputs>..\tables\rococo.tables.test.sxh.h;..\tables\rococo.tables.test.sxh.inl</Outputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -84,6 +91,11 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <CustomBuildStep>
+      <Command>..\sexy\Bin\x64Release\sexy.bennyhill.exe $(SolutionDir)tables\ .\rococo.tables.test.sxh .\rococo.tables.test.sxh.h</Command>
+      <Inputs>..\tables\rococo.tables.test.sxh.h;..\tables\rococo.tables.test.sxh.inl</Inputs>
+      <Outputs>..\tables\rococo.tables.test.sxh.h;..\tables\rococo.tables.test.sxh.inl</Outputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\tables\localized-text-table.cpp" />
@@ -97,6 +109,9 @@
     <ClInclude Include="..\tables\rococo.periodic-table.h" />
     <ClInclude Include="..\tables\rococo.quotes.h" />
     <ClInclude Include="..\tables\users.demo.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\tables\rococo.tables.test.sxh" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

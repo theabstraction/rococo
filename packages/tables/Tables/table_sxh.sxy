@@ -1,0 +1,9 @@
+(interface Rococo.Science.Materials.IPeriodicTable
+	(GetRow (Int32 index)(Rococo.Science.Materials.ElementsTableRow row) -> )
+	(NumberOfRows  -> (Int32 numberOfRows))
+)
+
+(class ProxyIPeriodicTable (implements Rococo.Science.Materials.IPeriodicTable) (Pointer hObject) (attribute not-serialized))
+	(method ProxyIPeriodicTable.GetRow (Int32 index)(Rococo.Science.Materials.ElementsTableRow row) ->  : (Rococo.Science.Materials.Native.IPeriodicTableGetRow this.hObject index row))
+	(method ProxyIPeriodicTable.NumberOfRows  -> (Int32 numberOfRows) : (Rococo.Science.Materials.Native.IPeriodicTableNumberOfRows this.hObject  -> numberOfRows))
+
