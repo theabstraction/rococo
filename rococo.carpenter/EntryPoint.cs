@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using DocumentFormat.OpenXml.Packaging;
 
@@ -41,6 +42,11 @@ namespace Rococo.Carpenter
 
                 xcBaseFile = candidate;
             }
+        }
+
+        public static Config TargetConfig
+        {
+            get;set;
         }
 
         private static string GetSolutionDir()
@@ -96,6 +102,27 @@ namespace Rococo.Carpenter
         }
     }
 
+    public class Config
+    {
+        public string XCBaseFile { get; set; }
+
+        /// <summary>
+        /// List of header files that require table types to be defined before the headers are included
+        /// </summary>
+        public IEnumerable<string> TypeDependentHeaders { get; set; }
+
+        /// <summary>
+        /// List of headers added to the .cpp file
+        /// </summary>
+        public IEnumerable<string> AdditionalSourceHeaders { get; set; }
+    }
+
+    public struct TableTarget
+    {
+        public string xlsxPath;
+        public Config config;
+    }
+
     public class Carpenter
     {
         static private void Publish(string tableFilename)
@@ -111,41 +138,43 @@ namespace Rococo.Carpenter
                 }
             }
         }
-        static private void PublishEachTable(string[] filenames)
+        static private void PublishTable(TableTarget target)
         {
-            foreach (var filename in filenames)
+            Environment.XCBaseFile = target.config.XCBaseFile;
+            Environment.TargetConfig = target.config;
+
+            string fullPath = Environment.Solution + target.xlsxPath;
+
+            if (!fullPath.EndsWith(".xlsx"))
             {
-                string fullPath = Environment.Solution + filename;
+                throw new Exception("Expecting " + target.xlsxPath + " to end with '.xlsx'");
+            }
 
-                if (!fullPath.EndsWith(".xlsx"))
-                {
-                    throw new Exception("Expecting " + filename + " to end with '.xlsx'");
-                }
+            if (!File.Exists(fullPath))
+            {
+                throw new FileNotFoundException(fullPath);
+            }
 
-                if (!System.IO.File.Exists(fullPath))
-                {
-                    throw new FileNotFoundException(fullPath);
-                }
+            CPPCore.ExcelSource = fullPath;
 
-                CPPCore.ExcelSource = fullPath;
-
-                try
-                {
-                    Publish(fullPath);
-                }
-                catch(Exception ex)
-                {
-                    throw new Exception("Error publishing " + filename, ex);
-                }
+            try
+            {
+                Publish(fullPath);
+            }
+            catch(Exception ex)
+            {
+                throw new Exception("Error publishing " + fullPath, ex);
             }
         }
-        static public void GenerateTables(string[] filenames, string XCbaseFile)
+        static public void GenerateTables(IEnumerable<TableTarget> targets)
         {
             try
             {
-                Environment.XCBaseFile = XCbaseFile;
-                
-                PublishEachTable(filenames);
+                foreach (var target in targets)
+                {
+                    PublishTable(target);
+                }
+
                 CPPCore.Commit();
                 SexyCore.Commit();
             }

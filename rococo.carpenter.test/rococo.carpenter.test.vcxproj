@@ -62,7 +62,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)include\;$(SolutionDir)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)include\;$(SolutionDir)sexy\common\</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -71,10 +71,16 @@
       <AdditionalLibraryDirectories>$(SolutionDir)\lib</AdditionalLibraryDirectories>
     </Link>
     <CustomBuildStep>
-      <Command>..\sexy\Bin\x64Release\sexy.bennyhill.exe $(SolutionDir)tables\ rococo.tables.test.sxh rococo.tables.test.sxh.h</Command>
-      <Inputs>..\tables\rococo.tables.test.sxh.h;..\tables\rococo.tables.test.sxh.inl</Inputs>
-      <Outputs>..\tables\rococo.tables.test.sxh.h;..\tables\rococo.tables.test.sxh.inl</Outputs>
+      <Command>
+      </Command>
+      <Inputs>
+      </Inputs>
+      <Outputs>
+      </Outputs>
     </CustomBuildStep>
+    <PreBuildEvent>
+      <Command>PowerShell -command "$(SolutionDir)tables\build-tables.ps1 -platform '$(Platform)' -configuration '$(Configuration)' -solution '$(SolutionDir)'"</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -84,6 +90,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)include\;$(SolutionDir)sexy\common\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -92,10 +99,15 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <CustomBuildStep>
-      <Command>..\sexy\Bin\x64Release\sexy.bennyhill.exe $(SolutionDir)tables\ .\rococo.tables.test.sxh .\rococo.tables.test.sxh.h</Command>
-      <Inputs>..\tables\rococo.tables.test.sxh.h;..\tables\rococo.tables.test.sxh.inl</Inputs>
-      <Outputs>..\tables\rococo.tables.test.sxh.h;..\tables\rococo.tables.test.sxh.inl</Outputs>
+      <Command>PowerShell.exe Invoke-Command -ScriptBlock {  .\build.tables.ps1 -platform '$(Platform)' -configuration '$(Configuration)' }</Command>
+      <Inputs>
+      </Inputs>
+      <Outputs>
+      </Outputs>
     </CustomBuildStep>
+    <PreBuildEvent>
+      <Command>PowerShell -command "$(SolutionDir)tables\build-tables.ps1 -platform '$(Platform)' -configuration '$(Configuration)' -solution '$(SolutionDir)'"</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\tables\localized-text-table.cpp" />
@@ -108,10 +120,12 @@
     <ClInclude Include="..\tables\localized-text-table.h" />
     <ClInclude Include="..\tables\rococo.periodic-table.h" />
     <ClInclude Include="..\tables\rococo.quotes.h" />
+    <ClInclude Include="..\tables\tables.sxh.h" />
     <ClInclude Include="..\tables\users.demo.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\tables\rococo.tables.test.sxh" />
+    <None Include="..\tables\rococo.tables.test.xc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

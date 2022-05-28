@@ -6,15 +6,20 @@ namespace Rococo.Carpenter
     {
         static void Main(string[] args)
         {
-            string[] filenames =
+            Config standardConfig = new Config();
+            standardConfig.XCBaseFile = "tables\\tables.base.xc";
+            standardConfig.TypeDependentHeaders = new string[] { "tables.sxh.h" };
+            standardConfig.AdditionalSourceHeaders = new string[] { "tables.sxh.inl" };
+
+            TableTarget[] targets =
             {
-                "tables\\periodic-table.xlsx",
+                new TableTarget { xlsxPath = "tables\\periodic-table.xlsx", config = standardConfig },
             //   "tables\\localization-text-table.xlsx",
             //   "tables\\quotes-table.xlsx",
             //   "tables\\users.demo.xlsx"
             };
 
-            Carpenter.GenerateTables(filenames, "tables\\tables.base.xc");
+            Carpenter.GenerateTables(targets);
         }
     }
 }

@@ -47,9 +47,15 @@
     <ClInclude Include="..\tables\users.demo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\tables\tables.sxh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\tables\rococo.tables.test.sxh">
+      <Filter>ScriptGen</Filter>
+    </None>
+    <None Include="..\tables\rococo.tables.test.xc">
       <Filter>ScriptGen</Filter>
     </None>
   </ItemGroup>

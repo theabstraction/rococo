@@ -373,7 +373,7 @@ namespace Rococo.Carpenter
 
         public void SetStructName(string interfaceName)
         {
-            RowStructName = interfaceName.Substring(1) + "_Row";
+            RowStructName = interfaceName.Substring(1) + "Row";
         }
 
         public CPPGenerator(ITypes types, IMetaData metaData, ITable table, IRules rules)
@@ -804,7 +804,21 @@ namespace Rococo.Carpenter
 
             AppendTab(sb);
             sb.AppendLine("};");
+            sb.AppendLine("}");
             sb.AppendLine();
+
+            foreach (var commonHeader in Environment.TargetConfig.TypeDependentHeaders)
+            {
+                sb.AppendFormat("#include \"{0}\"", commonHeader);
+                sb.AppendLine();
+            }
+
+            sb.AppendLine();
+
+            sb.Append("namespace ");
+            sb.AppendLine(CppNamespace);
+            sb.AppendLine("{");
+
 
             AppendTab(sb);
             sb.AppendFormat("ROCOCOAPI {0}", MetaDataInterfaceName);
@@ -826,7 +840,8 @@ namespace Rococo.Carpenter
 
             AppendTab(sb);
             sb.Append("ROCOCOAPI ");
-            sb.AppendLine(Rules.CppInterface);
+            sb.AppendFormat("{0}: protected {0}_Sexy", Rules.CppInterface);
+            sb.AppendLine();
             AppendTab(sb);
             sb.AppendLine("{");
             AppendTab(sb);
@@ -1557,6 +1572,26 @@ namespace Rococo.Carpenter
 
             AppendTab(sb);
             AppendTab(sb);
+            sb.AppendLine("// Sexy Interface Method");
+
+            AppendTab(sb);
+            AppendTab(sb);
+            sb.AppendFormat("void GetRow(int32 index, {0}{1}& row) override", HasInterfaceForRow ? "I" : "", RowStructName);
+            sb.AppendLine();
+            AppendTab(sb);
+            AppendTab(sb);
+            sb.AppendLine("{");
+            AppendTab(sb);
+            AppendTab(sb);
+            AppendTab(sb);
+            sb.AppendLine("row = GetRow(index);");
+            AppendTab(sb);
+            AppendTab(sb);
+            sb.AppendLine("}");
+            sb.AppendLine();
+
+            AppendTab(sb);
+            AppendTab(sb);
             sb.AppendFormat("const int32 NumberOfRows() const override", RowStructName);
             sb.AppendLine();
             AppendTab(sb);
@@ -1581,6 +1616,40 @@ namespace Rococo.Carpenter
             AppendTab(sb);
             AppendTab(sb);
             sb.AppendLine("}");
+            sb.AppendLine();
+
+            AppendTab(sb);
+            AppendTab(sb);
+            sb.AppendLine("// Sexy Interface Method");
+
+
+            AppendTab(sb);
+            AppendTab(sb);
+            sb.AppendFormat("int32 NumberOfRows() override", RowStructName);
+            sb.AppendLine();
+            AppendTab(sb);
+            AppendTab(sb);
+            sb.AppendLine("{");
+
+            AppendTab(sb);
+            AppendTab(sb);
+            AppendTab(sb);
+
+            if (Rules.Lifetime == TableLifetime.Static)
+            {
+                sb.AppendFormat("return {0};", Table.NumberOfRows);
+            }
+            else
+            {
+                sb.AppendFormat("return (int32) rows.size();");
+            }
+
+            sb.AppendLine();
+
+            AppendTab(sb);
+            AppendTab(sb);
+            sb.AppendLine("}");
+
             sb.AppendLine();
 
             if (Rules.Lifetime == TableLifetime.Static)
@@ -1792,6 +1861,48 @@ namespace Rococo.Carpenter
             }
 
             sb.AppendLine("}");
+
+            sb.AppendFormat("{0}::I{1}* FactoryConstruct{2}Get{3}({0}::I{1}* nullContext)", CppNamespace, CppTableName, CppNamespace.Replace("::", ""), CppTableName);
+            sb.AppendLine();
+
+            sb.AppendLine("{");
+            if (Rules.Lifetime == TableLifetime.Dynamic)
+            {
+                sb.AppendFormat("return new ANON::{0}_Implementation();", CppTableName);
+            }
+            else if (Rules.Lifetime == TableLifetime.Singleton)
+            {
+                AppendTab(sb);
+
+                sb.AppendLine("IInstallation& installation = GetInstallationFromCallContext();");
+
+                sb.AppendFormat("{0}Supervisor* instance = {1}(installation)", Rules.CppInterface, Rules.CppFactory);
+                sb.AppendLine();
+                sb.AppendLine("return instance;");
+            }
+            else // Static
+            {
+                sb.AppendFormat("return &{0}();", Rules.CppFactory);
+            }
+            sb.AppendLine("}");
+
+            bool firstHeader = true;
+
+            foreach (string header in Environment.TargetConfig.AdditionalSourceHeaders)
+            {
+                if (firstHeader)
+                {
+                    firstHeader = false;
+                    sb.AppendLine();
+                    sb.AppendLine("#include <sexy.types.h>"); 
+                    sb.AppendLine("#include <sexy.vm.h>");
+                    sb.AppendLine("#include <sexy.vm.cpu.h>");
+                    sb.AppendLine("#include <sexy.script.h>");
+                    sb.AppendLine();
+                }
+                sb.AppendFormat("#include \"{0}\"", header);
+                sb.AppendLine();
+            }
         }
 
         public void AppendTypeFunctions()

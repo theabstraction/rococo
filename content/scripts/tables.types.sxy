@@ -1,0 +1,15 @@
+(struct PeriodicTableRow
+	(Int32 atomicNumber)
+	(Rococo.Science.Materials.ElementName element)
+	(Rococo.Science.Materials.ElementSymbol symbol)
+	(Float32 atomicMass)
+	(Bool metal)
+	(Rococo.Science.Materials.ElementType elementType)
+	(Float32 electroNegativity)
+	(Rococo.SI.ElectronVolts firstIonization)
+	(Float32 density)
+	(Rococo.SI.Kelvin meltingPoint)
+	(Rococo.SI.Kelvin boilingPoint)
+)
+(alias PeriodicTableRow Rococo.Science.Materials.PeriodicTableRow)
+
