@@ -1,4 +1,5 @@
-namespace Rococo { 
+namespace Rococo
+{
 	bool TryParse(const Rococo::fstring& s, ELayoutAlgorithm& value)
 	{
 		if (s ==  "ELayoutAlgorithm_None"_fstring)
@@ -48,7 +49,8 @@ namespace Rococo {
 	}
 }// Rococo.ELayoutAlgorithm
 
-namespace Rococo { namespace Graphics { 
+namespace Rococo::Graphics
+{
 	bool TryParse(const Rococo::fstring& s, OrientationFlags& value)
 	{
 		if (s ==  "OrientationFlags_None"_fstring)
@@ -116,9 +118,10 @@ namespace Rococo { namespace Graphics {
 				return {"",0};
 		}
 	}
-}}// Rococo.Graphics.OrientationFlags
+}// Rococo.Graphics.OrientationFlags
 
-namespace Rococo { namespace Graphics { 
+namespace Rococo::Graphics
+{
 	bool TryParse(const Rococo::fstring& s, MaterialCategory& value)
 	{
 		if (s ==  "MaterialCategory_Rock"_fstring)
@@ -196,9 +199,10 @@ namespace Rococo { namespace Graphics {
 				return {"",0};
 		}
 	}
-}}// Rococo.Graphics.MaterialCategory
+}// Rococo.Graphics.MaterialCategory
 
-namespace Rococo { namespace Graphics { 
+namespace Rococo::Graphics
+{
 	bool TryParse(const Rococo::fstring& s, HQFont& value)
 	{
 		if (s ==  "HQFont_DebuggerFont"_fstring)
@@ -276,9 +280,10 @@ namespace Rococo { namespace Graphics {
 				return {"",0};
 		}
 	}
-}}// Rococo.Graphics.HQFont
+}// Rococo.Graphics.HQFont
 
-namespace Rococo { namespace Graphics { 
+namespace Rococo::Graphics
+{
 	bool TryParse(const Rococo::fstring& s, SampleMethod& value)
 	{
 		if (s ==  "SampleMethod_Point"_fstring)
@@ -326,9 +331,10 @@ namespace Rococo { namespace Graphics {
 				return {"",0};
 		}
 	}
-}}// Rococo.Graphics.SampleMethod
+}// Rococo.Graphics.SampleMethod
 
-namespace Rococo { namespace Graphics { 
+namespace Rococo::Graphics
+{
 	bool TryParse(const Rococo::fstring& s, SampleFilter& value)
 	{
 		if (s ==  "SampleFilter_Border"_fstring)
@@ -396,9 +402,10 @@ namespace Rococo { namespace Graphics {
 				return {"",0};
 		}
 	}
-}}// Rococo.Graphics.SampleFilter
+}// Rococo.Graphics.SampleFilter
 
-namespace Rococo { namespace Graphics { 
+namespace Rococo::Graphics
+{
 	bool TryParse(const Rococo::fstring& s, SampleIndex& value)
 	{
 		if (s ==  "SampleIndex_Fonts"_fstring)
@@ -476,7 +483,7 @@ namespace Rococo { namespace Graphics {
 				return {"",0};
 		}
 	}
-}}// Rococo.Graphics.SampleIndex
+}// Rococo.Graphics.SampleIndex
 
 // BennyHill generated Sexy native functions for Rococo::IPane 
 namespace
@@ -795,7 +802,8 @@ namespace
 
 }
 
-namespace Rococo { 
+namespace Rococo
+{
 	void AddNativeCalls_RococoIPane(Rococo::Script::IPublicScriptSystem& ss, Rococo::IPane* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
@@ -1134,7 +1142,8 @@ namespace
 
 }
 
-namespace Rococo { 
+namespace Rococo
+{
 	void AddNativeCalls_RococoIInventoryArray(Rococo::Script::IPublicScriptSystem& ss, Rococo::IInventoryArray* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
@@ -1287,7 +1296,8 @@ namespace
 
 }
 
-namespace Rococo { 
+namespace Rococo
+{
 	void AddNativeCalls_RococoIContextMenu(Rococo::Script::IPublicScriptSystem& ss, Rococo::IContextMenu* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
@@ -1622,7 +1632,8 @@ namespace
 	}
 }
 
-namespace Rococo { namespace Entities { 
+namespace Rococo::Entities
+{
 	void AddNativeCalls_RococoEntitiesIRigBuilder(Rococo::Script::IPublicScriptSystem& ss, Rococo::Entities::IRigs* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Entities.Native"));
@@ -1642,7 +1653,7 @@ namespace Rococo { namespace Entities {
 		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderCommitToSkeleton, nullptr, ("IRigBuilderCommitToSkeleton (Pointer hObject)(Sys.Type.IString name) -> (Int64 id)"), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeRococoEntitiesIRigBuilderCommitToPose, nullptr, ("IRigBuilderCommitToPose (Pointer hObject)(Sys.Type.IString name) -> (Int64 id)"), __FILE__, __LINE__);
 	}
-}}
+}
 // BennyHill generated Sexy native functions for Rococo::IContextMenuPane 
 namespace
 {
@@ -1970,7 +1981,8 @@ namespace
 
 }
 
-namespace Rococo { 
+namespace Rococo
+{
 	void AddNativeCalls_RococoIContextMenuPane(Rococo::Script::IPublicScriptSystem& ss, Rococo::IContextMenuPane* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
@@ -2032,14 +2044,15 @@ namespace
 	}
 }
 
-namespace Rococo { namespace Audio { 
+namespace Rococo::Audio
+{
 	void AddNativeCalls_RococoAudioIAudio(Rococo::Script::IPublicScriptSystem& ss, Rococo::Audio::IAudio* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Audio.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForRococoAudioGetAudio, _nceContext, ("GetHandleForIAudio0  -> (Pointer hObject)"), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeRococoAudioIAudioSetMusic, nullptr, ("IAudioSetMusic (Pointer hObject)(Sys.Type.IString musicFile) -> "), __FILE__, __LINE__);
 	}
-}}
+}
 // BennyHill generated Sexy native functions for Rococo::IEnumListPane 
 namespace
 {
@@ -2417,7 +2430,8 @@ namespace
 
 }
 
-namespace Rococo { 
+namespace Rococo
+{
 	void AddNativeCalls_RococoIEnumListPane(Rococo::Script::IPublicScriptSystem& ss, Rococo::IEnumListPane* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
@@ -2837,7 +2851,8 @@ namespace
 
 }
 
-namespace Rococo { 
+namespace Rococo
+{
 	void AddNativeCalls_RococoIArrayBox(Rococo::Script::IPublicScriptSystem& ss, Rococo::IArrayBox* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
@@ -3484,7 +3499,8 @@ namespace
 
 }
 
-namespace Rococo { 
+namespace Rococo
+{
 	void AddNativeCalls_RococoIPaneContainer(Rococo::Script::IPublicScriptSystem& ss, Rococo::IPaneContainer* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
@@ -3878,7 +3894,8 @@ namespace
 
 }
 
-namespace Rococo { 
+namespace Rococo
+{
 	void AddNativeCalls_RococoITabContainer(Rococo::Script::IPublicScriptSystem& ss, Rococo::ITabContainer* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
@@ -4623,7 +4640,8 @@ namespace
 
 }
 
-namespace Rococo { 
+namespace Rococo
+{
 	void AddNativeCalls_RococoIFramePane(Rococo::Script::IPublicScriptSystem& ss, Rococo::IFramePane* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
@@ -5007,7 +5025,8 @@ namespace
 
 }
 
-namespace Rococo { 
+namespace Rococo
+{
 	void AddNativeCalls_RococoIRadioButton(Rococo::Script::IPublicScriptSystem& ss, Rococo::IRadioButton* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
@@ -5399,7 +5418,8 @@ namespace
 
 }
 
-namespace Rococo { 
+namespace Rococo
+{
 	void AddNativeCalls_RococoILabelPane(Rococo::Script::IPublicScriptSystem& ss, Rococo::ILabelPane* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
@@ -5742,7 +5762,8 @@ namespace
 
 }
 
-namespace Rococo { 
+namespace Rococo
+{
 	void AddNativeCalls_RococoISlider(Rococo::Script::IPublicScriptSystem& ss, Rococo::ISlider* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
@@ -6083,7 +6104,8 @@ namespace
 
 }
 
-namespace Rococo { 
+namespace Rococo
+{
 	void AddNativeCalls_RococoIScroller(Rococo::Script::IPublicScriptSystem& ss, Rococo::IScroller* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
@@ -6466,7 +6488,8 @@ namespace
 
 }
 
-namespace Rococo { 
+namespace Rococo
+{
 	void AddNativeCalls_RococoITextOutputPane(Rococo::Script::IPublicScriptSystem& ss, Rococo::ITextOutputPane* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
@@ -6527,7 +6550,8 @@ namespace
 	}
 }
 
-namespace Rococo { 
+namespace Rococo
+{
 	void AddNativeCalls_RococoIPaneBuilder(Rococo::Script::IPublicScriptSystem& ss, Rococo::IPaneBuilder* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
@@ -6636,7 +6660,8 @@ namespace
 	}
 }
 
-namespace Rococo { 
+namespace Rococo
+{
 	void AddNativeCalls_RococoIKeyboard(Rococo::Script::IPublicScriptSystem& ss, Rococo::IKeyboard* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
@@ -6825,7 +6850,8 @@ namespace
 	}
 }
 
-namespace Rococo { 
+namespace Rococo
+{
 	void AddNativeCalls_RococoIConfig(Rococo::Script::IPublicScriptSystem& ss, Rococo::IConfig* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
@@ -6913,7 +6939,8 @@ namespace
 	}
 }
 
-namespace Rococo { namespace Graphics { 
+namespace Rococo::Graphics
+{
 	void AddNativeCalls_RococoGraphicsISpriteBuilder(Rococo::Script::IPublicScriptSystem& ss, Rococo::Graphics::ISpriteBuilder* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Graphics.Native"));
@@ -6923,7 +6950,7 @@ namespace Rococo { namespace Graphics {
 		ss.AddNativeCall(ns, NativeRococoGraphicsISpriteBuilderAddEachSpriteInDirectory, nullptr, ("ISpriteBuilderAddEachSpriteInDirectory (Pointer hObject)(Sys.Type.IString directoryName) -> "), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeRococoGraphicsISpriteBuilderLoadAllSprites, nullptr, ("ISpriteBuilderLoadAllSprites (Pointer hObject) -> "), __FILE__, __LINE__);
 	}
-}}
+}
 // BennyHill generated Sexy native functions for Rococo::Graphics::ISprites 
 namespace
 {
@@ -6981,7 +7008,8 @@ namespace
 	}
 }
 
-namespace Rococo { namespace Graphics { 
+namespace Rococo::Graphics
+{
 	void AddNativeCalls_RococoGraphicsISprites(Rococo::Script::IPublicScriptSystem& ss, Rococo::Graphics::ISprites* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Graphics.Native"));
@@ -6989,7 +7017,7 @@ namespace Rococo { namespace Graphics {
 		ss.AddNativeCall(ns, NativeRococoGraphicsISpritesTryGetId, nullptr, ("ISpritesTryGetId (Pointer hObject)(Sys.Type.IString pingPath) -> (Int64 id)"), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeRococoGraphicsISpritesAppendPingPath, nullptr, ("ISpritesAppendPingPath (Pointer hObject)(Int64 id)(Sys.Type.IStringBuilder sb) -> "), __FILE__, __LINE__);
 	}
-}}
+}
 // BennyHill generated Sexy native functions for Rococo::Entities::IMobiles 
 namespace
 {
@@ -7061,7 +7089,8 @@ namespace
 	}
 }
 
-namespace Rococo { namespace Entities { 
+namespace Rococo::Entities
+{
 	void AddNativeCalls_RococoEntitiesIMobiles(Rococo::Script::IPublicScriptSystem& ss, Rococo::Entities::IMobiles* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Entities.Native"));
@@ -7070,7 +7099,7 @@ namespace Rococo { namespace Entities {
 		ss.AddNativeCall(ns, NativeRococoEntitiesIMobilesGetAngles, nullptr, ("IMobilesGetAngles (Pointer hObject)(Int64 id)(Sys.Maths.FPSAngles angles) -> "), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeRococoEntitiesIMobilesSetAngles, nullptr, ("IMobilesSetAngles (Pointer hObject)(Int64 id)(Sys.Maths.FPSAngles angles) -> "), __FILE__, __LINE__);
 	}
-}}
+}
 // BennyHill generated Sexy native functions for Rococo::Entities::IParticleSystem 
 namespace
 {
@@ -7214,7 +7243,8 @@ namespace
 	}
 }
 
-namespace Rococo { namespace Entities { 
+namespace Rococo::Entities
+{
 	void AddNativeCalls_RococoEntitiesIParticleSystem(Rococo::Script::IPublicScriptSystem& ss, Rococo::Platform* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Entities.Native"));
@@ -7227,7 +7257,7 @@ namespace Rococo { namespace Entities {
 		ss.AddNativeCall(ns, NativeRococoEntitiesIParticleSystemClear, nullptr, ("IParticleSystemClear (Pointer hObject) -> "), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeRococoEntitiesIParticleSystemSnuff, nullptr, ("IParticleSystemSnuff (Pointer hObject)(Int64 id) -> "), __FILE__, __LINE__);
 	}
-}}
+}
 // BennyHill generated Sexy native functions for Rococo::Graphics::ICamera 
 namespace
 {
@@ -7455,7 +7485,8 @@ namespace
 	}
 }
 
-namespace Rococo { namespace Graphics { 
+namespace Rococo::Graphics
+{
 	void AddNativeCalls_RococoGraphicsICamera(Rococo::Script::IPublicScriptSystem& ss, Rococo::Graphics::ICamera* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Graphics.Native"));
@@ -7475,7 +7506,7 @@ namespace Rococo { namespace Graphics {
 		ss.AddNativeCall(ns, NativeRococoGraphicsICameraGetProjection, nullptr, ("ICameraGetProjection (Pointer hObject)(Sys.Maths.Matrix4x4 proj) -> "), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeRococoGraphicsICameraAspectRatio, nullptr, ("ICameraAspectRatio (Pointer hObject) -> (Float32 widthOverHeight)"), __FILE__, __LINE__);
 	}
-}}
+}
 // BennyHill generated Sexy native functions for Rococo::Graphics::ISceneBuilder 
 namespace
 {
@@ -7617,7 +7648,8 @@ namespace
 	}
 }
 
-namespace Rococo { namespace Graphics { 
+namespace Rococo::Graphics
+{
 	void AddNativeCalls_RococoGraphicsISceneBuilder(Rococo::Script::IPublicScriptSystem& ss, Rococo::Graphics::ISceneBuilder* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Graphics.Native"));
@@ -7631,7 +7663,7 @@ namespace Rococo { namespace Graphics {
 		ss.AddNativeCall(ns, NativeRococoGraphicsISceneBuilderSetLight, nullptr, ("ISceneBuilderSetLight (Pointer hObject)(Rococo.LightSpec light)(Int32 index) -> "), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeRococoGraphicsISceneBuilderSetSkyBox, nullptr, ("ISceneBuilderSetSkyBox (Pointer hObject)(Int64 cubeId) -> "), __FILE__, __LINE__);
 	}
-}}
+}
 // BennyHill generated Sexy native functions for Rococo::Graphics::IMessaging 
 namespace
 {
@@ -7669,14 +7701,15 @@ namespace
 	}
 }
 
-namespace Rococo { namespace Graphics { 
+namespace Rococo::Graphics
+{
 	void AddNativeCalls_RococoGraphicsIMessaging(Rococo::Script::IPublicScriptSystem& ss, Rococo::Platform* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Graphics.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForRococoGraphicsMessaging, _nceContext, ("GetHandleForIMessaging0  -> (Pointer hObject)"), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeRococoGraphicsIMessagingLog, nullptr, ("IMessagingLog (Pointer hObject)(Sys.Type.IString message) -> "), __FILE__, __LINE__);
 	}
-}}
+}
 // BennyHill generated Sexy native functions for Rococo::Entities::IInstances 
 namespace
 {
@@ -8044,7 +8077,8 @@ namespace
 	}
 }
 
-namespace Rococo { namespace Entities { 
+namespace Rococo::Entities
+{
 	void AddNativeCalls_RococoEntitiesIInstances(Rococo::Script::IPublicScriptSystem& ss, Rococo::Entities::IInstances* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Entities.Native"));
@@ -8068,7 +8102,7 @@ namespace Rococo { namespace Entities {
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesTryGetModelToWorldMatrix, nullptr, ("IInstancesTryGetModelToWorldMatrix (Pointer hObject)(Int64 entityId)(Sys.Maths.Matrix4x4 position) -> (Bool existant)"), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesClear, nullptr, ("IInstancesClear (Pointer hObject) -> "), __FILE__, __LINE__);
 	}
-}}
+}
 // BennyHill generated Sexy native functions for Rococo::Graphics::IMeshBuilder 
 namespace
 {
@@ -8346,7 +8380,8 @@ namespace
 	}
 }
 
-namespace Rococo { namespace Graphics { 
+namespace Rococo::Graphics
+{
 	void AddNativeCalls_RococoGraphicsIMeshBuilder(Rococo::Script::IPublicScriptSystem& ss, Rococo::Graphics::IMeshBuilder* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Graphics.Native"));
@@ -8365,7 +8400,7 @@ namespace Rococo { namespace Graphics {
 		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderSetSpecialSpotlightShader, nullptr, ("IMeshBuilderSetSpecialSpotlightShader (Pointer hObject)(Sys.Type.IString fqName)(Sys.Type.IString vsSpotlightPingPath)(Sys.Type.IString psSpotlightPingPath)(Bool alphaBlending) -> "), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeRococoGraphicsIMeshBuilderSpan, nullptr, ("IMeshBuilderSpan (Pointer hObject)(Sys.Maths.Vec3 span)(Sys.Type.IString fqName) -> "), __FILE__, __LINE__);
 	}
-}}
+}
 // BennyHill generated Sexy native functions for Rococo::Graphics::IRimTesselator 
 namespace
 {
@@ -8623,7 +8658,8 @@ namespace
 	}
 }
 
-namespace Rococo { namespace Graphics { 
+namespace Rococo::Graphics
+{
 	void AddNativeCalls_RococoGraphicsIRimTesselator(Rococo::Script::IPublicScriptSystem& ss, Rococo::Graphics::IRimTesselator* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Graphics.Native"));
@@ -8643,7 +8679,7 @@ namespace Rococo { namespace Graphics {
 		ss.AddNativeCall(ns, NativeRococoGraphicsIRimTesselatorGetTopTriangle, nullptr, ("IRimTesselatorGetTopTriangle (Pointer hObject)(Int32 index)(Sys.Maths.Triangle pos)(Sys.Maths.Triangle2d uv)(Float32 z) -> "), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeRococoGraphicsIRimTesselatorSetTransform, nullptr, ("IRimTesselatorSetTransform (Pointer hObject)(Sys.Maths.Matrix4x4 transform) -> "), __FILE__, __LINE__);
 	}
-}}
+}
 // BennyHill generated Sexy native functions for Rococo::Graphics::IFieldTesselator 
 namespace
 {
@@ -9017,7 +9053,8 @@ namespace
 	}
 }
 
-namespace Rococo { namespace Graphics { 
+namespace Rococo::Graphics
+{
 	void AddNativeCalls_RococoGraphicsIFieldTesselator(Rococo::Script::IPublicScriptSystem& ss, Rococo::Graphics::IFieldTesselator* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Graphics.Native"));
@@ -9039,7 +9076,7 @@ namespace Rococo { namespace Graphics {
 		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorRandomizeField, nullptr, ("IFieldTesselatorRandomizeField (Pointer hObject)(Int32 i)(Int32 j)(Float32 minValue)(Float32 maxValue) -> "), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeRococoGraphicsIFieldTesselatorGetBasis, nullptr, ("IFieldTesselatorGetBasis (Pointer hObject)(Sys.Maths.Matrix4x4 transform) -> "), __FILE__, __LINE__);
 	}
-}}
+}
 // BennyHill generated Sexy native functions for Rococo::Graphics::IQuadStackTesselator 
 namespace
 {
@@ -9561,7 +9598,8 @@ namespace
 	}
 }
 
-namespace Rococo { namespace Graphics { 
+namespace Rococo::Graphics
+{
 	void AddNativeCalls_RococoGraphicsIQuadStackTesselator(Rococo::Script::IPublicScriptSystem& ss, Rococo::Graphics::IQuadStackTesselator* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Graphics.Native"));
@@ -9592,7 +9630,7 @@ namespace Rococo { namespace Graphics {
 		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorTileMosaic, nullptr, ("IQuadStackTesselatorTileMosaic (Pointer hObject)(Rococo.MaterialVertexData a)(Rococo.MaterialVertexData b)(Sys.Maths.Rectf uvRect)(Sys.SI.Metres roughSize) -> "), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeRococoGraphicsIQuadStackTesselatorTranslate, nullptr, ("IQuadStackTesselatorTranslate (Pointer hObject)(Sys.Maths.Vec3 v) -> "), __FILE__, __LINE__);
 	}
-}}
+}
 // BennyHill generated Sexy native functions for Rococo::Graphics::IRodTesselator 
 namespace
 {
@@ -10110,7 +10148,8 @@ namespace
 	}
 }
 
-namespace Rococo { namespace Graphics { 
+namespace Rococo::Graphics
+{
 	void AddNativeCalls_RococoGraphicsIRodTesselator(Rococo::Script::IPublicScriptSystem& ss, Rococo::Platform* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Graphics.Native"));
@@ -10144,7 +10183,7 @@ namespace Rococo { namespace Graphics {
 		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorUseFaceNormals, nullptr, ("IRodTesselatorUseFaceNormals (Pointer hObject) -> "), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeRococoGraphicsIRodTesselatorUseSmoothNormals, nullptr, ("IRodTesselatorUseSmoothNormals (Pointer hObject) -> "), __FILE__, __LINE__);
 	}
-}}
+}
 // BennyHill generated Sexy native functions for Rococo::Graphics::ILandscapeTesselator 
 namespace
 {
@@ -10316,7 +10355,8 @@ namespace
 	}
 }
 
-namespace Rococo { namespace Graphics { 
+namespace Rococo::Graphics
+{
 	void AddNativeCalls_RococoGraphicsILandscapeTesselator(Rococo::Script::IPublicScriptSystem& ss, Rococo::Platform* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Graphics.Native"));
@@ -10331,7 +10371,7 @@ namespace Rococo { namespace Graphics {
 		ss.AddNativeCall(ns, NativeRococoGraphicsILandscapeTesselatorSetSeed, nullptr, ("ILandscapeTesselatorSetSeed (Pointer hObject)(Int64 seedNumber) -> "), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeRococoGraphicsILandscapeTesselatorTranslateEachCell, nullptr, ("ILandscapeTesselatorTranslateEachCell (Pointer hObject)(Sys.Maths.Vec3 delta) -> "), __FILE__, __LINE__);
 	}
-}}
+}
 // BennyHill generated Sexy native functions for Rococo::Graphics::ITextTesselator 
 namespace
 {
@@ -10483,7 +10523,8 @@ namespace
 	}
 }
 
-namespace Rococo { namespace Graphics { 
+namespace Rococo::Graphics
+{
 	void AddNativeCalls_RococoGraphicsITextTesselator(Rococo::Script::IPublicScriptSystem& ss, Rococo::Platform* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Graphics.Native"));
@@ -10497,7 +10538,7 @@ namespace Rococo { namespace Graphics {
 		ss.AddNativeCall(ns, NativeRococoGraphicsITextTesselatorTrySetFontIndex, nullptr, ("ITextTesselatorTrySetFontIndex (Pointer hObject)(Int32 index) -> (Bool isSet)"), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeRococoGraphicsITextTesselatorTrySetFont, nullptr, ("ITextTesselatorTrySetFont (Pointer hObject)(Sys.Type.IString name)(Float32 dotSize) -> (Bool isSet)"), __FILE__, __LINE__);
 	}
-}}
+}
 // BennyHill generated Sexy native functions for Rococo::Graphics::IHQFonts 
 namespace
 {
@@ -10669,7 +10710,8 @@ namespace
 	}
 }
 
-namespace Rococo { namespace Graphics { 
+namespace Rococo::Graphics
+{
 	void AddNativeCalls_RococoGraphicsIHQFonts(Rococo::Script::IPublicScriptSystem& ss, Rococo::Platform* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Graphics.Native"));
@@ -10686,7 +10728,7 @@ namespace Rococo { namespace Graphics {
 		ss.AddNativeCall(ns, NativeRococoGraphicsIHQFontsCommit, nullptr, ("IHQFontsCommit (Pointer hObject) -> (Int32 fontId)"), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeRococoGraphicsIHQFontsGetSysFont, nullptr, ("IHQFontsGetSysFont (Pointer hObject)(Int32 font) -> (Int32 fontId)"), __FILE__, __LINE__);
 	}
-}}
+}
 // BennyHill generated Sexy native functions for Rococo::Graphics::IRendererConfig 
 namespace
 {
@@ -10726,14 +10768,15 @@ namespace
 	}
 }
 
-namespace Rococo { namespace Graphics { 
+namespace Rococo::Graphics
+{
 	void AddNativeCalls_RococoGraphicsIRendererConfig(Rococo::Script::IPublicScriptSystem& ss, Rococo::Platform* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Graphics.Native"));
 		ss.AddNativeCall(ns, NativeGetHandleForRococoGraphicsRendererConfig, _nceContext, ("GetHandleForIRendererConfig0  -> (Pointer hObject)"), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeRococoGraphicsIRendererConfigSetSampler, nullptr, ("IRendererConfigSetSampler (Pointer hObject)(Rococo.SampleStateDef ssd)(Int32 index) -> "), __FILE__, __LINE__);
 	}
-}}
+}
 // BennyHill generated Sexy native functions for Rococo::IArchive 
 namespace
 {
@@ -10849,7 +10892,8 @@ namespace
 	}
 }
 
-namespace Rococo { 
+namespace Rococo
+{
 	void AddNativeCalls_RococoIArchive(Rococo::Script::IPublicScriptSystem& ss, Rococo::Platform* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
@@ -10903,7 +10947,8 @@ namespace
 	}
 }
 
-namespace Rococo { 
+namespace Rococo
+{
 	void AddNativeCalls_RococoIInstallationManager(Rococo::Script::IPublicScriptSystem& ss, Rococo::Platform* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));
@@ -11006,7 +11051,8 @@ namespace
 	}
 }
 
-namespace Rococo { 
+namespace Rococo
+{
 	void AddNativeCalls_RococoIWorldBuilder(Rococo::Script::IPublicScriptSystem& ss, Rococo::Platform* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Native"));

@@ -1,4 +1,5 @@
-namespace Rococo { 
+namespace Rococo
+{
 	bool TryParse(const Rococo::fstring& s, AlignmentFlags& value)
 	{
 		if (s ==  "AlignmentFlags_None"_fstring)
@@ -581,7 +582,8 @@ namespace
 
 }
 
-namespace MHost { 
+namespace MHost
+{
 	void AddNativeCalls_MHostIGui(Rococo::Script::IPublicScriptSystem& ss, MHost::IGui* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("MHost.Native"));
@@ -862,7 +864,8 @@ namespace
 	}
 }
 
-namespace MHost { 
+namespace MHost
+{
 	void AddNativeCalls_MHostIEngine(Rococo::Script::IPublicScriptSystem& ss, MHost::IEngine* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("MHost.Native"));
@@ -1216,7 +1219,8 @@ namespace
 	}
 }
 
-namespace MHost { 
+namespace MHost
+{
 	void AddNativeCalls_MHostIDictionaryStream(Rococo::Script::IPublicScriptSystem& ss, Rococo::IInstallation* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("MHost.Native"));

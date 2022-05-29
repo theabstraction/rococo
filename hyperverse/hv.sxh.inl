@@ -1,4 +1,5 @@
-namespace HV { 
+namespace HV
+{
 	bool TryParse(const Rococo::fstring& s, TriggerType& value)
 	{
 		if (s ==  "TriggerType_None"_fstring)
@@ -68,7 +69,8 @@ namespace HV {
 	}
 }// HV.TriggerType
 
-namespace HV { namespace Chemicals { 
+namespace HV::Chemicals
+{
 	bool TryParse(const Rococo::fstring& s, Element& value)
 	{
 		if (s ==  "Element_None"_fstring)
@@ -1286,9 +1288,10 @@ namespace HV { namespace Chemicals {
 				return {"",0};
 		}
 	}
-}}// HV.Chemicals.Element
+}// HV.Chemicals.Element
 
-namespace HV { namespace Chemicals { 
+namespace HV::Chemicals
+{
 	bool TryParse(const Rococo::fstring& s, Compounds& value)
 	{
 		if (s ==  "Compounds_Oak"_fstring)
@@ -1586,9 +1589,10 @@ namespace HV { namespace Chemicals {
 				return {"",0};
 		}
 	}
-}}// HV.Chemicals.Compounds
+}// HV.Chemicals.Compounds
 
-namespace HV { 
+namespace HV
+{
 	bool TryParse(const Rococo::fstring& s, EquipmentSlot& value)
 	{
 		if (s ==  "EquipmentSlot_None"_fstring)
@@ -1758,7 +1762,8 @@ namespace HV {
 	}
 }// HV.EquipmentSlot
 
-namespace HV { 
+namespace HV
+{
 	bool TryParse(const Rococo::fstring& s, AddItemFlags& value)
 	{
 		if (s ==  "AddItemFlags_None"_fstring)
@@ -2053,7 +2058,8 @@ namespace
 	}
 }
 
-namespace HV { 
+namespace HV
+{
 	void AddNativeCalls_HVIObjectPrototypeBuilder(Rococo::Script::IPublicScriptSystem& ss, HV::IObjectPrototypeBuilder* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("HV.Native"));
@@ -2099,7 +2105,8 @@ namespace
 
 }
 
-namespace HV { 
+namespace HV
+{
 	void AddNativeCalls_HVIObjectPrototypeBase(Rococo::Script::IPublicScriptSystem& ss, HV::IObjectPrototypeBase* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("HV.Native"));
@@ -2171,7 +2178,8 @@ namespace
 	}
 }
 
-namespace HV { 
+namespace HV
+{
 	void AddNativeCalls_HVIPlayer(Rococo::Script::IPublicScriptSystem& ss, HV::IPlayerSupervisor* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("HV.Native"));
@@ -2268,7 +2276,8 @@ namespace
 	}
 }
 
-namespace HV { 
+namespace HV
+{
 	void AddNativeCalls_HVIScriptConfig(Rococo::Script::IPublicScriptSystem& ss, HV::IScriptConfig* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("HV.Native"));
@@ -2324,7 +2333,8 @@ namespace
 	}
 }
 
-namespace HV { 
+namespace HV
+{
 	void AddNativeCalls_HVICorridor(Rococo::Script::IPublicScriptSystem& ss, HV::ICorridor* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("HV.Native"));
@@ -2478,7 +2488,8 @@ namespace
 	}
 }
 
-namespace HV { 
+namespace HV
+{
 	void AddNativeCalls_HVISectorAIBuilder(Rococo::Script::IPublicScriptSystem& ss, Cosmos* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("HV.Native"));
@@ -2741,7 +2752,8 @@ namespace
 	}
 }
 
-namespace HV { 
+namespace HV
+{
 	void AddNativeCalls_HVISectorBuilder(Rococo::Script::IPublicScriptSystem& ss, HV::ISectors* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("HV.Native"));
@@ -3076,7 +3088,8 @@ namespace
 
 }
 
-namespace HV { 
+namespace HV
+{
 	void AddNativeCalls_HVISectorLayout(Rococo::Script::IPublicScriptSystem& ss, HV::ISectorLayout* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("HV.Native"));
@@ -3184,7 +3197,8 @@ namespace
 	}
 }
 
-namespace HV { 
+namespace HV
+{
 	void AddNativeCalls_HVISectorEnumerator(Rococo::Script::IPublicScriptSystem& ss, HV::ISectorEnumerator* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("HV.Native"));
@@ -3310,7 +3324,8 @@ namespace
 	}
 }
 
-namespace HV { 
+namespace HV
+{
 	void AddNativeCalls_HVISectorComponents(Rococo::Script::IPublicScriptSystem& ss, HV::ISectorComponents* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("HV.Native"));
@@ -3420,7 +3435,8 @@ namespace
 
 }
 
-namespace HV { 
+namespace HV
+{
 	void AddNativeCalls_HVITriangleList(Rococo::Script::IPublicScriptSystem& ss, HV::ITriangleList* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("HV.Native"));
@@ -3546,7 +3562,8 @@ namespace
 	}
 }
 
-namespace HV { 
+namespace HV
+{
 	void AddNativeCalls_HVISectorWallTesselator(Rococo::Script::IPublicScriptSystem& ss, HV::ISectorWallTesselator* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("HV.Native"));
@@ -3780,7 +3797,8 @@ namespace
 	}
 }
 
-namespace HV { 
+namespace HV
+{
 	void AddNativeCalls_HVISectorFloorTesselator(Rococo::Script::IPublicScriptSystem& ss, HV::ISectorFloorTesselator* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("HV.Native"));

@@ -49,7 +49,8 @@ namespace
 	}
 }
 
-namespace Rococo { namespace Science { namespace Materials { 
+namespace Rococo::Science::Materials
+{
 	void AddNativeCalls_RococoScienceMaterialsIPeriodicTable_Sexy(Rococo::Script::IPublicScriptSystem& ss, Rococo::Science::Materials::IPeriodicTable_Sexy* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Science.Materials.Native"));
@@ -57,4 +58,4 @@ namespace Rococo { namespace Science { namespace Materials {
 		ss.AddNativeCall(ns, NativeRococoScienceMaterialsIPeriodicTable_SexyGetRow, nullptr, ("IPeriodicTableGetRow (Pointer hObject)(Int32 index)(Rococo.Science.Materials.PeriodicTableRow row) -> "), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeRococoScienceMaterialsIPeriodicTable_SexyNumberOfRows, nullptr, ("IPeriodicTableNumberOfRows (Pointer hObject) -> (Int32 numberOfRows)"), __FILE__, __LINE__);
 	}
-}}}
+}

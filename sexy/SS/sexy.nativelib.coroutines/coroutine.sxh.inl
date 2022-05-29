@@ -71,7 +71,8 @@ namespace
 	}
 }
 
-namespace Sys { 
+namespace Sys
+{
 	void AddNativeCalls_SysICoroutineControl(Rococo::Script::IPublicScriptSystem& ss, Sys::ICoroutineControl* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Sys.Native"));
