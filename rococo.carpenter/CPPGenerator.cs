@@ -1295,6 +1295,27 @@ namespace Rococo.Carpenter
             return nullHeader;
         }
 
+        public void AppendFQSexyInterfaceName(StringBuilder sb)
+        {
+            sb.Append(CppNamespace);
+            sb.Append("::");
+            sb.Append(Rules.CppInterface);
+            sb.Append("_Sexy");
+        }
+
+
+        public void AppendFactoryConstruct(StringBuilder sb)
+        {
+            AppendFQSexyInterfaceName(sb);
+            sb.Append("* ");
+            sb.Append("FactoryConstruct");
+            sb.Append(CppNamespace.Replace("::", ""));
+            sb.Append(Rules.CppFactory);
+            sb.Append("(");
+            AppendFQSexyInterfaceName(sb);
+            sb.Append("* nullContext)");
+        }
+
         public void AppendTableImplementation()
         {
             var sb = SourceBuilder;
@@ -1471,6 +1492,28 @@ namespace Rococo.Carpenter
             AppendTab(sb);
             sb.AppendLine("{");
 
+            AppendTab(sb);
+            AppendTab(sb);
+            AppendFQSexyInterfaceName(sb);
+            sb.AppendFormat("& GetSexyInterface()");
+            sb.AppendLine();
+
+            AppendTab(sb);
+            AppendTab(sb);
+            sb.Append("{");
+            sb.AppendLine();
+
+            AppendTab(sb);
+            AppendTab(sb);
+            AppendTab(sb);
+            sb.AppendLine("return *this;");
+
+            AppendTab(sb);
+            AppendTab(sb);
+            sb.AppendLine("}");
+
+            sb.AppendLine();
+
             if (Rules.Lifetime == TableLifetime.Singleton)
             {
                 AppendTab(sb);
@@ -1581,6 +1624,10 @@ namespace Rococo.Carpenter
             AppendTab(sb);
             AppendTab(sb);
             sb.AppendLine("{");
+            AppendTab(sb);
+            AppendTab(sb);
+            AppendTab(sb);
+            sb.AppendLine("if (index > NumberOfRows()) Throw(0, \"%s: [index] out of range.\", __FUNCTION__);");
             AppendTab(sb);
             AppendTab(sb);
             AppendTab(sb);
@@ -1862,28 +1909,37 @@ namespace Rococo.Carpenter
 
             sb.AppendLine("}");
 
-            sb.AppendFormat("{0}::I{1}* FactoryConstruct{2}Get{3}({0}::I{1}* nullContext)", CppNamespace, CppTableName, CppNamespace.Replace("::", ""), CppTableName);
+            AppendFactoryConstruct(sb);
+
             sb.AppendLine();
 
             sb.AppendLine("{");
             if (Rules.Lifetime == TableLifetime.Dynamic)
             {
-                sb.AppendFormat("return new ANON::{0}_Implementation();", CppTableName);
+                AppendTab(sb);
+                sb.AppendFormat("auto* instance = new ANON::{0}_Implementation();", CppTableName);
+                sb.AppendLine();
+
+                AppendTab(sb);
+                sb.AppendFormat("return &instance->GetSexyInterface();", CppTableName);
             }
             else if (Rules.Lifetime == TableLifetime.Singleton)
             {
                 AppendTab(sb);
-
+                AppendTab(sb);
                 sb.AppendLine("IInstallation& installation = GetInstallationFromCallContext();");
-
+                AppendTab(sb);
                 sb.AppendFormat("{0}Supervisor* instance = {1}(installation)", Rules.CppInterface, Rules.CppFactory);
                 sb.AppendLine();
+                AppendTab(sb);
                 sb.AppendLine("return instance;");
             }
             else // Static
             {
+                AppendTab(sb);
                 sb.AppendFormat("return &{0}();", Rules.CppFactory);
             }
+            sb.AppendLine();
             sb.AppendLine("}");
 
             bool firstHeader = true;

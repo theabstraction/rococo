@@ -37,13 +37,13 @@ namespace
 		WriteOutput(numberOfRows, _sf, -_offset);
 	}
 
-	void NativeGetHandleForRococoScienceMaterialsGetElementsTable(NativeCallEnvironment& _nce)
+	void NativeGetHandleForRococoScienceMaterialsGetPeriodicTable(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		Rococo::Science::Materials::IPeriodicTable_Sexy* nceContext = reinterpret_cast<Rococo::Science::Materials::IPeriodicTable_Sexy*>(_nce.context);
-		// Uses: Rococo::Science::Materials::IPeriodicTable_Sexy* FactoryConstructRococoScienceMaterialsGetElementsTable(Rococo::Science::Materials::IPeriodicTable_Sexy* _context);
-		Rococo::Science::Materials::IPeriodicTable_Sexy* pObject = FactoryConstructRococoScienceMaterialsGetElementsTable(nceContext);
+		// Uses: Rococo::Science::Materials::IPeriodicTable_Sexy* FactoryConstructRococoScienceMaterialsGetPeriodicTable(Rococo::Science::Materials::IPeriodicTable_Sexy* _context);
+		Rococo::Science::Materials::IPeriodicTable_Sexy* pObject = FactoryConstructRococoScienceMaterialsGetPeriodicTable(nceContext);
 		_offset += sizeof(IString*);
 		WriteOutput(pObject, _sf, -_offset);
 	}
@@ -53,7 +53,7 @@ namespace Rococo { namespace Science { namespace Materials {
 	void AddNativeCalls_RococoScienceMaterialsIPeriodicTable_Sexy(Rococo::Script::IPublicScriptSystem& ss, Rococo::Science::Materials::IPeriodicTable_Sexy* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace(("Rococo.Science.Materials.Native"));
-		ss.AddNativeCall(ns, NativeGetHandleForRococoScienceMaterialsGetElementsTable, _nceContext, ("GetHandleForIPeriodicTable0  -> (Pointer hObject)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeGetHandleForRococoScienceMaterialsGetPeriodicTable, _nceContext, ("GetHandleForIPeriodicTable0  -> (Pointer hObject)"), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeRococoScienceMaterialsIPeriodicTable_SexyGetRow, nullptr, ("IPeriodicTableGetRow (Pointer hObject)(Int32 index)(Rococo.Science.Materials.PeriodicTableRow row) -> "), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeRococoScienceMaterialsIPeriodicTable_SexyNumberOfRows, nullptr, ("IPeriodicTableNumberOfRows (Pointer hObject) -> (Int32 numberOfRows)"), __FILE__, __LINE__);
 	}

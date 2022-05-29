@@ -8,7 +8,7 @@
 	(method ProxyIPeriodicTable.GetRow (Int32 index)(Rococo.Science.Materials.PeriodicTableRow row) ->  : (Rococo.Science.Materials.Native.IPeriodicTableGetRow this.hObject index row))
 	(method ProxyIPeriodicTable.NumberOfRows  -> (Int32 numberOfRows) : (Rococo.Science.Materials.Native.IPeriodicTableNumberOfRows this.hObject  -> numberOfRows))
 
-(factory Rococo.Science.Materials.GetElementsTable Rococo.Science.Materials.IPeriodicTable  :
+(factory Rococo.Science.Materials.GetPeriodicTable Rococo.Science.Materials.IPeriodicTable  :
 	(Pointer pObject = (Rococo.Science.Materials.Native.GetHandleForIPeriodicTable0 ))
 	(construct ProxyIPeriodicTable pObject)
 )

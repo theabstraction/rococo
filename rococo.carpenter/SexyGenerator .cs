@@ -363,7 +363,7 @@ namespace Rococo.Carpenter
             sb.AppendLine(")");
 
             AppendTab(sb);
-            sb.AppendFormat("(factory {0}.Get{1})", CPP.CppNamespace.Replace("::", "."), CPP.CppTableName.Replace("_", ""));
+            sb.AppendFormat("(factory {0}.{1})", Rules.CppNamespace.Replace("::", "."), Rules.CppFactory);
             sb.AppendLine();
 
 
