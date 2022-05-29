@@ -1311,9 +1311,7 @@ namespace Rococo.Carpenter
             sb.Append("FactoryConstruct");
             sb.Append(CppNamespace.Replace("::", ""));
             sb.Append(Rules.CppFactory);
-            sb.Append("(");
-            AppendFQSexyInterfaceName(sb);
-            sb.Append("* nullContext)");
+            sb.Append("(void* unusedNullContext)");
         }
 
         public void AppendTableImplementation()

@@ -82,7 +82,7 @@ namespace Rococo
          }
       }
 
-      if (cpptypeDef == NULL) Throw(field, ("Cannot resolve the type. Neither a known struct or primitive"));
+      if (cpptypeDef == NULL) Throw(field, "Cannot resolve the type. Neither a known struct or primitive");
 
       ConvertAndAppendCppType(appender, cpptypeDef);
    }
@@ -121,7 +121,7 @@ namespace Rococo
 
 			if (pos >= safeZone)
 			{
-				Throw(0, ("Overflow formatting struct name: %.64s"), fqStructName);
+				Throw(0, "Overflow formatting struct name: %.64s", fqStructName);
 			}
 
 			if (src == '.')
@@ -196,7 +196,7 @@ void GenerateFiles(const ParseContext& pc, const EnumContext& ec, cr_sex senumDe
 
 void GetFileSpec(char filename[_MAX_PATH], cstr root, cstr scriptName, cstr extension)
 {
-   SafeFormat(filename, _MAX_PATH, ("%s%s%s"), root, scriptName, extension);
+   SafeFormat(filename, _MAX_PATH, "%s%s%s", root, scriptName, extension);
 }
 
 struct FunctionDesc
@@ -239,11 +239,11 @@ void AppendNativeFunction(cr_sex functionDef, const ParseContext& pc, FileAppend
 		i->second.push_back(desc);
 	}
 
-	outputFile.Append(("\tvoid Native%s%s(NativeCallEnvironment& _nce)\n"), nsType.CompressedName(), fname);
-	outputFile.Append(("\t{\n"));
+	outputFile.Append("\tvoid Native%s%s(NativeCallEnvironment& _nce)\n", nsType.CompressedName(), fname);
+	outputFile.Append("\t{\n");
 
-	outputFile.Append(("\t\tRococo::uint8* _sf = _nce.cpu.SF();\n"));
-	outputFile.Append(("\t\tptrdiff_t _offset = 2 * sizeof(size_t);\n"));
+	outputFile.Append("\t\tRococo::uint8* _sf = _nce.cpu.SF();\n");
+	outputFile.Append("\t\tptrdiff_t _offset = 2 * sizeof(size_t);\n");
 
 	bool hasInitializedStringStruct = false;
 
@@ -255,7 +255,7 @@ void AppendNativeFunction(cr_sex functionDef, const ParseContext& pc, FileAppend
 
 	if (functionDef.NumberOfElements() != outputStart + 3 && functionDef.NumberOfElements() != outputStart + 2)
 	{
-		Throw(functionDef, ("Expecting two elements after the output. The first : and the second the function name to be called in C++"));
+		Throw(functionDef, "Expecting two elements after the output. The first : and the second the function name to be called in C++");
 	}
 
 	int bodyIndicatorPos = outputStart;
@@ -266,15 +266,15 @@ void AppendNativeFunction(cr_sex functionDef, const ParseContext& pc, FileAppend
 	}
 
 	cr_sex bodyIndicator = functionDef[bodyIndicatorPos];
-	if (!IsAtomic(bodyIndicator) || !AreEqual(bodyIndicator.String(), (":")))
+	if (!IsAtomic(bodyIndicator) || !AreEqual(bodyIndicator.String(), ":"))
 	{
-		Throw(bodyIndicator, ("Expecting ':' body indicator at this position. Benny Hill functions have only one output. Check spaces between tokens."));
+		Throw(bodyIndicator, "Expecting ':' body indicator at this position. Benny Hill functions have only one output. Check spaces between tokens.");
 	}
 
 	cr_sex sCppFunction = functionDef[functionDef.NumberOfElements() - 1];
 	if (!IsAtomic(sCppFunction) && !IsStringLiteral(sCppFunction))
 	{
-		Throw(sCppFunction, ("Expecting function name, atomic or string literal"));
+		Throw(sCppFunction, "Expecting function name, atomic or string literal");
 	}
 
 	sexstring cppFunction = sCppFunction.String();
@@ -288,7 +288,7 @@ void AppendNativeFunction(cr_sex functionDef, const ParseContext& pc, FileAppend
 		cstr type = StringFrom(stype);
 
 		TTypeMap::const_iterator k = pc.primitives.find(type);
-		if (k == pc.primitives.end()) Throw(stype, ("Could not find type amongst the primitives"));
+		if (k == pc.primitives.end()) Throw(stype, "Could not find type amongst the primitives");
 
 		char cppName[256];
 		char compressedName[256];
@@ -298,7 +298,7 @@ void AppendNativeFunction(cr_sex functionDef, const ParseContext& pc, FileAppend
 	}
 	else
 	{
-		outputFile.Append(("\t\t"));
+		outputFile.Append("\t\t");
 	}
 
 	outputFile.Append(("%s("), cppFunction->Buffer);
@@ -321,18 +321,18 @@ void AppendNativeFunction(cr_sex functionDef, const ParseContext& pc, FileAppend
 			svalue = &s[2];
 		}
 
-		if (!AreEqual(type, ("#")))
+		if (!AreEqual(type, "#"))
 		{
-			if (inputCount > 1) outputFile.Append((", "));
+			if (inputCount > 1) outputFile.Append(", ");
 			inputCount++;
 
-			if (AreEqual(type, ("IStringBuilder")) || AreEqual(type, ("Sys.Text.IStringBuilder")))
+			if (AreEqual(type, "IStringBuilder") || AreEqual(type, "Sys.Text.IStringBuilder"))
 			{
 				outputFile.Append("_%sPopulator", StringFrom(*svalue));
 			}
 			else
 			{
-				if (!AreEqual(type, ("IString")) && !AreEqual(type, ("Sys.Type.IString")) && pc.structs.find(type) != pc.structs.end())
+				if (!AreEqual(type, "IString") && !AreEqual(type, "Sys.Type.IString") && pc.structs.find(type) != pc.structs.end())
 				{
 					outputFile.Append('*');
 				}
@@ -346,7 +346,7 @@ void AppendNativeFunction(cr_sex functionDef, const ParseContext& pc, FileAppend
 		}
 	}
 
-	outputFile.Append((");\n"));
+	outputFile.Append(");\n");
 
 	if (bodyIndicatorPos > outputStart)
 	{
@@ -354,11 +354,11 @@ void AppendNativeFunction(cr_sex functionDef, const ParseContext& pc, FileAppend
 		cr_sex stype = outputDef.GetElement(0);
 		cr_sex svalue = outputDef.GetElement(1);
 
-		outputFile.Append(("\t\t_offset += sizeof(%s);\n"), StringFrom(svalue));
-		outputFile.Append(("\t\tWriteOutput(%s, _sf, -_offset);\n"), StringFrom(svalue));
+		outputFile.Append("\t\t_offset += sizeof(%s);\n", StringFrom(svalue));
+		outputFile.Append("\t\tWriteOutput(%s, _sf, -_offset);\n", StringFrom(svalue));
 	}
 
-	outputFile.Append(("\t}\n\n"));
+	outputFile.Append("\t}\n\n");
 }
 
 void AppendNativeRegistration(const FunctionDesc& desc, const CppType& ns, const ParseContext& pc, FileAppender& outputFile)
@@ -376,7 +376,7 @@ void AppendNativeRegistration(const FunctionDesc& desc, const CppType& ns, const
 		AppendInputPair(outputFile, arg, pc);
 	}
 
-	outputFile.Append((" -> "));
+	outputFile.Append(" -> ");
 	
 	cr_sex outputDef = desc.functionDef->GetElement(outputPos);
 
@@ -385,7 +385,7 @@ void AppendNativeRegistration(const FunctionDesc& desc, const CppType& ns, const
 		AppendOutputPair(outputFile, outputDef, pc);
 	}
 
-	outputFile.Append(("\"), __FILE__, __LINE__);"));
+	outputFile.Append("\"), __FILE__, __LINE__);");
 }
 
 void ParseFunctions(cr_sex functionSetDef, const ParseContext& pc)
@@ -404,11 +404,11 @@ void ParseFunctions(cr_sex functionSetDef, const ParseContext& pc)
 	sexstring filePrefix = sFilePrefix.String();
 
 	char sexyFile[_MAX_PATH];
-	SafeFormat(sexyFile, _MAX_PATH, ("%s%s.inl"), pc.cppRootDirectory, filePrefix->Buffer);
+	SafeFormat(sexyFile, "%s%s.inl", pc.cppRootDirectory, filePrefix->Buffer);
 
 	FileAppender sexyAppender(sexyFile);
 
-	sexyAppender.Append(("namespace\n{\n"));
+	sexyAppender.Append("namespace\n{\n");
 
 	TMapNSToFunctionDefs nsMap;
 
@@ -423,7 +423,7 @@ void ParseFunctions(cr_sex functionSetDef, const ParseContext& pc)
 		AppendNativeFunction(functionDef, pc, sexyAppender, nsMap);
 	}
 
-	sexyAppender.Append(("}\n\n"));
+	sexyAppender.Append("}\n\n");
 
 	for (auto n : nsMap)
 	{
@@ -439,7 +439,7 @@ void ParseFunctions(cr_sex functionSetDef, const ParseContext& pc)
 #else
 # define Tokenize wcstok_s
 #endif
-		token = Tokenize(nsBuffer, ("."), &context);
+		token = Tokenize(nsBuffer, ".", &context);
 
 		int namespaceDepth = 0;
 
@@ -447,33 +447,33 @@ void ParseFunctions(cr_sex functionSetDef, const ParseContext& pc)
 		{
 			namespaceDepth++;
 			sexyAppender.Append(("namespace %s { "), token);
-			token = Tokenize(nullptr, ("."), &context);
+			token = Tokenize(nullptr, ".", &context);
 		}
 
 		CppType nsType;
 		nsType.Set(ns);
 
-		sexyAppender.Append(("\n\tvoid AddNativeCalls_%s(Rococo::Script::IPublicScriptSystem& ss, void* nullContext = nullptr)\n"), nsType.CompressedName());
-		sexyAppender.Append(("\t{\n"));
+		sexyAppender.Append("\n\tvoid AddNativeCalls_%s(Rococo::Script::IPublicScriptSystem& ss, void* nullContext = nullptr)\n", nsType.CompressedName());
+		sexyAppender.Append("\t{\n");
 
-		sexyAppender.Append(("\t\tconst INamespace& ns = ss.AddNativeNamespace((\"%s\"));\n"), nsType.SexyName());
+		sexyAppender.Append(("\t\tconst INamespace& ns = ss.AddNativeNamespace((\"%s\");\n"), nsType.SexyName());
 
 		for(auto functionDesc: n.second)
 		{
-			sexyAppender.Append(("\t\t"));
+			sexyAppender.Append("\t\t");
 			AppendNativeRegistration(functionDesc, nsType, pc, sexyAppender);
-			sexyAppender.Append(("\n"));
+			sexyAppender.Append("\n");
 		}
 
-		sexyAppender.Append(("\t}\n"));
+		sexyAppender.Append("\t}\n");
 
 		while (namespaceDepth)
 		{
 			namespaceDepth--;
-			sexyAppender.Append(("}"));
+			sexyAppender.Append("}");
 		}
 
-		sexyAppender.Append(("\n"));
+		sexyAppender.Append("\n");
 	}
 }
 
@@ -485,19 +485,19 @@ void ParseEnum(cr_sex senumDef, ParseContext& pc)
 
 	if (senumDef.NumberOfElements() < 4)
 	{
-		Throw(senumDef, ("Expecting at least 4 elements in enumeration definition"));
+		Throw(senumDef, "Expecting at least 4 elements in enumeration definition");
 	}
 
 	cr_sex sbasicType = senumDef[1];
 	if (!IsAtomic(sbasicType))
 	{
-		Throw(sbasicType, ("Expecting underlying type, such as Int32 or Int64"));
+		Throw(sbasicType, "Expecting underlying type, such as Int32 or Int64");
 	}
 
 	auto i = pc.primitives.find(sbasicType.String()->Buffer);
 	if (i == pc.primitives.end())
 	{
-		Throw(sbasicType, ("Cannot find primitive type in the config file"));
+		Throw(sbasicType, "Cannot find primitive type in the config file");
 	}
 
 	ec.underlyingType.Set(i->second.cppType.c_str());
@@ -505,7 +505,7 @@ void ParseEnum(cr_sex senumDef, ParseContext& pc)
 	for (int i = 2; i < senumDef.NumberOfElements(); ++i)
 	{
 		cr_sex sdirective = senumDef.GetElement(i);
-		if (!IsCompound(sdirective)) Throw(sdirective, ("Expecting compound expression in the enum definition"));
+		if (!IsCompound(sdirective)) Throw(sdirective, "Expecting compound expression in the enum definition");
 
 		cr_sex scmd = sdirective[0];
 
@@ -518,7 +518,7 @@ void ParseEnum(cr_sex senumDef, ParseContext& pc)
 				auto type = sdef.Type();
 				if (nElements != 2 || !IsAtomic(sdef[0]) || !IsAtomic(sdef[1]))
 				{
-					Throw(sdef, ("Expecting compound expression with 2 elements (<enum_name> <enum_value>)"));
+					Throw(sdef, "Expecting compound expression with 2 elements (<enum_name> <enum_value>)");
 				}
 
 				cr_sex sName = sdef[0];
@@ -526,14 +526,14 @@ void ParseEnum(cr_sex senumDef, ParseContext& pc)
 
 				if (!IsCapital(sName.String()->Buffer[0]))
 				{
-					Throw(sName, ("Expecting a capital letter in the first position"));
+					Throw(sName, "Expecting a capital letter in the first position");
 				}
 
 				for (cstr p = sName.String()->Buffer; *p != 0; p++)
 				{
 					if (!IsAlphaNumeric(*p))
 					{
-						Throw(sName, ("Expecting alphanumerics throughout the name definition"));
+						Throw(sName, "Expecting alphanumerics throughout the name definition");
 					}
 				}
 
@@ -541,23 +541,23 @@ void ParseEnum(cr_sex senumDef, ParseContext& pc)
 				auto result = Rococo::Parse::TryParse(value, VARTYPE_Int64, sValue.String()->Buffer);
 				if (result != Rococo::Parse::PARSERESULT_GOOD)
 				{
-					Throw(sValue, ("Expecting int64 numeric for value"));
+					Throw(sValue, "Expecting int64 numeric for value");
 				}
 
 				ec.values.push_back(std::make_pair(sName.String()->Buffer, value.int64Value));
 			}
 		}
-		else if (scmd == ("as.both"))
+		else if (scmd == "as.both")
 		{
-			if (sdirective.NumberOfElements() != 3) Throw(sdirective, ("Expecting (as.both <fully qualified enum name> \"<target-filename-prefix>\")"));
+			if (sdirective.NumberOfElements() != 3) Throw(sdirective, "Expecting (as.both <fully qualified enum name> \"<target-filename-prefix>\")");
 			cr_sex sinterfaceName = sdirective.GetElement(1);
 			ValidateFQSexyInterface(sinterfaceName); // sexy namespaces are more stringent than those of C++. so we use sexy validation for both
 
-			if (ec.asSexyEnum[0] != 0) Throw(sdirective, ("as.sxy is already defined for this interface"));
-			if (ec.asCppEnum.SexyName()[0] != 0) Throw(sdirective, ("as.cpp is already defined for this interface"));
+			if (ec.asSexyEnum[0] != 0) Throw(sdirective, "as.sxy is already defined for this interface");
+			if (ec.asCppEnum.SexyName()[0] != 0) Throw(sdirective, "as.cpp is already defined for this interface");
 
 			cr_sex ssexyFilename = sdirective.GetElement(2);
-			if (!IsStringLiteral(ssexyFilename)) Throw(ssexyFilename, ("Expecting string literal target-prefix. Filenames can potentially have spaces in them."));
+			if (!IsStringLiteral(ssexyFilename)) Throw(ssexyFilename, "Expecting string literal target-prefix. Filenames can potentially have spaces in them.");
 
 			cstr sexyFilename = ssexyFilename.String()->Buffer;
 
@@ -573,36 +573,36 @@ void ParseEnum(cr_sex senumDef, ParseContext& pc)
 			OS::ToSysPath(ec.appendCppImplFile);
 			OS::ToSysPath(ec.appendSexyFile);
 		}
-		else if (scmd == ("as.sxy"))
+		else if (scmd == "as.sxy")
 		{
-			if (sdirective.NumberOfElements() != 3) Throw(sdirective, ("Expecting (as.sxy <fully qualified enum name> \"<target-filename>\")"));
+			if (sdirective.NumberOfElements() != 3) Throw(sdirective, "Expecting (as.sxy <fully qualified enum name> \"<target-filename>\")");
 			cr_sex sinterfaceName = sdirective.GetElement(1);
 			ValidateFQSexyInterface(sinterfaceName);
 
-			if (ec.asSexyEnum[0] != 0) Throw(sdirective, ("as.sxy is already defined for this enum"));
+			if (ec.asSexyEnum[0] != 0) Throw(sdirective, "as.sxy is already defined for this enum");
 
 			cr_sex ssexyFilename = sdirective.GetElement(2);
-			if (!IsStringLiteral(ssexyFilename)) Throw(ssexyFilename, ("Expecting string literal"));
+			if (!IsStringLiteral(ssexyFilename)) Throw(ssexyFilename, "Expecting string literal");
 			CopyString(ec.asSexyEnum, InterfaceContext::MAX_TOKEN_LEN, sinterfaceName.String()->Buffer);
 
 			SafeFormat(ec.appendSexyFile, "%s%s_sxh.sxy", pc.cppRootDirectory, ssexyFilename.String()->Buffer);
 			OS::ToSysPath(ec.appendSexyFile);
 		}
-		else if (scmd == ("as.cpp"))
+		else if (scmd == "as.cpp")
 		{
-			if (sdirective.NumberOfElements() != 3) Throw(sdirective, ("Expecting (as.cpp <fully qualified enum name> \"<target-filename-sans-extension>\")"));
+			if (sdirective.NumberOfElements() != 3) Throw(sdirective, "Expecting (as.cpp <fully qualified enum name> \"<target-filename-sans-extension>\")");
 			cr_sex sstructName = sdirective.GetElement(1);
 			ValidateFQCppStruct(sstructName);
 
-			if (ec.asCppEnum.SexyName()[0] != 0) Throw(sdirective, ("as.cpp is already defined for this enum"));
+			if (ec.asCppEnum.SexyName()[0] != 0) Throw(sdirective, "as.cpp is already defined for this enum");
 
 			cr_sex ssexyFilename = sdirective.GetElement(2);
-			if (!IsStringLiteral(ssexyFilename)) Throw(ssexyFilename, ("Expecting string literal"));
+			if (!IsStringLiteral(ssexyFilename)) Throw(ssexyFilename, "Expecting string literal");
 
 			cstr sexyFilename = ssexyFilename.String()->Buffer;
 
-			SafeFormat(ec.appendCppHeaderFile, _MAX_PATH, ("%s%s.sxh.h"), pc.cppRootDirectory, sexyFilename);
-			SafeFormat(ec.appendCppImplFile, _MAX_PATH, ("%s%s.sxh.inl"), pc.cppRootDirectory, sexyFilename);
+			SafeFormat(ec.appendCppHeaderFile, "%s%s.sxh.h", pc.cppRootDirectory, sexyFilename);
+			SafeFormat(ec.appendCppImplFile, "%s%s.sxh.inl", pc.cppRootDirectory, sexyFilename);
 
 			OS::ToSysPath(ec.appendCppHeaderFile);
 			OS::ToSysPath(ec.appendCppImplFile);
@@ -611,7 +611,7 @@ void ParseEnum(cr_sex senumDef, ParseContext& pc)
 		}
 		else
 		{
-			Throw(scmd, ("Expecting one of {as.both, as.sxy, as.cpp} or a compound expression giving a set of enumeration name value pairs"));
+			Throw(scmd, "Expecting one of {as.both, as.sxy, as.cpp} or a compound expression giving a set of enumeration name value pairs");
 		}
 	}
 
@@ -647,24 +647,24 @@ void ParseInterface(cr_sex interfaceDef, ParseContext& pc, std::vector<rstdstrin
 	for(int i = 1; i < interfaceDef.NumberOfElements(); ++i)
 	{
 		cr_sex directive = interfaceDef.GetElement(i);
-		if (!IsCompound(directive)) Throw(directive, ("Expecting compound expression in the interface definition"));
+		if (!IsCompound(directive)) Throw(directive, "Expecting compound expression in the interface definition");
 
 		cr_sex directiveName = directive.GetElement(0);
-		if (!IsAtomic(directiveName))  Throw(directiveName, ("Expecting atomic expression in the directive name at position #0"));
+		if (!IsAtomic(directiveName))  Throw(directiveName, "Expecting atomic expression in the directive name at position #0");
 
 		const sexstring ssname = directiveName.String();
 
-		if (AreEqual(ssname, ("as.both")))
+		if (AreEqual(ssname, "as.both"))
 		{
-			if (directive.NumberOfElements() != 3) Throw(directive, ("Expecting (as.both <fully qualified interface name> \"<target-filename-prefix>\")"));
+			if (directive.NumberOfElements() != 3) Throw(directive, "Expecting (as.both <fully qualified interface name> \"<target-filename-prefix>\")");
 			cr_sex sinterfaceName = directive.GetElement(1);
 			ValidateFQSexyInterface(sinterfaceName); // sexy namespaces are more stringent than those of C++. so we use sexy validation for both
 
-			if (ic.asSexyInterface[0] != 0) Throw(directive, ("as.sxy is already defined for this interface"));
-			if (ic.asCppInterface.SexyName()[0] != 0) Throw(directive, ("as.cpp is already defined for this interface"));
+			if (ic.asSexyInterface[0] != 0) Throw(directive, "as.sxy is already defined for this interface");
+			if (ic.asCppInterface.SexyName()[0] != 0) Throw(directive, "as.cpp is already defined for this interface");
 
 			cr_sex ssexyFilename = directive.GetElement(2);
-			if (!IsStringLiteral(ssexyFilename)) Throw(ssexyFilename, ("Expecting string literal target-prefix. Filenames can potentially have spaces in them."));
+			if (!IsStringLiteral(ssexyFilename)) Throw(ssexyFilename, "Expecting string literal target-prefix. Filenames can potentially have spaces in them.");
 
 			cstr sexyFilename = ssexyFilename.String()->Buffer;
 
@@ -678,17 +678,17 @@ void ParseInterface(cr_sex interfaceDef, ParseContext& pc, std::vector<rstdstrin
 			OS::ToSysPath(ic.appendCppHeaderFile);
 			OS::ToSysPath(ic.appendCppImplFile);
 		}
-		else if (AreEqual(ssname, ("as.sxy")))
+		else if (AreEqual(ssname, "as.sxy"))
 		{
-			if (directive.NumberOfElements() < 3 || directive.NumberOfElements() > 4) Throw(directive, ("Expecting (as.sxy <fully qualified interface name> \"<target-filename>\" [inheritance string])"));
+			if (directive.NumberOfElements() < 3 || directive.NumberOfElements() > 4) Throw(directive, "Expecting (as.sxy <fully qualified interface name> \"<target-filename>\" [inheritance string])");
 			cr_sex sinterfaceName = directive.GetElement(1);
 			ValidateFQSexyInterface(sinterfaceName);
 
-			if (ic.asSexyInterface[0] != 0) Throw(directive, ("as.sxy is already defined for this interface"));
+			if (ic.asSexyInterface[0] != 0) Throw(directive, "as.sxy is already defined for this interface");
 
 			if (directive.NumberOfElements() == 4)
 			{
-				if (!IsStringLiteral(directive[3]) && !IsAtomic(directive[3])) Throw(directive[3], ("Expecting string literal base class"));
+				if (!IsStringLiteral(directive[3]) && !IsAtomic(directive[3])) Throw(directive[3], "Expecting string literal base class");
 				ic.sexyBase = directive[3].String()->Buffer;
 				ValidateFQSexyInterface(directive[3]);
 
@@ -705,21 +705,21 @@ void ParseInterface(cr_sex interfaceDef, ParseContext& pc, std::vector<rstdstrin
 			}
 
 			cr_sex ssexyFilename = directive.GetElement(2);
-			if (!IsStringLiteral(ssexyFilename) && !IsAtomic(ssexyFilename)) Throw(ssexyFilename, ("Expecting string literal"));
+			if (!IsStringLiteral(ssexyFilename) && !IsAtomic(ssexyFilename)) Throw(ssexyFilename, "Expecting string literal");
 			CopyString(ic.asSexyInterface, InterfaceContext::MAX_TOKEN_LEN, sinterfaceName.String()->Buffer);
 			SafeFormat(ic.appendSexyFile, "%s%s_sxh.sxy", pc.cppRootDirectory, ssexyFilename.String()->Buffer);
 			OS::ToSysPath(ic.appendSexyFile);
 		}
-		else if (AreEqual(ssname, ("as.cpp")))
+		else if (AreEqual(ssname, "as.cpp"))
 		{
-			if (directive.NumberOfElements() != 3 && directive.NumberOfElements() != 4) Throw(directive, ("Expecting (as.cpp <fully qualified interface name> \"<target-filename-sans-extension>\" <optional-base-class>)"));
+			if (directive.NumberOfElements() != 3 && directive.NumberOfElements() != 4) Throw(directive, "Expecting (as.cpp <fully qualified interface name> \"<target-filename-sans-extension>\" <optional-base-class>)");
 			cr_sex sstructName = directive[1];
 			ValidateFQCppStruct(sstructName);
 
-			if (ic.asCppInterface.SexyName()[0] != 0) Throw(directive, ("as.cpp is already defined for this interface"));
+			if (ic.asCppInterface.SexyName()[0] != 0) Throw(directive, "as.cpp is already defined for this interface");
 
 			cr_sex ssexyFilename = directive[2];
-			if (!IsStringLiteral(ssexyFilename)) Throw(ssexyFilename, ("Expecting string literal"));
+			if (!IsStringLiteral(ssexyFilename)) Throw(ssexyFilename, "Expecting string literal");
 
 			cstr sexyFilename = ssexyFilename.String()->Buffer;
 
@@ -729,76 +729,76 @@ void ParseInterface(cr_sex interfaceDef, ParseContext& pc, std::vector<rstdstrin
 			if (directive.NumberOfElements() == 4)
 			{
 				cr_sex sbaseClass = directive[3];
-				if (!IsStringLiteral(sbaseClass) && !IsAtomic(sbaseClass)) Throw(sbaseClass, ("Expecting string literal or atomic base class"));
+				if (!IsStringLiteral(sbaseClass) && !IsAtomic(sbaseClass)) Throw(sbaseClass, "Expecting string literal or atomic base class");
 				ic.cppBase = sbaseClass.String()->Buffer;
 			}
 
 			ic.asCppInterface.Set(sstructName.String()->Buffer);
 		}
-		else if (AreEqual(ssname, ("methods")))
+		else if (AreEqual(ssname, "methods"))
 		{
 			methods.push_back(&directive);
 		}
-		else if (AreEqual(ssname, ("~")))
+		else if (AreEqual(ssname, "~"))
 		{
-			if (ic.hasDestructor) { Throw(directive, ("Interface already has destructor defined"));	}
+			if (ic.hasDestructor) { Throw(directive, "Interface already has destructor defined");	}
 			ic.hasDestructor = true;
-			if (directive.NumberOfElements() != 1) Throw(directive, ("Destructors take no arguments"));
+			if (directive.NumberOfElements() != 1) Throw(directive, "Destructors take no arguments");
 		}
-		else if (AreEqual(ssname, ("factory")))
+		else if (AreEqual(ssname, "factory"))
 		{
 			cr_sex sfactory = directive;
 			if (sfactory.NumberOfElements() < 2 || !IsAtomic(sfactory.GetElement(1)))
 			{
-				Throw(sfactory, ("Expecting (factory <factory-name> (optional input arg1) ... (optional input argN)"));
+				Throw(sfactory, "Expecting (factory <factory-name> (optional input arg1) ... (optional input argN)");
 			}
 			ic.factories.push_back(&sfactory);
 		}
-		else if (AreEqual(ssname, ("context")))
+		else if (AreEqual(ssname, "context"))
 		{
 			if (directive.NumberOfElements() != 3)
 			{
-				Throw(directive, ("Expecting (context <'factory'|'api'> <context-type>). E.g (context factory Sys.Animal)"));
+				Throw(directive, "Expecting (context <'factory'|'api'> <context-type>). E.g (context factory Sys.Animal)");
 			}
 
 			cr_sex sroute = directive.GetElement(1);
 			cr_sex stype = directive.GetElement(2);
-			if (!IsAtomic(sroute)) Throw(stype, ("Expecting atomic value for <'factory'|'api'>"));
+			if (!IsAtomic(sroute)) Throw(stype, "Expecting atomic value for <'factory'|'api'>");
 
 			cstr route = sroute.String()->Buffer;
-			if (AreEqual(route, ("factory")))
+			if (AreEqual(route, "factory"))
 			{
 				ic.isSingleton = false;
 			}
-			else if (AreEqual(route, ("api")))
+			else if (AreEqual(route, "api"))
 			{
 				ic.isSingleton = true;
 			}
 			else
 			{
-				Throw(sroute, ("Expecting either 'factory' or 'api' sans quotes. 'factory' is used when the factory call determines the underlying C++ object. 'api' is used when the native registration functions determine the underlying C++ object."));
+				Throw(sroute, "Expecting either 'factory' or 'api' sans quotes. 'factory' is used when the factory call determines the underlying C++ object. 'api' is used when the native registration functions determine the underlying C++ object.");
 			}
 
-			if (!IsAtomic(stype)) Throw(stype, ("Expecting atomic value for <context-type>"));
+			if (!IsAtomic(stype)) Throw(stype, "Expecting atomic value for <context-type>");
 			ic.nceContext.Set(stype.String()->Buffer);
 		}
 		else
 		{
-			Throw(directiveName, ("Unknown directive in interface definition. Expecting one of (as.sxy, as.cpp, as.both, context, factory, methods)"));
+			Throw(directiveName, "Unknown directive in interface definition. Expecting one of (as.sxy, as.cpp, as.both, context, factory, methods)");
 		}		
 	}
 
 	if (ic.asCppInterface.SexyName()[0] == 0)
 	{
-		Throw(interfaceDef, ("Missing as.cpp or as.both"));
+		Throw(interfaceDef, "Missing as.cpp or as.both");
 	}
 
 	if (ic.asSexyInterface[0] == 0)
 	{
-		Throw(interfaceDef, ("Missing as.sxy or as.both"));
+		Throw(interfaceDef, "Missing as.sxy or as.both");
 	}
 
-	if (ic.appendSexyFile[0] == 0) SafeFormat(ic.appendSexyFile, _MAX_PATH, ("%s_sxh.sxy"), pc.scriptInputSansExtension);
+	if (ic.appendSexyFile[0] == 0) SafeFormat(ic.appendSexyFile, "%s_sxh.sxy", pc.scriptInputSansExtension);
 
 	if (ic.appendCppHeaderFile[0] == 0) 
 	{
@@ -809,12 +809,12 @@ void ParseInterface(cr_sex interfaceDef, ParseContext& pc, std::vector<rstdstrin
 	if (ic.factories.empty())
 	{
 		// Disable exception. Interfaces can be grabbed from the output of functions that return them
-      // Throw(interfaceDef, ("Interface needs to specify at least one factory"));
+      // Throw(interfaceDef, "Interface needs to specify at least one factory");
 	}
 
 	if (!ic.nceContext.SexyName()[0] && !ic.factories.empty())
 	{
-		Throw(interfaceDef, ("Missing (context <'factory'|'api'> <context-type>)"));
+		Throw(interfaceDef, "Missing (context <'factory'|'api'> <context-type>)");
 	}
 
    InterfaceDef* def = new InterfaceDef;
@@ -855,38 +855,38 @@ void ParseInterfaceFile(cr_sex root, ParseContext& pc)
 	{
 		cr_sex topLevelItem = root.GetElement(i);
 
-		if (!IsCompound(topLevelItem)) Throw(topLevelItem, ("Expecting compound expression in the root expression"));
+		if (!IsCompound(topLevelItem)) Throw(topLevelItem, "Expecting compound expression in the root expression");
 		cr_sex command = topLevelItem.GetElement(0);
-		if (!IsAtomic(command))  Throw(command, ("Expecting atomic expression in the command at position #0"));
+		if (!IsAtomic(command))  Throw(command, "Expecting atomic expression in the command at position #0");
 
 		sexstring cmd = command.String();
 
 		if (AreEqual("config", cmd))
 		{
-			if (hasConfig) Throw(command, ("Only one config entry permitted"));
+			if (hasConfig) Throw(command, "Only one config entry permitted");
 			ParseConfigSpec(topLevelItem, pc);
 			hasConfig = true;
 		}
 		else if (AreEqual("functions", cmd))
 		{
-			if (hasFunctions) Throw(command, ("Only one set of functions can be defined in the generator file"));
-			if (!hasConfig) Throw(command, ("Must define a (config <config-path>) entry before all functions"));
+			if (hasFunctions) Throw(command, "Only one set of functions can be defined in the generator file");
+			if (!hasConfig) Throw(command, "Must define a (config <config-path>) entry before all functions");
 			ParseFunctions(topLevelItem, pc);
 			hasFunctions = true;
 		}
 		else if (AreEqual("interface", cmd))
 		{
-			if (!hasConfig) Throw(command, ("Must define a (config <config-path>) entry before all interfaces"));
+			if (!hasConfig) Throw(command, "Must define a (config <config-path>) entry before all interfaces");
 			ParseInterface(topLevelItem, pc, interfaceDefOrder);
 		}
 		else if (AreEqual("enum", cmd))
 		{
-			if (!hasConfig) Throw(command, ("Must define a (config <config-path>) entry before all enumerations"));
+			if (!hasConfig) Throw(command, "Must define a (config <config-path>) entry before all enumerations");
 			ParseEnum(topLevelItem, pc);
 		}
 		else
 		{
-			Throw(command, ("Expecting 'interface or config or functions' in the command at position #0"));
+			Throw(command, "Expecting 'interface or config or functions' in the command at position #0");
 		}
 	}
 

@@ -341,7 +341,7 @@ namespace Rococo.Carpenter
             sb.AppendLine();
 
             AppendTab(sb);
-            sb.AppendFormat("(context factory {0}_Sexy)", SexyInterfaceName);
+            sb.AppendFormat("(context factory void)", SexyInterfaceName);
             sb.AppendLine();
 
             AppendTab(sb);

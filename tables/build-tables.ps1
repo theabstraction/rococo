@@ -7,7 +7,7 @@ param(
 
 
 
-$tableDirectory = $solution + '\tables\'
+$tableDirectory = $solution + 'tables\'
 $binDirectory = $solution + 'bin'
 $carpenterApp = $binDirectory + '\' + $configuration + '\netcoreapp3.1\rococo.carpenter.app.exe'
 
