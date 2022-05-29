@@ -846,7 +846,7 @@ namespace Rococo
 
 				if (src == nullptr)
 				{
-					Throw(0, "%s.\nCould not find file in content directory or packages", pingName);
+					Throw(0, "\nCould not find file [%s] in content directory or packages", pingName);
 				}
 			}
 

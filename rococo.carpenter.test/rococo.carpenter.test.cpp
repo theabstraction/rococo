@@ -113,11 +113,13 @@ void test_sexy(IInstallation& installation)
 	ScriptPerformanceStats stats;
 
     TableScriptContext script;
-    script.Execute(installation, "!scripts/unit_tests/tables.sxy", stats, 0);
+    script.Execute(installation, "!scripts/test/tables.sxy", stats, 0);
 }
 
 int main()
 {
+    Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
+
     try
     {
         AutoFree<IPeriodicTableSupervisor> periodicTable = GetPeriodicTable();

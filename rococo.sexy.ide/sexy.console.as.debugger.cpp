@@ -134,10 +134,19 @@ struct ConsoleAsDebuggerWindow: public Rococo::IDebuggerWindow
 
 	int Log(cstr format, ...)
 	{
+		HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+
+		SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE | FOREGROUND_GREEN);
+
 		va_list args;
 		va_start(args, format);
 		int length = vprintf(format, args);
 		va_end(args);
+		
+		printf("\n");
+
+		SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED);
+		
 		return length;
 	}
 };
