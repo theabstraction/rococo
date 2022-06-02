@@ -2062,7 +2062,7 @@ namespace HV
 {
 	void AddNativeCalls_HVIObjectPrototypeBuilder(Rococo::Script::IPublicScriptSystem& ss, HV::IObjectPrototypeBuilder* _nceContext)
 	{
-		const INamespace& ns = ss.AddNativeNamespace(("HV.Native"));
+		const INamespace& ns = ss.AddNativeNamespace("HV.Native");
 		ss.AddNativeCall(ns, NativeGetHandleForHVObjectPrototypeBuilder, _nceContext, ("GetHandleForIObjectPrototypeBuilder0  -> (Pointer hObject)"), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeHVIObjectPrototypeBuilderAddDynamics, nullptr, ("IObjectPrototypeBuilderAddDynamics (Pointer hObject)(HV.ObjectDynamics dynamics) -> "), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeHVIObjectPrototypeBuilderAddMeleeData, nullptr, ("IObjectPrototypeBuilderAddMeleeData (Pointer hObject)(HV.MeleeData melee) -> "), __FILE__, __LINE__);
@@ -2109,7 +2109,7 @@ namespace HV
 {
 	void AddNativeCalls_HVIObjectPrototypeBase(Rococo::Script::IPublicScriptSystem& ss, HV::IObjectPrototypeBase* _nceContext)
 	{
-		const INamespace& ns = ss.AddNativeNamespace(("HV.Native"));
+		const INamespace& ns = ss.AddNativeNamespace("HV.Native");
 		ss.AddNativeCall(ns, NativeHVIObjectPrototypeBaseAppendName, nullptr, ("IObjectPrototypeBaseAppendName (Pointer hObject)(Sys.Type.IStringBuilder sb) -> "), __FILE__, __LINE__);
 	}
 }
@@ -2182,7 +2182,7 @@ namespace HV
 {
 	void AddNativeCalls_HVIPlayer(Rococo::Script::IPublicScriptSystem& ss, HV::IPlayerSupervisor* _nceContext)
 	{
-		const INamespace& ns = ss.AddNativeNamespace(("HV.Native"));
+		const INamespace& ns = ss.AddNativeNamespace("HV.Native");
 		ss.AddNativeCall(ns, NativeGetHandleForHVPlayer, _nceContext, ("GetHandleForIPlayer0 (Int32 index) -> (Pointer hObject)"), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeHVIPlayerSetPlayerEntity, nullptr, ("IPlayerSetPlayerEntity (Pointer hObject)(Int64 id) -> "), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeHVIPlayerGetPlayerEntity, nullptr, ("IPlayerGetPlayerEntity (Pointer hObject) -> (Int64 id)"), __FILE__, __LINE__);
@@ -2280,7 +2280,7 @@ namespace HV
 {
 	void AddNativeCalls_HVIScriptConfig(Rococo::Script::IPublicScriptSystem& ss, HV::IScriptConfig* _nceContext)
 	{
-		const INamespace& ns = ss.AddNativeNamespace(("HV.Native"));
+		const INamespace& ns = ss.AddNativeNamespace("HV.Native");
 		ss.AddNativeCall(ns, NativeGetHandleForHVScriptConfig, _nceContext, ("GetHandleForIScriptConfig0  -> (Pointer hObject)"), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeHVIScriptConfigGetFloat, nullptr, ("IScriptConfigGetFloat (Pointer hObject)(Sys.Type.IString variableName)(Float32 default)(Float32 minValue)(Float32 maxValue) -> (Float32 value)"), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeHVIScriptConfigGetFloatRange, nullptr, ("IScriptConfigGetFloatRange (Pointer hObject)(Sys.Type.IString variableName)(Sys.Maths.Vec2 values)(Float32 defaultLeft)(Float32 defaultRight)(Float32 minValue)(Float32 maxValue) -> "), __FILE__, __LINE__);
@@ -2337,7 +2337,7 @@ namespace HV
 {
 	void AddNativeCalls_HVICorridor(Rococo::Script::IPublicScriptSystem& ss, HV::ICorridor* _nceContext)
 	{
-		const INamespace& ns = ss.AddNativeNamespace(("HV.Native"));
+		const INamespace& ns = ss.AddNativeNamespace("HV.Native");
 		ss.AddNativeCall(ns, NativeGetHandleForHVCorridor, _nceContext, ("GetHandleForICorridor0  -> (Pointer hObject)"), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeHVICorridorGetSpan, nullptr, ("ICorridorGetSpan (Pointer hObject)(Sys.Maths.Vec3 span) -> "), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeHVICorridorIsSloped, nullptr, ("ICorridorIsSloped (Pointer hObject) -> (Bool isSloped)"), __FILE__, __LINE__);
@@ -2492,7 +2492,7 @@ namespace HV
 {
 	void AddNativeCalls_HVISectorAIBuilder(Rococo::Script::IPublicScriptSystem& ss, Cosmos* _nceContext)
 	{
-		const INamespace& ns = ss.AddNativeNamespace(("HV.Native"));
+		const INamespace& ns = ss.AddNativeNamespace("HV.Native");
 		ss.AddNativeCall(ns, NativeGetHandleForHVSectorAIBuilder, _nceContext, ("GetHandleForISectorAIBuilder0 (Int32 sectorId) -> (Pointer hObject)"), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeHVISectorAIBuilderClearTriggers, nullptr, ("ISectorAIBuilderClearTriggers (Pointer hObject) -> "), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeHVISectorAIBuilderAddTrigger, nullptr, ("ISectorAIBuilderAddTrigger (Pointer hObject)(Sys.Type.IString name) -> "), __FILE__, __LINE__);
@@ -2756,7 +2756,7 @@ namespace HV
 {
 	void AddNativeCalls_HVISectorBuilder(Rococo::Script::IPublicScriptSystem& ss, HV::ISectors* _nceContext)
 	{
-		const INamespace& ns = ss.AddNativeNamespace(("HV.Native"));
+		const INamespace& ns = ss.AddNativeNamespace("HV.Native");
 		ss.AddNativeCall(ns, NativeGetHandleForHVSectorBuilder, _nceContext, ("GetHandleForISectors0  -> (Pointer hObject)"), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeHVISectorBuilderAddVertex, nullptr, ("ISectorsAddVertex (Pointer hObject)(Float32 x)(Float32 y) -> "), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeHVISectorBuilderClear, nullptr, ("ISectorsClear (Pointer hObject) -> "), __FILE__, __LINE__);
@@ -3092,7 +3092,7 @@ namespace HV
 {
 	void AddNativeCalls_HVISectorLayout(Rococo::Script::IPublicScriptSystem& ss, HV::ISectorLayout* _nceContext)
 	{
-		const INamespace& ns = ss.AddNativeNamespace(("HV.Native"));
+		const INamespace& ns = ss.AddNativeNamespace("HV.Native");
 		ss.AddNativeCall(ns, NativeHVISectorLayoutExists, nullptr, ("ISectorLayoutExists (Pointer hObject) -> (Bool exists)"), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeHVISectorLayoutCountSquares, nullptr, ("ISectorLayoutCountSquares (Pointer hObject) -> (Int32 sqCount)"), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeHVISectorLayoutGetSquare, nullptr, ("ISectorLayoutGetSquare (Pointer hObject)(Int32 sqIndex)(Rococo.AAB2d sq) -> "), __FILE__, __LINE__);
@@ -3201,7 +3201,7 @@ namespace HV
 {
 	void AddNativeCalls_HVISectorEnumerator(Rococo::Script::IPublicScriptSystem& ss, HV::ISectorEnumerator* _nceContext)
 	{
-		const INamespace& ns = ss.AddNativeNamespace(("HV.Native"));
+		const INamespace& ns = ss.AddNativeNamespace("HV.Native");
 		ss.AddNativeCall(ns, NativeGetHandleForHVSectorEnumerator, _nceContext, ("GetHandleForISectorEnumerator0  -> (Pointer hObject)"), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeHVISectorEnumeratorCount, nullptr, ("ISectorEnumeratorCount (Pointer hObject) -> (Int32 nCount)"), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeHVISectorEnumeratorGetSector, nullptr, ("ISectorEnumeratorGetSector (Pointer hObject)(Int32 index) -> (HV.ISectorLayout layout)"), __FILE__, __LINE__);
@@ -3328,7 +3328,7 @@ namespace HV
 {
 	void AddNativeCalls_HVISectorComponents(Rococo::Script::IPublicScriptSystem& ss, HV::ISectorComponents* _nceContext)
 	{
-		const INamespace& ns = ss.AddNativeNamespace(("HV.Native"));
+		const INamespace& ns = ss.AddNativeNamespace("HV.Native");
 		ss.AddNativeCall(ns, NativeGetHandleForHVSectorComponents, _nceContext, ("GetHandleForISectorComponents0  -> (Pointer hObject)"), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeHVISectorComponentsAddTriangle, nullptr, ("ISectorComponentsAddTriangle (Pointer hObject)(Rococo.VertexTriangle t) -> "), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeHVISectorComponentsAddPhysicsHull, nullptr, ("ISectorComponentsAddPhysicsHull (Pointer hObject)(Sys.Maths.Triangle t) -> "), __FILE__, __LINE__);
@@ -3439,7 +3439,7 @@ namespace HV
 {
 	void AddNativeCalls_HVITriangleList(Rococo::Script::IPublicScriptSystem& ss, HV::ITriangleList* _nceContext)
 	{
-		const INamespace& ns = ss.AddNativeNamespace(("HV.Native"));
+		const INamespace& ns = ss.AddNativeNamespace("HV.Native");
 		ss.AddNativeCall(ns, NativeHVITriangleListAddTriangleByVertices, nullptr, ("ITriangleListAddTriangleByVertices (Pointer hObject)(Rococo.ObjectVertex a)(Rococo.ObjectVertex b)(Rococo.ObjectVertex c) -> "), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeHVITriangleListAddTriangle, nullptr, ("ITriangleListAddTriangle (Pointer hObject)(Rococo.VertexTriangle abc) -> "), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeHVITriangleListAddQuad, nullptr, ("ITriangleListAddQuad (Pointer hObject)(Rococo.ObjectVertex a)(Rococo.ObjectVertex b)(Rococo.ObjectVertex c)(Rococo.ObjectVertex d) -> "), __FILE__, __LINE__);
@@ -3566,7 +3566,7 @@ namespace HV
 {
 	void AddNativeCalls_HVISectorWallTesselator(Rococo::Script::IPublicScriptSystem& ss, HV::ISectorWallTesselator* _nceContext)
 	{
-		const INamespace& ns = ss.AddNativeNamespace(("HV.Native"));
+		const INamespace& ns = ss.AddNativeNamespace("HV.Native");
 		ss.AddNativeCall(ns, NativeGetHandleForHVSectorWallTesselator, _nceContext, ("GetHandleForISectorWallTesselator0  -> (Pointer hObject)"), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeHVISectorWallTesselatorNumberOfSegments, nullptr, ("ISectorWallTesselatorNumberOfSegments (Pointer hObject) -> (Int32 count)"), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeHVISectorWallTesselatorNumberOfGaps, nullptr, ("ISectorWallTesselatorNumberOfGaps (Pointer hObject) -> (Int32 count)"), __FILE__, __LINE__);
@@ -3801,7 +3801,7 @@ namespace HV
 {
 	void AddNativeCalls_HVISectorFloorTesselator(Rococo::Script::IPublicScriptSystem& ss, HV::ISectorFloorTesselator* _nceContext)
 	{
-		const INamespace& ns = ss.AddNativeNamespace(("HV.Native"));
+		const INamespace& ns = ss.AddNativeNamespace("HV.Native");
 		ss.AddNativeCall(ns, NativeGetHandleForHVSectorFloorTesselator, _nceContext, ("GetHandleForISectorFloorTesselator0  -> (Pointer hObject)"), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorNumberOfSquares, nullptr, ("ISectorFloorTesselatorNumberOfSquares (Pointer hObject) -> (Int32 count)"), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeHVISectorFloorTesselatorFoundationsExist, nullptr, ("ISectorFloorTesselatorFoundationsExist (Pointer hObject) -> (Bool exists)"), __FILE__, __LINE__);

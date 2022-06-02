@@ -943,14 +943,14 @@ namespace Rococo
 
 		if (methods != NULL)
 		{
-			appender.Append(("\t\tconst INamespace& ns = ss.AddNativeNamespace((\""));
+			appender.Append(("\t\tconst INamespace& ns = ss.AddNativeNamespace(\""));
 
 			NamespaceSplitter splitter(ic.asSexyInterface);
 
 			cstr ns, shortName;
 			splitter.SplitTail(ns, shortName);
 
-			appender.Append(("%s.Native\"));\n"), ns);
+			appender.Append(("%s.Native\");\n"), ns);
 
 			int factoryIndex = 0;
 

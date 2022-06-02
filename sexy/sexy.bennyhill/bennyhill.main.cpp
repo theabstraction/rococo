@@ -456,7 +456,7 @@ void ParseFunctions(cr_sex functionSetDef, const ParseContext& pc)
 		sexyAppender.Append("\n\tvoid AddNativeCalls_%s(Rococo::Script::IPublicScriptSystem& ss, void* nullContext = nullptr)\n", nsType.CompressedName());
 		sexyAppender.Append("\t{\n");
 
-		sexyAppender.Append(("\t\tconst INamespace& ns = ss.AddNativeNamespace((\"%s\");\n"), nsType.SexyName());
+		sexyAppender.Append(("\t\tconst INamespace& ns = ss.AddNativeNamespace(\"%s\");\n"), nsType.SexyName());
 
 		for(auto functionDesc: n.second)
 		{

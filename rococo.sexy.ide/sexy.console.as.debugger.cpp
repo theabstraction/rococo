@@ -112,7 +112,7 @@ struct ConsoleAsDebuggerWindow: public Rococo::IDebuggerWindow
 			attributes |= FOREGROUND_BLUE;
 		}
 
-		if (colour.red >= 240 || colour.green == 240 || colour.blue == 240)
+		if (colour.red >= 240 || colour.green >= 240 || colour.blue >= 240)
 		{
 			attributes |= FOREGROUND_INTENSITY;
 		}
