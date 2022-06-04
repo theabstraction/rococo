@@ -646,4 +646,10 @@ namespace Rococo
 
 }
 
+namespace Rococo
+{
+	template<int OPTIMAL_SIZE, class RETURN_TYPE, typename ... ARGS>
+	class ArbitraryFunction;
+}
+
 #endif

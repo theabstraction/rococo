@@ -1,0 +1,6 @@
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+
+(function Main (Int32 id)->(Int32 returnCode):
+	(Sys.Print "Hello World - Todo: enable (' #include ..) statements and package import. Add file IO API and full set of command line tools.")
+)

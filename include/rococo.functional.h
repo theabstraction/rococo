@@ -156,7 +156,7 @@ namespace Rococo
 	template<typename TYPENAME>
 	using BigStackFunction = StackComissary<128, TYPENAME>;
 
-	template<int OPTIMAL_SIZE, typename TYPENAME>
+	template<int OPTIMAL_SIZE, typename TYPENAME, typename ... ARGS>
 	class ArbitraryFunction;
 
 	// A delegate for a functor of arbitrary size. If the size is not greater than the supplied OPTIMIAL_SIZE argument, then the delegate is handled without heap allocation
@@ -288,6 +288,12 @@ namespace Rococo
 	};
 
 	// Provides a delegate for callbacks. If the size of the callback object is sufficiently small the callback is implemented on the stack, rather than the heap
-	template<typename TYPENAME>
-	using Function = ArbitraryFunction<48, TYPENAME>;
+	template<typename RETURNTYPE, typename ... ARGS>
+	using Function = ArbitraryFunction<48, RETURNTYPE, ARGS ...>;
+}
+
+namespace Rococo::OS
+{
+	// Open a file and invokes a callback with a pointer to content. The file is closed at the point that the callback is invoked. 
+	void LoadAsciiTextFile(Function<void(cstr)> callback, const wchar_t* filename);
 }
