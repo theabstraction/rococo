@@ -1,0 +1,8 @@
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+
+(function Main (Int32 id)->(Int32 returnCode):
+	(Sys.Print "Hello World - Todo: enable (' #include ..) statements and package import with ISourceCache et al. Add file IO API and full set of command line tools.&n")
+	(Sys.Print "A long term plan - port Sexy.BennyHill to a Sexy Command Line App&n")
+	(Sys.Print "Applications, such as BennyHill that operate on s-expressions can be re-written as a sexy script with domain based macros&n")
+)

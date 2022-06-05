@@ -1,4 +1,5 @@
-namespace Rococo { 
+namespace Rococo
+{
 	bool TryParse(const Rococo::fstring& s, AlignmentFlags& value)
 	{
 		if (s ==  "AlignmentFlags_None"_fstring)
@@ -581,10 +582,11 @@ namespace
 
 }
 
-namespace MHost { 
+namespace MHost
+{
 	void AddNativeCalls_MHostIGui(Rococo::Script::IPublicScriptSystem& ss, MHost::IGui* _nceContext)
 	{
-		const INamespace& ns = ss.AddNativeNamespace(("MHost.Native"));
+		const INamespace& ns = ss.AddNativeNamespace("MHost.Native");
 		ss.AddNativeCall(ns, NativeMHostIGuiDrawTriangle, nullptr, ("IGuiDrawTriangle (Pointer hObject)(MPlat.GuiTriangle t) -> "), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeMHostIGuiDrawQuad, nullptr, ("IGuiDrawQuad (Pointer hObject)(MPlat.GuiQuad q) -> "), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeMHostIGuiDrawBorder, nullptr, ("IGuiDrawBorder (Pointer hObject)(Sys.Maths.Rectf rect)(Float32 pxThickness)(Int32 tl)(Int32 tr)(Int32 bl)(Int32 br) -> "), __FILE__, __LINE__);
@@ -862,10 +864,11 @@ namespace
 	}
 }
 
-namespace MHost { 
+namespace MHost
+{
 	void AddNativeCalls_MHostIEngine(Rococo::Script::IPublicScriptSystem& ss, MHost::IEngine* _nceContext)
 	{
-		const INamespace& ns = ss.AddNativeNamespace(("MHost.Native"));
+		const INamespace& ns = ss.AddNativeNamespace("MHost.Native");
 		ss.AddNativeCall(ns, NativeGetHandleForMHostEngine, _nceContext, ("GetHandleForIEngine0  -> (Pointer hObject)"), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeMHostIEnginePollKeyState, nullptr, ("IEnginePollKeyState (Pointer hObject)(MHost.OS.KeyState keys) -> "), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeMHostIEngineGetNextMouseDelta, nullptr, ("IEngineGetNextMouseDelta (Pointer hObject)(Sys.Maths.Vec2 delta) -> "), __FILE__, __LINE__);
@@ -1216,10 +1219,11 @@ namespace
 	}
 }
 
-namespace MHost { 
+namespace MHost
+{
 	void AddNativeCalls_MHostIDictionaryStream(Rococo::Script::IPublicScriptSystem& ss, Rococo::IInstallation* _nceContext)
 	{
-		const INamespace& ns = ss.AddNativeNamespace(("MHost.Native"));
+		const INamespace& ns = ss.AddNativeNamespace("MHost.Native");
 		ss.AddNativeCall(ns, NativeGetHandleForMHostDictionaryStream, _nceContext, ("GetHandleForIDictionaryStream0  -> (Pointer hObject)"), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeMHostIDictionaryStreamAddBool, nullptr, ("IDictionaryStreamAddBool (Pointer hObject)(Sys.Type.IString name)(Bool value) -> "), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeMHostIDictionaryStreamAddI32, nullptr, ("IDictionaryStreamAddI32 (Pointer hObject)(Sys.Type.IString name)(Int32 value) -> "), __FILE__, __LINE__);

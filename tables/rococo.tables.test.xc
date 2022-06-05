@@ -3,10 +3,10 @@
 
 (cpp.exception Rococo::IException)
 
-// sxy.types gives the location where custom types are generated from definitions found in this file. If the path is prefixed with $project$ then $project$ is replaced with the <project_root> given in the bennyhill command line
+// type.files gives the location where custom types are generated from definitions found in this file. If the path is prefixed with $project$ then $project$ is replaced with the <project_root> given in the bennyhill command line
 // if the path is prefixed with $cpp$ then $cpp$ is replaced with the cpp.root as specified above
 // The first argument gives the sexy definition file, the second argument gives the types that are written into the cpp header
-(type.files $project$../content/scripts/mhost/mhost.types.sxy $cpp$mhost.script.types.h)
+(type.files $project$../content/scripts/tables.types.sxy $cpp$table.types.h)
 
 // First define the fundamental types. The format of the command is (primitive <name> <sexy-name> <cpp-name>), which maps <name> found in the sxh file to the <sexy-name> in the generated sxy file, and <cpp-name> in the c++ files
 // Arguments that are primitive are passed by value to the script system. If they are output arguments then the cpp side implements them as a return value for the first argument and ref values for the successive arguments.
@@ -24,16 +24,7 @@
 (primitive Metres Sys.SI.Metres Metres)
 (primitive Kilograms Sys.SI.Kilograms Kilograms)
 (primitive RGBAb Int32 RGBAb)
-
-(primitive IdTexture MHost.IdTexture IdTexture)
-
 (primitive Pointer Pointer uintptr_t)
-(primitive IdMesh Int32 ID_MESH)
-(primitive IdEntity Int64 ID_ENTITY)
-(primitive MaterialId Float32 MaterialId)
-(primitive MaterialCategory Int32 Rococo.Graphics.MaterialCategory)
-(primitive GuiPopulator MHost.GuiPopulator MHost.GuiPopulator)
-(primitive ELegacySoundShape Int32 Rococo.Audio.ELegacySoundShape)
 (primitive IExpression Sys.Reflection.IExpression InterfacePointer)
 
 // (struct <name> <sexy-name> <cpp-name>)  maps <name> found in the sxh file to the <sexy-name> in the generated sxy file, and <cpp-name> in the c++ files
@@ -56,22 +47,32 @@
 (struct MaterialVertexData Rococo.MaterialVertexData MaterialVertexData)
 (struct AABB2d Rococo.AAB2d AABB2d)
 (struct QuadVertices Rococo.QuadVertices QuadVertices)
-(struct BitmapLocation MPlat.BitmapLocation Rococo.Textures.BitmapLocation)
-(struct GuiTriangle MPlat.GuiTriangle Rococo.GuiTriangle)
 (struct GuiQuad MPlat.GuiQuad Rococo.GuiQuad)
 (struct Rectf Sys.Maths.Rectf Rococo.GuiRectf)
 (struct Recti Sys.Maths.Recti Rococo.GuiRect)
-(struct KeyState MHost.OS.KeyState MHost.OS.KeyState)
-(struct MouseEvent MHost.OS.MouseEvent Rococo.MouseEvent)
-(struct KeyboardEvent MHost.OS.KeyboardEvent Rococo.MHostKeyboardEvent)
 (struct RGBA RGBA RGBA)
-(struct FontDesc MHost.Graphics.FontDesc MHost.Graphics.FontDesc)
-(struct WorldOrientation MHost.WorldOrientation MHost.WorldOrientation)
-(struct CubeTextureDef MHost.CubeTextureDef MHost.CubeTextureDef)
 
 // (defstruct <name> <sexy-name> <cpp-name> (fields) )  maps <name> found in the sxh file to the <sexy-name> in the generated sxy file, and <cpp-name> in the c++ files. It creates new structures in the target specified in (cpp.types ...)
 // (fields) is a sequence of s-expressions of the format (<type> <name>) where <type> is either a primitive or struct defined BEFORE the parent defstruct and <name> is a unique name for the variable.
 // Field names must follow the naming rules for field variables in sexy, i.e, begin with a lowercase letter a-z and succeed with any sequence of alphanumerics.
 
 
-(struct ElementsTableRow Rococo.Science.Materials.ElementsTableRow Rococo.Science.Materials.ElementsTableRow)
+(primitive EnumElementName Rococo.Science.Materials.ElementName Rococo.Science.Materials.ElementName)
+(primitive EnumElementSymbol Rococo.Science.Materials.ElementSymbol Rococo.Science.Materials.ElementSymbol)
+(primitive EnumElementType Rococo.Science.Materials.ElementType Rococo.Science.Materials.ElementType)
+(primitive TypeElectronVolts Rococo.SI.ElectronVolts Rococo.SI.ElectronVolts)
+(primitive TypeKelvin Rococo.SI.Kelvin Rococo.SI.Kelvin)
+
+(defstruct PeriodicTableRow Rococo.Science.Materials.PeriodicTableRow Rococo.Science.Materials.PeriodicTableRow
+	(Int32 atomicNumber)
+	(EnumElementName element)
+	(EnumElementSymbol symbol)
+	(Float32 atomicMass)
+	(Bool metal)
+	(EnumElementType elementType)
+	(Float32 electroNegativity)
+	(TypeElectronVolts firstIonization)
+	(Float32 density)
+	(TypeKelvin meltingPoint)
+	(TypeKelvin boilingPoint)
+)

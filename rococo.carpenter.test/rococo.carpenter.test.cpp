@@ -10,18 +10,26 @@
 #include <rococo.io.h>
 #include <rococo.strings.h>
 
-# ifdef _DEBUG
-#  pragma comment(lib, "rococo.util.debug.lib")
-# else
-#  pragma comment(lib, "rococo.util.lib")
-#endif
+#include <rococo.libs.inl>
 
 #include <codecvt>
+
+#include <sexy.types.h>
+#include <sexy.vm.h>
+#include <sexy.vm.cpu.h>
+#include <sexy.script.h>
+#include <rococo.sexy.api.h>
+#include <rococo.sexy.ide.h>
+#include <rococo.os.h>
+#include <rococo.ide.h>
+
+#include <rococo.package.h>
 
 using namespace Rococo;
 using namespace Rococo::OS;
 using namespace Rococo::Science::Materials;
 using namespace Rococo::Strings;
+using namespace Rococo::Windows;
 
 void validate(bool condition, cstr expression, cstr location, int line)
 {
@@ -33,11 +41,93 @@ void validate(bool condition, cstr expression, cstr location, int line)
 
 #define VALIDATE(expression) validate((expression), #expression, __FILE__, __LINE__)
 
+using namespace Rococo;
 using namespace Rococo::Quotes;
 using namespace Rococo::Test::UserDemo;
 
+struct TableScriptContext : public IEventCallback<ScriptCompileArgs>, public Rococo::Windows::IDE::IScriptExceptionHandler, public IAppControl
+{
+    void Free() override
+    {
+
+    }
+
+    IDE::EScriptExceptionFlow GetScriptExceptionFlow(cstr source, cstr message) override
+    {
+        return IDE::EScriptExceptionFlow_Terminate;
+    }
+
+    void OnEvent(ScriptCompileArgs& args) override
+    {
+        AddNativeCalls_RococoScienceMaterialsIPeriodicTable_Sexy(args.ss, nullptr);
+    }
+
+    TableScriptContext() {}
+
+    void Execute(IInstallation& installation, cstr pingPath, ScriptPerformanceStats& stats, int32 id)
+    {
+        AutoFree<IScriptSystemFactory> ssFactory(CreateScriptSystemFactory_1_5_0_0());
+        AutoFree<ISourceCache> sourceCache(CreateSourceCache(installation));
+        AutoFree<IDebuggerWindow> debuggerWindow(Windows::IDE::GetConsoleAsDebuggerWindow());
+
+        WideFilePath sysPathPackages;
+        installation.ConvertPingPathToSysPath("!packages/tables_1000.sxyz", sysPathPackages);
+        AutoFree<IPackageSupervisor> tables = OpenZipPackage(sysPathPackages, "tables");
+
+        sourceCache->AddPackage(tables);
+
+        try
+        {
+            IDE::ExecuteSexyScriptLoop(stats,
+                4096_kilobytes,
+                *ssFactory,
+                *sourceCache,
+                *debuggerWindow,
+                pingPath,
+                id,
+                (int32)128_kilobytes,
+                *this,
+                *this,
+                *this,
+                false,
+                nullptr);
+        }
+        catch (IException&)
+        {
+            throw;
+        }
+    }
+
+    bool isRunning = true;
+
+    bool IsRunning() const override
+    {
+        return isRunning;
+    }
+
+    void ShutdownApp() override
+    {
+        isRunning = false;
+    }
+};
+
+void test_sexy(IInstallation& installation)
+{
+	WideFilePath srcpath;
+	Format(srcpath, L"%sscripts\\native\\", installation.Content());
+
+	Rococo::Script::SetDefaultNativeSourcePath(srcpath);
+
+	ScriptPerformanceStats stats;
+
+    TableScriptContext script;
+    script.Execute(installation, "!scripts/test/tables.sxy", stats, 0);
+}
+
 int main()
 {
+    Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
+
     try
     {
         AutoFree<IPeriodicTableSupervisor> periodicTable = GetPeriodicTable();
@@ -81,6 +171,8 @@ int main()
 
         VALIDATE(StartsWith(q, "No man"));
         VALIDATE(EndsWith(q, "money."));
+
+        test_sexy(*installation);
 
         return 0;
     }

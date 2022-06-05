@@ -134,7 +134,7 @@ namespace
 namespace Sys { namespace Random { 
 	void AddNativeCalls_SysRandom(Rococo::Script::IPublicScriptSystem& ss, void* nullContext = nullptr)
 	{
-		const INamespace& ns = ss.AddNativeNamespace(("Sys.Random"));
+		const INamespace& ns = ss.AddNativeNamespace("Sys.Random");
 		ss.AddNativeCall(ns, NativeSysRandomAnyColour, nullptr, ("AnyColour(Int32 rMin)(Int32 rMax)(Int32 gMin)(Int32 gMax)(Int32 bMin)(Int32 bMax)(Int32 aMin)(Int32 aMax) -> (Int32 colour)"), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeSysRandomAnyFloat, nullptr, ("AnyFloat(Float32 minValue)(Float32 maxValue) -> (Float32 value)"), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeSysRandomAnyInt, nullptr, ("AnyInt(Int32 minValue)(Int32 maxValue) -> (Int32 value)"), __FILE__, __LINE__);

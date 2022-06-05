@@ -73,6 +73,7 @@ namespace Rococo
 				char filename[256];
 			};
 
+			IDebuggerWindow* GetConsoleAsDebuggerWindow();
 			IDebuggerEventHandler* CreateDebuggerEventHandler(IInstallation& installation, IWindow& hOwner);
 			IDebuggerWindow* CreateDebuggerWindow(Windows::IWindow& parent, IEventCallback<MenuCommand>& menuCallback, OS::IAppControl& appControl);
 			IPersistentScript* CreatePersistentScript(size_t maxBytes, Rococo::Script::IScriptSystemFactory& factory, ISourceCache& sources, IDebuggerWindow& debugger, cstr resourcePath, int32 maxScriptSizeBytes, IEventCallback<ScriptCompileArgs>& onCompile, IScriptExceptionHandler& exceptionHandler);

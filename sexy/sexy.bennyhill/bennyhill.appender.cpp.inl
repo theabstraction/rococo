@@ -37,26 +37,32 @@ namespace Rococo
 
 	void DeclareCppEnum(FileAppender& appender, const EnumContext& ec, cr_sex senumDef, const ParseContext& pc);
 
-	int AppendNamespace(FileAppender& appender, cstr fqStructName)
+	int AppendNamespace(FileAppender& appender, cstr fqStructName, int depth = 0)
 	{
 		NamespaceSplitter splitter(fqStructName);
 		cstr nsRoot, nsSubspace;
 		if (splitter.SplitHead(nsRoot, nsSubspace))
 		{
-			appender.Append(("namespace %s { "), nsRoot);
-			return 1 + AppendNamespace(appender, nsSubspace);
+			if (depth == 0)
+			{
+				appender.Append("namespace ");
+			}
+			else
+			{
+				appender.Append("::");
+			}
+
+			appender.Append("%s", nsRoot);
+			return AppendNamespace(appender, nsSubspace, depth + 1);
 		}
 
-		appender.Append('\n');
-		return 0;
+		appender.Append("\n{\n");
+		return 1;
 	}
 
 	void CloseNamespace(FileAppender& appender, int nsDepth)
 	{
-		for (int i = 0; i < nsDepth; ++i)
-		{
-			appender.Append('}');
-		}
+		appender.Append('}');
 	}
 
 	void AppendStructShortName(FileAppender& appender, cstr fqStructName)
@@ -203,13 +209,23 @@ namespace Rococo
 		cstr head, body;
 		if (splitter.SplitHead(head, body))
 		{
-			writer.Append(("namespace %s { "), head);
+			if (depth == 0)
+			{
+				writer.Append("namespace ");
+			}
+			else
+			{
+				writer.Append("::");
+			}
+
+			writer.Append("%s", head);
 			WriteInterfaceDeclaration(writer, body, depth + 1);
-			writer.Append(("}"));
 		}
 		else
 		{
-			writer.Append(("\n\tstruct %s;\n"), qualifiedName);
+			writer.Append("\n{");
+			writer.Append("\n\tstruct %s;\n", qualifiedName);
+			writer.Append("}\n");
 		}
 	}
 
@@ -262,7 +278,7 @@ namespace Rococo
 				if (*i.second->ic.appendCppHeaderFile)
 				{
 					WriteInterfaceDeclaration(cppFileAppender, i.second->ic.asCppInterface.SexyName(), 0);
-					cppFileAppender.Append(("\n\n"));
+					cppFileAppender.Append(("\n"));
 				}
 			}
 		}
@@ -927,14 +943,14 @@ namespace Rococo
 
 		if (methods != NULL)
 		{
-			appender.Append(("\t\tconst INamespace& ns = ss.AddNativeNamespace((\""));
+			appender.Append(("\t\tconst INamespace& ns = ss.AddNativeNamespace(\""));
 
 			NamespaceSplitter splitter(ic.asSexyInterface);
 
 			cstr ns, shortName;
 			splitter.SplitTail(ns, shortName);
 
-			appender.Append(("%s.Native\"));\n"), ns);
+			appender.Append(("%s.Native\");\n"), ns);
 
 			int factoryIndex = 0;
 

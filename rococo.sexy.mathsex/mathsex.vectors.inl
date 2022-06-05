@@ -409,7 +409,7 @@ namespace
 namespace Sys { namespace Geometry { namespace F32 { 
 	void AddNativeCalls_SysGeometryF32(Rococo::Script::IPublicScriptSystem& ss, void* nullContext = nullptr)
 	{
-		const INamespace& ns = ss.AddNativeNamespace(("Sys.Geometry.F32"));
+		const INamespace& ns = ss.AddNativeNamespace("Sys.Geometry.F32");
 		ss.AddNativeCall(ns, NativeSysGeometryF32AddVec3fVec3f, nullptr, ("AddVec3fVec3f(Sys.Maths.Vec3 a)(Sys.Maths.Vec3 b)(Sys.Maths.Vec3 sum) -> "), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeSysGeometryF32SubtractVec3fVec3f, nullptr, ("SubtractVec3fVec3f(Sys.Maths.Vec3 a)(Sys.Maths.Vec3 b)(Sys.Maths.Vec3 difference) -> "), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeSysGeometryF32SubtractVec2fVec2f, nullptr, ("SubtractVec2fVec2f(Sys.Maths.Vec2 a)(Sys.Maths.Vec2 b)(Sys.Maths.Vec2 difference) -> "), __FILE__, __LINE__);

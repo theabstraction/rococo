@@ -1,0 +1,16 @@
+(' #import (tables "Tables"))
+
+// TODO -> have tables.types.sxy part of the package
+(' #include 
+	"!tables/generated.types.sxy" 
+	"!scripts/tables.types.sxy"
+)
+
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+
+(using Rococo.Science.Materials)
+
+(function Main (Int32 id)->(Int32 exitCode):
+	(IPeriodicTable periodicTable (GetPeriodicTable))
+)

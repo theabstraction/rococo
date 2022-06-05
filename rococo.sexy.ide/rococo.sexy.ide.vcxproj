@@ -93,6 +93,7 @@
     <ClInclude Include="..\include\rococo.sexy.ide.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="sexy.console.as.debugger.cpp" />
     <ClCompile Include="sexy.ide.flow.cpp" />
     <ClCompile Include="sexy.ide.debugger.cpp" />
   </ItemGroup>

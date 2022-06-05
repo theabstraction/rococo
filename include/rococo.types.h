@@ -140,7 +140,7 @@ namespace Rococo
 	namespace Sexy
 	{
 		// Type inference API
-
+		// TODO - move functions to their own header
 		void ForEachFieldOfClassDef(cstr className, cr_substring classDef, IFieldEnumerator& cb);
 		Substring GetClassDefinition(cstr className, cr_substring doc);
 		bool IsSexyKeyword(cr_substring candidate);
@@ -152,6 +152,13 @@ namespace Rococo
 		cstr GetFirstNonTokenPointerFromRight(cr_substring doc, cstr startPosition);
 	}
 
+	namespace Script
+	{
+		struct IPublicScriptSystem;
+	}
+
+
+	// TODO - move functions to their own header
 	Substring RightOfFirstChar(char c, cr_substring token);
 	cstr ReverseFind(char c, cr_substring token);
 
@@ -637,6 +644,12 @@ namespace Rococo
 	enum { _MAX_PATH = 260 };
 #endif
 
+}
+
+namespace Rococo
+{
+	template<int OPTIMAL_SIZE, class RETURN_TYPE, typename ... ARGS>
+	class ArbitraryFunction;
 }
 
 #endif

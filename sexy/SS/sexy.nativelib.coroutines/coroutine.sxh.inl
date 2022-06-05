@@ -71,10 +71,11 @@ namespace
 	}
 }
 
-namespace Sys { 
+namespace Sys
+{
 	void AddNativeCalls_SysICoroutineControl(Rococo::Script::IPublicScriptSystem& ss, Sys::ICoroutineControl* _nceContext)
 	{
-		const INamespace& ns = ss.AddNativeNamespace(("Sys.Native"));
+		const INamespace& ns = ss.AddNativeNamespace("Sys.Native");
 		ss.AddNativeCall(ns, NativeGetHandleForSysCoroutines, _nceContext, ("GetHandleForICoroutineControl0  -> (Pointer hObject)"), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeSysICoroutineControlAdd, nullptr, ("ICoroutineControlAdd (Pointer hObject)(Sys.ICoroutine coroutine) -> (Int64 id)"), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeSysICoroutineControlContinue, nullptr, ("ICoroutineControlContinue (Pointer hObject) -> (Int64 id)"), __FILE__, __LINE__);
