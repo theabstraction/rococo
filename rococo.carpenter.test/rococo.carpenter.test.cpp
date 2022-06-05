@@ -23,6 +23,8 @@
 #include <rococo.os.h>
 #include <rococo.ide.h>
 
+#include <rococo.package.h>
+
 using namespace Rococo;
 using namespace Rococo::OS;
 using namespace Rococo::Science::Materials;
@@ -57,7 +59,7 @@ struct TableScriptContext : public IEventCallback<ScriptCompileArgs>, public Roc
 
     void OnEvent(ScriptCompileArgs& args) override
     {
-
+        AddNativeCalls_RococoScienceMaterialsIPeriodicTable_Sexy(args.ss, nullptr);
     }
 
     TableScriptContext() {}
@@ -67,6 +69,12 @@ struct TableScriptContext : public IEventCallback<ScriptCompileArgs>, public Roc
         AutoFree<IScriptSystemFactory> ssFactory(CreateScriptSystemFactory_1_5_0_0());
         AutoFree<ISourceCache> sourceCache(CreateSourceCache(installation));
         AutoFree<IDebuggerWindow> debuggerWindow(Windows::IDE::GetConsoleAsDebuggerWindow());
+
+        WideFilePath sysPathPackages;
+        installation.ConvertPingPathToSysPath("!packages/tables_1000.sxyz", sysPathPackages);
+        AutoFree<IPackageSupervisor> tables = OpenZipPackage(sysPathPackages, "tables");
+
+        sourceCache->AddPackage(tables);
 
         try
         {

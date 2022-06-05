@@ -5,8 +5,7 @@ using DocumentFormat.OpenXml.Packaging;
 
 namespace Rococo.Carpenter
 {
-
-    static class Environment
+    public static class Environment
     {
         private static string xcBase = null;
         public static string XCBase

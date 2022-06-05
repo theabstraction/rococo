@@ -1,0 +1,12 @@
+(namespace Rococo)
+(namespace Rococo.Science)
+(namespace Rococo.Science.Materials)
+
+(alias Sys.Type.Int32 Rococo.Science.Materials.ElementName)
+(alias Sys.Type.Int32 Rococo.Science.Materials.ElementSymbol)
+(alias Sys.Type.Int32 Rococo.Science.Materials.ElementType)
+(namespace Rococo.SI)
+
+(alias Sys.Type.Float32 Rococo.SI.ElectronVolts)
+(alias Sys.Type.Float32 Rococo.SI.Kelvin)
+

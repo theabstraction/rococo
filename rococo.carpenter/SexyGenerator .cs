@@ -107,6 +107,11 @@ namespace Rococo.Carpenter
             get; private set;
         }
 
+        public string FullTypesPath
+        {
+            get; private set;
+        }
+
         public string FullXCPath
         {
             get
@@ -145,6 +150,11 @@ namespace Rococo.Carpenter
         }
 
         public StringBuilder XCBuilder
+        {
+            get; private set;
+        }
+
+        public StringBuilder TypesBuilder
         {
             get; private set;
         }
@@ -206,6 +216,8 @@ namespace Rococo.Carpenter
             {
                 throw new Exception("Bad rule: CppRepo '" + Repository + "' cannot determine directory.");
             }
+
+            FullTypesPath = Repository + @"content\tables\generated.types.sxy";
         }
 
         private CPPGenerator CPP
@@ -236,6 +248,10 @@ namespace Rococo.Carpenter
                 // This is the first time this file has been opened, so we need to append the introduction statements
                 AppendIntroduction(SXHBuilder);
             }
+
+            TypesBuilder = SexyCore.OpenFile(FullTypesPath);
+
+            AppendTypesToTypeFile(TypesBuilder);
 
             AppendInterface(SXHBuilder);
 
@@ -325,6 +341,91 @@ namespace Rococo.Carpenter
               //  sb.Append("Row");
 
                 return sb.ToString();
+            }
+        }
+
+        private void AddNamespace(StringBuilder sb, HashSet<string> namespaces, string newNamespace)
+        {
+            int lastDotIndex = newNamespace.LastIndexOf('.');
+            if (lastDotIndex > 0)
+            {
+                string parentNamespace = newNamespace.Substring(0, lastDotIndex);
+                if (namespaces.Add(parentNamespace))
+                {
+                    AddNamespace(sb, namespaces, parentNamespace);
+                }
+            }
+
+            sb.AppendFormat("(namespace {0})", newNamespace);
+            sb.AppendLine();
+        }
+
+        private void AppendTypesToTypeFile(StringBuilder sb)
+        {
+            HashSet<string> primitives = new HashSet<string>();
+            HashSet<string> namespaces = new HashSet<string>();
+
+            int index = 0;
+
+            foreach (var column in Table.Columns)
+            {
+                string typePrefix = "Type-";
+                string enumPrefix = "Enum-";
+                if (column.TypeInfo.StartsWith(typePrefix))
+                {
+                    if (primitives.Add(column.TypeInfo))
+                    {
+                        TypeDefinition def;
+                        if (!Types.TryGetType(column.TypeInfo.Substring(typePrefix.Length), out def))
+                        {
+                            throw new Exception("Unknown type: " + column.TypeInfo);
+                        }
+
+                        string sexyType = def.NameSpace + "." + def.LocalName;
+                        string cppType = def.NameSpace + "." + def.LocalName;
+
+                        if (namespaces.Add(def.NameSpace))
+                        {
+                            AddNamespace(sb, namespaces, def.NameSpace);
+                            sb.AppendLine();
+                        }
+
+                        string underlyingType = CPP.ColumnHeaders[index].UnderlyingType.ToString();
+
+                        sb.AppendFormat("(alias Sys.Type.{0} {1})", underlyingType, sexyType);
+                        sb.AppendLine();
+                    }
+                }
+                else if (column.TypeInfo.StartsWith(enumPrefix))
+                {
+                    EnumDef enumDef;
+                    if (CPPCore.EnumDefs.TryGetValue(column.TypeInfo.Substring(enumPrefix.Length), out enumDef))
+                    {
+                        if (primitives.Add(enumDef.Name))
+                        {
+                            string ns = Rules.CppNamespace;
+                            string sexyType = ns + "." + enumDef.Name;
+                            string cppType = ns + "." + enumDef.Name;
+
+                            if (namespaces.Add(ns))
+                            {
+                                AddNamespace(sb, namespaces, ns);
+                                sb.AppendLine();
+                            }
+
+
+                            sb.AppendFormat("(alias Sys.Type.Int32 {1})", SexyCore.ColumnTypeInfoToSexyVariableType(column), sexyType);
+                            sb.AppendLine();
+                        }
+                    }
+                }
+
+                index++;
+            }
+
+            if (primitives.Count > 0)
+            {
+                sb.AppendLine();
             }
         }
 
