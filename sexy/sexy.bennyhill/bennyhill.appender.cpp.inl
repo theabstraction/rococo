@@ -875,8 +875,8 @@ namespace Rococo
 
 	void ImplementNativeFunctions(FileAppender& appender, const InterfaceContext& ic, const ISExpression* methods[], const ParseContext& pc)
 	{
-		appender.Append(("// BennyHill generated Sexy native functions for %s \n"), ic.asCppInterface.FQName());
-		appender.Append(("namespace\n{\n\tusing namespace Rococo;\n\tusing namespace Rococo::Sex;\n\tusing namespace Rococo::Script;\n\tusing namespace Rococo::Compiler;\n\n"));
+		appender.Append("// BennyHill generated Sexy native functions for %s \n", ic.asCppInterface.FQName());
+		appender.Append("namespace\n{\n\tusing namespace Rococo;\n\tusing namespace Rococo::Sex;\n\tusing namespace Rococo::Script;\n\tusing namespace Rococo::Compiler;\n\n");
 
 		for(size_t t = 0; methods[t] != nullptr; ++t)
 		{

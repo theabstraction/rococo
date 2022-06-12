@@ -1956,8 +1956,6 @@ namespace Rococo.Carpenter
                     sb.AppendLine("#include <sexy.script.h>");
                     sb.AppendLine();
                 }
-                sb.AppendFormat("#include \"{0}\"", header);
-                sb.AppendLine();
             }
         }
 
@@ -2049,6 +2047,32 @@ namespace Rococo.Carpenter
                 AppendTab(sb);
                 AppendTab(sb);
                 sb.AppendLine("}");
+
+                AppendTab(sb);
+                sb.AppendLine("}");
+
+                sb.AppendLine();
+
+                AppendTab(sb);
+                sb.AppendFormat("bool AppendString({0} value, IStringPopulator& populator)", def.Key);
+                sb.AppendLine();
+
+                AppendTab(sb);
+                sb.AppendLine("{");
+
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendLine("fstring s = ToString(value);");
+
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendLine("if (s.length == 0) return false;");
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendLine("populator.Populate(s);");
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendLine("return true;");
 
                 AppendTab(sb);
                 sb.AppendLine("}");
@@ -2199,6 +2223,14 @@ namespace Rococo.Carpenter
             }
 
             sb.AppendLine("}");
+
+            sb.AppendLine();
+
+            foreach (string header in Environment.TargetConfig.AdditionalSourceHeaders)
+            {
+                sb.AppendFormat("#include \"{0}\"", header);
+                sb.AppendLine();
+            }
         }
 
         public void GoProtected()

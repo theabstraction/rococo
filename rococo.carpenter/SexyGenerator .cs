@@ -464,11 +464,43 @@ namespace Rococo.Carpenter
             sb.AppendLine(")");
 
             AppendTab(sb);
-            sb.AppendFormat("(factory {0}.{1})", Rules.CppNamespace.Replace("::", "."), Rules.CppFactory);
+            sb.AppendFormat("(factory {0}.{1})", Rules.CppNamespace, Rules.CppFactory);
             sb.AppendLine();
 
-
             sb.AppendLine(")");
+
+            int lengthBeforeFunctions = sb.Length;
+            sb.AppendFormat("(functions \"tables.sxh\"");
+            sb.AppendLine();
+
+            int enumCount = 0;
+
+            string sexyNS = Rules.CppNamespace;
+
+            foreach (ColumnHeader header in CPP.ColumnHeaders)
+            {
+                string enumName = header.EnumName;
+
+                if (enumName != null && enumName.Length > 0)
+                {
+                    AppendTab(sb);
+                    sb.AppendFormat("({0}.{1}AppendString(Enum{1} value)(IStringBuilder sb)->(Int32 stringLength) : {2}::AppendString)", sexyNS, enumName, Rules.CppNamespace.Replace(".", "::"));
+                    sb.AppendLine();
+
+                    enumCount++;
+                }
+
+               
+            }
+
+            if (enumCount == 0)
+            {
+                sb.Length = lengthBeforeFunctions;
+            }
+            else
+            {
+                sb.AppendFormat(")");
+            }
         }
         public string FQTableRowName
         {

@@ -61,6 +61,7 @@ struct TableScriptContext : public IEventCallback<ScriptCompileArgs>, public Roc
 
     void OnEvent(ScriptCompileArgs& args) override
     {
+        AddNativeCalls_RococoScienceMaterials(args.ss);
         AddNativeCalls_RococoScienceMaterialsIPeriodicTable_Sexy(args.ss, &installation);
     }
 

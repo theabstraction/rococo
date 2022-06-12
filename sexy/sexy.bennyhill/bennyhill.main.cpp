@@ -406,9 +406,13 @@ void ParseFunctions(cr_sex functionSetDef, const ParseContext& pc)
 	char sexyFile[_MAX_PATH];
 	SafeFormat(sexyFile, "%s%s.inl", pc.cppRootDirectory, filePrefix->Buffer);
 
+	char sexyHeaderFile[_MAX_PATH];
+	SafeFormat(sexyHeaderFile, "%s%s.h", pc.cppRootDirectory, filePrefix->Buffer);
+	FileAppender cppHeaderFileAppender(sexyHeaderFile);
+
 	FileAppender sexyAppender(sexyFile);
 
-	sexyAppender.Append("namespace\n{\n");
+	sexyAppender.Append(("namespace\n{\n\tusing namespace Rococo;\n\tusing namespace Rococo::Sex;\n\tusing namespace Rococo::Script;\n\tusing namespace Rococo::Compiler;\n\n"));
 
 	TMapNSToFunctionDefs nsMap;
 
@@ -443,17 +447,31 @@ void ParseFunctions(cr_sex functionSetDef, const ParseContext& pc)
 
 		int namespaceDepth = 0;
 
+		sexyAppender.Append("namespace ");
+		cppHeaderFileAppender.Append("namespace ");
+
 		while (token)
 		{
 			namespaceDepth++;
-			sexyAppender.Append(("namespace %s { "), token);
+			sexyAppender.Append("%s", token);
+			cppHeaderFileAppender.Append("%s", token);
 			token = Tokenize(nullptr, ".", &context);
+			if (token)
+			{
+				sexyAppender.Append("::");
+				cppHeaderFileAppender.Append("::");
+			}
 		}
+
+		sexyAppender.Append("\n{\n");
+		cppHeaderFileAppender.Append("\n{\n");
 
 		CppType nsType;
 		nsType.Set(ns);
 
-		sexyAppender.Append("\n\tvoid AddNativeCalls_%s(Rococo::Script::IPublicScriptSystem& ss, void* nullContext = nullptr)\n", nsType.CompressedName());
+		cppHeaderFileAppender.Append("\tvoid AddNativeCalls_%s(Rococo::Script::IPublicScriptSystem& ss);\n", nsType.CompressedName());
+
+		sexyAppender.Append("\n\tvoid AddNativeCalls_%s(Rococo::Script::IPublicScriptSystem& ss)\n", nsType.CompressedName());
 		sexyAppender.Append("\t{\n");
 
 		sexyAppender.Append(("\t\tconst INamespace& ns = ss.AddNativeNamespace(\"%s\");\n"), nsType.SexyName());
@@ -465,15 +483,8 @@ void ParseFunctions(cr_sex functionSetDef, const ParseContext& pc)
 			sexyAppender.Append("\n");
 		}
 
-		sexyAppender.Append("\t}\n");
-
-		while (namespaceDepth)
-		{
-			namespaceDepth--;
-			sexyAppender.Append("}");
-		}
-
-		sexyAppender.Append("\n");
+		sexyAppender.Append("\t}\n}\n\n");
+		cppHeaderFileAppender.Append("}\n\n");
 	}
 }
 

@@ -1,3 +1,75 @@
+namespace
+{
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
+
+	void NativeRococoScienceMaterialsElementNameAppendString(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(VirtualTable**);
+		VirtualTable** sb;
+		ReadInput(sb, _sf, -_offset);
+		Rococo::Helpers::StringPopulator _sbPopulator(_nce, sb);
+		Rococo::Science::Materials::ElementName value;
+		_offset += sizeof(value);
+		ReadInput(value, _sf, -_offset);
+
+		int32 stringLength = Rococo::Science::Materials::AppendString(value, _sbPopulator);
+		_offset += sizeof(stringLength);
+		WriteOutput(stringLength, _sf, -_offset);
+	}
+
+	void NativeRococoScienceMaterialsElementSymbolAppendString(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(VirtualTable**);
+		VirtualTable** sb;
+		ReadInput(sb, _sf, -_offset);
+		Rococo::Helpers::StringPopulator _sbPopulator(_nce, sb);
+		Rococo::Science::Materials::ElementSymbol value;
+		_offset += sizeof(value);
+		ReadInput(value, _sf, -_offset);
+
+		int32 stringLength = Rococo::Science::Materials::AppendString(value, _sbPopulator);
+		_offset += sizeof(stringLength);
+		WriteOutput(stringLength, _sf, -_offset);
+	}
+
+	void NativeRococoScienceMaterialsElementTypeAppendString(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(VirtualTable**);
+		VirtualTable** sb;
+		ReadInput(sb, _sf, -_offset);
+		Rococo::Helpers::StringPopulator _sbPopulator(_nce, sb);
+		Rococo::Science::Materials::ElementType value;
+		_offset += sizeof(value);
+		ReadInput(value, _sf, -_offset);
+
+		int32 stringLength = Rococo::Science::Materials::AppendString(value, _sbPopulator);
+		_offset += sizeof(stringLength);
+		WriteOutput(stringLength, _sf, -_offset);
+	}
+
+}
+
+namespace Rococo::Science::Materials
+{
+
+	void AddNativeCalls_RococoScienceMaterials(Rococo::Script::IPublicScriptSystem& ss)
+	{
+		const INamespace& ns = ss.AddNativeNamespace("Rococo.Science.Materials");
+		ss.AddNativeCall(ns, NativeRococoScienceMaterialsElementNameAppendString, nullptr, ("ElementNameAppendString(Rococo.Science.Materials.ElementName value)(Sys.Type.IStringBuilder sb) -> (Int32 stringLength)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoScienceMaterialsElementSymbolAppendString, nullptr, ("ElementSymbolAppendString(Rococo.Science.Materials.ElementSymbol value)(Sys.Type.IStringBuilder sb) -> (Int32 stringLength)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoScienceMaterialsElementTypeAppendString, nullptr, ("ElementTypeAppendString(Rococo.Science.Materials.ElementType value)(Sys.Type.IStringBuilder sb) -> (Int32 stringLength)"), __FILE__, __LINE__);
+	}
+}
+
 // BennyHill generated Sexy native functions for Rococo::Science::Materials::IPeriodicTable_Sexy 
 namespace
 {

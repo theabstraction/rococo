@@ -26,4 +26,11 @@
 	(if ((row.atomicMass < 238) or (row.atomicMass > 239))
 		(Sys.Throw 0 "Bad uranium")
 	)
+	
+	(Sys.Type.IStringBuilder sb = (Sys.Type.NewTokenBuilder))
+	(ElementNameAppendString row.element sb)
+	
+	(if ((Sys.Type.Strings.Compare sb "Uranium") != 0)
+		(Sys.Throw 0 "Bad element name")
+	)
 )
