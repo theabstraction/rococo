@@ -442,7 +442,7 @@ namespace Rococo.Carpenter
             sb.AppendLine();
 
             AppendTab(sb);
-            sb.AppendFormat("(context factory void)", SexyInterfaceName);
+            sb.AppendFormat("(context factory IInstallation)", SexyInterfaceName);
             sb.AppendLine();
 
             AppendTab(sb);

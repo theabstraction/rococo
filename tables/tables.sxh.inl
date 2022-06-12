@@ -41,8 +41,8 @@ namespace
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		void* nceContext = reinterpret_cast<void*>(_nce.context);
-		// Uses: Rococo::Science::Materials::IPeriodicTable_Sexy* FactoryConstructRococoScienceMaterialsGetPeriodicTable(void* _context);
+		IInstallation* nceContext = reinterpret_cast<IInstallation*>(_nce.context);
+		// Uses: Rococo::Science::Materials::IPeriodicTable_Sexy* FactoryConstructRococoScienceMaterialsGetPeriodicTable(IInstallation* _context);
 		Rococo::Science::Materials::IPeriodicTable_Sexy* pObject = FactoryConstructRococoScienceMaterialsGetPeriodicTable(nceContext);
 		_offset += sizeof(IString*);
 		WriteOutput(pObject, _sf, -_offset);
@@ -51,7 +51,7 @@ namespace
 
 namespace Rococo::Science::Materials
 {
-	void AddNativeCalls_RococoScienceMaterialsIPeriodicTable_Sexy(Rococo::Script::IPublicScriptSystem& ss, void* _nceContext)
+	void AddNativeCalls_RococoScienceMaterialsIPeriodicTable_Sexy(Rococo::Script::IPublicScriptSystem& ss, IInstallation* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace("Rococo.Science.Materials.Native");
 		ss.AddNativeCall(ns, NativeGetHandleForRococoScienceMaterialsGetPeriodicTable, _nceContext, ("GetHandleForIPeriodicTable0  -> (Pointer hObject)"), __FILE__, __LINE__);

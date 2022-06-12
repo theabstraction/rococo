@@ -13,4 +13,17 @@
 
 (function Main (Int32 id)->(Int32 exitCode):
 	(IPeriodicTable periodicTable (GetPeriodicTable))
+	(Int32 i = periodicTable.NumberOfRows)
+	(if ((i < 100) or (i > 200))
+		(Sys.Throw 0 "Bad number of rows")
+	)
+	
+	(PeriodicTableRow row)
+	(periodicTable.GetRow 92 row)
+	
+	(ElementSymbol symbol = row.symbol)
+	
+	(if ((row.atomicMass < 238) or (row.atomicMass > 239))
+		(Sys.Throw 0 "Bad uranium")
+	)
 )

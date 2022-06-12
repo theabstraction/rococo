@@ -47,6 +47,8 @@ using namespace Rococo::Test::UserDemo;
 
 struct TableScriptContext : public IEventCallback<ScriptCompileArgs>, public Rococo::Windows::IDE::IScriptExceptionHandler, public IAppControl
 {
+    IInstallation& installation;
+
     void Free() override
     {
 
@@ -59,12 +61,12 @@ struct TableScriptContext : public IEventCallback<ScriptCompileArgs>, public Roc
 
     void OnEvent(ScriptCompileArgs& args) override
     {
-        AddNativeCalls_RococoScienceMaterialsIPeriodicTable_Sexy(args.ss, nullptr);
+        AddNativeCalls_RococoScienceMaterialsIPeriodicTable_Sexy(args.ss, &installation);
     }
 
-    TableScriptContext() {}
+    TableScriptContext(IInstallation& _installation):installation(_installation) {}
 
-    void Execute(IInstallation& installation, cstr pingPath, ScriptPerformanceStats& stats, int32 id)
+    void Execute(cstr pingPath, ScriptPerformanceStats& stats, int32 id)
     {
         AutoFree<IScriptSystemFactory> ssFactory(CreateScriptSystemFactory_1_5_0_0());
         AutoFree<ISourceCache> sourceCache(CreateSourceCache(installation));
@@ -120,8 +122,8 @@ void test_sexy(IInstallation& installation)
 
 	ScriptPerformanceStats stats;
 
-    TableScriptContext script;
-    script.Execute(installation, "!scripts/test/tables.sxy", stats, 0);
+    TableScriptContext script(installation);
+    script.Execute("!scripts/test/tables.sxy", stats, 0);
 }
 
 int main()

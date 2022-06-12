@@ -1311,7 +1311,7 @@ namespace Rococo.Carpenter
             sb.Append("FactoryConstruct");
             sb.Append(CppNamespace.Replace("::", ""));
             sb.Append(Rules.CppFactory);
-            sb.Append("(void* unusedNullContext)");
+            sb.Append("(IInstallation* installation)");
         }
 
         public void AppendTableImplementation()
@@ -1917,7 +1917,9 @@ namespace Rococo.Carpenter
                 AppendTab(sb);
                 sb.AppendFormat("auto* instance = new ANON::{0}_Implementation();", CppTableName);
                 sb.AppendLine();
-
+                AppendTab(sb);
+                sb.AppendFormat("instance->Load(*installation, nullptr);", CppTableName);
+                sb.AppendLine();
                 AppendTab(sb);
                 sb.AppendFormat("return &instance->GetSexyInterface();", CppTableName);
             }
