@@ -487,10 +487,12 @@ namespace Rococo.Carpenter
                     sb.AppendFormat("({0}.{1}AppendString(Enum{1} value)(IStringBuilder sb)->(Int32 stringLength) : {2}::AppendString)", sexyNS, enumName, Rules.CppNamespace.Replace(".", "::"));
                     sb.AppendLine();
 
-                    enumCount++;
-                }
+                    AppendTab(sb);
+                    sb.AppendFormat("({0}.TryParse{1}(const IString s)->(Bool wasFound)(Int32 value) : TryParse{1})", sexyNS, enumName, Rules.CppNamespace.Replace(".", "::"));
+                    sb.AppendLine();
 
-               
+                    enumCount++;
+                }               
             }
 
             if (enumCount == 0)

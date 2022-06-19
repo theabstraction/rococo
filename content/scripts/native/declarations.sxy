@@ -501,17 +501,17 @@
 (function ToFloat64167 (Int64 x) -> (Float64 value) : (source "C:\work\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i64.inl" 197))
 (alias ToFloat64167 Sys.Maths.I64.ToFloat64)
 
-(function GetHandleForICoroutineControl0168   -> (Pointer hObject) : (source "C:\work\rococo\sexy\SS\sexy.nativelib.coroutines\coroutine.sxh.inl" 78))
+(function GetHandleForICoroutineControl0168   -> (Pointer hObject) : (source "C:\work\rococo\sexy\SS\sexy.nativelib.coroutines\coroutine.sxh.inl" 79))
 (alias GetHandleForICoroutineControl0168 Sys.Native.GetHandleForICoroutineControl0)
 
-(function ICoroutineControlAdd169  (Pointer hObject)(Sys.ICoroutine coroutine) -> (Int64 id) : (source "C:\work\rococo\sexy\SS\sexy.nativelib.coroutines\coroutine.sxh.inl" 79))
+(function ICoroutineControlAdd169  (Pointer hObject)(Sys.ICoroutine coroutine) -> (Int64 id) : (source "C:\work\rococo\sexy\SS\sexy.nativelib.coroutines\coroutine.sxh.inl" 80))
 (alias ICoroutineControlAdd169 Sys.Native.ICoroutineControlAdd)
 
-(function ICoroutineControlContinue170  (Pointer hObject) -> (Int64 id) : (source "C:\work\rococo\sexy\SS\sexy.nativelib.coroutines\coroutine.sxh.inl" 80))
+(function ICoroutineControlContinue170  (Pointer hObject) -> (Int64 id) : (source "C:\work\rococo\sexy\SS\sexy.nativelib.coroutines\coroutine.sxh.inl" 81))
 (alias ICoroutineControlContinue170 Sys.Native.ICoroutineControlContinue)
 
-(function ICoroutineControlRelease171  (Pointer hObject)(Int64 id) ->  : (source "C:\work\rococo\sexy\SS\sexy.nativelib.coroutines\coroutine.sxh.inl" 81))
+(function ICoroutineControlRelease171  (Pointer hObject)(Int64 id) ->  : (source "C:\work\rococo\sexy\SS\sexy.nativelib.coroutines\coroutine.sxh.inl" 82))
 (alias ICoroutineControlRelease171 Sys.Native.ICoroutineControlRelease)
 
-(function ICoroutineControlReleaseAll172  (Pointer hObject) ->  : (source "C:\work\rococo\sexy\SS\sexy.nativelib.coroutines\coroutine.sxh.inl" 82))
+(function ICoroutineControlReleaseAll172  (Pointer hObject) ->  : (source "C:\work\rococo\sexy\SS\sexy.nativelib.coroutines\coroutine.sxh.inl" 83))
 (alias ICoroutineControlReleaseAll172 Sys.Native.ICoroutineControlReleaseAll)

@@ -10,6 +10,7 @@
 	(alias Main EntryPoint.Main)
 
 (using Rococo.Science.Materials)
+(using Sys.Type)
 
 (function Main (Int32 id)->(Int32 exitCode):
 	(IPeriodicTable periodicTable (GetPeriodicTable))
@@ -32,5 +33,16 @@
 	
 	(if ((Sys.Type.Strings.Compare sb "Uranium") != 0)
 		(Sys.Throw 0 "Bad element name")
+	)
+
+	(Bool found)
+	(Int32 pu)
+	(TryParseElementName "Plutonium" -> found pu)
+	(if (not found)
+		(Sys.Throw 0 "Could not parse 'Plutonium'")
+	)
+
+	(if (pu != 94)
+		(Sys.Throw 0 "Expected atomic number of Pu to be 94")
 	)
 )

@@ -1,0 +1,12 @@
+// Rococo::Sex::S-Parser is recommended for parsing this file
+
+(' S-Format-Dictionary-v1.0 ( 
+	(I32 Strength 123)
+	(I32 Agility 107)
+	(I32 Wellness 97)
+	(I32 Psyche 102)
+	(I32 Ego 118)
+	(I32 Maths 89)
+	(STR Name "Henrik Heffelfinger")
+	(STR Portrait "!textures/faces/male/male.white.5.jpg")
+))

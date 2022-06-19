@@ -22,6 +22,23 @@ namespace
 		WriteOutput(stringLength, _sf, -_offset);
 	}
 
+	void NativeRococoScienceMaterialsTryParseElementName(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _s;
+		ReadInput(_s, _sf, -_offset);
+		fstring s { _s->buffer, _s->length };
+
+
+		auto [output_0, output_1] = TryParseElementName(s);
+		_offset += sizeof(boolean32);
+		WriteOutput(output_0, _sf, -_offset);
+		_offset += sizeof(int32);
+		WriteOutput(output_1, _sf, -_offset);
+	}
+
 	void NativeRococoScienceMaterialsElementSymbolAppendString(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -37,6 +54,23 @@ namespace
 		int32 stringLength = Rococo::Science::Materials::AppendString(value, _sbPopulator);
 		_offset += sizeof(stringLength);
 		WriteOutput(stringLength, _sf, -_offset);
+	}
+
+	void NativeRococoScienceMaterialsTryParseElementSymbol(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _s;
+		ReadInput(_s, _sf, -_offset);
+		fstring s { _s->buffer, _s->length };
+
+
+		auto [output_0, output_1] = TryParseElementSymbol(s);
+		_offset += sizeof(boolean32);
+		WriteOutput(output_0, _sf, -_offset);
+		_offset += sizeof(int32);
+		WriteOutput(output_1, _sf, -_offset);
 	}
 
 	void NativeRococoScienceMaterialsElementTypeAppendString(NativeCallEnvironment& _nce)
@@ -56,6 +90,23 @@ namespace
 		WriteOutput(stringLength, _sf, -_offset);
 	}
 
+	void NativeRococoScienceMaterialsTryParseElementType(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _s;
+		ReadInput(_s, _sf, -_offset);
+		fstring s { _s->buffer, _s->length };
+
+
+		auto [output_0, output_1] = TryParseElementType(s);
+		_offset += sizeof(boolean32);
+		WriteOutput(output_0, _sf, -_offset);
+		_offset += sizeof(int32);
+		WriteOutput(output_1, _sf, -_offset);
+	}
+
 }
 
 namespace Rococo::Science::Materials
@@ -65,8 +116,11 @@ namespace Rococo::Science::Materials
 	{
 		const INamespace& ns = ss.AddNativeNamespace("Rococo.Science.Materials");
 		ss.AddNativeCall(ns, NativeRococoScienceMaterialsElementNameAppendString, nullptr, ("ElementNameAppendString(Rococo.Science.Materials.ElementName value)(Sys.Type.IStringBuilder sb) -> (Int32 stringLength)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoScienceMaterialsTryParseElementName, nullptr, ("TryParseElementName(Sys.Type.IString s) -> (Bool wasFound)"), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeRococoScienceMaterialsElementSymbolAppendString, nullptr, ("ElementSymbolAppendString(Rococo.Science.Materials.ElementSymbol value)(Sys.Type.IStringBuilder sb) -> (Int32 stringLength)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoScienceMaterialsTryParseElementSymbol, nullptr, ("TryParseElementSymbol(Sys.Type.IString s) -> (Bool wasFound)"), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeRococoScienceMaterialsElementTypeAppendString, nullptr, ("ElementTypeAppendString(Rococo.Science.Materials.ElementType value)(Sys.Type.IStringBuilder sb) -> (Int32 stringLength)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoScienceMaterialsTryParseElementType, nullptr, ("TryParseElementType(Sys.Type.IString s) -> (Bool wasFound)"), __FILE__, __LINE__);
 	}
 }
 

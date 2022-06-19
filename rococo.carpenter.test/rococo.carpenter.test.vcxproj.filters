@@ -58,5 +58,8 @@
     <None Include="..\tables\rococo.tables.test.xc">
       <Filter>ScriptGen</Filter>
     </None>
+    <None Include="..\content\scripts\test\tables.sxy">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

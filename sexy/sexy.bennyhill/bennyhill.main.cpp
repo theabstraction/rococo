@@ -253,22 +253,27 @@ void AppendNativeFunction(cr_sex functionDef, const ParseContext& pc, FileAppend
 	int outputStart = GetOutputPosition(functionDef);
 	AddNativeInputs(attributes, outputFile, functionDef, 1, outputStart - 2, pc);
 
-	if (functionDef.NumberOfElements() != outputStart + 3 && functionDef.NumberOfElements() != outputStart + 2)
+	if (functionDef.NumberOfElements() < outputStart + 3 && functionDef.NumberOfElements() != outputStart + 2)
 	{
-		Throw(functionDef, "Expecting two elements after the output. The first : and the second the function name to be called in C++");
+		Throw(functionDef, "Expecting two or more elements after the output. The first : and the second the function name to be called in C++");
 	}
 
-	int bodyIndicatorPos = outputStart;
-
-	if (functionDef.NumberOfElements() == outputStart + 3)
+	int j = outputStart;
+	while (j < functionDef.NumberOfElements())
 	{
-		bodyIndicatorPos++;
+		cr_sex bodyIndicator = functionDef[j];
+
+		if (IsAtomic(bodyIndicator) && AreEqual(bodyIndicator.String(), ":"))
+		{
+			break;
+		}
+
+		j++;
 	}
 
-	cr_sex bodyIndicator = functionDef[bodyIndicatorPos];
-	if (!IsAtomic(bodyIndicator) || !AreEqual(bodyIndicator.String(), ":"))
+	if (j == functionDef.NumberOfElements())
 	{
-		Throw(bodyIndicator, "Expecting ':' body indicator at this position. Benny Hill functions have only one output. Check spaces between tokens.");
+		Throw(functionDef, "Expecting ':' body indicator followed by the C++ function name. Check spaces between tokens.");
 	}
 
 	cr_sex sCppFunction = functionDef[functionDef.NumberOfElements() - 1];
@@ -279,7 +284,7 @@ void AppendNativeFunction(cr_sex functionDef, const ParseContext& pc, FileAppend
 
 	sexstring cppFunction = sCppFunction.String();
 
-	if (bodyIndicatorPos > outputStart)
+	if (j > outputStart)
 	{
 		cr_sex outputDef = functionDef[outputStart];
 		cr_sex stype = outputDef.GetElement(0);
@@ -294,7 +299,26 @@ void AppendNativeFunction(cr_sex functionDef, const ParseContext& pc, FileAppend
 		char compressedName[256];
 		GetFQCppStructName(compressedName, cppName, 256, k->second.cppType.c_str());
 
-		outputFile.Append(("\t\t%s %s = "), cppName, StringFrom(svalue));
+		int nOutputs = j - outputStart;
+
+		if (nOutputs < 2)
+		{
+			outputFile.Append(("\t\t%s %s = "), cppName, StringFrom(svalue));
+		}
+		else
+		{
+			outputFile.Append("\t\tauto [");
+			for (int k = 0; k < nOutputs; k++)
+			{
+				if (k > 0)
+				{
+					outputFile.Append(", ", k);
+				}
+
+				outputFile.Append("output_%d", k);
+			}
+			outputFile.Append("] = ");
+		}
 	}
 	else
 	{
@@ -348,14 +372,38 @@ void AppendNativeFunction(cr_sex functionDef, const ParseContext& pc, FileAppend
 
 	outputFile.Append(");\n");
 
-	if (bodyIndicatorPos > outputStart)
+	if (j > outputStart)
 	{
-		cr_sex outputDef = functionDef[outputStart];
-		cr_sex stype = outputDef.GetElement(0);
-		cr_sex svalue = outputDef.GetElement(1);
+		int nOutputs = j - outputStart;
 
-		outputFile.Append("\t\t_offset += sizeof(%s);\n", StringFrom(svalue));
-		outputFile.Append("\t\tWriteOutput(%s, _sf, -_offset);\n", StringFrom(svalue));
+		if (nOutputs == 1)
+		{
+			cr_sex outputDef = functionDef[outputStart];
+			cr_sex stype = outputDef.GetElement(0);
+			cr_sex svalue = outputDef.GetElement(1);
+
+			outputFile.Append("\t\t_offset += sizeof(%s);\n", StringFrom(svalue));
+			outputFile.Append("\t\tWriteOutput(%s, _sf, -_offset);\n", StringFrom(svalue));
+		}
+		else
+		{
+			for (int k = 0; k < nOutputs; ++k)
+			{
+				cr_sex outputDef = functionDef[outputStart + k];
+				cr_sex stype = outputDef.GetElement(0);
+				cr_sex svalue = outputDef.GetElement(1);
+
+				TTypeMap::const_iterator l = pc.primitives.find(StringFrom(stype));
+				if (l == pc.primitives.end()) Throw(stype, "Could not find type amongst the primitives");
+
+				char cppName[256];
+				char compressedName[256];
+				GetFQCppStructName(compressedName, cppName, 256, l->second.cppType.c_str());
+
+				outputFile.Append("\t\t_offset += sizeof(%s);\n", cppName);
+				outputFile.Append("\t\tWriteOutput(output_%d, _sf, -_offset);\n", k);
+			}
+		}
 	}
 
 	outputFile.Append("\t}\n\n");

@@ -1324,6 +1324,7 @@ namespace Rococo.Carpenter
             {
                 sb.AppendLine("#include <rococo.io.h>");
                 sb.AppendLine();
+                sb.AppendLine("#include <tuple>");
                 sb.AppendLine("#include <vector>");
                 sb.AppendLine();
             }
@@ -2220,6 +2221,27 @@ namespace Rococo.Carpenter
                 sb.AppendLine("return false;");
                 AppendTab(sb);
                 sb.AppendLine("}");
+                sb.AppendLine();
+                AppendTab(sb);
+                sb.AppendFormat("std::tuple<boolean32,{0}> TryParse{0}(const fstring& text)", def.Key);
+                sb.AppendLine();
+                AppendTab(sb);
+                sb.AppendLine("{");
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendFormat("{0} value = {0}();", def.Key);
+                sb.AppendLine();
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendFormat("boolean32 wasFound = TryParse(text, value) ? 1 : 0;", def.Key);
+                sb.AppendLine();
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendFormat("return {{ wasFound, value }};");
+                sb.AppendLine();
+                AppendTab(sb);
+                sb.AppendLine("}");
+
             }
 
             sb.AppendLine("}");

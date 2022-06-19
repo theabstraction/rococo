@@ -295,9 +295,9 @@ extern "C"
       private:
          virtual void AddNativeCalls()
          {
-            Sys::Geometry::F32::AddNativeCalls_SysGeometryF32(ss, nullptr);
-            Sys::Random::AddNativeCalls_SysRandom(ss, nullptr);
-			Sys::Type::AddNativeCalls_SysType(ss, nullptr);
+            Sys::Geometry::F32::AddNativeCalls_SysGeometryF32(ss);
+            Sys::Random::AddNativeCalls_SysRandom(ss);
+			Sys::Type::AddNativeCalls_SysType(ss);
          }
 
          virtual void ClearResources()

@@ -1,5 +1,10 @@
 namespace
 {
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
+
 	void NativeSysGeometryF32AddVec3fVec3f(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -406,8 +411,10 @@ namespace
 
 }
 
-namespace Sys { namespace Geometry { namespace F32 { 
-	void AddNativeCalls_SysGeometryF32(Rococo::Script::IPublicScriptSystem& ss, void* nullContext = nullptr)
+namespace Sys::Geometry::F32
+{
+
+	void AddNativeCalls_SysGeometryF32(Rococo::Script::IPublicScriptSystem& ss)
 	{
 		const INamespace& ns = ss.AddNativeNamespace("Sys.Geometry.F32");
 		ss.AddNativeCall(ns, NativeSysGeometryF32AddVec3fVec3f, nullptr, ("AddVec3fVec3f(Sys.Maths.Vec3 a)(Sys.Maths.Vec3 b)(Sys.Maths.Vec3 sum) -> "), __FILE__, __LINE__);
@@ -433,4 +440,5 @@ namespace Sys { namespace Geometry { namespace F32 {
 		ss.AddNativeCall(ns, NativeSysGeometryF32MakeTranslateMatrix, nullptr, ("MakeTranslateMatrix(Sys.Maths.Vec3 ds)(Sys.Maths.Matrix4x4 t) -> "), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeSysGeometryF32TryGetCommonSegment, nullptr, ("TryGetCommonSegment(Sys.Maths.Vec3 a)(Sys.Maths.Vec3 b)(Sys.Maths.Quadf p)(Sys.Maths.Quadf q) -> (Bool matched)"), __FILE__, __LINE__);
 	}
-}}}
+}
+
