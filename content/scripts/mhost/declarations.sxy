@@ -906,7 +906,7 @@
 (function IKeyboardSaveCppHeader302  (Pointer hObject) ->  : (source "C:\work\rococo\rococo.mplat\mplat.sxh.inl" 6673))
 (alias IKeyboardSaveCppHeader302 Rococo.Native.IKeyboardSaveCppHeader)
 
-(function IsKeyPressed303 (MHost.OS.KeyState keys)(Int32 vKeyCode) -> (Bool isPressed) : (source "C:\work\rococo\mhost\mhost.inl" 65))
+(function IsKeyPressed303 (MHost.OS.KeyState keys)(Int32 vKeyCode) -> (Bool isPressed) : (source "C:\work\rococo\mhost\mhost.inl" 72))
 (alias IsKeyPressed303 MHost.OS.IsKeyPressed)
 
 (function GetHandleForIParticleSystem0304   -> (Pointer hObject) : (source "C:\work\rococo\rococo.mplat\mplat.sxh.inl" 7251))
@@ -1140,10 +1140,10 @@
 (function IEngineSetOverlayToggleKey380  (Pointer hObject)(Int32 vkeyCode) ->  : (source "C:\work\rococo\mhost\mhost.sxh.inl" 888))
 (alias IEngineSetOverlayToggleKey380 MHost.Native.IEngineSetOverlayToggleKey)
 
-(function ToRGBAb381 (RGBA colourF32x4) -> (Int32 colourB8x4) : (source "C:\work\rococo\mhost\mhost.inl" 79))
+(function ToRGBAb381 (RGBA colourF32x4) -> (Int32 colourB8x4) : (source "C:\work\rococo\mhost\mhost.inl" 92))
 (alias ToRGBAb381 MHost.Graphics.ToRGBAb)
 
-(function FloatToColourComponent382 (Float32 c) -> (Int32 ic) : (source "C:\work\rococo\mhost\mhost.inl" 80))
+(function FloatToColourComponent382 (Float32 c) -> (Int32 ic) : (source "C:\work\rococo\mhost\mhost.inl" 93))
 (alias FloatToColourComponent382 MHost.Graphics.FloatToColourComponent)
 
 (function IDictionaryStreamAddF64383  (Pointer hObject)(Sys.Type.IString name)(Float64 value) ->  : (source "C:\work\rococo\mhost\mhost.sxh.inl" 1232))

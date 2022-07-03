@@ -1,5 +1,10 @@
 namespace
 {
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
+
 	void NativeMHostOSIsKeyPressed(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -58,25 +63,34 @@ namespace
 
 }
 
-namespace MHost { namespace OS { 
-	void AddNativeCalls_MHostOS(Rococo::Script::IPublicScriptSystem& ss, void* nullContext = nullptr)
+namespace MHost::OS
+{
+
+	void AddNativeCalls_MHostOS(Rococo::Script::IPublicScriptSystem& ss)
 	{
 		const INamespace& ns = ss.AddNativeNamespace("MHost.OS");
 		ss.AddNativeCall(ns, NativeMHostOSIsKeyPressed, nullptr, ("IsKeyPressed(MHost.OS.KeyState keys)(Int32 vKeyCode) -> (Bool isPressed)"), __FILE__, __LINE__);
 	}
-}}
-namespace MHost { namespace Maths { 
-	void AddNativeCalls_MHostMaths(Rococo::Script::IPublicScriptSystem& ss, void* nullContext = nullptr)
+}
+
+namespace MHost::Maths
+{
+
+	void AddNativeCalls_MHostMaths(Rococo::Script::IPublicScriptSystem& ss)
 	{
 		const INamespace& ns = ss.AddNativeNamespace("MHost.Maths");
 		ss.AddNativeCall(ns, NativeMHostMathsClamp0to1, nullptr, ("Clamp0to1(Float32 f) -> (Float32 clampedValue)"), __FILE__, __LINE__);
 	}
-}}
-namespace MHost { namespace Graphics { 
-	void AddNativeCalls_MHostGraphics(Rococo::Script::IPublicScriptSystem& ss, void* nullContext = nullptr)
+}
+
+namespace MHost::Graphics
+{
+
+	void AddNativeCalls_MHostGraphics(Rococo::Script::IPublicScriptSystem& ss)
 	{
 		const INamespace& ns = ss.AddNativeNamespace("MHost.Graphics");
 		ss.AddNativeCall(ns, NativeMHostGraphicsToRGBAb, nullptr, ("ToRGBAb(RGBA colourF32x4) -> (Int32 colourB8x4)"), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeMHostGraphicsFloatToColourComponent, nullptr, ("FloatToColourComponent(Float32 c) -> (Int32 ic)"), __FILE__, __LINE__);
 	}
-}}
+}
+

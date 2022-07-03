@@ -254,6 +254,7 @@ namespace Rococo
 		for (auto& i : enumFiles)
 		{
 			FileAppender cppFileAppender(i.c_str());
+			AddPragmaOnce(cppFileAppender, i.c_str());
 			for (auto& i : pc.enums)
 			{
 				DeclareCppEnum(cppFileAppender, i.ec, *i.sdef, pc);
@@ -273,6 +274,7 @@ namespace Rococo
 		for (auto& i : enumFiles)
 		{
 			FileAppender cppFileAppender(i.c_str());
+			AddPragmaOnce(cppFileAppender, i.c_str());
 			for (auto& i : pc.interfaces)
 			{
 				if (*i.second->ic.appendCppHeaderFile)

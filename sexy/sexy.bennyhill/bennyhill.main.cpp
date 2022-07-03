@@ -44,9 +44,19 @@
 
 #include <rococo.api.h>
 #include <rococo.os.h>
+#include <unordered_set>
 
 namespace Rococo
 {
+	void AddPragmaOnce(FileAppender appender, cstr headerFileName)
+	{
+		static std::unordered_set<std::string> oncedThings;
+		if (oncedThings.emplace(headerFileName).second)
+		{
+			appender.Append("%s", "#pragma once\n\n");
+		}
+	}
+
    void ConvertAndAppendCppType(FileAppender& appender, cstr cppType)
    {
       NamespaceSplitter splitter(cppType);
@@ -162,7 +172,10 @@ namespace Rococo
 using namespace Rococo;
 using namespace Rococo::Sex;
 
-void AddPragmaOnce(FileAppender appender, cstr headerFileName);
+namespace Rococo
+{
+	void AddPragmaOnce(FileAppender appender, cstr headerFileName);
+}
 
 void GenerateFiles(const ParseContext& pc, const InterfaceContext& ic, cr_sex s, const ISExpression* methods[], cr_sex interfaceDef)
 {
@@ -181,9 +194,8 @@ void GenerateFiles(const ParseContext& pc, const InterfaceContext& ic, cr_sex s,
 	}
 
 	FileAppender cppFileAppender(ic.appendCppHeaderFile);
+//	AddPragmaOnce(cppFileAppender, ic.appendCppHeaderFile);
 	DeclareCppInterface(cppFileAppender, ic, interfaceDef, mostDerivedMethods[-1], pc);
-
-	AddPragmaOnce(cppFileAppender, ic.appendCppHeaderFile);
 
 	if (ic.nceContext.SexyName()[0] != 0)
 	{
@@ -438,17 +450,6 @@ void AppendNativeRegistration(const FunctionDesc& desc, const CppType& ns, const
 	}
 
 	outputFile.Append("\"), __FILE__, __LINE__);");
-}
-
-#include <unordered_set>
-
-void AddPragmaOnce(FileAppender appender, cstr headerFileName)
-{
-	static std::unordered_set<std::string> oncedThings;
-	if (oncedThings.emplace(headerFileName).second)
-	{
-		appender.Append("#pragma once\n\n");
-	}
 }
 
 void ParseFunctions(cr_sex functionSetDef, const ParseContext& pc)
