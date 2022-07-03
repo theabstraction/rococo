@@ -38,6 +38,7 @@
 (struct Matrix4x4 Sys.Maths.Matrix4x4 Matrix4x4)
 (struct IString Sys.Type.IString fstring)
 (struct IStringBuilder Sys.Type.IStringBuilder Rococo.IStringPopulator)
+(struct ITableString Sys.Type.IStringBuilder InterfacePointer)
 (struct FPSAngles Sys.Maths.FPSAngles FPSAngles)
 (struct Vertex Rococo.ObjectVertex ObjectVertex)
 (struct VertexTriangle Rococo.VertexTriangle VertexTriangle)
@@ -75,4 +76,11 @@
 	(Float32 density)
 	(TypeKelvin meltingPoint)
 	(TypeKelvin boilingPoint)
+)
+(primitive EnumTextId Rococo.Strings.TextId Rococo.Strings.TextId)
+
+(defstruct LocalizedTextRow Rococo.Strings.LocalizedTextRow Rococo.Strings.LocalizedTextRow
+	(EnumTextId id)
+	(ITableString english)
+	(ITableString german)
 )

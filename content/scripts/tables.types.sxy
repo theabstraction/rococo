@@ -13,3 +13,10 @@
 )
 (alias PeriodicTableRow Rococo.Science.Materials.PeriodicTableRow)
 
+(struct LocalizedTextRow
+	(Rococo.Strings.TextId id)
+	(Sys.Type.IStringBuilder english)
+	(Sys.Type.IStringBuilder german)
+)
+(alias LocalizedTextRow Rococo.Strings.LocalizedTextRow)
+

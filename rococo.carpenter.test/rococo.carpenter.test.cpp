@@ -25,6 +25,8 @@
 
 #include <rococo.package.h>
 
+#include <tables/tables.sxh.inl>
+
 using namespace Rococo;
 using namespace Rococo::OS;
 using namespace Rococo::Science::Materials;
@@ -63,6 +65,8 @@ struct TableScriptContext : public IEventCallback<ScriptCompileArgs>, public Roc
     {
         AddNativeCalls_RococoScienceMaterials(args.ss);
         AddNativeCalls_RococoScienceMaterialsIPeriodicTable_Sexy(args.ss, &installation);
+        AddNativeCalls_RococoStrings(args.ss);
+        AddNativeCalls_RococoStringsILocalizedText_Sexy(args.ss, &installation);
     }
 
     TableScriptContext(IInstallation& _installation):installation(_installation) {}

@@ -253,6 +253,8 @@ namespace Rococo.Carpenter
 
             AppendTypesToTypeFile(TypesBuilder);
 
+            SXHBuilder.AppendLine();
+
             AppendInterface(SXHBuilder);
 
             XCBuilder = SexyCore.OpenFile(FullXCPath);
@@ -469,6 +471,8 @@ namespace Rococo.Carpenter
 
             sb.AppendLine(")");
 
+            sb.AppendLine();
+
             int lengthBeforeFunctions = sb.Length;
             sb.AppendFormat("(functions \"tables.sxh\"");
             sb.AppendLine();
@@ -488,7 +492,7 @@ namespace Rococo.Carpenter
                     sb.AppendLine();
 
                     AppendTab(sb);
-                    sb.AppendFormat("({0}.TryParse{1}(const IString s)->(Bool wasFound)(Int32 value) : TryParse{1})", sexyNS, enumName, Rules.CppNamespace.Replace(".", "::"));
+                    sb.AppendFormat("({0}.TryParse{1}(const IString s)->(Bool wasFound)(Int32 value) : {2}::TryParse{1})", sexyNS, enumName, Rules.CppNamespace.Replace(".", "::"));
                     sb.AppendLine();
 
                     enumCount++;
@@ -503,6 +507,8 @@ namespace Rococo.Carpenter
             {
                 sb.AppendFormat(")");
             }
+
+            sb.AppendLine();
         }
         public string FQTableRowName
         {
@@ -568,7 +574,15 @@ namespace Rococo.Carpenter
             foreach(var column in  Table.Columns)
             {
                 AppendTab(sb);
-                sb.AppendFormat("({0} {1})", SexyCore.ColumnTypeInfoToSexyVariableType(column), SexyCore.ToSexyVariableName(column.Title));
+
+                string sexyType = SexyCore.ColumnTypeInfoToSexyVariableType(column);
+
+                if (sexyType == "String")
+                {
+                    sexyType = "ITableString";
+                }
+
+                sb.AppendFormat("({0} {1})", sexyType, SexyCore.ToSexyVariableName(column.Title));
                 sb.AppendLine();
             }
 

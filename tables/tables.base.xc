@@ -38,6 +38,7 @@
 (struct Matrix4x4 Sys.Maths.Matrix4x4 Matrix4x4)
 (struct IString Sys.Type.IString fstring)
 (struct IStringBuilder Sys.Type.IStringBuilder Rococo.IStringPopulator)
+(struct ITableString Sys.Type.IStringBuilder InterfacePointer)
 (struct FPSAngles Sys.Maths.FPSAngles FPSAngles)
 (struct Vertex Rococo.ObjectVertex ObjectVertex)
 (struct VertexTriangle Rococo.VertexTriangle VertexTriangle)

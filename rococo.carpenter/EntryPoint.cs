@@ -99,6 +99,33 @@ namespace Rococo.Carpenter
                 return solution; 
             }
         }
+
+        public static void SetDeclarationsShortPath(string shortPathName)
+        {
+            declarationShortPath = shortPathName;
+        }
+
+        private static string declarationShortPath = string.Empty;
+
+        public static string DeclarationsHeader
+        {
+            get
+            {
+                return declarationShortPath.Replace("\\", "/");
+            }
+        }
+
+        public static string DeclarationsFullPath
+        { 
+            get
+            {
+                if (declarationShortPath == string.Empty)
+                {
+                    throw new ArgumentException("Requires a call to void Environment.SetDeclarationsShortPath(string shortPathName)");
+                }
+                return Environment.Solution + declarationShortPath;
+            }
+        }
     }
 
     public class Config

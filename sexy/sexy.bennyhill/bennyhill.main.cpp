@@ -162,6 +162,8 @@ namespace Rococo
 using namespace Rococo;
 using namespace Rococo::Sex;
 
+void AddPragmaOnce(FileAppender appender, cstr headerFileName);
+
 void GenerateFiles(const ParseContext& pc, const InterfaceContext& ic, cr_sex s, const ISExpression* methods[], cr_sex interfaceDef)
 {
 	FileAppender sexyFileAppender(ic.appendSexyFile);	
@@ -180,6 +182,8 @@ void GenerateFiles(const ParseContext& pc, const InterfaceContext& ic, cr_sex s,
 
 	FileAppender cppFileAppender(ic.appendCppHeaderFile);
 	DeclareCppInterface(cppFileAppender, ic, interfaceDef, mostDerivedMethods[-1], pc);
+
+	AddPragmaOnce(cppFileAppender, ic.appendCppHeaderFile);
 
 	if (ic.nceContext.SexyName()[0] != 0)
 	{
@@ -436,6 +440,17 @@ void AppendNativeRegistration(const FunctionDesc& desc, const CppType& ns, const
 	outputFile.Append("\"), __FILE__, __LINE__);");
 }
 
+#include <unordered_set>
+
+void AddPragmaOnce(FileAppender appender, cstr headerFileName)
+{
+	static std::unordered_set<std::string> oncedThings;
+	if (oncedThings.emplace(headerFileName).second)
+	{
+		appender.Append("#pragma once\n\n");
+	}
+}
+
 void ParseFunctions(cr_sex functionSetDef, const ParseContext& pc)
 {
 	if (functionSetDef.NumberOfElements() < 2)
@@ -459,6 +474,8 @@ void ParseFunctions(cr_sex functionSetDef, const ParseContext& pc)
 	FileAppender cppHeaderFileAppender(sexyHeaderFile);
 
 	FileAppender sexyAppender(sexyFile);
+
+	AddPragmaOnce(cppHeaderFileAppender, sexyHeaderFile);
 
 	sexyAppender.Append(("namespace\n{\n\tusing namespace Rococo;\n\tusing namespace Rococo::Sex;\n\tusing namespace Rococo::Script;\n\tusing namespace Rococo::Compiler;\n\n"));
 
@@ -928,7 +945,7 @@ void ParseInterfaceFile(cr_sex root, ParseContext& pc)
 		}
 		else if (AreEqual("functions", cmd))
 		{
-			if (hasFunctions) Throw(command, "Only one set of functions can be defined in the generator file");
+			//if (hasFunctions) Throw(command, "Only one set of functions can be defined in the generator file");
 			if (!hasConfig) Throw(command, "Must define a (config <config-path>) entry before all functions");
 			ParseFunctions(topLevelItem, pc);
 			hasFunctions = true;

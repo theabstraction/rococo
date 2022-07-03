@@ -11,6 +11,7 @@
 
 (using Rococo.Science.Materials)
 (using Sys.Type)
+(using Rococo.Strings)
 
 (function Main (Int32 id)->(Int32 exitCode):
 	(IPeriodicTable periodicTable (GetPeriodicTable))
@@ -45,4 +46,12 @@
 	(if (pu != 94)
 		(Sys.Throw 0 "Expected atomic number of Pu to be 94")
 	)
+
+	(ILocalizedText local (LocalizedText))
+
+	(LocalizedTextRow row)
+	(row.english = (Sys.Type.NewStringBuilder 1024))
+	(local.GetRow 0 row)
+	
+	(Sys.Type.Strings.FindLeftNoCase (IString container)(Int32 startPos)(IString substring) -> (Int32 position))
 )

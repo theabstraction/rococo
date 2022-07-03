@@ -10,3 +10,8 @@
 (alias Sys.Type.Float32 Rococo.SI.ElectronVolts)
 (alias Sys.Type.Float32 Rococo.SI.Kelvin)
 
+(namespace Rococo)
+(namespace Rococo.Strings)
+
+(alias Sys.Type.Int32 Rococo.Strings.TextId)
+

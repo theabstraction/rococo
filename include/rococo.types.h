@@ -652,4 +652,13 @@ namespace Rococo
 	class ArbitraryFunction;
 }
 
+namespace Rococo
+{
+	template<class U, class V> struct tuple
+	{
+		U first;
+		V second;
+	};
+}
+
 #endif

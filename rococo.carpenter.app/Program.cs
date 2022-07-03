@@ -22,15 +22,17 @@ namespace Rococo.Carpenter
 
             // TODO -> have Carpenter generate all boiler plate, including the .sxh file and the package generating batch files.
             standardConfig.TypeDependentHeaders = new string[] { "tables.sxh.h" };
-            standardConfig.AdditionalSourceHeaders = new string[] { "tables.sxh.inl" };
+           // standardConfig.AdditionalSourceHeaders = new string[] { "tables.sxh.inl" };
 
             TableTarget[] targets =
             {
                 new TableTarget { xlsxPath = "tables\\periodic-table.xlsx", config = standardConfig },
-            //   "tables\\localization-text-table.xlsx",
+                new TableTarget { xlsxPath = "tables\\localization-text-table.xlsx", config = standardConfig },
             //   "tables\\quotes-table.xlsx",
             //   "tables\\users.demo.xlsx"
             };
+
+            Environment.SetDeclarationsShortPath("tables\\declarations.h");
 
             Carpenter.GenerateTables(targets);
 

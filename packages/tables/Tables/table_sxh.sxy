@@ -13,3 +13,18 @@
 	(construct ProxyIPeriodicTable pObject)
 )
 
+(interface Rococo.Strings.ILocalizedText
+	(GetRow (Int32 index)(Rococo.Strings.LocalizedTextRow row) -> )
+	(NumberOfRows  -> (Int32 numberOfRows))
+)
+
+(class ProxyILocalizedText (implements Rococo.Strings.ILocalizedText) (Pointer hObject) (attribute not-serialized))
+	(method ProxyILocalizedText.Construct (Pointer hObject): (this.hObject = hObject))
+	(method ProxyILocalizedText.GetRow (Int32 index)(Rococo.Strings.LocalizedTextRow row) ->  : (Rococo.Strings.Native.ILocalizedTextGetRow this.hObject index row))
+	(method ProxyILocalizedText.NumberOfRows  -> (Int32 numberOfRows) : (Rococo.Strings.Native.ILocalizedTextNumberOfRows this.hObject  -> numberOfRows))
+
+(factory Rococo.Strings.LocalizedText Rococo.Strings.ILocalizedText  :
+	(Pointer pObject = (Rococo.Strings.Native.GetHandleForILocalizedText0 ))
+	(construct ProxyILocalizedText pObject)
+)
+

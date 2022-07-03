@@ -14,3 +14,11 @@ namespace Rococo { namespace Science { namespace Materials {
 		Rococo::SI::Kelvin boilingPoint;
 	};
 }}}
+namespace Rococo { namespace Strings { 
+	struct LocalizedTextRow
+	{
+		Rococo::Strings::TextId id;
+		InterfacePointer english;
+		InterfacePointer german;
+	};
+}}
