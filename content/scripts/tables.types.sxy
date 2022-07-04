@@ -20,3 +20,9 @@
 )
 (alias LocalizedTextRow Rococo.Strings.LocalizedTextRow)
 
+(struct QuotesRow
+	(Rococo.Quotes.QuoteId id)
+	(Sys.Type.IStringBuilder text)
+)
+(alias QuotesRow Rococo.Quotes.QuotesRow)
+

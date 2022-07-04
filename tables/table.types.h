@@ -22,3 +22,10 @@ namespace Rococo { namespace Strings {
 		InterfacePointer german;
 	};
 }}
+namespace Rococo { namespace Quotes { 
+	struct QuotesRowSexy
+	{
+		Rococo::Quotes::QuoteId id;
+		InterfacePointer text;
+	};
+}}

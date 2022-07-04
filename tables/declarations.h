@@ -1,5 +1,20 @@
 //Rococo.Carpenter CPPGenerator Declarations
-// Generated At: 04 July 2022 18:54:10
+// Generated At: 04 July 2022 22:22:50
+
+namespace Rococo::Quotes
+{
+	struct IQuotes_Sexy;
+}
+
+namespace Rococo::Quotes
+{
+	struct IQuotesRow;
+}
+
+namespace Rococo::Quotes
+{
+	struct QuotesRowSexy;
+}
 
 namespace Rococo::Science::Materials
 {

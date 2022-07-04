@@ -28,3 +28,18 @@
 	(construct ProxyILocalizedText pObject)
 )
 
+(interface Rococo.Quotes.IQuotes
+	(GetRow (Int32 index)(Rococo.Quotes.QuotesRow row) -> )
+	(NumberOfRows  -> (Int32 numberOfRows))
+)
+
+(class ProxyIQuotes (implements Rococo.Quotes.IQuotes) (Pointer hObject) (attribute not-serialized))
+	(method ProxyIQuotes.Construct (Pointer hObject): (this.hObject = hObject))
+	(method ProxyIQuotes.GetRow (Int32 index)(Rococo.Quotes.QuotesRow row) ->  : (Rococo.Quotes.Native.IQuotesGetRow this.hObject index row))
+	(method ProxyIQuotes.NumberOfRows  -> (Int32 numberOfRows) : (Rococo.Quotes.Native.IQuotesNumberOfRows this.hObject  -> numberOfRows))
+
+(factory Rococo.Quotes.GetQuoteTable Rococo.Quotes.IQuotes  :
+	(Pointer pObject = (Rococo.Quotes.Native.GetHandleForIQuotes0 ))
+	(construct ProxyIQuotes pObject)
+)
+

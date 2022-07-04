@@ -84,3 +84,9 @@
 	(ITableString english)
 	(ITableString german)
 )
+(primitive EnumQuoteId Rococo.Quotes.QuoteId Rococo.Quotes.QuoteId)
+
+(defstruct QuotesRow Rococo.Quotes.QuotesRow Rococo.Quotes.QuotesRowSexy
+	(EnumQuoteId id)
+	(ITableString text)
+)

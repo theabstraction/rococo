@@ -947,7 +947,7 @@ namespace Rococo.Carpenter
                 sb.AppendLine("#pragma pack(push,4)");
 
                 AppendTab(sb);
-                sb.AppendFormat("{0} {1}{2}{3}", HasInterfaceForRow ? "ROCOCOAPI" : "struct", HasInterfaceForRow ? "I" : "", RowStructName, TableRowNameForSexyExt);
+                sb.AppendFormat("struct {0}{1}", RowStructName, TableRowNameForSexyExt);
                 sb.AppendLine();
                 AppendTab(sb);
                 sb.AppendLine("{");
@@ -956,18 +956,8 @@ namespace Rococo.Carpenter
                 {
                     AppendTab(sb);
                     AppendTab(sb);
-
-                    if (HasInterfaceForRow)
-                    {
-                        sb.Append("virtual ");
-                        sb.AppendFormat("{0} Get{1}() const = 0;", ColumnHeaders[i].FullTypeName, GetFunctionNameForHeader(i));
-                        sb.AppendLine();
-                    }
-                    else
-                    {
-                        AppendMarshalledRowField(i, sb);
-                        sb.AppendLine(";");
-                    }
+                    AppendMarshalledRowField(i, sb);
+                    sb.AppendLine(";");
                 }
 
                 AppendTab(sb);
@@ -1014,7 +1004,7 @@ namespace Rococo.Carpenter
 
             if (TableRowNameForSexyExt.Length > 0)
             {
-                CPPCore.AddFQType(FQTypeCategory.IsStruct, CppNamespace, (HasInterfaceForRow ? "I" : "") + RowStructName + TableRowNameForSexyExt);
+                CPPCore.AddFQType(FQTypeCategory.IsStruct, CppNamespace, RowStructName + TableRowNameForSexyExt);
             }
 
             int lastDot = Rules.CppInterface.LastIndexOf('.');
@@ -1800,7 +1790,7 @@ namespace Rococo.Carpenter
 
             AppendTab(sb);
             AppendTab(sb);
-            sb.AppendFormat("void GetRow(int32 index, struct {0}{1}{2}& row) override", HasInterfaceForRow ? "I" : "", RowStructName, TableRowNameForSexyExt);
+            sb.AppendFormat("void GetRow(int32 index, struct {0}{1}& row) override", RowStructName, TableRowNameForSexyExt);
             sb.AppendLine();
             AppendTab(sb);
             AppendTab(sb);
@@ -1822,7 +1812,7 @@ namespace Rococo.Carpenter
                 AppendTab(sb);
                 AppendTab(sb);
                 AppendTab(sb);
-                sb.AppendLine("const auto& rawRow = GetRow(index);");
+                sb.AppendLine("const auto& nativeRow = GetRow(index);");
 
                 foreach (var header in ColumnHeaders)
                 {
@@ -1832,11 +1822,30 @@ namespace Rococo.Carpenter
 
                     if (header.UnderlyingType == UnderlyingType.String)
                     {
-                        sb.AppendFormat("Rococo::Script::PopulateStringBuilder(row.{0}, rawRow.{0});", header.Name);
+                        sb.AppendFormat("Rococo::Script::PopulateStringBuilder(row.{0}, nativeRow.", header.Name);
+
+                        if (HasInterfaceForRow)
+                        {
+                            sb.AppendFormat("Get{0}());", GetFunctionNameForHeader(header));
+                        }
+                        else
+                        {
+                            sb.AppendFormat("{0});", header.Name);
+                        }
                     }
                     else
                     {
-                        sb.AppendFormat("row.{0} = rawRow.{0};", header.Name);
+                        sb.AppendFormat("row.{0} = nativeRow.", header.Name);
+
+                        if (HasInterfaceForRow)
+                        {
+                            sb.AppendFormat("Get{0}();", GetFunctionNameForHeader(header));
+                            sb.AppendLine();
+                        }
+                        else
+                        {
+                            sb.AppendFormat("{0};", header.Name);
+                        }
                     }
                     sb.AppendLine();
                 }
@@ -2146,13 +2155,10 @@ namespace Rococo.Carpenter
             else if (Rules.Lifetime == TableLifetime.Singleton)
             {
                 AppendTab(sb);
-                AppendTab(sb);
-                sb.AppendLine("IInstallation& installation = GetInstallationFromCallContext();");
-                AppendTab(sb);
-                sb.AppendFormat("{0}Supervisor* instance = {1}(installation)", Rules.CppInterface, Rules.CppFactory);
+                sb.AppendFormat("auto* instance = new ANON::{0}_Implementation(*installation);", CppTableName);
                 sb.AppendLine();
                 AppendTab(sb);
-                sb.AppendLine("return instance;");
+                sb.AppendFormat("return &instance->GetSexyInterface();", CppTableName);
             }
             else // Static
             {

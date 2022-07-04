@@ -15,3 +15,8 @@
 
 (alias Sys.Type.Int32 Rococo.Strings.TextId)
 
+(namespace Rococo)
+(namespace Rococo.Quotes)
+
+(alias Sys.Type.Int32 Rococo.Quotes.QuoteId)
+

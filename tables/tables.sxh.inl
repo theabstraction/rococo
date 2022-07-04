@@ -178,6 +178,60 @@ namespace Rococo::Strings
 	}
 }
 
+namespace
+{
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
+
+	void NativeRococoQuotesQuoteIdAppendString(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(VirtualTable**);
+		VirtualTable** sb;
+		ReadInput(sb, _sf, -_offset);
+		Rococo::Helpers::StringPopulator _sbPopulator(_nce, sb);
+		Rococo::Quotes::QuoteId value;
+		_offset += sizeof(value);
+		ReadInput(value, _sf, -_offset);
+
+		int32 stringLength = Rococo::Quotes::AppendString(value, _sbPopulator);
+		_offset += sizeof(stringLength);
+		WriteOutput(stringLength, _sf, -_offset);
+	}
+
+	void NativeRococoQuotesTryParseQuoteId(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		_offset += sizeof(IString*);
+		IString* _s;
+		ReadInput(_s, _sf, -_offset);
+		fstring s { _s->buffer, _s->length };
+
+
+		auto [output_0, output_1] = Rococo::Quotes::TryParseQuoteId(s);
+		_offset += sizeof(boolean32);
+		WriteOutput(output_0, _sf, -_offset);
+		_offset += sizeof(int32);
+		WriteOutput(output_1, _sf, -_offset);
+	}
+
+}
+
+namespace Rococo::Quotes
+{
+
+	void AddNativeCalls_RococoQuotes(Rococo::Script::IPublicScriptSystem& ss)
+	{
+		const INamespace& ns = ss.AddNativeNamespace("Rococo.Quotes");
+		ss.AddNativeCall(ns, NativeRococoQuotesQuoteIdAppendString, nullptr, ("QuoteIdAppendString(Rococo.Quotes.QuoteId value)(Sys.Type.IStringBuilder sb) -> (Int32 stringLength)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoQuotesTryParseQuoteId, nullptr, ("TryParseQuoteId(Sys.Type.IString s) -> (Bool wasFound)"), __FILE__, __LINE__);
+	}
+}
+
 // BennyHill generated Sexy native functions for Rococo::Science::Materials::IPeriodicTable_Sexy 
 namespace
 {
@@ -298,5 +352,66 @@ namespace Rococo::Strings
 		ss.AddNativeCall(ns, NativeGetHandleForRococoStringsLocalizedText, _nceContext, ("GetHandleForILocalizedText0  -> (Pointer hObject)"), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeRococoStringsILocalizedText_SexyGetRow, nullptr, ("ILocalizedTextGetRow (Pointer hObject)(Int32 index)(Rococo.Strings.LocalizedTextRow row) -> "), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeRococoStringsILocalizedText_SexyNumberOfRows, nullptr, ("ILocalizedTextNumberOfRows (Pointer hObject) -> (Int32 numberOfRows)"), __FILE__, __LINE__);
+	}
+}
+// BennyHill generated Sexy native functions for Rococo::Quotes::IQuotes_Sexy 
+namespace
+{
+	using namespace Rococo;
+	using namespace Rococo::Sex;
+	using namespace Rococo::Script;
+	using namespace Rococo::Compiler;
+
+	void NativeRococoQuotesIQuotes_SexyGetRow(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Quotes::QuotesRowSexy* row;
+		_offset += sizeof(row);
+		ReadInput(row, _sf, -_offset);
+
+		int32 index;
+		_offset += sizeof(index);
+		ReadInput(index, _sf, -_offset);
+
+		Rococo::Quotes::IQuotes_Sexy* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->GetRow(index, *row);
+	}
+	void NativeRococoQuotesIQuotes_SexyNumberOfRows(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		Rococo::Quotes::IQuotes_Sexy* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		int32 numberOfRows = _pObject->NumberOfRows();
+		_offset += sizeof(numberOfRows);
+		WriteOutput(numberOfRows, _sf, -_offset);
+	}
+
+	void NativeGetHandleForRococoQuotesGetQuoteTable(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		IInstallation* nceContext = reinterpret_cast<IInstallation*>(_nce.context);
+		// Uses: Rococo::Quotes::IQuotes_Sexy* FactoryConstructRococoQuotesGetQuoteTable(IInstallation* _context);
+		Rococo::Quotes::IQuotes_Sexy* pObject = FactoryConstructRococoQuotesGetQuoteTable(nceContext);
+		_offset += sizeof(IString*);
+		WriteOutput(pObject, _sf, -_offset);
+	}
+}
+
+namespace Rococo::Quotes
+{
+	void AddNativeCalls_RococoQuotesIQuotes_Sexy(Rococo::Script::IPublicScriptSystem& ss, IInstallation* _nceContext)
+	{
+		const INamespace& ns = ss.AddNativeNamespace("Rococo.Quotes.Native");
+		ss.AddNativeCall(ns, NativeGetHandleForRococoQuotesGetQuoteTable, _nceContext, ("GetHandleForIQuotes0  -> (Pointer hObject)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoQuotesIQuotes_SexyGetRow, nullptr, ("IQuotesGetRow (Pointer hObject)(Int32 index)(Rococo.Quotes.QuotesRow row) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoQuotesIQuotes_SexyNumberOfRows, nullptr, ("IQuotesNumberOfRows (Pointer hObject) -> (Int32 numberOfRows)"), __FILE__, __LINE__);
 	}
 }
