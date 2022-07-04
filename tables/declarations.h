@@ -1,5 +1,5 @@
 //Rococo.Carpenter CPPGenerator Declarations
-// Generated At: 04 July 2022 16:50:50
+// Generated At: 04 July 2022 18:54:10
 
 namespace Rococo::Science::Materials
 {
@@ -19,5 +19,10 @@ namespace Rococo::Strings
 namespace Rococo::Strings
 {
 	struct LocalizedTextRow;
+}
+
+namespace Rococo::Strings
+{
+	struct LocalizedTextRowSexy;
 }
 

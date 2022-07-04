@@ -251,7 +251,7 @@ namespace
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Rococo::Strings::LocalizedTextRow* row;
+		Rococo::Strings::LocalizedTextRowSexy* row;
 		_offset += sizeof(row);
 		ReadInput(row, _sf, -_offset);
 

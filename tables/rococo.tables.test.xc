@@ -79,7 +79,7 @@
 )
 (primitive EnumTextId Rococo.Strings.TextId Rococo.Strings.TextId)
 
-(defstruct LocalizedTextRow Rococo.Strings.LocalizedTextRow Rococo.Strings.LocalizedTextRow
+(defstruct LocalizedTextRow Rococo.Strings.LocalizedTextRow Rococo.Strings.LocalizedTextRowSexy
 	(EnumTextId id)
 	(ITableString english)
 	(ITableString german)

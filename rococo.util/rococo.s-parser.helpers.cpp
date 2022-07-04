@@ -2120,3 +2120,33 @@ namespace Rococo::Compiler
 		return StartsWith(type.Name(), "_Null");
 	}
 }
+
+namespace Rococo::Script
+{
+	void PopulateStringBuilder(InterfacePointerToStringBuilder sb, const fstring& text)
+	{
+		InterfacePointer ip = (InterfacePointer) sb.pSexyInterfacePointer;
+		ObjectStub* stub = InterfaceToInstance(ip);		
+
+		if (!Eq(stub->Desc->TypeInfo->Name(), "FastStringBuilder"))
+		{
+			Throw(0, __FUNCTION__ ": Expecting the object to be of type FastStringBuilder. It was of type %s", stub->Desc->TypeInfo->Name());
+		}
+
+		auto& fsb = *(FastStringBuilder*)stub;
+		int32 bufferLeft = fsb.capacity - fsb.length;
+
+		if (bufferLeft < 0)
+		{
+			Throw(0, __FUNCTION__ ": FastStringBuilder had length > capacity");
+		}
+
+		if (text.length > 0 && bufferLeft > 1)
+		{
+			CopyString(fsb.buffer, bufferLeft, text);
+
+			fsb.length += text.length;
+			fsb.length = min(fsb.capacity - 1, fsb.length);
+		}
+	}
+}

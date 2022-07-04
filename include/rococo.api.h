@@ -208,6 +208,11 @@ namespace Rococo
 		struct IWindowSupervisor;
 	}
 
+	namespace Script
+	{
+		void PopulateStringBuilder(InterfacePointerToStringBuilder sb, const fstring& text);
+	}
+
 	enum EXECUTERESULT : int32;
 }
 

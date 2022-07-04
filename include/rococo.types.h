@@ -155,8 +155,11 @@ namespace Rococo
 	namespace Script
 	{
 		struct IPublicScriptSystem;
+		struct InterfacePointerToStringBuilder
+		{
+			void* pSexyInterfacePointer;
+		};
 	}
-
 
 	// TODO - move functions to their own header
 	Substring RightOfFirstChar(char c, cr_substring token);

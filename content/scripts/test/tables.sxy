@@ -28,7 +28,7 @@
 	(if ((row.atomicMass < 238) or (row.atomicMass > 239))
 		(Sys.Throw 0 "Bad uranium")
 	)
-	
+
 	(Sys.Type.IStringBuilder sb = (Sys.Type.NewTokenBuilder))
 	(ElementNameAppendString row.element sb)
 	
@@ -50,13 +50,14 @@
 	(ILocalizedText local (LocalizedText))
 
 	(LocalizedTextRow localizedRow)
-	(localizedRow.english = (Sys.Type.NewStringBuilder 1024))
-	(local.GetRow 0 localizedRow)
+	(localizedRow.english = (Sys.Type.NewStringBuilder 8192))
+	(localizedRow.german = (Sys.Type.NewStringBuilder 8192))
+	(local.GetRow 1 localizedRow)
 	
-	(Bool startsWithPeople)
-	(Sys.Type.Strings.StartsWith localizedRow.english "People" -> startsWithPeople)
+	(Bool startsWithPrinces)
+	(Sys.Type.Strings.StartsWith localizedRow.english "Princes" -> startsWithPrinces)
 	
-	(if (not startsWithPeople)
-		(Sys.Throw 0 "LocalizedTextRow:English - Does not start with people")
+	(if (not startsWithPrinces)
+		(Sys.Throw 0 "LocalizedTextRow(1):English - Does not start with 'Princes'")
 	)
 )

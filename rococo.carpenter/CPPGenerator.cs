@@ -435,6 +435,21 @@ namespace Rococo.Carpenter
             private set;
         }
 
+        public string TableRowNameForSexyExt
+        {
+            get
+            {
+                foreach (var header in ColumnHeaders)
+                {
+                    if (header.UnderlyingType == UnderlyingType.String)
+                    {
+                        return "Sexy";
+                    }
+                }
+
+                return "";
+            }
+        }
         void SetCppNamespace(string dottedNamespace)
         {
             SexyValidators.ValidateLegalSexyFunctionName(dottedNamespace, "C++ Namespace");
@@ -673,6 +688,19 @@ namespace Rococo.Carpenter
             sb.AppendFormat("{0} {1}", ColumnHeaders[fieldIndex].FullTypeName, ColumnHeaders[fieldIndex].Name);
         }
 
+        public void AppendMarshalledRowField(int fieldIndex, StringBuilder sb)
+        {
+            var header = ColumnHeaders[fieldIndex];
+            if (header.UnderlyingType == UnderlyingType.String)
+            {
+                sb.AppendFormat("Rococo::Script::InterfacePointerToStringBuilder {0}", ColumnHeaders[fieldIndex].Name);
+            }
+            else
+            {
+                sb.AppendFormat("{0} {1}", ColumnHeaders[fieldIndex].FullTypeName, ColumnHeaders[fieldIndex].Name);
+            }
+        }
+
         public void AppendEnumDef(StringBuilder sb, string enumName)
         {
             EnumDef def = CPPCore.FindEnumDef(enumName);
@@ -889,7 +917,7 @@ namespace Rococo.Carpenter
             AppendTab(sb);
             sb.AppendLine("{");
 
-            var columns = Table.Columns;
+            ColumnDesc[] columns = Table.Columns;
             for (int i = 0; i < ColumnHeaders.Length; ++i)
             {
                 AppendTab(sb);
@@ -910,6 +938,44 @@ namespace Rococo.Carpenter
 
             AppendTab(sb);
             sb.AppendLine("};");
+
+            sb.AppendLine();
+            
+            if (TableRowNameForSexyExt.Length > 0)
+            {
+                AppendTab(sb);
+                sb.AppendLine("#pragma pack(push,4)");
+
+                AppendTab(sb);
+                sb.AppendFormat("{0} {1}{2}{3}", HasInterfaceForRow ? "ROCOCOAPI" : "struct", HasInterfaceForRow ? "I" : "", RowStructName, TableRowNameForSexyExt);
+                sb.AppendLine();
+                AppendTab(sb);
+                sb.AppendLine("{");
+
+                for (int i = 0; i < ColumnHeaders.Length; ++i)
+                {
+                    AppendTab(sb);
+                    AppendTab(sb);
+
+                    if (HasInterfaceForRow)
+                    {
+                        sb.Append("virtual ");
+                        sb.AppendFormat("{0} Get{1}() const = 0;", ColumnHeaders[i].FullTypeName, GetFunctionNameForHeader(i));
+                        sb.AppendLine();
+                    }
+                    else
+                    {
+                        AppendMarshalledRowField(i, sb);
+                        sb.AppendLine(";");
+                    }
+                }
+
+                AppendTab(sb);
+                sb.AppendLine("};");
+
+                AppendTab(sb);
+                sb.AppendLine("#pragma pack(pop)");
+            }
             sb.AppendLine("}");
             sb.AppendLine();
 
@@ -945,6 +1011,11 @@ namespace Rococo.Carpenter
             sb.AppendLine();
 
             CPPCore.AddFQType(FQTypeCategory.IsStruct, CppNamespace, (HasInterfaceForRow ? "I" : "") + RowStructName);
+
+            if (TableRowNameForSexyExt.Length > 0)
+            {
+                CPPCore.AddFQType(FQTypeCategory.IsStruct, CppNamespace, (HasInterfaceForRow ? "I" : "") + RowStructName + TableRowNameForSexyExt);
+            }
 
             int lastDot = Rules.CppInterface.LastIndexOf('.');
             string shortInterfaceName = Rules.CppInterface.Substring(lastDot + 1) + "_Sexy";
@@ -1729,7 +1800,7 @@ namespace Rococo.Carpenter
 
             AppendTab(sb);
             AppendTab(sb);
-            sb.AppendFormat("void GetRow(int32 index, struct {0}{1}& row) override", HasInterfaceForRow ? "I" : "", RowStructName);
+            sb.AppendFormat("void GetRow(int32 index, struct {0}{1}{2}& row) override", HasInterfaceForRow ? "I" : "", RowStructName, TableRowNameForSexyExt);
             sb.AppendLine();
             AppendTab(sb);
             AppendTab(sb);
@@ -1738,10 +1809,39 @@ namespace Rococo.Carpenter
             AppendTab(sb);
             AppendTab(sb);
             sb.AppendLine("if (index > NumberOfRows()) Throw(0, \"%s: [index] out of range.\", __FUNCTION__);");
-            AppendTab(sb);
-            AppendTab(sb);
-            AppendTab(sb);
-            sb.AppendLine("row = GetRow(index);");
+
+            if (TableRowNameForSexyExt.Length == 0)
+            {
+                AppendTab(sb);
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendLine("row = GetRow(index);");
+            }
+            else
+            {
+                AppendTab(sb);
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendLine("const auto& rawRow = GetRow(index);");
+
+                foreach (var header in ColumnHeaders)
+                {
+                    AppendTab(sb);
+                    AppendTab(sb);
+                    AppendTab(sb);
+
+                    if (header.UnderlyingType == UnderlyingType.String)
+                    {
+                        sb.AppendFormat("Rococo::Script::PopulateStringBuilder(row.{0}, rawRow.{0});", header.Name);
+                    }
+                    else
+                    {
+                        sb.AppendFormat("row.{0} = rawRow.{0};", header.Name);
+                    }
+                    sb.AppendLine();
+                }
+            }
+
             AppendTab(sb);
             AppendTab(sb);
             sb.AppendLine("}");

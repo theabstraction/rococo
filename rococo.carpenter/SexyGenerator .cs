@@ -568,7 +568,7 @@ namespace Rococo.Carpenter
                 sb.AppendLine();
             }
 
-            sb.AppendFormat("(defstruct {0} {1} {2}", TableRowName, FQTableRowName, FQTableRowName);
+            sb.AppendFormat("(defstruct {0} {1} {2}", TableRowName, FQTableRowName, FQTableRowName + CPP.TableRowNameForSexyExt);
             sb.AppendLine();
 
             foreach(var column in  Table.Columns)

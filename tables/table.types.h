@@ -15,7 +15,7 @@ namespace Rococo { namespace Science { namespace Materials {
 	};
 }}}
 namespace Rococo { namespace Strings { 
-	struct LocalizedTextRow
+	struct LocalizedTextRowSexy
 	{
 		Rococo::Strings::TextId id;
 		InterfacePointer english;
