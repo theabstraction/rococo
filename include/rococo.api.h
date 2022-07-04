@@ -229,7 +229,7 @@ namespace Rococo
 
 	template<typename T, typename U> [[nodiscard]] inline bool HasFlag(T flag, U flags)
 	{
-		return (flags & flag) != 0;
+		return ((int) flags & (int) flag) != 0;
 	}
 }
 

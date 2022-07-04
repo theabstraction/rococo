@@ -4,11 +4,11 @@ namespace Rococo
 	{
 		if (s ==  "ELayoutAlgorithm_None"_fstring)
 		{
-			value = ELayoutAlgorithm_None;
+			value = ELayoutAlgorithm::None;
 		}
 		else if (s ==  "ELayoutAlgorithm_MaximizeOnlyChild"_fstring)
 		{
-			value = ELayoutAlgorithm_MaximizeOnlyChild;
+			value = ELayoutAlgorithm::MaximizeOnlyChild;
 		}
 		else
 		{
@@ -22,11 +22,11 @@ namespace Rococo
 	{
 		if (s ==  "None"_fstring)
 		{
-			value = ELayoutAlgorithm_None;
+			value = ELayoutAlgorithm::None;
 		}
 		else if (s ==  "MaximizeOnlyChild"_fstring)
 		{
-			value = ELayoutAlgorithm_MaximizeOnlyChild;
+			value = ELayoutAlgorithm::MaximizeOnlyChild;
 		}
 		else
 		{
@@ -39,9 +39,9 @@ namespace Rococo
 	{
 		switch(value)
 		{
-			case ELayoutAlgorithm_None:
+			case ELayoutAlgorithm::None:
 				return "None"_fstring;
-			case ELayoutAlgorithm_MaximizeOnlyChild:
+			case ELayoutAlgorithm::MaximizeOnlyChild:
 				return "MaximizeOnlyChild"_fstring;
 			default:
 				return {"",0};
@@ -55,19 +55,19 @@ namespace Rococo::Graphics
 	{
 		if (s ==  "OrientationFlags_None"_fstring)
 		{
-			value = OrientationFlags_None;
+			value = OrientationFlags::None;
 		}
 		else if (s ==  "OrientationFlags_Heading"_fstring)
 		{
-			value = OrientationFlags_Heading;
+			value = OrientationFlags::Heading;
 		}
 		else if (s ==  "OrientationFlags_Elevation"_fstring)
 		{
-			value = OrientationFlags_Elevation;
+			value = OrientationFlags::Elevation;
 		}
 		else if (s ==  "OrientationFlags_Tilt"_fstring)
 		{
-			value = OrientationFlags_Tilt;
+			value = OrientationFlags::Tilt;
 		}
 		else
 		{
@@ -81,19 +81,19 @@ namespace Rococo::Graphics
 	{
 		if (s ==  "None"_fstring)
 		{
-			value = OrientationFlags_None;
+			value = OrientationFlags::None;
 		}
 		else if (s ==  "Heading"_fstring)
 		{
-			value = OrientationFlags_Heading;
+			value = OrientationFlags::Heading;
 		}
 		else if (s ==  "Elevation"_fstring)
 		{
-			value = OrientationFlags_Elevation;
+			value = OrientationFlags::Elevation;
 		}
 		else if (s ==  "Tilt"_fstring)
 		{
-			value = OrientationFlags_Tilt;
+			value = OrientationFlags::Tilt;
 		}
 		else
 		{
@@ -106,13 +106,13 @@ namespace Rococo::Graphics
 	{
 		switch(value)
 		{
-			case OrientationFlags_None:
+			case OrientationFlags::None:
 				return "None"_fstring;
-			case OrientationFlags_Heading:
+			case OrientationFlags::Heading:
 				return "Heading"_fstring;
-			case OrientationFlags_Elevation:
+			case OrientationFlags::Elevation:
 				return "Elevation"_fstring;
-			case OrientationFlags_Tilt:
+			case OrientationFlags::Tilt:
 				return "Tilt"_fstring;
 			default:
 				return {"",0};
@@ -126,23 +126,23 @@ namespace Rococo::Graphics
 	{
 		if (s ==  "MaterialCategory_Rock"_fstring)
 		{
-			value = MaterialCategory_Rock;
+			value = MaterialCategory::Rock;
 		}
 		else if (s ==  "MaterialCategory_Stone"_fstring)
 		{
-			value = MaterialCategory_Stone;
+			value = MaterialCategory::Stone;
 		}
 		else if (s ==  "MaterialCategory_Marble"_fstring)
 		{
-			value = MaterialCategory_Marble;
+			value = MaterialCategory::Marble;
 		}
 		else if (s ==  "MaterialCategory_Metal"_fstring)
 		{
-			value = MaterialCategory_Metal;
+			value = MaterialCategory::Metal;
 		}
 		else if (s ==  "MaterialCategory_Wood"_fstring)
 		{
-			value = MaterialCategory_Wood;
+			value = MaterialCategory::Wood;
 		}
 		else
 		{
@@ -156,23 +156,23 @@ namespace Rococo::Graphics
 	{
 		if (s ==  "Rock"_fstring)
 		{
-			value = MaterialCategory_Rock;
+			value = MaterialCategory::Rock;
 		}
 		else if (s ==  "Stone"_fstring)
 		{
-			value = MaterialCategory_Stone;
+			value = MaterialCategory::Stone;
 		}
 		else if (s ==  "Marble"_fstring)
 		{
-			value = MaterialCategory_Marble;
+			value = MaterialCategory::Marble;
 		}
 		else if (s ==  "Metal"_fstring)
 		{
-			value = MaterialCategory_Metal;
+			value = MaterialCategory::Metal;
 		}
 		else if (s ==  "Wood"_fstring)
 		{
-			value = MaterialCategory_Wood;
+			value = MaterialCategory::Wood;
 		}
 		else
 		{
@@ -185,15 +185,15 @@ namespace Rococo::Graphics
 	{
 		switch(value)
 		{
-			case MaterialCategory_Rock:
+			case MaterialCategory::Rock:
 				return "Rock"_fstring;
-			case MaterialCategory_Stone:
+			case MaterialCategory::Stone:
 				return "Stone"_fstring;
-			case MaterialCategory_Marble:
+			case MaterialCategory::Marble:
 				return "Marble"_fstring;
-			case MaterialCategory_Metal:
+			case MaterialCategory::Metal:
 				return "Metal"_fstring;
-			case MaterialCategory_Wood:
+			case MaterialCategory::Wood:
 				return "Wood"_fstring;
 			default:
 				return {"",0};
@@ -207,23 +207,23 @@ namespace Rococo::Graphics
 	{
 		if (s ==  "HQFont_DebuggerFont"_fstring)
 		{
-			value = HQFont_DebuggerFont;
+			value = HQFont::DebuggerFont;
 		}
 		else if (s ==  "HQFont_EditorFont"_fstring)
 		{
-			value = HQFont_EditorFont;
+			value = HQFont::EditorFont;
 		}
 		else if (s ==  "HQFont_TitleFont"_fstring)
 		{
-			value = HQFont_TitleFont;
+			value = HQFont::TitleFont;
 		}
 		else if (s ==  "HQFont_EmperorFont"_fstring)
 		{
-			value = HQFont_EmperorFont;
+			value = HQFont::EmperorFont;
 		}
 		else if (s ==  "HQFont_InfoFont"_fstring)
 		{
-			value = HQFont_InfoFont;
+			value = HQFont::InfoFont;
 		}
 		else
 		{
@@ -237,23 +237,23 @@ namespace Rococo::Graphics
 	{
 		if (s ==  "DebuggerFont"_fstring)
 		{
-			value = HQFont_DebuggerFont;
+			value = HQFont::DebuggerFont;
 		}
 		else if (s ==  "EditorFont"_fstring)
 		{
-			value = HQFont_EditorFont;
+			value = HQFont::EditorFont;
 		}
 		else if (s ==  "TitleFont"_fstring)
 		{
-			value = HQFont_TitleFont;
+			value = HQFont::TitleFont;
 		}
 		else if (s ==  "EmperorFont"_fstring)
 		{
-			value = HQFont_EmperorFont;
+			value = HQFont::EmperorFont;
 		}
 		else if (s ==  "InfoFont"_fstring)
 		{
-			value = HQFont_InfoFont;
+			value = HQFont::InfoFont;
 		}
 		else
 		{
@@ -266,15 +266,15 @@ namespace Rococo::Graphics
 	{
 		switch(value)
 		{
-			case HQFont_DebuggerFont:
+			case HQFont::DebuggerFont:
 				return "DebuggerFont"_fstring;
-			case HQFont_EditorFont:
+			case HQFont::EditorFont:
 				return "EditorFont"_fstring;
-			case HQFont_TitleFont:
+			case HQFont::TitleFont:
 				return "TitleFont"_fstring;
-			case HQFont_EmperorFont:
+			case HQFont::EmperorFont:
 				return "EmperorFont"_fstring;
-			case HQFont_InfoFont:
+			case HQFont::InfoFont:
 				return "InfoFont"_fstring;
 			default:
 				return {"",0};
@@ -288,11 +288,11 @@ namespace Rococo::Graphics
 	{
 		if (s ==  "SampleMethod_Point"_fstring)
 		{
-			value = SampleMethod_Point;
+			value = SampleMethod::Point;
 		}
 		else if (s ==  "SampleMethod_Linear"_fstring)
 		{
-			value = SampleMethod_Linear;
+			value = SampleMethod::Linear;
 		}
 		else
 		{
@@ -306,11 +306,11 @@ namespace Rococo::Graphics
 	{
 		if (s ==  "Point"_fstring)
 		{
-			value = SampleMethod_Point;
+			value = SampleMethod::Point;
 		}
 		else if (s ==  "Linear"_fstring)
 		{
-			value = SampleMethod_Linear;
+			value = SampleMethod::Linear;
 		}
 		else
 		{
@@ -323,9 +323,9 @@ namespace Rococo::Graphics
 	{
 		switch(value)
 		{
-			case SampleMethod_Point:
+			case SampleMethod::Point:
 				return "Point"_fstring;
-			case SampleMethod_Linear:
+			case SampleMethod::Linear:
 				return "Linear"_fstring;
 			default:
 				return {"",0};
@@ -339,19 +339,19 @@ namespace Rococo::Graphics
 	{
 		if (s ==  "SampleFilter_Border"_fstring)
 		{
-			value = SampleFilter_Border;
+			value = SampleFilter::Border;
 		}
 		else if (s ==  "SampleFilter_Mirror"_fstring)
 		{
-			value = SampleFilter_Mirror;
+			value = SampleFilter::Mirror;
 		}
 		else if (s ==  "SampleFilter_Wrap"_fstring)
 		{
-			value = SampleFilter_Wrap;
+			value = SampleFilter::Wrap;
 		}
 		else if (s ==  "SampleFilter_Clamp"_fstring)
 		{
-			value = SampleFilter_Clamp;
+			value = SampleFilter::Clamp;
 		}
 		else
 		{
@@ -365,19 +365,19 @@ namespace Rococo::Graphics
 	{
 		if (s ==  "Border"_fstring)
 		{
-			value = SampleFilter_Border;
+			value = SampleFilter::Border;
 		}
 		else if (s ==  "Mirror"_fstring)
 		{
-			value = SampleFilter_Mirror;
+			value = SampleFilter::Mirror;
 		}
 		else if (s ==  "Wrap"_fstring)
 		{
-			value = SampleFilter_Wrap;
+			value = SampleFilter::Wrap;
 		}
 		else if (s ==  "Clamp"_fstring)
 		{
-			value = SampleFilter_Clamp;
+			value = SampleFilter::Clamp;
 		}
 		else
 		{
@@ -390,13 +390,13 @@ namespace Rococo::Graphics
 	{
 		switch(value)
 		{
-			case SampleFilter_Border:
+			case SampleFilter::Border:
 				return "Border"_fstring;
-			case SampleFilter_Mirror:
+			case SampleFilter::Mirror:
 				return "Mirror"_fstring;
-			case SampleFilter_Wrap:
+			case SampleFilter::Wrap:
 				return "Wrap"_fstring;
-			case SampleFilter_Clamp:
+			case SampleFilter::Clamp:
 				return "Clamp"_fstring;
 			default:
 				return {"",0};
@@ -410,23 +410,23 @@ namespace Rococo::Graphics
 	{
 		if (s ==  "SampleIndex_Fonts"_fstring)
 		{
-			value = SampleIndex_Fonts;
+			value = SampleIndex::Fonts;
 		}
 		else if (s ==  "SampleIndex_Sprites"_fstring)
 		{
-			value = SampleIndex_Sprites;
+			value = SampleIndex::Sprites;
 		}
 		else if (s ==  "SampleIndex_Materials"_fstring)
 		{
-			value = SampleIndex_Materials;
+			value = SampleIndex::Materials;
 		}
 		else if (s ==  "SampleIndex_EnvironmentalMap"_fstring)
 		{
-			value = SampleIndex_EnvironmentalMap;
+			value = SampleIndex::EnvironmentalMap;
 		}
 		else if (s ==  "SampleIndex_ShadowMap"_fstring)
 		{
-			value = SampleIndex_ShadowMap;
+			value = SampleIndex::ShadowMap;
 		}
 		else
 		{
@@ -440,23 +440,23 @@ namespace Rococo::Graphics
 	{
 		if (s ==  "Fonts"_fstring)
 		{
-			value = SampleIndex_Fonts;
+			value = SampleIndex::Fonts;
 		}
 		else if (s ==  "Sprites"_fstring)
 		{
-			value = SampleIndex_Sprites;
+			value = SampleIndex::Sprites;
 		}
 		else if (s ==  "Materials"_fstring)
 		{
-			value = SampleIndex_Materials;
+			value = SampleIndex::Materials;
 		}
 		else if (s ==  "EnvironmentalMap"_fstring)
 		{
-			value = SampleIndex_EnvironmentalMap;
+			value = SampleIndex::EnvironmentalMap;
 		}
 		else if (s ==  "ShadowMap"_fstring)
 		{
-			value = SampleIndex_ShadowMap;
+			value = SampleIndex::ShadowMap;
 		}
 		else
 		{
@@ -469,15 +469,15 @@ namespace Rococo::Graphics
 	{
 		switch(value)
 		{
-			case SampleIndex_Fonts:
+			case SampleIndex::Fonts:
 				return "Fonts"_fstring;
-			case SampleIndex_Sprites:
+			case SampleIndex::Sprites:
 				return "Sprites"_fstring;
-			case SampleIndex_Materials:
+			case SampleIndex::Materials:
 				return "Materials"_fstring;
-			case SampleIndex_EnvironmentalMap:
+			case SampleIndex::EnvironmentalMap:
 				return "EnvironmentalMap"_fstring;
-			case SampleIndex_ShadowMap:
+			case SampleIndex::ShadowMap:
 				return "ShadowMap"_fstring;
 			default:
 				return {"",0};

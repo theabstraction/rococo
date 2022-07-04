@@ -13,6 +13,8 @@
 
 #include <rococo.package.h>
 
+using namespace Rococo;
+
 struct AppArgs
 {
 	cstr mainScript;

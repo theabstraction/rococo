@@ -483,14 +483,14 @@ extern "C"
 {
 	DLLEXPORT INativeLib* CreateLib(Rococo::Script::IScriptSystem& ss)
 	{
-		class MathsNativeLib : public INativeLib
+		class CoRountinesNativeLib : public INativeLib
 		{
 		private:
 			IScriptSystem& ss;
 			Coroutines coroutines;
 
 		public:
-			MathsNativeLib(IScriptSystem& _ss) : ss(_ss), coroutines(ss)
+			CoRountinesNativeLib(IScriptSystem& _ss) : ss(_ss), coroutines(ss)
 			{
 			}
 
@@ -510,6 +510,6 @@ extern "C"
 				delete this;
 			}
 		};
-		return new MathsNativeLib(ss);
+		return new CoRountinesNativeLib(ss);
 	}
 }

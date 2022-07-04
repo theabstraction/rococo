@@ -229,17 +229,17 @@ namespace ANON // This allows the debugger to identify the members from the inte
 
 		void AddSlot(HV::EquipmentSlot slot) override
 		{
-			prototype->invData.legalEquipmentSlotFlags |= slot;
+			((int&) prototype->invData.legalEquipmentSlotFlags) |= (int) slot;
 		}
 
 		void RemoveSlot(HV::EquipmentSlot slot) override
 		{
-			prototype->invData.legalEquipmentSlotFlags &= ~slot;
+			((int&) prototype->invData.legalEquipmentSlotFlags) &= ~(int)slot;
 		}
 
 		boolean32 HasSlot(HV::EquipmentSlot slot) override
 		{
-			return (prototype->invData.legalEquipmentSlotFlags & slot) != 0;
+			return ((int&) (prototype->invData.legalEquipmentSlotFlags) & (int) slot) != 0;
 		}
 
 		void MakeStackable(int32 nMaxItems) override

@@ -21,6 +21,8 @@ namespace Rococo
       FILE* hFile;
       cstr filename;
    public:
+      FileAppender() = delete;
+      FileAppender(const FileAppender& src) = delete;
       FileAppender(cstr _filename);
       ~FileAppender();
 

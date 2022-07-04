@@ -1901,11 +1901,11 @@ namespace
 		void AddMaterialCategory(cstr name, cstr notifyId, Rococo::Graphics::MaterialCategory* cat) override
 		{
 			auto* b = new BloodyEnumInt32Binding(platform, *this, "MaterialCategory", notifyId, (int*)cat);
-			b->AddEnumConstant("Rock", Rococo::Graphics::MaterialCategory_Rock);
-			b->AddEnumConstant("Stone", Rococo::Graphics::MaterialCategory_Stone);
-			b->AddEnumConstant("Marble", Rococo::Graphics::MaterialCategory_Marble);
-			b->AddEnumConstant("Metal", Rococo::Graphics::MaterialCategory_Metal);
-			b->AddEnumConstant("Wood", Rococo::Graphics::MaterialCategory_Wood);
+			b->AddEnumConstant("Rock", (int32) Rococo::Graphics::MaterialCategory::Rock);
+			b->AddEnumConstant("Stone", (int32) Rococo::Graphics::MaterialCategory::Stone);
+			b->AddEnumConstant("Marble", (int32) Rococo::Graphics::MaterialCategory::Marble);
+			b->AddEnumConstant("Metal", (int32) Rococo::Graphics::MaterialCategory::Metal);
+			b->AddEnumConstant("Wood", (int32) Rococo::Graphics::MaterialCategory::Wood);
 			Add(new BloodyProperty(b, name));
 		}
 

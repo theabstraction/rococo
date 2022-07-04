@@ -842,6 +842,34 @@ namespace
 		WriteOutput(0, position, e);
 	}
 
+	void StringStartsWith(NativeCallEnvironment& e)
+	{
+		InterfacePointer ipBigString;
+		ReadInput(0, ipBigString, e);
+
+		InterfacePointer ipPrefixString;
+		ReadInput(1, ipPrefixString, e);
+
+		CStringConstant* bigString = (CStringConstant*)InterfaceToInstance(ipBigString);
+		CStringConstant* prefixString = (CStringConstant*)InterfaceToInstance(ipPrefixString);
+
+		cstr big = bigString->pointer;
+		cstr prefix = prefixString->pointer;
+
+		bool result;
+
+		if (big && prefix)
+		{
+			result = StartsWith(big, prefix);
+		}
+		else
+		{
+			result = false;
+		}
+
+		WriteOutput(0, result ? 1 : 0, e);
+	}
+
 	void StringFindRight(NativeCallEnvironment& e)
 	{
 		cstr containerBuffer;

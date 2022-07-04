@@ -79,12 +79,12 @@ struct Gui : public MHost::IGui
 
 		Vec2 span = Span(txUV);
 
-		if (HasFlag(alignmentFlags, MHost::AlignmentFlags_Flip))
+		if (HasFlag(alignmentFlags, MHost::AlignmentFlags::Flip))
 		{
 			std::swap(txUV.top, txUV.bottom);
 		}
 
-		if (HasFlag(alignmentFlags, MHost::AlignmentFlags_Mirror))
+		if (HasFlag(alignmentFlags, MHost::AlignmentFlags::Mirror))
 		{
 			std::swap(txUV.left, txUV.right);
 		}
@@ -115,12 +115,12 @@ struct Gui : public MHost::IGui
 
 		Vec2 span = Span(txUV);
 
-		if (HasFlag(alignmentFlags, MHost::AlignmentFlags_Flip))
+		if (HasFlag(alignmentFlags, MHost::AlignmentFlags::Flip))
 		{
 			std::swap(txUV.top, txUV.bottom);
 		}
 
-		if (HasFlag(alignmentFlags, MHost::AlignmentFlags_Mirror))
+		if (HasFlag(alignmentFlags, MHost::AlignmentFlags::Mirror))
 		{
 			std::swap(txUV.left, txUV.right);
 		}

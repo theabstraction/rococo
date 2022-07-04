@@ -22,7 +22,7 @@ namespace ANON
 		void SetSampler(const SampleStateDef& ssd, SampleIndex index) override
 		{
 			renderer.SetSampler(
-				index,
+				(uint32) index,
 				(Samplers::Filter) ssd.method,
 				(Samplers::AddressMode) ssd.u,
 				(Samplers::AddressMode) ssd.v,

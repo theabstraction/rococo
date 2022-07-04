@@ -17,7 +17,7 @@ struct HQFonts : IHQFontsSupervisor, Fonts::IArrayFontSet
 	HQFonts(IHQFontResource& _hq) : hq(_hq) {}
 	void Free() override { delete this; }
 
-	HQFont hqFontType = HQFont_TitleFont;
+	HQFont hqFontType = HQFont::TitleFont;
 	HString faceName = DEFAULT_FONT_NAME;
 	int32 heightInPixels = 20;
 	boolean32 italics = false;
@@ -32,14 +32,15 @@ struct HQFonts : IHQFontsSupervisor, Fonts::IArrayFontSet
 		ID_FONT::Invalid(),
 	};
 
-	void Build(Rococo::Graphics::HQFont font) override
+	void Build(Rococo::Graphics::HQFont hqFont) override
 	{
+		int font = (int)hqFont;
 		if (font < 0 || font >= sysFonts.size())
 		{
 			Throw(0, "%s: Bad font enum", __FUNCTION__);
 		}
 
-		hqFontType = font;
+		hqFontType = hqFont;
 		Clear();
 	}
 
@@ -118,18 +119,20 @@ struct HQFonts : IHQFontsSupervisor, Fonts::IArrayFontSet
 			Throw(0, "%s: no glyphs have been added", __FUNCTION__);
 		}
 
-		if (sysFonts[hqFontType])
+		if (sysFonts[(int)hqFontType])
 		{
 			Throw(0, "%s: Sys font %s already defined", __FUNCTION__, ToShortString(hqFontType).buffer);
 		}
 
 		ID_FONT idFont = hq.CreateOSFont(*this, spec);
-		sysFonts[hqFontType] = idFont;
+		sysFonts[(int)hqFontType] = idFont;
 		return idFont;
 	}
 
-	ID_FONT GetSysFont(Rococo::Graphics::HQFont font)
+	ID_FONT GetSysFont(Rococo::Graphics::HQFont hqFont)
 	{
+		int font = (int)hqFont;
+
 		if (font < 0 || font >= sysFonts.size())
 		{
 			Throw(0, "%s: Bad font enum %d", __FUNCTION__, font);

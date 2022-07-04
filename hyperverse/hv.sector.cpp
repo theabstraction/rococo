@@ -1004,12 +1004,12 @@ namespace
 
 	  Graphics::MaterialCategory RandomWoodOrMetal()
 	  {
-		  return  ((rand() % 2) == 0) ? Graphics::MaterialCategory_Metal : Graphics::MaterialCategory_Wood;
+		  return  ((rand() % 2) == 0) ? Graphics::MaterialCategory::Metal : Graphics::MaterialCategory::Wood;
 	  }
 
 	  Graphics::MaterialCategory RandomRockOrMarble()
 	  {
-		  return  ((rand() % 2) == 0) ? Graphics::MaterialCategory_Rock : Graphics::MaterialCategory_Marble;
+		  return  ((rand() % 2) == 0) ? Graphics::MaterialCategory::Rock : Graphics::MaterialCategory::Marble;
 	  }
    public:
       Sector(Platform& _platform, ISectors& _co_sectors) :
@@ -1021,8 +1021,8 @@ namespace
 		 ai(CreateSectorAI(co_sectors.AFCC())),
 		 contents(CreateSectorContents(_platform, *this, *ai))
       {
-		  PrepMat(GraphicsEx::BodyComponentMatClass_Brickwork, "random", Graphics::MaterialCategory_Stone);
-		  PrepMat(GraphicsEx::BodyComponentMatClass_Cement,    "random", Graphics::MaterialCategory_Rock);
+		  PrepMat(GraphicsEx::BodyComponentMatClass_Brickwork, "random", Graphics::MaterialCategory::Stone);
+		  PrepMat(GraphicsEx::BodyComponentMatClass_Cement,    "random", Graphics::MaterialCategory::Rock);
 		  PrepMat(GraphicsEx::BodyComponentMatClass_Floor,     "random", RandomRockOrMarble());
 		  PrepMat(GraphicsEx::BodyComponentMatClass_Ceiling,   "random", RandomRockOrMarble());
 

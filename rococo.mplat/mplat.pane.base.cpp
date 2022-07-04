@@ -797,7 +797,7 @@ class PaneFrame : public PaneContainer, public IFramePane, public IObserver
 	char title[128] = { 0 };
 	const int border = 1;
 	const int captionHeight = 28;
-	ELayoutAlgorithm layoutAlgorithm = ELayoutAlgorithm_MaximizeOnlyChild;
+	ELayoutAlgorithm layoutAlgorithm = ELayoutAlgorithm::MaximizeOnlyChild;
 
 	int32 dragRightPos = -1;
 	int32 dragBottomPos = -1;
@@ -1008,8 +1008,8 @@ public:
 	{
 		switch (layoutAlgorithm)
 		{
-		case ELayoutAlgorithm_MaximizeOnlyChild:
-		case ELayoutAlgorithm_None:
+		case ELayoutAlgorithm::MaximizeOnlyChild:
+		case ELayoutAlgorithm::None:
 			break;
 		default:
 			Throw(0, "FramePanel.SetLayoutAlgorithm(%d). Algorithm not implemented", layout);
@@ -1062,9 +1062,9 @@ public:
 
 		switch (layoutAlgorithm)
 		{
-		case ELayoutAlgorithm_None:
+		case ELayoutAlgorithm::None:
 			break;
-		case ELayoutAlgorithm_MaximizeOnlyChild:
+		case ELayoutAlgorithm::MaximizeOnlyChild:
 			if (Children() == 1)
 			{
 				GetChild(0)->SetRect(child);

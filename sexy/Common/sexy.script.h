@@ -52,6 +52,8 @@
 # endif
 #endif
 
+#include <rococo.api.h>
+
 // #define SEXY_ENABLE_EXTRA_STRING_SECURITY // uncomment to add in extra security code, which slows some strings ops down a bit
 
 namespace Rococo
@@ -133,6 +135,7 @@ namespace Rococo {
 
 		template<class T> void ReadInput(T& value, const uint8 *SF, ptrdiff_t offset)
 		{
+		//	static_assert(((sizeof T) % 4) == 0, "sizeof(T) needs to be a multiple of 4");
 			const uint8* inputStart = SF + offset;
 			uint8* readPos = (uint8*)inputStart;
 			T* pValue = (T*)readPos;
@@ -141,6 +144,7 @@ namespace Rococo {
 
 		template<class T>void WriteOutput(T value, const uint8 *SF, ptrdiff_t offset)
 		{
+		//	static_assert(((sizeof T) % 4) == 0, "sizeof(T) needs to be a multiple of 4");
 			const uint8* outputStart = SF + offset;
 			uint8* writePos = (uint8*)outputStart;
 			T* pValue = (T*)writePos;
@@ -149,6 +153,7 @@ namespace Rococo {
 
 		template<class T>void WriteOutput(int index, T value, NativeCallEnvironment& e)
 		{
+			static_assert(((sizeof T) % 4) == 0, "sizeof(T) needs to be a multiple of 4");
 			ValidateOutputIndex(index, e.code);
 			int offset = e.code.GetOffset(index);
 			WriteOutput(value, e.cpu.SF(), offset);
@@ -156,6 +161,7 @@ namespace Rococo {
 
 		template<class T> void ReadInput(int index, T& value, Compiler::IPublicProgramObject& po, const Compiler::IFunction& f)
 		{
+			static_assert(((sizeof T) % 4) == 0, "sizeof(T) needs to be a multiple of 4");
 			ValidateInputIndex(index, f.Code());
 			int offset = f.Code().GetOffset(index + f.NumberOfOutputs());
 			ReadInput(value, po.VirtualMachine().Cpu().SF(), offset);
@@ -163,6 +169,7 @@ namespace Rococo {
 
 		template<class T> void ReadInput(int index, T& value, NativeCallEnvironment& e)
 		{
+			static_assert(((sizeof T) % 4) == 0, "sizeof(T) needs to be a multiple of 4");
 			ValidateInputIndex(index, e.code);
 			int offset = e.code.GetOffset(index + e.function.NumberOfOutputs());
 			ReadInput(value, e.cpu.SF(), offset);

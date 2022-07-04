@@ -1399,7 +1399,9 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 		RouteTextToAutoComplete routeTextToAutoComplete(editor.AutoCompleteBuilder(), candidate);
 
 		int64 nCharsAndNull = editor.GetDocLength();
-		src_buffer.resize(nCharsAndNull);
+
+		src_buffer.resize(nCharsAndNull + 1);
+
 		editor.GetText(nCharsAndNull, src_buffer.data());
 
 		Substring doc;
@@ -1701,8 +1703,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 				if (isupper(*openingToken))
 				{
 					// Potentially a function call
-					ShowFunctionArgumentsForType(editor, searchToken);
-					
+					ShowFunctionArgumentsForType(editor, searchToken);	
 				}
 				else if (islower(*openingToken))
 				{

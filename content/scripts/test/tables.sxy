@@ -49,9 +49,14 @@
 
 	(ILocalizedText local (LocalizedText))
 
-	(LocalizedTextRow row)
-	(row.english = (Sys.Type.NewStringBuilder 1024))
-	(local.GetRow 0 row)
+	(LocalizedTextRow localizedRow)
+	(localizedRow.english = (Sys.Type.NewStringBuilder 1024))
+	(local.GetRow 0 localizedRow)
 	
-	(Sys.Type.Strings.FindLeftNoCase (IString container)(Int32 startPos)(IString substring) -> (Int32 position))
+	(Bool startsWithPeople)
+	(Sys.Type.Strings.StartsWith localizedRow.english "People" -> startsWithPeople)
+	
+	(if (not startsWithPeople)
+		(Sys.Throw 0 "LocalizedTextRow:English - Does not start with people")
+	)
 )

@@ -127,7 +127,7 @@ namespace
 			Matrix4x4 model;
 			const float z0 = sector.Z0();
 			const float z1 = sector.Z1();
-			if (!TryGetRandomTransformation(model, worldBounds, addItemFlags & AddItemFlags_RandomHeading, addItemFlags & AddItemFlags_RandomPosition, bounds, aabb, z0, z1))
+			if (!TryGetRandomTransformation(model, worldBounds, addItemFlags & (int) AddItemFlags::RandomHeading, addItemFlags & (int) AddItemFlags::RandomPosition, bounds, aabb, z0, z1))
 			{
 				return ID_ENTITY::Invalid();
 			}
@@ -217,7 +217,7 @@ namespace
 			{
 				AABB worldBounds;
 				Matrix4x4 model;
-				if (!TryGetRandomTransformation(model, worldBounds, iis.insertFlags & AddItemFlags_RandomHeading, iis.insertFlags & AddItemFlags_RandomPosition, bounds, aabb, z0, z1))
+				if (!TryGetRandomTransformation(model, worldBounds, iis.insertFlags & (int) AddItemFlags::RandomHeading, iis.insertFlags & (int) AddItemFlags::RandomPosition, bounds, aabb, z0, z1))
 				{
 					return ID_ENTITY::Invalid();
 				}
@@ -283,7 +283,7 @@ namespace
 				}
 			} sortByRangeFromCentrePieceAndOrientation;
 
-			bool sortByOrientation = iis.insertFlags & AddItemFlags_AlignEdge;
+			bool sortByOrientation = iis.insertFlags & (int) AddItemFlags::AlignEdge;
 
 			if (sortByOrientation)
 			{
@@ -629,13 +629,13 @@ namespace
 
 			if (padIntrusion > PAD_MAX_INTRUSION)
 			{
-				ai.Trigger(TriggerType_Pressed);
+				ai.Trigger(TriggerType::Pressed);
 				padIntrusion = PAD_MAX_INTRUSION;
 			}
 
 			if (padIntrusion < 0)
 			{
-				ai.Trigger(TriggerType_Depressed);
+				ai.Trigger(TriggerType::Depressed);
 				padIntrusion = 0;
 			}
 
@@ -666,13 +666,13 @@ namespace
 			if (leverElevation < LEVER_DOWN_ANGLE)
 			{
 				leverElevation = LEVER_DOWN_ANGLE;
-				ai.Trigger(TriggerType_Depressed);
+				ai.Trigger(TriggerType::Depressed);
 				leverOmega = 0;
 			}
 			else if (leverElevation > LEVER_UP_ANGLE)
 			{
 				leverElevation = LEVER_UP_ANGLE;
-				ai.Trigger(TriggerType_Pressed);
+				ai.Trigger(TriggerType::Pressed);
 				leverOmega = 0;
 			}
 

@@ -426,11 +426,11 @@ namespace
 
 	  stringmap<MaterialCategory> subdirToCatEnum =
 	  {
-		  { "/wood/", MaterialCategory_Wood },
-		  { "/stone/", MaterialCategory_Stone },
-		  { "/rock/", MaterialCategory_Rock },
-		  { "/metal/", MaterialCategory_Metal },
-		  { "/marble/", MaterialCategory_Marble },
+		  { "/wood/", MaterialCategory::Wood },
+		  { "/stone/", MaterialCategory::Stone },
+		  { "/rock/", MaterialCategory::Rock },
+		  { "/metal/", MaterialCategory::Metal },
+		  { "/marble/", MaterialCategory::Marble }
 	  };
 
       MaterialCategory GetMaterialCateogry(MaterialId id)
@@ -444,7 +444,7 @@ namespace
               }
           }
 
-          return MaterialCategory_Marble; // all that is not anythng is marble
+          return MaterialCategory::Marble; // all that is not anythng is marble
       }
 
 	  void RefreshCategories()

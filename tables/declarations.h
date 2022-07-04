@@ -1,5 +1,5 @@
 //Rococo.Carpenter CPPGenerator Declarations
-// Generated At: 03 July 2022 20:26:48
+// Generated At: 04 July 2022 16:50:50
 
 namespace Rococo::Science::Materials
 {

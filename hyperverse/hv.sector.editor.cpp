@@ -107,7 +107,7 @@ namespace
 			logicPanel = platform.gui.BindPanelToScript("!scripts/hv/panel.logic.sxy");
 			tagsPanel = platform.gui.BindPanelToScript("!scripts/hv/panel.tags.sxy");
 
-			ID_FONT idFont = platform.utilities.GetHQFonts().GetSysFont(Graphics::HQFont_EditorFont);
+			ID_FONT idFont = platform.utilities.GetHQFonts().GetSysFont(Graphics::HQFont::EditorFont);
 			
 			FieldEditorContext fcActions { platform.publisher, platform.gui, platform.keyboard, *this, idFont };
 			fieldEditor = CreateFieldEditor(fcActions);

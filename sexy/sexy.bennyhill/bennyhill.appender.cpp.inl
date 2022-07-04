@@ -294,7 +294,7 @@ namespace Rococo
 			appender.Append(("\t"));
 		}
 
-		appender.Append(("enum "));
+		appender.Append(("enum class "));
 		AppendStructShortName(appender, ec.asCppEnum.SexyName());
 		appender.Append((": "));
 		AppendStructShortName(appender, ec.underlyingType.SexyName());
@@ -304,8 +304,7 @@ namespace Rococo
 		{
 			auto& name = i.first;
 			appender.Append(nsDepth > 0 ? ("\t\t") : ("\t"));
-			AppendStructShortName(appender, ec.asCppEnum.SexyName());
-			appender.Append(("_%s = %I64d, \t// 0x%I64x\n"), name.c_str(), i.second, i.second);
+			appender.Append(("%s = %I64d, \t// 0x%I64x\n"), name.c_str(), i.second, i.second);
 		}
 
 		appender.Append(nsDepth > 0 ? ("\t};") : ("};"));
@@ -812,7 +811,7 @@ namespace Rococo
 		{
 			appender.Append(("\t\t%s (s == %c\"%s_%s\"_fstring)\n"), first ? ("if") : ("else if"), stringIndicator, tail, i.first.c_str());
 			appender.Append(("\t\t{\n"));
-			appender.Append(("\t\t\tvalue = %s_%s;\n"), tail, i.first.c_str());
+			appender.Append(("\t\t\tvalue = %s::%s;\n"), tail, i.first.c_str());
 			appender.Append(("\t\t}\n"));
 
 			first = false;
@@ -834,7 +833,7 @@ namespace Rococo
 		{
 			appender.Append(("\t\t%s (s == %c\"%s\"_fstring)\n"), first ? ("if") : ("else if"), stringIndicator, i.first.c_str());
 			appender.Append(("\t\t{\n"));
-			appender.Append(("\t\t\tvalue = %s_%s;\n"), tail, i.first.c_str());
+			appender.Append(("\t\t\tvalue = %s::%s;\n"), tail, i.first.c_str());
 			appender.Append(("\t\t}\n"));
 
 			first = false;
@@ -856,7 +855,7 @@ namespace Rococo
 
 		for (auto& i : ec.values)
 		{
-			appender.Append(("\t\t\tcase %s_%s:\n"), tail, i.first.c_str());
+			appender.Append(("\t\t\tcase %s::%s:\n"), tail, i.first.c_str());
 			appender.Append(("\t\t\t\treturn \"%s\"_fstring;\n"), i.first.c_str());
 		}
 

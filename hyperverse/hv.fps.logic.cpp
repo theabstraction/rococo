@@ -98,7 +98,7 @@ public:
 
 		if (!idFont)
 		{
-			idFont = platform.utilities.GetHQFonts().GetSysFont(Graphics::HQFont_InfoFont);
+			idFont = platform.utilities.GetHQFonts().GetSysFont(Graphics::HQFont::InfoFont);
 		}
 
 		if (!objectId) return;
@@ -1569,7 +1569,7 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 
 	void RenderXbox360Data(IGuiRenderContext& g)
 	{
-		ID_FONT idFont = platform.utilities.GetHQFonts().GetSysFont(Graphics::HQFont_TitleFont);
+		ID_FONT idFont = platform.utilities.GetHQFonts().GetSysFont(Graphics::HQFont::TitleFont);
 		if (idFont)
 		{
 			GuiMetrics metrics;
@@ -1614,7 +1614,7 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 	{
 		/* enable font loading in app.created.sxy to make this work */
 
-		ID_FONT idFont = platform.utilities.GetHQFonts().GetSysFont(Graphics::HQFont_TitleFont);
+		ID_FONT idFont = platform.utilities.GetHQFonts().GetSysFont(Graphics::HQFont::TitleFont);
 		if (idFont)
 		{
 			GuiMetrics metrics;

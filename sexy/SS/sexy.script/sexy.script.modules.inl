@@ -247,7 +247,15 @@ namespace Rococo { namespace Script
 				IStructureBuilder* s = nsSrc->FindStructure(shortName);
 				if (s == NULL)
 				{
-					Throw(nameExpr, "Cannot find '%s' in %s", shortName, nsBody);
+					IFunctionBuilder* f = nsSrc->FindFunction(shortName);
+					if (f == nullptr)
+					{
+						Throw(nameExpr, "Cannot find '%s' in %s", shortName, nsBody);
+					}
+					else
+					{
+						ns.Alias(tail, *f);
+					}
 				}
 
 				ns.Alias(tail, *s);

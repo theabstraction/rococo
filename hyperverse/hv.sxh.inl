@@ -4,19 +4,19 @@ namespace HV
 	{
 		if (s ==  "TriggerType_None"_fstring)
 		{
-			value = TriggerType_None;
+			value = TriggerType::None;
 		}
 		else if (s ==  "TriggerType_Depressed"_fstring)
 		{
-			value = TriggerType_Depressed;
+			value = TriggerType::Depressed;
 		}
 		else if (s ==  "TriggerType_Pressed"_fstring)
 		{
-			value = TriggerType_Pressed;
+			value = TriggerType::Pressed;
 		}
 		else if (s ==  "TriggerType_LevelLoad"_fstring)
 		{
-			value = TriggerType_LevelLoad;
+			value = TriggerType::LevelLoad;
 		}
 		else
 		{
@@ -30,19 +30,19 @@ namespace HV
 	{
 		if (s ==  "None"_fstring)
 		{
-			value = TriggerType_None;
+			value = TriggerType::None;
 		}
 		else if (s ==  "Depressed"_fstring)
 		{
-			value = TriggerType_Depressed;
+			value = TriggerType::Depressed;
 		}
 		else if (s ==  "Pressed"_fstring)
 		{
-			value = TriggerType_Pressed;
+			value = TriggerType::Pressed;
 		}
 		else if (s ==  "LevelLoad"_fstring)
 		{
-			value = TriggerType_LevelLoad;
+			value = TriggerType::LevelLoad;
 		}
 		else
 		{
@@ -55,13 +55,13 @@ namespace HV
 	{
 		switch(value)
 		{
-			case TriggerType_None:
+			case TriggerType::None:
 				return "None"_fstring;
-			case TriggerType_Depressed:
+			case TriggerType::Depressed:
 				return "Depressed"_fstring;
-			case TriggerType_Pressed:
+			case TriggerType::Pressed:
 				return "Pressed"_fstring;
-			case TriggerType_LevelLoad:
+			case TriggerType::LevelLoad:
 				return "LevelLoad"_fstring;
 			default:
 				return {"",0};
@@ -75,479 +75,479 @@ namespace HV::Chemicals
 	{
 		if (s ==  "Element_None"_fstring)
 		{
-			value = Element_None;
+			value = Element::None;
 		}
 		else if (s ==  "Element_Hydrogen"_fstring)
 		{
-			value = Element_Hydrogen;
+			value = Element::Hydrogen;
 		}
 		else if (s ==  "Element_Helium"_fstring)
 		{
-			value = Element_Helium;
+			value = Element::Helium;
 		}
 		else if (s ==  "Element_Lithium"_fstring)
 		{
-			value = Element_Lithium;
+			value = Element::Lithium;
 		}
 		else if (s ==  "Element_Beryllium"_fstring)
 		{
-			value = Element_Beryllium;
+			value = Element::Beryllium;
 		}
 		else if (s ==  "Element_Boron"_fstring)
 		{
-			value = Element_Boron;
+			value = Element::Boron;
 		}
 		else if (s ==  "Element_Carbon"_fstring)
 		{
-			value = Element_Carbon;
+			value = Element::Carbon;
 		}
 		else if (s ==  "Element_Nitrogen"_fstring)
 		{
-			value = Element_Nitrogen;
+			value = Element::Nitrogen;
 		}
 		else if (s ==  "Element_Oxygen"_fstring)
 		{
-			value = Element_Oxygen;
+			value = Element::Oxygen;
 		}
 		else if (s ==  "Element_Flourine"_fstring)
 		{
-			value = Element_Flourine;
+			value = Element::Flourine;
 		}
 		else if (s ==  "Element_Neon"_fstring)
 		{
-			value = Element_Neon;
+			value = Element::Neon;
 		}
 		else if (s ==  "Element_Sodium"_fstring)
 		{
-			value = Element_Sodium;
+			value = Element::Sodium;
 		}
 		else if (s ==  "Element_Magnesium"_fstring)
 		{
-			value = Element_Magnesium;
+			value = Element::Magnesium;
 		}
 		else if (s ==  "Element_Aluminium"_fstring)
 		{
-			value = Element_Aluminium;
+			value = Element::Aluminium;
 		}
 		else if (s ==  "Element_Silicon"_fstring)
 		{
-			value = Element_Silicon;
+			value = Element::Silicon;
 		}
 		else if (s ==  "Element_Phosphorous"_fstring)
 		{
-			value = Element_Phosphorous;
+			value = Element::Phosphorous;
 		}
 		else if (s ==  "Element_Sulphor"_fstring)
 		{
-			value = Element_Sulphor;
+			value = Element::Sulphor;
 		}
 		else if (s ==  "Element_Chlorine"_fstring)
 		{
-			value = Element_Chlorine;
+			value = Element::Chlorine;
 		}
 		else if (s ==  "Element_Argon"_fstring)
 		{
-			value = Element_Argon;
+			value = Element::Argon;
 		}
 		else if (s ==  "Element_Potassium"_fstring)
 		{
-			value = Element_Potassium;
+			value = Element::Potassium;
 		}
 		else if (s ==  "Element_Calcium"_fstring)
 		{
-			value = Element_Calcium;
+			value = Element::Calcium;
 		}
 		else if (s ==  "Element_Scandium"_fstring)
 		{
-			value = Element_Scandium;
+			value = Element::Scandium;
 		}
 		else if (s ==  "Element_Titanium"_fstring)
 		{
-			value = Element_Titanium;
+			value = Element::Titanium;
 		}
 		else if (s ==  "Element_Vanadium"_fstring)
 		{
-			value = Element_Vanadium;
+			value = Element::Vanadium;
 		}
 		else if (s ==  "Element_Chromium"_fstring)
 		{
-			value = Element_Chromium;
+			value = Element::Chromium;
 		}
 		else if (s ==  "Element_Manganese"_fstring)
 		{
-			value = Element_Manganese;
+			value = Element::Manganese;
 		}
 		else if (s ==  "Element_Iron"_fstring)
 		{
-			value = Element_Iron;
+			value = Element::Iron;
 		}
 		else if (s ==  "Element_Cobalt"_fstring)
 		{
-			value = Element_Cobalt;
+			value = Element::Cobalt;
 		}
 		else if (s ==  "Element_Nickel"_fstring)
 		{
-			value = Element_Nickel;
+			value = Element::Nickel;
 		}
 		else if (s ==  "Element_Copper"_fstring)
 		{
-			value = Element_Copper;
+			value = Element::Copper;
 		}
 		else if (s ==  "Element_Zinc"_fstring)
 		{
-			value = Element_Zinc;
+			value = Element::Zinc;
 		}
 		else if (s ==  "Element_Gallium"_fstring)
 		{
-			value = Element_Gallium;
+			value = Element::Gallium;
 		}
 		else if (s ==  "Element_Germanium"_fstring)
 		{
-			value = Element_Germanium;
+			value = Element::Germanium;
 		}
 		else if (s ==  "Element_Arsenic"_fstring)
 		{
-			value = Element_Arsenic;
+			value = Element::Arsenic;
 		}
 		else if (s ==  "Element_Selenium"_fstring)
 		{
-			value = Element_Selenium;
+			value = Element::Selenium;
 		}
 		else if (s ==  "Element_Bromine"_fstring)
 		{
-			value = Element_Bromine;
+			value = Element::Bromine;
 		}
 		else if (s ==  "Element_Krypton"_fstring)
 		{
-			value = Element_Krypton;
+			value = Element::Krypton;
 		}
 		else if (s ==  "Element_Rubidium"_fstring)
 		{
-			value = Element_Rubidium;
+			value = Element::Rubidium;
 		}
 		else if (s ==  "Element_Stontium"_fstring)
 		{
-			value = Element_Stontium;
+			value = Element::Stontium;
 		}
 		else if (s ==  "Element_Yttrium"_fstring)
 		{
-			value = Element_Yttrium;
+			value = Element::Yttrium;
 		}
 		else if (s ==  "Element_Zirconium"_fstring)
 		{
-			value = Element_Zirconium;
+			value = Element::Zirconium;
 		}
 		else if (s ==  "Element_Niobium"_fstring)
 		{
-			value = Element_Niobium;
+			value = Element::Niobium;
 		}
 		else if (s ==  "Element_Molybdenum"_fstring)
 		{
-			value = Element_Molybdenum;
+			value = Element::Molybdenum;
 		}
 		else if (s ==  "Element_Technetium"_fstring)
 		{
-			value = Element_Technetium;
+			value = Element::Technetium;
 		}
 		else if (s ==  "Element_Ruthenium"_fstring)
 		{
-			value = Element_Ruthenium;
+			value = Element::Ruthenium;
 		}
 		else if (s ==  "Element_Rhodium"_fstring)
 		{
-			value = Element_Rhodium;
+			value = Element::Rhodium;
 		}
 		else if (s ==  "Element_Palladium"_fstring)
 		{
-			value = Element_Palladium;
+			value = Element::Palladium;
 		}
 		else if (s ==  "Element_Silver"_fstring)
 		{
-			value = Element_Silver;
+			value = Element::Silver;
 		}
 		else if (s ==  "Element_Cadmium"_fstring)
 		{
-			value = Element_Cadmium;
+			value = Element::Cadmium;
 		}
 		else if (s ==  "Element_Indium"_fstring)
 		{
-			value = Element_Indium;
+			value = Element::Indium;
 		}
 		else if (s ==  "Element_Tin"_fstring)
 		{
-			value = Element_Tin;
+			value = Element::Tin;
 		}
 		else if (s ==  "Element_Antimony"_fstring)
 		{
-			value = Element_Antimony;
+			value = Element::Antimony;
 		}
 		else if (s ==  "Element_Tellurium"_fstring)
 		{
-			value = Element_Tellurium;
+			value = Element::Tellurium;
 		}
 		else if (s ==  "Element_Iodine"_fstring)
 		{
-			value = Element_Iodine;
+			value = Element::Iodine;
 		}
 		else if (s ==  "Element_Xenon"_fstring)
 		{
-			value = Element_Xenon;
+			value = Element::Xenon;
 		}
 		else if (s ==  "Element_Caesium"_fstring)
 		{
-			value = Element_Caesium;
+			value = Element::Caesium;
 		}
 		else if (s ==  "Element_Barium"_fstring)
 		{
-			value = Element_Barium;
+			value = Element::Barium;
 		}
 		else if (s ==  "Element_Lanthanum"_fstring)
 		{
-			value = Element_Lanthanum;
+			value = Element::Lanthanum;
 		}
 		else if (s ==  "Element_Cerium"_fstring)
 		{
-			value = Element_Cerium;
+			value = Element::Cerium;
 		}
 		else if (s ==  "Element_Praseodymium"_fstring)
 		{
-			value = Element_Praseodymium;
+			value = Element::Praseodymium;
 		}
 		else if (s ==  "Element_Neodymium"_fstring)
 		{
-			value = Element_Neodymium;
+			value = Element::Neodymium;
 		}
 		else if (s ==  "Element_Promethium"_fstring)
 		{
-			value = Element_Promethium;
+			value = Element::Promethium;
 		}
 		else if (s ==  "Element_Samarium"_fstring)
 		{
-			value = Element_Samarium;
+			value = Element::Samarium;
 		}
 		else if (s ==  "Element_Europium"_fstring)
 		{
-			value = Element_Europium;
+			value = Element::Europium;
 		}
 		else if (s ==  "Element_Gadolinium"_fstring)
 		{
-			value = Element_Gadolinium;
+			value = Element::Gadolinium;
 		}
 		else if (s ==  "Element_Terbium"_fstring)
 		{
-			value = Element_Terbium;
+			value = Element::Terbium;
 		}
 		else if (s ==  "Element_Dysprosium"_fstring)
 		{
-			value = Element_Dysprosium;
+			value = Element::Dysprosium;
 		}
 		else if (s ==  "Element_Holmium"_fstring)
 		{
-			value = Element_Holmium;
+			value = Element::Holmium;
 		}
 		else if (s ==  "Element_Erbium"_fstring)
 		{
-			value = Element_Erbium;
+			value = Element::Erbium;
 		}
 		else if (s ==  "Element_Thulium"_fstring)
 		{
-			value = Element_Thulium;
+			value = Element::Thulium;
 		}
 		else if (s ==  "Element_Ytterbium"_fstring)
 		{
-			value = Element_Ytterbium;
+			value = Element::Ytterbium;
 		}
 		else if (s ==  "Element_Lutetium"_fstring)
 		{
-			value = Element_Lutetium;
+			value = Element::Lutetium;
 		}
 		else if (s ==  "Element_Hafnium"_fstring)
 		{
-			value = Element_Hafnium;
+			value = Element::Hafnium;
 		}
 		else if (s ==  "Element_Tantalum"_fstring)
 		{
-			value = Element_Tantalum;
+			value = Element::Tantalum;
 		}
 		else if (s ==  "Element_Tungsten"_fstring)
 		{
-			value = Element_Tungsten;
+			value = Element::Tungsten;
 		}
 		else if (s ==  "Element_Rhenium"_fstring)
 		{
-			value = Element_Rhenium;
+			value = Element::Rhenium;
 		}
 		else if (s ==  "Element_Osmium"_fstring)
 		{
-			value = Element_Osmium;
+			value = Element::Osmium;
 		}
 		else if (s ==  "Element_Iridium"_fstring)
 		{
-			value = Element_Iridium;
+			value = Element::Iridium;
 		}
 		else if (s ==  "Element_Platinum"_fstring)
 		{
-			value = Element_Platinum;
+			value = Element::Platinum;
 		}
 		else if (s ==  "Element_Gold"_fstring)
 		{
-			value = Element_Gold;
+			value = Element::Gold;
 		}
 		else if (s ==  "Element_Mercury"_fstring)
 		{
-			value = Element_Mercury;
+			value = Element::Mercury;
 		}
 		else if (s ==  "Element_Thallium"_fstring)
 		{
-			value = Element_Thallium;
+			value = Element::Thallium;
 		}
 		else if (s ==  "Element_Lead"_fstring)
 		{
-			value = Element_Lead;
+			value = Element::Lead;
 		}
 		else if (s ==  "Element_Bismuth"_fstring)
 		{
-			value = Element_Bismuth;
+			value = Element::Bismuth;
 		}
 		else if (s ==  "Element_Polonium"_fstring)
 		{
-			value = Element_Polonium;
+			value = Element::Polonium;
 		}
 		else if (s ==  "Element_Astatine"_fstring)
 		{
-			value = Element_Astatine;
+			value = Element::Astatine;
 		}
 		else if (s ==  "Element_Radon"_fstring)
 		{
-			value = Element_Radon;
+			value = Element::Radon;
 		}
 		else if (s ==  "Element_Francium"_fstring)
 		{
-			value = Element_Francium;
+			value = Element::Francium;
 		}
 		else if (s ==  "Element_Radium"_fstring)
 		{
-			value = Element_Radium;
+			value = Element::Radium;
 		}
 		else if (s ==  "Element_Actinium"_fstring)
 		{
-			value = Element_Actinium;
+			value = Element::Actinium;
 		}
 		else if (s ==  "Element_Thorium"_fstring)
 		{
-			value = Element_Thorium;
+			value = Element::Thorium;
 		}
 		else if (s ==  "Element_Protactinium"_fstring)
 		{
-			value = Element_Protactinium;
+			value = Element::Protactinium;
 		}
 		else if (s ==  "Element_Uranium"_fstring)
 		{
-			value = Element_Uranium;
+			value = Element::Uranium;
 		}
 		else if (s ==  "Element_Neptunium"_fstring)
 		{
-			value = Element_Neptunium;
+			value = Element::Neptunium;
 		}
 		else if (s ==  "Element_Plutonium"_fstring)
 		{
-			value = Element_Plutonium;
+			value = Element::Plutonium;
 		}
 		else if (s ==  "Element_Americium"_fstring)
 		{
-			value = Element_Americium;
+			value = Element::Americium;
 		}
 		else if (s ==  "Element_Curium"_fstring)
 		{
-			value = Element_Curium;
+			value = Element::Curium;
 		}
 		else if (s ==  "Element_Berkelium"_fstring)
 		{
-			value = Element_Berkelium;
+			value = Element::Berkelium;
 		}
 		else if (s ==  "Element_Californium"_fstring)
 		{
-			value = Element_Californium;
+			value = Element::Californium;
 		}
 		else if (s ==  "Element_Einsteinium"_fstring)
 		{
-			value = Element_Einsteinium;
+			value = Element::Einsteinium;
 		}
 		else if (s ==  "Element_Fermium"_fstring)
 		{
-			value = Element_Fermium;
+			value = Element::Fermium;
 		}
 		else if (s ==  "Element_Mendelevium"_fstring)
 		{
-			value = Element_Mendelevium;
+			value = Element::Mendelevium;
 		}
 		else if (s ==  "Element_Nobelium"_fstring)
 		{
-			value = Element_Nobelium;
+			value = Element::Nobelium;
 		}
 		else if (s ==  "Element_Lawrencium"_fstring)
 		{
-			value = Element_Lawrencium;
+			value = Element::Lawrencium;
 		}
 		else if (s ==  "Element_Rutherfordium"_fstring)
 		{
-			value = Element_Rutherfordium;
+			value = Element::Rutherfordium;
 		}
 		else if (s ==  "Element_Dubnium"_fstring)
 		{
-			value = Element_Dubnium;
+			value = Element::Dubnium;
 		}
 		else if (s ==  "Element_Seaborgium"_fstring)
 		{
-			value = Element_Seaborgium;
+			value = Element::Seaborgium;
 		}
 		else if (s ==  "Element_Bohrium"_fstring)
 		{
-			value = Element_Bohrium;
+			value = Element::Bohrium;
 		}
 		else if (s ==  "Element_Hassium"_fstring)
 		{
-			value = Element_Hassium;
+			value = Element::Hassium;
 		}
 		else if (s ==  "Element_Meitnerium"_fstring)
 		{
-			value = Element_Meitnerium;
+			value = Element::Meitnerium;
 		}
 		else if (s ==  "Element_Darmstadtium"_fstring)
 		{
-			value = Element_Darmstadtium;
+			value = Element::Darmstadtium;
 		}
 		else if (s ==  "Element_Roentgenium"_fstring)
 		{
-			value = Element_Roentgenium;
+			value = Element::Roentgenium;
 		}
 		else if (s ==  "Element_Copernicium"_fstring)
 		{
-			value = Element_Copernicium;
+			value = Element::Copernicium;
 		}
 		else if (s ==  "Element_Unutrium"_fstring)
 		{
-			value = Element_Unutrium;
+			value = Element::Unutrium;
 		}
 		else if (s ==  "Element_Flerovium"_fstring)
 		{
-			value = Element_Flerovium;
+			value = Element::Flerovium;
 		}
 		else if (s ==  "Element_Unupentium"_fstring)
 		{
-			value = Element_Unupentium;
+			value = Element::Unupentium;
 		}
 		else if (s ==  "Element_Livermorium"_fstring)
 		{
-			value = Element_Livermorium;
+			value = Element::Livermorium;
 		}
 		else if (s ==  "Element_Unuseptium"_fstring)
 		{
-			value = Element_Unuseptium;
+			value = Element::Unuseptium;
 		}
 		else if (s ==  "Element_Ununoctium"_fstring)
 		{
-			value = Element_Ununoctium;
+			value = Element::Ununoctium;
 		}
 		else
 		{
@@ -561,479 +561,479 @@ namespace HV::Chemicals
 	{
 		if (s ==  "None"_fstring)
 		{
-			value = Element_None;
+			value = Element::None;
 		}
 		else if (s ==  "Hydrogen"_fstring)
 		{
-			value = Element_Hydrogen;
+			value = Element::Hydrogen;
 		}
 		else if (s ==  "Helium"_fstring)
 		{
-			value = Element_Helium;
+			value = Element::Helium;
 		}
 		else if (s ==  "Lithium"_fstring)
 		{
-			value = Element_Lithium;
+			value = Element::Lithium;
 		}
 		else if (s ==  "Beryllium"_fstring)
 		{
-			value = Element_Beryllium;
+			value = Element::Beryllium;
 		}
 		else if (s ==  "Boron"_fstring)
 		{
-			value = Element_Boron;
+			value = Element::Boron;
 		}
 		else if (s ==  "Carbon"_fstring)
 		{
-			value = Element_Carbon;
+			value = Element::Carbon;
 		}
 		else if (s ==  "Nitrogen"_fstring)
 		{
-			value = Element_Nitrogen;
+			value = Element::Nitrogen;
 		}
 		else if (s ==  "Oxygen"_fstring)
 		{
-			value = Element_Oxygen;
+			value = Element::Oxygen;
 		}
 		else if (s ==  "Flourine"_fstring)
 		{
-			value = Element_Flourine;
+			value = Element::Flourine;
 		}
 		else if (s ==  "Neon"_fstring)
 		{
-			value = Element_Neon;
+			value = Element::Neon;
 		}
 		else if (s ==  "Sodium"_fstring)
 		{
-			value = Element_Sodium;
+			value = Element::Sodium;
 		}
 		else if (s ==  "Magnesium"_fstring)
 		{
-			value = Element_Magnesium;
+			value = Element::Magnesium;
 		}
 		else if (s ==  "Aluminium"_fstring)
 		{
-			value = Element_Aluminium;
+			value = Element::Aluminium;
 		}
 		else if (s ==  "Silicon"_fstring)
 		{
-			value = Element_Silicon;
+			value = Element::Silicon;
 		}
 		else if (s ==  "Phosphorous"_fstring)
 		{
-			value = Element_Phosphorous;
+			value = Element::Phosphorous;
 		}
 		else if (s ==  "Sulphor"_fstring)
 		{
-			value = Element_Sulphor;
+			value = Element::Sulphor;
 		}
 		else if (s ==  "Chlorine"_fstring)
 		{
-			value = Element_Chlorine;
+			value = Element::Chlorine;
 		}
 		else if (s ==  "Argon"_fstring)
 		{
-			value = Element_Argon;
+			value = Element::Argon;
 		}
 		else if (s ==  "Potassium"_fstring)
 		{
-			value = Element_Potassium;
+			value = Element::Potassium;
 		}
 		else if (s ==  "Calcium"_fstring)
 		{
-			value = Element_Calcium;
+			value = Element::Calcium;
 		}
 		else if (s ==  "Scandium"_fstring)
 		{
-			value = Element_Scandium;
+			value = Element::Scandium;
 		}
 		else if (s ==  "Titanium"_fstring)
 		{
-			value = Element_Titanium;
+			value = Element::Titanium;
 		}
 		else if (s ==  "Vanadium"_fstring)
 		{
-			value = Element_Vanadium;
+			value = Element::Vanadium;
 		}
 		else if (s ==  "Chromium"_fstring)
 		{
-			value = Element_Chromium;
+			value = Element::Chromium;
 		}
 		else if (s ==  "Manganese"_fstring)
 		{
-			value = Element_Manganese;
+			value = Element::Manganese;
 		}
 		else if (s ==  "Iron"_fstring)
 		{
-			value = Element_Iron;
+			value = Element::Iron;
 		}
 		else if (s ==  "Cobalt"_fstring)
 		{
-			value = Element_Cobalt;
+			value = Element::Cobalt;
 		}
 		else if (s ==  "Nickel"_fstring)
 		{
-			value = Element_Nickel;
+			value = Element::Nickel;
 		}
 		else if (s ==  "Copper"_fstring)
 		{
-			value = Element_Copper;
+			value = Element::Copper;
 		}
 		else if (s ==  "Zinc"_fstring)
 		{
-			value = Element_Zinc;
+			value = Element::Zinc;
 		}
 		else if (s ==  "Gallium"_fstring)
 		{
-			value = Element_Gallium;
+			value = Element::Gallium;
 		}
 		else if (s ==  "Germanium"_fstring)
 		{
-			value = Element_Germanium;
+			value = Element::Germanium;
 		}
 		else if (s ==  "Arsenic"_fstring)
 		{
-			value = Element_Arsenic;
+			value = Element::Arsenic;
 		}
 		else if (s ==  "Selenium"_fstring)
 		{
-			value = Element_Selenium;
+			value = Element::Selenium;
 		}
 		else if (s ==  "Bromine"_fstring)
 		{
-			value = Element_Bromine;
+			value = Element::Bromine;
 		}
 		else if (s ==  "Krypton"_fstring)
 		{
-			value = Element_Krypton;
+			value = Element::Krypton;
 		}
 		else if (s ==  "Rubidium"_fstring)
 		{
-			value = Element_Rubidium;
+			value = Element::Rubidium;
 		}
 		else if (s ==  "Stontium"_fstring)
 		{
-			value = Element_Stontium;
+			value = Element::Stontium;
 		}
 		else if (s ==  "Yttrium"_fstring)
 		{
-			value = Element_Yttrium;
+			value = Element::Yttrium;
 		}
 		else if (s ==  "Zirconium"_fstring)
 		{
-			value = Element_Zirconium;
+			value = Element::Zirconium;
 		}
 		else if (s ==  "Niobium"_fstring)
 		{
-			value = Element_Niobium;
+			value = Element::Niobium;
 		}
 		else if (s ==  "Molybdenum"_fstring)
 		{
-			value = Element_Molybdenum;
+			value = Element::Molybdenum;
 		}
 		else if (s ==  "Technetium"_fstring)
 		{
-			value = Element_Technetium;
+			value = Element::Technetium;
 		}
 		else if (s ==  "Ruthenium"_fstring)
 		{
-			value = Element_Ruthenium;
+			value = Element::Ruthenium;
 		}
 		else if (s ==  "Rhodium"_fstring)
 		{
-			value = Element_Rhodium;
+			value = Element::Rhodium;
 		}
 		else if (s ==  "Palladium"_fstring)
 		{
-			value = Element_Palladium;
+			value = Element::Palladium;
 		}
 		else if (s ==  "Silver"_fstring)
 		{
-			value = Element_Silver;
+			value = Element::Silver;
 		}
 		else if (s ==  "Cadmium"_fstring)
 		{
-			value = Element_Cadmium;
+			value = Element::Cadmium;
 		}
 		else if (s ==  "Indium"_fstring)
 		{
-			value = Element_Indium;
+			value = Element::Indium;
 		}
 		else if (s ==  "Tin"_fstring)
 		{
-			value = Element_Tin;
+			value = Element::Tin;
 		}
 		else if (s ==  "Antimony"_fstring)
 		{
-			value = Element_Antimony;
+			value = Element::Antimony;
 		}
 		else if (s ==  "Tellurium"_fstring)
 		{
-			value = Element_Tellurium;
+			value = Element::Tellurium;
 		}
 		else if (s ==  "Iodine"_fstring)
 		{
-			value = Element_Iodine;
+			value = Element::Iodine;
 		}
 		else if (s ==  "Xenon"_fstring)
 		{
-			value = Element_Xenon;
+			value = Element::Xenon;
 		}
 		else if (s ==  "Caesium"_fstring)
 		{
-			value = Element_Caesium;
+			value = Element::Caesium;
 		}
 		else if (s ==  "Barium"_fstring)
 		{
-			value = Element_Barium;
+			value = Element::Barium;
 		}
 		else if (s ==  "Lanthanum"_fstring)
 		{
-			value = Element_Lanthanum;
+			value = Element::Lanthanum;
 		}
 		else if (s ==  "Cerium"_fstring)
 		{
-			value = Element_Cerium;
+			value = Element::Cerium;
 		}
 		else if (s ==  "Praseodymium"_fstring)
 		{
-			value = Element_Praseodymium;
+			value = Element::Praseodymium;
 		}
 		else if (s ==  "Neodymium"_fstring)
 		{
-			value = Element_Neodymium;
+			value = Element::Neodymium;
 		}
 		else if (s ==  "Promethium"_fstring)
 		{
-			value = Element_Promethium;
+			value = Element::Promethium;
 		}
 		else if (s ==  "Samarium"_fstring)
 		{
-			value = Element_Samarium;
+			value = Element::Samarium;
 		}
 		else if (s ==  "Europium"_fstring)
 		{
-			value = Element_Europium;
+			value = Element::Europium;
 		}
 		else if (s ==  "Gadolinium"_fstring)
 		{
-			value = Element_Gadolinium;
+			value = Element::Gadolinium;
 		}
 		else if (s ==  "Terbium"_fstring)
 		{
-			value = Element_Terbium;
+			value = Element::Terbium;
 		}
 		else if (s ==  "Dysprosium"_fstring)
 		{
-			value = Element_Dysprosium;
+			value = Element::Dysprosium;
 		}
 		else if (s ==  "Holmium"_fstring)
 		{
-			value = Element_Holmium;
+			value = Element::Holmium;
 		}
 		else if (s ==  "Erbium"_fstring)
 		{
-			value = Element_Erbium;
+			value = Element::Erbium;
 		}
 		else if (s ==  "Thulium"_fstring)
 		{
-			value = Element_Thulium;
+			value = Element::Thulium;
 		}
 		else if (s ==  "Ytterbium"_fstring)
 		{
-			value = Element_Ytterbium;
+			value = Element::Ytterbium;
 		}
 		else if (s ==  "Lutetium"_fstring)
 		{
-			value = Element_Lutetium;
+			value = Element::Lutetium;
 		}
 		else if (s ==  "Hafnium"_fstring)
 		{
-			value = Element_Hafnium;
+			value = Element::Hafnium;
 		}
 		else if (s ==  "Tantalum"_fstring)
 		{
-			value = Element_Tantalum;
+			value = Element::Tantalum;
 		}
 		else if (s ==  "Tungsten"_fstring)
 		{
-			value = Element_Tungsten;
+			value = Element::Tungsten;
 		}
 		else if (s ==  "Rhenium"_fstring)
 		{
-			value = Element_Rhenium;
+			value = Element::Rhenium;
 		}
 		else if (s ==  "Osmium"_fstring)
 		{
-			value = Element_Osmium;
+			value = Element::Osmium;
 		}
 		else if (s ==  "Iridium"_fstring)
 		{
-			value = Element_Iridium;
+			value = Element::Iridium;
 		}
 		else if (s ==  "Platinum"_fstring)
 		{
-			value = Element_Platinum;
+			value = Element::Platinum;
 		}
 		else if (s ==  "Gold"_fstring)
 		{
-			value = Element_Gold;
+			value = Element::Gold;
 		}
 		else if (s ==  "Mercury"_fstring)
 		{
-			value = Element_Mercury;
+			value = Element::Mercury;
 		}
 		else if (s ==  "Thallium"_fstring)
 		{
-			value = Element_Thallium;
+			value = Element::Thallium;
 		}
 		else if (s ==  "Lead"_fstring)
 		{
-			value = Element_Lead;
+			value = Element::Lead;
 		}
 		else if (s ==  "Bismuth"_fstring)
 		{
-			value = Element_Bismuth;
+			value = Element::Bismuth;
 		}
 		else if (s ==  "Polonium"_fstring)
 		{
-			value = Element_Polonium;
+			value = Element::Polonium;
 		}
 		else if (s ==  "Astatine"_fstring)
 		{
-			value = Element_Astatine;
+			value = Element::Astatine;
 		}
 		else if (s ==  "Radon"_fstring)
 		{
-			value = Element_Radon;
+			value = Element::Radon;
 		}
 		else if (s ==  "Francium"_fstring)
 		{
-			value = Element_Francium;
+			value = Element::Francium;
 		}
 		else if (s ==  "Radium"_fstring)
 		{
-			value = Element_Radium;
+			value = Element::Radium;
 		}
 		else if (s ==  "Actinium"_fstring)
 		{
-			value = Element_Actinium;
+			value = Element::Actinium;
 		}
 		else if (s ==  "Thorium"_fstring)
 		{
-			value = Element_Thorium;
+			value = Element::Thorium;
 		}
 		else if (s ==  "Protactinium"_fstring)
 		{
-			value = Element_Protactinium;
+			value = Element::Protactinium;
 		}
 		else if (s ==  "Uranium"_fstring)
 		{
-			value = Element_Uranium;
+			value = Element::Uranium;
 		}
 		else if (s ==  "Neptunium"_fstring)
 		{
-			value = Element_Neptunium;
+			value = Element::Neptunium;
 		}
 		else if (s ==  "Plutonium"_fstring)
 		{
-			value = Element_Plutonium;
+			value = Element::Plutonium;
 		}
 		else if (s ==  "Americium"_fstring)
 		{
-			value = Element_Americium;
+			value = Element::Americium;
 		}
 		else if (s ==  "Curium"_fstring)
 		{
-			value = Element_Curium;
+			value = Element::Curium;
 		}
 		else if (s ==  "Berkelium"_fstring)
 		{
-			value = Element_Berkelium;
+			value = Element::Berkelium;
 		}
 		else if (s ==  "Californium"_fstring)
 		{
-			value = Element_Californium;
+			value = Element::Californium;
 		}
 		else if (s ==  "Einsteinium"_fstring)
 		{
-			value = Element_Einsteinium;
+			value = Element::Einsteinium;
 		}
 		else if (s ==  "Fermium"_fstring)
 		{
-			value = Element_Fermium;
+			value = Element::Fermium;
 		}
 		else if (s ==  "Mendelevium"_fstring)
 		{
-			value = Element_Mendelevium;
+			value = Element::Mendelevium;
 		}
 		else if (s ==  "Nobelium"_fstring)
 		{
-			value = Element_Nobelium;
+			value = Element::Nobelium;
 		}
 		else if (s ==  "Lawrencium"_fstring)
 		{
-			value = Element_Lawrencium;
+			value = Element::Lawrencium;
 		}
 		else if (s ==  "Rutherfordium"_fstring)
 		{
-			value = Element_Rutherfordium;
+			value = Element::Rutherfordium;
 		}
 		else if (s ==  "Dubnium"_fstring)
 		{
-			value = Element_Dubnium;
+			value = Element::Dubnium;
 		}
 		else if (s ==  "Seaborgium"_fstring)
 		{
-			value = Element_Seaborgium;
+			value = Element::Seaborgium;
 		}
 		else if (s ==  "Bohrium"_fstring)
 		{
-			value = Element_Bohrium;
+			value = Element::Bohrium;
 		}
 		else if (s ==  "Hassium"_fstring)
 		{
-			value = Element_Hassium;
+			value = Element::Hassium;
 		}
 		else if (s ==  "Meitnerium"_fstring)
 		{
-			value = Element_Meitnerium;
+			value = Element::Meitnerium;
 		}
 		else if (s ==  "Darmstadtium"_fstring)
 		{
-			value = Element_Darmstadtium;
+			value = Element::Darmstadtium;
 		}
 		else if (s ==  "Roentgenium"_fstring)
 		{
-			value = Element_Roentgenium;
+			value = Element::Roentgenium;
 		}
 		else if (s ==  "Copernicium"_fstring)
 		{
-			value = Element_Copernicium;
+			value = Element::Copernicium;
 		}
 		else if (s ==  "Unutrium"_fstring)
 		{
-			value = Element_Unutrium;
+			value = Element::Unutrium;
 		}
 		else if (s ==  "Flerovium"_fstring)
 		{
-			value = Element_Flerovium;
+			value = Element::Flerovium;
 		}
 		else if (s ==  "Unupentium"_fstring)
 		{
-			value = Element_Unupentium;
+			value = Element::Unupentium;
 		}
 		else if (s ==  "Livermorium"_fstring)
 		{
-			value = Element_Livermorium;
+			value = Element::Livermorium;
 		}
 		else if (s ==  "Unuseptium"_fstring)
 		{
-			value = Element_Unuseptium;
+			value = Element::Unuseptium;
 		}
 		else if (s ==  "Ununoctium"_fstring)
 		{
-			value = Element_Ununoctium;
+			value = Element::Ununoctium;
 		}
 		else
 		{
@@ -1046,243 +1046,243 @@ namespace HV::Chemicals
 	{
 		switch(value)
 		{
-			case Element_None:
+			case Element::None:
 				return "None"_fstring;
-			case Element_Hydrogen:
+			case Element::Hydrogen:
 				return "Hydrogen"_fstring;
-			case Element_Helium:
+			case Element::Helium:
 				return "Helium"_fstring;
-			case Element_Lithium:
+			case Element::Lithium:
 				return "Lithium"_fstring;
-			case Element_Beryllium:
+			case Element::Beryllium:
 				return "Beryllium"_fstring;
-			case Element_Boron:
+			case Element::Boron:
 				return "Boron"_fstring;
-			case Element_Carbon:
+			case Element::Carbon:
 				return "Carbon"_fstring;
-			case Element_Nitrogen:
+			case Element::Nitrogen:
 				return "Nitrogen"_fstring;
-			case Element_Oxygen:
+			case Element::Oxygen:
 				return "Oxygen"_fstring;
-			case Element_Flourine:
+			case Element::Flourine:
 				return "Flourine"_fstring;
-			case Element_Neon:
+			case Element::Neon:
 				return "Neon"_fstring;
-			case Element_Sodium:
+			case Element::Sodium:
 				return "Sodium"_fstring;
-			case Element_Magnesium:
+			case Element::Magnesium:
 				return "Magnesium"_fstring;
-			case Element_Aluminium:
+			case Element::Aluminium:
 				return "Aluminium"_fstring;
-			case Element_Silicon:
+			case Element::Silicon:
 				return "Silicon"_fstring;
-			case Element_Phosphorous:
+			case Element::Phosphorous:
 				return "Phosphorous"_fstring;
-			case Element_Sulphor:
+			case Element::Sulphor:
 				return "Sulphor"_fstring;
-			case Element_Chlorine:
+			case Element::Chlorine:
 				return "Chlorine"_fstring;
-			case Element_Argon:
+			case Element::Argon:
 				return "Argon"_fstring;
-			case Element_Potassium:
+			case Element::Potassium:
 				return "Potassium"_fstring;
-			case Element_Calcium:
+			case Element::Calcium:
 				return "Calcium"_fstring;
-			case Element_Scandium:
+			case Element::Scandium:
 				return "Scandium"_fstring;
-			case Element_Titanium:
+			case Element::Titanium:
 				return "Titanium"_fstring;
-			case Element_Vanadium:
+			case Element::Vanadium:
 				return "Vanadium"_fstring;
-			case Element_Chromium:
+			case Element::Chromium:
 				return "Chromium"_fstring;
-			case Element_Manganese:
+			case Element::Manganese:
 				return "Manganese"_fstring;
-			case Element_Iron:
+			case Element::Iron:
 				return "Iron"_fstring;
-			case Element_Cobalt:
+			case Element::Cobalt:
 				return "Cobalt"_fstring;
-			case Element_Nickel:
+			case Element::Nickel:
 				return "Nickel"_fstring;
-			case Element_Copper:
+			case Element::Copper:
 				return "Copper"_fstring;
-			case Element_Zinc:
+			case Element::Zinc:
 				return "Zinc"_fstring;
-			case Element_Gallium:
+			case Element::Gallium:
 				return "Gallium"_fstring;
-			case Element_Germanium:
+			case Element::Germanium:
 				return "Germanium"_fstring;
-			case Element_Arsenic:
+			case Element::Arsenic:
 				return "Arsenic"_fstring;
-			case Element_Selenium:
+			case Element::Selenium:
 				return "Selenium"_fstring;
-			case Element_Bromine:
+			case Element::Bromine:
 				return "Bromine"_fstring;
-			case Element_Krypton:
+			case Element::Krypton:
 				return "Krypton"_fstring;
-			case Element_Rubidium:
+			case Element::Rubidium:
 				return "Rubidium"_fstring;
-			case Element_Stontium:
+			case Element::Stontium:
 				return "Stontium"_fstring;
-			case Element_Yttrium:
+			case Element::Yttrium:
 				return "Yttrium"_fstring;
-			case Element_Zirconium:
+			case Element::Zirconium:
 				return "Zirconium"_fstring;
-			case Element_Niobium:
+			case Element::Niobium:
 				return "Niobium"_fstring;
-			case Element_Molybdenum:
+			case Element::Molybdenum:
 				return "Molybdenum"_fstring;
-			case Element_Technetium:
+			case Element::Technetium:
 				return "Technetium"_fstring;
-			case Element_Ruthenium:
+			case Element::Ruthenium:
 				return "Ruthenium"_fstring;
-			case Element_Rhodium:
+			case Element::Rhodium:
 				return "Rhodium"_fstring;
-			case Element_Palladium:
+			case Element::Palladium:
 				return "Palladium"_fstring;
-			case Element_Silver:
+			case Element::Silver:
 				return "Silver"_fstring;
-			case Element_Cadmium:
+			case Element::Cadmium:
 				return "Cadmium"_fstring;
-			case Element_Indium:
+			case Element::Indium:
 				return "Indium"_fstring;
-			case Element_Tin:
+			case Element::Tin:
 				return "Tin"_fstring;
-			case Element_Antimony:
+			case Element::Antimony:
 				return "Antimony"_fstring;
-			case Element_Tellurium:
+			case Element::Tellurium:
 				return "Tellurium"_fstring;
-			case Element_Iodine:
+			case Element::Iodine:
 				return "Iodine"_fstring;
-			case Element_Xenon:
+			case Element::Xenon:
 				return "Xenon"_fstring;
-			case Element_Caesium:
+			case Element::Caesium:
 				return "Caesium"_fstring;
-			case Element_Barium:
+			case Element::Barium:
 				return "Barium"_fstring;
-			case Element_Lanthanum:
+			case Element::Lanthanum:
 				return "Lanthanum"_fstring;
-			case Element_Cerium:
+			case Element::Cerium:
 				return "Cerium"_fstring;
-			case Element_Praseodymium:
+			case Element::Praseodymium:
 				return "Praseodymium"_fstring;
-			case Element_Neodymium:
+			case Element::Neodymium:
 				return "Neodymium"_fstring;
-			case Element_Promethium:
+			case Element::Promethium:
 				return "Promethium"_fstring;
-			case Element_Samarium:
+			case Element::Samarium:
 				return "Samarium"_fstring;
-			case Element_Europium:
+			case Element::Europium:
 				return "Europium"_fstring;
-			case Element_Gadolinium:
+			case Element::Gadolinium:
 				return "Gadolinium"_fstring;
-			case Element_Terbium:
+			case Element::Terbium:
 				return "Terbium"_fstring;
-			case Element_Dysprosium:
+			case Element::Dysprosium:
 				return "Dysprosium"_fstring;
-			case Element_Holmium:
+			case Element::Holmium:
 				return "Holmium"_fstring;
-			case Element_Erbium:
+			case Element::Erbium:
 				return "Erbium"_fstring;
-			case Element_Thulium:
+			case Element::Thulium:
 				return "Thulium"_fstring;
-			case Element_Ytterbium:
+			case Element::Ytterbium:
 				return "Ytterbium"_fstring;
-			case Element_Lutetium:
+			case Element::Lutetium:
 				return "Lutetium"_fstring;
-			case Element_Hafnium:
+			case Element::Hafnium:
 				return "Hafnium"_fstring;
-			case Element_Tantalum:
+			case Element::Tantalum:
 				return "Tantalum"_fstring;
-			case Element_Tungsten:
+			case Element::Tungsten:
 				return "Tungsten"_fstring;
-			case Element_Rhenium:
+			case Element::Rhenium:
 				return "Rhenium"_fstring;
-			case Element_Osmium:
+			case Element::Osmium:
 				return "Osmium"_fstring;
-			case Element_Iridium:
+			case Element::Iridium:
 				return "Iridium"_fstring;
-			case Element_Platinum:
+			case Element::Platinum:
 				return "Platinum"_fstring;
-			case Element_Gold:
+			case Element::Gold:
 				return "Gold"_fstring;
-			case Element_Mercury:
+			case Element::Mercury:
 				return "Mercury"_fstring;
-			case Element_Thallium:
+			case Element::Thallium:
 				return "Thallium"_fstring;
-			case Element_Lead:
+			case Element::Lead:
 				return "Lead"_fstring;
-			case Element_Bismuth:
+			case Element::Bismuth:
 				return "Bismuth"_fstring;
-			case Element_Polonium:
+			case Element::Polonium:
 				return "Polonium"_fstring;
-			case Element_Astatine:
+			case Element::Astatine:
 				return "Astatine"_fstring;
-			case Element_Radon:
+			case Element::Radon:
 				return "Radon"_fstring;
-			case Element_Francium:
+			case Element::Francium:
 				return "Francium"_fstring;
-			case Element_Radium:
+			case Element::Radium:
 				return "Radium"_fstring;
-			case Element_Actinium:
+			case Element::Actinium:
 				return "Actinium"_fstring;
-			case Element_Thorium:
+			case Element::Thorium:
 				return "Thorium"_fstring;
-			case Element_Protactinium:
+			case Element::Protactinium:
 				return "Protactinium"_fstring;
-			case Element_Uranium:
+			case Element::Uranium:
 				return "Uranium"_fstring;
-			case Element_Neptunium:
+			case Element::Neptunium:
 				return "Neptunium"_fstring;
-			case Element_Plutonium:
+			case Element::Plutonium:
 				return "Plutonium"_fstring;
-			case Element_Americium:
+			case Element::Americium:
 				return "Americium"_fstring;
-			case Element_Curium:
+			case Element::Curium:
 				return "Curium"_fstring;
-			case Element_Berkelium:
+			case Element::Berkelium:
 				return "Berkelium"_fstring;
-			case Element_Californium:
+			case Element::Californium:
 				return "Californium"_fstring;
-			case Element_Einsteinium:
+			case Element::Einsteinium:
 				return "Einsteinium"_fstring;
-			case Element_Fermium:
+			case Element::Fermium:
 				return "Fermium"_fstring;
-			case Element_Mendelevium:
+			case Element::Mendelevium:
 				return "Mendelevium"_fstring;
-			case Element_Nobelium:
+			case Element::Nobelium:
 				return "Nobelium"_fstring;
-			case Element_Lawrencium:
+			case Element::Lawrencium:
 				return "Lawrencium"_fstring;
-			case Element_Rutherfordium:
+			case Element::Rutherfordium:
 				return "Rutherfordium"_fstring;
-			case Element_Dubnium:
+			case Element::Dubnium:
 				return "Dubnium"_fstring;
-			case Element_Seaborgium:
+			case Element::Seaborgium:
 				return "Seaborgium"_fstring;
-			case Element_Bohrium:
+			case Element::Bohrium:
 				return "Bohrium"_fstring;
-			case Element_Hassium:
+			case Element::Hassium:
 				return "Hassium"_fstring;
-			case Element_Meitnerium:
+			case Element::Meitnerium:
 				return "Meitnerium"_fstring;
-			case Element_Darmstadtium:
+			case Element::Darmstadtium:
 				return "Darmstadtium"_fstring;
-			case Element_Roentgenium:
+			case Element::Roentgenium:
 				return "Roentgenium"_fstring;
-			case Element_Copernicium:
+			case Element::Copernicium:
 				return "Copernicium"_fstring;
-			case Element_Unutrium:
+			case Element::Unutrium:
 				return "Unutrium"_fstring;
-			case Element_Flerovium:
+			case Element::Flerovium:
 				return "Flerovium"_fstring;
-			case Element_Unupentium:
+			case Element::Unupentium:
 				return "Unupentium"_fstring;
-			case Element_Livermorium:
+			case Element::Livermorium:
 				return "Livermorium"_fstring;
-			case Element_Unuseptium:
+			case Element::Unuseptium:
 				return "Unuseptium"_fstring;
-			case Element_Ununoctium:
+			case Element::Ununoctium:
 				return "Ununoctium"_fstring;
 			default:
 				return {"",0};
@@ -1296,111 +1296,111 @@ namespace HV::Chemicals
 	{
 		if (s ==  "Compounds_Oak"_fstring)
 		{
-			value = Compounds_Oak;
+			value = Compounds::Oak;
 		}
 		else if (s ==  "Compounds_Pine"_fstring)
 		{
-			value = Compounds_Pine;
+			value = Compounds::Pine;
 		}
 		else if (s ==  "Compounds_Walnut"_fstring)
 		{
-			value = Compounds_Walnut;
+			value = Compounds::Walnut;
 		}
 		else if (s ==  "Compounds_Teak"_fstring)
 		{
-			value = Compounds_Teak;
+			value = Compounds::Teak;
 		}
 		else if (s ==  "Compounds_Rosewood"_fstring)
 		{
-			value = Compounds_Rosewood;
+			value = Compounds::Rosewood;
 		}
 		else if (s ==  "Compounds_Elm"_fstring)
 		{
-			value = Compounds_Elm;
+			value = Compounds::Elm;
 		}
 		else if (s ==  "Compounds_Polythene"_fstring)
 		{
-			value = Compounds_Polythene;
+			value = Compounds::Polythene;
 		}
 		else if (s ==  "Compounds_Perspex"_fstring)
 		{
-			value = Compounds_Perspex;
+			value = Compounds::Perspex;
 		}
 		else if (s ==  "Compounds_Glass"_fstring)
 		{
-			value = Compounds_Glass;
+			value = Compounds::Glass;
 		}
 		else if (s ==  "Compounds_BorosilicateGlass"_fstring)
 		{
-			value = Compounds_BorosilicateGlass;
+			value = Compounds::BorosilicateGlass;
 		}
 		else if (s ==  "Compounds_Ceramic"_fstring)
 		{
-			value = Compounds_Ceramic;
+			value = Compounds::Ceramic;
 		}
 		else if (s ==  "Compounds_CermaicFibre"_fstring)
 		{
-			value = Compounds_CermaicFibre;
+			value = Compounds::CermaicFibre;
 		}
 		else if (s ==  "Compounds_StainlessSteel"_fstring)
 		{
-			value = Compounds_StainlessSteel;
+			value = Compounds::StainlessSteel;
 		}
 		else if (s ==  "Compounds_CobaltSteel"_fstring)
 		{
-			value = Compounds_CobaltSteel;
+			value = Compounds::CobaltSteel;
 		}
 		else if (s ==  "Compounds_ChromeSteel"_fstring)
 		{
-			value = Compounds_ChromeSteel;
+			value = Compounds::ChromeSteel;
 		}
 		else if (s ==  "Compounds_Bronze"_fstring)
 		{
-			value = Compounds_Bronze;
+			value = Compounds::Bronze;
 		}
 		else if (s ==  "Compounds_Brass"_fstring)
 		{
-			value = Compounds_Brass;
+			value = Compounds::Brass;
 		}
 		else if (s ==  "Compounds_Gunmetal"_fstring)
 		{
-			value = Compounds_Gunmetal;
+			value = Compounds::Gunmetal;
 		}
 		else if (s ==  "Compounds_MedievalSteel"_fstring)
 		{
-			value = Compounds_MedievalSteel;
+			value = Compounds::MedievalSteel;
 		}
 		else if (s ==  "Compounds_SpringSteel"_fstring)
 		{
-			value = Compounds_SpringSteel;
+			value = Compounds::SpringSteel;
 		}
 		else if (s ==  "Compounds_Cotton"_fstring)
 		{
-			value = Compounds_Cotton;
+			value = Compounds::Cotton;
 		}
 		else if (s ==  "Compounds_Wool"_fstring)
 		{
-			value = Compounds_Wool;
+			value = Compounds::Wool;
 		}
 		else if (s ==  "Compounds_Silk"_fstring)
 		{
-			value = Compounds_Silk;
+			value = Compounds::Silk;
 		}
 		else if (s ==  "Compounds_SpiderSilk"_fstring)
 		{
-			value = Compounds_SpiderSilk;
+			value = Compounds::SpiderSilk;
 		}
 		else if (s ==  "Compounds_Polyester"_fstring)
 		{
-			value = Compounds_Polyester;
+			value = Compounds::Polyester;
 		}
 		else if (s ==  "Compounds_Spandex"_fstring)
 		{
-			value = Compounds_Spandex;
+			value = Compounds::Spandex;
 		}
 		else if (s ==  "Compounds_Leather"_fstring)
 		{
-			value = Compounds_Leather;
+			value = Compounds::Leather;
 		}
 		else
 		{
@@ -1414,111 +1414,111 @@ namespace HV::Chemicals
 	{
 		if (s ==  "Oak"_fstring)
 		{
-			value = Compounds_Oak;
+			value = Compounds::Oak;
 		}
 		else if (s ==  "Pine"_fstring)
 		{
-			value = Compounds_Pine;
+			value = Compounds::Pine;
 		}
 		else if (s ==  "Walnut"_fstring)
 		{
-			value = Compounds_Walnut;
+			value = Compounds::Walnut;
 		}
 		else if (s ==  "Teak"_fstring)
 		{
-			value = Compounds_Teak;
+			value = Compounds::Teak;
 		}
 		else if (s ==  "Rosewood"_fstring)
 		{
-			value = Compounds_Rosewood;
+			value = Compounds::Rosewood;
 		}
 		else if (s ==  "Elm"_fstring)
 		{
-			value = Compounds_Elm;
+			value = Compounds::Elm;
 		}
 		else if (s ==  "Polythene"_fstring)
 		{
-			value = Compounds_Polythene;
+			value = Compounds::Polythene;
 		}
 		else if (s ==  "Perspex"_fstring)
 		{
-			value = Compounds_Perspex;
+			value = Compounds::Perspex;
 		}
 		else if (s ==  "Glass"_fstring)
 		{
-			value = Compounds_Glass;
+			value = Compounds::Glass;
 		}
 		else if (s ==  "BorosilicateGlass"_fstring)
 		{
-			value = Compounds_BorosilicateGlass;
+			value = Compounds::BorosilicateGlass;
 		}
 		else if (s ==  "Ceramic"_fstring)
 		{
-			value = Compounds_Ceramic;
+			value = Compounds::Ceramic;
 		}
 		else if (s ==  "CermaicFibre"_fstring)
 		{
-			value = Compounds_CermaicFibre;
+			value = Compounds::CermaicFibre;
 		}
 		else if (s ==  "StainlessSteel"_fstring)
 		{
-			value = Compounds_StainlessSteel;
+			value = Compounds::StainlessSteel;
 		}
 		else if (s ==  "CobaltSteel"_fstring)
 		{
-			value = Compounds_CobaltSteel;
+			value = Compounds::CobaltSteel;
 		}
 		else if (s ==  "ChromeSteel"_fstring)
 		{
-			value = Compounds_ChromeSteel;
+			value = Compounds::ChromeSteel;
 		}
 		else if (s ==  "Bronze"_fstring)
 		{
-			value = Compounds_Bronze;
+			value = Compounds::Bronze;
 		}
 		else if (s ==  "Brass"_fstring)
 		{
-			value = Compounds_Brass;
+			value = Compounds::Brass;
 		}
 		else if (s ==  "Gunmetal"_fstring)
 		{
-			value = Compounds_Gunmetal;
+			value = Compounds::Gunmetal;
 		}
 		else if (s ==  "MedievalSteel"_fstring)
 		{
-			value = Compounds_MedievalSteel;
+			value = Compounds::MedievalSteel;
 		}
 		else if (s ==  "SpringSteel"_fstring)
 		{
-			value = Compounds_SpringSteel;
+			value = Compounds::SpringSteel;
 		}
 		else if (s ==  "Cotton"_fstring)
 		{
-			value = Compounds_Cotton;
+			value = Compounds::Cotton;
 		}
 		else if (s ==  "Wool"_fstring)
 		{
-			value = Compounds_Wool;
+			value = Compounds::Wool;
 		}
 		else if (s ==  "Silk"_fstring)
 		{
-			value = Compounds_Silk;
+			value = Compounds::Silk;
 		}
 		else if (s ==  "SpiderSilk"_fstring)
 		{
-			value = Compounds_SpiderSilk;
+			value = Compounds::SpiderSilk;
 		}
 		else if (s ==  "Polyester"_fstring)
 		{
-			value = Compounds_Polyester;
+			value = Compounds::Polyester;
 		}
 		else if (s ==  "Spandex"_fstring)
 		{
-			value = Compounds_Spandex;
+			value = Compounds::Spandex;
 		}
 		else if (s ==  "Leather"_fstring)
 		{
-			value = Compounds_Leather;
+			value = Compounds::Leather;
 		}
 		else
 		{
@@ -1531,59 +1531,59 @@ namespace HV::Chemicals
 	{
 		switch(value)
 		{
-			case Compounds_Oak:
+			case Compounds::Oak:
 				return "Oak"_fstring;
-			case Compounds_Pine:
+			case Compounds::Pine:
 				return "Pine"_fstring;
-			case Compounds_Walnut:
+			case Compounds::Walnut:
 				return "Walnut"_fstring;
-			case Compounds_Teak:
+			case Compounds::Teak:
 				return "Teak"_fstring;
-			case Compounds_Rosewood:
+			case Compounds::Rosewood:
 				return "Rosewood"_fstring;
-			case Compounds_Elm:
+			case Compounds::Elm:
 				return "Elm"_fstring;
-			case Compounds_Polythene:
+			case Compounds::Polythene:
 				return "Polythene"_fstring;
-			case Compounds_Perspex:
+			case Compounds::Perspex:
 				return "Perspex"_fstring;
-			case Compounds_Glass:
+			case Compounds::Glass:
 				return "Glass"_fstring;
-			case Compounds_BorosilicateGlass:
+			case Compounds::BorosilicateGlass:
 				return "BorosilicateGlass"_fstring;
-			case Compounds_Ceramic:
+			case Compounds::Ceramic:
 				return "Ceramic"_fstring;
-			case Compounds_CermaicFibre:
+			case Compounds::CermaicFibre:
 				return "CermaicFibre"_fstring;
-			case Compounds_StainlessSteel:
+			case Compounds::StainlessSteel:
 				return "StainlessSteel"_fstring;
-			case Compounds_CobaltSteel:
+			case Compounds::CobaltSteel:
 				return "CobaltSteel"_fstring;
-			case Compounds_ChromeSteel:
+			case Compounds::ChromeSteel:
 				return "ChromeSteel"_fstring;
-			case Compounds_Bronze:
+			case Compounds::Bronze:
 				return "Bronze"_fstring;
-			case Compounds_Brass:
+			case Compounds::Brass:
 				return "Brass"_fstring;
-			case Compounds_Gunmetal:
+			case Compounds::Gunmetal:
 				return "Gunmetal"_fstring;
-			case Compounds_MedievalSteel:
+			case Compounds::MedievalSteel:
 				return "MedievalSteel"_fstring;
-			case Compounds_SpringSteel:
+			case Compounds::SpringSteel:
 				return "SpringSteel"_fstring;
-			case Compounds_Cotton:
+			case Compounds::Cotton:
 				return "Cotton"_fstring;
-			case Compounds_Wool:
+			case Compounds::Wool:
 				return "Wool"_fstring;
-			case Compounds_Silk:
+			case Compounds::Silk:
 				return "Silk"_fstring;
-			case Compounds_SpiderSilk:
+			case Compounds::SpiderSilk:
 				return "SpiderSilk"_fstring;
-			case Compounds_Polyester:
+			case Compounds::Polyester:
 				return "Polyester"_fstring;
-			case Compounds_Spandex:
+			case Compounds::Spandex:
 				return "Spandex"_fstring;
-			case Compounds_Leather:
+			case Compounds::Leather:
 				return "Leather"_fstring;
 			default:
 				return {"",0};
@@ -1597,59 +1597,59 @@ namespace HV
 	{
 		if (s ==  "EquipmentSlot_None"_fstring)
 		{
-			value = EquipmentSlot_None;
+			value = EquipmentSlot::None;
 		}
 		else if (s ==  "EquipmentSlot_Head"_fstring)
 		{
-			value = EquipmentSlot_Head;
+			value = EquipmentSlot::Head;
 		}
 		else if (s ==  "EquipmentSlot_Neck"_fstring)
 		{
-			value = EquipmentSlot_Neck;
+			value = EquipmentSlot::Neck;
 		}
 		else if (s ==  "EquipmentSlot_Body"_fstring)
 		{
-			value = EquipmentSlot_Body;
+			value = EquipmentSlot::Body;
 		}
 		else if (s ==  "EquipmentSlot_Waist"_fstring)
 		{
-			value = EquipmentSlot_Waist;
+			value = EquipmentSlot::Waist;
 		}
 		else if (s ==  "EquipmentSlot_Arm"_fstring)
 		{
-			value = EquipmentSlot_Arm;
+			value = EquipmentSlot::Arm;
 		}
 		else if (s ==  "EquipmentSlot_Hand"_fstring)
 		{
-			value = EquipmentSlot_Hand;
+			value = EquipmentSlot::Hand;
 		}
 		else if (s ==  "EquipmentSlot_Finger"_fstring)
 		{
-			value = EquipmentSlot_Finger;
+			value = EquipmentSlot::Finger;
 		}
 		else if (s ==  "EquipmentSlot_Shoulder"_fstring)
 		{
-			value = EquipmentSlot_Shoulder;
+			value = EquipmentSlot::Shoulder;
 		}
 		else if (s ==  "EquipmentSlot_Leg"_fstring)
 		{
-			value = EquipmentSlot_Leg;
+			value = EquipmentSlot::Leg;
 		}
 		else if (s ==  "EquipmentSlot_Feet"_fstring)
 		{
-			value = EquipmentSlot_Feet;
+			value = EquipmentSlot::Feet;
 		}
 		else if (s ==  "EquipmentSlot_Outerwear"_fstring)
 		{
-			value = EquipmentSlot_Outerwear;
+			value = EquipmentSlot::Outerwear;
 		}
 		else if (s ==  "EquipmentSlot_Underwear"_fstring)
 		{
-			value = EquipmentSlot_Underwear;
+			value = EquipmentSlot::Underwear;
 		}
 		else if (s ==  "EquipmentSlot_Jewelery"_fstring)
 		{
-			value = EquipmentSlot_Jewelery;
+			value = EquipmentSlot::Jewelery;
 		}
 		else
 		{
@@ -1663,59 +1663,59 @@ namespace HV
 	{
 		if (s ==  "None"_fstring)
 		{
-			value = EquipmentSlot_None;
+			value = EquipmentSlot::None;
 		}
 		else if (s ==  "Head"_fstring)
 		{
-			value = EquipmentSlot_Head;
+			value = EquipmentSlot::Head;
 		}
 		else if (s ==  "Neck"_fstring)
 		{
-			value = EquipmentSlot_Neck;
+			value = EquipmentSlot::Neck;
 		}
 		else if (s ==  "Body"_fstring)
 		{
-			value = EquipmentSlot_Body;
+			value = EquipmentSlot::Body;
 		}
 		else if (s ==  "Waist"_fstring)
 		{
-			value = EquipmentSlot_Waist;
+			value = EquipmentSlot::Waist;
 		}
 		else if (s ==  "Arm"_fstring)
 		{
-			value = EquipmentSlot_Arm;
+			value = EquipmentSlot::Arm;
 		}
 		else if (s ==  "Hand"_fstring)
 		{
-			value = EquipmentSlot_Hand;
+			value = EquipmentSlot::Hand;
 		}
 		else if (s ==  "Finger"_fstring)
 		{
-			value = EquipmentSlot_Finger;
+			value = EquipmentSlot::Finger;
 		}
 		else if (s ==  "Shoulder"_fstring)
 		{
-			value = EquipmentSlot_Shoulder;
+			value = EquipmentSlot::Shoulder;
 		}
 		else if (s ==  "Leg"_fstring)
 		{
-			value = EquipmentSlot_Leg;
+			value = EquipmentSlot::Leg;
 		}
 		else if (s ==  "Feet"_fstring)
 		{
-			value = EquipmentSlot_Feet;
+			value = EquipmentSlot::Feet;
 		}
 		else if (s ==  "Outerwear"_fstring)
 		{
-			value = EquipmentSlot_Outerwear;
+			value = EquipmentSlot::Outerwear;
 		}
 		else if (s ==  "Underwear"_fstring)
 		{
-			value = EquipmentSlot_Underwear;
+			value = EquipmentSlot::Underwear;
 		}
 		else if (s ==  "Jewelery"_fstring)
 		{
-			value = EquipmentSlot_Jewelery;
+			value = EquipmentSlot::Jewelery;
 		}
 		else
 		{
@@ -1728,33 +1728,33 @@ namespace HV
 	{
 		switch(value)
 		{
-			case EquipmentSlot_None:
+			case EquipmentSlot::None:
 				return "None"_fstring;
-			case EquipmentSlot_Head:
+			case EquipmentSlot::Head:
 				return "Head"_fstring;
-			case EquipmentSlot_Neck:
+			case EquipmentSlot::Neck:
 				return "Neck"_fstring;
-			case EquipmentSlot_Body:
+			case EquipmentSlot::Body:
 				return "Body"_fstring;
-			case EquipmentSlot_Waist:
+			case EquipmentSlot::Waist:
 				return "Waist"_fstring;
-			case EquipmentSlot_Arm:
+			case EquipmentSlot::Arm:
 				return "Arm"_fstring;
-			case EquipmentSlot_Hand:
+			case EquipmentSlot::Hand:
 				return "Hand"_fstring;
-			case EquipmentSlot_Finger:
+			case EquipmentSlot::Finger:
 				return "Finger"_fstring;
-			case EquipmentSlot_Shoulder:
+			case EquipmentSlot::Shoulder:
 				return "Shoulder"_fstring;
-			case EquipmentSlot_Leg:
+			case EquipmentSlot::Leg:
 				return "Leg"_fstring;
-			case EquipmentSlot_Feet:
+			case EquipmentSlot::Feet:
 				return "Feet"_fstring;
-			case EquipmentSlot_Outerwear:
+			case EquipmentSlot::Outerwear:
 				return "Outerwear"_fstring;
-			case EquipmentSlot_Underwear:
+			case EquipmentSlot::Underwear:
 				return "Underwear"_fstring;
-			case EquipmentSlot_Jewelery:
+			case EquipmentSlot::Jewelery:
 				return "Jewelery"_fstring;
 			default:
 				return {"",0};
@@ -1768,19 +1768,19 @@ namespace HV
 	{
 		if (s ==  "AddItemFlags_None"_fstring)
 		{
-			value = AddItemFlags_None;
+			value = AddItemFlags::None;
 		}
 		else if (s ==  "AddItemFlags_AlignEdge"_fstring)
 		{
-			value = AddItemFlags_AlignEdge;
+			value = AddItemFlags::AlignEdge;
 		}
 		else if (s ==  "AddItemFlags_RandomHeading"_fstring)
 		{
-			value = AddItemFlags_RandomHeading;
+			value = AddItemFlags::RandomHeading;
 		}
 		else if (s ==  "AddItemFlags_RandomPosition"_fstring)
 		{
-			value = AddItemFlags_RandomPosition;
+			value = AddItemFlags::RandomPosition;
 		}
 		else
 		{
@@ -1794,19 +1794,19 @@ namespace HV
 	{
 		if (s ==  "None"_fstring)
 		{
-			value = AddItemFlags_None;
+			value = AddItemFlags::None;
 		}
 		else if (s ==  "AlignEdge"_fstring)
 		{
-			value = AddItemFlags_AlignEdge;
+			value = AddItemFlags::AlignEdge;
 		}
 		else if (s ==  "RandomHeading"_fstring)
 		{
-			value = AddItemFlags_RandomHeading;
+			value = AddItemFlags::RandomHeading;
 		}
 		else if (s ==  "RandomPosition"_fstring)
 		{
-			value = AddItemFlags_RandomPosition;
+			value = AddItemFlags::RandomPosition;
 		}
 		else
 		{
@@ -1819,13 +1819,13 @@ namespace HV
 	{
 		switch(value)
 		{
-			case AddItemFlags_None:
+			case AddItemFlags::None:
 				return "None"_fstring;
-			case AddItemFlags_AlignEdge:
+			case AddItemFlags::AlignEdge:
 				return "AlignEdge"_fstring;
-			case AddItemFlags_RandomHeading:
+			case AddItemFlags::RandomHeading:
 				return "RandomHeading"_fstring;
-			case AddItemFlags_RandomPosition:
+			case AddItemFlags::RandomPosition:
 				return "RandomPosition"_fstring;
 			default:
 				return {"",0};

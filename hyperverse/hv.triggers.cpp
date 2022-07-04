@@ -76,7 +76,7 @@ namespace
 
 	struct Trigger : ITriggerSupervisor, IActionArray, IStringVector
 	{
-		TriggerType type = TriggerType_None;
+		TriggerType type = TriggerType::None;
 		std::vector<IAction*> actions;
 
 		enum { SLEEPING = -1};

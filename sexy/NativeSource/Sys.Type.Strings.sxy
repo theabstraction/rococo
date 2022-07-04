@@ -225,6 +225,10 @@
 	(Sys.Native.FastStringBuilderSetCase this start end false)
 )
 
+(function StringStartsWith (IString bigString) (IString prefix) -> (Bool isSo):
+	(Sys.Native.StringStartsWith bigString prefix -> isSo)
+)
+
 (function StringCompare (IString s) (IString t) -> (Int32 diff):
 	(Sys.Native.StringCompare s.Buffer t.Buffer -> diff)
 )
@@ -309,6 +313,7 @@
 	(alias FindLeftI Sys.Type.Strings.FindLeftNoCase)
 	(alias FindRightI Sys.Type.Strings.FindRightNoCase)
 	(alias StringSplit Sys.Type.Strings.Split)
+	(alias StringStartsWith Sys.Type.Strings.StartsWith)
 
 (namespace Sys.Type.Formatters)
 	(alias FormatDecimal Sys.Type.Formatters.Decimal)

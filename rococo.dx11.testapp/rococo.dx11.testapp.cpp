@@ -226,7 +226,7 @@ void Main(HINSTANCE hInstance)
 	pipeline->GetBuilder().AddStage("gui", guiStage);
 
 	auto& hq = gui->HQFonts();
-	hq.Build(HQFont_EditorFont);
+	hq.Build(HQFont::EditorFont);
 	hq.AddRange(32, 127);
 	hq.MakeBold();
 	hq.SetHeight(36);

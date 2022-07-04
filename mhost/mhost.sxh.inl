@@ -4,35 +4,35 @@ namespace Rococo
 	{
 		if (s ==  "AlignmentFlags_None"_fstring)
 		{
-			value = AlignmentFlags_None;
+			value = AlignmentFlags::None;
 		}
 		else if (s ==  "AlignmentFlags_Left"_fstring)
 		{
-			value = AlignmentFlags_Left;
+			value = AlignmentFlags::Left;
 		}
 		else if (s ==  "AlignmentFlags_Right"_fstring)
 		{
-			value = AlignmentFlags_Right;
+			value = AlignmentFlags::Right;
 		}
 		else if (s ==  "AlignmentFlags_Bottom"_fstring)
 		{
-			value = AlignmentFlags_Bottom;
+			value = AlignmentFlags::Bottom;
 		}
 		else if (s ==  "AlignmentFlags_Top"_fstring)
 		{
-			value = AlignmentFlags_Top;
+			value = AlignmentFlags::Top;
 		}
 		else if (s ==  "AlignmentFlags_Mirror"_fstring)
 		{
-			value = AlignmentFlags_Mirror;
+			value = AlignmentFlags::Mirror;
 		}
 		else if (s ==  "AlignmentFlags_Flip"_fstring)
 		{
-			value = AlignmentFlags_Flip;
+			value = AlignmentFlags::Flip;
 		}
 		else if (s ==  "AlignmentFlags_Clipped"_fstring)
 		{
-			value = AlignmentFlags_Clipped;
+			value = AlignmentFlags::Clipped;
 		}
 		else
 		{
@@ -46,35 +46,35 @@ namespace Rococo
 	{
 		if (s ==  "None"_fstring)
 		{
-			value = AlignmentFlags_None;
+			value = AlignmentFlags::None;
 		}
 		else if (s ==  "Left"_fstring)
 		{
-			value = AlignmentFlags_Left;
+			value = AlignmentFlags::Left;
 		}
 		else if (s ==  "Right"_fstring)
 		{
-			value = AlignmentFlags_Right;
+			value = AlignmentFlags::Right;
 		}
 		else if (s ==  "Bottom"_fstring)
 		{
-			value = AlignmentFlags_Bottom;
+			value = AlignmentFlags::Bottom;
 		}
 		else if (s ==  "Top"_fstring)
 		{
-			value = AlignmentFlags_Top;
+			value = AlignmentFlags::Top;
 		}
 		else if (s ==  "Mirror"_fstring)
 		{
-			value = AlignmentFlags_Mirror;
+			value = AlignmentFlags::Mirror;
 		}
 		else if (s ==  "Flip"_fstring)
 		{
-			value = AlignmentFlags_Flip;
+			value = AlignmentFlags::Flip;
 		}
 		else if (s ==  "Clipped"_fstring)
 		{
-			value = AlignmentFlags_Clipped;
+			value = AlignmentFlags::Clipped;
 		}
 		else
 		{
@@ -87,21 +87,21 @@ namespace Rococo
 	{
 		switch(value)
 		{
-			case AlignmentFlags_None:
+			case AlignmentFlags::None:
 				return "None"_fstring;
-			case AlignmentFlags_Left:
+			case AlignmentFlags::Left:
 				return "Left"_fstring;
-			case AlignmentFlags_Right:
+			case AlignmentFlags::Right:
 				return "Right"_fstring;
-			case AlignmentFlags_Bottom:
+			case AlignmentFlags::Bottom:
 				return "Bottom"_fstring;
-			case AlignmentFlags_Top:
+			case AlignmentFlags::Top:
 				return "Top"_fstring;
-			case AlignmentFlags_Mirror:
+			case AlignmentFlags::Mirror:
 				return "Mirror"_fstring;
-			case AlignmentFlags_Flip:
+			case AlignmentFlags::Flip:
 				return "Flip"_fstring;
-			case AlignmentFlags_Clipped:
+			case AlignmentFlags::Clipped:
 				return "Clipped"_fstring;
 			default:
 				return {"",0};

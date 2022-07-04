@@ -378,6 +378,14 @@ void onUserItemSelected(HWND hScintilla, int idList, cstr item)
     }
 }
 
+void ValidateMemory()
+{
+    if (!_CrtCheckMemory())
+    {
+        Rococo::OS::TripDebugger();
+    }
+}
+
 void onCharAdded(HWND hScintilla, char c)
 {
     if (sexyIDE)
@@ -393,7 +401,9 @@ void onCharAdded(HWND hScintilla, char c)
 
         SendMessageA(hScintilla, SCI_CALLTIPCANCEL, 0, 0);
         SexyEditor_Scintilla editor(hScintilla);
+        ValidateMemory();
         sexyIDE->UpdateAutoComplete(editor);
+        ValidateMemory();
     }
 }
 

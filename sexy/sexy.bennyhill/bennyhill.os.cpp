@@ -90,6 +90,7 @@ namespace Rococo
 		}
 
 		fwrite(abuf, sizeof(char), nChars, hFile);
+		fflush(hFile);
 	}
 
 	void FileAppender::Append(char c)

@@ -47,8 +47,9 @@
 #include <unordered_set>
 
 namespace Rococo
-{
-	void AddPragmaOnce(FileAppender appender, cstr headerFileName)
+{ 
+	// Adds pragma once only once per header
+	void AddPragmaOnce(FileAppender& appender, cstr headerFileName)
 	{
 		static std::unordered_set<std::string> oncedThings;
 		if (oncedThings.emplace(headerFileName).second)
@@ -174,7 +175,7 @@ using namespace Rococo::Sex;
 
 namespace Rococo
 {
-	void AddPragmaOnce(FileAppender appender, cstr headerFileName);
+	void AddPragmaOnce(FileAppender& appender, cstr headerFileName);
 }
 
 void GenerateFiles(const ParseContext& pc, const InterfaceContext& ic, cr_sex s, const ISExpression* methods[], cr_sex interfaceDef)
@@ -194,7 +195,7 @@ void GenerateFiles(const ParseContext& pc, const InterfaceContext& ic, cr_sex s,
 	}
 
 	FileAppender cppFileAppender(ic.appendCppHeaderFile);
-//	AddPragmaOnce(cppFileAppender, ic.appendCppHeaderFile);
+	AddPragmaOnce(cppFileAppender, ic.appendCppHeaderFile);
 	DeclareCppInterface(cppFileAppender, ic, interfaceDef, mostDerivedMethods[-1], pc);
 
 	if (ic.nceContext.SexyName()[0] != 0)
@@ -471,7 +472,7 @@ void ParseFunctions(cr_sex functionSetDef, const ParseContext& pc)
 	SafeFormat(sexyFile, "%s%s.inl", pc.cppRootDirectory, filePrefix->Buffer);
 
 	char sexyHeaderFile[_MAX_PATH];
-	SafeFormat(sexyHeaderFile, "%s%s.h", pc.cppRootDirectory, filePrefix->Buffer);
+	SafeFormat(sexyHeaderFile, "%s%s.sxh.h", pc.cppRootDirectory, filePrefix->Buffer);
 	FileAppender cppHeaderFileAppender(sexyHeaderFile);
 
 	FileAppender sexyAppender(sexyFile);

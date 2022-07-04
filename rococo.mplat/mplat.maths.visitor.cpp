@@ -460,7 +460,7 @@ namespace
 	   {
 		   if (!idDebuggerFont)
 		   {
-			   idDebuggerFont = utilities.GetHQFonts().GetSysFont(Graphics::HQFont_DebuggerFont);
+			   idDebuggerFont = utilities.GetHQFonts().GetSysFont(Graphics::HQFont::DebuggerFont);
 			   if (!idDebuggerFont)
 			   {
 				   Throw(0, "Undefined HQFont_DebuggerFont");
