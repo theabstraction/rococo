@@ -28,8 +28,8 @@ namespace Rococo.Carpenter
             {
                 new TableTarget { xlsxPath = "tables\\periodic-table.xlsx", config = standardConfig },
                 new TableTarget { xlsxPath = "tables\\localization-text-table.xlsx", config = standardConfig },
-                new TableTarget { xlsxPath =  "tables\\quotes-table.xlsx", config = standardConfig }
-            //   "tables\\users.demo.xlsx"
+                new TableTarget { xlsxPath =  "tables\\quotes-table.xlsx", config = standardConfig },
+                new TableTarget { xlsxPath =  "tables\\users.demo.xlsx", config = standardConfig }
             };
 
             Environment.SetDeclarationsShortPath("tables\\declarations.h");

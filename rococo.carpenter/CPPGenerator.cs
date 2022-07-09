@@ -882,6 +882,14 @@ namespace Rococo.Carpenter
             return sb.ToString();
         }
 
+        public bool IsForSexy
+        {
+            get
+            {
+                return Rules.SexyHeader != null && Rules.SexyHeader.Length > 0;
+            }
+        }
+
         public string GetFunctionNameForHeader(int index)
         {
             ColumnHeader header = ColumnHeaders[index];
@@ -1013,10 +1021,20 @@ namespace Rococo.Carpenter
 
             AppendTab(sb);
             sb.Append("ROCOCOAPI ");
-            sb.AppendFormat("{0}: protected {0}_Sexy", Rules.CppInterface);
+            sb.Append(Rules.CppInterface);
             sb.AppendLine();
+
             AppendTab(sb);
             sb.AppendLine("{");
+
+            if (IsForSexy)
+            {
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendFormat("virtual {0}_Sexy& GetSexyInterface() = 0;", Rules.CppInterface);
+                sb.AppendLine();
+            }
+
             AppendTab(sb);
             AppendTab(sb);
             sb.AppendFormat("virtual const {0}{1}& GetRow(int32 index) const = 0;", HasInterfaceForRow ? "I" : "", RowStructName);
@@ -1659,29 +1677,37 @@ namespace Rococo.Carpenter
                 sb.AppendFormat(", {0}", MetaDataInterfaceName);
             }
 
+            if (IsForSexy)
+            {
+                sb.AppendFormat(", private {0}_Sexy", Rules.CppInterface);
+            }
+
             sb.AppendLine();
             AppendTab(sb);
             sb.AppendLine("{");
 
-            AppendTab(sb);
-            AppendTab(sb);
-            AppendFQSexyInterfaceName(sb);
-            sb.AppendFormat("& GetSexyInterface()");
-            sb.AppendLine();
+            if (IsForSexy)
+            {
+                AppendTab(sb);
+                AppendTab(sb);
+                AppendFQSexyInterfaceName(sb);
+                sb.AppendFormat("& GetSexyInterface() override");
+                sb.AppendLine();
 
-            AppendTab(sb);
-            AppendTab(sb);
-            sb.Append("{");
-            sb.AppendLine();
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.Append("{");
+                sb.AppendLine();
 
-            AppendTab(sb);
-            AppendTab(sb);
-            AppendTab(sb);
-            sb.AppendLine("return *this;");
+                AppendTab(sb);
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendLine("return *this;");
 
-            AppendTab(sb);
-            AppendTab(sb);
-            sb.AppendLine("}");
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendLine("}");
+            }
 
             sb.AppendLine();
 
@@ -1784,76 +1810,78 @@ namespace Rococo.Carpenter
             sb.AppendLine("}");
             sb.AppendLine();
 
-            AppendTab(sb);
-            AppendTab(sb);
-            sb.AppendLine("// Sexy Interface Method");
-
-            AppendTab(sb);
-            AppendTab(sb);
-            sb.AppendFormat("void GetRow(int32 index, struct {0}{1}& row) override", RowStructName, TableRowNameForSexyExt);
-            sb.AppendLine();
-            AppendTab(sb);
-            AppendTab(sb);
-            sb.AppendLine("{");
-            AppendTab(sb);
-            AppendTab(sb);
-            AppendTab(sb);
-            sb.AppendLine("if (index > NumberOfRows()) Throw(0, \"%s: [index] out of range.\", __FUNCTION__);");
-
-            if (TableRowNameForSexyExt.Length == 0)
+            if (IsForSexy)
             {
                 AppendTab(sb);
                 AppendTab(sb);
-                AppendTab(sb);
-                sb.AppendLine("row = GetRow(index);");
-            }
-            else
-            {
-                AppendTab(sb);
-                AppendTab(sb);
-                AppendTab(sb);
-                sb.AppendLine("const auto& nativeRow = GetRow(index);");
+                sb.AppendLine("// Sexy Interface Method");
 
-                foreach (var header in ColumnHeaders)
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendFormat("void GetRow(int32 index, struct {0}{1}& row) override", RowStructName, TableRowNameForSexyExt);
+                sb.AppendLine();
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendLine("{");
+                AppendTab(sb);
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendLine("if (index > NumberOfRows()) Throw(0, \"%s: [index] out of range.\", __FUNCTION__);");
+
+                if (TableRowNameForSexyExt.Length == 0)
                 {
                     AppendTab(sb);
                     AppendTab(sb);
                     AppendTab(sb);
-
-                    if (header.UnderlyingType == UnderlyingType.String)
-                    {
-                        sb.AppendFormat("Rococo::Script::PopulateStringBuilder(row.{0}, nativeRow.", header.Name);
-
-                        if (HasInterfaceForRow)
-                        {
-                            sb.AppendFormat("Get{0}());", GetFunctionNameForHeader(header));
-                        }
-                        else
-                        {
-                            sb.AppendFormat("{0});", header.Name);
-                        }
-                    }
-                    else
-                    {
-                        sb.AppendFormat("row.{0} = nativeRow.", header.Name);
-
-                        if (HasInterfaceForRow)
-                        {
-                            sb.AppendFormat("Get{0}();", GetFunctionNameForHeader(header));
-                            sb.AppendLine();
-                        }
-                        else
-                        {
-                            sb.AppendFormat("{0};", header.Name);
-                        }
-                    }
-                    sb.AppendLine();
+                    sb.AppendLine("row = GetRow(index);");
                 }
-            }
+                else
+                {
+                    AppendTab(sb);
+                    AppendTab(sb);
+                    AppendTab(sb);
+                    sb.AppendLine("const auto& nativeRow = GetRow(index);");
 
-            AppendTab(sb);
-            AppendTab(sb);
-            sb.AppendLine("}");
+                    foreach (var header in ColumnHeaders)
+                    {
+                        AppendTab(sb);
+                        AppendTab(sb);
+                        AppendTab(sb);
+
+                        if (header.UnderlyingType == UnderlyingType.String)
+                        {
+                            sb.AppendFormat("Rococo::Script::PopulateStringBuilder(row.{0}, nativeRow.", header.Name);
+
+                            if (HasInterfaceForRow)
+                            {
+                                sb.AppendFormat("Get{0}());", GetFunctionNameForHeader(header));
+                            }
+                            else
+                            {
+                                sb.AppendFormat("{0});", header.Name);
+                            }
+                        }
+                        else
+                        {
+                            sb.AppendFormat("row.{0} = nativeRow.", header.Name);
+
+                            if (HasInterfaceForRow)
+                            {
+                                sb.AppendFormat("Get{0}();", GetFunctionNameForHeader(header));
+                                sb.AppendLine();
+                            }
+                            else
+                            {
+                                sb.AppendFormat("{0};", header.Name);
+                            }
+                        }
+                        sb.AppendLine();
+                    }
+                }
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendLine("}");
+            }
             sb.AppendLine();
 
             AppendTab(sb);
@@ -1884,37 +1912,40 @@ namespace Rococo.Carpenter
             sb.AppendLine("}");
             sb.AppendLine();
 
-            AppendTab(sb);
-            AppendTab(sb);
-            sb.AppendLine("// Sexy Interface Method");
-
-
-            AppendTab(sb);
-            AppendTab(sb);
-            sb.AppendFormat("int32 NumberOfRows() override", RowStructName);
-            sb.AppendLine();
-            AppendTab(sb);
-            AppendTab(sb);
-            sb.AppendLine("{");
-
-            AppendTab(sb);
-            AppendTab(sb);
-            AppendTab(sb);
-
-            if (Rules.Lifetime == TableLifetime.Static)
+            if (IsForSexy)
             {
-                sb.AppendFormat("return {0};", Table.NumberOfRows);
-            }
-            else
-            {
-                sb.AppendFormat("return (int32) rows.size();");
-            }
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendLine("// Sexy Interface Method");
 
-            sb.AppendLine();
 
-            AppendTab(sb);
-            AppendTab(sb);
-            sb.AppendLine("}");
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendFormat("int32 NumberOfRows() override", RowStructName);
+                sb.AppendLine();
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendLine("{");
+
+                AppendTab(sb);
+                AppendTab(sb);
+                AppendTab(sb);
+
+                if (Rules.Lifetime == TableLifetime.Static)
+                {
+                    sb.AppendFormat("return {0};", Table.NumberOfRows);
+                }
+                else
+                {
+                    sb.AppendFormat("return (int32) rows.size();");
+                }
+
+                sb.AppendLine();
+
+                AppendTab(sb);
+                AppendTab(sb);
+                sb.AppendLine("}");
+            }
 
             sb.AppendLine();
 
@@ -2136,37 +2167,40 @@ namespace Rococo.Carpenter
             sb.AppendLine("}");
             sb.AppendLine();
 
-            AppendFactoryConstruct(sb);
+            if (IsForSexy)
+            {
+                AppendFactoryConstruct(sb);
 
-            sb.AppendLine();
+                sb.AppendLine();
 
-            sb.AppendLine("{");
-            if (Rules.Lifetime == TableLifetime.Dynamic)
-            {
-                AppendTab(sb);
-                sb.AppendFormat("auto* instance = new ANON::{0}_Implementation();", CppTableName);
+                sb.AppendLine("{");
+                if (Rules.Lifetime == TableLifetime.Dynamic)
+                {
+                    AppendTab(sb);
+                    sb.AppendFormat("auto* instance = new ANON::{0}_Implementation();", CppTableName);
+                    sb.AppendLine();
+                    AppendTab(sb);
+                    sb.AppendFormat("instance->Load(*installation, nullptr);", CppTableName);
+                    sb.AppendLine();
+                    AppendTab(sb);
+                    sb.AppendFormat("return &instance->GetSexyInterface();", CppTableName);
+                }
+                else if (Rules.Lifetime == TableLifetime.Singleton)
+                {
+                    AppendTab(sb);
+                    sb.AppendFormat("auto* instance = new ANON::{0}_Implementation(*installation);", CppTableName);
+                    sb.AppendLine();
+                    AppendTab(sb);
+                    sb.AppendFormat("return &instance->GetSexyInterface();", CppTableName);
+                }
+                else // Static
+                {
+                    AppendTab(sb);
+                    sb.AppendFormat("return &globalInstance.GetSexyInterface();", Rules.CppFactory);
+                }
                 sb.AppendLine();
-                AppendTab(sb);
-                sb.AppendFormat("instance->Load(*installation, nullptr);", CppTableName);
-                sb.AppendLine();
-                AppendTab(sb);
-                sb.AppendFormat("return &instance->GetSexyInterface();", CppTableName);
+                sb.AppendLine("}");
             }
-            else if (Rules.Lifetime == TableLifetime.Singleton)
-            {
-                AppendTab(sb);
-                sb.AppendFormat("auto* instance = new ANON::{0}_Implementation(*installation);", CppTableName);
-                sb.AppendLine();
-                AppendTab(sb);
-                sb.AppendFormat("return &instance->GetSexyInterface();", CppTableName);
-            }
-            else // Static
-            {
-                AppendTab(sb);
-                sb.AppendFormat("return &globalInstance.GetSexyInterface();", Rules.CppFactory);
-            }
-            sb.AppendLine();
-            sb.AppendLine("}");
 
             //bool firstHeader = true;
             /*

@@ -67,6 +67,9 @@ struct TableScriptContext : public IEventCallback<ScriptCompileArgs>, public Roc
         AddNativeCalls_RococoScienceMaterialsIPeriodicTable_Sexy(args.ss, &installation);
         AddNativeCalls_RococoStrings(args.ss);
         AddNativeCalls_RococoStringsILocalizedText_Sexy(args.ss, &installation);
+        AddNativeCalls_RococoTestUserDemoIUsers_Sexy(args.ss, &installation);
+        AddNativeCalls_RococoQuotes(args.ss);
+        AddNativeCalls_RococoQuotesIQuotes_Sexy(args.ss, &installation);
     }
 
     TableScriptContext(IInstallation& _installation):installation(_installation) {}

@@ -9,6 +9,8 @@
 (namespace EntryPoint)
 	(alias Main EntryPoint.Main)
 
+
+(using Rococo.Quotes)
 (using Rococo.Science.Materials)
 (using Sys.Type)
 (using Rococo.Strings)
@@ -59,5 +61,16 @@
 	
 	(if (not startsWithPrinces)
 		(Sys.Throw 0 "LocalizedTextRow(1):English - Does not start with 'Princes'")
+	)
+
+	(QuotesRow qrow)
+	(IQuotes quotes (Rococo.Quotes.GetQuoteTable))
+	(quotes.GetRow 1 qrow)
+
+	(Bool startsWithNoMan)
+	(Sys.Type.Strings.StartsWith qrow.text "No man but a blockhead" -> startsWithPrinces)
+	
+	(if (not startsWithNoMan)
+		(Sys.Throw 0 "Quotes(1):English - Does not start with 'No man but a blockhead'")
 	)
 )

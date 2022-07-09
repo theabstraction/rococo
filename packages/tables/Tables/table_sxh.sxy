@@ -43,3 +43,18 @@
 	(construct ProxyIQuotes pObject)
 )
 
+(interface Rococo.Test.UserDemo.IUsers
+	(GetRow (Int32 index)(Rococo.Test.UserDemo.UsersRow row) -> )
+	(NumberOfRows  -> (Int32 numberOfRows))
+)
+
+(class ProxyIUsers (implements Rococo.Test.UserDemo.IUsers) (Pointer hObject) (attribute not-serialized))
+	(method ProxyIUsers.Construct (Pointer hObject): (this.hObject = hObject))
+	(method ProxyIUsers.GetRow (Int32 index)(Rococo.Test.UserDemo.UsersRow row) ->  : (Rococo.Test.UserDemo.Native.IUsersGetRow this.hObject index row))
+	(method ProxyIUsers.NumberOfRows  -> (Int32 numberOfRows) : (Rococo.Test.UserDemo.Native.IUsersNumberOfRows this.hObject  -> numberOfRows))
+
+(factory Rococo.Test.UserDemo.GetUserTable Rococo.Test.UserDemo.IUsers  :
+	(Pointer pObject = (Rococo.Test.UserDemo.Native.GetHandleForIUsers0 ))
+	(construct ProxyIUsers pObject)
+)
+

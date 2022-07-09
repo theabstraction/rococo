@@ -26,3 +26,9 @@
 )
 (alias QuotesRow Rococo.Quotes.QuotesRow)
 
+(struct UsersRow
+	(Sys.Type.IStringBuilder ownerId)
+	(Int64 purchaseId)
+)
+(alias UsersRow Rococo.Test.UserDemo.UsersRow)
+

@@ -1,5 +1,5 @@
 //Rococo.Carpenter CPPGenerator Declarations
-// Generated At: 04 July 2022 22:22:50
+// Generated At: 09 July 2022 17:46:30
 
 namespace Rococo::Quotes
 {
@@ -39,5 +39,20 @@ namespace Rococo::Strings
 namespace Rococo::Strings
 {
 	struct LocalizedTextRowSexy;
+}
+
+namespace Rococo::Test::UserDemo
+{
+	struct IUsers_Sexy;
+}
+
+namespace Rococo::Test::UserDemo
+{
+	struct IUsersRow;
+}
+
+namespace Rococo::Test::UserDemo
+{
+	struct UsersRowSexy;
 }
 

@@ -90,3 +90,7 @@
 	(EnumQuoteId id)
 	(ITableString text)
 )
+(defstruct UsersRow Rococo.Test.UserDemo.UsersRow Rococo.Test.UserDemo.UsersRowSexy
+	(ITableString ownerId)
+	(Int64 purchaseId)
+)

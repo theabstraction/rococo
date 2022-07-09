@@ -29,3 +29,10 @@ namespace Rococo { namespace Quotes {
 		InterfacePointer text;
 	};
 }}
+namespace Rococo { namespace Test { namespace UserDemo { 
+	struct UsersRowSexy
+	{
+		InterfacePointer ownerId;
+		int64 purchaseId;
+	};
+}}}
