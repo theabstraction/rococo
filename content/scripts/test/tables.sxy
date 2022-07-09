@@ -64,6 +64,7 @@
 	)
 
 	(QuotesRow qrow)
+	(qrow.text = (Sys.Type.NewStringBuilder 8192))
 	(IQuotes quotes (Rococo.Quotes.GetQuoteTable))
 	(quotes.GetRow 1 qrow)
 

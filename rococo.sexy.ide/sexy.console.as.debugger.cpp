@@ -71,7 +71,55 @@ struct ConsoleAsDebuggerWindow: public Rococo::IDebuggerWindow
 
 	void PopulateCallStackView(Visitors::IListPopulator& populator) override
 	{
+		struct ANON: Rococo::Visitors::IUIList
+		{
+			void AddRow(cstr values[]) override
+			{
+				for (cstr* p = values; *p != nullptr; p++)
+				{
+					cstr item = *p;
+					printf("%s\t", item);
+				}
 
+				printf("\n");
+			}
+
+			void ClearRows() override
+			{
+
+			}
+
+			void SetColumns(cstr columnNames[], int widths[]) override
+			{
+				int nChars = 0;
+				for (cstr* p = columnNames; *p != nullptr; p++)
+				{
+					cstr item = *p;
+					nChars + printf("%s\t", item);
+				}
+
+				printf("\n");
+
+				for (int i = 0; i < nChars; ++i)
+				{
+					printf("-");
+				}
+
+				printf("\n");
+			}
+
+			int NumberOfRows() const override
+			{
+				return 100;
+			}
+
+			void DeleteRow(int rowIndex)override
+			{
+
+			}
+
+		} consolePopulator;
+		populator.Populate(consolePopulator);
 	}
 
 	void Run(IDebuggerPopulator& populator, IDebugControl& control) override
@@ -86,7 +134,7 @@ struct ConsoleAsDebuggerWindow: public Rococo::IDebuggerWindow
 
 	void ShowWindow(bool show, IDebugControl* debugControl) override
 	{
-
+		
 	}
 
 	// Logger methods

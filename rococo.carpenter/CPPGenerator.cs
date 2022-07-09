@@ -1826,7 +1826,7 @@ namespace Rococo.Carpenter
                 AppendTab(sb);
                 AppendTab(sb);
                 AppendTab(sb);
-                sb.AppendLine("if (index > NumberOfRows()) Throw(0, \"%s: [index] out of range.\", __FUNCTION__);");
+                sb.AppendLine("if (index < 0 || index > NumberOfRows()) Throw(0, \"%s: [index] out of range.\", __FUNCTION__);");
 
                 if (TableRowNameForSexyExt.Length == 0)
                 {
