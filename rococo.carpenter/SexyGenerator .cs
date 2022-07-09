@@ -236,7 +236,7 @@ namespace Rococo.Carpenter
             CPP = cpp;
 
             SetRepository(rules.CppRepo);
-            SetFullSXHPath(rules.SexyHeader);
+            SetFullSXHPath(Environment.TargetConfig.SexyHeader);
         }
 
         private void GoProtected()
@@ -521,8 +521,6 @@ namespace Rococo.Carpenter
         void AppendTypes(StringBuilder sb)
         {
             HashSet<string> primitives = new HashSet<string>();
-
-            bool hasString = false;
 
             foreach (var column in Table.Columns)
             {

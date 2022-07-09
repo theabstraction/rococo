@@ -764,11 +764,6 @@ namespace Rococo.Carpenter
             get;
         }
 
-        public string SexyHeader
-        {
-            get;
-        }
-
         public string CppSource
         {
             get;

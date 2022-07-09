@@ -19,6 +19,7 @@ namespace Rococo.Carpenter
         {
             Config standardConfig = new Config();
             standardConfig.XCBaseFile = "tables\\tables.base.xc";
+            standardConfig.SexyHeader = "tables\\rococo.tables.test.sxh";
 
             // TODO -> have Carpenter generate all boiler plate, including the .sxh file and the package generating batch files.
             standardConfig.TypeDependentHeaders = new string[] { "tables.sxh.h" };

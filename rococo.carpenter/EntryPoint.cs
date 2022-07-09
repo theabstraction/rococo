@@ -141,6 +141,8 @@ namespace Rococo.Carpenter
         /// List of headers added to the .cpp file
         /// </summary>
         public IEnumerable<string> AdditionalSourceHeaders { get; set; }
+
+        public string SexyHeader { get; set; }
     }
 
     public struct TableTarget

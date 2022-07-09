@@ -886,7 +886,8 @@ namespace Rococo.Carpenter
         {
             get
             {
-                return Rules.SexyHeader != null && Rules.SexyHeader.Length > 0;
+                string sxh = Environment.TargetConfig.SexyHeader;
+                return sxh != null && sxh.Length > 0;
             }
         }
 
