@@ -38,6 +38,7 @@ namespace Rococo.Carpenter
             };
 
             Environment.SetDeclarationsShortPath("tables\\declarations.h");
+            Environment.SetProjectName("rococo.carpenter.test");
 
             Carpenter.GenerateTables(targets, mapFileNameToResource);
 

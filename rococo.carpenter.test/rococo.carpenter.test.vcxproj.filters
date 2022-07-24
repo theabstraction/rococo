@@ -18,19 +18,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="rococo.carpenter.test.cpp">
+    <ClCompile Include="rococo.carpenter.test.main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\tables\localization-text-table.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\tables\periodic-table.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\tables\quotes-table.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\tables\users.demo.cpp">
+    <ClCompile Include="..\tables\rococo.carpenter.test.compile-unit.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

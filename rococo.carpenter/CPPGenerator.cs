@@ -397,6 +397,19 @@ namespace Rococo.Carpenter
         {
             get; private set;
         }
+
+        public string RowsName
+        {
+            get
+            {                
+                StringBuilder sb = new StringBuilder();
+                sb.Append(Char.ToLower(RowStructName[0]));
+                sb.Append(RowStructName, 1, RowStructName.Length - 1);
+                sb.Append("s");
+                return sb.ToString();
+            }
+        }
+
         public string MetaDataInterfaceName
         {
             get
@@ -1226,7 +1239,7 @@ namespace Rococo.Carpenter
                 sb.Append("static ");
             }
 
-            sb.AppendFormat("std::vector<{0}> rows;", RowStructName);
+            sb.AppendFormat("std::vector<{0}> {1};", RowStructName, RowsName);
 
             sb.AppendLine();
         }
@@ -1438,12 +1451,14 @@ namespace Rococo.Carpenter
             {
                 sb.AppendLine();
                 AppendTab(sb);
-                sb.AppendLine("for (size_t i = 0; i < rows.size(); ++i)");
+                sb.AppendFormat("for (size_t i = 0; i < {0}.size(); ++i)", RowsName);
+                sb.AppendLine();
                 AppendTab(sb);
                 sb.AppendLine("{");
                 AppendTab(sb);
                 AppendTab(sb);
-                sb.AppendLine("auto & r = rows[i];");
+                sb.AppendFormat("auto & r = {0}[i];", RowsName);
+                sb.AppendLine();
                 AppendTab(sb);
                 AppendTab(sb);
 
@@ -1745,7 +1760,7 @@ namespace Rococo.Carpenter
                     sb.AppendFormat("{0}_to_index, ", HeaderNameToVariableName(key));
                 }
 
-                sb.Append("rows, installation, nullptr);");
+                sb.AppendFormat("{0}, installation, nullptr);", RowsName);
                 sb.AppendLine();
                 AppendTab(sb);
                 AppendTab(sb);
@@ -1776,7 +1791,7 @@ namespace Rococo.Carpenter
                     AppendTab(sb);
                     AppendTab(sb);
                     AppendTab(sb);
-                    sb.AppendLine("if (referenceCount.fetch_sub(1) == 1) { rows.clear(); rows.shrink_to_fit(); }");
+                    sb.AppendFormat("if (referenceCount.fetch_sub(1) == 1) {{ {0}.clear(); {0}.shrink_to_fit(); }}", RowsName);
                 }
 
                 AppendTab(sb);
@@ -1808,7 +1823,7 @@ namespace Rococo.Carpenter
             }
             else
             {
-                sb.AppendFormat("return rows[index];");
+                sb.AppendFormat("return {0}[index];", RowsName);
             }
 
             sb.AppendLine();
@@ -1910,7 +1925,7 @@ namespace Rococo.Carpenter
             }
             else
             {
-                sb.AppendFormat("return (int32) rows.size();");
+                sb.AppendFormat("return (int32) {0}.size();", RowsName);
             }
 
             sb.AppendLine();
@@ -1945,7 +1960,7 @@ namespace Rococo.Carpenter
                 }
                 else
                 {
-                    sb.AppendFormat("return (int32) rows.size();");
+                    sb.AppendFormat("return (int32) {0}.size();", RowsName);
                 }
 
                 sb.AppendLine();
@@ -2010,12 +2025,13 @@ namespace Rococo.Carpenter
                 AppendTab(sb);
                 AppendTab(sb);
                 AppendTab(sb);
-                sb.AppendLine("rows.clear();");
+                sb.AppendFormat("{0}.clear();", RowsName);
+                sb.AppendLine();
 
                 AppendTab(sb);
                 AppendTab(sb);
                 AppendTab(sb);
-                sb.AppendFormat("Append{0}s(rows, installation, tablePingPath);", RowStructName);
+                sb.AppendFormat("Append{0}s({1}, installation, tablePingPath);", RowStructName, RowsName);
                 sb.AppendLine();
 
                 AppendTab(sb);
@@ -2064,7 +2080,7 @@ namespace Rococo.Carpenter
                 AppendTab(sb);
                 AppendTab(sb);
                 AppendTab(sb);
-                sb.AppendFormat("if (i != {0}_to_index.end()) {{ index = (int32) i->second; return &rows[index]; }}", HeaderNameToVariableName(key));
+                sb.AppendFormat("if (i != {0}_to_index.end()) {{ index = (int32) i->second; return &{1}[index]; }}", HeaderNameToVariableName(key), RowsName);
                 sb.AppendLine();
                 AppendTab(sb);
                 AppendTab(sb);
