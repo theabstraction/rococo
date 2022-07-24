@@ -1,9 +1,9 @@
 // rococo.carpenter.test.cpp : This file contains the 'main' function. Program execution begins and ends there.
 
 #include <rococo.api.h>
-#include <..\tables\rococo.periodic-table.h>
-#include <..\tables\localized-text-table.h>
-#include <..\tables\rococo.quotes.h>
+#include <..\tables\periodic-table.h>
+#include <..\tables\localization-text-table.h>
+#include <..\tables\quotes-table.h>
 #include <..\tables\users.demo.h>
 
 #include <cstdio>

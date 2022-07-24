@@ -112,9 +112,9 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\tables\localized-text-table.cpp" />
-    <ClCompile Include="..\tables\rococo.periodic-table.cpp" />
-    <ClCompile Include="..\tables\rococo.quotes.cpp" />
+    <ClCompile Include="..\tables\localization-text-table.cpp" />
+    <ClCompile Include="..\tables\periodic-table.cpp" />
+    <ClCompile Include="..\tables\quotes-table.cpp" />
     <ClCompile Include="..\tables\users.demo.cpp" />
     <ClCompile Include="rococo.carpenter.test.cpp" />
   </ItemGroup>
