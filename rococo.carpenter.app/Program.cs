@@ -20,10 +20,14 @@ namespace Rococo.Carpenter
             Config standardConfig = new Config();
             standardConfig.XCBaseFile = "tables\\tables.base.xc";
             standardConfig.SexyHeader = "tables\\rococo.tables.test.sxh";
+            standardConfig.CPP_Root = "tables\\";
 
             // TODO -> have Carpenter generate all boiler plate, including the .sxh file and the package generating batch files.
             standardConfig.TypeDependentHeaders = new string[] { "tables.sxh.h" };
-           // standardConfig.AdditionalSourceHeaders = new string[] { "tables.sxh.inl" };
+            // standardConfig.AdditionalSourceHeaders = new string[] { "tables.sxh.inl" };
+
+            string prefixToStrip = Environment.Solution;
+            MapFullTablePathToResourceViaPrefixStripping mapFileNameToResource = new MapFullTablePathToResourceViaPrefixStripping(prefixToStrip, "");
 
             TableTarget[] targets =
             {
@@ -35,7 +39,7 @@ namespace Rococo.Carpenter
 
             Environment.SetDeclarationsShortPath("tables\\declarations.h");
 
-            Carpenter.GenerateTables(targets);
+            Carpenter.GenerateTables(targets, mapFileNameToResource);
 
             BuildTablesPackage();
         }

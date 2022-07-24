@@ -63,10 +63,10 @@ namespace Rococo.Carpenter
 
     public static class CPPCore
     {
-        public static string GetPingPathArchiveName(IRules rules, ITable table)
+        public static string GetPingPathArchiveName(IMapFullTablePathToResource map, ITable table)
         {      
             string spacelessTableName = table.TableName.Replace(" ", "_");
-            string fullname = rules.CppSource.Replace(".cpp", ".") + spacelessTableName + ".bin";
+            string fullname = map.CppSource.Replace(".cpp", ".") + spacelessTableName + ".bin";
             return "!" + fullname.Replace("\\", "/");
         }
 
@@ -479,18 +479,25 @@ namespace Rococo.Carpenter
             RowStructName = interfaceName.Substring(1) + "Row";
         }
 
-        public CPPGenerator(ITypes types, IMetaData metaData, ITable table, IRules rules)
+        public IMapFullTablePathToResource MapNameToResource
+        {
+            get;
+            set;
+        }
+
+        public CPPGenerator(ITypes types, IMetaData metaData, ITable table, IRules rules, IMapFullTablePathToResource mapNameToResource)
         {
             Types = types;
             MetaData = metaData;
             Table = table;
             Rules = rules;
+            MapNameToResource = mapNameToResource;
 
             try
             {
                 SetRepository(Rules.CppRepo);
-                SetFullHeaderPath(Rules.CppHeader);
-                SetFullSourcePath(Rules.CppSource);
+                SetFullHeaderPath(mapNameToResource.CppHeader);
+                SetFullSourcePath(mapNameToResource.CppSource);
                 SetCppNamespace(Rules.CppNamespace);
                 ValidateRules();
                 SetStructName(Rules.CppInterface);
@@ -667,7 +674,7 @@ namespace Rococo.Carpenter
             sb.AppendLine(CPPCore.ExcelSource);
             sb.AppendLine();
 
-            sb.AppendFormat("#include \"{0}\"", Rules.CppHeader);
+            sb.AppendFormat("#include \"{0}\"", MapNameToResource.CppHeader);
             sb.AppendLine();
             if (Rules.KeyNames.GetEnumerator().MoveNext())
             {
@@ -710,7 +717,7 @@ namespace Rococo.Carpenter
                 return;
             }
 
-            def = CPPCore.FindElseCreateEnumDef(enumName, this.Rules.CppSource);
+            def = CPPCore.FindElseCreateEnumDef(enumName, MapNameToResource.CppSource);
 
             for (int i = 0; i < ColumnHeaders.Length; i++)
             {
@@ -1061,7 +1068,7 @@ namespace Rococo.Carpenter
             {
                 AppendTab(sb);
                 AppendTab(sb);
-                sb.AppendFormat("// load a table from a binary archive. If [tablePingPath] is null, defaults to {0}", CPPCore.GetPingPathArchiveName(Rules, Table));
+                sb.AppendFormat("// load a table from a binary archive. If [tablePingPath] is null, defaults to {0}", CPPCore.GetPingPathArchiveName(MapNameToResource, Table));
                 sb.AppendLine();
 
                 AppendTab(sb);
@@ -1258,7 +1265,7 @@ namespace Rococo.Carpenter
             sb.AppendLine("");
             sb.AppendLine("{");
             AppendTab(sb);
-            sb.AppendFormat("if (!source || !*source) source = \"{0}\";", CPPCore.GetPingPathArchiveName(Rules, Table));
+            sb.AppendFormat("if (!source || !*source) source = \"{0}\";", CPPCore.GetPingPathArchiveName(MapNameToResource, Table));
             sb.AppendLine();
             sb.AppendLine();
 
@@ -2225,7 +2232,7 @@ namespace Rococo.Carpenter
         {
             var sb = SourceBuilder;
 
-            if (!CPPCore.HasEnumDefs(Rules.CppSource)) return;
+            if (!CPPCore.HasEnumDefs(MapNameToResource.CppSource)) return;
 
             const int MIN_ELEMENTS_FOR_MAP = 8;
 
@@ -2235,7 +2242,7 @@ namespace Rococo.Carpenter
 
             foreach (var def in CPPCore.EnumDefs)
             {
-                if (def.Value.PrimarySourceFile == Rules.CppSource && def.Value.Keys.Length >= MIN_ELEMENTS_FOR_MAP)
+                if (def.Value.PrimarySourceFile == MapNameToResource.CppSource && def.Value.Keys.Length >= MIN_ELEMENTS_FOR_MAP)
                 {
                     sb.AppendLine("#include <string>");
 
@@ -2260,7 +2267,7 @@ namespace Rococo.Carpenter
 
             foreach(var def in CPPCore.EnumDefs)
             {
-                if (def.Value.PrimarySourceFile != Rules.CppSource)
+                if (def.Value.PrimarySourceFile != MapNameToResource.CppSource)
                 {
                     continue;
                 }

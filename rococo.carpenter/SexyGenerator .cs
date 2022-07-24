@@ -7,10 +7,10 @@ namespace Rococo.Carpenter
 {
     public static class SexyCore
     {
-        public static string GetPingPathArchiveName(IRules rules, ITable table)
+        public static string GetPingPathArchiveName(IMapFullTablePathToResource map, ITable table)
         {
             string spacelessTableName = table.TableName.Replace(" ", "_");
-            string fullname = rules.CppSource.Replace(".cpp", ".") + spacelessTableName + ".bin";
+            string fullname = map.CppSource.Replace(".cpp", ".") + spacelessTableName + ".bin";
             return "!" + fullname.Replace("\\", "/");
         }
 

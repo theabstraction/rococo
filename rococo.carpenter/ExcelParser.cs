@@ -759,16 +759,6 @@ namespace Rococo.Carpenter
             get;
         }
 
-        public string CppHeader
-        {
-            get;
-        }
-
-        public string CppSource
-        {
-            get;
-        }
-
         public string CppRepo
         {
             get;
@@ -1176,7 +1166,7 @@ namespace Rococo.Carpenter
             set;
         }
 
-        public void ParseSheets()
+        public void ParseSheets(IMapFullTablePathToResource mapNameToResource)
         {
             if (spec == null)
             {
@@ -1229,13 +1219,13 @@ namespace Rococo.Carpenter
                         throw new Exception("Cannot find a table with name " + r.Key + " Table");
                     }
 
-                    var gen = new CPPGenerator(types, metaData, table, r.Value);
+                    var gen = new CPPGenerator(types, metaData, table, r.Value, mapNameToResource);
                     gen.Go();
 
                     if (r.Value.Lifetime != TableLifetime.Static)
                     {
                         // Table is loaded dynamically when needed
-                        var binaryDataTableGenerator = new BinaryGenerator(types, metaData, table, r.Value, gen);
+                        var binaryDataTableGenerator = new BinaryGenerator(types, metaData, table, r.Value, gen, mapNameToResource);
                         binaryDataTableGenerator.Go();
                     }
 

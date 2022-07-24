@@ -143,6 +143,8 @@ namespace Rococo.Carpenter
         public IEnumerable<string> AdditionalSourceHeaders { get; set; }
 
         public string SexyHeader { get; set; }
+
+        public string CPP_Root { get; set; }
     }
 
     public struct TableTarget
@@ -151,22 +153,124 @@ namespace Rococo.Carpenter
         public Config config;
     }
 
+    public interface IMapFullTablePathToResource
+    {
+        public string TableFullPath
+        {
+            get;
+            set;
+        }
+
+        public void OperateOn(string fullTablePath);
+
+        public string CppSource
+        {
+            get;
+            set;
+        }
+
+        public string CppHeader
+        {
+            get;
+            set;
+        }
+    }
+
+    public class MapFullTablePathToResourceViaPrefixStripping : IMapFullTablePathToResource
+    {
+        public MapFullTablePathToResourceViaPrefixStripping(string prefixToStrip, string prefixToAdd)
+        {
+            PrefixToStrip = prefixToStrip;
+
+            if (prefixToStrip == null)
+            {
+                throw new ArgumentException("Expecting [prefixToStrip] to be non null");
+            }
+
+            PrefixToAdd = prefixToAdd;
+
+            if (prefixToAdd == null)
+            {
+                throw new ArgumentException("Expecting [prefixToAdd] to be non null");
+            }
+        }
+
+        public string TableFullPath
+        {
+            get;
+            set;
+        }
+
+        public string TableShortPath
+        {
+            get;
+            set;
+        }
+
+        public string PrefixToStrip
+        {
+            get;
+            set;
+        }
+
+        public string PrefixToAdd
+        {
+            get;
+            set;
+        }
+
+        public string CppSource
+        {
+            get;
+            set;
+        }
+
+        public string CppHeader
+        {
+            get;
+            set;
+        }
+
+        void IMapFullTablePathToResource.OperateOn(string fullTablePath)
+        {
+            TableFullPath = fullTablePath;
+            if (!TableFullPath.StartsWith(PrefixToStrip))
+            {
+                throw new ArgumentException(string.Format("{0}: argument must begin with {1]", fullTablePath, PrefixToStrip));
+            }
+
+            TableShortPath = TableFullPath.Substring(PrefixToStrip.Length);
+
+            string ext = ".xlsx";
+
+            if (!TableFullPath.EndsWith(ext))
+            {
+                throw new ArgumentException(string.Format("{0}: argument must end with {1}", fullTablePath, ext));
+            }
+
+            CppSource = PrefixToAdd + TableShortPath.Substring(0, TableShortPath.Length - ext.Length) + ".cpp";
+            CppHeader = PrefixToAdd + TableShortPath.Substring(0, TableShortPath.Length - ext.Length) + ".h";
+        }
+    }
+
     public class Carpenter
     {
-        static private void Publish(string tableFilename)
+        static private void Publish(string tableFilename, IMapFullTablePathToResource mapNameToResource)
         {
             Console.Write("Exporting " + tableFilename + "...");
+
+            mapNameToResource.OperateOn(tableFilename);
 
             using (Stream stream = File.Open(tableFilename, FileMode.Open))
             {
                 using (var doc = SpreadsheetDocument.Open(stream, false))
                 {
                     ExcelDoc xlDoc = new ExcelDoc(doc);
-                    xlDoc.ParseSheets();
+                    xlDoc.ParseSheets(mapNameToResource);
                 }
             }
         }
-        static private void PublishTable(TableTarget target)
+        static private void PublishTable(TableTarget target, IMapFullTablePathToResource mapNameToResource)
         {
             Environment.XCBaseFile = target.config.XCBaseFile;
             Environment.TargetConfig = target.config;
@@ -187,20 +291,20 @@ namespace Rococo.Carpenter
 
             try
             {
-                Publish(fullPath);
+                Publish(fullPath, mapNameToResource);
             }
             catch(Exception ex)
             {
                 throw new Exception("Error publishing " + fullPath, ex);
             }
         }
-        static public void GenerateTables(IEnumerable<TableTarget> targets)
+        static public void GenerateTables(IEnumerable<TableTarget> targets, IMapFullTablePathToResource mapNameToResource)
         {
             try
             {
                 foreach (var target in targets)
                 {
-                    PublishTable(target);
+                    PublishTable(target, mapNameToResource);
                 }
 
                 CPPCore.Commit();

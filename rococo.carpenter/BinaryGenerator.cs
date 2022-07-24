@@ -31,6 +31,12 @@ namespace Rococo.Carpenter
             private set;
         }
 
+        public IMapFullTablePathToResource MapTableToResource
+        {
+            get;
+            private set;
+        }
+
         public EnumDef[] EnumColumns
         {
             get;
@@ -42,13 +48,14 @@ namespace Rococo.Carpenter
         private Stream memoryStream;
         private BinaryWriter writer;
 
-        public BinaryGenerator(ITypes types, IMetaData metaData, ITable table, IRules rules, IParsedColumnData columns)
+        public BinaryGenerator(ITypes types, IMetaData metaData, ITable table, IRules rules, IParsedColumnData columns, IMapFullTablePathToResource mapTableToResource)
         {
             this.Types = types;
             this.MetaData = metaData;
             this.Table = table;
             this.Rules = rules;
             this.Columns = columns;
+            this.MapTableToResource = mapTableToResource;
 
             EnumColumns = new EnumDef[columns.ColumnHeaders.Length];
 
@@ -62,6 +69,7 @@ namespace Rococo.Carpenter
 
             memoryStream = new MemoryStream(8192);
             writer = new BinaryWriter(memoryStream, Encoding.UTF8);
+            MapTableToResource = mapTableToResource;
         }
 
         public void SerializeEnum(EnumDef def, int index)
@@ -187,7 +195,7 @@ namespace Rococo.Carpenter
             }
             writer.Write("EndRows]");
 
-            string pingPath = CPPCore.GetPingPathArchiveName(Rules, Table);
+            string pingPath = CPPCore.GetPingPathArchiveName(MapTableToResource, Table);
             Console.WriteLine("Writing binary file " + pingPath);
 
             string sysPath = Environment.PingPathToSysPath(pingPath);
