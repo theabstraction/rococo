@@ -1956,7 +1956,7 @@ namespace Rococo
 			}
 		}
 
-		void Compile(StringBuilder* declarationBuilder) override
+		void BeginPartialCompilation(StringBuilder* declarationBuilder) override
 		{
 			Clear();
 
@@ -1973,7 +1973,7 @@ namespace Rococo
 
 			AddNativeCall(sysOS, NativeSysOSClockHz, nullptr, "ClockHz -> (Int64 hz)", __FILE__, __LINE__, false, 0);
 			AddNativeCall(sysOS, NativeSysOSClockTicks, nullptr, "ClockTicks -> (Int64 tickCount)", __FILE__, __LINE__, false, 0);
-			
+
 			const void* pSrcError = nullptr;
 			progObjProxy->ResolveNativeTypes(&pSrcError);
 
@@ -1991,6 +1991,10 @@ namespace Rococo
 			}
 
 			InstallNativeCallNamespaces(IN nativeCalls, REF ProgramObject().GetRootNamespace());
+		}
+
+		void PartialCompile(StringBuilder* declarationBuilder) override
+		{
 			scripts->CompileNamespaces();
 			scripts->CompileDeclarations();
 
@@ -2009,6 +2013,12 @@ namespace Rococo
 			stringPool->SetStringBuilderType(typeFSB);
 
 			progObjProxy->AllocatorMap().SetAllocator(typeFSB, stringPool->GetBinding());
+		}
+
+		void Compile(StringBuilder* declarationBuilder) override
+		{
+			BeginPartialCompilation(declarationBuilder);
+			PartialCompile(declarationBuilder);
 		}
 
 		void Free() override

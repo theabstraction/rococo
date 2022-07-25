@@ -926,6 +926,57 @@ namespace
 		validate(AreAproxEqual(result, 0.62));
 	}
 
+	void TestPartialCompiles(IPublicScriptSystem& ss)
+	{
+		cstr srcCodeModuleMain =
+			"(namespace EntryPoint)"
+			"(function Main -> (Int32 result):"
+			"	  (EntryPoint.IRobot robby (EntryPoint.NewRobot))"
+			"	  (result = (sizeof robby))"
+			")"
+			"(alias Main EntryPoint.Main)"
+			;
+
+		cstr srcCodeModuleRobot = 
+			"(namespace EntryPoint)"
+			"(class Robot (defines EntryPoint.IRobot)(Int32 id))"
+			"(method Robot.Construct : )"
+			"(method Robot.Id -> (Int32 id) : (id = 1984))"
+			"(method Robot.Destruct -> : )"
+			"(factory EntryPoint.NewRobot EntryPoint.IRobot : (construct Robot))"
+			;
+
+		Auto<ISourceCode> scMain = ss.SParser().ProxySourceBuffer(srcCodeModuleMain, -1, Vec2i{ 0,0 }, "srcCodeModuleMain");
+		Auto<ISParserTree> mainTree(ss.SParser().CreateTree(scMain()));
+
+		Auto<ISourceCode> scRobot = ss.SParser().ProxySourceBuffer(srcCodeModuleRobot, -1, Vec2i{ 0,0 }, "srcCodeModuleRobot");
+		Auto<ISParserTree> robotTree(ss.SParser().CreateTree(scRobot()));
+
+		ss.BeginPartialCompilation(nullptr);
+
+		IModule* robotModule = ss.AddTree(*robotTree);
+		ss.PartialCompile();
+
+		IModule* mainModule = ss.AddTree(*mainTree);
+		ss.PartialCompile();
+
+		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace("EntryPoint");
+		validate(ns != NULL);
+		validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, "Main"));
+
+		auto& vm = ss.PublicProgramObject().VirtualMachine();
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		int x = vm.PopInt32();
+
+		int robbysize = sizeof(ObjectStub) + sizeof(int32); // Object Stub + this.id
+		validate(x == robbysize);
+	}
+
 	void TestLocalVariable(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -14579,6 +14630,8 @@ R"(
 	{
 		validate(true);
 
+	//	TEST(TestPartialCompiles);
+
 		TEST(TestOperatorOverload3);
 		TEST(TestStaticCast1);
 		TEST(TestCreateNamespace);
@@ -14936,6 +14989,10 @@ R"(
 	{
 		int64 start, end, hz;
 		start = OS::CpuTicks();
+
+	//	TEST(TestPartialCompiles);
+
+	//	return;
 
 		TEST(TestStartsWith);
 		TEST(TestMap2);
