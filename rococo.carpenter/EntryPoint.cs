@@ -45,15 +45,20 @@ namespace Rococo.Carpenter
 
         private static string projectName;
 
-        public static void SetProjectName(string name)
-        {
-            projectName = name;
-        }
         static public string ProjectName
         {
             get
             {
+                if (projectName == null || projectName.Length == 0)
+                {
+                    throw new ArgumentException("Call Environment.SetProjectName(...) before proceeding.");
+                }
+
                 return projectName;
+            }
+            set
+            {
+                projectName = value;
             }
         }
 
@@ -159,6 +164,14 @@ namespace Rococo.Carpenter
         public string SexyHeader { get; set; }
 
         public string CPP_Root { get; set; }
+
+        public Config(string projectDir)
+        {
+            CPP_Root = projectDir;
+            XCBaseFile = projectDir + Environment.ProjectName + ".base.xc";
+            SexyHeader = projectDir + Environment.ProjectName + ".sxh";
+            TypeDependentHeaders = new string[] { Environment.ProjectName + ".sxh.h" };
+        }
     }
 
     public struct TableTarget

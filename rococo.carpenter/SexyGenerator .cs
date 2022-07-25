@@ -436,11 +436,11 @@ namespace Rococo.Carpenter
             sb.AppendLine("(interface");
 
             AppendTab(sb);
-            sb.AppendFormat("(as.sxy {0} \"../packages/tables/Tables/table\")", SexyInterfaceName);
+            sb.AppendFormat("(as.sxy {0} \"../packages/tables/Tables/{1}\")", SexyInterfaceName, Environment.ProjectName);
             sb.AppendLine();
 
             AppendTab(sb);
-            sb.AppendFormat("(as.cpp {0} \"tables\")", SexyInterfaceName + "_Sexy");
+            sb.AppendFormat("(as.cpp {0} \"{1}\")", SexyInterfaceName + "_Sexy", Environment.ProjectName);
             sb.AppendLine();
 
             AppendTab(sb);
@@ -474,7 +474,7 @@ namespace Rococo.Carpenter
             sb.AppendLine();
 
             int lengthBeforeFunctions = sb.Length;
-            sb.AppendFormat("(functions \"tables.sxh\"");
+            sb.AppendFormat("(functions \"{0}.sexy.functions\"", Environment.ProjectName);
             sb.AppendLine();
 
             int enumCount = 0;

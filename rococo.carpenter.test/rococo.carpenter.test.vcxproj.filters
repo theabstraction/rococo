@@ -43,12 +43,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\tables\rococo.tables.test.sxh">
-      <Filter>ScriptGen</Filter>
-    </None>
-    <None Include="..\tables\rococo.tables.test.xc">
-      <Filter>ScriptGen</Filter>
-    </None>
     <None Include="..\content\scripts\test\tables.sxy">
       <Filter>Source Files</Filter>
     </None>

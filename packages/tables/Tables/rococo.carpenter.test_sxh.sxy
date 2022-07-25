@@ -1,0 +1,60 @@
+(interface Rococo.Science.Materials.IPeriodicTable
+	(GetRow (Int32 index)(Rococo.Science.Materials.PeriodicTableRow row) -> )
+	(NumberOfRows  -> (Int32 numberOfRows))
+)
+
+(class ProxyIPeriodicTable (implements Rococo.Science.Materials.IPeriodicTable) (Pointer hObject) (attribute not-serialized))
+	(method ProxyIPeriodicTable.Construct (Pointer hObject): (this.hObject = hObject))
+	(method ProxyIPeriodicTable.GetRow (Int32 index)(Rococo.Science.Materials.PeriodicTableRow row) ->  : (Rococo.Science.Materials.Native.IPeriodicTableGetRow this.hObject index row))
+	(method ProxyIPeriodicTable.NumberOfRows  -> (Int32 numberOfRows) : (Rococo.Science.Materials.Native.IPeriodicTableNumberOfRows this.hObject  -> numberOfRows))
+
+(factory Rococo.Science.Materials.GetPeriodicTable Rococo.Science.Materials.IPeriodicTable  :
+	(Pointer pObject = (Rococo.Science.Materials.Native.GetHandleForIPeriodicTable0 ))
+	(construct ProxyIPeriodicTable pObject)
+)
+
+(interface Rococo.Strings.ILocalizedText
+	(GetRow (Int32 index)(Rococo.Strings.LocalizedTextRow row) -> )
+	(NumberOfRows  -> (Int32 numberOfRows))
+)
+
+(class ProxyILocalizedText (implements Rococo.Strings.ILocalizedText) (Pointer hObject) (attribute not-serialized))
+	(method ProxyILocalizedText.Construct (Pointer hObject): (this.hObject = hObject))
+	(method ProxyILocalizedText.GetRow (Int32 index)(Rococo.Strings.LocalizedTextRow row) ->  : (Rococo.Strings.Native.ILocalizedTextGetRow this.hObject index row))
+	(method ProxyILocalizedText.NumberOfRows  -> (Int32 numberOfRows) : (Rococo.Strings.Native.ILocalizedTextNumberOfRows this.hObject  -> numberOfRows))
+
+(factory Rococo.Strings.LocalizedText Rococo.Strings.ILocalizedText  :
+	(Pointer pObject = (Rococo.Strings.Native.GetHandleForILocalizedText0 ))
+	(construct ProxyILocalizedText pObject)
+)
+
+(interface Rococo.Quotes.IQuotes
+	(GetRow (Int32 index)(Rococo.Quotes.QuotesRow row) -> )
+	(NumberOfRows  -> (Int32 numberOfRows))
+)
+
+(class ProxyIQuotes (implements Rococo.Quotes.IQuotes) (Pointer hObject) (attribute not-serialized))
+	(method ProxyIQuotes.Construct (Pointer hObject): (this.hObject = hObject))
+	(method ProxyIQuotes.GetRow (Int32 index)(Rococo.Quotes.QuotesRow row) ->  : (Rococo.Quotes.Native.IQuotesGetRow this.hObject index row))
+	(method ProxyIQuotes.NumberOfRows  -> (Int32 numberOfRows) : (Rococo.Quotes.Native.IQuotesNumberOfRows this.hObject  -> numberOfRows))
+
+(factory Rococo.Quotes.GetQuoteTable Rococo.Quotes.IQuotes  :
+	(Pointer pObject = (Rococo.Quotes.Native.GetHandleForIQuotes0 ))
+	(construct ProxyIQuotes pObject)
+)
+
+(interface Rococo.Test.UserDemo.IUsers
+	(GetRow (Int32 index)(Rococo.Test.UserDemo.UsersRow row) -> )
+	(NumberOfRows  -> (Int32 numberOfRows))
+)
+
+(class ProxyIUsers (implements Rococo.Test.UserDemo.IUsers) (Pointer hObject) (attribute not-serialized))
+	(method ProxyIUsers.Construct (Pointer hObject): (this.hObject = hObject))
+	(method ProxyIUsers.GetRow (Int32 index)(Rococo.Test.UserDemo.UsersRow row) ->  : (Rococo.Test.UserDemo.Native.IUsersGetRow this.hObject index row))
+	(method ProxyIUsers.NumberOfRows  -> (Int32 numberOfRows) : (Rococo.Test.UserDemo.Native.IUsersNumberOfRows this.hObject  -> numberOfRows))
+
+(factory Rococo.Test.UserDemo.GetUserTable Rococo.Test.UserDemo.IUsers  :
+	(Pointer pObject = (Rococo.Test.UserDemo.Native.GetHandleForIUsers0 ))
+	(construct ProxyIUsers pObject)
+)
+

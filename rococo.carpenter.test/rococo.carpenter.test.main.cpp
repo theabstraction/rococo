@@ -25,7 +25,9 @@
 
 #include <rococo.package.h>
 
-#include <tables/tables.sxh.inl>
+#include <tables/rococo.carpenter.test.sexy.functions.sxh.h>
+#include <tables/rococo.carpenter.test.sxh.inl>
+#include <tables/rococo.carpenter.test.sexy.functions.inl>
 
 using namespace Rococo;
 using namespace Rococo::OS;

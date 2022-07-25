@@ -124,8 +124,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\content\scripts\test\tables.sxy" />
-    <None Include="..\tables\rococo.tables.test.sxh" />
-    <None Include="..\tables\rococo.tables.test.xc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -20,6 +20,6 @@ Write-Output 'Running benny hill'
 $sexyDirectory = $solution + 'sexy'
 $sexyBinDirectory = $sexyDirectory + '\Bin\' + $platform + $configuration
 $bennyHill = $sexyBinDirectory + '\sexy.bennyhill.exe'
-$args = @($tableDirectory, 'rococo.tables.test.sxh', 'rococo.tables.test.sxh.h') 
+$args = @($tableDirectory, 'rococo.carpenter.test.sxh', 'rococo.carpenter.test.sxh.h') 
 & $bennyHill $args
 

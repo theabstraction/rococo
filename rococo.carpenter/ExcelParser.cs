@@ -1229,11 +1229,8 @@ namespace Rococo.Carpenter
                         binaryDataTableGenerator.Go();
                     }
 
-                    if (r.Value.TargetSexy)
-                    {
-                        var genSexy = new SexyGenerator(gen, types, metaData, table, r.Value);
-                        genSexy.Go();
-                    }
+                    var genSexy = new SexyGenerator(gen, types, metaData, table, r.Value);
+                    genSexy.Go();
                 }
             }
         }
