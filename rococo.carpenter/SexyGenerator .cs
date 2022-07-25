@@ -474,7 +474,7 @@ namespace Rococo.Carpenter
             sb.AppendLine();
 
             int lengthBeforeFunctions = sb.Length;
-            sb.AppendFormat("(functions \"{0}.sexy.functions\"", Environment.ProjectName);
+            sb.AppendFormat("(functions \"{0}.sxh\"", Environment.ProjectName);
             sb.AppendLine();
 
             int enumCount = 0;

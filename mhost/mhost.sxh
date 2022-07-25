@@ -1,6 +1,6 @@
 (config $mhost.xc) 
 
-(functions "mhost"
+(functions "mhost.sxh"
 	(MHost.OS.IsKeyPressed (KeyState keys)(Int32 vKeyCode)->(Bool isPressed) : MHost::OS::IsKeyPressed)
 	(MHost.Maths.Clamp0to1(Float32 f)->(Float32 clampedValue): MHost::Maths::Clamp0to1)
 	(MHost.Graphics.ToRGBAb (const RGBA colourF32x4)->(RGBAb colourB8x4) : MHost::Graphics::ToRGBAb)

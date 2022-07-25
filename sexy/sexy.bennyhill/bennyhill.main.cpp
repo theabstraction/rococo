@@ -472,7 +472,7 @@ void ParseFunctions(cr_sex functionSetDef, const ParseContext& pc)
 	SafeFormat(sexyFile, "%s%s.inl", pc.cppRootDirectory, filePrefix->Buffer);
 
 	char sexyHeaderFile[_MAX_PATH];
-	SafeFormat(sexyHeaderFile, "%s%s.sxh.h", pc.cppRootDirectory, filePrefix->Buffer);
+	SafeFormat(sexyHeaderFile, "%s%s.h", pc.cppRootDirectory, filePrefix->Buffer);
 	FileAppender cppHeaderFileAppender(sexyHeaderFile);
 
 	FileAppender sexyAppender(sexyFile);
