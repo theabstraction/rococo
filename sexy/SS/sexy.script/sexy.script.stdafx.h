@@ -327,6 +327,16 @@ namespace Rococo
          void RegisterContext(cstr _name) { contextName = _name; }
          cstr GetContext() const { return contextName; }
 
+         bool HasCompiled() const
+         {
+             return !isDirty;
+         }
+
+         void MarkCompiled()
+         {
+             isDirty = false;
+         }
+
          const ISExpression* GetTryCatchExpression() const
          {
             return exceptionBlocks.empty() ? NULL : exceptionBlocks.back();

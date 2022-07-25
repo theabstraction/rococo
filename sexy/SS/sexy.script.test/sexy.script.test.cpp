@@ -14630,7 +14630,7 @@ R"(
 	{
 		validate(true);
 
-	//	TEST(TestPartialCompiles);
+		TEST(TestPartialCompiles);
 
 		TEST(TestOperatorOverload3);
 		TEST(TestStaticCast1);
@@ -14989,10 +14989,6 @@ R"(
 	{
 		int64 start, end, hz;
 		start = OS::CpuTicks();
-
-	//	TEST(TestPartialCompiles);
-
-	//	return;
 
 		TEST(TestStartsWith);
 		TEST(TestMap2);

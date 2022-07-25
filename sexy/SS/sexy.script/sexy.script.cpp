@@ -728,12 +728,18 @@ namespace Rococo
 
 		AutoFree<ISexyPackagerSupervisor> packager;
 
+		bool hasNullFunction = false;
+
 		void InstallNullFunction()
 		{
-			IFunctionBuilder& nullFunction = progObjProxy->IntrinsicModule().DeclareFunction(FunctionPrototype(("_nothing"), false), NULL);
-			nullFunction.Builder().Begin();
-			nullFunction.Builder().End();
-			nullFunction.Builder().Assembler().Clear();
+			if (!hasNullFunction)
+			{
+				IFunctionBuilder& nullFunction = progObjProxy->IntrinsicModule().DeclareFunction(FunctionPrototype(("_nothing"), false), NULL);
+				nullFunction.Builder().Begin();
+				nullFunction.Builder().End();
+				nullFunction.Builder().Assembler().Clear();
+				hasNullFunction = true;
+			}
 		}
 
 		IStructure* stringConstantStruct;
@@ -1909,6 +1915,8 @@ namespace Rococo
 
 		void Clear()
 		{
+			hasNullFunction = false;
+
 			symbols.clear();
 
 			scripts->ExceptionLogic().Clear();
@@ -1977,6 +1985,7 @@ namespace Rococo
 			const void* pSrcError = nullptr;
 			progObjProxy->ResolveNativeTypes(&pSrcError);
 
+			scripts->Clear();
 			scripts->ExceptionLogic().InstallThrowHandler();
 
 			for (auto i = nativeLibs.begin(); i != nativeLibs.end(); ++i)

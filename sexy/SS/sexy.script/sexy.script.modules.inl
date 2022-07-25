@@ -1719,6 +1719,11 @@ namespace Rococo { namespace Script
 			}
 		}
 
+		void Clear()
+		{
+			addedSpecialStructures = false;
+		}
+
 		void SetGlobalVariablesToDefaults(IVirtualMachine& vm)
 		{
 			if (globalBaseIndex == 0) return;
@@ -1845,7 +1850,7 @@ namespace Rococo { namespace Script
 			}
 		}
 
-		template<class T> void ForEachScript(T& t)
+		template<class T> void ForEachUncompiledScript(T& t)
 		{
 			for(auto i = scripts.begin(); i != scripts.end(); ++i)
 			{
@@ -1856,7 +1861,10 @@ namespace Rococo { namespace Script
 				
 				try
 				{
-					t.Process(*script, name);
+					if (!script->HasCompiled())
+					{
+						t.Process(*script, name);
+					}
 				}
 				catch(STCException& ex)
 				{
@@ -1882,7 +1890,7 @@ namespace Rococo { namespace Script
 				}
 			} fnctorCompileNamespaces;
 
-			ForEachScript(fnctorCompileNamespaces);
+			ForEachUncompiledScript(fnctorCompileNamespaces);
 			ResolveNamespaces();
 		}
 
@@ -1973,6 +1981,8 @@ namespace Rococo { namespace Script
 			}
 		}
 
+		bool addedSpecialStructures = false;
+
 		void CompileDeclarations()
 		{
 			exceptionLogic.Clear();
@@ -1985,7 +1995,7 @@ namespace Rococo { namespace Script
 					script.ComputeInterfacePrototypes();
 				}
 			} fnctorComputeArchetypeNames;
-			ForEachScript(fnctorComputeArchetypeNames);
+			ForEachUncompiledScript(fnctorComputeArchetypeNames);
 
 
 			struct FnctorComputeStructNames
@@ -1996,9 +2006,13 @@ namespace Rococo { namespace Script
 					script.ComputeStructureNames();	
 				}
 			} fnctorComputeStructNames;
-			ForEachScript(fnctorComputeStructNames);
+			ForEachUncompiledScript(fnctorComputeStructNames);
 
-			AddSpecialStructures();
+			if (!addedSpecialStructures)
+			{
+				AddSpecialStructures();
+				addedSpecialStructures = true;
+			}
 
 			struct FnctorComputeFunctionNames
 			{
@@ -2007,7 +2021,7 @@ namespace Rococo { namespace Script
 					script.ComputeFunctionNames();	
 				}
 			} fnctorComputeFunctionNames;
-			ForEachScript(fnctorComputeFunctionNames);
+			ForEachUncompiledScript(fnctorComputeFunctionNames);
 
 			struct FnctorAppendAliases
 			{
@@ -2016,7 +2030,7 @@ namespace Rococo { namespace Script
 					AppendAliases(script.ProgramModule(), script.Tree());
 				}
 			} fnctorAppendAliases;
-			ForEachScript(fnctorAppendAliases);
+			ForEachUncompiledScript(fnctorAppendAliases);
 
 			struct FnctorStructureFields
 			{
@@ -2025,7 +2039,7 @@ namespace Rococo { namespace Script
 					script.ComputeStructureFields();
 				}
 			} fnctorStructureFields;
-			ForEachScript(fnctorStructureFields);
+			ForEachUncompiledScript(fnctorStructureFields);
 
 			struct FnctorFunctionArgs
 			{
@@ -2034,7 +2048,7 @@ namespace Rococo { namespace Script
 					script.ComputeFunctionArgs();
 				}
 			} fnctorFunctionArgs;
-			ForEachScript(fnctorFunctionArgs);
+			ForEachUncompiledScript(fnctorFunctionArgs);
 
 			struct FnctorComputeArchetypes
 			{
@@ -2044,7 +2058,7 @@ namespace Rococo { namespace Script
 					script.ComputeInterfaces();	
 				}
 			} fnctorComputeArchetypes;
-			ForEachScript(fnctorComputeArchetypes);
+			ForEachUncompiledScript(fnctorComputeArchetypes);
 
 			const void* pSrcError = nullptr;
 			if (!programObject.ResolveDefinitions(&pSrcError))
@@ -2074,7 +2088,7 @@ namespace Rococo { namespace Script
 					script.ValidateConcreteClasses();
 				}
 			} fnctorValidateConcreteClasses;
-			ForEachScript(fnctorValidateConcreteClasses);
+			ForEachUncompiledScript(fnctorValidateConcreteClasses);
 
 			struct FnctorValidateConstructors
 			{
@@ -2083,7 +2097,7 @@ namespace Rococo { namespace Script
 					script.ValidateConstructors();
 				}
 			} fnctorValidateConstructors;
-			ForEachScript(fnctorValidateConstructors);
+			ForEachUncompiledScript(fnctorValidateConstructors);
 
 			struct FnctorDeclareMacros
 			{
@@ -2092,7 +2106,7 @@ namespace Rococo { namespace Script
 					script.DeclareMacros();
 				}
 			} fnctorDeclareMacros;
-			ForEachScript(fnctorDeclareMacros);
+			ForEachUncompiledScript(fnctorDeclareMacros);
 
 			struct FnctorComputeGlobals
 			{
@@ -2103,7 +2117,7 @@ namespace Rococo { namespace Script
 				}
 			} fnctorComputeGlobals;
 			fnctorComputeGlobals.globalBaseIndex = 0;
-			ForEachScript(fnctorComputeGlobals);
+			ForEachUncompiledScript(fnctorComputeGlobals);
 
 			globalBaseIndex = fnctorComputeGlobals.globalBaseIndex;
 		}
@@ -2170,7 +2184,7 @@ namespace Rococo { namespace Script
 					script.CompileNullObjects();
 				}
 			} fnctorCompileNullObjects;
-			ForEachScript(fnctorCompileNullObjects);
+			ForEachUncompiledScript(fnctorCompileNullObjects);
 
 			canInlineString = TryInlineIString();			
 					
@@ -2183,8 +2197,16 @@ namespace Rococo { namespace Script
 					script.CompileMacroJITStubs();
 				}
 			} fnctorJIT;
-			ForEachScript(fnctorJIT);
+			ForEachUncompiledScript(fnctorJIT);
 
+			struct FnctorComplete
+			{
+				void Process(CScript& script, cstr name)
+				{
+					script.MarkCompiled();
+				}
+			} fnctorComplete;
+			ForEachUncompiledScript(fnctorComplete);
 			/*
 			for(auto i = scripts.begin(); i != scripts.end(); ++i)
 			{
