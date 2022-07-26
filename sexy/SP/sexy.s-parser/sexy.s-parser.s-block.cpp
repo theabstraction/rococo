@@ -664,6 +664,11 @@ namespace Anon
 			last->AddSibling(sibling);
 		}
 
+		int GetIndexOf(cr_sex s) const override
+		{
+			return -1;
+		}
+
 		ISExpressionLinkBuilder* GetNextSibling() override
 		{
 			return next;
@@ -755,6 +760,11 @@ namespace Anon
 			last->AddSibling(sibling);
 		}
 
+		int GetIndexOf(cr_sex s) const override
+		{
+			return -1;
+		}
+
 		ISExpressionLinkBuilder* GetNextSibling() override
 		{
 			return next;
@@ -833,6 +843,20 @@ namespace Anon
 		void Free() override
 		{
 			Throw(0, "%s: S_Block expressions do not support method Free.", __func__);
+		}
+
+		int GetIndexOf(cr_sex s) const override
+		{
+			for (int i = 0; i < numberOfChildren; ++i)
+			{
+				cr_sex child = GetElement(i);
+				if (&child == &s)
+				{
+					return i;
+				}
+			}
+
+			return -1;
 		}
 
 		void SetOffsets(int32 startOffset, int32 endOffset) override
@@ -989,6 +1013,20 @@ namespace Anon
 		ISExpressionLinkBuilder* GetFirstChild() override
 		{
 			return children.firstChild;
+		}
+
+		int GetIndexOf(cr_sex s) const override
+		{
+			for (int i = 0; i < numberOfChildren; ++i)
+			{
+				cr_sex child = GetElement(i);
+				if (&child == &s)
+				{
+					return i;
+				}
+			}
+
+			return -1;
 		}
 
 		ISExpressionLinkBuilder* GetNextSibling() override

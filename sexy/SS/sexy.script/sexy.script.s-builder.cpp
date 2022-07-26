@@ -92,6 +92,11 @@ namespace
 			return *this;
 		}
 
+		int GetIndexOf(cr_sex s) const override
+		{
+			return -1;
+		}
+
 		const ISExpression* Parent() const override
 		{
 			return parent;
@@ -175,6 +180,20 @@ namespace
 		const ISExpression& GetElement(int index) const override
 		{
 			return *children[index];
+		}
+
+		int GetIndexOf(cr_sex s) const override
+		{
+			for (int i = 0; i < NumberOfElements(); ++i)
+			{
+				cr_sex child = GetElement(i);
+				if (&child == &s)
+				{
+					return i;
+				}
+			}
+
+			return -1;
 		}
 
 		const ISExpression* Parent() const override

@@ -266,6 +266,7 @@ namespace Rococo
 			virtual const ISParserTree& Tree() const = 0;
 			virtual int NumberOfElements() const = 0;
 			virtual const ISExpression& GetElement(int index) const = 0;
+			virtual int GetIndexOf(const ISExpression& s) const = 0;
 			const ISExpression& operator[](int index) const { return GetElement(index); }
 			virtual const ISExpression* Parent() const = 0;
 			virtual const ISExpression* GetOriginal() const = 0;
