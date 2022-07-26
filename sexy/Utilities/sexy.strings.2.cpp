@@ -1,12 +1,12 @@
 /*
 	Sexy Scripting Language - Copright(c)2013. Mark Anthony Taylor. All rights reserved.
 
-	http://www.sexiestengine.com
+	https://github.com/theabstraction/rococo
 
 	Email: mark.anthony.taylor@gmail.com
 
 	The Sexy copyright holder is Mark Anthony Taylor, the English author of 'Lazy Bloke Ghosts of Parliament', 'Lazy Bloke in the 35th Century', 'King of the Republic', 'Origin of the Species' 
-	and 'Society of Demons.'
+	
 
 	1. This software is open-source. It can be freely copied, distributed, compiled and the compilation executed.
 	
@@ -34,12 +34,12 @@
 /*
 	Sexy Scripting Language - Copright(c)2013. Mark Anthony Taylor. All rights reserved.
 
-	http://www.sexiestengine.com
+	https://github.com/theabstraction/rococo
 
 	Email: mark.anthony.taylor@gmail.com
 
 	The Sexy copyright holder is Mark Anthony Taylor, the English author of 'Lazy Bloke Ghosts of Parliament', 'Lazy Bloke in the 35th Century', 'King of the Republic', 'Origin of the Species' 
-	and 'Society of Demons.'
+	
 
 	1. This software is open-source. It can be freely copied, distributed, compiled and the compilation executed.
 	
