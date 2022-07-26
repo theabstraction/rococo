@@ -1426,13 +1426,24 @@ namespace Rococo
 			delete[] (char*) header;
 		}
 
+		IStructure* expressStruct = nullptr;
+
+		const IStructure* GetExpressionType() const
+		{
+			return expressStruct;
+		}
+
 		CClassExpression* CreateReflection(cr_sex s)
 		{
-			IModuleBuilder& reflectionModule = ReflectionModule();
-			IStructure* expressStruct = reflectionModule.FindStructure(("Expression"));
-			if (expressStruct == NULL)
+			if (expressStruct == nullptr)
 			{
-				Rococo::Throw(0, ("Cannot find 'Expression' in the reflection module"));
+				IModuleBuilder& reflectionModule = ReflectionModule();
+				expressStruct = reflectionModule.FindStructure(("Expression"));
+
+				if (expressStruct == NULL)
+				{
+					Rococo::Throw(0, ("Cannot find 'Expression' in the reflection module"));
+				}
 			}
 
 			CClassExpression* express = (CClassExpression*)DynamicCreateClass(*expressStruct, 0);
@@ -1916,6 +1927,7 @@ namespace Rococo
 		void Clear()
 		{
 			hasNullFunction = false;
+			expressStruct = nullptr;
 
 			symbols.clear();
 

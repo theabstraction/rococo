@@ -13,6 +13,7 @@
 	(Text -> (IString text))
 	(AppendTextTo (IStringBuilder sb)-> )
 	(ChildCount -> (Int32 count))
+	(IndexOf (ISExpresssion child)->(Int32 index))
 	(Parent -> (IExpression parent))
 	(Handle -> (Pointer hExpr))	
 	(Throw (Int32 errorCode)(IString message)->)
@@ -73,6 +74,10 @@
 
 (method Expression.ChildCount -> (Int32 count) :
 	(Sys.Reflection.Native.ExpressionChildCount this.exprPtr -> count)
+)
+
+(method Expresssion.IndexOf (ISExpresssion child)->(Int32 index):
+	(Sys.Reflection.Native.ExpressionGetIndexOf this.exprPtr child -> index)
 )
 
 (method Expression.Parent -> (IExpression parent) :
