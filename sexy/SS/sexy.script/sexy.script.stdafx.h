@@ -118,6 +118,7 @@ namespace Rococo
          const IStructure* arrayStruct;
          const IStructure* listStruct;
          const IStructure* mapStruct;
+         const IStructure* expressionBuilderInterface;
          const TMapMethodToMember& methodMap;
 
       public: // member variables made public to enhance speed in debug mode
@@ -131,6 +132,7 @@ namespace Rococo
          CCompileEnvironment(CScript& script, ICodeBuilder& builder, const IFactory* factory = nullptr);
 
          const IStructure& StructArray();
+         const IStructure& StructExpressionBuilderInterface();
          const IStructure& StructList();
          const IStructure& StructMap();
 

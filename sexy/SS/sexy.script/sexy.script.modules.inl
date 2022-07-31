@@ -1431,6 +1431,43 @@ namespace Rococo { namespace Script
 		f.Builder().Assembler().Append_Invoke(ss.GetScriptCallbacks().idThrowNullRef);
 	}
 
+	VM_CALLBACK(TransformAt_D4D5retD7)
+	{
+		IScriptSystem& ss = *(IScriptSystem*)context;
+		auto* i = (InterfacePointer)registers[4].vPtrValue;
+		auto* builder = reinterpret_cast<CClassExpression*>(i);
+		if (!builder->ExpressionPtr)
+		{
+			Throw(0, "ExpressionBuilder's internal expression pointer was null");
+		}
+
+		int index = registers[5].int32Value;
+
+		if (index < 0 || index >= builder->ExpressionPtr->NumberOfElements())
+		{
+			Throw(0, "TransformAt(%d) bad index. Expression has %d elements", index, builder->ExpressionPtr->NumberOfElements());
+		}
+
+		cr_sex s = *builder->ExpressionPtr;
+
+		Throw(s, "OnInvokeTransformParent_D4retIExpressionBuilderD7: Not implemented");
+	}
+
+	VM_CALLBACK(TransformParent_D4retD7)
+	{
+		IScriptSystem& ss = *(IScriptSystem*)context;
+		auto* i = (InterfacePointer) registers[4].vPtrValue;
+		auto* builder = reinterpret_cast<CClassExpression*>(i);
+		if (!builder->ExpressionPtr)
+		{
+			Throw(0, "ExpressionBuilder's internal expression pointer was null");
+		}
+
+		cr_sex s = *builder->ExpressionPtr;
+
+		Throw(s, "OnInvokeTransformParent_D4retIExpressionBuilderD7: Not implemented");
+	}
+
 	VM_CALLBACK(ThrowNullRef)
 	{
 		IScriptSystem& ss = *(IScriptSystem*)context;

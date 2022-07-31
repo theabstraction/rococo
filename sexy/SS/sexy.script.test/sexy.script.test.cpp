@@ -5532,6 +5532,46 @@ R"((namespace EntryPoint)
 		validate(x == 49);
 	}
 
+	void TestMacroSiblings(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Maths)"
+			"(using Sys.Reflection)"
+
+			// do_twice usage: (#do_twice (s)) evaluates to (s) (s))
+			"(macro Sys.Maths.doTwice in out"
+			"	(Sys.ValidateSubscriptRange in.ChildCount 2 2 \"macro 'doTwice' supports one argument only\")"
+			"   (IExpressionBuilder parent = out.TransformParent)"
+			"   (Int32 outIndex = (parent.IndexOf in))"
+			"	(IExpressionBuilder firstInstance = (out.TransformAt outIndex))"
+			"	(firstInstance.Copy (in.Child 1))"
+			"	(IExpressionBuilder secondInstance = (out.InsertCompoundAfter outIndex))"
+			"	(secondInstance.Copy (in.Child 1))"
+			")"
+
+			"(function Main -> (Int32 result):"
+			"	(result = 7)"
+			"	(#doTwice (result += 1))"
+			")"
+			;
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		int x = vm.PopInt32();
+		validate(x == 9);
+	}
+
 	void TestCoroutine1(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -14630,6 +14670,7 @@ R"(
 	{
 		validate(true);
 
+		TEST(TestMacroSiblings);
 		TEST(TestPartialCompiles);
 
 		TEST(TestOperatorOverload3);
@@ -14990,6 +15031,7 @@ R"(
 		int64 start, end, hz;
 		start = OS::CpuTicks();
 
+		TEST(TestMacroSiblings);
 		TEST(TestStartsWith);
 		TEST(TestMap2);
 
@@ -15011,7 +15053,7 @@ R"(
 
 int main(int argc, char* argv[])
 {
-	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_None);
+	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
 
 	//_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF | _CRTDBG_CHECK_ALWAYS_DF);
 

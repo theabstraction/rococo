@@ -950,6 +950,8 @@ namespace Rococo
 			callbacks.idIsSameObject = core.RegisterCallback(OnInvokeIsSameObject, this, "IsSameObject");
 			callbacks.idIsDifferentObject = core.RegisterCallback(OnInvokeIsDifferentObject, this, "IsDifferentObject");
 			callbacks.idStringIndexToChar = core.RegisterCallback(OnInvokeStringIndexToChar, this, "StringIndexToChar");
+			callbacks.idTransformAt_D4retIExpressionBuilderD7 = core.RegisterCallback(OnInvokeTransformAt_D4D5retD7, this, "TransformAt");
+			callbacks.idTransformParent_D4retIExpressionBuilderD7 = core.RegisterCallback(OnInvokeTransformParent_D4retD7, this, "TransformParent");
 			methodMap[("Capacity")] = ("_elementCapacity");
 			methodMap[("Length")] = ("_length");
 			serializeId = core.RegisterCallback(OnInvokeSerialize, this, "serialize");
@@ -2285,6 +2287,21 @@ namespace Rococo
 		return *arrayStruct;
 	}
 
+	const IStructure& CCompileEnvironment::StructExpressionBuilderInterface()
+	{
+		if (expressionBuilderInterface == NULL)
+		{
+			enum { MODULE_REFLECTION = 3 };
+			expressionBuilderInterface = Object.GetModule(MODULE_REFLECTION).FindStructure("_Null_Sys_Reflection_IExpressionBuilder");
+			if (!expressionBuilderInterface)
+			{
+				Throw(0, "Object.GetModule(MODULE_REFLECTION).FindStructure('_Null_Sys_Reflection_IExpressionBuilder') returned nullptr");
+			}
+		}
+
+		return *expressionBuilderInterface;
+	}
+
 	const IStructure& CCompileEnvironment::StructList()
 	{
 		if (listStruct == NULL)
@@ -2306,7 +2323,7 @@ namespace Rococo
 	}
 	
 	CCompileEnvironment::CCompileEnvironment(CScript& script, ICodeBuilder& builder, const IFactory* _factory):
-		Builder(builder), Script(script), arrayStruct(NULL), listStruct(NULL), mapStruct(NULL), factory(_factory),
+		Builder(builder), Script(script), arrayStruct(NULL), listStruct(NULL), mapStruct(NULL), expressionBuilderInterface(NULL), factory(_factory),
 		RootNS(script.Object().GetRootNamespace()),
 		methodMap(*(const TMapMethodToMember*) script.System().GetMethodMap()),
 		SS(script.System()),

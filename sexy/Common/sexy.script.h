@@ -439,6 +439,8 @@ namespace Rococo {
 			ID_API_CALLBACK idIsSameObject;
 			ID_API_CALLBACK idIsDifferentObject;
 			ID_API_CALLBACK idStringIndexToChar;
+			ID_API_CALLBACK idTransformAt_D4retIExpressionBuilderD7;
+			ID_API_CALLBACK idTransformParent_D4retIExpressionBuilderD7;
 		};
 
 		struct MethodInfo

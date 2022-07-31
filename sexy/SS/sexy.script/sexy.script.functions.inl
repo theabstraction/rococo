@@ -1297,6 +1297,72 @@ namespace Rococo
 			registers[7].int64Value = diff != 0 ? 1 : 0;
 		}
 
+		bool TryCompileExpressionBuilderCallAndReturnValue(CCompileEnvironment& ce, cr_sex s, cstr instance, cstr methodName, const IStructure* returnTypeStruct, const IStructure& instanceStruct)
+		{
+			if (instanceStruct != ce.StructExpressionBuilderInterface())
+			{
+				return false;
+			}
+
+			if (AreEqual(methodName, "TransformParent"))
+			{
+				if (!returnTypeStruct || *returnTypeStruct != ce.StructExpressionBuilderInterface())
+				{
+					Throw(s, "(%s.TransformParent) may only be used to assign to an IExpressionBuilder interface", instance);
+				}
+
+				if (!IsAtomic(s))
+				{
+					Throw(s, "(%s.TransformParent) takes no arguments", instance);
+				}
+
+				AddSymbol(ce.Builder, "%s -> D4", instance);
+				ce.Builder.AssignVariableToTemp(instance, 0, 0); // Reference to the map goes to D4
+				AppendInvoke(ce, ce.SS.GetScriptCallbacks().idTransformParent_D4retIExpressionBuilderD7, s); // output is now D7
+				return true;
+			}
+
+			if (AreEqual(methodName, "TransformAt"))
+			{
+				if (!returnTypeStruct || *returnTypeStruct != ce.StructExpressionBuilderInterface())
+				{
+					Throw(s, "(%s.TransformAt <index>) may only be used to assign to an IExpressionBuilder interface", instance);
+				}
+
+				if (s.NumberOfElements() != 2)
+				{
+					Throw(s, "(%s.TransformAt <index>) takes one argument", instance);
+				}
+
+				cr_sex sIndex = GetAtomicArg(s, 1);
+
+				cstr indexString = sIndex.String()->Buffer;
+
+				int index;
+				if (Parse::TryParseDecimal(index, indexString) == Parse::PARSERESULT_GOOD)
+				{
+					VariantValue v;
+					v.int32Value = index;
+					ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D5, v, BITCOUNT_32);
+				}
+				else
+				{
+					ce.Builder.AssignVariableToTemp(indexString, 1);
+				}
+				
+				AddSymbol(ce.Builder, "%s -> D4", instance);
+				ce.Builder.AssignVariableToTemp(instance, 0, 0); // Reference to the map goes to D4
+
+				AddSymbol(ce.Builder, "%s -> D5", index);
+				ce.Builder.AssignVariableToTemp(instance, 1, 0); // Reference to the map goes to D5
+				AppendInvoke(ce, ce.SS.GetScriptCallbacks().idTransformAt_D4retIExpressionBuilderD7, s); // output is now D7
+				return true;
+			}
+
+			return false;
+		}
+
+
 		bool TryCompileMethodCallAndReturnValue(CCompileEnvironment& ce, cr_sex s, VARTYPE returnType, const IStructure* returnTypeStruct, const IArchetype* returnArchetype)
 		{
 			cr_sex firstArg = IsCompound(s) ? s.GetElement(0) : s;
@@ -1383,8 +1449,12 @@ namespace Rococo
 				return true;
 			}
 
-			VARTYPE outputType;
-			if (TryCompileAsInlineMapAndReturnValue(ce, s, instance, methodName, returnType, *instanceStruct, OUT outputType))
+			if (TryCompileAsInlineMapAndReturnValue(ce, s, instance, methodName, returnType, *instanceStruct, OUT outType))
+			{
+				return true;
+			}
+
+			if (TryCompileExpressionBuilderCallAndReturnValue(ce, s, instance, methodName, returnTypeStruct, *instanceStruct))
 			{
 				return true;
 			}
