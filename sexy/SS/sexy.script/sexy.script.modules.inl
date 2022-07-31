@@ -2350,6 +2350,34 @@ namespace Rococo { namespace Script
 	   return &td.transform->Root();
    }
 
+   ISExpressionBuilder* CScript::CreateMacroTransformClonedFromParent(cr_sex sChild)
+   {
+	   auto* pParent = sChild.Parent();
+	   if (pParent == nullptr)
+	   {
+		   Throw(sChild, "%s: expression has no parent", __FUNCTION__);
+	   }
+
+	   cr_sex sParent = *pParent;
+
+	   ISExpressionBuilder* sParentTransform = CreateMacroTransform(sParent);
+
+	   for (int i = 0; i < sParent.NumberOfElements(); ++i)
+	   {
+		   auto& sCompoundElement = sParent[i];
+		   if (IsCompound(sCompoundElement))
+		   {
+			   mapExpressionToTransform.erase(pParent);
+			   sParentTransform->Free();
+			   Throw(sParent[i], "%s: parent had something other than a compound element at position %d", __FUNCTION__, i);
+		   }
+
+		   sParentTransform->AddRef(sCompoundElement);
+	   }
+
+	   return sParentTransform;
+   }
+
    const ISExpression* CScript::GetTransform(cr_sex src)
    {
 	   auto i = mapExpressionToTransform.find(&src);

@@ -315,6 +315,7 @@ namespace Rococo
          void AddMapNodeDef(ICodeBuilder& builder, const MapDef& mapDef, cstr mapName, cstr nodeName, cr_sex s);
          void AddNodeDef(ICodeBuilder& builder, cstr nodeName, const IStructure& elementType, cr_sex s);
 		 ISExpressionBuilder* CreateMacroTransform(cr_sex src);
+         ISExpressionBuilder* CreateMacroTransformClonedFromParent(cr_sex sChild);
 		 const ISExpression* GetTransform(cr_sex src);
 
          const bool IsIStringInlined() const;

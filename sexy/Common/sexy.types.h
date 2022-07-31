@@ -274,15 +274,18 @@ namespace Rococo
 			virtual void Free() = 0;
 		};
 
+		typedef const ISExpression& cr_sex;
+
 		inline bool operator != (const ISExpression& s, const char* token)
 		{
 			return !(s == token);
 		}
 
 		ROCOCOAPI ISExpressionBuilder : public ISExpression
-		{
-			virtual ISExpressionBuilder* AddChild() = 0;
+		{			
 			virtual void AddAtomic(cstr text) = 0;
+			virtual ISExpressionBuilder* AddChild() = 0;
+			virtual void AddRef(cr_sex s) = 0;
 			virtual void AddStringLiteral(cstr text) = 0;
 
 			// Shifts all elements, i = 1 and onwards from s[index + i] to s[index + i + 1]. Then inserts a new compound element at s[index + 1]
@@ -294,8 +297,6 @@ namespace Rococo
 			virtual ISExpressionBuilder& Root() = 0;
 			virtual void Free() = 0;
 		};
-
-		typedef const ISExpression& cr_sex;
 
 		ROCOCOAPI IRefCounted
 		{

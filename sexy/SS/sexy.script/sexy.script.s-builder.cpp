@@ -219,6 +219,11 @@ namespace
 			return eb;
 		}
 
+		void AddRef(cr_sex s) override
+		{
+			children.push_back(const_cast<ISExpression*>(&s));
+		}
+
 		ISExpressionBuilder* InsertChildAfter(int index) override
 		{
 			if ((size_t)index >= children.size())
