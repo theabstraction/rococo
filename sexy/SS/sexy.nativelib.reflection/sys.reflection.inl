@@ -362,6 +362,22 @@ namespace
 		WriteClass(&childRep->header, 0, e);
 	}
 
+	void NativeExpressionBuilderInsertCompoundAfter(NativeCallEnvironment& e)
+	{
+		IScriptSystem& SS = (IScriptSystem&)e.ss;
+
+		ISExpressionBuilder* pBuilder;
+		ReadInput(0, (void*&)pBuilder, e);
+
+		int index;
+		ReadInput(1, index, e);
+
+		ISExpressionBuilder* pChild = pBuilder->InsertChildAfter(index);
+
+		CReflectedClass* childRep = SS.CreateReflectionClass(("ExpressionBuilder"), pChild);
+		WriteClass(&childRep->header, 0, e);
+	}
+
 	void NativeExpressionBuilderAddCopy(NativeCallEnvironment& e)
 	{
 		IScriptSystem& SS = (IScriptSystem&) e.ss;
@@ -427,6 +443,7 @@ namespace
 		ss.AddNativeCall(sysReflectionNative, NativeGetStructName, &ss, ("GetStructName (Pointer structPtr) -> (Sys.Type.IString name)"), __FILE__, __LINE__, true);
 		ss.AddNativeCall(sysReflectionNative, NativeExpressionBuilderAddAtomic, &ss, ("ExpressionBuilderAddAtomic (Pointer builderPtr) (Pointer strBuffer) ->"), __FILE__, __LINE__, true);
 		ss.AddNativeCall(sysReflectionNative, NativeExpressionBuilderAddCompound, &ss, ("ExpressionBuilderAddCompound (Pointer builderPtr) -> (Sys.Reflection.IExpressionBuilder child)"), __FILE__, __LINE__, true);
+		ss.AddNativeCall(sysReflectionNative, NativeExpressionBuilderInsertCompoundAfter, &ss, ("ExpressionBuilderInsertCompoundAfter (Pointer builderPtr)(Int32 index) -> (Sys.Reflection.IExpressionBuilder child)"), __FILE__, __LINE__, true);
 		ss.AddNativeCall(sysReflectionNative, NativeExpressionBuilderAddCopy, &ss, ("ExpressionBuilderAddCopy (Pointer builderPtr) (Pointer xpressPtr) ->"), __FILE__, __LINE__, true);
         ss.AddNativeCall(sysReflectionNative, NativeExpressionBuilderAddCopyToString, &ss, ("ExpressionBuilderAddCopyToString (Pointer builderPtr) (Pointer xpressPtr) ->"), __FILE__, __LINE__, true);
 		ss.AddNativeCall(sysReflectionNative, NativeExpressionBuilderSubstitute, &ss, ("ExpressionBuilderSubstitute (Pointer builderPtr) (Pointer inputPtr) (Pointer formatPtr) -> (Int32 errorCount)"), __FILE__, __LINE__, true);

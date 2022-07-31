@@ -219,6 +219,33 @@ namespace
 			return eb;
 		}
 
+		ISExpressionBuilder* InsertChildAfter(int index) override
+		{
+			if ((size_t)index >= children.size())
+			{
+				Throw(*this, "%s: bad index %d. Child count is %llu", __FUNCTION__, index, children.size());
+			}
+
+			auto i = children.begin();
+
+			int insertAtIndex = index + 1;
+			if (insertAtIndex >= children.size())
+			{
+				i = children.end();
+			}
+			else
+			{
+				std::advance(i, index + 1);
+			}
+
+			auto* eb = new ExpressionBuilder(this);
+			eb->parent = this;
+
+			children.insert(i, eb);
+
+			return eb;
+		}
+
 		template<class Leaf> void AddLeaf(cstr text)
 		{
 			size_t len = strlen(text);

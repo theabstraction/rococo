@@ -284,6 +284,9 @@ namespace Rococo
 			virtual ISExpressionBuilder* AddChild() = 0;
 			virtual void AddAtomic(cstr text) = 0;
 			virtual void AddStringLiteral(cstr text) = 0;
+
+			// Shifts all elements, i = 1 and onwards from s[index + i] to s[index + i + 1]. Then inserts a new compound element at s[index + 1]
+			virtual ISExpressionBuilder* InsertChildAfter(int index) = 0;
 		};
 
 		ROCOCOAPI IExpressionTransform
