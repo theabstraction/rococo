@@ -3462,6 +3462,8 @@ namespace Rococo
 			streamer << ("Compiler exception code: ") << ex.Code() << (".\n") << ("Source: ") << ex.Source() << ("\n. Message: ") << ex.Message();
 		}
 
+		void CompileTransformableExpressionSequence(CCompileEnvironment& ce, int start, cr_sex sequence);
+
 		void CompileExpression(CCompileEnvironment& ce, cr_sex s)
 		{
 			ce.Builder.MarkExpression(&s);
@@ -3480,7 +3482,7 @@ namespace Rococo
 				}
 				else
 				{
-					CompileExpressionSequence(ce, 0, s.NumberOfElements() - 1, s);
+					CompileTransformableExpressionSequence(ce, 0, s);
 				}
 			}
 			catch (STCException& ex)

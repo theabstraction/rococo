@@ -439,8 +439,8 @@ namespace Rococo {
 			ID_API_CALLBACK idIsSameObject;
 			ID_API_CALLBACK idIsDifferentObject;
 			ID_API_CALLBACK idStringIndexToChar;
-			ID_API_CALLBACK idTransformAt_D4retIExpressionBuilderD7;
-			ID_API_CALLBACK idTransformParent_D4retIExpressionBuilderD7;
+			ID_API_CALLBACK idTransformAt_D4D5D7retIExpressionBuilderD7;
+			ID_API_CALLBACK idTransformParent_D4D5retIExpressionBuilderD7;
 		};
 
 		struct MethodInfo
@@ -463,7 +463,7 @@ namespace Rococo {
 			virtual const ScriptCallbacks& GetScriptCallbacks() = 0;
 			virtual cstr GetPersistentString(cstr text, int textLength = -1) = 0;
 			virtual const MethodInfo GetMethodByName(cstr methodName,  const Rococo::Compiler::IStructure& concreteClassType) = 0;
-
+			
 			virtual ID_API_CALLBACK GetIdSerializeCallback() const = 0;
 			virtual ID_API_CALLBACK TryGetRawReflectionCallbackId(cstr functionId) const = 0;
 		};

@@ -917,6 +917,62 @@ namespace Rococo { namespace Script
 		AppendDeconstructTailVariables(ce, sequence, expire, ce.Builder.SectionArgCount());
 	}
 
+	void CompileTransformableExpressionSequenceProtected(CCompileEnvironment& ce, int start, cr_sex sequence)
+	{
+		if (sequence.Type() == EXPRESSION_TYPE_NULL)
+		{
+			ce.Builder.Assembler().Append_NoOperation();
+			return;
+		}
+
+		AssertCompound(sequence);
+		if (start == 0 && sequence.NumberOfElements() > 0)
+		{
+			cr_sex firstArg = sequence.GetElement(0);
+			if (firstArg.Type() == EXPRESSION_TYPE_ATOMIC)
+			{
+				ce.Builder.EnterSection();
+				CompileExpression(ce, sequence);
+				AppendDeconstruct(ce, sequence, true);
+				ce.Builder.LeaveSection();
+				return;
+			}
+		}
+
+		ce.Builder.EnterSection();
+
+		int i = start;
+		for (;;)
+		{
+			// As we compile expressions macro expansions may add siblings to the parent
+			// The mechanism involves first cloning the immutable parent expression, then inserting elements after the macro expansion into the transform of the parent
+			// This means as we process each expression we have to watch out for transformations of the parent and changes to the NumberOfElements()
+			const ISExpression* sSourceExpression = ce.Script.GetTransform(sequence);
+
+			if (sSourceExpression == nullptr)
+			{
+				sSourceExpression = &sequence;
+			}
+			else
+			{
+				printf("");
+			}
+			
+			if (i >= sSourceExpression->NumberOfElements())
+			{
+				break;
+			}
+
+			cr_sex s = sSourceExpression->GetElement(i);
+			CompileExpression(ce, s);
+
+			i++;
+		}
+
+		AppendDeconstruct(ce, sequence, true);
+		ce.Builder.LeaveSection();
+	}
+
 	void CompileExpressionSequenceProtected(CCompileEnvironment& ce, int start, int end, cr_sex sequence)
 	{
 		if (sequence.Type() == EXPRESSION_TYPE_NULL)
@@ -926,7 +982,7 @@ namespace Rococo { namespace Script
 		}
 
 		AssertCompound(sequence);
-		if (start == 0 && end == sequence.NumberOfElements()-1 && sequence.NumberOfElements() > 0)
+		if (start == 0 &&  sequence.NumberOfElements() > 0 && end == sequence.NumberOfElements()-1)
 		{
 			cr_sex firstArg = sequence.GetElement(0);
 			if (firstArg.Type() == EXPRESSION_TYPE_ATOMIC)
@@ -959,6 +1015,20 @@ namespace Rococo { namespace Script
 			CompileExpressionSequenceProtected(ce, start, end, sequence);
 		}
 		catch(STCException& ex)
+		{
+			sexstringstream<1024> streamer;
+			StreamSTCEX(streamer.sb, ex);
+			Throw(sequence, *streamer.sb);
+		}
+	}
+
+	void CompileTransformableExpressionSequence(CCompileEnvironment& ce, int start, cr_sex sequence)
+	{
+		try
+		{
+			CompileTransformableExpressionSequenceProtected(ce, start, sequence);
+		}
+		catch (STCException& ex)
 		{
 			sexstringstream<1024> streamer;
 			StreamSTCEX(streamer.sb, ex);
@@ -1402,7 +1472,7 @@ namespace Rococo { namespace Script
 
 			CCompileEnvironment ce(script, builder);
 			CompileSetOutputToNull(REF f);
-			CompileExpressionSequence(ce, bodyIndex+1, fdef.NumberOfElements()-1, fdef);
+			CompileTransformableExpressionSequence(ce, bodyIndex+1, fdef);
 
 		builder.End();
 
@@ -1431,33 +1501,52 @@ namespace Rococo { namespace Script
 		f.Builder().Assembler().Append_Invoke(ss.GetScriptCallbacks().idThrowNullRef);
 	}
 
-	VM_CALLBACK(TransformAt_D4D5retD7)
+	VM_CALLBACK(TransformAt_D4D5D7retD7)
 	{
 		IScriptSystem& ss = *(IScriptSystem*)context;
 		auto* i = (InterfacePointer)registers[4].vPtrValue;
-		auto* builder = reinterpret_cast<CClassExpression*>(i);
-		if (!builder->ExpressionPtr)
+		auto* builder = reinterpret_cast<CClassExpression*>(InterfaceToInstance(i));
+
+		cr_sex s = *builder->ExpressionPtr;
+
+		if (!&s)
 		{
 			Throw(0, "ExpressionBuilder's internal expression pointer was null");
+		}
+
+		auto* original = s.GetOriginal();
+		if (!original)
+		{
+			Throw(0, "ExpressionBuilder's original expression pointer was null");
 		}
 
 		int index = registers[5].int32Value;
 
-		if (index < 0 || index >= builder->ExpressionPtr->NumberOfElements())
+		if (index < 0 || index >= original->NumberOfElements())
 		{
-			Throw(0, "TransformAt(%d) bad index. Expression has %d elements", index, builder->ExpressionPtr->NumberOfElements());
+			Throw(0, "TransformAt(%d) bad index. Expression has %d elements", index, original->NumberOfElements());
 		}
 
-		cr_sex s = *builder->ExpressionPtr;
+		CScript* script = (CScript*)registers[7].vPtrValue;
 
-		Throw(s, "OnInvokeTransformParent_D4retIExpressionBuilderD7: Not implemented");
+		auto* builderAtIndex = script->CreateMacroTransform(original->GetElement(index));
+
+		CReflectedClass* childRep = ss.CreateReflectionClass("ExpressionBuilder", (void*)builderAtIndex);
+		registers[7].vPtrValue = &childRep->header.pVTables[0];
 	}
 
-	VM_CALLBACK(TransformParent_D4retD7)
+	VM_CALLBACK(TransformParent_D4D5retD7)
 	{
+		// Evaluate return value of (out.TransformParent). <out> is given in D4, the CScript for the macro expansion is given in D5. Value is returned in D7
+
 		IScriptSystem& ss = *(IScriptSystem*)context;
 		auto* i = (InterfacePointer) registers[4].vPtrValue;
-		auto* builder = reinterpret_cast<CClassExpression*>(i);
+		auto* builder = reinterpret_cast<CClassExpression*>(InterfaceToInstance(i));
+		if (IsNullType(*builder->Header.Desc->TypeInfo))
+		{
+			Throw(0, "the instance was a null expression builder object.");
+		}
+
 		if (!builder->ExpressionPtr)
 		{
 			Throw(0, "ExpressionBuilder's internal expression pointer was null");
@@ -1465,7 +1554,19 @@ namespace Rococo { namespace Script
 
 		cr_sex s = *builder->ExpressionPtr;
 
-		Throw(s, "OnInvokeTransformParent_D4retIExpressionBuilderD7: Not implemented");
+		auto* original = s.GetOriginal();
+
+		if (!original)
+		{
+			Throw(s, "Cannot identify original expression");
+		}
+
+		CScript* script = (CScript*)registers[5].vPtrValue;
+
+		auto* parentBuilder = script->CreateMacroTransformClonedFromParent(*original);
+
+		CReflectedClass* childRep = ss.CreateReflectionClass("ExpressionBuilder", (void*) parentBuilder);
+		registers[7].vPtrValue = &childRep->header.pVTables[0];
 	}
 
 	VM_CALLBACK(ThrowNullRef)
@@ -2378,13 +2479,15 @@ namespace Rococo { namespace Script
 	   auto i = mapExpressionToTransform.find(&src);
 	   if (i != mapExpressionToTransform.end())
 	   {
-		   i->second.transform->Free();
+		   return &i->second.transform->Root();
 	   }
-
-	   TransformData td;
-	   td.transform = Rococo::Sex::CreateExpressionTransform(src);
-	   mapExpressionToTransform[&src] = td;
-	   return &td.transform->Root();
+	   else
+	   {
+		   TransformData td;
+		   td.transform = Rococo::Sex::CreateExpressionTransform(src);
+		   mapExpressionToTransform[&src] = td;
+		   return &td.transform->Root();
+	   }
    }
 
    ISExpressionBuilder* CScript::CreateMacroTransformClonedFromParent(cr_sex sChild)
@@ -2397,22 +2500,30 @@ namespace Rococo { namespace Script
 
 	   cr_sex sParent = *pParent;
 
-	   ISExpressionBuilder* sParentTransform = CreateMacroTransform(sParent);
-
-	   for (int i = 0; i < sParent.NumberOfElements(); ++i)
+	   const ISExpression* sTParent = GetTransform(sParent);
+	   if (!sTParent)
 	   {
-		   auto& sCompoundElement = sParent[i];
-		   if (IsCompound(sCompoundElement))
+		   ISExpressionBuilder* sParentTransform = CreateMacroTransform(sParent);
+
+		   for (int i = 0; i < sParent.NumberOfElements(); ++i)
 		   {
-			   mapExpressionToTransform.erase(pParent);
-			   sParentTransform->Free();
-			   Throw(sParent[i], "%s: parent had something other than a compound element at position %d", __FUNCTION__, i);
+			   auto& sElement = sParent[i];
+
+			   const ISExpression* sTElement = GetTransform(sElement);
+			   if (sTElement)
+			   {
+				   sParentTransform->AddRef(*sTElement);
+			   }
+			   else
+			   {
+				   sParentTransform->AddRef(sElement);
+			   }
 		   }
 
-		   sParentTransform->AddRef(sCompoundElement);
+		   return sParentTransform;
 	   }
 
-	   return sParentTransform;
+	   return (ISExpressionBuilder*) sTParent;
    }
 
    const ISExpression* CScript::GetTransform(cr_sex src)
@@ -2594,7 +2705,7 @@ namespace Rococo { namespace Script
    {
       tree.Release();
 
-	  for (auto t : mapExpressionToTransform)
+	  for (auto& t : mapExpressionToTransform)
 	  {
 		  t.second.transform->Free();
 	  }

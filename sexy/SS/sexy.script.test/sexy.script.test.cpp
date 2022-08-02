@@ -3838,10 +3838,9 @@ R"((namespace EntryPoint)
 		cstr srcCode =
 			"(namespace EntryPoint)"
 			"(function Main -> (Int32 result):"		
-			"		("
-			"			try ( result = 15)"   
-			"   catch e ( result = (result + 7) )"
-			"   finally ( result = (result - 5) )"
+			"	(try (result = 15)"   
+			"		catch e ( result = (result + 7) )"
+			"		finally ( result = (result - 5) )"
 			"   )"
 			")"			
 			"(method TestException.ErrorCode -> (Int32 errorCode): (errorCode = 0))"
@@ -5544,11 +5543,10 @@ R"((namespace EntryPoint)
 			// do_twice usage: (#do_twice (s)) evaluates to (s) (s))
 			"(macro Sys.Maths.doTwice in out"
 			"	(Sys.ValidateSubscriptRange in.ChildCount 2 2 \"macro 'doTwice' supports one argument only\")"
+			"	(out.Copy (in.Child 1))"
 			"   (IExpressionBuilder parent = out.TransformParent)"
 			"   (Int32 outIndex = (parent.IndexOf in))"
-			"	(IExpressionBuilder firstInstance = (out.TransformAt outIndex))"
-			"	(firstInstance.Copy (in.Child 1))"
-			"	(IExpressionBuilder secondInstance = (out.InsertCompoundAfter outIndex))"
+			"	(IExpressionBuilder secondInstance = (parent.InsertCompoundAfter outIndex))"
 			"	(secondInstance.Copy (in.Child 1))"
 			")"
 
@@ -14671,6 +14669,7 @@ R"(
 		validate(true);
 
 		TEST(TestMacroSiblings);
+
 		TEST(TestPartialCompiles);
 
 		TEST(TestOperatorOverload3);
@@ -15031,7 +15030,8 @@ R"(
 		int64 start, end, hz;
 		start = OS::CpuTicks();
 
-		TEST(TestMacroSiblings);
+		// Note: test 'macro siblings' inside try..catch..finally blocks, while and do...while expressions
+
 		TEST(TestStartsWith);
 		TEST(TestMap2);
 
@@ -15053,9 +15053,10 @@ R"(
 
 int main(int argc, char* argv[])
 {
-	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
+	// Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
+	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_None);
 
-	//_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF | _CRTDBG_CHECK_ALWAYS_DF);
+	// _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF | _CRTDBG_CHECK_ALWAYS_DF);
 
 	try
 	{

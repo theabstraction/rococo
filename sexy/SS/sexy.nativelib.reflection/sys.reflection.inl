@@ -27,20 +27,13 @@ namespace
 
 	void NativeExpressionGetIndexOf(NativeCallEnvironment& e)
 	{
-		ISExpression* pExpression;
-		ReadInput(0, (void*&)pExpression, e);
+		ISExpression* pParentExpression;
+		ReadInput(0, (void*&)pParentExpression, e);
 
-		InterfacePointer pChildInterface;
-		ReadInput(1, pChildInterface, e);
+		ISExpression* pChildElement;
+		ReadInput(1, pChildElement, e);
 
-		int index = -1;
-
-		auto* pChild = (CClassExpression*) InterfaceToInstance(pChildInterface);
-		if (pChild->Header.Desc->TypeInfo == e.ss.GetExpressionType())
-		{
-			auto& sChild = *pChild->ExpressionPtr;
-			index = pExpression->GetIndexOf(sChild);
-		}
+		int index = pParentExpression->GetIndexOf(*pChildElement);
 		
 		WriteOutput(0, index, e);
 	}
@@ -427,7 +420,7 @@ namespace
 	{
 		const INamespace& sysReflectionNative = ss.AddNativeNamespace(("Sys.Reflection.Native"));
 		ss.AddNativeCall(sysReflectionNative, NativeExpressionGetChild, &ss, ("ExpressionGetChild (Pointer sPtr) (Int32 index) ->  (Sys.Reflection.IExpression child)"), __FILE__, __LINE__, true);
-		ss.AddNativeCall(sysReflectionNative, NativeExpressionGetIndexOf, &ss, ("ExpressionGetIndexOf (Pointer sPtr) (Sys.Reflection.IExpression child) -> (Int32 index)"), __FILE__, __LINE__, true);
+		ss.AddNativeCall(sysReflectionNative, NativeExpressionGetIndexOf, &ss, ("ExpressionGetIndexOf (Pointer sParentHandle) (Pointer sChildHandle) -> (Int32 index)"), __FILE__, __LINE__, true);
 		ss.AddNativeCall(sysReflectionNative, NativeExpressionGetParent, &ss, ("ExpressionGetParent (Pointer sPtr) -> (Sys.Reflection.IExpression parent)"), __FILE__, __LINE__, true);
 		ss.AddNativeCall(sysReflectionNative, NativeExpressionChildCount, &ss, ("ExpressionChildCount (Pointer sPtr) -> (Int32 count)"), __FILE__, __LINE__, true);
 		ss.AddNativeCall(sysReflectionNative, NativeExpressionAppendTextTo, &ss, "ExpressionAppendTextTo  (Pointer sPtr) (Sys.Type.IStringBuilder sb)->", __FILE__, __LINE__);

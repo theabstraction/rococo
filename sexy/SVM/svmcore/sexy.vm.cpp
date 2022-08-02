@@ -35,10 +35,13 @@
 #include "sexy.vm.cpu.h"
 #include <math.h>
 #include "sexy.vm.os.h"
+#include "Sexy.S-Parser.h"
 #include <rococo.api.h>
 
 #include <rococo.allocators.h> // provides _aligned_malloc
 #include <rococo.stl.allocators.h>
+
+#include <rococo.strings.h>
 
 #ifdef _WIN32
 # include <excpt.h>
@@ -523,6 +526,41 @@ namespace Anon
 			cpu.D[REGISTER_PC].uint8PtrValue = cpu.ProgramStart;
 		}
 
+		void LogParseException(const Sex::ParseException& ex)
+		{
+			char buf[1024];
+			StackStringBuilder sb(buf, sizeof buf);
+			sb << "ParseException was raised\n";
+			sb << "Name: " << ex.Name() << "\n";
+			sb << "Message: " << ex.Message() << "\n";
+			sb << "StartPos: " << ex.Start().x << "," << ex.Start().y << "\n";
+			sb << "EndPos: " << ex.End().x << "," << ex.End().y << "\n";
+			sb << "Specimen: " << ex.Specimen();
+			Core().Log(buf);
+		}
+
+		bool AdvanceUntilNoLongerRunning(const uint8* context)
+		{
+			try
+			{
+				while (cpu.SF() > context && status == EXECUTERESULT_RUNNING)
+				{
+					Advance();
+				}
+				return true;
+			}
+			catch(Sex::ParseException& ex)
+			{
+				LogParseException(ex);
+			}
+			catch (IException& ex)
+			{
+				Core().Log(ex.Message());
+			}
+
+			return false;
+		}
+
 		EXECUTERESULT ExecuteFunction(ID_BYTECODE codeId) override
 		{
 			const uint8* context = cpu.SF();
@@ -539,9 +577,9 @@ namespace Anon
 
 			PROTECT
 			{
-				while(cpu.SF() > context && status == EXECUTERESULT_RUNNING)
+				if (!AdvanceUntilNoLongerRunning(context))
 				{
-					Advance();
+					return EXECUTERESULT_SEH;
 				}
 			}
 			CATCH

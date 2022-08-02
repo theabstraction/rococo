@@ -1359,7 +1359,7 @@ namespace Rococo
 	   }
 
 	   void CompileEnumerateArray(CCompileEnvironment& ce, cr_sex s, int hashIndex)
-	   {	
+	   {
 		   // (foreach v # a (...) (...) )
 
 		   if (hashIndex != 2)
@@ -1371,10 +1371,10 @@ namespace Rococo
 
 		   cstr collectionName = collectionNameExpr.String()->Buffer;
 
-			// (foreach v # a (...) )
-			cr_sex refExpr = s[1];
-			AssertLocalIdentifier(refExpr);
-			cstr refName = refExpr.String()->Buffer; 
+		   // (foreach v # a (...) )
+		   cr_sex refExpr = s[1];
+		   AssertLocalIdentifier(refExpr);
+		   cstr refName = refExpr.String()->Buffer;
 
 		   const IStructure& elementType = GetElementTypeForArrayVariable(ce, s, collectionName);
 
@@ -1386,7 +1386,7 @@ namespace Rococo
 		   {
 			   AddVariable(ce, NameString::From(refName), elementType);
 			   VariantValue nullVal;
-			   nullVal.vPtrValue = (uint8*) elementType.GetInterface(0).UniversalNullInstance()->pVTables;
+			   nullVal.vPtrValue = (uint8*)elementType.GetInterface(0).UniversalNullInstance()->pVTables;
 			   ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, nullVal, BITCOUNT_POINTER);
 			   ce.Builder.AssignTempToVariable(0, refName);
 		   }
@@ -1395,34 +1395,34 @@ namespace Rococo
 
 		   ce.Builder.AddSymbol(collectionName);
 		   ce.Builder.AssignVariableToTemp(collectionName, 9, 0); // Array ref is now in D13
-				
+
 		   ce.Builder.AddSymbol("D12 - working index");
 		   AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 5, Rococo::ROOT_TEMPDEPTH + 5, BITCOUNT_POINTER);
 
-		   ce.Builder.AddSymbol("(foreach..."); 
+		   ce.Builder.AddSymbol("(foreach...");
 
 		   VariantValue zero;
 		   zero.int32Value = 0;
 		   ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D12, zero, BITCOUNT_32);
-		
+
 		   // We may be nested in a function that overwrites D11, so save it
 		   ce.Builder.AddSymbol("D11 - final index");
 		   AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 4, Rococo::ROOT_TEMPDEPTH + 4, BITCOUNT_POINTER);
 
 		   ce.Builder.AddSymbol("(D13 array)->(D11 lastIndex)");
-		AppendInvoke(ce, GetArrayCallbacks(ce).ArrayGetLastIndex, s);
-		
+		   AppendInvoke(ce, GetArrayCallbacks(ce).ArrayGetLastIndex, s);
+
 		   // We may be nested in a function that overwrites D10, which is used as the result of D10-11
 		   AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 3, Rococo::ROOT_TEMPDEPTH + 3, BITCOUNT_POINTER);
-		
+
 		   // Prevent popping of the array during enumeration, since this may corrupt our references
 		   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayLock);
 
 		   int lockSize = AddVariableArrayLock(ce, 9);
 
-		   struct ConditionSection: public ICompileSection
+		   struct ConditionSection : public ICompileSection
 		   {
-			   ConditionSection(CCompileEnvironment& _ce): ce(_ce) {}
+			   ConditionSection(CCompileEnvironment& _ce) : ce(_ce) {}
 
 			   CCompileEnvironment& ce;
 
@@ -1430,13 +1430,13 @@ namespace Rococo
 			   {
 				   ce.Builder.AddSymbol(("while (endIndex > currentIndex)"));
 				   ce.Builder.Assembler().Append_IntSubtract(VM::REGISTER_D11, BITCOUNT_32, VM::REGISTER_D12);
-				   builder.Assembler().Append_Test(VM::REGISTER_D10, BITCOUNT_32);				
+				   builder.Assembler().Append_Test(VM::REGISTER_D10, BITCOUNT_32);
 			   }
 		   } loopCriterion(ce);
 
-		   struct BodySection: public ICompileSection
-		   {			
-			   BodySection(CCompileEnvironment& _ce, cr_sex _s, int _firstBodyIndex, int _lastBodyIndex, cstr _refName):
+		   struct BodySection : public ICompileSection
+		   {
+			   BodySection(CCompileEnvironment& _ce, cr_sex _s, int _firstBodyIndex, int _lastBodyIndex, cstr _refName) :
 				   ce(_ce), s(_s), refName(_refName), firstBodyIndex(_firstBodyIndex), lastBodyIndex(_lastBodyIndex) {}
 
 			   CCompileEnvironment& ce;
@@ -1449,7 +1449,7 @@ namespace Rococo
 			   {
 				   ce.Builder.AddSymbol("while..{ ");
 				   builder.PushControlFlowPoint(*controlFlowData);
-		  
+
 				   MemberDef refDef;
 				   ce.Builder.TryGetVariableByName(OUT refDef, refName);
 
@@ -1468,16 +1468,16 @@ namespace Rococo
 				   one.int32Value = 1;
 				   ce.Builder.Assembler().Append_AddImmediate(VM::REGISTER_D12, BITCOUNT_32, VM::REGISTER_D12, one); // increment the running index
 
-				   CompileExpressionSequence(ce, firstBodyIndex, lastBodyIndex, s);				
+				   CompileExpressionSequence(ce, firstBodyIndex, lastBodyIndex, s);
 
 				   builder.PopControlFlowPoint();
 				   ce.Builder.AddSymbol("...while }");
 			   }
-		   } bodySection(ce, s, hashIndex + 2, s.NumberOfElements()-1, refName);
+		   } bodySection(ce, s, hashIndex + 2, s.NumberOfElements() - 1, refName);
 
 		   ce.Builder.AppendWhileDo(loopCriterion, CONDITION_IF_GREATER_OR_EQUAL, bodySection);
-		
-		//   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayUnlock); // Enable popping of the array after enumeration has finished
+
+		   //   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayUnlock); // Enable popping of the array after enumeration has finished
 		   ce.Builder.AddSymbol("...foreach)");
 		   ce.Builder.Assembler().Append_NoOperation();
 	   }

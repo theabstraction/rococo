@@ -1317,8 +1317,14 @@ namespace Rococo
 				}
 
 				AddSymbol(ce.Builder, "%s -> D4", instance);
-				ce.Builder.AssignVariableToTemp(instance, 0, 0); // Reference to the map goes to D4
-				AppendInvoke(ce, ce.SS.GetScriptCallbacks().idTransformParent_D4retIExpressionBuilderD7, s); // output is now D7
+				ce.Builder.AssignVariableToTemp(instance, 0, 0); // Reference to the interface goes to D4
+
+				AddSymbol(ce.Builder, "Script %s -> D5", ce.Script.ProgramModule().Name());
+
+				VariantValue scriptPtr;
+				scriptPtr.vPtrValue = &ce.Script;
+				ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D5, scriptPtr, BITCOUNT_POINTER);
+				AppendInvoke(ce, ce.SS.GetScriptCallbacks().idTransformParent_D4D5retIExpressionBuilderD7, s); // output is now D7
 				return true;
 			}
 
@@ -1351,11 +1357,18 @@ namespace Rococo
 				}
 				
 				AddSymbol(ce.Builder, "%s -> D4", instance);
-				ce.Builder.AssignVariableToTemp(instance, 0, 0); // Reference to the map goes to D4
+				ce.Builder.AssignVariableToTemp(instance, 0, 0); // Reference to the builder expression goes to D4
 
-				AddSymbol(ce.Builder, "%s -> D5", index);
-				ce.Builder.AssignVariableToTemp(instance, 1, 0); // Reference to the map goes to D5
-				AppendInvoke(ce, ce.SS.GetScriptCallbacks().idTransformAt_D4retIExpressionBuilderD7, s); // output is now D7
+				AddSymbol(ce.Builder, "index -> D5");
+				ce.Builder.AssignVariableToTemp(indexString, 1, 0); // Index value goes to D5
+
+				AddSymbol(ce.Builder, "%s -> D7", ce.Script.ProgramModule().Name());
+
+				VariantValue scriptPtr;
+				scriptPtr.vPtrValue = &ce.Script;
+				ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7, scriptPtr, BITCOUNT_POINTER); // script goes to D7
+
+				AppendInvoke(ce, ce.SS.GetScriptCallbacks().idTransformAt_D4D5D7retIExpressionBuilderD7, s); // output is now D7
 				return true;
 			}
 

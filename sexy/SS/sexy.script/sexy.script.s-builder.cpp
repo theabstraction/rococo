@@ -41,7 +41,7 @@ using namespace Rococo::Sex;
 using namespace Rococo::Compiler;
 using namespace Rococo::Script;
 
-namespace
+namespace ANON
 {
 	struct ExpressionBuilder;
 	const ISParserTree& ToTree(ExpressionBuilder& builder);
@@ -115,9 +115,15 @@ namespace
 	
 	void Free(ExpressionBuilder* eb);
 
+	struct ChildElement
+	{
+		ISExpression* s;
+		bool isForeign;
+	};
+
 	struct ExpressionBuilder: public ISExpressionBuilder
 	{
-		std::vector<ISExpression*, Memory::SexyAllocator<ISExpression*>> children;
+		std::vector<ChildElement, Memory::SexyAllocator<ChildElement>> children;
 		ExpressionBuilder* parent;
 
 		ExpressionBuilder(ExpressionBuilder* _parent): parent(_parent)
@@ -132,17 +138,20 @@ namespace
 
 		~ExpressionBuilder()
 		{
-			for (auto* s : children)
+			for (auto& child : children)
 			{
-				switch (s->Type())
+				if (!child.isForeign)
 				{
-				case EXPRESSION_TYPE_ATOMIC:
-				case EXPRESSION_TYPE_STRING_LITERAL:
-					delete[](char*)s;
-					break;
-				default:
-					s->Free();
-					break;
+					switch (child.s->Type())
+					{
+					case EXPRESSION_TYPE_ATOMIC:
+					case EXPRESSION_TYPE_STRING_LITERAL:
+						delete[](char*)child.s;
+						break;
+					default:
+						child.s->Free();
+						break;
+					}
 				}
 			}
 		}
@@ -179,7 +188,7 @@ namespace
 
 		const ISExpression& GetElement(int index) const override
 		{
-			return *children[index];
+			return *children[index].s;
 		}
 
 		int GetIndexOf(cr_sex s) const override
@@ -215,13 +224,13 @@ namespace
 		{
 			auto* eb = new ExpressionBuilder(this);
 			eb->parent = this;
-			children.push_back(eb);
+			children.push_back({ eb, false });
 			return eb;
 		}
 
 		void AddRef(cr_sex s) override
 		{
-			children.push_back(const_cast<ISExpression*>(&s));
+			children.push_back({ const_cast<ISExpression*>(&s), true });
 		}
 
 		ISExpressionBuilder* InsertChildAfter(int index) override
@@ -246,7 +255,7 @@ namespace
 			auto* eb = new ExpressionBuilder(this);
 			eb->parent = this;
 
-			children.insert(i, eb);
+			children.insert(i, { eb, false });
 
 			return eb;
 		}
@@ -260,7 +269,7 @@ namespace
 			leaf->text.Length = (int32)len;
 			memcpy(leaf->text.Buffer, text, len);
 			leaf->text.Buffer[len] = 0;
-			children.push_back(leaf);
+			children.push_back({ leaf, false });
 		}
 
 		void AddAtomic(cstr text) override
@@ -425,7 +434,7 @@ namespace Rococo
 	{
 		IExpressionTransform* CreateExpressionTransform(cr_sex src)
 		{
-			return new ExpressionTransform(src);
+			return new ANON::ExpressionTransform(src);
 		}
 	} // Sex
 } // Rococo

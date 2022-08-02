@@ -950,8 +950,8 @@ namespace Rococo
 			callbacks.idIsSameObject = core.RegisterCallback(OnInvokeIsSameObject, this, "IsSameObject");
 			callbacks.idIsDifferentObject = core.RegisterCallback(OnInvokeIsDifferentObject, this, "IsDifferentObject");
 			callbacks.idStringIndexToChar = core.RegisterCallback(OnInvokeStringIndexToChar, this, "StringIndexToChar");
-			callbacks.idTransformAt_D4retIExpressionBuilderD7 = core.RegisterCallback(OnInvokeTransformAt_D4D5retD7, this, "TransformAt");
-			callbacks.idTransformParent_D4retIExpressionBuilderD7 = core.RegisterCallback(OnInvokeTransformParent_D4retD7, this, "TransformParent");
+			callbacks.idTransformAt_D4D5D7retIExpressionBuilderD7 = core.RegisterCallback(OnInvokeTransformAt_D4D5D7retD7, this, "TransformAt");
+			callbacks.idTransformParent_D4D5retIExpressionBuilderD7 = core.RegisterCallback(OnInvokeTransformParent_D4D5retD7, this, "TransformParent");
 			methodMap[("Capacity")] = ("_elementCapacity");
 			methodMap[("Length")] = ("_length");
 			serializeId = core.RegisterCallback(OnInvokeSerialize, this, "serialize");
