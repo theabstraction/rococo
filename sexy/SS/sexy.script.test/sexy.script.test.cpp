@@ -3525,58 +3525,58 @@ R"((namespace EntryPoint)
 		cstr srcCode =
 			"(namespace EntryPoint)"
 			"(function Main -> (Int32 result):"
-			""	
+			""
 			"    (EntryPoint.IPlayer player)"
 			"    (player.GetId -> result)"
-			")"				
+			")"
 			"(alias Main EntryPoint.Main)"
 
-			"(interface EntryPoint.IPlayer"			
+			"(interface EntryPoint.IPlayer"
 			"    (GetId -> (Int32 value))"
 			")";
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 },"TestNullObject");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, "TestNullObject");
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
-		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());	
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
 
-      AutoFree<VM::IDisassembler> dis ( vm.Core().CreateDisassembler() );
+		AutoFree<VM::IDisassembler> dis(vm.Core().CreateDisassembler());
 
-      struct ANON : public VM::ITraceOutput
-      {
-         IPublicScriptSystem* ss;
-         VM::IDisassembler* dis;
-		 VM::IVirtualMachine& vm;
-		 ANON(VM::IVirtualMachine& _vm) : vm(_vm) {}
+		struct ANON : public VM::ITraceOutput
+		{
+			IPublicScriptSystem* ss;
+			VM::IDisassembler* dis;
+			VM::IVirtualMachine& vm;
+			ANON(VM::IVirtualMachine& _vm) : vm(_vm) {}
 
-         virtual void Report()
-         {
-            VM::IDisassembler::Rep rep;
-            dis->Disassemble(vm.Cpu().PC(), rep);
+			virtual void Report()
+			{
+				VM::IDisassembler::Rep rep;
+				dis->Disassemble(vm.Cpu().PC(), rep);
 
-            auto id = ss->PublicProgramObject().ProgramMemory().GetFunctionContaingAddress(vm.Cpu().PC() - vm.Cpu().ProgramStart);
-            auto* f = GetFunctionFromBytecode(ss->PublicProgramObject(), id);
+				auto id = ss->PublicProgramObject().ProgramMemory().GetFunctionContaingAddress(vm.Cpu().PC() - vm.Cpu().ProgramStart);
+				auto* f = GetFunctionFromBytecode(ss->PublicProgramObject(), id);
 
-            if (f)
-            {
-               printf("[ %s ] %s: %s\n", f->Name(), rep.OpcodeText, rep.ArgText);
-            }
-            else
-            {
-               printf("[ ] %s: %s\n", rep.OpcodeText, rep.ArgText);
-            }
+				if (f)
+				{
+					printf("[ %s ] %s: %s\n", f->Name(), rep.OpcodeText, rep.ArgText);
+				}
+				else
+				{
+					printf("[ ] %s: %s\n", rep.OpcodeText, rep.ArgText);
+				}
 
-			auto* D = vm.Cpu().D;
-            printf("PC:%16.16llx SP:%16.16llx SF:%16.16llx D4:%16.16llx D5:%16.16llx D6:%16.16llx D7:%16.16llx D8:%16.16llx\n", D[0].uint64Value, D[1].uint64Value, D[2].uint64Value, D[4].uint64Value, D[5].uint64Value, D[6].uint64Value, D[7].uint64Value, D[8].uint64Value);
-         }
-      } tracer(vm);
+				auto* D = vm.Cpu().D;
+				printf("PC:%16.16llx SP:%16.16llx SF:%16.16llx D4:%16.16llx D5:%16.16llx D6:%16.16llx D7:%16.16llx D8:%16.16llx\n", D[0].uint64Value, D[1].uint64Value, D[2].uint64Value, D[4].uint64Value, D[5].uint64Value, D[6].uint64Value, D[7].uint64Value, D[8].uint64Value);
+			}
+		} tracer(vm);
 
-      tracer.dis = dis;
-      tracer.ss = &ss;
+		tracer.dis = dis;
+		tracer.ss = &ss;
 
 		vm.Push(0); // Allocate stack space for the int32 result
 		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
-      
+
 		ValidateExecution(result);
 		int32 x = vm.PopInt32();
 		validate(x == 0);
@@ -5568,6 +5568,31 @@ R"((namespace EntryPoint)
 
 		int x = vm.PopInt32();
 		validate(x == 9);
+	}
+
+	void TestMacroSiblings2(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Type)"
+
+			"(function Main -> (Int32 result):"
+			"	(#string welcome 64 \"Hello World\")"
+			"	(Sys.Print welcome)"
+			")"
+			;
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
 	}
 
 	void TestCoroutine1(IPublicScriptSystem& ss)
@@ -14669,6 +14694,7 @@ R"(
 		validate(true);
 
 		TEST(TestMacroSiblings);
+		//TEST(TestMacroSiblings2);
 
 		TEST(TestPartialCompiles);
 
@@ -15031,6 +15057,9 @@ R"(
 		start = OS::CpuTicks();
 
 		// Note: test 'macro siblings' inside try..catch..finally blocks, while and do...while expressions
+		//TEST(TestMacroSiblings2);
+
+		//return;
 
 		TEST(TestStartsWith);
 		TEST(TestMap2);
@@ -15053,8 +15082,8 @@ R"(
 
 int main(int argc, char* argv[])
 {
-	// Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
-	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_None);
+	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
+//	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_None);
 
 	// _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF | _CRTDBG_CHECK_ALWAYS_DF);
 

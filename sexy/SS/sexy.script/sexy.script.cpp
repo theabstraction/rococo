@@ -843,6 +843,19 @@ namespace Rococo
 					AddNativeLibrary(useDebug ? "sexy.nativelib.coroutines.debug" : "sexy.nativelib.coroutines");
 				}
 			}
+			catch (ParseException& ex)
+			{
+				char msg[2048];
+				SafeFormat(msg, "Sexy: Error reading native files %ls\n", srcEnvironment.buf);
+				_logger.Write(msg);
+
+				SafeFormat(msg, "Mesage: %d\n", ex.Message());
+				SafeFormat(msg, "%s (%d,%d) to (%d,%d)\n", ex.Name(), ex.Start().x, ex.Start().y, ex.End().x, ex.End().y);
+				_logger.Write(msg);
+
+				delete scripts;
+				throw;
+			}
 			catch (IException& ex)
 			{
 				char msg[2048];

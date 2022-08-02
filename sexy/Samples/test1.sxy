@@ -1,13 +1,9 @@
-(struct ListInt32
-	(list Int32 elements)
-)
-
 (namespace EntryPoint)
 	(alias Main EntryPoint.Main)
 
+(using Sys.Type)
+
 (function Main -> (Int32 result):
-	(ListInt32 a)
-	(if  (a.elements.Length == 0) 
-		(result = 7)
-	)
+	(#string welcome 64 "Hello World")
+	(Sys.Print welcome)
 )
