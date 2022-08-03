@@ -20,6 +20,8 @@ using namespace Rococo::Compiler;
 
 #include <rococo.api.h>
 
+#include <vector>
+
 namespace
 {  
 	inline void WriteLineToStandardOutput(const char* text) { puts(text); }
@@ -45,10 +47,17 @@ namespace
 			m_log = fnLog;
 		}
 
-		void PopLastException(ParseException& ex)
+		bool PopLastException(ParseException& ex)
 		{
-			ex = lastException;
-			lastException = ParseException();
+			if (exceptions.empty())
+			{
+				return false;
+			}
+
+			ex = exceptions.back();
+			exceptions.pop_back();
+
+			return true;
 		}
 
 		virtual void Write(cstr message)
@@ -65,10 +74,10 @@ namespace
 
 		void OnJITCompileException(Sex::ParseException& ex)
 		{
-			lastException = ex;
+			exceptions.push_back(ex);
 		}
 
-		ParseException lastException;
+		std::vector<ParseException> exceptions;
 	};
 
 	IScriptSystem* ToSS(IntPtr s) { return (IScriptSystem*) s.ToPointer(); }
@@ -134,15 +143,22 @@ namespace SexyDotNet { namespace Host
 	public ref class CompileError: public System::Exception
 	{
 	public:
+		property CompileError^ Predecessor;
 		property String^ SourceFile;
 		property SourceLocation Start;
 		property SourceLocation End;
 
-		CompileError(String^ srcFile, String^ message, SourceLocation start, SourceLocation end): Exception(message)
+		CompileError(CompileError^ predecessor, String^ srcFile, String^ message, SourceLocation start, SourceLocation end): Exception(message)
 		{
+			Predecessor = predecessor;
 			SourceFile = srcFile;
 			Start = start;
 			End = end;
+		}
+
+		CompileError^ GetPredecessor()
+		{
+			return Predecessor;
 		}
 
 		virtual String^ ToString() override

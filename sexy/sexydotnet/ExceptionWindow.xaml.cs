@@ -32,7 +32,13 @@ namespace SexyDotNet
 
         public void SetException(SexyDotNet.Host.CompileError ex)
         {
-            textMessage.Text = string.Format("{0}. line {1} pos {2} of {3}", ex.Message, ex.Start.Line, ex.Start.Pos, ex.SourceFile);
+            textMessage.Text = String.Empty;
+
+            for (SexyDotNet.Host.CompileError i = ex; i != null; i = i.GetPredecessor())
+            {
+                textMessage.Text += string.Format("{0}. line {1} pos {2} to line {3} pos {4} of {5}\n", i.Message, i.Start.Line, i.Start.Pos, i.End.Line, i.End.Pos, i.SourceFile);
+            }
+            
             textType.Text = ex.GetType().FullName;
             textStackTrace.Text = Exceptions.Format(ex);
         }

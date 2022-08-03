@@ -611,6 +611,8 @@ namespace Anon
 				Advance();
 				stepCallback->OnStep(*this);
 			}
+
+			if (status == EXECUTERESULT_RUNNING) status = EXECUTERESULT_RETURNED;
 		}
 
 		virtual EXECUTERESULT ExecuteFunctionProtected(ID_BYTECODE codeId) override

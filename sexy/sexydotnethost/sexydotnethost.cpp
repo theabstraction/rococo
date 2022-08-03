@@ -73,16 +73,13 @@ namespace SexyDotNet { namespace Host
 		{
 			cstr s = e.Message();
 			cstr n = e.Name();
-#ifdef char_IS_WIDE
-			String^ msg = gcnew String(s);				
-			String^ name = gcnew String(n);
-#else
+
 			String^ msg = gcnew String(s, 0, StringLength(s), Encoding::ASCII);				
 			String^ name = gcnew String(n, 0, StringLength(n), Encoding::ASCII);
-#endif
+
 			SourceLocation start = SourceLocation(e.Start().x,e.Start().y);
 			SourceLocation end = SourceLocation(e.End().x,e.End().y);
-			throw gcnew CompileError(name, msg, start, end);
+			throw gcnew CompileError(nullptr, name, msg, start, end);
 		}
 	}
 
@@ -97,22 +94,22 @@ namespace SexyDotNet { namespace Host
 			const INamespace* ns = po.GetRootNamespace().FindSubspace(("EntryPoint"));
 			if(ns == NULL)
 			{
-				throw gcnew CompileError("<All source modules>", "Could not find the EntryPoint namespace in the source modules. Execution aborted", SourceLocation(0,0), SourceLocation(0,0));
+				throw gcnew CompileError(nullptr, "<All source modules>", "Could not find the EntryPoint namespace in the source modules. Execution aborted", SourceLocation(0,0), SourceLocation(0,0));
 			}
 
 			const IFunction* f = ns->FindFunction(("Main"));
 			if (f == NULL)
 			{
-				throw gcnew CompileError("<All source modules>", "Could not find the EntryPoint.Main function in the source modules. Execution aborted", SourceLocation(0,0), SourceLocation(0,0));
+				throw gcnew CompileError(nullptr, "<All source modules>", "Could not find the EntryPoint.Main function in the source modules. Execution aborted", SourceLocation(0,0), SourceLocation(0,0));
 			}
 
 			po.SetProgramAndEntryPoint(*f);
 			
 			IVirtualMachine& vm = po.VirtualMachine();
 
-			CStepCallback* sc = (CStepCallback*) stepCallbackHandle.ToPointer();
+			//CStepCallback* sc = (CStepCallback*) stepCallbackHandle.ToPointer();
 
-			vm.SetStepCallback(sc);
+			//vm.SetStepCallback(sc);
 
 			vm.Push(0); // Push space for 32-bit exit code
 
@@ -126,6 +123,10 @@ namespace SexyDotNet { namespace Host
 
 			ThrowOnCompileError();
 
+			CStepCallback* sc = (CStepCallback*)stepCallbackHandle.ToPointer();
+
+			vm.SetStepCallback(sc);
+
 		//	Disassemble();
 
 		//	UpdateDisassembly();
@@ -136,29 +137,25 @@ namespace SexyDotNet { namespace Host
 	{
 		CLogger* logger = (CLogger*) logHandle.ToPointer();
 
+		CompileError^ predecessor = nullptr;
+
 		ParseException ex;
-		logger->PopLastException(OUT ex);
-
-		if (IsException(ex))
+		while (logger->PopLastException(OUT ex))
 		{
-			cstr s = ex.Message();
+			if (IsException(ex))
+			{
+				String^ msg = gcnew String(ex.Message(), 0, StringLength(ex.Message()), Encoding::ASCII);
+				String^ src = gcnew String(ex.Name(), 0, StringLength(ex.Name()), Encoding::ASCII);
 
-#ifdef char_IS_WIDE
-			String^ msg = gcnew String(s);
-#else
-			String^ msg = gcnew String(s, 0, StringLength(s), IsSexUnicode ? Encoding::Unicode : Encoding::ASCII);
-#endif
-				
-			cstr t = ex.Name();
-#ifdef char_IS_WIDE
-			String^ src = gcnew String(t);
-#else
-			String^ src = gcnew String(t, 0, StringLength(t), IsSexUnicode ? Encoding::Unicode : Encoding::ASCII);
-#endif
+				SourceLocation start = SourceLocation(ex.Start().x, ex.Start().y);
+				SourceLocation end = SourceLocation(ex.End().x, ex.End().y);
+				predecessor = gcnew CompileError(predecessor, src, msg, start, end);
+			}
+		}
 
-			SourceLocation start = SourceLocation(ex.Start().x,ex.Start().y);
-			SourceLocation end = SourceLocation(ex.End().x,ex.End().y);
-			throw gcnew CompileError(src, msg, start, end);
+		if (predecessor != nullptr)
+		{
+			throw predecessor;
 		}
 	}
 
@@ -183,7 +180,7 @@ namespace SexyDotNet { namespace Host
 		}
 		else
 		{
-			throw gcnew CompileError("<All source modules>", "Execution failed. EXECUTERESULT=" + iResult, SourceLocation(0,0), SourceLocation(0,0));
+			throw gcnew CompileError(nullptr, "<All source modules>", "Execution failed. EXECUTERESULT=" + iResult, SourceLocation(0,0), SourceLocation(0,0));
 		}
 	}
 
@@ -243,7 +240,7 @@ namespace SexyDotNet { namespace Host
 		if (input->Length > (int64) HostLimits::MAX_SOURCE_FILE_KILOBYTES * 1024)
 		{
 			delete input;
-			throw gcnew CompileError(moduleFullPath, "The file length of the module exceeded that as HostLimits::MAX_SOURCE_FILE_KILOBYTES", SourceLocation(0,0), SourceLocation(0,0));
+			throw gcnew CompileError(nullptr, moduleFullPath, "The file length of the module exceeded that as HostLimits::MAX_SOURCE_FILE_KILOBYTES", SourceLocation(0,0), SourceLocation(0,0));
 		}
 
 		int32 fileLength = (int32) input->Length;
@@ -251,7 +248,7 @@ namespace SexyDotNet { namespace Host
 		if (fileLength == 0)
 		{
 			delete input;
-			throw gcnew CompileError(moduleFullPath, "The module was zero length", SourceLocation(0,0), SourceLocation(0,0));
+			throw gcnew CompileError(nullptr, moduleFullPath, "The module was zero length", SourceLocation(0,0), SourceLocation(0,0));
 		}
 
 		array<Byte>^ inputBuffer = gcnew array<Byte>(fileLength); 
@@ -313,7 +310,7 @@ namespace SexyDotNet { namespace Host
 
 			SourceLocation start = SourceLocation(e.Start().x,e.Start().y);
 			SourceLocation end = SourceLocation(e.End().x,e.End().y);
-			throw gcnew CompileError(moduleFullPath, msg, start, end);
+			throw gcnew CompileError(nullptr, moduleFullPath, msg, start, end);
 		}
 
 		if (sourceModules->Count == 0)
@@ -931,6 +928,7 @@ namespace SexyDotNet { namespace Host
 	{
 		int stepIndex = nextStepIndex;
 
+		// Route messages will allow the UI to handle StepNext etc, which advances nextStepIndex
 		while(stepIndex == nextStepIndex)
 		{
 			if (!routeMessages())

@@ -12,7 +12,7 @@
         </ScrollViewer>
         <StackPanel Grid.Row="1" HorizontalAlignment="Stretch" Margin="2,2,2,2" Name="stackPanel1" VerticalAlignment="Stretch" Background="#FFE6FFE6">
             <TextBlock Height="23" Name="textType" Text="TextBlock" />
-            <TextBlock Height="23" Name="textMessage" Text="TextBlock" />
+            <TextBox MaxHeight="100" Name="textMessage" Text="TextBox" IsReadOnly="True" AcceptsReturn="True" ScrollViewer.VerticalScrollBarVisibility="Auto" TextWrapping ="Wrap"/>
             <Button Content="Copy To Clipboard" Height="23" Name="buttonCopy" Width="125" Click="buttonCopy_Click"/>
         </StackPanel>
     </Grid>

@@ -115,13 +115,11 @@
 		(parent.IndexOf in -> outIndex)
 		
 		(IStringBuilder logOutput = (NewStringBuilder 1024))
-		(#build logOutput "outIndex: " outIndex "&n")
-		(Sys.Print logOutput)
 		
 		(IExpressionBuilder builderSequence = (parent.InsertCompoundAfter outIndex))
 		
-		(#for (Int32 i = 3) (i < in.ChildCount) (i += 1)
-			(IExpression argI = (in i))
+		(#for (Int32 j = 3) (j < in.ChildCount) (j += 1)
+			(IExpression argI = (in j))
 			
 			(Sys.Print "*")
 			(Sys.Print argI.Text)
