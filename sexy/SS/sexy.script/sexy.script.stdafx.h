@@ -118,6 +118,7 @@ namespace Rococo
          const IStructure* arrayStruct;
          const IStructure* listStruct;
          const IStructure* mapStruct;
+         const IStructure* expressionInterface;
          const IStructure* expressionBuilderInterface;
          const TMapMethodToMember& methodMap;
 
@@ -132,6 +133,7 @@ namespace Rococo
          CCompileEnvironment(CScript& script, ICodeBuilder& builder, const IFactory* factory = nullptr);
 
          const IStructure& StructArray();
+         const IStructure& StructExpressionInterface();
          const IStructure& StructExpressionBuilderInterface();
          const IStructure& StructList();
          const IStructure& StructMap();
@@ -300,7 +302,6 @@ namespace Rococo
          TMapNameToNodeDef mapNameToNodeDef;
          TMapNameToMapDef mapNameToMapDef;
          TMapNameToMapNodeDef mapNameToMapNodeDef;
-		 TTransformMap mapExpressionToTransform;
 
       public:
          CScript(ISParserTree& _tree, IProgramObject& _programObject, CScripts& _scripts);
@@ -316,9 +317,6 @@ namespace Rococo
          void AddMapDef(ICodeBuilder& builder, cstr name, const IStructure& keyType, const IStructure& valueType, cr_sex s);
          void AddMapNodeDef(ICodeBuilder& builder, const MapDef& mapDef, cstr mapName, cstr nodeName, cr_sex s);
          void AddNodeDef(ICodeBuilder& builder, cstr nodeName, const IStructure& elementType, cr_sex s);
-		 ISExpressionBuilder* CreateMacroTransform(cr_sex src);
-         ISExpressionBuilder* CreateMacroTransformClonedFromParent(cr_sex sChild);
-		 const ISExpression* GetTransform(cr_sex src);
 
          const bool IsIStringInlined() const;
 

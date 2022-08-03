@@ -711,7 +711,7 @@ namespace Rococo
 					{
 						if (TryCompileMacroInvocation(ce, s, firstItem.String()))
 						{
-							const ISExpression* transform = ce.Script.GetTransform(s);
+							const ISExpression* transform = ce.SS.GetTransform(s);
 							if (transform != NULL)
 							{
 								return TryCompileAssignArchetype(ce, *transform, type, allowClosures);
@@ -867,7 +867,7 @@ namespace Rococo
 					{
 						if (TryCompileMacroInvocation(ce, s, firstItem.String()))
 						{
-							const ISExpression* transform = ce.Script.GetTransform(s);
+							const ISExpression* transform = ce.SS.GetTransform(s);
 							if (transform != NULL)
 							{
 								return TryCompileArithmeticExpression(ce, *transform, expected, type);

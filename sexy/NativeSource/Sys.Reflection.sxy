@@ -56,8 +56,8 @@
 	(Sys.Reflection.Native.ExpressionBuilderAddCopyToString this.builderPtr s.Handle)
 )
 
-(method ExpressionBuilder.IndexOf (IExpression s) -> (Int32 index):
-	(Sys.Reflection.Native.ExpressionGetIndexOf this.builderPtr s.Handle)
+(method ExpressionBuilder.IndexOf (IExpression child) -> (Int32 index):
+	(Sys.Reflection.Native.ExpressionIndexOf this.builderPtr child.Handle -> index)
 )
 
 (method ExpressionBuilder.AddAtomic (IString s) -> :
@@ -87,7 +87,7 @@
 )
 
 (method Expression.IndexOf (IExpression child)->(Int32 index):
-	(Sys.Reflection.Native.ExpressionGetIndexOf this.exprPtr child -> index)
+	(Sys.Reflection.Native.ExpressionIndexOf this.exprPtr child.Handle -> index)
 )
 
 (method Expression.Parent -> (IExpression parent) :

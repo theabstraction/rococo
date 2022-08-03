@@ -774,6 +774,7 @@ namespace Rococo
 		TMapNameToSTree& nativeSources;
 		int nextId;
 
+		TTransformMap mapExpressionToTransform;
 	public:
 		CScriptSystem(
 			TMapNameToSTree& _nativeSources, 
@@ -963,11 +964,69 @@ namespace Rococo
 			callbacks.idIsSameObject = core.RegisterCallback(OnInvokeIsSameObject, this, "IsSameObject");
 			callbacks.idIsDifferentObject = core.RegisterCallback(OnInvokeIsDifferentObject, this, "IsDifferentObject");
 			callbacks.idStringIndexToChar = core.RegisterCallback(OnInvokeStringIndexToChar, this, "StringIndexToChar");
-			callbacks.idTransformAt_D4D5D7retIExpressionBuilderD7 = core.RegisterCallback(OnInvokeTransformAt_D4D5D7retD7, this, "TransformAt");
-			callbacks.idTransformParent_D4D5retIExpressionBuilderD7 = core.RegisterCallback(OnInvokeTransformParent_D4D5retD7, this, "TransformParent");
+			callbacks.idTransformAt_D4D5retIExpressionBuilderD7 = core.RegisterCallback(OnInvokeTransformAt_D4D5retD7, this, "TransformAt");
+			callbacks.idTransformParent_D4retIExpressionBuilderD7 = core.RegisterCallback(OnInvokeTransformParent_D4retD7, this, "TransformParent");
 			methodMap[("Capacity")] = ("_elementCapacity");
 			methodMap[("Length")] = ("_length");
 			serializeId = core.RegisterCallback(OnInvokeSerialize, this, "serialize");
+		}
+
+		ISExpressionBuilder* CreateMacroTransform(cr_sex src) override
+		{
+			auto i = mapExpressionToTransform.find(&src);
+			if (i != mapExpressionToTransform.end())
+			{
+				return &i->second.transform->Root();
+			}
+			else
+			{
+				TransformData td;
+				td.transform = Rococo::Sex::CreateExpressionTransform(src);
+				mapExpressionToTransform[&src] = td;
+				return &td.transform->Root();
+			}
+		}
+
+		ISExpressionBuilder* CreateMacroTransformClonedFromParent(cr_sex sChild) override
+		{
+			auto* pParent = sChild.Parent();
+			if (pParent == nullptr)
+			{
+				Throw(sChild, "%s: expression has no parent", __FUNCTION__);
+			}
+
+			cr_sex sParent = *pParent;
+
+			const ISExpression* sTParent = GetTransform(sParent);
+			if (!sTParent)
+			{
+				ISExpressionBuilder* sParentTransform = CreateMacroTransform(sParent);
+
+				for (int i = 0; i < sParent.NumberOfElements(); ++i)
+				{
+					auto& sElement = sParent[i];
+
+					const ISExpression* sTElement = GetTransform(sElement);
+					if (sTElement)
+					{
+						sParentTransform->AddRef(*sTElement);
+					}
+					else
+					{
+						sParentTransform->AddRef(sElement);
+					}
+				}
+
+				return sParentTransform;
+			}
+
+			return (ISExpressionBuilder*)sTParent;
+		}
+
+		const ISExpression* GetTransform(cr_sex src) override
+		{
+			auto i = mapExpressionToTransform.find(&src);
+			return i == mapExpressionToTransform.end() ? nullptr : &i->second.transform->Root();
 		}
 
 		const ScriptCallbacks& GetScriptCallbacks() override
@@ -1946,6 +2005,13 @@ namespace Rococo
 
 			symbols.clear();
 
+			for (auto& t : mapExpressionToTransform)
+			{
+				t.second.transform->Free();
+			}
+
+			mapExpressionToTransform.clear();
+
 			scripts->ExceptionLogic().Clear();
 			progObjProxy->GetRootNamespace().Clear();
 			progObjProxy->ClearCustomAllocators();
@@ -2176,7 +2242,7 @@ namespace Rococo
 					throw;
 				}
 
-				src.Src = sexParserProxy().DuplicateSourceBuffer(sourceBuffer.data(), -1, Vec2i{ 0,0 }, sexySourceFile);
+				src.Src = sexParserProxy().DuplicateSourceBuffer(sourceBuffer.data(), -1, Vec2i{ 1,1 }, sexySourceFile);
 				src.Tree = sexParserProxy().CreateTree(*src.Src);
 
 				nativeSources.insert(std::make_pair(sexySourceFile, src.Tree));
@@ -2238,6 +2304,13 @@ namespace Rococo
 
 	CScriptSystem::~CScriptSystem()
 	{
+		for (auto& t : mapExpressionToTransform)
+		{
+			t.second.transform->Free();
+		}
+
+		mapExpressionToTransform.clear();
+
 		for (auto i = nativeCalls.begin(); i != nativeCalls.end(); ++i)
 		{
 			NativeFunction* nf = i->second;
@@ -2300,6 +2373,21 @@ namespace Rococo
 		return *arrayStruct;
 	}
 
+	const IStructure& CCompileEnvironment::StructExpressionInterface()
+	{
+		if (expressionInterface == NULL)
+		{
+			enum { MODULE_REFLECTION = 3 };
+			expressionInterface = Object.GetModule(MODULE_REFLECTION).FindStructure("_Null_Sys_Reflection_IExpression");
+			if (!expressionInterface)
+			{
+				Throw(0, "Object.GetModule(MODULE_REFLECTION).FindStructure('_Null_Sys_Reflection_IExpression') returned nullptr");
+			}
+		}
+
+		return *expressionInterface;
+	}
+
 	const IStructure& CCompileEnvironment::StructExpressionBuilderInterface()
 	{
 		if (expressionBuilderInterface == NULL)
@@ -2336,7 +2424,12 @@ namespace Rococo
 	}
 	
 	CCompileEnvironment::CCompileEnvironment(CScript& script, ICodeBuilder& builder, const IFactory* _factory):
-		Builder(builder), Script(script), arrayStruct(NULL), listStruct(NULL), mapStruct(NULL), expressionBuilderInterface(NULL), factory(_factory),
+		Builder(builder), Script(script),
+		arrayStruct(NULL), listStruct(NULL),
+		mapStruct(NULL),
+		expressionBuilderInterface(NULL),
+		expressionInterface(NULL),
+		factory(_factory),
 		RootNS(script.Object().GetRootNamespace()),
 		methodMap(*(const TMapMethodToMember*) script.System().GetMethodMap()),
 		SS(script.System()),

@@ -1,9 +1,18 @@
 (namespace EntryPoint)
-	(alias Main EntryPoint.Main)
+ (alias Main EntryPoint.Main)
 
 (using Sys.Type)
+(using Sys.Reflection)
 
 (function Main -> (Int32 result):
-	(#string welcome 64 "Hello World")
-	(Sys.Print welcome)
+	(IExpression s = '(cheese oranges (#paragraph 1024 apples pears) onion bikes))
+	(IExpression sOranges = (s 1))
+	(IExpressionBuilder sBuilder = sOranges.TransformParent)
+
+	(Int32 index)
+	(sBuilder.IndexOf sOranges -> index)
+
+	//(IExpressionBuilder builderSequence = (sBuilder.InsertCompoundAfter index))
+
+	(result = index)
 )

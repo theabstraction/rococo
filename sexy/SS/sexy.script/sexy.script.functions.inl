@@ -1299,14 +1299,9 @@ namespace Rococo
 
 		bool TryCompileExpressionBuilderCallAndReturnValue(CCompileEnvironment& ce, cr_sex s, cstr instance, cstr methodName, const IStructure* returnTypeStruct, const IStructure& instanceStruct)
 		{
-			if (instanceStruct != ce.StructExpressionBuilderInterface())
-			{
-				return false;
-			}
-
 			if (AreEqual(methodName, "TransformParent"))
 			{
-				if (!returnTypeStruct || *returnTypeStruct != ce.StructExpressionBuilderInterface())
+				if (!returnTypeStruct || (*returnTypeStruct != ce.StructExpressionBuilderInterface() && *returnTypeStruct != ce.StructExpressionInterface()))
 				{
 					Throw(s, "(%s.TransformParent) may only be used to assign to an IExpressionBuilder interface", instance);
 				}
@@ -1319,12 +1314,7 @@ namespace Rococo
 				AddSymbol(ce.Builder, "%s -> D4", instance);
 				ce.Builder.AssignVariableToTemp(instance, 0, 0); // Reference to the interface goes to D4
 
-				AddSymbol(ce.Builder, "Script %s -> D5", ce.Script.ProgramModule().Name());
-
-				VariantValue scriptPtr;
-				scriptPtr.vPtrValue = &ce.Script;
-				ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D5, scriptPtr, BITCOUNT_POINTER);
-				AppendInvoke(ce, ce.SS.GetScriptCallbacks().idTransformParent_D4D5retIExpressionBuilderD7, s); // output is now D7
+				AppendInvoke(ce, ce.SS.GetScriptCallbacks().idTransformParent_D4retIExpressionBuilderD7, s); // output is now D7
 				return true;
 			}
 
@@ -1368,7 +1358,7 @@ namespace Rococo
 				scriptPtr.vPtrValue = &ce.Script;
 				ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7, scriptPtr, BITCOUNT_POINTER); // script goes to D7
 
-				AppendInvoke(ce, ce.SS.GetScriptCallbacks().idTransformAt_D4D5D7retIExpressionBuilderD7, s); // output is now D7
+				AppendInvoke(ce, ce.SS.GetScriptCallbacks().idTransformAt_D4D5retIExpressionBuilderD7, s); // output is now D7
 				return true;
 			}
 

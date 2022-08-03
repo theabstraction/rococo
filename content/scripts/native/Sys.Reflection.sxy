@@ -24,8 +24,10 @@
 	(AddAtomic (IString s) ->)
 	(AddCompound -> (IExpressionBuilder child))
 	(Copy (IExpression s) ->)
-	(CopyString (IExpression input) -> )
-	(Substitute (IExpression input) (IExpression format) ->)
+	(CopyString (IExpression s) -> )
+	(IndexOf (IExpression s) -> (Int32 index))
+	(InsertCompoundAfter (Int32 index) -> (IExpressionBuilder child))
+	(Substitute (IExpression s) (IExpression format) ->)
 )
 
 (class Expression
@@ -54,8 +56,16 @@
 	(Sys.Reflection.Native.ExpressionBuilderAddCopyToString this.builderPtr s.Handle)
 )
 
+(method ExpressionBuilder.IndexOf (IExpression child) -> (Int32 index):
+	(Sys.Reflection.Native.ExpressionIndexOf this.builderPtr child.Handle -> index)
+)
+
 (method ExpressionBuilder.AddAtomic (IString s) -> :
 	(Sys.Reflection.Native.ExpressionBuilderAddAtomic this.builderPtr s.Buffer)
+)
+
+(method ExpressionBuilder.InsertCompoundAfter (Int32 index) -> (IExpressionBuilder child) :
+	(Sys.Reflection.Native.ExpressionBuilderInsertCompoundAfter this.builderPtr index -> child)
 )
 
 (method ExpressionBuilder.Substitute (IExpression input) (IExpression format) -> :
@@ -77,7 +87,7 @@
 )
 
 (method Expression.IndexOf (IExpression child)->(Int32 index):
-	(Sys.Reflection.Native.ExpressionGetIndexOf this.exprPtr child -> index)
+	(Sys.Reflection.Native.ExpressionIndexOf this.exprPtr child.Handle -> index)
 )
 
 (method Expression.Parent -> (IExpression parent) :

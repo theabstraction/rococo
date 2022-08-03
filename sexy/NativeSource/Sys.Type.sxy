@@ -92,15 +92,19 @@
 // Example (#build s 1 2 3 4) maps to (s 1)(s 2)(s 3)(s 4), used with such as stringbuilders and serializers
 (macro Sys.Type.build in out
 	(ValidateSubscriptRange in.ChildCount 3 1000000 "Usage: (##build <variable-name> <arg1> ... <argN>)")
-	(#for (Int32 i = 2) (i < in.ChildCount) (i += 1)
+	(ConvertArgsToExpressionPairs in (in 1) out 2)
+)
+
+// Scans the trailing arguments of an expression (... arg1 arg2 .. argN) and appends (lhs arg1)(lhs arg2)...(lhs argN) to the output
+(function ConvertArgsToExpressionPairs (IExpression in)(IExpression lhs)(IExpressionBuilder out)(Int32 startIndex)-> :
+	(#for (Int32 i = startIndex) (i < in.ChildCount) (i += 1)
 		(IExpressionBuilder child = out.AddCompound)
-		(child.Copy (in 1))
+		(child.Copy lhs)
 		(child.Copy (in i))
 	)
 )
 
-// Example (#string sb 64 a b c d) maps to (IStringBuilder sb = (NewStringBuilder 64)) ((sb a)(sb b)(sb c)(sb d)...)
-(macro Sys.Type.string in out
+(function ExpandStringMacro (IExpression in)(IExpressionBuilder out)-> :
 	(ValidateSubscriptRange in.ChildCount 3 1000000 "Usage: (##string <variable-name> <capacity> <arg1> ... <argN>)")
 	(out.AddAtomic "IStringBuilder")
 	(out.Copy (in 1))
@@ -114,22 +118,16 @@
 		(Int32 outIndex)
 		(parent.IndexOf in -> outIndex)
 		
-		(IStringBuilder logOutput = (NewStringBuilder 1024))
-		
-		(IExpressionBuilder builderSequence = (parent.InsertCompoundAfter outIndex))
-		
-		(#for (Int32 j = 3) (j < in.ChildCount) (j += 1)
-			(IExpression argI = (in j))
-			
-			(Sys.Print "*")
-			(Sys.Print argI.Text)
-			(Sys.Print "&n")
-			
-			(IExpressionBuilder child = builderSequence.AddCompound)
-			(child.Copy (in 1))
-			(child.Copy argI)
-		)
+		(IExpressionBuilder builderSequence = (parent.InsertCompoundAfter outIndex))	
+		(ConvertArgsToExpressionPairs in (in 1) builderSequence 3)
 	)
+)
+
+(alias ExpandStringMacro Sys.Type.ExpandStringMacro)
+
+// Example (#string sb 64 a b c d) maps to (IStringBuilder sb = (NewStringBuilder 64)) ((sb a)(sb b)(sb c)(sb d)...)
+(macro Sys.Type.string in out
+	(ExpandStringMacro in out)
 )
 
 (archetype Sys.Type.VoidToVoid -> )

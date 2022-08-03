@@ -74,6 +74,9 @@ namespace Rococo
 		struct ISParser;
 		struct ISParserTree;
 		struct ISExpression;
+		struct ISExpressionBuilder;
+
+		typedef const ISExpression& cr_sex;
 	}
 
 	namespace VM
@@ -439,8 +442,8 @@ namespace Rococo {
 			ID_API_CALLBACK idIsSameObject;
 			ID_API_CALLBACK idIsDifferentObject;
 			ID_API_CALLBACK idStringIndexToChar;
-			ID_API_CALLBACK idTransformAt_D4D5D7retIExpressionBuilderD7;
-			ID_API_CALLBACK idTransformParent_D4D5retIExpressionBuilderD7;
+			ID_API_CALLBACK idTransformAt_D4D5retIExpressionBuilderD7;
+			ID_API_CALLBACK idTransformParent_D4retIExpressionBuilderD7;
 		};
 
 		struct MethodInfo
@@ -466,6 +469,10 @@ namespace Rococo {
 			
 			virtual ID_API_CALLBACK GetIdSerializeCallback() const = 0;
 			virtual ID_API_CALLBACK TryGetRawReflectionCallbackId(cstr functionId) const = 0;
+
+			virtual Rococo::Sex::ISExpressionBuilder* CreateMacroTransform(Rococo::Sex::cr_sex src) = 0;
+			virtual Rococo::Sex::ISExpressionBuilder* CreateMacroTransformClonedFromParent(Rococo::Sex::cr_sex sChild) = 0;
+			virtual const  Rococo::Sex::ISExpression* GetTransform(Rococo::Sex::cr_sex src) = 0;
 		};
 
 		void SetDefaultNativeSourcePath(const wchar_t* pathname);

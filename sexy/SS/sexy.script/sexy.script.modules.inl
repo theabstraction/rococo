@@ -947,7 +947,7 @@ namespace Rococo { namespace Script
 			// As we compile expressions macro expansions may add siblings to the parent
 			// The mechanism involves first cloning the immutable parent expression, then inserting elements after the macro expansion into the transform of the parent
 			// This means as we process each expression we have to watch out for transformations of the parent and changes to the NumberOfElements()
-			const ISExpression* sSourceExpression = ce.Script.GetTransform(sequence);
+			const ISExpression* sSourceExpression = ce.SS.GetTransform(sequence);
 
 			if (sSourceExpression == nullptr)
 			{
@@ -1501,7 +1501,7 @@ namespace Rococo { namespace Script
 		f.Builder().Assembler().Append_Invoke(ss.GetScriptCallbacks().idThrowNullRef);
 	}
 
-	VM_CALLBACK(TransformAt_D4D5D7retD7)
+	VM_CALLBACK(TransformAt_D4D5retD7)
 	{
 		IScriptSystem& ss = *(IScriptSystem*)context;
 		auto* i = (InterfacePointer)registers[4].vPtrValue;
@@ -1527,15 +1527,13 @@ namespace Rococo { namespace Script
 			Throw(0, "TransformAt(%d) bad index. Expression has %d elements", index, original->NumberOfElements());
 		}
 
-		CScript* script = (CScript*)registers[7].vPtrValue;
-
-		auto* builderAtIndex = script->CreateMacroTransform(original->GetElement(index));
+		auto* builderAtIndex = ss.CreateMacroTransform(original->GetElement(index));
 
 		CReflectedClass* childRep = ss.CreateReflectionClass("ExpressionBuilder", (void*)builderAtIndex);
 		registers[7].vPtrValue = &childRep->header.pVTables[0];
 	}
 
-	VM_CALLBACK(TransformParent_D4D5retD7)
+	VM_CALLBACK(TransformParent_D4retD7)
 	{
 		// Evaluate return value of (out.TransformParent). <out> is given in D4, the CScript for the macro expansion is given in D5. Value is returned in D7
 
@@ -1558,12 +1556,10 @@ namespace Rococo { namespace Script
 
 		if (!original)
 		{
-			Throw(s, "Cannot identify original expression");
+			original = &s;
 		}
 
-		CScript* script = (CScript*)registers[5].vPtrValue;
-
-		auto* parentBuilder = script->CreateMacroTransformClonedFromParent(*original);
+		auto* parentBuilder = ss.CreateMacroTransformClonedFromParent(*original);
 
 		CReflectedClass* childRep = ss.CreateReflectionClass("ExpressionBuilder", (void*) parentBuilder);
 		registers[7].vPtrValue = &childRep->header.pVTables[0];
@@ -2474,64 +2470,6 @@ namespace Rococo { namespace Script
       tree.AddRef();
    }
 
-   ISExpressionBuilder* CScript::CreateMacroTransform(cr_sex src)
-   {
-	   auto i = mapExpressionToTransform.find(&src);
-	   if (i != mapExpressionToTransform.end())
-	   {
-		   return &i->second.transform->Root();
-	   }
-	   else
-	   {
-		   TransformData td;
-		   td.transform = Rococo::Sex::CreateExpressionTransform(src);
-		   mapExpressionToTransform[&src] = td;
-		   return &td.transform->Root();
-	   }
-   }
-
-   ISExpressionBuilder* CScript::CreateMacroTransformClonedFromParent(cr_sex sChild)
-   {
-	   auto* pParent = sChild.Parent();
-	   if (pParent == nullptr)
-	   {
-		   Throw(sChild, "%s: expression has no parent", __FUNCTION__);
-	   }
-
-	   cr_sex sParent = *pParent;
-
-	   const ISExpression* sTParent = GetTransform(sParent);
-	   if (!sTParent)
-	   {
-		   ISExpressionBuilder* sParentTransform = CreateMacroTransform(sParent);
-
-		   for (int i = 0; i < sParent.NumberOfElements(); ++i)
-		   {
-			   auto& sElement = sParent[i];
-
-			   const ISExpression* sTElement = GetTransform(sElement);
-			   if (sTElement)
-			   {
-				   sParentTransform->AddRef(*sTElement);
-			   }
-			   else
-			   {
-				   sParentTransform->AddRef(sElement);
-			   }
-		   }
-
-		   return sParentTransform;
-	   }
-
-	   return (ISExpressionBuilder*) sTParent;
-   }
-
-   const ISExpression* CScript::GetTransform(cr_sex src)
-   {
-	   auto i = mapExpressionToTransform.find(&src);
-	   return i == mapExpressionToTransform.end() ? nullptr : &i->second.transform->Root();
-   }
-
    GlobalValue* CScript::GetGlobalValue(cstr name)
    {
       auto i = globalVariables.find(name);
@@ -2705,11 +2643,6 @@ namespace Rococo { namespace Script
    {
       tree.Release();
 
-	  for (auto& t : mapExpressionToTransform)
-	  {
-		  t.second.transform->Free();
-	  }
-
       for (auto i = stringConstants.begin(); i != stringConstants.end(); ++i)
       {
          CStringConstant* sc = *i;
@@ -2726,13 +2659,6 @@ namespace Rococo { namespace Script
       closureJobs.clear();
       stringConstants.clear();
       globalVariables.clear();
-
-	  for (auto& i : mapExpressionToTransform)
-	  {
-		  i.second.transform->Free();
-	  }
-
-	  mapExpressionToTransform.clear();
    }
 
    void  CScript::CompileNullObjects()

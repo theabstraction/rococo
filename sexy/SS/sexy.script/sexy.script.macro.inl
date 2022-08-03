@@ -119,7 +119,7 @@ namespace Rococo
          VM::IVirtualMachine& vm = ce.SS.ProgramObject().VirtualMachine();
          const CClassExpression* input = ce.SS.GetExpressionReflection(s);
 
-		 ISExpressionBuilder* outputRoot = ce.Script.CreateMacroTransform(s);
+		 ISExpressionBuilder* outputRoot = ce.SS.CreateMacroTransform(s);
 
          CClassExpressionBuilder output;
          if (!ce.SS.ConstructExpressionBuilder(output, outputRoot))

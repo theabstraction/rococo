@@ -190,7 +190,7 @@ namespace
 
 	void ShowFailure(const char* expression, const char* filename, int lineNumber)
 	{
-		printf("Validation failed in %s[%d]: %s\r\n", filename, lineNumber, expression);
+		printf("\nValidation failed in %s[%d]: %s\n", filename, lineNumber, expression);
 	}
 
 	void PrintExpression(cr_sex s, int &totalOutput, int maxOutput)
@@ -5570,6 +5570,75 @@ R"((namespace EntryPoint)
 		validate(x == 9);
 	}
 
+	void TestIndexOf(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)\n"
+			" (alias Main EntryPoint.Main)\n"
+
+			"(using Sys.Type)\n"
+			"(using Sys.Reflection)\n"
+
+			"(function Main -> (Int32 result):\n"
+			"	(IExpression s = '(cheese oranges (#paragraph 1024 apples pears) onion bikes))\n"
+			"	(IExpression sOranges = (s 1))\n"
+			"   (Int32 index = (s.IndexOf sOranges))\n"
+			"   (result = index)\n"
+			")\n"
+			;
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		int x = vm.PopInt32();
+		validate(x == 1);
+	}
+
+	void TestTransformParent(IPublicScriptSystem& ss)
+	{
+		// TransformParent is used by macros to create a mutable parent and thence add siblings
+
+		cstr srcCode =
+			"(namespace EntryPoint)\n"
+			" (alias Main EntryPoint.Main)\n"
+
+			"(using Sys.Type)\n"
+			"(using Sys.Reflection)\n"
+
+			"(function Main -> (Int32 result):\n"
+			"	(IExpression s = '(cheese oranges (#paragraph 1024 apples pears) onion bikes))\n"
+			"	(IExpression sOranges = (s 1))\n"
+			"	(IExpressionBuilder sBuilder = sOranges.TransformParent)\n"
+
+			"   (Int32 index = (sBuilder.IndexOf sOranges))\n"
+
+			"   (IExpressionBuilder builderSequence = (sBuilder.InsertCompoundAfter index))"
+
+			"   (result = index)\n"
+			")\n"
+			;
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		int x = vm.PopInt32();
+		validate(x == 1);
+	}
+
 	void TestMacroSiblings2(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -5579,8 +5648,8 @@ R"((namespace EntryPoint)
 			"(using Sys.Type)"
 
 			"(function Main -> (Int32 result):"
-			"	(#string welcome 64 \"Hello World\")"
-			"	(Sys.Print welcome)"
+			"	(#string welcome 64 \"Hello World!&n\")"
+			"	(Sys.Print welcome -> result)"
 			")"
 			;
 
@@ -5593,6 +5662,9 @@ R"((namespace EntryPoint)
 
 		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
 		ValidateExecution(result);
+
+		int welcomeLength = vm.PopInt32();
+		validate(welcomeLength > 0);
 	}
 
 	void TestCoroutine1(IPublicScriptSystem& ss)
@@ -14694,7 +14766,12 @@ R"(
 		validate(true);
 
 		TEST(TestMacroSiblings);
-		//TEST(TestMacroSiblings2);
+		TEST(TestIndexOf);
+		TEST(TestTransformParent);
+		
+		TEST(TestMacroSiblings2);
+
+		TEST(TestStartsWith);
 
 		TEST(TestPartialCompiles);
 
@@ -15055,14 +15132,6 @@ R"(
 	{
 		int64 start, end, hz;
 		start = OS::CpuTicks();
-
-		// Note: test 'macro siblings' inside try..catch..finally blocks, while and do...while expressions
-		//TEST(TestMacroSiblings2);
-
-		//return;
-
-		TEST(TestStartsWith);
-		TEST(TestMap2);
 
 		Memory::ValidateNothingAllocated();
 
