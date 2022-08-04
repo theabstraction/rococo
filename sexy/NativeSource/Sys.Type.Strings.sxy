@@ -105,6 +105,7 @@
 
 (using Sys.Type.Formatters)
 
+// N.B - C++ routines in the Rococo codebase will assume the underlying implementation of an IStringBuilder is a FastStringBuilder and thus be able to access critical data directly
 (class FastStringBuilder 
 	(implements IStringBuilder)
 	(Int32 length)
@@ -225,6 +226,10 @@
 	(Sys.Native.FastStringBuilderSetCase this start end false)
 )
 
+(method FastStringBuilder.ThrowIfAppendWouldTruncate -> :
+	(Sys.Native.FastStringBuilderThrowIfAppendWouldTruncate this)
+)
+
 (function StringStartsWith (IString bigString) (IString prefix) -> (Bool isSo):
 	(Sys.Native.StringStartsWith bigString prefix -> isSo)
 )
@@ -301,6 +306,7 @@
 	(ToUpper (Int32 start) (Int32 end) ->)
 	(ToLower (Int32 start) (Int32 end) ->)
 	(Clear ->)
+	(ThrowIfAppendWouldTruncate ->)
 )
 
 (namespace Sys.Type.Strings)

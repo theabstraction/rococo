@@ -46,6 +46,13 @@ namespace Rococo
          ce.Script.PushTryCatchBlock(body);
 
          CompileExpressionSequence(ce, 0, body.NumberOfElements() - 1, body);
+
+         const ISExpression* sTransform = ce.SS.GetTransform(body);
+         if (sTransform)
+         {
+             Throw(body, "A macro attempted to expand siblings for the body of the try block, but it is not expandable. Consider containing the offending code in a nested compound expression inside the block, so that it is the nested expression that expands");
+         }
+
          ce.Script.PopTryCatchBlock();
 
          size_t gotoCleanupPos = ce.Builder.Assembler().WritePosition();

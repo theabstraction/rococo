@@ -229,6 +229,12 @@ namespace Rococo {
 			SPEC_G = 3,
 		};
 
+		enum class StringBuilderFlags
+		{
+			None = 0, // Default
+			ThrowIfWouldTruncate = 1 // If set then attempting to write past the capacity of the builder throws an exception
+		};
+
 		struct FastStringBuilder
 		{
 			ObjectStub stub;
@@ -238,6 +244,7 @@ namespace Rococo {
 			int formatBase;
 			char prefix[12];
 			SPEC spec;
+			int32 flags;
 		};
 
 		inline int GetInstanceToInterfaceOffset(int interfaceIndex)

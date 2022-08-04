@@ -953,11 +953,7 @@ namespace Rococo { namespace Script
 			{
 				sSourceExpression = &sequence;
 			}
-			else
-			{
-				printf("");
-			}
-			
+
 			if (i >= sSourceExpression->NumberOfElements())
 			{
 				break;
@@ -1002,6 +998,12 @@ namespace Rococo { namespace Script
 		{
 			cr_sex s = sequence.GetElement(i);
 			CompileExpression(ce, s); 
+		}
+
+		const ISExpression* sTransform = ce.SS.GetTransform(sequence);
+		if (sTransform)
+		{
+			Throw(sequence, "A macro attempted to expand siblings for the compound expression, but it is not expandable. Consider containing the offending code in a nested compound expression");
 		}
 
 		AppendDeconstruct(ce, sequence, true);

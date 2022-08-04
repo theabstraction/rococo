@@ -124,7 +124,7 @@ namespace Rococo
          CClassExpressionBuilder output;
          if (!ce.SS.ConstructExpressionBuilder(output, outputRoot))
          {
-            Throw(s, ("Internal compiler error"));
+            Throw(s, "%s: ConstructExpressionBuilder error", __FUNCTION__);
          }
 
          VM::CPU& cpu = vm.Cpu();
@@ -138,7 +138,7 @@ namespace Rococo
          EXECUTERESULT result = vm.ExecuteFunctionProtected(macroSection.Id);
          if (result != EXECUTERESULT_RETURNED)
          {
-            Throw(s, ("Error executing macro expansion"));
+            Throw(s, "Error executing macro expansion");
          }
 
          vm.SetStatus(EXECUTERESULT_RUNNING);

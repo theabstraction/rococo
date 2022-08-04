@@ -5667,6 +5667,42 @@ R"((namespace EntryPoint)
 		validate(welcomeLength > 0);
 	}
 
+	void TestMacroSiblings3Throws(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Type)"
+
+			"(function Main -> (Int32 result):"
+			"   (#token smallToken \"123456789012345678901234567890123456789012345678901234567890&n\")"
+			"   (Sys.Print smallToken)"
+			"   (try "
+			"	 (((#token tooBigToken \"12345678901234567890123456789012345678901234567890123456789012345\")))"
+			"    catch ex"
+			"		("
+	        "			(Sys.Print ex.Message -> result)"
+			"			(Sys.Print \"&n\")"
+			"		)"
+			"   )"
+			")"
+			;
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		int welcomeLength = vm.PopInt32();
+		validate(welcomeLength > 10);
+	}
+
 	void TestCoroutine1(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -14765,6 +14801,7 @@ R"(
 	{
 		validate(true);
 
+		TEST(TestMacroSiblings3Throws);
 		TEST(TestMacroSiblings);
 		TEST(TestIndexOf);
 		TEST(TestTransformParent);

@@ -312,6 +312,7 @@ namespace
 			sb->stub.Desc = (ObjectDesc*) typeFastStringBuilder->GetVirtualTable(0);
 			sb->stub.refCount = 1;
 			sb->stub.pVTables[0] = (VirtualTable*) typeFastStringBuilder->GetVirtualTable(1);
+			sb->flags = 0;
 			SafeFormat(sb->prefix, 8, "%s", "%4.4");
 
 			return sb;
@@ -325,8 +326,8 @@ namespace
 		int32 capacity;
 		ReadInput(0, capacity, e);
 
-		if (capacity <= 0) Throw(0, "NewStringBuilder failed. Capacity needs to be positive");
-		if (capacity >= 1024_megabytes) Throw(0, "NewStringBuilder failed. Capacity needs to be less than 1 gigabyte");
+		if (capacity <= 0) e.ss.ThrowFromNativeCode(0, "NewStringBuilder failed. Capacity needs to be positive");
+		if (capacity >= 1024_megabytes) e.ss.ThrowFromNativeCode(0, "NewStringBuilder failed. Capacity needs to be less than 1 gigabyte");
 
 		FastStringBuilder* sb = pool.CreateAndInitFields(capacity);
 
@@ -381,13 +382,18 @@ namespace
 		return *sb;
 	}
 
-	void AppendString(FastStringBuilder& sb, const char* src, int32 srcLen)
+	void AppendString(NativeCallEnvironment& e, FastStringBuilder& sb, const char* src, int32 srcLen)
 	{
 		int maxLength = sb.capacity - 1;
 
 		int nextLength = sb.length + srcLen;
 		if (nextLength > maxLength)
 		{
+			if (0 != (sb.flags & (int32)StringBuilderFlags::ThrowIfWouldTruncate))
+			{
+				e.ss.ThrowFromNativeCode(0, "Insufficient buffer capacity for append operation");
+			}
+
 			int overrun = nextLength - maxLength;
 			srcLen -= overrun;
 		}
@@ -420,8 +426,14 @@ namespace
 
 		if (srcBuffer != NULL && srcLength > 0)
 		{
-			AppendString(sb, srcBuffer, srcLength);
+			AppendString(e, sb, srcBuffer, srcLength);
 		}
+	}
+
+	void FastStringBuilderThrowIfAppendWouldTruncate(NativeCallEnvironment& e)
+	{
+		FastStringBuilder& sb = ReadBuilder(e);
+		sb.flags |= (int32) StringBuilderFlags::ThrowIfWouldTruncate;
 	}
 
 	void FastStringBuilderClear(NativeCallEnvironment& e)
@@ -554,7 +566,7 @@ namespace
 
 		if (s != NULL && charsToAppend > 0)
 		{
-			AppendString(sb, s + startPos, charsToAppend);
+			AppendString(e, sb, s + startPos, charsToAppend);
 		}
 	}
 
@@ -580,7 +592,7 @@ namespace
 			char data[2];
 			data[0] = asciiValue;
 			data[1] = 0;
-			AppendString(sb, data, 1);
+			AppendString(e, sb, data, 1);
 		}
 	}
 
@@ -598,7 +610,7 @@ namespace
 
 		char rep[32];
 		int nChars = SafeFormat(rep, 32, format, value);
-		AppendString(sb, rep, nChars);
+		AppendString(e, sb, rep, nChars);
 	}
 
 	void FastStringBuilderAppendInt64(NativeCallEnvironment& e)
@@ -615,7 +627,7 @@ namespace
 
 		char rep[64];
 		int nChars = SafeFormat(rep, 64, format, value);
-		AppendString(sb, rep, nChars);
+		AppendString(e, sb, rep, nChars);
 	}
 
 	void FastStringBuilderAppendFloat32(NativeCallEnvironment& e)
@@ -644,7 +656,7 @@ namespace
 
 		char rep[32];
 		int nChars = SafeFormat(rep, 32, format, value);
-		AppendString(sb, rep, nChars);
+		AppendString(e, sb, rep, nChars);
 	}
 
 	void FastStringBuilderAppendFloat64(NativeCallEnvironment& e)
@@ -673,7 +685,7 @@ namespace
 
 		char rep[64];
 		int nChars = SafeFormat(rep, 64, format, value);
-		AppendString(sb, rep, nChars);
+		AppendString(e, sb, rep, nChars);
 	}
 
 	void FastStringBuilderAppendBool(NativeCallEnvironment& e)
@@ -683,8 +695,8 @@ namespace
 		int32 value;
 		ReadInput(1, value, e);
 
-		if (value != 0) AppendString(sb, "true", 4);
-		else			AppendString(sb, "false", 5);
+		if (value != 0) AppendString(e, sb, "true", 4);
+		else			AppendString(e, sb, "false", 5);
 	}
 
 	void FastStringBuilderAppendPointer(NativeCallEnvironment& e)
@@ -696,7 +708,7 @@ namespace
 
 		char rep[64];
 		int nChars = SafeFormat(rep, 64, "0x%X", value);
-		AppendString(sb, rep, nChars);
+		AppendString(e, sb, rep, nChars);
 	}
 
 	void FastStringBuilderSetFormat(NativeCallEnvironment& e)
