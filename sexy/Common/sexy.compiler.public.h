@@ -76,6 +76,7 @@ namespace Rococo {
 			const wchar_t* NativeSourcePath;
 			bool addCoroutineLib = false; // Set to true to use sexy.nativelib.coroutine.dll
 			bool useDebugLibs = false; // Set to true to use the sexy.nativelib.debug.<xxx>.dlls 
+			bool addIO = false; // Set to true to use Sys.IO.sxy and the Sexy IO library
 
 			enum { ONE_KILOBYTE = 1024 };
 			ProgramInitParameters() : MaxProgramBytes(1024 * ONE_KILOBYTE), NativeSourcePath(nullptr) {}

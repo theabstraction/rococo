@@ -452,6 +452,11 @@ namespace Rococo {
 			ptrdiff_t offset;
 		};
 
+		struct IIOSystem
+		{
+			virtual void Free() = 0;
+		};
+
 		ROCOCOAPI IScriptSystem : IPublicScriptSystem
 		{
 			virtual Compiler::IProgramObject& ProgramObject() = 0;
@@ -473,6 +478,7 @@ namespace Rococo {
 			virtual Rococo::Sex::ISExpressionBuilder* CreateMacroTransform(Rococo::Sex::cr_sex src) = 0;
 			virtual Rococo::Sex::ISExpressionBuilder* CreateMacroTransformClonedFromParent(Rococo::Sex::cr_sex sChild) = 0;
 			virtual const  Rococo::Sex::ISExpression* GetTransform(Rococo::Sex::cr_sex src) = 0;
+			virtual IIOSystem& IOSystem() = 0;
 		};
 
 		void SetDefaultNativeSourcePath(const wchar_t* pathname);

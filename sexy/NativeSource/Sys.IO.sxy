@@ -1,0 +1,169 @@
+(namespace Sys.IO)
+
+(interface Sys.IO.IFileCursor
+	(attribute essential)
+	(Length -> (Int64 length))
+	(Position -> (Int64 position))
+	(SetPosition (Int64 newPosition)->)
+)
+
+(using Sys.Type)
+(using Sys.Type.Formatters)
+
+(interface Sys.IO.IWriter
+	(attribute builder Write) // if we have a variable s of type IWriter then (s X) calls (s.WriteTypeX X), e.g (s 1) calls (s.WriteInt32 1)
+	(WriteChar (Int32 eightBitCode) -> ) // Writes the least significant unsigned byte as a character code. The other bits are ignored
+	(WriteInt32 (Int32 x) -> )
+	(WriteInt64 (Int64 x) -> )
+	(WriteFloat32 (Float32 x) -> )
+	(WriteFloat64 (Float64 x) -> )
+	(WriteBool (Bool x) -> )
+	(WritePointer (Pointer x) -> )
+	(WriteIString (IString s) -> )
+	(WriteAsHex (AsHex null) ->)
+	(WriteAsUnsigned (AsUnsigned null) ->)
+	(WriteAsDecimal (AsDecimal null) ->)
+	(WriteAsSpecE (AsSpecE null) ->) // Set float and double formats to e format
+	(WriteAsSpecF (AsSpecF null) ->) // Set float and double formats to f format
+	(WriteAsSpecG (AsSpecG null) ->) // Set float and double formats to g format
+	(WriteAsNewLine (AsNewLine null) ->)
+	(WriteAsFormat (AsFormat null) ->)
+	(WriteSubstring (IString s) (Int32 startPos) (Int32 numberOfChars) ->)
+	(Flush ->)
+	(Precision (Int32 precision)->)
+	(Width (Int32 width)->)
+	(ZeroPrefix (Bool isZeroPrefixed)->)
+	(RightAlign (Bool isRightAligned)->)
+	(UseDefaultFormatting ->)
+	(IsEOF -> (Bool isEOF)) // Returns true if end-of-file
+	(ClearError ->) // Clear the error for the stream
+	(GetError -> (Int32 systemErrorCode)) // If the file is in an error state, returns the error code
+	(Cursor -> (Sys.IO.IFileCursor cursor)) // Returns the file cursor. If a null object, the file has no random access cursor 
+)
+
+(class FileWriter
+	(implements Sys.IO.IWriter)
+	(Pointer hFile)
+	(Int32 precision)
+	(Int32 width)
+	(Int32 flags)
+)
+
+(method FileWriter.WriteChar (Int32 eightBitCode) -> :
+	(Sys.IO.Native.WriteChar this eightBitCode)
+)
+
+(method FileWriter.WriteInt32 (Int32 x) -> :
+	(Sys.IO.Native.WriteInt32 this x)
+)
+
+(method FileWriter.WriteInt64 (Int64 x) -> :
+	(Sys.IO.Native.WriteInt64 this x)
+)
+
+(method FileWriter.WriteFloat32 (Float32 x) -> :
+	(Sys.IO.Native.WriteFloat32 this x)
+)
+
+(method FileWriter.WriteFloat64 (Float64 x) -> :
+	(Sys.IO.Native.WriteFloat64 this x)
+)
+
+(method FileWriter.WriteBool (Bool x) -> :
+	(Sys.IO.Native.WriteBool this x)
+)
+
+(method FileWriter.WritePointer (Pointer x) -> :
+	(Sys.IO.Native.WritePointer this x)
+)
+
+(method FileWriter.WriteIString (IString s) -> :
+	(Sys.IO.Native.WriteIString this s)
+)
+
+(method FileWriter.WriteAsHex (AsHex null) -> :
+	(Sys.IO.Native.WriteAsHex this)
+)
+
+(method FileWriter.WriteAsDecimal (AsDecimal null) -> :
+	(Sys.IO.Native.WriteAsDecimal this)
+)
+
+(method FileWriter.WriteAsUnsigned (AsUnsigned null) -> :
+	(Sys.IO.Native.WriteAsUnsigned this)
+)
+
+(method FileWriter.WriteAsSpecE (AsSpecE null) -> :
+	(Sys.IO.Native.WriteAsSpecE this)
+)
+
+(method FileWriter.WriteAsSpecF (AsSpecF null) -> :
+	(Sys.IO.Native.WriteAsSpecF this)
+)
+
+(method FileWriter.WriteAsSpecG (AsSpecG null) -> :
+	(Sys.IO.Native.WriteAsSpecG this)
+)
+
+(method FileWriter.WriteAsNewLine (AsNewLine null) -> :
+	(Sys.IO.Native.WriteAsNewLine this)
+)
+
+(method FileWriter.WriteSubstring (IString s) (Int32 startPos) (Int32 numberOfChars) -> :
+	(Sys.IO.Native.WriteSubstring this s startPos numberOfChars)
+)
+
+(method FileWriter.Flush -> :
+	(Sys.IO.Native.Flush this)
+)
+
+(method FileWriter.SetFormat (Sys.Type.Int32 precision) (Sys.Type.Int32 width) (Sys.Type.Bool isZeroPrefixed) (Sys.Type.Bool isRightAligned) -> :
+	(Sys.IO.Native.SetFormat this precision width isZeroPrefixed isRightAligned)
+)
+
+(method FileWriter.Precision (Int32 precision)-> :
+	(Sys.IO.Native.SetPrecision this precision)
+)
+
+(method FileWriter.Width (Int32 width)-> :
+	(Sys.IO.Native.SetWidth this width)
+)
+
+(method FileWriter.ZeroPrefix (Bool isZeroPrefixed)-> :
+	(Sys.IO.Native.SetZeroPrefix this isZeroPrefixed)
+)
+
+(method FileWriter.RightAlign (Bool isRightAligned)-> :
+	(Sys.IO.Native.SetRightAlign this isRightAligned)
+)
+
+(method FileWriter.IsEOF -> (Bool isEOF) :
+	(Sys.IO.Native.IsEOF this 0> isEOF)
+)
+
+(method FileWriter.ClearError -> :
+	(Sys.IO.Native.ClearError this)
+)
+
+(method FileWriter.GetError -> (Int32 systemErrorCode) :
+	(Sys.IO.Native.GetError this -> (Int32 systemErrorCode))
+)
+
+(method FileWriter.Cursor -> (Sys.IO.IFileCursor cursor) :
+	(Sys.IO.Native.GetCursor this -> cursor)
+)
+
+(method FileWriter.UseDefaultFormatting -> :
+	(Sys.IO.Native.UseDefaultFormatting this)
+)
+
+(method FileWriter.WriteAsFormat (AsFormat null) -> :
+	(Sys.IO.Native.WriteAsFormat this)
+)
+
+// Native functions:
+(' declare Sys.IO.GetStdOut -> (Sys.IO.IWriter writer))
+(' declare Sys.IO.GetStdErr -> (Sys.IO.IWriter writer))
+(' declare Sys.IO.CloseWriter -> (Sys.IO.IWriter writer))
+(' declare Sys.IO.WriteFile (IString pathToFile) -> (Sys.IO.IWriter writer))
+(' declare Sys.IO.WriteContentFile (IString pingPathToFile) -> (Sys.IO.IWriter writer))

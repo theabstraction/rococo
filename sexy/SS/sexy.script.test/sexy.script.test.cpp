@@ -74,8 +74,9 @@
 
 #define validate(_Expression) if (!(_Expression)) { ShowFailure(#_Expression, __FILE__, __LINE__); Abort(); }
 
-#define TEST(test) Test(#test, test, false)
-#define TEST2(test) Test(#test, test, true)
+#define TEST(test) Test(#test, test, false, false)
+#define TEST2(test) Test(#test, test, true, false)
+#define TEST3(test) Test(#test, test, true, true)
 
 using namespace Rococo;
 using namespace Rococo::Sex;
@@ -297,7 +298,7 @@ namespace
 		disassembler->Free();
 	}
 
-	void Test(const char* name, FN_TEST fnTest, bool addinCoroutines)
+	void Test(const char* name, FN_TEST fnTest, bool addinCoroutines, bool addInIO)
 	{
 		Memory::RecordAllocations(-1);
 		Memory::ValidateNothingAllocated();
@@ -308,6 +309,7 @@ namespace
 			ProgramInitParameters pip;
 			pip.addCoroutineLib = addinCoroutines;
 			pip.useDebugLibs = addinCoroutines;
+			pip.addIO = addInIO;
 			pip.MaxProgramBytes = 32768;
 
 #ifdef _DEBUG
@@ -5701,6 +5703,64 @@ R"((namespace EntryPoint)
 
 		int welcomeLength = vm.PopInt32();
 		validate(welcomeLength > 10);
+	}
+
+	void TestConsoleOutput(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)\n"
+			" (alias Main EntryPoint.Main)\n"
+
+			"(using Sys.Type)\n"
+			"(using Sys.IO)\n"
+			"(using Sys.Type.Formatters)\n"
+			"(using Sys.Maths)\n"
+
+			"(function Main -> (Int32 result):\n"
+			"   (IWriter stdout = Sys.IO.GetStdOut)\n"
+			"   (#build stdout \"Hello World\" \"!!!&n&tDecimal(256): \" 256 \"&n&tHex(256): 0x\" Hex 256 \"&n&tUnsigned(-1): \" Unsigned -1 \"&n\")\n"
+			"   (Bool falseValue = false)\n"
+			"   (Bool trueValue = true)\n"
+			"   (#build stdout \"&n&tfalse: \" falseValue)\n"
+			"   (#build stdout \"&n&ttrue: \" trueValue)\n"
+			"   (Int64 bigNum = 0x1245678ABCDEF00)"
+			"   (#build stdout \"&n&tbigNum: 0x\" Hex bigNum)\n"
+			"   (#build stdout \"&n&tbigNum: \" Decimal bigNum)\n"
+			"   (Float32 shortPI = (#pi))\n"
+			"   (Float64 longPI = (#pi))\n"
+			"   (#build stdout \"&n&tPI-F32: \" shortPI)\n"
+			"   (#build stdout \"&n&tPI-F64: \" longPI)\n"
+			"   (#build stdout \"&n\")\n"
+			"   (IString happyDays = \"Happy Days\")\n"
+			"	(#build stdout \"&n&tPointer: 0x\" happyDays.Buffer)\n"
+			"	(#build stdout \"&n&tAscii Tilde(126): \")\n"
+			"	(stdout.WriteChar 126)\n"
+			"   (Float64 smallNum = 0.0001)\n"
+			"   (stdout.Precision 4)\n"
+			"   (stdout.Width 16)\n"
+			"   (stdout.ZeroPrefix false)\n"
+			"   (stdout.RightAlign false)\n"
+			"	(#build stdout \"&n&tE:\" SpecE smallNum)\n"
+			"	(#build stdout \"&n&tF:\" SpecF smallNum)\n"
+			"   (stdout.RightAlign true)\n"
+			"   (#build stdout \"&n&tFormatted:\" Format \"Hi\")\n"
+			"	(#build stdout \"&n&tG:\" SpecG smallNum)\n"
+			"	(stdout.UseDefaultFormatting)\n"
+			"	(#build stdout \"&n&tG:\" SpecG smallNum)\n"
+			"   (#build stdout \"&n\")\n"
+			"   (IFileCursor cursor = stdout.Cursor)\n"
+			")"
+			;
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
 	}
 
 	void TestCoroutine1(IPublicScriptSystem& ss)
@@ -14801,6 +14861,10 @@ R"(
 	{
 		validate(true);
 
+		TEST3(TestConsoleOutput);
+
+		return;
+
 		TEST(TestMacroSiblings3Throws);
 		TEST(TestMacroSiblings);
 		TEST(TestIndexOf);
@@ -15175,6 +15239,9 @@ R"(
 		TestMemoryIsGood();
 
 		RunPositiveSuccesses();	
+
+		return;
+
 		RunPositiveFailures();
 		RunCollectionTests();
 	

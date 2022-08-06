@@ -80,6 +80,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NativeSource", "NativeSource", "{8D9A225A-2AEA-4A35-BAA8-2F31BB392702}"
 	ProjectSection(SolutionItems) = preProject
+		NativeSource\Sys.IO.sxy = NativeSource\Sys.IO.sxy
 		NativeSource\Sys.Maths.sxy = NativeSource\Sys.Maths.sxy
 		NativeSource\Sys.OS.Win32.sxy = NativeSource\Sys.OS.Win32.sxy
 		NativeSource\Sys.Reflection.sxy = NativeSource\Sys.Reflection.sxy

@@ -79,28 +79,27 @@ namespace
 	}
 }
 
-namespace Rococo
+namespace Rococo::Script
 {
-	namespace Script
+	void AddSysIO(IScriptSystem& ss);
+
+	void AppendDeconstructAll(CCompileEnvironment& ce, cr_sex sequence);
+
+	void SetDefaultNativeSourcePath(const wchar_t* pathname)
 	{
-		void AppendDeconstructAll(CCompileEnvironment& ce, cr_sex sequence);
-
-		void SetDefaultNativeSourcePath(const wchar_t* pathname)
+		if (pathname == nullptr)
 		{
-			if (pathname == nullptr)
-			{
-				defaultNativeSourcePath = {0};
-				return;
-			}
-
-			Format(defaultNativeSourcePath, L"%ls", pathname);
-
-			// Terminate with slash
-			AddSlashToDirectory(defaultNativeSourcePath.buf);
+			defaultNativeSourcePath = {0};
+			return;
 		}
 
-		ISexyPackagerSupervisor* CreatePackager(IScriptSystem& ss);
+		Format(defaultNativeSourcePath, L"%ls", pathname);
+
+		// Terminate with slash
+		AddSlashToDirectory(defaultNativeSourcePath.buf);
 	}
+
+	ISexyPackagerSupervisor* CreatePackager(IScriptSystem& ss);
 }
 
 namespace Rococo
@@ -356,13 +355,13 @@ void NativeAppendCTime(NativeCallEnvironment& _nce)
 	
 }
 
-namespace Rococo
+namespace Rococo::Script
 {
-   namespace Script
-   {
+	IIOSystem* CreateIOSystem(IScriptSystem& ss);
+
 	void CopyStringTochar(char* output, size_t bufferCapacity, const char* input, size_t inputLength)
 	{
-		for(size_t i = 0; i < inputLength; ++i)
+		for (size_t i = 0; i < inputLength; ++i)
 		{
 			output[i] = input[i];
 		}
@@ -370,9 +369,9 @@ namespace Rococo
 #ifdef char_IS_WIDE
 	void CopyStringTochar(char* output, size_t bufferCapacity, cstr input, size_t inputLength)
 	{
-		for(size_t i = 0; i < inputLength; ++i)
+		for (size_t i = 0; i < inputLength; ++i)
 		{
-			output[i] = (char) input[i];
+			output[i] = (char)input[i];
 		}
 	}
 #endif
@@ -385,7 +384,7 @@ namespace Rococo
 		rstdstring sourceFile;
 		int lineNumber;
 
-		NativeFunction(IPublicScriptSystem& ss, const IFunction& f, CPU& cpu, void* context, cstr _sourceFile, int _lineNumber): 
+		NativeFunction(IPublicScriptSystem& ss, const IFunction& f, CPU& cpu, void* context, cstr _sourceFile, int _lineNumber) :
 			e(ss, f, cpu, context), sourceFile(_sourceFile), lineNumber(_lineNumber) {}
 	};
 
@@ -399,7 +398,7 @@ namespace Rococo
 	void Print(NativeCallEnvironment& e)
 	{
 		const char* pData;
-		ReadInput(0, (void*&) pData, e);
+		ReadInput(0, (void*&)pData, e);
 
 		if (pData == NULL) pData = ("<null>");
 		int nullLen = StringLength(pData);
@@ -407,12 +406,12 @@ namespace Rococo
 		WriteOutput(0, nullLen, e);
 	}
 
-	typedef std::unordered_map<stdstring,NativeFunction*, std::hash<stdstring>, std::equal_to<stdstring>, Memory::SexyAllocator<std::pair<const stdstring, NativeFunction*>>> TMapFQNToNativeCall;
+	typedef std::unordered_map<stdstring, NativeFunction*, std::hash<stdstring>, std::equal_to<stdstring>, Memory::SexyAllocator<std::pair<const stdstring, NativeFunction*>>> TMapFQNToNativeCall;
 	typedef std::list<INativeLib*, Memory::SexyAllocator<INativeLib*>> TNativeLibs;
-	
+
 	void CALLTYPE_C RouteToNative(VariantValue* registers, void* context)
 	{
-		NativeFunction* nf = (NativeFunction*) context;
+		NativeFunction* nf = (NativeFunction*)context;
 		nf->NativeCallback(nf->e);
 	}
 
@@ -438,7 +437,7 @@ namespace Rococo
 				ParseException nativeError(Vec2i{ 0,0 }, Vec2i{ 0,0 }, NativeModuleSrc, fullError, (""), NULL);
 				Throw(nativeError);
 			}
-			
+
 			sb.AppendFormat("\n(function %s%d %s : (source \"%s\" %d))\n", publicName, index, nf.Archetype.c_str() + strlen(publicName), nf.sourceFile.c_str(), nf.lineNumber);
 			sb.AppendFormat("(alias %s%d %s)\n", publicName, index, i->first.c_str());
 
@@ -448,7 +447,7 @@ namespace Rococo
 
 	void InstallNativeCallNamespaces(IN const TMapFQNToNativeCall& nativeCalls, REF INamespaceBuilder& rootNS)
 	{
-		for(auto i = nativeCalls.begin(); i != nativeCalls.end(); ++i)
+		for (auto i = nativeCalls.begin(); i != nativeCalls.end(); ++i)
 		{
 			NativeFunction& nf = *i->second;
 			NamespaceSplitter splitter(i->first.c_str());
@@ -471,7 +470,7 @@ namespace Rococo
 		struct ANON
 		{
 			static void CALLTYPE_C RouteToRawReflection(VariantValue* registers, void* context)
-			{				
+			{
 				RawReflectionBinding& reflect = *(RawReflectionBinding*)context;
 				auto* ss = reinterpret_cast<IPublicScriptSystem*>(registers[VM::REGISTER_D9].vPtrValue);
 				auto* sInvocation = reinterpret_cast<const ISExpression*>(registers[VM::REGISTER_D10].vPtrValue);
@@ -504,13 +503,13 @@ namespace Rococo
 		}
 	}
 
-   // This may well be one of the most CPU intensive functions where there are huge numbers of scripts that
-   // need compiling per execution session. I guess having TMapFQNToNativeCall & f->TryResolveArguments() compiled once
-   // globally would be a great optimization -> MAT
+	// This may well be one of the most CPU intensive functions where there are huge numbers of scripts that
+	// need compiling per execution session. I guess having TMapFQNToNativeCall & f->TryResolveArguments() compiled once
+	// globally would be a great optimization -> MAT
 
 	void InstallNativeCalls(IN const TMapFQNToNativeCall& nativeCalls, REF INamespaceBuilder& rootNS)
 	{
-		for(auto i = nativeCalls.begin(); i != nativeCalls.end(); ++i)
+		for (auto i = nativeCalls.begin(); i != nativeCalls.end(); ++i)
 		{
 			NativeFunction& nf = *i->second;
 			NamespaceSplitter splitter(i->first.c_str());
@@ -526,7 +525,7 @@ namespace Rococo
 
 			INamespaceBuilder& ns = *rootNS.FindSubspace(body);
 
-			IFunctionBuilder* f = (IFunctionBuilder*) &nf.e.function;
+			IFunctionBuilder* f = (IFunctionBuilder*)&nf.e.function;
 			ns.Alias(publicName, *f);
 
 			if (!f->TryResolveArguments())
@@ -534,7 +533,7 @@ namespace Rococo
 				char fullError[2048];
 				StackStringBuilder sb(fullError, sizeof(fullError));
 				sb << nf.Archetype.c_str() << ": Could not resolve argument\n";
-				sb << "Module: " <<  nf.e.function.Module().Name() << "\n";
+				sb << "Module: " << nf.e.function.Module().Name() << "\n";
 				ParseException nativeError(Vec2i{ 0,0 }, Vec2i{ 0,0 }, NativeModuleSrc, fullError, (""), NULL);
 				Throw(nativeError);
 			}
@@ -556,7 +555,7 @@ namespace Rococo
 				SafeFormat(fullError, 2048, ("%s: %s"), nf.Archetype.c_str(), e.Message());
 				ParseException nativeError(Vec2i{ 0,0 }, Vec2i{ 0,0 }, NativeModuleSrc, fullError, (""), NULL);
 				Throw(nativeError);
-			}							
+			}
 		}
 	}
 
@@ -580,7 +579,7 @@ namespace Rococo
 
 	void CALLTYPE_C OnCallbackInvoked(VariantValue* registers, void* context)
 	{
-		NativeFunction* nf = (NativeFunction*) context;
+		NativeFunction* nf = (NativeFunction*)context;
 		nf->NativeCallback(nf->e);
 	}
 
@@ -685,7 +684,10 @@ namespace Rococo
 
 		Throw(0, "No universal object found for %s of \"%s\". Source not found", concreteType, sourceFile);
 	}
+}
 
+namespace Rococo::Script
+{
 	class CScriptSystem : public IScriptSystem
 	{
 	private:
@@ -754,6 +756,12 @@ namespace Rococo
 			return this->progObjProxy->GetModule(0);
 		}
 
+		IIOSystem& IOSystem()
+		{
+			if (!ioSystem) Throw(0, "IOSystem has not been initialized");
+			return *ioSystem;
+		}
+
 		typedef std::unordered_map<cstr, CStringConstant*, std::hash<cstr>, std::equal_to<cstr>, Memory::SexyAllocator<std::pair<cstr const, CStringConstant*>>> TReflectedStrings;
 		TReflectedStrings reflectedStrings;
 
@@ -775,6 +783,10 @@ namespace Rococo
 		int nextId;
 
 		TTransformMap mapExpressionToTransform;
+
+		bool usesSysIO;
+
+		AutoFree<IIOSystem> ioSystem;
 	public:
 		CScriptSystem(
 			TMapNameToSTree& _nativeSources, 
@@ -788,7 +800,8 @@ namespace Rococo
 			nextId(0), 
 			nativeSources(_nativeSources), 
 			sexParserProxy(Sexy_CreateSexParser_2_0(Memory::GetSexyAllocator())),
-			packager(CreatePackager(*this))
+			packager(CreatePackager(*this)),
+			usesSysIO(pip.addIO)
 		{
 			try
 			{
@@ -829,6 +842,11 @@ namespace Rococo
 				AddCommonSource("Sys.Type.sxy"); // Module 1
 				AddCommonSource("Sys.Maths.sxy"); // Module 2			
 				AddCommonSource("Sys.Reflection.sxy"); // Module 3
+
+				if (pip.addIO)
+				{
+					AddCommonSource("Sys.IO.sxy"); // Module 4
+				}
 
 #ifdef _WIN32
 				bool useDebug = pip.useDebugLibs;
@@ -2003,6 +2021,7 @@ namespace Rococo
 		{
 			hasNullFunction = false;
 			expressStruct = nullptr;
+			ioSystem = nullptr;
 
 			symbols.clear();
 
@@ -2102,6 +2121,9 @@ namespace Rococo
 			scripts->CompileDeclarations();
 
 			InstallNullFunction();
+
+			if (usesSysIO && !ioSystem) ioSystem = CreateIOSystem(*this);
+
 			InstallNativeCalls(IN nativeCalls, REF ProgramObject().GetRootNamespace());
 			InstallRawReflections(IN rawReflectionBindings, ProgramObject().VirtualMachine().Core());
 
@@ -2115,7 +2137,7 @@ namespace Rococo
 			if (typeFSB == nullptr) Throw(0, "Cannot find FastStringBuilder in module 0");
 			stringPool->SetStringBuilderType(typeFSB);
 
-			progObjProxy->AllocatorMap().SetAllocator(typeFSB, stringPool->GetBinding());
+			progObjProxy->AllocatorMap().SetAllocator(typeFSB, stringPool->GetBinding());;
 		}
 
 		void Compile(StringBuilder* declarationBuilder) override
@@ -2443,8 +2465,7 @@ namespace Rococo
 	{
 		return script.GetGlobalValue(buffer);
 	}
-	} // Script
-}//Rococo
+}//Rococo::Script
 
 namespace Anon
 {

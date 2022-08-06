@@ -45,6 +45,9 @@
     <ClCompile Include="sexy.exceptions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="sexy.sys.io.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="sexy.script.stdafx.h">

@@ -95,13 +95,17 @@
 (interface Sys.Type.Formatters.AsSpecF (Null -> ))
 (interface Sys.Type.Formatters.AsSpecG (Null -> ))
 (interface Sys.Type.Formatters.AsNewLine (Null -> ))
+(interface Sys.Type.Formatters.AsUnsigned (Null -> ))
+(interface Sys.Type.Formatters.AsFormat (Null -> ))
 
 (function FormatDecimal -> (Sys.Type.Formatters.AsDecimal nullType):)
 (function FormatHex -> (Sys.Type.Formatters.AsHex nullType):)
+(function FormatUnsigned -> (Sys.Type.Formatters.AsUnsigned nullType):)
 (function FormatSpecE -> (Sys.Type.Formatters.AsSpecE nullType):)
 (function FormatSpecF -> (Sys.Type.Formatters.AsSpecF nullType):)
 (function FormatSpecG -> (Sys.Type.Formatters.AsSpecG nullType):)
 (function FormatNewLine -> (Sys.Type.Formatters.AsNewLine nullType):)
+(function FormatFormat -> (Sys.Type.Formatters.AsFormat nullType):)
 
 (using Sys.Type.Formatters)
 
@@ -323,10 +327,12 @@
 (namespace Sys.Type.Formatters)
 	(alias FormatDecimal Sys.Type.Formatters.Decimal)
 	(alias FormatHex Sys.Type.Formatters.Hex)
+	(alias FormatUnsigned Sys.Type.Formatters.Unsigned)
 	(alias FormatSpecE Sys.Type.Formatters.SpecE)
 	(alias FormatSpecF Sys.Type.Formatters.SpecF)
 	(alias FormatSpecG Sys.Type.Formatters.SpecG)
 	(alias FormatNewLine Sys.Type.Formatters.NewLine)
+	(alias FormatFormat Sys.Type.Formatters.Format)
 
 (factory Sys.Type.Memo IString (IString s):
 	(construct MemoImpl s)
