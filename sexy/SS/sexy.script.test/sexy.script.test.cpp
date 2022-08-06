@@ -5749,6 +5749,9 @@ R"((namespace EntryPoint)
 			"	(#build stdout \"&n&tG:\" SpecG smallNum)\n"
 			"   (#build stdout \"&n\")\n"
 			"   (IFileCursor cursor = stdout.Cursor)\n"
+			"   (IWriter testFile = (Sys.IO.WriteToFile \"C:\\work\\rococo\\sexy\\console.test.txt\"))\n"
+			"   (#build testFile \"Hello World!\")\n"
+			"   (Sys.IO.Native.CloseWriter testFile)"
 			")"
 			;
 

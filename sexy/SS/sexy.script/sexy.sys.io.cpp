@@ -102,6 +102,7 @@ namespace ANON_NS
 		IScriptSystem& ss;
 		IStructure* fileWriterType = nullptr;
 		FileWriterInstanceWithInternals stdoutWriter;
+		FileWriterInstanceWithInternals stderrWriter;
 
 		IOSystem(IScriptSystem& l_ss) : ss(l_ss)
 		{
@@ -117,6 +118,10 @@ namespace ANON_NS
 			stdoutWriter.stub.Desc = (ObjectDesc*) fileWriterType->GetVirtualTable(0);
 			stdoutWriter.stub.pVTables[0] = (VirtualTable*) fileWriterType->GetVirtualTable(1);
 			stdoutWriter.stub.refCount = ObjectStub::NO_REF_COUNT;
+			
+
+			stderrWriter = stdoutWriter;
+			stderrWriter.fp = stderr;
 
 			auto* sysIO = ss.PublicProgramObject().GetRootNamespace().FindSubspace("Sys.IO");
 			if (!sysIO)
@@ -182,6 +187,12 @@ namespace ANON_NS
 	void GetStdOut(NativeCallEnvironment& e)
 	{
 		InterfacePointer pIWriter = &From(e).stdoutWriter.stub.pVTables[0];
+		WriteOutput(0, pIWriter, e);
+	}
+
+	void GetStdErr(NativeCallEnvironment& e)
+	{
+		InterfacePointer pIWriter = &From(e).stderrWriter.stub.pVTables[0];
 		WriteOutput(0, pIWriter, e);
 	}
 
@@ -579,6 +590,77 @@ namespace ANON_NS
 
 		WriteOutput(0, instance.cursor, e);
 	}
+
+	void WriteToFile(NativeCallEnvironment& e)
+	{
+		InterfacePointer string;
+		ReadInput(0, string, e);
+
+		auto* sc = (CStringConstant*)InterfaceToInstance(string);
+
+		if (sc->length <= 0 || sc->pointer == nullptr)
+		{
+			e.ss.ThrowNative(0, __FUNCTION__, "Filename was blank");
+			return;
+		}
+
+		FILE* fp = nullptr;
+		errno_t err = fopen_s(&fp, sc->pointer, "wt");
+		if (!fp || err != 0)
+		{
+			char errMsg[256];
+			strerror_s(errMsg, err);
+			e.ss.ThrowNative(0, sc->pointer, errMsg);
+			return;
+		}
+
+		FileWriterInstanceWithInternals* file = nullptr;
+
+		try
+		{
+			file = (FileWriterInstanceWithInternals*)e.ss.CreateScriptObjectDirect(sizeof FileWriterInstanceWithInternals, *From(e).fileWriterType);
+		}
+		catch (...)
+		{
+			fclose(fp);
+			throw;
+		}
+
+		if (!file)
+		{
+			fclose(fp);
+			e.ss.ThrowFromNativeCode(0, "Could not allocate FileWriterInstanceWithInternals");
+			return;
+		}
+
+		file->flags = 0;
+		file->formatSpec[0] = 0;
+		file->formatPos = 0;
+		file->precision = -1;
+		file->width = -1;
+		file->fp = fp;
+
+		InterfacePointer ipWriter = &file->stub.pVTables[0];
+		WriteOutput(0, ipWriter, e);
+	}
+
+	void CloseWriter(NativeCallEnvironment& e)
+	{
+		InterfacePointer writer;
+		ReadInput(0, writer, e);
+
+		auto& ioSystem = From(e);
+		auto& instance = ioSystem.ToFileWriter(writer);
+
+		if (&ioSystem.stdoutWriter != &instance)
+		{
+			if (instance.fp)
+			{
+				fclose(instance.fp);
+				instance.fp = nullptr;
+			}
+		}	
+	}
 }
 
 namespace Rococo::Script
@@ -593,6 +675,8 @@ namespace Rococo::Script
 		{
 			const INamespace& sysIO = ss.AddNativeNamespace("Sys.IO");
 			ss.AddNativeCall(sysIO, ANON_NS::GetStdOut, &ioSystem, "GetStdOut -> (Sys.IO.IWriter stdout)", __FILE__, __LINE__, true);
+			ss.AddNativeCall(sysIO, ANON_NS::GetStdErr, &ioSystem, "GetStdErr -> (Sys.IO.IWriter stdout)", __FILE__, __LINE__, true);
+			ss.AddNativeCall(sysIO, ANON_NS::WriteToFile, &ioSystem, "WriteToFile (IString path) -> (Sys.IO.IWriter writer)", __FILE__, __LINE__, true);
 		}
 
 		const INamespace& sysIONative = ss.AddNativeNamespace("Sys.IO.Native");
@@ -618,5 +702,6 @@ namespace Rococo::Script
 		ss.AddNativeCall(sysIONative, ANON_NS::SetWidth, &ioSystem, "SetWidth (Sys.IO.IWriter writer) (Int32 width)->", __FILE__, __LINE__, true);
 		ss.AddNativeCall(sysIONative, ANON_NS::SetZeroPrefix, &ioSystem, "SetZeroPrefix (Sys.IO.IWriter writer) (Bool useZeroPrefix)->", __FILE__, __LINE__, true);
 		ss.AddNativeCall(sysIONative, ANON_NS::UseDefaultFormatting, &ioSystem, "UseDefaultFormatting (Sys.IO.IWriter writer) ->", __FILE__, __LINE__, true);
+		ss.AddNativeCall(sysIONative, ANON_NS::CloseWriter, &ioSystem, "CloseWriter (Sys.IO.IWriter writer) ->", __FILE__, __LINE__, true);
 	}
 }

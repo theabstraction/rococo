@@ -361,6 +361,9 @@ namespace Rococo {
 			// Create an object, use AlignedFree to free up the memory (generally when reference count hits zero)
 			virtual ObjectStub* CreateScriptObject(cstr type, cstr sourceFile) = 0;
 
+			// Create an object, the sizeOfObject can reserve more space than that specified by [compilersView], along C++ access to extra hidden fields. Use AlignedFree to free up the memory (generally when reference count hits zero)
+			virtual ObjectStub* CreateScriptObjectDirect(size_t sizeofObject, const IStructure& compilersView) = 0;
+
 			// Create a blank array with 0 capacity and no elements. The implementation should allocate memory, set the capacity > 0 and assign elements prior
 			// to allowing the script to process the array. Use ss.AlignedMalloc(16, capacity * a->ElementLength); and assign to the Start variable to set the size.
 			// Use ss.AlignedFree to clean up the memory (generally when reference count hits zero)

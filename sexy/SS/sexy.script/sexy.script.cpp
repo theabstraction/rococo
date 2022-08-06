@@ -1088,6 +1088,31 @@ namespace Rococo::Script
 			return object;
 		}
 
+		ObjectStub* CreateScriptObjectDirect(size_t sizeofObject, const IStructure& compilersView) override
+		{
+			int allocSize = compilersView.SizeOfStruct();
+			if (allocSize > sizeofObject)
+			{
+				Throw(0, "%s: the supplied size of %llu bytes was insufficient to allocate objects of type %s", __FUNCTION__, sizeofObject, GetFriendlyName(compilersView));
+			}
+
+			auto& allocator = progObjProxy->GetDefaultObjectAllocator();
+
+			auto* object = (ObjectStub*)allocator.AllocateObject(sizeofObject);
+			memset(object, 0, sizeofObject);
+
+			object->Desc = (ObjectDesc*)compilersView.GetVirtualTable(0);
+			object->refCount = 1;
+
+			int nInterfaces = compilersView.InterfaceCount();
+			for (int i = 0; i < nInterfaces; ++i)
+			{
+				object->pVTables[i] = (VirtualTable*)compilersView.GetVirtualTable(i + 1);
+			}
+
+			return object;
+		}
+
 		ArrayImage* CreateArrayImage(const IStructure& elementType) override
 		{
 			return Rococo::Script::CreateArrayImage(*this, elementType, 0);
