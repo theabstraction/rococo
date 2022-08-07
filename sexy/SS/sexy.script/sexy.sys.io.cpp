@@ -102,6 +102,9 @@ namespace ANON_NS
 		IStructure* fileWriterType = nullptr;
 		FileWriterInstanceWithInternals stdoutWriter;
 		FileWriterInstanceWithInternals stderrWriter;
+		CStringConstant* commandLineConstant;
+
+		char envBuffer[32768];
 
 		IOSystem(IScriptSystem& l_ss) : ss(l_ss)
 		{
@@ -121,6 +124,9 @@ namespace ANON_NS
 
 			stderrWriter = stdoutWriter;
 			stderrWriter.fp = stderr;
+
+			cstr commandLine = Rococo::OS::GetCommandLineText();
+			commandLineConstant = ss.GetStringReflection(commandLine);
 		}
 
 		FileWriterInstanceWithInternals& ToFileWriter(InterfacePointer ip)
@@ -841,6 +847,70 @@ namespace ANON_NS
 			// The function is deemed a request and failure not recorded. The Win32 docs show the only valid errno is EINVAL, which does not tell us much. Our API clamps bufferlength and mode to 1,2 or 3, so not much scope for error
 		}
 	}
+
+	void GetCommandLine(NativeCallEnvironment& e)
+	{
+		auto& ioSystem = From(e);
+		InterfacePointer pCL = &ioSystem.commandLineConstant->header.pVTables[0];
+		WriteOutput(0, pCL, e);
+	}
+
+	void AppendEnvironmentVariable(NativeCallEnvironment& e)
+	{
+		auto& ioSystem = From(e);
+
+		IScriptSystem& ss = (IScriptSystem&) e.ss;
+		
+		InterfacePointer ipKey;
+		ReadInput(0, ipKey, e);
+
+		InterfacePointer ipValueBuilder;
+		ReadInput(1, ipValueBuilder, e);
+
+		CStringConstant* sc = (CStringConstant*) InterfaceToInstance(ipKey);
+		FastStringBuilder* sb = (FastStringBuilder*) InterfaceToInstance(ipValueBuilder);
+
+		if (!sc->length || !sc->pointer)
+		{
+			ss.ThrowNative(0, __FUNCTION__, "No key was supplied");
+			return;
+		}
+
+		size_t requiredLen;
+		errno_t err = getenv_s(&requiredLen, nullptr, 0, sc->pointer);
+		if (err != 0)
+		{
+			int32 length = 0;
+			WriteOutput(0, 0, e);
+			return;
+		}
+
+		if (requiredLen > sizeof IOSystem::envBuffer)
+		{
+			ss.ThrowNative(0, __FUNCTION__, "Insufficient buffer");
+			return;
+		}
+
+		int32 length = (int32) requiredLen;
+		WriteOutput(0, length, e);
+
+		if (sb->stub.Desc->TypeInfo == e.ss.GetStringBuilderType())
+		{
+			getenv_s(&requiredLen, ioSystem.envBuffer, sizeof IOSystem::envBuffer, sc->pointer);
+
+			if (requiredLen > 0)
+			{
+				int32 capacity = sb->capacity - sb->length;
+				if (capacity <= 0)
+				{
+					return;
+				}
+
+				memcpy_s(sb->buffer + sb->length, capacity, ioSystem.envBuffer, requiredLen);
+				sb->length += (int32)requiredLen - 1;
+			}
+		}
+	}
 }
 
 namespace Rococo::Script
@@ -857,6 +927,8 @@ namespace Rococo::Script
 			ss.AddNativeCall(sysIO, ANON_NS::GetStdOut, &ioSystem, "GetStdOut -> (Sys.IO.IWriter stdout)", __FILE__, __LINE__, true);
 			ss.AddNativeCall(sysIO, ANON_NS::GetStdErr, &ioSystem, "GetStdErr -> (Sys.IO.IWriter stdout)", __FILE__, __LINE__, true);
 			ss.AddNativeCall(sysIO, ANON_NS::WriteToFile, &ioSystem, "WriteToFile (IString path) -> (Sys.IO.IFileWriter writer)", __FILE__, __LINE__, true);
+			ss.AddNativeCall(sysIO, ANON_NS::GetCommandLine, &ioSystem, "CommandLine -> (IString path)", __FILE__, __LINE__, true);
+			ss.AddNativeCall(sysIO, ANON_NS::AppendEnvironmentVariable, &ioSystem, "AppendEnvironmentVariable (IString variableName)(IStringBuilder sb)->(Int32 length)", __FILE__, __LINE__, true);
 		}
 
 		const INamespace& sysIONative = ss.AddNativeNamespace("Sys.IO.Native");

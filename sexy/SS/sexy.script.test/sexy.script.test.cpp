@@ -5804,6 +5804,43 @@ R"((namespace EntryPoint)
 		ValidateExecution(result);
 	}
 
+	void TestConsoleOutput3(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)\n"
+			" (alias Main EntryPoint.Main)\n"
+
+			"(using Sys.Type)\n"
+			"(using Sys.IO)\n"
+			"(using Sys.Type.Formatters)\n"
+			"(using Sys.Maths)\n"
+
+			"(function Main -> (Int32 result):\n"
+			"   (IString newLine = \"&n\")\n"
+			"   (#printf \"Command Line:\" CommandLine newLine)\n"
+			"   (#string env 32768)\n"
+			"   (Sys.IO.AppendEnvironmentVariable \"Rhodes\" env)\n"
+			"   (#printf \"env-ZelaznyChops: \" env newLine)\n"
+			"   (env.Clear)"
+			"   (Sys.IO.AppendEnvironmentVariable \"COMPUTERNAME\" env)\n"
+			"   (#printf \"env-COMPUTERNAME: \" env newLine)\n"
+			"   (env.Clear)"
+			"   (Sys.IO.AppendEnvironmentVariable \"USERPROFILE\" env)\n"
+			"   (#printf \"env-USERPROFILE: \" env newLine)\n"
+			")"
+			;
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+	}
+
 	void TestCoroutine1(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -14902,6 +14939,7 @@ R"(
 	{
 		validate(true);
 
+		TEST3(TestConsoleOutput3);
 		TEST3(TestConsoleOutput2);
 		TEST3(TestConsoleOutput);
 
@@ -15278,7 +15316,8 @@ R"(
 
 		TestMemoryIsGood();
 
-		TEST3(TestCreateDeclarations);
+		TEST3(TestConsoleOutput3);
+
 		return;
 
 		RunPositiveSuccesses();	

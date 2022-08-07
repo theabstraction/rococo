@@ -39,6 +39,7 @@ namespace Rococo
 		[[nodiscard]] ticks UTCTime();
 		void FormatErrorMessage(char* message, size_t sizeofBuffer, int errorCode);
 		void BuildExceptionString(char* buffer, size_t capacity, IException& ex, bool appendStack);
+		cstr GetCommandLineText();
 	}
 
 	namespace Maths::IEEE475

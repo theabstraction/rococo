@@ -20,6 +20,7 @@
 	(WriteBool (Bool x) -> )
 	(WritePointer (Pointer x) -> )
 	(WriteIString (IString s) -> )
+	(WriteIStringBuilder (IStringBuilder s) -> )
 	(WriteAsHex (AsHex null) ->)
 	(WriteAsUnsigned (AsUnsigned null) ->)
 	(WriteAsDecimal (AsDecimal null) ->)
@@ -97,6 +98,10 @@
 )
 
 (method FileWriter.WriteIString (IString s) -> :
+	(Sys.IO.Native.WriteIString this s)
+)
+
+(method FileWriter.WriteIStringBuilder (IStringBuilder s) -> :
 	(Sys.IO.Native.WriteIString this s)
 )
 

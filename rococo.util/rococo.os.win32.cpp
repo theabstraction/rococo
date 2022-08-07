@@ -1729,6 +1729,11 @@ namespace Rococo
 #endif
 		}
 
+		cstr GetCommandLineText()
+		{
+			return GetCommandLineA();
+		}
+
 		void CopyStringToClipboard(cstr text)
 		{
 			size_t len = strlen(text);
