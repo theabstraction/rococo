@@ -875,7 +875,7 @@ namespace Rococo::Script
 		ss.AddNativeCall(sysIONative, ANON_NS::WriteFloat32, &ioSystem, "WriteFloat32 (Sys.IO.IWriter writer) (Float32 x)->", __FILE__, __LINE__, true);
 		ss.AddNativeCall(sysIONative, ANON_NS::WriteFloat64, &ioSystem, "WriteFloat64 (Sys.IO.IWriter writer) (Float64 x)->", __FILE__, __LINE__, true);
 		ss.AddNativeCall(sysIONative, ANON_NS::WritePointer, &ioSystem, "WritePointer (Sys.IO.IWriter writer) (Pointer x)->", __FILE__, __LINE__, true);
-		ss.AddNativeCall(sysIONative, ANON_NS::WriteSubstring, &ioSystem, "WriteSubstring (Sys.IO.IWriter writer) (IString s) (Int32 startPos) (Int32 numberOfChars) ->)", __FILE__, __LINE__, true);
+		ss.AddNativeCall(sysIONative, ANON_NS::WriteSubstring, &ioSystem, "WriteSubstring (Sys.IO.IWriter writer) (IString s) (Int32 startPos) (Int32 numberOfChars) ->", __FILE__, __LINE__, true);
 
 		ss.AddNativeCall(sysIONative, ANON_NS::FlushWriter, &ioSystem, "FlushWriter (Sys.IO.IWriter writer)->", __FILE__, __LINE__, true);
 		ss.AddNativeCall(sysIONative, ANON_NS::SetWriterBuffering, &ioSystem, "SetWriterBuffering (Sys.IO.IWriter writer)(Int32 length)(Int32 mode)->", __FILE__, __LINE__, true);

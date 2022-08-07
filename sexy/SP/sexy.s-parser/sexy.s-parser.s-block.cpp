@@ -448,6 +448,10 @@ namespace Anon
 					}
 					break;
 				case ')':
+					if (depth == 0)
+					{
+						ThrowIllFormedSExpression((int)(next - sExpression), "Unexpected close parenthesis at the root expression");
+					}
 					builder.FinishCompound(sCompound, next - 1, depth, parent);
 					return next;
 				case '"':

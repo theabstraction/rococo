@@ -5777,6 +5777,33 @@ R"((namespace EntryPoint)
 		validate(x == strlen("Hullo World!jo"));
 	}
 
+	void TestConsoleOutput2(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)\n"
+			" (alias Main EntryPoint.Main)\n"
+
+			"(using Sys.Type)\n"
+			"(using Sys.IO)\n"
+			"(using Sys.Type.Formatters)\n"
+			"(using Sys.Maths)\n"
+
+			"(function Main -> (Int32 result):\n"
+			"   (#printf \"Hello World!\")\n"
+			")"
+			;
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+	}
+
 	void TestCoroutine1(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -14875,9 +14902,8 @@ R"(
 	{
 		validate(true);
 
+		TEST3(TestConsoleOutput2);
 		TEST3(TestConsoleOutput);
-
-		return;
 
 		TEST(TestMacroSiblings3Throws);
 		TEST(TestMacroSiblings);
@@ -15013,7 +15039,7 @@ R"(
 
 		TEST(TestRaw);
 		TEST(TestMinimumConstruct);
-	//	TEST(TestCreateDeclarations);
+		TEST3(TestCreateDeclarations);
 		TEST(TestLocalVariable);
 		TEST(TestBooleanLiteralVsLiteralMatches);
 		TEST(TestBooleanMismatch);
@@ -15252,10 +15278,10 @@ R"(
 
 		TestMemoryIsGood();
 
-		RunPositiveSuccesses();	
-
+		TEST3(TestCreateDeclarations);
 		return;
 
+		RunPositiveSuccesses();	
 		RunPositiveFailures();
 		RunCollectionTests();
 	

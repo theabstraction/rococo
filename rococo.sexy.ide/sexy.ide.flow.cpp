@@ -233,6 +233,7 @@ namespace Rococo
 					pip.addCoroutineLib = true;
 					pip.MaxProgramBytes = maxBytes;
 					pip.NativeSourcePath = nullptr;
+					pip.addIO = true;
 
 #ifdef _DEBUG
 					pip.useDebugLibs = true;

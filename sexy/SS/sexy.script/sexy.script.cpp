@@ -2132,11 +2132,6 @@ namespace Rococo::Script
 				lib->AddNativeCalls();
 			}
 
-			if (declarationBuilder)
-			{
-				AppendNativeCallsAsAliases(IN nativeCalls, *declarationBuilder);
-			}
-
 			InstallNativeCallNamespaces(IN nativeCalls, REF ProgramObject().GetRootNamespace());
 		}
 
@@ -2148,6 +2143,11 @@ namespace Rococo::Script
 			InstallNullFunction();
 
 			if (usesSysIO && !ioSystem) ioSystem = CreateIOSystem(*this);
+
+			if (declarationBuilder)
+			{
+				AppendNativeCallsAsAliases(IN nativeCalls, *declarationBuilder);
+			}
 
 			InstallNativeCalls(IN nativeCalls, REF ProgramObject().GetRootNamespace());
 			InstallRawReflections(IN rawReflectionBindings, ProgramObject().VirtualMachine().Core());
