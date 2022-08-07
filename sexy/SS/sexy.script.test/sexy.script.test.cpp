@@ -5736,22 +5736,30 @@ R"((namespace EntryPoint)
 			"	(#build stdout \"&n&tAscii Tilde(126): \")\n"
 			"	(stdout.WriteChar 126)\n"
 			"   (Float64 smallNum = 0.0001)\n"
-			"   (stdout.Precision 4)\n"
-			"   (stdout.Width 16)\n"
-			"   (stdout.ZeroPrefix false)\n"
-			"   (stdout.RightAlign false)\n"
+			"   (stdout.SetPrecision 4)\n"
+			"   (stdout.SetWidth 16)\n"
+			"   (stdout.SetZeroPrefix false)\n"
+			"   (stdout.SetRightAlign false)\n"
 			"	(#build stdout \"&n&tE:\" SpecE smallNum)\n"
 			"	(#build stdout \"&n&tF:\" SpecF smallNum)\n"
-			"   (stdout.RightAlign true)\n"
+			"   (stdout.SetRightAlign true)\n"
 			"   (#build stdout \"&n&tFormatted:\" Format \"Hi\")\n"
 			"	(#build stdout \"&n&tG:\" SpecG smallNum)\n"
-			"	(stdout.UseDefaultFormatting)\n"
+			"	(stdout.SetFormattingToDefault)\n"
 			"	(#build stdout \"&n&tG:\" SpecG smallNum)\n"
 			"   (#build stdout \"&n\")\n"
-			"   (IFileCursor cursor = stdout.Cursor)\n"
-			"   (IWriter testFile = (Sys.IO.WriteToFile \"C:\\work\\rococo\\sexy\\console.test.txt\"))\n"
-			"   (#build testFile \"Hello World!\")\n"
-			"   (Sys.IO.Native.CloseWriter testFile)"
+			"   (IFileWriter testFile = (Sys.IO.WriteToFile \"C:\\work\\rococo\\sexy\\console.test.txt\"))\n"
+			"   (#build testFile \"Hello World\")\n"
+			"   (Int64 pos = testFile.Position)\n"
+			"   (testFile.FlushWhenWritten)"
+			"   (testFile.SetPosition 1)\n"
+			"   (testFile \"u\")\n"
+			"	(testFile.SetPosition pos)\n"
+			"	(testFile \"!\")\n"
+			"   (testFile.WriteSubstring \"Enjoy\" 2 2)\n"
+			"   (Int64 endPos = testFile.Length)\n"
+			"   (result = (Sys.Maths.I64.ToInt32 endPos))"
+			"   (Sys.IO.Native.CloseWriter testFile)\n"
 			")"
 			;
 
@@ -5764,6 +5772,9 @@ R"((namespace EntryPoint)
 
 		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
 		ValidateExecution(result);
+
+		int x = vm.PopInt32();
+		validate(x == strlen("Hullo World!jo"));
 	}
 
 	void TestCoroutine1(IPublicScriptSystem& ss)

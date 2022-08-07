@@ -1,17 +1,17 @@
 (namespace Sys.IO)
 
-(interface Sys.IO.IFileCursor
-	(attribute essential)
-	(Length -> (Int64 length))
-	(Position -> (Int64 position))
-	(SetPosition (Int64 newPosition)->)
-)
-
 (using Sys.Type)
 (using Sys.Type.Formatters)
 
 (interface Sys.IO.IWriter
 	(attribute builder Write) // if we have a variable s of type IWriter then (s X) calls (s.WriteTypeX X), e.g (s 1) calls (s.WriteInt32 1)
+
+	// Buffering
+	(Flush ->)
+	(FlushWhenBufferFull (Int32 bufferLen)->)
+	(FlushWhenNewLine (Int32 bufferLen)->)
+	(FlushWhenWritten ->)
+
 	(WriteChar (Int32 eightBitCode) -> ) // Writes the least significant unsigned byte as a character code. The other bits are ignored
 	(WriteInt32 (Int32 x) -> )
 	(WriteInt64 (Int64 x) -> )
@@ -29,24 +29,43 @@
 	(WriteAsNewLine (AsNewLine null) ->)
 	(WriteAsFormat (AsFormat null) ->)
 	(WriteSubstring (IString s) (Int32 startPos) (Int32 numberOfChars) ->)
-	(Flush ->)
-	(Precision (Int32 precision)->)
-	(Width (Int32 width)->)
-	(ZeroPrefix (Bool isZeroPrefixed)->)
-	(RightAlign (Bool isRightAligned)->)
-	(UseDefaultFormatting ->)
+
+	// Formatting API
+	(SetPrecision (Int32 precision)->)
+	(SetWidth (Int32 width)->)
+	(SetZeroPrefix (Bool isZeroPrefixed)->)
+	(SetRightAlign (Bool isRightAligned)->)
+	(SetFormattingToDefault ->)
+)
+
+(interface Sys.IO.IFileWriter (extends Sys.IO.IWriter) (attribute builder Write)
+
+	(Length -> (Int64 length))
+	(Position -> (Int64 position))
+	(SetPosition (Int64 newPosition)->)
 	(IsEOF -> (Bool isEOF)) // Returns true if end-of-file
 	(ClearError ->) // Clear the error for the stream
 	(GetError -> (Int32 systemErrorCode)) // If the file is in an error state, returns the error code
-	(Cursor -> (Sys.IO.IFileCursor cursor)) // Returns the file cursor. If a null object, the file has no random access cursor 
 )
 
 (class FileWriter
-	(implements Sys.IO.IWriter)
+	(implements Sys.IO.IFileWriter)
 	(Pointer hFile)
 	(Int32 precision)
 	(Int32 width)
 	(Int32 flags)
+)
+
+(method FileWriter.FlushWhenBufferFull (Int32 bufferLen)-> :
+	(Sys.IO.Native.SetWriterBuffering this bufferLen 1)
+)
+
+(method FileWriter.FlushWhenNewLine (Int32 bufferLen)-> :
+	(Sys.IO.Native.SetWriterBuffering this bufferLen 2)
+)
+
+(method FileWriter.FlushWhenWritten -> :
+	(Sys.IO.Native.SetWriterBuffering this 0 3)
 )
 
 (method FileWriter.WriteChar (Int32 eightBitCode) -> :
@@ -114,26 +133,26 @@
 )
 
 (method FileWriter.Flush -> :
-	(Sys.IO.Native.Flush this)
+	(Sys.IO.Native.FlushWriter this)
 )
 
 (method FileWriter.SetFormat (Sys.Type.Int32 precision) (Sys.Type.Int32 width) (Sys.Type.Bool isZeroPrefixed) (Sys.Type.Bool isRightAligned) -> :
 	(Sys.IO.Native.SetFormat this precision width isZeroPrefixed isRightAligned)
 )
 
-(method FileWriter.Precision (Int32 precision)-> :
+(method FileWriter.SetPrecision (Int32 precision)-> :
 	(Sys.IO.Native.SetPrecision this precision)
 )
 
-(method FileWriter.Width (Int32 width)-> :
+(method FileWriter.SetWidth (Int32 width)-> :
 	(Sys.IO.Native.SetWidth this width)
 )
 
-(method FileWriter.ZeroPrefix (Bool isZeroPrefixed)-> :
+(method FileWriter.SetZeroPrefix (Bool isZeroPrefixed)-> :
 	(Sys.IO.Native.SetZeroPrefix this isZeroPrefixed)
 )
 
-(method FileWriter.RightAlign (Bool isRightAligned)-> :
+(method FileWriter.SetRightAlign (Bool isRightAligned)-> :
 	(Sys.IO.Native.SetRightAlign this isRightAligned)
 )
 
@@ -149,11 +168,7 @@
 	(Sys.IO.Native.GetError this -> (Int32 systemErrorCode))
 )
 
-(method FileWriter.Cursor -> (Sys.IO.IFileCursor cursor) :
-	(Sys.IO.Native.GetCursor this -> cursor)
-)
-
-(method FileWriter.UseDefaultFormatting -> :
+(method FileWriter.SetFormattingToDefault -> :
 	(Sys.IO.Native.UseDefaultFormatting this)
 )
 
@@ -161,9 +176,21 @@
 	(Sys.IO.Native.WriteAsFormat this)
 )
 
+(method FileWriter.Length -> (Int64 lengthInBytes):
+	(Sys.IO.Native.GetFileLength this -> lengthInBytes)
+)
+
+(method FileWriter.Position -> (Int64 position) :
+	(Sys.IO.Native.GetFilePosition this -> position)
+)
+
+(method FileWriter.SetPosition (Int64 position) -> :
+	(Sys.IO.Native.SetFilePosition this position)
+)
+
 // Native functions:
 (' declare Sys.IO.GetStdOut -> (Sys.IO.IWriter writer))
 (' declare Sys.IO.GetStdErr -> (Sys.IO.IWriter writer))
-(' declare Sys.IO.CloseWriter -> (Sys.IO.IWriter writer))
-(' declare Sys.IO.WriteFile (IString pathToFile) -> (Sys.IO.IWriter writer))
-(' declare Sys.IO.WriteContentFile (IString pingPathToFile) -> (Sys.IO.IWriter writer))
+(' declare Sys.IO.CloseWriter -> (Sys.IO.IFileWriter writer))
+(' declare Sys.IO.WriteFile (IString pathToFile) -> (Sys.IO.IFileWriter writer))
+(' declare Sys.IO.WriteContentFile (IString pingPathToFile) -> (Sys.IO.IFileWriter writer))
