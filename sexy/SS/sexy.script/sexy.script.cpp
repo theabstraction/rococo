@@ -751,6 +751,11 @@ namespace Rococo::Script
 			return this->progObjProxy->GetModule(3);
 		}
 
+		IModuleBuilder& ReflectionModule() const
+		{
+			return const_cast<CScriptSystem&>(*this).ReflectionModule();
+		}
+
 		IModule& SysTypeMemoModule()
 		{
 			return this->progObjProxy->GetModule(0);
@@ -1543,11 +1548,30 @@ namespace Rococo::Script
 			delete[] (char*) header;
 		}
 
-		IStructure* expressStruct = nullptr;
+		mutable IStructure* expressStruct = nullptr;
 
 		const IStructure* GetExpressionType() const
 		{
+			if (expressStruct == nullptr)
+			{
+				IModuleBuilder& reflectionModule = ReflectionModule();
+				expressStruct = reflectionModule.FindStructure(("Expression"));
+			}
+
 			return expressStruct;
+		}
+
+		mutable IStructure* expressBuilderStruct = nullptr;
+
+		const IStructure* GetExpressionBuilderType() const
+		{
+			if (expressBuilderStruct == nullptr)
+			{
+				IModuleBuilder& reflectionModule = ReflectionModule();
+				expressBuilderStruct = reflectionModule.FindStructure(("ExpressionBuilder"));
+			}
+
+			return expressBuilderStruct;
 		}
 
 		CClassExpression* CreateReflection(cr_sex s)
@@ -2046,6 +2070,7 @@ namespace Rococo::Script
 		{
 			hasNullFunction = false;
 			expressStruct = nullptr;
+			expressBuilderStruct = nullptr;
 			ioSystem = nullptr;
 
 			symbols.clear();

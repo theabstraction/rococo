@@ -3,7 +3,7 @@
 (using Sys.Type)
 (using Sys.Type.Formatters)
 
-(interface Sys.IO.IWriter
+(interface Sys.IO.IWriter // Sexy's implementation of stdio FILE* write operations. Numeric write operations use width, precision, EFG, Hex/Unsigned/Decimal, ZeroPrefix and RightAlign to determine formatting rules
 	(attribute builder Write) // if we have a variable s of type IWriter then (s X) calls (s.WriteTypeX X), e.g (s 1) calls (s.WriteInt32 1)
 
 	// Buffering
@@ -19,7 +19,8 @@
 	(WriteFloat64 (Float64 x) -> )
 	(WriteBool (Bool x) -> )
 	(WritePointer (Pointer x) -> )
-	(WriteIString (IString s) -> )
+	(WriteIExpression (IExpression s) -> ) // Width gives the brace padding and Precision gives the inline spacing
+	(WriteIString (IString s) -> ) // Will not have width and precision applied unless WriteAsFormat preceeds the operation
 	(WriteIStringBuilder (IStringBuilder s) -> )
 	(WriteAsHex (AsHex null) ->)
 	(WriteAsUnsigned (AsUnsigned null) ->)
@@ -95,6 +96,10 @@
 
 (method FileWriter.WritePointer (Pointer x) -> :
 	(Sys.IO.Native.WritePointer this x)
+)
+
+(method FileWriter.WriteIExpression (IExpression s) -> :
+	(Sys.IO.Native.WriteIExpression this s)
 )
 
 (method FileWriter.WriteIString (IString s) -> :

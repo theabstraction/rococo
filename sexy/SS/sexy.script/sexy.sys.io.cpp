@@ -374,6 +374,148 @@ namespace ANON_NS
 		}
 	}
 
+	void PrintBraceSpacing(FileWriterInstance& instance, int depth)
+	{
+		int spacing = clamp(instance.width, 0, 16);
+		for (int i = 0; i < depth * spacing; ++i)
+		{
+			fputc(' ', instance.fp);
+		}
+	}
+
+	void PrintAtomicSpacing(FileWriterInstance& instance, int depth)
+	{
+		int spacing = clamp(instance.precision, 0, 16);
+		for (int i = 0; i < depth * spacing; ++i)
+		{
+			fputc(' ', instance.fp);
+		}
+	}
+
+	void PrintExpression(FileWriterInstance& instance, cr_sex s, int depth);
+
+	void PrintCompundExpression(FileWriterInstance& instance, cr_sex s, int depth)
+	{
+		PrintBraceSpacing(instance, depth);
+
+		fputc('(', instance.fp);
+
+		bool hasCompoundChildren = false;
+		for (int i = 0; i < s.NumberOfElements(); ++i)
+		{
+			if (s[i].NumberOfElements() > 0)
+			{
+				hasCompoundChildren = true;
+				break;
+			}
+		}
+
+		if (hasCompoundChildren) fputc('\n', instance.fp);
+
+		for (int i = 0; i < s.NumberOfElements(); ++i)
+		{
+			if (i > 0)
+			{
+				PrintAtomicSpacing(instance, depth);
+			}
+
+			PrintExpression(instance, s[i], depth + 1);
+		}
+
+		if (hasCompoundChildren)
+		{
+			fputc('\n', instance.fp);
+			PrintBraceSpacing(instance, depth);
+		}
+		fputc(')', instance.fp);
+		PrintAtomicSpacing(instance, depth);
+	}
+
+	void PrintExpression(FileWriterInstance& instance, cstr s)
+	{
+		fputc('"', instance.fp);
+
+		for (cstr p = s; *p != 0; p++)
+		{
+			switch (*p)
+			{
+			case '\n':
+				fputs("&n", instance.fp);
+				break;
+			case '\r':
+				fputs("&r", instance.fp);
+				break;
+			case '\t':
+				fputs("&t", instance.fp);
+				break;
+			case '\b':
+				fputs("&b", instance.fp);
+				break;
+			default:
+				fputc(*p, instance.fp);
+				break;
+			}
+		}
+
+		fputc('"', instance.fp);
+	}
+
+	void PrintExpression(FileWriterInstance& instance, cr_sex s, int depth)
+	{
+		switch (s.Type())
+		{
+		case EXPRESSION_TYPE_ATOMIC:
+			fputs(s.String()->Buffer, instance.fp);
+			break;
+		case EXPRESSION_TYPE_NULL:
+			fputs("()", instance.fp);
+			break;
+		case EXPRESSION_TYPE_STRING_LITERAL:
+			PrintExpression(instance, s.String()->Buffer);
+			break;
+		case EXPRESSION_TYPE_COMPOUND:
+			PrintCompundExpression(instance, s, depth);
+			break;
+		}
+	}
+
+	void WriteIExpression(NativeCallEnvironment& e)
+	{
+		InterfacePointer writer;
+		ReadInput(0, writer, e);
+
+		InterfacePointer ipS;
+		ReadInput(1, ipS, e);
+
+		IScriptSystem& ss = (IScriptSystem&)e.ss;
+
+		auto& instance = From(e).ToFileWriter(writer);
+
+		CClassExpression* object = (CClassExpression*) InterfaceToInstance(ipS);
+
+		auto* type = object->Header.Desc->TypeInfo;
+
+		if (IsNullType(*type))
+		{
+			return;
+		}
+
+		if (ss.GetExpressionType() == type || ss.GetExpressionBuilderType() == type)
+		{
+			if (!object->ExpressionPtr)
+			{
+				return;
+			}
+
+			cr_sex s = *object->ExpressionPtr;
+			PrintExpression(instance, s, 0);
+		}
+		else
+		{
+			e.ss.ThrowNative(0, __FUNCTION__, "Unsupported expression class");
+		}
+	}
+
 	void WriteSubstring(NativeCallEnvironment& e)
 	{
 		InterfacePointer writer;
@@ -941,6 +1083,7 @@ namespace Rococo::Script
 		ss.AddNativeCall(sysIONative, ANON_NS::WriteAsSpecG, &ioSystem, "WriteAsSpecG (Sys.IO.IWriter writer)->", __FILE__, __LINE__, true);
 		ss.AddNativeCall(sysIONative, ANON_NS::WriteAsUnsigned, &ioSystem, "WriteAsUnsigned (Sys.IO.IWriter writer)->", __FILE__, __LINE__, true);
 		ss.AddNativeCall(sysIONative, ANON_NS::WriteBool, &ioSystem, "WriteBool (Sys.IO.IWriter writer)(Bool x)->", __FILE__, __LINE__, true);
+		ss.AddNativeCall(sysIONative, ANON_NS::WriteIExpression, &ioSystem, "WriteIExpression (Sys.IO.IWriter writer) (Sys.Reflection.IExpression s)->", __FILE__, __LINE__, true);
 		ss.AddNativeCall(sysIONative, ANON_NS::WriteIString, &ioSystem, "WriteIString (Sys.IO.IWriter writer) (IString s)->", __FILE__, __LINE__, true);
 		ss.AddNativeCall(sysIONative, ANON_NS::WriteInt32, &ioSystem, "WriteInt32 (Sys.IO.IWriter writer) (Int32 x)->", __FILE__, __LINE__, true);
 		ss.AddNativeCall(sysIONative, ANON_NS::WriteInt64, &ioSystem, "WriteInt64 (Sys.IO.IWriter writer) (Int64 x)->", __FILE__, __LINE__, true);

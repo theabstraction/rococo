@@ -418,6 +418,7 @@ namespace Rococo {
 			virtual void SetGlobalVariablesToDefaults() = 0;
 			virtual const IStructure* GetStringBuilderType() const = 0;
 			virtual const IStructure* GetExpressionType() const = 0;
+			virtual const IStructure* GetExpressionBuilderType() const = 0;
 
 			virtual void CancelRepresentation(void* pSourceInstance) = 0;
 			virtual void EnumRepresentations(IRepresentationEnumeratorCallback& callback) = 0;

@@ -928,6 +928,40 @@ namespace
 		validate(AreAproxEqual(result, 0.62));
 	}
 
+	void TestTopLevelMacro(IPublicScriptSystem& ss)
+	{
+		cstr srcCodeModuleMain =
+			"(#entrypoint)\n"
+
+			"(function Main -> (Int32 result):\n"
+			"	  (result = 777)\n"
+			")\n"
+			;
+
+		Auto<ISourceCode> scMain = ss.SParser().ProxySourceBuffer(srcCodeModuleMain, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> mainTree(ss.SParser().CreateTree(scMain()));
+
+		ss.BeginPartialCompilation(nullptr);
+		ss.PartialCompile();
+
+		IModule* mainModule = ss.AddTree(*mainTree);
+		ss.PartialCompile();
+
+		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace("EntryPoint");
+		validate(ns != NULL);
+		validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, "Main"));
+
+		auto& vm = ss.PublicProgramObject().VirtualMachine();
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		int x = vm.PopInt32();
+		validate(x == 777);
+	}
+
 	void TestPartialCompiles(IPublicScriptSystem& ss)
 	{
 		cstr srcCodeModuleMain =
@@ -5827,6 +5861,36 @@ R"((namespace EntryPoint)
 			"   (env.Clear)"
 			"   (Sys.IO.AppendEnvironmentVariable \"USERPROFILE\" env)\n"
 			"   (#printf \"env-USERPROFILE: \" env newLine)\n"
+			")"
+			;
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+	}
+
+	void TestConsoleOutput4(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)\n"
+			" (alias Main EntryPoint.Main)\n"
+
+			"(using Sys.Type)\n"
+			"(using Sys.IO)\n"
+			"(using Sys.Reflection)\n"
+
+			"(function Main -> (Int32 result):\n"
+			"   (IExpression s = ' ((Hello world!) \"How are you today?&n\"))\n"
+			"   (IWriter stdout = GetStdOut)"
+			"   (stdout.SetWidth 4)"
+			"   (stdout.SetPrecision 1)"
+			"   (#build stdout s \"&n\")\n"
 			")"
 			;
 
@@ -14939,6 +15003,10 @@ R"(
 	{
 		validate(true);
 
+		TEST3(TestConsoleOutput4);
+		TEST(TestTopLevelMacro);
+		TEST(TestPartialCompiles);
+
 		TEST3(TestConsoleOutput3);
 		TEST3(TestConsoleOutput2);
 		TEST3(TestConsoleOutput);
@@ -14951,8 +15019,6 @@ R"(
 		TEST(TestMacroSiblings2);
 
 		TEST(TestStartsWith);
-
-		TEST(TestPartialCompiles);
 
 		TEST(TestOperatorOverload3);
 		TEST(TestStaticCast1);
@@ -15315,10 +15381,6 @@ R"(
 		Memory::ValidateNothingAllocated();
 
 		TestMemoryIsGood();
-
-		TEST3(TestConsoleOutput3);
-
-		return;
 
 		RunPositiveSuccesses();	
 		RunPositiveFailures();

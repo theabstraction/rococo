@@ -3688,7 +3688,7 @@ namespace Rococo { namespace Script
 			cr_sex elementName = GetAtomicArg(e, 0);
 
 			sexstring directive = elementName.String();
-			if(directive->Buffer[0] != '\'' && !IsOneOf(directive->Buffer, topLevelItems))
+			if(directive->Buffer[0] != '#' &&  directive->Buffer[0] != '\\' && !IsOneOf(directive->Buffer, topLevelItems))
 			{
 				Throw(elementName, "Unknown top level item, expecting keyword or data item");
 			}
