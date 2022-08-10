@@ -318,6 +318,9 @@ namespace Rococo
          void AddMapNodeDef(ICodeBuilder& builder, const MapDef& mapDef, cstr mapName, cstr nodeName, cr_sex s);
          void AddNodeDef(ICodeBuilder& builder, cstr nodeName, const IStructure& elementType, cr_sex s);
 
+         void CompileTopLevelMacro(cr_sex sDirective);
+         void CompileTopLevelMacros();
+
          const bool IsIStringInlined() const;
 
          IProgramObject& Object() { return programObject; }
@@ -624,7 +627,7 @@ namespace Rococo
       void CompileArrayDeclaration(CCompileEnvironment& ce, cr_sex s);
       void CompileListDeclaration(CCompileEnvironment& ce, cr_sex s);
       void CompileMapDeclaration(CCompileEnvironment& ce, cr_sex s);
-      void CallMacro(CCompileEnvironment& ce, const IFunction& f, cr_sex s);
+      void CallMacro(IScriptSystem& ss, const IFunction& f, cr_sex s);
       bool TryCompileAsPlainFunctionCall(CCompileEnvironment& ce, cr_sex s);
       bool TryCompileAsDerivativeFunctionCall(CCompileEnvironment& ce, cr_sex s);
       int GetOutputSFOffset(CCompileEnvironment& ce, int inputStackAllocCount, int outputStackAllocCount);

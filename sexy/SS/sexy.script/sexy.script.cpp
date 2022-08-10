@@ -2162,6 +2162,8 @@ namespace Rococo::Script
 
 		void PartialCompile(StringBuilder* declarationBuilder) override
 		{
+			scripts->CompileTopLevelMacros();
+
 			scripts->CompileNamespaces();
 			scripts->CompileDeclarations();
 

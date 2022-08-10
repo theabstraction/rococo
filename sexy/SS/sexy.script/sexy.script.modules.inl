@@ -286,12 +286,16 @@ namespace Rococo { namespace Script
 		}
 	}
 
-	void AppendAliases(IModuleBuilder& module, IN const ISParserTree& tree)
+	void AppendAliases(IScriptSystem& ss, IModuleBuilder& module, IN const ISParserTree& tree)
 	{
-		cr_sex root = tree.Root();			
-		for(int i = 0; i < root.NumberOfElements(); i++)
+		cr_sex root = tree.Root();
+
+		auto* sTransformRoot = ss.GetTransform(root);
+		cr_sex sSequence = sTransformRoot ? *sTransformRoot : root;
+
+		for(int i = 0; i < sSequence.NumberOfElements(); i++)
 		{
-			cr_sex topLevelItem = root.GetElement(i);
+			cr_sex topLevelItem = sSequence[i];
 			cr_sex elementNameExpr = GetAtomicArg(topLevelItem, 0);
 			cstr elementName = elementNameExpr.String()->Buffer;
 			if (AreEqual(elementName, ("alias")))
@@ -302,6 +306,22 @@ namespace Rococo { namespace Script
 
 				cr_sex localName = GetAtomicArg(topLevelItem, 1);		
 				cr_sex nsName = GetAtomicArg(topLevelItem, 2);					
+
+				AppendAlias(REF module, IN nsName, IN localName);
+			}
+			else if (elementName[0] == '#')
+			{
+				auto* sTransformItem = ss.GetTransform(topLevelItem);
+				if (!sTransformItem)
+				{
+					continue;
+				}
+
+				AssertNotTooFewElements(*sTransformItem, 3);
+				AssertNotTooManyElements(*sTransformItem, 3);
+
+				cr_sex localName = GetAtomicArg(*sTransformItem, 1);
+				cr_sex nsName = GetAtomicArg(*sTransformItem, 2);
 
 				AppendAlias(REF module, IN nsName, IN localName);
 			}
@@ -1941,7 +1961,10 @@ namespace Rococo { namespace Script
 			for (auto i = scripts.begin(); i != scripts.end(); ++i)
 			{
 				CScript* module = i->second;
-				module->AppendCompiledNamespaces(namespaceDefinitions);
+				if (!module->HasCompiled())
+				{
+					module->AppendCompiledNamespaces(namespaceDefinitions);
+				}
 			}
 
 			// Sort the namespace defs by name length ascending. Note Length('A.B.C.D') > Length('A.B.C') > Length('A.B') > Length('A')
@@ -2028,6 +2051,19 @@ namespace Rococo { namespace Script
 
 			ForEachUncompiledScript(fnctorCompileNamespaces);
 			ResolveNamespaces();
+		}
+
+		void CompileTopLevelMacros()
+		{
+			struct FnctorCompileMacros
+			{
+				void Process(CScript& script, cstr name)
+				{
+					script.CompileTopLevelMacros();
+				}
+			} fnctorCompileTopLevelMacros;
+
+			ForEachUncompiledScript(fnctorCompileTopLevelMacros);
 		}
 
 		void AddSpecialStructures()
@@ -2163,7 +2199,7 @@ namespace Rococo { namespace Script
 			{
 				void Process(CScript& script, cstr name)
 				{
-					AppendAliases(script.ProgramModule(), script.Tree());
+					AppendAliases(script.System(), script.ProgramModule(), script.Tree());
 				}
 			} fnctorAppendAliases;
 			ForEachUncompiledScript(fnctorAppendAliases);
@@ -2663,13 +2699,73 @@ namespace Rococo { namespace Script
       globalVariables.clear();
    }
 
-   void  CScript::CompileNullObjects()
+   void CScript::CompileNullObjects()
    {
       for (auto n = nullDefs.begin(); n != nullDefs.end(); ++n)
       {
          CompileNullObject(System(), *n->Interface, *n->NullObject, *n->Source, *n->NS);
          n->Interface->PostCompile();
       }
+   }
+
+   void CScript::CompileTopLevelMacro(cr_sex s)
+   {
+	   fstring fqMacroName = GetAtomicArg(s[0]);
+	   auto& ss = scripts.System();
+	   auto& rootNs = ss.PublicProgramObject().GetRootNamespace();
+
+	   NamespaceSplitter splitter(fqMacroName.buffer + 1);
+
+	   cstr ns, shortMacroName;
+	   if (!splitter.SplitTail(ns, shortMacroName))
+	   {
+		   Throw(s[0], "Expecting fully qualified macro name");
+	   }
+
+	   auto* macroNS = rootNs.FindSubspace(ns);
+	   if (macroNS == nullptr)
+	   {
+		   Throw(s[0], "Could not find namespace %s", ns);
+	   }
+
+	   auto* macro = macroNS->FindMacro(shortMacroName);
+	   if (!macro)
+	   {
+		   Throw(s[0], "Could not find macro %s in namespace %s", shortMacroName, ns);
+	   }
+
+	   const IFunction& macroFunction = macro->Implementation();
+
+	   CallMacro(ss, macroFunction, s);
+
+	   // This should now have mapped the invocation to the transformation
+
+	   auto* pTransform = ss.GetTransform(s);
+	   if (!pTransform)
+	   {
+		   Throw(s, "Expected a macro transformation of the input expression. But none was generated");
+	   }
+   }
+
+   void CScript::CompileTopLevelMacros()
+   {
+	   cr_sex root = tree.Root();
+	   for (int i = 0; i < root.NumberOfElements(); i++)
+	   {
+		   auto& topLevelItem = root[i];
+		   if (topLevelItem.NumberOfElements() > 0)
+		   {
+			   cr_sex sDirective = topLevelItem[0];
+			   if (IsAtomic(sDirective))
+			   {
+				   cstr directive = sDirective.String()->Buffer;
+				   if (directive[0] == '#')
+				   {
+					   CompileTopLevelMacro(topLevelItem);
+				   }
+			   }
+		   }
+	   }
    }
 
    void  CScript::CompileNextClosures()
@@ -2700,41 +2796,67 @@ namespace Rococo { namespace Script
       }
    }
 
+   void AppendCompiledNamespacesForOneDirective(TNamespaceDefinitions& nsDefs, cr_sex sDirective, CScript& script)
+   {
+		cr_sex sElementName = GetAtomicArg(sDirective, 0);
+		sexstring elementName = sElementName.String();
+		if (AreEqual(elementName, "namespace"))
+		{
+			AssertNotTooFewElements(sDirective, 2);
+
+			CBindNSExpressionToModule def;
+			def.E = &sDirective[1];
+			def.Module = &script;
+			def.NS = NULL;
+
+			AssertValidNamespaceDef(*def.E);
+
+			nsDefs.push_back(def);
+		}
+		else if (AreEqual(elementName, "$"))
+		{
+			AssertNotTooFewElements(sDirective, 2);
+
+			CBindNSExpressionToModule def;
+			def.E = &sDirective[1];
+			def.Module = &script;
+			def.NS = NULL;
+			def.isDefault = true;
+
+			AssertValidNamespaceDef(*def.E);
+
+			nsDefs.push_back(def);
+		}
+		else if (elementName->Buffer[0] == '#')
+		{
+			// Potential macro expansion that may include a namespace definition
+			auto* sTransformDirective = script.System().GetTransform(sDirective);
+			if (sTransformDirective)
+			{
+				AppendCompiledNamespacesForOneDirective(nsDefs, *sTransformDirective, script);
+			}
+		}
+   }
+
+   void AppendCompiledNamespaces(TNamespaceDefinitions& nsDefs, cr_sex root, CScript& script)
+   {
+	   for (int i = 0; i < root.NumberOfElements(); i++)
+	   {
+		   AppendCompiledNamespacesForOneDirective(nsDefs, root[i], script);
+	   }
+   }
 
 	void CScript::AppendCompiledNamespaces(TNamespaceDefinitions& nsDefs)
 	{
-		cr_sex root = tree.Root();			
-		for(int i = 0; i < root.NumberOfElements(); i++)
+		cr_sex root = tree.Root();	
+		auto* sRootTransform = System().GetTransform(root);
+		if (sRootTransform)
 		{
-			cr_sex e = root.GetElement(i);
-			cr_sex elementName = GetAtomicArg(e, 0);
-			if (AreEqual(elementName.String(), "namespace"))
-			{
-				AssertNotTooFewElements(e, 2);
-
-				CBindNSExpressionToModule def;
-				def.E = &e[1];
-				def.Module = this;
-				def.NS = NULL;
-
-				AssertValidNamespaceDef(*def.E);
-
-				nsDefs.push_back(def);
-			}
-			else if (AreEqual(elementName.String(), "$"))
-			{
-				AssertNotTooFewElements(e, 2);
-
-				CBindNSExpressionToModule def;
-				def.E = &e[1];
-				def.Module = this;
-				def.NS = NULL;
-				def.isDefault = true;
-
-				AssertValidNamespaceDef(*def.E);
-
-				nsDefs.push_back(def);
-			}
+			Rococo::Script::AppendCompiledNamespaces(nsDefs, *sRootTransform, *this);
+		}
+		else
+		{
+			Rococo::Script::AppendCompiledNamespaces(nsDefs, root, *this);
 		}
 	}
 
@@ -3688,7 +3810,7 @@ namespace Rococo { namespace Script
 			cr_sex elementName = GetAtomicArg(e, 0);
 
 			sexstring directive = elementName.String();
-			if(directive->Buffer[0] != '#' &&  directive->Buffer[0] != '\\' && !IsOneOf(directive->Buffer, topLevelItems))
+			if (directive->Buffer[0] != '#' && directive->Buffer[0] != '\'' && !IsOneOf(directive->Buffer, topLevelItems))
 			{
 				Throw(elementName, "Unknown top level item, expecting keyword or data item");
 			}

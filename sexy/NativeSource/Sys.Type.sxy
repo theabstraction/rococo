@@ -239,13 +239,15 @@
 
 (macro Sys.entrypoint in out
 	(Sys.ValidateSubscriptRange in.ChildCount 1 1 "Usage: (##Sys.entrypoint)")
-	(IExpression nsExpr = ' (namespace EntryPoint))
-	(out.Copy nsExpr)
+	
+	(out.AddAtomic "namespace")
+	(out.AddAtomic "EntryPoint")
 	
 	(IExpressionBuilder parent = out.TransformParent)
 	(Int32 outIndex = (parent.IndexOf in))
-	
 	(IExpressionBuilder aliasBuilder = (parent.InsertCompoundAfter outIndex))
-	(IExpression aliasExpr = ' (alias Main EntryPoint.Main))
-	(aliasBuilder.Copy aliasExpr)
+	
+	(aliasBuilder.AddAtomic "alias")
+	(aliasBuilder.AddAtomic "Main")
+	(aliasBuilder.AddAtomic "EntryPoint.Main")
 )

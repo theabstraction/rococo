@@ -236,3 +236,16 @@
 		(pushExpression.Copy (in memberwiseIndex)) // jth statement is (<array-name>.Push <element_type> <construct args>)
 	)
 )
+
+(macro Sys.entrypoint in out
+	(Sys.ValidateSubscriptRange in.ChildCount 1 1 "Usage: (##Sys.entrypoint)")
+	(IExpression nsExpr = ' (namespace EntryPoint))
+	(out.Copy nsExpr)
+	
+	(IExpressionBuilder parent = out.TransformParent)
+	(Int32 outIndex = (parent.IndexOf in))
+	
+	(IExpressionBuilder aliasBuilder = (parent.InsertCompoundAfter outIndex))
+	(IExpression aliasExpr = ' (alias Main EntryPoint.Main))
+	(aliasBuilder.Copy aliasExpr)
+)

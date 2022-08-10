@@ -114,20 +114,26 @@ namespace Rococo
 #endif
       }
 
-      void CallMacro(CCompileEnvironment& ce, const IFunction& f, cr_sex s)
+      void CallMacro(IScriptSystem& ss, const IFunction& f, cr_sex s)
       {
-         VM::IVirtualMachine& vm = ce.SS.ProgramObject().VirtualMachine();
-         const CClassExpression* input = ce.SS.GetExpressionReflection(s);
+         VM::IVirtualMachine& vm = ss.ProgramObject().VirtualMachine();
+         const CClassExpression* input = ss.GetExpressionReflection(s);
 
-		 ISExpressionBuilder* outputRoot = ce.SS.CreateMacroTransform(s);
+		 ISExpressionBuilder* outputRoot = ss.CreateMacroTransform(s);
 
          CClassExpressionBuilder output;
-         if (!ce.SS.ConstructExpressionBuilder(output, outputRoot))
+         if (!ss.ConstructExpressionBuilder(output, outputRoot))
          {
             Throw(s, "%s: ConstructExpressionBuilder error", __FUNCTION__);
          }
 
          VM::CPU& cpu = vm.Cpu();
+         if (cpu.SF() == nullptr)
+         {
+             // In the event that our macro is a top level macro, created before the program is initialized we need a functional virtual CPU to get the job done
+             ss.ProgramObject().SetProgramAndEntryPoint(0);
+             vm.InitCpu();
+         }
 
          vm.Push(GetInterface(input->Header));
          vm.Push(GetInterface(output.Header));

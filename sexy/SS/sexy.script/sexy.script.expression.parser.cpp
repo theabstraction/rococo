@@ -3384,7 +3384,7 @@ namespace Rococo
 				}
 			}
 
-			CallMacro(ce, *f, s);
+			CallMacro(ce.SS, *f, s);
 
 			return true;
 		}

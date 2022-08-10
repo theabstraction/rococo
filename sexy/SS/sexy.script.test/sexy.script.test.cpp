@@ -931,7 +931,7 @@ namespace
 	void TestTopLevelMacro(IPublicScriptSystem& ss)
 	{
 		cstr srcCodeModuleMain =
-			"(#entrypoint)\n"
+			"(#Sys.entrypoint)\n"
 
 			"(function Main -> (Int32 result):\n"
 			"	  (result = 777)\n"
@@ -15003,8 +15003,9 @@ R"(
 	{
 		validate(true);
 
-		TEST3(TestConsoleOutput4);
+		TEST(TestRaw);
 		TEST(TestTopLevelMacro);
+		TEST3(TestConsoleOutput4);
 		TEST(TestPartialCompiles);
 
 		TEST3(TestConsoleOutput3);
@@ -15141,7 +15142,6 @@ R"(
 
 		TEST(TestStructWithInterface);
 
-		TEST(TestRaw);
 		TEST(TestMinimumConstruct);
 		TEST3(TestCreateDeclarations);
 		TEST(TestLocalVariable);
