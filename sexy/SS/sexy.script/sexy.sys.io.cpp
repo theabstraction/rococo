@@ -376,6 +376,8 @@ namespace ANON_NS
 
 	void PrintBraceSpacing(FileWriterInstance& instance, int depth)
 	{
+		if (depth <= 0) return;
+
 		int spacing = clamp(instance.width, 0, 16);
 		for (int i = 0; i < depth * spacing; ++i)
 		{
@@ -383,10 +385,10 @@ namespace ANON_NS
 		}
 	}
 
-	void PrintAtomicSpacing(FileWriterInstance& instance, int depth)
+	void PrintAtomicSpacing(FileWriterInstance& instance)
 	{
 		int spacing = clamp(instance.precision, 0, 16);
-		for (int i = 0; i < depth * spacing; ++i)
+		for (int i = 0; i < spacing; ++i)
 		{
 			fputc(' ', instance.fp);
 		}
@@ -396,39 +398,26 @@ namespace ANON_NS
 
 	void PrintCompundExpression(FileWriterInstance& instance, cr_sex s, int depth)
 	{
+		fputc('\n', instance.fp);
 		PrintBraceSpacing(instance, depth);
-
-		fputc('(', instance.fp);
-
-		bool hasCompoundChildren = false;
-		for (int i = 0; i < s.NumberOfElements(); ++i)
-		{
-			if (s[i].NumberOfElements() > 0)
-			{
-				hasCompoundChildren = true;
-				break;
-			}
-		}
-
-		if (hasCompoundChildren) fputc('\n', instance.fp);
+	    fputc('(', instance.fp);
 
 		for (int i = 0; i < s.NumberOfElements(); ++i)
 		{
 			if (i > 0)
 			{
-				PrintAtomicSpacing(instance, depth);
+				PrintAtomicSpacing(instance);
 			}
 
 			PrintExpression(instance, s[i], depth + 1);
 		}
 
-		if (hasCompoundChildren)
+		if (depth == 0)
 		{
-			fputc('\n', instance.fp);
-			PrintBraceSpacing(instance, depth);
+			fputs("\n", instance.fp);
 		}
-		fputc(')', instance.fp);
-		PrintAtomicSpacing(instance, depth);
+
+		fputs(")", instance.fp);
 	}
 
 	void PrintExpression(FileWriterInstance& instance, cstr s)
@@ -466,6 +455,10 @@ namespace ANON_NS
 		{
 		case EXPRESSION_TYPE_ATOMIC:
 			fputs(s.String()->Buffer, instance.fp);
+			if (Eq(":", s.String()->Buffer))
+			{
+				fputs("\n", instance.fp);
+			}
 			break;
 		case EXPRESSION_TYPE_NULL:
 			fputs("()", instance.fp);
@@ -508,6 +501,43 @@ namespace ANON_NS
 			}
 
 			cr_sex s = *object->ExpressionPtr;
+			PrintExpression(instance, s, 0);
+		}
+		else
+		{
+			e.ss.ThrowNative(0, __FUNCTION__, "Unsupported expression class");
+		}
+	}
+
+	void WriteIExpressionBuilder(NativeCallEnvironment& e)
+	{
+		InterfacePointer writer;
+		ReadInput(0, writer, e);
+
+		InterfacePointer ipS;
+		ReadInput(1, ipS, e);
+
+		IScriptSystem& ss = (IScriptSystem&)e.ss;
+
+		auto& instance = From(e).ToFileWriter(writer);
+
+		CClassExpressionBuilder* object = (CClassExpressionBuilder*)InterfaceToInstance(ipS);
+
+		auto* type = object->Header.Desc->TypeInfo;
+
+		if (IsNullType(*type))
+		{
+			return;
+		}
+
+		if (ss.GetExpressionBuilderType() == type)
+		{
+			if (!object->BuilderPtr)
+			{
+				return;
+			}
+
+			cr_sex s = *object->BuilderPtr;
 			PrintExpression(instance, s, 0);
 		}
 		else
@@ -1084,6 +1114,7 @@ namespace Rococo::Script
 		ss.AddNativeCall(sysIONative, ANON_NS::WriteAsUnsigned, &ioSystem, "WriteAsUnsigned (Sys.IO.IWriter writer)->", __FILE__, __LINE__, true);
 		ss.AddNativeCall(sysIONative, ANON_NS::WriteBool, &ioSystem, "WriteBool (Sys.IO.IWriter writer)(Bool x)->", __FILE__, __LINE__, true);
 		ss.AddNativeCall(sysIONative, ANON_NS::WriteIExpression, &ioSystem, "WriteIExpression (Sys.IO.IWriter writer) (Sys.Reflection.IExpression s)->", __FILE__, __LINE__, true);
+		ss.AddNativeCall(sysIONative, ANON_NS::WriteIExpressionBuilder, &ioSystem, "WriteIExpressionBuilder (Sys.IO.IWriter writer) (Sys.Reflection.IExpressionBuilder s)->", __FILE__, __LINE__, true);
 		ss.AddNativeCall(sysIONative, ANON_NS::WriteIString, &ioSystem, "WriteIString (Sys.IO.IWriter writer) (IString s)->", __FILE__, __LINE__, true);
 		ss.AddNativeCall(sysIONative, ANON_NS::WriteInt32, &ioSystem, "WriteInt32 (Sys.IO.IWriter writer) (Int32 x)->", __FILE__, __LINE__, true);
 		ss.AddNativeCall(sysIONative, ANON_NS::WriteInt64, &ioSystem, "WriteInt64 (Sys.IO.IWriter writer) (Int64 x)->", __FILE__, __LINE__, true);

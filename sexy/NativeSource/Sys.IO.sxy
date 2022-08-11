@@ -20,6 +20,7 @@
 	(WriteBool (Bool x) -> )
 	(WritePointer (Pointer x) -> )
 	(WriteIExpression (IExpression s) -> ) // Width gives the brace padding and Precision gives the inline spacing
+	(WriteIExpressionBuilder (IExpressionBuilder s) -> ) // Width gives the brace padding and Precision gives the inline spacing
 	(WriteIString (IString s) -> ) // Will not have width and precision applied unless WriteAsFormat preceeds the operation
 	(WriteIStringBuilder (IStringBuilder s) -> )
 	(WriteAsHex (AsHex null) ->)
@@ -100,6 +101,10 @@
 
 (method FileWriter.WriteIExpression (IExpression s) -> :
 	(Sys.IO.Native.WriteIExpression this s)
+)
+
+(method FileWriter.WriteIExpressionBuilder (IExpressionBuilder sb) -> :
+	(Sys.IO.Native.WriteIExpressionBuilder this sb)
 )
 
 (method FileWriter.WriteIString (IString s) -> :

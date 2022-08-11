@@ -223,6 +223,12 @@ namespace Rococo {
 			enum : int64 { NO_REF_COUNT = 0x4000000000000000 };
 		};
 
+		struct ObjectStubWithHandle
+		{
+			ObjectStub stub;
+			void* handle;
+		};
+
 		enum SPEC
 		{
 			SPEC_E = 1,

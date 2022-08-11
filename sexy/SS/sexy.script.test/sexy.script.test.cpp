@@ -962,6 +962,65 @@ namespace
 		validate(x == 777);
 	}
 
+	void TestTopLevelMacro2(IPublicScriptSystem& ss)
+	{
+		cstr srcCodeModuleMain =
+		//	"(#Sys.optional Sys.Type.Vec2)\n"
+
+			"(namespace EntryPoint)\n"
+			"(alias Main EntryPoint.Main)\n"
+
+			"(using Sys.Type)\n"
+			"(using Sys.IO)\n"
+			"(using Sys.Reflection)\n"
+
+			"(#Sys.optional Sys.Maths.Vec2i)"
+
+			"(function Main -> (Int32 result):\n"
+			"	 (IExpression in = '(#optional Sys.Maths.Vec2i))\n"
+			"	 (IExpression origin = ' !)\n"
+			"	 (IExpressionBuilder out = (NewExpressionBuilder origin))\n"
+			"    (Sys.Type.Macros.BuildOptionalType in out)"
+
+			"    (IExpression sOrigin = origin.Parent)"
+
+			"    (IWriter stdout = GetStdOut)"
+			"    (stdout.SetPrecision 1)"
+			"    (stdout.SetWidth 4)"
+
+			"    (#printf out)"
+
+			"    (OptionalSysMathsVec2i v)"
+			"    (v.value.x = 777)"
+			"    (result = v.value.x)"
+			")\n"
+			;
+
+		Auto<ISourceCode> scMain = ss.SParser().ProxySourceBuffer(srcCodeModuleMain, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> mainTree(ss.SParser().CreateTree(scMain()));
+
+		ss.BeginPartialCompilation(nullptr);
+		ss.PartialCompile();
+
+		IModule* mainModule = ss.AddTree(*mainTree);
+		ss.PartialCompile();
+
+		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace("EntryPoint");
+		validate(ns != NULL);
+		validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, "Main"));
+
+		auto& vm = ss.PublicProgramObject().VirtualMachine();
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		int x = vm.PopInt32();
+		validate(x == 777);
+	}
+
+
 	void TestPartialCompiles(IPublicScriptSystem& ss)
 	{
 		cstr srcCodeModuleMain =
@@ -15003,6 +15062,7 @@ R"(
 	{
 		validate(true);
 
+		TEST3(TestTopLevelMacro2);
 		TEST(TestRaw);
 		TEST(TestTopLevelMacro);
 		TEST3(TestConsoleOutput4);

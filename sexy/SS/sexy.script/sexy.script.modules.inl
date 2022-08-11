@@ -31,14 +31,6 @@
 	principal credit screen and its principal readme file.
 */
 
-namespace Rococo
-{
-	namespace Sex
-	{
-		IExpressionTransform* CreateExpressionTransform(cr_sex src);
-	}
-}
-
 namespace Rococo { namespace Script
 {
 	class CScript;
@@ -317,13 +309,16 @@ namespace Rococo { namespace Script
 					continue;
 				}
 
-				AssertNotTooFewElements(*sTransformItem, 3);
-				AssertNotTooManyElements(*sTransformItem, 3);
+				if (sTransformItem->NumberOfElements() > 0 && IsAtomic(sTransformItem[0]) && AreEqual(sTransformItem[0].String(), "alias"))
+				{
+					AssertNotTooFewElements(*sTransformItem, 3);
+					AssertNotTooManyElements(*sTransformItem, 3);
 
-				cr_sex localName = GetAtomicArg(*sTransformItem, 1);
-				cr_sex nsName = GetAtomicArg(*sTransformItem, 2);
+					cr_sex localName = GetAtomicArg(*sTransformItem, 1);
+					cr_sex nsName = GetAtomicArg(*sTransformItem, 2);
 
-				AppendAlias(REF module, IN nsName, IN localName);
+					AppendAlias(REF module, IN nsName, IN localName);
+				}
 			}
 		}
 	}
@@ -4158,14 +4153,42 @@ namespace Rococo { namespace Script
 		factoryNS->RegisterFactory(shortName, factoryFunction, *interf, factoryInterfaceExpr.String());
 	}
 
+	cr_sex CScript::GetActiveRoot()
+	{
+		cr_sex realRoot = tree.Root();
+		auto* pTransform = System().GetTransform(realRoot);
+		if (pTransform)
+		{
+			return *pTransform;
+		}
+		else
+		{
+			return realRoot;
+		}
+	}
+
+	cr_sex CScript::GetActiveExpression(cr_sex s)
+	{
+		auto* pTransform = System().GetTransform(s);
+		if (pTransform)
+		{
+			return *pTransform;
+		}
+		else
+		{
+			return s;
+		}
+	}
+
 	void CScript::ComputeStructureNames()
 	{
 		localStructures.clear();
 
-		cr_sex root = tree.Root();
+		cr_sex root = GetActiveRoot();
+
 		for(int i = 0; i < root.NumberOfElements(); i++)
 		{
-			cr_sex topLevelItem = root.GetElement(i);
+			cr_sex topLevelItem = GetActiveExpression(root[i]);
 			AssertNotTooFewElements(topLevelItem, 1);
 			cr_sex elementNameExpr = GetAtomicArg(topLevelItem, 0);
 			sexstring elementName = elementNameExpr.String();

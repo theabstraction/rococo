@@ -317,7 +317,8 @@ namespace Rococo
          void AddMapDef(ICodeBuilder& builder, cstr name, const IStructure& keyType, const IStructure& valueType, cr_sex s);
          void AddMapNodeDef(ICodeBuilder& builder, const MapDef& mapDef, cstr mapName, cstr nodeName, cr_sex s);
          void AddNodeDef(ICodeBuilder& builder, cstr nodeName, const IStructure& elementType, cr_sex s);
-
+         cr_sex GetActiveRoot();
+         cr_sex GetActiveExpression(cr_sex s);
          void CompileTopLevelMacro(cr_sex sDirective);
          void CompileTopLevelMacros();
 

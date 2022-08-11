@@ -146,6 +146,10 @@
 	(Sys.Native.FastStringBuilderAppendIString this s.Buffer s.Length)
 )
 
+(method FastStringBuilder.AppendIStringBuilder  (IStringBuilder s) -> :
+	(Sys.Native.FastStringBuilderAppendIString this s.Buffer s.Length)
+)
+
 (method FastStringBuilder.AppendChar  (Int32 asciiValue) -> :
 	(Sys.Native.FastStringBuilderAppendChar this asciiValue)
 )
@@ -298,6 +302,7 @@
 	(AppendBool (Bool x) -> )
 	(AppendPointer (Pointer x) -> )
 	(AppendIString (IString s) -> )
+	(AppendIStringBuilder (IStringBuilder other) -> )
 	(AppendAsHex (AsHex null) ->)
 	(AppendAsDecimal (AsDecimal null) ->)
 	(AppendAsSpecE (AsSpecE null) ->)

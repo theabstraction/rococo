@@ -355,6 +355,11 @@ void NativeAppendCTime(NativeCallEnvironment& _nce)
 	
 }
 
+namespace Rococo::Sex
+{
+	IExpressionTransform* CreateExpressionTransform(cr_sex s);
+}
+
 namespace Rococo::Script
 {
 	IIOSystem* CreateIOSystem(IScriptSystem& ss);

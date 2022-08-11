@@ -350,6 +350,29 @@ namespace
 		pBuilder->AddAtomic(pBuffer);
 	}
 
+	void NewExpressionBuilder(NativeCallEnvironment& e)
+	{
+		IScriptSystem& SS = (IScriptSystem&)e.ss;
+
+		InterfacePointer ipOrigin;
+		ReadInput(0, ipOrigin, e);
+
+		auto* classExpr = (CClassExpression*) InterfaceToInstance(ipOrigin);
+		auto* pS = classExpr->ExpressionPtr;
+		if (pS == nullptr)
+		{
+			Throw(0, "%s: Unexpected null pointer", __FUNCTION__);
+		}
+
+		cr_sex sOrigin = *pS;
+
+		auto& ss = (IScriptSystem&)e.ss;
+		ObjectStubWithHandle* object = (ObjectStubWithHandle*) ss.CreateScriptObject("ExpressionBuilder", "Sys.Reflection.sxy");
+		object->handle = ss.CreateMacroTransform(sOrigin);
+		InterfacePointer ip = &object->stub.pVTables[0];
+		WriteOutput(0, ip, e);
+	}
+
 	void NativeExpressionBuilderAddCompound(NativeCallEnvironment& e)
 	{
 		IScriptSystem& SS = (IScriptSystem&) e.ss;
@@ -426,27 +449,30 @@ namespace
 
 	void AddReflectionCalls(IScriptSystem& ss)
 	{
-		const INamespace& sysReflectionNative = ss.AddNativeNamespace(("Sys.Reflection.Native"));
-		ss.AddNativeCall(sysReflectionNative, NativeExpressionGetChild, &ss, ("ExpressionGetChild (Pointer sPtr) (Int32 index) ->  (Sys.Reflection.IExpression child)"), __FILE__, __LINE__, true);
-		ss.AddNativeCall(sysReflectionNative, NativeExpressionIndexOf, &ss, ("ExpressionIndexOf (Pointer sParentHandle) (Pointer sChildHandle) -> (Int32 index)"), __FILE__, __LINE__, true);
-		ss.AddNativeCall(sysReflectionNative, NativeExpressionGetParent, &ss, ("ExpressionGetParent (Pointer sPtr) -> (Sys.Reflection.IExpression parent)"), __FILE__, __LINE__, true);
-		ss.AddNativeCall(sysReflectionNative, NativeExpressionChildCount, &ss, ("ExpressionChildCount (Pointer sPtr) -> (Int32 count)"), __FILE__, __LINE__, true);
+		const INamespace& sysReflection = ss.AddNativeNamespace("Sys.Reflection");
+		ss.AddNativeCall(sysReflection, NewExpressionBuilder, &ss, "NewExpressionBuilder (Sys.Reflection.IExpression origin) -> (Sys.Reflection.IExpressionBuilder builder)", __FILE__, __LINE__, true);
+
+		const INamespace& sysReflectionNative = ss.AddNativeNamespace("Sys.Reflection.Native");
+		ss.AddNativeCall(sysReflectionNative, NativeExpressionGetChild, &ss, "ExpressionGetChild (Pointer sPtr) (Int32 index) ->  (Sys.Reflection.IExpression child)", __FILE__, __LINE__, true);
+		ss.AddNativeCall(sysReflectionNative, NativeExpressionIndexOf, &ss, "ExpressionIndexOf (Pointer sParentHandle) (Pointer sChildHandle) -> (Int32 index)", __FILE__, __LINE__, true);
+		ss.AddNativeCall(sysReflectionNative, NativeExpressionGetParent, &ss, "ExpressionGetParent (Pointer sPtr) -> (Sys.Reflection.IExpression parent)", __FILE__, __LINE__, true);
+		ss.AddNativeCall(sysReflectionNative, NativeExpressionChildCount, &ss, "ExpressionChildCount (Pointer sPtr) -> (Int32 count)", __FILE__, __LINE__, true);
 		ss.AddNativeCall(sysReflectionNative, NativeExpressionAppendTextTo, &ss, "ExpressionAppendTextTo  (Pointer sPtr) (Sys.Type.IStringBuilder sb)->", __FILE__, __LINE__);
-		ss.AddNativeCall(sysReflectionNative, NativeGetExpressionText, &ss, ("GetExpressionText  (Pointer sPtr) -> (Sys.Type.IString name)"), __FILE__, __LINE__, true);
-		ss.AddNativeCall(sysReflectionNative, NativeGetExpressionType, &ss, ("GetExpressionType  (Pointer sPtr) -> (Sys.Type.Int32 type)"), __FILE__, __LINE__, true);
-		ss.AddNativeCall(sysReflectionNative, NativeExpressionThrow, &ss, ("ExpressionThrow  (Pointer sPtr)(Int32 errorCode)(Sys.Type.Pointer buffer) ->"), __FILE__, __LINE__, true);
-		ss.AddNativeCall(sysReflectionNative, NativeGetScriptSystem, &ss, ("GetScriptSystem -> (Sys.Reflection.IScriptSystem ss)"), __FILE__, __LINE__, true);
-		ss.AddNativeCall(sysReflectionNative, NativeModuleCount, &ss, ("ModuleCount -> (Int32 count)"), __FILE__, __LINE__, true);
-		ss.AddNativeCall(sysReflectionNative, NativeGetModule, &ss, ("GetModule (Int32 index) -> (Sys.Reflection.IModule module)"), __FILE__, __LINE__, true);
-		ss.AddNativeCall(sysReflectionNative, NativeGetModuleName, &ss, ("GetModuleName (Pointer modulePtr) -> (Sys.Type.IString name)"), __FILE__, __LINE__, true);
-		ss.AddNativeCall(sysReflectionNative, NativeGetStructCount, &ss, ("GetStructCount (Pointer modulePtr) -> (Int32 structCount)"), __FILE__, __LINE__, true);
-		ss.AddNativeCall(sysReflectionNative, NativeGetStruct, &ss, ("GetStruct (Pointer modulePtr) (Int32 index) -> (Sys.Reflection.IStructure structure)"), __FILE__, __LINE__, true);
-		ss.AddNativeCall(sysReflectionNative, NativeGetStructName, &ss, ("GetStructName (Pointer structPtr) -> (Sys.Type.IString name)"), __FILE__, __LINE__, true);
-		ss.AddNativeCall(sysReflectionNative, NativeExpressionBuilderAddAtomic, &ss, ("ExpressionBuilderAddAtomic (Pointer builderPtr) (Pointer strBuffer) ->"), __FILE__, __LINE__, true);
-		ss.AddNativeCall(sysReflectionNative, NativeExpressionBuilderAddCompound, &ss, ("ExpressionBuilderAddCompound (Pointer builderPtr) -> (Sys.Reflection.IExpressionBuilder child)"), __FILE__, __LINE__, true);
-		ss.AddNativeCall(sysReflectionNative, NativeExpressionBuilderInsertCompoundAfter, &ss, ("ExpressionBuilderInsertCompoundAfter (Pointer builderPtr)(Int32 index) -> (Sys.Reflection.IExpressionBuilder child)"), __FILE__, __LINE__, true);
-		ss.AddNativeCall(sysReflectionNative, NativeExpressionBuilderAddCopy, &ss, ("ExpressionBuilderAddCopy (Pointer builderPtr) (Pointer xpressPtr) ->"), __FILE__, __LINE__, true);
-        ss.AddNativeCall(sysReflectionNative, NativeExpressionBuilderAddCopyToString, &ss, ("ExpressionBuilderAddCopyToString (Pointer builderPtr) (Pointer xpressPtr) ->"), __FILE__, __LINE__, true);
-		ss.AddNativeCall(sysReflectionNative, NativeExpressionBuilderSubstitute, &ss, ("ExpressionBuilderSubstitute (Pointer builderPtr) (Pointer inputPtr) (Pointer formatPtr) -> (Int32 errorCount)"), __FILE__, __LINE__, true);
+		ss.AddNativeCall(sysReflectionNative, NativeGetExpressionText, &ss, "GetExpressionText  (Pointer sPtr) -> (Sys.Type.IString name)", __FILE__, __LINE__, true);
+		ss.AddNativeCall(sysReflectionNative, NativeGetExpressionType, &ss, "GetExpressionType  (Pointer sPtr) -> (Sys.Type.Int32 type)", __FILE__, __LINE__, true);
+		ss.AddNativeCall(sysReflectionNative, NativeExpressionThrow, &ss, "ExpressionThrow  (Pointer sPtr)(Int32 errorCode)(Sys.Type.Pointer buffer) ->", __FILE__, __LINE__, true);
+		ss.AddNativeCall(sysReflectionNative, NativeGetScriptSystem, &ss, "GetScriptSystem -> (Sys.Reflection.IScriptSystem ss)", __FILE__, __LINE__, true);
+		ss.AddNativeCall(sysReflectionNative, NativeModuleCount, &ss, "ModuleCount -> (Int32 count)", __FILE__, __LINE__, true);
+		ss.AddNativeCall(sysReflectionNative, NativeGetModule, &ss, "GetModule (Int32 index) -> (Sys.Reflection.IModule module)", __FILE__, __LINE__, true);
+		ss.AddNativeCall(sysReflectionNative, NativeGetModuleName, &ss, "GetModuleName (Pointer modulePtr) -> (Sys.Type.IString name)", __FILE__, __LINE__, true);
+		ss.AddNativeCall(sysReflectionNative, NativeGetStructCount, &ss, "GetStructCount (Pointer modulePtr) -> (Int32 structCount)", __FILE__, __LINE__, true);
+		ss.AddNativeCall(sysReflectionNative, NativeGetStruct, &ss, "GetStruct (Pointer modulePtr) (Int32 index) -> (Sys.Reflection.IStructure structure)", __FILE__, __LINE__, true);
+		ss.AddNativeCall(sysReflectionNative, NativeGetStructName, &ss, "GetStructName (Pointer structPtr) -> (Sys.Type.IString name)", __FILE__, __LINE__, true);
+		ss.AddNativeCall(sysReflectionNative, NativeExpressionBuilderAddAtomic, &ss, "ExpressionBuilderAddAtomic (Pointer builderPtr) (Pointer strBuffer) ->", __FILE__, __LINE__, true);
+		ss.AddNativeCall(sysReflectionNative, NativeExpressionBuilderAddCompound, &ss, "ExpressionBuilderAddCompound (Pointer builderPtr) -> (Sys.Reflection.IExpressionBuilder child)", __FILE__, __LINE__, true);
+		ss.AddNativeCall(sysReflectionNative, NativeExpressionBuilderInsertCompoundAfter, &ss, "ExpressionBuilderInsertCompoundAfter (Pointer builderPtr)(Int32 index) -> (Sys.Reflection.IExpressionBuilder child)", __FILE__, __LINE__, true);
+		ss.AddNativeCall(sysReflectionNative, NativeExpressionBuilderAddCopy, &ss, "ExpressionBuilderAddCopy (Pointer builderPtr) (Pointer xpressPtr) ->", __FILE__, __LINE__, true);
+        ss.AddNativeCall(sysReflectionNative, NativeExpressionBuilderAddCopyToString, &ss, "ExpressionBuilderAddCopyToString (Pointer builderPtr) (Pointer xpressPtr) ->", __FILE__, __LINE__, true);
+		ss.AddNativeCall(sysReflectionNative, NativeExpressionBuilderSubstitute, &ss, "ExpressionBuilderSubstitute (Pointer builderPtr) (Pointer inputPtr) (Pointer formatPtr) -> (Int32 errorCount)", __FILE__, __LINE__, true);
 	}
 }

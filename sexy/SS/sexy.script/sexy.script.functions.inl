@@ -425,7 +425,8 @@ namespace Rococo
 				if (expectingStructRef)
 				{
 					sexstringstream<1024> streamer;
-					streamer.sb << ("Expecting atomic, compound or string literal expression for ") << GetFriendlyName(inputType) << (" ") << name;
+					streamer.sb << "Error with " << ce.Builder.Owner().Name() << ". ";
+					streamer.sb << "Expecting atomic, compound or string literal expression for " << GetFriendlyName(inputType) << " " << name;
 					Throw(s, streamer);
 				}
 				return false;
@@ -436,6 +437,7 @@ namespace Rococo
 			if (!Rococo::IsAlphabetical(vname[0]))
 			{
 				sexstringstream<1024> streamer;
+				streamer.sb << "Error with " << ce.Builder.Owner().Name() << ". ";
 				streamer.sb << ("Could not interpret token as function or variable. Expected: ") << GetFriendlyName(inputType) << (" ") << name;
 				Throw(s, streamer);
 			}
@@ -453,6 +455,7 @@ namespace Rococo
 				if (expectingStructRef)
 				{
 					sexstringstream<1024> streamer;
+					streamer.sb << "Error with " << ce.Builder.Owner().Name() << ". ";
 					streamer.sb << ("The variable is not a derived type. Expected: ") << GetFriendlyName(inputType) << (" ") << name;
 					Throw(s, streamer);
 				}
@@ -473,7 +476,8 @@ namespace Rococo
 					if (expectingStructRef)
 					{
 						sexstringstream<1024> streamer;
-						streamer.sb << ("The input type '") << varStruct->Name() << ("' did not match the argument type '") << GetFriendlyName(inputType) << (" ") << name << ("'");
+						streamer.sb << "Error with " << ce.Builder.Owner().Name() << ". ";
+						streamer.sb << "The input type '" << GetFriendlyName(*varStruct) << "' did not match the argument type '" << GetFriendlyName(inputType) << " " << name << "'";
 						Throw(s, streamer);
 					}
 
@@ -490,21 +494,22 @@ namespace Rococo
 				if (&elementType != genericArg1)
 				{
 					sexstringstream<1024> streamer;
-					streamer.sb << ("The input supplied was (array ") << GetFriendlyName(elementType) << (" ") << vname << (") ");
+					streamer.sb << "Error with " << ce.Builder.Owner().Name() << ". ";
+					streamer.sb << "The input supplied was (array " << GetFriendlyName(elementType) << " " << vname << ") ";
 
 					if (genericArg1 != NULL)
 					{
-						streamer.sb << ("but input required was (array ") << GetFriendlyName(*genericArg1) << (" ") << name << (") ");
+						streamer.sb << "but input required was (array " << GetFriendlyName(*genericArg1) << " " << name << ") ";
 					}
 					else
 					{
-						streamer.sb << ("but input required was (") << GetFriendlyName(inputType) << (" ") << name << (") ");
+						streamer.sb << "but input required was (" << GetFriendlyName(inputType) << " " << name << ") ";
 					}
 					Throw(s, streamer);
 				}
 			}
 
-			AddArgVariable(("input_variable_ref"), ce, inputType);
+			AddArgVariable("input_variable_ref", ce, inputType);
 			PushVariableRef(s, ce.Builder, def, vname, cii);
 
 			return true;
