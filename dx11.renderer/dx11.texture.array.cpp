@@ -3,6 +3,7 @@
 #include "rococo.dx11.api.h"
 #include "rococo.textures.h"
 #include "dx11helpers.inl"
+#include "rococo.imaging.h"
 
 using namespace Rococo;
 using namespace Rococo::DX11;
@@ -226,5 +227,70 @@ namespace Rococo::DX11
     IDX11TextureArray* CreateDX11TextureArray(ID3D11Device& device, ID3D11DeviceContext& dc)
     {
         return new DX11TextureArray(device, dc);
+    }
+
+    IDX11TextureArray* LoadAlphaTextureArray(ID3D11Device& device, ID3D11DeviceContext& dc, Vec2i span, int32 nElements, ITextureLoadEnumerator& enumerator)
+    {
+        IDX11TextureArray* array = CreateDX11TextureArray(device, dc);
+
+        try
+        {
+            array->ResetWidth(span.x, span.y);
+            array->Resize(nElements);
+
+            struct : IEventCallback<TextureLoadData>
+            {
+                int index = 0;
+                IDX11TextureArray* array;
+                void OnEvent(TextureLoadData& data) override
+                {
+                    struct : Rococo::Imaging::IImageLoadEvents
+                    {
+                        cstr filename;
+                        IDX11TextureArray* array;
+                        int32 index;
+
+                        void OnError(const char* message) override
+                        {
+                            Throw(0, "IRenderer.LoadAlphaTextureArray(...) - Error loading\n %s", filename);
+                        }
+
+                        void OnRGBAImage(const Vec2i& span, const RGBAb* data) override
+                        {
+                            Throw(0, "IRenderer.LoadAlphaTextureArray(...) - Tiff was RGBA.\n %s", filename);
+                        }
+
+                        void OnAlphaImage(const Vec2i& span, const uint8* data) override
+                        {
+                            if (array->Width() != span.x || array->Height() != span.y)
+                            {
+                                Throw(0, "IRenderer.LoadAlphaTextureArray(...) - Tiff was of incorrect span.\n %s", filename);
+                            }
+                            array->WriteSubImage(index, data, span);
+                        }
+                    } toArray;
+                    toArray.filename = data.filename;
+                    toArray.array = array;
+                    toArray.index = index;
+
+                    if (EndsWith(data.filename, ".tiff"))
+                    {
+                        Rococo::Imaging::DecompressTiff(toArray, data.pData, data.nBytes);
+                        index++;
+                    }
+                }
+            } insertImageIntoArray;
+
+            insertImageIntoArray.array = array;
+
+            enumerator.ForEachElement(insertImageIntoArray, true);
+
+            return array;
+        }
+        catch (IException&)
+        {
+            array->Free();
+            throw;
+        }
     }
 }

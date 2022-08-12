@@ -32,6 +32,8 @@ namespace Rococo::DX11
 
 	IDX11TextureArray* CreateDX11TextureArray(ID3D11Device& device, ID3D11DeviceContext& dc);
 
+	IDX11TextureArray* LoadAlphaTextureArray(ID3D11Device& device, ID3D11DeviceContext& dc, Vec2i span, int32 nElements, ITextureLoadEnumerator& enumerator);
+
 	ROCOCOAPI IDX11FontRenderer
 	{
 		virtual void AddTriangle(const GuiVertex triangle[3]) = 0;
@@ -48,6 +50,17 @@ namespace Rococo::DX11
 	};
 
 	IDX11HQFontResource* CreateDX11HQFonts(IInstallation& installation, IDX11FontRenderer& renderer, ID3D11Device& device, ID3D11DeviceContext& dc);
+
+	ROCOCOAPI IDX11CubeTextures
+	{
+		virtual ID_CUBE_TEXTURE CreateCubeTexture(TextureLoader& textureLoader, cstr path, cstr extension) = 0;
+		virtual void Free() = 0;
+		virtual ID3D11ShaderResourceView* GetShaderView(ID_CUBE_TEXTURE id) = 0;
+		virtual ID3D11ShaderResourceView* ShaderResourceView() = 0;
+		virtual void SyncCubeTexture(int32 XMaxFace, int32 XMinFace, int32 YMaxFace, int32 YMinFace, int32 ZMaxFace, int32 ZMinFace, IDX11TextureArray& materialArray) = 0;
+	};
+
+	IDX11CubeTextures* CreateCubeTextureManager(ID3D11Device& device, ID3D11DeviceContext& dc);
 }
 
 #endif

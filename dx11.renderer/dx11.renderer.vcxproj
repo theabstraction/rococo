@@ -107,6 +107,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dx11.app.manager.cpp" />
+    <ClCompile Include="dx11.cube.texture.cpp" />
     <ClCompile Include="dx11.depth.cpp" />
     <ClCompile Include="dx11.dialog.cpp" />
     <ClCompile Include="dx11.gui.cpp" />

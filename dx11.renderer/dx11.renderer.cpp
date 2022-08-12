@@ -189,9 +189,6 @@ namespace ANON
 	   AutoFree<IDX11TextureArray> spriteArray;
 	   AutoFree<IDX11TextureArray> materialArray;
 
-	   std::vector<DX11::TextureBind> cubeTextureArray;
-	   stringmap<ID_CUBE_TEXTURE> nameToCubeTexture;
-
 	   AutoFree<ITextureArrayBuilderSupervisor> spriteArrayBuilder;
 
 	   AutoRelease<IDXGISwapChain> mainSwapChain;
@@ -239,9 +236,6 @@ namespace ANON
 
 	   BoneMatrices boneMatrices = { 0 };
 	   AutoRelease<ID3D11Buffer> boneMatricesStateBuffer;
-
-	   AutoRelease<ID3D11Texture2D> cubeTexture;
-	   AutoRelease<ID3D11ShaderResourceView> cubeTextureView;
 
 	   AutoRelease<ID3D11Buffer> lightConeBuffer;
 
@@ -349,73 +343,15 @@ namespace ANON
 
 	   ID_TEXTURE LoadAlphaTextureArray(cstr uniqueName, Vec2i span, int32 nElements, ITextureLoadEnumerator& enumerator) override
 	   {
-		   auto i = nameToGenericTextureId.find(uniqueName);
-		   if (i != nameToGenericTextureId.end()) return i->second;
-		  
-		   IDX11TextureArray* array = CreateDX11TextureArray(device, dc);
+			auto i = nameToGenericTextureId.find(uniqueName);
+			if (i != nameToGenericTextureId.end()) return i->second;
+		   
+			IDX11TextureArray* array = DX11::LoadAlphaTextureArray(device, dc, span, nElements, enumerator);
 
-		   try
-		   {
-			   array->ResetWidth(span.x, span.y);
-			   array->Resize(nElements);
-
-			   struct : IEventCallback<TextureLoadData>
-			   {
-				   int index = 0;
-				   IDX11TextureArray* array;
-				   void OnEvent(TextureLoadData& data) override
-				   {
-					   struct : Rococo::Imaging::IImageLoadEvents
-					   {
-						   cstr filename;
-						   IDX11TextureArray* array;
-						   int32 index;
-
-						   void OnError(const char* message) override
-						   {
-							   Throw(0, "IRenderer.LoadAlphaTextureArray(...) - Error loading\n %s", filename);
-						   }
-
-						   void OnRGBAImage(const Vec2i& span, const RGBAb* data) override
-						   {
-							   Throw(0, "IRenderer.LoadAlphaTextureArray(...) - Tiff was RGBA.\n %s", filename);
-						   }
-
-						   void OnAlphaImage(const Vec2i& span, const uint8* data) override
-						   {
-							   if (array->Width() != span.x || array->Height() != span.y)
-							   {
-								   Throw(0, "IRenderer.LoadAlphaTextureArray(...) - Tiff was of incorrect span.\n %s", filename);
-							   }
-							   array->WriteSubImage(index, data, span);
-						   }
-					   } toArray;
-					   toArray.filename = data.filename;
-					   toArray.array = array;
-					   toArray.index = index;
-
-					   if (EndsWith(data.filename, ".tiff"))
-					   {
-						   Rococo::Imaging::DecompressTiff(toArray, data.pData, data.nBytes);
-						   index++;
-					   }
-				   }
-			   } insertImageIntoArray;
-
-			   insertImageIntoArray.array = array;
-
-			   enumerator.ForEachElement(insertImageIntoArray, true);
-
-			   auto id = ID_TEXTURE{ (size_t)array | 0x8000000000000000LL };
-			   nameToGenericTextureId[uniqueName] = id;
-			   genericTextureArray[id] = array;
-			   return id;
-		   }
-		   catch (IException&)
-		   {
-			   array->Free();
-			   throw;
-		   }
+			auto id = ID_TEXTURE{ (size_t)array | 0x8000000000000000LL };
+			nameToGenericTextureId[uniqueName] = id;
+			genericTextureArray[id] = array;
+			return id;
 	   }
 
 	   void SetBoneMatrix(uint32 index, cr_m4x4 m) override
@@ -451,6 +387,7 @@ namespace ANON
 
 	   ID_SYS_MESH skyMeshId;
 
+	   AutoFree<IDX11CubeTextures> cubeTextures;
    public:
 	   Windows::IWindow& window;
 	   bool isBuildingAlphaBlendedSprites{ false };
@@ -580,6 +517,8 @@ namespace ANON
 		   lastTick = OS::CpuTicks();
 		   rng.seed(123456U);
 
+		   cubeTextures = CreateCubeTextureManager(device, dc);
+
 		   D3D11_SAMPLER_DESC desc;
 		   desc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 		   desc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -664,12 +603,6 @@ namespace ANON
 		   for (auto& s : samplers)
 		   {
 			   if (s) s->Release();
-		   }
-
-		   for (auto& t : cubeTextureArray)
-		   {
-			   t.shaderView->Release();
-			   t.texture->Release();
 		   }
 
 		   for (auto& t : genericTextureArray)
@@ -767,176 +700,14 @@ namespace ANON
 		   VALIDATEDX11(device.CreateSamplerState(&desc, &samplers[index]));
 	   }
 
-	   struct CubeLoader : public DX11::IColourBitmapLoadEvent
-	   {
-		   size_t face;
-		   int width;
-		   std::vector<RGBAb> expandedBuffer;
-
-		   void OnLoad(const RGBAb* pixels, const Vec2i& span) override
-		   {
-			   if (width == 0)
-			   {
-				   width = span.x;
-				   if (span.x != span.y)
-				   {
-					   Throw(0, "CubeLoader::OnLoad: image was not sqaure");
-				   }
-
-				   expandedBuffer.resize(6 * width * width);
-			   }
-
-			   if (span.x != width || span.y != width)
-			   {
-				   Throw(0, "Image span %d x %d did not match the cube texture face width [%d]", span.x, span.y, width);
-			   }
-
-			   size_t sizeOfImageBytes = width * width * sizeof(RGBAb);
-			   char* dest = (char*) expandedBuffer.data();
-			   memcpy(dest + face * sizeOfImageBytes, pixels, sizeOfImageBytes);
-		   }
-	   };
-
-	   enum { CUBE_ID_BASE = 100000000 };
-
 	   ID_CUBE_TEXTURE CreateCubeTexture(cstr path, cstr extension)
 	   {
-		   auto i = nameToCubeTexture.find(path);
-		   if (i != nameToCubeTexture.end())
-		   {
-			   return i->second;
-		   }
-
-		   const char* short_filenames[6] = { "posx", "negx", "posy", "negy", "posz", "negz" };
-
-		   CubeLoader cubeloader;
-		   cubeloader.width = 0;
-		   cubeloader.face = 0;
-
-		   D3D11_SUBRESOURCE_DATA initData[6];
-
-		   for (auto f : short_filenames)
-		   {
-			   U8FilePath fullpath;
-			   Format(fullpath, "%s%s.%s", path, f, extension);
-			   textureLoader.LoadColourBitmapIntoAddress(fullpath, cubeloader);
-
-			   size_t sizeofImage = cubeloader.width * cubeloader.width;
-
-			   initData[cubeloader.face].pSysMem = cubeloader.expandedBuffer.data() + sizeofImage * cubeloader.face;
-			   initData[cubeloader.face].SysMemPitch = cubeloader.width * sizeof(RGBAb);
-			   initData[cubeloader.face].SysMemSlicePitch = 0;
-
-			   cubeloader.face++;
-		   }
-
-		   D3D11_TEXTURE2D_DESC desc;
-		   ZeroMemory(&desc, sizeof(desc));
-		   desc.Width = cubeloader.width;
-		   desc.Height = cubeloader.width;
-		   desc.ArraySize = 6;
-		   desc.SampleDesc.Count = 1;
-		   desc.SampleDesc.Quality = 0;
-		   desc.MipLevels = 1;
-		   desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		   desc.Usage = D3D11_USAGE_DEFAULT;
-		   desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-		   desc.CPUAccessFlags = 0;
-		   desc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
-
-		   ID3D11Texture2D* pTexCube = nullptr;
-		   
-		   VALIDATEDX11(device.CreateTexture2D(&desc, &initData[0], &pTexCube));
-
-		   ID3D11ShaderResourceView* view = nullptr;
-		   HRESULT hr = device.CreateShaderResourceView(pTexCube, nullptr, &view);
-		   if FAILED(hr)
-		   {
-			   pTexCube->Release();
-			   Throw(hr, "DX11Renderer::CreateCubeTexture: Error creating shader resource view for cube texture");
-		   }
-
-		   DX11::TextureBind tb;
-		   tb.shaderView = view;
-		   tb.texture = pTexCube;
-
-		   cubeTextureArray.push_back(tb);
-
-		   size_t index = cubeTextureArray.size() + CUBE_ID_BASE;
-		   auto id = ID_CUBE_TEXTURE{ index };
-
-		   nameToCubeTexture[path] = id;
-
-		   return id;
+		   return cubeTextures->CreateCubeTexture(textureLoader, path, extension);
 	   }
 
-	   int32 cubeMaterialId[6] = { -1,-1,-1,-1,-1,-1 };
-
-	   /* 6 material ids determine the environmental texture */
 	   void SyncCubeTexture(int32 XMaxFace, int32 XMinFace, int32 YMaxFace, int32 YMinFace, int32 ZMaxFace, int32 ZMinFace) override
 	   {
-		   int32 newMaterialids[6] = { XMaxFace, XMinFace, YMaxFace, YMinFace, ZMaxFace, ZMinFace };
-
-		   if (cubeTexture)
-		   {
-			   D3D11_TEXTURE2D_DESC desc;
-			   cubeTexture->GetDesc(&desc);
-
-			   if (desc.Width != materialArray->Width())
-			   {
-				   cubeTexture = nullptr;
-				   cubeTextureView = nullptr;
-			   }
-		   }
-
-		   if (!cubeTexture)
-		   {
-			   D3D11_TEXTURE2D_DESC desc;
-			   ZeroMemory(&desc, sizeof(desc));
-			   desc.Width = materialArray->Width();
-			   desc.Height = materialArray->Width();
-			   desc.ArraySize = 6;
-			   desc.SampleDesc.Count = 1;
-			   desc.SampleDesc.Quality = 0;
-			   desc.MipLevels = 1;
-			   desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-			   desc.Usage = D3D11_USAGE_DEFAULT;
-			   desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-			   desc.CPUAccessFlags = 0;
-			   desc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
-
-			   ID3D11Texture2D* pTexCube = nullptr;
-			   VALIDATEDX11(device.CreateTexture2D(&desc, nullptr, &pTexCube));
-			   cubeTexture = pTexCube;
-
-			   ID3D11ShaderResourceView* view = nullptr;
-			   HRESULT hr = device.CreateShaderResourceView(pTexCube, nullptr, &view);
-			   if FAILED(hr)
-			   {
-					pTexCube->Release();
-					Throw(hr, "DX11Renderer::SyncCubeTexture: Error creating shader resource view for cube texture");
-			   }
-
-			   cubeTextureView = view;
-		   }
-
-		   for (UINT i = 0; i < 6; ++i)
-		   {
-			   if (cubeMaterialId[i] != newMaterialids[i])
-			   {
-				   cubeMaterialId[i] = newMaterialids[i];
-
-				   D3D11_BOX srcbox;
-				   srcbox.left = 0;
-				   srcbox.top = 0;
-				   srcbox.front = 0;
-				   srcbox.right = materialArray->Width();
-				   srcbox.bottom = materialArray->Width();
-				   srcbox.back = 1;
-
-				   dc.CopySubresourceRegion(cubeTexture, i, 0, 0, 0, materialArray->Binding().texture, cubeMaterialId[i], &srcbox);
-			   }
-		   }
+		   cubeTextures->SyncCubeTexture(XMaxFace, XMinFace, YMaxFace, YMinFace, ZMaxFace, ZMinFace, *materialArray);
 	   }
 
 	   struct : IMathsVenue
@@ -2745,7 +2516,8 @@ namespace ANON
 	   void InitFontAndMaterialAndSpriteShaderResourceViewsAndSamplers()
 	   {
 		   dc.PSSetShaderResources(TXUNIT_FONT, 1, &fontBinding);
-		   dc.PSSetShaderResources(TXUNIT_ENV_MAP, 1, &cubeTextureView);
+		   auto* view = cubeTextures->ShaderResourceView();
+		   dc.PSSetShaderResources(TXUNIT_ENV_MAP, 1, &view);
 
 		   ID3D11ShaderResourceView* materials[1] = { materialArray->View() };
 		   dc.PSSetShaderResources(TXUNIT_MATERIALS, 1, materials);
@@ -2832,41 +2604,34 @@ namespace ANON
 	   {
 		   ID_CUBE_TEXTURE cubeId = scene.GetSkyboxCubeId();
 
-		   if (cubeId)
+		   ID3D11ShaderResourceView* skyCubeTextureView = cubeTextures->GetShaderView(cubeId);
+		   if (!skyCubeTextureView)
 		   {
-			   size_t index = cubeId.value - CUBE_ID_BASE - 1;
-			   if (index < cubeTextureArray.size())
-			   {
-				   auto* skyCubeTextureView = this->cubeTextureArray[index].shaderView;
+			   return;
+		   }
 
-				   if (UseShaders(idObjSkyVS, idObjSkyPS))
-				   {
-					   auto& mesh = meshBuffers[skyMeshId.value];
-					   UINT strides[] = { sizeof(SkyVertex) };
-					   UINT offsets[]{ 0 };
-					   dc.IASetPrimitiveTopology(mesh.topology);
-					   dc.IASetVertexBuffers(0, 1, &mesh.vertexBuffer, strides, offsets);
-					   dc.PSSetShaderResources(0, 1, &skyCubeTextureView);
-					   dc.PSSetSamplers(0, 1, &skySampler);
+		   if (UseShaders(idObjSkyVS, idObjSkyPS))
+		   {
+			   auto& mesh = meshBuffers[skyMeshId.value];
+			   UINT strides[] = { sizeof(SkyVertex) };
+			   UINT offsets[]{ 0 };
+			   dc.IASetPrimitiveTopology(mesh.topology);
+			   dc.IASetVertexBuffers(0, 1, &mesh.vertexBuffer, strides, offsets);
+			   dc.PSSetShaderResources(0, 1, &skyCubeTextureView);
+			   dc.PSSetSamplers(0, 1, &skySampler);
 
-					   dc.RSSetState(skyRasterizering);
-					   dc.OMSetDepthStencilState(noDepthTestOrWrite, 0);
+			   dc.RSSetState(skyRasterizering);
+			   dc.OMSetDepthStencilState(noDepthTestOrWrite, 0);
 
-					   FLOAT blendFactorUnused[] = { 0,0,0,0 };
-					   dc.OMSetBlendState(disableBlend, blendFactorUnused, 0xffffffff);
-					   dc.Draw(mesh.numberOfVertices, 0);
+			   FLOAT blendFactorUnused[] = { 0,0,0,0 };
+			   dc.OMSetBlendState(disableBlend, blendFactorUnused, 0xffffffff);
+			   dc.Draw(mesh.numberOfVertices, 0);
 
-					   dc.PSSetSamplers(0, 16, samplers);
-				   }
-				   else
-				   {
-					   Throw(0, "DX11Renderer::RenderSkybox failed. Error setting sky shaders");
-				   }
-			   }
-			   else
-			   {
-				   Throw(0, "DX11Renderer::RenderSkybox failed. Cube id was not valid");
-			   }
+			   dc.PSSetSamplers(0, 16, samplers);
+		   }
+		   else
+		   {
+			   Throw(0, "DX11Renderer::RenderSkybox failed. Error setting sky shaders");
 		   }
 	   }
 
