@@ -1,9 +1,8 @@
-#include "rococo.dx11.api.h"
+#include "dx11.renderer.h"
 #include "dx11helpers.inl"
 
 #include <rococo.imaging.h>
 #include <rococo.io.h>
-#include <rococo.strings.h>
 
 #include <string>
 

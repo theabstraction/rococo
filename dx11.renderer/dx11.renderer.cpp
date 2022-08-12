@@ -1,8 +1,6 @@
 #include "dx11.renderer.h"
 #include <rococo.renderer.h>
 
-#include "rococo.dx11.api.h"
-
 #include <vector>
 #include <algorithm>
 
@@ -17,8 +15,6 @@
 
 #include "dx11helpers.inl"
 #include "dx11buffers.inl"
-
-#include "rococo.textures.h"
 
 #include "rococo.visitors.h"
 
@@ -153,191 +149,6 @@ namespace ANON
 	   else			visitor.ShowString("-> Parent", "None (top-level window)");
    }
 
-   struct DX11TextureArray : public ITextureArray
-   {
-	   DX11::TextureBind tb = { 0 };
-	  DXGI_FORMAT format = DXGI_FORMAT_NV11;
-      int32 width{ 0 };
-	  int32 height{ 0 };
-      ID3D11Device& device;
-      ID3D11DeviceContext& dc;
-
-      size_t arrayCapacity{ 0 };
-      size_t count{ 0 };
-
-      ID3D11ShaderResourceView* View()
-      {
-         if (tb.shaderView == nullptr)
-         {
-            if (tb.texture != nullptr)
-            {
-               D3D11_SHADER_RESOURCE_VIEW_DESC desc;
-               ZeroMemory(&desc, sizeof(desc));
-
-               desc.Texture2DArray.MipLevels = -1;
-               desc.Texture2DArray.FirstArraySlice = 0;
-               desc.Texture2DArray.ArraySize = (UINT)count;
-               desc.Texture2DArray.MostDetailedMip = 0;
-
-               desc.Format = DXGI_FORMAT_UNKNOWN;
-               desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
-
-               ID3D11ShaderResourceView* view = nullptr;
-               VALIDATEDX11(device.CreateShaderResourceView(tb.texture, &desc, &view));
-               tb.shaderView = view;
-            }
-         }
-
-         return tb.shaderView;
-      }
-
-      DX11TextureArray(ID3D11Device& _device, ID3D11DeviceContext& _dc) :
-         device(_device), dc(_dc)
-      {
-      }
-
-      ~DX11TextureArray()
-      {
-         Clear();
-      }
-
-      void Clear()
-      {
-         if (tb.texture) tb.texture->Release();
-         if (tb.shaderView) tb.shaderView->Release();
-         tb.texture = nullptr;
-         tb.shaderView = nullptr;
-         count = 0;
-         arrayCapacity = 0;
-      }
-
-      void AddTexture() override
-      {
-         if (arrayCapacity != 0)
-         {
-            Throw(0, "DX11TextureArray texture is already defined. You cannot add more textures.");
-         }
-         count++;
-      }
-
-      void ResetWidth(int32 width)
-      {
-         Clear();
-         this->width = width;
-		 this->height = width;
-      }
-
-	  void ResetWidth(int32 width, int32 height)
-	  {
-		  Clear();
-		  this->width = width;
-		  this->height = height;
-	  }
-
-	  void Resize(size_t nElements)
-	  {
-		  Clear();
-		  arrayCapacity = count = nElements;
-	  }
-
-      void WriteSubImage(size_t index, const RGBAb* pixels, const GuiRect& targetLocation) override
-      {
-         if (width > 0 && tb.texture == nullptr)
-         {
-            arrayCapacity = count;
-			format = DXGI_FORMAT_R8G8B8A8_UNORM;
-
-            D3D11_TEXTURE2D_DESC colourSpriteArray;
-            colourSpriteArray.Width = width;
-            colourSpriteArray.Height = height;
-            colourSpriteArray.MipLevels = 1;
-            colourSpriteArray.ArraySize = (UINT)arrayCapacity;
-            colourSpriteArray.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-            colourSpriteArray.SampleDesc.Count = 1;
-            colourSpriteArray.SampleDesc.Quality = 0;
-            colourSpriteArray.Usage = D3D11_USAGE_DEFAULT;
-            colourSpriteArray.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-            colourSpriteArray.CPUAccessFlags = 0;
-            colourSpriteArray.MiscFlags = 0;
-            VALIDATEDX11(device.CreateTexture2D(&colourSpriteArray, nullptr, &tb.texture));
-         }
-
-         if (width > 0)
-         {
-			if (format != DXGI_FORMAT_R8G8B8A8_UNORM)
-			{
-				Throw(0, "DX11TextureArray::format is not RGBA but image passed was RGBA");
-			}
-
-			UINT subresourceIndex = D3D11CalcSubresource(0, (UINT)index, 1);
-			Vec2i span = Span(targetLocation);
-			D3D11_BOX box;
-			box.left = targetLocation.left;
-			box.right = targetLocation.right;
-			box.back = 1;
-			box.front = 0;
-			box.top = targetLocation.top;
-			box.bottom = targetLocation.bottom;
-
-			UINT srcDepth = span.x * span.y * sizeof(RGBAb);
-			dc.UpdateSubresource(tb.texture, subresourceIndex, &box, pixels, span.x * sizeof(RGBAb), srcDepth);
-         }
-      }
-
-	  void WriteSubImage(size_t index, const uint8* grayScalePixels, Vec2i span) override
-	  {
-		  if (width > 0 && tb.texture == nullptr)
-		  {
-			  arrayCapacity = count;
-			  format = DXGI_FORMAT_R8_UNORM;
-
-			  D3D11_TEXTURE2D_DESC alphArray;
-			  alphArray.Width = width;
-			  alphArray.Height = height;
-			  alphArray.MipLevels = 1;
-			  alphArray.ArraySize = (UINT)arrayCapacity;
-			  alphArray.Format = DXGI_FORMAT_R8_UNORM;
-			  alphArray.SampleDesc.Count = 1;
-			  alphArray.SampleDesc.Quality = 0;
-			  alphArray.Usage = D3D11_USAGE_DEFAULT;
-			  alphArray.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-			  alphArray.CPUAccessFlags = 0;
-			  alphArray.MiscFlags = 0;
-			  VALIDATEDX11(device.CreateTexture2D(&alphArray, nullptr, &tb.texture));
-		  }
-
-		  if (width > 0)
-		  {
-			  if (format != DXGI_FORMAT_R8_UNORM)
-			  {
-				  Throw(0, "DX11TextureArray::format is not A8 but image passed was A8");
-			  }
-
-			  UINT subresourceIndex = D3D11CalcSubresource(0, (UINT)index, 1);
-			  D3D11_BOX box;
-			  box.left = 0;
-			  box.right = span.x;
-			  box.back = 1;
-			  box.front = 0;
-			  box.top = 0;
-			  box.bottom = span.y;
-
-			  UINT srcDepth = span.x * span.y * sizeof(uint8);
-			  dc.UpdateSubresource(tb.texture, subresourceIndex, &box, grayScalePixels, span.x * sizeof(uint8), srcDepth);
-		  }
-	  }
-
-      int32 MaxWidth() const override
-      {
-         return 2048;
-      }
-
-      size_t TextureCount() const override
-      {
-         return count;
-      }
-   };
-
    bool PrepareDepthRenderFromLight(const Light& light, DepthRenderData& drd)
    {
 	   if (!TryNormalize(light.direction, drd.direction))
@@ -403,11 +214,11 @@ namespace ANON
 	   IInstallation& installation;
 	   int64 trianglesThisFrame = 0;
 	   int64 entitiesThisFrame = 0;
-	   std::unordered_map<ID_TEXTURE, DX11TextureArray*, ID_TEXTURE> genericTextureArray;
+	   std::unordered_map<ID_TEXTURE, IDX11TextureArray*, ID_TEXTURE> genericTextureArray;
 	   stringmap<ID_TEXTURE> nameToGenericTextureId;
 
-	   DX11TextureArray spriteArray;
-	   DX11TextureArray materialArray;
+	   AutoFree<IDX11TextureArray> spriteArray;
+	   AutoFree<IDX11TextureArray> materialArray;
 
 	   std::vector<DX11::TextureBind> cubeTextureArray;
 	   stringmap<ID_CUBE_TEXTURE> nameToCubeTexture;
@@ -535,7 +346,7 @@ namespace ANON
 	   {
 		   Fonts::IArrayFontSupervisor* arrayFont;
 		   Fonts::FontSpec spec;
-		   DX11TextureArray* array;
+		   IDX11TextureArray* array;
 	   };
 
 	   std::vector<OSFont> osFonts;
@@ -571,12 +382,10 @@ namespace ANON
 			   i++;
 		   }
 
-		   AutoFree<Fonts::IArrayFontSupervisor> new_Font = Fonts::CreateOSFont(glyphs, spec);
-		   std::unique_ptr<DX11TextureArray> new_array2D ( new DX11TextureArray(device, dc) );
-		   OSFont osFont{ new_Font, spec , new_array2D.get() };
+		   Fonts::IArrayFontSupervisor* new_Font = Fonts::CreateOSFont(glyphs, spec);
+		   IDX11TextureArray* new_array2D = CreateDX11TextureArray(device, dc);
+		   OSFont osFont{ new_Font, spec , new_array2D };
 		   osFonts.push_back(osFont); // osFonts manages lifetime, so we can release our references
-		   new_Font.Release();
-		   new_array2D.release();
 
 		   struct : IEventCallback<const Fonts::GlyphDesc>
 		   {
@@ -614,7 +423,7 @@ namespace ANON
 		   auto i = nameToGenericTextureId.find(uniqueName);
 		   if (i != nameToGenericTextureId.end()) return i->second;
 		  
-		   DX11TextureArray* array = new DX11TextureArray(device, dc);
+		   IDX11TextureArray* array = CreateDX11TextureArray(device, dc);
 
 		   try
 		   {
@@ -624,13 +433,13 @@ namespace ANON
 			   struct : IEventCallback<TextureLoadData>
 			   {
 				   int index = 0;
-				   DX11TextureArray* array;
+				   IDX11TextureArray* array;
 				   void OnEvent(TextureLoadData& data) override
 				   {
 					   struct : Rococo::Imaging::IImageLoadEvents
 					   {
 						   cstr filename;
-						   DX11TextureArray* array;
+						   IDX11TextureArray* array;
 						   int32 index;
 
 						   void OnError(const char* message) override
@@ -645,7 +454,7 @@ namespace ANON
 
 						   void OnAlphaImage(const Vec2i& span, const uint8* data) override
 						   {
-							   if (array->width != span.x || array->height != span.y)
+							   if (array->Width() != span.x || array->Height() != span.y)
 							   {
 								   Throw(0, "IRenderer.LoadAlphaTextureArray(...) - Tiff was of incorrect span.\n %s", filename);
 							   }
@@ -675,7 +484,7 @@ namespace ANON
 		   }
 		   catch (IException&)
 		   {
-			   delete array;
+			   array->Free();
 			   throw;
 		   }
 	   }
@@ -862,9 +671,9 @@ namespace ANON
 	   DX11AppRenderer(DX11::Factory& _factory, Windows::IWindow& _window) :
 		   device(_factory.device), dc(_factory.dc), factory(_factory.factory),
 		   cursor{ BitmapLocation { {0,0,0,0}, -1 }, { 0,0 } }, installation(_factory.installation),
-		   spriteArray(_factory.device, dc),
-		   materialArray(_factory.device, dc),
-		   spriteArrayBuilder(CreateTextureArrayBuilder(*this, spriteArray)),
+		   spriteArray(CreateDX11TextureArray(_factory.device, dc)),
+		   materialArray(CreateDX11TextureArray(_factory.device, dc)),
+		   spriteArrayBuilder(CreateTextureArrayBuilder(*this, *spriteArray)),
 		   scratchBuffer(CreateExpandingBuffer(16_kilobytes)),
 		   textureLoader(_factory.installation, _factory.device, _factory.dc, *scratchBuffer),
 		   window(_window)
@@ -1078,13 +887,13 @@ namespace ANON
 
 		   for (auto& t : genericTextureArray)
 		   {
-			   delete t.second;
+			   t.second->Free();
 		   }
 
 		   for (auto& osFont : osFonts)
 		   {
 			   osFont.arrayFont->Free();
-			   delete osFont.array;
+			   osFont.array->Free();
 		   }
 	   }
 
@@ -1292,7 +1101,7 @@ namespace ANON
 			   D3D11_TEXTURE2D_DESC desc;
 			   cubeTexture->GetDesc(&desc);
 
-			   if (desc.Width != materialArray.width)
+			   if (desc.Width != materialArray->Width())
 			   {
 				   cubeTexture = nullptr;
 				   cubeTextureView = nullptr;
@@ -1303,8 +1112,8 @@ namespace ANON
 		   {
 			   D3D11_TEXTURE2D_DESC desc;
 			   ZeroMemory(&desc, sizeof(desc));
-			   desc.Width = materialArray.width;
-			   desc.Height = materialArray.width;
+			   desc.Width = materialArray->Width();
+			   desc.Height = materialArray->Width();
 			   desc.ArraySize = 6;
 			   desc.SampleDesc.Count = 1;
 			   desc.SampleDesc.Quality = 0;
@@ -1340,11 +1149,11 @@ namespace ANON
 				   srcbox.left = 0;
 				   srcbox.top = 0;
 				   srcbox.front = 0;
-				   srcbox.right = materialArray.width;
-				   srcbox.bottom = materialArray.width;
+				   srcbox.right = materialArray->Width();
+				   srcbox.bottom = materialArray->Width();
 				   srcbox.back = 1;
 
-				   dc.CopySubresourceRegion(cubeTexture, i, 0, 0, 0, materialArray.tb.texture, cubeMaterialId[i], &srcbox);
+				   dc.CopySubresourceRegion(cubeTexture, i, 0, 0, 0, materialArray->Binding().texture, cubeMaterialId[i], &srcbox);
 			   }
 		   }
 	   }
@@ -1431,7 +1240,7 @@ namespace ANON
 			   visitor.ShowSelectableString("overlay.select.texture", name, "  %s - 0x%p. %d x %d. %d levels", t.name.c_str(), (const void*) tx.texture, desc.Width, desc.Height, desc.MipLevels);
 		   }
 
-		   for (size_t i = 0; i < materialArray.TextureCount(); ++i)
+		   for (size_t i = 0; i < materialArray->TextureCount(); ++i)
 		   {	   
 			   char name[64];
 			   SafeFormat(name, 64, "MatId %u", i);
@@ -1442,14 +1251,14 @@ namespace ANON
 	   cstr GetMaterialTextureName(MaterialId id) const override
 	   {
 		   size_t index = (size_t)id;
-		   if (index >= materialArray.TextureCount()) return nullptr;
+		   if (index >= materialArray->TextureCount()) return nullptr;
 		   return idToMaterialName[index].c_str();
 	   }
 
 	   void GetMaterialArrayMetrics(MaterialArrayMetrics& metrics) const override
 	   {
-		   metrics.NumberOfElements = (int32) materialArray.TextureCount();
-		   metrics.Width = materialArray.MaxWidth();
+		   metrics.NumberOfElements = (int32) materialArray->TextureCount();
+		   metrics.Width = materialArray->MaxWidth();
 	   }
 
 	   void GetMeshDesc(char desc[256], ID_SYS_MESH id) override
@@ -1747,8 +1556,8 @@ namespace ANON
 	   virtual void LoadMaterialTextureArray(IMaterialTextureArrayBuilder& builder)
 	   {
 		   int32 txWidth = builder.TexelWidth();
-		   materialArray.ResetWidth(builder.TexelWidth());
-		   materialArray.Resize(builder.Count());
+		   materialArray->ResetWidth(builder.TexelWidth());
+		   materialArray->Resize(builder.Count());
 		   nameToMaterialId.clear();
 		   idToMaterialName.clear();
 
@@ -1798,8 +1607,7 @@ namespace ANON
 						   Throw(0, "Error loading texture %s. Only %d x %d dimensions supported", name, txWidth, txWidth);
 					   }
 
-					   DX11TextureArray& m = This->materialArray;
-					   m.WriteSubImage(i, pixels, GuiRect{ 0, 0, txWidth, txWidth });
+					   This->materialArray->WriteSubImage(i, pixels, GuiRect{ 0, 0, txWidth, txWidth });
 				   }
 
 				   virtual void OnAlphaImage(const Vec2i& span, const uint8* data)
@@ -3158,10 +2966,10 @@ namespace ANON
 		   dc.PSSetShaderResources(TXUNIT_FONT, 1, &fontBinding);
 		   dc.PSSetShaderResources(TXUNIT_ENV_MAP, 1, &cubeTextureView);
 
-		   ID3D11ShaderResourceView* materials[1] = { materialArray.View() };
+		   ID3D11ShaderResourceView* materials[1] = { materialArray->View() };
 		   dc.PSSetShaderResources(TXUNIT_MATERIALS, 1, materials);
 
-		   ID3D11ShaderResourceView* spriteviews[1] = { spriteArray.View() };
+		   ID3D11ShaderResourceView* spriteviews[1] = { spriteArray->View() };
 		   dc.PSSetShaderResources(TXUNIT_SPRITES, 1, spriteviews);
 
 		   dc.PSSetSamplers(0, 16, samplers);
@@ -3182,7 +2990,7 @@ namespace ANON
 		   g.guiScale.OOScreenWidth = 1.0f / screenSpan.x;
 		   g.guiScale.OOScreenHeight = 1.0f / screenSpan.y;
 		   g.guiScale.OOFontWidth = fonts->TextureSpan().z;
-		   g.guiScale.OOSpriteWidth = spriteArray.width == 0 ? 1.0f : (1.0f / spriteArray.width);
+		   g.guiScale.OOSpriteWidth = spriteArray->Width() == 0 ? 1.0f : (1.0f / spriteArray->Width());
 
 		   DX11::CopyStructureToBuffer(dc, globalStateBuffer, g);
 

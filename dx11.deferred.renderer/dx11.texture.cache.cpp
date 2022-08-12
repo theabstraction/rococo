@@ -116,6 +116,16 @@ namespace ANON
 			this->width = width;
 		}
 
+		void ResetWidth(int32 width, int32 height) override
+		{
+			if (width != height)
+			{
+				Throw(0, "%s. Width != Height", __FUNCTION__);
+			}
+
+			ResetWidth(width);
+		}
+
 		void WriteSubImage(size_t index, const RGBAb* pixels, const GuiRect& targetLocation) override
 		{
 			Seal();

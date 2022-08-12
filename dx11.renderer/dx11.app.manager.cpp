@@ -1,9 +1,8 @@
+#include "dx11.renderer.h"
 #include <rococo.os.win32.h>
-#include <rococo.api.h>
 #include <rococo.dx11.renderer.win32.h>
 #include <rococo.renderer.h>
 #include <rococo.ui.h>
-#include <rococo.window.h>
 #include "rococo.dx11.api.h"
 #include <rococo.ringbuffer.h>
 #include <rococo.io.h>

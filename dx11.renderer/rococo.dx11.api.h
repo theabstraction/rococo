@@ -1,10 +1,6 @@
 #ifndef ROCOCO_DX11_API_H
 #define ROCOCO_DX11_API_H
 
-#include <rococo.api.h>
-#define NOMINMAX
-#include <d3d11.h>
-
 namespace Rococo
 {
    struct IExpandingBuffer;

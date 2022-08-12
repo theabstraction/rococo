@@ -239,13 +239,60 @@
 
 (macro Sys.entrypoint in out
 	(Sys.ValidateSubscriptRange in.ChildCount 1 1 "Usage: (##Sys.entrypoint)")
-	(IExpression nsExpr = ' (namespace EntryPoint))
-	(out.Copy nsExpr)
+	
+	(out.AddAtomic "namespace")
+	(out.AddAtomic "EntryPoint")
 	
 	(IExpressionBuilder parent = out.TransformParent)
 	(Int32 outIndex = (parent.IndexOf in))
-	
 	(IExpressionBuilder aliasBuilder = (parent.InsertCompoundAfter outIndex))
-	(IExpression aliasExpr = ' (alias Main EntryPoint.Main))
-	(aliasBuilder.Copy aliasExpr)
+	
+	(aliasBuilder.AddAtomic "alias")
+	(aliasBuilder.AddAtomic "Main")
+	(aliasBuilder.AddAtomic "EntryPoint.Main")
+)
+
+(function AppendWithCharacterSubstitutions (IStringBuilder builder) (IString text)(IString substituteThis)(IString withThat) -> :
+	(if (substituteThis.Length != 1)
+		(Sys.Throw 0 "Expecting the [substituteThis] string to be of length 1, i.e one ascii character")
+	)
+	
+	(Int32 substituteThisChar = (substituteThis 0))
+	
+	(#for (Int32 i = 0)(i < text.Length)(i += 1)
+		(Int32 c = (text i))
+		(if (c == substituteThisChar)
+			(builder withThat)
+		else
+			(builder.AppendChar c)
+		)
+	)
+)
+
+(function BuildOptionalType (IExpression in)(IExpressionBuilder out) -> :
+	(IExpression sFQType = (in 1))
+
+	(#token mangledTypeName)
+	(AppendWithCharacterSubstitutions mangledTypeName sFQType.Text "." "")
+	(#token structName "Optional" mangledTypeName)	
+	
+
+	(out.AddAtomic "struct")	
+	(out.AddAtomic structName)
+	(IExpressionBuilder fieldSpec = out.AddCompound)
+	(fieldSpec.AddAtomic sFQType.Text)
+	(fieldSpec.AddAtomic "value")
+	(IExpressionBuilder boolSpec = out.AddCompound)
+	(boolSpec.AddAtomic "Bool")
+	(boolSpec.AddAtomic "isValid")
+)
+
+(namespace Sys.Type.Macros)
+
+(alias AppendWithCharacterSubstitutions Sys.Type.Macros.AppendWithCharacterSubstitutions)
+(alias BuildOptionalType Sys.Type.Macros.BuildOptionalType)	
+
+(macro Sys.optional in out
+	(Sys.ValidateSubscriptRange in.ChildCount 2 2 "Usage: (##Sys.optional <fully-qualified-type>)")	
+	(BuildOptionalType in out)
 )

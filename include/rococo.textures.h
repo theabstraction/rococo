@@ -55,7 +55,8 @@ namespace Rococo
       ROCOCOAPI ITextureArray
       {
          virtual void AddTexture() = 0;
-         virtual void ResetWidth(int32 width) = 0;     
+         virtual void ResetWidth(int32 width) = 0;   
+         virtual void ResetWidth(int32 width, int32 height) = 0;
          virtual void WriteSubImage(size_t index, const RGBAb* pixels, const GuiRect& targetLocation) = 0;
          virtual void WriteSubImage(size_t index, const uint8* grayScalePixels, Vec2i span) = 0;
          virtual int32 MaxWidth() const = 0;

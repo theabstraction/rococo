@@ -111,6 +111,7 @@
     <ClCompile Include="dx11.dialog.cpp" />
     <ClCompile Include="dx11.gui.cpp" />
     <ClCompile Include="dx11.factory.cpp" />
+    <ClCompile Include="dx11.texture.array.cpp" />
     <ClCompile Include="dx11.window.cpp" />
     <ClInclude Include="dx11.imports.inl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
