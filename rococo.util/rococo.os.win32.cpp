@@ -438,444 +438,479 @@ namespace
 	};
 }
 
-namespace Rococo
+namespace Rococo::OS
 {
-	namespace OS
+	void SetCursorVisibility(bool isVisible, Rococo::Windows::IWindow& captureWindow)
 	{
-		void EditImageFile(Rococo::Windows::IWindow& window, const wchar_t* sysPath)
+		if (isVisible)
 		{
-			ShellExecuteW(window, L"open", sysPath, nullptr, nullptr, SW_SHOW);
-		}
-
-		void MakeContainerDirectory(char* filename)
-		{
-			int len = (int)rlen(filename);
-
-			for (int i = len - 2; i > 0; --i)
+			for (int i = 0; i < 3; ++i)
 			{
-				if (filename[i] == '\\')
+				int index = ShowCursor(TRUE);
+				if (index >= 0)
 				{
-					filename[i + 1] = 0;
+					ClipCursor(nullptr);
+					SetCapture(nullptr);
 					return;
 				}
 			}
 		}
-
-		void MakeContainerDirectory(wchar_t* filename)
+		else
 		{
-			int len = (int)wcslen(filename);
-
-			for (int i = len - 2; i > 0; --i)
+			for (int i = 0; i < 3; ++i)
 			{
-				if (filename[i] == L'\\')
+				int index = ShowCursor(FALSE);
+				if (index < 0)
 				{
-					filename[i + 1] = 0;
+					POINT pos;
+					GetCursorPos(&pos);
+
+					RECT rect{ pos.x - 1, pos.y - 1, pos.x + 1, pos.y + 1 };
+
+					ClipCursor(&rect);
+					SetCapture(captureWindow);
 					return;
 				}
 			}
-		}
-
-		void ShellOpenDocument(cstr documentFilePath)
-		{
-			auto result = (INT_PTR) ShellExecuteA(NULL, "open", documentFilePath, NULL, NULL, SW_SHOW);
-			if (result < 32)
-			{
-				Throw(GetLastError(), "%s: '%s'", __FUNCTION__, documentFilePath);
-			}
-		}
-
-		void WakeUp(IThreadControl& thread)
-		{
-			struct ANON
-			{
-				static void WakeUp(void* context)
-				{
-
-				}
-			};
-			thread.QueueAPC(ANON::WakeUp, nullptr);
-		}
-
-		IThreadSupervisor* CreateRococoThread(IThreadJob* job, uint32 stacksize)
-		{
-			struct Supervisor;
-
-			struct Context
-			{
-				IThreadJob* job;
-				Supervisor* supervisor;
-			};
-
-			struct Supervisor : public IThreadSupervisor
-			{
-				Supervisor()
-				{
-					InitializeCriticalSection(&sync);
-				}
-
-				~Supervisor()
-				{
-					Resume();
-					isRunning = false;
-					QueueUserAPC(WakeUp, (HANDLE)hThread, 0);
-					WaitForSingleObject((HANDLE)hThread, INFINITE);
-					DeleteCriticalSection(&sync);
-				}
-
-				virtual ICriticalSection* CreateCriticalSection()
-				{
-					return new CriticalSection();
-				}
-
-				static void WakeUp(ULONG_PTR data)
-				{
-
-				}
-
-				void QueueAPC(FN_APC apc, void* context) override
-				{
-					QueueUserAPC((PAPCFUNC) apc, (HANDLE)hThread, (ULONG_PTR) context); 
-				}
-
-				cstr GetErrorMessage(int& err) const override
-				{
-					err = threadErrorCode;
-					return threadErrorRaised ? threadErrorMessage.c_str() : nullptr;
-				}
-
-				void SetRealTimePriority() override
-				{
-					SetThreadPriority((HANDLE)hThread, THREAD_PRIORITY_TIME_CRITICAL);
-				}
-
-				void SleepUntilAysncEvent(uint32 milliseconds) override
-				{
-					if (isRunning)
-					{
-						SleepEx(milliseconds, TRUE);
-					}
-				}
-
-				void Free() override
-				{
-					delete this;
-				}
-
-				bool IsRunning() const
-				{
-					return isRunning;
-				}
-
-				void Resume() override
-				{
-					ResumeThread((HANDLE)hThread);
-				}
-
-				void Lock() override
-				{
-					EnterCriticalSection(&sync);
-				}
-
-				void Unlock() override
-				{
-					LeaveCriticalSection(&sync);
-				}
-
-				CRITICAL_SECTION sync;
-				uint32 id;
-				uintptr_t hThread = 0;
-				bool isRunning = true;
-				Context context;
-				volatile bool threadErrorRaised = false;
-				HString threadErrorMessage;
-				int threadErrorCode = 0;
-			} *supervisor = new Supervisor();
-
-
-			struct ANON
-			{
-				static uint32 ThreadProc(void* argList)
-				{
-					Context* c = (Context*)argList;
-					IThreadJob* thread = reinterpret_cast<IThreadJob*>(c->job);
-
-					try
-					{
-						return thread->RunThread(*c->supervisor);
-					}
-					catch (IException& ex)
-					{
-						c->supervisor->threadErrorMessage = ex.Message();
-						c->supervisor->threadErrorRaised = true;
-						c->supervisor->threadErrorCode = ex.ErrorCode();
-						return ex.ErrorCode();
-					}
-				}
-			};
-
-			supervisor->context = { job, supervisor };
-			supervisor->hThread = _beginthreadex(nullptr, stacksize, ANON::ThreadProc, &supervisor->context, CREATE_SUSPENDED, &supervisor->id);
-			return supervisor;
-		}
-
-		cstr GetAsciiCommandLine()
-		{
-			auto line =  GetCommandLineA();
-			return line;
-		}
-
-		void PollKeys(uint8 scanArray[256])
-		{
-			GetKeyboardState(scanArray);
-		}
-
-		bool IsFileExistant(const wchar_t* filename)
-		{
-			DWORD flags = GetFileAttributesW(filename);
-			return flags != INVALID_FILE_ATTRIBUTES;
-		}
-
-		bool StripLastSubpath(char* fullpath)
-		{
-			int32 len = (int32) strlen (fullpath);
-			for (int i = len - 2; i > 0; --i)
-			{
-				if (fullpath[i] == '\\')
-				{
-					fullpath[i + 1] = 0;
-					return true;
-				}
-			}
-
-			return false;
-		}
-
-		bool StripLastSubpath(wchar_t* fullpath)
-		{
-			int32 len = (int32)wcslen(fullpath);
-			for (int i = len - 2; i > 0; --i)
-			{
-				if (fullpath[i] == L'\\')
-				{
-					fullpath[i + 1] = 0;
-					return true;
-				}
-			}
-
-			return false;
-		}
-		
-		void SanitizePath(wchar_t* path)
-		{
-			for (auto* s = path; *s != 0; ++s)
-			{
-				if (*s == L'/') *s = L'\\';
-			}
-		}
-
-		void SanitizePath(char* path)
-		{
-			for (char* s = path; *s != 0; ++s)
-			{
-				if (*s == '/') *s = '\\';
-			}
-		}
-
-		void SaveClipBoardText(cstr text, Windows::IWindow& window)
-		{
-			size_t len = strlen(text) + 1;
-
-			if (OpenClipboard(window))
-			{
-				HGLOBAL g = GlobalAlloc(GMEM_MOVEABLE, len);
-				char* lptstrCopy = (char*)GlobalLock(g);
-				memcpy(lptstrCopy, text, len);
-				GlobalUnlock(g);
-				EmptyClipboard();
-				if (!SetClipboardData(CF_TEXT, g))
-				{
-					GlobalFree(g);
-				}
-
-				CloseClipboard();
-			}
-		}
-
-		void ToSysPath(wchar_t* path)
-		{
-			for (wchar_t* s = path; *s != 0; ++s)
-			{
-				if (*s == L'/') *s = L'\\';
-			}
-		}
-
-		void ToUnixPath(wchar_t* path)
-		{
-			for (wchar_t* s = path; *s != 0; ++s)
-			{
-				if (*s == '\\') *s = '/';
-			}
-		}
-
-		void ToSysPath(char* path)
-		{
-			for (char* s = path; *s != 0; ++s)
-			{
-				if (*s == L'/') *s = L'\\';
-			}
-		}
-
-		void ToUnixPath(char* path)
-		{
-			for (char* s = path; *s != 0; ++s)
-			{
-				if (*s == '\\') *s = '/';
-			}
-		}
-
-		void UILoop(uint32 milliseconds)
-		{
-			MSG msg;
-
-			ticks count = OS::CpuTicks();
-			ticks target = count + (OS::CpuHz() * milliseconds / 1000);
-
-			while (target < OS::CpuTicks())
-			{
-				MsgWaitForMultipleObjects(0, nullptr, FALSE, 25, QS_ALLINPUT);
-
-				while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
-				{
-					TranslateMessage(&msg);
-					DispatchMessage(&msg);
-				}
-			}
-		}
-
-		void Format_C_Error(int errorCode, char* buffer, size_t capacity)
-		{
-			if (0 == FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, NULL, errorCode, 0, buffer, (DWORD)capacity, NULL))
-			{
-				SafeFormat(buffer, capacity, "Unknown error code (%d)", errorCode);
-			}
-		}
-
-		int OpenForAppend(void** fp, cstr name)
-		{
-			return fopen_s((FILE**)fp, name, "ab");
-		}
-
-		int OpenForRead(void** fp, cstr name)
-		{
-			return fopen_s((FILE**)fp, name, "rb");
-		}
-
-		ticks CpuTicks()
-		{
-			LARGE_INTEGER ticks;
-			QueryPerformanceCounter(&ticks);
-			return ticks.QuadPart;
-		}
-
-		ticks CpuHz()
-		{
-			LARGE_INTEGER hz;
-			QueryPerformanceFrequency(&hz);
-			return hz.QuadPart;
-		}
-
-		ticks UTCTime()
-		{
-			FILETIME ft;
-			GetSystemTimeAsFileTime(&ft);
-			return *(ticks*)&ft;
-		}
-
-		void FormatTime(ticks utcTime, char* buffer, size_t nBytes)
-		{
-			SYSTEMTIME st;
-			char localDate[255], localTime[255];
-
-			FileTimeToLocalFileTime((FILETIME*)&utcTime, (FILETIME*)&utcTime);
-			FileTimeToSystemTime((FILETIME*)&utcTime, &st);
-
-			GetDateFormatA(LOCALE_USER_DEFAULT, DATE_SHORTDATE, &st, NULL, localDate, 255);
-			GetTimeFormatA(LOCALE_USER_DEFAULT, 0, &st, NULL, localTime, 255);
-			SafeFormat(buffer, nBytes, "%s %s", localTime, localDate);
-		}
-
-		void TripDebugger()
-		{
-			if (IsDebuggerPresent())
-			{
-				__debugbreak();
-			}
-		}
-
-		void FormatErrorMessage(char* message, size_t sizeofBuffer, int errorCode)
-		{
-			if (!FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, NULL, errorCode, 0, message, (DWORD) sizeofBuffer, nullptr))
-			{
-				SafeFormat(message, sizeofBuffer, "Unknown error");
-			}
-			else
-			{
-				char* s;
-				for (s = message; *s != 0; s++)
-				{
-				}
-
-				if (s > message+1 && s[-1] == '\n')
-				{
-					s[-1] = 0;
-					s[-2] = 0;
-				}
-			}
-		}
-
-		bool TryGetColourFromDialog(RGBAb& colour, Windows::IWindow& window)
-		{
-			static COLORREF colours[16] = { 0 };
-
-			CHOOSECOLORA c = { 0 };
-			c.hwndOwner = window;
-			c.lStructSize = sizeof(c);
-			c.rgbResult = RGB(colour.red, colour.green, colour.blue);
-			c.lpCustColors = colours;
-			c.Flags = CC_RGBINIT | CC_ANYCOLOR | CC_FULLOPEN;
-
-			if (ChooseColorA(&c))
-			{
-				colour.red = GetRValue(c.rgbResult);
-				colour.green = GetGValue(c.rgbResult);
-				colour.blue = GetBValue(c.rgbResult);
-				return true;
-			}
-
-			return false;
-		}
-
-		bool IsDebugging()
-		{
-			return IsDebuggerPresent() ? true : false;
-		}
-
-		void* AllocBoundedMemory(size_t nBytes)
-		{
-			auto* pMem = VirtualAlloc(NULL, nBytes, MEM_COMMIT, PAGE_READWRITE);
-			if (pMem == nullptr)
-			{
-				Throw(GetLastError(), "Could not allocate %ull bytes virtual memory", nBytes);
-			}
-			return pMem;
-		}
-
-		void FreeBoundedMemory(void* pMemory)
-		{
-			VirtualFree(pMemory, 0, MEM_RELEASE);
 		}
 	}
 
+	void EditImageFile(Rococo::Windows::IWindow& window, const wchar_t* sysPath)
+	{
+		ShellExecuteW(window, L"open", sysPath, nullptr, nullptr, SW_SHOW);
+	}
+
+	void MakeContainerDirectory(char* filename)
+	{
+		int len = (int)rlen(filename);
+
+		for (int i = len - 2; i > 0; --i)
+		{
+			if (filename[i] == '\\')
+			{
+				filename[i + 1] = 0;
+				return;
+			}
+		}
+	}
+
+	void MakeContainerDirectory(wchar_t* filename)
+	{
+		int len = (int)wcslen(filename);
+
+		for (int i = len - 2; i > 0; --i)
+		{
+			if (filename[i] == L'\\')
+			{
+				filename[i + 1] = 0;
+				return;
+			}
+		}
+	}
+
+	void ShellOpenDocument(cstr documentFilePath)
+	{
+		auto result = (INT_PTR) ShellExecuteA(NULL, "open", documentFilePath, NULL, NULL, SW_SHOW);
+		if (result < 32)
+		{
+			Throw(GetLastError(), "%s: '%s'", __FUNCTION__, documentFilePath);
+		}
+	}
+
+	void WakeUp(IThreadControl& thread)
+	{
+		struct ANON
+		{
+			static void WakeUp(void* context)
+			{
+
+			}
+		};
+		thread.QueueAPC(ANON::WakeUp, nullptr);
+	}
+
+	IThreadSupervisor* CreateRococoThread(IThreadJob* job, uint32 stacksize)
+	{
+		struct Supervisor;
+
+		struct Context
+		{
+			IThreadJob* job;
+			Supervisor* supervisor;
+		};
+
+		struct Supervisor : public IThreadSupervisor
+		{
+			Supervisor()
+			{
+				InitializeCriticalSection(&sync);
+			}
+
+			~Supervisor()
+			{
+				Resume();
+				isRunning = false;
+				QueueUserAPC(WakeUp, (HANDLE)hThread, 0);
+				WaitForSingleObject((HANDLE)hThread, INFINITE);
+				DeleteCriticalSection(&sync);
+			}
+
+			virtual ICriticalSection* CreateCriticalSection()
+			{
+				return new CriticalSection();
+			}
+
+			static void WakeUp(ULONG_PTR data)
+			{
+
+			}
+
+			void QueueAPC(FN_APC apc, void* context) override
+			{
+				QueueUserAPC((PAPCFUNC) apc, (HANDLE)hThread, (ULONG_PTR) context); 
+			}
+
+			cstr GetErrorMessage(int& err) const override
+			{
+				err = threadErrorCode;
+				return threadErrorRaised ? threadErrorMessage.c_str() : nullptr;
+			}
+
+			void SetRealTimePriority() override
+			{
+				SetThreadPriority((HANDLE)hThread, THREAD_PRIORITY_TIME_CRITICAL);
+			}
+
+			void SleepUntilAysncEvent(uint32 milliseconds) override
+			{
+				if (isRunning)
+				{
+					SleepEx(milliseconds, TRUE);
+				}
+			}
+
+			void Free() override
+			{
+				delete this;
+			}
+
+			bool IsRunning() const
+			{
+				return isRunning;
+			}
+
+			void Resume() override
+			{
+				ResumeThread((HANDLE)hThread);
+			}
+
+			void Lock() override
+			{
+				EnterCriticalSection(&sync);
+			}
+
+			void Unlock() override
+			{
+				LeaveCriticalSection(&sync);
+			}
+
+			CRITICAL_SECTION sync;
+			uint32 id;
+			uintptr_t hThread = 0;
+			bool isRunning = true;
+			Context context;
+			volatile bool threadErrorRaised = false;
+			HString threadErrorMessage;
+			int threadErrorCode = 0;
+		} *supervisor = new Supervisor();
+
+
+		struct ANON
+		{
+			static uint32 ThreadProc(void* argList)
+			{
+				Context* c = (Context*)argList;
+				IThreadJob* thread = reinterpret_cast<IThreadJob*>(c->job);
+
+				try
+				{
+					return thread->RunThread(*c->supervisor);
+				}
+				catch (IException& ex)
+				{
+					c->supervisor->threadErrorMessage = ex.Message();
+					c->supervisor->threadErrorRaised = true;
+					c->supervisor->threadErrorCode = ex.ErrorCode();
+					return ex.ErrorCode();
+				}
+			}
+		};
+
+		supervisor->context = { job, supervisor };
+		supervisor->hThread = _beginthreadex(nullptr, stacksize, ANON::ThreadProc, &supervisor->context, CREATE_SUSPENDED, &supervisor->id);
+		return supervisor;
+	}
+
+	cstr GetAsciiCommandLine()
+	{
+		auto line =  GetCommandLineA();
+		return line;
+	}
+
+	void PollKeys(uint8 scanArray[256])
+	{
+		GetKeyboardState(scanArray);
+	}
+
+	bool IsFileExistant(const wchar_t* filename)
+	{
+		DWORD flags = GetFileAttributesW(filename);
+		return flags != INVALID_FILE_ATTRIBUTES;
+	}
+
+	bool StripLastSubpath(char* fullpath)
+	{
+		int32 len = (int32) strlen (fullpath);
+		for (int i = len - 2; i > 0; --i)
+		{
+			if (fullpath[i] == '\\')
+			{
+				fullpath[i + 1] = 0;
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	bool StripLastSubpath(wchar_t* fullpath)
+	{
+		int32 len = (int32)wcslen(fullpath);
+		for (int i = len - 2; i > 0; --i)
+		{
+			if (fullpath[i] == L'\\')
+			{
+				fullpath[i + 1] = 0;
+				return true;
+			}
+		}
+
+		return false;
+	}
+		
+	void SanitizePath(wchar_t* path)
+	{
+		for (auto* s = path; *s != 0; ++s)
+		{
+			if (*s == L'/') *s = L'\\';
+		}
+	}
+
+	void SanitizePath(char* path)
+	{
+		for (char* s = path; *s != 0; ++s)
+		{
+			if (*s == '/') *s = '\\';
+		}
+	}
+
+	void SaveClipBoardText(cstr text, Windows::IWindow& window)
+	{
+		size_t len = strlen(text) + 1;
+
+		if (OpenClipboard(window))
+		{
+			HGLOBAL g = GlobalAlloc(GMEM_MOVEABLE, len);
+			char* lptstrCopy = (char*)GlobalLock(g);
+			memcpy(lptstrCopy, text, len);
+			GlobalUnlock(g);
+			EmptyClipboard();
+			if (!SetClipboardData(CF_TEXT, g))
+			{
+				GlobalFree(g);
+			}
+
+			CloseClipboard();
+		}
+	}
+
+	void ToSysPath(wchar_t* path)
+	{
+		for (wchar_t* s = path; *s != 0; ++s)
+		{
+			if (*s == L'/') *s = L'\\';
+		}
+	}
+
+	void ToUnixPath(wchar_t* path)
+	{
+		for (wchar_t* s = path; *s != 0; ++s)
+		{
+			if (*s == '\\') *s = '/';
+		}
+	}
+
+	void ToSysPath(char* path)
+	{
+		for (char* s = path; *s != 0; ++s)
+		{
+			if (*s == L'/') *s = L'\\';
+		}
+	}
+
+	void ToUnixPath(char* path)
+	{
+		for (char* s = path; *s != 0; ++s)
+		{
+			if (*s == '\\') *s = '/';
+		}
+	}
+
+	void UILoop(uint32 milliseconds)
+	{
+		MSG msg;
+
+		ticks count = OS::CpuTicks();
+		ticks target = count + (OS::CpuHz() * milliseconds / 1000);
+
+		while (target < OS::CpuTicks())
+		{
+			MsgWaitForMultipleObjects(0, nullptr, FALSE, 25, QS_ALLINPUT);
+
+			while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+			{
+				TranslateMessage(&msg);
+				DispatchMessage(&msg);
+			}
+		}
+	}
+
+	void Format_C_Error(int errorCode, char* buffer, size_t capacity)
+	{
+		if (0 == FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, NULL, errorCode, 0, buffer, (DWORD)capacity, NULL))
+		{
+			SafeFormat(buffer, capacity, "Unknown error code (%d)", errorCode);
+		}
+	}
+
+	int OpenForAppend(void** fp, cstr name)
+	{
+		return fopen_s((FILE**)fp, name, "ab");
+	}
+
+	int OpenForRead(void** fp, cstr name)
+	{
+		return fopen_s((FILE**)fp, name, "rb");
+	}
+
+	ticks CpuTicks()
+	{
+		LARGE_INTEGER ticks;
+		QueryPerformanceCounter(&ticks);
+		return ticks.QuadPart;
+	}
+
+	ticks CpuHz()
+	{
+		LARGE_INTEGER hz;
+		QueryPerformanceFrequency(&hz);
+		return hz.QuadPart;
+	}
+
+	ticks UTCTime()
+	{
+		FILETIME ft;
+		GetSystemTimeAsFileTime(&ft);
+		return *(ticks*)&ft;
+	}
+
+	void FormatTime(ticks utcTime, char* buffer, size_t nBytes)
+	{
+		SYSTEMTIME st;
+		char localDate[255], localTime[255];
+
+		FileTimeToLocalFileTime((FILETIME*)&utcTime, (FILETIME*)&utcTime);
+		FileTimeToSystemTime((FILETIME*)&utcTime, &st);
+
+		GetDateFormatA(LOCALE_USER_DEFAULT, DATE_SHORTDATE, &st, NULL, localDate, 255);
+		GetTimeFormatA(LOCALE_USER_DEFAULT, 0, &st, NULL, localTime, 255);
+		SafeFormat(buffer, nBytes, "%s %s", localTime, localDate);
+	}
+
+	void TripDebugger()
+	{
+		if (IsDebuggerPresent())
+		{
+			__debugbreak();
+		}
+	}
+
+	void FormatErrorMessage(char* message, size_t sizeofBuffer, int errorCode)
+	{
+		if (!FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, NULL, errorCode, 0, message, (DWORD) sizeofBuffer, nullptr))
+		{
+			SafeFormat(message, sizeofBuffer, "Unknown error");
+		}
+		else
+		{
+			char* s;
+			for (s = message; *s != 0; s++)
+			{
+			}
+
+			if (s > message+1 && s[-1] == '\n')
+			{
+				s[-1] = 0;
+				s[-2] = 0;
+			}
+		}
+	}
+
+	bool TryGetColourFromDialog(RGBAb& colour, Windows::IWindow& window)
+	{
+		static COLORREF colours[16] = { 0 };
+
+		CHOOSECOLORA c = { 0 };
+		c.hwndOwner = window;
+		c.lStructSize = sizeof(c);
+		c.rgbResult = RGB(colour.red, colour.green, colour.blue);
+		c.lpCustColors = colours;
+		c.Flags = CC_RGBINIT | CC_ANYCOLOR | CC_FULLOPEN;
+
+		if (ChooseColorA(&c))
+		{
+			colour.red = GetRValue(c.rgbResult);
+			colour.green = GetGValue(c.rgbResult);
+			colour.blue = GetBValue(c.rgbResult);
+			return true;
+		}
+
+		return false;
+	}
+
+	bool IsDebugging()
+	{
+		return IsDebuggerPresent() ? true : false;
+	}
+
+	void* AllocBoundedMemory(size_t nBytes)
+	{
+		auto* pMem = VirtualAlloc(NULL, nBytes, MEM_COMMIT, PAGE_READWRITE);
+		if (pMem == nullptr)
+		{
+			Throw(GetLastError(), "Could not allocate %ull bytes virtual memory", nBytes);
+		}
+		return pMem;
+	}
+
+	void FreeBoundedMemory(void* pMemory)
+	{
+		VirtualFree(pMemory, 0, MEM_RELEASE);
+	}
+} // Rococo::OS
+
+namespace Rococo
+{
 	MemoryUsage ProcessMemory()
 	{
 		PROCESS_MEMORY_COUNTERS counters = { 0 };

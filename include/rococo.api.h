@@ -27,6 +27,7 @@ namespace Rococo
 
 	namespace OS
 	{
+		void SetCursorVisibility(bool isVisible, Rococo::Windows::IWindow& captureWindow);
 		void ShellOpenDocument(cstr path);
 		void TripDebugger();
 		void PrintDebug(const char* format, ...);

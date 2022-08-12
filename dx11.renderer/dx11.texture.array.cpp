@@ -18,13 +18,14 @@ struct DX11TextureArray : public IDX11TextureArray
     int32 width{ 0 };
     int32 height{ 0 };
     ID3D11Device& device;
-    ID3D11DeviceContext& dc;
+
+    ID3D11DeviceContext* activeDC = nullptr;
 
     size_t arrayCapacity{ 0 };
     size_t count{ 0 };
 
-    DX11TextureArray(ID3D11Device& _device, ID3D11DeviceContext& _dc) :
-        device(_device), dc(_dc)
+    DX11TextureArray(ID3D11Device& _device, ID3D11DeviceContext& dc) :
+        device(_device), activeDC(&dc)
     {
         instanceCount++;
     }
@@ -89,6 +90,11 @@ struct DX11TextureArray : public IDX11TextureArray
 
     void WriteSubImage(size_t index, const RGBAb* pixels, const GuiRect& targetLocation) override
     {
+        if (!activeDC)
+        {
+            Throw(0, "%s: no active DC", __FUNCTION__);
+        }
+
         if (width > 0 && tb.texture == nullptr)
         {
             arrayCapacity = count;
@@ -127,12 +133,18 @@ struct DX11TextureArray : public IDX11TextureArray
             box.bottom = targetLocation.bottom;
 
             UINT srcDepth = span.x * span.y * sizeof(RGBAb);
-            dc.UpdateSubresource(tb.texture, subresourceIndex, &box, pixels, span.x * sizeof(RGBAb), srcDepth);
+            activeDC->UpdateSubresource(tb.texture, subresourceIndex, &box, pixels, span.x * sizeof(RGBAb), srcDepth);
         }
     }
 
     void WriteSubImage(size_t index, const uint8* grayScalePixels, Vec2i span) override
     {
+        if (!activeDC)
+        {
+            Throw(0, "%s: no active DC", __FUNCTION__);
+        }
+
+
         if (width > 0 && tb.texture == nullptr)
         {
             arrayCapacity = count;
@@ -170,7 +182,7 @@ struct DX11TextureArray : public IDX11TextureArray
             box.bottom = span.y;
 
             UINT srcDepth = span.x * span.y * sizeof(uint8);
-            dc.UpdateSubresource(tb.texture, subresourceIndex, &box, grayScalePixels, span.x * sizeof(uint8), srcDepth);
+            activeDC->UpdateSubresource(tb.texture, subresourceIndex, &box, grayScalePixels, span.x * sizeof(uint8), srcDepth);
         }
     }
 
@@ -192,6 +204,11 @@ struct DX11TextureArray : public IDX11TextureArray
     int32 Height() const override
     {
         return height;
+    }
+
+    void SetActiveDC(ID3D11DeviceContext* dc) override
+    {
+        activeDC = dc;
     }
 
     ID3D11ShaderResourceView* View() override
@@ -229,7 +246,7 @@ namespace Rococo::DX11
         return new DX11TextureArray(device, dc);
     }
 
-    IDX11TextureArray* LoadAlphaTextureArray(ID3D11Device& device, ID3D11DeviceContext& dc, Vec2i span, int32 nElements, ITextureLoadEnumerator& enumerator)
+    IDX11TextureArray* LoadAlphaTextureArray(ID3D11Device& device, Vec2i span, int32 nElements, ITextureLoadEnumerator& enumerator, ID3D11DeviceContext& dc)
     {
         IDX11TextureArray* array = CreateDX11TextureArray(device, dc);
 

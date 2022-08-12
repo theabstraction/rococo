@@ -95,7 +95,7 @@ struct ConsoleAsDebuggerWindow: public Rococo::IDebuggerWindow
 				for (cstr* p = columnNames; *p != nullptr; p++)
 				{
 					cstr item = *p;
-					nChars + printf("%s\t", item);
+					nChars += printf("%s\t", item);
 				}
 
 				printf("\n");

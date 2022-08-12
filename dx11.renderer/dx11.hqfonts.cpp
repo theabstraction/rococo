@@ -26,13 +26,13 @@ namespace Rococo::DX11
 	struct DX11HQFontFonts: IDX11HQFontResource
 	{
 		ID3D11Device& device;
-		ID3D11DeviceContext& dc;
 		std::vector<OSFont> osFonts;
 		IDX11FontRenderer& renderer;
+		ID3D11DeviceContext* activeDC = nullptr;
 
 		enum { ID_FONT_OSFONT_OFFSET = 400 };
 
-		DX11HQFontFonts(IInstallation& installation, IDX11FontRenderer& _renderer, ID3D11Device& _device, ID3D11DeviceContext& _dc) : renderer(_renderer), device(_device), dc(_dc)
+		DX11HQFontFonts(IInstallation& installation, IDX11FontRenderer& _renderer, ID3D11Device& _device, ID3D11DeviceContext& dc) : renderer(_renderer), device(_device), activeDC(&dc)
 		{
 		}
 
@@ -50,7 +50,7 @@ namespace Rococo::DX11
 			}
 
 			Fonts::IArrayFontSupervisor* new_Font = Fonts::CreateOSFont(glyphs, spec);
-			IDX11TextureArray* new_array2D = CreateDX11TextureArray(device, dc);
+			IDX11TextureArray* new_array2D = CreateDX11TextureArray(device, *activeDC);
 			OSFont osFont{ new_Font, spec , new_array2D };
 			osFonts.push_back(osFont); // osFonts manages lifetime, so we can release our references
 
@@ -110,7 +110,7 @@ namespace Rococo::DX11
 			return osFonts[index].arrayFont->Metrics();
 		}
 
-		void RenderHQText(ID_FONT id, IHQTextJob& job, IGuiRenderContext::EMode mode) override
+		void RenderHQText(ID_FONT id, IHQTextJob& job, IGuiRenderContext::EMode mode, ID3D11DeviceContext& dc, IShaderStateControl& shaders) override
 		{
 			int32 index = id.value - ID_FONT_OSFONT_OFFSET;
 			if (index < 0 || index >= (int32)osFonts.size())
@@ -223,16 +223,16 @@ namespace Rococo::DX11
 
 			if (mode == IGuiRenderContext::RENDER)
 			{
-				renderer.FlushLayer();
+				renderer.FlushLayer(dc);
 			}
 
 			job.Render(builder);
 
 			if (mode == IGuiRenderContext::RENDER)
 			{
-				renderer.UseHQFontShaders();
-				renderer.FlushLayer();
-				renderer.UseGuiShaders();
+				renderer.ApplyHQFontsShaderTo(shaders);
+				renderer.FlushLayer(dc);
+				renderer.ApplyGuiShaderTo(shaders);
 			}
 		}
 

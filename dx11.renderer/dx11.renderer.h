@@ -11,15 +11,25 @@
 #include <Rococo.window.h>
 #include <rococo.strings.h>
 #include <rococo.textures.h>
-
 #include <d3d11.h>
-
 #include "rococo.dx11.api.h"
-
 #include "rococo.renderer.h"
+#include "rococo.fonts.h"
 
 namespace Rococo::DX11
 {
+	struct IDX11ResourceLoader
+	{
+		virtual ID_PIXEL_SHADER CreatePixelShader(cstr pingPath) = 0;
+		virtual ID_VERTEX_SHADER CreateVertexShader(cstr pingPath, const D3D11_INPUT_ELEMENT_DESC* vertexDesc, UINT nElements) = 0;
+	};
+
+	ROCOCOAPI IShaderStateControl
+	{
+		virtual bool UseShaders(ID_VERTEX_SHADER vid, ID_PIXEL_SHADER pid) = 0;
+		virtual Vec2i SelectTexture(ID_TEXTURE txId) = 0;
+	};
+
 	ROCOCOAPI IDX11TextureArray : public Rococo::Textures::ITextureArray
 	{
 		virtual void Free() = 0;
@@ -28,25 +38,25 @@ namespace Rococo::DX11
 		virtual int32 Width() const = 0;
 		virtual ID3D11ShaderResourceView* View() = 0;
 		virtual DX11::TextureBind& Binding() = 0;
+		virtual void SetActiveDC(ID3D11DeviceContext* dc) = 0;
 	};
 
-	IDX11TextureArray* CreateDX11TextureArray(ID3D11Device& device, ID3D11DeviceContext& dc);
-
-	IDX11TextureArray* LoadAlphaTextureArray(ID3D11Device& device, ID3D11DeviceContext& dc, Vec2i span, int32 nElements, ITextureLoadEnumerator& enumerator);
+	IDX11TextureArray* CreateDX11TextureArray(ID3D11Device& device, ID3D11DeviceContext& activeDC);
+	IDX11TextureArray* LoadAlphaTextureArray(ID3D11Device& device, Vec2i span, int32 nElements, ITextureLoadEnumerator& enumerator, ID3D11DeviceContext& activeDC);
 
 	ROCOCOAPI IDX11FontRenderer
 	{
 		virtual void AddTriangle(const GuiVertex triangle[3]) = 0;
-		virtual void FlushLayer() = 0;
-		virtual bool UseHQFontShaders() = 0;
-		virtual bool UseGuiShaders() = 0;
+		virtual void FlushLayer(ID3D11DeviceContext& dc) = 0;
+		virtual bool ApplyGuiShaderTo(IShaderStateControl& shaders) = 0;
+		virtual bool ApplyHQFontsShaderTo(IShaderStateControl& shaders) = 0;
 	};
 
 	ROCOCOAPI IDX11HQFontResource : public IHQFontResource
 	{
 		virtual void Free() = 0;
 		virtual const Fonts::ArrayFontMetrics& GetFontMetrics(ID_FONT idFont) = 0;
-		virtual void RenderHQText(ID_FONT id, Rococo::Fonts::IHQTextJob& job, IGuiRenderContext::EMode mode) = 0;
+		virtual void RenderHQText(ID_FONT id, Rococo::Fonts::IHQTextJob& job, IGuiRenderContext::EMode mode, ID3D11DeviceContext& dc, IShaderStateControl& shaders) = 0;
 	};
 
 	IDX11HQFontResource* CreateDX11HQFonts(IInstallation& installation, IDX11FontRenderer& renderer, ID3D11Device& device, ID3D11DeviceContext& dc);
@@ -61,6 +71,22 @@ namespace Rococo::DX11
 	};
 
 	IDX11CubeTextures* CreateCubeTextureManager(ID3D11Device& device, ID3D11DeviceContext& dc);
+
+	ROCOCOAPI IDX11Gui
+	{
+		virtual void AddTriangle(const GuiVertex triangle[3]) = 0;
+		virtual bool ApplyGuiShaderTo(IShaderStateControl& shaders) = 0;
+		virtual bool ApplyHQFontsShaderTo(IShaderStateControl& shaders) = 0;
+		virtual bool ApplyGuiShaderTo(IShaderStateControl& shaders, ID_PIXEL_SHADER idGuiOverrideShader) = 0;
+		virtual void DrawCustomTexturedMesh(ID3D11DeviceContext& dc, IShaderStateControl& shaders, const GuiRect& absRect, ID_TEXTURE id, ID_PIXEL_SHADER pixelShader, const GuiVertex* vertices, size_t nCount) = 0;
+		virtual void DrawGlyph(cr_vec2 uvTopLeft, cr_vec2 uvBottomRight, cr_vec2 posTopLeft, cr_vec2 posBottomRight, Fonts::FontColour fcolour) = 0;
+		virtual void FlushLayer(ID3D11DeviceContext& dc) = 0;
+		virtual void RenderGui(IScene& scene, ID3D11DeviceContext& dc, IShaderStateControl& shaders, const GuiMetrics& metrics, IGuiRenderContext& grc) = 0;
+		virtual void Free() = 0;	
+		virtual IDX11FontRenderer& FontRenderer() = 0;
+	};
+
+	IDX11Gui* CreateDX11Gui(IDX11ResourceLoader& loader, ID3D11Device& device);
 }
 
 #endif
