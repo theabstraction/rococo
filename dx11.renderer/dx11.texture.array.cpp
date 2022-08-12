@@ -5,9 +5,10 @@
 #include "dx11helpers.inl"
 
 using namespace Rococo;
+using namespace Rococo::DX11;
 using namespace Rococo::Textures;
 
-static int refCount = 0;
+static int instanceCount = 0;
 
 struct DX11TextureArray : public IDX11TextureArray
 {
@@ -24,14 +25,14 @@ struct DX11TextureArray : public IDX11TextureArray
     DX11TextureArray(ID3D11Device& _device, ID3D11DeviceContext& _dc) :
         device(_device), dc(_dc)
     {
-        refCount++;
+        instanceCount++;
     }
 
     ~DX11TextureArray()
     {
-        refCount--;
+        instanceCount--;
         char msg[128];
-        SafeFormat(msg, "~DX11TextureArray: %d\n", refCount);
+        SafeFormat(msg, "INSTANCE_COUNT@DX11TextureArray: %d\n", instanceCount);
         OutputDebugStringA(msg);
         Clear();
     }
@@ -220,7 +221,7 @@ struct DX11TextureArray : public IDX11TextureArray
 
 };
 
-namespace Rococo::Textures
+namespace Rococo::DX11
 {
     IDX11TextureArray* CreateDX11TextureArray(ID3D11Device& device, ID3D11DeviceContext& dc)
     {

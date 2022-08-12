@@ -29,12 +29,18 @@
 
 #include <rococo.fonts.hq.h>
 
+namespace Rococo::DX11
+{
+	void ShowWindowVenue(HWND hWnd, IMathsVisitor& visitor);
+}
+
 namespace ANON
 {
 	using namespace Rococo;
 	using namespace Rococo::Fonts;
 	using namespace Rococo::Windows;
 	using namespace Rococo::Samplers;
+	using namespace Rococo::DX11;
 
 	struct DX11Shader
 	{
@@ -119,36 +125,6 @@ namespace ANON
 
    using namespace Rococo::Textures;
 
-   void ShowWindowVenue(HWND hWnd, IMathsVisitor& visitor)
-   {
-	   POINT pt;
-	   GetCursorPos(&pt);
-
-	   visitor.ShowString("Abs Mouse Cursor:", "(%d %d)", pt.x, pt.y);
-
-	   ScreenToClient(hWnd, &pt);
-
-	   visitor.ShowString("Rel Mouse Cursor:", "(%d %d)", pt.x, pt.y);
-
-	   visitor.ShowPointer("HANDLE", hWnd);
-	   RECT rect;
-	   GetClientRect(hWnd, &rect);
-	   visitor.ShowString("-> Client Rect", "(%d %d) to (%d %d)", rect.left, rect.top, rect.right, rect.bottom);
-
-	   GetWindowRect(hWnd, &rect);
-	   visitor.ShowString("-> Window Rect", "(%d %d) to (%d %d)", rect.left, rect.top, rect.right, rect.bottom);
-
-	   LONG x = GetWindowLongA(hWnd, GWL_STYLE);
-	   visitor.ShowString("-> GWL_STYLE", "0x%8.8X", x);
-
-	   x = GetWindowLongA(hWnd, GWL_EXSTYLE);
-	   visitor.ShowString("-> GWL_EXSTYLE", "0x%8.8X", x);
-
-	   HWND hParent = GetParent(hWnd);
-	   if (hParent) visitor.ShowPointer("-> Parent", hParent);
-	   else			visitor.ShowString("-> Parent", "None (top-level window)");
-   }
-
    bool PrepareDepthRenderFromLight(const Light& light, DepthRenderData& drd)
    {
 	   if (!TryNormalize(light.direction, drd.direction))
@@ -187,15 +163,6 @@ namespace ANON
 	   return true;
    }
 
-   bool operator == (const Fonts::FontSpec& a, const Fonts::FontSpec& b)
-   {
-	   return 
-		   Eq(a.fontName, b.fontName) &&
-		   a.height == b.height &&
-		   a.italic == b.italic &&
-		   a.weight == b.weight;
-   }
-
    class DX11AppRenderer :
 	   public IRenderer,
 	   public IRenderContext,
@@ -203,7 +170,7 @@ namespace ANON
 	   public Fonts::IGlyphRenderer,
 	   public IResourceLoader,
 	   public IMathsVenue,
-	   public IHQFontResource
+	   public IDX11FontRenderer
    {
    private:
 	   std::default_random_engine rng;
@@ -216,6 +183,8 @@ namespace ANON
 	   int64 entitiesThisFrame = 0;
 	   std::unordered_map<ID_TEXTURE, IDX11TextureArray*, ID_TEXTURE> genericTextureArray;
 	   stringmap<ID_TEXTURE> nameToGenericTextureId;
+
+	   AutoFree<IDX11HQFontResource> hqFonts;
 
 	   AutoFree<IDX11TextureArray> spriteArray;
 	   AutoFree<IDX11TextureArray> materialArray;
@@ -282,9 +251,6 @@ namespace ANON
 	   ID_VERTEX_SHADER idGuiVS;
 	   ID_PIXEL_SHADER idGuiPS;
 
-	   ID_VERTEX_SHADER idHQVS;
-	   ID_PIXEL_SHADER idHQPS;
-
 	   ID_VERTEX_SHADER idObjVS;
 	   ID_PIXEL_SHADER idObjPS;
 	   ID_PIXEL_SHADER idLightConePS;
@@ -310,6 +276,9 @@ namespace ANON
 
 	   ID_VERTEX_SHADER idObjSkyVS;
 	   ID_PIXEL_SHADER idObjSkyPS;
+
+	   ID_VERTEX_SHADER idHQVS;
+	   ID_PIXEL_SHADER idHQPS;
 
 	   AutoRelease<ID3D11Buffer> instanceBuffer;
 
@@ -342,15 +311,6 @@ namespace ANON
 		   gui3DTriangles.clear();
 	   }
 
-	   struct OSFont
-	   {
-		   Fonts::IArrayFontSupervisor* arrayFont;
-		   Fonts::FontSpec spec;
-		   IDX11TextureArray* array;
-	   };
-
-	   std::vector<OSFont> osFonts;
-
 	   struct Cursor
 	   {
 		   BitmapLocation sprite;
@@ -367,55 +327,24 @@ namespace ANON
 		   StandardLoadFromCompressedTextureBuffer(name, onLoad, installation, *scratchBuffer);
 	   }
 
-	   enum { ID_FONT_OSFONT_OFFSET = 400 };
-
-	   ID_FONT CreateOSFont(Fonts::IArrayFontSet& glyphs, const Fonts::FontSpec& spec) override
+	   const Fonts::ArrayFontMetrics& GetFontMetrics(ID_FONT idFont) override
 	   {
-		   int i = 0;
-		   for (auto& osFont : osFonts)
-		   {
-			   if (osFont.spec == spec)
-			   {
-				   return ID_FONT{ i + ID_FONT_OSFONT_OFFSET };
-			   }
+		   return hqFonts->GetFontMetrics(idFont);
+	   }
 
-			   i++;
-		   }
+	   void RenderHQText(ID_FONT id, Rococo::Fonts::IHQTextJob& job, IGuiRenderContext::EMode mode) override
+	   {
+		   return hqFonts->RenderHQText(id, job, mode);
+	   }
 
-		   Fonts::IArrayFontSupervisor* new_Font = Fonts::CreateOSFont(glyphs, spec);
-		   IDX11TextureArray* new_array2D = CreateDX11TextureArray(device, dc);
-		   OSFont osFont{ new_Font, spec , new_array2D };
-		   osFonts.push_back(osFont); // osFonts manages lifetime, so we can release our references
+	   bool UseHQFontShaders() override
+	   {
+		   return UseShaders(idHQVS, idHQPS);
+	   }
 
-		   struct : IEventCallback<const Fonts::GlyphDesc>
-		   {
-			   OSFont* font;
-			   size_t index = 0;
-			   void OnEvent(const Fonts::GlyphDesc& gd) override
-			   {
-				   struct : IImagePopulator<GRAYSCALE>
-				   {
-					   size_t index;
-					   OSFont* font;
-					   void OnImage(const GRAYSCALE* pixels, int32 width, int32 height) override
-					   {
-						   font->array->WriteSubImage(index, pixels, { width, height });
-					   }
-				   } addImageToTextureArray;
-				   addImageToTextureArray.font = font;
-				   addImageToTextureArray.index = index++;
-				   font->arrayFont->GenerateImage(gd.charCode, addImageToTextureArray);
-			   }
-		   } addGlyphToTextureArray;
-
-		   addGlyphToTextureArray.font = &osFont;
-
-		   auto& font = *osFont.arrayFont;
-		   osFont.array->ResetWidth(font.Metrics().imgWidth, font.Metrics().imgHeight);
-		   osFont.array->Resize(font.NumberOfGlyphs());
-		   osFont.arrayFont->ForEachGlyph(addGlyphToTextureArray);
-
-		   return ID_FONT{ i + ID_FONT_OSFONT_OFFSET };
+	   bool UseGuiShaders() override
+	   {
+		   return UseShaders(idGuiVS, idGuiPS);
 	   }
 
 	   ID_TEXTURE LoadAlphaTextureArray(cstr uniqueName, Vec2i span, int32 nElements, ITextureLoadEnumerator& enumerator) override
@@ -511,148 +440,6 @@ namespace ANON
 		   }
 	   }
 
-	   const Fonts::ArrayFontMetrics& GetFontMetrics(ID_FONT idFont) override
-	   {
-		   int32 index = idFont.value - ID_FONT_OSFONT_OFFSET;
-		   if (index < 0 || index >= (int32)osFonts.size())
-		   {
-			   Throw(0, "DX11Renderer.GetFontMetrics - ID_FONT parameter was unknown value");
-		   }
-
-		   return osFonts[index].arrayFont->Metrics();
-	   }
-
-	   void RenderHQText(ID_FONT id, IHQTextJob& job, IGuiRenderContext::EMode mode) override
-	   {
-		   int32 index = id.value - ID_FONT_OSFONT_OFFSET;
-		   if (index < 0 || index >= (int32)osFonts.size())
-		   {
-			   Throw(0, "DX11Renderer.RenderHQTest - ID_FONT parameter was unknown value");
-		   }
-
-		   auto& osFont = osFonts[index];
-		   auto& font = *osFont.arrayFont;
-
-		   auto& metrics = font.Metrics();
-		   
-		   Vec2i span{ metrics.imgWidth, metrics.imgHeight };
-
-		   ID3D11ShaderResourceView* gtaViews[1] = { osFont.array->View() };
-		   dc.PSSetShaderResources(TXUNIT_GENERIC_TXARRAY, 1, gtaViews);
-
-		   struct ANON : IHQTextBuilder
-		   {
-			   Fonts::IArrayFont& font;
-			   const Fonts::ArrayFontMetrics& metrics;
-			   RGBAb colour{ 255,255,255,255 };  
-			   Vec2 span;
-			   GuiRectf nextRect;
-			   bool evaluateSpanOnly = false;
-			   DX11AppRenderer* This;
-			  
-			   ANON(Fonts::IArrayFont& _font) :
-				   font(_font),
-				   metrics(_font.Metrics()),
-				   span{ (float)metrics.imgWidth, (float)metrics.imgHeight },
-				   nextRect { 0, 0, span.x, span.y }
-			   {
-			   }
-
-			   const Fonts::ArrayFontMetrics& Metrics() const override
-			   {
-				   return metrics;
-			   }
-
-			   void SetColour(RGBAb _colour) override
-			   {
-				   colour = _colour;
-			   }
-
-			   void SetCursor(Vec2 pos) override
-			   {
-				   nextRect = { pos.x, pos.y - span.y, span.x, pos.y };
-			   }
-
-			   void Write(char c, GuiRectf* outputBounds) override
-			   {
-				   Write((char32_t) (unsigned char) c, outputBounds);
-			   }
-
-			   void Write(wchar_t c, GuiRectf* outputBounds) override
-			   {
-				   Write((char32_t)c, outputBounds);
-			   }
-
-			   void Write(char32_t c, GuiRectf* outputBounds) override
-			   {
-					const Fonts::ArrayGlyph& g = font[c];
-
-					float i = (float)g.Index;
-
-					auto& R = nextRect;
-
-					R.left += g.A;
-					R.right = R.left + span.x;
-
-					if (!evaluateSpanOnly && colour.alpha > 0)
-					{
-						GuiQuad q
-						{
-							/*
-							struct GuiVertex
-							{
-								Vec2 pos;
-								BaseVertexData vd; // 3 floats
-								SpriteVertexData sd; // 4 floats
-								RGBAb colour;
-							};
-							*/
-
-							{ {R.left, R.top},    {{0,0}, 0}, {0, i, 0, 0}, colour},
-							{ {R.right,R.top},    {{1,0}, 0}, {0, i, 0, 0}, colour},
-							{ {R.left, R.bottom}, {{0,1}, 0}, {0, i, 0, 0}, colour},
-							{ {R.right,R.bottom}, {{1,1}, 0}, {0, i, 0, 0}, colour},
-						};
-
-						GuiTriangle A{ q.topLeft, q.topRight, q.bottomRight };
-						GuiTriangle B{ q.bottomRight, q.bottomLeft, q.topLeft };
-						This->AddTriangle(&A.a);
-						This->AddTriangle(&B.a);
-					}
-
-					if (outputBounds != nullptr)
-					{
-						*outputBounds = R;
-					}
-
-					R.left += g.B + g.C;
-			   }
-
-		   } builder(font);
-
-		   builder.evaluateSpanOnly = mode == IGuiRenderContext::EVALUATE_SPAN_ONLY;
-		   builder.This = this;
-
-		   if (mode == IGuiRenderContext::RENDER)
-		   {
-			   FlushLayer();
-		   }
-
-		   job.Render(builder);
-
-		   if (mode == IGuiRenderContext::RENDER)
-		   {
-			   UseShaders(idHQVS, idHQPS);
-
-			   FlushLayer();
-
-			   if (!UseShaders(idGuiVS, idGuiPS))
-			   {
-				   Throw(0, "Error setting Gui shaders");
-			   }
-		   }
-	   }
-
 	   stringmap<ID_PIXEL_SHADER> nameToPixelShader;
 	   stringmap<ID_VERTEX_SHADER> nameToVertexShader;
 
@@ -676,7 +463,7 @@ namespace ANON
 		   spriteArrayBuilder(CreateTextureArrayBuilder(*this, *spriteArray)),
 		   scratchBuffer(CreateExpandingBuffer(16_kilobytes)),
 		   textureLoader(_factory.installation, _factory.device, _factory.dc, *scratchBuffer),
-		   window(_window)
+		   window(_window),hqFonts(CreateDX11HQFonts(_factory.installation, *this, _factory.device, _factory.dc))
 	   {
 		   static_assert(GUI_BUFFER_VERTEX_CAPACITY % 3 == 0, "Capacity must be divisible by 3");
 		   guiBuffer = DX11::CreateDynamicVertexBuffer<GuiVertex>(device, GUI_BUFFER_VERTEX_CAPACITY);
@@ -888,12 +675,6 @@ namespace ANON
 		   for (auto& t : genericTextureArray)
 		   {
 			   t.second->Free();
-		   }
-
-		   for (auto& osFont : osFonts)
-		   {
-			   osFont.arrayFont->Free();
-			   osFont.array->Free();
 		   }
 	   }
 
@@ -1402,7 +1183,7 @@ namespace ANON
 	   void ShowWindowVenue(IMathsVisitor& visitor)
 	   {
 		   visitor.ShowString("IsFullScreen", isFullScreen ? "TRUE" : "FALSE");
-		   ANON::ShowWindowVenue(window, visitor);
+		   DX11::ShowWindowVenue(window, visitor);
 	   }
 
 	   void UpdatePixelShader(cstr pingPath) override
@@ -3397,7 +3178,7 @@ namespace ANON
 
 	   IHQFontResource& HQFontsResources()
 	   {
-		   return *this;
+		   return *hqFonts;
 	   }
    };
 }

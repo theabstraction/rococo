@@ -147,6 +147,12 @@
     <ClCompile Include="dx11.texture.array.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
+    <ClCompile Include="dx11.venues.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="dx11.hqfonts.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="rococo.dx11.api.h">

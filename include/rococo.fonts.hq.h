@@ -89,12 +89,12 @@ namespace Rococo::Fonts
 
 	ROCOCOAPI IHQTextBuilder
 	{
-			virtual const Fonts::ArrayFontMetrics & Metrics() const = 0;
-			virtual void SetColour(RGBAb colour) = 0;
-			virtual void SetCursor(Vec2 bottomLeftNextCharCell) = 0;
-			virtual void Write(char c, GuiRectf* outputBounds) = 0;
-			virtual void Write(wchar_t c, GuiRectf* outputBounds) = 0;
-			virtual void Write(char32_t c, GuiRectf* outputBounds) = 0;
+		virtual const Fonts::ArrayFontMetrics & Metrics() const = 0;
+		virtual void SetColour(RGBAb colour) = 0;
+		virtual void SetCursor(Vec2 bottomLeftNextCharCell) = 0;
+		virtual void Write(char c, GuiRectf* outputBounds) = 0;
+		virtual void Write(wchar_t c, GuiRectf* outputBounds) = 0;
+		virtual void Write(char32_t c, GuiRectf* outputBounds) = 0;
 	};
 
 	ROCOCOAPI IHQTextJob

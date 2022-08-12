@@ -16,9 +16,11 @@
 
 #include "rococo.dx11.api.h"
 
-namespace Rococo::Textures
+#include "rococo.renderer.h"
+
+namespace Rococo::DX11
 {
-	ROCOCOAPI IDX11TextureArray : public ITextureArray
+	ROCOCOAPI IDX11TextureArray : public Rococo::Textures::ITextureArray
 	{
 		virtual void Free() = 0;
 		virtual void Resize(size_t nElements) = 0;
@@ -29,6 +31,23 @@ namespace Rococo::Textures
 	};
 
 	IDX11TextureArray* CreateDX11TextureArray(ID3D11Device& device, ID3D11DeviceContext& dc);
+
+	ROCOCOAPI IDX11FontRenderer
+	{
+		virtual void AddTriangle(const GuiVertex triangle[3]) = 0;
+		virtual void FlushLayer() = 0;
+		virtual bool UseHQFontShaders() = 0;
+		virtual bool UseGuiShaders() = 0;
+	};
+
+	ROCOCOAPI IDX11HQFontResource : public IHQFontResource
+	{
+		virtual void Free() = 0;
+		virtual const Fonts::ArrayFontMetrics& GetFontMetrics(ID_FONT idFont) = 0;
+		virtual void RenderHQText(ID_FONT id, Rococo::Fonts::IHQTextJob& job, IGuiRenderContext::EMode mode) = 0;
+	};
+
+	IDX11HQFontResource* CreateDX11HQFonts(IInstallation& installation, IDX11FontRenderer& renderer, ID3D11Device& device, ID3D11DeviceContext& dc);
 }
 
 #endif
