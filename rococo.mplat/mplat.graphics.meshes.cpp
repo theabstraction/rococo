@@ -322,7 +322,7 @@ namespace
 		  if (i != meshes.end())
 		  {
 			  i->second->bounds = boundingBox;
-			  renderer.UpdateMesh(i->second->id, v, (uint32)vertices.size(), pWeights);
+			  renderer.Meshes().UpdateMesh(i->second->id, v, (uint32)vertices.size(), pWeights);
 
 			  if (preserveCopy)
 			  {

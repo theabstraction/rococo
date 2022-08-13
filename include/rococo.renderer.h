@@ -166,6 +166,7 @@ namespace Rococo
 		virtual void GetMeshDesc(char desc[256], ID_SYS_MESH id) = 0;
 		virtual void SetShadowCasting(ID_SYS_MESH id, boolean32 isActive) = 0;
 		virtual void ShowVenue(IMathsVisitor& visitor) = 0;
+		virtual void UpdateMesh(ID_SYS_MESH id, const ObjectVertex* vertices, uint32 nVertices, const BoneWeights* weights) = 0;
 	};
 
 	ROCOCOAPI ITextureManager
@@ -481,7 +482,6 @@ namespace Rococo
 		virtual void SwitchToWindowMode() = 0;
 		virtual IMathsVenue* TextureVenue() = 0;
 		virtual ID_TEXTURE LoadAlphaTextureArray(cstr uniqueName, Vec2i span, int nElements, ITextureLoadEnumerator& enumerator) = 0;
-		virtual void UpdateMesh(ID_SYS_MESH rendererId, const ObjectVertex* vertices, uint32 nVerticess, const BoneWeights* weights) = 0;
 		virtual void UpdatePixelShader(cstr pingPath) = 0;
 		virtual void UpdateVertexShader(cstr pingPath) = 0;
 		virtual Windows::IWindow& Window() = 0;

@@ -11,6 +11,8 @@ struct DX11Meshes : public IDX11Meshes
 	ID3D11Device& device;
 	std::vector<MeshBuffer> meshBuffers;
 
+	int64 meshUpdateCount = 0;
+
 	DX11Meshes(ID3D11Device& _device): device(_device)
 	{
 
@@ -90,6 +92,7 @@ struct DX11Meshes : public IDX11Meshes
 	void ShowVenue(IMathsVisitor& visitor) override
 	{
 		visitor.ShowDecimal("Number of meshes", (int64)meshBuffers.size());
+		visitor.ShowDecimal("Mesh updates", meshUpdateCount);
 	}
 
 	void ClearMeshes() override
@@ -131,6 +134,24 @@ struct DX11Meshes : public IDX11Meshes
 
 		auto& m = meshBuffers[id.value];
 		return m;
+	}
+
+	void UpdateMesh(ID_SYS_MESH id, const ObjectVertex* vertices, uint32 nVertices, const BoneWeights* weights) override
+	{
+		auto& m = GetBuffer(id);
+
+		meshUpdateCount++;
+
+		m.numberOfVertices = nVertices;
+
+		ID3D11Buffer* newMesh = vertices != nullptr ? DX11::CreateImmutableVertexBuffer(device, vertices, nVertices) : nullptr;
+		ID3D11Buffer* newWeights = weights != nullptr ? DX11::CreateImmutableVertexBuffer(device, weights, nVertices) : nullptr;
+
+		if (m.vertexBuffer) m.vertexBuffer->Release();
+		m.vertexBuffer = newMesh;
+
+		if (m.weightsBuffer) m.weightsBuffer->Release();
+		m.weightsBuffer = newWeights;
 	}
 };
 

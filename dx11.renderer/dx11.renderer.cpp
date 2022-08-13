@@ -524,7 +524,6 @@ namespace ANON
 
 		   visitor.ShowDecimal("Number of textures", (int64)textureManager->Size());
 		   meshes->ShowVenue(visitor);
-		   visitor.ShowDecimal("Mesh updates", meshUpdateCount);
 
 		   gui->ShowVenue(visitor);
 
@@ -974,8 +973,6 @@ namespace ANON
 		   metrics.screenSpan = screenSpan;
 	   }
 
-	   int64 meshUpdateCount = 0;
-
 	   void SetSpecialAmbientShader(ID_SYS_MESH id, cstr vs, cstr ps, bool alphaBlending) override
 	   {
 		   auto& m = meshes->GetBuffer(id);
@@ -1078,24 +1075,6 @@ namespace ANON
 
 		   m.vsSpotlightShader = j->second;
 		   m.alphaBlending = alphaBlending;
-	   }
-	   
-	   void UpdateMesh(ID_SYS_MESH id, const ObjectVertex* vertices, uint32 nVertices, const BoneWeights* weights) override
-	   {
-		   auto& m = meshes->GetBuffer(id);
-		  
-		   meshUpdateCount++;
-
-		   m.numberOfVertices = nVertices;
-
-		   ID3D11Buffer* newMesh = vertices != nullptr ? DX11::CreateImmutableVertexBuffer(device, vertices, nVertices) : nullptr;
-		   ID3D11Buffer* newWeights = weights != nullptr ? DX11::CreateImmutableVertexBuffer(device, weights, nVertices) : nullptr;
-
-		   if (m.vertexBuffer) m.vertexBuffer->Release();
-		   m.vertexBuffer = newMesh;
-
-		   if (m.weightsBuffer) m.weightsBuffer->Release();
-		   m.weightsBuffer = newWeights;
 	   }
 
 	   enum RenderPhase
