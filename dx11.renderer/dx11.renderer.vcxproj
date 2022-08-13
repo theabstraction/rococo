@@ -116,6 +116,7 @@
     <ClCompile Include="dx11.factory.cpp" />
     <ClCompile Include="dx11.hqfonts.cpp" />
     <ClCompile Include="dx11.materials.cpp" />
+    <ClCompile Include="dx11.meshes.cpp" />
     <ClCompile Include="dx11.overlays.cpp" />
     <ClCompile Include="dx11.samplers.cpp" />
     <ClCompile Include="dx11.texture.array.cpp" />

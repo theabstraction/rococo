@@ -166,4 +166,26 @@ namespace Rococo::DX11
 	};
 
 	IDX11TextureManager* CreateTextureManager(IInstallation& installation, ID3D11Device& device, ID3D11DeviceContext& dc);
+
+	struct MeshBuffer
+	{
+		ID3D11Buffer* vertexBuffer;
+		ID3D11Buffer* weightsBuffer;
+		UINT numberOfVertices;
+		D3D_PRIMITIVE_TOPOLOGY topology;
+		ID_PIXEL_SHADER psSpotlightShader;
+		ID_PIXEL_SHADER psAmbientShader;
+		ID_VERTEX_SHADER vsSpotlightShader;
+		ID_VERTEX_SHADER vsAmbientShader;
+		bool alphaBlending;
+		bool disableShadowCasting;
+	};
+
+	ROCOCOAPI IDX11Meshes: public IMeshes
+	{
+		virtual void Free() = 0;
+		virtual MeshBuffer& GetBuffer(ID_SYS_MESH id) = 0;
+	};
+
+	IDX11Meshes* CreateMeshManager(ID3D11Device& device);
 }

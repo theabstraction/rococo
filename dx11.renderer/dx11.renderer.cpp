@@ -105,6 +105,7 @@ namespace ANON
 	   int64 entitiesThisFrame = 0;
 
 	   AutoFree<IDX11TextureManager> textureManager;
+	   AutoFree<IDX11Meshes> meshes;
 
 	   AutoRelease<IDXGISwapChain> mainSwapChain;
 	   AutoRelease<ID3D11RenderTargetView> mainBackBufferView;
@@ -266,7 +267,8 @@ namespace ANON
 		   installation(_factory.installation), materials(CreateMaterials(_factory.installation, _factory.device, _factory.dc)),
 		   scratchBuffer(CreateExpandingBuffer(64_kilobytes)),
 		   window(_window),
-		   textureManager(CreateTextureManager(_factory.installation, _factory.device, _factory.dc))
+		   textureManager(CreateTextureManager(_factory.installation, _factory.device, _factory.dc)),
+		   meshes(CreateMeshManager(_factory.device))
 	   {
 		   particleBuffer = DX11::CreateDynamicVertexBuffer<ParticleVertex>(device, PARTICLE_BUFFER_VERTEX_CAPACITY);
 		   gui3DBuffer = DX11::CreateDynamicVertexBuffer<ObjectVertex>(device, GUI3D_BUFFER_VERTEX_CAPACITY);
@@ -357,7 +359,7 @@ namespace ANON
 			   topSW, topSE, botSE, // South
 			   botSE, botSW, topSW, // South
 		   };
-		   skyMeshId = CreateSkyMesh(skyboxVertices, sizeof(skyboxVertices) / sizeof(SkyVertex));
+		   skyMeshId = meshes->CreateSkyMesh(skyboxVertices, sizeof(skyboxVertices) / sizeof(SkyVertex));
 
 		   RGBA red{ 1.0f, 0, 0, 1.0f };
 		   RGBA transparent{ 0.0f, 0, 0, 0.0f };
@@ -376,7 +378,6 @@ namespace ANON
 	   ~DX11AppRenderer()
 	   {
 		   DetachContext();
-		   ClearMeshes();
 
 		   for (auto& x : vertexShaders)
 		   {
@@ -412,6 +413,11 @@ namespace ANON
 	   ITextureManager& Textures()
 	   {
 		   return *textureManager;
+	   }
+
+	   IMeshes& Meshes()
+	   {
+		   return *meshes;
 	   }
 
 	   void AddFog(const ParticleVertex& p) override
@@ -489,48 +495,9 @@ namespace ANON
 		   materials->ShowVenue(visitor);
 	   }
 
-	   void GetMeshDesc(char desc[256], ID_SYS_MESH id) override
-	   {
-		   if (!id || id.value >= meshBuffers.size())
-		   {
-			   SafeFormat(desc, 256, "invalid id");
-		   }
-		   else
-		   {
-			   auto& m = meshBuffers[id.value];
-
-			   if (m.vertexBuffer)
-			   {
-				   UINT byteWidth = 0;
-				   D3D11_BUFFER_DESC bdesc;
-				   m.vertexBuffer->GetDesc(&bdesc);
-				   byteWidth += bdesc.ByteWidth;
-
-				   if (m.weightsBuffer)
-				   {
-					   m.weightsBuffer->GetDesc(&bdesc);
-					   byteWidth += bdesc.ByteWidth;
-				   }
-				   SafeFormat(desc, 256, " %p %6d %svertices. %6u bytes", m.vertexBuffer, m.numberOfVertices, m.weightsBuffer != nullptr ? "(weighted) " : "", byteWidth);
-			   }
-			   else
-			   {
-				   SafeFormat(desc, 256, "Null object");
-			   }
-		   }
-	   }
-
 	   void SetShadowCasting(ID_SYS_MESH id, boolean32 isActive)
 	   {
-		   if (!id || id.value >= meshBuffers.size())
-		   {
-			   Throw(0, "DX11ApRenderer::SetShadowCasting(...): unknown id");
-		   }
-		   else
-		   {
-			   auto& m = meshBuffers[id.value];
-			   m.disableShadowCasting = !isActive;
-		   }
+		   meshes->SetShadowCasting(id, isActive);
 	   }
 
 	   virtual void ShowVenue(IMathsVisitor& visitor)
@@ -556,7 +523,7 @@ namespace ANON
 		   visitor.ShowString("DepthStencil format", "%u", dsDesc.Format);
 
 		   visitor.ShowDecimal("Number of textures", (int64)textureManager->Size());
-		   visitor.ShowDecimal("Number of meshes", (int64)meshBuffers.size());
+		   meshes->ShowVenue(visitor);
 		   visitor.ShowDecimal("Mesh updates", meshUpdateCount);
 
 		   gui->ShowVenue(visitor);
@@ -664,36 +631,6 @@ namespace ANON
 	   void Free()
 	   {
 		   delete this;
-	   }
-
-	   void ClearMeshes() override
-	   {
-		   for (auto& x : meshBuffers)
-		   {
-			   if (x.vertexBuffer) x.vertexBuffer->Release();
-			   if (x.weightsBuffer) x.weightsBuffer->Release();
-		   }
-
-		   meshBuffers.clear();
-	   }
-
-	   void DeleteMesh(ID_SYS_MESH id) override
-	   {
-		   if (id.value < 0 || id.value >= meshBuffers.size()) Throw(0, "DX11AppRenderer::DeleteMesh(...): Bad ID_SYS_MESH");
-		  
-		   meshBuffers[id.value].numberOfVertices = 0;
-
-		   if (meshBuffers[id.value].vertexBuffer)
-		   {
-			   meshBuffers[id.value].vertexBuffer->Release();
-			   meshBuffers[id.value].vertexBuffer = nullptr;
-		   }
-
-		   if (meshBuffers[id.value].weightsBuffer)
-		   {
-			   meshBuffers[id.value].weightsBuffer->Release();
-			   meshBuffers[id.value].weightsBuffer = nullptr;
-		   }
 	   }
 
 	   void BuildEnvironmentalMap(int32 topIndex, int32 bottomIndex, int32 leftIndex, int32 rightIndex, int frontIndex, int32 backIndex)
@@ -1037,49 +974,12 @@ namespace ANON
 		   metrics.screenSpan = screenSpan;
 	   }
 
-	   struct MeshBuffer
-	   {
-		   ID3D11Buffer* vertexBuffer;
-		   ID3D11Buffer* weightsBuffer;
-		   UINT numberOfVertices;
-		   D3D_PRIMITIVE_TOPOLOGY topology;
-		   ID_PIXEL_SHADER psSpotlightShader;
-		   ID_PIXEL_SHADER psAmbientShader;
-		   ID_VERTEX_SHADER vsSpotlightShader;
-		   ID_VERTEX_SHADER vsAmbientShader;
-		   bool alphaBlending;
-		   bool disableShadowCasting;
-	   };
-
-	   std::vector<MeshBuffer> meshBuffers;
 	   int64 meshUpdateCount = 0;
-
-	   ID_SYS_MESH CreateTriangleMesh(const ObjectVertex* vertices, uint32 nVertices, const BoneWeights* weights) override
-	   {
-		   ID3D11Buffer* meshBuffer = vertices ? DX11::CreateImmutableVertexBuffer(device, vertices, nVertices) : nullptr;
-		   ID3D11Buffer* weightsBuffer = weights ? DX11::CreateImmutableVertexBuffer(device, weights, nVertices) : nullptr;
-		   meshBuffers.push_back(MeshBuffer{ meshBuffer, weightsBuffer, nVertices, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST, ID_PIXEL_SHADER(), ID_PIXEL_SHADER(), ID_VERTEX_SHADER(), ID_VERTEX_SHADER(), false, false});
-		   int32 index = (int32)meshBuffers.size();
-		   return ID_SYS_MESH(index - 1);
-	   }
-
-	   ID_SYS_MESH CreateSkyMesh(const SkyVertex* vertices, uint32 nVertices)
-	   {
-		   ID3D11Buffer* meshBuffer = vertices ? DX11::CreateImmutableVertexBuffer(device, vertices, nVertices) : nullptr;
-		   meshBuffers.push_back(MeshBuffer{ meshBuffer, nullptr, nVertices, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST, ID_PIXEL_SHADER(), ID_PIXEL_SHADER(), ID_VERTEX_SHADER(), ID_VERTEX_SHADER(), false, false });
-		   int32 index = (int32)meshBuffers.size();
-		   return ID_SYS_MESH(index - 1);
-	   }
 
 	   void SetSpecialAmbientShader(ID_SYS_MESH id, cstr vs, cstr ps, bool alphaBlending) override
 	   {
-		   if (id.value < 0 || id.value >= meshBuffers.size())
-		   {
-			   Throw(E_INVALIDARG, "renderer.SetSpecialAmbientShader(ID_SYS_MESH id, ....) - Bad id ");
-		   }
-
-		   auto& m = meshBuffers[id.value];
-		   
+		   auto& m = meshes->GetBuffer(id);
+		  		   
 		   auto i = nameToPixelShader.find(ps);
 		   if (i == nameToPixelShader.end())
 		   {
@@ -1130,13 +1030,8 @@ namespace ANON
 
 	   void SetSpecialSpotlightShader(ID_SYS_MESH id, cstr vs, cstr ps, bool alphaBlending) override
 	   {
-		   if (id.value < 0 || id.value >= meshBuffers.size())
-		   {
-			   Throw(E_INVALIDARG, "renderer.SetSpecialAmbientShader(ID_SYS_MESH id, ....) - Bad id ");
-		   }
-
-		   auto& m = meshBuffers[id.value];
-
+		   auto& m = meshes->GetBuffer(id);
+		
 		   auto i = nameToPixelShader.find(ps);
 		   if (i == nameToPixelShader.end())
 		   {
@@ -1187,23 +1082,20 @@ namespace ANON
 	   
 	   void UpdateMesh(ID_SYS_MESH id, const ObjectVertex* vertices, uint32 nVertices, const BoneWeights* weights) override
 	   {
-		   if (id.value < 0 || id.value >= meshBuffers.size())
-		   {
-			   Throw(E_INVALIDARG, "renderer.UpdateMesh(ID_MESH id, ....) - Bad id ");
-		   }
-
+		   auto& m = meshes->GetBuffer(id);
+		  
 		   meshUpdateCount++;
 
-		   meshBuffers[id.value].numberOfVertices = nVertices;
+		   m.numberOfVertices = nVertices;
 
 		   ID3D11Buffer* newMesh = vertices != nullptr ? DX11::CreateImmutableVertexBuffer(device, vertices, nVertices) : nullptr;
 		   ID3D11Buffer* newWeights = weights != nullptr ? DX11::CreateImmutableVertexBuffer(device, weights, nVertices) : nullptr;
 
-		   if (meshBuffers[id.value].vertexBuffer) meshBuffers[id.value].vertexBuffer->Release();
-		   meshBuffers[id.value].vertexBuffer = newMesh;
+		   if (m.vertexBuffer) m.vertexBuffer->Release();
+		   m.vertexBuffer = newMesh;
 
-		   if (meshBuffers[id.value].weightsBuffer) meshBuffers[id.value].weightsBuffer->Release();
-		   meshBuffers[id.value].weightsBuffer = newWeights;
+		   if (m.weightsBuffer) m.weightsBuffer->Release();
+		   m.weightsBuffer = newWeights;
 	   }
 
 	   enum RenderPhase
@@ -1223,11 +1115,7 @@ namespace ANON
 
 	   void Draw(ID_SYS_MESH id, const ObjectInstance* instances, uint32 nInstances) override
 	   {
-		   if (id == ID_SYS_MESH::Invalid()) return;
-		   if (id.value < 0 || id.value >= meshBuffers.size()) Throw(E_INVALIDARG, "renderer.DrawObject(ID_MESH id) - Bad id ");
-
-		   auto& m = meshBuffers[id.value];
-
+		   auto& m = meshes->GetBuffer(id);
 		   Draw(m, instances, nInstances);
 	   }
 
@@ -1719,7 +1607,7 @@ namespace ANON
 
 		   if (UseShaders(idObjSkyVS, idObjSkyPS))
 		   {
-			   auto& mesh = meshBuffers[skyMeshId.value];
+			   auto& mesh = meshes->GetBuffer(skyMeshId);
 			   UINT strides[] = { sizeof(SkyVertex) };
 			   UINT offsets[]{ 0 };
 			   dc.IASetPrimitiveTopology(mesh.topology);

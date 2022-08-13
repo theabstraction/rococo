@@ -76,7 +76,7 @@ namespace
 		  for (auto& i : meshes)
 		  {
 			  auto mesh = i.second;
-			  renderer.DeleteMesh(mesh->id);
+			  renderer.Meshes().DeleteMesh(mesh->id);
 			  delete[] mesh->pVertexArray;
 			  delete[] mesh->pWeightArray;
 			  delete mesh;
@@ -153,7 +153,7 @@ namespace
          if (i != meshes.end())
          {
             auto mesh = i->second;
-            renderer.DeleteMesh(mesh->id);
+            renderer.Meshes().DeleteMesh(mesh->id);
 			delete[] mesh->pVertexArray;
 			delete[] mesh->pWeightArray;
             meshes.erase(i);
@@ -197,7 +197,7 @@ namespace
 		  for(auto& m: names)
 		  {
 			  char desc[256];
-			  renderer.GetMeshDesc(desc, m.item.second->id);
+			  renderer.Meshes().GetMeshDesc(desc, m.item.second->id);
 
 			  auto& b = m.item.second->bounds;
 			  visitor.ShowSelectableString("overlay.select.mesh", (cstr) m.item.first, "%5llu %s", m.item.second->id.value, desc);
@@ -344,7 +344,7 @@ namespace
 		  }
 		  else
 		  {
-			  auto id = renderer.CreateTriangleMesh(invisible ? nullptr : v, invisible ? 0 : (uint32)vertices.size(), pWeights);
+			  auto id = renderer.Meshes().CreateTriangleMesh(invisible ? nullptr : v, invisible ? 0 : (uint32)vertices.size(), pWeights);
 			  auto binding = new MeshBinding{ id, boundingBox, backup, backupWeights, vertices.size(), physicsHull };
 			  meshes[name] = binding;
 			  idToName[id] = MeshBindingEx(binding, name);

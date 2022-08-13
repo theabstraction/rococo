@@ -157,6 +157,17 @@ namespace Rococo
 	struct TextureDesc;
 	struct ITextureLoadEnumerator;
 
+	ROCOCOAPI IMeshes
+	{
+		virtual void ClearMeshes() = 0;
+		virtual ID_SYS_MESH CreateSkyMesh(const SkyVertex* vertices, uint32 nVertices) = 0;
+		virtual ID_SYS_MESH CreateTriangleMesh(const ObjectVertex* vertices, uint32 nVertices, const BoneWeights* weights) = 0;
+		virtual void DeleteMesh(ID_SYS_MESH id) = 0;
+		virtual void GetMeshDesc(char desc[256], ID_SYS_MESH id) = 0;
+		virtual void SetShadowCasting(ID_SYS_MESH id, boolean32 isActive) = 0;
+		virtual void ShowVenue(IMathsVisitor& visitor) = 0;
+	};
+
 	ROCOCOAPI ITextureManager
 	{
 		virtual ID_TEXTURE CreateDepthTarget(cstr targetName, int32 width, int32 height) = 0;
@@ -448,17 +459,14 @@ namespace Rococo
 		virtual IGuiResources& Gui() = 0;
 		virtual IMaterials& Materials() = 0;
 		virtual ITextureManager& Textures() = 0;
+		virtual IMeshes& Meshes() = 0;
 		virtual void AddFog(const ParticleVertex& fog) = 0;
 		virtual void AddPlasma(const ParticleVertex& p) = 0;
 		virtual void CaptureMouse(bool enable) = 0;
-		virtual void ClearMeshes() = 0;
 		virtual void ClearFog() = 0;
 		virtual void ClearPlasma() = 0;
-		virtual ID_SYS_MESH CreateTriangleMesh(const ObjectVertex* vertices, uint32 nVertices, const BoneWeights* weights) = 0;
 		virtual ID_CUBE_TEXTURE CreateCubeTexture(cstr path, cstr extension) = 0;
-		virtual void DeleteMesh(ID_SYS_MESH id) = 0;
 		virtual void SetSysCursor(EWindowCursor id) = 0;
-		virtual void GetMeshDesc(char desc[256], ID_SYS_MESH id) = 0;
 		virtual IInstallation& Installation() = 0;
 		virtual void OnSize(Vec2i span) = 0;
 		virtual void Render(Graphics::ENVIRONMENTAL_MAP EnvironmentalMap, IScene& scene) = 0;
