@@ -171,6 +171,9 @@
     <ClCompile Include="dx11.materials.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
+    <ClCompile Include="dx11.texture.manager.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="rococo.dx11.api.h">

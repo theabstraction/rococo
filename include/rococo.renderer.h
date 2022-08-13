@@ -153,6 +153,24 @@ namespace Rococo
 		Vec2i screenSpan;
 	};
 
+	struct IMathsVisitor;
+	struct TextureDesc;
+	struct ITextureLoadEnumerator;
+
+	ROCOCOAPI ITextureManager
+	{
+		virtual ID_TEXTURE CreateDepthTarget(cstr targetName, int32 width, int32 height) = 0;
+		virtual ID_TEXTURE CreateRenderTarget(cstr renderTargetName, int32 width, int32 height) = 0;
+		virtual void Free() = 0;
+		virtual ID_TEXTURE LoadAlphaTextureArray(cstr uniqueName, Vec2i span, int32 nElements, ITextureLoadEnumerator& enumerator) = 0;
+		virtual ID_TEXTURE LoadTexture(IBuffer& buffer, cstr uniqueName) = 0;
+		virtual ID_TEXTURE FindTexture(cstr name) const = 0;
+		virtual void SetGenericTextureArray(ID_TEXTURE id) = 0;
+		virtual void ShowTextureVenue(IMathsVisitor& visitor) = 0;
+		virtual int64 Size() const = 0;
+		virtual bool TryGetTextureDesc(TextureDesc& desc, ID_TEXTURE id) const = 0;
+	};
+
 	ROCOCOAPI IRendererMetrics
 	{
 		virtual void GetGuiMetrics(GuiMetrics& metrics) const = 0;
@@ -429,9 +447,9 @@ namespace Rococo
 	{
 		virtual IGuiResources& Gui() = 0;
 		virtual IMaterials& Materials() = 0;
+		virtual ITextureManager& Textures() = 0;
 		virtual void AddFog(const ParticleVertex& fog) = 0;
 		virtual void AddPlasma(const ParticleVertex& p) = 0;
-		virtual ID_TEXTURE CreateRenderTarget(int32 width, int32 height) = 0;
 		virtual void CaptureMouse(bool enable) = 0;
 		virtual void ClearMeshes() = 0;
 		virtual void ClearFog() = 0;
@@ -439,12 +457,9 @@ namespace Rococo
 		virtual ID_SYS_MESH CreateTriangleMesh(const ObjectVertex* vertices, uint32 nVertices, const BoneWeights* weights) = 0;
 		virtual ID_CUBE_TEXTURE CreateCubeTexture(cstr path, cstr extension) = 0;
 		virtual void DeleteMesh(ID_SYS_MESH id) = 0;
-		virtual ID_TEXTURE FindTexture(cstr name) const = 0;
 		virtual void SetSysCursor(EWindowCursor id) = 0;
 		virtual void GetMeshDesc(char desc[256], ID_SYS_MESH id) = 0;
-		virtual bool TryGetTextureDesc(TextureDesc& desc, ID_TEXTURE id) const = 0;
 		virtual IInstallation& Installation() = 0;
-		virtual ID_TEXTURE LoadTexture(IBuffer& rawImageBuffer, cstr uniqueName) = 0;
 		virtual void OnSize(Vec2i span) = 0;
 		virtual void Render(Graphics::ENVIRONMENTAL_MAP EnvironmentalMap, IScene& scene) = 0;
 		virtual void SetCursorBitmap(const Textures::BitmapLocation& sprite, Vec2i hotspotOffset) = 0;

@@ -61,20 +61,6 @@ namespace Rococo
 	  {
 		  virtual void OnLoad(const RGBAb* pixels, const Vec2i& span) = 0;
 	  };
-
-      class TextureLoader
-      {
-         IInstallation& installation;
-         ID3D11Device& device;
-         ID3D11DeviceContext& dc;
-         IExpandingBuffer& scratchBuffer;
-
-      public:
-         TextureLoader(IInstallation& installation, ID3D11Device& device, ID3D11DeviceContext& _dc, IExpandingBuffer& _scratchBuffer);
-         TextureBind LoadAlphaBitmap(cstr resourceName);
-         TextureBind LoadColourBitmap(cstr resourceName);
-		 void LoadColourBitmapIntoAddress(cstr resourceName, IColourBitmapLoadEvent& onLoad);
-      };
    } // DX11
 } // Rococo
 

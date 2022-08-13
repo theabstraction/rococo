@@ -78,7 +78,7 @@ namespace Rococo::DX11
 			}
 		}
 
-		ID_CUBE_TEXTURE CreateCubeTexture(TextureLoader& textureLoader, cstr path, cstr extension) override
+		ID_CUBE_TEXTURE CreateCubeTexture(IDX11TextureLoader& textureLoader, cstr path, cstr extension) override
 		{
 			auto i = nameToCubeTexture.find(path);
 			if (i != nameToCubeTexture.end())

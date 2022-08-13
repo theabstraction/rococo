@@ -119,6 +119,7 @@
     <ClCompile Include="dx11.overlays.cpp" />
     <ClCompile Include="dx11.samplers.cpp" />
     <ClCompile Include="dx11.texture.array.cpp" />
+    <ClCompile Include="dx11.texture.manager.cpp" />
     <ClCompile Include="dx11.venues.cpp" />
     <ClCompile Include="dx11.window.cpp" />
     <ClInclude Include="dx11.imports.inl">

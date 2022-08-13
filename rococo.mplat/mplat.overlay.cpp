@@ -228,7 +228,7 @@ struct OverlayPane : public IPaneBuilderSupervisor, PaneDelegate, public IUIElem
 			ID_TEXTURE id(index);
 
 			TextureDesc desc;
-			if (!platform.renderer.TryGetTextureDesc(desc, id))
+			if (!platform.renderer.Textures().TryGetTextureDesc(desc, id))
 			{
 				type = OverlayPane::Type::None;
 				return;

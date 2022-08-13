@@ -20,6 +20,13 @@ namespace Rococo::DX11
 {
 	using namespace Rococo::Samplers;
 
+	ROCOCOAPI IDX11TextureLoader
+	{
+		virtual TextureBind LoadAlphaBitmap(cstr resourceName) = 0;
+		virtual TextureBind LoadColourBitmap(cstr resourceName) = 0;
+		virtual void LoadColourBitmapIntoAddress(cstr resourceName, IColourBitmapLoadEvent& onLoad) = 0;
+	};
+
 	struct IDX11ResourceLoader: Textures::ICompressedResourceLoader
 	{
 		virtual ID_PIXEL_SHADER CreateNamedPixelShader(cstr pingPath) = 0;
@@ -69,7 +76,7 @@ namespace Rococo::DX11
 
 	ROCOCOAPI IDX11CubeTextures
 	{
-		virtual ID_CUBE_TEXTURE CreateCubeTexture(TextureLoader& textureLoader, cstr path, cstr extension) = 0;
+		virtual ID_CUBE_TEXTURE CreateCubeTexture(IDX11TextureLoader& textureLoader, cstr path, cstr extension) = 0;
 		virtual void Free() = 0;
 		virtual ID3D11ShaderResourceView* GetShaderView(ID_CUBE_TEXTURE id) = 0;
 		virtual ID3D11ShaderResourceView* ShaderResourceView() = 0;
@@ -136,4 +143,27 @@ namespace Rococo::DX11
 	};
 
 	IDX11Materials* CreateMaterials(IInstallation& installation, ID3D11Device& device, ID3D11DeviceContext& dc);
+
+	class TextureLoader : public IDX11TextureLoader
+	{
+		IInstallation& installation;
+		ID3D11Device& device;
+		ID3D11DeviceContext& dc;
+		IExpandingBuffer& scratchBuffer;
+
+	public:
+		TextureLoader(IInstallation& installation, ID3D11Device& device, ID3D11DeviceContext& _dc, IExpandingBuffer& _scratchBuffer);
+		TextureBind LoadAlphaBitmap(cstr resourceName);
+		TextureBind LoadColourBitmap(cstr resourceName);
+		void LoadColourBitmapIntoAddress(cstr resourceName, IColourBitmapLoadEvent& onLoad);
+	};
+
+	ROCOCOAPI IDX11TextureManager: ITextureManager
+	{
+		virtual void Free() = 0;
+		virtual TextureBind& GetTexture(ID_TEXTURE id) = 0;
+		virtual IDX11TextureLoader& Loader() = 0;
+	};
+
+	IDX11TextureManager* CreateTextureManager(IInstallation& installation, ID3D11Device& device, ID3D11DeviceContext& dc);
 }

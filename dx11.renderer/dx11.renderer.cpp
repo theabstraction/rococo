@@ -103,8 +103,8 @@ namespace ANON
 	   IInstallation& installation;
 	   int64 trianglesThisFrame = 0;
 	   int64 entitiesThisFrame = 0;
-	   std::unordered_map<ID_TEXTURE, IDX11TextureArray*, ID_TEXTURE> genericTextureArray;
-	   stringmap<ID_TEXTURE> nameToGenericTextureId;
+
+	   AutoFree<IDX11TextureManager> textureManager;
 
 	   AutoRelease<IDXGISwapChain> mainSwapChain;
 	   AutoRelease<ID3D11RenderTargetView> mainBackBufferView;
@@ -192,9 +192,6 @@ namespace ANON
 
 	   AutoRelease<ID3D11ShaderResourceView> envMap;
 
-	   std::vector<DX11::TextureBind> textures;
-	   stringmap<ID_TEXTURE> mapNameToTexture;
-
 	   std::vector<VertexTriangle> gui3DTriangles;
 
 	   void Add3DGuiTriangles(const VertexTriangle* first, const VertexTriangle* last)
@@ -213,8 +210,7 @@ namespace ANON
 	   ID_TEXTURE lastTextureId;
 
 	   AutoFree<IExpandingBuffer> scratchBuffer;
-	   DX11::TextureLoader textureLoader;
-
+	   
 	   void Load(cstr name, IEventCallback<CompressedTextureBuffer>& onLoad) override
 	   {
 		   StandardLoadFromCompressedTextureBuffer(name, onLoad, installation, *scratchBuffer);
@@ -229,15 +225,7 @@ namespace ANON
 
 	   ID_TEXTURE LoadAlphaTextureArray(cstr uniqueName, Vec2i span, int32 nElements, ITextureLoadEnumerator& enumerator) override
 	   {
-			auto i = nameToGenericTextureId.find(uniqueName);
-			if (i != nameToGenericTextureId.end()) return i->second;
-		   
-			IDX11TextureArray* array = DX11::LoadAlphaTextureArray(device, span, nElements, enumerator, dc);
-
-			auto id = ID_TEXTURE{ (size_t)array | 0x8000000000000000LL };
-			nameToGenericTextureId[uniqueName] = id;
-			genericTextureArray[id] = array;
-			return id;
+		   return textureManager->LoadAlphaTextureArray(uniqueName, span, nElements, enumerator);		
 	   }
 
 	   void SetBoneMatrix(uint32 index, cr_m4x4 m) override
@@ -254,12 +242,7 @@ namespace ANON
 
 	   void SetGenericTextureArray(ID_TEXTURE id)
 	   {
-		   auto i = genericTextureArray.find(id);
-		   if (i != genericTextureArray.end())
-		   {
-			   ID3D11ShaderResourceView* gtaViews[1] = { i->second->View() };
-			   dc.PSSetShaderResources(TXUNIT_GENERIC_TXARRAY, 1, gtaViews);
-		   }
+		   textureManager->SetGenericTextureArray(id);
 	   }
 
 	   stringmap<ID_PIXEL_SHADER> nameToPixelShader;
@@ -282,8 +265,8 @@ namespace ANON
 		   device(_factory.device), dc(_factory.dc), factory(_factory.factory),
 		   installation(_factory.installation), materials(CreateMaterials(_factory.installation, _factory.device, _factory.dc)),
 		   scratchBuffer(CreateExpandingBuffer(64_kilobytes)),
-		   textureLoader(_factory.installation, _factory.device, _factory.dc, *scratchBuffer),
-		   window(_window)
+		   window(_window),
+		   textureManager(CreateTextureManager(_factory.installation, _factory.device, _factory.dc))
 	   {
 		   particleBuffer = DX11::CreateDynamicVertexBuffer<ParticleVertex>(device, PARTICLE_BUFFER_VERTEX_CAPACITY);
 		   gui3DBuffer = DX11::CreateDynamicVertexBuffer<ObjectVertex>(device, GUI3D_BUFFER_VERTEX_CAPACITY);
@@ -304,7 +287,7 @@ namespace ANON
 		   additiveBlend = DX11::CreateAdditiveBlend(device);
 		   plasmaBlend = DX11::CreatePlasmaBlend(device);
 
-		   DX11::TextureBind fb = textureLoader.LoadAlphaBitmap("!font1.tif");
+		   DX11::TextureBind fb = textureManager->Loader().LoadAlphaBitmap("!font1.tif");
 		   fontTexture = fb.texture;
 		   fontBinding = fb.shaderView;
 
@@ -410,22 +393,9 @@ namespace ANON
 			   delete x;
 		   }
 
-		   for (auto& t : textures)
-		   {
-			   if (t.texture) t.texture->Release();
-			   if (t.shaderView) t.shaderView->Release();
-			   if (t.renderView) t.renderView->Release();
-			   if (t.depthView) t.depthView->Release();
-		   }
-
 		   for (auto& s : samplers)
 		   {
 			   if (s) s->Release();
-		   }
-
-		   for (auto& t : genericTextureArray)
-		   {
-			   t.second->Free();
 		   }
 	   }
 
@@ -437,6 +407,11 @@ namespace ANON
 	   IMaterials& Materials()
 	   {
 		   return *materials;
+	   }
+
+	   ITextureManager& Textures()
+	   {
+		   return *textureManager;
 	   }
 
 	   void AddFog(const ParticleVertex& p) override
@@ -486,7 +461,7 @@ namespace ANON
 
 	   ID_CUBE_TEXTURE CreateCubeTexture(cstr path, cstr extension)
 	   {
-		   return cubeTextures->CreateCubeTexture(textureLoader, path, extension);
+		   return cubeTextures->CreateCubeTexture(textureManager->Loader(), path, extension);
 	   }
 
 	   void SyncCubeTexture(int32 XMaxFace, int32 XMinFace, int32 YMaxFace, int32 YMinFace, int32 ZMaxFace, int32 ZMinFace) override
@@ -509,56 +484,8 @@ namespace ANON
 		   return &textureVenue;
 	   }
 
-	   bool TryGetTextureDesc(TextureDesc& desc, ID_TEXTURE id) const
-	   {
-		   size_t index = id.value - 1;
-		   if (index < 0 || index >= textures.size())
-		   {
-			   return false;
-		   }
-
-		   const auto& t = textures[index];
-		   if (!t.texture) return false;
-		   GetTextureDesc(desc, *t.texture);
-		   return true;
-	   }
-
-	   struct TextureItem
-	   {
-		   ID_TEXTURE id;
-		   std::string name;
-
-		   bool operator < (const TextureItem& other)
-		   {
-			   return name < other.name;
-		   }
-	   };
-
-	   std::vector<TextureItem> orderedTextureList;
-
 	   void ShowTextureVenue(IMathsVisitor& visitor)
 	   {
-		   if (orderedTextureList.empty())
-		   {
-			   for (auto& t : mapNameToTexture)
-			   {
-				   orderedTextureList.push_back({ t.second, t.first });
-			   }
-
-			   std::sort(orderedTextureList.begin(), orderedTextureList.end());
-		   }
-
-		   for (auto& t : orderedTextureList)
-		   {
-			   auto& tx = textures[t.id.value-1];
-
-			   D3D11_TEXTURE2D_DESC desc;
-			   tx.texture->GetDesc(&desc);
-			   char name[64];
-			   SafeFormat(name, 64, "TxId %u", t.id.value);
-			   visitor.ShowSelectableString("overlay.select.texture", name, "  %s - 0x%p. %d x %d. %d levels", t.name.c_str(), (const void*) tx.texture, desc.Width, desc.Height, desc.MipLevels);
-		   }
-
 		   materials->ShowVenue(visitor);
 	   }
 
@@ -624,11 +551,11 @@ namespace ANON
 		   visitor.ShowString("BackBuffer format", "%u", desc.Format);
 
 		   D3D11_DEPTH_STENCIL_VIEW_DESC dsDesc;
-		   GetTexture(mainDepthBufferId).depthView->GetDesc(&dsDesc);
+		   textureManager->GetTexture(mainDepthBufferId).depthView->GetDesc(&dsDesc);
 
 		   visitor.ShowString("DepthStencil format", "%u", dsDesc.Format);
 
-		   visitor.ShowDecimal("Number of textures", (int64)textures.size());
+		   visitor.ShowDecimal("Number of textures", (int64)textureManager->Size());
 		   visitor.ShowDecimal("Number of meshes", (int64)meshBuffers.size());
 		   visitor.ShowDecimal("Mesh updates", meshUpdateCount);
 
@@ -784,41 +711,10 @@ namespace ANON
 		   return *this;
 	   }
 
-	   ID_TEXTURE LoadTexture(IBuffer& buffer, cstr uniqueName) override
-	   {
-		   auto i = mapNameToTexture.find(uniqueName);
-		   if (i != mapNameToTexture.end())
-		   {
-			   return i->second;
-		   }
-
-		   auto bind = textureLoader.LoadColourBitmap(uniqueName);
-		   textures.push_back(bind);
-
-		   auto id = ID_TEXTURE(textures.size());
-		   mapNameToTexture.insert(uniqueName, id);
-
-		   orderedTextureList.clear();
-
-		   return id;
-	   }
-
-	   ID_TEXTURE FindTexture(cstr name) const
-	   {
-		   auto i = mapNameToTexture.find(name);
-		   return i != mapNameToTexture.end() ? i->second : ID_TEXTURE::Invalid();
-	   }
-
 	   Vec2i SelectTexture(ID_TEXTURE id) override
 	   {
-		   size_t index = id.value - 1;
-		   if (index >= textures.size())
-		   {
-			   Throw(0, "Bad texture id");
-		   }
-
-		   auto& t = textures[index];
-
+		   TextureBind t = textureManager->GetTexture(id);
+		   
 		   D3D11_TEXTURE2D_DESC desc;
 		   t.texture->GetDesc(&desc);
 
@@ -874,7 +770,7 @@ namespace ANON
 
 	   void ExpandViewportToEntireTexture(ID_TEXTURE depthId)
 	   {
-		   auto depth = GetTexture(depthId).texture;
+		   auto depth = textureManager->GetTexture(depthId).texture;
 
 		   D3D11_TEXTURE2D_DESC desc;
 		   depth->GetDesc(&desc);
@@ -898,22 +794,12 @@ namespace ANON
 
 		   AutoRelease<ID3D11Texture2D> backBuffer;
 		   VALIDATEDX11(mainSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backBuffer));
-
 		   VALIDATEDX11(device.CreateRenderTargetView(backBuffer, nullptr, &mainBackBufferView));
 
 		   RECT rect;
 		   GetClientRect(window, &rect);
-
-		   auto mainDepthBufferDesc = CreateDepthTarget(rect.right - rect.left, rect.bottom - rect.top);
-		   textures.push_back(mainDepthBufferDesc);
-		   this->mainDepthBufferId = ID_TEXTURE{ textures.size() };
-		   mapNameToTexture[scdt_name] = mainDepthBufferId;
-
-		   auto shadowBufferDesc = CreateDepthTarget(1024, 1024);
-		   textures.push_back(shadowBufferDesc);
-
-		   this->shadowBufferId = ID_TEXTURE{ textures.size() };
-		   mapNameToTexture["ShadowBuffer"] = shadowBufferId;
+		   mainDepthBufferId = textureManager->CreateDepthTarget(scdt_name, rect.right - rect.left, rect.bottom - rect.top);
+		   shadowBufferId = textureManager->CreateDepthTarget("ShadowBuffer", 1024, 1024);
 
 		   ExpandViewportToEntireTexture(mainDepthBufferId);
 	   }
@@ -997,24 +883,6 @@ namespace ANON
 	   {
 		   installation.LoadResource(pingPath, *scratchBuffer, 64_kilobytes);
 		   return CreatePixelShader(pingPath, scratchBuffer->GetData(), scratchBuffer->Length());
-	   }
-
-	   TextureBind CreateDepthTarget(int32 width, int32 height)
-	   {
-		   return DX11::CreateDepthTarget(device, width, height);
-	   }
-
-	   ID_TEXTURE CreateRenderTarget(int32 width, int32 height) override
-	   {
-		   TextureBind tb = DX11::CreateRenderTarget(device, width, height);   
-		   textures.push_back(tb);
-		   auto id = ID_TEXTURE(textures.size());
-
-		   char name[32];
-		   SafeFormat(name, "RenderTarget_%llu", id.value);
-
-		   mapNameToTexture[name] = id;
-		   return id;
 	   }
 
 	   ID_GEOMETRY_SHADER CreateGeometryShader(cstr pingPath)
@@ -1532,13 +1400,6 @@ namespace ANON
 		   return ID_PIXEL_SHADER();
 	   }
 
-	   DX11::TextureBind& GetTexture(ID_TEXTURE id)
-	   {
-		   auto index = id.value - 1;
-		   if (index < 0 || index >= textures.size()) Throw(0, "Bad texture id: %llu", index);
-		   return textures[index];
-	   }
-
 	   void Render3DGui()
 	   { 
 		   size_t cursor = 0;
@@ -1571,7 +1432,7 @@ namespace ANON
 
 	   void RenderToShadowBuffer(DepthRenderData& drd, ID_TEXTURE shadowBuffer, IScene& scene)
 	   {
-		   auto shadowBind = GetTexture(shadowBuffer);
+		   auto shadowBind = textureManager->GetTexture(shadowBuffer);
 
 		   dc.OMSetRenderTargets(0, nullptr, shadowBind.depthView);
 
@@ -1664,7 +1525,7 @@ namespace ANON
 				   builtFirstPass = true;
 			   }
 
-			   auto shadowBind = GetTexture(phaseConfig.shadowBuffer);
+			   auto shadowBind = textureManager->GetTexture(phaseConfig.shadowBuffer);
 
 			   dc.PSSetShaderResources(2, 1, &shadowBind.shaderView);
 			   dc.RSSetState(objectRasterizering);
@@ -1822,11 +1683,11 @@ namespace ANON
 	   {
 		   RenderTarget rt = { 0 };
 
-		   rt.depthView = GetTexture(phaseConfig.depthTarget).depthView;
+		   rt.depthView = textureManager->GetTexture(phaseConfig.depthTarget).depthView;
 
 		   if (phaseConfig.renderTarget)
 		   {
-			   rt.renderTargetView = GetTexture(phaseConfig.renderTarget).renderView;
+			   rt.renderTargetView = textureManager->GetTexture(phaseConfig.renderTarget).renderView;
 		   }
 		   else
 		   {
@@ -1918,7 +1779,7 @@ namespace ANON
 		   phaseConfig.shadowBuffer = shadowBufferId;
 		   phaseConfig.depthTarget = mainDepthBufferId;
 
-		   if (GetTexture(phaseConfig.shadowBuffer).depthView == nullptr)
+		   if (textureManager->GetTexture(phaseConfig.shadowBuffer).depthView == nullptr)
 		   {
 			   Throw(0, "No shadow depth buffer set for DX1AppRenderer::Render(...)");
 		   }
@@ -2031,19 +1892,11 @@ namespace ANON
 		   RECT rect;
 		   GetClientRect(window, &rect);
 
-		   auto newDepthBuffer = CreateDepthTarget(rect.right - rect.left, rect.bottom - rect.top);
-
-		   auto i = mapNameToTexture.find(scdt_name);
-		   if (i == mapNameToTexture.end())
-		   {
-			   Throw(0, "Expecting to find %s in mapNameToTexture", scdt_name);
-		   }
-
-		   auto& t = textures[i->second - 1];
+		   TextureBind& t = textureManager->GetTexture(mainDepthBufferId);
 		   t.depthView->Release();
 		   t.shaderView->Release();
 		   t.texture->Release();
-		   t = newDepthBuffer;
+		   t = CreateDepthTarget(device, rect.right - rect.left, rect.bottom - rect.top);
 	   }
 
 	   BOOL isFullScreen = FALSE;
