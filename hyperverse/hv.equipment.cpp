@@ -160,7 +160,7 @@ namespace ANON // This allows the debugger to identify the members from the inte
 		void AddIcon(const fstring& pingPath) override
 		{
 			if (pingPath.length < 2) Throw(0, "Expecting at least two characters in [pingPath]");
-			if (!renderer.SpriteBuilder().TryGetBitmapLocation(pingPath, prototype->bitmap))
+			if (!renderer.Gui().SpriteBuilder().TryGetBitmapLocation(pingPath, prototype->bitmap))
 			{
 				Throw(0, "No such bitmap [pingPath='%s']", pingPath.buffer);
 			}

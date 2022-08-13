@@ -633,7 +633,7 @@ namespace
 		{
 			GuiRect lineRect = absRect;
 
-			int32 lineHeight = grc.Renderer().GetFontMetrics(context.idFont).height;
+			int32 lineHeight = grc.Gui().GetFontMetrics(context.idFont).height;
 
 			lineRect.right -= (lineHeight >> 1);
 

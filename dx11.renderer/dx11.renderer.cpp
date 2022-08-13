@@ -85,67 +85,11 @@ namespace ANON
 		float alphaActive;
 	};
 
-   struct Overlay
-   {
-      int32 zOrder;
-      IUIOverlay* overlay;
-   };
-
-   bool operator < (const Overlay& a, const Overlay& b)
-   {
-      return a.zOrder < b.zOrder;
-   }
-
-   bool operator == (const Overlay& a, IUIOverlay* b)
-   {
-      return a.overlay == b;
-   }
-
    using namespace Rococo::Textures;
-
-   bool PrepareDepthRenderFromLight(const Light& light, DepthRenderData& drd)
-   {
-	   if (!TryNormalize(light.direction, drd.direction))
-	   {
-		   return false;
-	   }
-
-	   drd.direction.w = 0;
-	   drd.eye = Vec4::FromVec3(light.position, 1.0f);
-	   drd.fov = light.fov;
-
-	   Matrix4x4 directionToCameraRot = RotateDirectionToNegZ(drd.direction);
-
-	   Matrix4x4 cameraToDirectionRot = TransposeMatrix(directionToCameraRot);
-	   drd.right = cameraToDirectionRot * Vec4 { 1, 0, 0, 0 };
-	   drd.up = cameraToDirectionRot * Vec4 { 0, 1, 0, 0 };
-
-	   drd.worldToCamera = directionToCameraRot * Matrix4x4::Translate(-drd.eye);
-
-	   drd.nearPlane = light.nearPlane;
-	   drd.farPlane = light.farPlane;
-
-	   Matrix4x4 cameraToScreen = Matrix4x4::GetRHProjectionMatrix(drd.fov, 1.0f, drd.nearPlane, drd.farPlane);
-
-	   drd.worldToScreen = cameraToScreen * drd.worldToCamera;
-
-	   OS::ticks t = OS::CpuTicks();
-	   OS::ticks ticksPerSecond = OS::CpuHz();
-
-	   OS::ticks oneMinute = ticksPerSecond * 60;
-
-	   OS::ticks secondOfMinute = t % oneMinute;
-	    
-	   drd.time = Seconds{ (secondOfMinute / (float)ticksPerSecond) * 0.9999f };
-
-	   return true;
-   }
 
    class DX11AppRenderer :
 	   public IRenderer,
 	   public IRenderContext,
-	   public IGuiRenderContext,
-	   public Fonts::IGlyphRenderer,
 	   public IMathsVenue,
 	   public IDX11ResourceLoader,
 	   public IShaderStateControl
@@ -161,10 +105,6 @@ namespace ANON
 	   int64 entitiesThisFrame = 0;
 	   std::unordered_map<ID_TEXTURE, IDX11TextureArray*, ID_TEXTURE> genericTextureArray;
 	   stringmap<ID_TEXTURE> nameToGenericTextureId;
-
-	   AutoFree<IDX11HQFontResource> hqFonts;
-
-	   AutoFree<IDX11TextureArray> materialArray;
 
 	   AutoRelease<IDXGISwapChain> mainSwapChain;
 	   AutoRelease<ID3D11RenderTargetView> mainBackBufferView;
@@ -211,6 +151,8 @@ namespace ANON
 
 	   AutoRelease<ID3D11Buffer> lightConeBuffer;
 
+	   AutoFree<IDX11Materials> materials;
+
 	   RAWMOUSE lastMouseEvent;
 	   Vec2i screenSpan;
 
@@ -252,10 +194,6 @@ namespace ANON
 
 	   std::vector<DX11::TextureBind> textures;
 	   stringmap<ID_TEXTURE> mapNameToTexture;
-	   stringmap<MaterialId> nameToMaterialId;
-	   std::vector<std::string> idToMaterialName;
-
-	   std::vector<Overlay> overlays;
 
 	   std::vector<VertexTriangle> gui3DTriangles;
 
@@ -272,12 +210,6 @@ namespace ANON
 		   gui3DTriangles.clear();
 	   }
 
-	   struct Cursor
-	   {
-		   BitmapLocation sprite;
-		   Vec2i hotspotOffset;
-	   } cursor;
-
 	   ID_TEXTURE lastTextureId;
 
 	   AutoFree<IExpandingBuffer> scratchBuffer;
@@ -293,16 +225,6 @@ namespace ANON
 		   installation.LoadResource(pingPath, *scratchBuffer, 256_kilobytes);
 		   fstring text{ (cstr) scratchBuffer->GetData(), (int32) scratchBuffer->Length() };
 		   callback(text);
-	   }
-
-	   const Fonts::ArrayFontMetrics& GetFontMetrics(ID_FONT idFont) override
-	   {
-		   return hqFonts->GetFontMetrics(idFont);
-	   }
-
-	   void RenderHQText(ID_FONT id, Rococo::Fonts::IHQTextJob& job, IGuiRenderContext::EMode mode) override
-	   {
-		   return hqFonts->RenderHQText(id, job, mode, dc, *this);
 	   }
 
 	   ID_TEXTURE LoadAlphaTextureArray(cstr uniqueName, Vec2i span, int32 nElements, ITextureLoadEnumerator& enumerator) override
@@ -358,8 +280,7 @@ namespace ANON
 
 	   DX11AppRenderer(DX11::Factory& _factory, Windows::IWindow& _window) :
 		   device(_factory.device), dc(_factory.dc), factory(_factory.factory),
-		   cursor{ BitmapLocation { {0,0,0,0}, -1 }, { 0,0 } }, installation(_factory.installation),
-		   materialArray(CreateDX11TextureArray(_factory.device, _factory.dc)),
+		   installation(_factory.installation), materials(CreateMaterials(_factory.installation, _factory.device, _factory.dc)),
 		   scratchBuffer(CreateExpandingBuffer(64_kilobytes)),
 		   textureLoader(_factory.installation, _factory.device, _factory.dc, *scratchBuffer),
 		   window(_window)
@@ -395,9 +316,8 @@ namespace ANON
 		   textureDescBuffer = DX11::CreateConstantBuffer<TextureDescState>(device);
 		   ambientBuffer = DX11::CreateConstantBuffer<AmbientData>(device);
 
-		   gui = CreateDX11Gui(*this, device, dc);
-		   hqFonts = CreateDX11HQFonts(_factory.installation, gui->FontRenderer(), _factory.device, _factory.dc);
-
+		   gui = CreateDX11Gui(*this, *this, *this, device, dc);
+		   
 		   idObjVS = CreateObjectVertexShader("!object.vs");
 		   idObjPS = CreatePixelShader("!object.ps");
 		   idParticleVS = CreateParticleVertexShader("!particle.vs");
@@ -509,6 +429,16 @@ namespace ANON
 		   }
 	   }
 
+	   IGuiResources& Gui()
+	   {
+		   return gui->Gui();
+	   }
+
+	   IMaterials& Materials()
+	   {
+		   return *materials;
+	   }
+
 	   void AddFog(const ParticleVertex& p) override
 	   {
 		   fog.push_back(p);
@@ -533,11 +463,6 @@ namespace ANON
 	   void ClearFog() override
 	   {
 		   fog.clear();
-	   }
-
-	   Fonts::IFont& FontMetrics() override
-	   {
-		   return gui->FontMetrics();
 	   }
 
 	   EWindowCursor cursorId = EWindowCursor_Default;
@@ -566,7 +491,7 @@ namespace ANON
 
 	   void SyncCubeTexture(int32 XMaxFace, int32 XMinFace, int32 YMaxFace, int32 YMinFace, int32 ZMaxFace, int32 ZMinFace) override
 	   {
-		   cubeTextures->SyncCubeTexture(XMaxFace, XMinFace, YMaxFace, YMinFace, ZMaxFace, ZMinFace, *materialArray);
+		   cubeTextures->SyncCubeTexture(XMaxFace, XMinFace, YMaxFace, YMinFace, ZMaxFace, ZMinFace, materials->Textures());
 	   }
 
 	   struct : IMathsVenue
@@ -634,25 +559,7 @@ namespace ANON
 			   visitor.ShowSelectableString("overlay.select.texture", name, "  %s - 0x%p. %d x %d. %d levels", t.name.c_str(), (const void*) tx.texture, desc.Width, desc.Height, desc.MipLevels);
 		   }
 
-		   for (size_t i = 0; i < materialArray->TextureCount(); ++i)
-		   {	   
-			   char name[64];
-			   SafeFormat(name, 64, "MatId %u", i);
-			   visitor.ShowSelectableString("overlay.select.material", name, "  %s", idToMaterialName[i].c_str());
-		   }
-	   }
-
-	   cstr GetMaterialTextureName(MaterialId id) const override
-	   {
-		   size_t index = (size_t)id;
-		   if (index >= materialArray->TextureCount()) return nullptr;
-		   return idToMaterialName[index].c_str();
-	   }
-
-	   void GetMaterialArrayMetrics(MaterialArrayMetrics& metrics) const override
-	   {
-		   metrics.NumberOfElements = (int32) materialArray->TextureCount();
-		   metrics.Width = materialArray->MaxWidth();
+		   materials->ShowVenue(visitor);
 	   }
 
 	   void GetMeshDesc(char desc[256], ID_SYS_MESH id) override
@@ -725,8 +632,7 @@ namespace ANON
 		   visitor.ShowDecimal("Number of meshes", (int64)meshBuffers.size());
 		   visitor.ShowDecimal("Mesh updates", meshUpdateCount);
 
-		   visitor.ShowString("Cursor bitmap", "Id: %d. {%d,%d}-{%d,%d}", cursor.sprite.textureIndex, cursor.sprite.txUV.left, cursor.sprite.txUV.top, cursor.sprite.txUV.right, cursor.sprite.txUV.bottom );
-		   visitor.ShowString("Cursor hotspot delta", "(%+d %+d)", cursor.hotspotOffset.x, cursor.hotspotOffset.y);
+		   gui->ShowVenue(visitor);
 
 		   double hz = (double)OS::CpuHz();
 
@@ -833,12 +739,7 @@ namespace ANON
 		   delete this;
 	   }
 
-	   virtual ITextureArrayBuilder& SpriteBuilder()
-	   {
-		   return gui->SpriteBuilder();
-	   }
-
-	   virtual void ClearMeshes()
+	   void ClearMeshes() override
 	   {
 		   for (auto& x : meshBuffers)
 		   {
@@ -849,7 +750,7 @@ namespace ANON
 		   meshBuffers.clear();
 	   }
 
-	   virtual void DeleteMesh(ID_SYS_MESH id)
+	   void DeleteMesh(ID_SYS_MESH id) override
 	   {
 		   if (id.value < 0 || id.value >= meshBuffers.size()) Throw(0, "DX11AppRenderer::DeleteMesh(...): Bad ID_SYS_MESH");
 		  
@@ -868,22 +769,22 @@ namespace ANON
 		   }
 	   }
 
-	   virtual void BuildEnvironmentalMap(int32 topIndex, int32 bottomIndex, int32 leftIndex, int32 rightIndex, int frontIndex, int32 backIndex)
+	   void BuildEnvironmentalMap(int32 topIndex, int32 bottomIndex, int32 leftIndex, int32 rightIndex, int frontIndex, int32 backIndex)
 	   {
 		   envMap = nullptr;
 	   }
 
-	   virtual IInstallation& Installation()
+	   IInstallation& Installation() override
 	   {
 		   return installation;
 	   }
 
-	   virtual IRenderer& Renderer()
+	   virtual IRenderer& Renderer() override
 	   {
 		   return *this;
 	   }
 
-	   virtual ID_TEXTURE LoadTexture(IBuffer& buffer, cstr uniqueName)
+	   ID_TEXTURE LoadTexture(IBuffer& buffer, cstr uniqueName) override
 	   {
 		   auto i = mapNameToTexture.find(uniqueName);
 		   if (i != mapNameToTexture.end())
@@ -900,97 +801,6 @@ namespace ANON
 		   orderedTextureList.clear();
 
 		   return id;
-	   }
-
-	   virtual void LoadMaterialTextureArray(IMaterialTextureArrayBuilder& builder)
-	   {
-		   int32 txWidth = builder.TexelWidth();
-		   materialArray->ResetWidth(builder.TexelWidth());
-		   materialArray->Resize(builder.Count());
-		   nameToMaterialId.clear();
-		   idToMaterialName.clear();
-
-		   idToMaterialName.resize(builder.Count());
-
-		   for (size_t i = 0; i < builder.Count(); ++i)
-		   {
-			   struct ANON : IEventCallback<MaterialTextureArrayBuilderArgs>, Imaging::IImageLoadEvents
-			   {
-				   DX11AppRenderer* This;
-				   size_t i;
-				   int32 txWidth;
-				   cstr name; // valid for duration of OnEvent callback
-
-				   virtual void OnEvent(MaterialTextureArrayBuilderArgs& args)
-				   {
-					   name = args.name;
-					   
-					   auto ext = GetFileExtension(args.name);
-					   if (EqI(ext, ".tif") || EqI(ext, ".tiff"))
-					   {
-						   Rococo::Imaging::DecompressTiff(*this, args.buffer.GetData(), args.buffer.Length());
-					   }
-					   else if (EqI(ext, ".jpg") || EqI(ext, ".jpeg"))
-					   {
-						   Rococo::Imaging::DecompressJPeg(*this, args.buffer.GetData(), args.buffer.Length());
-					   }
-					   else
-					   {
-						   Throw(0, "Error loading material texture: %s: Only extensions allowed are tif, tiff, jpg and jpeg", name);
-					   }
-
-					   This->nameToMaterialId[args.name] = (MaterialId)i;
-					   auto t = This->nameToMaterialId.find(args.name);
-					   This->idToMaterialName[i] = t->first;
-				   }
-
-				   virtual void OnError(const char* message)
-				   {
-					   Throw(0, "Error loading material texture: %s: %s", name, message);
-				   }
-
-				   virtual void OnRGBAImage(const Vec2i& span, const RGBAb* pixels)
-				   {
-					   if (span.x != txWidth || span.y != txWidth)
-					   {
-						   Throw(0, "Error loading texture %s. Only %d x %d dimensions supported", name, txWidth, txWidth);
-					   }
-
-					   This->materialArray->WriteSubImage(i, pixels, GuiRect{ 0, 0, txWidth, txWidth });
-				   }
-
-				   virtual void OnAlphaImage(const Vec2i& span, const uint8* data)
-				   {
-					   Throw(0, "Error loading texture %s. Only RGB and ARGB formats supported", name);
-				   }
-
-			   } onTexture;
-			   onTexture.This = this;
-			   onTexture.i = i;
-			   onTexture.txWidth = txWidth;
-
-			   builder.LoadTextureForIndex(i, onTexture);
-		   }
-	   }
-
-	   MaterialId GetMaterialId(cstr name) const
-	   {
-		   if (name[0] == '#')
-		   {
-			   // Macro, so expand
-			   U8FilePath expandedPath;
-			   if (installation.TryExpandMacro(name, expandedPath))
-			   {
-				   return GetMaterialId(expandedPath);
-			   }
-			   else
-			   {
-				   return -1;
-			   }
-		   }
-
-		   auto i = nameToMaterialId.find(name);
-		   return i != nameToMaterialId.end() ? i->second : -1.0f;
 	   }
 
 	   ID_TEXTURE FindTexture(cstr name) const
@@ -1017,7 +827,7 @@ namespace ANON
 
 		   if (id != lastTextureId)
 		   {
-			   FlushLayer();
+			   gui->FlushLayer();
 			   lastTextureId = id;
 			   dc.PSSetShaderResources(4, 1, &t.shaderView);
 
@@ -1229,37 +1039,6 @@ namespace ANON
 		   return ID_GEOMETRY_SHADER(geometryShaders.size() - 1);
 	   }
 
-	   void RenderText(const Vec2i& pos, Fonts::IDrawTextJob& job, const GuiRect* clipRect)
-	   {
-		   gui->RenderText(pos, job, clipRect);
-	   }
-
-	   virtual void AddOverlay(int zorder, IUIOverlay* overlay)
-	   {
-		   auto i = std::find(overlays.begin(), overlays.end(), overlay);
-		   if (i == overlays.end())
-		   {
-			   overlays.push_back({ zorder, overlay });
-		   }
-		   else
-		   {
-			   i->zOrder = zorder;
-		   }
-
-		   std::sort(overlays.begin(), overlays.end());
-	   }
-
-	   virtual void RemoveOverlay(IUIOverlay* overlay)
-	   {
-		   auto i = std::remove(overlays.begin(), overlays.end(), overlay);
-		   overlays.erase(i, overlays.end());
-	   }
-
-	   Vec2i EvalSpan(const Vec2i& pos, Fonts::IDrawTextJob& job, const GuiRect* clipRect)
-	   {
-		   return gui->EvalSpan(pos, job, clipRect);
-	   }
-
 	   ID_PIXEL_SHADER currentPixelShaderId;
 	   ID_VERTEX_SHADER currentVertexShaderId;
 
@@ -1362,7 +1141,7 @@ namespace ANON
 		   }
 	   }
 
-	   void SwitchToWindowMode()
+	   void SwitchToWindowMode() override
 	   {
 		   BOOL isFullScreen;
 		   AutoRelease<IDXGIOutput> output;
@@ -1380,7 +1159,7 @@ namespace ANON
 		   lastMouseEvent = m;
 	   }
 
-	   virtual void GetGuiMetrics(GuiMetrics& metrics) const
+	   void GetGuiMetrics(GuiMetrics& metrics) const override
 	   {
 		   POINT p;
 		   GetCursorPos(&p);
@@ -1571,82 +1350,7 @@ namespace ANON
 
 	   void DrawLightCone(const Light& light)
 	   {
-		   /* our aim is to render a cross section of the light cone as a single alpha blended triangle
-				   B
-				 '
-			   '
-			 ' (cutoffTheta)
-		   A   -----------------> Light direction D
-			 '
-			   '
-				  '
-					C
-
-
-			  A is the position of the light facing D. We need to compute B and C
-			 
-			  The triangle ABC is parallel to the screen (with screem direction F), which means BC.F = 0
-
-			  A unit vector p parallel to BC is thus the normalized cross product of F and D.
-
-			  p = |D x F|.
-
-			  We can now construct B and C by taking basis vectors d and p from A.
-
-			  Given we specify a length k of the light cone, along its central axis,
-			  then the radius R along the vector p to construct B and C is such that
-			  R / k = tan ( cutoffTheta )
-
-			  The component of d of D parallel to the screen is | F x p |
-
-		   */
-
-		   const Vec3& D = light.direction;
-
-		   Vec3 p = Cross(D, currentGlobalState.viewDir);
-
-		   if (LengthSq(p) < 0.15)
-		   { 
-			   // Too acute, do not render
-			   return;
-		   }
-
-		   p = Normalize(p);
-
-		   if (fabsf(light.cutoffCosAngle) < 0.1)
-		   {
-			   // Angle too obtuse, do not render
-			   return;
-		   }
-
-		   float cutOffAngle = acosf(light.cutoffCosAngle);
-		   float tanCutoff = tanf(cutOffAngle);
-
-		   auto coneLength = 1.0_metres;
-		   auto radius = coneLength* tanCutoff;
-
-		   Vec3 d = Normalize(Cross(currentGlobalState.viewDir, p));
-
-		   ObjectVertex v[3] = { 0 };
-		   v[0].position = light.position;
-		   v[0].material.colour = RGBAb(255, 255, 255, 128);
-		   v[0].uv.x = 0;
-		   v[1].uv.y = 0;
-
-		   v[1].position = light.position + coneLength * D + radius * p;
-		   v[1].material.colour = RGBAb(255, 255, 255, 0);
-		   v[1].uv.x = 1.0f;
-		   v[1].uv.y = -1.0f;
-
-		   v[2].position = light.position + coneLength * D - radius * p;
-		   v[2].material.colour = RGBAb(255, 255, 255, 0);
-		   v[2].uv.x = 1.0f;
-		   v[2].uv.y = -1.0f;
-
-		   DX11::CopyStructureToBuffer(dc, lightConeBuffer, v, sizeof(ObjectVertex) * 3);
-
-		   dc.Draw(3, 0);
-		   trianglesThisFrame += 1;
+		   trianglesThisFrame += DX11::DrawLightCone(light, currentGlobalState.viewDir, dc, *lightConeBuffer);
 	   }
 
 	   void Draw(ID_SYS_MESH id, const ObjectInstance* instances, uint32 nInstances) override
@@ -1733,71 +1437,9 @@ namespace ANON
 
 	   void DrawCursor()
 	   {
-		   if (cursor.sprite.textureIndex >= 0)
-		   {
-			   GuiMetrics metrics;
-			   GetGuiMetrics(metrics);
-
-			   Vec2i span = Span(cursor.sprite.txUV);
-
-			   float u0 = (float)cursor.sprite.txUV.left;
-			   float u1 = (float)cursor.sprite.txUV.right;
-			   float v0 = (float)cursor.sprite.txUV.top;
-			   float v1 = (float)cursor.sprite.txUV.bottom;
-
-			   Vec2 p{ (float)metrics.cursorPosition.x, (float)metrics.cursorPosition.y };
-
-			   float x0 = p.x + cursor.hotspotOffset.x;
-			   float x1 = x0 + (float)span.x;
-			   float y0 = p.y + cursor.hotspotOffset.y;
-			   float y1 = y0 + (float)span.y;
-
-			   BaseVertexData noFont{ { 0,0 }, 0 };
-			   SpriteVertexData solidColour{ 1.0f, 0.0f, 0.0f, 0.0f };
-
-			   SpriteVertexData drawSprite{ 0, (float) cursor.sprite.textureIndex, 0, 0 };
-
-			   GuiVertex quad[6]
-			   {
-				   GuiVertex{ {x0, y0}, {{u0, v0}, 0.0f}, drawSprite, RGBAb(128,0,0)},
-				   GuiVertex{ {x1, y0}, {{u1, v0}, 0.0f}, drawSprite, RGBAb(0,128,0)},
-				   GuiVertex{ {x1, y1}, {{u1, v1}, 0.0f}, drawSprite, RGBAb(0,0,128)},
-				   GuiVertex{ {x1, y1}, {{u1, v1}, 0.0f}, drawSprite, RGBAb(128,0,0)},
-				   GuiVertex{ {x0, y1}, {{u0, v1}, 0.0f}, drawSprite, RGBAb(0,128,0)},
-				   GuiVertex{ {x0, y0}, {{u0, v0}, 0.0f}, drawSprite, RGBAb(0,0,128)}
-			   };
-
-			   AddTriangle(quad);
-			   AddTriangle(quad + 3);
-
-			   SetCursor(0);
-		   }
-		   else
-		   {
-			   const wchar_t* sysId;
-
-			   switch (cursorId)
-			   {
-			   case EWindowCursor_HDrag:
-				   sysId = IDC_SIZEWE;
-				   break;
-			   case EWindowCursor_VDrag:
-				   sysId = IDC_SIZENS;
-				   break;
-			   case EWindowCursor_BottomRightDrag:
-				   sysId = IDC_SIZENWSE;
-				   break;
-			   case EWindowCursor_HandDrag:
-				   sysId = IDC_HAND;
-				   break;
-			   case EWindowCursor_Default:
-			   default:
-				   sysId = IDC_ARROW;
-			   }
-
-			   HCURSOR hCursor = LoadCursorW(nullptr, sysId);
-			   SetCursor(hCursor);
-		   }
+		   GuiMetrics metrics;
+		   GetGuiMetrics(metrics);
+		   gui->DrawCursor(metrics, cursorId);
 	   }
 
 	   int64 AIcost = 0;
@@ -1806,18 +1448,15 @@ namespace ANON
 	   int64 presentCost = 0;
 	   int64 frameTime = 0;
 
-	   virtual void DrawCustomTexturedMesh(const GuiRect& absRect, ID_TEXTURE id, cstr pixelShader, const GuiVertex* vertices, size_t nCount)
+	   ID_PIXEL_SHADER CreateNamedPixelShader(cstr pingPath) override
 	   {
-		   if (nCount == 0) return;
-
-		   auto i = nameToPixelShader.find(pixelShader);
+		   auto i = nameToPixelShader.find(pingPath);
 		   if (i == nameToPixelShader.end())
 		   {
-			   auto pxId = CreatePixelShader(pixelShader);
-			   i = nameToPixelShader.insert(pixelShader, pxId).first;
+			   auto pxId = CreatePixelShader(pingPath);
+			   i = nameToPixelShader.insert(pingPath, pxId).first;
 		   }
-
-		   gui->DrawCustomTexturedMesh(dc, *this, absRect, id, i->second, vertices, nCount);
+		   return i->second;
 	   }
 
 	   bool builtFirstPass = false;
@@ -1901,7 +1540,7 @@ namespace ANON
 	   }
 
 	   void Render3DGui()
-	   {
+	   { 
 		   size_t cursor = 0;
 		   size_t len = gui3DTriangles.size();
 
@@ -2043,61 +1682,20 @@ namespace ANON
 		   }
 	   }
 
-	   Vec2i lastSpan{ -1,-1 };
-
-	   void SetGuiShader(cstr pixelShaderName)
-	   {
-		   FlushLayer();
-
-		   if (pixelShaderName == nullptr || pixelShaderName[0] == 0)
-		   {
-			   gui->ApplyGuiShaderTo(*this);
-			   return;
-		   }
-
-		   auto i = nameToPixelShader.find(pixelShaderName);
-		   if (i == nameToPixelShader.end())
-		   {
-			   // Try to load it
-			   try
-			   {
-				   auto pxId = CreatePixelShader(pixelShaderName);
-				   i = nameToPixelShader.insert(pixelShaderName, pxId).first;
-			   }
-			   catch (IException& ex)
-			   {
-				   Throw(ex.ErrorCode(), "IGuiContext::SetGuiShader('%s') failed to load shader:\n %s", pixelShaderName, ex.Message());
-			   }
-		   }
-		  
-		   if (!gui->ApplyGuiShaderTo(*this, i->second))
-		   {
-			   Throw(0, "IGuiContext::SetGuiShader('%s') failed to use shader", pixelShaderName);
-		   }
-	   }
-
 	   void RenderGui(IScene& scene)
 	   {
 		   OS::ticks now = OS::CpuTicks();
 
 		   GuiMetrics metrics;
 		   GetGuiMetrics(metrics);
-		   gui->RenderGui(scene, dc, *this, metrics, *this);
+		   gui->RenderGui(scene, metrics, !phaseConfig.renderTarget);
 
-		   if (!phaseConfig.renderTarget)
-		   {
-			   for (auto& o : overlays)
-			   {
-				   o.overlay->Render(*this);
-			   }
-		   }
-
-		   FlushLayer();
+		   gui->FlushLayer();
 
 		   if (!phaseConfig.renderTarget)
 		   {
 			   DrawCursor();
-			   FlushLayer();
+			   gui->FlushLayer();
 		   }
 
 		   guiCost = OS::CpuTicks() - now;
@@ -2170,8 +1768,8 @@ namespace ANON
 		   auto* view = cubeTextures->ShaderResourceView();
 		   dc.PSSetShaderResources(TXUNIT_ENV_MAP, 1, &view);
 
-		   ID3D11ShaderResourceView* materials[1] = { materialArray->View() };
-		   dc.PSSetShaderResources(TXUNIT_MATERIALS, 1, materials);
+		   ID3D11ShaderResourceView* materialViews[1] = { materials->Textures().View() };
+		   dc.PSSetShaderResources(TXUNIT_MATERIALS, 1, materialViews);
 
 		   ID3D11ShaderResourceView* spriteviews[1] = { gui->SpriteView() };
 		   dc.PSSetShaderResources(TXUNIT_SPRITES, 1, spriteviews);
@@ -2418,21 +2016,6 @@ namespace ANON
 		   }
 	   }
 
-	   void AddTriangle(const GuiVertex triangle[3])
-	   {
-		   gui->AddTriangle(triangle);
-	   }
-
-	   virtual void DrawGlyph(cr_vec2 uvTopLeft, cr_vec2 uvBottomRight, cr_vec2 posTopLeft, cr_vec2 posBottomRight, Fonts::FontColour fcolour)
-	   {
-		   gui->DrawGlyph(uvTopLeft, uvBottomRight, posTopLeft, posBottomRight, fcolour);
-	   }
-
-	   void FlushLayer()
-	   {
-		   gui->FlushLayer(dc);
-	   }
-
 	   cstr scdt_name = "SwapChainDepthTarget";
 
 	   void ResizeBuffers(const Vec2i& span)
@@ -2488,34 +2071,12 @@ namespace ANON
 
 	   void SetCursorBitmap(const Textures::BitmapLocation& sprite, Vec2i hotspotOffset) override
 	   {
-		   cursor.sprite = sprite;
-		   cursor.hotspotOffset = hotspotOffset;
+		   gui->SetCursorBitmap(sprite, hotspotOffset);
 	   }
 
 	   void SetCursorVisibility(bool isVisible) override
 	   {
 		   Rococo::OS::SetCursorVisibility(isVisible, window);
-	   }
-
-	   void SetScissorRect(const Rococo::GuiRect& rect) override
-	   {
-		   D3D11_RECT d11Rect;
-		   d11Rect.left = rect.left;
-		   d11Rect.top = rect.top;
-		   d11Rect.right = rect.right;
-		   d11Rect.bottom = rect.bottom;
-		   dc.RSSetScissorRects(1, &d11Rect);
-	   }
-
-	   void ClearScissorRect() override
-	   {
-		   D3D11_RECT rect = { 0, 0, screenSpan.x, screenSpan.y };
-		   dc.RSSetScissorRects(1, &rect);
-	   }
-
-	   IHQFontResource& HQFontsResources()
-	   {
-		   return *hqFonts;
 	   }
    };
 }

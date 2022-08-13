@@ -108,12 +108,15 @@
   <ItemGroup>
     <ClCompile Include="dx11.app.manager.cpp" />
     <ClCompile Include="dx11.cube.texture.cpp" />
+    <ClCompile Include="dx11.debug.draw.cpp" />
     <ClCompile Include="dx11.depth.cpp" />
     <ClCompile Include="dx11.device.cpp" />
     <ClCompile Include="dx11.dialog.cpp" />
     <ClCompile Include="dx11.gui.cpp" />
     <ClCompile Include="dx11.factory.cpp" />
     <ClCompile Include="dx11.hqfonts.cpp" />
+    <ClCompile Include="dx11.materials.cpp" />
+    <ClCompile Include="dx11.overlays.cpp" />
     <ClCompile Include="dx11.samplers.cpp" />
     <ClCompile Include="dx11.texture.array.cpp" />
     <ClCompile Include="dx11.venues.cpp" />

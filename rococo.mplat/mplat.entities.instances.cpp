@@ -412,7 +412,7 @@ namespace
 		  publisher.Publish(be, Rococo::Events::evBusy);
 
           // Then we tell the renderer to open the files by index
-		  renderer.LoadMaterialTextureArray(materialIndex);
+		  renderer.Materials().LoadMaterialTextureArray(materialIndex);
 
 		  be.isNowBusy = false;
 		  be.message = "";
@@ -435,7 +435,7 @@ namespace
 
       MaterialCategory GetMaterialCateogry(MaterialId id)
       {
-          cstr name = renderer.GetMaterialTextureName(id);
+          cstr name = renderer.Materials().GetMaterialTextureName(id);
           for (auto& j : subdirToCatEnum)
           {
               if (strstr(name, j.first))
@@ -452,14 +452,14 @@ namespace
 		  categories.clear();
 
 		  MaterialArrayMetrics metrics;
-		  renderer.GetMaterialArrayMetrics(metrics);
+		  renderer.Materials().GetMaterialArrayMetrics(metrics);
 
 		  auto content = renderer.Installation().Content();
 
 		  for (size_t i = 0; i < metrics.NumberOfElements; ++i)
 		  {
 			  auto id = (MaterialId)i;
-			  cstr name = renderer.GetMaterialTextureName(id);
+			  cstr name = renderer.Materials().GetMaterialTextureName(id);
 			  if (name)
 			  {
 				  char fullname[IO::MAX_PATHLEN];
@@ -507,7 +507,7 @@ namespace
 
 	  MaterialId GetMaterialDirect(const fstring& pingPath) override
 	  {
-		  return renderer.GetMaterialId(pingPath);
+		  return renderer.Materials().GetMaterialId(pingPath);
 	  }
 
 	  MaterialId GetRandomMaterialId(Rococo::Graphics::MaterialCategory category) override

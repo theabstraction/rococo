@@ -22,15 +22,18 @@ namespace Rococo::DX11
 
 	struct IDX11ResourceLoader: Textures::ICompressedResourceLoader
 	{
+		virtual ID_PIXEL_SHADER CreateNamedPixelShader(cstr pingPath) = 0;
 		virtual ID_PIXEL_SHADER CreatePixelShader(cstr pingPath) = 0;
 		virtual ID_VERTEX_SHADER CreateVertexShader(cstr pingPath, const D3D11_INPUT_ELEMENT_DESC* vertexDesc, UINT nElements) = 0;
 		virtual void LoadTextFile(cstr pingPath, Rococo::Function<void(const fstring& text)> callback) = 0;
+		virtual IInstallation& Installation() = 0;
 	};
 
 	ROCOCOAPI IShaderStateControl
 	{
 		virtual bool UseShaders(ID_VERTEX_SHADER vid, ID_PIXEL_SHADER pid) = 0;
 		virtual Vec2i SelectTexture(ID_TEXTURE txId) = 0;
+		virtual IMaterials& Materials() = 0;
 	};
 
 	ROCOCOAPI IDX11TextureArray : public Rococo::Textures::ITextureArray
@@ -50,9 +53,9 @@ namespace Rococo::DX11
 	ROCOCOAPI IDX11FontRenderer
 	{
 		virtual void AddTriangle(const GuiVertex triangle[3]) = 0;
-		virtual void FlushLayer(ID3D11DeviceContext& dc) = 0;
-		virtual bool ApplyGuiShaderTo(IShaderStateControl& shaders) = 0;
-		virtual bool ApplyHQFontsShaderTo(IShaderStateControl& shaders) = 0;
+		virtual void FlushLayer() = 0;
+		virtual bool ApplyGuiShader() = 0;
+		virtual bool ApplyHQFontsShader() = 0;
 	};
 
 	ROCOCOAPI IDX11HQFontResource : public IHQFontResource
@@ -75,27 +78,28 @@ namespace Rococo::DX11
 
 	IDX11CubeTextures* CreateCubeTextureManager(ID3D11Device& device, ID3D11DeviceContext& dc);
 
-	ROCOCOAPI IDX11Gui
+	ROCOCOAPI IDX11Gui: public IGuiRenderContext
 	{
-		virtual void AddTriangle(const GuiVertex triangle[3]) = 0;
-		virtual bool ApplyGuiShaderTo(IShaderStateControl& shaders) = 0;
-		virtual bool ApplyHQFontsShaderTo(IShaderStateControl& shaders) = 0;
-		virtual bool ApplyGuiShaderTo(IShaderStateControl& shaders, ID_PIXEL_SHADER idGuiOverrideShader) = 0;
-		virtual void DrawCustomTexturedMesh(ID3D11DeviceContext& dc, IShaderStateControl& shaders, const GuiRect& absRect, ID_TEXTURE id, ID_PIXEL_SHADER pixelShader, const GuiVertex* vertices, size_t nCount) = 0;
+		virtual bool ApplyGuiShader() = 0;
+		virtual bool ApplyHQFontsShader() = 0;
+		virtual bool ApplyGuiShader(ID_PIXEL_SHADER idGuiOverrideShader) = 0;
+		virtual void DrawCursor(const GuiMetrics& metrics, EWindowCursor cursorId) = 0;
+		virtual void DrawCustomTexturedMesh(const GuiRect& absRect, ID_TEXTURE id, cstr pixelShaderPingPath, const GuiVertex* vertices, size_t nCount) = 0;
 		virtual void DrawGlyph(cr_vec2 uvTopLeft, cr_vec2 uvBottomRight, cr_vec2 posTopLeft, cr_vec2 posBottomRight, Fonts::FontColour fcolour) = 0;
-		virtual Vec2i EvalSpan(const Vec2i& pos, Fonts::IDrawTextJob& job, const GuiRect* clipRect) = 0;
-		virtual void FlushLayer(ID3D11DeviceContext& dc) = 0;
 		virtual Fonts::IFont& FontMetrics() = 0;
-		virtual GuiScale GetGuiScale() const = 0;
-		virtual void RenderGui(IScene& scene, ID3D11DeviceContext& dc, IShaderStateControl& shaders, const GuiMetrics& metrics, IGuiRenderContext& grc) = 0;
-		virtual void RenderText(const Vec2i& pos, Fonts::IDrawTextJob& job, const GuiRect* clipRect) = 0;
-		virtual Textures::ITextureArrayBuilder& SpriteBuilder() = 0;
-		virtual ID3D11ShaderResourceView* SpriteView() = 0;
 		virtual void Free() = 0;	
 		virtual IDX11FontRenderer& FontRenderer() = 0;
+		virtual GuiScale GetGuiScale() const = 0;
+		virtual void RenderGui(IScene& scene, const GuiMetrics& metrics, bool renderOverlays) = 0;
+		virtual void RenderText(const Vec2i& pos, Fonts::IDrawTextJob& job, const GuiRect* clipRect) = 0;
+		virtual void SetCursorBitmap(const Textures::BitmapLocation& sprite, Vec2i hotspotOffset) = 0;
+		virtual void ShowVenue(IMathsVisitor& visitor) = 0;
+		virtual Textures::ITextureArrayBuilder& SpriteBuilder() = 0;
+		virtual ID3D11ShaderResourceView* SpriteView() = 0;
+
 	};
 
-	IDX11Gui* CreateDX11Gui(IDX11ResourceLoader& loader, ID3D11Device& device, ID3D11DeviceContext& dc);
+	IDX11Gui* CreateDX11Gui(IRendererMetrics& metrics, IDX11ResourceLoader& loader, IShaderStateControl& shaders, ID3D11Device& device, ID3D11DeviceContext& dc);
 
 	void GetSkySampler(D3D11_SAMPLER_DESC& desc);
 	D3D11_TEXTURE_ADDRESS_MODE From(AddressMode mode);
@@ -106,4 +110,30 @@ namespace Rococo::DX11
 	void ShowVenueForDevice(IMathsVisitor& visitor, ID3D11Device& device);
 	TextureBind CreateDepthTarget(ID3D11Device& device, int32 width, int32 height);
 	TextureBind CreateRenderTarget(ID3D11Device& device, int32 width, int32 height);
+
+	// Draw a light cone and return the number of triangles in the mesh
+	int DrawLightCone(const Light& light, cr_vec3 viewDir, ID3D11DeviceContext& dc, ID3D11Buffer& lightConeBuffer);
+
+	bool PrepareDepthRenderFromLight(const Light& light, DepthRenderData& drd);
+
+	ROCOCOAPI IOverlays
+	{
+		virtual void Render(IGuiRenderContext& grc) = 0;
+	};
+
+	ROCOCOAPI IOverlaySupervisor: IOverlays
+	{
+		virtual void Free() = 0;
+	};
+
+	IOverlaySupervisor* CreateOverlays();
+
+	ROCOCOAPI IDX11Materials: IMaterials
+	{
+		virtual void Free() = 0;
+		virtual void ShowVenue(IMathsVisitor& visitor) = 0;
+		virtual IDX11TextureArray& Textures() = 0;
+	};
+
+	IDX11Materials* CreateMaterials(IInstallation& installation, ID3D11Device& device, ID3D11DeviceContext& dc);
 }

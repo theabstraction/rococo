@@ -426,7 +426,7 @@ void BasePane::RenderBkImage(IGuiRenderContext& grc, const Vec2i& topLeft, const
 	{
 		if (bkBitmap.txUV.left == bkBitmap.txUV.right)
 		{
-			if (!grc.Renderer().SpriteBuilder().TryGetBitmapLocation(bkImageName, bkBitmap))
+			if (!grc.Gui().SpriteBuilder().TryGetBitmapLocation(bkImageName, bkBitmap))
 			{
 				Throw(0, "%s: Cannot find image %s", __FUNCTION__, bkImageName.c_str());
 			}

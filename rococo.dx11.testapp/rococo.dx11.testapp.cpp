@@ -179,7 +179,7 @@ void Main(HINSTANCE hInstance)
 			RenderCentred(grc, idFont, rect, "Hello World!", RGBAb(255, 255, 255, 255));
 
 			BitmapLocation bitmap;
-			if (grc.Renderer().SpriteBuilder().TryGetBitmapLocation("!textures/hv/icons/bastard.sword.tif", bitmap))
+			if (grc.Gui().SpriteBuilder().TryGetBitmapLocation("!textures/hv/icons/bastard.sword.tif", bitmap))
 			{
 				Graphics::DrawSprite(Vec2i{ 10, 10 }, bitmap, grc);
 			}

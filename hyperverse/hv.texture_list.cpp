@@ -44,7 +44,7 @@ namespace
 
 		int32 GetIndexOf(cstr name)
 		{
-			return (int32)platform.renderer.GetMaterialId(name);
+			return (int32)platform.renderer.Materials().GetMaterialId(name);
 		}
 
 		cstr GetNeighbour(cstr name, bool forward)
@@ -52,7 +52,7 @@ namespace
 			int32 i = GetIndexOf(name);
 
 			MaterialArrayMetrics mam;
-			platform.renderer.GetMaterialArrayMetrics(mam);
+			platform.renderer.Materials().GetMaterialArrayMetrics(mam);
 
 			if (forward) i++;
 			else i--;
@@ -60,7 +60,7 @@ namespace
 			if (i < 0) i = 0;
 			if (i >= mam.NumberOfElements) i = mam.NumberOfElements - 1;
 
-			return platform.renderer.GetMaterialTextureName((float)i);
+			return platform.renderer.Materials().GetMaterialTextureName((float)i);
 		}
 
 		void ScrollTo(cstr filename) override
@@ -198,7 +198,7 @@ namespace
 			lastPageSize = (int32)Height(absRect) - 2;
 
 			MaterialArrayMetrics metrics;
-			platform.renderer.GetMaterialArrayMetrics(metrics);
+			platform.renderer.Materials().GetMaterialArrayMetrics(metrics);
 
 			for (MaterialId i = 0; i < metrics.NumberOfElements; i = i + 1)
 			{
@@ -226,7 +226,7 @@ namespace
 					}
 
 					ImageCallbackArgs args;
-					args.filename = platform.renderer.GetMaterialTextureName(i);
+					args.filename = platform.renderer.Materials().GetMaterialTextureName(i);
 					args.target = GuiRectf{ x0, t, x1, b };
 					args.matid = i;
 					args.txUVbottom = h;
@@ -255,7 +255,7 @@ namespace
 				lastDy = width;
 
 				MaterialArrayMetrics mam;
-				grc.Renderer().GetMaterialArrayMetrics(mam);
+				grc.Materials().GetMaterialArrayMetrics(mam);
 
 				int maxValue = mam.NumberOfElements * lastDy;
 				lastPageSize = min(Height(absRect), maxValue);

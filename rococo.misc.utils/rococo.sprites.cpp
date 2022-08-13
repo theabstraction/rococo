@@ -60,7 +60,7 @@ namespace Rococo
 		void RenderBitmap_ShrinkAndPreserveAspectRatio(IGuiRenderContext& rc, MaterialId id, const GuiRect& absRect)
 		{
 			MaterialArrayMetrics metrics;
-			rc.Renderer().GetMaterialArrayMetrics(metrics);
+			rc.Materials().GetMaterialArrayMetrics(metrics);
 
 			Vec2 txSpan{ (float) metrics.Width,(float) metrics.Width };
 

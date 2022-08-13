@@ -162,6 +162,15 @@
     <ClCompile Include="dx11.device.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
+    <ClCompile Include="dx11.debug.draw.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="dx11.overlays.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="dx11.materials.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="rococo.dx11.api.h">

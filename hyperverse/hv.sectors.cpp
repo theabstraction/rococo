@@ -116,7 +116,7 @@ namespace ANON
 
 		   MaterialId GetMaterialId(cstr name) override
 		   {
-			   return platform.renderer.GetMaterialId(name);
+			   return platform.renderer.Materials().GetMaterialId(name);
 		   }
 
 		   MaterialId GetRandomMaterialId(Rococo::Graphics::MaterialCategory cat) override

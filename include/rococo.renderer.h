@@ -138,10 +138,63 @@ namespace Rococo
 	namespace Textures
 	{
 		struct BitmapLocation;
+		struct ITextureArrayBuilder;
 	}
+
+	struct MaterialArrayMetrics
+	{
+		int32 Width;
+		int32 NumberOfElements;
+	};
+
+	struct GuiMetrics
+	{
+		Vec2i cursorPosition;
+		Vec2i screenSpan;
+	};
+
+	ROCOCOAPI IRendererMetrics
+	{
+		virtual void GetGuiMetrics(GuiMetrics& metrics) const = 0;
+	};
+
+	ROCOCOAPI IHQFontResource
+	{
+		virtual ID_FONT CreateOSFont(Fonts::IArrayFontSet & glyphs, const Fonts::FontSpec & spec) = 0;
+	};
+
+	ROCOCOAPI IGuiResources
+	{
+		virtual const Fonts::ArrayFontMetrics & GetFontMetrics(ID_FONT idFont) = 0;
+		virtual Textures::ITextureArrayBuilder& SpriteBuilder() = 0;
+		virtual Fonts::IFont& FontMetrics() = 0;
+		virtual IHQFontResource& HQFontsResources() = 0;
+	};
+
+	struct MaterialTextureArrayBuilderArgs
+	{
+		IBuffer& buffer;
+		cstr name;
+	};
+
+	ROCOCOAPI IMaterialTextureArrayBuilder
+	{
+		virtual size_t Count() const = 0;
+		virtual int32 TexelWidth() const = 0;
+		virtual void LoadTextureForIndex(size_t index, IEventCallback<MaterialTextureArrayBuilderArgs>& onLoad) = 0;
+	};
+
+	ROCOCOAPI IMaterials
+	{
+		virtual void GetMaterialArrayMetrics(MaterialArrayMetrics & metrics) const = 0;
+		virtual MaterialId GetMaterialId(cstr name) const = 0;
+		virtual cstr GetMaterialTextureName(MaterialId id) const = 0;
+		virtual void LoadMaterialTextureArray(IMaterialTextureArrayBuilder& builder) = 0;
+	};
 
 	ROCOCOAPI IGuiRenderContext // Provides draw calls - do not cache
 	{
+		virtual IMaterials& Materials() = 0;
 		virtual void AddTriangle(const GuiVertex triangle[3]) = 0;
 		virtual void DrawCustomTexturedMesh(const GuiRect& absRect, ID_TEXTURE id, cstr pixelShader, const GuiVertex* vertices, size_t nCount) = 0;
 		virtual void FlushLayer() = 0;
@@ -152,6 +205,7 @@ namespace Rococo
 		virtual void SetGuiShader(cstr pixelShader) = 0;
 		virtual void SetScissorRect(const Rococo::GuiRect& rect) = 0;
 		virtual void ClearScissorRect() = 0;
+		virtual IGuiResources& Gui() = 0;
 
 		// Renders high quality text. To compute span without rendering, pass evaluateSpanOnly as true
 
@@ -269,12 +323,6 @@ namespace Rococo
 		virtual void OnMouseEvent(const MouseEvent& me) = 0;
 	};
 
-	struct GuiMetrics
-	{
-		Vec2i cursorPosition;
-		Vec2i screenSpan;
-	};
-
 	namespace Windows
 	{
 		struct IWindow;
@@ -287,25 +335,6 @@ namespace Rococo
 
 	struct IMathsVisitor;
 	struct IMathsVenue;
-
-	struct MaterialTextureArrayBuilderArgs
-	{
-		IBuffer& buffer;
-		cstr name;
-	};
-
-	ROCOCOAPI IMaterialTextureArrayBuilder
-	{
-		virtual size_t Count() const = 0;
-		virtual int32 TexelWidth() const = 0;
-		virtual void LoadTextureForIndex(size_t index, IEventCallback<MaterialTextureArrayBuilderArgs>& onLoad) = 0;
-	};
-
-	struct MaterialArrayMetrics
-	{
-		int32 Width;
-		int32 NumberOfElements;
-	};
 
 	namespace Samplers
 	{
@@ -396,24 +425,10 @@ namespace Rococo
 		struct IHQFonts;
 	}
 
-	ROCOCOAPI IRendererMetrics
+	ROCOCOAPI IRenderer : IRendererMetrics
 	{
-		virtual const Fonts::ArrayFontMetrics& GetFontMetrics(ID_FONT idFont) = 0;
-		virtual void GetGuiMetrics(GuiMetrics& metrics) const = 0;
-		virtual void GetMaterialArrayMetrics(MaterialArrayMetrics& metrics) const = 0;
-		virtual Textures::ITextureArrayBuilder& SpriteBuilder() = 0;
-		virtual Fonts::IFont& FontMetrics() = 0;
-	};
-
-	ROCOCOAPI IHQFontResource
-	{
-		virtual ID_FONT CreateOSFont(Fonts::IArrayFontSet& glyphs, const Fonts::FontSpec& spec) = 0;
-	};
-
-	ROCOCOAPI IRenderer: IRendererMetrics
-	{
-		virtual IHQFontResource& HQFontsResources() = 0;
-		virtual void AddOverlay(int zorder, IUIOverlay * overlay) = 0;
+		virtual IGuiResources& Gui() = 0;
+		virtual IMaterials& Materials() = 0;
 		virtual void AddFog(const ParticleVertex& fog) = 0;
 		virtual void AddPlasma(const ParticleVertex& p) = 0;
 		virtual ID_TEXTURE CreateRenderTarget(int32 width, int32 height) = 0;
@@ -429,13 +444,9 @@ namespace Rococo
 		virtual void GetMeshDesc(char desc[256], ID_SYS_MESH id) = 0;
 		virtual bool TryGetTextureDesc(TextureDesc& desc, ID_TEXTURE id) const = 0;
 		virtual IInstallation& Installation() = 0;
-		virtual void LoadMaterialTextureArray(IMaterialTextureArrayBuilder& builder) = 0;
-		virtual MaterialId GetMaterialId(cstr name) const = 0;
-		virtual cstr GetMaterialTextureName(MaterialId id) const = 0;
 		virtual ID_TEXTURE LoadTexture(IBuffer& rawImageBuffer, cstr uniqueName) = 0;
 		virtual void OnSize(Vec2i span) = 0;
 		virtual void Render(Graphics::ENVIRONMENTAL_MAP EnvironmentalMap, IScene& scene) = 0;
-		virtual void RemoveOverlay(IUIOverlay* overlay) = 0;
 		virtual void SetCursorBitmap(const Textures::BitmapLocation& sprite, Vec2i hotspotOffset) = 0;
 		virtual void SetCursorVisibility(bool isVisible) = 0;
 		virtual void SetSampler(uint32 index, Samplers::Filter, Samplers::AddressMode u, Samplers::AddressMode v, Samplers::AddressMode w, const RGBA& borderColour) = 0;

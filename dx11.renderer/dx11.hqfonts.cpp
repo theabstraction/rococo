@@ -223,16 +223,16 @@ namespace Rococo::DX11
 
 			if (mode == IGuiRenderContext::RENDER)
 			{
-				renderer.FlushLayer(dc);
+				renderer.FlushLayer();
 			}
 
 			job.Render(builder);
 
 			if (mode == IGuiRenderContext::RENDER)
 			{
-				renderer.ApplyHQFontsShaderTo(shaders);
-				renderer.FlushLayer(dc);
-				renderer.ApplyGuiShaderTo(shaders);
+				renderer.ApplyHQFontsShader();
+				renderer.FlushLayer();
+				renderer.ApplyGuiShader();
 			}
 		}
 

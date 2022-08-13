@@ -165,7 +165,7 @@ struct OverlayPane : public IPaneBuilderSupervisor, PaneDelegate, public IUIElem
 				{
 					int index = atoi(name.c_str() + 6);
 					MaterialId id = (MaterialId)index;
-					cstr fullname = platform.renderer.GetMaterialTextureName(id);
+					cstr fullname = platform.renderer.Materials().GetMaterialTextureName(id);
 					if (fullname != nullptr)
 					{
 						WideFilePath sysPath;

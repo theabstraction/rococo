@@ -73,5 +73,43 @@ namespace Rococo
          VALIDATEDX11(device.CreateDepthStencilState(&desc, &dss));
          return dss;
       }
+
+	  bool PrepareDepthRenderFromLight(const Light& light, DepthRenderData& drd)
+	  {
+		  if (!TryNormalize(light.direction, drd.direction))
+		  {
+			  return false;
+		  }
+
+		  drd.direction.w = 0;
+		  drd.eye = Vec4::FromVec3(light.position, 1.0f);
+		  drd.fov = light.fov;
+
+		  Matrix4x4 directionToCameraRot = RotateDirectionToNegZ(drd.direction);
+
+		  Matrix4x4 cameraToDirectionRot = TransposeMatrix(directionToCameraRot);
+		  drd.right = cameraToDirectionRot * Vec4{ 1, 0, 0, 0 };
+		  drd.up = cameraToDirectionRot * Vec4{ 0, 1, 0, 0 };
+
+		  drd.worldToCamera = directionToCameraRot * Matrix4x4::Translate(-drd.eye);
+
+		  drd.nearPlane = light.nearPlane;
+		  drd.farPlane = light.farPlane;
+
+		  Matrix4x4 cameraToScreen = Matrix4x4::GetRHProjectionMatrix(drd.fov, 1.0f, drd.nearPlane, drd.farPlane);
+
+		  drd.worldToScreen = cameraToScreen * drd.worldToCamera;
+
+		  OS::ticks t = OS::CpuTicks();
+		  OS::ticks ticksPerSecond = OS::CpuHz();
+
+		  OS::ticks oneMinute = ticksPerSecond * 60;
+
+		  OS::ticks secondOfMinute = t % oneMinute;
+
+		  drd.time = Seconds{ (secondOfMinute / (float)ticksPerSecond) * 0.9999f };
+
+		  return true;
+	  }
    } // DX11
 } // Rococo

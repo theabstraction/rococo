@@ -23,7 +23,7 @@ namespace
 
       void Clear()
       {
-         renderer.SpriteBuilder().Clear();
+         renderer.Gui().SpriteBuilder().Clear();
          names.clear();
       }
 
@@ -34,7 +34,7 @@ namespace
          {
             if (names.find(resourceName.buffer) == names.end())
             {
-               renderer.SpriteBuilder().AddBitmap(resourceName);
+               renderer.Gui().SpriteBuilder().AddBitmap(resourceName);
                names.insert(resourceName.buffer, 0);
             }
          }
@@ -72,7 +72,7 @@ namespace
 
       void LoadAllSprites()
       {
-         renderer.SpriteBuilder().BuildTextures(256);
+         renderer.Gui().SpriteBuilder().BuildTextures(256);
       }
 
       void Free() override

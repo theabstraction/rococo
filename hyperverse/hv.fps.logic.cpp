@@ -440,7 +440,7 @@ public:
 
 			if (bitmap.txUV.left == bitmap.txUV.right)
 			{
-				if (!g.Renderer().SpriteBuilder().TryGetBitmapLocation(pop.pingPath, bitmap))
+				if (!g.Gui().SpriteBuilder().TryGetBitmapLocation(pop.pingPath, bitmap))
 				{
 					Throw(0, "The ping path [%s] for inventory doll %d did not correspond to an image", pop.pingPath.buf, i);
 				}

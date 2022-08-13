@@ -989,7 +989,7 @@ namespace
 		  mat->category = cat;
 		  memcpy(mat->persistentName, persistentName, IO::MAX_PATHLEN);
 		  mat->mvd.colour = RGBAb(0, 0, 0, 0);
-		  mat->mvd.materialId = platform.renderer.GetMaterialId(persistentName);
+		  mat->mvd.materialId = platform.renderer.Materials().GetMaterialId(persistentName);
 		  if (mat->mvd.materialId < 0)
 		  {
 			  mat->mvd.materialId = platform.instances.GetRandomMaterialId(cat);

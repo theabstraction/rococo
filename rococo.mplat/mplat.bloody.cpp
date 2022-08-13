@@ -1272,7 +1272,7 @@ namespace
 		{
 			try
 			{
-				id = platform.renderer.GetMaterialId(value);
+				id = platform.renderer.Materials().GetMaterialId(value);
 			}
 			catch (IException&)
 			{
@@ -1304,7 +1304,7 @@ namespace
 		MaterialId GetRightValue(MaterialId v)
 		{
 			MaterialArrayMetrics metrics;
-			platform.renderer.GetMaterialArrayMetrics(metrics);
+			platform.renderer.Materials().GetMaterialArrayMetrics(metrics);
 			if (v < metrics.NumberOfElements - 1)
 			{
 				v += 1;
@@ -1386,7 +1386,7 @@ namespace
 					}
 				}
 				
-				auto mat = platform.renderer.GetMaterialTextureName(id);
+				auto mat = platform.renderer.Materials().GetMaterialTextureName(id);
 				if (mat)
 				{
 					WideFilePath sysName;
@@ -1654,7 +1654,7 @@ namespace
 			rc.Renderer().GetGuiMetrics(metrics);
 
 			Textures::BitmapLocation bml;
-			if (platform.renderer.SpriteBuilder().TryGetBitmapLocation(loadImage, bml))
+			if (platform.renderer.Gui().SpriteBuilder().TryGetBitmapLocation(loadImage, bml))
 			{
 				Rococo::Graphics::DrawSpriteCentred(buttonRect, bml, rc);
 			}
