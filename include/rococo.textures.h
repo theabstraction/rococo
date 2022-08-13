@@ -20,7 +20,7 @@ namespace Rococo
          COMPRESSED_TYPE type;
       };
 
-      ROCOCOAPI IResourceLoader
+      ROCOCOAPI ICompressedResourceLoader
       {
          virtual void Load(cstr pingPath, IEventCallback<CompressedTextureBuffer>& onLoad) = 0;
       };
@@ -69,7 +69,7 @@ namespace Rococo
       };
 
       void StandardLoadFromCompressedTextureBuffer(cstr name, IEventCallback<CompressedTextureBuffer>& onLoad, IInstallation& installation, IExpandingBuffer& buffer);
-      ITextureArrayBuilderSupervisor* CreateTextureArrayBuilder(IResourceLoader& loader, ITextureArray& textureArray);
+      ITextureArrayBuilderSupervisor* CreateTextureArrayBuilder(ICompressedResourceLoader& loader, ITextureArray& textureArray);
    }
 }
 

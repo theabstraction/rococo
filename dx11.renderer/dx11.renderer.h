@@ -14,15 +14,17 @@
 #include "rococo.dx11.api.h"
 #include "rococo.renderer.h"
 #include "rococo.fonts.h"
+#include "rococo.functional.h"
 
 namespace Rococo::DX11
 {
 	using namespace Rococo::Samplers;
 
-	struct IDX11ResourceLoader
+	struct IDX11ResourceLoader: Textures::ICompressedResourceLoader
 	{
 		virtual ID_PIXEL_SHADER CreatePixelShader(cstr pingPath) = 0;
 		virtual ID_VERTEX_SHADER CreateVertexShader(cstr pingPath, const D3D11_INPUT_ELEMENT_DESC* vertexDesc, UINT nElements) = 0;
+		virtual void LoadTextFile(cstr pingPath, Rococo::Function<void(const fstring& text)> callback) = 0;
 	};
 
 	ROCOCOAPI IShaderStateControl
@@ -81,16 +83,27 @@ namespace Rococo::DX11
 		virtual bool ApplyGuiShaderTo(IShaderStateControl& shaders, ID_PIXEL_SHADER idGuiOverrideShader) = 0;
 		virtual void DrawCustomTexturedMesh(ID3D11DeviceContext& dc, IShaderStateControl& shaders, const GuiRect& absRect, ID_TEXTURE id, ID_PIXEL_SHADER pixelShader, const GuiVertex* vertices, size_t nCount) = 0;
 		virtual void DrawGlyph(cr_vec2 uvTopLeft, cr_vec2 uvBottomRight, cr_vec2 posTopLeft, cr_vec2 posBottomRight, Fonts::FontColour fcolour) = 0;
+		virtual Vec2i EvalSpan(const Vec2i& pos, Fonts::IDrawTextJob& job, const GuiRect* clipRect) = 0;
 		virtual void FlushLayer(ID3D11DeviceContext& dc) = 0;
+		virtual Fonts::IFont& FontMetrics() = 0;
+		virtual GuiScale GetGuiScale() const = 0;
 		virtual void RenderGui(IScene& scene, ID3D11DeviceContext& dc, IShaderStateControl& shaders, const GuiMetrics& metrics, IGuiRenderContext& grc) = 0;
+		virtual void RenderText(const Vec2i& pos, Fonts::IDrawTextJob& job, const GuiRect* clipRect) = 0;
+		virtual Textures::ITextureArrayBuilder& SpriteBuilder() = 0;
+		virtual ID3D11ShaderResourceView* SpriteView() = 0;
 		virtual void Free() = 0;	
 		virtual IDX11FontRenderer& FontRenderer() = 0;
 	};
 
-	IDX11Gui* CreateDX11Gui(IDX11ResourceLoader& loader, ID3D11Device& device);
+	IDX11Gui* CreateDX11Gui(IDX11ResourceLoader& loader, ID3D11Device& device, ID3D11DeviceContext& dc);
 
 	void GetSkySampler(D3D11_SAMPLER_DESC& desc);
 	D3D11_TEXTURE_ADDRESS_MODE From(AddressMode mode);
 
 	ID3D11SamplerState* GetSampler(ID3D11Device& device, uint32 index, Filter filter, AddressMode u, AddressMode v, AddressMode w, const RGBA& borderColour);
+
+	void GetTextureDesc(TextureDesc& desc, ID3D11Texture2D& texture);
+	void ShowVenueForDevice(IMathsVisitor& visitor, ID3D11Device& device);
+	TextureBind CreateDepthTarget(ID3D11Device& device, int32 width, int32 height);
+	TextureBind CreateRenderTarget(ID3D11Device& device, int32 width, int32 height);
 }

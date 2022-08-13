@@ -259,5 +259,26 @@ namespace Rococo
 
          return{ alpha, view };
       }
+
+      void GetTextureDesc(TextureDesc& desc, ID3D11Texture2D& texture)
+      {
+          D3D11_TEXTURE2D_DESC edesc;
+          texture.GetDesc(&edesc);
+
+          desc.width = edesc.Width;
+          desc.height = edesc.Height;
+
+          switch (edesc.Format)
+          {
+          case DXGI_FORMAT_R8G8B8A8_TYPELESS:
+              desc.format = TextureFormat_RGBA_32_BIT;
+              break;
+          case DXGI_FORMAT_R32_TYPELESS:
+              desc.format = TextureFormat_32_BIT_FLOAT;
+              break;
+          default:
+              desc.format = TextureFormat_UNKNOWN;
+          }
+      }
    } // DX11
 } // Rococo

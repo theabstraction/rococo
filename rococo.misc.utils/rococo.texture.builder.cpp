@@ -184,7 +184,7 @@ namespace
    class TextureArrayBuilder : public ITextureArrayBuilderSupervisor
    {  
    public:
-      IResourceLoader& loader;
+      ICompressedResourceLoader& loader;
       ITextureArray& textureArray;
 
       std::unordered_map<std::string, BitmapLocationImpl>  mapNameToLoc;
@@ -196,7 +196,7 @@ namespace
 
       std::vector<TextureSpec> textureSpecs;
 
-      TextureArrayBuilder(IResourceLoader& _loader, ITextureArray& _textureArray) :
+      TextureArrayBuilder(ICompressedResourceLoader& _loader, ITextureArray& _textureArray) :
          loader(_loader), textureArray(_textureArray)
       {
 
@@ -670,7 +670,7 @@ namespace Rococo
          onLoad.OnEvent(args);
       }
 
-      ITextureArrayBuilderSupervisor* CreateTextureArrayBuilder(IResourceLoader& loader, ITextureArray& textureFactory)
+      ITextureArrayBuilderSupervisor* CreateTextureArrayBuilder(ICompressedResourceLoader& loader, ITextureArray& textureFactory)
       {
          return new TextureArrayBuilder(loader, textureFactory);
       }

@@ -24,7 +24,29 @@ RGBAb FontColourToSysColour(Fonts::FontColour colour)
     return *pCol;
 }
 
-struct DX11Gui : IDX11Gui, IDX11FontRenderer
+class SpanEvaluator : public Fonts::IGlyphRenderer
+{
+public:
+    GuiRectf renderZone;
+
+    SpanEvaluator() : renderZone(10000, 10000, -10000, -10000)
+    {
+
+    }
+
+    void DrawGlyph(cr_vec2 t0, cr_vec2 t1, cr_vec2 p0, cr_vec2 p1, Fonts::FontColour colour) override
+    {
+        ExpandZoneToContain(renderZone, p0);
+        ExpandZoneToContain(renderZone, p1);
+    }
+
+    Vec2 Span() const
+    {
+        return Rococo::Span(renderZone);
+    }
+};
+
+struct DX11Gui : IDX11Gui, IDX11FontRenderer, Rococo::Fonts::IGlyphRenderer
 {
     std::vector<GuiVertex> guiVertices;
 
@@ -35,14 +57,17 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer
     ID_PIXEL_SHADER idHQPS;
 
     AutoRelease<ID3D11Buffer> guiBuffer;
-
+    AutoFree<Fonts::IFontSupervisor> fonts;
+    AutoFree<IDX11TextureArray> spriteArray;
     AutoRelease<ID3D11DepthStencilState> guiDepthState;
     AutoRelease<ID3D11BlendState> alphaBlend;
     AutoRelease<ID3D11RasterizerState> spriteRasterizering;
 
+    AutoFree<Textures::ITextureArrayBuilderSupervisor> spriteArrayBuilder;
+
     enum { GUI_BUFFER_VERTEX_CAPACITY = 3 * 512 };
 
-    DX11Gui(IDX11ResourceLoader& loader, ID3D11Device& device)
+    DX11Gui(IDX11ResourceLoader& loader, ID3D11Device& device, ID3D11DeviceContext& dc)
     {
         static_assert(GUI_BUFFER_VERTEX_CAPACITY % 3 == 0, "Capacity must be divisible by 3");
 
@@ -54,6 +79,29 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer
         alphaBlend = DX11::CreateAlphaBlend(device);
         spriteRasterizering = DX11::CreateSpriteRasterizer(device);
         guiDepthState = DX11::CreateGuiDepthStencilState(device);
+
+        spriteArray = CreateDX11TextureArray(device, dc);
+        spriteArrayBuilder = CreateTextureArrayBuilder(loader, *spriteArray);
+
+        cstr csvName = "!font1.csv";
+
+        loader.LoadTextFile(csvName, [csvName, this](const fstring& text) 
+            {
+                fonts = Fonts::LoadFontCSV(csvName, text, text.length);
+            }
+        );
+    }
+
+    GuiScale GetGuiScale() const
+    {
+        float fontWidth = clamp(1.0f, fonts->TextureSpan().x, 1000000.0f);
+        float spriteWidth = clamp(1.0f, (float) spriteArray->Width(), 1000000.0f);
+        return GuiScale{ 1.0f / lastSpan.x, 1.0f / lastSpan.y, 1.0f / fontWidth, 1.0f / spriteWidth };
+    }
+
+    Fonts::IFont& FontMetrics() override
+    {
+        return *fonts;
     }
 
     void AddTriangle(const GuiVertex triangle[3]) override
@@ -175,10 +223,12 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer
         delete this;
     }
 
-    Vec2i lastSpan{ 0,0 };
+    Vec2i lastSpan{ 1,1 };
 
     void RenderGui(IScene& scene, ID3D11DeviceContext& dc, IShaderStateControl& shaders, const GuiMetrics& metrics, IGuiRenderContext& grc) override
     {
+        if (metrics.screenSpan.x == 0 || metrics.screenSpan.y == 0) return;
+
         dc.RSSetState(spriteRasterizering);
 
         D3D11_RECT rect = { 0, 0, metrics.screenSpan.x, metrics.screenSpan.y };
@@ -201,6 +251,56 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer
         }
 
         scene.RenderGui(grc);
+    }
+
+    Textures::ITextureArrayBuilder& SpriteBuilder() override
+    {
+        return *spriteArrayBuilder;
+    }
+
+    ID3D11ShaderResourceView* SpriteView() override
+    {
+        return spriteArray->View();
+    }
+
+    Vec2i EvalSpan(const Vec2i& pos, Fonts::IDrawTextJob& job, const GuiRect* clipRect) override
+    {
+        char stackBuffer[128];
+        SpanEvaluator spanEvaluator;
+        Fonts::IGlyphRenderPipeline* pipeline = Fonts::CreateGlyphRenderPipeline(stackBuffer, sizeof(stackBuffer), spanEvaluator);
+
+        GuiRectf qrect(-10000.0f, -10000.0f, 10000.0f, 10000.0f);
+
+        if (clipRect != nullptr)
+        {
+            qrect.left = (float)clipRect->left;
+            qrect.right = (float)clipRect->right;
+            qrect.top = (float)clipRect->top;
+            qrect.bottom = (float)clipRect->bottom;
+        }
+        RouteDrawTextBasic(pos, job, *fonts, *pipeline, qrect);
+
+        Vec2i span = Quantize(spanEvaluator.Span());
+        if (span.x < 0) span.x = 0;
+        if (span.y < 0) span.y = 0;
+        return span;
+    }
+
+    void RenderText(const Vec2i& pos, Fonts::IDrawTextJob& job, const GuiRect* clipRect)
+    {
+        char stackBuffer[128];
+        Fonts::IGlyphRenderPipeline* pipeline = Fonts::CreateGlyphRenderPipeline(stackBuffer, sizeof(stackBuffer), *this);
+
+        GuiRectf qrect(-10000.0f, -10000.0f, 10000.0f, 10000.0f);
+
+        if (clipRect != nullptr)
+        {
+            qrect.left = (float)clipRect->left;
+            qrect.right = (float)clipRect->right;
+            qrect.top = (float)clipRect->top;
+            qrect.bottom = (float)clipRect->bottom;
+        }
+        RouteDrawTextBasic(pos, job, *fonts, *pipeline, qrect);
     }
 };
 
@@ -259,9 +359,9 @@ namespace Rococo
          return alphaBlend;
       }
 
-      IDX11Gui* CreateDX11Gui(IDX11ResourceLoader& loader, ID3D11Device& device)
+      IDX11Gui* CreateDX11Gui(IDX11ResourceLoader& loader, ID3D11Device& device, ID3D11DeviceContext& dc)
       {
-          return new DX11Gui(loader, device);
+          return new DX11Gui(loader, device, dc);
       }
    } // DX11
 } // Rococo

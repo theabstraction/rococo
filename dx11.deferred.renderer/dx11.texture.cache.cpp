@@ -36,7 +36,7 @@ namespace ANON
 		virtual void Free() = 0;
 	};
 
-	struct TifAndJPG_Loader : IResourceLoader
+	struct TifAndJPG_Loader : ICompressedResourceLoader
 	{
 		IInstallation& installation;
 

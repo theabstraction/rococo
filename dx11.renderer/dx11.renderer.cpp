@@ -85,28 +85,6 @@ namespace ANON
 		float alphaActive;
 	};
 
-	class SpanEvaluator : public Fonts::IGlyphRenderer
-	{
-	public:
-		GuiRectf renderZone;
-
-		SpanEvaluator() : renderZone(10000, 10000, -10000, -10000)
-		{
-
-		}
-
-		void DrawGlyph(cr_vec2 t0, cr_vec2 t1, cr_vec2 p0, cr_vec2 p1, Fonts::FontColour colour) override
-		{
-			ExpandZoneToContain(renderZone, p0 );
-			ExpandZoneToContain(renderZone, p1 );
-		}
-
-		Vec2 Span() const
-		{
-			return Rococo::Span(renderZone);
-		}
-	};
-
    struct Overlay
    {
       int32 zOrder;
@@ -168,7 +146,6 @@ namespace ANON
 	   public IRenderContext,
 	   public IGuiRenderContext,
 	   public Fonts::IGlyphRenderer,
-	   public IResourceLoader,
 	   public IMathsVenue,
 	   public IDX11ResourceLoader,
 	   public IShaderStateControl
@@ -187,10 +164,7 @@ namespace ANON
 
 	   AutoFree<IDX11HQFontResource> hqFonts;
 
-	   AutoFree<IDX11TextureArray> spriteArray;
 	   AutoFree<IDX11TextureArray> materialArray;
-
-	   AutoFree<ITextureArrayBuilderSupervisor> spriteArrayBuilder;
 
 	   AutoRelease<IDXGISwapChain> mainSwapChain;
 	   AutoRelease<ID3D11RenderTargetView> mainBackBufferView;
@@ -211,7 +185,6 @@ namespace ANON
 	   enum { GUI3D_BUFFER_TRIANGLE_CAPACITY = 1024 };
 	   enum { GUI3D_BUFFER_VERTEX_CAPACITY = 3 * GUI3D_BUFFER_TRIANGLE_CAPACITY };
 
-	   AutoFree<Fonts::IFontSupervisor> fonts;
 	   AutoRelease<ID3D11Texture2D> fontTexture;
 	   AutoRelease<ID3D11ShaderResourceView> fontBinding;
 
@@ -315,6 +288,13 @@ namespace ANON
 		   StandardLoadFromCompressedTextureBuffer(name, onLoad, installation, *scratchBuffer);
 	   }
 
+	   void LoadTextFile(cstr pingPath, Rococo::Function<void(const fstring& text)> callback)
+	   {
+		   installation.LoadResource(pingPath, *scratchBuffer, 256_kilobytes);
+		   fstring text{ (cstr) scratchBuffer->GetData(), (int32) scratchBuffer->Length() };
+		   callback(text);
+	   }
+
 	   const Fonts::ArrayFontMetrics& GetFontMetrics(ID_FONT idFont) override
 	   {
 		   return hqFonts->GetFontMetrics(idFont);
@@ -379,9 +359,7 @@ namespace ANON
 	   DX11AppRenderer(DX11::Factory& _factory, Windows::IWindow& _window) :
 		   device(_factory.device), dc(_factory.dc), factory(_factory.factory),
 		   cursor{ BitmapLocation { {0,0,0,0}, -1 }, { 0,0 } }, installation(_factory.installation),
-		   spriteArray(CreateDX11TextureArray(_factory.device, _factory.dc)),
 		   materialArray(CreateDX11TextureArray(_factory.device, _factory.dc)),
-		   spriteArrayBuilder(CreateTextureArrayBuilder(*this, *spriteArray)),
 		   scratchBuffer(CreateExpandingBuffer(64_kilobytes)),
 		   textureLoader(_factory.installation, _factory.device, _factory.dc, *scratchBuffer),
 		   window(_window)
@@ -409,10 +387,6 @@ namespace ANON
 		   fontTexture = fb.texture;
 		   fontBinding = fb.shaderView;
 
-		   cstr csvName = "!font1.csv";
-		   installation.LoadResource(csvName, *scratchBuffer, 256_kilobytes);
-		   fonts = Fonts::LoadFontCSV(csvName, (const char*)scratchBuffer->GetData(), scratchBuffer->Length());
-
 		   globalStateBuffer = DX11::CreateConstantBuffer<GlobalState>(device);
 		   depthRenderStateBuffer = DX11::CreateConstantBuffer<DepthRenderData>(device);
 		   lightStateBuffer = DX11::CreateConstantBuffer<Light>(device);
@@ -421,7 +395,7 @@ namespace ANON
 		   textureDescBuffer = DX11::CreateConstantBuffer<TextureDescState>(device);
 		   ambientBuffer = DX11::CreateConstantBuffer<AmbientData>(device);
 
-		   gui = CreateDX11Gui(*this, device);
+		   gui = CreateDX11Gui(*this, device, dc);
 		   hqFonts = CreateDX11HQFonts(_factory.installation, gui->FontRenderer(), _factory.device, _factory.dc);
 
 		   idObjVS = CreateObjectVertexShader("!object.vs");
@@ -563,7 +537,7 @@ namespace ANON
 
 	   Fonts::IFont& FontMetrics() override
 	   {
-		   return *fonts;
+		   return gui->FontMetrics();
 	   }
 
 	   EWindowCursor cursorId = EWindowCursor_Default;
@@ -619,25 +593,8 @@ namespace ANON
 		   }
 
 		   const auto& t = textures[index];
-
-		   D3D11_TEXTURE2D_DESC edesc;
-		   t.texture->GetDesc(&edesc);
-
-		   desc.width = edesc.Width;
-		   desc.height = edesc.Height;
-		   
-		   switch(edesc.Format)
-		   {
-		   case DXGI_FORMAT_R8G8B8A8_TYPELESS:
-			   desc.format = TextureFormat_RGBA_32_BIT;
-			   break;
-		   case DXGI_FORMAT_R32_TYPELESS:
-			   desc.format = TextureFormat_32_BIT_FLOAT;
-			   break;
-		   default:
-			   desc.format = TextureFormat_UNKNOWN;
-		   }
-
+		   if (!t.texture) return false;
+		   GetTextureDesc(desc, *t.texture);
 		   return true;
 	   }
 
@@ -752,52 +709,7 @@ namespace ANON
 		   visitor.ShowString("Screen Span", "%d x %d pixels", screenSpan.x, screenSpan.y);
 		   visitor.ShowString("Last error", "%s", *lastError ? lastError : "- none -");
 
-		   UINT flags = device.GetCreationFlags();
-
-		   if (flags & D3D11_CREATE_DEVICE_SINGLETHREADED)
-		   {
-			   visitor.ShowString(" -> device flags | ", "D3D11_CREATE_DEVICE_SINGLETHREADED");
-		   }
-
-		   if (flags & D3D11_CREATE_DEVICE_DEBUG)
-		   {
-			   visitor.ShowString(" -> device flags | ", "D3D11_CREATE_DEVICE_DEBUG");
-		   }
-
-		   if (flags & D3D11_CREATE_DEVICE_SWITCH_TO_REF)
-		   {
-			   visitor.ShowString(" -> device flags | ", "D3D11_CREATE_DEVICE_SWITCH_TO_REF");
-		   }
-
-		   if (flags & D3D11_CREATE_DEVICE_PREVENT_INTERNAL_THREADING_OPTIMIZATIONS)
-		   {
-			   visitor.ShowString(" -> device flags | ", "D3D11_CREATE_DEVICE_PREVENT_INTERNAL_THREADING_OPTIMIZATIONS");
-		   }
-
-		   if (flags & D3D11_CREATE_DEVICE_BGRA_SUPPORT)
-		   {
-			   visitor.ShowString(" -> device flags | ", "D3D11_CREATE_DEVICE_BGRA_SUPPORT");
-		   }
-
-		   if (flags & D3D11_CREATE_DEVICE_DEBUGGABLE)
-		   {
-			   visitor.ShowString(" -> device flags | ", "D3D11_CREATE_DEVICE_DEBUGGABLE");
-		   }
-
-		   if (flags & D3D11_CREATE_DEVICE_PREVENT_ALTERING_LAYER_SETTINGS_FROM_REGISTRY)
-		   {
-			   visitor.ShowString(" -> device flags | ", "D3D11_CREATE_DEVICE_PREVENT_ALTERING_LAYER_SETTINGS_FROM_REGISTRY");
-		   }
-
-		   if (flags & D3D11_CREATE_DEVICE_DISABLE_GPU_TIMEOUT)
-		   {
-			   visitor.ShowString(" -> device flags | ", "D3D11_CREATE_DEVICE_DISABLE_GPU_TIMEOUT");
-		   }
-
-		   if (flags & D3D11_CREATE_DEVICE_VIDEO_SUPPORT)
-		   {
-			   visitor.ShowString(" -> device flags | ", "D3D11_CREATE_DEVICE_VIDEO_SUPPORT");
-		   }
+		   ShowVenueForDevice(visitor, device);
 
 		   D3D11_RENDER_TARGET_VIEW_DESC desc;
 		   mainBackBufferView->GetDesc(&desc);
@@ -858,7 +770,7 @@ namespace ANON
 				   HRESULT hr = device.CreatePixelShader(scratchBuffer->GetData(), scratchBuffer->Length(), nullptr, &i->ps);
 				   if FAILED(hr)
 				   {
-					   SafeFormat(lastError, sizeof(lastError), "device.CreatePixelShader for %s returned 0x%X", pingPath, hr);
+					   SafeFormat(lastError, "device.CreatePixelShader for %s returned 0x%X", pingPath, hr);
 				   }
 				   break;
 			   }
@@ -923,7 +835,7 @@ namespace ANON
 
 	   virtual ITextureArrayBuilder& SpriteBuilder()
 	   {
-		   return *spriteArrayBuilder;
+		   return gui->SpriteBuilder();
 	   }
 
 	   virtual void ClearMeshes()
@@ -1087,7 +999,7 @@ namespace ANON
 		   return i != mapNameToTexture.end() ? i->second : ID_TEXTURE::Invalid();
 	   }
 
-	   virtual Vec2i SelectTexture(ID_TEXTURE id) override
+	   Vec2i SelectTexture(ID_TEXTURE id) override
 	   {
 		   size_t index = id.value - 1;
 		   if (index >= textures.size())
@@ -1277,104 +1189,21 @@ namespace ANON
 		   return CreatePixelShader(pingPath, scratchBuffer->GetData(), scratchBuffer->Length());
 	   }
 
-	   DX11::TextureBind CreateDepthTarget(int32 width, int32 height)
+	   TextureBind CreateDepthTarget(int32 width, int32 height)
 	   {
-		   ID3D11Texture2D* tex2D = nullptr;
-		   ID3D11DepthStencilView* depthView = nullptr;
-		   ID3D11ShaderResourceView* srv = nullptr;
-
-		   try
-		   {
-			   D3D11_TEXTURE2D_DESC desc;
-			   desc.ArraySize = 1;
-			   desc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
-			   desc.CPUAccessFlags = 0;
-			   desc.Format = DXGI_FORMAT_R32_TYPELESS;
-			   desc.Height = height;
-			   desc.Width = width;
-			   desc.MipLevels = 1;
-			   desc.MiscFlags = 0;
-			   desc.SampleDesc.Count = 1;
-			   desc.SampleDesc.Quality = 0;
-			   desc.Usage = D3D11_USAGE_DEFAULT;
-			   VALIDATEDX11(device.CreateTexture2D(&desc, nullptr, &tex2D));
-
-			   D3D11_DEPTH_STENCIL_VIEW_DESC sdesc;
-			   sdesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-			   sdesc.Texture2D.MipSlice = 0;
-			   sdesc.Format = DXGI_FORMAT_D32_FLOAT;
-			   sdesc.Flags = 0;
-			   VALIDATEDX11(device.CreateDepthStencilView(tex2D, &sdesc, &depthView));
-
-			   D3D11_SHADER_RESOURCE_VIEW_DESC rdesc;
-			   rdesc.Texture2D.MipLevels = 1;
-			   rdesc.Texture2D.MostDetailedMip = 0;
-			   rdesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-			   rdesc.Format = DXGI_FORMAT_R32_FLOAT;
-			   VALIDATEDX11(device.CreateShaderResourceView(tex2D, &rdesc, &srv));
-		   }
-		   catch (IException&)
-		   {
-			   if (tex2D) tex2D->Release();
-			   if (depthView) depthView->Release();
-			   if (srv) srv->Release();
-			   throw;
-		   }
-
-		   return { tex2D, srv, nullptr, depthView };
+		   return DX11::CreateDepthTarget(device, width, height);
 	   }
 
 	   ID_TEXTURE CreateRenderTarget(int32 width, int32 height) override
 	   {
-		   ID3D11Texture2D* tex2D = nullptr;
-		   ID3D11ShaderResourceView* srv = nullptr;
-		   ID3D11RenderTargetView* rtv = nullptr;
-
-		   try
-		   {
-			   D3D11_TEXTURE2D_DESC desc;
-			   desc.ArraySize = 1;
-			   desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
-			   desc.CPUAccessFlags = 0;
-			   desc.Format = DXGI_FORMAT_R8G8B8A8_TYPELESS;
-			   desc.Height = height;
-			   desc.Width = width;
-			   desc.MipLevels = 1;
-			   desc.MiscFlags = 0;
-			   desc.SampleDesc.Count = 1;
-			   desc.SampleDesc.Quality = 0;
-			   desc.Usage = D3D11_USAGE_DEFAULT;
-			   VALIDATEDX11(device.CreateTexture2D(&desc, nullptr, &tex2D));
-
-			   D3D11_SHADER_RESOURCE_VIEW_DESC rdesc;
-			   rdesc.Texture2D.MipLevels = 1;
-			   rdesc.Texture2D.MostDetailedMip = 0;
-			   rdesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-			   rdesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-			   VALIDATEDX11(device.CreateShaderResourceView(tex2D, &rdesc, &srv));
-
-			   D3D11_RENDER_TARGET_VIEW_DESC rtdesc;
-			   rtdesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
-			   rtdesc.Texture2D.MipSlice = 0;
-			   rtdesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-			   VALIDATEDX11(device.CreateRenderTargetView(tex2D, &rtdesc, &rtv));
-		   }
-		   catch (IException&)
-		   {
-			   if (tex2D) tex2D->Release();
-			   if (rtv) rtv->Release();
-			   if (srv) srv->Release();
-			   throw;
-		   }
-
-		   textures.push_back(DX11::TextureBind{ tex2D, srv, rtv });
+		   TextureBind tb = DX11::CreateRenderTarget(device, width, height);   
+		   textures.push_back(tb);
 		   auto id = ID_TEXTURE(textures.size());
 
-		   char name[64];
-		   SafeFormat(name, sizeof(name), "RenderTarget_%llu", id.value);
+		   char name[32];
+		   SafeFormat(name, "RenderTarget_%llu", id.value);
 
 		   mapNameToTexture[name] = id;
-
 		   return id;
 	   }
 
@@ -1402,19 +1231,7 @@ namespace ANON
 
 	   void RenderText(const Vec2i& pos, Fonts::IDrawTextJob& job, const GuiRect* clipRect)
 	   {
-		   char stackBuffer[128];
-		   Fonts::IGlyphRenderPipeline* pipeline = Fonts::CreateGlyphRenderPipeline(stackBuffer, sizeof(stackBuffer), *this);
-
-		   GuiRectf qrect(-10000.0f, -10000.0f, 10000.0f, 10000.0f);
-
-		   if (clipRect != nullptr)
-		   {
-			   qrect.left = (float)clipRect->left;
-			   qrect.right = (float)clipRect->right;
-			   qrect.top = (float)clipRect->top;
-			   qrect.bottom = (float)clipRect->bottom;
-		   }
-		   RouteDrawTextBasic(pos, job, *fonts, *pipeline, qrect);
+		   gui->RenderText(pos, job, clipRect);
 	   }
 
 	   virtual void AddOverlay(int zorder, IUIOverlay* overlay)
@@ -1440,25 +1257,7 @@ namespace ANON
 
 	   Vec2i EvalSpan(const Vec2i& pos, Fonts::IDrawTextJob& job, const GuiRect* clipRect)
 	   {
-		   char stackBuffer[128];
-		   SpanEvaluator spanEvaluator;
-		   Fonts::IGlyphRenderPipeline* pipeline = Fonts::CreateGlyphRenderPipeline(stackBuffer, sizeof(stackBuffer), spanEvaluator);
-
-		   GuiRectf qrect(-10000.0f, -10000.0f, 10000.0f, 10000.0f);
-
-		   if (clipRect != nullptr)
-		   {
-			   qrect.left = (float)clipRect->left;
-			   qrect.right = (float)clipRect->right;
-			   qrect.top = (float)clipRect->top;
-			   qrect.bottom = (float)clipRect->bottom;
-		   }
-		   RouteDrawTextBasic(pos, job, *fonts, *pipeline, qrect);
-
-		   Vec2i span = Quantize(spanEvaluator.Span());
-		   if (span.x < 0) span.x = 0;
-		   if (span.y < 0) span.y = 0;
-		   return span;
+		   return gui->EvalSpan(pos, job, clipRect);
 	   }
 
 	   ID_PIXEL_SHADER currentPixelShaderId;
@@ -2374,7 +2173,7 @@ namespace ANON
 		   ID3D11ShaderResourceView* materials[1] = { materialArray->View() };
 		   dc.PSSetShaderResources(TXUNIT_MATERIALS, 1, materials);
 
-		   ID3D11ShaderResourceView* spriteviews[1] = { spriteArray->View() };
+		   ID3D11ShaderResourceView* spriteviews[1] = { gui->SpriteView() };
 		   dc.PSSetShaderResources(TXUNIT_SPRITES, 1, spriteviews);
 
 		   dc.PSSetSamplers(0, 16, samplers);
@@ -2392,10 +2191,7 @@ namespace ANON
 		   float aspectRatio = screenSpan.y / (float)screenSpan.x;
 		   g.aspect = { aspectRatio,0,0,0 };
 
-		   g.guiScale.OOScreenWidth = 1.0f / screenSpan.x;
-		   g.guiScale.OOScreenHeight = 1.0f / screenSpan.y;
-		   g.guiScale.OOFontWidth = fonts->TextureSpan().z;
-		   g.guiScale.OOSpriteWidth = spriteArray->Width() == 0 ? 1.0f : (1.0f / spriteArray->Width());
+		   g.guiScale = gui->GetGuiScale();
 
 		   DX11::CopyStructureToBuffer(dc, globalStateBuffer, g);
 
