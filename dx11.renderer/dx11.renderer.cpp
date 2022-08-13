@@ -382,7 +382,7 @@ namespace ANON
 		   spriteArray(CreateDX11TextureArray(_factory.device, _factory.dc)),
 		   materialArray(CreateDX11TextureArray(_factory.device, _factory.dc)),
 		   spriteArrayBuilder(CreateTextureArrayBuilder(*this, *spriteArray)),
-		   scratchBuffer(CreateExpandingBuffer(16_kilobytes)),
+		   scratchBuffer(CreateExpandingBuffer(64_kilobytes)),
 		   textureLoader(_factory.installation, _factory.device, _factory.dc, *scratchBuffer),
 		   window(_window)
 	   {
@@ -453,16 +453,7 @@ namespace ANON
 		   cubeTextures = CreateCubeTextureManager(device, dc);
 
 		   D3D11_SAMPLER_DESC desc;
-		   desc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-		   desc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-		   desc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-		   desc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-		   desc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
-		   desc.MaxAnisotropy = 1;
-		   desc.MipLODBias = 0;
-		   desc.MaxLOD = D3D11_FLOAT32_MAX;
-		   desc.MinLOD = 0;
-
+		   GetSkySampler(desc);
 		   VALIDATEDX11(device.CreateSamplerState(&desc, &skySampler));
 
 		   SkyVertex topNW{ -1.0f, 1.0f, 1.0f };
@@ -575,21 +566,6 @@ namespace ANON
 		   return *fonts;
 	   }
 
-	   D3D11_TEXTURE_ADDRESS_MODE From(Samplers::AddressMode mode)
-	   {
-		   switch (mode)
-		   {
-		   case AddressMode_Border:
-			   return D3D11_TEXTURE_ADDRESS_BORDER;
-		   case AddressMode_Wrap:
-			   return D3D11_TEXTURE_ADDRESS_WRAP;
-		   case AddressMode_Mirror:
-			   return D3D11_TEXTURE_ADDRESS_MIRROR;
-		   default:
-			   return D3D11_TEXTURE_ADDRESS_CLAMP;
-		   }
-	   }
-
 	   EWindowCursor cursorId = EWindowCursor_Default;
 
 	   void SetSysCursor(EWindowCursor id) override
@@ -605,32 +581,8 @@ namespace ANON
 			   samplers[index] = nullptr;
 		   }
 
-		   D3D11_SAMPLER_DESC desc;
-
-		   switch (filter)
-		   {
-		   case Filter_Point:
-			   desc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
-			   break;
-		   default:
-			   desc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-			   break;
-		   }
-
-		   desc.AddressU = From(u);
-		   desc.AddressV = From(v);
-		   desc.AddressW = From(w);
-		   desc.BorderColor[0] = borderColour.red;
-		   desc.BorderColor[1] = borderColour.green;
-		   desc.BorderColor[2] = borderColour.blue;
-		   desc.BorderColor[3] = borderColour.alpha;
-		   desc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
-		   desc.MaxAnisotropy = 1;
-		   desc.MipLODBias = 0;
-		   desc.MaxLOD = D3D11_FLOAT32_MAX;
-		   desc.MinLOD = 0;
-
-		   VALIDATEDX11(device.CreateSamplerState(&desc, &samplers[index]));
+		   auto* sampler = Rococo::DX11::GetSampler(device, index, filter, u, v, w, borderColour);
+		   samplers[index] = sampler;
 	   }
 
 	   ID_CUBE_TEXTURE CreateCubeTexture(cstr path, cstr extension)

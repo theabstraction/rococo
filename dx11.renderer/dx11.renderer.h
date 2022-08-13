@@ -1,5 +1,4 @@
-#ifndef Rococo_WINDOWS_TEST_H
-#define Rococo_WINDOWS_TEST_H
+#pragma once
 
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 #include <Rococo.target.h>
@@ -18,6 +17,8 @@
 
 namespace Rococo::DX11
 {
+	using namespace Rococo::Samplers;
+
 	struct IDX11ResourceLoader
 	{
 		virtual ID_PIXEL_SHADER CreatePixelShader(cstr pingPath) = 0;
@@ -87,6 +88,9 @@ namespace Rococo::DX11
 	};
 
 	IDX11Gui* CreateDX11Gui(IDX11ResourceLoader& loader, ID3D11Device& device);
-}
 
-#endif
+	void GetSkySampler(D3D11_SAMPLER_DESC& desc);
+	D3D11_TEXTURE_ADDRESS_MODE From(AddressMode mode);
+
+	ID3D11SamplerState* GetSampler(ID3D11Device& device, uint32 index, Filter filter, AddressMode u, AddressMode v, AddressMode w, const RGBA& borderColour);
+}
