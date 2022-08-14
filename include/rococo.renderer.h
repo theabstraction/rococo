@@ -157,6 +157,19 @@ namespace Rococo
 	struct TextureDesc;
 	struct ITextureLoadEnumerator;
 
+	ROCOCOAPI IShaders
+	{
+		virtual ID_GEOMETRY_SHADER CreateGeometryShader(cstr pingPath) = 0;
+		virtual ID_VERTEX_SHADER CreateObjectVertexShader(cstr pingPath) = 0;
+		virtual ID_VERTEX_SHADER CreateParticleVertexShader(cstr pingPath) = 0;
+		virtual ID_PIXEL_SHADER CreatePixelShader(cstr pingPath) = 0;
+		virtual void ShowVenue(IMathsVisitor& visitor) = 0;
+		virtual void UpdatePixelShader(cstr pingPath) = 0;
+		virtual void UpdateVertexShader(cstr pingPath) = 0;
+		virtual bool UseGeometryShader(ID_GEOMETRY_SHADER gid) = 0;
+		virtual bool UseShaders(ID_VERTEX_SHADER vid, ID_PIXEL_SHADER pid) = 0;
+	};
+
 	ROCOCOAPI IMeshes
 	{
 		virtual void ClearMeshes() = 0;
@@ -461,6 +474,7 @@ namespace Rococo
 		virtual IMaterials& Materials() = 0;
 		virtual ITextureManager& Textures() = 0;
 		virtual IMeshes& Meshes() = 0;
+		virtual IShaders& Shaders() = 0;
 		virtual void AddFog(const ParticleVertex& fog) = 0;
 		virtual void AddPlasma(const ParticleVertex& p) = 0;
 		virtual void CaptureMouse(bool enable) = 0;
@@ -482,8 +496,6 @@ namespace Rococo
 		virtual void SwitchToWindowMode() = 0;
 		virtual IMathsVenue* TextureVenue() = 0;
 		virtual ID_TEXTURE LoadAlphaTextureArray(cstr uniqueName, Vec2i span, int nElements, ITextureLoadEnumerator& enumerator) = 0;
-		virtual void UpdatePixelShader(cstr pingPath) = 0;
-		virtual void UpdateVertexShader(cstr pingPath) = 0;
 		virtual Windows::IWindow& Window() = 0;
 		virtual IMathsVenue* Venue() = 0;
 		virtual void Free() = 0;

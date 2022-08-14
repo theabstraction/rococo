@@ -318,12 +318,12 @@ namespace MHost
 			else if (Eq(ext, ".ps"))
 			{
 				platform.gui.LogMessage("Updating pixel shader");
-				platform.renderer.UpdatePixelShader(pingPath);
+				platform.renderer.Shaders().UpdatePixelShader(pingPath);
 			}
 			else if (Eq(ext, ".vs"))
 			{
 				platform.gui.LogMessage("Updating vertex shader");
-				platform.renderer.UpdateVertexShader(pingPath);
+				platform.renderer.Shaders().UpdateVertexShader(pingPath);
 			}
 		}
 

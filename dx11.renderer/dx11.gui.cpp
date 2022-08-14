@@ -85,10 +85,10 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Rococo::Fonts::IGlyphRenderer, IGu
     {
         static_assert(GUI_BUFFER_VERTEX_CAPACITY % 3 == 0, "Capacity must be divisible by 3");
 
-        idGuiVS = loader.CreateVertexShader("!gui.vs", DX11::GetGuiVertexDesc(), DX11::NumberOfGuiVertexElements());
-        idGuiPS = loader.CreatePixelShader("!gui.ps");
-        idHQVS = loader.CreateVertexShader("!HQ-font.vs", DX11::GetGuiVertexDesc(), DX11::NumberOfGuiVertexElements());
-        idHQPS = loader.CreatePixelShader("!HQ-font.ps");
+        idGuiVS = loader.DX11Shaders().CreateVertexShader("!gui.vs", DX11::GetGuiVertexDesc(), DX11::NumberOfGuiVertexElements());
+        idGuiPS = loader.DX11Shaders().CreatePixelShader("!gui.ps");
+        idHQVS = loader.DX11Shaders().CreateVertexShader("!HQ-font.vs", DX11::GetGuiVertexDesc(), DX11::NumberOfGuiVertexElements());
+        idHQPS = loader.DX11Shaders().CreatePixelShader("!HQ-font.ps");
         guiBuffer = DX11::CreateDynamicVertexBuffer<GuiVertex>(device, GUI_BUFFER_VERTEX_CAPACITY);
         alphaBlend = DX11::CreateAlphaBlend(device);
         spriteRasterizering = DX11::CreateSpriteRasterizer(device);
@@ -160,7 +160,7 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Rococo::Fonts::IGlyphRenderer, IGu
 
         FlushLayer();
 
-        ID_PIXEL_SHADER idPixelShader = loader.CreateNamedPixelShader(shaderName);
+        ID_PIXEL_SHADER idPixelShader = loader.DX11Shaders().CreatePixelShader(shaderName);
 
         shaders.UseShaders(idGuiVS, idPixelShader);
 
@@ -318,7 +318,7 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Rococo::Fonts::IGlyphRenderer, IGu
             return;
         }
 
-        auto id = loader.CreateNamedPixelShader(pixelShaderName);
+        auto id = loader.DX11Shaders().CreatePixelShader(pixelShaderName);
         if (id)
         {
             ApplyGuiShader(id);

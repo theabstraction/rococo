@@ -22,6 +22,12 @@
 #pragma comment(lib, "wmcodecdspuuid.lib")
 #pragma comment(lib, "Mfuuid.lib")
 #pragma comment(lib, "Mfplat.lib")
+
+#ifdef _DEBUG
+# pragma comment(lib, "rococo.util.ex.debug.lib")
+#else
+# pragma comment(lib, "rococo.util.ex.lib")
+#endif
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 #undef DrawText

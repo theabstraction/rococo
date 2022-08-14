@@ -42,11 +42,6 @@ namespace ANON
 	using namespace Rococo::Samplers;
 	using namespace Rococo::DX11;
 
-	struct DX11Shader
-	{
-		std::string name;
-	};
-
 	struct AmbientData
 	{
 		RGBA localLight;
@@ -54,23 +49,6 @@ namespace ANON
 		float a = 0;
 		float b = 0;
 		float c = 0;
-	};
-
-	struct DX11VertexShader : public DX11Shader
-	{
-		AutoRelease<ID3D11InputLayout> inputLayout;
-		AutoRelease<ID3D11VertexShader> vs;
-	};
-
-	struct DX11GeometryShader : public DX11Shader
-	{
-		AutoRelease<ID3D11InputLayout> inputLayout;
-		AutoRelease<ID3D11GeometryShader> gs;
-	};
-
-	struct DX11PixelShader : public DX11Shader
-	{
-		AutoRelease<ID3D11PixelShader> ps;
 	};
 
 	struct TextureDescState
@@ -95,27 +73,17 @@ namespace ANON
 	   public IShaderStateControl
    {
    private:
-	   std::default_random_engine rng;
-	   OS::ticks lastTick;
+	   IInstallation& installation;
 	   ID3D11Device& device;
 	   ID3D11DeviceContext& dc;
 	   IDXGIFactory& factory;
-	   IInstallation& installation;
-	   int64 trianglesThisFrame = 0;
-	   int64 entitiesThisFrame = 0;
 
 	   AutoFree<IDX11TextureManager> textureManager;
 	   AutoFree<IDX11Meshes> meshes;
+	   AutoFree<IDX11Shaders> shaders;
 
 	   AutoRelease<IDXGISwapChain> mainSwapChain;
 	   AutoRelease<ID3D11RenderTargetView> mainBackBufferView;
-
-	   ID_TEXTURE mainDepthBufferId;
-	   ID_TEXTURE shadowBufferId;
-
-	   std::vector<DX11VertexShader*> vertexShaders;
-	   std::vector<DX11PixelShader*> pixelShaders;
-	   std::vector<DX11GeometryShader*> geometryShaders;
 
 	   AutoRelease<ID3D11Buffer> particleBuffer;
 	   AutoRelease<ID3D11Buffer> gui3DBuffer;
@@ -149,10 +117,16 @@ namespace ANON
 
 	   BoneMatrices boneMatrices = { 0 };
 	   AutoRelease<ID3D11Buffer> boneMatricesStateBuffer;
-
 	   AutoRelease<ID3D11Buffer> lightConeBuffer;
-
 	   AutoFree<IDX11Materials> materials;
+
+	   std::default_random_engine rng;
+	   OS::ticks lastTick;
+
+	   int64 trianglesThisFrame = 0;
+	   int64 entitiesThisFrame = 0;
+	   ID_TEXTURE mainDepthBufferId;
+	   ID_TEXTURE shadowBufferId;
 
 	   RAWMOUSE lastMouseEvent;
 	   Vec2i screenSpan;
@@ -229,6 +203,52 @@ namespace ANON
 		   return textureManager->LoadAlphaTextureArray(uniqueName, span, nElements, enumerator);		
 	   }
 
+	   void SetSpecialAmbientShader(ID_SYS_MESH id, cstr vs, cstr ps, bool alphaBlending) override
+	   {
+		   auto& m = meshes->GetBuffer(id);
+
+		   ID_PIXEL_SHADER pxId = Shaders().CreatePixelShader(ps);
+
+		   m.psAmbientShader = pxId;
+
+		   ID_VERTEX_SHADER vxId;
+
+		   if (strstr(vs, "skinned"))
+		   {
+			   vxId = shaders->CreateVertexShader(vs, DX11::GetSkinnedObjectVertexDesc(), DX11::NumberOfSkinnedObjectVertexElements());
+		   }
+		   else
+		   {
+			   vxId = shaders->CreateVertexShader(vs, DX11::GetObjectVertexDesc(), DX11::NumberOfObjectVertexElements());
+		   }
+
+		   m.vsAmbientShader = vxId;
+		   m.alphaBlending = alphaBlending;
+	   }
+
+	   void SetSpecialSpotlightShader(ID_SYS_MESH id, cstr vs, cstr ps, bool alphaBlending) override
+	   {
+		   auto& m = meshes->GetBuffer(id);
+
+		   ID_PIXEL_SHADER pxId = Shaders().CreatePixelShader(ps);
+
+		   m.psSpotlightShader = pxId;
+
+		   ID_VERTEX_SHADER vxId;
+
+		   if (strstr(vs, "skinned"))
+		   {
+			   vxId = shaders->CreateVertexShader(vs, DX11::GetSkinnedObjectVertexDesc(), DX11::NumberOfSkinnedObjectVertexElements());
+		   }
+		   else
+		   {
+			   vxId = shaders->CreateVertexShader(vs, DX11::GetObjectVertexDesc(), DX11::NumberOfObjectVertexElements());
+		   }
+
+		   m.vsSpotlightShader = vxId;
+		   m.alphaBlending = alphaBlending;
+	   }
+
 	   void SetBoneMatrix(uint32 index, cr_m4x4 m) override
 	   {
 		   if (index >= BoneMatrices::BONE_MATRIX_CAPACITY)
@@ -246,9 +266,6 @@ namespace ANON
 		   textureManager->SetGenericTextureArray(id);
 	   }
 
-	   stringmap<ID_PIXEL_SHADER> nameToPixelShader;
-	   stringmap<ID_VERTEX_SHADER> nameToVertexShader;
-
 	   std::vector<ParticleVertex> fog;
 	   std::vector<ParticleVertex> plasma;
 
@@ -263,12 +280,14 @@ namespace ANON
 	   bool isBuildingAlphaBlendedSprites{ false };
 
 	   DX11AppRenderer(DX11::Factory& _factory, Windows::IWindow& _window) :
+		   installation(_factory.installation), 
 		   device(_factory.device), dc(_factory.dc), factory(_factory.factory),
-		   installation(_factory.installation), materials(CreateMaterials(_factory.installation, _factory.device, _factory.dc)),
+		   materials(CreateMaterials(installation, device, dc)),
 		   scratchBuffer(CreateExpandingBuffer(64_kilobytes)),
 		   window(_window),
-		   textureManager(CreateTextureManager(_factory.installation, _factory.device, _factory.dc)),
-		   meshes(CreateMeshManager(_factory.device))
+		   textureManager(CreateTextureManager(installation, device, dc)),
+		   meshes(CreateMeshManager(device)),
+		   shaders(CreateShaderManager(installation, device, dc))
 	   {
 		   particleBuffer = DX11::CreateDynamicVertexBuffer<ParticleVertex>(device, PARTICLE_BUFFER_VERTEX_CAPACITY);
 		   gui3DBuffer = DX11::CreateDynamicVertexBuffer<ObjectVertex>(device, GUI3D_BUFFER_VERTEX_CAPACITY);
@@ -303,26 +322,26 @@ namespace ANON
 
 		   gui = CreateDX11Gui(*this, *this, *this, device, dc);
 		   
-		   idObjVS = CreateObjectVertexShader("!object.vs");
-		   idObjPS = CreatePixelShader("!object.ps");
-		   idParticleVS = CreateParticleVertexShader("!particle.vs");
-		   idPlasmaGS = CreateGeometryShader("!plasma.gs");
-		   idFogSpotlightGS = CreateGeometryShader("!fog.spotlight.gs");
-		   idFogAmbientGS = CreateGeometryShader("!fog.ambient.gs");
-		   idObj_Spotlight_NoEnvMap_PS = CreatePixelShader("!obj.spotlight.no_env.ps");
-		   idObj_Ambient_NoEnvMap_PS = CreatePixelShader("!obj.ambient.no_env.ps");
-		   idPlasmaPS = CreatePixelShader("!plasma.ps");
-		   idFogSpotlightPS = CreatePixelShader("!fog.spotlight.ps");
-		   idFogAmbientPS = CreatePixelShader("!fog.ambient.ps");
-		   idObjAmbientPS = CreatePixelShader("!ambient.ps");
-		   idObjAmbientVS = CreateObjectVertexShader("!ambient.vs");
-		   idObjVS_Shadows = CreateObjectVertexShader("!shadow.vs");
-		   idSkinnedObjVS_Shadows = CreateVertexShader("!skinned.shadow.vs", DX11::GetSkinnedObjectVertexDesc(), DX11::NumberOfSkinnedObjectVertexElements());
-		   idObjPS_Shadows = CreatePixelShader("!shadow.ps");
-		   idLightConePS = CreatePixelShader("!light_cone.ps");
-		   idLightConeVS = CreateVertexShader("!light_cone.vs", DX11::GetObjectVertexDesc(), DX11::NumberOfObjectVertexElements());
-		   idObjSkyVS = CreateVertexShader("!skybox.vs", DX11::GetSkyVertexDesc(), DX11::NumberOfSkyVertexElements());
-		   idObjSkyPS = CreatePixelShader("!skybox.ps");
+		   idObjVS = Shaders().CreateObjectVertexShader("!object.vs");
+		   idObjPS = Shaders().CreatePixelShader("!object.ps");
+		   idParticleVS = Shaders().CreateParticleVertexShader("!particle.vs");
+		   idPlasmaGS = Shaders().CreateGeometryShader("!plasma.gs");
+		   idFogSpotlightGS = Shaders().CreateGeometryShader("!fog.spotlight.gs");
+		   idFogAmbientGS = Shaders().CreateGeometryShader("!fog.ambient.gs");
+		   idObj_Spotlight_NoEnvMap_PS = Shaders().CreatePixelShader("!obj.spotlight.no_env.ps");
+		   idObj_Ambient_NoEnvMap_PS = Shaders().CreatePixelShader("!obj.ambient.no_env.ps");
+		   idPlasmaPS = Shaders().CreatePixelShader("!plasma.ps");
+		   idFogSpotlightPS = Shaders().CreatePixelShader("!fog.spotlight.ps");
+		   idFogAmbientPS = Shaders().CreatePixelShader("!fog.ambient.ps");
+		   idObjAmbientPS = Shaders().CreatePixelShader("!ambient.ps");
+		   idObjAmbientVS = Shaders().CreateObjectVertexShader("!ambient.vs");
+		   idObjVS_Shadows = Shaders().CreateObjectVertexShader("!shadow.vs");
+		   idSkinnedObjVS_Shadows = shaders->CreateVertexShader("!skinned.shadow.vs", DX11::GetSkinnedObjectVertexDesc(), DX11::NumberOfSkinnedObjectVertexElements());
+		   idObjPS_Shadows = Shaders().CreatePixelShader("!shadow.ps");
+		   idLightConePS = Shaders().CreatePixelShader("!light_cone.ps");
+		   idLightConeVS = shaders->CreateVertexShader("!light_cone.vs", DX11::GetObjectVertexDesc(), DX11::NumberOfObjectVertexElements());
+		   idObjSkyVS = shaders->CreateVertexShader("!skybox.vs", DX11::GetSkyVertexDesc(), DX11::NumberOfSkyVertexElements());
+		   idObjSkyPS = Shaders().CreatePixelShader("!skybox.ps");
 
 		   instanceBuffer = DX11::CreateConstantBuffer<ObjectInstance>(device);
 
@@ -379,45 +398,40 @@ namespace ANON
 	   {
 		   DetachContext();
 
-		   for (auto& x : vertexShaders)
-		   {
-			   delete x;
-		   }
-
-		   for (auto& x : pixelShaders)
-		   {
-			   delete x;
-		   }
-
-		   for (auto& x : geometryShaders)
-		   {
-			   delete x;
-		   }
-
 		   for (auto& s : samplers)
 		   {
 			   if (s) s->Release();
 		   }
 	   }
 
-	   IGuiResources& Gui()
+	   IGuiResources& Gui() override
 	   {
 		   return gui->Gui();
 	   }
 
-	   IMaterials& Materials()
+	   IMaterials& Materials() override
 	   {
 		   return *materials;
 	   }
 
-	   ITextureManager& Textures()
+	   ITextureManager& Textures() override
 	   {
 		   return *textureManager;
 	   }
 
-	   IMeshes& Meshes()
+	   IMeshes& Meshes() override
 	   {
 		   return *meshes;
+	   }
+
+	   IShaders& Shaders() override
+	   {
+		   return *shaders;
+	   }
+
+	   IDX11Shaders& DX11Shaders() override
+	   {
+		   return *shaders;
 	   }
 
 	   void AddFog(const ParticleVertex& p) override
@@ -465,6 +479,11 @@ namespace ANON
 		   samplers[index] = sampler;
 	   }
 
+	   bool UseShaders(ID_VERTEX_SHADER vid, ID_PIXEL_SHADER pid) override
+	   {
+		   return shaders->UseShaders(vid, pid);
+	   }
+
 	   ID_CUBE_TEXTURE CreateCubeTexture(cstr path, cstr extension)
 	   {
 		   return cubeTextures->CreateCubeTexture(textureManager->Loader(), path, extension);
@@ -508,7 +527,8 @@ namespace ANON
 		   visitor.ShowString("Renderer", "DirectX 11.1 Rococo MPLAT - Release");
 #endif
 		   visitor.ShowString("Screen Span", "%d x %d pixels", screenSpan.x, screenSpan.y);
-		   visitor.ShowString("Last error", "%s", *lastError ? lastError : "- none -");
+
+		   shaders->ShowVenue(visitor);
 
 		   ShowVenueForDevice(visitor, device);
 
@@ -551,80 +571,6 @@ namespace ANON
 	   {
 		   visitor.ShowString("IsFullScreen", isFullScreen ? "TRUE" : "FALSE");
 		   DX11::ShowWindowVenue(window, visitor);
-	   }
-
-	   void UpdatePixelShader(cstr pingPath) override
-	   {
-		   for (auto& i : pixelShaders)
-		   {
-			   if (Eq(pingPath, i->name.c_str()))
-			   {
-				   if (!i->ps)
-				   {
-					   lastError[0] = 0;
-				   }
-
-				   i->ps = nullptr;
-				   installation.LoadResource(pingPath, *scratchBuffer, 64_kilobytes);
-				   HRESULT hr = device.CreatePixelShader(scratchBuffer->GetData(), scratchBuffer->Length(), nullptr, &i->ps);
-				   if FAILED(hr)
-				   {
-					   SafeFormat(lastError, "device.CreatePixelShader for %s returned 0x%X", pingPath, hr);
-				   }
-				   break;
-			   }
-		   }
-	   }
-
-	   char lastError[256] = { 0 };
-
-	   void UpdateVertexShader(cstr pingPath) override
-	   {
-		   for (auto& i : vertexShaders)
-		   {
-			   if (Eq(pingPath, i->name.c_str()))
-			   {
-				   if (!i->vs)
-				   {
-					   lastError[0] = 0;
-				   }
-
-				   i->vs = nullptr;
-				   i->inputLayout = nullptr;
-				   installation.LoadResource(pingPath, *scratchBuffer, 64_kilobytes);
-
-				   const D3D11_INPUT_ELEMENT_DESC *elements = nullptr;
-				   uint32 nElements;
-
-				   if (Eq(pingPath, "!gui.vs"))
-				   {
-					   elements = DX11::GetGuiVertexDesc();
-					   nElements = DX11::NumberOfGuiVertexElements();
-				   }
-				   else
-				   {
-					   elements = DX11::GetObjectVertexDesc();
-					   nElements = DX11::NumberOfObjectVertexElements();
-				   }
-
-				   HRESULT hr = device.CreateInputLayout(elements, nElements, scratchBuffer->GetData(), scratchBuffer->Length(), &i->inputLayout);
-				   if SUCCEEDED(hr)
-				   {
-					   hr = device.CreateVertexShader(scratchBuffer->GetData(), scratchBuffer->Length(), nullptr, &i->vs);
-					   if FAILED(hr)
-					   {
-						   SafeFormat(lastError, sizeof(lastError), "device.CreateVertexShader for %s returned 0x%X", pingPath, hr);
-						   i->inputLayout = nullptr;
-					   }
-				   }
-				   else
-				   {
-					   i->inputLayout = nullptr;
-					   SafeFormat(lastError, sizeof(lastError), "device.CreateInputLayout for %s returned 0x%X", pingPath, hr);
-				   }
-				   break;
-			   }
-		   }
 	   }
 
 	   void Free()
@@ -740,171 +686,6 @@ namespace ANON
 		   ExpandViewportToEntireTexture(mainDepthBufferId);
 	   }
 
-	   ID_VERTEX_SHADER CreateVertexShader(cstr name, const byte* shaderCode, size_t shaderLength, const D3D11_INPUT_ELEMENT_DESC* vertexDesc, UINT nElements)
-	   {
-		   if (name == nullptr || rlen(name) > 1024) Throw(0, "Bad <name> for vertex shader");
-		   if (shaderCode == nullptr || shaderLength < 4 || shaderLength > 65536) Throw(0, "Bad shader code for vertex shader %s", name);
-
-		   DX11VertexShader* shader = new DX11VertexShader;
-		   HRESULT hr;
-		   
-		   try
-		   {
-			   hr = device.CreateInputLayout(vertexDesc, nElements, shaderCode, shaderLength, &shader->inputLayout);
-		   }
-		   catch (_com_error& e)
-		   {
-			   const wchar_t* msg = e.ErrorMessage();
-			   Throw(e.Error(), "device.CreateInputLayout failed for shader %s: %ls. %s\n", name, msg, (cstr) e.Description());
-		   }
-
-		   if FAILED(hr)
-		   {
-			   delete shader;
-			   Throw(hr, "device.CreateInputLayout failed with shader %s", name);
-			   return ID_VERTEX_SHADER();
-		   }
-
-		   hr = device.CreateVertexShader(shaderCode, shaderLength, nullptr, &shader->vs);
-		   if FAILED(hr)
-		   {
-			   delete shader;
-			   Throw(hr, "device.CreateVertexShader failed with shader %s", name);
-			   return ID_VERTEX_SHADER::Invalid();
-		   }
-
-		   shader->name = name;
-		   vertexShaders.push_back(shader);
-		   return ID_VERTEX_SHADER(vertexShaders.size() - 1);
-	   }
-
-	   ID_VERTEX_SHADER CreateVertexShader(cstr pingPath, const D3D11_INPUT_ELEMENT_DESC* vertexDesc, UINT nElements) override
-	   {
-		   installation.LoadResource(pingPath, *scratchBuffer, 64_kilobytes);
-		   return CreateVertexShader(pingPath, scratchBuffer->GetData(), scratchBuffer->Length(), vertexDesc, nElements);
-	   }
-
-	   virtual ID_VERTEX_SHADER CreateObjectVertexShader(cstr pingPath)
-	   {
-		   installation.LoadResource(pingPath, *scratchBuffer, 64_kilobytes);
-		   return CreateVertexShader(pingPath, scratchBuffer->GetData(), scratchBuffer->Length(), DX11::GetObjectVertexDesc(), DX11::NumberOfObjectVertexElements());
-	   }
-
-	   virtual ID_VERTEX_SHADER CreateParticleVertexShader(cstr pingPath)
-	   {
-		   installation.LoadResource(pingPath, *scratchBuffer, 64_kilobytes);
-		   return CreateVertexShader(pingPath, scratchBuffer->GetData(), scratchBuffer->Length(), DX11::GetParticleVertexDesc(), DX11::NumberOfParticleVertexElements());
-	   }
-
-	   ID_PIXEL_SHADER CreatePixelShader(cstr name, const byte* shaderCode, size_t shaderLength)
-	   {
-		   if (name == nullptr || rlen(name) > 1024) Throw(0, "Bad <name> for pixel shader");
-		   if (shaderCode == nullptr || shaderLength < 4 || shaderLength > 65536) Throw(0, "Bad shader code for pixel shader %s", name);
-
-		   DX11PixelShader* shader = new DX11PixelShader;
-		   HRESULT hr = device.CreatePixelShader(shaderCode, shaderLength, nullptr, &shader->ps);
-		   if FAILED(hr)
-		   {
-			   delete shader;
-			   Throw(hr, "device.CreatePixelShader failed with shader %s", name);
-			   return ID_PIXEL_SHADER::Invalid();
-		   }
-
-		   shader->name = name;
-		   pixelShaders.push_back(shader);
-		   return ID_PIXEL_SHADER(pixelShaders.size() - 1);
-	   }
-
-	   ID_PIXEL_SHADER CreatePixelShader(cstr pingPath) override
-	   {
-		   installation.LoadResource(pingPath, *scratchBuffer, 64_kilobytes);
-		   return CreatePixelShader(pingPath, scratchBuffer->GetData(), scratchBuffer->Length());
-	   }
-
-	   ID_GEOMETRY_SHADER CreateGeometryShader(cstr pingPath)
-	   {
-		   if (pingPath == nullptr || rlen(pingPath) > 1024) Throw(0, "Bad <pingPath> for geometry shader");
-
-		   installation.LoadResource(pingPath, *scratchBuffer, 64_kilobytes);
-
-		   if (scratchBuffer->Length() == 0) Throw(0, "Bad shader code for geometry shader %s", pingPath);
-
-		   DX11GeometryShader* shader = new DX11GeometryShader;
-		   HRESULT hr = device.CreateGeometryShader(scratchBuffer->GetData(), scratchBuffer->Length(), nullptr, &shader->gs);
-		   if FAILED(hr)
-		   {
-			   delete shader;
-			   Throw(hr, "device.CreateGeometryShader failed with shader %s", pingPath);
-			   return ID_GEOMETRY_SHADER::Invalid();
-		   }
-
-		   shader->name = pingPath;
-		   geometryShaders.push_back(shader);
-		   return ID_GEOMETRY_SHADER(geometryShaders.size() - 1);
-	   }
-
-	   ID_PIXEL_SHADER currentPixelShaderId;
-	   ID_VERTEX_SHADER currentVertexShaderId;
-
-	   bool UseGeometryShader(ID_GEOMETRY_SHADER gid)
-	   {
-		   if (!gid)
-		   {
-			   dc.GSSetShader(nullptr, nullptr, 0);
-			   return true;
-		   }
-
-		   if (gid.value >= geometryShaders.size()) Throw(0, "Bad shader Id in call to UseGeometryShader");
-
-		   auto& gs = *geometryShaders[gid.value];
-		   if (gs.gs == nullptr)
-		   {
-			   Throw(0, "Geometry Shader null for %s", gs.name.c_str());
-		   }
-
-		   dc.GSSetShader(gs.gs, nullptr, 0);
-
-		   return true;
-	   }
-
-	   bool UseShaders(ID_VERTEX_SHADER vid, ID_PIXEL_SHADER pid) override
-	   {
-		   if (vid.value >= vertexShaders.size()) Throw(0, "Bad vertex shader Id in call to UseShaders");
-		   if (pid.value >= pixelShaders.size()) Throw(0, "Bad pixel shader Id in call to UseShaders");
-
-		   auto& vs = *vertexShaders[vid.value];
-		   auto& ps = *pixelShaders[pid.value];
-
-		   if (vs.vs == nullptr)
-		   {
-			   Throw(0, "Vertex Shader null for %s", vs.name.c_str());
-		   }
-
-		   if (ps.ps == nullptr)
-		   {
-			   Throw(0, "Pixel Shader null for %s", ps.name.c_str());
-		   }
-
-		   if (vs.vs == nullptr || ps.ps == nullptr)
-		   {
-			   dc.IASetInputLayout(nullptr);
-			   dc.VSSetShader(nullptr, nullptr, 0);
-			   dc.PSSetShader(nullptr, nullptr, 0);
-			   currentVertexShaderId = ID_VERTEX_SHADER();
-			   currentPixelShaderId = ID_PIXEL_SHADER();
-			   return false;
-		   }
-		   else
-		   {
-			   dc.IASetInputLayout(vs.inputLayout);
-			   dc.VSSetShader(vs.vs, nullptr, 0);
-			   dc.PSSetShader(ps.ps, nullptr, 0);
-			   currentVertexShaderId = vid;
-			   currentPixelShaderId = pid;
-			   return true;
-		   }
-	   }
-
 	   void DetachContext()
 	   {
 		   for (UINT i = 0; i < 10; ++i)
@@ -971,110 +752,6 @@ namespace ANON
 
 		   metrics.cursorPosition = Vec2i{ p.x, p.y };
 		   metrics.screenSpan = screenSpan;
-	   }
-
-	   void SetSpecialAmbientShader(ID_SYS_MESH id, cstr vs, cstr ps, bool alphaBlending) override
-	   {
-		   auto& m = meshes->GetBuffer(id);
-		  		   
-		   auto i = nameToPixelShader.find(ps);
-		   if (i == nameToPixelShader.end())
-		   {
-			   ID_PIXEL_SHADER pxId;
-			   if (ps == nullptr || *ps == 0)
-			   {
-				   pxId = ID_PIXEL_SHADER::Invalid();
-			   }
-			   else
-			   {
-				   installation.LoadResource(ps, *scratchBuffer, 64_kilobytes);
-				   pxId = CreatePixelShader(ps, scratchBuffer->GetData(), scratchBuffer->Length());
-			   }
-
-			   i = nameToPixelShader.insert(ps, pxId).first;
-		   }
-
-		   m.psAmbientShader = i->second;
-		   
-		   auto j = nameToVertexShader.find(vs);
-		   if (j == nameToVertexShader.end())
-		   {
-			   ID_VERTEX_SHADER vxId;
-			   if (vs == nullptr || *vs == 0)
-			   {
-				   vxId = ID_VERTEX_SHADER::Invalid();
-			   }
-			   else
-			   {
-				   installation.LoadResource(vs, *scratchBuffer, 64_kilobytes);
-
-				   if (strstr(vs, "skinned"))
-				   {
-					   vxId = CreateVertexShader(vs, scratchBuffer->GetData(), scratchBuffer->Length(), DX11::GetSkinnedObjectVertexDesc(), DX11::NumberOfSkinnedObjectVertexElements());
-				   }
-				   else
-				   {
-					   vxId = CreateVertexShader(vs, scratchBuffer->GetData(), scratchBuffer->Length(), DX11::GetObjectVertexDesc(), DX11::NumberOfObjectVertexElements());
-				   }
-			   }
-
-			   j = nameToVertexShader.insert(vs, vxId).first;
-		   }
-
-		   m.vsAmbientShader = j->second;
-		   m.alphaBlending = alphaBlending;
-	   }
-
-	   void SetSpecialSpotlightShader(ID_SYS_MESH id, cstr vs, cstr ps, bool alphaBlending) override
-	   {
-		   auto& m = meshes->GetBuffer(id);
-		
-		   auto i = nameToPixelShader.find(ps);
-		   if (i == nameToPixelShader.end())
-		   {
-			   ID_PIXEL_SHADER pxId;
-			   if (ps == nullptr || *ps == 0)
-			   {
-				   pxId = ID_PIXEL_SHADER::Invalid();
-			   }
-			   else
-			   {
-				   installation.LoadResource(ps, *scratchBuffer, 64_kilobytes);
-				   pxId = CreatePixelShader(ps, scratchBuffer->GetData(), scratchBuffer->Length());
-			   }
-
-			   i = nameToPixelShader.insert(ps, pxId).first;
-		   }
-
-		   m.psSpotlightShader = i->second;
-
-		   auto j = nameToVertexShader.find(vs);
-		   if (j == nameToVertexShader.end())
-		   {
-			   ID_VERTEX_SHADER vxId;
-			   if (vs == nullptr || *vs == 0)
-			   {
-				   vxId = ID_VERTEX_SHADER::Invalid();
-			   }
-			   else
-			   {
-				   installation.LoadResource(vs, *scratchBuffer, 64_kilobytes);
-
-				   if (strstr(vs, "skinned"))
-				   {
-					   vxId = CreateVertexShader(vs, scratchBuffer->GetData(), scratchBuffer->Length(), DX11::GetSkinnedObjectVertexDesc(), DX11::NumberOfSkinnedObjectVertexElements());
-				   }
-				   else
-				   {
-					   vxId = CreateVertexShader(vs, scratchBuffer->GetData(), scratchBuffer->Length(), DX11::GetObjectVertexDesc(), DX11::NumberOfObjectVertexElements());
-				   }
-			   }
-
-			   j = nameToVertexShader.insert(vs, vxId).first;
-		   }
-
-		   m.vsSpotlightShader = j->second;
-		   m.alphaBlending = alphaBlending;
 	   }
 
 	   enum RenderPhase
@@ -1147,7 +824,7 @@ namespace ANON
 
 		   if (overrideShader)
 		   {
-			   UseShaders(currentVertexShaderId, currentPixelShaderId);	 
+			  // UseShaders(currentVertexShaderId, currentPixelShaderId);	 
 		   }
 		   
 		   if (m.alphaBlending)
@@ -1183,24 +860,13 @@ namespace ANON
 	   int64 presentCost = 0;
 	   int64 frameTime = 0;
 
-	   ID_PIXEL_SHADER CreateNamedPixelShader(cstr pingPath) override
-	   {
-		   auto i = nameToPixelShader.find(pingPath);
-		   if (i == nameToPixelShader.end())
-		   {
-			   auto pxId = CreatePixelShader(pingPath);
-			   i = nameToPixelShader.insert(pingPath, pxId).first;
-		   }
-		   return i->second;
-	   }
-
 	   bool builtFirstPass = false;
 
 	   void RenderParticles(std::vector<ParticleVertex>& particles, ID_PIXEL_SHADER psID, ID_VERTEX_SHADER vsID, ID_GEOMETRY_SHADER gsID)
 	   {
 		   if (particles.empty()) return;
 		   if (!UseShaders(vsID, psID)) return;
-		   if (!UseGeometryShader(gsID)) return;
+		   if (!Shaders().UseGeometryShader(gsID)) return;
 
 		   dc.IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
 		   dc.RSSetState(particleRasterizering);
@@ -1227,7 +893,7 @@ namespace ANON
 			   qSize -= chunkSize;
 		   }
 
-		   UseGeometryShader(ID_GEOMETRY_SHADER::Invalid());
+		   Shaders().UseGeometryShader(ID_GEOMETRY_SHADER::Invalid());
 	   }
 
 	   Graphics::RenderPhaseConfig phaseConfig;

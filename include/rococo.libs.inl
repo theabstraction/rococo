@@ -1,7 +1,6 @@
-#ifndef ROCOCO_LIBS_H
-# define ROCOCO_LIBS_H
-# ifdef _WIN32
+#pragma once
 
+#ifdef _WIN32
 # ifdef _DEBUG
 #  pragma comment(lib, "rococo.windows.debug.lib")
 #  pragma comment(lib, "rococo.util.debug.lib")
@@ -14,6 +13,7 @@
 #  pragma comment(lib, "sexy.s-parser.Debug.lib")
 #  pragma comment(lib, "sexy.util.Debug.lib")
 #  pragma comment(lib, "sexy.script.Debug.lib")
+#  pragma comment(lib, "rococo.util.ex.debug.lib")
 # else
 #  pragma comment(lib, "rococo.windows.lib")
 #  pragma comment(lib, "rococo.util.lib")
@@ -26,7 +26,6 @@
 #  pragma comment(lib, "sexy.s-parser.Release.lib")
 #  pragma comment(lib, "sexy.util.Release.lib")
 #  pragma comment(lib, "sexy.script.Release.lib")
-# endif
-
+#  pragma comment(lib, "rococo.util.ex.lib")
 # endif
 #endif

@@ -148,6 +148,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{5F403F1A-5
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.sexy.cmd", "rococo.sexy.cmd\rococo.sexy.cmd.vcxproj", "{ADFBA7D0-FFED-4381-A476-0865400F51F6}"
 	ProjectSection(ProjectDependencies) = postProject
+		{608FC2FE-163D-4E32-B2D8-7E9CD10A80F6} = {608FC2FE-163D-4E32-B2D8-7E9CD10A80F6}
 		{C44956CA-B7BF-4928-B894-117DB23F15CB} = {C44956CA-B7BF-4928-B894-117DB23F15CB}
 	EndProjectSection
 EndProject

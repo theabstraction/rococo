@@ -27,11 +27,11 @@ namespace Rococo::DX11
 		virtual void LoadColourBitmapIntoAddress(cstr resourceName, IColourBitmapLoadEvent& onLoad) = 0;
 	};
 
+	struct IDX11Shaders;
+
 	struct IDX11ResourceLoader: Textures::ICompressedResourceLoader
 	{
-		virtual ID_PIXEL_SHADER CreateNamedPixelShader(cstr pingPath) = 0;
-		virtual ID_PIXEL_SHADER CreatePixelShader(cstr pingPath) = 0;
-		virtual ID_VERTEX_SHADER CreateVertexShader(cstr pingPath, const D3D11_INPUT_ELEMENT_DESC* vertexDesc, UINT nElements) = 0;
+		virtual IDX11Shaders& DX11Shaders() = 0;
 		virtual void LoadTextFile(cstr pingPath, Rococo::Function<void(const fstring& text)> callback) = 0;
 		virtual IInstallation& Installation() = 0;
 	};
@@ -188,4 +188,12 @@ namespace Rococo::DX11
 	};
 
 	IDX11Meshes* CreateMeshManager(ID3D11Device& device);
-}
+
+	ROCOCOAPI IDX11Shaders : IShaders
+	{
+		virtual ID_VERTEX_SHADER CreateVertexShader(cstr pingPath, const D3D11_INPUT_ELEMENT_DESC* vertexDesc, UINT nElements) = 0;
+		virtual void Free() = 0;
+	};
+
+	IDX11Shaders* CreateShaderManager(IInstallation& installation, ID3D11Device& device, ID3D11DeviceContext& dc);
+} // Rococo::DX11

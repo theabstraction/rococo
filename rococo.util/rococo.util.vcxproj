@@ -73,7 +73,7 @@
       </Command>
     </PreBuildEvent>
     <PostBuildEvent>
-      <Command>$(SolutionDir)build.prerequisites.debug.bat</Command>
+      <Command>..\build.prerequisites.debug.bat</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -100,14 +100,13 @@
       </Command>
     </PreBuildEvent>
     <PostBuildEvent>
-      <Command>$(SolutionDir)build.prerequisites.release.bat</Command>
+      <Command>..\build.prerequisites.release.bat</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="renderer.utils.cpp" />
     <ClCompile Include="rococo.allocators.cpp" />
     <ClCompile Include="rococo.base.cpp" />
     <ClCompile Include="rococo.heap.string.cpp" />

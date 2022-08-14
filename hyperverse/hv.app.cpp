@@ -373,12 +373,12 @@ namespace HV
 			else if (Eq(ext, ".ps"))
 			{
 				platform.gui.LogMessage("Updating pixel shader");
-				e.platform.renderer.UpdatePixelShader(pingname);
+				e.platform.renderer.Shaders().UpdatePixelShader(pingname);
 			}
 			else if (Eq(ext, ".vs"))
 			{
 				platform.gui.LogMessage("Updating vertex shader");
-				e.platform.renderer.UpdateVertexShader(pingname);
+				e.platform.renderer.Shaders().UpdateVertexShader(pingname);
 			}
 		}
 
