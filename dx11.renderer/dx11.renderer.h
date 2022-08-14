@@ -29,7 +29,18 @@ namespace Rococo::DX11
 
 	struct IDX11Shaders;
 
-	struct IDX11ResourceLoader: Textures::ICompressedResourceLoader
+	struct RenderTarget
+	{
+		ID3D11RenderTargetView* renderTargetView;
+		ID3D11DepthStencilView* depthView;
+	};
+
+	ROCOCOAPI IDX11RenderTarget
+	{
+		virtual RenderTarget GetRenderTarget(ID_TEXTURE depthId, ID_TEXTURE colourBufferId) = 0;
+	};
+
+	ROCOCOAPI IDX11ResourceLoader: Textures::ICompressedResourceLoader
 	{
 		virtual IDX11Shaders& DX11Shaders() = 0;
 		virtual void LoadTextFile(cstr pingPath, Rococo::Function<void(const fstring& text)> callback) = 0;
@@ -144,6 +155,18 @@ namespace Rococo::DX11
 
 	IDX11Materials* CreateMaterials(IInstallation& installation, ID3D11Device& device, ID3D11DeviceContext& dc);
 
+	struct TextureDescState
+	{
+		float width;
+		float height;
+		float inverseWidth;
+		float inverseHeight;
+		float redActive;
+		float greenActive;
+		float blueActive;
+		float alphaActive;
+	};
+
 	class TextureLoader : public IDX11TextureLoader
 	{
 		IInstallation& installation;
@@ -156,6 +179,16 @@ namespace Rococo::DX11
 		TextureBind LoadAlphaBitmap(cstr resourceName);
 		TextureBind LoadColourBitmap(cstr resourceName);
 		void LoadColourBitmapIntoAddress(cstr resourceName, IColourBitmapLoadEvent& onLoad);
+	};
+
+	ROCOCOAPI IDX11Renderer : IRenderer
+	{
+		virtual void AssignGlobalStateBufferToShaders() = 0;
+		virtual ID3D11RenderTargetView* BackBuffer() = 0;
+		virtual IDX11CubeTextures& CubeTextures() = 0;
+		virtual void RenderGui(IScene& scene) = 0;
+		virtual void RestoreSamplers() = 0;
+		virtual void InitFontAndMaterialAndSpriteShaderResourceViewsAndSamplers() = 0;
 	};
 
 	ROCOCOAPI IDX11TextureManager: ITextureManager
@@ -196,4 +229,21 @@ namespace Rococo::DX11
 	};
 
 	IDX11Shaders* CreateShaderManager(IInstallation& installation, ID3D11Device& device, ID3D11DeviceContext& dc);
+
+	ROCOCOAPI IDX11Pipeline
+	{
+		virtual void AddFog(const ParticleVertex& p) = 0;
+		virtual void AddPlasma(const ParticleVertex& p) = 0;
+		virtual void ClearPlasma() = 0;
+		virtual void ClearFog() = 0;
+		virtual void Draw(MeshBuffer& m, const ObjectInstance* instances, uint32 nInstances) = 0;
+		virtual void DrawParticles(const ParticleVertex* particles, size_t nParticles, ID_PIXEL_SHADER psID, ID_VERTEX_SHADER vsID, ID_GEOMETRY_SHADER gsID) = 0;
+		virtual bool IsGuiReady() const = 0;
+		virtual void Free() = 0;
+		virtual void Render(Graphics::ENVIRONMENTAL_MAP envMap, IScene& scene, const VertexTriangle* gui3DTriangles, size_t nTriangles) = 0;
+		virtual void SetupSpotlightConstants() = 0;
+		virtual void ShowVenue(IMathsVisitor& visitor) = 0;
+	};
+
+	IDX11Pipeline* CreateDX11Pipeline(IInstallation& installation, IDX11Shaders& shaders, IDX11TextureManager& textures, IDX11Meshes& meshes, IDX11Renderer& renderer, IRenderContext& rc, ID3D11Device& device, ID3D11DeviceContext& dc);
 } // Rococo::DX11

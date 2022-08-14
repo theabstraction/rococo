@@ -477,9 +477,11 @@ namespace Rococo
 		virtual IShaders& Shaders() = 0;
 		virtual void AddFog(const ParticleVertex& fog) = 0;
 		virtual void AddPlasma(const ParticleVertex& p) = 0;
+		virtual void ExpandViewportToEntireTexture(ID_TEXTURE depthId) = 0;
 		virtual void CaptureMouse(bool enable) = 0;
 		virtual void ClearFog() = 0;
 		virtual void ClearPlasma() = 0;
+		virtual ID_TEXTURE GetMainDepthBufferId() const = 0;
 		virtual ID_CUBE_TEXTURE CreateCubeTexture(cstr path, cstr extension) = 0;
 		virtual void SetSysCursor(EWindowCursor id) = 0;
 		virtual IInstallation& Installation() = 0;
@@ -495,6 +497,7 @@ namespace Rococo
 		virtual void SyncCubeTexture(int32 XMaxFace, int32 XMinFace, int32 YMaxFace, int32 YMinFace, int32 ZMaxFace, int32 ZMinFace) = 0;
 		virtual void SwitchToWindowMode() = 0;
 		virtual IMathsVenue* TextureVenue() = 0;
+		virtual void UpdateGlobalState(IScene& scene) = 0;
 		virtual ID_TEXTURE LoadAlphaTextureArray(cstr uniqueName, Vec2i span, int nElements, ITextureLoadEnumerator& enumerator) = 0;
 		virtual Windows::IWindow& Window() = 0;
 		virtual IMathsVenue* Venue() = 0;

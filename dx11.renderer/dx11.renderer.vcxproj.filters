@@ -180,6 +180,9 @@
     <ClCompile Include="dx11.shaders.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
+    <ClCompile Include="dx11.pipeline.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="rococo.dx11.api.h">

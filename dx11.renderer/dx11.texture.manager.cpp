@@ -30,6 +30,7 @@ struct DX11TextureManager : IDX11TextureManager
 	stringmap<ID_TEXTURE> nameToGenericTextureId;
 	std::vector<TextureItem> orderedTextureList;
 	std::unordered_map<ID_TEXTURE, IDX11TextureArray*, ID_TEXTURE> genericTextureArray;
+	TextureBind backBuffer;
 
 	DX11TextureManager(IInstallation& installation, ID3D11Device& _device, ID3D11DeviceContext& _dc):
 		device(_device),

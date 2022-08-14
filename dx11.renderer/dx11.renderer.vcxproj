@@ -118,6 +118,7 @@
     <ClCompile Include="dx11.materials.cpp" />
     <ClCompile Include="dx11.meshes.cpp" />
     <ClCompile Include="dx11.overlays.cpp" />
+    <ClCompile Include="dx11.pipeline.cpp" />
     <ClCompile Include="dx11.samplers.cpp" />
     <ClCompile Include="dx11.shaders.cpp" />
     <ClCompile Include="dx11.texture.array.cpp" />
