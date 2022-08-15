@@ -16,7 +16,7 @@ struct AmbientData
 	float c = 0;
 };
 
-struct DX11Pipeline: IDX11Pipeline
+struct DX11Pipeline: IDX11Pipeline, IGui3D
 {
 	IInstallation& installation;
 	ID3D11Device& device;
@@ -171,6 +171,24 @@ struct DX11Pipeline: IDX11Pipeline
 	virtual ~DX11Pipeline()
 	{
 
+	}
+
+	IGui3D& Gui3D() override
+	{
+		return *this;
+	}
+
+	void Add3DGuiTriangles(const VertexTriangle* first, const VertexTriangle* last)
+	{
+		for (auto i = first; i != last; ++i)
+		{
+			gui3DTriangles.push_back(*i);
+		}
+	}
+
+	void Clear3DGuiTriangles()
+	{
+		gui3DTriangles.clear();
 	}
 
 	void AddFog(const ParticleVertex& p) override
@@ -399,7 +417,7 @@ struct DX11Pipeline: IDX11Pipeline
 
 	Light ambientLight = { 0 };
 
-	void RenderAmbient(IShaders& shaders, IRenderContext& rc, IScene& scene, const Light& ambientLight, const VertexTriangle* gui3DTriangles, size_t nTriangles)
+	void RenderAmbient(IShaders& shaders, IRenderContext& rc, IScene& scene, const Light& ambientLight)
 	{
 		phase = RenderPhase_DetermineAmbient;
 
@@ -427,7 +445,7 @@ struct DX11Pipeline: IDX11Pipeline
 
 			scene.RenderObjects(rc, false);
 			scene.RenderObjects(rc, true);
-			Render3DGui(gui3DTriangles, nTriangles);
+			Render3DGui(gui3DTriangles.data(), gui3DTriangles.size());
 
 			dc.OMSetBlendState(alphaAdditiveBlend, blendFactorUnused, 0xffffffff);
 			DrawParticles(fog.data(), fog.size(), idFogAmbientPS, idParticleVS, idFogAmbientGS);
@@ -509,7 +527,7 @@ struct DX11Pipeline: IDX11Pipeline
 		dc.GSSetConstantBuffers(CBUFFER_INDEX_CURRENT_SPOTLIGHT, 1, &lightStateBuffer);
 	}
 
-	void RenderSpotlightLitScene(const Light& lightSubset, IScene& scene, const VertexTriangle* gui3DTriangles, size_t nTriangles)
+	void RenderSpotlightLitScene(const Light& lightSubset, IScene& scene)
 	{
 		Light light = lightSubset;
 
@@ -567,7 +585,7 @@ struct DX11Pipeline: IDX11Pipeline
 			scene.RenderObjects(rc, false);
 			scene.RenderObjects(rc, true);
 
-			Render3DGui(gui3DTriangles, nTriangles);
+			Render3DGui(gui3DTriangles.data(), gui3DTriangles.size());
 
 			dc.OMSetBlendState(alphaAdditiveBlend, blendFactorUnused, 0xffffffff);
 			DrawParticles(fog.data(), fog.size(), idFogSpotlightPS, idParticleVS, idFogSpotlightGS);
@@ -608,7 +626,7 @@ struct DX11Pipeline: IDX11Pipeline
 
 	OS::ticks objCost = 0;
 
-	void Render3DObjects(IScene& scene, const VertexTriangle* gui3DTriangles, size_t nTriangles)
+	void Render3DObjects(IScene& scene)
 	{
 		auto now = OS::CpuTicks();
 
@@ -625,7 +643,7 @@ struct DX11Pipeline: IDX11Pipeline
 			{
 				try
 				{
-					RenderSpotlightLitScene(lights[i], scene, gui3DTriangles, nTriangles);
+					RenderSpotlightLitScene(lights[i], scene);
 				}
 				catch (IException& ex)
 				{
@@ -633,7 +651,7 @@ struct DX11Pipeline: IDX11Pipeline
 				}
 			}
 
-			RenderAmbient(shaders, rc, scene, lights[0], gui3DTriangles, nTriangles);
+			RenderAmbient(shaders, rc, scene, lights[0]);
 		}
 
 		objCost = OS::CpuTicks() - now;
@@ -682,7 +700,7 @@ struct DX11Pipeline: IDX11Pipeline
 		}
 	}
 
-	void Render(Graphics::ENVIRONMENTAL_MAP envMap, IScene& scene, const VertexTriangle* gui3DTriangles, size_t nTriangles) override
+	void Render(Graphics::ENVIRONMENTAL_MAP envMap, IScene& scene) override
 	{
 		phaseConfig.EnvironmentalMap = envMap;
 		phaseConfig.shadowBuffer = shadowBufferId;
@@ -711,7 +729,7 @@ struct DX11Pipeline: IDX11Pipeline
 
 		renderer.InitFontAndMaterialAndSpriteShaderResourceViewsAndSamplers();
 
-		Render3DObjects(scene, gui3DTriangles, nTriangles);
+		Render3DObjects(scene);
 
 		FLOAT blendFactorUnused[] = { 0,0,0,0 };
 		dc.OMSetBlendState(plasmaBlend, blendFactorUnused, 0xffffffff);

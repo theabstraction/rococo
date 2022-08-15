@@ -80,26 +80,11 @@ namespace ANON
 
 	   AutoRelease<ID3D11ShaderResourceView> envMap;
 
-	   std::vector<VertexTriangle> gui3DTriangles;
-
 	   AutoFree<IDX11Pipeline> pipeline;
 
 	   AutoRelease<ID3D11Buffer> textureDescBuffer;
 	   AutoRelease<ID3D11Buffer> globalStateBuffer;
 	   AutoRelease<ID3D11Buffer> sunlightStateBuffer;
-
-	   void Add3DGuiTriangles(const VertexTriangle* first, const VertexTriangle* last)
-	   {
-		   for (auto i = first; i != last; ++i)
-		   {
-			   gui3DTriangles.push_back(*i);
-		   }
-	   }
-
-	   void Clear3DGuiTriangles()
-	   {
-		   gui3DTriangles.clear();
-	   }
 
 	   ID_TEXTURE lastTextureId;
 
@@ -270,6 +255,11 @@ namespace ANON
 	   IDX11Shaders& DX11Shaders() override
 	   {
 		   return *shaders;
+	   }
+
+	   IGui3D& Gui3D() override
+	   {
+		   return pipeline->Gui3D();
 	   }
 
 	   void CaptureMouse(bool enable) override
@@ -713,7 +703,7 @@ namespace ANON
 		   auto now = OS::CpuTicks();
 		   AIcost = now - lastTick;
 
-		   pipeline->Render(envMap, scene, gui3DTriangles.data(), gui3DTriangles.size());
+		   pipeline->Render(envMap, scene);
 
 		   RenderGui(scene);
 

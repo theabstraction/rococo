@@ -83,7 +83,7 @@ namespace
 
 	  void RenderShadowPass(const DepthRenderData& drd, IRenderContext& rc, bool skinned) override
 	  {
-		  rc.Clear3DGuiTriangles();
+		  rc.Gui3D().Clear3DGuiTriangles();
 
 		  if (populator)
 		  {

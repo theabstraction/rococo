@@ -22,7 +22,7 @@ namespace
 		rod.AddTube(0.3_metres, 0.01_metres, 0.01_metres, 3);
 		rod.AddPyramid(0.05_metres, { -0.01f, 0.01f }, { 0.01f, 0.01f }, { 0.01f, -0.01f }, { -0.01f, -0.01f });
 		rod.TransformVertices(model);
-		rc.Add3DGuiTriangles(rod.begin(), rod.end());
+		rc.Gui3D().Add3DGuiTriangles(rod.begin(), rod.end());
 		rod.Clear();
 	}
 
@@ -67,7 +67,7 @@ namespace
 
 			rod.AddTube(bone.Length(), 0.05_metres, 0.05_metres, 8);
 			rod.TransformVertices(model);
-			rc.Add3DGuiTriangles(rod.begin(), rod.end());
+			rc.Gui3D().Add3DGuiTriangles(rod.begin(), rod.end());
 			rod.Clear();
 		}
 	}
