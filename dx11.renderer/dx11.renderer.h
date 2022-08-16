@@ -247,4 +247,16 @@ namespace Rococo::DX11
 	};
 
 	IDX11Pipeline* CreateDX11Pipeline(IInstallation& installation, IDX11Shaders& shaders, IDX11TextureManager& textures, IDX11Meshes& meshes, IDX11Renderer& renderer, IRenderContext& rc, ID3D11Device& device, ID3D11DeviceContext& dc);
+
+	ROCOCOAPI IDX11WindowBacking
+	{
+		virtual void Free() = 0;
+		virtual Vec2i Span() const = 0;
+		virtual Windows::IWindow& Window() = 0;
+		virtual ID_TEXTURE DepthBufferId() const = 0;
+		virtual void SwitchToWindowMode() = 0;
+		virtual void Present() = 0;
+	};
+
+	IDX11WindowBacking* CreateDX11WindowBacking(ID3D11Device& device, ID3D11DeviceContext& dc, HWND hWnd, IDXGIFactory& factory, IDX11TextureManager& textures);
 } // Rococo::DX11

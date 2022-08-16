@@ -59,6 +59,8 @@ namespace ANON
 	   AutoFree<IDX11Meshes> meshes;
 	   AutoFree<IDX11Shaders> shaders;
 
+	   IDX11WindowBacking* currentWindowBacking = nullptr;
+
 	   AutoRelease<IDXGISwapChain> mainSwapChain;
 	   AutoRelease<ID3D11RenderTargetView> mainBackBufferView;
 
@@ -88,6 +90,11 @@ namespace ANON
 	   ID_TEXTURE lastTextureId;
 
 	   AutoFree<IExpandingBuffer> scratchBuffer;
+
+	   void SetWindowBacking(IDX11WindowBacking* windowBacking)
+	   {
+		   currentWindowBacking = windowBacking;
+	   }
 	   
 	   void Load(cstr name, IEventCallback<CompressedTextureBuffer>& onLoad) override
 	   {
