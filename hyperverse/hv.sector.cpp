@@ -170,7 +170,7 @@ namespace
 		   int32 groundId   = (int32) nameToMaterial.find(GraphicsEx::BodyComponentMatClass_Floor)->second->mvd.materialId;
 		   int32 ceilingId  = (int32) nameToMaterial.find(GraphicsEx::BodyComponentMatClass_Ceiling)->second->mvd.materialId;
 
-		   platform.renderer.SyncCubeTexture(wallId, wallId, wallId, wallId, groundId, ceilingId);
+		   platform.renderer.CubeTextures().SyncCubeTexture(wallId, wallId, wallId, wallId, groundId, ceilingId);
 	   }
 
 	   const LightSpec* Lights(size_t& numberOfLights) const override

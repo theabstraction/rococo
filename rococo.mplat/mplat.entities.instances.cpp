@@ -259,7 +259,7 @@ namespace
 
 	  ID_CUBE_TEXTURE CreateCubeTexture(const fstring& folder, const fstring& extension) override
 	  {
-		  return renderer.CreateCubeTexture(folder, extension);
+		  return renderer.CubeTextures().CreateCubeTexture(folder, extension);
 	  }
 
       void ConcatenateModelMatrices(ID_ENTITY leafId, Matrix4x4& m) override

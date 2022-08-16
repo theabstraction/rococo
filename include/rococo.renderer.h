@@ -281,6 +281,14 @@ namespace Rococo
 		Vec4 aspect;
 	};
 
+	ROCOCOAPI IParticles
+	{
+		virtual void AddFog(const ParticleVertex & p) = 0;
+		void virtual AddPlasma(const ParticleVertex& p) = 0;
+		void virtual ClearPlasma() = 0;
+		void virtual ClearFog() = 0;
+	};
+
 	ROCOCOAPI IGui3D
 	{
 		virtual void Add3DGuiTriangles(const VertexTriangle * first, const VertexTriangle * last) = 0;
@@ -473,6 +481,12 @@ namespace Rococo
 		struct IHQFonts;
 	}
 
+	ROCOCOAPI ICubeTextures
+	{
+		virtual ID_CUBE_TEXTURE CreateCubeTexture(cstr path, cstr extension) = 0;
+		virtual void SyncCubeTexture(int32 XMaxFace, int32 XMinFace, int32 YMaxFace, int32 YMinFace, int32 ZMaxFace, int32 ZMinFace) = 0;
+	};
+
 	ROCOCOAPI IRenderer : IRendererMetrics
 	{
 		virtual IGuiResources& Gui() = 0;
@@ -480,14 +494,11 @@ namespace Rococo
 		virtual ITextureManager& Textures() = 0;
 		virtual IMeshes& Meshes() = 0;
 		virtual IShaders& Shaders() = 0;
-		virtual void AddFog(const ParticleVertex& fog) = 0;
-		virtual void AddPlasma(const ParticleVertex& p) = 0;
+		virtual IParticles& Particles() = 0;
+		virtual ICubeTextures& CubeTextures() = 0;
 		virtual void ExpandViewportToEntireTexture(ID_TEXTURE depthId) = 0;
 		virtual void CaptureMouse(bool enable) = 0;
-		virtual void ClearFog() = 0;
-		virtual void ClearPlasma() = 0;
-		virtual ID_TEXTURE GetMainDepthBufferId() const = 0;
-		virtual ID_CUBE_TEXTURE CreateCubeTexture(cstr path, cstr extension) = 0;
+		virtual ID_TEXTURE GetMainDepthBufferId() const = 0;		
 		virtual void SetSysCursor(EWindowCursor id) = 0;
 		virtual IInstallation& Installation() = 0;
 		virtual void OnSize(Vec2i span) = 0;
@@ -499,7 +510,6 @@ namespace Rococo
 		virtual void SetSpecialAmbientShader(ID_SYS_MESH id, cstr vs, cstr ps, bool alphaBlending) = 0;
 		virtual void SetSpecialSpotlightShader(ID_SYS_MESH id, cstr vs, cstr ps, bool alphaBlending) = 0;
 		virtual void ShowWindowVenue(IMathsVisitor& visitor) = 0;
-		virtual void SyncCubeTexture(int32 XMaxFace, int32 XMinFace, int32 YMaxFace, int32 YMinFace, int32 ZMaxFace, int32 ZMinFace) = 0;
 		virtual void SwitchToWindowMode() = 0;
 		virtual IMathsVenue* TextureVenue() = 0;
 		virtual void UpdateGlobalState(IScene& scene) = 0;

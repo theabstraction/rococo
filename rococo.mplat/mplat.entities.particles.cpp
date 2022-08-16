@@ -256,7 +256,7 @@ namespace ANON
 
 			for (auto& d : dust)
 			{
-				renderer.AddFog(d);
+				renderer.Particles().AddFog(d);
 			}
 		}
 	};
@@ -424,9 +424,11 @@ namespace ANON
 				AdvanceSimulation(dt);
 			}
 
+			auto& particles = renderer.Particles();
+
 			for (auto& fb : fire)
 			{
-				renderer.AddPlasma(fb.p);
+				particles.AddPlasma(fb.p);
 			}
 		}
 	};

@@ -185,7 +185,6 @@ namespace Rococo::DX11
 	{
 		virtual void AssignGlobalStateBufferToShaders() = 0;
 		virtual ID3D11RenderTargetView* BackBuffer() = 0;
-		virtual IDX11CubeTextures& CubeTextures() = 0;
 		virtual void RenderGui(IScene& scene) = 0;
 		virtual void RestoreSamplers() = 0;
 		virtual void InitFontAndMaterialAndSpriteShaderResourceViewsAndSamplers() = 0;
@@ -194,8 +193,12 @@ namespace Rococo::DX11
 	ROCOCOAPI IDX11TextureManager: ITextureManager
 	{
 		virtual void Free() = 0;
+		virtual ICubeTextures& CubeTextures() = 0;
+		virtual ID3D11ShaderResourceView* GetCubeShaderResourceView() = 0;
+		virtual ID3D11ShaderResourceView* GetShaderView(ID_CUBE_TEXTURE id) = 0;
 		virtual TextureBind& GetTexture(ID_TEXTURE id) = 0;
 		virtual IDX11TextureLoader& Loader() = 0;
+		virtual IDX11Materials& Materials() = 0;
 	};
 
 	IDX11TextureManager* CreateTextureManager(IInstallation& installation, ID3D11Device& device, ID3D11DeviceContext& dc);
@@ -232,10 +235,6 @@ namespace Rococo::DX11
 
 	ROCOCOAPI IDX11Pipeline
 	{
-		virtual void AddFog(const ParticleVertex& p) = 0;
-		virtual void AddPlasma(const ParticleVertex& p) = 0;
-		virtual void ClearPlasma() = 0;
-		virtual void ClearFog() = 0;
 		virtual void Draw(MeshBuffer& m, const ObjectInstance* instances, uint32 nInstances) = 0;
 		virtual void DrawParticles(const ParticleVertex* particles, size_t nParticles, ID_PIXEL_SHADER psID, ID_VERTEX_SHADER vsID, ID_GEOMETRY_SHADER gsID) = 0;
 		virtual bool IsGuiReady() const = 0;
@@ -244,6 +243,7 @@ namespace Rococo::DX11
 		virtual void SetupSpotlightConstants() = 0;
 		virtual void ShowVenue(IMathsVisitor& visitor) = 0;
 		virtual IGui3D& Gui3D() = 0;
+		virtual IParticles& Particles() = 0;
 	};
 
 	IDX11Pipeline* CreateDX11Pipeline(IInstallation& installation, IDX11Shaders& shaders, IDX11TextureManager& textures, IDX11Meshes& meshes, IDX11Renderer& renderer, IRenderContext& rc, ID3D11Device& device, ID3D11DeviceContext& dc);

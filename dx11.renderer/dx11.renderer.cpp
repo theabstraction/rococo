@@ -69,7 +69,6 @@ namespace ANON
 
 	   BoneMatrices boneMatrices = { 0 };
 	   AutoRelease<ID3D11Buffer> boneMatricesStateBuffer;
-	   AutoFree<IDX11Materials> materials;
 
 	   OS::ticks lastTick;
 
@@ -171,8 +170,6 @@ namespace ANON
 	   }
 
 	   ID3D11SamplerState* samplers[16] = { 0 };
-
-	   AutoFree<IDX11CubeTextures> cubeTextures;
    public:
 	   Windows::IWindow& window;
 	   bool isBuildingAlphaBlendedSprites{ false };
@@ -180,7 +177,6 @@ namespace ANON
 	   DX11AppRenderer(DX11::Factory& _factory, Windows::IWindow& _window) :
 		   installation(_factory.installation), 
 		   device(_factory.device), dc(_factory.dc), factory(_factory.factory),
-		   materials(CreateMaterials(installation, device, dc)),
 		   scratchBuffer(CreateExpandingBuffer(64_kilobytes)),
 		   window(_window),
 		   textureManager(CreateTextureManager(installation, device, dc)),
@@ -199,8 +195,6 @@ namespace ANON
 		   textureDescBuffer = DX11::CreateConstantBuffer<TextureDescState>(device);
 
 		   lastTick = OS::CpuTicks();
-		   
-		   cubeTextures = CreateCubeTextureManager(device, dc);
 
 		   globalStateBuffer = DX11::CreateConstantBuffer<GlobalState>(device);
 		   sunlightStateBuffer = DX11::CreateConstantBuffer<Vec4>(device);
@@ -234,7 +228,7 @@ namespace ANON
 
 	   IMaterials& Materials() override
 	   {
-		   return *materials;
+		   return textureManager->Materials();
 	   }
 
 	   ITextureManager& Textures() override
@@ -260,6 +254,11 @@ namespace ANON
 	   IGui3D& Gui3D() override
 	   {
 		   return pipeline->Gui3D();
+	   }
+
+	   ICubeTextures& CubeTextures() override
+	   {
+		   return textureManager->CubeTextures();
 	   }
 
 	   void CaptureMouse(bool enable) override
@@ -292,16 +291,6 @@ namespace ANON
 		   return shaders->UseShaders(vid, pid);
 	   }
 
-	   ID_CUBE_TEXTURE CreateCubeTexture(cstr path, cstr extension)
-	   {
-		   return cubeTextures->CreateCubeTexture(textureManager->Loader(), path, extension);
-	   }
-
-	   void SyncCubeTexture(int32 XMaxFace, int32 XMinFace, int32 YMaxFace, int32 YMinFace, int32 ZMaxFace, int32 ZMinFace) override
-	   {
-		   cubeTextures->SyncCubeTexture(XMaxFace, XMinFace, YMaxFace, YMinFace, ZMaxFace, ZMinFace, materials->Textures());
-	   }
-
 	   struct : IMathsVenue
 	   {
 		   DX11AppRenderer* This;
@@ -319,7 +308,7 @@ namespace ANON
 
 	   void ShowTextureVenue(IMathsVisitor& visitor)
 	   {
-		   materials->ShowVenue(visitor);
+		   textureManager->Materials().ShowVenue(visitor);
 	   }
 
 	   void SetShadowCasting(ID_SYS_MESH id, boolean32 isActive)
@@ -591,24 +580,9 @@ namespace ANON
 	   int64 presentCost = 0;
 	   int64 frameTime = 0;
 
-	   void AddFog(const ParticleVertex& fog)
+	   IParticles& Particles()
 	   {
-		   pipeline->AddFog(fog);
-	   }
-
-	   void AddPlasma(const ParticleVertex& p)
-	   {
-		   pipeline->AddPlasma(p);
-	   }
-
-	   void ClearPlasma() override
-	   {
-		   pipeline->ClearPlasma();
-	   }
-
-	   void ClearFog() override
-	   {
-		   pipeline->ClearFog();
+		   return pipeline->Particles();
 	   }
 
 	   void RenderGui(IScene& scene) override
@@ -636,18 +610,13 @@ namespace ANON
 		   dc.VSSetConstantBuffers(0, 1, &globalStateBuffer);
 	   }
 
-	   IDX11CubeTextures& CubeTextures()
-	   {
-		   return *cubeTextures;
-	   }
-
 	   void InitFontAndMaterialAndSpriteShaderResourceViewsAndSamplers()
 	   {
 		   dc.PSSetShaderResources(TXUNIT_FONT, 1, &fontBinding);
-		   auto* view = cubeTextures->ShaderResourceView();
+		   auto* view = textureManager->GetCubeShaderResourceView();
 		   dc.PSSetShaderResources(TXUNIT_ENV_MAP, 1, &view);
 
-		   ID3D11ShaderResourceView* materialViews[1] = { materials->Textures().View() };
+		   ID3D11ShaderResourceView* materialViews[1] = { textureManager->Materials().Textures().View()};
 		   dc.PSSetShaderResources(TXUNIT_MATERIALS, 1, materialViews);
 
 		   ID3D11ShaderResourceView* spriteviews[1] = { gui->SpriteView() };

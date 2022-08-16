@@ -16,7 +16,7 @@ struct AmbientData
 	float c = 0;
 };
 
-struct DX11Pipeline: IDX11Pipeline, IGui3D
+struct DX11Pipeline: IDX11Pipeline, IGui3D, IParticles
 {
 	IInstallation& installation;
 	ID3D11Device& device;
@@ -174,6 +174,11 @@ struct DX11Pipeline: IDX11Pipeline, IGui3D
 	}
 
 	IGui3D& Gui3D() override
+	{
+		return *this;
+	}
+
+	IParticles& Particles() override
 	{
 		return *this;
 	}
@@ -458,7 +463,7 @@ struct DX11Pipeline: IDX11Pipeline, IGui3D
 	{
 		ID_CUBE_TEXTURE cubeId = scene.GetSkyboxCubeId();
 
-		ID3D11ShaderResourceView* skyCubeTextureView = renderer.CubeTextures().GetShaderView(cubeId);
+		ID3D11ShaderResourceView* skyCubeTextureView = textures.GetShaderView(cubeId);
 		if (!skyCubeTextureView)
 		{
 			return;

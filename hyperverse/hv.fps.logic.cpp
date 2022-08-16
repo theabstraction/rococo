@@ -802,8 +802,8 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 			addToScene.OnEvent(VisibleSector{ *s.first });
 		}
 
-		platform.renderer.ClearPlasma();
-		platform.renderer.ClearFog();
+		platform.renderer.Particles().ClearPlasma();
+		platform.renderer.Particles().ClearFog();
 
 		struct :IEventCallback<const ID_ENTITY>
 		{

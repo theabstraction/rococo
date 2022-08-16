@@ -19,7 +19,7 @@ struct TextureItem
 	}
 };
 
-struct DX11TextureManager : IDX11TextureManager
+struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 {
 	ID3D11Device& device;
 	ID3D11DeviceContext& dc;
@@ -29,16 +29,50 @@ struct DX11TextureManager : IDX11TextureManager
 	stringmap<ID_TEXTURE> mapNameToTexture;
 	stringmap<ID_TEXTURE> nameToGenericTextureId;
 	std::vector<TextureItem> orderedTextureList;
+	AutoFree<IDX11CubeTextures> cubeTextures;
 	std::unordered_map<ID_TEXTURE, IDX11TextureArray*, ID_TEXTURE> genericTextureArray;
+	AutoFree<IDX11Materials> materials;
 	TextureBind backBuffer;
 
 	DX11TextureManager(IInstallation& installation, ID3D11Device& _device, ID3D11DeviceContext& _dc):
 		device(_device),
 		dc(_dc),
 		loadBuffer(CreateExpandingBuffer(256_kilobytes)),
-		textureLoader(installation, device, dc, *loadBuffer)
+		textureLoader(installation, device, dc, *loadBuffer),
+		cubeTextures(CreateCubeTextureManager(device, dc)),
+		materials(CreateMaterials(installation, device, dc))
 	{
 
+	}
+
+	IDX11Materials& Materials() override
+	{
+		return *materials;
+	}
+
+	ICubeTextures& CubeTextures() override
+	{
+		return *this;
+	}
+
+	ID_CUBE_TEXTURE CreateCubeTexture(cstr path, cstr extension) override
+	{
+		return cubeTextures->CreateCubeTexture(textureLoader, path, extension);
+	}
+
+	void SyncCubeTexture(int32 XMaxFace, int32 XMinFace, int32 YMaxFace, int32 YMinFace, int32 ZMaxFace, int32 ZMinFace) override
+	{
+		return cubeTextures->SyncCubeTexture(XMaxFace, XMinFace, YMaxFace, YMinFace, ZMaxFace, ZMinFace, materials->Textures());
+	}
+
+	ID3D11ShaderResourceView* GetShaderView(ID_CUBE_TEXTURE id)
+	{
+		return cubeTextures->GetShaderView(id);
+	}
+
+	ID3D11ShaderResourceView* GetCubeShaderResourceView()
+	{
+		return cubeTextures->ShaderResourceView();
 	}
 
 	int64 Size() const override
