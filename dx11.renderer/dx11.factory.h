@@ -25,7 +25,9 @@ namespace Rococo
 			IDX11Logger& logger;
 		};
 
-		IDX11GraphicsWindow* CreateDX11GraphicsWindow(Factory& factory, ATOM windowClass, const WindowSpec& spec);
-		Rococo::IRenderer* CreateDX11Renderer(Factory& factory, Windows::IWindow& window);
+		struct IDX11Renderer;
+
+		IDX11GraphicsWindow* CreateDX11GraphicsWindow(Factory& factory, Rococo::DX11::IDX11Renderer& renderer, ATOM windowClass, const WindowSpec& spec, bool linkedToDX11Controls);
+		IDX11Renderer* CreateDX11Renderer(Factory& factory);
 	}
 }

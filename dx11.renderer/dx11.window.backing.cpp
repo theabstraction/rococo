@@ -32,6 +32,11 @@ struct DX11WindowBacking: IDX11WindowBacking, Windows::IWindow
 		windowIndex = ++g_windowCount;
 	}
 
+	ID3D11RenderTargetView* BackBufferView() override
+	{
+		return mainBackBufferView;
+	}
+
 	ID_TEXTURE DepthBufferId() const override
 	{
 		return depthBufferId;
@@ -97,12 +102,14 @@ struct DX11WindowBacking: IDX11WindowBacking, Windows::IWindow
 		{
 			depthBufferId = textures.CreateDepthTarget(depthBufferName, newSpan.x, newSpan.y);
 		}
-
-		TextureBind& t = textures.GetTexture(depthBufferId);
-		t.depthView->Release();
-		t.shaderView->Release();
-		t.texture->Release();
-		t = CreateDepthTarget(device, newSpan.x, newSpan.y);
+		else
+		{
+			TextureBind& t = textures.GetTexture(depthBufferId);
+			t.depthView->Release();
+			t.shaderView->Release();
+			t.texture->Release();
+			t = CreateDepthTarget(device, newSpan.x, newSpan.y);
+		}
 
 		screenSpan = newSpan;
 	}
@@ -128,7 +135,7 @@ struct DX11WindowBacking: IDX11WindowBacking, Windows::IWindow
 
 namespace Rococo::DX11
 {
-	IDX11WindowBacking* CreateDX11WindowBacking(ID3D11Device& device, ID3D11DeviceContext& dc, HWND hWnd, IDXGIFactory& factory, IDX11TextureManager& textures)
+	IDX11WindowBacking* CreateDX11WindowBacking(ID3D11Device& device, ID3D11DeviceContext& dc, HWND hWnd, IDXGIFactory& factory, ITextureManager& textures)
 	{
 		return new DX11WindowBacking(device, dc, hWnd, factory, textures);
 	}

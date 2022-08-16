@@ -32,6 +32,7 @@ namespace Rococo
 		virtual IRenderer& Renderer() = 0;
 		virtual Windows::IWindow& Window() = 0;
 		virtual void CaptureEvents(IAppEventHandler* handler) = 0;
+		virtual void MakeRenderTarget() = 0;
 		virtual void Free() = 0;
 	};
 
@@ -86,7 +87,7 @@ namespace Rococo
 
 	ROCOCOAPI IDX11Factory
 	{
-		virtual IDX11GraphicsWindow* CreateDX11Window(const WindowSpec& ws) = 0;
+		virtual IDX11GraphicsWindow* CreateDX11Window(const WindowSpec& ws, bool linkedToDX11Controls) = 0;
 		virtual void Free() = 0;
 	};
 

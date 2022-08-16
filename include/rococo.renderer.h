@@ -501,7 +501,6 @@ namespace Rococo
 		virtual ID_TEXTURE GetMainDepthBufferId() const = 0;		
 		virtual void SetSysCursor(EWindowCursor id) = 0;
 		virtual IInstallation& Installation() = 0;
-		virtual void OnSize(Vec2i span) = 0;
 		virtual void Render(Graphics::ENVIRONMENTAL_MAP EnvironmentalMap, IScene& scene) = 0;
 		virtual void SetCursorBitmap(const Textures::BitmapLocation& sprite, Vec2i hotspotOffset) = 0;
 		virtual void SetCursorVisibility(bool isVisible) = 0;
@@ -516,7 +515,6 @@ namespace Rococo
 		virtual ID_TEXTURE LoadAlphaTextureArray(cstr uniqueName, Vec2i span, int nElements, ITextureLoadEnumerator& enumerator) = 0;
 		virtual Windows::IWindow& Window() = 0;
 		virtual IMathsVenue* Venue() = 0;
-		virtual void Free() = 0;
 	};
 
 	namespace Graphics

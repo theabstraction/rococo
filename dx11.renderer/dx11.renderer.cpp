@@ -61,9 +61,6 @@ namespace ANON
 
 	   IDX11WindowBacking* currentWindowBacking = nullptr;
 
-	   AutoRelease<IDXGISwapChain> mainSwapChain;
-	   AutoRelease<ID3D11RenderTargetView> mainBackBufferView;
-
 	   AutoFree<IDX11Gui> gui;
 
 	   AutoRelease<ID3D11Texture2D> fontTexture;
@@ -73,8 +70,6 @@ namespace ANON
 	   AutoRelease<ID3D11Buffer> boneMatricesStateBuffer;
 
 	   OS::ticks lastTick;
-
-	   ID_TEXTURE mainDepthBufferId;
 
 	   RAWMOUSE lastMouseEvent;
 	   Vec2i screenSpan;
@@ -91,7 +86,7 @@ namespace ANON
 
 	   AutoFree<IExpandingBuffer> scratchBuffer;
 
-	   void SetWindowBacking(IDX11WindowBacking* windowBacking)
+	   void SetWindowBacking(IDX11WindowBacking* windowBacking) override
 	   {
 		   currentWindowBacking = windowBacking;
 	   }
@@ -178,14 +173,12 @@ namespace ANON
 
 	   ID3D11SamplerState* samplers[16] = { 0 };
    public:
-	   Windows::IWindow& window;
 	   bool isBuildingAlphaBlendedSprites{ false };
 
-	   DX11AppRenderer(DX11::Factory& _factory, Windows::IWindow& _window) :
+	   DX11AppRenderer(DX11::Factory& _factory) :
 		   installation(_factory.installation), 
 		   device(_factory.device), dc(_factory.dc), factory(_factory.factory),
 		   scratchBuffer(CreateExpandingBuffer(64_kilobytes)),
-		   window(_window),
 		   textureManager(CreateTextureManager(installation, device, dc)),
 		   meshes(CreateMeshManager(device)),
 		   shaders(CreateShaderManager(installation, device, dc)),
@@ -270,7 +263,7 @@ namespace ANON
 
 	   void CaptureMouse(bool enable) override
 	   {
-		   if (enable) SetCapture(this->window);
+		   if (enable && currentWindowBacking) SetCapture(currentWindowBacking->Window());
 		   else ReleaseCapture();
 	   }
 
@@ -336,15 +329,20 @@ namespace ANON
 
 		   ShowVenueForDevice(visitor, device);
 
-		   D3D11_RENDER_TARGET_VIEW_DESC desc;
-		   mainBackBufferView->GetDesc(&desc);
+		   if (currentWindowBacking)
+		   {
+			   auto* renderTarget = currentWindowBacking->BackBufferView();
+			   if (renderTarget)
+			   {
+				   D3D11_RENDER_TARGET_VIEW_DESC desc;
+				   renderTarget->GetDesc(&desc);
+				   visitor.ShowString("BackBuffer format", "%u", desc.Format);
+			   }
 
-		   visitor.ShowString("BackBuffer format", "%u", desc.Format);
-
-		   D3D11_DEPTH_STENCIL_VIEW_DESC dsDesc;
-		   textureManager->GetTexture(mainDepthBufferId).depthView->GetDesc(&dsDesc);
-
-		   visitor.ShowString("DepthStencil format", "%u", dsDesc.Format);
+			   D3D11_DEPTH_STENCIL_VIEW_DESC dsDesc;
+			   textureManager->GetTexture(currentWindowBacking->DepthBufferId()).depthView->GetDesc(&dsDesc);
+			   visitor.ShowString("DepthStencil format", "%u", dsDesc.Format);
+		   }
 
 		   visitor.ShowDecimal("Number of textures", (int64)textureManager->Size());
 		   meshes->ShowVenue(visitor);
@@ -374,8 +372,11 @@ namespace ANON
 
 	   void ShowWindowVenue(IMathsVisitor& visitor)
 	   {
-		   visitor.ShowString("IsFullScreen", isFullScreen ? "TRUE" : "FALSE");
-		   DX11::ShowWindowVenue(window, visitor);
+		   if (currentWindowBacking)
+		   {
+			   visitor.ShowString("IsFullScreen", isFullScreen ? "TRUE" : "FALSE");
+			   DX11::ShowWindowVenue(currentWindowBacking->Window(), visitor);
+		   }
 	   }
 
 	   void Free()
@@ -476,23 +477,18 @@ namespace ANON
 
 	   ID3D11RenderTargetView* BackBuffer()
 	   {
-		   return mainBackBufferView;
+		   return currentWindowBacking ? currentWindowBacking->BackBufferView() : nullptr;
 	   }
 
 	   void BindMainWindow()
 	   {
-		   DXGI_SWAP_CHAIN_DESC swapChainDesc = DX11::GetSwapChainDescription(window);
-		   VALIDATEDX11(factory.CreateSwapChain((ID3D11Device*)&device, &swapChainDesc, &mainSwapChain));
+		   if (!currentWindowBacking)
+		   {
+			   return;
+		   }
 
-		   AutoRelease<ID3D11Texture2D> backBuffer;
-		   VALIDATEDX11(mainSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backBuffer));
-		   VALIDATEDX11(device.CreateRenderTargetView(backBuffer, nullptr, &mainBackBufferView));
-
-		   RECT rect;
-		   GetClientRect(window, &rect);
-		   mainDepthBufferId = textureManager->CreateDepthTarget(scdt_name, rect.right - rect.left, rect.bottom - rect.top);
-
-		   ExpandViewportToEntireTexture(mainDepthBufferId);
+		   currentWindowBacking->ResetOutputBuffersForWindow();
+		   ExpandViewportToEntireTexture(currentWindowBacking->DepthBufferId());
 	   }
 
 	   void DetachContext()
@@ -537,14 +533,9 @@ namespace ANON
 
 	   void SwitchToWindowMode() override
 	   {
-		   BOOL isFullScreen;
-		   AutoRelease<IDXGIOutput> output;
-		   if SUCCEEDED(mainSwapChain->GetFullscreenState(&isFullScreen, &output))
+		   if (currentWindowBacking)
 		   {
-			   if (isFullScreen)
-			   {
-				   mainSwapChain->SetFullscreenState(false, nullptr);
-			   }
+			   currentWindowBacking->SwitchToWindowMode();
 		   }
 	   }
 
@@ -557,10 +548,18 @@ namespace ANON
 	   {
 		   POINT p;
 		   GetCursorPos(&p);
-		   ScreenToClient(window, &p);
 
-		   metrics.cursorPosition = Vec2i{ p.x, p.y };
-		   metrics.screenSpan = screenSpan;
+		   if (currentWindowBacking)
+		   {
+			   ScreenToClient(currentWindowBacking->Window(), &p);
+			   metrics.cursorPosition = Vec2i{ p.x, p.y };
+			   metrics.screenSpan = screenSpan;
+		   }
+		   else
+		   {
+			   metrics.cursorPosition = Vec2i{ -1, -1 };
+			   metrics.screenSpan = Vec2i{ 1, 1 };
+		   }
 	   }
 
 	   void Draw(ID_SYS_MESH id, const ObjectInstance* instances, uint32 nInstances) override
@@ -571,7 +570,7 @@ namespace ANON
 
 	   virtual Windows::IWindow& Window()
 	   {
-		   return window;
+		   return currentWindowBacking ? currentWindowBacking->Window() : Rococo::Windows::NoParent();
 	   }
 
 	   void DrawCursor()
@@ -674,7 +673,10 @@ namespace ANON
 
 	   void Render(Graphics::ENVIRONMENTAL_MAP envMap, IScene& scene) override
 	   {
-		   if (mainBackBufferView.IsNull()) return;
+		   if (!BackBuffer())
+		   {
+			   return;
+		   }
 
 		   auto now = OS::CpuTicks();
 		   AIcost = now - lastTick;
@@ -685,7 +687,7 @@ namespace ANON
 
 		   now = OS::CpuTicks();
 
-		   mainSwapChain->Present(1, 0);
+		   currentWindowBacking->Present();
 
 		   presentCost = OS::CpuTicks() - now;
 
@@ -698,47 +700,19 @@ namespace ANON
 
 	   cstr scdt_name = "SwapChainDepthTarget";
 
-	   void ResizeBuffers(const Vec2i& span)
+	   void ResizeBuffers()
 	   {
-		   mainBackBufferView.Detach();
-
-		   VALIDATEDX11(mainSwapChain->ResizeBuffers(1, span.x, span.y, DXGI_FORMAT_R8G8B8A8_UNORM, 0));
-
-		   AutoRelease<ID3D11Texture2D> backBuffer;
-		   VALIDATEDX11(mainSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backBuffer));
-		   VALIDATEDX11(device.CreateRenderTargetView(backBuffer, nullptr, &mainBackBufferView));
-
-		   RECT rect;
-		   GetClientRect(window, &rect);
-
-		   TextureBind& t = textureManager->GetTexture(mainDepthBufferId);
-		   t.depthView->Release();
-		   t.shaderView->Release();
-		   t.texture->Release();
-		   t = CreateDepthTarget(device, rect.right - rect.left, rect.bottom - rect.top);
+		   if (currentWindowBacking)
+		   {
+			   currentWindowBacking->ResetOutputBuffersForWindow();
+		   }
 	   }
 
 	   BOOL isFullScreen = FALSE;
 
-	   void OnSize(Vec2i span) override
+	   void OnWindowResized(IDX11WindowBacking& window, Vec2i span) override
 	   {
-		   if (span.x > 0 && span.y > 0)
-		   {
-			   D3D11_TEXTURE2D_DESC desc;
-			   {
-				   AutoRelease<ID3D11Texture2D> backBuffer;
-				   VALIDATEDX11(mainSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backBuffer));
-				   backBuffer->GetDesc(&desc);
-			   }
-
-			   ResizeBuffers(span);
-
-			   AutoRelease<IDXGIOutput> output;
-			   mainSwapChain->GetFullscreenState(&isFullScreen, &output);
-			   if (!isFullScreen)
-			   {
-			   }
-		   }
+		   window.ResetOutputBuffersForWindow();
 	   }
 
 	   void SetCursorBitmap(const Textures::BitmapLocation& sprite, Vec2i hotspotOffset) override
@@ -748,12 +722,15 @@ namespace ANON
 
 	   void SetCursorVisibility(bool isVisible) override
 	   {
-		   Rococo::OS::SetCursorVisibility(isVisible, window);
+		   if (currentWindowBacking)
+		   {
+			   Rococo::OS::SetCursorVisibility(isVisible, currentWindowBacking->Window());
+		   }
 	   }
 
 	   ID_TEXTURE GetMainDepthBufferId() const override
 	   {
-		   return mainDepthBufferId;
+		   return currentWindowBacking ? currentWindowBacking->DepthBufferId() : ID_TEXTURE::Invalid();
 	   }
    };
 }
@@ -766,9 +743,9 @@ namespace Rococo
 		static_assert(sizeof(GlobalState) % 16 == 0, "DX11 requires size of GlobalState to be multipe of 16 bytes");
 		static_assert(sizeof(Light) % 16 == 0, "DX11 requires size of Light to be multipe of 16 bytes");
 
-		Rococo::IRenderer* CreateDX11Renderer(Factory& factory, Windows::IWindow& window)
+		IDX11Renderer* CreateDX11Renderer(Factory& factory)
 		{
-			auto* renderer = new ANON::DX11AppRenderer(factory, window);
+			auto* renderer = new ANON::DX11AppRenderer(factory);
 			
 			try
 			{

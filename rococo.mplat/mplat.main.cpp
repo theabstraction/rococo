@@ -287,7 +287,8 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	ws.Width = 1152;
 	ws.Height = 700;
 
-	AutoFree<IDX11GraphicsWindow> mainWindow = factory->CreateDX11Window(ws);
+	AutoFree<IDX11GraphicsWindow> mainWindow = factory->CreateDX11Window(ws, true);
+	mainWindow->MakeRenderTarget();
 
 	SetWindowTextA(mainWindow->Window(), title);
 

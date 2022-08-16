@@ -11,6 +11,7 @@
 #include <rococo.strings.h>
 
 #include "dx11.factory.h"
+#include "dx11.renderer.h"
 
 namespace ANON
 {
@@ -28,12 +29,16 @@ namespace ANON
 		AutoRelease<IDXGIFactory> factory;
 		AutoRelease<ID3D11Debug> debug;
 
+		AutoFree<Rococo::DX11::IDX11Renderer> renderer;
+
 		~DX11Factory()
 		{
 			device = nullptr;
 			dc = nullptr;
 			adapter = nullptr;
 			factory = nullptr;
+			renderer = nullptr;
+
 			if (debug)
 			{
 				debug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
@@ -41,6 +46,11 @@ namespace ANON
 			}
 
 			if (atom) UnregisterClassA((cstr)atom, spec.hResourceInstance);
+		}
+
+		IRenderer& Renderer()
+		{
+			return *renderer;
 		}
 
 		ATOM atom;
@@ -90,6 +100,10 @@ namespace ANON
 
 			device->QueryInterface(IID_PPV_ARGS(&debug));
 
+			DX11::Factory rendererFactory { *device, *dc, *factory, *this, installation, logger };
+
+			renderer = CreateDX11Renderer(rendererFactory);
+
 			WNDCLASSEXA classDef = { 0 };
 			classDef.cbSize = sizeof(classDef);
 			classDef.style = 0;
@@ -114,10 +128,10 @@ namespace ANON
 			}
 		}
 
-		IDX11GraphicsWindow* CreateDX11Window(const WindowSpec& spec) override
+		IDX11GraphicsWindow* CreateDX11Window(const WindowSpec& spec, bool linkedToDX11Controls) override
 		{
 			DX11::Factory ourfactory{ *device, *dc, *factory, *this, installation, logger };
-			return DX11::CreateDX11GraphicsWindow(ourfactory, atom, spec);
+			return DX11::CreateDX11GraphicsWindow(ourfactory, *renderer, atom, spec, linkedToDX11Controls);
 		}
 
 		void Free() override

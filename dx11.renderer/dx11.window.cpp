@@ -8,9 +8,9 @@
 #include <d3d11.h>
 
 #include "dx11.factory.h"
+#include "dx11.renderer.h"
 
 #include <rococo.window.h>
-
 #include <rococo.renderer.h>
 
 namespace Rococo
@@ -58,9 +58,12 @@ namespace ANON
 		WindowSpec ws;
 		IAppEventHandler* handler = nullptr;
 		AutoFree<IExpandingBuffer> eventBuffer;
-		AutoFree<IRenderer> renderer;
 		HKL keyboardLayout = nullptr;
 		bool hasFocus = true;
+		Rococo::DX11::IDX11Renderer& renderer;
+		bool linkedToDX11Controls;
+
+		AutoFree<DX11::IDX11WindowBacking> backing;
 
 		void CaptureEvents(IAppEventHandler* handler)
 		{
@@ -124,11 +127,11 @@ namespace ANON
 					auto state = 0xFFFF & wParam;
 					if (state != 0)
 					{
-						VALIDATEDX11(factory.factory.MakeWindowAssociation(hWnd, 0));
+						if (linkedToDX11Controls) VALIDATEDX11(factory.factory.MakeWindowAssociation(hWnd, 0));
 					}
 					else
 					{
-						VALIDATEDX11(factory.factory.MakeWindowAssociation(nullptr, 0));
+						if (linkedToDX11Controls) VALIDATEDX11(factory.factory.MakeWindowAssociation(nullptr, 0));
 					}
 					return 0;
 				}
@@ -151,7 +154,7 @@ namespace ANON
 				keyboardLayout = GetKeyboardLayout(0);
 				return 0L;
 			case WM_SIZE:
-				renderer->OnSize(Vec2i{ LOWORD(lParam), HIWORD(lParam) } );
+				renderer.OnWindowResized(*backing, Vec2i{ LOWORD(lParam), HIWORD(lParam) } );
 				return 0L;
 			case WM_INPUT:
 				return RouteInput(hWnd, wParam, lParam);
@@ -185,8 +188,8 @@ namespace ANON
 			}
 		}
 	public:
-		DX11GraphicsWindow(DX11::Factory& _factory, ATOM windowsClass, const WindowSpec& _ws):
-			factory(_factory), ws(_ws), eventBuffer(CreateExpandingBuffer(128))
+		DX11GraphicsWindow(DX11::Factory& _factory, Rococo::DX11::IDX11Renderer& _renderer, ATOM windowsClass, const WindowSpec& _ws, bool _linkedToDX11Controls):
+			factory(_factory), renderer(_renderer), ws(_ws), eventBuffer(CreateExpandingBuffer(128)), linkedToDX11Controls(_linkedToDX11Controls)
 		{
 			hWnd = CreateWindowExA(
 				ws.exStyle,
@@ -211,6 +214,8 @@ namespace ANON
 			keyboardLayout = GetKeyboardLayout(0);
 
 			SetWindowLongPtrA(hWnd, GWLP_USERDATA, (LONG_PTR) this);
+
+			backing = DX11::CreateDX11WindowBacking(factory.device, factory.dc, hWnd, factory.factory, static_cast<DX11::IDX11TextureManager&>(renderer.Textures()));
 		}
 
 		void PostConstruct()
@@ -230,11 +235,9 @@ namespace ANON
 				DispatchMessageA(&msg);
 			}
 
-			renderer = DX11::CreateDX11Renderer(factory, Window());
-
 			SetWindowLongPtrA(hWnd, GWLP_WNDPROC, (LONG_PTR) OnMessage);
 
-			factory.factory.MakeWindowAssociation(hWnd, 0);
+			if (linkedToDX11Controls) factory.factory.MakeWindowAssociation(hWnd, 0);
 			
 			RegisterRawInput(hWnd);
 		}
@@ -246,6 +249,12 @@ namespace ANON
 				DestroyWindow(hWnd);
 				hWnd = nullptr;
 			}
+		}
+
+		void MakeRenderTarget()
+		{
+			backing->ResetOutputBuffersForWindow();
+			renderer.SetWindowBacking(backing);
 		}
 
 		Windows::IWindow& Window()
@@ -263,9 +272,9 @@ namespace ANON
 			delete this;
 		}
 
-		IRenderer& Renderer() override
+		IRenderer& Renderer()
 		{
-			return *renderer;
+			return renderer;
 		}
 	};
 }
@@ -274,9 +283,9 @@ namespace Rococo
 {
 	namespace DX11
 	{
-		IDX11GraphicsWindow* CreateDX11GraphicsWindow(DX11::Factory& factory, ATOM windowClass, const WindowSpec& ws)
+		IDX11GraphicsWindow* CreateDX11GraphicsWindow(DX11::Factory& factory, Rococo::DX11::IDX11Renderer& renderer, ATOM windowClass, const WindowSpec& ws, bool linkedToDX11Controls)
 		{
-			auto* g = new ANON::DX11GraphicsWindow(factory, windowClass, ws);
+			auto* g = new ANON::DX11GraphicsWindow(factory, renderer, windowClass, ws, linkedToDX11Controls);
 
 			try
 			{

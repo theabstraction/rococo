@@ -28,6 +28,7 @@ namespace Rococo::DX11
 	};
 
 	struct IDX11Shaders;
+	struct IDX11WindowBacking;
 
 	struct RenderTarget
 	{
@@ -185,9 +186,12 @@ namespace Rococo::DX11
 	{
 		virtual void AssignGlobalStateBufferToShaders() = 0;
 		virtual ID3D11RenderTargetView* BackBuffer() = 0;
+		virtual void InitFontAndMaterialAndSpriteShaderResourceViewsAndSamplers() = 0;
+		virtual void OnWindowResized(IDX11WindowBacking& window, Vec2i span) = 0;
 		virtual void RenderGui(IScene& scene) = 0;
 		virtual void RestoreSamplers() = 0;
-		virtual void InitFontAndMaterialAndSpriteShaderResourceViewsAndSamplers() = 0;
+		virtual void SetWindowBacking(IDX11WindowBacking* windowBacking) = 0;
+		virtual void Free() = 0;
 	};
 
 	ROCOCOAPI IDX11TextureManager: ITextureManager
@@ -251,6 +255,8 @@ namespace Rococo::DX11
 	ROCOCOAPI IDX11WindowBacking
 	{
 		virtual void Free() = 0;
+		virtual ID3D11RenderTargetView* BackBufferView() = 0;
+		virtual void ResetOutputBuffersForWindow() = 0;
 		virtual Vec2i Span() const = 0;
 		virtual Windows::IWindow& Window() = 0;
 		virtual ID_TEXTURE DepthBufferId() const = 0;
