@@ -170,7 +170,7 @@ namespace
 		   int32 groundId   = (int32) nameToMaterial.find(GraphicsEx::BodyComponentMatClass_Floor)->second->mvd.materialId;
 		   int32 ceilingId  = (int32) nameToMaterial.find(GraphicsEx::BodyComponentMatClass_Ceiling)->second->mvd.materialId;
 
-		   platform.renderer.CubeTextures().SyncCubeTexture(wallId, wallId, wallId, wallId, groundId, ceilingId);
+		   platform.renderer.Textures().CubeTextures().SyncCubeTexture(wallId, wallId, wallId, wallId, groundId, ceilingId);
 	   }
 
 	   const LightSpec* Lights(size_t& numberOfLights) const override
@@ -667,7 +667,7 @@ namespace
 		  {
 			  char title[256];
 			  SafeFormat(title, "sector %u: %s failed", id, wallScript);
-			  platform.utilities.ShowErrorBox(platform.renderer.Window(), ex, title);
+			  platform.utilities.ShowErrorBox(platform.mainWindow, ex, title);
 			  return false;
 		  }
 	  }
@@ -829,7 +829,7 @@ namespace
 		  {
 			  char title[256];
 			  SafeFormat(title, 256, "sector %u: %s failed", id, wallScript);
-			  platform.utilities.ShowErrorBox(platform.renderer.Window(), ex, title);
+			  platform.utilities.ShowErrorBox(platform.mainWindow, ex, title);
 			  return false;
 		  }
 	  }
@@ -1505,7 +1505,7 @@ namespace
 		 {
 			 char title[256];
 			 SafeFormat(title, "sector %u: %s failed", id, genCorridor);
-			 platform.utilities.ShowErrorBox(platform.renderer.Window(), ex, title);
+			 platform.utilities.ShowErrorBox(platform.mainWindow, ex, title);
 		 }
       }
 

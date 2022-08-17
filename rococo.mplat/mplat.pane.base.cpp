@@ -841,7 +841,7 @@ public:
 		// Once the drag is over, the subscription to the event is revoked.
 		// Since the event is consumed, it is not passed on to the UI system after this function call
 
-		platform.renderer.SetSysCursor(cursor);
+		platform.renderer.Gui().SetSysCursor(cursor);
 
 		if (dragRightPos > 0)
 		{
@@ -928,12 +928,12 @@ public:
 			if (me.cursorPos.y <= farBottom && me.cursorPos.y > farBottom - 4)
 			{
 				cursor = EWindowCursor_BottomRightDrag;
-				platform.renderer.SetSysCursor(EWindowCursor_BottomRightDrag);
+				platform.renderer.Gui().SetSysCursor(EWindowCursor_BottomRightDrag);
 			}
 			else
 			{
 				cursor = EWindowCursor_HDrag;
-				platform.renderer.SetSysCursor(EWindowCursor_HDrag);
+				platform.renderer.Gui().SetSysCursor(EWindowCursor_HDrag);
 			}
 
 			if (me.HasFlag(MouseEvent::LDown))
@@ -952,7 +952,7 @@ public:
 		else if (me.cursorPos.y <= farBottom && me.cursorPos.y > farBottom - 4)
 		{
 			cursor = EWindowCursor_VDrag;
-			platform.renderer.SetSysCursor(EWindowCursor_VDrag);
+			platform.renderer.Gui().SetSysCursor(EWindowCursor_VDrag);
 
 			if (me.HasFlag(MouseEvent::LDown))
 			{

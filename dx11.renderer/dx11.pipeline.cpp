@@ -50,6 +50,8 @@ struct DX11Pipeline: IDX11Pipeline, IGui3D, IParticles
 	AutoRelease<ID3D11Buffer> lightConeBuffer;
 	AutoRelease<ID3D11Buffer> gui3DBuffer;
 
+	AutoFree<IDX11Gui> gui;
+
 	ID_VERTEX_SHADER idObjVS;
 	ID_PIXEL_SHADER idObjPS;
 	ID_PIXEL_SHADER idObjPS_Shadows;
@@ -104,11 +106,19 @@ struct DX11Pipeline: IDX11Pipeline, IGui3D, IParticles
 
 	std::default_random_engine rng;
 
+	AutoRelease<ID3D11Buffer> globalStateBuffer;
+	AutoRelease<ID3D11Buffer> sunlightStateBuffer;
+
+	BoneMatrices boneMatrices = { 0 };
+	AutoRelease<ID3D11Buffer> boneMatricesStateBuffer;
+
+	ID3D11SamplerState* samplers[16] = { 0 };
+
 	enum { PARTICLE_BUFFER_VERTEX_CAPACITY = 1024 };
 	enum { GUI3D_BUFFER_TRIANGLE_CAPACITY = 1024 };
 	enum { GUI3D_BUFFER_VERTEX_CAPACITY = 3 * GUI3D_BUFFER_TRIANGLE_CAPACITY };
 
-	DX11Pipeline(IInstallation& _installation, IDX11Shaders& _shaders, IDX11TextureManager& _textures, IDX11Meshes& _meshes, IDX11Renderer& _renderer, IRenderContext& _rc, ID3D11Device& _device, ID3D11DeviceContext& _dc):
+	DX11Pipeline(IInstallation& _installation, IRendererMetrics& metrics, IDX11ResourceLoader& resourceLoader,  IDX11Shaders& _shaders, IDX11TextureManager& _textures, IDX11Meshes& _meshes, IDX11Renderer& _renderer, IRenderContext& _rc, ID3D11Device& _device, ID3D11DeviceContext& _dc):
 		installation(_installation), device(_device), dc(_dc), shaders(_shaders), meshes(_meshes), textures(_textures), renderer(_renderer), rc(_rc)
 	{
 		objDepthState = DX11::CreateObjectDepthStencilState(device);
@@ -135,6 +145,8 @@ struct DX11Pipeline: IDX11Pipeline, IGui3D, IParticles
 
 		ambientBuffer = DX11::CreateConstantBuffer<AmbientData>(device);
 		gui3DBuffer = DX11::CreateDynamicVertexBuffer<ObjectVertex>(device, GUI3D_BUFFER_VERTEX_CAPACITY);
+
+		gui = CreateDX11Gui(device, dc, textures, metrics, resourceLoader, shaders);
 
 		idObjVS = shaders.CreateObjectVertexShader("!object.vs");
 		idObjPS = shaders.CreatePixelShader("!object.ps");
@@ -165,12 +177,29 @@ struct DX11Pipeline: IDX11Pipeline, IGui3D, IParticles
 
 		alphaBlend = DX11::CreateAlphaBlend(device);
 
+		boneMatricesStateBuffer = DX11::CreateConstantBuffer<BoneMatrices>(device);
+		globalStateBuffer = DX11::CreateConstantBuffer<GlobalState>(device);
+		sunlightStateBuffer = DX11::CreateConstantBuffer<Vec4>(device);
+
 		rng.seed(123456U);
+
+		RGBA red{ 1.0f, 0, 0, 1.0f };
+		RGBA transparent{ 0.0f, 0, 0, 0.0f };
+		SetSampler(TXUNIT_FONT, Filter_Linear, AddressMode_Border, AddressMode_Border, AddressMode_Border, red);
+		SetSampler(TXUNIT_SHADOW, Filter_Linear, AddressMode_Border, AddressMode_Border, AddressMode_Border, red);
+		SetSampler(TXUNIT_ENV_MAP, Filter_Linear, AddressMode_Wrap, AddressMode_Wrap, AddressMode_Wrap, red);
+		SetSampler(TXUNIT_SELECT, Filter_Linear, AddressMode_Wrap, AddressMode_Wrap, AddressMode_Wrap, red);
+		SetSampler(TXUNIT_MATERIALS, Filter_Linear, AddressMode_Wrap, AddressMode_Wrap, AddressMode_Wrap, red);
+		SetSampler(TXUNIT_SPRITES, Filter_Point, AddressMode_Border, AddressMode_Border, AddressMode_Border, red);
+		SetSampler(TXUNIT_GENERIC_TXARRAY, Filter_Point, AddressMode_Border, AddressMode_Border, AddressMode_Border, transparent);
 	}
 
 	virtual ~DX11Pipeline()
 	{
-
+		for (auto& s : samplers)
+		{
+			if (s) s->Release();
+		}
 	}
 
 	IGui3D& Gui3D() override
@@ -219,6 +248,12 @@ struct DX11Pipeline: IDX11Pipeline, IGui3D, IParticles
 	void Free() override
 	{
 		delete this;
+	}
+
+	void AssignGlobalStateBufferToShaders()
+	{
+		dc.PSSetConstantBuffers(0, 1, &globalStateBuffer);
+		dc.VSSetConstantBuffers(0, 1, &globalStateBuffer);
 	}
 
 	void Draw(MeshBuffer& m, const ObjectInstance* instances, uint32 nInstances)
@@ -363,6 +398,7 @@ struct DX11Pipeline: IDX11Pipeline, IGui3D, IParticles
 	void ShowVenue(IMathsVisitor& visitor) override
 	{
 		visitor.ShowString("Geometry this frame", "%lld triangles. %lld entities, %lld particles", trianglesThisFrame, entitiesThisFrame, plasma.size() + fog.size());
+		gui->ShowVenue(visitor);
 	}
 
 	void DrawLightCone(const Light& light, cr_vec3 viewDir)
@@ -517,12 +553,45 @@ struct DX11Pipeline: IDX11Pipeline, IGui3D, IParticles
 			dc.OMSetBlendState(disableBlend, blendFactorUnused, 0xffffffff);
 			dc.Draw(mesh.numberOfVertices, 0);
 			
-			renderer.RestoreSamplers();
+			ResetSamplersToDefaults();
 		}
 		else
 		{
 			Throw(0, "DX11Renderer::RenderSkybox failed. Error setting sky shaders");
 		}
+	}
+
+	GlobalState currentGlobalState = { 0 };
+
+	void UpdateGlobalState(const GuiMetrics& metrics, IScene& scene)
+	{
+		GlobalState g;
+		scene.GetCamera(g.worldMatrixAndProj, g.worldMatrix, g.projMatrix, g.eye, g.viewDir);
+
+		float aspectRatio = metrics.screenSpan.y / (float)metrics.screenSpan.x;
+		g.aspect = { aspectRatio,0,0,0 };
+
+		g.guiScale = gui->GetGuiScale();
+
+		DX11::CopyStructureToBuffer(dc, globalStateBuffer, g);
+
+		currentGlobalState = g;
+
+		dc.VSSetConstantBuffers(CBUFFER_INDEX_GLOBAL_STATE, 1, &globalStateBuffer);
+		dc.PSSetConstantBuffers(CBUFFER_INDEX_GLOBAL_STATE, 1, &globalStateBuffer);
+		dc.GSSetConstantBuffers(CBUFFER_INDEX_GLOBAL_STATE, 1, &globalStateBuffer);
+
+		Vec4 sunlight = { Sin(45_degrees), 0, Cos(45_degrees), 0 };
+		Vec4 sunlightLocal = sunlight;
+
+		DX11::CopyStructureToBuffer(dc, sunlightStateBuffer, sunlightLocal);
+
+		dc.VSSetConstantBuffers(CBUFFER_INDEX_SUNLIGHT, 1, &sunlightStateBuffer);
+		dc.PSSetConstantBuffers(CBUFFER_INDEX_SUNLIGHT, 1, &sunlightStateBuffer);
+		dc.GSSetConstantBuffers(CBUFFER_INDEX_SUNLIGHT, 1, &sunlightStateBuffer);
+
+		DX11::CopyStructureToBuffer(dc, boneMatricesStateBuffer, boneMatrices);
+		dc.VSSetConstantBuffers(CBUFFER_INDEX_BONE_MATRICES, 1, &boneMatricesStateBuffer);
 	}
 
 	void SetupSpotlightConstants() override
@@ -705,11 +774,32 @@ struct DX11Pipeline: IDX11Pipeline, IGui3D, IParticles
 		}
 	}
 
-	void Render(Graphics::ENVIRONMENTAL_MAP envMap, IScene& scene) override
+	int64 guiCost = 0;
+
+	void SetSampler(uint32 index, Filter filter, AddressMode u, AddressMode v, AddressMode w, const RGBA& borderColour) override
+	{
+		if (samplers[index])
+		{
+			samplers[index]->Release();
+			samplers[index] = nullptr;
+		}
+
+		auto* sampler = Rococo::DX11::GetSampler(device, index, filter, u, v, w, borderColour);
+		samplers[index] = sampler;
+	}
+
+	void ResetSamplersToDefaults()
+	{
+		dc.PSSetSamplers(0, 16, samplers);
+		dc.GSSetSamplers(0, 16, samplers);
+		dc.VSSetSamplers(0, 16, samplers);
+	}
+
+	void Render(const GuiMetrics& metrics, Graphics::ENVIRONMENTAL_MAP envMap, IScene& scene) override
 	{
 		phaseConfig.EnvironmentalMap = envMap;
 		phaseConfig.shadowBuffer = shadowBufferId;
-		phaseConfig.depthTarget = renderer.GetMainDepthBufferId();
+		phaseConfig.depthTarget = renderer.GetWindowDepthBufferId();
 
 		if (textures.GetTexture(phaseConfig.shadowBuffer).depthView == nullptr)
 		{
@@ -725,14 +815,15 @@ struct DX11Pipeline: IDX11Pipeline, IGui3D, IParticles
 
 		ClearCurrentRenderBuffers(scene.GetClearColour());
 
-		renderer.UpdateGlobalState(scene);
+		UpdateGlobalState(metrics, scene);
 
 		RenderTarget rt = GetCurrentRenderTarget();
 		dc.OMSetRenderTargets(1, &rt.renderTargetView, rt.depthView);
 
 		RenderSkyBox(scene);
 
-		renderer.InitFontAndMaterialAndSpriteShaderResourceViewsAndSamplers();
+		gui->AssignShaderResourcesToDC();
+		ResetSamplersToDefaults();
 
 		Render3DObjects(scene);
 
@@ -742,9 +833,25 @@ struct DX11Pipeline: IDX11Pipeline, IGui3D, IParticles
 
 		DrawLightCones(scene);
 
-		renderer.UpdateGlobalState(scene);
+		UpdateGlobalState(metrics, scene);
 
-		renderer.RenderGui(scene);
+		if (IsGuiReady())
+		{
+			OS::ticks now = OS::CpuTicks();
+
+			gui->RenderGui(scene, metrics, IsGuiReady());
+
+			gui->FlushLayer();
+
+			if (IsGuiReady())
+			{
+				gui->DrawCursor(metrics);
+
+				gui->FlushLayer();
+			}
+
+			guiCost = OS::CpuTicks() - now;
+		}
 	}
 
 	void DrawLightCones(IScene& scene)
@@ -767,7 +874,7 @@ struct DX11Pipeline: IDX11Pipeline, IGui3D, IParticles
 			dc.OMSetBlendState(alphaBlend, blendFactorUnused, 0xffffffff);
 			dc.OMSetDepthStencilState(objDepthState, 0);
 
-			renderer.AssignGlobalStateBufferToShaders();
+			AssignGlobalStateBufferToShaders();
 
 			ObjectInstance identity;
 			identity.orientation = Matrix4x4::Identity();
@@ -797,12 +904,29 @@ struct DX11Pipeline: IDX11Pipeline, IGui3D, IParticles
 		}
 	}
 
+	void SetBoneMatrix(uint32 index, cr_m4x4 m) override
+	{
+		if (index >= BoneMatrices::BONE_MATRIX_CAPACITY)
+		{
+			Throw(0, "Bad bone index #%u", index);
+		}
+
+		auto& target = boneMatrices.bones[index];
+		target = m;
+		target.row3 = Vec4{ 0, 0, 0, 1.0f };
+	}
+
+	IGuiResources& Gui()
+	{
+		return gui->Gui();
+	}
+
 }; // DX11Pipeline
 
 namespace Rococo::DX11
 {
-	IDX11Pipeline* CreateDX11Pipeline(IInstallation& installation, IDX11Shaders& shaders, IDX11TextureManager& textures, IDX11Meshes& meshes, IDX11Renderer& renderer, IRenderContext& rc, ID3D11Device& device, ID3D11DeviceContext& dc)
+	IDX11Pipeline* CreateDX11Pipeline(IInstallation& installation, IRendererMetrics& metrics, IDX11ResourceLoader& resourceLoader, IDX11Shaders& shaders, IDX11TextureManager& textures, IDX11Meshes& meshes, IDX11Renderer& renderer, IRenderContext& rc, ID3D11Device& device, ID3D11DeviceContext& dc)
 	{
-		return new DX11Pipeline(installation, shaders, textures, meshes, renderer, rc, device, dc);
+		return new DX11Pipeline(installation, metrics, resourceLoader, shaders, textures, meshes, renderer, rc, device, dc);
 	}
 }

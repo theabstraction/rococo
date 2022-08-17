@@ -48,6 +48,9 @@ public:
 
 struct DX11Gui : IDX11Gui, IDX11FontRenderer, Rococo::Fonts::IGlyphRenderer, IGuiResources
 {
+    ID3D11Device& device;
+    ID3D11DeviceContext& dc;
+
     std::vector<GuiVertex> guiVertices;
 
     ID_VERTEX_SHADER idGuiVS;
@@ -65,13 +68,16 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Rococo::Fonts::IGlyphRenderer, IGu
     AutoFree<Textures::ITextureArrayBuilderSupervisor> spriteArrayBuilder;
     AutoFree<IDX11HQFontResource> hqFonts;
 
+    AutoRelease<ID3D11Texture2D> fontTexture;
+    AutoRelease<ID3D11ShaderResourceView> fontBinding;
+
     IDX11ResourceLoader& loader;
-    IShaderStateControl& shaders;
+    IShaders& shaders;
     IRendererMetrics& metrics;
+    IDX11TextureManager& textures;
 
     AutoFree<IOverlaySupervisor> overlays;
-
-    ID3D11DeviceContext* activeDC;
+    AutoRelease<ID3D11Buffer> textureDescBuffer;
 
     struct Cursor
     {
@@ -81,9 +87,12 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Rococo::Fonts::IGlyphRenderer, IGu
 
     enum { GUI_BUFFER_VERTEX_CAPACITY = 3 * 512 };
 
-    DX11Gui(IRendererMetrics& _metrics, IDX11ResourceLoader& _loader, IShaderStateControl& _shaders, ID3D11Device& device, ID3D11DeviceContext& dc): metrics(_metrics), activeDC(&dc), shaders(_shaders), loader(_loader)
+    DX11Gui(ID3D11Device& _device, ID3D11DeviceContext& _dc, IDX11TextureManager& _textures, IRendererMetrics& _metrics, IDX11ResourceLoader& _loader, IShaders& _shaders):
+        device(_device), dc(_dc), metrics(_metrics), textures(_textures), shaders(_shaders), loader(_loader)
     {
         static_assert(GUI_BUFFER_VERTEX_CAPACITY % 3 == 0, "Capacity must be divisible by 3");
+
+        textureDescBuffer = DX11::CreateConstantBuffer<TextureDescState>(device);
 
         idGuiVS = loader.DX11Shaders().CreateVertexShader("!gui.vs", DX11::GetGuiVertexDesc(), DX11::NumberOfGuiVertexElements());
         idGuiPS = loader.DX11Shaders().CreatePixelShader("!gui.ps");
@@ -99,7 +108,7 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Rococo::Fonts::IGlyphRenderer, IGu
 
         cstr csvName = "!font1.csv";
 
-        loader.LoadTextFile(csvName, [csvName, this](const fstring& text) 
+        loader.LoadTextFile("!font1.csv", [csvName, this](const fstring& text)
             {
                 fonts = Fonts::LoadFontCSV(csvName, text, text.length);
             }
@@ -108,11 +117,10 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Rococo::Fonts::IGlyphRenderer, IGu
         overlays = CreateOverlays();
 
         hqFonts = CreateDX11HQFonts(loader.Installation(), FontRenderer(), device, dc);
-    }
 
-    Vec2i SelectTexture(ID_TEXTURE id) override
-    {
-        return shaders.SelectTexture(id);
+        DX11::TextureBind fb = textures.Loader().LoadAlphaBitmap("!font1.tif");
+        fontTexture = fb.texture;
+        fontBinding = fb.shaderView;
     }
 
     IGuiResources& Gui() override
@@ -154,6 +162,19 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Rococo::Fonts::IGlyphRenderer, IGu
         return shaders.UseShaders(idGuiVS, idGuiOverrideShader);
     }
 
+    void AssignShaderResourcesToDC()
+    {
+        dc.PSSetShaderResources(TXUNIT_FONT, 1, &fontBinding);
+        auto* view = textures.GetCubeShaderResourceView();
+        dc.PSSetShaderResources(TXUNIT_ENV_MAP, 1, &view);
+
+        ID3D11ShaderResourceView* materialViews[1] = { textures.Materials().Textures().View() };
+        dc.PSSetShaderResources(TXUNIT_MATERIALS, 1, materialViews);
+
+        ID3D11ShaderResourceView* spriteviews[1] = { SpriteView() };
+        dc.PSSetShaderResources(TXUNIT_SPRITES, 1, spriteviews);
+    }
+
     void DrawCustomTexturedMesh(const GuiRect& absRect, ID_TEXTURE id, cstr shaderName, const GuiVertex* vertices, size_t nCount) override
     {
         if (nCount > GUI_BUFFER_VERTEX_CAPACITY) Throw(0, "%s - too many triangles. Max vertices: %d", __FUNCTION__, GUI_BUFFER_VERTEX_CAPACITY);
@@ -164,18 +185,18 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Rococo::Fonts::IGlyphRenderer, IGu
 
         shaders.UseShaders(idGuiVS, idPixelShader);
 
-        shaders.SelectTexture(id);
+        SelectTexture(id);
 
         D3D11_MAPPED_SUBRESOURCE x;
-        VALIDATEDX11(activeDC->Map(guiBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &x));
+        VALIDATEDX11(dc.Map(guiBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &x));
         memcpy(x.pData, vertices, nCount * sizeof(GuiVertex));
-        activeDC->Unmap(guiBuffer, 0);
+        dc.Unmap(guiBuffer, 0);
 
         UINT stride = sizeof(GuiVertex);
         UINT offset = 0;
-        activeDC->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-        activeDC->IASetVertexBuffers(0, 1, &guiBuffer, &stride, &offset);
-        activeDC->Draw((UINT)nCount, 0);
+        dc.IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        dc.IASetVertexBuffers(0, 1, &guiBuffer, &stride, &offset);
+        dc.Draw((UINT)nCount, 0);
 
         shaders.UseShaders(idGuiVS, idGuiPS);
     }
@@ -223,14 +244,14 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Rococo::Fonts::IGlyphRenderer, IGu
             size_t chunk = min(nVerticesLeftToRender, (size_t)GUI_BUFFER_VERTEX_CAPACITY);
 
             D3D11_MAPPED_SUBRESOURCE x;
-            VALIDATEDX11(activeDC->Map(guiBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &x));
+            VALIDATEDX11(dc.Map(guiBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &x));
             memcpy(x.pData, &guiVertices[startIndex], chunk * sizeof(GuiVertex));
-            activeDC->Unmap(guiBuffer, 0);
+            dc.Unmap(guiBuffer, 0);
 
             UINT stride = sizeof(GuiVertex);
             UINT offset = 0;
-            activeDC->IASetVertexBuffers(0, 1, &guiBuffer, &stride, &offset);
-            activeDC->Draw((UINT)chunk, 0);
+            dc.IASetVertexBuffers(0, 1, &guiBuffer, &stride, &offset);
+            dc.Draw((UINT)chunk, 0);
 
             nVerticesLeftToRender -= chunk;
         };
@@ -259,15 +280,15 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Rococo::Fonts::IGlyphRenderer, IGu
     {
         if (metrics.screenSpan.x == 0 || metrics.screenSpan.y == 0) return;
 
-        activeDC->RSSetState(spriteRasterizering);
+        dc.RSSetState(spriteRasterizering);
 
         D3D11_RECT rect = { 0, 0, metrics.screenSpan.x, metrics.screenSpan.y };
-        activeDC->RSSetScissorRects(1, &rect);
+        dc.RSSetScissorRects(1, &rect);
 
         FLOAT blendFactorUnused[] = { 0,0,0,0 };
-        activeDC->OMSetBlendState(alphaBlend, blendFactorUnused, 0xffffffff);
-        activeDC->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-        activeDC->OMSetDepthStencilState(guiDepthState, 0);
+        dc.OMSetBlendState(alphaBlend, blendFactorUnused, 0xffffffff);
+        dc.IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        dc.OMSetDepthStencilState(guiDepthState, 0);
 
         if (!shaders.UseShaders(idGuiVS, idGuiPS))
         {
@@ -290,7 +311,7 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Rococo::Fonts::IGlyphRenderer, IGu
 
     IMaterials& Materials() override
     {
-        return shaders.Materials();
+        return textures.Materials();
     };
 
     IRendererMetrics& Renderer() override
@@ -378,7 +399,15 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Rococo::Fonts::IGlyphRenderer, IGu
         visitor.ShowString("Cursor hotspot delta", "(%+d %+d)", cursor.hotspotOffset.x, cursor.hotspotOffset.y);
     }
 
-    void DrawCursor(const GuiMetrics& metrics, EWindowCursor cursorId) override
+
+    EWindowCursor cursorId = EWindowCursor_Default;
+
+    void SetSysCursor(EWindowCursor id) override
+    {
+        cursorId = id;
+    }
+
+    void DrawCursor(const GuiMetrics& metrics) override
     {
         if (cursor.sprite.textureIndex >= 0)
         {
@@ -451,13 +480,13 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Rococo::Fonts::IGlyphRenderer, IGu
         d11Rect.top = rect.top;
         d11Rect.right = rect.right;
         d11Rect.bottom = rect.bottom;
-        activeDC->RSSetScissorRects(1, &d11Rect);
+        dc.RSSetScissorRects(1, &d11Rect);
     }
 
     void ClearScissorRect() override
     {
         D3D11_RECT rect = { 0, 0, lastSpan.x, lastSpan.y };
-        activeDC->RSSetScissorRects(1, &rect);
+        dc.RSSetScissorRects(1, &rect);
     }
 
     const Fonts::ArrayFontMetrics& GetFontMetrics(ID_FONT idFont) override
@@ -467,12 +496,71 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Rococo::Fonts::IGlyphRenderer, IGu
 
     void RenderHQText(ID_FONT id, Rococo::Fonts::IHQTextJob& job, IGuiRenderContext::EMode mode) override
     {
-        return hqFonts->RenderHQText(id, job, mode, *activeDC, shaders);
+        return hqFonts->RenderHQText(id, job, mode, dc, shaders);
     }
 
     IHQFontResource& HQFontsResources() override
     {
         return *hqFonts;
+    }
+
+    ID_TEXTURE lastTextureId;
+
+    Vec2i SelectTexture(ID_TEXTURE id)
+    {
+        TextureBind t = textures.GetTexture(id);
+
+        D3D11_TEXTURE2D_DESC desc;
+        t.texture->GetDesc(&desc);
+
+        D3D11_SHADER_RESOURCE_VIEW_DESC vdesc;
+        t.shaderView->GetDesc(&vdesc);
+
+        if (id != lastTextureId)
+        {
+            FlushLayer();
+            lastTextureId = id;
+            dc.PSSetShaderResources(4, 1, &t.shaderView);
+
+            float dx = (float)desc.Width;
+            float dy = (float)desc.Height;
+
+            TextureDescState state;
+
+            if (vdesc.Format == DXGI_FORMAT_R32_FLOAT)
+            {
+                state =
+                {
+                     dx,
+                     dy,
+                     1.0f / dx,
+                     1.0f / dy,
+                     1.0f,
+                     0.0f,
+                     0.0f,
+                     0.0f
+                };
+            }
+            else
+            {
+                state =
+                {
+                    dx,
+                    dy,
+                    1.0f / dx,
+                    1.0f / dy,
+                    1.0f,
+                    1.0f,
+                    1.0f,
+                    1.0f
+                };
+            }
+
+            DX11::CopyStructureToBuffer(dc, textureDescBuffer, &state, sizeof(TextureDescState));
+            dc.PSSetConstantBuffers(CBUFFER_INDEX_SELECT_TEXTURE_DESC, 1, &textureDescBuffer);
+        }
+
+        return Vec2i{ (int32)desc.Width, (int32)desc.Height };
     }
 }; // DX11Gui
 
@@ -529,8 +617,8 @@ namespace Rococo::DX11
         return alphaBlend;
     }
 
-    IDX11Gui* CreateDX11Gui(IRendererMetrics& metrics, IDX11ResourceLoader& loader, IShaderStateControl& shaders, ID3D11Device& device, ID3D11DeviceContext& dc)
+    IDX11Gui* CreateDX11Gui(ID3D11Device& device, ID3D11DeviceContext& dc, IDX11TextureManager& textures, IRendererMetrics& metrics, IDX11ResourceLoader& loader, IShaders& shaders)
     {
-        return new DX11Gui(metrics, loader, shaders, device, dc);
+        return new DX11Gui(device, dc, textures, metrics, loader, shaders);
     }
 } // Rococo::DX11

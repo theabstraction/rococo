@@ -447,7 +447,7 @@ namespace
 
 				platform.messaging.Log(to_fstring(errorBuffer));
 
-				platform.utilities.ShowErrorBox(platform.renderer.Window(), ex, "Error loading level file");
+				platform.utilities.ShowErrorBox(platform.mainWindow, ex, "Error loading level file");
 			}
 
 			platform.utilities.ShowBusy(false, "", "");
@@ -583,7 +583,7 @@ namespace
 			}
 			catch (IException& ex)
 			{
-				platform.utilities.ShowErrorBox(platform.renderer.Window(), ex, ex.Message());
+				platform.utilities.ShowErrorBox(platform.mainWindow, ex, ex.Message());
 			};
 		}
 
@@ -605,7 +605,7 @@ namespace
 			map(CreateWorldMap(_platform, sectors)),
 			textureList(CreateTextureList(_platform)),
 			editMode_SectorBuilder(CreateSectorBuilder(_platform.publisher, *map)),
-			editMode_SectorEditor(CreateSectorEditor(_platform, *map, _platform.renderer.Window())),
+			editMode_SectorEditor(CreateSectorEditor(_platform, *map, _platform.mainWindow)),
 			statusbar(CreateStatusBar(_platform.publisher)),
 			editModeHandler("editor.edit_mode", _platform.publisher, { "v", "s" }),
 			textureTargetHandler("editor.texture.target", _platform.publisher, { "w", "f", "c" }),

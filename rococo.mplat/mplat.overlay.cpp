@@ -151,7 +151,7 @@ struct OverlayPane : public IPaneBuilderSupervisor, PaneDelegate, public IUIElem
 			platform.meshes.SaveCSV(mc.key, *buffer);
 			if (buffer->Length() > 0)
 			{
-				OS::SaveClipBoardText((cstr)buffer->GetData(), platform.renderer.Window());
+				OS::SaveClipBoardText((cstr)buffer->GetData(), platform.mainWindow);
 				platform.gui.LogMessage("Copied %s CSV to clipboard", mc.key);
 			}
 			type = OverlayPane::Type::None;
@@ -170,7 +170,7 @@ struct OverlayPane : public IPaneBuilderSupervisor, PaneDelegate, public IUIElem
 					{
 						WideFilePath sysPath;
 						platform.installation.ConvertPingPathToSysPath(fullname, sysPath);
-						Rococo::OS::EditImageFile(platform.renderer.Window(), sysPath);
+						Rococo::OS::EditImageFile(platform.mainWindow, sysPath);
 					}
 				}
 			}

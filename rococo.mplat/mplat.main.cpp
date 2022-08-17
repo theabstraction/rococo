@@ -342,7 +342,7 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	
 	Platform platform
 	{ 
-		*os, *installation, *appControl, mainWindow->Renderer(), *sprites, *rendererConfig, *messaging, 
+		*os, *installation, *appControl, mainWindow->Renderer(), mainWindow->Window(),* sprites,* rendererConfig,* messaging,
 		*sourceCache, *debuggerWindow, *publisher, *utilities, *gui, *keyboard, *config, *archive, *meshes,
 		*instances, *mobiles, *particles, *rigs, *spriteBuilder, *camera, *scene, tesselators, *mathsVisitor,
 		*audio, *ssFactory, title, *xbox360stick, *ims, *world

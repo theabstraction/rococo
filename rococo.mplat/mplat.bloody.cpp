@@ -1225,7 +1225,7 @@ namespace
 			if (IsPointInRect(pos, buttonRect))
 			{
 				RGBAb colour(value->red, value->green, value->blue, 255);
-				if (OS::TryGetColourFromDialog(colour, platform.renderer.Window()))
+				if (OS::TryGetColourFromDialog(colour, platform.mainWindow))
 				{
 					value->red = colour.red;
 					value->green = colour.green;

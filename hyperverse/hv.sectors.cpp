@@ -197,10 +197,10 @@ namespace ANON
 		   catch (IException& ex)
 		   {
 			   s->Free();
-			   platform.utilities.ShowErrorBox(platform.renderer.Window(), ex, "Algorithmic error creating sector. Try something simpler");
+			   platform.utilities.ShowErrorBox(platform.mainWindow, ex, "Algorithmic error creating sector. Try something simpler");
 
 #ifdef _DEBUG
-			   if (platform.utilities.QueryYesNo(platform.renderer.Window(), "Try again?"))
+			   if (platform.utilities.QueryYesNo(platform.mainWindow, "Try again?"))
 			   {
 				   OS::TripDebugger();
 				   OS::PrintDebug("\n\n\n // Troublesome perimeter: \n");

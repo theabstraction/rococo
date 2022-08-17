@@ -29,6 +29,7 @@ namespace Rococo::DX11
 
 	struct IDX11Shaders;
 	struct IDX11WindowBacking;
+	struct IDX11TextureManager;
 
 	struct RenderTarget
 	{
@@ -46,13 +47,6 @@ namespace Rococo::DX11
 		virtual IDX11Shaders& DX11Shaders() = 0;
 		virtual void LoadTextFile(cstr pingPath, Rococo::Function<void(const fstring& text)> callback) = 0;
 		virtual IInstallation& Installation() = 0;
-	};
-
-	ROCOCOAPI IShaderStateControl
-	{
-		virtual bool UseShaders(ID_VERTEX_SHADER vid, ID_PIXEL_SHADER pid) = 0;
-		virtual Vec2i SelectTexture(ID_TEXTURE txId) = 0;
-		virtual IMaterials& Materials() = 0;
 	};
 
 	ROCOCOAPI IDX11TextureArray : public Rococo::Textures::ITextureArray
@@ -81,7 +75,7 @@ namespace Rococo::DX11
 	{
 		virtual void Free() = 0;
 		virtual const Fonts::ArrayFontMetrics& GetFontMetrics(ID_FONT idFont) = 0;
-		virtual void RenderHQText(ID_FONT id, Rococo::Fonts::IHQTextJob& job, IGuiRenderContext::EMode mode, ID3D11DeviceContext& dc, IShaderStateControl& shaders) = 0;
+		virtual void RenderHQText(ID_FONT id, Rococo::Fonts::IHQTextJob& job, IGuiRenderContext::EMode mode, ID3D11DeviceContext& dc, IShaders& shaders) = 0;
 	};
 
 	IDX11HQFontResource* CreateDX11HQFonts(IInstallation& installation, IDX11FontRenderer& renderer, ID3D11Device& device, ID3D11DeviceContext& dc);
@@ -102,23 +96,26 @@ namespace Rococo::DX11
 		virtual bool ApplyGuiShader() = 0;
 		virtual bool ApplyHQFontsShader() = 0;
 		virtual bool ApplyGuiShader(ID_PIXEL_SHADER idGuiOverrideShader) = 0;
-		virtual void DrawCursor(const GuiMetrics& metrics, EWindowCursor cursorId) = 0;
+		virtual void AssignShaderResourcesToDC() = 0;
+		virtual void DrawCursor(const GuiMetrics& metrics) = 0;
 		virtual void DrawCustomTexturedMesh(const GuiRect& absRect, ID_TEXTURE id, cstr pixelShaderPingPath, const GuiVertex* vertices, size_t nCount) = 0;
 		virtual void DrawGlyph(cr_vec2 uvTopLeft, cr_vec2 uvBottomRight, cr_vec2 posTopLeft, cr_vec2 posBottomRight, Fonts::FontColour fcolour) = 0;
 		virtual Fonts::IFont& FontMetrics() = 0;
 		virtual void Free() = 0;	
 		virtual IDX11FontRenderer& FontRenderer() = 0;
+		virtual IGuiResources& Gui() = 0;
 		virtual GuiScale GetGuiScale() const = 0;
 		virtual void RenderGui(IScene& scene, const GuiMetrics& metrics, bool renderOverlays) = 0;
 		virtual void RenderText(const Vec2i& pos, Fonts::IDrawTextJob& job, const GuiRect* clipRect) = 0;
 		virtual void SetCursorBitmap(const Textures::BitmapLocation& sprite, Vec2i hotspotOffset) = 0;
+		virtual void SetSysCursor(EWindowCursor id) = 0;
 		virtual void ShowVenue(IMathsVisitor& visitor) = 0;
 		virtual Textures::ITextureArrayBuilder& SpriteBuilder() = 0;
 		virtual ID3D11ShaderResourceView* SpriteView() = 0;
 
 	};
 
-	IDX11Gui* CreateDX11Gui(IRendererMetrics& metrics, IDX11ResourceLoader& loader, IShaderStateControl& shaders, ID3D11Device& device, ID3D11DeviceContext& dc);
+	IDX11Gui* CreateDX11Gui(ID3D11Device& device, ID3D11DeviceContext& dc, IDX11TextureManager& textures, IRendererMetrics& metrics, IDX11ResourceLoader& loader, IShaders& shaders);
 
 	void GetSkySampler(D3D11_SAMPLER_DESC& desc);
 	D3D11_TEXTURE_ADDRESS_MODE From(AddressMode mode);
@@ -184,12 +181,8 @@ namespace Rococo::DX11
 
 	ROCOCOAPI IDX11Renderer : IRenderer
 	{
-		virtual void AssignGlobalStateBufferToShaders() = 0;
 		virtual ID3D11RenderTargetView* BackBuffer() = 0;
-		virtual void InitFontAndMaterialAndSpriteShaderResourceViewsAndSamplers() = 0;
 		virtual void OnWindowResized(IDX11WindowBacking& window, Vec2i span) = 0;
-		virtual void RenderGui(IScene& scene) = 0;
-		virtual void RestoreSamplers() = 0;
 		virtual void SetWindowBacking(IDX11WindowBacking* windowBacking) = 0;
 		virtual void Free() = 0;
 	};
@@ -197,7 +190,6 @@ namespace Rococo::DX11
 	ROCOCOAPI IDX11TextureManager: ITextureManager
 	{
 		virtual void Free() = 0;
-		virtual ICubeTextures& CubeTextures() = 0;
 		virtual ID3D11ShaderResourceView* GetCubeShaderResourceView() = 0;
 		virtual ID3D11ShaderResourceView* GetShaderView(ID_CUBE_TEXTURE id) = 0;
 		virtual TextureBind& GetTexture(ID_TEXTURE id) = 0;
@@ -243,14 +235,17 @@ namespace Rococo::DX11
 		virtual void DrawParticles(const ParticleVertex* particles, size_t nParticles, ID_PIXEL_SHADER psID, ID_VERTEX_SHADER vsID, ID_GEOMETRY_SHADER gsID) = 0;
 		virtual bool IsGuiReady() const = 0;
 		virtual void Free() = 0;
-		virtual void Render(Graphics::ENVIRONMENTAL_MAP envMap, IScene& scene) = 0;
+		virtual void Render(const GuiMetrics& metrics, Graphics::ENVIRONMENTAL_MAP envMap, IScene& scene) = 0;
+		virtual void SetSampler(uint32 index, Filter filter, AddressMode u, AddressMode v, AddressMode w, const RGBA& borderColour) = 0;
+		virtual void SetBoneMatrix(uint32 index, cr_m4x4 m) = 0;
 		virtual void SetupSpotlightConstants() = 0;
 		virtual void ShowVenue(IMathsVisitor& visitor) = 0;
+		virtual IGuiResources& Gui() = 0;
 		virtual IGui3D& Gui3D() = 0;
 		virtual IParticles& Particles() = 0;
 	};
 
-	IDX11Pipeline* CreateDX11Pipeline(IInstallation& installation, IDX11Shaders& shaders, IDX11TextureManager& textures, IDX11Meshes& meshes, IDX11Renderer& renderer, IRenderContext& rc, ID3D11Device& device, ID3D11DeviceContext& dc);
+	IDX11Pipeline* CreateDX11Pipeline(IInstallation& installation, IRendererMetrics& metrics, IDX11ResourceLoader& resourceLoader, IDX11Shaders& shaders, IDX11TextureManager& textures, IDX11Meshes& meshes, IDX11Renderer& renderer, IRenderContext& rc, ID3D11Device& device, ID3D11DeviceContext& dc);
 
 	ROCOCOAPI IDX11WindowBacking
 	{

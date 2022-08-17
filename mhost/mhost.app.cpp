@@ -602,7 +602,7 @@ namespace MHost
 
 		void CaptureMouse() override
 		{
-			MHost::UI::CaptureMouse(this->platform.renderer.Window());
+			MHost::UI::CaptureMouse(platform.mainWindow);
 		}
 
 		void ReleaseMouse() override

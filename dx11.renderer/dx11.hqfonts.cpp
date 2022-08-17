@@ -110,7 +110,7 @@ namespace Rococo::DX11
 			return osFonts[index].arrayFont->Metrics();
 		}
 
-		void RenderHQText(ID_FONT id, IHQTextJob& job, IGuiRenderContext::EMode mode, ID3D11DeviceContext& dc, IShaderStateControl& shaders) override
+		void RenderHQText(ID_FONT id, IHQTextJob& job, IGuiRenderContext::EMode mode, ID3D11DeviceContext& dc, IShaders& shaders) override
 		{
 			int32 index = id.value - ID_FONT_OSFONT_OFFSET;
 			if (index < 0 || index >= (int32)osFonts.size())

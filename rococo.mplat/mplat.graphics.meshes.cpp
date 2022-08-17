@@ -144,7 +144,7 @@ namespace
 			  Throw(0, "MeshBuilder::SetShadowCasating('%s') - mesh unknown. %s", (cstr)meshName);
 		  }
 
-		  renderer.SetShadowCasting(i->second->id, isActive);
+		  renderer.Meshes().SetShadowCasting(i->second->id, isActive);
 	  }
 
       void Delete(const fstring& fqName) override

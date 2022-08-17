@@ -147,6 +147,15 @@ namespace Rococo
 		int32 NumberOfElements;
 	};
 
+	enum EWindowCursor
+	{
+		EWindowCursor_Default = 0,
+		EWindowCursor_HDrag,
+		EWindowCursor_VDrag,
+		EWindowCursor_HandDrag,
+		EWindowCursor_BottomRightDrag
+	};
+
 	struct GuiMetrics
 	{
 		Vec2i cursorPosition;
@@ -182,6 +191,12 @@ namespace Rococo
 		virtual void UpdateMesh(ID_SYS_MESH id, const ObjectVertex* vertices, uint32 nVertices, const BoneWeights* weights) = 0;
 	};
 
+	ROCOCOAPI ICubeTextures
+	{
+		virtual ID_CUBE_TEXTURE CreateCubeTexture(cstr path, cstr extension) = 0;
+		virtual void SyncCubeTexture(int32 XMaxFace, int32 XMinFace, int32 YMaxFace, int32 YMinFace, int32 ZMaxFace, int32 ZMinFace) = 0;
+	};
+
 	ROCOCOAPI ITextureManager
 	{
 		virtual ID_TEXTURE CreateDepthTarget(cstr targetName, int32 width, int32 height) = 0;
@@ -190,6 +205,7 @@ namespace Rococo
 		virtual ID_TEXTURE LoadAlphaTextureArray(cstr uniqueName, Vec2i span, int32 nElements, ITextureLoadEnumerator& enumerator) = 0;
 		virtual ID_TEXTURE LoadTexture(IBuffer& buffer, cstr uniqueName) = 0;
 		virtual ID_TEXTURE FindTexture(cstr name) const = 0;
+		virtual ICubeTextures& CubeTextures() = 0;
 		virtual void SetGenericTextureArray(ID_TEXTURE id) = 0;
 		virtual void ShowTextureVenue(IMathsVisitor& visitor) = 0;
 		virtual int64 Size() const = 0;
@@ -212,6 +228,8 @@ namespace Rococo
 		virtual Textures::ITextureArrayBuilder& SpriteBuilder() = 0;
 		virtual Fonts::IFont& FontMetrics() = 0;
 		virtual IHQFontResource& HQFontsResources() = 0;
+		virtual void SetCursorBitmap(const Textures::BitmapLocation& sprite, Vec2i hotspotOffset) = 0;
+		virtual void SetSysCursor(EWindowCursor id) = 0;
 	};
 
 	struct MaterialTextureArrayBuilderArgs
@@ -244,7 +262,6 @@ namespace Rococo
 		virtual Vec2i EvalSpan(const Vec2i& pos, Fonts::IDrawTextJob& job, const GuiRect* clipRect = nullptr) = 0;
 		virtual void RenderText(const Vec2i& pos, Fonts::IDrawTextJob& job, const GuiRect* clipRect = nullptr) = 0;
 		virtual IRendererMetrics& Renderer() = 0;
-		virtual auto SelectTexture(ID_TEXTURE id)->Vec2i = 0; // select texture and returns span
 		virtual void SetGuiShader(cstr pixelShader) = 0;
 		virtual void SetScissorRect(const Rococo::GuiRect& rect) = 0;
 		virtual void ClearScissorRect() = 0;
@@ -455,15 +472,6 @@ namespace Rococo
 		TextureFormat format;
 	};
 
-	enum EWindowCursor
-	{
-		EWindowCursor_Default = 0,
-		EWindowCursor_HDrag,
-		EWindowCursor_VDrag,
-		EWindowCursor_HandDrag,
-		EWindowCursor_BottomRightDrag
-	};
-
 	struct TextureLoadData
 	{
 		cstr filename;
@@ -481,12 +489,6 @@ namespace Rococo
 		struct IHQFonts;
 	}
 
-	ROCOCOAPI ICubeTextures
-	{
-		virtual ID_CUBE_TEXTURE CreateCubeTexture(cstr path, cstr extension) = 0;
-		virtual void SyncCubeTexture(int32 XMaxFace, int32 XMinFace, int32 YMaxFace, int32 YMinFace, int32 ZMaxFace, int32 ZMinFace) = 0;
-	};
-
 	ROCOCOAPI IRenderer : IRendererMetrics
 	{
 		virtual IGuiResources& Gui() = 0;
@@ -495,25 +497,19 @@ namespace Rococo
 		virtual IMeshes& Meshes() = 0;
 		virtual IShaders& Shaders() = 0;
 		virtual IParticles& Particles() = 0;
-		virtual ICubeTextures& CubeTextures() = 0;
 		virtual void ExpandViewportToEntireTexture(ID_TEXTURE depthId) = 0;
 		virtual void CaptureMouse(bool enable) = 0;
-		virtual ID_TEXTURE GetMainDepthBufferId() const = 0;		
-		virtual void SetSysCursor(EWindowCursor id) = 0;
+		virtual ID_TEXTURE GetWindowDepthBufferId() const = 0;
 		virtual IInstallation& Installation() = 0;
 		virtual void Render(Graphics::ENVIRONMENTAL_MAP EnvironmentalMap, IScene& scene) = 0;
-		virtual void SetCursorBitmap(const Textures::BitmapLocation& sprite, Vec2i hotspotOffset) = 0;
 		virtual void SetCursorVisibility(bool isVisible) = 0;
 		virtual void SetSampler(uint32 index, Samplers::Filter, Samplers::AddressMode u, Samplers::AddressMode v, Samplers::AddressMode w, const RGBA& borderColour) = 0;
-		virtual void SetShadowCasting(ID_SYS_MESH id, boolean32 isActive) = 0;
 		virtual void SetSpecialAmbientShader(ID_SYS_MESH id, cstr vs, cstr ps, bool alphaBlending) = 0;
 		virtual void SetSpecialSpotlightShader(ID_SYS_MESH id, cstr vs, cstr ps, bool alphaBlending) = 0;
 		virtual void ShowWindowVenue(IMathsVisitor& visitor) = 0;
 		virtual void SwitchToWindowMode() = 0;
 		virtual IMathsVenue* TextureVenue() = 0;
-		virtual void UpdateGlobalState(IScene& scene) = 0;
-		virtual ID_TEXTURE LoadAlphaTextureArray(cstr uniqueName, Vec2i span, int nElements, ITextureLoadEnumerator& enumerator) = 0;
-		virtual Windows::IWindow& Window() = 0;
+		virtual Windows::IWindow& CurrentWindow() = 0;
 		virtual IMathsVenue* Venue() = 0;
 	};
 

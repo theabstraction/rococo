@@ -854,8 +854,9 @@ namespace Rococo
 		// Execution control
 		OS::IAppControl& appControl;
 
-		// Renderer
 		IRenderer& renderer;
+
+		Windows::IWindow& mainWindow;
 
 		Graphics::ISprites& sprites;
 

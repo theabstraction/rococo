@@ -135,7 +135,7 @@ struct DX11WindowBacking: IDX11WindowBacking, Windows::IWindow
 
 namespace Rococo::DX11
 {
-	IDX11WindowBacking* CreateDX11WindowBacking(ID3D11Device& device, ID3D11DeviceContext& dc, HWND hWnd, IDXGIFactory& factory, ITextureManager& textures)
+	IDX11WindowBacking* CreateDX11WindowBacking(ID3D11Device& device, ID3D11DeviceContext& dc, HWND hWnd, IDXGIFactory& factory, IDX11TextureManager& textures)
 	{
 		return new DX11WindowBacking(device, dc, hWnd, factory, textures);
 	}

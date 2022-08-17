@@ -136,7 +136,7 @@ public:
 			SafeFormat(fullTitle, sizeof(fullTitle), "%s", platform->title);
 		}
 
-		SetWindowTextA(platform->renderer.Window(), fullTitle);
+		SetWindowTextA(platform->mainWindow, fullTitle);
 	}
 
 	bool GetLoadLocation(Windows::IWindow& parent, LoadDesc& ld) override
