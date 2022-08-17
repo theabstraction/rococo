@@ -7,6 +7,13 @@ namespace Rococo
 	struct IInstallation;
 	struct IApp;
 
+	namespace Graphics
+	{
+		struct IRenderer;
+	}
+
+	using namespace Rococo::Graphics;
+
 	namespace OS
 	{
 		struct IAppControl;

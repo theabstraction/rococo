@@ -7,7 +7,7 @@
 
 using namespace Rococo;
 using namespace Rococo::DX11;
-using namespace Rococo::Textures;
+using namespace Rococo::Graphics::Textures;
 
 static int instanceCount = 0;
 

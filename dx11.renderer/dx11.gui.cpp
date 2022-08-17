@@ -46,7 +46,7 @@ public:
     }
 };
 
-struct DX11Gui : IDX11Gui, IDX11FontRenderer, Rococo::Fonts::IGlyphRenderer, IGuiResources
+struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResources
 {
     ID3D11Device& device;
     ID3D11DeviceContext& dc;
@@ -494,7 +494,7 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Rococo::Fonts::IGlyphRenderer, IGu
         return hqFonts->GetFontMetrics(idFont);
     }
 
-    void RenderHQText(ID_FONT id, Rococo::Fonts::IHQTextJob& job, IGuiRenderContext::EMode mode) override
+    void RenderHQText(ID_FONT id, Fonts::IHQTextJob& job, IGuiRenderContext::EMode mode) override
     {
         return hqFonts->RenderHQText(id, job, mode, dc, shaders);
     }

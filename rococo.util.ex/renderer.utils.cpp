@@ -12,7 +12,7 @@ namespace
 {
 	using namespace Rococo;
 	using namespace Rococo::Graphics;
-	using namespace Rococo::Fonts;
+	using namespace Rococo::Graphics::Fonts;
 
 	Fonts::FontColour FontColourFromRGBAb(RGBAb colour)
 	{

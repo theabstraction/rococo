@@ -36,6 +36,8 @@ namespace Rococo
          char text[256];
       };
 
+      using namespace Rococo::Graphics;
+
       void Draw3DFrame(IGuiRenderContext& rc, const GuiRect& rect, struct WidgetFrameSet& frameSet, bool isLit);
       void DrawCenteredLabel(IGuiRenderContext& rc, const GuiRect& rect, struct LabelSet& labelSet, bool isLit);
       void Draw3DButton(IGuiRenderContext& rc, const GuiRect& rect, struct WidgetFrameSet& frameSet, struct LabelSet& labelSet, bool isLit);

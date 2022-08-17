@@ -15,7 +15,7 @@
 namespace
 {
    using namespace Rococo;
-   using namespace Rococo::Textures;
+   using namespace Rococo::Graphics::Textures;
 
    struct BitmapLocationImpl
    {
@@ -638,41 +638,38 @@ namespace
    };
 }
 
-namespace Rococo
+namespace Rococo::Graphics::Textures
 {
-   namespace Textures
-   {
-      void StandardLoadFromCompressedTextureBuffer(cstr name, IEventCallback<CompressedTextureBuffer>& onLoad, IInstallation& installation, IExpandingBuffer& buffer)
-      {
-         COMPRESSED_TYPE type;
+    void StandardLoadFromCompressedTextureBuffer(cstr name, IEventCallback<CompressedTextureBuffer>& onLoad, IInstallation& installation, IExpandingBuffer& buffer)
+    {
+        COMPRESSED_TYPE type;
 
-         auto* ext = GetFileExtension(name);
-         if (Eq(ext, ".tiff") || Eq(ext, ".tif"))
-         {
+        auto* ext = GetFileExtension(name);
+        if (Eq(ext, ".tiff") || Eq(ext, ".tif"))
+        {
             type = COMPRESSED_TYPE_TIF;
-         }
-         else if (Eq(ext, ".jpg") || Eq(ext, ".jpeg"))
-         {
+        }
+        else if (Eq(ext, ".jpg") || Eq(ext, ".jpeg"))
+        {
             type = COMPRESSED_TYPE_JPG;
-         }
-         else
-         {
+        }
+        else
+        {
             Throw(0, "%s: Image files either be a tif or a jpg.", name);
-         }
+        }
 
-         installation.LoadResource(name, buffer, 64_megabytes);
-         CompressedTextureBuffer args =
-         {
-            buffer.GetData(),
-            buffer.Length(),
-            type
-         };
-         onLoad.OnEvent(args);
-      }
+        installation.LoadResource(name, buffer, 64_megabytes);
+        CompressedTextureBuffer args =
+        {
+           buffer.GetData(),
+           buffer.Length(),
+           type
+        };
+        onLoad.OnEvent(args);
+    }
 
-      ITextureArrayBuilderSupervisor* CreateTextureArrayBuilder(ICompressedResourceLoader& loader, ITextureArray& textureFactory)
-      {
-         return new TextureArrayBuilder(loader, textureFactory);
-      }
-   }
+    ITextureArrayBuilderSupervisor* CreateTextureArrayBuilder(ICompressedResourceLoader& loader, ITextureArray& textureFactory)
+    {
+        return new TextureArrayBuilder(loader, textureFactory);
+    }
 }

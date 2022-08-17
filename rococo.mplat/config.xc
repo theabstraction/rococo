@@ -78,7 +78,7 @@
 (struct FlameDef Rococo.FlameDef FlameDef)
 (struct SampleStateDef Rococo.SampleStateDef Rococo.Graphics.SampleStateDef)
 (struct FontMetrics Rococo.Graphics.FontMetrics Rococo.Graphics.FontMetrics)
-(struct BitmapLocation MPlat.BitmapLocation Rococo.Textures.BitmapLocation)
+(struct BitmapLocation MPlat.BitmapLocation Rococo.Graphics.Textures.BitmapLocation)
 
 (defstruct TriangleScan Rococo.TriangleScan Rococo.TriangleScan
 	(IdEntity id)

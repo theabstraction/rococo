@@ -9,7 +9,7 @@
 
 using namespace Rococo;
 using namespace Rococo::Windows;
-using namespace Rococo::Fonts;
+using namespace Rococo::Graphics::Fonts;
 
 #pragma pack(push,1)
 struct BGRAb
@@ -298,7 +298,7 @@ struct WindowsArrayFont : IArrayFontSupervisor
 };
 
 
-namespace Rococo
+namespace Rococo::Graphics
 {
 	namespace Fonts
 	{

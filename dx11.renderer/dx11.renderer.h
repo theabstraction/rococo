@@ -18,7 +18,8 @@
 
 namespace Rococo::DX11
 {
-	using namespace Rococo::Samplers;
+	using namespace Rococo::Graphics;
+	using namespace Rococo::Graphics::Samplers;
 
 	ROCOCOAPI IDX11TextureLoader
 	{
@@ -49,7 +50,7 @@ namespace Rococo::DX11
 		virtual IInstallation& Installation() = 0;
 	};
 
-	ROCOCOAPI IDX11TextureArray : public Rococo::Textures::ITextureArray
+	ROCOCOAPI IDX11TextureArray : public Textures::ITextureArray
 	{
 		virtual void Free() = 0;
 		virtual void Resize(size_t nElements) = 0;
@@ -75,7 +76,7 @@ namespace Rococo::DX11
 	{
 		virtual void Free() = 0;
 		virtual const Fonts::ArrayFontMetrics& GetFontMetrics(ID_FONT idFont) = 0;
-		virtual void RenderHQText(ID_FONT id, Rococo::Fonts::IHQTextJob& job, IGuiRenderContext::EMode mode, ID3D11DeviceContext& dc, IShaders& shaders) = 0;
+		virtual void RenderHQText(ID_FONT id, Fonts::IHQTextJob& job, IGuiRenderContext::EMode mode, ID3D11DeviceContext& dc, IShaders& shaders) = 0;
 	};
 
 	IDX11HQFontResource* CreateDX11HQFonts(IInstallation& installation, IDX11FontRenderer& renderer, ID3D11Device& device, ID3D11DeviceContext& dc);

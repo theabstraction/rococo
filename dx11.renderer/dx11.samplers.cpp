@@ -5,7 +5,7 @@
 
 namespace Rococo::DX11
 {
-	using namespace Rococo::Samplers;
+	using namespace Rococo::Graphics::Samplers;
 
 	D3D11_TEXTURE_ADDRESS_MODE From(Samplers::AddressMode mode)
 	{

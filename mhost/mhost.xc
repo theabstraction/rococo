@@ -56,9 +56,9 @@
 (struct MaterialVertexData Rococo.MaterialVertexData MaterialVertexData)
 (struct AABB2d Rococo.AAB2d AABB2d)
 (struct QuadVertices Rococo.QuadVertices QuadVertices)
-(struct BitmapLocation MPlat.BitmapLocation Rococo.Textures.BitmapLocation)
-(struct GuiTriangle MPlat.GuiTriangle Rococo.GuiTriangle)
-(struct GuiQuad MPlat.GuiQuad Rococo.GuiQuad)
+(struct BitmapLocation MPlat.BitmapLocation Rococo.Graphics.Textures.BitmapLocation)
+(struct GuiTriangle MPlat.GuiTriangle Rococo.Graphics.GuiTriangle)
+(struct GuiQuad MPlat.GuiQuad Rococo.Graphics.GuiQuad)
 (struct Rectf Sys.Maths.Rectf Rococo.GuiRectf)
 (struct Recti Sys.Maths.Recti Rococo.GuiRect)
 (struct KeyState MHost.OS.KeyState MHost.OS.KeyState)
@@ -67,7 +67,7 @@
 (struct RGBA RGBA RGBA)
 (struct FontDesc MHost.Graphics.FontDesc MHost.Graphics.FontDesc)
 (struct WorldOrientation MHost.WorldOrientation MHost.WorldOrientation)
-(struct CubeTextureDef MHost.CubeTextureDef MHost.CubeTextureDef)
+(struct CubeTextureDef MHost.CubeTextureDef MHost.Graphics.CubeTextureDef)
 
 // (defstruct <name> <sexy-name> <cpp-name> (fields) )  maps <name> found in the sxh file to the <sexy-name> in the generated sxy file, and <cpp-name> in the c++ files. It creates new structures in the target specified in (cpp.types ...)
 // (fields) is a sequence of s-expressions of the format (<type> <name>) where <type> is either a primitive or struct defined BEFORE the parent defstruct and <name> is a unique name for the variable.

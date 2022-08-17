@@ -110,6 +110,13 @@ namespace Rococo
 		int ShowMessageBox(IWindow& window, cstr text, cstr caption, uint32 uType);
 	}
 
+	namespace Graphics
+	{
+		struct IRenderer;
+		struct IRenderContext;
+		struct IGuiRenderContext;
+	}
+
 	namespace Visitors
 	{
 		enum CheckState : int32;
@@ -121,10 +128,10 @@ namespace Rococo
 	}
 
 	struct IUltraClock;
-	struct IRenderer;
+
 	struct IInstallation;
 	struct IOS;
-	struct IRenderContext;
+	
 	struct IBuffer;
 	struct KeyboardEvent;
 	struct MouseEvent;
@@ -132,8 +139,6 @@ namespace Rococo
 	void SplitString(cstr text, size_t length, cstr seperators, IEventCallback<cstr>& onSubString);
 
 	void GetTimestamp(char str[26]);
-
-	struct IGuiRenderContext;
 
 	namespace Post
 	{
@@ -185,6 +190,8 @@ namespace Rococo
 
 namespace Rococo
 {
+	struct IExpandingBuffer;
+
 	namespace Script
 	{
 		struct IPublicScriptSystem;

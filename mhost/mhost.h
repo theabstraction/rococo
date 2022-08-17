@@ -74,6 +74,7 @@ namespace MHost
 namespace MHost
 {
 	using namespace Rococo;
+	using namespace Rococo::Graphics;
 	using namespace Rococo::Script;
 
 	ROCOCOAPI IDicionaryStreamSupervisor: public IDictionaryStream

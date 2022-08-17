@@ -219,6 +219,8 @@ namespace Rococo
 
 	IConfigSupervisor* CreateConfig();
 
+	using namespace Rococo::Graphics;
+
 	ROCOCOAPI IMathsVisitorSupervisor : public IMathsVisitor
 	{
 		 virtual bool AppendKeyboardEvent(const KeyboardEvent & key) = 0;

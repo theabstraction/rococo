@@ -209,6 +209,9 @@
     <ClInclude Include="..\include\rococo.auto-release.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\rococo.renderer.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="dx11helpers.inl">

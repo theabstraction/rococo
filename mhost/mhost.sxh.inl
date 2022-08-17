@@ -217,7 +217,7 @@ namespace
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Rococo::GuiTriangle* t;
+		Rococo::Graphics::GuiTriangle* t;
 		_offset += sizeof(t);
 		ReadInput(t, _sf, -_offset);
 
@@ -231,7 +231,7 @@ namespace
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Rococo::GuiQuad* q;
+		Rococo::Graphics::GuiQuad* q;
 		_offset += sizeof(q);
 		ReadInput(q, _sf, -_offset);
 
@@ -305,7 +305,7 @@ namespace
 		_offset += sizeof(blendFactor);
 		ReadInput(blendFactor, _sf, -_offset);
 
-		Rococo::Textures::BitmapLocation* loc;
+		Rococo::Graphics::Textures::BitmapLocation* loc;
 		_offset += sizeof(loc);
 		ReadInput(loc, _sf, -_offset);
 
@@ -379,7 +379,7 @@ namespace
 		_offset += sizeof(blendFactor);
 		ReadInput(blendFactor, _sf, -_offset);
 
-		Rococo::Textures::BitmapLocation* loc;
+		Rococo::Graphics::Textures::BitmapLocation* loc;
 		_offset += sizeof(loc);
 		ReadInput(loc, _sf, -_offset);
 
@@ -401,7 +401,7 @@ namespace
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Rococo::Textures::BitmapLocation* loc;
+		Rococo::Graphics::Textures::BitmapLocation* loc;
 		_offset += sizeof(loc);
 		ReadInput(loc, _sf, -_offset);
 
@@ -423,7 +423,7 @@ namespace
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Rococo::Textures::BitmapLocation* loc;
+		Rococo::Graphics::Textures::BitmapLocation* loc;
 		_offset += sizeof(loc);
 		ReadInput(loc, _sf, -_offset);
 
@@ -829,7 +829,7 @@ namespace
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Rococo::Textures::BitmapLocation* loc;
+		Rococo::Graphics::Textures::BitmapLocation* loc;
 		_offset += sizeof(loc);
 		ReadInput(loc, _sf, -_offset);
 
@@ -851,7 +851,7 @@ namespace
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Rococo::Textures::BitmapLocation* loc;
+		Rococo::Graphics::Textures::BitmapLocation* loc;
 		_offset += sizeof(loc);
 		ReadInput(loc, _sf, -_offset);
 

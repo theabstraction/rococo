@@ -1,10 +1,8 @@
 #ifndef ROCOCO_TEXTURES_H
 #define ROCOCO_TEXTURES_H
 
-namespace Rococo
+namespace Rococo::Graphics
 {
-   struct IExpandingBuffer;
-
    namespace Textures
    {
       enum COMPRESSED_TYPE
@@ -70,7 +68,7 @@ namespace Rococo
 
       void StandardLoadFromCompressedTextureBuffer(cstr name, IEventCallback<CompressedTextureBuffer>& onLoad, IInstallation& installation, IExpandingBuffer& buffer);
       ITextureArrayBuilderSupervisor* CreateTextureArrayBuilder(ICompressedResourceLoader& loader, ITextureArray& textureArray);
-   }
-}
+   } // Rococo::Graphics::Textures
+} // Rococo::Graphics
 
 #endif

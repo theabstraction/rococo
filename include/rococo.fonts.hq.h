@@ -2,7 +2,7 @@
 
 #include <rococo.types.h>
 
-namespace Rococo::Fonts
+namespace Rococo::Graphics::Fonts
 {
 	ROCOCOAPI IFontGlyphBuilder
 	{

@@ -7,6 +7,26 @@
 
 namespace Rococo
 {
+	struct IMathsVisitor;
+	struct IMathsVenue;
+
+	namespace Windows
+	{
+		struct IWindow;
+	}
+}
+
+namespace Rococo::Graphics
+{
+	struct Light;
+	struct TextureDesc;
+	struct ITextureLoadEnumerator;
+
+	namespace Textures
+	{
+		struct ITextureArrayBuilder;
+	}
+
 	enum CBUFFER_INDEX
 	{
 		CBUFFER_INDEX_GLOBAL_STATE = 0,
@@ -39,8 +59,6 @@ namespace Rococo
 		struct ArrayFontMetrics;
 		struct IArrayFontSet;
 	}
-
-	struct Light;
 
 	struct BaseVertexData
 	{
@@ -105,11 +123,6 @@ namespace Rococo
 
 	typedef cstr BodyComponentMatClass;
 
-	ROCOCOAPI IMaterialPalette
-	{
-		virtual bool TryGetMaterial(BodyComponentMatClass name, MaterialVertexData & vd) const = 0;
-	};
-
 	struct VertexTriangle
 	{
 		ObjectVertex a;
@@ -133,7 +146,6 @@ namespace Rococo
 	};
 
 	struct IRendererMetrics;
-	struct IRenderer;
 
 	namespace Textures
 	{
@@ -162,9 +174,10 @@ namespace Rococo
 		Vec2i screenSpan;
 	};
 
-	struct IMathsVisitor;
-	struct TextureDesc;
-	struct ITextureLoadEnumerator;
+	ROCOCOAPI IMaterialPalette
+	{
+		virtual bool TryGetMaterial(BodyComponentMatClass name, MaterialVertexData & vd) const = 0;
+	};
 
 	ROCOCOAPI IShaders
 	{
@@ -214,7 +227,7 @@ namespace Rococo
 
 	ROCOCOAPI IRendererMetrics
 	{
-		virtual void GetGuiMetrics(GuiMetrics& metrics) const = 0;
+		virtual void GetGuiMetrics(GuiMetrics & metrics) const = 0;
 	};
 
 	ROCOCOAPI IHQFontResource
@@ -255,7 +268,7 @@ namespace Rococo
 
 	ROCOCOAPI IGuiRenderContext // Provides draw calls - do not cache
 	{
-		virtual IMaterials& Materials() = 0;
+		virtual IMaterials & Materials() = 0;
 		virtual void AddTriangle(const GuiVertex triangle[3]) = 0;
 		virtual void DrawCustomTexturedMesh(const GuiRect& absRect, ID_TEXTURE id, cstr pixelShader, const GuiVertex* vertices, size_t nCount) = 0;
 		virtual void FlushLayer() = 0;
@@ -314,8 +327,8 @@ namespace Rococo
 
 	ROCOCOAPI IRenderContext // Provides draw calls - do not cache
 	{
-		virtual IGui3D& Gui3D() = 0;
-		virtual void Draw(ID_SYS_MESH id, const ObjectInstance * instance, uint32 nInstances) = 0;
+		virtual IGui3D & Gui3D() = 0;
+		virtual void Draw(ID_SYS_MESH id, const ObjectInstance* instance, uint32 nInstances) = 0;
 		virtual IRenderer& Renderer() = 0;
 		virtual void SetBoneMatrix(uint32 index, cr_m4x4 m) = 0;
 	};
@@ -378,7 +391,7 @@ namespace Rococo
 		virtual void RenderGui(IGuiRenderContext& grc) = 0;
 	};
 
-	ROCOCOAPI IScene: IScene2D
+	ROCOCOAPI IScene : IScene2D
 	{
 		virtual void GetCamera(Matrix4x4 & camera, Matrix4x4 & world, Matrix4x4 & proj, Vec4 & eye, Vec4 & viewDir) = 0;
 		virtual ID_CUBE_TEXTURE GetSkyboxCubeId() const = 0;
@@ -386,28 +399,6 @@ namespace Rococo
 		virtual const Light* GetLights(uint32& nCount) const = 0;	// Called prior to the shadow pass. 
 		virtual void RenderShadowPass(const DepthRenderData& drd, IRenderContext& rc, bool skinned) = 0; // Do not change lights from here
 	};
-
-	ROCOCOAPI IApp
-	{
-		virtual void Free() = 0;
-		virtual void OnCreate() = 0;
-		virtual auto OnFrameUpdated(const IUltraClock& clock)->uint32 = 0; // returns number of ms to sleep per frame as hint
-		virtual void OnKeyboardEvent(const KeyboardEvent& k) = 0;
-		virtual void OnMouseEvent(const MouseEvent& me) = 0;
-	};
-
-	namespace Windows
-	{
-		struct IWindow;
-	}
-
-	namespace Textures
-	{
-		struct ITextureArrayBuilder;
-	}
-
-	struct IMathsVisitor;
-	struct IMathsVenue;
 
 	namespace Samplers
 	{
@@ -425,38 +416,35 @@ namespace Rococo
 		};
 	}
 
-	namespace Graphics
+	enum ENVIRONMENTAL_MAP
 	{
-		enum ENVIRONMENTAL_MAP
-		{
-			ENVIRONMENTAL_MAP_PROCEDURAL,
-			ENVIRONMENTAL_MAP_FIXED_CUBE,
-			ENVIRONMENTAL_MAP_DYNAMIC_CUBE
-		};
+		ENVIRONMENTAL_MAP_PROCEDURAL,
+		ENVIRONMENTAL_MAP_FIXED_CUBE,
+		ENVIRONMENTAL_MAP_DYNAMIC_CUBE
+	};
 
-		struct RenderPhaseConfig
-		{
-			ENVIRONMENTAL_MAP EnvironmentalMap;
-			ID_TEXTURE renderTarget;
-			ID_TEXTURE depthTarget;
-			ID_TEXTURE shadowBuffer;
-		};
+	struct RenderPhaseConfig
+	{
+		ENVIRONMENTAL_MAP EnvironmentalMap;
+		ID_TEXTURE renderTarget;
+		ID_TEXTURE depthTarget;
+		ID_TEXTURE shadowBuffer;
+	};
 
-		enum Alignment : int32
-		{
-			Alignment_None = 0, 	// 0x0
-			Alignment_Left = 1, 	// 0x1
-			Alignment_Right = 2, 	// 0x2
-			Alignment_Bottom = 4, 	// 0x4
-			Alignment_Top = 8, 		// 0x8
-			Alignment_Mirror = 16, 	// 0x10
-			Alignment_Flip = 32, 	// 0x20
-			Alignment_Clipped = 64, // 0x40
-		};
+	enum Alignment : int32
+	{
+		Alignment_None = 0, 	// 0x0
+		Alignment_Left = 1, 	// 0x1
+		Alignment_Right = 2, 	// 0x2
+		Alignment_Bottom = 4, 	// 0x4
+		Alignment_Top = 8, 		// 0x8
+		Alignment_Mirror = 16, 	// 0x10
+		Alignment_Flip = 32, 	// 0x20
+		Alignment_Clipped = 64, // 0x40
+	};
 
-		Vec2i GetTopLeftPos(const GuiRect& rect, Vec2i span, int32 alignmentFlags);
-		Vec2 GetTopLeftPos(Vec2 pos, Vec2 span, int32 alignmentFlags);
-	}
+	Vec2i GetTopLeftPos(const GuiRect& rect, Vec2i span, int32 alignmentFlags);
+	Vec2 GetTopLeftPos(Vec2 pos, Vec2 span, int32 alignmentFlags);
 
 	enum TextureFormat
 	{
@@ -481,17 +469,15 @@ namespace Rococo
 
 	ROCOCOAPI ITextureLoadEnumerator
 	{
-		virtual void ForEachElement(IEventCallback<TextureLoadData> & callback, bool readData) = 0;
+		virtual void ForEachElement(IEventCallback<TextureLoadData> &callback, bool readData) = 0;
 	};
 
-	namespace Graphics
-	{
-		struct IHQFonts;
-	}
+
+	struct IHQFonts;
 
 	ROCOCOAPI IRenderer : IRendererMetrics
 	{
-		virtual IGuiResources& Gui() = 0;
+		virtual IGuiResources & Gui() = 0;
 		virtual IMaterials& Materials() = 0;
 		virtual ITextureManager& Textures() = 0;
 		virtual IMeshes& Meshes() = 0;
@@ -513,55 +499,64 @@ namespace Rococo
 		virtual IMathsVenue* Venue() = 0;
 	};
 
-	namespace Graphics
+	struct GlyphCallbackArgs
 	{
-		struct GlyphCallbackArgs
-		{
-			GuiRect rect;
-			int32 index;
-		};
+		GuiRect rect;
+		int32 index;
+	};
 
-		void DrawTriangleFacingLeft(IGuiRenderContext& grc, const GuiRect& container, RGBAb colour);
-		void DrawTriangleFacingRight(IGuiRenderContext& grc, const GuiRect& container, RGBAb colour);
-		void DrawTriangleFacingUp(IGuiRenderContext& grc, const GuiRect& container, RGBAb colour);
-		void DrawTriangleFacingDown(IGuiRenderContext& grc, const GuiRect& container, RGBAb colour);
+	void DrawTriangleFacingLeft(IGuiRenderContext& grc, const GuiRect& container, RGBAb colour);
+	void DrawTriangleFacingRight(IGuiRenderContext& grc, const GuiRect& container, RGBAb colour);
+	void DrawTriangleFacingUp(IGuiRenderContext& grc, const GuiRect& container, RGBAb colour);
+	void DrawTriangleFacingDown(IGuiRenderContext& grc, const GuiRect& container, RGBAb colour);
 
-		Vec2i GetScreenCentre(const GuiMetrics& metrics);
-		Vec2i RenderHorizontalCentredText(IGuiRenderContext& gr, cstr txt, RGBAb colour, int fontSize, const Vec2i& topMiddle);
-		Vec2i RenderVerticalCentredTextWithCallback(IGuiRenderContext& gr, int32 cursorPos, IEventCallback<GlyphCallbackArgs>& cb, cstr txt, RGBAb colour, int fontSize, const Vec2i& topMiddle, const GuiRect& clipRect);
-		Vec2i RenderVerticalCentredText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const Vec2i& middleLeft, const GuiRect* clipRect = nullptr);
-		Vec2i RenderTopLeftAlignedText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const Vec2i& topLeft);
-		Vec2i RenderTopRightAlignedText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const Vec2i& topRight);
-		Vec2i RenderRightAlignedText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const GuiRect& rect);
-		void EvalTextSpan(IGuiRenderContext& g, const fstring& text, int32 fontIndex, int fontHeight, Vec2& pixelSpan);
-		void DrawRectangle(IGuiRenderContext& grc, const GuiRect& grect, RGBAb diag, RGBAb backdiag);
-		void DrawBorderAround(IGuiRenderContext& grc, const GuiRect& rect, const Vec2i& width, RGBAb diag, RGBAb backdiag);
-		void DrawLine(IGuiRenderContext& grc, int pixelthickness, Vec2i start, Vec2i end, RGBAb colour);
+	Vec2i GetScreenCentre(const GuiMetrics& metrics);
+	Vec2i RenderHorizontalCentredText(IGuiRenderContext& gr, cstr txt, RGBAb colour, int fontSize, const Vec2i& topMiddle);
+	Vec2i RenderVerticalCentredTextWithCallback(IGuiRenderContext& gr, int32 cursorPos, IEventCallback<GlyphCallbackArgs>& cb, cstr txt, RGBAb colour, int fontSize, const Vec2i& topMiddle, const GuiRect& clipRect);
+	Vec2i RenderVerticalCentredText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const Vec2i& middleLeft, const GuiRect* clipRect = nullptr);
+	Vec2i RenderTopLeftAlignedText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const Vec2i& topLeft);
+	Vec2i RenderTopRightAlignedText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const Vec2i& topRight);
+	Vec2i RenderRightAlignedText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const GuiRect& rect);
+	void EvalTextSpan(IGuiRenderContext& g, const fstring& text, int32 fontIndex, int fontHeight, Vec2& pixelSpan);
+	void DrawRectangle(IGuiRenderContext& grc, const GuiRect& grect, RGBAb diag, RGBAb backdiag);
+	void DrawBorderAround(IGuiRenderContext& grc, const GuiRect& rect, const Vec2i& width, RGBAb diag, RGBAb backdiag);
+	void DrawLine(IGuiRenderContext& grc, int pixelthickness, Vec2i start, Vec2i end, RGBAb colour);
 
-		void RenderCentred(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour);
-		Vec2 RenderHQText_LeftAligned_VCentre(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour);
-		Vec2 RenderHQText_LeftAligned_VCentre_WithCaret(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour, int caretPos);
-		Vec2 RenderHQParagraph(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour);
-		struct alignas(16) StackSpaceGraphics
-		{
-			char opaque[256];
-		};
+	void RenderCentred(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour);
+	Vec2 RenderHQText_LeftAligned_VCentre(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour);
+	Vec2 RenderHQText_LeftAligned_VCentre_WithCaret(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour, int caretPos);
+	Vec2 RenderHQParagraph(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour);
+	struct alignas(16) StackSpaceGraphics
+	{
+		char opaque[256];
+	};
 
-		Fonts::IDrawTextJob& CreateHorizontalCentredText(StackSpaceGraphics& ss, int fontIndex, cstr text, RGBAb _colour);
-		Fonts::IDrawTextJob& CreateLeftAlignedText(StackSpaceGraphics& ss, const GuiRect& targetRect, int retzone, int hypzone, int fontHeight, int fontIndex, cstr text, RGBAb colour);
-		float GetAspectRatio(const IRenderer& renderer);
-		Vec2 PixelSpaceToScreenSpace(const Vec2i& v, IRenderer& renderer);
+	Fonts::IDrawTextJob& CreateHorizontalCentredText(StackSpaceGraphics& ss, int fontIndex, cstr text, RGBAb _colour);
+	Fonts::IDrawTextJob& CreateLeftAlignedText(StackSpaceGraphics& ss, const GuiRect& targetRect, int retzone, int hypzone, int fontHeight, int fontIndex, cstr text, RGBAb colour);
+	float GetAspectRatio(const IRenderer& renderer);
+	Vec2 PixelSpaceToScreenSpace(const Vec2i& v, IRenderer& renderer);
 
-		void DrawClippedText(IGuiRenderContext& g, const Rococo::GuiRectf& rect, int32 alignmentFlags, const fstring& text, int32 fontIndex, RGBAb colour, const Rococo::GuiRectf& clipRect);
-		void DrawTextWithCaret(IGuiRenderContext& g, const Rococo::GuiRectf& rect, int32 alignmentFlags, const fstring& text, int32 fontIndex, RGBAb colour, const Rococo::GuiRectf& clipRect, int32 caretPos);
-		void DrawLeftAligned(IGuiRenderContext& g, const Rococo::GuiRectf& rect, const fstring& text, int32 fontIndex, int32 fontHeight, RGBAb colour, float32 softRightEdge, float32 hardRightEdge);
-		void DrawText(IGuiRenderContext& g, const GuiRectf& rect, int32 alignmentFlags, const fstring& text, int32 fontIndex, RGBAb colour);
-		void DrawTexture(IGuiRenderContext& grc, ID_TEXTURE id, const GuiRect& absRect);
-		void RenderBitmap_ShrinkAndPreserveAspectRatio(IGuiRenderContext& rc, MaterialId id, const GuiRect& absRect);
-		void StretchBitmap(IGuiRenderContext& rc, const Textures::BitmapLocation& location, const GuiRect& absRect);
-		void DrawSprite(const Vec2i& topLeft, const Textures::BitmapLocation& location, IGuiRenderContext& gc);
-		void DrawSpriteCentred(const GuiRect& rect, const Textures::BitmapLocation& location, IGuiRenderContext& gc);
-	} // Graphics
-}// Rococo
+	void DrawClippedText(IGuiRenderContext& g, const Rococo::GuiRectf& rect, int32 alignmentFlags, const fstring& text, int32 fontIndex, RGBAb colour, const Rococo::GuiRectf& clipRect);
+	void DrawTextWithCaret(IGuiRenderContext& g, const Rococo::GuiRectf& rect, int32 alignmentFlags, const fstring& text, int32 fontIndex, RGBAb colour, const Rococo::GuiRectf& clipRect, int32 caretPos);
+	void DrawLeftAligned(IGuiRenderContext& g, const Rococo::GuiRectf& rect, const fstring& text, int32 fontIndex, int32 fontHeight, RGBAb colour, float32 softRightEdge, float32 hardRightEdge);
+	void DrawText(IGuiRenderContext& g, const GuiRectf& rect, int32 alignmentFlags, const fstring& text, int32 fontIndex, RGBAb colour);
+	void DrawTexture(IGuiRenderContext& grc, ID_TEXTURE id, const GuiRect& absRect);
+	void RenderBitmap_ShrinkAndPreserveAspectRatio(IGuiRenderContext& rc, MaterialId id, const GuiRect& absRect);
+	void StretchBitmap(IGuiRenderContext& rc, const Textures::BitmapLocation& location, const GuiRect& absRect);
+	void DrawSprite(const Vec2i& topLeft, const Textures::BitmapLocation& location, IGuiRenderContext& gc);
+	void DrawSpriteCentred(const GuiRect& rect, const Textures::BitmapLocation& location, IGuiRenderContext& gc);
+}// Rococo::Graphics
+
+namespace Rococo
+{
+	ROCOCOAPI IApp
+	{
+		virtual void Free() = 0;
+		virtual void OnCreate() = 0;
+		virtual auto OnFrameUpdated(const IUltraClock& clock)->uint32 = 0; // returns number of ms to sleep per frame as hint
+		virtual void OnKeyboardEvent(const KeyboardEvent& k) = 0;
+		virtual void OnMouseEvent(const MouseEvent& me) = 0;
+	};
+}
 
 #endif

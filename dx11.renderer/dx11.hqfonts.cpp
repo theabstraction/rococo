@@ -3,7 +3,7 @@
 #include <vector>
 
 using namespace Rococo;
-using namespace Rococo::Fonts;
+using namespace Rococo::Graphics::Fonts;
 
 namespace Rococo::DX11
 {

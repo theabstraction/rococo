@@ -14,7 +14,7 @@
 namespace
 {
 	using namespace Rococo;
-	using namespace Rococo::Fonts;
+	using namespace Rococo::Graphics::Fonts;
 
 	class GlyphSet : public IGlyphSet
 	{
@@ -439,7 +439,7 @@ namespace
 	};
 }
 
-namespace Rococo
+namespace Rococo::Graphics
 {
 	namespace Fonts
 	{

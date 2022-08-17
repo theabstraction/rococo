@@ -881,7 +881,7 @@ namespace
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Rococo::Textures::BitmapLocation* bitmap;
+		Rococo::Graphics::Textures::BitmapLocation* bitmap;
 		_offset += sizeof(bitmap);
 		ReadInput(bitmap, _sf, -_offset);
 
@@ -909,7 +909,7 @@ namespace
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Rococo::Textures::BitmapLocation* bitmap;
+		Rococo::Graphics::Textures::BitmapLocation* bitmap;
 		_offset += sizeof(bitmap);
 		ReadInput(bitmap, _sf, -_offset);
 

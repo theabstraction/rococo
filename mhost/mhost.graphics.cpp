@@ -7,9 +7,9 @@
 
 using namespace MHost;
 using namespace Rococo;
-using namespace Rococo::Textures;
-using namespace Rococo::Fonts;
 using namespace Rococo::Graphics;
+using namespace Rococo::Graphics::Textures;
+using namespace Rococo::Graphics::Fonts;
 
 void SetGuiQuadForBitmap(GuiTriangle t[2], const GuiRectf& txUV, int textureIndex)
 {
@@ -54,12 +54,14 @@ void SetGuiQuadForBitmapWithColour(GuiTriangle t[2], const GuiRectf& txUV, int t
 	t[1].c.vd.uv = t[0].b.vd.uv;
 }
 
+using namespace Rococo::Graphics;
+
 struct Gui : public MHost::IGui
 {
-	Rococo::IGuiRenderContext& gc;
+	IGuiRenderContext& gc;
 	int64 id = 0;
 
-	Gui(Rococo::IGuiRenderContext& _gc) : gc(_gc) {}
+	Gui(IGuiRenderContext& _gc) : gc(_gc) {}
 
 	//   a --- b
 	//   |   /
@@ -109,7 +111,7 @@ struct Gui : public MHost::IGui
 		gc.AddTriangle(&t[1].a);
 	}
 
-	void DrawScaledColouredSprite(const Vec2& pixelPos, int32 alignmentFlags, const Rococo::Textures::BitmapLocation& loc, float blendFactor, RGBAb colour, float scaleFactor)
+	void DrawScaledColouredSprite(const Vec2& pixelPos, int32 alignmentFlags, const Textures::BitmapLocation& loc, float blendFactor, RGBAb colour, float scaleFactor)
 	{
 		GuiRectf txUV = { (float)loc.txUV.left,  (float)loc.txUV.top, (float)loc.txUV.right,  (float)loc.txUV.bottom };
 
@@ -203,13 +205,13 @@ struct Gui : public MHost::IGui
 		gc.AddTriangle(&t[1].a);
 	}
 
-	void DrawQuad(const Rococo::GuiQuad& q) override
+	void DrawQuad(const GuiQuad& q) override
 	{
 		gc.AddTriangle(&q.topLeft);
 		gc.AddTriangle(&q.topRight);
 	}
 
-	void DrawTriangle(const Rococo::GuiTriangle& t) override
+	void DrawTriangle(const GuiTriangle& t) override
 	{
 		gc.AddTriangle(&t.a);
 	}

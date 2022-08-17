@@ -101,6 +101,7 @@
     <ClInclude Include="..\include\rococo.app.h" />
     <ClInclude Include="..\include\rococo.auto-release.h" />
     <ClInclude Include="..\include\rococo.maths.h" />
+    <ClInclude Include="..\include\rococo.renderer.h" />
     <ClInclude Include="dx11.factory.h" />
     <ClInclude Include="rococo.dx11.api.h" />
     <ClInclude Include="dx11.renderer.h" />

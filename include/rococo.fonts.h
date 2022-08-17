@@ -5,7 +5,7 @@
 # error include <rococo.types.h> before including this file
 #endif
 
-namespace Rococo
+namespace Rococo::Graphics
 {
 	namespace Fonts
 	{
