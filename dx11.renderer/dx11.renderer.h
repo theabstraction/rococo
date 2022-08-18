@@ -233,13 +233,11 @@ namespace Rococo::DX11
 	ROCOCOAPI IDX11Pipeline
 	{
 		virtual void Draw(MeshBuffer& m, const ObjectInstance* instances, uint32 nInstances) = 0;
-		virtual void DrawParticles(const ParticleVertex* particles, size_t nParticles, ID_PIXEL_SHADER psID, ID_VERTEX_SHADER vsID, ID_GEOMETRY_SHADER gsID) = 0;
 		virtual bool IsGuiReady() const = 0;
 		virtual void Free() = 0;
 		virtual void Render(const GuiMetrics& metrics, Graphics::ENVIRONMENTAL_MAP envMap, IScene& scene) = 0;
 		virtual void SetSampler(uint32 index, Filter filter, AddressMode u, AddressMode v, AddressMode w, const RGBA& borderColour) = 0;
 		virtual void SetBoneMatrix(uint32 index, cr_m4x4 m) = 0;
-		virtual void SetupSpotlightConstants() = 0;
 		virtual void ShowVenue(IMathsVisitor& visitor) = 0;
 		virtual IGuiResources& Gui() = 0;
 		virtual IGui3D& Gui3D() = 0;

@@ -323,7 +323,7 @@ struct DX11Pipeline: IDX11Pipeline, IGui3D, IParticles
 		}
 	}
 
-	void DrawParticles(const ParticleVertex* particles, size_t nParticles, ID_PIXEL_SHADER psID, ID_VERTEX_SHADER vsID, ID_GEOMETRY_SHADER gsID) override
+	void DrawParticles(const ParticleVertex* particles, size_t nParticles, ID_PIXEL_SHADER psID, ID_VERTEX_SHADER vsID, ID_GEOMETRY_SHADER gsID)
 	{
 		if (nParticles == 0) return;
 		if (!shaders.UseShaders(vsID, psID)) return;
@@ -594,7 +594,7 @@ struct DX11Pipeline: IDX11Pipeline, IGui3D, IParticles
 		dc.VSSetConstantBuffers(CBUFFER_INDEX_BONE_MATRICES, 1, &boneMatricesStateBuffer);
 	}
 
-	void SetupSpotlightConstants() override
+	void SetupSpotlightConstants()
 	{
 		dc.VSSetConstantBuffers(CBUFFER_INDEX_CURRENT_SPOTLIGHT, 1, &lightStateBuffer);
 		dc.PSSetConstantBuffers(CBUFFER_INDEX_CURRENT_SPOTLIGHT, 1, &lightStateBuffer);
