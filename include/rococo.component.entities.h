@@ -163,3 +163,11 @@ namespace Rococo::Components
 	};
 }
 
+namespace Rococo
+{
+	template <>
+	struct RemoveReference<Rococo::Components::ROID>
+	{
+		using Type = Rococo::Components::ROID;
+	};
+}

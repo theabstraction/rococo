@@ -1,6 +1,7 @@
 #include <rococo.types.h>
 #include <rococo.component.entities.h>
 #include "DeclarationsInclude"
+#include <rococo.functional.h>
 
 namespace Rococo::Components::Sys
 {
@@ -20,14 +21,12 @@ namespace Rococo::Components::Sys
 
     ROCOCOAPI IROIDCallback
     {
-        enum EControlLogic { CONTINUE, BREAK };
-        virtual EControlLogic OnROID(ROID id) = 0;
+        virtual EFlowLogic OnROID(ROID id) = 0;
     };
 
     template<class T> ROCOCOAPI IComponentCallback
     {
-        enum EControlLogic { CONTINUE, BREAK };
-        virtual EControlLogic OnComponent(ROID id, T& item) = 0;
+        virtual EFlowLogic OnComponent(ROID id, T& item) = 0;
     };
 
     ROCOCOAPI IRCObjectTableBase
@@ -71,7 +70,11 @@ namespace Rococo::Components::Sys
 
         // Enumerate all ComponentVariable elements. The reference in the callback cb.OnComponent is valid only for the callback lifetime. 
         // While enumerating garbage collection is suspended and new items cannot be added.
-        virtual void EnumerateComponentVariables(IComponentCallback<IComponentInterface>& cb) = 0;
+        virtual void ForEachComponentVariable(IComponentCallback<IComponentInterface>& cb) = 0;
+
+        // Enumerate all ComponentVariable elements. The reference in the callback cb.OnComponent is valid only for the callback lifetime. 
+        // While enumerating garbage collection is suspended and new items cannot be added.
+        virtual void ForEachComponentVariable(Rococo::Function<EFlowLogic(ROID id, IComponentInterface& component)> functor) = 0;
 
         // Attemp to get a reference to the component with a given ROID
         virtual Ref<IComponentInterface> GetComponentVariable(ROID id) = 0;

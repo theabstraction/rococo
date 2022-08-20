@@ -78,12 +78,12 @@ public static class XmlAttributeParser
 
 internal class CPPMasterContext
 {
+    private readonly string solutionPath;
     private ConsoleArguments commandLineArgs;
-    private ComponentCodeGenerator componentGenerator;
     public CPPMasterContext(ConsoleArguments commandLineArgs)
     {
+        this.solutionPath = commandLineArgs.SolutionPath;
         this.commandLineArgs = commandLineArgs;
-        componentGenerator = new ComponentCodeGenerator(commandLineArgs.SolutionPath);
     }
     public void Generate()
     {
@@ -91,8 +91,8 @@ internal class CPPMasterContext
         {
             try
             {
-                ParseXmlFile(textFile);
-                componentGenerator.Commit();
+                ComponentCodeGenerator generator = ParseXmlFile(textFile);
+                generator.Commit();
             }
             catch (Exception ex)
             {
@@ -101,7 +101,7 @@ internal class CPPMasterContext
         }
     }
 
-    private void ParseXmlFile(StreamReader reader)
+    private ComponentCodeGenerator ParseXmlFile(StreamReader reader)
     {
         // N.B we use XPath rather than XMLDocument because we want line info for error reporting
         using (XmlReader xmlReader = XmlReader.Create(reader))
@@ -111,15 +111,17 @@ internal class CPPMasterContext
 
             string targetHeader = string.Empty;
             string targetSource = string.Empty;
-            string srcIncludePath = string.Empty;
             string declarationIncludePath = string.Empty;
+            string templateHeader = string.Empty;
+            string templateSource = string.Empty;
        
             var cppNode = xpathNav.SelectSingleNode("/CPP");
             if (cppNode != null)
             {
+                templateHeader = XmlAttributeParser.ToString(cppNode, "TemplateHeader");
+                templateSource = XmlAttributeParser.ToString(cppNode, "TemplateSource");
                 targetHeader = XmlAttributeParser.ToString(cppNode, "TargetHeader");
                 targetSource = XmlAttributeParser.ToString(cppNode, "TargetSource");
-                srcIncludePath = XmlAttributeParser.ToString(cppNode, "SrcInclude");
                 declarationIncludePath = XmlAttributeParser.ToString(cppNode, "DeclarationsInclude");
             }
             else 
@@ -132,7 +134,8 @@ internal class CPPMasterContext
             XPathExpression xpathExpr = xpathNav.Compile(xpathQuery);
             XPathNodeIterator componentIterator = xpathNav.Select(xpathExpr);
 
-            componentGenerator.Prepare(targetHeader, targetSource, srcIncludePath, declarationIncludePath);
+            var generator = new ComponentCodeGenerator(solutionPath, templateHeader, templateSource);
+            generator.Prepare(targetHeader, targetSource, declarationIncludePath);
 
             while (componentIterator.MoveNext())
             {
@@ -146,7 +149,7 @@ internal class CPPMasterContext
 
                         Console.WriteLine("Generating code for component '{0}' in '{1}' and '{2}'", def.ComponentInterface, targetHeader, targetSource);
 
-                        componentGenerator.GenerateCode(def);
+                        generator.GenerateCode(def);
                     }
                     catch (Exception ex)
                     {
@@ -162,6 +165,8 @@ internal class CPPMasterContext
                     }
                 }
             }
+
+            return generator;
         }
     }
 }

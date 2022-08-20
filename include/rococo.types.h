@@ -116,6 +116,12 @@ namespace Rococo
 		int64 Length() const { return end - start; }
 	};
 
+	template <class _Ty>
+	struct RemoveReference
+	{
+		using Type = _Ty;
+	};
+
 	inline Substring Substring_Null() { return { nullptr,nullptr }; }
 
 	// An immutable substring
@@ -125,6 +131,8 @@ namespace Rococo
 	{
 	   virtual void Populate(cstr text) = 0;
 	};
+
+	enum class EFlowLogic { CONTINUE, BREAK };
 
 	// Duplicates the item as a null terminated string on the stack, then invokes the populator with a reference to the string pointer
 	void Populate(cr_substring item, IStringPopulator& populator);

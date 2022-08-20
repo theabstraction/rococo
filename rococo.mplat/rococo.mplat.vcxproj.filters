@@ -16,6 +16,9 @@
     <Filter Include="Script Files">
       <UniqueIdentifier>{0f9432ab-3347-4911-8807-9bb2b08796ef}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Templates">
+      <UniqueIdentifier>{ae55bc68-778d-4357-ba73-501ae1f9bba2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -171,6 +174,12 @@
     <ClCompile Include="mplat.graphics.sprites.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="mplat.components.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mplat.component.template.cpp">
+      <Filter>Templates</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\rococo.mplat.h">
@@ -200,6 +209,15 @@
     <ClInclude Include="mplat.landscapes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="mplat.component.template.h">
+      <Filter>Templates</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\mplat.components.decl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mplat.components.factories.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="config.xc">
@@ -213,5 +231,10 @@
     <CustomBuild Include="mplat.sxh">
       <Filter>Script Files</Filter>
     </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="components.xml">
+      <Filter>Resource Files</Filter>
+    </Xml>
   </ItemGroup>
 </Project>

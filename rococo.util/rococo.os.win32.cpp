@@ -2569,13 +2569,11 @@ namespace
 	};
 }
 
-#include <rococo.functional.h>
-
 using namespace Rococo;
 
 namespace Rococo::OS
 {
-	void LoadAsciiTextFile(Function<void(cstr)> onLoad, const wchar_t* filename)
+	void LoadAsciiTextFile(IEventCallback<cstr>& onLoad, const wchar_t* filename)
 	{
 		std::vector<char> asciiData;
 
@@ -2612,17 +2610,7 @@ namespace Rococo::OS
 
 		} // File is no longer locked
 
-		onLoad.InvokeElseThrow(asciiData.data());
-	}
-
-	void LoadAsciiTextFile(IEventCallback<cstr>& onLoad, const wchar_t* filename)
-	{
-		auto proxy = [&onLoad, filename](cstr data)
-		{
-			onLoad.OnEvent(data);
-		};
-
-		LoadAsciiTextFile(proxy, filename);
+		onLoad.OnEvent(asciiData.data());
 	}
 
 	size_t LoadAsciiTextFile(char* data, size_t capacity, const wchar_t* filename)

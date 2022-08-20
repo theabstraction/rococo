@@ -1,9 +1,7 @@
 #include <rococo.api.h>
-#include "rococo.component.entities.h"
-#include "components.h"
-#include "test.components.h"
 #include <list>
 #include <unordered_map>
+#include "rococo.component.entities.h"
 
 #ifdef _DEBUG
 #define COMPONENT_IMPLEMENTATION_NAMESPACE ECS

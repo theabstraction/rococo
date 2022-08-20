@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.0.32014.148
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.windows", "rococo.windows\rococo.windows.vcxproj", "{997A007C-24B0-44FE-A27E-0EE006D74128}"
+	ProjectSection(ProjectDependencies) = postProject
+		{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D} = {D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "window.test", "window.test\window.test.vcxproj", "{039F8FD0-0C62-46D0-AC97-F16177E33272}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -112,8 +115,14 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.mhost", "mhost\mhost
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.fonts", "rococo.fonts\fonts.vcxproj", "{31024025-C99F-45A4-A4EA-BCEB32794477}"
+	ProjectSection(ProjectDependencies) = postProject
+		{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D} = {D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.widgets", "rococo.widgets\rococo.widgets.vcxproj", "{673E7B16-B3C8-48D9-915B-A8E82900691C}"
+	ProjectSection(ProjectDependencies) = postProject
+		{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D} = {D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.file.browser", "rococo.file.browser\rococo.file.browser.vcxproj", "{224026E5-A812-4025-AB4B-266A3C83612F}"
 EndProject
@@ -123,6 +132,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.packager", "rococo.p
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.DirectX", "rococo.DirectX\rococo.DirectX.vcxproj", "{4F9DCD72-CB15-4267-B68D-97B7D38685F6}"
+	ProjectSection(ProjectDependencies) = postProject
+		{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D} = {D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sexystudio", "sexystudio\sexystudio.vcxproj", "{8A8EE8BD-C917-4471-9B7A-3F23A6B432AA}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -167,6 +179,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sexystudio.test", "sexystud
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.components.test", "rococo.components.test\rococo.components.test.vcxproj", "{06677414-7E0E-49A9-83B8-DC6C2FAF0F27}"
 	ProjectSection(ProjectDependencies) = postProject
+		{426AEC64-C529-4ADF-9A49-B4E7A3D6C710} = {426AEC64-C529-4ADF-9A49-B4E7A3D6C710}
 		{997A007C-24B0-44FE-A27E-0EE006D74128} = {997A007C-24B0-44FE-A27E-0EE006D74128}
 		{9EE9F966-EC4D-470E-8DBD-1E8BF67EADB5} = {9EE9F966-EC4D-470E-8DBD-1E8BF67EADB5}
 		{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D} = {D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}
@@ -188,12 +201,16 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.carpenter.test", "ro
 	ProjectSection(ProjectDependencies) = postProject
 		{0E64BB46-5773-490F-ADDB-7F0E8E76C15C} = {0E64BB46-5773-490F-ADDB-7F0E8E76C15C}
 		{82EECC92-2C7B-4BE8-AC76-4B4E383F7AB8} = {82EECC92-2C7B-4BE8-AC76-4B4E383F7AB8}
+		{997A007C-24B0-44FE-A27E-0EE006D74128} = {997A007C-24B0-44FE-A27E-0EE006D74128}
 		{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D} = {D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "rococo.carpenter.app", "rococo.carpenter.app\rococo.carpenter.app.csproj", "{82EECC92-2C7B-4BE8-AC76-4B4E383F7AB8}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.util.ex", "rococo.util.ex\rococo.util.ex.vcxproj", "{4099EE18-E101-4EB2-BFC7-E9D4BD08DD86}"
+	ProjectSection(ProjectDependencies) = postProject
+		{D8D43712-8A89-4A92-A5E3-C1DA2EDA759D} = {D8D43712-8A89-4A92-A5E3-C1DA2EDA759D}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

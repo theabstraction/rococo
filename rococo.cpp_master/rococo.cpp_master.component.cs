@@ -36,7 +36,7 @@ public class ComponentCodeGenerator
     List<string> headerInstances = new List<string>();
     List<string> sourceInstances = new List<string>();
 
-    public ComponentCodeGenerator(string solutionPath)
+    public ComponentCodeGenerator(string solutionPath, string templateHeader, string templateSource)
     {
         if (solutionPath.IndexOf('/') != -1)
         {
@@ -55,10 +55,10 @@ public class ComponentCodeGenerator
 
         this.solutionPath = solutionPath;
 
-        componentTemplateHeaderFilename = solutionPath + "rococo.cpp_master\\component.template.h";
+        componentTemplateHeaderFilename = solutionPath + templateHeader;
         componentTemplateHeader = File.ReadAllText(componentTemplateHeaderFilename);
 
-        componentTemplateSourceFilename = solutionPath + "rococo.cpp_master\\component.template.cpp";
+        componentTemplateSourceFilename = solutionPath + templateSource;
         componentTemplateSource = File.ReadAllText(componentTemplateSourceFilename);
 
         mapFilenameToFile = new Dictionary<string, StringBuilder>();
@@ -76,7 +76,7 @@ public class ComponentCodeGenerator
     StringBuilder headerBuilder = new StringBuilder(32768);
     StringBuilder sourceBuilder = new StringBuilder(32768);
 
-    public void Prepare(string targetHeader, string targetSource, string srcIncludePath, string declarationIncludePath)
+    public void Prepare(string targetHeader, string targetSource, string declarationIncludePath)
     {
         fullHeaderSavePath = solutionPath + targetHeader;
         fullSourceSavePath = solutionPath + targetSource;
@@ -89,9 +89,6 @@ public class ComponentCodeGenerator
         headerBuilder.AppendLine();
         headerBuilder.AppendFormat("// Based on the template file: {0}", componentTemplateHeaderFilename);
         headerBuilder.AppendLine();
-
-        sourceBuilder.AppendFormat("#include \"{0}\"", srcIncludePath);
-        sourceBuilder.AppendLine();
 
         sourceBuilder.AppendFormat("// Generated at: {0} UTC", t.ToString("MMM dd yyyy t"));
         sourceBuilder.AppendLine();

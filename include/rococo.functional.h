@@ -1,15 +1,11 @@
 #pragma once
 
+#include <rococo.types.h>
+
 // Rococo namespace, implements fast-compile equivalent to std::forward and std::function, which are Rococo::Forward and Rococo::Function respectively
 
 namespace Rococo
 {
-	template <class _Ty>
-	struct RemoveReference
-	{
-		using Type = _Ty;
-	};
-
 	template <class _Ty>
 	struct RemoveReference<_Ty&>
 	{
@@ -252,7 +248,7 @@ namespace Rococo
 			return implementation->Invoke(Forward<ARGS>(args)...);
 		}
 
-		RETURN_TYPE Invoke(ARGS&&...args) const
+		RETURN_TYPE Invoke(ARGS...args) const
 		{
 			return InvokeElseThrow(Forward<ARGS>(args)...);
 		}
@@ -289,7 +285,7 @@ namespace Rococo
 
 	// Provides a delegate for callbacks. If the size of the callback object is sufficiently small the callback is implemented on the stack, rather than the heap
 	template<typename RETURNTYPE, typename ... ARGS>
-	using Function = ArbitraryFunction<48, RETURNTYPE, ARGS ...>;
+	using Function = ArbitraryFunction<64, RETURNTYPE, ARGS ...>;
 }
 
 namespace Rococo::OS

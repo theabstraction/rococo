@@ -2,7 +2,12 @@
 
 Build instructions - the current build process is optimized for how I work day-to-day.
 
-Install the repo at C:\work\rococo\...  I use absolute paths rather than relative, it makes writing scripts easier
+Install the repo
+
+As of July/August 2022, VS 2022 is rather brittle. Go into VS200 menu item 
+   'Tools/Options/Projects And Solutions/VC++ Project Settings/Maximum Concurrent C++ Compilations' 
+   and set to 1. This should hopefully solve PDB corruption that can otherwise occur.
+   
 
 Batch build..clean everything debug and release
 

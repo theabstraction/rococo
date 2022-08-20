@@ -1,11 +1,11 @@
 // Generated at: Aug 20 2022 P UTC
-// Based on the template file: C:\work\rococo\rococo.cpp_master\component.template.cpp
+// Based on the template file: C:\work\rococo\rococo.mplat\mplat.component.template.cpp
 #include <rococo.api.h>
-#include "rococo.component.entities.h"
-#include "components.h"
-#include "test.components.h"
 #include <list>
 #include <unordered_map>
+#include "rococo.component.entities.h"
+#include "mplat.components.factories.h"
+#include "mplat.components.h"
 
 #ifdef _DEBUG
 #define COMPONENT_IMPLEMENTATION_NAMESPACE ECS
@@ -19,17 +19,17 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 	using namespace Rococo::Components;
 	using namespace Rococo::Components::Sys;
 
-	struct FireComponentTable;
+	struct ParticleSystemComponentTable;
 
-	struct FireComponentLife : IComponentLife
+	struct ParticleSystemComponentLife : IComponentLife
 	{
 		int64 referenceCount = 0;
 		ROID id;
 		bool isDeprecated = false;
 		
-		FireComponentTable& table;
+		ParticleSystemComponentTable& table;
 
-		FireComponentLife(ROID roid, FireComponentTable& refTable) :
+		ParticleSystemComponentLife(ROID roid, ParticleSystemComponentTable& refTable) :
 			id(roid), table(refTable)
 		{
 
@@ -64,14 +64,14 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		}
 	};
 
-	struct FireComponentTable
+	struct ParticleSystemComponentTable
 	{
 		struct ComponentDesc
 		{
-			IFireComponent* interfacePointer = nullptr;
+			IParticleSystemComponent* interfacePointer = nullptr;
 		};
 
-		IFireComponentFactory& componentFactory;
+		IParticleSystemComponentFactory& componentFactory;
 		std::unordered_map<ROID, ComponentDesc, STDROID, STDROID> rows;
 		std::vector<ROID> deprecatedList;
 		std::vector<ROID> stubbornList;
@@ -79,12 +79,12 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		size_t componentSize;
 		int enumLock = 0;
 
-		FireComponentTable(IFireComponentFactory& factory) : componentFactory(factory), rows(1024), componentSize(factory.SizeOfConstructedObject())
+		ParticleSystemComponentTable(IParticleSystemComponentFactory& factory) : componentFactory(factory), rows(1024), componentSize(factory.SizeOfConstructedObject())
 		{
-			componentAllocator = CreateFreeListAllocator(componentSize + sizeof FireComponentLife);
+			componentAllocator = CreateFreeListAllocator(componentSize + sizeof ParticleSystemComponentLife);
 		}
 
-		Ref<IFireComponent> AddNew(ROID id)
+		Ref<IParticleSystemComponent> AddNew(ROID id)
 		{
 			if (enumLock > 0)
 			{
@@ -103,7 +103,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			try
 			{
 				void* pComponentMemory = componentAllocator->AllocateBuffer();
-				IFireComponent* component = componentFactory.ConstructInPlace(pComponentMemory);
+				IParticleSystemComponent* component = componentFactory.ConstructInPlace(pComponentMemory);
 				if (component == nullptr)
 				{
 					Throw(0, "%s: factory.ConstructInPlace returned null");
@@ -111,9 +111,9 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 				i->second.interfacePointer = component;
 
 				uint8* byteBuffer = (uint8*)pComponentMemory;
-				auto* lifeSupport = (FireComponentLife*)(byteBuffer + componentSize);
-				new (lifeSupport) FireComponentLife(id, *this);
-				return Ref<IFireComponent>(*component, GetLife(*component));
+				auto* lifeSupport = (ParticleSystemComponentLife*)(byteBuffer + componentSize);
+				new (lifeSupport) ParticleSystemComponentLife(id, *this);
+				return Ref<IParticleSystemComponent>(*component, GetLife(*component));
 			}
 			catch (...)
 			{
@@ -166,14 +166,14 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			}
 		}
 
-		void Enumerate(IComponentCallback<IFireComponent>& cb)
+		void ForEachParticleSystemComponent(IComponentCallback<IParticleSystemComponent>& cb)
 		{
 			enumLock++;
 			try
 			{
 				for (auto& row : rows)
 				{
-					if (cb.OnComponent(row.first, *row.second.interfacePointer) == IComponentCallback<IFireComponent>::BREAK)
+					if (cb.OnComponent(row.first, *row.second.interfacePointer) == EFlowLogic::BREAK)
 					{
 						break;
 					}
@@ -187,16 +187,37 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			enumLock--;
 		}
 
-		Ref<IFireComponent> Find(ROID id)
+		void ForEachParticleSystemComponent(Rococo::Function<EFlowLogic(ROID roid, IParticleSystemComponent&)> functor)
+		{
+			enumLock++;
+			try
+			{
+				for (auto& row : rows)
+				{
+					if (functor.Invoke(row.first, *row.second.interfacePointer) == EFlowLogic::BREAK)
+					{
+						break;
+					}
+				}
+			}
+			catch (...)
+			{
+				enumLock--;
+				throw;
+			}
+			enumLock--;
+		}
+
+		Ref<IParticleSystemComponent> Find(ROID id)
 		{
 			auto i = rows.find(id);
 			auto& c = i->second;
 			auto* pInterfaceBuffer = (uint8*)c.interfacePointer;
 
-			return i != rows.end() ? Ref<IFireComponent>(*c.interfacePointer, GetLife(*c.interfacePointer)) : Ref<IFireComponent>();
+			return i != rows.end() ? Ref<IParticleSystemComponent>(*c.interfacePointer, GetLife(*c.interfacePointer)) : Ref<IParticleSystemComponent>();
 		}
 
-		size_t GetFireComponentIDs(ROID* roidOutput, size_t nElementsInOutput)
+		size_t GetParticleSystemComponentIDs(ROID* roidOutput, size_t nElementsInOutput)
 		{
 			if (roidOutput != nullptr)
 			{
@@ -218,14 +239,14 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		}
 
 
-		FireComponentLife& GetLife(IFireComponent& i)
+		ParticleSystemComponentLife& GetLife(IParticleSystemComponent& i)
 		{
 			uint8* objectBuffer = (uint8*)&i;
-			return *(FireComponentLife*)(objectBuffer + componentSize);
+			return *(ParticleSystemComponentLife*)(objectBuffer + componentSize);
 		}
 	};
 
-	bool FireComponentLife::Deprecate()
+	bool ParticleSystemComponentLife::Deprecate()
 	{
 		if (!isDeprecated)
 		{
@@ -240,17 +261,17 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 	}
 
 
-	struct WaterComponentTable;
+	struct RigsComponentTable;
 
-	struct WaterComponentLife : IComponentLife
+	struct RigsComponentLife : IComponentLife
 	{
 		int64 referenceCount = 0;
 		ROID id;
 		bool isDeprecated = false;
 		
-		WaterComponentTable& table;
+		RigsComponentTable& table;
 
-		WaterComponentLife(ROID roid, WaterComponentTable& refTable) :
+		RigsComponentLife(ROID roid, RigsComponentTable& refTable) :
 			id(roid), table(refTable)
 		{
 
@@ -285,14 +306,14 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		}
 	};
 
-	struct WaterComponentTable
+	struct RigsComponentTable
 	{
 		struct ComponentDesc
 		{
-			IWaterComponent* interfacePointer = nullptr;
+			IRigsComponent* interfacePointer = nullptr;
 		};
 
-		IWaterComponentFactory& componentFactory;
+		IRigsComponentFactory& componentFactory;
 		std::unordered_map<ROID, ComponentDesc, STDROID, STDROID> rows;
 		std::vector<ROID> deprecatedList;
 		std::vector<ROID> stubbornList;
@@ -300,12 +321,12 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		size_t componentSize;
 		int enumLock = 0;
 
-		WaterComponentTable(IWaterComponentFactory& factory) : componentFactory(factory), rows(1024), componentSize(factory.SizeOfConstructedObject())
+		RigsComponentTable(IRigsComponentFactory& factory) : componentFactory(factory), rows(1024), componentSize(factory.SizeOfConstructedObject())
 		{
-			componentAllocator = CreateFreeListAllocator(componentSize + sizeof WaterComponentLife);
+			componentAllocator = CreateFreeListAllocator(componentSize + sizeof RigsComponentLife);
 		}
 
-		Ref<IWaterComponent> AddNew(ROID id)
+		Ref<IRigsComponent> AddNew(ROID id)
 		{
 			if (enumLock > 0)
 			{
@@ -324,7 +345,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			try
 			{
 				void* pComponentMemory = componentAllocator->AllocateBuffer();
-				IWaterComponent* component = componentFactory.ConstructInPlace(pComponentMemory);
+				IRigsComponent* component = componentFactory.ConstructInPlace(pComponentMemory);
 				if (component == nullptr)
 				{
 					Throw(0, "%s: factory.ConstructInPlace returned null");
@@ -332,9 +353,9 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 				i->second.interfacePointer = component;
 
 				uint8* byteBuffer = (uint8*)pComponentMemory;
-				auto* lifeSupport = (WaterComponentLife*)(byteBuffer + componentSize);
-				new (lifeSupport) WaterComponentLife(id, *this);
-				return Ref<IWaterComponent>(*component, GetLife(*component));
+				auto* lifeSupport = (RigsComponentLife*)(byteBuffer + componentSize);
+				new (lifeSupport) RigsComponentLife(id, *this);
+				return Ref<IRigsComponent>(*component, GetLife(*component));
 			}
 			catch (...)
 			{
@@ -387,14 +408,14 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			}
 		}
 
-		void Enumerate(IComponentCallback<IWaterComponent>& cb)
+		void ForEachRigsComponent(IComponentCallback<IRigsComponent>& cb)
 		{
 			enumLock++;
 			try
 			{
 				for (auto& row : rows)
 				{
-					if (cb.OnComponent(row.first, *row.second.interfacePointer) == IComponentCallback<IWaterComponent>::BREAK)
+					if (cb.OnComponent(row.first, *row.second.interfacePointer) == EFlowLogic::BREAK)
 					{
 						break;
 					}
@@ -408,16 +429,37 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			enumLock--;
 		}
 
-		Ref<IWaterComponent> Find(ROID id)
+		void ForEachRigsComponent(Rococo::Function<EFlowLogic(ROID roid, IRigsComponent&)> functor)
+		{
+			enumLock++;
+			try
+			{
+				for (auto& row : rows)
+				{
+					if (functor.Invoke(row.first, *row.second.interfacePointer) == EFlowLogic::BREAK)
+					{
+						break;
+					}
+				}
+			}
+			catch (...)
+			{
+				enumLock--;
+				throw;
+			}
+			enumLock--;
+		}
+
+		Ref<IRigsComponent> Find(ROID id)
 		{
 			auto i = rows.find(id);
 			auto& c = i->second;
 			auto* pInterfaceBuffer = (uint8*)c.interfacePointer;
 
-			return i != rows.end() ? Ref<IWaterComponent>(*c.interfacePointer, GetLife(*c.interfacePointer)) : Ref<IWaterComponent>();
+			return i != rows.end() ? Ref<IRigsComponent>(*c.interfacePointer, GetLife(*c.interfacePointer)) : Ref<IRigsComponent>();
 		}
 
-		size_t GetWaterComponentIDs(ROID* roidOutput, size_t nElementsInOutput)
+		size_t GetRigsComponentIDs(ROID* roidOutput, size_t nElementsInOutput)
 		{
 			if (roidOutput != nullptr)
 			{
@@ -439,14 +481,14 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		}
 
 
-		WaterComponentLife& GetLife(IWaterComponent& i)
+		RigsComponentLife& GetLife(IRigsComponent& i)
 		{
 			uint8* objectBuffer = (uint8*)&i;
-			return *(WaterComponentLife*)(objectBuffer + componentSize);
+			return *(RigsComponentLife*)(objectBuffer + componentSize);
 		}
 	};
 
-	bool WaterComponentLife::Deprecate()
+	bool RigsComponentLife::Deprecate()
 	{
 		if (!isDeprecated)
 		{
@@ -464,37 +506,37 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 	struct AllComponentTables
 	{
 		int dummy;
-		FireComponentTable fireComponentTable;
-		WaterComponentTable waterComponentTable;
+		ParticleSystemComponentTable particleSystemComponentTable;
+		RigsComponentTable rigsComponentTable;
 
 		AllComponentTables(ComponentFactories& factories):
 			dummy(0)
-					,fireComponentTable(factories.fireComponentFactory)
-					,waterComponentTable(factories.waterComponentFactory)
+					,particleSystemComponentTable(factories.particleSystemComponentFactory)
+					,rigsComponentTable(factories.rigsComponentFactory)
 				{
 		}
 
-		Ref<IFireComponent> AddFireComponent(ROID id, ActiveComponents& ac)
+		Ref<IParticleSystemComponent> AddParticleSystemComponent(ROID id, ActiveComponents& ac)
 		{
-			ac.hasFireComponent = true;
-			return fireComponentTable.AddNew(id);
+			ac.hasParticleSystemComponent = true;
+			return particleSystemComponentTable.AddNew(id);
 		}
 
-		Ref<IWaterComponent> AddWaterComponent(ROID id, ActiveComponents& ac)
+		Ref<IRigsComponent> AddRigsComponent(ROID id, ActiveComponents& ac)
 		{
-			ac.hasWaterComponent = true;
-			return waterComponentTable.AddNew(id);
+			ac.hasRigsComponent = true;
+			return rigsComponentTable.AddNew(id);
 		}
 
 		void Deprecate(ROID id, const ActiveComponents& ac)
 		{
-			if (ac.hasFireComponent)
+			if (ac.hasParticleSystemComponent)
 			{
-				fireComponentTable.Deprecate(id);
+				particleSystemComponentTable.Deprecate(id);
 			}
-			if (ac.hasWaterComponent)
+			if (ac.hasRigsComponent)
 			{
-				waterComponentTable.Deprecate(id);
+				rigsComponentTable.Deprecate(id);
 			}
 		}
 	};
@@ -560,36 +602,36 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			return activeIds.size();
 		}
 
-		Ref<IFireComponent> AddFireComponent(ROID id)
+		Ref<IParticleSystemComponent> AddParticleSystemComponent(ROID id)
 		{
 			if (id.index > 0 && id.index < maxTableEntries)
 			{
 				RCObject& object = handleTable[id.index];
 				if (id.salt == object.salt)
 				{
-					return components.AddFireComponent(id, object.ac);
+					return components.AddParticleSystemComponent(id, object.ac);
 				}
 			}
 
-			return Ref<IFireComponent>();
+			return Ref<IParticleSystemComponent>();
 		}
-		Ref<IWaterComponent> AddWaterComponent(ROID id)
+		Ref<IRigsComponent> AddRigsComponent(ROID id)
 		{
 			if (id.index > 0 && id.index < maxTableEntries)
 			{
 				RCObject& object = handleTable[id.index];
 				if (id.salt == object.salt)
 				{
-					return components.AddWaterComponent(id, object.ac);
+					return components.AddRigsComponent(id, object.ac);
 				}
 			}
 
-			return Ref<IWaterComponent>();
+			return Ref<IRigsComponent>();
 		}
 		void CollectGarbage() override
 		{
-			components.fireComponentTable.CollectGarbage();
-			components.waterComponentTable.CollectGarbage();
+			components.particleSystemComponentTable.CollectGarbage();
+			components.rigsComponentTable.CollectGarbage();
 		}
 
 		bool Deprecate(ROID roid) override
@@ -658,17 +700,17 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			}
 		}
 
-		bool DeprecateFireComponent(ROID id)
+		bool DeprecateParticleSystemComponent(ROID id)
 		{
 			if (id.index > 0 && id.index < maxTableEntries)
 			{
 				RCObject& object = handleTable[id.index];
 				if (id.salt == object.salt)
 				{
-					if (object.ac.hasFireComponent)
+					if (object.ac.hasParticleSystemComponent)
 					{
-						components.fireComponentTable.Deprecate(id);
-						object.ac.hasFireComponent = false;
+						components.particleSystemComponentTable.Deprecate(id);
+						object.ac.hasParticleSystemComponent = false;
 						return true;
 					}
 				}
@@ -676,17 +718,17 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 
 			return false;
 		}
-		bool DeprecateWaterComponent(ROID id)
+		bool DeprecateRigsComponent(ROID id)
 		{
 			if (id.index > 0 && id.index < maxTableEntries)
 			{
 				RCObject& object = handleTable[id.index];
 				if (id.salt == object.salt)
 				{
-					if (object.ac.hasWaterComponent)
+					if (object.ac.hasRigsComponent)
 					{
-						components.waterComponentTable.Deprecate(id);
-						object.ac.hasWaterComponent = false;
+						components.rigsComponentTable.Deprecate(id);
+						object.ac.hasRigsComponent = false;
 						return true;
 					}
 				}
@@ -710,7 +752,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 					ROID id;
 					id.salt = handleTable[index].salt;
 					id.index = index;
-					if (cb.OnROID(id) == IROIDCallback::BREAK)
+					if (cb.OnROID(id) == EFlowLogic::BREAK)
 					{
 						break;
 					}
@@ -736,57 +778,67 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 				deprecationList.clear();
 			}
 		}
-		void EnumerateFireComponents(IComponentCallback<IFireComponent>& cb)
+		void ForEachParticleSystemComponent(IComponentCallback<IParticleSystemComponent>& cb)
 		{
-			components.fireComponentTable.Enumerate(cb);
-		}
-		void EnumerateWaterComponents(IComponentCallback<IWaterComponent>& cb)
-		{
-			components.waterComponentTable.Enumerate(cb);
+			components.particleSystemComponentTable.ForEachParticleSystemComponent(cb);
 		}
 
-		Ref<IFireComponent> GetFireComponent(ROID id)
+		void ForEachParticleSystemComponent(Function<EFlowLogic(ROID id, IParticleSystemComponent& component)> functor)
+		{
+			components.particleSystemComponentTable.ForEachParticleSystemComponent(functor);
+		}
+		void ForEachRigsComponent(IComponentCallback<IRigsComponent>& cb)
+		{
+			components.rigsComponentTable.ForEachRigsComponent(cb);
+		}
+
+		void ForEachRigsComponent(Function<EFlowLogic(ROID id, IRigsComponent& component)> functor)
+		{
+			components.rigsComponentTable.ForEachRigsComponent(functor);
+		}
+
+		Ref<IParticleSystemComponent> GetParticleSystemComponent(ROID id)
 		{
 			if (id.index > 0 && id.index < maxTableEntries)
 			{
 				RCObject& object = handleTable[id.index];
 				if (id.salt == object.salt)
 				{
-					if (object.ac.hasFireComponent)
+					if (object.ac.hasParticleSystemComponent)
 					{
-						return components.fireComponentTable.Find(id);
+						return components.particleSystemComponentTable.Find(id);
 					}
 				}
 			}
 
-			return Ref<IFireComponent>();
+			return Ref<IParticleSystemComponent>();
 		}
 
-		Ref<IWaterComponent> GetWaterComponent(ROID id)
+		Ref<IRigsComponent> GetRigsComponent(ROID id)
 		{
 			if (id.index > 0 && id.index < maxTableEntries)
 			{
 				RCObject& object = handleTable[id.index];
 				if (id.salt == object.salt)
 				{
-					if (object.ac.hasWaterComponent)
+					if (object.ac.hasRigsComponent)
 					{
-						return components.waterComponentTable.Find(id);
+						return components.rigsComponentTable.Find(id);
 					}
 				}
 			}
 
-			return Ref<IWaterComponent>();
+			return Ref<IRigsComponent>();
 		}
 
-		size_t GetFireComponentIDs(ROID* roidOutput, size_t nElementsInOutput) override
+		size_t GetParticleSystemComponentIDs(ROID* roidOutput, size_t nElementsInOutput) override
 		{
-			return components.fireComponentTable.GetFireComponentIDs(roidOutput, nElementsInOutput);
+			return components.particleSystemComponentTable.GetParticleSystemComponentIDs(roidOutput, nElementsInOutput);
 		}
 
-		size_t GetWaterComponentIDs(ROID* roidOutput, size_t nElementsInOutput) override
+		size_t GetRigsComponentIDs(ROID* roidOutput, size_t nElementsInOutput) override
 		{
-			return components.waterComponentTable.GetWaterComponentIDs(roidOutput, nElementsInOutput);
+			return components.rigsComponentTable.GetRigsComponentIDs(roidOutput, nElementsInOutput);
 		}
 		bool IsActive(ROID id) const override
 		{

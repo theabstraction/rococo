@@ -1,6 +1,6 @@
 #pragma once
 
-// Generated at: Aug 17 2022 18:59 UTC
+// Generated at: Aug 20 2022 19:42 UTC
 // Based on the template file: C:\work\rococo\rococo.cpp_master\component.template.h
 #include <rococo.types.h>
 #include <rococo.component.entities.h>
@@ -72,7 +72,7 @@ namespace Rococo::Components::Sys
 
         // Enumerate all FireComponent elements. The reference in the callback cb.OnComponent is valid only for the callback lifetime. 
         // While enumerating garbage collection is suspended and new items cannot be added.
-        [[nodiscard]] virtual void EnumerateFireComponents(IComponentCallback<IFireComponent>& cb) = 0;
+        virtual void EnumerateFireComponents(IComponentCallback<IFireComponent>& cb) = 0;
 
         // Attemp to get a reference to the component with a given ROID
         virtual Ref<IFireComponent> GetFireComponent(ROID id) = 0;
@@ -87,7 +87,7 @@ namespace Rococo::Components::Sys
 
         // Enumerate all WaterComponent elements. The reference in the callback cb.OnComponent is valid only for the callback lifetime. 
         // While enumerating garbage collection is suspended and new items cannot be added.
-        [[nodiscard]] virtual void EnumerateWaterComponents(IComponentCallback<IWaterComponent>& cb) = 0;
+        virtual void EnumerateWaterComponents(IComponentCallback<IWaterComponent>& cb) = 0;
 
         // Attemp to get a reference to the component with a given ROID
         virtual Ref<IWaterComponent> GetWaterComponent(ROID id) = 0;

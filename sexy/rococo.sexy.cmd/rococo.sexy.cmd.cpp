@@ -330,8 +330,6 @@ void NativeSysCmdOpenForRead(NativeCallEnvironment& _nce)
 	WriteOutput(hFile, _sf, _offset);
 }
 
-#include <rococo.functional.h>
-
 void Run(IPublicScriptSystem& ss, cstr sourceCode, cstr targetFile)
 {
 	Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(sourceCode, -1, Vec2i{ 0,0 }, targetFile);
@@ -380,22 +378,30 @@ void Run(IPublicScriptSystem& ss, cstr sourceCode, cstr targetFile)
 
 void Run(IPublicScriptSystem& ss, cstr target)
 {
-	auto onLoaded = [&ss,target](cstr srcCode)->void
+	struct : IEventCallback<cstr>
 	{
-		try
+		IPublicScriptSystem* ss;
+		cstr target;
+		void OnEvent(cstr text) override
 		{
-			Run(ss, srcCode, target);
+			try
+			{
+				Run(*ss, text, target);
+			}
+			catch (...)
+			{
+				printf("\nError with script file: %s\n", target);
+				throw;
+			}
 		}
-		catch (...)
-		{
-			printf("\nError with script file: %s\n", target);
-			throw;
-		}
-	};
+	} cb;
+
+	cb.target = target;
+	cb.ss = &ss;
 
 	WideFilePath sysPath;
 	Format(sysPath, L"%hs", target);
 
-	Rococo::OS::LoadAsciiTextFile(onLoaded, sysPath);
+	Rococo::OS::LoadAsciiTextFile(cb, sysPath);
 }
 

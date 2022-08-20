@@ -1,21 +1,23 @@
+#pragma once
+
+// Generated at: Aug 20 2022 15:30 UTC
+// Based on the template file: C:\work\rococo\rococo.mplat\mplat.component.template.h
 #include <rococo.types.h>
 #include <rococo.component.entities.h>
-#include "DeclarationsInclude"
+#include "mplat.components.factories.h"
 
 namespace Rococo::Components::Sys
 {
     struct ComponentFactories
     {
-// #BEGIN_INSTANCED#
-        IComponentInterfaceFactory& componentVariableFactory;
-// #END_INSTANCED#
+        IParticleSystemComponentFactory& particleSystemComponentFactory;
+        IRigsComponentFactory& rigsComponentFactory;
     };
 
     struct ActiveComponents
     {
-// #BEGIN_INSTANCED#
-        bool hasComponentVariable : 1;
-// #END_INSTANCED#
+        bool hasParticleSystemComponent : 1;
+        bool hasRigsComponent : 1;
     };
 
     ROCOCOAPI IROIDCallback
@@ -62,23 +64,36 @@ namespace Rococo::Components::Sys
 
     ROCOCOAPI IRCObjectTable: IRCObjectTableBase
     {     
-// #BEGIN_INSTANCED#
 
-        [[nodiscard]] virtual Ref<IComponentInterface> AddComponentVariable(ROID id) = 0;
+        [[nodiscard]] virtual Ref<IParticleSystemComponent> AddParticleSystemComponent(ROID id) = 0;
 
-        // Marks the ComponentVariable as deprecated, when all outstanding refences are out of scope the object can be garbage collected
-        virtual bool DeprecateComponentVariable(ROID id) = 0;
+        // Marks the ParticleSystemComponent as deprecated, when all outstanding refences are out of scope the object can be garbage collected
+        virtual bool DeprecateParticleSystemComponent(ROID id) = 0;
 
-        // Enumerate all ComponentVariable elements. The reference in the callback cb.OnComponent is valid only for the callback lifetime. 
+        // Enumerate all ParticleSystemComponent elements. The reference in the callback cb.OnComponent is valid only for the callback lifetime. 
         // While enumerating garbage collection is suspended and new items cannot be added.
-        virtual void EnumerateComponentVariables(IComponentCallback<IComponentInterface>& cb) = 0;
+        virtual void EnumerateParticleSystemComponents(IComponentCallback<IParticleSystemComponent>& cb) = 0;
 
         // Attemp to get a reference to the component with a given ROID
-        virtual Ref<IComponentInterface> GetComponentVariable(ROID id) = 0;
+        virtual Ref<IParticleSystemComponent> GetParticleSystemComponent(ROID id) = 0;
 
-        // Populate an array of ROIDs and return the number appended. If roidOutput is null then the return value is the number of ComponentVariables in the table
-        [[nodiscard]] virtual size_t GetComponentVariableIDs(ROID* roidOutput, size_t nElementsInOutput) = 0;
-// #END_INSTANCED#
+        // Populate an array of ROIDs and return the number appended. If roidOutput is null then the return value is the number of ParticleSystemComponents in the table
+        [[nodiscard]] virtual size_t GetParticleSystemComponentIDs(ROID* roidOutput, size_t nElementsInOutput) = 0;
+
+        [[nodiscard]] virtual Ref<IRigsComponent> AddRigsComponent(ROID id) = 0;
+
+        // Marks the RigsComponent as deprecated, when all outstanding refences are out of scope the object can be garbage collected
+        virtual bool DeprecateRigsComponent(ROID id) = 0;
+
+        // Enumerate all RigsComponent elements. The reference in the callback cb.OnComponent is valid only for the callback lifetime. 
+        // While enumerating garbage collection is suspended and new items cannot be added.
+        virtual void EnumerateRigsComponents(IComponentCallback<IRigsComponent>& cb) = 0;
+
+        // Attemp to get a reference to the component with a given ROID
+        virtual Ref<IRigsComponent> GetRigsComponent(ROID id) = 0;
+
+        // Populate an array of ROIDs and return the number appended. If roidOutput is null then the return value is the number of RigsComponents in the table
+        [[nodiscard]] virtual size_t GetRigsComponentIDs(ROID* roidOutput, size_t nElementsInOutput) = 0;
     };
 
     ROCOCOAPI IRCObjectTableSupervisor : IRCObjectTable
@@ -96,3 +111,4 @@ namespace Rococo::Components::Sys
         [[nodiscard]] IRCObjectTableSupervisor* Create_RCO_EntityComponentSystem(ComponentFactories& factories, uint64 maxSizeInBytes = 2 * 1024 * 1024 * 1024ULL);
     }
 } // Rococo::Components::Sys
+

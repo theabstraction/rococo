@@ -1,9 +1,9 @@
 #include <rococo.api.h>
-#include "rococo.component.entities.h"
-#include "components.h"
-#include "test.components.h"
 #include <list>
 #include <unordered_map>
+#include "rococo.component.entities.h"
+#include "mplat.components.factories.h"
+#include "mplat.components.h"
 
 #ifdef _DEBUG
 #define COMPONENT_IMPLEMENTATION_NAMESPACE ECS
@@ -165,14 +165,35 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			}
 		}
 
-		void Enumerate(IComponentCallback<IComponentInterface>& cb)
+		void ForEachComponentVariable(IComponentCallback<IComponentInterface>& cb)
 		{
 			enumLock++;
 			try
 			{
 				for (auto& row : rows)
 				{
-					if (cb.OnComponent(row.first, *row.second.interfacePointer) == IComponentCallback<IComponentInterface>::BREAK)
+					if (cb.OnComponent(row.first, *row.second.interfacePointer) == EFlowLogic::BREAK)
+					{
+						break;
+					}
+				}
+			}
+			catch (...)
+			{
+				enumLock--;
+				throw;
+			}
+			enumLock--;
+		}
+
+		void ForEachComponentVariable(Rococo::Function<EFlowLogic(ROID roid, IComponentInterface&)> functor)
+		{
+			enumLock++;
+			try
+			{
+				for (auto& row : rows)
+				{
+					if (functor.Invoke(row.first, *row.second.interfacePointer) == EFlowLogic::BREAK)
 					{
 						break;
 					}
@@ -459,7 +480,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 					ROID id;
 					id.salt = handleTable[index].salt;
 					id.index = index;
-					if (cb.OnROID(id) == IROIDCallback::BREAK)
+					if (cb.OnROID(id) == EFlowLogic::BREAK)
 					{
 						break;
 					}
@@ -486,9 +507,14 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			}
 		}
 // #BEGIN_INSTANCED#
-		void EnumerateComponentVariables(IComponentCallback<IComponentInterface>& cb)
+		void ForEachComponentVariable(IComponentCallback<IComponentInterface>& cb)
 		{
-			components.componentVariableTable.Enumerate(cb);
+			components.componentVariableTable.ForEachComponentVariable(cb);
+		}
+
+		void ForEachComponentVariable(Function<EFlowLogic(ROID id, IComponentInterface& component)> functor)
+		{
+			components.componentVariableTable.ForEachComponentVariable(functor);
 		}
 // #END_INSTANCED#
 // #BEGIN_INSTANCED#

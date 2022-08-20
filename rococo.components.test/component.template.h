@@ -1,4 +1,5 @@
 #include <rococo.types.h>
+#include "sys/examples/components.h"
 #include <rococo.component.entities.h>
 #include "DeclarationsInclude"
 

@@ -1,0 +1,12 @@
+The Rococo libraries are copyright(c) All rights reserved 2022. by me, Mark Anthony Taylor.
+My email is mark.anthony.taylor@gmail.com. 
+
+Most of the libraries and modules are free and open source. You are not allowed to branch the files sin the core language folders in the sexy folder though
+(SS/STC/SVM) as this would destroy the value of the language by creating competing standards. Look at what happened to LISP, LUA and Java. Not fun.
+Don't go there.
+
+Hyperverse is a private commercial development. You may study the source code to understand how to build games with MPlat and the Sexy language, but the 
+software is not free to use.
+
+
+
