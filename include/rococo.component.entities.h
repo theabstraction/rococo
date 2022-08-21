@@ -26,13 +26,32 @@ namespace Rococo::Components
 		{
 			return asUint64 != 0;
 		}
+
+		auto Value() const
+		{
+			return asUint64;
+		}
+
+		inline bool operator == (const ROID& other) const
+		{
+			return asUint64 == other.asUint64;
+		}
+
+		ROID(): asUint64(0)
+		{
+
+		}
+
+		static ROID Invalid()
+		{
+			return ROID();
+		}
+
+		explicit ROID(uint64 value): asUint64(value)
+		{			
+		}
 	};
 #pragma pack(pop)
-
-	inline bool operator == (const ROID& a, const ROID& b)
-	{
-		return a.asUint64 == b.asUint64;
-	}
 
 	struct STDROID
 	{
@@ -81,7 +100,7 @@ namespace Rococo::Components
 
 		}
 
-		Ref(Ref<INTERFACE>& src)
+		Ref(Ref<INTERFACE>& src) noexcept
 		{
 			component = src.component;
 			life = src.life;
@@ -91,7 +110,7 @@ namespace Rococo::Components
 			}
 		}
 
-		Ref(Ref<INTERFACE>&& src)
+		Ref(Ref<INTERFACE>&& src) noexcept
 		{
 			component = src.component;
 			life = src.life;

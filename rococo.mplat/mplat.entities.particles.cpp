@@ -438,7 +438,7 @@ namespace ANON
 		IRenderer& renderer;
 		IInstances& instances;
 
-		std::unordered_map<ID_ENTITY, ICloud*, ID_ENTITY> clouds;
+		std::unordered_map<ID_ENTITY, ICloud*, Hash<ID_ENTITY>> clouds;
 
 		ParticleSystem(IRenderer& _renderer, IInstances& _instances): renderer(_renderer), instances(_instances)
 		{

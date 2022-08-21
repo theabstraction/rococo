@@ -116,6 +116,11 @@ namespace Rococo
 		int64 Length() const { return end - start; }
 	};
 
+	template<class T>
+	struct Hash
+	{
+	};
+
 	template <class _Ty>
 	struct RemoveReference
 	{

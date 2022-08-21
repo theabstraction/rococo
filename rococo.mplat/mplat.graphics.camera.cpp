@@ -78,8 +78,8 @@ namespace
          visitor.ShowString("", "");
 
          visitor.ShowHex("OrientFlags", orientationFlags);
-         visitor.ShowDecimal("Following", followingId.value);
-         visitor.ShowDecimal("Guide", orientationGuideId.value);
+         visitor.ShowDecimal("Following", followingId.Value());
+         visitor.ShowDecimal("Guide", orientationGuideId.Value());
 
          visitor.ShowString("", "");
 

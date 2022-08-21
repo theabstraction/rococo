@@ -198,12 +198,12 @@ namespace
               Throw(0, "%s: skeleton name was blank", __FUNCTION__);
           }
 
-          H_ENTITY hBody{ idBody.value };
+          H_ENTITY hBody{ idBody.Value()};
 
           EntityImpl* body;
           if (!idToEntity.TryGetRef(hBody, &body))
           {
-              Throw(0, "%s: !idToEntity.TryGetRef returned false! Failed to find body with id %llu", __FUNCTION__, idBody.value);
+              Throw(0, "%s: !idToEntity.TryGetRef returned false! Failed to find body with id %llu", __FUNCTION__, idBody.Value());
           }
 
           body->skeletonName = skeleton;
@@ -211,13 +211,13 @@ namespace
 
       void Delete(ID_ENTITY id) override
       {
-          idToEntity.Destroy(H_ENTITY(id.value), EntityImpl());
+          idToEntity.Destroy(H_ENTITY(id.Value()), EntityImpl());
       }
 
       boolean32 TryGetModelToWorldMatrix(ID_ENTITY id, Matrix4x4& model) override
       {
           EntityImpl* e;
-          if (idToEntity.TryGetRef(H_ENTITY(id.value), &e))
+          if (idToEntity.TryGetRef(H_ENTITY(id.Value()), &e))
           {
               model = e->model;
               return true;
@@ -232,7 +232,7 @@ namespace
       IEntity* GetEntity(ID_ENTITY id) override
       {
           EntityImpl* e;
-          if (idToEntity.TryGetRef(H_ENTITY(id.value), &e))
+          if (idToEntity.TryGetRef(H_ENTITY(id.Value()), &e))
           {
               return static_cast<IEntity*>(e);
           }
@@ -275,7 +275,7 @@ namespace
         float Dm = Determinant(m);
         if (Dm < 0.9f || Dm > 1.1f)
         {
-            Throw(0, "Bad model matrix for entity %lld. Det M = %f", leafId.value, Dm);
+            Throw(0, "Bad model matrix for entity %lld. Det M = %f", leafId.Value(), Dm);
         }
       }
 
@@ -301,7 +301,7 @@ namespace
       void GetScale(ID_ENTITY id, Vec3& scale)
       {
           EntityImpl* e;
-          if (idToEntity.TryGetRef(H_ENTITY(id.value), &e))
+          if (idToEntity.TryGetRef(H_ENTITY(id.Value()), &e))
           {
               scale = e->scale;
           }
@@ -314,7 +314,7 @@ namespace
       void GetPosition(ID_ENTITY id, Vec3& position) 
       {
           EntityImpl* e;
-          if (idToEntity.TryGetRef(H_ENTITY(id.value), &e))
+          if (idToEntity.TryGetRef(H_ENTITY(id.Value()), &e))
           {
               position = e->model.GetPosition();
           }
@@ -327,9 +327,9 @@ namespace
       void AddAnimationFrame(ID_ENTITY id, const fstring& frameName, Seconds duration, boolean32 loop) override
       {
           EntityImpl* e;
-          if (!idToEntity.TryGetRef(H_ENTITY(id.value), &e))
+          if (!idToEntity.TryGetRef(H_ENTITY(id.Value()), &e))
           {
-              Throw(0, "%s no such entity with id %llu", __FUNCTION__, id.value);
+              Throw(0, "%s no such entity with id %llu", __FUNCTION__, id.Value());
           }
 
           e->LazyInitAndGetAnimation().AddKeyFrame(frameName, duration, loop);
@@ -530,7 +530,7 @@ namespace
       void SetScale(ID_ENTITY id, const Vec3& scale) override
       {
           EntityImpl* e;
-          if (idToEntity.TryGetRef(H_ENTITY(id.value), &e))
+          if (idToEntity.TryGetRef(H_ENTITY(id.Value()), &e))
           {
               e->scale = scale;
           }

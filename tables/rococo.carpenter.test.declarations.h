@@ -1,5 +1,5 @@
 //Rococo.Carpenter CPPGenerator Declarations
-// Generated At: 20 August 2022 20:42:19
+// Generated At: 21 August 2022 13:22:33
 
 namespace Rococo::Quotes
 {

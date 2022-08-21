@@ -10,7 +10,7 @@ namespace
    {
       IInstancesSupervisor& instances;
 
-      std::unordered_map<ID_ENTITY, FPSAngles, ID_ENTITY> mapIdToAngles;
+      std::unordered_map<ID_ENTITY, FPSAngles, Hash<ID_ENTITY>> mapIdToAngles;
 
       Mobiles(IInstancesSupervisor& _instances) : instances(_instances)
       {
@@ -36,7 +36,7 @@ namespace
             auto* entity = instances.GetEntity(tmm.entityId);
             if (!entity)
             {
-               Throw(0, "Mobile with id # %llx did not match an entity", tmm.entityId.value);
+               Throw(0, "Mobile with id # %llx did not match an entity", tmm.entityId.Value());
             }
 
             auto& modelRef = entity->Model();

@@ -255,7 +255,7 @@ namespace
 			  IEntity* entity = instances.GetEntity(i);
 			  if (!entity)
 			  {
-				  Throw(0, "Scene: Unexpected missing entity with id #%lld", i.value);
+				  Throw(0, "Scene: Unexpected missing entity with id #%lld", i.Value());
 			  }
 
 			  if (entity->MeshId() != meshId)
@@ -280,7 +280,7 @@ namespace
 			  IEntity* entity = instances.GetEntity(i);
 			  if (!entity)
 			  {
-				  Throw(0, "Scene: Unexpected missing entity with id #%lld", i.value);
+				  Throw(0, "Scene: Unexpected missing entity with id #%lld", i.Value());
 			  }
 
 			  AddDebugBones(*entity, r, *debugTesselator, rigs);
@@ -291,7 +291,7 @@ namespace
 			  IEntity* entity = instances.GetEntity(i);
 			  if (!entity)
 			  {
-				  Throw(0, "Scene: Unexpected missing entity with id #%lld", i.value);
+				  Throw(0, "Scene: Unexpected missing entity with id #%lld", i.Value());
 			  }
 
 			  auto* skeleton = entity->GetSkeleton(rigs.Skeles());

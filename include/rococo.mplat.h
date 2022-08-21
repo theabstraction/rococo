@@ -7,9 +7,21 @@
 #include <rococo.os.h>
 #include <rococo.events.h>
 
+#include <rococo.component.entities.h>
+
 namespace Rococo
 {
-   ROCOCO_ID(ID_ENTITY, uint64, 0);
+	using ID_ENTITY = Rococo::Components::ROID;
+
+	template<>
+	struct Hash<ID_ENTITY>
+	{
+		size_t operator()(ID_ENTITY id) const
+		{
+			return id.index;
+		}
+	};
+
    ROCOCO_ID(ID_SKELETON, uint64, 0);
    ROCOCO_ID(ID_POSE, uint64, 0);
    ROCOCO_ID(ID_SPRITE, uint64, 0);

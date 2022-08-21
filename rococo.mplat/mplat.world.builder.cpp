@@ -63,7 +63,7 @@ namespace
 			obj.centre = box.Centre();
 			obj.span = max(fullSpan.x, fullSpan.y);
 			auto& pocket = quadtree->Insert(obj);
-			pocket.context = id.value;
+			pocket.context = id.Value();
 			pocket.flags = MakeFlags(index, Flags::TYPE_TRIANGLE | extraFlags);
 		}
 
@@ -156,20 +156,20 @@ namespace
 			auto* e = instances.GetEntity(id);
 			if (!e)
 			{
-				Throw(0, "%s: no entity found with id 0x%llX", __FUNCTION__, id.value);
+				Throw(0, "%s: no entity found with id 0x%llX", __FUNCTION__, id.Value());
 			}
 				
 			auto meshId = e->MeshId();
 			if (!meshId)
 			{
-				Throw(0, "%s: Entity with id 0x%llX had no mesh", __FUNCTION__, id.value);
+				Throw(0, "%s: Entity with id 0x%llX had no mesh", __FUNCTION__, id.Value());
 			}
 
 			size_t nTriangles;
 			auto* triangles = meshes.GetTriangles(meshId, nTriangles);
 			if (nTriangles == 0)
 			{
-				Throw(0, "%s: Entity with id 0x%llX with mesh id 0x%llX has no accessible triangles", __FUNCTION__, id.value, meshId.value);
+				Throw(0, "%s: Entity with id 0x%llX with mesh id 0x%llX has no accessible triangles", __FUNCTION__, id.Value(), meshId.value);
 			}
 
 			uint32 index = 0;

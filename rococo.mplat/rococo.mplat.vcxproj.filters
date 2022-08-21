@@ -218,6 +218,9 @@
     <ClInclude Include="mplat.components.factories.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\rococo.component.entities.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="config.xc">
