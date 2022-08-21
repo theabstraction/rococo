@@ -12,7 +12,7 @@ namespace
    using namespace Rococo::Graphics;
    using namespace Rococo::Entities;
 
-   struct EntityImpl : public IEntity
+   struct EntityImpl : public IEntityDeprecated
    {
       Matrix4x4 model = Matrix4x4::Identity();
       ID_ENTITY parentId; 
@@ -229,12 +229,12 @@ namespace
           }
       }
 
-      IEntity* GetEntity(ID_ENTITY id) override
+      IEntityDeprecated* GetEntity(ID_ENTITY id) override
       {
           EntityImpl* e;
           if (idToEntity.TryGetRef(H_ENTITY(id.Value()), &e))
           {
-              return static_cast<IEntity*>(e);
+              return static_cast<IEntityDeprecated*>(e);
           }
           else
           {
@@ -292,7 +292,7 @@ namespace
              EntityImpl* e;
              if (idToEntity.TryGetRef(id, &e))
              {
-                 cb.OnEntity(count++, *static_cast<IEntity*>(e), ID_ENTITY(id.Value()));
+                 cb.OnEntity(count++, *static_cast<IEntityDeprecated*>(e), ID_ENTITY(id.Value()));
              }
              id = idToEntity.GetNextHandle(id);
          }

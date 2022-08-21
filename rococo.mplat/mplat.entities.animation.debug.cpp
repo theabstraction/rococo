@@ -87,7 +87,7 @@ namespace
 
 namespace Rococo::Entities
 {
-	void AddDebugBones(IEntity& e, IRenderContext& rc, IRodTesselatorSupervisor& rod, IRigs& rigs)
+	void AddDebugBones(IEntityDeprecated& e, IRenderContext& rc, IRodTesselatorSupervisor& rod, IRigs& rigs)
 	{
 		auto skeleton = e.GetSkeleton(rigs.Skeles());
 		if (skeleton)

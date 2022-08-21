@@ -261,7 +261,7 @@ namespace Rococo
 		struct ISkeleton;
 		struct ISkeletons;
 
-		ROCOCOAPI IEntity
+		ROCOCOAPI IEntityDeprecated
 		{
 		   virtual Vec3 Position() const = 0;
 		   virtual Matrix4x4& Model() = 0;
@@ -275,14 +275,14 @@ namespace Rococo
 
 		ROCOCOAPI IEntityCallback
 		{
-		   virtual void OnEntity(int64 index, IEntity & entity, ID_ENTITY id) = 0;
+		   virtual void OnEntity(int64 index, IEntityDeprecated & entity, ID_ENTITY id) = 0;
 		};
 
 		ROCOCOAPI IInstancesSupervisor : public IInstances
 		{
 		   virtual void ForAll(IEntityCallback & cb) = 0;
 		   virtual void Free() = 0;
-		   virtual IEntity* GetEntity(ID_ENTITY id) = 0;
+		   virtual IEntityDeprecated* GetEntity(ID_ENTITY id) = 0;
 		   virtual void ConcatenateModelMatrices(ID_ENTITY id, Matrix4x4& result) = 0;
 		   virtual void ConcatenatePositionVectors(ID_ENTITY id, Vec3& position) = 0;
 		   virtual Rococo::Graphics::IMeshBuilder& MeshBuilder() = 0;
@@ -1024,5 +1024,5 @@ namespace Rococo::Entities
 	/// <param name="rc">- the 3D render context to render to </param>
 	/// <param name="rod">- the rod tesselator object used to generate geometry</param>
 	/// <param name="rigs">- the set of poses used by the entity object</param>
-	void AddDebugBones(IEntity& e, IRenderContext& rc, Rococo::Graphics::IRodTesselatorSupervisor& rod, IRigs& rigs);
+	void AddDebugBones(IEntityDeprecated& e, IRenderContext& rc, Rococo::Graphics::IRodTesselatorSupervisor& rod, IRigs& rigs);
 }

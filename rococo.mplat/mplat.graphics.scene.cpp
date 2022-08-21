@@ -252,7 +252,7 @@ namespace
 
 		  for (auto i : statics)
 		  {
-			  IEntity* entity = instances.GetEntity(i);
+			  IEntityDeprecated* entity = instances.GetEntity(i);
 			  if (!entity)
 			  {
 				  Throw(0, "Scene: Unexpected missing entity with id #%lld", i.Value());
@@ -277,7 +277,7 @@ namespace
 
 		  for (auto i : debugEntities)
 		  {
-			  IEntity* entity = instances.GetEntity(i);
+			  IEntityDeprecated* entity = instances.GetEntity(i);
 			  if (!entity)
 			  {
 				  Throw(0, "Scene: Unexpected missing entity with id #%lld", i.Value());
@@ -288,7 +288,7 @@ namespace
 
 		  for (auto i : dynamics)
 		  {
-			  IEntity* entity = instances.GetEntity(i);
+			  IEntityDeprecated* entity = instances.GetEntity(i);
 			  if (!entity)
 			  {
 				  Throw(0, "Scene: Unexpected missing entity with id #%lld", i.Value());

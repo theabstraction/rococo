@@ -1,6 +1,6 @@
 #pragma once
 
-// Generated at: Aug 20 2022 18:12 UTC
+// Generated at: Aug 21 2022 12:43 UTC
 // Based on the template file: C:\work\rococo\rococo.mplat\mplat.component.template.h
 #include <rococo.types.h>
 #include <rococo.component.entities.h>
@@ -11,12 +11,14 @@ namespace Rococo::Components::Sys
 {
     struct ComponentFactories
     {
+        IEntityFactory& entityFactory;
         IParticleSystemComponentFactory& particleSystemComponentFactory;
         IRigsComponentFactory& rigsComponentFactory;
     };
 
     struct ActiveComponents
     {
+        bool hasEntity : 1;
         bool hasParticleSystemComponent : 1;
         bool hasRigsComponent : 1;
     };
@@ -63,6 +65,25 @@ namespace Rococo::Components::Sys
 
     ROCOCOAPI IRCObjectTable: IRCObjectTableBase
     {     
+
+        [[nodiscard]] virtual Ref<IEntity> AddEntity(ROID id) = 0;
+
+        // Marks the Entity as deprecated, when all outstanding refences are out of scope the object can be garbage collected
+        virtual bool DeprecateEntity(ROID id) = 0;
+
+        // Enumerate all Entity elements. The reference in the callback cb.OnComponent is valid only for the callback lifetime. 
+        // While enumerating garbage collection is suspended and new items cannot be added.
+        virtual void ForEachEntity(IComponentCallback<IEntity>& cb) = 0;
+
+        // Enumerate all Entity elements. The reference in the callback cb.OnComponent is valid only for the callback lifetime. 
+        // While enumerating garbage collection is suspended and new items cannot be added.
+        virtual void ForEachEntity(Rococo::Function<EFlowLogic(ROID id, IEntity& component)> functor) = 0;
+
+        // Attemp to get a reference to the component with a given ROID
+        virtual Ref<IEntity> GetEntity(ROID id) = 0;
+
+        // Populate an array of ROIDs and return the number appended. If roidOutput is null then the return value is the number of Entitys in the table
+        [[nodiscard]] virtual size_t GetEntityIDs(ROID* roidOutput, size_t nElementsInOutput) = 0;
 
         [[nodiscard]] virtual Ref<IParticleSystemComponent> AddParticleSystemComponent(ROID id) = 0;
 

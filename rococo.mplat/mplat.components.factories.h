@@ -17,5 +17,6 @@ namespace Rococo::Components::Sys
 {
 	ROCOCOAPI IParticleSystemComponentFactory : IComponentFactory<IParticleSystemComponent>{};
 	ROCOCOAPI IRigsComponentFactory : IComponentFactory<IRigsComponent>{};
+	ROCOCOAPI IEntityFactory: IComponentFactory<IEntity>{};
 }
 

@@ -1,4 +1,4 @@
-// Generated at: Aug 20 2022 P UTC
+// Generated at: Aug 21 2022 P UTC
 // Based on the template file: C:\work\rococo\rococo.mplat\mplat.component.template.cpp
 #include <rococo.api.h>
 #include <list>
@@ -18,6 +18,248 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 	using namespace Rococo;
 	using namespace Rococo::Components;
 	using namespace Rococo::Components::Sys;
+
+	struct EntityTable;
+
+	struct EntityLife : IComponentLife
+	{
+		int64 referenceCount = 0;
+		ROID id;
+		bool isDeprecated = false;
+		
+		EntityTable& table;
+
+		EntityLife(ROID roid, EntityTable& refTable) :
+			id(roid), table(refTable)
+		{
+
+		}
+
+		int64 AddRef() override
+		{
+			return ++referenceCount;
+		}
+
+		int64 GetRefCount() const override
+		{
+			return referenceCount;
+		}
+
+		ROID GetRoid() const override
+		{
+			return id;
+		}
+
+		int64 ReleaseRef() override
+		{
+			return --referenceCount;
+		}
+
+		// Marks the component as deprecated and returns true if this is the first call that marked it so
+		bool Deprecate() override;
+
+		bool IsDeprecated() const override
+		{
+			return isDeprecated;
+		}
+	};
+
+	struct EntityTable
+	{
+		struct ComponentDesc
+		{
+			IEntity* interfacePointer = nullptr;
+		};
+
+		IEntityFactory& componentFactory;
+		std::unordered_map<ROID, ComponentDesc, STDROID, STDROID> rows;
+		std::vector<ROID> deprecatedList;
+		std::vector<ROID> stubbornList;
+		AutoFree<IFreeListAllocatorSupervisor> componentAllocator;
+		size_t componentSize;
+		int enumLock = 0;
+
+		EntityTable(IEntityFactory& factory) : componentFactory(factory), rows(1024), componentSize(factory.SizeOfConstructedObject())
+		{
+			componentAllocator = CreateFreeListAllocator(componentSize + sizeof EntityLife);
+		}
+
+		Ref<IEntity> AddNew(ROID id)
+		{
+			if (enumLock > 0)
+			{
+				Throw(0, "%s failed: the components were locked for enumeration", __func__);
+			}
+
+			std::pair<ROID, ComponentDesc> nullItem(id, ComponentDesc());
+			auto insertion = rows.insert(nullItem);
+			if (!insertion.second)
+			{
+				Throw(0, "%s: a component with the given id 0x%8.8X already exists", __FUNCTION__, id.index);
+			}
+
+			auto i = insertion.first;
+
+			try
+			{
+				void* pComponentMemory = componentAllocator->AllocateBuffer();
+				IEntity* component = componentFactory.ConstructInPlace(pComponentMemory);
+				if (component == nullptr)
+				{
+					Throw(0, "%s: factory.ConstructInPlace returned null");
+				}
+				i->second.interfacePointer = component;
+
+				uint8* byteBuffer = (uint8*)pComponentMemory;
+				auto* lifeSupport = (EntityLife*)(byteBuffer + componentSize);
+				new (lifeSupport) EntityLife(id, *this);
+				return Ref<IEntity>(*component, GetLife(*component));
+			}
+			catch (...)
+			{
+				rows.erase(i);
+				throw;
+			}
+		}
+
+		void CollectGarbage()
+		{
+			if (enumLock > 0)
+			{
+				return;
+			}
+
+			while (!deprecatedList.empty())
+			{
+				ROID id = deprecatedList.back();
+				deprecatedList.pop_back();
+
+				auto it = rows.find(id);
+				if (it != rows.end())
+				{
+					auto& component = it->second;
+					auto& life = GetLife(*component.interfacePointer);
+					if (life.isDeprecated && life.referenceCount <= 0)
+					{
+						componentFactory.Destruct(component.interfacePointer);
+						componentAllocator->FreeBuffer(component.interfacePointer);
+						rows.erase(it);
+					}
+					else
+					{
+						stubbornList.push_back(id);
+					}
+				}
+			}
+
+			deprecatedList.swap(stubbornList);
+		}
+		
+		void Deprecate(ROID id)
+		{
+			auto i = rows.find(id);
+			if (i != rows.end())
+			{
+				auto& component = i->second;
+				auto& life = GetLife(*component.interfacePointer);
+				life.Deprecate();
+			}
+		}
+
+		void ForEachEntity(IComponentCallback<IEntity>& cb)
+		{
+			enumLock++;
+			try
+			{
+				for (auto& row : rows)
+				{
+					if (cb.OnComponent(row.first, *row.second.interfacePointer) == EFlowLogic::BREAK)
+					{
+						break;
+					}
+				}
+			}
+			catch (...)
+			{
+				enumLock--;
+				throw;
+			}
+			enumLock--;
+		}
+
+		void ForEachEntity(Rococo::Function<EFlowLogic(ROID roid, IEntity&)> functor)
+		{
+			enumLock++;
+			try
+			{
+				for (auto& row : rows)
+				{
+					if (functor.Invoke(row.first, *row.second.interfacePointer) == EFlowLogic::BREAK)
+					{
+						break;
+					}
+				}
+			}
+			catch (...)
+			{
+				enumLock--;
+				throw;
+			}
+			enumLock--;
+		}
+
+		Ref<IEntity> Find(ROID id)
+		{
+			auto i = rows.find(id);
+			auto& c = i->second;
+			auto* pInterfaceBuffer = (uint8*)c.interfacePointer;
+
+			return i != rows.end() ? Ref<IEntity>(*c.interfacePointer, GetLife(*c.interfacePointer)) : Ref<IEntity>();
+		}
+
+		size_t GetEntityIDs(ROID* roidOutput, size_t nElementsInOutput)
+		{
+			if (roidOutput != nullptr)
+			{
+				size_t nElements = min(nElementsInOutput, rows.size());
+
+				auto* roid = roidOutput;
+				auto* rend = roid + nElements;
+
+				for (auto row : rows)
+				{
+					if (roid == rend) break;
+					*roid++ = row.first;
+				}
+
+				return nElements;
+			}
+
+			return rows.size();
+		}
+
+
+		EntityLife& GetLife(IEntity& i)
+		{
+			uint8* objectBuffer = (uint8*)&i;
+			return *(EntityLife*)(objectBuffer + componentSize);
+		}
+	};
+
+	bool EntityLife::Deprecate()
+	{
+		if (!isDeprecated)
+		{
+			isDeprecated = true;
+
+			table.deprecatedList.push_back(id);
+
+			return true;
+		}
+
+		return false;
+	}
+
 
 	struct ParticleSystemComponentTable;
 
@@ -506,14 +748,22 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 	struct AllComponentTables
 	{
 		int dummy;
+		EntityTable entityTable;
 		ParticleSystemComponentTable particleSystemComponentTable;
 		RigsComponentTable rigsComponentTable;
 
 		AllComponentTables(ComponentFactories& factories):
 			dummy(0)
+					,entityTable(factories.entityFactory)
 					,particleSystemComponentTable(factories.particleSystemComponentFactory)
 					,rigsComponentTable(factories.rigsComponentFactory)
 				{
+		}
+
+		Ref<IEntity> AddEntity(ROID id, ActiveComponents& ac)
+		{
+			ac.hasEntity = true;
+			return entityTable.AddNew(id);
 		}
 
 		Ref<IParticleSystemComponent> AddParticleSystemComponent(ROID id, ActiveComponents& ac)
@@ -530,6 +780,10 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 
 		void Deprecate(ROID id, const ActiveComponents& ac)
 		{
+			if (ac.hasEntity)
+			{
+				entityTable.Deprecate(id);
+			}
 			if (ac.hasParticleSystemComponent)
 			{
 				particleSystemComponentTable.Deprecate(id);
@@ -602,6 +856,19 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			return activeIds.size();
 		}
 
+		Ref<IEntity> AddEntity(ROID id)
+		{
+			if (id.index > 0 && id.index < maxTableEntries)
+			{
+				RCObject& object = handleTable[id.index];
+				if (id.salt == object.salt)
+				{
+					return components.AddEntity(id, object.ac);
+				}
+			}
+
+			return Ref<IEntity>();
+		}
 		Ref<IParticleSystemComponent> AddParticleSystemComponent(ROID id)
 		{
 			if (id.index > 0 && id.index < maxTableEntries)
@@ -630,6 +897,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		}
 		void CollectGarbage() override
 		{
+			components.entityTable.CollectGarbage();
 			components.particleSystemComponentTable.CollectGarbage();
 			components.rigsComponentTable.CollectGarbage();
 		}
@@ -700,6 +968,24 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			}
 		}
 
+		bool DeprecateEntity(ROID id)
+		{
+			if (id.index > 0 && id.index < maxTableEntries)
+			{
+				RCObject& object = handleTable[id.index];
+				if (id.salt == object.salt)
+				{
+					if (object.ac.hasEntity)
+					{
+						components.entityTable.Deprecate(id);
+						object.ac.hasEntity = false;
+						return true;
+					}
+				}
+			}
+
+			return false;
+		}
 		bool DeprecateParticleSystemComponent(ROID id)
 		{
 			if (id.index > 0 && id.index < maxTableEntries)
@@ -778,6 +1064,15 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 				deprecationList.clear();
 			}
 		}
+		void ForEachEntity(IComponentCallback<IEntity>& cb)
+		{
+			components.entityTable.ForEachEntity(cb);
+		}
+
+		void ForEachEntity(Function<EFlowLogic(ROID id, IEntity& component)> functor)
+		{
+			components.entityTable.ForEachEntity(functor);
+		}
 		void ForEachParticleSystemComponent(IComponentCallback<IParticleSystemComponent>& cb)
 		{
 			components.particleSystemComponentTable.ForEachParticleSystemComponent(cb);
@@ -795,6 +1090,23 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		void ForEachRigsComponent(Function<EFlowLogic(ROID id, IRigsComponent& component)> functor)
 		{
 			components.rigsComponentTable.ForEachRigsComponent(functor);
+		}
+
+		Ref<IEntity> GetEntity(ROID id)
+		{
+			if (id.index > 0 && id.index < maxTableEntries)
+			{
+				RCObject& object = handleTable[id.index];
+				if (id.salt == object.salt)
+				{
+					if (object.ac.hasEntity)
+					{
+						return components.entityTable.Find(id);
+					}
+				}
+			}
+
+			return Ref<IEntity>();
 		}
 
 		Ref<IParticleSystemComponent> GetParticleSystemComponent(ROID id)
@@ -829,6 +1141,11 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			}
 
 			return Ref<IRigsComponent>();
+		}
+
+		size_t GetEntityIDs(ROID* roidOutput, size_t nElementsInOutput) override
+		{
+			return components.entityTable.GetEntityIDs(roidOutput, nElementsInOutput);
 		}
 
 		size_t GetParticleSystemComponentIDs(ROID* roidOutput, size_t nElementsInOutput) override

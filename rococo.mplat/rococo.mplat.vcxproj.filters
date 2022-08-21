@@ -16,8 +16,8 @@
     <Filter Include="Script Files">
       <UniqueIdentifier>{0f9432ab-3347-4911-8807-9bb2b08796ef}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Templates">
-      <UniqueIdentifier>{ae55bc68-778d-4357-ba73-501ae1f9bba2}</UniqueIdentifier>
+    <Filter Include="Components">
+      <UniqueIdentifier>{409076b5-6040-4618-a5ef-cf8d009d1420}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -178,7 +178,7 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="mplat.component.template.cpp">
-      <Filter>Templates</Filter>
+      <Filter>Components</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -209,9 +209,6 @@
     <ClInclude Include="mplat.landscapes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="mplat.component.template.h">
-      <Filter>Templates</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\mplat.components.decl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -220,6 +217,9 @@
     </ClInclude>
     <ClInclude Include="..\include\rococo.component.entities.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mplat.component.template.h">
+      <Filter>Components</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -237,7 +237,7 @@
   </ItemGroup>
   <ItemGroup>
     <Xml Include="components.xml">
-      <Filter>Resource Files</Filter>
+      <Filter>Components</Filter>
     </Xml>
   </ItemGroup>
 </Project>
