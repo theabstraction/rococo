@@ -180,6 +180,9 @@
     <ClCompile Include="mplat.component.template.cpp">
       <Filter>Components</Filter>
     </ClCompile>
+    <ClCompile Include="mplat.components.factories.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\rococo.mplat.h">
@@ -212,14 +215,14 @@
     <ClInclude Include="..\include\mplat.components.decl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="mplat.components.factories.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\rococo.component.entities.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="mplat.component.template.h">
       <Filter>Components</Filter>
+    </ClInclude>
+    <ClInclude Include="mplat.components.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

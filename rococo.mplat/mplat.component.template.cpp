@@ -2,7 +2,6 @@
 #include <list>
 #include <unordered_map>
 #include "rococo.component.entities.h"
-#include "mplat.components.factories.h"
 #include "mplat.components.h"
 
 #ifdef _DEBUG

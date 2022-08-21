@@ -114,6 +114,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="mplat.components.cpp" />
+    <ClCompile Include="mplat.components.factories.cpp" />
     <ClCompile Include="mplat.config.cpp" />
     <ClCompile Include="mplat.entities.animation.cpp" />
     <ClCompile Include="mplat.entities.animation.debug.cpp" />
@@ -175,7 +176,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClInclude>
-    <ClInclude Include="mplat.components.factories.h" />
+    <ClInclude Include="mplat.components.h" />
     <ClInclude Include="mplat.landscapes.h" />
     <ClInclude Include="mplat.panel.base.h" />
     <ClInclude Include="mplat.sxh.h" />

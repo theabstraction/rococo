@@ -857,6 +857,11 @@ namespace Rococo
 		ISpritesSupervisor* CreateSpriteTable(IRenderer& renderer);
 	}
 
+	namespace Components::Sys
+	{
+		struct IRCObjectTable;
+	}
+
 	struct Platform
 	{
 		// Operating system functions
@@ -935,6 +940,9 @@ namespace Rococo
 		Rococo::IInstallationManager& installationManager;
 
 		Rococo::IWorldBuilder& worldBuilder;
+
+		// (E)ntity(C)omponent(S)ystem
+		Rococo::Components::Sys::IRCObjectTable& ECS;
 	};
 
 	namespace Events

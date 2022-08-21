@@ -17,6 +17,7 @@
 #include <mplat.audio.h>
 #include <objbase.h>
 #include <rococo.stl.allocators.h>
+#include "mplat.components.h"
 
 //////////////////////// XAUDIO2 and Media Foundation stuff for audio decoding ////////////////////
 #pragma comment(lib, "wmcodecdspuuid.lib")
@@ -339,13 +340,30 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	AutoFree<IWorldSupervisor> world = Rococo::CreateWorld(*meshes, *instances);
 
 	AutoFree<Graphics::ISpritesSupervisor> sprites = Rococo::Graphics::CreateSpriteTable(mainWindow->Renderer());
+
+	using namespace Rococo::Components;
+
+	AutoFree<Sys::IBodyComponentFactory> bodyFactory = Sys::CreateBodyFactory();
+	AutoFree<Sys::ISkeletonComponentFactory> skeletonFactory = Sys::CreateSkeletonFactory();
+	AutoFree<Sys::IParticleSystemComponentFactory> particleSystemFactory = Sys::CreateParticleSystemFactory();
+	AutoFree<Sys::IRigsComponentFactory> rigsFactory = Sys::CreateRigsFactory();
+
+	Sys::ComponentFactories factories
+	{
+		*bodyFactory, 
+		*skeletonFactory,
+		*particleSystemFactory,
+		*rigsFactory
+	};
+
+	AutoFree<Sys::IRCObjectTableSupervisor> ecs = Sys::Factories::Create_RCO_EntityComponentSystem(factories);
 	
 	Platform platform
 	{ 
 		*os, *installation, *appControl, mainWindow->Renderer(), mainWindow->Window(),* sprites,* rendererConfig,* messaging,
 		*sourceCache, *debuggerWindow, *publisher, *utilities, *gui, *keyboard, *config, *archive, *meshes,
 		*instances, *mobiles, *particles, *rigs, *spriteBuilder, *camera, *scene, tesselators, *mathsVisitor,
-		*audio, *ssFactory, title, *xbox360stick, *ims, *world
+		*audio, *ssFactory, title, *xbox360stick, *ims, *world, *ecs
 	};
 
 	gui->PostConstruct(&platform);

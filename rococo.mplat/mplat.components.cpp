@@ -4,7 +4,6 @@
 #include <list>
 #include <unordered_map>
 #include "rococo.component.entities.h"
-#include "mplat.components.factories.h"
 #include "mplat.components.h"
 
 #ifdef _DEBUG
@@ -19,17 +18,17 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 	using namespace Rococo::Components;
 	using namespace Rococo::Components::Sys;
 
-	struct EntityTable;
+	struct BodyComponentTable;
 
-	struct EntityLife : IComponentLife
+	struct BodyComponentLife : IComponentLife
 	{
 		int64 referenceCount = 0;
 		ROID id;
 		bool isDeprecated = false;
 		
-		EntityTable& table;
+		BodyComponentTable& table;
 
-		EntityLife(ROID roid, EntityTable& refTable) :
+		BodyComponentLife(ROID roid, BodyComponentTable& refTable) :
 			id(roid), table(refTable)
 		{
 
@@ -64,14 +63,14 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		}
 	};
 
-	struct EntityTable
+	struct BodyComponentTable
 	{
 		struct ComponentDesc
 		{
-			IEntity* interfacePointer = nullptr;
+			IBodyComponent* interfacePointer = nullptr;
 		};
 
-		IEntityFactory& componentFactory;
+		IBodyComponentFactory& componentFactory;
 		std::unordered_map<ROID, ComponentDesc, STDROID, STDROID> rows;
 		std::vector<ROID> deprecatedList;
 		std::vector<ROID> stubbornList;
@@ -79,12 +78,12 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		size_t componentSize;
 		int enumLock = 0;
 
-		EntityTable(IEntityFactory& factory) : componentFactory(factory), rows(1024), componentSize(factory.SizeOfConstructedObject())
+		BodyComponentTable(IBodyComponentFactory& factory) : componentFactory(factory), rows(1024), componentSize(factory.SizeOfConstructedObject())
 		{
-			componentAllocator = CreateFreeListAllocator(componentSize + sizeof EntityLife);
+			componentAllocator = CreateFreeListAllocator(componentSize + sizeof BodyComponentLife);
 		}
 
-		Ref<IEntity> AddNew(ROID id)
+		Ref<IBodyComponent> AddNew(ROID id)
 		{
 			if (enumLock > 0)
 			{
@@ -103,7 +102,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			try
 			{
 				void* pComponentMemory = componentAllocator->AllocateBuffer();
-				IEntity* component = componentFactory.ConstructInPlace(pComponentMemory);
+				IBodyComponent* component = componentFactory.ConstructInPlace(pComponentMemory);
 				if (component == nullptr)
 				{
 					Throw(0, "%s: factory.ConstructInPlace returned null");
@@ -111,9 +110,9 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 				i->second.interfacePointer = component;
 
 				uint8* byteBuffer = (uint8*)pComponentMemory;
-				auto* lifeSupport = (EntityLife*)(byteBuffer + componentSize);
-				new (lifeSupport) EntityLife(id, *this);
-				return Ref<IEntity>(*component, GetLife(*component));
+				auto* lifeSupport = (BodyComponentLife*)(byteBuffer + componentSize);
+				new (lifeSupport) BodyComponentLife(id, *this);
+				return Ref<IBodyComponent>(*component, GetLife(*component));
 			}
 			catch (...)
 			{
@@ -166,7 +165,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			}
 		}
 
-		void ForEachEntity(IComponentCallback<IEntity>& cb)
+		void ForEachBodyComponent(IComponentCallback<IBodyComponent>& cb)
 		{
 			enumLock++;
 			try
@@ -187,7 +186,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			enumLock--;
 		}
 
-		void ForEachEntity(Rococo::Function<EFlowLogic(ROID roid, IEntity&)> functor)
+		void ForEachBodyComponent(Rococo::Function<EFlowLogic(ROID roid, IBodyComponent&)> functor)
 		{
 			enumLock++;
 			try
@@ -208,16 +207,16 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			enumLock--;
 		}
 
-		Ref<IEntity> Find(ROID id)
+		Ref<IBodyComponent> Find(ROID id)
 		{
 			auto i = rows.find(id);
 			auto& c = i->second;
 			auto* pInterfaceBuffer = (uint8*)c.interfacePointer;
 
-			return i != rows.end() ? Ref<IEntity>(*c.interfacePointer, GetLife(*c.interfacePointer)) : Ref<IEntity>();
+			return i != rows.end() ? Ref<IBodyComponent>(*c.interfacePointer, GetLife(*c.interfacePointer)) : Ref<IBodyComponent>();
 		}
 
-		size_t GetEntityIDs(ROID* roidOutput, size_t nElementsInOutput)
+		size_t GetBodyComponentIDs(ROID* roidOutput, size_t nElementsInOutput)
 		{
 			if (roidOutput != nullptr)
 			{
@@ -239,14 +238,256 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		}
 
 
-		EntityLife& GetLife(IEntity& i)
+		BodyComponentLife& GetLife(IBodyComponent& i)
 		{
 			uint8* objectBuffer = (uint8*)&i;
-			return *(EntityLife*)(objectBuffer + componentSize);
+			return *(BodyComponentLife*)(objectBuffer + componentSize);
 		}
 	};
 
-	bool EntityLife::Deprecate()
+	bool BodyComponentLife::Deprecate()
+	{
+		if (!isDeprecated)
+		{
+			isDeprecated = true;
+
+			table.deprecatedList.push_back(id);
+
+			return true;
+		}
+
+		return false;
+	}
+
+
+	struct SkeletonComponentTable;
+
+	struct SkeletonComponentLife : IComponentLife
+	{
+		int64 referenceCount = 0;
+		ROID id;
+		bool isDeprecated = false;
+		
+		SkeletonComponentTable& table;
+
+		SkeletonComponentLife(ROID roid, SkeletonComponentTable& refTable) :
+			id(roid), table(refTable)
+		{
+
+		}
+
+		int64 AddRef() override
+		{
+			return ++referenceCount;
+		}
+
+		int64 GetRefCount() const override
+		{
+			return referenceCount;
+		}
+
+		ROID GetRoid() const override
+		{
+			return id;
+		}
+
+		int64 ReleaseRef() override
+		{
+			return --referenceCount;
+		}
+
+		// Marks the component as deprecated and returns true if this is the first call that marked it so
+		bool Deprecate() override;
+
+		bool IsDeprecated() const override
+		{
+			return isDeprecated;
+		}
+	};
+
+	struct SkeletonComponentTable
+	{
+		struct ComponentDesc
+		{
+			ISkeletonComponent* interfacePointer = nullptr;
+		};
+
+		ISkeletonComponentFactory& componentFactory;
+		std::unordered_map<ROID, ComponentDesc, STDROID, STDROID> rows;
+		std::vector<ROID> deprecatedList;
+		std::vector<ROID> stubbornList;
+		AutoFree<IFreeListAllocatorSupervisor> componentAllocator;
+		size_t componentSize;
+		int enumLock = 0;
+
+		SkeletonComponentTable(ISkeletonComponentFactory& factory) : componentFactory(factory), rows(1024), componentSize(factory.SizeOfConstructedObject())
+		{
+			componentAllocator = CreateFreeListAllocator(componentSize + sizeof SkeletonComponentLife);
+		}
+
+		Ref<ISkeletonComponent> AddNew(ROID id)
+		{
+			if (enumLock > 0)
+			{
+				Throw(0, "%s failed: the components were locked for enumeration", __func__);
+			}
+
+			std::pair<ROID, ComponentDesc> nullItem(id, ComponentDesc());
+			auto insertion = rows.insert(nullItem);
+			if (!insertion.second)
+			{
+				Throw(0, "%s: a component with the given id 0x%8.8X already exists", __FUNCTION__, id.index);
+			}
+
+			auto i = insertion.first;
+
+			try
+			{
+				void* pComponentMemory = componentAllocator->AllocateBuffer();
+				ISkeletonComponent* component = componentFactory.ConstructInPlace(pComponentMemory);
+				if (component == nullptr)
+				{
+					Throw(0, "%s: factory.ConstructInPlace returned null");
+				}
+				i->second.interfacePointer = component;
+
+				uint8* byteBuffer = (uint8*)pComponentMemory;
+				auto* lifeSupport = (SkeletonComponentLife*)(byteBuffer + componentSize);
+				new (lifeSupport) SkeletonComponentLife(id, *this);
+				return Ref<ISkeletonComponent>(*component, GetLife(*component));
+			}
+			catch (...)
+			{
+				rows.erase(i);
+				throw;
+			}
+		}
+
+		void CollectGarbage()
+		{
+			if (enumLock > 0)
+			{
+				return;
+			}
+
+			while (!deprecatedList.empty())
+			{
+				ROID id = deprecatedList.back();
+				deprecatedList.pop_back();
+
+				auto it = rows.find(id);
+				if (it != rows.end())
+				{
+					auto& component = it->second;
+					auto& life = GetLife(*component.interfacePointer);
+					if (life.isDeprecated && life.referenceCount <= 0)
+					{
+						componentFactory.Destruct(component.interfacePointer);
+						componentAllocator->FreeBuffer(component.interfacePointer);
+						rows.erase(it);
+					}
+					else
+					{
+						stubbornList.push_back(id);
+					}
+				}
+			}
+
+			deprecatedList.swap(stubbornList);
+		}
+		
+		void Deprecate(ROID id)
+		{
+			auto i = rows.find(id);
+			if (i != rows.end())
+			{
+				auto& component = i->second;
+				auto& life = GetLife(*component.interfacePointer);
+				life.Deprecate();
+			}
+		}
+
+		void ForEachSkeletonComponent(IComponentCallback<ISkeletonComponent>& cb)
+		{
+			enumLock++;
+			try
+			{
+				for (auto& row : rows)
+				{
+					if (cb.OnComponent(row.first, *row.second.interfacePointer) == EFlowLogic::BREAK)
+					{
+						break;
+					}
+				}
+			}
+			catch (...)
+			{
+				enumLock--;
+				throw;
+			}
+			enumLock--;
+		}
+
+		void ForEachSkeletonComponent(Rococo::Function<EFlowLogic(ROID roid, ISkeletonComponent&)> functor)
+		{
+			enumLock++;
+			try
+			{
+				for (auto& row : rows)
+				{
+					if (functor.Invoke(row.first, *row.second.interfacePointer) == EFlowLogic::BREAK)
+					{
+						break;
+					}
+				}
+			}
+			catch (...)
+			{
+				enumLock--;
+				throw;
+			}
+			enumLock--;
+		}
+
+		Ref<ISkeletonComponent> Find(ROID id)
+		{
+			auto i = rows.find(id);
+			auto& c = i->second;
+			auto* pInterfaceBuffer = (uint8*)c.interfacePointer;
+
+			return i != rows.end() ? Ref<ISkeletonComponent>(*c.interfacePointer, GetLife(*c.interfacePointer)) : Ref<ISkeletonComponent>();
+		}
+
+		size_t GetSkeletonComponentIDs(ROID* roidOutput, size_t nElementsInOutput)
+		{
+			if (roidOutput != nullptr)
+			{
+				size_t nElements = min(nElementsInOutput, rows.size());
+
+				auto* roid = roidOutput;
+				auto* rend = roid + nElements;
+
+				for (auto row : rows)
+				{
+					if (roid == rend) break;
+					*roid++ = row.first;
+				}
+
+				return nElements;
+			}
+
+			return rows.size();
+		}
+
+
+		SkeletonComponentLife& GetLife(ISkeletonComponent& i)
+		{
+			uint8* objectBuffer = (uint8*)&i;
+			return *(SkeletonComponentLife*)(objectBuffer + componentSize);
+		}
+	};
+
+	bool SkeletonComponentLife::Deprecate()
 	{
 		if (!isDeprecated)
 		{
@@ -748,22 +989,30 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 	struct AllComponentTables
 	{
 		int dummy;
-		EntityTable entityTable;
+		BodyComponentTable bodyComponentTable;
+		SkeletonComponentTable skeletonComponentTable;
 		ParticleSystemComponentTable particleSystemComponentTable;
 		RigsComponentTable rigsComponentTable;
 
 		AllComponentTables(ComponentFactories& factories):
 			dummy(0)
-					,entityTable(factories.entityFactory)
+					,bodyComponentTable(factories.bodyComponentFactory)
+					,skeletonComponentTable(factories.skeletonComponentFactory)
 					,particleSystemComponentTable(factories.particleSystemComponentFactory)
 					,rigsComponentTable(factories.rigsComponentFactory)
 				{
 		}
 
-		Ref<IEntity> AddEntity(ROID id, ActiveComponents& ac)
+		Ref<IBodyComponent> AddBodyComponent(ROID id, ActiveComponents& ac)
 		{
-			ac.hasEntity = true;
-			return entityTable.AddNew(id);
+			ac.hasBodyComponent = true;
+			return bodyComponentTable.AddNew(id);
+		}
+
+		Ref<ISkeletonComponent> AddSkeletonComponent(ROID id, ActiveComponents& ac)
+		{
+			ac.hasSkeletonComponent = true;
+			return skeletonComponentTable.AddNew(id);
 		}
 
 		Ref<IParticleSystemComponent> AddParticleSystemComponent(ROID id, ActiveComponents& ac)
@@ -780,9 +1029,13 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 
 		void Deprecate(ROID id, const ActiveComponents& ac)
 		{
-			if (ac.hasEntity)
+			if (ac.hasBodyComponent)
 			{
-				entityTable.Deprecate(id);
+				bodyComponentTable.Deprecate(id);
+			}
+			if (ac.hasSkeletonComponent)
+			{
+				skeletonComponentTable.Deprecate(id);
 			}
 			if (ac.hasParticleSystemComponent)
 			{
@@ -856,18 +1109,31 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			return activeIds.size();
 		}
 
-		Ref<IEntity> AddEntity(ROID id)
+		Ref<IBodyComponent> AddBodyComponent(ROID id)
 		{
 			if (id.index > 0 && id.index < maxTableEntries)
 			{
 				RCObject& object = handleTable[id.index];
 				if (id.salt == object.salt)
 				{
-					return components.AddEntity(id, object.ac);
+					return components.AddBodyComponent(id, object.ac);
 				}
 			}
 
-			return Ref<IEntity>();
+			return Ref<IBodyComponent>();
+		}
+		Ref<ISkeletonComponent> AddSkeletonComponent(ROID id)
+		{
+			if (id.index > 0 && id.index < maxTableEntries)
+			{
+				RCObject& object = handleTable[id.index];
+				if (id.salt == object.salt)
+				{
+					return components.AddSkeletonComponent(id, object.ac);
+				}
+			}
+
+			return Ref<ISkeletonComponent>();
 		}
 		Ref<IParticleSystemComponent> AddParticleSystemComponent(ROID id)
 		{
@@ -897,7 +1163,8 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		}
 		void CollectGarbage() override
 		{
-			components.entityTable.CollectGarbage();
+			components.bodyComponentTable.CollectGarbage();
+			components.skeletonComponentTable.CollectGarbage();
 			components.particleSystemComponentTable.CollectGarbage();
 			components.rigsComponentTable.CollectGarbage();
 		}
@@ -968,17 +1235,35 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			}
 		}
 
-		bool DeprecateEntity(ROID id)
+		bool DeprecateBodyComponent(ROID id)
 		{
 			if (id.index > 0 && id.index < maxTableEntries)
 			{
 				RCObject& object = handleTable[id.index];
 				if (id.salt == object.salt)
 				{
-					if (object.ac.hasEntity)
+					if (object.ac.hasBodyComponent)
 					{
-						components.entityTable.Deprecate(id);
-						object.ac.hasEntity = false;
+						components.bodyComponentTable.Deprecate(id);
+						object.ac.hasBodyComponent = false;
+						return true;
+					}
+				}
+			}
+
+			return false;
+		}
+		bool DeprecateSkeletonComponent(ROID id)
+		{
+			if (id.index > 0 && id.index < maxTableEntries)
+			{
+				RCObject& object = handleTable[id.index];
+				if (id.salt == object.salt)
+				{
+					if (object.ac.hasSkeletonComponent)
+					{
+						components.skeletonComponentTable.Deprecate(id);
+						object.ac.hasSkeletonComponent = false;
 						return true;
 					}
 				}
@@ -1064,14 +1349,23 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 				deprecationList.clear();
 			}
 		}
-		void ForEachEntity(IComponentCallback<IEntity>& cb)
+		void ForEachBodyComponent(IComponentCallback<IBodyComponent>& cb)
 		{
-			components.entityTable.ForEachEntity(cb);
+			components.bodyComponentTable.ForEachBodyComponent(cb);
 		}
 
-		void ForEachEntity(Function<EFlowLogic(ROID id, IEntity& component)> functor)
+		void ForEachBodyComponent(Function<EFlowLogic(ROID id, IBodyComponent& component)> functor)
 		{
-			components.entityTable.ForEachEntity(functor);
+			components.bodyComponentTable.ForEachBodyComponent(functor);
+		}
+		void ForEachSkeletonComponent(IComponentCallback<ISkeletonComponent>& cb)
+		{
+			components.skeletonComponentTable.ForEachSkeletonComponent(cb);
+		}
+
+		void ForEachSkeletonComponent(Function<EFlowLogic(ROID id, ISkeletonComponent& component)> functor)
+		{
+			components.skeletonComponentTable.ForEachSkeletonComponent(functor);
 		}
 		void ForEachParticleSystemComponent(IComponentCallback<IParticleSystemComponent>& cb)
 		{
@@ -1092,21 +1386,38 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			components.rigsComponentTable.ForEachRigsComponent(functor);
 		}
 
-		Ref<IEntity> GetEntity(ROID id)
+		Ref<IBodyComponent> GetBodyComponent(ROID id)
 		{
 			if (id.index > 0 && id.index < maxTableEntries)
 			{
 				RCObject& object = handleTable[id.index];
 				if (id.salt == object.salt)
 				{
-					if (object.ac.hasEntity)
+					if (object.ac.hasBodyComponent)
 					{
-						return components.entityTable.Find(id);
+						return components.bodyComponentTable.Find(id);
 					}
 				}
 			}
 
-			return Ref<IEntity>();
+			return Ref<IBodyComponent>();
+		}
+
+		Ref<ISkeletonComponent> GetSkeletonComponent(ROID id)
+		{
+			if (id.index > 0 && id.index < maxTableEntries)
+			{
+				RCObject& object = handleTable[id.index];
+				if (id.salt == object.salt)
+				{
+					if (object.ac.hasSkeletonComponent)
+					{
+						return components.skeletonComponentTable.Find(id);
+					}
+				}
+			}
+
+			return Ref<ISkeletonComponent>();
 		}
 
 		Ref<IParticleSystemComponent> GetParticleSystemComponent(ROID id)
@@ -1143,9 +1454,14 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			return Ref<IRigsComponent>();
 		}
 
-		size_t GetEntityIDs(ROID* roidOutput, size_t nElementsInOutput) override
+		size_t GetBodyComponentIDs(ROID* roidOutput, size_t nElementsInOutput) override
 		{
-			return components.entityTable.GetEntityIDs(roidOutput, nElementsInOutput);
+			return components.bodyComponentTable.GetBodyComponentIDs(roidOutput, nElementsInOutput);
+		}
+
+		size_t GetSkeletonComponentIDs(ROID* roidOutput, size_t nElementsInOutput) override
+		{
+			return components.skeletonComponentTable.GetSkeletonComponentIDs(roidOutput, nElementsInOutput);
 		}
 
 		size_t GetParticleSystemComponentIDs(ROID* roidOutput, size_t nElementsInOutput) override
