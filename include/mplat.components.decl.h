@@ -3,7 +3,7 @@
 #include <rococo.types.h>
 #include <rococo.mplat.h>
 
-namespace Rococo::Components::Sys
+namespace Rococo::Components
 {
     ROCOCOAPI IEntity
     {
@@ -45,13 +45,33 @@ namespace Rococo::Components::Sys
         virtual void Free() = 0;
     };
 
-    ROCOCOAPI IParticleSystemComponentFactory : IComponentFactory<IParticleSystemComponent>{};
-    ROCOCOAPI IRigsComponentFactory : IComponentFactory<IRigsComponent>{};
-    ROCOCOAPI IBodyComponentFactory : IComponentFactory<IBodyComponent>{};
-    ROCOCOAPI ISkeletonComponentFactory : IComponentFactory<ISkeletonComponent>{};
+    template<class INTERFACE, class CLASSNAME>
+    struct DefaultFactory : IComponentFactory<INTERFACE>
+    {
+        INTERFACE* ConstructInPlace(void* pMemory) override
+        {
+            return new (pMemory) CLASSNAME();
+        }
 
-    IBodyComponentFactory* CreateBodyFactory();
-    ISkeletonComponentFactory* CreateSkeletonFactory();
-    IParticleSystemComponentFactory* CreateParticleSystemFactory();
-    IRigsComponentFactory* CreateRigsFactory();
+        void Destruct(INTERFACE* pInstance) override
+        {
+            CLASSNAME* bc = static_cast<CLASSNAME*>(pInstance);
+            bc->~CLASSNAME();
+        }
+
+        size_t SizeOfConstructedObject() const override
+        {
+            return sizeof CLASSNAME;
+        }
+
+        void Free() override
+        {
+            delete this;
+        }
+    };
+
+    IComponentFactory<IBodyComponent>* CreateBodyFactory();
+    IComponentFactory<ISkeletonComponent>* CreateSkeletonFactory();
+    IComponentFactory<IParticleSystemComponent>* CreateParticleSystemFactory();
+    IComponentFactory<IRigsComponent>* CreateRigsFactory();
 }

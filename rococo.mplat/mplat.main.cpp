@@ -343,12 +343,12 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 
 	using namespace Rococo::Components;
 
-	AutoFree<Sys::IBodyComponentFactory> bodyFactory = Sys::CreateBodyFactory();
-	AutoFree<Sys::ISkeletonComponentFactory> skeletonFactory = Sys::CreateSkeletonFactory();
-	AutoFree<Sys::IParticleSystemComponentFactory> particleSystemFactory = Sys::CreateParticleSystemFactory();
-	AutoFree<Sys::IRigsComponentFactory> rigsFactory = Sys::CreateRigsFactory();
+	AutoFree<IComponentFactory<IBodyComponent>> bodyFactory = CreateBodyFactory();
+	AutoFree<IComponentFactory<ISkeletonComponent>> skeletonFactory = CreateSkeletonFactory();
+	AutoFree<IComponentFactory<IParticleSystemComponent>> particleSystemFactory = CreateParticleSystemFactory();
+	AutoFree<IComponentFactory<IRigsComponent>> rigsFactory = CreateRigsFactory();
 
-	Sys::ComponentFactories factories
+	ComponentFactories factories
 	{
 		*bodyFactory, 
 		*skeletonFactory,
@@ -356,7 +356,7 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 		*rigsFactory
 	};
 
-	AutoFree<Sys::IRCObjectTableSupervisor> ecs = Sys::Factories::Create_RCO_EntityComponentSystem(factories);
+	AutoFree<IRCObjectTableSupervisor> ecs = Factories::Create_RCO_EntityComponentSystem(factories);
 	
 	Platform platform
 	{ 

@@ -1,4 +1,4 @@
-// Generated at: Aug 21 2022 P UTC
+// Generated at: Aug 23 2022 P UTC
 // Based on the template file: C:\work\rococo\rococo.mplat\mplat.component.template.cpp
 #include <rococo.api.h>
 #include <list>
@@ -16,7 +16,6 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 {
 	using namespace Rococo;
 	using namespace Rococo::Components;
-	using namespace Rococo::Components::Sys;
 
 	struct BodyComponentTable;
 
@@ -70,7 +69,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			IBodyComponent* interfacePointer = nullptr;
 		};
 
-		IBodyComponentFactory& componentFactory;
+		IComponentFactory<IBodyComponent>& componentFactory;
 		std::unordered_map<ROID, ComponentDesc, STDROID, STDROID> rows;
 		std::vector<ROID> deprecatedList;
 		std::vector<ROID> stubbornList;
@@ -78,7 +77,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		size_t componentSize;
 		int enumLock = 0;
 
-		BodyComponentTable(IBodyComponentFactory& factory) : componentFactory(factory), rows(1024), componentSize(factory.SizeOfConstructedObject())
+		BodyComponentTable(IComponentFactory<IBodyComponent>& factory) : componentFactory(factory), rows(1024), componentSize(factory.SizeOfConstructedObject())
 		{
 			componentAllocator = CreateFreeListAllocator(componentSize + sizeof BodyComponentLife);
 		}
@@ -312,7 +311,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			ISkeletonComponent* interfacePointer = nullptr;
 		};
 
-		ISkeletonComponentFactory& componentFactory;
+		IComponentFactory<ISkeletonComponent>& componentFactory;
 		std::unordered_map<ROID, ComponentDesc, STDROID, STDROID> rows;
 		std::vector<ROID> deprecatedList;
 		std::vector<ROID> stubbornList;
@@ -320,7 +319,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		size_t componentSize;
 		int enumLock = 0;
 
-		SkeletonComponentTable(ISkeletonComponentFactory& factory) : componentFactory(factory), rows(1024), componentSize(factory.SizeOfConstructedObject())
+		SkeletonComponentTable(IComponentFactory<ISkeletonComponent>& factory) : componentFactory(factory), rows(1024), componentSize(factory.SizeOfConstructedObject())
 		{
 			componentAllocator = CreateFreeListAllocator(componentSize + sizeof SkeletonComponentLife);
 		}
@@ -554,7 +553,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			IParticleSystemComponent* interfacePointer = nullptr;
 		};
 
-		IParticleSystemComponentFactory& componentFactory;
+		IComponentFactory<IParticleSystemComponent>& componentFactory;
 		std::unordered_map<ROID, ComponentDesc, STDROID, STDROID> rows;
 		std::vector<ROID> deprecatedList;
 		std::vector<ROID> stubbornList;
@@ -562,7 +561,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		size_t componentSize;
 		int enumLock = 0;
 
-		ParticleSystemComponentTable(IParticleSystemComponentFactory& factory) : componentFactory(factory), rows(1024), componentSize(factory.SizeOfConstructedObject())
+		ParticleSystemComponentTable(IComponentFactory<IParticleSystemComponent>& factory) : componentFactory(factory), rows(1024), componentSize(factory.SizeOfConstructedObject())
 		{
 			componentAllocator = CreateFreeListAllocator(componentSize + sizeof ParticleSystemComponentLife);
 		}
@@ -796,7 +795,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			IRigsComponent* interfacePointer = nullptr;
 		};
 
-		IRigsComponentFactory& componentFactory;
+		IComponentFactory<IRigsComponent>& componentFactory;
 		std::unordered_map<ROID, ComponentDesc, STDROID, STDROID> rows;
 		std::vector<ROID> deprecatedList;
 		std::vector<ROID> stubbornList;
@@ -804,7 +803,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		size_t componentSize;
 		int enumLock = 0;
 
-		RigsComponentTable(IRigsComponentFactory& factory) : componentFactory(factory), rows(1024), componentSize(factory.SizeOfConstructedObject())
+		RigsComponentTable(IComponentFactory<IRigsComponent>& factory) : componentFactory(factory), rows(1024), componentSize(factory.SizeOfConstructedObject())
 		{
 			componentAllocator = CreateFreeListAllocator(componentSize + sizeof RigsComponentLife);
 		}
@@ -1530,7 +1529,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 	};
 } // COMPONENT_IMPLEMENTATION_NAMESPACE
 
-namespace Rococo::Components::Sys::Factories
+namespace Rococo::Components::Factories
 {
 	IRCObjectTableSupervisor* Create_RCO_EntityComponentSystem(ComponentFactories& factories, uint64 maxSizeInBytes)
 	{

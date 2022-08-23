@@ -1,20 +1,20 @@
 #pragma once
 
-// Generated at: Aug 21 2022 20:16 UTC
+// Generated at: Aug 23 2022 18:08 UTC
 // Based on the template file: C:\work\rococo\rococo.mplat\mplat.component.template.h
 #include <rococo.types.h>
 #include <rococo.component.entities.h>
 #include "mplat.components.decl.h"
 #include <rococo.functional.h>
 
-namespace Rococo::Components::Sys
+namespace Rococo::Components
 {
     struct ComponentFactories
     {
-        IBodyComponentFactory& bodyComponentFactory;
-        ISkeletonComponentFactory& skeletonComponentFactory;
-        IParticleSystemComponentFactory& particleSystemComponentFactory;
-        IRigsComponentFactory& rigsComponentFactory;
+        IComponentFactory<IBodyComponent>& bodyComponentFactory;
+        IComponentFactory<ISkeletonComponent>& skeletonComponentFactory;
+        IComponentFactory<IParticleSystemComponent>& particleSystemComponentFactory;
+        IComponentFactory<IRigsComponent>& rigsComponentFactory;
     };
 
     struct ActiveComponents
@@ -159,5 +159,5 @@ namespace Rococo::Components::Sys
         */
         [[nodiscard]] IRCObjectTableSupervisor* Create_RCO_EntityComponentSystem(ComponentFactories& factories, uint64 maxSizeInBytes = 2 * 1024 * 1024 * 1024ULL);
     }
-} // Rococo::Components::Sys
+} // Rococo::Components
 

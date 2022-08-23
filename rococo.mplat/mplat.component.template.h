@@ -3,12 +3,12 @@
 #include "DeclarationsInclude"
 #include <rococo.functional.h>
 
-namespace Rococo::Components::Sys
+namespace Rococo::Components
 {
     struct ComponentFactories
     {
 // #BEGIN_INSTANCED#
-        IComponentInterfaceFactory& componentVariableFactory;
+        IComponentFactory<IComponentInterface>& componentVariableFactory;
 // #END_INSTANCED#
     };
 
@@ -98,4 +98,4 @@ namespace Rococo::Components::Sys
         */
         [[nodiscard]] IRCObjectTableSupervisor* Create_RCO_EntityComponentSystem(ComponentFactories& factories, uint64 maxSizeInBytes = 2 * 1024 * 1024 * 1024ULL);
     }
-} // Rococo::Components::Sys
+} // Rococo::Components

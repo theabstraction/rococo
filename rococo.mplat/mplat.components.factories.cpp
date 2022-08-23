@@ -5,7 +5,6 @@
 
 using namespace Rococo;
 using namespace Rococo::Components;
-using namespace Rococo::Components::Sys;
 
 struct BodyComponent : IBodyComponent
 {
@@ -75,50 +74,25 @@ struct RigsComponent : IRigsComponent
 
 };
 
-template<class INTERFACE,class CLASSNAME,class IFACTORY> 
-struct DefaultFactory : IFACTORY
+namespace Rococo::Components
 {
-    INTERFACE* ConstructInPlace(void* pMemory) override
+    IComponentFactory<IBodyComponent>* CreateBodyFactory()
     {
-        return new (pMemory) CLASSNAME();
+        return new DefaultFactory<IBodyComponent,BodyComponent>();
     }
 
-    void Destruct(INTERFACE* pInstance) override
+    IComponentFactory<ISkeletonComponent>* CreateSkeletonFactory()
     {
-        CLASSNAME* bc = static_cast<CLASSNAME*>(pInstance);
-        bc->~CLASSNAME();
+        return new DefaultFactory<ISkeletonComponent, SkeletonComponent>();
     }
 
-    size_t SizeOfConstructedObject() const override
+    IComponentFactory<IParticleSystemComponent>* CreateParticleSystemFactory()
     {
-        return sizeof CLASSNAME;
+        return new DefaultFactory<IParticleSystemComponent, ParticleSystemComponent>();
     }
 
-    void Free() override
+    IComponentFactory<IRigsComponent>* CreateRigsFactory()
     {
-        delete this;
-    }
-};
-
-namespace Rococo::Components::Sys
-{
-    IBodyComponentFactory* CreateBodyFactory()
-    {
-        return new DefaultFactory<IBodyComponent,BodyComponent,IBodyComponentFactory>();
-    }
-
-    ISkeletonComponentFactory* CreateSkeletonFactory()
-    {
-        return new DefaultFactory<ISkeletonComponent, SkeletonComponent, ISkeletonComponentFactory>();
-    }
-
-    IParticleSystemComponentFactory* CreateParticleSystemFactory()
-    {
-        return new DefaultFactory<IParticleSystemComponent, ParticleSystemComponent, IParticleSystemComponentFactory>();
-    }
-
-    IRigsComponentFactory* CreateRigsFactory()
-    {
-        return new DefaultFactory<IRigsComponent, RigsComponent, IRigsComponentFactory>();
+        return new DefaultFactory<IRigsComponent, RigsComponent>();
     }
 }
