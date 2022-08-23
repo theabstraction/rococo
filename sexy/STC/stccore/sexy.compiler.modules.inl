@@ -329,7 +329,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 				INamespace* ns = *i;
 				if (AreEqual(ns->FullName(), name))
 				{
-					Throw(ERRORCODE_BAD_ARGUMENT, name, ("Duplicate prefix directive"));
+					Throw(ERRORCODE_BAD_ARGUMENT, name, "Duplicate using directive for: %s", name);
 				}
 			}
 				
@@ -337,7 +337,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 			if (ns == NULL)
 			{
 				sexstringstream<1024> streamer;
-				streamer.sb << ("Could not resolve prefix directive's namespace: '") << name << ("' in '") << Name() << ("'");
+				streamer.sb << "Could not resolve prefix directive's namespace: '" << name << "' in '" << Name() << "'";
 				Throw(ERRORCODE_BAD_ARGUMENT, Name(), "%s", (cstr) streamer);
 			}
 			prefixes.push_back(ns);
