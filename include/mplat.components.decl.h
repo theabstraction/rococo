@@ -45,6 +45,7 @@ namespace Rococo::Components
         virtual void Free() = 0;
     };
 
+    // Provide a lightweight implementation of an IComponentFactory<T> for use with components that are default constructed.
     template<class INTERFACE, class CLASSNAME>
     struct DefaultFactory : IComponentFactory<INTERFACE>
     {
