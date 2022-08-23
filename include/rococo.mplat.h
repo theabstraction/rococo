@@ -28,6 +28,11 @@ namespace Rococo
 
    enum { MAX_POSENAME_LEN = 16 };
 
+   namespace Components
+   {
+	   struct IRCObjectTable;
+   }
+
    namespace Entities
    {
 	   struct IRigs;
@@ -406,7 +411,7 @@ namespace Rococo
 			virtual void Free() = 0;
 		};
 
-		IInstancesSupervisor* CreateInstanceBuilder(Graphics::IMeshBuilderSupervisor& meshes, IRenderer& renderer, Events::IPublisher& publisher, size_t maxEntities);
+		IInstancesSupervisor* CreateInstanceBuilder(Graphics::IMeshBuilderSupervisor& meshes, IRenderer& renderer, Events::IPublisher& publisher, Components::IRCObjectTable& ecs, size_t maxEntities);
 
 		ROCOCOAPI IParticleSystemSupervisor : IParticleSystem
 		{

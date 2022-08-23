@@ -5,6 +5,7 @@
 #include <rococo.animation.h>
 #include <rococo.handles.h>
 #include <rococo.hashtable.h>
+#include <rococo.component.entities.h>
 
 namespace
 {
@@ -102,10 +103,13 @@ namespace
       IRenderer& renderer;
 	  Events::IPublisher& publisher;
 
+      // ecs - The Entity Component System
+      Components::IRCObjectTable& ecs;
+
       int32 enumerationDepth{ 0 };
 
-      Instances(IMeshBuilderSupervisor& _meshBuilder, IRenderer& _renderer, Events::IPublisher& _publisher, size_t maxEntities) :
-          meshBuilder(_meshBuilder), renderer(_renderer), publisher(_publisher), idToEntity("Instances-idToEntity", maxEntities)
+      Instances(IMeshBuilderSupervisor& _meshBuilder, IRenderer& _renderer, Events::IPublisher& _publisher, Components::IRCObjectTable& _ecs, size_t maxEntities) :
+          meshBuilder(_meshBuilder), renderer(_renderer), publisher(_publisher), ecs(_ecs), idToEntity("Instances-idToEntity", maxEntities)
       {
       }
 
@@ -552,9 +556,9 @@ namespace Rococo
 {
    namespace Entities
    {
-      IInstancesSupervisor* CreateInstanceBuilder(IMeshBuilderSupervisor& meshes, IRenderer& renderer, Events::IPublisher& publisher, size_t maxEntities)
+      IInstancesSupervisor* CreateInstanceBuilder(IMeshBuilderSupervisor& meshes, IRenderer& renderer, Events::IPublisher& publisher, Components::IRCObjectTable& ecs, size_t maxEntities)
       {
-         return new Instances(meshes, renderer, publisher, maxEntities);
+         return new Instances(meshes, renderer, publisher, ecs, maxEntities);
       }
    }
 }

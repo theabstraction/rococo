@@ -223,6 +223,8 @@ namespace Rococo
 
 int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon, HICON hSmallIcon)
 {
+	using namespace Rococo::Components;
+
 	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
 
 	U8FilePath exeFile;
@@ -314,7 +316,23 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	AutoFree<Audio::IAudioSupervisor> audio = Audio::CreateAudioSupervisor(*installation, audio_config);
 	AutoFree<Rococo::Entities::IRigs> rigs = Rococo::Entities::CreateRigBuilder();
 	AutoFree<Graphics::IMeshBuilderSupervisor> meshes = Graphics::CreateMeshBuilder(mainWindow->Renderer());
-	AutoFree<Entities::IInstancesSupervisor> instances = Entities::CreateInstanceBuilder(*meshes, mainWindow->Renderer(), *publisher, (size_t) maxEntities);
+
+	AutoFree<IComponentFactory<IBodyComponent>> bodyFactory = CreateBodyFactory();
+	AutoFree<IComponentFactory<ISkeletonComponent>> skeletonFactory = CreateSkeletonFactory();
+	AutoFree<IComponentFactory<IParticleSystemComponent>> particleSystemFactory = CreateParticleSystemFactory();
+	AutoFree<IComponentFactory<IRigsComponent>> rigsFactory = CreateRigsFactory();
+
+	ComponentFactories factories
+	{
+		*bodyFactory,
+		*skeletonFactory,
+		*particleSystemFactory,
+		*rigsFactory
+	};
+
+	AutoFree<IRCObjectTableSupervisor> ecs = Factories::Create_RCO_EntityComponentSystem(factories);
+
+	AutoFree<Entities::IInstancesSupervisor> instances = Entities::CreateInstanceBuilder(*meshes, mainWindow->Renderer(), *publisher, *ecs, (size_t) maxEntities);
 	AutoFree<Entities::IMobilesSupervisor> mobiles = Entities::CreateMobilesSupervisor(*instances);
 	AutoFree<Graphics::ICameraSupervisor> camera = Graphics::CreateCamera(*instances, *mobiles, mainWindow->Renderer());
 	AutoFree<Graphics::ISceneSupervisor> scene = Graphics::CreateScene(*instances, *camera, *rigs);
@@ -340,23 +358,6 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	AutoFree<IWorldSupervisor> world = Rococo::CreateWorld(*meshes, *instances);
 
 	AutoFree<Graphics::ISpritesSupervisor> sprites = Rococo::Graphics::CreateSpriteTable(mainWindow->Renderer());
-
-	using namespace Rococo::Components;
-
-	AutoFree<IComponentFactory<IBodyComponent>> bodyFactory = CreateBodyFactory();
-	AutoFree<IComponentFactory<ISkeletonComponent>> skeletonFactory = CreateSkeletonFactory();
-	AutoFree<IComponentFactory<IParticleSystemComponent>> particleSystemFactory = CreateParticleSystemFactory();
-	AutoFree<IComponentFactory<IRigsComponent>> rigsFactory = CreateRigsFactory();
-
-	ComponentFactories factories
-	{
-		*bodyFactory, 
-		*skeletonFactory,
-		*particleSystemFactory,
-		*rigsFactory
-	};
-
-	AutoFree<IRCObjectTableSupervisor> ecs = Factories::Create_RCO_EntityComponentSystem(factories);
 	
 	Platform platform
 	{ 
