@@ -15,7 +15,6 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 {
 	using namespace Rococo;
 	using namespace Rococo::Components;
-	using namespace Rococo::Components::Sys;
 // #BEGIN_INSTANCED#
 
 	struct ComponentVariableTable;
@@ -70,7 +69,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			IComponentInterface* interfacePointer = nullptr;
 		};
 
-		IComponentInterfaceFactory& componentFactory;
+		IComponentFactory<IComponentInterface>& componentFactory;
 		std::unordered_map<ROID, ComponentDesc, STDROID, STDROID> rows;
 		std::vector<ROID> deprecatedList;
 		std::vector<ROID> stubbornList;
@@ -78,7 +77,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		size_t componentSize;
 		int enumLock = 0;
 
-		ComponentVariableTable(IComponentInterfaceFactory& factory) : componentFactory(factory), rows(1024), componentSize(factory.SizeOfConstructedObject())
+		ComponentVariableTable(IComponentFactory<IComponentInterface>& factory) : componentFactory(factory), rows(1024), componentSize(factory.SizeOfConstructedObject())
 		{
 			componentAllocator = CreateFreeListAllocator(componentSize + sizeof ComponentVariableLife);
 		}
@@ -574,7 +573,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 	};
 } // COMPONENT_IMPLEMENTATION_NAMESPACE
 
-namespace Rococo::Components::Sys::Factories
+namespace Rococo::Components::Factories
 {
 	IRCObjectTableSupervisor* Create_RCO_EntityComponentSystem(ComponentFactories& factories, uint64 maxSizeInBytes)
 	{

@@ -949,7 +949,7 @@ namespace Rococo
 		   case '+':
 			   return "Add";
 		   case '-':
-			   return "Substract";
+			   return "Subtract";
 		   case '*':
 			   return "Multiply";
 		   case '/':

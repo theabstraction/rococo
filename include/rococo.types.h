@@ -82,6 +82,7 @@ namespace Rococo
 	struct Sphere;
 	struct Gravity;
 	struct Metres;
+	struct FPSAngles;
 
 	struct IPackage;
 	struct IInstallation;

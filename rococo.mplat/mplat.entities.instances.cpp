@@ -1,10 +1,13 @@
 #include <rococo.mplat.h>
-#include <vector>
 #include <rococo.strings.h>
 #include <rococo.maths.h>
 #include <rococo.animation.h>
 #include <rococo.handles.h>
 #include <rococo.hashtable.h>
+#include "mplat.components.h"
+#include <rococo.maths.h>
+
+#include <vector>
 
 namespace
 {
@@ -97,15 +100,17 @@ namespace
 
    struct Instances : public IInstancesSupervisor
    {      
-      MapIdToEntity idToEntity;
       IMeshBuilderSupervisor& meshBuilder;
       IRenderer& renderer;
 	  Events::IPublisher& publisher;
 
+      // ecs - The Entity Component System
+      Components::IRCObjectTable& ecs;
+
       int32 enumerationDepth{ 0 };
 
-      Instances(IMeshBuilderSupervisor& _meshBuilder, IRenderer& _renderer, Events::IPublisher& _publisher, size_t maxEntities) :
-          meshBuilder(_meshBuilder), renderer(_renderer), publisher(_publisher), idToEntity("Instances-idToEntity", maxEntities)
+      Instances(IMeshBuilderSupervisor& _meshBuilder, IRenderer& _renderer, Events::IPublisher& _publisher, Components::IRCObjectTable& _ecs, size_t maxEntities) :
+          meshBuilder(_meshBuilder), renderer(_renderer), publisher(_publisher), ecs(_ecs)
       {
       }
 
@@ -132,24 +137,18 @@ namespace
               }
           }
 
-          H_ENTITY hEntity = idToEntity.CreateNew();
+          auto id = ecs.NewROID();
 
-          EntityImpl* e;
-          if (!idToEntity.TryGetRef(hEntity, &e))
-          {
-              Throw(0, "%s: !idToEntity.TryGetRef returned false!", __FUNCTION__);
-          }
+          auto body = ecs.AddBodyComponent(id);
+          body->SetModel(model);
+          body->SetParent(parentId);
+          body->SetMesh(meshId);
+          body->SetScale((scale.x != 0) ? scale : Vec3{ 1.0f, 1.0f, 1.0f });
 
-          e->model = model;
-          e->parentId = parentId;
-          e->meshId = meshId;
-
-          e->scale = (scale.x != 0) ? scale : Vec3{ 1.0f, 1.0f, 1.0f };
-
-          return ID_ENTITY{ hEntity.Value() };
+          return id;
       }
 
-      ID_ENTITY AddSkeleton(const fstring& skeleton, const Matrix4x4& model) override
+      ID_ENTITY AddSkeleton(const fstring& skeletonName, const Matrix4x4& model) override
       {
             float d = Determinant(model);
             if (d < 0.975f || d > 1.025f)
@@ -157,21 +156,18 @@ namespace
                 Throw(0, "Bad model matrix. Determinant was %f", d);
             }
 
-            H_ENTITY hEntity = idToEntity.CreateNew();
+            auto id = ecs.NewROID();
 
-            EntityImpl* e;
-            if (!idToEntity.TryGetRef(hEntity, &e))
-            {
-                Throw(0, "%s: !idToEntity.TryGetRef returned false!", __FUNCTION__);
-            }
+            auto body = ecs.AddBodyComponent(id);
+            body->SetModel(model);
+            body->SetParent(ID_ENTITY::Invalid());
+            body->SetMesh(ID_SYS_MESH::Invalid());
+            body->SetScale(Vec3{ 1.0f, 1.0f, 1.0f });
 
-            e->model = model;
-            e->parentId = ID_ENTITY{ 0 };
-            e->meshId = ID_SYS_MESH::Invalid();
-            e->skeletonName = skeleton;
-            e->scale = Vec3{ 1.0f, 1.0f, 1.0f };
+            auto skeleton = ecs.AddSkeletonComponent(id);
+            skeleton->SetSkeleton(skeletonName);
 
-            return ID_ENTITY{ hEntity.Value() };
+            return id;
       }
 
       ID_ENTITY AddBody(const fstring& modelName, const Matrix4x4& model, const Vec3& scale, ID_ENTITY parentId) override
@@ -191,70 +187,51 @@ namespace
 		  return Add(ID_SYS_MESH::Invalid(), model, { 1,1,1 }, parentId);
       }
 
-      void BindSkeletonToBody(const fstring& skeleton, ID_ENTITY idBody) override
+      void BindSkeletonToBody(const fstring& skeletonName, ID_ENTITY idBody) override
       {
-          if (skeleton.length < 1)
+          if (skeletonName.length < 1)
           {
               Throw(0, "%s: skeleton name was blank", __FUNCTION__);
           }
 
-          H_ENTITY hBody{ idBody.Value()};
-
-          EntityImpl* body;
-          if (!idToEntity.TryGetRef(hBody, &body))
+          auto body = ecs.GetSkeletonComponent(idBody);
+          if (!body)
           {
-              Throw(0, "%s: !idToEntity.TryGetRef returned false! Failed to find body with id %llu", __FUNCTION__, idBody.Value());
+              Throw(0, "The body for %s does not support a skeleton", (cstr) skeletonName);
           }
 
-          body->skeletonName = skeleton;
+          body->SetSkeleton(skeletonName);
       }
 
       void Delete(ID_ENTITY id) override
       {
-          idToEntity.Destroy(H_ENTITY(id.Value()), EntityImpl());
+          ecs.Deprecate(id);
       }
 
       boolean32 TryGetModelToWorldMatrix(ID_ENTITY id, Matrix4x4& model) override
       {
-          EntityImpl* e;
-          if (idToEntity.TryGetRef(H_ENTITY(id.Value()), &e))
+          auto body = ecs.GetBodyComponent(id);
+          if (!body)
           {
-              model = e->model;
-              return true;
+              model = Matrix4x4::Identity();
+              return false;
           }
-          else
-          {
-            model = Matrix4x4::Identity();
-            return false;
-          }
-      }
 
-      IEntityDeprecated* GetEntity(ID_ENTITY id) override
-      {
-          EntityImpl* e;
-          if (idToEntity.TryGetRef(H_ENTITY(id.Value()), &e))
-          {
-              return static_cast<IEntityDeprecated*>(e);
-          }
-          else
-          {
-              return nullptr;
-          }
+          model = body->Model();
+          return true;
       }
 
       std::vector<const Matrix4x4*> modelStack;
 
       void ConcatenatePositionVectors(ID_ENTITY leafId, Vec3& position) override
       {
-        position = Vec3{ 0,0,0 };
+          auto body = ecs.GetBodyComponent(leafId);
+          if (!body)
+          {
+              Throw(0, "Missing entity");
+          }
 
-        auto* entity = GetEntity(leafId);
-        if (entity == nullptr)
-        {
-            Throw(0, "Missing entity");
-        }
-
-        position += entity->Position();
+          position += body->Model().GetPosition();
       }
 
 	  ID_CUBE_TEXTURE CreateCubeTexture(const fstring& folder, const fstring& extension) override
@@ -264,19 +241,19 @@ namespace
 
       void ConcatenateModelMatrices(ID_ENTITY leafId, Matrix4x4& m) override
       {
-        auto* entity = GetEntity(leafId);
-        if (entity == nullptr)
-        {
-            Throw(0, "Missing entity");
-        }
+          auto body = ecs.GetBodyComponent(leafId);
+          if (!body)
+          {
+              Throw(0, "Missing entity");
+          }
 
-        m = entity->Model();
+          m = body->Model();
 
-        float Dm = Determinant(m);
-        if (Dm < 0.9f || Dm > 1.1f)
-        {
-            Throw(0, "Bad model matrix for entity %lld. Det M = %f", leafId.Value(), Dm);
-        }
+          float Dm = Determinant(m);
+          if (Dm < 0.9f || Dm > 1.1f)
+          {
+              Throw(0, "Bad model matrix for entity %lld. Det M = %f", leafId.Value(), Dm);
+          }
       }
 
       void ForAll(IEntityCallback& cb)
@@ -285,25 +262,21 @@ namespace
 
          int64 count = 0;
 
-         H_ENTITY id = idToEntity.GetFirstHandle();
-
-         while(id)
-         {
-             EntityImpl* e;
-             if (idToEntity.TryGetRef(id, &e))
+         ecs.ForEachBodyComponent(
+             [&count,&cb](Components::ROID roid, Components::IBodyComponent& body) 
              {
-                 cb.OnEntity(count++, *static_cast<IEntityDeprecated*>(e), ID_ENTITY(id.Value()));
+                 cb.OnEntity(count++, body, roid);
+                 return EFlowLogic::CONTINUE;
              }
-             id = idToEntity.GetNextHandle(id);
-         }
+         );
       }
 
       void GetScale(ID_ENTITY id, Vec3& scale)
       {
-          EntityImpl* e;
-          if (idToEntity.TryGetRef(H_ENTITY(id.Value()), &e))
+          auto body = ecs.GetBodyComponent(id);
+          if (body)
           {
-              scale = e->scale;
+              scale = body->Scale();
           }
           else
           {
@@ -313,10 +286,10 @@ namespace
 
       void GetPosition(ID_ENTITY id, Vec3& position) 
       {
-          EntityImpl* e;
-          if (idToEntity.TryGetRef(H_ENTITY(id.Value()), &e))
+          auto body = ecs.GetBodyComponent(id);
+          if (body)
           {
-              position = e->model.GetPosition();
+              position = body->Model().GetPosition();
           }
           else
           {
@@ -326,13 +299,14 @@ namespace
 
       void AddAnimationFrame(ID_ENTITY id, const fstring& frameName, Seconds duration, boolean32 loop) override
       {
-          EntityImpl* e;
-          if (!idToEntity.TryGetRef(H_ENTITY(id.Value()), &e))
+          auto animationComponent = ecs.GetAnimationComponent(id);
+          if (!animationComponent)
           {
               Throw(0, "%s no such entity with id %llu", __FUNCTION__, id.Value());
           }
 
-          e->LazyInitAndGetAnimation().AddKeyFrame(frameName, duration, loop);
+          auto& animation = animationComponent->GetAnimation();
+          animation.AddKeyFrame(frameName, duration, loop);
       }
 
 	  void LoadMaterialArray(const fstring& folder, int32 txWidth) override
@@ -529,16 +503,22 @@ namespace
 
       void SetScale(ID_ENTITY id, const Vec3& scale) override
       {
-          EntityImpl* e;
-          if (idToEntity.TryGetRef(H_ENTITY(id.Value()), &e))
+          auto body = ecs.GetBodyComponent(id);
+          if (body)
           {
-              e->scale = scale;
+              body->SetScale(scale);
           }
       }
    
       void Clear() override
       {
-          idToEntity.Clear(EntityImpl());
+          ecs.DeprecateAll();
+          ecs.CollectGarbage();
+      }
+
+      Rococo::Components::IRCObjectTable& ECS() override
+      {
+          return ecs;
       }
 
       void Free() override
@@ -552,9 +532,9 @@ namespace Rococo
 {
    namespace Entities
    {
-      IInstancesSupervisor* CreateInstanceBuilder(IMeshBuilderSupervisor& meshes, IRenderer& renderer, Events::IPublisher& publisher, size_t maxEntities)
+      IInstancesSupervisor* CreateInstanceBuilder(IMeshBuilderSupervisor& meshes, IRenderer& renderer, Events::IPublisher& publisher, Components::IRCObjectTable& ecs, size_t maxEntities)
       {
-         return new Instances(meshes, renderer, publisher, maxEntities);
+         return new Instances(meshes, renderer, publisher, ecs, maxEntities);
       }
    }
 }

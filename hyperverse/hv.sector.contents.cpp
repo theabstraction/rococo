@@ -150,10 +150,10 @@ namespace
 				const fstring prefix;
 				bool operator()(const ID_ENTITY id) const
 				{
-					auto* e = platform.instances.GetEntity(id);
-					if (e)
+					auto body = platform.instances.ECS().GetBodyComponent(id);
+					if (body)
 					{
-						auto meshId = e->MeshId();
+						auto meshId = body->Mesh();
 						auto name = platform.meshes.GetName(meshId);
 						if (StartsWith(name, prefix))
 						{
@@ -198,8 +198,8 @@ namespace
 				return ID_ENTITY::Invalid();
 			}
 
-			auto* e = platform.instances.GetEntity(centrePieceId);
-			if (e == nullptr)
+			auto body = platform.instances.ECS().GetBodyComponent(centrePieceId);
+			if (!body)
 			{
 				return ID_ENTITY::Invalid();
 			}
@@ -288,12 +288,12 @@ namespace
 			if (sortByOrientation)
 			{
 				sortByRangeFromCentrePieceAndOrientation.optimalRangeSq = Sq(iis.maxDistance.value);
-				sortByRangeFromCentrePieceAndOrientation.centrePieceOrigin = e->Position();
+				sortByRangeFromCentrePieceAndOrientation.centrePieceOrigin = body->Model().GetPosition();
 				std::sort(candidates.begin(), candidates.end(), sortByRangeFromCentrePieceAndOrientation);
 			}
 			else
 			{
-				sortByRangeFromCentrePiece.centrePieceOrigin = e->Position();
+				sortByRangeFromCentrePiece.centrePieceOrigin = body->Model().GetPosition();
 				std::sort(candidates.begin(), candidates.end(), sortByRangeFromCentrePiece);
 			}
 
@@ -339,13 +339,13 @@ namespace
 				{
 					i.levelSurfaces.clear();
 
-					auto* e = platform.instances.GetEntity(id);
-					if (e)
+					auto body = platform.instances.ECS().GetBodyComponent(id);
+					if (body)
 					{
 						const Vec3 up{ 0, 0, 1 };
-						auto& model = e->Model();
+						auto& model = body->Model();
 						size_t triangleCount = 0;
-						auto tris = platform.meshes.GetTriangles(e->MeshId(), triangleCount);
+						auto tris = platform.meshes.GetTriangles(body->Mesh(), triangleCount);
 
 						if (triangleCount > 1)
 						{
@@ -408,16 +408,16 @@ namespace
 			const float z0 = sector.Z0();
 			const float z1 = sector.Z1();
 
-			auto e = platform.instances.GetEntity(quadsEntityId);
-			auto item = platform.instances.GetEntity(itemId);
-			if (e && item)
+			auto quadBody = platform.instances.ECS().GetBodyComponent(quadsEntityId);
+			auto item = platform.instances.ECS().GetBodyComponent(itemId);
+			if (quadBody && item)
 			{
 				if (IsQuadRectangular(qModel) && qModel.a.x == qModel.b.x || qModel.a.y == qModel.b.y)
 				{
 					Quad qWorld;
-					TransformPositions(&qModel.a, 4, e->Model(), &qWorld.a);
+					TransformPositions(&qModel.a, 4, quadBody->Model(), &qWorld.a);
 
-					auto bounds = platform.meshes.Bounds(item->MeshId());
+					auto bounds = platform.meshes.Bounds(item->Mesh());
 					if (bounds.minXYZ.x < bounds.maxXYZ.x)
 					{
 						AABB2d minSquare;
@@ -428,7 +428,7 @@ namespace
 						if (TryGetRandomTransformation(randomModel, worldBounds, true, true, bounds, minSquare, qModel.a.z, z1 - z0))
 						{
 							ManageEntity(itemId);
-							item->Model() = e->Model() * randomModel;
+							item->SetModel(quadBody->Model() * randomModel);
 							return true;
 						}
 					}
@@ -589,7 +589,7 @@ namespace
 
 		void UpdateDoor(ID_ENTITY idDoor, const IUltraClock& clock)
 		{
-			auto* door = platform.instances.GetEntity(idDoor);
+			auto door = platform.ECS.GetBodyComponent(idDoor);
 			if (!door) return;
 
 			doorElevation += doorDirection * clock.DT();
@@ -606,14 +606,16 @@ namespace
 				doorElevation = DOOR_MAX_ELEVATION;
 			}
 
-			door->Model().row2.w = doorElevation;
+			Matrix4x4 model = door->Model();
+			model.row2.w = doorElevation;
+			door->SetModel(model);
 		}
 
 		OS::ticks lastPlayerOccupiedTime = 0;
 
 		void UpdatePressurePad(ID_ENTITY idPressurePad, const IUltraClock& clock)
 		{
-			auto* pad = platform.instances.GetEntity(idPressurePad);
+			auto pad = platform.ECS.GetBodyComponent(idPressurePad);
 			if (!pad) return;
 
 			padIntrusion += padDirection * clock.DT();
@@ -639,19 +641,22 @@ namespace
 				padIntrusion = 0;
 			}
 
-			pad->Model().row2.w = -padIntrusion;
+			Matrix4x4 model = pad->Model();
+			model.row2.w = -padIntrusion;
+
+			pad->SetModel(model);
 		}
 
 		void UpdateLever(ID_ENTITY idLeverBase, ID_ENTITY idLever, const IUltraClock& clock)
 		{
-			auto* base = platform.instances.GetEntity(idLeverBase);
-			if (base == nullptr) return;
+			auto base = platform.ECS.GetBodyComponent(idLeverBase);
+			if (!base) return;
 
-			auto* lever = platform.instances.GetEntity(idLever);
-			if (lever == nullptr) return;
+			auto lever = platform.ECS.GetBodyComponent(idLever);
+			if (!lever) return;
 
 			size_t nTriangles;
-			auto* tris = platform.meshes.GetTriangles(base->MeshId(), nTriangles);
+			auto* tris = platform.meshes.GetTriangles(base->Mesh(), nTriangles);
 			if (!tris) return;
 
 			auto& t = *tris;
@@ -695,7 +700,7 @@ namespace
 			T.row1.w = pos.y;
 			T.row2.w = pos.z;
 
-			lever->Model() = T;
+			lever->SetModel(T);
 		}
 
 		void NotifySectorPlayerIsInSector(const IUltraClock& clock) override
@@ -705,9 +710,9 @@ namespace
 
 		bool TryClickButton(ID_ENTITY idButton, cr_vec3 probePoint, cr_vec3 probeDirection, Metres reach) override
 		{
-			auto* e = platform.instances.GetEntity(idButton);
-			auto idMesh = e->MeshId();
-			cr_m4x4 model = e->Model();
+			auto button = platform.ECS.GetBodyComponent(idButton);
+			auto idMesh = button->Mesh();
+			cr_m4x4 model = button->Model();
 
 			size_t nTriangles;
 			auto* triangles = platform.meshes.GetPhysicsHull(idMesh, nTriangles);

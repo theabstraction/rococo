@@ -1,7 +1,11 @@
 #pragma once
 
-#include <rococo.types.h>
-#include <rococo.mplat.h>
+namespace Rococo::Entities
+{
+    struct IAnimation;
+    struct ISkeleton;
+    struct ISkeletons;
+}
 
 namespace Rococo::Components
 {
@@ -11,6 +15,7 @@ namespace Rococo::Components
         virtual ROID Parent() const = 0;
         virtual Vec3 Scale() const = 0;
         virtual void SetModel(cr_m4x4 model) = 0;
+        virtual void SetParent(ROID parent) = 0;
         virtual void SetScale(cr_vec3 scale) = 0;
     };
 
@@ -22,8 +27,11 @@ namespace Rococo::Components
 
     ROCOCOAPI ISkeletonComponent
     {
+        virtual Entities::ISkeleton* Skeleton() = 0;
         virtual void SetSkeleton(cstr skeletonName) = 0;
-        virtual fstring GetSkeletonName() const = 0;
+        virtual fstring SkeletonName() const = 0;
+        virtual void SetFPSOrientation(const FPSAngles& orientation) = 0;
+        virtual const FPSAngles& FPSOrientation() const = 0;
     };
 
     ROCOCOAPI IRigsComponent
@@ -36,13 +44,10 @@ namespace Rococo::Components
 
     };
 
-    template<class ICOMPONENT>
-    ROCOCOAPI IComponentFactory
+    ROCOCOAPI IAnimationComponent
     {
-        virtual ICOMPONENT * ConstructInPlace(void* pMemory) = 0;
-        virtual void Destruct(ICOMPONENT* pInstance) = 0;
-        virtual size_t SizeOfConstructedObject() const = 0;
-        virtual void Free() = 0;
+        // Temporary reference, do not cache
+        virtual Rococo::Entities::IAnimation& GetAnimation() = 0;
     };
 
     // Provide a lightweight implementation of an IComponentFactory<T> for use with components that are default constructed.
@@ -71,8 +76,39 @@ namespace Rococo::Components
         }
     };
 
+    template<class INTERFACE, class CLASSNAME, class ARG>
+    struct FactoryWithOneArg : IComponentFactory<INTERFACE>
+    {
+        ARG& arg;
+
+        FactoryWithOneArg(ARG& _arg) : arg(_arg) {}
+
+        INTERFACE* ConstructInPlace(void* pMemory) override
+        {
+            return new (pMemory) CLASSNAME(arg);
+        }
+
+        void Destruct(INTERFACE* pInstance) override
+        {
+            CLASSNAME* bc = static_cast<CLASSNAME*>(pInstance);
+            bc->~CLASSNAME();
+        }
+
+        size_t SizeOfConstructedObject() const override
+        {
+            return sizeof CLASSNAME;
+        }
+
+        void Free() override
+        {
+            delete this;
+        }
+    };
+
+    IComponentFactory<IAnimationComponent>* CreateAnimationFactory();
     IComponentFactory<IBodyComponent>* CreateBodyFactory();
-    IComponentFactory<ISkeletonComponent>* CreateSkeletonFactory();
+    IComponentFactory<ISkeletonComponent>* CreateSkeletonFactory(Entities::ISkeletons& skeletons);
     IComponentFactory<IParticleSystemComponent>* CreateParticleSystemFactory();
     IComponentFactory<IRigsComponent>* CreateRigsFactory();
+    IComponentFactory<IAnimationComponent> CreateAnimationComponent();
 }

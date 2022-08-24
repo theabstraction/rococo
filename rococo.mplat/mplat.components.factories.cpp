@@ -1,10 +1,26 @@
 #include "rococo.mplat.h"
 #include "mplat.components.decl.h"
+#include "rococo.animation.h"
 #include <rococo.strings.h>
 #include <new>
 
 using namespace Rococo;
+using namespace Rococo::Entities;
 using namespace Rococo::Components;
+
+struct AnimationComponent : IAnimationComponent
+{
+    AutoFree<IAnimation> animation;
+    AnimationComponent()
+    {
+        animation = Entities::CreateAnimation();
+    }
+
+    IAnimation& GetAnimation()
+    {
+        return *animation;
+    }
+};
 
 struct BodyComponent : IBodyComponent
 {
@@ -33,6 +49,11 @@ struct BodyComponent : IBodyComponent
         this->model = model;
     }
 
+    void SetParent(ROID parentId) override
+    {
+        this->parent = parentId;
+    }
+
     void SetScale(cr_vec3 scale) override
     {
         this->scale = scale;
@@ -51,16 +72,47 @@ struct BodyComponent : IBodyComponent
 
 struct SkeletonComponent : ISkeletonComponent
 {
+    ISkeletons& skeletons;
     HString skeletonName;
+    FPSAngles fpsOrientation {0,0,0};
+    ID_SKELETON skeletonId;
+
+    SkeletonComponent(ISkeletons& _skeletons): skeletons(_skeletons)
+    {
+
+    }
+
+    Entities::ISkeleton* Skeleton() override
+    {
+        ISkeleton* skeleton;
+        if (skeletons.TryGet(skeletonId, &skeleton))
+        {
+            return skeleton;
+        }
+        else
+        {
+            return nullptr;
+        }
+    }
 
     void SetSkeleton(cstr skeletonName) override
     {
         this->skeletonName = skeletonName;
     }
 
-    fstring GetSkeletonName() const override
+    fstring SkeletonName() const override
     {
         return skeletonName.to_fstring();
+    }
+
+    void SetFPSOrientation(const FPSAngles& orientation) override
+    {
+        fpsOrientation = orientation;
+    }
+
+    const FPSAngles& FPSOrientation() const override
+    {
+        return fpsOrientation;
     }
 };
 
@@ -76,14 +128,19 @@ struct RigsComponent : IRigsComponent
 
 namespace Rococo::Components
 {
+    IComponentFactory<IAnimationComponent>* CreateAnimationFactory()
+    {
+        return new DefaultFactory<IAnimationComponent, AnimationComponent>();
+    }
+
     IComponentFactory<IBodyComponent>* CreateBodyFactory()
     {
         return new DefaultFactory<IBodyComponent,BodyComponent>();
     }
 
-    IComponentFactory<ISkeletonComponent>* CreateSkeletonFactory()
+    IComponentFactory<ISkeletonComponent>* CreateSkeletonFactory(Entities::ISkeletons& skeletons)
     {
-        return new DefaultFactory<ISkeletonComponent, SkeletonComponent>();
+        return new FactoryWithOneArg<ISkeletonComponent, SkeletonComponent, ISkeletons>(skeletons);
     }
 
     IComponentFactory<IParticleSystemComponent>* CreateParticleSystemFactory()

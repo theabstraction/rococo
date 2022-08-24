@@ -1,4 +1,4 @@
-// Generated at: Aug 23 2022 P UTC
+// Generated at: Aug 24 2022 P UTC
 // Based on the template file: C:\work\rococo\rococo.mplat\mplat.component.template.cpp
 #include <rococo.api.h>
 #include <list>
@@ -16,6 +16,248 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 {
 	using namespace Rococo;
 	using namespace Rococo::Components;
+
+	struct AnimationComponentTable;
+
+	struct AnimationComponentLife : IComponentLife
+	{
+		int64 referenceCount = 0;
+		ROID id;
+		bool isDeprecated = false;
+		
+		AnimationComponentTable& table;
+
+		AnimationComponentLife(ROID roid, AnimationComponentTable& refTable) :
+			id(roid), table(refTable)
+		{
+
+		}
+
+		int64 AddRef() override
+		{
+			return ++referenceCount;
+		}
+
+		int64 GetRefCount() const override
+		{
+			return referenceCount;
+		}
+
+		ROID GetRoid() const override
+		{
+			return id;
+		}
+
+		int64 ReleaseRef() override
+		{
+			return --referenceCount;
+		}
+
+		// Marks the component as deprecated and returns true if this is the first call that marked it so
+		bool Deprecate() override;
+
+		bool IsDeprecated() const override
+		{
+			return isDeprecated;
+		}
+	};
+
+	struct AnimationComponentTable
+	{
+		struct ComponentDesc
+		{
+			IAnimationComponent* interfacePointer = nullptr;
+		};
+
+		IComponentFactory<IAnimationComponent>& componentFactory;
+		std::unordered_map<ROID, ComponentDesc, STDROID, STDROID> rows;
+		std::vector<ROID> deprecatedList;
+		std::vector<ROID> stubbornList;
+		AutoFree<IFreeListAllocatorSupervisor> componentAllocator;
+		size_t componentSize;
+		int enumLock = 0;
+
+		AnimationComponentTable(IComponentFactory<IAnimationComponent>& factory) : componentFactory(factory), rows(1024), componentSize(factory.SizeOfConstructedObject())
+		{
+			componentAllocator = CreateFreeListAllocator(componentSize + sizeof AnimationComponentLife);
+		}
+
+		Ref<IAnimationComponent> AddNew(ROID id)
+		{
+			if (enumLock > 0)
+			{
+				Throw(0, "%s failed: the components were locked for enumeration", __func__);
+			}
+
+			std::pair<ROID, ComponentDesc> nullItem(id, ComponentDesc());
+			auto insertion = rows.insert(nullItem);
+			if (!insertion.second)
+			{
+				Throw(0, "%s: a component with the given id 0x%8.8X already exists", __FUNCTION__, id.index);
+			}
+
+			auto i = insertion.first;
+
+			try
+			{
+				void* pComponentMemory = componentAllocator->AllocateBuffer();
+				IAnimationComponent* component = componentFactory.ConstructInPlace(pComponentMemory);
+				if (component == nullptr)
+				{
+					Throw(0, "%s: factory.ConstructInPlace returned null");
+				}
+				i->second.interfacePointer = component;
+
+				uint8* byteBuffer = (uint8*)pComponentMemory;
+				auto* lifeSupport = (AnimationComponentLife*)(byteBuffer + componentSize);
+				new (lifeSupport) AnimationComponentLife(id, *this);
+				return Ref<IAnimationComponent>(*component, GetLife(*component));
+			}
+			catch (...)
+			{
+				rows.erase(i);
+				throw;
+			}
+		}
+
+		void CollectGarbage()
+		{
+			if (enumLock > 0)
+			{
+				return;
+			}
+
+			while (!deprecatedList.empty())
+			{
+				ROID id = deprecatedList.back();
+				deprecatedList.pop_back();
+
+				auto it = rows.find(id);
+				if (it != rows.end())
+				{
+					auto& component = it->second;
+					auto& life = GetLife(*component.interfacePointer);
+					if (life.isDeprecated && life.referenceCount <= 0)
+					{
+						componentFactory.Destruct(component.interfacePointer);
+						componentAllocator->FreeBuffer(component.interfacePointer);
+						rows.erase(it);
+					}
+					else
+					{
+						stubbornList.push_back(id);
+					}
+				}
+			}
+
+			deprecatedList.swap(stubbornList);
+		}
+		
+		void Deprecate(ROID id)
+		{
+			auto i = rows.find(id);
+			if (i != rows.end())
+			{
+				auto& component = i->second;
+				auto& life = GetLife(*component.interfacePointer);
+				life.Deprecate();
+			}
+		}
+
+		void ForEachAnimationComponent(IComponentCallback<IAnimationComponent>& cb)
+		{
+			enumLock++;
+			try
+			{
+				for (auto& row : rows)
+				{
+					if (cb.OnComponent(row.first, *row.second.interfacePointer) == EFlowLogic::BREAK)
+					{
+						break;
+					}
+				}
+			}
+			catch (...)
+			{
+				enumLock--;
+				throw;
+			}
+			enumLock--;
+		}
+
+		void ForEachAnimationComponent(Rococo::Function<EFlowLogic(ROID roid, IAnimationComponent&)> functor)
+		{
+			enumLock++;
+			try
+			{
+				for (auto& row : rows)
+				{
+					if (functor.Invoke(row.first, *row.second.interfacePointer) == EFlowLogic::BREAK)
+					{
+						break;
+					}
+				}
+			}
+			catch (...)
+			{
+				enumLock--;
+				throw;
+			}
+			enumLock--;
+		}
+
+		Ref<IAnimationComponent> Find(ROID id)
+		{
+			auto i = rows.find(id);
+			auto& c = i->second;
+			auto* pInterfaceBuffer = (uint8*)c.interfacePointer;
+
+			return i != rows.end() ? Ref<IAnimationComponent>(*c.interfacePointer, GetLife(*c.interfacePointer)) : Ref<IAnimationComponent>();
+		}
+
+		size_t GetAnimationComponentIDs(ROID* roidOutput, size_t nElementsInOutput)
+		{
+			if (roidOutput != nullptr)
+			{
+				size_t nElements = min(nElementsInOutput, rows.size());
+
+				auto* roid = roidOutput;
+				auto* rend = roid + nElements;
+
+				for (auto row : rows)
+				{
+					if (roid == rend) break;
+					*roid++ = row.first;
+				}
+
+				return nElements;
+			}
+
+			return rows.size();
+		}
+
+
+		AnimationComponentLife& GetLife(IAnimationComponent& i)
+		{
+			uint8* objectBuffer = (uint8*)&i;
+			return *(AnimationComponentLife*)(objectBuffer + componentSize);
+		}
+	};
+
+	bool AnimationComponentLife::Deprecate()
+	{
+		if (!isDeprecated)
+		{
+			isDeprecated = true;
+
+			table.deprecatedList.push_back(id);
+
+			return true;
+		}
+
+		return false;
+	}
+
 
 	struct BodyComponentTable;
 
@@ -988,6 +1230,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 	struct AllComponentTables
 	{
 		int dummy;
+		AnimationComponentTable animationComponentTable;
 		BodyComponentTable bodyComponentTable;
 		SkeletonComponentTable skeletonComponentTable;
 		ParticleSystemComponentTable particleSystemComponentTable;
@@ -995,11 +1238,18 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 
 		AllComponentTables(ComponentFactories& factories):
 			dummy(0)
+					,animationComponentTable(factories.animationComponentFactory)
 					,bodyComponentTable(factories.bodyComponentFactory)
 					,skeletonComponentTable(factories.skeletonComponentFactory)
 					,particleSystemComponentTable(factories.particleSystemComponentFactory)
 					,rigsComponentTable(factories.rigsComponentFactory)
 				{
+		}
+
+		Ref<IAnimationComponent> AddAnimationComponent(ROID id, ActiveComponents& ac)
+		{
+			ac.hasAnimationComponent = true;
+			return animationComponentTable.AddNew(id);
 		}
 
 		Ref<IBodyComponent> AddBodyComponent(ROID id, ActiveComponents& ac)
@@ -1028,6 +1278,10 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 
 		void Deprecate(ROID id, const ActiveComponents& ac)
 		{
+			if (ac.hasAnimationComponent)
+			{
+				animationComponentTable.Deprecate(id);
+			}
 			if (ac.hasBodyComponent)
 			{
 				bodyComponentTable.Deprecate(id);
@@ -1108,6 +1362,19 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			return activeIds.size();
 		}
 
+		Ref<IAnimationComponent> AddAnimationComponent(ROID id)
+		{
+			if (id.index > 0 && id.index < maxTableEntries)
+			{
+				RCObject& object = handleTable[id.index];
+				if (id.salt == object.salt)
+				{
+					return components.AddAnimationComponent(id, object.ac);
+				}
+			}
+
+			return Ref<IAnimationComponent>();
+		}
 		Ref<IBodyComponent> AddBodyComponent(ROID id)
 		{
 			if (id.index > 0 && id.index < maxTableEntries)
@@ -1162,6 +1429,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		}
 		void CollectGarbage() override
 		{
+			components.animationComponentTable.CollectGarbage();
 			components.bodyComponentTable.CollectGarbage();
 			components.skeletonComponentTable.CollectGarbage();
 			components.particleSystemComponentTable.CollectGarbage();
@@ -1234,6 +1502,24 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			}
 		}
 
+		bool DeprecateAnimationComponent(ROID id)
+		{
+			if (id.index > 0 && id.index < maxTableEntries)
+			{
+				RCObject& object = handleTable[id.index];
+				if (id.salt == object.salt)
+				{
+					if (object.ac.hasAnimationComponent)
+					{
+						components.animationComponentTable.Deprecate(id);
+						object.ac.hasAnimationComponent = false;
+						return true;
+					}
+				}
+			}
+
+			return false;
+		}
 		bool DeprecateBodyComponent(ROID id)
 		{
 			if (id.index > 0 && id.index < maxTableEntries)
@@ -1348,6 +1634,15 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 				deprecationList.clear();
 			}
 		}
+		void ForEachAnimationComponent(IComponentCallback<IAnimationComponent>& cb)
+		{
+			components.animationComponentTable.ForEachAnimationComponent(cb);
+		}
+
+		void ForEachAnimationComponent(Function<EFlowLogic(ROID id, IAnimationComponent& component)> functor)
+		{
+			components.animationComponentTable.ForEachAnimationComponent(functor);
+		}
 		void ForEachBodyComponent(IComponentCallback<IBodyComponent>& cb)
 		{
 			components.bodyComponentTable.ForEachBodyComponent(cb);
@@ -1383,6 +1678,23 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		void ForEachRigsComponent(Function<EFlowLogic(ROID id, IRigsComponent& component)> functor)
 		{
 			components.rigsComponentTable.ForEachRigsComponent(functor);
+		}
+
+		Ref<IAnimationComponent> GetAnimationComponent(ROID id)
+		{
+			if (id.index > 0 && id.index < maxTableEntries)
+			{
+				RCObject& object = handleTable[id.index];
+				if (id.salt == object.salt)
+				{
+					if (object.ac.hasAnimationComponent)
+					{
+						return components.animationComponentTable.Find(id);
+					}
+				}
+			}
+
+			return Ref<IAnimationComponent>();
 		}
 
 		Ref<IBodyComponent> GetBodyComponent(ROID id)
@@ -1451,6 +1763,11 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			}
 
 			return Ref<IRigsComponent>();
+		}
+
+		size_t GetAnimationComponentIDs(ROID* roidOutput, size_t nElementsInOutput) override
+		{
+			return components.animationComponentTable.GetAnimationComponentIDs(roidOutput, nElementsInOutput);
 		}
 
 		size_t GetBodyComponentIDs(ROID* roidOutput, size_t nElementsInOutput) override

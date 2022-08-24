@@ -3,8 +3,10 @@
 #include <rococo.maths.h>
 #include <vector>
 #include "rococo.script.types.h"
+#include "mplat.components.h"
 
 using namespace Rococo;
+using namespace Rococo::Components;
 using namespace Rococo::Entities;
 using namespace Rococo::Graphics;
 
@@ -14,6 +16,7 @@ namespace
 	{
 		IMeshBuilderSupervisor& meshes;
 		IInstancesSupervisor& instances;
+		IRCObjectTable& ecs;
 		AutoFree<IQuadtreeSupervisor> quadtree;
 
 		std::vector<TriangleScan> scanlist;
@@ -68,7 +71,7 @@ namespace
 		}
 
 		World(Graphics::IMeshBuilderSupervisor& refMeshes, IInstancesSupervisor& refInstances):
-			meshes(refMeshes), instances(refInstances)
+			meshes(refMeshes), instances(refInstances), ecs(instances.ECS())
 		{
 
 		}
@@ -127,11 +130,12 @@ namespace
 			if (f.IsFlagged(Flags::TYPE_TRIANGLE))
 			{
 				auto triangleIndex = f.Index();
+
 				ID_ENTITY id{ pocket.context };
-				auto* e = instances.GetEntity(id);
-				if (e != nullptr)
+				auto body = ecs.GetBodyComponent(id);
+				if (body)
 				{
-					auto meshId = e->MeshId();
+					auto meshId = body->Mesh();
 					size_t nTriangles;
 					auto* triangles = meshes.GetTriangles(meshId, nTriangles);
 					if (triangleIndex < nTriangles)
@@ -153,13 +157,13 @@ namespace
 		{
 			if (!quadtree) Throw(0, "%s: No quadtree, world not defined.", __FUNCTION__);
 
-			auto* e = instances.GetEntity(id);
-			if (!e)
+			auto body = ecs.GetBodyComponent(id);
+			if (!body)
 			{
 				Throw(0, "%s: no entity found with id 0x%llX", __FUNCTION__, id.Value());
 			}
 				
-			auto meshId = e->MeshId();
+			auto meshId = body->Mesh();
 			if (!meshId)
 			{
 				Throw(0, "%s: Entity with id 0x%llX had no mesh", __FUNCTION__, id.Value());

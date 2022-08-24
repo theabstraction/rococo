@@ -271,11 +271,11 @@ namespace
 		  }
 		  else
 		  {
-			  auto entity = instances.GetEntity(wallId);
+			  auto wall = instances.ECS().GetBodyComponent(wallId);
 			  ID_SYS_MESH meshId;
 			  AABB bounds;
 			  platform.meshes.TryGetByName(name, meshId, bounds);
-			  entity->SetMesh(meshId);
+			  wall->SetMesh(meshId);
 		  }
 	  }
 
@@ -1278,8 +1278,8 @@ namespace
 			  ID_SYS_MESH meshId;
 			  AABB bounds;
 			  platform.meshes.TryGetByName(name, meshId, bounds);
-			  auto* entity = instances.GetEntity(floorId);
-			  entity->SetMesh(meshId);
+			  auto floor = instances.ECS().GetBodyComponent(floorId);
+			  floor->SetMesh(meshId);
 		  }
 	  }
 
@@ -1307,8 +1307,8 @@ namespace
 			 ID_SYS_MESH meshId;
 			 AABB bounds;
 			 platform.meshes.TryGetByName(name, meshId, bounds);
-			 auto* entity = instances.GetEntity(ceilingId);
-			 entity->SetMesh(meshId);
+			 auto ceiling = instances.ECS().GetBodyComponent(ceilingId);
+			 ceiling->SetMesh(meshId);
 		 }
       }
 

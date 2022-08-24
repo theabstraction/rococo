@@ -170,6 +170,7 @@
     <ClInclude Include="..\include\mplat.release.h" />
     <ClInclude Include="..\include\rococo.animation.h" />
     <ClInclude Include="..\include\rococo.component.entities.h" />
+    <ClInclude Include="..\include\rococo.maths.h" />
     <ClInclude Include="..\include\rococo.mplat.h" />
     <ClInclude Include="..\include\rococo.octree.h" />
     <ClInclude Include="mplat.component.template.h">

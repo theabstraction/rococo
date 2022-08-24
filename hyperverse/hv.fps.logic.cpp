@@ -1305,13 +1305,17 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 		mm.fowardDelta *= Sq(player->DuckFactor());
 		mm.straffeDelta *= Sq(player->DuckFactor());
 
-		auto pe = platform.instances.GetEntity(id);
+		auto pe = platform.instances.ECS().GetBodyComponent(id);
+		if (!pe)
+		{
+			Throw(0, "Expecting player entity");
+		}
 
-		Vec3 before = pe->Position();
+		Vec3 before = pe->Model().GetPosition();
 
 		platform.mobiles.TryMoveMobile(mm);
 
-		Vec3 after = pe->Position();
+		Vec3 after = pe->Model().GetPosition();
 
 		CollisionParameters cp{ before, after, id, dt, player->JumpSpeed() };
 		Vec3 final = CorrectPosition(cp, player->JumpSpeed());
@@ -1336,7 +1340,9 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 			}
 		}
 
-		pe->Model().SetPosition(final);
+		Matrix4x4 model = pe->Model();
+		model.SetPosition(final);
+		pe->SetModel(model);
 
 		Vec3 playerPosToCamera = Vec3{ 0, 0, player->Height() * player->DuckFactor() };
 

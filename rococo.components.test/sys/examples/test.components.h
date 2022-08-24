@@ -1,17 +1,17 @@
 #pragma once
 
-// Generated at: Aug 23 2022 18:08 UTC
+// Generated at: Aug 24 2022 17:27 UTC
 // Based on the template file: C:\work\rococo\rococo.cpp_master\component.template.h
 #include <rococo.types.h>
 #include <rococo.component.entities.h>
 #include "components.h"
 
-namespace Rococo::Components::Sys
+namespace Rococo::Components
 {
     struct ComponentFactories
     {
-        IFireComponentFactory& fireComponentFactory;
-        IWaterComponentFactory& waterComponentFactory;
+        IComponentFactory<IFireComponent>& fireComponentFactory;
+        IComponentFactory<IWaterComponent>& waterComponentFactory;
     };
 
     struct ActiveComponents

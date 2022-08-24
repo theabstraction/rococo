@@ -1,4 +1,4 @@
-// Generated at: Aug 23 2022 P UTC
+// Generated at: Aug 24 2022 P UTC
 // Based on the template file: C:\work\rococo\rococo.cpp_master\component.template.cpp
 #include <rococo.api.h>
 #include "rococo.component.entities.h"
@@ -17,7 +17,6 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 {
 	using namespace Rococo;
 	using namespace Rococo::Components;
-	using namespace Rococo::Components::Sys;
 
 	struct FireComponentTable;
 
@@ -71,7 +70,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			IFireComponent* interfacePointer = nullptr;
 		};
 
-		IFireComponentFactory& componentFactory;
+		IComponentFactory<IFireComponent>& componentFactory;
 		std::unordered_map<ROID, ComponentDesc, STDROID, STDROID> rows;
 		std::vector<ROID> deprecatedList;
 		std::vector<ROID> stubbornList;
@@ -79,7 +78,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		size_t componentSize;
 		int enumLock = 0;
 
-		FireComponentTable(IFireComponentFactory& factory) : componentFactory(factory), rows(1024), componentSize(factory.SizeOfConstructedObject())
+		FireComponentTable(IComponentFactory<IFireComponent>& factory) : componentFactory(factory), rows(1024), componentSize(factory.SizeOfConstructedObject())
 		{
 			componentAllocator = CreateFreeListAllocator(componentSize + sizeof FireComponentLife);
 		}
@@ -292,7 +291,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			IWaterComponent* interfacePointer = nullptr;
 		};
 
-		IWaterComponentFactory& componentFactory;
+		IComponentFactory<IWaterComponent>& componentFactory;
 		std::unordered_map<ROID, ComponentDesc, STDROID, STDROID> rows;
 		std::vector<ROID> deprecatedList;
 		std::vector<ROID> stubbornList;
@@ -300,7 +299,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		size_t componentSize;
 		int enumLock = 0;
 
-		WaterComponentTable(IWaterComponentFactory& factory) : componentFactory(factory), rows(1024), componentSize(factory.SizeOfConstructedObject())
+		WaterComponentTable(IComponentFactory<IWaterComponent>& factory) : componentFactory(factory), rows(1024), componentSize(factory.SizeOfConstructedObject())
 		{
 			componentAllocator = CreateFreeListAllocator(componentSize + sizeof WaterComponentLife);
 		}
@@ -845,7 +844,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 	};
 } // COMPONENT_IMPLEMENTATION_NAMESPACE
 
-namespace Rococo::Components::Sys::Factories
+namespace Rococo::Components::Factories
 {
 	IRCObjectTableSupervisor* Create_RCO_EntityComponentSystem(ComponentFactories& factories, uint64 maxSizeInBytes)
 	{

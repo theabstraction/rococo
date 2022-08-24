@@ -2,12 +2,12 @@
 #include <rococo.component.entities.h>
 #include "DeclarationsInclude"
 
-namespace Rococo::Components::Sys
+namespace Rococo::Components
 {
     struct ComponentFactories
     {
 // #BEGIN_INSTANCED#
-        IComponentInterfaceFactory& componentVariableFactory;
+        IComponentFactory<IComponentInterface>& componentVariableFactory;
 // #END_INSTANCED#
     };
 

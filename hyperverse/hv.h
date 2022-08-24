@@ -2,6 +2,7 @@
 #define ROCOCO_HV
 
 #include <rococo.mplat.h>
+#include "..\rococo.mplat\mplat.components.h"
 
 using namespace Rococo;
 using namespace Rococo::Events;

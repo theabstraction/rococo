@@ -1,6 +1,6 @@
 #pragma once
 
-// Generated at: Aug 23 2022 18:08 UTC
+// Generated at: Aug 24 2022 17:26 UTC
 // Based on the template file: C:\work\rococo\rococo.mplat\mplat.component.template.h
 #include <rococo.types.h>
 #include <rococo.component.entities.h>
@@ -11,6 +11,7 @@ namespace Rococo::Components
 {
     struct ComponentFactories
     {
+        IComponentFactory<IAnimationComponent>& animationComponentFactory;
         IComponentFactory<IBodyComponent>& bodyComponentFactory;
         IComponentFactory<ISkeletonComponent>& skeletonComponentFactory;
         IComponentFactory<IParticleSystemComponent>& particleSystemComponentFactory;
@@ -19,6 +20,7 @@ namespace Rococo::Components
 
     struct ActiveComponents
     {
+        bool hasAnimationComponent : 1;
         bool hasBodyComponent : 1;
         bool hasSkeletonComponent : 1;
         bool hasParticleSystemComponent : 1;
@@ -67,6 +69,25 @@ namespace Rococo::Components
 
     ROCOCOAPI IRCObjectTable: IRCObjectTableBase
     {     
+
+        [[nodiscard]] virtual Ref<IAnimationComponent> AddAnimationComponent(ROID id) = 0;
+
+        // Marks the AnimationComponent as deprecated, when all outstanding refences are out of scope the object can be garbage collected
+        virtual bool DeprecateAnimationComponent(ROID id) = 0;
+
+        // Enumerate all AnimationComponent elements. The reference in the callback cb.OnComponent is valid only for the callback lifetime. 
+        // While enumerating garbage collection is suspended and new items cannot be added.
+        virtual void ForEachAnimationComponent(IComponentCallback<IAnimationComponent>& cb) = 0;
+
+        // Enumerate all AnimationComponent elements. The reference in the callback cb.OnComponent is valid only for the callback lifetime. 
+        // While enumerating garbage collection is suspended and new items cannot be added.
+        virtual void ForEachAnimationComponent(Rococo::Function<EFlowLogic(ROID id, IAnimationComponent& component)> functor) = 0;
+
+        // Attemp to get a reference to the component with a given ROID
+        virtual Ref<IAnimationComponent> GetAnimationComponent(ROID id) = 0;
+
+        // Populate an array of ROIDs and return the number appended. If roidOutput is null then the return value is the number of AnimationComponents in the table
+        [[nodiscard]] virtual size_t GetAnimationComponentIDs(ROID* roidOutput, size_t nElementsInOutput) = 0;
 
         [[nodiscard]] virtual Ref<IBodyComponent> AddBodyComponent(ROID id) = 0;
 
