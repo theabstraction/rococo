@@ -5,6 +5,7 @@
 #include <algorithm>
 
 #include <rococo.textures.h>
+#include "mplat.components.h"
 
 namespace
 {
@@ -17,6 +18,7 @@ namespace
    class Scene : public ISceneSupervisor, public ISceneBuilderSupervisor
    {
       IInstancesSupervisor& instances;
+	  Rococo::Components::IRCObjectTable& ecs;
       std::vector<ID_ENTITY> entities;
 	  std::vector<ID_ENTITY> debugEntities;
 	  std::vector<ID_ENTITY> dynamics;
@@ -40,7 +42,7 @@ namespace
 	  AutoFree<IRodTesselatorSupervisor> debugTesselator;
    public:
       Scene(IInstancesSupervisor& _instances, ICameraSupervisor& _camera, IRigs& _rigs) :
-         instances(_instances), camera(_camera), rigs(_rigs),
+         instances(_instances), ecs(instances.ECS()), camera(_camera), rigs(_rigs),
 		 debugTesselator(CreateIsolatedRodTesselator())
       {
 		  debugTesselator->SetUVScale(1.0f);
@@ -146,23 +148,20 @@ namespace
 
 		  for (auto id : dynamics)
 		  {
-			  auto e = instances.GetEntity(id);
-			  if (e)
+			  auto skeletonComponent = ecs.GetSkeletonComponent(id);
+			  auto animationComponent = ecs.GetAnimationComponent(id);
+			  if (skeletonComponent && animationComponent)
 			  {
-				  auto a = e->GetAnimation();
-				  if (a)
+				  auto* skele = skeletonComponent->Skeleton();
+				  if (skele)
 				  {
-					  auto* skele = e->GetSkeleton(skeles);
-					  if (skele)
+					  AnimationAdvanceArgs args
 					  {
-						  AnimationAdvanceArgs args
-						  {
-							   *skele,
-							   poses,
-							   dt
-						  };
-						  a->Advance(args);
-					  }
+						  *skele,
+						  poses,
+						  dt
+					  };
+					  animationComponent->GetAnimation().Advance(args);
 				  }
 			  }
 		  }
@@ -252,19 +251,19 @@ namespace
 
 		  for (auto i : statics)
 		  {
-			  IEntityDeprecated* entity = instances.GetEntity(i);
-			  if (!entity)
+			  auto body = instances.ECS().GetBodyComponent(i);
+			  if (!body)
 			  {
 				  Throw(0, "Scene: Unexpected missing entity with id #%lld", i.Value());
 			  }
 
-			  if (entity->MeshId() != meshId)
+			  if (body->Mesh() != meshId)
 			  {
 				  FlushDrawQueue(meshId, r);
-				  meshId = entity->MeshId();
+				  meshId = body->Mesh();
 			  }
 
-			  ObjectInstance instance{ entity->Model(), RGBA(0, 0, 0, 0) };
+			  ObjectInstance instance{ body->Model(), RGBA(0, 0, 0, 0) };
 			  drawQueue.push_back(instance);
 		  }
 
@@ -277,32 +276,28 @@ namespace
 
 		  for (auto i : debugEntities)
 		  {
-			  IEntityDeprecated* entity = instances.GetEntity(i);
-			  if (!entity)
-			  {
-				  Throw(0, "Scene: Unexpected missing entity with id #%lld", i.Value());
-			  }
-
-			  AddDebugBones(*entity, r, *debugTesselator, rigs);
+			  AddDebugBones(i, instances.ECS(), r, *debugTesselator);
 		  }
 
 		  for (auto i : dynamics)
 		  {
-			  IEntityDeprecated* entity = instances.GetEntity(i);
-			  if (!entity)
+			  auto body = instances.ECS().GetBodyComponent(i);
+			  if (!body)
 			  {
 				  Throw(0, "Scene: Unexpected missing entity with id #%lld", i.Value());
 			  }
 
-			  auto* skeleton = entity->GetSkeleton(rigs.Skeles());
+			  auto skeletonComponent = instances.ECS().GetSkeletonComponent(i);
+			 
+			  auto* skeleton = skeletonComponent ? skeletonComponent->Skeleton() : nullptr;
 
-			  if (entity->MeshId() != meshId)
+			  if (body->Mesh() != meshId)
 			  {
 				  FlushDrawQueue(meshId, r);
-				  meshId = entity->MeshId();
+				  meshId = body->Mesh();
 			  }
 
-			  ObjectInstance instance{ entity->Model(), RGBA(0, 0, 0, 0) };
+			  ObjectInstance instance{ body->Model(), RGBA(0, 0, 0, 0) };
 			  drawQueue.push_back(instance);
 
 			  if (skeleton)

@@ -97,8 +97,8 @@ namespace
 			GuiRectf textRect{ (float)centre.x - 70, 0.0f,  (float)centre.x + 70, 20.0f };
 			Rococo::Graphics::DrawText(grc, textRect, 0, to_fstring(originText), 0, RGBAb(255, 255, 255));
 
-			auto* entity = instances.GetEntity(cameraId);
-			Vec3 entityPos = entity->Position();
+			auto camera = instances.ECS().GetBodyComponent(cameraId);
+			Vec3 entityPos = camera->Model().GetPosition();
 			auto labelPos = GetScreenPosition({ entityPos.x, entityPos.y });
 
 			FPSAngles angles;

@@ -317,13 +317,15 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	AutoFree<Rococo::Entities::IRigs> rigs = Rococo::Entities::CreateRigBuilder();
 	AutoFree<Graphics::IMeshBuilderSupervisor> meshes = Graphics::CreateMeshBuilder(mainWindow->Renderer());
 
+	AutoFree<IComponentFactory<IAnimationComponent>> animationFactory = CreateAnimationFactory();
 	AutoFree<IComponentFactory<IBodyComponent>> bodyFactory = CreateBodyFactory();
-	AutoFree<IComponentFactory<ISkeletonComponent>> skeletonFactory = CreateSkeletonFactory();
+	AutoFree<IComponentFactory<ISkeletonComponent>> skeletonFactory = CreateSkeletonFactory(rigs->Skeles());
 	AutoFree<IComponentFactory<IParticleSystemComponent>> particleSystemFactory = CreateParticleSystemFactory();
 	AutoFree<IComponentFactory<IRigsComponent>> rigsFactory = CreateRigsFactory();
 
 	ComponentFactories factories
 	{
+		*animationFactory,
 		*bodyFactory,
 		*skeletonFactory,
 		*particleSystemFactory,

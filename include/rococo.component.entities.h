@@ -127,7 +127,7 @@ namespace Rococo::Components
 
 			if (component)
 			{
-				life->Release();
+				life->ReleaseRef();
 			}
 
 			component = src.component;
@@ -175,10 +175,21 @@ namespace Rococo::Components
 			return life == nullptr ? 0 : life->GetRefCount();
 		}
 
-		virtual ROID GetRoid() const
+		ROID Roid() const
 		{
 			return life == nullptr ? ROID() : life->GetRoid();
 		}
+	};
+
+	struct IRCObjectTable;
+
+	template<class ICOMPONENT>
+	ROCOCOAPI IComponentFactory
+	{
+		virtual ICOMPONENT * ConstructInPlace(void* pMemory) = 0;
+		virtual void Destruct(ICOMPONENT* pInstance) = 0;
+		virtual size_t SizeOfConstructedObject() const = 0;
+		virtual void Free() = 0;
 	};
 }
 

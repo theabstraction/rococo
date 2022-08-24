@@ -1,5 +1,6 @@
 #include "rococo.mplat.h"
 #include "rococo.animation.h"
+#include "mplat.components.h"
 
 using namespace Rococo;
 using namespace Rococo::Entities;
@@ -87,18 +88,22 @@ namespace
 
 namespace Rococo::Entities
 {
-	void AddDebugBones(IEntityDeprecated& e, IRenderContext& rc, IRodTesselatorSupervisor& rod, IRigs& rigs)
+	void AddDebugBones(ID_ENTITY id, Rococo::Components::IRCObjectTable& ecs, IRenderContext& rc, IRodTesselatorSupervisor& rod)
 	{
-		auto skeleton = e.GetSkeleton(rigs.Skeles());
+		auto skeletonComponent = ecs.AddSkeletonComponent(id);
+		auto skeleton = skeletonComponent ? skeletonComponent->Skeleton() : nullptr;
 		if (skeleton)
 		{
 			auto* root = skeleton->Root();
 			if (root)
 			{
-				const Matrix4x4& m = e.Model();
-
-				AddOrientationArrows(m, rc, rod);
-				AddDebugBone(*root, m, rc, rod);
+				auto body = ecs.GetBodyComponent(id);
+				if (body)
+				{
+					const Matrix4x4& m = body->Model();
+					AddOrientationArrows(m, rc, rod);
+					AddDebugBone(*root, m, rc, rod);
+				}
 			}
 		}
 	}

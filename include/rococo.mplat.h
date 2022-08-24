@@ -8,6 +8,7 @@
 #include <rococo.events.h>
 
 #include <rococo.component.entities.h>
+#include <mplat.components.decl.h>
 
 namespace Rococo
 {
@@ -27,11 +28,6 @@ namespace Rococo
    ROCOCO_ID(ID_SPRITE, uint64, 0);
 
    enum { MAX_POSENAME_LEN = 16 };
-
-   namespace Components
-   {
-	   struct IRCObjectTable;
-   }
 
    namespace Entities
    {
@@ -280,14 +276,14 @@ namespace Rococo
 
 		ROCOCOAPI IEntityCallback
 		{
-		   virtual void OnEntity(int64 index, IEntityDeprecated & entity, ID_ENTITY id) = 0;
+		   virtual void OnEntity(int64 index, Rococo::Components::IBodyComponent& body, ID_ENTITY id) = 0;
 		};
 
 		ROCOCOAPI IInstancesSupervisor : public IInstances
 		{
+		   virtual Rococo::Components::IRCObjectTable & ECS() = 0;
 		   virtual void ForAll(IEntityCallback & cb) = 0;
 		   virtual void Free() = 0;
-		   virtual IEntityDeprecated* GetEntity(ID_ENTITY id) = 0;
 		   virtual void ConcatenateModelMatrices(ID_ENTITY id, Matrix4x4& result) = 0;
 		   virtual void ConcatenatePositionVectors(ID_ENTITY id, Vec3& position) = 0;
 		   virtual Rococo::Graphics::IMeshBuilder& MeshBuilder() = 0;
@@ -1037,5 +1033,5 @@ namespace Rococo::Entities
 	/// <param name="rc">- the 3D render context to render to </param>
 	/// <param name="rod">- the rod tesselator object used to generate geometry</param>
 	/// <param name="rigs">- the set of poses used by the entity object</param>
-	void AddDebugBones(IEntityDeprecated& e, IRenderContext& rc, Rococo::Graphics::IRodTesselatorSupervisor& rod, IRigs& rigs);
+	void AddDebugBones(ID_ENTITY id, Rococo::Components::IRCObjectTable& ecs, IRenderContext& rc, Rococo::Graphics::IRodTesselatorSupervisor& rod);
 }

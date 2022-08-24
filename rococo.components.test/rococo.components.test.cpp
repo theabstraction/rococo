@@ -1,5 +1,5 @@
 #include "sys\examples\test.components.h"
-
+#include <rococo.component.entities.h>
 #include <rococo.libs.inl>
 
 #include <stdio.h>
@@ -8,7 +8,7 @@
 #include <rococo.api.h>
 
 
-using namespace Rococo::Components::Sys;
+using namespace Rococo::Components;
 
 namespace ANON
 {
@@ -20,7 +20,7 @@ namespace ANON
 		}
 	};
 
-	struct FireComponentFactory : IFireComponentFactory
+	struct FireComponentFactory : IComponentFactory<IFireComponent>
 	{
 		IFireComponent* ConstructInPlace(void* pMemory) override
 		{
@@ -33,9 +33,14 @@ namespace ANON
 			fire->~FireComponent();
 		}
 
-		size_t SizeOfConstructedObject() override
+		size_t SizeOfConstructedObject() const override
 		{
 			return sizeof FireComponent;
+		}
+
+		void Free() override
+		{
+
 		}
 	};
 
@@ -47,7 +52,7 @@ namespace ANON
 		}
 	};
 
-	struct WaterComponentFactory : IWaterComponentFactory
+	struct WaterComponentFactory : IComponentFactory<IWaterComponent>
 	{
 		IWaterComponent* ConstructInPlace(void* pMemory) override
 		{
@@ -60,16 +65,20 @@ namespace ANON
 			water->~WaterComponent();
 		}
 
-		size_t SizeOfConstructedObject() override
+		size_t SizeOfConstructedObject() const override
 		{
 			return sizeof WaterComponent;
+		}
+
+		void Free() override
+		{
+
 		}
 	};
 }
 
 using namespace Rococo;
 using namespace Rococo::Components;
-using namespace Rococo::Components::Sys;
 
 void Validate(bool isTrue, cstr expression, cstr functionName, int line)
 {
@@ -116,7 +125,7 @@ void RunTests(IRCObjectTable& ecs)
 		auto fire3 = fire2;
 
 		VALIDATE(fire3.GetRefCount() == 3);
-		VALIDATE(fire3.GetRoid() == roid);
+		VALIDATE(fire3.Roid() == roid);
 
 		ac = ecs.GetActiveComponents(roid);
 		VALIDATE(ac.hasFireComponent == true);
