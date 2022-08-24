@@ -262,18 +262,6 @@ namespace Rococo
 		struct ISkeleton;
 		struct ISkeletons;
 
-		ROCOCOAPI IEntityDeprecated
-		{
-		   virtual Vec3 Position() const = 0;
-		   virtual Matrix4x4& Model() = 0;
-
-		   virtual ID_SYS_MESH MeshId() const = 0;
-		   virtual void SetMesh(ID_SYS_MESH id) = 0;
-
-		   virtual ISkeleton* GetSkeleton(ISkeletons& skeletons) = 0;
-		   virtual IAnimation* GetAnimation() = 0;
-		};
-
 		ROCOCOAPI IEntityCallback
 		{
 		   virtual void OnEntity(int64 index, Rococo::Components::IBodyComponent& body, ID_ENTITY id) = 0;
