@@ -77,12 +77,15 @@
       </StackReserveSize>
     </Link>
     <CustomBuildStep>
-      <Command>..\sexy\Bin\x64Debug\sexy.bennyhill.exe $(ProjectDir) mhost.sxh mhost.sxh.h</Command>
-      <Inputs>mhost.sxh.h;mhost.sxh.inl</Inputs>
-      <Outputs>mhost.sxh.h;,mhost.sxh.inl;mhost.script.types.h</Outputs>
+      <Command>
+      </Command>
+      <Inputs>
+      </Inputs>
+      <Outputs>
+      </Outputs>
     </CustomBuildStep>
     <PostBuildEvent>
-      <Command>$(SolutionDir)copy.natives.from.sexy.bat</Command>
+      <Command>$(SolutionDir)copy.natives.from.sexy.bat &gt;NUL</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -109,12 +112,15 @@
       </StackReserveSize>
     </Link>
     <CustomBuildStep>
-      <Command>..\sexy\Bin\x64Release\sexy.bennyhill.exe $(ProjectDir) mhost.sxh mhost.sxh.h</Command>
-      <Inputs>mhost.sxh.h;mhost.sxh.inl</Inputs>
-      <Outputs>mhost.sxh.h;,mhost.sxh.inl;mhost.script.types.h</Outputs>
+      <Command>
+      </Command>
+      <Inputs>
+      </Inputs>
+      <Outputs>
+      </Outputs>
     </CustomBuildStep>
     <PostBuildEvent>
-      <Command>$(SolutionDir)copy.natives.from.sexy.bat</Command>
+      <Command>$(SolutionDir)copy.natives.from.sexy.bat &gt;NUL</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
