@@ -1,15 +1,17 @@
-#include <rococo.api.h>
+#include <rococo.types.h>
 #include <rococo.package.h>
 #include <rococo.io.h>
+#include <rococo.strings.h>
+#include <rococo.os.h>
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
 #include <vector>
 #include <string>
-#include <rococo.strings.h>
+
 #include <algorithm>
 #include <unordered_map>
-#include <rococo.os.h>
+
 
 using namespace Rococo;
 
@@ -32,6 +34,12 @@ namespace std
 	{
 		return Eq(a, b);
 	}
+}
+
+namespace Rococo
+{
+	int32 Format(U8FilePath& path, cstr format, ...);
+	int32 Format(WideFilePath& path, _Printf_format_string_ const wchar_t* format, ...);
 }
 
 namespace

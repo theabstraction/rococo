@@ -1,5 +1,4 @@
 #include "sexy.script.stdafx.h"
-
 #include <cstdio>
 
 #define ANON_NS Anon::Sys::IO
@@ -7,6 +6,12 @@
 namespace ANON_NS
 {
 	struct IOSystem;
+}
+
+namespace Rococo::OS
+{
+	void FormatErrorMessage(char* message, size_t sizeofBuffer, int errorCode);
+	cstr GetCommandLineText();
 }
 
 namespace Rococo::Script
@@ -1083,6 +1088,143 @@ namespace ANON_NS
 			}
 		}
 	}
+
+	void GetCmdArgCount(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+
+		int32 count = 0;
+		for (;;)
+		{
+			cstr arg = _nce.ss.GetCommandLineArg(count);
+			if (*arg == 0)
+			{
+				break;
+			}
+
+			count++;
+		}
+
+		_offset += sizeof(int32);
+		WriteOutput(count, _sf, -_offset);
+	}
+
+	FastStringBuilder& ToFastStringBuilder(InterfacePointer ip)
+	{
+		ObjectStub* stub = InterfaceToInstance(ip);
+		if (!Eq(stub->Desc->TypeInfo->Name(), "FastStringBuilder"))
+		{
+			Throw(0, "Expecting argument to be of type FastStringBuilder");
+		}
+
+		return *reinterpret_cast<FastStringBuilder*>(stub);
+	}
+
+	void AppendString(FastStringBuilder& sb, cstr data, size_t nChars = (size_t) -1)
+	{
+		if (sb.capacity == 0)
+		{
+			return;
+		}
+
+		if (nChars == (size_t)-1)
+		{
+			nChars = strlen(data);
+		}
+
+		cstr p = data;
+
+		for (size_t i = 0; i < nChars; i++)
+		{
+			sb.buffer[sb.length++] = *p++;
+			if (sb.length == sb.capacity)
+			{
+				sb.length = sb.capacity - 1;
+				break;
+			}
+		}
+
+		sb.buffer[sb.length] = 0;
+	}
+
+	void AppendCmdArg(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+
+		int32 argIndex;
+		_offset += sizeof(argIndex);
+		ReadInput(argIndex, _sf, _offset);
+
+		cstr arg = _nce.ss.GetCommandLineArg(argIndex);
+
+		InterfacePointer ip;
+		_offset += sizeof(ip);
+		ReadInput(ip, _sf, _offset);
+
+		auto& sb = ToFastStringBuilder(ip);
+		if (sb.capacity > 0)
+		{
+			AppendString(sb, arg);
+		}
+	}
+
+	void AppendError(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+
+		int32 errNumber;
+		_offset += sizeof(errNumber);
+		ReadInput(errNumber, _sf, _offset);
+
+		InterfacePointer ip;
+		_offset += sizeof(ip);
+		ReadInput(ip, _sf, _offset);
+
+		auto& sb = ToFastStringBuilder(ip);
+		if (sb.capacity > 0)
+		{
+			char err[256];
+			Rococo::OS::FormatErrorMessage(err, sizeof err, errNumber);
+			AppendString(sb, err);
+		}
+	}
+
+	void AppendCmdKeyAndValue(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+
+		int32 argIndex;
+		ReadInput(0, argIndex, _nce);
+
+		InterfacePointer ipKey;
+		ReadInput(1, ipKey, _nce);
+
+		InterfacePointer ipValue;
+		ReadInput(2, ipValue, _nce);
+
+		auto& ssbKey = ToFastStringBuilder(ipKey);
+		auto& ssbValue = ToFastStringBuilder(ipValue);
+
+		cstr arg = _nce.ss.GetCommandLineArg(argIndex);
+		if (!*arg)
+		{
+			return;
+		}
+
+		cstr assignmentPoint = strstr(arg, "=");
+		if (!assignmentPoint)
+		{
+			return;
+		}
+
+		size_t len = assignmentPoint - arg;
+		AppendString(ssbKey, arg, len);
+		AppendString(ssbValue, assignmentPoint+1);
+	}
 }
 
 namespace Rococo::Script
@@ -1101,6 +1243,10 @@ namespace Rococo::Script
 			ss.AddNativeCall(sysIO, ANON_NS::WriteToFile, &ioSystem, "WriteToFile (IString path) -> (Sys.IO.IFileWriter writer)", __FILE__, __LINE__, true);
 			ss.AddNativeCall(sysIO, ANON_NS::GetCommandLine, &ioSystem, "CommandLine -> (IString path)", __FILE__, __LINE__, true);
 			ss.AddNativeCall(sysIO, ANON_NS::AppendEnvironmentVariable, &ioSystem, "AppendEnvironmentVariable (IString variableName)(IStringBuilder sb)->(Int32 length)", __FILE__, __LINE__, true);
+			ss.AddNativeCall(sysIO, ANON_NS::AppendError, &ioSystem, "AppendError (Int32 errNumber)(IStringBuilder sb)->", __FILE__, __LINE__, true);
+			ss.AddNativeCall(sysIO, ANON_NS::AppendCmdArg, &ioSystem, "AppendCmdArg (IString argIndex)(IStringBuilder sb)->", __FILE__, __LINE__, true);
+			ss.AddNativeCall(sysIO, ANON_NS::AppendCmdKeyAndValue, &ioSystem, "AppendCmdKeyAndValue (Int32 argIndex)(IStringBuilder sbKey)(IStringBuilder sbValue)->", __FILE__, __LINE__, true);
+			ss.AddNativeCall(sysIO, ANON_NS::GetCmdArgCount, &ioSystem, "GetCmdArgCount -> (Int32 argCount)", __FILE__, __LINE__, true);
 		}
 
 		const INamespace& sysIONative = ss.AddNativeNamespace("Sys.IO.Native");

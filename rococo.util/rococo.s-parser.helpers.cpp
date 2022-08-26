@@ -1,12 +1,10 @@
 #include <sexy.types.h>
 #include <sexy.s-parser.h>
-#include <sexy.vm.h>
 #include <sexy.vm.cpu.h>
 #include <sexy.compiler.public.h>
 #include <sexy.debug.types.h>
 #include <sexy.script.h>
 
-#include <rococo.api.h>
 #include <rococo.io.h>
 #include <rococo.visitors.h>
 #define ROCOCO_USE_SAFE_V_FORMAT
@@ -82,10 +80,25 @@ namespace
 
 namespace Rococo
 {
-   
-   using namespace Rococo::Sex;
+	int32 Format(U8FilePath& path, _Printf_format_string_ cstr format, ...);
+	int32 Format(WideFilePath& path, _Printf_format_string_ const wchar_t* format, ...);
 
-   void UpdateDebugger(Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger, Rococo::int32 stackDepth, bool refreshAll);
+	using namespace Rococo::Sex;
+
+	void UpdateDebugger(Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger, Rococo::int32 stackDepth, bool refreshAll);
+
+	namespace OS
+	{
+		[[nodiscard]] ticks CpuTicks();
+		[[nodiscard]] ticks CpuHz();
+		[[nodiscard]] ticks UTCTime();
+	}
+}
+
+namespace Rococo::Memory
+{
+	[[nodiscard]] IAllocator& CheckedAllocator();
+	[[nodiscard]] IAllocatorSupervisor* CreateBlockAllocator(size_t kilobytes, size_t maxkilobytes);
 }
 
 namespace

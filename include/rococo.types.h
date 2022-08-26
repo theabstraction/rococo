@@ -138,6 +138,25 @@ namespace Rococo
 	   virtual void Populate(cstr text) = 0;
 	};
 
+#ifdef _WIN32
+	typedef size_t lsize_t;
+#else
+	typedef unsigned long long lsize_t;
+#endif
+
+	inline constexpr lsize_t operator "" _megabytes(lsize_t mb)
+	{
+		return mb * 1024 * 1024;
+	}
+
+	inline constexpr lsize_t operator "" _kilobytes(lsize_t kb)
+	{
+		return kb * 1024;
+	}
+
+	// Maximum fully qualified name length. Names categories include variables a.b.c.d and functions A.B.C.D and methods a.b.c.D
+	enum { MAX_FQ_NAME_LEN = 127 };
+
 	enum class EFlowLogic { CONTINUE, BREAK };
 
 	// Duplicates the item as a null terminated string on the stack, then invokes the populator with a reference to the string pointer
@@ -150,6 +169,12 @@ namespace Rococo
 	{
 		virtual void OnMemberVariable(cstr name, cstr type) = 0;
 	};
+
+	namespace OS
+	{
+		bool IsDebugging();
+		void TripDebugger();
+	}
 
 	namespace Sexy
 	{
@@ -676,6 +701,11 @@ namespace Rococo
 		U first;
 		V second;
 	};
+
+	template<typename T, typename U> [[nodiscard]] inline bool HasFlag(T flag, U flags)
+	{
+		return ((int)flags & (int)flag) != 0;
+	}
 }
 
 #endif

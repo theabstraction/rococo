@@ -52,8 +52,6 @@
 # endif
 #endif
 
-#include <rococo.api.h>
-
 // #define SEXY_ENABLE_EXTRA_STRING_SECURITY // uncomment to add in extra security code, which slows some strings ops down a bit
 
 namespace Rococo
@@ -430,6 +428,9 @@ namespace Rococo {
 
 			// Returns the specified type, otherwise throws an exception
 			virtual const IStructure& GetTypeForSource(cstr concreteType, cstr sourceFile) = 0;
+
+			virtual void SetCommandLine(int argc, char* argv[]) = 0;
+			virtual cstr GetCommandLineArg(int argc) = 0;
 		};
 
 		ROCOCOAPI IScriptSystemFactory : public IFreeable

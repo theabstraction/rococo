@@ -1,7 +1,15 @@
-#include <rococo.api.h>
+#include <rococo.types.h>
 #include <rococo.io.h>
 #include <rococo.strings.h>
 #include <vector>
+
+namespace Rococo
+{
+	void Assign(U8FilePath& dest, const wchar_t* wideSrc);
+	void Assign(WideFilePath& dest, const char* src);
+	int32 Format(U8FilePath& path, cstr format, ...);
+	int32 Format(WideFilePath& path, _Printf_format_string_ const wchar_t* format, ...);
+}
 
 namespace Rococo::IO
 {

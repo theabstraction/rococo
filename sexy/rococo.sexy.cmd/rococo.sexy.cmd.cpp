@@ -22,6 +22,8 @@
 #include <rococo.strings.h>
 #include <rococo.os.h>
 
+#include <cstring>
+
 using namespace Rococo;
 using namespace Rococo::Sex;
 using namespace Rococo::Script;
@@ -133,14 +135,53 @@ void PrintParseException(const ParseException& e)
 	}
 }
 
-void Run(IPublicScriptSystem& ss, cstr target);
+int32 Run(IPublicScriptSystem& ss, cstr target);
 
 int s_argument_Count = 0;
 
 std::vector<HString> s_args;
 
+int PrintError(IException& ex)
+{
+	if (ex.ErrorCode() != 0)
+	{
+		cstr message = ex.Message();
+
+		char osMessage[256];
+		Rococo::OS::FormatErrorMessage(osMessage, sizeof osMessage, ex.ErrorCode());
+
+		fprintf(stderr, "\r\nError code %d (0x%X):%s\r\n", ex.ErrorCode(), ex.ErrorCode(), osMessage);
+
+		for (const char* c = message; *c != 0; c++)
+		{
+			switch (*c)
+			{
+			case '\n':
+				putc('\r', stderr);
+				putc('\n', stderr);
+				break;
+			case '\r':
+				break;
+			default:
+				putc(*c, stderr);
+			}
+		}
+
+		fputs("\r\n", stderr);
+	}
+	else
+	{
+		printf("%s", ex.Message());
+		return 0;
+	}
+
+	return ex.ErrorCode();
+}
+
 int main(int argc, char* argv[])
 {
+	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
+
 	s_argument_Count = argc;
 
 	s_args.reserve(argc);
@@ -151,6 +192,7 @@ int main(int argc, char* argv[])
 
 	ProgramInitParameters pip;
 	pip.addCoroutineLib = true;
+	pip.addIO = true;
 	pip.useDebugLibs = IS_USING_DEBUG_LIBS;
 	pip.MaxProgramBytes = 8_megabytes;
 
@@ -158,13 +200,11 @@ int main(int argc, char* argv[])
 	pip.useDebugLibs = true;
 #endif
 
-	CScriptSystemProxy ssp(pip, s_logger);
-
-	auto& ss = ssp();
+	WideFilePath nativeSourcePath = { 0 };
 
 	try
 	{
-		auto prefix = "-run:"_fstring;
+		auto prefix = "natives="_fstring;
 		for (int i = 0; i < argc; i++)
 		{
 			cstr arg = argv[i];
@@ -172,165 +212,91 @@ int main(int argc, char* argv[])
 			if (StartsWith(arg, prefix))
 			{
 				cstr target = arg + prefix.length;
-				Run(ss, target);
-				size_t leakCount = ss.PublicProgramObject().FreeLeakedObjects();
-				if (leakCount > 0)
-				{
-					Throw(0, "Warning %llu leaked objects", leakCount);
-				}
+				Format(nativeSourcePath, L"%hs", target);
+				pip.NativeSourcePath = nativeSourcePath;
 			}
 		}
-	}
-	catch (STCException& e)
-	{
-		printf("Error: %s\r\nSource: %s\r\n.Code %d", e.Message(), e.Source(), e.Code());
-		exit(e.Code());
-	}
-	catch (ParseException& e)
-	{
-		PrintParseException(e);
-		exit(-1);
-	}
-	catch (IException& ose)
-	{
-		if (ose.ErrorCode() != 0)
-		{
-			char osMessage[256];
-			Rococo::OS::FormatErrorMessage(osMessage, sizeof osMessage, ose.ErrorCode());
-			printf("Error code%d~0x%X,%s\r\n%s\r\n", ose.ErrorCode(), ose.ErrorCode(), ose.Message(), osMessage);
-		}
-		else
-		{
-			printf("%s", ose.Message());
-			return -1;
-		}
 
-		return ose.ErrorCode();
+		CScriptSystemProxy ssp(pip, s_logger);
+
+		auto& ss = ssp();
+		ss.SetCommandLine(argc, argv);
+
+		try
+		{
+			int count = 0;
+			auto prefix = "run="_fstring;
+			for (int i = 0; i < argc; i++)
+			{
+				cstr arg = argv[i];
+
+				if (StartsWith(arg, prefix))
+				{
+					count++;
+					cstr target = arg + prefix.length;
+					int exitCode = Run(ss, target);
+					size_t leakCount = ss.PublicProgramObject().FreeLeakedObjects();
+					if (leakCount > 0)
+					{
+						Throw(0, "Warning %llu leaked objects", leakCount);
+					}
+					return exitCode;
+				}
+			}
+			if (count == 0)
+			{
+				Throw(0, "Warning. No script run. Usage %s run=<script-file> <args...>", argv[0]);
+			}
+		}
+		catch (STCException& e)
+		{
+			printf("Error: %s\r\nSource: %s\r\n.Code %d", e.Message(), e.Source(), e.Code());
+			exit(e.Code());
+		}
+		catch (ParseException& e)
+		{
+			PrintParseException(e);
+			exit(-1);
+		}
+		catch (IException& ose)
+		{
+			PrintError(ose);
+			return ose.ErrorCode() == 0 ? E_FAIL : ose.ErrorCode();
+		}
+		catch (std::exception& stdex)
+		{
+			printf("std::exception: %s\r\n", stdex.what());
+			exit(-1);
+		}
 	}
-	catch (std::exception& stdex)
+	catch (IException& ex)
 	{
-		printf("std::exception: %s\r\n", stdex.what());
-		exit(-1);
+		if (std::strstr(ex.Message(), "SEXY_NATIVE_SRC_DIR") != NULL)
+		{
+			for (int i = 0; i < argc; ++i)
+			{
+				fprintf(stderr, "Arg #%d: %s\r\n", i, argv[i]);
+			}
+
+			if (*nativeSourcePath == 0)
+			{
+				fprintf(stderr, "No native source directory specified. Try adding 'natives=<SEXY_NATIVE_SRC_DIR>' to the command line\r\n");
+				return 2; // File not found
+			}
+			else
+			{
+				fprintf(stderr, "Native source directory '%ls' was not identified: \r\n", nativeSourcePath.buf);
+				return 2; // File not found
+			}
+		}
+		PrintError(ex);
+		return ex.ErrorCode() == 0 ? E_FAIL : ex.ErrorCode();
 	}
 
     return 0;
 }
 
-void NativeSysCmdArgCount(NativeCallEnvironment& _nce)
-{
-	Rococo::uint8* _sf = _nce.cpu.SF();
-	ptrdiff_t _offset = 2 * sizeof(size_t);
-	
-	int argCount = s_argument_Count;
-	_offset += sizeof(argCount);
-	WriteOutput(argCount, _sf, -_offset);
-}
-
-FastStringBuilder& ToFastStringBuilder(InterfacePointer ip)
-{
-	ObjectStub* stub = InterfaceToInstance(ip);
-	if (!Eq(stub->Desc->TypeInfo->Name(), "FastStringBuilder"))
-	{
-		Throw(0, "Expecting argument to be of type FastStringBuilder");
-	}
-
-	return *reinterpret_cast<FastStringBuilder*>(stub);
-}
-
-fstring ToString(InterfacePointer ip)
-{
-	ObjectStub* stub = InterfaceToInstance(ip);
-	auto* s = reinterpret_cast<InlineString*>(stub);
-	return fstring{ s->buffer, s->length };
-}
-
-void NativeSysCmdAppendArg(NativeCallEnvironment& _nce)
-{
-	Rococo::uint8* _sf = _nce.cpu.SF();
-	ptrdiff_t _offset = 2 * sizeof(size_t);
-
-	int32 argIndex;
-	_offset += sizeof(argIndex);
-	ReadInput(argIndex, _sf, _offset);
-
-	if (argIndex < 0 || argIndex >= s_argument_Count)
-	{
-		Throw(0, "Argument index out of bounds");
-	}
-
-	InterfacePointer ip;
-	_offset += sizeof(ip);
-	ReadInput(ip, _sf, _offset);
-
-	auto& sb = ToFastStringBuilder(ip);
-	if (sb.capacity > 0)
-	{
-		CopyString(sb.buffer, sb.capacity, s_args[argIndex]);
-	}
-}
-
-void NativeSysCmdAppendError(NativeCallEnvironment& _nce)
-{
-	Rococo::uint8* _sf = _nce.cpu.SF();
-	ptrdiff_t _offset = 2 * sizeof(size_t);
-
-	int32 errNumber;
-	_offset += sizeof(errNumber);
-	ReadInput(errNumber, _sf, _offset);
-
-	InterfacePointer ip;
-	_offset += sizeof(ip);
-	ReadInput(ip, _sf, _offset);
-
-	auto& sb = ToFastStringBuilder(ip);
-	if (sb.capacity > 0)
-	{
-		Rococo::OS::FormatErrorMessage(sb.buffer, sb.capacity, errNumber);
-	}
-}
-
-void NativeSysCmdPrintError(NativeCallEnvironment& _nce)
-{
-	Rococo::uint8* _sf = _nce.cpu.SF();
-	ptrdiff_t _offset = 2 * sizeof(size_t);
-
-	int32 errNumber;
-	_offset += sizeof(errNumber);
-	ReadInput(errNumber, _sf, _offset);
-
-	char err[128];
-	Rococo::OS::FormatErrorMessage(err, sizeof err, errNumber);
-	
-	puts(err);
-}
-
-void NativeSysCmdOpenForRead(NativeCallEnvironment& _nce)
-{
-	Rococo::uint8* _sf = _nce.cpu.SF();
-	ptrdiff_t _offset = 2 * sizeof(size_t);
-
-	InterfacePointer ipFilename;
-	_offset += sizeof(ipFilename);
-	ReadInput(ipFilename, _sf, _offset);
-
-	fstring filename = ToString(ipFilename);
-
-	if (filename.length == 0 || filename.buffer == nullptr)
-	{
-		Throw(0, "Filename was blank");
-	}
-
-	HANDLE hFile = CreateFileA(filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-	if (hFile == INVALID_HANDLE_VALUE)
-	{
-		Throw(GetLastError(), "%s", filename.buffer);
-	}
-
-	_offset += sizeof(hFile);
-	WriteOutput(hFile, _sf, _offset);
-}
-
-void Run(IPublicScriptSystem& ss, cstr sourceCode, cstr targetFile)
+int Run(IPublicScriptSystem& ss, cstr sourceCode, cstr targetFile)
 {
 	Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(sourceCode, -1, Vec2i{ 0,0 }, targetFile);
 	Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
@@ -338,55 +304,72 @@ void Run(IPublicScriptSystem& ss, cstr sourceCode, cstr targetFile)
 	IModule* srcModule = ss.AddTree(*tree);
 
 	auto& object = ss.PublicProgramObject();
-	const INamespace& nsCMD = ss.AddNativeNamespace("Sys.Cmd");
-
-	ss.AddNativeCall(nsCMD, NativeSysCmdArgCount, nullptr, "CmdArgCount -> (Int32 argCount)", __FILE__, __LINE__);
-	ss.AddNativeCall(nsCMD, NativeSysCmdAppendArg, nullptr, "AppendCmdArg (Int32 index)(IStringBuilder sb)->", __FILE__, __LINE__);
-	ss.AddNativeCall(nsCMD, NativeSysCmdAppendError, nullptr, "AppendError (Int32 osErrorNumber)(IStringBuilder sb)->", __FILE__, __LINE__);
-	ss.AddNativeCall(nsCMD, NativeSysCmdPrintError, nullptr, "PrintError (Int32 osErrorNumber)->", __FILE__, __LINE__);
-	ss.AddNativeCall(nsCMD, NativeSysCmdOpenForRead, nullptr, "OpenFileForRead (IString filename)->(Pointer hFile)", __FILE__, __LINE__);
 
 	ss.Compile();
 
 	const INamespace* nsEntryPoint = object.GetRootNamespace().FindSubspace("EntryPoint");
+	if (nsEntryPoint == NULL)
+	{
+		Throw(0, "(namespace EntryPoint) not found");
+	}
 
 	const IFunction* f = nsEntryPoint->FindFunction("Main");
 	if (f == NULL)
 	{
 		Throw(0, "No function defined: EntryPoint.Main ");
 	}
-	else
+	
+	if (f->NumberOfInputs() != 0)
 	{
-		object.SetProgramAndEntryPoint(*f);
+		Throw(0, "function EntryPoint.Main should take no inputs");
 	}
 
+	if (f->NumberOfOutputs() != 1)
+	{
+		Throw(0, "function EntryPoint.Main should have 1 output -> (Int32 exitCode)");
+	}
+
+	auto& output = f->Arg(0);
+	if (output.ResolvedType()->VarType() != VARTYPE_Int32)
+	{
+		Throw(0, "function EntryPoint.Main should have 1 output-> (Int32 exitCode)");
+	}
+	
+	object.SetProgramAndEntryPoint(*f);
+	
 	auto& vm = object.VirtualMachine();
 
-	// Expecting int32 Main(int32 id)
+	// Expecting (function Main -> (Int32 id): ...)
 	vm.Push(0); // Allocate stack space for the int32 result
 	EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+
+	ParseException ex;
+	while (s_logger.TryGetNextException(OUT ex))
+	{
+		PrintParseException(ex);
+	}
 
 	if (result != EXECUTERESULT_TERMINATED)
 	{
 		Throw(0, "Script did not terminate correctly.");
 	}
-	else
-	{
-		int32 result = vm.PopInt32();
-	}
+
+	int32 exitCode = vm.PopInt32();
+	return exitCode;
 }
 
-void Run(IPublicScriptSystem& ss, cstr target)
+int Run(IPublicScriptSystem& ss, cstr target)
 {
 	struct : IEventCallback<cstr>
 	{
 		IPublicScriptSystem* ss;
 		cstr target;
+		int exitCode = 0;
 		void OnEvent(cstr text) override
 		{
 			try
 			{
-				Run(*ss, text, target);
+				exitCode = Run(*ss, text, target);
 			}
 			catch (...)
 			{
@@ -403,5 +386,7 @@ void Run(IPublicScriptSystem& ss, cstr target)
 	Format(sysPath, L"%hs", target);
 
 	Rococo::OS::LoadAsciiTextFile(cb, sysPath);
+
+	return cb.exitCode;
 }
 

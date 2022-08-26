@@ -1,4 +1,5 @@
 #include <rococo.api.h>
+#include <rococo.allocators.h>
 #include "rococo.component.entities.h"
 #include "components.h"
 #include "test.components.h"
@@ -14,6 +15,7 @@
 namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 {
 	using namespace Rococo;
+	using namespace Rococo::Memory;
 	using namespace Rococo::Components;
 // #BEGIN_INSTANCED#
 

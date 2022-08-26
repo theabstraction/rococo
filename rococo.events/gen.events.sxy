@@ -1,0 +1,57 @@
+(namespace EntryPoint)
+
+(alias Main EntryPoint.Main)
+
+(using Sys.IO)
+(using Sys.Type)
+
+(function GenerateEvents (IString hpp)(IString cpp)-> :
+	(Sys.IO.IFileWriter hppWriter = (Sys.IO.WriteToFile hpp))
+	(Sys.IO.IFileWriter cppWriter = (Sys.IO.WriteToFile cpp))
+)
+
+(function Main -> (Int32 exitCode):
+	(#printf "&n--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------&n")
+	(IStringBuilder key = NewTokenBuilder)
+	(IStringBuilder value = NewPathBuilder)
+	
+	(IString cppFile)
+	(IString hppFile)
+
+	(Int32 argc = Sys.IO.GetCmdArgCount)
+	(#for (Int32 i = 0)(i < argc)(i += 1)
+		(key.Clear)		
+		(value.Clear)
+		(Sys.IO.AppendCmdKeyAndValue i key value)
+		(if ((Sys.Type.Strings.IsExactMatch "cpp" key) and (value.Length > 0))
+			(cppFile = (Sys.Type.Memo value))
+		)
+		
+		(if ((Sys.Type.Strings.IsExactMatch "hpp" key) and (value.Length > 0))
+			(hppFile = (Sys.Type.Memo value))
+		)
+	)
+
+	(#printf "cpp: " cppFile "&nhpp: " hppFile "&n")
+
+	(try
+		(
+			(if (not (cppFile ?))
+				(Sys.Throw 0 "Command line missing 'cpp=<CPP-FILEPATH>'")
+			)
+			
+			(if (not (hppFile ?))
+				(Sys.Throw 0 "Command line missing 'hppFile=<HPP-FILEPATH>'")
+			)
+
+			(GenerateEvents cpp hpp)
+		)
+	catch e 
+		(
+			(#printf e.Message "&n")
+			(exitCode = -1)
+		)
+	)
+
+	(#printf "--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------&n")
+)

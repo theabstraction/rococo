@@ -45,103 +45,105 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <rococo.api.h>
-
 using namespace Rococo;
 using namespace Rococo::Sex;
 using namespace Rococo::Compiler;
 
 namespace Rococo
-{ 
-   namespace Sex
-   {
-	   cstr ReadUntil(const Vec2i& pos, const ISourceCode& src)
-	   {
-		   Vec2i origin = src.Origin();
+{
+	namespace OS
+	{
+		void BreakOnThrow(BreakFlag flag);
+	}
+	namespace Sex
+	{
+		cstr ReadUntil(const Vec2i& pos, const ISourceCode& src)
+		{
+			Vec2i origin = src.Origin();
 
-		   int X = origin.x, Y = origin.y;
+			int X = origin.x, Y = origin.y;
 
-		   int i;
-		   for (i = 0; i < src.SourceLength(); ++i)
-		   {
-			   if (Y > pos.y) break;
-			   else if (pos.y == Y && X == pos.x)
-			   {
-				   break;
-			   }
-			   char c = src.SourceStart()[i];
-			   switch (c)
-			   {
-			   case '\r':
-				   break;
-			   case '\n':
-				   Y++;
-				   X = origin.x;
-				   break;
-			   default:
-				   X++;
-			   }
-		   }
+			int i;
+			for (i = 0; i < src.SourceLength(); ++i)
+			{
+				if (Y > pos.y) break;
+				else if (pos.y == Y && X == pos.x)
+				{
+					break;
+				}
+				char c = src.SourceStart()[i];
+				switch (c)
+				{
+				case '\r':
+					break;
+				case '\n':
+					Y++;
+					X = origin.x;
+					break;
+				default:
+					X++;
+				}
+			}
 
-		   return src.SourceStart() + i;
-	   }
+			return src.SourceStart() + i;
+		}
 
-	   void GetSpecimen(char specimen[64], const ISExpression& e)
-	   {
-		   auto& tree = e.Tree();
-		   cstr startPos = ReadUntil(e.Start(), tree.Source());
-		   cstr endPos = ReadUntil(e.End(), tree.Source());
+		void GetSpecimen(char specimen[64], const ISExpression& e)
+		{
+			auto& tree = e.Tree();
+			cstr startPos = ReadUntil(e.Start(), tree.Source());
+			cstr endPos = ReadUntil(e.End(), tree.Source());
 
-		   if (endPos - startPos >= 64)
-		   {
-			   Rococo::SafeFormat(specimen, 64, ("%.28s... ...%.28s"), startPos, endPos - 28);
-		   }
-		   else
-		   {
-			   if (endPos > startPos)
-			   {
-				   memcpy_s(specimen, 63 * sizeof(char), startPos, (endPos - startPos) * sizeof(char));
-			   }
-			   specimen[endPos - startPos] = 0;
-		   }
-	   }
+			if (endPos - startPos >= 64)
+			{
+				Rococo::SafeFormat(specimen, 64, ("%.28s... ...%.28s"), startPos, endPos - 28);
+			}
+			else
+			{
+				if (endPos > startPos)
+				{
+					memcpy_s(specimen, 63 * sizeof(char), startPos, (endPos - startPos) * sizeof(char));
+				}
+				specimen[endPos - startPos] = 0;
+			}
+		}
 
-      ParseException::ParseException() : startPos{ 0,0 }, endPos{ 0, 0 }
-      {
-         srcName[0] = 0;
-         errText[0] = 0;
-         specimenText[0] = 0;
-         source = nullptr;
-      }
+		ParseException::ParseException() : startPos{ 0,0 }, endPos{ 0, 0 }
+		{
+			srcName[0] = 0;
+			errText[0] = 0;
+			specimenText[0] = 0;
+			source = nullptr;
+		}
 
-      ParseException::ParseException(const Vec2i& start, const Vec2i& end, cstr name, cstr err, cstr specimen, const ISExpression* _source) :
-         startPos(start),
-         endPos(end),
-         source(_source)
-      {
-         CopyString(srcName, MAX_ERRMSG_LEN, name);
-         CopyString(errText, MAX_ERRMSG_LEN, err);
-         CopyString(specimenText, MAX_ERRMSG_LEN, specimen);
-      }
+		ParseException::ParseException(const Vec2i& start, const Vec2i& end, cstr name, cstr err, cstr specimen, const ISExpression* _source) :
+			startPos(start),
+			endPos(end),
+			source(_source)
+		{
+			CopyString(srcName, MAX_ERRMSG_LEN, name);
+			CopyString(errText, MAX_ERRMSG_LEN, err);
+			CopyString(specimenText, MAX_ERRMSG_LEN, specimen);
+		}
 
-      void Throw(ParseException& ex)
-      {
-         OS::BreakOnThrow(OS::BreakFlag_SS);
-         throw ex;
-      }
+		void Throw(ParseException& ex)
+		{
+			OS::BreakOnThrow(OS::BreakFlag_SS);
+			throw ex;
+		}
 
-      void Throw(cr_sex e, _Printf_format_string_ cstr format, ...)
-      {
-         va_list args;
-         va_start(args, format);
+		void Throw(cr_sex e, _Printf_format_string_ cstr format, ...)
+		{
+			va_list args;
+			va_start(args, format);
 
-         char message[4096];
-         SafeVFormat(message, sizeof(message), format, args);
+			char message[4096];
+			SafeVFormat(message, sizeof(message), format, args);
 
-         char specimen[64];
-         GetSpecimen(specimen, e);
-         ParseException ex(e.Start(), e.End(), e.Tree().Source().Name(), message, specimen, &e);
-         Throw(ex);
-      }
-   }
+			char specimen[64];
+			GetSpecimen(specimen, e);
+			ParseException ex(e.Start(), e.End(), e.Tree().Source().Name(), message, specimen, &e);
+			Throw(ex);
+		}
+	}
 }

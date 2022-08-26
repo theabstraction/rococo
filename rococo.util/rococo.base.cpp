@@ -4,11 +4,8 @@
 #include <rococo.strings.h>
 
 #include <stdio.h>
-
 #include <list>
 #include <vector>
-
-#include <rococo.api.h>
 
 #define BREAK_ON_THROW 1
 

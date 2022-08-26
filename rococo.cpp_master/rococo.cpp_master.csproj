@@ -5,8 +5,8 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <BaseOutputPath>$(SolutionDir)bin</BaseOutputPath>
-    <BaseIntermediateOutputPath>$(SolutionDir)intermediate\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
+    <BaseOutputPath>$(ProjectDir)..\bin\tools\</BaseOutputPath>
+    <BaseIntermediateOutputPath>$(ProjectDir)..\intermediate</BaseIntermediateOutputPath>
     <Copyright>Copyright (c)2022 Mark Anthony Taylor.</Copyright>
     <RootNamespace>Rococo.CPPMaster</RootNamespace>
     <StartupObject>CPPMasterApplication</StartupObject>

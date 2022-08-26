@@ -101,7 +101,7 @@ namespace Rococo {
 				}
 			}
 
-			Rococo::Throw(GetLastError(), ("SEXY_NATIVE_SRC_DIR. Failed to get default variable: cannot find src_indicator.txt descending from sexy.script.dll"));
+			Rococo::Throw(GetLastError(), "SEXY_NATIVE_SRC_DIR. Failed to get default variable: cannot find src_indicator.txt descending from sexy.script.dll");
 		}
 
 		void GetEnvVariable(wchar_t* data, size_t capacity, const wchar_t* envVariable)

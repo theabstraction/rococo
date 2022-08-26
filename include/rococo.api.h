@@ -11,20 +11,6 @@ namespace DirectX
 
 namespace Rococo
 {
-	ROCOCOAPI IFreeListAllocator
-	{
-		// Returns a buffer with a byte size equal to the value supplied to the fast allocator factory.
-		virtual void* AllocateBuffer() = 0;
-		virtual void FreeBuffer(void* buffer) = 0;
-	};
-
-	ROCOCOAPI IFreeListAllocatorSupervisor : IFreeListAllocator
-	{
-		virtual void Free() = 0;
-	};
-
-	IFreeListAllocatorSupervisor* CreateFreeListAllocator(size_t elementSize);
-
 	namespace OS
 	{
 		void SetCursorVisibility(bool isVisible, Rococo::Windows::IWindow& captureWindow);
@@ -100,8 +86,6 @@ namespace Rococo
 	void Assign(U8FilePath& dest, const wchar_t* wideSrc);
 	void Assign(WideFilePath& dest, const char* src);
 
-	// Maximum fully qualified name length. Names categories include variables a.b.c.d and functions A.B.C.D and methods a.b.c.D
-	enum { MAX_FQ_NAME_LEN = 127 };
 	void ValidateFQNameIdentifier(cstr fqName);
 
 	namespace Windows
@@ -167,22 +151,6 @@ namespace Rococo
 
 	[[nodiscard]] fstring to_fstring(cstr const msg);
 
-#ifdef _WIN32
-	typedef size_t lsize_t;
-#else
-	typedef unsigned long long lsize_t;
-#endif
-
-	inline constexpr lsize_t operator "" _megabytes(lsize_t mb)
-	{
-		return mb * 1024 * 1024;
-	}
-
-	inline constexpr lsize_t operator "" _kilobytes(lsize_t kb)
-	{
-		return kb * 1024;
-	}
-
 	typedef const Matrix4x4& cr_m4x4;
 
 	struct IDebuggerWindow;
@@ -239,11 +207,6 @@ namespace Rococo
 	{
 		[[nodiscard]] IAllocator& CheckedAllocator();
 		[[nodiscard]] IAllocatorSupervisor* CreateBlockAllocator(size_t kilobytes, size_t maxkilobytes);
-	}
-
-	template<typename T, typename U> [[nodiscard]] inline bool HasFlag(T flag, U flags)
-	{
-		return ((int) flags & (int) flag) != 0;
 	}
 }
 

@@ -3,12 +3,11 @@
 #define USE_HSTRING_HASH
 #include <rococo.strings.h>
 #include <rococo.map.h>
+#include <rococo.hashtable.h>
 
 #include <new>
 #include <string.h>
-#include <rococo.hashtable.h>
 #include <vector>
-
 #include <stdlib.h>
 
 namespace Rococo

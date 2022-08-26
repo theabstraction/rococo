@@ -1,6 +1,7 @@
-// Generated at: Aug 25 2022 P UTC
+// Generated at: Aug 26 2022 P UTC
 // Based on the template file: C:\work\rococo\rococo.cpp_master\component.template.cpp
 #include <rococo.api.h>
+#include <rococo.allocators.h>
 #include "rococo.component.entities.h"
 #include "components.h"
 #include "test.components.h"
@@ -16,6 +17,7 @@
 namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 {
 	using namespace Rococo;
+	using namespace Rococo::Memory;
 	using namespace Rococo::Components;
 
 	struct FireComponentTable;

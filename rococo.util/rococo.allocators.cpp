@@ -1,7 +1,8 @@
 #include <rococo.types.h>
-#include <stdlib.h>
+#include <rococo.allocators.h>
+
 #include <rococo.strings.h>
-#include <rococo.api.h>
+#include <stdlib.h>
 #include <vector>
 
 #ifdef _WIN32
@@ -120,7 +121,7 @@ namespace
 	  {
 		  if (capacity > 0x7FFF8 && maxBytes != 0)
 		  {
-			  Throw(GetLastError(), "Heap max must be set to zero (growable heap for allocations this large)", maxBytes);
+			  Throw(GetLastError(), "Heap max must be set to zero (growable heap for allocations this large) %llu", maxBytes);
 		  }
 		  allocCount++;
 		  auto* ptr = HeapAlloc(hHeap, 0, capacity);
@@ -155,9 +156,9 @@ namespace
 
 namespace
 {
-    using namespace Rococo;
+    using namespace Rococo::Memory;
 
-    struct FreeListAllocator : Rococo::IFreeListAllocatorSupervisor
+    struct FreeListAllocator :IFreeListAllocatorSupervisor
     {
         size_t elementSize;
 
@@ -195,28 +196,20 @@ namespace
     };
 }
 
-namespace Rococo
+namespace Rococo::Memory
 {
     IFreeListAllocatorSupervisor* CreateFreeListAllocator(size_t elementSize)
     {
         return new FreeListAllocator(elementSize);
     }
-}
 
-namespace Rococo
-{
-   namespace Memory
-   {
-      IAllocator& CheckedAllocator() 
-      {
-         return s_CheckedAllocator;
-      }
+    IAllocator& CheckedAllocator()
+    {
+        return s_CheckedAllocator;
+    }
 
-      IAllocatorSupervisor* CreateBlockAllocator(size_t kilobytes, size_t maxkilobytes)
-      {
-         return new BlockAllocator(kilobytes, maxkilobytes);
-      }
-
-
-   }
+    IAllocatorSupervisor* CreateBlockAllocator(size_t kilobytes, size_t maxkilobytes)
+    {
+        return new BlockAllocator(kilobytes, maxkilobytes);
+    }
 }

@@ -1,9 +1,13 @@
-#include <rococo.api.h>
 #include <rococo.events.h>
 #include <rococo.hashtable.h>
 #include <vector>
 #include <algorithm>
 #include <stdlib.h>
+
+namespace Rococo
+{
+	[[nodiscard]] uint32 FastHash(cstr text);
+}
 
 namespace
 {

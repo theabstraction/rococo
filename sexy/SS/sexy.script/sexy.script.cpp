@@ -772,6 +772,29 @@ namespace Rococo::Script
 			return *ioSystem;
 		}
 
+		std::vector<HString> commandLineArgs;
+
+		void SetCommandLine(int argc, char* argv[]) override
+		{
+			commandLineArgs.reserve(argc);
+			for (int i = 0; i < argc; i++)
+			{
+				commandLineArgs.push_back(HString(argv[i]));
+			}
+		}
+
+		cstr GetCommandLineArg(int i) override
+		{
+			if (i < 0 || i >= (int32) commandLineArgs.size())
+			{
+				return "";
+			}
+			else
+			{
+				return commandLineArgs[i];
+			}
+		}
+
 		typedef std::unordered_map<cstr, CStringConstant*, std::hash<cstr>, std::equal_to<cstr>, Memory::SexyAllocator<std::pair<cstr const, CStringConstant*>>> TReflectedStrings;
 		TReflectedStrings reflectedStrings;
 

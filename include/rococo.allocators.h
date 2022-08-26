@@ -26,61 +26,72 @@ namespace Rococo
 }
 #endif
 
-namespace Rococo
+namespace Rococo::Memory
 {
-	namespace Memory
+	ROCOCOAPI IFreeListAllocator
 	{
-		// HomogenousAllocator<T> provides constant time allocation and freeing of memory for class T
-		// and should protect against rapid reallocation of such objects from causing memory fragmentation
-		template<class T> class HomogenousAllocator
+		// Returns a buffer with a byte size equal to the value supplied to the fast allocator factory.
+		virtual void* AllocateBuffer() = 0;
+		virtual void FreeBuffer(void* buffer) = 0;
+	};
+
+	ROCOCOAPI IFreeListAllocatorSupervisor : IFreeListAllocator
+	{
+		virtual void Free() = 0;
+	};
+
+	IFreeListAllocatorSupervisor* CreateFreeListAllocator(size_t elementSize);
+
+	// HomogenousAllocator<T> provides constant time allocation and freeing of memory for class T
+	// and should protect against rapid reallocation of such objects from causing memory fragmentation
+	template<class T> class HomogenousAllocator
+	{
+		std::vector<T*> freeAllocs;
+		std::vector<T*> activeAllocs;
+	public:
+		~HomogenousAllocator()
 		{
-			std::vector<T*> freeAllocs;
-			std::vector<T*> activeAllocs;
-		public:
-			~HomogenousAllocator()
+			for (auto i : activeAllocs)
 			{
-				for (auto i : activeAllocs)
-				{
-					_aligned_free(i);
-				}
+				_aligned_free(i);
 			}
+		}
 
-			T* Allocate()
+		T* Allocate()
+		{
+			if (freeAllocs.empty())
 			{
-				if (freeAllocs.empty())
-				{
-					void* buffer = _aligned_malloc(sizeof(T), 16);
-					auto t = (T*)buffer;
-					activeAllocs.push_back(t);
-					return t;
-				}
-				else
-				{
-					T* t = freeAllocs.back();
-					freeAllocs.pop_back();
-					return t;
-				}
+				void* buffer = _aligned_malloc(sizeof(T), 16);
+				auto t = (T*)buffer;
+				activeAllocs.push_back(t);
+				return t;
 			}
+			else
+			{
+				T* t = freeAllocs.back();
+				freeAllocs.pop_back();
+				return t;
+			}
+		}
 
-			void Free(T* t)
+		void Free(T* t)
+		{
+			if (t)
 			{
-				if (t)
-				{
-					freeAllocs.push_back(t);
-				}
+				freeAllocs.push_back(t);
 			}
+		}
 
-			size_t NumberOfFreeItems() const
-			{
-				return freeAllocs.size();
-			}
+		size_t NumberOfFreeItems() const
+		{
+			return freeAllocs.size();
+		}
 
-			size_t NumberOfAllocations() const
-			{
-				return activeAllocs.size();
-			}
-		};
-	}
+		size_t NumberOfAllocations() const
+		{
+			return activeAllocs.size();
+		}
+	};
 }
 
 #endif
