@@ -1,6 +1,7 @@
 // This is the main DLL file.
 
 #include "stdafx.h"
+#include "rococo.debugging.h"
 #include <string.h>
 #include <sexy.strings.h>
 #include <stdlib.h>

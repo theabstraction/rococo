@@ -1780,7 +1780,7 @@ namespace Rococo::Script
 			AddNativeCall(sysNative, FastStringBuilderAppendFloat64, stringPool, "FastStringBuilderAppendFloat64 (Sys.Type.IStringBuilder sb) (Float64 x) ->", __FILE__, __LINE__, false, 0);
 			AddNativeCall(sysNative, FastStringBuilderAppendBool, stringPool, "FastStringBuilderAppendBool (Sys.Type.IStringBuilder sb) (Bool x) ->", __FILE__, __LINE__, false, 0);
 			AddNativeCall(sysNative, FastStringBuilderAppendPointer, stringPool, "FastStringBuilderAppendPointer (Sys.Type.IStringBuilder sb) (Pointer x) ->", __FILE__, __LINE__, false, 0);
-			AddNativeCall(sysNative, FastStringBuilderClear, stringPool, "FastStringBuilderClear (Sys.Type.IStringBuilder sb) ->", __FILE__, __LINE__, false, 0);
+			AddNativeCall(sysNative, FastStringBuilderClear, stringPool, "FastStringBuilderClear (Sys.Type.IStringBuilder sb) ->", __FILE__, __LINE__, false, 0);			
 			AddNativeCall(sysNative, FastStringBuilderAppendAsDecimal, stringPool, "FastStringBuilderAppendAsDecimal (Sys.Type.IStringBuilder sb) ->", __FILE__, __LINE__, false, 0);
 			AddNativeCall(sysNative, FastStringBuilderAppendAsHex, stringPool, "FastStringBuilderAppendAsHex (Sys.Type.IStringBuilder sb) -> ", __FILE__, __LINE__, false, 0);
 			AddNativeCall(sysNative, FastStringBuilderAppendAsSpec, stringPool, "FastStringBuilderAppendAsSpec (Sys.Type.IStringBuilder sb) (Int32 type) -> ", __FILE__, __LINE__, false, 0);
@@ -1788,7 +1788,9 @@ namespace Rococo::Script
 			AddNativeCall(sysNative, FastStringBuilderAppendSubstring, stringPool, "FastStringBuilderAppendSubstring (Sys.Type.IStringBuilder sb) (Pointer s) (Int32 sLen) (Int32 startPos) (Int32 charsToAppend) ->", __FILE__, __LINE__, false, 0);
 			AddNativeCall(sysNative, FastStringBuilderSetLength, stringPool, "FastStringBuilderSetLength (Sys.Type.IStringBuilder sb)(Int32 length) ->", __FILE__, __LINE__, false, 0);
 			AddNativeCall(sysNative, FastStringBuilderSetCase, stringPool, "FastStringBuilderSetCase (Sys.Type.IStringBuilder sb) (Int32 start) (Int32 end) (Bool toUpper)->", __FILE__, __LINE__, false, 0);
+			AddNativeCall(sysNative, StringEndsWith, NULL, "StringEndsWith (IString bigString)(IString suffix) -> (Bool isSo)", __FILE__, __LINE__, false, 0);
 			AddNativeCall(sysNative, StringStartsWith, NULL, "StringStartsWith (IString bigString)(IString prefix) -> (Bool isSo)", __FILE__, __LINE__, false, 0);
+			AddNativeCall(sysNative, FastStringBuilderMakeSysSlashes, stringPool, "MakeSysSlashes (Sys.Type.IStringBuilder sb) ->", __FILE__, __LINE__, false, 0);
 		}
 
 		static void _PublishAPI(NativeCallEnvironment& nce)

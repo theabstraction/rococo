@@ -1,6 +1,9 @@
 // rococo.sexy.cmd.cpp : This file contains the 'main' function. Program execution begins and ends there.
 
 #include <rococo.api.h>
+#include <rococo.io.h>
+#include <rococo.ide.h>
+#include <rococo.sexy.ide.h>
 #include <stdio.h>
 
 #include "sexy.types.h"
@@ -12,7 +15,10 @@
 #include <limits>
 #include <vector>
 
+#include <rococo.libs.inl>
+
 #include "sexy.lib.util.h"
+#include "sexy.lib.script.h"
 #include "sexy.vm.h"
 #include "sexy.vm.cpu.h"
 #include "sexy.script.h"
@@ -178,119 +184,210 @@ int PrintError(IException& ex)
 	return ex.ErrorCode();
 }
 
-int main(int argc, char* argv[])
+using namespace Rococo;
+using namespace Rococo::Windows;
+
+struct ScriptContext : public IEventCallback<ScriptCompileArgs>, public Rococo::Windows::IDE::IScriptExceptionHandler, public OS::IAppControl
 {
-	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
+	int nArgs;
+	char** args;
 
-	s_argument_Count = argc;
+	IInstallation& installation;
 
-	s_args.reserve(argc);
-	for (int i = 0; i < argc; i++)
+	void Free() override
 	{
-		s_args.push_back(argv[i]);
+
 	}
 
-	ProgramInitParameters pip;
-	pip.addCoroutineLib = true;
-	pip.addIO = true;
-	pip.useDebugLibs = IS_USING_DEBUG_LIBS;
-	pip.MaxProgramBytes = 8_megabytes;
+	IDE::EScriptExceptionFlow GetScriptExceptionFlow(cstr source, cstr message) override
+	{
+		return IDE::EScriptExceptionFlow_Terminate;
+	}
 
-#ifdef _DEBUG
-	pip.useDebugLibs = true;
-#endif
+	void OnEvent(ScriptCompileArgs& ssArgs) override
+	{
+		ssArgs.ss.SetCommandLine(nArgs, args);
+	}
+
+	ScriptContext(IInstallation& _installation, int argc, char** argv) :installation(_installation)
+	{
+		this->nArgs = argc;
+		this->args = argv;
+	}
+
+	int32 Execute(cstr pingPath, ScriptPerformanceStats& stats, int32 id, IScriptSystemFactory& ssFactory, IDebuggerWindow& debuggerWindow, ISourceCache& sourceCache)
+	{
+		try
+		{
+			int32 exitCode = IDE::ExecuteSexyScriptLoop(stats,
+				4096_kilobytes,
+				ssFactory,
+				sourceCache,
+				debuggerWindow,
+				pingPath,
+				id,
+				(int32)128_kilobytes,
+				*this,
+				*this,
+				*this,
+				false,
+				nullptr);
+
+			return exitCode;
+		}
+		catch (...)
+		{
+			throw;
+		}
+	}
+
+	bool isRunning = true;
+
+	bool IsRunning() const override
+	{
+		return isRunning;
+	}
+
+	void ShutdownApp() override
+	{
+		isRunning = false;
+	
+	}
+};
+
+int mainProtected(int argc, char* argv[]);
+
+int main(int argc, char* argv[])
+{
+	try
+	{
+		return mainProtected(argc, argv);
+	}
+	catch (IException& ex)
+	{
+		printf("Cmd line: %s\n", GetCommandLineA());
+		PrintError(ex);
+		return ex.ErrorCode() == 0 ? E_FAIL : ex.ErrorCode();
+	}
+	catch (...)
+	{
+		printf("Cmd line: %s\n", GetCommandLineA());
+		printf("Unhandled exception of unknown type\n");
+		return E_FAIL;
+	}
+}
+
+// Search the command line for a name value pair x=y, with x as prefix, and y as the out value result. Search begins at startIndex, and the result index is returned.
+int GetNextCmdArgValue(int argc, char* argv[], int startIndex, cstr prefix, cstr& result)
+{
+	result = nullptr;
+
+	if (startIndex < 0 || startIndex >= argc)
+	{
+		return argc;
+	}
+
+	for (int i = startIndex; i < argc; i++)
+	{
+		cstr arg = argv[i];
+
+		if (StartsWith(arg, prefix))
+		{
+			cstr target = arg + strlen(prefix);
+			result = target;
+			return i;
+		}
+	}
+
+	return argc;
+}
+
+int mainProtected(int argc, char* argv[])
+{
+	cstr natives = nullptr;
+	GetNextCmdArgValue(argc, argv, 0, "natives=", natives);
+	if (natives)
+	{
+		WideFilePath wNativeSrcPath;
+		Format(wNativeSrcPath, L"%hs", natives);
+		Rococo::Script::SetDefaultNativeSourcePath(wNativeSrcPath);
+	}
+
+	cstr installationPath;
+	GetNextCmdArgValue(argc, argv, 0, "installation=", installationPath);
+
+	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
+	AutoFree<IOSSupervisor> os = GetOS();
+	AutoFree<IInstallationSupervisor> installation;
+	
+	if (installationPath == nullptr)
+	{
+		installation = CreateInstallation(L"content.indicator.txt", *os);
+	}
+	else
+	{
+		WideFilePath wInstallation;
+		Format(wInstallation, L"%hs", installationPath);
+		installation = CreateInstallationDirect(wInstallation, *os);
+	}
+
+	ScriptContext sc(*installation, argc, argv);
+
+	AutoFree<IDebuggerWindow> debuggerWindow(Windows::IDE::GetConsoleAsDebuggerWindow());
+	AutoFree<IScriptSystemFactory> ssFactory(CreateScriptSystemFactory_1_5_0_0());
+	AutoFree<ISourceCache> sourceCache(CreateSourceCache(*installation));
 
 	WideFilePath nativeSourcePath = { 0 };
 
 	try
 	{
-		auto prefix = "natives="_fstring;
-		for (int i = 0; i < argc; i++)
+		int count = 0;
+		for (int startIndex = 0; startIndex < argc;)
 		{
-			cstr arg = argv[i];
-
-			if (StartsWith(arg, prefix))
+			cstr result = nullptr;
+			startIndex = GetNextCmdArgValue(argc, argv, startIndex, "run=", result) + 1;
+			if (result)
 			{
-				cstr target = arg + prefix.length;
-				Format(nativeSourcePath, L"%hs", target);
-				pip.NativeSourcePath = nativeSourcePath;
-			}
-		}
-
-		CScriptSystemProxy ssp(pip, s_logger);
-
-		auto& ss = ssp();
-		ss.SetCommandLine(argc, argv);
-
-		try
-		{
-			int count = 0;
-			auto prefix = "run="_fstring;
-			for (int i = 0; i < argc; i++)
-			{
-				cstr arg = argv[i];
-
-				if (StartsWith(arg, prefix))
+				count++;
+				ScriptPerformanceStats stats;
+				int32 exitCode = sc.Execute(result, stats, 0, *ssFactory, *debuggerWindow, *sourceCache);
+				if (exitCode != 0)
 				{
-					count++;
-					cstr target = arg + prefix.length;
-					int exitCode = Run(ss, target);
-					size_t leakCount = ss.PublicProgramObject().FreeLeakedObjects();
-					if (leakCount > 0)
-					{
-						Throw(0, "Warning %llu leaked objects", leakCount);
-					}
+					printf("Script '%s' returned an error code.", result);
 					return exitCode;
 				}
 			}
-			if (count == 0)
+
+			if (startIndex == argc)
 			{
-				Throw(0, "Warning. No script run. Usage %s run=<script-file> <args...>", argv[0]);
+				break;
 			}
 		}
-		catch (STCException& e)
+		if (count == 0)
 		{
-			printf("Error: %s\r\nSource: %s\r\n.Code %d", e.Message(), e.Source(), e.Code());
-			exit(e.Code());
-		}
-		catch (ParseException& e)
-		{
-			PrintParseException(e);
-			exit(-1);
-		}
-		catch (IException& ose)
-		{
-			PrintError(ose);
-			return ose.ErrorCode() == 0 ? E_FAIL : ose.ErrorCode();
-		}
-		catch (std::exception& stdex)
-		{
-			printf("std::exception: %s\r\n", stdex.what());
-			exit(-1);
+			printf("Warning. No script run. Usage %s run=<script-file> <args...>\n", argv[0]);
+			return E_FAIL;
 		}
 	}
-	catch (IException& ex)
+	catch (STCException& e)
 	{
-		if (std::strstr(ex.Message(), "SEXY_NATIVE_SRC_DIR") != NULL)
-		{
-			for (int i = 0; i < argc; ++i)
-			{
-				fprintf(stderr, "Arg #%d: %s\r\n", i, argv[i]);
-			}
-
-			if (*nativeSourcePath == 0)
-			{
-				fprintf(stderr, "No native source directory specified. Try adding 'natives=<SEXY_NATIVE_SRC_DIR>' to the command line\r\n");
-				return 2; // File not found
-			}
-			else
-			{
-				fprintf(stderr, "Native source directory '%ls' was not identified: \r\n", nativeSourcePath.buf);
-				return 2; // File not found
-			}
-		}
-		PrintError(ex);
-		return ex.ErrorCode() == 0 ? E_FAIL : ex.ErrorCode();
+		printf("Error: %s\r\nSource: %s\r\n.Code %d", e.Message(), e.Source(), e.Code());
+		return e.Code();
+	}
+	catch (ParseException& e)
+	{
+		PrintParseException(e);
+		return E_FAIL;
+	}
+	catch (IException& ose)
+	{
+		PrintError(ose);
+		return ose.ErrorCode() == 0 ? E_FAIL : ose.ErrorCode();
+	}
+	catch (std::exception& stdex)
+	{
+		printf("std::exception: %s\r\n", stdex.what());
+		return E_FAIL;
 	}
 
     return 0;

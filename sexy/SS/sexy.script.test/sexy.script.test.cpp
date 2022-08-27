@@ -9703,6 +9703,37 @@ R"((namespace EntryPoint)
 		validate(x == 0);
 	}
 
+	void TestMapKey(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Type)"
+
+			"(function Main -> (Int32 result):"
+			"	(map IString Int32 a)"
+			"	(a.Insert \"Joe\" 90)"
+			"	(node n = (a \"Joe\"))"
+			"   (IString key = n.Key)"
+			"   (result = key.Length)"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		validate(ss.ValidateMemory());
+
+		int x = vm.PopInt32();
+		validate(x == 3);
+	}
+
 	void TestMapOfArchetypes(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -9795,6 +9826,69 @@ R"((namespace EntryPoint)
 
 		int x = vm.PopInt32();
 		validate(x == 1);
+	}
+
+	void TestMapStringInsertByVariable(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Type)"
+
+			"(function Main -> (Int32 result):"
+			"	(map IString Int32 a)"
+			"	(IString joe = \"Joe\")"
+			"	(a.Insert joe 90 )"
+			"	(node n = (a joe))"
+			"   (result = n.Value)"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		validate(ss.ValidateMemory());
+
+		int x = vm.PopInt32();
+		validate(x == 90);
+	}
+
+		void TestMapStringInsertByVariable2(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Type)"
+
+			"(function Main -> (Int32 result):"
+			"	(map IString IString a)"
+			"	(IString joe = \"Joe\")"
+			"	(a.Insert joe \"cool\" )"
+			"	(node n = (a joe))"
+			"   (IString value = & n)"
+			"   (value.Length -> result)"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		validate(ss.ValidateMemory());
+
+		int x = vm.PopInt32();
+		validate(x == 4);
 	}
 
 	void TestMap3(IPublicScriptSystem& ss)
@@ -15061,6 +15155,11 @@ R"(
 	void RunPositiveSuccesses()
 	{
 		validate(true);
+
+		TEST3(TestMapKey);
+
+		TEST3(TestMapStringInsertByVariable);
+		TEST3(TestMapStringInsertByVariable2);
 
 		TEST3(TestTopLevelMacro2);
 		TEST(TestRaw);

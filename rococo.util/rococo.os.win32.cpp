@@ -1696,6 +1696,14 @@ namespace Rococo
 
 	IInstallationSupervisor* CreateInstallationDirect(const wchar_t* contentDirectory, IOS& os)
 	{
+		wchar_t slash[2] = { 0 };
+		slash[0] = Rococo::IO::GetFileSeparator();
+
+		if (!Rococo::EndsWith(contentDirectory, slash))
+		{
+			Throw(0, "Content %ws did not end with %ws", contentDirectory, slash);
+		}
+
 		return new Installation(os, contentDirectory);
 	}
 

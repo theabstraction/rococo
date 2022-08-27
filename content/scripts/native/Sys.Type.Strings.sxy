@@ -238,6 +238,10 @@
 	(Sys.Native.FastStringBuilderThrowIfAppendWouldTruncate this)
 )
 
+(function StringEndsWith (IString bigString) (IString suffix) -> (Bool isSo):
+	(Sys.Native.StringEndsWith bigString suffix -> isSo)
+)
+
 (function StringStartsWith (IString bigString) (IString prefix) -> (Bool isSo):
 	(Sys.Native.StringStartsWith bigString prefix -> isSo)
 )
@@ -271,6 +275,9 @@
 (function FindRightI (IString container) (Int32 rightPos) (IString substring) -> (Int32 position):
 	(Sys.Native.StringFindRight container.Buffer container.Length rightPos substring.Buffer substring.Length true -> position)
 )
+
+(function MakeSysSlashes (IStringBuilder sb) -> : (Sys.Native.MakeSysSlashes sb))
+(alias MakeSysSlashes Sys.Type.Strings.MakeSysSlashes)
 
 (archetype Sys.Type.Strings.ForEachSubstring (IStringBuilder sb) (Int32 index) ->)
 
@@ -328,6 +335,7 @@
 	(alias FindRightI Sys.Type.Strings.FindRightNoCase)
 	(alias StringSplit Sys.Type.Strings.Split)
 	(alias StringStartsWith Sys.Type.Strings.StartsWith)
+	(alias StringEndsWith Sys.Type.Strings.EndsWith)
 
 (namespace Sys.Type.Formatters)
 	(alias FormatDecimal Sys.Type.Formatters.Decimal)
@@ -342,6 +350,13 @@
 (factory Sys.Type.Memo IString (IString s):
 	(construct MemoImpl s)
 )
+
+(function Preserve (IString variant)->(IString invariant):
+	(IString memo (Sys.Type.Memo variant))
+	(invariant = memo)
+)
+
+(alias Preserve Sys.Type.Strings.Preserve)
 
 (factory Sys.Type.AllocAligned IBuffer (Int32 capacity) (Int32 alignment):
 	(construct AlignedHeap capacity alignment)

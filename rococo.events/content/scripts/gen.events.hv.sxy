@@ -1,0 +1,16 @@
+(' #include "!scripts/gen.events.sxy")
+
+(using EntryPoint)
+(alias AddEvents EntryPoint.AddEvents)
+
+(function AddEvents (EventsContext ec) -> :
+	(Target ec "hv.events.cpp" "hv.events.h")
+	
+		(Event ec "Rococo::Events" "SetNextLevel")
+			(Arg ec "cstr" "levelName")
+			
+		(Event ec "Rococo::Events::OS" "Tick")
+			(Arg ec "IUltraClock*" "clock")
+			(ArgWithDefault ec "uint32" "frameSleep" "5")
+)
+

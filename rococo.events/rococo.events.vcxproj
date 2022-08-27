@@ -93,11 +93,11 @@
     <ClInclude Include="framework.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\include\mplat.events.cpp" />
     <ClCompile Include="dllmain.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="gen.events.sxy" />
+    <None Include="content\scripts\gen.events.hv.sxy" />
+    <None Include="content\scripts\gen.events.sxy" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

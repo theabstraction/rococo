@@ -29,6 +29,7 @@ CONFIGURATION = Debug
 LCONFIGURATION = debug
 LIB_UTIL = $(DIR_LIB)rococo.util.debug.lib
 EVENTS_DLL = $(DIR_BIN)rococo.events.debug.dll
+SEXY_CMD =  $(DIR_BIN)rococo.sexy.cmd.debug.exe
 
 !ELSE
 
@@ -36,17 +37,21 @@ CONFIGURATION = Release
 LCONFIGURATION = release
 LIB_UTIL = $(DIR_LIB)rococo.util.lib
 EVENTS_DLL = $(DIR_BIN)rococo.events.dll
+SEXY_CMD =  $(DIR_BIN)rococo.sexy.cmd.exe
 
 !ENDIF
 
 COMPILE_PREREQUISITES = $(ROCOCO)build.prerequisites.$(LCONFIGURATION).bat
 DIR_BIN_SEXY = $(ROCOCO)sexy\Bin\x64$(CONFIGURATION)^\
 BENNY_HILL = $(DIR_BIN_SEXY)sexy.bennyhill.exe
-SEXY_CMD =  $(DIR_BIN_SEXY)rococo.sexy.cmd.exe
 CPP_MASTER = $(DIR_BIN)tools\x64\$(CONFIGURATION)\net6.0\rococo.cpp_master.exe
+NATIVE_SRC = $(DIR_SEXY)NativeSource^\
 
-all: $(BENNY_HILL) $(MPLAT_SXH_H) $(HV_SXH_H) $(MHOST_SXH_H) $(CPP_MASTER) $(MPLAT_COMPONENTS_H) $(EVENTS_DLL)
-	$(SEXY_CMD) run=$(DIR_EVENTS)gen.events.sxy natives=$(DIR_SEXY)NativeSource cpp=$(DIR_EVENTS)mplat.events.cpp hpp=$(DIR_EVENTS)mplat.events.h
+all: $(BENNY_HILL) $(MPLAT_SXH_H) $(HV_SXH_H) $(MHOST_SXH_H) $(CPP_MASTER) $(MPLAT_COMPONENTS_H)
+	copy $(NATIVE_SRC)*.sxy $(DIR_EVENTS)content\scripts\native > NUL
+	copy $(NATIVE_SRC)*.sxy $(ROCOCO)content\scripts\native > NUL
+	$(SEXY_CMD) natives=$(NATIVE_SRC) installation=$(DIR_EVENTS)content\ root=$(DIR_EVENTS) run=!scripts/gen.events.hv.sxy 
+
 clean: 
 	del $(BENNY_HILL)
 	del $(LIB_UTIL)
@@ -72,6 +77,5 @@ $(MPLAT_COMPONENTS_H): $(MPLAT_COMPONENTS_XML) $(DIR_MPLAT)mplat.component.templ
 $(CPP_MASTER): $(ROCOCO)rococo.cpp_master\rococo.cpp_master.main.cs $(ROCOCO)rococo.cpp_master\rococo.cpp_master.component.cs
 	msbuild $(ROCOCO)rococo.cpp_master\rococo.cpp_master.csproj -p:Configuration=$(CONFIGURATION) -t:Build -p:Platform=x64 -m -verbosity:minimal
 
-$(EVENTS_DLL):
-#	$(SEXY_CMD) run=$(DIR_EVENTS)gen.events.sxy natives=$(DIR_SEXY)NativeSource cpp=$(DIR_EVENTS)mplat.events.cpp hpp=$(DIR_EVENTS)mplat.events.h
+
 	

@@ -125,12 +125,12 @@ namespace Rococo
 			  }
 			  else
 			  {
-				  Throw(0, "Not implemented");
+				  Throw(0, "Do not know how to push address of a %s. Not implemented", GetFriendlyName(*def.ResolvedType));
 			  }
 		  }
 		  else
 		  {
-			  Throw(0, "Not implemented");
+              Throw(0, "Do not know how to push output address of a %s. Not implemented", GetFriendlyName(*def.ResolvedType));
 		  }
 	  }
 
@@ -157,7 +157,14 @@ namespace Rococo
 
 		 AddArgVariable("instancePtr", ce, ce.Object.Common().TypePointer());
 
-		 PushAddress(ce, instancedef);
+         try
+         {
+             PushAddress(ce, instancedef);
+         }
+         catch (IException& ex)
+         {
+             Throw(args, "Error pushing '%s' to factory '%s'. Inner message: %s. Try factory constructing an object, and assign the object to the argument", interfaceRefName, factory.Name(), ex.Message());
+         }
         
          ce.Builder.AddSymbol(factoryFunction.Name());
          ce.Builder.Assembler().Append_CallById(section.Id); // pointer to interface should now be in D4
