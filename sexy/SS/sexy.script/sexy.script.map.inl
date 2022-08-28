@@ -83,7 +83,14 @@ namespace Rococo::Script
 
 	size_t GetKeySize(MapImage* m)
 	{
-		return m->KeyType->SizeOfStruct();
+		if (m->KeyType->VarType() == VARTYPE_Derivative)
+		{
+			return sizeof(size_t);
+		}
+		else
+		{
+			return m->KeyType->SizeOfStruct();
+		}
 	}
 
 	uint8* GetValuePointer(MapNode* m)
@@ -283,7 +290,7 @@ namespace Rococo::Script
 			for (auto i = row.begin(); i != row.end(); ++i)
 			{
 				MapNode* x = *i;
-				InlineString* s = (InlineString*)GetKeyPointer(x);
+				InlineString* s = *(InlineString**)GetKeyPointer(x);
 				if (x->HashCode == hashcode && AreEqual(s->buffer, strKey->buffer))
 				{
 					return x;
@@ -294,7 +301,8 @@ namespace Rococo::Script
 
 			row.push_back(newNode);
 
-			AlignedMemcpy(GetKeyPointer(newNode), strKey, strKey->stub.Desc->TypeInfo->SizeOfStruct());
+			auto** writePtr = (InlineString**)GetKeyPointer(newNode);
+			*writePtr = strKey;
 
 			return newNode;
 		}
@@ -312,7 +320,7 @@ namespace Rococo::Script
 			for (auto i = row.begin(); i != row.end(); ++i)
 			{
 				MapNode* x = *i;
-				InlineString* s = (InlineString*)GetKeyPointer(x);
+				InlineString* s = *(InlineString**)GetKeyPointer(x);
 				if (x->HashCode == hashcode && AreEqual(s->buffer, strKey->buffer))
 				{
 					return x;
@@ -649,6 +657,18 @@ namespace Rococo::Script
 		registers[VM::REGISTER_D7].vPtrValue = node;
 	}
 
+	VM_CALLBACK(DoesMapNodeExist)
+	{
+		IScriptSystem& ss = *(IScriptSystem*)context;
+		MapNode* m = (MapNode*)registers[VM::REGISTER_D7].vPtrValue;
+		if (m == nullptr)
+		{
+			ss.ThrowFromNativeCode(0, "Map Node-DoesMapNodeExist failed. Map was null");
+		}
+
+		registers[VM::REGISTER_D7].int32Value = m->IsExistant;
+	}
+
 	VM_CALLBACK(MapNodeGet32)
 	{
 		IScriptSystem& ss = *(IScriptSystem*)context;
@@ -668,10 +688,57 @@ namespace Rococo::Script
 		if (m == nullptr)
 		{
 			ss.ThrowFromNativeCode(0, "Map Node-Get failed. Map was null");
-return;
+			return;
 		}
 		registers[VM::REGISTER_D7].int64Value = *(int64*)GetValuePointer(m);
 		if (!m->IsExistant) ss.ThrowFromNativeCode(-1, ("MapNodeGet64 failed. The node did not represent an entry in the map"));
+	}
+
+	VM_CALLBACK(MapNodeGetKey32)
+	{
+		IScriptSystem& ss = *(IScriptSystem*)context;
+		MapNode* m = (MapNode*)registers[VM::REGISTER_D7].vPtrValue;
+		if (m == nullptr)
+		{
+			ss.ThrowFromNativeCode(0, "Map Node-GetKey32 failed. node was null");
+		}
+		registers[VM::REGISTER_D7].int32Value = *(int32*)GetKeyPointer(m);
+		if (!m->IsExistant) ss.ThrowFromNativeCode(-1, ("MapNodeGetKey32 failed. The node did not represent an entry in the map"));
+	}
+
+	VM_CALLBACK(MapNodeGetKey64)
+	{
+		IScriptSystem& ss = *(IScriptSystem*)context;
+		MapNode* m = (MapNode*)registers[VM::REGISTER_D7].vPtrValue;
+		if (m == nullptr)
+		{
+			ss.ThrowFromNativeCode(0, "Map Node-GetKey64 failed. node was null");
+			return;
+		}
+		registers[VM::REGISTER_D7].int64Value = *(int64*)GetKeyPointer(m);
+		if (!m->IsExistant) ss.ThrowFromNativeCode(-1, ("MapNodeGetKey64 failed. The node did not represent an entry in the map"));
+	}
+
+	VM_CALLBACK(MapNodeGetKeyIString)
+	{
+		IScriptSystem& ss = *(IScriptSystem*)context;
+		MapNode* m = (MapNode*)registers[VM::REGISTER_D7].vPtrValue;
+		if (m == nullptr)
+		{
+			ss.ThrowFromNativeCode(0, "node.Key(IString) failed. node was null");
+			return;
+		}
+
+		InlineString* pKey = *(InlineString**) GetKeyPointer(m);
+		
+		if (pKey->stub.refCount != ObjectStub::NO_REF_COUNT)
+		{
+			pKey->stub.refCount++;
+		}
+		
+		if (!m->IsExistant) ss.ThrowFromNativeCode(-1, ("node.Key(IString) failed. The node did not represent an entry in the map"));
+		
+		registers[VM::REGISTER_D7].vPtrValue = pKey->stub.pVTables;		
 	}
 
 	VM_CALLBACK(MapNodeGetRef)
@@ -1105,6 +1172,7 @@ return;
 				ce.Builder.AddSymbol(field);
 				ce.Builder.AssignVariableToTemp(field, Rococo::ROOT_TEMPDEPTH, 0);
 				outputType = VARTYPE_Bool;
+				return true;
 			}
 			if (AreEqual("Key", methodName))
 			{
@@ -1140,6 +1208,19 @@ return;
 					break;
 				case VARTYPE_Pointer:
 					AppendInvoke(ce, ((int)BITCOUNT_POINTER == 32) ? GetMapCallbacks(ce).MapNodeGetKey32 : GetMapCallbacks(ce).MapNodeGetKey64, s);
+					break;
+				case VARTYPE_Derivative:
+					{
+						auto& keyType = mnd.mapdef.KeyType;
+						if (keyType != ce.Object.Common().SysTypeIString().NullObjectType())
+						{
+							Throw(0, "Do not know how to retrieve key for map, with type: %s", GetFriendlyName(keyType));
+						}
+					}
+
+					// Reference count logic should not matter here, because maps with IString as a key use CStringConstant which disables reference counting
+
+					AppendInvoke(ce, GetMapCallbacks(ce).MapNodeGetKeyIString, s);
 					break;
 				default:
 					Throw(s, "Unexpected type in map invoke");

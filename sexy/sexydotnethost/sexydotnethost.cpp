@@ -78,8 +78,8 @@ namespace SexyDotNet { namespace Host
 			String^ msg = gcnew String(s, 0, StringLength(s), Encoding::ASCII);				
 			String^ name = gcnew String(n, 0, StringLength(n), Encoding::ASCII);
 
-			SourceLocation start = SourceLocation(e.Start().x,e.Start().y);
-			SourceLocation end = SourceLocation(e.End().x,e.End().y);
+			SourceLocation start = SourceLocation(e.Start().x+1,e.Start().y+1);
+			SourceLocation end = SourceLocation(e.End().x+1,e.End().y+1);
 			throw gcnew CompileError(nullptr, name, msg, start, end);
 		}
 	}

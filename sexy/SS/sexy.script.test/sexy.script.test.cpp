@@ -9715,8 +9715,10 @@ R"((namespace EntryPoint)
 			"	(map IString Int32 a)"
 			"	(a.Insert \"Joe\" 90)"
 			"	(node n = (a \"Joe\"))"
-			"   (IString key = n.Key)"
-			"   (result = key.Length)"
+			"   (if n"
+			"     (IString key = n.Key)"
+			"     (result = key.Length)"
+			"   )"
 			")";
 
 		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
@@ -9732,6 +9734,66 @@ R"((namespace EntryPoint)
 
 		int x = vm.PopInt32();
 		validate(x == 3);
+	}
+
+	void TestMapGetKey(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Type)"
+
+			"(function Main -> (Int32 result):"
+			"	(map Int32 IString a)"
+			"	(a.Insert 90 \"Joe\")"
+			"	(node n = (a 90))"
+			"   (result = n.Key)"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		validate(ss.ValidateMemory());
+
+		int x = vm.PopInt32();
+		validate(x == 90);
+	}
+
+	void TestMapGetKey64(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Type)"
+
+			"(function Main -> (Float64 result):"
+			"	(map Float64 IString a)"
+			"	(a.Insert 90 \"Joe\")"
+			"	(node n = (a 90))"
+			"   (result = n.Key)"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0.0); // Allocate stack space for the float64 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		validate(ss.ValidateMemory());
+
+		double x = vm.PopFloat64();
+		validate(x == 90.0);
 	}
 
 	void TestMapOfArchetypes(IPublicScriptSystem& ss)
@@ -15031,6 +15093,15 @@ R"(
 
 	   TEST(TestReturnArrayRefAndIgnore);
 
+	   TEST(TestMapOverwriteValue);
+
+	   TEST3(TestMapKey);
+	   TEST3(TestMapGetKey);
+	   TEST3(TestMapGetKey64);
+
+	   TEST3(TestMapStringInsertByVariable);
+	   TEST3(TestMapStringInsertByVariable2);
+
 	   TEST(TestMap);
 	   TEST(TestMap2);
 	   TEST(TestMap3);
@@ -15157,9 +15228,6 @@ R"(
 		validate(true);
 
 		TEST3(TestMapKey);
-
-		TEST3(TestMapStringInsertByVariable);
-		TEST3(TestMapStringInsertByVariable2);
 
 		TEST3(TestTopLevelMacro2);
 		TEST(TestRaw);
