@@ -878,21 +878,15 @@ namespace
 	};
 }
 
-namespace Rococo
+namespace Rococo::Windows::IDE
 {
-   namespace Windows
-   {
-      namespace IDE
-      {
-         IDebuggerWindow* CreateDebuggerWindow(IWindow& parent, IEventCallback<MenuCommand>& menuHandler, OS::IAppControl& appControl)
-         {
-            return TabbedDebuggerWindowHandler::Create(parent, menuHandler, appControl);
-         }
+    IDebuggerWindow* CreateDebuggerWindow(IWindow& parent, IEventCallback<MenuCommand>& menuHandler, OS::IAppControl& appControl)
+    {
+		return TabbedDebuggerWindowHandler::Create(parent, menuHandler, appControl);
+    }
 
-		 IDebuggerEventHandler* CreateDebuggerEventHandler(IInstallation& installation, IWindow& hOwner)
-		 {
-			 return new DebuggerEventHandler(installation, hOwner);
-		 }
-      }
-   }
+	IDebuggerEventHandler* CreateDebuggerEventHandler(IInstallation& installation, IWindow& hOwner)
+	{
+		return new DebuggerEventHandler(installation, hOwner);
+	}
 }

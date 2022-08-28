@@ -11,6 +11,7 @@
 #include "sexy.compiler.public.h"
 
 #include <rococo.os.win32.h>
+#include <rococo.window.h>
 
 #include <limits>
 #include <vector>
@@ -189,6 +190,7 @@ using namespace Rococo::Windows;
 
 struct ScriptContext : public IEventCallback<ScriptCompileArgs>, public Rococo::Windows::IDE::IScriptExceptionHandler, public OS::IAppControl
 {
+	bool isInteractive;
 	int nArgs;
 	char** args;
 
@@ -201,7 +203,7 @@ struct ScriptContext : public IEventCallback<ScriptCompileArgs>, public Rococo::
 
 	IDE::EScriptExceptionFlow GetScriptExceptionFlow(cstr source, cstr message) override
 	{
-		return IDE::EScriptExceptionFlow_Terminate;
+		return isRunning && isInteractive ? IDE::EScriptExceptionFlow_Retry : IDE::EScriptExceptionFlow_Terminate;
 	}
 
 	void OnEvent(ScriptCompileArgs& ssArgs) override
@@ -302,8 +304,83 @@ int GetNextCmdArgValue(int argc, char* argv[], int startIndex, cstr prefix, cstr
 	return argc;
 }
 
+struct AppControl : public OS::IAppControlSupervisor
+{
+	void ShutdownApp() override
+	{
+		isRunning = false;
+		exit(E_FAIL);
+	}
+
+	bool IsRunning() const
+	{
+		return isRunning;
+	}
+
+	void Free() override
+	{
+		
+	}
+
+	bool isRunning = true;
+};
+
+enum class ESwitch
+{
+	Interactive
+};
+
+struct SwitchBind
+{
+	char key;
+	ESwitch value;
+	cstr help;
+};
+
+SwitchBind switchMap[] =
+{
+	{'I', ESwitch::Interactive, "(I)nteractive Mode - use an interactive debugger if an error occurs or a (debug) directive is hit." }
+};
+
+bool HasSwitch(cstr switches, ESwitch switchValue)
+{
+	for (cstr p = switches; *p != 0; p++)
+	{
+		for (auto& i : switchMap)
+		{
+			if (i.key == *p && i.value == switchValue)
+			{
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
 int mainProtected(int argc, char* argv[])
 {
+	if (argc == 1)
+	{
+		printf("Usage: <%s> natives=<NATIVE_SRC_PATH> switches=<switch-characters> installation=<CONTENT_FOLDER> run=<SEXY_SCRIPT_FILE>\n", argv[0]);
+		printf("Known switches:\n");
+
+		for (auto& s : switchMap)
+		{
+			printf("\t%c: %s\n", s.key, s.help);
+		}
+
+		return 0;
+	}
+
+	struct ConsoleWindow : public IWindow
+	{
+		operator HWND() const override
+		{
+			return GetConsoleWindow();
+		}
+	} console;
+
 	cstr natives = nullptr;
 	GetNextCmdArgValue(argc, argv, 0, "natives=", natives);
 	if (natives)
@@ -311,6 +388,18 @@ int mainProtected(int argc, char* argv[])
 		WideFilePath wNativeSrcPath;
 		Format(wNativeSrcPath, L"%hs", natives);
 		Rococo::Script::SetDefaultNativeSourcePath(wNativeSrcPath);
+	}
+
+	bool isInteractive = false;
+
+	cstr switches = nullptr;
+	GetNextCmdArgValue(argc, argv, 0, "switches=", switches);
+	if (switches)
+	{
+		if (HasSwitch(switches, ESwitch::Interactive))
+		{
+			isInteractive = true;
+		}
 	}
 
 	cstr installationPath;
@@ -332,8 +421,31 @@ int mainProtected(int argc, char* argv[])
 	}
 
 	ScriptContext sc(*installation, argc, argv);
+	sc.isInteractive = isInteractive;
 
-	AutoFree<IDebuggerWindow> debuggerWindow(Windows::IDE::GetConsoleAsDebuggerWindow());
+	if (isInteractive)
+	{
+		enum
+		{
+			GWL_HINSTANCE = -6
+		};
+
+		Rococo::Windows::InitRococoWindows(NULL, NULL, NULL, NULL, NULL);
+	}
+
+	AutoFree<Windows::IDE::IDebuggerEventHandler> debuggerEventHandler(Windows::IDE::CreateDebuggerEventHandler(*installation, console));
+	AppControl appControl;
+
+	AutoFree<IDebuggerWindow> debuggerWindow;
+	if (isInteractive)
+	{
+		debuggerWindow = Windows::IDE::CreateDebuggerWindow(console, debuggerEventHandler->GetMenuCallback(), appControl);
+	}
+	else
+	{
+		debuggerWindow = Windows::IDE::GetConsoleAsDebuggerWindow();
+	}
+
 	AutoFree<IScriptSystemFactory> ssFactory(CreateScriptSystemFactory_1_5_0_0());
 	AutoFree<ISourceCache> sourceCache(CreateSourceCache(*installation));
 

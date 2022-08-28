@@ -97,10 +97,12 @@ namespace Rococo
 
 	  void InitRococoWindows(HINSTANCE _hInstance, HICON _hLargeIcon, HICON _hSmallIcon, const LOGFONTA* titleFont, const LOGFONTA* controlFont)
 	  {
+		  /*
 		  if (_hInstance == nullptr)
 		  {
 			  Throw(0, "Rococo::Windows::InitRococoWindows(...): _hInstance was nul");
 		  }
+		  */
 
 		  hThisInstance = _hInstance;
 		  hLargeIcon = _hLargeIcon;
@@ -155,10 +157,12 @@ namespace Rococo
 
 		void ValidateInit()
 		{
+			/*
 			if (hThisInstance == nullptr)
 			{
 				Throw(0, "Rococo::Windows::InitRococoWindows(...) should first be called before using functions in the Rococo.windows library.");
 			}
+			*/
 		}
 
 		GuiRect ClientArea(HWND hWnd)

@@ -44,7 +44,7 @@
 		(IStringBuilder hppData = & hppKeyValue)
 
 		(Sys.IO.IFileWriter hppWriter = (Sys.IO.WriteToFile hppPath))
-		(cppWriter hppData)		
+		(hppWriter hppData)		
 	)
 )
 
@@ -75,7 +75,7 @@
 	
 	(node cppRef = (ec.cppToBuilder cppPath))
 	
-	(if (cppRef.Exists)
+	(if (cppRef)
 		(IStringBuilder refBuilder = & cppRef)
 		(ec.currentCppBuilder = refBuilder)
 	else
@@ -86,7 +86,7 @@
 	
 	(node hppRef = (ec.hppToBuilder hppPath))
 	
-	(if (hppRef.Exists)
+	(if (hppRef)
 		(IStringBuilder refBuilder = & hppRef)
 		(ec.currentHppBuilder = refBuilder)
 	else

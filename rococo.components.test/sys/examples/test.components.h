@@ -1,6 +1,6 @@
 #pragma once
 
-// Generated at: Aug 27 2022 19:32 UTC
+// Generated at: Aug 28 2022 20:40 UTC
 // Based on the template file: C:\work\rococo\rococo.cpp_master\component.template.h
 #include <rococo.types.h>
 #include <rococo.component.entities.h>
