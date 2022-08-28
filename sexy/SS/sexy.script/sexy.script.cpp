@@ -995,6 +995,7 @@ namespace Rococo::Script
 			mapCallbacks.NodeEnumNext = core.RegisterCallback(OnInvokeMapNodeEnumNext, this, "MapNodeEnumNext");
 			mapCallbacks.MapGetHead = core.RegisterCallback(OnInvokeMapGetHead, this, "MapGetHead");
 			mapCallbacks.MapInit = core.RegisterCallback(OnInvokeMapInit, this, "MapInit");
+			mapCallbacks.DoesMapNodeExist = core.RegisterCallback(OnInvokeDoesMapNodeExist, this, "DoesMapNodeExist");
 			mapCallbacks.MapInsert32 = core.RegisterCallback(OnInvokeMapInsert32, this, "MapInsert32");
 			mapCallbacks.MapInsert64 = core.RegisterCallback(OnInvokeMapInsert64, this, "MapInsert64");
 			mapCallbacks.MapInsertValueByRef = core.RegisterCallback(OnInvokeMapInsertValueByRef, this, "MapInsertValueByRef");
@@ -1003,6 +1004,9 @@ namespace Rococo::Script
 			mapCallbacks.MapTryGet = core.RegisterCallback(OnInvokeMapTryGet, this, "MapTryGet");
 			mapCallbacks.MapNodeGet32 = core.RegisterCallback(OnInvokeMapNodeGet32, this, "MapNodeGet32");
 			mapCallbacks.MapNodeGet64 = core.RegisterCallback(OnInvokeMapNodeGet64, this, "MapNodeGet64");
+			mapCallbacks.MapNodeGetKey32 = core.RegisterCallback(OnInvokeMapNodeGetKey32, this, "MapNodeGetKey32");
+			mapCallbacks.MapNodeGetKey64 = core.RegisterCallback(OnInvokeMapNodeGetKey64, this, "MapNodeGetKey64");
+			mapCallbacks.MapNodeGetKeyIString = core.RegisterCallback(OnInvokeMapNodeGetKeyIString, this, "MapNodeGetKeyIString");
 			mapCallbacks.MapNodeGetRef = core.RegisterCallback(OnInvokeMapNodeGetRef, this, "MapNodeGetRef");
 			mapCallbacks.MapNodePop = core.RegisterCallback(OnInvokeMapNodePop, this, "MapNodePop");
 			mapCallbacks.MapNodeReleaseRef = core.RegisterCallback(OnInvokeMapNodeReleaseRef, this, "MapNodeReleaseRef");
@@ -1780,7 +1784,7 @@ namespace Rococo::Script
 			AddNativeCall(sysNative, FastStringBuilderAppendFloat64, stringPool, "FastStringBuilderAppendFloat64 (Sys.Type.IStringBuilder sb) (Float64 x) ->", __FILE__, __LINE__, false, 0);
 			AddNativeCall(sysNative, FastStringBuilderAppendBool, stringPool, "FastStringBuilderAppendBool (Sys.Type.IStringBuilder sb) (Bool x) ->", __FILE__, __LINE__, false, 0);
 			AddNativeCall(sysNative, FastStringBuilderAppendPointer, stringPool, "FastStringBuilderAppendPointer (Sys.Type.IStringBuilder sb) (Pointer x) ->", __FILE__, __LINE__, false, 0);
-			AddNativeCall(sysNative, FastStringBuilderClear, stringPool, "FastStringBuilderClear (Sys.Type.IStringBuilder sb) ->", __FILE__, __LINE__, false, 0);
+			AddNativeCall(sysNative, FastStringBuilderClear, stringPool, "FastStringBuilderClear (Sys.Type.IStringBuilder sb) ->", __FILE__, __LINE__, false, 0);			
 			AddNativeCall(sysNative, FastStringBuilderAppendAsDecimal, stringPool, "FastStringBuilderAppendAsDecimal (Sys.Type.IStringBuilder sb) ->", __FILE__, __LINE__, false, 0);
 			AddNativeCall(sysNative, FastStringBuilderAppendAsHex, stringPool, "FastStringBuilderAppendAsHex (Sys.Type.IStringBuilder sb) -> ", __FILE__, __LINE__, false, 0);
 			AddNativeCall(sysNative, FastStringBuilderAppendAsSpec, stringPool, "FastStringBuilderAppendAsSpec (Sys.Type.IStringBuilder sb) (Int32 type) -> ", __FILE__, __LINE__, false, 0);
@@ -1788,7 +1792,9 @@ namespace Rococo::Script
 			AddNativeCall(sysNative, FastStringBuilderAppendSubstring, stringPool, "FastStringBuilderAppendSubstring (Sys.Type.IStringBuilder sb) (Pointer s) (Int32 sLen) (Int32 startPos) (Int32 charsToAppend) ->", __FILE__, __LINE__, false, 0);
 			AddNativeCall(sysNative, FastStringBuilderSetLength, stringPool, "FastStringBuilderSetLength (Sys.Type.IStringBuilder sb)(Int32 length) ->", __FILE__, __LINE__, false, 0);
 			AddNativeCall(sysNative, FastStringBuilderSetCase, stringPool, "FastStringBuilderSetCase (Sys.Type.IStringBuilder sb) (Int32 start) (Int32 end) (Bool toUpper)->", __FILE__, __LINE__, false, 0);
+			AddNativeCall(sysNative, StringEndsWith, NULL, "StringEndsWith (IString bigString)(IString suffix) -> (Bool isSo)", __FILE__, __LINE__, false, 0);
 			AddNativeCall(sysNative, StringStartsWith, NULL, "StringStartsWith (IString bigString)(IString prefix) -> (Bool isSo)", __FILE__, __LINE__, false, 0);
+			AddNativeCall(sysNative, FastStringBuilderMakeSysSlashes, stringPool, "MakeSysSlashes (Sys.Type.IStringBuilder sb) ->", __FILE__, __LINE__, false, 0);
 		}
 
 		static void _PublishAPI(NativeCallEnvironment& nce)

@@ -529,6 +529,8 @@ namespace Rococo
          ID_API_CALLBACK ListGetLength;
          ID_API_CALLBACK NodeGet32;
          ID_API_CALLBACK NodeGet64;
+         ID_API_CALLBACK NodeGetKey32;
+         ID_API_CALLBACK NodeGetKey64;
 		 ID_API_CALLBACK NodeGetInterface;
          ID_API_CALLBACK NodeGetElementRef;
          ID_API_CALLBACK NodeNext;
@@ -552,6 +554,7 @@ namespace Rococo
 
       struct MapCallbacks
       {
+         ID_API_CALLBACK DoesMapNodeExist;
          ID_API_CALLBACK MapAssign;
          ID_API_CALLBACK MapInit;
          ID_API_CALLBACK MapInsert32;
@@ -563,6 +566,9 @@ namespace Rococo
          ID_API_CALLBACK MapTryGet;
          ID_API_CALLBACK MapNodeGet32;
          ID_API_CALLBACK MapNodeGet64;
+         ID_API_CALLBACK MapNodeGetKey32;
+         ID_API_CALLBACK MapNodeGetKey64;
+         ID_API_CALLBACK MapNodeGetKeyIString;
          ID_API_CALLBACK MapNodeGetRef;
          ID_API_CALLBACK MapNodePop;
          ID_API_CALLBACK MapGetHead;

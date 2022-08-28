@@ -129,7 +129,15 @@ namespace Rococo
       {
          for (int i = 0; i < classspec.InterfaceCount(); ++i)
          {
-            if (&classspec.GetInterface(i) == &interface) return true;
+             for (auto* subInterface = &classspec.GetInterface(i); subInterface != nullptr; subInterface = subInterface->Base())
+             {
+                 if (subInterface == &interface)
+                 {
+                     return true;
+                 }
+             }
+
+             return true;
          }
 
          return false;

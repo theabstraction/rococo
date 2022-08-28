@@ -1169,10 +1169,32 @@ namespace Rococo
             }
             else
             {
-               if (VARTYPE_Bool == ce.Builder.GetVarType(token))
+               auto varType = ce.Builder.GetVarType(token);
+               if (VARTYPE_Bool == varType)
                {
                   ce.Builder.AssignVariableToTemp(token, Rococo::ROOT_TEMPDEPTH);
                   return true;
+               } 
+               else if (varType == VARTYPE_Derivative)
+               {
+                   MemberDef def;
+                   if (!ce.Builder.TryGetVariableByName(def, token))
+                   {
+                       if (expected) Throw(s, "Cannot interpret '%s' as a variable. Not implemented", token);
+                       else return false;
+                   }
+        
+                   if (Eq(def.ResolvedType->Name(), "_MapNode"))
+                   {
+                       // Node ref to D7
+                       AddSymbol(ce.Builder, "%s", token);
+                       ce.Builder.AssignVariableToTemp(token, Rococo::ROOT_TEMPDEPTH);
+                       AppendInvoke(ce, GetMapCallbacks(ce).DoesMapNodeExist, s);
+                       return true;
+                   }
+
+                   if (expected) Throw(s, "(%s %s) -> Bool. Not implemented", GetFriendlyName(*def.ResolvedType), token);
+                   else return false;
                }
                else
                {

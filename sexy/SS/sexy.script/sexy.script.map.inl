@@ -83,7 +83,14 @@ namespace Rococo::Script
 
 	size_t GetKeySize(MapImage* m)
 	{
-		return m->KeyType->SizeOfStruct();
+		if (m->KeyType->VarType() == VARTYPE_Derivative)
+		{
+			return sizeof(size_t);
+		}
+		else
+		{
+			return m->KeyType->SizeOfStruct();
+		}
 	}
 
 	uint8* GetValuePointer(MapNode* m)
@@ -283,7 +290,7 @@ namespace Rococo::Script
 			for (auto i = row.begin(); i != row.end(); ++i)
 			{
 				MapNode* x = *i;
-				InlineString* s = (InlineString*)GetKeyPointer(x);
+				InlineString* s = *(InlineString**)GetKeyPointer(x);
 				if (x->HashCode == hashcode && AreEqual(s->buffer, strKey->buffer))
 				{
 					return x;
@@ -294,7 +301,8 @@ namespace Rococo::Script
 
 			row.push_back(newNode);
 
-			AlignedMemcpy(GetKeyPointer(newNode), strKey, strKey->stub.Desc->TypeInfo->SizeOfStruct());
+			auto** writePtr = (InlineString**)GetKeyPointer(newNode);
+			*writePtr = strKey;
 
 			return newNode;
 		}
@@ -312,7 +320,7 @@ namespace Rococo::Script
 			for (auto i = row.begin(); i != row.end(); ++i)
 			{
 				MapNode* x = *i;
-				InlineString* s = (InlineString*)GetKeyPointer(x);
+				InlineString* s = *(InlineString**)GetKeyPointer(x);
 				if (x->HashCode == hashcode && AreEqual(s->buffer, strKey->buffer))
 				{
 					return x;
@@ -649,6 +657,18 @@ namespace Rococo::Script
 		registers[VM::REGISTER_D7].vPtrValue = node;
 	}
 
+	VM_CALLBACK(DoesMapNodeExist)
+	{
+		IScriptSystem& ss = *(IScriptSystem*)context;
+		MapNode* m = (MapNode*)registers[VM::REGISTER_D7].vPtrValue;
+		if (m == nullptr)
+		{
+			ss.ThrowFromNativeCode(0, "Map Node-DoesMapNodeExist failed. Map was null");
+		}
+
+		registers[VM::REGISTER_D7].int32Value = m->IsExistant;
+	}
+
 	VM_CALLBACK(MapNodeGet32)
 	{
 		IScriptSystem& ss = *(IScriptSystem*)context;
@@ -672,6 +692,53 @@ namespace Rococo::Script
 		}
 		registers[VM::REGISTER_D7].int64Value = *(int64*)GetValuePointer(m);
 		if (!m->IsExistant) ss.ThrowFromNativeCode(-1, ("MapNodeGet64 failed. The node did not represent an entry in the map"));
+	}
+
+	VM_CALLBACK(MapNodeGetKey32)
+	{
+		IScriptSystem& ss = *(IScriptSystem*)context;
+		MapNode* m = (MapNode*)registers[VM::REGISTER_D7].vPtrValue;
+		if (m == nullptr)
+		{
+			ss.ThrowFromNativeCode(0, "Map Node-GetKey32 failed. node was null");
+		}
+		registers[VM::REGISTER_D7].int32Value = *(int32*)GetKeyPointer(m);
+		if (!m->IsExistant) ss.ThrowFromNativeCode(-1, ("MapNodeGetKey32 failed. The node did not represent an entry in the map"));
+	}
+
+	VM_CALLBACK(MapNodeGetKey64)
+	{
+		IScriptSystem& ss = *(IScriptSystem*)context;
+		MapNode* m = (MapNode*)registers[VM::REGISTER_D7].vPtrValue;
+		if (m == nullptr)
+		{
+			ss.ThrowFromNativeCode(0, "Map Node-GetKey64 failed. node was null");
+			return;
+		}
+		registers[VM::REGISTER_D7].int64Value = *(int64*)GetKeyPointer(m);
+		if (!m->IsExistant) ss.ThrowFromNativeCode(-1, ("MapNodeGetKey64 failed. The node did not represent an entry in the map"));
+	}
+
+	VM_CALLBACK(MapNodeGetKeyIString)
+	{
+		IScriptSystem& ss = *(IScriptSystem*)context;
+		MapNode* m = (MapNode*)registers[VM::REGISTER_D7].vPtrValue;
+		if (m == nullptr)
+		{
+			ss.ThrowFromNativeCode(0, "node.Key(IString) failed. node was null");
+			return;
+		}
+
+		InlineString* pKey = *(InlineString**) GetKeyPointer(m);
+		
+		if (pKey->stub.refCount != ObjectStub::NO_REF_COUNT)
+		{
+			pKey->stub.refCount++;
+		}
+		
+		if (!m->IsExistant) ss.ThrowFromNativeCode(-1, ("node.Key(IString) failed. The node did not represent an entry in the map"));
+		
+		registers[VM::REGISTER_D7].vPtrValue = pKey->stub.pVTables;		
 	}
 
 	VM_CALLBACK(MapNodeGetRef)
@@ -743,14 +810,37 @@ namespace Rococo::Script
 		AppendInvoke(ce, GetMapCallbacks(ce).MapNodePop, s);
 	}
 
+	bool HasInterface(const IInterface& interface, const IStructure& classspec);
+
 	void CompileAsKeyToTemp(CCompileEnvironment& ce, cr_sex keyExpr, const MapDef& def, int tempIndex)
 	{
-		if (def.KeyType == ce.Object.Common().SysTypeIString().NullObjectType())
+		auto& typeIStringInterface = ce.Object.Common().SysTypeIString();
+		auto& typeIString = typeIStringInterface.NullObjectType();
+		if (def.KeyType == typeIString)
 		{
-			if (!TryCompileStringLiteralInputToTemp(ce, keyExpr, Rococo::ROOT_TEMPDEPTH + 1, ce.Object.Common().SysTypeIString().NullObjectType())) // key ptr goes to D8
+			if (TryCompileStringLiteralInputToTemp(ce, keyExpr, 4, typeIString)) // key ptr goes to D8
 			{
-				Throw(keyExpr, ("Expecting string literal as key"));
+				return;
 			}
+
+			if (!IsAtomic(keyExpr))
+			{
+				Throw(keyExpr, "Expecting atomic expression");
+			}
+
+			cstr keyName = keyExpr.String()->Buffer;
+
+			MemberDef def;
+			if (ce.Builder.TryGetVariableByName(def, keyName))
+			{
+				if (HasInterface(typeIStringInterface, *def.ResolvedType))
+				{
+					ce.Builder.AssignVariableToTemp(keyName, 4);
+					return;
+				}
+			}
+
+			Throw(keyExpr, "Could not parse key as an IString");
 		}
 		else
 		{
@@ -1052,14 +1142,21 @@ namespace Rococo::Script
 	{
 		if (instanceStruct == ce.StructMap())
 		{
-			if (!IsAtomic(s) && s.NumberOfElements() != 1) return false;
+			if (AreEqual(methodName, "Length"))
+			{
+				if (!IsAtomic(s) && s.NumberOfElements() != 1) return false;
 
-			ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D13, BITCOUNT_POINTER);
-			AddSymbol(ce.Builder, "%s -> D13", instance);
-			ce.Builder.AssignVariableToTemp(instance, 9, 0); // Reference to the map goes to D13
-			AppendInvoke(ce, GetMapCallbacks(ce).MapGetLength, s);
-			ce.Builder.Assembler().Append_RestoreRegister(VM::REGISTER_D13, BITCOUNT_POINTER);
-			return true;
+				ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D13, BITCOUNT_POINTER);
+				AddSymbol(ce.Builder, "%s -> D13", instance);
+				ce.Builder.AssignVariableToTemp(instance, 9, 0); // Reference to the map goes to D13
+				AppendInvoke(ce, GetMapCallbacks(ce).MapGetLength, s);
+				ce.Builder.Assembler().Append_RestoreRegister(VM::REGISTER_D13, BITCOUNT_POINTER);
+				return true;
+			}
+			else
+			{
+				Throw(s, "%s.%s: The only known method for a map in this context is Length", instance, methodName);
+			}
 		}
 		else if (instanceStruct == ce.Object.Common().TypeMapNode())
 		{
@@ -1075,6 +1172,60 @@ namespace Rococo::Script
 				ce.Builder.AddSymbol(field);
 				ce.Builder.AssignVariableToTemp(field, Rococo::ROOT_TEMPDEPTH, 0);
 				outputType = VARTYPE_Bool;
+				return true;
+			}
+			if (AreEqual("Key", methodName))
+			{
+				ce.Builder.AssignVariableRefToTemp(instance, Rococo::ROOT_TEMPDEPTH, 0); // node goes to D7
+
+				VARTYPE valType = mnd.mapdef.KeyType.VarType();
+
+				if (returnType != VARTYPE_AnyNumeric && valType != returnType)
+				{
+					sexstringstream<1024> streamer;
+					streamer.sb << "The node is for a map with key type " << GetFriendlyName(mnd.mapdef.KeyType) << " but the context requires a type " << GetTypeName(returnType);
+					Throw(s, streamer);
+				}
+
+				if (returnType == VARTYPE_AnyNumeric)
+				{
+					returnType = valType;
+				}
+
+				outputType = valType;
+
+				switch (returnType)
+				{
+				case VARTYPE_Bool:
+				case VARTYPE_Int32:
+				case VARTYPE_Float32:
+					AppendInvoke(ce, GetMapCallbacks(ce).MapNodeGetKey32, s);
+					break;
+				case VARTYPE_Int64:
+				case VARTYPE_Float64:
+				case VARTYPE_Closure:
+					AppendInvoke(ce, GetMapCallbacks(ce).MapNodeGetKey64, s);
+					break;
+				case VARTYPE_Pointer:
+					AppendInvoke(ce, ((int)BITCOUNT_POINTER == 32) ? GetMapCallbacks(ce).MapNodeGetKey32 : GetMapCallbacks(ce).MapNodeGetKey64, s);
+					break;
+				case VARTYPE_Derivative:
+					{
+						auto& keyType = mnd.mapdef.KeyType;
+						if (keyType != ce.Object.Common().SysTypeIString().NullObjectType())
+						{
+							Throw(0, "Do not know how to retrieve key for map, with type: %s", GetFriendlyName(keyType));
+						}
+					}
+
+					// Reference count logic should not matter here, because maps with IString as a key use CStringConstant which disables reference counting
+
+					AppendInvoke(ce, GetMapCallbacks(ce).MapNodeGetKeyIString, s);
+					break;
+				default:
+					Throw(s, "Unexpected type in map invoke");
+					break;
+				}
 			}
 			else if (AreEqual("Value", methodName))
 			{
@@ -1085,7 +1236,7 @@ namespace Rococo::Script
 				if (valType == VARTYPE_Derivative)
 				{
 					sexstringstream<1024> streamer;
-					streamer.sb << "The node is for a map with a derivative value type " << GetFriendlyName(mnd.mapdef.ValueType) << ", and does not support the Value property" << GetTypeName(returnType);
+					streamer.sb << instance << ".Value not supported for derivative value types. Use this syntax to access values: (" << GetFriendlyName(mnd.mapdef.ValueType) << " value = & " << instance << ")";
 					Throw(s, streamer);
 				}
 

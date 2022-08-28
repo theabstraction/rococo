@@ -1,0 +1,162 @@
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+	(alias Event EntryPoint.Event)
+	(alias Target EntryPoint.Target)
+	(alias Arg EntryPoint.Arg)
+	(alias ArgWithDefault EntryPoint.ArgWithDefault)
+
+(using Sys.IO)
+(using Sys.Type)
+
+(struct EventsContext
+	(IString rootPath)
+	(map IString IStringBuilder cppToBuilder) 
+	(map IString IStringBuilder hppToBuilder) 
+	(IStringBuilder currentCppBuilder) 
+	(IStringBuilder currentHppBuilder) 
+)
+
+(alias EventsContext EntryPoint.EventsContext)
+
+(function GenerateEvents (IString rootPath)-> :
+	(EventsContext ec)
+	(ec.rootPath = rootPath)
+	(map IString IStringBuilder cppToBuilder) 
+	(map IString IStringBuilder hppToBuilder) 
+	(ec.cppToBuilder = cppToBuilder)
+	(ec.hppToBuilder = hppToBuilder)
+	(EntryPoint.AddEvents ec) // If this causes a problem, it probably means you had this script executed directly. It should only ever be (' #included) by a script that defines EntryPoint.AddEvents
+	
+	(SaveFiles ec)
+)
+
+(function SaveFiles (EventsContext ec)-> :
+	(foreach cppKeyValue # ec.cppToBuilder
+		(IString cppPath = cppKeyValue.Key)
+		(IStringBuilder cppData = & cppKeyValue)
+
+		(Sys.IO.IFileWriter cppWriter = (Sys.IO.WriteToFile cppPath))
+		(cppWriter cppData)		
+	)
+	
+	(foreach hppKeyValue # ec.hppToBuilder
+		(IString hppPath = hppKeyValue.Key)
+		(IStringBuilder hppData = & hppKeyValue)
+
+		(Sys.IO.IFileWriter hppWriter = (Sys.IO.WriteToFile hppPath))
+		(cppWriter hppData)		
+	)
+)
+
+(function StartsWithSlash (IString path)->(Bool result):
+	(result = ((Sys.Type.Strings.StartsWith path "/") or (Sys.Type.Strings.StartsWith path "\")))
+)
+
+(function Target (EventsContext ec) (IString cppFilePathRelativeRoot)(IString hppFilePathRelativeRoot)-> :
+	(if (StartsWithSlash cppFilePathRelativeRoot)
+		(
+			(#paragraph message "(Target ec '" cppFilePathRelativeRoot "' ...): cpp Path must not begin with a slash")
+			(Sys.Throw 0 message)
+		)
+	)
+	
+	(if (StartsWithSlash hppFilePathRelativeRoot)
+		(
+			(#paragraph message  "(Target ec '" hppFilePathRelativeRoot "' ...): hpp path must not begin with a slash")
+			(Sys.Throw 0 message)
+		)
+	)
+	
+	(#path cppPath ec.rootPath cppFilePathRelativeRoot)
+	(#path hppPath ec.rootPath hppFilePathRelativeRoot)
+	
+	(Sys.Type.Strings.MakeSysSlashes cppPath)
+	(Sys.Type.Strings.MakeSysSlashes hppPath)
+	
+	(node cppRef = (ec.cppToBuilder cppPath))
+	
+	(if (cppRef.Exists)
+		(IStringBuilder refBuilder = & cppRef)
+		(ec.currentCppBuilder = refBuilder)
+	else
+		(IStringBuilder sb = (NewStringBuilder 131072))
+		(ec.cppToBuilder.Insert cppPath sb)
+		(ec.currentCppBuilder = sb)
+	)
+	
+	(node hppRef = (ec.hppToBuilder hppPath))
+	
+	(if (hppRef.Exists)
+		(IStringBuilder refBuilder = & hppRef)
+		(ec.currentHppBuilder = refBuilder)
+	else
+		(IStringBuilder sb = (NewStringBuilder 131072))
+		(ec.hppToBuilder.Insert hppPath sb)
+		(ec.currentHppBuilder = sb)
+	)
+)
+
+(function Event (EventsContext ec) (IString evNamespace)(IString evName)-> :
+)
+
+(function Arg (EventsContext ec) (IString typeName)(IString variableName)-> :
+)
+
+(function ArgWithDefault (EventsContext ec) (IString typeName)(IString variableName)(IString defaultValue)-> :
+)
+
+
+// Protocol for Sexy Command Line arguments: '<CMD.EXE> run=<script-name> <key1>=<value1> ... <keyN>=<valueN>'
+// Where keyI is not required to be unique. Every KeyI should fit a Sexy #token(<64 chars). Every valueI should fit a #paragraph (<1024 chars).
+(function GetNextCmdPathValue (Int32 startIndex)(IString key)->(IString value)(Int32 foundIndex):
+	(IStringBuilder sbKey = NewTokenBuilder)
+	(IStringBuilder sbValue = NewParagraphBuilder)
+
+	(Int32 argc = Sys.IO.GetCmdArgCount)
+	(#for (Int32 i = startIndex)(i < argc)(i += 1)
+		(sbKey.Clear)		
+		(sbValue.Clear)
+		(Sys.IO.AppendCmdKeyAndValue i sbKey sbValue)
+		(if ((Sys.Type.Strings.IsExactMatch key sbKey) and (sbValue.Length > 0))
+			(if (sbValue.Length > 259)
+				(
+					(#paragraph message "The path specified for <" key "> was too long (>= 260 chars)")
+					(Sys.Throw 0 message)
+				)
+			)
+			(Sys.Type.Strings.Preserve sbValue -> value)
+			(foundIndex = i)
+			(return)
+		)
+	)
+	
+	(foundIndex = argc)
+)
+
+(function Main -> (Int32 exitCode):
+	(try
+		(
+			(IString rootPath)
+			(Int32 rootIndex)
+			(GetNextCmdPathValue 0 "root" -> rootPath rootIndex)
+			
+			(if (not (rootPath ?))
+				(Sys.Throw 0 "Command line missing 'root=<ROOT-FILEPATH>'")
+			)
+			
+			(Bool isBackSlashed = (Sys.Type.Strings.EndsWith rootPath "\"))
+			(Bool isForwardSlashed = (Sys.Type.Strings.EndsWith rootPath "\"))
+			
+			(if ((not isBackSlashed) and (not isForwardSlashed))
+				(Sys.Throw 0 "root did not end with slash: '\' 'root=<ROOT-FILEPATH>'")	
+			)
+
+			(GenerateEvents rootPath)
+		)
+	catch e 
+		(
+			(#printf e.Message "&n")
+			(exitCode = -1)
+		)
+	)
+)

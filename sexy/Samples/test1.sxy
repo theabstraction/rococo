@@ -2,17 +2,11 @@
  (alias Main EntryPoint.Main)
 
 (using Sys.Type)
-(using Sys.Reflection)
 
 (function Main -> (Int32 result):
-	(IExpression s = '(cheese oranges (#paragraph 1024 apples pears) onion bikes))
-	(IExpression sOranges = (s 1))
-	(IExpressionBuilder sBuilder = sOranges.TransformParent)
-
-	(Int32 index)
-	(sBuilder.IndexOf sOranges -> index)
-
-	//(IExpressionBuilder builderSequence = (sBuilder.InsertCompoundAfter index))
-
-	(result = index)
+	(map IString Int32 a)
+	(a.Insert "Joe" 90)
+	(node n = (a "Joe"))
+	(IString key = n.Key)
+	(result = key.Length)
 )

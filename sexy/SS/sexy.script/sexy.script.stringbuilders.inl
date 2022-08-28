@@ -443,6 +443,15 @@ namespace
 		sb.buffer[0] = 0;
 	}
 
+	void FastStringBuilderMakeSysSlashes(NativeCallEnvironment& e)
+	{
+		FastStringBuilder& sb = ReadBuilder(e);
+		for (int i = 0; i < sb.length; i++)
+		{
+			Rococo::OS::ToSysPath(sb.buffer);
+		}
+	}
+
 	void FastStringBuilderAppendAsDecimal(NativeCallEnvironment& e)
 	{
 		FastStringBuilder& sb = ReadBuilder(e);
@@ -873,6 +882,34 @@ namespace
 		if (big && prefix)
 		{
 			result = StartsWith(big, prefix);
+		}
+		else
+		{
+			result = false;
+		}
+
+		WriteOutput(0, result ? 1 : 0, e);
+	}
+
+	void StringEndsWith(NativeCallEnvironment& e)
+	{
+		InterfacePointer ipBigString;
+		ReadInput(0, ipBigString, e);
+
+		InterfacePointer ipSuffixString;
+		ReadInput(1, ipSuffixString, e);
+
+		CStringConstant* bigString = (CStringConstant*)InterfaceToInstance(ipBigString);
+		CStringConstant* suffixString = (CStringConstant*)InterfaceToInstance(ipSuffixString);
+
+		cstr big = bigString->pointer;
+		cstr suffix = suffixString->pointer;
+
+		bool result;
+
+		if (big && suffix)
+		{
+			result = EndsWith(big, suffix);
 		}
 		else
 		{

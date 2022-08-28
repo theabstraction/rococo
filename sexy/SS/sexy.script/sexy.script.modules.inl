@@ -3801,13 +3801,23 @@ namespace Rococo { namespace Script
 		cr_sex root = tree.Root();			
 		for(int i = 0; i < root.NumberOfElements(); i++)
 		{
-			cr_sex e = root.GetElement(i);
-			cr_sex elementName = GetAtomicArg(e, 0);
-
-			sexstring directive = elementName.String();
-			if (directive->Buffer[0] != '#' && directive->Buffer[0] != '\'' && !IsOneOf(directive->Buffer, topLevelItems))
+			try
 			{
-				Throw(elementName, "Unknown top level item, expecting keyword or data item");
+				cr_sex e = root.GetElement(i);
+				cr_sex elementName = GetAtomicArg(e, 0);
+
+				sexstring directive = elementName.String();
+				if (directive->Buffer[0] != '#' && directive->Buffer[0] != '\'' && !IsOneOf(directive->Buffer, topLevelItems))
+				{
+					Throw(elementName, "Unknown top level item, expecting keyword or data item");
+				}
+			}
+			catch (ParseException& ex)
+			{
+				char msg[512];
+				SafeFormat(msg, "Error validating top level item with index %d. Err %s", i, ex.Message());
+				ParseException outerEx(ex.Start(), ex.End(), ex.Name(), msg, ex.Specimen(), ex.Source());
+				throw outerEx;
 			}
 		}
 	}

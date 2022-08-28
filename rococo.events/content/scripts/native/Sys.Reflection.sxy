@@ -1,0 +1,182 @@
+(using Sys.Reflection)
+(using Sys.Type)
+
+(macro Sys.Reflection.ExpressionTypeNull     in out (out.AddAtomic "0x0"))
+(macro Sys.Reflection.ExpressionTypeString   in out (out.AddAtomic "0x1"))
+(macro Sys.Reflection.ExpressionTypeAtomic   in out (out.AddAtomic "0x2"))
+(macro Sys.Reflection.ExpressionTypeCompound in out (out.AddAtomic "0x3"))
+
+(interface Sys.Reflection.IExpression
+	(attribute indexed IExpression Child ChildCount) // (s 1) calls (s.Child 1) and we can use foreach(i s in expression (...))
+
+	(Child (Int32 index) -> (IExpression child))
+	(Text -> (IString text))
+	(AppendTextTo (IStringBuilder sb)-> )
+	(ChildCount -> (Int32 count))
+	(IndexOf (IExpression child)->(Int32 index))
+	(Parent -> (IExpression parent))
+	(Handle -> (Pointer hExpr))	
+	(Throw (Int32 errorCode)(IString message)->)
+	(Type -> (Int32 type))
+)
+
+(interface Sys.Reflection.IExpressionBuilder
+	(AddAtomic (IString s) ->)
+	(AddCompound -> (IExpressionBuilder child))
+	(Copy (IExpression s) ->)
+	(CopyString (IExpression s) -> )
+	(IndexOf (IExpression s) -> (Int32 index))
+	(InsertCompoundAfter (Int32 index) -> (IExpressionBuilder child))
+	(Substitute (IExpression s) (IExpression format) ->)
+)
+
+(class Expression
+	(implements IExpression)
+	(Pointer exprPtr)
+)
+
+(class ExpressionBuilder
+	(implements IExpressionBuilder)
+	(Pointer builderPtr)
+)
+
+(method Expression.Handle -> (Pointer hExpr):
+	(hExpr = this.exprPtr)
+)
+
+(method ExpressionBuilder.AddCompound -> (IExpressionBuilder child):
+	(Sys.Reflection.Native.ExpressionBuilderAddCompound this.builderPtr -> child)
+)
+
+(method ExpressionBuilder.Copy (IExpression s) -> :
+	(Sys.Reflection.Native.ExpressionBuilderAddCopy this.builderPtr s.Handle)
+)
+
+(method ExpressionBuilder.CopyString (IExpression s) -> :
+	(Sys.Reflection.Native.ExpressionBuilderAddCopyToString this.builderPtr s.Handle)
+)
+
+(method ExpressionBuilder.IndexOf (IExpression child) -> (Int32 index):
+	(Sys.Reflection.Native.ExpressionIndexOf this.builderPtr child.Handle -> index)
+)
+
+(method ExpressionBuilder.AddAtomic (IString s) -> :
+	(Sys.Reflection.Native.ExpressionBuilderAddAtomic this.builderPtr s.Buffer)
+)
+
+(method ExpressionBuilder.InsertCompoundAfter (Int32 index) -> (IExpressionBuilder child) :
+	(Sys.Reflection.Native.ExpressionBuilderInsertCompoundAfter this.builderPtr index -> child)
+)
+
+(method ExpressionBuilder.Substitute (IExpression input) (IExpression format) -> :
+	(Int32 errorCount)
+	(Sys.Reflection.Native.ExpressionBuilderSubstitute this.builderPtr input.Handle format.Handle -> errorCount)
+)
+
+(method Expression.Child (Int32 index) -> (IExpression child):
+	(Sys.ValidateSubscriptRange index 0 this.ChildCount "Expression.Child threw an exception: Index out of range")
+	(Sys.Reflection.Native.ExpressionGetChild this.exprPtr index -> child)
+)
+
+(method Expression.Exists -> (Bool exists) :
+	(exists = true)
+)
+
+(method Expression.ChildCount -> (Int32 count) :
+	(Sys.Reflection.Native.ExpressionChildCount this.exprPtr -> count)
+)
+
+(method Expression.IndexOf (IExpression child)->(Int32 index):
+	(Sys.Reflection.Native.ExpressionIndexOf this.exprPtr child.Handle -> index)
+)
+
+(method Expression.Parent -> (IExpression parent) :
+	(Sys.Reflection.Native.ExpressionGetParent this.exprPtr -> parent)
+)
+
+(method Expression.Text -> (IString text) :
+	(Sys.Reflection.Native.GetExpressionText this.exprPtr -> text)
+)
+
+(method Expression.Type -> (Int32 type) :
+	(Sys.Reflection.Native.GetExpressionType this.exprPtr -> type)
+)
+
+(method Expression.AppendTextTo (IStringBuilder sb) -> :
+	(Sys.Reflection.Native.ExpressionAppendTextTo this.exprPtr sb ->)
+)
+
+(method Expression.Throw (Int32 errorCode)(IString message) -> :
+	(Sys.Reflection.Native.ExpressionThrow this.exprPtr errorCode (message.Buffer) ->)
+)
+
+(interface Sys.Reflection.IScriptSystem
+	(attribute indexed IModule Module ModuleCount)
+
+	(ModuleCount -> (Int32 count))
+	(Module (Int32 index) -> (IModule module))
+)
+
+(interface Sys.Reflection.IModule
+	(attribute indexed IStructure Structure StructCount) // (m 1) calls (m.Structure 1) and we can use foreach(i s in module (...))
+
+	(Name -> (IString name))
+	(StructCount -> (Int32 structCount))
+	(Structure (Int32 index) -> (IStructure structure))
+)
+
+(interface Sys.Reflection.IStructure
+	(Name -> (IString name))
+)
+
+(function GetScriptSystem -> (IScriptSystem ss):
+	(Sys.Reflection.Native.GetScriptSystem -> ss)
+)
+
+(alias GetScriptSystem Sys.Reflection.GetScriptSystem)
+
+(class ScriptSystem
+	(implements IScriptSystem)
+)
+
+(method ScriptSystem.ModuleCount -> (Int32 count):
+	(Sys.Reflection.Native.ModuleCount -> count)
+)
+
+(method ScriptSystem.Module (Int32 index) -> (IModule module):
+	(Sys.ValidateSubscriptRange index 0 this.ModuleCount "ScriptSystem.Module threw an exception: Index out of range")
+	(Sys.Reflection.Native.GetModule index -> module)
+)
+
+(class Module 
+	(implements IModule)
+	(Pointer modulePtr)
+)
+
+(method Module.Name -> (IString name):
+	(Sys.Reflection.Native.GetModuleName this.modulePtr -> name)
+)
+
+(method Module.StructCount -> (Int32 structCount):
+	(Sys.Reflection.Native.GetStructCount this.modulePtr -> structCount)
+)
+
+(method Module.Structure (Int32 index) -> (IStructure structure):
+	(Sys.ValidateSubscriptRange index 0 this.StructCount "Module.Structure threw an exception: Index out of range")
+	(Sys.Reflection.Native.GetStruct this.modulePtr index -> structure)
+)
+
+(class Structure
+	(implements IStructure)
+	(Pointer structPtr)
+)
+
+(method Structure.Name -> (IString name):
+	(Sys.Reflection.Native.GetStructName this.structPtr -> name)
+)
+
+(struct SexyAssetFile
+	(Sys.Type.IString pingPath)
+)
+
+(alias SexyAssetFile Sys.Reflection.SexyAssetFile)

@@ -146,12 +146,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{5F403F1A-5
 		docs\structs.htm = docs\structs.htm
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.sexy.cmd", "rococo.sexy.cmd\rococo.sexy.cmd.vcxproj", "{ADFBA7D0-FFED-4381-A476-0865400F51F6}"
-	ProjectSection(ProjectDependencies) = postProject
-		{608FC2FE-163D-4E32-B2D8-7E9CD10A80F6} = {608FC2FE-163D-4E32-B2D8-7E9CD10A80F6}
-		{C44956CA-B7BF-4928-B894-117DB23F15CB} = {C44956CA-B7BF-4928-B894-117DB23F15CB}
-	EndProjectSection
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -210,10 +204,6 @@ Global
 		{E395BC0D-506B-4869-88D4-675408F3A5B3}.Debug|x64.Build.0 = Debug|x64
 		{E395BC0D-506B-4869-88D4-675408F3A5B3}.Release|x64.ActiveCfg = Release|x64
 		{E395BC0D-506B-4869-88D4-675408F3A5B3}.Release|x64.Build.0 = Release|x64
-		{ADFBA7D0-FFED-4381-A476-0865400F51F6}.Debug|x64.ActiveCfg = Debug|x64
-		{ADFBA7D0-FFED-4381-A476-0865400F51F6}.Debug|x64.Build.0 = Debug|x64
-		{ADFBA7D0-FFED-4381-A476-0865400F51F6}.Release|x64.ActiveCfg = Release|x64
-		{ADFBA7D0-FFED-4381-A476-0865400F51F6}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
