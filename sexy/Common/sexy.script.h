@@ -410,6 +410,9 @@ namespace Rococo {
 			virtual void ReleaseTree(Sex::ISParserTree* tree) = 0;
 			virtual void ThrowNative(int errorNumber, cstr source, cstr message) = 0;
 			virtual Sex::ISParserTree* GetSourceCode(const Compiler::IModule& module) const = 0;
+
+			// Call this from within a C++ script function to pass the message up to the try catch block of the sexy script file.
+			// Since it is the virtual machine that has its stack corrected, and not C++, you should immediately return from the calling function after invoking this method
 			virtual void ThrowFromNativeCode(int32 errorCode, cstr staticRefMessage) = 0;
 			virtual int32 GetIntrinsicModuleCount() const = 0;
 			virtual bool ValidateMemory() = 0;

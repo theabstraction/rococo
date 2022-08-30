@@ -176,6 +176,7 @@ namespace Rococo
 		   if (currentLengthInBytes >= (int64) 1024_megabytes)
 		   {
 			   ss.ThrowFromNativeCode(ERANGE, "ArrayDoubleCapacity failed: the array was at maximum capacity");
+			   return;
 		   }
 
 		   try
@@ -192,6 +193,7 @@ namespace Rococo
 		   catch (...)
 		   {
 			   ss.ThrowFromNativeCode(ERANGE, "ArrayDoubleCapacity failed: out of heap memory");
+			   return;
 		   }
 
 		   a.ElementCapacity *= 2;
@@ -235,6 +237,7 @@ namespace Rococo
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*)context;
 			   ss.ThrowFromNativeCode(ERANGE, "Array.ArrayPush32 failed: the array was locked for enumeration");
+			   return;
 		   }
 
 		   if (a->NumberOfElements >= a->ElementCapacity)
@@ -257,6 +260,7 @@ namespace Rococo
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*)context;
 			   ss.ThrowFromNativeCode(ERANGE, "Array.ArrayPushInterface failed: the array was locked for enumeration");
+			   return;
 		   }
 
 		   if (a->NumberOfElements >= a->ElementCapacity)
@@ -278,6 +282,7 @@ namespace Rococo
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*)context;
 			   ss.ThrowFromNativeCode(ERANGE, "Array.ArrayPush64 failed: the array was locked for enumeration");
+			   return;
 		   }
 
 		   if (a->NumberOfElements >= a->ElementCapacity)
@@ -298,6 +303,7 @@ namespace Rococo
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*)context;
 			   ss.ThrowFromNativeCode(ERANGE, "Array.ArrayPushByRef failed: the array was locked for enumeration");
+			   return;
 		   }
 
 		   if (a->NumberOfElements >= a->ElementCapacity)
@@ -318,6 +324,7 @@ namespace Rococo
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*)context;
 			   ss.ThrowFromNativeCode(ERANGE, "Array.Set failed: the array reference was null");
+			   return;
 		   }
 
 		   const int index = registers[VM::REGISTER_D4].int32Value;
@@ -346,6 +353,7 @@ namespace Rococo
 
 			   IScriptSystem& ss = *(IScriptSystem*) context;
 			   ss.ThrowFromNativeCode(ERANGE, ("Array.Set failed: the index was out of range"));
+			   return;
 		   }
 	   }
 
@@ -378,6 +386,7 @@ namespace Rococo
 
 			   IScriptSystem& ss = *(IScriptSystem*) context;
 			   ss.ThrowFromNativeCode(ERANGE, ("Array.Set failed: the index was out of range"));
+			   return;
 		   }
 	   }
 
@@ -407,6 +416,7 @@ namespace Rococo
 
 			   IScriptSystem& ss = *(IScriptSystem*) context;
 			   ss.ThrowFromNativeCode(ERANGE, ("Array.Set failed: the index was out of range"));
+			   return;
 		   }
 	   }
 
@@ -481,6 +491,7 @@ namespace Rococo
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*) context;
 			   ss.ThrowFromNativeCode(ERANGE, ("Array.PopOut failed: the array was locked for enumeration"));
+			   return;
 		   }
 		
 		   if (a->NumberOfElements > 0)
@@ -492,6 +503,7 @@ namespace Rococo
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*) context;
 			   ss.ThrowFromNativeCode(ERANGE, ("Array.PopOut failed: the array was empty"));
+			   return;
 		   }
 	   }
 
@@ -503,6 +515,7 @@ namespace Rococo
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*) context;
 			   ss.ThrowFromNativeCode(ERANGE, ("Array.PopOut failed: the array was locked for enumeration"));
+			   return;
 		   }
 		
 		   if (a->NumberOfElements > 0)
@@ -514,6 +527,7 @@ namespace Rococo
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*) context;
 			   ss.ThrowFromNativeCode(ERANGE, ("Array.PopOut failed: the array was empty"));
+			   return;
 		   }
 	   }
 
@@ -531,6 +545,7 @@ namespace Rococo
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*) context;
 			   ss.ThrowFromNativeCode(ERANGE, ("Array.Get failed: the index was out of range"));
+			   return;
 		   }
 	   }
 
@@ -548,6 +563,7 @@ namespace Rococo
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*) context;
 			   ss.ThrowFromNativeCode(ERANGE, ("Array.Get failed: the index was out of range"));
+			   return;
 		   }
 	   }
 
@@ -567,6 +583,7 @@ namespace Rococo
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*) context;
 			   ss.ThrowFromNativeCode(ERANGE, ("Array.Get failed: the index was out of range"));
+			   return;
 		   }
 	   }
 
@@ -586,6 +603,7 @@ namespace Rococo
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*) context;
 			   ss.ThrowFromNativeCode(ERANGE, ("Array.Get failed: the index was out of range"));
+			   return;
 		   }
 	   }
 
@@ -604,6 +622,7 @@ namespace Rococo
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*) context;
 			   ss.ThrowFromNativeCode(ERANGE, ("Array.Get failed: the index was out of range"));
+			   return;
 		   }
 	   }
 
@@ -641,12 +660,14 @@ namespace Rococo
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*) context;
 			   ss.ThrowFromNativeCode(ERANGE, ("Array.ArrayGetRefUnchecked failed: array was unlocked, internal compiler error"));
+			   return;
 		   }
 
 		   if (index < 0 || index >= a->NumberOfElements)
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*) context;
 			   ss.ThrowFromNativeCode(ERANGE, ("Array.ArrayGetRefUnchecked failed: index out of range, internal compiler error"));
+			   return;
 		   }
    #endif
 
@@ -691,12 +712,14 @@ namespace Rococo
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*)context;
 			   ss.ThrowFromNativeCode(ERANGE, ("Array.ArrayGetRefUnchecked failed: array was unlocked, internal compiler error"));
+			   return;
 		   }
 
 		   if (index < 0 || index >= a->NumberOfElements)
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*)context;
 			   ss.ThrowFromNativeCode(ERANGE, ("Array.ArrayGetRefUnchecked failed: index out of range, internal compiler error"));
+			   return;
 		   }
 #endif
 
@@ -716,6 +739,7 @@ namespace Rococo
 			   {
 				   IScriptSystem& ss = *(IScriptSystem*) context;
 				   ss.ThrowFromNativeCode(0, "ArrayLock failed: the array lock reached the upper limit of 0x7FFFFFFF");
+				   return;
 			   }
 
 			   a->LockNumber++;
@@ -732,6 +756,7 @@ namespace Rococo
 			   {
 				   IScriptSystem& ss = *(IScriptSystem*)context;
 				   ss.ThrowFromNativeCode(0, "ArrayUnlock failed: the array lock was not positive");
+				   return;
 			   }
 			   a->LockNumber--;			
 		   }
@@ -739,6 +764,7 @@ namespace Rococo
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*) context;
 			   ss.ThrowFromNativeCode(0, "Array.Unlock: the array was not locked");
+			   return;
 		   }
 	   }
 

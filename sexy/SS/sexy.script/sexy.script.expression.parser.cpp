@@ -1653,17 +1653,7 @@ namespace Rococo
 
 				if (def.mapdef.ValueType.InterfaceCount() > 0)
 				{
-					if (sizeof(size_t) == 8)
-					{
-						AppendInvoke(ce, GetMapCallbacks(ce).MapNodeGet64, decl); // The element is now in D7
-					}
-					else
-					{
-						AppendInvoke(ce, GetMapCallbacks(ce).MapNodeGet32, decl); // The element is now in D7
-					}
-
-					ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D4, BITCOUNT_POINTER);
-					ce.Builder.Append_IncRef();
+					Throw(decl, "Maps with value type of an interface do not support the '&' directive.Use node.Value instead");
 				}
 				else
 				{

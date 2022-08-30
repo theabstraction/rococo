@@ -85,7 +85,8 @@
       </Outputs>
     </CustomBuildStep>
     <PostBuildEvent>
-      <Command>$(SolutionDir)copy.natives.from.sexy.bat &gt;NUL</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -120,7 +121,8 @@
       </Outputs>
     </CustomBuildStep>
     <PostBuildEvent>
-      <Command>$(SolutionDir)copy.natives.from.sexy.bat &gt;NUL</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

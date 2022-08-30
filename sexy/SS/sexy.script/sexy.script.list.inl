@@ -256,6 +256,7 @@ namespace Rococo::Script
 		else
 		{
 			ss.ThrowFromNativeCode(-1, "ListAppend: the list was null");
+			return;
 		}
 	}
 
@@ -333,6 +334,7 @@ namespace Rococo::Script
 		else
 		{
 			ss.ThrowFromNativeCode(0, "Append failed - the list was null");
+			return;
 		}
 	}
 
@@ -360,6 +362,7 @@ namespace Rococo::Script
 		else
 		{
 			ss.ThrowFromNativeCode(0, "Append failed - the list was null");
+			return;
 		}
 	}
 
@@ -380,6 +383,7 @@ namespace Rococo::Script
 		else
 		{
 			ss.ThrowFromNativeCode(0, "Append failed - the list was null");
+			return;
 		}
 	}
 
@@ -420,6 +424,7 @@ namespace Rococo::Script
 		else
 		{
 			ss.ThrowFromNativeCode(0, "Prepend failed - the list was null");
+			return;
 		}
 	}
 
@@ -460,6 +465,7 @@ namespace Rococo::Script
 		else
 		{
 			ss.ThrowFromNativeCode(0, "Prepend failed - the list was null");
+			return;
 		}
 	}
 
@@ -488,6 +494,7 @@ namespace Rococo::Script
 		else
 		{
 			ss.ThrowFromNativeCode(0, "Prepend failed - the list was null");
+			return;
 		}
 	}
 
@@ -505,6 +512,7 @@ namespace Rococo::Script
 		else
 		{
 			ss.ThrowFromNativeCode(0, "Prepend failed - the list was null");
+			return;
 		}
 	}
 
@@ -700,6 +708,7 @@ namespace Rococo::Script
 		else
 		{
 			ss.ThrowFromNativeCode(-1, "ListAppendAndGetRef: null list");
+			return;
 		}
 	}
 
@@ -716,6 +725,7 @@ namespace Rococo::Script
 		else
 		{
 			ss.ThrowFromNativeCode(-1, "ListPrependAndGetRef: null list");
+			return;
 		}
 	}
 

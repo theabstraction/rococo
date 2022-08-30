@@ -48,6 +48,7 @@ CPP_MASTER = $(DIR_BIN)tools\x64\$(CONFIGURATION)\net6.0\rococo.cpp_master.exe
 NATIVE_SRC = $(DIR_SEXY)NativeSource^\
 
 all: $(BENNY_HILL) $(MPLAT_SXH_H) $(HV_SXH_H) $(MHOST_SXH_H) $(CPP_MASTER) $(MPLAT_COMPONENTS_H)
+	$(ROCOCO)copy.natives.from.sexy.bat > NUL
 	copy $(NATIVE_SRC)*.sxy $(DIR_EVENTS)content\scripts\native > NUL
 	copy $(NATIVE_SRC)*.sxy $(ROCOCO)content\scripts\native > NUL
 	$(SEXY_CMD) natives=$(NATIVE_SRC) installation=$(DIR_EVENTS)content\ root=$(DIR_EVENTS) run=!scripts/gen.events.hv.sxy 

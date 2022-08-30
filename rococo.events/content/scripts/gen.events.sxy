@@ -8,12 +8,26 @@
 (using Sys.IO)
 (using Sys.Type)
 
+(struct EventObjectArg
+	(IString typename)
+	(IString variableName)
+	(IString defaultValue)
+)
+
+(struct EventObject
+	(IString evNamespace)
+	(IString evName)
+	(array EventObjectArg args)
+)
+
 (struct EventsContext
 	(IString rootPath)
 	(map IString IStringBuilder cppToBuilder) 
 	(map IString IStringBuilder hppToBuilder) 
 	(IStringBuilder currentCppBuilder) 
 	(IStringBuilder currentHppBuilder) 
+	(Bool isEventOpen)
+	(array EventObject events)
 )
 
 (alias EventsContext EntryPoint.EventsContext)
@@ -25,23 +39,45 @@
 	(map IString IStringBuilder hppToBuilder) 
 	(ec.cppToBuilder = cppToBuilder)
 	(ec.hppToBuilder = hppToBuilder)
+	(array EventObject events 1024)
+	(ec.events = events)
 	(EntryPoint.AddEvents ec) // If this causes a problem, it probably means you had this script executed directly. It should only ever be (' #included) by a script that defines EntryPoint.AddEvents
 	
 	(SaveFiles ec)
 )
 
+(function AppendCPPPrelude (Sys.IO.IFileWriter cpp)(IString associatedHeaderFile) -> :
+	(IStringBuilder timestamp = NewToken)
+	(Sys.OS.AppendCTime timestamp)
+	(#build cpp "include &" "associatedHeaderFile" "&"&n")
+	(#build cpp "// Generated at " timestamp "&n&n")
+	(if ec.isEventOpen
+		(#build ec.currentCppBuilder ")&n")
+	)
+)
+
+(function AppendHPPPrelude (Sys.IO.IFileWriter hpp) -> :
+	(IStringBuilder timestamp = NewToken)
+	(Sys.OS.AppendCTime timestamp)
+	(#build hpp "#pragma once&n")
+	(#build hpp "// Generated at " timestamp "&n&n")
+)
+
 (function SaveFiles (EventsContext ec)-> :
 	(foreach cppKeyValue # ec.cppToBuilder
 		(IString cppPath = cppKeyValue.Key)
-		(IStringBuilder cppData = & cppKeyValue)
-
+		(IStringBuilder cppData = cppKeyValue.Value)
 		(Sys.IO.IFileWriter cppWriter = (Sys.IO.WriteToFile cppPath))
+		(IStringBuilder hppPath = NewPathBuilder)
+		(hppPath.AppendIString ec.cppPath)
+		(hppPath.Replace ".cpp" ".h")
+		(AppendCPPPrelude cppWriter hppPath)
 		(cppWriter cppData)		
 	)
 	
 	(foreach hppKeyValue # ec.hppToBuilder
 		(IString hppPath = hppKeyValue.Key)
-		(IStringBuilder hppData = & hppKeyValue)
+		(IStringBuilder hppData = hppKeyValue.Value)
 
 		(Sys.IO.IFileWriter hppWriter = (Sys.IO.WriteToFile hppPath))
 		(hppWriter hppData)		
@@ -76,8 +112,7 @@
 	(node cppRef = (ec.cppToBuilder cppPath))
 	
 	(if (cppRef)
-		(IStringBuilder refBuilder = & cppRef)
-		(ec.currentCppBuilder = refBuilder)
+		(ec.currentCppBuilder = cppRef.Value)
 	else
 		(IStringBuilder sb = (NewStringBuilder 131072))
 		(ec.cppToBuilder.Insert cppPath sb)
@@ -87,8 +122,7 @@
 	(node hppRef = (ec.hppToBuilder hppPath))
 	
 	(if (hppRef)
-		(IStringBuilder refBuilder = & hppRef)
-		(ec.currentHppBuilder = refBuilder)
+		(ec.currentHppBuilder = hppRef.Value)
 	else
 		(IStringBuilder sb = (NewStringBuilder 131072))
 		(ec.hppToBuilder.Insert hppPath sb)
@@ -97,9 +131,16 @@
 )
 
 (function Event (EventsContext ec) (IString evNamespace)(IString evName)-> :
+	(EventObject ev)
+	(ev.evNamespace = evNamespace)
+	(ev.evName = evName)
+	(array EventObjectArg args 32)
+	(ev.args = args)
+	(ec.events.Push ev)
 )
 
 (function Arg (EventsContext ec) (IString typeName)(IString variableName)-> :
+	
 )
 
 (function ArgWithDefault (EventsContext ec) (IString typeName)(IString variableName)(IString defaultValue)-> :

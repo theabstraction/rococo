@@ -562,6 +562,7 @@ namespace Rococo::Script
 		if (m == nullptr)
 		{
 			ss.ThrowFromNativeCode(-1, ("Derivative key type not implemented. Legal types: Int32, Int64, Float32, Float64, Bool, IString"));
+			return;
 		}
 	}
 
@@ -664,6 +665,7 @@ namespace Rococo::Script
 		if (m == nullptr)
 		{
 			ss.ThrowFromNativeCode(0, "Map Node-DoesMapNodeExist failed. Map was null");
+			return;
 		}
 
 		registers[VM::REGISTER_D7].int32Value = m->IsExistant;
@@ -676,6 +678,7 @@ namespace Rococo::Script
 		if (m == nullptr)
 		{
 			ss.ThrowFromNativeCode(0, "Map Node-Get failed. Map was null");
+			return;
 		}
 		registers[VM::REGISTER_D7].int32Value = *(int32*)GetValuePointer(m);
 		if (!m->IsExistant) ss.ThrowFromNativeCode(-1, ("MapNodeGet32 failed. The node did not represent an entry in the map"));
@@ -694,6 +697,28 @@ namespace Rococo::Script
 		if (!m->IsExistant) ss.ThrowFromNativeCode(-1, ("MapNodeGet64 failed. The node did not represent an entry in the map"));
 	}
 
+	VM_CALLBACK(MapNodeGetInterface)
+	{
+		IScriptSystem& ss = *(IScriptSystem*)context;
+		MapNode* m = (MapNode*)registers[VM::REGISTER_D7].vPtrValue;
+		if (m == nullptr)
+		{
+			ss.ThrowFromNativeCode(0, "Map Node-Get failed. Map was null");
+			return;
+		}
+
+		if (!m->IsExistant) ss.ThrowFromNativeCode(-1, ("MapNodeGetInterface failed. The node did not represent an entry in the map"));
+
+		InterfacePointer ip = *(InterfacePointer*)GetValuePointer(m);
+		ObjectStub* stub = InterfaceToInstance(ip);
+		if (stub->refCount != ObjectStub::NO_REF_COUNT)
+		{
+			stub->refCount++;
+		}
+		registers[VM::REGISTER_D7].vPtrValue = ip;
+		
+	}
+
 	VM_CALLBACK(MapNodeGetKey32)
 	{
 		IScriptSystem& ss = *(IScriptSystem*)context;
@@ -701,6 +726,7 @@ namespace Rococo::Script
 		if (m == nullptr)
 		{
 			ss.ThrowFromNativeCode(0, "Map Node-GetKey32 failed. node was null");
+			return;
 		}
 		registers[VM::REGISTER_D7].int32Value = *(int32*)GetKeyPointer(m);
 		if (!m->IsExistant) ss.ThrowFromNativeCode(-1, ("MapNodeGetKey32 failed. The node did not represent an entry in the map"));
@@ -1231,10 +1257,18 @@ namespace Rococo::Script
 			{
 				ce.Builder.AssignVariableRefToTemp(instance, Rococo::ROOT_TEMPDEPTH, 0); // node goes to D7
 
-				VARTYPE valType = mnd.mapdef.ValueType.VarType();
+				auto& valueType = mnd.mapdef.ValueType;
+				VARTYPE valType = valueType.VarType();
 
 				if (valType == VARTYPE_Derivative)
 				{
+					if (IsNullType(valueType))
+					{
+						// Null object
+						AppendInvoke(ce, GetMapCallbacks(ce).MapNodeGetInterface, s);
+						return true;
+					}
+
 					sexstringstream<1024> streamer;
 					streamer.sb << instance << ".Value not supported for derivative value types. Use this syntax to access values: (" << GetFriendlyName(mnd.mapdef.ValueType) << " value = & " << instance << ")";
 					Throw(s, streamer);

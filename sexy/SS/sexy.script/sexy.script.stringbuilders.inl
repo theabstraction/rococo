@@ -326,8 +326,17 @@ namespace
 		int32 capacity;
 		ReadInput(0, capacity, e);
 
-		if (capacity <= 0) e.ss.ThrowFromNativeCode(0, "NewStringBuilder failed. Capacity needs to be positive");
-		if (capacity >= 1024_megabytes) e.ss.ThrowFromNativeCode(0, "NewStringBuilder failed. Capacity needs to be less than 1 gigabyte");
+		if (capacity <= 0) 
+		{
+			e.ss.ThrowFromNativeCode(0, "NewStringBuilder failed. Capacity needs to be positive");
+			return;
+		}
+
+		if (capacity >= 1024_megabytes)
+		{
+			e.ss.ThrowFromNativeCode(0, "NewStringBuilder failed. Capacity needs to be less than 1 gigabyte");
+			return;
+		}
 
 		FastStringBuilder* sb = pool.CreateAndInitFields(capacity);
 
@@ -392,6 +401,7 @@ namespace
 			if (0 != (sb.flags & (int32)StringBuilderFlags::ThrowIfWouldTruncate))
 			{
 				e.ss.ThrowFromNativeCode(0, "Insufficient buffer capacity for append operation");
+				return;
 			}
 
 			int overrun = nextLength - maxLength;
@@ -449,6 +459,72 @@ namespace
 		for (int i = 0; i < sb.length; i++)
 		{
 			Rococo::OS::ToSysPath(sb.buffer);
+		}
+	}
+
+	void FastStringBuilderReplace(NativeCallEnvironment& e)
+	{
+		FastStringBuilder& sb = ReadBuilder(e);
+		
+		int startPosition;
+		ReadInput(1, startPosition, e);
+
+		InterfacePointer ipFrom;
+		ReadInput(2, ipFrom, e);
+
+		InterfacePointer ipTo;
+		ReadInput(3, ipTo, e);
+
+		auto* sfrom = (InlineString*)InterfaceToInstance(ipFrom);
+		auto* sto = (InlineString*)InterfaceToInstance(ipTo);
+
+		if (startPosition < 0)
+		{
+			startPosition = 0;
+		}
+
+		if (startPosition >= sb.length)
+		{
+			// No work to do
+			return;
+		}
+
+		if (sfrom->length == 0)
+		{
+			e.ss.ThrowFromNativeCode(0, "FastStringBuilderReplace: (IString from) - from was blank");
+			return;
+		}
+
+		char* nextToken = sb.buffer + startPosition;
+
+		int lenDelta = sfrom->length - sto->length;
+
+		const char* end = sb.buffer + sb.length;
+
+		for (;;)
+		{
+			nextToken = strstr(nextToken, sfrom->buffer);
+			if (nextToken == nullptr)
+			{
+				return;
+			}
+
+			int64 charsToMove = 1 + end - nextToken - sfrom->length;
+
+			int nextLength = sb.length - lenDelta;
+			if (nextLength >= sb.capacity)
+			{
+				// Insufficient space to perform replacement
+				e.ss.ThrowFromNativeCode(0, "FastStringBuilderReplace: Insufficient space in buffer to replace character sequence");
+				return;
+			}
+
+			memmove(nextToken + sto->length, nextToken + sfrom->length, charsToMove);
+			memcpy(nextToken, sto->buffer, sto->length);
+
+			end -= lenDelta;
+			sb.length = nextLength;
+			nextToken += sto->length;
 		}
 	}
 

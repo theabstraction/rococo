@@ -566,6 +566,7 @@ namespace Rococo
          ID_API_CALLBACK MapTryGet;
          ID_API_CALLBACK MapNodeGet32;
          ID_API_CALLBACK MapNodeGet64;
+         ID_API_CALLBACK MapNodeGetInterface;
          ID_API_CALLBACK MapNodeGetKey32;
          ID_API_CALLBACK MapNodeGetKey64;
          ID_API_CALLBACK MapNodeGetKeyIString;

@@ -490,6 +490,45 @@ namespace
 		validate(result == 3);
 	}
 
+	void TestStringReplace(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)\n"
+			"(using Sys.Type)\n"
+			"(using Sys.IO)\n"
+			"(function Main -> (Int32 result):\n"
+			"	(IStringBuilder sb = (NewStringBuilder 16))\n"
+			"	(#build sb \"Hello Guide\")"
+			"   (sb.Replace 0 \"Guide\" \"Jed\")\n"
+			"   (#printf sb \"&n\")"
+			"   (sb.Replace 0 \"Jed\" \"Guide\")\n"
+			"   (#printf sb \"&n\")"
+			"   (sb.Replace 0 \"Hello\" \"Guide\")\n"
+			"   (#printf sb \"&n\")"
+			"   (sb.Replace 0 \"Guide\" \"Jed\")\n"
+			"   (#printf sb \"&n\")"
+			"   (sb.Replace 0 \"Jed\" \"Guide\")\n"
+			"   (#printf sb \"&n\")"
+			"   (    try ("
+			"          (sb.Replace 0 \"Guide\" \"Very Big Guide\")\n"
+			"        )"
+			"        catch e ("
+			"          (#printf e.Message \"&n\")\n"
+			"        )"
+			"   )"
+			"   (#printf sb \"&n\")"
+			")"
+			"(alias Main EntryPoint.Main)";
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+		vm.Push(100); // Allocate stack space for the int32 result
+
+		ValidateExecution(vm.Execute(VM::ExecutionFlags(false, true)));
+		int32 result = vm.PopInt32();
+	}
+
 	void TestAssignFloat32Literal(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -9703,6 +9742,37 @@ R"((namespace EntryPoint)
 		validate(x == 0);
 	}
 
+	void TestMapStringToString(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Type)"
+
+			"(function Main -> (Int32 result):"
+			"	(map IString IString a)"
+			"	(a.Insert \"Joe\" \"90\")"
+			"	(node n = (a \"Joe\"))"
+			"   (IString value = n.Value)"
+			"   (value.Length -> result)"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		validate(ss.ValidateMemory());
+
+		int x = vm.PopInt32();
+		validate(x == 2);
+	}
+
 	void TestMapKey(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -9934,7 +10004,7 @@ R"((namespace EntryPoint)
 			"	(IString joe = \"Joe\")"
 			"	(a.Insert joe \"cool\" )"
 			"	(node n = (a joe))"
-			"   (IString value = & n)"
+			"   (IString value = n.Value)"
 			"   (value.Length -> result)"
 			")";
 
@@ -10322,7 +10392,7 @@ R"((namespace EntryPoint)
 			"	(Sys.ITest t (Sys.NewTest))"
 			"	(a.Insert 45 t)"
 			"	(node n = (a 45))"
-			"	(Sys.ITest value = & n)"
+			"	(Sys.ITest value = n.Value)"
 			"	(result = value.Id)"
 			")";
 
@@ -15103,6 +15173,7 @@ R"(
 	   TEST3(TestMapStringInsertByVariable2);
 
 	   TEST(TestMap);
+	   TEST(TestMapStringToString);
 	   TEST(TestMap2);
 	   TEST(TestMap3);
 	   TEST(TestMap4);
@@ -15227,6 +15298,8 @@ R"(
 	{
 		validate(true);
 
+		TEST3(TestStringReplace);
+		TEST(TestMapStringToString);
 		TEST3(TestMapKey);
 
 		TEST3(TestTopLevelMacro2);

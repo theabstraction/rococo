@@ -1004,6 +1004,7 @@ namespace Rococo::Script
 			mapCallbacks.MapTryGet = core.RegisterCallback(OnInvokeMapTryGet, this, "MapTryGet");
 			mapCallbacks.MapNodeGet32 = core.RegisterCallback(OnInvokeMapNodeGet32, this, "MapNodeGet32");
 			mapCallbacks.MapNodeGet64 = core.RegisterCallback(OnInvokeMapNodeGet64, this, "MapNodeGet64");
+			mapCallbacks.MapNodeGetInterface = core.RegisterCallback(OnInvokeMapNodeGetInterface, this, "MapNodeGetInterface");
 			mapCallbacks.MapNodeGetKey32 = core.RegisterCallback(OnInvokeMapNodeGetKey32, this, "MapNodeGetKey32");
 			mapCallbacks.MapNodeGetKey64 = core.RegisterCallback(OnInvokeMapNodeGetKey64, this, "MapNodeGetKey64");
 			mapCallbacks.MapNodeGetKeyIString = core.RegisterCallback(OnInvokeMapNodeGetKeyIString, this, "MapNodeGetKeyIString");
@@ -1795,6 +1796,7 @@ namespace Rococo::Script
 			AddNativeCall(sysNative, StringEndsWith, NULL, "StringEndsWith (IString bigString)(IString suffix) -> (Bool isSo)", __FILE__, __LINE__, false, 0);
 			AddNativeCall(sysNative, StringStartsWith, NULL, "StringStartsWith (IString bigString)(IString prefix) -> (Bool isSo)", __FILE__, __LINE__, false, 0);
 			AddNativeCall(sysNative, FastStringBuilderMakeSysSlashes, stringPool, "MakeSysSlashes (Sys.Type.IStringBuilder sb) ->", __FILE__, __LINE__, false, 0);
+			AddNativeCall(sysNative, FastStringBuilderReplace, stringPool, "FastStringBuilderReplace (Sys.Type.IStringBuilder sb)(Int32 startPosition)(IString from)(IString to) ->", __FILE__, __LINE__, false, 0);
 		}
 
 		static void _PublishAPI(NativeCallEnvironment& nce)

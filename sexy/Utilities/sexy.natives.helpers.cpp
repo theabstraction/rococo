@@ -24,6 +24,7 @@ namespace Rococo
 		  if (fsb->stub.Desc->TypeInfo != _nce.ss.GetStringBuilderType())
 		  {
 			  _nce.ss.ThrowFromNativeCode(0, "Builder was not allocated using NewTokenBuilder, NewPathBuilder, NewParagraphBuilder or NewStringBuilder");
+              return;
 		  }
 		  builder = fsb;
 	  }
