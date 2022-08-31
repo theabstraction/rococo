@@ -33,6 +33,11 @@
 
 #include <cerrno>
 
+namespace Rococo::Compiler::Impl
+{
+	int CountRefCountedMembers(const IStructure& member);
+}
+
 namespace Rococo
 {
    namespace Script
@@ -297,7 +302,7 @@ namespace Rococo
 	   VM_CALLBACK(ArrayPushByRef)
 	   {
 		   ArrayImage* a = (ArrayImage*)registers[VM::REGISTER_D4].vPtrValue;
-		   const void* pValue = registers[VM::REGISTER_D7].vTable;
+		   const void* pValue = registers[VM::REGISTER_D7].vPtrValue;
 
 		   if (a->LockNumber > 0)
 		   {
@@ -314,6 +319,73 @@ namespace Rococo
 		   void* pTargetElement = ((uint8*)a->Start) + (a->ElementLength * a->NumberOfElements);
 		   AlignedMemcpy(pTargetElement, pValue, a->ElementLength);
 		   a->NumberOfElements++;
+	   }
+
+	   void UpdateRefCounts(uint8* pMemberVariable, const IMember& m)
+	   {
+		   auto& mtype = *m.UnderlyingType();
+
+		   if (m.IsInterfaceVariable())
+		   {
+			   auto* ip = *(InterfacePointer*)pMemberVariable;
+			   ObjectStub* stub = InterfaceToInstance(ip);
+			   if (stub->refCount != ObjectStub::NO_REF_COUNT)
+			   {
+				   stub->refCount++;
+			   }
+		   }
+		   else if (m.UnderlyingGenericArg1Type() != nullptr)
+		   {
+			   if (Eq(mtype.Name(), "_Array"))
+			   {
+				   ArrayImage* subArray = *(ArrayImage**)pMemberVariable;
+				   if (subArray)
+				   {
+					   subArray->RefCount++;
+				   }
+			   }
+			   else if (Eq(mtype.Name(), "_Map"))
+			   {
+				   MapImage* subMap = *(MapImage**)pMemberVariable;
+				   IncrementRef(subMap);
+			   }
+			   else if (Eq(mtype.Name(), "_List"))
+			   {
+				   ListImage* subList = *(ListImage**)pMemberVariable;
+				   if (subList)
+				   {
+					   subList->refCount++;
+				   }
+			   }
+		   }
+		   else if (mtype.VarType() == VARTYPE_Derivative)
+		   {
+			   size_t offset = 0;
+
+			   for (int i = 0; i < mtype.MemberCount(); ++i)
+			   {
+				   auto& subMember = mtype.GetMember(i);
+				   uint8* pSubMemberVariable = pMemberVariable + offset;
+				   UpdateRefCounts(pSubMemberVariable, subMember);
+				   offset += subMember.SizeOfMember();
+			   }
+		   }
+	   }
+
+	   VM_CALLBACK(ArrayUpdateRefCounts)
+	   {
+		   ArrayImage* a = (ArrayImage*)registers[VM::REGISTER_D4].vPtrValue;
+		   uint8* pValue = registers[VM::REGISTER_D7].uint8PtrValue;
+		   auto& elementType = *a->ElementType;
+		 
+		   size_t offset = 0;
+		   for (int i = 0; i < elementType.MemberCount(); ++i)
+		   {
+			   auto& m = elementType.GetMember(i); 
+			   uint8* pMemberVariable = pValue + offset;
+			   UpdateRefCounts(pMemberVariable, m);
+			   offset += m.SizeOfMember();
+		   }
 	   }
 
 	   VM_CALLBACK(ArraySet32)
@@ -844,6 +916,11 @@ namespace Rococo
 				   else
 				   {
 					   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayPushByRef);
+
+					   if (Rococo::Compiler::Impl::CountRefCountedMembers(elementType) > 0)
+					   {
+						   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayUpdateRefCounts);
+					   }
 				   }
 			   }
 		   }	

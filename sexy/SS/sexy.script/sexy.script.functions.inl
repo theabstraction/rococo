@@ -2326,7 +2326,7 @@ namespace Rococo
 			const IStructure* argType = GuessType(ce, arg);
 			if (argType == NULL)
 			{
-				Throw(arg, ("Cannot guess type of argument. Try assigning value to a variable and use the variable as the argument."));
+				Throw(arg, "Cannot guess type of argument. Try assigning value to a variable and use the variable as the argument.");
 			}
 
 			cstr typeName = GetFriendlyName(*argType);

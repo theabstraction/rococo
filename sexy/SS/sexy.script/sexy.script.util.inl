@@ -134,6 +134,8 @@ namespace Rococo
 		struct ListImage;
 		struct MapImage;
 
+		void IncrementRef(MapImage* mapImage);
+
 		void DestroyElements(ArrayImage& a, IScriptSystem& ss);
 		void ListRelease(ListImage* l, IScriptSystem& ss);
 		void MapClear(MapImage* m, IScriptSystem& ss);

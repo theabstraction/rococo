@@ -928,6 +928,7 @@ namespace Rococo::Script
 			arrayCallbacks.ArrayClear = core.RegisterCallback(OnInvokeArrayClear, this, "ArrayClear");
 			arrayCallbacks.ArrayPushAndGetRef = core.RegisterCallback(OnInvokeArrayPushAndGetRef, this, ("ArrayPushAndGetRef"));
 			arrayCallbacks.ArrayPushByRef = core.RegisterCallback(OnInvokeArrayPushByRef, this, ("ArrayPushByRef"));
+			arrayCallbacks.ArrayUpdateRefCounts = core.RegisterCallback(OnInvokeArrayUpdateRefCounts, this, ("ArrayUpdateRefCounts"));
 			arrayCallbacks.ArrayPush32 = core.RegisterCallback(OnInvokeArrayPush32, this, ("ArrayPush32"));
 			arrayCallbacks.ArrayPushInterface = core.RegisterCallback(OnInvokeArrayPushInterface, this, ("ArrayPushInterface"));
 			arrayCallbacks.ArrayPush64 = core.RegisterCallback(OnInvokeArrayPush64, this, ("ArrayPush64"));

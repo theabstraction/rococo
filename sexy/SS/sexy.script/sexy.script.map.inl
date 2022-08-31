@@ -574,6 +574,11 @@ namespace Rococo::Script
 		return n;
 	}
 
+	void IncrementRef(MapImage* mapImage)
+	{
+		if (mapImage) mapImage->refCount++;
+	}
+
 	VM_CALLBACK(MapInsert32)
 	{
 		IScriptSystem& ss = *(IScriptSystem*)context;

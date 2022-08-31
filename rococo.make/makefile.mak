@@ -20,6 +20,7 @@ MHOST_SXH = $(DIR_MHOST)mhost.sxh
 MHOST_SXH_H = $(DIR_MHOST)mhost.sxh.h
 MHOST_XC = $(DIR_MHOST)mhost.xc
 DIR_EVENTS = $(ROCOCO)rococo.events^\
+UTIL = $(ROCOCO)rococo.util^\
 
 EXECUTE_POWERSHELL = powershell.exe -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass
 
@@ -57,7 +58,7 @@ clean:
 	del $(BENNY_HILL)
 	del $(LIB_UTIL)
 
-$(LIB_UTIL): $(ROCOCO)rococo.util/rococo.base.cpp
+$(LIB_UTIL): $(ROCOCO)rococo.util/rococo.base.cpp $(UTIL)rococo.base.cpp $(UTIL)rococo.throw.cr_sex.cpp
 	msbuild $(ROCOCO)rococo.util/rococo.util.vcxproj -p:Configuration=$(CONFIGURATION) -t:Build -p:Platform=x64 -m -verbosity:minimal
 
 $(BENNY_HILL): $(LIB_UTIL)

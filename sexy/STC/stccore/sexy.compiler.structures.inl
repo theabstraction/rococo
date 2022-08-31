@@ -141,6 +141,42 @@ namespace Rococo { namespace Compiler { namespace Impl
 		return count;
 	}
 
+	int CountRefCountedMembers(const IMember& member)
+	{
+		auto* type = member.UnderlyingType();
+
+		int count = 0;
+
+		if (type)
+		{
+			if (member.UnderlyingGenericArg1Type() != nullptr)
+			{
+				count++;
+			}
+			else
+			{
+				for (int i = 0; i < type->MemberCount(); ++i)
+				{
+					auto& m = type->GetMember(i);
+					count += CountInterfaceMembers(m) + CountRefCountedMembers(m);
+				}
+			}
+		}
+
+		return count;
+	}
+
+	int CountRefCountedMembers(const IStructure& type)
+	{
+		int count = 0;
+		for (int i = 0; i < type.MemberCount(); ++i)
+		{
+			auto& m = type.GetMember(i);
+			count += CountInterfaceMembers(m) + CountRefCountedMembers(m);
+		}
+		return count;
+	}
+
 	bool Structure::HasInterfaceMembers() const
 	{
 		if (hasInterfaceMembers < 0)

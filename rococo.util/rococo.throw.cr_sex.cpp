@@ -138,7 +138,18 @@ namespace Rococo
 			va_start(args, format);
 
 			char message[4096];
-			SafeVFormat(message, sizeof(message), format, args);
+			int len = SafeVFormat(message, sizeof(message), format, args);
+
+			auto* pOriginal = e.GetOriginal();
+			if (pOriginal != nullptr)
+			{
+				cr_sex s = *pOriginal;
+				StackStringBuilder sb(message + len, sizeof message - len);
+
+				char ospecimen[64];
+				GetSpecimen(ospecimen, s);
+				sb.AppendFormat("Original expression: (%d, %d) to (%d, %d). Specimen: %s\n", s.Start().x, s.Start().y, s.End().x, s.End().y, ospecimen);
+			}
 
 			char specimen[64];
 			GetSpecimen(specimen, e);

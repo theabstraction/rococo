@@ -8545,6 +8545,37 @@ R"((namespace EntryPoint)
 		validate(x == 747);
 	}
 
+	void TestArrayEmptyForEach(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Type)"
+			"(using Sys.Maths)"
+
+			"(function Main -> (Int32 result):"
+			"	(array Vec4 vectors 5)"
+			"	(foreach v # vectors"
+			"		(result = 7)"
+			"	)"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		int32 x = vm.PopInt32();
+		validate(x == 0);
+	}
+
+
 	void TestArrayElementLockRef(IPublicScriptSystem& ss)
 	{
 		cstr srcCode = 
@@ -15298,6 +15329,9 @@ R"(
 	{
 		validate(true);
 
+		TEST(TestArrayRefMember);
+
+		TEST3(TestArrayEmptyForEach);
 		TEST3(TestStringReplace);
 		TEST(TestMapStringToString);
 		TEST3(TestMapKey);

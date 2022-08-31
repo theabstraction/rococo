@@ -46,13 +46,34 @@
 	(SaveFiles ec)
 )
 
-(function AppendCPPPrelude (Sys.IO.IFileWriter cpp)(IString associatedHeaderFile) -> :
-	(IStringBuilder timestamp = NewToken)
+(function BuildArgsList (IStringBuilder sb)(EventObject event)-> :
+	(sb.Clear)
+	(sb "IPublisher&& publisher")
+	
+	(foreach arg # event.args
+		(#build sb ", " arg.typename " " arg.variableName)
+	)
+)
+
+(function AppendCPPPrelude (EventsContext ec)(Sys.IO.IFileWriter cpp)(IString associatedHeaderFile) -> :
+	(IStringBuilder timestamp = NewTokenBuilder)
 	(Sys.OS.AppendCTime timestamp)
-	(#build cpp "include &" "associatedHeaderFile" "&"&n")
-	(#build cpp "// Generated at " timestamp "&n&n")
-	(if ec.isEventOpen
-		(#build ec.currentCppBuilder ")&n")
+	(#build cpp "// Generated: " timestamp "&n&n")
+	(#build cpp "include &"" associatedHeaderFile "&"&n&n")
+	
+	(IStringBuilder args = NewParagraphBuilder)
+		
+	(foreach event # ec.events
+		(BuildArgsList args event)
+		
+		(#build cpp "namespace " event.evNamespace "&n")
+		(#build cpp "{&n")
+		
+		(#build cpp "	void Send" event.evName "(" args ")&n")
+		(#build cpp "	{&n")
+		
+		(#build cpp "	}&n")
+		(#build cpp "}&n&n")
 	)
 )
 
@@ -65,22 +86,27 @@
 
 (function SaveFiles (EventsContext ec)-> :
 	(foreach cppKeyValue # ec.cppToBuilder
-		(IString cppPath = cppKeyValue.Key)
-		(IStringBuilder cppData = cppKeyValue.Value)
-		(Sys.IO.IFileWriter cppWriter = (Sys.IO.WriteToFile cppPath))
-		(IStringBuilder hppPath = NewPathBuilder)
-		(hppPath.AppendIString ec.cppPath)
-		(hppPath.Replace ".cpp" ".h")
-		(AppendCPPPrelude cppWriter hppPath)
-		(cppWriter cppData)		
+		(
+			(IString cppPath = cppKeyValue.Key)
+			(IStringBuilder cppData = cppKeyValue.Value)
+			(#path fullCppPath ec.rootPath cppPath)
+			(Sys.IO.IFileWriter cppWriter = (Sys.IO.WriteToFile fullCppPath))
+			(IStringBuilder hppPath = NewPathBuilder)
+			(hppPath.AppendIString cppPath)
+			(hppPath.Replace 0 ".cpp" ".h")
+			(AppendCPPPrelude ec cppWriter hppPath)
+			(cppWriter cppData)		
+		)
 	)
 	
 	(foreach hppKeyValue # ec.hppToBuilder
-		(IString hppPath = hppKeyValue.Key)
-		(IStringBuilder hppData = hppKeyValue.Value)
-
-		(Sys.IO.IFileWriter hppWriter = (Sys.IO.WriteToFile hppPath))
-		(hppWriter hppData)		
+		(
+			(IString hppPath = hppKeyValue.Key)
+			(IStringBuilder hppData = hppKeyValue.Value)
+			(#path fullHppPath ec.rootPath hppPath)
+			(Sys.IO.IFileWriter hppWriter = (Sys.IO.WriteToFile hppPath))
+			(hppWriter hppData)		
+		)
 	)
 )
 
@@ -103,8 +129,8 @@
 		)
 	)
 	
-	(#path cppPath ec.rootPath cppFilePathRelativeRoot)
-	(#path hppPath ec.rootPath hppFilePathRelativeRoot)
+	(#path cppPath cppFilePathRelativeRoot)
+	(#path hppPath hppFilePathRelativeRoot)
 	
 	(Sys.Type.Strings.MakeSysSlashes cppPath)
 	(Sys.Type.Strings.MakeSysSlashes hppPath)
@@ -140,10 +166,17 @@
 )
 
 (function Arg (EventsContext ec) (IString typeName)(IString variableName)-> :
-	
+	(ArgWithDefault ec typeName variableName "")
 )
 
 (function ArgWithDefault (EventsContext ec) (IString typeName)(IString variableName)(IString defaultValue)-> :
+	(EventObjectArg arg = typeName variableName defaultValue)
+	(Int32 length = (ec.events.Length))
+	(Int32 backIndex = (length - 1))
+
+	(foreach back # (ec.events backIndex)
+		(back.args.Push arg)
+	)
 )
 
 
@@ -154,7 +187,8 @@
 	(IStringBuilder sbValue = NewParagraphBuilder)
 
 	(Int32 argc = Sys.IO.GetCmdArgCount)
-	(#for (Int32 i = startIndex)(i < argc)(i += 1)
+	(Int32 i = startIndex)
+	(while (i < argc)
 		(sbKey.Clear)		
 		(sbValue.Clear)
 		(Sys.IO.AppendCmdKeyAndValue i sbKey sbValue)
@@ -169,6 +203,7 @@
 			(foundIndex = i)
 			(return)
 		)
+		(i += 1)
 	)
 	
 	(foundIndex = argc)
@@ -180,7 +215,7 @@
 			(IString rootPath)
 			(Int32 rootIndex)
 			(GetNextCmdPathValue 0 "root" -> rootPath rootIndex)
-			
+
 			(if (not (rootPath ?))
 				(Sys.Throw 0 "Command line missing 'root=<ROOT-FILEPATH>'")
 			)

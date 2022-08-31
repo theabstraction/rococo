@@ -226,6 +226,10 @@
 	(Sys.Native.FastStringBuilderAppendSubstring this s.Buffer s.Length startPos numberOfChars)
 )
 
+(method FastStringBuilder.Replace (Int32 startPosition) (IString from)(IString to)-> :
+	(Sys.Native.FastStringBuilderReplace this startPosition from to)
+)
+
 (method FastStringBuilder.ToUpper (Int32 start) (Int32 end) -> :
 	(Sys.Native.FastStringBuilderSetCase this start end true)
 )
@@ -317,6 +321,7 @@
 	(AppendAsSpecG (AsSpecG null) ->)
 	(AppendAsNewLine (AsNewLine null) ->)
 	(AppendSubstring (IString s) (Int32 startPos) (Int32 numberOfChars) ->)
+	(Replace (Int32 startPosition) (IString from)(IString to) ->)
 	(SetFormat (Sys.Type.Int32 precision) (Sys.Type.Int32 width) (Sys.Type.Bool isZeroPrefixed) (Sys.Type.Bool isRightAligned) ->)
 	(SetLength (Int32 length) ->)
 	(ToUpper (Int32 start) (Int32 end) ->)
