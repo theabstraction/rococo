@@ -936,7 +936,7 @@ namespace Rococo::Script
 			arrayCallbacks.ArrayGet64 = core.RegisterCallback(OnInvokeArrayGet64, this, ("ArrayGet64"));
 			arrayCallbacks.ArrayGetMember32 = core.RegisterCallback(OnInvokeArrayGetMember32, this, ("ArrayGetMember32"));
 			arrayCallbacks.ArrayGetMember64 = core.RegisterCallback(OnInvokeArrayGetMember64, this, ("ArrayGetMember64"));
-			arrayCallbacks.ArrayGetByRef = core.RegisterCallback(OnInvokeArrayGetByRef, this, ("ArrayGetByRef"));
+			arrayCallbacks.ArrayCopyByRef = core.RegisterCallback(OnInvokeArrayCopyByRef, this, ("ArrayCopyByRef"));
 			arrayCallbacks.ArrayInit = core.RegisterCallback(OnInvokeArrayInit, this, ("ArrayInit"));
 			arrayCallbacks.ArrayRelease = core.RegisterCallback(OnInvokeArrayReleaseRef, this, "ArrayReleaseRef");
 			arrayCallbacks.ArraySet32 = core.RegisterCallback(OnInvokeArraySet32, this, ("ArraySet32"));

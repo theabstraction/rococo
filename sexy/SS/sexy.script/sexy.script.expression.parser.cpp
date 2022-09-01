@@ -2052,7 +2052,7 @@ namespace Rococo
 						ce.Builder.AssignVariableRefToTemp(commandText, 0); // D4 contains the array ptr
 						ce.Builder.AssignVariableRefToTemp(varName, 1); // D5 contains the structure ptr
 
-						ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayGetByRef);
+						ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayCopyByRef);
 						return true;
 					}
 					else

@@ -679,7 +679,7 @@ namespace Rococo
 		   }
 	   }
 
-	   VM_CALLBACK(ArrayGetByRef)
+	   VM_CALLBACK(ArrayCopyByRef)
 	   {
 		   ArrayImage* a = (ArrayImage*) registers[VM::REGISTER_D4].vPtrValue;
 		   int32 index = registers[VM::REGISTER_D7].int32Value;

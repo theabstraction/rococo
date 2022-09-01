@@ -171,6 +171,9 @@
 
 (function ArgWithDefault (EventsContext ec) (IString typeName)(IString variableName)(IString defaultValue)-> :
 	(EventObjectArg arg = typeName variableName defaultValue)
+	
+	(Sys.Throw 0 "Replace this mess with (foreach back # (ec.events.Back) ...")
+	
 	(Int32 length = (ec.events.Length))
 	(Int32 backIndex = (length - 1))
 

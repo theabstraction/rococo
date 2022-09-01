@@ -7576,12 +7576,13 @@ R"((namespace EntryPoint)
 		"	(array Vec3i a 4)"
 		"	(Vec3i v = 1 2 3)"
 		"	(a.Push v)"
-		"	(Vec3i w)"
-		"	(w = (a 0))"
+		"	(Vec3i w0)"
+		"	(w0 = (a 0))"
+		"	(Vec3i w = (a 0))"
 		"	(result = w.z)"
 		")";
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 },"TestArrayStruct_2");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -15329,9 +15330,6 @@ R"(
 	{
 		validate(true);
 
-		TEST(TestArrayRefMember);
-
-		TEST3(TestArrayEmptyForEach);
 		TEST3(TestStringReplace);
 		TEST(TestMapStringToString);
 		TEST3(TestMapKey);
@@ -15715,6 +15713,9 @@ R"(
 		Memory::ValidateNothingAllocated();
 
 		TestMemoryIsGood();
+
+		TEST(TestArrayStruct_2);
+		return;
 
 		RunPositiveSuccesses();	
 		RunPositiveFailures();
