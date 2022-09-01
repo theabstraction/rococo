@@ -720,6 +720,26 @@ namespace Rococo
 		   }
 	   }
 
+	   VM_CALLBACK(ArrayGetLastIndexToD12)
+	   {
+		   ArrayImage* a = (ArrayImage*)registers[VM::REGISTER_D13].vPtrValue;
+		   if (a == nullptr)
+		   {
+			   IScriptSystem& ss = *(IScriptSystem*)context;
+			   ss.ThrowFromNativeCode(ERANGE, "ArrayGetLastIndex: array was null");
+			   return;
+		   }
+
+		   if (a->NumberOfElements == 0)
+		   {
+			   IScriptSystem& ss = *(IScriptSystem*)context;
+			   ss.ThrowFromNativeCode(ERANGE, "ArrayGetLastIndex: array element count was zero");
+			   return;
+		   }
+
+		   registers[VM::REGISTER_D12].int32Value = a->NumberOfElements - 1;
+	   }
+
 	   VM_CALLBACK(ArrayGetRefUnchecked)
 	   {
 		   ArrayImage* a = (ArrayImage*) registers[VM::REGISTER_D13].vPtrValue;
@@ -1416,6 +1436,13 @@ namespace Rococo
 			   VariantValue v;
 			   v.int32Value = indexValue;
 			   ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D12, v, BITCOUNT_32);
+		   }
+		   else if (IsAtomic(indexExpr))
+		   {
+			   if (AreEqual(indexExpr.String(), "@last"))
+			   {
+				   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayGetLastIndexToD12);
+			   }
 		   }
 		   else
 		   {

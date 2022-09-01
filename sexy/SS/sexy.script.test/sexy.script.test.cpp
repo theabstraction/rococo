@@ -7576,9 +7576,9 @@ R"((namespace EntryPoint)
 		"	(array Vec3i a 4)"
 		"	(Vec3i v = 1 2 3)"
 		"	(a.Push v)"
-		"	(Vec3i w0)"
-		"	(w0 = (a 0))"
 		"	(Vec3i w = (a 0))"
+		"	(Vec3i w0)"
+		"	(w0 = (a 0))"	
 		"	(result = w.z)"
 		")";
 
@@ -8323,6 +8323,40 @@ R"((namespace EntryPoint)
 		
 		int32 x = vm.PopInt32();
 		validate(x == 45);
+	}
+
+	void TestArrayLast(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Type)"
+
+			"(function Main -> (Int32 result):"
+			"	(array Int32 a (10) )"
+			"	(a.Push 10)"
+			"	(a.Push 19)"
+			"	(foreach k # (a @last)"
+			"		(result += k)"
+			"	)"
+			"	(foreach k # (a 0)"
+			"		(result += k)"
+			"	)"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		int32 x = vm.PopInt32();
+		validate(x == 29);
 	}
 
 	void TestArrayForeachElementInArray(IPublicScriptSystem& ss)
@@ -15103,6 +15137,7 @@ R"(
 
    void RunCollectionTests()
    {
+	   TEST(TestArrayLast);
 	   TEST(TestLinkedListNodeInline);
 	   TEST(TestLinkedListContained);
 	   TEST(TestLinkedListOfLists);
@@ -15713,9 +15748,6 @@ R"(
 		Memory::ValidateNothingAllocated();
 
 		TestMemoryIsGood();
-
-		TEST(TestArrayStruct_2);
-		return;
 
 		RunPositiveSuccesses();	
 		RunPositiveFailures();

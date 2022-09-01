@@ -33,317 +33,340 @@
 
 namespace Rococo
 {
-   namespace Script
-   {
-      void CompileDoWhile(CCompileEnvironment& ce, cr_sex s)
-      {
-         // (do (action1) ... (actionN) while (binary-predicate) )
+    namespace Script
+    {
+        void CompileDoWhile(CCompileEnvironment& ce, cr_sex s)
+        {
+            // (do (action1) ... (actionN) while (binary-predicate) )
 
-         AssertCompound(s);
-         AssertNotTooFewElements(s, 3);
+            AssertCompound(s);
+            AssertNotTooFewElements(s, 3);
 
-         cr_sex whileExpr = s.GetElement(s.NumberOfElements() - 2);
-         AssertAtomic(whileExpr);
+            cr_sex whileExpr = s.GetElement(s.NumberOfElements() - 2);
+            AssertAtomic(whileExpr);
 
-         if (!AreEqual(whileExpr.String(), ("while")))
-         {
-            Throw(whileExpr, ("Expecting 'while' in penultimate position of the do...while expression"));
-         }
-
-         struct ConditionSection : public ICompileSection
-         {
-            ConditionSection(cr_sex _s, CCompileEnvironment& _ce) : s(_s), ce(_ce) {}
-
-            cr_sex s;
-            CCompileEnvironment& ce;
-
-            virtual void Compile(ICodeBuilder& builder, IProgramObject& object, ControlFlowData* controlFlowData)
+            if (!AreEqual(whileExpr.String(), ("while")))
             {
-               cr_sex condition = s.GetElement(s.NumberOfElements() - 1);
-
-               bool negate = false;
-               if (!TryCompileBooleanExpression(ce, condition, true, negate))
-               {
-                  sexstringstream<1024> streamer;
-                  streamer.sb << ("Expecting boolean valued expression in the last position in the do...while statement");
-                  Throw(condition, streamer);
-               }
-
-               if (negate) builder.Assembler().Append_BooleanNot(VM::REGISTER_D7);
-               builder.Assembler().Append_Test(VM::REGISTER_D7, BITCOUNT_32);
+                Throw(whileExpr, ("Expecting 'while' in penultimate position of the do...while expression"));
             }
-         } loopCriterion(s, ce);
 
-         struct BodySection : public ICompileSection
-         {
-            BodySection(cr_sex _s, CCompileEnvironment& _ce) : s(_s), ce(_ce) {}
-
-            cr_sex s;
-            CCompileEnvironment& ce;
-
-            virtual void Compile(ICodeBuilder& builder, IProgramObject& object, ControlFlowData* controlFlowData)
+            struct ConditionSection : public ICompileSection
             {
-               builder.PushControlFlowPoint(*controlFlowData);
-               CompileExpressionSequence(ce, 1, s.NumberOfElements() - 3, s);
-               builder.PopControlFlowPoint();
+                ConditionSection(cr_sex _s, CCompileEnvironment& _ce) : s(_s), ce(_ce) {}
+
+                cr_sex s;
+                CCompileEnvironment& ce;
+
+                virtual void Compile(ICodeBuilder& builder, IProgramObject& object, ControlFlowData* controlFlowData)
+                {
+                    cr_sex condition = s.GetElement(s.NumberOfElements() - 1);
+
+                    bool negate = false;
+                    if (!TryCompileBooleanExpression(ce, condition, true, negate))
+                    {
+                        sexstringstream<1024> streamer;
+                        streamer.sb << ("Expecting boolean valued expression in the last position in the do...while statement");
+                        Throw(condition, streamer);
+                    }
+
+                    if (negate) builder.Assembler().Append_BooleanNot(VM::REGISTER_D7);
+                    builder.Assembler().Append_Test(VM::REGISTER_D7, BITCOUNT_32);
+                }
+            } loopCriterion(s, ce);
+
+            struct BodySection : public ICompileSection
+            {
+                BodySection(cr_sex _s, CCompileEnvironment& _ce) : s(_s), ce(_ce) {}
+
+                cr_sex s;
+                CCompileEnvironment& ce;
+
+                virtual void Compile(ICodeBuilder& builder, IProgramObject& object, ControlFlowData* controlFlowData)
+                {
+                    builder.PushControlFlowPoint(*controlFlowData);
+                    CompileExpressionSequence(ce, 1, s.NumberOfElements() - 3, s);
+                    builder.PopControlFlowPoint();
+                }
+            } bodySection(s, ce);
+
+            ce.Builder.AppendDoWhile(bodySection, loopCriterion, CONDITION_IF_NOT_EQUAL);
+        }
+
+        void CompileWhileLoop(CCompileEnvironment& ce, cr_sex s)
+        {
+            // (while (binary-predicate) (action1) ... (actionN))
+
+            AssertCompound(s);
+            AssertNotTooFewElements(s, 2);
+
+            struct ConditionSection : public ICompileSection
+            {
+                ConditionSection(cr_sex _s, CCompileEnvironment& _ce) : s(_s), ce(_ce) {}
+
+                cr_sex s;
+                CCompileEnvironment& ce;
+
+                virtual void Compile(ICodeBuilder& builder, IProgramObject& object, ControlFlowData* controlFlowData)
+                {
+                    cr_sex condition = s.GetElement(1);
+
+                    bool negate = false;
+                    if (!TryCompileBooleanExpression(ce, condition, true, negate))
+                    {
+                        sexstringstream<1024> streamer;
+                        streamer.sb << ("Expecting boolean valued expression as the condition in the (while ...) statement");
+                        Throw(condition, streamer);
+                    }
+
+                    if (negate) builder.Assembler().Append_BooleanNot(VM::REGISTER_D7);
+                    builder.Assembler().Append_Test(VM::REGISTER_D7, BITCOUNT_32);
+                }
+            } loopCriterion(s, ce);
+
+            struct BodySection : public ICompileSection
+            {
+                BodySection(cr_sex _s, CCompileEnvironment& _ce) : s(_s), ce(_ce) {}
+
+                cr_sex s;
+                CCompileEnvironment& ce;
+
+                virtual void Compile(ICodeBuilder& builder, IProgramObject& object, ControlFlowData* controlFlowData)
+                {
+                    builder.PushControlFlowPoint(*controlFlowData);
+                    CompileExpressionSequence(ce, 2, s.NumberOfElements() - 1, s);
+                    builder.PopControlFlowPoint();
+                }
+            } bodySection(s, ce);
+
+            ce.Builder.AppendWhileDo(loopCriterion, CONDITION_IF_NOT_EQUAL, bodySection);
+        }
+
+        void CompileBreak(CCompileEnvironment& ce, cr_sex s)
+        {
+            AssertNotTooManyElements(s, 1);
+
+            ControlFlowData cfd;
+            if (!ce.Builder.TryGetControlFlowPoint(OUT cfd))
+            {
+                Throw(s, "'break' is only valid inside a loop construct");
             }
-         } bodySection(s, ce);
 
-         ce.Builder.AppendDoWhile(bodySection, loopCriterion, CONDITION_IF_NOT_EQUAL);
-      }
+            AppendDeconstructTailVariables(ce, s, false, ce.Builder.SectionArgCount(cfd.SectionIndex));
+            int32 toBreak = ((int32)cfd.BreakPosition) - ((int32)ce.Builder.Assembler().WritePosition());
+            ce.Builder.Assembler().Append_Branch(toBreak);
+        }
 
-      void CompileWhileLoop(CCompileEnvironment& ce, cr_sex s)
-	  {
-         // (while (binary-predicate) (action1) ... (actionN))
+        void CompileContinue(CCompileEnvironment& ce, cr_sex s)
+        {
+            AssertNotTooManyElements(s, 1);
 
-         AssertCompound(s);
-         AssertNotTooFewElements(s, 2);
-
-         struct ConditionSection : public ICompileSection
-         {
-            ConditionSection(cr_sex _s, CCompileEnvironment& _ce) : s(_s), ce(_ce) {}
-
-            cr_sex s;
-            CCompileEnvironment& ce;
-
-            virtual void Compile(ICodeBuilder& builder, IProgramObject& object, ControlFlowData* controlFlowData)
+            ControlFlowData cfd;
+            if (!ce.Builder.TryGetControlFlowPoint(OUT cfd))
             {
-               cr_sex condition = s.GetElement(1);
-
-               bool negate = false;
-               if (!TryCompileBooleanExpression(ce, condition, true, negate))
-               {
-                  sexstringstream<1024> streamer;
-                  streamer.sb << ("Expecting boolean valued expression as the condition in the (while ...) statement");
-                  Throw(condition, streamer);
-               }
-
-               if (negate) builder.Assembler().Append_BooleanNot(VM::REGISTER_D7);
-               builder.Assembler().Append_Test(VM::REGISTER_D7, BITCOUNT_32);
+                Throw(s, ("'continue' is only valid inside a loop construct"));
             }
-         } loopCriterion(s, ce);
 
-         struct BodySection : public ICompileSection
-         {
-            BodySection(cr_sex _s, CCompileEnvironment& _ce) : s(_s), ce(_ce) {}
+            int32 toContinue = ((int32)cfd.ContinuePosition) - ((int32)ce.Builder.Assembler().WritePosition());
+            ce.Builder.Assembler().Append_Branch(toContinue);
+        }
 
-            cr_sex s;
-            CCompileEnvironment& ce;
+        void CompileIfThenElse(CCompileEnvironment& ce, cr_sex s)
+        {
+            // (   if binary-predicate (action1) ... (actionN) else (alternative1) ... (alternativeN)   )
 
-            virtual void Compile(ICodeBuilder& builder, IProgramObject& object, ControlFlowData* controlFlowData)
+            AssertCompound(s);
+            AssertNotTooFewElements(s, 2);
+
+            cr_sex condition = s.GetElement(1);
+
+            bool negate = false;
+            if (!TryCompileBooleanExpression(ce, condition, true, negate))
             {
-               builder.PushControlFlowPoint(*controlFlowData);
-               CompileExpressionSequence(ce, 2, s.NumberOfElements() - 1, s);
-               builder.PopControlFlowPoint();
+                Throw(s, ("Expecting boolean expression"));
             }
-         } bodySection(s, ce);
 
-         ce.Builder.AppendWhileDo(loopCriterion, CONDITION_IF_NOT_EQUAL, bodySection);
-      }
+            if (negate) ce.Builder.Assembler().Append_BooleanNot(VM::REGISTER_D7);
 
-      void CompileBreak(CCompileEnvironment& ce, cr_sex s)
-      {
-         AssertNotTooManyElements(s, 1);
+            ce.Builder.Assembler().Append_Test(VM::REGISTER_D7, BITCOUNT_32);
 
-         ControlFlowData cfd;
-         if (!ce.Builder.TryGetControlFlowPoint(OUT cfd))
-         {
-            Throw(s, "'break' is only valid inside a loop construct");
-         }
-
-		 AppendDeconstructTailVariables(ce, s, false, ce.Builder.SectionArgCount(cfd.SectionIndex));
-		 int32 toBreak = ((int32)cfd.BreakPosition) - ((int32)ce.Builder.Assembler().WritePosition());
-         ce.Builder.Assembler().Append_Branch(toBreak);
-      }
-
-      void CompileContinue(CCompileEnvironment& ce, cr_sex s)
-      {
-         AssertNotTooManyElements(s, 1);
-
-         ControlFlowData cfd;
-         if (!ce.Builder.TryGetControlFlowPoint(OUT cfd))
-         {
-            Throw(s, ("'continue' is only valid inside a loop construct"));
-         }
-
-         int32 toContinue = ((int32)cfd.ContinuePosition) - ((int32)ce.Builder.Assembler().WritePosition());
-         ce.Builder.Assembler().Append_Branch(toContinue);
-      }
-
-      void CompileIfThenElse(CCompileEnvironment& ce, cr_sex s)
-      {
-         // (   if binary-predicate (action1) ... (actionN) else (alternative1) ... (alternativeN)   )
-
-         AssertCompound(s);
-         AssertNotTooFewElements(s, 2);
-
-         cr_sex condition = s.GetElement(1);
-
-         bool negate = false;
-         if (!TryCompileBooleanExpression(ce, condition, true, negate))
-         {
-            Throw(s, ("Expecting boolean expression"));
-         }
-
-         if (negate) ce.Builder.Assembler().Append_BooleanNot(VM::REGISTER_D7);
-
-         ce.Builder.Assembler().Append_Test(VM::REGISTER_D7, BITCOUNT_32);
-
-         cr_sex keywordExpr = GetAtomicArg(s, 0);
-         if (!AreEqual(keywordExpr.String(), ("if")))
-         {
-            Throw(s, ("Expecting If as first element in expression"));
-         }
-
-         int elsePos = -1;
-
-         for (int i = 2; i < s.NumberOfElements(); ++i)
-         {
-            cr_sex arg = s.GetElement(i);
-            if (IsAtomic(arg))
+            cr_sex keywordExpr = GetAtomicArg(s, 0);
+            if (!AreEqual(keywordExpr.String(), ("if")))
             {
-               sexstring token = arg.String();
-               if (AreEqual(token, ("else")))
-               {
-                  if (elsePos == -1)
-                  {
-                     elsePos = i;
-                  }
-                  else
-                  {
-                     Throw(s, ("Duplicate 'else' keyword found in if...else expression"));
-                  }
-               }
-               else
-               {
-                  Throw(arg, ("Only 'else' is a legal atomic keyword in an (if ...) expression"));
-               }
+                Throw(s, ("Expecting If as first element in expression"));
             }
-            else if (!IsCompound(arg))
+
+            int elsePos = -1;
+
+            for (int i = 2; i < s.NumberOfElements(); ++i)
             {
-               Throw(arg, ("Expecting atomic or compound expression in if...else expression"));
+                cr_sex arg = s.GetElement(i);
+                if (IsAtomic(arg))
+                {
+                    sexstring token = arg.String();
+                    if (AreEqual(token, ("else")))
+                    {
+                        if (elsePos == -1)
+                        {
+                            elsePos = i;
+                        }
+                        else
+                        {
+                            Throw(s, ("Duplicate 'else' keyword found in if...else expression"));
+                        }
+                    }
+                    else
+                    {
+                        Throw(arg, ("Only 'else' is a legal atomic keyword in an (if ...) expression"));
+                    }
+                }
+                else if (!IsCompound(arg))
+                {
+                    Throw(arg, ("Expecting atomic or compound expression in if...else expression"));
+                }
             }
-         }
 
-         struct Section : public ICompileSection
-         {
-            Section(cr_sex _s, CCompileEnvironment& _ce) : s(_s), ce(_ce) {}
-
-            cr_sex s;
-            int startPos;
-            int endPos;
-            CCompileEnvironment& ce;
-
-            virtual void Compile(ICodeBuilder& builder, IProgramObject& object, ControlFlowData* controlFlowData /* NULL, as If...Else does not support break and continue */)
+            struct Section : public ICompileSection
             {
-               CompileExpressionSequence(ce, startPos, endPos, s);
-            }
-         } thenSection(s, ce), elseSection(s, ce);
+                Section(cr_sex _s, CCompileEnvironment& _ce) : s(_s), ce(_ce) {}
 
-         thenSection.startPos = 2;
+                cr_sex s;
+                int startPos;
+                int endPos;
+                CCompileEnvironment& ce;
 
-         if (elsePos > thenSection.startPos)
-         {
-            thenSection.endPos = elsePos - 1;
-            elseSection.startPos = elsePos + 1;
-            elseSection.endPos = s.NumberOfElements() - 1;
-         }
-         else
-         {
-            thenSection.endPos = s.NumberOfElements() - 1;
-            elseSection.startPos = -1;
-            elseSection.endPos = -2;
-         }
+                virtual void Compile(ICodeBuilder& builder, IProgramObject& object, ControlFlowData* controlFlowData /* NULL, as If...Else does not support break and continue */)
+                {
+                    CompileExpressionSequence(ce, startPos, endPos, s);
+                }
+            } thenSection(s, ce), elseSection(s, ce);
 
-         ce.Builder.AppendConditional(CONDITION_IF_NOT_EQUAL, thenSection, elseSection);
-      }
+            thenSection.startPos = 2;
 
-      void CompileForEachCore(CCompileEnvironment& ce, cr_sex s)
-      {
-         // (foreach <enumvar1> ... <enumvarN> # <collection> (action1) ....(actionN) )
-         AssertNotTooFewElements(s, 4);
-
-         int hashIndex = -1;
-
-         for (int i = 1; i < s.NumberOfElements(); ++i)
-         {
-            cr_sex arg = GetAtomicArg(s, i);
-            if (AreEqual(arg.String(), ("#")))
+            if (elsePos > thenSection.startPos)
             {
-               hashIndex = i;
-               break;
-            }
-         }
-
-         if (hashIndex < 2)
-         {
-            Throw(s, "(foreach <optional-enum-index-identifier> <element-ref-identifier> # <collection> (action1) ....(actionN) )");
-         }
-
-         cr_sex collection = s.GetElement(hashIndex + 1);
-
-         if (IsCompound(collection))
-         {
-            // => array sub enumeration
-            switch (collection.NumberOfElements())
-            {
-            case 2:
-               CompileLockRef(ce, s, hashIndex);
-               return;
-            case 3:
-               CompileEnumerateArray(ce, s, hashIndex);
-               return;
-            default:
-               Throw(collection, ("Expecting (<array-name> <lower-index> <upper-index>"));
-            }
-         }
-         else if (IsAtomic(collection))
-         {
-            cstr srcName = collection.String()->Buffer;
-
-            MemberDef def;
-            if (ce.Builder.TryGetVariableByName(OUT def, srcName))
-            {
-               if (*def.ResolvedType == ce.StructArray())
-               {
-                  CompileEnumerateArray(ce, s, hashIndex);
-               }
-               else if (*def.ResolvedType == ce.StructList())
-               {
-                  CompileEnumerateList(ce, s, hashIndex);
-               }
-               else if (*def.ResolvedType == ce.StructMap())
-               {
-                  CompileEnumerateMap(ce, s, hashIndex);
-               }
-               else
-               {
-                  sexstringstream<1024> streamer;
-                  streamer.sb << ("Do not know how to enumerate type ") << GetFriendlyName(*def.ResolvedType);
-                  Throw(collection, streamer);
-               }
+                thenSection.endPos = elsePos - 1;
+                elseSection.startPos = elsePos + 1;
+                elseSection.endPos = s.NumberOfElements() - 1;
             }
             else
             {
-               sexstringstream<1024> streamer;
-               streamer.sb << ("Expecting collection variable name");
-               Throw(collection, streamer);
+                thenSection.endPos = s.NumberOfElements() - 1;
+                elseSection.startPos = -1;
+                elseSection.endPos = -2;
             }
-         }
-         else
-         {
-            sexstringstream<1024> streamer;
-            streamer.sb << ("Expecting compound or atomic collection expression");
-            Throw(collection, streamer);
-         }
-      }
 
-      void CompileForEach(CCompileEnvironment& ce, cr_sex s)
-      {
-         ce.Builder.EnterSection();
-         CompileForEachCore(ce, s);
-         AppendDeconstruct(ce, s, true);
-         ce.Builder.LeaveSection();
-      }
-   }//Script
+            ce.Builder.AppendConditional(CONDITION_IF_NOT_EQUAL, thenSection, elseSection);
+        }
+
+        void CompileForEachCore(CCompileEnvironment& ce, cr_sex s)
+        {
+            // (foreach <enumvar1> ... <enumvarN> # <collection> (action1) ....(actionN) )
+            AssertNotTooFewElements(s, 4);
+
+            int hashIndex = -1;
+
+            for (int i = 1; i < s.NumberOfElements(); ++i)
+            {
+                cr_sex arg = GetAtomicArg(s, i);
+                if (AreEqual(arg.String(), ("#")))
+                {
+                    hashIndex = i;
+                    break;
+                }
+            }
+
+            if (hashIndex < 2)
+            {
+                Throw(s, "(foreach <optional-enum-index-identifier> <element-ref-identifier> # <collection> (action1) ....(actionN) )");
+            }
+
+            cr_sex collection = s.GetElement(hashIndex + 1);
+
+            if (IsCompound(collection))
+            {
+                // => array sub enumeration
+                switch (collection.NumberOfElements())
+                {
+                case 2:
+                    CompileLockRef(ce, s, hashIndex);
+                    return;
+                case 3:
+                    CompileEnumerateArray(ce, s, hashIndex);
+                    return;
+                default:
+                    Throw(collection, ("Expecting (<array-name> <lower-index> <upper-index>"));
+                }
+            }
+            else if (IsAtomic(collection))
+            {
+                cstr srcName = collection.String()->Buffer;
+
+                MemberDef def;
+                if (ce.Builder.TryGetVariableByName(OUT def, srcName))
+                {
+                    if (*def.ResolvedType == ce.StructArray())
+                    {
+                        CompileEnumerateArray(ce, s, hashIndex);
+                    }
+                    else if (*def.ResolvedType == ce.StructList())
+                    {
+                        CompileEnumerateList(ce, s, hashIndex);
+                    }
+                    else if (*def.ResolvedType == ce.StructMap())
+                    {
+                        CompileEnumerateMap(ce, s, hashIndex);
+                    }
+                    else
+                    {
+                        sexstringstream<1024> streamer;
+                        streamer.sb << ("Do not know how to enumerate type ") << GetFriendlyName(*def.ResolvedType);
+                        Throw(collection, streamer);
+                    }
+                }
+                else
+                {
+                    NamespaceSplitter splitter(srcName);
+                    cstr head, body;
+                    if (splitter.SplitHead(head, body))
+                    {
+                        MemberDef def;
+                        if (ce.Builder.TryGetVariableByName(OUT def, head))
+                        {
+                            if (*def.ResolvedType == ce.StructArray())
+                            {
+                                CompileEnumerateArray(ce, s, hashIndex);
+                                return;
+                            }
+                            else
+                            {
+                                Throw(collection, "Expecting array name: %s", head);
+                            }
+                        }
+                        else
+                        {
+                            Throw(collection, "Expecting array name: %s", head);
+                        }
+                    }
+                    else
+                    {
+                        Throw(collection, "Expecting collection variable name");
+                    }
+                }
+            }
+            else
+            {
+                sexstringstream<1024> streamer;
+                    streamer.sb << ("Expecting compound or atomic collection expression");
+                Throw(collection, streamer);
+            }
+        }
+
+        void CompileForEach(CCompileEnvironment& ce, cr_sex s)
+        {
+            ce.Builder.EnterSection();
+            CompileForEachCore(ce, s);
+            AppendDeconstruct(ce, s, true);
+            ce.Builder.LeaveSection();
+        }
+    }//Script
 }//Sexy

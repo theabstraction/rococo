@@ -486,6 +486,7 @@ namespace Rococo
 		  ID_API_CALLBACK ArrayPushByRef;
 		  ID_API_CALLBACK ArrayGet32;
 		  ID_API_CALLBACK ArrayGet64;
+          ID_API_CALLBACK ArrayGetLastIndexToD12;
 		  ID_API_CALLBACK ArrayGetMember32;
 		  ID_API_CALLBACK ArrayGetMember64;
 		  ID_API_CALLBACK ArrayCopyByRef;

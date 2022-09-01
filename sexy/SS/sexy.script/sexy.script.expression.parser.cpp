@@ -879,6 +879,8 @@ namespace Rococo
 				ce.Builder.Assembler().Append_SetStackFrameImmediate(def.SFOffset, v, BITCOUNT_POINTER);
 			}
 		}
+
+		bool CompileAsStructureAssignmentFromCompound(CCompileEnvironment& ce, const IStructure& varStruct, cstr varName, cr_sex value);
 	
 		void CompileMemberwiseAssignment(CCompileEnvironment& ce, cr_sex directive, const IStructure& varStruct, int offset)
 		{
@@ -886,6 +888,18 @@ namespace Rococo
 			
 			if (PublicMemberCount(varStruct) + 3 + offset != directive.NumberOfElements())
 			{
+				if (directive.NumberOfElements() == 4)
+				{
+					// We may an element look up: (Vec3 w = (array 999))
+					cr_sex sValue = directive[3];
+					if (sValue.NumberOfElements() == 2)
+					{
+						if (CompileAsStructureAssignmentFromCompound(ce, varStruct, targetVariable, sValue))
+						{
+							return;
+						}
+					}
+				}
 				Throw(directive, "Expecting one element in the constructor for every member of the structure:\n Source: '%s - %s'", varStruct.Module().Name(), varStruct.Name());
 			}
 
