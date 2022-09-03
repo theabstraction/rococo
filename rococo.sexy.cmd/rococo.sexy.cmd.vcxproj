@@ -44,11 +44,11 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>$(ProjectDir)..\Bin\</OutDir>
+    <OutDir>$(ProjectDir)..\bin\</OutDir>
     <IntDir>$(ProjectDir)..\intermediate\$(ProjectName)\$(Platform)$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>$(ProjectDir)..\Bin\</OutDir>
+    <OutDir>$(ProjectDir)..\bin\</OutDir>
     <IntDir>$(ProjectDir)..\intermediate\$(ProjectName)\$(Platform)$(Configuration)\</IntDir>
     <TargetName>$(ProjectName).debug</TargetName>
   </PropertyGroup>
