@@ -19,7 +19,7 @@ namespace Rococo
    private:
       char buffer[CAPACITY];
    public:
-      StackStringBuilder sb;
+      Strings::StackStringBuilder sb;
       sexstringstream(): sb(buffer, CAPACITY) {}
       operator const char* () const { return buffer; }
    };

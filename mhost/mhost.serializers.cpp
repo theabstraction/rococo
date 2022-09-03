@@ -381,7 +381,7 @@ namespace Anon
 			return i->second.value.doubleValue;
 		}
 
-		void AppendString(const fstring& name, const fstring& defaultString, Rococo::IStringPopulator& sb) override
+		void AppendString(const fstring& name, const fstring& defaultString, Strings::IStringPopulator& sb) override
 		{
 			auto i = map.find((cstr)name);
 			if (i == map.end()) sb.Populate(defaultString);

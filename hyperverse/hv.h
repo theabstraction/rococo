@@ -630,7 +630,7 @@ namespace HV
 
 		 virtual void ForEveryObjectInSector(IEventCallback<const ID_ENTITY>& cb) = 0;
 
-		 virtual void SaveTemplate(StringBuilder& sb) = 0;
+		 virtual void SaveTemplate(Strings::StringBuilder& sb) = 0;
 		 virtual void SetTemplate(MatEnumerator& enumerator) = 0;
 
 		 virtual const LightSpec* Lights(size_t& numberOfLights) const = 0;
@@ -722,7 +722,7 @@ namespace HV
 	ROCOCOAPI ISectorAIBuilderSupervisor : ISectorAIBuilder
 	{
 		virtual void AdvanceInTime(IPublisher & publisher, const IUltraClock & clock) = 0;
-		virtual void SaveAsScript(StringBuilder& sb) = 0;
+		virtual void SaveAsScript(Strings::StringBuilder& sb) = 0;
 		virtual ITagContainer& Tags() = 0;
 		virtual ITriggersAndActions & TriggersAndActions() = 0;
 		virtual void Trigger(TriggerType type) = 0;

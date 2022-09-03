@@ -29,6 +29,7 @@ extern FuncItem funcItem[nbFunc];
 extern NppData nppData;
 
 using namespace Rococo;
+using namespace Rococo::Strings;
 
 BOOL APIENTRY DllMain(HANDLE hModule, DWORD reasonForCall, LPVOID /*lpReserved*/)
 {

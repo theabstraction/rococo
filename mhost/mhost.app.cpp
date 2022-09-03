@@ -14,6 +14,7 @@
 #include <rococo.package.h>
 
 using namespace Rococo;
+using namespace Rococo::Strings;
 
 struct AppArgs
 {
@@ -300,7 +301,7 @@ namespace MHost
 			platform.installation.ConvertSysPathToPingPath(args.sysPath, pingPath);	
 			platform.gui.LogMessage("File modified: %s", pingPath);
 
-			auto ext = Rococo::GetFileExtension(pingPath);
+			auto ext = Rococo::Strings::GetFileExtension(pingPath);
 			if (!ext)
 			{
 
@@ -632,7 +633,7 @@ namespace MHost
 			}
 		} args;
 
-		Rococo::SplitString(cmdLine, 0, " \t", args);
+		Rococo::Strings::SplitString(cmdLine, 0, " \t", args);
 
 		AppArgs appArgs;
 		appArgs.mainScript = "!scripts/mhost/mhost_startup.sxy";

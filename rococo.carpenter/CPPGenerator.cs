@@ -798,7 +798,7 @@ namespace Rococo.Carpenter
             sb.AppendLine();
 
             AppendTab(sb);
-            sb.AppendFormat("bool AppendString({0} value, IStringPopulator& populator);", enumName);
+            sb.AppendFormat("bool AppendString({0} value, Strings::IStringPopulator& populator);", enumName);
             sb.AppendLine();
 
             AppendTab(sb);
@@ -1553,6 +1553,7 @@ namespace Rococo.Carpenter
             }
 
             sb.AppendLine("using namespace Rococo;");
+            sb.AppendLine("using namespace Rococo::Strings;");
 
             if (Rules.Lifetime != TableLifetime.Static)
             {

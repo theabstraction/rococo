@@ -5,6 +5,7 @@
 
 using namespace Rococo;
 using namespace Rococo::Events;
+using namespace Rococo::Strings;
 using namespace Rococo::Windows;
 using namespace Rococo::MPlatImpl;
 

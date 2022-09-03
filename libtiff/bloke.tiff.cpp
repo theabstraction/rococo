@@ -23,6 +23,8 @@
 namespace
 {
    using namespace Rococo;
+   using namespace Rococo::Graphics;
+   using namespace Rococo::Strings;
 
    Rococo::IAllocator* tiffAllocator = nullptr;
 

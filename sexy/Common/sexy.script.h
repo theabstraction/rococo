@@ -86,6 +86,8 @@ namespace Rococo
 namespace Rococo {
 	namespace Script
 	{
+		using namespace Rococo::Strings;
+
 		ROCOCOAPI IFreeable
 		{
 			virtual void Free() = 0;
@@ -537,7 +539,7 @@ namespace Rococo {
 namespace Rococo {
    namespace Helpers // Used by Benny Hill to simplify native function integration
    {
-      class StringPopulator : public IStringPopulator
+      class StringPopulator : public Strings::IStringPopulator
       {
          Rococo::Compiler::FastStringBuilder* builder;
       public:

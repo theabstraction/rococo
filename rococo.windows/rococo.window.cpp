@@ -40,6 +40,8 @@ namespace
 	HFONT hControlFont = nullptr;
 }
 
+using namespace Rococo::Strings;
+
 namespace Rococo
 {
 	namespace Windows
@@ -531,7 +533,7 @@ namespace Rococo
 			va_start(args, format);
 
 			char* text = (char*)_malloca(capacity * sizeof(char));
-			Rococo::SafeVFormat(text, capacity, format, args);
+			Rococo::Strings::SafeVFormat(text, capacity, format, args);
 
 			SetWindowTextA(hWnd, text);
 

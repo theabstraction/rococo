@@ -2,6 +2,8 @@
 
 namespace Rococo
 {
+	using namespace Rococo::Strings;
+
 	namespace AutoComplete
 	{
 		class EditorLine

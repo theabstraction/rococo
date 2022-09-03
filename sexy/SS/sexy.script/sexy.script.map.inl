@@ -282,7 +282,7 @@ namespace Rococo::Script
 				strKey = (InlineString*)sc;
 			}
 
-			int hashcode = Rococo::Hash(strKey->buffer, strKey->length);
+			int hashcode = Rococo::Strings::HashArg(strKey->buffer, strKey->length);
 			ExpandRows(m);
 
 			TMapNodes& row = GetRow(hashcode, m);
@@ -313,7 +313,7 @@ namespace Rococo::Script
 
 			VirtualTable** key = (VirtualTable**)keySource.vPtrValue;
 			InlineString* strKey = (InlineString*)(((uint8*)key) + (*key)->OffsetToInstance);
-			int hashcode = Rococo::Hash(strKey->buffer, strKey->length);
+			int hashcode = Rococo::Strings::HashArg(strKey->buffer, strKey->length);
 
 			TMapNodes& row = GetRow(hashcode, m);
 
@@ -342,7 +342,7 @@ namespace Rococo::Script
 		{
 			int32 key = keySource.int32Value;
 
-			int hashcode = Rococo::Hash(key);
+			int hashcode = Rococo::Strings::HashArg(key);
 			ExpandRows(m);
 
 			TMapNodes& row = GetRow(hashcode, m);
@@ -372,7 +372,7 @@ namespace Rococo::Script
 
 			int32 key = keySource.int32Value;
 
-			int hashcode = Rococo::Hash(key);
+			int hashcode = Rococo::Strings::HashArg(key);
 
 			TMapNodes& row = GetRow(hashcode, m);
 
@@ -401,7 +401,7 @@ namespace Rococo::Script
 		{
 			int64 key = keySource.int64Value;
 
-			int hashcode = Rococo::Hash(key);
+			int hashcode = Rococo::Strings::HashArg(key);
 			ExpandRows(m);
 
 			TMapNodes& row = GetRow(hashcode, m);
@@ -431,7 +431,7 @@ namespace Rococo::Script
 
 			int64 key = keySource.int64Value;
 
-			int hashcode = Rococo::Hash(key);
+			int hashcode = Rococo::Strings::HashArg(key);
 
 			TMapNodes& row = GetRow(hashcode, m);
 

@@ -1,2 +1,2 @@
 echo "Defining zconf.h..."
-copy zconf.h.included zconf.h
+echo "zconf.h: No work to do"

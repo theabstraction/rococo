@@ -3,6 +3,8 @@
 #include <rococo.strings.h>
 #include <rococo.clock.h>
 
+using namespace Rococo::Strings;
+
 namespace
 {
 	using namespace HV;

@@ -6,6 +6,7 @@
 
 using namespace Rococo;
 using namespace Rococo::Graphics;
+using namespace Rococo::Strings;
 
 const char* const DEFAULT_FONT_NAME = "Tahoma";
 

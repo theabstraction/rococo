@@ -10,6 +10,8 @@
 
 using namespace Rococo;
 using namespace Rococo::Graphics;
+using namespace Rococo::Strings;
+
 
 struct ShaderItem
 {

@@ -11,6 +11,8 @@ namespace DirectX
 
 namespace Rococo
 {
+	bool IsPointerValid(const void* ptr);
+
 	namespace OS
 	{
 		void SetCursorVisibility(bool isVisible, Rococo::Windows::IWindow& captureWindow);
@@ -80,13 +82,20 @@ namespace Rococo
 	}
 #endif
 
-	int32 Format(U8FilePath& path, _Printf_format_string_ cstr format, ...);
-	int32 Format(WideFilePath& path, _Printf_format_string_ const wchar_t* format, ...);
+	namespace Strings
+	{
+		int32 Format(U8FilePath& path, _Printf_format_string_ cstr format, ...);
+		int32 Format(WideFilePath& path, _Printf_format_string_ const wchar_t* format, ...);
 
-	void Assign(U8FilePath& dest, const wchar_t* wideSrc);
-	void Assign(WideFilePath& dest, const char* src);
+		void Assign(U8FilePath& dest, const wchar_t* wideSrc);
+		void Assign(WideFilePath& dest, const char* src);
 
-	void ValidateFQNameIdentifier(cstr fqName);
+		void ValidateFQNameIdentifier(cstr fqName);
+
+		[[nodiscard]] uint32 FastHash(cstr text);
+
+		void SplitString(cstr text, size_t length, cstr seperators, IEventCallback<cstr>& onSubString);
+	}
 
 	namespace Windows
 	{
@@ -120,8 +129,6 @@ namespace Rococo
 	struct KeyboardEvent;
 	struct MouseEvent;
 
-	void SplitString(cstr text, size_t length, cstr seperators, IEventCallback<cstr>& onSubString);
-
 	void GetTimestamp(char str[26]);
 
 	namespace Post
@@ -146,8 +153,6 @@ namespace Rococo
 	ROCOCO_ID(ID_UI_EVENT_TYPE, int64, 0);
 
 	bool operator == (const fstring& a, const fstring& b);
-
-	[[nodiscard]] uint32 FastHash(cstr text);
 
 	[[nodiscard]] fstring to_fstring(cstr const msg);
 

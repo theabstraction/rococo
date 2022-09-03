@@ -80,8 +80,11 @@ namespace
 
 namespace Rococo
 {
-	int32 Format(U8FilePath& path, _Printf_format_string_ cstr format, ...);
-	int32 Format(WideFilePath& path, _Printf_format_string_ const wchar_t* format, ...);
+	namespace Strings
+	{
+		int32 Format(U8FilePath& path, _Printf_format_string_ cstr format, ...);
+		int32 Format(WideFilePath& path, _Printf_format_string_ const wchar_t* format, ...);
+	}
 
 	using namespace Rococo::Sex;
 

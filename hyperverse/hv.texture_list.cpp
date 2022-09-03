@@ -5,6 +5,8 @@
 
 #include <string>
 
+using namespace Rococo::Strings;
+
 namespace
 {
 	using namespace HV;

@@ -1,11 +1,11 @@
 #include <rococo.mplat.h>
 #include <vector>
+#include <rococo.fonts.h>
+#include <rococo.strings.h>
 
 using namespace Rococo;
 using namespace Rococo::Graphics;
-
-#include <rococo.fonts.h>
-#include <rococo.strings.h>
+using namespace Rococo::Strings;
 
 namespace ANON
 {

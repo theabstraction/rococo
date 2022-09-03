@@ -8,6 +8,7 @@
 
 using namespace Rococo;
 using namespace Rococo::Graphics;
+using namespace Rococo::Strings;
 
 #ifdef _DEBUG
 #define DEBUG_SHADERS

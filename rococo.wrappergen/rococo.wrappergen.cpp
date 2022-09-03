@@ -22,6 +22,7 @@
 using namespace Rococo;
 using namespace Rococo::Sex;
 using namespace Rococo::Script;
+using namespace Rococo::Strings;
 
 struct Context
 {
@@ -154,7 +155,7 @@ private:
 public:
     MarshalBuilder(cstr _filename, Context& _context): filename(_filename), context(_context)
     {
-        namehash = (uint32) Hash(_filename);        
+        namehash = (uint32) Strings::HashArg(_filename);        
     }
 
     cstr ToCppType(cstr sexyType)

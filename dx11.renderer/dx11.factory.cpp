@@ -13,6 +13,8 @@
 #include "dx11.factory.h"
 #include "dx11.renderer.h"
 
+using namespace Rococo::Strings;
+
 namespace ANON
 {
 	using namespace Rococo;

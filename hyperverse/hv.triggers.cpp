@@ -6,6 +6,8 @@
 #include <vector>
 #include <string>
 
+using namespace Rococo::Strings;
+
 namespace
 {
 	using namespace HV;
@@ -399,7 +401,7 @@ namespace
 			case 0: SafeFormat(buffer.data, buffer.CAPACITY, "%s", (cstr)variableName); break;
 			case 1:
 			{
-				Rococo::StackStringBuilder sb(buffer.data, buffer.CAPACITY);
+				Rococo::Strings::StackStringBuilder sb(buffer.data, buffer.CAPACITY);
 				sb << arg;
 				break;
 			}
@@ -722,7 +724,7 @@ namespace
 			case 0: SafeFormat(buffer.data, buffer.CAPACITY, "%s", (cstr)variableName); break;
 			case 1:
 			{
-				Rococo::StackStringBuilder sb(buffer.data, buffer.CAPACITY);
+				Rococo::Strings::StackStringBuilder sb(buffer.data, buffer.CAPACITY);
 				sb << arg;
 				break;
 			}

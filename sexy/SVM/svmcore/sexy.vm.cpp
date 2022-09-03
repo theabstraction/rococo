@@ -65,6 +65,7 @@ namespace Rococo
 #endif
 
 using namespace Rococo;
+using namespace Rococo::Strings;
 using namespace Rococo::VM;
 using namespace Rococo::Memory;
 

@@ -9,6 +9,7 @@
 
 namespace Rococo::Graphics
 {
+	using namespace Rococo::Strings;
 	using namespace Rococo::Windows;
 
 	void GetDisplayModes(std::vector<DXGI_MODE_DESC>& modeList, IDXGIOutput& output)

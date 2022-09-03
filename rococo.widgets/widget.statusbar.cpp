@@ -6,6 +6,7 @@
 
 using namespace Rococo;
 using namespace Rococo::Events;
+using namespace Rococo::Strings;
 using namespace Rococo::Widgets;
 
 namespace

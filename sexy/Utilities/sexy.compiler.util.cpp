@@ -37,6 +37,8 @@
 #include <sexy.compiler.public.h>
 #include <sexy.compiler.h>
 
+using namespace Rococo::Strings;
+
 namespace Rococo { namespace Compiler
 {
 	IStructureBuilder* FindMember(IStructureBuilder& s, cstr name)

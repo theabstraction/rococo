@@ -4,6 +4,8 @@
 #include <rococo.rings.inl>
 #include <vector>
 
+using namespace Rococo::Strings;
+
 namespace
 {
 	using namespace HV;

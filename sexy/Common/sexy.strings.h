@@ -44,10 +44,16 @@
 
 namespace Rococo
 {
+	using namespace Rococo::Strings;
+
 	bool operator == (const sexstring_key& a, const sexstring_key& b);
 	int32 Compare(sexstring a, const char* b);
-	const char* GetSubString(const char* s, const char *subString);
-	cstr GetSubString(cstr s, const char *subString);
+
+	namespace Strings
+	{
+		const char* GetSubString(const char* s, const char* subString);
+		cstr GetSubString(cstr s, const char* subString);
+	}
 	
 	template<typename CHARTYPE> inline bool AreEqual(const CHARTYPE* a, const CHARTYPE* b)
 	{

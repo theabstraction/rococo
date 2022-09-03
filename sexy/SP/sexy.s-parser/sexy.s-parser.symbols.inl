@@ -38,7 +38,7 @@ namespace ANON
 
 	struct hash_sexstring_key
 	{
-		size_t operator()(const sexstring_key& s) const { return Hash(s.Text, s.Length); }
+		size_t operator()(const sexstring_key& s) const { return Strings::HashArg(s.Text, s.Length); }
 	};
 
 	class CHashedSymbols

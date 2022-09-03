@@ -9,6 +9,8 @@
 
 #define BREAK_ON_THROW 1
 
+using namespace Rococo::Strings;
+
 namespace
 {
    int breakFlags = 0;

@@ -14,6 +14,7 @@
 
 
 using namespace Rococo;
+using namespace Rococo::Strings;
 
 namespace std
 {
@@ -26,7 +27,7 @@ namespace std
 	{
 		size_t operator() (const U8FilePath& f) const
 		{
-			return XXHash64(f.buf, strlen(f.buf));
+			return XXHash64Arg(f.buf, strlen(f.buf));
 		}
 	};
 
@@ -36,7 +37,7 @@ namespace std
 	}
 }
 
-namespace Rococo
+namespace Rococo::Strings
 {
 	int32 Format(U8FilePath& path, cstr format, ...);
 	int32 Format(WideFilePath& path, _Printf_format_string_ const wchar_t* format, ...);
@@ -244,7 +245,7 @@ namespace
 			map = IO::CreateReadOnlyBinaryMapping(filename);
 			buffer = map->Data();
 			bufferLen = map->Length();
-			hash = XXHash64(buffer, bufferLen);
+			hash = XXHash64Arg(buffer, bufferLen);
 			Format(name, "%s", key);
 
 			header = ParseHeader(buffer, bufferLen);

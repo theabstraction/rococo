@@ -7,6 +7,7 @@ namespace ANON
 	using namespace Rococo;
 	using namespace Rococo::IO;
 	using namespace Rococo::Assets;
+	using namespace Rococo::Strings;
 
 	struct AssetGenerator_SexyContentFile : public IAssetGenerator
 	{

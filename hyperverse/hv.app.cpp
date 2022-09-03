@@ -14,6 +14,7 @@ namespace HV
 {
 	using namespace Rococo::IO;
 	using namespace Rococo::Entities;
+	using namespace Rococo::Strings;
 
 	namespace Events
 	{
@@ -349,7 +350,7 @@ namespace HV
 
 			platform.gui.LogMessage("File modified: %s", pingname.buf);
 
-			auto ext = Rococo::GetFileExtension(pingname);
+			auto ext = Rococo::Strings::GetFileExtension(pingname);
 			if (!ext)
 			{
 

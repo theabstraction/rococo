@@ -14,6 +14,7 @@ namespace Rococo::SexyStudio
 
 namespace Rococo::SexyStudio
 {
+	using namespace Rococo::Strings;
 	using namespace Rococo::Windows;
 	using namespace Rococo::AutoComplete;
 

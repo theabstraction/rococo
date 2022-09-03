@@ -85,7 +85,7 @@ namespace Rococo { namespace VM { namespace OS
 			sourceFile = (s != nullptr) ? s->Tree().Source().Name() : "<unknown>";
 	
 			char fullMessage[1024];
-			SafeFormat(fullMessage, 1024, "(%d.%d) to (%d.%d). Source: %s.\n%s", start.x, start.y, end.x, end.y, sourceFile, e.Message());
+			Strings::SafeFormat(fullMessage, 1024, "(%d.%d) to (%d.%d). Source: %s.\n%s", start.x, start.y, end.x, end.y, sourceFile, e.Message());
 			vm.Core().Log(fullMessage);
 			return EXECUTERESULT_THROWN;
 		}

@@ -14,6 +14,7 @@
 namespace Rococo
 {
 	using namespace Rococo::Events;
+	using namespace Rococo::Strings;
 
 	namespace MPlatImpl
 	{

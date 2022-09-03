@@ -7,6 +7,7 @@
 
 using namespace Rococo;
 using namespace Rococo::Browser;
+using namespace Rococo::Strings;
 
 #include <vector>
 

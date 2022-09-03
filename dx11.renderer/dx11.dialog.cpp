@@ -6,6 +6,8 @@
 
 #include "dx11helpers.inl"
 
+using namespace Rococo::Strings;
+
 namespace
 {
    using namespace Rococo;

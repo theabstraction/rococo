@@ -46,6 +46,8 @@ using namespace Rococo::Parse;
 
 namespace Rococo
 {
+	bool IsPointerValid(const void* ptr);
+
 	namespace Compiler
 	{
 		void UseStackFrameFor(ICodeBuilder& builder, const MemberDef& def)

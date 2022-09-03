@@ -34,6 +34,8 @@
 #include <rococo.strings.h>
 #include <rococo.os.h>
 
+using namespace Rococo::Strings;
+
 namespace Rococo
 {
 	constexpr fstring packageprefix = "Package["_fstring;
@@ -1699,7 +1701,7 @@ namespace Rococo
 		wchar_t slash[2] = { 0 };
 		slash[0] = Rococo::IO::GetFileSeparator();
 
-		if (!Rococo::EndsWith(contentDirectory, slash))
+		if (!Rococo::Strings::EndsWith(contentDirectory, slash))
 		{
 			Throw(0, "Content %ws did not end with %ws", contentDirectory, slash);
 		}

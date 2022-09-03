@@ -1,6 +1,8 @@
 #include "hv.h"
 #include <rococo.strings.h>
 
+using namespace Rococo::Strings;
+
 namespace
 {
 	void ToPoundsAndOunces(Kilograms mass, int32& pounds, float& oz)

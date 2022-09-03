@@ -1,6 +1,8 @@
 #include "hv.h"
 #include <rococo.strings.h>
 
+using namespace Rococo::Strings;
+
 namespace HV
 {
 	void SaveLevelAsFunction(ISectors& sectors, StringBuilder& sb)

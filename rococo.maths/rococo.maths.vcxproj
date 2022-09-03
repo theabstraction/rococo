@@ -43,14 +43,14 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IntDir>$(SolutionDir)temp\$(ProjectName)\$(Configuration)\</IntDir>
-    <OutDir>$(SolutionDir)lib\</OutDir>
+    <IntDir>..\temp\$(ProjectName)\$(Configuration)\</IntDir>
+    <OutDir>..\lib\</OutDir>
     <TargetName>$(ProjectName).debug</TargetName>
     <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IntDir>$(SolutionDir)temp\$(ProjectName)\$(Configuration)\</IntDir>
-    <OutDir>$(SolutionDir)lib\</OutDir>
+    <IntDir>..\temp\$(ProjectName)\$(Configuration)\</IntDir>
+    <OutDir>..\lib\</OutDir>
     <TargetName>$(ProjectName)</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -61,7 +61,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)include\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include\</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
@@ -80,7 +80,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)include\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include\</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>

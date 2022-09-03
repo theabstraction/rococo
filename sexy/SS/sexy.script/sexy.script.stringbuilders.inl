@@ -852,7 +852,7 @@ namespace
 		}
 		else
 		{
-			diff = Rococo::Compare(s, t);
+			diff = Rococo::Strings::Compare(s, t);
 		}
 
 		WriteOutput(0, diff, e);

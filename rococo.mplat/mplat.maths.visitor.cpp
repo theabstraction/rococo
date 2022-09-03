@@ -10,6 +10,7 @@ namespace
 {
    using namespace Rococo;
    using namespace Rococo::Events;
+   using namespace Rococo::Strings;
 
    auto nullEvent = ""_event;
 

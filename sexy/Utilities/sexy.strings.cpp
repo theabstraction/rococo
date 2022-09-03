@@ -5,6 +5,8 @@
 
 #include <sexy.strings.h>
 
+using namespace Rococo::Strings;
+
 namespace Rococo
 {
 	bool operator == (const sexstring_key& a, const sexstring_key& b)

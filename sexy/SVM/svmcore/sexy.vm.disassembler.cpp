@@ -41,6 +41,7 @@
 
 using namespace Rococo;
 using namespace Rococo::VM;
+using namespace Rococo::Strings;
 
 namespace
 {

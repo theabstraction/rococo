@@ -6,6 +6,8 @@
 #include <rococo.api.h>
 #include <rococo.events.h>
 
+using namespace Rococo::Strings;
+
 namespace Rococo
 {
 	namespace Events

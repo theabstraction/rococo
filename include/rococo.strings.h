@@ -12,12 +12,14 @@
 #define _stricmp strcasecmp
 #endif
 
-namespace Rococo
+namespace Rococo::Strings
 {
    int SecureFormat(char* buffer, size_t capacity, const char* format, ...);
    int SecureFormat(wchar_t* buffer, size_t capacity, const wchar_t* format, ...);
    int SafeFormat(char* buffer, size_t capacity, const char* format, ...);
    int SafeFormat(wchar_t* buffer, size_t capacity, const wchar_t* format, ...);
+
+   [[nodiscard]] uint32 FastHash(cstr text);
 
 #ifdef ROCOCO_USE_SAFE_V_FORMAT
    int SafeVFormat(char* buffer, size_t capacity, const char* format, va_list args);
@@ -158,8 +160,6 @@ namespace Rococo
 
    IDynamicStringBuilder* CreateDynamicStringBuilder(size_t initialCapacity);
 
-   bool IsPointerValid(const void* ptr);
-
    class StackStringBuilder : public StringBuilder
    {
    private:
@@ -189,11 +189,11 @@ namespace Rococo
    bool IsNumeric(char c);
    bool IsAlphaNumeric(char c);
 
-   size_t Hash(cstr text);
-   int32 Hash(cstr s, int64 length);
-   int32 Hash(int32 x);
-   int32 Hash(int64 x);
-   uint64 XXHash64(const void* buffer, size_t nBytesLength);
+   size_t HashArg(cstr text);
+   int32 HashArg(cstr s, int64 length);
+   int32 HashArg(int32 x);
+   int32 HashArg(int64 x);
+   uint64 XXHash64Arg(const void* buffer, size_t nBytesLength);
 
    int WriteToStandardOutput(const char* text, ...);
    int WriteToStandardOutput(cstr text, ...);
@@ -225,4 +225,4 @@ namespace Rococo
    bool IsEmpty(cr_substring token);
 
    void ReplaceChar(char* buffer, size_t capacity, char target, char replacement);
-}
+} // Rococo::Strings

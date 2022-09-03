@@ -64,8 +64,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <NMakePreprocessorDefinitions>NDEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
-    <NMakeBuildCommandLine>NMAKE /NOLOGO  /F $(ProjectDir)makefile.mak ROCOCO=$(SolutionDir) _DEBUG=Debug</NMakeBuildCommandLine>
-    <NMakeCleanCommandLine>NMAKE /NOLOGO  /F $(ProjectDir)makefile.mak clean ROCOCO=$(SolutionDir) _DEBUG=Debug</NMakeCleanCommandLine>
+    <NMakeBuildCommandLine>NMAKE /NOLOGO  /F $(ProjectDir)makefile.mak ROCOCO=$(SolutionDir)</NMakeBuildCommandLine>
+    <NMakeCleanCommandLine>NMAKE /NOLOGO  /F $(ProjectDir)makefile.mak clean ROCOCO=$(SolutionDir)</NMakeCleanCommandLine>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <NMakePreprocessorDefinitions>WIN32;_DEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>

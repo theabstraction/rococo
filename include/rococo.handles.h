@@ -12,6 +12,8 @@
 
 namespace Rococo
 {
+	using namespace Rococo::Strings;
+
 	/* 
 		A THandle identifies a resource. The underlying data is 64-bits wide
 		The bit fields are thus: [SALT] [INDEX]

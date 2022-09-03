@@ -5,6 +5,7 @@
 #include <rococo.fonts.hq.h>
 
 using namespace HV;
+using namespace Rococo::Strings;
 
 namespace
 {

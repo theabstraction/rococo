@@ -105,18 +105,6 @@ namespace Rococo
 		constexpr operator cstr() const noexcept { return buffer; }
 	};
 
-	// A substring of a larger string. If start == end, length is zero, otherwise start points to the first valid char, and end just after the last valid char.
-	struct Substring
-	{
-		cstr start;
-		cstr end;
-
-		bool empty() const { return end <= start; }
-
-		operator bool() const { return !empty(); }
-		int64 Length() const { return end - start; }
-	};
-
 	template<class T>
 	struct Hash
 	{
@@ -126,16 +114,6 @@ namespace Rococo
 	struct RemoveReference
 	{
 		using Type = _Ty;
-	};
-
-	inline Substring Substring_Null() { return { nullptr,nullptr }; }
-
-	// An immutable substring
-	typedef const Substring& cr_substring;
-
-	ROCOCOAPI IStringPopulator
-	{
-	   virtual void Populate(cstr text) = 0;
 	};
 
 #ifdef _WIN32
@@ -159,12 +137,6 @@ namespace Rococo
 
 	enum class EFlowLogic { CONTINUE, BREAK };
 
-	// Duplicates the item as a null terminated string on the stack, then invokes the populator with a reference to the string pointer
-	void Populate(cr_substring item, IStringPopulator& populator);
-
-	// Copies the item into the buffer, truncating data if required, and terminating with a nul character
-	void CopyWithTruncate(cr_substring item, char* buffer, size_t capacity);
-
 	ROCOCOAPI IFieldEnumerator
 	{
 		virtual void OnMemberVariable(cstr name, cstr type) = 0;
@@ -176,21 +148,6 @@ namespace Rococo
 		void TripDebugger();
 	}
 
-	namespace Sexy
-	{
-		// Type inference API
-		// TODO - move functions to their own header
-		void ForEachFieldOfClassDef(cstr className, cr_substring classDef, IFieldEnumerator& cb);
-		Substring GetClassDefinition(cstr className, cr_substring doc);
-		bool IsSexyKeyword(cr_substring candidate);
-		bool IsNotTokenChar(char c);
-		cstr GetFirstNonTokenPointer(cr_substring s);
-		cstr GetFirstNonTypeCharPointer(cr_substring s);
-		Substring GetFirstTokenFromLeft(cr_substring s);
-		// Given a document and a position to the right of the start of the doc, return first pointer of none type char found, or null if everything was of type until doc.start
-		cstr GetFirstNonTokenPointerFromRight(cr_substring doc, cstr startPosition);
-	}
-
 	namespace Script
 	{
 		struct IPublicScriptSystem;
@@ -199,10 +156,6 @@ namespace Rococo
 			void* pSexyInterfacePointer;
 		};
 	}
-
-	// TODO - move functions to their own header
-	Substring RightOfFirstChar(char c, cr_substring token);
-	cstr ReverseFind(char c, cr_substring token);
 
 	template<class T> struct FilePath
 	{
@@ -237,7 +190,58 @@ namespace Rococo
 	};
 
 	struct IDictionary;
-	struct StringBuilder;
+
+	namespace Strings
+	{
+		struct StringBuilder;
+
+		// A substring of a larger string. If start == end, length is zero, otherwise start points to the first valid char, and end just after the last valid char.
+		struct Substring
+		{
+			cstr start;
+			cstr end;
+
+			bool empty() const { return end <= start; }
+
+			operator bool() const { return !empty(); }
+			int64 Length() const { return end - start; }
+		};
+
+		inline Substring Substring_Null() { return { nullptr,nullptr }; }
+
+		// An immutable substring
+		typedef const Substring& cr_substring;
+
+		ROCOCOAPI IStringPopulator
+		{
+		   virtual void Populate(cstr text) = 0;
+		};
+
+		// Copies the item into the buffer, truncating data if required, and terminating with a nul character
+		void CopyWithTruncate(cr_substring item, char* buffer, size_t capacity);
+
+		// Duplicates the item as a null terminated string on the stack, then invokes the populator with a reference to the string pointer
+		void Populate(Strings::cr_substring item, IStringPopulator& populator);
+
+		Substring RightOfFirstChar(char c, cr_substring token);
+		cstr ReverseFind(char c, cr_substring token);
+	}
+
+	namespace Sexy
+	{
+		using namespace Rococo::Strings;
+		// Type inference API
+		// TODO - move functions to their own header
+		void ForEachFieldOfClassDef(cstr className, cr_substring classDef, IFieldEnumerator& cb);
+		Substring GetClassDefinition(cstr className, cr_substring doc);
+		bool IsSexyKeyword(cr_substring candidate);
+		bool IsNotTokenChar(char c);
+		cstr GetFirstNonTokenPointer(cr_substring s);
+		cstr GetFirstNonTypeCharPointer(cr_substring s);
+		Substring GetFirstTokenFromLeft(cr_substring s);
+		// Given a document and a position to the right of the start of the doc, return first pointer of none type char found, or null if everything was of type until doc.start
+		cstr GetFirstNonTokenPointerFromRight(cr_substring doc, cstr startPosition);
+	}
 
 	struct ILock
 	{

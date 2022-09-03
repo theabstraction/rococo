@@ -5,6 +5,7 @@
 #include <rococo.api.h>
 
 using namespace Rococo;
+using namespace Rococo::Strings;
 
 #ifdef _DEBUG
 static auto DLL_NAME = L"sexystudio.debug.dll";

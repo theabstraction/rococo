@@ -3,6 +3,8 @@
 #include <rococo.strings.h>
 #include <rococo.rings.inl>
 
+using namespace Rococo::Strings;
+
 namespace
 {
 	using namespace HV;

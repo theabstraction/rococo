@@ -42,27 +42,25 @@ SEXY_CMD =  $(DIR_BIN)rococo.sexy.cmd.exe
 
 !ENDIF
 
-COMPILE_PREREQUISITES = $(ROCOCO)build.prerequisites.$(LCONFIGURATION).bat
 DIR_BIN_SEXY = $(ROCOCO)sexy\Bin\x64$(CONFIGURATION)^\
 BENNY_HILL = $(DIR_BIN_SEXY)sexy.bennyhill.exe
 CPP_MASTER = $(DIR_BIN)tools\x64\$(CONFIGURATION)\net6.0\rococo.cpp_master.exe
 NATIVE_SRC = $(DIR_SEXY)NativeSource^\
 
-all: $(BENNY_HILL) $(MPLAT_SXH_H) $(HV_SXH_H) $(MHOST_SXH_H) $(CPP_MASTER) $(MPLAT_COMPONENTS_H)
-	$(ROCOCO)copy.natives.from.sexy.bat > NUL
-	copy $(NATIVE_SRC)*.sxy $(DIR_EVENTS)content\scripts\native > NUL
-	copy $(NATIVE_SRC)*.sxy $(ROCOCO)content\scripts\native > NUL
+all: $(BENNY_HILL) $(MPLAT_SXH_H) $(HV_SXH_H) $(MHOST_SXH_H) $(CPP_MASTER) $(MPLAT_COMPONENTS_H) $(SEXY_CMD)
 	$(SEXY_CMD) natives=$(NATIVE_SRC) installation=$(DIR_EVENTS)content\ root=$(DIR_EVENTS) run=!scripts/gen.events.hv.sxy 
 
 clean: 
 	del $(BENNY_HILL)
 	del $(LIB_UTIL)
+	del /Q $(DIR_LIB)*.*
+	del /Q -r $(DIR_BIN)*.*
+	del /Q -r $(DIR_SEXY)Bin *.*
 
 $(LIB_UTIL): $(ROCOCO)rococo.util/rococo.base.cpp $(UTIL)rococo.base.cpp $(UTIL)rococo.throw.cr_sex.cpp
 	msbuild $(ROCOCO)rococo.util/rococo.util.vcxproj -p:Configuration=$(CONFIGURATION) -t:Build -p:Platform=x64 -m -verbosity:minimal
 
 $(BENNY_HILL): $(LIB_UTIL)
-	$(COMPILE_PREREQUISITES)
 
 $(MPLAT_SXH_H): $(MPLAT_SXH) $(MPLAT_XC)
 	$(BENNY_HILL) $(DIR_MPLAT) mplat.sxh null
@@ -78,6 +76,19 @@ $(MPLAT_COMPONENTS_H): $(MPLAT_COMPONENTS_XML) $(DIR_MPLAT)mplat.component.templ
 
 $(CPP_MASTER): $(ROCOCO)rococo.cpp_master\rococo.cpp_master.main.cs $(ROCOCO)rococo.cpp_master\rococo.cpp_master.component.cs
 	msbuild $(ROCOCO)rococo.cpp_master\rococo.cpp_master.csproj -p:Configuration=$(CONFIGURATION) -t:Build -p:Platform=x64 -m -verbosity:minimal
+
+$(SEXY_CMD):
+	msbuild $(DIR_SEXY)sexy.sln -p:Configuration=$(CONFIGURATION) -t:Build -p:Platform=x64 -m -verbosity:minimal -maxcpucount:1
+	msbuild $(ROCOCO)rococo.3rd-party.sln -p:Configuration=$(CONFIGURATION) -t:Build -p:Platform=x64 -m -verbosity:minimal
+	msbuild $(ROCOCO)rococo.maths\rococo.maths.vcxproj -p:Configuration=$(CONFIGURATION) -t:Build -p:Platform=x64 -m -verbosity:minimal
+	msbuild $(ROCOCO)rococo.windows\rococo.windows.vcxproj -p:Configuration=$(CONFIGURATION) -t:Build -p:Platform=x64 -m -verbosity:minimal
+	msbuild $(ROCOCO)rococo.sexy.ide\rococo.sexy.ide.vcxproj -p:Configuration=$(CONFIGURATION) -t:Build -p:Platform=x64 -m -verbosity:minimal
+	msbuild $(ROCOCO)rococo.misc.utils\rococo.misc.utils.vcxproj -p:Configuration=$(CONFIGURATION) -t:Build -p:Platform=x64 -m -verbosity:minimal
+	msbuild $(ROCOCO)rococo.util.ex\rococo.util.ex.vcxproj -p:Configuration=$(CONFIGURATION) -t:Build -p:Platform=x64 -m -verbosity:minimal
+	msbuild $(ROCOCO)rococo.sexy.cmd\rococo.sexy.cmd.vcxproj -p:Configuration=$(CONFIGURATION) -t:Build -p:Platform=x64 -m -verbosity:minimal
+	$(ROCOCO)copy.natives.from.sexy.bat > NUL
+	copy $(NATIVE_SRC)*.sxy $(DIR_EVENTS)content\scripts\native > NUL
+	copy $(NATIVE_SRC)*.sxy $(ROCOCO)content\scripts\native > NUL
 
 
 	

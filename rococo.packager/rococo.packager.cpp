@@ -17,6 +17,7 @@ R"(Usage:
 
 using namespace Rococo;
 using namespace Rococo::IO;
+using namespace Rococo::Strings;
 
 struct PackageArgs
 {

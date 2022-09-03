@@ -1,6 +1,7 @@
 namespace
 {
 	using namespace Rococo;
+	using namespace Rococo::Strings;
 
 	struct CSVCursor
 	{

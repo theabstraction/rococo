@@ -80,6 +80,8 @@
 #include <stdarg.h>
 #include <stdexcept>
 
+using namespace Rococo::Strings;
+
 namespace Rococo
 {
 	sexstring CreateSexString(cstr src, int32 length)

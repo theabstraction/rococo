@@ -52,6 +52,8 @@
 #include <new>
 #include <rococo.stl.allocators.h>
 
+using namespace Rococo::Strings;
+
 namespace Rococo
 {
 	void ThrowIllFormedSExpression(int32 errorCode, cstr format, ...);

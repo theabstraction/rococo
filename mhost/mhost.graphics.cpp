@@ -300,7 +300,7 @@ struct Gui : public MHost::IGui
 		Rococo::Graphics::EvalTextSpan(gc, text, fontIndex, fontHeight, pixelSpan);
 	}
 
-	void GetFontDescription(int32 fontIndex, Rococo::IStringPopulator& familyName, MHost::Graphics::FontDesc& desc) override
+	void GetFontDescription(int32 fontIndex, Strings::IStringPopulator& familyName, MHost::Graphics::FontDesc& desc) override
 	{
 		auto& font = gc.Gui().FontMetrics();
 		auto& glyphSet = font[fontIndex];

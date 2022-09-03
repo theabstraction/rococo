@@ -7,6 +7,7 @@ namespace
 {
 	using namespace Rococo;
 	using namespace Rococo::Joysticks;
+	using namespace Rococo::Strings;
 
 	class XBOX360_Stick : public IJoystick_XBOX360_Supervisor
 	{

@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <stdlib.h>
 
-namespace Rococo
+namespace Rococo::Strings
 {
 	[[nodiscard]] uint32 FastHash(cstr text);
 }

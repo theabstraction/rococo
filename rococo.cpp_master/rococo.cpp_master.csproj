@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project>
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -21,4 +21,6 @@
     <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
   </PropertyGroup>
 
+  <Import Sdk="Microsoft.NET.Sdk" Project="Sdk.props" />
+  <Import Sdk="Microsoft.NET.Sdk" Project="Sdk.targets" />
 </Project>

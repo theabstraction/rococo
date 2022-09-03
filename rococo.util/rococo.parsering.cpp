@@ -3,6 +3,8 @@
 
 namespace Rococo
 {
+	using namespace Rococo::Strings;
+
 	namespace Parse
 	{
 		PARSERESULT TryParseHex(int32& value, cstr hexDigits)

@@ -10,6 +10,7 @@ using namespace Rococo;
 using namespace Rococo::IO;
 using namespace Rococo::Events;
 using namespace Rococo::Browser;
+using namespace Rococo::Strings;
 
 template<typename T> void ForEachSubPath(const FilePath<T>& dir, IEventCallback<FilePath<T>>& cb, size_t skipStartChars, T sep)
 {

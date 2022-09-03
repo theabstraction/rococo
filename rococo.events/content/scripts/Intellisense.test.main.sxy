@@ -1,0 +1,8 @@
+(struct Alpha
+	(Int32 x y z)
+}
+
+(function Main -> (Int32 exitCode):
+	(Sys.Type.IString t)
+	(
+)

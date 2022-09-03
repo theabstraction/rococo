@@ -5,6 +5,8 @@
 
 namespace Rococo
 {
+	using namespace Rococo::Strings;
+
 	class FastStringKey
 	{
 		HString persistentData;
@@ -19,20 +21,6 @@ namespace Rococo
 			}
 		}
 
-		static uint32 FastHash(cstr text)
-		{
-			uint32 hash = 5381;
-
-			while (true)
-			{
-				int c = *text;
-				if (c == 0) break;
-				hash = ((hash << 5) + hash) + c;
-				text++;
-			}
-
-			return hash;
-		}
 	public:
 		FastStringKey(cstr _stackData) : data(_stackData)
 		{
@@ -82,7 +70,7 @@ namespace Rococo
 
 		[[nodiscard]] size_t HashCode() const
 		{
-			return FastHash(data);
+			return Rococo::Strings::FastHash(data);
 		}
 
 		struct Hash

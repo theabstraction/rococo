@@ -7,6 +7,8 @@
 #ifdef _WIN32
 # include <DirectXMath.h>
 
+using namespace Rococo::Strings;
+
 namespace Rococo
 {
    // OSX not currently supported, as first target for OSX is VST plugins, not game engines

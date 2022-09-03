@@ -24,6 +24,7 @@
 #include <sexy.lib.util.h>
 
 using namespace Rococo;
+using namespace Rococo::Strings;
 
 // Experimental s-parser. Motivation - be able to iterate through an s source file using functions without allocating heap mempry
 

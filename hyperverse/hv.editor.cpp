@@ -14,6 +14,8 @@
 
 #include <rococo.rings.inl> 
 
+using namespace Rococo::Strings;
+
 namespace HV
 {
 	namespace Events

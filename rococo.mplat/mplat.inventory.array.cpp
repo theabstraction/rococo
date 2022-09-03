@@ -5,6 +5,7 @@
 #include <rococo.strings.h>
 
 using namespace Rococo;
+using namespace Rococo::Strings;
 
 struct InventoryCell
 {

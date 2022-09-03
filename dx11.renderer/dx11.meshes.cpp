@@ -5,6 +5,8 @@
 #include <vector>
 
 using namespace Rococo::DX11;
+using namespace Rococo::Strings;
+
 
 struct DX11Meshes : public IDX11Meshes
 {

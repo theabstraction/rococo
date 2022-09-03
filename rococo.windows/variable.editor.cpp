@@ -30,6 +30,7 @@ namespace Rococo
 namespace
 {
 	using namespace Rococo;
+	using namespace Rococo::Strings;
 	using namespace Rococo::Windows;
 
 	struct VariantTextBuffer

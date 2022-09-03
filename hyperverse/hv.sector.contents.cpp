@@ -6,6 +6,7 @@
 #include <rococo.clock.h>
 
 using namespace HV::HVMaths;
+using namespace Rococo::Strings;
 
 namespace
 {

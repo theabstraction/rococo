@@ -21,6 +21,7 @@
 namespace
 {
 	using namespace Rococo;
+	using namespace Rococo::Strings;
 
 	class ExpandingBuffer : public IExpandingBuffer
 	{
@@ -185,7 +186,7 @@ namespace
 	};
 }
 
-namespace Rococo
+namespace Rococo::Strings
 {
 	int32 Format(U8FilePath& path, cstr format, ...)
 	{
@@ -236,7 +237,7 @@ namespace Rococo
 		return IsAlphabetical(c) || IsNumeric(c);
 	}
 
-	int32 Hash(int32 x)
+	int32 HashArg(int32 x)
 	{
 		struct ANON
 		{
@@ -255,7 +256,7 @@ namespace Rococo
 		return ANON::robert_jenkins_32bit_hash(x);
 	}
 
-	int32 Hash(int64 x)
+	int32 HashArg(int64 x)
 	{
 		struct ANON
 		{
@@ -274,7 +275,7 @@ namespace Rococo
 		return ANON::robert_jenkins_64bit_hash(x);
 	}
 
-	size_t Hash(cstr s)
+	size_t HashArg(cstr s)
 	{
 		struct ANON
 		{
@@ -298,7 +299,7 @@ namespace Rococo
 		return ANON::jenkins_one_at_a_time_hash(s, StringLength(s));
 	}
 
-	int32 Hash(cstr s, int64 length)
+	int32 HashArg(cstr s, int64 length)
 	{
 		struct ANON
 		{
@@ -332,104 +333,6 @@ namespace Rococo
 		stackbuffer[len] = 0;
 
 		populator.Populate(stackbuffer);
-	}
-
-	namespace Sexy
-	{
-		bool IsNotTokenChar(char c)
-		{
-			return !IsAlphaNumeric(c) && c != '.';
-		}
-
-		bool IsSexyKeyword(cr_substring candidate)
-		{
-			size_t len = Length(candidate);
-
-			static std::vector<fstring> keywords
-			{
-				"method"_fstring, "function"_fstring, "class"_fstring, "struct"_fstring
-			};
-
-			for (auto keyword : keywords)
-			{
-				if (StartsWith(candidate, keyword))
-				{
-					if (len > keyword.length && IsNotTokenChar(candidate.start[keyword.length]))
-					{
-						// We found a keyword, but we do not need to parse it
-						return true;
-					}
-				}
-			}
-
-			return false;
-		}
-
-		cstr GetFirstNonTokenPointer(cr_substring s)
-		{
-			if (!s) return nullptr;
-
-			for (cstr p = s.start; p < s.end; ++p)
-			{
-				if (!Rococo::Sexy::IsNotTokenChar(*p))
-				{
-					return p;
-				}
-			}
-
-			return s.end;
-		}
-
-		cstr GetFirstNonTokenPointerFromRight(cr_substring doc, cstr startPosition)
-		{
-			if (!startPosition || !doc) return nullptr;
-
-			for (cstr p = startPosition - 1; p >= doc.start; p--)
-			{
-				if (Rococo::Sexy::IsNotTokenChar(*p))
-				{
-					return p;
-				}
-			}
-
-			return nullptr;
-		}
-
-		cstr GetFirstNonTypeCharPointer(cr_substring s)
-		{
-			bool inDot = false;
-
-			for (cstr p = s.start; p < s.end; ++p)
-			{
-				if (!inDot)
-				{
-					if (*p == '.')
-					{
-						inDot = true;
-						continue;
-					}
-				}
-
-				if (IsAlphaNumeric(*p))
-				{
-					if (inDot)
-					{
-						inDot = false;
-					}
-
-					continue;
-				}
-
-				return p;
-			}
-
-			return s.end;
-		}
-
-		Substring GetFirstTokenFromLeft(cr_substring s)
-		{
-			return s ? Substring { s.start, Rococo::Sexy::GetFirstNonTypeCharPointer(s) } : Substring_Null();
-		}
 	}
 
 	cstr ReverseFind(char c, cr_substring token)
@@ -620,25 +523,10 @@ namespace Rococo
       return count;
    }
 
-	fstring to_fstring(cstr const msg)
-	{
-		size_t len = rlen(msg);
-		if (len >= 0x020000000LL)
-		{
-			Throw(0, "String too long to convert to fstring");
-		}
-		return{ msg, (int)len };
-	}
-
    int StrCmpN(cstr a, cstr b, size_t len)
    {
       return strncmp(a, b, len);
    }
-
-	bool operator == (const fstring& a, const fstring& b)
-	{
-		return a.length == b.length && StrCmpN(a.buffer, b.buffer, a.length) == 0;
-	}
 
 	void SplitString(const char* text, size_t length, cstr seperators, IEventCallback<cstr>& onSubString)
 	{
@@ -679,20 +567,15 @@ namespace Rococo
 
 		uint32 hash = 5381;
 
-		while(true)
+		while (true)
 		{
-         int c = *text;
-         if (c == 0) break;
+			int c = *text;
+			if (c == 0) break;
 			hash = ((hash << 5) + hash) + c;
-         text++;
+			text++;
 		}
 
 		return hash;
-	}
-
-	IExpandingBuffer* CreateExpandingBuffer(size_t initialCapacity)
-	{
-		return new ExpandingBuffer(initialCapacity);
 	}
 
    cstr GetFinalNull(cstr s)
@@ -971,9 +854,9 @@ namespace Rococo
 
 #include "xxhash.hpp"
 
-namespace Rococo
+namespace Rococo::Strings
 {
-	uint64 XXHash64(const void* buffer, size_t nBytesLength)
+	uint64 XXHash64Arg(const void* buffer, size_t nBytesLength)
 	{
 		xxh::hash_t<64> hash = xxh::xxhash<64>(buffer, nBytesLength);
 		return hash;
@@ -1102,3 +985,124 @@ namespace Rococo
 		return true;
 	}
 }
+
+namespace Rococo::Sexy
+{
+	bool IsNotTokenChar(char c)
+	{
+		return !IsAlphaNumeric(c) && c != '.';
+	}
+
+	bool IsSexyKeyword(cr_substring candidate)
+	{
+		size_t len = Length(candidate);
+
+		static std::vector<fstring> keywords
+		{
+			"method"_fstring, "function"_fstring, "class"_fstring, "struct"_fstring
+		};
+
+		for (auto keyword : keywords)
+		{
+			if (StartsWith(candidate, keyword))
+			{
+				if (len > keyword.length && IsNotTokenChar(candidate.start[keyword.length]))
+				{
+					// We found a keyword, but we do not need to parse it
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	cstr GetFirstNonTokenPointer(cr_substring s)
+	{
+		if (!s) return nullptr;
+
+		for (cstr p = s.start; p < s.end; ++p)
+		{
+			if (!Rococo::Sexy::IsNotTokenChar(*p))
+			{
+				return p;
+			}
+		}
+
+		return s.end;
+	}
+
+	cstr GetFirstNonTokenPointerFromRight(cr_substring doc, cstr startPosition)
+	{
+		if (!startPosition || !doc) return nullptr;
+
+		for (cstr p = startPosition - 1; p >= doc.start; p--)
+		{
+			if (Rococo::Sexy::IsNotTokenChar(*p))
+			{
+				return p;
+			}
+		}
+
+		return nullptr;
+	}
+
+	cstr GetFirstNonTypeCharPointer(cr_substring s)
+	{
+		bool inDot = false;
+
+		for (cstr p = s.start; p < s.end; ++p)
+		{
+			if (!inDot)
+			{
+				if (*p == '.')
+				{
+					inDot = true;
+					continue;
+				}
+			}
+
+			if (IsAlphaNumeric(*p))
+			{
+				if (inDot)
+				{
+					inDot = false;
+				}
+
+				continue;
+			}
+
+			return p;
+		}
+
+		return s.end;
+	}
+
+	Substring GetFirstTokenFromLeft(cr_substring s)
+	{
+		return s ? Substring{ s.start, Rococo::Sexy::GetFirstNonTypeCharPointer(s) } : Substring_Null();
+	}
+} // Rococo::Strings
+
+namespace Rococo
+{
+	fstring to_fstring(cstr const msg)
+	{
+		size_t len = rlen(msg);
+		if (len >= 0x020000000LL)
+		{
+			Throw(0, "String too long to convert to fstring");
+		}
+		return{ msg, (int)len };
+	}
+
+	IExpandingBuffer* CreateExpandingBuffer(size_t initialCapacity)
+	{
+		return new ExpandingBuffer(initialCapacity);
+	}
+
+	bool operator == (const fstring& a, const fstring& b)
+	{
+		return a.length == b.length && Strings::StrCmpN(a.buffer, b.buffer, a.length) == 0;
+	}
+} // Rococo

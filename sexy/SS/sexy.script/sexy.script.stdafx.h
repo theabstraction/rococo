@@ -54,7 +54,10 @@
 
 namespace Rococo
 {
-    [[nodiscard]] uint32 FastHash(cstr text);
+    namespace Strings
+    {
+        [[nodiscard]] uint32 FastHash(cstr text);
+    }
 
    namespace Compiler
    {
@@ -197,7 +200,7 @@ namespace Rococo
       {
          size_t operator()(const BuilderAndNameKey& s) const
          {
-            return Rococo::FastHash(s.Name) ^ (size_t)s.Builder;
+            return Rococo::Strings::FastHash(s.Name) ^ (size_t)s.Builder;
          }
       };
 

@@ -15,6 +15,8 @@
 
 using namespace Rococo;
 using namespace Rococo::Audio;
+using namespace Rococo::Strings;
+
 
 namespace
 {

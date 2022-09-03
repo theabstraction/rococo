@@ -4,6 +4,7 @@
 #include "dx11helpers.inl"
 
 using namespace Rococo::DX11;
+using namespace Rococo::Strings;
 
 static uint32 g_windowCount = 0;
 

@@ -15,6 +15,7 @@
 namespace
 {
    using namespace Rococo;
+   using namespace Rococo::Strings;
    using namespace Rococo::Graphics::Textures;
 
    struct BitmapLocationImpl

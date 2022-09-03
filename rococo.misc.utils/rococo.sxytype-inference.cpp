@@ -9,6 +9,7 @@ namespace
 {
 	using namespace Rococo;
 	using namespace Rococo::Sexy;
+	using namespace Rococo::Strings;
 
 	void NullDebugFunction(const char* p)
 	{

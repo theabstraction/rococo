@@ -57,6 +57,7 @@ namespace
 namespace
 {
    using namespace Rococo;
+   using namespace Rococo::Strings;
 
    class CheckedAllocator: public IAllocator
    {

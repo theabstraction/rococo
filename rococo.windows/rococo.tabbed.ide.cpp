@@ -18,6 +18,7 @@
 #include <rococo.sexy.api.h>
 
 using namespace Rococo;
+using namespace Rococo::Strings;
 using namespace Rococo::Windows;
 using namespace Rococo::Visitors;
 using namespace Rococo::Windows::IDE;

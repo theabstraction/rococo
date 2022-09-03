@@ -5,6 +5,8 @@
 #include <richedit.h>
 #include <rococo.os.h>
 
+using namespace Rococo::Strings;
+
 namespace ANON
 {
 	using namespace Rococo;

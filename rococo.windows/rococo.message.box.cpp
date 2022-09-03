@@ -10,12 +10,7 @@
 #include <rococo.window.h>
 #include <stdio.h>
 
-namespace
-{
-	using namespace Rococo::Windows;
-
-	
-}
+using namespace Rococo::Strings;
 
 namespace Rococo
 {
@@ -42,7 +37,7 @@ namespace Rococo
 
    namespace OS
    {
-      void ShowErrorBox(IWindow& parent, IException& ex, cstr caption)
+      void ShowErrorBox(Rococo::Windows::IWindow& parent, IException& ex, cstr caption)
       {
          if (ex.ErrorCode() == 0)
          {

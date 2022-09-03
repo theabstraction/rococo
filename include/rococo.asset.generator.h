@@ -12,7 +12,7 @@ namespace Rococo::Assets
 	ROCOCOAPI IAssetGenerator
 	{
 		// Obtain a string builder for building strings, specific to this class instance.
-		virtual StringBuilder& GetReusableStringBuilder() = 0;
+		virtual Strings::StringBuilder& GetReusableStringBuilder() = 0;
 		virtual void Generate(cstr id, const fstring& stringSerialziation) = 0;
 		virtual void Free() = 0;
 	};

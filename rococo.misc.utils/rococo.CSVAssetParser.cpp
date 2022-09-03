@@ -12,6 +12,7 @@
 
 using namespace Rococo;
 using namespace Rococo::IO;
+using namespace Rococo::Strings;
 
 ROCOCOAPI ICSVLine
 {

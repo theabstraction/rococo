@@ -10,7 +10,7 @@
 #include <vector>
 #include <stdlib.h>
 
-namespace Rococo
+namespace Rococo::Strings
 {
 	// Heap-allocated immutable string
 
