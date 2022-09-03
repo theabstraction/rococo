@@ -1368,7 +1368,11 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 		{
 			atLeastOneItem = true;
 
-			if (Length(prefix) > 0)
+			if (strstr(fieldName, "/@*"))
+			{
+				builder.AddItem(fieldName + 3);
+			}
+			else if (Length(prefix) > 0)
 			{
 				char prefixString[128];
 				CopyWithTruncate(prefix, prefixString, sizeof prefixString);

@@ -350,6 +350,19 @@ namespace Rococo::Strings
 		return nullptr;
 	}
 
+	cstr FindChar(cstr token, char c)
+	{
+		for (cstr p = token; *p != 0; p++)
+		{
+			if (*p == c)
+			{
+				return p;
+			}
+		}
+
+		return nullptr;
+	}
+
 	Substring RightOfFirstChar(char c, cr_substring token)
 	{
 		if (token)

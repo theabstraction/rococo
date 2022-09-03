@@ -225,6 +225,7 @@ namespace Rococo
 
 		Substring RightOfFirstChar(char c, cr_substring token);
 		cstr ReverseFind(char c, cr_substring token);
+		cstr FindChar(cstr token, char c);
 	}
 
 	namespace Sexy

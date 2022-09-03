@@ -1789,6 +1789,36 @@ namespace ANON
 						exportList.insert(std::make_pair(std::string(name), 0));
 					}
 				}
+
+				for (int i = 0; i < ns.TypeCount(); ++i)
+				{
+					auto& type = ns.GetType(i);
+
+					nameBuilder.Clear();
+					AppendFullName(ns, nameBuilder);
+					nameBuilder << ".";
+					nameBuilder << type.PublicName();
+
+					if (StartsWith(name, prefix) && nameBuilder.Length() > Length(prefix))
+					{
+						exportList.insert(std::make_pair(std::string(name), 0));
+					}
+				}
+
+				for (int i = 0; i < ns.FactoryCount(); ++i)
+				{
+					auto& factory = ns.GetFactory(i);
+
+					nameBuilder.Clear();
+					AppendFullName(ns, nameBuilder);
+					nameBuilder << ".";
+					nameBuilder << factory.PublicName();
+
+					if (StartsWith(name, prefix) && nameBuilder.Length() > Length(prefix))
+					{
+						exportList.insert(std::make_pair(std::string(name), 0));
+					}
+				}
 			}
 
 			for (int i = 0; i < ns.SubspaceCount(); ++i)
@@ -1802,7 +1832,45 @@ namespace ANON
 
 		ISXYInterface* FindInterface(cstr typeString) override
 		{
+			auto* direct = FindInterfaceDirect(GetRootNamespace(), typeString);
+			if (direct)
+			{
+				return direct;
+			}
+
 			return RecursivelySearchForInterface(GetRootNamespace(), typeString);
+		}
+
+		ISXYInterface* FindInterfaceDirect(ISxyNamespace& ns, cstr typeString)
+		{
+			for (int i = 0; i < ns.SubspaceCount(); ++i)
+			{
+				auto& subspace = ns[i];
+				if (Strings::StartsWith(typeString, subspace.Name()))
+				{
+					cstr subTypeString = typeString + strlen(subspace.Name());
+					if (*subTypeString == '.')
+					{
+						subTypeString++;
+						cstr nextDot = Strings::FindChar(subTypeString, '.');
+						if (nextDot == nullptr)
+						{
+							for (int j = 0; j < subspace.InterfaceCount(); j++)
+							{
+								auto& candidate = subspace.GetInterface(j);
+								if (Eq(candidate.PublicName(), subTypeString))
+								{
+									return &candidate;
+								}
+							}
+						}
+
+						return FindInterfaceDirect(subspace, subTypeString);
+					}
+				}
+			}
+
+			return nullptr;
 		}
 
 		ISXYInterface* RecursivelySearchForInterface(ISxyNamespace& ns, cstr typeString)
@@ -1943,18 +2011,25 @@ namespace ANON
 			return false;
 		}
 
-		bool AppendMethodsFromType(cr_substring variableName, ISxyNamespace& ns, cstr typeString, ISexyFieldEnumerator& fieldEnumerator)
+		bool AppendMethodsFromType(cr_substring variableName, ISxyNamespace& ns, cstr typeString, ISexyFieldEnumerator& fieldEnumerator, int depth = 0)
 		{
 			// Variable name may be qualified, e.g: rect.left. In this case the typeString refers to the root of the namespace.
 			// So we need to find the type, then advance the namespace to the child, i.e left, 
-			ISXYInterface* pInterfaceType = RecursivelySearchForInterface(ns, typeString);
+			ISXYInterface* pInterfaceType = FindInterface(typeString);
+
+			enum { MAX_INTERFACE_TREE_DEPTH = 16 };
+			if (depth > MAX_INTERFACE_TREE_DEPTH)
+			{
+				// Most likely scenario is that we have a recursive interface definition in which some A derives from B and B derives from A, which is illegal, but parseable.
+				return true;
+			}
 
 			if (!pInterfaceType)
 			{
 				return false;
 			}
 
-			fieldEnumerator.OnHintFound(typeString);
+			if (depth == 0) fieldEnumerator.OnHintFound(typeString);
 
 			if (variableName.end[-1] == '.')
 			{
@@ -1962,6 +2037,16 @@ namespace ANON
 				{
 					auto& method = pInterfaceType->GetMethod(k);
 					fieldEnumerator.OnField(method.PublicName());
+				}
+
+				cstr base = pInterfaceType->Base();
+				if (base)
+				{
+					char baseIndicator[128];
+					SafeFormat(baseIndicator, 128, "/@*//...%s-Methods...//", base);
+					fieldEnumerator.OnField(baseIndicator);
+					AppendMethodsFromType(variableName, ns, base, fieldEnumerator, depth + 1);
+					return true;
 				}
 			}
 

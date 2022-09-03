@@ -58,7 +58,7 @@ clean:
 	del /Q /S $(DIR_BIN)*.*
 	del /Q /S $(DIR_SEXY_BIN)*.*
 
-$(LIB_UTIL): $(ROCOCO)rococo.util/rococo.base.cpp $(UTIL)rococo.base.cpp $(UTIL)rococo.throw.cr_sex.cpp
+$(LIB_UTIL): $(ROCOCO)rococo.util/rococo.base.cpp $(UTIL)rococo.base.cpp $(UTIL)rococo.throw.cr_sex.cpp $(UTIL)rococo.strings.cpp
 	msbuild $(ROCOCO)rococo.util/rococo.util.vcxproj -p:Configuration=$(CONFIGURATION) -t:Build -p:Platform=x64 -m -verbosity:minimal
 
 $(BENNY_HILL): $(LIB_UTIL)

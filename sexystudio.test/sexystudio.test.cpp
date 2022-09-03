@@ -179,6 +179,61 @@ void TestDeduceMatrix4x4Fields(ISexyDatabase& database)
 	printf("*** End of %s ***\n", __FUNCTION__);
 }
 
+void TestHintVec2(ISexyDatabase& database)
+{
+	cstr file =
+		R"<CODE>(
+	(using Sys.Type)
+	(using Sys.Maths)
+	(function DoStuffOnM4x4 (Matrix4x4 m) -> (Float32 y):
+		(Sys.Maths.
+	)
+)<CODE>";
+
+	Substring sfile = { file, file + strlen(file) };
+
+	cstr lastV = Strings::ReverseFind('S', sfile);
+
+	Substring v = { lastV, lastV + 10 };
+
+	printf("*** Start of %s ***\n", __FUNCTION__);
+
+	printf("File: %s\n", file);
+
+	struct ANON : ISexyFieldEnumerator
+	{
+		int fieldCount = 0;
+		int hintCount = 0;
+
+		bool found = false;
+
+		void OnField(cstr fieldName) override
+		{
+			if (Eq(fieldName, "Sys.Maths.Vec2"))
+			{
+				found = true;
+			}
+			printf("Field: %s\n", fieldName);
+			fieldCount++;
+		}
+
+		void OnHintFound(cstr hint) override
+		{
+			printf("Hint: %s\n", hint);
+			hintCount++;
+		}
+	} fieldEnumerator;
+
+	database.ForEachAutoCompleteCandidate(v, fieldEnumerator);
+
+	if (!fieldEnumerator.found)
+	{
+		Throw(0, "Could not find Vec2 in Sys.Maths.");
+	}
+
+	printf("*** End of %s ***\n", __FUNCTION__);
+}
+
 void TestDeduceMethods(ISexyDatabase& database)
 {
 	cstr file =
@@ -291,6 +346,77 @@ void TestDeduceMethods2(ISexyDatabase& database)
 	printf("*** End of %s ***\n", __FUNCTION__);
 }
 
+void TestLocalStruct(ISexyDatabase& database)
+{
+	cstr file =
+		R"<CODE>(
+	(using Sys.Type)
+	(using Sys.Maths)
+
+	(struct Thing
+		(Int32 maJig)
+	)
+
+	(function Main (Int32 id) -> (Int32 exitCode):
+		(Thing thing)
+		(thing.
+	)
+)<CODE>";
+
+	printf("*** Start of %s ***\n", __FUNCTION__);
+
+	printf("File: %s\n", file);
+
+	Substring sfile = { file, file + strlen(file) };
+
+	cstr lastS = Strings::ReverseFind('t', sfile);
+
+	Substring sb = { lastS, lastS + 6 };
+
+	struct ANON : ISexyFieldEnumerator
+	{
+		int fieldCount = 0;
+		int hintCount = 0;
+
+		void OnField(cstr fieldName) override
+		{
+			printf("Method: %s\n", fieldName);
+
+			if (strcmp(fieldName, "maJig") != 0)
+			{
+				Throw(0, "Bad inference '%s' - type should be maJig", fieldName);
+			}
+
+			fieldCount++;
+		}
+
+		void OnHintFound(cstr hint) override
+		{
+			printf("Hint: %s\n", hint);
+			hintCount++;
+		}
+	} fieldEnumerator;
+
+	char type[256];
+	bool isThis;
+	if (!Rococo::Sexy::TryGetLocalTypeFromCurrentDocument(type, isThis, sb, sfile))
+	{
+		if (strcmp(type, "Thing") != 0)
+		{
+			Throw(0, "Bad inference '%s' - type should be Thing", type);
+		}
+	}
+
+	database.EnumerateVariableAndFieldList(sb, type, fieldEnumerator);
+
+	if (fieldEnumerator.fieldCount != 1)
+	{
+		Throw(0, "Bad inference '%d' - expecting one field of Thing", fieldEnumerator.fieldCount);
+	}
+
+	printf("*** End of %s ***\n", __FUNCTION__);
+}
+
 void RunTests(ISexyDatabase& database)
 {
 	printf("Running tests...\n");
@@ -298,8 +424,10 @@ void RunTests(ISexyDatabase& database)
 //	TestDeduceVec2Fields(database);
 //	TestDeduceVec2Fields2(database);
 //	TestDeduceMethods(database);
-	TestDeduceMethods2(database);
+//	TestDeduceMethods2(database);
 //	TestDeduceMatrix4x4Fields(database);
+//	TestHintVec2(database);
+	TestLocalStruct(database);
 
 	printf("\nTests completed\n");
 }
