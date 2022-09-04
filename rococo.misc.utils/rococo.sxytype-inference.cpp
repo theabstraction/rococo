@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <rococo.api.h>
+#include <rococo.sexystudio.api.h>
+#include <rococo.functional.h>
 
 namespace
 {
@@ -661,4 +663,161 @@ namespace Rococo::Sexy
 		}
 	}
 
+	void PassFieldToEnumerator(SexyStudio::ISexyFieldEnumerator& fieldEnumerator, cr_substring fieldDef)
+	{
+		if (fieldDef.empty())
+		{
+			return;
+		}
+
+		// We have a field def, in which we have 2 entries (<Field-Type> <field-name>), with our substring begin and start within the parenthesis, not including them
+
+		cstr fieldType = SkipBlankspace(fieldDef);
+		if (fieldType == fieldDef.end)
+		{
+			// It was an empty expression
+			return;
+		}
+
+		cstr fieldEnd = SkipNotBlankspace(Substring{ fieldType, fieldDef.end });
+		if (fieldEnd == fieldDef.end)
+		{
+			// We only had one contiguous string
+			return;
+		}
+
+		if (!IsCapital(*fieldType))
+		{
+			// Field was not a type
+			return;
+		}
+
+		Substring fieldSuffix{ fieldType + 1, fieldEnd };
+
+		// This appears to be a type
+		for (cstr p = fieldSuffix.start; p != fieldSuffix.end; p++)
+		{
+			if (!IsAlphaNumeric(*p))
+			{
+				// This no longer appears to be a type
+				return;
+			}
+		}
+
+		Substring fieldRight{ fieldEnd, fieldDef.end };
+
+		cstr fieldName = SkipBlankspace(fieldRight);
+		if (fieldName == fieldDef.end)
+		{
+			// No field name was specified
+			return;
+		}
+
+		cstr fieldNameEnd = SkipNotBlankspace(Substring{ fieldName, fieldDef.end });
+
+		if (!IsLowerCase(*fieldName))
+		{
+			// Field was not an identifier
+			return;
+		}
+
+		for (cstr p = fieldName + 1; p != fieldNameEnd; p++)
+		{
+			if (!IsAlphaNumeric(*p))
+			{
+				// This no longer appears to be an identifier
+				return;
+			}
+		}
+
+		char result[128];
+		Strings::CopyWithTruncate({ fieldName, fieldNameEnd }, result, sizeof result);
+
+		fieldEnumerator.OnField(result);
+	}
+
+	void EnumerateLocalFieldsOfCandidate(SexyStudio::ISexyFieldEnumerator& fieldEnumerator, cr_substring candidate, cr_substring file)
+	{
+		// We found some type name TYPE in the file, we need to see if it is part of a type definition, e.g (struct <TYPE> <fields>)
+
+		if (candidate.empty()) return;
+
+		cstr firstParenthesisToLeft = ReverseFind('(', Substring{ file.start, candidate.start });
+
+		if (firstParenthesisToLeft == nullptr)
+		{
+			// Type definition requires an open parenthesis
+			return;
+		}
+
+		Substring leftChars = Substring{ firstParenthesisToLeft + 1, candidate.start - 1 };
+		if (leftChars.empty())
+		{
+			return;
+		}
+
+		cstr nextParenthesis = ForwardFind(')', leftChars);
+		if (nextParenthesis)
+		{
+			// Type definition requires no close parenthesis before the open parenthesis to its left
+			return;
+		}
+
+		if (!FindSubstring(leftChars, "struct"_fstring) && !FindSubstring(leftChars, "class"_fstring))
+		{
+			// Neither a struct nor a class definition
+			return;
+		}
+
+		// Now we have some sort of potentially badly formatted struct or class of this form:
+		// (<irrelevant> struct <irrelevant> <TYPE> <fields>) where each field is of form (<Field-Type> <field-name>)
+
+		Substring rightChars{ candidate.end, file.end };
+
+		for (;;)
+		{
+			if (rightChars.empty())
+			{
+				return;
+			}
+
+			cstr nextFieldOpener = ForwardFind('(', rightChars);
+			if (nextFieldOpener == nullptr)
+			{
+				return;
+			}
+
+			cstr nextFieldCloser = ForwardFind(')', rightChars);
+			if (nextFieldCloser < nextFieldOpener)
+			{
+				// This means we hit the definition close, i.e (struct <TYPE> (Int32 field) ****)****
+				return;
+			}
+
+			PassFieldToEnumerator(fieldEnumerator, Substring{ nextFieldOpener + 1, nextFieldCloser });
+
+			rightChars.start = nextFieldCloser + 1;
+		}
+	}
+
+	void EnumerateLocalFields(SexyStudio::ISexyFieldEnumerator& fieldEnumerator, cstr cstrType, cr_substring file)
+	{
+		fstring type = to_fstring(cstrType);
+		if (type.length < 3)
+		{
+			return;
+		}
+
+		if (!IsCapital(cstrType[0]))
+		{
+			return;
+		}
+
+		auto evalCandidate = [&fieldEnumerator, &file](cr_substring candidate)
+		{
+			EnumerateLocalFieldsOfCandidate(fieldEnumerator, candidate, file);
+		};
+
+		ForEachOccurence(file, type, evalCandidate);
+	}
 } // Rococo::Sexy

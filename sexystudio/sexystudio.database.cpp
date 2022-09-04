@@ -14,6 +14,8 @@
 #include <rococo.io.h>
 #include <rococo.os.h>
 
+#include "rococo.sexystudio.api.h"
+
 using namespace Rococo;
 using namespace Rococo::Sex;
 using namespace Rococo::SexyStudio;

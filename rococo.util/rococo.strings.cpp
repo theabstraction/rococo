@@ -1,5 +1,6 @@
 #include <rococo.types.h>
 #include <stdarg.h>
+#include <rococo.functional.h>
 
 #ifdef _WIN32
 # include <malloc.h>
@@ -18,11 +19,11 @@
 # define _stricmp strcasecmp
 #endif
 
+using namespace Rococo;
+using namespace Rococo::Strings;
+
 namespace
 {
-	using namespace Rococo;
-	using namespace Rococo::Strings;
-
 	class ExpandingBuffer : public IExpandingBuffer
 	{
 		std::vector<uint8> internalBuffer;
@@ -212,6 +213,66 @@ namespace Rococo::Strings
 		return count;
 	}
 
+	cstr FindSubstring(cr_substring bigText, const fstring& searchTerm)
+	{
+		if (bigText.Length() < searchTerm.length)
+		{
+			return nullptr;
+		}
+
+		cstr end = bigText.end - searchTerm.length;
+
+		for (cstr s = bigText.start; s <= end; s++)
+		{
+			if (memcmp(s, searchTerm, searchTerm.length) == 0)
+			{
+				return s;
+			}
+		}
+
+		return nullptr;
+	}
+
+	int ForEachOccurence(cr_substring text, cstr cstrSearchTerm, Rococo::Function<void(cr_substring match)> lambda)
+	{
+		int count = 0;
+
+		auto searchTerm = to_fstring(cstrSearchTerm);
+		Substring specimen = text;
+		for (;;)
+		{
+			cstr nextOccurence = FindSubstring(specimen, searchTerm);
+			if (!nextOccurence)
+			{
+				break;
+			}
+
+			count++;
+
+			Substring result{ nextOccurence, nextOccurence + searchTerm.length };
+			lambda(result);
+
+			specimen = { result.end, specimen.end };
+		}
+
+		return count;
+	}
+
+	cstr ForwardFind(char c, cr_substring text)
+	{
+		if (text.empty()) return nullptr;
+
+		for (cstr p = text.start; p != text.end; p++)
+		{
+			if (*p == c)
+			{
+				return p;
+			}
+		}
+
+		return nullptr;
+	}
+
 	bool IsCapital(char c)
 	{
 		return c >= 'A' && c <= 'Z';
@@ -361,6 +422,32 @@ namespace Rococo::Strings
 		}
 
 		return nullptr;
+	}
+
+	cstr SkipBlankspace(cr_substring token)
+	{
+		for (cstr p = token.start; p != token.end; p++)
+		{
+			if (*p > 32)
+			{
+				return p;
+			}
+		}
+
+		return token.end;
+	}
+
+	cstr SkipNotBlankspace(cr_substring token)
+	{
+		for (cstr p = token.start; p != token.end; p++)
+		{
+			if (*p <= 32)
+			{
+				return p;
+			}
+		}
+
+		return token.end;
 	}
 
 	Substring RightOfFirstChar(char c, cr_substring token)

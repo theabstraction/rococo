@@ -1,6 +1,7 @@
 #pragma once
 
 #include <rococo.types.h>
+#include <new>
 
 // Rococo namespace, implements fast-compile equivalent to std::forward and std::function, which are Rococo::Forward and Rococo::Function respectively
 
@@ -286,6 +287,11 @@ namespace Rococo
 	// Provides a delegate for callbacks. If the size of the callback object is sufficiently small the callback is implemented on the stack, rather than the heap
 	template<typename RETURNTYPE, typename ... ARGS>
 	using Function = ArbitraryFunction<64, RETURNTYPE, ARGS ...>;
+}
+
+namespace Rococo::Strings
+{
+	int ForEachOccurence(cr_substring text, cstr cstrSearchTerm, Rococo::Function<void(cr_substring match)> lambda);
 }
 
 namespace Rococo::OS

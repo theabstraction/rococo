@@ -227,12 +227,6 @@ namespace Rococo::SexyStudio
 
 	void AppendFullName(ISxyNamespace& ns, struct StringBuilder& sb);
 
-	ROCOCOAPI ISexyFieldEnumerator
-	{
-		virtual void OnField(cstr fieldName) = 0;
-		virtual void OnHintFound(cstr hint) = 0;
-	};
-
 	ROCOCOAPI ISolution
 	{
 		virtual cstr GetContentFolder() const = 0;
@@ -244,6 +238,8 @@ namespace Rococo::SexyStudio
 		virtual cstr GetPackageSourceFolder(cstr packagePath) const = 0;
 		virtual void SetContentFolder(cstr path) = 0;
 	};
+
+	struct ISexyFieldEnumerator;
 
 	ROCOCOAPI ISexyDatabase
 	{

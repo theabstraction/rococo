@@ -33,6 +33,12 @@ namespace Rococo::SexyStudio
 		virtual void Free() = 0;
 	};
 
+	ROCOCOAPI ISexyFieldEnumerator
+	{
+		virtual void OnField(cstr fieldName) = 0;
+		virtual void OnHintFound(cstr hint) = 0;
+	};
+
 	enum class EIDECloseResponse
 	{
 		Continue,

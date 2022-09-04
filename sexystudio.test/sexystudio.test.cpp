@@ -5,8 +5,10 @@
 #include <rococo.sxytype-inference.h>
 
 #include <rococo.sexystudio.api.h>
+#include <rococo.functional.h>
 
 using namespace Rococo;
+using namespace Rococo::Strings;
 using namespace Rococo::SexyStudio;
 
 
@@ -22,8 +24,6 @@ cstr ErrorCaption = "SexyStudio Standalone App - error!";
 #include "..\sexystudio\sexystudio.api.h"
 
 #include <cstdio>
-
-using namespace Rococo::SexyStudio;
 
 void TestDeduceVec2Fields(ISexyDatabase& database)
 {
@@ -355,6 +355,7 @@ void TestLocalStruct(ISexyDatabase& database)
 
 	(struct Thing
 		(Int32 maJig)
+		(Int32 maJigEx)
 	)
 
 	(function Main (Int32 id) -> (Int32 exitCode):
@@ -382,9 +383,9 @@ void TestLocalStruct(ISexyDatabase& database)
 		{
 			printf("Method: %s\n", fieldName);
 
-			if (strcmp(fieldName, "maJig") != 0)
+			if (!StartsWith(fieldName, "maJig"))
 			{
-				Throw(0, "Bad inference '%s' - type should be maJig", fieldName);
+				Throw(0, "Bad inference '%s' - type should start with maJig", fieldName);
 			}
 
 			fieldCount++;
@@ -407,9 +408,9 @@ void TestLocalStruct(ISexyDatabase& database)
 		}
 	}
 
-	database.EnumerateVariableAndFieldList(sb, type, fieldEnumerator);
+	Rococo::Sexy::EnumerateLocalFields(fieldEnumerator, type, sfile);
 
-	if (fieldEnumerator.fieldCount != 1)
+	if (fieldEnumerator.fieldCount != 2)
 	{
 		Throw(0, "Bad inference '%d' - expecting one field of Thing", fieldEnumerator.fieldCount);
 	}
