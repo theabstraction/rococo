@@ -1344,14 +1344,16 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 	struct RouteTextToAutoComplete: ISexyFieldEnumerator
 	{
 		IAutoCompleteBuilder& builder;
+		ISexyDatabase& database;
 		cr_substring prefix;
+		cr_substring document;
 
 		bool atLeastOneItem = false;
 
 		HString hint;
 
-		RouteTextToAutoComplete(IAutoCompleteBuilder& _builder, cr_substring _prefix):
-			builder(_builder), prefix(_prefix)
+		RouteTextToAutoComplete(IAutoCompleteBuilder& _builder, cr_substring _prefix, ISexyDatabase& _database, cr_substring _document):
+			builder(_builder), prefix(_prefix), database(_database), document(_document)
 		{
 
 		}
@@ -1393,6 +1395,14 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 		{
 			hint = hintText;
 		}
+
+		void OnFieldType(cstr fieldType, cr_substring searchRoot) override
+		{
+			if (database.EnumerateVariableAndFieldList(prefix, fieldType, *this))
+			{
+
+			}
+		}
 	};
 
 	void ShowAutocompleteDataForVariable(ISexyEditor& editor, cr_substring candidate, int64 tokenDisplacementFromCaret)
@@ -1400,8 +1410,6 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 		static auto thisDot = "this."_fstring;
 
 		int64 caretPos = editor.GetCaretPos();
-
-		RouteTextToAutoComplete routeTextToAutoComplete(editor.AutoCompleteBuilder(), candidate);
 
 		int64 nCharsAndNull = editor.GetDocLength();
 
@@ -1427,6 +1435,8 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 		{
 			variable.start += thisDot.length;
 		}
+
+		RouteTextToAutoComplete routeTextToAutoComplete(editor.AutoCompleteBuilder(), candidate, *database, doc);
 
 		char type[256];
 		bool isThis;
@@ -1458,19 +1468,23 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 
 				}
 				else
-				{					
-					cstr finalType = routeTextToAutoComplete.hint.length() > 0 ? routeTextToAutoComplete.hint.c_str() : type;
-					editor.ShowCallTipAtCaretPos(finalType);
+				{	
+					Rococo::Sexy::EnumerateLocalFields(routeTextToAutoComplete, candidateInDoc, type, doc);
+					if (!routeTextToAutoComplete.atLeastOneItem)
+					{
+						cstr finalType = routeTextToAutoComplete.hint.length() > 0 ? routeTextToAutoComplete.hint.c_str() : type;
+						editor.ShowCallTipAtCaretPos(finalType);
+					}
 				}
 			}
 		}
 	}
 
-	void ShowAutocompleteDataForType(ISexyEditor& editor, cr_substring candidate)
+	void ShowAutocompleteDataForType(ISexyEditor& editor, cr_substring candidate, cr_substring doc)
 	{
 		Substring token = Rococo::Sexy::GetFirstTokenFromLeft(candidate);
 
-		RouteTextToAutoComplete routeTextToAutoComplete(editor.AutoCompleteBuilder(), Substring_Null());
+		RouteTextToAutoComplete routeTextToAutoComplete(editor.AutoCompleteBuilder(), Substring_Null(), *database, doc);
 		database->ForEachAutoCompleteCandidate(token, routeTextToAutoComplete);
 
 		callTipArgs[0] = 0;
@@ -1498,7 +1512,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 		}
 	}
 
-	bool TryAddTokenOptionsToAutocomplete(ISexyEditor& editor, cr_substring candidate, int64 displacementFromCaret)
+	bool TryAddTokenOptionsToAutocomplete(ISexyEditor& editor, cr_substring candidate, int64 displacementFromCaret, cr_substring doc)
 	{
 		using namespace Rococo;
 
@@ -1517,7 +1531,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 		}
 		else if (isupper(*candidate.start))
 		{
-			ShowAutocompleteDataForType(editor, candidate);
+			ShowAutocompleteDataForType(editor, candidate, doc);
 			return true;
 		}
 
@@ -1675,7 +1689,15 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 
 			int64 displacementFromCaret = endTokenPtr - openingToken;
 
-			if (TryAddTokenOptionsToAutocomplete(editor, searchToken, displacementFromCaret))
+			int64 nCharsAndNull = editor.GetDocLength();
+			src_buffer.resize(nCharsAndNull);
+			editor.GetText(nCharsAndNull, src_buffer.data());
+
+			Substring doc;
+			doc.start = src_buffer.data();
+			doc.end = doc.start + nCharsAndNull - 1;
+
+			if (TryAddTokenOptionsToAutocomplete(editor, searchToken, displacementFromCaret, doc))
 			{
 				autoCompleteCandidatePosition = openingToken - substringLine.start + cursor.lineStartPosition;
 			}

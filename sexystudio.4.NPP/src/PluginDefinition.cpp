@@ -139,7 +139,7 @@ void pluginInit(HANDLE hModule)
         FARPROC proc = GetProcAddress(hFactoryModule, "CreateSexyStudioFactory");
         if (proc == nullptr)
         {
-            Throw(GetLastError(), "Could not find CreateSexyStudioFactory in %ls", pathToDLL);
+            Throw(GetLastError(), "Could not find CreateSexyStudioFactory in %ls", pathToDLL.buf);
         }
 
         auto CreateSexyStudioFactory = (Rococo::SexyStudio::FN_CreateSexyStudioFactory)proc;

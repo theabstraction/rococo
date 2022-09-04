@@ -7,6 +7,10 @@
 #include <rococo.sexystudio.api.h>
 #include <rococo.functional.h>
 
+#include <rococo.auto-complete.h>
+
+#include <rococo.window.h>
+
 using namespace Rococo;
 using namespace Rococo::Strings;
 using namespace Rococo::SexyStudio;
@@ -56,6 +60,11 @@ R"<CODE>(
 		void OnHintFound(cstr hint) override
 		{
 			printf("Hint: %s\n", hint);
+		}
+
+		void OnFieldType(cstr fieldName, cr_substring searchRoot) override
+		{
+
 		}
 	} fieldEnumerator;
 
@@ -107,6 +116,11 @@ void TestDeduceVec2Fields2(ISexyDatabase& database)
 		{
 			printf("Hint: %s\n", hint);
 			hintCount++;
+		}
+
+		void OnFieldType(cstr fieldName, cr_substring searchRoot) override
+		{
+
 		}
 	} fieldEnumerator;
 
@@ -161,6 +175,11 @@ void TestDeduceMatrix4x4Fields(ISexyDatabase& database)
 		{
 			printf("Hint: %s\n", hint);
 			hintCount++;
+		}
+
+		void OnFieldType(cstr fieldName, cr_substring searchRoot) override
+		{
+
 		}
 	} fieldEnumerator;
 
@@ -222,6 +241,11 @@ void TestHintVec2(ISexyDatabase& database)
 			printf("Hint: %s\n", hint);
 			hintCount++;
 		}
+
+		void OnFieldType(cstr fieldName, cr_substring searchRoot) override
+		{
+
+		}
 	} fieldEnumerator;
 
 	database.ForEachAutoCompleteCandidate(v, fieldEnumerator);
@@ -271,6 +295,11 @@ void TestDeduceMethods(ISexyDatabase& database)
 		{
 			printf("Hint: %s\n", hint);
 			hintCount++;
+		}
+
+		void OnFieldType(cstr fieldName, cr_substring searchRoot) override
+		{
+
 		}
 	} fieldEnumerator;
 
@@ -328,6 +357,11 @@ void TestDeduceMethods2(ISexyDatabase& database)
 			printf("Hint: %s\n", hint);
 			hintCount++;
 		}
+
+		void OnFieldType(cstr fieldName, cr_substring searchRoot) override
+		{
+
+		}
 	} fieldEnumerator;
 
 	char type[256];
@@ -356,6 +390,12 @@ void TestLocalStruct(ISexyDatabase& database)
 	(struct Thing
 		(Int32 maJig)
 		(Int32 maJigEx)
+		(array Int32 maJigArgs)
+	)
+
+	(struct Thing2
+		(Int32 maJig)
+		(Int32 maJigEx)	
 	)
 
 	(function Main (Int32 id) -> (Int32 exitCode):
@@ -396,6 +436,11 @@ void TestLocalStruct(ISexyDatabase& database)
 			printf("Hint: %s\n", hint);
 			hintCount++;
 		}
+
+		void OnFieldType(cstr fieldName, cr_substring searchRoot) override
+		{
+
+		}
 	} fieldEnumerator;
 
 	char type[256];
@@ -408,15 +453,354 @@ void TestLocalStruct(ISexyDatabase& database)
 		}
 	}
 
-	Rococo::Sexy::EnumerateLocalFields(fieldEnumerator, type, sfile);
+	Rococo::Sexy::EnumerateLocalFields(fieldEnumerator, sb, type, sfile);
 
-	if (fieldEnumerator.fieldCount != 2)
+	if (fieldEnumerator.fieldCount != 3)
 	{
 		Throw(0, "Bad inference '%d' - expecting one field of Thing", fieldEnumerator.fieldCount);
 	}
 
 	printf("*** End of %s ***\n", __FUNCTION__);
 }
+
+void TestLocalStruct2(ISexyDatabase& database)
+{
+	cstr file =
+		R"<CODE>(
+	(using Sys.Type)
+	(using Sys.Maths)
+
+	(struct Thing
+		(Vec3 maJig)
+		(Vec2 maJigEx)
+		(array Int32 maJigArgs)
+	)
+
+	(struct Thing2
+		(Int32 maJig)
+		(Int32 maJigEx)	
+	)
+
+	(function Main (Int32 id) -> (Int32 exitCode):
+		(Thing thing)
+		(thing.maJig.
+	)
+)<CODE>";
+
+	printf("*** Start of %s ***\n", __FUNCTION__);
+
+	printf("File: %s\n", file);
+
+	Substring sfile = { file, file + strlen(file) };
+
+	cstr lastS = Strings::ReverseFind('t', sfile);
+
+	Substring sb = { lastS, lastS + 12 };
+
+	struct ANON : ISexyFieldEnumerator
+	{
+		int fieldCount = 0;
+		int hintCount = 0;
+		int typeCount = 0;
+
+		void OnField(cstr fieldName) override
+		{
+			printf("Method: %s\n", fieldName);
+
+			if (!StartsWith(fieldName, "maJig"))
+			{
+				Throw(0, "Bad inference '%s' - type should start with maJig", fieldName);
+			}
+
+			fieldCount++;
+		}
+
+		void OnHintFound(cstr hint) override
+		{
+			printf("Hint: %s\n", hint);
+			hintCount++;
+		}
+
+		void OnFieldType(cstr fieldType, cr_substring searchRoot) override
+		{
+			if (!Eq(fieldType, "Vec3"))
+			{
+				Throw(0, "Bad inference '%s' - type should be Vec3", fieldType);
+			}
+
+			typeCount++;
+		}
+	} fieldEnumerator;
+
+	char type[256];
+	bool isThis;
+	if (!Rococo::Sexy::TryGetLocalTypeFromCurrentDocument(type, isThis, sb, sfile))
+	{
+		if (strcmp(type, "Thing") != 0)
+		{
+			Throw(0, "Bad inference '%s' - type should be Thing", type);
+		}
+	}
+
+	Rococo::Sexy::EnumerateLocalFields(fieldEnumerator, sb, type, sfile);
+
+	if (fieldEnumerator.fieldCount != 0)
+	{
+		Throw(0, "Bad inference '%d' - expecting 0 fields", fieldEnumerator.fieldCount);
+	}
+
+	if (fieldEnumerator.typeCount != 1)
+	{
+		Throw(0, "Bad inference '%d' - expecting 1 type", fieldEnumerator.typeCount);
+	}
+
+	printf("*** End of %s ***\n", __FUNCTION__);
+}
+
+struct SexyStudioEventHandler : ISexyStudioEventHandler
+{
+	bool TryOpenEditor(cstr filename, int lineNumber) override
+	{
+		return false;
+	}
+
+	EIDECloseResponse OnIDEClose(IWindow& topLevelParent) override
+	{
+		ShowWindow(topLevelParent, SW_HIDE);
+		return EIDECloseResponse::Continue;
+	}
+};
+
+static SexyStudioEventHandler static_SexyStudioEventHandler;
+
+ISexyStudioFactory1* factory = nullptr;
+ISexyStudioInstance1* sexyIDE = nullptr;
+
+void GetDllPath(WideFilePath& pathToDLL)
+{
+	*pathToDLL.buf = 0;
+
+	HKEY hSexy4Npp;
+	LSTATUS status = RegOpenKeyW(HKEY_CURRENT_USER, L"Software\\Rococo.Sexy\\SexyStudio", &hSexy4Npp);
+	if (status == ERROR_SUCCESS)
+	{
+		enum { MAX_ROOT_LEN = 128 };
+		static_assert(MAX_ROOT_LEN < WideFilePath::CAPACITY);
+
+		DWORD type = REG_SZ;
+		DWORD len = MAX_ROOT_LEN * sizeof(wchar_t);
+		status = RegQueryValueExW(hSexy4Npp, L"BinPath", NULL, &type, (LPBYTE)pathToDLL.buf, &len);
+		if (status != ERROR_SUCCESS)
+		{
+			*pathToDLL.buf = 0;
+		}
+
+		RegCloseKey(hSexy4Npp);
+	}
+
+	if (*pathToDLL.buf == 0)
+	{
+#ifdef _DEBUG
+		Format(pathToDLL, L"C:\\work\\rococo\\bin\\sexystudio.debug.dll");
+#else
+		Format(pathToDLL, L"C:\\work\\rococo\\bin\\sexystudio.dll");
+#endif
+	}
+}
+
+void pluginInit(HANDLE hModule)
+{
+	struct CLOSURE : Rococo::Windows::IWindow
+	{
+		HWND hWnd;
+		operator HWND() const override
+		{
+			return hWnd;
+		}
+	} topLevelWindow;
+
+	topLevelWindow.hWnd = GetConsoleWindow();
+
+	try
+	{
+		WideFilePath pathToDLL;
+		GetDllPath(pathToDLL);
+
+		static HMODULE hFactoryModule = LoadLibraryW(pathToDLL);
+		if (hFactoryModule == nullptr)
+		{
+			Throw(GetLastError(), "Could not load library: %ls", pathToDLL.buf);
+		}
+
+		FARPROC proc = GetProcAddress(hFactoryModule, "CreateSexyStudioFactory");
+		if (proc == nullptr)
+		{
+			Throw(GetLastError(), "Could not find CreateSexyStudioFactory in %ls", pathToDLL.buf);
+		}
+
+		auto CreateSexyStudioFactory = (Rococo::SexyStudio::FN_CreateSexyStudioFactory)proc;
+
+		cstr interfaceURL = "Rococo.SexyStudio.ISexyStudioFactory1";
+
+		int nErr = CreateSexyStudioFactory((void**)&factory, interfaceURL);
+		if FAILED(nErr)
+		{
+			Throw(nErr, "CreateSexyStudioFactory with URL %s failed", interfaceURL);
+		}
+
+		if (sexyIDE == nullptr)
+		{
+			if (factory)
+			{
+				sexyIDE = factory->CreateSexyIDE(topLevelWindow, static_SexyStudioEventHandler);
+			}
+		}
+
+		if (sexyIDE)
+		{
+			sexyIDE->SetTitle("SexyStudio For Notepad++");
+		}
+	}
+	catch (IException& ex)
+	{
+		Rococo::OS::ShowErrorBox(topLevelWindow, ex, ErrorCaption);
+	}
+}
+
+class TestEditor : public AutoComplete::ISexyEditor, IAutoCompleteBuilder
+{
+public:
+	Substring doc;
+	int64 caretPos;
+
+	TestEditor(fstring document, int64 _caretPos):
+		doc { document.buffer, document.buffer + document.length }, caretPos(_caretPos)
+	{
+		
+	}
+
+	int64 GetDocLength() const override
+	{
+		return doc.Length();
+	}
+
+	int64 GetText(int64 len, char* buffer) override
+	{
+		memcpy(buffer, doc.start, min(len, doc.Length()));
+
+		if (doc.Length() < len)
+		{
+			buffer[doc.Length()] = 0;
+		}
+
+		return min(len, doc.Length());
+	}
+
+	int64 GetCaretPos() const override
+	{
+		return caretPos;
+	}
+
+	void ShowCallTipAtCaretPos(cstr tip) const
+	{
+		printf("CallTip %s\n", tip);
+	}
+
+	void SetAutoCompleteCancelWhenCaretMoved() override
+	{
+		
+	}
+
+	void ShowAutoCompleteList(cstr spaceSeparatedItems) override
+	{
+		for (cstr p = spaceSeparatedItems; *p != 0; p++)
+		{
+			if (*p <= 32)
+			{
+				puts("\r\n");
+			}
+			else
+			{
+				putc(*p, stdout);
+			}
+		}
+	}
+
+	bool TryGetCurrentLine(EditorLine& line) const override
+	{
+		cstr previousNewLine = Strings::ReverseFind('\n', { doc.start, doc.start + caretPos });
+		if (!previousNewLine)
+		{
+			return false;
+		}
+
+		previousNewLine++;
+
+		cstr nextNewLine = Strings::ForwardFind('\n', { doc.start + caretPos, doc.end });
+		if (!nextNewLine)
+		{
+			return false;
+		}
+
+		int64 bufferLength = nextNewLine - previousNewLine;
+
+		if (bufferLength == 0 || bufferLength >= EditorLine::MAX_LINE_LENGTH)
+		{
+			return false;
+		}
+
+		memcpy(line.Data(), previousNewLine, bufferLength);
+		line.SetLength(bufferLength);
+
+		return true;
+	}
+
+	void GetCursor(EditorCursor& cursor) const override
+	{
+		cursor.caretPos = caretPos;
+
+		cstr final = doc.start + caretPos;
+
+		int64 lineStartIndex = 0;
+		int64 lineNumber = 1;
+		for (cstr p = doc.start; p != doc.end; ++p)
+		{
+			if (*p == '\n')
+			{
+				lineNumber++;
+				lineStartIndex = p + 1 - doc.start;
+			}
+			else if (p == final)
+			{
+				break;
+			}
+		}
+
+		cursor.lineNumber = lineNumber;
+		cursor.lineStartPosition = lineStartIndex;
+		cursor.column = cursor.caretPos - cursor.lineStartPosition;
+	}
+
+	void ReplaceText(int64 startPos, int64 endPos, cstr item) const override
+	{
+		printf("Replace (%lld, %lld) with %s\n", startPos, endPos, item);
+	}
+
+	IAutoCompleteBuilder& AutoCompleteBuilder() override
+	{
+		return *this;
+	}
+
+	void AddItem(cstr item) override
+	{
+		printf("Item: %s\n", item);
+	}
+
+	void ShowAndClearItems() override
+	{
+		printf("ShowAndClearItems\n");
+	}
+};
 
 void RunTests(ISexyDatabase& database)
 {
@@ -428,9 +812,75 @@ void RunTests(ISexyDatabase& database)
 //	TestDeduceMethods2(database);
 //	TestDeduceMatrix4x4Fields(database);
 //	TestHintVec2(database);
-	TestLocalStruct(database);
+//	TestLocalStruct(database);
+//	TestLocalStruct2(database);
+}
 
-	printf("\nTests completed\n");
+struct FileDesc
+{
+	fstring fileText;
+	FileDesc(cstr _fileText): fileText(to_fstring(_fileText))
+	{
+
+	}
+
+	const fstring& Text()
+	{
+		return fileText;
+	}
+
+	Substring Doc() const
+	{
+		return Substring{ fileText.buffer, fileText.buffer + fileText.length };
+	}
+
+	int64 CaretPos() const
+	{
+		cstr caretPos = ReverseFind('.', Doc());
+		if (caretPos == nullptr)
+		{
+			Throw(0, "Bad caret pos, could not find final dot in file. All specimen files should have a dangling dot");
+		}
+
+		return caretPos - fileText.buffer;
+	}
+};
+
+void TestFullEditor()
+{
+	cstr file =
+		R"<CODE>(
+	(using Sys.Type)
+	(using Sys.Maths)
+
+	(struct EventObjectArg
+		(IString typename)
+		(IString variableName)
+		(IString defaultValue)
+	)
+
+	(struct EventObject
+		(IString evNamespace)
+		(IString evName)
+		(array EventObjectArg args)
+	)
+
+	(function Main (Int32 id) -> (Int32 exitCode):
+		(EventObject obj)
+		(obj.evNamespace.
+	)
+)<CODE>";
+
+	FileDesc desc(file);
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->UpdateAutoComplete(editor);
+}
+
+void MainProtected2(HMODULE hLib)
+{
+	pluginInit(NULL);
+	TestFullEditor();
 }
 
 void MainProtected(HMODULE hLib)
@@ -497,7 +947,7 @@ int main()
 
 	try
 	{
-		MainProtected(hLib);
+		MainProtected2(hLib);
 	}
 	catch (IException& ex)
 	{

@@ -39,5 +39,5 @@ namespace Rococo::Sexy
 	};
 
 	bool TryGetLocalTypeFromCurrentDocument(char type[256], bool& isThis, cr_substring candidate, cr_substring document);
-	void EnumerateLocalFields(Rococo::SexyStudio::ISexyFieldEnumerator& fieldEnumerator, cstr cstrType, cr_substring file);
+	void EnumerateLocalFields(Rococo::SexyStudio::ISexyFieldEnumerator& fieldEnumerator, cr_substring searchTerm, cstr cstrType, cr_substring file);
 }

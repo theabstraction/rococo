@@ -216,8 +216,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.make", "rococo.make\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.events", "rococo.events\rococo.events.vcxproj", "{9803718A-9A54-4C61-84A0-D375FFFAD7FA}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.sexy.cmd", "rococo.sexy.cmd\rococo.sexy.cmd.vcxproj", "{ADFBA7D0-FFED-4381-A476-0865400F51F6}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "rococo.cpp_master", "rococo.cpp_master\rococo.cpp_master.csproj", "{ECB8C6C6-175D-4AEA-AD17-CD1D87FCE69E}"
 EndProject
 Global
@@ -464,14 +462,6 @@ Global
 		{9803718A-9A54-4C61-84A0-D375FFFAD7FA}.Release|Any CPU.Build.0 = Release|x64
 		{9803718A-9A54-4C61-84A0-D375FFFAD7FA}.Release|x64.ActiveCfg = Release|x64
 		{9803718A-9A54-4C61-84A0-D375FFFAD7FA}.Release|x64.Build.0 = Release|x64
-		{ADFBA7D0-FFED-4381-A476-0865400F51F6}.Debug|Any CPU.ActiveCfg = Debug|x64
-		{ADFBA7D0-FFED-4381-A476-0865400F51F6}.Debug|Any CPU.Build.0 = Debug|x64
-		{ADFBA7D0-FFED-4381-A476-0865400F51F6}.Debug|x64.ActiveCfg = Debug|x64
-		{ADFBA7D0-FFED-4381-A476-0865400F51F6}.Debug|x64.Build.0 = Debug|x64
-		{ADFBA7D0-FFED-4381-A476-0865400F51F6}.Release|Any CPU.ActiveCfg = Release|x64
-		{ADFBA7D0-FFED-4381-A476-0865400F51F6}.Release|Any CPU.Build.0 = Release|x64
-		{ADFBA7D0-FFED-4381-A476-0865400F51F6}.Release|x64.ActiveCfg = Release|x64
-		{ADFBA7D0-FFED-4381-A476-0865400F51F6}.Release|x64.Build.0 = Release|x64
 		{ECB8C6C6-175D-4AEA-AD17-CD1D87FCE69E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{ECB8C6C6-175D-4AEA-AD17-CD1D87FCE69E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ECB8C6C6-175D-4AEA-AD17-CD1D87FCE69E}.Debug|x64.ActiveCfg = Debug|Any CPU

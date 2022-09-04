@@ -663,7 +663,7 @@ namespace Rococo::Sexy
 		}
 	}
 
-	void PassFieldToEnumerator(SexyStudio::ISexyFieldEnumerator& fieldEnumerator, cr_substring fieldDef)
+	void PassFieldToEnumerator(SexyStudio::ISexyFieldEnumerator& fieldEnumerator, cr_substring searchTerm, cr_substring fieldDef)
 	{
 		if (fieldDef.empty())
 		{
@@ -671,7 +671,6 @@ namespace Rococo::Sexy
 		}
 
 		// We have a field def, in which we have 2 entries (<Field-Type> <field-name>), with our substring begin and start within the parenthesis, not including them
-
 		cstr fieldType = SkipBlankspace(fieldDef);
 		if (fieldType == fieldDef.end)
 		{
@@ -684,6 +683,32 @@ namespace Rococo::Sexy
 		{
 			// We only had one contiguous string
 			return;
+		}
+
+		if (IsLowerCase(*fieldType))
+		{
+			if (FindSubstring(Substring{ fieldType, fieldDef.end }, "array"_fstring) || FindSubstring(Substring{ fieldType, fieldDef.end }, "map"_fstring) || FindSubstring(Substring{ fieldType, fieldDef.end }, "list"_fstring))
+			{
+				// Container, type is in position 1 (<container> <Field-type> <field-name> <fields...>)
+				fieldType = SkipBlankspace(Substring{ fieldEnd, fieldDef.end });
+				if (fieldType == fieldDef.end)
+				{
+					// We are missing something
+					return;
+				}
+
+				fieldEnd = SkipNotBlankspace(Substring{ fieldType, fieldDef.end });
+				if (fieldEnd == fieldDef.end)
+				{
+					// We only had one contiguous string
+					return;
+				}
+			}
+			else
+			{
+				// Cannot determine what this is meant to be
+				return;
+			}
 		}
 
 		if (!IsCapital(*fieldType))
@@ -730,13 +755,38 @@ namespace Rococo::Sexy
 			}
 		}
 
-		char result[128];
-		Strings::CopyWithTruncate({ fieldName, fieldNameEnd }, result, sizeof result);
+		cstr firstDot = Strings::ForwardFind('.', searchTerm);
+		if (!firstDot)
+		{
+			return;
+		}
 
-		fieldEnumerator.OnField(result);
+		cstr nextDot = Strings::ForwardFind('.', { firstDot + 1, searchTerm.end });
+		if (!nextDot)
+		{
+			char result[128];
+			Strings::CopyWithTruncate({ fieldName, fieldNameEnd }, result, sizeof result);
+			fieldEnumerator.OnField(result);
+		}
+
+		char fieldNameArray[128];
+		Strings::CopyWithTruncate({ fieldName, fieldNameEnd }, fieldNameArray, sizeof fieldNameArray);
+
+		Substring searchTail{ firstDot + 1, nextDot };
+
+		if (!Strings::FindSubstring(searchTail, to_fstring(fieldNameArray)))
+		{
+			// Mismatch of field name vs search term
+			return;
+		}
+
+		char fieldTypeArray[128];
+		Strings::CopyWithTruncate({ fieldType, fieldEnd }, fieldTypeArray, sizeof fieldTypeArray);
+
+		fieldEnumerator.OnFieldType(fieldTypeArray, searchTail);
 	}
 
-	void EnumerateLocalFieldsOfCandidate(SexyStudio::ISexyFieldEnumerator& fieldEnumerator, cr_substring candidate, cr_substring file)
+	void EnumerateLocalFieldsOfCandidate(SexyStudio::ISexyFieldEnumerator& fieldEnumerator, cr_substring searchTerm, cr_substring candidate, cr_substring file)
 	{
 		// We found some type name TYPE in the file, we need to see if it is part of a type definition, e.g (struct <TYPE> <fields>)
 
@@ -774,6 +824,12 @@ namespace Rococo::Sexy
 
 		Substring rightChars{ candidate.end, file.end };
 
+		if (*candidate.end != '(' && !IsBlankspace(*candidate.end))
+		{
+			// We found a prefix, rather than the token
+			return;
+		}
+
 		for (;;)
 		{
 			if (rightChars.empty())
@@ -794,13 +850,13 @@ namespace Rococo::Sexy
 				return;
 			}
 
-			PassFieldToEnumerator(fieldEnumerator, Substring{ nextFieldOpener + 1, nextFieldCloser });
+			PassFieldToEnumerator(fieldEnumerator, searchTerm, Substring{ nextFieldOpener + 1, nextFieldCloser });
 
 			rightChars.start = nextFieldCloser + 1;
 		}
 	}
 
-	void EnumerateLocalFields(SexyStudio::ISexyFieldEnumerator& fieldEnumerator, cstr cstrType, cr_substring file)
+	void EnumerateLocalFields(SexyStudio::ISexyFieldEnumerator& fieldEnumerator, cr_substring searchTerm, cstr cstrType, cr_substring file)
 	{
 		fstring type = to_fstring(cstrType);
 		if (type.length < 3)
@@ -813,9 +869,12 @@ namespace Rococo::Sexy
 			return;
 		}
 
-		auto evalCandidate = [&fieldEnumerator, &file](cr_substring candidate)
+		auto evalCandidate = [&fieldEnumerator, &file, &type, &searchTerm](cr_substring candidate)
 		{
-			EnumerateLocalFieldsOfCandidate(fieldEnumerator, candidate, file);
+			if (!IsAlphaNumeric(*candidate.end))
+			{
+				EnumerateLocalFieldsOfCandidate(fieldEnumerator, searchTerm, candidate, file);
+			}
 		};
 
 		ForEachOccurence(file, type, evalCandidate);
