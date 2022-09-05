@@ -32,12 +32,12 @@ namespace
 		}
 		else
 		{
-			cursor.start = cursor.end;
+			cursor.start = cursor.finish;
 		}
 
-		cursor.end = cursor.start + token.length;
+		cursor.finish = cursor.start + token.length;
 
-		while (cursor.end < document.end)
+		while (cursor.finish < document.finish)
 		{
 			if (Eq(cursor, token))
 			{
@@ -45,7 +45,7 @@ namespace
 			}
 
 			cursor.start++;
-			cursor.end++;
+			cursor.finish++;
 		}
 
 		cursor = Substring_Null();
@@ -55,7 +55,7 @@ namespace
 	cstr GetClosingParenthesis(cr_substring candidate)
 	{
 		int count = 1;
-		for (cstr p = candidate.start; p < candidate.end; p++)
+		for (cstr p = candidate.start; p < candidate.finish; p++)
 		{
 			if (*p == '(')
 			{
@@ -122,14 +122,14 @@ namespace Rococo::Sexy
 				{
 					if (*p == '(')
 					{
-						cstr name = FirstNonWhiteSpace(cursor.end, doc.end);
+						cstr name = FirstNonWhiteSpace(cursor.finish, doc.finish);
 						if (!name)
 						{
 							return Substring_Null();
 						}
 
 						cstr lastNameChar = name + StringLength(className);
-						if (lastNameChar > doc.end)
+						if (lastNameChar > doc.finish)
 						{
 							return Substring_Null();
 						}
@@ -145,7 +145,7 @@ namespace Rococo::Sexy
 						}
 
 						// We matched (class <class-name> ...)
-						cstr lastParenthesis = GetClosingParenthesis(Substring{ lastNameChar, doc.end });
+						cstr lastParenthesis = GetClosingParenthesis(Substring{ lastNameChar, doc.finish });
 						if (lastParenthesis)
 						{
 							Substring classDef{ lastNameChar + 1, lastParenthesis - 1 };
@@ -172,7 +172,7 @@ namespace Rococo::Sexy
 
 		State state = State::ExpectingOpen;
 
-		for (cstr p = classDef.start; p != classDef.end; p++)
+		for (cstr p = classDef.start; p != classDef.finish; p++)
 		{
 			char c = *p;
 
@@ -221,7 +221,7 @@ namespace Rococo::Sexy
 				if (isspace(c))
 				{
 					state = State::ExpectingName;
-					type.end = p;
+					type.finish = p;
 					goto next;
 				}
 
@@ -264,7 +264,7 @@ namespace Rococo::Sexy
 				}
 				if (c == ')')
 				{
-					name.end = p;
+					name.finish = p;
 					t(type, name);
 					state = State::ExpectingOpen;
 					goto next;
@@ -272,7 +272,7 @@ namespace Rococo::Sexy
 				if (isspace(c))
 				{
 					state = State::ExpectingClose;
-					name.end = p;
+					name.finish = p;
 					goto next;
 				}
 				else
@@ -338,9 +338,9 @@ namespace Rococo::Sexy
 
 	cstr BadlyFormattedTypeInferenceEngine::FindNextMatchedChar(cr_substring token, char match)
 	{
-		if (token.start != token.end)
+		if (token.start != token.finish)
 		{
-			for (cstr p = token.start + 1; p < token.end; p++)
+			for (cstr p = token.start + 1; p < token.finish; p++)
 			{
 				if (*p == match)
 				{
@@ -354,7 +354,7 @@ namespace Rococo::Sexy
 
 	cstr BadlyFormattedTypeInferenceEngine::GetEndOfPadding(cr_substring token)
 	{
-		for (cstr q = token.start; q < token.end; q++)
+		for (cstr q = token.start; q < token.finish; q++)
 		{
 			if (!IsBlankspace(*q))
 			{
@@ -396,7 +396,7 @@ namespace Rococo::Sexy
 
 	cstr BadlyFormattedTypeInferenceEngine::FindLastTypeChar(cr_substring token)
 	{
-		for (cstr p = token.start; p != token.end; p++)
+		for (cstr p = token.start; p != token.finish; p++)
 		{
 			if (isalnum(*p) || *p == '.')
 			{
@@ -421,7 +421,7 @@ namespace Rococo::Sexy
 
 	cstr BadlyFormattedTypeInferenceEngine::FindLastVariableChar(cr_substring token)
 	{
-		for (cstr p = token.start; p != token.end; p++)
+		for (cstr p = token.start; p != token.finish; p++)
 		{
 			if (isalnum(*p))
 			{
@@ -446,9 +446,9 @@ namespace Rococo::Sexy
 
 	TypeInference BadlyFormattedTypeInferenceEngine::FindNextPossibleDeclaration(cr_substring specimen)
 	{
-		for (cstr p = FindNextMatchedChar(specimen, '('); p != nullptr; p = FindNextMatchedChar({ p, specimen.end }, '('))
+		for (cstr p = FindNextMatchedChar(specimen, '('); p != nullptr; p = FindNextMatchedChar({ p, specimen.finish }, '('))
 		{
-			cstr startOfType = GetEndOfPadding({ p + 1, specimen.end });
+			cstr startOfType = GetEndOfPadding({ p + 1, specimen.finish });
 			if (startOfType == nullptr)
 			{
 				continue;
@@ -459,14 +459,14 @@ namespace Rococo::Sexy
 				continue;
 			}
 
-			cstr lastTypeChar = FindLastTypeChar({ startOfType, specimen.end });
+			cstr lastTypeChar = FindLastTypeChar({ startOfType, specimen.finish });
 			if (lastTypeChar == nullptr)
 			{
 				continue;
 			}
 
 			// We will try to match ( <type> <variable>
-			cstr startOfName = GetEndOfPadding({ lastTypeChar, specimen.end });
+			cstr startOfName = GetEndOfPadding({ lastTypeChar, specimen.finish });
 			if (startOfName == nullptr)
 			{
 				continue;
@@ -477,7 +477,7 @@ namespace Rococo::Sexy
 				continue;
 			}
 
-			cstr endOfName = FindLastVariableChar({ startOfName, specimen.end });
+			cstr endOfName = FindLastVariableChar({ startOfName, specimen.finish });
 
 			return TypeInference{ {startOfType, lastTypeChar}, {startOfName, endOfName } };
 		}
@@ -489,7 +489,7 @@ namespace Rococo::Sexy
 	{
 		cstr p;
 		cstr q = candidate;
-		for (p = token.start, q = candidate; p < token.end && q < endGuard; p++, q++)
+		for (p = token.start, q = candidate; p < token.finish && q < endGuard; p++, q++)
 		{
 			if (*p != *q)
 			{
@@ -505,11 +505,11 @@ namespace Rococo::Sexy
 		Substring token = candidate;
 		if (token.Length() > 1)
 		{
-			for (cstr i = token.start; i != token.end; ++i)
+			for (cstr i = token.start; i != token.finish; ++i)
 			{
 				if (*i == '.')
 				{
-					token.end = i;
+					token.finish = i;
 					break;
 				}
 			}
@@ -546,11 +546,11 @@ namespace Rococo::Sexy
 		if (!classInference.declarationType) return TypeInference_None();
 
 		Substring parentMember = name;
-		for (cstr p = name.start; p != name.end; p++)
+		for (cstr p = name.start; p != name.finish; p++)
 		{
 			if (*p == '.')
 			{
-				parentMember.end = p;
+				parentMember.finish = p;
 				break;
 			}
 		}
@@ -631,7 +631,7 @@ namespace Rococo::Sexy
 		else if (Eq(token, thisDot)) // 'this.'
 		{
 			isThis = true;
-			auto classInference = engine.InferContainerClass({ token.start, token.end - 1 });
+			auto classInference = engine.InferContainerClass({ token.start, token.finish - 1 });
 			CopyWithTruncate(classInference.declarationType, type, 256);
 			return true;
 		}
@@ -639,7 +639,7 @@ namespace Rococo::Sexy
 		{
 			auto classInference = engine.InferContainerClass({ token.start, token.start + thisRaw.length });
 			isThis = false;
-			Substring memberName{ token.start + thisDot.length,token.end };
+			Substring memberName{ token.start + thisDot.length,token.finish };
 			auto memberInference = engine.InferParentMember(classInference, memberName);
 			CopyWithTruncate(memberInference.declarationType, type, 256);
 			return true;
@@ -663,87 +663,82 @@ namespace Rococo::Sexy
 		}
 	}
 
-	void PassFieldToEnumerator(SexyStudio::ISexyFieldEnumerator& fieldEnumerator, cr_substring searchTerm, cr_substring fieldDef)
+	EFlowLogic PassFieldToEnumerator(SexyStudio::ISexyFieldEnumerator& fieldEnumerator, cr_substring searchTerm, cr_substring fieldDef)
 	{
 		if (fieldDef.empty())
 		{
-			return;
+			return EFlowLogic::CONTINUE;
 		}
 
 		// We have a field def, in which we have 2 entries (<Field-Type> <field-name>), with our substring begin and start within the parenthesis, not including them
 		cstr fieldType = SkipBlankspace(fieldDef);
-		if (fieldType == fieldDef.end)
+		if (fieldType == fieldDef.finish)
 		{
 			// It was an empty expression
-			return;
+			return EFlowLogic::CONTINUE;
 		}
 
-		cstr fieldEnd = SkipNotBlankspace(Substring{ fieldType, fieldDef.end });
-		if (fieldEnd == fieldDef.end)
+		cstr fieldEnd = SkipNotBlankspace(Substring{ fieldType, fieldDef.finish });
+		if (fieldEnd == fieldDef.finish)
 		{
 			// We only had one contiguous string
-			return;
+			return EFlowLogic::CONTINUE;
 		}
 
 		if (IsLowerCase(*fieldType))
 		{
-			if (FindSubstring(Substring{ fieldType, fieldDef.end }, "array"_fstring) || FindSubstring(Substring{ fieldType, fieldDef.end }, "map"_fstring) || FindSubstring(Substring{ fieldType, fieldDef.end }, "list"_fstring))
+			if (FindSubstring(Substring{ fieldType, fieldDef.finish }, "array"_fstring) || FindSubstring(Substring{ fieldType, fieldDef.finish }, "map"_fstring) || FindSubstring(Substring{ fieldType, fieldDef.finish }, "list"_fstring))
 			{
 				// Container, type is in position 1 (<container> <Field-type> <field-name> <fields...>)
-				fieldType = SkipBlankspace(Substring{ fieldEnd, fieldDef.end });
-				if (fieldType == fieldDef.end)
+				fieldType = SkipBlankspace(Substring{ fieldEnd, fieldDef.finish });
+				if (fieldType == fieldDef.finish)
 				{
 					// We are missing something
-					return;
+					return EFlowLogic::CONTINUE;
 				}
 
-				fieldEnd = SkipNotBlankspace(Substring{ fieldType, fieldDef.end });
-				if (fieldEnd == fieldDef.end)
+				fieldEnd = SkipNotBlankspace(Substring{ fieldType, fieldDef.finish });
+				if (fieldEnd == fieldDef.finish)
 				{
 					// We only had one contiguous string
-					return;
+					return EFlowLogic::CONTINUE;
 				}
 			}
 			else
 			{
 				// Cannot determine what this is meant to be
-				return;
+				return EFlowLogic::CONTINUE;
 			}
 		}
 
 		if (!IsCapital(*fieldType))
 		{
 			// Field was not a type
-			return;
+			return EFlowLogic::CONTINUE;
 		}
 
 		Substring fieldSuffix{ fieldType + 1, fieldEnd };
 
-		// This appears to be a type
-		for (cstr p = fieldSuffix.start; p != fieldSuffix.end; p++)
+		if (!IsAlphaNumeric(fieldSuffix))
 		{
-			if (!IsAlphaNumeric(*p))
-			{
-				// This no longer appears to be a type
-				return;
-			}
+			return EFlowLogic::CONTINUE;
 		}
 
-		Substring fieldRight{ fieldEnd, fieldDef.end };
+		Substring fieldRight{ fieldEnd, fieldDef.finish };
 
 		cstr fieldName = SkipBlankspace(fieldRight);
-		if (fieldName == fieldDef.end)
+		if (fieldName == fieldDef.finish)
 		{
 			// No field name was specified
-			return;
+			return EFlowLogic::CONTINUE;
 		}
 
-		cstr fieldNameEnd = SkipNotBlankspace(Substring{ fieldName, fieldDef.end });
+		cstr fieldNameEnd = SkipNotBlankspace(Substring{ fieldName, fieldDef.finish });
 
 		if (!IsLowerCase(*fieldName))
 		{
 			// Field was not an identifier
-			return;
+			return EFlowLogic::CONTINUE;
 		}
 
 		for (cstr p = fieldName + 1; p != fieldNameEnd; p++)
@@ -751,22 +746,23 @@ namespace Rococo::Sexy
 			if (!IsAlphaNumeric(*p))
 			{
 				// This no longer appears to be an identifier
-				return;
+				return EFlowLogic::CONTINUE;
 			}
 		}
 
 		cstr firstDot = Strings::ForwardFind('.', searchTerm);
 		if (!firstDot)
 		{
-			return;
+			return EFlowLogic::CONTINUE;
 		}
 
-		cstr nextDot = Strings::ForwardFind('.', { firstDot + 1, searchTerm.end });
+		cstr nextDot = Strings::ForwardFind('.', { firstDot + 1, searchTerm.finish });
 		if (!nextDot)
 		{
 			char result[128];
 			Strings::CopyWithTruncate({ fieldName, fieldNameEnd }, result, sizeof result);
 			fieldEnumerator.OnField(result);
+			return EFlowLogic::CONTINUE;
 		}
 
 		char fieldNameArray[128];
@@ -777,13 +773,15 @@ namespace Rococo::Sexy
 		if (!Strings::FindSubstring(searchTail, to_fstring(fieldNameArray)))
 		{
 			// Mismatch of field name vs search term
-			return;
+			return EFlowLogic::CONTINUE;
 		}
 
 		char fieldTypeArray[128];
 		Strings::CopyWithTruncate({ fieldType, fieldEnd }, fieldTypeArray, sizeof fieldTypeArray);
 
 		fieldEnumerator.OnFieldType(fieldTypeArray, searchTail);
+
+		return EFlowLogic::BREAK;
 	}
 
 	void EnumerateLocalFieldsOfCandidate(SexyStudio::ISexyFieldEnumerator& fieldEnumerator, cr_substring searchTerm, cr_substring candidate, cr_substring file)
@@ -822,9 +820,9 @@ namespace Rococo::Sexy
 		// Now we have some sort of potentially badly formatted struct or class of this form:
 		// (<irrelevant> struct <irrelevant> <TYPE> <fields>) where each field is of form (<Field-Type> <field-name>)
 
-		Substring rightChars{ candidate.end, file.end };
+		Substring rightChars{ candidate.finish, file.finish };
 
-		if (*candidate.end != '(' && !IsBlankspace(*candidate.end))
+		if (*candidate.finish != '(' && !IsBlankspace(*candidate.finish))
 		{
 			// We found a prefix, rather than the token
 			return;
@@ -850,7 +848,11 @@ namespace Rococo::Sexy
 				return;
 			}
 
-			PassFieldToEnumerator(fieldEnumerator, searchTerm, Substring{ nextFieldOpener + 1, nextFieldCloser });
+			EFlowLogic logic = PassFieldToEnumerator(fieldEnumerator, searchTerm, Substring{ nextFieldOpener + 1, nextFieldCloser });
+			if (logic == EFlowLogic::BREAK)
+			{
+				break;
+			}
 
 			rightChars.start = nextFieldCloser + 1;
 		}
@@ -871,7 +873,7 @@ namespace Rococo::Sexy
 
 		auto evalCandidate = [&fieldEnumerator, &file, &type, &searchTerm](cr_substring candidate)
 		{
-			if (!IsAlphaNumeric(*candidate.end))
+			if (!IsAlphaNumeric(*candidate.finish))
 			{
 				EnumerateLocalFieldsOfCandidate(fieldEnumerator, searchTerm, candidate, file);
 			}

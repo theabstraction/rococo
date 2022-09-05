@@ -1379,7 +1379,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 				char prefixString[128];
 				CopyWithTruncate(prefix, prefixString, sizeof prefixString);
 
-				cstr separator = (prefix && prefix.end[-1] == '.') ? "" : ".";
+				cstr separator = (prefix && prefix.finish[-1] == '.') ? "" : ".";
 
 				char item[256];
 				SafeFormat(item, "%s%s%s", prefixString, separator, fieldName);
@@ -1419,7 +1419,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 
 		Substring doc;
 		doc.start = src_buffer.data();
-		doc.end = doc.start + nCharsAndNull - 1;
+		doc.finish = doc.start + nCharsAndNull - 1;
 
 		cstr docCaretPos = doc.start + caretPos;
 		cstr start = docCaretPos - tokenDisplacementFromCaret;
@@ -1427,7 +1427,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 
 		Substring candidateInDoc{ start, end };
 
-		Substring variable = { candidateInDoc.start, candidateInDoc.end };
+		Substring variable = { candidateInDoc.start, candidateInDoc.finish };
 
 		U8FilePath contentFolder{ "C:\\content" };
 		
@@ -1685,7 +1685,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 				openingToken++; // this takes us into the alphanumeric string
 			}
 			
-			Substring searchToken = Rococo::Sexy::GetFirstTokenFromLeft({ openingToken, substringLine.end });
+			Substring searchToken = Rococo::Sexy::GetFirstTokenFromLeft({ openingToken, substringLine.finish });
 
 			int64 displacementFromCaret = endTokenPtr - openingToken;
 
@@ -1695,7 +1695,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 
 			Substring doc;
 			doc.start = src_buffer.data();
-			doc.end = doc.start + nCharsAndNull - 1;
+			doc.finish = doc.start + nCharsAndNull - 1;
 
 			if (TryAddTokenOptionsToAutocomplete(editor, searchToken, displacementFromCaret, doc))
 			{
@@ -1724,7 +1724,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 					openingToken++; // this takes us into the alphanumeric string
 				}
 				
-				Substring searchToken = Rococo::Sexy::GetFirstTokenFromLeft({ openingToken, substringLine.end });
+				Substring searchToken = Rococo::Sexy::GetFirstTokenFromLeft({ openingToken, substringLine.finish });
 				autoCompleteCandidatePosition = openingToken - substringLine.start + cursor.lineStartPosition;
 
 				if (isupper(*openingToken))
@@ -1750,7 +1750,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 
 							Substring doc;
 							doc.start = src_buffer.data();
-							doc.end = doc.start + nCharsAndNull - 1;
+							doc.finish = doc.start + nCharsAndNull - 1;
 
 							int64 caretPos = editor.GetCaretPos();
 
@@ -1762,7 +1762,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 
 							Substring candidateInDoc{ start, end};
 
-							Substring methodName{ separator + 1, searchToken.end };
+							Substring methodName{ separator + 1, searchToken.finish };
 
 							if (Rococo::Sexy::TryGetLocalTypeFromCurrentDocument(type, isThis, candidateInDoc, doc))
 							{

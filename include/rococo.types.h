@@ -199,12 +199,15 @@ namespace Rococo
 		struct Substring
 		{
 			cstr start;
-			cstr end;
+			cstr finish;
 
-			bool empty() const { return end <= start; }
+			cstr begin() const { return start; }
+			cstr end() const { return finish; }
+
+			bool empty() const { return finish <= start; }
 
 			operator bool() const { return !empty(); }
-			int64 Length() const { return end - start; }
+			int64 Length() const { return finish - start; }
 		};
 
 		inline Substring Substring_Null() { return { nullptr,nullptr }; }

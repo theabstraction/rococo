@@ -38,7 +38,7 @@ int CountDots(cr_substring prefix)
 {
 	int dots = 0;
 
-	for (auto p = prefix.start; p < prefix.end; ++p)
+	for (auto p = prefix.start; p < prefix.finish; ++p)
 	{
 		char c = *p;
 
@@ -2033,7 +2033,7 @@ namespace ANON
 
 			if (depth == 0) fieldEnumerator.OnHintFound(typeString);
 
-			if (variableName.end[-1] == '.')
+			if (variableName.finish[-1] == '.')
 			{
 				for (int k = 0; k < pInterfaceType->MethodCount(); ++k)
 				{
@@ -2058,9 +2058,9 @@ namespace ANON
 		bool EnumerateVariableAndFieldList(cr_substring candidate, cstr typeString, ISexyFieldEnumerator& fieldEnumerator) override
 		{
 			Substring variableName = candidate;
-			if (variableName && variableName.end[-1] == '.')
+			if (variableName && variableName.finish[-1] == '.')
 			{
-				variableName.end--;
+				variableName.finish--;
 			}
 			auto& root = GetRootNamespace();
 			if (AppendFieldsFromType(variableName, root, typeString, fieldEnumerator))
@@ -2071,13 +2071,13 @@ namespace ANON
 			{
 				if (!candidate) return false;
 
-				if (candidate.end[-1] != '.')
+				if (candidate.finish[-1] != '.')
 				{
 					// We only append methods if the last character is a dot
 					return false;
 				}
 
-				for (cstr i = candidate.end - 2; i >= candidate.start; --i)
+				for (cstr i = candidate.finish - 2; i >= candidate.start; --i)
 				{
 					if (*i == '.')
 					{

@@ -220,7 +220,7 @@ namespace Rococo::Strings
 			return nullptr;
 		}
 
-		cstr end = bigText.end - searchTerm.length;
+		cstr end = bigText.finish - searchTerm.length;
 
 		for (cstr s = bigText.start; s <= end; s++)
 		{
@@ -252,7 +252,7 @@ namespace Rococo::Strings
 			Substring result{ nextOccurence, nextOccurence + searchTerm.length };
 			lambda(result);
 
-			specimen = { result.end, specimen.end };
+			specimen = { result.finish, specimen.finish };
 		}
 
 		return count;
@@ -262,7 +262,7 @@ namespace Rococo::Strings
 	{
 		if (text.empty()) return nullptr;
 
-		for (cstr p = text.start; p != text.end; p++)
+		for (cstr p = text.start; p != text.finish; p++)
 		{
 			if (*p == c)
 			{
@@ -296,6 +296,19 @@ namespace Rococo::Strings
 	bool IsAlphaNumeric(char c)
 	{
 		return IsAlphabetical(c) || IsNumeric(c);
+	}
+
+	bool IsAlphaNumeric(cr_substring s)
+	{
+		for (auto c : s)
+		{
+			if (!IsAlphaNumeric(c))
+			{
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	int32 HashArg(int32 x)
@@ -400,7 +413,7 @@ namespace Rococo::Strings
 	{
 		if (!token) return nullptr;
 
-		for (cstr p = token.end - 1; p >= token.start; p--)
+		for (cstr p = token.finish - 1; p >= token.start; p--)
 		{
 			if (*p == c)
 			{
@@ -426,7 +439,7 @@ namespace Rococo::Strings
 
 	cstr SkipBlankspace(cr_substring token)
 	{
-		for (cstr p = token.start; p != token.end; p++)
+		for (cstr p = token.start; p != token.finish; p++)
 		{
 			if (*p > 32)
 			{
@@ -434,12 +447,12 @@ namespace Rococo::Strings
 			}
 		}
 
-		return token.end;
+		return token.finish;
 	}
 
 	cstr SkipNotBlankspace(cr_substring token)
 	{
-		for (cstr p = token.start; p != token.end; p++)
+		for (cstr p = token.start; p != token.finish; p++)
 		{
 			if (*p <= 32)
 			{
@@ -447,18 +460,18 @@ namespace Rococo::Strings
 			}
 		}
 
-		return token.end;
+		return token.finish;
 	}
 
 	Substring RightOfFirstChar(char c, cr_substring token)
 	{
 		if (token)
 		{
-			for (cstr p = token.start; p < token.end; ++p)
+			for (cstr p = token.start; p < token.finish; ++p)
 			{
 				if (*p == c)
 				{
-					return Substring{ p + 1, token.end };
+					return Substring{ p + 1, token.finish };
 				}
 			}
 		}
@@ -1001,7 +1014,7 @@ namespace Rococo::Strings
 
 	bool StartsWith(cr_substring token, const fstring& prefix)
 	{
-		size_t len = token.end - token.start;
+		size_t len = token.finish - token.start;
 		return prefix.length <= len && strncmp(prefix, token.start, prefix.length) == 0;
 	}
 
@@ -1013,7 +1026,7 @@ namespace Rococo::Strings
 
 	ptrdiff_t Length(cr_substring token)
 	{
-		return token.end - token.start;
+		return token.finish - token.start;
 	}
 
 	bool SubstringToString(char* outputBuffer, size_t sizeofOutputBuffer, cr_substring substring)
@@ -1025,7 +1038,7 @@ namespace Rococo::Strings
 
 		char* writePtr = outputBuffer;
 		cstr readPtr = substring.start;
-		while (readPtr < substring.end)
+		while (readPtr < substring.finish)
 		{
 			*writePtr++ = *readPtr++;
 		}
@@ -1044,7 +1057,7 @@ namespace Rococo::Strings
 
 		cstr p = a.buffer;
 		cstr q = b.start;
-		for (; q != b.end; ++q, ++p)
+		for (; q != b.finish; ++q, ++p)
 		{
 			if (*p != *q) return false;
 		}
@@ -1059,7 +1072,7 @@ namespace Rococo::Strings
 
 	bool IsEmpty(cr_substring token)
 	{
-		return token.start == token.end;
+		return token.start == token.finish;
 	}
 
 	bool Eq(cr_substring a, cr_substring b)
@@ -1074,7 +1087,7 @@ namespace Rococo::Strings
 
 		cstr p = a.start;
 		cstr q = b.start;
-		for (; p < a.end; p++, q++)
+		for (; p < a.finish; p++, q++)
 		{
 			if (*p != *q)
 			{
@@ -1121,7 +1134,7 @@ namespace Rococo::Sexy
 	{
 		if (!s) return nullptr;
 
-		for (cstr p = s.start; p < s.end; ++p)
+		for (cstr p = s.start; p < s.finish; ++p)
 		{
 			if (!Rococo::Sexy::IsNotTokenChar(*p))
 			{
@@ -1129,7 +1142,7 @@ namespace Rococo::Sexy
 			}
 		}
 
-		return s.end;
+		return s.finish;
 	}
 
 	cstr GetFirstNonTokenPointerFromRight(cr_substring doc, cstr startPosition)
@@ -1151,7 +1164,7 @@ namespace Rococo::Sexy
 	{
 		bool inDot = false;
 
-		for (cstr p = s.start; p < s.end; ++p)
+		for (cstr p = s.start; p < s.finish; ++p)
 		{
 			if (!inDot)
 			{
@@ -1175,7 +1188,7 @@ namespace Rococo::Sexy
 			return p;
 		}
 
-		return s.end;
+		return s.finish;
 	}
 
 	Substring GetFirstTokenFromLeft(cr_substring s)

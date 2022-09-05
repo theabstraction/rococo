@@ -736,7 +736,7 @@ public:
 
 		previousNewLine++;
 
-		cstr nextNewLine = Strings::ForwardFind('\n', { doc.start + caretPos, doc.end });
+		cstr nextNewLine = Strings::ForwardFind('\n', { doc.start + caretPos, doc.finish });
 		if (!nextNewLine)
 		{
 			return false;
@@ -763,7 +763,7 @@ public:
 
 		int64 lineStartIndex = 0;
 		int64 lineNumber = 1;
-		for (cstr p = doc.start; p != doc.end; ++p)
+		for (cstr p = doc.start; p != doc.finish; ++p)
 		{
 			if (*p == '\n')
 			{

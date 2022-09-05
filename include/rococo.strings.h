@@ -198,6 +198,7 @@ namespace Rococo::Strings
 	bool IsAlphabetical(char c);
 	bool IsNumeric(char c);
 	bool IsAlphaNumeric(char c);
+	bool IsAlphaNumeric(cr_substring s);
 
 	size_t HashArg(cstr text);
 	int32 HashArg(cstr s, int64 length);
