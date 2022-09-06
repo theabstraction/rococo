@@ -1,4 +1,4 @@
- (using Sys.Type)
+(using Sys.Type)
 (using Sys.Maths)
 
 (struct EventObjectArg
@@ -15,7 +15,7 @@
 
 (function Main (Int32 id) -> (Int32 exitCode):
 	(EventObject obj)
-	(obj.evNamespace.Length 
-	(IString cat)
-	(cat.Length
+	(IString s)
+	(s.Buffer  -> (Pointer buffer))
+	(obj.evNamespace.Length
 )

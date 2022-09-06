@@ -903,9 +903,8 @@ void TestFullEditor_SearchLocalStructForInterfaceMethod()
 (function Main (Int32 id) -> (Int32 exitCode):
 	(EventObject obj)
 	(obj.evNamespace.Length 
-	(IString cat)
-	(cat.Length 
 )
+
 )<CODE>";
 
 	FileDesc desc(file, ' ');

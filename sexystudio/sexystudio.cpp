@@ -1662,6 +1662,34 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 		}
 	}
 
+	void ShowCallTipForMethods(cstr type, cr_substring methodName, ISexyEditor& editor)
+	{
+		auto* pInterface = database->FindInterface(type);
+		if (pInterface)
+		{
+			for (int i = 0; i < pInterface->MethodCount(); ++i)
+			{
+				auto& method = pInterface->GetMethod(i);
+				auto sMethod = to_fstring(method.PublicName());
+				if (Eq(sMethod, methodName))
+				{
+					SetHintToFunctionArguments(editor, method);
+					editor.ShowCallTipAtCaretPos(callTipArgs);
+					break;
+				}
+			}
+		}
+	}
+
+	class MethodInference
+	{
+	public:
+		MethodInference(ISexyEditor& editor)
+		{
+
+		}
+	};
+
 	void UpdateAutoComplete(Rococo::AutoComplete::ISexyEditor& editor) override
 	{
 		EditorLine currentLine;
@@ -1754,9 +1782,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 						if (isupper(separator[1]))
 						{
 							// Potential method name, with left of separator being the interface variable
-							char type[256];
-							bool isThis;
-
+							
 							int64 nCharsAndNull = editor.GetDocLength();
 							src_buffer.resize(nCharsAndNull + 1);
 							editor.GetText(nCharsAndNull, src_buffer.data());
@@ -1777,24 +1803,11 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 
 							Substring methodName{ separator + 1, searchToken.finish };
 
+							char type[256];
+							bool isThis;
 							if (Rococo::Sexy::TryGetLocalTypeFromCurrentDocument(type, isThis, candidateInDoc, doc))
 							{
-								auto* pInterface = database->FindInterface(type);
-								if (pInterface)
-								{
-									for (int i = 0; i < pInterface->MethodCount(); ++i)
-									{
-										auto& method = pInterface->GetMethod(i);
-										auto sMethod = to_fstring(method.PublicName());
-										if (Eq(sMethod, methodName))
-										{
-											SetHintToFunctionArguments(editor, method);
-											editor.ShowCallTipAtCaretPos(callTipArgs);
-
-											break;
-										}
-									}
-								}
+								ShowCallTipForMethods(type, methodName, editor);
 							}
 						}
 					}
