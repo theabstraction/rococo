@@ -729,12 +729,14 @@ public:
 	bool TryGetCurrentLine(EditorLine& line) const override
 	{
 		cstr previousNewLine = Strings::ReverseFind('\n', { doc.start, doc.start + caretPos });
-		if (!previousNewLine)
+		if (previousNewLine)
 		{
-			return false;
+			previousNewLine++;
 		}
-
-		previousNewLine++;
+		else
+		{
+			previousNewLine = doc.start;
+		}
 
 		cstr nextNewLine = Strings::ForwardFind('\n', { doc.start + caretPos, doc.finish });
 		if (!nextNewLine)
@@ -762,23 +764,24 @@ public:
 		cstr final = doc.start + caretPos;
 
 		int64 lineStartIndex = 0;
-		int64 lineNumber = 1;
+		int64 lineNumber = 0;
 		for (cstr p = doc.start; p != doc.finish; ++p)
 		{
+			if (p == final)
+			{
+				break;
+			}
+
 			if (*p == '\n')
 			{
 				lineNumber++;
-				lineStartIndex = p + 1 - doc.start;
-			}
-			else if (p == final)
-			{
-				break;
+				lineStartIndex = p - doc.start + 1;
 			}
 		}
 
 		cursor.lineNumber = lineNumber;
 		cursor.lineStartPosition = lineStartIndex;
-		cursor.column = cursor.caretPos - cursor.lineStartPosition;
+		cursor.caretColumn = cursor.caretPos - cursor.lineStartPosition;
 	}
 
 	void ReplaceText(int64 startPos, int64 endPos, cstr item) const override
@@ -819,7 +822,8 @@ void RunTests(ISexyDatabase& database)
 struct FileDesc
 {
 	fstring fileText;
-	FileDesc(cstr _fileText): fileText(to_fstring(_fileText))
+	char caretFinalChar;
+	FileDesc(cstr _fileText, char _caretFinalChar): fileText(to_fstring(_fileText)), caretFinalChar(_caretFinalChar)
 	{
 
 	}
@@ -836,42 +840,75 @@ struct FileDesc
 
 	int64 CaretPos() const
 	{
-		cstr caretPos = ReverseFind('.', Doc());
+		cstr caretPos = ReverseFind(caretFinalChar, Doc());
 		if (caretPos == nullptr)
 		{
-			Throw(0, "Bad caret pos, could not find final dot in file. All specimen files should have a dangling dot");
+			Throw(0, "Bad caret pos, could not find final char in file. All specimen files should have a dangling dot");
 		}
 
-		return caretPos - fileText.buffer;
+		return caretPos - fileText.buffer + 1;
 	}
 };
 
-void TestFullEditor()
+void TestFullEditor_SearchLocalStructForInterface()
 {
 	cstr file =
-		R"<CODE>(
-	(using Sys.Type)
-	(using Sys.Maths)
+		R"<CODE>((using Sys.Type)
+(using Sys.Maths)
 
-	(struct EventObjectArg
-		(IString typename)
-		(IString variableName)
-		(IString defaultValue)
-	)
+(struct EventObjectArg
+	(IString typename)
+	(IString variableName)
+	(IString defaultValue)
+)
 
-	(struct EventObject
-		(IString evNamespace)
-		(IString evName)
-		(array EventObjectArg args)
-	)
+(struct EventObject
+	(IString evNamespace)
+	(IString evName)
+	(array EventObjectArg args)
+)
 
-	(function Main (Int32 id) -> (Int32 exitCode):
-		(EventObject obj)
-		(obj.evNamespace.
-	)
+(function Main (Int32 id) -> (Int32 exitCode):
+	(EventObject obj)
+	(obj.evNamespace.Length 
+	(IString cat)
+	(cat.Length 
+)
 )<CODE>";
 
-	FileDesc desc(file);
+	FileDesc desc(file, '.');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->UpdateAutoComplete(editor);
+}
+
+void TestFullEditor_SearchLocalStructForInterfaceMethod()
+{
+	cstr file =
+		R"<CODE>((using Sys.Type)
+(using Sys.Maths)
+
+(struct EventObjectArg
+	(IString typename)
+	(IString variableName)
+	(IString defaultValue)
+)
+
+(struct EventObject
+	(IString evNamespace)
+	(IString evName)
+	(array EventObjectArg args)
+)
+
+(function Main (Int32 id) -> (Int32 exitCode):
+	(EventObject obj)
+	(obj.evNamespace.Length 
+	(IString cat)
+	(cat.Length 
+)
+)<CODE>";
+
+	FileDesc desc(file, ' ');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
 	sexyIDE->UpdateAutoComplete(editor);
@@ -880,7 +917,8 @@ void TestFullEditor()
 void MainProtected2(HMODULE hLib)
 {
 	pluginInit(NULL);
-	TestFullEditor();
+	TestFullEditor_SearchLocalStructForInterfaceMethod();
+//	TestFullEditor_SearchLocalStructForInterface();
 }
 
 void MainProtected(HMODULE hLib)

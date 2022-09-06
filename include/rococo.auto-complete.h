@@ -50,10 +50,10 @@ namespace Rococo
 
 		struct EditorCursor
 		{
-			int64 caretPos = 0;
-			size_t lineNumber = 0;
-			int64 lineStartPosition = 0;
-			int64 column;
+			int64 caretPos = 0; // zero based index of the next write position in the text editor
+			size_t lineNumber = 0; // zero based index of the line of the next write position
+			int64 lineStartPosition = 0; // zero based index of the number of characters from the beginning of the file to the start of the line
+			int64 caretColumn; // zero based index of the write position relative to the start of the line in the text editor
 
 			ptrdiff_t CaretPos() const
 			{
@@ -70,9 +70,9 @@ namespace Rococo
 				return lineStartPosition;
 			}
 
-			ptrdiff_t ColumnNumber() const
+			ptrdiff_t CaretColumnNumber() const
 			{
-				return column;
+				return caretColumn;
 			}
 		};
 

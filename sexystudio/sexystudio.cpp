@@ -57,6 +57,14 @@ namespace Rococo::SexyStudio
 	void PopulateTreeWithSXYFiles(IGuiTree& tree, ISexyDatabase& database, IIDEFrame& frame, ISourceTree& sourceTree);
 }
 
+void ValidateMemory()
+{
+	if (!_CrtCheckMemory())
+	{
+		Rococo::OS::TripDebugger();
+	}
+}
+
 void OpenSexyFile(ISexyStudioEventHandler& evHandler, ISolution& solution, IWindow& mainWindow, cstr path, int lineNumber)
 {
 	try
@@ -1669,9 +1677,14 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 
 		Substring substringLine{ currentLine.begin(), currentLine.end() };
 
-		cstr endTokenPtr = substringLine.start + cursor.ColumnNumber();
+		cstr endTokenPtr = substringLine.start + cursor.CaretColumnNumber();
 
-		if (endTokenPtr > substringLine.start && (IsAlphaNumeric(endTokenPtr[-1]) || endTokenPtr[-1] == '.'))
+		if (endTokenPtr <= substringLine.start)
+		{
+			return;
+		}
+
+		if (IsAlphaNumeric(endTokenPtr[-1]) || endTokenPtr[-1] == '.')
 		{
 			autoCompleteCandidatePosition = cursor.CaretPos();
 
@@ -1706,7 +1719,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 				autoCompleteCandidatePosition = 0;
 			}
 		}
-		else if (endTokenPtr > substringLine.start && (endTokenPtr[-1] == ' ' || endTokenPtr[-1] == '\t'))
+		else if (endTokenPtr[-1] == ' ' || endTokenPtr[-1] == '\t')
 		{
 			// Potentially we have a method or function call followed by a space, which is a prompt to show the function arguments
 			endTokenPtr--;
@@ -1745,7 +1758,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 							bool isThis;
 
 							int64 nCharsAndNull = editor.GetDocLength();
-							src_buffer.resize(nCharsAndNull);
+							src_buffer.resize(nCharsAndNull + 1);
 							editor.GetText(nCharsAndNull, src_buffer.data());
 
 							Substring doc;
@@ -1777,6 +1790,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 										{
 											SetHintToFunctionArguments(editor, method);
 											editor.ShowCallTipAtCaretPos(callTipArgs);
+
 											break;
 										}
 									}

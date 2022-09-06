@@ -309,15 +309,27 @@ public:
     {
         size_t bufferLength = SendMessageA(hScintilla, SCI_GETCURLINE, 0, 0);
 
-        if (bufferLength == 0 || bufferLength > EditorLine::MAX_LINE_LENGTH)
+        if (bufferLength == 0 || bufferLength >= EditorLine::MAX_LINE_LENGTH)
         {
             return false;
         }
 
         SendMessageA(hScintilla, SCI_GETCURLINE, bufferLength, (LPARAM)line.Data());
-        line.SetLength(bufferLength - 1);
 
-        return true;
+        // Handle linefeed and newline in any order that may be chosen for the text file in NPP
+        if (line.Data()[bufferLength - 1] == '\n' || line.Data()[bufferLength - 1] == '\r')
+        {
+            // The final value was a newline or linefeed, so trim:
+            bufferLength--;
+            if (bufferLength > 0 && line.Data()[bufferLength - 1] == '\n' || line.Data()[bufferLength - 1] == '\r')
+            {
+                bufferLength--;
+            }
+        }
+
+        line.SetLength(bufferLength);
+
+        return bufferLength > 0;
     }
 
     void GetCursor(EditorCursor& cursor) const override
@@ -325,7 +337,7 @@ public:
         cursor.caretPos = SendMessageA(hScintilla, SCI_GETCURRENTPOS, 0, 0);
         cursor.lineNumber = SendMessageA(hScintilla, SCI_LINEFROMPOSITION, cursor.caretPos, 0);
         cursor.lineStartPosition = SendMessageA(hScintilla, SCI_POSITIONFROMLINE, cursor.lineNumber, 0);
-        cursor.column = cursor.caretPos - cursor.lineStartPosition;
+        cursor.caretColumn = cursor.caretPos - cursor.lineStartPosition;
     }
 
     void ReplaceText(int64 startPos, int64 endPos, cstr item) const override
@@ -402,7 +414,6 @@ void onCharAdded(HWND hScintilla, char c)
 
         SendMessageA(hScintilla, SCI_CALLTIPCANCEL, 0, 0);
         SexyEditor_Scintilla editor(hScintilla);
-        ValidateMemory();
         sexyIDE->UpdateAutoComplete(editor);
         ValidateMemory();
     }

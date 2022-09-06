@@ -1,0 +1,21 @@
+ (using Sys.Type)
+(using Sys.Maths)
+
+(struct EventObjectArg
+	(IString typename)
+	(IString variableName)
+	(IString defaultValue)
+)
+
+(struct EventObject
+	(IString evNamespace)
+	(IString evName)
+	(array EventObjectArg args)
+)
+
+(function Main (Int32 id) -> (Int32 exitCode):
+	(EventObject obj)
+	(obj.evNamespace.Length 
+	(IString cat)
+	(cat.Length
+)
