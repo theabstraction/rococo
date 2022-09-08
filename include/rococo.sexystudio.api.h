@@ -35,9 +35,9 @@ namespace Rococo::SexyStudio
 
 	ROCOCOAPI ISexyFieldEnumerator
 	{
-		virtual void OnFieldType(cstr fieldType, cr_substring searchRoot) = 0;
+		virtual void OnFieldType(cr_substring fieldType, cr_substring searchRoot) = 0;
 		virtual void OnField(cstr fieldName) = 0;
-		virtual void OnHintFound(cstr hint) = 0;
+		virtual void OnHintFound(cr_substring hint) = 0;
 	};
 
 	enum class EIDECloseResponse

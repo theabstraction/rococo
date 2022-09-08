@@ -244,7 +244,7 @@ namespace Rococo::SexyStudio
 	ROCOCOAPI ISexyDatabase
 	{
 		virtual void Clear() = 0;
-		virtual bool EnumerateVariableAndFieldList(cr_substring variable, cstr typeString, ISexyFieldEnumerator& fieldEnumerator) = 0;
+		virtual bool EnumerateVariableAndFieldList(cr_substring variable, cr_substring type, ISexyFieldEnumerator& fieldEnumerator) = 0;
 		virtual ISXYInterface* FindInterface(cstr typeString) = 0;
 		virtual void FocusProject(cstr projectFilePath) = 0;
 		virtual void ForEachAutoCompleteCandidate(cr_substring prefix, ISexyFieldEnumerator& fieldEnumerator) = 0;

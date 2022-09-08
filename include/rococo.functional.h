@@ -291,7 +291,7 @@ namespace Rococo
 
 namespace Rococo::Strings
 {
-	int ForEachOccurence(cr_substring text, cstr cstrSearchTerm, Rococo::Function<void(cr_substring match)> lambda);
+	int ForEachOccurence(cr_substring text, cr_substring cstrSearchTerm, Rococo::Function<void(cr_substring match)> lambda);
 }
 
 namespace Rococo::OS

@@ -108,10 +108,9 @@ namespace Rococo::Sexy
 	static const fstring fsFunction = "function"_fstring;
 	static const fstring fsMethod = "method"_fstring;
 
-	// Expamd t
-	Substring GetClassDefinition(cstr className, cr_substring doc)
+	// Expand t
+	Substring GetClassDefinition(cr_substring className, cr_substring doc)
 	{
-		auto fsName = to_fstring(className);
 		Substring cursor = Substring_Null();
 
 		while (FindNext(cursor, doc, "class"_fstring))
@@ -128,13 +127,13 @@ namespace Rococo::Sexy
 							return Substring_Null();
 						}
 
-						cstr lastNameChar = name + StringLength(className);
+						cstr lastNameChar = name + className.Length();
 						if (lastNameChar > doc.finish)
 						{
 							return Substring_Null();
 						}
 
-						if (!Eq(Substring{ name, lastNameChar }, fsName))
+						if (!Eq(Substring{ name, lastNameChar }, className))
 						{
 							continue;
 						}
@@ -160,7 +159,7 @@ namespace Rococo::Sexy
 	}
 
 	template<class T>
-	void TEnumerateFieldsOfClassDef(cstr className, cr_substring classDef, T& t)
+	void TEnumerateFieldsOfClassDef(cr_substring className, cr_substring classDef, T& t)
 	{
 		// classDef will be Name (<type1> <name1>)...(<typeN> <nameN>)
 
@@ -303,7 +302,7 @@ namespace Rococo::Sexy
 		}
 	}
 
-	void ForEachFieldOfClassDef(cstr className, cr_substring classDef, IFieldEnumerator& cb)
+	void ForEachFieldOfClassDef(cr_substring className, cr_substring classDef, IFieldEnumerator& cb)
 	{
 		auto invokeCallback = [&cb](cr_substring name, cr_substring type)
 		{
@@ -566,13 +565,10 @@ namespace Rococo::Sexy
 			}
 		};
 
-		char classNameBuffer[128];
-		CopyWithTruncate(classInference.declarationType, classNameBuffer, sizeof classNameBuffer);
-
 		Substring doc{ textBuffer, textBuffer + StringLength(textBuffer) };
-		Substring classDef = GetClassDefinition(classNameBuffer, doc);
+		Substring classDef = GetClassDefinition(classInference.declarationType, doc);
 
-		TEnumerateFieldsOfClassDef(classNameBuffer, classDef, searchForNameAndSetType);
+		TEnumerateFieldsOfClassDef(classInference.declarationType, classDef, searchForNameAndSetType);
 
 		return matchType;
 	}
@@ -605,14 +601,14 @@ namespace Rococo::Sexy
 	'this.<member-variable>'....................the member [type] defined in the class for which the containing method applies
 	<local-variable-name>.<children>'...........the member [type] defined in the class for which the containing method applies.
 	*/
-	bool TryGetLocalTypeFromCurrentDocument(char type[256], bool& isThis, cr_substring token, cr_substring document)
+	Substring GetLocalTypeFromCurrentDocument(bool& isThis, cr_substring token, cr_substring document)
 	{
 		static auto thisRaw = "this"_fstring;
 		static auto thisDot = "this."_fstring;
 
 		if (!token || !document || !islower(*token.start))
 		{
-			return false;
+			return Substring::Null();
 		}
 
 		using namespace Rococo::Sexy;
@@ -625,15 +621,13 @@ namespace Rococo::Sexy
 		{
 			isThis = true;
 			auto classInference = engine.InferContainerClass(token);
-			CopyWithTruncate(classInference.declarationType, type, 256);
-			return true;
+			return classInference.declarationType;
 		}
 		else if (Eq(token, thisDot)) // 'this.'
 		{
 			isThis = true;
 			auto classInference = engine.InferContainerClass({ token.start, token.finish - 1 });
-			CopyWithTruncate(classInference.declarationType, type, 256);
-			return true;
+			return classInference.declarationType;
 		}
 		else if (StartsWith(token, thisDot)) // 'this.<member-variable>'
 		{
@@ -641,8 +635,7 @@ namespace Rococo::Sexy
 			isThis = false;
 			Substring memberName{ token.start + thisDot.length,token.finish };
 			auto memberInference = engine.InferParentMember(classInference, memberName);
-			CopyWithTruncate(memberInference.declarationType, type, 256);
-			return true;
+			return memberInference.declarationType;
 		}
 		else
 		{
@@ -652,13 +645,11 @@ namespace Rococo::Sexy
 
 			if (localVariableInference.declarationType)
 			{
-				CopyWithTruncate(localVariableInference.declarationType, type, 256);
-				return true;
+				return localVariableInference.declarationType;
 			}
 			else
 			{
-				*type = 0;
-				return false;
+				return Substring::Null();
 			}
 		}
 	}
@@ -776,10 +767,7 @@ namespace Rococo::Sexy
 			return EFlowLogic::CONTINUE;
 		}
 
-		char fieldTypeArray[128];
-		Strings::CopyWithTruncate({ fieldType, fieldEnd }, fieldTypeArray, sizeof fieldTypeArray);
-
-		fieldEnumerator.OnFieldType(fieldTypeArray, searchTail);
+		fieldEnumerator.OnFieldType({ fieldType, fieldEnd }, searchTail);
 
 		return EFlowLogic::BREAK;
 	}
@@ -858,15 +846,14 @@ namespace Rococo::Sexy
 		}
 	}
 
-	void EnumerateLocalFields(SexyStudio::ISexyFieldEnumerator& fieldEnumerator, cr_substring searchTerm, cstr cstrType, cr_substring file)
+	void EnumerateLocalFields(SexyStudio::ISexyFieldEnumerator& fieldEnumerator, cr_substring searchTerm, cr_substring type, cr_substring file)
 	{
-		fstring type = to_fstring(cstrType);
-		if (type.length < 3)
+		if (type.Length() < 3)
 		{
 			return;
 		}
 
-		if (!IsCapital(cstrType[0]))
+		if (!IsCapital(type.start[0]))
 		{
 			return;
 		}

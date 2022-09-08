@@ -212,6 +212,8 @@ namespace Rococo
 			static Substring Null() { return { nullptr,nullptr }; }
 		};
 
+		Substring ToSubstring(cstr text);
+
 		inline Substring Substring_Null() { return { nullptr,nullptr }; }
 
 		// An immutable substring
@@ -238,8 +240,8 @@ namespace Rococo
 		using namespace Rococo::Strings;
 		// Type inference API
 		// TODO - move functions to their own header
-		void ForEachFieldOfClassDef(cstr className, cr_substring classDef, IFieldEnumerator& cb);
-		Substring GetClassDefinition(cstr className, cr_substring doc);
+		void ForEachFieldOfClassDef(cr_substring className, cr_substring classDef, IFieldEnumerator& cb);
+		Substring GetClassDefinition(cr_substring className, cr_substring doc);
 		bool IsSexyKeyword(cr_substring candidate);
 		bool IsNotTokenChar(char c);
 		cstr GetFirstNonTokenPointer(cr_substring s);

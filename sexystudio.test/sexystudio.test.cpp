@@ -57,20 +57,22 @@ R"<CODE>(
 			printf("Field: %s\n", fieldName);
 		}
 
-		void OnHintFound(cstr hint) override
+		void OnHintFound(cr_substring hint) override
 		{
-			printf("Hint: %s\n", hint);
+			fputs("Hint: ", stdout);
+			fwrite(hint.start, 1, hint.Length(), stdout);
+			fputs("\n", stdout);
 		}
 
-		void OnFieldType(cstr fieldName, cr_substring searchRoot) override
+		void OnFieldType(cr_substring fieldName, cr_substring searchRoot) override
 		{
 
 		}
 	} fieldEnumerator;
 
-	char type[256];
+	Substring type;
 	bool isThis;
-	if (!Rococo::Sexy::TryGetLocalTypeFromCurrentDocument(type, isThis, v, sfile))
+	if (!(type = Rococo::Sexy::GetLocalTypeFromCurrentDocument(isThis, v, sfile)))
 	{
 		Throw(0, "Bad inference - type should be Vec2");
 	}
@@ -112,21 +114,24 @@ void TestDeduceVec2Fields2(ISexyDatabase& database)
 			fieldCount++;
 		}
 
-		void OnHintFound(cstr hint) override
+		void OnHintFound(cr_substring hint) override
 		{
-			printf("Hint: %s\n", hint);
+			fputs("Hint: ", stdout);
+			fwrite(hint.start, 1, hint.Length(), stdout);
+			fputs("\n", stdout);
+
 			hintCount++;
 		}
 
-		void OnFieldType(cstr fieldName, cr_substring searchRoot) override
+		void OnFieldType(cr_substring fieldName, cr_substring searchRoot) override
 		{
 
 		}
 	} fieldEnumerator;
 
-	char type[256];
+	Substring type;
 	bool isThis;
-	if (!Rococo::Sexy::TryGetLocalTypeFromCurrentDocument(type, isThis, v, sfile))
+	if (!(type = Rococo::Sexy::GetLocalTypeFromCurrentDocument(isThis, v, sfile)))
 	{
 		Throw(0, "Bad inference - type should be Vec2");
 	}
@@ -171,21 +176,23 @@ void TestDeduceMatrix4x4Fields(ISexyDatabase& database)
 			fieldCount++;
 		}
 
-		void OnHintFound(cstr hint) override
+		void OnHintFound(cr_substring hint) override
 		{
-			printf("Hint: %s\n", hint);
+			fputs("Hint: ", stdout);
+			fwrite(hint.start, 1, hint.Length(), stdout);
+			fputs("\n", stdout);
 			hintCount++;
 		}
 
-		void OnFieldType(cstr fieldName, cr_substring searchRoot) override
+		void OnFieldType(cr_substring fieldName, cr_substring searchRoot) override
 		{
 
 		}
 	} fieldEnumerator;
 
-	char type[256];
+	Substring type;
 	bool isThis;
-	if (!Rococo::Sexy::TryGetLocalTypeFromCurrentDocument(type, isThis, v, sfile))
+	if (!(type = Rococo::Sexy::GetLocalTypeFromCurrentDocument(isThis, v, sfile)))
 	{
 		Throw(0, "Bad inference - type should be Vec4");
 	}
@@ -236,13 +243,15 @@ void TestHintVec2(ISexyDatabase& database)
 			fieldCount++;
 		}
 
-		void OnHintFound(cstr hint) override
+		void OnHintFound(cr_substring hint) override
 		{
-			printf("Hint: %s\n", hint);
+			fputs("Hint: ", stdout);
+			fwrite(hint.start, 1, hint.Length(), stdout);
+			fputs("\n", stdout);
 			hintCount++;
 		}
 
-		void OnFieldType(cstr fieldName, cr_substring searchRoot) override
+		void OnFieldType(cr_substring fieldName, cr_substring searchRoot) override
 		{
 
 		}
@@ -291,21 +300,23 @@ void TestDeduceMethods(ISexyDatabase& database)
 			fieldCount++;
 		}
 
-		void OnHintFound(cstr hint) override
+		void OnHintFound(cr_substring hint) override
 		{
-			printf("Hint: %s\n", hint);
+			fputs("Hint: ", stdout);
+			fwrite(hint.start, 1, hint.Length(), stdout);
+			fputs("\n", stdout);
 			hintCount++;
 		}
 
-		void OnFieldType(cstr fieldName, cr_substring searchRoot) override
+		void OnFieldType(cr_substring fieldName, cr_substring searchRoot) override
 		{
 
 		}
 	} fieldEnumerator;
 
-	char type[256];
+	Substring type;
 	bool isThis;
-	if (!Rococo::Sexy::TryGetLocalTypeFromCurrentDocument(type, isThis, sb, sfile) || !Eq(type, "IStringBuilder"))
+	if (!(type = Rococo::Sexy::GetLocalTypeFromCurrentDocument(isThis, sb, sfile)) || !Eq(type, "IStringBuilder"))
 	{
 		Throw(0, "Bad inference - type should be IStringBuilder");
 	}
@@ -352,21 +363,23 @@ void TestDeduceMethods2(ISexyDatabase& database)
 			fieldCount++;
 		}
 
-		void OnHintFound(cstr hint) override
+		void OnHintFound(cr_substring hint) override
 		{
-			printf("Hint: %s\n", hint);
+			fputs("Hint: ", stdout);
+			fwrite(hint.start, 1, hint.Length(), stdout);
+			fputs("\n", stdout);
 			hintCount++;
 		}
 
-		void OnFieldType(cstr fieldName, cr_substring searchRoot) override
+		void OnFieldType(cr_substring fieldName, cr_substring searchRoot) override
 		{
 
 		}
 	} fieldEnumerator;
 
-	char type[256];
+	Substring type;
 	bool isThis;
-	if (!Rococo::Sexy::TryGetLocalTypeFromCurrentDocument(type, isThis, sb, sfile) || !Eq(type, "Sys.Type.IStringBuilder"))
+	if (!(type = Rococo::Sexy::GetLocalTypeFromCurrentDocument(isThis, sb, sfile)) || !Eq(type, "Sys.Type.IStringBuilder"))
 	{
 		Throw(0, "Bad inference - type should be IStringBuilder");
 	}
@@ -431,23 +444,25 @@ void TestLocalStruct(ISexyDatabase& database)
 			fieldCount++;
 		}
 
-		void OnHintFound(cstr hint) override
+		void OnHintFound(cr_substring hint) override
 		{
-			printf("Hint: %s\n", hint);
+			fputs("Hint: ", stdout);
+			fwrite(hint.start, 1, hint.Length(), stdout);
+			fputs("\n", stdout);
 			hintCount++;
 		}
 
-		void OnFieldType(cstr fieldName, cr_substring searchRoot) override
+		void OnFieldType(cr_substring fieldName, cr_substring searchRoot) override
 		{
 
 		}
 	} fieldEnumerator;
 
-	char type[256];
+	Substring type;
 	bool isThis;
-	if (!Rococo::Sexy::TryGetLocalTypeFromCurrentDocument(type, isThis, sb, sfile))
+	if (!(type = Rococo::Sexy::GetLocalTypeFromCurrentDocument(isThis, sb, sfile)))
 	{
-		if (strcmp(type, "Thing") != 0)
+		if (!Eq(type, "Thing"))
 		{
 			Throw(0, "Bad inference '%s' - type should be Thing", type);
 		}
@@ -515,13 +530,15 @@ void TestLocalStruct2(ISexyDatabase& database)
 			fieldCount++;
 		}
 
-		void OnHintFound(cstr hint) override
+		void OnHintFound(cr_substring hint)
 		{
-			printf("Hint: %s\n", hint);
+			fputs("Hint: ", stdout);
+			fwrite(hint.start, 1, hint.Length(), stdout);
+			fputs("\n", stdout);
 			hintCount++;
 		}
 
-		void OnFieldType(cstr fieldType, cr_substring searchRoot) override
+		void OnFieldType(cr_substring fieldType, cr_substring searchRoot) override
 		{
 			if (!Eq(fieldType, "Vec3"))
 			{
@@ -532,11 +549,11 @@ void TestLocalStruct2(ISexyDatabase& database)
 		}
 	} fieldEnumerator;
 
-	char type[256];
+	Substring type;
 	bool isThis;
-	if (!Rococo::Sexy::TryGetLocalTypeFromCurrentDocument(type, isThis, sb, sfile))
+	if (!(type = Rococo::Sexy::GetLocalTypeFromCurrentDocument(isThis, sb, sfile)))
 	{
-		if (strcmp(type, "Thing") != 0)
+		if (!Eq(type, "Thing"))
 		{
 			Throw(0, "Bad inference '%s' - type should be Thing", type);
 		}
@@ -984,7 +1001,7 @@ int main()
 
 	try
 	{
-		MainProtected(hLib);
+	//	MainProtected(hLib);
 		MainProtected2(hLib);
 	}
 	catch (IException& ex)

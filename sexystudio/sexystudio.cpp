@@ -1279,7 +1279,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 	PropertySheets* sheets = nullptr;
 	SexyExplorer* explorer = nullptr;
 
-	int64 autoCompletetReplacementStartPosition = 0;
+	int64 autoComplete_Replacement_StartPosition = 0;
 	char callTipArgs[1024] = { 0 };
 
 	std::vector<char> src_buffer;
@@ -1291,7 +1291,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 	{
 		int64 caretPos = editor.GetCaretPos();
 
-		if (*callTipArgs != 0 && autoCompletetReplacementStartPosition > 0 && autoCompletetReplacementStartPosition < caretPos)
+		if (*callTipArgs != 0 && autoComplete_Replacement_StartPosition > 0 && autoComplete_Replacement_StartPosition < caretPos)
 		{
 			editor.ReplaceText(caretPos, caretPos, callTipArgs);
 			callTipArgs[0] = 0;
@@ -1319,7 +1319,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 		SpaceSeparatedStringItems(StringBuilder& _sb) : sb(_sb) {}
 	};
 
-	template<class ACTION> bool EnumerateFieldsOfClass(cstr className, cr_substring doc, ACTION& action)
+	template<class ACTION> bool EnumerateFieldsOfClass(cr_substring className, cr_substring doc, ACTION& action)
 	{
 		cr_substring def = Rococo::Sexy::GetClassDefinition(className, doc);
 		if (def)
@@ -1359,7 +1359,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 
 		bool atLeastOneItem = false;
 
-		HString hint;
+		Substring hint { Substring::Null() };
 
 		RouteTextToAutoComplete(IAutoCompleteBuilder& _builder, cr_substring _prefix, ISexyDatabase& _database, cr_substring _document):
 			builder(_builder), prefix(_prefix), database(_database), document(_document)
@@ -1400,12 +1400,12 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 			}
 		}
 
-		void OnHintFound(cstr hintText) override
+		void OnHintFound(cr_substring hintText) override
 		{
 			hint = hintText;
 		}
 
-		void OnFieldType(cstr fieldType, cr_substring searchRoot) override
+		void OnFieldType(cr_substring fieldType, cr_substring searchRoot) override
 		{
 			if (database.EnumerateVariableAndFieldList(prefix, fieldType, *this))
 			{
@@ -1413,6 +1413,14 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 			}
 		}
 	};
+
+	void ShowCallTipAtCaretPos(ISexyEditor& editor, cr_substring tip)
+	{
+		size_t len = tip.Length() + 1;
+		char* buf = (char*)alloca(len);
+		CopyWithTruncate(tip, buf, len);
+		editor.ShowCallTipAtCaretPos(buf);
+	}
 
 	void ShowAutocompleteDataForVariable(ISexyEditor& editor, cr_substring candidate, int64 tokenDisplacementFromCaret)
 	{
@@ -1439,9 +1447,9 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 
 		RouteTextToAutoComplete routeTextToAutoComplete(editor.AutoCompleteBuilder(), candidate, *database, doc);
 
-		char type[256];
+		Substring type;
 		bool isThis;
-		if (Rococo::Sexy::TryGetLocalTypeFromCurrentDocument(type, isThis, candidateInDoc, doc))
+		if (!(type = Rococo::Sexy::GetLocalTypeFromCurrentDocument(isThis, candidateInDoc, doc)))
 		{
 			if (isThis)
 			{
@@ -1458,8 +1466,8 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 				}
 				else
 				{
-					cstr finalType = routeTextToAutoComplete.hint.length() > 0 ? routeTextToAutoComplete.hint.c_str() : type;
-					editor.ShowCallTipAtCaretPos(finalType);
+					Substring finalType = routeTextToAutoComplete.hint ? routeTextToAutoComplete.hint : type;
+					ShowCallTipAtCaretPos(editor, finalType);
 				}
 			}
 			else
@@ -1473,8 +1481,8 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 					Rococo::Sexy::EnumerateLocalFields(routeTextToAutoComplete, candidateInDoc, type, doc);
 					if (!routeTextToAutoComplete.atLeastOneItem)
 					{
-						cstr finalType = routeTextToAutoComplete.hint.length() > 0 ? routeTextToAutoComplete.hint.c_str() : type;
-						editor.ShowCallTipAtCaretPos(finalType);
+						auto finalType = routeTextToAutoComplete.hint ? routeTextToAutoComplete.hint : type;
+						ShowCallTipAtCaretPos(editor, finalType);
 					}
 				}
 			}
@@ -1618,9 +1626,9 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 	void ReplaceSelectedText(Rococo::AutoComplete::ISexyEditor& editor, cstr item)
 	{
 		int64 caretPos = editor.GetCaretPos();
-		if (autoCompletetReplacementStartPosition > 0 && autoCompletetReplacementStartPosition < caretPos)
+		if (autoComplete_Replacement_StartPosition > 0 && autoComplete_Replacement_StartPosition < caretPos)
 		{
-			editor.ReplaceText(autoCompletetReplacementStartPosition, caretPos, item);
+			editor.ReplaceText(autoComplete_Replacement_StartPosition, caretPos, item);
 			UpdateAutoComplete(editor);
 		}
 	}
@@ -1655,9 +1663,17 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 		}
 	}
 
-	bool TryShowCallTipForMethods(cstr type, cr_substring methodName, ISexyEditor& editor)
+	ISXYInterface* FindInterface(cr_substring type)
 	{
-		auto* pInterface = database->FindInterface(type);
+		size_t len = type.Length() + 1;
+		auto* buf = (char*)alloca(len);
+		CopyWithTruncate(type, buf, len);
+		return database->FindInterface(buf);
+	}
+
+	bool TryShowCallTipForMethods(cr_substring type, cr_substring methodName, ISexyEditor& editor)
+	{
+		auto* pInterface = FindInterface(type);
 		if (pInterface)
 		{
 			for (int i = 0; i < pInterface->MethodCount(); ++i)
@@ -1701,10 +1717,30 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 	Substring GetSearchTermInDoc(ISexyEditor& editor, cr_substring searchTerm, cr_substring doc)
 	{
 		cstr docCaretPos = doc.start + editor.GetCaretPos();
-		int64 displacementFromCaret = searchTerm.Length() + 1;
+		int64 displacementFromCaret = searchTerm.Length();
 		cstr start = docCaretPos - displacementFromCaret;
 		cstr end = start + searchTerm.Length();
 		return { start, end };
+	}
+
+	Substring GetTypeForMember(cr_substring type, cr_substring member, cr_substring doc)
+	{
+		return Substring::Null();
+	}
+
+	Substring GetSubType(cr_substring type, cstr subMember, cr_substring candidateInDoc, cr_substring doc)
+	{		
+		Substring rhsInDoc = { subMember, candidateInDoc.finish };
+
+		cstr nextDot = ForwardFind('.', rhsInDoc);
+		if (!nextDot)
+		{
+			return Substring::Null();
+		}
+
+		Substring member = { subMember, nextDot };
+
+		return GetTypeForMember(type, member, doc);
 	}
 
 	bool TryFindAndShowCallTipForMethods(ISexyEditor& editor, cr_substring searchToken, cr_substring doc)
@@ -1725,11 +1761,11 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 
 		Substring candidateInDoc = GetSearchTermInDoc(editor, searchToken, doc);
 
-		Substring methodName{ methodSeparator + 1, searchToken.finish };
+		Substring methodName{ methodSeparator + 1, searchToken.finish - 1 };
 
-		char type[256];
+		Substring type;
 		bool isThis;
-		if (Rococo::Sexy::TryGetLocalTypeFromCurrentDocument(type, isThis, candidateInDoc, doc))
+		if (type = Rococo::Sexy::GetLocalTypeFromCurrentDocument(isThis, candidateInDoc, doc))
 		{
 			cstr firstDot = ForwardFind('.', searchToken);
 			if (firstDot == methodSeparator)
@@ -1738,7 +1774,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 			}
 			else
 			{
-				
+				Substring subType = GetSubType(type, firstDot + 1, candidateInDoc, doc);
 			}
 		}
 
@@ -1748,8 +1784,9 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 	Substring CachedDoc(ISexyEditor& editor)
 	{
 		int64 nCharsAndNull = editor.GetDocLength();
-		src_buffer.resize(nCharsAndNull);
+		src_buffer.resize(nCharsAndNull + 1);
 		editor.GetText(nCharsAndNull, src_buffer.data());
+		src_buffer[nCharsAndNull] = 0;
 
 		Substring doc;
 		doc.start = src_buffer.data();
@@ -1825,7 +1862,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 
 		char activationChar = *activationPoint;
 
-		autoCompletetReplacementStartPosition = LinePointerToDocPosition(cursor, substringLine, searchToken.start);
+		autoComplete_Replacement_StartPosition = LinePointerToDocPosition(cursor, substringLine, searchToken.start);
 
 		// If blinking caret follows period or alphanumeric such as: Sys._ or Sys_, then we want to complete the dot.
 		if (IsAlphaNumeric(activationChar) || activationChar == '.')
@@ -1834,7 +1871,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 
 			if (!TryAddTokenOptionsToAutocomplete(editor, searchToken, displacementFromCaret, doc))
 			{
-				autoCompletetReplacementStartPosition = 0;
+				autoComplete_Replacement_StartPosition = 0;
 			}
 		}
 		else if (activationChar == ' ' || activationChar == '\t')

@@ -19,6 +19,7 @@ namespace Rococo
 
 namespace Rococo::Strings
 {
+	cstr FindSubstring(cr_substring bigText, cr_substring searchTerm);
 	cstr FindSubstring(cr_substring bigText, const fstring& searchTerm);
 	cstr ForwardFind(char c, cr_substring text);
 	cstr SkipBlankspace(cr_substring token);
@@ -79,6 +80,8 @@ namespace Rococo::Strings
 
 	bool Eq(const wchar_t* a, const wchar_t* b);
 	bool Eq(cstr a, cstr b);
+	bool Eq(cr_substring a, cstr b);
+	inline bool Eq(cstr a, cr_substring b) { return Eq(b, a); }
 	bool EqI(cstr a, cstr b);
 	bool StartsWith(cstr bigString, cstr prefix);
 	bool EndsWith(cstr bigString, cstr suffix);

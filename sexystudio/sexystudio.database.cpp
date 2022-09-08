@@ -1899,7 +1899,7 @@ namespace ANON
 			return nullptr;
 		}
 
-		ISXYType* RecursivelySearchForType(ISxyNamespace& ns, cstr typeString)
+		ISXYType* RecursivelySearchForType(ISxyNamespace& ns, cr_substring typeString)
 		{
 			for (int i = 0; i < ns.SubspaceCount(); ++i)
 			{
@@ -1907,7 +1907,7 @@ namespace ANON
 				for (int j = 0; j < typeCount; ++j)
 				{
 					auto& type = ns[i].GetType(j);
-					if (Eq(type.PublicName(), typeString))
+					if (Eq(typeString, type.PublicName()))
 					{
 						return &type;
 					}
@@ -1968,7 +1968,7 @@ namespace ANON
 			return nullptr;
 		}
 
-		bool AppendFieldsFromType(cr_substring variableName, ISxyNamespace& ns, cstr typeString, ISexyFieldEnumerator& fieldEnumerator)
+		bool AppendFieldsFromType(cr_substring variableName, ISxyNamespace& ns, cr_substring typeString, ISexyFieldEnumerator& fieldEnumerator)
 		{
 			// Variable name may be qualified, e.g: rect.left. In this case the typeString refers to the root of the namespace.
 			// So we need to find the type, then advance the namespace to the child, i.e left, 
@@ -2006,17 +2006,21 @@ namespace ANON
 			cstr fieldType = FindFieldTypeByName(*localType, childVariable);
 			if (fieldType)
 			{
-				fieldEnumerator.OnHintFound(fieldType);
-				return AppendFieldsFromType(childVariable, ns, fieldType, fieldEnumerator);
+				fieldEnumerator.OnHintFound(ToSubstring(fieldType));
+				return AppendFieldsFromType(childVariable, ns, ToSubstring(fieldType), fieldEnumerator);
 			}
 
 			return false;
 		}
 
-		bool AppendMethodsFromType(cr_substring variableName, ISxyNamespace& ns, cstr typeString, ISexyFieldEnumerator& fieldEnumerator, int depth = 0)
+		bool AppendMethodsFromType(cr_substring variableName, ISxyNamespace& ns, cr_substring type, ISexyFieldEnumerator& fieldEnumerator, int depth = 0)
 		{
 			// Variable name may be qualified, e.g: rect.left. In this case the typeString refers to the root of the namespace.
 			// So we need to find the type, then advance the namespace to the child, i.e left, 
+
+			char typeString[128];
+			CopyWithTruncate(type, typeString, sizeof typeString);
+
 			ISXYInterface* pInterfaceType = FindInterface(typeString);
 
 			enum { MAX_INTERFACE_TREE_DEPTH = 16 };
@@ -2031,7 +2035,7 @@ namespace ANON
 				return false;
 			}
 
-			if (depth == 0) fieldEnumerator.OnHintFound(typeString);
+			if (depth == 0) fieldEnumerator.OnHintFound(ToSubstring(typeString));
 
 			if (variableName.finish[-1] == '.')
 			{
@@ -2047,7 +2051,7 @@ namespace ANON
 					char baseIndicator[128];
 					SafeFormat(baseIndicator, 128, "/@*//...%s-Methods...//", base);
 					fieldEnumerator.OnField(baseIndicator);
-					AppendMethodsFromType(variableName, ns, base, fieldEnumerator, depth + 1);
+					AppendMethodsFromType(variableName, ns, ToSubstring(base), fieldEnumerator, depth + 1);
 					return true;
 				}
 			}
@@ -2055,7 +2059,7 @@ namespace ANON
 			return true;
 		}
 
-		bool EnumerateVariableAndFieldList(cr_substring candidate, cstr typeString, ISexyFieldEnumerator& fieldEnumerator) override
+		bool EnumerateVariableAndFieldList(cr_substring candidate, cr_substring typeString, ISexyFieldEnumerator& fieldEnumerator) override
 		{
 			Substring variableName = candidate;
 			if (variableName && variableName.finish[-1] == '.')

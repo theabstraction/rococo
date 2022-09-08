@@ -233,11 +233,30 @@ namespace Rococo::Strings
 		return nullptr;
 	}
 
-	int ForEachOccurence(cr_substring text, cstr cstrSearchTerm, Rococo::Function<void(cr_substring match)> lambda)
+	cstr FindSubstring(cr_substring bigText, cr_substring searchTerm)
+	{
+		if (bigText.Length() < searchTerm.Length())
+		{
+			return nullptr;
+		}
+
+		cstr end = bigText.finish - searchTerm.Length();
+
+		for (cstr s = bigText.start; s <= end; s++)
+		{
+			if (memcmp(s, searchTerm.start, searchTerm.Length()) == 0)
+			{
+				return s;
+			}
+		}
+
+		return nullptr;
+	}
+
+	int ForEachOccurence(cr_substring text, cr_substring searchTerm, Rococo::Function<void(cr_substring match)> lambda)
 	{
 		int count = 0;
 
-		auto searchTerm = to_fstring(cstrSearchTerm);
 		Substring specimen = text;
 		for (;;)
 		{
@@ -249,7 +268,7 @@ namespace Rococo::Strings
 
 			count++;
 
-			Substring result{ nextOccurence, nextOccurence + searchTerm.length };
+			Substring result{ nextOccurence, nextOccurence + searchTerm.Length()};
 			lambda(result);
 
 			specimen = { result.finish, specimen.finish };
@@ -488,6 +507,11 @@ namespace Rococo::Strings
 		size_t writeLength = min(len, capacity - 1);
 		memcpy(buffer, item.start, writeLength);
 		buffer[writeLength] = 0;
+	}
+
+	Substring ToSubstring(cstr text)
+	{
+		return text ? Substring{ text, strlen(text) + text } : Substring::Null();
 	}
 
 	// N.B sexy script language string length is int32 with max 2^31-1 chars
@@ -1046,6 +1070,19 @@ namespace Rococo::Strings
 		*writePtr = 0;
 
 		return true;
+	}
+
+	bool Eq(cr_substring b, cstr a)
+	{
+		cstr p = a;
+		cstr q = b.start;
+		for (; q != b.finish; ++q, ++p)
+		{
+			if (*p != *q) return false;
+			if (*p == 0) return false;
+		}
+
+		return *p == 0;
 	}
 
 	bool Eq(const fstring& a, cr_substring b)
