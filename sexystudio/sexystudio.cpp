@@ -1793,14 +1793,27 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 		bool isThis;
 		if (type = Rococo::Sexy::GetLocalTypeFromCurrentDocument(isThis, candidateInDoc, doc))
 		{
-			cstr firstDot = ForwardFind('.', searchToken);
-			if (firstDot == methodSeparator)
+			Substring branchType = type;
+			Substring subsearch = searchToken;
+
+			for (;;)
 			{
-				return TryShowCallTipForMethods(type, methodName, editor);
-			}
-			else
-			{
-				Substring subType = GetSubType(type, firstDot + 1, { candidateInDoc.start + (firstDot - searchToken.start) + 1, candidateInDoc.finish}, doc);
+				cstr firstDot = ForwardFind('.', subsearch);
+				if (firstDot == methodSeparator)
+				{
+					return TryShowCallTipForMethods(branchType, methodName, editor);
+				}
+				else
+				{
+					subsearch = { subsearch.start + (firstDot - searchToken.start) + 1, subsearch.finish };
+					Substring subType = GetSubType(branchType, firstDot + 1, subsearch, doc);
+					if (!subType)
+					{
+						return false;
+					}
+
+					branchType = subType;
+				}
 			}
 		}
 

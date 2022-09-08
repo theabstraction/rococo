@@ -662,37 +662,43 @@ namespace Rococo::Sexy
 		}
 
 		// We have a field def, in which we have 2 entries (<Field-Type> <field-name>), with our substring begin and start within the parenthesis, not including them
-		cstr fieldType = SkipBlankspace(fieldDef);
-		if (fieldType == fieldDef.finish)
+		cstr fieldTypeStart = SkipBlankspace(fieldDef);
+		if (fieldTypeStart == fieldDef.finish)
 		{
 			// It was an empty expression
 			return EFlowLogic::CONTINUE;
 		}
 
-		cstr fieldEnd = SkipNotBlankspace(Substring{ fieldType, fieldDef.finish });
+		cstr fieldEnd = SkipNotBlankspace(Substring{ fieldTypeStart, fieldDef.finish });
 		if (fieldEnd == fieldDef.finish)
 		{
 			// We only had one contiguous string
 			return EFlowLogic::CONTINUE;
 		}
 
-		if (IsLowerCase(*fieldType))
+		Substring fieldType{ fieldTypeStart, fieldEnd };
+
+		if (IsLowerCase(*fieldTypeStart))
 		{
-			if (FindSubstring(Substring{ fieldType, fieldDef.finish }, "array"_fstring) || FindSubstring(Substring{ fieldType, fieldDef.finish }, "map"_fstring) || FindSubstring(Substring{ fieldType, fieldDef.finish }, "list"_fstring))
+			if (Eq(fieldType, "array"_fstring) || Eq(fieldType, "map"_fstring) || Eq(fieldType, "list"_fstring))
 			{
 				// Container, type is in position 1 (<container> <Field-type> <field-name> <fields...>)
-				fieldType = SkipBlankspace(Substring{ fieldEnd, fieldDef.finish });
-				if (fieldType == fieldDef.finish)
+				fieldTypeStart = SkipBlankspace(Substring{ fieldEnd, fieldDef.finish });
+				if (fieldTypeStart == fieldDef.finish)
 				{
 					// We are missing something
 					return EFlowLogic::CONTINUE;
 				}
 
-				fieldEnd = SkipNotBlankspace(Substring{ fieldType, fieldDef.finish });
+				fieldEnd = SkipNotBlankspace(Substring{ fieldTypeStart, fieldDef.finish });
 				if (fieldEnd == fieldDef.finish)
 				{
 					// We only had one contiguous string
 					return EFlowLogic::CONTINUE;
+				}
+				else
+				{
+					fieldType = { fieldTypeStart, fieldEnd };
 				}
 			}
 			else
@@ -702,43 +708,39 @@ namespace Rococo::Sexy
 			}
 		}
 
-		if (!IsCapital(*fieldType))
+		if (!IsCapital(*fieldTypeStart) || !IsAlphaNumeric(fieldType))
 		{
 			// Field was not a type
 			return EFlowLogic::CONTINUE;
 		}
 
-		Substring fieldSuffix{ fieldType + 1, fieldEnd };
-
-		if (!IsAlphaNumeric(fieldSuffix))
-		{
-			return EFlowLogic::CONTINUE;
-		}
-
 		Substring fieldRight{ fieldEnd, fieldDef.finish };
 
-		cstr fieldName = SkipBlankspace(fieldRight);
-		if (fieldName == fieldDef.finish)
+		cstr fieldNameStart = SkipBlankspace(fieldRight);
+		if (fieldNameStart == fieldDef.finish)
 		{
 			// No field name was specified
 			return EFlowLogic::CONTINUE;
 		}
 
-		cstr fieldNameEnd = SkipNotBlankspace(Substring{ fieldName, fieldDef.finish });
+		cstr fieldNameEnd = SkipNotBlankspace(Substring{ fieldNameStart, fieldDef.finish });
 
-		if (!IsLowerCase(*fieldName))
+		if (!IsLowerCase(*fieldNameStart))
 		{
 			// Field was not an identifier
 			return EFlowLogic::CONTINUE;
 		}
 
-		for (cstr p = fieldName + 1; p != fieldNameEnd; p++)
+		Substring fieldName{ fieldNameStart, fieldNameEnd };
+		if (!IsAlphaNumeric(fieldName) || !IsLowerCase(*fieldNameStart))
 		{
-			if (!IsAlphaNumeric(*p))
-			{
-				// This no longer appears to be an identifier
-				return EFlowLogic::CONTINUE;
-			}
+			return EFlowLogic::CONTINUE;
+		}
+
+		if (Eq(searchTerm, fieldName))
+		{
+			fieldEnumerator.OnFieldType(fieldType, fieldName);
+			return EFlowLogic::BREAK;
 		}
 
 		cstr firstDot = Strings::ForwardFind('.', searchTerm);
@@ -751,13 +753,13 @@ namespace Rococo::Sexy
 		if (!nextDot)
 		{
 			char result[128];
-			Strings::CopyWithTruncate({ fieldName, fieldNameEnd }, result, sizeof result);
+			Strings::CopyWithTruncate(fieldName, result, sizeof result);
 			fieldEnumerator.OnField(result);
 			return EFlowLogic::CONTINUE;
 		}
 
 		char fieldNameArray[128];
-		Strings::CopyWithTruncate({ fieldName, fieldNameEnd }, fieldNameArray, sizeof fieldNameArray);
+		Strings::CopyWithTruncate(fieldName, fieldNameArray, sizeof fieldNameArray);
 
 		Substring searchTail{ firstDot + 1, nextDot };
 
@@ -767,7 +769,7 @@ namespace Rococo::Sexy
 			return EFlowLogic::CONTINUE;
 		}
 
-		fieldEnumerator.OnFieldType({ fieldType, fieldEnd }, searchTail);
+		fieldEnumerator.OnFieldType(fieldType, searchTail);
 
 		return EFlowLogic::BREAK;
 	}
