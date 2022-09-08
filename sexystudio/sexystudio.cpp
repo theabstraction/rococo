@@ -1279,10 +1279,11 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 	PropertySheets* sheets = nullptr;
 	SexyExplorer* explorer = nullptr;
 
-	int64 autoCompleteCandidatePosition = 0;
+	int64 autoCompletetReplacementStartPosition = 0;
 	char callTipArgs[1024] = { 0 };
 
 	std::vector<char> src_buffer;
+	char src_line[1024];
 
 	ISexyStudioEventHandler& eventHandler;
 
@@ -1290,7 +1291,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 	{
 		int64 caretPos = editor.GetCaretPos();
 
-		if (*callTipArgs != 0 && autoCompleteCandidatePosition > 0 && autoCompleteCandidatePosition < caretPos)
+		if (*callTipArgs != 0 && autoCompletetReplacementStartPosition > 0 && autoCompletetReplacementStartPosition < caretPos)
 		{
 			editor.ReplaceText(caretPos, caretPos, callTipArgs);
 			callTipArgs[0] = 0;
@@ -1419,15 +1420,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 
 		int64 caretPos = editor.GetCaretPos();
 
-		int64 nCharsAndNull = editor.GetDocLength();
-
-		src_buffer.resize(nCharsAndNull + 1);
-
-		editor.GetText(nCharsAndNull, src_buffer.data());
-
-		Substring doc;
-		doc.start = src_buffer.data();
-		doc.finish = doc.start + nCharsAndNull - 1;
+		Substring doc = CachedDoc(editor);
 
 		cstr docCaretPos = doc.start + caretPos;
 		cstr start = docCaretPos - tokenDisplacementFromCaret;
@@ -1625,9 +1618,9 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 	void ReplaceSelectedText(Rococo::AutoComplete::ISexyEditor& editor, cstr item)
 	{
 		int64 caretPos = editor.GetCaretPos();
-		if (autoCompleteCandidatePosition > 0 && autoCompleteCandidatePosition < caretPos)
+		if (autoCompletetReplacementStartPosition > 0 && autoCompletetReplacementStartPosition < caretPos)
 		{
-			editor.ReplaceText(autoCompleteCandidatePosition, caretPos, item);
+			editor.ReplaceText(autoCompletetReplacementStartPosition, caretPos, item);
 			UpdateAutoComplete(editor);
 		}
 	}
@@ -1662,7 +1655,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 		}
 	}
 
-	void ShowCallTipForMethods(cstr type, cr_substring methodName, ISexyEditor& editor)
+	bool TryShowCallTipForMethods(cstr type, cr_substring methodName, ISexyEditor& editor)
 	{
 		auto* pInterface = database->FindInterface(type);
 		if (pInterface)
@@ -1675,142 +1668,189 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 				{
 					SetHintToFunctionArguments(editor, method);
 					editor.ShowCallTipAtCaretPos(callTipArgs);
-					break;
+					return true;
 				}
 			}
+		}
+
+		return false;
+	}
+
+	bool TryGetFieldTypeOfType(char* fieldType, cstr type, cr_substring fieldName, cr_substring doc)
+	{
+		if (OS::IsDebugging()) OS::TripDebugger();
+		return false; // Not implemented
+	}
+
+	bool ValidateSubstringIsContainedWithin(cr_substring substring, cr_substring container)
+	{
+		if (substring.start < container.start || substring.start > container.finish)
+		{
+			if (OS::IsDebugging()) OS::TripDebugger();
+			return false;
+		}
+
+		if (substring.finish < container.start || substring.finish > container.finish)
+		{
+			if (OS::IsDebugging()) OS::TripDebugger();
+			return false;
 		}
 	}
 
-	class MethodInference
+	// Retrieves the searchTerm as it appears in the document
+	Substring GetSearchTermInDoc(ISexyEditor& editor, cr_substring searchTerm, cr_substring doc)
 	{
-	public:
-		MethodInference(ISexyEditor& editor)
+		cstr docCaretPos = doc.start + editor.GetCaretPos();
+		int64 displacementFromCaret = searchTerm.Length() + 1;
+		cstr start = docCaretPos - displacementFromCaret;
+		cstr end = start + searchTerm.Length();
+		return { start, end };
+	}
+
+	bool TryFindAndShowCallTipForMethods(ISexyEditor& editor, cr_substring searchToken, cr_substring doc)
+	{
+		// Potentially a method call
+		cstr methodSeparator = Rococo::ReverseFind('.', searchToken);
+		if (!methodSeparator || *methodSeparator != '.')
 		{
-
+			return false;
 		}
-	};
 
-	void UpdateAutoComplete(Rococo::AutoComplete::ISexyEditor& editor) override
+		if (methodSeparator >= searchToken.finish || !isupper(methodSeparator[1]))
+		{
+			return false;
+		}
+
+		// Potential method name, with left of separator being the interface variable
+
+		Substring candidateInDoc = GetSearchTermInDoc(editor, searchToken, doc);
+
+		Substring methodName{ methodSeparator + 1, searchToken.finish };
+
+		char type[256];
+		bool isThis;
+		if (Rococo::Sexy::TryGetLocalTypeFromCurrentDocument(type, isThis, candidateInDoc, doc))
+		{
+			cstr firstDot = ForwardFind('.', searchToken);
+			if (firstDot == methodSeparator)
+			{
+				return TryShowCallTipForMethods(type, methodName, editor);
+			}
+			else
+			{
+				
+			}
+		}
+
+		return false;
+	}
+
+	Substring CachedDoc(ISexyEditor& editor)
 	{
-		EditorLine currentLine;
+		int64 nCharsAndNull = editor.GetDocLength();
+		src_buffer.resize(nCharsAndNull);
+		editor.GetText(nCharsAndNull, src_buffer.data());
+
+		Substring doc;
+		doc.start = src_buffer.data();
+		doc.finish = doc.start + nCharsAndNull - 1;
+
+		return doc;
+	}
+
+	Substring GetCurrentLine(ISexyEditor& editor)
+	{
+		EditorLine currentLine(src_line, sizeof src_line);
 		if (!editor.TryGetCurrentLine(currentLine))
+		{
+			return Substring{nullptr,nullptr};
+		}
+
+		return Substring { src_line, src_line + strlen(src_line) };
+	}
+
+	Substring GetSearchTokenWithinLine(cr_substring editorLine, const EditorCursor& cursor, cstr& activationPoint)
+	{
+		int64 caretColumn = cursor.CaretColumnNumber();
+		if (caretColumn == 0)
+		{
+			return Substring::Null();
+		}
+
+		activationPoint = editorLine.start + caretColumn - 1;
+
+		cstr openingToken = Rococo::Sexy::GetFirstNonTokenPointerFromRight(editorLine, activationPoint);
+		if (openingToken == nullptr)
+		{
+			openingToken = editorLine.start;
+		}
+		else
+		{
+			openingToken++; // this takes us into the alphanumeric string
+		}
+
+		Substring searchToken = Rococo::Sexy::GetFirstTokenFromLeft({ openingToken, activationPoint + 1 });
+		if (!searchToken)
+		{
+			return Substring::Null();
+		}
+		return { searchToken.start, activationPoint + 1 };
+	}
+
+	int64 LinePointerToDocPosition(const EditorCursor& cursor, cr_substring line, cstr linePointer)
+	{
+		return linePointer - line.start + cursor.lineStartPosition;
+	}
+
+	void UpdateAutoComplete(ISexyEditor& editor) override
+	{
+		Substring substringLine = GetCurrentLine(editor);
+		if (!substringLine)
 		{
 			return;
 		}
-
+	
 		EditorCursor cursor;
 		editor.GetCursor(cursor);
 
-		autoCompleteCandidatePosition = cursor.CaretPos();
+		Substring doc = CachedDoc(editor);
 
-		Substring substringLine{ currentLine.begin(), currentLine.end() };
+		cstr activationPoint;
+		Substring searchToken = GetSearchTokenWithinLine(substringLine, cursor, activationPoint);
 
-		cstr endTokenPtr = substringLine.start + cursor.CaretColumnNumber();
-
-		if (endTokenPtr <= substringLine.start)
+		if (!searchToken)
 		{
 			return;
 		}
 
-		if (IsAlphaNumeric(endTokenPtr[-1]) || endTokenPtr[-1] == '.')
+		char activationChar = *activationPoint;
+
+		autoCompletetReplacementStartPosition = LinePointerToDocPosition(cursor, substringLine, searchToken.start);
+
+		// If blinking caret follows period or alphanumeric such as: Sys._ or Sys_, then we want to complete the dot.
+		if (IsAlphaNumeric(activationChar) || activationChar == '.')
 		{
-			autoCompleteCandidatePosition = cursor.CaretPos();
+			int64 displacementFromCaret = activationPoint - searchToken.start;
 
-			cstr openingToken = Rococo::Sexy::GetFirstNonTokenPointerFromRight(substringLine, endTokenPtr);
-			if (openingToken == nullptr)
+			if (!TryAddTokenOptionsToAutocomplete(editor, searchToken, displacementFromCaret, doc))
 			{
-				openingToken = substringLine.start;
-			}
-			else
-			{
-				openingToken++; // this takes us into the alphanumeric string
-			}
-			
-			Substring searchToken = Rococo::Sexy::GetFirstTokenFromLeft({ openingToken, substringLine.finish });
-
-			int64 displacementFromCaret = endTokenPtr - openingToken;
-
-			int64 nCharsAndNull = editor.GetDocLength();
-			src_buffer.resize(nCharsAndNull);
-			editor.GetText(nCharsAndNull, src_buffer.data());
-
-			Substring doc;
-			doc.start = src_buffer.data();
-			doc.finish = doc.start + nCharsAndNull - 1;
-
-			if (TryAddTokenOptionsToAutocomplete(editor, searchToken, displacementFromCaret, doc))
-			{
-				autoCompleteCandidatePosition = openingToken - substringLine.start + cursor.lineStartPosition;
-			}
-			else
-			{
-				autoCompleteCandidatePosition = 0;
+				autoCompletetReplacementStartPosition = 0;
 			}
 		}
-		else if (endTokenPtr[-1] == ' ' || endTokenPtr[-1] == '\t')
+		else if (activationChar == ' ' || activationChar == '\t')
 		{
 			// Potentially we have a method or function call followed by a space, which is a prompt to show the function arguments
-			endTokenPtr--;
-			if (endTokenPtr > substringLine.start && IsAlphaNumeric(endTokenPtr[-1]))
+
+			if (activationPoint > substringLine.start && IsAlphaNumeric(activationPoint[-1]))
 			{
-				autoCompleteCandidatePosition = cursor.CaretPos();
-
-				cstr openingToken = Rococo::Sexy::GetFirstNonTokenPointerFromRight(substringLine, endTokenPtr);
-				if (openingToken == nullptr)
-				{
-					openingToken = substringLine.start;
-				}
-				else
-				{
-					openingToken++; // this takes us into the alphanumeric string
-				}
-				
-				Substring searchToken = Rococo::Sexy::GetFirstTokenFromLeft({ openingToken, substringLine.finish });
-				autoCompleteCandidatePosition = openingToken - substringLine.start + cursor.lineStartPosition;
-
-				if (isupper(*openingToken))
+				if (isupper(*searchToken.start))
 				{
 					// Potentially a function call
 					ShowFunctionArgumentsForType(editor, searchToken);	
 				}
-				else if (islower(*openingToken))
+				else if (islower(*searchToken.start))
 				{
-					// Potentially a method call
-					cstr separator = Rococo::ReverseFind('.', searchToken);
-					if (separator && *separator == '.')
-					{
-						if (isupper(separator[1]))
-						{
-							// Potential method name, with left of separator being the interface variable
-							
-							int64 nCharsAndNull = editor.GetDocLength();
-							src_buffer.resize(nCharsAndNull + 1);
-							editor.GetText(nCharsAndNull, src_buffer.data());
-
-							Substring doc;
-							doc.start = src_buffer.data();
-							doc.finish = doc.start + nCharsAndNull - 1;
-
-							int64 caretPos = editor.GetCaretPos();
-
-							int64 displacementFromCaret = endTokenPtr - openingToken + 1;
-
-							cstr docCaretPos = doc.start + caretPos;
-							cstr start = docCaretPos - displacementFromCaret;
-							cstr end = start + Length(searchToken);
-
-							Substring candidateInDoc{ start, end};
-
-							Substring methodName{ separator + 1, searchToken.finish };
-
-							char type[256];
-							bool isThis;
-							if (Rococo::Sexy::TryGetLocalTypeFromCurrentDocument(type, isThis, candidateInDoc, doc))
-							{
-								ShowCallTipForMethods(type, methodName, editor);
-							}
-						}
-					}
+					TryFindAndShowCallTipForMethods(editor, searchToken, doc);
 				}
 			}
 		}

@@ -746,7 +746,7 @@ public:
 
 		int64 bufferLength = nextNewLine - previousNewLine;
 
-		if (bufferLength == 0 || bufferLength >= EditorLine::MAX_LINE_LENGTH)
+		if (bufferLength == 0 || bufferLength >= (int64) line.MAX_LINE_LENGTH)
 		{
 			return false;
 		}
@@ -809,14 +809,14 @@ void RunTests(ISexyDatabase& database)
 {
 	printf("Running tests...\n");
 
-//	TestDeduceVec2Fields(database);
-//	TestDeduceVec2Fields2(database);
-//	TestDeduceMethods(database);
-//	TestDeduceMethods2(database);
-//	TestDeduceMatrix4x4Fields(database);
-//	TestHintVec2(database);
-//	TestLocalStruct(database);
-//	TestLocalStruct2(database);
+	TestDeduceVec2Fields(database);
+	TestDeduceVec2Fields2(database);
+	TestDeduceMethods(database);
+	TestDeduceMethods2(database);
+	TestDeduceMatrix4x4Fields(database);
+	TestHintVec2(database);
+	TestLocalStruct(database);
+	TestLocalStruct2(database);
 }
 
 struct FileDesc
@@ -984,6 +984,7 @@ int main()
 
 	try
 	{
+		MainProtected(hLib);
 		MainProtected2(hLib);
 	}
 	catch (IException& ex)

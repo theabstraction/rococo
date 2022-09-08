@@ -309,7 +309,7 @@ public:
     {
         size_t bufferLength = SendMessageA(hScintilla, SCI_GETCURLINE, 0, 0);
 
-        if (bufferLength == 0 || bufferLength >= EditorLine::MAX_LINE_LENGTH)
+        if (bufferLength == 0 || bufferLength >= (int64) line.MAX_LINE_LENGTH)
         {
             return false;
         }

@@ -208,6 +208,8 @@ namespace Rococo
 
 			operator bool() const { return !empty(); }
 			int64 Length() const { return finish - start; }
+
+			static Substring Null() { return { nullptr,nullptr }; }
 		};
 
 		inline Substring Substring_Null() { return { nullptr,nullptr }; }

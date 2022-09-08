@@ -9,14 +9,14 @@ namespace Rococo
 		class EditorLine
 		{
 		public:
-			enum { MAX_LINE_LENGTH = 1024 };
+			size_t MAX_LINE_LENGTH;
 
 		private:    
-			char line[MAX_LINE_LENGTH];
+			char* line;
 			size_t lineLength;
 
 		public:
-			EditorLine() : lineLength(0)
+			EditorLine(char* _line, size_t sizeofLine) : line(_line), lineLength(0), MAX_LINE_LENGTH(sizeofLine)
 			{
 				line[0] = 0;
 			}
