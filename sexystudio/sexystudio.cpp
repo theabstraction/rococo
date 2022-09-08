@@ -1020,8 +1020,8 @@ private:
 				if (StartsWith(name, searchTerm))
 				{
 					char fullName[256];
-					strncpy_s(fullName, fullSearchItem, searchTerm - fullSearchItem);
-					strncat_s(fullName, name, strlen(name));
+					SafeFormat(fullName, fullSearchItem, searchTerm - fullSearchItem);
+					StringCat(fullName, name, (int32) strlen(name));
 					searchArrayResults.push_back({ fullName,&ns,&function });
 				}
 			}

@@ -464,7 +464,9 @@ void TestLocalStruct(ISexyDatabase& database)
 	{
 		if (!Eq(type, "Thing"))
 		{
-			Throw(0, "Bad inference '%s' - type should be Thing", type);
+			char typeStr[128];
+			CopyWithTruncate(type, typeStr, sizeof typeStr);
+			Throw(0, "Bad inference '%s' - type should be Thing", typeStr);
 		}
 	}
 
@@ -542,7 +544,9 @@ void TestLocalStruct2(ISexyDatabase& database)
 		{
 			if (!Eq(fieldType, "Vec3"))
 			{
-				Throw(0, "Bad inference '%s' - type should be Vec3", fieldType);
+				char typeStr[128];
+				CopyWithTruncate(fieldType, typeStr, sizeof typeStr);
+				Throw(0, "Bad inference '%s' - type should be Vec3", typeStr);
 			}
 
 			typeCount++;
@@ -555,7 +559,9 @@ void TestLocalStruct2(ISexyDatabase& database)
 	{
 		if (!Eq(type, "Thing"))
 		{
-			Throw(0, "Bad inference '%s' - type should be Thing", type);
+			char typeStr[128];
+			CopyWithTruncate(type, typeStr, sizeof typeStr);
+			Throw(0, "Bad inference '%s' - type should be Thing", typeStr);
 		}
 	}
 
