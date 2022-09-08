@@ -52,7 +52,7 @@ R"<CODE>(
 
 	struct ANON : ISexyFieldEnumerator
 	{
-		void OnField(cstr fieldName) override
+		void OnField(cstr fieldName, cr_substring memberSearch) override
 		{
 			printf("Field: %s\n", fieldName);
 		}
@@ -108,7 +108,7 @@ void TestDeduceVec2Fields2(ISexyDatabase& database)
 		int fieldCount = 0;
 		int hintCount = 0;
 
-		void OnField(cstr fieldName) override
+		void OnField(cstr fieldName, cr_substring memberSearch) override
 		{
 			printf("Field: %s\n", fieldName);
 			fieldCount++;
@@ -170,7 +170,7 @@ void TestDeduceMatrix4x4Fields(ISexyDatabase& database)
 		int fieldCount = 0;
 		int hintCount = 0;
 
-		void OnField(cstr fieldName) override
+		void OnField(cstr fieldName, cr_substring memberSearch) override
 		{
 			printf("Field: %s\n", fieldName);
 			fieldCount++;
@@ -233,7 +233,7 @@ void TestHintVec2(ISexyDatabase& database)
 
 		bool found = false;
 
-		void OnField(cstr fieldName) override
+		void OnField(cstr fieldName, cr_substring memberSearch) override
 		{
 			if (Eq(fieldName, "Sys.Maths.Vec2"))
 			{
@@ -294,7 +294,7 @@ void TestDeduceMethods(ISexyDatabase& database)
 		int fieldCount = 0;
 		int hintCount = 0;
 
-		void OnField(cstr fieldName) override
+		void OnField(cstr fieldName, cr_substring memberSearch) override
 		{
 			printf("Method: %s\n", fieldName);
 			fieldCount++;
@@ -357,7 +357,7 @@ void TestDeduceMethods2(ISexyDatabase& database)
 		int fieldCount = 0;
 		int hintCount = 0;
 
-		void OnField(cstr fieldName) override
+		void OnField(cstr fieldName, cr_substring memberSearch) override
 		{
 			printf("Method: %s\n", fieldName);
 			fieldCount++;
@@ -432,7 +432,7 @@ void TestLocalStruct(ISexyDatabase& database)
 		int fieldCount = 0;
 		int hintCount = 0;
 
-		void OnField(cstr fieldName) override
+		void OnField(cstr fieldName, cr_substring memberSearch) override
 		{
 			printf("Method: %s\n", fieldName);
 
@@ -520,7 +520,7 @@ void TestLocalStruct2(ISexyDatabase& database)
 		int hintCount = 0;
 		int typeCount = 0;
 
-		void OnField(cstr fieldName) override
+		void OnField(cstr fieldName, cr_substring memberSearch) override
 		{
 			printf("Method: %s\n", fieldName);
 
@@ -936,11 +936,114 @@ void TestFullEditor_SearchLocalStructForInterfaceMethod()
 	sexyIDE->UpdateAutoComplete(editor);
 }
 
+void TestFullEditor_SearchLocalStructForM4x4()
+{
+	cstr file =
+		R"<CODE>((namespace EntryPoint)
+ (alias Main EntryPoint.Main)
+
+(using Sys.Type)
+
+(struct EventObject
+	(IString name)
+	(Matrix4x4 m)
+)
+
+(function Main -> (Int32 exitCode):
+	(EventObject obj)
+	(obj.m.
+))<CODE>";
+
+	FileDesc desc(file, '.');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->UpdateAutoComplete(editor);
+}
+
+void TestFullEditor_SearchLocalStructForIString()
+{
+	cstr file =
+		R"<CODE>((namespace EntryPoint)
+ (alias Main EntryPoint.Main)
+
+(using Sys.Type)
+
+(struct EventObject
+	(IString name)
+	(Matrix4x4 m)
+)
+
+(function Main -> (Int32 exitCode):
+	(EventObject obj)
+	(obj.n
+))<CODE>";
+
+	FileDesc desc(file, 'n');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->UpdateAutoComplete(editor);
+}
+
+void TestFullEditor_SearchLocalStructForIStringAndDot()
+{
+	cstr file =
+		R"<CODE>((namespace EntryPoint)
+ (alias Main EntryPoint.Main)
+
+(using Sys.Type)
+
+(struct EventObject
+	(IString name)
+	(Matrix4x4 m)
+)
+
+(function Main -> (Int32 exitCode):
+	(EventObject obj)
+	(obj.name.
+))<CODE>";
+
+	FileDesc desc(file, '.');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->UpdateAutoComplete(editor);
+}
+
+void TestFullEditor_SearchIStringInLocalStructInLocalStruct()
+{
+cstr file =
+		R"<CODE>((namespace EntryPoint)
+ (alias Main EntryPoint.Main)
+
+(using Sys.Type)
+
+(struct Dog
+	(IString bark)
+)
+
+(struct EventObject
+	(Dog dog)
+)
+
+(function Main -> (Int32 exitCode):
+	(EventObject obj)
+	(obj.dog.
+))<CODE>";
+
+	FileDesc desc(file, '.');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->UpdateAutoComplete(editor);
+}
+
 void MainProtected2(HMODULE hLib)
 {
 	pluginInit(NULL);
-	TestFullEditor_SearchLocalStructForInterfaceMethod();
-//	TestFullEditor_SearchLocalStructForInterface();
+	TestFullEditor_SearchIStringInLocalStructInLocalStruct();
+	//TestFullEditor_SearchLocalStructForIStringAndDot();
+	//TestFullEditor_SearchLocalStructForIString();
+	//TestFullEditor_SearchLocalStructForM4x4();
+	//TestFullEditor_SearchLocalStructForInterfaceMethod();
+	//TestFullEditor_SearchLocalStructForInterface();
 }
 
 void MainProtected(HMODULE hLib)

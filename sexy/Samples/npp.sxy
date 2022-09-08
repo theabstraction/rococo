@@ -17,5 +17,4 @@
 	(EventObject obj)
 	(IString s)
 	(s.Buffer  -> (Pointer buffer))
-	(obj.evNamespace.Length
 )

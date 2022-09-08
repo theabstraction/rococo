@@ -749,12 +749,17 @@ namespace Rococo::Sexy
 			return EFlowLogic::CONTINUE;
 		}
 
-		cstr nextDot = Strings::ForwardFind('.', { firstDot + 1, searchTerm.finish });
+		Substring memberSearch{ firstDot + 1, searchTerm.finish };
+
+		cstr nextDot = Strings::ForwardFind('.', memberSearch);
 		if (!nextDot)
 		{
 			char result[128];
 			Strings::CopyWithTruncate(fieldName, result, sizeof result);
-			fieldEnumerator.OnField(result);
+			if (Strings::StartsWith(result, memberSearch))
+			{
+				fieldEnumerator.OnField(result, memberSearch);
+			}
 			return EFlowLogic::CONTINUE;
 		}
 
@@ -769,7 +774,7 @@ namespace Rococo::Sexy
 			return EFlowLogic::CONTINUE;
 		}
 
-		fieldEnumerator.OnFieldType(fieldType, searchTail);
+		fieldEnumerator.OnFieldType(fieldType, Substring { searchTail.start, searchTerm.finish });
 
 		return EFlowLogic::BREAK;
 	}

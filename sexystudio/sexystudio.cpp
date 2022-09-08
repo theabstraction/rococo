@@ -1375,15 +1375,27 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 			}
 		}
 
-		void OnField(cstr fieldName) override
+		void OnField(cstr fieldName, cr_substring memberSearch) override
 		{
 			atLeastOneItem = true;
 
-			if (strstr(fieldName, "/@*"))
+			if (memberSearch && prefix)
+			{
+				char prefixString[128];
+				CopyWithTruncate(prefix, prefixString, sizeof prefixString);
+				size_t startSubstituteAt = memberSearch.start - prefix.start;
+				size_t endSubstituteAt = startSubstituteAt + strlen(fieldName);
+				if (endSubstituteAt < sizeof prefixString - 1)
+				{
+					memcpy(prefixString + startSubstituteAt, fieldName, strlen(fieldName) + 1);
+					builder.AddItem(prefixString);
+				}
+			}
+			else if (strstr(fieldName, "/@*"))
 			{
 				builder.AddItem(fieldName + 3);
 			}
-			else if (Length(prefix) > 0)
+			else if (prefix)
 			{
 				char prefixString[128];
 				CopyWithTruncate(prefix, prefixString, sizeof prefixString);
@@ -1407,7 +1419,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 
 		void OnFieldType(cr_substring fieldType, cr_substring searchRoot) override
 		{
-			if (database.EnumerateVariableAndFieldList(prefix, fieldType, *this))
+			if (database.EnumerateVariableAndFieldList(searchRoot, fieldType, *this))
 			{
 
 			}
@@ -1437,19 +1449,17 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 		Substring candidateInDoc{ start, end };
 
 		Substring variable = { candidateInDoc.start, candidateInDoc.finish };
-
-		U8FilePath contentFolder{ "C:\\content" };
-		
+	
 		if (StartsWith(variable, thisDot))
 		{
 			variable.start += thisDot.length;
 		}
 
-		RouteTextToAutoComplete routeTextToAutoComplete(editor.AutoCompleteBuilder(), candidate, *database, doc);
+		RouteTextToAutoComplete routeTextToAutoComplete(editor.AutoCompleteBuilder(), candidateInDoc, *database, doc);
 
 		Substring type;
 		bool isThis;
-		if (!(type = Rococo::Sexy::GetLocalTypeFromCurrentDocument(isThis, candidateInDoc, doc)))
+		if (type = Rococo::Sexy::GetLocalTypeFromCurrentDocument(isThis, candidateInDoc, doc))
 		{
 			if (isThis)
 			{
@@ -1738,7 +1748,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 				}
 			}
 
-			void OnField(cstr fieldName) override
+			void OnField(cstr fieldName, cr_substring memberSearch) override
 			{
 
 			}
@@ -1906,7 +1916,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 		// If blinking caret follows period or alphanumeric such as: Sys._ or Sys_, then we want to complete the dot.
 		if (IsAlphaNumeric(activationChar) || activationChar == '.')
 		{
-			int64 displacementFromCaret = activationPoint - searchToken.start;
+			int64 displacementFromCaret = activationPoint - searchToken.start + 1;
 
 			if (!TryAddTokenOptionsToAutocomplete(editor, searchToken, displacementFromCaret, doc))
 			{

@@ -1946,7 +1946,7 @@ namespace ANON
 				for (int k = 0; k < localType->FieldCount(); ++k)
 				{
 					auto field = localType->GetField(k);
-					fieldEnumerator.OnField(field.name);
+					fieldEnumerator.OnField(field.name, Substring::Null());
 				}
 			}
 		}
@@ -2042,7 +2042,7 @@ namespace ANON
 				for (int k = 0; k < pInterfaceType->MethodCount(); ++k)
 				{
 					auto& method = pInterfaceType->GetMethod(k);
-					fieldEnumerator.OnField(method.PublicName());
+					fieldEnumerator.OnField(method.PublicName(), Substring::Null());
 				}
 
 				cstr base = pInterfaceType->Base();
@@ -2050,7 +2050,7 @@ namespace ANON
 				{
 					char baseIndicator[128];
 					SafeFormat(baseIndicator, 128, "/@*//...%s-Methods...//", base);
-					fieldEnumerator.OnField(baseIndicator);
+					fieldEnumerator.OnField(baseIndicator, Substring::Null());
 					AppendMethodsFromType(variableName, ns, ToSubstring(base), fieldEnumerator, depth + 1);
 					return true;
 				}
@@ -2117,7 +2117,7 @@ namespace ANON
 	
 			for (auto i : sortedList)
 			{
-				fieldEnumerator.OnField(i.c_str());
+				fieldEnumerator.OnField(i.c_str(), Substring::Null());
 			}
 		}
 

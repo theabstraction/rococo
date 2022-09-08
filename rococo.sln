@@ -130,6 +130,9 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "rococo.csharp.sexparser", "rococo.csharp.sexparser\rococo.csharp.sexparser.csproj", "{BC4BF090-66B0-4C25-944E-15C19D2A3D02}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "rococo.csharp.testapp", "rococo.csharp.testapp\rococo.csharp.testapp.csproj", "{9E97D6E8-AFCB-4DCA-B42E-7FEB05F4BE40}"
+	ProjectSection(ProjectDependencies) = postProject
+		{997A007C-24B0-44FE-A27E-0EE006D74128} = {997A007C-24B0-44FE-A27E-0EE006D74128}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "rococo.carpenter", "rococo.carpenter\rococo.carpenter.csproj", "{0E64BB46-5773-490F-ADDB-7F0E8E76C15C}"
 	ProjectSection(ProjectDependencies) = postProject

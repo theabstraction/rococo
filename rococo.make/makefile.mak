@@ -89,7 +89,7 @@ $(SEXY_CMD):
 	msbuild $(ROCOCO)rococo.misc.utils\rococo.misc.utils.vcxproj -p:Configuration=$(CONFIGURATION) -t:Build -p:Platform=x64 -m -verbosity:minimal
 	msbuild $(ROCOCO)rococo.util.ex\rococo.util.ex.vcxproj -p:Configuration=$(CONFIGURATION) -t:Build -p:Platform=x64 -m -verbosity:minimal
 	msbuild $(ROCOCO)rococo.packager\rococo.packager.vcxproj -p:Configuration=$(CONFIGURATION) -t:Build -p:Platform=x64 -m -verbosity:minimal
-	msbuild $(DIR_SEXY)sexy.sln -p:Configuration=$(CONFIGURATION) -t:Build -p:Platform=x64 -m -verbosity:minimal -maxcpucount:16
+	msbuild $(DIR_SEXY)sexy.sln -p:Configuration=$(CONFIGURATION) -t:Build -p:Platform=x64 -m -verbosity:minimal -maxcpucount:1
 	msbuild $(ROCOCO)rococo.sexy.cmd\rococo.sexy.cmd.vcxproj -p:Configuration=$(CONFIGURATION) -t:Build -p:Platform=x64 -m -verbosity:minimal
 	$(ROCOCO)copy.natives.from.sexy.bat > NUL
 	copy $(NATIVE_SRC)*.sxy $(DIR_EVENTS)content\scripts\native > NUL
