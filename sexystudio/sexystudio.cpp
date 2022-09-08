@@ -1725,20 +1725,46 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 
 	Substring GetTypeForMember(cr_substring type, cr_substring member, cr_substring doc)
 	{
-		return Substring::Null();
+		struct: ISexyFieldEnumerator
+		{
+			Substring member{ Substring::Null() };
+			Substring fieldType { Substring::Null() };
+
+			void OnFieldType(cr_substring fieldType, cr_substring searchRoot) override
+			{
+				if (Eq(searchRoot, member))
+				{
+					this->fieldType = fieldType;
+				}
+			}
+
+			void OnField(cstr fieldName) override
+			{
+
+			}
+
+			void OnHintFound(cr_substring hint) override
+			{
+
+			}
+
+		} searchCallback;
+		searchCallback.member = member;
+
+		Rococo::Sexy::EnumerateLocalFields(searchCallback, member, type, doc);
+
+		return searchCallback.fieldType;
 	}
 
 	Substring GetSubType(cr_substring type, cstr subMember, cr_substring candidateInDoc, cr_substring doc)
 	{		
-		Substring rhsInDoc = { subMember, candidateInDoc.finish };
-
-		cstr nextDot = ForwardFind('.', rhsInDoc);
+		cstr nextDot = ForwardFind('.', candidateInDoc);
 		if (!nextDot)
 		{
 			return Substring::Null();
 		}
 
-		Substring member = { subMember, nextDot };
+		Substring member = { candidateInDoc.start, nextDot };
 
 		return GetTypeForMember(type, member, doc);
 	}
@@ -1774,7 +1800,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 			}
 			else
 			{
-				Substring subType = GetSubType(type, firstDot + 1, candidateInDoc, doc);
+				Substring subType = GetSubType(type, firstDot + 1, { candidateInDoc.start + (firstDot - searchToken.start) + 1, candidateInDoc.finish}, doc);
 			}
 		}
 
