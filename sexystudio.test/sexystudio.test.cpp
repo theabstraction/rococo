@@ -1130,15 +1130,15 @@ void MainProtected2(HMODULE hLib)
 {
 	pluginInit(NULL);
 	TestFullEditor_SearchFQType();
-	//TestFullEditor_ReturnIStringCompleteCue_FromIStringBuilder();
-	//TestFullEditor_SearchIStringInLocalStructInLocalStructWithMethodCompleteCue();
-	//TestFullEditor_SearchIStringInLocalStructInLocalStructWithMethodCue();
-	//TestFullEditor_SearchIStringInLocalStructInLocalStruct();
-	//TestFullEditor_SearchLocalStructForIStringAndDot();
-	//TestFullEditor_SearchLocalStructForIString();
-	//TestFullEditor_SearchLocalStructForM4x4();
-	//TestFullEditor_SearchLocalStructForInterfaceMethod();
-	//TestFullEditor_SearchLocalStructForInterface();
+	TestFullEditor_ReturnIStringCompleteCue_FromIStringBuilder();
+	TestFullEditor_SearchIStringInLocalStructInLocalStructWithMethodCompleteCue();
+	TestFullEditor_SearchIStringInLocalStructInLocalStructWithMethodCue();
+	TestFullEditor_SearchIStringInLocalStructInLocalStruct();
+	TestFullEditor_SearchLocalStructForIStringAndDot();
+	TestFullEditor_SearchLocalStructForIString();
+	TestFullEditor_SearchLocalStructForM4x4();
+	TestFullEditor_SearchLocalStructForInterfaceMethod();
+	TestFullEditor_SearchLocalStructForInterface();
 }
 
 void MainProtected(HMODULE hLib)
@@ -1205,7 +1205,7 @@ int main()
 
 	try
 	{
-	//	MainProtected(hLib);
+		MainProtected(hLib);
 		MainProtected2(hLib);
 	}
 	catch (IException& ex)

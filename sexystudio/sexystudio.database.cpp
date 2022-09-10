@@ -2093,9 +2093,10 @@ namespace ANON
 				cstr base = pInterfaceType->Base();
 				if (base)
 				{
-					char baseIndicator[128];
-					SafeFormat(baseIndicator, 128, "/@*//...%s-Methods...//", base);
-					fieldEnumerator.OnField(baseIndicator, Substring::Null());
+					// Commented out for now. Notepad++ does not have a way to flag an item as a category string
+					// char baseIndicator[128];
+					// SafeFormat(baseIndicator, 128, "/@*//...%s-Methods...//", base);
+					// fieldEnumerator.OnField(baseIndicator, Substring::Null());
 					AppendMethodsFromType(variableName, ns, ToSubstring(base), fieldEnumerator, depth + 1);
 					return true;
 				}
