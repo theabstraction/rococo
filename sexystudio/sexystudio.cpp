@@ -1359,6 +1359,8 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 
 		bool atLeastOneItem = false;
 
+		int memberDepth = 0;
+
 		Substring hint { Substring::Null() };
 
 		RouteTextToAutoComplete(IAutoCompleteBuilder& _builder, cr_substring _prefix, ISexyDatabase& _database, cr_substring _document):
@@ -1417,12 +1419,25 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 			hint = hintText;
 		}
 
+		enum { MAX_MEMBER_DEPTH = 64 };
+
 		void OnFieldType(cr_substring fieldType, cr_substring searchRoot) override
 		{
-			if (database.EnumerateVariableAndFieldList(searchRoot, fieldType, *this))
+			memberDepth++;
+			if (!database.EnumerateVariableAndFieldList(searchRoot, fieldType, *this))
 			{
-
+				if (memberDepth > MAX_MEMBER_DEPTH)
+				{
+					if (OS::IsDebugging())
+					{
+						OS::TripDebugger();
+					}
+					memberDepth--;
+					return;
+				}
+				Rococo::Sexy::EnumerateLocalFields(*this, searchRoot, fieldType, document);
 			}
+			memberDepth--;
 		}
 	};
 
@@ -1681,8 +1696,37 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 		return database->FindInterface(buf);
 	}
 
+	int interfaceDepth = 0;
+
+	class InterfaceDepthCounter
+	{
+		SexyStudioIDE& This;
+	public:
+		InterfaceDepthCounter(SexyStudioIDE& ide): This(ide)
+		{
+			ide.interfaceDepth++;
+		}
+		~InterfaceDepthCounter()
+		{
+			This.interfaceDepth--;
+		}
+	};
+
+	enum { MAX_INTERFACE_DEPTH = 64 };
+
 	bool TryShowCallTipForMethods(cr_substring type, cr_substring methodName, ISexyEditor& editor)
 	{
+		InterfaceDepthCounter counter(*this);
+	
+		if (interfaceDepth > MAX_INTERFACE_DEPTH)
+		{
+			if (OS::IsDebugging())
+			{
+				OS::TripDebugger();
+			}
+			return false;
+		}
+	
 		auto* pInterface = FindInterface(type);
 		if (pInterface)
 		{
@@ -1696,6 +1740,13 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 					editor.ShowCallTipAtCaretPos(callTipArgs);
 					return true;
 				}
+			}
+
+			auto* base = pInterface->Base();
+			if (base)
+			{
+				bool result = TryShowCallTipForMethods(ToSubstring(base), methodName, editor);
+				return result;
 			}
 		}
 
@@ -1815,7 +1866,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 				}
 				else
 				{
-					subsearch = { subsearch.start + (firstDot - searchToken.start) + 1, subsearch.finish };
+					subsearch = { firstDot + 1, subsearch.finish };
 					Substring subType = GetSubType(branchType, firstDot + 1, subsearch, doc);
 					if (!subType)
 					{
@@ -1839,7 +1890,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 
 		Substring doc;
 		doc.start = src_buffer.data();
-		doc.finish = doc.start + nCharsAndNull - 1;
+		doc.finish = doc.start + nCharsAndNull;
 
 		return doc;
 	}

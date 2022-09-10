@@ -1035,10 +1035,105 @@ cstr file =
 	sexyIDE->UpdateAutoComplete(editor);
 }
 
+void TestFullEditor_SearchIStringInLocalStructInLocalStructWithMethodCue()
+{
+	cstr file =
+		R"<CODE>((namespace EntryPoint)
+(alias Main EntryPoint.Main)
+
+(using Sys.Type)
+
+(struct Dog
+	(IString bark)
+)
+
+(struct EventObject
+	(Dog dog)
+)
+
+(function Main -> (Int32 exitCode):
+	(EventObject obj)
+	(obj.dog.bark.
+))<CODE>";
+
+	FileDesc desc(file, '.');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->UpdateAutoComplete(editor);
+}
+
+void TestFullEditor_SearchIStringInLocalStructInLocalStructWithMethodCompleteCue()
+{
+	cstr file =
+		R"<CODE>((namespace EntryPoint)
+(alias Main EntryPoint.Main)
+
+(using Sys.Type)
+
+(struct Dog
+	(IString bark)
+)
+
+(struct EventObject
+	(Dog dog)
+)
+
+(function Main -> (Int32 exitCode):
+	(EventObject obj)
+	(obj.dog.bark.Length 
+))<CODE>";
+
+	FileDesc desc(file, ' ');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->UpdateAutoComplete(editor);
+}
+
+void TestFullEditor_ReturnIStringCompleteCue_FromIStringBuilder()
+{
+	cstr file =
+		R"<CODE>((namespace EntryPoint)
+(alias Main EntryPoint.Main)
+
+(using Sys.Type)
+
+(function Main -> (Int32 exitCode):
+	(IStringBuilder sb)
+	(sb.Length 
+))<CODE>";
+
+	FileDesc desc(file, ' ');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->UpdateAutoComplete(editor);
+}
+
+void TestFullEditor_SearchFQType()
+{
+	cstr file =
+		R"<CODE>((namespace EntryPoint)
+(alias Main EntryPoint.Main)
+
+(function Main -> (Int32 exitCode):
+	(Sys.Maths.Matrix4x4 m)
+	(m.
+))<CODE>";
+
+	FileDesc desc(file, '.');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->UpdateAutoComplete(editor);
+}
+
+
 void MainProtected2(HMODULE hLib)
 {
 	pluginInit(NULL);
-	TestFullEditor_SearchIStringInLocalStructInLocalStruct();
+	TestFullEditor_SearchFQType();
+	//TestFullEditor_ReturnIStringCompleteCue_FromIStringBuilder();
+	//TestFullEditor_SearchIStringInLocalStructInLocalStructWithMethodCompleteCue();
+	//TestFullEditor_SearchIStringInLocalStructInLocalStructWithMethodCue();
+	//TestFullEditor_SearchIStringInLocalStructInLocalStruct();
 	//TestFullEditor_SearchLocalStructForIStringAndDot();
 	//TestFullEditor_SearchLocalStructForIString();
 	//TestFullEditor_SearchLocalStructForM4x4();

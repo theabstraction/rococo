@@ -1899,21 +1899,80 @@ namespace ANON
 			return nullptr;
 		}
 
-		ISXYType* RecursivelySearchForType(ISxyNamespace& ns, cr_substring typeString)
+		ISXYType* SearchForTypeWithoutRecursion(ISxyNamespace& ns, cr_substring typeString)
+		{
+			int typeCount = ns.TypeCount();
+			for (int j = 0; j < typeCount; ++j)
+			{
+				auto& type = ns.GetType(j);
+				if (Eq(typeString, type.PublicName()))
+				{
+					return &type;
+				}
+			}
+
+			return nullptr;
+		}
+
+		ISXYType* SearchForLocalTypeWithoutRecursion(ISxyNamespace& ns, cr_substring typeString)
+		{
+			int typeCount = ns.TypeCount();
+			for (int j = 0; j < typeCount; ++j)
+			{
+				auto& type = ns.GetType(j);
+				if (Eq(type.LocalType()->LocalName(), typeString))
+				{
+					return &type;
+				}
+			}
+
+			return nullptr;
+		}
+
+		ISxyNamespace* FindSubspaceWithoutRecursion(ISxyNamespace& ns, cr_substring subName)
 		{
 			for (int i = 0; i < ns.SubspaceCount(); ++i)
 			{
-				int typeCount = ns[i].TypeCount();
-				for (int j = 0; j < typeCount; ++j)
+				if (Eq(ns[i].Name(), subName))
 				{
-					auto& type = ns[i].GetType(j);
-					if (Eq(typeString, type.PublicName()))
+					return &ns[i];
+				}
+			}
+			return nullptr;
+		}
+
+		ISXYType* RecursivelySearchForType(ISxyNamespace& ns, cr_substring typeString)
+		{
+			Substring subsearch = typeString;
+
+			if (*ns.Name())
+			{	
+				cstr firstDot = Strings::ForwardFind('.', typeString);
+				if (firstDot)
+				{
+					subsearch.start = firstDot + 1;
+
+					if (IsCapital(*subsearch.start))
 					{
-						return &type;
+						Substring rootSpace{ typeString.start, firstDot };
+
+						if (!Eq(rootSpace, ns.Name()))
+						{
+							return nullptr;
+						}
 					}
 				}
+			}
 
-				auto* localType = RecursivelySearchForType(ns[i], typeString);
+			auto* type = SearchForTypeWithoutRecursion(ns, subsearch);
+			if (type)
+			{
+				return type;
+			}
+				
+			for (int i = 0; i < ns.SubspaceCount(); ++i)
+			{
+				auto* localType = RecursivelySearchForType(ns[i], subsearch);
 				if (localType)
 				{
 					return localType;
@@ -1921,21 +1980,7 @@ namespace ANON
 			}
 
 			// We did not find a public type that matched the typestring, but perhaps there is a local type
-
-			for (int i = 0; i < ns.SubspaceCount(); ++i)
-			{
-				int typeCount = ns[i].TypeCount();
-				for (int j = 0; j < typeCount; ++j)
-				{
-					auto& type = ns[i].GetType(j);
-					if (Eq(type.LocalType()->LocalName(), typeString))
-					{
-						return &type;
-					}
-				}
-			}
-
-			return nullptr;
+			return SearchForLocalTypeWithoutRecursion(ns, subsearch);
 		}
 
 		void AppendFieldsFromTypeRef(ISXYType& type, ISexyFieldEnumerator& fieldEnumerator)
