@@ -1244,7 +1244,7 @@ namespace
 			"   (z = (temp1 < temp2))\n"
 			")\n"
 			"(alias Main EntryPoint.Main)";
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 },"TestBooleanVariableVsVariable");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -1259,6 +1259,27 @@ namespace
 		validate(x == 1);
 		validate(y == 0);
 		validate(z == 0);
+	}
+
+	void TestBooleanAssignByTwoVariables(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)\n"
+			"(function Main -> (Bool result):"
+			"   (Bool a = true)\n"
+			"   (Bool b = true)\n"
+			"   (result = (a or b))\n"
+			")\n"
+			"(alias Main EntryPoint.Main)";
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the boolean32 x
+		ValidateExecution(vm.Execute(VM::ExecutionFlags(false, true)));
+		int32 result = vm.PopInt32();
+		validate(result == 1);
 	}
 
 	void TestBooleanExpressions(IPublicScriptSystem& ss)
@@ -1277,7 +1298,7 @@ namespace
 			"   (z = (temp1 xor temp2))\n"
 			")\n"
 			"(alias Main EntryPoint.Main)";
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 },"TestBooleanExpressions");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -15526,6 +15547,7 @@ R"(
 		TEST(TestBooleanMismatch);
 		TEST(TestBooleanVariableVsLiteralMatches);
 		TEST(TestBooleanVariableVsVariable);
+		TEST(TestBooleanAssignByTwoVariables);
 		TEST(TestBooleanExpressions);
 		TEST(TestBooleanCompoundExpressions1);
 		TEST(TestBooleanCompoundExpressions2);
@@ -15758,6 +15780,9 @@ R"(
 		Memory::ValidateNothingAllocated();
 
 		TestMemoryIsGood();
+
+		TEST(TestBooleanAssignByTwoVariables);
+		return;
 
 		RunPositiveSuccesses();	
 		RunPositiveFailures();

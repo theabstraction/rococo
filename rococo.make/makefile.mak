@@ -49,7 +49,9 @@ CPP_MASTER = $(DIR_BIN)tools\x64\$(CONFIGURATION)\net6.0\rococo.cpp_master.exe
 NATIVE_SRC = $(DIR_SEXY)NativeSource^\
 EVENTS = $(DIR_BIN)rococo.events.$(LCONFIGURATION).dll
 
-all: $(BENNY_HILL) $(MPLAT_SXH_H) $(HV_SXH_H) $(MHOST_SXH_H) $(CPP_MASTER) $(MPLAT_COMPONENTS_H) $(SEXY_CMD) $(EVENTS)	
+all: $(BENNY_HILL) $(MPLAT_SXH_H) $(HV_SXH_H) $(MHOST_SXH_H) $(CPP_MASTER) $(MPLAT_COMPONENTS_H) $(SEXY_CMD) 
+
+#$(EVENTS)	
 
 clean: 
 	del $(BENNY_HILL)
@@ -63,8 +65,8 @@ $(LIB_UTIL): $(ROCOCO)rococo.util/rococo.base.cpp $(UTIL)rococo.base.cpp $(UTIL)
 
 $(BENNY_HILL): $(LIB_UTIL)
 
-$(EVENTS): $(DIR_EVENTS)content\scripts\gen.events.hv.sxy $(DIR_EVENTS)content\scripts\gen.events.sxy
-	$(SEXY_CMD) natives=$(NATIVE_SRC) installation=$(DIR_EVENTS)content\ root=$(DIR_EVENTS) run=!scripts/gen.events.hv.sxy 
+#$(EVENTS): $(DIR_EVENTS)content\scripts\gen.events.hv.sxy $(DIR_EVENTS)content\scripts\gen.events.sxy
+#	$(SEXY_CMD) natives=$(NATIVE_SRC) installation=$(DIR_EVENTS)content\ root=$(DIR_EVENTS) run=!scripts/gen.events.hv.sxy 
 
 $(MPLAT_SXH_H): $(MPLAT_SXH) $(MPLAT_XC)
 	$(BENNY_HILL) $(DIR_MPLAT) mplat.sxh null

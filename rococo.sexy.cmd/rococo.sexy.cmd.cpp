@@ -435,11 +435,6 @@ int mainProtected(int argc, char* argv[])
 
 	if (isInteractive)
 	{
-		enum
-		{
-			GWL_HINSTANCE = -6
-		};
-
 		Rococo::Windows::InitRococoWindows(NULL, NULL, NULL, NULL, NULL);
 	}
 

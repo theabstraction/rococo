@@ -247,7 +247,7 @@ namespace
 			}
 		}
 
-		virtual void OnMenuCommand(HWND hWnd, DWORD id)
+		void OnMenuCommand(HWND hWnd, DWORD id) override
 		{
 			switch (id)
 			{

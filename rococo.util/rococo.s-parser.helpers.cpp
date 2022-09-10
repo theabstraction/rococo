@@ -341,43 +341,43 @@ namespace
          ns.EnumerateFactories(enumFactories);
       }
 
-      virtual void RefreshAtDepth(int stackDepth)
+      void RefreshAtDepth(int stackDepth) override
       {
          UpdateDebugger(*ss, *debugger, stackDepth, false);
       }
 
-      virtual void PopulateAPITree(Visitors::IUITree& tree)
+      void PopulateAPITree(Visitors::IUITree& tree) override
       {
          auto& root = ss->PublicProgramObject().GetRootNamespace();
          auto nsid = tree.AddRootItem("[Namespaces]", CheckState_Clear);
          RecurseNamespaces(root, tree, nsid);
       }
 
-      virtual void Continue()
+      void Continue() override
       {
          vm->ContinueExecution(VM::ExecutionFlags(true, true, false));
          Update();
       }
 
-      virtual void StepOut()
+      void StepOut() override
       {
          vm->StepOut();
          Update();
       }
 
-      virtual void StepOver()
+      void StepOver() override
       {
          vm->StepOver();
          Update();
       }
 
-      virtual void StepNext()
+      void StepNext() override
       {
          vm->StepInto();
          Update();
       }
 
-      virtual void StepNextSymbol()
+      void StepNextSymbol() override
       {
          //ISymbols& symbols = ss->PublicProgramObject().ProgramMemory().
          //vm->StepNextSymbol()
@@ -1601,10 +1601,24 @@ namespace Rococo
 			IDisassembler::Rep rep;
 			disassembler.Disassemble(fstart + i, rep);
 
+			if (fstart + i <= pc)
+			{
+				auto* s = (const ISExpression*)symbol.SourceExpression;
+				if (s)
+				{
+					*ppExpr = s;
+				}
+			}
+
 			bool isHighlight = (fstart + i == pc);
 			if (isHighlight)
 			{
-				*ppExpr = (const ISExpression*)symbol.SourceExpression;
+				/*
+				if (*ppExpr == nullptr)
+				{
+					*ppExpr = (const ISExpression*)symbol.SourceExpression;
+				}
+				*/
 			}
 
 			char assemblyLine[256];
@@ -1688,18 +1702,22 @@ namespace Rococo
 
 			for (int depth = 0; depth < 10; depth++)
 			{
-				const ISExpression* s;
+				const ISExpression* s = nullptr;
 				const uint8* SF;
 				auto* f = DisassembleCallStackAndAppendToView(*disassembler, debugger, *ss, vm.Cpu(), depth, &s, &SF, stackDepth);
 				if (depth == stackDepth && f != nullptr)
 				{
 					if (s != nullptr)
 					{
-						const Sex::ISExpression* sexpr = reinterpret_cast<const Sex::ISExpression*>(s);
-						auto origin = sexpr->Tree().Source().Origin();
-						auto p0 = sexpr->Start() - Vec2i{ 1,0 };
-						auto p1 = sexpr->End() - Vec2i{ 1,0 };
-						debugger.SetCodeHilight(sexpr->Tree().Source().Name(), p0, p1, "!");
+						if (s->GetOriginal() != nullptr)
+						{
+							s = s->GetOriginal();
+						}
+		
+						auto origin = s->Tree().Source().Origin();
+						auto p0 = s->Start() - Vec2i{ 1,0 };
+						auto p1 = s->End() - Vec2i{ 1,0 };
+						debugger.SetCodeHilight(s->Tree().Source().Name(), p0, p1, "!");
 					}
 				}
 

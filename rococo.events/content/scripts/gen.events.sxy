@@ -1,5 +1,6 @@
 (namespace EntryPoint)
 	(alias Main EntryPoint.Main)
+	(alias Namespace EntryPoint.Namespace)
 	(alias Event EntryPoint.Event)
 	(alias Target EntryPoint.Target)
 	(alias Arg EntryPoint.Arg)
@@ -15,9 +16,12 @@
 )
 
 (struct EventObject
-	(IString evNamespace)
 	(IString evName)
 	(array EventObjectArg args)
+)
+
+(struct EventObjectArray
+	(array EventObject events)
 )
 
 (struct EventsContext
@@ -26,8 +30,10 @@
 	(map IString IStringBuilder hppToBuilder) 
 	(IStringBuilder currentCppBuilder) 
 	(IStringBuilder currentHppBuilder) 
-	(Bool isEventOpen)
-	(array EventObject events)
+	(Bool isEventOpen)	
+	(IString currentNamespace)
+	(map IString EventObjectArray mapNamespaceToEventObjects)
+	(array EventObjectArg currentArgs)
 )
 
 (alias EventsContext EntryPoint.EventsContext)
@@ -39,10 +45,11 @@
 	(map IString IStringBuilder hppToBuilder) 
 	(ec.cppToBuilder = cppToBuilder)
 	(ec.hppToBuilder = hppToBuilder)
-	(array EventObject events 1024)
-	(ec.events = events)
-	(EntryPoint.AddEvents ec) // If this causes a problem, it probably means you had this script executed directly. It should only ever be (' #included) by a script that defines EntryPoint.AddEvents
+	(map IString EventObjectArray mapNamespaceToEventObjects)
+	(ec.mapNamespaceToEventObjects = mapNamespaceToEventObjects)
 	
+	(EntryPoint.AddEvents ec) // If this causes a problem, it probably means you had this script executed directly. It should only ever be (' #included) by a script that defines EntryPoint.AddEvents
+
 	(SaveFiles ec)
 )
 
@@ -77,8 +84,8 @@
 	)
 )
 
-(function AppendHPPPrelude (Sys.IO.IFileWriter hpp) -> :
-	(IStringBuilder timestamp = NewToken)
+(function AppendHPPPrelude (EventsContext ec)(Sys.IO.IFileWriter hpp) -> :
+	(IStringBuilder timestamp = Sys.Type.NewTokenBuilder)
 	(Sys.OS.AppendCTime timestamp)
 	(#build hpp "#pragma once&n")
 	(#build hpp "// Generated at " timestamp "&n&n")
@@ -105,6 +112,7 @@
 			(IStringBuilder hppData = hppKeyValue.Value)
 			(#path fullHppPath ec.rootPath hppPath)
 			(Sys.IO.IFileWriter hppWriter = (Sys.IO.WriteToFile hppPath))
+			(AppendHPPPrelude ec hppWriter)
 			(hppWriter hppData)		
 		)
 	)
@@ -112,6 +120,10 @@
 
 (function StartsWithSlash (IString path)->(Bool result):
 	(result = ((Sys.Type.Strings.StartsWith path "/") or (Sys.Type.Strings.StartsWith path "\")))
+)
+
+(function EndsWithSlash (IString path)->(Bool result):
+	(result = ((Sys.Type.Strings.EndsWith path "/") or (Sys.Type.Strings.EndsWith path "\")))
 )
 
 (function Target (EventsContext ec) (IString cppFilePathRelativeRoot)(IString hppFilePathRelativeRoot)-> :
@@ -156,13 +168,17 @@
 	)
 )
 
-(function Event (EventsContext ec) (IString evNamespace)(IString evName)-> :
+(function Event (EventsContext ec) (IString evName)-> :
 	(EventObject ev)
-	(ev.evNamespace = evNamespace)
 	(ev.evName = evName)
 	(array EventObjectArg args 32)
 	(ev.args = args)
-	(ec.events.Push ev)
+	(ec.currentArgs = args)
+	
+	(node n = (ec.mapNamespaceToEventObjects ec.currentNamespace))
+	(EventObjectArray i = & n)
+	(debug)
+	(i.events.Push ev)
 )
 
 (function Arg (EventsContext ec) (IString typeName)(IString variableName)-> :
@@ -170,10 +186,23 @@
 )
 
 (function ArgWithDefault (EventsContext ec) (IString typeName)(IString variableName)(IString defaultValue)-> :
-	(EventObjectArg arg = typeName variableName defaultValue)
+	(EventObjectArg arg = typeName variableName defaultValue)	
+	(ec.currentArgs.Push arg)
+)
+
+(function Namespace (EventsContext ec) (IString ns)-> :
+	(if (not (ns ?))
+		(Sys.Throw 0 "Blank Namespace argument")
+	)
 	
-	(foreach last # (ec.events @last)
-		(last.args.Push arg)
+	(ec.currentNamespace = ns)
+	
+	(node n = (ec.mapNamespaceToEventObjects ec.currentNamespace))
+	(if (not n)
+		(EventObjectArray newObjectArray)
+		(array EventObject events 1024)
+		(newObjectArray.events = events)
+		(ec.mapNamespaceToEventObjects.Insert ec.currentNamespace newObjectArray)
 	)
 )
 
@@ -207,25 +236,26 @@
 	(foundIndex = argc)
 )
 
+(function MainProtected -> :
+	(IString rootPath)
+	(Int32 rootIndex)
+	(GetNextCmdPathValue 0 "root" -> rootPath rootIndex)
+
+	(if (not (rootPath ?))
+		(Sys.Throw 0 "Command line missing 'root=<ROOT-FILEPATH>'")
+	)
+	
+	(if (not (EndsWithSlash rootPath))
+		(Sys.Throw 0 "root did not end with slash: '\' 'root=<ROOT-FILEPATH>'")	
+	)
+
+	(GenerateEvents rootPath)
+)
+
 (function Main -> (Int32 exitCode):
 	(try
 		(
-			(IString rootPath)
-			(Int32 rootIndex)
-			(GetNextCmdPathValue 0 "root" -> rootPath rootIndex)
-
-			(if (not (rootPath ?))
-				(Sys.Throw 0 "Command line missing 'root=<ROOT-FILEPATH>'")
-			)
-			
-			(Bool isBackSlashed = (Sys.Type.Strings.EndsWith rootPath "\"))
-			(Bool isForwardSlashed = (Sys.Type.Strings.EndsWith rootPath "\"))
-			
-			(if ((not isBackSlashed) and (not isForwardSlashed))
-				(Sys.Throw 0 "root did not end with slash: '\' 'root=<ROOT-FILEPATH>'")	
-			)
-
-			(GenerateEvents rootPath)
+			(MainProtected)
 		)
 	catch e 
 		(

@@ -6,11 +6,12 @@
 (function AddEvents (EventsContext ec) -> :
 	(Target ec "hv.events.cpp" "hv.events.h")
 	
-		(Event ec "Rococo::Events" "SetNextLevel")
-			(Arg ec "cstr" "levelName")
+		(Namespace ec "Rococo::Events")
+			(Event ec "SetNextLevel")
+				(Arg ec "cstr" "levelName")
 			
-		(Event ec "Rococo::Events::OS" "Tick")
-			(Arg ec "IUltraClock*" "clock")
-			(ArgWithDefault ec "uint32" "frameSleep" "5")
+		(Namespace ec "Rococo::Events::OS")		
+			(Event ec "Tick")
+				(Arg ec "IUltraClock*" "clock")
+				(ArgWithDefault ec "uint32" "frameSleep" "5")
 )
-
