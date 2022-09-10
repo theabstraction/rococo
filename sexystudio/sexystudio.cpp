@@ -5,6 +5,7 @@
 #include "sexystudio.impl.h"
 #include "resource.h"
 #include "rococo.auto-release.h"
+#include "rococo.io.h"
 
 #include <rococo.events.h>
 #include <rococo.strings.h>
@@ -119,30 +120,35 @@ private:
 	ITab* projectTab = nullptr;
 	U8FilePath contentPath;
 
+	void SyncContent()
+	{
+		WaitCursorSection waitSection;
+		ideFrame.SetProgress(0.0f, "Populating file browser...");
+
+		if (!EndsWith(contentPath, "\\"))
+		{
+			StringCat(contentPath.buf, "\\", U8FilePath::CAPACITY);
+		}
+
+		database.Solution().SetContentFolder(contentPath);
+
+		Rococo::OS::SetConfigVariable(contentPath, OS::ConfigSection{ "ContentPath" }, OS::ConfigRootName{ "SexyStudio" });
+
+		PopulateTreeWithSXYFiles(*fileBrowser, database, ideFrame, *idToSourceeMap);
+		ideFrame.SetProgress(100.0f, "Populated file browser");
+
+		database.Sort();
+
+		TEventArgs<ISexyDatabase*> args;
+		args.value = &database;
+		wc.publisher.Publish(args, evMetaUpdated);
+	}
+
 	void OnEvent(Event& ev) override
 	{
 		if (ev == evContentChange)
 		{
-			WaitCursorSection waitSection;
-			ideFrame.SetProgress(0.0f, "Populating file browser...");
-
-			if (!EndsWith(contentPath, "\\"))
-			{
-				StringCat(contentPath.buf, "\\", U8FilePath::CAPACITY);
-			}
-
-			database.Solution().SetContentFolder(contentPath);
-
-			Rococo::OS::SetConfigVariable(contentPath, OS::ConfigSection{ "ContentPath" }, OS::ConfigRootName{ "SexyStudio" });
-
-			PopulateTreeWithSXYFiles(*fileBrowser, database, ideFrame, *idToSourceeMap);
-			ideFrame.SetProgress(100.0f, "Populated file browser");
-
-			database.Sort();
-
-			TEventArgs<ISexyDatabase*> args;
-			args.value = &database;
-			wc.publisher.Publish(args, evMetaUpdated);
+			SyncContent();
 		}
 	}
 
@@ -218,6 +224,19 @@ public:
 	{
 		wc.publisher.Unsubscribe(this);
 	}
+
+	void SetContent(const U8FilePath& newPath)
+	{
+		if (Eq(contentPath, newPath))
+		{
+			return;
+		}
+
+		contentPath = newPath;
+
+		SyncContent();
+	}
+
 
 	void CollapseTree()
 	{
@@ -1654,7 +1673,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 		if (autoComplete_Replacement_StartPosition > 0 && autoComplete_Replacement_StartPosition < caretPos)
 		{
 			editor.ReplaceText(autoComplete_Replacement_StartPosition, caretPos, item);
-			UpdateAutoComplete(editor);
+			UpdateAutoComplete(editor, nullptr);
 		}
 	}
 
@@ -1939,8 +1958,70 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 		return linePointer - line.start + cursor.lineStartPosition;
 	}
 
-	void UpdateAutoComplete(ISexyEditor& editor) override
+	U8FilePath lastAutoRebasePath= { 0 };
+
+	void Rebase(const wchar_t* fullPathToSXYfile)
 	{
+		U8FilePath u8Path;
+		Assign(u8Path, fullPathToSXYfile);
+
+		if (!EndsWith(u8Path, ".sxy"))
+		{
+			return;
+		}
+
+		Substring s = ToSubstring(u8Path);
+
+		for (;;)
+		{
+			cstr lastSlash = Strings::ReverseFind(Rococo::IO::DirectorySeparatorChar(), s);
+			if (!lastSlash)
+			{
+				return;
+			}
+
+			s = { s.start, lastSlash };
+
+			cstr earlierSlash = Strings::ReverseFind(Rococo::IO::DirectorySeparatorChar(), s);
+
+			if (!earlierSlash)
+			{
+				return;
+			}
+
+			Substring candidate = { earlierSlash + 1, lastSlash };
+
+			if (Eq(candidate, "content") || Eq(candidate, "Content") || Eq(candidate, "CONTENT"))
+			{
+				U8FilePath contentPath;
+				CopyWithTruncate({ s.start, lastSlash + 1 }, contentPath.buf, contentPath.CAPACITY);
+
+				if (!Eq(lastAutoRebasePath, contentPath))
+				{
+					lastAutoRebasePath = contentPath;
+					database->SetContentPath(contentPath);
+
+					sheets->SetContent(contentPath);
+					return;
+				}
+			}
+		}
+	}
+
+	WideFilePath fullPathCache = { 0 };
+
+	void UpdateAutoComplete(ISexyEditor& editor, const wchar_t* fullPath) override
+	{
+		if (fullPath)
+		{
+			if (!Eq(fullPathCache, fullPath))
+			{
+				Format(fullPathCache, L"%s", fullPath);
+				Rebase(fullPathCache);
+				ide->SetVisible(false);
+			}
+		}
+
 		Substring substringLine = GetCurrentLine(editor);
 		if (!substringLine)
 		{

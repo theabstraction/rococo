@@ -406,7 +406,22 @@ void onCharAdded(HWND hScintilla, char c)
         WideFilePath filename;
         if (SendMessageA(nppData._nppHandle, NPPM_GETFILENAME, WideFilePath::CAPACITY, (LPARAM)filename.buf))
         {
-            if (!StartsWith(filename, L"new") && !EndsWith(filename, L".sxy"))
+            if (EndsWith(filename, L".sxy"))
+            {
+                SendMessageA(nppData._nppHandle, NPPM_GETFULLCURRENTPATH, WideFilePath::CAPACITY, (LPARAM)filename.buf);
+            }
+            else if (StartsWith(filename, L"new"))
+            {
+                for (auto p = filename.buf; *p != 0; p++)
+                {
+                    if (*p == '.')
+                    {
+                        // Not a new file but something else
+                        return;
+                    }
+                }
+            }
+            else // Neither .sxy nor a new file
             {
                 return;
             }
@@ -414,7 +429,7 @@ void onCharAdded(HWND hScintilla, char c)
 
         SendMessageA(hScintilla, SCI_CALLTIPCANCEL, 0, 0);
         SexyEditor_Scintilla editor(hScintilla);
-        sexyIDE->UpdateAutoComplete(editor);
+        sexyIDE->UpdateAutoComplete(editor, filename);
         ValidateMemory();
     }
 }

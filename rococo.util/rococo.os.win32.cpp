@@ -49,6 +49,11 @@ namespace Rococo
 
 	namespace IO
 	{
+		char DirectorySeparatorChar()
+		{
+			return '\\';
+		}
+
 		IBinaryArchive* CreateNewBinaryFile(const wchar_t* sysPath)
 		{
 			struct Win32BinArchive: IBinaryArchive

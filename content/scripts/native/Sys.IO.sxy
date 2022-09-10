@@ -88,7 +88,7 @@
 )
 
 (method FileWriter.WriteFloat64 (Float64 x) -> :
-	(Sys.IO.Native.WriteFloat64 this x)
+	(Sys.IO.Native.WriteFloat64 this x) 
 )
 
 (method FileWriter.WriteBool (Bool x) -> :

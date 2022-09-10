@@ -67,7 +67,7 @@ namespace Rococo::SexyStudio
 		virtual void ReplaceSelectedText(ISexyEditor& editor, cstr item) = 0;
 		virtual void SetTitle(cstr title) = 0;
 		virtual void Activate() = 0;
-		virtual void UpdateAutoComplete(ISexyEditor& editor) = 0;
+		virtual void UpdateAutoComplete(ISexyEditor& editor, const wchar_t* filepath = nullptr) = 0;
 		virtual bool IsRunning() const = 0;
 		virtual void Free() = 0;
 	};

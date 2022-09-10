@@ -29,7 +29,7 @@ namespace Rococo::IO
 	void ToWide(const U32FilePath& src, WideFilePath& dest);
 	void PathFromAscii(cstr ascii_string, char separator, U32FilePath& path);
 	void PathFromWide(const wchar_t* wide_string, wchar_t separator, U32FilePath& path);
-
+	char DirectorySeparatorChar();
 	void UseBufferlessStdout();
 
 	ROCOCOAPI IStreamer
