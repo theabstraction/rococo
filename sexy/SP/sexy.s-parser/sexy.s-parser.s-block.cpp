@@ -170,6 +170,7 @@ namespace Anon
 			case ESCAPE_CHAR:
 			case 'e':
 				tokenBuilder.AddChar(ESCAPE_CHAR);
+				p++;
 				break;
 			case 'a':
 				tokenBuilder.AddChar('\a');

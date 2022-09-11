@@ -2326,7 +2326,9 @@ namespace Rococo
 			const IStructure* argType = GuessType(ce, arg);
 			if (argType == NULL)
 			{
-				Throw(arg, "Cannot guess type of argument. Try assigning value to a variable and use the variable as the argument.");
+				auto* original = arg.Parent()->GetOriginal();
+				cr_sex sHighlight = original ? *original : arg;
+				Throw(sHighlight, "%s: %s.%s: Cannot guess type of argument. Try assigning value to a variable and use the variable as the argument.", __FUNCTION__, instanceName, methodName);
 			}
 
 			cstr typeName = GetFriendlyName(*argType);

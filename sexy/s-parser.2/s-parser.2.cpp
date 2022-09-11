@@ -92,7 +92,7 @@ void T5()
 
 	ISParser* sparser = Sexy_CreateSexParser_2_0(*allocator, 32768);
 
-	auto t1 = "\"&x20abcdef\" a b cd (qcumber)"_fstring;
+	auto t1 = "\"&x20&&abcdef\" a b cd (qcumber)"_fstring;
 	ISourceCode* src = sparser->DuplicateSourceBuffer(t1.buffer, t1.length, Vec2i{ 1,1 }, "t1");
 	VALIDATE(Eq(src->Name(), "t1"));
 	VALIDATE(src->SourceLength() == t1.length);
@@ -101,7 +101,7 @@ void T5()
 	auto* tree = sparser->CreateTree(*src);
 
 	VALIDATE(tree->Root().NumberOfElements() == 5);
-	VALIDATE(Eq(tree->Root()[0].String()->Buffer, " abcdef"));
+	VALIDATE(Eq(tree->Root()[0].String()->Buffer, " &abcdef"));
 	VALIDATE(Eq(tree->Root()[1].String()->Buffer, "a"));
 	VALIDATE(Eq(tree->Root()[2].String()->Buffer, "b"));
 	VALIDATE(Eq(tree->Root()[3].String()->Buffer, "cd"));

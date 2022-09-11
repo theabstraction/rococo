@@ -63,7 +63,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)Common;..\..\include</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>bennyhill.stdafx.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DebugInformationFormat>OldStyle</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -87,6 +87,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)Common;..\..\include</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>bennyhill.stdafx.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <DebugInformationFormat>OldStyle</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

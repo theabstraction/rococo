@@ -318,13 +318,14 @@ namespace
 
 			ProgramInitParameters pip;
 			pip.addCoroutineLib = addinCoroutines;
-			pip.useDebugLibs = addinCoroutines;
-			pip.addIO = addInIO;
-			pip.MaxProgramBytes = 32768;
 
 #ifdef _DEBUG
 			pip.useDebugLibs = true;
+#else
+			pip.useDebugLibs = false;
 #endif
+			pip.addIO = addInIO;
+			pip.MaxProgramBytes = 32768;
 
 			CScriptSystemProxy ssp(pip, s_logger);
 
@@ -9811,6 +9812,39 @@ R"((namespace EntryPoint)
 		validate(x == 5);
 	}
 
+	void TestEmptyMap(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Type)"
+
+			"(struct Bunions"
+			"	(IString name)"
+			"   (array Sys.Maths.Vec3 positions)"
+			")"
+
+			"(function Main -> (Int32 result):"
+			"	(map Int32 Bunions a)"
+			"	(result = a.Length)"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		validate(ss.ValidateMemory());
+
+		int x = vm.PopInt32();
+		validate(x == 0);
+	}
+
 	void TestMap(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -10728,6 +10762,45 @@ R"((namespace EntryPoint)
 		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
 		ValidateExecution(result);
 		validate(ss.ValidateMemory());
+	}
+
+	void TestMapInsertCorrectRefs(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Type)"
+
+			"(struct Value (IStringBuilder sb))"
+
+			"(function AddJoe90 (map Int32 Value m) -> :"
+			"    (Value v)"
+			"    (v.sb = NewTokenBuilder)"
+			"    (v.sb \"Joe\")"
+			"    (m.Insert 90 v)"
+			")"
+
+			"(function Main -> (Int32 result):"
+			"	(map Int32 Value m)"
+			"   (AddJoe90 m)"
+			"	(node n = (m 90))"
+			"	(Value value = & n)"
+			"	(value.sb.Length -> result)"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		int x = vm.PopInt32();
+		validate(x == 3);
 	}
 
 	void TestMapCall(IPublicScriptSystem& ss)
@@ -15168,6 +15241,7 @@ R"(
 
    void RunCollectionTests()
    {
+	   TEST(TestMapInsertCorrectRefs);
 	   TEST(TestArrayLast);
 	   TEST(TestLinkedListNodeInline);
 	   TEST(TestLinkedListContained);
@@ -15270,6 +15344,7 @@ R"(
 	   TEST3(TestMapStringInsertByVariable);
 	   TEST3(TestMapStringInsertByVariable2);
 
+	   TEST(TestEmptyMap);
 	   TEST(TestMap);
 	   TEST(TestMapStringToString);
 	   TEST(TestMap2);
@@ -15298,6 +15373,8 @@ R"(
 	   TEST(TestMapStrongTyping);
 	   TEST(TestMapThrowAndCleanup);
 	   TEST(TestMapThrowAndCleanup2);
+	   TEST(TestMapStringToString);
+	   TEST3(TestMapKey);
    }
 
    void TestMaths()
@@ -15396,10 +15473,8 @@ R"(
 	{
 		validate(true);
 
+		TEST(TestEmptyMap);
 		TEST3(TestStringReplace);
-		TEST(TestMapStringToString);
-		TEST3(TestMapKey);
-
 		TEST3(TestTopLevelMacro2);
 		TEST(TestRaw);
 		TEST(TestTopLevelMacro);
@@ -15781,8 +15856,7 @@ R"(
 
 		TestMemoryIsGood();
 
-		TEST(TestBooleanAssignByTwoVariables);
-		return;
+		TEST(TestMapValueStruct);
 
 		RunPositiveSuccesses();	
 		RunPositiveFailures();
@@ -15801,7 +15875,7 @@ int main(int argc, char* argv[])
 	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
 //	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_None);
 
-	// _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF | _CRTDBG_CHECK_ALWAYS_DF);
+//	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF | _CRTDBG_CHECK_ALWAYS_DF);
 
 	try
 	{

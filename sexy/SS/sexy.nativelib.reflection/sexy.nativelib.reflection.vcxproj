@@ -59,7 +59,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;SEXYNATIVELIBREFLECTION_EXPORTS</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)Common;..\..\..\include</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>sexy.nativelib.reflection.stdafx.h</PrecompiledHeaderFile>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DebugInformationFormat>OldStyle</DebugInformationFormat>
       <MinimalRebuild>false</MinimalRebuild>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
@@ -84,6 +84,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)Common;..\..\..\include</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>sexy.nativelib.reflection.stdafx.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <DebugInformationFormat>OldStyle</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

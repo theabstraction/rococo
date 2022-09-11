@@ -122,7 +122,8 @@ namespace Rococo::Script
 
 	size_t GetMemberSize(const IStructure& type)
 	{
-		return type.InterfaceCount() > 0 ? sizeof(size_t) : type.SizeOfStruct();
+		size_t nBytes = type.InterfaceCount() > 0 ? sizeof(size_t) : type.SizeOfStruct();
+		return nBytes;
 	}
 
 	size_t GetValueSize(MapImage* m)
@@ -155,6 +156,7 @@ namespace Rococo::Script
 		}
 
 		ReleaseNode(m->NullNode, ss);
+
 		m->~MapImage();
 		ss.AlignedFree(m);
 	}
@@ -193,6 +195,22 @@ namespace Rococo::Script
 		MapImage* m = (MapImage*)registers[VM::REGISTER_D13].vPtrValue;
 		int32 length = m ? m->NumberOfElements : 0;
 		registers[VM::REGISTER_D7].int32Value = length;
+	}
+
+	VM_CALLBACK(MapUpdateRefCounts)
+	{
+		IScriptSystem& ss = *(IScriptSystem*)context;
+		MapImage* m = (MapImage*)registers[VM::REGISTER_D4].vPtrValue;
+		
+		size_t offset = 0;
+		auto* pValue = registers[VM::REGISTER_D7].uint8PtrValue; // The value of the last value pointer inserted into the map. Check InsertByRef
+		for (int i = 0; i < m->ValueType->MemberCount(); ++i)
+		{
+			auto& member = m->ValueType->GetMember(i);
+			uint8* pMemberVariable = pValue + offset;
+			UpdateRefCounts(pMemberVariable, member);
+			offset += member.SizeOfMember();
+		}
 	}
 
 	VM_CALLBACK(MapNodeEnumNext)
@@ -453,16 +471,19 @@ namespace Rococo::Script
 
 	void InitInlineStringKeyResolver(MapImage* m)
 	{
+		static_assert(sizeof NullResolver >= sizeof InlineStringKeyResolver);
 		new (&m->KeyResolver) InlineStringKeyResolver;
 	}
 
 	void InitBitcount32KeyResolver(MapImage* m)
 	{
+		static_assert(sizeof NullResolver >= sizeof Bitcount32KeyResolver);
 		new (&m->KeyResolver) Bitcount32KeyResolver;
 	}
 
 	void InitBitcount64KeyResolver(MapImage* m)
 	{
+		static_assert(sizeof NullResolver >= sizeof Bitcount64KeyResolver);
 		new (&m->KeyResolver) Bitcount64KeyResolver;
 	}
 
@@ -481,6 +502,11 @@ namespace Rococo::Script
 			{
 				InitializeMembersToNullObjectAtLocation(pValue, mtype, offset);
 				offset += mtype.SizeOfStruct();
+			}			
+			else if (mtype.VarType() == VARTYPE_Array || mtype.VarType() == VARTYPE_List || mtype.VarType() == VARTYPE_Map)
+			{
+				memset(((uint8*)pValue) + offset, 0, sizeof(void*));
+				offset += sizeof(void*);
 			}
 			else
 			{
@@ -488,6 +514,13 @@ namespace Rococo::Script
 				offset += mtype.SizeOfStruct();
 			}
 		}
+
+#ifdef _DEBUG
+		if (offset > type.SizeOfStruct())
+		{
+			Throw(0, "%s. Incorrect size estimation for %s. Offset was %llu. Size was %d", __FUNCTION__, GetFriendlyName(type), offset, type.SizeOfStruct());
+		}
+#endif
 	}
 
 	void InitializeNullObjectAtLocation(void* pValue, const IStructure& type)
@@ -632,8 +665,10 @@ namespace Rococo::Script
 			return;
 		}
 		MapNode* n = InsertKey(*m, registers[VM::REGISTER_D8], ss);
+		uint8* valuePointer = GetValuePointer(n);
 		const void* valueSrc = registers[VM::REGISTER_D7].vPtrValue;
-		AlignedMemcpy(GetValuePointer(n), valueSrc, GetValueSize(m));
+		AlignedMemcpy(valuePointer, valueSrc, GetValueSize(m));
+		registers[VM::REGISTER_D7].vPtrValue = valuePointer;
 	}
 
 	VM_CALLBACK(MapInsertAndGetRef)
@@ -1013,6 +1048,10 @@ namespace Rococo::Script
 				else
 				{
 					AppendInvoke(ce, GetMapCallbacks(ce).MapInsertValueByRef, s);
+					if (Rococo::Compiler::Impl::CountRefCountedMembers(def.ValueType) > 0)
+					{
+						ce.Builder.Assembler().Append_Invoke(GetMapCallbacks(ce).MapUpdateRefCounts);
+					}
 				}
 			}
 			else // 4

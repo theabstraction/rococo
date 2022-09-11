@@ -1,11 +1,3 @@
-(namespace EntryPoint)
-	(alias Main EntryPoint.Main)
-	(alias Namespace EntryPoint.Namespace)
-	(alias Event EntryPoint.Event)
-	(alias Target EntryPoint.Target)
-	(alias Arg EntryPoint.Arg)
-	(alias ArgWithDefault EntryPoint.ArgWithDefault)
-
 (using Sys.IO)
 (using Sys.Type)
 
@@ -26,10 +18,11 @@
 
 (struct EventsContext
 	(IString rootPath)
-	(map IString IStringBuilder cppToBuilder) 
-	(map IString IStringBuilder hppToBuilder) 
-	(IStringBuilder currentCppBuilder) 
-	(IStringBuilder currentHppBuilder) 
+	(IStringBuilder cppBuilder) 
+	(IStringBuilder hppBuilder) 
+	(IString cppFilename)
+	(IString hppFilename)
+	(IString hppDeclarations)
 	(Bool isEventOpen)	
 	(IString currentNamespace)
 	(map IString EventObjectArray mapNamespaceToEventObjects)
@@ -37,86 +30,6 @@
 )
 
 (alias EventsContext EntryPoint.EventsContext)
-
-(function GenerateEvents (IString rootPath)-> :
-	(EventsContext ec)
-	(ec.rootPath = rootPath)
-	(map IString IStringBuilder cppToBuilder) 
-	(map IString IStringBuilder hppToBuilder) 
-	(ec.cppToBuilder = cppToBuilder)
-	(ec.hppToBuilder = hppToBuilder)
-	(map IString EventObjectArray mapNamespaceToEventObjects)
-	(ec.mapNamespaceToEventObjects = mapNamespaceToEventObjects)
-	
-	(EntryPoint.AddEvents ec) // If this causes a problem, it probably means you had this script executed directly. It should only ever be (' #included) by a script that defines EntryPoint.AddEvents
-
-	(SaveFiles ec)
-)
-
-(function BuildArgsList (IStringBuilder sb)(EventObject event)-> :
-	(sb.Clear)
-	(sb "IPublisher&& publisher")
-	
-	(foreach arg # event.args
-		(#build sb ", " arg.typename " " arg.variableName)
-	)
-)
-
-(function AppendCPPPrelude (EventsContext ec)(Sys.IO.IFileWriter cpp)(IString associatedHeaderFile) -> :
-	(IStringBuilder timestamp = NewTokenBuilder)
-	(Sys.OS.AppendCTime timestamp)
-	(#build cpp "// Generated: " timestamp "&n&n")
-	(#build cpp "include &"" associatedHeaderFile "&"&n&n")
-	
-	(IStringBuilder args = NewParagraphBuilder)
-		
-	(foreach event # ec.events
-		(BuildArgsList args event)
-		
-		(#build cpp "namespace " event.evNamespace "&n")
-		(#build cpp "{&n")
-		
-		(#build cpp "	void Send" event.evName "(" args ")&n")
-		(#build cpp "	{&n")
-		
-		(#build cpp "	}&n")
-		(#build cpp "}&n&n")
-	)
-)
-
-(function AppendHPPPrelude (EventsContext ec)(Sys.IO.IFileWriter hpp) -> :
-	(IStringBuilder timestamp = Sys.Type.NewTokenBuilder)
-	(Sys.OS.AppendCTime timestamp)
-	(#build hpp "#pragma once&n")
-	(#build hpp "// Generated at " timestamp "&n&n")
-)
-
-(function SaveFiles (EventsContext ec)-> :
-	(foreach cppKeyValue # ec.cppToBuilder
-		(
-			(IString cppPath = cppKeyValue.Key)
-			(IStringBuilder cppData = cppKeyValue.Value)
-			(#path fullCppPath ec.rootPath cppPath)
-			(Sys.IO.IFileWriter cppWriter = (Sys.IO.WriteToFile fullCppPath))
-			(IStringBuilder hppPath = NewPathBuilder)
-			(hppPath.AppendIString cppPath)
-			(hppPath.Replace 0 ".cpp" ".h")
-			(AppendCPPPrelude ec cppWriter hppPath)
-			(cppWriter cppData)		
-		)
-	)
-	
-	(foreach hppKeyValue # ec.hppToBuilder
-		(
-			(IString hppPath = hppKeyValue.Key)
-			(IStringBuilder hppData = hppKeyValue.Value)
-			(#path fullHppPath ec.rootPath hppPath)
-			(Sys.IO.IFileWriter hppWriter = (Sys.IO.WriteToFile hppPath))
-			(AppendHPPPrelude ec hppWriter)
-			(hppWriter hppData)		
-		)
-	)
-)
 
 (function StartsWithSlash (IString path)->(Bool result):
 	(result = ((Sys.Type.Strings.StartsWith path "/") or (Sys.Type.Strings.StartsWith path "\")))
@@ -126,7 +39,7 @@
 	(result = ((Sys.Type.Strings.EndsWith path "/") or (Sys.Type.Strings.EndsWith path "\")))
 )
 
-(function Target (EventsContext ec) (IString cppFilePathRelativeRoot)(IString hppFilePathRelativeRoot)-> :
+(function Target (EventsContext ec) (IString cppFilePathRelativeRoot)(IString hppFilePathRelativeRoot)(IString hppDeclarationsPathRelativeRoot)-> :
 	(if (StartsWithSlash cppFilePathRelativeRoot)
 		(
 			(#paragraph message "(Target ec '" cppFilePathRelativeRoot "' ...): cpp Path must not begin with a slash")
@@ -141,31 +54,36 @@
 		)
 	)
 	
+	(if (StartsWithSlash hppDeclarationsPathRelativeRoot)
+		(
+			(#paragraph message  "(Target ec '" hppDeclarationsPathRelativeRoot "' ...): hpp declarations path must not begin with a slash")
+			(Sys.Throw 0 message)
+		)
+	)
+	
 	(#path cppPath cppFilePathRelativeRoot)
 	(#path hppPath hppFilePathRelativeRoot)
+	(#path hppDeclarations hppDeclarationsPathRelativeRoot)
 	
 	(Sys.Type.Strings.MakeSysSlashes cppPath)
 	(Sys.Type.Strings.MakeSysSlashes hppPath)
+	(Sys.Type.Strings.MakeSysSlashes hppDeclarations)
 	
-	(node cppRef = (ec.cppToBuilder cppPath))
-	
-	(if (cppRef)
-		(ec.currentCppBuilder = cppRef.Value)
-	else
-		(IStringBuilder sb = (NewStringBuilder 131072))
-		(ec.cppToBuilder.Insert cppPath sb)
-		(ec.currentCppBuilder = sb)
+	(if (ec.cppFilename ?)
+		(Sys.Throw 0 "Target defined twice")
 	)
 	
-	(node hppRef = (ec.hppToBuilder hppPath))
-	
-	(if (hppRef)
-		(ec.currentHppBuilder = hppRef.Value)
-	else
-		(IStringBuilder sb = (NewStringBuilder 131072))
-		(ec.hppToBuilder.Insert hppPath sb)
-		(ec.currentHppBuilder = sb)
+	(if (ec.hppFilename ?)
+		(Sys.Throw 0 "Target defined twice")
 	)
+	
+	(if (ec.hppDeclarations ?)
+		(Sys.Throw 0 "Target defined twice")
+	)
+	
+	(ec.cppFilename = cppPath)
+	(ec.hppFilename = hppPath)
+	(ec.hppDeclarations = hppDeclarations)
 )
 
 (function Event (EventsContext ec) (IString evName)-> :
@@ -177,7 +95,6 @@
 	
 	(node n = (ec.mapNamespaceToEventObjects ec.currentNamespace))
 	(EventObjectArray i = & n)
-	(debug)
 	(i.events.Push ev)
 )
 
@@ -206,6 +123,13 @@
 	)
 )
 
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+	(alias Namespace EntryPoint.Namespace)
+	(alias Event EntryPoint.Event)
+	(alias Target EntryPoint.Target)
+	(alias Arg EntryPoint.Arg)
+	(alias ArgWithDefault EntryPoint.ArgWithDefault)
 
 // Protocol for Sexy Command Line arguments: '<CMD.EXE> run=<script-name> <key1>=<value1> ... <keyN>=<valueN>'
 // Where keyI is not required to be unique. Every KeyI should fit a Sexy #token(<64 chars). Every valueI should fit a #paragraph (<1024 chars).
@@ -236,6 +160,19 @@
 	(foundIndex = argc)
 )
 
+(function Main -> (Int32 exitCode):
+	(try
+		(
+			(MainProtected)
+		)
+	catch e 
+		(
+			(#printf e.Message "&n")
+			(exitCode = -1)
+		)
+	)
+)
+
 (function MainProtected -> :
 	(IString rootPath)
 	(Int32 rootIndex)
@@ -252,15 +189,150 @@
 	(GenerateEvents rootPath)
 )
 
-(function Main -> (Int32 exitCode):
-	(try
+(function GenerateEvents (IString rootPath)-> :
+	(EventsContext ec)
+	(ec.rootPath = rootPath)
+	(ec.cppBuilder = (NewStringBuilder 131072))
+	(ec.hppBuilder = (NewStringBuilder 131072))
+	(map IString EventObjectArray mapNamespaceToEventObjects)
+	(ec.mapNamespaceToEventObjects = mapNamespaceToEventObjects)
+	
+	(EntryPoint.AddEvents ec) // If this causes a problem, it probably means you had this script executed directly. It should only ever be (' #included) by a script that defines EntryPoint.AddEvents
+
+	(SaveFiles ec)
+)
+
+(function SaveFiles (EventsContext ec)-> :
+	(if (not (ec.hppFilename ?))
+		(Sys.Throw 0 "No target specified. the calling script must invoke EntryPoint.Target in AddEvents")
+	)
+	
+	(#path fullCppPath ec.rootPath ec.cppFilename)
+	(Sys.IO.IFileWriter cppWriter = (Sys.IO.WriteToFile fullCppPath))
+	(IStringBuilder hppPathBuilder = NewPathBuilder)
+	(hppPathBuilder ec.cppFilename)
+	(hppPathBuilder.Replace 0 ".cpp" ".h")
+	(AppendCPPPrelude ec cppWriter ec.hppFilename)
+	(cppWriter ec.cppBuilder)		
+
+	(#path fullHppPath ec.rootPath ec.hppFilename)
+	(Sys.IO.IFileWriter hppWriter = (Sys.IO.WriteToFile fullHppPath))
+	(AppendHPPPrelude ec hppWriter)
+	(hppWriter ec.hppBuilder)		
+)
+
+(function AppendCPPPrelude (EventsContext ec)(Sys.IO.IFileWriter cpp)(IString associatedHeaderFile) -> :
+	(IStringBuilder timestamp = NewTokenBuilder)
+	(Sys.OS.AppendCTime timestamp)
+	(#build cpp "// Generated: " timestamp "&n&n")
+	(#build cpp "#include &"" associatedHeaderFile "&"&n&n")
+	(#build cpp "using namespace Rococo;&n&n")
+	
+	(foreach i # ec.mapNamespaceToEventObjects
+		(IString key = i.Key)
+		(EventObjectArray eventArray = & i)
+		
+		(BuildNamespace key eventArray cpp)
+	)
+)
+
+(function AppendHPPPrelude (EventsContext ec)(Sys.IO.IFileWriter hpp) -> :
+	(IStringBuilder timestamp = Sys.Type.NewTokenBuilder)
+	(Sys.OS.AppendCTime timestamp)
+	(#build hpp "#pragma once&n")
+	(#build hpp "// Generated at " timestamp "&n&n")
+
+	(#build hpp "#include &"" ec.hppDeclarations "&"&n&n")
+	
+	(foreach i # ec.mapNamespaceToEventObjects
+		(IString key = i.Key)
+		(EventObjectArray eventArray = & i)
+		
+		(BuildHeaderNamespace key eventArray hpp)
+	)
+)
+
+(function BuildNamespace (IString key)(EventObjectArray eventArray)(Sys.IO.IFileWriter cpp)-> :
+	(#build cpp "namespace " key "&n")
+	(#build cpp "{&n")
+	
+	(foreach event # eventArray.events
+		(BuildEvent event cpp)
+	)
+	
+	(#build cpp "}&n&n")
+)
+
+(function BuildEvent (EventObject obj)(Sys.IO.IFileWriter cpp)-> :
+	(IStringBuilder args = NewParagraphBuilder)
+	(BuildArgsList args obj)
+	
+	(#build cpp "	static const EventIdRef EvId_" obj.evName " = &"EvId_" obj.evName "&"_event;&n&n")
+	
+	(#build cpp "	void Send" obj.evName "(" args ")&n")
+	(#build cpp "	{&n")
+	(#build cpp "		EvArgs_" obj.evName " args;&n")
+	
+	(foreach arg # obj.args
+		(#build cpp "		args." arg.variableName " = " arg.variableName ";&n")
+	)
+	
+	(#build cpp "		publisher.Publish(args, EvId_" obj.evName ");&n")
+	
+	(#build cpp "	}&n&n")
+	
+	(#build cpp "	void Send" obj.evName "Direct(IPublisher&& publisher, EvArgs_" obj.evName "&& args)&n")
+	(#build cpp "	{&n")
+	(#build cpp "		publisher.Publish(args, EvId_" obj.evName ");&n")
+	(#build cpp "	}&n&n")
+	
+	(#build cpp "	EvArgs_" obj.evName "* As_" obj.evName "(Event&& ev)&n")
+	(#build cpp "	{&n")
+	(#build cpp "		if (ev == EvId_SetNextLevel)&n")
+	(#build cpp "		{&n")
+	(#build cpp "			auto&& args = As<EvArgs_"  obj.evName ">(ev);&n")
+	(#build cpp "			return &&args;&n")
+	(#build cpp "		}&n")
+	(#build cpp "&n")	
+	(#build cpp "		return nullptr;&n")
+	(#build cpp "	}&n")
+)
+
+(function BuildArgsList (IStringBuilder sb)(EventObject event)-> :
+	(sb.Clear)
+	(sb "IPublisher&& publisher")
+	
+	(foreach arg # event.args
+		(#build sb ", " arg.typename " " arg.variableName)
+	)
+)
+
+(function BuildHeaderNamespace (IString key)(EventObjectArray eventArray)(Sys.IO.IFileWriter hpp)-> :
+	(#build hpp "namespace " key "&n")
+	(#build hpp "{&n")
+	
+	(foreach event # eventArray.events
+		(BuildHeaderEvent event hpp)
+	)
+	
+	(#build hpp "}&n&n")
+)
+
+(function BuildHeaderEvent (EventObject obj)(Sys.IO.IFileWriter hpp)-> :
+	(IStringBuilder args = NewParagraphBuilder)
+	(BuildArgsList args obj)
+	
+	(#build hpp "	struct EvArgs_" obj.evName ": Rococo::Events::EventArgs&n")
+	(#build hpp	"	{&n")	
+	(foreach arg # obj.args
 		(
-			(MainProtected)
-		)
-	catch e 
-		(
-			(#printf e.Message "&n")
-			(exitCode = -1)
+	(#build hpp	"		" arg.typename " " arg.variableName ";&n")
 		)
 	)
+	(#build hpp	"	};&n&n")
+	
+	(#build hpp "	void Send" obj.evName "(" args ");&n")
+	(#build hpp "	void Send" obj.evName "Direct(IPublisher&& publisher, EvArgs_" obj.evName "&& args);&n")
+	
+	(#build hpp "	EvArgs_" obj.evName "* As_" obj.evName "(Event&& ev);&n")
 )

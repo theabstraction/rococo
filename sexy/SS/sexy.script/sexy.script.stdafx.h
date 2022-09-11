@@ -581,6 +581,7 @@ namespace Rococo
          ID_API_CALLBACK NodeEnumNext;
          ID_API_CALLBACK MapNodeReleaseRef;
          ID_API_CALLBACK MapGetLength;
+         ID_API_CALLBACK MapUpdateRefCounts;
       };
 
       const ArrayCallbacks& GetArrayCallbacks(CCompileEnvironment& ce);

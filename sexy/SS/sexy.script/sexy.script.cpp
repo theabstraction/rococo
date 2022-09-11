@@ -1014,6 +1014,7 @@ namespace Rococo::Script
 			mapCallbacks.MapNodePop = core.RegisterCallback(OnInvokeMapNodePop, this, "MapNodePop");
 			mapCallbacks.MapNodeReleaseRef = core.RegisterCallback(OnInvokeMapNodeReleaseRef, this, "MapNodeReleaseRef");
 			mapCallbacks.MapGetLength = core.RegisterCallback(OnInvokeMapGetLength, this, "MapGetLength");
+			mapCallbacks.MapUpdateRefCounts = core.RegisterCallback(OnInvokeMapUpdateRefCounts, this, "MapUpdateRefCounts");
 
 			callbacks.idThrowNullRef = core.RegisterCallback(OnInvokeThrowNullRef, this, "ThrowNullRef");
 			callbacks.idTestD4neqD5_retBoolD7 = core.RegisterCallback(OnInvokeTestD4neqD5_retBoolD7, &ProgramObject().VirtualMachine(), "TestD4neqD5_retBoolD7");

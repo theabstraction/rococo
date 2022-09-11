@@ -4,7 +4,7 @@
 (alias AddEvents EntryPoint.AddEvents)
 
 (function AddEvents (EventsContext ec) -> :
-	(Target ec "hv.events.cpp" "hv.events.h")
+	(Target ec "hv.events.cpp" "hv.events.h" "hv.event.declarations.h")
 	
 		(Namespace ec "Rococo::Events")
 			(Event ec "SetNextLevel")

@@ -78,6 +78,13 @@ namespace
 #define ROCOCO_USE_SAFE_V_FORMAT
 #include <rococo.strings.h>
 
+namespace Rococo::Script
+{
+	size_t GetAlignmentPadding(int alignment, int objectSize);
+	uint8* GetKeyPointer(MapNode* m);
+	uint8* GetValuePointer(MapNode* m);
+}
+
 namespace Rococo
 {
 	namespace Strings
@@ -1236,6 +1243,22 @@ namespace Rococo
 			tree->AddChild(node, refCount, CheckState_NoCheckBox);
 		}
 
+		bool IsIString(const IInterface& i)
+		{
+			if (Eq(i.NullObjectType().Name(), "_Null_Sys_Type_IString"))
+			{
+				return true;
+			}
+			
+			auto* base = i.Base();
+			if (!base)
+			{
+				return false;
+			}
+
+			return IsIString(*base);
+		}
+
 		void OnMapMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const MapImage* m, const uint8* sfItem, int offset, int recurseDepth) override
 		{
 			index++;
@@ -1265,6 +1288,28 @@ namespace Rococo
 			char refCount[256];
 			SafeFormat(refCount, "%d references", m->refCount);
 			tree->AddChild(node, refCount, CheckState_NoCheckBox);
+
+			char mapInfo[256];
+			SafeFormat(mapInfo, "Address %p", m);
+			tree->AddChild(node, mapInfo, CheckState_NoCheckBox);
+
+			int index = -1;
+			for (auto* p = m->Head; p != nullptr; p = p->Next)
+			{
+				index++;
+
+				auto* keyType = m->KeyType;
+				if (keyType && keyType->InterfaceCount() == 1 && IsIString(keyType->GetInterface(0)))
+				{
+					InlineString* s = *(InlineString**)Rococo::Script::GetKeyPointer(p);
+					if (s != nullptr)
+					{
+						auto* value = Rococo::Script::GetValuePointer(p);
+						SafeFormat(mapInfo, "[%d] '%s' -> %p", index, s->buffer ? s->buffer : "<null>", value);
+						tree->AddChild(node, mapInfo, CheckState_NoCheckBox);
+					}
+				}
+			}
 		}
 
 		void OnArrayMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const struct ArrayImage* array, const uint8* sfItem, int offset, int recurseDepth) override
