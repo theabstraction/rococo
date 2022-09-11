@@ -1,4 +1,4 @@
-// Generated: Sun Sep 11 20:22:00 2022
+// Generated: Sun Sep 11 21:17:49 2022
 
 #include "hv.events.h"
 
@@ -6,7 +6,7 @@ using namespace Rococo;
 
 namespace Rococo::Events
 {
-	static const EventIdRef EvId_SetNextLevel = "EvId_SetNextLevel"_event;
+	const EventIdRef EvId_SetNextLevel = "EvId_SetNextLevel"_event;
 
 	void SendSetNextLevel(IPublisher& publisher, cstr levelName)
 	{
@@ -34,7 +34,7 @@ namespace Rococo::Events
 
 namespace Rococo::Events::OS
 {
-	static const EventIdRef EvId_Tick = "EvId_Tick"_event;
+	const EventIdRef EvId_Tick = "EvId_Tick"_event;
 
 	void SendTick(IPublisher& publisher, IUltraClock* clock, uint32 frameSleep)
 	{

@@ -267,7 +267,7 @@
 	(IStringBuilder args = NewParagraphBuilder)
 	(BuildArgsList args obj)
 	
-	(#build cpp "	static const EventIdRef EvId_" obj.evName " = &"EvId_" obj.evName "&"_event;&n&n")
+	(#build cpp "	const EventIdRef EvId_" obj.evName " = &"EvId_" obj.evName "&"_event;&n&n")
 	
 	(#build cpp "	void Send" obj.evName "(" args ")&n")
 	(#build cpp "	{&n")
@@ -322,6 +322,8 @@
 	(IStringBuilder args = NewParagraphBuilder)
 	(BuildArgsList args obj)
 	
+	(#build hpp "	extern const EventIdRef EvId_" obj.evName ";&n&n")
+	
 	(#build hpp "	struct EvArgs_" obj.evName ": Rococo::Events::EventArgs&n")
 	(#build hpp	"	{&n")	
 	(foreach arg # obj.args
@@ -334,5 +336,12 @@
 	(#build hpp "	void Send" obj.evName "(" args ");&n")
 	(#build hpp "	void Send" obj.evName "Direct(IPublisher&& publisher, EvArgs_" obj.evName "&& args);&n")
 	
-	(#build hpp "	EvArgs_" obj.evName "* As_" obj.evName "(Event&& ev);&n")
+	(#build hpp "	EvArgs_" obj.evName "* As_" obj.evName "(Event&& ev);&n&n")
+	
+	(#build hpp "	template<class HANDLER>&n")
+	(#build hpp "	void Add(MessageMap<HANDLER>&& map, void (HANDLER::*fn_method)(EvArgs_" obj.evName "&& args))&n")
+	(#build hpp "	{&n")
+	(#build hpp "		auto* asMethod = reinterpret_cast<MessageMap<HANDLER>::EventHandlerMethod>(fn_method);&n")
+	(#build hpp "		map.Add(EvId_SetNextLevel, asMethod);&n")
+	(#build hpp "	}&n")
 )

@@ -1,10 +1,12 @@
 #pragma once
-// Generated at Sun Sep 11 20:22:00 2022
+// Generated at Sun Sep 11 21:17:49 2022
 
 #include "hv.event.declarations.h"
 
 namespace Rococo::Events
 {
+	extern const EventIdRef EvId_SetNextLevel;
+
 	struct EvArgs_SetNextLevel: Rococo::Events::EventArgs
 	{
 		cstr levelName;
@@ -13,10 +15,19 @@ namespace Rococo::Events
 	void SendSetNextLevel(IPublisher& publisher, cstr levelName);
 	void SendSetNextLevelDirect(IPublisher& publisher, EvArgs_SetNextLevel& args);
 	EvArgs_SetNextLevel* As_SetNextLevel(Event& ev);
+
+	template<class HANDLER>
+	void Add(MessageMap<HANDLER>& map, void (HANDLER::*fn_method)(EvArgs_SetNextLevel& args))
+	{
+		auto* asMethod = reinterpret_cast<MessageMap<HANDLER>::EventHandlerMethod>(fn_method);
+		map.Add(EvId_SetNextLevel, asMethod);
+	}
 }
 
 namespace Rococo::Events::OS
 {
+	extern const EventIdRef EvId_Tick;
+
 	struct EvArgs_Tick: Rococo::Events::EventArgs
 	{
 		IUltraClock* clock;
@@ -26,5 +37,12 @@ namespace Rococo::Events::OS
 	void SendTick(IPublisher& publisher, IUltraClock* clock, uint32 frameSleep);
 	void SendTickDirect(IPublisher& publisher, EvArgs_Tick& args);
 	EvArgs_Tick* As_Tick(Event& ev);
+
+	template<class HANDLER>
+	void Add(MessageMap<HANDLER>& map, void (HANDLER::*fn_method)(EvArgs_Tick& args))
+	{
+		auto* asMethod = reinterpret_cast<MessageMap<HANDLER>::EventHandlerMethod>(fn_method);
+		map.Add(EvId_SetNextLevel, asMethod);
+	}
 }
 
