@@ -18,6 +18,7 @@
 #include <objbase.h>
 #include <rococo.stl.allocators.h>
 #include "mplat.components.h"
+#include <rococo.gui.retained.h>
 
 //////////////////////// XAUDIO2 and Media Foundation stuff for audio decoding ////////////////////
 #pragma comment(lib, "wmcodecdspuuid.lib")
@@ -52,6 +53,11 @@ namespace Rococo
 		IMathsVenue& GetOSVenue();
 		IGuiStackSupervisor* CreateGui(IPublisher& publisher, ISourceCache& cache, IRenderer& renderer, IUtilitiies& utils);
 	}
+}
+
+namespace Rococo::Gui
+{
+	IGuiRetainedCustodianSupervisor* CreateCustodian();
 }
 
 namespace Rococo
@@ -360,13 +366,18 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	AutoFree<IWorldSupervisor> world = Rococo::CreateWorld(*meshes, *instances);
 
 	AutoFree<Graphics::ISpritesSupervisor> sprites = Rococo::Graphics::CreateSpriteTable(mainWindow->Renderer());
+
+	Rococo::Gui::GuiRetainedConfig grConfig;
+
+	AutoFree<Rococo::Gui::IGuiRetainedCustodianSupervisor> custodian = Rococo::Gui::CreateCustodian();
+	AutoFree<Rococo::Gui::IGuiRetainedSupervisor> GR = Rococo::Gui::CreateGuiRetained(grConfig, *custodian);
 	
 	Platform platform
 	{ 
 		*os, *installation, *appControl, mainWindow->Renderer(), mainWindow->Window(),* sprites,* rendererConfig,* messaging,
 		*sourceCache, *debuggerWindow, *publisher, *utilities, *gui, *keyboard, *config, *archive, *meshes,
 		*instances, *mobiles, *particles, *rigs, *spriteBuilder, *camera, *scene, tesselators, *mathsVisitor,
-		*audio, *ssFactory, title, *xbox360stick, *ims, *world, *ecs
+		*audio, *ssFactory, title, *xbox360stick, *ims, *world, *ecs, *GR
 	};
 
 	gui->PostConstruct(&platform);

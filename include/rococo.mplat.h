@@ -853,6 +853,11 @@ namespace Rococo
 		struct IRCObjectTable;
 	}
 
+	namespace Gui
+	{
+		struct IGuiRetained;
+	}
+
 	struct Platform
 	{
 		// Operating system functions
@@ -934,6 +939,8 @@ namespace Rococo
 
 		// (E)ntity(C)omponent(S)ystem
 		Rococo::Components::IRCObjectTable& ECS;
+
+		Rococo::Gui::IGuiRetained& GR;
 	};
 
 	namespace Events
