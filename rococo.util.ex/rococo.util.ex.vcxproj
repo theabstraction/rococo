@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="renderer.utils.cpp" />
+    <ClCompile Include="rococo.event.map.cpp" />
     <ClCompile Include="rococo.os.ex.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

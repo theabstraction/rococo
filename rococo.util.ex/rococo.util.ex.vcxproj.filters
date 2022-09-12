@@ -21,5 +21,8 @@
     <ClCompile Include="rococo.os.ex.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="rococo.event.map.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

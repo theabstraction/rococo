@@ -128,6 +128,60 @@ namespace Rococo::Events
 		if (t.sizeInBytes != sizeof(T)) ev.publisher.ThrowBadEvent(ev);
 		return t;
 	}
+
+	class EventMapBacking
+	{
+	public:
+		EventMapBacking();
+	private:
+		int64 backing[8] = { 0 };
+	};
+
+	class EventMap : private EventMapBacking
+	{
+	public:
+		EventMap();
+		~EventMap();
+
+		EventMapBacking& Backing() { return *this; }
+
+		void* Find(EventIdRef id);
+		bool TryAdd(EventIdRef id, void* ptr);
+	};
+
+	template<class HANDLER>
+	class MessageMap
+	{
+	public:
+		typedef void (HANDLER::* EventHandlerMethod)(EventArgs& ev);
+
+	private:
+		EventMap routingTable;
+
+	public:
+		MessageMap()
+		{
+
+		}
+
+		void Add(EventIdRef id, EventHandlerMethod method)
+		{
+			if (!routingTable.TryAdd(id, method))
+			{
+				Throw(0, "The routing table already had the method: %s", id.name);
+			}
+		}
+
+		void RouteEvent(HANDLER& handler, Event ev)
+		{
+			auto* methodVoid = routingTable.Find(ev.id);
+			if (methodVoid)
+			{
+				auto* method = reinterpret_cast<EventHandlerMethod>(methodVoid);
+				(handler.*method)(ev.args);
+			}
+		}
+	};
 }
 
 namespace Rococo
