@@ -10,6 +10,7 @@ namespace ANON
 		IGRPanelRoot& root;
 		AutoFree<IGRLayoutSupervisor> layout;
 		IGRWidget* widget = nullptr; // Should always be set immediately after construction
+		Vec2i parentOffset{ 0,0 };
 		Vec2i span { 0, 0};
 
 		GRPanel(IGRPanelRoot& _root, IGRLayoutSupervisor* _layout): root(_root), layout(_layout)
@@ -27,14 +28,34 @@ namespace ANON
 			delete this;
 		}
 
-		void SetWidget(IGRWidget& widget) override
-		{
-			this->widget = &widget;
-		}
-
 		void Resize(Vec2i span) override
 		{
 			this->span = span;
+		}
+
+		Vec2i ParentOffset() const override
+		{
+			return parentOffset;
+		}
+
+		IGRPanelRoot& Root() override
+		{
+			return root;
+		}
+
+		void SetParentOffset(Vec2i offset) override
+		{
+			this->parentOffset = offset;
+		}
+
+		Vec2i Span() const override
+		{
+			return span;
+		}
+
+		void SetWidget(IGRWidget& widget) override
+		{
+			this->widget = &widget;
 		}
 
 		IGRWidget& Widget() override

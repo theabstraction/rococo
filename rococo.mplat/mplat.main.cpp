@@ -57,7 +57,7 @@ namespace Rococo
 
 namespace Rococo::Gui
 {
-	IGuiRetainedCustodianSupervisor* CreateCustodian();
+	IMPlatGuiCustodianSupervisor* CreateMPlatCustodian();
 }
 
 namespace Rococo
@@ -369,15 +369,15 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 
 	Rococo::Gui::GuiRetainedConfig grConfig;
 
-	AutoFree<Rococo::Gui::IGuiRetainedCustodianSupervisor> custodian = Rococo::Gui::CreateCustodian();
-	AutoFree<Rococo::Gui::IGuiRetainedSupervisor> GR = Rococo::Gui::CreateGuiRetained(grConfig, *custodian);
+	AutoFree<Rococo::Gui::IMPlatGuiCustodianSupervisor> mplat_gcs = Rococo::Gui::CreateMPlatCustodian();
+	AutoFree<Rococo::Gui::IGuiRetainedSupervisor> GR = Rococo::Gui::CreateGuiRetained(grConfig, mplat_gcs->Custodian());
 	
 	Platform platform
 	{ 
 		*os, *installation, *appControl, mainWindow->Renderer(), mainWindow->Window(),* sprites,* rendererConfig,* messaging,
 		*sourceCache, *debuggerWindow, *publisher, *utilities, *gui, *keyboard, *config, *archive, *meshes,
 		*instances, *mobiles, *particles, *rigs, *spriteBuilder, *camera, *scene, tesselators, *mathsVisitor,
-		*audio, *ssFactory, title, *xbox360stick, *ims, *world, *ecs, *GR
+		*audio, *ssFactory, title, *xbox360stick, *ims, *world, *ecs, *GR, *mplat_gcs
 	};
 
 	gui->PostConstruct(&platform);

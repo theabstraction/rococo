@@ -4,6 +4,7 @@
 #include <string>
 #include <algorithm>
 
+using namespace Rococo;
 using namespace Rococo::Gui;
 
 namespace Rococo::Gui
@@ -11,6 +12,11 @@ namespace Rococo::Gui
 	IGRLayoutSupervisor* CreateFullScreenLayout();
 	IGRMainFrameSupervisor* CreateGRMainFrame(IGRPanel& panel);
 	IGRPanelSupervisor* CreatePanel(IGRPanelRoot& root, IGRLayoutSupervisor* layout);
+
+	bool operator == (const GuiRect& a, const GuiRect& b)
+	{
+		return a.left == b.left && a.right == b.right && a.top == b.top && a.bottom == b.bottom;
+	}
 }
 
 namespace ANON
@@ -19,6 +25,8 @@ namespace ANON
 	{
 		IGuiRetainedCustodian& custodian;
 		GuiRetainedConfig config;
+
+		AutoFree<ISchemeSupervisor> scheme = CreateScheme();
 
 		struct FrameDesc
 		{
@@ -81,6 +89,11 @@ namespace ANON
 			frameDescriptors.erase(d, frameDescriptors.end());
 		}
 
+		IScheme& Scheme()
+		{
+			return *scheme;
+		}
+
 		IGRMainFrame* TryGetFrame(IdWidget id) override
 		{
 			for (auto& d : frameDescriptors)
@@ -94,10 +107,29 @@ namespace ANON
 			return nullptr;
 		}
 
+		GuiRect lastLayedOutScreenDimensions { 0,0,0,0 };
+
+		void LayoutFrames()
+		{
+			for (auto& d : frameDescriptors)
+			{
+				d.frame->Layout(lastLayedOutScreenDimensions);
+			}
+		}
+
 		void RenderGui(IGRRenderContext& g) override
 		{
 			for (auto& d : frameDescriptors)
 			{
+				auto screenDimensions = g.ScreenDimensions();
+				g.SetOrigin({ screenDimensions.left, screenDimensions.top });
+
+				if (lastLayedOutScreenDimensions != screenDimensions)
+				{
+					lastLayedOutScreenDimensions = screenDimensions;
+					LayoutFrames();
+				}
+
 				d.frame->Render(g);
 			}
 		}
@@ -131,6 +163,11 @@ namespace ANON
 				std::advance(i, frameDescriptors.size() - 1);
 				std::swap(i, lastOne);
 			}
+		}
+
+		IGRPanelRoot& Root() override
+		{
+			return *this;
 		}
 	};
 }

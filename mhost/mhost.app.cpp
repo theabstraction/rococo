@@ -12,6 +12,7 @@
 #include <rococo.sexy.api.h>
 
 #include <rococo.package.h>
+#include <rococo.gui.retained.h>
 
 using namespace Rococo;
 using namespace Rococo::Strings;
@@ -83,6 +84,8 @@ namespace MHost
 			IGui* gui = CreateGuiOnStack(guiBuffer, grc);
 			dispatcher->RouteGuiToScript(ss, gui, populator);
 			platform.gui.Render(grc);
+
+			platform.GR_Custodian.Render(grc, platform.GR);
 		}
 
 		void RenderObjects(IRenderContext& rc, bool skinned)  override
@@ -429,6 +432,9 @@ namespace MHost
 			CreateSysDeclarations();
 
 			RunMHostEnvironmentScript(platform, this, "!scripts/MHost/_Init/keys.sxy", true, false, *packageMHost, this, nullptr);
+
+			platform.GR.BindFrame(Rococo::Gui::IdWidget{"Mhost-Frame"});
+			platform.GR.Root().Scheme().SetColour(Rococo::Gui::ESchemeColourSurface::BACKGROUND, RGBAb(255, 0, 0, 192));
 
 			while (platform.appControl.IsRunning() && !isShutdown)
 			{

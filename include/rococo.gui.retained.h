@@ -27,16 +27,45 @@ namespace Rococo::Gui
 
 	ROCOCOAPI IGRRenderContext
 	{
+		virtual void DrawRect(Vec2i topLeft, Vec2i span, RGBAb colour) = 0;
 		virtual GuiRect ScreenDimensions() const = 0;
+		virtual void SetOrigin(Vec2i origin) = 0;
 	};
 
 	struct IGRWidget;
+
+	enum class ESchemeColourSurface
+	{
+		BACKGROUND
+	};
+
+	ROCOCOAPI IScheme
+	{
+		virtual RGBAb GetColour(ESchemeColourSurface surface) = 0;
+		virtual void SetColour(ESchemeColourSurface surface, RGBAb colour) = 0;
+	};
+
+	ROCOCOAPI ISchemeSupervisor : IScheme
+	{
+		virtual void Free() = 0;
+	};
+
+	ISchemeSupervisor* CreateScheme();
+
+	ROCOCOAPI IGRPanelRoot
+	{
+		virtual IScheme& Scheme() = 0;
+	};
 
 	ROCOCOAPI IGRPanel
 	{
 		virtual IGRLayout& LayoutSystem() = 0;
 		virtual IGRWidget& Widget() = 0;
 		virtual void Resize(Vec2i span) = 0;
+		virtual void SetParentOffset(Vec2i offset) = 0;
+		virtual Vec2i Span() const = 0;
+		virtual Vec2i ParentOffset() const = 0;
+		virtual IGRPanelRoot& Root() = 0;
 	};
 
 	ROCOCOAPI IGRPanelSupervisor : IGRPanel
@@ -45,20 +74,15 @@ namespace Rococo::Gui
 		virtual void Free() = 0;
 	};
 
-	ROCOCOAPI IGRPanelRoot
-	{
-
-	};
-
 	ROCOCOAPI IGRWidget
 	{
+		virtual void Layout(const GuiRect & parentDimensions) = 0;
 		virtual IGRPanel& Panel() = 0;	
 		virtual void Render(IGRRenderContext& g) = 0;
 	};
 
 	ROCOCOAPI IGRMainFrame: IGRWidget
 	{
-		
 	};
 
 	ROCOCOAPI IGRMainFrameSupervisor: IGRMainFrame
@@ -81,13 +105,18 @@ namespace Rococo::Gui
 		virtual void MakeFirstToRender(IdWidget id) = 0;
 
 		// Raise the frame so that it is the final to render
-		virtual void MakeLastToRender(IdWidget id) = 0;
+		virtual void MakeLastToRender(IdWidget id) = 0;	
+		
+		// Renders the list of frames
+		virtual void RenderGui(IGRRenderContext& g) = 0;
+
+		virtual IGRPanelRoot& Root() = 0;
 	};
 
 	ROCOCOAPI IGuiRetainedSupervisor: IGuiRetained
 	{
 		virtual void Free() = 0;
-		virtual void RenderGui(IGRRenderContext& g) = 0;
+
 	};
 
 	ROCOCOAPI IGuiRetainedCustodian

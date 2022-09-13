@@ -856,6 +856,14 @@ namespace Rococo
 	namespace Gui
 	{
 		struct IGuiRetained;
+		struct IGuiRetainedCustodian;
+
+		struct IMPlatGuiCustodianSupervisor
+		{
+			virtual IGuiRetainedCustodian& Custodian() = 0;
+			virtual void Render(IGuiRenderContext& rc, IGuiRetained& gr) = 0;
+			virtual void Free() = 0;
+		};
 	}
 
 	struct Platform
@@ -941,6 +949,8 @@ namespace Rococo
 		Rococo::Components::IRCObjectTable& ECS;
 
 		Rococo::Gui::IGuiRetained& GR;
+
+		Rococo::Gui::IMPlatGuiCustodianSupervisor& GR_Custodian;
 	};
 
 	namespace Events
