@@ -28,6 +28,7 @@ namespace Rococo::Gui
 	ROCOCOAPI IGRRenderContext
 	{
 		virtual void DrawRect(Vec2i topLeft, Vec2i span, RGBAb colour) = 0;
+		virtual void DrawRectEdge(Vec2i parentOffset, Vec2i span, RGBAb colour1, RGBAb colour2) = 0;
 		virtual GuiRect ScreenDimensions() const = 0;
 		virtual void SetOrigin(Vec2i origin) = 0;
 	};
@@ -36,7 +37,15 @@ namespace Rococo::Gui
 
 	enum class ESchemeColourSurface
 	{
-		BACKGROUND
+		BACKGROUND,
+		BUTTON_RAISED,
+		BUTTON_PRESSED,
+		BUTTON_RAISED_AND_HOVERED,
+		BUTTON_PRESSED_AND_HOVERED,
+		BUTTON_EDGE_TOP_LEFT,
+		BUTTON_EDGE_BOTTOM_RIGHT,
+		BUTTON_EDGE_TOP_LEFT_PRESSED,
+		BUTTON_EDGE_BOTTOM_RIGHT_PRESSED,
 	};
 
 	ROCOCOAPI IScheme
@@ -66,6 +75,7 @@ namespace Rococo::Gui
 		virtual Vec2i Span() const = 0;
 		virtual Vec2i ParentOffset() const = 0;
 		virtual IGRPanelRoot& Root() = 0;
+		virtual IGRPanel& AddChild() = 0;
 	};
 
 	ROCOCOAPI IGRPanelSupervisor : IGRPanel
@@ -76,10 +86,23 @@ namespace Rococo::Gui
 
 	ROCOCOAPI IGRWidget
 	{
-		virtual void Layout(const GuiRect & parentDimensions) = 0;
-		virtual IGRPanel& Panel() = 0;	
+		virtual void Layout(const GuiRect& parentDimensions) = 0;
+		virtual IGRPanel& Panel() = 0;
 		virtual void Render(IGRRenderContext& g) = 0;
+		virtual void Free() = 0;
 	};
+
+	ROCOCOAPI IGRWidgetButton: IGRWidget
+	{		
+
+	};
+
+	ROCOCOAPI IGRWidgetFactory
+	{
+		virtual IGRWidget& CreateWidget(IGRPanel& panel) = 0;
+	};
+
+	ROCOCO_GUI_RETAINED_API IGRWidgetFactory& GetWidgetButtonFactory();
 
 	ROCOCOAPI IGRMainFrame: IGRWidget
 	{
@@ -87,7 +110,6 @@ namespace Rococo::Gui
 
 	ROCOCOAPI IGRMainFrameSupervisor: IGRMainFrame
 	{
-		virtual void Free() = 0;
 	};
 
 	ROCOCOAPI IGuiRetained
@@ -111,6 +133,8 @@ namespace Rococo::Gui
 		virtual void RenderGui(IGRRenderContext& g) = 0;
 
 		virtual IGRPanelRoot& Root() = 0;
+
+		virtual IGRWidget& AddWidget(IGRPanel& parent, IGRWidgetFactory& factory) = 0;
 	};
 
 	ROCOCOAPI IGuiRetainedSupervisor: IGuiRetained
@@ -135,4 +159,6 @@ namespace Rococo::Gui
 	};
 
 	ROCOCO_GUI_RETAINED_API IGuiRetainedSupervisor* CreateGuiRetained(GuiRetainedConfig& config, IGuiRetainedCustodian& custodian);
+	ROCOCO_GUI_RETAINED_API void DrawButton(IGRPanel& panel, bool hovered, bool focused, bool raised, IGRRenderContext& g);
+	ROCOCO_GUI_RETAINED_API void DrawPanelBackground(IGRPanel& panel, IGRRenderContext& g);
 }

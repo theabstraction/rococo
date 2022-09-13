@@ -15,11 +15,18 @@ namespace ANON
 
 		Vec2i origin{ 0,0 };
 
-		void DrawRect(Vec2i parentOffset, Vec2i span, RGBAb colour)
+		void DrawRect(Vec2i parentOffset, Vec2i span, RGBAb colour) override
 		{
 			Vec2i topLeft = origin + parentOffset;
 			GuiRect rect{ topLeft.x, topLeft.y, topLeft.x + span.x, topLeft.y + span.y };
 			Rococo::Graphics::DrawRectangle(*rc, rect, colour, colour);
+		}
+
+		void DrawRectEdge(Vec2i parentOffset, Vec2i span, RGBAb colour1, RGBAb colour2) override
+		{
+			Vec2i topLeft = origin + parentOffset;
+			GuiRect rect { topLeft.x, topLeft.y, topLeft.x + span.x, topLeft.y + span.y };
+			Rococo::Graphics::DrawBorderAround(*rc, rect, Vec2i{ 1,1 }, colour1, colour2);
 		}
 
 		GuiRect ScreenDimensions() const override

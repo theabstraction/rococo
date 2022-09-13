@@ -1,4 +1,5 @@
 #include <rococo.gui.retained.h>
+#include <vector>
 
 namespace ANON
 {
@@ -12,10 +13,26 @@ namespace ANON
 		IGRWidget* widget = nullptr; // Should always be set immediately after construction
 		Vec2i parentOffset{ 0,0 };
 		Vec2i span { 0, 0};
+		std::vector<IGRPanelSupervisor*> children;
 
 		GRPanel(IGRPanelRoot& _root, IGRLayoutSupervisor* _layout): root(_root), layout(_layout)
 		{
 
+		}
+
+		virtual ~GRPanel()
+		{
+			for (auto* child : children)
+			{
+				child->Free();
+			}
+		}
+
+		IGRPanel& AddChild()
+		{
+			auto* child = new GRPanel(root, layout);
+			children.push_back(child);
+			return* child;
 		}
 
 		IGRLayout& LayoutSystem() override

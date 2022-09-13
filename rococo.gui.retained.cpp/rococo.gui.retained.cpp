@@ -169,6 +169,15 @@ namespace ANON
 		{
 			return *this;
 		}
+
+		IGRWidget& AddWidget(IGRPanel& parent, IGRWidgetFactory& factory)
+		{
+			auto& panel = parent.AddChild();
+			auto& widget = factory.CreateWidget(panel);
+			auto& superPanel = static_cast<IGRPanelSupervisor&>(panel);
+			superPanel.SetWidget(widget);
+			return widget;
+		}
 	};
 }
 

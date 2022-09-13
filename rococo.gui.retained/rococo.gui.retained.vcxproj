@@ -166,6 +166,7 @@
     <ClCompile Include="rococo.gr.mainframe.cpp" />
     <ClCompile Include="rococo.gr.panel.cpp" />
     <ClCompile Include="rococo.gr.scheme.cpp" />
+    <ClCompile Include="rococo.gr.widget.button.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\rococo.gui.retained.h" />
