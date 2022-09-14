@@ -9,6 +9,7 @@ namespace ANON
 	struct Button : IGRWidgetButton
 	{
 		IGRPanel& panel;
+		bool isRaised = true;
 
 		Button(IGRPanel& owningPanel) : panel(owningPanel)
 		{
@@ -25,6 +26,27 @@ namespace ANON
 
 		}
 
+		EventRouting OnCursorClick(CursorEvent& ce) override
+		{
+			if (ce.click.LeftButtonDown)
+			{
+				isRaised = false;
+				return EventRouting::Terminate;
+			}
+			else if (ce.click.LeftButtonUp)
+			{
+				isRaised = true;
+				return EventRouting::Terminate;
+			}
+
+			return EventRouting::NextChild;
+		}
+
+		EventRouting OnCursorMove(CursorEvent& ce) override
+		{
+			return EventRouting::NextChild;
+		}
+
 		IGRPanel& Panel() override
 		{
 			return panel;
@@ -32,7 +54,7 @@ namespace ANON
 
 		void Render(IGRRenderContext& g) override
 		{
-			DrawButton(panel, false, false, g);
+			DrawButton(panel, false, isRaised, g);
 		}
 	};
 

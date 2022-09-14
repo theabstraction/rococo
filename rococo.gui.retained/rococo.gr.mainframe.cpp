@@ -31,6 +31,16 @@ namespace ANON
 			panel.Resize(Span(screenDimensions));
 		}
 
+		EventRouting OnCursorClick(CursorEvent& ce) override
+		{
+			return EventRouting::NextChild;
+		}
+
+		EventRouting OnCursorMove(CursorEvent& ce) override
+		{
+			return EventRouting::NextChild;
+		}
+
 		IGRPanel& Panel()
 		{
 			return panel;

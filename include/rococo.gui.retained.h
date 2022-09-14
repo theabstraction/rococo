@@ -12,6 +12,33 @@ namespace Rococo::Gui
 	struct IGRWidget;
 	struct IGuiRetained;
 
+#pragma pack(push, 1)
+	struct CursorClick
+	{
+		uint16 LeftButtonDown : 1;
+		uint16 LeftButtonUp : 1;
+		uint16 RightButtonDown : 1;
+		uint16 RightButtonUp : 1;
+		uint16 MidButtonDown : 1;
+		uint16 MidButtonUp : 1;
+		uint16 MouseWheel : 1;
+		uint16 Unknown : 1;
+	};
+
+	struct IGREventHistory
+	{
+		virtual void RecordWidget(IGRWidget& widget) = 0;
+	};
+
+	struct CursorEvent
+	{
+		IGREventHistory& history;
+		const Vec2i position;
+		const int64 eventId;
+		const CursorClick click;
+	};
+#pragma pack(pop)
+
 	struct IdWidget
 	{
 		cstr Name;
@@ -72,7 +99,6 @@ namespace Rococo::Gui
 
 	ROCOCOAPI IGRPanel
 	{
-		virtual IGRLayout& LayoutSystem() = 0;
 		virtual IGRWidget& Widget() = 0;
 		virtual IGRPanel& Resize(Vec2i span) = 0;
 		virtual IGRPanel& SetParentOffset(Vec2i offset) = 0;
@@ -84,10 +110,18 @@ namespace Rococo::Gui
 		virtual GuiRect AbsRect() const = 0;
 	};
 
+	enum class EventRouting
+	{
+		NextChild,
+		Terminate
+	};
+
 	ROCOCOAPI IGRPanelSupervisor : IGRPanel
 	{
 		virtual void LayoutRecursive(Vec2i absoluteOrigin) = 0;
 		virtual void RenderRecursive(IGRRenderContext & g) = 0;
+		virtual EventRouting RouteCursorClickEvent(CursorEvent& ce) = 0;
+		virtual EventRouting RouteCursorMoveEvent(CursorEvent& ce) = 0;
 		virtual void SetWidget(IGRWidget& widget) = 0;
 		virtual void Free() = 0;
 	};
@@ -95,6 +129,8 @@ namespace Rococo::Gui
 	ROCOCOAPI IGRWidget
 	{
 		virtual void Layout(const GuiRect& parentDimensions) = 0;
+		virtual EventRouting OnCursorClick(CursorEvent& ce) = 0;
+		virtual EventRouting OnCursorMove(CursorEvent& ce) = 0;
 		virtual IGRPanel& Panel() = 0;
 		virtual void Render(IGRRenderContext& g) = 0;
 		virtual void Free() = 0;
@@ -146,6 +182,15 @@ namespace Rococo::Gui
 
 		// Constant time lookup of a widget with a given panel Id.
 		virtual IGRWidget* FindWidget(int64 panelId) = 0;
+
+		// Set the visibility status. If invisible, it will ignore all input and not be rendered
+		virtual void SetVisible(bool isVisible) = 0;
+
+		// Returns true if the retained GUI is visible and there are frames to show, otherwise false
+		virtual bool IsVisible() const = 0;
+
+		virtual EventRouting RouteCursorClickEvent(CursorEvent& ev) = 0;
+		virtual EventRouting RouteCursorMoveEvent(CursorEvent& ev) = 0;
 	};
 
 	ROCOCOAPI IGuiRetainedSupervisor: IGuiRetained

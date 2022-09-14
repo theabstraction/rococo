@@ -535,6 +535,15 @@ namespace MHost
 				return false;
 			}
 
+			if (platform.GR.IsVisible())
+			{
+				while (platform.GR.IsVisible() && control.TryGetNextMouseEvent(me))
+				{
+					platform.GR_Custodian.RouteMouseEvent(me, platform.GR);
+				}
+				return false;
+			}
+
 			boolean32 found = control.TryGetNextMouseEvent(me);
 			if (found)
 			{

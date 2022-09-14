@@ -12,7 +12,6 @@ namespace ANON
 	struct GRPanel : IGRPanelSupervisor
 	{
 		IGRPanelRoot& root;
-		AutoFree<IGRLayoutSupervisor> layout;
 		IGRWidget* widget = nullptr; // Should always be set immediately after construction
 		Vec2i parentOffset{ 0,0 };
 		Vec2i span { 0, 0};
@@ -20,7 +19,7 @@ namespace ANON
 		int64 uniqueId;
 		GuiRect absRect{ 0,0,0,0 };
 
-		GRPanel(IGRPanelRoot& _root, IGRLayoutSupervisor* _layout): root(_root), layout(_layout), uniqueId(nextId++)
+		GRPanel(IGRPanelRoot& _root): root(_root), uniqueId(nextId++)
 		{
 
 		}
@@ -40,7 +39,7 @@ namespace ANON
 
 		IGRPanel& AddChild()
 		{
-			auto* child = new GRPanel(root, layout);
+			auto* child = new GRPanel(root);
 			children.push_back(child);
 			return* child;
 		}
@@ -48,12 +47,6 @@ namespace ANON
 		GuiRect AbsRect() const override
 		{
 			return absRect;
-		}
-
-
-		IGRLayout& LayoutSystem() override
-		{
-			return *layout;
 		}
 
 		void Free() override
@@ -103,6 +96,54 @@ namespace ANON
 			return root;
 		}
 
+		EventRouting RouteCursorClickEvent(CursorEvent& ce) override
+		{
+			if (!IsPointInRect(ce.position, absRect))
+			{
+				return EventRouting::NextChild;
+			}
+
+			for (auto* child : children)
+			{
+				EventRouting routing = child->RouteCursorClickEvent(ce);
+				if (routing == EventRouting::Terminate)
+				{
+					return EventRouting::Terminate;
+				}
+			}
+
+			if (!widget)
+			{
+				return EventRouting::NextChild;
+			}
+
+			return widget->OnCursorClick(ce);
+		}
+
+		EventRouting RouteCursorMoveEvent(CursorEvent& ce) override
+		{
+			if (!IsPointInRect(ce.position, absRect))
+			{
+				return EventRouting::NextChild;
+			}
+
+			for (auto* child : children)
+			{
+				EventRouting routing = child->RouteCursorMoveEvent(ce);
+				if (routing == EventRouting::Terminate)
+				{
+					return EventRouting::Terminate;
+				}
+			}
+
+			if (!widget)
+			{
+				return EventRouting::NextChild;
+			}
+
+			return widget->OnCursorMove(ce);
+		}
+
 		IGRPanel& SetParentOffset(Vec2i offset) override
 		{
 			this->parentOffset = offset;
@@ -128,8 +169,8 @@ namespace ANON
 
 namespace Rococo::Gui
 {
-	IGRPanelSupervisor* CreatePanel(IGRPanelRoot& root, IGRLayoutSupervisor* layout)
+	IGRPanelSupervisor* CreatePanel(IGRPanelRoot& root)
 	{
-		return new ANON::GRPanel(root, layout);
+		return new ANON::GRPanel(root);
 	}
 }

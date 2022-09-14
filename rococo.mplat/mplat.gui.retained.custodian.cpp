@@ -2,6 +2,8 @@
 #include <rococo.mplat.h>
 #include <rococo.renderer.h>
 #include <rococo.maths.h>
+#include <rococo.ui.h>
+#include <vector>
 
 using namespace Rococo;
 using namespace Rococo::Gui;
@@ -54,9 +56,37 @@ namespace ANON
 		}
 	};
 
-	struct MPlatCustodian : IMPlatGuiCustodianSupervisor, IGuiRetainedCustodian
+	struct MPlatCustodian : IMPlatGuiCustodianSupervisor, IGuiRetainedCustodian, IGREventHistory
 	{
 		MPlatGR_Renderer renderer;
+
+		// Debugging materials:
+		std::vector<IGRWidget*> history;
+		EventRouting lastRoutingStatus;
+		int64 eventCount = 0;
+
+		void RecordWidget(IGRWidget& widget)
+		{
+			history.push_back(&widget);
+		}
+
+		void RouteMouseEvent(const MouseEvent& me, IGuiRetained& gr)
+		{
+			static_assert(sizeof CursorClick == sizeof uint16);
+
+			history.clear();
+			if (me.buttonFlags != 0)
+			{
+				CursorEvent cursorEvent{ *this, me.cursorPos, eventCount, *(CursorClick*)&me.buttonFlags };
+				lastRoutingStatus = gr.RouteCursorClickEvent(cursorEvent);
+			}
+			else
+			{
+				CursorEvent cursorEvent{ *this, me.cursorPos, eventCount, *(CursorClick*)&me.buttonFlags };
+				lastRoutingStatus = gr.RouteCursorMoveEvent(cursorEvent);
+			}
+			eventCount++;
+		}
 
 		IGuiRetainedCustodian& Custodian()
 		{

@@ -862,6 +862,7 @@ namespace Rococo
 		{
 			virtual IGuiRetainedCustodian& Custodian() = 0;
 			virtual void Render(IGuiRenderContext& rc, IGuiRetained& gr) = 0;
+			virtual void RouteMouseEvent(const MouseEvent& me, IGuiRetained& gr) = 0;
 			virtual void Free() = 0;
 		};
 	}

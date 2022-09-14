@@ -13,7 +13,7 @@ namespace Rococo::Gui
 {
 	IGRLayoutSupervisor* CreateFullScreenLayout();
 	IGRMainFrameSupervisor* CreateGRMainFrame(IGRPanel& panel);
-	IGRPanelSupervisor* CreatePanel(IGRPanelRoot& root, IGRLayoutSupervisor* layout);
+	IGRPanelSupervisor* CreatePanel(IGRPanelRoot& root);
 
 	bool operator == (const GuiRect& a, const GuiRect& b)
 	{
@@ -55,7 +55,6 @@ namespace ANON
 		{
 			for (auto d : frameDescriptors)
 			{
-				d.frame->Free();
 				d.panel->Free();
 			}
 		}
@@ -79,7 +78,7 @@ namespace ANON
 				return *oldFrame;
 			}
 
-			auto* newRootPanel = CreatePanel(*this, CreateFullScreenLayout());
+			auto* newRootPanel = CreatePanel(*this);
 			auto* newFrame = CreateGRMainFrame(*newRootPanel);
 			newRootPanel->SetWidget(*newFrame);
 			frameDescriptors.push_back(FrameDesc{ newRootPanel, newFrame, std::string(id.Name) });
@@ -194,7 +193,56 @@ namespace ANON
 		{
 			return *this;
 		}
+
+		bool isVisible = true;
+
+		void SetVisible(bool isVisible) override
+		{
+			this->isVisible = isVisible;
+		}
+
+		bool IsVisible() const override
+		{
+			return isVisible && !frameDescriptors.empty();
+		}
+
+		EventRouting RouteCursorClickEvent(CursorEvent& ev) override
+		{
+			for (auto d = frameDescriptors.rbegin(); d != frameDescriptors.rend(); ++d)
+			{
+				auto routing = d->panel->RouteCursorClickEvent(ev);
+				if (routing == EventRouting::Terminate)
+				{
+					return EventRouting::Terminate;
+				}
+			}
+
+			return EventRouting::NextChild;
+		}
+
+		EventRouting RouteCursorMoveEvent(CursorEvent& ev) override
+		{
+			for (auto d = frameDescriptors.rbegin(); d != frameDescriptors.rend(); ++d)
+			{
+				auto routing = d->panel->RouteCursorMoveEvent(ev);
+				if (routing == EventRouting::Terminate)
+				{
+					return EventRouting::Terminate;
+				}
+			}
+
+			return EventRouting::NextChild;
+		}
 	};
+}
+
+namespace Rococo
+{
+	// Copied from the maths lib. We want our DLL to depend on as few libraries as possible to make it easier to re-use in third party apps
+	bool IsPointInRect(Vec2i p, const GuiRect& rect)
+	{
+		return (p.x >= rect.left && p.x <= rect.right && p.y >= rect.top && p.y <= rect.bottom);
+	}
 }
 
 namespace Rococo::Gui
