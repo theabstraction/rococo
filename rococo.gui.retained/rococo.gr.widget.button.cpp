@@ -1,4 +1,5 @@
 #include <rococo.gui.retained.h>
+#include <rococo.maths.h>
 
 using namespace Rococo;
 using namespace Rococo::Gui;
@@ -31,7 +32,7 @@ namespace ANON
 
 		void Render(IGRRenderContext& g) override
 		{
-			DrawButton(panel, false, false, false, g);
+			DrawButton(panel, false, false, g);
 		}
 	};
 
@@ -46,13 +47,38 @@ namespace ANON
 
 namespace Rococo::Gui
 {
-	ROCOCO_GUI_RETAINED_API IGRWidgetButton* CreateWidgetButton(IGRPanel& panel)
+	ROCOCO_GUI_RETAINED_API IGRWidgetButton& CreateButton(IGRWidget& parent)
 	{
-		return new ANON::Button(panel);
+		auto& gr = parent.Panel().Root().GR();
+		return static_cast<IGRWidgetButton&>(gr.AddWidget(parent.Panel(), ANON::s_ButtonFactory));
 	}
 
-	ROCOCO_GUI_RETAINED_API IGRWidgetFactory& GetWidgetButtonFactory()
+	ROCOCO_GUI_RETAINED_API void DrawButton(IGRPanel& panel, bool focused, bool raised, IGRRenderContext& g)
 	{
-		return ANON::s_ButtonFactory;
+		bool hovered = g.IsHovered(panel);
+
+		ESchemeColourSurface surface;
+		if (hovered)
+		{
+			surface = raised ? ESchemeColourSurface::BUTTON_RAISED_AND_HOVERED : ESchemeColourSurface::BUTTON_PRESSED_AND_HOVERED;
+		}
+		else
+		{
+			surface = raised ? ESchemeColourSurface::BUTTON_RAISED : ESchemeColourSurface::BUTTON_PRESSED;
+		}
+
+		RGBAb colour = panel.Root().Scheme().GetColour(surface);
+		g.DrawRect(panel.AbsRect(), colour);
+
+		ESchemeColourSurface topLeftEdge;
+		ESchemeColourSurface bottomRightEdge;
+
+		topLeftEdge = raised ? ESchemeColourSurface::BUTTON_EDGE_TOP_LEFT : ESchemeColourSurface::BUTTON_EDGE_TOP_LEFT_PRESSED;
+		bottomRightEdge = raised ? ESchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT : ESchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT_PRESSED;
+
+		RGBAb colour1 = panel.Root().Scheme().GetColour(topLeftEdge);
+		RGBAb colour2 = panel.Root().Scheme().GetColour(bottomRightEdge);
+
+		g.DrawRectEdge(panel.AbsRect(), colour1, colour2);
 	}
 }

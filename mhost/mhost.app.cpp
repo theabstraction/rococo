@@ -433,8 +433,20 @@ namespace MHost
 
 			RunMHostEnvironmentScript(platform, this, "!scripts/MHost/_Init/keys.sxy", true, false, *packageMHost, this, nullptr);
 
-			platform.GR.BindFrame(Rococo::Gui::IdWidget{"Mhost-Frame"});
-			platform.GR.Root().Scheme().SetColour(Rococo::Gui::ESchemeColourSurface::BACKGROUND, RGBAb(255, 0, 0, 192));
+			auto& frame = platform.GR.BindFrame(Rococo::Gui::IdWidget{"Mhost-Frame"});
+			auto& scheme = platform.GR.Root().Scheme();
+			scheme.SetColour(Rococo::Gui::ESchemeColourSurface::BACKGROUND, RGBAb(64, 64, 64, 192));
+			scheme.SetColour(Rococo::Gui::ESchemeColourSurface::BUTTON_PRESSED, RGBAb(160, 160, 160, 255));
+			scheme.SetColour(Rococo::Gui::ESchemeColourSurface::BUTTON_RAISED, RGBAb(128, 128, 128, 255));
+			scheme.SetColour(Rococo::Gui::ESchemeColourSurface::BUTTON_PRESSED_AND_HOVERED, RGBAb(192, 192, 192, 255));
+			scheme.SetColour(Rococo::Gui::ESchemeColourSurface::BUTTON_RAISED_AND_HOVERED, RGBAb(144, 144, 144, 192));
+			scheme.SetColour(Rococo::Gui::ESchemeColourSurface::BUTTON_EDGE_TOP_LEFT, RGBAb(192, 192, 192, 255));
+			scheme.SetColour(Rococo::Gui::ESchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(160, 160, 160, 255));
+			scheme.SetColour(Rococo::Gui::ESchemeColourSurface::BUTTON_EDGE_TOP_LEFT_PRESSED, RGBAb(255, 255, 255, 255));
+			scheme.SetColour(Rococo::Gui::ESchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT_PRESSED, RGBAb(224, 224, 224, 255));
+
+			auto& button = Rococo::Gui::CreateButton(frame);
+			button.Panel().Resize({ 64,64 }).SetParentOffset({0,0});
 
 			while (platform.appControl.IsRunning() && !isShutdown)
 			{

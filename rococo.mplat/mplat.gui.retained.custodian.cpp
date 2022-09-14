@@ -1,6 +1,7 @@
 #include <rococo.gui.retained.h>
 #include <rococo.mplat.h>
 #include <rococo.renderer.h>
+#include <rococo.maths.h>
 
 using namespace Rococo;
 using namespace Rococo::Gui;
@@ -13,20 +14,26 @@ namespace ANON
 		IGuiRenderContext* rc = nullptr;
 		GuiRect lastScreenDimensions;
 
-		Vec2i origin{ 0,0 };
+		Vec2i cursorPos{ -1000,-1000 };
 
-		void DrawRect(Vec2i parentOffset, Vec2i span, RGBAb colour) override
+		void DrawRect(const GuiRect& absRect, RGBAb colour) override
 		{
-			Vec2i topLeft = origin + parentOffset;
-			GuiRect rect{ topLeft.x, topLeft.y, topLeft.x + span.x, topLeft.y + span.y };
-			Rococo::Graphics::DrawRectangle(*rc, rect, colour, colour);
+			Rococo::Graphics::DrawRectangle(*rc, absRect, colour, colour);
 		}
 
-		void DrawRectEdge(Vec2i parentOffset, Vec2i span, RGBAb colour1, RGBAb colour2) override
+		void DrawRectEdge(const GuiRect& absRect, RGBAb colour1, RGBAb colour2) override
 		{
-			Vec2i topLeft = origin + parentOffset;
-			GuiRect rect { topLeft.x, topLeft.y, topLeft.x + span.x, topLeft.y + span.y };
-			Rococo::Graphics::DrawBorderAround(*rc, rect, Vec2i{ 1,1 }, colour1, colour2);
+			Rococo::Graphics::DrawBorderAround(*rc, absRect, Vec2i{ 1,1 }, colour1, colour2);
+		}
+
+		Vec2i CursorHoverPoint() const override
+		{
+			return cursorPos;
+		}
+
+		bool IsHovered(IGRPanel& panel) const override
+		{
+			return IsPointInRect(cursorPos, panel.AbsRect());
 		}
 
 		GuiRect ScreenDimensions() const override
@@ -41,13 +48,9 @@ namespace ANON
 			{
 				GuiMetrics metrics;
 				rc->Renderer().GetGuiMetrics(metrics);
+				cursorPos = metrics.cursorPosition;
 				lastScreenDimensions = { 0, 0, metrics.screenSpan.x, metrics.screenSpan.y };
 			}
-		}
-
-		void SetOrigin(Vec2i origin) override
-		{
-			this->origin = origin;
 		}
 	};
 

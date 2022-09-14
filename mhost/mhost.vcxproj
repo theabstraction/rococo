@@ -46,14 +46,14 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)bin\</OutDir>
-    <IntDir>$(SolutionDir)temp\$(ProjectName)\$(Configuration)\</IntDir>
+    <OutDir>..\bin\</OutDir>
+    <IntDir>..\temp\$(ProjectName)\$(Configuration)\</IntDir>
     <CustomBuildBeforeTargets>BuildGenerateSources</CustomBuildBeforeTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)bin\</OutDir>
-    <IntDir>$(SolutionDir)temp\$(ProjectName)\$(Configuration)\</IntDir>
+    <OutDir>..\bin\</OutDir>
+    <IntDir>..\temp\$(ProjectName)\$(Configuration)\</IntDir>
     <CustomBuildBeforeTargets>BuildGenerateSources</CustomBuildBeforeTargets>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -64,7 +64,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\include\;$(SolutionDir)sexy\common\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include\;..\sexy\common\</AdditionalIncludeDirectories>
       <AdditionalOptions>-wd4250</AdditionalOptions>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
@@ -75,6 +75,7 @@
       <AdditionalLibraryDirectories>..\lib</AdditionalLibraryDirectories>
       <StackReserveSize>
       </StackReserveSize>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);rococo.gui.retained.debug.lib</AdditionalDependencies>
     </Link>
     <CustomBuildStep>
       <Command>
@@ -99,7 +100,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\include\;$(SolutionDir)sexy\common\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include\;..\sexy\common\</AdditionalIncludeDirectories>
       <AdditionalOptions>-wd4250</AdditionalOptions>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
@@ -112,6 +113,7 @@
       <AdditionalLibraryDirectories>..\lib</AdditionalLibraryDirectories>
       <StackReserveSize>
       </StackReserveSize>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);rococo.gui.retained.lib</AdditionalDependencies>
     </Link>
     <CustomBuildStep>
       <Command>

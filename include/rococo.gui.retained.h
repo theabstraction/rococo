@@ -8,12 +8,14 @@
 
 namespace Rococo::Gui
 {
+	struct IGRPanel;
+	struct IGRWidget;
+	struct IGuiRetained;
+
 	struct IdWidget
 	{
 		cstr Name;
 	};
-
-	struct IGRPanel;
 
 	ROCOCOAPI IGRLayout
 	{
@@ -27,13 +29,14 @@ namespace Rococo::Gui
 
 	ROCOCOAPI IGRRenderContext
 	{
-		virtual void DrawRect(Vec2i topLeft, Vec2i span, RGBAb colour) = 0;
-		virtual void DrawRectEdge(Vec2i parentOffset, Vec2i span, RGBAb colour1, RGBAb colour2) = 0;
+		virtual Vec2i CursorHoverPoint() const = 0;
+		// It is up to the renderer to decide if a panel is hovered.
+		virtual bool IsHovered(IGRPanel& panel) const = 0;	
 		virtual GuiRect ScreenDimensions() const = 0;
-		virtual void SetOrigin(Vec2i origin) = 0;
-	};
 
-	struct IGRWidget;
+		virtual void DrawRect(const GuiRect& absRect, RGBAb colour) = 0;
+		virtual void DrawRectEdge(const GuiRect& absRect, RGBAb colour1, RGBAb colour2) = 0;
+	};
 
 	enum class ESchemeColourSurface
 	{
@@ -64,22 +67,27 @@ namespace Rococo::Gui
 	ROCOCOAPI IGRPanelRoot
 	{
 		virtual IScheme& Scheme() = 0;
+		virtual IGuiRetained& GR() = 0;
 	};
 
 	ROCOCOAPI IGRPanel
 	{
 		virtual IGRLayout& LayoutSystem() = 0;
 		virtual IGRWidget& Widget() = 0;
-		virtual void Resize(Vec2i span) = 0;
-		virtual void SetParentOffset(Vec2i offset) = 0;
+		virtual IGRPanel& Resize(Vec2i span) = 0;
+		virtual IGRPanel& SetParentOffset(Vec2i offset) = 0;
 		virtual Vec2i Span() const = 0;
 		virtual Vec2i ParentOffset() const = 0;
 		virtual IGRPanelRoot& Root() = 0;
 		virtual IGRPanel& AddChild() = 0;
+		virtual int64 Id() const = 0;
+		virtual GuiRect AbsRect() const = 0;
 	};
 
 	ROCOCOAPI IGRPanelSupervisor : IGRPanel
 	{
+		virtual void LayoutRecursive(Vec2i absoluteOrigin) = 0;
+		virtual void RenderRecursive(IGRRenderContext & g) = 0;
 		virtual void SetWidget(IGRWidget& widget) = 0;
 		virtual void Free() = 0;
 	};
@@ -135,6 +143,9 @@ namespace Rococo::Gui
 		virtual IGRPanelRoot& Root() = 0;
 
 		virtual IGRWidget& AddWidget(IGRPanel& parent, IGRWidgetFactory& factory) = 0;
+
+		// Constant time lookup of a widget with a given panel Id.
+		virtual IGRWidget* FindWidget(int64 panelId) = 0;
 	};
 
 	ROCOCOAPI IGuiRetainedSupervisor: IGuiRetained
@@ -158,7 +169,8 @@ namespace Rococo::Gui
 		int32 unused = 0;
 	};
 
+	ROCOCO_GUI_RETAINED_API IGRWidgetButton& CreateButton(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGuiRetainedSupervisor* CreateGuiRetained(GuiRetainedConfig& config, IGuiRetainedCustodian& custodian);
-	ROCOCO_GUI_RETAINED_API void DrawButton(IGRPanel& panel, bool hovered, bool focused, bool raised, IGRRenderContext& g);
+	ROCOCO_GUI_RETAINED_API void DrawButton(IGRPanel& panel, bool focused, bool raised, IGRRenderContext& g);
 	ROCOCO_GUI_RETAINED_API void DrawPanelBackground(IGRPanel& panel, IGRRenderContext& g);
 }

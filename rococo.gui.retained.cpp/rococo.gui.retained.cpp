@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <string>
 #include <algorithm>
+#include <rococo.maths.h>
+#include <unordered_map>
 
 using namespace Rococo;
 using namespace Rococo::Gui;
@@ -25,8 +27,8 @@ namespace ANON
 	{
 		IGuiRetainedCustodian& custodian;
 		GuiRetainedConfig config;
-
 		AutoFree<ISchemeSupervisor> scheme = CreateScheme();
+		std::unordered_map<int64, IGRPanel*> mapIdToPanel;
 
 		struct FrameDesc
 		{
@@ -58,6 +60,12 @@ namespace ANON
 			}
 		}
 
+		IGRWidget* FindWidget(int64 panelId)
+		{
+			auto i = mapIdToPanel.find(panelId);
+			return i != mapIdToPanel.end() ? &i->second->Widget() : nullptr;
+		}
+
 		void Free() override
 		{
 			delete this;
@@ -75,6 +83,7 @@ namespace ANON
 			auto* newFrame = CreateGRMainFrame(*newRootPanel);
 			newRootPanel->SetWidget(*newFrame);
 			frameDescriptors.push_back(FrameDesc{ newRootPanel, newFrame, std::string(id.Name) });
+			mapIdToPanel.try_emplace(newRootPanel->Id(), newRootPanel);
 			return *newFrame;
 		}
 
@@ -114,6 +123,7 @@ namespace ANON
 			for (auto& d : frameDescriptors)
 			{
 				d.frame->Layout(lastLayedOutScreenDimensions);
+				d.panel->LayoutRecursive({ 0,0 });
 			}
 		}
 
@@ -122,7 +132,7 @@ namespace ANON
 			for (auto& d : frameDescriptors)
 			{
 				auto screenDimensions = g.ScreenDimensions();
-				g.SetOrigin({ screenDimensions.left, screenDimensions.top });
+				Vec2i topLeft = { screenDimensions.left, screenDimensions.top };
 
 				if (lastLayedOutScreenDimensions != screenDimensions)
 				{
@@ -130,7 +140,7 @@ namespace ANON
 					LayoutFrames();
 				}
 
-				d.frame->Render(g);
+				d.panel->RenderRecursive(g);
 			}
 		}
 
@@ -176,7 +186,13 @@ namespace ANON
 			auto& widget = factory.CreateWidget(panel);
 			auto& superPanel = static_cast<IGRPanelSupervisor&>(panel);
 			superPanel.SetWidget(widget);
+			mapIdToPanel.try_emplace(panel.Id(), &panel);
 			return widget;
+		}
+
+		IGuiRetained& GR()
+		{
+			return *this;
 		}
 	};
 }
