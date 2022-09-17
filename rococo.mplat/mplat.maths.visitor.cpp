@@ -29,7 +29,7 @@ namespace
 	   std::vector<DebugLine> lines;
 	   GuiRect scrollRect;
 	   bool queueMouseUp = false;
-	   IUtilitiies& utilities;
+	   IUtilities& utilities;
 	   Events::IPublisher& publisher;
 	   ID_FONT idDebuggerFont;
 
@@ -59,7 +59,7 @@ namespace
 	   }
 
    public:
-	   MathsVisitor(IUtilitiies& _utilities, IPublisher& _publisher) :
+	   MathsVisitor(IUtilities& _utilities, IPublisher& _publisher) :
 		   utilities(_utilities),
 		   scrollbar(_utilities.CreateScrollbar(true)),
 		   publisher(_publisher)
@@ -483,7 +483,7 @@ namespace
 
 namespace Rococo
 {
-   IMathsVisitorSupervisor* CreateMathsVisitor(IUtilitiies& utilities, IPublisher& publisher)
+   IMathsVisitorSupervisor* CreateMathsVisitor(IUtilities& utilities, IPublisher& publisher)
    {
       return new MathsVisitor(utilities, publisher);
    }

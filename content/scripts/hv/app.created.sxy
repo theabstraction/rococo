@@ -19,6 +19,7 @@
 	(instances.SetMaterialMacro "!textures/hv/materials/hi-rez/" )
 	(instances.LoadMaterialArray "#m/" 1024)
 	
+	(debug)
 	(IHQFonts fonts (HQFonts))
 	(fonts.Build (#HQFontEditorFont))
 	(fonts.SetFaceName "Courier New")
@@ -48,5 +49,11 @@
 	(fonts.AddRange 32 127)
 	(fonts.AddCharacters "£")
 	(fonts.SetHeight 28)
+	(fonts.Commit)
+
+	(fonts.Build (#HQFontMenuFont))
+	(fonts.SetFaceName "Arial")
+	(fonts.AddRange 32 126)
+	(fonts.SetHeight 14)
 	(fonts.Commit)
 )

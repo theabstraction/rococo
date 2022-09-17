@@ -51,13 +51,13 @@ namespace Rococo
 	{
 		IPaneContainer* CreatePaneContainer(Platform& platform);
 		IMathsVenue& GetOSVenue();
-		IGuiStackSupervisor* CreateGui(IPublisher& publisher, ISourceCache& cache, IRenderer& renderer, IUtilitiies& utils);
+		IGuiStackSupervisor* CreateGui(IPublisher& publisher, ISourceCache& cache, IRenderer& renderer, IUtilities& utils);
 	}
 }
 
 namespace Rococo::Gui
 {
-	IMPlatGuiCustodianSupervisor* CreateMPlatCustodian();
+	IMPlatGuiCustodianSupervisor* CreateMPlatCustodian(IUtilities& utilities, IRenderer& sysRenderer);
 }
 
 namespace Rococo
@@ -367,9 +367,9 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 
 	AutoFree<Graphics::ISpritesSupervisor> sprites = Rococo::Graphics::CreateSpriteTable(mainWindow->Renderer());
 
-	Rococo::Gui::GuiRetainedConfig grConfig;
+	Rococo::Gui::GRConfig grConfig;
 
-	AutoFree<Rococo::Gui::IMPlatGuiCustodianSupervisor> mplat_gcs = Rococo::Gui::CreateMPlatCustodian();
+	AutoFree<Rococo::Gui::IMPlatGuiCustodianSupervisor> mplat_gcs = Rococo::Gui::CreateMPlatCustodian(*utilities, mainWindow->Renderer());
 	AutoFree<Rococo::Gui::IGuiRetainedSupervisor> GR = Rococo::Gui::CreateGuiRetained(grConfig, mplat_gcs->Custodian());
 	
 	Platform platform

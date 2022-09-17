@@ -11,6 +11,7 @@ namespace ANON
 
 	struct GRPanel : IGRPanelSupervisor
 	{
+		IGRPanelSupervisor* parent;
 		IGRPanelRoot& root;
 		IGRWidget* widget = nullptr; // Should always be set immediately after construction
 		Vec2i parentOffset{ 0,0 };
@@ -19,7 +20,7 @@ namespace ANON
 		int64 uniqueId;
 		GuiRect absRect{ 0,0,0,0 };
 
-		GRPanel(IGRPanelRoot& _root): root(_root), uniqueId(nextId++)
+		GRPanel(IGRPanelRoot& _root, IGRPanelSupervisor* _parent): root(_root), parent(_parent), uniqueId(nextId++)
 		{
 
 		}
@@ -32,14 +33,44 @@ namespace ANON
 			}
 		}
 
+		int32 EnumerateChildren(IEventCallback<IGRPanel>* callback) override
+		{
+			if (callback)
+			{
+				for (auto* child : children)
+				{
+					callback->OnEvent(*child);
+				}
+			}
+
+			return (int32) children.size();
+		}
+
 		int64 Id() const override
 		{
 			return uniqueId;
 		}
 
+		EventRouting NotifyAncestors(WidgetEvent& event, IGRWidget& sourceWidget) override
+		{
+			if (parent == nullptr)
+			{
+				return EventRouting::NextHandler;
+			}
+
+			auto& parentWidget = parent->Widget();
+
+			if (parentWidget.OnChildEvent(event, sourceWidget) == EventRouting::Terminate)
+			{
+				return EventRouting::Terminate;
+			}
+
+			return parent->NotifyAncestors(event, sourceWidget);
+		}
+
 		IGRPanel& AddChild()
 		{
-			auto* child = new GRPanel(root);
+			auto* child = new GRPanel(root, this);
 			children.push_back(child);
 			return* child;
 		}
@@ -47,6 +78,11 @@ namespace ANON
 		GuiRect AbsRect() const override
 		{
 			return absRect;
+		}
+
+		void CaptureCursor() override
+		{
+			root.CaptureCursor(*this);
 		}
 
 		void Free() override
@@ -69,6 +105,11 @@ namespace ANON
 		{
 			Vec2i parentOrigin = parentOffset + absoluteOrigin;
 			absRect = { parentOrigin.x, parentOrigin.y, parentOrigin.x + span.x, parentOrigin.y + span.y };
+
+			if (widget)
+			{
+				widget->Layout(absRect);
+			}
 
 			for (auto* child : children)
 			{
@@ -100,7 +141,7 @@ namespace ANON
 		{
 			if (!IsPointInRect(ce.position, absRect))
 			{
-				return EventRouting::NextChild;
+				return EventRouting::NextHandler;
 			}
 
 			for (auto* child : children)
@@ -114,7 +155,7 @@ namespace ANON
 
 			if (!widget)
 			{
-				return EventRouting::NextChild;
+				return EventRouting::NextHandler;
 			}
 
 			return widget->OnCursorClick(ce);
@@ -124,7 +165,7 @@ namespace ANON
 		{
 			if (!IsPointInRect(ce.position, absRect))
 			{
-				return EventRouting::NextChild;
+				return EventRouting::NextHandler;
 			}
 
 			for (auto* child : children)
@@ -138,7 +179,7 @@ namespace ANON
 
 			if (!widget)
 			{
-				return EventRouting::NextChild;
+				return EventRouting::NextHandler;
 			}
 
 			return widget->OnCursorMove(ce);
@@ -169,8 +210,8 @@ namespace ANON
 
 namespace Rococo::Gui
 {
-	IGRPanelSupervisor* CreatePanel(IGRPanelRoot& root)
+	IGRPanelSupervisor* CreatePanel(IGRPanelRoot& root, IGRPanelSupervisor* parent)
 	{
-		return new ANON::GRPanel(root);
+		return new ANON::GRPanel(root, parent);
 	}
 }

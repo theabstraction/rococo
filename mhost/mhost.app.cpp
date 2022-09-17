@@ -436,17 +436,26 @@ namespace MHost
 			auto& frame = platform.GR.BindFrame(Rococo::Gui::IdWidget{"Mhost-Frame"});
 			auto& scheme = platform.GR.Root().Scheme();
 			scheme.SetColour(Rococo::Gui::ESchemeColourSurface::BACKGROUND, RGBAb(64, 64, 64, 192));
-			scheme.SetColour(Rococo::Gui::ESchemeColourSurface::BUTTON_PRESSED, RGBAb(160, 160, 160, 255));
-			scheme.SetColour(Rococo::Gui::ESchemeColourSurface::BUTTON_RAISED, RGBAb(128, 128, 128, 255));
-			scheme.SetColour(Rococo::Gui::ESchemeColourSurface::BUTTON_PRESSED_AND_HOVERED, RGBAb(192, 192, 192, 255));
-			scheme.SetColour(Rococo::Gui::ESchemeColourSurface::BUTTON_RAISED_AND_HOVERED, RGBAb(144, 144, 144, 192));
-			scheme.SetColour(Rococo::Gui::ESchemeColourSurface::BUTTON_EDGE_TOP_LEFT, RGBAb(192, 192, 192, 255));
-			scheme.SetColour(Rococo::Gui::ESchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(160, 160, 160, 255));
-			scheme.SetColour(Rococo::Gui::ESchemeColourSurface::BUTTON_EDGE_TOP_LEFT_PRESSED, RGBAb(255, 255, 255, 255));
-			scheme.SetColour(Rococo::Gui::ESchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT_PRESSED, RGBAb(224, 224, 224, 255));
+			scheme.SetColour(Rococo::Gui::ESchemeColourSurface::MENU_BUTTON_PRESSED, RGBAb(96, 96, 96, 255));
+			scheme.SetColour(Rococo::Gui::ESchemeColourSurface::MENU_BUTTON_RAISED, RGBAb(64, 64, 64, 255));
+			scheme.SetColour(Rococo::Gui::ESchemeColourSurface::MENU_BUTTON_PRESSED_AND_HOVERED, RGBAb(128, 128, 128, 255));
+			scheme.SetColour(Rococo::Gui::ESchemeColourSurface::MENU_BUTTON_RAISED_AND_HOVERED, RGBAb(80, 80, 80, 255));
+			scheme.SetColour(Rococo::Gui::ESchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, RGBAb(64, 64, 64, 255));
+			scheme.SetColour(Rococo::Gui::ESchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(64, 64, 64, 255));
+			scheme.SetColour(Rococo::Gui::ESchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT_PRESSED, RGBAb(255, 255, 255, 255));
+			scheme.SetColour(Rococo::Gui::ESchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT_PRESSED, RGBAb(224, 224, 224, 255));
 
-			auto& button = Rococo::Gui::CreateButton(frame);
-			button.Panel().Resize({ 64,64 }).SetParentOffset({0,0});
+			//auto& button = Rococo::Gui::CreateMenuButton(frame);
+			//button.SetTitle("File");
+			//button.Panel().Resize({ 80,24 }).SetParentOffset({1,0});
+
+			auto& menu = frame.GetMenuBar();
+			menu.AddItem({ "File", Rococo::Gui::ControlMetaData::None() });
+			menu.AddItem({ "Edit", Rococo::Gui::ControlMetaData::None() });
+			menu.AddItem({ "View", Rococo::Gui::ControlMetaData::None() });
+			menu.AddItem({ "Project", Rococo::Gui::ControlMetaData::None() });
+			menu.AddItem({ "Window", Rococo::Gui::ControlMetaData::None() });
+			menu.AddItem({ "Help", Rococo::Gui::ControlMetaData::None() });
 
 			while (platform.appControl.IsRunning() && !isShutdown)
 			{

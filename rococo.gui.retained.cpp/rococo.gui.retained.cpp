@@ -13,7 +13,7 @@ namespace Rococo::Gui
 {
 	IGRLayoutSupervisor* CreateFullScreenLayout();
 	IGRMainFrameSupervisor* CreateGRMainFrame(IGRPanel& panel);
-	IGRPanelSupervisor* CreatePanel(IGRPanelRoot& root);
+	IGRPanelSupervisor* CreatePanel(IGRPanelRoot& root, IGRPanelSupervisor* parent);
 
 	bool operator == (const GuiRect& a, const GuiRect& b)
 	{
@@ -25,10 +25,11 @@ namespace ANON
 {
 	struct GuiRetained: IGuiRetainedSupervisor, IGRPanelRoot
 	{
-		IGuiRetainedCustodian& custodian;
-		GuiRetainedConfig config;
+		IGRCustodian& custodian;
+		GRConfig config;
 		AutoFree<ISchemeSupervisor> scheme = CreateScheme();
 		std::unordered_map<int64, IGRPanel*> mapIdToPanel;
+		int queryDepth = 0;
 
 		struct FrameDesc
 		{
@@ -46,7 +47,7 @@ namespace ANON
 
 		TFrames frameDescriptors;
 
-		GuiRetained(GuiRetainedConfig& _config, IGuiRetainedCustodian& _custodian) : config(_config), custodian(_custodian)
+		GuiRetained(GRConfig& _config, IGRCustodian& _custodian) : config(_config), custodian(_custodian)
 		{
 
 		}
@@ -72,22 +73,35 @@ namespace ANON
 
 		IGRMainFrame& BindFrame(IdWidget id) override
 		{
+			if (queryDepth > 0)
+			{
+				custodian.RaiseError(GRErrorCode::RecursionLocked, __FUNCTION__, "The GUI Retained API is locked for a recursive query. BindFrame cannot be executed at this time");
+				IGRMainFrame* frame = nullptr;
+				return *frame;
+			}
+
 			IGRMainFrame* oldFrame = TryGetFrame(id);
 			if (oldFrame)
 			{
 				return *oldFrame;
 			}
 
-			auto* newRootPanel = CreatePanel(*this);
-			auto* newFrame = CreateGRMainFrame(*newRootPanel);
-			newRootPanel->SetWidget(*newFrame);
-			frameDescriptors.push_back(FrameDesc{ newRootPanel, newFrame, std::string(id.Name) });
-			mapIdToPanel.try_emplace(newRootPanel->Id(), newRootPanel);
+			auto* newFramePanel = CreatePanel(*this, nullptr);
+			auto* newFrame = CreateGRMainFrame(*newFramePanel);
+			newFramePanel->SetWidget(*newFrame);
+			frameDescriptors.push_back(FrameDesc{ newFramePanel, newFrame, std::string(id.Name) });
+			mapIdToPanel.try_emplace(newFramePanel->Id(), newFramePanel);
 			return *newFrame;
 		}
 
 		void DeleteFrame(IdWidget id) override
 		{
+			if (queryDepth > 0)
+			{
+				custodian.RaiseError(GRErrorCode::RecursionLocked, __FUNCTION__, "The GUI Retained API is locked for a recursive query. FrameDelete cannot be executed at this time");
+				return;
+			}
+
 			auto matchesId = [&id](const FrameDesc& desc)
 			{
 				return desc.Eq(id);
@@ -117,8 +131,23 @@ namespace ANON
 
 		GuiRect lastLayedOutScreenDimensions { 0,0,0,0 };
 
+		struct RecursionGuard
+		{
+			GuiRetained& This;
+
+			RecursionGuard(GuiRetained& _This) : This(_This)
+			{
+				This.queryDepth++;
+			}
+			~RecursionGuard()
+			{
+				This.queryDepth--;
+			}
+		};
+
 		void LayoutFrames()
 		{
+			RecursionGuard guard(*this);
 			for (auto& d : frameDescriptors)
 			{
 				d.frame->Layout(lastLayedOutScreenDimensions);
@@ -139,6 +168,7 @@ namespace ANON
 					LayoutFrames();
 				}
 
+				RecursionGuard guard(*this);
 				d.panel->RenderRecursive(g);
 			}
 		}
@@ -208,6 +238,18 @@ namespace ANON
 
 		EventRouting RouteCursorClickEvent(CursorEvent& ev) override
 		{
+			RecursionGuard guard(*this);
+
+			if (captureId >= 0)
+			{
+				auto* widget = FindWidget(captureId);
+				if (widget)
+				{
+					auto& panelSupervisor = static_cast<IGRPanelSupervisor&>(widget->Panel());
+					return panelSupervisor.RouteCursorClickEvent(ev);
+				}
+			}
+
 			for (auto d = frameDescriptors.rbegin(); d != frameDescriptors.rend(); ++d)
 			{
 				auto routing = d->panel->RouteCursorClickEvent(ev);
@@ -217,11 +259,44 @@ namespace ANON
 				}
 			}
 
-			return EventRouting::NextChild;
+			return EventRouting::NextHandler;
+		}
+
+		int64 captureId = -1;
+
+		void CaptureCursor(IGRPanel& panel) override
+		{
+			captureId = panel.Id();
+		}
+
+		int64 CapturedPanelId() const override
+		{
+			return captureId;
+		}
+
+		void ReleaseCursor() override
+		{
+			captureId = -1;
 		}
 
 		EventRouting RouteCursorMoveEvent(CursorEvent& ev) override
 		{
+			RecursionGuard guard(*this);
+
+			if (captureId >= 0)
+			{
+				auto* widget = FindWidget(captureId);
+				if (widget)
+				{
+					auto& panelSupervisor = static_cast<IGRPanelSupervisor&>(widget->Panel());
+					auto routing = panelSupervisor.RouteCursorClickEvent(ev);
+					if (routing == EventRouting::Terminate)
+					{
+						return routing;
+					}
+				}
+			}
+
 			for (auto d = frameDescriptors.rbegin(); d != frameDescriptors.rend(); ++d)
 			{
 				auto routing = d->panel->RouteCursorMoveEvent(ev);
@@ -231,7 +306,12 @@ namespace ANON
 				}
 			}
 
-			return EventRouting::NextChild;
+			return EventRouting::NextHandler;
+		}
+
+		IGRCustodian& Custodian() override
+		{
+			return custodian;
 		}
 	};
 }
@@ -247,7 +327,7 @@ namespace Rococo
 
 namespace Rococo::Gui
 {
-	ROCOCO_GUI_RETAINED_API IGuiRetainedSupervisor* CreateGuiRetained(GuiRetainedConfig& config, IGuiRetainedCustodian& custodian)
+	ROCOCO_GUI_RETAINED_API IGuiRetainedSupervisor* CreateGuiRetained(GRConfig& config, IGRCustodian& custodian)
 	{
 		return new ANON::GuiRetained(config, custodian);
 	}

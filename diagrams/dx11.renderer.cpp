@@ -2014,7 +2014,7 @@ namespace ANON
 				   Throw(0, "Unknown render phase: %d", phase);
 			   }
 		   default:
-			   Throw(0, "Environemtn mode %d not implemented", phaseConfig.EnvironmentalMap);
+			   Throw(0, "Environment mode %d not implemented", phaseConfig.EnvironmentalMap);
 		   }
 
 		   return ID_PIXEL_SHADER();

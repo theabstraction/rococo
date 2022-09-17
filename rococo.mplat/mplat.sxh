@@ -611,6 +611,7 @@
 		(TitleFont 2)
 		(EmperorFont 3)
 		(InfoFont 4)
+		(MenuFont 5)
 	)
 )
 

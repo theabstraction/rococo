@@ -6,6 +6,100 @@ using namespace Rococo;
 using namespace Rococo::Strings;
 using namespace Rococo::Graphics::Fonts;
 
+namespace ANON
+{
+	using namespace Rococo::DX11;
+
+	struct HQTextBuilder : IHQTextBuilder
+	{
+		Fonts::IArrayFont& font;
+		const Fonts::ArrayFontMetrics& metrics;
+		RGBAb colour{ 255,255,255,255 };
+		Vec2 span;
+		GuiRectf nextRect;
+		bool evaluateSpanOnly = false;
+		IDX11FontRenderer* renderer = nullptr;
+
+		HQTextBuilder(Fonts::IArrayFont& _font) :
+			font(_font),
+			metrics(_font.Metrics()),
+			span{ (float)metrics.imgWidth, (float)metrics.imgHeight },
+			nextRect{ 0, 0, span.x, span.y }
+		{
+		}
+
+		const Fonts::ArrayFontMetrics& Metrics() const override
+		{
+			return metrics;
+		}
+
+		void SetColour(RGBAb _colour) override
+		{
+			colour = _colour;
+		}
+
+		void SetCursor(Vec2 pos) override
+		{
+			nextRect = { pos.x, pos.y - span.y, span.x, pos.y };
+		}
+
+		void Write(char c, GuiRectf* outputBounds) override
+		{
+			Write((char32_t)(unsigned char)c, outputBounds);
+		}
+
+		void Write(wchar_t c, GuiRectf* outputBounds) override
+		{
+			Write((char32_t)c, outputBounds);
+		}
+
+		void Write(char32_t c, GuiRectf* outputBounds) override
+		{
+			const Fonts::ArrayGlyph& g = font[c];
+
+			float i = (float)g.Index;
+
+			auto& R = nextRect;
+
+			R.left += g.A;
+			R.right = R.left + span.x;
+
+			if (!evaluateSpanOnly && colour.alpha > 0)
+			{
+				GuiQuad q
+				{
+					/*
+					struct GuiVertex
+					{
+						Vec2 pos;
+						BaseVertexData vd; // 3 floats
+						SpriteVertexData sd; // 4 floats
+						RGBAb colour;
+					};
+					*/
+
+					{ {R.left, R.top},    {{0,0}, 0}, {0, i, 0, 0}, colour},
+					{ {R.right,R.top},    {{1,0}, 0}, {0, i, 0, 0}, colour},
+					{ {R.left, R.bottom}, {{0,1}, 0}, {0, i, 0, 0}, colour},
+					{ {R.right,R.bottom}, {{1,1}, 0}, {0, i, 0, 0}, colour},
+				};
+
+				GuiTriangle A{ q.topLeft, q.topRight, q.bottomRight };
+				GuiTriangle B{ q.bottomRight, q.bottomLeft, q.topLeft };
+				renderer->AddTriangle(&A.a);
+				renderer->AddTriangle(&B.a);
+			}
+
+			if (outputBounds != nullptr)
+			{
+				*outputBounds = R;
+			}
+
+			R.left += g.B + g.C;
+		}
+	}; // struct HQBuilder
+}// ANON
+
 namespace Rococo::DX11
 {
 	struct OSFont
@@ -86,6 +180,51 @@ namespace Rococo::DX11
 			return ID_FONT{ i + ID_FONT_OSFONT_OFFSET };
 		}
 
+		Vec2i EvalSpan(ID_FONT id, const fstring& text) const override
+		{
+			int32 index = id.value - ID_FONT_OSFONT_OFFSET;
+			if (index < 0 || index >= (int32)osFonts.size())
+			{
+				return { 0,0 }; // See interface definition for comments
+			}
+
+			auto& osFont = osFonts[index];
+			auto& font = *osFont.arrayFont;
+
+			auto& metrics = font.Metrics();
+
+			ANON::HQTextBuilder builder(font);
+
+			builder.evaluateSpanOnly = true;
+			builder.renderer = nullptr;
+
+			struct : IHQTextJob
+			{
+				Vec2 span { 0, 0 };
+				cstr text = nullptr;
+				Vec2 startPos{ 0,0 };
+				GuiRectf lastRect = { 0,0,0,0 };
+
+				void Render(IHQTextBuilder& builder) override
+				{
+					builder.SetCursor(startPos);
+
+					for (const char* p = text; *p != 0; p++)
+					{
+						builder.Write(*p, &lastRect);
+						span.x = max(lastRect.right, span.x);
+						span.y = max(-lastRect.top, span.y);
+					}
+				}
+			} job;
+
+			job.text = text;
+
+			job.Render(builder);
+
+			return Quantize({ job.span });
+		}
+
 		virtual ~DX11HQFontFonts()
 		{
 			for (auto& osFont : osFonts)
@@ -124,100 +263,10 @@ namespace Rococo::DX11
 
 			auto& metrics = font.Metrics();
 
-			Vec2i span{ metrics.imgWidth, metrics.imgHeight };
-
 			ID3D11ShaderResourceView* gtaViews[1] = { osFont.array->View() };
 			dc.PSSetShaderResources(TXUNIT_GENERIC_TXARRAY, 1, gtaViews);
 
-			struct ANON : IHQTextBuilder
-			{
-				Fonts::IArrayFont& font;
-				const Fonts::ArrayFontMetrics& metrics;
-				RGBAb colour{ 255,255,255,255 };
-				Vec2 span;
-				GuiRectf nextRect;
-				bool evaluateSpanOnly = false;
-				IDX11FontRenderer* renderer;
-
-				ANON(Fonts::IArrayFont& _font) :
-					font(_font),
-					metrics(_font.Metrics()),
-					span{ (float)metrics.imgWidth, (float)metrics.imgHeight },
-					nextRect{ 0, 0, span.x, span.y }
-				{
-				}
-
-				const Fonts::ArrayFontMetrics& Metrics() const override
-				{
-					return metrics;
-				}
-
-				void SetColour(RGBAb _colour) override
-				{
-					colour = _colour;
-				}
-
-				void SetCursor(Vec2 pos) override
-				{
-					nextRect = { pos.x, pos.y - span.y, span.x, pos.y };
-				}
-
-				void Write(char c, GuiRectf* outputBounds) override
-				{
-					Write((char32_t)(unsigned char)c, outputBounds);
-				}
-
-				void Write(wchar_t c, GuiRectf* outputBounds) override
-				{
-					Write((char32_t)c, outputBounds);
-				}
-
-				void Write(char32_t c, GuiRectf* outputBounds) override
-				{
-					const Fonts::ArrayGlyph& g = font[c];
-
-					float i = (float)g.Index;
-
-					auto& R = nextRect;
-
-					R.left += g.A;
-					R.right = R.left + span.x;
-
-					if (!evaluateSpanOnly && colour.alpha > 0)
-					{
-						GuiQuad q
-						{
-							/*
-							struct GuiVertex
-							{
-								Vec2 pos;
-								BaseVertexData vd; // 3 floats
-								SpriteVertexData sd; // 4 floats
-								RGBAb colour;
-							};
-							*/
-
-							{ {R.left, R.top},    {{0,0}, 0}, {0, i, 0, 0}, colour},
-							{ {R.right,R.top},    {{1,0}, 0}, {0, i, 0, 0}, colour},
-							{ {R.left, R.bottom}, {{0,1}, 0}, {0, i, 0, 0}, colour},
-							{ {R.right,R.bottom}, {{1,1}, 0}, {0, i, 0, 0}, colour},
-						};
-
-						GuiTriangle A{ q.topLeft, q.topRight, q.bottomRight };
-						GuiTriangle B{ q.bottomRight, q.bottomLeft, q.topLeft };
-						renderer->AddTriangle(&A.a);
-						renderer->AddTriangle(&B.a);
-					}
-
-					if (outputBounds != nullptr)
-					{
-						*outputBounds = R;
-					}
-
-					R.left += g.B + g.C;
-				}
-
-			} builder(font);
+			ANON::HQTextBuilder builder(font);
 
 			builder.evaluateSpanOnly = mode == IGuiRenderContext::EVALUATE_SPAN_ONLY;
 			builder.renderer = &renderer;

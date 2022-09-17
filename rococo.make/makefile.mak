@@ -19,6 +19,7 @@ MPLAT_COMPONENTS_H = $(DIR_MPLAT)mplat.components.h
 MPLAT_COMPONENTS_XML = $(DIR_MPLAT)components.xml
 MHOST_SXH = $(DIR_MHOST)mhost.sxh
 MHOST_SXH_H = $(DIR_MHOST)mhost.sxh.h
+MHOST_PACKAGE = $(ROCOCO)content\packages\mhost_1000.sxyz
 MHOST_XC = $(DIR_MHOST)mhost.xc
 DIR_EVENTS = $(ROCOCO)rococo.events^\
 UTIL = $(ROCOCO)rococo.util^\
@@ -49,7 +50,7 @@ CPP_MASTER = $(DIR_BIN)tools\x64\$(CONFIGURATION)\net6.0\rococo.cpp_master.exe
 NATIVE_SRC = $(DIR_SEXY)NativeSource^\
 EVENTS = $(DIR_BIN)rococo.events.$(LCONFIGURATION).dll
 
-all: $(BENNY_HILL) $(SEXY_CMD) $(MPLAT_SXH_H) $(HV_SXH_H) $(MHOST_SXH_H) $(CPP_MASTER) $(MPLAT_COMPONENTS_H) $(EVENTS)
+all: $(BENNY_HILL) $(SEXY_CMD) $(MPLAT_SXH_H) $(HV_SXH_H) $(MHOST_SXH_H) $(CPP_MASTER) $(MPLAT_COMPONENTS_H) $(EVENTS) $(MHOST_PACKAGE)
 
 clean: 
 	del $(BENNY_HILL)
@@ -96,3 +97,6 @@ $(MPLAT_COMPONENTS_H): $(MPLAT_COMPONENTS_XML) $(DIR_MPLAT)mplat.component.templ
 
 $(CPP_MASTER): $(ROCOCO)rococo.cpp_master\rococo.cpp_master.main.cs $(ROCOCO)rococo.cpp_master\rococo.cpp_master.component.cs
 	msbuild $(ROCOCO)rococo.cpp_master\rococo.cpp_master.csproj -p:Configuration=$(CONFIGURATION) -t:Build -p:Platform=x64 -m -verbosity:minimal
+
+$(MHOST_PACKAGE): $(MPLAT_SXH) $(MPLAT_XC) $(MHOST_SXH) $(MHOST_XC)
+	$(ROCOCO)packages\gen.mhost.package.bat

@@ -185,6 +185,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.mplat", "rococo.mpla
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.mplat.dynamic", "rococo.mplat.dynamic\rococo.mplat.dynamic.vcxproj", "{8C99B5D5-A98C-4233-B0FE-889D8B26D72E}"
 	ProjectSection(ProjectDependencies) = postProject
+		{151FC7F0-2D21-40F1-AD39-AEED3924CCC3} = {151FC7F0-2D21-40F1-AD39-AEED3924CCC3}
 		{3C7ADE1B-6EFE-41D4-8779-A7ED80A0B7CA} = {3C7ADE1B-6EFE-41D4-8779-A7ED80A0B7CA}
 	EndProjectSection
 EndProject

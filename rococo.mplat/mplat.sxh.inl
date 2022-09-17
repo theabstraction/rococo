@@ -225,6 +225,10 @@ namespace Rococo::Graphics
 		{
 			value = HQFont::InfoFont;
 		}
+		else if (s ==  "HQFont_MenuFont"_fstring)
+		{
+			value = HQFont::MenuFont;
+		}
 		else
 		{
 			return false;
@@ -255,6 +259,10 @@ namespace Rococo::Graphics
 		{
 			value = HQFont::InfoFont;
 		}
+		else if (s ==  "MenuFont"_fstring)
+		{
+			value = HQFont::MenuFont;
+		}
 		else
 		{
 			return false;
@@ -276,6 +284,8 @@ namespace Rococo::Graphics
 				return "EmperorFont"_fstring;
 			case HQFont::InfoFont:
 				return "InfoFont"_fstring;
+			case HQFont::MenuFont:
+				return "MenuFont"_fstring;
 			default:
 				return {"",0};
 		}

@@ -249,11 +249,11 @@ namespace Rococo
 		 virtual void Free() = 0;
 	};
 
-	struct IUtilitiies;
+	struct IUtilities;
 	struct IKeyboardSupervisor;
 	struct ScriptCompileArgs;
 
-	IMathsVisitorSupervisor* CreateMathsVisitor(IUtilitiies& utilities, Events::IPublisher& publisher);
+	IMathsVisitorSupervisor* CreateMathsVisitor(IUtilities& utilities, Events::IPublisher& publisher);
 
 	void Run_MPLat_EnvironmentScript(Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform);
 
@@ -724,7 +724,7 @@ namespace Rococo
 	};
 
 	// If this class grows too long, consider adding sub-interfaces to better index the functionality
-	ROCOCOAPI IUtilitiies
+	ROCOCOAPI IUtilities
 	{
 		virtual void AddSubtitle(cstr subtitle) = 0;
 		virtual IScrollbar* CreateScrollbar(bool _isVertical) = 0;
@@ -750,7 +750,7 @@ namespace Rococo
 		virtual IInventoryArraySupervisor* CreateInventoryArray(int32 capacity) = 0;
 	};
 
-	ROCOCOAPI IUtilitiesSupervisor : public IUtilitiies
+	ROCOCOAPI IUtilitiesSupervisor : public IUtilities
 	{
 		virtual void Free() = 0;
 		virtual void SetPlatform(Platform& platform) = 0;
@@ -856,11 +856,11 @@ namespace Rococo
 	namespace Gui
 	{
 		struct IGuiRetained;
-		struct IGuiRetainedCustodian;
+		struct IGRCustodian;
 
 		struct IMPlatGuiCustodianSupervisor
 		{
-			virtual IGuiRetainedCustodian& Custodian() = 0;
+			virtual IGRCustodian& Custodian() = 0;
 			virtual void Render(IGuiRenderContext& rc, IGuiRetained& gr) = 0;
 			virtual void RouteMouseEvent(const MouseEvent& me, IGuiRetained& gr) = 0;
 			virtual void Free() = 0;
@@ -900,7 +900,7 @@ namespace Rococo
 		Events::IPublisher& publisher;
 
 		// Platform utilities
-		IUtilitiies& utilities;
+		IUtilities& utilities;
 
 		// GUI stack
 		IGUIStack& gui;

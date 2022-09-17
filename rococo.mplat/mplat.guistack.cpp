@@ -37,7 +37,7 @@ class GuiStack : public IGuiStackSupervisor, public IObserver
 	IPublisher& publisher;
 	ISourceCache& sourceCache;
 	IRenderer& renderer;
-	IUtilitiies& utilities;
+	IUtilities& utilities;
 
 	stringmap<CommandHandler> handlers;
 	stringmap<IUIElement*> renderElements;
@@ -60,7 +60,7 @@ class GuiStack : public IGuiStackSupervisor, public IObserver
 public:
 	Platform* platform = nullptr; // initialized in PostContruct
 
-	GuiStack(IPublisher& _publisher, ISourceCache& _sourceCache, IRenderer& _renderer, IUtilitiies& _utilities) :
+	GuiStack(IPublisher& _publisher, ISourceCache& _sourceCache, IRenderer& _renderer, IUtilities& _utilities) :
 		publisher(_publisher),
 		sourceCache(_sourceCache),
 		renderer(_renderer),
@@ -459,7 +459,7 @@ namespace Rococo
 {
 	namespace MPlatImpl
 	{
-		IGuiStackSupervisor* CreateGui(IPublisher& publisher, ISourceCache& cache, IRenderer& renderer, IUtilitiies& utils)
+		IGuiStackSupervisor* CreateGui(IPublisher& publisher, ISourceCache& cache, IRenderer& renderer, IUtilities& utils)
 		{
 			return new GuiStack(publisher, cache, renderer, utils);
 		}

@@ -37,7 +37,19 @@
 	(fonts.SetHeight 28)
 	(fonts.Commit)
 	
-		
+	(fonts.Build (#HQFontInfoFont))
+	(fonts.SetFaceName "Times New Roman")
+	(fonts.AddRange 32 127)
+	(fonts.AddCharacters "£")
+	(fonts.SetHeight 28)
+	(fonts.Commit)
+
+	(fonts.Build (#HQFontMenuFont))
+	(fonts.SetFaceName "Arial")
+	(fonts.AddRange 32 126)
+	(fonts.SetHeight 14)
+	(fonts.Commit)
+	
 	(IInstallation installation (Installation))
 	(installation.SetPingPathMacro "#chaps" "!textures/faces/")
 	

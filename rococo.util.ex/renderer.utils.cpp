@@ -933,6 +933,72 @@ namespace Rococo
 			}
 		}
 
+		Vec2 RenderHQText(const GuiRect& clipRect, int32 alignment, IGuiRenderContext& grc, ID_FONT fontId, cstr text, RGBAb colour)
+		{
+			if (text == nullptr || *text == 0) return { 0,0 };
+
+			Vec2 origin = { 0, 1000 };
+			struct : IHQTextJob
+			{
+				cstr text;
+				RGBAb colour;
+				Vec2 startPos;
+				GuiRectf lastRect = { 0,0,0,0 };
+
+				void Render(IHQTextBuilder& builder) override
+				{
+					builder.SetColour(colour);
+					builder.SetCursor(startPos);
+
+					for (const char* p = text; *p != 0; p++)
+					{
+						builder.Write(*p, &lastRect);
+					}
+				}
+			} job;
+
+			job.text = text;
+			job.colour = colour;
+			job.startPos = origin;
+
+			grc.RenderHQText(fontId, job, IGuiRenderContext::EVALUATE_SPAN_ONLY);
+
+			Vec2 span;
+			span.x = job.lastRect.right - origin.x;
+			span.y = Height(job.lastRect);
+
+			if (HasFlag(Alignment_Left, alignment) && !HasFlag(Alignment_Right, alignment))
+			{
+				job.startPos.x = (float)clipRect.left;
+			}
+			else if (HasFlag(Alignment_Right, alignment) && !HasFlag(Alignment_Left, alignment))
+			{
+				job.startPos.x = (float)(clipRect.right - span.x);
+			}
+			else
+			{
+				job.startPos.x = (float)((clipRect.right + clipRect.left) >> 1) - 0.5f * span.x;
+			}
+
+			if (HasFlag(Alignment_Top, alignment) && !HasFlag(Alignment_Bottom, alignment))
+			{
+				job.startPos.y = (float)clipRect.top;
+			}
+			else if (HasFlag(Alignment_Bottom, alignment) && !HasFlag(Alignment_Top, alignment))
+			{
+				job.startPos.y = (float)(clipRect.bottom - span.y);
+			}
+			else
+			{
+				job.startPos.y = (float)((clipRect.top + clipRect.bottom) >> 1) + 0.5f * span.y;
+			}
+	
+
+			grc.RenderHQText(fontId, job, IGuiRenderContext::RENDER);
+
+			return span;
+		}
+
 		Vec2 RenderHQText_LeftAligned_VCentre(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour)
 		{
 			if (text == nullptr || *text == 0) return { 0,0 };

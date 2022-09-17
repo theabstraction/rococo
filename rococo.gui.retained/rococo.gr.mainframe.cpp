@@ -9,6 +9,7 @@ namespace ANON
 	struct GRMainFrame: IGRMainFrameSupervisor
 	{
 		IGRPanel& panel;
+		IGRWidgetMenuBar* menuBar = nullptr;
 
 		GRMainFrame(IGRPanel& _panel) : panel(_panel)
 		{
@@ -27,23 +28,49 @@ namespace ANON
 
 		void Layout(const GuiRect& screenDimensions) override
 		{
+			// The frame is one of the few widgets that resizes itself
 			panel.SetParentOffset(TopLeft(screenDimensions));
 			panel.Resize(Span(screenDimensions));
+
+			if (menuBar)
+			{
+				menuBar->Panel().Resize({ panel.Span().x, 24 });
+			}
 		}
 
 		EventRouting OnCursorClick(CursorEvent& ce) override
 		{
-			return EventRouting::NextChild;
+			return EventRouting::NextHandler;
+		}
+
+		EventRouting OnChildEvent(WidgetEvent& widgetEvent, IGRWidget& sourceWidget) override
+		{
+			return EventRouting::NextHandler;
 		}
 
 		EventRouting OnCursorMove(CursorEvent& ce) override
 		{
-			return EventRouting::NextChild;
+			return EventRouting::NextHandler;
 		}
 
-		IGRPanel& Panel()
+		IGRPanel& Panel() override
 		{
 			return panel;
+		}
+
+		IGRWidgetMenuBar& GetMenuBar() override
+		{
+			if (!menuBar)
+			{
+				menuBar = &CreateMenuBar(*this);
+			}
+
+			return *menuBar;
+		}
+
+		Vec2i EvaluateMinimalSpan() const override
+		{			
+			return Vec2i{ 320, 200 };
 		}
 	};
 }
