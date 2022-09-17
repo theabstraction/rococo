@@ -27,10 +27,28 @@ namespace ANON
 
 		virtual ~GRPanel()
 		{
+			static_cast<IGuiRetainedSupervisor&>(root.GR()).NotifyPanelDeleted(uniqueId);
+			ClearChildren();
+		}
+
+		IGRPanel* GetChild(int32 index)
+		{
+			if (index < 0 || index >= children.size())
+			{
+				return nullptr;
+			}
+
+			return children[index];
+		}
+
+		void ClearChildren() override
+		{
 			for (auto* child : children)
 			{
 				child->Free();
 			}
+
+			children.clear();
 		}
 
 		int32 EnumerateChildren(IEventCallback<IGRPanel>* callback) override
@@ -49,6 +67,23 @@ namespace ANON
 		int64 Id() const override
 		{
 			return uniqueId;
+		}
+
+		bool isLayoutValid = false;
+
+		void InvalidateLayout() override
+		{
+			isLayoutValid = false;
+
+			if (parent)
+			{
+				parent->InvalidateLayout();
+			}
+		}
+
+		bool RequiresLayout() const override
+		{
+			return !isLayoutValid;
 		}
 
 		EventRouting NotifyAncestors(WidgetEvent& event, IGRWidget& sourceWidget) override
@@ -103,17 +138,22 @@ namespace ANON
 
 		void LayoutRecursive(Vec2i absoluteOrigin) override
 		{
-			Vec2i parentOrigin = parentOffset + absoluteOrigin;
-			absRect = { parentOrigin.x, parentOrigin.y, parentOrigin.x + span.x, parentOrigin.y + span.y };
-
-			if (widget)
+			if (!isLayoutValid)
 			{
-				widget->Layout(absRect);
-			}
+				Vec2i parentOrigin = parentOffset + absoluteOrigin;
+				absRect = { parentOrigin.x, parentOrigin.y, parentOrigin.x + span.x, parentOrigin.y + span.y };
 
-			for (auto* child : children)
-			{
-				child->LayoutRecursive(parentOrigin);
+				if (widget)
+				{
+					widget->Layout(absRect);
+				}
+
+				for (auto* child : children)
+				{
+					child->LayoutRecursive(parentOrigin);
+				}
+
+				isLayoutValid = true;
 			}
 		}
 
@@ -137,23 +177,23 @@ namespace ANON
 			return root;
 		}
 
-		EventRouting RouteCursorClickEvent(CursorEvent& ce) override
+		EventRouting RouteCursorClickEvent(CursorEvent& ce, bool filterChildrenByParentRect) override
 		{
-			if (!IsPointInRect(ce.position, absRect))
+			if (filterChildrenByParentRect && !IsPointInRect(ce.position, absRect))
 			{
 				return EventRouting::NextHandler;
 			}
 
 			for (auto* child : children)
 			{
-				EventRouting routing = child->RouteCursorClickEvent(ce);
+				EventRouting routing = child->RouteCursorClickEvent(ce, filterChildrenByParentRect);
 				if (routing == EventRouting::Terminate)
 				{
 					return EventRouting::Terminate;
 				}
 			}
 
-			if (!widget)
+			if (!widget || !IsPointInRect(ce.position, absRect))
 			{
 				return EventRouting::NextHandler;
 			}

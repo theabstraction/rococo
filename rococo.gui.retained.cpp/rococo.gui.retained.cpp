@@ -66,6 +66,11 @@ namespace ANON
 			return i != mapIdToPanel.end() ? &i->second->Widget() : nullptr;
 		}
 
+		void NotifyPanelDeleted(int64 uniqueId)
+		{
+			mapIdToPanel.erase(uniqueId);
+		}
+
 		void Free() override
 		{
 			delete this;
@@ -162,7 +167,7 @@ namespace ANON
 				auto screenDimensions = g.ScreenDimensions();
 				Vec2i topLeft = { screenDimensions.left, screenDimensions.top };
 
-				if (lastLayedOutScreenDimensions != screenDimensions)
+				if (lastLayedOutScreenDimensions != screenDimensions || d.panel->RequiresLayout())
 				{
 					lastLayedOutScreenDimensions = screenDimensions;
 					LayoutFrames();
@@ -246,13 +251,13 @@ namespace ANON
 				if (widget)
 				{
 					auto& panelSupervisor = static_cast<IGRPanelSupervisor&>(widget->Panel());
-					return panelSupervisor.RouteCursorClickEvent(ev);
+					return panelSupervisor.RouteCursorClickEvent(ev, false);
 				}
 			}
 
 			for (auto d = frameDescriptors.rbegin(); d != frameDescriptors.rend(); ++d)
 			{
-				auto routing = d->panel->RouteCursorClickEvent(ev);
+				auto routing = d->panel->RouteCursorClickEvent(ev, true);
 				if (routing == EventRouting::Terminate)
 				{
 					return EventRouting::Terminate;
@@ -289,7 +294,7 @@ namespace ANON
 				if (widget)
 				{
 					auto& panelSupervisor = static_cast<IGRPanelSupervisor&>(widget->Panel());
-					auto routing = panelSupervisor.RouteCursorClickEvent(ev);
+					auto routing = panelSupervisor.RouteCursorMoveEvent(ev);
 					if (routing == EventRouting::Terminate)
 					{
 						return routing;

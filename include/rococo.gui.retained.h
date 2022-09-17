@@ -193,6 +193,7 @@ namespace Rococo::Gui
 		virtual IGRWidget& Widget() = 0;
 		virtual IGRPanel& Resize(Vec2i span) = 0;
 		virtual IGRPanel& SetParentOffset(Vec2i offset) = 0;
+		virtual IGRPanel* GetChild(int32 index) = 0;
 		virtual Vec2i Span() const = 0;
 		virtual Vec2i ParentOffset() const = 0;
 		virtual IGRPanelRoot& Root() = 0;
@@ -202,13 +203,19 @@ namespace Rococo::Gui
 		virtual int64 Id() const = 0;
 		virtual GuiRect AbsRect() const = 0;
 		virtual void CaptureCursor() = 0;
+
+		// Indicates that the layout needs to be recomputed
+		virtual void InvalidateLayout() = 0;
+		virtual bool RequiresLayout() const = 0;
 	};
 
 	ROCOCOAPI IGRPanelSupervisor : IGRPanel
 	{
+		// A dangerous function, particularly if called within a recursive query. Ensure it is not called on children that are referenced in the callstack
+		virtual void ClearChildren() = 0;
 		virtual void LayoutRecursive(Vec2i absoluteOrigin) = 0;
 		virtual void RenderRecursive(IGRRenderContext & g) = 0;
-		virtual EventRouting RouteCursorClickEvent(CursorEvent& ce) = 0;
+		virtual EventRouting RouteCursorClickEvent(CursorEvent& ce, bool filterChildrenByParentRect) = 0;
 		virtual EventRouting RouteCursorMoveEvent(CursorEvent& ce) = 0;
 		virtual void SetWidget(IGRWidget& widget) = 0;
 		virtual void Free() = 0;
@@ -250,6 +257,14 @@ namespace Rococo::Gui
 		}
 	};
 
+	struct ButtonFlags
+	{
+		uint32 isMenu : 1;
+		uint32 forSubMenu : 1;
+		uint32 isEnabled : 1;
+		uint32 isRaised : 1;
+	};
+
 	ROCOCOAPI IGRWidgetButton : IGRWidget
 	{
 		// Sets the rule by which events are fired
@@ -271,17 +286,35 @@ namespace Rococo::Gui
 
 		// Returns meta data set with SetMetaData. The pointers are valid until meta data is changed or the control is destroyed
 		virtual ControlMetaData GetMetaData() = 0;
+
+		virtual ButtonFlags GetButtonFlags() const = 0;
 	};
 
-	struct GRMenuItem
+	struct GRMenuButtonItem
 	{
 		cstr text;
 		ControlMetaData metaData;
+		int isEnabled: 1;
+	};
+
+	struct GRMenuSubMenu
+	{
+		GRMenuSubMenu(cstr _text, bool enable = true) : text(_text), isEnabled(enable) {};
+		cstr text;
+		int isEnabled : 1;
+	};
+
+	struct GRMenuItemId
+	{
+		int64 id;
+		static GRMenuItemId Root() { return GRMenuItemId{ 0 }; }
+		static GRMenuItemId Error() { return GRMenuItemId{ -1 }; }
 	};
 
 	ROCOCOAPI IGRWidgetMenuBar : IGRWidget
 	{
-		virtual void AddItem(const GRMenuItem& item) = 0;
+		virtual bool AddButton(GRMenuItemId parentMenu, const GRMenuButtonItem& item) = 0;
+		virtual GRMenuItemId AddSubMenu(GRMenuItemId parentMenu, const GRMenuSubMenu& subMenu) = 0;
 	};
 
 	ROCOCOAPI IGRWidgetFactory
@@ -338,8 +371,9 @@ namespace Rococo::Gui
 		virtual EventRouting RouteCursorMoveEvent(CursorEvent& ev) = 0;
 	};
 
-	ROCOCOAPI IGuiRetainedSupervisor: IGuiRetained
+	ROCOCOAPI IGuiRetainedSupervisor : IGuiRetained
 	{
+		virtual void NotifyPanelDeleted(int64 uniqueId) = 0;
 		virtual void Free() = 0;
 
 	};
@@ -348,6 +382,7 @@ namespace Rococo::Gui
 	{
 		None,
 		Generic,
+		InvalidArg,
 		RecursionLocked
 	};
 
@@ -370,7 +405,7 @@ namespace Rococo::Gui
 
 	ROCOCO_GUI_RETAINED_API IGRWidgetButton& CreateButton(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetMenuBar& CreateMenuBar(IGRWidget& parent);
-	ROCOCO_GUI_RETAINED_API IGRWidgetButton& CreateMenuButton(IGRWidget& parent);
+	ROCOCO_GUI_RETAINED_API IGRWidgetButton& CreateMenuButton(IGRWidget& parent, bool forSubmenu = false);
 	ROCOCO_GUI_RETAINED_API IGuiRetainedSupervisor* CreateGuiRetained(GRConfig& config, IGRCustodian& custodian);
 	ROCOCO_GUI_RETAINED_API void DrawButton(IGRPanel& panel, bool focused, bool raised, IGRRenderContext& g);
 	ROCOCO_GUI_RETAINED_API void DrawMenuButton(IGRPanel& panel, bool focused, bool raised, IGRRenderContext& g);

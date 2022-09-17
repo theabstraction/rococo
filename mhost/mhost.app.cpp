@@ -433,29 +433,69 @@ namespace MHost
 
 			RunMHostEnvironmentScript(platform, this, "!scripts/MHost/_Init/keys.sxy", true, false, *packageMHost, this, nullptr);
 
-			auto& frame = platform.GR.BindFrame(Rococo::Gui::IdWidget{"Mhost-Frame"});
+			using namespace Rococo::Gui;
+
+			auto& frame = platform.GR.BindFrame(IdWidget{"Mhost-Frame"});
 			auto& scheme = platform.GR.Root().Scheme();
-			scheme.SetColour(Rococo::Gui::ESchemeColourSurface::BACKGROUND, RGBAb(64, 64, 64, 192));
-			scheme.SetColour(Rococo::Gui::ESchemeColourSurface::MENU_BUTTON_PRESSED, RGBAb(96, 96, 96, 255));
-			scheme.SetColour(Rococo::Gui::ESchemeColourSurface::MENU_BUTTON_RAISED, RGBAb(64, 64, 64, 255));
-			scheme.SetColour(Rococo::Gui::ESchemeColourSurface::MENU_BUTTON_PRESSED_AND_HOVERED, RGBAb(128, 128, 128, 255));
-			scheme.SetColour(Rococo::Gui::ESchemeColourSurface::MENU_BUTTON_RAISED_AND_HOVERED, RGBAb(80, 80, 80, 255));
-			scheme.SetColour(Rococo::Gui::ESchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, RGBAb(64, 64, 64, 255));
-			scheme.SetColour(Rococo::Gui::ESchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(64, 64, 64, 255));
-			scheme.SetColour(Rococo::Gui::ESchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT_PRESSED, RGBAb(255, 255, 255, 255));
-			scheme.SetColour(Rococo::Gui::ESchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT_PRESSED, RGBAb(224, 224, 224, 255));
+			scheme.SetColour(ESchemeColourSurface::BACKGROUND, RGBAb(64, 64, 64, 192));
+			scheme.SetColour(ESchemeColourSurface::MENU_BUTTON_PRESSED, RGBAb(96, 96, 96, 255));
+			scheme.SetColour(ESchemeColourSurface::MENU_BUTTON_RAISED, RGBAb(64, 64, 64, 255));
+			scheme.SetColour(ESchemeColourSurface::MENU_BUTTON_PRESSED_AND_HOVERED, RGBAb(128, 128, 128, 255));
+			scheme.SetColour(ESchemeColourSurface::MENU_BUTTON_RAISED_AND_HOVERED, RGBAb(80, 80, 80, 255));
+			scheme.SetColour(ESchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, RGBAb(64, 64, 64, 255));
+			scheme.SetColour(ESchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(64, 64, 64, 255));
+			scheme.SetColour(ESchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT_PRESSED, RGBAb(255, 255, 255, 255));
+			scheme.SetColour(ESchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT_PRESSED, RGBAb(224, 224, 224, 255));
 
 			//auto& button = Rococo::Gui::CreateMenuButton(frame);
 			//button.SetTitle("File");
 			//button.Panel().Resize({ 80,24 }).SetParentOffset({1,0});
 
 			auto& menu = frame.GetMenuBar();
-			menu.AddItem({ "File", Rococo::Gui::ControlMetaData::None() });
-			menu.AddItem({ "Edit", Rococo::Gui::ControlMetaData::None() });
-			menu.AddItem({ "View", Rococo::Gui::ControlMetaData::None() });
-			menu.AddItem({ "Project", Rococo::Gui::ControlMetaData::None() });
-			menu.AddItem({ "Window", Rococo::Gui::ControlMetaData::None() });
-			menu.AddItem({ "Help", Rococo::Gui::ControlMetaData::None() });
+			auto fileMenu = menu.AddSubMenu(GRMenuItemId::Root(), GRMenuSubMenu("File"));
+			auto editMenu = menu.AddSubMenu(GRMenuItemId::Root(), GRMenuSubMenu("Edit"));
+			auto viewMenu = menu.AddSubMenu(GRMenuItemId::Root(), GRMenuSubMenu("View"));
+			auto projectMenu = menu.AddSubMenu(GRMenuItemId::Root(), GRMenuSubMenu("Project"));
+			auto windowMenu = menu.AddSubMenu(GRMenuItemId::Root(), GRMenuSubMenu("Window"));
+			auto helpMenu = menu.AddSubMenu(GRMenuItemId::Root(), GRMenuSubMenu("Help"));
+
+			menu.AddButton(fileMenu, { "New", { 0, nullptr } });
+			menu.AddButton(fileMenu, { "Open...", { 0, nullptr } });
+			menu.AddButton(fileMenu, { "Save", { 0, nullptr } });
+			menu.AddButton(fileMenu, { "Save As...", { 0, nullptr } });
+			menu.AddButton(fileMenu, { "Exit", { 0, nullptr } });
+
+			menu.AddButton(editMenu, { "Find...", { 0, nullptr } });
+			menu.AddButton(editMenu, { "Replace...", { 0, nullptr } });
+			menu.AddButton(editMenu, { "Copy", { 0, nullptr } });
+			menu.AddButton(editMenu, { "Cut", { 0, nullptr } });
+			menu.AddButton(editMenu, { "Paste", { 0, nullptr } });
+
+			menu.AddButton(viewMenu, { "Solution", { 0, nullptr } });
+			menu.AddButton(viewMenu, { "Classes", { 0, nullptr } });
+			menu.AddButton(viewMenu, { "Repo", { 0, nullptr } });
+			menu.AddButton(viewMenu, { "Debugger", { 0, nullptr } });
+			menu.AddButton(viewMenu, { "Output", { 0, nullptr } });
+
+			menu.AddButton(projectMenu, { "Build", { 0, nullptr } });
+			menu.AddButton(projectMenu, { "Rebuild", { 0, nullptr } });
+			menu.AddButton(projectMenu, { "Debug", { 0, nullptr } });
+			menu.AddButton(projectMenu, { "Cancel", { 0, nullptr } });
+
+			menu.AddButton(windowMenu, { "Split", { 0, nullptr } });
+			menu.AddButton(windowMenu, { "Cascade", { 0, nullptr } });
+			menu.AddButton(windowMenu, { "Merge", { 0, nullptr } });
+			auto toggles = menu.AddSubMenu(windowMenu, GRMenuSubMenu("Toggles"));
+			menu.AddButton(toggles, { "Toolkit", { 0, nullptr } });
+			menu.AddButton(toggles, { "Properties", { 0, nullptr } });
+			menu.AddButton(toggles, { "Log", { 0, nullptr } });
+			menu.AddButton(windowMenu, { "Close All", { 0, nullptr } });
+
+			menu.AddButton(helpMenu, { "About...", { 0, nullptr } });
+			menu.AddButton(helpMenu, { "Check for updates", { 0, nullptr } });
+			menu.AddButton(helpMenu, { "Version", { 0, nullptr } });
+			menu.AddButton(helpMenu, { "Purchase License", { 0, nullptr } });
+
 
 			while (platform.appControl.IsRunning() && !isShutdown)
 			{

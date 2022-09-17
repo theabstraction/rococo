@@ -179,6 +179,7 @@ struct WindowsArrayFont : IArrayFontSupervisor
 		TEXTMETRICA tm;
 		GetTextMetricsA(hMemDC, &tm);
 
+		// If the TMPF_FIXED_PITCH flag is 0 then width is fixed: blame Microsoft.
 		bool isFixedPitch = !HasFlag(TMPF_FIXED_PITCH, tm.tmPitchAndFamily);
 
 		glyphSet.Populate(glyphs);

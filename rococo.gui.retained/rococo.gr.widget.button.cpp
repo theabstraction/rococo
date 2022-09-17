@@ -15,6 +15,7 @@ namespace ANON
 
 		bool isRaised = true;
 		bool isMenu = false;
+		bool forSubmenu = false;
 
 		GRButton(IGRPanel& owningPanel) : panel(owningPanel)
 		{
@@ -29,6 +30,16 @@ namespace ANON
 		void Layout(const GuiRect& panelDimensions) override
 		{
 
+		}
+
+		ButtonFlags GetButtonFlags() const override
+		{
+			ButtonFlags flags;
+			flags.forSubMenu = forSubmenu;
+			flags.isEnabled = true;
+			flags.isMenu = isMenu;
+			flags.isRaised = isRaised;
+			return flags;
 		}
 
 		void FireEvent(CursorEvent& ce)
@@ -202,11 +213,12 @@ namespace Rococo::Gui
 		return static_cast<IGRWidgetButton&>(gr.AddWidget(parent.Panel(), ANON::s_ButtonFactory));
 	}
 
-	ROCOCO_GUI_RETAINED_API IGRWidgetButton& CreateMenuButton(IGRWidget& parent)
+	ROCOCO_GUI_RETAINED_API IGRWidgetButton& CreateMenuButton(IGRWidget& parent, bool forSubmenu)
 	{
 		auto& gr = parent.Panel().Root().GR();
 		auto& button = static_cast<ANON::GRButton&>(gr.AddWidget(parent.Panel(), ANON::s_ButtonFactory));
 		button.isMenu = true;
+		button.forSubmenu = forSubmenu;
 		return button;
 	}
 
