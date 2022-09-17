@@ -422,21 +422,29 @@ namespace Rococo::Graphics
 		{
 			value = SampleIndex::Fonts;
 		}
-		else if (s ==  "SampleIndex_Sprites"_fstring)
+		else if (s ==  "SampleIndex_ShadowMap"_fstring)
 		{
-			value = SampleIndex::Sprites;
-		}
-		else if (s ==  "SampleIndex_Materials"_fstring)
-		{
-			value = SampleIndex::Materials;
+			value = SampleIndex::ShadowMap;
 		}
 		else if (s ==  "SampleIndex_EnvironmentalMap"_fstring)
 		{
 			value = SampleIndex::EnvironmentalMap;
 		}
-		else if (s ==  "SampleIndex_ShadowMap"_fstring)
+		else if (s ==  "SampleIndex_TextureSelector"_fstring)
 		{
-			value = SampleIndex::ShadowMap;
+			value = SampleIndex::TextureSelector;
+		}
+		else if (s ==  "SampleIndex_Materials"_fstring)
+		{
+			value = SampleIndex::Materials;
+		}
+		else if (s ==  "SampleIndex_Sprites"_fstring)
+		{
+			value = SampleIndex::Sprites;
+		}
+		else if (s ==  "SampleIndex_HQFontGlyphs"_fstring)
+		{
+			value = SampleIndex::HQFontGlyphs;
 		}
 		else
 		{
@@ -452,21 +460,29 @@ namespace Rococo::Graphics
 		{
 			value = SampleIndex::Fonts;
 		}
-		else if (s ==  "Sprites"_fstring)
+		else if (s ==  "ShadowMap"_fstring)
 		{
-			value = SampleIndex::Sprites;
-		}
-		else if (s ==  "Materials"_fstring)
-		{
-			value = SampleIndex::Materials;
+			value = SampleIndex::ShadowMap;
 		}
 		else if (s ==  "EnvironmentalMap"_fstring)
 		{
 			value = SampleIndex::EnvironmentalMap;
 		}
-		else if (s ==  "ShadowMap"_fstring)
+		else if (s ==  "TextureSelector"_fstring)
 		{
-			value = SampleIndex::ShadowMap;
+			value = SampleIndex::TextureSelector;
+		}
+		else if (s ==  "Materials"_fstring)
+		{
+			value = SampleIndex::Materials;
+		}
+		else if (s ==  "Sprites"_fstring)
+		{
+			value = SampleIndex::Sprites;
+		}
+		else if (s ==  "HQFontGlyphs"_fstring)
+		{
+			value = SampleIndex::HQFontGlyphs;
 		}
 		else
 		{
@@ -481,14 +497,18 @@ namespace Rococo::Graphics
 		{
 			case SampleIndex::Fonts:
 				return "Fonts"_fstring;
-			case SampleIndex::Sprites:
-				return "Sprites"_fstring;
-			case SampleIndex::Materials:
-				return "Materials"_fstring;
-			case SampleIndex::EnvironmentalMap:
-				return "EnvironmentalMap"_fstring;
 			case SampleIndex::ShadowMap:
 				return "ShadowMap"_fstring;
+			case SampleIndex::EnvironmentalMap:
+				return "EnvironmentalMap"_fstring;
+			case SampleIndex::TextureSelector:
+				return "TextureSelector"_fstring;
+			case SampleIndex::Materials:
+				return "Materials"_fstring;
+			case SampleIndex::Sprites:
+				return "Sprites"_fstring;
+			case SampleIndex::HQFontGlyphs:
+				return "HQFontGlyphs"_fstring;
 			default:
 				return {"",0};
 		}

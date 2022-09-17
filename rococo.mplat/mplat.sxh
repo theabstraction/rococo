@@ -659,10 +659,12 @@
 	(as.cpp Rococo.Graphics.SampleIndex "mplat")
 	(
 		(Fonts  0)
-		(Sprites  1)
-		(Materials 2)
-		(EnvironmentalMap 3)
-		(ShadowMap 4)
+		(ShadowMap 1)
+		(EnvironmentalMap 2)
+		(TextureSelector 3)
+		(Materials 4)
+		(Sprites  5)
+		(HQFontGlyphs 6)
 	)
 )
 

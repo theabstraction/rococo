@@ -56,6 +56,7 @@ struct HQFonts : IHQFontsSupervisor, Fonts::IArrayFontSet
 		heightInPixels = 20;
 		faceName = DEFAULT_FONT_NAME;
 		italics = false;
+		bold = false;
 	}
 
 	void SetFaceName(const fstring& name) override
@@ -132,6 +133,9 @@ struct HQFonts : IHQFontsSupervisor, Fonts::IArrayFontSet
 
 		ID_FONT idFont = hq.CreateOSFont(*this, spec);
 		sysFonts[(int)hqFontType] = idFont;
+
+		Clear();
+
 		return idFont;
 	}
 

@@ -26,10 +26,12 @@
 (macro Rococo.Graphics.SampleFilterClamp in out (out.AddAtomic "0x3"))
 
 (macro Rococo.Graphics.SampleIndexFonts in out (out.AddAtomic "0x0"))
-(macro Rococo.Graphics.SampleIndexSprites in out (out.AddAtomic "0x1"))
-(macro Rococo.Graphics.SampleIndexMaterials in out (out.AddAtomic "0x2"))
-(macro Rococo.Graphics.SampleIndexEnvironmentalMap in out (out.AddAtomic "0x3"))
-(macro Rococo.Graphics.SampleIndexShadowMap in out (out.AddAtomic "0x4"))
+(macro Rococo.Graphics.SampleIndexShadowMap in out (out.AddAtomic "0x1"))
+(macro Rococo.Graphics.SampleIndexEnvironmentalMap in out (out.AddAtomic "0x2"))
+(macro Rococo.Graphics.SampleIndexTextureSelector in out (out.AddAtomic "0x3"))
+(macro Rococo.Graphics.SampleIndexMaterials in out (out.AddAtomic "0x4"))
+(macro Rococo.Graphics.SampleIndexSprites in out (out.AddAtomic "0x5"))
+(macro Rococo.Graphics.SampleIndexHQFontGlyphs in out (out.AddAtomic "0x6"))
 
 (interface Rococo.IInventoryArray
 	(AddPaperDoll (Sys.Maths.Recti rect)(Sys.Type.IString pingPathToImage) -> )

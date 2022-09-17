@@ -82,7 +82,7 @@ struct FontGlyphs : IFontGlyphBuilder
 		codes[code] = ArrayGlyph{ 0,0,0 };
 	}
 
-	int32 ComputeMaxABCWidth(HDC hDC)
+	int32 ComputeMaxABCWidth(HDC hDC, bool isFixedWidth)
 	{
 		int32 width = 0;
 
@@ -92,7 +92,18 @@ struct FontGlyphs : IFontGlyphBuilder
 			ABC abc;
 
 			char32_t i = it.first;
-			if (GetCharABCWidthsW(hDC, i, i, &abc))
+			if (isFixedWidth)
+			{
+				INT charWidth;
+				GetCharWidthW(hDC, i, i, &charWidth);
+
+				it.second.A = 0;
+				it.second.B = charWidth;
+				it.second.C = 0;
+
+				width = max(width, charWidth);
+			}
+			else if (GetCharABCWidthsW(hDC, i, i, &abc))
 			{
 				int a = abc.abcA;
 				uint32 b = abc.abcB;
@@ -168,6 +179,8 @@ struct WindowsArrayFont : IArrayFontSupervisor
 		TEXTMETRICA tm;
 		GetTextMetricsA(hMemDC, &tm);
 
+		bool isFixedPitch = !HasFlag(TMPF_FIXED_PITCH, tm.tmPitchAndFamily);
+
 		glyphSet.Populate(glyphs);
 
 		auto i = glyphs.codes.find('?');
@@ -184,7 +197,7 @@ struct WindowsArrayFont : IArrayFontSupervisor
 		metrics.internalLeading = tm.tmInternalLeading;
 		metrics.italic = tm.tmItalic;
 		metrics.weight = tm.tmWeight;
-		metrics.imgWidth = width = glyphs.ComputeMaxABCWidth(hMemDC);
+		metrics.imgWidth = width = glyphs.ComputeMaxABCWidth(hMemDC, isFixedPitch);
 		hBitmap = CreateCompatibleBitmap(hdcDesktop, width, metrics.height);
 		if (hBitmap == nullptr)
 		{
@@ -215,9 +228,9 @@ struct WindowsArrayFont : IArrayFontSupervisor
 		delete this;
 	}
 
-	int32 ComputeMaxABCWidth()
+	int32 ComputeMaxABCWidth(bool isFixedPitch)
 	{
-		return glyphs.ComputeMaxABCWidth(hMemDC);
+		return glyphs.ComputeMaxABCWidth(hMemDC, isFixedPitch);
 	}
 
 	int32 NumberOfGlyphs() const override

@@ -42,12 +42,12 @@ cbuffer BoneMatricesState: register(b7)
 };
 
 SamplerState fontSampler: register(s0);
-SamplerState shadowSampler: register(s2);
-SamplerState envSampler: register(s3);
-SamplerState selectSampler: register(s4);
-SamplerState matSampler: register(s6);
-SamplerState spriteSampler: register(s7);
-SamplerState glyphSampler: register(s8);
+SamplerState shadowSampler: register(s1);
+SamplerState envSampler: register(s2);
+SamplerState selectSampler: register(s3);
+SamplerState matSampler: register(s4);
+SamplerState spriteSampler: register(s5);
+SamplerState glyphSampler: register(s6);
 
 Texture2D tx_FontSprite: register(t0);
 Texture2D tx_ShadowMap: register(t2);

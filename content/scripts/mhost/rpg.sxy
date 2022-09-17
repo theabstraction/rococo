@@ -422,6 +422,14 @@
 	(fontDef.w = (#SampleFilterBorder))
 	(fontDef.borderColour =	0 0 0 0)
 	(rc.SetSampler fontDef (#SampleIndexFonts))
+
+	(SampleStateDef hqFontDef)
+	(hqFontDef.method = (#SampleMethodLinear))
+	(hqFontDef.u = (#SampleFilterBorder))
+	(hqFontDef.v = (#SampleFilterBorder))
+	(hqFontDef.w = (#SampleFilterBorder))
+	(hqFontDef.borderColour =	0 0 0 0)
+	(rc.SetSampler hqFontDef (#SampleIndexHQFontGlyphs))
 	
 	(Sys.Random.Seed 0)
 	(IBundle bundle (NewGameBundle))

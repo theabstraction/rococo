@@ -993,6 +993,8 @@ namespace Rococo
 				job.startPos.y = (float)((clipRect.top + clipRect.bottom) >> 1) + 0.5f * span.y;
 			}
 	
+			job.startPos.x = floorf(job.startPos.x);
+			job.startPos.y = floorf(job.startPos.y);
 
 			grc.RenderHQText(fontId, job, IGuiRenderContext::RENDER);
 

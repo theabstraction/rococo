@@ -16,6 +16,13 @@
 
 (function Main (Int32 id) -> (Int32 exitCode):
 	(IHQFonts fonts (HQFonts))
+	
+	(fonts.Build (#HQFontMenuFont))
+	(fonts.SetFaceName "Consolas")
+	(fonts.AddRange 32 126)
+	(fonts.SetHeight 16)
+	(fonts.Commit)
+	
 	(fonts.Build (#HQFontEditorFont))
 	(fonts.SetFaceName "Courier New")
 	(fonts.MakeBold)
@@ -42,12 +49,6 @@
 	(fonts.AddRange 32 127)
 	(fonts.AddCharacters "£")
 	(fonts.SetHeight 28)
-	(fonts.Commit)
-
-	(fonts.Build (#HQFontMenuFont))
-	(fonts.SetFaceName "Arial")
-	(fonts.AddRange 32 126)
-	(fonts.SetHeight 14)
 	(fonts.Commit)
 	
 	(IInstallation installation (Installation))
