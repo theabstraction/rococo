@@ -6,11 +6,11 @@ using namespace Rococo::Gui;
 
 namespace ANON
 {
-	struct GRDivision : IGRWidgetDivision
+	struct GRVerticalList : IGRWidgetVerticalList
 	{
 		IGRPanel& panel;
 
-		GRDivision(IGRPanel& owningPanel) : panel(owningPanel)
+		GRVerticalList(IGRPanel& owningPanel) : panel(owningPanel)
 		{
 		}
 
@@ -21,7 +21,22 @@ namespace ANON
 
 		void Layout(const GuiRect& panelDimensions) override
 		{
-			LayoutChildrenByAnchors(panel, panelDimensions);
+			int index = 0;
+			int top = 0;
+
+			while (auto* child = panel.GetChild(index++))
+			{
+				auto padding = child->Padding();
+				child->SetParentOffset({ padding.left, top + padding.top });
+				child->Resize({ Width(panelDimensions) - padding.left - padding.right });
+				top += child->Span().y + padding.top + padding.bottom;
+			}
+
+			int overhang = top - Height(panelDimensions);
+			if (overhang > 0)
+			{
+				// We need vertical scrolling
+			}
 		}
 
 		EventRouting OnCursorClick(CursorEvent& ce) override
@@ -64,21 +79,21 @@ namespace ANON
 		}
 	};
 
-	struct GRDivFactory : IGRWidgetFactory
+	struct GRVerticalListFactory : IGRWidgetFactory
 	{
 		IGRWidget& CreateWidget(IGRPanel& panel)
 		{
-			return *new GRDivision(panel);
+			return *new GRVerticalList(panel);
 		}
-	} s_DivFactory;
+	} s_VerticalListFactory;
 }
 
 namespace Rococo::Gui
 {
-	ROCOCO_GUI_RETAINED_API IGRWidgetDivision& CreateDivision(IGRWidget& parent)
+	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalList& CreateVerticalList(IGRWidget& parent)
 	{
 		auto& gr = parent.Panel().Root().GR();
-		auto& div = static_cast<IGRWidgetDivision&>(gr.AddWidget(parent.Panel(), ANON::s_DivFactory));
-		return div;
+		auto& list = static_cast<IGRWidgetVerticalList&>(gr.AddWidget(parent.Panel(), ANON::s_VerticalListFactory));
+		return list;
 	}
 }
