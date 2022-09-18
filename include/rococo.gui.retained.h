@@ -132,7 +132,13 @@ namespace Rococo::Gui
 		MENU_BUTTON_EDGE_BOTTOM_RIGHT,
 		MENU_BUTTON_EDGE_TOP_LEFT_PRESSED,
 		MENU_BUTTON_EDGE_BOTTOM_RIGHT_PRESSED,
-		MENU_BUTTON_TEXT
+		MENU_BUTTON_TEXT,
+		CONTAINER_BACKGROUND,
+		CONTAINER_TOP_LEFT,
+		CONTAINER_BOTTOM_RIGHT,
+		CONTAINER_BACKGROUND_HOVERED,
+		CONTAINER_TOP_LEFT_HOVERED,
+		CONTAINER_BOTTOM_RIGHT_HOVERED,
 	};
 
 	ROCOCO_INTERFACE IScheme
@@ -187,6 +193,25 @@ namespace Rococo::Gui
 		virtual IGuiRetained& GR() = 0;
 	};
 
+	struct GRAnchors
+	{
+		uint32 left: 1;	// The widget sticks to the left side of the container
+		uint32 top : 1; // The widget sticks to the top side of the container
+		uint32 right : 1; // The widget sticks to the right side of the container
+		uint32 bottom : 1; // The widget sticks to the bottom side of the container
+		uint32 expandsHorizontally : 1; // If true then sticking to left or right of a container may expand or contract the span. Irrelevant if both left and right anchors are set.
+		uint32 expandsVertically : 1; // If true then sticking to the top of the bottom of a container may expand or contract the span. Irrelevant if both top and bottom anchors are set.
+	};
+
+	// Gives the number of pixels between an anchored side and the parent control
+	struct GRAnchorPadding
+	{
+		int32 left;
+		int32 right;
+		int32 top;
+		int32 bottom;
+	};
+
 	ROCOCO_INTERFACE IGRPanel
 	{
 		virtual EventRouting NotifyAncestors(WidgetEvent& widgetEvent, IGRWidget& widget) = 0;
@@ -203,6 +228,10 @@ namespace Rococo::Gui
 		virtual int64 Id() const = 0;
 		virtual GuiRect AbsRect() const = 0;
 		virtual void CaptureCursor() = 0;
+		virtual GRAnchors Anchors() = 0;
+		virtual GRAnchorPadding Padding() = 0;
+		virtual void SetAnchors(GRAnchors anchors) = 0;
+		virtual void SetPadding(GRAnchorPadding padding) = 0;
 
 		// Indicates that the layout needs to be recomputed
 		virtual void InvalidateLayout() = 0;
@@ -220,6 +249,8 @@ namespace Rococo::Gui
 		virtual void SetWidget(IGRWidget& widget) = 0;
 		virtual void Free() = 0;
 	};
+
+	ROCOCO_GUI_RETAINED_API void LayoutChildrenByAnchors(IGRPanel& parent, const GuiRect& panelDimensions);
 
 	ROCOCO_INTERFACE IGRWidget
 	{
@@ -386,6 +417,11 @@ namespace Rococo::Gui
 		RecursionLocked
 	};
 
+	ROCOCO_INTERFACE IGRWidgetDivision : IGRWidget
+	{
+
+	};
+
 	ROCOCO_INTERFACE IGRCustodian
 	{
 		virtual Vec2i EvaluateMinimalSpan(GRFontId fontId, const fstring & text) const = 0;
@@ -404,6 +440,7 @@ namespace Rococo::Gui
 	};
 
 	ROCOCO_GUI_RETAINED_API IGRWidgetButton& CreateButton(IGRWidget& parent);
+	ROCOCO_GUI_RETAINED_API IGRWidgetDivision& CreateDivision(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetMenuBar& CreateMenuBar(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetButton& CreateMenuButton(IGRWidget& parent, bool forSubmenu = false);
 	ROCOCO_GUI_RETAINED_API IGuiRetainedSupervisor* CreateGuiRetained(GRConfig& config, IGRCustodian& custodian);

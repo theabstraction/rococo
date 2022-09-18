@@ -19,6 +19,8 @@ namespace ANON
 		std::vector<IGRPanelSupervisor*> children;
 		int64 uniqueId;
 		GuiRect absRect{ 0,0,0,0 };
+		GRAnchors anchors = { 0 };
+		GRAnchorPadding padding = { 0 };
 
 		GRPanel(IGRPanelRoot& _root, IGRPanelSupervisor* _parent): root(_root), parent(_parent), uniqueId(nextId++)
 		{
@@ -29,6 +31,26 @@ namespace ANON
 		{
 			static_cast<IGuiRetainedSupervisor&>(root.GR()).NotifyPanelDeleted(uniqueId);
 			ClearChildren();
+		}
+
+		GRAnchors Anchors() override
+		{
+			return anchors;
+		}
+
+		void SetAnchors(GRAnchors anchors) override
+		{
+			this->anchors = anchors;
+		}
+
+		GRAnchorPadding Padding() override
+		{
+			return padding;
+		}
+
+		void SetPadding(GRAnchorPadding padding) override
+		{
+			this->padding = padding;
 		}
 
 		IGRPanel* GetChild(int32 index)
@@ -254,4 +276,97 @@ namespace Rococo::Gui
 	{
 		return new ANON::GRPanel(root, parent);
 	}
+
+	ROCOCO_GUI_RETAINED_API void LayoutChildrenByAnchors(IGRPanel& parent, const GuiRect& panelDimensions)
+	{
+		int index = 0;
+		while (auto* child = parent.GetChild(index++))
+		{
+			auto anchors = child->Anchors();
+			auto padding = child->Padding();
+
+			Vec2i newPos = child->ParentOffset();
+			Vec2i newSpan = child->Span();
+
+			if (anchors.left)
+			{
+				newPos.x = padding.left;
+
+				if (anchors.right)
+				{
+					if (anchors.expandsHorizontally)
+					{
+						newSpan.x = Width(panelDimensions) - padding.left - padding.right;
+					}
+					else
+					{
+						newPos.x = Centre(panelDimensions).x - (child->Span().x >> 1) - padding.right;
+					}
+				}
+				else if (anchors.expandsHorizontally)
+				{
+					newSpan.x += child->ParentOffset().x - newPos.x;
+				}
+			}
+
+			if (anchors.right)
+			{
+				if (!anchors.left)
+				{
+					if (anchors.expandsHorizontally)
+					{
+						newSpan.x += panelDimensions.right - child->ParentOffset().x;
+					}
+					else
+					{
+						newPos.x = panelDimensions.right - child->Span().x - padding.right;
+					}
+				}
+			}
+
+			newPos.x = max(panelDimensions.left, newPos.x);
+			newPos.x = min(panelDimensions.right, newPos.x);
+			newSpan.x = max(0, newSpan.x);
+
+			if (anchors.top)
+			{
+				newPos.y = padding.top;
+
+				if (anchors.bottom)
+				{
+					if (anchors.expandsVertically)
+					{
+						newSpan.y = Height(panelDimensions) - padding.top - padding.bottom;
+					}
+					else
+					{
+						newPos.y = Centre(panelDimensions).y - child->Span().y - padding.bottom;
+					}
+				}
+				else if (anchors.expandsVertically)
+				{
+					newSpan.y += child->ParentOffset().y - newPos.y;
+				}
+			}
+
+			if (anchors.bottom)
+			{
+				if (!anchors.top)
+				{
+					if (anchors.expandsVertically)
+					{
+						newSpan.y += panelDimensions.top - child->ParentOffset().y;
+					}
+					else
+					{
+						newPos.y = panelDimensions.top - child->Span().y - padding.bottom;
+					}
+				}
+			}
+
+			child->SetParentOffset(newPos);
+			child->Resize(newSpan);
+		}
+	}
+
 }

@@ -162,6 +162,7 @@
   <ItemGroup>
     <ClCompile Include="..\rococo.gui.retained.cpp\rococo.gui.retained.cpp" />
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="rococo.gr.division.cpp" />
     <ClCompile Include="rococo.gr.layout.fullscreen.cpp" />
     <ClCompile Include="rococo.gr.mainframe.cpp" />
     <ClCompile Include="rococo.gr.menubar.cpp" />
@@ -171,6 +172,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\rococo.gui.retained.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cpp.hint" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
