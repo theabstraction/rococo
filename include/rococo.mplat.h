@@ -50,7 +50,7 @@ namespace Rococo
 	   virtual int32 Count() const = 0;
    };
 
-   ROCOCOAPI IStringVector
+   ROCOCO_INTERFACE IStringVector
    {
 	   virtual int32 Count() const = 0;
 	   virtual void GetItem(int32 item, char* text, size_t capacity) const = 0;
@@ -195,7 +195,7 @@ namespace Rococo::Joysticks
 		int16 thumbRY;
 	};
 
-	ROCOCOAPI IJoystick_XBOX360
+	ROCOCO_INTERFACE IJoystick_XBOX360
 	{
 		/* describe the gamepad state as a number of lines as text - used for debugging gamepad issues */
 		virtual void EnumerateStateAsText(const Joystick_XBOX360& x, IEventCallback<cstr> & cb) = 0;
@@ -204,7 +204,7 @@ namespace Rococo::Joysticks
 		virtual void Vibrate(uint32 index, float leftStrength, float rightStrength) = 0;
 	};
 
-	ROCOCOAPI IJoystick_XBOX360_Supervisor : IJoystick_XBOX360
+	ROCOCO_INTERFACE IJoystick_XBOX360_Supervisor : IJoystick_XBOX360
 	{
 		virtual void Free() = 0;
 	};
@@ -226,7 +226,7 @@ namespace Rococo
 		};
 	}
 
-	ROCOCOAPI IConfigSupervisor : public IConfig
+	ROCOCO_INTERFACE IConfigSupervisor : public IConfig
 	{
 		virtual cstr GetText(cstr name) const = 0;
 		virtual void Free() = 0;
@@ -236,7 +236,7 @@ namespace Rococo
 
 	using namespace Rococo::Graphics;
 
-	ROCOCOAPI IMathsVisitorSupervisor : public IMathsVisitor
+	ROCOCO_INTERFACE IMathsVisitorSupervisor : public IMathsVisitor
 	{
 		 virtual bool AppendKeyboardEvent(const KeyboardEvent & key) = 0;
 		 virtual void AppendMouseEvent(const MouseEvent& ev) = 0;
@@ -264,12 +264,12 @@ namespace Rococo
 		struct ISkeleton;
 		struct ISkeletons;
 
-		ROCOCOAPI IEntityCallback
+		ROCOCO_INTERFACE IEntityCallback
 		{
 		   virtual void OnEntity(int64 index, Rococo::Components::IBodyComponent& body, ID_ENTITY id) = 0;
 		};
 
-		ROCOCOAPI IInstancesSupervisor : public IInstances
+		ROCOCO_INTERFACE IInstancesSupervisor : public IInstances
 		{
 		   virtual Rococo::Components::IRCObjectTable & ECS() = 0;
 		   virtual void ForAll(IEntityCallback & cb) = 0;
@@ -286,7 +286,7 @@ namespace Rococo
 		bool isPressed;
 	};
 
-	ROCOCOAPI IKeyboardSupervisor : public IKeyboard
+	ROCOCO_INTERFACE IKeyboardSupervisor : public IKeyboard
 	{
 	   virtual cstr GetAction(cstr keyName) = 0;
 	   virtual Key GetKeyFromEvent(const KeyboardEvent& ke) = 0;
@@ -298,7 +298,7 @@ namespace Rococo
 
 	namespace Graphics
 	{
-		ROCOCOAPI IMeshBuilderSupervisor : public IMeshBuilder
+		ROCOCO_INTERFACE IMeshBuilderSupervisor : public IMeshBuilder
 		{
 		   virtual void Free() = 0;
 		   virtual void SaveCSV(cstr name, IExpandingBuffer& buffer) = 0;
@@ -310,7 +310,7 @@ namespace Rococo
 		   virtual AABB Bounds(ID_SYS_MESH id) const = 0;
 		};
 
-		ROCOCOAPI ICameraSupervisor : public ICamera
+		ROCOCO_INTERFACE ICameraSupervisor : public ICamera
 		{
 		   virtual void ElevateView(ID_ENTITY entityId, Degrees delta, cr_vec3 relativePos) = 0;
 		   virtual void Free() = 0;
@@ -318,7 +318,7 @@ namespace Rococo
 		   virtual IMathsVenue& Venue() = 0;
 		};
 
-		ROCOCOAPI ITextTesselatorSupervisor : ITextTesselator
+		ROCOCO_INTERFACE ITextTesselatorSupervisor : ITextTesselator
 		{
 			virtual void Free() = 0;
 		};
@@ -327,7 +327,7 @@ namespace Rococo
 
 		ICameraSupervisor* CreateCamera(Entities::IInstancesSupervisor& instances, Entities::IMobiles& mobiles, IRenderer& renderer);
 
-		ROCOCOAPI IScenePopulator
+		ROCOCO_INTERFACE IScenePopulator
 		{
 			// Called to trigger scene population prior to shadow generation
 			// DO NOT SET LIGHTS here, as it was the light array that caused this function to be called
@@ -338,12 +338,12 @@ namespace Rococo
 		virtual void PopulateScene(ISceneBuilder& sb) = 0;
 		};
 
-		ROCOCOAPI ISceneBuilderSupervisor : public ISceneBuilder
+		ROCOCO_INTERFACE ISceneBuilderSupervisor : public ISceneBuilder
 		{
 		   virtual void Free() = 0;
 		};
 
-		ROCOCOAPI ISceneSupervisor : public IScene
+		ROCOCO_INTERFACE ISceneSupervisor : public IScene
 		{
 		   virtual void AdvanceAnimations(Seconds dt) = 0;
 		   virtual void Free() = 0;
@@ -353,7 +353,7 @@ namespace Rococo
 
 		ISceneSupervisor* CreateScene(Rococo::Entities::IInstancesSupervisor& instances, ICameraSupervisor& camera, Entities::IRigs& rigs);
 
-		ROCOCOAPI ISpriteBuilderSupervisor : public ISpriteBuilder
+		ROCOCO_INTERFACE ISpriteBuilderSupervisor : public ISpriteBuilder
 		{
 		   virtual void Free() = 0;
 		};
@@ -362,7 +362,7 @@ namespace Rococo
 
 		IQuadStackTesselator* CreateQuadStackTesselator();
 
-		ROCOCOAPI IRendererConfigSupervisor : public IRendererConfig
+		ROCOCO_INTERFACE IRendererConfigSupervisor : public IRendererConfig
 		{
 			virtual void Free() = 0;
 		};
@@ -381,7 +381,7 @@ namespace Rococo
 			FPSAngles angles;
 		};
 
-		ROCOCOAPI IMobilesSupervisor : public Entities::IMobiles
+		ROCOCO_INTERFACE IMobilesSupervisor : public Entities::IMobiles
 		{
 		   virtual bool TryMoveMobile(const MoveMobileArgs & tmm) = 0;
 		   virtual void Free() = 0;
@@ -389,7 +389,7 @@ namespace Rococo
 
 		IMobilesSupervisor* CreateMobilesSupervisor(Entities::IInstancesSupervisor& instances);
 
-		ROCOCOAPI IRigs
+		ROCOCO_INTERFACE IRigs
 		{
 			virtual IRigBuilder & Builder() = 0;
 			virtual ISkeletons & Skeles() = 0;
@@ -399,7 +399,7 @@ namespace Rococo
 
 		IInstancesSupervisor* CreateInstanceBuilder(Graphics::IMeshBuilderSupervisor& meshes, IRenderer& renderer, Events::IPublisher& publisher, Components::IRCObjectTable& ecs, size_t maxEntities);
 
-		ROCOCOAPI IParticleSystemSupervisor : IParticleSystem
+		ROCOCO_INTERFACE IParticleSystemSupervisor : IParticleSystem
 		{
 			virtual void Free() = 0;
 			virtual void GetParticles(ID_ENTITY id, IRenderer& renderer) = 0;
@@ -412,7 +412,7 @@ namespace Rococo
 			char text[256];
 		};
 
-		ROCOCOAPI IBone
+		ROCOCO_INTERFACE IBone
 		{
 			virtual cr_quat Quat() const = 0;
 			virtual void SetQuat(cr_quat q) = 0;
@@ -501,7 +501,7 @@ namespace Rococo
 		virtual void Render(IGuiRenderContext& rc, const GuiRect& absRect) = 0;
 	};
 
-	ROCOCOAPI IBloodyPropertySetEditor : public IUIElement
+	ROCOCO_INTERFACE IBloodyPropertySetEditor : public IUIElement
 	{
 		virtual void AddBool(cstr name, bool* value) = 0;
 		virtual void AddSpacer() = 0;
@@ -517,7 +517,7 @@ namespace Rococo
 		virtual void Clear();
 	};
 
-	ROCOCOAPI IBloodyPropertySetEditorSupervisor : public IBloodyPropertySetEditor
+	ROCOCO_INTERFACE IBloodyPropertySetEditorSupervisor : public IBloodyPropertySetEditor
 	{
 		virtual void Free() = 0;
 	};
@@ -622,7 +622,7 @@ namespace Rococo
 		}
 	};
 
-	ROCOCOAPI IGuiStackSupervisor : public IGUIStack
+	ROCOCO_INTERFACE IGuiStackSupervisor : public IGUIStack
 	{
 		 virtual void Free() = 0;
 		 virtual void PostConstruct(Platform* platform) = 0;
@@ -672,7 +672,7 @@ namespace Rococo
 
 	struct IMPlatFileBrowser;
 
-	ROCOCOAPI IScrollbar
+	ROCOCO_INTERFACE IScrollbar
 	{
 		virtual void GetScrollState(Events::ScrollEvent & s) = 0;
 		virtual void SetScrollState(const Events::ScrollEvent& s) = 0;
@@ -683,7 +683,7 @@ namespace Rococo
 		virtual void Render(IGuiRenderContext& grc, const GuiRect& absRect, const Modality& modality, RGBAb hilightColour, RGBAb baseColour, RGBAb hi_sliderCol, RGBAb sliderCol, RGBAb hilightEdge, RGBAb baseEdge, IEventCallback<Events::ScrollEvent>& populator, const Events::EventIdRef& populationEventId) = 0;
 	};
 
-	ROCOCOAPI IBrowserRules
+	ROCOCO_INTERFACE IBrowserRules
 	{
 		virtual void GetRoot(U32FilePath& path) const = 0;
 		virtual cstr GetLastError() const = 0;
@@ -693,13 +693,13 @@ namespace Rococo
 		virtual void Free() = 0;
 	};
 
-	ROCOCOAPI IBrowserRulesFactory
+	ROCOCO_INTERFACE IBrowserRulesFactory
 	{
 		virtual IBrowserRules * CreateRules() = 0;
 		virtual cstr GetPanePingPath() const = 0;
 	};
 
-	ROCOCOAPI IContextMenuSupervisor : public IContextMenu
+	ROCOCO_INTERFACE IContextMenuSupervisor : public IContextMenu
 	{
 		virtual void AppendEvent(const KeyboardEvent& me) = 0;
 		virtual void AppendEvent(const MouseEvent & me) = 0;
@@ -707,7 +707,7 @@ namespace Rococo
 		virtual void Free() = 0;
 	};
 
-	ROCOCOAPI IContextMenuEvents
+	ROCOCO_INTERFACE IContextMenuEvents
 	{
 		virtual void OnClickOutsideControls(IContextMenuSupervisor& menu) = 0;
 		virtual void OnItemSelected(IContextMenuSupervisor & menu) = 0;
@@ -718,13 +718,13 @@ namespace Rococo
 		IContextMenuSupervisor* CreateContextMenu(Events::IPublisher& publisher, IContextMenuEvents& eventHandler);
 	}
 
-	ROCOCOAPI IInventoryArraySupervisor : IInventoryArray
+	ROCOCO_INTERFACE IInventoryArraySupervisor : IInventoryArray
 	{
 		virtual void Free() = 0;
 	};
 
 	// If this class grows too long, consider adding sub-interfaces to better index the functionality
-	ROCOCOAPI IUtilities
+	ROCOCO_INTERFACE IUtilities
 	{
 		virtual void AddSubtitle(cstr subtitle) = 0;
 		virtual IScrollbar* CreateScrollbar(bool _isVertical) = 0;
@@ -750,7 +750,7 @@ namespace Rococo
 		virtual IInventoryArraySupervisor* CreateInventoryArray(int32 capacity) = 0;
 	};
 
-	ROCOCOAPI IUtilitiesSupervisor : public IUtilities
+	ROCOCO_INTERFACE IUtilitiesSupervisor : public IUtilities
 	{
 		virtual void Free() = 0;
 		virtual void SetPlatform(Platform& platform) = 0;
@@ -764,14 +764,14 @@ namespace Rococo
 	namespace Graphics
 	{
 		struct IMeshBuilder;
-		ROCOCOAPI IRimTesselatorSupervisor : public IRimTesselator
+		ROCOCO_INTERFACE IRimTesselatorSupervisor : public IRimTesselator
 		{
 			virtual void Free() = 0;
 		};
 
 		IRimTesselatorSupervisor* CreateRimTesselator();
 
-		ROCOCOAPI IRodTesselatorSupervisor : public IRodTesselator
+		ROCOCO_INTERFACE IRodTesselatorSupervisor : public IRodTesselator
 		{
 			virtual VertexTriangle* begin() = 0;
 			virtual VertexTriangle* end() = 0;
@@ -787,7 +787,7 @@ namespace Rococo
 		/// <returns>A reference to the rod tesselator. Be sure to call Free() when done</returns>
 		IRodTesselatorSupervisor* CreateIsolatedRodTesselator();
 
-		ROCOCOAPI IMessagingSupervisor : public IMessaging
+		ROCOCO_INTERFACE IMessagingSupervisor : public IMessaging
 		{
 			virtual void PostCreate(Platform & platform) = 0;
 			virtual void Free() = 0;
@@ -809,7 +809,7 @@ namespace Rococo
 
 	namespace Graphics
 	{
-		ROCOCOAPI IHQFontsSupervisor : IHQFonts
+		ROCOCO_INTERFACE IHQFontsSupervisor : IHQFonts
 		{
 			virtual void Free() = 0;
 		};
@@ -819,19 +819,19 @@ namespace Rococo
 
 	struct ISourceCache;
 
-	ROCOCOAPI IInstallationManagerSupervisor :  IInstallationManager
+	ROCOCO_INTERFACE IInstallationManagerSupervisor :  IInstallationManager
 	{
 		virtual void Free() = 0;
 	};
 
-	ROCOCOAPI IArchiveSupervisor : IArchive
+	ROCOCO_INTERFACE IArchiveSupervisor : IArchive
 	{
 		virtual void Free() = 0;
 	};
 
 	IArchiveSupervisor* CreateArchive();
 
-	ROCOCOAPI IWorldSupervisor : IWorldBuilder
+	ROCOCO_INTERFACE IWorldSupervisor : IWorldBuilder
 	{
 		virtual void Free() = 0;
 	};
@@ -840,7 +840,7 @@ namespace Rococo
 
 	namespace Graphics
 	{
-		ROCOCOAPI ISpritesSupervisor : ISprites
+		ROCOCO_INTERFACE ISpritesSupervisor : ISprites
 		{
 			virtual void Free() = 0;
 		};
@@ -967,7 +967,7 @@ namespace Rococo
 		};
 	}
 
-	ROCOCOAPI IMPlatFileBrowser
+	ROCOCO_INTERFACE IMPlatFileBrowser
 	{
 		// Select returns false if the path is an invalid selection, otherwise triggers selection events
 		virtual bool Select() = 0;

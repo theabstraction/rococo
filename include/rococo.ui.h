@@ -30,7 +30,7 @@ namespace Rococo
 		bool IsUp() const { return (Flags & 0x0001) != 0; }
 	};
 
-	ROCOCOAPI IKeyboardSink
+	ROCOCO_INTERFACE IKeyboardSink
 	{
 		virtual bool OnKeyboardEvent(const KeyboardEvent& key) = 0;
 	};

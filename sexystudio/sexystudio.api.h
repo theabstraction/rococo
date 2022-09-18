@@ -113,12 +113,12 @@ namespace Rococo::SexyStudio
 	void AppendAncestorsAndRectsToString(IWindow& window, StringBuilder& sb);
 	void AppendDescendantsAndRectsToString(IWindow& window, StringBuilder& sb);
 
-	ROCOCOAPI ISXYFile
+	ROCOCO_INTERFACE ISXYFile
 	{
 
 	};
 
-	ROCOCOAPI ISXYArchetype
+	ROCOCO_INTERFACE ISXYArchetype
 	{
 		virtual cstr PublicName() const = 0;
 		virtual int InputCount() const = 0;
@@ -131,9 +131,9 @@ namespace Rococo::SexyStudio
 		virtual int LineNumber() const = 0;
 	};
 
-	ROCOCOAPI ISXYFunction : ISXYArchetype{};
+	ROCOCO_INTERFACE ISXYFunction : ISXYArchetype{};
 
-	ROCOCOAPI ISXYFactory
+	ROCOCO_INTERFACE ISXYFactory
 	{
 		virtual cstr PublicName() const = 0;
 		virtual int InputCount() const = 0;
@@ -144,7 +144,7 @@ namespace Rococo::SexyStudio
 		virtual cstr SourcePath() const = 0;
 	};
 
-	ROCOCOAPI ISXYInterface
+	ROCOCO_INTERFACE ISXYInterface
 	{
 		virtual cstr Base() const = 0;
 		virtual cstr PublicName() const = 0;
@@ -168,7 +168,7 @@ namespace Rococo::SexyStudio
 		cstr name;
 	};
 
-	ROCOCOAPI ISXYLocalType
+	ROCOCO_INTERFACE ISXYLocalType
 	{
 		virtual int FieldCount() const = 0;
 		virtual SXYField GetField(int index) const = 0;
@@ -177,19 +177,19 @@ namespace Rococo::SexyStudio
 		virtual int LineNumber() const = 0;
 	};
 
-	ROCOCOAPI ISXYType
+	ROCOCO_INTERFACE ISXYType
 	{
 		virtual cstr PublicName() const = 0;
 		virtual ISXYLocalType* LocalType() = 0;
 	};
 
-	ROCOCOAPI ISXYPublicFunction
+	ROCOCO_INTERFACE ISXYPublicFunction
 	{
 		virtual cstr PublicName() const = 0;
 		virtual ISXYFunction* LocalFunction() = 0;
 	};
 
-	ROCOCOAPI ISxyNamespace
+	ROCOCO_INTERFACE ISxyNamespace
 	{
 		virtual int AliasCount() const = 0;
 		virtual cstr GetNSAliasFrom(int index) const = 0;
@@ -227,7 +227,7 @@ namespace Rococo::SexyStudio
 
 	void AppendFullName(ISxyNamespace& ns, struct StringBuilder& sb);
 
-	ROCOCOAPI ISolution
+	ROCOCO_INTERFACE ISolution
 	{
 		virtual cstr GetContentFolder() const = 0;
 		virtual cstr GetScriptFolder() const = 0;
@@ -241,7 +241,7 @@ namespace Rococo::SexyStudio
 
 	struct ISexyFieldEnumerator;
 
-	ROCOCOAPI ISexyDatabase
+	ROCOCO_INTERFACE ISexyDatabase
 	{
 		virtual void Clear() = 0;
 		virtual bool EnumerateVariableAndFieldList(cr_substring variable, cr_substring type, ISexyFieldEnumerator& fieldEnumerator) = 0;
@@ -268,7 +268,7 @@ namespace Rococo::SexyStudio
 		int LineNumber;
 	};
 
-	ROCOCOAPI ISourceTree
+	ROCOCO_INTERFACE ISourceTree
 	{
 		virtual void Add(ID_TREE_ITEM item, cstr text, int lineNumber) = 0;
 		virtual void Clear() = 0;
@@ -278,7 +278,7 @@ namespace Rococo::SexyStudio
 
 	void PopulateTreeWithPackages(cstr packageFolder, ISexyDatabase& database);
 
-	ROCOCOAPI ISexyDatabaseSupervisor : ISexyDatabase
+	ROCOCO_INTERFACE ISexyDatabaseSupervisor : ISexyDatabase
 	{
 		virtual void Free() = 0;
 		virtual void SetContentPath(cstr contentFolder) = 0;
@@ -292,20 +292,20 @@ namespace Rococo::SexyStudio
 		~WaitCursorSection();
 	};
 
-	ROCOCOAPI ILayout
+	ROCOCO_INTERFACE ILayout
 	{
 		virtual void Layout(IGuiWidget& widget, GuiRect & rect) = 0;
 		virtual void Free() = 0;
 	};
 
-	ROCOCOAPI ILayoutSet
+	ROCOCO_INTERFACE ILayoutSet
 	{
 		virtual void Add(ILayout * d) = 0;
 		virtual void Free() = 0;
 		virtual void Layout(IGuiWidget& widget) = 0;
 	};
 
-	ROCOCOAPI IGuiWidget
+	ROCOCO_INTERFACE IGuiWidget
 	{
 		/* Reshape this control and its children according to the layout controls.
 		   parents should call this when they are resized 
@@ -353,7 +353,7 @@ namespace Rococo::SexyStudio
 		void SetText(IWindow& window, const char* text);
 	}
 
-	ROCOCOAPI IWidgetSet
+	ROCOCO_INTERFACE IWidgetSet
 	{
 		// Add a widget to the widget set, when the set owner is done it will call Free() on the widget
 		virtual void Add(IGuiWidget * widget) = 0;
@@ -373,7 +373,7 @@ namespace Rococo::SexyStudio
 		FOLDER_OPEN = 1
 	};
 
-	ROCOCOAPI IGuiTreeRenderer
+	ROCOCO_INTERFACE IGuiTreeRenderer
 	{
 		virtual void RenderItem() = 0;
 	};
@@ -383,18 +383,18 @@ namespace Rococo::SexyStudio
 		ID_TREE_ITEM idItem;
 	};
 
-	ROCOCOAPI IPopupMenuBuilder
+	ROCOCO_INTERFACE IPopupMenuBuilder
 	{
 		virtual void AppendMenuItem(uint16 id, cstr text) = 0;
 	};
 
-	ROCOCOAPI IPopupMenu: IPopupMenuBuilder
+	ROCOCO_INTERFACE IPopupMenu: IPopupMenuBuilder
 	{
 		virtual void ClearPopupMenu() = 0;
 		virtual void ShowPopupMenu(Vec2i pos) = 0;
 	};
 
-	ROCOCOAPI IGuiTree : IGuiWidget
+	ROCOCO_INTERFACE IGuiTree : IGuiWidget
 	{
 		virtual ID_TREE_ITEM AppendItem(ID_TREE_ITEM branch) = 0;
 		virtual void Clear() = 0;
@@ -414,7 +414,7 @@ namespace Rococo::SexyStudio
 		virtual IPopupMenu& PopupMenu() = 0;
 	};
 
-	ROCOCOAPI IGuiTreeEvents
+	ROCOCO_INTERFACE IGuiTreeEvents
 	{
 		virtual void OnItemContextClick(IGuiTree& tree, ID_TREE_ITEM hItem, Vec2i pos) = 0;
 		virtual void OnCommand(uint16 id) = 0;
@@ -431,13 +431,13 @@ namespace Rococo::SexyStudio
 
 	ISourceTree* CreateSourceTree();
 
-	ROCOCOAPI IGuiWidgetEditor : IGuiWidget
+	ROCOCO_INTERFACE IGuiWidgetEditor : IGuiWidget
 	{
 		virtual cstr Name() const = 0;
 		virtual void SetName(cstr name) = 0;
 	};
 
-	ROCOCOAPI IAsciiStringEditor : IGuiWidgetEditor
+	ROCOCO_INTERFACE IAsciiStringEditor : IGuiWidgetEditor
 	{
 		virtual void Bind(char* buffer, size_t capacityBytes) = 0;
 		virtual IWindow& OSEditor() = 0;
@@ -448,21 +448,21 @@ namespace Rococo::SexyStudio
 		virtual cstr Text() const = 0;
 	};
 
-	ROCOCOAPI IDropDownList : IGuiWidgetEditor
+	ROCOCO_INTERFACE IDropDownList : IGuiWidgetEditor
 	{
 		virtual IWindow& OSDropDown() = 0;
 		virtual void AppendItem(cstr text) = 0;	
 		virtual void ClearItems() = 0;
 	};
 
-	ROCOCOAPI IListWidget : IGuiWidgetEditor
+	ROCOCO_INTERFACE IListWidget : IGuiWidgetEditor
 	{
 		virtual IWindow & OSList() = 0;
 		virtual void AppendItem(cstr text) = 0;
 		virtual void ClearItems() = 0;
 	};
 
-	ROCOCOAPI IFloatingListWidget : IGuiWidget
+	ROCOCO_INTERFACE IFloatingListWidget : IGuiWidget
 	{
 		virtual IWindow & OSList() = 0;
 		virtual void AppendItem(cstr text) = 0;
@@ -475,13 +475,13 @@ namespace Rococo::SexyStudio
 
 	IFloatingListWidget* CreateFloatingListWidget(IWindow& window, WidgetContext& wc);
 
-	ROCOCOAPI IFilePathEditor : IGuiWidgetEditor
+	ROCOCO_INTERFACE IFilePathEditor : IGuiWidgetEditor
 	{
 		virtual void Bind(U8FilePath& path, uint32 maxChars) = 0;
 		virtual void SetUpdateEvent(EventIdRef id) = 0;
 	};
 
-	ROCOCOAPI IVariableList : IGuiWidget
+	ROCOCO_INTERFACE IVariableList : IGuiWidget
 	{
 		virtual IAsciiStringEditor* AddAsciiEditor() = 0;
 		virtual IDropDownList* AddDropDownList(bool addTextEditor) = 0;
@@ -494,7 +494,7 @@ namespace Rococo::SexyStudio
 
 	IVariableList* CreateVariableList(IWidgetSet& widgets);
 
-	ROCOCOAPI IToolbar : public IGuiWidget
+	ROCOCO_INTERFACE IToolbar : public IGuiWidget
 	{
 		// Tells the toolbar that the specified widget will manage its own layout
 		// Otherwise the toolbar lays out the widget to the right of its predecessor
@@ -504,7 +504,7 @@ namespace Rococo::SexyStudio
 		virtual void SetSpacing(int32 firstBorder, int32 widgetSpacing) = 0;
 	};
 
-	ROCOCOAPI IIDEFrame
+	ROCOCO_INTERFACE IIDEFrame
 	{
 		virtual IWindow & Window() = 0;
 		virtual void SetVisible(bool isVisible) = 0;
@@ -516,7 +516,7 @@ namespace Rococo::SexyStudio
 		virtual ISexyStudioEventHandler& Events() = 0;
 	};
 
-	ROCOCOAPI IIDEFrameSupervisor : IIDEFrame
+	ROCOCO_INTERFACE IIDEFrameSupervisor : IIDEFrame
 	{
 		virtual void Free() = 0;
 		virtual void SetCloseEvent(const EventIdRef& evClose) = 0;
@@ -525,7 +525,7 @@ namespace Rococo::SexyStudio
 
 	IIDEFrameSupervisor* CreateMainIDEFrame(WidgetContext& context, IWindow& topLevelWindow, ISexyStudioEventHandler& evHandler);
 
-	ROCOCOAPI IButtonWidget : IGuiWidget
+	ROCOCO_INTERFACE IButtonWidget : IGuiWidget
 	{
 	};
 
@@ -538,14 +538,14 @@ namespace Rococo::SexyStudio
 		IButtonWidget* sourceWidget;
 	};
 
-	ROCOCOAPI IWidgetSetSupervisor : IWidgetSet
+	ROCOCO_INTERFACE IWidgetSetSupervisor : IWidgetSet
 	{
 		virtual void Free() = 0;
 	};
 
 	IWidgetSetSupervisor* CreateDefaultWidgetSet(Rococo::Windows::IWindow& parent, WidgetContext& context);
 
-	ROCOCOAPI ISplitScreen : public IGuiWidget
+	ROCOCO_INTERFACE ISplitScreen : public IGuiWidget
 	{
 		virtual ISplitScreen* GetFirstHalf() = 0;
 		virtual ISplitScreen* GetSecondHalf() = 0;
@@ -568,7 +568,7 @@ namespace Rococo::SexyStudio
 
 	ISplitScreen* CreateSplitScreen(IWidgetSet& widgets);
 
-	ROCOCOAPI ITab
+	ROCOCO_INTERFACE ITab
 	{
 		virtual int64 AddRef() = 0;
 		virtual int64 Release() = 0;
@@ -582,7 +582,7 @@ namespace Rococo::SexyStudio
 		virtual IWidgetSet& Children() = 0;
 	};
 
-	ROCOCOAPI ITabSplitter : IGuiWidget
+	ROCOCO_INTERFACE ITabSplitter : IGuiWidget
 	{
 		virtual ITab& AddTab() = 0;
 	};
@@ -602,7 +602,7 @@ namespace Rococo::SexyStudio
 		ColourSet lit;
 	};
 
-	ROCOCOAPI ITheme
+	ROCOCO_INTERFACE ITheme
 	{
 		// Get a mutable ref to the theme, allowing modification of a theme
 		virtual Theme & GetTheme() = 0;

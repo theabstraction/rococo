@@ -39,7 +39,7 @@ namespace Rococo
 			return reinterpret_cast<const T*>(mail.buffer);
 		}
 
-		ROCOCOAPI IPostbox
+		ROCOCO_INTERFACE IPostbox
 		{
 			virtual void PostForLater(const Mail& mail, bool isLossy) = 0;
 			virtual void SendDirect(const Mail& mail) = 0;
@@ -103,7 +103,7 @@ namespace Rococo
 			}
 		};
 
-		ROCOCOAPI IPostboxSupervisor : public IPostbox
+		ROCOCO_INTERFACE IPostboxSupervisor : public IPostbox
 		{
 			virtual void Deliver() = 0;
 			virtual void Free() = 0;

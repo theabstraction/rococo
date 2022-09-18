@@ -54,7 +54,7 @@ namespace Rococo
 	void ComputeBoneQuatFromAngles(Quat& quat, const BoneAngles& angles);
 
 	template<class T>
-	ROCOCOAPI IRingManipulator
+	ROCOCO_INTERFACE IRingManipulator
 	{
 	   virtual size_t ElementCount() const = 0;
 	   virtual T operator[](size_t index) const = 0;
@@ -64,7 +64,7 @@ namespace Rococo
 	};
 
 	template<class T>
-	ROCOCOAPI IRing
+	ROCOCO_INTERFACE IRing
 	{
 	   virtual size_t ElementCount() const = 0;
 	   virtual T operator[](size_t index) const = 0;
@@ -354,7 +354,7 @@ namespace Rococo
 		Vec3 d;
 	};
 
-	ROCOCOAPI I2dMeshBuilder
+	ROCOCO_INTERFACE I2dMeshBuilder
 	{
 	   virtual void Append(const Triangle2d& t) = 0;
 	};
@@ -548,12 +548,12 @@ namespace Rococo
 		return (const Vec2&)v;
 	}
 
-	ROCOCOAPI IObjectEnumerator
+	ROCOCO_INTERFACE IObjectEnumerator
 	{
 		virtual void OnId(uint64 id) = 0;
 	};
 
-	ROCOCOAPI IQuadTree
+	ROCOCO_INTERFACE IQuadTree
 	{
 		virtual void AddEntity(const Sphere& boundingSphere, uint64 id) = 0;
 		virtual void Clear() = 0;
@@ -563,7 +563,7 @@ namespace Rococo
 
 	};
 
-	ROCOCOAPI IQuadTreeSupervisor : public IQuadTree
+	ROCOCO_INTERFACE IQuadTreeSupervisor : public IQuadTree
 	{
 		virtual void Free() = 0;
 	};

@@ -23,20 +23,20 @@ namespace Rococo
 				EScriptExceptionFlow_Ignore
 			};
 
-			ROCOCOAPI IScriptExceptionHandler
+			ROCOCO_INTERFACE IScriptExceptionHandler
 			{
 			   virtual void Free() = 0;
 			   virtual EScriptExceptionFlow GetScriptExceptionFlow(cstr source, cstr message) = 0;
 			};
 
-			ROCOCOAPI IPersistentScript
+			ROCOCO_INTERFACE IPersistentScript
 			{
 			   virtual void ExecuteFunction(ArchetypeCallback bytecodeId, IArgEnumerator& args, IScriptExceptionHandler& exceptionHandler, bool trace) = 0;
 			   virtual void ExecuteFunction(cstr name, IArgEnumerator& arg, IScriptExceptionHandler& exceptionHandlers, bool trace) = 0;
 			   virtual void Free() = 0;
 			};
 
-			ROCOCOAPI IDebuggerEventHandler
+			ROCOCO_INTERFACE IDebuggerEventHandler
 			{
 				  virtual IEventCallback<MenuCommand>& GetMenuCallback() = 0;
 				  virtual void Free() = 0;

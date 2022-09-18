@@ -131,7 +131,7 @@ namespace Rococo
 	sexstring CreateSexString(cstr src, int32 length = -1);
 	void FreeSexString(sexstring s);
 
-	ROCOCOAPI ILog
+	ROCOCO_INTERFACE ILog
 	{
 		virtual void Write(cstr text) = 0;
 		virtual void OnUnhandledException(int errorCode, cstr exceptionType, cstr message, void* exceptionInstance) = 0; // thrown by uncaught sexy exceptions
@@ -257,7 +257,7 @@ namespace Rococo
 
 		struct ISExpressionBuilder;
 
-		ROCOCOAPI ISExpression
+		ROCOCO_INTERFACE ISExpression
 		{
 			virtual const Vec2i Start() const = 0; // (X.Y) of start relative to tree origin in source file
 			virtual const Vec2i End() const = 0;// (X.Y) of end relative to tree origin in source file
@@ -281,7 +281,7 @@ namespace Rococo
 			return !(s == token);
 		}
 
-		ROCOCOAPI ISExpressionBuilder : public ISExpression
+		ROCOCO_INTERFACE ISExpressionBuilder : public ISExpression
 		{			
 			virtual void AddAtomic(cstr text) = 0;
 			virtual ISExpressionBuilder* AddChild() = 0;
@@ -292,19 +292,19 @@ namespace Rococo
 			virtual ISExpressionBuilder* InsertChildAfter(int index) = 0;
 		};
 
-		ROCOCOAPI IExpressionTransform
+		ROCOCO_INTERFACE IExpressionTransform
 		{
 			virtual ISExpressionBuilder& Root() = 0;
 			virtual void Free() = 0;
 		};
 
-		ROCOCOAPI IRefCounted
+		ROCOCO_INTERFACE IRefCounted
 		{
 			virtual refcount_t AddRef() = 0; // Increments the reference count and returns the new value
 			virtual refcount_t Release() = 0; // Decrements the reference count and returns the new value. If it decrements to zero the instance is released
 		};
 
-		ROCOCOAPI ISParserTree : public IRefCounted
+		ROCOCO_INTERFACE ISParserTree : public IRefCounted
 		{
 			virtual ISExpression& Root() = 0; // Refers to the root expression in the tree
 			virtual const ISExpression& Root() const = 0; // // Constant reference to the root expression in the tree
@@ -312,7 +312,7 @@ namespace Rococo
 			virtual const ISourceCode& Source() const = 0; // The source code associated with this parser tree
 		};
 
-		ROCOCOAPI ISParser : public IRefCounted
+		ROCOCO_INTERFACE ISParser : public IRefCounted
 		{
 			virtual ISParserTree* CreateTree(ISourceCode& sourceCode) = 0; // Creates a new s-parser tree with a reference count of 1, and attaches a reference to ISourceCode 
 			virtual ISourceCode* DuplicateSourceBuffer(cstr buffer, int segmentLength, const Vec2i& origin, const char* name) = 0; // Duplicates a source segment and exposes as an instance
@@ -321,7 +321,7 @@ namespace Rococo
 			virtual ISourceCode* LoadSource(const wchar_t* filename, const Vec2i& origin, const char* buffer, long len) = 0;
 		};
 
-		ROCOCOAPI ISourceCode : public IRefCounted
+		ROCOCO_INTERFACE ISourceCode : public IRefCounted
 		{
 			virtual const Vec2i& Origin() const = 0; // The XY in the source document where the code segment begins
 			virtual cstr SourceStart() const = 0; // The first char in the source code segment

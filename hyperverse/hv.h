@@ -20,7 +20,7 @@ namespace HV
 	struct IPlayerSupervisor;
 	struct ISectors;
 
-	ROCOCOAPI IPlayerBase
+	ROCOCO_INTERFACE IPlayerBase
 	{
 	   virtual float& JumpSpeed() = 0;
 	   virtual float& DuckFactor() = 0;
@@ -50,7 +50,7 @@ namespace HV
 	HV::ISectorLayout* GetSectorById(int32 index, ISectors& sectors);
 	ISector* GetFirstSectorCrossingLine(Vec2 a, Vec2 b, ISectors& sectors);
 	
-	ROCOCOAPI ISectorBuildAPI
+	ROCOCO_INTERFACE ISectorBuildAPI
 	{
 		virtual void Attach(ISector * s) = 0;
 		virtual void ClearSectors() = 0;
@@ -66,7 +66,7 @@ namespace HV
 
 	struct VariableCallbackData;
 
-	ROCOCOAPI ISectorBuilderSupervisor : public ISectorBuilder
+	ROCOCO_INTERFACE ISectorBuilderSupervisor : public ISectorBuilder
 	{
 		virtual void EnumerateDoorVars(IEventCallback<VariableCallbackData> & cb) = 0;
 		virtual void EnumerateWallVars(IEventCallback<VariableCallbackData>& cb) = 0;
@@ -120,18 +120,18 @@ namespace HV
 		const int32 index;
 	};
 
-	ROCOCOAPI ITagCallback
+	ROCOCO_INTERFACE ITagCallback
 	{
 		virtual void OnTag(TagContext & context) = 0;
 	};
 
-	ROCOCOAPI ITags
+	ROCOCO_INTERFACE ITags
 	{
 		 virtual void Invalidate() = 0;
 		 virtual void ForEachSectorWithTag(cstr tag, ITagCallback& cb) = 0;
 	};
 
-	ROCOCOAPI ITagsSupervisor : ITags
+	ROCOCO_INTERFACE ITagsSupervisor : ITags
 	{
 		virtual void Free() = 0;
 	};
@@ -151,7 +151,7 @@ namespace HV
 		float value;
 	};
 
-	ROCOCOAPI IScriptConfigSupervisor : public IScriptConfig
+	ROCOCO_INTERFACE IScriptConfigSupervisor : public IScriptConfig
 	{
 		 virtual void BindProperties(IBloodyPropertySetEditor & editor) = 0;
 		 virtual void Enumerate(IEventCallback<VariableCallbackData>& cb) = 0;
@@ -159,7 +159,7 @@ namespace HV
 		 virtual void Free() = 0;
 	};
 
-	ROCOCOAPI IScriptConfigSet
+	ROCOCO_INTERFACE IScriptConfigSet
 	{
 		virtual void Free() = 0;
 		virtual void SetCurrentScript(cstr scriptName) = 0;
@@ -170,7 +170,7 @@ namespace HV
 	IScriptConfigSet* CreateScriptConfigSet();
 	IScriptConfigSupervisor* CreateScriptConfig();
 
-	ROCOCOAPI IPlayerSupervisor
+	ROCOCO_INTERFACE IPlayerSupervisor
 	{
 	   virtual void Free() = 0;
 	   virtual IPlayer* GetPlayer(int32 index) = 0;
@@ -182,7 +182,7 @@ namespace HV
 
 	struct IPropertyTarget;
 
-	ROCOCOAPI IEditor
+	ROCOCO_INTERFACE IEditor
 	{
 	   virtual bool IsScrollLocked() const = 0;
 	   virtual void Free() = 0;
@@ -192,12 +192,12 @@ namespace HV
 	struct ISector;
 	struct IEditorState;
 
-	ROCOCOAPI IEditMode : public IUIElement
+	ROCOCO_INTERFACE IEditMode : public IUIElement
 	{
 	   virtual const ISector * GetHilight() const = 0;
 	};
 
-	ROCOCOAPI ISectorEditor
+	ROCOCO_INTERFACE ISectorEditor
 	{
 		 virtual void Free() = 0;
 		 virtual IEditMode& Mode() = 0;
@@ -205,7 +205,7 @@ namespace HV
 		 virtual void SetEditor(IEditorState* editor) = 0;
 	};
 
-	ROCOCOAPI ISectorBuilderEditor
+	ROCOCO_INTERFACE ISectorBuilderEditor
 	{
 		 virtual void Free() = 0;
 		 virtual void SetTexture(int32 index, cstr name) = 0;
@@ -214,7 +214,7 @@ namespace HV
 		 virtual IEditMode& Mode() = 0;
 	};
 
-	ROCOCOAPI IWorldMap
+	ROCOCO_INTERFACE IWorldMap
 	{
 		 virtual ISectors & Sectors() = 0;
 		 virtual void ZoomIn(int32 degrees) = 0;
@@ -228,7 +228,7 @@ namespace HV
 		 virtual void Render(IGuiRenderContext& grc, const ISector* litSector, bool isTransparent) = 0;
 	};
 
-	ROCOCOAPI IFieldEditorEventHandler
+	ROCOCO_INTERFACE IFieldEditorEventHandler
 	{
 		virtual void OnActiveIndexChanged(int32 index, const char* stringRepresentation) = 0;
 	};
@@ -242,7 +242,7 @@ namespace HV
 		ID_FONT idFont;
 	};
 
-	ROCOCOAPI IFieldEditor
+	ROCOCO_INTERFACE IFieldEditor
 	{
 		 virtual void AddInt32FieldUnbounded(cstr name, int32 value, bool preferHex) = 0;
 		 virtual void AddInt32FieldBounded(cstr name, int32 value, int32 minValue, int32 maxValue) = 0;
@@ -257,7 +257,7 @@ namespace HV
 
 	IFieldEditor* CreateFieldEditor(FieldEditorContext& context);
 
-	ROCOCOAPI ITextureList
+	ROCOCO_INTERFACE ITextureList
 	{
 		 virtual void Free() = 0;
 		 virtual void ScrollTo(cstr filename) = 0;
@@ -265,7 +265,7 @@ namespace HV
 
 	ITextureList* CreateTextureList(Platform& _platform);
 
-	ROCOCOAPI IWorldMapSupervisor : public IWorldMap
+	ROCOCO_INTERFACE IWorldMapSupervisor : public IWorldMap
 	{
 		virtual void Free() = 0;
 	};
@@ -274,19 +274,19 @@ namespace HV
 	ISectorEditor* CreateSectorEditor(Platform& _platform, IWorldMap& _map, Windows::IWindow& _parent);
 	ISectorBuilderEditor* CreateSectorBuilder(IPublisher& publisher, IWorldMap& map);
 
-	ROCOCOAPI IGameMode
+	ROCOCO_INTERFACE IGameMode
 	{
 		 virtual void Activate() = 0;
 		 virtual void Deactivate() = 0;
 		 virtual void UpdateAI(const IUltraClock& clock) = 0;
 	};
 
-	ROCOCOAPI IFPSGameMode : public IGameMode
+	ROCOCO_INTERFACE IFPSGameMode : public IGameMode
 	{
 		virtual IPropertyTarget * GetPropertyTarget() = 0;
 	};
 
-	ROCOCOAPI IFPSGameModeSupervisor : public IFPSGameMode
+	ROCOCO_INTERFACE IFPSGameModeSupervisor : public IFPSGameMode
 	{
 		virtual void ClearCache() = 0;
 		virtual void Free() = 0;
@@ -327,20 +327,20 @@ namespace HV
 
 	struct IPropertyHost;
 
-	ROCOCOAPI IPropertyTarget
+	ROCOCO_INTERFACE IPropertyTarget
 	{
 		virtual void Assign(IPropertyHost * host) = 0; // N.B a property target must never by Next to itself
 		virtual void GetProperties(cstr category, IBloodyPropertySetEditor& editor) = 0;
 		virtual void NotifyChanged(BloodyNotifyArgs& args) = 0;
 	};
 
-	ROCOCOAPI IPropertyHost
+	ROCOCO_INTERFACE IPropertyHost
 	{
 		virtual void SetPropertyTarget(IPropertyTarget * target) = 0;
 		virtual void SetPropertyTargetToSuccessor() = 0;
 	};
 
-	ROCOCOAPI IEditorState : public IPropertyHost
+	ROCOCO_INTERFACE IEditorState : public IPropertyHost
 	{
 	   virtual void BindSectorPropertiesToPropertyEditor(IPropertyTarget * target) = 0;
 	   virtual cstr TextureName(int index) const = 0;
@@ -359,7 +359,7 @@ namespace HV
 		ISector& sector;
 	};
 
-	ROCOCOAPI ISectorVisibilityBuilder
+	ROCOCO_INTERFACE ISectorVisibilityBuilder
 	{
 		virtual size_t ForEverySectorVisibleBy(ISectors & sectors, const Matrix4x4 & cameraMatrix, cr_vec3 eye, cr_vec3 forward, IEventCallback<VisibleSector> & cb) = 0;
 		virtual void Free() = 0;
@@ -378,7 +378,7 @@ namespace HV
 		BodyComponentMatClass bcmc;
 	};
 
-	ROCOCOAPI MatEnumerator
+	ROCOCO_INTERFACE MatEnumerator
 	{
 		virtual void Enumerate(IEventCallback<MaterialArgs> & cb) = 0;
 	};
@@ -439,7 +439,7 @@ namespace HV
 		ID_ENTITY id;
 	};
 
-	ROCOCOAPI ISectorContents
+	ROCOCO_INTERFACE ISectorContents
 	{
 		virtual void AddComponent(cr_m4x4 model, cstr componentName, cstr meshName) = 0;
 		virtual ID_ENTITY AddItemToLargestSquare(const fstring& meshName, int addItemFlags, const HV::ObjectCreationSpec & obs) = 0;
@@ -471,7 +471,7 @@ namespace HV
 
 	struct IActionFactory;
 
-	ROCOCOAPI IAction
+	ROCOCO_INTERFACE IAction
 	{
 		 virtual IActionFactory & Factory() = 0;
 		 virtual ADVANCE_STATE Advance(AdvanceInfo& info) = 0;
@@ -485,7 +485,7 @@ namespace HV
 
 	Random::IRandom& GetRandomizer();
 
-	ROCOCOAPI IGlobalVariables
+	ROCOCO_INTERFACE IGlobalVariables
 	{
 		enum { MAX_VARIABLE_NAME_LENGTH = 32 };
 	// Get or else create a variable of the given name, returning true if the variable already exists
@@ -501,12 +501,12 @@ namespace HV
 	virtual void ValidateName(cstr name) const = 0;
 	};
 
-	ROCOCOAPI IIActionFactoryCreateContext
+	ROCOCO_INTERFACE IIActionFactoryCreateContext
 	{
 		virtual IGlobalVariables & GetGlobals() = 0;
 	};
 
-	ROCOCOAPI IActionFactory
+	ROCOCO_INTERFACE IActionFactory
 	{
 		 virtual IAction * Create(IIActionFactoryCreateContext & context) = 0;
 		 virtual cstr Name() const = 0;
@@ -514,7 +514,7 @@ namespace HV
 
 	IActionFactory& GetDefaultActionFactory();
 
-	ROCOCOAPI IActionArray
+	ROCOCO_INTERFACE IActionArray
 	{
 		 virtual IAction & operator[](int32 index) = 0;
 		 virtual int32 Count() const = 0;
@@ -524,7 +524,7 @@ namespace HV
 		 virtual void Swap(int32 i, int32 j) = 0;
 	};
 
-	ROCOCOAPI ITrigger
+	ROCOCO_INTERFACE ITrigger
 	{
 		 virtual TriggerType Type() const = 0;
 		 virtual void SetType(TriggerType type) = 0;
@@ -541,7 +541,7 @@ namespace HV
 
 	ITriggerSupervisor* CreateTrigger();
 
-	ROCOCOAPI IAIBrain
+	ROCOCO_INTERFACE IAIBrain
 	{
 		virtual void Free() = 0;
 	};
@@ -553,7 +553,7 @@ namespace HV
 	IActionFactory& GetActionFactory(size_t index);
 	IActionFactory& GetActionFactory(cstr name);
 
-	ROCOCOAPI ITriggersAndActions
+	ROCOCO_INTERFACE ITriggersAndActions
 	{
 	   virtual void AddTrigger(int32 pos) = 0;
 	   virtual void RemoveTrigger(int32 pos) = 0;
@@ -565,7 +565,7 @@ namespace HV
 
 	cstr GET_UNDEFINDED_TAG();
 
-	ROCOCOAPI ITagContainer
+	ROCOCO_INTERFACE ITagContainer
 	{
 		// AddTag returns true if a tag was added, otherwise it returns false, indicating the tag already exists
 		virtual bool AddTag(int32 pos, cstr text) = 0;
@@ -584,7 +584,7 @@ namespace HV
 	};
 
 	// Getting to be a god class
-	ROCOCOAPI ISector : public IPropertyTarget
+	ROCOCO_INTERFACE ISector : public IPropertyTarget
 	{
 		 virtual ISectorContents& Contents() = 0;
 		 virtual SectorSquares Squares() const = 0;
@@ -650,7 +650,7 @@ namespace HV
 
 	void RebaseSectors();
 
-	ROCOCOAPI ISectors
+	ROCOCO_INTERFACE ISectors
 	{
 	   virtual bool IsMeshGenerationEnabled() const = 0;
 	   virtual ISectorBuilderSupervisor* Builder() = 0;
@@ -719,7 +719,7 @@ namespace HV
 
 	void AddMathsEx(Rococo::Script::IPublicScriptSystem& ss);
 
-	ROCOCOAPI ISectorAIBuilderSupervisor : ISectorAIBuilder
+	ROCOCO_INTERFACE ISectorAIBuilderSupervisor : ISectorAIBuilder
 	{
 		virtual void AdvanceInTime(IPublisher & publisher, const IUltraClock & clock) = 0;
 		virtual void SaveAsScript(Strings::StringBuilder& sb) = 0;
@@ -751,7 +751,7 @@ namespace HV
 		bool TryClickGraphicsMesh(ID_ENTITY idObject, cr_vec3 probePoint, cr_vec3 probeDirection, Metres reach, Platform& platform);
 	}
 
-	ROCOCOAPI IObjectPrototype : IObjectPrototypeBase
+	ROCOCO_INTERFACE IObjectPrototype : IObjectPrototypeBase
 	{
 		virtual const ObjectDynamics& Dynamics() const = 0;
 		virtual const MaterialData& Mats() const = 0;
@@ -770,12 +770,12 @@ namespace HV
 		const int32 stackSize;
 	};
 
-	ROCOCOAPI IObjectPrototypeSupervisor : IObjectPrototype
+	ROCOCO_INTERFACE IObjectPrototypeSupervisor : IObjectPrototype
 	{
 		virtual void Free() = 0;
 	};
 
-	ROCOCOAPI IObjectManager : IObjectPrototypeBuilder
+	ROCOCO_INTERFACE IObjectManager : IObjectPrototypeBuilder
 	{
 		virtual ID_OBJECT CreateObject(cstr name, int32 stackSize = 1) = 0;
 		virtual ObjectRef GetObject(ID_OBJECT id) = 0;

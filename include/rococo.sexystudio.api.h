@@ -26,14 +26,14 @@ namespace Rococo::SexyStudio
 		Email = 3
 	};
 
-	ROCOCOAPI ISexyStudioBase
+	ROCOCO_INTERFACE ISexyStudioBase
 	{
 		virtual cstr GetInterfaceURL(int index) = 0;
 		virtual cstr GetMetaDataString(EMetaDataType index) = 0;
 		virtual void Free() = 0;
 	};
 
-	ROCOCOAPI ISexyFieldEnumerator
+	ROCOCO_INTERFACE ISexyFieldEnumerator
 	{
 		virtual void OnFieldType(cr_substring fieldType, cr_substring searchRoot) = 0;
 		virtual void OnField(cstr fieldName, cr_substring memberSearchToken) = 0;
@@ -46,14 +46,14 @@ namespace Rococo::SexyStudio
 		Shutdown
 	};
 
-	ROCOCOAPI ISexyStudioEventHandler
+	ROCOCO_INTERFACE ISexyStudioEventHandler
 	{
 		// Use the host to open a file with given name and line number. Returns false to allow the default implementation to handle it.
 		virtual bool TryOpenEditor(cstr filePath, int lineNumber) = 0;
 		virtual EIDECloseResponse OnIDEClose(IWindow & topLevelParent) = 0;
 	};
 
-	ROCOCOAPI ISexyStudioInstance1
+	ROCOCO_INTERFACE ISexyStudioInstance1
 	{
 		virtual IWindow& GetIDEFrame() = 0;
 		virtual void ReplaceCurrentSelectionWithCallTip(ISexyEditor& editor) = 0;
@@ -72,7 +72,7 @@ namespace Rococo::SexyStudio
 		virtual void Free() = 0;
 	};
 
-	ROCOCOAPI ISexyStudioFactory1: ISexyStudioBase
+	ROCOCO_INTERFACE ISexyStudioFactory1: ISexyStudioBase
 	{
 		virtual ISexyStudioInstance1* CreateSexyIDE(IWindow& topLevelParent, ISexyStudioEventHandler& eventHandler) = 0;
 	};

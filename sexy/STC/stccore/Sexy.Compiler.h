@@ -65,18 +65,18 @@ namespace Rococo { namespace Compiler
 		mutable size_t SectionIndex;
 	};
 
-	ROCOCOAPI ICompileSection
+	ROCOCO_INTERFACE ICompileSection
 	{
 		virtual void Compile(ICodeBuilder& builder, IProgramObject& object, ControlFlowData* controlFlowData = nullptr) = 0;
 	};
 
-	ROCOCOAPI IArgumentBuilder : public IArgument
+	ROCOCO_INTERFACE IArgumentBuilder : public IArgument
 	{
 		virtual bool TryResolveArgument() = 0;
 		virtual IFunctionBuilder& Parent() = 0;
 	};
 
-	ROCOCOAPI IFunctionBuilder : public IFunction
+	ROCOCO_INTERFACE IFunctionBuilder : public IFunction
 	{
       virtual void Free() = 0;
 		virtual IArgumentBuilder& AddInput(const NameString& name, const TypeString& type, void* userdata) = 0;
@@ -99,31 +99,31 @@ namespace Rococo { namespace Compiler
 		virtual void SetType(const IStructure* type) = 0;
 	};
 
-	ROCOCOAPI IFunctionAliasBuilder : public IFunctionAlias
+	ROCOCO_INTERFACE IFunctionAliasBuilder : public IFunctionAlias
 	{
 		virtual IFunctionBuilder& GetFunction() = 0;
 	};
 
-	ROCOCOAPI IStructAliasBuilder : public IStructAlias
+	ROCOCO_INTERFACE IStructAliasBuilder : public IStructAlias
 	{
 		virtual IStructureBuilder& GetStructure() = 0;
 	};
 
-	ROCOCOAPI IFunctionEnumeratorBuilder : public IFunctionEnumerator
+	ROCOCO_INTERFACE IFunctionEnumeratorBuilder : public IFunctionEnumerator
 	{
 		virtual IFunctionAliasBuilder& operator[](int index) = 0;
 	};
 
 	IFunctionBuilder* FindByName(IFunctionEnumeratorBuilder& e, cstr publicName);
 	
-	ROCOCOAPI IMemberBuilder : public IMember
+	ROCOCO_INTERFACE IMemberBuilder : public IMember
 	{
 		virtual IStructureBuilder* UnderlyingType() = 0;
 		virtual IStructureBuilder* UnderlyingGenericArg1Type() = 0;
 		virtual IStructureBuilder* UnderlyingGenericArg2Type() = 0;
 	};
 	
-	ROCOCOAPI IStructureBuilder : public IStructure
+	ROCOCO_INTERFACE IStructureBuilder : public IStructure
 	{
         virtual void Free() = 0;
 		virtual IModuleBuilder& Module() = 0;
@@ -141,7 +141,7 @@ namespace Rococo { namespace Compiler
 		virtual IProgramObject& Object() = 0;
 	};
 
-	ROCOCOAPI IModuleBuilder : public IModule
+	ROCOCO_INTERFACE IModuleBuilder : public IModule
 	{
 		virtual void ClearPrefixes() = 0;		
 		virtual void Clear() = 0;
@@ -162,7 +162,7 @@ namespace Rococo { namespace Compiler
 		virtual IProgramObject& Object() = 0;
 	};
 
-	ROCOCOAPI IInterfaceBuilder : public IInterface
+	ROCOCO_INTERFACE IInterfaceBuilder : public IInterface
 	{
 		virtual IAttributes& Attributes() = 0;
 		virtual IStructureBuilder& NullObjectType() = 0;
@@ -171,19 +171,19 @@ namespace Rococo { namespace Compiler
 		virtual void ExpandNullObjectAllocSize(int minimumByteCount) = 0;
 	};
 
-	ROCOCOAPI IFactoryBuilder : public IFactory
+	ROCOCO_INTERFACE IFactoryBuilder : public IFactory
 	{
 		virtual void SetInline(IFunctionBuilder* f, IStructureBuilder* s) = 0; // Used in the compilation phase to set the inline implementation for the factory
 		virtual IFunctionBuilder& Constructor() = 0;
 		virtual IStructureBuilder* InlineClass() = 0; // if not NULL indicates the concrete class of the inline constructor
 	};
 
-	ROCOCOAPI IMacroBuilder : public IMacro
+	ROCOCO_INTERFACE IMacroBuilder : public IMacro
 	{
 		virtual IFunctionBuilder& Implementation() = 0;
 	};
 
-	ROCOCOAPI INamespaceBuilder : public INamespace
+	ROCOCO_INTERFACE INamespaceBuilder : public INamespace
 	{
 		virtual INamespaceBuilder* Parent() = 0;
 		virtual INamespaceBuilder& GetChild(size_t index) = 0;
@@ -222,7 +222,7 @@ namespace Rococo { namespace Compiler
 		ID_API_CALLBACK IdUpdateRefsOnSourceAndTarget;
 	};
 
-	ROCOCOAPI IProgramObject : public IPublicProgramObject
+	ROCOCO_INTERFACE IProgramObject : public IPublicProgramObject
 	{
 		virtual IModuleBuilder& AddModule(cstr name) = 0;		
 		virtual IModuleBuilder& GetModule(int index) = 0;
@@ -265,7 +265,7 @@ namespace Rococo { namespace Compiler
 	void ValidateNamespaceString(cstr s, cstr name, cstr functionSymbol);
 
 	// Recursive structure. Given a branch, its children are visited first and then it is evaluated
-	ROCOCOAPI IBinaryExpression
+	ROCOCO_INTERFACE IBinaryExpression
 	{
 		// Evaluate and put the result/reference into the target register.
 		virtual void EvaluateBranch(ICodeBuilder& builder, IProgramObject& object, int target) = 0;
@@ -303,7 +303,7 @@ namespace Rococo { namespace Compiler
 		return obj;
 	}
 
-	ROCOCOAPI ICodeBuilder : public IFunctionCode
+	ROCOCO_INTERFACE ICodeBuilder : public IFunctionCode
 	{
 	  virtual void Free() = 0;
 		virtual IFunctionBuilder& Owner() = 0;

@@ -104,7 +104,7 @@ namespace Rococo { namespace VM
 
 	typedef void (CALLTYPE_C *FN_API_CALLBACK)(VariantValue* registers, void* context);
 
-	ROCOCOAPI ICore
+	ROCOCO_INTERFACE ICore
 	{
 		virtual void Free() = 0;
 		virtual void Log(cstr text) = 0;
@@ -136,13 +136,13 @@ namespace Rococo { namespace VM
 
 	struct IDebugger;
 
-	ROCOCOAPI IStepCallback
+	ROCOCO_INTERFACE IStepCallback
 	{
 		virtual void OnStep(IDebugger& debugger) = 0;
 		virtual void StepNext() = 0;
 	};
 
-	ROCOCOAPI IDebugger
+	ROCOCO_INTERFACE IDebugger
 	{		
 		virtual void ClearBreakpoint(size_t offset) = 0;
 		
@@ -177,7 +177,7 @@ namespace Rococo { namespace VM
 		bool CorrectSF;
 	};
 
-   ROCOCOAPI ITraceOutput
+   ROCOCO_INTERFACE ITraceOutput
    {
       virtual void Report() = 0;
    };
@@ -188,7 +188,7 @@ namespace Rococo { namespace VM
 	   int64 nextWakeTime;
    };
 
-	ROCOCOAPI IVirtualMachine : IDebugger
+	ROCOCO_INTERFACE IVirtualMachine : IDebugger
 	{
 		virtual IVirtualMachine* Clone(CPU& _cpu) = 0;
 		virtual CPU& Cpu() = 0;
@@ -254,13 +254,13 @@ namespace Rococo { namespace VM
 		}
 	};
 
-	ROCOCOAPI IRefCounted
+	ROCOCO_INTERFACE IRefCounted
 	{
 		virtual void AddRef() = 0;
 		virtual void Release() = 0;
 	};
 
-	ROCOCOAPI IProgramMemory : public IRefCounted
+	ROCOCO_INTERFACE IProgramMemory : public IRefCounted
 	{
 		virtual void Clear() = 0;
 		virtual uint8* StartOfMemory() = 0;
@@ -276,7 +276,7 @@ namespace Rococo { namespace VM
 		virtual ID_BYTECODE GetFunctionContaingAddress(size_t pcOffset) const = 0;
 	};
 
-	ROCOCOAPI IAssemblerBuilder
+	ROCOCO_INTERFACE IAssemblerBuilder
 	{
 		virtual void Append_AddImmediate(DINDEX source,  BITCOUNT bits, DINDEX target, const VariantValue& v) = 0;
 		virtual void Append_BooleanNot(DINDEX target) = 0;
@@ -365,7 +365,7 @@ namespace Rococo { namespace VM
 		virtual void Append_SetGlobal(BITCOUNT bits, int32 offset) = 0;
 	};
 
-	ROCOCOAPI IAssembler : IAssemblerBuilder
+	ROCOCO_INTERFACE IAssembler : IAssemblerBuilder
 	{
 		virtual void Clear() = 0; // Clear the program
 		virtual ICore& Core() = 0; // Retrieve the SVM core object
@@ -377,7 +377,7 @@ namespace Rococo { namespace VM
 		virtual void Revert(size_t position) = 0; // Drop everything after the position, and set the write position to position, and set write mode to append
 	};
 
-	ROCOCOAPI ISourceFile
+	ROCOCO_INTERFACE ISourceFile
 	{
 		virtual const char* FileName() const = 0;
 		virtual size_t GetCodeOffset(const Vec2i& pos) const = 0;
@@ -389,7 +389,7 @@ namespace Rococo { namespace VM
 		Vec2i Pos;				
 	} TIGHTLY_PACKED;
 
-	ROCOCOAPI ISymbols
+	ROCOCO_INTERFACE ISymbols
 	{
 		virtual void Clear() = 0;
 		virtual void Free() = 0;
@@ -398,7 +398,7 @@ namespace Rococo { namespace VM
 		virtual bool TryGetSymbol(size_t index, OUT FileData& fd) const = 0;
 	};
 	
-	ROCOCOAPI IDisassembler
+	ROCOCO_INTERFACE IDisassembler
 	{
 		enum {MAX_ARG_LEN = 64, MAX_FULL_TEXT_LEN = 128};
 

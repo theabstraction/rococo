@@ -3,24 +3,24 @@
 
 namespace Rococo
 {
-	ROCOCOAPI ISelection
+	ROCOCO_INTERFACE ISelection
 	{
 		virtual size_t Count() const = 0;
 		virtual cstr GetElement(size_t index) const = 0;
 		virtual cstr GetDefaultItem() const = 0;
 	};
 
-	ROCOCOAPI IStringValidator
+	ROCOCO_INTERFACE IStringValidator
 	{
 		virtual bool ValidateAndReportErrors(cstr text) = 0;
 	};
 
-	ROCOCOAPI IVariableEditorEventHandler
+	ROCOCO_INTERFACE IVariableEditorEventHandler
 	{
 		virtual void OnButtonClicked(cstr variableName) = 0;
 	};
 
-	ROCOCOAPI IVariableEditor
+	ROCOCO_INTERFACE IVariableEditor
 	{
 		virtual void AddIntegerEditor(cstr variableName, cstr variableDesc, int minimum, int maximum, int defaultValue) = 0;
         virtual void AddBooleanEditor(cstr variableName, bool state) = 0;

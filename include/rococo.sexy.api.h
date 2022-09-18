@@ -50,7 +50,7 @@ namespace Rococo
 		virtual void PopOutputs(IOutputStack& args) = 0;
 	};
 
-	ROCOCOAPI ISourceCache
+	ROCOCO_INTERFACE ISourceCache
 	{
 		[[nodiscard]] virtual IAllocator & Allocator() = 0;
 		[[nodiscard]] virtual Rococo::Sex::ISParserTree* GetSource(cstr resourceName) = 0;

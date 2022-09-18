@@ -4,7 +4,7 @@
 
 namespace Rococo::Graphics::Fonts
 {
-	ROCOCOAPI IFontGlyphBuilder
+	ROCOCO_INTERFACE IFontGlyphBuilder
 	{
 		virtual void AddGlyph(wchar_t code) = 0;
 		virtual void AddGlyph(unsigned char asciiValue) = 0;
@@ -38,7 +38,7 @@ namespace Rococo::Graphics::Fonts
 		int32 imgHeight;
 	};
 
-	ROCOCOAPI IArrayFont
+	ROCOCO_INTERFACE IArrayFont
 	{
 		virtual int32 NumberOfGlyphs() const = 0;
 
@@ -61,12 +61,12 @@ namespace Rococo::Graphics::Fonts
 		virtual void GenerateImage(const char32_t charCode, IImagePopulator<GRAYSCALE>& populator) = 0;
 	};
 
-	ROCOCOAPI IArrayFontSupervisor : IArrayFont
+	ROCOCO_INTERFACE IArrayFontSupervisor : IArrayFont
 	{
 		virtual void Free() = 0;
 	};
 
-	ROCOCOAPI IArrayFontSet
+	ROCOCO_INTERFACE IArrayFontSet
 	{
 		virtual void Populate(IFontGlyphBuilder & builder);
 	};
@@ -87,7 +87,7 @@ namespace Rococo::Graphics::Fonts
 	*/
 	IArrayFontSupervisor* CreateOSFont(IArrayFontSet& glyphSet, const FontSpec& spec);
 
-	ROCOCOAPI IHQTextBuilder
+	ROCOCO_INTERFACE IHQTextBuilder
 	{
 		virtual const Fonts::ArrayFontMetrics & Metrics() const = 0;
 		virtual void SetColour(RGBAb colour) = 0;
@@ -97,7 +97,7 @@ namespace Rococo::Graphics::Fonts
 		virtual void Write(char32_t c, GuiRectf* outputBounds) = 0;
 	};
 
-	ROCOCOAPI IHQTextJob
+	ROCOCO_INTERFACE IHQTextJob
 	{
 		virtual void Render(IHQTextBuilder & builder) = 0;
 	};

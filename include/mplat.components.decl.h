@@ -9,7 +9,7 @@ namespace Rococo::Entities
 
 namespace Rococo::Components
 {
-    ROCOCOAPI IEntity
+    ROCOCO_INTERFACE IEntity
     {
         virtual cr_m4x4 Model() const = 0;
         virtual ROID Parent() const = 0;
@@ -19,13 +19,13 @@ namespace Rococo::Components
         virtual void SetScale(cr_vec3 scale) = 0;
     };
 
-    ROCOCOAPI IBodyComponent : IEntity
+    ROCOCO_INTERFACE IBodyComponent : IEntity
     {
         virtual ID_SYS_MESH Mesh() const = 0;
         virtual void SetMesh(ID_SYS_MESH meshId) = 0;
     };
 
-    ROCOCOAPI ISkeletonComponent
+    ROCOCO_INTERFACE ISkeletonComponent
     {
         virtual Entities::ISkeleton* Skeleton() = 0;
         virtual void SetSkeleton(cstr skeletonName) = 0;
@@ -34,17 +34,17 @@ namespace Rococo::Components
         virtual const FPSAngles& FPSOrientation() const = 0;
     };
 
-    ROCOCOAPI IRigsComponent
+    ROCOCO_INTERFACE IRigsComponent
     {
 
     };
 
-    ROCOCOAPI IParticleSystemComponent
+    ROCOCO_INTERFACE IParticleSystemComponent
     {
 
     };
 
-    ROCOCOAPI IAnimationComponent
+    ROCOCO_INTERFACE IAnimationComponent
     {
         // Temporary reference, do not cache
         virtual Rococo::Entities::IAnimation& GetAnimation() = 0;

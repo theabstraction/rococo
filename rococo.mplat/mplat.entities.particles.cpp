@@ -126,7 +126,7 @@ namespace ANON
 		return range * f + minValue;
 	}
 
-	ROCOCOAPI ICloud
+	ROCOCO_INTERFACE ICloud
 	{
 		virtual void Free() = 0;
 		virtual void GetParticles(IRenderer& renderer, cr_vec3 origin) = 0;

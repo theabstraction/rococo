@@ -41,7 +41,7 @@ namespace Rococo
 	  ID3D11BlendState* CreatePlasmaBlend(ID3D11Device& device);
 	  ID3D11BlendState* CreateAdditiveBlend(ID3D11Device& device);
 
-      ROCOCOAPI ICountdownConfirmationDialog
+      ROCOCO_INTERFACE ICountdownConfirmationDialog
       {
          virtual DWORD DoModal(HWND owner /* the owner is greyed out during modal operation */, cstr title, cstr hint, int countdown) = 0;
          virtual void Free() = 0;

@@ -4,7 +4,7 @@
 
 namespace Rococo
 {
-	ROCOCOAPI IUltraClock
+	ROCOCO_INTERFACE IUltraClock
 	{
 		[[nodiscard]] virtual OS::ticks FrameStart() const = 0;	// The time of the current render frame
 		[[nodiscard]] virtual OS::ticks Start() const = 0;		// The time at which the mainloop started

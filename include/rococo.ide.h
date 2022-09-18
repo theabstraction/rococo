@@ -16,7 +16,7 @@ namespace Rococo
 
 	struct IDebuggerWindow;
 
-	ROCOCOAPI IDebugControl
+	ROCOCO_INTERFACE IDebugControl
 	{
 		virtual void Continue() = 0;
 		virtual void StepOut() = 0;
@@ -27,14 +27,14 @@ namespace Rococo
 		virtual void RefreshAtDepth(int stackDepth) = 0; // Refresh source and disassembly, but do not refresh the CallStack view
 	};
 
-	ROCOCOAPI ILogger
+	ROCOCO_INTERFACE ILogger
 	{
 		virtual void AddLogSection(RGBAb colour, cstr format, ...) = 0;
 		virtual void ClearLog() = 0;
 		virtual int Log(cstr format, ...) = 0;
 	};
 
-	ROCOCOAPI IDebuggerPopulator
+	ROCOCO_INTERFACE IDebuggerPopulator
 	{
 	   virtual void Populate(IDebuggerWindow & debugger) = 0;
 	};
@@ -46,7 +46,7 @@ namespace Rococo
 		size_t len;
 	};
 
-	ROCOCOAPI IDebuggerWindow : public ILogger
+	ROCOCO_INTERFACE IDebuggerWindow : public ILogger
 	{
 		virtual void AddDisassembly(RGBAb colour, cstr text, RGBAb bkColor = RGBAb(255,255,255), bool bringToView = false) = 0;
 		virtual void InitDisassembly(size_t codeId) = 0;

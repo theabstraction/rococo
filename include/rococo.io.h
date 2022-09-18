@@ -32,44 +32,44 @@ namespace Rococo::IO
 	char DirectorySeparatorChar();
 	void UseBufferlessStdout();
 
-	ROCOCOAPI IStreamer
+	ROCOCO_INTERFACE IStreamer
 	{
 		virtual void Close() = 0; // Closes the IO object responsible for the stream
 		virtual cstr Name() const = 0; // Gives a resource identifier for the stream, such as a filename
-		virtual void Free() = 0; // Delete the object that implements the streamer. Free will call Close before deleting the object to which the ROCOCOAPI refers
+		virtual void Free() = 0; // Delete the object that implements the streamer. Free will call Close before deleting the object to which the ROCOCO_INTERFACE refers
 	};
 
-	ROCOCOAPI IReader : public IStreamer
+	ROCOCO_INTERFACE IReader : public IStreamer
 	{
 		virtual size_t Read(char* buffer, size_t capacity) = 0;
 	};
 
-	ROCOCOAPI IFixedLengthReader : public IReader
+	ROCOCO_INTERFACE IFixedLengthReader : public IReader
 	{
 		virtual int64 Length() const = 0;
 	};
 
-	ROCOCOAPI IBinaryWriter : public IStreamer
+	ROCOCO_INTERFACE IBinaryWriter : public IStreamer
 	{
 		virtual void Write(const uint8* buffer, uint32 nBytes) = 0;
 	};
 
-	ROCOCOAPI IUnicode16Writer
+	ROCOCO_INTERFACE IUnicode16Writer
 	{
 		virtual void Append(const wchar_t* format, ...) = 0;
 	};
 
-	ROCOCOAPI IUnicode16WriterSupervisor : public IUnicode16Writer
+	ROCOCO_INTERFACE IUnicode16WriterSupervisor : public IUnicode16Writer
 	{
 		virtual void Free() = 0;
 	};
 
-	ROCOCOAPI IScriptGenerator
+	ROCOCO_INTERFACE IScriptGenerator
 	{
 		virtual void AppendStringLiteral(IUnicode16Writer& writer, cstr text) = 0;
 	};
 
-	ROCOCOAPI IBinaryArchive
+	ROCOCO_INTERFACE IBinaryArchive
 	{
 		virtual void Reserve(uint64 nBytes) = 0;
 		virtual void SeekAbsolute(uint64 position) = 0;
@@ -87,7 +87,7 @@ namespace Rococo::IO
 
 	IBinaryArchive* CreateNewBinaryFile(const wchar_t* sysPath);
 
-	ROCOCOAPI IBinarySource
+	ROCOCO_INTERFACE IBinarySource
 	{
 		virtual uint32 Read(uint32 capacity, void* pElements) = 0;
 		virtual void Free() = 0;
@@ -95,7 +95,7 @@ namespace Rococo::IO
 
 	IBinarySource* ReadBinarySource(const wchar_t* sysPath);
 
-	ROCOCOAPI IReadOnlyBinaryMapping
+	ROCOCO_INTERFACE IReadOnlyBinaryMapping
 	{
 		virtual const char* Data() const = 0;
 		virtual const uint64 Length() const = 0;
@@ -125,7 +125,7 @@ namespace Rococo::IO
 	void Print(IBinaryWriter& writer, const char* format, ...);
 	void SaveUserFile(cstr filename, cstr s);
 
-	ROCOCOAPI ITableRowData
+	ROCOCO_INTERFACE ITableRowData
 	{
 		virtual int32 NextInt32() = 0;
 		virtual int64 NextInt64() = 0;
@@ -160,7 +160,7 @@ namespace Rococo::IO
 		ColumnType type;
 	};
 
-	ROCOCOAPI ITableRowBuilder
+	ROCOCO_INTERFACE ITableRowBuilder
 	{
 		virtual void OnColumns(int numberOfColumns, const ColumnHeader* headers) = 0;
 		virtual void OnHeaders(const TableRowHeaders& headers) = 0;
@@ -175,14 +175,14 @@ namespace Rococo::IO
 
 namespace Rococo
 {
-	ROCOCOAPI IBuffer
+	ROCOCO_INTERFACE IBuffer
 	{
 		virtual uint8 * GetData() = 0;
 		virtual const uint8* GetData() const = 0;
 		virtual size_t Length() const = 0;
 	};
 
-	ROCOCOAPI IExpandingBuffer : public IBuffer
+	ROCOCO_INTERFACE IExpandingBuffer : public IBuffer
 	{
 		virtual void Resize(size_t length) = 0;
 		virtual void Free() = 0;
@@ -205,7 +205,7 @@ namespace Rococo
 
 	MemoryUsage ProcessMemory();
 
-	ROCOCOAPI IOS
+	ROCOCO_INTERFACE IOS
 	{
 		virtual void ConvertUnixPathToSysPath(const wchar_t* unixPath, WideFilePath & sysPath) const = 0;
 		virtual void EnumerateModifiedFiles(IEventCallback<FileModifiedArgs>& cb) = 0;
@@ -220,7 +220,7 @@ namespace Rococo
 		virtual void Monitor(const wchar_t* absPath) = 0;
 	};
 
-	ROCOCOAPI IInstallation
+	ROCOCO_INTERFACE IInstallation
 	{
 		virtual bool TryExpandMacro(cstr macroPrefixPlusPath, U8FilePath & expandedPath) = 0;
 		virtual const wchar_t* Content() const = 0;
@@ -235,12 +235,12 @@ namespace Rococo
 		virtual IOS& OS() = 0;
 	};
 
-	ROCOCOAPI IInstallationSupervisor : public IInstallation
+	ROCOCO_INTERFACE IInstallationSupervisor : public IInstallation
 	{
 		virtual void Free() = 0;
 	};
 
-	ROCOCOAPI IOSSupervisor : public IOS
+	ROCOCO_INTERFACE IOSSupervisor : public IOS
 	{
 		virtual void Free() = 0;
 	};

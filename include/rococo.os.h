@@ -27,13 +27,13 @@ namespace Rococo::OS
 	// Sets the value of a config string in the OS. The maximum length is 1 megabyte.
 	void SetConfigVariable(cstr value, ConfigSection section, ConfigRootName rootName, cstr organization = nullptr);
 
-	ROCOCOAPI IAppControl
+	ROCOCO_INTERFACE IAppControl
 	{
 		virtual bool IsRunning() const = 0;
 		virtual void ShutdownApp() = 0;
 	};
 
-	ROCOCOAPI IAppControlSupervisor : public IAppControl
+	ROCOCO_INTERFACE IAppControlSupervisor : public IAppControl
 	{
 		virtual void Free() = 0;
 	};
@@ -46,12 +46,12 @@ namespace Rococo::OS
 
 	struct IThreadControl;
 
-	ROCOCOAPI IThreadJob
+	ROCOCO_INTERFACE IThreadJob
 	{
 		virtual uint32 RunThread(IThreadControl & control) = 0;
 	};
 
-	ROCOCOAPI IThreadControl : public ILock
+	ROCOCO_INTERFACE IThreadControl : public ILock
 	{
 		typedef void (*FN_APC)(void* context);
 		virtual void QueueAPC(FN_APC apc, void* context) = 0;
@@ -64,14 +64,14 @@ namespace Rococo::OS
 
 	void WakeUp(IThreadControl& thread);
 
-	ROCOCOAPI ICriticalSection
+	ROCOCO_INTERFACE ICriticalSection
 	{
 		virtual void Free() = 0;
 		virtual void Lock() = 0;
 		virtual void Unlock() = 0;
 	};
 
-	ROCOCOAPI IThreadSupervisor : public IThreadControl
+	ROCOCO_INTERFACE IThreadSupervisor : public IThreadControl
 	{
 		virtual ICriticalSection * CreateCriticalSection() = 0;
 		virtual void Free() = 0;

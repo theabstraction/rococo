@@ -174,12 +174,12 @@ namespace Rococo::Graphics
 		Vec2i screenSpan;
 	};
 
-	ROCOCOAPI IMaterialPalette
+	ROCOCO_INTERFACE IMaterialPalette
 	{
 		virtual bool TryGetMaterial(BodyComponentMatClass name, MaterialVertexData & vd) const = 0;
 	};
 
-	ROCOCOAPI IShaders
+	ROCOCO_INTERFACE IShaders
 	{
 		virtual ID_GEOMETRY_SHADER CreateGeometryShader(cstr pingPath) = 0;
 		virtual ID_VERTEX_SHADER CreateObjectVertexShader(cstr pingPath) = 0;
@@ -192,7 +192,7 @@ namespace Rococo::Graphics
 		virtual bool UseShaders(ID_VERTEX_SHADER vid, ID_PIXEL_SHADER pid) = 0;
 	};
 
-	ROCOCOAPI IMeshes
+	ROCOCO_INTERFACE IMeshes
 	{
 		virtual void ClearMeshes() = 0;
 		virtual ID_SYS_MESH CreateSkyMesh(const SkyVertex* vertices, uint32 nVertices) = 0;
@@ -204,13 +204,13 @@ namespace Rococo::Graphics
 		virtual void UpdateMesh(ID_SYS_MESH id, const ObjectVertex* vertices, uint32 nVertices, const BoneWeights* weights) = 0;
 	};
 
-	ROCOCOAPI ICubeTextures
+	ROCOCO_INTERFACE ICubeTextures
 	{
 		virtual ID_CUBE_TEXTURE CreateCubeTexture(cstr path, cstr extension) = 0;
 		virtual void SyncCubeTexture(int32 XMaxFace, int32 XMinFace, int32 YMaxFace, int32 YMinFace, int32 ZMaxFace, int32 ZMinFace) = 0;
 	};
 
-	ROCOCOAPI ITextureManager
+	ROCOCO_INTERFACE ITextureManager
 	{
 		virtual ID_TEXTURE CreateDepthTarget(cstr targetName, int32 width, int32 height) = 0;
 		virtual ID_TEXTURE CreateRenderTarget(cstr renderTargetName, int32 width, int32 height) = 0;
@@ -225,18 +225,18 @@ namespace Rococo::Graphics
 		virtual bool TryGetTextureDesc(TextureDesc& desc, ID_TEXTURE id) const = 0;
 	};
 
-	ROCOCOAPI IRendererMetrics
+	ROCOCO_INTERFACE IRendererMetrics
 	{
 		virtual void GetGuiMetrics(GuiMetrics & metrics) const = 0;
 	};
 
-	ROCOCOAPI IHQFontResource
+	ROCOCO_INTERFACE IHQFontResource
 	{
 		virtual ID_FONT CreateOSFont(Fonts::IArrayFontSet & glyphs, const Fonts::FontSpec & spec) = 0;
 		virtual Vec2i EvalSpan(ID_FONT id, const fstring& text) const = 0;
 	};
 
-	ROCOCOAPI IGuiResources
+	ROCOCO_INTERFACE IGuiResources
 	{
 		virtual const Fonts::ArrayFontMetrics & GetFontMetrics(ID_FONT idFont) = 0;
 		virtual Textures::ITextureArrayBuilder& SpriteBuilder() = 0;
@@ -252,14 +252,14 @@ namespace Rococo::Graphics
 		cstr name;
 	};
 
-	ROCOCOAPI IMaterialTextureArrayBuilder
+	ROCOCO_INTERFACE IMaterialTextureArrayBuilder
 	{
 		virtual size_t Count() const = 0;
 		virtual int32 TexelWidth() const = 0;
 		virtual void LoadTextureForIndex(size_t index, IEventCallback<MaterialTextureArrayBuilderArgs>& onLoad) = 0;
 	};
 
-	ROCOCOAPI IMaterials
+	ROCOCO_INTERFACE IMaterials
 	{
 		virtual void GetMaterialArrayMetrics(MaterialArrayMetrics & metrics) const = 0;
 		virtual MaterialId GetMaterialId(cstr name) const = 0;
@@ -267,7 +267,7 @@ namespace Rococo::Graphics
 		virtual void LoadMaterialTextureArray(IMaterialTextureArrayBuilder& builder) = 0;
 	};
 
-	ROCOCOAPI IGuiRenderContext // Provides draw calls - do not cache
+	ROCOCO_INTERFACE IGuiRenderContext // Provides draw calls - do not cache
 	{
 		virtual IMaterials & Materials() = 0;
 		virtual void AddTriangle(const GuiVertex triangle[3]) = 0;
@@ -312,7 +312,7 @@ namespace Rococo::Graphics
 		Vec4 aspect;
 	};
 
-	ROCOCOAPI IParticles
+	ROCOCO_INTERFACE IParticles
 	{
 		virtual void AddFog(const ParticleVertex & p) = 0;
 		void virtual AddPlasma(const ParticleVertex& p) = 0;
@@ -320,13 +320,13 @@ namespace Rococo::Graphics
 		void virtual ClearFog() = 0;
 	};
 
-	ROCOCOAPI IGui3D
+	ROCOCO_INTERFACE IGui3D
 	{
 		virtual void Add3DGuiTriangles(const VertexTriangle * first, const VertexTriangle * last) = 0;
 		virtual void Clear3DGuiTriangles() = 0;
 	};
 
-	ROCOCOAPI IRenderContext // Provides draw calls - do not cache
+	ROCOCO_INTERFACE IRenderContext // Provides draw calls - do not cache
 	{
 		virtual IGui3D & Gui3D() = 0;
 		virtual void Draw(ID_SYS_MESH id, const ObjectInstance* instance, uint32 nInstances) = 0;
@@ -334,7 +334,7 @@ namespace Rococo::Graphics
 		virtual void SetBoneMatrix(uint32 index, cr_m4x4 m) = 0;
 	};
 
-	ROCOCOAPI IUIOverlay
+	ROCOCO_INTERFACE IUIOverlay
 	{
 	   virtual void Render(IGuiRenderContext & gc) = 0;
 	};
@@ -385,14 +385,14 @@ namespace Rococo::Graphics
 	};
 #pragma pack(pop)
 
-	ROCOCOAPI IScene2D
+	ROCOCO_INTERFACE IScene2D
 	{
 		virtual RGBA GetClearColour() const = 0;
 		virtual void OnGuiResize(Vec2i screenSpan) = 0;
 		virtual void RenderGui(IGuiRenderContext& grc) = 0;
 	};
 
-	ROCOCOAPI IScene : IScene2D
+	ROCOCO_INTERFACE IScene : IScene2D
 	{
 		virtual void GetCamera(Matrix4x4 & camera, Matrix4x4 & world, Matrix4x4 & proj, Vec4 & eye, Vec4 & viewDir) = 0;
 		virtual ID_CUBE_TEXTURE GetSkyboxCubeId() const = 0;
@@ -468,7 +468,7 @@ namespace Rococo::Graphics
 		size_t nBytes;
 	};
 
-	ROCOCOAPI ITextureLoadEnumerator
+	ROCOCO_INTERFACE ITextureLoadEnumerator
 	{
 		virtual void ForEachElement(IEventCallback<TextureLoadData> &callback, bool readData) = 0;
 	};
@@ -476,7 +476,7 @@ namespace Rococo::Graphics
 
 	struct IHQFonts;
 
-	ROCOCOAPI IRenderer : IRendererMetrics
+	ROCOCO_INTERFACE IRenderer : IRendererMetrics
 	{
 		virtual IGuiResources & Gui() = 0;
 		virtual IMaterials& Materials() = 0;
@@ -551,7 +551,7 @@ namespace Rococo::Graphics
 
 namespace Rococo
 {
-	ROCOCOAPI IApp
+	ROCOCO_INTERFACE IApp
 	{
 		virtual void Free() = 0;
 		virtual void OnCreate() = 0;

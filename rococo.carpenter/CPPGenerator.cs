@@ -941,7 +941,7 @@ namespace Rococo.Carpenter
 
             AppendTab(sb);
 
-            sb.AppendFormat("{0} {1}{2}", HasInterfaceForRow ? "ROCOCOAPI" : "struct", HasInterfaceForRow ? "I" : "", RowStructName);
+            sb.AppendFormat("{0} {1}{2}", HasInterfaceForRow ? "ROCOCO_INTERFACE" : "struct", HasInterfaceForRow ? "I" : "", RowStructName);
             sb.AppendLine();
             AppendTab(sb);
             sb.AppendLine("{");
@@ -1012,7 +1012,7 @@ namespace Rococo.Carpenter
 
 
             AppendTab(sb);
-            sb.AppendFormat("ROCOCOAPI {0}", MetaDataInterfaceName);
+            sb.AppendFormat("ROCOCO_INTERFACE {0}", MetaDataInterfaceName);
             sb.AppendLine();
             AppendTab(sb);
             sb.AppendLine("{");
@@ -1041,7 +1041,7 @@ namespace Rococo.Carpenter
             CPPCore.AddFQType(FQTypeCategory.IsStruct, CppNamespace, shortInterfaceName);
 
             AppendTab(sb);
-            sb.Append("ROCOCOAPI ");
+            sb.Append("ROCOCO_INTERFACE ");
             sb.Append(Rules.CppInterface);
             sb.AppendLine();
 
@@ -1115,7 +1115,7 @@ namespace Rococo.Carpenter
             if (Rules.Lifetime == TableLifetime.Dynamic)
             {
                 AppendTab(sb);
-                sb.AppendFormat("ROCOCOAPI {0}Supervisor: {0}", Rules.CppInterface);
+                sb.AppendFormat("ROCOCO_INTERFACE {0}Supervisor: {0}", Rules.CppInterface);
                 sb.AppendLine();
                 AppendTab(sb);
                 sb.AppendLine("{");
@@ -1134,7 +1134,7 @@ namespace Rococo.Carpenter
             else if (Rules.Lifetime == TableLifetime.Singleton)
             {
                 AppendTab(sb);
-                sb.AppendFormat("ROCOCOAPI {0}Supervisor: {0}", Rules.CppInterface);
+                sb.AppendFormat("ROCOCO_INTERFACE {0}Supervisor: {0}", Rules.CppInterface);
                 sb.AppendLine();
                 AppendTab(sb);
                 sb.AppendLine("{");

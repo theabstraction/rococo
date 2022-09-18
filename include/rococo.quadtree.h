@@ -25,7 +25,7 @@ namespace Rococo
 		const QuadtreeObject object;
 	};
 
-	ROCOCOAPI IQuadtree
+	ROCOCO_INTERFACE IQuadtree
 	{
 		virtual void Clear() = 0;
 		virtual QuadtreePocket& Insert(const QuadtreeObject& object) = 0;
@@ -33,7 +33,7 @@ namespace Rococo
 		virtual void GetApproxMemoryUse(size_t& pocketBytes, size_t& nodeBytes) const = 0;
 	};
 
-	ROCOCOAPI IQuadtreeSupervisor : IQuadtree
+	ROCOCO_INTERFACE IQuadtreeSupervisor : IQuadtree
 	{
 		virtual void Free() = 0;
 	};

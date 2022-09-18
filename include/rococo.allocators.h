@@ -28,14 +28,14 @@ namespace Rococo
 
 namespace Rococo::Memory
 {
-	ROCOCOAPI IFreeListAllocator
+	ROCOCO_INTERFACE IFreeListAllocator
 	{
 		// Returns a buffer with a byte size equal to the value supplied to the fast allocator factory.
 		virtual void* AllocateBuffer() = 0;
 		virtual void FreeBuffer(void* buffer) = 0;
 	};
 
-	ROCOCOAPI IFreeListAllocatorSupervisor : IFreeListAllocator
+	ROCOCO_INTERFACE IFreeListAllocatorSupervisor : IFreeListAllocator
 	{
 		virtual void Free() = 0;
 	};

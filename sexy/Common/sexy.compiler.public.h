@@ -274,7 +274,7 @@ namespace Rococo {
 			return (uint8*)&stub.pVTables[0];
 		}
 
-		ROCOCOAPI IArchetype
+		ROCOCO_INTERFACE IArchetype
 		{
 			virtual cstr Name() const = 0;
 			virtual const int NumberOfOutputs() const = 0;
@@ -286,7 +286,7 @@ namespace Rococo {
 			virtual const void* Definition() const = 0;
 		};
 
-		ROCOCOAPI IArgument
+		ROCOCO_INTERFACE IArgument
 		{
 			virtual cstr Name() const = 0;
 			virtual cstr TypeString() const = 0;
@@ -300,7 +300,7 @@ namespace Rococo {
 			virtual void* Userdata() const = 0;
 		};
 
-		ROCOCOAPI IFunction : public IArchetype
+		ROCOCO_INTERFACE IFunction : public IArchetype
 		{
 			virtual const IModule& Module() const = 0;
 			virtual IPublicProgramObject& Object() const = 0;
@@ -314,19 +314,19 @@ namespace Rococo {
 
 		inline int ArgCount(const IArchetype& archetype) { return archetype.NumberOfInputs() + archetype.NumberOfOutputs(); }
 
-		ROCOCOAPI IFunctionAlias
+		ROCOCO_INTERFACE IFunctionAlias
 		{
 			virtual const IFunction& GetFunction() const = 0;
 			virtual cstr GetPublicName() const = 0;
 		};
 
-		ROCOCOAPI IStructAlias
+		ROCOCO_INTERFACE IStructAlias
 		{
 			virtual const IStructure& GetStructure() const = 0;
 			virtual cstr GetPublicName() const = 0;
 		};
 
-		ROCOCOAPI IFunctionEnumerator
+		ROCOCO_INTERFACE IFunctionEnumerator
 		{
 			virtual int FunctionCount() const = 0;
 
@@ -335,7 +335,7 @@ namespace Rococo {
 
 		const IFunction* FindByName(const IFunctionEnumerator& e, cstr publicName);
 
-		ROCOCOAPI IMember
+		ROCOCO_INTERFACE IMember
 		{
 			virtual cstr Name() const = 0;
 			virtual const int SizeOfMember() const = 0;
@@ -346,7 +346,7 @@ namespace Rococo {
 			virtual bool IsInterfaceVariable() const = 0;
 		};
 
-		ROCOCOAPI IStructure
+		ROCOCO_INTERFACE IStructure
 		{
 			virtual IPublicProgramObject& Object() const = 0;
 			virtual cstr Name() const = 0;
@@ -378,7 +378,7 @@ namespace Rococo {
 		inline bool operator == (const IStructure& a, const IStructure& b) { return &a == &b; }
 		inline bool operator != (const IStructure& a, const IStructure& b) { return &a != &b; }
 
-		ROCOCOAPI  IModule
+		ROCOCO_INTERFACE  IModule
 		{
 			virtual int GetVersion() const = 0;
 			virtual const INamespace* DefaultNamespace() const = 0;
@@ -430,7 +430,7 @@ namespace Rococo {
 			ADDNAMESPACEFLAGS_CREATE_ROOTS = 0x00000001
 		};
 
-		ROCOCOAPI  IAttributes
+		ROCOCO_INTERFACE  IAttributes
 		{
 			virtual bool AddAttribute(cstr name, const void* value) = 0;
 			virtual const int AttributeCount() const = 0;
@@ -438,7 +438,7 @@ namespace Rococo {
 			virtual cstr GetAttribute(int index, OUT const void*& value) const = 0;
 		};
 
-		ROCOCOAPI IInterface
+		ROCOCO_INTERFACE IInterface
 		{
 			virtual const IAttributes& Attributes() const = 0;
 			virtual const IInterface* Base() const = 0;
@@ -454,7 +454,7 @@ namespace Rococo {
 			return &a == &b;
 		}
 
-		ROCOCOAPI IFactory
+		ROCOCO_INTERFACE IFactory
 		{
 			virtual cstr Name() const = 0;
 			virtual const IFunction& Constructor() const = 0;
@@ -465,7 +465,7 @@ namespace Rococo {
 
 		};
 
-		ROCOCOAPI IMacro
+		ROCOCO_INTERFACE IMacro
 		{
 			virtual cstr Name() const = 0;
 			virtual const void* Expression() const = 0;
@@ -473,7 +473,7 @@ namespace Rococo {
 			virtual const IFunction& Implementation() const = 0;
 		};
 
-		ROCOCOAPI INamespace
+		ROCOCO_INTERFACE INamespace
 		{
 			virtual const INamespace* FindSubspace(cstr subpath) const = 0;
 			virtual const IStructure* FindStructure(cstr name) const = 0;
@@ -511,7 +511,7 @@ namespace Rococo {
 			const ObjectStub* object;
 		};
 
-		ROCOCOAPI IScriptObjectAllocator
+		ROCOCO_INTERFACE IScriptObjectAllocator
 		{
 			virtual void* AllocateObject(size_t nBytes) = 0;
 			virtual void FreeObject(void* pMemory) = 0;
@@ -534,7 +534,7 @@ namespace Rococo {
 			virtual void SetAllocator(const IStructure* s, AllocatorBinding* binding) = 0;
 		};
 
-		ROCOCOAPI IPublicProgramObject
+		ROCOCO_INTERFACE IPublicProgramObject
 		{
 			virtual const IModule& GetModule(int index) const = 0;
 			virtual const INamespace& GetRootNamespace() const = 0;
@@ -614,7 +614,7 @@ namespace Rococo {
 			const void* SourceExpression;
 		};
 
-		ROCOCOAPI IFunctionCode
+		ROCOCO_INTERFACE IFunctionCode
 		{
 			virtual const IFunction& Owner() const = 0;
 			virtual void GetCodeSection(CodeSection& section) const = 0;

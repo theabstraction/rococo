@@ -50,12 +50,12 @@ namespace Rococo::Gui
 		Terminate
 	};
 
-	ROCOCOAPI IGRLayout
+	ROCOCO_INTERFACE IGRLayout
 	{
 		virtual void Layout(IGRPanel& panel, const GuiRect& absRect) = 0;
 	};
 
-	ROCOCOAPI IGRLayoutSupervisor: IGRLayout
+	ROCOCO_INTERFACE IGRLayoutSupervisor: IGRLayout
 	{
 		virtual void Free() = 0;
 	};
@@ -97,7 +97,7 @@ namespace Rococo::Gui
 		}
 	};
 
-	ROCOCOAPI IGRRenderContext
+	ROCOCO_INTERFACE IGRRenderContext
 	{
 		virtual Vec2i CursorHoverPoint() const = 0;
 		// It is up to the renderer to decide if a panel is hovered.
@@ -135,13 +135,13 @@ namespace Rococo::Gui
 		MENU_BUTTON_TEXT
 	};
 
-	ROCOCOAPI IScheme
+	ROCOCO_INTERFACE IScheme
 	{
 		virtual RGBAb GetColour(ESchemeColourSurface surface) = 0;
 		virtual void SetColour(ESchemeColourSurface surface, RGBAb colour) = 0;
 	};
 
-	ROCOCOAPI ISchemeSupervisor : IScheme
+	ROCOCO_INTERFACE ISchemeSupervisor : IScheme
 	{
 		virtual void Free() = 0;
 	};
@@ -167,7 +167,7 @@ namespace Rococo::Gui
 
 	struct IGRCustodian;
 
-	ROCOCOAPI IGRPanelRoot
+	ROCOCO_INTERFACE IGRPanelRoot
 	{
 		// Redirects all mouse events to the target panel, until it is either destroyed, another panel is captured, or ReleaseCursor is called on this interface
 		virtual void CaptureCursor(IGRPanel & panel) = 0;
@@ -187,7 +187,7 @@ namespace Rococo::Gui
 		virtual IGuiRetained& GR() = 0;
 	};
 
-	ROCOCOAPI IGRPanel
+	ROCOCO_INTERFACE IGRPanel
 	{
 		virtual EventRouting NotifyAncestors(WidgetEvent& widgetEvent, IGRWidget& widget) = 0;
 		virtual IGRWidget& Widget() = 0;
@@ -209,7 +209,7 @@ namespace Rococo::Gui
 		virtual bool RequiresLayout() const = 0;
 	};
 
-	ROCOCOAPI IGRPanelSupervisor : IGRPanel
+	ROCOCO_INTERFACE IGRPanelSupervisor : IGRPanel
 	{
 		// A dangerous function, particularly if called within a recursive query. Ensure it is not called on children that are referenced in the callstack
 		virtual void ClearChildren() = 0;
@@ -221,7 +221,7 @@ namespace Rococo::Gui
 		virtual void Free() = 0;
 	};
 
-	ROCOCOAPI IGRWidget
+	ROCOCO_INTERFACE IGRWidget
 	{
 		virtual Vec2i EvaluateMinimalSpan() const = 0;
 		virtual void Layout(const GuiRect& parentDimensions) = 0;
@@ -265,7 +265,7 @@ namespace Rococo::Gui
 		uint32 isRaised : 1;
 	};
 
-	ROCOCOAPI IGRWidgetButton : IGRWidget
+	ROCOCO_INTERFACE IGRWidgetButton : IGRWidget
 	{
 		// Sets the rule by which events are fired
 		virtual void SetClickCriterion(GRClickCriterion criterion) = 0;
@@ -311,30 +311,30 @@ namespace Rococo::Gui
 		static GRMenuItemId Error() { return GRMenuItemId{ -1 }; }
 	};
 
-	ROCOCOAPI IGRWidgetMenuBar : IGRWidget
+	ROCOCO_INTERFACE IGRWidgetMenuBar : IGRWidget
 	{
 		virtual bool AddButton(GRMenuItemId parentMenu, const GRMenuButtonItem& item) = 0;
 		virtual GRMenuItemId AddSubMenu(GRMenuItemId parentMenu, const GRMenuSubMenu& subMenu) = 0;
 	};
 
-	ROCOCOAPI IGRWidgetFactory
+	ROCOCO_INTERFACE IGRWidgetFactory
 	{
 		virtual IGRWidget& CreateWidget(IGRPanel& panel) = 0;
 	};
 
 	ROCOCO_GUI_RETAINED_API IGRWidgetFactory& GetWidgetButtonFactory();
 
-	ROCOCOAPI IGRMainFrame : IGRWidget
+	ROCOCO_INTERFACE IGRMainFrame : IGRWidget
 	{
 		// Retrieves a reference to the frame's top menu bar. If one does not exist, it is created		
 		virtual IGRWidgetMenuBar& GetMenuBar() = 0;
 	};
 
-	ROCOCOAPI IGRMainFrameSupervisor: IGRMainFrame
+	ROCOCO_INTERFACE IGRMainFrameSupervisor: IGRMainFrame
 	{
 	};
 
-	ROCOCOAPI IGuiRetained
+	ROCOCO_INTERFACE IGuiRetained
 	{
 		// Associates a frame with an id and returns it. If it already exists, gets the existant one.
 		virtual IGRMainFrame& BindFrame(IdWidget id) = 0;
@@ -371,7 +371,7 @@ namespace Rococo::Gui
 		virtual EventRouting RouteCursorMoveEvent(CursorEvent& ev) = 0;
 	};
 
-	ROCOCOAPI IGuiRetainedSupervisor : IGuiRetained
+	ROCOCO_INTERFACE IGuiRetainedSupervisor : IGuiRetained
 	{
 		virtual void NotifyPanelDeleted(int64 uniqueId) = 0;
 		virtual void Free() = 0;
@@ -386,14 +386,14 @@ namespace Rococo::Gui
 		RecursionLocked
 	};
 
-	ROCOCOAPI IGRCustodian
+	ROCOCO_INTERFACE IGRCustodian
 	{
 		virtual Vec2i EvaluateMinimalSpan(GRFontId fontId, const fstring & text) const = 0;
 		virtual EventRouting OnGREvent(WidgetEvent& ev) = 0;
 		virtual void RaiseError(GRErrorCode code, cstr function, cstr message) = 0;
 	};
 
-	ROCOCOAPI IGRCustodianSupervisor : IGRCustodian
+	ROCOCO_INTERFACE IGRCustodianSupervisor : IGRCustodian
 	{
 		virtual void Free() = 0;
 	};

@@ -10,7 +10,7 @@ using namespace Rococo::Strings;
 namespace
 {
 	enum { TOTAL_INTERNAL_VBORDER_SPAN = 8 };
-	ROCOCOAPI IField
+	ROCOCO_INTERFACE IField
 	{
 		virtual bool OnKeyboardEvent(const KeyboardEvent & key) = 0;
 		virtual void MakeActive() = 0;

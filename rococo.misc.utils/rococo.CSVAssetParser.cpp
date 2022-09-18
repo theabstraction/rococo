@@ -14,14 +14,14 @@ using namespace Rococo;
 using namespace Rococo::IO;
 using namespace Rococo::Strings;
 
-ROCOCOAPI ICSVLine
+ROCOCO_INTERFACE ICSVLine
 {
 	virtual size_t TokenCount() const = 0;
 	virtual fstring operator[](size_t index) const = 0;
 	virtual int Row() const = 0;
 };
 
-ROCOCOAPI ICSVLineParser
+ROCOCO_INTERFACE ICSVLineParser
 {
 	virtual void OnBadChar(Vec2i cursor, char c) = 0;
 	virtual void OnLine(const ICSVLine& line) = 0;

@@ -10,7 +10,7 @@ namespace Rococo::Script
 namespace Rococo::Sexy
 {
 	// interface to set member variables of a derivative structure. A derivative structure can be recursive, containing a hierarchy of substructures of arbitrary type
-	ROCOCOAPI IMemberBuilder
+	ROCOCO_INTERFACE IMemberBuilder
 	{
 		typedef cstr OBJECT_NAME;
 
@@ -71,7 +71,7 @@ namespace Rococo::Sexy
 		virtual void AddContainerItemDerivative(int32 memberDepth, cstr name, cstr type, cstr typeSource) = 0;
 	};
 
-	ROCOCOAPI ISexyObjectBuilder
+	ROCOCO_INTERFACE ISexyObjectBuilder
 	{
 		virtual IMemberBuilder& MemberBuilder() = 0;
 		virtual void SelectScriptSystem(Rococo::Script::IPublicScriptSystem& ss) = 0;

@@ -24,7 +24,7 @@ namespace Rococo
 	N.B the GetFileInfo uses O(log N) or better search algorithm,
 	but the cache and enumerations methods may be a lot slower.
 */
-	ROCOCOAPI IPackage
+	ROCOCO_INTERFACE IPackage
 	{
 		// Return a cached string to identiy the package
 		virtual cstr FriendlyName() const = 0;
@@ -51,7 +51,7 @@ namespace Rococo
 		virtual bool TryGetFileInfo(const char* resourcePath, OUT PackageFileData& f) const = 0;
 	};
 
-	ROCOCOAPI IPackageSupervisor : IPackage
+	ROCOCO_INTERFACE IPackageSupervisor : IPackage
 	{
 		virtual void Free() = 0;
 	};

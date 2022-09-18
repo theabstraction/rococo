@@ -76,7 +76,7 @@ namespace Rococo
 			}
 		};
 
-		ROCOCOAPI IAutoCompleteBuilder
+		ROCOCO_INTERFACE IAutoCompleteBuilder
 		{
 			virtual void AddItem(cstr item) = 0;
 			virtual void ShowAndClearItems() = 0;
@@ -84,7 +84,7 @@ namespace Rococo
 
 		// Every editor that works with SexyStudio will implement this interface.
 		// An example is in the SexyStudio for Notepad++ module.
-		ROCOCOAPI ISexyEditor
+		ROCOCO_INTERFACE ISexyEditor
 		{
 			// Return the length of the document
 			virtual int64 GetDocLength() const = 0;

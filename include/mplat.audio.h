@@ -2,7 +2,7 @@
 
 namespace Rococo::Audio
 {
-	ROCOCOAPI IAudioSupervisor : public IAudio
+	ROCOCO_INTERFACE IAudioSupervisor : public IAudio
 	{
 		virtual void Free() = 0;
 	};
@@ -36,7 +36,7 @@ namespace Rococo::Audio
 		STREAM_STATE_ERROR
 	};
 
-	ROCOCOAPI IAudioDecoder
+	ROCOCO_INTERFACE IAudioDecoder
 	{
 		// Consumer periodically calls GetOutput, fills in the sample buffer and returns the number of samples written
 		virtual uint32 GetOutput(I16StereoSample* samples, uint32 nSamples, OUT STREAM_STATE& state) = 0;

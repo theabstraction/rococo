@@ -10,7 +10,7 @@ using namespace Rococo::Windows;
 
 namespace
 {
-	ROCOCOAPI IDragEvents
+	ROCOCO_INTERFACE IDragEvents
 	{
 		virtual void OnBeginDrag() = 0;
 		virtual void OnDrag() = 0;

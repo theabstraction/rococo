@@ -21,7 +21,7 @@ namespace Rococo
 			ExpressionType_Compound
 		};
 
-		ROCOCOAPI IExpression
+		ROCOCO_INTERFACE IExpression
 		{
 			virtual IExpression* Root() = 0;
 			virtual IExpression* Parent() = 0;
@@ -35,27 +35,27 @@ namespace Rococo
 			virtual Vec2i SourceEnd() const = 0;
 		};
 
-		ROCOCOAPI IExpressionException: IException
+		ROCOCO_INTERFACE IExpressionException: IException
 		{
 			virtual IExpression* Source() = 0;
 		};
 
-		ROCOCOAPI ISourceWriter
+		ROCOCO_INTERFACE ISourceWriter
 		{
 			virtual void Write(cstr filename, fstring text) = 0;
 		};
 
-		ROCOCOAPI ISourceData
+		ROCOCO_INTERFACE ISourceData
 		{
 			virtual char* CreateBuffer(size_t nBytes) = 0;
 		};
 
-		ROCOCOAPI ISourceLoader
+		ROCOCO_INTERFACE ISourceLoader
 		{
 			virtual void Load(cstr filename, ISourceData& sourceData) = 0;
 		};
 
-		ROCOCOAPI ICompiler
+		ROCOCO_INTERFACE ICompiler
 		{
 			virtual void Compile(cstr filename) = 0;
 		};
@@ -69,7 +69,7 @@ namespace Rococo
 
 		};
 
-		ROCOCOAPI IFactory
+		ROCOCO_INTERFACE IFactory
 		{
 			virtual void AddSourceCode(cstr filename) = 0;
 			virtual IExpression& ParseSources(ISourceLoader& loader) = 0;

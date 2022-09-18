@@ -15,7 +15,7 @@
 # endif
 #endif
 
-# define ROCOCOAPI struct ROCOCO_NO_VTABLE
+# define ROCOCO_INTERFACE struct ROCOCO_NO_VTABLE
 
 #ifdef _WIN32
 # define CALLTYPE_C __cdecl

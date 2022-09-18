@@ -117,7 +117,7 @@ void LogGenerationException(IException& ex)
     LogStackFrames(ex);
 }
 
-ROCOCOAPI IMarshalBuilder
+ROCOCO_INTERFACE IMarshalBuilder
 {
     virtual void AddCreateObjectMarshalCode(const Rococo::Compiler::IFunction& function) = 0;
 };
@@ -269,7 +269,7 @@ public:
         auto& interface = arg.GetInterface(0);
         cstr name = interface.Name();
 
-        write("ROCOCOAPI %s", name);
+        write("ROCOCO_INTERFACE %s", name);
         openbrace(); // open interface
         for (int i = 0; i < interface.MethodCount(); ++i)
         {
@@ -284,7 +284,7 @@ public:
 
         write("");
 
-        write("ROCOCOAPI %sSupervisor: public %s", name, name);
+        write("ROCOCO_INTERFACE %sSupervisor: public %s", name, name);
         openbrace(); // open supervisor interface
         write("virtual void Free() = 0;");
         write("static cstr InterfaceName() { return R\"(%sSupervisor)\"; }", name);

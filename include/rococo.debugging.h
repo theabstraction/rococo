@@ -21,14 +21,14 @@ namespace Rococo
 			} address;
 		};
 
-		ROCOCOAPI IStackFrameFormatter
+		ROCOCO_INTERFACE IStackFrameFormatter
 		{
 			virtual void Format(const StackFrame& sf) = 0;
 		};
 
 		void FormatStackFrames(IStackFrameFormatter& formatter);
 
-		ROCOCOAPI IStackFrameEnumerator
+		ROCOCO_INTERFACE IStackFrameEnumerator
 		{
 			virtual void FormatEachStackFrame(IStackFrameFormatter& formatter) = 0;
 		};

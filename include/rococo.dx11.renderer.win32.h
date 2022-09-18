@@ -21,7 +21,7 @@ namespace Rococo
 
 	void CALLBACK RendererMain(HANDLE hInstanceLock, IInstallation& installation, IAppFactory& factory);
 
-	ROCOCOAPI IDX11Window
+	ROCOCO_INTERFACE IDX11Window
 	{
 	   virtual void Free() = 0;
 	   virtual IRenderer& Renderer() = 0;
@@ -34,7 +34,7 @@ namespace Rococo
 		virtual void OnMouseEvent(const RAWMOUSE& m) = 0;
 	};
 
-	ROCOCOAPI IDX11GraphicsWindow
+	ROCOCO_INTERFACE IDX11GraphicsWindow
 	{
 		virtual IRenderer& Renderer() = 0;
 		virtual Windows::IWindow& Window() = 0;
@@ -45,7 +45,7 @@ namespace Rococo
 
 	// An IAppManager implementation manages a mainloop and periodically calls app.OnFrameUpdate
 	// It is generally used when the major implementation language is C++
-	ROCOCOAPI IAppManager
+	ROCOCO_INTERFACE IAppManager
 	{
 		virtual void Free() = 0;
 		virtual void Run(HANDLE hInstanceLock, IApp& app, OS::IAppControl& appControl) = 0;
@@ -58,7 +58,7 @@ namespace Rococo
 	// An IDirectAppManager implementation passes control to an IDirectApp. The IDirectApp implementation
 	// implements its own mainloop. This allows a mod to have complete control of program execution.
 	// MHost uses this methodology to give script writers complete control of program flow.
-	ROCOCOAPI IDirectAppManager
+	ROCOCO_INTERFACE IDirectAppManager
 	{
 		virtual void Free() = 0;
 		virtual void Run(HANDLE hInstanceLock) = 0;
@@ -92,7 +92,7 @@ namespace Rococo
 		size_t sharedMemoryMB;
 	};
 
-	ROCOCOAPI IDX11Factory
+	ROCOCO_INTERFACE IDX11Factory
 	{
 		virtual IDX11GraphicsWindow* CreateDX11Window(const WindowSpec& ws, bool linkedToDX11Controls) = 0;
 		virtual void Free() = 0;
@@ -100,7 +100,7 @@ namespace Rococo
 
 	bool DX11_TryGetAdapterInfo(int index, AdapterDesc& d);
 
-	ROCOCOAPI IDX11Logger
+	ROCOCO_INTERFACE IDX11Logger
 	{
 		virtual void Log(cstr message, ...) = 0;
 		virtual void OnMessageException(IException& ex, uint32 uMsg) = 0;

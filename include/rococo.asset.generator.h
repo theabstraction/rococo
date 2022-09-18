@@ -9,7 +9,7 @@ namespace Rococo::Script
 
 namespace Rococo::Assets
 {
-	ROCOCOAPI IAssetGenerator
+	ROCOCO_INTERFACE IAssetGenerator
 	{
 		// Obtain a string builder for building strings, specific to this class instance.
 		virtual Strings::StringBuilder& GetReusableStringBuilder() = 0;

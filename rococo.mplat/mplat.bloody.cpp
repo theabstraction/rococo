@@ -13,7 +13,7 @@ namespace
 	using namespace Rococo::Graphics;
 	using namespace Rococo::Events;
 
-	ROCOCOAPI IBloodyPropertyType
+	ROCOCO_INTERFACE IBloodyPropertyType
 	{
 		virtual void Click(bool clickedDown, Vec2i pos) = 0;
 		virtual void Free() = 0;
@@ -23,7 +23,7 @@ namespace
 		virtual cstr NotifyId() const = 0;
 	};
 
-	ROCOCOAPI IValidator
+	ROCOCO_INTERFACE IValidator
 	{
 		virtual bool IsLegal(char c, int charPos) const = 0;
 		virtual void OnDetached(char* buffer) = 0;

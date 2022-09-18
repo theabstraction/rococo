@@ -184,7 +184,7 @@ namespace Rococo::Components
 	struct IRCObjectTable;
 
 	template<class ICOMPONENT>
-	ROCOCOAPI IComponentFactory
+	ROCOCO_INTERFACE IComponentFactory
 	{
 		virtual ICOMPONENT * ConstructInPlace(void* pMemory) = 0;
 		virtual void Destruct(ICOMPONENT* pInstance) = 0;

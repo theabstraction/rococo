@@ -13,7 +13,7 @@ using namespace Rococo;
 using namespace Rococo::Cute;
 using namespace Rococo::Post;
 
-ROCOCOAPI ITreeNodeSupervisor: public ITreeNode
+ROCOCO_INTERFACE ITreeNodeSupervisor: public ITreeNode
 {
 	virtual void Free() = 0;
 };

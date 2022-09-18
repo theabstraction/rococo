@@ -18,7 +18,7 @@ namespace Rococo::Graphics
          COMPRESSED_TYPE type;
       };
 
-      ROCOCOAPI ICompressedResourceLoader
+      ROCOCO_INTERFACE ICompressedResourceLoader
       {
          virtual void Load(cstr pingPath, IEventCallback<CompressedTextureBuffer>& onLoad) = 0;
       };
@@ -37,7 +37,7 @@ namespace Rococo::Graphics
           cstr msg;
       };
 
-      ROCOCOAPI ITextureArrayBuilder
+      ROCOCO_INTERFACE ITextureArrayBuilder
       {
          virtual void AddBitmap(cstr name) = 0;
          virtual bool TryGetBitmapLocation(cstr name, BitmapLocation& location) = 0;
@@ -45,17 +45,17 @@ namespace Rococo::Graphics
          virtual void Clear() = 0;
       };
 
-      ROCOCOAPI ITextureArrayBuilderSupervisor: public ITextureArrayBuilder
+      ROCOCO_INTERFACE ITextureArrayBuilderSupervisor: public ITextureArrayBuilder
       {
          virtual void Free() = 0;
       };
 
-      ROCOCOAPI IGraphicsMemoryContext
+      ROCOCO_INTERFACE IGraphicsMemoryContext
       {
 
       };
 
-      ROCOCOAPI ITextureArray
+      ROCOCO_INTERFACE ITextureArray
       {
          virtual void AddTexture() = 0;
          virtual void ResetWidth(int32 width) = 0;   

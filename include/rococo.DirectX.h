@@ -47,14 +47,14 @@ namespace Rococo::Graphics
 	// N.B the shader thread is locked until OnGrab returns
 	// and the contents may change, so copy what you need and do not block within the method
 	// A correct implementation should generally allow an exception within the handler
-	ROCOCOAPI IShaderViewGrabber
+	ROCOCO_INTERFACE IShaderViewGrabber
 	{
 		// N.B the shader thread is locked until OnGrab returns
 		// and the contents may change, so copy what you need and do not block within the method
 		virtual void OnGrab(const ShaderView & view) = 0;
 	};
 
-	ROCOCOAPI IShaderCompiler
+	ROCOCO_INTERFACE IShaderCompiler
 	{
 		// If the language supports it, add a pre-processor definition. The onus is on the caller
 		// not to duplicate keys and also the caller should validate the key and value strings
@@ -62,7 +62,7 @@ namespace Rococo::Graphics
 		virtual IExpandingBuffer* Compile(ShaderType type, fstring& srcCode, cstr name) = 0;
 	};
 
-	ROCOCOAPI IShaderCache
+	ROCOCO_INTERFACE IShaderCache
 	{
 		virtual	ID_PIXEL_SHADER AddPixelShader(const char* resourceName) = 0;
 		virtual ID_VERTEX_SHADER AddVertexShader(const char* resourceName) = 0;
@@ -78,12 +78,12 @@ namespace Rococo::Graphics
 
 	IShaderCache* CreateShaderCache(IShaderCompiler& compiler, IInstallation& installation);
 
-	ROCOCOAPI ID3DShaderCompiler: IShaderCompiler
+	ROCOCO_INTERFACE ID3DShaderCompiler: IShaderCompiler
 	{
 		virtual void Free() = 0;
 	};
 
-	ROCOCOAPI IVulcanShaderCompiler : IShaderCompiler
+	ROCOCO_INTERFACE IVulcanShaderCompiler : IShaderCompiler
 	{
 		virtual void Free() = 0;
 	};

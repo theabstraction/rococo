@@ -2,13 +2,13 @@
 
 namespace Rococo::Entities
 {
-	ROCOCOAPI ISkeleton
+	ROCOCO_INTERFACE ISkeleton
 	{
 		virtual cstr Name() const = 0;
 		virtual IBone* Root() = 0;
 	};
 
-	ROCOCOAPI ISkeletons
+	ROCOCO_INTERFACE ISkeletons
 	{
 		virtual void Clear() = 0;
 
@@ -42,7 +42,7 @@ namespace Rococo::Entities
 		const Seconds dt;
 	};
 
-	ROCOCOAPI IAnimation
+	ROCOCO_INTERFACE IAnimation
 	{
 		virtual	void AddKeyFrame(const fstring & frameName, Seconds duration, boolean32 loop) = 0;
 		virtual void Advance(AnimationAdvanceArgs& args) = 0;

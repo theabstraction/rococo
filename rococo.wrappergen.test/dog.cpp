@@ -13,7 +13,7 @@ namespace Rococo::Script
 	using namespace Rococo::Compiler;
 	using namespace Rococo::VM;
 
-	ROCOCOAPI ISexyScriptClasses
+	ROCOCO_INTERFACE ISexyScriptClasses
 	{
 		virtual IPublicScriptSystem* CreateScript(cstr filename) = 0;
 		virtual EXECUTERESULT ExecuteFunction(IVirtualMachine& vm) = 0;

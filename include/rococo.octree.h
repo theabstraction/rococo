@@ -25,7 +25,7 @@ namespace Rococo
 		const OctreeObject object;
 	};
 
-	ROCOCOAPI IOctree
+	ROCOCO_INTERFACE IOctree
 	{
 		virtual void Clear() = 0;
 		virtual OctreePocket& Insert(const OctreeObject& object) = 0;
@@ -33,7 +33,7 @@ namespace Rococo
 		virtual void GetApproxMemoryUse(size_t& pocketBytes, size_t& nodeBytes) const = 0;
 	};
 
-	ROCOCOAPI IOctreeSupervisor : IOctree
+	ROCOCO_INTERFACE IOctreeSupervisor : IOctree
 	{
 		virtual void Free() = 0;
 	};

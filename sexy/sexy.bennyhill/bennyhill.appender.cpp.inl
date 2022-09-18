@@ -340,7 +340,7 @@ namespace Rococo
 			appender.Append(("\t"));
 		}
 
-		appender.Append(("ROCOCOAPI "));
+		appender.Append(("ROCOCO_INTERFACE "));
 		AppendStructShortName(appender, ic.asCppInterface.SexyName());
 		if (ic.cppBase)
 		{

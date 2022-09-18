@@ -7,12 +7,12 @@ namespace Rococo
 	struct KeyboardEvent;
 	struct MouseEvent;
 
-	ROCOCOAPI IAppFactory
+	ROCOCO_INTERFACE IAppFactory
 	{
 	   virtual IApp * CreateApp(Platform & platform) = 0;
 	};
 
-	ROCOCOAPI IDirectAppControl
+	ROCOCO_INTERFACE IDirectAppControl
 	{
 		virtual bool TryGetNextKeyboardEvent(KeyboardEvent & k) = 0;
 		virtual bool TryGetNextMouseEvent(MouseEvent& m) = 0;
@@ -20,13 +20,13 @@ namespace Rococo
 		virtual void GetNextMouseDelta(Vec2& delta) = 0;
 	};
 
-	ROCOCOAPI IDirectApp
+	ROCOCO_INTERFACE IDirectApp
 	{
 		virtual void Free() = 0;
 		virtual void Run() = 0;
 	};
 
-	ROCOCOAPI IDirectAppFactory
+	ROCOCO_INTERFACE IDirectAppFactory
 	{
 	   virtual IDirectApp * CreateApp(Platform & platform, IDirectAppControl& control) = 0;
 	};

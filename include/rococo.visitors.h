@@ -5,7 +5,7 @@
 # error include <rococo.types.h> before including this file
 #endif
 
-// Define some visitor ROCOCOAPIs, makes component development easier to share the same ROCOCOAPIs
+// Define some visitor ROCOCO_INTERFACEs, makes component development easier to share the same ROCOCO_INTERFACEs
 
 namespace Rococo
 {
@@ -23,7 +23,7 @@ namespace Rococo
 			size_t value;
 		};
 
-		ROCOCOAPI IUITree
+		ROCOCO_INTERFACE IUITree
 		{
 			virtual TREE_NODE_ID AddChild(TREE_NODE_ID parentId, cstr text, CheckState state) = 0;
 			virtual TREE_NODE_ID AddRootItem(cstr text, CheckState state) = 0;
@@ -31,7 +31,7 @@ namespace Rococo
          virtual void SetId(TREE_NODE_ID nodeId, int64 id) = 0;
 		};
 
-		ROCOCOAPI IUIList
+		ROCOCO_INTERFACE IUIList
 		{
 			virtual void AddRow(cstr values[]) = 0; // values is null terminated array
 			virtual void ClearRows() = 0;
@@ -40,12 +40,12 @@ namespace Rococo
 			virtual void DeleteRow(int rowIndex) = 0;
 		};
 
-      ROCOCOAPI ITreePopulator
+      ROCOCO_INTERFACE ITreePopulator
       {
          virtual void Populate(IUITree& tree) = 0;
       };
 
-      ROCOCOAPI IListPopulator
+      ROCOCO_INTERFACE IListPopulator
       {
          virtual void Populate(IUIList& list) = 0;
       };
@@ -53,7 +53,7 @@ namespace Rococo
 
 	typedef cstr VisitorName;
 
-	ROCOCOAPI IMathsVisitor
+	ROCOCO_INTERFACE IMathsVisitor
 	{
 		virtual void Clear() = 0;
 		virtual void Show(VisitorName name, const Matrix4x4& m) = 0;
@@ -71,7 +71,7 @@ namespace Rococo
 		virtual void ShowSelectableString(cstr eventName, VisitorName name, cstr format, ...) = 0;
 	};
 
-	ROCOCOAPI IMathsVenue
+	ROCOCO_INTERFACE IMathsVenue
 	{
 		virtual void ShowVenue(IMathsVisitor& visitor) = 0;
 	};

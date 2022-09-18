@@ -137,7 +137,7 @@ namespace Rococo
 
 	enum class EFlowLogic { CONTINUE, BREAK };
 
-	ROCOCOAPI IFieldEnumerator
+	ROCOCO_INTERFACE IFieldEnumerator
 	{
 		virtual void OnMemberVariable(cstr name, cstr type) = 0;
 	};
@@ -184,7 +184,7 @@ namespace Rococo
 	}
 
 	template<typename COLOUR_STRUCT>
-	ROCOCOAPI IImagePopulator
+	ROCOCO_INTERFACE IImagePopulator
 	{
 		virtual void OnImage(const COLOUR_STRUCT * pixelBuffer, int width, int height) = 0;
 	};
@@ -219,7 +219,7 @@ namespace Rococo
 		// An immutable substring
 		typedef const Substring& cr_substring;
 
-		ROCOCOAPI IStringPopulator
+		ROCOCO_INTERFACE IStringPopulator
 		{
 		   virtual void Populate(cstr text) = 0;
 		};
@@ -311,7 +311,7 @@ namespace Rococo
 		struct IScriptSystemFactory;
 	}
 
-	ROCOCOAPI IException
+	ROCOCO_INTERFACE IException
 	{
 		virtual cstr Message() const = 0;
 		virtual int32 ErrorCode() const = 0;
@@ -409,31 +409,31 @@ namespace Rococo
 		operator bool () const { return t != nullptr; }
 	};
 
-	template<class T> ROCOCOAPI IEnumerator
+	template<class T> ROCOCO_INTERFACE IEnumerator
 	{
 		virtual void operator()(const T& t) = 0;
 	};
 
-	template<> ROCOCOAPI IEnumerator<cstr>
+	template<> ROCOCO_INTERFACE IEnumerator<cstr>
 	{
 		virtual void operator()(cstr t) = 0;
 	};
 
-	template<class T> ROCOCOAPI IEnumerable
+	template<class T> ROCOCO_INTERFACE IEnumerable
 	{
 		[[nodiscard]] virtual const T& operator[](size_t index) = 0;
 		[[nodiscard]] virtual size_t Count() const = 0;
 		virtual void Enumerate(IEnumerator<T>& cb) = 0;
 	};
 
-	template<> ROCOCOAPI IEnumerable<cstr>
+	template<> ROCOCO_INTERFACE IEnumerable<cstr>
 	{
 		[[nodiscard]] virtual cstr operator[](size_t index) = 0;
 		[[nodiscard]] virtual size_t Count() const = 0;
 		virtual void Enumerate(IEnumerator<cstr>& cb) = 0;
 	};
 
-	template<class T> ROCOCOAPI IMutableEnumerator
+	template<class T> ROCOCO_INTERFACE IMutableEnumerator
 	{
 		virtual void operator()(T& t) = 0;
 	};
@@ -460,7 +460,7 @@ namespace Rococo
 		RGBA(float _r = 1.0f, float _g = 0.0f, float _b = 0.0f, float _a = 1.0f) : red(_r), green(_g), blue(_b), alpha(_a) {}
 	};
 
-	template<class T> ROCOCOAPI IVectorEnumerator
+	template<class T> ROCOCO_INTERFACE IVectorEnumerator
 	{
 		[[nodiscard]] virtual T* begin() = 0;
 		[[nodiscard]] virtual T* end() = 0;
@@ -637,19 +637,19 @@ namespace Rococo
 		return *reinterpret_cast<const Vec2*>(&a);
 	}
 
-	ROCOCOAPI IAllocator
+	ROCOCO_INTERFACE IAllocator
 	{
 	   [[nodiscard]] virtual void* Allocate(size_t capacity) = 0;
 	   virtual void FreeData(void* data) = 0;
 	   virtual void* Reallocate(void* ptr, size_t capacity) = 0;
 	};
 
-	ROCOCOAPI IAllocatorSupervisor : public IAllocator
+	ROCOCO_INTERFACE IAllocatorSupervisor : public IAllocator
 	{
 		 virtual void Free() = 0;
 	};
 
-	ROCOCOAPI IHeapObject
+	ROCOCO_INTERFACE IHeapObject
 	{
 	   virtual void Free() = 0;
 	};

@@ -2,7 +2,7 @@
 
 namespace Rococo::Graphics
 {
-	ROCOCOAPI ILandscapeTesselatorSupervisor : ILandscapeTesselator
+	ROCOCO_INTERFACE ILandscapeTesselatorSupervisor : ILandscapeTesselator
 	{
 		virtual void Free() = 0;
 	};

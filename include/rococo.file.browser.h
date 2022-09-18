@@ -30,7 +30,7 @@ namespace Rococo
 			GuiRect slider;
 		};
 
-		ROCOCOAPI IFileBrowserRenderContext
+		ROCOCO_INTERFACE IFileBrowserRenderContext
 		{
 			virtual void DrawArrowButton(Vec2 direction, const GuiRect & rect) = 0;
 			virtual void DrawAsciiText(const GuiRect& rect, BrowserComponent component, cstr buffer) = 0;
@@ -43,19 +43,19 @@ namespace Rococo
 			virtual void DrawBorder(const GuiRect& rect, BrowserComponent component) = 0;
 		};
 
-		ROCOCOAPI IFileBrowserStyle
+		ROCOCO_INTERFACE IFileBrowserStyle
 		{
 			virtual int32 RowHeight(BrowserComponent component) const = 0;
 			virtual GuiRect BorderDeltas(BrowserComponent component) const = 0;
 			virtual int32 HorizontalSpan(BrowserComponent component) const = 0;
 		};
 
-		ROCOCOAPI IBrowserFileChangeNotification
+		ROCOCO_INTERFACE IBrowserFileChangeNotification
 		{
 			virtual void OnFileSelect(const U32FilePath & path, bool doubleClick) = 0;
 		};
 
-		ROCOCOAPI IFileBrowser
+		ROCOCO_INTERFACE IFileBrowser
 		{
 			virtual void ClickAt(Vec2i pos, bool clickedDown) = 0;
 			virtual void RaiseContextAt(Vec2i pos) = 0;
@@ -65,7 +65,7 @@ namespace Rococo
 			virtual void Free() = 0;
 		};
 
-		ROCOCOAPI IFileCallback
+		ROCOCO_INTERFACE IFileCallback
 		{
 			virtual void OnFile(const U32FilePath & root, const U32FilePath & subpath, cstr timestamp, uint64 length) = 0;
 		};
@@ -76,7 +76,7 @@ namespace Rococo
 			uint64 osFileTime;
 		};
 
-		ROCOCOAPI IDirectoryPopulator
+		ROCOCO_INTERFACE IDirectoryPopulator
 		{
 			virtual size_t FileCount() const = 0;
 			virtual const U32FilePath& GetFile(size_t index, uint64& fileLength, FileTimestamp& timestamp) const = 0;

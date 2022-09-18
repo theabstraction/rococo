@@ -88,7 +88,7 @@ namespace Rococo {
 	{
 		using namespace Rococo::Strings;
 
-		ROCOCOAPI IFreeable
+		ROCOCO_INTERFACE IFreeable
 		{
 			virtual void Free() = 0;
 		};
@@ -220,12 +220,12 @@ namespace Rococo {
 			ENUM_REPRESENT_DELETE
 		};
 
-		ROCOCOAPI IRepresentationEnumeratorCallback
+		ROCOCO_INTERFACE IRepresentationEnumeratorCallback
 		{
 			virtual ENUM_REPRESENT OnRepresentation(CReflectedClass* rep) = 0;
 		};
 
-		ROCOCOAPI ISexyPackager
+		ROCOCO_INTERFACE ISexyPackager
 		{
 			/*
 				Add a package to the package set, the package and its pointer must
@@ -240,7 +240,7 @@ namespace Rococo {
 			virtual void LoadSubpackages(cstr namespaceFilter, cstr packageName) = 0;
 		};
 
-		ROCOCOAPI ISexyPackagerSupervisor: ISexyPackager
+		ROCOCO_INTERFACE ISexyPackagerSupervisor: ISexyPackager
 		{
 			virtual void Free() = 0;
 		};
@@ -341,7 +341,7 @@ namespace Rococo {
 
 		struct MapImage;
 
-		ROCOCOAPI IPublicScriptSystem : public IFreeable
+		ROCOCO_INTERFACE IPublicScriptSystem : public IFreeable
 		{
 			virtual void AddCommonSource(const char* dynamicLinkLibOfNativeCalls) = 0;
 			virtual void AddNativeCall(const Compiler::INamespace& ns, FN_NATIVE_CALL callback, void* context, cstr archetype, cstr sourceFile, int lineNumber, bool checkName = true, int popBytes = 0) = 0; // Example: AddNativeCall(ns, ANON::CpuHz, NULL, "CpuHz -> (Int64 hz)");
@@ -438,7 +438,7 @@ namespace Rococo {
 			virtual cstr GetCommandLineArg(int argc) = 0;
 		};
 
-		ROCOCOAPI IScriptSystemFactory : public IFreeable
+		ROCOCO_INTERFACE IScriptSystemFactory : public IFreeable
 		{
 			virtual IPublicScriptSystem* CreateScriptSystem(const Rococo::Compiler::ProgramInitParameters& pip, ILog& logger) = 0;
 		};
@@ -467,7 +467,7 @@ namespace Rococo {
 			virtual void Free() = 0;
 		};
 
-		ROCOCOAPI IScriptSystem : IPublicScriptSystem
+		ROCOCO_INTERFACE IScriptSystem : IPublicScriptSystem
 		{
 			virtual Compiler::IProgramObject& ProgramObject() = 0;
 
@@ -493,7 +493,7 @@ namespace Rococo {
 
 		void SetDefaultNativeSourcePath(const wchar_t* pathname);
 
-		ROCOCOAPI INativeLib
+		ROCOCO_INTERFACE INativeLib
 		{
 			virtual void AddNativeCalls() = 0;
 			virtual void ClearResources() = 0;
@@ -502,7 +502,7 @@ namespace Rococo {
 
 		typedef INativeLib* (*FN_CreateLib)(Rococo::Script::IScriptSystem& ss);
 
-		ROCOCOAPI MemberEnumeratorCallback
+		ROCOCO_INTERFACE MemberEnumeratorCallback
 		{
 			virtual void OnListMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const ListImage* l, const uint8* sfItem, int offset, int recurseDepth) = 0;
 			virtual void OnMapMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const MapImage* m, const uint8* sfItem, int offset, int recurseDepth) = 0;

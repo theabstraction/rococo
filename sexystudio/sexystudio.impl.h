@@ -98,12 +98,12 @@ namespace Rococo::SexyStudio
 		}
 	};
 
-	ROCOCOAPI IWin32WindowMessageLoopHandler
+	ROCOCO_INTERFACE IWin32WindowMessageLoopHandler
 	{
 		virtual LRESULT ProcessMessage(UINT msg, WPARAM wParam, LPARAM lParam) = 0;
 	};
 
-	ROCOCOAPI IWindowMessageHandler: IWin32WindowMessageLoopHandler
+	ROCOCO_INTERFACE IWindowMessageHandler: IWin32WindowMessageLoopHandler
 	{
 		virtual void Show() = 0;
 		virtual void Free() = 0;
@@ -168,7 +168,7 @@ namespace Rococo::SexyStudio
 		operator HWND() const override { return hWnd;  }
 	};
 
-	ROCOCOAPI IWin32Painter
+	ROCOCO_INTERFACE IWin32Painter
 	{
 		virtual void OnPaint(HDC dc) = 0;
 	};

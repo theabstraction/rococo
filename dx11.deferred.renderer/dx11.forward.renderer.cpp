@@ -15,7 +15,7 @@
 using namespace Rococo;
 using namespace Rococo::Graphics;
 
-ROCOCOAPI IDX11ForwardRenderer
+ROCOCO_INTERFACE IDX11ForwardRenderer
 {
 	virtual IRenderer& Renderer() = 0;
 };

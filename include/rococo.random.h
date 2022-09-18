@@ -4,7 +4,7 @@
 
 namespace Rococo::Random
 {
-	ROCOCOAPI IRandom
+	ROCOCO_INTERFACE IRandom
 	{
 		[[nodiscard]] virtual uint32 operator()() = 0;
 		virtual void Seed(uint32 value) = 0;

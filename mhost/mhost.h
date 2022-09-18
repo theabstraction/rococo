@@ -77,7 +77,7 @@ namespace MHost
 	using namespace Rococo::Graphics;
 	using namespace Rococo::Script;
 
-	ROCOCOAPI IDicionaryStreamSupervisor: public IDictionaryStream
+	ROCOCO_INTERFACE IDicionaryStreamSupervisor: public IDictionaryStream
 	{
 		virtual void Free() = 0;
 	};
@@ -87,13 +87,13 @@ namespace MHost
 	// Returns the top left position, using alignment flags to interpret how the pos argument is interpreted
 	IGui* CreateGuiOnStack(char buffer[64], IGuiRenderContext& gc);
 
-	ROCOCOAPI IEngineSupervisor : public IEngine
+	ROCOCO_INTERFACE IEngineSupervisor : public IEngine
 	{
 		virtual void OnCompile(IPublicScriptSystem& ss) = 0;
 		virtual void SetRunningScriptContext(IPublicScriptSystem* ss) = 0;
 	};
 
-	ROCOCOAPI IScriptDispatcher
+	ROCOCO_INTERFACE IScriptDispatcher
 	{
 		virtual void Free() = 0;
 		virtual void OnCompile(IPublicScriptSystem& ss) = 0;

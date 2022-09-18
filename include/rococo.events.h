@@ -75,7 +75,7 @@ namespace Rococo::Events
 		cstr value;
 	};
 
-	ROCOCOAPI IObserver
+	ROCOCO_INTERFACE IObserver
 	{
 	   virtual void OnEvent(Event & ev) = 0;
 	};
@@ -115,7 +115,7 @@ namespace Rococo::Events
 		return ev == ref;
 	}
 
-	ROCOCOAPI IPublisherSupervisor : public IPublisher
+	ROCOCO_INTERFACE IPublisherSupervisor : public IPublisher
 	{
 	   virtual void Free() = 0;
 	};

@@ -194,7 +194,7 @@ HINSTANCE g_Instance = nullptr;
 cstr g_largeIcon = nullptr;
 cstr g_smallIcon = nullptr;
 
-ROCOCOAPI IMainloop
+ROCOCO_INTERFACE IMainloop
 {
 	virtual void Invoke(Platform& platform, HANDLE hInstanceLock, IDX11GraphicsWindow& mainWindow) = 0;
 };

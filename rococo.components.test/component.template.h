@@ -19,19 +19,19 @@ namespace Rococo::Components::Sys
 // #END_INSTANCED#
     };
 
-    ROCOCOAPI IROIDCallback
+    ROCOCO_INTERFACE IROIDCallback
     {
         enum EControlLogic { CONTINUE, BREAK };
         virtual EControlLogic OnROID(ROID id) = 0;
     };
 
-    template<class T> ROCOCOAPI IComponentCallback
+    template<class T> ROCOCO_INTERFACE IComponentCallback
     {
         enum EControlLogic { CONTINUE, BREAK };
         virtual EControlLogic OnComponent(ROID id, T& item) = 0;
     };
 
-    ROCOCOAPI IRCObjectTableBase
+    ROCOCO_INTERFACE IRCObjectTableBase
     {
         // Returns the number of ROIDS in use. 
         [[nodiscard]] virtual size_t ActiveRoidCount() const = 0;
@@ -61,7 +61,7 @@ namespace Rococo::Components::Sys
         [[nodiscard]] virtual ROID NewROID() = 0;
     };
 
-    ROCOCOAPI IRCObjectTable: IRCObjectTableBase
+    ROCOCO_INTERFACE IRCObjectTable: IRCObjectTableBase
     {     
 // #BEGIN_INSTANCED#
 
@@ -82,7 +82,7 @@ namespace Rococo::Components::Sys
 // #END_INSTANCED#
     };
 
-    ROCOCOAPI IRCObjectTableSupervisor : IRCObjectTable
+    ROCOCO_INTERFACE IRCObjectTableSupervisor : IRCObjectTable
     {
         virtual void Free() = 0;
     };

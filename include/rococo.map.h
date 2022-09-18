@@ -10,12 +10,12 @@ namespace Rococo
 		ENUM_ERASE_AND_BREAK
 	};
 
-	ROCOCOAPI IDictionaryEnumerator
+	ROCOCO_INTERFACE IDictionaryEnumerator
 	{
 		 virtual EnumControl OnIteration(cstr key, size_t keyLength, void* buffer) = 0;
 	};
 
-	ROCOCOAPI IDictionary
+	ROCOCO_INTERFACE IDictionary
 	{
 		 virtual bool TryAddUnique(cstr key, void* data) = 0;
 		 virtual bool TryDetach(cstr key, void*& data) = 0;
@@ -24,7 +24,7 @@ namespace Rococo
 		 virtual void Enumerate(IDictionaryEnumerator& enumerator) = 0;
 	};
 
-	ROCOCOAPI IDictionarySupervisor : public IDictionary
+	ROCOCO_INTERFACE IDictionarySupervisor : public IDictionary
 	{
 		virtual void Free() = 0;
 	};

@@ -1,6 +1,6 @@
 #pragma once
 
-// Generated at: Sept 17 2022 11:11 UTC
+// Generated at: Sept 18 2022 10:13 UTC
 // Based on the template file: C:\work\rococo\rococo.cpp_master\component.template.h
 #include <rococo.types.h>
 #include <rococo.component.entities.h>
@@ -20,19 +20,19 @@ namespace Rococo::Components
         bool hasWaterComponent : 1;
     };
 
-    ROCOCOAPI IROIDCallback
+    ROCOCO_INTERFACE IROIDCallback
     {
         enum EControlLogic { CONTINUE, BREAK };
         virtual EControlLogic OnROID(ROID id) = 0;
     };
 
-    template<class T> ROCOCOAPI IComponentCallback
+    template<class T> ROCOCO_INTERFACE IComponentCallback
     {
         enum EControlLogic { CONTINUE, BREAK };
         virtual EControlLogic OnComponent(ROID id, T& item) = 0;
     };
 
-    ROCOCOAPI IRCObjectTableBase
+    ROCOCO_INTERFACE IRCObjectTableBase
     {
         // Returns the number of ROIDS in use. 
         [[nodiscard]] virtual size_t ActiveRoidCount() const = 0;
@@ -62,7 +62,7 @@ namespace Rococo::Components
         [[nodiscard]] virtual ROID NewROID() = 0;
     };
 
-    ROCOCOAPI IRCObjectTable: IRCObjectTableBase
+    ROCOCO_INTERFACE IRCObjectTable: IRCObjectTableBase
     {     
 
         [[nodiscard]] virtual Ref<IFireComponent> AddFireComponent(ROID id) = 0;
@@ -96,7 +96,7 @@ namespace Rococo::Components
         [[nodiscard]] virtual size_t GetWaterComponentIDs(ROID* roidOutput, size_t nElementsInOutput) = 0;
     };
 
-    ROCOCOAPI IRCObjectTableSupervisor : IRCObjectTable
+    ROCOCO_INTERFACE IRCObjectTableSupervisor : IRCObjectTable
     {
         virtual void Free() = 0;
     };

@@ -8,7 +8,7 @@ namespace Rococo
 	{
 		enum ResizeType;
 
-		ROCOCOAPI IWindowSupervisor
+		ROCOCO_INTERFACE IWindowSupervisor
 		{
 			virtual void AddChild(IWindowSupervisor* child) = 0;
 			virtual void Close() = 0;
@@ -61,12 +61,12 @@ namespace Rococo
 			ResizeTo_Minimize
 		};
 
-		ROCOCOAPI ISplitSupervisor : IWindowSupervisor
+		ROCOCO_INTERFACE ISplitSupervisor : IWindowSupervisor
 		{
 			virtual ISplit& Split() = 0;
 		};
 
-		ROCOCOAPI IChildSupervisor : IWindowSupervisor
+		ROCOCO_INTERFACE IChildSupervisor : IWindowSupervisor
 		{
 		};
 
@@ -76,7 +76,7 @@ namespace Rococo
 			RGBAb hilighBackgroundColour;
 		};
 
-		ROCOCOAPI IMasterWindowFactory
+		ROCOCO_INTERFACE IMasterWindowFactory
 		{
 			virtual void Free() = 0;
 			virtual void Commit() = 0;
@@ -92,7 +92,7 @@ namespace Rococo
 		struct IMenu;
 		struct ISplit;
 
-		ROCOCOAPI IMenuSupervisor
+		ROCOCO_INTERFACE IMenuSupervisor
 		{
 			virtual IMenu& Menu() = 0;
 			virtual void Free() = 0;
@@ -123,7 +123,7 @@ namespace Rococo
 			void SetColourTarget(WindowRef hWnd, ColourTarget target, RGBAb colour);
 		}
 
-		ROCOCOAPI ITreeNode
+		ROCOCO_INTERFACE ITreeNode
 		{
 			virtual ITreeNode* AddItem(cstr item) = 0;
 		};

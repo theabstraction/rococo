@@ -42,7 +42,7 @@ namespace Rococo
       void DrawCenteredLabel(IGuiRenderContext& rc, const GuiRect& rect, struct LabelSet& labelSet, bool isLit);
       void Draw3DButton(IGuiRenderContext& rc, const GuiRect& rect, struct WidgetFrameSet& frameSet, struct LabelSet& labelSet, bool isLit);
 
-      ROCOCOAPI IStatusBar
+      ROCOCO_INTERFACE IStatusBar
       {
          virtual void Free() = 0;
          virtual void Render(IGuiRenderContext& gc, const GuiRect& rect) = 0;

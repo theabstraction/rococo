@@ -4,12 +4,12 @@
 
 namespace Rococo::Components
 {
-	ROCOCOAPI IFireComponent
+	ROCOCO_INTERFACE IFireComponent
 	{
 		virtual void Burn() = 0;
 	};
 
-	ROCOCOAPI IWaterComponent
+	ROCOCO_INTERFACE IWaterComponent
 	{
 		virtual void Flood() = 0;
 	};

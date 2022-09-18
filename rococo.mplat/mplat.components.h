@@ -1,6 +1,6 @@
 #pragma once
 
-// Generated at: Aug 26 2022 14:57 UTC
+// Generated at: Sept 18 2022 10:13 UTC
 // Based on the template file: C:\work\rococo\rococo.mplat\mplat.component.template.h
 #include <rococo.types.h>
 #include <rococo.component.entities.h>
@@ -27,17 +27,17 @@ namespace Rococo::Components
         bool hasRigsComponent : 1;
     };
 
-    ROCOCOAPI IROIDCallback
+    ROCOCO_INTERFACE IROIDCallback
     {
         virtual EFlowLogic OnROID(ROID id) = 0;
     };
 
-    template<class T> ROCOCOAPI IComponentCallback
+    template<class T> ROCOCO_INTERFACE IComponentCallback
     {
         virtual EFlowLogic OnComponent(ROID id, T& item) = 0;
     };
 
-    ROCOCOAPI IRCObjectTableBase
+    ROCOCO_INTERFACE IRCObjectTableBase
     {
         // Returns the number of ROIDS in use. 
         [[nodiscard]] virtual size_t ActiveRoidCount() const = 0;
@@ -67,7 +67,7 @@ namespace Rococo::Components
         [[nodiscard]] virtual ROID NewROID() = 0;
     };
 
-    ROCOCOAPI IRCObjectTable: IRCObjectTableBase
+    ROCOCO_INTERFACE IRCObjectTable: IRCObjectTableBase
     {     
 
         [[nodiscard]] virtual Ref<IAnimationComponent> AddAnimationComponent(ROID id) = 0;
@@ -166,7 +166,7 @@ namespace Rococo::Components
         [[nodiscard]] virtual size_t GetRigsComponentIDs(ROID* roidOutput, size_t nElementsInOutput) = 0;
     };
 
-    ROCOCOAPI IRCObjectTableSupervisor : IRCObjectTable
+    ROCOCO_INTERFACE IRCObjectTableSupervisor : IRCObjectTable
     {
         virtual void Free() = 0;
     };

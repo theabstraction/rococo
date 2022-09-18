@@ -1,4 +1,4 @@
-// Generated at: Aug 26 2022 P UTC
+// Generated at: Sept 18 2022 A UTC
 // Based on the template file: C:\work\rococo\rococo.mplat\mplat.component.template.cpp
 #include <rococo.api.h>
 #include <rococo.allocators.h>

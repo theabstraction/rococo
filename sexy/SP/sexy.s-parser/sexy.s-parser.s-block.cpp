@@ -64,18 +64,18 @@ namespace Anon
 	using namespace Rococo;
 	using namespace Rococo::Sex;
 
-	ROCOCOAPI ITokenBuilder
+	ROCOCO_INTERFACE ITokenBuilder
 	{
 		virtual void AddChar(char c) = 0;
 	};
 
-	ROCOCOAPI ISExpressionLinkBuilder : ISExpression
+	ROCOCO_INTERFACE ISExpressionLinkBuilder : ISExpression
 	{
 		virtual void AddSibling(ISExpressionLinkBuilder* sibling) = 0;
 		virtual ISExpressionLinkBuilder* GetNextSibling() = 0;
 	};
 
-	ROCOCOAPI ICompoundSExpression : ISExpressionLinkBuilder
+	ROCOCO_INTERFACE ICompoundSExpression : ISExpressionLinkBuilder
 	{
 		virtual void AddChild(ISExpressionLinkBuilder* child) = 0;
 		virtual ISExpressionLinkBuilder* GetFirstChild() = 0;
@@ -83,7 +83,7 @@ namespace Anon
 		virtual void SetOffsets(int32 startOffset, int32 endOffset) = 0;
 	};
 
-	ROCOCOAPI IExpressionBuilder
+	ROCOCO_INTERFACE IExpressionBuilder
 	{
 		virtual void AddAtomic(cstr begin, cstr end, ICompoundSExpression* parent) = 0;
 		virtual void AddComment(cstr begin, cstr end) = 0;
