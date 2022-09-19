@@ -169,6 +169,7 @@
     <ClCompile Include="rococo.gr.panel.cpp" />
     <ClCompile Include="rococo.gr.scheme.cpp" />
     <ClCompile Include="rococo.gr.vertical-list.cpp" />
+    <ClCompile Include="rococo.gr.vertical.scroller.cpp" />
     <ClCompile Include="rococo.gr.widget.button.cpp" />
   </ItemGroup>
   <ItemGroup>

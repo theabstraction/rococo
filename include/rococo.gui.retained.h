@@ -139,6 +139,12 @@ namespace Rococo::Gui
 		CONTAINER_BACKGROUND_HOVERED,
 		CONTAINER_TOP_LEFT_HOVERED,
 		CONTAINER_BOTTOM_RIGHT_HOVERED,
+		SCROLLER_BUTTON_BACKGROUND,
+		SCROLLER_BUTTON_TOP_LEFT,
+		SCROLLER_BUTTON_BOTTOM_RIGHT,
+		SCROLLER_BUTTON_BACKGROUND_HOVERED,
+		SCROLLER_BUTTON_TOP_LEFT_HOVERED,
+		SCROLLER_BUTTON_BOTTOM_RIGHT_HOVERED,
 	};
 
 	ROCOCO_INTERFACE IScheme
@@ -422,6 +428,13 @@ namespace Rococo::Gui
 
 	};
 
+	ROCOCO_INTERFACE IGRWidgetVerticalScroller : IGRWidget
+	{
+		virtual void SetPosition(int32 position) = 0;
+		virtual void SetRange(int32 range) = 0;
+		virtual void SetWindowSize(int32 domain) = 0;
+	};
+
 	ROCOCO_INTERFACE IGRWidgetVerticalList : IGRWidget
 	{
 
@@ -446,6 +459,7 @@ namespace Rococo::Gui
 
 	ROCOCO_GUI_RETAINED_API IGRWidgetButton& CreateButton(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetDivision& CreateDivision(IGRWidget& parent);
+	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalScroller& CreateVerticalScroller(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalList& CreateVerticalList(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetMenuBar& CreateMenuBar(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetButton& CreateMenuButton(IGRWidget& parent, bool forSubmenu = false);
@@ -454,4 +468,5 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API void DrawMenuButton(IGRPanel& panel, bool focused, bool raised, IGRRenderContext& g);
 	ROCOCO_GUI_RETAINED_API void DrawButtonText(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour, IGRRenderContext& g);
 	ROCOCO_GUI_RETAINED_API void DrawPanelBackground(IGRPanel& panel, IGRRenderContext& g);
+	ROCOCO_GUI_RETAINED_API void SetSchemeColours_ThemeGrey(IScheme& scheme);
 }

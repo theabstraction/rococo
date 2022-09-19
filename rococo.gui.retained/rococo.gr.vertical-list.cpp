@@ -66,9 +66,11 @@ namespace ANON
 			RGBAb edge1Colour = panel.Root().Scheme().GetColour(isHovered ? ESchemeColourSurface::CONTAINER_TOP_LEFT_HOVERED : ESchemeColourSurface::CONTAINER_TOP_LEFT);
 			RGBAb edge2Colour = panel.Root().Scheme().GetColour(isHovered ? ESchemeColourSurface::CONTAINER_BOTTOM_RIGHT_HOVERED : ESchemeColourSurface::CONTAINER_BOTTOM_RIGHT);
 			g.DrawRectEdge(rect, edge1Colour, edge2Colour);
+
+
 		}
 
-		EventRouting OnChildEvent(WidgetEvent& widgetEvent, IGRWidget& sourceWidget)
+		EventRouting OnChildEvent(WidgetEvent& widgetEvent, IGRWidget& sourceWidget) override
 		{
 			return EventRouting::NextHandler;
 		}

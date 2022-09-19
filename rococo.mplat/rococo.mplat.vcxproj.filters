@@ -186,6 +186,9 @@
     <ClCompile Include="mplat.gui.retained.custodian.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="mplat.world.editor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\rococo.mplat.h">
@@ -228,6 +231,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\rococo.maths.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mplat.editor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\rococo.reflector.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -139,6 +139,7 @@
     <ClCompile Include="mhost.os.win32.cpp" />
     <ClCompile Include="mhost.scripts.cpp" />
     <ClCompile Include="mhost.serializers.cpp" />
+    <ClCompile Include="mhost.tests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="mhost.ico" />

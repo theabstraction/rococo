@@ -34,4 +34,17 @@ namespace Rococo::Gui
 	{
 		return new ANON::Scheme();
 	}
+
+	ROCOCO_GUI_RETAINED_API void SetSchemeColours_ThemeGrey(IScheme& scheme)
+	{
+		scheme.SetColour(ESchemeColourSurface::BACKGROUND, RGBAb(64, 64, 64, 192));
+		scheme.SetColour(ESchemeColourSurface::MENU_BUTTON_PRESSED, RGBAb(96, 96, 96, 255));
+		scheme.SetColour(ESchemeColourSurface::MENU_BUTTON_RAISED, RGBAb(64, 64, 64, 255));
+		scheme.SetColour(ESchemeColourSurface::MENU_BUTTON_PRESSED_AND_HOVERED, RGBAb(128, 128, 128, 255));
+		scheme.SetColour(ESchemeColourSurface::MENU_BUTTON_RAISED_AND_HOVERED, RGBAb(80, 80, 80, 255));
+		scheme.SetColour(ESchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, RGBAb(64, 64, 64, 255));
+		scheme.SetColour(ESchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(64, 64, 64, 255));
+		scheme.SetColour(ESchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT_PRESSED, RGBAb(255, 255, 255, 255));
+		scheme.SetColour(ESchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT_PRESSED, RGBAb(224, 224, 224, 255));
+	}
 }

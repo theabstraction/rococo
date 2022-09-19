@@ -165,6 +165,7 @@
     <ClCompile Include="mplat.tests.cpp" />
     <ClCompile Include="mplat.utilities.cpp" />
     <ClCompile Include="mplat.world.builder.cpp" />
+    <ClCompile Include="mplat.world.editor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\mplat.audio.h" />
@@ -175,11 +176,13 @@
     <ClInclude Include="..\include\rococo.maths.h" />
     <ClInclude Include="..\include\rococo.mplat.h" />
     <ClInclude Include="..\include\rococo.octree.h" />
+    <ClInclude Include="..\include\rococo.reflector.h" />
     <ClInclude Include="mplat.component.template.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="mplat.components.h" />
+    <ClInclude Include="mplat.editor.h" />
     <ClInclude Include="mplat.landscapes.h" />
     <ClInclude Include="mplat.panel.base.h" />
     <ClInclude Include="mplat.sxh.h" />

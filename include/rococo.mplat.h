@@ -41,6 +41,11 @@ namespace Rococo
 	   struct IAudioSupervisor;
    }
 
+   namespace MPEditor
+   {
+	   struct IMPEditor;
+   }
+
    struct IEnumVector
    {
 	   virtual int32 GetActiveIndex() const = 0;
@@ -952,6 +957,8 @@ namespace Rococo
 		Rococo::Gui::IGuiRetained& GR;
 
 		Rococo::Gui::IMPlatGuiCustodianSupervisor& GR_Custodian;
+
+		Rococo::MPEditor::IMPEditor& editor;
 	};
 
 	namespace Events

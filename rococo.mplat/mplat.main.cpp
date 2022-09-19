@@ -19,6 +19,7 @@
 #include <rococo.stl.allocators.h>
 #include "mplat.components.h"
 #include <rococo.gui.retained.h>
+#include "mplat.editor.h"
 
 //////////////////////// XAUDIO2 and Media Foundation stuff for audio decoding ////////////////////
 #pragma comment(lib, "wmcodecdspuuid.lib")
@@ -371,13 +372,15 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 
 	AutoFree<Rococo::Gui::IMPlatGuiCustodianSupervisor> mplat_gcs = Rococo::Gui::CreateMPlatCustodian(*utilities, mainWindow->Renderer());
 	AutoFree<Rococo::Gui::IGuiRetainedSupervisor> GR = Rococo::Gui::CreateGuiRetained(grConfig, mplat_gcs->Custodian());
+
+	AutoFree<Rococo::MPEditor::IMPEditorSupervisor> editor = Rococo::MPEditor::CreateMPlatEditor(*GR);
 	
 	Platform platform
 	{ 
 		*os, *installation, *appControl, mainWindow->Renderer(), mainWindow->Window(),* sprites,* rendererConfig,* messaging,
 		*sourceCache, *debuggerWindow, *publisher, *utilities, *gui, *keyboard, *config, *archive, *meshes,
 		*instances, *mobiles, *particles, *rigs, *spriteBuilder, *camera, *scene, tesselators, *mathsVisitor,
-		*audio, *ssFactory, title, *xbox360stick, *ims, *world, *ecs, *GR, *mplat_gcs
+		*audio, *ssFactory, title, *xbox360stick, *ims, *world, *ecs, *GR, *mplat_gcs, *editor
 	};
 
 	gui->PostConstruct(&platform);
