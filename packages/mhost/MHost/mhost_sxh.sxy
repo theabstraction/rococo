@@ -70,6 +70,7 @@
 	(ReleaseMouse  -> )
 	(CursorPosition (Sys.Maths.Vec2 cursorPosition) -> )
 	(SetOverlayToggleKey (Int32 vkeyCode) -> )
+	(SetEditorVisibility (Bool isVisible) -> )
 )
 
 (class ProxyIEngine (implements MHost.IEngine) (Pointer hObject) (attribute not-serialized))
@@ -90,6 +91,7 @@
 	(method ProxyIEngine.ReleaseMouse  ->  : (MHost.Native.IEngineReleaseMouse this.hObject ))
 	(method ProxyIEngine.CursorPosition (Sys.Maths.Vec2 cursorPosition) ->  : (MHost.Native.IEngineCursorPosition this.hObject cursorPosition))
 	(method ProxyIEngine.SetOverlayToggleKey (Int32 vkeyCode) ->  : (MHost.Native.IEngineSetOverlayToggleKey this.hObject vkeyCode))
+	(method ProxyIEngine.SetEditorVisibility (Bool isVisible) ->  : (MHost.Native.IEngineSetEditorVisibility this.hObject isVisible))
 
 (factory MHost.Engine MHost.IEngine  :
 	(Pointer pObject = (MHost.Native.GetHandleForIEngine0 ))

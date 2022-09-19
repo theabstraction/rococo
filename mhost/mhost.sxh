@@ -71,6 +71,7 @@
 		(ReleaseMouse)
 		(CursorPosition (Vec2 cursorPosition))
 		(SetOverlayToggleKey (Int32 vkeyCode))
+		(SetEditorVisibility (Bool isVisible))
 	)
 	(factory MHost.Engine)
 )

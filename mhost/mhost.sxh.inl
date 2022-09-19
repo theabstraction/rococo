@@ -947,6 +947,20 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->SetOverlayToggleKey(vkeyCode);
 	}
+	void NativeMHostIEngineSetEditorVisibility(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		boolean32 isVisible;
+		_offset += sizeof(isVisible);
+		ReadInput(isVisible, _sf, -_offset);
+
+		MHost::IEngine* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->SetEditorVisibility(isVisible);
+	}
 
 	void NativeGetHandleForMHostEngine(NativeCallEnvironment& _nce)
 	{
@@ -982,6 +996,7 @@ namespace MHost
 		ss.AddNativeCall(ns, NativeMHostIEngineReleaseMouse, nullptr, ("IEngineReleaseMouse (Pointer hObject) -> "), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeMHostIEngineCursorPosition, nullptr, ("IEngineCursorPosition (Pointer hObject)(Sys.Maths.Vec2 cursorPosition) -> "), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeMHostIEngineSetOverlayToggleKey, nullptr, ("IEngineSetOverlayToggleKey (Pointer hObject)(Int32 vkeyCode) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeMHostIEngineSetEditorVisibility, nullptr, ("IEngineSetEditorVisibility (Pointer hObject)(Bool isVisible) -> "), __FILE__, __LINE__);
 	}
 }
 // BennyHill generated Sexy native functions for MHost::IDictionaryStream 

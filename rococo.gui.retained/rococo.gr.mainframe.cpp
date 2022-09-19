@@ -11,6 +11,7 @@ namespace ANON
 		IGRPanel& panel;
 		IGRWidgetDivision* titleBar = nullptr;
 		IGRWidgetMenuBar* menuBar = nullptr;
+		IGRWidgetToolbar* rhsTools = nullptr;
 
 		GRMainFrame(IGRPanel& _panel) : panel(_panel)
 		{
@@ -35,8 +36,10 @@ namespace ANON
 
 			if (titleBar)
 			{
-				titleBar->Panel().Resize({ panel.Span().x, 24 });
+				titleBar->Panel().Resize({ panel.Span().x, 26 });
 			}
+
+			GRAnchorPadding onePixel{ 1, 1, 1, 1 };
 
 			if (menuBar)
 			{
@@ -46,6 +49,18 @@ namespace ANON
 				menuAnchors.bottom = true;
 				menuAnchors.expandsVertically = true;
 				menuBar->Panel().SetAnchors(menuAnchors);
+				menuBar->Panel().SetPadding(onePixel);
+			}
+
+			if (rhsTools)
+			{
+				GRAnchors rhsToolAnchors;
+				rhsToolAnchors.right = true;
+				rhsToolAnchors.top = true;
+				rhsToolAnchors.bottom = true;
+				rhsToolAnchors.expandsVertically = true;
+				rhsTools->Panel().SetAnchors(rhsToolAnchors);
+				rhsTools->Panel().SetPadding(onePixel);
 			}
 		}
 
@@ -82,6 +97,21 @@ namespace ANON
 			}
 
 			return *menuBar;
+		}
+
+		IGRWidgetToolbar& GetTopRightHandSideTools() override
+		{
+			if (!titleBar)
+			{
+				titleBar = &CreateDivision(*this);
+			}
+
+			if (!rhsTools)
+			{
+				rhsTools = &CreateToolbar(*titleBar);
+			}
+
+			return *rhsTools;
 		}
 
 		Vec2i EvaluateMinimalSpan() const override

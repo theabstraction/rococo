@@ -57,6 +57,23 @@ namespace ANON
 		menu.AddButton(helpMenu, { "Purchase License", { 0, nullptr } });
 	}
 
+	void BuildUpperRightToolbar(IGRMainFrame& frame)
+	{
+		auto& tools = frame.GetTopRightHandSideTools();
+		tools.SetChildAlignment(GRAlignment::Right);
+		
+		auto& minButton = CreateButton(tools);
+		minButton.SetTitle("Min");
+
+		auto& maxButton = CreateButton(tools);
+		maxButton.SetTitle("Max");
+
+		auto& closeButton = CreateButton(tools);
+		closeButton.SetTitle("Close");
+
+		tools.ResizeToFitChildren();
+	}
+
 	struct MPlatEditor : IMPEditorSupervisor
 	{
 		IGuiRetained& gr;
@@ -98,6 +115,7 @@ namespace ANON
 			auto& scheme = gr.Root().Scheme();
 			SetSchemeColours_ThemeGrey(scheme);
 			BuildMenus(frame);
+			BuildUpperRightToolbar(frame);
 		}
 
 		void Reflect(IReflectionTarget& target) override

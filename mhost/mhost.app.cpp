@@ -437,11 +437,6 @@ namespace MHost
 
 			RunMHostEnvironmentScript(platform, this, "!scripts/MHost/_Init/keys.sxy", true, false, *packageMHost, this, nullptr);
 
-			using namespace Rococo::Gui;
-
-			platform.editor.SetVisibility(true);
-			platform.editor.Reflect(GetTestTarget());
-
 			while (platform.appControl.IsRunning() && !isShutdown)
 			{
 				isScriptRunning = true;
@@ -570,6 +565,14 @@ namespace MHost
 			{
 				platform.gui.Pop();
 			}
+		}
+
+		void SetEditorVisibility(boolean32 isVisible) override
+		{
+			using namespace Rococo::Gui;
+
+			platform.editor.SetVisibility(true);
+			platform.editor.Reflect(GetTestTarget());
 		}
 
 		void SetOverlayToggleKey(int32 vkeyCode) override

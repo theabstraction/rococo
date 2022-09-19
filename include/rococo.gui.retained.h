@@ -212,10 +212,10 @@ namespace Rococo::Gui
 	// Gives the number of pixels between an anchored side and the parent control
 	struct GRAnchorPadding
 	{
-		int32 left;
-		int32 right;
-		int32 top;
-		int32 bottom;
+		int32 left = 0;
+		int32 right = 0;
+		int32 top = 0;
+		int32 bottom = 0;
 	};
 
 	ROCOCO_INTERFACE IGRPanel
@@ -305,21 +305,21 @@ namespace Rococo::Gui
 	ROCOCO_INTERFACE IGRWidgetButton : IGRWidget
 	{
 		// Sets the rule by which events are fired
-		virtual void SetClickCriterion(GRClickCriterion criterion) = 0;
+		virtual IGRWidgetButton& SetClickCriterion(GRClickCriterion criterion) = 0;
 
 		// Set what happens when the button is fired
-		virtual void SetEventPolicy(GREventPolicy policy) = 0;
+		virtual IGRWidgetButton& SetEventPolicy(GREventPolicy policy) = 0;
 
 		// Sets user meta data for the button
-		virtual void SetMetaData(const ControlMetaData& metaData) = 0;
+		virtual IGRWidgetButton& SetMetaData(const ControlMetaData& metaData) = 0;
 
 		// Sets the display text for the button
-		virtual void SetTitle(cstr text) = 0;
+		virtual IGRWidgetButton& SetTitle(cstr text) = 0;
 
 		// Gets the display text and returns its length. If the buffer is insufficient, the result is truncated
 		virtual size_t GetTitle(char* titleBuffer, size_t nBytes) const = 0;
 
-		virtual void SetAlignment(GRAlignmentFlags alignment, Vec2i spacing) = 0;
+		virtual IGRWidgetButton& SetAlignment(GRAlignmentFlags alignment, Vec2i spacing) = 0;
 
 		// Returns meta data set with SetMetaData. The pointers are valid until meta data is changed or the control is destroyed
 		virtual ControlMetaData GetMetaData() = 0;
@@ -361,10 +361,22 @@ namespace Rococo::Gui
 
 	ROCOCO_GUI_RETAINED_API IGRWidgetFactory& GetWidgetButtonFactory();
 
+	ROCOCO_INTERFACE IGRWidgetToolbar : IGRWidget
+	{
+		// If not left, then alignment is right
+		virtual void SetChildAlignment(GRAlignment alignment, int32 interChildPadding = 4, int32 borderPadding = 1) = 0;
+
+		// Resizes the control to fit in all children with specified padding, and returns the span
+		virtual Vec2i ResizeToFitChildren() = 0;
+	};
+
 	ROCOCO_INTERFACE IGRMainFrame : IGRWidget
 	{
 		// Retrieves a reference to the frame's top menu bar. If one does not exist, it is created		
 		virtual IGRWidgetMenuBar& GetMenuBar() = 0;
+
+		// Retrieves a reference to the frame's top right tool bar. Typically used for minimize, maximume/restore and close window icons.
+		virtual IGRWidgetToolbar& GetTopRightHandSideTools()= 0;
 	};
 
 	ROCOCO_INTERFACE IGRMainFrameSupervisor: IGRMainFrame
@@ -457,13 +469,16 @@ namespace Rococo::Gui
 		int32 unused = 0;
 	};
 
+	ROCOCO_GUI_RETAINED_API IGuiRetainedSupervisor* CreateGuiRetained(GRConfig& config, IGRCustodian& custodian);
+
 	ROCOCO_GUI_RETAINED_API IGRWidgetButton& CreateButton(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetDivision& CreateDivision(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalScroller& CreateVerticalScroller(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalList& CreateVerticalList(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetMenuBar& CreateMenuBar(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetButton& CreateMenuButton(IGRWidget& parent, bool forSubmenu = false);
-	ROCOCO_GUI_RETAINED_API IGuiRetainedSupervisor* CreateGuiRetained(GRConfig& config, IGRCustodian& custodian);
+	ROCOCO_GUI_RETAINED_API IGRWidgetToolbar& CreateToolbar(IGRWidget& parent);
+
 	ROCOCO_GUI_RETAINED_API void DrawButton(IGRPanel& panel, bool focused, bool raised, IGRRenderContext& g);
 	ROCOCO_GUI_RETAINED_API void DrawMenuButton(IGRPanel& panel, bool focused, bool raised, IGRRenderContext& g);
 	ROCOCO_GUI_RETAINED_API void DrawButtonText(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour, IGRRenderContext& g);

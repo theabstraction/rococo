@@ -132,29 +132,33 @@ namespace ANON
 		GRAlignmentFlags alignment { 0 };
 		Vec2i spacing { 0,0 };
 
-		void SetAlignment(GRAlignmentFlags alignment, Vec2i spacing)
+		IGRWidgetButton& SetAlignment(GRAlignmentFlags alignment, Vec2i spacing)
 		{
 			this->alignment = alignment;
 			this->spacing = spacing;
+			return *this;
 		}
 
-		void SetClickCriterion(GRClickCriterion criterion) override
+		IGRWidgetButton& SetClickCriterion(GRClickCriterion criterion) override
 		{
 			this->clickCriterion = criterion;
+			return *this;
 		}
 
-		void SetEventPolicy(GREventPolicy policy) override
+		IGRWidgetButton& SetEventPolicy(GREventPolicy policy) override
 		{
 			this->eventPolicy = policy;
+			return *this;
 		}
 
 		int64 iMetadata = 0;
 		std::string sMetaData;
 
-		void SetMetaData(const ControlMetaData& metaData) override
+		IGRWidgetButton& SetMetaData(const ControlMetaData& metaData) override
 		{
 			iMetadata = metaData.intData;
 			sMetaData = metaData.stringData ? metaData.stringData : std::string();
+			return *this;
 		}
 
 		ControlMetaData GetMetaData() override
@@ -169,9 +173,10 @@ namespace ANON
 
 		std::string title;
 
-		void SetTitle(cstr title) override
+		IGRWidgetButton& SetTitle(cstr title) override
 		{
 			this->title = title == nullptr ? std::string() : title;
+			return *this;
 		}
 
 		size_t GetTitle(char* titleBuffer, size_t nBytes) const override
@@ -192,7 +197,7 @@ namespace ANON
 				return { 8, 8 };
 			}
 
-			return panel.Root().Custodian().EvaluateMinimalSpan(GRFontId::MENU_FONT, fstring{ title.c_str(), (int32) title.length() });
+			return panel.Root().Custodian().EvaluateMinimalSpan(GRFontId::MENU_FONT, fstring{ title.c_str(), (int32) title.length() }) + Vec2i { 2, 2 };
 		}
 	};
 
