@@ -79,7 +79,7 @@ class ContextMenu: public IContextMenuSupervisor
 
 	void RenderChild(IGuiRenderContext& grc, MenuBranch& child, bool isLit, int32 shortCutPixels)
 	{
-		auto& text = to_fstring(child.item.text.c_str());
+		auto text = to_fstring(child.item.text.c_str());
 
 		auto& rect = child.lastRenderedRect;
 
@@ -111,7 +111,7 @@ class ContextMenu: public IContextMenuSupervisor
 			(float)rect.bottom - 2
 		};
 
-		auto& shortcut = to_fstring(child.item.shortcutKey);
+		auto shortcut = to_fstring(child.item.shortcutKey);
 		Graphics::DrawText(grc, textRectShortcut, Graphics::Alignment_Left, shortcut, 0, fontColour);
 
 		if (!child.children.empty())

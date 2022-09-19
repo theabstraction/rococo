@@ -268,9 +268,9 @@ public:
 
 				rects.textRect =
 				{
-					(float)rects.itemRect.left + LBORDER,
+					(float)(rects.itemRect.left + LBORDER),
 					(float)rects.itemRect.top,
-					(float)rects.itemRect.right - RBORDER,
+					(float)(rects.itemRect.right - RBORDER),
 					(float)rects.itemRect.bottom,
 				};
 

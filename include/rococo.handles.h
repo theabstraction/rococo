@@ -253,7 +253,7 @@ namespace Rococo
 					return Handle::Invalid();
 				}
 
-				if (i->handle != 0)
+				if (i->handle)
 				{
 					count++;
 					return i->handle;

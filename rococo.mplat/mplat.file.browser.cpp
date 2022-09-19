@@ -115,7 +115,7 @@ struct FileBrowserRC : public IFileBrowserRenderContext
 		GuiMetrics metrics;
 		gc.Renderer().GetGuiMetrics(metrics);
 
-		auto& clip = ToF(rect);
+		auto clip = ToF(rect);
 
 		RGBAb textColour = IsPointInRect(metrics.cursorPosition, rect) ? RGBAb(255, 255, 255, 255) : RGBAb(240, 240, 240, 255);
 		Graphics::DrawTextWithCaret(gc, ToF(rect), Graphics::Alignment_Left, to_fstring(buffer), 1, textColour, clip, pos);

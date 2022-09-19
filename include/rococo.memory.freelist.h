@@ -22,7 +22,7 @@ namespace Rococo::Memory
 			return allocList.size() * (sizeof(void*) + sizeof(T)) + freeList.size() * sizeof(void*);
 		}
 
-		template<typename CREATOR> T* CreateWith(CREATOR& createAtMem)
+		template<typename CREATOR> T* CreateWith(CREATOR createAtMem)
 		{
 			if (freeList.empty())
 			{

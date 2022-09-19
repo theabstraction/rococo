@@ -97,7 +97,7 @@ namespace
 		{
 			if (!isOriented)
 			{
-				auto& r = Ring<Vec2>(&perimeter[0], perimeter.size());
+				auto r = Ring<Vec2>(&perimeter[0], perimeter.size());
 				if (!IsClockwiseSequential(r))
 				{
 					std::reverse(perimeter.begin(), perimeter.end());

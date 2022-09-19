@@ -108,7 +108,7 @@ public:
 
 	void AddTab(int32 width, const fstring& caption, const fstring& panelText) override
 	{
-		Tab tab{ caption, panelText, width };
+		Tab tab{ (cstr) caption, (cstr) panelText, width };
 		tabs.push_back(tab);
 	}
 

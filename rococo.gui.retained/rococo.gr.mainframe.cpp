@@ -9,6 +9,7 @@ namespace ANON
 	struct GRMainFrame: IGRMainFrameSupervisor
 	{
 		IGRPanel& panel;
+		IGRWidgetDivision* titleBar = nullptr;
 		IGRWidgetMenuBar* menuBar = nullptr;
 
 		GRMainFrame(IGRPanel& _panel) : panel(_panel)
@@ -32,9 +33,19 @@ namespace ANON
 			panel.SetParentOffset(TopLeft(screenDimensions));
 			panel.Resize(Span(screenDimensions));
 
+			if (titleBar)
+			{
+				titleBar->Panel().Resize({ panel.Span().x, 24 });
+			}
+
 			if (menuBar)
 			{
-				menuBar->Panel().Resize({ panel.Span().x, 24 });
+				GRAnchors menuAnchors;
+				menuAnchors.left = true;
+				menuAnchors.top = true;
+				menuAnchors.bottom = true;
+				menuAnchors.expandsVertically = true;
+				menuBar->Panel().SetAnchors(menuAnchors);
 			}
 		}
 
@@ -60,9 +71,14 @@ namespace ANON
 
 		IGRWidgetMenuBar& GetMenuBar() override
 		{
+			if (!titleBar)
+			{
+				titleBar = &CreateDivision(*this);
+			}
+
 			if (!menuBar)
 			{
-				menuBar = &CreateMenuBar(*this);
+				menuBar = &CreateMenuBar(*titleBar);
 			}
 
 			return *menuBar;

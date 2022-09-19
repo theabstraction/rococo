@@ -1578,14 +1578,14 @@ namespace
 		bool validated = false;
 		HString root;
 	public:
-		BloodyPingPathBinding(Platform& _platform, IEventCallback<IBloodyPropertyType>& dirtNotifier, char* pingPath, size_t _len, cstr default) :
+		BloodyPingPathBinding(Platform& _platform, IEventCallback<IBloodyPropertyType>& dirtNotifier, char* pingPath, size_t _len, cstr defaultValue) :
 			platform(_platform),
 			value(pingPath),
 			len(_len),
 			teb(_platform, *this, dirtNotifier, value, _len, true, *this)
 		{
 			U8FilePath expandedPath;
-			ExpandMacros(default, expandedPath, platform.installation);
+			ExpandMacros(defaultValue, expandedPath, platform.installation);
 
 			StripUntilFinalDirectory(expandedPath.buf);
 
@@ -1839,7 +1839,8 @@ namespace
 
 		void OnEvent(IBloodyPropertyType& p)
 		{
-			onDirty.OnEvent(BloodyNotifyArgs{ *this, p.Name(), p.NotifyId() });
+			BloodyNotifyArgs args{ *this, p.Name(), p.NotifyId() };
+			onDirty.OnEvent(args);
 		}
 	public:
 		BloodyPropertySetEditor(Platform& _platform, IEventCallback<BloodyNotifyArgs>& _onDirty) :

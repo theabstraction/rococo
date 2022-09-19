@@ -51,7 +51,7 @@ namespace
 		{
 			if (pingPathToImage.length < 2) Throw(0, "Expecting at least 2 characters in [pingPathToImage]");
 			Textures::BitmapLocation bitmap{ {0,0,0,0}, 0, {0,0} };
-			dolls.push_back(PaperDoll { rect, bitmap, pingPathToImage });
+			dolls.push_back(PaperDoll { rect, bitmap, (cstr) pingPathToImage });
 		}
 
 		void ClearDolls() override

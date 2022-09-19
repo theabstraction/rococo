@@ -141,6 +141,14 @@ namespace Rococo::Components
 			return *this;
 		}
 
+		void operator = (Ref<INTERFACE>&& src)
+		{
+			component = src.component;
+			life = src.life;
+			src.component = nullptr;
+			src.life = nullptr;
+		}
+
 		~Ref()
 		{
 			if (life)
