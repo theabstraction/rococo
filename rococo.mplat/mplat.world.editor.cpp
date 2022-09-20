@@ -62,14 +62,9 @@ namespace ANON
 		auto& tools = frame.GetTopRightHandSideTools();
 		tools.SetChildAlignment(GRAlignment::Right);
 		
-		auto& minButton = CreateButton(tools);
-		minButton.SetTitle("Min");
-
-		auto& maxButton = CreateButton(tools);
-		maxButton.SetTitle("Max");
-
-		auto& closeButton = CreateButton(tools);
-		closeButton.SetTitle("Close");
+		CreateButton(tools).SetTitle("Min").SetImagePath("!textures/toolbars/3rd-party/www.aha-soft.com/Down.tiff");
+		CreateButton(tools).SetTitle("Max").SetImagePath("!textures/toolbars/3rd-party/www.aha-soft.com/Expand.tiff");
+		CreateButton(tools).SetTitle("Close").SetImagePath("!textures/toolbars/3rd-party/www.aha-soft.com/Close.tiff");
 
 		tools.ResizeToFitChildren();
 	}

@@ -36,7 +36,7 @@ namespace ANON
 
 			if (titleBar)
 			{
-				titleBar->Panel().Resize({ panel.Span().x, 26 });
+				titleBar->Panel().Resize({ panel.Span().x, 30 });
 			}
 
 			GRAnchorPadding onePixel{ 1, 1, 1, 1 };

@@ -3,11 +3,13 @@
 #include <rococo.renderer.h>
 #include <rococo.maths.h>
 #include <rococo.ui.h>
+#include <rococo.textures.h>
 #include <vector>
 
 using namespace Rococo;
 using namespace Rococo::Gui;
 using namespace Rococo::Graphics;
+using namespace Rococo::Textures;
 
 namespace ANON
 {
@@ -112,6 +114,50 @@ namespace ANON
 		{
 			Throw(0, "Not implemented");
 		}
+
+		bool Render(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, const BitmapLocation& sprite)
+		{
+			if (!rc || sprite.pixelSpan.x <= 0 || sprite.pixelSpan.y <= 0 || sprite.textureIndex < 0) 
+			{
+				return false;
+			}
+
+			GuiRect rect = panel.AbsRect();
+			Graphics::DrawSprite(TopLeft(rect) + Vec2i { 1,1,}, sprite, *rc);
+
+			return true;
+		}
+	};
+
+	struct MPlatImageMemento : IImageMemento
+	{
+		Vec2i span{ 8, 8 };
+		BitmapLocation sprite = BitmapLocation::None();
+
+		ITextureArrayBuilder& sprites;
+
+		MPlatImageMemento(cstr imagePath, ITextureArrayBuilder& _sprites): sprites(_sprites)
+		{
+			if (!sprites.TryGetBitmapLocation(imagePath, sprite))
+			{
+				Throw(0, "Could not find bitmap: %s", imagePath);
+			}
+		}
+
+		bool Render(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, IGRRenderContext& g) override
+		{
+			return static_cast<MPlatGR_Renderer&>(g).Render(panel, alignment, spacing, sprite);
+		}
+
+		void Free() override
+		{
+			delete this;
+		}
+
+		Vec2i Span() const override
+		{
+			return Quantize(sprite.pixelSpan);
+		}
 	};
 
 	struct MPlatCustodian : IMPlatGuiCustodianSupervisor, IGRCustodian, IGREventHistory
@@ -127,6 +173,11 @@ namespace ANON
 		MPlatCustodian(IUtilities& utils, IRenderer& _sysRenderer): renderer(utils), sysRenderer(_sysRenderer)
 		{
 			
+		}
+
+		IImageMemento* CreateImageMemento(cstr imagePath) override
+		{
+			return new MPlatImageMemento(imagePath, sysRenderer.Gui().SpriteBuilder());
 		}
 
 		Vec2i EvaluateMinimalSpan(GRFontId fontId, const fstring& text) const override

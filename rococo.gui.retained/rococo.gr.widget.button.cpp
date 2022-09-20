@@ -17,6 +17,9 @@ namespace ANON
 		bool isMenu = false;
 		bool forSubmenu = false;
 
+		std::string imagePath;
+		AutoFree<IImageMemento> image;
+
 		GRButton(IGRPanel& owningPanel) : panel(owningPanel)
 		{
 			alignment.Add(GRAlignment::HCentre).Add(GRAlignment::VCentre);
@@ -126,16 +129,34 @@ namespace ANON
 			{
 				DrawButton(panel, false, isRaised, g);
 			}
-			DrawButtonText(panel, alignment, spacing, { title.c_str(), (int32) title.size() }, RGBAb(255,255,255,255), g);
+
+			bool imageRendered = false;
+
+			if (image)
+			{
+				imageRendered = image->Render(panel, alignment, spacing, g);
+			}
+
+			if (!imageRendered)
+			{
+				DrawButtonText(panel, alignment, spacing, { title.c_str(), (int32)title.size() }, RGBAb(255, 255, 255, 255), g);
+			}
 		}
 
 		GRAlignmentFlags alignment { 0 };
 		Vec2i spacing { 0,0 };
 
-		IGRWidgetButton& SetAlignment(GRAlignmentFlags alignment, Vec2i spacing)
+		IGRWidgetButton& SetAlignment(GRAlignmentFlags alignment, Vec2i spacing) override
 		{
 			this->alignment = alignment;
 			this->spacing = spacing;
+			return *this;
+		}
+
+		IGRWidgetButton& SetImagePath(cstr imagePath) override
+		{
+			this->imagePath = imagePath ? imagePath : std::string();
+			image = panel.Root().Custodian().CreateImageMemento(this->imagePath.c_str());
 			return *this;
 		}
 
@@ -192,6 +213,10 @@ namespace ANON
 
 		Vec2i EvaluateMinimalSpan() const override
 		{
+			if (image)
+			{
+				return image->Span() + Vec2i{2,2};
+			}
 			if (title.empty())
 			{
 				return { 8, 8 };

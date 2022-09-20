@@ -307,13 +307,16 @@
 
 (method GameBundle.Construct : 
 	(ISpriteBuilder spriteBuilder (SpriteBuilder))
+	(spriteBuilder.AddEachSpriteInDirectory "!textures/toolbars/3rd-party/www.aha-soft.com")
 	(spriteBuilder.AddEachSpriteInDirectory "!textures/faces/male")
 	(spriteBuilder.AddEachSpriteInDirectory "!textures/faces/female")
 	(spriteBuilder.AddSprite "!portraits/painting_1.jpg")
+	
 	(spriteBuilder.LoadAllSprites)
 	(this.spriteBuilder = spriteBuilder)
 	
 	(this.engine = (Engine))
+	(this.engine.SetEditorVisibility true)
 	
 	(this.coroutines = (Coroutines))
 	

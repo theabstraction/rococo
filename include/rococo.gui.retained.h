@@ -302,6 +302,13 @@ namespace Rococo::Gui
 		uint32 isRaised : 1;
 	};
 
+	ROCOCO_INTERFACE IImageMemento
+	{
+		virtual bool Render(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, IGRRenderContext& rc) = 0;
+		virtual Vec2i Span() const = 0;
+		virtual void Free() = 0;
+	};
+
 	ROCOCO_INTERFACE IGRWidgetButton : IGRWidget
 	{
 		// Sets the rule by which events are fired
@@ -309,6 +316,10 @@ namespace Rococo::Gui
 
 		// Set what happens when the button is fired
 		virtual IGRWidgetButton& SetEventPolicy(GREventPolicy policy) = 0;
+
+		// Sets the image icon path for the button. It is up to the custodian to decide how to interpret the path as an image and how to render it
+		// The custodian decides if/when to prioritize the image over the title
+		virtual IGRWidgetButton& SetImagePath(cstr imagePath) = 0;
 
 		// Sets user meta data for the button
 		virtual IGRWidgetButton& SetMetaData(const ControlMetaData& metaData) = 0;
@@ -454,6 +465,8 @@ namespace Rococo::Gui
 
 	ROCOCO_INTERFACE IGRCustodian
 	{
+		// The caller will grab the reference to the memento and is responsible for calling IImageMemento->Free() when the memento is no longer used.
+		virtual IImageMemento *CreateImageMemento(cstr imagePath) = 0;
 		virtual Vec2i EvaluateMinimalSpan(GRFontId fontId, const fstring & text) const = 0;
 		virtual EventRouting OnGREvent(WidgetEvent& ev) = 0;
 		virtual void RaiseError(GRErrorCode code, cstr function, cstr message) = 0;

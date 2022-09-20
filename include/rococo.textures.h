@@ -28,6 +28,11 @@ namespace Rococo::Graphics
          GuiRect txUV;
          int32 textureIndex;
          Vec2 pixelSpan;
+
+         static BitmapLocation None()
+         {
+             return { {0,0,0,0}, -1, {0,0} };
+         }
       };
 
       struct BitmapUpdate
