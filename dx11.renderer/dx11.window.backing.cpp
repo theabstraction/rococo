@@ -68,6 +68,11 @@ struct DX11WindowBacking: IDX11WindowBacking, Windows::IWindow
 		}
 	}
 
+	enum class BUFFER_COUNT
+	{
+		PRESERVE_BUFFERS = 0
+	};
+
 	void ResetOutputBuffersForWindow()
 	{
 		RECT rect;
@@ -87,13 +92,20 @@ struct DX11WindowBacking: IDX11WindowBacking, Windows::IWindow
 			return;
 		}
 
-		DXGI_SWAP_CHAIN_DESC swapChainDesc = DX11::GetSwapChainDescription(hWnd);
-		VALIDATEDX11(factory.CreateSwapChain((ID3D11Device*)&device, &swapChainDesc, &mainSwapChain));
+		if (!mainSwapChain)
+		{
+			DXGI_SWAP_CHAIN_DESC swapChainDesc = DX11::GetSwapChainDescription(hWnd);
+			VALIDATEDX11(factory.CreateSwapChain((ID3D11Device*)&device, &swapChainDesc, &mainSwapChain));
+		}
+		else
+		{
+			mainBackBufferView.Detach();
+			mainSwapChain->ResizeBuffers((UINT)BUFFER_COUNT::PRESERVE_BUFFERS, newSpan.x, newSpan.y, DXGI_FORMAT_UNKNOWN, 0);
+		}
 
 		AutoRelease<ID3D11Texture2D> backBuffer;
 		VALIDATEDX11(mainSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backBuffer));
 
-		mainBackBufferView.Detach();
 		VALIDATEDX11(device.CreateRenderTargetView(backBuffer, nullptr, &mainBackBufferView));
 
 		char depthBufferName[40];

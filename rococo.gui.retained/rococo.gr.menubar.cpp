@@ -333,7 +333,7 @@ namespace ANON
 								if (!branch->isActive)
 								{
 									branch->ToggleActive();
-									panel.InvalidateLayout();
+									panel.InvalidateLayout(true);
 								}
 							}
 						}
@@ -367,7 +367,7 @@ namespace ANON
 					if (branch)
 					{
 						branch->ToggleActive();
-						panel.InvalidateLayout();
+						panel.InvalidateLayout(true);
 						if (tree.IsActive()) panel.CaptureCursor();
 					}
 					return EventRouting::Terminate;
@@ -375,7 +375,7 @@ namespace ANON
 				else
 				{
 					tree.Deactivate();
-					panel.InvalidateLayout();
+					panel.InvalidateLayout(true);
 				}
 
 				panel.Root().ReleaseCursor();

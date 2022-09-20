@@ -93,13 +93,13 @@ namespace ANON
 
 		bool isLayoutValid = false;
 
-		void InvalidateLayout() override
+		void InvalidateLayout(bool invalidateAnscestors) override
 		{
 			isLayoutValid = false;
 
-			if (parent)
+			if (invalidateAnscestors && parent)
 			{
-				parent->InvalidateLayout();
+				parent->InvalidateLayout(invalidateAnscestors);
 			}
 		}
 
@@ -149,7 +149,11 @@ namespace ANON
 
 		IGRPanel& Resize(Vec2i span) override
 		{
-			this->span = span;
+			if (this->span != span)
+			{
+				this->span = span;
+				isLayoutValid = false;
+			}
 			return *this;
 		}
 
@@ -249,7 +253,11 @@ namespace ANON
 
 		IGRPanel& SetParentOffset(Vec2i offset) override
 		{
-			this->parentOffset = offset;
+			if (this->parentOffset != offset)
+			{
+				this->parentOffset = offset;
+				isLayoutValid = false;
+			}
 			return *this;
 		}
 

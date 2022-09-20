@@ -62,6 +62,7 @@ namespace ANON
 			while (auto* child = panel.GetChild(index++))
 			{
 				child->Resize(child->Widget().EvaluateMinimalSpan());
+				child->InvalidateLayout(false);
 			}
 
 			if (childAlignment == GRAlignment::Left)

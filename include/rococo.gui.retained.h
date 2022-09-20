@@ -240,7 +240,7 @@ namespace Rococo::Gui
 		virtual void SetPadding(GRAnchorPadding padding) = 0;
 
 		// Indicates that the layout needs to be recomputed
-		virtual void InvalidateLayout() = 0;
+		virtual void InvalidateLayout(bool invalidateAnscestors) = 0;
 		virtual bool RequiresLayout() const = 0;
 	};
 

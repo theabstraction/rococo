@@ -156,6 +156,7 @@ namespace ANON
 			for (auto& d : frameDescriptors)
 			{
 				d.frame->Layout(lastLayedOutScreenDimensions);
+				d.panel->InvalidateLayout(false);
 				d.panel->LayoutRecursive({ 0,0 });
 			}
 		}

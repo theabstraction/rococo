@@ -57,4 +57,12 @@
 	(shadowDef.w = (#SampleFilterBorder))
 	(shadowDef.borderColour = 0 0 0 0)
 	(rc.SetSampler shadowDef (#SampleIndexShadowMap))
+	
+	(SampleStateDef hqFontDef)
+	(hqFontDef.method = (#SampleMethodLinear))
+	(hqFontDef.u = (#SampleFilterBorder))
+	(hqFontDef.v = (#SampleFilterBorder))
+	(hqFontDef.w = (#SampleFilterBorder))
+	(hqFontDef.borderColour = 0 0 0 0)
+	(rc.SetSampler hqFontDef (#SampleIndexHQFontGlyphs))
 )
