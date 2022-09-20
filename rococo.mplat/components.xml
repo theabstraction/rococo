@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<CPP 
+	TargetHeader = "rococo.mplat\mplat.components.h"
+	TargetSource = "rococo.mplat\mplat.components.cpp"
+	DeclarationsInclude = "mplat.components.decl.h"
+	TemplateHeader = "rococo.mplat\mplat.component.template.h"
+	TemplateSource = "rococo.mplat\mplat.component.template.cpp"
+	>
+	
+	<Component Interface="IAnimationComponent" />
+	<Component Interface="IBodyComponent" />
+	<Component Interface="ISkeletonComponent" />
+	<Component Interface="IParticleSystemComponent"	/>
+	<Component Interface="IRigsComponent" />
+</CPP>
