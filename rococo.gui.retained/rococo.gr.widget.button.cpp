@@ -5,7 +5,7 @@
 using namespace Rococo;
 using namespace Rococo::Gui;
 
-namespace ANON
+namespace GRANON
 {
 	struct GRButton : IGRWidgetButton
 	{
@@ -240,13 +240,13 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API IGRWidgetButton& CreateButton(IGRWidget& parent)
 	{
 		auto& gr = parent.Panel().Root().GR();
-		return static_cast<IGRWidgetButton&>(gr.AddWidget(parent.Panel(), ANON::s_ButtonFactory));
+		return static_cast<IGRWidgetButton&>(gr.AddWidget(parent.Panel(), GRANON::s_ButtonFactory));
 	}
 
 	ROCOCO_GUI_RETAINED_API IGRWidgetButton& CreateMenuButton(IGRWidget& parent, bool forSubmenu)
 	{
 		auto& gr = parent.Panel().Root().GR();
-		auto& button = static_cast<ANON::GRButton&>(gr.AddWidget(parent.Panel(), ANON::s_ButtonFactory));
+		auto& button = static_cast<GRANON::GRButton&>(gr.AddWidget(parent.Panel(), GRANON::s_ButtonFactory));
 		button.isMenu = true;
 		button.forSubmenu = forSubmenu;
 		return button;

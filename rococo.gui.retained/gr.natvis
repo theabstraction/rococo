@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+	<Type Name="GRANON::GRPanel">
+		<DisplayString>{{Rect: {absRect}. Span: {span}. ParentOffset: {parentOffset}}</DisplayString>
+	</Type>
+	<Type Name="GRANON::GRDivision">
+		<DisplayString>{{Division: {panel}}}</DisplayString>
+	</Type>
+	<Type Name="GRANON::GRMainFrame">
+		<DisplayString>{{Frame:'{name}'. {panel}}}</DisplayString>
+	</Type>
+	<Type Name="GRANON::GRToolbar">
+		<DisplayString>{{Toolbar: {panel}}}</DisplayString>
+	</Type>
+	<Type Name="GRANON::GRButton">
+		<DisplayString>{{Button: Title:{title}, Image: {imagePath}, iMeta{iMetaData}, sMeta{sMetaData}}</DisplayString>
+	</Type>
+	<Type Name="GRANON::GRMenuBar">
+		<DisplayString>{{Menu. {panel}}</DisplayString>
+	</Type>
+	<Type Name="Rococo::Gui::CursorEvent">
+		<DisplayString>{{Pos {position}. Click {click}. Id #{eventId}}}</DisplayString>
+	</Type>
+	<Type Name="Rococo::Gui::CursorClick">
+		<DisplayString>{{LD {LeftButtonDown}, LU {LeftButtonUp}, RD {RightButtonDown}, RU {RightButtonUp}, MD {MidButtonDown}, MU {MidButtonUp}, Wheel {MouseWheel}, Unk {Unknown}}}</DisplayString>
+	</Type>
+</AutoVisualizer>

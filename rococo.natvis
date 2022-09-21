@@ -3,4 +3,25 @@
 	<Type Name="Rococo::Components::ROID">
 		<DisplayString>#{index}, salt {salt}</DisplayString>
 	</Type>
+	<Type Name="Rococo::Vec2i">
+		<DisplayString>{x},{y}</DisplayString>
+	</Type>
+	<Type Name="Rococo::Vec2">
+		<DisplayString>{x},{y}</DisplayString>
+	</Type>
+	<Type Name="Rococo::Vec3i">
+		<DisplayString>{x},{y},{z}</DisplayString>
+	</Type>
+	<Type Name="Rococo::Vec3">
+		<DisplayString>{x},{y},{z}</DisplayString>
+	</Type>
+	<Type Name="Rococo::Vec4">
+		<DisplayString>{x},{y},{z},{w}</DisplayString>
+	</Type>
+	<Type Name="Rococo::GuiRect">
+		<DisplayString>{left},{top},{right},{bottom}</DisplayString>
+	</Type>
+	<Type Name="Rococo::GuiRectf">
+		<DisplayString>{left},{top},{right},{bottom}</DisplayString>
+	</Type>
 </AutoVisualizer>

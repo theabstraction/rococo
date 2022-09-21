@@ -160,7 +160,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\rococo.gui.retained.cpp\rococo.gui.retained.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="rococo.gr.division.cpp" />
     <ClCompile Include="rococo.gr.layout.fullscreen.cpp" />
@@ -172,12 +171,16 @@
     <ClCompile Include="rococo.gr.vertical-list.cpp" />
     <ClCompile Include="rococo.gr.vertical.scroller.cpp" />
     <ClCompile Include="rococo.gr.widget.button.cpp" />
+    <ClCompile Include="rococo.gui.retained.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\rococo.gui.retained.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="gr.natvis" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

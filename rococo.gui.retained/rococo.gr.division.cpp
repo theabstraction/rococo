@@ -4,7 +4,7 @@
 using namespace Rococo;
 using namespace Rococo::Gui;
 
-namespace ANON
+namespace GRANON
 {
 	struct GRDivision : IGRWidgetDivision
 	{
@@ -78,7 +78,7 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API IGRWidgetDivision& CreateDivision(IGRWidget& parent)
 	{
 		auto& gr = parent.Panel().Root().GR();
-		auto& div = static_cast<IGRWidgetDivision&>(gr.AddWidget(parent.Panel(), ANON::s_DivFactory));
+		auto& div = static_cast<IGRWidgetDivision&>(gr.AddWidget(parent.Panel(), GRANON::s_DivFactory));
 		return div;
 	}
 }

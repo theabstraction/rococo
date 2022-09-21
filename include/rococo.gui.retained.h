@@ -22,7 +22,7 @@ namespace Rococo::Gui
 		uint16 MidButtonDown : 1;
 		uint16 MidButtonUp : 1;
 		uint16 MouseWheel : 1;
-		uint16 Unknown : 1;
+		uint16 Unknown : 9;
 	};
 
 	struct IGREventHistory
@@ -220,6 +220,9 @@ namespace Rococo::Gui
 
 	ROCOCO_INTERFACE IGRPanel
 	{
+		// Typically called after a widget resize when the parent need not ask the child to resize itself
+		virtual void ConfirmLayout() = 0;
+		virtual IGRPanel* Parent() = 0;
 		virtual EventRouting NotifyAncestors(WidgetEvent& widgetEvent, IGRWidget& widget) = 0;
 		virtual IGRWidget& Widget() = 0;
 		virtual IGRPanel& Resize(Vec2i span) = 0;
@@ -256,7 +259,9 @@ namespace Rococo::Gui
 		virtual void Free() = 0;
 	};
 
-	ROCOCO_GUI_RETAINED_API void LayoutChildrenByAnchors(IGRPanel& parent, const GuiRect& panelDimensions);
+
+	ROCOCO_GUI_RETAINED_API void LayoutChildByAnchors(IGRPanel& child, const GuiRect& parentDimensions);
+	ROCOCO_GUI_RETAINED_API void LayoutChildrenByAnchors(IGRPanel& parent, const GuiRect& parentDimensions);
 
 	ROCOCO_INTERFACE IGRWidget
 	{

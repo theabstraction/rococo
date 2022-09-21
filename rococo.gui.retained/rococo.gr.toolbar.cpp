@@ -4,7 +4,7 @@
 using namespace Rococo;
 using namespace Rococo::Gui;
 
-namespace ANON
+namespace GRANON
 {
 	struct GRToolbar : IGRWidgetToolbar
 	{
@@ -152,7 +152,7 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API IGRWidgetToolbar& CreateToolbar(IGRWidget& parent)
 	{
 		auto& gr = parent.Panel().Root().GR();
-		auto& tools = static_cast<IGRWidgetToolbar&>(gr.AddWidget(parent.Panel(), ANON::s_ToolbarFactory));
+		auto& tools = static_cast<IGRWidgetToolbar&>(gr.AddWidget(parent.Panel(), GRANON::s_ToolbarFactory));
 		return tools;
 	}
 }

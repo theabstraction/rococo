@@ -12,7 +12,7 @@ using namespace Rococo::Gui;
 namespace Rococo::Gui
 {
 	IGRLayoutSupervisor* CreateFullScreenLayout();
-	IGRMainFrameSupervisor* CreateGRMainFrame(IGRPanel& panel);
+	IGRMainFrameSupervisor* CreateGRMainFrame(cstr name, IGRPanel& panel);
 	IGRPanelSupervisor* CreatePanel(IGRPanelRoot& root, IGRPanelSupervisor* parent);
 
 	bool operator == (const GuiRect& a, const GuiRect& b)
@@ -91,10 +91,17 @@ namespace ANON
 				return *oldFrame;
 			}
 
+			// Create the frame descriptor string first, so we can pass a const reference to the internal string to the frame
+			frameDescriptors.push_back(FrameDesc{ nullptr, nullptr, id.Name });
+
+			auto& last = frameDescriptors.back();
+
 			auto* newFramePanel = CreatePanel(*this, nullptr);
-			auto* newFrame = CreateGRMainFrame(*newFramePanel);
+			auto* newFrame = CreateGRMainFrame(last.id.c_str(), * newFramePanel);
 			newFramePanel->SetWidget(*newFrame);
-			frameDescriptors.push_back(FrameDesc{ newFramePanel, newFrame, std::string(id.Name) });
+			last.panel = newFramePanel;
+			last.frame = newFrame;
+
 			mapIdToPanel.try_emplace(newFramePanel->Id(), newFramePanel);
 			return *newFrame;
 		}
@@ -155,8 +162,8 @@ namespace ANON
 			RecursionGuard guard(*this);
 			for (auto& d : frameDescriptors)
 			{
-				d.frame->Layout(lastLayedOutScreenDimensions);
-				d.panel->InvalidateLayout(false);
+				d.panel->SetParentOffset(TopLeft(lastLayedOutScreenDimensions));
+				d.panel->Resize(Span(lastLayedOutScreenDimensions));
 				d.panel->LayoutRecursive({ 0,0 });
 			}
 		}
@@ -252,7 +259,10 @@ namespace ANON
 				if (widget)
 				{
 					auto& panelSupervisor = static_cast<IGRPanelSupervisor&>(widget->Panel());
-					return panelSupervisor.RouteCursorClickEvent(ev, false);
+					if (panelSupervisor.RouteCursorClickEvent(ev, false) == EventRouting::NextHandler)
+					{
+						return widget->OnCursorClick(ev);
+					}
 				}
 			}
 

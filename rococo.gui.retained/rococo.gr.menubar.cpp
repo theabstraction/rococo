@@ -7,7 +7,7 @@
 using namespace Rococo;
 using namespace Rococo::Gui;
 
-namespace ANON
+namespace GRANON
 {
 	struct MenuBranch;
 
@@ -140,12 +140,18 @@ namespace ANON
 
 	struct GRMenuBar : IGRWidgetMenuBar
 	{
-		GRMenuTree tree;
-		int64 nextId = 1;
 		IGRPanel& panel;
+		GRMenuTree tree;
+		int64 nextId = 1;	
+		bool isDirty = true;
 
 		GRMenuBar(IGRPanel& owningPanel) : panel(owningPanel)
 		{
+			if (owningPanel.Parent() == nullptr)
+			{
+				// We require a parent so that we can anchor to its dimensions
+				owningPanel.Root().Custodian().RaiseError(GRErrorCode::InvalidArg, __FUNCTION__, "Panel parent was null");
+			}
 			auto rootId = 0;
 			tree.root = new MenuBranch(tree, rootId, nullptr);
 		}
@@ -159,7 +165,7 @@ namespace ANON
 				return false;
 			}
 
-			ANON::MenuItem newMenuItem;
+			GRANON::MenuItem newMenuItem;
 			auto* b = newMenuItem.button = new MenuButton();
 			b->iMetaData = item.metaData.intData;
 			b->sMetaData = item.metaData.stringData ? item.metaData.stringData : std::string();
@@ -167,6 +173,9 @@ namespace ANON
 			b->text = item.text;
 
 			branch->children.push_back(newMenuItem);
+
+			isDirty = true;
+
 			return true;
 		}
 
@@ -179,13 +188,16 @@ namespace ANON
 				return GRMenuItemId{ -1 };
 			}
 
-			ANON::MenuItem newMenuItem;
+			GRANON::MenuItem newMenuItem;
 			int64 branchId = nextId++;
 			auto* b = newMenuItem.branch = new MenuBranch(tree, branchId, parent);
 			b->isEnabled = subMenu.isEnabled;
 			b->text = subMenu.text;
 
 			parent->children.push_back(newMenuItem);
+
+			isDirty = true;
+
 			return GRMenuItemId{ branchId };
 		}
 
@@ -293,7 +305,22 @@ namespace ANON
 
 		void ConstructWidgetsFromMenuTree()
 		{
-			ConstructWidgetsFromBranchRecursive(panel, *tree.root, 0, {0,0});
+			// It should be safe to clear children here, because they are not yet within our callstack
+			static_cast<IGRPanelSupervisor&>(panel).ClearChildren();
+			ConstructWidgetsFromBranchRecursive(panel, *tree.root, 0, { 0,0 });
+
+			int spanX = 0;
+
+			int index = 0;
+			while (auto* child = panel.GetChild(index++))
+			{
+				int rightMostX = child->ParentOffset().x + child->Span().x;
+				spanX = max(spanX, rightMostX);
+			}
+
+			panel.Resize({ spanX, panel.Span().y });
+
+			LayoutChildByAnchors(panel, panel.Parent()->AbsRect());
 		}
 
 		void Free() override
@@ -303,14 +330,27 @@ namespace ANON
 
 		void Layout(const GuiRect& panelDimensions) override
 		{
-			// It should be safe to clear children here, because they are not yet within our callstack
-			static_cast<IGRPanelSupervisor&>(panel).ClearChildren();
-			ConstructWidgetsFromMenuTree();
+			if (isDirty)
+			{
+				ConstructWidgetsFromMenuTree();
+			}
+
+			isDirty = false;
 		}
 
 		EventRouting OnCursorClick(CursorEvent& ce) override
 		{
-			return EventRouting::NextHandler;
+			if (tree.IsActive())
+			{
+				tree.Deactivate();
+				panel.InvalidateLayout(true);
+				isDirty = true;
+				return EventRouting::Terminate;
+			}
+			else
+			{
+				return EventRouting::NextHandler;
+			}
 		}
 
 		EventRouting OnCursorMove(CursorEvent& ce) override
@@ -333,6 +373,7 @@ namespace ANON
 								if (!branch->isActive)
 								{
 									branch->ToggleActive();
+									isDirty = true;
 									panel.InvalidateLayout(true);
 								}
 							}
@@ -368,6 +409,7 @@ namespace ANON
 					{
 						branch->ToggleActive();
 						panel.InvalidateLayout(true);
+						isDirty = true;
 						if (tree.IsActive()) panel.CaptureCursor();
 					}
 					return EventRouting::Terminate;
@@ -376,6 +418,7 @@ namespace ANON
 				{
 					tree.Deactivate();
 					panel.InvalidateLayout(true);
+					isDirty = true;
 				}
 
 				panel.Root().ReleaseCursor();
@@ -405,7 +448,7 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API IGRWidgetMenuBar& CreateMenuBar(IGRWidget& parent)
 	{
 		auto& gr = parent.Panel().Root().GR();
-		auto& bar = static_cast<ANON::GRMenuBar&>(gr.AddWidget(parent.Panel(), ANON::s_MenuBarFactory));
+		auto& bar = static_cast<GRANON::GRMenuBar&>(gr.AddWidget(parent.Panel(), GRANON::s_MenuBarFactory));
 		return bar;
 	}
 }
