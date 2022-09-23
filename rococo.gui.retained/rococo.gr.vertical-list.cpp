@@ -4,7 +4,7 @@
 using namespace Rococo;
 using namespace Rococo::Gui;
 
-namespace ANON
+namespace GRANON
 {
 	struct GRVerticalList : IGRWidgetVerticalList
 	{
@@ -28,8 +28,9 @@ namespace ANON
 			{
 				auto padding = child->Padding();
 				child->SetParentOffset({ padding.left, top + padding.top });
-				child->Resize({ Width(panelDimensions) - padding.left - padding.right });
-				top += child->Span().y + padding.top + padding.bottom;
+				int dy = child->Span().y;
+				child->Resize({Width(panelDimensions) - padding.left - padding.right, dy});
+				top += dy + padding.top + padding.bottom;
 			}
 
 			int overhang = top - Height(panelDimensions);
@@ -95,7 +96,7 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalList& CreateVerticalList(IGRWidget& parent)
 	{
 		auto& gr = parent.Panel().Root().GR();
-		auto& list = static_cast<IGRWidgetVerticalList&>(gr.AddWidget(parent.Panel(), ANON::s_VerticalListFactory));
+		auto& list = static_cast<IGRWidgetVerticalList&>(gr.AddWidget(parent.Panel(), GRANON::s_VerticalListFactory));
 		return list;
 	}
 }

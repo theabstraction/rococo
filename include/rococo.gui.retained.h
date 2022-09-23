@@ -187,6 +187,9 @@ namespace Rococo::Gui
 		// Returns the Id of the captured panel, or -1, if no capture exists
 		virtual int64 CapturedPanelId() const = 0;
 
+		// Queue a garbage collect for the next render cycle
+		virtual void QueueGarbageCollect() = 0;
+
 		// Sets the id of the capture panel to -1. No panel with id -1 can exist.
 		virtual void ReleaseCursor() = 0;
 
@@ -207,6 +210,15 @@ namespace Rococo::Gui
 		uint32 bottom : 1 = 0; // The widget sticks to the bottom side of the container
 		uint32 expandsHorizontally : 1 = 0; // If true then sticking to left or right of a container may expand or contract the span. Irrelevant if both left and right anchors are set.
 		uint32 expandsVertically : 1 = 0; // If true then sticking to the top of the bottom of a container may expand or contract the span. Irrelevant if both top and bottom anchors are set.
+
+		ROCOCO_GUI_RETAINED_API static GRAnchors Left();
+		ROCOCO_GUI_RETAINED_API static GRAnchors LeftAndRight();
+		ROCOCO_GUI_RETAINED_API static GRAnchors Right();
+		ROCOCO_GUI_RETAINED_API static GRAnchors Top();
+		ROCOCO_GUI_RETAINED_API static GRAnchors TopAndBottom();
+		ROCOCO_GUI_RETAINED_API static GRAnchors Bottom();
+		ROCOCO_GUI_RETAINED_API static GRAnchors ExpandVertically();
+		ROCOCO_GUI_RETAINED_API static GRAnchors ExpandHorizontally();
 	};
 
 	// Gives the number of pixels between an anchored side and the parent control
@@ -222,6 +234,8 @@ namespace Rococo::Gui
 	{
 		// Typically called after a widget resize when the parent need not ask the child to resize itself
 		virtual void ConfirmLayout() = 0;
+		virtual void MarkForDelete() = 0;
+		virtual bool IsMarkedForDeletion() const = 0;
 		virtual IGRPanel* Parent() = 0;
 		virtual EventRouting NotifyAncestors(WidgetEvent& widgetEvent, IGRWidget& widget) = 0;
 		virtual IGRWidget& Widget() = 0;
@@ -239,8 +253,9 @@ namespace Rococo::Gui
 		virtual void CaptureCursor() = 0;
 		virtual GRAnchors Anchors() = 0;
 		virtual GRAnchorPadding Padding() = 0;
-		virtual void SetAnchors(GRAnchors anchors) = 0;
-		virtual void SetPadding(GRAnchorPadding padding) = 0;
+		virtual IGRPanel& SetAnchors(GRAnchors anchors) = 0;
+		virtual IGRPanel& Add(GRAnchors anchors) = 0;
+		virtual IGRPanel& SetPadding(GRAnchorPadding padding) = 0;
 
 		// Indicates that the layout needs to be recomputed
 		virtual void InvalidateLayout(bool invalidateAnscestors) = 0;
@@ -251,6 +266,7 @@ namespace Rococo::Gui
 	{
 		// A dangerous function, particularly if called within a recursive query. Ensure it is not called on children that are referenced in the callstack
 		virtual void ClearChildren() = 0;
+		virtual void GarbageCollectRecursive() = 0;
 		virtual void LayoutRecursive(Vec2i absoluteOrigin) = 0;
 		virtual void RenderRecursive(IGRRenderContext & g) = 0;
 		virtual EventRouting RouteCursorClickEvent(CursorEvent& ce, bool filterChildrenByParentRect) = 0;
@@ -386,17 +402,28 @@ namespace Rococo::Gui
 		virtual Vec2i ResizeToFitChildren() = 0;
 	};
 
-	ROCOCO_INTERFACE IGRMainFrame : IGRWidget
+	ROCOCO_INTERFACE IGRWidgetDivision : IGRWidget
 	{
-		// Retrieves a reference to the frame's top menu bar. If one does not exist, it is created		
-		virtual IGRWidgetMenuBar& GetMenuBar() = 0;
 
-		// Retrieves a reference to the frame's top right tool bar. Typically used for minimize, maximume/restore and close window icons.
-		virtual IGRWidgetToolbar& GetTopRightHandSideTools()= 0;
 	};
 
-	ROCOCO_INTERFACE IGRMainFrameSupervisor: IGRMainFrame
+	// The public api side of the main frame
+	ROCOCO_INTERFACE IGRMainFrame
 	{
+		// Retrieves a reference to the frame's top menu bar. If one does not exist, it is created		
+		virtual IGRWidgetMenuBar& MenuBar() = 0;
+
+		// Retrieves a reference to the frame's top right tool bar. Typically used for minimize, maximume/restore and close window icons.
+		virtual IGRWidgetToolbar& TopRightHandSideTools() = 0;
+
+		// The part of the main frame that is below the title bar. If there is no title bar the client area covers the entire area
+		virtual IGRWidgetDivision& ClientArea() = 0;
+	};
+
+	// The widget side of the main frame
+	ROCOCO_INTERFACE IGRWidgetMainFrame : IGRWidget
+	{
+		virtual IGRMainFrame& Frame() = 0;
 	};
 
 	ROCOCO_INTERFACE IGuiRetained
@@ -415,6 +442,9 @@ namespace Rococo::Gui
 
 		// Raise the frame so that it is the final to render
 		virtual void MakeLastToRender(IdWidget id) = 0;	
+
+		// Free all panels marked for delete
+		virtual void GarbageCollect() = 0;
 		
 		// Renders the list of frames
 		virtual void RenderGui(IGRRenderContext& g) = 0;
@@ -449,11 +479,6 @@ namespace Rococo::Gui
 		Generic,
 		InvalidArg,
 		RecursionLocked
-	};
-
-	ROCOCO_INTERFACE IGRWidgetDivision : IGRWidget
-	{
-
 	};
 
 	ROCOCO_INTERFACE IGRWidgetVerticalScroller : IGRWidget

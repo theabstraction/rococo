@@ -14,7 +14,12 @@ struct TestStruct: IReflectionTarget
 
 	void Visit(IReflectionVisitor& v) override
 	{
-
+		v.SetSection("TestStruct");
+		ROCOCO_REFLECT(v, iField);
+		ROCOCO_REFLECT(v, f32Field);
+		ROCOCO_REFLECT(v, f64Field);
+		ROCOCO_REFLECT(v, bField);
+		ROCOCO_REFLECT(v, lField);
 	}
 } s_TestStruct;
 

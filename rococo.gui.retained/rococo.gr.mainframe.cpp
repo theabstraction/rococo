@@ -6,18 +6,26 @@ namespace GRANON
 	using namespace Rococo;
 	using namespace Rococo::Gui;
 
-	struct GRMainFrame: IGRMainFrameSupervisor
+	struct GRMainFrame: IGRWidgetMainFrame, IGRMainFrame
 	{
 		cstr name;
 		IGRPanel& panel;
 		IGRWidgetDivision* titleBar = nullptr;
 		IGRWidgetMenuBar* menuBar = nullptr;
 		IGRWidgetToolbar* rhsTools = nullptr;
-
+		IGRWidgetDivision* clientArea = nullptr;
 
 		GRMainFrame(cstr _name, IGRPanel& _panel) : name(_name), panel(_panel)
 		{
 			
+		}
+
+		void PostConstruct()
+		{
+			if (!clientArea)
+			{
+				clientArea = &CreateDivision(*this);
+			}
 		}
 
 		void Render(IGRRenderContext& g)
@@ -36,9 +44,12 @@ namespace GRANON
 			panel.SetParentOffset(TopLeft(screenDimensions));
 			panel.Resize(Span(screenDimensions));
 
+			int clientAreaTop = 0;
+
 			if (titleBar)
 			{
-				titleBar->Panel().Resize({ panel.Span().x, 30 });
+				clientAreaTop = 30;
+				titleBar->Panel().Resize({ panel.Span().x, clientAreaTop });
 			}
 
 			GRAnchorPadding onePixel{ 1, 1, 1, 1 };
@@ -66,6 +77,10 @@ namespace GRANON
 				rhsTools->Panel().SetPadding(onePixel);
 				// The rhsTools is a child of the title bar, so should be resized by the title bar
 			}
+
+			Vec2i frameSpan = Span(screenDimensions);
+			clientArea->Panel().Resize({ frameSpan.x, frameSpan.y - clientAreaTop });
+			clientArea->Panel().SetParentOffset({ 0, clientAreaTop });
 		}
 
 		EventRouting OnCursorClick(CursorEvent& ce) override
@@ -88,7 +103,12 @@ namespace GRANON
 			return panel;
 		}
 
-		IGRWidgetMenuBar& GetMenuBar() override
+		IGRWidgetDivision& ClientArea() override
+		{
+			return *clientArea;
+		}
+
+		IGRWidgetMenuBar& MenuBar() override
 		{
 			if (!titleBar)
 			{
@@ -103,7 +123,7 @@ namespace GRANON
 			return *menuBar;
 		}
 
-		IGRWidgetToolbar& GetTopRightHandSideTools() override
+		IGRWidgetToolbar& TopRightHandSideTools() override
 		{
 			if (!titleBar)
 			{
@@ -122,14 +142,21 @@ namespace GRANON
 		{			
 			return Vec2i{ 320, 200 };
 		}
+
+		IGRMainFrame& Frame() override
+		{
+			return *this;
+		}
 	};
 }
 
 namespace Rococo::Gui
 {
-	IGRMainFrameSupervisor* CreateGRMainFrame(cstr name, IGRPanel& panel)
+	IGRWidgetMainFrame* CreateGRMainFrame(cstr name, IGRPanel& panel)
 	{
-		return new GRANON::GRMainFrame(name, panel);
+		auto* frame = new GRANON::GRMainFrame(name, panel);
+		frame->PostConstruct();
+		return frame;
 	}
 
 	ROCOCO_GUI_RETAINED_API void DrawPanelBackground(IGRPanel& panel, IGRRenderContext& g)

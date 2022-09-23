@@ -6,6 +6,9 @@
 	<Type Name="GRANON::GRDivision">
 		<DisplayString>{{Division: {panel}}}</DisplayString>
 	</Type>
+	<Type Name="GRANON::GRVerticalList">
+		<DisplayString>{{VerticalList: {panel}}}</DisplayString>
+	</Type>
 	<Type Name="GRANON::GRMainFrame">
 		<DisplayString>{{Frame:'{name}'. {panel}}}</DisplayString>
 	</Type>
@@ -23,5 +26,11 @@
 	</Type>
 	<Type Name="Rococo::Gui::CursorClick">
 		<DisplayString>{{LD {LeftButtonDown}, LU {LeftButtonUp}, RD {RightButtonDown}, RU {RightButtonUp}, MD {MidButtonDown}, MU {MidButtonUp}, Wheel {MouseWheel}, Unk {Unknown}}}</DisplayString>
+	</Type>
+	<Type Name="Rococo::Gui::GRAnchors">
+		<DisplayString>{{Anchors L: {left}, R: {right}, T: {top}, B: {bottom}, XH: {expandsHorizontally}, XV: {expandsVertically}}}</DisplayString>
+	</Type>
+	<Type Name="Rococo::Gui::GRAnchorPadding">
+		<DisplayString>{{Padding L: {left}, R: {right}, T: {top}, B: {bottom}}}</DisplayString>
 	</Type>
 </AutoVisualizer>

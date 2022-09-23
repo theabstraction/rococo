@@ -12,7 +12,7 @@ using namespace Rococo::Gui;
 namespace Rococo::Gui
 {
 	IGRLayoutSupervisor* CreateFullScreenLayout();
-	IGRMainFrameSupervisor* CreateGRMainFrame(cstr name, IGRPanel& panel);
+	IGRWidgetMainFrame* CreateGRMainFrame(cstr name, IGRPanel& panel);
 	IGRPanelSupervisor* CreatePanel(IGRPanelRoot& root, IGRPanelSupervisor* parent);
 
 	bool operator == (const GuiRect& a, const GuiRect& b)
@@ -30,11 +30,12 @@ namespace ANON
 		AutoFree<ISchemeSupervisor> scheme = CreateScheme();
 		std::unordered_map<int64, IGRPanel*> mapIdToPanel;
 		int queryDepth = 0;
+		bool queueGarbageCollect = false;
 
 		struct FrameDesc
 		{
 			IGRPanelSupervisor* panel;
-			IGRMainFrameSupervisor* frame;
+			IGRWidgetMainFrame* frame;
 			std::string id;
 
 			bool Eq(IdWidget other) const
@@ -60,6 +61,11 @@ namespace ANON
 			}
 		}
 
+		void QueueGarbageCollect() override
+		{
+			queueGarbageCollect = true;
+		}
+
 		IGRWidget* FindWidget(int64 panelId)
 		{
 			auto i = mapIdToPanel.find(panelId);
@@ -80,7 +86,7 @@ namespace ANON
 		{
 			if (queryDepth > 0)
 			{
-				custodian.RaiseError(GRErrorCode::RecursionLocked, __FUNCTION__, "The GUI Retained API is locked for a recursive query. BindFrame cannot be executed at this time");
+				custodian.RaiseError(GRErrorCode::RecursionLocked, __FUNCTION__, "The GUI Retained API is locked for a recursive query. BindFrame cannot be executed here");
 				IGRMainFrame* frame = nullptr;
 				return *frame;
 			}
@@ -103,14 +109,14 @@ namespace ANON
 			last.frame = newFrame;
 
 			mapIdToPanel.try_emplace(newFramePanel->Id(), newFramePanel);
-			return *newFrame;
+			return newFrame->Frame();
 		}
 
 		void DeleteFrame(IdWidget id) override
 		{
 			if (queryDepth > 0)
 			{
-				custodian.RaiseError(GRErrorCode::RecursionLocked, __FUNCTION__, "The GUI Retained API is locked for a recursive query. FrameDelete cannot be executed at this time");
+				custodian.RaiseError(GRErrorCode::RecursionLocked, __FUNCTION__, "The GUI Retained API is locked for a recursive query. FrameDelete cannot be executed here");
 				return;
 			}
 
@@ -132,9 +138,9 @@ namespace ANON
 		{
 			for (auto& d : frameDescriptors)
 			{
-				if (d.Eq(id) == 0)
+				if (d.Eq(id))
 				{
-					return d.frame;
+					return &d.frame->Frame();
 				}
 			}
 
@@ -168,8 +174,29 @@ namespace ANON
 			}
 		}
 
+		void GarbageCollect() override
+		{
+			if (queryDepth > 0)
+			{
+				custodian.RaiseError(GRErrorCode::RecursionLocked, __FUNCTION__, "The GUI Retained API is locked for a recursive query. GarbageCollect cannot be executed here");
+				IGRMainFrame* frame = nullptr;
+			}
+
+			RecursionGuard guard(*this);
+			for (auto& d : frameDescriptors)
+			{
+				d.panel->GarbageCollectRecursive();
+			}
+		}
+
 		void RenderGui(IGRRenderContext& g) override
 		{
+			if (queueGarbageCollect)
+			{
+				GarbageCollect();
+				queueGarbageCollect = false;
+			}
+
 			for (auto& d : frameDescriptors)
 			{
 				auto screenDimensions = g.ScreenDimensions();
@@ -346,5 +373,63 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API IGuiRetainedSupervisor* CreateGuiRetained(GRConfig& config, IGRCustodian& custodian)
 	{
 		return new ANON::GuiRetained(config, custodian);
+	}
+
+	ROCOCO_GUI_RETAINED_API GRAnchors GRAnchors::Left()
+	{
+		GRAnchors a;
+		a.left = true;
+		return a;
+	}
+
+	ROCOCO_GUI_RETAINED_API GRAnchors GRAnchors::LeftAndRight()
+	{
+		GRAnchors a;
+		a.left = true;
+		a.right = true;
+		return a;
+	}
+
+	ROCOCO_GUI_RETAINED_API GRAnchors GRAnchors::Right()
+	{
+		GRAnchors a;
+		a.right = true;
+		return a;
+	}
+
+	ROCOCO_GUI_RETAINED_API GRAnchors GRAnchors::Top()
+	{
+		GRAnchors a;
+		a.top = true;
+		return a;
+	}
+
+	ROCOCO_GUI_RETAINED_API GRAnchors GRAnchors::Bottom()
+	{
+		GRAnchors a;
+		a.bottom = true;
+		return a;
+	}
+
+	ROCOCO_GUI_RETAINED_API GRAnchors GRAnchors::TopAndBottom()
+	{
+		GRAnchors a;
+		a.top = true;
+		a.bottom = true;
+		return a;
+	}
+
+	ROCOCO_GUI_RETAINED_API GRAnchors GRAnchors::ExpandVertically()
+	{
+		GRAnchors a;
+		a.expandsVertically = true;
+		return a;
+	}
+
+	ROCOCO_GUI_RETAINED_API GRAnchors GRAnchors::ExpandHorizontally()
+	{
+		GRAnchors a;
+		a.expandsHorizontally = true;
+		return a;
 	}
 }

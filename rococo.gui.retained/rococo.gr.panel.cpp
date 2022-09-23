@@ -21,6 +21,7 @@ namespace GRANON
 		GuiRect absRect{ 0,0,0,0 };
 		GRAnchors anchors = { 0 };
 		GRAnchorPadding padding = { 0 };
+		bool isMarkedForDeletion = false;
 
 		GRPanel(IGRPanelRoot& _root, IGRPanelSupervisor* _parent): root(_root), parent(_parent), uniqueId(nextId++)
 		{
@@ -33,14 +34,35 @@ namespace GRANON
 			ClearChildren();
 		}
 
+		void MarkForDelete() override
+		{
+			isMarkedForDeletion = true;
+			root.QueueGarbageCollect();
+		}
+
+		bool IsMarkedForDeletion() const override
+		{
+			return isMarkedForDeletion;
+		}
+
 		GRAnchors Anchors() override
 		{
 			return anchors;
 		}
 
-		void SetAnchors(GRAnchors anchors) override
+		IGRPanel& Add(GRAnchors anchors) override
+		{
+			static_assert(sizeof GRAnchors == sizeof uint32);
+			uint32& uThisAnchor = reinterpret_cast<uint32&>(this->anchors);
+			uint32& uArgAnchor = reinterpret_cast<uint32&>(anchors);
+			uThisAnchor = uThisAnchor | uArgAnchor;
+			return *this;
+		}
+
+		IGRPanel& SetAnchors(GRAnchors anchors) override
 		{
 			this->anchors = anchors;
+			return *this;
 		}
 
 		GRAnchorPadding Padding() override
@@ -48,9 +70,10 @@ namespace GRANON
 			return padding;
 		}
 
-		void SetPadding(GRAnchorPadding padding) override
+		IGRPanel& SetPadding(GRAnchorPadding padding) override
 		{
 			this->padding = padding;
+			return *this;
 		}
 
 		IGRPanel* GetChild(int32 index)
@@ -128,6 +151,49 @@ namespace GRANON
 			}
 
 			return parent->NotifyAncestors(event, sourceWidget);
+		}
+
+		void GarbageCollectRecursive()
+		{
+			bool removeMarkedChildren = false;
+
+			if (isMarkedForDeletion)
+			{
+				for (auto* child : children)
+				{
+					child->Free();
+				}
+				children.clear();
+				return;
+			}
+
+			for (auto* child : children)
+			{
+				child->GarbageCollectRecursive();
+				if (child->IsMarkedForDeletion())
+				{
+					removeMarkedChildren = true;
+				}
+			}
+
+			if (removeMarkedChildren)
+			{
+				std::vector<IGRPanelSupervisor*> newChildren;
+				for (auto* child : children)
+				{
+					if (child->IsMarkedForDeletion())
+					{
+						child->Free();
+					}
+					else
+					{
+						newChildren.push_back(child);
+					}
+				}
+
+				children.clear();
+				children.swap(newChildren);
+			}
 		}
 
 		IGRPanel& AddChild()
