@@ -20,7 +20,7 @@ namespace GRANON
 
 		bool IsCollapsed() const
 		{
-			return collapseButton ? collapseButton->GetButtonFlags().isRaised : false;
+			return collapseButton ? !collapseButton->GetButtonFlags().isRaised : false;
 		}
 
 		IGRWidgetDivision& ClientArea() override
@@ -42,6 +42,7 @@ namespace GRANON
 			collapseButton->SetRaisedImagePath("$(COLLAPSER_COLLAPSE)");
 			collapseButton->SetPressedImagePath("$(COLLAPSER_EXPAND)");
 			collapseButton->SetEventPolicy(GREventPolicy::NotifyAncestors);
+			collapseButton->MakeToggleButton();
 		}
 
 		void Free() override

@@ -387,6 +387,8 @@ namespace Rococo::Gui
 		virtual ControlMetaData GetMetaData() = 0;
 
 		virtual ButtonFlags GetButtonFlags() const = 0;
+
+		virtual void MakeToggleButton() = 0;
 	};
 
 	struct GRMenuButtonItem

@@ -353,11 +353,10 @@ namespace ANON
 
 			ClearFrame(*frame);
 
-			auto& clientArea = frame->ClientArea();
-
-			auto& listCollapser = CreateCollapser(clientArea);
+			auto& listCollapser = CreateCollapser(frame->ClientArea());
 			auto& list = CreateVerticalList(listCollapser.ClientArea());
 			listCollapser.Panel().Resize({ 240, 0 }).Add(GRAnchors::Left()).Add(GRAnchors::TopAndBottom()).Add(GRAnchors::ExpandVertically());
+			list.Panel().Add(GRAnchors::LeftAndRight()).Add(GRAnchors::TopAndBottom()).Add(GRAnchors::ExpandVertically()).Add(GRAnchors::ExpandHorizontally());
 			listCollapser.Panel().Set(ESchemeColourSurface::TEXT, RGBAb(224, 224, 224, 255)).Set(ESchemeColourSurface::TEXT_HOVERED, RGBAb(255, 255, 255, 255));
 
 			auto* node = previewer.root;

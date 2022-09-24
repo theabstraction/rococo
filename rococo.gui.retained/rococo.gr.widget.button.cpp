@@ -70,14 +70,26 @@ namespace GRANON
 		{
 			if (ce.click.LeftButtonDown)
 			{
-				isRaised = false;
-
 				if (clickCriterion == GRClickCriterion::OnDown)
 				{
+					if (isToggler)
+					{
+						isRaised = !isRaised;
+					}
+					else
+					{
+						isRaised = false;
+					}
+
 					FireEvent(ce);
 				}
 				else if (clickCriterion == GRClickCriterion::OnDownThenUp)
 				{
+					if (!isToggler)
+					{
+						isRaised = false;
+					}
+
 					panel.CaptureCursor();
 				}
 				return EventRouting::Terminate;
@@ -86,11 +98,28 @@ namespace GRANON
 			{
 				if (clickCriterion == GRClickCriterion::OnUp)
 				{
+					if (isToggler)
+					{
+						isRaised = !isRaised;
+					}
+					else
+					{
+						isRaised = true;
+					}
+
 					FireEvent(ce);
 				}
-
-				if (!isRaised && clickCriterion == GRClickCriterion::OnDownThenUp)
+				else if (clickCriterion == GRClickCriterion::OnDownThenUp)
 				{
+					if (isToggler)
+					{
+						isRaised = !isRaised;
+					}
+					else
+					{
+						isRaised = true;
+					}
+
 					FireEvent(ce);
 
 					if (panel.Root().CapturedPanelId() == panel.Id())
@@ -98,8 +127,18 @@ namespace GRANON
 						panel.Root().ReleaseCursor();
 					}
 				}
+				else if (clickCriterion == GRClickCriterion::OnDown)
+				{
+					if (!isToggler)
+					{
+						isRaised = true;
+					}
+					else
+					{
+						FireEvent(ce);
+					}
+				}
 
-				isRaised = true;
 				return EventRouting::Terminate;
 			}
 
@@ -257,6 +296,13 @@ namespace GRANON
 			}
 
 			return panel.Root().Custodian().EvaluateMinimalSpan(GRFontId::MENU_FONT, fstring{ title.c_str(), (int32) title.length() }) + Vec2i { 2, 2 };
+		}
+
+		bool isToggler = false;
+
+		void MakeToggleButton() override
+		{
+			isToggler = true;
 		}
 	};
 

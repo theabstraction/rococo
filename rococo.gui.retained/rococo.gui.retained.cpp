@@ -290,6 +290,10 @@ namespace ANON
 					{
 						return widget->OnCursorClick(ev);
 					}
+					else
+					{
+						return EventRouting::Terminate;
+					}
 				}
 			}
 
