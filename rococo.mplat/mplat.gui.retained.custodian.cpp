@@ -175,8 +175,22 @@ namespace ANON
 			
 		}
 
-		IImageMemento* CreateImageMemento(cstr imagePath) override
+		IImageMemento* CreateImageMemento(cstr codedImagePath) override
 		{
+			cstr imagePath;
+			if (strstr(codedImagePath, "$(COLLAPSER_COLLAPSE)"))
+			{
+				imagePath = "!textures/toolbars/3rd-party/www.aha-soft.com/Forward.tiff";
+			}
+			else if (strstr(codedImagePath, "$(COLLAPSER_EXPAND)"))
+			{
+				imagePath = "!textures/toolbars/3rd-party/www.aha-soft.com/Down.tiff";
+			}
+			else
+			{
+				imagePath = codedImagePath;
+			}
+
 			return new MPlatImageMemento(imagePath, sysRenderer.Gui().SpriteBuilder());
 		}
 

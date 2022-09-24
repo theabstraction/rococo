@@ -309,11 +309,14 @@ namespace GRANON
 				return;
 			}
 
-			widget->Render(g);
-
-			for (auto* child : children)
+			if (span.x > 0 && span.y > 0)
 			{
-				child->RenderRecursive(g);
+				widget->Render(g);
+
+				for (auto* child : children)
+				{
+					child->RenderRecursive(g);
+				}
 			}
 		}
 

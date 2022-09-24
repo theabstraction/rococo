@@ -360,9 +360,17 @@ namespace Rococo::Gui
 		// Set what happens when the button is fired
 		virtual IGRWidgetButton& SetEventPolicy(GREventPolicy policy) = 0;
 
-		// Sets the image icon path for the button. It is up to the custodian to decide how to interpret the path as an image and how to render it
+		// Sets the image icon path for the button in the raised and pressed state. It is up to the custodian to decide how to interpret the path as an image and how to render it
 		// The custodian decides if/when to prioritize the image over the title
 		virtual IGRWidgetButton& SetImagePath(cstr imagePath) = 0;
+
+		// Sets the image icon path for the button in a raised state. It is up to the custodian to decide how to interpret the path as an image and how to render it
+		// The custodian decides if/when to prioritize the image over the title.
+		virtual IGRWidgetButton& SetRaisedImagePath(cstr imagePath) = 0;
+
+		// Sets the image icon path for the button in a pressed state. It is up to the custodian to decide how to interpret the path as an image and how to render it
+		// The custodian decides if/when to prioritize the image over the title.
+		virtual IGRWidgetButton& SetPressedImagePath(cstr imagePath) = 0;
 
 		// Sets user meta data for the button
 		virtual IGRWidgetButton& SetMetaData(const ControlMetaData& metaData) = 0;
@@ -427,6 +435,14 @@ namespace Rococo::Gui
 	ROCOCO_INTERFACE IGRWidgetDivision : IGRWidget
 	{
 
+	};
+
+	ROCOCO_INTERFACE IGRWidgetCollapser : IGRWidget
+	{
+		virtual IGRWidgetDivision& ClientArea() = 0;
+
+		// The collapser button is on the left side, so it is recommended to right align any additions and give enough room for the collapser to work
+		virtual IGRWidgetDivision& TitleBar() = 0;
 	};
 
 	// The public api side of the main frame
@@ -544,6 +560,7 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API IGRWidgetButton& CreateMenuButton(IGRWidget& parent, bool forSubmenu = false);
 	ROCOCO_GUI_RETAINED_API IGRWidgetToolbar& CreateToolbar(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetText& CreateText(IGRWidget& parent);
+	ROCOCO_GUI_RETAINED_API IGRWidgetCollapser& CreateCollapser(IGRWidget& parent);
 
 	ROCOCO_GUI_RETAINED_API void DrawButton(IGRPanel& panel, bool focused, bool raised, IGRRenderContext& g);
 	ROCOCO_GUI_RETAINED_API void DrawMenuButton(IGRPanel& panel, bool focused, bool raised, IGRRenderContext& g);

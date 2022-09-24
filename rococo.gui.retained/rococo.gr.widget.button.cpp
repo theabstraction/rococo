@@ -17,8 +17,10 @@ namespace GRANON
 		bool isMenu = false;
 		bool forSubmenu = false;
 
-		std::string imagePath;
-		AutoFree<IImageMemento> image;
+		std::string raisedImagePath;
+		std::string pressedImagePath;
+		AutoFree<IImageMemento> raisedImage;
+		AutoFree<IImageMemento> pressedImage;
 
 		GRButton(IGRPanel& owningPanel) : panel(owningPanel)
 		{
@@ -134,6 +136,8 @@ namespace GRANON
 
 			bool imageRendered = false;
 
+			IImageMemento* image = isRaised ? raisedImage : pressedImage;
+
 			if (image)
 			{
 				imageRendered = image->Render(panel, alignment, spacing, g);
@@ -168,8 +172,24 @@ namespace GRANON
 
 		IGRWidgetButton& SetImagePath(cstr imagePath) override
 		{
-			this->imagePath = imagePath ? imagePath : std::string();
-			image = panel.Root().Custodian().CreateImageMemento(this->imagePath.c_str());
+			this->raisedImagePath = imagePath ? imagePath : std::string();
+			this->pressedImagePath = imagePath ? imagePath : std::string();
+			raisedImage = panel.Root().Custodian().CreateImageMemento(this->raisedImagePath.c_str());
+			pressedImage = panel.Root().Custodian().CreateImageMemento(this->pressedImagePath.c_str());
+			return *this;
+		}
+
+		IGRWidgetButton& SetPressedImagePath(cstr imagePath) override
+		{
+			this->pressedImagePath = imagePath ? imagePath : std::string();
+			pressedImage = panel.Root().Custodian().CreateImageMemento(this->pressedImagePath.c_str());
+			return *this;
+		}
+
+		IGRWidgetButton& SetRaisedImagePath(cstr imagePath) override
+		{
+			this->raisedImagePath = imagePath ? imagePath : std::string();
+			raisedImage = panel.Root().Custodian().CreateImageMemento(this->raisedImagePath.c_str());
 			return *this;
 		}
 
@@ -226,6 +246,7 @@ namespace GRANON
 
 		Vec2i EvaluateMinimalSpan() const override
 		{
+			const IImageMemento* image = isRaised ? raisedImage : pressedImage;
 			if (image)
 			{
 				return image->Span() + Vec2i{2,2};
