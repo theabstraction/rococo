@@ -15,6 +15,8 @@ namespace ANON
 	void BuildMenus(IGRMainFrame& frame)
 	{
 		auto& menu = frame.MenuBar();
+		menu.Panel().Set(ESchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(0, 0, 0, 0)).Set(ESchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, RGBAb(0, 0, 0, 0));
+
 		auto fileMenu = menu.AddSubMenu(GRMenuItemId::Root(), GRMenuSubMenu("File"));
 		auto editMenu = menu.AddSubMenu(GRMenuItemId::Root(), GRMenuSubMenu("Edit"));
 		auto viewMenu = menu.AddSubMenu(GRMenuItemId::Root(), GRMenuSubMenu("View"));
@@ -58,6 +60,14 @@ namespace ANON
 		menu.AddButton(helpMenu, { "Check for updates", { 0, nullptr } });
 		menu.AddButton(helpMenu, { "Version", { 0, nullptr } });
 		menu.AddButton(helpMenu, { "Purchase License", { 0, nullptr } });
+
+		auto& titleBar = *frame.MenuBar().Panel().Parent();
+		titleBar.Set(ESchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(0, 0, 0, 255)).Set(ESchemeColourSurface::CONTAINER_BACKGROUND_HOVERED, RGBAb(8, 8, 8, 255));
+		titleBar.Set(ESchemeColourSurface::MENU_BUTTON_RAISED, RGBAb(0, 0, 0, 255)).Set(ESchemeColourSurface::MENU_BUTTON_PRESSED, RGBAb(8, 8, 8, 255));
+		titleBar.Set(ESchemeColourSurface::BUTTON_RAISED, RGBAb(0, 0, 0, 255)).Set(ESchemeColourSurface::BUTTON_PRESSED, RGBAb(24, 24, 24, 255));
+		titleBar.Set(ESchemeColourSurface::BUTTON_RAISED_AND_HOVERED, RGBAb(32, 32, 32, 255)).Set(ESchemeColourSurface::BUTTON_PRESSED_AND_HOVERED, RGBAb(48, 48, 48, 255));
+		titleBar.Set(ESchemeColourSurface::MENU_BUTTON_RAISED_AND_HOVERED, RGBAb(16, 16, 16, 255)).Set(ESchemeColourSurface::MENU_BUTTON_PRESSED_AND_HOVERED, RGBAb(32, 32, 32, 255));
+		titleBar.Set(ESchemeColourSurface::IMAGE_FOG_HOVERED, RGBAb(0, 0, 0, 64)).Set(ESchemeColourSurface::IMAGE_FOG, RGBAb(0, 0, 0, 128));
 	}
 
 	void BuildUpperRightToolbar(IGRMainFrame& frame)
@@ -313,7 +323,7 @@ namespace ANON
 		void SyncUIToPreviewerRecursive(PreviewData& data, IGuiRetained& gr, IGRWidgetVerticalList& list, int32 depth)
 		{
 			list.Panel().Set(ESchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(48, 0, 0, 255));
-			list.Panel().Set(ESchemeColourSurface::CONTAINER_BACKGROUND_HOVERED, RGBAb(64, 0, 0, 255));
+			list.Panel().Set(ESchemeColourSurface::CONTAINER_BACKGROUND_HOVERED, RGBAb(50, 0, 0, 255));
 
 			for (auto& f : data.fields)
 			{

@@ -276,9 +276,9 @@ namespace GRANON
 					IGRPanel* newChildPanel = panel.GetChild(i);
 					if (newChildPanel)
 					{
-						newChildPanel->Resize({ largestMinimalSpan.x + 2 * BUTTON_X_PADDING, panel.Span().y });
+						newChildPanel->Resize({ largestMinimalSpan.x + 2 * BUTTON_X_PADDING, 24 });
 						newChildPanel->SetParentOffset(vertPos);
-						vertPos.y += panel.Span().y;
+						vertPos.y += 24;
 					}
 				}
 			}

@@ -130,17 +130,27 @@ namespace GRANON
 				DrawButton(panel, false, isRaised, g);
 			}
 
+			bool isHovered = g.IsHovered(panel);
+
 			bool imageRendered = false;
 
 			if (image)
 			{
 				imageRendered = image->Render(panel, alignment, spacing, g);
+				if (isRaised)
+				{
+					GuiRect fogRect = panel.AbsRect();
+					fogRect.left += 1;
+					fogRect.right -= 1;
+					fogRect.top += 1;
+					fogRect.bottom -= 1;
+					g.DrawRect(fogRect, panel.GetColour(isHovered ? ESchemeColourSurface::IMAGE_FOG_HOVERED : ESchemeColourSurface::IMAGE_FOG, RGBAb(0, 0, 0, 128)));
+				}
 			}
 
 			if (!imageRendered)
 			{
 				RGBAb colour = panel.GetColour(ESchemeColourSurface::BUTTON_TEXT);
-				bool isHovered = g.IsHovered(panel);
 				colour.alpha = isHovered ? colour.alpha : 3 * (colour.alpha / 4);
 				DrawButtonText(panel, alignment, spacing, { title.c_str(), (int32)title.size() }, colour, g);
 			}
@@ -269,7 +279,7 @@ namespace Rococo::Gui
 			surface = raised ? ESchemeColourSurface::BUTTON_RAISED : ESchemeColourSurface::BUTTON_PRESSED;
 		}
 
-		RGBAb colour = panel.Root().Scheme().GetColour(surface);
+		RGBAb colour = panel.GetColour(surface);
 		g.DrawRect(panel.AbsRect(), colour);
 
 		ESchemeColourSurface topLeftEdge;
@@ -278,8 +288,8 @@ namespace Rococo::Gui
 		topLeftEdge = raised ? ESchemeColourSurface::BUTTON_EDGE_TOP_LEFT : ESchemeColourSurface::BUTTON_EDGE_TOP_LEFT_PRESSED;
 		bottomRightEdge = raised ? ESchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT : ESchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT_PRESSED;
 
-		RGBAb colour1 = panel.Root().Scheme().GetColour(topLeftEdge);
-		RGBAb colour2 = panel.Root().Scheme().GetColour(bottomRightEdge);
+		RGBAb colour1 = panel.GetColour(topLeftEdge);
+		RGBAb colour2 = panel.GetColour(bottomRightEdge);
 
 		g.DrawRectEdge(panel.AbsRect(), colour1, colour2);
 	}
@@ -298,7 +308,7 @@ namespace Rococo::Gui
 			surface = raised ? ESchemeColourSurface::MENU_BUTTON_RAISED : ESchemeColourSurface::MENU_BUTTON_PRESSED;
 		}
 
-		RGBAb colour = panel.Root().Scheme().GetColour(surface);
+		RGBAb colour = panel.GetColour(surface);
 		g.DrawRect(panel.AbsRect(), colour);
 
 		ESchemeColourSurface topLeftEdge;
@@ -307,8 +317,8 @@ namespace Rococo::Gui
 		topLeftEdge = raised ? ESchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT : ESchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT_PRESSED;
 		bottomRightEdge = raised ? ESchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT : ESchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT_PRESSED;
 
-		RGBAb colour1 = panel.Root().Scheme().GetColour(topLeftEdge);
-		RGBAb colour2 = panel.Root().Scheme().GetColour(bottomRightEdge);
+		RGBAb colour1 = panel.GetColour(topLeftEdge);
+		RGBAb colour2 = panel.GetColour(bottomRightEdge);
 
 		g.DrawRectEdge(panel.AbsRect(), colour1, colour2);
 	}

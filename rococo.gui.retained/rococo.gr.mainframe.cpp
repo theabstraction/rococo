@@ -158,7 +158,7 @@ namespace Rococo::Gui
 
 	ROCOCO_GUI_RETAINED_API void DrawPanelBackground(IGRPanel& panel, IGRRenderContext& g)
 	{
-		RGBAb colour = panel.Root().Scheme().GetColour(ESchemeColourSurface::BACKGROUND);
+		RGBAb colour = panel.GetColour(ESchemeColourSurface::BACKGROUND);
 		g.DrawRect(panel.AbsRect(), colour);
 	}
 }

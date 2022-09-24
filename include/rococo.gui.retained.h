@@ -146,7 +146,9 @@ namespace Rococo::Gui
 		SCROLLER_BUTTON_TOP_LEFT_HOVERED,
 		SCROLLER_BUTTON_BOTTOM_RIGHT_HOVERED,
 		TEXT,
-		TEXT_HOVERED
+		TEXT_HOVERED,
+		IMAGE_FOG, // Colour, typically with mid alpha values that fogs out an image when it is not activated
+		IMAGE_FOG_HOVERED // Colour, typically with mid alpha values that fogs out an image when it is hovered but not activated
 	};
 
 	ROCOCO_INTERFACE IScheme
@@ -238,8 +240,8 @@ namespace Rococo::Gui
 		// Typically called after a widget resize when the parent need not ask the child to resize itself
 		virtual void ConfirmLayout() = 0;
 
-		// Enumerate the panel and its ancestors for a colour, if none found returns bright red.
-		virtual RGBAb GetColour(ESchemeColourSurface surface) const = 0;
+		// Enumerate the panel and its ancestors for a colour, if none found returns the second argument (which defaults to bright red).
+		virtual RGBAb GetColour(ESchemeColourSurface surface, RGBAb defaultColour = RGBAb(255,0,0,255)) const = 0;
 
 		// Enumerate the panel and its ancestors for a colour
 		virtual bool TryGetColour(ESchemeColourSurface surface, RGBAb& colour) const = 0;

@@ -204,12 +204,12 @@ namespace GRANON
 			return* child;
 		}
 
-		RGBAb GetColour(ESchemeColourSurface surface) const override
+		RGBAb GetColour(ESchemeColourSurface surface, RGBAb defaultColour) const override
 		{
 			RGBAb result;
 			if (!TryGetColour(surface, result))
 			{
-				return RGBAb(255, 0, 0, 255);
+				return defaultColour;
 			}
 			return result;
 		}
