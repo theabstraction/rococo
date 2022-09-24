@@ -167,6 +167,7 @@
     <ClCompile Include="rococo.gr.menubar.cpp" />
     <ClCompile Include="rococo.gr.panel.cpp" />
     <ClCompile Include="rococo.gr.scheme.cpp" />
+    <ClCompile Include="rococo.gr.text.cpp" />
     <ClCompile Include="rococo.gr.toolbar.cpp" />
     <ClCompile Include="rococo.gr.vertical-list.cpp" />
     <ClCompile Include="rococo.gr.vertical.scroller.cpp" />

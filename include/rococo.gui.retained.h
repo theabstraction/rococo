@@ -145,12 +145,15 @@ namespace Rococo::Gui
 		SCROLLER_BUTTON_BACKGROUND_HOVERED,
 		SCROLLER_BUTTON_TOP_LEFT_HOVERED,
 		SCROLLER_BUTTON_BOTTOM_RIGHT_HOVERED,
+		TEXT,
+		TEXT_HOVERED
 	};
 
 	ROCOCO_INTERFACE IScheme
 	{
-		virtual RGBAb GetColour(ESchemeColourSurface surface) = 0;
+		virtual RGBAb GetColour(ESchemeColourSurface surface) const = 0;
 		virtual void SetColour(ESchemeColourSurface surface, RGBAb colour) = 0;
+		virtual bool TryGetColour(ESchemeColourSurface surface, RGBAb& colour) const = 0;
 	};
 
 	ROCOCO_INTERFACE ISchemeSupervisor : IScheme
@@ -234,6 +237,16 @@ namespace Rococo::Gui
 	{
 		// Typically called after a widget resize when the parent need not ask the child to resize itself
 		virtual void ConfirmLayout() = 0;
+
+		// Enumerate the panel and its ancestors for a colour, if none found returns bright red.
+		virtual RGBAb GetColour(ESchemeColourSurface surface) const = 0;
+
+		// Enumerate the panel and its ancestors for a colour
+		virtual bool TryGetColour(ESchemeColourSurface surface, RGBAb& colour) const = 0;
+
+		// Creates a local visual scheme if one does not exist, then maps a colour to the local scheme.
+		virtual IGRPanel& Set(ESchemeColourSurface surface, RGBAb colour) = 0;
+
 		virtual void MarkForDelete() = 0;
 		virtual bool IsMarkedForDeletion() const = 0;
 		virtual IGRPanel* Parent() = 0;
@@ -244,7 +257,7 @@ namespace Rococo::Gui
 		virtual IGRPanel* GetChild(int32 index) = 0;
 		virtual Vec2i Span() const = 0;
 		virtual Vec2i ParentOffset() const = 0;
-		virtual IGRPanelRoot& Root() = 0;
+		virtual IGRPanelRoot& Root() const = 0;
 		virtual IGRPanel& AddChild() = 0;
 		// If callback is not null then is invoked for each child. The number of children is returned
 		virtual int32 EnumerateChildren(IEventCallback<IGRPanel>* callback) = 0;
@@ -253,9 +266,9 @@ namespace Rococo::Gui
 		virtual void CaptureCursor() = 0;
 		virtual GRAnchors Anchors() = 0;
 		virtual GRAnchorPadding Padding() = 0;
-		virtual IGRPanel& SetAnchors(GRAnchors anchors) = 0;
+		virtual IGRPanel& Set(GRAnchors anchors) = 0;
 		virtual IGRPanel& Add(GRAnchors anchors) = 0;
-		virtual IGRPanel& SetPadding(GRAnchorPadding padding) = 0;
+		virtual IGRPanel& Set(GRAnchorPadding padding) = 0;
 
 		// Indicates that the layout needs to be recomputed
 		virtual void InvalidateLayout(bool invalidateAnscestors) = 0;
@@ -328,6 +341,13 @@ namespace Rococo::Gui
 		virtual bool Render(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, IGRRenderContext& rc) = 0;
 		virtual Vec2i Span() const = 0;
 		virtual void Free() = 0;
+	};
+
+	ROCOCO_INTERFACE IGRWidgetText : IGRWidget
+	{
+		virtual IGRWidgetText& SetAlignment(GRAlignmentFlags alignment, Vec2i spacing) = 0;
+		virtual IGRWidgetText& SetFont(GRFontId fontId) = 0;
+		virtual IGRWidgetText& SetText(cstr text) = 0;
 	};
 
 	ROCOCO_INTERFACE IGRWidgetButton : IGRWidget
@@ -521,6 +541,7 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API IGRWidgetMenuBar& CreateMenuBar(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetButton& CreateMenuButton(IGRWidget& parent, bool forSubmenu = false);
 	ROCOCO_GUI_RETAINED_API IGRWidgetToolbar& CreateToolbar(IGRWidget& parent);
+	ROCOCO_GUI_RETAINED_API IGRWidgetText& CreateText(IGRWidget& parent);
 
 	ROCOCO_GUI_RETAINED_API void DrawButton(IGRPanel& panel, bool focused, bool raised, IGRRenderContext& g);
 	ROCOCO_GUI_RETAINED_API void DrawMenuButton(IGRPanel& panel, bool focused, bool raised, IGRRenderContext& g);

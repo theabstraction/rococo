@@ -52,7 +52,7 @@ namespace GRANON
 				titleBar->Panel().Resize({ panel.Span().x, clientAreaTop });
 			}
 
-			GRAnchorPadding onePixel{ 1, 1, 1, 1 };
+			GRAnchorPadding paddingOnePixel{ 1, 1, 1, 1 };
 
 			if (menuBar)
 			{
@@ -61,8 +61,7 @@ namespace GRANON
 				menuAnchors.top = true;
 				menuAnchors.bottom = true;
 				menuAnchors.expandsVertically = true;
-				menuBar->Panel().SetAnchors(menuAnchors);
-				menuBar->Panel().SetPadding(onePixel);
+				menuBar->Panel().Set(menuAnchors).Set(paddingOnePixel);
 				// The menu bar is a child of the title bar, so should be resized by the title bar
 			}
 
@@ -73,14 +72,12 @@ namespace GRANON
 				rhsToolAnchors.top = true;
 				rhsToolAnchors.bottom = true;
 				rhsToolAnchors.expandsVertically = true;
-				rhsTools->Panel().SetAnchors(rhsToolAnchors);
-				rhsTools->Panel().SetPadding(onePixel);
+				rhsTools->Panel().Set(rhsToolAnchors).Set(paddingOnePixel);
 				// The rhsTools is a child of the title bar, so should be resized by the title bar
 			}
 
 			Vec2i frameSpan = Span(screenDimensions);
-			clientArea->Panel().Resize({ frameSpan.x, frameSpan.y - clientAreaTop });
-			clientArea->Panel().SetParentOffset({ 0, clientAreaTop });
+			clientArea->Panel().Resize({ frameSpan.x, frameSpan.y - clientAreaTop }).SetParentOffset({ 0, clientAreaTop });
 		}
 
 		EventRouting OnCursorClick(CursorEvent& ce) override

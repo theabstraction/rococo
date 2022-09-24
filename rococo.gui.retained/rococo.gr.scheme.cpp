@@ -15,7 +15,7 @@ namespace ANON
 			delete this;
 		}
 
-		RGBAb GetColour(ESchemeColourSurface surface) override
+		RGBAb GetColour(ESchemeColourSurface surface) const override
 		{
 			auto i = mapSurfaceToColour.find(surface);
 			return i != mapSurfaceToColour.end() ? i->second : RGBAb(0, 0, 0, 0);
@@ -24,6 +24,17 @@ namespace ANON
 		void SetColour(ESchemeColourSurface surface, RGBAb colour) override
 		{
 			mapSurfaceToColour[surface] = colour;
+		}
+
+		bool TryGetColour(ESchemeColourSurface surface, RGBAb& colour) const override
+		{
+			auto i = mapSurfaceToColour.find(surface);
+			if (i == mapSurfaceToColour.end())
+			{
+				return false;
+			}
+			colour = i->second;
+			return true;
 		}
 	};
 }
@@ -60,5 +71,6 @@ namespace Rococo::Gui
 		scheme.SetColour(ESchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(64, 64, 64, 255));
 		scheme.SetColour(ESchemeColourSurface::BUTTON_EDGE_TOP_LEFT_PRESSED, RGBAb(255, 255, 255, 255));
 		scheme.SetColour(ESchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT_PRESSED, RGBAb(224, 224, 224, 255));
+		scheme.SetColour(ESchemeColourSurface::BUTTON_TEXT, RGBAb(255, 255, 255, 255));
 	}
 }

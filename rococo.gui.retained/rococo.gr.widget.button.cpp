@@ -139,7 +139,10 @@ namespace GRANON
 
 			if (!imageRendered)
 			{
-				DrawButtonText(panel, alignment, spacing, { title.c_str(), (int32)title.size() }, RGBAb(255, 255, 255, 255), g);
+				RGBAb colour = panel.GetColour(ESchemeColourSurface::BUTTON_TEXT);
+				bool isHovered = g.IsHovered(panel);
+				colour.alpha = isHovered ? colour.alpha : 3 * (colour.alpha / 4);
+				DrawButtonText(panel, alignment, spacing, { title.c_str(), (int32)title.size() }, colour, g);
 			}
 		}
 

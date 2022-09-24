@@ -131,6 +131,34 @@ namespace ANON
 		PrimitiveVariant value;
 	};
 
+	void ToAscii(const PrimitiveVariant& variant, char* buffer, size_t capacity, int32 radix = 10)
+	{
+		switch (variant.type)
+		{
+		case PrimitiveType::I32:
+			_itoa_s(variant.primitive.int32Value, buffer, capacity, radix);
+			break;
+		case PrimitiveType::I64:
+			_i64toa_s(variant.primitive.int64Value, buffer, capacity, radix);
+			break;
+		case PrimitiveType::F32:
+			snprintf(buffer, capacity, "%f", variant.primitive.float32Value);
+			break;
+		case PrimitiveType::F64:
+			snprintf(buffer, capacity, "%lf", variant.primitive.float64Value);
+			break;
+		case PrimitiveType::BOOL:
+			snprintf(buffer, capacity, "%s", variant.primitive.boolValue ? "true" : "false");
+			break;
+		case PrimitiveType::OBJECT:
+			snprintf(buffer, capacity, "SUB_OBJECT");
+			break;
+		default:
+			snprintf(buffer, capacity, "UNKNOWN-TYPE");
+			break;
+		}
+	}
+
 	struct PreviewData
 	{
 		PreviewData(PreviewData* _parent): parent(_parent)
@@ -284,24 +312,27 @@ namespace ANON
 
 		void SyncUIToPreviewerRecursive(PreviewData& data, IGuiRetained& gr, IGRWidgetVerticalList& list, int32 depth)
 		{
+			list.Panel().Set(ESchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(48, 0, 0, 255));
+			list.Panel().Set(ESchemeColourSurface::CONTAINER_BACKGROUND_HOVERED, RGBAb(64, 0, 0, 255));
+
 			for (auto& f : data.fields)
 			{
 				auto& div = CreateDivision(list);
-				div.Panel().Resize({ 30, 30 });
+				div.Panel().Resize({ 30, 30 });				
 
-				GRAlignmentFlags buttonAlignment;
-				buttonAlignment.Add(GRAlignment::VCentre).Add(GRAlignment::Left);
-				auto& button = CreateButton(div).SetTitle(f.fieldName.c_str()).SetAlignment(buttonAlignment, {2,2});
-				button.Panel().Resize({ 100, 24 }).Add(GRAnchors::TopAndBottom()).Add(GRAnchors::ExpandVertically());
+				GRAlignmentFlags nameAlignment;
+				nameAlignment.Add(GRAlignment::VCentre).Add(GRAlignment::Left);
+				auto& nameText = CreateText(div).SetText(f.fieldName.c_str()).SetAlignment(nameAlignment, {2,2});
+				nameText.Panel().Resize({ 100, 24 }).Add(GRAnchors::TopAndBottom()).Add(GRAnchors::ExpandVertically()).Add(GRAnchors::Left()).Add(GRAnchors::ExpandHorizontally()).Set(GRAnchorPadding{ 4, 0, 0, 0 });
 
-				switch (f.value.type)
-				{
-				case PrimitiveType::I32:
-				{										
-				}
-				default:
-					break;
-				}
+				GRAlignmentFlags valueAlignment;
+				valueAlignment.Add(GRAlignment::VCentre).Add(GRAlignment::Right);
+				auto& valueText = CreateText(div).SetAlignment(valueAlignment, { 2,2 });
+				valueText.Panel().Resize({ 100, 24 }).Add(GRAnchors::TopAndBottom()).Add(GRAnchors::ExpandVertically()).Add(GRAnchors::Right()).Add(GRAnchors::ExpandHorizontally()).Set(GRAnchorPadding { 0, 4, 0, 0});
+
+				char buf[16];
+				ToAscii(f.value, buf, sizeof buf);
+				valueText.SetText(buf);
 			}
 		}
 
@@ -316,6 +347,7 @@ namespace ANON
 
 			auto& list = CreateVerticalList(clientArea);
 			list.Panel().Resize({ 240, 0 }).Add(GRAnchors::Left()).Add(GRAnchors::TopAndBottom()).Add(GRAnchors::ExpandVertically());
+			list.Panel().Set(ESchemeColourSurface::TEXT, RGBAb(224, 224, 224, 255)).Set(ESchemeColourSurface::TEXT_HOVERED, RGBAb(255, 255, 255, 255));
 
 			auto* node = previewer.root;
 			if (node) SyncUIToPreviewerRecursive(*node, gr, list, 0);

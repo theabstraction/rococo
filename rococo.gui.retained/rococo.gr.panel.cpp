@@ -22,6 +22,7 @@ namespace GRANON
 		GRAnchors anchors = { 0 };
 		GRAnchorPadding padding = { 0 };
 		bool isMarkedForDeletion = false;
+		AutoFree<ISchemeSupervisor> scheme;
 
 		GRPanel(IGRPanelRoot& _root, IGRPanelSupervisor* _parent): root(_root), parent(_parent), uniqueId(nextId++)
 		{
@@ -59,7 +60,7 @@ namespace GRANON
 			return *this;
 		}
 
-		IGRPanel& SetAnchors(GRAnchors anchors) override
+		IGRPanel& Set(GRAnchors anchors) override
 		{
 			this->anchors = anchors;
 			return *this;
@@ -70,7 +71,7 @@ namespace GRANON
 			return padding;
 		}
 
-		IGRPanel& SetPadding(GRAnchorPadding padding) override
+		IGRPanel& Set(GRAnchorPadding padding) override
 		{
 			this->padding = padding;
 			return *this;
@@ -153,7 +154,7 @@ namespace GRANON
 			return parent->NotifyAncestors(event, sourceWidget);
 		}
 
-		void GarbageCollectRecursive()
+		void GarbageCollectRecursive() override
 		{
 			bool removeMarkedChildren = false;
 
@@ -196,11 +197,49 @@ namespace GRANON
 			}
 		}
 
-		IGRPanel& AddChild()
+		IGRPanel& AddChild() override
 		{
 			auto* child = new GRPanel(root, this);
 			children.push_back(child);
 			return* child;
+		}
+
+		RGBAb GetColour(ESchemeColourSurface surface) const override
+		{
+			RGBAb result;
+			if (!TryGetColour(surface, result))
+			{
+				return RGBAb(255, 0, 0, 255);
+			}
+			return result;
+		}
+
+		bool TryGetColour(ESchemeColourSurface surface, RGBAb& colour) const override
+		{
+			if (scheme && scheme->TryGetColour(surface, colour))
+			{
+				return true;
+			}
+
+			if (parent)
+			{
+				return parent->TryGetColour(surface, colour);
+			}
+			else
+			{
+				return Root().Scheme().TryGetColour(surface, colour);
+			}
+		}
+
+		IGRPanel& Set(ESchemeColourSurface surface, RGBAb colour) override
+		{
+			if (!scheme)
+			{
+				scheme = CreateScheme();
+			}
+
+			scheme->SetColour(surface, colour);
+			return *this;
 		}
 
 		IGRPanel* Parent() override
@@ -278,7 +317,7 @@ namespace GRANON
 			}
 		}
 
-		IGRPanelRoot& Root() override
+		IGRPanelRoot& Root() const override
 		{
 			return root;
 		}
@@ -402,7 +441,7 @@ namespace Rococo::Gui
 			{
 				if (anchors.expandsHorizontally)
 				{
-					newSpan.x += parentDimensions.right - child.ParentOffset().x;
+					newSpan.x = parentDimensions.right - child.ParentOffset().x - padding.right;
 				}
 				else
 				{
