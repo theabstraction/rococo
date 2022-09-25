@@ -345,6 +345,7 @@ namespace GRANON
 				tree.Deactivate();
 				panel.InvalidateLayout(true);
 				isDirty = true;
+				panel.Root().ReleaseCursor();
 				return EventRouting::Terminate;
 			}
 			else
