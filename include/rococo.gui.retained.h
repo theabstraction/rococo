@@ -37,6 +37,12 @@ namespace Rococo::Gui
 		const int64 eventId;
 		const CursorClick click;
 	};
+
+	struct KeyEvent
+	{
+		IGREventHistory& history;
+		const int64 eventId;
+	};
 #pragma pack(pop)
 
 	struct IdWidget
@@ -275,6 +281,9 @@ namespace Rococo::Gui
 		// Indicates that the layout needs to be recomputed
 		virtual void InvalidateLayout(bool invalidateAnscestors) = 0;
 		virtual bool RequiresLayout() const = 0;
+
+		virtual void Focus() = 0;
+		virtual bool HasFocus() const = 0;
 	};
 
 	ROCOCO_INTERFACE IGRPanelSupervisor : IGRPanel
@@ -301,6 +310,7 @@ namespace Rococo::Gui
 		virtual EventRouting OnChildEvent(WidgetEvent& widgetEvent, IGRWidget& sourceWidget) = 0;
 		virtual EventRouting OnCursorClick(CursorEvent& ce) = 0;
 		virtual EventRouting OnCursorMove(CursorEvent& ce) = 0;
+		virtual EventRouting OnKeyEvent(KeyEvent& keyEvent) = 0;
 		virtual IGRPanel& Panel() = 0;
 		virtual void Render(IGRRenderContext& g) = 0;
 		virtual void Free() = 0;
@@ -502,8 +512,14 @@ namespace Rococo::Gui
 		// Returns true if the retained GUI is visible and there are frames to show, otherwise false
 		virtual bool IsVisible() const = 0;
 
-		virtual EventRouting RouteCursorClickEvent(CursorEvent& ev) = 0;
-		virtual EventRouting RouteCursorMoveEvent(CursorEvent& ev) = 0;
+		virtual int64 GetFocusId() const = 0;
+
+		// Sets the keyboard focus to the id of a panel.
+		virtual void SetFocus(int64 id = -1);
+
+		virtual EventRouting RouteCursorClickEvent(CursorEvent& mouseEvent) = 0;
+		virtual EventRouting RouteCursorMoveEvent(CursorEvent& mouseEvent) = 0;
+		virtual EventRouting RouteKeyEvent(KeyEvent& keyEvent) = 0;
 	};
 
 	ROCOCO_INTERFACE IGuiRetainedSupervisor : IGuiRetained
@@ -533,10 +549,25 @@ namespace Rococo::Gui
 
 	};
 
+	ROCOCO_INTERFACE IGRWidgetEditBox : IGRWidget
+	{
+		// Returns length of the internal storage, which includes space for the trailing nul character. Never returns < 2, i.e there is always space for one character and a trailing nul
+		virtual size_t GetCapacity() const = 0;
+		virtual IGRWidgetEditBox& SetAlignment(GRAlignmentFlags alignment, Vec2i spacing) = 0;
+		virtual IGRWidgetEditBox& SetFont(GRFontId fontId) = 0;
+		virtual IGRWidgetEditBox& SetReadOnly(bool isReadOnly) = 0;
+
+		// Assigns a string to internal storage, truncating if needs be. If null is passed it is treated as an empty string
+		virtual IGRWidgetEditBox& SetText(cstr argText) = 0;
+
+		// Copies the text to the buffer, truncating if needs be. Returns the length of the internal representation, which includes the trailing nul character. Never returns < 1.
+		virtual int32 GetTextAndLength(char* buffer, int32 receiveCapacity) = 0;
+	};
+
 	ROCOCO_INTERFACE IGRCustodian
 	{
 		// The caller will grab the reference to the memento and is responsible for calling IImageMemento->Free() when the memento is no longer used.
-		virtual IImageMemento *CreateImageMemento(cstr imagePath) = 0;
+		virtual IImageMemento* CreateImageMemento(cstr imagePath) = 0;
 		virtual Vec2i EvaluateMinimalSpan(GRFontId fontId, const fstring & text) const = 0;
 		virtual EventRouting OnGREvent(WidgetEvent& ev) = 0;
 		virtual void RaiseError(GRErrorCode code, cstr function, cstr message) = 0;
@@ -552,6 +583,12 @@ namespace Rococo::Gui
 		int32 unused = 0;
 	};
 
+	enum class GRPaths: int32
+	{
+		// This matches Windows and Unix MAX_PATH.
+		MAX_FULL_PATH_LENGTH = 260
+	};
+
 	ROCOCO_GUI_RETAINED_API IGuiRetainedSupervisor* CreateGuiRetained(GRConfig& config, IGRCustodian& custodian);
 
 	ROCOCO_GUI_RETAINED_API IGRWidgetButton& CreateButton(IGRWidget& parent);
@@ -563,6 +600,7 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API IGRWidgetToolbar& CreateToolbar(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetText& CreateText(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetCollapser& CreateCollapser(IGRWidget& parent);
+	ROCOCO_GUI_RETAINED_API IGRWidgetEditBox& CreateEditBox(IGRWidget& parent, int32 capacity = (int32) GRPaths::MAX_FULL_PATH_LENGTH);
 
 	ROCOCO_GUI_RETAINED_API void DrawButton(IGRPanel& panel, bool focused, bool raised, IGRRenderContext& g);
 	ROCOCO_GUI_RETAINED_API void DrawMenuButton(IGRPanel& panel, bool focused, bool raised, IGRRenderContext& g);

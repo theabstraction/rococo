@@ -35,6 +35,16 @@ namespace GRANON
 			ClearChildren();
 		}
 
+		bool HasFocus() const override
+		{
+			return Root().GR().GetFocusId() == Id();
+		}
+
+		void Focus() override
+		{
+			Root().GR().SetFocus(Id());
+		}
+
 		void MarkForDelete() override
 		{
 			isMarkedForDeletion = true;

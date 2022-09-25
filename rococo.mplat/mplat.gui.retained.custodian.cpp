@@ -219,6 +219,12 @@ namespace ANON
 			history.push_back(&widget);
 		}
 
+		void RouteKeyboardEvent(const KeyboardEvent& key, IGuiRetained& gr) override
+		{
+			KeyEvent keyEvent{ *this, eventCount };
+			lastRoutingStatus = gr.RouteKeyEvent(keyEvent);
+		}
+
 		void RouteMouseEvent(const MouseEvent& me, IGuiRetained& gr) override
 		{
 			static_assert(sizeof CursorClick == sizeof uint16);

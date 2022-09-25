@@ -155,6 +155,11 @@ namespace GRANON
 			return EventRouting::NextHandler;
 		}
 
+		EventRouting OnKeyEvent(KeyEvent& keyEvent) override
+		{
+			return EventRouting::NextHandler;
+		}
+
 		IGRPanel& Panel() override
 		{
 			return panel;

@@ -50,6 +50,11 @@ namespace GRANON
 			return EventRouting::NextHandler;
 		}
 
+		EventRouting OnKeyEvent(KeyEvent& keyEvent) override
+		{
+			return EventRouting::NextHandler;
+		}
+
 		IGRPanel& Panel() override
 		{
 			return panel;
@@ -67,8 +72,6 @@ namespace GRANON
 			RGBAb edge1Colour = panel.GetColour(isHovered ? ESchemeColourSurface::CONTAINER_TOP_LEFT_HOVERED : ESchemeColourSurface::CONTAINER_TOP_LEFT);
 			RGBAb edge2Colour = panel.GetColour(isHovered ? ESchemeColourSurface::CONTAINER_BOTTOM_RIGHT_HOVERED : ESchemeColourSurface::CONTAINER_BOTTOM_RIGHT);
 			g.DrawRectEdge(rect, edge1Colour, edge2Colour);
-
-
 		}
 
 		EventRouting OnChildEvent(WidgetEvent& widgetEvent, IGRWidget& sourceWidget) override

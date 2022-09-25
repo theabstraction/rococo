@@ -211,6 +211,16 @@ namespace ANON
 				RecursionGuard guard(*this);
 				d.panel->RenderRecursive(g);
 			}
+
+			if (focusId >= 0)
+			{
+				auto* widget = FindWidget(focusId);
+				GuiRect rect = widget->Panel().AbsRect();
+				if (rect.right > rect.left && rect.bottom > rect.top)
+				{
+					g.DrawRectEdge(rect, RGBAb(255, 255, 255, 255), RGBAb(255, 255, 255, 255));
+				}
+			}
 		}
 
 		void MakeFirstToRender(IdWidget id) override
@@ -310,6 +320,7 @@ namespace ANON
 		}
 
 		int64 captureId = -1;
+		int64 focusId = -1;
 
 		void CaptureCursor(IGRPanel& panel) override
 		{
@@ -356,9 +367,37 @@ namespace ANON
 			return EventRouting::NextHandler;
 		}
 
+		EventRouting RouteKeyEvent(KeyEvent& keyEvent) override
+		{
+			RecursionGuard guard(*this);
+
+			if (focusId < 0)
+			{
+				return EventRouting::Terminate;
+			}
+
+			auto* widget = FindWidget(focusId);
+			if (!widget)
+			{
+				return EventRouting::Terminate;
+			}
+
+			return widget->OnKeyEvent(keyEvent);
+		}
+
 		IGRCustodian& Custodian() override
 		{
 			return custodian;
+		}
+
+		int64 GetFocusId() const override
+		{
+			return focusId;
+		}
+
+		void SetFocus(int64 id = -1) override
+		{
+			focusId = id;
 		}
 	};
 }

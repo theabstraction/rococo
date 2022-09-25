@@ -429,6 +429,11 @@ namespace GRANON
 			return EventRouting::Terminate;
 		}
 
+		EventRouting OnKeyEvent(KeyEvent& keyEvent) override
+		{
+			return EventRouting::NextHandler;
+		}
+
 		Vec2i EvaluateMinimalSpan() const override
 		{
 			return Vec2i{ 100, 24 };

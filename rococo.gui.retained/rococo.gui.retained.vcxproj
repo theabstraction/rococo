@@ -163,6 +163,7 @@
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="rococo.gr.collapser.cpp" />
     <ClCompile Include="rococo.gr.division.cpp" />
+    <ClCompile Include="rococo.gr.editbox.cpp" />
     <ClCompile Include="rococo.gr.layout.fullscreen.cpp" />
     <ClCompile Include="rococo.gr.mainframe.cpp" />
     <ClCompile Include="rococo.gr.menubar.cpp" />

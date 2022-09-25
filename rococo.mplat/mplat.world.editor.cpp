@@ -337,7 +337,7 @@ namespace ANON
 
 				GRAlignmentFlags valueAlignment;
 				valueAlignment.Add(GRAlignment::VCentre).Add(GRAlignment::Right);
-				auto& valueText = CreateText(div).SetAlignment(valueAlignment, { 2,2 });
+				auto& valueText = CreateEditBox(div).SetAlignment(valueAlignment, { 2,2 });
 				valueText.Panel().Resize({ 100, 24 }).Add(GRAnchors::TopAndBottom()).Add(GRAnchors::ExpandVertically()).Add(GRAnchors::Right()).Add(GRAnchors::ExpandHorizontally()).Set(GRAnchorPadding { 0, 4, 0, 0});
 
 				char buf[16];

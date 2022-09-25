@@ -583,6 +583,16 @@ namespace MHost
 
 		boolean32 GetNextKeyboardEvent(MHostKeyboardEvent& k) override
 		{
+			if (platform.GR.IsVisible())
+			{
+				KeyboardEvent keyEv;
+				while (platform.GR.IsVisible() && control.TryGetNextKeyboardEvent(keyEv))
+				{
+					platform.GR_Custodian.RouteKeyboardEvent(keyEv, platform.GR);
+				}
+				return false;
+			}
+
 			KeyboardEvent key;
 			if (control.TryGetNextKeyboardEvent(key))
 			{

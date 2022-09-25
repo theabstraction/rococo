@@ -40,6 +40,11 @@ namespace GRANON
 			return EventRouting::NextHandler;
 		}
 
+		EventRouting OnKeyEvent(KeyEvent& keyEvent) override
+		{
+			return EventRouting::NextHandler;
+		}
+
 		IGRPanel& Panel() override
 		{
 			return panel;
@@ -104,7 +109,7 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API IGRWidgetText& CreateText(IGRWidget& parent)
 	{
 		auto& gr = parent.Panel().Root().GR();
-		auto& div = static_cast<IGRWidgetText&>(gr.AddWidget(parent.Panel(), GRANON::s_TextFactory));
-		return div;
+		auto& t = static_cast<IGRWidgetText&>(gr.AddWidget(parent.Panel(), GRANON::s_TextFactory));
+		return t;
 	}
 }
