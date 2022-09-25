@@ -247,6 +247,7 @@
     <None Include="..\include\mplat.to.app.events.inl">
       <Filter>Header Files</Filter>
     </None>
+    <None Include="cpp.hint" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="mplat.sxh">

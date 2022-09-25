@@ -91,7 +91,7 @@ namespace ANON
 				return *frame;
 			}
 
-			IGRMainFrame* oldFrame = TryGetFrame(id);
+			IGRMainFrame* oldFrame = FindFrame(id);
 			if (oldFrame)
 			{
 				return *oldFrame;
@@ -134,7 +134,7 @@ namespace ANON
 			return *scheme;
 		}
 
-		IGRMainFrame* TryGetFrame(IdWidget id) override
+		IGRMainFrame* FindFrame(IdWidget id) override
 		{
 			for (auto& d : frameDescriptors)
 			{
@@ -218,7 +218,8 @@ namespace ANON
 				GuiRect rect = widget->Panel().AbsRect();
 				if (rect.right > rect.left && rect.bottom > rect.top)
 				{
-					g.DrawRectEdge(rect, RGBAb(255, 255, 255, 255), RGBAb(255, 255, 255, 255));
+					RGBAb colour = widget->Panel().GetColour(ESchemeColourSurface::FOCUS_RECTANGLE, RGBAb(255, 255, 255, 255));
+					g.DrawRectEdge(rect, colour, colour);
 				}
 			}
 		}

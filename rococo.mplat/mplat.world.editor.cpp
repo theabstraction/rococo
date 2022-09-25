@@ -338,7 +338,7 @@ namespace ANON
 				GRAlignmentFlags valueAlignment;
 				valueAlignment.Add(GRAlignment::VCentre).Add(GRAlignment::Right);
 				auto& valueText = CreateEditBox(div).SetAlignment(valueAlignment, { 2,2 });
-				valueText.Panel().Resize({ 100, 24 }).Add(GRAnchors::TopAndBottom()).Add(GRAnchors::ExpandVertically()).Add(GRAnchors::Right()).Add(GRAnchors::ExpandHorizontally()).Set(GRAnchorPadding { 0, 4, 0, 0});
+				valueText.Panel().SetParentOffset({ 100, 24 }).Add(GRAnchors::TopAndBottom()).Add(GRAnchors::ExpandVertically()).Add(GRAnchors::Right()).Add(GRAnchors::ExpandHorizontally()).Set(GRAnchorPadding { 0, 4, 0, 0});
 
 				char buf[16];
 				ToAscii(f.value, buf, sizeof buf);
@@ -348,10 +348,13 @@ namespace ANON
 
 		void SyncUIToPreviewer(IGuiRetained& gr) override
 		{
-			auto* frame = gr.TryGetFrame(IdWidget{ "MPlat-MainFrame" });
+			auto* frame = gr.FindFrame(IdWidget{ "MPlat-MainFrame" });
 			if (!frame) return;
 
 			ClearFrame(*frame);
+
+			frame->ClientArea().Panel().Set(ESchemeColourSurface::FOCUSED_EDITOR, RGBAb(0, 0, 0, 255));
+			frame->ClientArea().Panel().Set(ESchemeColourSurface::FOCUSED_EDITOR_HOVERED, RGBAb(16, 16, 16, 255));
 
 			auto& listCollapser = CreateCollapser(frame->ClientArea());
 			auto& list = CreateVerticalList(listCollapser.ClientArea());

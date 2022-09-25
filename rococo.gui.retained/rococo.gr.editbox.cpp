@@ -49,6 +49,18 @@ namespace GRANON
 		{
 			auto rect = panel.AbsRect();
 			bool isHovered = g.IsHovered(panel);
+			bool isFocused = panel.Id() == panel.Root().GR().GetFocusId();
+
+			if (isFocused)
+			{
+				rect.left += 1;
+				rect.top += 1;
+				rect.right -= 1;
+				rect.bottom -= 1;
+				ESchemeColourSurface surface = isHovered ? ESchemeColourSurface::FOCUSED_EDITOR_HOVERED : ESchemeColourSurface::FOCUSED_EDITOR;
+				RGBAb defaultColour = isHovered ? RGBAb(255, 255, 255, 255) : RGBAb(225, 225, 225, 225);
+				g.DrawRect(rect, panel.GetColour(surface, defaultColour));
+			}
 
 			if (text.size() > 0)
 			{

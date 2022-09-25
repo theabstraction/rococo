@@ -195,6 +195,7 @@
       <FileType>Document</FileType>
     </CustomBuild>
     <ClCompile Include="mplat.pane.base.cpp" />
+    <None Include="cpp.hint" />
   </ItemGroup>
   <ItemGroup>
     <Xml Include="components.xml" />

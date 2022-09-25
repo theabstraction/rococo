@@ -154,7 +154,10 @@ namespace Rococo::Gui
 		TEXT,
 		TEXT_HOVERED,
 		IMAGE_FOG, // Colour, typically with mid alpha values that fogs out an image when it is not activated
-		IMAGE_FOG_HOVERED // Colour, typically with mid alpha values that fogs out an image when it is hovered but not activated
+		IMAGE_FOG_HOVERED, // Colour, typically with mid alpha values that fogs out an image when it is hovered but not activated
+		FOCUSED_EDITOR_HOVERED, // Background colour for an edit box when it focused and hovered
+		FOCUSED_EDITOR, // Background colour for an edit box when it focused,
+		FOCUS_RECTANGLE // Edge colour for the focused widget
 	};
 
 	ROCOCO_INTERFACE IScheme
@@ -485,7 +488,7 @@ namespace Rococo::Gui
 		virtual void DeleteFrame(IdWidget id) = 0;
 
 		// Get a frame associated with an id. If none exist, null is returned
-		virtual IGRMainFrame* TryGetFrame(IdWidget id) = 0;
+		virtual IGRMainFrame* FindFrame(IdWidget id) = 0;
 
 		// Lower the frame so that it is the first to render.
 		virtual void MakeFirstToRender(IdWidget id) = 0;
