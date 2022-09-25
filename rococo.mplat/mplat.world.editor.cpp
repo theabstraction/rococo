@@ -336,7 +336,7 @@ namespace ANON
 				nameText.Panel().Resize({ 100, 24 }).Add(GRAnchors::TopAndBottom()).Add(GRAnchors::ExpandVertically()).Add(GRAnchors::Left()).Add(GRAnchors::ExpandHorizontally()).Set(GRAnchorPadding{ 4, 0, 0, 0 });
 
 				GRAlignmentFlags valueAlignment;
-				valueAlignment.Add(GRAlignment::VCentre).Add(GRAlignment::Right);
+				valueAlignment.Add(GRAlignment::VCentre).Add(GRAlignment::Left);
 				auto& valueText = CreateEditBox(div).SetAlignment(valueAlignment, { 2,2 });
 				valueText.Panel().SetParentOffset({ 100, 24 }).Add(GRAnchors::TopAndBottom()).Add(GRAnchors::ExpandVertically()).Add(GRAnchors::Right()).Add(GRAnchors::ExpandHorizontally()).Set(GRAnchorPadding { 0, 4, 0, 0});
 
@@ -361,6 +361,7 @@ namespace ANON
 			listCollapser.Panel().Resize({ 240, 0 }).Add(GRAnchors::Left()).Add(GRAnchors::TopAndBottom()).Add(GRAnchors::ExpandVertically());
 			list.Panel().Add(GRAnchors::LeftAndRight()).Add(GRAnchors::TopAndBottom()).Add(GRAnchors::ExpandVertically()).Add(GRAnchors::ExpandHorizontally());
 			listCollapser.Panel().Set(ESchemeColourSurface::TEXT, RGBAb(224, 224, 224, 255)).Set(ESchemeColourSurface::TEXT_HOVERED, RGBAb(255, 255, 255, 255));
+			listCollapser.Panel().Set(ESchemeColourSurface::EDIT_TEXT, RGBAb(224, 224, 224, 255)).Set(ESchemeColourSurface::EDIT_TEXT_HOVERED, RGBAb(255, 255, 255, 255));
 
 			auto* node = previewer.root;
 			if (node) SyncUIToPreviewerRecursive(*node, gr, list, 0);

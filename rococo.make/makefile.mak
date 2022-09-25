@@ -62,7 +62,7 @@ clean:
 	del /Q /S $(DIR_SEXY)NativeSource\*.pdb
 	del /Q /S $(DIR_SEXY)NativeSource\*.dll
 
-$(LIB_UTIL): $(UTIL)rococo.base.cpp $(UTIL)rococo.throw.cr_sex.cpp $(UTIL)rococo.strings.cpp $(UTIL)rococo.s-parser.helpers.cpp $(CPP_MASTER)
+$(LIB_UTIL): $(UTIL)rococo.base.cpp $(UTIL)rococo.throw.cr_sex.cpp $(UTIL)rococo.strings.cpp $(UTIL)rococo.s-parser.helpers.cpp $(UTIL)rococo.os.win32.cpp $(CPP_MASTER)
 	msbuild $(UTIL)rococo.util.vcxproj -p:Configuration=$(CONFIGURATION) -t:Build -p:Platform=x64 -m -verbosity:minimal
 	msbuild $(ROCOCO)rococo.3rd-party.sln -p:Configuration=$(CONFIGURATION) -t:Build -p:Platform=x64 -m -verbosity:minimal
 	msbuild $(ROCOCO)rococo.maths\rococo.maths.vcxproj -p:Configuration=$(CONFIGURATION) -t:Build -p:Platform=x64 -m -verbosity:minimal

@@ -6,6 +6,11 @@
 #define  ROCOCO_GUI_RETAINED_API __declspec(dllimport) 
 #endif
 
+namespace Rococo
+{
+	struct KeyboardEvent;
+}
+
 namespace Rococo::Gui
 {
 	struct IGRPanel;
@@ -42,6 +47,7 @@ namespace Rococo::Gui
 	{
 		IGREventHistory& history;
 		const int64 eventId;
+		const KeyboardEvent& osKeyEvent;
 	};
 #pragma pack(pop)
 
@@ -92,6 +98,12 @@ namespace Rococo::Gui
 			return *this;
 		}
 
+		GRAlignmentFlags& Remove(GRAlignment alignment)
+		{
+			alignmentFlags &= ~(int32)alignment;
+			return *this;
+		}
+
 		bool HasAllFlags(GRAlignment alignment) const
 		{
 			return (alignmentFlags & (int32)alignment) == (int32)alignment;
@@ -112,6 +124,7 @@ namespace Rococo::Gui
 
 		virtual void DrawRect(const GuiRect& absRect, RGBAb colour) = 0;
 		virtual void DrawRectEdge(const GuiRect& absRect, RGBAb colour1, RGBAb colour2) = 0;
+		virtual void DrawEditableText(GRFontId fontId, const GuiRect& clipRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, int32 caretPos, RGBAb colour) = 0;
 		virtual void DrawText(GRFontId fontId, const GuiRect& clipRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour) = 0;
 
 		virtual void EnableScissors(const GuiRect& scissorRect) = 0;
@@ -156,8 +169,10 @@ namespace Rococo::Gui
 		IMAGE_FOG, // Colour, typically with mid alpha values that fogs out an image when it is not activated
 		IMAGE_FOG_HOVERED, // Colour, typically with mid alpha values that fogs out an image when it is hovered but not activated
 		FOCUSED_EDITOR_HOVERED, // Background colour for an edit box when it focused and hovered
-		FOCUSED_EDITOR, // Background colour for an edit box when it focused,
-		FOCUS_RECTANGLE // Edge colour for the focused widget
+		FOCUSED_EDITOR, // Background colour for an edit box when it focused
+		FOCUS_RECTANGLE, // Edge colour for the focused widget
+		EDIT_TEXT_HOVERED, // Text colour when editor box is focused and hovered
+		EDIT_TEXT // Text colour when editor box is focused
 	};
 
 	ROCOCO_INTERFACE IScheme
@@ -561,16 +576,26 @@ namespace Rococo::Gui
 		virtual IGRWidgetEditBox& SetReadOnly(bool isReadOnly) = 0;
 
 		// Assigns a string to internal storage, truncating if needs be. If null is passed it is treated as an empty string
-		virtual IGRWidgetEditBox& SetText(cstr argText) = 0;
+		virtual void SetText(cstr argText) = 0;
 
 		// Copies the text to the buffer, truncating if needs be. Returns the length of the internal representation, which includes the trailing nul character. Never returns < 1.
-		virtual int32 GetTextAndLength(char* buffer, int32 receiveCapacity) = 0;
+		virtual int32 GetTextAndLength(char* buffer, int32 receiveCapacity) const = 0;
+	};
+
+	ROCOCO_INTERFACE IGREditorMicromanager
+	{
+		virtual void AddToCaretPos(int32 delta) = 0;
+		virtual void AppendChar(char c) = 0;
+		virtual void Backspace() = 0;
+		virtual void Return() = 0;
+		virtual int32 GetTextAndLength(char* buffer, int32 receiveCapacity) const = 0;
 	};
 
 	ROCOCO_INTERFACE IGRCustodian
 	{
 		// The caller will grab the reference to the memento and is responsible for calling IImageMemento->Free() when the memento is no longer used.
 		virtual IImageMemento* CreateImageMemento(cstr imagePath) = 0;
+		virtual void TranslateToEditor(const KeyEvent& keyEvent, IGREditorMicromanager& manager) = 0;
 		virtual Vec2i EvaluateMinimalSpan(GRFontId fontId, const fstring & text) const = 0;
 		virtual EventRouting OnGREvent(WidgetEvent& ev) = 0;
 		virtual void RaiseError(GRErrorCode code, cstr function, cstr message) = 0;

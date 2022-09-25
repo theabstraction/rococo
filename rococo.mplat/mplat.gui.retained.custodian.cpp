@@ -3,8 +3,12 @@
 #include <rococo.renderer.h>
 #include <rococo.maths.h>
 #include <rococo.ui.h>
+#include <rococo.fonts.hq.h>
 #include <rococo.textures.h>
+#include <rococo.os.h>
 #include <vector>
+#include <rococo.vkeys.win32.h>
+#include <rococo.os.h>
 
 using namespace Rococo;
 using namespace Rococo::Gui;
@@ -59,6 +63,73 @@ namespace ANON
 		void DrawRectEdge(const GuiRect& absRect, RGBAb colour1, RGBAb colour2) override
 		{
 			Rococo::Graphics::DrawBorderAround(*rc, absRect, Vec2i{ 1,1 }, colour1, colour2);
+		}
+
+		void DrawEditableText(GRFontId fontId, const GuiRect& clipRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, int32 caretPos, RGBAb colour)
+		{
+			// If there is nothing to display, then render a space character, which will give the caret a rectangle to work with
+			fstring editText = text.length > 0 ? text : " "_fstring;
+
+			alignment.Remove(GRAlignment::Right).Add(GRAlignment::Left);
+			int32 iAlignment = GRAlignment_To_RococoAlignment(alignment);
+
+			ID_FONT hqFontId;
+
+			switch (fontId)
+			{
+			case GRFontId::MENU_FONT:
+			default:
+				hqFontId = utils.GetHQFonts().GetSysFont(HQFont::MenuFont);
+				break;
+			}
+
+			auto& metrics = rc->Gui().HQFontsResources().GetFontMetrics(hqFontId);
+			
+			struct : IEventCallback<GlyphContext>
+			{
+				int32 charPos = 0;
+				int32 caretPos = 0;
+				int32 caretWidth = 0;
+				Vec2i caretStart = {0,0};
+				Vec2i caretEnd = { 0,0 };
+				Vec2i lastBottomRight = { 0,0 };
+
+				void OnEvent(GlyphContext& glyph) override
+				{
+					if (charPos == caretPos)
+					{
+						caretStart = BottomLeft(glyph.outputRect);
+						caretEnd = BottomRight(glyph.outputRect);
+					}
+
+					lastBottomRight = BottomRight(glyph.outputRect);
+
+					charPos++;
+				}
+			} glyphCallback;
+
+			glyphCallback.caretPos = caretPos;
+			glyphCallback.caretWidth = metrics.imgWidth;
+
+			Rococo::Graphics::RenderHQText(clipRect, iAlignment, *rc, hqFontId, editText, colour, &glyphCallback);
+
+			auto ticks = Rococo::OS::CpuTicks();
+			auto dticks = ticks % Rococo::OS::CpuHz();
+
+			float dt = dticks / (float)Rococo::OS::CpuHz();
+
+			if (glyphCallback.caretEnd.x <= glyphCallback.caretStart.x)
+			{
+				glyphCallback.caretStart = glyphCallback.lastBottomRight;
+				glyphCallback.caretEnd = glyphCallback.caretStart + Vec2i{ metrics.imgWidth, 0 };
+			}
+
+			RGBAb blinkColour = colour;
+			if (dt > 0.5f)
+			{
+				blinkColour.alpha = colour.alpha / 2;
+			}
+			Rococo::Graphics::DrawLine(*rc, 1, glyphCallback.caretStart, glyphCallback.caretEnd, blinkColour);
 		}
 
 		void DrawText(GRFontId fontId, const GuiRect& clipRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour) override
@@ -221,7 +292,7 @@ namespace ANON
 
 		void RouteKeyboardEvent(const KeyboardEvent& key, IGuiRetained& gr) override
 		{
-			KeyEvent keyEvent{ *this, eventCount };
+			KeyEvent keyEvent{ *this, eventCount, key };
 			lastRoutingStatus = gr.RouteKeyEvent(keyEvent);
 		}
 
@@ -268,6 +339,78 @@ namespace ANON
 			}
 
 			renderer.SetContext(nullptr);
+		}
+
+		std::vector<char> copyAndPasteBuffer;
+
+		void TranslateToEditor(const KeyEvent& keyEvent, IGREditorMicromanager& manager) override
+		{
+			if (!keyEvent.osKeyEvent.IsUp())
+			{
+				switch (keyEvent.osKeyEvent.VKey)
+				{
+				case IO::VKCode_BACKSPACE:
+					manager.Backspace();
+					return;
+				case IO::VKCode_ENTER:
+					manager.Return();
+					return;
+				case IO::VKCode_LEFT:
+					manager.AddToCaretPos(-1);
+					return;
+				case IO::VKCode_RIGHT:
+					manager.AddToCaretPos(1);
+					return;
+				case IO::VKCode_HOME:
+					manager.AddToCaretPos(-1048576);
+					return;
+				case IO::VKCode_END:
+					manager.AddToCaretPos(1048576);
+					return;
+				case IO::VKCode_C:
+					if (IO::IsKeyPressed(IO::VKCode_CTRL))
+					{
+						copyAndPasteBuffer.resize(manager.GetTextAndLength(nullptr, 0));
+						manager.GetTextAndLength(copyAndPasteBuffer.data(), (int32) copyAndPasteBuffer.size());
+						Rococo::OS::CopyStringToClipboard(copyAndPasteBuffer.data());
+						copyAndPasteBuffer.clear();
+						return;
+					}
+					else
+					{
+						break;
+					}
+				case IO::VKCode_V:
+					if (IO::IsKeyPressed(IO::VKCode_CTRL))
+					{
+						manager.GetTextAndLength(copyAndPasteBuffer.data(), (int32)copyAndPasteBuffer.size());
+
+						struct : IEventCallback<cstr>
+						{
+							IGREditorMicromanager* manager = nullptr;
+							void OnEvent(cstr text) override
+							{
+								for (cstr p = text; *p != 0; p++)
+								{
+									manager->AppendChar(*p);
+								}
+							}
+						} cb;
+						cb.manager = &manager;
+						Rococo::OS::PasteStringFromClipboard(cb);
+						return;
+					}
+					else
+					{
+						break;
+					}
+				}
+
+				if (keyEvent.osKeyEvent.unicode >= 32 && keyEvent.osKeyEvent.unicode <= 127)
+				{
+					manager.AppendChar((char)keyEvent.osKeyEvent.unicode);
+				}
+			}
 		}
 	};
 }

@@ -447,6 +447,29 @@ namespace
 
 namespace Rococo::OS
 {
+	void PasteStringFromClipboard(IEventCallback<cstr>& populator)
+	{
+		if (!OpenClipboard(nullptr))
+		{
+			OS::BeepWarning();
+		}
+		else
+		{
+			HANDLE hItem = GetClipboardData(CF_TEXT);
+			if (hItem != nullptr)
+			{
+				auto* pData = (const char*)GlobalLock(hItem);
+				if (pData)
+				{
+					populator.OnEvent(pData);
+					GlobalUnlock(hItem);
+				}
+			}
+
+			CloseClipboard();
+		}
+	}
+
 	void SetCursorVisibility(bool isVisible, Rococo::Windows::IWindow& captureWindow)
 	{
 		if (isVisible)
@@ -1789,12 +1812,30 @@ namespace Rococo
 			size_t len = strlen(text);
 
 			HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, len + 1);
-			memcpy(GlobalLock(hMem), text, len + 1);
+			if (!hMem)
+			{
+				return;
+			}
+
+			void* pBuffer = GlobalLock(hMem);
+
+			memcpy(pBuffer, text, len + 1);
 			GlobalUnlock(hMem);
-			OpenClipboard(0);
-			EmptyClipboard();
-			SetClipboardData(CF_TEXT, hMem);
-			CloseClipboard();
+
+			HANDLE hData = nullptr;
+
+			if (OpenClipboard(0))
+			{
+				if (EmptyClipboard())
+				{
+					hData = SetClipboardData(CF_TEXT, hMem);
+				}
+				CloseClipboard();
+			}
+			else
+			{
+				GlobalFree(hMem);
+			}
 		}
 
 		void BuildExceptionString(char* buffer, size_t capacity, IException& ex, bool appendStack)

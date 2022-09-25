@@ -14,6 +14,8 @@ namespace Rococo::OS
 		cstr rootName;
 	};
 
+	void PasteStringFromClipboard(IEventCallback<cstr>& populator);
+	void CopyStringToClipboard(cstr text);
 
 	// Gets a null terminated OS config string with lenBytes capacity. If not found, fills with the defaultValue. If organization is null the library default name is chosen 
 	void GetConfigVariable(char* textBuffer, size_t lenBytes, cstr defaultValue, ConfigSection section, ConfigRootName rootName, cstr organization = nullptr);

@@ -933,7 +933,7 @@ namespace Rococo
 			}
 		}
 
-		Vec2 RenderHQText(const GuiRect& clipRect, int32 alignment, IGuiRenderContext& grc, ID_FONT fontId, cstr text, RGBAb colour)
+		Vec2 RenderHQText(const GuiRect& clipRect, int32 alignment, IGuiRenderContext& grc, ID_FONT fontId, cstr text, RGBAb colour, IEventCallback<GlyphContext>* glyphCallback)
 		{
 			if (text == nullptr || *text == 0) return { 0,0 };
 
@@ -944,6 +944,7 @@ namespace Rococo
 				RGBAb colour;
 				Vec2 startPos;
 				GuiRectf lastRect = { 0,0,0,0 };
+				IEventCallback<GlyphContext>* glyphCallback = nullptr;
 
 				void Render(IHQTextBuilder& builder) override
 				{
@@ -953,6 +954,12 @@ namespace Rococo
 					for (const char* p = text; *p != 0; p++)
 					{
 						builder.Write(*p, &lastRect);
+
+						if (glyphCallback)
+						{
+							GlyphContext glyph { Quantize(lastRect), (uint32) * p};
+							glyphCallback->OnEvent(glyph);
+						}
 					}
 				}
 			} job;
@@ -960,7 +967,7 @@ namespace Rococo
 			job.text = text;
 			job.colour = colour;
 			job.startPos = origin;
-
+			
 			grc.RenderHQText(fontId, job, IGuiRenderContext::EVALUATE_SPAN_ONLY);
 
 			Vec2 span;
@@ -995,6 +1002,7 @@ namespace Rococo
 	
 			job.startPos.x = floorf(job.startPos.x);
 			job.startPos.y = floorf(job.startPos.y);
+			job.glyphCallback = glyphCallback;
 
 			grc.RenderHQText(fontId, job, IGuiRenderContext::RENDER);
 

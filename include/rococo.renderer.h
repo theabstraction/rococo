@@ -234,6 +234,7 @@ namespace Rococo::Graphics
 	{
 		virtual ID_FONT CreateOSFont(Fonts::IArrayFontSet & glyphs, const Fonts::FontSpec & spec) = 0;
 		virtual Vec2i EvalSpan(ID_FONT id, const fstring& text) const = 0;
+		virtual const Fonts::ArrayFontMetrics& GetFontMetrics(ID_FONT idFont) = 0;
 	};
 
 	ROCOCO_INTERFACE IGuiResources
@@ -524,7 +525,14 @@ namespace Rococo::Graphics
 	void DrawLine(IGuiRenderContext& grc, int pixelthickness, Vec2i start, Vec2i end, RGBAb colour);
 
 	void RenderCentred(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour);
-	Vec2 RenderHQText(const GuiRect& clipRect, int32 alignment, IGuiRenderContext& grc, ID_FONT fontId, cstr text, RGBAb colour);
+
+	struct GlyphContext
+	{
+		GuiRect outputRect;
+		uint32 unicode;
+	};
+
+	Vec2 RenderHQText(const GuiRect& clipRect, int32 alignment, IGuiRenderContext& grc, ID_FONT fontId, cstr text, RGBAb colour, IEventCallback<GlyphContext>* glyphCallback = nullptr);
 	Vec2 RenderHQText_LeftAligned_VCentre(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour);
 	Vec2 RenderHQText_LeftAligned_VCentre_WithCaret(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour, int caretPos);
 	Vec2 RenderHQParagraph(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour);

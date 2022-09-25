@@ -7,13 +7,14 @@ using namespace Rococo::Gui;
 
 namespace GRANON
 {
-	struct GREditBox : IGRWidgetEditBox
+	struct GREditBox : IGRWidgetEditBox, IGREditorMicromanager
 	{
 		IGRPanel& panel;
 		std::vector<char> text;
 		GRFontId fontId = GRFontId::MENU_FONT;
 		GRAlignmentFlags alignment;
 		Vec2i spacing{ 0,0 };
+		int32 caretPos = 0;
 
 		GREditBox(IGRPanel& owningPanel, int32 capacity) : panel(owningPanel)
 		{
@@ -45,6 +46,61 @@ namespace GRANON
 			return panel;
 		}
 
+		void AddToCaretPos(int32 delta) override
+		{
+			caretPos += delta;
+			if (caretPos < 0) caretPos = 0;
+			if (caretPos > text.size() - 1)
+			{
+				caretPos = (int32) (text.size() - 1);
+			}
+		}
+
+		void AppendChar(char c) override
+		{
+			if (text.size() < text.capacity())
+			{
+				if (caretPos >= text.size() - 1)
+				{
+					text.back() = c;
+					text.push_back(0);
+				}
+				else
+				{
+					auto i = text.begin();
+					std::advance(i, caretPos);
+					text.insert(i, c);
+				}
+
+				caretPos++;
+			}
+		}
+
+		void Backspace() override
+		{
+			if (caretPos > 0 && text.size() > 1)
+			{
+				if (caretPos >= text.size() - 1)
+				{
+					text.pop_back();
+					text.back() = 0;
+				}
+				else
+				{
+					auto i = text.begin();
+					std::advance(i, caretPos-1);
+					text.erase(i);
+				}
+
+				caretPos--;			
+			}
+		}
+
+		void Return() override
+		{
+			panel.Root().GR().SetFocus(-1);
+		}
+
 		void Render(IGRRenderContext& g) override
 		{
 			auto rect = panel.AbsRect();
@@ -62,9 +118,17 @@ namespace GRANON
 				g.DrawRect(rect, panel.GetColour(surface, defaultColour));
 			}
 
-			if (text.size() > 0)
+			if (!isFocused)
 			{
-				g.DrawText(fontId, rect, alignment, spacing, { text.data(), (int32)text.size() - 1 }, panel.GetColour(isHovered ? ESchemeColourSurface::TEXT_HOVERED : ESchemeColourSurface::TEXT));
+				if (text.size() > 0)
+				{
+					g.DrawText(fontId, rect, alignment, spacing, { text.data(), (int32)text.size() - 1 }, panel.GetColour(isHovered ? ESchemeColourSurface::TEXT_HOVERED : ESchemeColourSurface::TEXT));
+				}
+			}
+			else
+			{
+				RGBAb textColour = panel.GetColour(isHovered ? ESchemeColourSurface::EDIT_TEXT_HOVERED : ESchemeColourSurface::EDIT_TEXT);
+				g.DrawEditableText(fontId, rect, alignment, spacing, { text.data(), (int32)text.size() - 1 }, caretPos, textColour);
 			}
 		}
 
@@ -75,6 +139,7 @@ namespace GRANON
 
 		EventRouting OnKeyEvent(KeyEvent& keyEvent) override
 		{
+			panel.Root().Custodian().TranslateToEditor(keyEvent, *this);
 			return EventRouting::NextHandler;
 		}
 
@@ -96,7 +161,7 @@ namespace GRANON
 			return *this;
 		}
 
-		IGRWidgetEditBox& SetText(cstr argText) override
+		void SetText(cstr argText) override
 		{
 			if (argText == nullptr)
 			{
@@ -110,7 +175,7 @@ namespace GRANON
 
 			strncpy_s(text.data(), text.capacity(), argText, _TRUNCATE);
 
-			return *this;
+			caretPos = (int32) len;
 		}
 
 		size_t GetCapacity() const override
@@ -120,7 +185,7 @@ namespace GRANON
 
 		bool isReadOnly = false;
 
-		int32 GetTextAndLength(char* buffer, int32 capacity) override
+		int32 GetTextAndLength(char* buffer, int32 capacity) const override
 		{
 			if (buffer != nullptr && capacity > 0)
 			{

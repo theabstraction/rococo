@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Rococo { namespace IO {
  enum VKCode
  {
