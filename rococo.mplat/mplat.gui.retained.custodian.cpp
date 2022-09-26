@@ -370,7 +370,10 @@ namespace ANON
 				switch (keyEvent.osKeyEvent.VKey)
 				{
 				case IO::VKCode_BACKSPACE:
-					manager.Backspace();
+					manager.BackspaceAtCaret();
+					return;
+				case IO::VKCode_DELETE:
+					manager.DeleteAtCaret();
 					return;
 				case IO::VKCode_ENTER:
 					manager.Return();
@@ -390,7 +393,7 @@ namespace ANON
 				case IO::VKCode_C:
 					if (IO::IsKeyPressed(IO::VKCode_CTRL))
 					{
-						// Note that GetTextAndLength is guaranteed to be at least one character, and if so, is the nul character terminating the string
+						// Note that GetTextAndLength is guaranteed to be at least one character, and if so, the one character is the nul terminating the string
 						copyAndPasteBuffer.resize(manager.GetTextAndLength(nullptr, 0));
 						manager.GetTextAndLength(copyAndPasteBuffer.data(), (int32) copyAndPasteBuffer.size());
 						Rococo::OS::CopyStringToClipboard(copyAndPasteBuffer.data());
@@ -413,7 +416,7 @@ namespace ANON
 							{
 								for (cstr p = text; *p != 0; p++)
 								{
-									manager->AppendChar(*p);
+									manager->AppendCharAtCaret(*p);
 								}
 							}
 						} cb;
@@ -429,7 +432,7 @@ namespace ANON
 
 				if (keyEvent.osKeyEvent.unicode >= 32 && keyEvent.osKeyEvent.unicode <= 127)
 				{
-					manager.AppendChar((char)keyEvent.osKeyEvent.unicode);
+					manager.AppendCharAtCaret((char)keyEvent.osKeyEvent.unicode);
 				}
 			}
 		}

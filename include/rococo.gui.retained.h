@@ -585,8 +585,9 @@ namespace Rococo::Gui
 	ROCOCO_INTERFACE IGREditorMicromanager
 	{
 		virtual void AddToCaretPos(int32 delta) = 0;
-		virtual void AppendChar(char c) = 0;
-		virtual void Backspace() = 0;
+		virtual void AppendCharAtCaret(char c) = 0;
+		virtual void BackspaceAtCaret() = 0;
+		virtual void DeleteAtCaret() = 0;
 		virtual void Return() = 0;
 		virtual int32 GetTextAndLength(char* buffer, int32 receiveCapacity) const = 0;
 	};

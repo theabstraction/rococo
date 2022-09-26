@@ -51,7 +51,7 @@ namespace GRANON
 			caretPos = clamp(caretPos + delta, 0, (int32) (text.size() - 1));
 		}
 
-		void AppendChar(char c) override
+		void AppendCharAtCaret(char c) override
 		{
 			if (text.size() < text.capacity())
 			{
@@ -71,7 +71,7 @@ namespace GRANON
 			}
 		}
 
-		void Backspace() override
+		void BackspaceAtCaret() override
 		{
 			if (caretPos > 0 && text.size() > 1)
 			{
@@ -88,6 +88,23 @@ namespace GRANON
 				}
 
 				caretPos--;			
+			}
+		}
+
+		void DeleteAtCaret() override
+		{
+			if (text.size() > 1)
+			{
+				if (caretPos >= text.size() - 1)
+				{
+					return;
+				}
+				else
+				{
+					auto i = text.begin();
+					std::advance(i, caretPos);
+					text.erase(i);
+				}
 			}
 		}
 
