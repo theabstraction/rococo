@@ -285,7 +285,7 @@ namespace Rococo::Graphics
 		// Renders high quality text. To compute span without rendering, pass evaluateSpanOnly as true
 
 		enum EMode { RENDER, EVALUATE_SPAN_ONLY, };
-		virtual void RenderHQText(ID_FONT id, Fonts::IHQTextJob& job, EMode mode = RENDER) = 0;
+		virtual void RenderHQText(ID_FONT id, Fonts::IHQTextJob& job, EMode mode, const GuiRect& clipRect) = 0;
 	};
 
 	struct ObjectInstance
@@ -532,7 +532,7 @@ namespace Rococo::Graphics
 		uint32 unicode;
 	};
 
-	Vec2 RenderHQText(const GuiRect& clipRect, int32 alignment, IGuiRenderContext& grc, ID_FONT fontId, cstr text, RGBAb colour, IEventCallback<GlyphContext>* glyphCallback = nullptr);
+	GuiRect RenderHQText(const GuiRect& clipRect, int32 alignment, IGuiRenderContext& grc, ID_FONT fontId, cstr text, RGBAb colour, IEventCallback<GlyphContext>* glyphCallback = nullptr, int dxShift = 0);
 	Vec2 RenderHQText_LeftAligned_VCentre(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour);
 	Vec2 RenderHQText_LeftAligned_VCentre_WithCaret(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour, int caretPos);
 	Vec2 RenderHQParagraph(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour);

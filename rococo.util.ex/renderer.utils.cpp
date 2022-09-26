@@ -933,11 +933,15 @@ namespace Rococo
 			}
 		}
 
-		Vec2 RenderHQText(const GuiRect& clipRect, int32 alignment, IGuiRenderContext& grc, ID_FONT fontId, cstr text, RGBAb colour, IEventCallback<GlyphContext>* glyphCallback)
+		GuiRect RenderHQText(const GuiRect& clipRect, int32 alignment, IGuiRenderContext& grc, ID_FONT fontId, cstr text, RGBAb colour, IEventCallback<GlyphContext>* glyphCallback, int dxShift)
 		{
-			if (text == nullptr || *text == 0) return { 0,0 };
+			if (text == nullptr)
+			{
+				text = "";
+				colour = RGBAb(0, 0, 0, 0);
+			}
 
-			Vec2 origin = { 0, 1000 };
+			Vec2 origin = { (float) dxShift, 0 };
 			struct : IHQTextJob
 			{
 				cstr text;
@@ -967,8 +971,9 @@ namespace Rococo
 			job.text = text;
 			job.colour = colour;
 			job.startPos = origin;
+			job.glyphCallback = nullptr;
 			
-			grc.RenderHQText(fontId, job, IGuiRenderContext::EVALUATE_SPAN_ONLY);
+			grc.RenderHQText(fontId, job, IGuiRenderContext::EVALUATE_SPAN_ONLY, clipRect);
 
 			Vec2 span;
 			span.x = job.lastRect.right - origin.x;
@@ -1000,13 +1005,13 @@ namespace Rococo
 				job.startPos.y = (float)((clipRect.top + clipRect.bottom) >> 1) + 0.5f * span.y;
 			}
 	
-			job.startPos.x = floorf(job.startPos.x);
+			job.startPos.x = floorf(job.startPos.x) + dxShift;
 			job.startPos.y = floorf(job.startPos.y);
 			job.glyphCallback = glyphCallback;
 
-			grc.RenderHQText(fontId, job, IGuiRenderContext::RENDER);
+			grc.RenderHQText(fontId, job, colour.alpha == 0 ? IGuiRenderContext::EVALUATE_SPAN_ONLY : IGuiRenderContext::RENDER, clipRect);
 
-			return span;
+			return Quantize(GuiRectf{ job.startPos.x, job.startPos.y, job.startPos.x + span.x, job.startPos.y + span.y });
 		}
 
 		Vec2 RenderHQText_LeftAligned_VCentre(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour)
@@ -1037,7 +1042,7 @@ namespace Rococo
 			job.colour = colour;
 			job.startPos = origin;
 
-			grc.RenderHQText(fontId, job, IGuiRenderContext::EVALUATE_SPAN_ONLY);
+			grc.RenderHQText(fontId, job, IGuiRenderContext::EVALUATE_SPAN_ONLY, rect);
 
 			Vec2 span;
 			span.x = job.lastRect.right - origin.x;
@@ -1046,7 +1051,7 @@ namespace Rococo
 			job.startPos.x = (float)rect.left;
 			job.startPos.y = 0.5f * ((float)rect.top + (float)rect.bottom + span.y);
 
-			grc.RenderHQText(fontId, job, IGuiRenderContext::RENDER);
+			grc.RenderHQText(fontId, job, IGuiRenderContext::RENDER, rect);
 
 			return span;
 		}
@@ -1118,7 +1123,7 @@ namespace Rococo
 			job.colour = colour;
 			job.startPos = origin;
 
-			grc.RenderHQText(fontId, job, IGuiRenderContext::EVALUATE_SPAN_ONLY);
+			grc.RenderHQText(fontId, job, IGuiRenderContext::EVALUATE_SPAN_ONLY, rect);
 
 			Vec2 span;
 			span.x = job.lastRect.right - origin.x;
@@ -1127,7 +1132,7 @@ namespace Rococo
 			job.startPos.x = (float)rect.left;
 			job.startPos.y = (float)rect.top + job.lastRowHeight;
 
-			grc.RenderHQText(fontId, job, IGuiRenderContext::RENDER);
+			grc.RenderHQText(fontId, job, IGuiRenderContext::RENDER, rect);
 
 			return span;
 		}
@@ -1178,7 +1183,7 @@ namespace Rococo
 			job.startPos = origin;
 			job.caretPos = caretPos;
 
-			grc.RenderHQText(fontId, job, IGuiRenderContext::EVALUATE_SPAN_ONLY);
+			grc.RenderHQText(fontId, job, IGuiRenderContext::EVALUATE_SPAN_ONLY, rect);
 
 			Vec2 span;
 			span.x = job.lastRect.right - origin.x;
@@ -1187,7 +1192,7 @@ namespace Rococo
 			job.startPos.x = (float)rect.left;
 			job.startPos.y = 0.5f * ((float)rect.top + (float)rect.bottom + span.y);
 
-			grc.RenderHQText(fontId, job, IGuiRenderContext::RENDER);
+			grc.RenderHQText(fontId, job, IGuiRenderContext::RENDER, rect);
 
 			if (job.caretGlyphRect.left > -1)
 			{

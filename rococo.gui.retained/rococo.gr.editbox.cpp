@@ -48,12 +48,7 @@ namespace GRANON
 
 		void AddToCaretPos(int32 delta) override
 		{
-			caretPos += delta;
-			if (caretPos < 0) caretPos = 0;
-			if (caretPos > text.size() - 1)
-			{
-				caretPos = (int32) (text.size() - 1);
-			}
+			caretPos = clamp(caretPos + delta, 0, (int32) (text.size() - 1));
 		}
 
 		void AppendChar(char c) override

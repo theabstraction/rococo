@@ -111,18 +111,38 @@ namespace ANON
 			glyphCallback.caretPos = caretPos;
 			glyphCallback.caretWidth = metrics.imgWidth;
 
-			Rococo::Graphics::RenderHQText(clipRect, iAlignment, *rc, hqFontId, editText, colour, &glyphCallback);
+			RGBAb transparent(0, 0, 0, 0);
 
-			auto ticks = Rococo::OS::CpuTicks();
-			auto dticks = ticks % Rococo::OS::CpuHz();
+			Rococo::Graphics::RenderHQText(clipRect, iAlignment, *rc, hqFontId, editText, transparent, &glyphCallback);
 
-			float dt = dticks / (float)Rococo::OS::CpuHz();
+			int32 dxShift = 0;
 
 			if (glyphCallback.caretEnd.x <= glyphCallback.caretStart.x)
 			{
 				glyphCallback.caretStart = glyphCallback.lastBottomRight;
 				glyphCallback.caretEnd = glyphCallback.caretStart + Vec2i{ metrics.imgWidth, 0 };
 			}
+
+			if (glyphCallback.caretEnd.x >= clipRect.right)
+			{
+				dxShift = (clipRect.right - glyphCallback.caretEnd.x);
+			}
+
+			glyphCallback.charPos = 0;
+			glyphCallback.caretStart = glyphCallback.caretEnd = { 0,0 };
+
+			Rococo::Graphics::RenderHQText(clipRect, iAlignment, *rc, hqFontId, editText, colour, &glyphCallback, dxShift);
+
+			if (glyphCallback.caretEnd.x <= glyphCallback.caretStart.x)
+			{
+				glyphCallback.caretStart = glyphCallback.lastBottomRight;
+				glyphCallback.caretEnd = glyphCallback.caretStart + Vec2i{ metrics.imgWidth, 0 };
+			}
+
+			auto ticks = Rococo::OS::CpuTicks();
+			auto dticks = ticks % Rococo::OS::CpuHz();
+
+			float dt = dticks / (float)Rococo::OS::CpuHz();
 
 			RGBAb blinkColour = colour;
 			if (dt > 0.5f)
@@ -362,14 +382,15 @@ namespace ANON
 					manager.AddToCaretPos(1);
 					return;
 				case IO::VKCode_HOME:
-					manager.AddToCaretPos(-1048576);
+					manager.AddToCaretPos(-100'000'000);
 					return;
 				case IO::VKCode_END:
-					manager.AddToCaretPos(1048576);
+					manager.AddToCaretPos(100'000'000);
 					return;
 				case IO::VKCode_C:
 					if (IO::IsKeyPressed(IO::VKCode_CTRL))
 					{
+						// Note that GetTextAndLength is guaranteed to be at least one character, and if so, is the nul character terminating the string
 						copyAndPasteBuffer.resize(manager.GetTextAndLength(nullptr, 0));
 						manager.GetTextAndLength(copyAndPasteBuffer.data(), (int32) copyAndPasteBuffer.size());
 						Rococo::OS::CopyStringToClipboard(copyAndPasteBuffer.data());

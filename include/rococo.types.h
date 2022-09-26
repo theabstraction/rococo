@@ -479,6 +479,7 @@ namespace Rococo
 
 		GuiRectf() {}
 		GuiRectf(float _left, float _top, float _right, float _bottom) : left(_left), top(_top), right(_right), bottom(_bottom) {}
+		bool IsNormalized() const { return right > left && bottom > top; }
 	};
 
 	struct AABB2d
@@ -576,6 +577,8 @@ namespace Rococo
 
 		GuiRect() {}
 		GuiRect(int32 _left, int32 _top, int32 _right, int32 _bottom) : left(_left), top(_top), right(_right), bottom(_bottom) {}
+
+		bool IsNormalized() const { return right > left && bottom > top; }
 	};
 
 	struct Vec2

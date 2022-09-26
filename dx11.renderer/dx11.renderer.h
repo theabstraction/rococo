@@ -75,7 +75,7 @@ namespace Rococo::DX11
 	ROCOCO_INTERFACE IDX11HQFontResource : public IHQFontResource
 	{
 		virtual void Free() = 0;		
-		virtual void RenderHQText(ID_FONT id, Fonts::IHQTextJob& job, IGuiRenderContext::EMode mode, ID3D11DeviceContext& dc, IShaders& shaders) = 0;
+		virtual void RenderHQText(ID_FONT id, Fonts::IHQTextJob& job, IGuiRenderContext::EMode mode, ID3D11DeviceContext& dc, IShaders& shaders, const GuiRect& clipRect) = 0;
 	};
 
 	IDX11HQFontResource* CreateDX11HQFonts(IInstallation& installation, IDX11FontRenderer& renderer, ID3D11Device& device, ID3D11DeviceContext& dc);

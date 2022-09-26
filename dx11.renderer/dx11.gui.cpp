@@ -494,9 +494,9 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResourc
         return hqFonts->GetFontMetrics(idFont);
     }
 
-    void RenderHQText(ID_FONT id, Fonts::IHQTextJob& job, IGuiRenderContext::EMode mode) override
+    void RenderHQText(ID_FONT id, Fonts::IHQTextJob& job, IGuiRenderContext::EMode mode, const GuiRect& clipRect) override
     {
-        return hqFonts->RenderHQText(id, job, mode, dc, shaders);
+        return hqFonts->RenderHQText(id, job, mode, dc, shaders, clipRect);
     }
 
     IHQFontResource& HQFontsResources() override

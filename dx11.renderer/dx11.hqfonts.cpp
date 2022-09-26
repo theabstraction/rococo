@@ -17,14 +17,16 @@ namespace ANON
 		RGBAb colour{ 255,255,255,255 };
 		Vec2 span;
 		GuiRectf nextRect;
+		GuiRectf clipRect;
 		bool evaluateSpanOnly = false;
 		IDX11FontRenderer* renderer = nullptr;
 
-		HQTextBuilder(Fonts::IArrayFont& _font) :
+		HQTextBuilder(Fonts::IArrayFont& _font, GuiRectf _clipRect) :
 			font(_font),
 			metrics(_font.Metrics()),
 			span{ (float)metrics.imgWidth, (float)metrics.imgHeight },
-			nextRect{ 0, 0, span.x, span.y }
+			nextRect{ 0, 0, span.x, span.y },
+			clipRect(_clipRect)
 		{
 		}
 
@@ -53,6 +55,49 @@ namespace ANON
 			Write((char32_t)c, outputBounds);
 		}
 
+		static void ClipOutputRectAgainstClipRect(const GuiRectf& clipRect, GuiRectf& Rprimed, const GuiRectf& R, GuiRectf& tPrimed)
+		{
+			Rprimed = R;
+			tPrimed = { 0,0,1.0f,1.0f };
+
+			Rprimed.left = R.left;
+			if (Rprimed.left < clipRect.left)
+			{
+				Rprimed.left = clipRect.left;
+			}
+			else
+			{
+				tPrimed.left = (Rprimed.left - R.left) / Width(R);
+			}
+
+			if (Rprimed.top < clipRect.top)
+			{
+				Rprimed.top = clipRect.top;
+			}
+			else
+			{
+				tPrimed.top = (Rprimed.top - R.top) / Height(R);
+			}
+
+			if (Rprimed.right > clipRect.right)
+			{
+				Rprimed.right = clipRect.right;
+			}
+			else
+			{
+				tPrimed.right = (Rprimed.right - R.left) / Width(R);
+			}
+
+			if (Rprimed.bottom > clipRect.bottom)
+			{
+				Rprimed.bottom = clipRect.bottom;
+			}
+			else
+			{
+				tPrimed.bottom = (Rprimed.bottom - R.top) / Height(R);
+			}
+		}
+
 		void Write(char32_t c, GuiRectf* outputBounds) override
 		{
 			const Fonts::ArrayGlyph& g = font[c];
@@ -64,8 +109,16 @@ namespace ANON
 			R.left += g.A;
 			R.right = R.left + span.x;
 
-			if (!evaluateSpanOnly && colour.alpha > 0)
+			bool isFullyClipped = R.right <= clipRect.left || R.left >= clipRect.right || R.top >= clipRect.bottom || R.bottom <= clipRect.top;
+			
+			if (!evaluateSpanOnly && colour.alpha > 0 && !isFullyClipped)
 			{
+				GuiRectf Rprimed;
+				GuiRectf Tprimed;
+				ClipOutputRectAgainstClipRect(clipRect, Rprimed, R, Tprimed);
+
+				SpriteVertexData ithTexture{ 0, i, 0, 0 };
+
 				GuiQuad q
 				{
 					/*
@@ -78,10 +131,10 @@ namespace ANON
 					};
 					*/
 
-					{ {R.left, R.top},    {{0,0}, 0}, {0, i, 0, 0}, colour},
-					{ {R.right,R.top},    {{1,0}, 0}, {0, i, 0, 0}, colour},
-					{ {R.left, R.bottom}, {{0,1}, 0}, {0, i, 0, 0}, colour},
-					{ {R.right,R.bottom}, {{1,1}, 0}, {0, i, 0, 0}, colour},
+					{ TopLeft(Rprimed),     {TopLeft(Tprimed),     0}, ithTexture, colour},
+					{ TopRight(Rprimed),    {TopRight(Tprimed),    0}, ithTexture, colour},
+					{ BottomLeft(Rprimed),  {BottomLeft(Tprimed),  0}, ithTexture, colour},
+					{ BottomRight(Rprimed), {BottomRight(Tprimed), 0}, ithTexture, colour},
 				};
 
 				GuiTriangle A{ q.topLeft, q.topRight, q.bottomRight };
@@ -193,7 +246,8 @@ namespace Rococo::DX11
 
 			auto& metrics = font.Metrics();
 
-			ANON::HQTextBuilder builder(font);
+			GuiRectf clipRect{ -1e37f, -1e37f, 1e37f, 1e37f };
+			ANON::HQTextBuilder builder(font, clipRect);
 
 			builder.evaluateSpanOnly = true;
 			builder.renderer = nullptr;
@@ -244,18 +298,18 @@ namespace Rococo::DX11
 			int32 index = idFont.value - ID_FONT_OSFONT_OFFSET;
 			if (index < 0 || index >= (int32)osFonts.size())
 			{
-				Throw(0, "DX11Renderer.GetFontMetrics - ID_FONT parameter was unknown value");
+				Throw(0, "DX11Renderer.GetFontMetrics - ID_FONT parameter did not specify a HQ font");
 			}
 
 			return osFonts[index].arrayFont->Metrics();
 		}
 
-		void RenderHQText(ID_FONT id, IHQTextJob& job, IGuiRenderContext::EMode mode, ID3D11DeviceContext& dc, IShaders& shaders) override
+		void RenderHQText(ID_FONT id, IHQTextJob& job, IGuiRenderContext::EMode mode, ID3D11DeviceContext& dc, IShaders& shaders, const GuiRect& clipRect) override
 		{
 			int32 index = id.value - ID_FONT_OSFONT_OFFSET;
 			if (index < 0 || index >= (int32)osFonts.size())
 			{
-				Throw(0, "DX11Renderer.RenderHQTest - ID_FONT parameter was unknown value");
+				Throw(0, "DX11Renderer.RenderHQTest - ID_FONT parameter did not specify a HQ font");
 			}
 
 			auto& osFont = osFonts[index];
@@ -263,10 +317,7 @@ namespace Rococo::DX11
 
 			auto& metrics = font.Metrics();
 
-			ID3D11ShaderResourceView* gtaViews[1] = { osFont.array->View() };
-			dc.PSSetShaderResources(TXUNIT_GENERIC_TXARRAY, 1, gtaViews);
-
-			ANON::HQTextBuilder builder(font);
+			ANON::HQTextBuilder builder(font, Dequantize(clipRect));
 
 			builder.evaluateSpanOnly = mode == IGuiRenderContext::EVALUATE_SPAN_ONLY;
 			builder.renderer = &renderer;
@@ -280,6 +331,8 @@ namespace Rococo::DX11
 
 			if (mode == IGuiRenderContext::RENDER)
 			{
+				ID3D11ShaderResourceView* gtaViews[1] = { osFont.array->View() };
+				dc.PSSetShaderResources(TXUNIT_GENERIC_TXARRAY, 1, gtaViews);
 				renderer.ApplyHQFontsShader();
 				renderer.FlushLayer();
 				renderer.ApplyGuiShader();
