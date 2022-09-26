@@ -172,7 +172,11 @@ namespace Rococo::Gui
 		FOCUSED_EDITOR, // Background colour for an edit box when it focused
 		FOCUS_RECTANGLE, // Edge colour for the focused widget
 		EDIT_TEXT_HOVERED, // Text colour when editor box is focused and hovered
-		EDIT_TEXT // Text colour when editor box is focused
+		EDIT_TEXT, // Text colour when editor box is focused
+		SPLITTER_BACKGROUND,
+		SPLITTER_BACKGROUND_HOVERED,
+		SPLITTER_EDGE,
+		SPLITTER_EDGE_HILIGHTED
 	};
 
 	ROCOCO_INTERFACE IScheme
@@ -247,6 +251,7 @@ namespace Rococo::Gui
 		ROCOCO_GUI_RETAINED_API static GRAnchors Bottom();
 		ROCOCO_GUI_RETAINED_API static GRAnchors ExpandVertically();
 		ROCOCO_GUI_RETAINED_API static GRAnchors ExpandHorizontally();
+		ROCOCO_GUI_RETAINED_API static GRAnchors ExpandAll();
 	};
 
 	// Gives the number of pixels between an anchored side and the parent control
@@ -466,6 +471,12 @@ namespace Rococo::Gui
 
 	};
 
+	ROCOCO_INTERFACE IGRWidgetSplitter : IGRWidget
+	{
+		virtual IGRWidgetDivision& First() = 0;
+		virtual IGRWidgetDivision& Second() = 0;
+	};
+
 	ROCOCO_INTERFACE IGRWidgetCollapser : IGRWidget
 	{
 		virtual IGRWidgetDivision& ClientArea() = 0;
@@ -637,6 +648,7 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API IGRWidgetToolbar& CreateToolbar(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetText& CreateText(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetCollapser& CreateCollapser(IGRWidget& parent);
+	ROCOCO_GUI_RETAINED_API IGRWidgetSplitter& CreateLeftToRightSplitter(IGRWidget& parent, int32 splitStartPosition);
 
 	ROCOCO_INTERFACE IGREditFilter
 	{

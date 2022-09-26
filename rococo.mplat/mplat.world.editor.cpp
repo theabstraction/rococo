@@ -383,10 +383,13 @@ namespace ANON
 			frame->ClientArea().Panel().Set(ESchemeColourSurface::FOCUSED_EDITOR, RGBAb(0, 0, 0, 255));
 			frame->ClientArea().Panel().Set(ESchemeColourSurface::FOCUSED_EDITOR_HOVERED, RGBAb(16, 16, 16, 255));
 
-			auto& listCollapser = CreateCollapser(frame->ClientArea());
+			auto& frameSplitter = CreateLeftToRightSplitter(frame->ClientArea(), 240);
+			frameSplitter.Panel().Add(GRAnchors::ExpandAll());
+
+			auto& listCollapser = CreateCollapser(frameSplitter.First());
 			auto& list = CreateVerticalList(listCollapser.ClientArea());
-			listCollapser.Panel().Resize({ 240, 0 }).Add(GRAnchors::Left()).Add(GRAnchors::TopAndBottom()).Add(GRAnchors::ExpandVertically());
-			list.Panel().Add(GRAnchors::LeftAndRight()).Add(GRAnchors::TopAndBottom()).Add(GRAnchors::ExpandVertically()).Add(GRAnchors::ExpandHorizontally());
+			listCollapser.Panel().Add(GRAnchors::ExpandAll());
+			list.Panel().Add(GRAnchors::ExpandAll());
 			listCollapser.Panel().Set(ESchemeColourSurface::TEXT, RGBAb(224, 224, 224, 255)).Set(ESchemeColourSurface::TEXT_HOVERED, RGBAb(255, 255, 255, 255));
 			listCollapser.Panel().Set(ESchemeColourSurface::EDIT_TEXT, RGBAb(224, 224, 224, 255)).Set(ESchemeColourSurface::EDIT_TEXT_HOVERED, RGBAb(255, 255, 255, 255));
 

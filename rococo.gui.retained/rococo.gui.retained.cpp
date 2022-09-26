@@ -434,6 +434,18 @@ namespace Rococo::Gui
 		return a;
 	}
 
+	ROCOCO_GUI_RETAINED_API GRAnchors GRAnchors::ExpandAll()
+	{
+		GRAnchors a;
+		a.left = true;
+		a.right = true;
+		a.top = true;
+		a.bottom = true;
+		a.expandsVertically = true;
+		a.expandsHorizontally = true;
+		return a;
+	}
+
 	ROCOCO_GUI_RETAINED_API GRAnchors GRAnchors::Right()
 	{
 		GRAnchors a;
