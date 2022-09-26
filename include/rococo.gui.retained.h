@@ -192,6 +192,7 @@ namespace Rococo::Gui
 	enum WidgetEventType
 	{
 		BUTTON_CLICK,
+		EDITOR_UPDATED, // Cast WidgetEvent to WidgetEvent_EditorUpdated
 		USER_DEFINED = 1024
 	};
 
@@ -202,8 +203,6 @@ namespace Rococo::Gui
 		int64 iMetaData;		// Valid as long as the underlying widget that sent the event is not destroyed, or its meta data changed
 		cstr sMetaData;			// Valid as long as the underlying widget that sent the event is not destroyed, or its meta data changed
 		Vec2i clickPosition;	// Cursor location when the event was triggered. If irrelevant is undefined
-		size_t responseSize;	// The event responder can set the number of bytes in the response
-		void* response;			// the event responder can point this to a buffer that contains the response
 	};
 
 	struct IGRCustodian;
@@ -574,6 +573,7 @@ namespace Rococo::Gui
 		virtual IGRWidgetEditBox& SetAlignment(GRAlignmentFlags alignment, Vec2i spacing) = 0;
 		virtual IGRWidgetEditBox& SetFont(GRFontId fontId) = 0;
 		virtual IGRWidgetEditBox& SetReadOnly(bool isReadOnly) = 0;
+		virtual IGRWidgetEditBox& SetMetaData(const ControlMetaData& metaData) = 0;
 
 		// Assigns a string to internal storage, truncating if needs be. If null is passed it is treated as an empty string
 		virtual void SetText(cstr argText) = 0;
@@ -587,9 +587,17 @@ namespace Rococo::Gui
 		virtual void AddToCaretPos(int32 delta) = 0;
 		virtual void AppendCharAtCaret(char c) = 0;
 		virtual void BackspaceAtCaret() = 0;
+		virtual int32 CaretPos() const = 0;
 		virtual void DeleteAtCaret() = 0;
 		virtual void Return() = 0;
 		virtual int32 GetTextAndLength(char* buffer, int32 receiveCapacity) const = 0;
+	};
+
+	struct WidgetEvent_EditorUpdated : WidgetEvent
+	{
+		IGRWidgetEditBox* editor;
+		IGREditorMicromanager* manager;
+		int32 caretPos;
 	};
 
 	ROCOCO_INTERFACE IGRCustodian
@@ -629,11 +637,23 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API IGRWidgetToolbar& CreateToolbar(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetText& CreateText(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetCollapser& CreateCollapser(IGRWidget& parent);
-	ROCOCO_GUI_RETAINED_API IGRWidgetEditBox& CreateEditBox(IGRWidget& parent, int32 capacity = (int32) GRPaths::MAX_FULL_PATH_LENGTH);
+
+	ROCOCO_INTERFACE IGREditFilter
+	{
+		virtual void Free() = 0;
+		virtual void OnUpdate(IGRWidgetEditBox& editor, IGREditorMicromanager& manager) = 0;
+	};
+
+	ROCOCO_GUI_RETAINED_API IGRWidgetEditBox& CreateEditBox(IGRWidget& parent, IGREditFilter* filter, int32 capacity = (int32) GRPaths::MAX_FULL_PATH_LENGTH);
 
 	ROCOCO_GUI_RETAINED_API void DrawButton(IGRPanel& panel, bool focused, bool raised, IGRRenderContext& g);
 	ROCOCO_GUI_RETAINED_API void DrawMenuButton(IGRPanel& panel, bool focused, bool raised, IGRRenderContext& g);
 	ROCOCO_GUI_RETAINED_API void DrawButtonText(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour, IGRRenderContext& g);
 	ROCOCO_GUI_RETAINED_API void DrawPanelBackground(IGRPanel& panel, IGRRenderContext& g);
 	ROCOCO_GUI_RETAINED_API void SetSchemeColours_ThemeGrey(IScheme& scheme);
+
+	ROCOCO_GUI_RETAINED_API IGREditFilter& GetF32Filter();
+	ROCOCO_GUI_RETAINED_API IGREditFilter& GetF64Filter();
+	ROCOCO_GUI_RETAINED_API IGREditFilter& GetI32Filter();
+	ROCOCO_GUI_RETAINED_API IGREditFilter& GetI64Filter();
 }

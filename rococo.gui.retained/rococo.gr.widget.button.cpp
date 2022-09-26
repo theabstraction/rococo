@@ -49,7 +49,7 @@ namespace GRANON
 
 		void FireEvent(CursorEvent& ce)
 		{
-			WidgetEvent widgetEvent{ WidgetEventType::BUTTON_CLICK, panel.Id(), iMetadata, sMetaData.c_str(), ce.position, 0, nullptr };
+			WidgetEvent widgetEvent{ WidgetEventType::BUTTON_CLICK, panel.Id(), iMetadata, sMetaData.c_str(), ce.position };
 
 			if (eventPolicy == GREventPolicy::PublicEvent)
 			{				

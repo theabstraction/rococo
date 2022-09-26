@@ -335,9 +335,36 @@ namespace ANON
 				auto& nameText = CreateText(div).SetText(f.fieldName.c_str()).SetAlignment(nameAlignment, {2,2});
 				nameText.Panel().Resize({ 100, 24 }).Add(GRAnchors::TopAndBottom()).Add(GRAnchors::ExpandVertically()).Add(GRAnchors::Left()).Add(GRAnchors::ExpandHorizontally()).Set(GRAnchorPadding{ 4, 0, 0, 0 });
 
+				IGREditFilter* filter = nullptr;
+
+				int32 capacity;
+
+				switch (f.value.type)
+				{
+				case PrimitiveType::I32:
+					filter = &GetI32Filter();
+					capacity = 12;
+					break;
+				case PrimitiveType::I64:
+					filter = &GetI64Filter();
+					capacity = 24;
+					break;
+				case PrimitiveType::F32:
+					filter = &GetF32Filter();
+					capacity = 12;
+					break;
+				case PrimitiveType::F64:
+					filter = &GetF64Filter();
+					capacity = 24;
+					break;
+				default:
+					capacity = 10;
+					break;
+				}
+
 				GRAlignmentFlags valueAlignment;
 				valueAlignment.Add(GRAlignment::VCentre).Add(GRAlignment::Left);
-				auto& valueText = CreateEditBox(div).SetAlignment(valueAlignment, { 2,2 });
+				auto& valueText = CreateEditBox(div, filter, capacity).SetAlignment(valueAlignment, { 2,2 });
 				valueText.Panel().SetParentOffset({ 100, 24 }).Add(GRAnchors::TopAndBottom()).Add(GRAnchors::ExpandVertically()).Add(GRAnchors::Right()).Add(GRAnchors::ExpandHorizontally()).Set(GRAnchorPadding { 0, 4, 0, 0});
 
 				char buf[16];
