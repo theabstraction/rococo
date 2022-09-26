@@ -656,4 +656,5 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API IGREditFilter& GetF64Filter();
 	ROCOCO_GUI_RETAINED_API IGREditFilter& GetI32Filter();
 	ROCOCO_GUI_RETAINED_API IGREditFilter& GetI64Filter();
+	ROCOCO_GUI_RETAINED_API IGREditFilter& GetUnsignedFilter();
 }

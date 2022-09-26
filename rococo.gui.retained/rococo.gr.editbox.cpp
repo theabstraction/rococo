@@ -694,4 +694,69 @@ namespace Rococo::Gui
 		static I64Filter s_I64Editor;
 		return s_I64Editor;
 	}
+
+	ROCOCO_GUI_RETAINED_API IGREditFilter& GetUnsignedFilter()
+	{
+		struct UnsignedFilter : IGREditFilter
+		{
+			std::vector<char> scratchBuffer;
+
+			UnsignedFilter()
+			{
+				scratchBuffer.reserve(24);
+			}
+
+			void Free() override
+			{
+
+			}
+
+			void OnUpdate(IGRWidgetEditBox& editor, IGREditorMicromanager& manager)
+			{
+				scratchBuffer.clear();
+
+				char buffer[24];
+				int32 len = editor.GetTextAndLength(buffer, sizeof buffer);
+
+				int32 originalLength = len;
+
+				if (len >= 24)
+				{
+					len = 23;
+					buffer[23] = 0;
+				}
+
+				for (int32 i = 0; i < len; ++i)
+				{
+					char c = buffer[i];
+					if (c >= '0' && c <= '9')
+					{
+						scratchBuffer.push_back(buffer[i]);
+					}
+				}
+
+				scratchBuffer.push_back(0);
+
+				int32 caretPos = manager.CaretPos();
+
+				int32 newLength = (int32)scratchBuffer.size();
+
+				int32 lengthDelta = originalLength - newLength;
+
+				if (lengthDelta != 0)
+				{
+					// This sets the caret pos to the null char
+					editor.SetText(scratchBuffer.data());
+
+					// Now the caret position is set to zero
+					manager.AddToCaretPos(-10000);
+
+					manager.AddToCaretPos(caretPos - lengthDelta);
+				}
+			}
+		};
+
+		static UnsignedFilter s_UnsignedFilter;
+		return s_UnsignedFilter;
+	}
 }
