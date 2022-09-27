@@ -316,6 +316,8 @@ namespace ANON
 			lastRoutingStatus = gr.RouteKeyEvent(keyEvent);
 		}
 
+		ECursorIcon currentIcon = ECursorIcon::Arrow;
+
 		void RouteMouseEvent(const MouseEvent& me, IGuiRetained& gr) override
 		{
 			static_assert(sizeof CursorClick == sizeof uint16);
@@ -323,13 +325,28 @@ namespace ANON
 			history.clear();
 			if (me.buttonFlags != 0)
 			{
-				CursorEvent cursorEvent{ *this, me.cursorPos, eventCount, *(CursorClick*)&me.buttonFlags };
+				CursorEvent cursorEvent{ *this, me.cursorPos, eventCount, *(CursorClick*)&me.buttonFlags, ECursorIcon::Unspecified };
 				lastRoutingStatus = gr.RouteCursorClickEvent(cursorEvent);
 			}
 			else
 			{
-				CursorEvent cursorEvent{ *this, me.cursorPos, eventCount, *(CursorClick*)&me.buttonFlags };
+				CursorEvent cursorEvent{ *this, me.cursorPos, eventCount, *(CursorClick*)&me.buttonFlags, ECursorIcon::Arrow };
 				lastRoutingStatus = gr.RouteCursorMoveEvent(cursorEvent);
+
+				if (currentIcon != cursorEvent.nextIcon)
+				{
+					currentIcon = cursorEvent.nextIcon;
+
+					switch (currentIcon)
+					{
+					case ECursorIcon::Arrow:
+						sysRenderer.Gui().SetSysCursor(EWindowCursor_Default);
+						break;
+					case ECursorIcon::LeftAndRightDragger:
+						sysRenderer.Gui().SetSysCursor(EWindowCursor_HDrag);
+						break;
+					}
+				}
 			}
 			eventCount++;
 		}

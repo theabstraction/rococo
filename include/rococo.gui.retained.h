@@ -35,12 +35,21 @@ namespace Rococo::Gui
 		virtual void RecordWidget(IGRWidget& widget) = 0;
 	};
 
+	enum class ECursorIcon
+	{
+		Unspecified,
+		Invisible,
+		Arrow,
+		LeftAndRightDragger
+	};
+
 	struct CursorEvent
 	{
 		IGREventHistory& history;
 		const Vec2i position;
 		const int64 eventId;
 		const CursorClick click;
+		ECursorIcon nextIcon;
 	};
 
 	struct KeyEvent

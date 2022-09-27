@@ -75,6 +75,10 @@ namespace GRANON
 		EventRouting OnCursorMove(CursorEvent& ce) override
 		{
 			bool isDraggerHovered = IsPointInRect(ce.position, draggerRect);
+			if (isDraggerHovered)
+			{
+				ce.nextIcon = ECursorIcon::LeftAndRightDragger;
+			}
 			return EventRouting::NextHandler;
 		}
 
