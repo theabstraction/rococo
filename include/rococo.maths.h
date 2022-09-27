@@ -225,16 +225,6 @@ namespace Rococo
 		return 180.0f / PI();
 	}
 
-	inline bool operator != (const GuiRect& a, const GuiRect& b)
-	{
-		return a.left != b.left || a.right != b.right || a.bottom != b.bottom || a.top != b.top;
-	}
-
-	inline bool operator == (const GuiRect& a, const GuiRect& b)
-	{
-		return !(a != b);
-	}
-
 	struct Radians
 	{
 		float radians;
@@ -361,8 +351,6 @@ namespace Rococo
 
 	void TesselateByEarClip(I2dMeshBuilder& tb, IRingManipulator<Vec2>& ring);
 
-	bool IsOdd(int32 i);
-	
 	inline Vec4 operator-(const Vec4& v) { return Vec4{ -v.x, -v.y, -v.z, v.w }; }
 	inline Vec2 operator - (const Vec2& a, const Vec2& b) { return Vec2{ a.x - b.x, a.y - b.y }; }
 	inline Vec2 operator + (const Vec2& a, const Vec2& b) { return Vec2{ a.x + b.x, a.y + b.y }; }
@@ -389,9 +377,6 @@ namespace Rococo
 	{
 		return a.x * b.y - a.y * b.x;
 	}
-
-	inline bool operator == (const Vec2i& a, const Vec2i& b) { return a.x == b.x && a.y == b.y; }
-	inline bool operator != (const Vec2i& a, const Vec2i& b) { return !(a == b); }
 
 	inline Vec3 operator + (cr_vec3 a, cr_vec3 b) { return Vec3{ a.x + b.x, a.y + b.y, a.z + b.z }; }
 	inline Vec3 operator * (cr_vec3 q, float f) { return Vec3{ q.x * f, q.y * f, q.z * f }; }
@@ -425,19 +410,9 @@ namespace Rococo
 		};
 	}
 
-	inline Vec2i Quantize(const Vec2& v)
-	{
-		return Vec2i{ (int32)v.x, (int32)v.y };
-	}
-
 	inline Vec2 Dequantize(const Vec2i& v)
 	{
 		return Vec2{ (float)v.x, (float)v.y };
-	}
-
-	inline GuiRect Quantize(const GuiRectf& r)
-	{
-		return GuiRect{ (int32)r.left, (int32)r.top, (int32)r.right, (int32)r.bottom };
 	}
 
 	inline GuiRectf Dequantize(const GuiRect& v)
@@ -457,28 +432,8 @@ namespace Rococo
 		return p;
 	}
 
-	inline Vec2i operator - (const Vec2i& a, const Vec2i& b)
-	{
-		return Vec2i{ a.x - b.x, a.y - b.y };
-	}
-
-	inline Vec2i operator + (const Vec2i& a, const Vec2i& b)
-	{
-		return Vec2i{ a.x + b.x, a.y + b.y };
-	}
-
-	inline GuiRect Expand(const GuiRect& rect, int32 pixels)
-	{
-		return GuiRect(rect.left - pixels, rect.top - pixels, rect.right + pixels, rect.bottom + pixels);
-	}
-
 	bool TryGetRealRoots(float& x0, float& x1, float a /* x^2 */, float b /* x */, float c);
 	bool TryGetIntersectionLineAndSphere(float& t0, float& t1, cr_vec3 start, cr_vec3 end, const Sphere& sphere);
-
-	inline GuiRect operator + (const GuiRect& rect, const Vec2i& delta)
-	{
-		return GuiRect(rect.left + delta.x, rect.top + delta.y, rect.right + delta.x, rect.bottom + delta.y);
-	}
 
 	inline Vec2 Centre(const GuiRectf& q) { return Vec2{ (q.left + q.right) * 0.5f, (q.top + q.bottom) * 0.5f }; }
 	inline float Width(const GuiRectf& q) { return q.right - q.left; }
@@ -489,16 +444,6 @@ namespace Rococo
 	inline Vec2 BottomRight(const GuiRectf& q) { return Vec2{ q.right, q.bottom }; }
 	inline Vec2 TopRight(const GuiRectf& q) { return Vec2{ q.right, q.top }; }
 	inline Vec2 BottomLeft(const GuiRectf& q) { return Vec2{ q.left, q.bottom }; }
-
-	inline Vec2i Centre(const GuiRect& q) { return Vec2i{ (q.left + q.right) >> 1, (q.top + q.bottom) >> 1 }; }
-	inline int32 Width(const GuiRect& q) { return q.right - q.left; }
-	inline int32 Height(const GuiRect& q) { return q.bottom - q.top; }
-	inline Vec2i Span(const GuiRect& q) { return Vec2i{ Width(q), Height(q) }; }
-
-	inline Vec2i TopLeft(const GuiRect& q) { return Vec2i{ q.left, q.top }; }
-	inline Vec2i BottomRight(const GuiRect& q) { return Vec2i{ q.right, q.bottom }; }
-	inline Vec2i TopRight(const GuiRect& q) { return Vec2i{ q.right, q.top }; }
-	inline Vec2i BottomLeft(const GuiRect& q) { return Vec2i{ q.left, q.bottom }; }
 
 	inline float LengthSq(cr_vec3 v) { return v * v; }
 	inline float Square(float x) { return x * x; }
@@ -526,8 +471,6 @@ namespace Rococo
 
 	inline Degrees operator - (Degrees theta) { return Degrees{ -theta.degrees }; }
 
-	Vec2i TopCentre(const GuiRect& rect);
-	bool IsPointInRect(Vec2i p, const GuiRect& rect);
 	bool IsPointInRect(Vec2 p, const GuiRectf& rect);
 
 	struct QuadStats
@@ -672,5 +615,7 @@ namespace Rococo
 
 	template<class T> T Lerp(const T& a, const T& b, float t) { return a + (b - a) * t; }
 }
+
+#include <rococo.maths.i32.h>
 
 #endif // ROCOCO_MATHS_H

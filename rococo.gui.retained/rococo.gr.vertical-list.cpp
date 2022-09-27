@@ -1,5 +1,5 @@
 #include <rococo.gui.retained.h>
-#include <rococo.maths.h>
+#include <rococo.maths.i32.h>
 
 using namespace Rococo;
 using namespace Rococo::Gui;
@@ -82,6 +82,18 @@ namespace GRANON
 		Vec2i EvaluateMinimalSpan() const override
 		{
 			return { 0,0 };
+		}
+
+		EQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
+		{
+			if (!interfaceId || *interfaceId == 0) return EQueryInterfaceResult::INVALID_ID;
+			if (DoInterfaceNamesMatch(interfaceId, "IGRWidgetVerticalList"))
+			{
+				*ppOutputArg = this;
+				return EQueryInterfaceResult::SUCCESS;
+			}
+
+			return EQueryInterfaceResult::NOT_IMPLEMENTED;
 		}
 	};
 

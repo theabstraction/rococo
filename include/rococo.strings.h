@@ -40,6 +40,7 @@ namespace Rococo::Strings
 # endif
 #endif
 
+#if USE_VSTUDIO_SAL
 	template<size_t CAPACITY, typename... Args>
 	inline int SafeFormat(_Out_writes_(CAPACITY) _Null_terminated_ char(&buffer)[CAPACITY], _Printf_format_string_ cstr format, Args... args)
 	{
@@ -63,6 +64,31 @@ namespace Rococo::Strings
 	{
 		return SecureFormat(buffer, CAPACITY, format, args...);
 	}
+#else
+	template<size_t CAPACITY, typename... Args>
+	inline int SafeFormat(char(&buffer)[CAPACITY], cstr format, Args... args)
+	{
+		return SafeFormat(buffer, CAPACITY, format, args...);
+	}
+
+	template<size_t CAPACITY, typename... Args>
+	inline int SafeFormat(wchar_t(&buffer)[CAPACITY], const wchar_t* format, Args... args)
+	{
+		return SafeFormat(buffer, CAPACITY, format, args...);
+	}
+
+	template<size_t CAPACITY, typename... Args>
+	inline int SecureFormat(char(&buffer)[CAPACITY], cstr format, Args... args)
+	{
+		return SecureFormat(buffer, CAPACITY, format, args...);
+	}
+
+	template<size_t CAPACITY, typename... Args>
+	inline int SecureFormat(wchar_t(&buffer)[CAPACITY], const wchar_t* format, Args... args)
+	{
+		return SecureFormat(buffer, CAPACITY, format, args...);
+	}
+#endif
 
 	struct IStringBuffer
 	{
@@ -149,7 +175,11 @@ namespace Rococo::Strings
 
 	struct StringBuilder
 	{
+#if	USE_VSTUDIO_SAL
 		virtual StringBuilder& AppendFormat(_Printf_format_string_ const char* format, ...) = 0;
+#else
+		virtual StringBuilder& AppendFormat(const char* format, ...) = 0;
+#endif
 		virtual StringBuilder& operator << (cstr text) = 0;
 		virtual StringBuilder& AppendChar(char c) = 0;
 		virtual StringBuilder& operator << (int32 value) = 0;
@@ -183,7 +213,11 @@ namespace Rococo::Strings
 		StackStringBuilder(char* _buffer, size_t _capacity);
 		StackStringBuilder(char* _buffer, size_t _capacity, eOpenType type);
 		fstring operator * () const override { return fstring{ buffer, length }; }
-		StringBuilder& AppendFormat(_Printf_format_string_ const char* format, ...) override;
+#if	USE_VSTUDIO_SAL
+		virtual StringBuilder& AppendFormat(_Printf_format_string_ const char* format, ...) override;
+#else
+		virtual StringBuilder& AppendFormat(const char* format, ...) override;
+#endif
 		StringBuilder& operator << (cstr text) override;
 		StringBuilder& AppendChar(char c) override;
 		StringBuilder& operator << (int32 value)  override;

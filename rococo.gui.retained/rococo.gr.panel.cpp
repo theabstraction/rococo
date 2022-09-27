@@ -1,6 +1,6 @@
 #include <rococo.gui.retained.h>
 #include <vector>
-#include <rococo.maths.h>
+#include <rococo.maths.i32.h>
 
 namespace GRANON
 {

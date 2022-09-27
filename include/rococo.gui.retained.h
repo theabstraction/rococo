@@ -325,8 +325,21 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API void LayoutChildByAnchors(IGRPanel& child, const GuiRect& parentDimensions);
 	ROCOCO_GUI_RETAINED_API void LayoutChildrenByAnchors(IGRPanel& parent, const GuiRect& parentDimensions);
 
-	ROCOCO_INTERFACE IGRWidget
+	ROCOCO_INTERFACE IGRBase
 	{
+
+	};
+
+	enum class EQueryInterfaceResult
+	{
+		SUCCESS,
+		NOT_IMPLEMENTED,
+		INVALID_ID
+	};
+
+	ROCOCO_INTERFACE IGRWidget: IGRBase
+	{
+		virtual [[nodiscard]] EQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) = 0;
 		virtual Vec2i EvaluateMinimalSpan() const = 0;
 		virtual void Layout(const GuiRect& parentDimensions) = 0;
 		virtual EventRouting OnChildEvent(WidgetEvent& widgetEvent, IGRWidget& sourceWidget) = 0;
@@ -669,4 +682,6 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API IGREditFilter& GetI32Filter();
 	ROCOCO_GUI_RETAINED_API IGREditFilter& GetI64Filter();
 	ROCOCO_GUI_RETAINED_API IGREditFilter& GetUnsignedFilter();
+
+	ROCOCO_GUI_RETAINED_API bool DoInterfaceNamesMatch(cstr a, cstr b);
 }

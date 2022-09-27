@@ -1,5 +1,5 @@
 #include <rococo.gui.retained.h>
-#include <rococo.maths.h>
+#include <rococo.maths.i32.h>
 #include <string>
 
 using namespace Rococo;
@@ -92,6 +92,18 @@ namespace GRANON
 				this->text = text;
 			}
 			return *this;
+		}
+
+		EQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
+		{
+			if (!interfaceId || *interfaceId == 0) return EQueryInterfaceResult::INVALID_ID;
+			if (strcmp(interfaceId, "IGRWidgetText") == 0)
+			{
+				*ppOutputArg = this;
+				return EQueryInterfaceResult::SUCCESS;
+			}
+
+			return EQueryInterfaceResult::NOT_IMPLEMENTED;
 		}
 	};
 

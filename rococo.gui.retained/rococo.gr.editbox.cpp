@@ -1,5 +1,5 @@
 #include <rococo.gui.retained.h>
-#include <rococo.maths.h>
+#include <rococo.maths.i32.h>
 #include <vector>
 #include <string>
 
@@ -283,6 +283,18 @@ namespace GRANON
 		{
 			this->isReadOnly = isReadOnly;
 			return *this;
+		}
+
+		EQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
+		{
+			if (!interfaceId || *interfaceId == 0) return EQueryInterfaceResult::INVALID_ID;
+			if (DoInterfaceNamesMatch(interfaceId, "IGRWidgetEditBox"))
+			{
+				*ppOutputArg = this;
+				return EQueryInterfaceResult::SUCCESS;
+			}
+
+			return EQueryInterfaceResult::NOT_IMPLEMENTED;
 		}
 	};
 

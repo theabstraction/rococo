@@ -15,8 +15,14 @@ typedef __int64 ptrdiff_t;
 #endif
 
 #ifdef _WIN32
+# if USE_VSTUDIO_SAL
+#  include <sal.h>
+# endif
+#endif
+
+#ifdef _WIN32
 # define TIGHTLY_PACKED
-# include <sal.h>
+//# include <sal.h>
 #else
 # define TIGHTLY_PACKED __attribute__((packed))
 # endif
@@ -327,8 +333,13 @@ namespace Rococo
 		~RecursionGuard() { counter--; }
 	};
 
+#if USE_VSTUDIO_SAL
 	[[ noreturn ]]
 	void Throw(int32 errorCode, _Printf_format_string_ cstr format, ...);
+#else
+	[[ noreturn ]]
+	void Throw(int32 errorCode, cstr format, ...);
+#endif
 
 	template<class T> struct IEventCallback
 	{

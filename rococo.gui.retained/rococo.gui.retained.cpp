@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <string>
 #include <algorithm>
-#include <rococo.maths.h>
+#include <rococo.maths.i32.h>
 #include <unordered_map>
 
 using namespace Rococo;
@@ -487,5 +487,10 @@ namespace Rococo::Gui
 		GRAnchors a;
 		a.expandsHorizontally = true;
 		return a;
+	}
+
+	ROCOCO_GUI_RETAINED_API bool DoInterfaceNamesMatch(cstr a, cstr b)
+	{
+		return _stricmp(a, b) == 0;
 	}
 }

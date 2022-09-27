@@ -1,5 +1,5 @@
 #include <rococo.gui.retained.h>
-#include <rococo.maths.h>
+#include <rococo.maths.i32.h>
 
 namespace ANON
 {

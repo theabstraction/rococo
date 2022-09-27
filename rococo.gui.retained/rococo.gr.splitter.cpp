@@ -1,5 +1,5 @@
 #include <rococo.gui.retained.h>
-#include <rococo.maths.h>
+#include <rococo.maths.i32.h>
 
 namespace GRANON
 {
@@ -15,6 +15,7 @@ namespace GRANON
 		int32 draggerStartPos = 0;
 		int32 realDraggerStartPos = 0;
 		bool isHorizontal = true;
+		GuiRect draggerRect {0,0,0,0};
 
 		GRSplitter(IGRPanel& _panel, int32 _draggerStartPos) : panel(_panel), draggerStartPos(_draggerStartPos)
 		{
@@ -32,16 +33,16 @@ namespace GRANON
 
 		void Render(IGRRenderContext& g)
 		{
-			GuiRect rect = panel.AbsRect();
-			rect.left += realDraggerStartPos + 1;
-			rect.right = rect.left + draggerThickness - 2;
+			draggerRect = panel.AbsRect();
+			draggerRect.left += realDraggerStartPos + 1;
+			draggerRect.right = draggerRect.left + draggerThickness - 2;
 
-			bool isHovered = IsPointInRect(g.CursorHoverPoint(), rect);
+			bool isHovered = IsPointInRect(g.CursorHoverPoint(), draggerRect);
 			RGBAb colour = isHovered ? panel.GetColour(ESchemeColourSurface::SPLITTER_BACKGROUND_HOVERED, RGBAb(128, 128, 128, 255)) : panel.GetColour(ESchemeColourSurface::SPLITTER_BACKGROUND, RGBAb(64, 64, 64, 255));
-			g.DrawRect(rect, colour);
+			g.DrawRect(draggerRect, colour);
 
 			RGBAb edgeColour = isHovered ? panel.GetColour(ESchemeColourSurface::SPLITTER_EDGE_HILIGHTED, RGBAb(255, 255, 255, 255)) : panel.GetColour(ESchemeColourSurface::SPLITTER_EDGE_HILIGHTED, RGBAb(64, 64, 64, 255));
-			g.DrawRectEdge(rect, edgeColour, edgeColour);
+			g.DrawRectEdge(draggerRect, edgeColour, edgeColour);
 		}
 
 		void Free() override
@@ -73,6 +74,7 @@ namespace GRANON
 
 		EventRouting OnCursorMove(CursorEvent& ce) override
 		{
+			bool isDraggerHovered = IsPointInRect(ce.position, draggerRect);
 			return EventRouting::NextHandler;
 		}
 
@@ -99,6 +101,18 @@ namespace GRANON
 		IGRWidgetDivision& Second() override
 		{
 			return *second;
+		}
+
+		EQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
+		{
+			if (!interfaceId || *interfaceId == 0) return EQueryInterfaceResult::INVALID_ID;
+			if (DoInterfaceNamesMatch(interfaceId, "IGRWidgetDivision"))
+			{
+				*ppOutputArg = this;
+				return EQueryInterfaceResult::SUCCESS;
+			}
+
+			return EQueryInterfaceResult::NOT_IMPLEMENTED;
 		}
 	};
 
