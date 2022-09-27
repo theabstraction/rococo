@@ -454,17 +454,17 @@ namespace Rococo::Gui
 			{
 				if (anchors.expandsHorizontally)
 				{
-					newSpan.x = parentDimensions.right - child.ParentOffset().x - padding.right;
+					newSpan.x = Width(parentDimensions) - child.ParentOffset().x - padding.right;
 				}
 				else
 				{
-					newPos.x = parentDimensions.right - child.Span().x - padding.right;
+					newPos.x = Width(parentDimensions) - child.Span().x - padding.right;
 				}
 			}
 		}
 
-		newPos.x = max(parentDimensions.left, newPos.x);
-		newPos.x = min(parentDimensions.right, newPos.x);
+		newPos.x = max(0, newPos.x);
+		newPos.x = min(Width(parentDimensions), newPos.x);
 		newSpan.x = max(0, newSpan.x);
 
 		if (anchors.top)
@@ -479,7 +479,7 @@ namespace Rococo::Gui
 				}
 				else
 				{
-					newPos.y = Centre(parentDimensions).y - child.Span().y - padding.bottom;
+					newPos.y = (Height(parentDimensions) / 2) - child.Span().y - padding.bottom;
 				}
 			}
 			else if (anchors.expandsVertically)
@@ -494,11 +494,11 @@ namespace Rococo::Gui
 			{
 				if (anchors.expandsVertically)
 				{
-					newSpan.y += parentDimensions.top - child.ParentOffset().y;
+					newSpan.y += Height(parentDimensions) - child.ParentOffset().y;
 				}
 				else
 				{
-					newPos.y = parentDimensions.top - child.Span().y - padding.bottom;
+					newPos.y = Height(parentDimensions) - child.Span().y - padding.bottom;
 				}
 			}
 		}

@@ -497,6 +497,31 @@ namespace Rococo::Gui
 
 	};
 
+	struct GRColumnSpec
+	{
+		cstr name = nullptr;
+		int32 minWidth = 24;
+		int32 defaultWidth = 120;
+		int32 maxWidth = 1024;
+	};
+
+	struct GRRowSpec
+	{
+		int32 rowHeight = 24;
+	};
+
+	ROCOCO_INTERFACE IGRWidgetTable : IGRWidget
+	{
+		// Adds a new column and returns the column index of the new column
+		virtual int32 AddColumn(const GRColumnSpec & spec) = 0;
+
+		// Adds a new row and returns the row index of the new row
+		virtual int32 AddRow(const GRRowSpec& spec) = 0;
+
+		// Returns a reference to the cell at the given location. If the location indices are out of bounds, the method returns nullptr
+		virtual IGRWidgetDivision* GetCell(int32 column, int32 row) = 0;
+	};
+
 	ROCOCO_INTERFACE IGRWidgetSplitter : IGRWidget
 	{
 		virtual IGRWidgetDivision& First() = 0;
@@ -675,6 +700,7 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API IGRWidgetText& CreateText(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetCollapser& CreateCollapser(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetSplitter& CreateLeftToRightSplitter(IGRWidget& parent, int32 splitStartPosition, bool updateWithMouseMove);
+	ROCOCO_GUI_RETAINED_API IGRWidgetTable& CreateTable(IGRWidget& parent);
 
 	ROCOCO_INTERFACE IGREditFilter
 	{

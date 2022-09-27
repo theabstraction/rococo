@@ -320,20 +320,20 @@ namespace ANON
 			BuildUpperRightToolbar(frame);
 		}
 
-		void SyncUIToPreviewerRecursive(PreviewData& data, IGuiRetained& gr, IGRWidgetVerticalList& list, int32 depth)
+		void SyncUIToPreviewerRecursive(PreviewData& data, IGuiRetained& gr, IGRWidgetTable& table, int32 depth)
 		{
-			list.Panel().Set(ESchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(48, 0, 0, 255));
-			list.Panel().Set(ESchemeColourSurface::CONTAINER_BACKGROUND_HOVERED, RGBAb(50, 0, 0, 255));
+			table.Panel().Set(ESchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(48, 0, 0, 255));
+			table.Panel().Set(ESchemeColourSurface::CONTAINER_BACKGROUND_HOVERED, RGBAb(50, 0, 0, 255));
 
 			for (auto& f : data.fields)
 			{
-				auto& div = CreateDivision(list);
-				div.Panel().Resize({ 30, 30 });				
+				int newRowIndex = table.AddRow({ 30 });
+				auto* nameCell = table.GetCell(0, newRowIndex);		
 
 				GRAlignmentFlags nameAlignment;
 				nameAlignment.Add(GRAlignment::VCentre).Add(GRAlignment::Left);
-				auto& nameText = CreateText(div).SetText(f.fieldName.c_str()).SetAlignment(nameAlignment, {2,2});
-				nameText.Panel().Resize({ 100, 24 }).Add(GRAnchors::TopAndBottom()).Add(GRAnchors::ExpandVertically()).Add(GRAnchors::Left()).Add(GRAnchors::ExpandHorizontally()).Set(GRAnchorPadding{ 4, 0, 0, 0 });
+				auto& nameText = CreateText(*nameCell).SetText(f.fieldName.c_str()).SetAlignment(nameAlignment, {2,2});
+				nameText.Panel().Add(GRAnchors::ExpandAll()).Set(GRAnchorPadding{ 4, 0, 0, 0 });
 
 				IGREditFilter* filter = nullptr;
 
@@ -362,10 +362,12 @@ namespace ANON
 					break;
 				}
 
+				auto* valueCell = table.GetCell(1, newRowIndex);
+
 				GRAlignmentFlags valueAlignment;
 				valueAlignment.Add(GRAlignment::VCentre).Add(GRAlignment::Left);
-				auto& valueText = CreateEditBox(div, filter, capacity).SetAlignment(valueAlignment, { 2,2 });
-				valueText.Panel().SetParentOffset({ 100, 24 }).Add(GRAnchors::TopAndBottom()).Add(GRAnchors::ExpandVertically()).Add(GRAnchors::Right()).Add(GRAnchors::ExpandHorizontally()).Set(GRAnchorPadding { 0, 4, 0, 0});
+				auto& valueText = CreateEditBox(*valueCell, filter, capacity).SetAlignment(valueAlignment, { 2,2 });
+				valueText.Panel().Add(GRAnchors::ExpandAll()).Set(GRAnchorPadding { 0, 4, 0, 0});
 
 				char buf[16];
 				ToAscii(f.value, buf, sizeof buf);
@@ -387,14 +389,32 @@ namespace ANON
 			frameSplitter.Panel().Add(GRAnchors::ExpandAll());
 
 			auto& listCollapser = CreateCollapser(frameSplitter.First());
-			auto& list = CreateVerticalList(listCollapser.ClientArea());
+			//auto& list = CreateVerticalList(listCollapser.ClientArea());
 			listCollapser.Panel().Add(GRAnchors::ExpandAll());
-			list.Panel().Add(GRAnchors::ExpandAll());
+		//	list.Panel().Add(GRAnchors::ExpandAll());
 			listCollapser.Panel().Set(ESchemeColourSurface::TEXT, RGBAb(224, 224, 224, 255)).Set(ESchemeColourSurface::TEXT_HOVERED, RGBAb(255, 255, 255, 255));
 			listCollapser.Panel().Set(ESchemeColourSurface::EDIT_TEXT, RGBAb(224, 224, 224, 255)).Set(ESchemeColourSurface::EDIT_TEXT_HOVERED, RGBAb(255, 255, 255, 255));
 
+			auto& table = CreateTable(listCollapser.ClientArea());
+
+			GRColumnSpec nameSpec;
+			nameSpec.name = "Name";
+			nameSpec.maxWidth = 240;
+			nameSpec.minWidth = 64;
+			nameSpec.defaultWidth = 120;
+			table.AddColumn(nameSpec);
+
+			GRColumnSpec valueSpec;
+			valueSpec.name = "Value";
+			valueSpec.maxWidth = 8192;
+			valueSpec.minWidth = 64;
+			valueSpec.defaultWidth = 120;
+			table.AddColumn(valueSpec);
+
+			table.Panel().Add(GRAnchors::ExpandAll());
+
 			auto* node = previewer.root;
-			if (node) SyncUIToPreviewerRecursive(*node, gr, list, 0);
+			if (node) SyncUIToPreviewerRecursive(*node, gr, table, 0);
 		}
 
 		void Preview(IReflectionTarget& target) override
