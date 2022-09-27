@@ -133,6 +133,10 @@ namespace Rococo::Gui
 
 		virtual void DrawRect(const GuiRect& absRect, RGBAb colour) = 0;
 		virtual void DrawRectEdge(const GuiRect& absRect, RGBAb colour1, RGBAb colour2) = 0;
+
+		// Queues an edge rect for rendering after everything else of lower priority has been rendered
+		virtual void DrawRectEdgeLast(const GuiRect& absRect, RGBAb colour1, RGBAb colour2) = 0;
+
 		virtual void DrawEditableText(GRFontId fontId, const GuiRect& clipRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, int32 caretPos, RGBAb colour) = 0;
 		virtual void DrawText(GRFontId fontId, const GuiRect& clipRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour) = 0;
 
@@ -670,7 +674,7 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API IGRWidgetToolbar& CreateToolbar(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetText& CreateText(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetCollapser& CreateCollapser(IGRWidget& parent);
-	ROCOCO_GUI_RETAINED_API IGRWidgetSplitter& CreateLeftToRightSplitter(IGRWidget& parent, int32 splitStartPosition);
+	ROCOCO_GUI_RETAINED_API IGRWidgetSplitter& CreateLeftToRightSplitter(IGRWidget& parent, int32 splitStartPosition, bool updateWithMouseMove);
 
 	ROCOCO_INTERFACE IGREditFilter
 	{

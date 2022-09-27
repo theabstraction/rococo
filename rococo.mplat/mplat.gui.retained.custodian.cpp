@@ -43,6 +43,19 @@ namespace ANON
 		return iAlignment;
 	}
 
+	enum class ERenderTaskType
+	{
+		Edge
+	};
+
+	struct RenderTask
+	{
+		ERenderTaskType type;
+		GuiRect target;
+		RGBAb colour1;
+		RGBAb colour2;
+	};
+
 	struct MPlatGR_Renderer : IGRRenderContext
 	{
 		IUtilities& utils;
@@ -50,9 +63,26 @@ namespace ANON
 		GuiRect lastScreenDimensions;
 		Vec2i cursorPos{ -1000,-1000 };
 
+		std::vector<RenderTask> lastTasks;
+
 		MPlatGR_Renderer(IUtilities& _utils) : utils(_utils)
 		{
 
+		}
+
+		void DrawLastItems()
+		{
+			for (auto& task : lastTasks)
+			{
+				switch (task.type)
+				{
+				case ERenderTaskType::Edge:
+					DrawRectEdge(task.target, task.colour1, task.colour2);
+					break;
+				}
+			}
+
+			lastTasks.clear();
 		}
 
 		void DrawRect(const GuiRect& absRect, RGBAb colour) override
@@ -63,6 +93,12 @@ namespace ANON
 		void DrawRectEdge(const GuiRect& absRect, RGBAb colour1, RGBAb colour2) override
 		{
 			Rococo::Graphics::DrawBorderAround(*rc, absRect, Vec2i{ 1,1 }, colour1, colour2);
+		}
+
+		void DrawRectEdgeLast(const GuiRect& absRect, RGBAb colour1, RGBAb colour2)
+		{
+			RenderTask task{ ERenderTaskType::Edge, absRect, colour1, colour2 };
+			lastTasks.push_back(task);
 		}
 
 		void DrawEditableText(GRFontId fontId, const GuiRect& clipRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, int32 caretPos, RGBAb colour)
@@ -374,6 +410,8 @@ namespace ANON
 			{
 				gr.RenderGui(renderer);
 			}
+
+			renderer.DrawLastItems();
 
 			renderer.SetContext(nullptr);
 		}

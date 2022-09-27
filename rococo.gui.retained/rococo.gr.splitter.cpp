@@ -16,10 +16,12 @@ namespace GRANON
 		int32 realDraggerStartPos = 0;
 		bool isHorizontal = true;
 		GuiRect draggerRect {0,0,0,0};
+		int32 virtualDraggerStartPos = -1;
+		bool updateWithMouseMove;
 
-		GRSplitter(IGRPanel& _panel, int32 _draggerStartPos) : panel(_panel), draggerStartPos(_draggerStartPos)
+		GRSplitter(IGRPanel& _panel, int32 _draggerStartPos, bool _updateWithMouseMove) : panel(_panel), draggerStartPos(_draggerStartPos), updateWithMouseMove(_updateWithMouseMove)
 		{
-
+			realDraggerStartPos = _draggerStartPos;
 		}
 
 		void PostConstruct()
@@ -43,6 +45,19 @@ namespace GRANON
 
 			RGBAb edgeColour = isHovered ? panel.GetColour(ESchemeColourSurface::SPLITTER_EDGE_HILIGHTED, RGBAb(255, 255, 255, 255)) : panel.GetColour(ESchemeColourSurface::SPLITTER_EDGE_HILIGHTED, RGBAb(64, 64, 64, 255));
 			g.DrawRectEdge(draggerRect, edgeColour, edgeColour);
+
+			if (virtualDraggerStartPos >= 0)
+			{
+				int delta = g.CursorHoverPoint().x - virtualDraggerStartPos;
+				int virtualDraggerPos = clamp(draggerStartPos + delta, 0, panel.Span().x - draggerThickness - 2);
+
+				GuiRect virtualRect = panel.AbsRect();
+				virtualRect.left += virtualDraggerPos + 1;
+				virtualRect.right = virtualRect.left + draggerThickness - 2;
+
+				RGBAb litEdge = panel.GetColour(ESchemeColourSurface::SPLITTER_EDGE_HILIGHTED, RGBAb(255, 255, 255, 255));
+				g.DrawRectEdgeLast(virtualRect, litEdge, litEdge);
+			}
 		}
 
 		void Free() override
@@ -52,7 +67,7 @@ namespace GRANON
 
 		void LayoutHorizontal(const GuiRect& screenDimensions)
 		{
-			realDraggerStartPos = min(draggerStartPos, Width(screenDimensions) - draggerThickness);
+			realDraggerStartPos = min(realDraggerStartPos, Width(screenDimensions) - draggerThickness);
 			first->Panel().SetParentOffset({ 0,0 }).Resize({ realDraggerStartPos, Height(screenDimensions)});
 			second->Panel().SetParentOffset({ realDraggerStartPos + draggerThickness,0 }).Resize({ Width(screenDimensions) - (realDraggerStartPos + draggerThickness), Height(screenDimensions)});
 		}
@@ -64,6 +79,34 @@ namespace GRANON
 
 		EventRouting OnCursorClick(CursorEvent& ce) override
 		{
+			if (ce.click.LeftButtonUp)
+			{
+				if (panel.Id() == panel.Root().GR().GetFocusId())
+				{
+					panel.Root().GR().SetFocus(-1);
+				}
+
+				if (virtualDraggerStartPos >= 0)
+				{
+					int delta = ce.position.x - virtualDraggerStartPos;
+					virtualDraggerStartPos = -1;
+					realDraggerStartPos = clamp(draggerStartPos + delta, 0, panel.Span().x - draggerThickness - 2);
+					panel.InvalidateLayout(true);
+					draggerStartPos = realDraggerStartPos;
+				}
+
+				return EventRouting::Terminate;
+			}
+			else if (ce.click.LeftButtonDown)
+			{
+				if (IsPointInRect(ce.position, draggerRect))
+				{
+					panel.Focus();
+					virtualDraggerStartPos = ce.position.x;
+					return EventRouting::Terminate;
+				}
+			}
+
 			return EventRouting::NextHandler;
 		}
 
@@ -79,6 +122,14 @@ namespace GRANON
 			{
 				ce.nextIcon = ECursorIcon::LeftAndRightDragger;
 			}
+
+			if (updateWithMouseMove && virtualDraggerStartPos >= 0)
+			{
+				int delta = ce.position.x - virtualDraggerStartPos;
+				realDraggerStartPos = clamp(draggerStartPos + delta, 0, panel.Span().x - draggerThickness - 2);
+				panel.InvalidateLayout(true);
+			}
+
 			return EventRouting::NextHandler;
 		}
 
@@ -123,10 +174,11 @@ namespace GRANON
 	struct GRSplitterFactory : IGRWidgetFactory
 	{
 		int32 draggerStartPos;
+		bool updateWithMouseMove;
 
 		IGRWidget& CreateWidget(IGRPanel& panel)
 		{
-			auto splitter = new GRSplitter(panel, draggerStartPos);
+			auto splitter = new GRSplitter(panel, draggerStartPos, updateWithMouseMove);
 			splitter->PostConstruct();
 			return *splitter;
 		}
@@ -135,12 +187,13 @@ namespace GRANON
 
 namespace Rococo::Gui
 {
-	ROCOCO_GUI_RETAINED_API IGRWidgetSplitter& CreateLeftToRightSplitter(IGRWidget& parent, int32 draggerStartPos)
+	ROCOCO_GUI_RETAINED_API IGRWidgetSplitter& CreateLeftToRightSplitter(IGRWidget& parent, int32 draggerStartPos, bool updateWithMouseMove)
 	{
 		auto& gr = parent.Panel().Root().GR();
 
 		GRANON::GRSplitterFactory factory;
 		factory.draggerStartPos = draggerStartPos;
+		factory.updateWithMouseMove = updateWithMouseMove;
 		return static_cast<IGRWidgetSplitter&>(gr.AddWidget(parent.Panel(), factory));
 	}
 }

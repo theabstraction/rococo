@@ -383,7 +383,7 @@ namespace ANON
 			frame->ClientArea().Panel().Set(ESchemeColourSurface::FOCUSED_EDITOR, RGBAb(0, 0, 0, 255));
 			frame->ClientArea().Panel().Set(ESchemeColourSurface::FOCUSED_EDITOR_HOVERED, RGBAb(16, 16, 16, 255));
 
-			auto& frameSplitter = CreateLeftToRightSplitter(frame->ClientArea(), 240);
+			auto& frameSplitter = CreateLeftToRightSplitter(frame->ClientArea(), 240, false);
 			frameSplitter.Panel().Add(GRAnchors::ExpandAll());
 
 			auto& listCollapser = CreateCollapser(frameSplitter.First());
