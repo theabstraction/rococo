@@ -74,7 +74,7 @@ namespace GRANON
 			if (!interfaceId || *interfaceId == 0) return EQueryInterfaceResult::INVALID_ID;
 			if (DoInterfaceNamesMatch(interfaceId, "IGRWidgetDivision"))
 			{
-				*ppOutputArg = this;
+				if (ppOutputArg) *ppOutputArg = this;
 				return EQueryInterfaceResult::SUCCESS;
 			}
 

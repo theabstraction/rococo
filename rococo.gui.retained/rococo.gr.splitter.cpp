@@ -18,6 +18,8 @@ namespace GRANON
 		GuiRect draggerRect {0,0,0,0};
 		int32 virtualDraggerStartPos = -1;
 		bool updateWithMouseMove;
+		int32 splitterMin = 0;
+		int32 splitterMax = 8192;
 
 		GRSplitter(IGRPanel& _panel, int32 _draggerStartPos, bool _updateWithMouseMove) : panel(_panel), draggerStartPos(_draggerStartPos), updateWithMouseMove(_updateWithMouseMove)
 		{
@@ -49,7 +51,7 @@ namespace GRANON
 			if (virtualDraggerStartPos >= 0)
 			{
 				int delta = g.CursorHoverPoint().x - virtualDraggerStartPos;
-				int virtualDraggerPos = clamp(draggerStartPos + delta, 0, panel.Span().x - draggerThickness - 2);
+				int virtualDraggerPos = clamp(clamp(draggerStartPos + delta, 0, panel.Span().x - draggerThickness - 2), splitterMin, splitterMax);
 
 				GuiRect virtualRect = panel.AbsRect();
 				virtualRect.left += virtualDraggerPos + 1;
@@ -90,7 +92,7 @@ namespace GRANON
 				{
 					int delta = ce.position.x - virtualDraggerStartPos;
 					virtualDraggerStartPos = -1;
-					realDraggerStartPos = clamp(draggerStartPos + delta, 0, panel.Span().x - draggerThickness - 2);
+					realDraggerStartPos = clamp(clamp(draggerStartPos + delta, 0, panel.Span().x - draggerThickness - 2), splitterMin, splitterMax);
 					panel.InvalidateLayout(true);
 					draggerStartPos = realDraggerStartPos;
 				}
@@ -126,7 +128,7 @@ namespace GRANON
 			if (updateWithMouseMove && virtualDraggerStartPos >= 0)
 			{
 				int delta = ce.position.x - virtualDraggerStartPos;
-				realDraggerStartPos = clamp(draggerStartPos + delta, 0, panel.Span().x - draggerThickness - 2);
+				realDraggerStartPos = clamp(clamp(draggerStartPos + delta, 0, panel.Span().x - draggerThickness - 2), splitterMin, splitterMax);
 				panel.InvalidateLayout(true);
 			}
 
@@ -159,15 +161,22 @@ namespace GRANON
 		}
 
 		EQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
-		{
+		{			
 			if (!interfaceId || *interfaceId == 0) return EQueryInterfaceResult::INVALID_ID;
-			if (DoInterfaceNamesMatch(interfaceId, "IGRWidgetDivision"))
+			if (DoInterfaceNamesMatch(interfaceId, "IGRWidgetSplitter"))
 			{
-				*ppOutputArg = this;
+				if (ppOutputArg) *ppOutputArg = this;
 				return EQueryInterfaceResult::SUCCESS;
 			}
 
 			return EQueryInterfaceResult::NOT_IMPLEMENTED;
+		}
+
+		IGRWidgetSplitter& SetDraggerMinMax(int32 minValue, int32 maxValue) override
+		{
+			splitterMin = minValue;
+			splitterMax = maxValue;
+			return *this;
 		}
 	};
 

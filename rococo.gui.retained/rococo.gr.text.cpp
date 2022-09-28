@@ -97,9 +97,9 @@ namespace GRANON
 		EQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
 			if (!interfaceId || *interfaceId == 0) return EQueryInterfaceResult::INVALID_ID;
-			if (strcmp(interfaceId, "IGRWidgetText") == 0)
+			if (DoInterfaceNamesMatch(interfaceId, "IGRWidgetText"))
 			{
-				*ppOutputArg = this;
+				if (ppOutputArg) *ppOutputArg = this;
 				return EQueryInterfaceResult::SUCCESS;
 			}
 

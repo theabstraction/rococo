@@ -313,9 +313,9 @@ namespace GRANON
 		EQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
 			if (!interfaceId || *interfaceId == 0) return EQueryInterfaceResult::INVALID_ID;
-			if (strcmp(interfaceId, "IGRWidgetButton") == 0)
+			if (DoInterfaceNamesMatch(interfaceId, "IGRWidgetButton"))
 			{
-				*ppOutputArg = this;
+				if (ppOutputArg) *ppOutputArg = this;
 				return EQueryInterfaceResult::SUCCESS;
 			}
 

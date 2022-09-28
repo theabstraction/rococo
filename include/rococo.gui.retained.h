@@ -526,6 +526,7 @@ namespace Rococo::Gui
 	{
 		virtual IGRWidgetDivision& First() = 0;
 		virtual IGRWidgetDivision& Second() = 0;
+		virtual IGRWidgetSplitter& SetDraggerMinMax(int32 minValue, int32 maxValue) = 0;
 	};
 
 	ROCOCO_INTERFACE IGRWidgetCollapser : IGRWidget

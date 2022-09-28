@@ -98,7 +98,9 @@ namespace GRANON
 
 			for (size_t colIndex = 0; colIndex < columnHeaders.size(); ++colIndex)
 			{
-				const GRColumn& columpSpec = columnHeaders[colIndex];
+				const GRColumn& columnSpec = columnHeaders[colIndex];
+
+				int columnWidth = colIndex < columnHeaders.size() - 1 ? columnSpec.width : max(columnSpec.width, Width(panelDimensions) - x);
 
 				int y = 0;
 
@@ -106,12 +108,12 @@ namespace GRANON
 				{
 					auto& cell = row.cellsInThisRow[colIndex];
 
-					cell.div->Panel().SetParentOffset({ x, y }).Resize({ columpSpec.width, row.rowHeight });
+					cell.div->Panel().SetParentOffset({ x, y }).Resize({ columnWidth, row.rowHeight });
 
 					y += row.rowHeight;
 				}
 
-				x += columpSpec.width;
+				x += columnWidth;
 			}
 		}
 
@@ -152,9 +154,9 @@ namespace GRANON
 		EQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
 			if (!interfaceId || *interfaceId == 0) return EQueryInterfaceResult::INVALID_ID;
-			if (DoInterfaceNamesMatch(interfaceId, "IGRWidgetDivision"))
+			if (DoInterfaceNamesMatch(interfaceId, "IGRWidgetTable"))
 			{
-				*ppOutputArg = this;
+				if (ppOutputArg) *ppOutputArg = this;
 				return EQueryInterfaceResult::SUCCESS;
 			}
 

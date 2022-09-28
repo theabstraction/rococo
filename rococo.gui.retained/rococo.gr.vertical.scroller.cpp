@@ -180,9 +180,9 @@ namespace ANON
 		EQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
 			if (!interfaceId || *interfaceId == 0) return EQueryInterfaceResult::INVALID_ID;
-			if (DoInterfaceNamesMatch(interfaceId, "IGRWidgetVerticalList"))
+			if (DoInterfaceNamesMatch(interfaceId, "IGRWidgetVerticalScroller"))
 			{
-				*ppOutputArg = this;
+				if (ppOutputArg) *ppOutputArg = this;
 				return EQueryInterfaceResult::SUCCESS;
 			}
 
