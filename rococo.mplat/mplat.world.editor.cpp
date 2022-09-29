@@ -249,7 +249,12 @@ namespace ANON
 			target->AddField(name, value);
 		}
 
-		void Reflect(cstr name, IReflectionVisitor& subTarget, ReflectionMetaData& metaData) override
+		void Reflect(cstr name, IReflectedString& stringValue, ReflectionMetaData& metaData) override
+		{
+			target->AddField(name, stringValue.ReadString());
+		}
+
+		void Reflect(cstr name, IReflectionTarget& subTarget, ReflectionMetaData& metaData) override
 		{
 			
 		}

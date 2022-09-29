@@ -129,6 +129,8 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\include\rococo.strings.h" />
+    <ClInclude Include="..\include\rococo.strings.reflection.h" />
     <ClInclude Include="mhost.h" />
     <ClInclude Include="mhost.sxh.h" />
     <ClInclude Include="Resource.h" />

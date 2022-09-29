@@ -1,25 +1,45 @@
 #include <rococo.reflector.h>
+#include <rococo.strings.h>
 
 using namespace Rococo;
+using namespace Rococo::Strings;
 using namespace Rococo::Reflection;
 
-struct TestStruct: IReflectionTarget
+struct TestDog : IReflectionTarget
 {
-	int32 iField = 7;
-	float32 f32Field = 19.0f;
-	float64 f64Field = -38.0;
-	char bufferField[256];
-	bool bField = false;
-	int64 lField = 192;
+	HString name;
+	HString breed;
+	bool isHappy;
 
 	void Visit(IReflectionVisitor& v) override
 	{
-		v.SetSection("TestStruct");
-		ROCOCO_REFLECT(v, iField);
-		ROCOCO_REFLECT(v, f32Field);
-		ROCOCO_REFLECT(v, f64Field);
-		ROCOCO_REFLECT(v, bField);
-		ROCOCO_REFLECT(v, lField);
+		v.SetSection("Dog");
+		ROCOCO_REFLECT(v, name);
+		ROCOCO_REFLECT(v, breed);
+		ROCOCO_REFLECT(v, isHappy);
+	}
+};
+
+struct TestKennel: IReflectionTarget
+{
+	int32 taxCode = 0x1891A;
+	float32 cost = 2000.0f;
+
+	TestDog dog;
+	
+	TestKennel()
+	{
+		dog.breed = "Blood Hound";
+		dog.name = "Toby";
+		dog.isHappy = true;
+	};
+
+	void Visit(IReflectionVisitor& v) override
+	{
+		v.SetSection("Kennel");
+		ROCOCO_REFLECT(v, taxCode);
+		ROCOCO_REFLECT(v, cost);
+		ROCOCO_REFLECT(v, dog)
 	}
 } s_TestStruct;
 

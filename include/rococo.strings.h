@@ -1,5 +1,9 @@
 #pragma once
 
+#ifndef INCLUDED_ROCOCO_STRINGS
+# define INCLUDED_ROCOCO_STRINGS
+#endif
+
 #ifdef SEXCHAR_IS_WIDE
 # error "Wide characters no longer supported."
 #endif
@@ -274,3 +278,8 @@ namespace Rococo::Strings
 
 	void ReplaceChar(char* buffer, size_t capacity, char target, char replacement);
 } // Rococo::Strings
+
+
+#ifdef INCLUDED_ROCOCO_REFLECTOR
+# include <rococo.strings.reflection.h>
+#endif
