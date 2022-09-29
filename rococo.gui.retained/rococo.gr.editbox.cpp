@@ -80,7 +80,19 @@ namespace GRANON
 
 		EventRouting OnCursorClick(CursorEvent& ce) override
 		{
-			panel.Focus();
+			if (ce.click.LeftButtonUp)
+			{
+				if (panel.Root().GR().GetFocusId() == panel.Id())
+				{
+					panel.Root().GR().SetFocus(-1);
+				}
+				else
+				{
+					panel.Focus();
+				}
+				return EventRouting::Terminate;
+			}
+
 			return EventRouting::NextHandler;
 		}
 

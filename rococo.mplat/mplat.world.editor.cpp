@@ -388,14 +388,16 @@ namespace ANON
 			auto& frameSplitter = CreateLeftToRightSplitter(frame->ClientArea(), 240, false).SetDraggerMinMax(240, 8192);
 			frameSplitter.Panel().Add(GRAnchors::ExpandAll());
 
-			auto& listCollapser = CreateCollapser(frameSplitter.First());
-			//auto& list = CreateVerticalList(listCollapser.ClientArea());
-			listCollapser.Panel().Add(GRAnchors::ExpandAll());
-		//	list.Panel().Add(GRAnchors::ExpandAll());
-			listCollapser.Panel().Set(ESchemeColourSurface::TEXT, RGBAb(224, 224, 224, 255)).Set(ESchemeColourSurface::TEXT_HOVERED, RGBAb(255, 255, 255, 255));
-			listCollapser.Panel().Set(ESchemeColourSurface::EDIT_TEXT, RGBAb(224, 224, 224, 255)).Set(ESchemeColourSurface::EDIT_TEXT_HOVERED, RGBAb(255, 255, 255, 255));
+			auto& collapser = CreateCollapser(frameSplitter.First());
+			collapser.Panel().Add(GRAnchors::ExpandAll());
+			collapser.Panel().Set(ESchemeColourSurface::TEXT, RGBAb(224, 224, 224, 255)).Set(ESchemeColourSurface::TEXT_HOVERED, RGBAb(255, 255, 255, 255));
+			collapser.Panel().Set(ESchemeColourSurface::EDIT_TEXT, RGBAb(224, 224, 224, 255)).Set(ESchemeColourSurface::EDIT_TEXT_HOVERED, RGBAb(255, 255, 255, 255));
 
-			auto& table = CreateTable(listCollapser.ClientArea());
+			auto& list = CreateVerticalList(collapser.ClientArea());
+			list.Panel().Add(GRAnchors::ExpandAll());
+
+			auto& table = CreateTable(list);
+			table.Panel().Set(GRAnchors::ExpandAll());
 
 			GRColumnSpec nameSpec;
 			nameSpec.name = "Name";

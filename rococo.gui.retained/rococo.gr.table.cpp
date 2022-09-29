@@ -53,6 +53,18 @@ namespace GRANON
 			return (int32) columnHeaders.size() - 1;
 		}
 
+		void ExpandToFit()
+		{
+			int height = 0;
+
+			for (auto& row : rows)
+			{
+				height += row.rowHeight;
+			}
+
+			panel.Resize({ panel.Span().x, height });
+		}
+
 		// Adds a new row and returns the row index of the new row
 		int32 AddRow(const GRRowSpec& spec) override
 		{
@@ -66,6 +78,8 @@ namespace GRANON
 			}
 
 			panel.InvalidateLayout(true);
+
+			ExpandToFit();
 
 			return (int32) rows.size() - 1;
 		}

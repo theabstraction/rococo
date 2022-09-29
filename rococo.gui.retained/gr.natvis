@@ -3,6 +3,9 @@
 	<Type Name="GRANON::GRPanel">
 		<DisplayString>{{Rect: {absRect}. Span: {span}. ParentOffset: {parentOffset}}</DisplayString>
 	</Type>
+	<Type Name="GRANON::GRCollapser">
+		<DisplayString>{{Collapser: {panel}. Button {collapseButton}}</DisplayString>
+	</Type>
 	<Type Name="GRANON::GRDivision">
 		<DisplayString>{{Division: {panel}}}</DisplayString>
 	</Type>
@@ -15,11 +18,17 @@
 	<Type Name="GRANON::GRToolbar">
 		<DisplayString>{{Toolbar: {panel}}}</DisplayString>
 	</Type>
+	<Type Name="GRANON::GRTable">
+		<DisplayString>{{Table: {panel}, cols {columnHeaders}, rows {rows}}}</DisplayString>
+	</Type>
 	<Type Name="GRANON::GRButton">
 		<DisplayString>{{Button: Title:{title}, Image: {imagePath}, iMeta{iMetaData}, sMeta{sMetaData}}</DisplayString>
 	</Type>
 	<Type Name="GRANON::GRMenuBar">
 		<DisplayString>{{Menu. {panel}}</DisplayString>
+	</Type>
+	<Type Name="GRANON::GRSplitter">
+		<DisplayString>{{Splitter. {panel} L {first}, R {second}</DisplayString>
 	</Type>
 	<Type Name="Rococo::Gui::CursorEvent">
 		<DisplayString>{{Pos {position}. Click {click}. Id #{eventId}}}</DisplayString>

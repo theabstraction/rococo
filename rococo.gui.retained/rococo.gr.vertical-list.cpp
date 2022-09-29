@@ -9,8 +9,11 @@ namespace GRANON
 	struct GRVerticalList : IGRWidgetVerticalList
 	{
 		IGRPanel& panel;
+		bool enforcePositiveChildHeights;
 
-		GRVerticalList(IGRPanel& owningPanel) : panel(owningPanel)
+		GRVerticalList(IGRPanel& owningPanel, bool _enforcePositiveChildHeights) :
+			panel(owningPanel), 
+			enforcePositiveChildHeights(_enforcePositiveChildHeights)
 		{
 		}
 
@@ -29,6 +32,10 @@ namespace GRANON
 				auto padding = child->Padding();
 				child->SetParentOffset({ padding.left, top + padding.top });
 				int dy = child->Span().y;
+				if (dy <= 0 && enforcePositiveChildHeights)
+				{
+					panel.Root().Custodian().RaiseError(GRErrorCode::Generic, __FUNCTION__, "Child of vertical list had zero height");
+				}
 				child->Resize({Width(panelDimensions) - padding.left - padding.right, dy});
 				top += dy + padding.top + padding.bottom;
 			}
@@ -99,19 +106,27 @@ namespace GRANON
 
 	struct GRVerticalListFactory : IGRWidgetFactory
 	{
+		bool enforcePositiveChildHeights;
+
+		GRVerticalListFactory(bool _enforcePositiveChildHeights): enforcePositiveChildHeights(_enforcePositiveChildHeights)
+		{
+
+		}
+
 		IGRWidget& CreateWidget(IGRPanel& panel)
 		{
-			return *new GRVerticalList(panel);
+			return *new GRVerticalList(panel, enforcePositiveChildHeights);
 		}
-	} s_VerticalListFactory;
+	};
 }
 
 namespace Rococo::Gui
 {
-	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalList& CreateVerticalList(IGRWidget& parent)
+	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalList& CreateVerticalList(IGRWidget& parent, bool enforcePositiveChildHeights)
 	{
+		GRANON::GRVerticalListFactory factory(enforcePositiveChildHeights);
 		auto& gr = parent.Panel().Root().GR();
-		auto& list = static_cast<IGRWidgetVerticalList&>(gr.AddWidget(parent.Panel(), GRANON::s_VerticalListFactory));
+		auto& list = static_cast<IGRWidgetVerticalList&>(gr.AddWidget(parent.Panel(), factory));
 		return list;
 	}
 }
