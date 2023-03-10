@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <rococo.io.h>
 #include <process.h>
+#include <string>
 #include <vector>
 #include <unordered_map>
 #include <shlobj.h>

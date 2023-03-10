@@ -8,6 +8,7 @@
 #include <rococo.window.h>
 #include <rococo.strings.h>
 #include <commctrl.h>
+#include <string>
 #include <vector>
 #include <algorithm>
 #include <unordered_map>

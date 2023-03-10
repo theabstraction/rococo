@@ -267,7 +267,7 @@ namespace Rococo::Gui
 		ROCOCO_GUI_RETAINED_API static GRAnchors ExpandAll();
 	};
 
-	// Gives the number of pixels between an anchored side and the parent control
+	// Gives the number of pixels between an anchored side and the parent control. Implicit construction order is Left, Right, Top, Bottom
 	struct GRAnchorPadding
 	{
 		int32 left = 0;

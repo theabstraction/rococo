@@ -15,6 +15,7 @@
 #include <rococo.visitors.h>
 #include <commctrl.h>
 
+#include <string>
 #include <vector>
 #include <algorithm>
 #include <unordered_map>

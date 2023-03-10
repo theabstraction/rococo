@@ -86,7 +86,7 @@ namespace ANON
 
 	enum class PrimitiveType
 	{
-		I32, I64, F32, F64, BOOL, OBJECT
+		I32, I64, F32, F64, BOOL, CSTR, SUB_OBJECT
 	};
 
 	union PreviewPrimitive
@@ -96,11 +96,12 @@ namespace ANON
 		float float32Value;
 		double float64Value;
 		bool boolValue;
-		PreviewData* pObject;
+		PreviewData* pSubObject;
 	};
 
 	struct PrimitiveVariant
 	{
+		HString stringValue;
 		PreviewPrimitive primitive;
 		PrimitiveType type;
 	};
@@ -135,6 +136,19 @@ namespace ANON
 		v.type = PrimitiveType::BOOL;
 	}
 
+	void Assign(PrimitiveVariant& v, cstr value)
+	{
+		v.primitive.float64Value = 0;
+		v.stringValue = value;
+		v.type = PrimitiveType::CSTR;
+	}
+
+	void Assign(PrimitiveVariant& v, PreviewData* subObject)
+	{
+		v.primitive.pSubObject = subObject;
+		v.type = PrimitiveType::SUB_OBJECT;
+	}
+
 	struct PreviewField
 	{
 		HString fieldName;
@@ -160,7 +174,10 @@ namespace ANON
 		case PrimitiveType::BOOL:
 			snprintf(buffer, capacity, "%s", variant.primitive.boolValue ? "true" : "false");
 			break;
-		case PrimitiveType::OBJECT:
+		case PrimitiveType::CSTR:
+			snprintf(buffer, capacity, "%s", variant.stringValue.c_str());
+			break;
+		case PrimitiveType::SUB_OBJECT:
 			snprintf(buffer, capacity, "SUB_OBJECT");
 			break;
 		default:
@@ -180,9 +197,9 @@ namespace ANON
 		{
 			for (auto& i : fields)
 			{
-				if (i.value.type == PrimitiveType::OBJECT)
+				if (i.value.type == PrimitiveType::SUB_OBJECT)
 				{
-					auto* subObject = i.value.primitive.pObject;
+					auto* subObject = i.value.primitive.pSubObject;
 					delete subObject;
 				}
 			}
@@ -200,6 +217,53 @@ namespace ANON
 			back.fieldName = name;
 			Assign(back.value, value);
 			return back;
+		}
+	};
+
+	struct ReflectionEnumerator : IReflectionVisitor
+	{
+		int fieldCount = 0;
+		int subTargetCount = 0;
+		int sectionCount = 0;
+
+		void Reflect(cstr name, int32& value, ReflectionMetaData& metaData) override
+		{
+			fieldCount++;
+		}
+
+		void Reflect(cstr name, int64& value, ReflectionMetaData& metaData) override
+		{
+			fieldCount++;
+		}
+
+		void Reflect(cstr name, float& value, ReflectionMetaData& metaData) override
+		{
+			fieldCount++;
+		}
+
+		void Reflect(cstr name, double& value, ReflectionMetaData& metaData) override
+		{
+			fieldCount++;
+		}
+
+		void Reflect(cstr name, bool& value, ReflectionMetaData& metaData) override
+		{
+			fieldCount++;
+		}
+
+		void Reflect(cstr name, IReflectedString& stringValue, ReflectionMetaData& metaData) override
+		{
+			fieldCount++;
+		}
+
+		void Reflect(cstr name, IReflectionTarget& subTarget, ReflectionMetaData& metaData) override
+		{
+			subTargetCount++;
+		}
+
+		void SetSection(cstr sectionName)
+		{
+			sectionCount++;
 		}
 	};
 
@@ -256,7 +320,11 @@ namespace ANON
 
 		void Reflect(cstr name, IReflectionTarget& subTarget, ReflectionMetaData& metaData) override
 		{
-			
+			auto* subSection = new PreviewData(target);
+			target->AddField(name, subSection);
+			target = subSection;
+			subTarget.Visit(*this);
+			target = subSection->parent;
 		}
 
 		void SetSection(cstr sectionName)
@@ -325,83 +393,59 @@ namespace ANON
 			BuildUpperRightToolbar(frame);
 		}
 
-		void SyncUIToPreviewerRecursive(PreviewData& data, IGuiRetained& gr, IGRWidgetTable& table, int32 depth)
+		void AddFieldToTable(IGRWidgetTable& table, PreviewField& field, int depth)
 		{
-			table.Panel().Set(ESchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(48, 0, 0, 255));
-			table.Panel().Set(ESchemeColourSurface::CONTAINER_BACKGROUND_HOVERED, RGBAb(50, 0, 0, 255));
+			int newRowIndex = table.AddRow({ 30 });
+			auto* nameCell = table.GetCell(0, newRowIndex);
 
-			for (auto& f : data.fields)
+			GRAlignmentFlags nameAlignment;
+			nameAlignment.Add(GRAlignment::VCentre).Add(GRAlignment::Left);
+			auto& nameText = CreateText(*nameCell).SetText(field.fieldName.c_str()).SetAlignment(nameAlignment, { 2,2 });
+			nameText.Panel().Add(GRAnchors::ExpandAll()).Set(GRAnchorPadding{ 4, 0, 0, 0 });
+
+			IGREditFilter* filter = nullptr;
+
+			int32 capacity;
+
+			switch (field.value.type)
 			{
-				int newRowIndex = table.AddRow({ 30 });
-				auto* nameCell = table.GetCell(0, newRowIndex);		
-
-				GRAlignmentFlags nameAlignment;
-				nameAlignment.Add(GRAlignment::VCentre).Add(GRAlignment::Left);
-				auto& nameText = CreateText(*nameCell).SetText(f.fieldName.c_str()).SetAlignment(nameAlignment, {2,2});
-				nameText.Panel().Add(GRAnchors::ExpandAll()).Set(GRAnchorPadding{ 4, 0, 0, 0 });
-
-				IGREditFilter* filter = nullptr;
-
-				int32 capacity;
-
-				switch (f.value.type)
-				{
-				case PrimitiveType::I32:
-					filter = &GetI32Filter();
-					capacity = 12;
-					break;
-				case PrimitiveType::I64:
-					filter = &GetI64Filter();
-					capacity = 24;
-					break;
-				case PrimitiveType::F32:
-					filter = &GetF32Filter();
-					capacity = 12;
-					break;
-				case PrimitiveType::F64:
-					filter = &GetF64Filter();
-					capacity = 24;
-					break;
-				default:
-					capacity = 10;
-					break;
-				}
-
-				auto* valueCell = table.GetCell(1, newRowIndex);
-
-				GRAlignmentFlags valueAlignment;
-				valueAlignment.Add(GRAlignment::VCentre).Add(GRAlignment::Left);
-				auto& valueText = CreateEditBox(*valueCell, filter, capacity).SetAlignment(valueAlignment, { 2,2 });
-				valueText.Panel().Add(GRAnchors::ExpandAll()).Set(GRAnchorPadding { 0, 4, 0, 0});
-
-				char buf[16];
-				ToAscii(f.value, buf, sizeof buf);
-				valueText.SetText(buf);
+			case PrimitiveType::I32:
+				filter = &GetI32Filter();
+				capacity = 12;
+				break;
+			case PrimitiveType::I64:
+				filter = &GetI64Filter();
+				capacity = 24;
+				break;
+			case PrimitiveType::F32:
+				filter = &GetF32Filter();
+				capacity = 12;
+				break;
+			case PrimitiveType::F64:
+				filter = &GetF64Filter();
+				capacity = 24;
+				break;
+			default:
+				capacity = 10;
+				break;
 			}
+
+			auto* valueCell = table.GetCell(1, newRowIndex);
+
+			GRAlignmentFlags valueAlignment;
+			valueAlignment.Add(GRAlignment::VCentre).Add(GRAlignment::Left);
+			auto& valueText = CreateEditBox(*valueCell, filter, capacity).SetAlignment(valueAlignment, { 2,2 });
+			valueText.Panel().Add(GRAnchors::ExpandAll()).Set(GRAnchorPadding{ 0, 4, 0, 0 });
+
+			char buf[16];
+			ToAscii(field.value, buf, sizeof buf);
+			valueText.SetText(buf);
 		}
 
-		void SyncUIToPreviewer(IGuiRetained& gr) override
+		// firstValidIndex and lastValidIndex are required to be valid. Iteration includes the final index
+		void AddFieldTable(PreviewData& data, IGuiRetained& gr, int32 firstValidIndex, int32 lastValidIndex, IGRWidget& parent, int depth, int& accumulatedHeight)
 		{
-			auto* frame = gr.FindFrame(IdWidget{ "MPlat-MainFrame" });
-			if (!frame) return;
-
-			ClearFrame(*frame);
-
-			frame->ClientArea().Panel().Set(ESchemeColourSurface::FOCUSED_EDITOR, RGBAb(0, 0, 0, 255));
-			frame->ClientArea().Panel().Set(ESchemeColourSurface::FOCUSED_EDITOR_HOVERED, RGBAb(16, 16, 16, 255));
-
-			auto& frameSplitter = CreateLeftToRightSplitter(frame->ClientArea(), 240, false).SetDraggerMinMax(240, 8192);
-			frameSplitter.Panel().Add(GRAnchors::ExpandAll());
-
-			auto& collapser = CreateCollapser(frameSplitter.First());
-			collapser.Panel().Add(GRAnchors::ExpandAll());
-			collapser.Panel().Set(ESchemeColourSurface::TEXT, RGBAb(224, 224, 224, 255)).Set(ESchemeColourSurface::TEXT_HOVERED, RGBAb(255, 255, 255, 255));
-			collapser.Panel().Set(ESchemeColourSurface::EDIT_TEXT, RGBAb(224, 224, 224, 255)).Set(ESchemeColourSurface::EDIT_TEXT_HOVERED, RGBAb(255, 255, 255, 255));
-
-			auto& list = CreateVerticalList(collapser.ClientArea());
-			list.Panel().Add(GRAnchors::ExpandAll());
-
-			auto& table = CreateTable(list);
+			auto& table = CreateTable(parent);
 			table.Panel().Set(GRAnchors::ExpandAll());
 
 			GRColumnSpec nameSpec;
@@ -420,8 +464,94 @@ namespace ANON
 
 			table.Panel().Add(GRAnchors::ExpandAll());
 
+			table.Panel().Set(ESchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(48, 0, 0, 255));
+			table.Panel().Set(ESchemeColourSurface::CONTAINER_BACKGROUND_HOVERED, RGBAb(50, 0, 0, 255));
+
+			for (int32 j = firstValidIndex; j <= lastValidIndex; j++)
+			{
+				AddFieldToTable(table, data.fields[j], depth);
+			}
+
+			accumulatedHeight += table.Panel().Span().y;
+		}
+
+		void AddSubObject(PreviewField& subObjectField, IGuiRetained& gr, IGRWidget& parent, int depth, int& accumulatedHeight)
+		{
+			SyncUIToPreviewerRecursive(*subObjectField.value.primitive.pSubObject, gr, parent, depth, accumulatedHeight);
+		}
+
+		void SyncUIToPreviewerRecursive(PreviewData& data, IGuiRetained& gr, IGRWidget& parent, int32 depth, int& accumulatedParentHeight)
+		{
+			auto& collapser = CreateCollapser(parent);
+			collapser.Panel().Add(GRAnchors::ExpandAll());
+			collapser.Panel().Set(GRAnchorPadding{ 8 * depth, 0, 0 , 0 });
+			collapser.Panel().Set(ESchemeColourSurface::TEXT, RGBAb(224, 224, 224, 255)).Set(ESchemeColourSurface::TEXT_HOVERED, RGBAb(255, 255, 255, 255));
+			collapser.Panel().Set(ESchemeColourSurface::EDIT_TEXT, RGBAb(224, 224, 224, 255)).Set(ESchemeColourSurface::EDIT_TEXT_HOVERED, RGBAb(255, 255, 255, 255));
+
+			auto& list = CreateVerticalList(collapser.ClientArea());
+			list.Panel().Add(GRAnchors::ExpandAll());
+
+			int32 firstSimpleFieldIndex = -1;
+			int32 nextSimpleFieldIndex = -1;
+
+			int32 accumulatedCollapserAreaHeight = 30;
+
+			for (int32 i = 0; i < (int32) data.fields.size(); ++i)
+			{
+				auto& f = data.fields[i];
+
+				if (f.value.type != PrimitiveType::SUB_OBJECT)
+				{
+					if (firstSimpleFieldIndex == -1)
+					{
+						firstSimpleFieldIndex = i;
+					}
+
+					if (nextSimpleFieldIndex < i)
+					{
+						nextSimpleFieldIndex = i;
+					}
+				}
+				else
+				{
+					if (firstSimpleFieldIndex >= 0)
+					{
+						AddFieldTable(data, gr, firstSimpleFieldIndex, nextSimpleFieldIndex, list, depth, accumulatedCollapserAreaHeight);
+						firstSimpleFieldIndex = -1;
+						nextSimpleFieldIndex = -1;
+					}
+
+					AddSubObject(data.fields[i], gr, list, depth + 1, accumulatedCollapserAreaHeight);
+				}
+			}
+
+			if (firstSimpleFieldIndex >= 0)
+			{
+				AddFieldTable(data, gr, firstSimpleFieldIndex, (int32) data.fields.size() - 1, list, depth, accumulatedCollapserAreaHeight);
+			}
+
+			collapser.Panel().Resize({ 0, accumulatedCollapserAreaHeight });
+
+			accumulatedParentHeight += accumulatedCollapserAreaHeight;
+		}
+
+		void SyncUIToPreviewer(IGuiRetained& gr) override
+		{
+			auto* frame = gr.FindFrame(IdWidget{ "MPlat-MainFrame" });
+			if (!frame) return;
+
+			ClearFrame(*frame);
+
+			frame->ClientArea().Panel().Set(ESchemeColourSurface::FOCUSED_EDITOR, RGBAb(0, 0, 0, 255));
+			frame->ClientArea().Panel().Set(ESchemeColourSurface::FOCUSED_EDITOR_HOVERED, RGBAb(16, 16, 16, 255));
+
+			auto& frameSplitter = CreateLeftToRightSplitter(frame->ClientArea(), 240, false).SetDraggerMinMax(240, 8192);
+			frameSplitter.Panel().Add(GRAnchors::ExpandAll());
+
 			auto* node = previewer.root;
-			if (node) SyncUIToPreviewerRecursive(*node, gr, table, 0);
+
+			int32 accumulatedHeight = 0;
+			if (node) SyncUIToPreviewerRecursive(*node, gr, frameSplitter.First(), 0, accumulatedHeight);
 		}
 
 		void Preview(IReflectionTarget& target) override

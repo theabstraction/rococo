@@ -3,6 +3,7 @@
 #include <rococo.ui.h>
 #include <rococo.textures.h>
 #include <rococo.hashtable.h>
+#include <string>
 #include <algorithm>
 
 #include <rococo.file.browser.h>

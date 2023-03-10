@@ -14,6 +14,7 @@
 #include <rococo.sexy.api.h>
 
 #include <algorithm>
+#include <string>
 
 using namespace Rococo;
 using namespace Rococo::Events;

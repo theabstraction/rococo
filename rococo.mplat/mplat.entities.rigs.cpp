@@ -4,6 +4,7 @@
 #include <rococo.hashtable.h>
 #include <rococo.parse.h>
 
+#include <string>
 #include <algorithm>
 #include <rococo.handles.h>
 #include <rococo.maths.h>
