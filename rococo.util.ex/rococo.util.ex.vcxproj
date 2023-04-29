@@ -67,7 +67,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalIncludeDirectories>$(ProjectDir)..\include\;$(ProjectDir)..\sexy\Common\</AdditionalIncludeDirectories>
-      <DebugInformationFormat>OldStyle</DebugInformationFormat>
+      <DebugInformationFormat>$(CPP_DEBUG_INFO_FORMAT)</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -87,7 +87,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalIncludeDirectories>$(ProjectDir)..\include\;$(ProjectDir)..\sexy\Common\</AdditionalIncludeDirectories>
-      <DebugInformationFormat>OldStyle</DebugInformationFormat>
+      <DebugInformationFormat>$(CPP_DEBUG_INFO_FORMAT)</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>

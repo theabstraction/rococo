@@ -43,13 +43,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)NativeSource\</OutDir>
-    <IntDir>..\..\..\intermediate\$(ProjectName)\$(Platform)$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)..\intermediate\$(ProjectName)\$(Platform)$(Configuration)\</IntDir>
     <TargetName>$(ProjectName).debug</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)NativeSource\</OutDir>
-    <IntDir>..\..\..\intermediate\$(ProjectName)\$(Platform)$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)..\intermediate\$(ProjectName)\$(Platform)$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -57,9 +57,9 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;SEXYNATIVELIBREFLECTION_EXPORTS</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)Common;..\..\..\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Common\;$(SolutionDir)..\include\;$(SolutionDir)\STC\stccore\</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>sexy.nativelib.reflection.stdafx.h</PrecompiledHeaderFile>
-      <DebugInformationFormat>OldStyle</DebugInformationFormat>
+      <DebugInformationFormat>$(CPP_DEBUG_INFO_FORMAT)</DebugInformationFormat>
       <MinimalRebuild>false</MinimalRebuild>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
@@ -81,10 +81,10 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;SEXYNATIVELIBREFLECTION_EXPORTS</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)Common;..\..\..\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Common\;$(SolutionDir)..\include\;$(SolutionDir)\STC\stccore\</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>sexy.nativelib.reflection.stdafx.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <DebugInformationFormat>OldStyle</DebugInformationFormat>
+      <DebugInformationFormat>$(CPP_DEBUG_INFO_FORMAT)</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

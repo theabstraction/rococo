@@ -49,6 +49,7 @@
     <OutDir>..\bin\</OutDir>
     <IntDir>..\temp\$(ProjectName)\$(Configuration)\</IntDir>
     <CustomBuildBeforeTargets>BuildGenerateSources</CustomBuildBeforeTargets>
+    <TargetName>$(ProjectName).debug</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -67,7 +68,7 @@
       <AdditionalIncludeDirectories>..\include\;..\sexy\common\</AdditionalIncludeDirectories>
       <AdditionalOptions>-wd4250</AdditionalOptions>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <DebugInformationFormat>OldStyle</DebugInformationFormat>
+      <DebugInformationFormat>$(CPP_DEBUG_INFO_FORMAT)</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -103,7 +104,7 @@
       <AdditionalIncludeDirectories>..\include\;..\sexy\common\</AdditionalIncludeDirectories>
       <AdditionalOptions>-wd4250</AdditionalOptions>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <DebugInformationFormat>OldStyle</DebugInformationFormat>
+      <DebugInformationFormat>$(CPP_DEBUG_INFO_FORMAT)</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

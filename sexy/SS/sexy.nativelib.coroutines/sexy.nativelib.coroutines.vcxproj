@@ -44,14 +44,14 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)NativeSource\</OutDir>
-    <IntDir>..\..\..\intermediate\$(ProjectName)\$(Platform)$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)..\intermediate\$(ProjectName)\$(Platform)$(Configuration)\</IntDir>
     <TargetName>$(ProjectName).debug</TargetName>
     <TargetExt>.dll</TargetExt>
     <LibraryPath>$(SolutionDir)../lib/;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)NativeSource\</OutDir>
-    <IntDir>..\..\..\intermediate\$(ProjectName)\$(Platform)$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)..\intermediate\$(ProjectName)\$(Platform)$(Configuration)\</IntDir>
     <TargetExt>.dll</TargetExt>
     <LibraryPath>$(SolutionDir)../lib/;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
@@ -63,13 +63,14 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)Common;$(SolutionDir)..\include;$(SolutionDir)STC\stccore\</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <DebugInformationFormat>OldStyle</DebugInformationFormat>
+      <DebugInformationFormat>$(CPP_DEBUG_INFO_FORMAT)</DebugInformationFormat>
     </ClCompile>
     <Link>
       <AdditionalDependencies>rococo.util.debug.lib;sexy.util.debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
-      <Command>$(SolutionDir)build.interfaces.bat</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -82,7 +83,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)Common;$(SolutionDir)..\include;$(SolutionDir)STC\stccore\</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <DebugInformationFormat>OldStyle</DebugInformationFormat>
+      <DebugInformationFormat>$(CPP_DEBUG_INFO_FORMAT)</DebugInformationFormat>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -90,7 +91,8 @@
       <AdditionalDependencies>rococo.util.lib;sexy.util.release.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
-      <Command>$(SolutionDir)build.interfaces.bat</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
