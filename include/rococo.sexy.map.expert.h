@@ -78,8 +78,8 @@ namespace Rococo::Script
         NullResolver KeyResolver;
     };
 
-    uint8* GetKeyPointer(MapNode* m);
-    uint8* GetValuePointer(MapNode* m);
+    SCRIPTEXPORT_API uint8* GetKeyPointer(MapNode* m);
+    SCRIPTEXPORT_API uint8* GetValuePointer(MapNode* m);
 
     MapNode* InsertKey(MapImage& theMap, VariantValue source, IScriptSystem& ss);
 } // Rococo::Script

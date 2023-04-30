@@ -34,6 +34,8 @@
 // stdafx.h : include file for standard system include files,
 #pragma once
 
+#define SEXYCOMPILER_API __declspec(dllexport)
+
 #include "sexy.types.h"
 
 #include <algorithm>

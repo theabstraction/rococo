@@ -24,7 +24,7 @@ namespace Rococo
 {
    namespace Compiler
    {
-      cstr GetTypeName(const IStructure& s);
+	   SCRIPTEXPORT_API cstr GetTypeName(const IStructure& s);
    }
 }
 

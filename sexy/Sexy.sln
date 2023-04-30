@@ -25,9 +25,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common", "Common", "{3B688E
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sexy.compiler", "STC\stccore\stccore.vcxproj", "{608FC2FE-163D-4E32-B2D8-7E9CD10A80F6}"
-	ProjectSection(ProjectDependencies) = postProject
-		{B4C417E3-79C5-4A07-A713-F3BC2A1D30FF} = {B4C417E3-79C5-4A07-A713-F3BC2A1D30FF}
-	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sexy.vm", "SVM\svmcore\svmcore.vcxproj", "{0132B041-4B73-4697-B01B-03D1EF180B9F}"
 	ProjectSection(ProjectDependencies) = postProject

@@ -37,6 +37,10 @@
 #include <rococo.types.h>
 #include <stdarg.h>
 
+# ifndef SEXY_SPARSER_API
+#  define SEXY_SPARSER_API __declspec(dllimport)
+# endif
+
 namespace Rococo
 {
 	typedef void* OS_HWND;
@@ -355,13 +359,13 @@ namespace Rococo
 
 	namespace Sex
 	{
-		cstr ToString(EXPRESSION_TYPE type);
-		void AssertCompound(cr_sex e);
-		void AssertAtomic(cr_sex e);
-		void AssertStringLiteral(cr_sex e);
-		void AssertNotTooManyElements(cr_sex e, int32 maxElements);
-		void AssertNotTooFewElements(cr_sex e, int32 minElements);
-		cr_sex GetAtomicArg(cr_sex e, int argIndex);
+		SEXY_SPARSER_API cstr ToString(EXPRESSION_TYPE type);
+		SEXY_SPARSER_API void AssertCompound(cr_sex e);
+		SEXY_SPARSER_API void AssertAtomic(cr_sex e);
+		SEXY_SPARSER_API void AssertStringLiteral(cr_sex e);
+		SEXY_SPARSER_API void AssertNotTooManyElements(cr_sex e, int32 maxElements);
+		SEXY_SPARSER_API void AssertNotTooFewElements(cr_sex e, int32 minElements);
+		SEXY_SPARSER_API cr_sex GetAtomicArg(cr_sex e, int argIndex);
 		[[noreturn]] void Throw(cr_sex e, _Printf_format_string_ cstr format, ...);
 	}
 }// Sexy

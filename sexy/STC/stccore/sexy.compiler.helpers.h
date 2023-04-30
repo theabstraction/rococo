@@ -36,6 +36,10 @@
 #ifndef SEXY_COMPILER_HELPERS_H
 #define  SEXY_COMPILER_HELPERS_H
 
+#ifndef SEXYCOMPILER_API
+# define SEXYCOMPILER_API __declspec(dllimport)
+#endif
+
 namespace Rococo
 {
 	namespace Compiler 
@@ -97,7 +101,7 @@ namespace Rococo
 			const IInterface& SysTypeIExpression() const { return *sysTypeIExpression; }	
 		};
 
-		const IFunction* GetCurrentFunction(IPublicProgramObject& po, size_t& programOffset, size_t& pcOffset);
+		SEXYCOMPILER_API const IFunction* GetCurrentFunction(IPublicProgramObject& po, size_t& programOffset, size_t& pcOffset);
 
 		struct ICodeBuilder;
 		struct MemberDef;

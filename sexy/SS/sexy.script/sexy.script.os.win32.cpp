@@ -73,23 +73,8 @@ namespace
 namespace Rococo {
 	namespace OS
 	{
-		void GetDefaultNativeSrcDir(wchar_t* data, size_t capacity)
+		bool TryGetDefaultNativeSrcDir(wchar_t* data, size_t capacity)
 		{
-#ifdef SCRIPT_IS_LIBRARY
-			GetCurrentDirectoryW((DWORD)capacity, data);
-#else
-			HMODULE hModule = GetModuleHandle("sexy.script.dll");
-			if (hModule == NULL)
-			{
-				Rococo::OS::OSException ose;
-				ose.exceptionNumber = GetLastError();
-				Rococo::StringPrint(ose.message, 256, "SEXY_NATIVE_SRC_DIR. Failed to get default variable: cannot get module handle for sexy.script.dll");
-				throw ose;
-			}
-
-			GetModuleFileName(hModule, data, (DWORD)capacity);
-#endif
-
 			while (StripLastSubpath(data))
 			{
 				wchar_t fullpath[_MAX_PATH];
@@ -97,10 +82,38 @@ namespace Rococo {
 				if (IsFileExistant(fullpath))
 				{
 					StringCat(data, L"NativeSource\\", (int32)capacity);
-					return;
+					return true;
 				}
 			}
 
+			return false;
+		}
+
+		void GetDefaultNativeSrcDir(wchar_t* data, size_t capacity)
+		{
+#ifdef SCRIPT_IS_LIBRARY
+			GetCurrentDirectoryW((DWORD)capacity, data);
+#else
+			HMODULE hModule = GetModuleHandle(nullptr);
+			if (!hModule)
+			{
+				Throw(GetLastError(), "SEXY_NATIVE_SRC_DIR. Failed to get default variable: cannot get module handle for the sexy script dynamic link library");
+			}
+
+			GetModuleFileNameW(hModule, data, (DWORD)capacity);
+#endif
+			if (TryGetDefaultNativeSrcDir(data, capacity))
+			{
+				return;
+			}
+
+			GetCurrentDirectoryW((DWORD)capacity, data);
+
+			if (TryGetDefaultNativeSrcDir(data, capacity))
+			{
+				return;
+			}
+			
 			Rococo::Throw(GetLastError(), "SEXY_NATIVE_SRC_DIR. Failed to get default variable: cannot find src_indicator.txt descending from sexy.script.dll");
 		}
 
@@ -114,7 +127,7 @@ namespace Rococo {
 
 					if (INVALID_FILE_ATTRIBUTES == GetFileAttributesW(data))
 					{
-						Rococo::Throw(GetLastError(), ("Error associating environment variable %s to the sexy native source directory"), envVariable);
+						Rococo::Throw(GetLastError(), "Error associating environment variable %s with the sexy native source directory", envVariable);
 					}
 
 					SetEnvironmentVariableW(envVariable, data);

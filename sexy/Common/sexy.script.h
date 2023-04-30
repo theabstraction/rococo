@@ -41,17 +41,17 @@
 #include "sexy.vm.h"
 #include "sexy.vm.cpu.h"
 
-#ifndef SCRIPT_IS_LIBRARY
-# define SCRIPT_IS_LIBRARY
-#endif
+// #define SCRIPT_IS_LIBRARY
 
-#ifdef SCRIPT_IS_LIBRARY
-# define SCRIPTEXPORT_API
-#else
-# ifndef IS_SCRIPT_DLL
-#  define SCRIPTEXPORT_API __declspec(dllimport)
+#ifndef SCRIPTEXPORT_API
+# ifdef SCRIPT_IS_LIBRARY
+#  define SCRIPTEXPORT_API
 # else
-#  define SCRIPTEXPORT_API __declspec(dllexport)
+#  ifndef IS_SCRIPT_DLL
+#   define SCRIPTEXPORT_API __declspec(dllimport)
+#  else
+#   define SCRIPTEXPORT_API __declspec(dllexport)
+#  endif
 # endif
 #endif
 
@@ -592,9 +592,8 @@ namespace Rococo {
 		public:
 			IPublicScriptSystem& operator()() { return *ss; }
 
-			CScriptSystemProxy(const Rococo::Compiler::ProgramInitParameters& pip, ILog& logger);
-
-			~CScriptSystemProxy();
+			SCRIPTEXPORT_API CScriptSystemProxy(const Rococo::Compiler::ProgramInitParameters& pip, ILog& logger);
+			SCRIPTEXPORT_API ~CScriptSystemProxy();
 		};
 	}
 }

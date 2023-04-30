@@ -95,6 +95,7 @@
       <DebugInformationFormat>$(CPP_DEBUG_INFO_FORMAT)</DebugInformationFormat>
       <MinimalRebuild>false</MinimalRebuild>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>..\..\..\lib\</AdditionalLibraryDirectories>

@@ -33,5 +33,5 @@
 
 // stdafx.cpp : source file that includes just the standard includes
 #include "sexy.compiler.stdafx.h"
-#include "sexy.lib.vm.h"
+
 

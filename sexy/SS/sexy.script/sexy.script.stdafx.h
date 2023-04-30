@@ -41,6 +41,8 @@
 #define THIS_IS_THE_SEXY_CORE_LIBRARY
 #define IS_SCRIPT_DLL 1
 
+#define SEXY_SPARSER_API
+
 #include <sexy.types.h>
 #include <sexy.vm.h>
 #include <sexy.vm.cpu.h>
@@ -67,7 +69,7 @@ namespace Rococo
       struct INamespaceBuilder;
       struct IProgramObject;
 
-      cstr GetTypeName(const IStructure& s);
+      SCRIPTEXPORT_API cstr GetTypeName(const IStructure& s);
    }
 
    namespace Sex
@@ -426,7 +428,7 @@ namespace Rococo
       bool TryCompileAsInlineMapAndReturnValue(CCompileEnvironment& ce, cr_sex s, cstr instance, cstr methodName, VARTYPE returnType, const IStructure& instanceStruct, OUT VARTYPE& outputType);
 
       void ConstructMemberByRef(CCompileEnvironment& ce, cr_sex args, int tempDepth, const IStructure& type, int offset);
-      cstr GetTypeName(VARTYPE type);
+      SCRIPTEXPORT_API cstr GetTypeName(VARTYPE type);
 
       VARTYPE GetAtomicValueAnyNumeric(CCompileEnvironment& ce, cr_sex parent, cstr id, int tempdepth);
       void AssignVariableToVariable(CCompileEnvironment& ce, cr_sex exceptionSource, cstr lhs, cstr rhs);

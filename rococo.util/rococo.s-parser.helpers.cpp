@@ -1,3 +1,5 @@
+#define SEXY_SPARSER_API
+#define SCRIPTEXPORT_API
 #include <sexy.types.h>
 #include <sexy.s-parser.h>
 #include <sexy.vm.cpu.h>
@@ -78,11 +80,15 @@ namespace
 #define ROCOCO_USE_SAFE_V_FORMAT
 #include <rococo.strings.h>
 
+#ifndef SCRIPTEXPORT_API
+# define SCRIPTEXPORT_API __declspec(dllimport)
+#endif
+
 namespace Rococo::Script
 {
 	size_t GetAlignmentPadding(int alignment, int objectSize);
-	uint8* GetKeyPointer(MapNode* m);
-	uint8* GetValuePointer(MapNode* m);
+	SCRIPTEXPORT_API uint8* GetKeyPointer(MapNode* m);
+	SCRIPTEXPORT_API uint8* GetValuePointer(MapNode* m);
 }
 
 namespace Rococo

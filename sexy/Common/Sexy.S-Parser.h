@@ -33,11 +33,11 @@
 
 #pragma once
 
-//#define IS_SPARSER_DLL 1
+#define IS_SPARSER_DLL 1
 
 #ifdef IS_SPARSER_DLL
 # ifndef SEXY_SPARSER_API
-#  define SEXY_SPARSER_API extern "C" __declspec(dllimport)
+#  define SEXY_SPARSER_API __declspec(dllimport)
 # endif
 #else
 # define SEXY_SPARSER_API
@@ -135,7 +135,7 @@ namespace Rococo { namespace Sex
 enum { SEXY_STANDARD_MAX_ATOMIC_STRING_LENGTH = 32768 }; 
 
 // N.B f you override the default maxStringLength value, you are using a non-standard dialect of sexy s-expressions. 
-SEXY_SPARSER_API Rococo::Sex::ISParser* Sexy_CreateSexParser_2_0(Rococo::IAllocator& allocator, size_t maxStringLength = SEXY_STANDARD_MAX_ATOMIC_STRING_LENGTH);
+Rococo::Sex::ISParser* Sexy_CreateSexParser_2_0(Rococo::IAllocator& allocator, size_t maxStringLength = SEXY_STANDARD_MAX_ATOMIC_STRING_LENGTH);
 
 namespace Rococo
 {

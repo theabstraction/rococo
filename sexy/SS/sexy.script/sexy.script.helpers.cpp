@@ -100,7 +100,7 @@ namespace Rococo
 {
    namespace Compiler
    {
-      cstr GetTypeName(const IStructure& s)
+	   SCRIPTEXPORT_API cstr GetTypeName(const IStructure& s)
       {
          cstr name = s.Name();
          if (AreEqual(name, ("_Null_"), 6))

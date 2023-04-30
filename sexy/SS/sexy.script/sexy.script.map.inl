@@ -75,7 +75,7 @@ namespace Rococo::Script
 		return (size_t)x;
 	}
 
-	uint8* GetKeyPointer(MapNode* m)
+	SCRIPTEXPORT_API uint8* GetKeyPointer(MapNode* m)
 	{
 		size_t firstpadding = GetAlignmentPadding(16, sizeof(MapNode));
 		return ((uint8*)m) + sizeof(MapNode) + firstpadding;
@@ -93,7 +93,7 @@ namespace Rococo::Script
 		}
 	}
 
-	uint8* GetValuePointer(MapNode* m)
+	SCRIPTEXPORT_API uint8* GetValuePointer(MapNode* m)
 	{
 		size_t keySize = GetKeySize(m->Container);
 		size_t firstpadding = GetAlignmentPadding(16, sizeof(MapNode));

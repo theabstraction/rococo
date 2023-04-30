@@ -260,7 +260,7 @@ namespace Rococo
 			Throw(parent, ("Unsupported operator in literal arithmetic"));
 		}
 
-		cstr GetTypeName(VARTYPE type)
+		SCRIPTEXPORT_API cstr GetTypeName(VARTYPE type)
 		{
 			switch (type)
 			{

@@ -718,7 +718,7 @@ namespace Rococo
 			}
 		}
 
-		const IFunction* GetCurrentFunction(IPublicProgramObject& po, size_t& programOffset, size_t& pcOffset)
+		__declspec(dllexport) const IFunction* GetCurrentFunction(IPublicProgramObject& po, size_t& programOffset, size_t& pcOffset)
 		{
 			IVirtualMachine& vm = po.VirtualMachine();
 			IProgramMemory& mem = po.ProgramMemory();
