@@ -72,15 +72,7 @@
 
 #include <rococo.stl.allocators.h>
 
-#ifdef _WIN32
-# ifdef _DEBUG
-#  pragma comment(lib, "sexy.compiler.Debug.lib")
-#  pragma comment(lib, "sexy.vm.Debug.lib")
-# else
-#  pragma comment(lib, "sexy.compiler.Release.lib")
-#  pragma comment(lib, "sexy.vm.Release.lib")
-# endif
-#endif
+#include <sexy.lib.script.h>
 
 #define validate(_Expression) if (!(_Expression)) { ShowFailure(#_Expression, __FILE__, __LINE__); Abort(); }
 

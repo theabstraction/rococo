@@ -10,8 +10,8 @@ UTIL = $(ROCOCO)rococo.util^\
 
 EXECUTE_POWERSHELL = powershell.exe -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass
 
-DEBUGFLAG_EDIT_AND_CONTINUE=-property:CPP_DEBUG_INFO_FORMAT=EditAndContinue
-DEBUGFLAG_PROGRAM_DATABASE=-property:CPP_DEBUG_INFO_FORMAT=ProgramDatabase
+# DEBUGFLAG_SYMBOLS=-property:CPP_DEBUG_INFO_FORMAT=EditAndContinue
+DEBUGFLAG_SYMBOLS=-property:CPP_DEBUG_INFO_FORMAT=ProgramDatabase
 
 !IFDEF _DEBUG
 
@@ -29,12 +29,12 @@ BENNY_HILL = $(DIR_SEXY_BIN)sexy.bennyhill.exe
 
 !ENDIF
 
-MSBUILD_CONFIG = -t:Build -p:Platform=x64 -p:Configuration=$(CONFIGURATION) $(DEBUGFLAG_PROGRAM_DATABASE)
+MSBUILD_CONFIG = -t:Build -p:Platform=x64 -p:Configuration=$(CONFIGURATION) $(DEBUGFLAG_SYMBOLS)
 NATIVE_SRC = $(DIR_SEXY)NativeSource^\
 EVENTS = $(DIR_BIN)rococo.events.$(LCONFIGURATION).dll
 MSBUILD_TERSE = -verbosity:minimal $(MSBUILD_CONFIG)
 MSBUILD_VERBOSE = -verbosity:normal $(MSBUILD_CONFIG)
-MSBUILD_PARALLEL = -maxcpucount:1
+MSBUILD_PARALLEL = -maxcpucount:8
 WITH_SOLUTION = -property:SolutionDir=$(ROCOCO)sexy^\
 
 all:
