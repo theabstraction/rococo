@@ -20,18 +20,18 @@ namespace Rococo
 			PARSERESULT_UNHANDLED_TYPE
 		};
 
-		bool TryGetDigit(int32& value, char c);
-		bool TryGetHex(int32& value, char c);
-		PARSERESULT TryParseFloat(float32& value, cstr decimalDigits);
-		PARSERESULT TryParseFloat(float64& value, cstr decimalDigits);
-		PARSERESULT TryParseHex(int32& value, cstr hexDigits);
-		PARSERESULT TryParseHex(int64& value, cstr hexDigits);
-		PARSERESULT TryParseBoolean(int32& value, cstr valueLiteral);
-		PARSERESULT TryParseDecimal(int32& value, cstr valueLiteral);
-		PARSERESULT TryParseDecimal(int64& value, cstr valueLiteral);
-		PARSERESULT TryParseExponentForm(double& y, cstr s);
-		PARSERESULT TryParseExponentForm(float& y, cstr s);
-		bool ContainsPoint(cstr s);
+		ROCOCO_API bool TryGetDigit(int32& value, char c);
+		ROCOCO_API bool TryGetHex(int32& value, char c);
+		ROCOCO_API PARSERESULT TryParseFloat(float32& value, cstr decimalDigits);
+		ROCOCO_API PARSERESULT TryParseFloat(float64& value, cstr decimalDigits);
+		ROCOCO_API PARSERESULT TryParseHex(int32& value, cstr hexDigits);
+		ROCOCO_API PARSERESULT TryParseHex(int64& value, cstr hexDigits);
+		ROCOCO_API PARSERESULT TryParseBoolean(int32& value, cstr valueLiteral);
+		ROCOCO_API PARSERESULT TryParseDecimal(int32& value, cstr valueLiteral);
+		ROCOCO_API PARSERESULT TryParseDecimal(int64& value, cstr valueLiteral);
+		ROCOCO_API PARSERESULT TryParseExponentForm(double& y, cstr s);
+		ROCOCO_API PARSERESULT TryParseExponentForm(float& y, cstr s);
+		ROCOCO_API bool ContainsPoint(cstr s);
 	}
 
 }

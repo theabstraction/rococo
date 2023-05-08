@@ -79,13 +79,18 @@ namespace
 	}
 }
 
+namespace Rococo::OS
+{
+	void GetEnvVariable(wchar_t* data, size_t capacity, const wchar_t* envVariable);
+}
+
 namespace Rococo::Script
 {
 	void AddSysIO(IScriptSystem& ss);
 
 	void AppendDeconstructAll(CCompileEnvironment& ce, cr_sex sequence);
 
-	void SetDefaultNativeSourcePath(const wchar_t* pathname)
+	SCRIPTEXPORT_API void SetDefaultNativeSourcePath(const wchar_t* pathname)
 	{
 		if (pathname == nullptr)
 		{
@@ -117,8 +122,8 @@ namespace Rococo
 
 	namespace Compiler
 	{
-		INamespaceBuilder* MatchNamespace(IModuleBuilder& module, cstr name);
-		IStructureBuilder* MatchStructure(ILog& logger, cstr type, IModuleBuilder& module);
+		SEXYUTIL_API INamespaceBuilder* MatchNamespace(IModuleBuilder& module, cstr name);
+		SEXYUTIL_API IStructureBuilder* MatchStructure(ILog& logger, cstr type, IModuleBuilder& module);
 	}
 
 	typedef std::unordered_map<stdstring, ISParserTree*, std::hash<stdstring>, std::equal_to<stdstring>, Memory::SexyAllocator<std::pair<const stdstring, ISParserTree*>>> TMapNameToSTree;

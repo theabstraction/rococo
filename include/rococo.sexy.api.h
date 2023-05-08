@@ -2,6 +2,10 @@
 
 #include <rococo.types.h>
 
+#ifndef SCRIPTEXPORT_API
+# define SCRIPTEXPORT_API ROCOCO_API_IMPORT
+#endif
+
 namespace Rococo
 {
 	struct IMathsVenue;
@@ -65,7 +69,7 @@ namespace Rococo
 		virtual void RegisterPackages(Rococo::Script::IPublicScriptSystem& ss) = 0;
 	};
 
-	void DebuggerLoop(Rococo::Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger);
+	SCRIPTEXPORT_API void DebuggerLoop(Rococo::Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger);
 
 	struct ScriptCompileArgs
 	{
@@ -79,13 +83,12 @@ namespace Rococo
 		OS::ticks executeTime;
 	};
 
-	void InitSexyScript(Rococo::Sex::ISParserTree& mainModule, IDebuggerWindow& debugger, Rococo::Script::IPublicScriptSystem& ss, ISourceCache& sources, IEventCallback<ScriptCompileArgs>& onCompile, Strings::StringBuilder* declarationBuilder);
-	void ExecuteFunction(Rococo::ID_BYTECODE bytecodeId, IArgEnumerator& args, Rococo::Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger, bool trace);
-	void ExecuteFunction(cstr name, IArgEnumerator& args, Rococo::Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger, bool trace);
-	int32 ExecuteSexyScript(ScriptPerformanceStats& stats, Rococo::Sex::ISParserTree& mainModule, IDebuggerWindow& debugger, Rococo::Script::IPublicScriptSystem& ss, ISourceCache& sources, int32 param, IEventCallback<ScriptCompileArgs>& onCompile, bool trace, Strings::StringBuilder* declarationBuilder);
-	[[nodiscard]] ISourceCache* CreateSourceCache(IInstallation& installation);
-
-	void ThrowSex(Rococo::Sex::cr_sex s, cstr format, ...);
+	SCRIPTEXPORT_API void InitSexyScript(Rococo::Sex::ISParserTree& mainModule, IDebuggerWindow& debugger, Rococo::Script::IPublicScriptSystem& ss, ISourceCache& sources, IEventCallback<ScriptCompileArgs>& onCompile, Strings::StringBuilder* declarationBuilder);
+	SCRIPTEXPORT_API void ExecuteFunction(Rococo::ID_BYTECODE bytecodeId, IArgEnumerator& args, Rococo::Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger, bool trace);
+	SCRIPTEXPORT_API void ExecuteFunction(cstr name, IArgEnumerator& args, Rococo::Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger, bool trace);
+	SCRIPTEXPORT_API int32 ExecuteSexyScript(ScriptPerformanceStats& stats, Rococo::Sex::ISParserTree& mainModule, IDebuggerWindow& debugger, Rococo::Script::IPublicScriptSystem& ss, ISourceCache& sources, int32 param, IEventCallback<ScriptCompileArgs>& onCompile, bool trace, Strings::StringBuilder* declarationBuilder);
+	SCRIPTEXPORT_API [[nodiscard]] ISourceCache* CreateSourceCache(IInstallation& installation);
+	SCRIPTEXPORT_API void ThrowSex(Rococo::Sex::cr_sex s, cstr format, ...);
 	void ScanExpression(Rococo::Sex::cr_sex s, cstr hint, const char* format, ...);
 	void ValidateArgument(Rococo::Sex::cr_sex s, cstr arg);
 
@@ -93,7 +96,7 @@ namespace Rococo
 	[[nodiscard]] RGBAb GetColourValue(Rococo::Sex::cr_sex s);
 	[[nodiscard]] Quat GetQuat(Rococo::Sex::cr_sex s);
 
-	void LogParseException(Rococo::Sex::ParseException& ex, IDebuggerWindow& logger);
+	SCRIPTEXPORT_API void LogParseException(Rococo::Sex::ParseException& ex, IDebuggerWindow& logger);
 
 	[[nodiscard]] fstring GetAtomicArg(Rococo::Sex::cr_sex s);
 }

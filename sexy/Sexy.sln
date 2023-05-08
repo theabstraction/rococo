@@ -32,9 +32,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sexy.vm", "SVM\svmcore\svmc
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sexy.s-parser", "SP\sexy.s-parser\sexy.s-parser.vcxproj", "{E1E12DF3-EF6B-4044-80DB-46CEF55AD628}"
-	ProjectSection(ProjectDependencies) = postProject
-		{B4C417E3-79C5-4A07-A713-F3BC2A1D30FF} = {B4C417E3-79C5-4A07-A713-F3BC2A1D30FF}
-	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sexy.script", "SS\sexy.script\sexy.script.vcxproj", "{C44956CA-B7BF-4928-B894-117DB23F15CB}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -91,6 +88,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sexy.nativelib.reflection",
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sexy.util", "Utilities\Utilities.vcxproj", "{B4C417E3-79C5-4A07-A713-F3BC2A1D30FF}"
+	ProjectSection(ProjectDependencies) = postProject
+		{E1E12DF3-EF6B-4044-80DB-46CEF55AD628} = {E1E12DF3-EF6B-4044-80DB-46CEF55AD628}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sexy.nativelib.maths", "SS\sexy.nativelib.maths\sexy.nativelib.maths.vcxproj", "{98F13A73-3C79-43EA-89AC-3A3B97B6EF05}"
 	ProjectSection(ProjectDependencies) = postProject

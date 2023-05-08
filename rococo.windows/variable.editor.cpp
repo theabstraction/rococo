@@ -763,6 +763,8 @@ namespace
 			}
 		}
 
+		std::vector<char> stringSpace;
+
 		void SyncWithInputBuffers()
 		{
 			for (VariableDesc& v : variables)
@@ -771,9 +773,9 @@ namespace
 				{
 					int len = GetWindowTextLengthA(*v.EditControl);
 					{
-						char *value = (char*)alloca(len + 2);
-						GetWindowTextA(*v.EditControl, value, len + 1);
-						ParseVariable(v, value);
+						stringSpace.resize(len + 2);
+						GetWindowTextA(*v.EditControl, stringSpace.data(), len + 1);
+						ParseVariable(v, stringSpace.data());
 					}
 				}
 				else if (v.ComboControl != nullptr)
@@ -885,7 +887,7 @@ namespace
 
 namespace Rococo
 {
-	IVariableEditor* CreateVariableEditor(Windows::IWindow& parent, const Vec2i& span, int labelWidth, cstr appQueryName, cstr defaultTab, cstr defaultTooltip, IVariableEditorEventHandler* eventHandler, const Vec2i* topLeft)
+	ROCOCO_API_EXPORT IVariableEditor* CreateVariableEditor(Windows::IWindow& parent, const Vec2i& span, int labelWidth, cstr appQueryName, cstr defaultTab, cstr defaultTooltip, IVariableEditorEventHandler* eventHandler, const Vec2i* topLeft)
 	{
 		return VariableEditor::Create(parent, span, labelWidth, appQueryName, defaultTab, defaultTooltip, eventHandler, topLeft);
 	}

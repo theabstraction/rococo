@@ -114,7 +114,7 @@ namespace Rococo {
 
 		typedef void (CALLTYPE_C *FN_NATIVE_CALL)(NativeCallEnvironment& e);
 
-		void ThrowBadNativeArg(int index, cstr source, cstr message);
+		SCRIPTEXPORT_API void ThrowBadNativeArg(int index, cstr source, cstr message);
 
 		const Rococo::Sex::ISExpression* GetSourceExpression(Rococo::Compiler::IPublicProgramObject& po, const Rococo::Compiler::IFunction& f, size_t pcOffset);
 
@@ -494,7 +494,7 @@ namespace Rococo {
 			virtual IIOSystem& IOSystem() = 0;
 		};
 
-		void SetDefaultNativeSourcePath(const wchar_t* pathname);
+		SCRIPTEXPORT_API void SetDefaultNativeSourcePath(const wchar_t* pathname);
 
 		ROCOCO_INTERFACE INativeLib
 		{
@@ -514,7 +514,7 @@ namespace Rococo {
 		};
 
 		// Debugging Helpers API
-		SCRIPTEXPORT_API void EnumerateRegisters(Rococo::VM::CPU& cpu, Rococo::Debugger::IRegisterEnumerationCallback& cb);
+		SEXYUTIL_API void EnumerateRegisters(Rococo::VM::CPU& cpu, Rococo::Debugger::IRegisterEnumerationCallback& cb);
 		SCRIPTEXPORT_API const Rococo::Sex::ISExpression* GetSexSymbol(VM::CPU& cpu, const uint8* pcAddress, Rococo::Script::IPublicScriptSystem& ss);
 		SCRIPTEXPORT_API const Rococo::Compiler::IFunction* GetFunctionFromBytecode(const Rococo::Compiler::IModule& module, Rococo::ID_BYTECODE id);
 		SCRIPTEXPORT_API const Rococo::Compiler::IFunction* GetFunctionFromBytecode(Rococo::Compiler::IPublicProgramObject& obj, Rococo::ID_BYTECODE id);
@@ -546,17 +546,17 @@ namespace Rococo {
       {
          Rococo::Compiler::FastStringBuilder* builder;
       public:
-         StringPopulator(Script::NativeCallEnvironment& _nce, Compiler::InterfacePointer pInterface);
+		  SCRIPTEXPORT_API StringPopulator(Script::NativeCallEnvironment& _nce, Compiler::InterfacePointer pInterface);
          void Populate(cstr text) override;
       };
-      const Compiler::IStructure& GetDefaultProxy(cstr fqNS, cstr interfaceName, cstr proxyName, Script::IPublicScriptSystem& ss);
+	  SCRIPTEXPORT_API const Compiler::IStructure& GetDefaultProxy(cstr fqNS, cstr interfaceName, cstr proxyName, Script::IPublicScriptSystem& ss);
    }
 }
 
 namespace Rococo {
    namespace Variants
    {
-      bool TryRecast(OUT VariantValue& end, IN const VariantValue& original, VARTYPE orignalType, VARTYPE endType);
+	  SEXYUTIL_API bool TryRecast(OUT VariantValue& end, IN const VariantValue& original, VARTYPE orignalType, VARTYPE endType);
 
       inline VariantValue FromValue(int32 value)
       {
@@ -574,9 +574,9 @@ namespace Rococo {
          return type == VARTYPE_Bool;
       }
 
-      VARTYPE GetBestCastType(VARTYPE a, VARTYPE b);
+	  SEXYUTIL_API VARTYPE GetBestCastType(VARTYPE a, VARTYPE b);
 
-      bool TryRecast(OUT VariantValue& end, IN const VariantValue& original, VARTYPE orignalType, VARTYPE endType);
+	  SEXYUTIL_API bool TryRecast(OUT VariantValue& end, IN const VariantValue& original, VARTYPE orignalType, VARTYPE endType);
    }
 }
 

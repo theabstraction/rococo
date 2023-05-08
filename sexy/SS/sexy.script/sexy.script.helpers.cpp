@@ -343,31 +343,6 @@ namespace Rococo
 		   }
 	   }
 
-	   SCRIPTEXPORT_API void EnumerateRegisters(Rococo::VM::CPU& cpu, IRegisterEnumerationCallback& cb)
-	   {
-		   char value[128];
-
-		   SafeFormat(value, 128, "0x%p", cpu.PC());
-		   cb.OnRegister("PC", value);
-
-         SafeFormat(value, 128, "0x%p", cpu.SP());
-		   cb.OnRegister("SP", value);
-
-         SafeFormat(value, 128, "0x%p", cpu.SF());
-		   cb.OnRegister("SF", value);
-
-         SafeFormat(value, 128, "0x%X", cpu.SR());
-		   cb.OnRegister("SR", value);
-
-		   for(int i = 4; i < 256; ++i)
-		   {
-			   char name[16];
-            SafeFormat(name, 16, "D%u", i);
-            SafeFormat(value, 128, "%lld / 0x%1llX", cpu.D[i].int64Value, cpu.D[i].int64Value);
-			   cb.OnRegister(name, value);
-		   }
-	   }
-
 	   SCRIPTEXPORT_API const Rococo::Sex::ISExpression* GetSexSymbol(CPU& cpu, const uint8* pcAddress, Rococo::Script::IPublicScriptSystem& ss)
 	   {
 		   size_t pcOffset = cpu.PC() - cpu.ProgramStart;

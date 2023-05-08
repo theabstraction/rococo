@@ -88,8 +88,8 @@ namespace Rococo { namespace Sex
 		const ISExpression* source;
 
 	public:
-      ParseException();
-      ParseException(const Vec2i& start, const Vec2i& end, cstr name, cstr err, cstr specimen, const ISExpression* _source);
+		ROCOCO_API ParseException();
+		ROCOCO_API ParseException(const Vec2i& start, const Vec2i& end, cstr name, cstr err, cstr specimen, const ISExpression* _source);
 		const Vec2i& Start() const { return startPos; }
 		const Vec2i& End() const { return endPos; }
 		cstr Name() const { return srcName; }
@@ -135,7 +135,7 @@ namespace Rococo { namespace Sex
 enum { SEXY_STANDARD_MAX_ATOMIC_STRING_LENGTH = 32768 }; 
 
 // N.B f you override the default maxStringLength value, you are using a non-standard dialect of sexy s-expressions. 
-Rococo::Sex::ISParser* Sexy_CreateSexParser_2_0(Rococo::IAllocator& allocator, size_t maxStringLength = SEXY_STANDARD_MAX_ATOMIC_STRING_LENGTH);
+SEXY_SPARSER_API Rococo::Sex::ISParser* Sexy_CreateSexParser_2_0(Rococo::IAllocator& allocator, size_t maxStringLength = SEXY_STANDARD_MAX_ATOMIC_STRING_LENGTH);
 
 namespace Rococo
 {
@@ -148,6 +148,6 @@ namespace Rococo
 
 namespace Rococo { namespace Sex
 {
-	void EscapeScriptStringToAnsi(Rococo::IO::IBinaryWriter& writer, cstr text);
-	void EscapeScriptStringToUnicode(Rococo::IO::IUnicode16Writer& writer, cstr text);
+	SEXY_SPARSER_API void EscapeScriptStringToAnsi(Rococo::IO::IBinaryWriter& writer, cstr text);
+	SEXY_SPARSER_API void EscapeScriptStringToUnicode(Rococo::IO::IUnicode16Writer& writer, cstr text);
 }}

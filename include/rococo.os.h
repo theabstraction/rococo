@@ -14,11 +14,11 @@ namespace Rococo::OS
 		cstr rootName;
 	};
 
-	void PasteStringFromClipboard(IEventCallback<cstr>& populator);
-	void CopyStringToClipboard(cstr text);
+	ROCOCO_API void PasteStringFromClipboard(IEventCallback<cstr>& populator);
+	ROCOCO_API void CopyStringToClipboard(cstr text);
 
 	// Gets a null terminated OS config string with lenBytes capacity. If not found, fills with the defaultValue. If organization is null the library default name is chosen 
-	void GetConfigVariable(char* textBuffer, size_t lenBytes, cstr defaultValue, ConfigSection section, ConfigRootName rootName, cstr organization = nullptr);
+	ROCOCO_API void GetConfigVariable(char* textBuffer, size_t lenBytes, cstr defaultValue, ConfigSection section, ConfigRootName rootName, cstr organization = nullptr);
 
 	// Gets U8 file path from the OS config. If not found, fills with the defaultValue. If organization is null the library default name is chosen 
 	inline void GetConfigVariable(U8FilePath& path, cstr defaultValue, ConfigSection section, ConfigRootName rootName, cstr organization = nullptr)
@@ -27,7 +27,7 @@ namespace Rococo::OS
 	}
 
 	// Sets the value of a config string in the OS. The maximum length is 1 megabyte.
-	void SetConfigVariable(cstr value, ConfigSection section, ConfigRootName rootName, cstr organization = nullptr);
+	ROCOCO_API void SetConfigVariable(cstr value, ConfigSection section, ConfigRootName rootName, cstr organization = nullptr);
 
 	ROCOCO_INTERFACE IAppControl
 	{
@@ -40,11 +40,11 @@ namespace Rococo::OS
 		virtual void Free() = 0;
 	};
 
-	IAppControlSupervisor* CreateAppControl();
+	ROCOCO_API IAppControlSupervisor* CreateAppControl();
 
-	void BeepWarning();
-	void CopyExceptionToClipboard(IException& ex);
-	void EditImageFile(Rococo::Windows::IWindow& window, const wchar_t* sysPath);
+	ROCOCO_API void BeepWarning();
+	ROCOCO_API void CopyExceptionToClipboard(IException& ex);
+	ROCOCO_API void EditImageFile(Rococo::Windows::IWindow& window, const wchar_t* sysPath);
 
 	struct IThreadControl;
 
@@ -64,7 +64,7 @@ namespace Rococo::OS
 		virtual cstr GetErrorMessage(int& err) const = 0;
 	};
 
-	void WakeUp(IThreadControl& thread);
+	ROCOCO_API void WakeUp(IThreadControl& thread);
 
 	ROCOCO_INTERFACE ICriticalSection
 	{
@@ -79,11 +79,11 @@ namespace Rococo::OS
 		virtual void Free() = 0;
 	};
 
-	[[nodiscard]] IThreadSupervisor* CreateRococoThread(IThreadJob* thread, uint32 stacksize);
+	ROCOCO_API [[nodiscard]] IThreadSupervisor* CreateRococoThread(IThreadJob* thread, uint32 stacksize);
 
 
-	[[nodiscard]] void* AllocBoundedMemory(size_t nBytes);
-	void FreeBoundedMemory(void* pMemory);
+	ROCOCO_API [[nodiscard]] void* AllocBoundedMemory(size_t nBytes);
+	ROCOCO_API void FreeBoundedMemory(void* pMemory);
 
 	enum TargetDirectory
 	{
@@ -91,36 +91,34 @@ namespace Rococo::OS
 		TargetDirectory_Root
 	};
 
-	void SaveAsciiTextFile(TargetDirectory target, const wchar_t* filename, const fstring& text);
+	ROCOCO_API void SaveAsciiTextFile(TargetDirectory target, const wchar_t* filename, const fstring& text);
 
-	void FormatTime(ticks utcTime, char* buffer, size_t nBytes);
-	bool StripLastSubpath(wchar_t* fullpath);
-	bool IsFileExistant(const wchar_t* path);
-	void Format_C_Error(int errorCode, char* buffer, size_t capacity);
-	[[nodiscard]] int OpenForAppend(void** fp, cstr name);
-	[[nodiscard]] int OpenForRead(void** fp, cstr name);
-	void UILoop(uint32 milliseconds);
-	void ToSysPath(wchar_t* path);
-	void ToUnixPath(wchar_t* path);
-	void ToSysPath(char* path);
-	void ToUnixPath(char* path);
-	void SanitizePath(char* path);
-	void SanitizePath(wchar_t* path);
-	void SaveClipBoardText(cstr text, Windows::IWindow& window);
-	bool TryGetColourFromDialog(RGBAb& colour, Windows::IWindow& window);
-	cstr GetAsciiCommandLine();
+	ROCOCO_API void FormatTime(ticks utcTime, char* buffer, size_t nBytes);
+	ROCOCO_API bool StripLastSubpath(wchar_t* fullpath);
+	ROCOCO_API bool IsFileExistant(const wchar_t* path);
+	ROCOCO_API void Format_C_Error(int errorCode, char* buffer, size_t capacity);
+	ROCOCO_API [[nodiscard]] int OpenForAppend(void** fp, cstr name);
+	ROCOCO_API [[nodiscard]] int OpenForRead(void** fp, cstr name);
+	ROCOCO_API void UILoop(uint32 milliseconds);
+	ROCOCO_API void ToSysPath(wchar_t* path);
+	ROCOCO_API void ToUnixPath(wchar_t* path);
+	ROCOCO_API void ToSysPath(char* path);
+	ROCOCO_API void ToUnixPath(char* path);
+	ROCOCO_API void SanitizePath(char* path);
+	ROCOCO_API void SanitizePath(wchar_t* path);
+	ROCOCO_API void SaveClipBoardText(cstr text, Windows::IWindow& window);
+	ROCOCO_API bool TryGetColourFromDialog(RGBAb& colour, Windows::IWindow& window);
+	ROCOCO_API cstr GetAsciiCommandLine();
 
 	template<typename Type, typename IDType = typename Type::IDType>
 	class Mappings;
 
 	// Open a file and fit into buffer. In the case of a truncation an IException is thrown. The function returns the number of bytes copied to the buffer.
-	size_t LoadAsciiTextFile(char* data, size_t capacity, const wchar_t* filename);
-	void LoadAsciiTextFile(IEventCallback<cstr>& callback, const wchar_t* filename);
-
-	void GetEnvVariable(wchar_t* data, size_t capacity, const wchar_t* envVariable);
-	void PollKeys(uint8 scanArray[256]);
-	void MakeContainerDirectory(char* filename);
-	void MakeContainerDirectory(wchar_t* filename);
+	ROCOCO_API size_t LoadAsciiTextFile(char* data, size_t capacity, const wchar_t* filename);
+	ROCOCO_API void LoadAsciiTextFile(IEventCallback<cstr>& callback, const wchar_t* filename);
+	ROCOCO_API void PollKeys(uint8 scanArray[256]);
+	ROCOCO_API void MakeContainerDirectory(char* filename);
+	ROCOCO_API void MakeContainerDirectory(wchar_t* filename);
 
 	class Lock
 	{

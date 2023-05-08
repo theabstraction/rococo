@@ -1,3 +1,4 @@
+#define ROCOCO_API __declspec(dllexport)
 #include <rococo.events.h>
 #include <rococo.hashtable.h>
 #include <vector>
@@ -6,7 +7,7 @@
 
 namespace Rococo::Strings
 {
-	[[nodiscard]] uint32 FastHash(cstr text);
+	ROCOCO_API [[nodiscard]] uint32 FastHash(cstr text);
 }
 
 namespace
@@ -274,11 +275,11 @@ namespace
 
 namespace Rococo
 {
-   namespace Events
-   {
-      IPublisherSupervisor* CreatePublisher()
-      {
-         return new Publisher();
-      }
-   } // Events
+	namespace Events
+	{
+		ROCOCO_API IPublisherSupervisor* CreatePublisher()
+		{
+			return new Publisher();
+		}
+	} // Events
 } // Rococo

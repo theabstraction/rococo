@@ -31,6 +31,7 @@
 	principal credit screen and its principal readme file.
 */
 
+#define ROCOCO_API __declspec(dllexport)
 #include <sexy.types.h>
 #define ROCOCO_USE_SAFE_V_FORMAT
 #include <sexy.strings.h>
@@ -53,11 +54,12 @@ namespace Rococo
 {
 	namespace OS
 	{
-		void BreakOnThrow(BreakFlag flag);
+		ROCOCO_API void BreakOnThrow(BreakFlag flag);
 	}
+
 	namespace Sex
 	{
-		cstr ReadUntil(const Vec2i& pos, const ISourceCode& src)
+		ROCOCO_API cstr ReadUntil(const Vec2i& pos, const ISourceCode& src)
 		{
 			Vec2i origin = src.Origin();
 
@@ -88,7 +90,7 @@ namespace Rococo
 			return src.SourceStart() + i;
 		}
 
-		void GetSpecimen(char specimen[64], const ISExpression& e)
+		ROCOCO_API  void GetSpecimen(char specimen[64], const ISExpression& e)
 		{
 			auto& tree = e.Tree();
 			cstr startPos = ReadUntil(e.Start(), tree.Source());
@@ -108,7 +110,7 @@ namespace Rococo
 			}
 		}
 
-		ParseException::ParseException() : startPos{ 0,0 }, endPos{ 0, 0 }
+		ROCOCO_API ParseException::ParseException() : startPos{ 0,0 }, endPos{ 0, 0 }
 		{
 			srcName[0] = 0;
 			errText[0] = 0;
@@ -116,7 +118,7 @@ namespace Rococo
 			source = nullptr;
 		}
 
-		ParseException::ParseException(const Vec2i& start, const Vec2i& end, cstr name, cstr err, cstr specimen, const ISExpression* _source) :
+		ROCOCO_API ParseException::ParseException(const Vec2i& start, const Vec2i& end, cstr name, cstr err, cstr specimen, const ISExpression* _source) :
 			startPos(start),
 			endPos(end),
 			source(_source)
@@ -126,13 +128,13 @@ namespace Rococo
 			CopyString(specimenText, MAX_ERRMSG_LEN, specimen);
 		}
 
-		void Throw(ParseException& ex)
+		ROCOCO_API void Throw(ParseException& ex)
 		{
 			OS::BreakOnThrow(OS::BreakFlag_SS);
 			throw ex;
 		}
 
-		void Throw(cr_sex e, _Printf_format_string_ cstr format, ...)
+		ROCOCO_API void Throw(cr_sex e, _Printf_format_string_ cstr format, ...)
 		{
 			va_list args;
 			va_start(args, format);

@@ -54,7 +54,7 @@ namespace Rococo
 		Debugging::IStackFrameEnumerator* StackFrames() override { return nullptr; }
 	};
 
-	NamespaceSplitter::NamespaceSplitter(cstr _src): src(_src)
+	SEXYUTIL_API NamespaceSplitter::NamespaceSplitter(cstr _src): src(_src)
 	{
 		length = StringLength(_src);		
 		if (length >= NAMESPACE_MAX_LENGTH)
@@ -65,7 +65,7 @@ namespace Rococo
 		}
 	}
 
-	bool NamespaceSplitter::SplitHead(OUT cstr& _head, OUT cstr& _body)
+	SEXYUTIL_API bool NamespaceSplitter::SplitHead(OUT cstr& _head, OUT cstr& _body)
 	{
 		memcpy_s(dottedName, NAMESPACE_MAX_LENGTH, src, sizeof(char) * (length+1));
 
@@ -83,7 +83,7 @@ namespace Rococo
 		return false;
 	}
 
-	bool NamespaceSplitter::SplitTail(OUT cstr& _body, OUT cstr& _tail)
+	SEXYUTIL_API bool NamespaceSplitter::SplitTail(OUT cstr& _body, OUT cstr& _tail)
 	{
 		memcpy_s(dottedName, NAMESPACE_MAX_LENGTH, src, sizeof(char) * (length+1));
 

@@ -1,6 +1,10 @@
 #ifndef ROCOCO_ALLOCATORS_H
 #define ROCOCO_ALLOCATORS_H
 
+#ifndef ROCOCO_API 
+# define ROCOCO_API __declspec(dllimport)
+#endif
+
 #include <vector>
 
 #ifndef _WIN32
@@ -40,7 +44,7 @@ namespace Rococo::Memory
 		virtual void Free() = 0;
 	};
 
-	IFreeListAllocatorSupervisor* CreateFreeListAllocator(size_t elementSize);
+	ROCOCO_API IFreeListAllocatorSupervisor* CreateFreeListAllocator(size_t elementSize);
 
 	// HomogenousAllocator<T> provides constant time allocation and freeing of memory for class T
 	// and should protect against rapid reallocation of such objects from causing memory fragmentation

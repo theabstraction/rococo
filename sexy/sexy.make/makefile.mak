@@ -5,7 +5,7 @@ DIR_INCLUDE = $(ROCOCO)include^\
 DIR_LIB = $(ROCOCO)lib^\
 DIR_BIN = $(ROCOCO)bin^\
 DIR_SEXY = $(ROCOCO)sexy^\
-DIR_SEXY_BIN = $(ROCOCO)sexy\Bin^\
+DIR_SEXY_BIN = $(ROCOCO)bin^\
 UTIL = $(ROCOCO)rococo.util^\
 
 EXECUTE_POWERSHELL = powershell.exe -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass
@@ -40,26 +40,21 @@ WITH_SOLUTION = -property:SolutionDir=$(ROCOCO)sexy^\
 
 all:
 	msbuild $(UTIL)rococo.util.vcxproj                                                $(MSBUILD_TERSE) $(MSBUILD_PARALLEL)
-	msbuild $(DIR_SEXY)Utilities\Utilities.vcxproj                                    $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
 	msbuild $(DIR_SEXY)SP\sexy.s-parser\sexy.s-parser.vcxproj                         $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
+	msbuild $(DIR_SEXY)Utilities\Utilities.vcxproj                                    $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
 	msbuild $(DIR_SEXY)SVM\svmcore\svmcore.vcxproj                                    $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
 	msbuild $(DIR_SEXY)s-parser.2/s-parser.2.vcxproj                                  $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
+	msbuild $(DIR_SEXY)STC\stccore\stccore.vcxproj                                    $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
+	msbuild $(DIR_SEXY)SS\sexy.script\sexy.script.vcxproj                             $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
 	msbuild $(DIR_SEXY)sexy.bennyhill\sexy.bennyhill.vcxproj                          $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
-    msbuild $(DIR_SEXY)STC\stccore\stccore.vcxproj                                    $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
-	msbuild $(DIR_SEXY)SS\sexy.nativelib.maths\sexy.nativelib.maths.vcxproj           $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
+   	msbuild $(DIR_SEXY)SS\sexy.nativelib.maths\sexy.nativelib.maths.vcxproj           $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
 	msbuild $(DIR_SEXY)SS\sexy.nativelib.reflection\sexy.nativelib.reflection.vcxproj $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
 	msbuild $(DIR_SEXY)SS\sexy.nativelib.coroutines\sexy.nativelib.coroutines.vcxproj $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
-	msbuild $(DIR_SEXY)SS\sexy.script\sexy.script.vcxproj                             $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
 	msbuild $(DIR_SEXY)SS\sexy.script.test\sexy.script.test.vcxproj                   $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
 	msbuild $(DIR_SEXY)sexydotnethost\sexydotnethost.vcxproj                          $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
 	$(BENNY_HILL) $(DIR_SEXY)SS\sexy.nativelib.coroutines\ coroutines.sxh null
 
 clean: 
-	del $(BENNY_HILL)
-	del /Q /S $(DIR_SEXY_BIN)*.*
-	del /Q /S $(DIR_SEXY)NativeSource\*.lib
-	del /Q /S $(DIR_SEXY)NativeSource\*.pdb
-	del /Q /S $(DIR_SEXY)NativeSource\*.dll
 	msbuild $(DIR_SEXY)Utilities\Utilities.vcxproj                                    $(MSBUILD_CLEAN) $(WITH_SOLUTION)
 	msbuild $(DIR_SEXY)SP\sexy.s-parser\sexy.s-parser.vcxproj                         $(MSBUILD_CLEAN) $(WITH_SOLUTION)
 	msbuild $(DIR_SEXY)SVM\svmcore\svmcore.vcxproj                                    $(MSBUILD_CLEAN) $(WITH_SOLUTION)

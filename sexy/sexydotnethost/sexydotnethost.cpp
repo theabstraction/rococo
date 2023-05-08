@@ -14,7 +14,6 @@
 #include "sexy.vm.h"
 #include "sexy.vm.cpu.h"
 #include "sexydotnethost.h"
-#include "sexy.lib.util.h"
 
 #include <rococo.sexy.map.expert.h>
 

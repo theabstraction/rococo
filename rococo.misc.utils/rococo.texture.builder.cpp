@@ -641,7 +641,7 @@ namespace
 
 namespace Rococo::Graphics::Textures
 {
-    void StandardLoadFromCompressedTextureBuffer(cstr name, IEventCallback<CompressedTextureBuffer>& onLoad, IInstallation& installation, IExpandingBuffer& buffer)
+    ROCOCO_API_EXPORT void StandardLoadFromCompressedTextureBuffer(cstr name, IEventCallback<CompressedTextureBuffer>& onLoad, IInstallation& installation, IExpandingBuffer& buffer)
     {
         COMPRESSED_TYPE type;
 
@@ -669,7 +669,7 @@ namespace Rococo::Graphics::Textures
         onLoad.OnEvent(args);
     }
 
-    ITextureArrayBuilderSupervisor* CreateTextureArrayBuilder(ICompressedResourceLoader& loader, ITextureArray& textureFactory)
+    ROCOCO_API_EXPORT ITextureArrayBuilderSupervisor* CreateTextureArrayBuilder(ICompressedResourceLoader& loader, ITextureArray& textureFactory)
     {
         return new TextureArrayBuilder(loader, textureFactory);
     }

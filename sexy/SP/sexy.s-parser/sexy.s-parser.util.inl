@@ -1,6 +1,6 @@
 namespace
 {
-	sexstring CreateSexString(const SEXCHAR* src, int32 length)
+	SEXY_SPARSER_API sexstring CreateSexString(const SEXCHAR* src, int32 length)
 	{
 		int32 nBytes = sizeof(int32) + sizeof(SEXCHAR) * (length+1);
 		sexstring s = (sexstring) new char[nBytes];
@@ -12,7 +12,7 @@ namespace
 		return s;
 	}
 
-	void FreeSexString(sexstring s)
+	SEXY_SPARSER_API void FreeSexString(sexstring s)
 	{
 		char* buf = (char*) s;
 		delete[] buf;

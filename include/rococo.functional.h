@@ -291,11 +291,11 @@ namespace Rococo
 
 namespace Rococo::Strings
 {
-	int ForEachOccurence(cr_substring text, cr_substring cstrSearchTerm, Rococo::Function<void(cr_substring match)> lambda);
+	ROCOCO_API int ForEachOccurence(cr_substring text, cr_substring cstrSearchTerm, Rococo::Function<void(cr_substring match)> lambda);
 }
 
 namespace Rococo::OS
 {
 	// Open a file and invokes a callback with a pointer to content. The file is closed at the point that the callback is invoked. 
-	void LoadAsciiTextFile(Function<void(cstr)> callback, const wchar_t* filename);
+	ROCOCO_UTILS_EX_API void LoadAsciiTextFile(Function<void(cstr)> callback, const wchar_t* filename);
 }

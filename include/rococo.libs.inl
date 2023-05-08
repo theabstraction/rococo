@@ -10,8 +10,6 @@
 #  pragma comment(lib, "rococo.maths.debug.lib")
 #  pragma comment(lib, "rococo.sexy.ide.debug.lib")
 #  pragma comment(lib, "rococo.misc.utils.debug.lib")
-#  pragma comment(lib, "sexy.s-parser.Debug.lib")
-#  pragma comment(lib, "sexy.util.Debug.lib")
 #  pragma comment(lib, "sexy.script.Debug.lib")
 #  pragma comment(lib, "rococo.util.ex.debug.lib")
 # else
@@ -23,8 +21,6 @@
 #  pragma comment(lib, "rococo.maths.lib")
 #  pragma comment(lib, "rococo.sexy.ide.lib")
 #  pragma comment(lib, "rococo.misc.utils.lib")
-#  pragma comment(lib, "sexy.s-parser.Release.lib")
-#  pragma comment(lib, "sexy.util.Release.lib")
 #  pragma comment(lib, "sexy.script.Release.lib")
 #  pragma comment(lib, "rococo.util.ex.lib")
 # endif

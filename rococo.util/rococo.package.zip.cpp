@@ -1,3 +1,4 @@
+#define ROCOCO_API __declspec(dllexport)
 #include <rococo.types.h>
 #include <rococo.package.h>
 #include <rococo.io.h>
@@ -39,8 +40,8 @@ namespace std
 
 namespace Rococo::Strings
 {
-	int32 Format(U8FilePath& path, cstr format, ...);
-	int32 Format(WideFilePath& path, _Printf_format_string_ const wchar_t* format, ...);
+	ROCOCO_API int32 Format(U8FilePath& path, cstr format, ...);
+	ROCOCO_API int32 Format(WideFilePath& path, _Printf_format_string_ const wchar_t* format, ...);
 }
 
 namespace
@@ -497,7 +498,7 @@ namespace
 
 namespace Rococo
 {
-	IPackageSupervisor* OpenZipPackage(const wchar_t* sysPath, const char* friendlyName)
+	ROCOCO_API IPackageSupervisor* OpenZipPackage(const wchar_t* sysPath, const char* friendlyName)
 	{
 		WideFilePath osPath;
 		Format(osPath, L"%ls", sysPath);

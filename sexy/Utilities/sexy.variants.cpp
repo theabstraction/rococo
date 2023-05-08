@@ -58,7 +58,7 @@ namespace Rococo
 			return type == VARTYPE_Bool;
 		}
 
-		VARTYPE GetBestCastType(VARTYPE a, VARTYPE b)
+		SEXYUTIL_API VARTYPE GetBestCastType(VARTYPE a, VARTYPE b)
 		{
 			if (a == VARTYPE_Bad || b == VARTYPE_Bad) return VARTYPE_Bad;
 			if (a == VARTYPE_Derivative || b == VARTYPE_Derivative) return VARTYPE_Derivative;
@@ -98,7 +98,7 @@ namespace Rococo
 			}
 		}
 
-		bool TryRecast(OUT VariantValue& end, IN const VariantValue& original, VARTYPE orignalType, VARTYPE endType)
+		SEXYUTIL_API bool TryRecast(OUT VariantValue& end, IN const VariantValue& original, VARTYPE orignalType, VARTYPE endType)
 		{
 			if (!IsPrimitiveType(orignalType) || (!IsPrimitiveType(endType)))
 			{

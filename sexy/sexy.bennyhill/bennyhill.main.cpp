@@ -41,6 +41,7 @@
 
 #include "sexy.lib.s-parser.h"
 #include "sexy.lib.util.h"
+#include "sexy.lib.sexy-util.h"
 
 #include <rococo.api.h>
 #include <rococo.os.h>

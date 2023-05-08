@@ -21,9 +21,6 @@
     <ClCompile Include="rococo.strings.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="rococo.s-parser.helpers.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="rococo.observer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

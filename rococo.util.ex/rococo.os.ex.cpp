@@ -50,7 +50,7 @@ namespace
 
 namespace Rococo::OS
 {
-	void LoadAsciiTextFile(Function<void(cstr)> onLoad, const wchar_t* filename)
+	ROCOCO_UTILS_EX_API void LoadAsciiTextFile(Function<void(cstr)> onLoad, const wchar_t* filename)
 	{
 		std::vector<char> asciiData;
 
@@ -90,3 +90,11 @@ namespace Rococo::OS
 		onLoad.InvokeElseThrow(asciiData.data());
 	}
 }
+
+#ifdef _WIN32
+# ifdef _DEBUG
+#  pragma comment(lib, "rococo.util.Debug.lib")
+# else
+#  pragma comment(lib, "rococo.util.lib")
+# endif
+#endif

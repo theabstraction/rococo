@@ -109,7 +109,7 @@ namespace Rococo::Sexy
 	static const fstring fsMethod = "method"_fstring;
 
 	// Expand t
-	Substring GetClassDefinition(cr_substring className, cr_substring doc)
+	ROCOCO_MISC_UTILS_API Substring GetClassDefinition(cr_substring className, cr_substring doc)
 	{
 		Substring cursor = Substring_Null();
 
@@ -601,7 +601,7 @@ namespace Rococo::Sexy
 	'this.<member-variable>'....................the member [type] defined in the class for which the containing method applies
 	<local-variable-name>.<children>'...........the member [type] defined in the class for which the containing method applies.
 	*/
-	Substring GetLocalTypeFromCurrentDocument(bool& isThis, cr_substring token, cr_substring document)
+	ROCOCO_API_EXPORT Substring GetLocalTypeFromCurrentDocument(bool& isThis, cr_substring token, cr_substring document)
 	{
 		static auto thisRaw = "this"_fstring;
 		static auto thisDot = "this."_fstring;

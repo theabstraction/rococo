@@ -41,6 +41,10 @@
 #  define SEXY_SPARSER_API __declspec(dllimport)
 # endif
 
+# ifndef SEXYUTIL_API
+#  define SEXYUTIL_API __declspec(dllimport)
+# endif
+
 namespace Rococo
 {
 	typedef void* OS_HWND;
@@ -71,7 +75,7 @@ namespace Rococo
 	namespace Sex
 	{
 		class ParseException;
-		[[noreturn]] void Throw(ParseException& ex);
+		[[noreturn]] ROCOCO_API void Throw(ParseException& ex);
 	}
 
 	enum { ROOT_TEMPDEPTH = 3 };
@@ -132,8 +136,8 @@ namespace Rococo
 	bool TryParseSexHex(char& finalChar, cstr s);
 	bool ParseEscapeCharacter(char& finalChar, char c);
 
-	sexstring CreateSexString(cstr src, int32 length = -1);
-	void FreeSexString(sexstring s);
+	SEXYUTIL_API sexstring CreateSexString(cstr src, int32 length = -1);
+	SEXYUTIL_API void FreeSexString(sexstring s);
 
 	ROCOCO_INTERFACE ILog
 	{
@@ -142,7 +146,7 @@ namespace Rococo
 		virtual void OnJITCompileException(Sex::ParseException& ex) = 0; // thrown by compile errors during JIT execution
 	};
 
-	void LogError(ILog& log, cstr format, ...);
+	SEXYUTIL_API void LogError(ILog& log, cstr format, ...);
 
 	union VariantValue
 	{
@@ -185,7 +189,7 @@ namespace Rococo
 		const ID_BYTECODE* vTable;
 	};
 
-	int StringPrint(TokenBuffer& token, const char* format, ...);
+	SEXYUTIL_API int StringPrint(TokenBuffer& token, const char* format, ...);
 
 	enum BITCOUNT
 	{
@@ -238,9 +242,9 @@ namespace Rococo
 		char dottedName[NAMESPACE_MAX_LENGTH];
 
 	public:
-		NamespaceSplitter(cstr _src);
-		bool SplitTail(cstr& _body, cstr& _tail);
-		bool SplitHead(cstr& _head, cstr& _body);
+		SEXYUTIL_API NamespaceSplitter(cstr _src);
+		SEXYUTIL_API bool SplitTail(cstr& _body, cstr& _tail);
+		SEXYUTIL_API bool SplitHead(cstr& _head, cstr& _body);
 		inline char* Raw() { return dottedName; }
 	};
 
@@ -333,8 +337,8 @@ namespace Rococo
 			virtual cstr Name() const = 0; // The name of the source segment
 		};
 
-		cstr ReadUntil(const Vec2i& pos, const ISourceCode& src);
-		void GetSpecimen(char specimen[64], const ISExpression& e);
+		ROCOCO_API cstr ReadUntil(const Vec2i& pos, const ISourceCode& src);
+		ROCOCO_API void GetSpecimen(char specimen[64], const ISExpression& e);
 	} // Sex
 
 	enum VARTYPE
@@ -366,7 +370,7 @@ namespace Rococo
 		SEXY_SPARSER_API void AssertNotTooManyElements(cr_sex e, int32 maxElements);
 		SEXY_SPARSER_API void AssertNotTooFewElements(cr_sex e, int32 minElements);
 		SEXY_SPARSER_API cr_sex GetAtomicArg(cr_sex e, int argIndex);
-		[[noreturn]] void Throw(cr_sex e, _Printf_format_string_ cstr format, ...);
+		[[noreturn]] ROCOCO_API void Throw(cr_sex e, _Printf_format_string_ cstr format, ...);
 	}
 }// Sexy
 

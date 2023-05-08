@@ -1,3 +1,4 @@
+#define ROCOCO_API __declspec(dllexport)
 #define WIN32_LEAN_AND_MEAN 
 #define NOMINMAX
 
@@ -41,7 +42,7 @@ namespace Rococo
 {
 	constexpr fstring packageprefix = "Package["_fstring;
 
-	void GetTimestamp(char str[26])
+	ROCOCO_API void GetTimestamp(char str[26])
 	{
 		time_t t;
 		time(&t);
@@ -50,12 +51,12 @@ namespace Rococo
 
 	namespace IO
 	{
-		char DirectorySeparatorChar()
+		ROCOCO_API char DirectorySeparatorChar()
 		{
 			return '\\';
 		}
 
-		IBinaryArchive* CreateNewBinaryFile(const wchar_t* sysPath)
+		ROCOCO_API IBinaryArchive* CreateNewBinaryFile(const wchar_t* sysPath)
 		{
 			struct Win32BinArchive: IBinaryArchive
 			{
@@ -153,7 +154,7 @@ namespace Rococo
 			return new Win32BinArchive(sysPath);
 		}
 
-		IBinarySource* ReadBinarySource(const wchar_t* sysPath)
+		ROCOCO_API IBinarySource* ReadBinarySource(const wchar_t* sysPath)
 		{
 			struct Win32BinFile : IBinarySource
 			{
@@ -188,7 +189,7 @@ namespace Rococo
 			return new Win32BinFile(sysPath);
 		}
 
-		IReadOnlyBinaryMapping* CreateReadOnlyBinaryMapping(const wchar_t* sysPath)
+		ROCOCO_API IReadOnlyBinaryMapping* CreateReadOnlyBinaryMapping(const wchar_t* sysPath)
 		{
 			struct Win32ROBinMapping : IReadOnlyBinaryMapping
 			{
@@ -263,13 +264,13 @@ namespace Rococo
 		}
 
 
-		bool IsKeyPressed(int vkeyCode)
+		ROCOCO_API bool IsKeyPressed(int vkeyCode)
 		{
 			SHORT value = GetAsyncKeyState(vkeyCode);
 			return (value & 0x8000) != 0;
 		}
 
-		void CopyToClipboard(cstr asciiText)
+		ROCOCO_API void CopyToClipboard(cstr asciiText)
 		{
 			if (!OpenClipboard(nullptr))
 			{
@@ -295,7 +296,7 @@ namespace Rococo
 			}
 		}
 
-		void PasteFromClipboard(char* asciiBuffer, size_t capacity)
+		ROCOCO_API void PasteFromClipboard(char* asciiBuffer, size_t capacity)
 		{
 			if (!OpenClipboard(nullptr))
 			{
@@ -318,12 +319,12 @@ namespace Rococo
 			}
 		}
 
-		void UseBufferlessStdout()
+		ROCOCO_API void UseBufferlessStdout()
 		{
 			setvbuf(stdout, nullptr, _IONBF, 0);
 		}
 
-		bool TryGetFileAttributes(const wchar_t* sysPath, FileAttributes& attr)
+		ROCOCO_API bool TryGetFileAttributes(const wchar_t* sysPath, FileAttributes& attr)
 		{
 			if (sysPath == nullptr) Throw(0, "Rococo::IO::GetFileLength: sysPath was null");
 
@@ -352,7 +353,7 @@ namespace Rococo
 		}
 	}
 
-	bool FileModifiedArgs::Matches(cstr resource) const
+	ROCOCO_API bool FileModifiedArgs::Matches(cstr resource) const
 	{
 		const wchar_t* a = this->sysPath;
 		cstr b = resource;
@@ -448,7 +449,7 @@ namespace
 
 namespace Rococo::OS
 {
-	void PasteStringFromClipboard(IEventCallback<cstr>& populator)
+	ROCOCO_API void PasteStringFromClipboard(IEventCallback<cstr>& populator)
 	{
 		if (!OpenClipboard(nullptr))
 		{
@@ -471,7 +472,7 @@ namespace Rococo::OS
 		}
 	}
 
-	void SetCursorVisibility(bool isVisible, Rococo::Windows::IWindow& captureWindow)
+	ROCOCO_API void SetCursorVisibility(bool isVisible, Rococo::Windows::IWindow& captureWindow)
 	{
 		if (isVisible)
 		{
@@ -506,12 +507,12 @@ namespace Rococo::OS
 		}
 	}
 
-	void EditImageFile(Rococo::Windows::IWindow& window, const wchar_t* sysPath)
+	ROCOCO_API void EditImageFile(Rococo::Windows::IWindow& window, const wchar_t* sysPath)
 	{
 		ShellExecuteW(window, L"open", sysPath, nullptr, nullptr, SW_SHOW);
 	}
 
-	void MakeContainerDirectory(char* filename)
+	ROCOCO_API void MakeContainerDirectory(char* filename)
 	{
 		int len = (int)rlen(filename);
 
@@ -525,7 +526,7 @@ namespace Rococo::OS
 		}
 	}
 
-	void MakeContainerDirectory(wchar_t* filename)
+	ROCOCO_API void MakeContainerDirectory(wchar_t* filename)
 	{
 		int len = (int)wcslen(filename);
 
@@ -539,7 +540,7 @@ namespace Rococo::OS
 		}
 	}
 
-	void ShellOpenDocument(cstr documentFilePath)
+	ROCOCO_API void ShellOpenDocument(cstr documentFilePath)
 	{
 		auto result = (INT_PTR) ShellExecuteA(NULL, "open", documentFilePath, NULL, NULL, SW_SHOW);
 		if (result < 32)
@@ -548,7 +549,7 @@ namespace Rococo::OS
 		}
 	}
 
-	void WakeUp(IThreadControl& thread)
+	ROCOCO_API void WakeUp(IThreadControl& thread)
 	{
 		struct ANON
 		{
@@ -560,7 +561,7 @@ namespace Rococo::OS
 		thread.QueueAPC(ANON::WakeUp, nullptr);
 	}
 
-	IThreadSupervisor* CreateRococoThread(IThreadJob* job, uint32 stacksize)
+	ROCOCO_API IThreadSupervisor* CreateRococoThread(IThreadJob* job, uint32 stacksize)
 	{
 		struct Supervisor;
 
@@ -682,24 +683,24 @@ namespace Rococo::OS
 		return supervisor;
 	}
 
-	cstr GetAsciiCommandLine()
+	ROCOCO_API cstr GetAsciiCommandLine()
 	{
 		auto line =  GetCommandLineA();
 		return line;
 	}
 
-	void PollKeys(uint8 scanArray[256])
+	ROCOCO_API void PollKeys(uint8 scanArray[256])
 	{
 		GetKeyboardState(scanArray);
 	}
 
-	bool IsFileExistant(const wchar_t* filename)
+	ROCOCO_API bool IsFileExistant(const wchar_t* filename)
 	{
 		DWORD flags = GetFileAttributesW(filename);
 		return flags != INVALID_FILE_ATTRIBUTES;
 	}
 
-	bool StripLastSubpath(char* fullpath)
+	ROCOCO_API bool StripLastSubpath(char* fullpath)
 	{
 		int32 len = (int32) strlen (fullpath);
 		for (int i = len - 2; i > 0; --i)
@@ -714,7 +715,7 @@ namespace Rococo::OS
 		return false;
 	}
 
-	bool StripLastSubpath(wchar_t* fullpath)
+	ROCOCO_API bool StripLastSubpath(wchar_t* fullpath)
 	{
 		int32 len = (int32)wcslen(fullpath);
 		for (int i = len - 2; i > 0; --i)
@@ -729,7 +730,7 @@ namespace Rococo::OS
 		return false;
 	}
 		
-	void SanitizePath(wchar_t* path)
+	ROCOCO_API void SanitizePath(wchar_t* path)
 	{
 		for (auto* s = path; *s != 0; ++s)
 		{
@@ -737,7 +738,7 @@ namespace Rococo::OS
 		}
 	}
 
-	void SanitizePath(char* path)
+	ROCOCO_API void SanitizePath(char* path)
 	{
 		for (char* s = path; *s != 0; ++s)
 		{
@@ -745,7 +746,7 @@ namespace Rococo::OS
 		}
 	}
 
-	void SaveClipBoardText(cstr text, Windows::IWindow& window)
+	ROCOCO_API void SaveClipBoardText(cstr text, Windows::IWindow& window)
 	{
 		size_t len = strlen(text) + 1;
 
@@ -765,7 +766,7 @@ namespace Rococo::OS
 		}
 	}
 
-	void ToSysPath(wchar_t* path)
+	ROCOCO_API void ToSysPath(wchar_t* path)
 	{
 		for (wchar_t* s = path; *s != 0; ++s)
 		{
@@ -773,7 +774,7 @@ namespace Rococo::OS
 		}
 	}
 
-	void ToUnixPath(wchar_t* path)
+	ROCOCO_API void ToUnixPath(wchar_t* path)
 	{
 		for (wchar_t* s = path; *s != 0; ++s)
 		{
@@ -781,7 +782,7 @@ namespace Rococo::OS
 		}
 	}
 
-	void ToSysPath(char* path)
+	ROCOCO_API void ToSysPath(char* path)
 	{
 		for (char* s = path; *s != 0; ++s)
 		{
@@ -789,7 +790,7 @@ namespace Rococo::OS
 		}
 	}
 
-	void ToUnixPath(char* path)
+	ROCOCO_API void ToUnixPath(char* path)
 	{
 		for (char* s = path; *s != 0; ++s)
 		{
@@ -797,7 +798,7 @@ namespace Rococo::OS
 		}
 	}
 
-	void UILoop(uint32 milliseconds)
+	ROCOCO_API void UILoop(uint32 milliseconds)
 	{
 		MSG msg;
 
@@ -816,7 +817,7 @@ namespace Rococo::OS
 		}
 	}
 
-	void Format_C_Error(int errorCode, char* buffer, size_t capacity)
+	ROCOCO_API void Format_C_Error(int errorCode, char* buffer, size_t capacity)
 	{
 		if (0 == FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, NULL, errorCode, 0, buffer, (DWORD)capacity, NULL))
 		{
@@ -824,38 +825,38 @@ namespace Rococo::OS
 		}
 	}
 
-	int OpenForAppend(void** fp, cstr name)
+	ROCOCO_API int OpenForAppend(void** fp, cstr name)
 	{
 		return fopen_s((FILE**)fp, name, "ab");
 	}
 
-	int OpenForRead(void** fp, cstr name)
+	ROCOCO_API int OpenForRead(void** fp, cstr name)
 	{
 		return fopen_s((FILE**)fp, name, "rb");
 	}
 
-	ticks CpuTicks()
+	ROCOCO_API ticks CpuTicks()
 	{
 		LARGE_INTEGER ticks;
 		QueryPerformanceCounter(&ticks);
 		return ticks.QuadPart;
 	}
 
-	ticks CpuHz()
+	ROCOCO_API ticks CpuHz()
 	{
 		LARGE_INTEGER hz;
 		QueryPerformanceFrequency(&hz);
 		return hz.QuadPart;
 	}
 
-	ticks UTCTime()
+	ROCOCO_API ticks UTCTime()
 	{
 		FILETIME ft;
 		GetSystemTimeAsFileTime(&ft);
 		return *(ticks*)&ft;
 	}
 
-	void FormatTime(ticks utcTime, char* buffer, size_t nBytes)
+	ROCOCO_API void FormatTime(ticks utcTime, char* buffer, size_t nBytes)
 	{
 		SYSTEMTIME st;
 		char localDate[255], localTime[255];
@@ -868,7 +869,7 @@ namespace Rococo::OS
 		SafeFormat(buffer, nBytes, "%s %s", localTime, localDate);
 	}
 
-	void TripDebugger()
+	ROCOCO_API void TripDebugger()
 	{
 		if (IsDebuggerPresent())
 		{
@@ -876,7 +877,7 @@ namespace Rococo::OS
 		}
 	}
 
-	void FormatErrorMessage(char* message, size_t sizeofBuffer, int errorCode)
+	ROCOCO_API void FormatErrorMessage(char* message, size_t sizeofBuffer, int errorCode)
 	{
 		if (!FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, NULL, errorCode, 0, message, (DWORD) sizeofBuffer, nullptr))
 		{
@@ -897,7 +898,7 @@ namespace Rococo::OS
 		}
 	}
 
-	bool TryGetColourFromDialog(RGBAb& colour, Windows::IWindow& window)
+	ROCOCO_API bool TryGetColourFromDialog(RGBAb& colour, Windows::IWindow& window)
 	{
 		static COLORREF colours[16] = { 0 };
 
@@ -919,12 +920,12 @@ namespace Rococo::OS
 		return false;
 	}
 
-	bool IsDebugging()
+	ROCOCO_API bool IsDebugging()
 	{
 		return IsDebuggerPresent() ? true : false;
 	}
 
-	void* AllocBoundedMemory(size_t nBytes)
+	ROCOCO_API void* AllocBoundedMemory(size_t nBytes)
 	{
 		auto* pMem = VirtualAlloc(NULL, nBytes, MEM_COMMIT, PAGE_READWRITE);
 		if (pMem == nullptr)
@@ -934,7 +935,7 @@ namespace Rococo::OS
 		return pMem;
 	}
 
-	void FreeBoundedMemory(void* pMemory)
+	ROCOCO_API void FreeBoundedMemory(void* pMemory)
 	{
 		VirtualFree(pMemory, 0, MEM_RELEASE);
 	}
@@ -942,7 +943,7 @@ namespace Rococo::OS
 
 namespace Rococo
 {
-	MemoryUsage ProcessMemory()
+	ROCOCO_API MemoryUsage ProcessMemory()
 	{
 		PROCESS_MEMORY_COUNTERS counters = { 0 };
 		counters.cb = sizeof(counters);
@@ -950,7 +951,7 @@ namespace Rococo
 		return{ counters.PagefileUsage, counters.PeakPagefileUsage };
 	}
 
-	bool DoesModifiedFilenameMatchResourceName(cstr modifiedFilename, cstr resourceName)
+	ROCOCO_API bool DoesModifiedFilenameMatchResourceName(cstr modifiedFilename, cstr resourceName)
 	{
 		cstr p = modifiedFilename;
 		cstr q = resourceName + 1;
@@ -1715,17 +1716,17 @@ namespace
 
 namespace Rococo
 {
-	IOSSupervisor* GetOS()
+	ROCOCO_API IOSSupervisor* GetOS()
 	{
 		return new Win32OS();
 	}
 
-	IInstallationSupervisor* CreateInstallation(const wchar_t* contentIndicatorName, IOS& os)
+	ROCOCO_API IInstallationSupervisor* CreateInstallation(const wchar_t* contentIndicatorName, IOS& os)
 	{
 		return new Installation(contentIndicatorName, os);
 	}
 
-	IInstallationSupervisor* CreateInstallationDirect(const wchar_t* contentDirectory, IOS& os)
+	ROCOCO_API IInstallationSupervisor* CreateInstallationDirect(const wchar_t* contentDirectory, IOS& os)
 	{
 		wchar_t slash[2] = { 0 };
 		slash[0] = Rococo::IO::GetFileSeparator();
@@ -1738,30 +1739,30 @@ namespace Rococo
 		return new Installation(os, contentDirectory);
 	}
 
-	ThreadLock::ThreadLock()
+	ROCOCO_API ThreadLock::ThreadLock()
 	{
 		static_assert(sizeof(CRITICAL_SECTION) <= sizeof(implementation), "ThreadLock too small. Increase opaque data");
 		InitializeCriticalSection(reinterpret_cast<LPCRITICAL_SECTION>(this->implementation));
 	}
 
-	ThreadLock::~ThreadLock()
+	ROCOCO_API ThreadLock::~ThreadLock()
 	{
 		DeleteCriticalSection(reinterpret_cast<LPCRITICAL_SECTION>(this->implementation));
 	}
 
-	void ThreadLock::Lock()
+	ROCOCO_API void ThreadLock::Lock()
 	{
 		EnterCriticalSection(reinterpret_cast<LPCRITICAL_SECTION>(this->implementation));
 	}
 
-	void ThreadLock::Unlock()
+	ROCOCO_API void ThreadLock::Unlock()
 	{
 		LeaveCriticalSection(reinterpret_cast<LPCRITICAL_SECTION>(this->implementation));
 	}
 
 	namespace OS
 	{
-		IAppControlSupervisor* CreateAppControl()
+		ROCOCO_API IAppControlSupervisor* CreateAppControl()
 		{
 			struct AppControl : public IAppControlSupervisor
 			{
@@ -1787,12 +1788,12 @@ namespace Rococo
 			return new AppControl();
 		}
 
-		void BeepWarning()
+		ROCOCO_API void BeepWarning()
 		{
 			MessageBeep(MB_ICONWARNING);
 		}
 
-		void PrintDebug(const char* format, ...)
+		ROCOCO_API void PrintDebug(const char* format, ...)
 		{
 #if _DEBUG
 			va_list arglist;
@@ -1803,12 +1804,12 @@ namespace Rococo
 #endif
 		}
 
-		cstr GetCommandLineText()
+		ROCOCO_API cstr GetCommandLineText()
 		{
 			return GetCommandLineA();
 		}
 
-		void CopyStringToClipboard(cstr text)
+		ROCOCO_API void CopyStringToClipboard(cstr text)
 		{
 			size_t len = strlen(text);
 
@@ -1839,7 +1840,7 @@ namespace Rococo
 			}
 		}
 
-		void BuildExceptionString(char* buffer, size_t capacity, IException& ex, bool appendStack)
+		ROCOCO_API void BuildExceptionString(char* buffer, size_t capacity, IException& ex, bool appendStack)
 		{
 			StackStringBuilder sb(buffer, capacity);
 
@@ -1894,8 +1895,7 @@ namespace Rococo
 			}
 		}
 
-
-		void CopyExceptionToClipboard(IException& ex)
+		ROCOCO_API void CopyExceptionToClipboard(IException& ex)
 		{
 			std::vector<char> buffer;
 			buffer.resize(128_kilobytes);
@@ -1903,7 +1903,7 @@ namespace Rococo
 			CopyStringToClipboard(buffer.data());
 		}
 
-		void SaveAsciiTextFile(TargetDirectory target, const wchar_t* filename, const fstring& text)
+		ROCOCO_API void SaveAsciiTextFile(TargetDirectory target, const wchar_t* filename, const fstring& text)
 		{
 			if (text.length > 1024_megabytes)
 			{
@@ -1962,7 +1962,7 @@ namespace Rococo
 
 	namespace IO
 	{
-		void GetUserPath(wchar_t* fullpath, size_t capacity, cstr shortname)
+		ROCOCO_API void GetUserPath(wchar_t* fullpath, size_t capacity, cstr shortname)
 		{
 			wchar_t* userDocPath;
 			SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &userDocPath);
@@ -1976,7 +1976,7 @@ namespace Rococo
 			CoTaskMemFree(userDocPath);
 		}
 
-		void DeleteUserFile(cstr filename)
+		ROCOCO_API void DeleteUserFile(cstr filename)
 		{
 			wchar_t* userDocPath;
 			SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &userDocPath);
@@ -1992,7 +1992,7 @@ namespace Rococo
 			if (success) {}
 		}
 
-		void SaveUserFile(cstr filename, cstr s)
+		ROCOCO_API void SaveUserFile(cstr filename, cstr s)
 		{
 			wchar_t* userDocPath;
 			SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &userDocPath);
@@ -2012,7 +2012,7 @@ namespace Rococo
 			}
 		}
 
-		bool IsDirectory(const wchar_t* filename)
+		ROCOCO_API bool IsDirectory(const wchar_t* filename)
 		{
 			DWORD flags = GetFileAttributesW(filename);
 			return (flags != INVALID_FILE_ATTRIBUTES && flags & FILE_ATTRIBUTE_DIRECTORY) != 0;
@@ -2032,7 +2032,7 @@ namespace Rococo
 			operator T* () { return instance; }
 		};
 
-		bool ChooseDirectory(char* name, size_t capacity)
+		ROCOCO_API bool ChooseDirectory(char* name, size_t capacity)
 		{
 			class DialogEventHandler : public IFileDialogEvents, public IFileDialogControlEvents
 			{
@@ -2205,7 +2205,7 @@ namespace Rococo
 			return true;
 		}
 
-		void EndDirectoryWithSlash(char* pathname, size_t capacity)
+		ROCOCO_API void EndDirectoryWithSlash(char* pathname, size_t capacity)
 		{
 			cstr finalChar = GetFinalNull(pathname);
 
@@ -2228,7 +2228,7 @@ namespace Rococo
 			}
 		}
 
-		void EndDirectoryWithSlash(wchar_t* pathname, size_t capacity)
+		ROCOCO_API void EndDirectoryWithSlash(wchar_t* pathname, size_t capacity)
 		{
 			const wchar_t* finalChar = GetFinalNull(pathname);
 
@@ -2251,12 +2251,12 @@ namespace Rococo
 			}
 		}
 
-		bool IsDirectory(const WIN32_FIND_DATAW& fd)
+		ROCOCO_API bool IsDirectory(const WIN32_FIND_DATAW& fd)
 		{
 			return (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
 		}
 
-		void* RouteSearchResult(const WIN32_FIND_DATAW& findResult, const wchar_t* root, const wchar_t* containerRelRoot, void* containerContext, IEventCallback<FileItemData>& onFile)
+		ROCOCO_API void* RouteSearchResult(const WIN32_FIND_DATAW& findResult, const wchar_t* root, const wchar_t* containerRelRoot, void* containerContext, IEventCallback<FileItemData>& onFile)
 		{
 			WideFilePath fileName;
 			Format(fileName, L"%s%s%s", root, containerRelRoot, findResult.cFileName);
@@ -2272,7 +2272,7 @@ namespace Rococo
 			return item.outContext;
 		}
 
-		void SearchSubdirectoryAndRecurse(const wchar_t* root, const wchar_t* containerDirectory, const wchar_t* subdirectory, void* subContext, IEventCallback<FileItemData>& onFile);
+		ROCOCO_API void SearchSubdirectoryAndRecurse(const wchar_t* root, const wchar_t* containerDirectory, const wchar_t* subdirectory, void* subContext, IEventCallback<FileItemData>& onFile);
 
 		class SearchObject
 		{
@@ -2358,7 +2358,7 @@ namespace Rococo
 			}
 		};
 
-		void SearchSubdirectoryAndRecurse(const wchar_t* root, const wchar_t* containerDirectory, const wchar_t* subdirectory, void* subContext, IEventCallback<FileItemData>& onFile)
+		ROCOCO_API void SearchSubdirectoryAndRecurse(const wchar_t* root, const wchar_t* containerDirectory, const wchar_t* subdirectory, void* subContext, IEventCallback<FileItemData>& onFile)
 		{
 			struct ANON : IEventCallback<IO::FileItemData>
 			{
@@ -2389,7 +2389,7 @@ namespace Rococo
 			searchSub.RouteSearchResults(root, cb, subContext, true);
 		}
 
-		void ForEachFileInDirectory(const wchar_t* filter, IEventCallback<FileItemData>& onFile, bool recurse, void* containerContext)
+		ROCOCO_API void ForEachFileInDirectory(const wchar_t* filter, IEventCallback<FileItemData>& onFile, bool recurse, void* containerContext)
 		{
 			SearchObject searchObj(filter);
 			searchObj.RouteSearchResults(nullptr, onFile, containerContext, recurse);
@@ -2398,7 +2398,7 @@ namespace Rococo
 
 	namespace Windows
 	{
-		void AddColumns(int col, int width, const char* text, HWND hReportView)
+		ROCOCO_API void AddColumns(int col, int width, const char* text, HWND hReportView)
 		{
 			LV_COLUMNA c = { 0 };
 			c.cx = width;
@@ -2413,7 +2413,7 @@ namespace Rococo
 			SendMessage(hReportView, LVM_INSERTCOLUMNA, col, (LPARAM)&c);
 		}
 
-		void SetStackViewColumns(HWND hStackView, const int columnWidths[5])
+		ROCOCO_API void SetStackViewColumns(HWND hStackView, const int columnWidths[5])
 		{
 			AddColumns(0, columnWidths[0], "#", hStackView);
 			AddColumns(1, columnWidths[1], "Function", hStackView);
@@ -2422,7 +2422,7 @@ namespace Rococo
 			AddColumns(4, columnWidths[4], "Address", hStackView);
 		}
 
-		void PopulateStackView(HWND hStackView, Rococo::IException& ex)
+		ROCOCO_API void PopulateStackView(HWND hStackView, Rococo::IException& ex)
 		{
 			HANDLE hProcess = GetCurrentProcess();
 
@@ -2500,7 +2500,7 @@ namespace Rococo
 
 	namespace Debugging
 	{
-		void FormatStackFrames(IStackFrameFormatter& formatter)
+		ROCOCO_API void FormatStackFrames(IStackFrameFormatter& formatter)
 		{
 			CONTEXT context;
 			context.ContextFlags = CONTEXT_FULL;
@@ -2630,7 +2630,7 @@ using namespace Rococo;
 
 namespace Rococo::OS
 {
-	void LoadAsciiTextFile(IEventCallback<cstr>& onLoad, const wchar_t* filename)
+	ROCOCO_API void LoadAsciiTextFile(IEventCallback<cstr>& onLoad, const wchar_t* filename)
 	{
 		std::vector<char> asciiData;
 
@@ -2670,7 +2670,7 @@ namespace Rococo::OS
 		onLoad.OnEvent(asciiData.data());
 	}
 
-	size_t LoadAsciiTextFile(char* data, size_t capacity, const wchar_t* filename)
+	ROCOCO_API size_t LoadAsciiTextFile(char* data, size_t capacity, const wchar_t* filename)
 	{
 		if (capacity >= 2048_megabytes)
 		{
@@ -2776,7 +2776,7 @@ namespace Rococo::OS
 		t(hKeyRoot);
 	}
 
-	void GetConfigVariable(char* textBuffer, size_t lenBytes, cstr defaultValue, ConfigSection section, ConfigRootName root, cstr organization)
+	ROCOCO_API void GetConfigVariable(char* textBuffer, size_t lenBytes, cstr defaultValue, ConfigSection section, ConfigRootName root, cstr organization)
 	{
 		SecureFormat(textBuffer, lenBytes, "%s", defaultValue);
 
@@ -2790,7 +2790,7 @@ namespace Rococo::OS
 		RunInConfig(root, organization, readValue);
 	}
 
-	void SetConfigVariable(cstr value, ConfigSection section, ConfigRootName root, cstr organization)
+	ROCOCO_API void SetConfigVariable(cstr value, ConfigSection section, ConfigRootName root, cstr organization)
 	{
 		auto writeValue = [value, section](HKEY hConfigRoot)
 		{

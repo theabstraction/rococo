@@ -513,3 +513,6 @@ extern "C"
 		return new CoRountinesNativeLib(ss);
 	}
 }
+
+#include <sexy.lib.util.h>
+#include <sexy.lib.sexy-util.h>

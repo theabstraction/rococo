@@ -49,7 +49,7 @@
 
 namespace Rococo
 {
-	void LogError(ILog& log, cstr format, ...)
+	SEXYUTIL_API void LogError(ILog& log, cstr format, ...)
 	{
 		va_list args;
 		va_start(args, format);
@@ -64,7 +64,7 @@ namespace Rococo
 {
 	namespace Script
 	{
-		void ThrowBadNativeArg(int index, cstr source, cstr message)
+		ROCOCO_API_EXPORT void ThrowBadNativeArg(int index, cstr source, cstr message)
 		{
 			WriteToStandardOutput(("Error %d in %s: %s\r\n"), index, source, message);
 			Throw(0, "Bad native argument: %s - %s", source, message);
@@ -329,22 +329,22 @@ namespace Rococo::Memory
 		globalSexyAllocator = allocator == nullptr ? &defaultAllocator : allocator;
 	}
 
-	void* AllocateSexyMemory(size_t nBytes)
+	SEXYUTIL_API void* AllocateSexyMemory(size_t nBytes)
 	{
 		return globalSexyAllocator->Allocate(nBytes);
 	}
 
-	void FreeSexyMemory(void* buffer, size_t nBytes)
+	SEXYUTIL_API void FreeSexyMemory(void* buffer, size_t nBytes)
 	{
 		globalSexyAllocator->FreeData(buffer);
 	}
 
-	IAllocator& GetSexyAllocator()
+	SEXYUTIL_API IAllocator& GetSexyAllocator()
 	{
 		return *globalSexyAllocator;
 	}
 
-	void ValidateNothingAllocated()
+	SEXYUTIL_API void ValidateNothingAllocated()
 	{
 #ifdef RECORD_ALLOCATION_HISTORY
 		if (allocatorInfo.outstandingAllocations != 0)
@@ -354,7 +354,7 @@ namespace Rococo::Memory
 #endif
 	}
 
-	size_t AllocationCount()
+	SEXYUTIL_API size_t AllocationCount()
 	{
 #ifdef RECORD_ALLOCATION_HISTORY
 		return allocatorInfo.outstandingAllocations;
@@ -363,7 +363,7 @@ namespace Rococo::Memory
 #endif
 	}
 
-	void MarkMemory(cstr message, cstr function, int line)
+	SEXYUTIL_API void MarkMemory(cstr message, cstr function, int line)
 	{
 #ifdef RECORD_ALLOCATION_HISTORY
 		if (AllocationCount() == 0) return;
@@ -393,7 +393,7 @@ namespace Rococo::Memory
 #endif
 	}
 
-	void RecordAllocations(size_t nBytes)
+	SEXYUTIL_API void RecordAllocations(size_t nBytes)
 	{
 #ifdef RECORD_ALLOCATION_HISTORY
 		allocatorInfo.traceSize = nBytes;

@@ -6,27 +6,22 @@
 #include <rococo.renderer.h>
 #include <rococo.os.win32.h>
 #include <rococo.mplat.h>
-
 #include <rococo.libs.inl>
-
-# ifdef _DEBUG
-#  pragma comment(lib, "rococo.mplat.debug.lib")
-#else
-#  pragma comment(lib, "rococo.mplat.lib")
-#endif
-
 #include <sexy.lib.s-parser.h>
 #include <sexy.lib.util.h>
 #include <sexy.lib.script.h>
+#include <sexy.lib.sexy-util.h>
 
-#ifdef _DEBUG
-# pragma comment(lib, "rococo.sexy.ide.debug.lib")
-# pragma comment(lib, "rococo.file.browser.debug.lib")
-# pragma comment(lib, "rococo.misc.utils.debug.lib")
-#else
-# pragma comment(lib, "rococo.sexy.ide.lib")
-# pragma comment(lib, "rococo.file.browser.lib")
-# pragma comment(lib, "rococo.misc.utils.lib")
+#ifdef _WIN32
+# ifdef _DEBUG
+#  pragma comment(lib, "rococo.mplat.debug.lib")
+#  pragma comment(lib, "rococo.file.browser.debug.lib")
+#  pragma comment(lib, "dx11.renderer.debug.lib")
+# else
+#  pragma comment(lib, "rococo.file.browser.lib")
+#  pragma comment(lib, "rococo.mplat.lib")
+#  pragma comment(lib, "dx11.renderer.lib")
+# endif
 #endif
 
 #pragma comment(lib, "xinput.lib")

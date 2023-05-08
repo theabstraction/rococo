@@ -1455,7 +1455,7 @@ namespace
 		  return OnCommand(hWnd, wParam, lParam);
 	  }
 
-	  LRESULT OnCommand(HWND hWnd, WPARAM wParam, LPARAM lParam) override
+	  LRESULT OnCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 	  {
 		  auto wNotifyCode = HIWORD(wParam); // notification code
 		  auto wID = LOWORD(wParam); // item, control, or accelerator identifier

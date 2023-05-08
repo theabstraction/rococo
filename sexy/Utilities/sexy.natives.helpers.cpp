@@ -1,10 +1,11 @@
-#include <sexy.types.h>
+#define IS_SCRIPT_DLL
+
+#include <sexy.script.h>
 #include <sexy.stdstrings.h>
 #include <sexy.strings.h>
 #include <sexy.compiler.public.h>
 #include <sexy.debug.types.h>
 #include <sexy.vm.cpu.h>
-#include <sexy.script.h>
 #include <sexy.compiler.h>
 
 namespace Rococo
@@ -16,7 +17,7 @@ namespace Rococo
       using namespace Rococo::Script;
       using namespace Rococo::Compiler;
      
-	  StringPopulator::StringPopulator(NativeCallEnvironment& _nce, InterfacePointer pInterface)
+      SCRIPTEXPORT_API StringPopulator::StringPopulator(NativeCallEnvironment& _nce, InterfacePointer pInterface)
 	  {
 		  auto* stub = InterfaceToInstance(pInterface);
 		  auto* fsb = (FastStringBuilder*)stub;

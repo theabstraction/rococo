@@ -38,6 +38,6 @@ namespace Rococo::Sexy
 		TypeInference InferParentMember(const TypeInference& classInference, cr_substring token);
 	};
 
-	Substring GetLocalTypeFromCurrentDocument(bool& isThis, cr_substring candidate, cr_substring document);
-	void EnumerateLocalFields(Rococo::SexyStudio::ISexyFieldEnumerator& fieldEnumerator, cr_substring searchTerm, cr_substring type, cr_substring file);
+	ROCOCO_MISC_UTILS_API Substring GetLocalTypeFromCurrentDocument(bool& isThis, cr_substring candidate, cr_substring document);
+	ROCOCO_MISC_UTILS_API void EnumerateLocalFields(Rococo::SexyStudio::ISexyFieldEnumerator& fieldEnumerator, cr_substring searchTerm, cr_substring type, cr_substring file);
 }

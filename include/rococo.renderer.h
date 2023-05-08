@@ -5,6 +5,10 @@
 #include <rococo.maths.h>
 #include <rococo.io.h>
 
+#ifndef RENDERER_API
+# define RENDERER_API ROCOCO_API_IMPORT
+#endif
+
 namespace Rococo
 {
 	struct IMathsVisitor;
@@ -445,8 +449,8 @@ namespace Rococo::Graphics
 		Alignment_Clipped = 64, // 0x40
 	};
 
-	Vec2i GetTopLeftPos(const GuiRect& rect, Vec2i span, int32 alignmentFlags);
-	Vec2 GetTopLeftPos(Vec2 pos, Vec2 span, int32 alignmentFlags);
+	RENDERER_API Vec2i GetTopLeftPos(const GuiRect& rect, Vec2i span, int32 alignmentFlags);
+	RENDERER_API Vec2 GetTopLeftPos(Vec2 pos, Vec2 span, int32 alignmentFlags);
 
 	enum TextureFormat
 	{
@@ -507,24 +511,23 @@ namespace Rococo::Graphics
 		int32 index;
 	};
 
-	void DrawTriangleFacingLeft(IGuiRenderContext& grc, const GuiRect& container, RGBAb colour);
-	void DrawTriangleFacingRight(IGuiRenderContext& grc, const GuiRect& container, RGBAb colour);
-	void DrawTriangleFacingUp(IGuiRenderContext& grc, const GuiRect& container, RGBAb colour);
-	void DrawTriangleFacingDown(IGuiRenderContext& grc, const GuiRect& container, RGBAb colour);
+	RENDERER_API void DrawTriangleFacingLeft(IGuiRenderContext& grc, const GuiRect& container, RGBAb colour);
+	RENDERER_API void DrawTriangleFacingRight(IGuiRenderContext& grc, const GuiRect& container, RGBAb colour);
+	RENDERER_API void DrawTriangleFacingUp(IGuiRenderContext& grc, const GuiRect& container, RGBAb colour);
+	RENDERER_API void DrawTriangleFacingDown(IGuiRenderContext& grc, const GuiRect& container, RGBAb colour);
 
-	Vec2i GetScreenCentre(const GuiMetrics& metrics);
-	Vec2i RenderHorizontalCentredText(IGuiRenderContext& gr, cstr txt, RGBAb colour, int fontSize, const Vec2i& topMiddle);
-	Vec2i RenderVerticalCentredTextWithCallback(IGuiRenderContext& gr, int32 cursorPos, IEventCallback<GlyphCallbackArgs>& cb, cstr txt, RGBAb colour, int fontSize, const Vec2i& topMiddle, const GuiRect& clipRect);
-	Vec2i RenderVerticalCentredText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const Vec2i& middleLeft, const GuiRect* clipRect = nullptr);
-	Vec2i RenderTopLeftAlignedText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const Vec2i& topLeft);
-	Vec2i RenderTopRightAlignedText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const Vec2i& topRight);
-	Vec2i RenderRightAlignedText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const GuiRect& rect);
-	void EvalTextSpan(IGuiRenderContext& g, const fstring& text, int32 fontIndex, int fontHeight, Vec2& pixelSpan);
-	void DrawRectangle(IGuiRenderContext& grc, const GuiRect& grect, RGBAb diag, RGBAb backdiag);
-	void DrawBorderAround(IGuiRenderContext& grc, const GuiRect& rect, const Vec2i& width, RGBAb diag, RGBAb backdiag);
-	void DrawLine(IGuiRenderContext& grc, int pixelthickness, Vec2i start, Vec2i end, RGBAb colour);
-
-	void RenderCentred(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour);
+	RENDERER_API Vec2i GetScreenCentre(const GuiMetrics& metrics);
+	RENDERER_API Vec2i RenderHorizontalCentredText(IGuiRenderContext& gr, cstr txt, RGBAb colour, int fontSize, const Vec2i& topMiddle);
+	RENDERER_API Vec2i RenderVerticalCentredTextWithCallback(IGuiRenderContext& gr, int32 cursorPos, IEventCallback<GlyphCallbackArgs>& cb, cstr txt, RGBAb colour, int fontSize, const Vec2i& topMiddle, const GuiRect& clipRect);
+	RENDERER_API Vec2i RenderVerticalCentredText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const Vec2i& middleLeft, const GuiRect* clipRect = nullptr);
+	RENDERER_API Vec2i RenderTopLeftAlignedText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const Vec2i& topLeft);
+	RENDERER_API Vec2i RenderTopRightAlignedText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const Vec2i& topRight);
+	RENDERER_API Vec2i RenderRightAlignedText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const GuiRect& rect);
+	RENDERER_API void EvalTextSpan(IGuiRenderContext& g, const fstring& text, int32 fontIndex, int fontHeight, Vec2& pixelSpan);
+	RENDERER_API void DrawRectangle(IGuiRenderContext& grc, const GuiRect& grect, RGBAb diag, RGBAb backdiag);
+	RENDERER_API void DrawBorderAround(IGuiRenderContext& grc, const GuiRect& rect, const Vec2i& width, RGBAb diag, RGBAb backdiag);
+	RENDERER_API void DrawLine(IGuiRenderContext& grc, int pixelthickness, Vec2i start, Vec2i end, RGBAb colour);
+	RENDERER_API void RenderCentred(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour);
 
 	struct GlyphContext
 	{
@@ -532,29 +535,30 @@ namespace Rococo::Graphics
 		uint32 unicode;
 	};
 
-	GuiRect RenderHQText(const GuiRect& clipRect, int32 alignment, IGuiRenderContext& grc, ID_FONT fontId, cstr text, RGBAb colour, IEventCallback<GlyphContext>* glyphCallback = nullptr, int dxShift = 0);
-	Vec2 RenderHQText_LeftAligned_VCentre(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour);
-	Vec2 RenderHQText_LeftAligned_VCentre_WithCaret(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour, int caretPos);
-	Vec2 RenderHQParagraph(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour);
+	RENDERER_API GuiRect RenderHQText(const GuiRect& clipRect, int32 alignment, IGuiRenderContext& grc, ID_FONT fontId, cstr text, RGBAb colour, IEventCallback<GlyphContext>* glyphCallback = nullptr, int dxShift = 0);
+	RENDERER_API Vec2 RenderHQText_LeftAligned_VCentre(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour);
+	RENDERER_API Vec2 RenderHQText_LeftAligned_VCentre_WithCaret(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour, int caretPos);
+	RENDERER_API Vec2 RenderHQParagraph(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour);
+	
 	struct alignas(16) StackSpaceGraphics
 	{
 		char opaque[256];
 	};
 
-	Fonts::IDrawTextJob& CreateHorizontalCentredText(StackSpaceGraphics& ss, int fontIndex, cstr text, RGBAb _colour);
-	Fonts::IDrawTextJob& CreateLeftAlignedText(StackSpaceGraphics& ss, const GuiRect& targetRect, int retzone, int hypzone, int fontHeight, int fontIndex, cstr text, RGBAb colour);
-	float GetAspectRatio(const IRenderer& renderer);
-	Vec2 PixelSpaceToScreenSpace(const Vec2i& v, IRenderer& renderer);
+	RENDERER_API Fonts::IDrawTextJob& CreateHorizontalCentredText(StackSpaceGraphics& ss, int fontIndex, cstr text, RGBAb _colour);
+	RENDERER_API Fonts::IDrawTextJob& CreateLeftAlignedText(StackSpaceGraphics& ss, const GuiRect& targetRect, int retzone, int hypzone, int fontHeight, int fontIndex, cstr text, RGBAb colour);
+	RENDERER_API float GetAspectRatio(const IRenderer& renderer);
+	RENDERER_API Vec2 PixelSpaceToScreenSpace(const Vec2i& v, IRenderer& renderer);
 
-	void DrawClippedText(IGuiRenderContext& g, const Rococo::GuiRectf& rect, int32 alignmentFlags, const fstring& text, int32 fontIndex, RGBAb colour, const Rococo::GuiRectf& clipRect);
-	void DrawTextWithCaret(IGuiRenderContext& g, const Rococo::GuiRectf& rect, int32 alignmentFlags, const fstring& text, int32 fontIndex, RGBAb colour, const Rococo::GuiRectf& clipRect, int32 caretPos);
-	void DrawLeftAligned(IGuiRenderContext& g, const Rococo::GuiRectf& rect, const fstring& text, int32 fontIndex, int32 fontHeight, RGBAb colour, float32 softRightEdge, float32 hardRightEdge);
-	void DrawText(IGuiRenderContext& g, const GuiRectf& rect, int32 alignmentFlags, const fstring& text, int32 fontIndex, RGBAb colour);
-	void DrawTexture(IGuiRenderContext& grc, ID_TEXTURE id, const GuiRect& absRect);
-	void RenderBitmap_ShrinkAndPreserveAspectRatio(IGuiRenderContext& rc, MaterialId id, const GuiRect& absRect);
-	void StretchBitmap(IGuiRenderContext& rc, const Textures::BitmapLocation& location, const GuiRect& absRect);
-	void DrawSprite(const Vec2i& topLeft, const Textures::BitmapLocation& location, IGuiRenderContext& gc);
-	void DrawSpriteCentred(const GuiRect& rect, const Textures::BitmapLocation& location, IGuiRenderContext& gc);
+	RENDERER_API void DrawClippedText(IGuiRenderContext& g, const Rococo::GuiRectf& rect, int32 alignmentFlags, const fstring& text, int32 fontIndex, RGBAb colour, const Rococo::GuiRectf& clipRect);
+	RENDERER_API void DrawTextWithCaret(IGuiRenderContext& g, const Rococo::GuiRectf& rect, int32 alignmentFlags, const fstring& text, int32 fontIndex, RGBAb colour, const Rococo::GuiRectf& clipRect, int32 caretPos);
+	RENDERER_API void DrawLeftAligned(IGuiRenderContext& g, const Rococo::GuiRectf& rect, const fstring& text, int32 fontIndex, int32 fontHeight, RGBAb colour, float32 softRightEdge, float32 hardRightEdge);
+	RENDERER_API void DrawText(IGuiRenderContext& g, const GuiRectf& rect, int32 alignmentFlags, const fstring& text, int32 fontIndex, RGBAb colour);
+	RENDERER_API void DrawTexture(IGuiRenderContext& grc, ID_TEXTURE id, const GuiRect& absRect);
+	RENDERER_API void RenderBitmap_ShrinkAndPreserveAspectRatio(IGuiRenderContext& rc, MaterialId id, const GuiRect& absRect);
+	RENDERER_API void StretchBitmap(IGuiRenderContext& rc, const Textures::BitmapLocation& location, const GuiRect& absRect);
+	RENDERER_API void DrawSprite(const Vec2i& topLeft, const Textures::BitmapLocation& location, IGuiRenderContext& gc);
+	RENDERER_API void DrawSpriteCentred(const GuiRect& rect, const Textures::BitmapLocation& location, IGuiRenderContext& gc);
 }// Rococo::Graphics
 
 namespace Rococo

@@ -237,10 +237,3 @@ namespace Rococo {
 	}
 } // Rococo::OS
 
-#ifdef _DEBUG
-# pragma comment(lib, "sexy.compiler.Debug.lib")
-# pragma comment(lib, "sexy.vm.Debug.lib")
-#else
-# pragma comment(lib, "sexy.compiler.Release.lib")
-# pragma comment(lib, "sexy.vm.Release.lib")
-#endif

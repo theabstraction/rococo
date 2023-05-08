@@ -84,7 +84,7 @@ using namespace Rococo::Strings;
 
 namespace Rococo
 {
-	sexstring CreateSexString(cstr src, int32 length)
+	SEXYUTIL_API sexstring CreateSexString(cstr src, int32 length)
 	{
 		if (length < 0) length = StringLength(src);
 		int32 nBytes = sizeof(int32) + sizeof(char) * (length+1);
@@ -97,7 +97,7 @@ namespace Rococo
 		return s;
 	}
 
-	void FreeSexString(sexstring s)
+	SEXYUTIL_API void FreeSexString(sexstring s)
 	{
 		char* buf = (char*) s;
 		delete[] buf;

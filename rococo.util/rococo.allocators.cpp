@@ -1,3 +1,5 @@
+#define ROCOCO_API __declspec(dllexport)
+
 #include <rococo.types.h>
 #include <rococo.allocators.h>
 
@@ -199,17 +201,17 @@ namespace
 
 namespace Rococo::Memory
 {
-    IFreeListAllocatorSupervisor* CreateFreeListAllocator(size_t elementSize)
+    ROCOCO_API IFreeListAllocatorSupervisor* CreateFreeListAllocator(size_t elementSize)
     {
         return new FreeListAllocator(elementSize);
     }
 
-    IAllocator& CheckedAllocator()
+    ROCOCO_API IAllocator& CheckedAllocator()
     {
         return s_CheckedAllocator;
     }
 
-    IAllocatorSupervisor* CreateBlockAllocator(size_t kilobytes, size_t maxkilobytes)
+    ROCOCO_API IAllocatorSupervisor* CreateBlockAllocator(size_t kilobytes, size_t maxkilobytes)
     {
         return new BlockAllocator(kilobytes, maxkilobytes);
     }

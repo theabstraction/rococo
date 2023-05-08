@@ -1,6 +1,26 @@
 #ifndef Rococo_TYPES_H
 #define Rococo_TYPES_H
 
+#ifndef ROCOCO_API 
+# define ROCOCO_API __declspec(dllimport)
+#endif
+
+#ifndef ROCOCO_API_EXPORT 
+# define ROCOCO_API_EXPORT __declspec(dllexport)
+#endif
+
+#ifndef ROCOCO_API_IMPORT 
+# define ROCOCO_API_IMPORT __declspec(dllimport)
+#endif
+
+#ifndef ROCOCO_MISC_UTILS_API 
+# define ROCOCO_MISC_UTILS_API ROCOCO_API_IMPORT
+#endif
+
+#ifndef ROCOCO_UTILS_EX_API
+#define ROCOCO_UTILS_EX_API ROCOCO_API_IMPORT
+#endif
+
 #include <rococo.compiler.options.h>
 
 #ifndef _WIN32
@@ -150,8 +170,8 @@ namespace Rococo
 
 	namespace OS
 	{
-		bool IsDebugging();
-		void TripDebugger();
+		ROCOCO_API bool IsDebugging();
+		ROCOCO_API void TripDebugger();
 	}
 
 	namespace Script
@@ -218,7 +238,7 @@ namespace Rococo
 			static Substring Null() { return { nullptr,nullptr }; }
 		};
 
-		Substring ToSubstring(cstr text);
+		ROCOCO_API Substring ToSubstring(cstr text);
 
 		inline Substring Substring_Null() { return { nullptr,nullptr }; }
 
@@ -231,14 +251,14 @@ namespace Rococo
 		};
 
 		// Copies the item into the buffer, truncating data if required, and terminating with a nul character
-		void CopyWithTruncate(cr_substring item, char* buffer, size_t capacity);
+		ROCOCO_API void CopyWithTruncate(cr_substring item, char* buffer, size_t capacity);
 
 		// Duplicates the item as a null terminated string on the stack, then invokes the populator with a reference to the string pointer
-		void Populate(Strings::cr_substring item, IStringPopulator& populator);
+		ROCOCO_API void Populate(Strings::cr_substring item, IStringPopulator& populator);
 
-		Substring RightOfFirstChar(char c, cr_substring token);
-		cstr ReverseFind(char c, cr_substring token);
-		cstr FindChar(cstr token, char c);
+		ROCOCO_API Substring RightOfFirstChar(char c, cr_substring token);
+		ROCOCO_API cstr ReverseFind(char c, cr_substring token);
+		ROCOCO_API cstr FindChar(cstr token, char c);
 	}
 
 	namespace Sexy
@@ -246,15 +266,15 @@ namespace Rococo
 		using namespace Rococo::Strings;
 		// Type inference API
 		// TODO - move functions to their own header
-		void ForEachFieldOfClassDef(cr_substring className, cr_substring classDef, IFieldEnumerator& cb);
-		Substring GetClassDefinition(cr_substring className, cr_substring doc);
-		bool IsSexyKeyword(cr_substring candidate);
-		bool IsNotTokenChar(char c);
-		cstr GetFirstNonTokenPointer(cr_substring s);
-		cstr GetFirstNonTypeCharPointer(cr_substring s);
-		Substring GetFirstTokenFromLeft(cr_substring s);
+		ROCOCO_MISC_UTILS_API void ForEachFieldOfClassDef(cr_substring className, cr_substring classDef, IFieldEnumerator& cb);
+		ROCOCO_MISC_UTILS_API Substring GetClassDefinition(cr_substring className, cr_substring doc);
+		ROCOCO_API bool IsSexyKeyword(cr_substring candidate);
+		ROCOCO_API bool IsNotTokenChar(char c);
+		ROCOCO_API cstr GetFirstNonTokenPointer(cr_substring s);
+		ROCOCO_API cstr GetFirstNonTypeCharPointer(cr_substring s);
+		ROCOCO_API Substring GetFirstTokenFromLeft(cr_substring s);
 		// Given a document and a position to the right of the start of the doc, return first pointer of none type char found, or null if everything was of type until doc.start
-		cstr GetFirstNonTokenPointerFromRight(cr_substring doc, cstr startPosition);
+		ROCOCO_API cstr GetFirstNonTokenPointerFromRight(cr_substring doc, cstr startPosition);
 	}
 
 	struct ILock
@@ -292,11 +312,11 @@ namespace Rococo
 	{
 		int64 implementation[8];
 	public:
-		ThreadLock();
-		~ThreadLock();
+		ROCOCO_API ThreadLock();
+		ROCOCO_API ~ThreadLock();
 
-		void Lock();
-		void Unlock();
+		ROCOCO_API void Lock();
+		ROCOCO_API void Unlock();
 	};
 
 	struct Vec2i
@@ -338,7 +358,7 @@ namespace Rococo
 	void Throw(int32 errorCode, _Printf_format_string_ cstr format, ...);
 #else
 	[[ noreturn ]]
-	void Throw(int32 errorCode, cstr format, ...);
+	ROCOCO_API void Throw(int32 errorCode, cstr format, ...);
 #endif
 
 	template<class T> struct IEventCallback

@@ -60,5 +60,5 @@ namespace Rococo
 	// friendlyName - unique id for distinguishing the zip from others. 
 	//              - style rule: use lower case [a-z] letters only
 	// IPackageSupervisor lifetime should encompass the entities that refer to them
-	IPackageSupervisor* OpenZipPackage(const wchar_t* sysPath, const char* friendlyName);
+	ROCOCO_API IPackageSupervisor* OpenZipPackage(const wchar_t* sysPath, const char* friendlyName);
 }

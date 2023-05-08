@@ -19,6 +19,8 @@
 # pragma comment(lib, "rococo.misc.utils.lib")
 #endif
 
+#pragma comment(lib, "ComCtl32.lib")
+
 #include <rococo.os.h>
 #include <shobjidl.h>
 #include <sexy.types.h>

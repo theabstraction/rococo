@@ -14,14 +14,14 @@ namespace Rococo
 		return a.Length == b.Length && memcmp(a.Text, b.Text, a.Length) == 0;
 	}
 
-	int32 Compare(sexstring a, const char* b) { return Compare(a->Buffer, b); }
+	SEXYUTIL_API int32 Compare(sexstring a, const char* b) { return Compare(a->Buffer, b); }
 
-	bool AreEqual(sexstring a, sexstring b)
+	SEXYUTIL_API bool AreEqual(sexstring a, sexstring b)
 	{
 		return a->Length == b->Length && Compare(a->Buffer, b->Buffer) == 0;
 	}
 
-	bool operator < (const sexstring_key& a, const sexstring_key& b)
+	SEXYUTIL_API bool operator < (const sexstring_key& a, const sexstring_key& b)
 	{
 		int64 lengthDelta = a.Length - b.Length;
 		if (lengthDelta < 0)

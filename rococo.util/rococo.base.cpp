@@ -1,3 +1,4 @@
+#define ROCOCO_API __declspec(dllexport)
 #include <rococo.debugging.h>
 
 #define ROCOCO_USE_SAFE_V_FORMAT
@@ -25,14 +26,14 @@ namespace Rococo
 
 namespace Rococo
 {
-   bool IsPointerValid(const void* ptr)
+	ROCOCO_API bool IsPointerValid(const void* ptr)
    {
       return ptr != nullptr;
    }
 
    namespace IO
    {
-	   void ToU8(const U32FilePath& src, U8FilePath& dest)
+	   ROCOCO_API void ToU8(const U32FilePath& src, U8FilePath& dest)
 	   {
 		   char* q = dest.buf;
 		   const char32_t* p = src;
@@ -56,7 +57,7 @@ namespace Rococo
 		   *q = 0;
 	   }
 
-	   void ToWide(const U32FilePath& src, WideFilePath& dest)
+	   ROCOCO_API void ToWide(const U32FilePath& src, WideFilePath& dest)
 	   {
 		   wchar_t* q = dest.buf;
 		   const char32_t* p = src;
@@ -80,7 +81,7 @@ namespace Rococo
 		   *q = 0;
 	   }
 
-	   void PathFromAscii(cstr ascii_string, char separator, U32FilePath& path)
+	   ROCOCO_API void PathFromAscii(cstr ascii_string, char separator, U32FilePath& path)
 	   {
 		   char32_t* q = path.buf;
 		   const char* p = ascii_string;
@@ -97,7 +98,7 @@ namespace Rococo
 		   *q = 0;
 	   }
 
-	   void PathFromWide(const wchar_t* wide_string, wchar_t separator, U32FilePath& path)
+	   ROCOCO_API void PathFromWide(const wchar_t* wide_string, wchar_t separator, U32FilePath& path)
 	   {
 		   char32_t* q = path.buf;
 		   const wchar_t* p = wide_string;
@@ -117,7 +118,7 @@ namespace Rococo
 
    namespace OS
    {
-      void SetBreakPoints(int flags)
+	   ROCOCO_API void SetBreakPoints(int flags)
       {
          static_assert(sizeof(int64) == 8, "Bad int64");
          static_assert(sizeof(int32) == 4, "Bad int32");
@@ -127,7 +128,7 @@ namespace Rococo
       }
 
 #ifdef BREAK_ON_THROW
-      void BreakOnThrow(BreakFlag flag)
+	   ROCOCO_API void BreakOnThrow(BreakFlag flag)
       {
          if ((breakFlags & flag) != 0 && Rococo::OS::IsDebugging())
          {
@@ -175,7 +176,7 @@ namespace Rococo
 		}
 	};
 
-	void Throw(int32 errorCode, cstr format, ...)
+	ROCOCO_API void Throw(int32 errorCode, cstr format, ...)
 	{
 		va_list args;
 		va_start(args, format);
@@ -203,7 +204,7 @@ namespace Rococo
 		throw ex;
 	}
 
-	void ThrowIllFormedSExpression(int32 errorCode, cstr format, ...)
+	ROCOCO_API void ThrowIllFormedSExpression(int32 errorCode, cstr format, ...)
 	{
 		va_list args;
 		va_start(args, format);
@@ -233,22 +234,22 @@ namespace Rococo
 
 	namespace Maths::IEEE475
 	{
-		float BinaryToFloat(uint32 binaryRepresentation)
+		ROCOCO_API float BinaryToFloat(uint32 binaryRepresentation)
 		{
 			return *(float*)(&binaryRepresentation);
 		}
 
-		double BinaryToDouble(uint64 binaryRepresentation)
+		ROCOCO_API double BinaryToDouble(uint64 binaryRepresentation)
 		{
 			return *(double*)(&binaryRepresentation);
 		}
 
-		uint32 FloatToBinary(float f)
+		ROCOCO_API uint32 FloatToBinary(float f)
 		{
 			return *(uint32*)(&f);
 		}
 
-		uint64 DoubleToBinary(double d)
+		ROCOCO_API uint64 DoubleToBinary(double d)
 		{
 			return *(uint64*)(&d);
 		}

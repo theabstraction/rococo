@@ -36,6 +36,10 @@
 #ifndef SEXY_DEBUG_H
 # define  SEXY_DEBUG_H
 
+#ifndef SEXYUTIL_API
+# define SEXYUTIL_API ROCOCO_API_IMPORT
+#endif
+
 // This header does not reference other sexy headers, or other sexy types to minimize the exposure of third party debuggers to sexy types
 
 namespace Rococo
@@ -78,6 +82,16 @@ namespace Rococo
 			virtual void OnVariable(size_t index, const VariableDesc& variable, const Rococo::Compiler::MemberDef& def) = 0;
 		};
 	}
+}
+
+namespace Rococo::VM
+{
+	struct CPU;
+}
+
+namespace Rococo::Script
+{
+	SEXYUTIL_API void EnumerateRegisters(Rococo::VM::CPU& cpu, Rococo::Debugger::IRegisterEnumerationCallback& cb);
 }
 
 #endif

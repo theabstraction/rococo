@@ -1,3 +1,4 @@
+#define ROCOCO_API __declspec(dllexport)
 #include <rococo.types.h>
 
 #define USE_HSTRING_HASH
@@ -37,18 +38,18 @@ namespace Rococo::Strings
 	static DefaulAllocator defaultAllocator;
 	static IAllocator* stringAllocator = &defaultAllocator;
 
-	void SetStringAllocator(IAllocator* a)
+	ROCOCO_API void SetStringAllocator(IAllocator* a)
 	{
 		stringAllocator = (a == nullptr) ? &defaultAllocator : a;
 	}
 
-	HString::HString(HString&& other)
+	ROCOCO_API HString::HString(HString&& other)
 	{
 		data = other.data;
 		other.data = &nullData;
 	}
 
-	HString::HString(cstr s)
+	ROCOCO_API HString::HString(cstr s)
 	{
 		if (s == nullptr)
 		{
@@ -66,17 +67,17 @@ namespace Rococo::Strings
 		data->refCount = 1;
 	}
 
-	HString::HString() : data{ &nullData }
+	ROCOCO_API HString::HString() : data{ &nullData }
 	{
 	}
 
-	HString::HString(const HString& s)
+	ROCOCO_API HString::HString(const HString& s)
 	{
 		data = s.data;
 		if (data->refCount > 0) data->refCount++;
 	}
 
-	void FreeHeapStringData(HStringData* data)
+	ROCOCO_API void FreeHeapStringData(HStringData* data)
 	{
 		if (data->refCount > 0)
 		{
@@ -88,7 +89,7 @@ namespace Rococo::Strings
 		}
 	}
 
-	HString& HString::operator = (const HString& s)
+	ROCOCO_API HString& HString::operator = (const HString& s)
 	{
 		// Edge case - source may currently match the target
 		if (s.data != data)
@@ -103,7 +104,7 @@ namespace Rococo::Strings
 		return *this;
 	}
 
-	HString& HString::operator = (cstr s)
+	ROCOCO_API HString& HString::operator = (cstr s)
 	{
 		// Edge case - source may currently match the target
 		if (s != data->currentBuffer)
@@ -127,12 +128,12 @@ namespace Rococo::Strings
 		return *this;
 	}
 
-	HString::~HString()
+	ROCOCO_API HString::~HString()
 	{
 		FreeHeapStringData(data);
 	}
 
-	const fstring HString::to_fstring() const
+	ROCOCO_API const fstring HString::to_fstring() const
 	{
 		if (length() >= 0x80000000LL)
 		{
@@ -142,7 +143,7 @@ namespace Rococo::Strings
 		return fstring{ c_str(), (int32)length() };
 	}
 
-	size_t FastHash(cstr text, size_t length)
+	ROCOCO_API size_t FastHash(cstr text, size_t length)
 	{
 		int64 nBigWords = length >> 3;
 		const int64 * src = (int64*)text;
@@ -172,7 +173,7 @@ namespace Rococo::Strings
 	}
 
 	// size_t operator is used by std::unordered_map to generate a hash code.
-	size_t HString::ComputeHash() const
+	ROCOCO_API size_t HString::ComputeHash() const
 	{
 		return FastHash(data->currentBuffer, data->length);
 	}
@@ -403,7 +404,7 @@ namespace ANON
 
 namespace Rococo
 {
-	IDictionarySupervisor* CreateDictionaryImplementation()
+	ROCOCO_API IDictionarySupervisor* CreateDictionaryImplementation()
 	{
 		void* buffer = ANON::moduleAllocator->Allocate(sizeof(ANON::DictionaryImplementation));
 		ANON::DictionaryImplementation* x = new (buffer) ANON::DictionaryImplementation();
@@ -411,7 +412,7 @@ namespace Rococo
 		return retValue;
 	}
 
-	void AddUnique(IDictionary& d, cstr key, void* data)
+	ROCOCO_API void AddUnique(IDictionary& d, cstr key, void* data)
 	{
 		if (!d.TryAddUnique(key, data))
 		{

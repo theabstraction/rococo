@@ -167,21 +167,21 @@ namespace Rococo
 			*/
 		}
 
-		GuiRect ClientArea(HWND hWnd)
+		ROCOCO_WINDOWS_API GuiRect ClientArea(HWND hWnd)
 		{
 			RECT rect;
 			GetClientRect(hWnd, &rect);
 			return FromRECT(rect);
 		}
 
-		GuiRect WindowArea(HWND hWnd)
+		ROCOCO_WINDOWS_API GuiRect WindowArea(HWND hWnd)
 		{
 			RECT rect;
 			GetWindowRect(hWnd, &rect);
 			return FromRECT(rect);
 		}
 
-		void SetChildWindowConfig(WindowConfig& config, const GuiRect& rect, HWND hWndParent, cstr name, DWORD style, DWORD exStyle)
+		ROCOCO_WINDOWS_API void SetChildWindowConfig(WindowConfig& config, const GuiRect& rect, HWND hWndParent, cstr name, DWORD style, DWORD exStyle)
 		{
 			config.style = style | WS_CHILD | WS_VISIBLE;
 			config.exStyle = exStyle;
@@ -194,7 +194,7 @@ namespace Rococo
 			config.windowName = name;
 		}
 
-		void SetPopupWindowConfig(WindowConfig& config, const GuiRect& rect, HWND hWndParent, cstr name, DWORD style, DWORD exStyle, HMENU hPopupMenu)
+		ROCOCO_WINDOWS_API void SetPopupWindowConfig(WindowConfig& config, const GuiRect& rect, HWND hWndParent, cstr name, DWORD style, DWORD exStyle, HMENU hPopupMenu)
 		{
 			config.style = style | WS_POPUP;
 			config.exStyle = exStyle;
@@ -207,7 +207,7 @@ namespace Rococo
 			config.windowName = name;
 		}
 
-		void SetOverlappedWindowConfig(WindowConfig& config, const Vec2i& span, int32 showWindowCommand, HWND hWndOwner, cstr name, DWORD style, DWORD exStyle, HMENU hPopupMenu)
+		ROCOCO_WINDOWS_API void SetOverlappedWindowConfig(WindowConfig& config, const Vec2i& span, int32 showWindowCommand, HWND hWndOwner, cstr name, DWORD style, DWORD exStyle, HMENU hPopupMenu)
 		{
 			config.style = style | WS_OVERLAPPED;
 			config.exStyle = exStyle;
@@ -220,7 +220,7 @@ namespace Rococo
 			config.windowName = name;
 		}
 
-		void SetOverlappedWindowConfig(WindowConfig& config, const Vec2i& topLeft, const Vec2i& span, HWND hWndOwner, cstr name, DWORD style, DWORD exStyle, HMENU hPopupMenu)
+		ROCOCO_WINDOWS_API void SetOverlappedWindowConfig(WindowConfig& config, const Vec2i& topLeft, const Vec2i& span, HWND hWndOwner, cstr name, DWORD style, DWORD exStyle, HMENU hPopupMenu)
 		{
 			config.style = style | WS_OVERLAPPED;
 			config.exStyle = exStyle;
@@ -632,14 +632,14 @@ namespace Rococo
 			backgroundColour = RGB(255, 255, 255);
 		}
 
-		void StandardWindowHandler::OnPaint(HWND hWnd, PAINTSTRUCT& ps, HDC hdc) {}
-		void StandardWindowHandler::OnSize(HWND hWnd, const Vec2i& span, RESIZE_TYPE type) {}
-		void StandardWindowHandler::OnMenuCommand(HWND hWnd, DWORD id) {}
-		void StandardWindowHandler::OnAcceleratorCommand(HWND hWnd, DWORD id) {}
-		void StandardWindowHandler::OnClose(HWND hWnd) {}
+		ROCOCO_WINDOWS_API void StandardWindowHandler::OnPaint(HWND hWnd, PAINTSTRUCT& ps, HDC hdc) {}
+		ROCOCO_WINDOWS_API void StandardWindowHandler::OnSize(HWND hWnd, const Vec2i& span, RESIZE_TYPE type) {}
+		ROCOCO_WINDOWS_API void StandardWindowHandler::OnMenuCommand(HWND hWnd, DWORD id) {}
+		ROCOCO_WINDOWS_API void StandardWindowHandler::OnAcceleratorCommand(HWND hWnd, DWORD id) {}
+		ROCOCO_WINDOWS_API void StandardWindowHandler::OnClose(HWND hWnd) {}
 
 		COLORREF StandardWindowHandler::GetBackgroundColour() { return backgroundColour; }
-		void StandardWindowHandler::SetBackgroundColour(COLORREF bkColour) { backgroundColour = bkColour; }
+		ROCOCO_WINDOWS_API void StandardWindowHandler::SetBackgroundColour(COLORREF bkColour) { backgroundColour = bkColour; }
 
 		LRESULT StandardWindowHandler::OnCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 		{
@@ -662,7 +662,7 @@ namespace Rococo
 			}
 		}
 
-		void StandardWindowHandler::OnEraseBackground(HWND hWnd, HDC dc)
+		ROCOCO_WINDOWS_API void StandardWindowHandler::OnEraseBackground(HWND hWnd, HDC dc)
 		{
 			HBRUSH br = CreateSolidBrush(GetBackgroundColour());
 			RECT rect;
@@ -671,12 +671,12 @@ namespace Rococo
 			DeleteObject(br);
 		}
 
-		void StandardWindowHandler::OnPretranslateMessage(MSG& msg)
+		ROCOCO_WINDOWS_API void StandardWindowHandler::OnPretranslateMessage(MSG& msg)
 		{
 
 		}
 
-		void StandardWindowHandler::OnGetMinMaxInfo(HWND hWnd, MINMAXINFO& info)
+		ROCOCO_WINDOWS_API void StandardWindowHandler::OnGetMinMaxInfo(HWND hWnd, MINMAXINFO& info)
 		{
 			enum { DEFAULT_MIN_WIDTH = 800, DEFAULT_MIN_HEIGHT = 600 };
 
@@ -684,9 +684,14 @@ namespace Rococo
 			info.ptMinTrackSize.y = DEFAULT_MIN_HEIGHT;
 		}
 
-		IWin32Menu* CreateMenu(bool contextMenu)
+		ROCOCO_WINDOWS_API IWin32Menu* CreateMenu(bool contextMenu)
 		{
 			return new Menu(contextMenu);
 		}
 	} // Windows
 } // Rococo
+
+#include <sexy.lib.util.h>
+#include <sexy.lib.script.h>
+#include <sexy.lib.sexy-util.h>
+#include <sexy.lib.s-parser.h>

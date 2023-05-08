@@ -3,13 +3,17 @@
 #include <new> // bad_alloc, bad_array_new_length
 #include <string>
 
+#ifndef SEXYUTIL_API
+# define SEXYUTIL_API ROCOCO_API_IMPORT
+#endif
+
 namespace Rococo::Memory
 {
-    void* AllocateSexyMemory(size_t nBytes);
-    void FreeSexyMemory(void* pBuffer, size_t nBytes);
-    IAllocator& GetSexyAllocator();
-    void SetSexyAllocator(IAllocator* allocator);
-    void ValidateNothingAllocated();
+    SEXYUTIL_API void* AllocateSexyMemory(size_t nBytes);
+    SEXYUTIL_API void FreeSexyMemory(void* pBuffer, size_t nBytes);
+    SEXYUTIL_API IAllocator& GetSexyAllocator();
+    SEXYUTIL_API void SetSexyAllocator(IAllocator* allocator);
+    SEXYUTIL_API void ValidateNothingAllocated();
 
     template <class T>
     struct SexyAllocator
@@ -62,10 +66,10 @@ namespace Rococo
     {
         // This will give some debugging info for outstanding allocations - providing the sexy default allocator is active
         // RecordAllocations(size_t) can be used to report more detailed info on outstanding allocations of a particular size
-        void MarkMemory(cstr msg, cstr function, int line);
+        SEXYUTIL_API void MarkMemory(cstr msg, cstr function, int line);
 
         // This will record callstacks for objects allocated with a given size - providing the sexy default allocator is active
-        void RecordAllocations(size_t nBytes);
+        SEXYUTIL_API void RecordAllocations(size_t nBytes);
     }
 }
 

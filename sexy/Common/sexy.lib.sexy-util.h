@@ -33,51 +33,10 @@
 
 #pragma once
 
-#ifndef SEXYUTIL_API
-# define SEXYUTIL_API __declspec(dllimport)
+#ifdef _WIN32
+# ifdef _DEBUG
+#   pragma comment(lib, "sexy.util.Debug.lib")
+# else
+#   pragma comment(lib, "sexy.util.Release.lib")
+# endif
 #endif
-
-#include <sexy.types.h>
-#include <rococo.strings.h>
-#include <rococo.parse.h>
-
-namespace Rococo
-{
-	using namespace Rococo::Strings;
-
-	bool operator == (const sexstring_key& a, const sexstring_key& b);
-	SEXYUTIL_API int32 Compare(sexstring a, const char* b);
-
-	namespace Strings
-	{	
-		const char* GetSubString(const char* s, const char* subString);
-		cstr GetSubString(cstr s, const char* subString);
-
-	}
-	
-	template<typename CHARTYPE> inline bool AreEqual(const CHARTYPE* a, const CHARTYPE* b)
-	{
-		int delta = Compare(a, b);
-		return delta == 0;
-	}
-
-	template<typename CHARTYPE> inline bool AreEqual(sexstring a, const CHARTYPE* b)
-	{
-		return Compare(a,b) == 0;
-	}
-
-	template<typename CHARTYPE> inline bool AreEqual(const CHARTYPE* a, const CHARTYPE* b, int count)
-	{
-		return Compare(a,b,count) == 0;
-	}
-
-	SEXYUTIL_API bool AreEqual(sexstring a, sexstring b);
-	SEXYUTIL_API bool operator < (const sexstring_key& a, const sexstring_key& b);
-
-   namespace Parse
-   {
-	   SEXYUTIL_API VARTYPE GetLiteralType(cstr candidate);
-	   SEXYUTIL_API cstr VarTypeName(VARTYPE type);
-	   SEXYUTIL_API PARSERESULT TryParse(VariantValue& value, VARTYPE type, cstr valueLiteral);
-   }
-}

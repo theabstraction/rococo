@@ -16,12 +16,12 @@ namespace Rococo
 {
 	namespace Windows
 	{
-		int ShowMessageBox(IWindow& window, cstr text, cstr caption, uint32 uType)
+        ROCOCO_WINDOWS_API int ShowMessageBox(IWindow& window, cstr text, cstr caption, uint32 uType)
 		{
 			return MessageBoxA(window, text, caption, uType);
 		}
 
-		IWindow& NoParent()
+        ROCOCO_WINDOWS_API IWindow& NoParent()
 		{
 			class: public IWindow
 			{
@@ -37,7 +37,7 @@ namespace Rococo
 
    namespace OS
    {
-      void ShowErrorBox(Rococo::Windows::IWindow& parent, IException& ex, cstr caption)
+      ROCOCO_API_EXPORT void ShowErrorBox(Rococo::Windows::IWindow& parent, IException& ex, cstr caption)
       {
          if (ex.ErrorCode() == 0)
          {

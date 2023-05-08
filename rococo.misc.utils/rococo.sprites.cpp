@@ -55,7 +55,7 @@ namespace Rococo::Graphics
 		rc.AddTriangle(v + 3);
 	}
 
-	void RenderBitmap_ShrinkAndPreserveAspectRatio(IGuiRenderContext& rc, MaterialId id, const GuiRect& absRect)
+	ROCOCO_API_EXPORT void RenderBitmap_ShrinkAndPreserveAspectRatio(IGuiRenderContext& rc, MaterialId id, const GuiRect& absRect)
 	{
 		MaterialArrayMetrics metrics;
 		rc.Materials().GetMaterialArrayMetrics(metrics);
@@ -151,7 +151,7 @@ namespace Rococo::Graphics
 		rc.AddTriangle(v + 3);
 	}
 
-	void DrawSprite(const Vec2i& topLeftBitmap, const BitmapLocation& location, IGuiRenderContext& gc)
+	ROCOCO_API_EXPORT void DrawSprite(const Vec2i& topLeftBitmap, const BitmapLocation& location, IGuiRenderContext& gc)
 	{
 		Vec2 topLeft, bottomRight;
 		topLeft.x = (float)topLeftBitmap.x;
@@ -183,7 +183,7 @@ namespace Rococo::Graphics
 		gc.AddTriangle(BR);
 	}
 
-	void StretchBitmap(IGuiRenderContext& gc, const Textures::BitmapLocation& location, const GuiRect& absRect)
+	ROCOCO_API_EXPORT void StretchBitmap(IGuiRenderContext& gc, const Textures::BitmapLocation& location, const GuiRect& absRect)
 	{
 		auto recti = Dequantize(absRect);
 		// [0 1]
@@ -209,7 +209,7 @@ namespace Rococo::Graphics
 		gc.AddTriangle(BR);
 	}
 
-	void DrawSpriteCentred(const GuiRect& rect, const Textures::BitmapLocation& location, IGuiRenderContext& gc)
+	ROCOCO_API_EXPORT void DrawSpriteCentred(const GuiRect& rect, const Textures::BitmapLocation& location, IGuiRenderContext& gc)
 	{
 		GuiMetrics metrics;
 		gc.Renderer().GetGuiMetrics(metrics);

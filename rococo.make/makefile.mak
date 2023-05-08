@@ -63,37 +63,40 @@ MSBUILD_TERSE = -verbosity:minimal $(MSBUILD_CONFIG)
 MSBUILD_VERBOSE = -verbosity:normal $(MSBUILD_CONFIG)
 MSBUILD_PARALLEL = -maxcpucount:4
 WITH_SOLUTION = -property:SolutionDir=$(ROCOCO)
+CONTENT_SYS_TYPE = $(ROCOCO)content\scripts\native\Sys.Type.sxy
+EVENTS_SYS_TYPE = $(DIR_EVENTS)content\scripts\native\Sys.Type.sxy
 
-all: $(BENNY_HILL) $(SEXY_CMD) $(MPLAT_SXH_H) $(HV_SXH_H) $(MHOST_SXH_H) $(CPP_MASTER) $(MPLAT_COMPONENTS_H) $(EVENTS) $(MHOST_PACKAGE) \
-	 $(MHOST) $(SEXYSTUDIO)
+all: $(SEXY_CMD) $(CPP_MASTER)_build $(CONTENT_SYS_TYPE) $(EVENTS_SYS_TYPE) $(MPLAT_SXH_H) $(HV_SXH_H) $(MHOST_SXH_H) $(MPLAT_COMPONENTS_H) $(EVENTS) $(MHOST_PACKAGE) $(MHOST)_build $(SEXYSTUDIO)_build
 
 clean: 
 	del $(BENNY_HILL)
 	del $(LIB_UTIL)
 	del /Q $(DIR_LIB)*.*
 	del /Q /S $(DIR_BIN)*.*
-	del /Q /S $(DIR_SEXY_BIN)*.*
 	del /Q /S $(DIR_SEXY)NativeSource\*.lib
 	del /Q /S $(DIR_SEXY)NativeSource\*.pdb
 	del /Q /S $(DIR_SEXY)NativeSource\*.dll
 
-$(LIB_UTIL): $(UTIL)rococo.base.cpp $(UTIL)rococo.throw.cr_sex.cpp $(UTIL)rococo.strings.cpp $(UTIL)rococo.s-parser.helpers.cpp $(UTIL)rococo.os.win32.cpp $(CPP_MASTER)
-	msbuild $(UTIL)rococo.util.vcxproj                            $(MSBUILD_TERSE) $(MSBUILD_PARALLEL)
+$(SEXY_CMD):
+	msbuild $(DIR_SEXY)sexy.sln                                   $(MSBUILD_TERSE) $(MSBUILD_PARALLEL)
 	msbuild $(ROCOCO)rococo.3rd-party.sln                         $(MSBUILD_TERSE) $(MSBUILD_PARALLEL)
 	msbuild $(ROCOCO)rococo.maths\rococo.maths.vcxproj            $(MSBUILD_TERSE) $(MSBUILD_PARALLEL)
-	msbuild $(ROCOCO)rococo.windows\rococo.windows.vcxproj        $(MSBUILD_TERSE) $(MSBUILD_PARALLEL)
-	msbuild $(ROCOCO)rococo.sexy.ide\rococo.sexy.ide.vcxproj      $(MSBUILD_TERSE) $(MSBUILD_PARALLEL)
-	msbuild $(ROCOCO)rococo.misc.utils\rococo.misc.utils.vcxproj  $(MSBUILD_TERSE) $(MSBUILD_PARALLEL)
 	msbuild $(ROCOCO)rococo.util.ex\rococo.util.ex.vcxproj        $(MSBUILD_TERSE) $(MSBUILD_PARALLEL)
 	msbuild $(ROCOCO)rococo.packager\rococo.packager.vcxproj      $(MSBUILD_TERSE) $(MSBUILD_PARALLEL)
-	msbuild $(DIR_SEXY)sexy.sln                                   $(MSBUILD_TERSE) $(MSBUILD_PARALLEL)
+	msbuild $(ROCOCO)rococo.misc.utils\rococo.misc.utils.vcxproj  $(MSBUILD_TERSE) $(MSBUILD_PARALLEL)
+	msbuild $(ROCOCO)rococo.windows\rococo.windows.vcxproj        $(MSBUILD_TERSE) $(MSBUILD_PARALLEL)
+	msbuild $(ROCOCO)rococo.sexy.ide\rococo.sexy.ide.vcxproj      $(MSBUILD_TERSE) $(MSBUILD_PARALLEL)
 	msbuild $(ROCOCO)rococo.sexy.cmd\rococo.sexy.cmd.vcxproj      $(MSBUILD_TERSE) $(MSBUILD_PARALLEL)
-	$(ROCOCO)copy.natives.from.sexy.bat > NUL
-	copy $(NATIVE_SRC)*.sxy $(DIR_EVENTS)content\scripts\native > NUL
-	copy $(NATIVE_SRC)*.sxy $(ROCOCO)content\scripts\native > NUL
-	$(DIR_BIN)tools\x64\$(CONFIGURATION)\net6.0\rococo.cpp_master.exe $(ROCOCO)rococo.components.test\test.xml $(ROCOCO)
 
-$(BENNY_HILL): $(LIB_UTIL)
+$(CONTENT_SYS_TYPE):
+	copy $(NATIVE_SRC)*.sxy $(ROCOCO)content\scripts\native > NUL
+
+$(EVENTS_SYS_TYPE):
+	copy $(NATIVE_SRC)*.sxy $(ROCOCO)content\scripts\native > NUL
+
+$(CPP_MASTER)_build: $(CPP_MASTER)
+	$(ROCOCO)copy.natives.from.sexy.bat > NUL
+	$(DIR_BIN)tools\x64\$(CONFIGURATION)\net6.0\rococo.cpp_master.exe $(ROCOCO)rococo.components.test\test.xml $(ROCOCO)
 
 $(EVENTS): $(DIR_EVENTS)content\scripts\gen.events.hv.sxy $(DIR_EVENTS)content\scripts\gen.events.sxy
 	$(SEXY_CMD) natives=$(NATIVE_SRC) installation=$(DIR_EVENTS)content\ root=$(DIR_EVENTS) run=!scripts/gen.events.hv.sxy 
@@ -116,7 +119,7 @@ $(CPP_MASTER): $(ROCOCO)rococo.cpp_master\rococo.cpp_master.main.cs $(ROCOCO)roc
 $(MHOST_PACKAGE): $(MPLAT_SXH) $(MPLAT_XC) $(MHOST_SXH) $(MHOST_XC)
 	$(ROCOCO)packages\gen.mhost.package.bat
 
-$(MHOST):
+$(MHOST)_build:
 	msbuild $(ROCOCO)rococo.sexy.mathsex\rococo.sexy.mathsex.vcxproj $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
 	msbuild $(ROCOCO)rococo.fonts\fonts.vcxproj                      $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
 	msbuild $(ROCOCO)dx11.renderer\dx11.renderer.vcxproj             $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
@@ -126,7 +129,7 @@ $(MHOST):
 	msbuild $(DIR_MPLAT_DYN)rococo.mplat.dynamic.vcxproj             $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)	
 	msbuild $(DIR_MHOST)mhost.vcxproj                                $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
 
-$(SEXYSTUDIO):
+$(SEXYSTUDIO)_build:
 	msbuild $(ROCOCO)sexystudio/sexystudio.vcxproj                           $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
 	msbuild $(ROCOCO)sexystudio.app/sexystudio.app.vcxproj                   $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
 	msbuild $(ROCOCO)sexystudio.test/sexystudio.test.vcxproj                 $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)

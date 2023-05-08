@@ -1,3 +1,4 @@
+#define ROCOCO_API __declspec(dllexport)
 #include <rococo.types.h>
 #include <rococo.io.h>
 #include <rococo.strings.h>
@@ -5,17 +6,17 @@
 
 namespace Rococo::Strings
 {
-	void Assign(U8FilePath& dest, const wchar_t* wideSrc);
-	void Assign(WideFilePath& dest, const char* src);
-	int32 Format(U8FilePath& path, cstr format, ...);
-	int32 Format(WideFilePath& path, _Printf_format_string_ const wchar_t* format, ...);
+	ROCOCO_API void Assign(U8FilePath& dest, const wchar_t* wideSrc);
+	ROCOCO_API void Assign(WideFilePath& dest, const char* src);
+	ROCOCO_API int32 Format(U8FilePath& path, cstr format, ...);
+	ROCOCO_API int32 Format(WideFilePath& path, _Printf_format_string_ const wchar_t* format, ...);
 }
 
 using namespace Rococo::Strings;
 
 namespace Rococo::IO
 {
-	void ValidateHeader(const ColumnHeader& archiveHeader, ColumnType cppType, cstr archiveFile)
+	ROCOCO_API void ValidateHeader(const ColumnHeader& archiveHeader, ColumnType cppType, cstr archiveFile)
 	{
 		if (archiveHeader.type != cppType)
 		{
@@ -113,7 +114,7 @@ namespace Rococo::IO
 		return data;
 	}
 
-	void ParseTableRows(IBinarySource& source, ITableRowBuilder& builder)
+	ROCOCO_API void ParseTableRows(IBinarySource& source, ITableRowBuilder& builder)
 	{
 		ValidateString(source, "Rococo.Carpenter.BinaryTable"_fstring);
 		ValidateString(source, "1.0.0.0"_fstring);
@@ -284,7 +285,7 @@ namespace Rococo::IO
 		columnBacking.reserve(0);
 	}
 
-	void ParseTableRows(cstr sourcePath, ITableRowBuilder& builder)
+	ROCOCO_API void ParseTableRows(cstr sourcePath, ITableRowBuilder& builder)
 	{
 		try
 		{
@@ -299,7 +300,7 @@ namespace Rococo::IO
 		}
 	}
 
-	void ParseTableRows(const IInstallation& installation, cstr pingPath, ITableRowBuilder& builder)
+	ROCOCO_API void ParseTableRows(const IInstallation& installation, cstr pingPath, ITableRowBuilder& builder)
 	{
 		try
 		{

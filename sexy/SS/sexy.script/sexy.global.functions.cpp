@@ -1,5 +1,5 @@
-#define SEXY_SPARSER_API
-#define SCRIPTEXPORT_API
+#include "sexy.script.stdafx.h"
+
 #include <sexy.types.h>
 #include <sexy.s-parser.h>
 #include <sexy.vm.cpu.h>
@@ -79,10 +79,6 @@ namespace
 
 #define ROCOCO_USE_SAFE_V_FORMAT
 #include <rococo.strings.h>
-
-#ifndef SCRIPTEXPORT_API
-# define SCRIPTEXPORT_API __declspec(dllimport)
-#endif
 
 namespace Rococo::Script
 {
@@ -404,7 +400,7 @@ namespace Rococo
 	using namespace Rococo::Sex;
 	using namespace Rococo::Visitors;
 
-	void ThrowSex(cr_sex s, cstr format, ...)
+	SCRIPTEXPORT_API void ThrowSex(cr_sex s, cstr format, ...)
 	{
 		va_list args;
 		va_start(args, format);
@@ -636,7 +632,7 @@ namespace Rococo
 		}
 	}
 
-	void LogParseException(ParseException& ex, IDebuggerWindow& debugger)
+	SCRIPTEXPORT_API void LogParseException(ParseException& ex, IDebuggerWindow& debugger)
 	{
 		Vec2i a = ex.Start();
 		Vec2i b = ex.End();
@@ -942,7 +938,7 @@ namespace Rococo
 		}
 	};
 
-	ISourceCache* CreateSourceCache(IInstallation& installation)
+	SCRIPTEXPORT_API ISourceCache* CreateSourceCache(IInstallation& installation)
 	{
 		auto* cache = new SourceCache(installation);
 		return cache->GetInterface();
@@ -984,13 +980,6 @@ namespace Rococo
 	}
 
 	using namespace Rococo::Debugger;
-
-	inline ObjectStub* InterfaceToInstance(InterfacePointer i)
-	{
-		auto* p = ((uint8*)i) + (*i)->OffsetToInstance;
-		auto* obj = (ObjectStub*)p;
-		return obj;
-	}
 
 	struct MemberEnumeratorPopulator: MemberEnumeratorCallback
 	{
@@ -1974,7 +1963,7 @@ namespace Rococo
 		}
 	}
 
-	void InitSexyScript(ISParserTree& mainModule, IDebuggerWindow& debugger, Script::IPublicScriptSystem& ss, ISourceCache& sources, IEventCallback<ScriptCompileArgs>& onCompile, StringBuilder* declarationBuilder)
+	SCRIPTEXPORT_API void InitSexyScript(ISParserTree& mainModule, IDebuggerWindow& debugger, Script::IPublicScriptSystem& ss, ISourceCache& sources, IEventCallback<ScriptCompileArgs>& onCompile, StringBuilder* declarationBuilder)
 	{
 		using namespace Rococo::Script;
 		using namespace Rococo::Compiler;
@@ -2051,7 +2040,7 @@ namespace Rococo
 		}
 	}
 
-	void ExecuteFunction(ID_BYTECODE bytecodeId, IArgEnumerator& args, Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger, bool trace)
+	SCRIPTEXPORT_API void ExecuteFunction(ID_BYTECODE bytecodeId, IArgEnumerator& args, Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger, bool trace)
 	{
 		ss.PublicProgramObject().SetProgramAndEntryPoint(bytecodeId);
 
@@ -2087,7 +2076,7 @@ namespace Rococo
 		args.PopOutputs(argStack);
 	};
 
-	void ExecuteFunction(cstr name, IArgEnumerator& args, Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger, bool trace)
+	SCRIPTEXPORT_API void ExecuteFunction(cstr name, IArgEnumerator& args, Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger, bool trace)
 	{
 		auto& module = ss.PublicProgramObject().GetModule(ss.PublicProgramObject().ModuleCount() - 1);
 		auto f = module.FindFunction(name);
@@ -2130,7 +2119,7 @@ namespace Rococo
 		args.PopOutputs(argStack);
 	};
 
-	int ExecuteSexyScript(ScriptPerformanceStats& stats, ISParserTree& mainModule, IDebuggerWindow& debugger, Script::IPublicScriptSystem& ss, ISourceCache& sources, int32 param, IEventCallback<ScriptCompileArgs>& onCompile, bool trace, StringBuilder* declarationBuilder)
+	SCRIPTEXPORT_API int ExecuteSexyScript(ScriptPerformanceStats& stats, ISParserTree& mainModule, IDebuggerWindow& debugger, Script::IPublicScriptSystem& ss, ISourceCache& sources, int32 param, IEventCallback<ScriptCompileArgs>& onCompile, bool trace, StringBuilder* declarationBuilder)
 	{
 		using namespace Rococo::Script;
 		using namespace Rococo::Compiler;
@@ -2181,7 +2170,7 @@ namespace Rococo
 		populator.Populate(debugger);
 	}
 
-	void DebuggerLoop(Rococo::Script::IPublicScriptSystem &ss, IDebuggerWindow& debugger)
+	SCRIPTEXPORT_API void DebuggerLoop(Rococo::Script::IPublicScriptSystem &ss, IDebuggerWindow& debugger)
 	{
 		StardardDebugControl dc;
 
@@ -2195,14 +2184,6 @@ namespace Rococo
 		populator.refreshAll = true;
 
 		debugger.Run(populator, dc);
-	}
-}
-
-namespace Rococo::Compiler
-{
-	bool IsNullType(const IStructure& type)
-	{
-		return StartsWith(type.Name(), "_Null");
 	}
 }
 

@@ -35,7 +35,7 @@ namespace Rococo
 {
 	namespace Compiler
 	{
-		bool IsNullType(const IStructure& s);
+		SEXYUTIL_API bool IsNullType(const IStructure& s);
 	}
 	namespace Script
 	{

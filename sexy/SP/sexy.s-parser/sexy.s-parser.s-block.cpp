@@ -1742,7 +1742,7 @@ namespace Rococo
 	} // Sex
 } // Rococo
 
-Rococo::Sex::ISParser* Sexy_CreateSexParser_2_0(Rococo::IAllocator& allocator, size_t maxStringLength)
+SEXY_SPARSER_API Rococo::Sex::ISParser* Sexy_CreateSexParser_2_0(Rococo::IAllocator& allocator, size_t maxStringLength)
 {
 	return Rococo::Sex::CreateSParser_2_0(allocator, maxStringLength);
 }

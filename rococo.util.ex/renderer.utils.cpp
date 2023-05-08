@@ -8,6 +8,10 @@
 
 #include <rococo.maths.h>
 
+#ifndef ROCOCO_UTILS_EX_API
+#error "ROCOCO_UTILS_EX_API undefined";
+#endif
+
 namespace
 {
 	using namespace Rococo;
@@ -432,7 +436,7 @@ namespace Rococo
 {
 	namespace Graphics
 	{
-		void EvalTextSpan(IGuiRenderContext& g, const fstring& text, int32 fontIndex, int fontHeight, Vec2& pixelSpan)
+		ROCOCO_UTILS_EX_API void EvalTextSpan(IGuiRenderContext& g, const fstring& text, int32 fontIndex, int fontHeight, Vec2& pixelSpan)
 		{
 			BasicTextJob job(fontIndex, text, 0xFFFFFFFF, (int)pixelSpan.y);
 			auto iSpan = g.EvalSpan({ 0,0 }, job);
@@ -440,7 +444,7 @@ namespace Rococo
 			pixelSpan.y = (float)iSpan.y;
 		}
 
-		Vec2i GetTopLeftPos(const GuiRect& rect, Vec2i span, int32 alignmentFlags)
+		ROCOCO_UTILS_EX_API Vec2i GetTopLeftPos(const GuiRect& rect, Vec2i span, int32 alignmentFlags)
 		{
 			Vec2i pos;
 
@@ -473,7 +477,7 @@ namespace Rococo
 			return pos;
 		}
 
-		Vec2 GetTopLeftPos(Vec2 pos, Vec2 span, int32 alignmentFlags)
+		RENDERER_API Vec2 GetTopLeftPos(Vec2 pos, Vec2 span, int32 alignmentFlags)
 		{
 			Vec2 topLeftPos;
 
@@ -506,7 +510,7 @@ namespace Rococo
 			return topLeftPos;
 		}
 
-		void DrawClippedText(IGuiRenderContext& g, const Rococo::GuiRectf& rect, int32 alignmentFlags, const fstring& text, int32 fontIndex, RGBAb colour, const Rococo::GuiRectf& clipRect)
+		RENDERER_API void DrawClippedText(IGuiRenderContext& g, const Rococo::GuiRectf& rect, int32 alignmentFlags, const fstring& text, int32 fontIndex, RGBAb colour, const Rococo::GuiRectf& clipRect)
 		{
 			GuiRect iRect{ (int32)rect.left, (int32)rect.top, (int32)rect.right, (int32)rect.bottom };
 			if (text.length)
@@ -520,7 +524,7 @@ namespace Rococo
 			}
 		}
 
-		void DrawTextWithCaret(IGuiRenderContext& g, const Rococo::GuiRectf& rect, int32 alignmentFlags, const fstring& text, int32 fontIndex, RGBAb colour, const Rococo::GuiRectf& clipRect, int32 caretPos)
+		RENDERER_API void DrawTextWithCaret(IGuiRenderContext& g, const Rococo::GuiRectf& rect, int32 alignmentFlags, const fstring& text, int32 fontIndex, RGBAb colour, const Rococo::GuiRectf& clipRect, int32 caretPos)
 		{
 			GuiRect iRect{ (int32)rect.left, (int32)rect.top, (int32)rect.right, (int32)rect.bottom };
 
@@ -585,7 +589,7 @@ namespace Rococo
 			}
 		}
 
-		void DrawLeftAligned(IGuiRenderContext& g, const Rococo::GuiRectf& rect, const fstring& text, int32 fontIndex, int32 fontHeight, RGBAb colour, float32 softRightEdge, float32 hardRightEdge)
+		RENDERER_API void DrawLeftAligned(IGuiRenderContext& g, const Rococo::GuiRectf& rect, const fstring& text, int32 fontIndex, int32 fontHeight, RGBAb colour, float32 softRightEdge, float32 hardRightEdge)
 		{
 			GuiRect iRect{ (int32)rect.left, (int32)rect.top, (int32)rect.right, (int32)rect.bottom };
 			if (text.length)
@@ -597,7 +601,7 @@ namespace Rococo
 			}
 		}
 
-		void DrawText(IGuiRenderContext& g, const GuiRectf& rect, int32 alignmentFlags, const fstring& text, int32 fontIndex, RGBAb colour)
+		RENDERER_API void DrawText(IGuiRenderContext& g, const GuiRectf& rect, int32 alignmentFlags, const fstring& text, int32 fontIndex, RGBAb colour)
 		{
 			GuiRect iRect{ (int32)rect.left, (int32)rect.top, (int32)rect.right, (int32)rect.bottom };
 			if (text.length)
@@ -610,8 +614,7 @@ namespace Rococo
 			}
 		}
 
-
-		void DrawTexture(IGuiRenderContext& grc, ID_TEXTURE id, const GuiRect& absRect)
+		RENDERER_API void DrawTexture(IGuiRenderContext& grc, ID_TEXTURE id, const GuiRect& absRect)
 		{
 			SpriteVertexData ignore{ 0.0f, 0.0f, 0.0f, 1.0f };
 			RGBAb none(0, 0, 0, 0);
@@ -659,7 +662,7 @@ namespace Rococo
 			grc.DrawCustomTexturedMesh(absRect, id, "!gui.texture.ps", quad, 6);
 		}
 
-		void DrawTriangleFacingLeft(IGuiRenderContext& grc, const GuiRect& container, RGBAb colour)
+		RENDERER_API void DrawTriangleFacingLeft(IGuiRenderContext& grc, const GuiRect& container, RGBAb colour)
 		{
 			BaseVertexData noFont{ { 0, 0 }, 0 };
 			SpriteVertexData solid{ 1.0f, 0, 0, 0 };
@@ -688,7 +691,7 @@ namespace Rococo
 			grc.AddTriangle(triangle);
 		}
 
-		void DrawTriangleFacingUp(IGuiRenderContext& grc, const GuiRect& container, RGBAb colour)
+		RENDERER_API void DrawTriangleFacingUp(IGuiRenderContext& grc, const GuiRect& container, RGBAb colour)
 		{
 			BaseVertexData noFont{ { 0, 0 }, 0 };
 			SpriteVertexData solid{ 1.0f, 0, 0, 0 };
@@ -717,7 +720,7 @@ namespace Rococo
 			grc.AddTriangle(triangle);
 		}
 
-		void DrawTriangleFacingDown(IGuiRenderContext& grc, const GuiRect& container, RGBAb colour)
+		RENDERER_API void DrawTriangleFacingDown(IGuiRenderContext& grc, const GuiRect& container, RGBAb colour)
 		{
 			BaseVertexData noFont{ { 0, 0 }, 0 };
 			SpriteVertexData solid{ 1.0f, 0, 0, 0 };
@@ -746,7 +749,7 @@ namespace Rococo
 			grc.AddTriangle(triangle);
 		}
 
-		void DrawTriangleFacingRight(IGuiRenderContext& grc, const GuiRect& container, RGBAb colour)
+		RENDERER_API void DrawTriangleFacingRight(IGuiRenderContext& grc, const GuiRect& container, RGBAb colour)
 		{
 			BaseVertexData noFont{ { 0,0 }, 0 };
 			SpriteVertexData solidColour{ 1.0f, 0.0f, 0.0f, 0.0f };
@@ -774,12 +777,13 @@ namespace Rococo
 			};
 			grc.AddTriangle(triangle);
 		}
-		Vec2i GetScreenCentre(const GuiMetrics& metrics)
+				
+		RENDERER_API Vec2i GetScreenCentre(const GuiMetrics& metrics)
 		{
 			return Vec2i{ metrics.screenSpan.x >> 1, metrics.screenSpan.y >> 1 };
 		}
 
-		Vec2i RenderVerticalCentredTextWithCallback(IGuiRenderContext& gr, int32 cursorPos, IEventCallback<GlyphCallbackArgs>& cb, cstr txt, RGBAb colour, int fontSize, const Vec2i& middleLeft, const GuiRect& clipRect)
+		RENDERER_API Vec2i RenderVerticalCentredTextWithCallback(IGuiRenderContext& gr, int32 cursorPos, IEventCallback<GlyphCallbackArgs>& cb, cstr txt, RGBAb colour, int fontSize, const Vec2i& middleLeft, const GuiRect& clipRect)
 		{	
 			struct : IEventCallback<GlyphCallbackArgs>
 			{
@@ -830,7 +834,7 @@ namespace Rococo
 			return span;
 		}
 
-		Vec2i RenderVerticalCentredText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const Vec2i& middleLeft, const GuiRect* clipRect)
+		RENDERER_API Vec2i RenderVerticalCentredText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const Vec2i& middleLeft, const GuiRect* clipRect)
 		{
 			HorizontalCentredText job(0, fontSize, text, FontColourFromRGBAb(colour));
 			Vec2i span = grc.EvalSpan(Vec2i{ 0,0 }, job);
@@ -838,7 +842,7 @@ namespace Rococo
 			return span;
 		}
 
-		Vec2i RenderTopLeftAlignedText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const Vec2i& topLeft)
+		RENDERER_API Vec2i RenderTopLeftAlignedText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const Vec2i& topLeft)
 		{
 			HorizontalCentredText job(0, fontSize, text, FontColourFromRGBAb(colour));
 			Vec2i span = grc.EvalSpan(Vec2i{ 0,0 }, job);
@@ -846,7 +850,7 @@ namespace Rococo
 			return span;
 		}
 
-		Vec2i RenderTopRightAlignedText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const Vec2i& topRight)
+		RENDERER_API Vec2i RenderTopRightAlignedText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const Vec2i& topRight)
 		{
 			HorizontalCentredText job(0, fontSize, text, FontColourFromRGBAb(colour));
 			Vec2i span = grc.EvalSpan(Vec2i{ 0,0 }, job);
@@ -854,7 +858,7 @@ namespace Rococo
 			return span;
 		}
 
-		Vec2i RenderRightAlignedText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const GuiRect& rect)
+		RENDERER_API Vec2i RenderRightAlignedText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const GuiRect& rect)
 		{
 			HorizontalCentredText job(0, fontSize, text, FontColourFromRGBAb(colour));
 			Vec2i span = grc.EvalSpan(Vec2i{ 0,0 }, job);
@@ -863,7 +867,7 @@ namespace Rococo
 			return span;
 		}
 
-		Vec2i RenderHorizontalCentredText(IGuiRenderContext& grc, cstr txt, RGBAb colour, int fontSize, const Vec2i& topMiddle)
+		RENDERER_API Vec2i RenderHorizontalCentredText(IGuiRenderContext& grc, cstr txt, RGBAb colour, int fontSize, const Vec2i& topMiddle)
 		{
 			HorizontalCentredText job(0, fontSize, txt, FontColourFromRGBAb(colour));
 			Vec2i span = grc.EvalSpan(Vec2i{ 0,0 }, job);
@@ -871,7 +875,7 @@ namespace Rococo
 			return span;
 		}
 
-		void DrawLine(IGuiRenderContext& grc, int pixelthickness, Vec2i start, Vec2i end, RGBAb colour)
+		RENDERER_API void DrawLine(IGuiRenderContext& grc, int pixelthickness, Vec2i start, Vec2i end, RGBAb colour)
 		{
 			Vec2i delta = end - start;
 
@@ -911,7 +915,7 @@ namespace Rococo
 			grc.AddTriangle(q + 3);
 		}
 
-		void DrawRectangle(IGuiRenderContext& grc, const GuiRect& grect, RGBAb diag, RGBAb backdiag)
+		RENDERER_API void DrawRectangle(IGuiRenderContext& grc, const GuiRect& grect, RGBAb diag, RGBAb backdiag)
 		{
 			GuiRectf rect{ (float)grect.left, (float)grect.top, (float)grect.right, (float)grect.bottom };
 			BaseVertexData noFont{ {0, 0}, 0 };
@@ -933,7 +937,7 @@ namespace Rococo
 			}
 		}
 
-		GuiRect RenderHQText(const GuiRect& clipRect, int32 alignment, IGuiRenderContext& grc, ID_FONT fontId, cstr text, RGBAb colour, IEventCallback<GlyphContext>* glyphCallback, int dxShift)
+		RENDERER_API GuiRect RenderHQText(const GuiRect& clipRect, int32 alignment, IGuiRenderContext& grc, ID_FONT fontId, cstr text, RGBAb colour, IEventCallback<GlyphContext>* glyphCallback, int dxShift)
 		{
 			if (text == nullptr)
 			{
@@ -1014,7 +1018,7 @@ namespace Rococo
 			return Quantize(GuiRectf{ job.startPos.x, job.startPos.y, job.startPos.x + span.x, job.startPos.y + span.y });
 		}
 
-		Vec2 RenderHQText_LeftAligned_VCentre(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour)
+		RENDERER_API Vec2 RenderHQText_LeftAligned_VCentre(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour)
 		{
 			if (text == nullptr || *text == 0) return { 0,0 };
 
@@ -1056,7 +1060,7 @@ namespace Rococo
 			return span;
 		}
 
-		Vec2 RenderHQParagraph(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour)
+		RENDERER_API Vec2 RenderHQParagraph(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour)
 		{
 			if (text == nullptr || *text == 0) return { 0,0 };
 
@@ -1137,7 +1141,7 @@ namespace Rococo
 			return span;
 		}
 
-		Vec2 RenderHQText_LeftAligned_VCentre_WithCaret(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour, int caretPos)
+		RENDERER_API Vec2 RenderHQText_LeftAligned_VCentre_WithCaret(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour, int caretPos)
 		{
 			if (text == nullptr || *text == 0) return { 0,0 };
 
@@ -1220,7 +1224,7 @@ namespace Rococo
 			return span;
 		}
 
-		void RenderCentred(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour)
+		RENDERER_API void RenderCentred(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour)
 		{
 			Vec2 span = RenderHQText_LeftAligned_VCentre(grc, fontId, rect, text, RGBAb(0, 0, 0, 0));
 			int32 left = ((rect.left + rect.right - (int32)(span.x)) >> 1);
@@ -1228,7 +1232,7 @@ namespace Rococo
 			RenderHQText_LeftAligned_VCentre(grc, fontId, finalRect, text, colour);
 		}
 
-		void DrawBorderAround(IGuiRenderContext& grc, const GuiRect& rect, const Vec2i& width, RGBAb diag, RGBAb backdiag)
+		RENDERER_API void DrawBorderAround(IGuiRenderContext& grc, const GuiRect& rect, const Vec2i& width, RGBAb diag, RGBAb backdiag)
 		{
 			GuiRect topRect{ rect.left - width.x, rect.top, rect.right, rect.top + width.y };
 			DrawRectangle(grc, topRect, diag, diag);
@@ -1243,21 +1247,21 @@ namespace Rococo
 			DrawRectangle(grc, rightRect, diag, diag);
 		}
 
-		Fonts::IDrawTextJob& CreateHorizontalCentredText(StackSpaceGraphics& ss, int fontIndex, cstr text, RGBAb colour)
+		RENDERER_API Fonts::IDrawTextJob& CreateHorizontalCentredText(StackSpaceGraphics& ss, int fontIndex, cstr text, RGBAb colour)
 		{
 			static_assert(sizeof(ss) > sizeof(HorizontalCentredText), "Increase buffer size");
 			HorizontalCentredText *hct = new (&ss) HorizontalCentredText(0, fontIndex, text, FontColourFromRGBAb(colour));
 			return *hct;
 		}
 
-		Fonts::IDrawTextJob& CreateLeftAlignedText(StackSpaceGraphics& ss, const GuiRect& targetRect, int retzone, int hypzone, int fontHeight, int fontIndex, cstr text, RGBAb colour)
+		RENDERER_API Fonts::IDrawTextJob& CreateLeftAlignedText(StackSpaceGraphics& ss, const GuiRect& targetRect, int retzone, int hypzone, int fontHeight, int fontIndex, cstr text, RGBAb colour)
 		{
 			static_assert(sizeof(ss) > sizeof(LeftAlignedText), "Increase buffer size");
 			LeftAlignedText *lat = new (&ss) LeftAlignedText(targetRect, retzone, hypzone, fontHeight, fontIndex, text, FontColourFromRGBAb(colour));
 			return *lat;
 		}
 
-		float GetAspectRatio(const IRenderer& renderer)
+		RENDERER_API float GetAspectRatio(const IRenderer& renderer)
 		{
 			GuiMetrics metrics;
 			renderer.GetGuiMetrics(metrics);
@@ -1265,7 +1269,7 @@ namespace Rococo
 			return aspectRatio;
 		}
 
-		Vec2 PixelSpaceToScreenSpace(const Vec2i& v, IRenderer& renderer)
+		RENDERER_API Vec2 PixelSpaceToScreenSpace(const Vec2i& v, IRenderer& renderer)
 		{
 			GuiMetrics metrics;
 			renderer.GetGuiMetrics(metrics);

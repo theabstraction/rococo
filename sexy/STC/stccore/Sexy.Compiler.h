@@ -114,7 +114,7 @@ namespace Rococo { namespace Compiler
 		virtual IFunctionAliasBuilder& operator[](int index) = 0;
 	};
 
-	IFunctionBuilder* FindByName(IFunctionEnumeratorBuilder& e, cstr publicName);
+	SEXYUTIL_API IFunctionBuilder* FindByName(IFunctionEnumeratorBuilder& e, cstr publicName);
 	
 	ROCOCO_INTERFACE IMemberBuilder : public IMember
 	{
@@ -401,10 +401,10 @@ namespace Rococo { namespace Compiler
 		virtual void AddInterfaceVariable(const NameString& ns, const IStructure& st, void* userData) = 0;
 	};
 
-	IStructureBuilder* FindMember(IStructureBuilder& s, cstr name);
-	IInterfaceBuilder* GetInterface(IProgramObject& object, cstr fullyQualifiedName);
-	IStructureBuilder* MatchStructure(ILog& logger, cstr type, IModuleBuilder& module);
-	INamespaceBuilder* MatchNamespace(IModuleBuilder& module, cstr name);
+	SEXYUTIL_API IStructureBuilder* FindMember(IStructureBuilder& s, cstr name);
+	SEXYUTIL_API IInterfaceBuilder* GetInterface(IProgramObject& object, cstr fullyQualifiedName);
+	SEXYUTIL_API IStructureBuilder* MatchStructure(ILog& logger, cstr type, IModuleBuilder& module);
+	SEXYUTIL_API INamespaceBuilder* MatchNamespace(IModuleBuilder& module, cstr name);
 }} // Rococo::Compiler
 
 # ifdef WIN32

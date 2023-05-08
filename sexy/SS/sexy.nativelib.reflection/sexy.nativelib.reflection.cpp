@@ -1,6 +1,8 @@
 // sexy.nativelib.win32.cpp : Defines the exported functions for the DLL application.
 //
 
+#define SCRIPTEXPORT_API
+
 #include "sexy.nativelib.reflection.stdafx.h"
 
 #include "sexy.types.h"
@@ -12,6 +14,7 @@
 #include "sexy.script.h"
 
 #include "sexy.lib.util.h"
+#include "sexy.lib.sexy-util.h"
 #include "sexy.native.sys.type.h"
 
 #include "../STC/stccore/sexy.compiler.h"

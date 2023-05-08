@@ -56,11 +56,6 @@
 
 namespace Rococo
 {
-    namespace Strings
-    {
-        [[nodiscard]] uint32 FastHash(cstr text);
-    }
-
    namespace Compiler
    {
       class STCException;

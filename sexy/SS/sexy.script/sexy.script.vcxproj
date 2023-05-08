@@ -113,6 +113,7 @@
     <ClCompile Include="sexy.exceptions.cpp">
       <MinimalRebuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</MinimalRebuild>
     </ClCompile>
+    <ClCompile Include="sexy.global.functions.cpp" />
     <ClCompile Include="sexy.packages.cpp">
       <MinimalRebuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</MinimalRebuild>
     </ClCompile>

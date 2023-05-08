@@ -146,7 +146,7 @@ namespace Rococo
 			return IsAtomic(s) && AreEqual(s.String(), text);
 		}
 
-		void EscapeScriptStringToAnsi(IBinaryWriter& writer, cstr text)
+		SEXY_SPARSER_API void EscapeScriptStringToAnsi(IBinaryWriter& writer, cstr text)
 		{
 			if (*text == 0) return;
 
@@ -176,7 +176,7 @@ namespace Rococo
 			writer.Write(segment, (uint32)segmentLength);
 		}
 
-		void EscapeScriptStringToUnicode(IUnicode16Writer& writer, cstr text)
+		SEXY_SPARSER_API void EscapeScriptStringToUnicode(IUnicode16Writer& writer, cstr text)
 		{
 			if (*text == 0) return;
 

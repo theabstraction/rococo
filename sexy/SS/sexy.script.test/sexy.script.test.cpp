@@ -59,6 +59,8 @@
 #include <limits>
 
 #include "sexy.lib.util.h"
+#include "sexy.lib.sexy-util.h"
+
 #include "sexy.vm.h"
 #include "sexy.vm.cpu.h"
 #include "sexy.script.h"

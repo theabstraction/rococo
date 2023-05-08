@@ -36,12 +36,14 @@
 #include <sexy.stdstrings.h>
 #include <sexy.compiler.public.h>
 #include <sexy.compiler.h>
+#include <sexy.debug.types.h>
+#include <sexy.vm.cpu.h>
 
 using namespace Rococo::Strings;
 
-namespace Rococo { namespace Compiler
+namespace Rococo::Compiler
 {
-	IStructureBuilder* FindMember(IStructureBuilder& s, cstr name)
+	SEXYUTIL_API IStructureBuilder* FindMember(IStructureBuilder& s, cstr name)
 	{
 		for(int i = 0; i < s.MemberCount(); i++)
 		{
@@ -54,7 +56,7 @@ namespace Rococo { namespace Compiler
 		return NULL;
 	}
 
-	const IStructure* FindMember(const IStructure& s, cstr name)
+	SEXYUTIL_API const IStructure* FindMember(const IStructure& s, cstr name)
 	{
 		for(int i = 0; i < s.MemberCount(); i++)
 		{
@@ -67,7 +69,7 @@ namespace Rococo { namespace Compiler
 		return NULL;
 	}
 
-	const IMember* FindMember(const IStructure& s, cstr name, OUT int& offset)
+	SEXYUTIL_API const IMember* FindMember(const IStructure& s, cstr name, OUT int& offset)
 	{
 		offset = 0;
 
@@ -134,12 +136,12 @@ namespace Rococo { namespace Compiler
 		return false;
 	}
 
-	cstr GetFriendlyName(const IStructure& s)
+	SEXYUTIL_API cstr GetFriendlyName(const IStructure& s)
 	{
 		return IsNullType(s) ? s.GetInterface(0).Name() : s.Name();
 	}
 
-	IInterfaceBuilder* GetInterface(IProgramObject& object, cstr fullyQualifiedName)
+	SEXYUTIL_API IInterfaceBuilder* GetInterface(IProgramObject& object, cstr fullyQualifiedName)
 	{
 		NamespaceSplitter splitter(fullyQualifiedName);
 
@@ -156,7 +158,7 @@ namespace Rococo { namespace Compiler
 		return NULL;
 	}
 
-	IFunctionBuilder* FindByName(IFunctionEnumeratorBuilder& e, cstr publicName) 
+	SEXYUTIL_API IFunctionBuilder* FindByName(IFunctionEnumeratorBuilder& e, cstr publicName)
 	{
 		for(int i = 0; i < e.FunctionCount(); ++i)
 		{
@@ -170,8 +172,7 @@ namespace Rococo { namespace Compiler
 		return NULL;
 	}
 
-
-	const IFunction* FindByName(const IFunctionEnumerator& e, cstr publicName) 
+	SEXYUTIL_API const IFunction* FindByName(const IFunctionEnumerator& e, cstr publicName)
 	{
 		for(int i = 0; i < e.FunctionCount(); ++i)
 		{
@@ -185,7 +186,7 @@ namespace Rococo { namespace Compiler
 		return NULL;
 	}
 
-	const IFunction* GetFunctionForBytecode(IPublicProgramObject& obj, ID_BYTECODE id)
+	SEXYUTIL_API const IFunction* GetFunctionForBytecode(IPublicProgramObject& obj, ID_BYTECODE id)
 	{
 		for(int i = 0; i < obj.ModuleCount(); ++i)
 		{
@@ -206,7 +207,7 @@ namespace Rococo { namespace Compiler
 		return NULL;
 	}
 
-	bool DoesClassImplementInterface(const IStructure& s, const IInterface& testInterf)
+	SEXYUTIL_API bool DoesClassImplementInterface(const IStructure& s, const IInterface& testInterf)
 	{
 		for(int i = 0; i < s.InterfaceCount(); ++i)
 		{
@@ -223,7 +224,7 @@ namespace Rococo { namespace Compiler
 		return false;
 	}
 
-	INamespaceBuilder* MatchNamespace(IModuleBuilder& module, cstr name)
+	SEXYUTIL_API INamespaceBuilder* MatchNamespace(IModuleBuilder& module, cstr name)
 	{
 		INamespaceBuilder& root = module.Object().GetRootNamespace();
 
@@ -240,7 +241,7 @@ namespace Rococo { namespace Compiler
 		return NULL;
 	}
 
-	IStructureBuilder* MatchStructure(ILog& logger, cstr type, IModuleBuilder& module)
+	SEXYUTIL_API IStructureBuilder* MatchStructure(ILog& logger, cstr type, IModuleBuilder& module)
 	{
 		if (type[0] == '_')
 		{
@@ -345,4 +346,37 @@ namespace Rococo { namespace Compiler
 			return NULL;				
 		}			
 	}
-}}
+
+	SEXYUTIL_API bool IsNullType(const IStructure& type)
+	{
+		return StartsWith(type.Name(), "_Null");
+	}
+} // Rococo::Compiler
+
+namespace Rococo::Script
+{
+	SEXYUTIL_API void EnumerateRegisters(Rococo::VM::CPU& cpu, Rococo::Debugger::IRegisterEnumerationCallback& cb)
+	{
+		char value[128];
+
+		SafeFormat(value, 128, "0x%p", cpu.PC());
+		cb.OnRegister("PC", value);
+
+		SafeFormat(value, 128, "0x%p", cpu.SP());
+		cb.OnRegister("SP", value);
+
+		SafeFormat(value, 128, "0x%p", cpu.SF());
+		cb.OnRegister("SF", value);
+
+		SafeFormat(value, 128, "0x%X", cpu.SR());
+		cb.OnRegister("SR", value);
+
+		for (int i = 4; i < 256; ++i)
+		{
+			char name[16];
+			SafeFormat(name, 16, "D%u", i);
+			SafeFormat(value, 128, "%lld / 0x%1llX", cpu.D[i].int64Value, cpu.D[i].int64Value);
+			cb.OnRegister(name, value);
+		}
+	}
+}

@@ -38,5 +38,6 @@
 
 #pragma once
 
+#define SEXY_SPARSER_API
 #include "bennyhill.h"
 

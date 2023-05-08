@@ -38,6 +38,10 @@
 
 #include <sexy.types.h>
 
+#ifndef SEXYUTIL_API
+# define SEXYUTIL_API ROCOCO_API_IMPORT
+#endif
+
 namespace Rococo { namespace VM
 {
 	struct IVirtualMachine;
@@ -333,7 +337,7 @@ namespace Rococo {
 			virtual const IFunctionAlias& operator[](int index) const = 0;
 		};
 
-		const IFunction* FindByName(const IFunctionEnumerator& e, cstr publicName);
+		SEXYUTIL_API const IFunction* FindByName(const IFunctionEnumerator& e, cstr publicName);
 
 		ROCOCO_INTERFACE IMember
 		{
@@ -398,7 +402,7 @@ namespace Rococo {
 			virtual const INamespace& GetPrefix(int index) const = 0;
 		};
 
-		bool IsNullType(const IStructure& s);
+		SEXYUTIL_API bool IsNullType(const IStructure& s);
 
 		enum VARLOCATION
 		{
@@ -553,8 +557,8 @@ namespace Rococo {
 			virtual size_t FreeLeakedObjects(IEventCallback<LeakArgs>* leakCallback = nullptr) = 0;
 		};
 
-		const IFunction* GetFunctionForBytecode(IPublicProgramObject& obj, ID_BYTECODE id);
-		bool DoesClassImplementInterface(const IStructure& s, const IInterface& testInterf);
+		SEXYUTIL_API const IFunction* GetFunctionForBytecode(IPublicProgramObject& obj, ID_BYTECODE id);
+		SEXYUTIL_API bool DoesClassImplementInterface(const IStructure& s, const IInterface& testInterf);
 
 		enum ERRORCODE
 		{
@@ -626,15 +630,14 @@ namespace Rococo {
 			virtual int GetOffset(size_t variableIndex) const = 0;
 		};
 
-		const IMember* FindMember(const IStructure& s, cstr name, OUT int& offset);
-		const IStructure* FindMember(const IStructure& s, cstr name);
-		bool GetMethodIndices(OUT int& interfaceIndex, OUT int& methodIndex, const IStructure& s, cstr interfaceName, cstr methodName);
-		bool GetMethodIndices(OUT int& interfaceIndex, OUT int& methodIndex, const IStructure& s, cstr methodName);
-		cstr GetFriendlyName(const IStructure& s);
+		SEXYUTIL_API const IMember* FindMember(const IStructure& s, cstr name, OUT int& offset);
+		SEXYUTIL_API const IStructure* FindMember(const IStructure& s, cstr name);
+		SEXYUTIL_API bool GetMethodIndices(OUT int& interfaceIndex, OUT int& methodIndex, const IStructure& s, cstr interfaceName, cstr methodName);
+		SEXYUTIL_API bool GetMethodIndices(OUT int& interfaceIndex, OUT int& methodIndex, const IStructure& s, cstr methodName);
+		SEXYUTIL_API cstr GetFriendlyName(const IStructure& s);
 
-		BITCOUNT GetBitCount(VARTYPE type);
+		SEXYUTIL_API BITCOUNT GetBitCount(VARTYPE type);
 	}
 }
-
 
 #endif

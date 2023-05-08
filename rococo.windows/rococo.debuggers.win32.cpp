@@ -204,7 +204,7 @@ namespace Rococo
 {
 	namespace Windows
 	{
-		void ShowExceptionDialog(const ExceptionDialogSpec& spec, HWND parent, IException& ex)
+		ROCOCO_API_EXPORT void ShowExceptionDialog(const ExceptionDialogSpec& spec, HWND parent, IException& ex)
 		{
 			ANON::ExceptionEditorContext context;
 			context.spec = &spec;

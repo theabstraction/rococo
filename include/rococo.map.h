@@ -29,7 +29,7 @@ namespace Rococo
 		virtual void Free() = 0;
 	};
 
-	IDictionarySupervisor* CreateDictionaryImplementation();
+	ROCOCO_API IDictionarySupervisor* CreateDictionaryImplementation();
 
 	class Dictionary : public IDictionary
 	{
@@ -67,5 +67,5 @@ namespace Rococo
 		}
 	};
 
-	void AddUnique(IDictionary& d, cstr key, void* data);
+	ROCOCO_API void AddUnique(IDictionary& d, cstr key, void* data);
 }

@@ -26,7 +26,7 @@ namespace Rococo
 			virtual void Format(const StackFrame& sf) = 0;
 		};
 
-		void FormatStackFrames(IStackFrameFormatter& formatter);
+		ROCOCO_API void FormatStackFrames(IStackFrameFormatter& formatter);
 
 		ROCOCO_INTERFACE IStackFrameEnumerator
 		{

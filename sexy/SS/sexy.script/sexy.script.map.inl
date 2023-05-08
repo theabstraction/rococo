@@ -599,7 +599,7 @@ namespace Rococo::Script
 		}
 	}
 
-	MapNode* InsertKey(MapImage& theMap, VariantValue source, IScriptSystem& ss)
+	SCRIPTEXPORT_API MapNode* InsertKey(MapImage& theMap, VariantValue source, IScriptSystem& ss)
 	{
 		// Need to explicity cast to virtual, as OSX 'optimizes' by using direct function calls to NullObject in every case
 		IKeyResolver& virtualResolver = static_cast<IKeyResolver&>(theMap.KeyResolver);
