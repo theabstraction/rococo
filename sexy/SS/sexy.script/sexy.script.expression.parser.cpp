@@ -49,6 +49,13 @@ using namespace Rococo::Script;
 
 namespace Rococo 
 { 
+	int CALLTYPE_C StringPrint(TokenBuffer& token, const char* format, ...)
+	{
+		va_list args;
+		va_start(args, format);
+		return SafeVFormat(token.Text, TokenBuffer::MAX_TOKEN_CHARS, format, args);
+	}
+
 	namespace Script
 	{
 		void AppendInvokeCallDestructor(CCompileEnvironment& ce, const IStructure& s, cstr name, int SFoffset);

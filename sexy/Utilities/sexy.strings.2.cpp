@@ -87,11 +87,11 @@ namespace Rococo
 	SEXYUTIL_API sexstring CreateSexString(cstr src, int32 length)
 	{
 		if (length < 0) length = StringLength(src);
-		int32 nBytes = sizeof(int32) + sizeof(char) * (length+1);
+		int32 nBytes = sizeof(int32) + sizeof(char) * (length + 1);
 		sexstring s = (sexstring) new char[nBytes];
 		s->Length = length;
 
-		memcpy_s(s->Buffer, sizeof(char) * (length+1), src, sizeof(char) * length);
+		memcpy_s(s->Buffer, sizeof(char) * (length + 1), src, sizeof(char) * length);
 
 		s->Buffer[length] = 0;
 		return s;
@@ -99,115 +99,7 @@ namespace Rococo
 
 	SEXYUTIL_API void FreeSexString(sexstring s)
 	{
-		char* buf = (char*) s;
+		char* buf = (char*)s;
 		delete[] buf;
 	}
-
-	bool TryGetcharFromHex(char& value, char hex)
-	{
-		if (hex >= (char) '0' && hex <= (char) '9')
-		{
-			value = hex -(char) '0';
-			return true;
-		}
-
-		if (hex >= (char) 'A' && hex <= (char) 'F')
-		{
-			value = 10 + hex -(char) 'A';
-			return true;
-		}
-
-		if (hex >= (char) 'a' && hex <= (char) 'f')
-		{
-			value = 10 + hex -(char) 'a';
-			return true;
-		}
-
-		return false;
-	}
-
-	const char ESCAPECHAR = '&';
-
-	bool ParseEscapeCharacter(char& finalChar, char c)
-	{
-		switch(c)
-		{
-		case ESCAPECHAR: // ESCAPECHAR maps to ESCAPECHAR
-			finalChar = (char) ESCAPECHAR;
-			break;
-		case 'q': // \q maps to "
-		case '"': // \" maps to "
-			finalChar =  (char)'"';
-			break;
-		case 't': // \t maps to horizontal tab
-			finalChar =  (char)'\t';
-			break;
-		case 'r': // \r maps to linefeed
-			finalChar =  (char)'\r';
-			break;
-		case 'n': // \n maps to newline
-			finalChar =  (char)'\n';
-			break;
-		case '0': // \0 maps to character null
-			finalChar =  (char)'\0';
-			break;
-		case 'a': // \a maps to bell (alert)
-			finalChar =  (char)'\a';
-			break;
-		case 'b': // \b maps to backspace
-			finalChar =  (char)'\b';
-			break;
-		case 'f': // \b maps to formfeed
-			finalChar =  (char)'\f';
-			break;
-		case 'v': // \b maps to vertical tab
-			finalChar =  (char)'\v';
-			break;
-		case '\'': // \' maps to '
-			finalChar =  (char)'\'';
-			break;
-		case '?': // \? maps to ?'
-			finalChar =  (char)'?';
-			break;
-		default:
-			return false;
-		}
-
-		return true;
-	}
-
-	bool TryParseSexHex(char& finalChar, cstr s)
-	{
-		if (sizeof(char) == 1)
-		{			
-			char c16;
-			char c1;
-			if (!TryGetcharFromHex(c16, s[0])) return false;
-			if (!TryGetcharFromHex(c1, s[1]))  return false;
-			finalChar = c1 + (c16 << 4);
-		}
-		else if (sizeof(char) == 2)
-		{
-			// \X means insert byte by four hex digits (16-bit UNICODE)
-			char c4096;
-			char c256;
-			char c16;
-			char c1;
-
-			if (!TryGetcharFromHex(c4096, s[0])) return false;
-			if (!TryGetcharFromHex(c256,  s[1])) return false;
-			if (!TryGetcharFromHex(c16,   s[2])) return false;
-			if (!TryGetcharFromHex(c1,    s[3])) return false;
-			finalChar = c1 + (c16 << 4) + (c256 << 8) + (c4096 << 12);
-		}
-
-		return true;
-	}
-
-   int CALLTYPE_C StringPrint(TokenBuffer& token, const char* format, ...)
-   {
-      va_list args;
-      va_start(args, format);
-      return SafeVFormat(token.Text, TokenBuffer::MAX_TOKEN_CHARS, format, args);
-   }
 }

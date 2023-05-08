@@ -181,8 +181,6 @@ namespace Rococo
 		const ID_BYTECODE* vTable;
 	};
 
-	SEXYUTIL_API int StringPrint(TokenBuffer& token, const char* format, ...);
-
 	enum BITCOUNT
 	{
 		BITCOUNT_BAD = 0,
