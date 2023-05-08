@@ -55,18 +55,14 @@ namespace Rococo { namespace Script
 	{
 		if (!arg.TryResolveArgument())
 		{
-			sexstringstream<1024> streamer;
-
 			if (genericArgType != NULL)
 			{
-				streamer.sb << "Unknown type in argument (***" << type << "*** " << genericArgType << " " << id << ") of function " << source << "\r\n";
+				Throw(e, "Unknown type in argument: *** %s *** %s %s of function %s", type, genericArgType, id, source);
 			}
 			else
 			{
-				streamer.sb << "Unknown type in argument (***" << type << "*** " << id << ") of function " << source << "\r\n";
+				Throw(e, "Unknown type in argument (*** %s *** %s of function %s", type, id, source);
 			}
-			
-			Throw(e, streamer);
 		}
 	}
 
@@ -79,12 +75,7 @@ namespace Rococo { namespace Script
 		}
 		catch (IException& e)
 		{
-			sexstringstream<1024> streamer;
-			streamer.sb << e.Message();
-			Throw(src, streamer);
-
-			IStructureBuilder *s = NULL;
-			return *s;
+			Throw(src, "%s", e.Message());
 		}
 	}
 
@@ -469,9 +460,7 @@ namespace Rococo { namespace Script
 		IStructure* s = GetLocalStructure(script, className);
 		if (s == NULL)
 		{
-			sexstringstream<1024> streamer;
-			streamer.sb << ("Could not find a matching class definition inside the module for ") << className;
-			Throw(nameExpr, streamer);
+			Throw(nameExpr, "Could not find a matching class definition inside the module for %s", className);
 		}
 
 		IArgumentBuilder& arg = method.AddInput(NameString::From(THIS_POINTER_TOKEN), TypeString::From(className), (void*) &nameExpr);			
@@ -541,9 +530,7 @@ namespace Rococo { namespace Script
 
 		if (startPos > endPos)
 		{
-			sexstringstream<1024> streamer;
-			streamer.sb << ("Expected a child constructor indicator '->' after the constructor input arguments,\r\n followed by (construct ") << m.Name() << (" arg1... argN) amongst the child constructors."); 
-			Throw(constructorDef, streamer);
+			Throw(constructorDef, "Expected a child constructor indicator '->' after the constructor input arguments,\r\n followed by (construct %s arg1... argN) amongst the child constructors.", m.Name());
 		}
 
 		// We need a constructor for generic types
@@ -559,15 +546,11 @@ namespace Rococo { namespace Script
 
 		if (constructCount == 0)
 		{
-			sexstringstream<1024> streamer;
-			streamer.sb << ("Could not find child constructor for ") << m.Name() << (".\r\nExpected (construct ") << m.Name() << (" arg1... argN) amongst the child constructors."); 
-			Throw(constructorDef, streamer);
+			Throw(constructorDef, "Could not find child constructor for %s.\r\nExpected (construct %s arg1... argN) amongst the child constructors.", m.Name(), m.Name());
 		}
 		else if (constructCount > 1)
 		{
-			sexstringstream<1024> streamer;
-			streamer.sb << ("Conflicting child constructors for ") << m.Name();
-			Throw(constructorDef, streamer);
+			Throw(constructorDef, "Conflicting child constructors for %s", m.Name());
 		}
 	}
 
@@ -717,9 +700,7 @@ namespace Rococo { namespace Script
 			const IStructure* s = f.Module().FindStructure(classTypeName);
 			if (s == NULL)
 			{
-				sexstringstream<1024> streamer;
-				streamer.sb <<  ("Unknown structure: ") << classTypeName;
-				Throw(fdef, streamer);
+				Throw(fdef, "Unknown structure: %s", classTypeName);
 			}
 
 			f.SetType(s);
@@ -1033,9 +1014,10 @@ namespace Rococo { namespace Script
 		}
 		catch(STCException& ex)
 		{
-			sexstringstream<1024> streamer;
-			StreamSTCEX(streamer.sb, ex);
-			Throw(sequence, *streamer.sb);
+			char buf[256];
+			StackStringBuilder ssb(buf, sizeof buf);
+			StreamSTCEX(ssb, ex);
+			Throw(sequence, "%s", buf);
 		}
 	}
 
@@ -1047,9 +1029,10 @@ namespace Rococo { namespace Script
 		}
 		catch (STCException& ex)
 		{
-			sexstringstream<1024> streamer;
-			StreamSTCEX(streamer.sb, ex);
-			Throw(sequence, *streamer.sb);
+			char buf[256];
+			StackStringBuilder ssb(buf, sizeof buf);
+			StreamSTCEX(ssb, ex);
+			Throw(sequence, "%s", buf);
 		}
 	}
 
@@ -1202,10 +1185,7 @@ namespace Rococo { namespace Script
 		}
 		else if (args.NumberOfElements() != type.MemberCount())
 		{
-			sexstringstream<1024> streamer;
-			streamer.sb << ("The number of arguments supplied in the memberwise constructor is ") << args.NumberOfElements()
-					 << (", while the number of members in ") << GetFriendlyName(type) << (" is ") << type.MemberCount();
-			Throw(args, streamer);
+			Throw(args, "The number of arguments supplied in the memberwise constructor is %d, while the number of members in %s is %d", args.NumberOfElements(), GetFriendlyName(type), type.MemberCount());
 		}
 
 		for(int i = 0; i < type.MemberCount(); ++i)
@@ -1772,9 +1752,7 @@ namespace Rococo { namespace Script
 
 		if (!f.TryResolveArguments())
 		{
-			sexstringstream<1024> streamer;
-			streamer.sb << ("Error resolving arguments in null method: ") << qualifiedMethodName;
-			Throw(source, streamer);
+			Throw(source, "Error resolving arguments in null method: %s", qualifiedMethodName);
 		}
 
 		f.Builder().SetThisOffset(ObjectStub::BYTECOUNT_INSTANCE_TO_INTERFACE0);
@@ -2022,9 +2000,7 @@ namespace Rococo { namespace Script
 				}
 				catch(STCException& ex)
 				{
-					sexstringstream<1024> streamer;
-					streamer.sb << ex.Source() << ": " << ex.Message();
-					Rococo::Sex::Throw(root, streamer);
+					Rococo::Sex::Throw(root, "%s: %s", ex.Source(), ex.Message());
 				}			
 				catch (std::exception& e)
 				{
@@ -2304,35 +2280,37 @@ namespace Rococo { namespace Script
 					{
 						if (s.InterfaceCount() != 1)
 						{
-							sexstringstream<1024> streamer;
-							streamer.sb << ("Cannot inline IString, as ") << mod.Name() << ("/") << s.Name() << (" implements multiple interfaces.");
-							programObject.Log().Write(*streamer.sb);
+							char buf[256];
+							SafeFormat(buf, "%s", "Cannot inline IString, as %s / %s implements multiple interfaces.", mod.Name(), s.Name());
+							programObject.Log().Write(buf);
 							return false;
 						}
 
 						if (s.MemberCount() < 5)
 						{
-							sexstringstream<1024> streamer;
-							streamer.sb << ("Cannot inline IString, as ") << mod.Name() << ("/") << s.Name() << (" does not implement both the buffer and length members.");
-							programObject.Log().Write(*streamer.sb);
+							char buf[256];
+							SafeFormat(buf, "%s", "Cannot inline IString, as %s / %s does not implement both the buffer and length members.", mod.Name(), s.Name());
+							programObject.Log().Write(buf);
 							return false;
 						}
 
 						const IMember& bufferMember = s.GetMember(4);
 						if (bufferMember.UnderlyingType()->VarType() != VARTYPE_Pointer || !AreEqual(("buffer"), bufferMember.Name()))
 						{
-							sexstringstream<1024> streamer;
-							streamer.sb << ("Cannot inline IString, as ") << mod.Name() << ("/") << s.Name() << (" 5th member is not (Pointer Buffer).");
-							programObject.Log().Write(*streamer.sb);
+							char buf[256];
+							StackStringBuilder ssb(buf, sizeof buf);
+							ssb << ("Cannot inline IString, as ") << mod.Name() << ("/") << s.Name() << (" 5th member is not (Pointer Buffer).");
+							programObject.Log().Write(buf);
 							return false;
 						}
 
 						const IMember& lenMember = s.GetMember(3);
 						if (lenMember.UnderlyingType()->VarType() != VARTYPE_Int32 || !AreEqual(("length"), lenMember.Name()))
 						{
-							sexstringstream<1024> streamer;
-							streamer.sb << ("Cannot inline IString, as ") << mod.Name() << ("/") << s.Name() << (" 4th member is not (Int32 length).");
-							programObject.Log().Write(*streamer.sb);
+							char buf[256];
+							StackStringBuilder ssb(buf, sizeof buf);
+							ssb << ("Cannot inline IString, as ") << mod.Name() << ("/") << s.Name() << (" 4th member is not (Int32 length).");
+							programObject.Log().Write(buf);
 							return false;
 						}
 					}
@@ -2463,9 +2441,7 @@ namespace Rococo { namespace Script
 
 		if (!f.TryResolveArguments())
 		{
-			sexstringstream<1024> streamer;
-			streamer.sb << ("Error resolving arguments in: ") << nullFunctionName;
-			Throw(source, streamer);
+			Throw(source, "Error resolving arguments in: %s", nullFunctionName);
 		}
 
 		f.Builder().Begin();
@@ -2869,9 +2845,7 @@ namespace Rococo { namespace Script
 		IStructure* st = MatchStructure(type, module);
 		if (st == NULL)
 		{
-			sexstringstream<1024> streamer;
-			streamer.sb << ("Cannot find match to ") << type.String()->Buffer;
-			Throw(s, streamer);
+			Throw(s, "Cannot find match to %s", type.String()->Buffer);
 		}
 
 		argName = name.String()->Buffer;
@@ -2939,9 +2913,7 @@ namespace Rococo { namespace Script
 
 		if (!ns.FindArchetype(archetypeName))
 		{
-			sexstringstream<1024> streamer;
-			streamer.sb << ("Could not find archetype: '") << archetypeName << ("'");
-			Throw(s, streamer);
+			Throw(s, "Could not find archetype: '%s'", archetypeName);
 		}
 
 		ns.AddArchetype(archetypeName, names, st, ar, genericArg1s, nOutputs, s.NumberOfElements() - nOutputs - 3, &s);
@@ -2951,9 +2923,7 @@ namespace Rococo { namespace Script
 	{
 		if (ns.FindArchetype(archetypeName))
 		{
-			sexstringstream<1024> streamer;
-			streamer.sb << ("Archetype declaration conflict. Multiple declarations using the same name: '") << archetypeName << ("'");
-			Throw(s, streamer);
+			Throw(s, "Archetype declaration conflict. Multiple declarations using the same name: '%s'", archetypeName);
 		}
 
 		return ns.AddArchetype(archetypeName, NULL, NULL, NULL, NULL, 0, 0, &s);
@@ -3672,9 +3642,7 @@ namespace Rococo { namespace Script
 		const IFunction* f = classType.Module().FindFunction(qualifiedName);
 		if (f == NULL)
 		{
-			sexstringstream<1024> streamer;
-			streamer.sb << ("Expecting method named '") << (cstr) qualifiedName << ("' inside source module");
-			Throw(classType.Definition() != NULL ? *(const ISExpression*) classType.Definition() : src, streamer);
+			Throw(classType.Definition() != NULL ? *(const ISExpression*) classType.Definition() : src, "Expecting method named '%s' inside source module", (cstr)qualifiedName);
 		}
 
 		TokenBuffer dottedName;
@@ -3717,9 +3685,7 @@ namespace Rococo { namespace Script
 			const ISExpression* exp = (const ISExpression*) specimen.Definition();
 			if (exp != NULL)
 			{
-				sexstringstream<1024> streamer;
-				streamer.sb << ("Type requires an explicit constructor definition inside the module ") << type.Module().Name() << (". Expecting ") << type.Name() << (".Construct");
-				Throw(*exp, streamer);
+				Throw(*exp, "Type requires an explicit constructor definition inside the module %s. Expecting %s.Construct", type.Module().Name(), type.Name());
 			}
 		}
 	}
@@ -3895,9 +3861,7 @@ namespace Rococo { namespace Script
 
 		if (cons == NULL)
 		{
-			sexstringstream<1024> streamer;
-			streamer.sb << ("Cannot find ") << fullName << (" in the module");
-			Throw(src, streamer);
+			Throw(src, "Cannot find %s in the module", fullName);
 		}
 
 		return *cons;
@@ -3960,9 +3924,7 @@ namespace Rococo { namespace Script
 		IFunctionBuilder& cons = GetConcreteMethod(classNameExpr, className, ("Construct"), script.ProgramModule());
 		if (cons.NumberOfOutputs() > 0)
 		{
-			sexstringstream<1024> streamer;
-			streamer.sb << ("Unexpected output ") << (cstr) className->Buffer << (".Construct in the module");
-			Throw(classNameExpr, streamer);
+			Throw(classNameExpr, "Unexpected output %s.Construct in the module", (cstr)className->Buffer);
 		}
 
 		if (cons.NumberOfInputs() != body.NumberOfElements() - 1)
@@ -4346,12 +4308,7 @@ namespace Rococo { namespace Script
 		}
 		catch (IException& e)
 		{
-			sexstringstream<1024> streamer;
-			streamer.sb << e.Message();
-			Throw(source, streamer);
-
-			IFunctionBuilder* f = NULL;
-			return *f;
+			Throw(source, "%s", e.Message());
 		}		
 	}
 

@@ -186,17 +186,13 @@ namespace Rococo
          VariantValue lValue;
          if (Parse::PARSERESULT_GOOD != Parse::TryParse(OUT lValue, lType, leftString))
          {
-            sexstringstream<1024> streamer;
-            streamer.sb << ("Cannot parse the left part of the expression: ") << leftString;
-            Throw(parent, streamer);
+            Throw(parent, "Cannot parse the left part of the expression: %s", leftString);
          }
 
          VariantValue rValue;
          if (Parse::PARSERESULT_GOOD != Parse::TryParse(OUT rValue, rType, rightString))
          {
-            sexstringstream<1024> streamer;
-            streamer.sb << ("Cannot parse the right part of the expression: ") << rightString;
-            Throw(parent, streamer);
+            Throw(parent, "Cannot parse the right part of the expression: %s", rightString);
          }
 
          VariantValue newLValue, newRValue;
@@ -254,9 +250,7 @@ namespace Rococo
             IFunctionBuilder& f = MustMatchFunction(ce.Builder.Module(), s, id);
             if (!IsGetAccessor(f) || !IsNumericTypeOrBoolean(f.GetArgument(0).VarType()))
             {
-               sexstringstream<1024> streamer;
-               streamer.sb << ("Expecting variable or single valued function with no inputs, and return type ") << Parse::VarTypeName(type);
-               Throw(s, streamer);
+               Throw(s, "Expecting variable or single valued function with no inputs, and return type '%s'", Parse::VarTypeName(type));
             }
 
             type = f.GetArgument(0).VarType();
@@ -293,9 +287,7 @@ namespace Rococo
                   type = CompileMethodCallWithoutInputAndReturnNumericValue(ce, s, instance, item);
                   if (!IsNumericTypeOrBoolean(type))
                   {
-                     sexstringstream<1024> streamer;
-                     streamer.sb << ("Expecting method returning ") << Parse::VarTypeName(type);
-                     Throw(s, streamer);
+                     Throw(s, "Expecting method returning %s", Parse::VarTypeName(type));
                   }
 
                   if (tempdepth > Rococo::ROOT_TEMPDEPTH)
@@ -379,9 +371,7 @@ namespace Rococo
          VariantValue rValue;
          if (Parse::PARSERESULT_GOOD != Parse::TryParse(OUT rValue, rType, rightString))
          {
-            sexstringstream<1024> streamer;
-            streamer.sb << ("Cannot parse the right part of the expression: ") << rightString;
-            Throw(parent, streamer);
+            Throw(parent, "Cannot parse the right part of the expression: %s", rightString);
          }
 
          ICodeBuilder& builder = ce.Builder;
@@ -464,9 +454,7 @@ namespace Rococo
          VariantValue lValue;
          if (Parse::PARSERESULT_GOOD != Parse::TryParse(OUT lValue, lType, leftString))
          {
-            sexstringstream<1024> streamer;
-            streamer.sb << ("Cannot parse the left part of the expression: ") << leftString;
-            Throw(parent, streamer);
+            Throw(parent, "Cannot parse the left part of the expression: %s", leftString);
          }
 
          VARTYPE varRType = ce.Builder.GetVarType(rightVarName);
@@ -677,26 +665,20 @@ namespace Rococo
          VARTYPE type = ce.Builder.GetVarType(varName);
          if (type == VARTYPE_Derivative)
          {
-            sexstringstream<1024> streamer;
-            streamer.sb << helper << (" was of derived type and cannot be directly used in a comparison expression");
-            Throw(parent, streamer);
+            Throw(parent, "%s was of derived type and cannot be directly used in a comparison expression", helper);
          }
          else if (type == VARTYPE_Bad)
          {
             type = Parse::GetLiteralType(varName);
             if (!IsPrimitiveType(type))
             {
-               sexstringstream<1024> streamer;
-               streamer.sb << helper << (" was not recognized either as a literal, or as an identifier");
-               Throw(parent, streamer);
+               Throw(parent, "%s was not recognized either as a literal, or as an identifier", helper);
             }
 
             VariantValue value;
             if (Parse::TryParse(OUT value, type, varName) != Parse::PARSERESULT_GOOD)
             {
-               sexstringstream<1024> streamer;
-               streamer.sb << helper << (" was not parsed either as a literal, or as an identifier");
-               Throw(parent, streamer);
+               Throw(parent, "%s was not parsed either as a literal, or as an identifier", helper);
             }
 
             ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7 + A, value, GetBitCount(type));
@@ -1148,9 +1130,7 @@ namespace Rococo
 
                 if (expected)
                 {
-                    sexstringstream<1024> streamer;
-                    streamer.sb << ("Expected expression with 3 elements. This expression had ") << s.NumberOfElements() << (" elements.");
-                    Throw(s, streamer);
+                    Throw(s, "Expected expression with 3 elements. This expression had %d elements", s.NumberOfElements());
                 }
                 // All binary predicate expressions have 3 elements
                 return false;

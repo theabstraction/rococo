@@ -965,9 +965,7 @@ namespace Rococo
 
 			   if (!TryCompileAssignArchetype(ce, value, elementType, false))
 			   {
-				   sexstringstream<1024> streamer;
-				   streamer.sb << ("Could not evaluate the expression as type ") << GetTypeName(elementType.VarType());
-				   Throw(value, streamer);
+				   Throw(value, "Could not evaluate the expression as type %s ", GetTypeName(elementType.VarType()));
 			   } // The value is in D7
 
 			   ce.Builder.AssignVariableRefToTemp(instanceName, 0, 0); // array goes to D4
@@ -982,9 +980,7 @@ namespace Rococo
 
 			   if (!TryCompileArithmeticExpression(ce, value, true, elementType.VarType()))
 			   {
-				   sexstringstream<1024> streamer;
-				   streamer.sb << ("Could not evaluate the expression as type ") << GetTypeName(elementType.VarType());
-				   Throw(value, streamer);
+				   Throw(value, "Could not evaluate the expression as type %s", GetTypeName(elementType.VarType()));
 			   } // The value is in D7
 		
 			   ce.Builder.AssignVariableToTemp(instanceName, 0, 0); // array goes to D4
@@ -1044,9 +1040,7 @@ namespace Rococo
 		   const IStructure& elementType = GetElementTypeForArrayVariable(ce, s, instanceName);
 		   if (elementType.VarType() != requiredType)
 		   {
-			   sexstringstream<1024> streamer;
-			   streamer.sb << ("The array pops out type ") << GetTypeName(elementType.VarType()) << (", but the expression required type ") << requiredType;
-			   Throw(s, streamer);
+			   Throw(s, "The array pops out type %s, but the expression required type %s", GetTypeName(elementType.VarType()), requiredType);
 		   }
 
 		   ce.Builder.AssignVariableToTemp(instanceName, 0, 0); // array goes to D4
@@ -1116,9 +1110,7 @@ namespace Rococo
 		   {
 			   if (!TryCompileArithmeticExpression(ce, value, true, elementVarType))
 			   {
-				   sexstringstream<1024> streamer;
-				   streamer.sb << ("Could not evaluate the expression as type ") << GetTypeName(elementVarType);
-				   Throw(value, streamer);
+				   Throw(value, "Could not evaluate the expression as type %s", GetTypeName(elementVarType));
 			   } // The value is in D7
 		   }
 		   else
@@ -1263,11 +1255,8 @@ namespace Rococo
 
 		   if (memberType.VarType() != type || (type == VARTYPE_Derivative && memberType != *structType))
 		   {
-			   sexstringstream<1024> streamer;
-			   streamer.sb << ("The array element type ") << elementType.Name() << (" does not match the type required: ");
-			   if (structType == NULL) streamer.sb << GetTypeName(type);
-			   else streamer.sb << structType->Name();
-			   Throw(subItemName, streamer);
+			   cstr requiredType = structType == NULL ? GetTypeName(type) : structType->Name();
+			   Throw(subItemName, "The array element type %s does not match the type required: %s", elementType.Name(), requiredType);   
 		   }
 
 		   if (!TryCompileArithmeticExpression(ce, indexExpr, true, VARTYPE_Int32)) 
@@ -1659,9 +1648,7 @@ namespace Rococo
 			   }
 		   }
 
-		   sexstringstream<1024> streamer;
-		   streamer.sb <<  ("Expecting an expression that evaluates to ") << GetTypeName(type);
-		   Throw(valueExpr, streamer);						
+		   Throw(valueExpr, "Expecting an expression that evaluates to %s ", GetTypeName(type));
 	   }
 
 	   void CompileArrayDeclarationAndAssign(CCompileEnvironment& ce, cr_sex s)

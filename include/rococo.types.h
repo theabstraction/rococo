@@ -355,7 +355,7 @@ namespace Rococo
 
 #if USE_VSTUDIO_SAL
 	[[ noreturn ]]
-	void Throw(int32 errorCode, _Printf_format_string_ cstr format, ...);
+	ROCOCO_API void Throw(int32 errorCode, _Printf_format_string_ cstr format, ...);
 #else
 	[[ noreturn ]]
 	ROCOCO_API void Throw(int32 errorCode, cstr format, ...);

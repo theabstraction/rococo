@@ -277,9 +277,9 @@ namespace Rococo::Compiler
 
 			if (ns == NULL) 
 			{
-				sexstringstream<256> streamer;
-				streamer.sb << "Could not identify namespace " << body;
-				logger.Write(streamer);
+				char buf[256];
+				SafeFormat(buf, "Could not identify namespace %s", body);
+				logger.Write(buf);
 				return NULL;
 			}
 
@@ -296,9 +296,9 @@ namespace Rococo::Compiler
 			}
 			else
 			{
-				sexstringstream<1024> streamer;
-				streamer.sb << "Cannot find structure " << tail << " in namespace " << body;
-				logger.Write(streamer);
+				char buf[256];
+				SafeFormat(buf, "Cannot find structure %s in namespace %s", tail, body);
+				logger.Write(buf);
 			}
 
 			return NULL;

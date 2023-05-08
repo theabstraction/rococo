@@ -39,23 +39,19 @@ namespace Rococo
 
       const IFactory* GetFactoryInModuleByFQN(cr_sex factoryExpr, cstr ns, cstr shortName, IModule& module, bool throwIfNotFound = false)
       {
-         const INamespace* NS = module.Object().GetRootNamespace().FindSubspace(ns);
-         if (NS == NULL)
-         {
-            sexstringstream<1024> streamer;
-            streamer.sb << ("Cannot find the namespace: ") << ns;
-            Throw(factoryExpr, *streamer.sb);
-         }
+          const INamespace* NS = module.Object().GetRootNamespace().FindSubspace(ns);
+          if (NS == NULL)
+          {
+              Throw(factoryExpr, "Cannot find the namespace: %s", ns);
+          }
 
-         const IFactory* factory = NS->FindFactory(shortName);
-         if (factory == NULL && throwIfNotFound)
-         {
-            sexstringstream<1024> streamer;
-            streamer.sb << ("Cannot find the factory in the namespace: ") << shortName;
-            Throw(factoryExpr, streamer);
-         }
+          const IFactory* factory = NS->FindFactory(shortName);
+          if (factory == NULL && throwIfNotFound)
+          {
+              Throw(factoryExpr, "Cannot find the factory in the namespace: %s", shortName);
+          }
 
-         return factory;
+          return factory;
       }
 
       IFactory* GetFactoryInModuleByPrefix(cr_sex factoryExpr, IModuleBuilder& module, bool throwOnNotFound = true)
@@ -71,9 +67,7 @@ namespace Rococo
             {
                if (NS != NULL)
                {
-                  sexstringstream<1024> streamer;
-                  streamer.sb << ("Module uses more than one namespace that has a factory of the given name: ") << NS->FullName()->Buffer << (" and ") << prefix.FullName()->Buffer;
-                  Throw(factoryExpr, *streamer.sb);
+                  Throw(factoryExpr, "Module uses more than one namespace that has a factory of the given name: %s and %s", NS->FullName()->Buffer, prefix.FullName()->Buffer);
                }
 
                uniqueFactory = factory;
@@ -83,9 +77,7 @@ namespace Rococo
 
          if (uniqueFactory == NULL && throwOnNotFound)
          {
-            sexstringstream<1024> streamer;
-            streamer.sb << ("Cannot find the factory in any namespace used by the module");
-            Throw(factoryExpr, *streamer.sb);
+            Throw(factoryExpr, "Cannot find the factory in any namespace used by the module");
          }
 
          return uniqueFactory;

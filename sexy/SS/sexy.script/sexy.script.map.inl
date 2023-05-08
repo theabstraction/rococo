@@ -966,10 +966,7 @@ namespace Rococo::Script
 	{
 		if (args.NumberOfElements() != type.MemberCount())
 		{
-			sexstringstream<1024> streamer;
-			streamer.sb << ("The number of arguments supplied in the memberwise constructor is ") << args.NumberOfElements()
-				<< (", while the number of members in ") << GetFriendlyName(type) << (" is ") << type.MemberCount();
-			Throw(args, streamer);
+			Throw(args, "The number of arguments supplied in the memberwise constructor is %d, while the number of members in %s is %d", args.NumberOfElements(), GetFriendlyName(type), type.MemberCount());
 		}
 
 		AddArchiveRegister(ce, 6, 6, BITCOUNT_POINTER); // save D10
@@ -1026,9 +1023,7 @@ namespace Rococo::Script
 		{
 			if (!TryCompileAssignArchetype(ce, s[2], def.ValueType, false))
 			{
-				sexstringstream<1024> streamer;
-				streamer.sb << ("Expecting archetype ") << GetFriendlyName(def.ValueType);
-				Throw(s[2], streamer);
+				Throw(s[2], "Expecting archetype %s", GetFriendlyName(def.ValueType));
 			}
 			ce.Builder.AssignVariableToTemp(mapName, 0); // map ref goes to D4
 			AppendInvoke(ce, GetMapCallbacks(ce).MapInsert64, s);
@@ -1059,17 +1054,13 @@ namespace Rococo::Script
 				cr_sex typeExpr = s.GetElement(2);
 				if (!IsAtomic(typeExpr) || !AreEqual(typeExpr.String(), GetFriendlyName(def.ValueType)))
 				{
-					sexstringstream<1024> streamer;
-					streamer.sb << ("Bad value type, syntax is: (<map-name>.Insert <key> ") << GetFriendlyName(def.ValueType) << (" (<constructor-args>))");
-					Throw(s, streamer);
+					Throw(s, "Bad value type, syntax is: (<map-name>.Insert <key> %s (<constructor-args>))", GetFriendlyName(def.ValueType));
 				}
 
 				cr_sex argsExpr = s.GetElement(3);
 				if (!IsCompound(argsExpr) && !IsNull(argsExpr))
 				{
-					sexstringstream<1024> streamer;
-					streamer.sb << ("Value should be a compound expression, syntax is: (<map-name>.Insert <key> ") << GetFriendlyName(def.ValueType) << (" (<constructor-args>))");
-					Throw(s, streamer);
+					Throw(s, "Value should be a compound expression, syntax is: (<map-name>.Insert <key> %s (<constructor-args>))", GetFriendlyName(def.ValueType));
 				}
 
 				ce.Builder.AssignVariableToTemp(mapName, 0); // map ref goes to D4
@@ -1252,9 +1243,7 @@ namespace Rococo::Script
 
 				if (returnType != VARTYPE_AnyNumeric && valType != returnType)
 				{
-					sexstringstream<1024> streamer;
-					streamer.sb << "The node is for a map with key type " << GetFriendlyName(mnd.mapdef.KeyType) << " but the context requires a type " << GetTypeName(returnType);
-					Throw(s, streamer);
+					Throw(s, "The node is for a map with key type %s but the context requires a type ", GetFriendlyName(mnd.mapdef.KeyType), GetTypeName(returnType));
 				}
 
 				if (returnType == VARTYPE_AnyNumeric)
@@ -1313,16 +1302,12 @@ namespace Rococo::Script
 						return true;
 					}
 
-					sexstringstream<1024> streamer;
-					streamer.sb << instance << ".Value not supported for derivative value types. Use this syntax to access values: (" << GetFriendlyName(mnd.mapdef.ValueType) << " value = & " << instance << ")";
-					Throw(s, streamer);
+					Throw(s, "%s. Value not supported for derivative value types. Use this syntax to access values: (%s value = & %s)", instance, GetFriendlyName(mnd.mapdef.ValueType), instance);
 				}
 
 				if (returnType != VARTYPE_AnyNumeric && valType != returnType)
 				{
-					sexstringstream<1024> streamer;
-					streamer.sb << "The node is for a map with value type " << GetFriendlyName(mnd.mapdef.ValueType) << " but the context requires a type " << GetTypeName(returnType);
-					Throw(s, streamer);
+					Throw(s, "The node is for a map with value type %s but the context requires a type %s", GetFriendlyName(mnd.mapdef.ValueType), GetTypeName(returnType));
 				}
 
 				if (returnType == VARTYPE_AnyNumeric)

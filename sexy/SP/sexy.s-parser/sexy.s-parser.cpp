@@ -228,9 +228,7 @@ namespace Rococo
 		{
 			if (e.Type() != type)
 			{
-				sexstringstream<1024> streamer;
-				streamer.sb << ("Expecting ") << ToString(type) << " expression, but found " << ToString(e.Type()) << " expression";
-				Throw(e, *streamer.sb);
+				Throw(e, "Expecting %s expression, but found %s expression", ToString(type), ToString(e.Type()));
 			}
 		}
 
@@ -244,9 +242,7 @@ namespace Rococo
 			int32 elementCount = e.NumberOfElements();
 			if (maxElements > 0 && elementCount > maxElements)
 			{
-				sexstringstream<1024> streamer;
-				streamer.sb << ("Expression had more than the maximum of ") << maxElements << " element" << (maxElements > 1 ? ("s") : (""));
-				Throw(e, streamer);
+				Throw(e, "Expression had more than the maximum of %d element(s)", maxElements);
 			}
 		}
 
@@ -255,7 +251,7 @@ namespace Rococo
 			int32 elementCount = e.NumberOfElements();
 			if (minElements > 0 && elementCount < minElements)
 			{
-				Throw(e, "Expression had fewer than the minimum of %d element%s", minElements, (minElements > 1) ? "s" : "");
+				Throw(e, "Expression had fewer than the minimum of %d element(s)", minElements);
 			}
 		}
 	}

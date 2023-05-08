@@ -481,9 +481,7 @@ namespace Rococo
          IInterfaceBuilder* i = GetInterface(builder.Module().Object(), fullyQualifiedName);
          if (i == NULL)
          {
-            sexstringstream<1024> streamer;
-            streamer.sb << ("Cannot find ") << fullyQualifiedName;
-            Throw(s, streamer);
+            Throw(s, "Cannot find %s", fullyQualifiedName);
          }
 
          return *i;
@@ -529,9 +527,7 @@ namespace Rococo
       {
          if (!builder.TryGetVariableByName(def, name))
          {
-            sexstringstream<1024> streamer;
-            streamer.sb << ("Error, cannot find entry ") << name;
-            Throw(s, streamer);
+            Throw(s, "Error, cannot find entry %s", name);
          }
       }
    }//Script

@@ -387,9 +387,7 @@ namespace Rococo
 		cstr ns, shortName;
 		if (!splitter.SplitTail(ns, shortName))
 		{
-			sexstringstream<256> s;
-			s.sb << ("Cpp interface ") << ic.asCppInterface.SexyName() << ("needs a namespace prefix.");
-			Throw(interfaceDef, "%s", (cstr)s);
+			Throw(interfaceDef, "Cpp interface %s needs a namespace prefix.", ic.asCppInterface.SexyName());
 		}
 
 		char cppCompressedNSName[256];

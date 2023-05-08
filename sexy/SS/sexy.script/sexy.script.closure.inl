@@ -116,9 +116,7 @@ namespace Rococo
             const IStructure& neededType = closureArchetype.GetArgument(inputIndex);
             if (!AreEqual(type, GetFriendlyName(neededType)))
             {
-               sexstringstream<1024> streamer;
-               streamer.sb << ("The input type did not match that of the archetype: ") << GetFriendlyName(neededType);
-               Throw(inputType, *streamer.sb);
+               Throw(inputType, "The input type did not match that of the archetype: %s", GetFriendlyName(neededType));
             }
 
             closure.AddInput(NameString::From(name), TypeString::From(type), (void*)&inputExpr);

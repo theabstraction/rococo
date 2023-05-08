@@ -64,9 +64,7 @@ namespace Rococo
                     bool negate = false;
                     if (!TryCompileBooleanExpression(ce, condition, true, negate))
                     {
-                        sexstringstream<1024> streamer;
-                        streamer.sb << ("Expecting boolean valued expression in the last position in the do...while statement");
-                        Throw(condition, streamer);
+                        Throw(condition, "Expecting boolean valued expression in the last position in the do...while statement");
                     }
 
                     if (negate) builder.Assembler().Append_BooleanNot(VM::REGISTER_D7);
@@ -113,9 +111,7 @@ namespace Rococo
                     bool negate = false;
                     if (!TryCompileBooleanExpression(ce, condition, true, negate))
                     {
-                        sexstringstream<1024> streamer;
-                        streamer.sb << ("Expecting boolean valued expression as the condition in the (while ...) statement");
-                        Throw(condition, streamer);
+                        Throw(condition, "Expecting boolean valued expression as the condition in the (while ...) statement");
                     }
 
                     if (negate) builder.Assembler().Append_BooleanNot(VM::REGISTER_D7);
@@ -318,9 +314,7 @@ namespace Rococo
                     }
                     else
                     {
-                        sexstringstream<1024> streamer;
-                        streamer.sb << ("Do not know how to enumerate type ") << GetFriendlyName(*def.ResolvedType);
-                        Throw(collection, streamer);
+                        Throw(collection, "Do not know how to enumerate type %s", GetFriendlyName(*def.ResolvedType));
                     }
                 }
                 else
@@ -355,9 +349,7 @@ namespace Rococo
             }
             else
             {
-                sexstringstream<1024> streamer;
-                    streamer.sb << ("Expecting compound or atomic collection expression");
-                Throw(collection, streamer);
+                Throw(collection, "Expecting compound or atomic collection expression");
             }
         }
 

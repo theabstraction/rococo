@@ -38,11 +38,9 @@ namespace
 		NamespaceSplitter splitter(fqInterfaceName);
 
 		cstr ns, shortname;
-		if(!splitter.SplitTail(ns, shortname))
+		if (!splitter.SplitTail(ns, shortname))
 		{
-			sexstringstream<1024> err;
-			err.sb << ("Could not split interface name: ") << fqInterfaceName;
-			Throw(s, *err.sb);
+			Throw(s, "Could not split interface name: %s", fqInterfaceName);
 		}
 
 		appender.Append(("Proxy%s"), shortname);

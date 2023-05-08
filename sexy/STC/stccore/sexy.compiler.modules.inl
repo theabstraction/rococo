@@ -336,9 +336,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 			INamespaceBuilder* ns = object.GetRootNamespace().FindSubspace(name);
 			if (ns == NULL)
 			{
-				sexstringstream<1024> streamer;
-				streamer.sb << "Could not resolve prefix directive's namespace: '" << name << "' in '" << Name() << "'";
-				Throw(ERRORCODE_BAD_ARGUMENT, Name(), "%s", (cstr) streamer);
+				Throw(ERRORCODE_BAD_ARGUMENT, Name(), "Could not resolve prefix directive's namespace: '%s' in '%s'", name, Name());
 			}
 			prefixes.push_back(ns);
 		}

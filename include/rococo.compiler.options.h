@@ -15,7 +15,7 @@
 # endif
 #endif
 
-#define USE_VSTUDIO_SAL 0
+#define USE_VSTUDIO_SAL 1
 
 # define ROCOCO_INTERFACE struct ROCOCO_NO_VTABLE
 

@@ -171,9 +171,7 @@ namespace Rococo
 				MemberDef def;
 				if (!ce.Builder.TryGetVariableByName(OUT def, fname) || def.ResolvedType->Archetype() != &archetype)
 				{
-					sexstringstream<1024> streamer;
-					streamer.sb << ("Failed to interpret expression as a closure argument: ") << inputType.Name() << (" ") << argName;
-					Throw(s, streamer);
+					Throw(s, "Failed to interpret expression as a closure argument: %s %s", inputType.Name(), argName);
 				}
 
 				ce.Builder.PushVariable(def);
@@ -189,10 +187,7 @@ namespace Rococo
 			if (f == NULL)
 			{
 				cstr name = inputExpression.String()->Buffer;
-
-				sexstringstream<1024> streamer;
-				streamer.sb << ("The input '") << name << ("' was not recognized ");
-				Throw(inputExpression, streamer);
+				Throw(inputExpression, "The input '%s' was not recognized ", name);
 			}
 
 			AddArgVariable(("input_function_ref"), ce, argStruct);
@@ -215,10 +210,7 @@ namespace Rococo
 			if (!TryCompileFunctionCallAndReturnValue(ce, inputExpression, VARTYPE_Derivative, &argStruct, NULL))
 			{
 				cstr name = inputExpression.String()->Buffer;
-
-				sexstringstream<1024> streamer;
-				streamer.sb << ("The input '") << name << ("' was not recognized ");
-				Throw(inputExpression, streamer);
+				Throw(inputExpression, "The input '%s' was not recognized", name);
 			}
 
 			AddArgVariable(("input_getaccessor_return_ref"), ce, argStruct);
@@ -281,9 +273,7 @@ namespace Rococo
 			VARTYPE vType = varStruct.VarType();
 			if (vType != VARTYPE_Derivative)
 			{
-				sexstringstream<1024> streamer;
-				streamer.sb << ("The variable is not a derived type. Expected: ") << GetFriendlyName(inputType) << (" ") << name;
-				Throw(s, streamer);
+				Throw(s, "The variable is not a derived type. Expected: %s %s", GetFriendlyName(inputType), name);
 			}
 
 			if (varStruct.Prototype().IsClass)
@@ -291,9 +281,7 @@ namespace Rococo
 				int cii = (&varStruct == &inputType) ? 0 : GetCommonInterfaceIndex(varStruct, inputType);
 				if (cii < 0)
 				{
-					sexstringstream<1024> streamer;
-					streamer.sb << ("The input type '") << varStruct.Name() << ("' did not match the argument type '") << GetFriendlyName(inputType) << (" ") << name << ("'");
-					Throw(s, streamer);
+					Throw(s, "The input type '%s' did not match the argument type '%s %s'", varStruct.Name(), GetFriendlyName(inputType), name);
 				}
 			}
 
@@ -312,9 +300,7 @@ namespace Rococo
 				{
 					if (*def.ResolvedType != inputType)
 					{
-						sexstringstream<1024> streamer;
-						streamer.sb << ("The input ") << GetFriendlyName(inputType) << (" ") << name << (" did not match the input variable ") << GetFriendlyName(*def.ResolvedType) << (" ") << token;
-						Throw(s, streamer);
+						Throw(s, "The input '%s %s' did not match the input variable '%s %s'", GetFriendlyName(inputType), name, GetFriendlyName(*def.ResolvedType), token);
 					}
 					else
 					{
@@ -363,9 +349,7 @@ namespace Rococo
 			}
 			else
 			{
-				sexstringstream<1024> streamer;
-				streamer.sb << ("Expecting an expression that returns a reference to ") << GetFriendlyName(inputType) << (" ") << name;
-				Throw(s, streamer);
+				Throw(s, "Expecting an expression that returns a reference to '%s %s'", GetFriendlyName(inputType), name);
 			}
 		}
 
@@ -388,17 +372,11 @@ namespace Rococo
 			case EXPRESSION_TYPE_COMPOUND:
 				if (!TryCompileFunctionCallAndReturnValue(ce, s, VARTYPE_Derivative, &inputType, NULL))
 				{
-					sexstringstream<1024> streamer;
-					streamer.sb << ("Expecting compound expression to return input for ") << GetFriendlyName(inputType) << (" ") << name;
-					Throw(s, streamer);
+					Throw(s, "Expecting compound expression to return input for '%s %s'", GetFriendlyName(inputType), name);
 				}
 				break;
 			default:
-			{
-				sexstringstream<1024> streamer;
-				streamer.sb << ("Expecting atomic, compound or string literal expression for ") << GetFriendlyName(inputType) << (" ") << name;
-				Throw(s, streamer);
-			}
+				Throw(s, "Expecting atomic, compound or string literal expression for '%s %s'", GetFriendlyName(inputType), name);
 			}
 		}
 
@@ -424,10 +402,7 @@ namespace Rococo
 			default:
 				if (expectingStructRef)
 				{
-					sexstringstream<1024> streamer;
-					streamer.sb << "Error with " << ce.Builder.Owner().Name() << ". ";
-					streamer.sb << "Expecting atomic, compound or string literal expression for " << GetFriendlyName(inputType) << " " << name;
-					Throw(s, streamer);
+					Throw(s, "Error with %s.Expecting atomic, compound or string literal expression for '%s %s'", ce.Builder.Owner().Name(), GetFriendlyName(inputType), name);
 				}
 				return false;
 			}
@@ -436,10 +411,7 @@ namespace Rococo
 
 			if (!Rococo::IsAlphabetical(vname[0]))
 			{
-				sexstringstream<1024> streamer;
-				streamer.sb << "Error with " << ce.Builder.Owner().Name() << ". ";
-				streamer.sb << ("Could not interpret token as function or variable. Expected: ") << GetFriendlyName(inputType) << (" ") << name;
-				Throw(s, streamer);
+				Throw(s, "Could not interpret token as function or variable. Expected: '%s %s'", GetFriendlyName(inputType), name);
 			}
 
 			MemberDef def;
@@ -454,10 +426,7 @@ namespace Rococo
 			{
 				if (expectingStructRef)
 				{
-					sexstringstream<1024> streamer;
-					streamer.sb << "Error with " << ce.Builder.Owner().Name() << ". ";
-					streamer.sb << ("The variable is not a derived type. Expected: ") << GetFriendlyName(inputType) << (" ") << name;
-					Throw(s, streamer);
+					Throw(s, "Error with %s. The variable is not a derived type. Expected: '%s %s'", ce.Builder.Owner().Name(), GetFriendlyName(inputType), name);
 				}
 			}
 
@@ -475,10 +444,7 @@ namespace Rococo
 				{
 					if (expectingStructRef)
 					{
-						sexstringstream<1024> streamer;
-						streamer.sb << "Error with " << ce.Builder.Owner().Name() << ". ";
-						streamer.sb << "The input type '" << GetFriendlyName(*varStruct) << "' did not match the argument type '" << GetFriendlyName(inputType) << " " << name << "'";
-						Throw(s, streamer);
+						Throw(s, "Error with %s. The input type '%s' did not match the argument type '%s %s'", ce.Builder.Owner().Name(), GetFriendlyName(*varStruct), GetFriendlyName(inputType), name);
 					}
 
 					return false;
@@ -493,19 +459,22 @@ namespace Rococo
 
 				if (&elementType != genericArg1)
 				{
-					sexstringstream<1024> streamer;
-					streamer.sb << "Error with " << ce.Builder.Owner().Name() << ". ";
-					streamer.sb << "The input supplied was (array " << GetFriendlyName(elementType) << " " << vname << ") ";
+					char buf[256];
+					StackStringBuilder ssb(buf, sizeof buf);
+
+					ssb << "Error with " << ce.Builder.Owner().Name() << ". ";
+					ssb << "The input supplied was (array " << GetFriendlyName(elementType) << " " << vname << ") ";
 
 					if (genericArg1 != NULL)
 					{
-						streamer.sb << "but input required was (array " << GetFriendlyName(*genericArg1) << " " << name << ") ";
+						ssb << "but input required was (array " << GetFriendlyName(*genericArg1) << " " << name << ") ";
 					}
 					else
 					{
-						streamer.sb << "but input required was (" << GetFriendlyName(inputType) << " " << name << ") ";
+						ssb << "but input required was (" << GetFriendlyName(inputType) << " " << name << ") ";
 					}
-					Throw(s, streamer);
+
+					Throw(s, "%s", buf);
 				}
 			}
 
@@ -585,9 +554,7 @@ namespace Rococo
 			{
 				if (!TryCompileArithmeticExpression(ce, inputExpression, true, inputType))
 				{
-					sexstringstream<1024> streamer;
-					streamer.sb << ("Expected ") << GetTypeName(inputType) << (" valued expression");
-					Throw(inputExpression, streamer);
+					Throw(inputExpression, "Expected %s valued expression", GetTypeName(inputType));
 				}
 			}
 			else if (inputType == VARTYPE_Derivative || IsContainerType(inputType))
@@ -595,9 +562,7 @@ namespace Rococo
 				ce.Builder.AddSymbol(inputName);
 				if (!TryCompilePushStructRef(ce, inputExpression, true, inputStruct, inputName, genericArg1))
 				{
-					sexstringstream<1024> streamer;
-					streamer.sb << ("Expected a reference to a ") << GetFriendlyName(inputStruct);
-					Throw(inputExpression, streamer);
+					Throw(inputExpression, "Expected a reference to a %s", GetFriendlyName(inputStruct));
 				}
 				return sizeof(size_t);
 			}
@@ -605,9 +570,7 @@ namespace Rococo
 			{
 				if (!TryCompilePushClosure(ce, inputExpression, true, inputStruct, *archetype, inputName))
 				{
-					sexstringstream<1024> streamer;
-					streamer.sb << ("Expected an archetype ") << archetype->Name();
-					Throw(inputExpression, streamer);
+					Throw(inputExpression, "Expected an archetype %s", archetype->Name());
 				}
 
 				return inputStruct.SizeOfStruct();
@@ -646,7 +609,7 @@ namespace Rococo
 			MemberDef outputDef;
 			if (!builder.TryGetVariableByName(OUT outputDef, outputVar))
 			{
-				Throw(outputExpr, ("The output token was not a recognized variable"));
+				Throw(outputExpr, "The output token was not a recognized variable");
 			}
 
 			TokenBuffer symbol;
@@ -657,9 +620,7 @@ namespace Rococo
 
 			if (&requiredOutputStruct != exprOutputStruct)
 			{
-				sexstringstream<1024> streamer;
-				streamer.sb << ("Function expects type ") << GetFriendlyName(requiredOutputStruct) << (" but identifier was of type ") << GetFriendlyName(*exprOutputStruct);
-				Throw(outputExpr, streamer);
+				Throw(outputExpr, "Function expects type %s but identifier was of type %s", GetFriendlyName(requiredOutputStruct), GetFriendlyName(*exprOutputStruct));
 			}
 
 			const IArchetype* targetArchetype = exprOutputStruct->Archetype();
@@ -758,19 +719,17 @@ namespace Rococo
 
 			if (outputStruct.VarType() != returnType)
 			{
-				sexstringstream<1024> streamer;
-				streamer.sb << ("Function returns ") << GetTypeName(outputStruct.VarType()) << (" but expression expects ") << GetTypeName(returnType);
-				Throw(s, streamer);
+				Throw(s, "Function returns %s but expression expects %s", GetTypeName(outputStruct.VarType()), GetTypeName(returnType));
 			}
 		}
 
 		void ValidateSingleOutput(cr_sex s, int outputCount)
 		{
 			if (outputCount == 0)
-				Throw(s, ("Function has no output, hence no hence no return value"));
+				Throw(s, "Function has no output, hence no hence no return value");
 
 			if (outputCount != 1)
-				Throw(s, ("Function has multiple outputs, and no specific return value"));
+				Throw(s, "Function has multiple outputs, and no specific return value");
 		}
 
 		void ValidateSingleOutputAndType(CCompileEnvironment& ce, cr_sex s, const IArchetype& callee, VARTYPE returnType, const IArchetype* returnArchetype, const IStructure* returnTypeStruct)
@@ -789,18 +748,14 @@ namespace Rococo
 				}
 				if (returnTypeStruct != argStruct)
 				{
-					sexstringstream<1024> streamer;
-					streamer.sb << "Function returns " << GetFriendlyName(*argStruct) << " but expression expects an array of type " << GetFriendlyName(*returnTypeStruct);
-					Throw(s, streamer);
+					Throw(s, "Function returns %s but expression expects an array of type %s", GetFriendlyName(*argStruct), GetFriendlyName(*returnTypeStruct));
 				}
 				break;
 			default:
 				argStruct = &callee.GetArgument(0);
 				if (returnTypeStruct != NULL && returnTypeStruct != argStruct)
 				{
-					sexstringstream<1024> streamer;
-					streamer.sb << "Function returns " << GetFriendlyName(*argStruct) << " but expression expects " << GetFriendlyName(*returnTypeStruct);
-					Throw(s, streamer);
+					Throw(s, "Function returns %s but expression expects %s", GetFriendlyName(*argStruct), GetFriendlyName(*returnTypeStruct));
 				}
 				ValidateCorrectOutput(s, *argStruct, returnType);
 			}
@@ -1023,17 +978,13 @@ namespace Rococo
 							}
 							else
 							{
-								sexstringstream<1024> streamer;
-								streamer.sb << interf.Name() << (" attribute 'indexed' found, but the index function must take only one input");
-								Throw(methodNameExpr, streamer);
+								Throw(methodNameExpr, "%s attribute 'indexed' found, but the index function must take only one input", interf.Name());
 							}
 							return NULL;
 						}
 					}
 
-					sexstringstream<1024> streamer;
-					streamer.sb << interf.Name() << (" attribute 'indexed' found, but the name was not found in the list of methods for the interfafce");
-					Throw(methodNameExpr, streamer);
+					Throw(methodNameExpr, "%s attribute 'indexed' found, but the name was not found in the list of methods for the interfafce", interf.Name());
 				}
 			}
 
@@ -1110,9 +1061,7 @@ namespace Rococo
 			if (returnType == VARTYPE_AnyNumeric && IsPrimitiveType(type)) return;
 			if (returnType != type)
 			{
-				sexstringstream<1024> streamer;
-				streamer.sb << ("The property returns type ") << GetTypeName(returnType) << (" only");
-				Throw(s, streamer);
+				Throw(s, "The property returns type %s only", GetTypeName(returnType));
 			}
 		}
 
@@ -2344,9 +2293,7 @@ namespace Rococo
 			INamespaceBuilder* ns = Compiler::MatchNamespace(GetModule(ce.Script), body);
 			if (ns == NULL)
 			{
-				sexstringstream<1024> streamer;
-				streamer.sb << ("Could not find namespace: ") << body;
-				Throw(s, streamer);
+				Throw(s, "Could not find namespace: %s", body);
 				return false;
 			}
 
@@ -2380,9 +2327,7 @@ namespace Rococo
 				}
 				else if (g != NULL)
 				{
-					sexstringstream<1024> streamer;
-					streamer.sb << ("Ambiguity: '") << fname << "' could belong to " << prefix.FullName()->Buffer << " or " << NS->FullName()->Buffer;
-					Throw(s, streamer);
+					Throw(s, "Ambiguity: '%s' could belong to %s or %s", fname, prefix.FullName()->Buffer, NS->FullName()->Buffer);
 					return false;
 				}
 			}
@@ -2506,9 +2451,7 @@ namespace Rococo
 			INamespaceBuilder* NS = ce.RootNS.FindSubspace(ns);
 			if (NS == NULL)
 			{
-				sexstringstream<1024> streamer;
-				streamer.sb << ("Could not find the namespace ") << ns;
-				Throw(s, streamer);
+				Throw(s, "Could not find the namespace %s", ns);
 			}
 			return *NS;
 		}
@@ -2518,9 +2461,7 @@ namespace Rococo
 			const IFunction* constructor = st.Constructor();
 			if (constructor == NULL)
 			{
-				sexstringstream<1024> streamer;
-				streamer.sb << ("Cannot find ") << st.Name() << (".Construct in ") << st.Module().Name();
-				Throw(s, streamer);
+				Throw(s, "Cannot find %s.Construct in ", st.Name(), st.Module().Name());
 			}
 
 			return *constructor;
@@ -2540,9 +2481,7 @@ namespace Rococo
 			IFunctionBuilder* f = NS.FindFunction(shortName);
 			if (f == NULL)
 			{
-				sexstringstream<1024> streamer;
-				streamer.sb << ("Could not find ") << shortName << (" in ") << ns;
-				Throw(s, streamer);
+				Throw(s, "Could not find %s in %s", shortName, ns);
 			}
 
 			return *f;

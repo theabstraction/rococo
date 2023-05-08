@@ -285,31 +285,24 @@ namespace Rococo
 			VARTYPE rType = builder.GetVarType(token);
 			if (rType == VARTYPE_Bad)
 			{
-				sexstringstream<1024> streamer;
-
 				VARTYPE literalType = Parse::GetLiteralType(token);
 				if (IsPrimitiveType(literalType))
 				{
-					streamer.sb << token << (" was ") << GetTypeName(literalType) << (" Expecting ") << GetTypeName(type);
+					Throw(parent, "%s was %s. Expecting %s", token, GetTypeName(literalType), GetTypeName(type));
 				}
 				else
 				{
-					streamer.sb << token << (" was not a literal type or a known identifier");
+					Throw(parent, "%s was not a literal type or a known identifier", token);
 				}
-				Throw(parent, streamer);
 			}
 			else if (rType == VARTYPE_Derivative)
 			{
-				sexstringstream<1024> streamer;
-				streamer.sb << token << (" was a derived type, it cannot be used directly in arithmetic expressions");
-				Throw(parent, streamer);
+				Throw(parent, "%s was a derived type, it cannot be used directly in arithmetic expressions", token);
 			}
 
 			if (rType != type)
 			{
-				sexstringstream<1024> streamer;
-				streamer.sb << token << (" was not the same type as that of the arithmetic expression in which it was referenced");
-				Throw(parent, streamer);
+				Throw(parent, "%s was not the same type as that of the arithmetic expression in which it was referenced", token);
 			}
 		}
 
@@ -363,11 +356,11 @@ namespace Rococo
 					goto Error;
 				}
 			default:
-				Throw(src, ("Unhandled type in arithmetic expression"));
+				Throw(src, "Unhandled type in arithmetic expression");
 			}
 
 		Error:
-			Throw(src, ("Unhandled operator in arithmetic expression"));
+			Throw(src, "Unhandled operator in arithmetic expression");
 		}
 
 		void GetAtomicValue(CCompileEnvironment& ce, cr_sex parent, cstr id, VARTYPE type)
@@ -377,9 +370,7 @@ namespace Rococo
 				IFunctionBuilder& f = MustMatchFunction(ce.Builder.Module(), parent, id);
 				if (!IsGetAccessor(f) && f.GetArgument(0).VarType() != type)
 				{
-					sexstringstream<1024> streamer;
-					streamer.sb << ("Expecting variable or single valued function with no inputs of return type ") << Parse::VarTypeName(type);
-					Throw(parent, streamer);
+					Throw(parent, "Expecting variable or single valued function with no inputs of return type %s", Parse::VarTypeName(type));
 				}
 
 				CompileFunctionCallAndReturnValue(ce, parent, f, type, NULL, NULL);
@@ -394,9 +385,7 @@ namespace Rococo
 					{
 						if (!TryCompileMethodCallWithoutInputAndReturnValue(ce, parent, instance, item, type, NULL, NULL))
 						{
-							sexstringstream<1024> streamer;
-							streamer.sb << ("Expecting method call ") << Parse::VarTypeName(type);
-							Throw(parent, streamer);
+							Throw(parent, "Expecting method call %s", Parse::VarTypeName(type));
 						}
 					}
 					else
@@ -613,9 +602,7 @@ namespace Rococo
 			const IArchetype* a = input.ResolvedType()->Archetype();
 			if (a == NULL)
 			{
-				sexstringstream<1024> streamer;
-				streamer.sb << ("Error, expecting archetype for variable ") << name << (" in ") << f.Name();
-				Throw(s, streamer);
+				Throw(s, "Error, expecting archetype for variable %s in %s", name, f.Name());
 			}
 
 			return a;
@@ -741,18 +728,12 @@ namespace Rococo
 				{
 					if (def.ResolvedType != &type)
 					{
-						sexstringstream<1024> streamer;
-						streamer.sb << ("Cannot assign from (") << GetFriendlyName(*def.ResolvedType) << (" ") << token << (")");
-						streamer.sb << (". Exepcted type: ") << GetFriendlyName(type);
-						Throw(s, streamer);
+						Throw(s, "Cannot assign from %s %s. Exepcted type: %s", GetFriendlyName(*def.ResolvedType), token, GetFriendlyName(type));
 					}
 
 					if (!allowClosures && def.CapturesLocalVariables)
 					{
-						sexstringstream<1024> streamer;
-						streamer.sb << ("Cannot assign from (") << GetFriendlyName(*def.ResolvedType) << (" ") << token << (")");
-						streamer.sb << (". Closures cannot be persisted.");
-						Throw(s, streamer);
+						Throw(s, "Cannot assign from %s. Closures cannot be persisted.", GetFriendlyName(*def.ResolvedType));
 					}
 
 					ce.Builder.AssignVariableToTemp(token, Rococo::ROOT_TEMPDEPTH);
@@ -918,9 +899,7 @@ namespace Rococo
 					{
 						if (type != VARTYPE_Int32)
 						{
-							sexstringstream<1024> streamer;
-							streamer.sb << ("Type mismatch. The 'sizeof' operator evaluates to an Int32");
-							Throw(s, *streamer.sb);
+							Throw(s, "Type mismatch. The 'sizeof' operator evaluates to an Int32");
 						}
 
 						cr_sex valueExpr = GetAtomicArg(s, 1);
@@ -971,9 +950,7 @@ namespace Rococo
 				{
 					if (expected)
 					{
-						sexstringstream<1024> streamer;
-						streamer.sb << ("Could not determine meaning of expression. Check identifiers and syntax are valid");
-						Throw(s, streamer);
+						Throw(s, "Could not determine meaning of expression. Check identifiers and syntax are valid");
 					}
 					// All arithmetic expressions have 3 elements
 					return false;
@@ -1009,20 +986,18 @@ namespace Rococo
 
 						if (expected)
 						{
-							sexstringstream<1024> streamer;
 							if (type == VARTYPE_Derivative)
 							{
-								streamer.sb << ("Expected arithmetic expression, but found a derived type not of the same type as the assignment");
+								Throw(s, "Expected arithmetic expression, but found a derived type not of the same type as the assignment");
 							}
 							else if (tokenType != VARTYPE_Bad)
 							{
-								streamer.sb << ("'") << token << ("' was a ") << GetTypeName(tokenType) << (" but expression requires ") << GetTypeName(type);
+								Throw(s, "'%s' was a %s but expression requires %s", token, GetTypeName(tokenType), GetTypeName(type));
 							}
 							else
 							{
-								streamer.sb << ("Expected arithmetic expression, but found an unknown identifier");
+								Throw(s, "Expected arithmetic expression, but found an unknown identifier");
 							}
-							Throw(s, streamer);
 						}
 						// not a boolean
 						return false;
@@ -1033,9 +1008,7 @@ namespace Rococo
 			{
 				if (expected)
 				{
-					sexstringstream<1024> streamer;
-					streamer.sb << ("Expected numeric expression, of type ") << GetTypeName(type) << (" but saw a null expression");
-					Throw(s, streamer);
+					Throw(s, "Expected numeric expression, of type %s but saw a null expression", GetTypeName(type));
 				}
 				// not an atomic or a compound
 				return false;
@@ -1044,9 +1017,7 @@ namespace Rococo
 			{
 				if (expected)
 				{
-					sexstringstream<1024> streamer;
-					streamer.sb << ("Expected numeric expression, of type ") << GetTypeName(type);
-					Throw(s, streamer);
+					Throw(s, "Expected numeric expression, of type %s", GetTypeName(type));
 				}
 				// not an atomic or a compound
 				return false;

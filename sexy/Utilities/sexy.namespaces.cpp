@@ -59,9 +59,9 @@ namespace Rococo
 		length = StringLength(_src);		
 		if (length >= NAMESPACE_MAX_LENGTH)
 		{
-			sexstringstream<1024> streamer;
-			streamer.sb << ("Error splitting namespace '") << _src << ("' namespace exceeded maximum length of ") << NAMESPACE_MAX_LENGTH << (" characters");
-			throw NamespaceException(streamer);
+			char buf[1024];
+			SafeFormat(buf, "Error splitting namespace '%s'. Length exceeded maximum of %d characters", _src, NAMESPACE_MAX_LENGTH);			
+			throw NamespaceException(buf);
 		}
 	}
 

@@ -81,7 +81,7 @@
 (function IRigBuilderSetLength27  (Pointer hObject)(Sys.Type.IString name)(Sys.SI.Metres length) ->  : (source "C:\work\rococo\rococo.mplat\mplat.sxh.inl" 1676))
 (alias IRigBuilderSetLength27 Rococo.Entities.Native.IRigBuilderSetLength)
 
-(function GetSysMessage28  (Sys.Type.Pointer msgHandle) -> (Sys.Type.IString message) : (source "Rococo::Script::CDefaultExceptionLogic::InstallThrowHandler" 474))
+(function GetSysMessage28  (Sys.Type.Pointer msgHandle) -> (Sys.Type.IString message) : (source "Rococo::Script::CDefaultExceptionLogic::InstallThrowHandler" 472))
 (alias GetSysMessage28 Sys.Type.GetSysMessage)
 
 (function IMeshBuilderDelete29  (Pointer hObject)(Sys.Type.IString fqName) ->  : (source "C:\work\rococo\rococo.mplat\mplat.sxh.inl" 8427))
@@ -1308,7 +1308,7 @@
 (function ClockTicks436  -> (Int64 tickCount) : (source "C:\work\rococo\sexy\SS\sexy.script\sexy.script.cpp" 2190))
 (alias ClockTicks436 Sys.OS.ClockTicks)
 
-(function _throw437  (Sys.Type.Pointer ex)-> : (source "Rococo::Script::CDefaultExceptionLogic::InstallThrowHandler" 473))
+(function _throw437  (Sys.Type.Pointer ex)-> : (source "Rococo::Script::CDefaultExceptionLogic::InstallThrowHandler" 471))
 (alias _throw437 Sys.Type._throw)
 
 (function MaxOf438 (Int64 x)(Int64 y) -> (Int64 maxValue) : (source "C:\work\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i64.inl" 201))

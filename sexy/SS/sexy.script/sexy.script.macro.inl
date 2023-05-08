@@ -76,9 +76,7 @@ namespace Rococo
 
          if (!f.TryResolveArguments())
          {
-            sexstringstream<1024> streamer;
-            streamer.sb << ("Error resolving arguments in macro: ") << fname;
-            Throw(macroDef, streamer);
+            Throw(macroDef, "Error resolving arguments in macro: %s", fname);
          }
 
          IMacroBuilder* macro = ns.AddMacro(staticShortName, (void*)&macroDef, f);

@@ -1267,9 +1267,7 @@ namespace Anon
 			const IArgument& arg = f.Arg(i);
 			if (arg.ResolvedType() == NULL)
 			{
-				sexstringstream<1024> streamer;
-				streamer.sb << ("Could not resolve type (Arg #") << i << (") ") << arg.TypeString() << (" ") << arg.Name();
-				Throw(ERRORCODE_NULL_POINTER, __SEXFUNCTION__, "%s", (cstr)streamer);
+				Throw(ERRORCODE_NULL_POINTER, __SEXFUNCTION__, "Could not resolve type (Arg #%d) %s %s", i, arg.TypeString(), arg.Name());
 			}
 
 			int varOffset = 0;

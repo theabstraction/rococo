@@ -811,16 +811,12 @@ namespace Rococo::Script
 			{
 				if (!TryCompileAssignArchetype(ce, value, elementType, false))
 				{
-					sexstringstream<1024> streamer;
-					streamer.sb << ("Could not evaluate the expression as type ") << GetTypeName(elementType.VarType());
-					Throw(value, streamer);
+					Throw(value, "Could not evaluate the expression as type %s", GetTypeName(elementType.VarType()));
 				}
 			}
 			else if (!TryCompileArithmeticExpression(ce, value, true, elementType.VarType()))
 			{
-				sexstringstream<1024> streamer;
-				streamer.sb << ("Could not evaluate the expression as type ") << GetTypeName(elementType.VarType());
-				Throw(value, streamer);
+				Throw(value, "Could not evaluate the expression as type %s", GetTypeName(elementType.VarType()));
 			} // The value is in D7
 
 			ce.Builder.AssignVariableToTemp(instanceName, 0, 0); // list goes to D4

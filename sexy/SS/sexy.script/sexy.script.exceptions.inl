@@ -94,9 +94,7 @@ namespace Rococo
          // (try (body) catch exception-name (handler) finally (cleanup))
          if (s.NumberOfElements() != 5 && s.NumberOfElements() != 7)
          {
-            sexstringstream<1024> streamer;
-            streamer.sb << ("Expecting 5 or 7 elements in a (try (...) catch e (...) finally (...)) block. Found ") << s.NumberOfElements() << (" elements");
-            Throw(s, *streamer.sb);
+            Throw(s, "Expecting 5 or 7 elements in a (try (...) catch e (...) finally (...)) block. Found %d elements", s.NumberOfElements());
          }
 
          GetAtomicArg(s, 0);

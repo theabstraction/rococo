@@ -294,17 +294,13 @@ namespace Rococo
 			int delta = archetype.NumberOfInputs() - f.NumberOfInputs();
 			if (delta != 0)
 			{
-				sexstringstream<1024> streamer;
-				streamer.sb << ("There are ") << Comparative(delta) << (" inputs in ") << source << archetype.Name() << (" than in that of ") << f.Name();
-				Throw(s, streamer);
+				Throw(s, "There are %s inputs in %s@%s than in that of %s", Comparative(delta), source, archetype.Name(), f.Name());
 			}
 
 			delta = archetype.NumberOfOutputs() - f.NumberOfOutputs();
 			if (delta != 0)
 			{
-				sexstringstream<1024> streamer;
-				streamer.sb << ("There are ") << Comparative(delta) << (" outputs in ") << source << archetype.Name() << (" than that of ") << f.Name();
-				Throw(s, streamer);
+				Throw(s, "There are %s outputs in %s@%s than in that of %s", Comparative(delta), source, archetype.Name(), f.Name());
 			}
 
 			int32 argCount = ArgCount(f);
@@ -335,9 +331,7 @@ namespace Rococo
 			
 				if (&stf != &st)
 				{
-					sexstringstream<1024> streamer;
-					streamer.sb << source << archetype.Name() << (": Argument [") << i << "] (" << GetFriendlyName(st) << " " << argname << ("). Type did not match that of the implementation. Expected '") << GetFriendlyName(stf) << ("'");
-					Throw(s, streamer);
+					Throw(s, "%s@%s: Argument [%d](%s %s). Type did not match that of the implementation. Expected '%s'", source, archetype.Name(), i, GetFriendlyName(st), argname, GetFriendlyName(stf));
 				}
 
 				const IStructure* interfGenericArg1 = archetype.GetGenericArg1(i);
@@ -345,31 +339,32 @@ namespace Rococo
 
 				if (interfGenericArg1 != concreteGenericArg1)
 				{
-					sexstringstream<1024> streamer;
+					char buf[1024];
+					StackStringBuilder ssb(buf, sizeof buf);
 
 					// Not really expecting the generic args to be NULL, as we should already have bailed out above, but handle the case
 
-					streamer.sb << ("Error validating concrete method against the interface's specification for (") << f.Name() << ("...). \n");
+					ssb << "Error validating concrete method against the interface's specification for (" << f.Name() << "...). \n";
 					if (archetype.GetGenericArg1(i) != NULL)
 					{
-						streamer.sb << ("Interface's method with generic argument type '") << GetFriendlyName(*interfGenericArg1) << ("' does not match ");
+						ssb << "Interface's method with generic argument type '" << GetFriendlyName(*interfGenericArg1) << "' does not match ";
 					}
 					else
 					{
-						streamer.sb << ("Interface's method has no generic argument type and so does not match ");
+						ssb << "Interface's method has no generic argument type and so does not match ";
 					}
 				
 					if (f.GetGenericArg1(i) != NULL)
 					{
-						streamer.sb << ("concrete generic argument type '") << GetFriendlyName(*concreteGenericArg1) << ("'");
+						ssb << "concrete generic argument type '" << GetFriendlyName(*concreteGenericArg1) << "'";
 					}
 					else
 					{
-						streamer.sb << ("concrete method with no generic argument type ");
+						ssb << "concrete method with no generic argument type";
 					}
 
 				
-					Throw(f.Definition() != NULL ? *(const ISExpression*)(f.Definition()) : s, "%s", (cstr) streamer);
+					Throw(f.Definition() != NULL ? *(const ISExpression*)(f.Definition()) : s, "%s", buf);
 				}
 			}
 		}
@@ -455,9 +450,7 @@ namespace Rococo
 					}
 					else
 					{
-						sexstringstream<1024> streamer;
-						streamer.sb << ("The type of ") << targetVariable << (" does not match the type of ") << sourceText;
-						Throw(directive, streamer);
+						Throw(directive, "The type of %s does not match the type of %s", targetVariable, sourceText);
 					}
 				}
 				else if (sourceType == VARTYPE_Closure)
@@ -470,20 +463,16 @@ namespace Rococo
 
 						if (sourceDef.CapturesLocalVariables && !targetDef.CapturesLocalVariables)
 						{
-							sexstringstream<1024> streamer;
-							streamer.sb << ("Could not copy ") << sourceText << (" to ") << targetVariable << (". The target variable accepts regular function references, but not closures.");
-							Throw(directive, streamer);
+							Throw(directive, "Could not copy %s to %s. The target variable accepts regular function references, but not closures.", sourceText, targetVariable);
 						}
-
+						
 						ce.Builder.AddSymbol(symbol);
 						ce.Builder.AssignVariableToVariable(sourceText, targetVariable);
 						return;
 					}
 					else
 					{
-						sexstringstream<1024> streamer;
-						streamer.sb << ("The type of ") << targetVariable << (" does not match the type of ") << sourceText;
-						Throw(directive, streamer);
+						Throw(directive, "The type of %s does not match the type of %s", targetVariable, sourceText);
 					}
 				}
 				else if (sourceType == VARTYPE_Derivative)
@@ -493,13 +482,6 @@ namespace Rococo
 					{
 						Throw(directive, "Could not find variable %s", sourceText);
 					}
-
-					/* TODO - delete this comment
-					if (def.ResolvedType != &varStruct)
-					{
-						Throw(directive, "Could not assign %s %s to %s %s", def.ResolvedType->Name(), sourceText, varStruct.Name(), targetVariable);
-					} 
-					*/
 
 					if (Eq(sourceText, targetVariable))
 					{
@@ -706,16 +688,12 @@ namespace Rococo
 					}
 					else
 					{
-						sexstringstream<1024> streamer;
-						streamer.sb << ("The type of ") << targetVariable << (" does not match the type of ") << sourceText;
-						Throw(src, streamer);
+						Throw(src, "The type of %s  does not match the type of %s",targetVariable, sourceText);
 					}
 				}
 				else
 				{
-					sexstringstream<1024> streamer;
-					streamer.sb << ("Cannot assign to type of ") << targetVariable << (". The source is not a primitive type");
-					Throw(src, streamer);
+					Throw(src, "Cannot assign to type of %s. The source is not a primitive type", targetVariable);
 				}
 			}
 		}
@@ -825,17 +803,13 @@ namespace Rococo
 					}
 					else if (!IsCompound(src))
 					{
-						sexstringstream<1024> streamer;
-						streamer.sb << memberType.Name() << (" is a derived type, and requires a compound initializer");
-						Throw(src, streamer);
+						Throw(src, "%s is a derived type, and requires a compound initializer", memberType.Name());
 						return;
 					}
 
 					if (src.NumberOfElements() != PublicMemberCount(memberType))
 					{
-						sexstringstream<1024> streamer;
-						streamer.sb << member.Name() << (" has ") << memberType.MemberCount() << (" elements. But ") << src.NumberOfElements() << (" were supplied ");
-						Throw(src, streamer);
+						Throw(src, "%s has %d elements. But %d were supplied", member.Name(), memberType.MemberCount(), src.NumberOfElements());
 						return;
 					}
 
@@ -854,12 +828,8 @@ namespace Rococo
 					return;
 				}
 			case VARTYPE_Bad:
-				{
-					sexstringstream<1024> streamer;
-					streamer.sb << memberType.Name() << (" is a bad type, and cannot be initialized");
-					Throw(src, streamer);
-					return;
-				}
+				Throw(src, "%s is a bad type, and cannot be initialized", memberType.Name());
+				return;
 			}
 		}
 
@@ -1260,10 +1230,7 @@ namespace Rococo
 		   }
 		   else
 		   {
-			   sexstringstream<1024> streamer;
-			   cstr targetVariable = GetAtomicArg(directive, 1 + offset).String()->Buffer;
-			   streamer.sb << ("Bad expression on RHS of assignment: ") << targetVariable;
-			   Throw(directive, streamer);
+			   Throw(directive, "Bad expression on RHS of assignment: %s", GetAtomicArg(directive, 1 + offset).String()->Buffer);
 		   }
 	   }
 
@@ -1272,9 +1239,7 @@ namespace Rococo
 			cstr id = identifierExpr.String()->Buffer;
 			if (builder.GetVarType(id) != VARTYPE_Bad)
 			{
-				sexstringstream<1024> streamer;
-				streamer.sb << ("Variable name ") << id << (" is already defined in the context");
-				Throw(identifierExpr, streamer);
+				Throw(identifierExpr, "Variable name %s is already defined in the context", id);
 			}
 		}	
 
@@ -1316,9 +1281,7 @@ namespace Rococo
 			IFunction* constructor = module.FindFunction(qualifiedConstructorName);
 			if (constructor == NULL)
 			{
-				sexstringstream<1024> streamer;
-				streamer.sb << ("Cannot find constructor in source module: ") << qualifiedConstructorName;
-				Throw(typeExpr, streamer);
+				Throw(typeExpr, "Cannot find constructor in source module: %s", qualifiedConstructorName);
 			}
 			return *constructor;
 		}
@@ -1524,9 +1487,7 @@ namespace Rococo
 			const IFunction* constructor = type.Constructor();
 			if (constructor == NULL)
 			{
-				sexstringstream<1024> streamer;
-				streamer.sb << ("Needs a constructor function ") << type.Name() << (".Construct inside ") << type.Module().Name(); 
-				Throw(*args.Parent(), streamer);
+				Throw(*args.Parent(), "Needs a constructor function %s.Construct inside %s", type.Name(), type.Module().Name());
 			}
 
 			AddSymbol(ce.Builder, ("%s %s (...)"), type.Name(), id); 
@@ -2696,9 +2657,7 @@ namespace Rococo
 
 			if (def.ResolvedType->VarType() != g->type)
 			{
-				sexstringstream<1024> streamer;
-				streamer.sb << ("The global variable type ") << GetTypeName(g->type) << (" does not match the local variable type ") << def.ResolvedType->Name();
-				Throw(s, streamer);
+				Throw(s, "The global variable type %s does not match the local variable type %s", GetTypeName(g->type), def.ResolvedType->Name());
 			}
 
 			if (AreEqual(operation, ("->")))
@@ -2843,9 +2802,7 @@ namespace Rococo
 					}
 				}
 
-				sexstringstream<1024> streamer;
-				streamer.sb <<  ("The RHS type '") << GetFriendlyName(src) << ("' does not implement interface ") << outputInterface.Name();
-				Throw(exceptionSource, streamer);
+				Throw(exceptionSource, "The RHS type '%s' does not implement interface %s", GetFriendlyName(src), outputInterface.Name());
 			}
 			else
 			{
@@ -3453,19 +3410,15 @@ namespace Rococo
 					return;
 			}
 		
-			sexstringstream<1024> streamer;
-
 			const IStructure* varStruct = ce.Builder.GetVarStructure(token->Buffer);
 			if (NULL == varStruct)
 			{
-				streamer.sb << ("Unrecognized keyword/variable/function/namespace/syntax in expression: ") << token->Buffer;
+				Throw(s, "Unrecognized keyword/variable/function/namespace/syntax in expression: %s",token->Buffer);
 			}
 			else
 			{
-				streamer.sb << ("Variable recognized, but the syntax in which it is used was not: ") << GetFriendlyName(*varStruct) << (" ") << token->Buffer;
+				Throw(s, "Variable recognized, but the syntax in which it is used was not: %s %s", GetFriendlyName(*varStruct), token->Buffer);
 			}
-		
-			Throw(s, streamer);
 		}
 
 		void StreamSTCEX(StringBuilder& streamer, const STCException& ex)
@@ -3498,9 +3451,10 @@ namespace Rococo
 			}
 			catch (STCException& ex)
 			{
-				sexstringstream<1024> streamer;
-				StreamSTCEX(streamer.sb, ex);
-				Throw(s, *streamer.sb);
+				char buf[256];
+				StackStringBuilder ssb(buf, sizeof buf);
+				StreamSTCEX(ssb, ex);
+				Throw(s, "%s", buf);
 			}
 		}
 	}

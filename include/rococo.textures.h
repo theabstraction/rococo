@@ -75,8 +75,8 @@ namespace Rococo::Graphics
          virtual size_t TextureCount() const = 0;
       };
 
-      RENDERER_API void StandardLoadFromCompressedTextureBuffer(cstr name, IEventCallback<CompressedTextureBuffer>& onLoad, IInstallation& installation, IExpandingBuffer& buffer);
-      RENDERER_API ITextureArrayBuilderSupervisor* CreateTextureArrayBuilder(ICompressedResourceLoader& loader, ITextureArray& textureArray);
+      ROCOCO_MISC_UTILS_API void StandardLoadFromCompressedTextureBuffer(cstr name, IEventCallback<CompressedTextureBuffer>& onLoad, IInstallation& installation, IExpandingBuffer& buffer);
+      ROCOCO_MISC_UTILS_API ITextureArrayBuilderSupervisor* CreateTextureArrayBuilder(ICompressedResourceLoader& loader, ITextureArray& textureArray);
    } // Rococo::Graphics::Textures
 } // Rococo::Graphics
 

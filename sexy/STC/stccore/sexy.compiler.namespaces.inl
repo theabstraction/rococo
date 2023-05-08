@@ -335,10 +335,11 @@ namespace Rococo { namespace Compiler { namespace Impl
 				}
 				else
 				{
-					sexstringstream<1024> streamer;
+					char buf[1024];
+					StackStringBuilder ssb(buf, sizeof buf);
 					cstr sep = fullname->Length == 0 ? ("") : (".");
-					streamer.sb << ("Cannot create namespace '") << fullname->Buffer << sep << childName << ("' as one of its roots '") << fullname->Buffer << sep << branchName << ("' was undefined");
-					throw STCException(ERRORCODE_BAD_ARGUMENT, ("Namespace"), streamer);
+					ssb << "Cannot create namespace '" << fullname->Buffer << sep << childName << "' as one of its roots '" << fullname->Buffer << sep << branchName << "' was undefined";
+					throw STCException(ERRORCODE_BAD_ARGUMENT, "Namespace", buf);
 				}
 			}
 		}

@@ -332,11 +332,9 @@ namespace Rococo::Script
 
 	void LogCpu(ILog& logger, const VM::CPU& cpu)
 	{
-		sexstringstream<1024> stream;
-		stream.sb.AppendFormat("SF: %p\n", cpu.SF());
-      stream.sb.AppendFormat("PC: %p\n", cpu.SF());
-      stream.sb.AppendFormat("Stack: %p to %p\n", cpu.StackStart, cpu.StackEnd);
-		logger.Write(stream);
+		char buf[256];
+		SafeFormat(buf, "SF: %p\nPC: %p\nStack: %p to %p\n", cpu.SF(), cpu.PC(), cpu.StackStart, cpu.StackEnd);
+		logger.Write(buf);
 	}
 
 	bool CatchException(const TExceptionHandlers& handlers, IScriptSystem& ss);

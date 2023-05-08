@@ -13,16 +13,6 @@ namespace Rococo
 #else
 	typedef rstdstring stdstring;
 #endif
-
-   template<size_t CAPACITY> class sexstringstream
-   {
-   private:
-      char buffer[CAPACITY];
-   public:
-      Strings::StackStringBuilder sb;
-      sexstringstream(): sb(buffer, CAPACITY) {}
-      operator const char* () const { return buffer; }
-   };
 }
 
 #endif // SEXY_STDSTRINGS_H
