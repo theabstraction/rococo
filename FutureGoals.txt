@@ -1,0 +1,57 @@
+We currently have multiple GUI APIs. A brief description of each follows:
+
+rococo.gui.retained
+	* The latest development is meant to provide a platform independent retained mode API for complex C++ based solutions.
+	* Emphasis is on interfaces and factories.
+
+rococo.windows
+	* Windows specific UI wrapping the HWND API from Microsoft.
+	* Maximizes use of high quality and well tested controls.
+	* Does not work for other platforms.
+	* Most tools that use rococo.windows should be modified to use gui.retained.
+	* However Windows is the recommended future development platform, so not all tools need to be available on other platforms.
+
+mplat.bloody
+	* Deprecated API used by Hyperverse for managing property editors. Platform independent. To be replaced with gui.retained
+	  or scripted UIs.
+
+rococo.file.browser
+	* Platform independent file browser in C++. Potentially can be refactored or spliced into gui.retained.
+
+mplat.pane
+	* Scriptable UIs for the mplat library. Used extensively by Hyperverse. Considered for deprecation. We may end up
+	  using the rococo.mhost philosophy for scripted UIs
+
+rococo.mhost
+	* Allows the script to fully script the UI at the lowest level - with scripts rendering widgets and micromanaging event handlers
+	* While the mhost script libraries are far from complete, the low level entry points are probably sufficient
+	  for future purposes for a while.
+
+
+New work should not use mplat.bloody!
+New UI that needs no scripting should use rococo.gui.retained.
+High quality tools that need not be platform independent should use rococo.windows
+Consumer oriented complex UIs should be scriptable to make it easy to tweak the UI at runtime.
+
+-----------------------------------------------------------------------------------------------------------------------------
+
+Create some strategy for utility libraries. 
+Currently we have... 
+   rococo.util which is a DLL for elementary functions for strings, exceptions and OS calls. The library is meant to be infrequently updated
+   rococo.maths for simple scalar, vector and matrix mathematics
+   rococo.sex.mathsex for providing scripts with random numbers and vector functions
+   rococo.util.ex is for more frequent changes that rococo.util. Stable and steady APIs may be promoted to rococo.util.
+   rococo.misc.utils is for cutting edge changes.
+
+Consider a build tool that takes a subdirectory of files and generates a DLL + import LIB from the files based on a cproj template
+
+----------------------------------------------------------------------------------------------------------------------------
+
+Removed the rococo.gui.retained test from mhost and put in its own test project.
+Add Hyperverse back in to the rococo.sln and get it to compile again
+
+----------------------------------------------------------------------------------------------------------------------------
+
+Eliminate std::string from Sexy. We want to micromanage allocations and only go through our own string classes
+Ensure all memory allocation in Sexy goes through the Sexy allocators, so we can easily detect and fix memory leaks
+Having centralized memory allocation also allows us to mitigate memory fragmentation from frequent compilation of scripts at runtime.

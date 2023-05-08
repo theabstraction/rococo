@@ -49,6 +49,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{89538331-3716-4F62-8CAA-CF6A73F08E23}"
 	ProjectSection(SolutionItems) = preProject
 		Directory.Build.props = Directory.Build.props
+		FutureGoals.txt = FutureGoals.txt
 		rococo.natvis = rococo.natvis
 	EndProjectSection
 EndProject
