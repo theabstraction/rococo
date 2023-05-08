@@ -13,6 +13,8 @@
 
 #include <rococo.sexy.map.expert.h>
 
+#include <rococo.maths.h>
+
 namespace
 {
 	using namespace Rococo;

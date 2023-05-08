@@ -8,6 +8,7 @@
 #include <stdlib.h>
 
 #include <rococo.api.h>
+#include <rococo.os.h>
 #include <rococo.imaging.h>
 
 #define ROCOCO_USE_SAFE_V_FORMAT

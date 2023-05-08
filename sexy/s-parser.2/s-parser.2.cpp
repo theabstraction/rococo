@@ -1,4 +1,5 @@
 #include <rococo.api.h>
+#include <rococo.os.h>
 #include <rococo.strings.h>
 
 #define _CRT_SECURE_NO_WARNINGS

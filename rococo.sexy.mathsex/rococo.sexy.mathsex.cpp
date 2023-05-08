@@ -10,6 +10,7 @@
 #include <sexy.vm.cpu.h>
 
 #include <rococo.api.h>
+#include <rococo.os.h>
 
 #include <random>
 #include <vector>

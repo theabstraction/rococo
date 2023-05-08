@@ -42,6 +42,7 @@
 #include <rococo.stl.allocators.h>
 
 #include <rococo.strings.h>
+#include <rococo.os.h>
 
 #ifdef _WIN32
 # include <excpt.h>

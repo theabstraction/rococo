@@ -1,5 +1,6 @@
 #include "dx11.renderer.h"
 #include "dx11helpers.inl"
+#include <rococo.os.h>
 
 namespace Rococo
 {

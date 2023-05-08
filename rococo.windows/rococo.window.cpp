@@ -6,6 +6,7 @@
 #undef max
 
 #include <rococo.api.h>
+#include <rococo.os.h>
 
 #define ROCOCO_USE_SAFE_V_FORMAT
 #include <rococo.strings.h>
@@ -263,7 +264,7 @@ namespace
 
 			local.hWnd = hWnd;
 
-			OS::ShowErrorBox(local, ex, "Rococo Window Exception!");
+			Windows::ShowErrorBox(local, ex, "Rococo Window Exception!");
 			PostQuitMessage(ex.ErrorCode());
 			return DefWindowProc(hWnd, uMsg, wParam, lParam);
 		}

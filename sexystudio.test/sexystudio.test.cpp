@@ -686,7 +686,7 @@ void pluginInit(HANDLE hModule)
 	}
 	catch (IException& ex)
 	{
-		Rococo::OS::ShowErrorBox(topLevelWindow, ex, ErrorCaption);
+		Rococo::Windows::ShowErrorBox(topLevelWindow, ex, ErrorCaption);
 	}
 }
 
@@ -1210,7 +1210,7 @@ int main()
 	}
 	catch (IException& ex)
 	{
-		Rococo::OS::ShowErrorBox(Rococo::Windows::NoParent(), ex, "SexyStudio Standalone App error");
+		Rococo::Windows::ShowErrorBox(Rococo::Windows::NoParent(), ex, "SexyStudio Standalone App error");
 		errorCode = ex.ErrorCode();
 	}
 

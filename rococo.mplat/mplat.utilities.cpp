@@ -343,7 +343,7 @@ public:
 	void ShowErrorBox(Windows::IWindow& parent, IException& ex, cstr message) override
 	{
 		renderer.SwitchToWindowMode();
-		OS::ShowErrorBox(parent, ex, message);
+		Windows::ShowErrorBox(parent, ex, message);
 	}
 
 	void RefreshResource(cstr pingPath) override

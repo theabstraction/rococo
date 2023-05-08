@@ -89,22 +89,9 @@ namespace Rococo::Script
 
 namespace Rococo
 {
-	namespace Strings
-	{
-		int32 Format(U8FilePath& path, _Printf_format_string_ cstr format, ...);
-		int32 Format(WideFilePath& path, _Printf_format_string_ const wchar_t* format, ...);
-	}
-
 	using namespace Rococo::Sex;
 
 	void UpdateDebugger(Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger, Rococo::int32 stackDepth, bool refreshAll);
-
-	namespace OS
-	{
-		[[nodiscard]] ticks CpuTicks();
-		[[nodiscard]] ticks CpuHz();
-		[[nodiscard]] ticks UTCTime();
-	}
 }
 
 namespace Rococo::Memory

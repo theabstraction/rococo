@@ -9,6 +9,7 @@
 #include <sexy.lib.util.h>
 
 #include <rococo.io.h>
+#include <rococo.os.h>
 
 #include <rococo.hashtable.h>
 #include <vector>

@@ -456,7 +456,7 @@ namespace Rococo
 		{
 			char text[256];
 			SafeFormat(text, "%s crashed", title);
-			OS::ShowErrorBox(NoParent(), ex, text);
+			Windows::ShowErrorBox(NoParent(), ex, text);
 			errCode = ex.ErrorCode();
 		}
 
@@ -477,7 +477,7 @@ namespace Rococo
 		{
 			char text[256];
 			SafeFormat(text, "%s crashed", title);
-			OS::ShowErrorBox(NoParent(), ex, text);
+			Windows::ShowErrorBox(NoParent(), ex, text);
 			errCode = ex.ErrorCode();
 		}
 

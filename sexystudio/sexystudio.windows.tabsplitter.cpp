@@ -1,4 +1,5 @@
 #include "sexystudio.impl.h"
+#include <rococo.os.h>
 #include <rococo.strings.h>
 #include <vector>
 

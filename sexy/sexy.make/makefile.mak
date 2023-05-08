@@ -35,7 +35,7 @@ EVENTS = $(DIR_BIN)rococo.events.$(LCONFIGURATION).dll
 MSBUILD_CLEAN = -verbosity:minimal -t:Clean -p:Platform=x64 -p:Configuration=$(CONFIGURATION)
 MSBUILD_TERSE = -verbosity:minimal $(MSBUILD_CONFIG)
 MSBUILD_VERBOSE = -verbosity:normal $(MSBUILD_CONFIG)
-MSBUILD_PARALLEL = -maxcpucount:8
+MSBUILD_PARALLEL = -maxcpucount:4
 WITH_SOLUTION = -property:SolutionDir=$(ROCOCO)sexy^\
 
 all:

@@ -1,4 +1,5 @@
 #include <rococo.api.h>
+#include <rococo.os.h>
 #include <rococo.renderer.h>
 #include <rococo.fonts.h>
 #include <rococo.fonts.hq.h>

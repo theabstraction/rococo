@@ -8,6 +8,7 @@
 #include <rococo.fonts.h>
 #include <rococo.maths.h>
 #include <rococo.io.h>
+#include <rococo.os.h>
 
 #include <rococo.hashtable.h>
 

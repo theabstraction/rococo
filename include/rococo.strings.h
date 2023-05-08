@@ -277,6 +277,22 @@ namespace Rococo::Strings
 	ROCOCO_API bool IsEmpty(cr_substring token);
 
 	ROCOCO_API void ReplaceChar(char* buffer, size_t capacity, char target, char replacement);
+	
+#if USE_VSTUDIO_SAL
+	ROCOCO_API int32 Format(U8FilePath& path, _Printf_format_string_ cstr format, ...);
+	ROCOCO_API int32 Format(WideFilePath& path, _Printf_format_string_ const wchar_t* format, ...);
+#else
+	ROCOCO_API int32 Format(U8FilePath& path, cstr format, ...);
+	ROCOCO_API int32 Format(WideFilePath& path, const wchar_t* format, ...);
+#endif
+	ROCOCO_API void Assign(U8FilePath& dest, const wchar_t* wideSrc);
+	ROCOCO_API void Assign(WideFilePath& dest, const char* src);
+
+	ROCOCO_API void ValidateFQNameIdentifier(cstr fqName);
+
+	ROCOCO_API [[nodiscard]] uint32 FastHash(cstr text);
+
+	ROCOCO_API void SplitString(cstr text, size_t length, cstr seperators, IEventCallback<cstr>& onSubString);
 } // Rococo::Strings
 
 

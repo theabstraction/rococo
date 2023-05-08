@@ -2,6 +2,7 @@
 #include "rococo.renderer.h"
 #include "dx11helpers.inl"
 #include "dx11buffers.inl"
+#include <rococo.os.h>
 #include <vector>
 #include <random>
 

@@ -5,6 +5,10 @@
 # define ROCOCO_API __declspec(dllimport)
 #endif
 
+#ifndef ROCOCO_WINDOWS_API 
+# define ROCOCO_WINDOWS_API __declspec(dllimport)
+#endif
+
 #ifndef ROCOCO_API_EXPORT 
 # define ROCOCO_API_EXPORT __declspec(dllexport)
 #endif

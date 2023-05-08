@@ -1,9 +1,7 @@
 #ifndef ROCOCO_MATHS_H
 #define ROCOCO_MATHS_H
 
-#ifndef Rococo_TYPES_H
-# error "#include <rococo.types.h> before including this file"
-#endif
+#include <rococo.types.h>
 
 #ifdef _WIN32
 # include <intrin.h>
@@ -614,6 +612,17 @@ namespace Rococo
 	Collision CollideLineAndTriangle(const Triangle& T, cr_vec3 start, cr_vec3 direction);
 
 	template<class T> T Lerp(const T& a, const T& b, float t) { return a + (b - a) * t; }
+	
+	namespace Maths::IEEE475
+	{
+		ROCOCO_API float BinaryToFloat(uint32 binaryRepresentation);
+		ROCOCO_API double BinaryToDouble(uint64 binaryRepresentation);
+		ROCOCO_API uint32 FloatToBinary(float f);
+		ROCOCO_API uint64 DoubleToBinary(double d);
+	}
+
+	void ExpandZoneToContain(GuiRect& rect, const Vec2i& p);
+	void ExpandZoneToContain(GuiRectf& rect, const Vec2& p);
 }
 
 #include <rococo.maths.i32.h>

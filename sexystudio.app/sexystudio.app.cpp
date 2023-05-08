@@ -91,7 +91,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	}
 	catch (IException& ex)
 	{
-		Rococo::OS::ShowErrorBox(Rococo::Windows::NoParent(), ex, "SexyStudio Standalone App error");
+		Rococo::Windows::ShowErrorBox(Rococo::Windows::NoParent(), ex, "SexyStudio Standalone App error");
 		errorCode = ex.ErrorCode();
 	}
 

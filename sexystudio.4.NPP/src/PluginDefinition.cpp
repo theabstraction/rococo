@@ -167,7 +167,7 @@ void pluginInit(HANDLE hModule)
     }
     catch (IException& ex)
     {
-        Rococo::OS::ShowErrorBox(topLevelWindow, ex, ErrorCaption);
+        Rococo::Windows::ShowErrorBox(topLevelWindow, ex, ErrorCaption);
     }
 }
 

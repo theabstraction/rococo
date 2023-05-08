@@ -4,6 +4,7 @@
 #include <rococo.strings.h>
 #include <rococo.maths.h>
 #include <rococo.io.h>
+#include <rococo.os.h>
 
 using namespace Rococo;
 using namespace Rococo::Browser;

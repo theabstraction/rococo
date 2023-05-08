@@ -12,52 +12,46 @@
 
 using namespace Rococo::Strings;
 
-namespace Rococo
+namespace Rococo::Windows
 {
-	namespace Windows
-	{
-        ROCOCO_WINDOWS_API int ShowMessageBox(IWindow& window, cstr text, cstr caption, uint32 uType)
-		{
-			return MessageBoxA(window, text, caption, uType);
-		}
+    ROCOCO_WINDOWS_API int ShowMessageBox(IWindow& window, cstr text, cstr caption, uint32 uType)
+    {
+        return MessageBoxA(window, text, caption, uType);
+    }
 
-        ROCOCO_WINDOWS_API IWindow& NoParent()
-		{
-			class: public IWindow
-			{
-				virtual operator HWND () const
-				{
-					return nullptr;
-				}
-			} static noParent;
+    ROCOCO_WINDOWS_API IWindow& NoParent()
+    {
+        class : public IWindow
+        {
+            virtual operator HWND () const
+            {
+                return nullptr;
+            }
+        } static noParent;
 
-			return noParent;
-		}
-	}
+        return noParent;
+    }
 
-   namespace OS
-   {
-      ROCOCO_API_EXPORT void ShowErrorBox(Rococo::Windows::IWindow& parent, IException& ex, cstr caption)
-      {
-         if (ex.ErrorCode() == 0)
-         {
+    ROCOCO_API_EXPORT void ShowErrorBox(Rococo::Windows::IWindow& parent, IException& ex, cstr caption)
+    {
+        if (ex.ErrorCode() == 0)
+        {
             ShowMessageBox(parent, ex.Message(), caption, MB_ICONERROR);
-         }
-         else
-         {
+        }
+        else
+        {
             char codeMsg[512];
             char bigMsg[512];
             if (FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, nullptr, ex.ErrorCode(), 0, codeMsg, 512, nullptr) <= 0)
             {
-               SafeFormat(bigMsg, sizeof(bigMsg), "%s. Code 0x%x", ex.Message(), ex.ErrorCode());
+                SafeFormat(bigMsg, sizeof(bigMsg), "%s. Code 0x%x", ex.Message(), ex.ErrorCode());
             }
             else
             {
-               SafeFormat(bigMsg, sizeof(bigMsg), "%s\nCode 0x%x: %s", ex.Message(), ex.ErrorCode(), codeMsg);
+                SafeFormat(bigMsg, sizeof(bigMsg), "%s\nCode 0x%x: %s", ex.Message(), ex.ErrorCode(), codeMsg);
             }
 
             ShowMessageBox(parent, bigMsg, caption, MB_ICONERROR);
-         }
-      }
-   }//OS
-}//Rococo
+        }
+    }
+}//Rococo::Windows

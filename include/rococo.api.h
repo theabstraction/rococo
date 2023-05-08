@@ -3,14 +3,6 @@
 
 #include <rococo.types.h>
 
-#ifndef ROCOCO_API
-# define ROCOCO_API __declspec(dllimport)
-#endif
-
-#ifndef ROCOCO_WINDOWS_API 
-# define ROCOCO_WINDOWS_API __declspec(dllimport)
-#endif
-
 namespace DirectX
 {
 	struct XMFLOAT4X4;
@@ -20,32 +12,6 @@ namespace DirectX
 namespace Rococo
 {
 	ROCOCO_API bool IsPointerValid(const void* ptr);
-
-	namespace OS
-	{
-		ROCOCO_API void SetCursorVisibility(bool isVisible, Rococo::Windows::IWindow& captureWindow);
-		ROCOCO_API void ShellOpenDocument(cstr path);
-		ROCOCO_API void TripDebugger();
-		ROCOCO_API void PrintDebug(const char* format, ...);
-		ROCOCO_WINDOWS_API void ShowErrorBox(Windows::IWindow& parent, IException& ex, cstr caption);
-		ROCOCO_API [[nodiscard]] bool IsDebugging();
-		ROCOCO_API void BreakOnThrow(BreakFlag flag);
-		ROCOCO_API void SetBreakPoints(int flags);
-		ROCOCO_API [[nodiscard]] ticks CpuTicks();
-		ROCOCO_API [[nodiscard]] ticks CpuHz();
-		ROCOCO_API [[nodiscard]] ticks UTCTime();
-		ROCOCO_API void FormatErrorMessage(char* message, size_t sizeofBuffer, int errorCode);
-		ROCOCO_API void BuildExceptionString(char* buffer, size_t capacity, IException& ex, bool appendStack);
-		ROCOCO_API cstr GetCommandLineText();
-	}
-
-	namespace Maths::IEEE475
-	{
-		ROCOCO_API float BinaryToFloat(uint32 binaryRepresentation);
-		ROCOCO_API double BinaryToDouble(uint64 binaryRepresentation);
-		ROCOCO_API uint32 FloatToBinary(float f);
-		ROCOCO_API uint64 DoubleToBinary(double d);
-	}
 
 	struct Quat;
 
@@ -89,31 +55,6 @@ namespace Rococo
 		};
 	}
 #endif
-
-	namespace Strings
-	{
-#if USE_VSTUDIO_SAL
-		ROCOCO_API int32 Format(U8FilePath& path, _Printf_format_string_ cstr format, ...);
-		ROCOCO_API int32 Format(WideFilePath& path, _Printf_format_string_ const wchar_t* format, ...);
-#else
-		ROCOCO_API int32 Format(U8FilePath& path, cstr format, ...);
-		ROCOCO_API int32 Format(WideFilePath& path, const wchar_t* format, ...);
-#endif
-		ROCOCO_API void Assign(U8FilePath& dest, const wchar_t* wideSrc);
-		ROCOCO_API void Assign(WideFilePath& dest, const char* src);
-
-		ROCOCO_API void ValidateFQNameIdentifier(cstr fqName);
-
-		ROCOCO_API [[nodiscard]] uint32 FastHash(cstr text);
-
-		ROCOCO_API void SplitString(cstr text, size_t length, cstr seperators, IEventCallback<cstr>& onSubString);
-	}
-
-	namespace Windows
-	{
-		ROCOCO_WINDOWS_API IWindow& NoParent();
-		ROCOCO_WINDOWS_API int ShowMessageBox(IWindow& window, cstr text, cstr caption, uint32 uType);
-	}
 
 	namespace Graphics
 	{
@@ -217,9 +158,6 @@ namespace Rococo
 
 namespace Rococo
 {
-	void ExpandZoneToContain(GuiRect& rect, const Vec2i& p);
-	void ExpandZoneToContain(GuiRectf& rect, const Vec2& p);
-
 	namespace Memory
 	{
 		ROCOCO_API [[nodiscard]] IAllocator& CheckedAllocator();

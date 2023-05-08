@@ -107,7 +107,7 @@ void OpenSexyFile(ISexyStudioEventHandler& evHandler, ISolution& solution, IWind
 	}
 	catch (IException& ex)
 	{
-		Rococo::OS::ShowErrorBox(mainWindow, ex, "SexyStudio - Error");
+		Rococo::Windows::ShowErrorBox(mainWindow, ex, "SexyStudio - Error");
 	}
 }
 
@@ -281,7 +281,7 @@ public:
 			}
 			catch (IException& ex)
 			{
-				Rococo::OS::ShowErrorBox(ideFrame.Window(), ex, "SexyStudio - Error");
+				Rococo::Windows::ShowErrorBox(ideFrame.Window(), ex, "SexyStudio - Error");
 			}
 		}
 	}
@@ -1633,7 +1633,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 		}
 		catch (IException& ex)
 		{
-			Rococo::OS::ShowErrorBox(topLevelWindow, ex, "Sexy Studio Error");
+			Rococo::Windows::ShowErrorBox(topLevelWindow, ex, "Sexy Studio Error");
 		}
 
 		sheets = new PropertySheets(*projectView, *ide, *database);

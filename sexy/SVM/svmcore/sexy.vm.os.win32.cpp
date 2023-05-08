@@ -45,6 +45,7 @@
 #include <intrin.h>
 
 #include <rococo.api.h>
+#include <rococo.os.h>
 
 using namespace Rococo;
 using namespace Rococo::VM;

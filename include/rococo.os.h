@@ -135,5 +135,26 @@ namespace Rococo::OS
 			sync->Unlock();
 		}
 	};
+
+	ROCOCO_API void SetCursorVisibility(bool isVisible, Rococo::Windows::IWindow& captureWindow);
+	ROCOCO_API void ShellOpenDocument(cstr path);
+	ROCOCO_API void TripDebugger();
+	ROCOCO_API void PrintDebug(const char* format, ...);	
+	ROCOCO_API [[nodiscard]] bool IsDebugging();
+	ROCOCO_API void BreakOnThrow(BreakFlag flag);
+	ROCOCO_API void SetBreakPoints(int flags);
+	ROCOCO_API [[nodiscard]] ticks CpuTicks();
+	ROCOCO_API [[nodiscard]] ticks CpuHz();
+	ROCOCO_API [[nodiscard]] ticks UTCTime();
+	ROCOCO_API void FormatErrorMessage(char* message, size_t sizeofBuffer, int errorCode);
+	ROCOCO_API void BuildExceptionString(char* buffer, size_t capacity, IException& ex, bool appendStack);
+	ROCOCO_API cstr GetCommandLineText();
+}
+
+namespace Rococo::Windows
+{
+	ROCOCO_WINDOWS_API IWindow& NoParent();
+	ROCOCO_WINDOWS_API void ShowErrorBox(Windows::IWindow& parent, IException& ex, cstr caption);
+	ROCOCO_WINDOWS_API int ShowMessageBox(IWindow& window, cstr text, cstr caption, uint32 uType);
 }
 

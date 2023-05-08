@@ -1,5 +1,6 @@
 #include <rococo.os.win32.h>
 #include <rococo.api.h>
+#include <rococo.os.h>
 #include <rococo.dx11.renderer.win32.h>
 
 #include "dx11helpers.inl"
@@ -200,7 +201,7 @@ namespace Rococo
 				OS::BuildExceptionString(errBuffer, sizeof(errBuffer), ex, true);
 				OS::PrintDebug("%s", errBuffer);
 
-				OS::ShowErrorBox(Windows::NoParent(), ex, "DX11 Message Exception");
+				Windows::ShowErrorBox(Windows::NoParent(), ex, "DX11 Message Exception");
 
 				PostQuitMessage(ex.ErrorCode());
 			}

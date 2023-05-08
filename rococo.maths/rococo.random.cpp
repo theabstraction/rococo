@@ -1,4 +1,5 @@
 #include <rococo.api.h>
+#include <rococo.os.h>
 #include <random>
 #include <rococo.maths.h>
 #include <new>

@@ -15,6 +15,8 @@
 
 #include <rococo.sexy.map.expert.h>
 
+#include <rococo.maths.h>
+
 using namespace Rococo;
 using namespace Rococo::IO;
 using namespace Rococo::Script;
