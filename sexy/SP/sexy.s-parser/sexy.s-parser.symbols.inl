@@ -36,10 +36,40 @@ namespace ANON
 	using namespace Rococo;
 	using namespace Rococo::Sex;
 
+	struct sexstring_key
+	{
+		int64 Length;
+		cstr Text;
+
+		sexstring_key(cstr text, int64 length) : Length(length), Text(text) {}
+	};
+
+	bool operator == (const sexstring_key& a, const sexstring_key& b)
+	{
+		return a.Length == b.Length && memcmp(a.Text, b.Text, a.Length) == 0;
+	}
+
 	struct hash_sexstring_key
 	{
 		size_t operator()(const sexstring_key& s) const { return Strings::HashArg(s.Text, s.Length); }
 	};
+
+	bool operator < (const sexstring_key& a, const sexstring_key& b)
+	{
+		int64 lengthDelta = a.Length - b.Length;
+		if (lengthDelta < 0)
+		{
+			return true;
+		}
+		else if (lengthDelta > 0)
+		{
+			return false;
+		}
+		else
+		{
+			return Compare(a.Text, b.Text, a.Length) < 0;
+		}
+	}
 
 	class CHashedSymbols
 	{

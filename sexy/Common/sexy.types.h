@@ -95,14 +95,6 @@ namespace Rococo
 	const char OS_DIRECTORY_SLASH = (char) '/';
 #endif
 
-	struct sexstring_key
-	{
-		int64 Length;
-		cstr Text;
-
-		sexstring_key(cstr text, int64 length) : Length(length), Text(text) {}
-	};
-
 	struct TokenBuffer
 	{
 		enum { MAX_TOKEN_CHARS = 256 };

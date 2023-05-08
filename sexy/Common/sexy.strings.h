@@ -45,16 +45,22 @@ namespace Rococo
 {
 	using namespace Rococo::Strings;
 
-	bool operator == (const sexstring_key& a, const sexstring_key& b);
-	SEXYUTIL_API int32 Compare(sexstring a, const char* b);
+	inline int32 Compare(sexstring a, const char* b)
+	{
+		return Compare(a->Buffer, b);
+	}
 
 	namespace Strings
-	{	
+	{
 		const char* GetSubString(const char* s, const char* subString);
 		cstr GetSubString(cstr s, const char* subString);
-
 	}
-	
+
+	inline bool AreEqual(sexstring a, sexstring b)
+	{
+		return a->Length == b->Length && Compare(a->Buffer, b->Buffer) == 0;
+	}
+
 	template<typename CHARTYPE> inline bool AreEqual(const CHARTYPE* a, const CHARTYPE* b)
 	{
 		int delta = Compare(a, b);
@@ -63,21 +69,18 @@ namespace Rococo
 
 	template<typename CHARTYPE> inline bool AreEqual(sexstring a, const CHARTYPE* b)
 	{
-		return Compare(a,b) == 0;
+		return Compare(a, b) == 0;
 	}
 
 	template<typename CHARTYPE> inline bool AreEqual(const CHARTYPE* a, const CHARTYPE* b, int count)
 	{
-		return Compare(a,b,count) == 0;
+		return Compare(a, b, count) == 0;
 	}
 
-	SEXYUTIL_API bool AreEqual(sexstring a, sexstring b);
-	SEXYUTIL_API bool operator < (const sexstring_key& a, const sexstring_key& b);
-
-   namespace Parse
-   {
-	   SEXYUTIL_API VARTYPE GetLiteralType(cstr candidate);
-	   SEXYUTIL_API cstr VarTypeName(VARTYPE type);
-	   SEXYUTIL_API PARSERESULT TryParse(VariantValue& value, VARTYPE type, cstr valueLiteral);
-   }
+	namespace Parse
+	{
+		SEXYUTIL_API VARTYPE GetLiteralType(cstr candidate);
+		SEXYUTIL_API cstr VarTypeName(VARTYPE type);
+		SEXYUTIL_API PARSERESULT TryParse(VariantValue& value, VARTYPE type, cstr valueLiteral);
+	}
 }

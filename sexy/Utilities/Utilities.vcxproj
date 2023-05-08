@@ -105,7 +105,6 @@
     <ClCompile Include="sexy.natives.helpers.cpp" />
     <ClCompile Include="sexy.parsering.cpp" />
     <ClCompile Include="sexy.strings.2.cpp" />
-    <ClCompile Include="sexy.strings.cpp" />
     <ClCompile Include="sexy.util.cpp" />
     <ClCompile Include="sexy.variants.cpp" />
   </ItemGroup>

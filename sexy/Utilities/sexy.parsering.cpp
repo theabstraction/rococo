@@ -194,7 +194,7 @@ namespace Rococo { namespace Parse
 			return VARTYPE_Float64;
 		}
 		
-		if (Compare(candidate, ("0x"), 2) == 0)
+		if (Compare(candidate, "0x", 2) == 0)
 		{
 			if (TryParseHex(iValue, candidate + 2) == PARSERESULT_GOOD)
 			{
@@ -255,7 +255,7 @@ namespace Rococo { namespace Parse
 
 	SEXYUTIL_API PARSERESULT TryParse(OUT VariantValue& value, VARTYPE type, IN cstr valueLiteral)
 	{
-		if (Compare(valueLiteral, ("0x"), 2) == 0)
+		if (Compare(valueLiteral, "0x", 2) == 0)
 		{
 			switch (type)
 			{
