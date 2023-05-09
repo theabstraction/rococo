@@ -77,9 +77,6 @@
     <ClInclude Include="..\include\rococo.maths.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\rococo.gui.retained.api.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />

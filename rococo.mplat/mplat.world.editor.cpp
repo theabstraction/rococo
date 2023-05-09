@@ -50,6 +50,7 @@ namespace ANON
 		menu.AddButton(windowMenu, { "Split", { 0, nullptr } });
 		menu.AddButton(windowMenu, { "Cascade", { 0, nullptr } });
 		menu.AddButton(windowMenu, { "Merge", { 0, nullptr } });
+
 		auto toggles = menu.AddSubMenu(windowMenu, GRMenuSubMenu("Toggles"));
 		menu.AddButton(toggles, { "Toolkit", { 0, nullptr } });
 		menu.AddButton(toggles, { "Properties", { 0, nullptr } });

@@ -118,7 +118,6 @@
     <ClCompile Include="rococo.gui.retained.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\rococo.gui.retained.api.h" />
     <ClInclude Include="..\include\rococo.gui.retained.h" />
     <ClInclude Include="..\include\rococo.maths.h" />
     <ClInclude Include="..\include\rococo.maths.i32.h" />

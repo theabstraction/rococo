@@ -124,17 +124,22 @@ namespace Rococo::Gui
 		}
 	};
 
+	// The interface to the platform dependent rendering of the retained GUI
 	ROCOCO_INTERFACE IGRRenderContext
 	{
+		// Get some kind of hover point for the cursor
 		virtual Vec2i CursorHoverPoint() const = 0;
+
 		// It is up to the renderer to decide if a panel is hovered.
 		virtual bool IsHovered(IGRPanel& panel) const = 0;	
+
+		// Get the screen dimensions
 		virtual GuiRect ScreenDimensions() const = 0;
 
 		virtual void DrawRect(const GuiRect& absRect, RGBAb colour) = 0;
 		virtual void DrawRectEdge(const GuiRect& absRect, RGBAb colour1, RGBAb colour2) = 0;
 
-		// Queues an edge rect for rendering after everything else of lower priority has been rendered
+		// Queues an edge rect for rendering after everything else of lower priority has been rendered. Used for highlighting
 		virtual void DrawRectEdgeLast(const GuiRect& absRect, RGBAb colour1, RGBAb colour2) = 0;
 
 		virtual void DrawEditableText(GRFontId fontId, const GuiRect& clipRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, int32 caretPos, RGBAb colour) = 0;
@@ -360,7 +365,11 @@ namespace Rococo::Gui
 		virtual EventRouting OnCursorMove(CursorEvent& ce) = 0;
 		virtual EventRouting OnKeyEvent(KeyEvent& keyEvent) = 0;
 		virtual IGRPanel& Panel() = 0;
+
+		// Invoked by the IGRRetained render call
 		virtual void Render(IGRRenderContext& g) = 0;
+
+		// Invoked by the IGRRetained instance management logic
 		virtual void Free() = 0;
 	};
 
@@ -396,6 +405,7 @@ namespace Rococo::Gui
 		uint32 isRaised : 1;
 	};
 
+	// The platform independent view of the platform dependent image associated with some widget
 	ROCOCO_INTERFACE IImageMemento
 	{
 		virtual bool Render(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, IGRRenderContext& rc) = 0;
@@ -556,6 +566,7 @@ namespace Rococo::Gui
 		virtual IGRMainFrame& Frame() = 0;
 	};
 
+	// Highest level of the retained GUI manages frames, frame render order, event routing, visibility, building and rendering
 	ROCOCO_INTERFACE IGuiRetained
 	{
 		// Associates a frame with an id and returns it. If it already exists, gets the existant one.
@@ -581,6 +592,7 @@ namespace Rococo::Gui
 
 		virtual IGRPanelRoot& Root() = 0;
 
+		// Invoked by widget factories to add widgets to the retained gui
 		virtual IGRWidget& AddWidget(IGRPanel& parent, IGRWidgetFactory& factory) = 0;
 
 		// Constant time lookup of a widget with a given panel Id.
@@ -606,7 +618,6 @@ namespace Rococo::Gui
 	{
 		virtual void NotifyPanelDeleted(int64 uniqueId) = 0;
 		virtual void Free() = 0;
-
 	};
 
 	enum GRErrorCode
@@ -645,6 +656,8 @@ namespace Rococo::Gui
 		virtual int32 GetTextAndLength(char* buffer, int32 receiveCapacity) const = 0;
 	};
 
+
+	// Implemented by an editor widget, IGRCustodian will map key events to the method calls here to adjust the content of an editor 
 	ROCOCO_INTERFACE IGREditorMicromanager
 	{
 		virtual void AddToCaretPos(int32 delta) = 0;
@@ -663,11 +676,16 @@ namespace Rococo::Gui
 		int32 caretPos;
 	};
 
+	// The platform dependent implementation of the custodian handles events and routes to the UI appropriately
 	ROCOCO_INTERFACE IGRCustodian
 	{
 		// The caller will grab the reference to the memento and is responsible for calling IImageMemento->Free() when the memento is no longer used.
 		virtual IImageMemento* CreateImageMemento(cstr imagePath) = 0;
+
+		// Takes a platform interpreted key event and translates to an editor delta event
 		virtual void TranslateToEditor(const KeyEvent& keyEvent, IGREditorMicromanager& manager) = 0;
+
+		// Given a font id and text string, uses the platform font definition to determine the minimam span containing it.
 		virtual Vec2i EvaluateMinimalSpan(GRFontId fontId, const fstring & text) const = 0;
 		virtual EventRouting OnGREvent(WidgetEvent& ev) = 0;
 		virtual void RaiseError(GRErrorCode code, cstr function, cstr message) = 0;
@@ -689,8 +707,10 @@ namespace Rococo::Gui
 		MAX_FULL_PATH_LENGTH = 260
 	};
 
+	// This is the key factory function that creates the Gui system. The custodian handles the platform dependent side of the GUI.
 	ROCOCO_GUI_RETAINED_API IGuiRetainedSupervisor* CreateGuiRetained(GRConfig& config, IGRCustodian& custodian);
 
+	// Factory functions for creating widgets. All call IGuiRetained::AddWidget(...) to add themselves to the GUI
 	ROCOCO_GUI_RETAINED_API IGRWidgetButton& CreateButton(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetDivision& CreateDivision(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalScroller& CreateVerticalScroller(IGRWidget& parent);
@@ -703,24 +723,39 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API IGRWidgetSplitter& CreateLeftToRightSplitter(IGRWidget& parent, int32 splitStartPosition, bool updateWithMouseMove);
 	ROCOCO_GUI_RETAINED_API IGRWidgetTable& CreateTable(IGRWidget& parent);
 
+	// Implemented by various editor filters
 	ROCOCO_INTERFACE IGREditFilter
 	{
 		virtual void Free() = 0;
+
+		// When an edit even occurs OnUpdate(...) is called here to correct the editor according to the filter rules and update the edit state
 		virtual void OnUpdate(IGRWidgetEditBox& editor, IGREditorMicromanager& manager) = 0;
 	};
 
+	// Creates an editor widget along with a filter. The filter has to be valid for the lifespan of the editor box
 	ROCOCO_GUI_RETAINED_API IGRWidgetEditBox& CreateEditBox(IGRWidget& parent, IGREditFilter* filter, int32 capacity = (int32) GRPaths::MAX_FULL_PATH_LENGTH);
 
+
+	// Rendering functions used by the widget implementations to create a standardized appearance across the UI
 	ROCOCO_GUI_RETAINED_API void DrawButton(IGRPanel& panel, bool focused, bool raised, IGRRenderContext& g);
 	ROCOCO_GUI_RETAINED_API void DrawMenuButton(IGRPanel& panel, bool focused, bool raised, IGRRenderContext& g);
 	ROCOCO_GUI_RETAINED_API void DrawButtonText(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour, IGRRenderContext& g);
 	ROCOCO_GUI_RETAINED_API void DrawPanelBackground(IGRPanel& panel, IGRRenderContext& g);
 	ROCOCO_GUI_RETAINED_API void SetSchemeColours_ThemeGrey(IScheme& scheme);
 
+	// Get an editor filter for 32-bit floating point numbers. Valid for the lifespan of the executable
 	ROCOCO_GUI_RETAINED_API IGREditFilter& GetF32Filter();
+
+	// Get an editor filter for 64-bit floating point numbers. Valid for the lifespan of the executable
 	ROCOCO_GUI_RETAINED_API IGREditFilter& GetF64Filter();
+
+	// Get an editor filter for signed32-bit integers. Valid for the lifespan of the executable
 	ROCOCO_GUI_RETAINED_API IGREditFilter& GetI32Filter();
+
+	// Get an editor filter for signed 64-bit integers. Valid for the lifespan of the executable
 	ROCOCO_GUI_RETAINED_API IGREditFilter& GetI64Filter();
+
+	// Get an editor filter for unsigned 64-bit integers. Valid for the lifespan of the executable
 	ROCOCO_GUI_RETAINED_API IGREditFilter& GetUnsignedFilter();
 
 	ROCOCO_GUI_RETAINED_API bool DoInterfaceNamesMatch(cstr a, cstr b);
