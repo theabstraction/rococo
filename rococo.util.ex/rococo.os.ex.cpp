@@ -3,6 +3,8 @@
 #include <rococo.functional.h>
 #include <vector>
 
+#include <sexy.lib.util.h>
+
 using namespace Rococo;
 
 namespace
@@ -91,10 +93,3 @@ namespace Rococo::OS
 	}
 }
 
-#ifdef _WIN32
-# ifdef _DEBUG
-#  pragma comment(lib, "rococo.util.Debug.lib")
-# else
-#  pragma comment(lib, "rococo.util.lib")
-# endif
-#endif

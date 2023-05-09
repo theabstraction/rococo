@@ -4,12 +4,6 @@
 
 #include "stdafx.h"
 #include "sexy.lib.script.h"
-
-#ifdef _DEBUG
-#  pragma comment(lib, "sexy.s-parser.Debug.lib")
-# else
-#  pragma comment(lib, "sexy.s-parser.Release.lib")
-#endif
-
+#include "sexy.lib.s-parser.h"
 #include "sexy.lib.util.h"
 #include "sexy.lib.sexy-util.h"

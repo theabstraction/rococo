@@ -3,6 +3,8 @@ We currently have multiple GUI APIs. A brief description of each follows:
 rococo.gui.retained
 	* The latest development is meant to provide a platform independent retained mode API for complex C++ based solutions.
 	* Emphasis is on interfaces and factories.
+	* Need to polish its interfaces a little more.
+	* Need to present a foolproof way of calling methods at any time without crashing.
 
 rococo.windows
 	* Windows specific UI wrapping the HWND API from Microsoft.

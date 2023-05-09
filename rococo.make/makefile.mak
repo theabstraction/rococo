@@ -5,7 +5,7 @@ DIR_INCLUDE = $(ROCOCO)include^\
 DIR_LIB = $(ROCOCO)lib^\
 DIR_BIN = $(ROCOCO)bin^\
 DIR_SEXY = $(ROCOCO)sexy^\
-DIR_SEXY_BIN = $(ROCOCO)sexy\Bin^\
+DIR_SEXY_BIN = $(ROCOCO)bin^\
 DIR_MPLAT = $(ROCOCO)rococo.mplat^\
 DIR_MPLAT_DYN = $(ROCOCO)rococo.mplat.dynamic^\
 DIR_MHOST = $(ROCOCO)mhost^\
@@ -65,19 +65,19 @@ MSBUILD_PARALLEL = -maxcpucount:4
 WITH_SOLUTION = -property:SolutionDir=$(ROCOCO)
 CONTENT_SYS_TYPE = $(ROCOCO)content\scripts\native\Sys.Type.sxy
 EVENTS_SYS_TYPE = $(DIR_EVENTS)content\scripts\native\Sys.Type.sxy
+MS_BUILD_CLEAN = -verbosity:minimal -t:Clean -p:Platform=x64 -p:Configuration=$(CONFIGURATION)
 
-all: $(SEXY_CMD) $(CPP_MASTER)_build $(CONTENT_SYS_TYPE) $(EVENTS_SYS_TYPE) $(MPLAT_SXH_H) $(HV_SXH_H) $(MHOST_SXH_H) $(MPLAT_COMPONENTS_H) $(EVENTS) $(MHOST_PACKAGE) $(MHOST)_build $(SEXYSTUDIO)_build
+all: $(CPP_MASTER) $(MPLAT_COMPONENTS_H) $(MPLAT_SXH_H) $(HV_SXH_H) $(MHOST_SXH_H) $(EVENTS) $(SEXYSTUDIO)
+	msbuild $(DIR_MPLAT)rococo.mplat.vcxproj                         $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
+	msbuild $(DIR_MPLAT_DYN)rococo.mplat.dynamic.vcxproj             $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)	
+	msbuild $(DIR_MHOST)mhost.vcxproj                                $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
+	$(ROCOCO)packages\gen.mhost.package.bat
 
 clean: 
-	del $(BENNY_HILL)
-	del $(LIB_UTIL)
-	del /Q $(DIR_LIB)*.*
-	del /Q /S $(DIR_BIN)*.*
-	del /Q /S $(DIR_SEXY)NativeSource\*.lib
-	del /Q /S $(DIR_SEXY)NativeSource\*.pdb
-	del /Q /S $(DIR_SEXY)NativeSource\*.dll
+	msbuild $(DIR_SEXY)sexy.sln $(MS_BUILD_CLEAN)
+	msbuild $(ROCOCO)rococo.cpp_master\rococo.cpp_master.csproj $(MS_BUILD_CLEAN)
 
-$(SEXY_CMD):
+$(CPP_MASTER): $(ROCOCO)touchfile.txt
 	msbuild $(DIR_SEXY)sexy.sln                                   $(MSBUILD_TERSE) $(MSBUILD_PARALLEL)
 	msbuild $(ROCOCO)rococo.3rd-party.sln                         $(MSBUILD_TERSE) $(MSBUILD_PARALLEL)
 	msbuild $(ROCOCO)rococo.maths\rococo.maths.vcxproj            $(MSBUILD_TERSE) $(MSBUILD_PARALLEL)
@@ -87,16 +87,28 @@ $(SEXY_CMD):
 	msbuild $(ROCOCO)rococo.windows\rococo.windows.vcxproj        $(MSBUILD_TERSE) $(MSBUILD_PARALLEL)
 	msbuild $(ROCOCO)rococo.sexy.ide\rococo.sexy.ide.vcxproj      $(MSBUILD_TERSE) $(MSBUILD_PARALLEL)
 	msbuild $(ROCOCO)rococo.sexy.cmd\rococo.sexy.cmd.vcxproj      $(MSBUILD_TERSE) $(MSBUILD_PARALLEL)
-
-$(CONTENT_SYS_TYPE):
-	copy $(NATIVE_SRC)*.sxy $(ROCOCO)content\scripts\native > NUL
-
-$(EVENTS_SYS_TYPE):
-	copy $(NATIVE_SRC)*.sxy $(ROCOCO)content\scripts\native > NUL
-
-$(CPP_MASTER)_build: $(CPP_MASTER)
+	msbuild $(ROCOCO)rococo.sexy.mathsex\rococo.sexy.mathsex.vcxproj $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
+	msbuild $(ROCOCO)rococo.fonts\fonts.vcxproj                      $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
+	msbuild $(ROCOCO)dx11.renderer\dx11.renderer.vcxproj             $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
+	msbuild $(ROCOCO)rococo.file.browser\rococo.file.browser.vcxproj $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
+	msbuild $(DIR_GUI_RETAINED)rococo.gui.retained.vcxproj           $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
+	msbuild $(ROCOCO)rococo.cpp_master\rococo.cpp_master.csproj $(MSBUILD_TERSE) $(MSBUILD_PARALLEL)
 	$(ROCOCO)copy.natives.from.sexy.bat > NUL
-	$(DIR_BIN)tools\x64\$(CONFIGURATION)\net6.0\rococo.cpp_master.exe $(ROCOCO)rococo.components.test\test.xml $(ROCOCO)
+	copy $(NATIVE_SRC)*.sxy $(ROCOCO)content\scripts\native > NUL
+	powershell (ls $(CPP_MASTER)).LastWriteTime = Get-Date
+
+build:
+#	$(MAKE) -f makefile.mak touch ROCOCO=$(ROCOCO)
+	$(MAKE) -f makefile.mak all ROCOCO=$(ROCOCO)
+# commenting out touch will speed the build process, useful when focused on writing sxy files, but the binaries will not recompile when the library files change.
+# however mplat and mhost and still be kept up to date, so is also useful when doing mplat/mhost changes
+
+touch:
+	powershell (ls $(ROCOCO)touchfile.txt).LastWriteTime = Get-Date
+
+rebuild:
+	$(MAKE) -f makefile.mak clean ROCOCO=$(ROCOCO)
+	$(MAKE) -f makefile.mak all ROCOCO=$(ROCOCO)
 
 $(EVENTS): $(DIR_EVENTS)content\scripts\gen.events.hv.sxy $(DIR_EVENTS)content\scripts\gen.events.sxy
 	$(SEXY_CMD) natives=$(NATIVE_SRC) installation=$(DIR_EVENTS)content\ root=$(DIR_EVENTS) run=!scripts/gen.events.hv.sxy 
@@ -113,23 +125,7 @@ $(MHOST_SXH_H): $(MHOST_SXH) $(MHOST_XC)
 $(MPLAT_COMPONENTS_H): $(MPLAT_COMPONENTS_XML) $(DIR_MPLAT)mplat.component.template.cpp $(DIR_MPLAT)mplat.component.template.h
 	$(CPP_MASTER) $(MPLAT_COMPONENTS_XML) $(ROCOCO)
 
-$(CPP_MASTER): $(ROCOCO)rococo.cpp_master\rococo.cpp_master.main.cs $(ROCOCO)rococo.cpp_master\rococo.cpp_master.component.cs
-	msbuild $(ROCOCO)rococo.cpp_master\rococo.cpp_master.csproj $(MSBUILD_TERSE) $(MSBUILD_PARALLEL)
-
-$(MHOST_PACKAGE): $(MPLAT_SXH) $(MPLAT_XC) $(MHOST_SXH) $(MHOST_XC)
-	$(ROCOCO)packages\gen.mhost.package.bat
-
-$(MHOST)_build:
-	msbuild $(ROCOCO)rococo.sexy.mathsex\rococo.sexy.mathsex.vcxproj $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
-	msbuild $(ROCOCO)rococo.fonts\fonts.vcxproj                      $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
-	msbuild $(ROCOCO)dx11.renderer\dx11.renderer.vcxproj             $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
-	msbuild $(ROCOCO)rococo.file.browser\rococo.file.browser.vcxproj $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
-	msbuild $(DIR_GUI_RETAINED)rococo.gui.retained.vcxproj           $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
-	msbuild $(DIR_MPLAT)rococo.mplat.vcxproj                         $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
-	msbuild $(DIR_MPLAT_DYN)rococo.mplat.dynamic.vcxproj             $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)	
-	msbuild $(DIR_MHOST)mhost.vcxproj                                $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
-
-$(SEXYSTUDIO)_build:
+$(SEXYSTUDIO):
 	msbuild $(ROCOCO)sexystudio/sexystudio.vcxproj                           $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
 	msbuild $(ROCOCO)sexystudio.app/sexystudio.app.vcxproj                   $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
 	msbuild $(ROCOCO)sexystudio.test/sexystudio.test.vcxproj                 $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)

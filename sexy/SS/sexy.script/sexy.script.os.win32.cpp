@@ -81,7 +81,7 @@ namespace Rococo {
 				SafeFormat(fullpath, _MAX_PATH, L"%s%s", data, L"src_indicator.txt");
 				if (IsFileExistant(fullpath))
 				{
-					StringCat(data, L"NativeSource\\", (int32)capacity);
+					StringCat(data, L"content\\scripts\\native\\", (int32)capacity);
 					return true;
 				}
 			}
@@ -127,14 +127,14 @@ namespace Rococo {
 
 					if (INVALID_FILE_ATTRIBUTES == GetFileAttributesW(data))
 					{
-						Rococo::Throw(GetLastError(), "Error associating environment variable %s with the sexy native source directory", envVariable);
+						Rococo::Throw(GetLastError(), "Error associating environment variable %ws with the sexy native source directory %ws", envVariable, data);
 					}
 
 					SetEnvironmentVariableW(envVariable, data);
 					return;
 				}
 
-				Throw(GetLastError(), ("Environment variable %s not found"), envVariable);
+				Throw(GetLastError(), ("Environment variable %ws not found"), envVariable);
 			}
 		}
 

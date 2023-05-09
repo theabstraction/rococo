@@ -34,8 +34,8 @@
 #pragma once
 
 #ifdef _DEBUG
-#   pragma comment(lib, "sexy.s-parser.Debug.lib")
+#   pragma comment(lib, "sexy.s-parser.debug.lib")
 #else
-#   pragma comment(lib, "sexy.s-parser.Release.lib")
+#   pragma comment(lib, "sexy.s-parser.lib")
 #endif
 

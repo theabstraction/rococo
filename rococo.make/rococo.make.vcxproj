@@ -40,13 +40,15 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <NMakePreprocessorDefinitions>NDEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
-    <NMakeBuildCommandLine>NMAKE /NOLOGO  /F $(ProjectDir)makefile.mak ROCOCO=$(SolutionDir)</NMakeBuildCommandLine>
+    <NMakeBuildCommandLine>NMAKE /NOLOGO  /F $(ProjectDir)makefile.mak build ROCOCO=$(SolutionDir)</NMakeBuildCommandLine>
     <NMakeCleanCommandLine>NMAKE /NOLOGO  /F $(ProjectDir)makefile.mak clean ROCOCO=$(SolutionDir)</NMakeCleanCommandLine>
+    <NMakeReBuildCommandLine>NMAKE /NOLOGO  /F $(ProjectDir)makefile.mak rebuild ROCOCO=$(SolutionDir)</NMakeReBuildCommandLine>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <NMakePreprocessorDefinitions>_DEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
-    <NMakeBuildCommandLine>NMAKE /NOLOGO  /F $(ProjectDir)makefile.mak ROCOCO=$(SolutionDir) _DEBUG=Debug</NMakeBuildCommandLine>
+    <NMakeBuildCommandLine>NMAKE /NOLOGO  /F $(ProjectDir)makefile.mak build ROCOCO=$(SolutionDir) _DEBUG=Debug</NMakeBuildCommandLine>
     <NMakeCleanCommandLine>NMAKE /NOLOGO  /F $(ProjectDir)makefile.mak clean ROCOCO=$(SolutionDir) _DEBUG=Debug</NMakeCleanCommandLine>
+    <NMakeReBuildCommandLine>NMAKE /NOLOGO  /F $(ProjectDir)makefile.mak rebuild ROCOCO=$(SolutionDir) _DEBUG=Debug</NMakeReBuildCommandLine>
   </PropertyGroup>
   <ItemDefinitionGroup>
   </ItemDefinitionGroup>

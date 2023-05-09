@@ -1,6 +1,6 @@
+@echo off
 cd %~dp0
 cd ..
-echo "Generating mhost package"
 
 copy content\scripts\mplat_sxh.sxy packages\mhost\MHost
 copy content\scripts\types.sxy packages\mhost\MHost

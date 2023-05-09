@@ -15877,7 +15877,16 @@ int main(int argc, char* argv[])
 	}
 	catch (IException& ex)
 	{
-		printf("Unhandled exception:\n%s", ex.Message());
+		if (ex.ErrorCode() != 0)
+		{
+			char numericMessage[256];
+			Rococo::OS::FormatErrorMessage(numericMessage, sizeof numericMessage, ex.ErrorCode());
+			if (numericMessage[0] != 0)
+			{
+				printf("\nSystem Error: %d %s\n", ex.ErrorCode(), numericMessage);
+			}
+		}
+		printf("\nUnhandled exception: %s\n", ex.Message());
 	}
 	return 0;
 }
