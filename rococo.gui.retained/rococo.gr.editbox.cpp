@@ -8,7 +8,7 @@ using namespace Rococo::Gui;
 
 namespace GRANON
 {
-	struct GREditBox : IGRWidgetEditBox, IGREditorMicromanager
+	struct GREditBox : IGRWidgetEditBox, IGREditorMicromanager, IGRWidget
 	{
 		IGRPanel& panel;
 		std::vector<char> text;
@@ -302,11 +302,16 @@ namespace GRANON
 			if (!interfaceId || *interfaceId == 0) return EQueryInterfaceResult::INVALID_ID;
 			if (DoInterfaceNamesMatch(interfaceId, "IGRWidgetEditBox"))
 			{
-				if (ppOutputArg) *ppOutputArg = this;
+				if (ppOutputArg) *ppOutputArg = static_cast<IGRWidgetEditBox*>(this);
 				return EQueryInterfaceResult::SUCCESS;
 			}
 
 			return EQueryInterfaceResult::NOT_IMPLEMENTED;
+		}
+
+		IGRWidget& Widget() override
+		{
+			return *this;
 		}
 	};
 
@@ -329,6 +334,11 @@ namespace GRANON
 
 namespace Rococo::Gui
 {
+	ROCOCO_GUI_RETAINED_API cstr IGRWidgetEditBox::InterfaceId()
+	{
+		return "IGRWidgetEditBox";
+	}
+
 	ROCOCO_GUI_RETAINED_API IGRWidgetEditBox& CreateEditBox(IGRWidget& parent, IGREditFilter* filter, int32 capacity)
 	{
 		if (capacity <= 2)
@@ -349,8 +359,8 @@ namespace Rococo::Gui
 		GRANON::GREditBoxFactory factory(filter, capacity);
 
 		auto& gr = parent.Panel().Root().GR();
-		auto& editor = static_cast<IGRWidgetEditBox&>(gr.AddWidget(parent.Panel(), factory));
-		return editor;
+		auto* editor = Cast<IGRWidgetEditBox>(gr.AddWidget(parent.Panel(), factory));
+		return *editor;
 	}
 
 	ROCOCO_GUI_RETAINED_API IGREditFilter& GetF32Filter()

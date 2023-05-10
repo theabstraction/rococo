@@ -61,7 +61,7 @@ namespace GRANON
 				menuAnchors.top = true;
 				menuAnchors.bottom = true;
 				menuAnchors.expandsVertically = true;
-				menuBar->Panel().Set(menuAnchors).Set(paddingOnePixel);
+				menuBar->Widget().Panel().Set(menuAnchors).Set(paddingOnePixel);
 				// The menu bar is a child of the title bar, so should be resized by the title bar
 			}
 
@@ -72,7 +72,7 @@ namespace GRANON
 				rhsToolAnchors.top = true;
 				rhsToolAnchors.bottom = true;
 				rhsToolAnchors.expandsVertically = true;
-				rhsTools->Panel().Set(rhsToolAnchors).Set(paddingOnePixel);
+				rhsTools->Widget().Panel().Set(rhsToolAnchors).Set(paddingOnePixel);
 				// The rhsTools is a child of the title bar, so should be resized by the title bar
 			}
 

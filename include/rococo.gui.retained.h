@@ -243,6 +243,7 @@ namespace Rococo::Gui
 		// Sets the id of the capture panel to -1. No panel with id -1 can exist.
 		virtual void ReleaseCursor() = 0;
 
+		// The platform dependent custodian that handles platform dependent issues for the GUI
 		virtual IGRCustodian& Custodian() = 0;
 
 		// The visual scheme of the panel system
@@ -281,9 +282,11 @@ namespace Rococo::Gui
 		int32 bottom = 0;
 	};
 
+	// Represents the underlying widget slot. This is a better mechanism than having a base widget, which imposes class derivation issues
 	ROCOCO_INTERFACE IGRPanel
 	{
 		// Typically called after a widget resize when the parent need not ask the child to resize itself
+		// It marks the layout as having been computed
 		virtual void ConfirmLayout() = 0;
 
 		// Enumerate the panel and its ancestors for a colour, if none found returns the second argument (which defaults to bright red).
@@ -318,14 +321,17 @@ namespace Rococo::Gui
 		virtual IGRPanel& Add(GRAnchors anchors) = 0;
 		virtual IGRPanel& Set(GRAnchorPadding padding) = 0;
 
-		// Indicates that the layout needs to be recomputed
+		// Indicates that the layout needs to be recomputed. If the argument is true then the layout of the ancestors are also marked to be recomputed
 		virtual void InvalidateLayout(bool invalidateAnscestors) = 0;
+
+		// Indicates the layout has yet to be finalized
 		virtual bool RequiresLayout() const = 0;
 
 		virtual void Focus() = 0;
 		virtual bool HasFocus() const = 0;
 	};
 
+	// Interface used internally by the GUI retained implementation. Clients of the API only see IGRPanel(s)
 	ROCOCO_INTERFACE IGRPanelSupervisor : IGRPanel
 	{
 		// A dangerous function, particularly if called within a recursive query. Ensure it is not called on children that are referenced in the callstack
@@ -373,6 +379,18 @@ namespace Rococo::Gui
 		virtual void Free() = 0;
 	};
 
+	template<class CAST_TO_THIS_CLASS> inline CAST_TO_THIS_CLASS* Cast(IGRWidget& widget, cstr interfaceId)
+	{
+		IGRBase* castBase = nullptr;
+		auto result = widget.QueryInterface(&castBase, interfaceId);
+		return result == EQueryInterfaceResult::SUCCESS ? static_cast<CAST_TO_THIS_CLASS*>(castBase) : nullptr;
+	};
+
+	template<class CAST_TO_THIS_CLASS> inline CAST_TO_THIS_CLASS* Cast(IGRWidget& widget)
+	{
+		return Cast<CAST_TO_THIS_CLASS>(widget, CAST_TO_THIS_CLASS::InterfaceId());
+	};
+
 	enum GRClickCriterion
 	{
 		OnDown, // Click event fires when the left button down event is routed to the button widget (THIS IS THE DEFAULT)
@@ -413,15 +431,21 @@ namespace Rococo::Gui
 		virtual void Free() = 0;
 	};
 
-	ROCOCO_INTERFACE IGRWidgetText : IGRWidget
+	ROCOCO_INTERFACE IGRWidgetText: IGRBase
 	{
+		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
+		virtual IGRWidget& Widget() = 0;
 		virtual IGRWidgetText& SetAlignment(GRAlignmentFlags alignment, Vec2i spacing) = 0;
 		virtual IGRWidgetText& SetFont(GRFontId fontId) = 0;
 		virtual IGRWidgetText& SetText(cstr text) = 0;
 	};
 
-	ROCOCO_INTERFACE IGRWidgetButton : IGRWidget
+	ROCOCO_INTERFACE IGRWidgetButton : IGRBase
 	{
+		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
+
+		virtual IGRWidget& Widget() = 0;
+
 		// Sets the rule by which events are fired
 		virtual IGRWidgetButton& SetClickCriterion(GRClickCriterion criterion) = 0;
 
@@ -480,8 +504,10 @@ namespace Rococo::Gui
 		static GRMenuItemId Error() { return GRMenuItemId{ -1 }; }
 	};
 
-	ROCOCO_INTERFACE IGRWidgetMenuBar : IGRWidget
+	ROCOCO_INTERFACE IGRWidgetMenuBar : IGRBase
 	{
+		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
+		virtual IGRWidget & Widget() = 0;
 		virtual bool AddButton(GRMenuItemId parentMenu, const GRMenuButtonItem& item) = 0;
 		virtual GRMenuItemId AddSubMenu(GRMenuItemId parentMenu, const GRMenuSubMenu& subMenu) = 0;
 	};
@@ -493,12 +519,16 @@ namespace Rococo::Gui
 
 	ROCOCO_GUI_RETAINED_API IGRWidgetFactory& GetWidgetButtonFactory();
 
-	ROCOCO_INTERFACE IGRWidgetToolbar : IGRWidget
+	ROCOCO_INTERFACE IGRWidgetToolbar : IGRBase
 	{
+		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
+		virtual IGRWidget& Widget() = 0;
+
 		// If not left, then alignment is right
 		virtual void SetChildAlignment(GRAlignment alignment, int32 interChildPadding = 4, int32 borderPadding = 1) = 0;
 
-		// Resizes the control to fit in all children with specified padding, and returns the span
+		// Shrinks the children to their minimal size and resizes the control to fit in all children with specified padding, and returns the span
+		// This may cause the control and its children to invoke InvalidateLayout on the containing panels
 		virtual Vec2i ResizeToFitChildren() = 0;
 	};
 
@@ -520,8 +550,11 @@ namespace Rococo::Gui
 		int32 rowHeight = 24;
 	};
 
-	ROCOCO_INTERFACE IGRWidgetTable : IGRWidget
+	ROCOCO_INTERFACE IGRWidgetTable : IGRBase
 	{
+		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
+		virtual IGRWidget& Widget() = 0;
+
 		// Adds a new column and returns the column index of the new column
 		virtual int32 AddColumn(const GRColumnSpec & spec) = 0;
 
@@ -532,15 +565,21 @@ namespace Rococo::Gui
 		virtual IGRWidgetDivision* GetCell(int32 column, int32 row) = 0;
 	};
 
-	ROCOCO_INTERFACE IGRWidgetSplitter : IGRWidget
+	ROCOCO_INTERFACE IGRWidgetSplitter : IGRBase
 	{
+		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
+		virtual IGRWidget& Widget() = 0;
+
 		virtual IGRWidgetDivision& First() = 0;
 		virtual IGRWidgetDivision& Second() = 0;
 		virtual IGRWidgetSplitter& SetDraggerMinMax(int32 minValue, int32 maxValue) = 0;
 	};
 
-	ROCOCO_INTERFACE IGRWidgetCollapser : IGRWidget
+	ROCOCO_INTERFACE IGRWidgetCollapser: IGRBase
 	{
+		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
+
+		virtual IGRWidget& Widget() = 0;
 		virtual IGRWidgetDivision& ClientArea() = 0;
 
 		// The collapser button is on the left side, so it is recommended to right align any additions and give enough room for the collapser to work
@@ -628,8 +667,12 @@ namespace Rococo::Gui
 		RecursionLocked
 	};
 
-	ROCOCO_INTERFACE IGRWidgetVerticalScroller : IGRWidget
+	ROCOCO_INTERFACE IGRWidgetVerticalScroller : IGRBase
 	{
+		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
+
+		virtual IGRWidget& Widget() = 0;
+
 		virtual void SetPosition(int32 position) = 0;
 		virtual void SetRange(int32 range) = 0;
 		virtual void SetWindowSize(int32 domain) = 0;
@@ -640,8 +683,12 @@ namespace Rococo::Gui
 
 	};
 
-	ROCOCO_INTERFACE IGRWidgetEditBox : IGRWidget
+	ROCOCO_INTERFACE IGRWidgetEditBox : IGRBase
 	{
+		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
+
+		virtual IGRWidget& Widget() = 0;
+
 		// Returns length of the internal storage, which includes space for the trailing nul character. Never returns < 2, i.e there is always space for one character and a trailing nul
 		virtual size_t GetCapacity() const = 0;
 		virtual IGRWidgetEditBox& SetAlignment(GRAlignmentFlags alignment, Vec2i spacing) = 0;

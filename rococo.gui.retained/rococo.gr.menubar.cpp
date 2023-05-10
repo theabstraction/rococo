@@ -138,7 +138,7 @@ namespace GRANON
 		return false;
 	}
 
-	struct GRMenuBar : IGRWidgetMenuBar
+	struct GRMenuBar : IGRWidgetMenuBar, IGRWidget
 	{
 		IGRPanel& panel;
 		GRMenuTree tree;
@@ -205,10 +205,10 @@ namespace GRANON
 
 		Vec2i ShrinkPanelToFitText(IGRWidgetButton& button, Vec2i& lastPos)
 		{
-			Vec2i minimalSpan = button.EvaluateMinimalSpan();
+			Vec2i minimalSpan = button.Widget().EvaluateMinimalSpan();
 			Vec2i newSpan = { minimalSpan.x + 2 * BUTTON_X_PADDING,  panel.Span().y };
-			button.Panel().Resize(newSpan);
-			button.Panel().SetParentOffset(lastPos);
+			button.Widget().Panel().Resize(newSpan);
+			button.Widget().Panel().SetParentOffset(lastPos);
 			lastPos.x += newSpan.x + 1;
 			return minimalSpan;
 		}
@@ -364,10 +364,10 @@ namespace GRANON
 				{
 					if (IsPointInRect(ce.position, buttonPanel->AbsRect()))
 					{
-						IGRWidgetButton& button = static_cast<IGRWidgetButton&>(buttonPanel->Widget());
-						if (button.GetButtonFlags().forSubMenu)
+						IGRWidgetButton* button = Cast<IGRWidgetButton>(buttonPanel->Widget());
+						if (button && button->GetButtonFlags().forSubMenu)
 						{
-							int64 branchId = button.GetMetaData().intData;
+							int64 branchId = button->GetMetaData().intData;
 							auto* branch = tree.FindBranch(GRMenuItemId{ branchId });
 							if (branch)
 							{
@@ -400,11 +400,13 @@ namespace GRANON
 		{
 			if (widgetEvent.eventType == WidgetEventType::BUTTON_CLICK)
 			{
-				auto& button = static_cast<IGRWidgetButton&>(sourceWidget);
-				auto flags = button.GetButtonFlags();
+				IGRWidgetButton* button = Cast<IGRWidgetButton>(sourceWidget);
+				if (!button) return EventRouting::NextHandler;
+
+				auto flags = button->GetButtonFlags();
 				if (flags.forSubMenu)
 				{
-					auto meta = button.GetMetaData();
+					auto meta = button->GetMetaData();
 					auto* branch = tree.FindBranch(GRMenuItemId{ meta.intData });
 					if (branch)
 					{
@@ -444,11 +446,16 @@ namespace GRANON
 			if (!interfaceId || *interfaceId == 0) return EQueryInterfaceResult::INVALID_ID;
 			if (DoInterfaceNamesMatch(interfaceId, "IGRWidgetMenuBar"))
 			{
-				if (ppOutputArg) *ppOutputArg = this;
+				if (ppOutputArg) *ppOutputArg = static_cast<IGRWidgetMenuBar*>(this);
 				return EQueryInterfaceResult::SUCCESS;
 			}
 
 			return EQueryInterfaceResult::NOT_IMPLEMENTED;
+		}
+
+		IGRWidget& Widget()
+		{
+			return *this;
 		}
 	};
 
@@ -463,6 +470,10 @@ namespace GRANON
 
 namespace Rococo::Gui
 {
+	ROCOCO_GUI_RETAINED_API cstr IGRWidgetMenuBar::InterfaceId()
+	{
+		return "IGRWidgetMenuBar";
+	}
 	ROCOCO_GUI_RETAINED_API IGRWidgetMenuBar& CreateMenuBar(IGRWidget& parent)
 	{
 		auto& gr = parent.Panel().Root().GR();

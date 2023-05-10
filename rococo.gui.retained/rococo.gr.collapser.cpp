@@ -6,7 +6,7 @@ using namespace Rococo::Gui;
 
 namespace GRANON
 {
-	struct GRCollapser : IGRWidgetCollapser
+	struct GRCollapser : IGRWidgetCollapser, IGRWidget
 	{
 		IGRPanel& panel;
 		IGRWidgetButton* collapseButton = nullptr;
@@ -38,7 +38,7 @@ namespace GRANON
 			clientArea = &CreateDivision(*this);
 			titleBar = &CreateDivision(*this);
 			collapseButton = &CreateButton(*titleBar);
-			collapseButton->Panel().Resize({ 26,26 }).SetParentOffset({0,0});
+			collapseButton->Widget().Panel().Resize({ 26,26 }).SetParentOffset({0,0});
 			collapseButton->SetRaisedImagePath("$(COLLAPSER_COLLAPSE)");
 			collapseButton->SetPressedImagePath("$(COLLAPSER_EXPAND)");
 			collapseButton->SetEventPolicy(GREventPolicy::NotifyAncestors);
@@ -91,7 +91,7 @@ namespace GRANON
 
 		EventRouting OnChildEvent(WidgetEvent& widgetEvent, IGRWidget& sourceWidget)
 		{
-			if (sourceWidget.Panel().Id() == collapseButton->Panel().Id())
+			if (sourceWidget.Panel().Id() == collapseButton->Widget().Panel().Id())
 			{
 				panel.InvalidateLayout(true);
 				return EventRouting::Terminate;
@@ -101,7 +101,7 @@ namespace GRANON
 
 		EventRouting OnKeyEvent(KeyEvent& keyEvent) override
 		{
-			return collapseButton->OnKeyEvent(keyEvent);
+			return collapseButton->Widget().OnKeyEvent(keyEvent);
 		}
 
 		Vec2i EvaluateMinimalSpan() const override
@@ -109,12 +109,17 @@ namespace GRANON
 			return { 0,0 };
 		}
 
+		IGRWidget& Widget()
+		{
+			return *this;
+		}
+
 		EQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
 			if (!interfaceId || *interfaceId == 0) return EQueryInterfaceResult::INVALID_ID;
 			if (DoInterfaceNamesMatch(interfaceId, "IGRWidgetCollapser"))
 			{
-				if (ppOutputArg) *ppOutputArg = this;
+				if (ppOutputArg) *ppOutputArg = static_cast<IGRWidgetCollapser*>(this);
 				return EQueryInterfaceResult::SUCCESS;
 			}
 
@@ -133,6 +138,11 @@ namespace GRANON
 
 namespace Rococo::Gui
 {
+	ROCOCO_GUI_RETAINED_API cstr IGRWidgetCollapser::InterfaceId()
+	{
+		return "IGRWidgetCollapser";
+	}
+
 	ROCOCO_GUI_RETAINED_API IGRWidgetCollapser& CreateCollapser(IGRWidget& parent)
 	{
 		auto& gr = parent.Panel().Root().GR();

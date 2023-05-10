@@ -28,7 +28,7 @@ namespace GRANON
 		int32 rowHeight;
 	};
 
-	struct GRTable : IGRWidgetTable
+	struct GRTable : IGRWidgetTable, IGRWidget
 	{
 		IGRPanel& panel;
 
@@ -170,11 +170,17 @@ namespace GRANON
 			if (!interfaceId || *interfaceId == 0) return EQueryInterfaceResult::INVALID_ID;
 			if (DoInterfaceNamesMatch(interfaceId, "IGRWidgetTable"))
 			{
-				if (ppOutputArg) *ppOutputArg = this;
+				if (ppOutputArg) *ppOutputArg = static_cast<IGRWidgetTable*>(this);
 				return EQueryInterfaceResult::SUCCESS;
 			}
 
 			return EQueryInterfaceResult::NOT_IMPLEMENTED;
+		}
+
+
+		IGRWidget& Widget() override
+		{
+			return *this;
 		}
 	};
 
@@ -189,10 +195,15 @@ namespace GRANON
 
 namespace Rococo::Gui
 {
+	ROCOCO_GUI_RETAINED_API cstr IGRWidgetTable::InterfaceId()
+	{
+		return "IGRWidgetTable";
+	}
+
 	ROCOCO_GUI_RETAINED_API IGRWidgetTable& CreateTable(IGRWidget& parent)
 	{
 		auto& gr = parent.Panel().Root().GR();
-		auto& table = static_cast<IGRWidgetTable&>(gr.AddWidget(parent.Panel(), GRANON::s_TableFactory));
-		return table;
+		auto* table = Cast<IGRWidgetTable>(gr.AddWidget(parent.Panel(), GRANON::s_TableFactory));
+		return *table;
 	}
 }

@@ -7,7 +7,7 @@ using namespace Rococo::Gui;
 
 namespace GRANON
 {
-	struct GRToolbar : IGRWidgetToolbar
+	struct GRToolbar : IGRWidgetToolbar, IGRWidget
 	{
 		IGRPanel& panel;
 		GRAlignment childAlignment = GRAlignment::Left;
@@ -148,11 +148,16 @@ namespace GRANON
 			if (!interfaceId || *interfaceId == 0) return EQueryInterfaceResult::INVALID_ID;
 			if (DoInterfaceNamesMatch(interfaceId, "IGRWidgetToolbar"))
 			{
-				if (ppOutputArg) *ppOutputArg = this;
+				if (ppOutputArg) *ppOutputArg = static_cast<IGRWidgetToolbar*>(this);
 				return EQueryInterfaceResult::SUCCESS;
 			}
 
 			return EQueryInterfaceResult::NOT_IMPLEMENTED;
+		}
+
+		IGRWidget& Widget() override
+		{
+			return *this;
 		}
 	};
 
@@ -167,10 +172,15 @@ namespace GRANON
 
 namespace Rococo::Gui
 {
+	ROCOCO_GUI_RETAINED_API cstr IGRWidgetToolbar::InterfaceId()
+	{
+		return "IGRWidgetToolbar";
+	}
+
 	ROCOCO_GUI_RETAINED_API IGRWidgetToolbar& CreateToolbar(IGRWidget& parent)
 	{
 		auto& gr = parent.Panel().Root().GR();
-		auto& tools = static_cast<IGRWidgetToolbar&>(gr.AddWidget(parent.Panel(), GRANON::s_ToolbarFactory));
-		return tools;
+		auto* tools = Cast<IGRWidgetToolbar>(gr.AddWidget(parent.Panel(), GRANON::s_ToolbarFactory));
+		return* tools;
 	}
 }

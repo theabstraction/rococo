@@ -7,7 +7,7 @@ using namespace Rococo::Gui;
 
 namespace GRANON
 {
-	struct GRButton : IGRWidgetButton
+	struct GRButton : IGRWidgetButton, IGRWidget
 	{
 		IGRPanel& panel;
 		GRClickCriterion clickCriterion = GRClickCriterion::OnDown;
@@ -315,11 +315,16 @@ namespace GRANON
 			if (!interfaceId || *interfaceId == 0) return EQueryInterfaceResult::INVALID_ID;
 			if (DoInterfaceNamesMatch(interfaceId, "IGRWidgetButton"))
 			{
-				if (ppOutputArg) *ppOutputArg = this;
+				if (ppOutputArg) *ppOutputArg = static_cast<IGRWidgetButton*>(this);
 				return EQueryInterfaceResult::SUCCESS;
 			}
 
 			return EQueryInterfaceResult::NOT_IMPLEMENTED;
+		}
+
+		IGRWidget& Widget()
+		{
+			return *this;
 		}
 	};
 
@@ -334,10 +339,17 @@ namespace GRANON
 
 namespace Rococo::Gui
 {
+	ROCOCO_GUI_RETAINED_API cstr IGRWidgetButton::InterfaceId()
+	{
+		return "IGRWidgetButton";
+	}
+
 	ROCOCO_GUI_RETAINED_API IGRWidgetButton& CreateButton(IGRWidget& parent)
 	{
 		auto& gr = parent.Panel().Root().GR();
-		return static_cast<IGRWidgetButton&>(gr.AddWidget(parent.Panel(), GRANON::s_ButtonFactory));
+		auto& widget = gr.AddWidget(parent.Panel(), GRANON::s_ButtonFactory);
+		IGRWidgetButton* button = Cast<IGRWidgetButton>(widget);
+		return *button;
 	}
 
 	ROCOCO_GUI_RETAINED_API IGRWidgetButton& CreateMenuButton(IGRWidget& parent, bool forSubmenu)

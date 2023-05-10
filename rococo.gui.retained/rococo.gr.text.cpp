@@ -7,7 +7,7 @@ using namespace Rococo::Gui;
 
 namespace GRANON
 {
-	struct GRText : IGRWidgetText
+	struct GRText : IGRWidgetText, IGRWidget
 	{
 		IGRPanel& panel;
 		std::string text;
@@ -99,11 +99,16 @@ namespace GRANON
 			if (!interfaceId || *interfaceId == 0) return EQueryInterfaceResult::INVALID_ID;
 			if (DoInterfaceNamesMatch(interfaceId, "IGRWidgetText"))
 			{
-				if (ppOutputArg) *ppOutputArg = this;
+				if (ppOutputArg) *ppOutputArg = static_cast<IGRWidgetText*>(this);
 				return EQueryInterfaceResult::SUCCESS;
 			}
 
 			return EQueryInterfaceResult::NOT_IMPLEMENTED;
+		}
+
+		IGRWidget& Widget()
+		{
+			return *this;
 		}
 	};
 
@@ -118,10 +123,15 @@ namespace GRANON
 
 namespace Rococo::Gui
 {
+	ROCOCO_GUI_RETAINED_API cstr IGRWidgetText::InterfaceId()
+	{
+		return "IGRWidgetText";
+	}
+
 	ROCOCO_GUI_RETAINED_API IGRWidgetText& CreateText(IGRWidget& parent)
 	{
 		auto& gr = parent.Panel().Root().GR();
-		auto& t = static_cast<IGRWidgetText&>(gr.AddWidget(parent.Panel(), GRANON::s_TextFactory));
-		return t;
+		auto* t = Cast<IGRWidgetText>(gr.AddWidget(parent.Panel(), GRANON::s_TextFactory));
+		return *t;
 	}
 }

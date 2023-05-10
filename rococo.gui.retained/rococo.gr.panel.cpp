@@ -132,13 +132,13 @@ namespace GRANON
 			isLayoutValid = true;
 		}
 
-		void InvalidateLayout(bool invalidateAnscestors) override
+		void InvalidateLayout(bool invalidateAncestors) override
 		{
 			isLayoutValid = false;
 
-			if (invalidateAnscestors && parent)
+			if (invalidateAncestors && parent)
 			{
-				parent->InvalidateLayout(invalidateAnscestors);
+				parent->InvalidateLayout(invalidateAncestors);
 			}
 		}
 

@@ -6,7 +6,7 @@ namespace GRANON
 	using namespace Rococo;
 	using namespace Rococo::Gui;
 
-	struct GRSplitter : IGRWidgetSplitter
+	struct GRSplitter : IGRWidgetSplitter, IGRWidget
 	{
 		IGRPanel& panel;
 		IGRWidgetDivision* first = nullptr;
@@ -165,7 +165,7 @@ namespace GRANON
 			if (!interfaceId || *interfaceId == 0) return EQueryInterfaceResult::INVALID_ID;
 			if (DoInterfaceNamesMatch(interfaceId, "IGRWidgetSplitter"))
 			{
-				if (ppOutputArg) *ppOutputArg = this;
+				if (ppOutputArg) *ppOutputArg = static_cast<IGRWidgetSplitter*>(this);
 				return EQueryInterfaceResult::SUCCESS;
 			}
 
@@ -176,6 +176,11 @@ namespace GRANON
 		{
 			splitterMin = minValue;
 			splitterMax = maxValue;
+			return *this;
+		}
+
+		IGRWidget& Widget() override
+		{
 			return *this;
 		}
 	};
@@ -196,6 +201,11 @@ namespace GRANON
 
 namespace Rococo::Gui
 {
+	ROCOCO_GUI_RETAINED_API cstr IGRWidgetSplitter::InterfaceId()
+	{
+		return "IGRWidgetSplitter";
+	}
+
 	ROCOCO_GUI_RETAINED_API IGRWidgetSplitter& CreateLeftToRightSplitter(IGRWidget& parent, int32 draggerStartPos, bool updateWithMouseMove)
 	{
 		auto& gr = parent.Panel().Root().GR();
@@ -203,6 +213,6 @@ namespace Rococo::Gui
 		GRANON::GRSplitterFactory factory;
 		factory.draggerStartPos = draggerStartPos;
 		factory.updateWithMouseMove = updateWithMouseMove;
-		return static_cast<IGRWidgetSplitter&>(gr.AddWidget(parent.Panel(), factory));
+		return *Cast<IGRWidgetSplitter>(gr.AddWidget(parent.Panel(), factory));
 	}
 }

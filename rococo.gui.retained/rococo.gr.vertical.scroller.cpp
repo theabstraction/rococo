@@ -6,7 +6,7 @@ using namespace Rococo::Gui;
 
 namespace ANON
 {
-	struct GRVerticalScroller : IGRWidgetVerticalScroller
+	struct GRVerticalScroller : IGRWidgetVerticalScroller, IGRWidget
 	{
 		IGRPanel& panel;
 
@@ -182,11 +182,16 @@ namespace ANON
 			if (!interfaceId || *interfaceId == 0) return EQueryInterfaceResult::INVALID_ID;
 			if (DoInterfaceNamesMatch(interfaceId, "IGRWidgetVerticalScroller"))
 			{
-				if (ppOutputArg) *ppOutputArg = this;
+				if (ppOutputArg) *ppOutputArg = static_cast<IGRWidgetVerticalScroller*>(this);
 				return EQueryInterfaceResult::SUCCESS;
 			}
 
 			return EQueryInterfaceResult::NOT_IMPLEMENTED;
+		}
+
+		IGRWidget& Widget() override
+		{
+			return *this;
 		}
 	};
 
@@ -201,10 +206,15 @@ namespace ANON
 
 namespace Rococo::Gui
 {
+	ROCOCO_GUI_RETAINED_API cstr IGRWidgetVerticalScroller::InterfaceId()
+	{
+		return "IGRWidgetVerticalScroller";
+	}
+
 	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalScroller& CreateVerticalScroller(IGRWidget& parent)
 	{
 		auto& gr = parent.Panel().Root().GR();
-		auto& scroller = static_cast<IGRWidgetVerticalScroller&>(gr.AddWidget(parent.Panel(), ANON::s_VerticalScrollerFactory));
-		return scroller;
+		auto* scroller = Cast<IGRWidgetVerticalScroller>(gr.AddWidget(parent.Panel(), ANON::s_VerticalScrollerFactory));
+		return *scroller;
 	}
 }

@@ -15,7 +15,7 @@ namespace ANON
 	void BuildMenus(IGRMainFrame& frame)
 	{
 		auto& menu = frame.MenuBar();
-		menu.Panel().Set(ESchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(0, 0, 0, 0)).Set(ESchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, RGBAb(0, 0, 0, 0));
+		menu.Widget().Panel().Set(ESchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(0, 0, 0, 0)).Set(ESchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, RGBAb(0, 0, 0, 0));
 
 		auto fileMenu = menu.AddSubMenu(GRMenuItemId::Root(), GRMenuSubMenu("File"));
 		auto editMenu = menu.AddSubMenu(GRMenuItemId::Root(), GRMenuSubMenu("Edit"));
@@ -62,7 +62,7 @@ namespace ANON
 		menu.AddButton(helpMenu, { "Version", { 0, nullptr } });
 		menu.AddButton(helpMenu, { "Purchase License", { 0, nullptr } });
 
-		auto& titleBar = *frame.MenuBar().Panel().Parent();
+		auto& titleBar = *frame.MenuBar().Widget().Panel().Parent();
 		titleBar.Set(ESchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(0, 0, 0, 255)).Set(ESchemeColourSurface::CONTAINER_BACKGROUND_HOVERED, RGBAb(8, 8, 8, 255));
 		titleBar.Set(ESchemeColourSurface::MENU_BUTTON_RAISED, RGBAb(0, 0, 0, 255)).Set(ESchemeColourSurface::MENU_BUTTON_PRESSED, RGBAb(8, 8, 8, 255));
 		titleBar.Set(ESchemeColourSurface::BUTTON_RAISED, RGBAb(0, 0, 0, 255)).Set(ESchemeColourSurface::BUTTON_PRESSED, RGBAb(24, 24, 24, 255));
@@ -76,9 +76,9 @@ namespace ANON
 		auto& tools = frame.TopRightHandSideTools();
 		tools.SetChildAlignment(GRAlignment::Right);
 		
-		CreateButton(tools).SetTitle("Min").SetImagePath("!textures/toolbars/3rd-party/www.aha-soft.com/Down.tiff");
-		CreateButton(tools).SetTitle("Max").SetImagePath("!textures/toolbars/3rd-party/www.aha-soft.com/Expand.tiff");
-		CreateButton(tools).SetTitle("Close").SetImagePath("!textures/toolbars/3rd-party/www.aha-soft.com/Close.tiff");
+		CreateButton(tools.Widget()).SetTitle("Min").SetImagePath("!textures/toolbars/3rd-party/www.aha-soft.com/Down.tiff");
+		CreateButton(tools.Widget()).SetTitle("Max").SetImagePath("!textures/toolbars/3rd-party/www.aha-soft.com/Expand.tiff");
+		CreateButton(tools.Widget()).SetTitle("Close").SetImagePath("!textures/toolbars/3rd-party/www.aha-soft.com/Close.tiff");
 
 		tools.ResizeToFitChildren();
 	}
@@ -402,7 +402,7 @@ namespace ANON
 			GRAlignmentFlags nameAlignment;
 			nameAlignment.Add(GRAlignment::VCentre).Add(GRAlignment::Left);
 			auto& nameText = CreateText(*nameCell).SetText(field.fieldName.c_str()).SetAlignment(nameAlignment, { 2,2 });
-			nameText.Panel().Add(GRAnchors::ExpandAll()).Set(GRAnchorPadding{ 4, 0, 0, 0 });
+			nameText.Widget().Panel().Add(GRAnchors::ExpandAll()).Set(GRAnchorPadding{ 4, 0, 0, 0 });
 
 			IGREditFilter* filter = nullptr;
 
@@ -436,7 +436,7 @@ namespace ANON
 			GRAlignmentFlags valueAlignment;
 			valueAlignment.Add(GRAlignment::VCentre).Add(GRAlignment::Left);
 			auto& valueText = CreateEditBox(*valueCell, filter, capacity).SetAlignment(valueAlignment, { 2,2 });
-			valueText.Panel().Add(GRAnchors::ExpandAll()).Set(GRAnchorPadding{ 0, 4, 0, 0 });
+			valueText.Widget().Panel().Add(GRAnchors::ExpandAll()).Set(GRAnchorPadding{ 0, 4, 0, 0 });
 
 			char buf[16];
 			ToAscii(field.value, buf, sizeof buf);
@@ -447,7 +447,7 @@ namespace ANON
 		void AddFieldTable(PreviewData& data, IGuiRetained& gr, int32 firstValidIndex, int32 lastValidIndex, IGRWidget& parent, int depth, int& accumulatedHeight)
 		{
 			auto& table = CreateTable(parent);
-			table.Panel().Set(GRAnchors::ExpandAll());
+			table.Widget().Panel().Set(GRAnchors::ExpandAll());
 
 			GRColumnSpec nameSpec;
 			nameSpec.name = "Name";
@@ -463,17 +463,17 @@ namespace ANON
 			valueSpec.defaultWidth = 120;
 			table.AddColumn(valueSpec);
 
-			table.Panel().Add(GRAnchors::ExpandAll());
+			table.Widget().Panel().Add(GRAnchors::ExpandAll());
 
-			table.Panel().Set(ESchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(48, 0, 0, 255));
-			table.Panel().Set(ESchemeColourSurface::CONTAINER_BACKGROUND_HOVERED, RGBAb(50, 0, 0, 255));
+			table.Widget().Panel().Set(ESchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(48, 0, 0, 255));
+			table.Widget().Panel().Set(ESchemeColourSurface::CONTAINER_BACKGROUND_HOVERED, RGBAb(50, 0, 0, 255));
 
 			for (int32 j = firstValidIndex; j <= lastValidIndex; j++)
 			{
 				AddFieldToTable(table, data.fields[j], depth);
 			}
 
-			accumulatedHeight += table.Panel().Span().y;
+			accumulatedHeight += table.Widget().Panel().Span().y;
 		}
 
 		void AddSubObject(PreviewField& subObjectField, IGuiRetained& gr, IGRWidget& parent, int depth, int& accumulatedHeight)
@@ -484,10 +484,10 @@ namespace ANON
 		void SyncUIToPreviewerRecursive(PreviewData& data, IGuiRetained& gr, IGRWidget& parent, int32 depth, int& accumulatedParentHeight)
 		{
 			auto& collapser = CreateCollapser(parent);
-			collapser.Panel().Add(GRAnchors::ExpandAll());
-			collapser.Panel().Set(GRAnchorPadding{ 8 * depth, 0, 0 , 0 });
-			collapser.Panel().Set(ESchemeColourSurface::TEXT, RGBAb(224, 224, 224, 255)).Set(ESchemeColourSurface::TEXT_HOVERED, RGBAb(255, 255, 255, 255));
-			collapser.Panel().Set(ESchemeColourSurface::EDIT_TEXT, RGBAb(224, 224, 224, 255)).Set(ESchemeColourSurface::EDIT_TEXT_HOVERED, RGBAb(255, 255, 255, 255));
+			collapser.Widget().Panel().Add(GRAnchors::ExpandAll());
+			collapser.Widget().Panel().Set(GRAnchorPadding{ 8 * depth, 0, 0 , 0 });
+			collapser.Widget().Panel().Set(ESchemeColourSurface::TEXT, RGBAb(224, 224, 224, 255)).Set(ESchemeColourSurface::TEXT_HOVERED, RGBAb(255, 255, 255, 255));
+			collapser.Widget().Panel().Set(ESchemeColourSurface::EDIT_TEXT, RGBAb(224, 224, 224, 255)).Set(ESchemeColourSurface::EDIT_TEXT_HOVERED, RGBAb(255, 255, 255, 255));
 
 			auto& list = CreateVerticalList(collapser.ClientArea());
 			list.Panel().Add(GRAnchors::ExpandAll());
@@ -531,7 +531,7 @@ namespace ANON
 				AddFieldTable(data, gr, firstSimpleFieldIndex, (int32) data.fields.size() - 1, list, depth, accumulatedCollapserAreaHeight);
 			}
 
-			collapser.Panel().Resize({ 0, accumulatedCollapserAreaHeight });
+			collapser.Widget().Panel().Resize({ 0, accumulatedCollapserAreaHeight });
 
 			accumulatedParentHeight += accumulatedCollapserAreaHeight;
 		}
@@ -547,7 +547,7 @@ namespace ANON
 			frame->ClientArea().Panel().Set(ESchemeColourSurface::FOCUSED_EDITOR_HOVERED, RGBAb(16, 16, 16, 255));
 
 			auto& frameSplitter = CreateLeftToRightSplitter(frame->ClientArea(), 240, false).SetDraggerMinMax(240, 8192);
-			frameSplitter.Panel().Add(GRAnchors::ExpandAll());
+			frameSplitter.Widget().Panel().Add(GRAnchors::ExpandAll());
 
 			auto* node = previewer.root;
 
