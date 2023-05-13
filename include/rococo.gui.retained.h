@@ -268,8 +268,14 @@ namespace Rococo::Gui
 		ROCOCO_GUI_RETAINED_API static GRAnchors Top();
 		ROCOCO_GUI_RETAINED_API static GRAnchors TopAndBottom();
 		ROCOCO_GUI_RETAINED_API static GRAnchors Bottom();
+
+		// The widget expands to fill its parent's vertical span
 		ROCOCO_GUI_RETAINED_API static GRAnchors ExpandVertically();
+
+		// The widget expands to fill its parent's horizontal span
 		ROCOCO_GUI_RETAINED_API static GRAnchors ExpandHorizontally();
+
+		// The widget expands to fill its parent's space
 		ROCOCO_GUI_RETAINED_API static GRAnchors ExpandAll();
 	};
 
@@ -317,8 +323,14 @@ namespace Rococo::Gui
 		virtual void CaptureCursor() = 0;
 		virtual GRAnchors Anchors() = 0;
 		virtual GRAnchorPadding Padding() = 0;
+
+		// Overwrites the anchor settings for a panel
 		virtual IGRPanel& Set(GRAnchors anchors) = 0;
+
+		// Add an anchor to the panel
 		virtual IGRPanel& Add(GRAnchors anchors) = 0;
+
+		// Overwrites the padding for an anchor
 		virtual IGRPanel& Set(GRAnchorPadding padding) = 0;
 
 		// Indicates that the layout needs to be recomputed. If the argument is true then the layout of the ancestors are also marked to be recomputed
@@ -572,11 +584,14 @@ namespace Rococo::Gui
 		virtual IGRWidgetSplitter& SetDraggerMinMax(int32 minValue, int32 maxValue) = 0;
 	};
 
+	// A collapsable region with a client area and title area. The title area contains the collapse button. The client area will vanish when the collapse button is engaged
 	ROCOCO_INTERFACE IGRWidgetCollapser: IGRBase
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
 
 		virtual IGRWidget& Widget() = 0;
+
+		// The area under the collapser's title bar. Will be of zero area if the collapse button is engaged
 		virtual IGRWidgetDivision& ClientArea() = 0;
 
 		// The collapser button is on the left side, so it is recommended to right align any additions and give enough room for the collapser to work
@@ -670,6 +685,7 @@ namespace Rococo::Gui
 		virtual void SetWindowSize(int32 domain) = 0;
 	};
 
+	// A vertical list that aligns its children vertically
 	ROCOCO_INTERFACE IGRWidgetVerticalList : IGRWidget
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
@@ -721,11 +737,15 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API IGRWidgetButton& CreateButton(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetDivision& CreateDivision(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalScroller& CreateVerticalScroller(IGRWidget& parent);
+
+	// Creates a vertical list that aligns its children vertically
 	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalList& CreateVerticalList(IGRWidget& parent, bool enforcePositiveChildHeights = true);
 	ROCOCO_GUI_RETAINED_API IGRWidgetMenuBar& CreateMenuBar(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetButton& CreateMenuButton(IGRWidget& parent, bool forSubmenu = false);
 	ROCOCO_GUI_RETAINED_API IGRWidgetToolbar& CreateToolbar(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetText& CreateText(IGRWidget& parent);
+
+	// Create a collapsable region with a client area and title area. The title area contains the collapse button. The client area will vanish when the collapse button is engaged
 	ROCOCO_GUI_RETAINED_API IGRWidgetCollapser& CreateCollapser(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetSplitter& CreateLeftToRightSplitter(IGRWidget& parent, int32 splitStartPosition, bool updateWithMouseMove);
 	ROCOCO_GUI_RETAINED_API IGRWidgetTable& CreateTable(IGRWidget& parent);

@@ -15,7 +15,9 @@ namespace ANON
 	void BuildMenus(IGRMainFrame& frame)
 	{
 		auto& menu = frame.MenuBar();
-		menu.Widget().Panel().Set(ESchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(0, 0, 0, 0)).Set(ESchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, RGBAb(0, 0, 0, 0));
+		menu.Widget().Panel().
+			Set(ESchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(0, 0, 0, 0)).
+			Set(ESchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, RGBAb(0, 0, 0, 0));
 
 		auto fileMenu = menu.AddSubMenu(GRMenuItemId::Root(), GRMenuSubMenu("File"));
 		auto editMenu = menu.AddSubMenu(GRMenuItemId::Root(), GRMenuSubMenu("Edit"));
@@ -384,10 +386,11 @@ namespace ANON
 			frame.ClientArea().Panel().Root().GR().GarbageCollect();
 		}
 
+		IdWidget ID_EDITOR_FRAME = { "MPlat-MainFrame" };
+
 		void InstantiateUI()
 		{
-			auto& frame = gr.BindFrame(IdWidget{ "MPlat-MainFrame" });
-
+			auto& frame = gr.BindFrame(ID_EDITOR_FRAME);
 			auto& scheme = gr.Root().Scheme();
 			SetSchemeColours_ThemeGrey(scheme);
 			BuildMenus(frame);
@@ -481,16 +484,16 @@ namespace ANON
 			SyncUIToPreviewerRecursive(*subObjectField.value.primitive.pSubObject, gr, parent, depth, accumulatedHeight);
 		}
 
-		void SyncUIToPreviewerRecursive(PreviewData& data, IGuiRetained& gr, IGRWidget& parent, int32 depth, int& accumulatedParentHeight)
+		void SyncUIToPreviewerRecursive(PreviewData& data, IGuiRetained& gr, IGRWidget& parentContainer, int32 depth, int& accumulatedParentHeight)
 		{
-			auto& collapser = CreateCollapser(parent);
-			collapser.Widget().Panel().Add(GRAnchors::ExpandAll());
+			auto& collapser = CreateCollapser(parentContainer);
+			collapser.Widget().Panel().Set(GRAnchors::ExpandAll());
 			collapser.Widget().Panel().Set(GRAnchorPadding{ 8 * depth, 0, 0 , 0 });
 			collapser.Widget().Panel().Set(ESchemeColourSurface::TEXT, RGBAb(224, 224, 224, 255)).Set(ESchemeColourSurface::TEXT_HOVERED, RGBAb(255, 255, 255, 255));
 			collapser.Widget().Panel().Set(ESchemeColourSurface::EDIT_TEXT, RGBAb(224, 224, 224, 255)).Set(ESchemeColourSurface::EDIT_TEXT_HOVERED, RGBAb(255, 255, 255, 255));
 
 			auto& list = CreateVerticalList(collapser.ClientArea());
-			list.Panel().Add(GRAnchors::ExpandAll());
+			list.Panel().Set(GRAnchors::ExpandAll());
 
 			int32 firstSimpleFieldIndex = -1;
 			int32 nextSimpleFieldIndex = -1;
@@ -538,7 +541,7 @@ namespace ANON
 
 		void SyncUIToPreviewer(IGuiRetained& gr) override
 		{
-			auto* frame = gr.FindFrame(IdWidget{ "MPlat-MainFrame" });
+			auto* frame = gr.FindFrame(ID_EDITOR_FRAME);
 			if (!frame) return;
 
 			ClearFrame(*frame);
