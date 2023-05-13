@@ -1,4 +1,4 @@
-#include <rococo.gui.retained.h>
+#include <rococo.gui.retained.ex.h>
 #include <rococo.maths.i32.h>
 
 using namespace Rococo;
@@ -93,14 +93,7 @@ namespace GRANON
 
 		EQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
-			if (!interfaceId || *interfaceId == 0) return EQueryInterfaceResult::INVALID_ID;
-			if (DoInterfaceNamesMatch(interfaceId, "IGRWidgetVerticalList"))
-			{
-				if (ppOutputArg) *ppOutputArg = this;
-				return EQueryInterfaceResult::SUCCESS;
-			}
-
-			return EQueryInterfaceResult::NOT_IMPLEMENTED;
+			return QueryForParticularInterface<IGRWidgetVerticalList>(this, ppOutputArg, interfaceId);
 		}
 	};
 
@@ -122,6 +115,11 @@ namespace GRANON
 
 namespace Rococo::Gui
 {
+	ROCOCO_GUI_RETAINED_API cstr IGRWidgetVerticalList::InterfaceId()
+	{
+		return "IGRWidgetVerticalList";
+	}
+
 	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalList& CreateVerticalList(IGRWidget& parent, bool enforcePositiveChildHeights)
 	{
 		GRANON::GRVerticalListFactory factory(enforcePositiveChildHeights);

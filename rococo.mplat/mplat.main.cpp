@@ -18,7 +18,7 @@
 #include <objbase.h>
 #include <rococo.stl.allocators.h>
 #include "mplat.components.h"
-#include <rococo.gui.retained.h>
+#include <rococo.gui.retained.ex.h>
 #include "mplat.editor.h"
 
 //////////////////////// XAUDIO2 and Media Foundation stuff for audio decoding ////////////////////

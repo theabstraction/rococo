@@ -1,4 +1,4 @@
-#include <rococo.gui.retained.h>
+#include <rococo.gui.retained.ex.h>
 #include <rococo.maths.i32.h>
 #include <string>
 
@@ -71,14 +71,7 @@ namespace GRANON
 
 		EQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
-			if (!interfaceId || *interfaceId == 0) return EQueryInterfaceResult::INVALID_ID;
-			if (DoInterfaceNamesMatch(interfaceId, "IGRWidgetDivision"))
-			{
-				if (ppOutputArg) *ppOutputArg = this;
-				return EQueryInterfaceResult::SUCCESS;
-			}
-
-			return EQueryInterfaceResult::NOT_IMPLEMENTED;
+			return QueryForParticularInterface<IGRWidgetDivision>(this, ppOutputArg, interfaceId);
 		}
 	};
 
@@ -93,6 +86,11 @@ namespace GRANON
 
 namespace Rococo::Gui
 {
+	ROCOCO_GUI_RETAINED_API cstr IGRWidgetDivision::InterfaceId()
+	{
+		return "IGRWidgetDivision";
+	}
+
 	ROCOCO_GUI_RETAINED_API IGRWidgetDivision& CreateDivision(IGRWidget& parent)
 	{
 		auto& gr = parent.Panel().Root().GR();
