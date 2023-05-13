@@ -349,6 +349,7 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API void LayoutChildByAnchors(IGRPanel& child, const GuiRect& parentDimensions);
 	ROCOCO_GUI_RETAINED_API void LayoutChildrenByAnchors(IGRPanel& parent, const GuiRect& parentDimensions);
 
+	// The base class from which queriable interfaces are derived. Used by QueryInterface methods herein
 	ROCOCO_INTERFACE IGRBase
 	{
 
@@ -602,6 +603,7 @@ namespace Rococo::Gui
 	// The widget side of the main frame
 	ROCOCO_INTERFACE IGRWidgetMainFrame : IGRWidget
 	{
+		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
 		virtual IGRMainFrame& Frame() = 0;
 	};
 
@@ -806,4 +808,24 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API IGREditFilter& GetUnsignedFilter();
 
 	ROCOCO_GUI_RETAINED_API bool DoInterfaceNamesMatch(cstr a, cstr b);
+
+	// Query to see if the particular interface is part of the supplied instance. Will only compile if there is an elementary derivation of GR_TARGET_INTERFACE from GRBASED_CLASS.
+	template<typename GR_TARGET_INTERFACE, class GRBASED_CLASS> inline EQueryInterfaceResult QueryForParticularInterface(GRBASED_CLASS* instance, IGRBase** ppOutputArg, cstr interfaceId)
+	{
+		if (ppOutputArg) *ppOutputArg = nullptr;
+
+		if (!interfaceId || *interfaceId == 0) return EQueryInterfaceResult::INVALID_ID;
+
+		if (DoInterfaceNamesMatch(interfaceId, GR_TARGET_INTERFACE::InterfaceId()))
+		{
+			auto* target = static_cast<GR_TARGET_INTERFACE*>(instance);
+			if (target)
+			{
+				if (ppOutputArg) *ppOutputArg = target;
+				return EQueryInterfaceResult::SUCCESS;
+			}
+		}
+
+		return EQueryInterfaceResult::NOT_IMPLEMENTED;
+	}
 }

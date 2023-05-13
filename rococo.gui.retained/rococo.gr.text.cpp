@@ -96,14 +96,7 @@ namespace GRANON
 
 		EQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
-			if (!interfaceId || *interfaceId == 0) return EQueryInterfaceResult::INVALID_ID;
-			if (DoInterfaceNamesMatch(interfaceId, "IGRWidgetText"))
-			{
-				if (ppOutputArg) *ppOutputArg = static_cast<IGRWidgetText*>(this);
-				return EQueryInterfaceResult::SUCCESS;
-			}
-
-			return EQueryInterfaceResult::NOT_IMPLEMENTED;
+			return Gui::QueryForParticularInterface<IGRWidgetText>(this, ppOutputArg, interfaceId);
 		}
 
 		IGRWidget& Widget()
@@ -112,7 +105,7 @@ namespace GRANON
 		}
 	};
 
-	struct GRTextFactory : IGRWidgetFactory
+	struct GRTextFactory : Rococo::Gui::IGRWidgetFactory
 	{
 		IGRWidget& CreateWidget(IGRPanel& panel)
 		{

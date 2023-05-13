@@ -152,20 +152,18 @@ namespace GRANON
 
 		EQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
-			if (!interfaceId || *interfaceId == 0) return EQueryInterfaceResult::INVALID_ID;
-			if (DoInterfaceNamesMatch(interfaceId, "IGRMainFrame"))
-			{
-				if (ppOutputArg) *ppOutputArg = this;
-				return EQueryInterfaceResult::SUCCESS;
-			}
-
-			return EQueryInterfaceResult::NOT_IMPLEMENTED;
+			return Gui::QueryForParticularInterface<IGRWidgetMainFrame>(this, ppOutputArg, interfaceId);
 		}
 	};
 }
 
 namespace Rococo::Gui
 {
+	ROCOCO_GUI_RETAINED_API cstr IGRWidgetMainFrame::InterfaceId()
+	{
+		return "IGRWidgetMainFrame";
+	}
+
 	IGRWidgetMainFrame* CreateGRMainFrame(cstr name, IGRPanel& panel)
 	{
 		auto* frame = new GRANON::GRMainFrame(name, panel);

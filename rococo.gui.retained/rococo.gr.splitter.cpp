@@ -161,15 +161,8 @@ namespace GRANON
 		}
 
 		EQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
-		{			
-			if (!interfaceId || *interfaceId == 0) return EQueryInterfaceResult::INVALID_ID;
-			if (DoInterfaceNamesMatch(interfaceId, "IGRWidgetSplitter"))
-			{
-				if (ppOutputArg) *ppOutputArg = static_cast<IGRWidgetSplitter*>(this);
-				return EQueryInterfaceResult::SUCCESS;
-			}
-
-			return EQueryInterfaceResult::NOT_IMPLEMENTED;
+		{
+			return Gui::QueryForParticularInterface<IGRWidgetSplitter>(this, ppOutputArg, interfaceId);
 		}
 
 		IGRWidgetSplitter& SetDraggerMinMax(int32 minValue, int32 maxValue) override

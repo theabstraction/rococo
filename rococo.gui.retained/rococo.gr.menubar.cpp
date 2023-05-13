@@ -443,14 +443,7 @@ namespace GRANON
 
 		EQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
-			if (!interfaceId || *interfaceId == 0) return EQueryInterfaceResult::INVALID_ID;
-			if (DoInterfaceNamesMatch(interfaceId, "IGRWidgetMenuBar"))
-			{
-				if (ppOutputArg) *ppOutputArg = static_cast<IGRWidgetMenuBar*>(this);
-				return EQueryInterfaceResult::SUCCESS;
-			}
-
-			return EQueryInterfaceResult::NOT_IMPLEMENTED;
+			return Gui::QueryForParticularInterface<IGRWidgetMenuBar>(this, ppOutputArg, interfaceId);
 		}
 
 		IGRWidget& Widget()
@@ -474,6 +467,7 @@ namespace Rococo::Gui
 	{
 		return "IGRWidgetMenuBar";
 	}
+
 	ROCOCO_GUI_RETAINED_API IGRWidgetMenuBar& CreateMenuBar(IGRWidget& parent)
 	{
 		auto& gr = parent.Panel().Root().GR();

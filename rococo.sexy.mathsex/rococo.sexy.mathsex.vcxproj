@@ -82,7 +82,7 @@
       </Outputs>
     </CustomBuildStep>
     <CustomBuild>
-      <Command>..\sexy\Bin\x64Debug\sexy.bennyhill.exe    .\%(Filename)     %%~nf.inl</Command>
+      <Command>$(SolutionDir)bin\sexy.bennyhill.debug.exe    .\%(Filename)     %%~nf.inl</Command>
       <Outputs>%%~nf.inl</Outputs>
       <AdditionalInputs>config.xc</AdditionalInputs>
     </CustomBuild>
@@ -117,7 +117,7 @@
       </Outputs>
     </CustomBuildStep>
     <CustomBuild>
-      <Command>..\sexy\Bin\x64Release\sexy.bennyhill.exe    .\%(Filename)    %%~nf.inl</Command>
+      <Command>$(SolutionDir)bin\sexy.bennyhill.exe    .\%(Filename)    %%~nf.inl</Command>
       <Outputs>%%~nf.inl</Outputs>
       <AdditionalInputs>config.xc</AdditionalInputs>
     </CustomBuild>
@@ -141,8 +141,8 @@
     <CustomBuild Include="mathsex.random.sxh">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\sexy\Bin\x64Debug\sexy.bennyhill.exe    $(ProjectDir)   mathsex.random.sxh  mathsex.random.inl</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\sexy\Bin\x64Release\sexy.bennyhill.exe   $(ProjectDir)   mathsex.random.sxh  mathsex.random.inl</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">bin\sexy.bennyhill.debug.exe    $(ProjectDir)   mathsex.random.sxh  mathsex.random.inl</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)bin\sexy.bennyhill.exe  $(ProjectDir)   mathsex.random.sxh  mathsex.random.inl</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">mathsex.random.inl</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">config.xc</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">mathsex.random.inl</Outputs>
@@ -151,10 +151,10 @@
     </CustomBuild>
     <CustomBuild Include="mathsex.vectors.sxh">
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\sexy\Bin\x64Release\sexy.bennyhill.exe     $(ProjectDir)   mathsex.vectors.sxh  mathsex.vectors.inl</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)bin\sexy.bennyhill.exe   $(ProjectDir)   mathsex.vectors.sxh  mathsex.vectors.inl</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">mathsex.vectors.inl</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">config.xc</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\sexy\Bin\x64Debug\sexy.bennyhill.exe    $(ProjectDir)   mathsex.vectors.sxh  mathsex.vectors.inl</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">bin\sexy.bennyhill.debug.exe    $(ProjectDir)   mathsex.vectors.sxh  mathsex.vectors.inl</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">mathsex.vectors.inl</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">config.xc</AdditionalInputs>
@@ -163,8 +163,8 @@
     <CustomBuild Include="mathsex.base.sxh">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\sexy\Bin\x64Release\sexy.bennyhill.exe    $(ProjectDir)   mathsex.base.sxh  mathsex.base.inl</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\sexy\Bin\x64Debug\sexy.bennyhill.exe    $(ProjectDir)   mathsex.base.sxh  mathsex.base.inl</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)bin\sexy.bennyhill.exe  $(ProjectDir)   mathsex.base.sxh  mathsex.base.inl</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">bin\sexy.bennyhill.debug.exe    $(ProjectDir)   mathsex.base.sxh  mathsex.base.inl</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">mathsex.base.inl</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">mathsex.base.inl</Outputs>
     </CustomBuild>

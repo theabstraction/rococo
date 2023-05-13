@@ -55,9 +55,6 @@ all:
 	$(BENNY_HILL) $(DIR_SEXY)SS\sexy.nativelib.coroutines\ coroutines.sxh null
 
 clean: 
-	del /Q $(ROCOCO)intermediate\*.*
-	del /Q $(ROCOCO)bin\*.*
-	del /Q $(ROCOCO)lib\*.*
 	msbuild $(DIR_SEXY)Utilities\Utilities.vcxproj                                    $(MSBUILD_CLEAN) $(WITH_SOLUTION)
 	msbuild $(DIR_SEXY)SP\sexy.s-parser\sexy.s-parser.vcxproj                         $(MSBUILD_CLEAN) $(WITH_SOLUTION)
 	msbuild $(DIR_SEXY)SVM\svmcore\svmcore.vcxproj                                    $(MSBUILD_CLEAN) $(WITH_SOLUTION)

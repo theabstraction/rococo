@@ -7,10 +7,11 @@
     <BaseOutputPath>$(SolutionDir)bin</BaseOutputPath>
     <ProduceReferenceAssembly>True</ProduceReferenceAssembly>
     <Copyright>Copyright (c)2022 Mark Anthony Taylor.</Copyright>
+    <BaseIntermediateOutputPath>$(SolutionDir)temp\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DocumentFormat.OpenXml" Version="2.15.0" />
+    <PackageReference Include="DocumentFormat.OpenXml" Version="2.20.0" />
   </ItemGroup>
 
 </Project>

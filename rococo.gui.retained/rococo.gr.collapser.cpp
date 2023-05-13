@@ -116,14 +116,8 @@ namespace GRANON
 
 		EQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
-			if (!interfaceId || *interfaceId == 0) return EQueryInterfaceResult::INVALID_ID;
-			if (DoInterfaceNamesMatch(interfaceId, "IGRWidgetCollapser"))
-			{
-				if (ppOutputArg) *ppOutputArg = static_cast<IGRWidgetCollapser*>(this);
-				return EQueryInterfaceResult::SUCCESS;
-			}
-
-			return EQueryInterfaceResult::NOT_IMPLEMENTED;
+			GRCollapser* instance = (GRCollapser*)this;
+			return Gui::QueryForParticularInterface<IGRWidgetCollapser, GRCollapser>(instance, ppOutputArg, interfaceId);
 		}
 	};
 

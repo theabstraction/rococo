@@ -179,14 +179,7 @@ namespace ANON
 
 		EQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
-			if (!interfaceId || *interfaceId == 0) return EQueryInterfaceResult::INVALID_ID;
-			if (DoInterfaceNamesMatch(interfaceId, "IGRWidgetVerticalScroller"))
-			{
-				if (ppOutputArg) *ppOutputArg = static_cast<IGRWidgetVerticalScroller*>(this);
-				return EQueryInterfaceResult::SUCCESS;
-			}
-
-			return EQueryInterfaceResult::NOT_IMPLEMENTED;
+			return Gui::QueryForParticularInterface<IGRWidgetVerticalScroller>(this, ppOutputArg, interfaceId);
 		}
 
 		IGRWidget& Widget() override

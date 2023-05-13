@@ -1,9 +1,10 @@
 #include <rococo.gui.retained.h>
 #include <rococo.maths.i32.h>
-#include <string>
+#include <rococo.strings.h>
 #include <vector>
 
 using namespace Rococo;
+using namespace Rococo::Strings;
 using namespace Rococo::Gui;
 
 namespace GRANON
@@ -15,7 +16,7 @@ namespace GRANON
 
 	struct GRColumn
 	{
-		std::string name;
+		HString name;
 		int minWidth;
 		int defaultWidth;
 		int maxWidth;
@@ -167,16 +168,8 @@ namespace GRANON
 
 		EQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
-			if (!interfaceId || *interfaceId == 0) return EQueryInterfaceResult::INVALID_ID;
-			if (DoInterfaceNamesMatch(interfaceId, "IGRWidgetTable"))
-			{
-				if (ppOutputArg) *ppOutputArg = static_cast<IGRWidgetTable*>(this);
-				return EQueryInterfaceResult::SUCCESS;
-			}
-
-			return EQueryInterfaceResult::NOT_IMPLEMENTED;
+			return Gui::QueryForParticularInterface<IGRWidgetTable>(this, ppOutputArg, interfaceId);
 		}
-
 
 		IGRWidget& Widget() override
 		{
