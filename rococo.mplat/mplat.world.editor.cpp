@@ -552,10 +552,17 @@ namespace ANON
 			auto& frameSplitter = CreateLeftToRightSplitter(frame->ClientArea(), 240, false).SetDraggerMinMax(240, 8192);
 			frameSplitter.Widget().Panel().Add(GRAnchors::ExpandAll());
 
+			auto& viewport = CreateViewportWidget(frameSplitter.First());
+
+			GRAnchors anchors;
+			anchors.ExpandAll();
+
+			viewport.Widget().Panel().Set(anchors);
+
 			auto* node = previewer.root;
 
 			int32 accumulatedHeight = 0;
-			if (node) SyncUIToPreviewerRecursive(*node, gr, frameSplitter.First(), 0, accumulatedHeight);
+			if (node) SyncUIToPreviewerRecursive(*node, gr, viewport.ClientArea(), 0, accumulatedHeight);
 		}
 
 		void Preview(IReflectionTarget& target) override
