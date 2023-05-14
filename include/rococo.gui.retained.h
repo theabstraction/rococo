@@ -541,6 +541,7 @@ namespace Rococo::Gui
 		virtual Vec2i ResizeToFitChildren() = 0;
 	};
 
+	// A widget with a rectangular background for holding child widgets
 	ROCOCO_INTERFACE IGRWidgetDivision : IGRWidget
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
@@ -677,12 +678,20 @@ namespace Rococo::Gui
 	ROCOCO_INTERFACE IGRWidgetVerticalScroller : IGRBase
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
-
 		virtual IGRWidget& Widget() = 0;
 
 		virtual void SetPosition(int32 position) = 0;
 		virtual void SetRange(int32 range) = 0;
 		virtual void SetWindowSize(int32 domain) = 0;
+	};
+
+	ROCOCO_INTERFACE IGRWidgetViewport : IGRBase
+	{
+		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
+		virtual IGRWidget& Widget() = 0;
+
+		virtual IGRWidgetDivision& ClientArea() = 0;
+		virtual IGRWidgetVerticalScroller& VScroller() = 0;
 	};
 
 	// A vertical list that aligns its children vertically
@@ -694,7 +703,6 @@ namespace Rococo::Gui
 	ROCOCO_INTERFACE IGRWidgetEditBox : IGRBase
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
-
 		virtual IGRWidget& Widget() = 0;
 
 		// Returns length of the internal storage, which includes space for the trailing nul character. Never returns < 2, i.e there is always space for one character and a trailing nul
@@ -737,6 +745,9 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API IGRWidgetButton& CreateButton(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetDivision& CreateDivision(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalScroller& CreateVerticalScroller(IGRWidget& parent);
+
+	// Creates a viewport into a larger UI domain, providing horizontal and vertical scrollbars to navigate the domain
+	ROCOCO_GUI_RETAINED_API IGRWidgetViewport& CreateViewportWidget(IGRWidget& parent);
 
 	// Creates a vertical list that aligns its children vertically
 	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalList& CreateVerticalList(IGRWidget& parent, bool enforcePositiveChildHeights = true);
