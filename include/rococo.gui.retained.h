@@ -262,21 +262,21 @@ namespace Rococo::Gui
 		uint32 expandsHorizontally : 1 = 0; // If true then sticking to left or right of a container may expand or contract the span. Irrelevant if both left and right anchors are set.
 		uint32 expandsVertically : 1 = 0; // If true then sticking to the top of the bottom of a container may expand or contract the span. Irrelevant if both top and bottom anchors are set.
 
-		ROCOCO_GUI_RETAINED_API static GRAnchors Left();
-		ROCOCO_GUI_RETAINED_API static GRAnchors LeftAndRight();
-		ROCOCO_GUI_RETAINED_API static GRAnchors Right();
-		ROCOCO_GUI_RETAINED_API static GRAnchors Top();
-		ROCOCO_GUI_RETAINED_API static GRAnchors TopAndBottom();
-		ROCOCO_GUI_RETAINED_API static GRAnchors Bottom();
+		ROCOCO_GUI_RETAINED_API static [[nodiscard]] GRAnchors Left();
+		ROCOCO_GUI_RETAINED_API static [[nodiscard]] GRAnchors LeftAndRight();
+		ROCOCO_GUI_RETAINED_API static [[nodiscard]] GRAnchors Right();
+		ROCOCO_GUI_RETAINED_API static [[nodiscard]] GRAnchors Top();
+		ROCOCO_GUI_RETAINED_API static [[nodiscard]] GRAnchors TopAndBottom();
+		ROCOCO_GUI_RETAINED_API static [[nodiscard]] GRAnchors Bottom();
 
 		// The widget expands to fill its parent's vertical span
-		ROCOCO_GUI_RETAINED_API static GRAnchors ExpandVertically();
+		ROCOCO_GUI_RETAINED_API static [[nodiscard]] GRAnchors ExpandVertically();
 
 		// The widget expands to fill its parent's horizontal span
-		ROCOCO_GUI_RETAINED_API static GRAnchors ExpandHorizontally();
+		ROCOCO_GUI_RETAINED_API static [[nodiscard]] GRAnchors ExpandHorizontally();
 
 		// The widget expands to fill its parent's space
-		ROCOCO_GUI_RETAINED_API static GRAnchors ExpandAll();
+		ROCOCO_GUI_RETAINED_API static [[nodiscard]] GRAnchors ExpandAll();
 	};
 
 	// Gives the number of pixels between an anchored side and the parent control. Implicit construction order is Left, Right, Top, Bottom

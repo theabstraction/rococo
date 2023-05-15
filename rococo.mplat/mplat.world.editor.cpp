@@ -554,8 +554,7 @@ namespace ANON
 
 			auto& viewport = CreateViewportWidget(frameSplitter.First());
 
-			GRAnchors anchors;
-			anchors.ExpandAll();
+			GRAnchors anchors = anchors.ExpandAll();
 
 			viewport.Widget().Panel().Set(anchors);
 
