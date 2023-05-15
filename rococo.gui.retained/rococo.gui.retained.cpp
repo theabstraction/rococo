@@ -419,14 +419,14 @@ namespace Rococo::Gui
 		return new ANON::GuiRetained(config, custodian);
 	}
 
-	ROCOCO_GUI_RETAINED_API GRAnchors GRAnchors::Left()
+	ROCOCO_GUI_RETAINED_API [[nodiscard]] GRAnchors GRAnchors::Left()
 	{
 		GRAnchors a;
 		a.left = true;
 		return a;
 	}
 
-	ROCOCO_GUI_RETAINED_API GRAnchors GRAnchors::LeftAndRight()
+	ROCOCO_GUI_RETAINED_API [[nodiscard]] GRAnchors GRAnchors::LeftAndRight()
 	{
 		GRAnchors a;
 		a.left = true;
@@ -434,7 +434,7 @@ namespace Rococo::Gui
 		return a;
 	}
 
-	ROCOCO_GUI_RETAINED_API GRAnchors GRAnchors::ExpandAll()
+	ROCOCO_GUI_RETAINED_API [[nodiscard]] GRAnchors GRAnchors::ExpandAll()
 	{
 		GRAnchors a;
 		a.left = true;
@@ -446,28 +446,28 @@ namespace Rococo::Gui
 		return a;
 	}
 
-	ROCOCO_GUI_RETAINED_API GRAnchors GRAnchors::Right()
+	ROCOCO_GUI_RETAINED_API [[nodiscard]] GRAnchors GRAnchors::Right()
 	{
 		GRAnchors a;
 		a.right = true;
 		return a;
 	}
 
-	ROCOCO_GUI_RETAINED_API GRAnchors GRAnchors::Top()
+	ROCOCO_GUI_RETAINED_API [[nodiscard]] GRAnchors GRAnchors::Top()
 	{
 		GRAnchors a;
 		a.top = true;
 		return a;
 	}
 
-	ROCOCO_GUI_RETAINED_API GRAnchors GRAnchors::Bottom()
+	ROCOCO_GUI_RETAINED_API [[nodiscard]] GRAnchors GRAnchors::Bottom()
 	{
 		GRAnchors a;
 		a.bottom = true;
 		return a;
 	}
 
-	ROCOCO_GUI_RETAINED_API GRAnchors GRAnchors::TopAndBottom()
+	ROCOCO_GUI_RETAINED_API [[nodiscard]] GRAnchors GRAnchors::TopAndBottom()
 	{
 		GRAnchors a;
 		a.top = true;
@@ -475,21 +475,21 @@ namespace Rococo::Gui
 		return a;
 	}
 
-	ROCOCO_GUI_RETAINED_API GRAnchors GRAnchors::ExpandVertically()
+	ROCOCO_GUI_RETAINED_API [[nodiscard]] GRAnchors GRAnchors::ExpandVertically()
 	{
 		GRAnchors a;
 		a.expandsVertically = true;
 		return a;
 	}
 
-	ROCOCO_GUI_RETAINED_API GRAnchors GRAnchors::ExpandHorizontally()
+	ROCOCO_GUI_RETAINED_API [[nodiscard]] GRAnchors GRAnchors::ExpandHorizontally()
 	{
 		GRAnchors a;
 		a.expandsHorizontally = true;
 		return a;
 	}
 
-	ROCOCO_GUI_RETAINED_API bool DoInterfaceNamesMatch(cstr a, cstr b)
+	ROCOCO_GUI_RETAINED_API [[nodiscard]] bool DoInterfaceNamesMatch(cstr a, cstr b)
 	{
 		return _stricmp(a, b) == 0;
 	}

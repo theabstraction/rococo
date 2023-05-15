@@ -57,7 +57,7 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API void DrawPanelBackground(IGRPanel& panel, IGRRenderContext& g);
 
 	// Dynamic casting methods
-	ROCOCO_GUI_RETAINED_API bool DoInterfaceNamesMatch(cstr a, cstr b);
+	ROCOCO_GUI_RETAINED_API [[nodiscard]] bool DoInterfaceNamesMatch(cstr a, cstr b);
 
 	// Query to see if the particular interface is part of the supplied instance. Will only compile if there is an elementary derivation of GR_TARGET_INTERFACE from GRBASED_CLASS.
 	template<typename GR_TARGET_INTERFACE, class GRBASED_CLASS> inline EQueryInterfaceResult QueryForParticularInterface(GRBASED_CLASS* instance, IGRBase** ppOutputArg, cstr interfaceId)
