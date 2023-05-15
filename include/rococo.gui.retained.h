@@ -253,7 +253,7 @@ namespace Rococo::Gui
 		virtual IGuiRetained& GR() = 0;
 	};
 
-	struct GRAnchors
+	struct [[nodiscard]] GRAnchors
 	{
 		uint32 left: 1 = 0;	// The widget sticks to the left side of the container
 		uint32 top : 1 = 0; // The widget sticks to the top side of the container
