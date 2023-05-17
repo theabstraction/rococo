@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <rococo.maths.i32.h>
 #include <unordered_map>
+#include <rococo.maths.h>
 
 using namespace Rococo;
 using namespace Rococo::Gui;
@@ -179,7 +180,7 @@ namespace ANON
 			if (queryDepth > 0)
 			{
 				custodian.RaiseError(GRErrorCode::RecursionLocked, __FUNCTION__, "The GUI Retained API is locked for a recursive query. GarbageCollect cannot be executed here");
-				IGRMainFrame* frame = nullptr;
+				return;
 			}
 
 			RecursionGuard guard(*this);
@@ -209,7 +210,12 @@ namespace ANON
 				}
 
 				RecursionGuard guard(*this);
-				d.panel->RenderRecursive(g);
+
+				Vec2i bottomRight = topLeft + Span(screenDimensions);
+
+				GuiRect clipRect{ topLeft.x, topLeft.y, bottomRight.x, bottomRight.y };
+				d.panel->RenderRecursive(g, clipRect);
+				g.DisableScissors();
 			}
 
 			if (focusId >= 0)

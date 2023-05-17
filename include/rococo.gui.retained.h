@@ -147,6 +147,7 @@ namespace Rococo::Gui
 
 		virtual void EnableScissors(const GuiRect& scissorRect) = 0;
 		virtual void DisableScissors() = 0;
+		virtual bool TryGetScissorRect(GuiRect& scissorRect) const = 0;
 	};
 
 	enum class ESchemeColourSurface
@@ -350,7 +351,7 @@ namespace Rococo::Gui
 		virtual void ClearChildren() = 0;
 		virtual void GarbageCollectRecursive() = 0;
 		virtual void LayoutRecursive(Vec2i absoluteOrigin) = 0;
-		virtual void RenderRecursive(IGRRenderContext & g) = 0;
+		virtual void RenderRecursive(IGRRenderContext & g, const GuiRect& clipRect) = 0;
 		virtual EventRouting RouteCursorClickEvent(CursorEvent& ce, bool filterChildrenByParentRect) = 0;
 		virtual EventRouting RouteCursorMoveEvent(CursorEvent& ce) = 0;
 		virtual void SetWidget(IGRWidget& widget) = 0;

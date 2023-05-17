@@ -232,14 +232,24 @@ namespace ANON
 			}
 		}
 
+		GuiRect lastScissorRect;
+
 		void EnableScissors(const GuiRect& scissorRect) override
 		{
-			Throw(0, "Not implemented");
+			rc->SetScissorRect(scissorRect);
+			lastScissorRect = scissorRect;
 		}
 
 		void DisableScissors() override
 		{
-			Throw(0, "Not implemented");
+			rc->ClearScissorRect();
+			lastScissorRect = GuiRect{ 0,0,0,0 };
+		}
+
+		bool TryGetScissorRect(GuiRect& scissorRect) const override
+		{
+			scissorRect = lastScissorRect;
+			return lastScissorRect.IsNormalized();
 		}
 
 		bool Render(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, const BitmapLocation& sprite)

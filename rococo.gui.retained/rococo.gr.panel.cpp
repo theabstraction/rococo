@@ -1,6 +1,7 @@
 #include <rococo.gui.retained.ex.h>
 #include <vector>
 #include <rococo.maths.i32.h>
+#include <rococo.maths.h>
 
 namespace GRANON
 {
@@ -312,20 +313,22 @@ namespace GRANON
 			}
 		}
 
-		void RenderRecursive(IGRRenderContext& g) override
+		void RenderRecursive(IGRRenderContext& g, const GuiRect& clipRect) override
 		{
-			if (!widget)
+			if (!widget || !clipRect.IsNormalized())
 			{
 				return;
 			}
 
 			if (span.x > 0 && span.y > 0)
 			{
+				g.EnableScissors(clipRect);
+
 				widget->Render(g);
 
 				for (auto* child : children)
 				{
-					child->RenderRecursive(g);
+					child->RenderRecursive(g, IntersectNormalizedRects(clipRect, child->AbsRect()));
 				}
 			}
 		}

@@ -98,4 +98,27 @@ namespace Rococo
 	{
 		return GuiRect(rect.left + delta.x, rect.top + delta.y, rect.right + delta.x, rect.bottom + delta.y);
 	}
+
+	// Intersect normalized rectangles. If either rectangle is not normalized, or if there is no intersection returns {0,0,0,0}. 
+	inline GuiRect IntersectNormalizedRects(const GuiRect& a, const GuiRect& b)
+	{
+		const GuiRect GuiRectNull = { 0,0,0,0 };
+
+		if (!a.IsNormalized() || !b.IsNormalized())
+		{
+			return GuiRectNull;
+		}
+
+		if (a.left >= b.right || a.right <= b.left)
+		{
+			return GuiRectNull;
+		}
+
+		if (a.top >= b.bottom || a.bottom <= b.top)
+		{
+			return GuiRectNull;
+		}
+
+		return GuiRect{ max(a.left, b.left), max(a.top, b.top), min(a.right, b.right), min(a.bottom, b.bottom) };
+	}
 }
