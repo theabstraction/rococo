@@ -393,7 +393,7 @@ namespace GRANON
 
 		void Render(IGRRenderContext& g) override
 		{
-			
+			panel.SetClipChildren(!tree.IsActive());
 		}
 
 		EventRouting OnChildEvent(WidgetEvent& widgetEvent, IGRWidget& sourceWidget)

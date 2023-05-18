@@ -95,13 +95,13 @@ namespace ANON
 			Rococo::Graphics::DrawBorderAround(*rc, absRect, Vec2i{ 1,1 }, colour1, colour2);
 		}
 
-		void DrawRectEdgeLast(const GuiRect& absRect, RGBAb colour1, RGBAb colour2)
+		void DrawRectEdgeLast(const GuiRect& absRect, RGBAb colour1, RGBAb colour2) override
 		{
 			RenderTask task{ ERenderTaskType::Edge, absRect, colour1, colour2 };
 			lastTasks.push_back(task);
 		}
 
-		void DrawEditableText(GRFontId fontId, const GuiRect& clipRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, int32 caretPos, RGBAb colour)
+		void DrawEditableText(GRFontId fontId, const GuiRect& clipRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, int32 caretPos, RGBAb colour) override
 		{
 			// If there is nothing to display, then render a space character, which will give the caret a rectangle to work with
 			fstring editText = text.length > 0 ? text : " "_fstring;
@@ -203,6 +203,11 @@ namespace ANON
 			}
 	
 			Rococo::Graphics::RenderHQText(clipRect, iAlignment, *rc, hqFontId, text, colour);
+		}
+
+		void Flush() override
+		{
+			rc->FlushLayer();
 		}
 
 		Vec2i CursorHoverPoint() const override

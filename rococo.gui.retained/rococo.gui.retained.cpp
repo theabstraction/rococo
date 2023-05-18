@@ -33,6 +33,22 @@ namespace ANON
 		int queryDepth = 0;
 		bool queueGarbageCollect = false;
 
+		int badSpanCountThisFrame = 0;
+
+		int BadSpanCount() const override
+		{
+			if (Rococo::OS::IsDebugging())
+			{
+				Rococo::OS::TripDebugger();
+			}
+			return badSpanCountThisFrame;
+		}
+
+		void IncBadSpanCountThisFrame(IGRPanel& origin) override
+		{
+			badSpanCountThisFrame++;
+		}
+
 		struct FrameDesc
 		{
 			IGRPanelSupervisor* panel;
@@ -197,6 +213,8 @@ namespace ANON
 				GarbageCollect();
 				queueGarbageCollect = false;
 			}
+
+			badSpanCountThisFrame = 0;
 
 			for (auto& d : frameDescriptors)
 			{

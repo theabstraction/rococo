@@ -30,7 +30,7 @@
     <ClCompile Include="rococo.gr.scheme.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="rococo.gr.widget.button.cpp">
+    <ClCompile Include="rococo.gr.button.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="rococo.gr.menubar.cpp">

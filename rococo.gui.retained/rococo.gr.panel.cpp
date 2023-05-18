@@ -10,7 +10,7 @@ namespace GRANON
 
 	static int64 nextId = 1;
 
-	struct GRPanel : IGRPanelSupervisor
+	struct GRPanel: IGRPanelSupervisor
 	{
 		IGRPanelSupervisor* parent;
 		IGRPanelRoot& root;
@@ -315,21 +315,29 @@ namespace GRANON
 
 		void RenderRecursive(IGRRenderContext& g, const GuiRect& clipRect) override
 		{
-			if (!widget || !clipRect.IsNormalized())
+			if (!widget)
 			{
 				return;
 			}
 
 			if (span.x > 0 && span.y > 0)
 			{
-				g.EnableScissors(clipRect);
+				GuiRect laxClipRect = Expand(clipRect, 1);
+				g.EnableScissors(laxClipRect);
 
 				widget->Render(g);
 
+				g.Flush();
+
 				for (auto* child : children)
 				{
-					child->RenderRecursive(g, IntersectNormalizedRects(clipRect, child->AbsRect()));
+					GuiRect childClipRect = doesClipChildren ? IntersectNormalizedRects(clipRect, child->AbsRect()) : child->AbsRect();
+					child->RenderRecursive(g, childClipRect);
 				}
+			}
+			else
+			{
+				root.IncBadSpanCountThisFrame(*this);
 			}
 		}
 
@@ -411,6 +419,18 @@ namespace GRANON
 		IGRWidget& Widget() override
 		{
 			return *widget;
+		}
+
+		bool doesClipChildren = true;
+
+		void SetClipChildren(bool enabled) override
+		{
+			doesClipChildren = enabled;
+		}
+
+		bool DoesClipChildren() const override
+		{
+			return doesClipChildren;
 		}
 	};
 }

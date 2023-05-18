@@ -145,6 +145,9 @@ namespace Rococo::Gui
 		virtual void DrawEditableText(GRFontId fontId, const GuiRect& clipRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, int32 caretPos, RGBAb colour) = 0;
 		virtual void DrawText(GRFontId fontId, const GuiRect& clipRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour) = 0;
 
+		// Causes all render operations to complete
+		virtual void Flush() = 0;
+
 		virtual void EnableScissors(const GuiRect& scissorRect) = 0;
 		virtual void DisableScissors() = 0;
 		virtual bool TryGetScissorRect(GuiRect& scissorRect) const = 0;
@@ -237,6 +240,11 @@ namespace Rococo::Gui
 
 		// Returns the Id of the captured panel, or -1, if no capture exists
 		virtual int64 CapturedPanelId() const = 0;
+
+		// Increments the bad span count for the UI. Resets to zero at the start of every gui render
+		virtual void IncBadSpanCountThisFrame(IGRPanel& origin) = 0;
+
+		virtual int BadSpanCount() const = 0;
 
 		// Queue a garbage collect for the next render cycle
 		virtual void QueueGarbageCollect() = 0;
@@ -342,6 +350,9 @@ namespace Rococo::Gui
 
 		virtual void Focus() = 0;
 		virtual bool HasFocus() const = 0;
+
+		virtual void SetClipChildren(bool enabled) = 0;
+		virtual bool DoesClipChildren() const = 0;
 	};
 
 	// Interface used internally by the GUI retained implementation. Clients of the API only see IGRPanel(s)
