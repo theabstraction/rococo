@@ -327,8 +327,6 @@ namespace GRANON
 
 				widget->Render(g);
 
-				g.Flush();
-
 				for (auto* child : children)
 				{
 					GuiRect childClipRect = doesClipChildren ? IntersectNormalizedRects(clipRect, child->AbsRect()) : child->AbsRect();

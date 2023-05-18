@@ -2,6 +2,7 @@
 #include <rococo.mplat.h>
 #include <rococo.renderer.h>
 #include <rococo.maths.h>
+#include <rococo.maths.i32.h>
 #include <rococo.ui.h>
 #include <rococo.fonts.hq.h>
 #include <rococo.textures.h>
@@ -87,22 +88,31 @@ namespace ANON
 
 		void DrawRect(const GuiRect& absRect, RGBAb colour) override
 		{
-			Rococo::Graphics::DrawRectangle(*rc, absRect, colour, colour);
+			GuiRect visibleRect = lastScissorRect.IsNormalized() ? IntersectNormalizedRects(absRect, lastScissorRect) : absRect;
+			Rococo::Graphics::DrawRectangle(*rc, visibleRect, colour, colour);
 		}
 
 		void DrawRectEdge(const GuiRect& absRect, RGBAb colour1, RGBAb colour2) override
 		{
-			Rococo::Graphics::DrawBorderAround(*rc, absRect, Vec2i{ 1,1 }, colour1, colour2);
+			GuiRect visibleRect = lastScissorRect.IsNormalized() ? IntersectNormalizedRects(absRect, lastScissorRect) : absRect;
+			Rococo::Graphics::DrawBorderAround(*rc, visibleRect, Vec2i{ 1,1 }, colour1, colour2);
 		}
 
 		void DrawRectEdgeLast(const GuiRect& absRect, RGBAb colour1, RGBAb colour2) override
 		{
-			RenderTask task{ ERenderTaskType::Edge, absRect, colour1, colour2 };
+			GuiRect visibleRect = lastScissorRect.IsNormalized() ? IntersectNormalizedRects(absRect, lastScissorRect) : absRect;
+			RenderTask task{ ERenderTaskType::Edge, visibleRect, colour1, colour2 };
 			lastTasks.push_back(task);
 		}
 
 		void DrawEditableText(GRFontId fontId, const GuiRect& clipRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, int32 caretPos, RGBAb colour) override
 		{
+			if (lastScissorRect.IsNormalized())
+			{
+				rc->FlushLayer();
+				rc->SetScissorRect(lastScissorRect);
+			}
+
 			// If there is nothing to display, then render a space character, which will give the caret a rectangle to work with
 			fstring editText = text.length > 0 ? text : " "_fstring;
 
@@ -186,10 +196,22 @@ namespace ANON
 				blinkColour.alpha = colour.alpha / 2;
 			}
 			Rococo::Graphics::DrawLine(*rc, 1, glyphCallback.caretStart, glyphCallback.caretEnd, blinkColour);
+
+			if (lastScissorRect.IsNormalized())
+			{
+				rc->FlushLayer();
+				rc->ClearScissorRect();
+			}
 		}
 
 		void DrawText(GRFontId fontId, const GuiRect& clipRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour) override
 		{
+			if (lastScissorRect.IsNormalized())
+			{
+				rc->FlushLayer();
+				rc->SetScissorRect(lastScissorRect);
+			}
+
 			int32 iAlignment = GRAlignment_To_RococoAlignment(alignment);
 
 			ID_FONT hqFontId;
@@ -203,6 +225,12 @@ namespace ANON
 			}
 	
 			Rococo::Graphics::RenderHQText(clipRect, iAlignment, *rc, hqFontId, text, colour);
+
+			if (lastScissorRect.IsNormalized())
+			{
+				rc->FlushLayer();
+				rc->ClearScissorRect();
+			}
 		}
 
 		void Flush() override
@@ -241,13 +269,11 @@ namespace ANON
 
 		void EnableScissors(const GuiRect& scissorRect) override
 		{
-			rc->SetScissorRect(scissorRect);
 			lastScissorRect = scissorRect;
 		}
 
 		void DisableScissors() override
 		{
-			rc->ClearScissorRect();
 			lastScissorRect = GuiRect{ 0,0,0,0 };
 		}
 
