@@ -49,6 +49,10 @@ namespace ANON
 				vscroller->Widget().Panel().Resize({ scrollbarWidth, Height(panelDimensions) });
 				vscroller->Widget().Panel().SetParentOffset({ Width(panelDimensions) - scrollbarWidth, 0 });
 			}
+
+			vscroller->SetRange(8192);
+			vscroller->SetPosition(0);
+			vscroller->SetWindowSize(Height(panelDimensions));
 		}
 
 		EventRouting OnCursorClick(CursorEvent& ce) override

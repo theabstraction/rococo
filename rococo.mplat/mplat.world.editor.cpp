@@ -489,8 +489,6 @@ namespace ANON
 			auto& collapser = CreateCollapser(parentContainer);
 			collapser.Widget().Panel().Set(GRAnchors::ExpandAll());
 			collapser.Widget().Panel().Set(GRAnchorPadding{ 8 * depth, 0, 0 , 0 });
-			collapser.Widget().Panel().Set(ESchemeColourSurface::TEXT, RGBAb(224, 224, 224, 255)).Set(ESchemeColourSurface::TEXT_HOVERED, RGBAb(255, 255, 255, 255));
-			collapser.Widget().Panel().Set(ESchemeColourSurface::EDIT_TEXT, RGBAb(224, 224, 224, 255)).Set(ESchemeColourSurface::EDIT_TEXT_HOVERED, RGBAb(255, 255, 255, 255));
 
 			auto& list = CreateVerticalList(collapser.ClientArea());
 			list.Panel().Set(GRAnchors::ExpandAll());
@@ -544,10 +542,17 @@ namespace ANON
 			auto* frame = gr.FindFrame(ID_EDITOR_FRAME);
 			if (!frame) return;
 
+			auto& framePanel = frame->ClientArea().Panel();
+
 			ClearFrame(*frame);
 
-			frame->ClientArea().Panel().Set(ESchemeColourSurface::FOCUSED_EDITOR, RGBAb(0, 0, 0, 255));
-			frame->ClientArea().Panel().Set(ESchemeColourSurface::FOCUSED_EDITOR_HOVERED, RGBAb(16, 16, 16, 255));
+			framePanel.Set(ESchemeColourSurface::TEXT, RGBAb(224, 224, 224, 255)).Set(ESchemeColourSurface::TEXT_HOVERED, RGBAb(255, 255, 255, 255));
+			framePanel.Set(ESchemeColourSurface::EDIT_TEXT, RGBAb(224, 224, 224, 255)).Set(ESchemeColourSurface::EDIT_TEXT_HOVERED, RGBAb(255, 255, 255, 255));
+			framePanel.Set(ESchemeColourSurface::FOCUSED_EDITOR, RGBAb(0, 0, 0, 255));
+			framePanel.Set(ESchemeColourSurface::FOCUSED_EDITOR_HOVERED, RGBAb(16, 16, 16, 255));
+			framePanel.Set(ESchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(64, 64, 64, 255)).Set(ESchemeColourSurface::SCROLLER_BUTTON_BACKGROUND_HOVERED, RGBAb(80, 80, 80, 255));
+			framePanel.Set(ESchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT, RGBAb(192, 192, 192, 255)).Set(ESchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT_HOVERED, RGBAb(255, 255, 255, 255));
+			framePanel.Set(ESchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT, RGBAb(128, 128, 128, 255)).Set(ESchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT_HOVERED, RGBAb(192, 192, 192, 255));
 
 			auto& frameSplitter = CreateLeftToRightSplitter(frame->ClientArea(), 240, false).SetDraggerMinMax(240, 8192);
 			frameSplitter.Widget().Panel().Add(GRAnchors::ExpandAll());

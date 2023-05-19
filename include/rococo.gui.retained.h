@@ -697,6 +697,7 @@ namespace Rococo::Gui
 		virtual void SetWindowSize(int32 domain) = 0;
 	};
 
+	// A viewport is a rectangle adjacent to scrollbars that let the user navigate a larger visual domain.
 	ROCOCO_INTERFACE IGRWidgetViewport : IGRBase
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();

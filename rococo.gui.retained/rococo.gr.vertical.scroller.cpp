@@ -64,11 +64,11 @@ namespace ANON
 		{
 			bool isHovered = IsPointInRect(g.CursorHoverPoint(), rect);
 
-			RGBAb backColour = panel.Root().Scheme().GetColour(isHovered ? ESchemeColourSurface::SCROLLER_BUTTON_BACKGROUND_HOVERED : ESchemeColourSurface::SCROLLER_BUTTON_BACKGROUND);
+			RGBAb backColour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_BUTTON_BACKGROUND_HOVERED : ESchemeColourSurface::SCROLLER_BUTTON_BACKGROUND);
 			g.DrawRect(rect, backColour);
 
-			RGBAb edge1Colour = panel.Root().Scheme().GetColour(isHovered ? ESchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT_HOVERED : ESchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT);
-			RGBAb edge2Colour = panel.Root().Scheme().GetColour(isHovered ? ESchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT_HOVERED : ESchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT);
+			RGBAb edge1Colour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT_HOVERED : ESchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT);
+			RGBAb edge2Colour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT_HOVERED : ESchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT);
 			g.DrawRectEdge(rect, edge1Colour, edge2Colour);
 		}
 
@@ -81,8 +81,8 @@ namespace ANON
 
 			bool isHovered = g.IsHovered(panel);
 			
-			RGBAb edge1Colour = panel.Root().Scheme().GetColour(isHovered ? ESchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT_HOVERED : ESchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT);
-			RGBAb edge2Colour = panel.Root().Scheme().GetColour(isHovered ? ESchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT_HOVERED : ESchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT);
+			RGBAb edge1Colour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT_HOVERED : ESchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT);
+			RGBAb edge2Colour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT_HOVERED : ESchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT);
 			g.DrawRectEdge(rect, edge1Colour, edge2Colour);
 
 			if (isHovered)
@@ -143,9 +143,11 @@ namespace ANON
 
 		int32 scrollPosition = 0;
 
+		enum { MAX_SCROLL_INT = 1 << 30 };
+
 		void SetPosition(int position) override
 		{
-			if (position < 0 || position >(1 >> 30))
+			if (position < 0 || position > MAX_SCROLL_INT)
 			{
 				panel.Root().Custodian().RaiseError(GRErrorCode::InvalidArg, __FUNCTION__, "Position was out of bounds");
 				return;
@@ -157,7 +159,7 @@ namespace ANON
 
 		void SetRange(int range) override
 		{
-			if (range < 0 || range >(1 >> 30))
+			if (range < 0 || range > MAX_SCROLL_INT)
 			{
 				panel.Root().Custodian().RaiseError(GRErrorCode::InvalidArg, __FUNCTION__, "Range was out of bounds");
 				return;
@@ -169,7 +171,7 @@ namespace ANON
 
 		void SetWindowSize(int32 windowSize) override
 		{
-			if (windowSize < 0 || windowSize >(1 >> 30))
+			if (windowSize < 0 || windowSize > MAX_SCROLL_INT)
 			{
 				panel.Root().Custodian().RaiseError(GRErrorCode::InvalidArg, __FUNCTION__, "Window size was out of bounds");
 				return;
