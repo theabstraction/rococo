@@ -69,6 +69,12 @@ struct TestElement : IReflectionTarget
 };
 
 template<class T>
+void Visit(IReflectionVisitor& v, T& t)
+{
+	t.Visit(v);
+}
+
+template<class T>
 void Reflect(IReflectionVisitor& v, T& elements, const char* name)
 {
 	int i = 0;
@@ -77,7 +83,7 @@ void Reflect(IReflectionVisitor& v, T& elements, const char* name)
 		char index[16];
 		SafeFormat(index, "%d", i);
 		v.SetSection(index);
-		element.Visit(v);
+		Visit(v, element);
 	}
 }
 
