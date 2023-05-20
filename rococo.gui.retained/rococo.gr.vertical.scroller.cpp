@@ -46,8 +46,105 @@ namespace ANON
 			sliderZone.bottom = bottomButton.top - 1;
 		}
 
+		enum class EClick
+		{
+			None,
+			Top,
+			Slider,
+			Bar,
+			Bottom
+		} clickTarget = EClick::None;
+
+		EClick ClassifyTarget(Vec2i pos)
+		{
+			GuiRect topTarget = topButton;
+			GuiRect bottomTarget = bottomButton;
+			GuiRect sliderTarget = topButton;
+			GuiRect sliderRect = ComputerSliderRect();
+
+			if (IsPointInRect(pos, topTarget))
+			{
+				return EClick::Top;
+			}
+			else if (IsPointInRect(pos, sliderRect))
+			{
+				return EClick::Slider;
+			}
+			else if (IsPointInRect(pos, bottomTarget))
+			{
+				return EClick::Bottom;
+			}
+			else if (IsPointInRect(pos, sliderZone))
+			{
+				return EClick::Bar;
+			}
+			else
+			{
+				return EClick::None;
+			}
+		}
+
+		void AdjustSlider(int dy)
+		{
+
+		}
+
+		void MoveLine(int delta)
+		{
+			scrollPosition += delta;
+		}
+
+		void MovePage(int delta)
+		{
+			scrollPosition += (windowSize * delta * 4) / 5;
+		}
+
+		void ActivateTarget(int y)
+		{
+			switch (clickTarget)
+			{
+			case EClick::Top:
+				MoveLine(-1);
+				break;
+			case EClick::Bottom:
+				MoveLine(1);
+				break;
+			case EClick::Bar:
+				{
+					GuiRect sliderRect = ComputerSliderRect();
+					if (y < sliderRect.top)
+					{
+						MovePage(-1);
+					}
+					else if (y > sliderRect.bottom)
+					{
+						MovePage(1);
+					}
+				}
+				break;
+			}
+		}
+
 		EventRouting OnCursorClick(CursorEvent& ce) override
 		{
+			GuiRect topTarget = topButton + TopLeft(panel.AbsRect());
+			GuiRect bottomTarget = bottomButton + TopLeft(panel.AbsRect());
+			GuiRect sliderTarget = topButton + TopLeft(panel.AbsRect());
+			GuiRect sliderRect = ComputerSliderRect();
+
+			if (ce.click.LeftButtonDown)
+			{
+				clickTarget = ClassifyTarget(ce.position);
+			}
+			else if (ce.click.LeftButtonUp)
+			{
+				if (clickTarget == ClassifyTarget(ce.position))
+				{
+					ActivateTarget(ce.position.y);
+				}
+				clickTarget = EClick::None;
+			}
+
 			return EventRouting::NextHandler;
 		}
 
@@ -91,6 +188,20 @@ namespace ANON
 			g.DrawRectEdge(rect, edge1Colour, edge2Colour);
 		}
 
+		GuiRect ComputerSliderRect() const
+		{
+			int32 height = ComputeSliderHeight();
+			if (height <= 0 || height >= Height(sliderZone) - 3)
+			{
+				return { 0,0,0,0 };
+			}
+
+			int32 topPadding = ComputeSliderTopPadding();
+
+			int32 y = sliderZone.top + 1 + topPadding;
+			return { sliderZone.left + 1, y, sliderZone.right - 1, y + height };
+		}
+
 		void Render(IGRRenderContext& g) override
 		{
 			auto rect = panel.AbsRect();
@@ -109,17 +220,7 @@ namespace ANON
 				g.DrawRectEdge(sliderZone, edge1Colour, edge2Colour);
 			}
 
-			int32 height = ComputeSliderHeight();
-			if (height <= 0 || height >= Height(sliderZone) - 3)
-			{
-				return;
-			}
-
-			int32 topPadding = ComputeSliderTopPadding();
-
-			int32 y = sliderZone.top + 1 + topPadding;
-			GuiRect sliderRect{ sliderZone.left + 1, y, sliderZone.right - 1, y + height };
-			RenderScrollerSlider(g, sliderRect);
+			RenderScrollerSlider(g, ComputerSliderRect());
 		}
 
 		int32 ComputeSliderHeight() const
