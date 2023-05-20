@@ -1,5 +1,6 @@
 #include <rococo.gui.retained.ex.h>
 #include <rococo.maths.i32.h>
+#include <rococo.maths.h>
 
 using namespace Rococo;
 using namespace Rococo::Gui;
@@ -34,9 +35,9 @@ namespace ANON
 
 			topButton.left = bottomButton.left = panelDimensions.left + 1;
 			topButton.right = bottomButton.right = panelDimensions.right - 1;
-			topButton.top = panelDimensions.top;
+			topButton.top = panelDimensions.top + 1;
 			topButton.bottom = topButton.top + width;
-			bottomButton.bottom = panelDimensions.bottom;
+			bottomButton.bottom = panelDimensions.bottom - 1;
 			bottomButton.top = bottomButton.bottom - width;
 
 			sliderZone.left = panelDimensions.left + 1;
@@ -60,15 +61,33 @@ namespace ANON
 			return panel;
 		}
 
-		void RenderScrollerButton(IGRRenderContext& g, const GuiRect& rect)
+		void RenderScrollerButton(IGRRenderContext& g, const GuiRect& rect, bool isUp)
 		{
 			bool isHovered = IsPointInRect(g.CursorHoverPoint(), rect);
 
 			RGBAb backColour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_BUTTON_BACKGROUND_HOVERED : ESchemeColourSurface::SCROLLER_BUTTON_BACKGROUND);
 			g.DrawRect(rect, backColour);
 
+			GuiRect triangleRect = { rect.left + 2, rect.top + 2, rect.right - 2, rect.bottom - 2 };
+
+			RGBAb triangleColour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_TRIANGLE_HOVERED : ESchemeColourSurface::SCROLLER_TRIANGLE_NORMAL);
+
+			g.DrawDirectionArrow(triangleRect, triangleColour, isUp ? 0.0_degrees : 180.0_degrees);
+
 			RGBAb edge1Colour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT_HOVERED : ESchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT);
 			RGBAb edge2Colour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT_HOVERED : ESchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT);
+			g.DrawRectEdge(rect, edge1Colour, edge2Colour);
+		}
+
+		void RenderScrollerSlider(IGRRenderContext& g, const GuiRect& rect)
+		{
+			bool isHovered = IsPointInRect(g.CursorHoverPoint(), rect);
+
+			RGBAb backColour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_SLIDER_BACKGROUND_HOVERED : ESchemeColourSurface::SCROLLER_SLIDER_BACKGROUND);
+			g.DrawRect(rect, backColour);
+
+			RGBAb edge1Colour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_SLIDER_TOP_LEFT_HOVERED : ESchemeColourSurface::SCROLLER_SLIDER_TOP_LEFT);
+			RGBAb edge2Colour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_SLIDER_BOTTOM_RIGHT_HOVERED : ESchemeColourSurface::SCROLLER_SLIDER_BOTTOM_RIGHT);
 			g.DrawRectEdge(rect, edge1Colour, edge2Colour);
 		}
 
@@ -76,13 +95,13 @@ namespace ANON
 		{
 			auto rect = panel.AbsRect();
 
-			RenderScrollerButton(g, topButton);
-			RenderScrollerButton(g, bottomButton);
+			RenderScrollerButton(g, topButton, true);
+			RenderScrollerButton(g, bottomButton, false);
 
 			bool isHovered = g.IsHovered(panel);
 			
-			RGBAb edge1Colour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT_HOVERED : ESchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT);
-			RGBAb edge2Colour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT_HOVERED : ESchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT);
+			RGBAb edge1Colour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_BAR_TOP_LEFT_HOVERED : ESchemeColourSurface::SCROLLER_BAR_TOP_LEFT);
+			RGBAb edge2Colour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_BAR_BOTTOM_RIGHT_HOVERED : ESchemeColourSurface::SCROLLER_BAR_BOTTOM_RIGHT);
 			g.DrawRectEdge(rect, edge1Colour, edge2Colour);
 
 			if (isHovered)
@@ -100,7 +119,7 @@ namespace ANON
 
 			int32 y = sliderZone.top + 1 + topPadding;
 			GuiRect sliderRect{ sliderZone.left + 1, y, sliderZone.right - 1, y + height };
-			RenderScrollerButton(g, sliderRect);
+			RenderScrollerSlider(g, sliderRect);
 		}
 
 		int32 ComputeSliderHeight() const

@@ -36,7 +36,7 @@ namespace ANON
 
 		void Layout(const GuiRect& panelDimensions) override
 		{
-			enum { scrollbarWidth = 30 };
+			enum { scrollbarWidth = 16 };
 
 			if (clientArea)
 			{
@@ -46,7 +46,7 @@ namespace ANON
 
 			if (vscroller)
 			{
-				vscroller->Widget().Panel().Resize({ scrollbarWidth, Height(panelDimensions) });
+				vscroller->Widget().Panel().Resize({ scrollbarWidth, Height(panelDimensions) - 1 });
 				vscroller->Widget().Panel().SetParentOffset({ Width(panelDimensions) - scrollbarWidth, 0 });
 			}
 

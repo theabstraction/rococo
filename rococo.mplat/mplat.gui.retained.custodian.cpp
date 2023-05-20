@@ -86,6 +86,32 @@ namespace ANON
 			lastTasks.clear();
 		}
 
+		void DrawDirectionArrow(const GuiRect& absRect, RGBAb colour, Degrees heading) override
+		{
+			bool needsClipping = lastScissorRect.IsNormalized() && Span(absRect) != Span(IntersectNormalizedRects(absRect, lastScissorRect));
+				
+			if (needsClipping)
+			{
+				rc->FlushLayer();
+				rc->SetScissorRect(lastScissorRect);
+			}
+
+			if (heading.degrees == 0)
+			{
+				Rococo::DrawTriangleFacingUp(*rc, absRect, colour);
+			}
+			else
+			{
+				Rococo::DrawTriangleFacingDown(*rc, absRect, colour);
+			}
+
+			if (needsClipping)
+			{
+				rc->FlushLayer();
+				rc->ClearScissorRect();
+			}
+		}
+
 		void DrawRect(const GuiRect& absRect, RGBAb colour) override
 		{
 			GuiRect visibleRect = lastScissorRect.IsNormalized() ? IntersectNormalizedRects(absRect, lastScissorRect) : absRect;

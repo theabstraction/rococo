@@ -550,9 +550,16 @@ namespace ANON
 			framePanel.Set(ESchemeColourSurface::EDIT_TEXT, RGBAb(224, 224, 224, 255)).Set(ESchemeColourSurface::EDIT_TEXT_HOVERED, RGBAb(255, 255, 255, 255));
 			framePanel.Set(ESchemeColourSurface::FOCUSED_EDITOR, RGBAb(0, 0, 0, 255));
 			framePanel.Set(ESchemeColourSurface::FOCUSED_EDITOR_HOVERED, RGBAb(16, 16, 16, 255));
-			framePanel.Set(ESchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(64, 64, 64, 255)).Set(ESchemeColourSurface::SCROLLER_BUTTON_BACKGROUND_HOVERED, RGBAb(80, 80, 80, 255));
+			framePanel.Set(ESchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(64, 64, 64, 255)).Set(ESchemeColourSurface::SCROLLER_BUTTON_BACKGROUND_HOVERED, RGBAb(96, 96, 96, 255));
 			framePanel.Set(ESchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT, RGBAb(192, 192, 192, 255)).Set(ESchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT_HOVERED, RGBAb(255, 255, 255, 255));
 			framePanel.Set(ESchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT, RGBAb(128, 128, 128, 255)).Set(ESchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT_HOVERED, RGBAb(192, 192, 192, 255));
+			framePanel.Set(ESchemeColourSurface::SCROLLER_BAR_BACKGROUND, RGBAb(64, 64, 64, 255)).Set(ESchemeColourSurface::SCROLLER_BAR_BACKGROUND_HOVERED, RGBAb(72, 72, 72, 255));
+			framePanel.Set(ESchemeColourSurface::SCROLLER_BAR_TOP_LEFT, RGBAb(128, 128, 128, 255)).Set(ESchemeColourSurface::SCROLLER_BAR_TOP_LEFT_HOVERED, RGBAb(136, 136, 136, 255));
+			framePanel.Set(ESchemeColourSurface::SCROLLER_BAR_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255)).Set(ESchemeColourSurface::SCROLLER_BAR_BOTTOM_RIGHT_HOVERED, RGBAb(160, 160, 160, 255));
+			framePanel.Set(ESchemeColourSurface::SCROLLER_SLIDER_BACKGROUND, RGBAb(64, 64, 64, 255)).Set(ESchemeColourSurface::SCROLLER_SLIDER_BACKGROUND_HOVERED, RGBAb(192, 192, 192, 255));
+			framePanel.Set(ESchemeColourSurface::SCROLLER_SLIDER_TOP_LEFT, RGBAb(128, 128, 128, 255)).Set(ESchemeColourSurface::SCROLLER_SLIDER_TOP_LEFT_HOVERED, RGBAb(255, 255, 255, 255));
+			framePanel.Set(ESchemeColourSurface::SCROLLER_SLIDER_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255)).Set(ESchemeColourSurface::SCROLLER_SLIDER_BOTTOM_RIGHT_HOVERED, RGBAb(224, 224, 224, 255));
+			framePanel.Set(ESchemeColourSurface::SCROLLER_TRIANGLE_NORMAL, RGBAb(128, 128, 128, 255)).Set(ESchemeColourSurface::SCROLLER_TRIANGLE_HOVERED, RGBAb(192, 192, 192, 255));
 
 			auto& frameSplitter = CreateLeftToRightSplitter(frame->ClientArea(), 240, false).SetDraggerMinMax(240, 8192);
 			frameSplitter.Widget().Panel().Add(GRAnchors::ExpandAll());

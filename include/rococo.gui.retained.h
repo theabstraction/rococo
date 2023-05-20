@@ -136,6 +136,9 @@ namespace Rococo::Gui
 		// Get the screen dimensions
 		virtual GuiRect ScreenDimensions() const = 0;
 
+		/* heading: 0 = N, E = 90 etc */
+		virtual void DrawDirectionArrow(const GuiRect& absRect, RGBAb colour, Degrees heading) = 0;
+
 		virtual void DrawRect(const GuiRect& absRect, RGBAb colour) = 0;
 		virtual void DrawRectEdge(const GuiRect& absRect, RGBAb colour1, RGBAb colour2) = 0;
 
@@ -186,6 +189,20 @@ namespace Rococo::Gui
 		SCROLLER_BUTTON_BACKGROUND_HOVERED,
 		SCROLLER_BUTTON_TOP_LEFT_HOVERED,
 		SCROLLER_BUTTON_BOTTOM_RIGHT_HOVERED,
+		SCROLLER_BAR_BACKGROUND,
+		SCROLLER_BAR_TOP_LEFT,
+		SCROLLER_BAR_BOTTOM_RIGHT,
+		SCROLLER_BAR_BACKGROUND_HOVERED,
+		SCROLLER_BAR_TOP_LEFT_HOVERED,
+		SCROLLER_BAR_BOTTOM_RIGHT_HOVERED,
+		SCROLLER_SLIDER_BACKGROUND,
+		SCROLLER_SLIDER_TOP_LEFT,
+		SCROLLER_SLIDER_BOTTOM_RIGHT,
+		SCROLLER_SLIDER_BACKGROUND_HOVERED,
+		SCROLLER_SLIDER_TOP_LEFT_HOVERED,
+		SCROLLER_SLIDER_BOTTOM_RIGHT_HOVERED,
+		SCROLLER_TRIANGLE_HOVERED,
+		SCROLLER_TRIANGLE_NORMAL,
 		TEXT,
 		TEXT_HOVERED,
 		IMAGE_FOG, // Colour, typically with mid alpha values that fogs out an image when it is not activated
