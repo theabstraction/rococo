@@ -142,6 +142,16 @@ namespace GRANON
 			return EventRouting::NextHandler;
 		}
 
+		void OnCursorEnter() override
+		{
+
+		}
+
+		void OnCursorLeave() override
+		{
+
+		}
+
 		IGRPanel& Panel() override
 		{
 			return panel;

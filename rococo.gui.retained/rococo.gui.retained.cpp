@@ -362,34 +362,128 @@ namespace ANON
 			captureId = -1;
 		}
 
-		EventRouting RouteCursorMoveEvent(CursorEvent& ev) override
-		{
-			RecursionGuard guard(*this);
+		typedef std::vector<PanelEvent> TPanelHistory;
 
+		TPanelHistory movementCallstack;
+		TPanelHistory previousMovementCallstack;
+
+		class PanelEventBuilder : public IPanelEventBuilder
+		{
+			TPanelHistory& history;
+		public:
+			PanelEventBuilder(TPanelHistory& _history): history(_history)
+			{
+			}
+
+			IPanelEventBuilder& operator += (const PanelEvent& ev) override
+			{
+				history.push_back(ev);
+				return *this;
+			}
+		};
+
+		void RouteOnLeaveEvent()
+		{
+			for (int i = 0; i < previousMovementCallstack.size(); ++i)
+			{
+				auto& previousEvent = previousMovementCallstack[i];
+
+				if (i >= movementCallstack.size() || previousEvent.panelId != movementCallstack[i].panelId)
+				{
+					for (int j = i; j < previousMovementCallstack.size(); ++j)
+					{
+						IGRWidget* widget = FindWidget(previousMovementCallstack[j].panelId);
+						if (widget)
+						{
+							widget->OnCursorLeave();
+						}
+					}
+
+					return;
+				}
+			}
+		}
+
+		void RouteOnEnterEvent()
+		{
+			for (int i = 0; i < movementCallstack.size(); ++i)
+			{
+				auto& moveEvent = movementCallstack[i];
+				if (i >= previousMovementCallstack.size() || moveEvent.panelId != previousMovementCallstack[i].panelId)
+				{
+					for (int j = i; j < movementCallstack.size(); ++j)
+					{
+						IGRWidget* widget = FindWidget(movementCallstack[j].panelId);
+						if (widget)
+						{
+							widget->OnCursorEnter();
+						}
+					}
+
+					return;
+				}
+			}
+		}
+
+		bool TryAppendMovementCallstack(TPanelHistory& callstack, CursorEvent& ev)
+		{
 			if (captureId >= 0)
 			{
 				auto* widget = FindWidget(captureId);
 				if (widget)
 				{
-					auto& panelSupervisor = static_cast<IGRPanelSupervisor&>(widget->Panel());
-					auto routing = panelSupervisor.RouteCursorMoveEvent(ev);
-					if (routing == EventRouting::Terminate)
+					callstack.push_back({ captureId, & widget->Panel(), widget->Panel().AbsRect() });
+				}
+				else
+				{
+					captureId = -1;
+					return false;
+				}
+			}
+			else
+			{
+				PanelEventBuilder pb(callstack);
+
+				for (auto d = frameDescriptors.rbegin(); d != frameDescriptors.rend(); ++d)
+				{
+					d->panel->BuildCursorMovementHistoryRecursive(ev, pb);
+					if (!callstack.empty())
 					{
-						return routing;
+						break;
 					}
 				}
 			}
 
-			for (auto d = frameDescriptors.rbegin(); d != frameDescriptors.rend(); ++d)
+			return true;
+		}
+
+		EventRouting RouteCursorMoveEvent(CursorEvent& ev) override
+		{
+			RecursionGuard guard(*this);
+
+			movementCallstack.clear();
+
+			if (!TryAppendMovementCallstack(movementCallstack, ev) || movementCallstack.empty())
 			{
-				auto routing = d->panel->RouteCursorMoveEvent(ev);
-				if (routing == EventRouting::Terminate)
+				return EventRouting::Terminate;
+			}
+
+			EventRouting result = EventRouting::NextHandler;
+
+			for (const auto& moveEvent: movementCallstack)
+			{
+				if (moveEvent.panel->Widget().OnCursorMove(ev) == EventRouting::Terminate)
 				{
-					return EventRouting::Terminate;
+					result = EventRouting::Terminate;
 				}
 			}
 
-			return EventRouting::NextHandler;
+			RouteOnLeaveEvent();
+			RouteOnEnterEvent();
+
+			std::swap(movementCallstack, previousMovementCallstack);
+
+			return result;
 		}
 
 		EventRouting RouteKeyEvent(KeyEvent& keyEvent) override

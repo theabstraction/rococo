@@ -145,7 +145,7 @@ namespace ANON
 				clickTarget = EClick::None;
 			}
 
-			return EventRouting::NextHandler;
+			return EventRouting::Terminate;
 		}
 
 		EventRouting OnCursorMove(CursorEvent& ce) override
@@ -163,16 +163,23 @@ namespace ANON
 			bool isHovered = IsPointInRect(g.CursorHoverPoint(), rect);
 
 			RGBAb backColour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_BUTTON_BACKGROUND_HOVERED : ESchemeColourSurface::SCROLLER_BUTTON_BACKGROUND);
+			backColour.alpha = alpha;
 			g.DrawRect(rect, backColour);
 
 			GuiRect triangleRect = { rect.left + 2, rect.top + 2, rect.right - 2, rect.bottom - 2 };
 
 			RGBAb triangleColour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_TRIANGLE_HOVERED : ESchemeColourSurface::SCROLLER_TRIANGLE_NORMAL);
+			triangleColour.alpha = alpha;
 
 			g.DrawDirectionArrow(triangleRect, triangleColour, isUp ? 0.0_degrees : 180.0_degrees);
 
-			RGBAb edge1Colour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT_HOVERED : ESchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT);
-			RGBAb edge2Colour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT_HOVERED : ESchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT);
+			//RGBAb edge1Colour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT_HOVERED : ESchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT);
+			//RGBAb edge2Colour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT_HOVERED : ESchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT);
+
+			RGBAb edge1Colour = panel.GetColour(ESchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT);
+			RGBAb edge2Colour = panel.GetColour(ESchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT);
+			edge1Colour.alpha = edge2Colour.alpha = alpha;
+
 			g.DrawRectEdge(rect, edge1Colour, edge2Colour);
 		}
 
@@ -183,8 +190,13 @@ namespace ANON
 			RGBAb backColour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_SLIDER_BACKGROUND_HOVERED : ESchemeColourSurface::SCROLLER_SLIDER_BACKGROUND);
 			g.DrawRect(rect, backColour);
 
-			RGBAb edge1Colour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_SLIDER_TOP_LEFT_HOVERED : ESchemeColourSurface::SCROLLER_SLIDER_TOP_LEFT);
-			RGBAb edge2Colour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_SLIDER_BOTTOM_RIGHT_HOVERED : ESchemeColourSurface::SCROLLER_SLIDER_BOTTOM_RIGHT);
+			//RGBAb edge1Colour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_SLIDER_TOP_LEFT_HOVERED : ESchemeColourSurface::SCROLLER_SLIDER_TOP_LEFT);
+			//RGBAb edge2Colour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_SLIDER_BOTTOM_RIGHT_HOVERED : ESchemeColourSurface::SCROLLER_SLIDER_BOTTOM_RIGHT);
+
+			RGBAb edge1Colour = panel.GetColour(ESchemeColourSurface::SCROLLER_SLIDER_TOP_LEFT);
+			RGBAb edge2Colour = panel.GetColour(ESchemeColourSurface::SCROLLER_SLIDER_BOTTOM_RIGHT);
+			edge1Colour.alpha = edge2Colour.alpha = alpha;
+
 			g.DrawRectEdge(rect, edge1Colour, edge2Colour);
 		}
 
@@ -211,14 +223,20 @@ namespace ANON
 
 			bool isHovered = g.IsHovered(panel);
 			
-			RGBAb edge1Colour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_BAR_TOP_LEFT_HOVERED : ESchemeColourSurface::SCROLLER_BAR_TOP_LEFT);
-			RGBAb edge2Colour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_BAR_BOTTOM_RIGHT_HOVERED : ESchemeColourSurface::SCROLLER_BAR_BOTTOM_RIGHT);
+			//RGBAb edge1Colour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_BAR_TOP_LEFT_HOVERED : ESchemeColourSurface::SCROLLER_BAR_TOP_LEFT);
+			//RGBAb edge2Colour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_BAR_BOTTOM_RIGHT_HOVERED : ESchemeColourSurface::SCROLLER_BAR_BOTTOM_RIGHT);
+
+			RGBAb edge1Colour = panel.GetColour(ESchemeColourSurface::SCROLLER_SLIDER_TOP_LEFT);
+			RGBAb edge2Colour = panel.GetColour(ESchemeColourSurface::SCROLLER_SLIDER_BOTTOM_RIGHT);
+			edge1Colour.alpha = edge2Colour.alpha = alpha;
 			g.DrawRectEdge(rect, edge1Colour, edge2Colour);
 
+			/*
 			if (isHovered)
 			{
 				g.DrawRectEdge(sliderZone, edge1Colour, edge2Colour);
 			}
+			*/
 
 			RenderScrollerSlider(g, ComputerSliderRect());
 		}
@@ -249,6 +267,18 @@ namespace ANON
 		EventRouting OnChildEvent(WidgetEvent& widgetEvent, IGRWidget& sourceWidget) override
 		{
 			return EventRouting::NextHandler;
+		}
+
+		uint8 alpha = 128;
+
+		void OnCursorEnter() override
+		{
+			alpha = 255;
+		}
+
+		void OnCursorLeave() override
+		{
+			alpha = 128;
 		}
 
 		EventRouting OnKeyEvent(KeyEvent& keyEvent) override

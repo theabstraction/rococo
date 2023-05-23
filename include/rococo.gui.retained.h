@@ -30,6 +30,18 @@ namespace Rococo::Gui
 		uint16 Unknown : 9;
 	};
 
+	struct PanelEvent
+	{
+		int64 panelId;
+		IGRPanel* panel;
+		GuiRect absRect;
+	};
+
+	ROCOCO_INTERFACE IPanelEventBuilder
+	{
+		virtual IPanelEventBuilder& operator += (const PanelEvent& ev) = 0;
+	};
+
 	struct IGREventHistory
 	{
 		virtual void RecordWidget(IGRWidget& widget) = 0;
@@ -381,7 +393,7 @@ namespace Rococo::Gui
 		virtual void LayoutRecursive(Vec2i absoluteOrigin) = 0;
 		virtual void RenderRecursive(IGRRenderContext & g, const GuiRect& clipRect) = 0;
 		virtual EventRouting RouteCursorClickEvent(CursorEvent& ce, bool filterChildrenByParentRect) = 0;
-		virtual EventRouting RouteCursorMoveEvent(CursorEvent& ce) = 0;
+		virtual void BuildCursorMovementHistoryRecursive(CursorEvent& ce, IPanelEventBuilder& wb) = 0;
 		virtual void SetWidget(IGRWidget& widget) = 0;
 		virtual void Free() = 0;
 	};
@@ -406,6 +418,8 @@ namespace Rococo::Gui
 		virtual void Layout(const GuiRect& parentDimensions) = 0;
 		virtual EventRouting OnChildEvent(WidgetEvent& widgetEvent, IGRWidget& sourceWidget) = 0;
 		virtual EventRouting OnCursorClick(CursorEvent& ce) = 0;
+		virtual void OnCursorEnter() = 0;
+		virtual void OnCursorLeave() = 0;
 		virtual EventRouting OnCursorMove(CursorEvent& ce) = 0;
 		virtual EventRouting OnKeyEvent(KeyEvent& keyEvent) = 0;
 		virtual IGRPanel& Panel() = 0;

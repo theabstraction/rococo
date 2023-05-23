@@ -370,28 +370,19 @@ namespace GRANON
 			return widget->OnCursorClick(ce);
 		}
 
-		EventRouting RouteCursorMoveEvent(CursorEvent& ce) override
+		void BuildCursorMovementHistoryRecursive(CursorEvent& ce, IPanelEventBuilder& eb) override
 		{
 			if (!IsPointInRect(ce.position, absRect))
 			{
-				return EventRouting::NextHandler;
+				return;
 			}
+
+			eb += { uniqueId, this, absRect };
 
 			for (auto* child : children)
 			{
-				EventRouting routing = child->RouteCursorMoveEvent(ce);
-				if (routing == EventRouting::Terminate)
-				{
-					return EventRouting::Terminate;
-				}
+				child->BuildCursorMovementHistoryRecursive(ce, eb);
 			}
-
-			if (!widget)
-			{
-				return EventRouting::NextHandler;
-			}
-
-			return widget->OnCursorMove(ce);
 		}
 
 		IGRPanel& SetParentOffset(Vec2i offset) override

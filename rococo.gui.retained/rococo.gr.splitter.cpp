@@ -135,6 +135,16 @@ namespace GRANON
 			return EventRouting::NextHandler;
 		}
 
+		void OnCursorEnter() override
+		{
+
+		}
+
+		void OnCursorLeave() override
+		{
+
+		}
+
 		EventRouting OnKeyEvent(KeyEvent& keyEvent) override
 		{
 			return EventRouting::NextHandler;

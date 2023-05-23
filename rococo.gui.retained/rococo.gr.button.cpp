@@ -145,6 +145,16 @@ namespace GRANON
 			return EventRouting::NextHandler;
 		}
 
+		void OnCursorEnter() override
+		{
+
+		}
+
+		void OnCursorLeave() override
+		{
+
+		}
+
 		EventRouting OnCursorMove(CursorEvent& ce) override
 		{
 			if (!IsPointInRect(ce.position, panel.AbsRect()) && panel.Root().CapturedPanelId() == panel.Id())
