@@ -384,6 +384,7 @@ namespace ANON
 
 		void RouteOnLeaveEvent()
 		{
+			// Suppose our movement callstack at time t + dt is A, B, C; but our previous callstack at time t was A, E, F, then we need to notify E and F that the cursor has left their domain
 			for (int i = 0; i < previousMovementCallstack.size(); ++i)
 			{
 				auto& previousEvent = previousMovementCallstack[i];
@@ -406,6 +407,7 @@ namespace ANON
 
 		void RouteOnEnterEvent()
 		{
+			// Suppose our movement callstack at time t + dt is A, B, C; but our previous callstack at time t was A, E, then we need to notify that B and C that the cursor has entered their domain
 			for (int i = 0; i < movementCallstack.size(); ++i)
 			{
 				auto& moveEvent = movementCallstack[i];
@@ -425,7 +427,7 @@ namespace ANON
 			}
 		}
 
-		bool TryAppendMovementCallstack(TPanelHistory& callstack, CursorEvent& ev)
+		bool TryAppendWidgetsUnderCursorToMovementCallstack(TPanelHistory& callstack, CursorEvent& ev)
 		{
 			if (captureId >= 0)
 			{
@@ -459,16 +461,16 @@ namespace ANON
 
 		EventRouting RouteCursorMoveEvent(CursorEvent& ev) override
 		{
-			RecursionGuard guard(*this);
-
 			movementCallstack.clear();
 
-			if (!TryAppendMovementCallstack(movementCallstack, ev) || movementCallstack.empty())
+			if (!TryAppendWidgetsUnderCursorToMovementCallstack(movementCallstack, ev) || movementCallstack.empty())
 			{
 				return EventRouting::Terminate;
 			}
 
 			EventRouting result = EventRouting::NextHandler;
+
+			RecursionGuard guard(*this);
 
 			for (const auto& moveEvent: movementCallstack)
 			{
