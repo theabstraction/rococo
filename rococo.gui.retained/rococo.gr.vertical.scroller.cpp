@@ -125,6 +125,15 @@ namespace ANON
 			}
 		}
 
+		int clickPosition = -1;
+		int clickDeltaPosition = 0;
+
+		void OnSliderSelected(CursorEvent& ce)
+		{
+			clickPosition = ce.position.y;
+			panel.CaptureCursor();
+		}
+
 		EventRouting OnCursorClick(CursorEvent& ce) override
 		{
 			GuiRect topTarget = topButton + TopLeft(panel.AbsRect());
@@ -135,9 +144,25 @@ namespace ANON
 			if (ce.click.LeftButtonDown)
 			{
 				clickTarget = ClassifyTarget(ce.position);
+				if (clickTarget == EClick::Slider)
+				{
+					OnSliderSelected(ce);
+				}
 			}
 			else if (ce.click.LeftButtonUp)
 			{
+				clickPosition = -1;
+
+				int32 height = ComputeSliderHeight();
+				if (clickDeltaPosition != 0 && height > 0 && height < Height(sliderZone) - 3)
+				{
+					int32 dy = clamp(clickDeltaPosition, 0, Height(sliderZone) - height);
+					scrollPosition = GetSlidingScrollPosition(dy);
+				}
+				panel.Root().ReleaseCursor();
+
+				clickDeltaPosition = 0;
+
 				if (clickTarget == ClassifyTarget(ce.position))
 				{
 					ActivateTarget(ce.position.y);
@@ -150,7 +175,11 @@ namespace ANON
 
 		EventRouting OnCursorMove(CursorEvent& ce) override
 		{
-			return EventRouting::NextHandler;
+			if (clickPosition >= 0)
+			{
+				clickDeltaPosition = ce.position.y - clickPosition;
+			}
+			return EventRouting::Terminate;
 		}
 
 		IGRPanel& Panel() override
@@ -163,23 +192,15 @@ namespace ANON
 			bool isHovered = IsPointInRect(g.CursorHoverPoint(), rect);
 
 			RGBAb backColour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_BUTTON_BACKGROUND_HOVERED : ESchemeColourSurface::SCROLLER_BUTTON_BACKGROUND);
-			backColour.alpha = alpha;
 			g.DrawRect(rect, backColour);
 
 			GuiRect triangleRect = { rect.left + 2, rect.top + 2, rect.right - 2, rect.bottom - 2 };
 
 			RGBAb triangleColour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_TRIANGLE_HOVERED : ESchemeColourSurface::SCROLLER_TRIANGLE_NORMAL);
-			triangleColour.alpha = alpha;
-
 			g.DrawDirectionArrow(triangleRect, triangleColour, isUp ? 0.0_degrees : 180.0_degrees);
 
-			//RGBAb edge1Colour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT_HOVERED : ESchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT);
-			//RGBAb edge2Colour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT_HOVERED : ESchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT);
-
-			RGBAb edge1Colour = panel.GetColour(ESchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT);
-			RGBAb edge2Colour = panel.GetColour(ESchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT);
-			edge1Colour.alpha = edge2Colour.alpha = alpha;
-
+			RGBAb edge1Colour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT_HOVERED : ESchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT);
+			RGBAb edge2Colour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT_HOVERED : ESchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT);
 			g.DrawRectEdge(rect, edge1Colour, edge2Colour);
 		}
 
@@ -190,13 +211,8 @@ namespace ANON
 			RGBAb backColour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_SLIDER_BACKGROUND_HOVERED : ESchemeColourSurface::SCROLLER_SLIDER_BACKGROUND);
 			g.DrawRect(rect, backColour);
 
-			//RGBAb edge1Colour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_SLIDER_TOP_LEFT_HOVERED : ESchemeColourSurface::SCROLLER_SLIDER_TOP_LEFT);
-			//RGBAb edge2Colour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_SLIDER_BOTTOM_RIGHT_HOVERED : ESchemeColourSurface::SCROLLER_SLIDER_BOTTOM_RIGHT);
-
-			RGBAb edge1Colour = panel.GetColour(ESchemeColourSurface::SCROLLER_SLIDER_TOP_LEFT);
-			RGBAb edge2Colour = panel.GetColour(ESchemeColourSurface::SCROLLER_SLIDER_BOTTOM_RIGHT);
-			edge1Colour.alpha = edge2Colour.alpha = alpha;
-
+			RGBAb edge1Colour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_SLIDER_TOP_LEFT_HOVERED : ESchemeColourSurface::SCROLLER_SLIDER_TOP_LEFT);
+			RGBAb edge2Colour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_SLIDER_BOTTOM_RIGHT_HOVERED : ESchemeColourSurface::SCROLLER_SLIDER_BOTTOM_RIGHT);
 			g.DrawRectEdge(rect, edge1Colour, edge2Colour);
 		}
 
@@ -210,7 +226,8 @@ namespace ANON
 
 			int32 topPadding = ComputeSliderTopPadding();
 
-			int32 y = sliderZone.top + 1 + topPadding;
+			int32 dy = clamp(topPadding + clickDeltaPosition, 0, Height(sliderZone) - height);
+			int32 y = sliderZone.top + 1 + dy;
 			return { sliderZone.left + 1, y, sliderZone.right - 1, y + height };
 		}
 
@@ -223,20 +240,14 @@ namespace ANON
 
 			bool isHovered = g.IsHovered(panel);
 			
-			//RGBAb edge1Colour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_BAR_TOP_LEFT_HOVERED : ESchemeColourSurface::SCROLLER_BAR_TOP_LEFT);
-			//RGBAb edge2Colour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_BAR_BOTTOM_RIGHT_HOVERED : ESchemeColourSurface::SCROLLER_BAR_BOTTOM_RIGHT);
-
-			RGBAb edge1Colour = panel.GetColour(ESchemeColourSurface::SCROLLER_SLIDER_TOP_LEFT);
-			RGBAb edge2Colour = panel.GetColour(ESchemeColourSurface::SCROLLER_SLIDER_BOTTOM_RIGHT);
-			edge1Colour.alpha = edge2Colour.alpha = alpha;
+			RGBAb edge1Colour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_BAR_TOP_LEFT_HOVERED : ESchemeColourSurface::SCROLLER_BAR_TOP_LEFT);
+			RGBAb edge2Colour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_BAR_BOTTOM_RIGHT_HOVERED : ESchemeColourSurface::SCROLLER_BAR_BOTTOM_RIGHT);
 			g.DrawRectEdge(rect, edge1Colour, edge2Colour);
 
-			/*
 			if (isHovered)
 			{
 				g.DrawRectEdge(sliderZone, edge1Colour, edge2Colour);
 			}
-			*/
 
 			RenderScrollerSlider(g, ComputerSliderRect());
 		}
@@ -264,21 +275,35 @@ namespace ANON
 			return (int32)topPadding;
 		}
 
+		int32 GetSlidingScrollPosition(int deltaPadding)
+		{
+			int64 pixelRange = Height(sliderZone) - 2;
+
+			if (pixelRange <= 0 || windowSize == 0)
+			{
+				return scrollPosition;
+			}
+
+			// p = R * s / S; -> where p is the top padding, R is the pixel range, s is the scroll position and and S is the scroll range
+			// =>  S * p / R = s;
+
+			int64 newScrollPosition = (int64)scrollRange * (ComputeSliderTopPadding() + deltaPadding) / pixelRange;
+			return (int32) newScrollPosition;
+		}
+
 		EventRouting OnChildEvent(WidgetEvent& widgetEvent, IGRWidget& sourceWidget) override
 		{
 			return EventRouting::NextHandler;
 		}
 
-		uint8 alpha = 128;
-
 		void OnCursorEnter() override
 		{
-			alpha = 255;
 		}
 
 		void OnCursorLeave() override
 		{
-			alpha = 128;
+			clickTarget = EClick::None;
+			clickPosition = -1;
 		}
 
 		EventRouting OnKeyEvent(KeyEvent& keyEvent) override

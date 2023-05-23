@@ -472,16 +472,19 @@ namespace ANON
 
 			RecursionGuard guard(*this);
 
-			for (const auto& moveEvent: movementCallstack)
+			for (auto i = movementCallstack.rbegin(); i != movementCallstack.rend(); ++i)
 			{
-				if (moveEvent.panel->Widget().OnCursorMove(ev) == EventRouting::Terminate)
+				if (i->panel->Widget().OnCursorMove(ev) == EventRouting::Terminate)
 				{
 					result = EventRouting::Terminate;
 				}
 			}
 
-			RouteOnLeaveEvent();
-			RouteOnEnterEvent();
+			if (captureId == -1)
+			{
+				RouteOnLeaveEvent();
+				RouteOnEnterEvent();
+			}
 
 			std::swap(movementCallstack, previousMovementCallstack);
 
