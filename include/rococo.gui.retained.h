@@ -379,7 +379,7 @@ namespace Rococo::Gui
 		virtual IGRPanel& Set(GRAnchorPadding padding) = 0;
 
 		// Indicates that the layout needs to be recomputed. If the argument is true then the layout of the ancestors are also marked to be recomputed
-		virtual void InvalidateLayout(bool invalidateAnscestors) = 0;
+		virtual void InvalidateLayout(bool invalidateAncestors) = 0;
 
 		// Indicates the layout has yet to be finalized
 		virtual bool RequiresLayout() const = 0;

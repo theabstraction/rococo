@@ -89,6 +89,10 @@ namespace ANON
 
 			bottomButton->Widget().Panel().SetParentOffset({ 0, Height(panelDimensions) - width });
 			bottomButton->Widget().Panel().Resize({ width, width });
+
+			topButton->Widget().Panel().InvalidateLayout(false);
+			scroller->Widget().Panel().InvalidateLayout(false);
+			bottomButton->Widget().Panel().InvalidateLayout(false);
 		}
 
 
