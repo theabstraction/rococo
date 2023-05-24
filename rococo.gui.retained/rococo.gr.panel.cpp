@@ -325,7 +325,17 @@ namespace GRANON
 				GuiRect laxClipRect = Expand(clipRect, 1);
 				g.EnableScissors(laxClipRect);
 
-				widget->Render(g);
+				if (extraRenderer)
+				{
+					extraRenderer->PreRender(*this, clipRect, g);
+				}
+
+				if (!extraRenderer || !extraRenderer->IsReplacementForWidgetRendering(*this)) widget->Render(g);
+
+				if (extraRenderer)
+				{
+					extraRenderer->PostRender(*this, clipRect, g);
+				}
 
 				for (auto* child : children)
 				{
@@ -420,6 +430,21 @@ namespace GRANON
 		bool DoesClipChildren() const override
 		{
 			return doesClipChildren;
+		}
+
+		// It is recommended to place the implementation in either the widget or an ancestor widget, that way the pointer is valid for the life of the panel
+		IGRPanelRenderer* extraRenderer = nullptr;
+
+		// Get extra rendering before and after widget rendering for the panel
+		IGRPanelRenderer* GetPanelRenderer() override
+		{
+			return extraRenderer;
+		}
+
+		// Add extra rendering before and after widget rendering for the panel
+		void SetPanelRenderer(IGRPanelRenderer* renderer) override
+		{
+			extraRenderer = renderer;
 		}
 	};
 }

@@ -326,6 +326,13 @@ namespace Rococo::Gui
 		int32 bottom = 0;
 	};
 
+	ROCOCO_INTERFACE IGRPanelRenderer
+	{
+		virtual void PreRender(IGRPanel& panel, const GuiRect & absRect, IGRRenderContext & g) = 0;
+		virtual void PostRender(IGRPanel& panel, const GuiRect& absRect, IGRRenderContext& g) = 0;
+		virtual bool IsReplacementForWidgetRendering(IGRPanel& panel) const = 0;
+	};
+
 	// Represents the underlying widget slot. This is a better mechanism than having a base widget, which imposes class derivation issues
 	ROCOCO_INTERFACE IGRPanel
 	{
@@ -382,6 +389,12 @@ namespace Rococo::Gui
 
 		virtual void SetClipChildren(bool enabled) = 0;
 		virtual bool DoesClipChildren() const = 0;
+
+		// Get extra rendering before and after widget rendering for the panel
+		virtual IGRPanelRenderer* GetPanelRenderer() = 0;
+
+		// Add extra rendering before and after widget rendering for the panel
+		virtual void SetPanelRenderer(IGRPanelRenderer* renderer) = 0;
 	};
 
 	// Interface used internally by the GUI retained implementation. Clients of the API only see IGRPanel(s)
@@ -727,6 +740,16 @@ namespace Rococo::Gui
 		virtual void SetSliderHeight(int32 pixelHeight) = 0;
 	};
 
+	ROCOCO_INTERFACE IGRWidgetVerticalScrollerWithButtons : IGRBase
+	{
+		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
+		virtual IGRWidget& Widget() = 0;
+
+		virtual IGRWidgetButton& BottomButton() = 0;
+		virtual IGRWidgetVerticalScroller& Scroller() = 0;
+		virtual IGRWidgetButton& TopButton() = 0;
+	};
+
 	// A viewport is a rectangle adjacent to scrollbars that let the user navigate a larger visual domain.
 	ROCOCO_INTERFACE IGRWidgetViewport : IGRBase
 	{
@@ -734,7 +757,7 @@ namespace Rococo::Gui
 		virtual IGRWidget& Widget() = 0;
 
 		virtual IGRWidgetDivision& ClientArea() = 0;
-		virtual IGRWidgetVerticalScroller& VScroller() = 0;
+		virtual IGRWidgetVerticalScrollerWithButtons& VScroller() = 0;
 	};
 
 	// A vertical list that aligns its children vertically
@@ -788,6 +811,7 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API IGRWidgetButton& CreateButton(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetDivision& CreateDivision(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalScroller& CreateVerticalScroller(IGRWidget& parent);
+	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalScrollerWithButtons& CreateVerticalScrollerWithButtons(IGRWidget& parent);
 
 	// Creates a viewport into a larger UI domain, providing horizontal and vertical scrollbars to navigate the domain
 	ROCOCO_GUI_RETAINED_API IGRWidgetViewport& CreateViewportWidget(IGRWidget& parent);

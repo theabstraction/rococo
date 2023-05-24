@@ -10,7 +10,7 @@ namespace ANON
 	{
 		IGRPanel& panel;
 		IGRWidgetDivision* clientArea = nullptr;
-		IGRWidgetVerticalScroller* vscroller = nullptr;
+		IGRWidgetVerticalScrollerWithButtons* vscroller = nullptr;
 
 		GRViewportWidget(IGRPanel& owningPanel) : panel(owningPanel)
 		{
@@ -25,7 +25,7 @@ namespace ANON
 
 			if (!vscroller)
 			{
-				vscroller = &CreateVerticalScroller(*this);
+				vscroller = &CreateVerticalScrollerWithButtons(*this);
 			}
 		}
 
@@ -50,8 +50,8 @@ namespace ANON
 				vscroller->Widget().Panel().SetParentOffset({ Width(panelDimensions) - scrollbarWidth, 0 });
 			}
 
-			vscroller->SetSliderPosition(0);
-			vscroller->SetSliderHeight(128);
+			vscroller->Scroller().SetSliderPosition(0);
+			vscroller->Scroller().SetSliderHeight(128);
 		}
 
 		EventRouting OnCursorClick(CursorEvent& ce) override
@@ -84,7 +84,7 @@ namespace ANON
 			return *clientArea;
 		}
 
-		IGRWidgetVerticalScroller& VScroller() override
+		IGRWidgetVerticalScrollerWithButtons& VScroller() override
 		{
 			return *vscroller;
 		}
