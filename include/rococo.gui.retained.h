@@ -723,9 +723,8 @@ namespace Rococo::Gui
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
 		virtual IGRWidget& Widget() = 0;
 
-		virtual void SetPosition(int32 position) = 0;
-		virtual void SetRange(int32 range) = 0;
-		virtual void SetWindowSize(int32 domain) = 0;
+		virtual void SetSliderPosition(int32 topPixelDelta) = 0;
+		virtual void SetSliderHeight(int32 pixelHeight) = 0;
 	};
 
 	// A viewport is a rectangle adjacent to scrollbars that let the user navigate a larger visual domain.

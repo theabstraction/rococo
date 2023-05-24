@@ -11,9 +11,10 @@ namespace ANON
 	{
 		IGRPanel& panel;
 
-		GuiRect topButton {0,0,0,0};
-		GuiRect bottomButton {0,0,0,0};
 		GuiRect sliderZone{ 0,0,0,0 };
+
+		int32 sliderPosition = 0; // Number of pixels below the top of the slider bar that the slider is set at.
+		int32 sliderHeight = 10; // Number of pixels from the top to the bottom of the slider button
 
 		GRVerticalScroller(IGRPanel& owningPanel) : panel(owningPanel)
 		{
@@ -33,46 +34,26 @@ namespace ANON
 
 			int32 width = Width(panelDimensions);
 
-			topButton.left = bottomButton.left = panelDimensions.left + 1;
-			topButton.right = bottomButton.right = panelDimensions.right - 1;
-			topButton.top = panelDimensions.top + 1;
-			topButton.bottom = topButton.top + width;
-			bottomButton.bottom = panelDimensions.bottom - 1;
-			bottomButton.top = bottomButton.bottom - width;
-
 			sliderZone.left = panelDimensions.left + 1;
 			sliderZone.right = panelDimensions.right - 1;
-			sliderZone.top = topButton.bottom + 1;
-			sliderZone.bottom = bottomButton.top - 1;
+			sliderZone.top = panelDimensions.top + 1;
+			sliderZone.bottom = panelDimensions.bottom - 1;
 		}
 
 		enum class EClick
 		{
 			None,
-			Top,
 			Slider,
 			Bar,
-			Bottom
 		} clickTarget = EClick::None;
 
 		EClick ClassifyTarget(Vec2i pos)
 		{
-			GuiRect topTarget = topButton;
-			GuiRect bottomTarget = bottomButton;
-			GuiRect sliderTarget = topButton;
-			GuiRect sliderRect = ComputerSliderRect();
+			GuiRect sliderRect = ComputeSliderRect();
 
-			if (IsPointInRect(pos, topTarget))
-			{
-				return EClick::Top;
-			}
-			else if (IsPointInRect(pos, sliderRect))
+			if (IsPointInRect(pos, sliderRect))
 			{
 				return EClick::Slider;
-			}
-			else if (IsPointInRect(pos, bottomTarget))
-			{
-				return EClick::Bottom;
 			}
 			else if (IsPointInRect(pos, sliderZone))
 			{
@@ -84,34 +65,18 @@ namespace ANON
 			}
 		}
 
-		void AdjustSlider(int dy)
-		{
-
-		}
-
-		void MoveLine(int delta)
-		{
-			scrollPosition += delta;
-		}
-
 		void MovePage(int delta)
 		{
-			scrollPosition += (windowSize * delta * 4) / 5;
+			
 		}
 
 		void ActivateTarget(int y)
 		{
 			switch (clickTarget)
 			{
-			case EClick::Top:
-				MoveLine(-1);
-				break;
-			case EClick::Bottom:
-				MoveLine(1);
-				break;
 			case EClick::Bar:
 				{
-					GuiRect sliderRect = ComputerSliderRect();
+					GuiRect sliderRect = ComputeSliderRect();
 					if (y < sliderRect.top)
 					{
 						MovePage(-1);
@@ -136,10 +101,7 @@ namespace ANON
 
 		EventRouting OnCursorClick(CursorEvent& ce) override
 		{
-			GuiRect topTarget = topButton + TopLeft(panel.AbsRect());
-			GuiRect bottomTarget = bottomButton + TopLeft(panel.AbsRect());
-			GuiRect sliderTarget = topButton + TopLeft(panel.AbsRect());
-			GuiRect sliderRect = ComputerSliderRect();
+			GuiRect sliderRect = ComputeSliderRect();
 
 			if (ce.click.LeftButtonDown)
 			{
@@ -153,13 +115,12 @@ namespace ANON
 			{
 				clickPosition = -1;
 
-				int32 height = ComputeSliderHeight();
-				if (clickDeltaPosition != 0 && height > 0 && height < Height(sliderZone) - 3)
-				{
-					int32 dy = clamp(clickDeltaPosition, 0, Height(sliderZone) - height);
-					scrollPosition = GetSlidingScrollPosition(dy);
-				}
 				panel.Root().ReleaseCursor();
+
+				if (clickDeltaPosition != 0)
+				{
+					sliderPosition = clamp(sliderPosition + clickDeltaPosition, 0, Height(sliderZone) - sliderHeight);
+				}
 
 				clickDeltaPosition = 0;
 
@@ -216,30 +177,22 @@ namespace ANON
 			g.DrawRectEdge(rect, edge1Colour, edge2Colour);
 		}
 
-		GuiRect ComputerSliderRect() const
+		GuiRect ComputeSliderRect() const
 		{
-			int32 height = ComputeSliderHeight();
-			if (height <= 0 || height >= Height(sliderZone) - 3)
+			if (sliderHeight <= 0 || sliderHeight >= Height(sliderZone) - 3)
 			{
 				return { 0,0,0,0 };
 			}
 
-			int32 topPadding = ComputeSliderTopPadding();
-
-			int32 dy = clamp(topPadding + clickDeltaPosition, 0, Height(sliderZone) - height);
+			int32 dy = clamp(sliderPosition + clickDeltaPosition, 0, Height(sliderZone) - sliderHeight);
 			int32 y = sliderZone.top + 1 + dy;
-			return { sliderZone.left + 1, y, sliderZone.right - 1, y + height };
+			return { sliderZone.left + 1, y, sliderZone.right - 1, y + sliderHeight };
 		}
 
 		void Render(IGRRenderContext& g) override
 		{
 			auto rect = panel.AbsRect();
-
-			RenderScrollerButton(g, topButton, true);
-			RenderScrollerButton(g, bottomButton, false);
-
-			bool isHovered = g.IsHovered(panel);
-			
+			bool isHovered = g.IsHovered(panel);	
 			RGBAb edge1Colour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_BAR_TOP_LEFT_HOVERED : ESchemeColourSurface::SCROLLER_BAR_TOP_LEFT);
 			RGBAb edge2Colour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_BAR_BOTTOM_RIGHT_HOVERED : ESchemeColourSurface::SCROLLER_BAR_BOTTOM_RIGHT);
 			g.DrawRectEdge(rect, edge1Colour, edge2Colour);
@@ -249,46 +202,7 @@ namespace ANON
 				g.DrawRectEdge(sliderZone, edge1Colour, edge2Colour);
 			}
 
-			RenderScrollerSlider(g, ComputerSliderRect());
-		}
-
-		int32 ComputeSliderHeight() const
-		{
-			if (scrollRange == 0 || windowSize == 0)
-			{
-				return 0;
-			}
-
-			int64 pixelRange = Height(sliderZone) - 2;
-			return (int32) (pixelRange * (int64)windowSize / (int64)scrollRange);
-		}
-
-		int32 ComputeSliderTopPadding() const
-		{
-			if (scrollRange == 0 || windowSize == 0)
-			{
-				return 0;
-			}
-
-			int64 pixelRange = Height(sliderZone) - 2;
-			int64 topPadding = pixelRange * (int64)scrollPosition / (int64)scrollRange;
-			return (int32)topPadding;
-		}
-
-		int32 GetSlidingScrollPosition(int deltaPadding)
-		{
-			int64 pixelRange = Height(sliderZone) - 2;
-
-			if (pixelRange <= 0 || windowSize == 0)
-			{
-				return scrollPosition;
-			}
-
-			// p = R * s / S; -> where p is the top padding, R is the pixel range, s is the scroll position and and S is the scroll range
-			// =>  S * p / R = s;
-
-			int64 newScrollPosition = (int64)scrollRange * (ComputeSliderTopPadding() + deltaPadding) / pixelRange;
-			return (int32) newScrollPosition;
+			RenderScrollerSlider(g, ComputeSliderRect());
 		}
 
 		EventRouting OnChildEvent(WidgetEvent& widgetEvent, IGRWidget& sourceWidget) override
@@ -316,42 +230,26 @@ namespace ANON
 			return { 0,0 };
 		}
 
-		int32 scrollPosition = 0;
-
 		enum { MAX_SCROLL_INT = 1 << 30 };
 
-		void SetPosition(int position) override
+		void SetSliderPosition(int position) override
 		{
 			if (position < 0 || position > MAX_SCROLL_INT)
 			{
 				panel.Root().Custodian().RaiseError(GRErrorCode::InvalidArg, __FUNCTION__, "Position was out of bounds");
 				return;
 			}
-			this->scrollPosition = position;
+			this->sliderPosition = position;
 		}
 
-		int32 scrollRange = 0;
-
-		void SetRange(int range) override
+		void SetSliderHeight(int sliderHeight) override
 		{
-			if (range < 0 || range > MAX_SCROLL_INT)
+			if (sliderHeight < 0 || sliderHeight > MAX_SCROLL_INT)
 			{
 				panel.Root().Custodian().RaiseError(GRErrorCode::InvalidArg, __FUNCTION__, "Range was out of bounds");
 				return;
 			}
-			this->scrollRange = range;
-		}
-
-		int32 windowSize = 0;
-
-		void SetWindowSize(int32 windowSize) override
-		{
-			if (windowSize < 0 || windowSize > MAX_SCROLL_INT)
-			{
-				panel.Root().Custodian().RaiseError(GRErrorCode::InvalidArg, __FUNCTION__, "Window size was out of bounds");
-				return;
-			}
-			this->windowSize = windowSize;
+			this->sliderHeight = sliderHeight;
 		}
 
 		EQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
