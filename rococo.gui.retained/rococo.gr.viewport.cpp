@@ -6,10 +6,11 @@ using namespace Rococo::Gui;
 
 namespace ANON
 {
-	struct GRViewportWidget : IGRWidgetViewport, IGRWidget
+	struct GRViewportWidget : IGRWidgetViewport, IGRWidget, IScrollerEvents
 	{
 		IGRPanel& panel;
-		IGRWidgetDivision* clientArea = nullptr;
+		IGRWidgetDivision* clipArea = nullptr; // Represents the rectangle to the left of the scroller
+		IGRWidgetDivision* clientOffsetArea = nullptr; // Represents the scrolled data inside the clipArea
 		IGRWidgetVerticalScrollerWithButtons* vscroller = nullptr;
 
 		GRViewportWidget(IGRPanel& owningPanel) : panel(owningPanel)
@@ -18,15 +19,10 @@ namespace ANON
 
 		void PostConstruct()
 		{
-			if (!clientArea)
-			{
-				clientArea = &CreateDivision(*this);
-			}
-
-			if (!vscroller)
-			{
-				vscroller = &CreateVerticalScrollerWithButtons(*this);
-			}
+			clipArea = &CreateDivision(*this);
+			clientOffsetArea = &CreateDivision(*clipArea);
+			clientOffsetArea->Panel().PreventInvalidationFromChildren();
+			vscroller = &CreateVerticalScrollerWithButtons(*this, *this);
 		}
 
 		void Free() override
@@ -38,20 +34,36 @@ namespace ANON
 		{
 			enum { scrollbarWidth = 16 };
 
-			if (clientArea)
-			{
-				clientArea->Panel().Resize({ Width(panelDimensions) - scrollbarWidth, Height(panelDimensions)});
-				clientArea->Panel().SetParentOffset({ 0,0 });
-			}
+			clipArea->Panel().Resize({ Width(panelDimensions) - scrollbarWidth, Height(panelDimensions)});
+			clipArea->Panel().SetParentOffset({ 0,0 });
+			clipArea->Panel().InvalidateLayout(false);
 
-			if (vscroller)
-			{
-				vscroller->Widget().Panel().Resize({ scrollbarWidth, Height(panelDimensions) - 1 });
-				vscroller->Widget().Panel().SetParentOffset({ Width(panelDimensions) - scrollbarWidth, 0 });
-			}
+			ScrollerMetrics m;
+			vscroller->Scroller().GetMetrics(m);
 
-			vscroller->Scroller().SetSliderPosition(0);
+			clientOffsetArea->Panel().Resize({ Width(panelDimensions) - scrollbarWidth, Height(panelDimensions) });
+			clientOffsetArea->Panel().SetParentOffset({ 0, - m.PixelPosition });
+			clientOffsetArea->Panel().InvalidateLayout(false);
+
+			vscroller->Widget().Panel().Resize({ scrollbarWidth, Height(panelDimensions) - 1 });
+			vscroller->Widget().Panel().SetParentOffset({ Width(panelDimensions) - scrollbarWidth, 0 });
+			vscroller->Widget().Panel().InvalidateLayout(false);
+
 			vscroller->Scroller().SetSliderHeight(128);
+		}
+
+		void OnScrollerNewPositionCalculated(int32 newPosition, IGRWidgetScroller& scroller) override
+		{
+			clientOffsetArea->Panel().SetParentOffset({ 0, -newPosition });
+			clientOffsetArea->Panel().InvalidateLayout(false);
+
+			int32 index = 0;
+			while (auto* child = clientOffsetArea->Panel().GetChild(index++))
+			{
+				child->InvalidateLayout(false);
+			}
+
+			static_cast<IGRPanelSupervisor&>(clientOffsetArea->Panel()).LayoutRecursive(TopLeft(clipArea->Panel().AbsRect()));
 		}
 
 		EventRouting OnCursorClick(CursorEvent& ce) override
@@ -81,7 +93,7 @@ namespace ANON
 
 		IGRWidgetDivision& ClientArea() override
 		{
-			return *clientArea;
+			return *clientOffsetArea;
 		}
 
 		IGRWidgetVerticalScrollerWithButtons& VScroller() override
@@ -91,6 +103,8 @@ namespace ANON
 
 		void Render(IGRRenderContext& g) override
 		{
+			ScrollerMetrics metrics;
+			vscroller->Scroller().GetMetrics(metrics);
 			DrawPanelBackground(panel, g);
 		}
 

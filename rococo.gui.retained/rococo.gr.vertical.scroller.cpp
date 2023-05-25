@@ -10,6 +10,7 @@ namespace ANON
 	struct GRVerticalScroller : IGRWidgetVerticalScroller, IGRWidget
 	{
 		IGRPanel& panel;
+		IScrollerEvents* events = nullptr; // this is always set to non-null in the factory function at the bottom of the file
 
 		GuiRect sliderZone{ 0,0,0,0 };
 
@@ -23,6 +24,11 @@ namespace ANON
 		void Free() override
 		{
 			delete this;
+		}
+
+		void SetEventHandler(IScrollerEvents& events)
+		{
+			this->events = &events;
 		}
 
 		void Layout(const GuiRect& panelDimensions) override
@@ -138,7 +144,12 @@ namespace ANON
 		{
 			if (clickPosition >= 0)
 			{
+				int32 oldPosition = clickDeltaPosition;
 				clickDeltaPosition = ce.position.y - clickPosition;
+				if (clickDeltaPosition > 0 && oldPosition != clickDeltaPosition)
+				{
+					events->OnScrollerNewPositionCalculated(clickDeltaPosition, *this);
+				}
 			}
 			return EventRouting::Terminate;
 		}
@@ -232,6 +243,12 @@ namespace ANON
 
 		enum { MAX_SCROLL_INT = 1 << 30 };
 
+		void GetMetrics(ScrollerMetrics& m) const override
+		{
+			m.PixelPosition = sliderPosition;
+			m.PixelRange = clamp(Height(sliderZone) - sliderHeight, 0, (int32) MAX_SCROLL_INT);
+		}
+
 		void SetSliderPosition(int position) override
 		{
 			if (position < 0 || position > MAX_SCROLL_INT)
@@ -279,10 +296,12 @@ namespace Rococo::Gui
 		return "IGRWidgetVerticalScroller";
 	}
 
-	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalScroller& CreateVerticalScroller(IGRWidget& parent)
+	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalScroller& CreateVerticalScroller(IGRWidget& parent, IScrollerEvents& events)
 	{
 		auto& gr = parent.Panel().Root().GR();
 		auto* scroller = Cast<IGRWidgetVerticalScroller>(gr.AddWidget(parent.Panel(), ANON::s_VerticalScrollerFactory));
+		auto* scrollerClass = static_cast<ANON::GRVerticalScroller*>(scroller);
+		scrollerClass->SetEventHandler(events);
 		return *scroller;
 	}
 }

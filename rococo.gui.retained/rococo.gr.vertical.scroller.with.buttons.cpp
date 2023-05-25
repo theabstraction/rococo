@@ -38,6 +38,7 @@ namespace ANON
 		IGRWidgetButton* topButton = nullptr;
 		IGRWidgetButton* bottomButton = nullptr;
 		IGRWidgetVerticalScroller* scroller = nullptr;
+		IScrollerEvents* events = nullptr; // Always is set to non-null by the factory function at the bottom of the file
 
 		ScrollerButtonRenderer upRenderer;
 		ScrollerButtonRenderer downRenderer;
@@ -48,11 +49,11 @@ namespace ANON
 			downRenderer.orientation = 180_degrees;
 		}
 
-		void PostConstruct()
+		void PostConstruct(IScrollerEvents& events)
 		{
 			topButton = &CreateButton(*this);
 			bottomButton = &CreateButton(*this);
-			scroller = &CreateVerticalScroller(*this);
+			scroller = &CreateVerticalScroller(*this, events);
 
 			topButton->Widget().Panel().SetPanelRenderer(&upRenderer);
 			bottomButton->Widget().Panel().SetPanelRenderer(&downRenderer);
@@ -177,12 +178,12 @@ namespace Rococo::Gui
 		return "IGRWidgetVerticalScrollerWithButtons";
 	}
 
-	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalScrollerWithButtons& CreateVerticalScrollerWithButtons(IGRWidget& parent)
+	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalScrollerWithButtons& CreateVerticalScrollerWithButtons(IGRWidget& parent, IScrollerEvents& events)
 	{
 		auto& gr = parent.Panel().Root().GR();
 		auto* scroller = Cast<IGRWidgetVerticalScrollerWithButtons>(gr.AddWidget(parent.Panel(), ANON::s_VerticalScrollerWithButtonsFactory));
 		auto* scrollerClass = static_cast<ANON::GRVerticalScrollerWithButtons*>(scroller);
-		scrollerClass->PostConstruct();
+		scrollerClass->PostConstruct(events);
 		return *scroller;
 	}
 }

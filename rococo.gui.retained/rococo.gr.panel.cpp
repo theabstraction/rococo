@@ -24,6 +24,7 @@ namespace GRANON
 		GRAnchorPadding padding = { 0 };
 		bool isMarkedForDeletion = false;
 		AutoFree<ISchemeSupervisor> scheme;
+		bool preventInvalidationFromChildren = false;
 
 		GRPanel(IGRPanelRoot& _root, IGRPanelSupervisor* _parent): root(_root), parent(_parent), uniqueId(nextId++)
 		{
@@ -137,10 +138,20 @@ namespace GRANON
 		{
 			isLayoutValid = false;
 
-			if (invalidateAncestors && parent)
+			if (!preventInvalidationFromChildren && invalidateAncestors && parent)
 			{
 				parent->InvalidateLayout(invalidateAncestors);
 			}
+			else
+			{
+				// We have an orphaned the invalidation
+				root.GR().UpdateNextFrame(*this);
+			}
+		}
+
+		void PreventInvalidationFromChildren() override
+		{
+			preventInvalidationFromChildren = true;
 		}
 
 		bool RequiresLayout() const override
