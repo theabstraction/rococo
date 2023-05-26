@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?> 
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
 	<Type Name="GRANON::GRPanel">
-		<DisplayString>{{Rect: {absRect}. Span: {span}. ParentOffset: {parentOffset}}</DisplayString>
+		<DisplayString>{{Id: {uniqueId}. Rect: {absRect}. Span: {span}. ParentOffset: {parentOffset}}</DisplayString>
 	</Type>
 	<Type Name="GRANON::GRCollapser">
 		<DisplayString>{{Collapser: {panel}. Button {collapseButton}}</DisplayString>

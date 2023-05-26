@@ -54,16 +54,10 @@ namespace ANON
 
 		void OnScrollerNewPositionCalculated(int32 newPosition, IGRWidgetScroller& scroller) override
 		{
+			clipArea->Panel().InvalidateLayout(false);
 			clientOffsetArea->Panel().SetParentOffset({ 0, -newPosition });
 			clientOffsetArea->Panel().InvalidateLayout(false);
-
-			int32 index = 0;
-			while (auto* child = clientOffsetArea->Panel().GetChild(index++))
-			{
-				child->InvalidateLayout(false);
-			}
-
-			static_cast<IGRPanelSupervisor&>(clientOffsetArea->Panel()).LayoutRecursive(TopLeft(clipArea->Panel().AbsRect()));
+			InvalidateLayoutForAllDescendants(clientOffsetArea->Panel());
 		}
 
 		EventRouting OnCursorClick(CursorEvent& ce) override

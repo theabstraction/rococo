@@ -879,4 +879,8 @@ namespace Rococo::Gui
 
 	// Get an editor filter for unsigned 64-bit integers. Valid for the lifespan of the executable
 	ROCOCO_GUI_RETAINED_API IGREditFilter& GetUnsignedFilter();
+
+	ROCOCO_GUI_RETAINED_API void InvalidateLayoutForAllChildren(IGRPanel& panel);
+
+	ROCOCO_GUI_RETAINED_API void InvalidateLayoutForAllDescendants(IGRPanel& panel);
 }

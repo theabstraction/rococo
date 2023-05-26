@@ -320,7 +320,7 @@ namespace GRANON
 					child->LayoutRecursive(parentOrigin);
 				}
 
-				isLayoutValid = true;
+				ConfirmLayout();
 			}
 		}
 
@@ -564,4 +564,22 @@ namespace Rococo::Gui
 		}
 	}
 
+	ROCOCO_GUI_RETAINED_API void InvalidateLayoutForAllChildren(IGRPanel& panel)
+	{
+		int32 index = 0;
+		while (auto* child = panel.GetChild(index++))
+		{
+			child->InvalidateLayout(false);
+		}
+	}
+
+	ROCOCO_GUI_RETAINED_API void InvalidateLayoutForAllDescendants(IGRPanel& panel)
+	{
+		int32 index = 0;
+		while (auto* child = panel.GetChild(index++))
+		{
+			child->InvalidateLayout(false);
+			InvalidateLayoutForAllDescendants(*child);
+		}
+	}
 }
