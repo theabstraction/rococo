@@ -124,10 +124,10 @@ namespace GRANON
 			{
 				auto newSpan = child->Widget().EvaluateMinimalSpan();
 				child->Resize(newSpan);
-				dx += newSpan.x;
+				dx += newSpan.x + interChildPadding;
 			}
 
-			panel.Resize({dx, panel.Span().y});
+			panel.Resize({dx - interChildPadding, panel.Span().y});
 			return panel.Span();
 		}
 

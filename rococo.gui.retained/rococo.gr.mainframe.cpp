@@ -6,7 +6,7 @@ namespace GRANON
 	using namespace Rococo;
 	using namespace Rococo::Gui;
 
-	struct GRMainFrame: IGRWidgetMainFrame, IGRMainFrame
+	struct GRMainFrame: IGRWidgetMainFrame, IGRWidget
 	{
 		cstr name;
 		IGRPanel& panel;
@@ -155,7 +155,7 @@ namespace GRANON
 			return Vec2i{ 320, 200 };
 		}
 
-		IGRMainFrame& Frame() override
+		IGRWidget& Widget() override
 		{
 			return *this;
 		}

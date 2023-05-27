@@ -100,16 +100,16 @@ namespace ANON
 			delete this;
 		}
 
-		IGRMainFrame& BindFrame(IdWidget id) override
+		IGRWidgetMainFrame& BindFrame(IdWidget id) override
 		{
 			if (queryDepth > 0)
 			{
 				custodian.RaiseError(GRErrorCode::RecursionLocked, __FUNCTION__, "The GUI Retained API is locked for a recursive query. BindFrame cannot be executed here");
-				IGRMainFrame* frame = nullptr;
+				IGRWidgetMainFrame* frame = nullptr;
 				return *frame;
 			}
 
-			IGRMainFrame* oldFrame = FindFrame(id);
+			IGRWidgetMainFrame* oldFrame = FindFrame(id);
 			if (oldFrame)
 			{
 				return *oldFrame;
@@ -122,12 +122,12 @@ namespace ANON
 
 			auto* newFramePanel = CreatePanel(*this, nullptr);
 			auto* newFrame = CreateGRMainFrame(last.id.c_str(), * newFramePanel);
-			newFramePanel->SetWidget(*newFrame);
+			newFramePanel->SetWidget(newFrame->Widget());
 			last.panel = newFramePanel;
 			last.frame = newFrame;
 
 			mapIdToPanel.try_emplace(newFramePanel->Id(), newFramePanel);
-			return newFrame->Frame();
+			return *newFrame;
 		}
 
 		void DeleteFrame(IdWidget id) override
@@ -152,13 +152,13 @@ namespace ANON
 			return *scheme;
 		}
 
-		IGRMainFrame* FindFrame(IdWidget id) override
+		IGRWidgetMainFrame* FindFrame(IdWidget id) override
 		{
 			for (auto& d : frameDescriptors)
 			{
 				if (d.Eq(id))
 				{
-					return &d.frame->Frame();
+					return d.frame;
 				}
 			}
 

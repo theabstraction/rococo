@@ -12,7 +12,7 @@ using namespace Rococo::Strings;
 
 namespace ANON
 {
-	void BuildMenus(IGRMainFrame& frame)
+	void BuildMenus(IGRWidgetMainFrame& frame)
 	{
 		auto& menu = frame.MenuBar();
 		menu.Widget().Panel().
@@ -73,7 +73,7 @@ namespace ANON
 		titleBar.Set(ESchemeColourSurface::IMAGE_FOG_HOVERED, RGBAb(0, 0, 0, 64)).Set(ESchemeColourSurface::IMAGE_FOG, RGBAb(0, 0, 0, 128));
 	}
 
-	void BuildUpperRightToolbar(IGRMainFrame& frame)
+	void BuildUpperRightToolbar(IGRWidgetMainFrame& frame)
 	{
 		auto& tools = frame.TopRightHandSideTools();
 		tools.SetChildAlignment(GRAlignment::Right);
@@ -373,7 +373,7 @@ namespace ANON
 			}
 		}
 
-		void ClearFrame(IGRMainFrame& frame)
+		void ClearFrame(IGRWidgetMainFrame& frame)
 		{
 			struct : IEventCallback<IGRPanel>
 			{

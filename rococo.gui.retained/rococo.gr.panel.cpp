@@ -89,7 +89,7 @@ namespace GRANON
 			return *this;
 		}
 
-		IGRPanel* GetChild(int32 index)
+		IGRPanel* GetChild(int32 index) override
 		{
 			if (index < 0 || index >= children.size())
 			{

@@ -656,9 +656,14 @@ namespace Rococo::Gui
 		virtual IGRWidgetDivision& TitleBar() = 0;
 	};
 
-	// The public api side of the main frame
-	ROCOCO_INTERFACE IGRMainFrame
+	// The main frame with menu, toolbar and client area beneath the title bar
+	ROCOCO_INTERFACE IGRWidgetMainFrame : IGRBase
 	{
+		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
+
+		// The widget for the main frame
+		virtual IGRWidget& Widget() = 0;
+
 		// Retrieves a reference to the frame's top menu bar. If one does not exist, it is created		
 		virtual IGRWidgetMenuBar& MenuBar() = 0;
 
@@ -669,24 +674,17 @@ namespace Rococo::Gui
 		virtual IGRWidgetDivision& ClientArea() = 0;
 	};
 
-	// The widget side of the main frame
-	ROCOCO_INTERFACE IGRWidgetMainFrame : IGRWidget
-	{
-		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
-		virtual IGRMainFrame& Frame() = 0;
-	};
-
 	// Highest level of the retained GUI manages frames, frame render order, event routing, visibility, building and rendering
 	ROCOCO_INTERFACE IGuiRetained
 	{
 		// Associates a frame with an id and returns it. If it already exists, gets the existant one.
-		virtual IGRMainFrame& BindFrame(IdWidget id) = 0;
+		virtual IGRWidgetMainFrame& BindFrame(IdWidget id) = 0;
 
 		// Deletes the frame with the given id, invalidating all references to the frame and its panel and its layout
 		virtual void DeleteFrame(IdWidget id) = 0;
 
 		// Get a frame associated with an id. If none exist, null is returned
-		virtual IGRMainFrame* FindFrame(IdWidget id) = 0;
+		virtual IGRWidgetMainFrame* FindFrame(IdWidget id) = 0;
 
 		// Lower the frame so that it is the first to render.
 		virtual void MakeFirstToRender(IdWidget id) = 0;
