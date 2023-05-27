@@ -437,8 +437,7 @@ namespace GRANON
 				panel.Root().ReleaseCursor();
 			}
 
-			panel.Root().Custodian().OnGREvent(widgetEvent);
-			return EventRouting::Terminate;
+			return RouteEventToHandler(panel, widgetEvent);
 		}
 
 		EventRouting OnKeyEvent(KeyEvent& keyEvent) override

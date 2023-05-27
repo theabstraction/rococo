@@ -2,7 +2,8 @@
 #define WIN32_LEAN_AND_MEAN 
 #define NOMINMAX
 
-#include <windows.h>
+#include <rococo.os.win32.h>
+#include <rococo.window.h>
 #include <Psapi.h>
 #include <rococo.api.h>
 
@@ -2812,3 +2813,34 @@ namespace Rococo::OS
 		RunInConfig(root, organization, writeValue);
 	}
 } // Rococo::OS
+
+namespace Rococo::Windows
+{
+	ROCOCO_API void MinimizeApp(IWindow& window)
+	{
+		ShowWindow(window, SW_MINIMIZE);
+	}
+
+	ROCOCO_API void RestoreApp(IWindow& window)
+	{
+		WINDOWPLACEMENT p;
+		p = { 0 };
+		p.length = sizeof p;
+
+		if (GetWindowPlacement(window, &p))
+		{
+			if (p.showCmd == SW_SHOWNORMAL)
+			{
+				ShowWindow(window, SW_MAXIMIZE);
+			}
+			else if (p.showCmd == SW_SHOWMAXIMIZED)
+			{
+				ShowWindow(window, SW_SHOWNORMAL);
+			}
+			else if (p.showCmd == SW_SHOWMINIMIZED)
+			{
+				ShowWindow(window, SW_SHOWNORMAL);
+			}
+		}
+	}
+}

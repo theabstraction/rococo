@@ -1,5 +1,10 @@
 #include <rococo.types.h>
 
+namespace Rococo
+{
+	struct Platform;
+}
+
 namespace Rococo::Gui
 {
 	struct IGuiRetained;
@@ -22,6 +27,7 @@ namespace Rococo::MPEditor
 
 	ROCOCO_INTERFACE IMPEditorSupervisor : IMPEditor
 	{
+		virtual void SetPlatform(Platform* platform) = 0;
 		virtual void Free() = 0;
 	};
 

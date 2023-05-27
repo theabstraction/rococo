@@ -127,6 +127,31 @@ struct DX11WindowBacking: IDX11WindowBacking, Windows::IWindow
 		screenSpan = newSpan;
 	}
 
+	bool IsFullscreen() override
+	{
+		BOOL isFullScreen;
+		AutoRelease<IDXGIOutput> output;
+		if SUCCEEDED(mainSwapChain->GetFullscreenState(&isFullScreen, &output))
+		{
+			return isFullScreen;
+		}
+
+		return false;
+	}
+
+	void SwitchToFullscreen() override
+	{
+		BOOL isFullScreen;
+		AutoRelease<IDXGIOutput> output;
+		if SUCCEEDED(mainSwapChain->GetFullscreenState(&isFullScreen, &output))
+		{
+			if (!isFullScreen)
+			{
+				mainSwapChain->SetFullscreenState(true, nullptr);
+			}
+		}
+	}
+
 	void SwitchToWindowMode() override
 	{
 		BOOL isFullScreen;

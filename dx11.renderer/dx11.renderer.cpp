@@ -67,6 +67,16 @@ private:
 
 	AutoFree<IDX11Pipeline> pipeline;
 
+	bool IsFullscreen() override
+	{
+		return currentWindowBacking ? currentWindowBacking->IsFullscreen() : false;
+	}
+
+	void SwitchToFullscreen() override
+	{
+		if (currentWindowBacking) currentWindowBacking->SwitchToFullscreen();
+	}
+
 	void SetSampler(uint32 index, Samplers::Filter filter, Samplers::AddressMode u, Samplers::AddressMode v, Samplers::AddressMode w, const RGBA& borderColour) override
 	{
 		pipeline->SetSampler(index, filter, u, v, w, borderColour);

@@ -542,6 +542,21 @@ namespace ANON
 		{
 			focusId = id;
 		}
+
+		IGREventHandler* eventHandler = nullptr;
+
+		IGREventHandler* SetEventHandler(IGREventHandler* eventHandler) override
+		{
+			IGREventHandler* oldEventHandler = eventHandler;
+			this->eventHandler = eventHandler;
+			return oldEventHandler;
+		}
+
+		EventRouting OnGREvent(WidgetEvent& ev) override
+		{
+			if (eventHandler) return eventHandler->OnGREvent(ev);
+			return EventRouting::Terminate;
+		}
 	};
 }
 
@@ -559,6 +574,12 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API IGuiRetainedSupervisor* CreateGuiRetained(GRConfig& config, IGRCustodian& custodian)
 	{
 		return new ANON::GuiRetained(config, custodian);
+	}
+
+	ROCOCO_GUI_RETAINED_API EventRouting RouteEventToHandler(IGRPanel& panel, WidgetEvent& ev)
+	{
+		auto& supervisor = static_cast<IGuiRetainedSupervisor&>(panel.Root().GR());
+		return supervisor.OnGREvent(ev);
 	}
 
 	ROCOCO_GUI_RETAINED_API [[nodiscard]] GRAnchors GRAnchors::Left()

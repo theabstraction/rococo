@@ -247,14 +247,16 @@ namespace Rococo::DX11
 
 	ROCOCO_INTERFACE IDX11WindowBacking
 	{
-		virtual void Free() = 0;
 		virtual ID3D11RenderTargetView* BackBufferView() = 0;
+		virtual ID_TEXTURE DepthBufferId() const = 0;
+		virtual void Free() = 0;
+		virtual bool IsFullscreen() = 0;
+		virtual void Present() = 0;	
 		virtual void ResetOutputBuffersForWindow() = 0;
 		virtual Vec2i Span() const = 0;
-		virtual Windows::IWindow& Window() = 0;
-		virtual ID_TEXTURE DepthBufferId() const = 0;
+		virtual void SwitchToFullscreen() = 0;
 		virtual void SwitchToWindowMode() = 0;
-		virtual void Present() = 0;
+		virtual Windows::IWindow& Window() = 0;
 	};
 
 	IDX11WindowBacking* CreateDX11WindowBacking(ID3D11Device& device, ID3D11DeviceContext& dc, HWND hWnd, IDXGIFactory& factory, IDX11TextureManager& textures);

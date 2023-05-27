@@ -1,8 +1,9 @@
-#include <rococo.gui.retained.h>
+#include <rococo.gui.retained.ex.h>
 #include "mplat.editor.h"
 #include <rococo.reflector.h>
 #include <rococo.strings.h>
 #include <vector>
+#include <rococo.mplat.h>
 
 using namespace Rococo;
 using namespace Rococo::Gui;
@@ -73,14 +74,20 @@ namespace ANON
 		titleBar.Set(ESchemeColourSurface::IMAGE_FOG_HOVERED, RGBAb(0, 0, 0, 64)).Set(ESchemeColourSurface::IMAGE_FOG, RGBAb(0, 0, 0, 128));
 	}
 
+	enum { TOOLBAR_EVENT_MINIMIZE = 40001, TOOLBAR_EVENT_RESTORE, TOOLBAR_EVENT_EXIT };
+
 	void BuildUpperRightToolbar(IGRWidgetMainFrame& frame)
 	{
 		auto& tools = frame.TopRightHandSideTools();
 		tools.SetChildAlignment(GRAlignment::Right);
 		
-		CreateButton(tools.Widget()).SetTitle("Min").SetImagePath("!textures/toolbars/3rd-party/www.aha-soft.com/Down.tiff");
-		CreateButton(tools.Widget()).SetTitle("Max").SetImagePath("!textures/toolbars/3rd-party/www.aha-soft.com/Expand.tiff");
-		CreateButton(tools.Widget()).SetTitle("Close").SetImagePath("!textures/toolbars/3rd-party/www.aha-soft.com/Close.tiff");
+		auto& minimizer = CreateButton(tools.Widget()).SetTitle("Min").SetImagePath("!textures/toolbars/3rd-party/www.aha-soft.com/Down.tiff").SetClickCriterion(GRClickCriterion::OnDownThenUp).SetEventPolicy(GREventPolicy::PublicEvent);
+		auto& restorer = CreateButton(tools.Widget()).SetTitle("Max").SetImagePath("!textures/toolbars/3rd-party/www.aha-soft.com/Expand.tiff").SetClickCriterion(GRClickCriterion::OnDownThenUp).SetEventPolicy(GREventPolicy::PublicEvent);
+		auto& closer = CreateButton(tools.Widget()).SetTitle("Close").SetImagePath("!textures/toolbars/3rd-party/www.aha-soft.com/Close.tiff").SetClickCriterion(GRClickCriterion::OnDownThenUp).SetEventPolicy(GREventPolicy::PublicEvent);
+
+		minimizer.SetMetaData({ TOOLBAR_EVENT_MINIMIZE, "OnMinimize" });
+		restorer.SetMetaData({ TOOLBAR_EVENT_RESTORE, "OnMinimize" });
+		closer.SetMetaData({ TOOLBAR_EVENT_EXIT, "OnExit" });
 
 		tools.ResizeToFitChildren();
 	}
@@ -336,16 +343,55 @@ namespace ANON
 		}
 	};
 
-	struct MPlatEditor : IMPEditorSupervisor
+	struct MPlatEditor : IMPEditorSupervisor, IGREventHandler
 	{
 		IGuiRetained& gr;
+		Platform* platform = nullptr;
 		bool isVisible = false;
 
 		MPlat_Reflection_Previewer previewer;
 
 		MPlatEditor(IGuiRetained& _gr): gr(_gr)
 		{
+			static_cast<IGuiRetainedSupervisor&>(gr).SetEventHandler(this);
+		}
 
+		void SetPlatform(Platform* platform)
+		{
+			this->platform = platform;
+		}
+
+		void OnButtonClick(WidgetEvent& buttonEvent)
+		{
+			switch (buttonEvent.iMetaData)
+			{
+			case TOOLBAR_EVENT_MINIMIZE:
+				Rococo::Windows::MinimizeApp(platform->mainWindow);
+				break;
+			case TOOLBAR_EVENT_RESTORE:
+				if (platform->renderer.IsFullscreen())
+				{
+					Rococo::Windows::RestoreApp(platform->mainWindow);
+				}
+				else
+				{
+					platform->renderer.SwitchToFullscreen();
+				}
+				break;
+			case TOOLBAR_EVENT_EXIT:
+				break;
+			}
+		}
+
+		EventRouting OnGREvent(WidgetEvent& ev) override
+		{
+			switch (ev.eventType)
+			{
+			case WidgetEventType::BUTTON_CLICK:
+				OnButtonClick(ev);
+				break;
+			}
+			return EventRouting::Terminate;
 		}
 
 		void Free() override
@@ -395,6 +441,8 @@ namespace ANON
 			SetSchemeColours_ThemeGrey(scheme);
 			BuildMenus(frame);
 			BuildUpperRightToolbar(frame);
+
+			auto& custodian = gr.Root().Custodian();
 		}
 
 		void AddFieldToTable(IGRWidgetTable& table, PreviewField& field, int depth)
@@ -540,11 +588,11 @@ namespace ANON
 		void SyncUIToPreviewer(IGuiRetained& gr) override
 		{
 			auto* frame = gr.FindFrame(ID_EDITOR_FRAME);
-			if (!frame) return;
-
-			auto& framePanel = frame->ClientArea().Panel();
+			if (!frame) Throw(0, "%s: Unexpected missing frame. gr.FindFrame(ID_EDITOR_FRAME) returned null", __FUNCTION__);
 
 			ClearFrame(*frame);
+
+			auto& framePanel = frame->ClientArea().Panel();
 
 			framePanel.Set(ESchemeColourSurface::TEXT, RGBAb(224, 224, 224, 255)).Set(ESchemeColourSurface::TEXT_HOVERED, RGBAb(255, 255, 255, 255));
 			framePanel.Set(ESchemeColourSurface::EDIT_TEXT, RGBAb(224, 224, 224, 255)).Set(ESchemeColourSurface::EDIT_TEXT_HOVERED, RGBAb(255, 255, 255, 255));

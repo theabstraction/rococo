@@ -52,8 +52,8 @@ namespace GRANON
 			WidgetEvent widgetEvent{ WidgetEventType::BUTTON_CLICK, panel.Id(), iMetadata, sMetaData.c_str(), ce.position };
 
 			if (eventPolicy == GREventPolicy::PublicEvent)
-			{				
-				panel.Root().Custodian().OnGREvent(widgetEvent);
+			{		
+				RouteEventToHandler(panel, widgetEvent);
 			}
 			else if (eventPolicy == GREventPolicy::NotifyAncestors)
 			{
@@ -61,7 +61,7 @@ namespace GRANON
 				if (routing != EventRouting::Terminate)
 				{
 					// Nothing handled it
-					panel.Root().Custodian().OnGREvent(widgetEvent);
+					RouteEventToHandler(panel, widgetEvent);
 				}
 			}
 		}

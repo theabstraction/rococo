@@ -56,6 +56,15 @@ namespace Rococo
 	}
 #endif
 
+	namespace Windows
+	{
+		// Minimizes app to the task bar, or whatever the OS uses to contain references to invisible apps
+		ROCOCO_API void MinimizeApp(IWindow& window);
+
+		// Toggles between fullscreen and nominal app size
+		ROCOCO_API void RestoreApp(IWindow& window);
+	}
+
 	namespace Graphics
 	{
 		struct IRenderer;

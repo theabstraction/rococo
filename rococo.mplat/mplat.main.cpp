@@ -383,6 +383,8 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 		*audio, *ssFactory, title, *xbox360stick, *ims, *world, *ecs, *GR, *mplat_gcs, *editor
 	};
 
+	editor->SetPlatform(&platform);
+
 	gui->PostConstruct(&platform);
 	utilities->SetPlatform(platform);
 	messaging->PostCreate(platform);

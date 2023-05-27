@@ -503,6 +503,8 @@ namespace Rococo::Graphics
 		virtual IMathsVenue* TextureVenue() = 0;
 		virtual Windows::IWindow& CurrentWindow() = 0;
 		virtual IMathsVenue* Venue() = 0;
+		virtual bool IsFullscreen() = 0;
+		virtual void SwitchToFullscreen() = 0;
 	};
 
 	struct GlyphCallbackArgs

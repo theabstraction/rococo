@@ -64,11 +64,11 @@ namespace Rococo
 
 	namespace IO
 	{
-		bool IsKeyPressed(int vkeyCode);
-		void CopyToClipboard(cstr asciiText);
+		ROCOCO_API bool IsKeyPressed(int vkeyCode);
+		ROCOCO_API void CopyToClipboard(cstr asciiText);
 
 		// Safe format of clipboard contents, Truncates to buffer capacity and null terminates the string.
-		void PasteFromClipboard(char* asciiBuffer, size_t capacity);
+		ROCOCO_API void PasteFromClipboard(char* asciiBuffer, size_t capacity);
 	}
 }
 

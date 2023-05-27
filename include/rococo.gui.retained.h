@@ -659,6 +659,7 @@ namespace Rococo::Gui
 	// The main frame with menu, toolbar and client area beneath the title bar
 	ROCOCO_INTERFACE IGRWidgetMainFrame : IGRBase
 	{
+		// The unique id associated with this interface
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
 
 		// The widget for the main frame
@@ -667,7 +668,7 @@ namespace Rococo::Gui
 		// Retrieves a reference to the frame's top menu bar. If one does not exist, it is created		
 		virtual IGRWidgetMenuBar& MenuBar() = 0;
 
-		// Retrieves a reference to the frame's top right tool bar. Typically used for minimize, maximume/restore and close window icons.
+		// Retrieves a reference to the frame's top right tool bar. Typically used for minimize, maximize/restore and close window buttons.
 		virtual IGRWidgetToolbar& TopRightHandSideTools() = 0;
 
 		// The part of the main frame that is below the title bar. If there is no title bar the client area covers the entire area
@@ -881,4 +882,6 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API void InvalidateLayoutForAllChildren(IGRPanel& panel);
 
 	ROCOCO_GUI_RETAINED_API void InvalidateLayoutForAllDescendants(IGRPanel& panel);
+
+	ROCOCO_GUI_RETAINED_API EventRouting RouteEventToHandler(IGRPanel& panel, WidgetEvent& ev);
 }

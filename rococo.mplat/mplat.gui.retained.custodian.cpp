@@ -403,11 +403,6 @@ namespace ANON
 			return sysRenderer.Gui().HQFontsResources().EvalSpan(idSysFont, text);
 		}
 
-		EventRouting OnGREvent(WidgetEvent& widgetEvent) override
-		{
-			return EventRouting::Terminate;
-		}
-
 		void RecordWidget(IGRWidget& widget) override
 		{
 			history.push_back(&widget);

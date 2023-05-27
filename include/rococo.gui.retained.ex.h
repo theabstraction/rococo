@@ -8,10 +8,18 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API void LayoutChildByAnchors(IGRPanel& child, const GuiRect& parentDimensions);
 	ROCOCO_GUI_RETAINED_API void LayoutChildrenByAnchors(IGRPanel& parent, const GuiRect& parentDimensions);
 
+	ROCOCO_INTERFACE IGREventHandler
+	{
+		virtual EventRouting OnGREvent(WidgetEvent & ev) = 0;
+	};
+
 	// Lifetime manager for a gui retained instance
 	ROCOCO_INTERFACE IGuiRetainedSupervisor : IGuiRetained
 	{
+		// Assigns a new event handler, and returns the old one
+		virtual IGREventHandler* SetEventHandler(IGREventHandler* eventHandler) = 0;
 		virtual void NotifyPanelDeleted(int64 uniqueId) = 0;
+		virtual EventRouting OnGREvent(WidgetEvent& ev) = 0;
 		virtual void Free() = 0;
 	};
 
@@ -41,7 +49,7 @@ namespace Rococo::Gui
 
 		// Given a font id and text string, uses the platform font definition to determine the minimam span containing it.
 		virtual Vec2i EvaluateMinimalSpan(GRFontId fontId, const fstring& text) const = 0;
-		virtual EventRouting OnGREvent(WidgetEvent& ev) = 0;
+
 		virtual void RaiseError(GRErrorCode code, cstr function, cstr message) = 0;
 	};
 

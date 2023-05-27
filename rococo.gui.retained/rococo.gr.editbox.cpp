@@ -71,7 +71,7 @@ namespace GRANON
 			we.caretPos = caretPos;
 			we.clickPosition = { 0,0 };
 
-			panel.Root().Custodian().OnGREvent(we);
+			RouteEventToHandler(panel, we);
 		}
 
 		void Layout(const GuiRect& panelDimensions) override
