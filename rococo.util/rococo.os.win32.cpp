@@ -37,6 +37,9 @@
 #include <rococo.strings.h>
 #include <rococo.os.h>
 
+#include <rococo.task.queue.h>
+#include <list>
+
 using namespace Rococo::Strings;
 
 namespace Rococo
@@ -1765,7 +1768,7 @@ namespace Rococo
 	{
 		ROCOCO_API IAppControlSupervisor* CreateAppControl()
 		{
-			struct AppControl : public IAppControlSupervisor
+			struct AppControl : public IAppControlSupervisor, public Rococo::Tasks::ITaskQueue
 			{
 				void ShutdownApp() override
 				{
@@ -1781,6 +1784,30 @@ namespace Rococo
 				void Free() override
 				{
 					delete this;
+				}
+
+				std::list<Rococo::Function<void()>> tasks;
+
+				Rococo::Tasks::ITaskQueue& MainThreadQueue() override
+				{
+					return *this;
+				}
+
+				void AddTask(Rococo::Function<void()> lambda) override
+				{
+					tasks.push_back(lambda);
+				}
+
+				bool ExecuteNext() override
+				{
+					if (tasks.empty())
+					{
+						return false;
+					}
+
+					tasks.front().Invoke();
+					tasks.pop_front();
+					return true;
 				}
 
 				bool isRunning = true;
@@ -2842,5 +2869,10 @@ namespace Rococo::Windows
 				ShowWindow(window, SW_SHOWNORMAL);
 			}
 		}
+	}
+
+	ROCOCO_API void SendCloseEvent(IWindow& window)
+	{
+		SendMessage(window, WM_CLOSE, 0, 0);
 	}
 }

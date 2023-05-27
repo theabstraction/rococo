@@ -71,9 +71,12 @@
       <SubSystem>Windows</SubSystem>
     </Link>
     <CustomBuildStep>
-      <Command>$(SolutionDir)sexy\Bin\sexy.bennyhill.debug.exe $(ProjectDir) mplat.sxh mplat.sxh.h</Command>
-      <Outputs>mplat.sxh.h;mplat.sxh.inl</Outputs>
-      <Inputs>mplat.sxh;config.xc</Inputs>
+      <Command>
+      </Command>
+      <Outputs>
+      </Outputs>
+      <Inputs>
+      </Inputs>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -96,10 +99,14 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <CustomBuildStep>
-      <Command>$(SolutionDir)sexy\Bin\sexy.bennyhill.exe $(ProjectDir) mplat.sxh mplat.sxh.h</Command>
-      <Outputs>mplat.sxh.h</Outputs>
-      <Inputs>mplat.sxh;config.xc</Inputs>
-      <Message>Passing mplat.sxh to Benny Hill</Message>
+      <Command>
+      </Command>
+      <Outputs>
+      </Outputs>
+      <Inputs>
+      </Inputs>
+      <Message>
+      </Message>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -177,6 +184,7 @@
     <ClInclude Include="..\include\rococo.mplat.h" />
     <ClInclude Include="..\include\rococo.octree.h" />
     <ClInclude Include="..\include\rococo.reflector.h" />
+    <ClInclude Include="..\include\rococo.task.queue.h" />
     <ClInclude Include="mplat.component.template.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>

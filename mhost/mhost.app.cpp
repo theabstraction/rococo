@@ -16,6 +16,8 @@
 
 #include "..\rococo.mplat\mplat.editor.h"
 
+#include <rococo.task.queue.h>
+
 using namespace Rococo;
 using namespace Rococo::Strings;
 
@@ -483,6 +485,8 @@ namespace MHost
 			}
 
 			platform.scene.AdvanceAnimations(Seconds{ dt });
+
+			while (platform.appControl.MainThreadQueue().ExecuteNext());
 
 			return Seconds{ dt };
 		}

@@ -2,6 +2,11 @@
 
 #include <rococo.types.h>
 
+namespace Rococo::Tasks
+{
+	struct ITaskQueue;
+}
+
 namespace Rococo::OS
 {
 	struct ConfigSection
@@ -31,6 +36,8 @@ namespace Rococo::OS
 
 	ROCOCO_INTERFACE IAppControl
 	{
+		// Returns the task queue for the main thread. Include <rococo.task.queue.h> for the definition of the full interface
+		virtual Tasks::ITaskQueue& MainThreadQueue() = 0;
 		virtual bool IsRunning() const = 0;
 		virtual void ShutdownApp() = 0;
 	};

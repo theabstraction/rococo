@@ -4,6 +4,7 @@
 #include <rococo.strings.h>
 #include <vector>
 #include <rococo.mplat.h>
+#include <rococo.task.queue.h>
 
 using namespace Rococo;
 using namespace Rococo::Gui;
@@ -361,17 +362,18 @@ namespace ANON
 			this->platform = platform;
 		}
 
-		void OnButtonClick(WidgetEvent& buttonEvent)
+		void OnButtonClickTaskResult(int64 code)
 		{
-			switch (buttonEvent.iMetaData)
+			switch (code)
 			{
 			case TOOLBAR_EVENT_MINIMIZE:
+				platform->renderer.SwitchToWindowMode();
 				Rococo::Windows::MinimizeApp(platform->mainWindow);
 				break;
 			case TOOLBAR_EVENT_RESTORE:
 				if (platform->renderer.IsFullscreen())
 				{
-					Rococo::Windows::RestoreApp(platform->mainWindow);
+					platform->renderer.SwitchToWindowMode();
 				}
 				else
 				{
@@ -379,6 +381,42 @@ namespace ANON
 				}
 				break;
 			case TOOLBAR_EVENT_EXIT:
+				if (platform->renderer.IsFullscreen())
+				{
+					platform->renderer.SwitchToWindowMode();
+				}
+
+				Rococo::Windows::SendCloseEvent(platform->mainWindow);
+				break;
+			}
+		}
+
+		void OnButtonClick(WidgetEvent& buttonEvent)
+		{
+			int64 id = buttonEvent.iMetaData;
+			switch (id)
+			{
+			case TOOLBAR_EVENT_MINIMIZE:
+				platform->renderer.SwitchToWindowMode();
+				Rococo::Windows::MinimizeApp(platform->mainWindow);
+				break;
+			case TOOLBAR_EVENT_RESTORE:
+				if (platform->renderer.IsFullscreen())
+				{
+					platform->renderer.SwitchToWindowMode();
+				}
+				else
+				{
+					platform->renderer.SwitchToFullscreen();
+				}
+				break;
+			case TOOLBAR_EVENT_EXIT:
+				if (platform->renderer.IsFullscreen())
+				{
+					platform->renderer.SwitchToWindowMode();
+				}
+
+				Rococo::Windows::SendCloseEvent(platform->mainWindow);
 				break;
 			}
 		}

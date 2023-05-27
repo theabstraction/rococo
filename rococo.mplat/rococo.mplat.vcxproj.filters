@@ -239,6 +239,9 @@
     <ClInclude Include="..\include\rococo.reflector.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\rococo.task.queue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="config.xc">

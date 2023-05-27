@@ -63,6 +63,9 @@ namespace Rococo
 
 		// Toggles between fullscreen and nominal app size
 		ROCOCO_API void RestoreApp(IWindow& window);
+
+		// Requests a window to close using standard OS closing procedures
+		ROCOCO_API void SendCloseEvent(IWindow& window);
 	}
 
 	namespace Graphics
