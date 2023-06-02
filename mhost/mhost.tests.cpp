@@ -77,14 +77,17 @@ void Visit(IReflectionVisitor& v, T& t)
 template<class T>
 void Reflect(IReflectionVisitor& v, T& elements, const char* name)
 {
+	v.EnterContainer();
 	int i = 0;
 	for (auto& element : elements)
 	{
 		char index[16];
-		SafeFormat(index, "%d", i);
-		v.SetSection(index);
+		SafeFormat(index, "%d", i++);
+		v.EnterElement(index);
 		Visit(v, element);
+		v.LeaveElement();
 	}
+	v.LeaveContainer();
 }
 
 struct TestHouse : IReflectionTarget

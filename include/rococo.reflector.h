@@ -43,6 +43,10 @@ namespace Rococo::Reflection
 	ROCOCO_INTERFACE IReflectionVisitor
 	{
 		virtual EReflectionDirection Direction() const = 0;
+		virtual void EnterContainer() = 0;
+		virtual void LeaveContainer() = 0;
+		virtual void EnterElement(cstr elementKey) = 0;
+		virtual void LeaveElement() = 0;
 		virtual void Reflect(cstr name, IReflectionTarget& subTarget, ReflectionMetaData& metaData) = 0;
 		virtual void Reflect(cstr name, int32 &value, ReflectionMetaData& metaData) = 0;
 		virtual void Reflect(cstr name, int64& value, ReflectionMetaData& metaData) = 0;
@@ -50,7 +54,7 @@ namespace Rococo::Reflection
 		virtual void Reflect(cstr name, double& value, ReflectionMetaData& metaData) = 0;
 		virtual void Reflect(cstr name, bool& value, ReflectionMetaData& metaData) = 0;
 		virtual void Reflect(cstr name, IReflectedString& stringValue, ReflectionMetaData& metaData) = 0;
-		virtual void SetSection(cstr sectionName) = 0;
+		virtual void SetSection(cstr instanceName) = 0;
 	};
 
 	ROCOCO_INTERFACE IReflectionTarget

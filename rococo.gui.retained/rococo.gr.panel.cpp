@@ -475,6 +475,16 @@ namespace Rococo::Gui
 		Vec2i newPos = child.ParentOffset();
 		Vec2i newSpan = child.Span();
 
+		if (newSpan.x == 0 && !anchors.expandsHorizontally  && child.Root().GR().HasDebugFlag(GRDebugFlags::ThrowWhenPanelIsZeroArea))
+		{
+			OS::TripDebugger();
+		}
+
+		if (newSpan.y == 0 && !anchors.expandsVertically && child.Root().GR().HasDebugFlag(GRDebugFlags::ThrowWhenPanelIsZeroArea))
+		{
+			OS::TripDebugger();
+		}
+
 		if (anchors.left)
 		{
 			newPos.x = padding.left;
@@ -552,6 +562,12 @@ namespace Rococo::Gui
 		}
 
 		child.SetParentOffset(newPos);
+
+		if (newSpan.x == 0 || newSpan.y == 0 && child.Root().GR().HasDebugFlag(GRDebugFlags::ThrowWhenPanelIsZeroArea))
+		{
+			Throw(0, "Zero area for widget %d, %d with id %lld", newSpan.x, newSpan.y, child.Id());
+		}
+
 		child.Resize(newSpan);
 	}
 

@@ -373,6 +373,10 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	AutoFree<Rococo::Gui::IMPlatGuiCustodianSupervisor> mplat_gcs = Rococo::Gui::CreateMPlatCustodian(*utilities, mainWindow->Renderer());
 	AutoFree<Rococo::Gui::IGuiRetainedSupervisor> GR = Rococo::Gui::CreateGuiRetained(grConfig, mplat_gcs->Custodian());
 
+#ifdef _DEBUG
+	GR->SetDebugFlags((int) Rococo::Gui::GRDebugFlags::ThrowWhenPanelIsZeroArea);
+#endif
+
 	AutoFree<Rococo::MPEditor::IMPEditorSupervisor> editor = Rococo::MPEditor::CreateMPlatEditor(*GR);
 	
 	Platform platform

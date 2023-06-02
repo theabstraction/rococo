@@ -61,7 +61,7 @@ namespace GRANON
 				menuAnchors.top = true;
 				menuAnchors.bottom = true;
 				menuAnchors.expandsVertically = true;
-				menuBar->Widget().Panel().Set(menuAnchors).Set(paddingOnePixel);
+				menuBar->Widget().Panel().Set(menuAnchors).Set(paddingOnePixel).Resize({ 10, clientAreaTop });
 				// The menu bar is a child of the title bar, so should be resized by the title bar
 			}
 

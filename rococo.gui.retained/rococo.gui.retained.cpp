@@ -36,6 +36,18 @@ namespace ANON
 
 		int badSpanCountThisFrame = 0;
 
+		int grDebugFlags = 0;
+
+		bool HasDebugFlag(GRDebugFlags flag) const override
+		{
+			return (grDebugFlags & (int) flag) != 0;
+		}
+
+		void SetDebugFlags(int grDebugFlags) override
+		{
+			this->grDebugFlags |= (int)grDebugFlags;
+		}
+
 		int BadSpanCount() const override
 		{
 			if (Rococo::OS::IsDebugging())

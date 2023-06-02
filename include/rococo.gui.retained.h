@@ -675,6 +675,12 @@ namespace Rococo::Gui
 		virtual IGRWidgetDivision& ClientArea() = 0;
 	};
 
+	enum class GRDebugFlags
+	{
+		None = 0,
+		ThrowWhenPanelIsZeroArea = 1
+	};
+
 	// Highest level of the retained GUI manages frames, frame render order, event routing, visibility, building and rendering
 	ROCOCO_INTERFACE IGuiRetained
 	{
@@ -683,6 +689,12 @@ namespace Rococo::Gui
 
 		// Deletes the frame with the given id, invalidating all references to the frame and its panel and its layout
 		virtual void DeleteFrame(IdWidget id) = 0;
+
+		// Returns true if at least one GRDebugFlag is present
+		virtual bool HasDebugFlag(GRDebugFlags flag) const = 0;
+
+		// Combination of GRDebugFlags to overwrite the current flag state
+		virtual void SetDebugFlags(int grDebugFlags) = 0;
 
 		// Get a frame associated with an id. If none exist, null is returned
 		virtual IGRWidgetMainFrame* FindFrame(IdWidget id) = 0;

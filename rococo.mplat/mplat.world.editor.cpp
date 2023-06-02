@@ -217,7 +217,8 @@ namespace ANON
 		}
 
 		PreviewData* parent;
-		HString sectionName;
+		HString instanceName;
+		HString containerKey;
 		std::vector<PreviewField> fields;
 
 		template<class T>
@@ -340,7 +341,31 @@ namespace ANON
 
 		void SetSection(cstr sectionName)
 		{
-			target->sectionName = sectionName;
+			target->instanceName = sectionName;
+		}
+
+		void EnterContainer() override
+		{
+
+		}
+
+		void LeaveContainer() override
+		{
+
+		}
+
+		void EnterElement(cstr keyName) override
+		{
+			auto* subSection = new PreviewData(target);
+			subSection->AddField(keyName, subSection);
+			subSection->parent = target;
+			target = subSection;
+			target->containerKey = keyName;			
+		}
+
+		void LeaveElement() override
+		{
+			target = target->parent;
 		}
 	};
 
@@ -542,7 +567,7 @@ namespace ANON
 			nameSpec.name = "Name";
 			nameSpec.maxWidth = 240;
 			nameSpec.minWidth = 64;
-			nameSpec.defaultWidth = 120;
+			nameSpec.defaultWidth = 60;
 			table.AddColumn(nameSpec);
 
 			GRColumnSpec valueSpec;
@@ -575,6 +600,15 @@ namespace ANON
 			auto& collapser = CreateCollapser(parentContainer);
 			collapser.Widget().Panel().Set(GRAnchors::ExpandAll());
 			collapser.Widget().Panel().Set(GRAnchorPadding{ 8 * depth, 0, 0 , 0 });
+			auto& titleDiv = collapser.TitleBar();
+
+			auto& titleDescription = Rococo::Gui::CreateText(titleDiv).SetText(data.instanceName);
+			titleDescription.Widget().Panel().Add(GRAnchors::ExpandHorizontally()).Add(GRAnchors::ExpandVertically()).Add(GRAnchors::LeftAndRight()).Add(GRAnchors::TopAndBottom()).Set(GRAnchorPadding{ 32, 0, 0, 0 });
+		
+			GRAlignmentFlags rightCentered;
+			rightCentered.Add(GRAlignment::Left).Add(GRAlignment::VCentre);
+
+			titleDescription.SetAlignment(rightCentered, {0,0});
 
 			auto& list = CreateVerticalList(collapser.ClientArea());
 			list.Panel().Set(GRAnchors::ExpandAll());
