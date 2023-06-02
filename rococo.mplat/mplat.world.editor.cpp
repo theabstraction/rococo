@@ -344,20 +344,24 @@ namespace ANON
 			target->instanceName = sectionName;
 		}
 
-		void EnterContainer() override
+		void EnterContainer(cstr name) override
 		{
-
+			auto* subSection = new PreviewData(target);
+			target->AddField(name, subSection);
+			subSection->parent = target;
+			target = subSection;
+			target->instanceName = name;
 		}
 
 		void LeaveContainer() override
 		{
-
+			target = target->parent;
 		}
 
 		void EnterElement(cstr keyName) override
 		{
 			auto* subSection = new PreviewData(target);
-			subSection->AddField(keyName, subSection);
+			target->AddField(keyName, subSection);
 			subSection->parent = target;
 			target = subSection;
 			target->containerKey = keyName;			
@@ -602,7 +606,19 @@ namespace ANON
 			collapser.Widget().Panel().Set(GRAnchorPadding{ 8 * depth, 0, 0 , 0 });
 			auto& titleDiv = collapser.TitleBar();
 
-			auto& titleDescription = Rococo::Gui::CreateText(titleDiv).SetText(data.instanceName);
+			char title[128];
+			if (data.containerKey.length() > 0)
+			{
+				// We must look to the parent, i.e the container, to get the container name
+				cstr container = data.parent->instanceName;
+				SafeFormat(title, "%s[%s]", container, data.containerKey.c_str());
+			}
+			else
+			{
+				SafeFormat(title, "%s", data.instanceName.c_str());
+			}
+
+			auto& titleDescription = Rococo::Gui::CreateText(titleDiv).SetText(title);
 			titleDescription.Widget().Panel().Add(GRAnchors::ExpandHorizontally()).Add(GRAnchors::ExpandVertically()).Add(GRAnchors::LeftAndRight()).Add(GRAnchors::TopAndBottom()).Set(GRAnchorPadding{ 32, 0, 0, 0 });
 		
 			GRAlignmentFlags rightCentered;

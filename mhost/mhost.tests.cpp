@@ -45,15 +45,15 @@ struct TestKennel : IReflectionTarget
 	}
 };
 
-struct TestElement : IReflectionTarget
+struct TestPuppy : IReflectionTarget
 {
 	HString name;
 	int id;
 
-	TestElement()
+	TestPuppy()
 	{
 		char buf[128];
-		SafeFormat(buf, "Geoff #%d", rand());
+		SafeFormat(buf, "Puppy #%d", rand());
 
 		name = buf;
 
@@ -62,7 +62,7 @@ struct TestElement : IReflectionTarget
 
 	void Visit(IReflectionVisitor& v) override
 	{
-		v.SetSection("Geoff");
+		v.SetSection("Puppy");
 		ROCOCO_REFLECT(v, name);
 		ROCOCO_REFLECT(v, id);
 	}
@@ -77,7 +77,7 @@ void Visit(IReflectionVisitor& v, T& t)
 template<class T>
 void Reflect(IReflectionVisitor& v, T& elements, const char* name)
 {
-	v.EnterContainer();
+	v.EnterContainer(name);
 	int i = 0;
 	for (auto& element : elements)
 	{
@@ -100,11 +100,11 @@ struct TestHouse : IReflectionTarget
 
 	TestKennel kennel;
 
-	std::vector<TestElement> geoffs;
+	std::vector<TestPuppy> puppies;
 
 	TestHouse()
 	{
-		geoffs.resize(20);
+		puppies.resize(20);
 	}
 
 	void Visit(IReflectionVisitor& v) override
@@ -116,7 +116,7 @@ struct TestHouse : IReflectionTarget
 		ROCOCO_REFLECT(v, town);
 		ROCOCO_REFLECT(v, postcode);
 		ROCOCO_REFLECT(v, kennel)
-		Reflect(v, geoffs, "geoffs");
+		Reflect(v, puppies, "puppies");
 	}
 } s_TestStruct;
 

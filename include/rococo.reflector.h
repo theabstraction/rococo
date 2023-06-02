@@ -43,7 +43,7 @@ namespace Rococo::Reflection
 	ROCOCO_INTERFACE IReflectionVisitor
 	{
 		virtual EReflectionDirection Direction() const = 0;
-		virtual void EnterContainer() = 0;
+		virtual void EnterContainer(cstr name) = 0;
 		virtual void LeaveContainer() = 0;
 		virtual void EnterElement(cstr elementKey) = 0;
 		virtual void LeaveElement() = 0;
