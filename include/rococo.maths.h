@@ -438,6 +438,11 @@ namespace Rococo
 	inline float Height(const GuiRectf& q) { return q.bottom - q.top; }
 	inline Vec2 Span(const GuiRectf& q) { return Vec2{ Width(q), Height(q) }; }
 
+	inline bool IsRectClipped(const GuiRect& clipRect, const GuiRect& subjectOfQueryRect)
+	{
+		return subjectOfQueryRect.left < clipRect.left || subjectOfQueryRect.right > clipRect.right || subjectOfQueryRect.top < clipRect.top || subjectOfQueryRect.bottom > clipRect.bottom;
+	}
+
 	inline Vec2 TopLeft(const GuiRectf& q) { return Vec2{ q.left, q.top }; }
 	inline Vec2 BottomRight(const GuiRectf& q) { return Vec2{ q.right, q.bottom }; }
 	inline Vec2 TopRight(const GuiRectf& q) { return Vec2{ q.right, q.top }; }

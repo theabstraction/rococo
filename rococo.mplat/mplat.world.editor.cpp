@@ -554,7 +554,7 @@ namespace ANON
 			GRAlignmentFlags valueAlignment;
 			valueAlignment.Add(GRAlignment::VCentre).Add(GRAlignment::Left);
 			auto& valueText = CreateEditBox(*valueCell, filter, capacity).SetAlignment(valueAlignment, { 2,2 });
-			valueText.Widget().Panel().Add(GRAnchors::ExpandAll()).Set(GRAnchorPadding{ 0, 4, 0, 0 });
+			valueText.Widget().Panel().Add(GRAnchors::ExpandAll()).Set(GRAnchorPadding{ 0, 0, 0, 0 });
 
 			char buf[16];
 			ToAscii(field.value, buf, sizeof buf);

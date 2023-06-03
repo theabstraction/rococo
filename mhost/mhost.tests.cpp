@@ -104,7 +104,7 @@ struct TestHouse : IReflectionTarget
 
 	TestHouse()
 	{
-		puppies.resize(20);
+		puppies.resize(8);
 	}
 
 	void Visit(IReflectionVisitor& v) override
@@ -116,7 +116,7 @@ struct TestHouse : IReflectionTarget
 		ROCOCO_REFLECT(v, town);
 		ROCOCO_REFLECT(v, postcode);
 		ROCOCO_REFLECT(v, kennel)
-		Reflect(v, puppies, "puppies");
+	//	Reflect(v, puppies, "puppies");
 	}
 } s_TestStruct;
 

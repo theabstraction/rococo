@@ -232,7 +232,7 @@ namespace ANON
 
 		void DrawText(GRFontId fontId, const GuiRect& clipRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour) override
 		{
-			if (lastScissorRect.IsNormalized())
+			if (lastScissorRect.IsNormalized() && IsRectClipped(lastScissorRect, clipRect))
 			{
 				rc->FlushLayer();
 				rc->SetScissorRect(lastScissorRect);
@@ -252,7 +252,7 @@ namespace ANON
 	
 			Rococo::Graphics::RenderHQText(clipRect, iAlignment, *rc, hqFontId, text, colour);
 
-			if (lastScissorRect.IsNormalized())
+			if (lastScissorRect.IsNormalized() && IsRectClipped(lastScissorRect, clipRect))
 			{
 				rc->FlushLayer();
 				rc->ClearScissorRect();

@@ -44,6 +44,7 @@ namespace ANON
 			clientOffsetArea->Panel().Resize({ Width(panelDimensions) - scrollbarWidth, Height(panelDimensions) });
 			clientOffsetArea->Panel().SetParentOffset({ 0, - m.PixelPosition });
 			clientOffsetArea->Panel().InvalidateLayout(false);
+			InvalidateLayoutForAllDescendants(clientOffsetArea->Panel());
 
 			vscroller->Widget().Panel().Resize({ scrollbarWidth, Height(panelDimensions) - 1 });
 			vscroller->Widget().Panel().SetParentOffset({ Width(panelDimensions) - scrollbarWidth, 0 });

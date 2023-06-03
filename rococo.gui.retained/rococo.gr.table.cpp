@@ -38,6 +38,7 @@ namespace GRANON
 
 		GRTable(IGRPanel& owningPanel) : panel(owningPanel)
 		{
+			panel.PreventInvalidationFromChildren();
 		}
 
 		int32 AddColumn(const GRColumnSpec& spec) override
@@ -124,12 +125,15 @@ namespace GRANON
 					auto& cell = row.cellsInThisRow[colIndex];
 
 					cell.div->Panel().SetParentOffset({ x, y }).Resize({ columnWidth, row.rowHeight });
+					cell.div->Panel().InvalidateLayout(false);
 
 					y += row.rowHeight;
 				}
 
 				x += columnWidth;
 			}
+
+			x = 0;
 		}
 
 		EventRouting OnCursorClick(CursorEvent& ce) override

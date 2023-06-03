@@ -31,6 +31,7 @@
 
 #include <sexy.lib.script.h>
 #include <rococo.libs.ide.h>
+#include <rococo.task.queue.h>
 
 using namespace Rococo;
 using namespace Rococo::Sex;
@@ -189,7 +190,7 @@ int PrintError(IException& ex)
 using namespace Rococo;
 using namespace Rococo::Windows;
 
-struct ScriptContext : public IEventCallback<ScriptCompileArgs>, public Rococo::Windows::IDE::IScriptExceptionHandler, public OS::IAppControl
+struct ScriptContext : public IEventCallback<ScriptCompileArgs>, public Rococo::Windows::IDE::IScriptExceptionHandler, public OS::IAppControl, public Tasks::ITaskQueue
 {
 	bool isInteractive;
 	int nArgs;
@@ -216,6 +217,21 @@ struct ScriptContext : public IEventCallback<ScriptCompileArgs>, public Rococo::
 	{
 		this->nArgs = argc;
 		this->args = argv;
+	}
+
+	Tasks::ITaskQueue& MainThreadQueue() override
+	{
+		return *this;
+	}
+
+	void AddTask(Rococo::Function<void()> lambda) override
+	{
+		Throw(0, "%s: Not implemented", __FUNCTION__);
+	}
+
+	bool ExecuteNext() override
+	{
+		Throw(0, "%s: Not implemented", __FUNCTION__);
 	}
 
 	int32 Execute(cstr pingPath, ScriptPerformanceStats& stats, int32 id, IScriptSystemFactory& ssFactory, IDebuggerWindow& debuggerWindow, ISourceCache& sourceCache)
@@ -305,7 +321,7 @@ int GetNextCmdArgValue(int argc, char* argv[], int startIndex, cstr prefix, cstr
 	return argc;
 }
 
-struct AppControl : public OS::IAppControlSupervisor
+struct AppControl : public OS::IAppControlSupervisor, public Tasks::ITaskQueue
 {
 	void ShutdownApp() override
 	{
@@ -321,6 +337,21 @@ struct AppControl : public OS::IAppControlSupervisor
 	void Free() override
 	{
 		
+	}
+
+	Tasks::ITaskQueue& MainThreadQueue() override
+	{
+		return *this;
+	}
+
+	void AddTask(Rococo::Function<void()> lambda) override
+	{
+		Throw(0, "%s: Not implemented", __FUNCTION__);
+	}
+
+	bool ExecuteNext() override
+	{
+		Throw(0, "%s: Not implemented", __FUNCTION__);
 	}
 
 	bool isRunning = true;
