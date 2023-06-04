@@ -638,6 +638,12 @@ namespace Rococo::Gui
 		virtual IGRWidgetDivision* GetCell(int32 column, int32 row) = 0;
 	};
 
+	ROCOCO_INTERFACE IGRWidgetPropertyEditorTree : IGRBase
+	{
+		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
+		virtual IGRWidget& Widget() = 0;
+	};
+
 	ROCOCO_INTERFACE IGRWidgetSplitter : IGRBase
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
@@ -850,6 +856,7 @@ namespace Rococo::Gui
 	// Factory functions for creating widgets. All call IGuiRetained::AddWidget(...) to add themselves to the GUI
 	ROCOCO_GUI_RETAINED_API IGRWidgetButton& CreateButton(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetDivision& CreateDivision(IGRWidget& parent);
+	ROCOCO_GUI_RETAINED_API IGRWidgetPropertyEditorTree& CreatePropertyEditorTree(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalScroller& CreateVerticalScroller(IGRWidget& parent, IScrollerEvents& events);
 	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalScrollerWithButtons& CreateVerticalScrollerWithButtons(IGRWidget& parent, IScrollerEvents& events);
 

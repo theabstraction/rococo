@@ -107,6 +107,7 @@
     <ClCompile Include="rococo.gr.mainframe.cpp" />
     <ClCompile Include="rococo.gr.menubar.cpp" />
     <ClCompile Include="rococo.gr.panel.cpp" />
+    <ClCompile Include="rococo.gr.property-editor-tree.cpp" />
     <ClCompile Include="rococo.gr.scheme.cpp" />
     <ClCompile Include="rococo.gr.splitter.cpp" />
     <ClCompile Include="rococo.gr.table.cpp" />
