@@ -11,6 +11,11 @@ namespace Rococo
 	struct KeyboardEvent;
 }
 
+namespace Rococo::Reflection
+{
+	struct IReflectionTarget;
+}
+
 namespace Rococo::Gui
 {
 	struct IGRPanel;
@@ -642,6 +647,7 @@ namespace Rococo::Gui
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
 		virtual IGRWidget& Widget() = 0;
+		virtual void Preview(Reflection::IReflectionTarget& target) = 0;
 	};
 
 	ROCOCO_INTERFACE IGRWidgetSplitter : IGRBase

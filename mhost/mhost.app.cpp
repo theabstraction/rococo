@@ -576,8 +576,7 @@ namespace MHost
 			using namespace Rococo::Gui;
 
 			platform.editor.SetVisibility(true);
-			platform.editor.Preview(GetTestTarget());
-			platform.editor.SyncUIToPreviewer(platform.GR);
+			platform.editor.Preview(platform.GR, GetTestTarget());
 		}
 
 		void SetOverlayToggleKey(int32 vkeyCode) override

@@ -20,9 +20,8 @@ namespace Rococo::MPEditor
 	ROCOCO_INTERFACE IMPEditor
 	{
 		virtual bool IsVisible() const = 0;
-		virtual void Preview(Rococo::Reflection::IReflectionTarget& target) = 0;
+		virtual void Preview(Rococo::Gui::IGuiRetained& gr, Rococo::Reflection::IReflectionTarget& target) = 0;
 		virtual void SetVisibility(bool isVisible) = 0;	
-		virtual void SyncUIToPreviewer(Rococo::Gui::IGuiRetained& gr) = 0;
 	};
 
 	ROCOCO_INTERFACE IMPEditorSupervisor : IMPEditor
