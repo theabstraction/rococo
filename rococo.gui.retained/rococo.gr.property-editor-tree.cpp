@@ -529,7 +529,7 @@ namespace GRANON
 			accumulatedParentHeight += accumulatedCollapserAreaHeight;
 		}
 
-		void Preview(IReflectionTarget& target) override
+		void Preview(IReflectionTarget& target)
 		{
 			target.Visit(previewer);
 
@@ -554,7 +554,7 @@ namespace Rococo::Gui
 		return "IGRWidgetPropertyEditorTree";
 	}
 
-	ROCOCO_GUI_RETAINED_API IGRWidgetPropertyEditorTree& CreatePropertyEditorTree(IGRWidget& parent)
+	ROCOCO_GUI_RETAINED_API IGRWidgetPropertyEditorTree& CreatePropertyEditorTree(IGRWidget& parent, IReflectionTarget& target)
 	{
 		auto& gr = parent.Panel().Root().GR();
 
@@ -568,7 +568,8 @@ namespace Rococo::Gui
 		
 		static GRPropertyEditorTreeFactory editorFactory;
 
-		auto* tree = Cast<IGRWidgetPropertyEditorTree>(gr.AddWidget(parent.Panel(), editorFactory));
+		auto* tree = static_cast<GRANON::GRPropertyEditorTree*>(Cast<IGRWidgetPropertyEditorTree>(gr.AddWidget(parent.Panel(), editorFactory)));
+		tree->Preview(target);
 		return *tree;
 	}
 }

@@ -257,9 +257,8 @@ namespace ANON
 			auto& frameSplitter = CreateLeftToRightSplitter(frame->ClientArea(), 240, false).SetDraggerMinMax(240, 8192);
 			frameSplitter.Widget().Panel().Add(GRAnchors::ExpandAll());
 
-			IGRWidgetPropertyEditorTree& editorTree = CreatePropertyEditorTree(frameSplitter.First());
+			IGRWidgetPropertyEditorTree& editorTree = CreatePropertyEditorTree(frameSplitter.First(), target);
 			editorTree.Widget().Panel().Add(GRAnchors::ExpandAll());
-			editorTree.Preview(target);
 		}
 	};
 }
