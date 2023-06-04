@@ -529,20 +529,46 @@ namespace GRANON
 			accumulatedParentHeight += accumulatedCollapserAreaHeight;
 		}
 
+		IGRWidgetViewport* viewport = nullptr;
+
 		void Preview(IReflectionTarget& target)
 		{
 			target.Visit(previewer);
 
-			auto& viewport = CreateViewportWidget(*this);
+			viewport = &CreateViewportWidget(*this);
 
 			GRAnchors anchors = anchors.ExpandAll();
 
-			viewport.Widget().Panel().Set(anchors);
+			viewport->Widget().Panel().Set(anchors);
 
 			auto* node = previewer.root;
 
 			int32 accumulatedHeight = 0;
-			if (node) SyncUIToPreviewerRecursive(*node, viewport.ClientArea(), 0, accumulatedHeight);
+			if (node) SyncUIToPreviewerRecursive(*node, viewport->ClientArea(), 0, accumulatedHeight);
+		}
+
+		void EnumerateCollapsers(IGRPanel& parent, int32& accumulatedHeight)
+		{
+			int32 index = 0;
+			while (auto* child = parent.GetChild(index++))
+			{
+				accumulatedHeight += child->Span().y;
+
+				EnumerateCollapsers(*child, accumulatedHeight);
+			}
+
+			IGRWidgetCollapser* collapser = Cast<IGRWidgetCollapser>(parent.Widget());
+			if (collapser)
+			{
+				collapser->Widget().Panel().Resize({ viewport->ClientArea().Panel().Span().x, accumulatedHeight });
+			}
+		}
+
+		void SetCollapserSizes()
+		{
+			auto& clientArea = viewport->ClientArea();
+			int32 accumulatedHeight = 30;
+			EnumerateCollapsers(clientArea.Panel(), accumulatedHeight);
 		}
 	};
 }
