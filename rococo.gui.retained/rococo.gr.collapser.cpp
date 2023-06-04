@@ -60,10 +60,12 @@ namespace GRANON
 			if (IsCollapsed())
 			{
 				newClientSpan = { Width(panelDimensions), 0 };
+				clientArea->Panel().SetCollapsed(true);
 			}
 			else
 			{
 				newClientSpan = { Width(panelDimensions), Height(panelDimensions) - TITLE_BAR_HEIGHT };
+				clientArea->Panel().SetCollapsed(false);
 			}
 
 			clientArea->Panel().Resize(newClientSpan);

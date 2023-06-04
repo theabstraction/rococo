@@ -382,6 +382,9 @@ namespace Rococo::Gui
 		// Indicates that the layout needs to be recomputed. If the argument is true then the layout of the ancestors are also marked to be recomputed
 		virtual void InvalidateLayout(bool invalidateAncestors) = 0;
 
+		// Returns the boolean collapsed state
+		virtual bool IsCollapsed() const = 0;
+
 		// Indicates the layout has yet to be finalized
 		virtual bool RequiresLayout() const = 0;
 
@@ -393,6 +396,9 @@ namespace Rococo::Gui
 
 		// Get extra rendering before and after widget rendering for the panel
 		virtual IGRPanelRenderer* GetPanelRenderer() = 0;
+
+		// Sets the boolean collapsed state. If collapsed a panel and its descendants will not be rendered or laid out
+		virtual void SetCollapsed(bool isCollapsed) = 0;
 
 		// Add extra rendering before and after widget rendering for the panel
 		virtual void SetPanelRenderer(IGRPanelRenderer* renderer) = 0;

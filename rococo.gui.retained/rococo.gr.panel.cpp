@@ -25,6 +25,7 @@ namespace GRANON
 		bool isMarkedForDeletion = false;
 		AutoFree<ISchemeSupervisor> scheme;
 		bool preventInvalidationFromChildren = false;
+		bool isCollapsed = false;
 
 		GRPanel(IGRPanelRoot& _root, IGRPanelSupervisor* _parent): root(_root), parent(_parent), uniqueId(nextId++)
 		{
@@ -45,6 +46,11 @@ namespace GRANON
 		void Focus() override
 		{
 			Root().GR().SetFocus(Id());
+		}
+
+		bool IsCollapsed() const override
+		{
+			return isCollapsed;
 		}
 
 		void MarkForDelete() override
@@ -236,6 +242,11 @@ namespace GRANON
 			return result;
 		}
 
+		void SetCollapsed(bool isCollapsed) override
+		{
+			this->isCollapsed = isCollapsed;
+		}
+
 		bool TryGetColour(ESchemeColourSurface surface, RGBAb& colour) const override
 		{
 			if (scheme && scheme->TryGetColour(surface, colour))
@@ -306,27 +317,29 @@ namespace GRANON
 				Vec2i parentOrigin = parentOffset + absoluteOrigin;
 				absRect = { parentOrigin.x, parentOrigin.y, parentOrigin.x + span.x, parentOrigin.y + span.y };
 
-				if (widget)
+				if (!isCollapsed)
 				{
-					widget->Layout(absRect);
+					if (widget)
+					{
+						widget->Layout(absRect);
 
-					// Layout may invalidate the parent origin or span, in the case that a control adjusts its own size and location
-					parentOrigin = parentOffset + absoluteOrigin;
-					absRect = { parentOrigin.x, parentOrigin.y, parentOrigin.x + span.x, parentOrigin.y + span.y };
+						// Layout may invalidate the parent origin or span, in the case that a control adjusts its own size and location
+						parentOrigin = parentOffset + absoluteOrigin;
+						absRect = { parentOrigin.x, parentOrigin.y, parentOrigin.x + span.x, parentOrigin.y + span.y };
+					}
+
+					for (auto* child : children)
+					{
+						child->LayoutRecursive(parentOrigin);
+					}
 				}
-
-				for (auto* child : children)
-				{
-					child->LayoutRecursive(parentOrigin);
-				}
-
 				ConfirmLayout();
 			}
 		}
 
 		void RenderRecursive(IGRRenderContext& g, const GuiRect& clipRect) override
 		{
-			if (!widget)
+			if (!widget || isCollapsed)
 			{
 				return;
 			}
