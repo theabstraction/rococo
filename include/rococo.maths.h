@@ -443,6 +443,12 @@ namespace Rococo
 		return subjectOfQueryRect.left < clipRect.left || subjectOfQueryRect.right > clipRect.right || subjectOfQueryRect.top < clipRect.top || subjectOfQueryRect.bottom > clipRect.bottom;
 	}
 
+	inline bool AreRectsOverlapped(const GuiRect& a, const GuiRect& b)
+	{
+		bool disjoint = a.left > b.right || a.right < b.left || a.top > b.bottom || a.bottom < b.top;
+		return !disjoint;
+	}
+
 	inline Vec2 TopLeft(const GuiRectf& q) { return Vec2{ q.left, q.top }; }
 	inline Vec2 BottomRight(const GuiRectf& q) { return Vec2{ q.right, q.bottom }; }
 	inline Vec2 TopRight(const GuiRectf& q) { return Vec2{ q.right, q.top }; }

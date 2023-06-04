@@ -571,7 +571,7 @@ namespace ANON
 			nameSpec.name = "Name";
 			nameSpec.maxWidth = 240;
 			nameSpec.minWidth = 64;
-			nameSpec.defaultWidth = 60;
+			nameSpec.defaultWidth = 120;
 			table.AddColumn(nameSpec);
 
 			GRColumnSpec valueSpec;

@@ -234,6 +234,11 @@ namespace ANON
 		{
 			if (lastScissorRect.IsNormalized() && IsRectClipped(lastScissorRect, clipRect))
 			{
+				if (!AreRectsOverlapped(lastScissorRect, clipRect))
+				{
+					return;
+				}
+
 				rc->FlushLayer();
 				rc->SetScissorRect(lastScissorRect);
 			}

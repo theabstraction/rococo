@@ -333,7 +333,7 @@ namespace GRANON
 
 			if (span.x > 0 && span.y > 0)
 			{
-				GuiRect laxClipRect = Expand(clipRect, 1);
+				GuiRect laxClipRect = clipRect.IsNormalized() ? Expand(clipRect, 1) : clipRect;
 				g.EnableScissors(laxClipRect);
 
 				if (extraRenderer)
