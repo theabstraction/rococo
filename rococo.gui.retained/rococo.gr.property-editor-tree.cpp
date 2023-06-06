@@ -310,6 +310,7 @@ namespace GRANON
 		void Layout(const GuiRect& panelDimensions) override
 		{
 			LayoutChildrenByAnchors(panel, panelDimensions);
+		//	SetCollapserSizes();
 		}
 
 		EventRouting OnCursorClick(CursorEvent& ce) override
@@ -545,30 +546,61 @@ namespace GRANON
 
 			int32 accumulatedHeight = 0;
 			if (node) SyncUIToPreviewerRecursive(*node, viewport->ClientArea(), 0, accumulatedHeight);
+
+			SetCollapserSizes();
 		}
 
-		void EnumerateCollapsers(IGRPanel& parent, int32& accumulatedHeight)
+		int ComputeAndAssignCollapserHeights(IGRWidgetCollapser& collapserParent)
 		{
-			int32 index = 0;
-			while (auto* child = parent.GetChild(index++))
-			{
-				accumulatedHeight += child->Span().y;
+			int32 heightOfDescendants = 0;
 
-				EnumerateCollapsers(*child, accumulatedHeight);
+			auto* collapserChild = collapserParent.ClientArea().Panel().GetChild(0);
+
+			if (!collapserChild)
+			{
+				return 0;
 			}
 
-			IGRWidgetCollapser* collapser = Cast<IGRWidgetCollapser>(parent.Widget());
-			if (collapser)
+			IGRWidgetVerticalList* list = Cast<IGRWidgetVerticalList>(collapserChild->Widget());
+			if (!list)
 			{
-				collapser->Widget().Panel().Resize({ viewport->ClientArea().Panel().Span().x, accumulatedHeight });
+				return 0;
 			}
+
+			for(int i = 0; auto* child = list->Panel().GetChild(i); i++)
+			{
+				IGRWidgetCollapser* collapser = Cast<IGRWidgetCollapser>(child->Widget());
+				if (collapser)
+				{
+					heightOfDescendants += 30 + ComputeAndAssignCollapserHeights(*collapser);
+				}
+				else
+				{
+					IGRWidgetTable* table = Cast<IGRWidgetTable>(child->Widget());
+					if (table)
+					{
+						heightOfDescendants += table->Widget().Panel().Span().y;
+					}
+				}
+			}
+
+			collapserParent.Widget().Panel().Resize({ viewport->ClientArea().Panel().Span().x, heightOfDescendants });
+
+			return heightOfDescendants;
 		}
 
 		void SetCollapserSizes()
 		{
 			auto& clientArea = viewport->ClientArea();
-			int32 accumulatedHeight = 30;
-			EnumerateCollapsers(clientArea.Panel(), accumulatedHeight);
+
+			auto* rootCollapserPanel = clientArea.Panel().GetChild(0);
+			if (!rootCollapserPanel) return;
+
+			IGRWidgetCollapser* collapser = Cast<IGRWidgetCollapser>(rootCollapserPanel->Widget());
+			if (collapser)
+			{
+				int sumTotalHeight = ComputeAndAssignCollapserHeights(*collapser);
+			}
 		}
 	};
 }
