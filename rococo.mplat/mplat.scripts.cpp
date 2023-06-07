@@ -310,9 +310,9 @@ namespace Rococo
 					{
 						IDE::ExecuteSexyScriptLoop(stats,
 							4096_kilobytes, 
-							platform.ssFactory,
-							platform.sourceCache,
-							platform.debuggerWindow,
+							platform.scripts.ssFactory,
+							platform.scripts.sourceCache,
+							platform.scripts.debuggerWindow,
 							name, 
 							id,
 							(int32)128_kilobytes, 

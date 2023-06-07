@@ -145,7 +145,7 @@ struct PlatformTabs: IObserver, IUIElement, public IMathsVenue
 		else if (Eq(pop.name, "overlay.cache"))
 		{
 			pop.renderElement = this;
-			venue = platform.sourceCache.Venue();
+			venue = platform.scripts.sourceCache.Venue();
 		}
 		else if (Eq(pop.name, "overlay.performance"))
 		{
@@ -384,9 +384,14 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 		// Platform graphics
 		{ *rendererConfig, mainWindow->Renderer(), *sprites, *gui, *meshes, *instances, *spriteBuilder, *camera, *scene, *GR, *mplat_gcs },
 
-		*os, *installation, *appControl, mainWindow->Window(),* messaging,
-		*sourceCache, *debuggerWindow, *publisher, *utilities,  *keyboard, *config, *archive, *mobiles, *particles, *rigs, tesselators, *mathsVisitor,
-		*audio, *ssFactory, title, *xbox360stick, *ims, *world, *ecs, *editor
+		// Platform os
+		{ *os, *installation, *appControl, mainWindow->Window(), title },
+
+		// Platform scripting
+		{ *sourceCache, *debuggerWindow, *ssFactory },
+
+		*messaging, *publisher, *utilities,  *keyboard, *config, *archive, *mobiles, *particles, *rigs, tesselators, *mathsVisitor,
+		*audio, *xbox360stick, *ims, *world, *ecs, *editor
 	};
 
 	editor->SetPlatform(&platform);

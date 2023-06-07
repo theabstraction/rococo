@@ -914,21 +914,30 @@ namespace Rococo
 		OS::IAppControl& appControl;
 
 		Windows::IWindow& mainWindow;
+
+		// Application title
+		const char* const title;
+	};
+
+	struct PlatformScripts
+	{
+		// Script source cache
+		ISourceCache& sourceCache;
+
+		// Script debugger window
+		IDebuggerWindow& debuggerWindow;
+
+		Rococo::Script::IScriptSystemFactory& ssFactory;
 	};
 
 	struct Platform
 	{
 		PlatformGraphics graphics;
 		PlatformOS os;
+		PlatformScripts scripts;
 
 		// Messaging used to communicate to the player in text
 		Graphics::IMessaging& messaging;
-
-		// Script source cache
-		ISourceCache& sourceCache;
-
-		// Script debugger window
-		IDebuggerWindow& debuggerWindow;
 
 		// Event publisher
 		Events::IPublisher& publisher;
@@ -953,11 +962,6 @@ namespace Rococo
 		IMathsVisitorSupervisor& mathsVisitor;
 
 		Audio::IAudio& audio;
-
-		Rococo::Script::IScriptSystemFactory& ssFactory;
-
-		// Application title
-		const char* const title;
 
 		Rococo::Joysticks::IJoystick_XBOX360& xbox360joystick;
 

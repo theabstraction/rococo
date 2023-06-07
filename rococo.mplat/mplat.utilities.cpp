@@ -130,11 +130,11 @@ public:
 
 		if (subtitle && subtitle[0])
 		{
-			SafeFormat(fullTitle, sizeof(fullTitle), "%s - %s", platform->title, subtitle);
+			SafeFormat(fullTitle, sizeof(fullTitle), "%s - %s", platform->os.title, subtitle);
 		}
 		else
 		{
-			SafeFormat(fullTitle, sizeof(fullTitle), "%s", platform->title);
+			SafeFormat(fullTitle, sizeof(fullTitle), "%s", platform->os.title);
 		}
 
 		SetWindowTextA(platform->os.mainWindow, fullTitle);
@@ -263,7 +263,7 @@ public:
 
 	bool QueryYesNo(Windows::IWindow& parent, cstr question, cstr caption) override
 	{
-		cstr title = caption == nullptr ? platform->title : caption;
+		cstr title = caption == nullptr ? platform->os.title : caption;
 		renderer.SwitchToWindowMode();
 		return ShowMessageBox(parent, question, title, MB_ICONQUESTION | MB_YESNO) == IDYES;
 	}
@@ -351,7 +351,7 @@ public:
 		FileUpdatedEvent fileUpdated;
 		fileUpdated.pingPath = pingPath;
 
-		platform->sourceCache.Release(pingPath);
+		platform->scripts.sourceCache.Release(pingPath);
 
 		platform->publisher.Publish(fileUpdated, evFileUpdated);
 	}

@@ -286,7 +286,7 @@ namespace MHost
 			platform.os.installation.ConvertPingPathToSysPath("!packages/mhost_1000.sxyz", sysPathMHost);
 			this->packageMHost = OpenZipPackage(sysPathMHost, "mhost");
 
-			platform.sourceCache.AddPackage(packageMHost);
+			platform.scripts.sourceCache.AddPackage(packageMHost);
 		}
 
 		~App()

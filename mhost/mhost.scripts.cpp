@@ -161,7 +161,7 @@ namespace MHost
 
 		if (releaseAfterUse)
 		{
-			platform.sourceCache.Release(name);
+			platform.scripts.sourceCache.Release(name);
 		}
 	}
 
