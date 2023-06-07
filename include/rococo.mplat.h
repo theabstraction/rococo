@@ -902,12 +902,10 @@ namespace Rococo
 		Rococo::Gui::IMPlatGuiCustodianSupervisor& GR_Custodian;
 	};
 
-	struct Platform
+	struct PlatformOS
 	{
-		PlatformGraphics graphics;
-
 		// Operating system functions
-		IOS& os;
+		IOS& io;
 
 		// Content directory and raw binary file streaming
 		IInstallation& installation;
@@ -916,6 +914,12 @@ namespace Rococo
 		OS::IAppControl& appControl;
 
 		Windows::IWindow& mainWindow;
+	};
+
+	struct Platform
+	{
+		PlatformGraphics graphics;
+		PlatformOS os;
 
 		// Messaging used to communicate to the player in text
 		Graphics::IMessaging& messaging;

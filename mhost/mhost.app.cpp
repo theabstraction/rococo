@@ -283,7 +283,7 @@ namespace MHost
 			this->mainScript = args.mainScript;
 
 			WideFilePath sysPathMHost;
-			platform.installation.ConvertPingPathToSysPath("!packages/mhost_1000.sxyz", sysPathMHost);
+			platform.os.installation.ConvertPingPathToSysPath("!packages/mhost_1000.sxyz", sysPathMHost);
 			this->packageMHost = OpenZipPackage(sysPathMHost, "mhost");
 
 			platform.sourceCache.AddPackage(packageMHost);
@@ -301,13 +301,13 @@ namespace MHost
 
 		void OnEvent(cstr sourceOfCrash) override
 		{
-			platform.os.EnumerateModifiedFiles(*this);
+			platform.os.io.EnumerateModifiedFiles(*this);
 		}
 
 		void OnEvent(FileModifiedArgs& args) override
 		{
 			U8FilePath pingPath;
-			platform.installation.ConvertSysPathToPingPath(args.sysPath, pingPath);	
+			platform.os.installation.ConvertSysPathToPingPath(args.sysPath, pingPath);
 			platform.graphics.gui.LogMessage("File modified: %s", pingPath);
 
 			auto ext = Rococo::Strings::GetFileExtension(pingPath);
@@ -345,7 +345,7 @@ namespace MHost
 		// termination should occur of the user interface has collapsed, or script queued for re-run
 		boolean32 IsRunning() override 
 		{
-			return platform.appControl.IsRunning() && isScriptRunning && !isShutdown;
+			return platform.os.appControl.IsRunning() && isScriptRunning && !isShutdown;
 		}
 
 		void CleanupResources()
@@ -379,7 +379,7 @@ namespace MHost
 			RunMHostEnvironmentScript(platform, this, "!scripts/MHost/_Init/create_declarations.sxy", true, false, *packageMHost, this, &sb->Builder());
 
 			WideFilePath wPath;
-			platform.installation.ConvertPingPathToSysPath("!scripts/MHost/declarations.sxy", wPath);
+			platform.os.installation.ConvertPingPathToSysPath("!scripts/MHost/declarations.sxy", wPath);
 
 			try
 			{
@@ -399,7 +399,7 @@ namespace MHost
 			platform.utilities.RunEnvironmentScript(noEventArgs, "!scripts/mplat/create_platform_declarations.sxy", true, false, false, nullptr, &sb->Builder());
 
 			WideFilePath wPath;
-			platform.installation.ConvertPingPathToSysPath("!scripts/mplat/platform_declarations.sxy", wPath);
+			platform.os.installation.ConvertPingPathToSysPath("!scripts/mplat/platform_declarations.sxy", wPath);
 
 			try
 			{
@@ -419,7 +419,7 @@ namespace MHost
 			platform.utilities.RunEnvironmentScript(noEventArgs, "!scripts/native/create_declarations.sxy", false, false, false, nullptr, &sb->Builder());
 
 			WideFilePath wPath;
-			platform.installation.ConvertPingPathToSysPath("!scripts/native/declarations.sxy", wPath);
+			platform.os.installation.ConvertPingPathToSysPath("!scripts/native/declarations.sxy", wPath);
 
 			try
 			{
@@ -439,7 +439,7 @@ namespace MHost
 
 			RunMHostEnvironmentScript(platform, this, "!scripts/MHost/_Init/keys.sxy", true, false, *packageMHost, this, nullptr);
 
-			while (platform.appControl.IsRunning() && !isShutdown)
+			while (platform.os.appControl.IsRunning() && !isShutdown)
 			{
 				isScriptRunning = true;
 
@@ -467,12 +467,12 @@ namespace MHost
 
 			lastTick = now;
 
-			platform.installation.OS().EnumerateModifiedFiles(*this);
+			platform.os.installation.OS().EnumerateModifiedFiles(*this);
 			platform.publisher.Deliver();
 
 			if (!control.TryRouteSysMessages(sleepMS))
 			{
-				platform.appControl.ShutdownApp();
+				platform.os.appControl.ShutdownApp();
 			}
 			else
 			{
@@ -486,7 +486,7 @@ namespace MHost
 
 			platform.graphics.scene.AdvanceAnimations(Seconds{ dt });
 
-			while (platform.appControl.MainThreadQueue().ExecuteNext());
+			while (platform.os.appControl.MainThreadQueue().ExecuteNext());
 
 			return Seconds{ dt };
 		}
@@ -641,7 +641,7 @@ namespace MHost
 
 		void CaptureMouse() override
 		{
-			MHost::UI::CaptureMouse(platform.mainWindow);
+			MHost::UI::CaptureMouse(platform.os.mainWindow);
 		}
 
 		void ReleaseMouse() override
@@ -660,7 +660,7 @@ namespace MHost
 {
 	IDirectApp* CreateApp(Platform& p, IDirectAppControl& control, cstr cmdLine)
 	{
-		p.installation.Macro("#bitmaps", "!scripts/mhost/bitmaps/");
+		p.os.installation.Macro("#bitmaps", "!scripts/mhost/bitmaps/");
 
 		struct arglist: IEventCallback<cstr>
 		{

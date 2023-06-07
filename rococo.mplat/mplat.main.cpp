@@ -419,7 +419,7 @@ int Main(HINSTANCE hInstance, IAppFactory& appFactory, cstr title, HICON hLargeI
 			app->OnCreate();
 
 			AutoFree<IAppManager> appManager = CreateAppManager(mainWindow, *app);
-			appManager->Run(hInstanceLock, *app, platform.appControl);
+			appManager->Run(hInstanceLock, *app, platform.os.appControl);
 		}
 	} proxy;
 

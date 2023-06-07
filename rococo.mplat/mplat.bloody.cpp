@@ -1226,7 +1226,7 @@ namespace
 			if (IsPointInRect(pos, buttonRect))
 			{
 				RGBAb colour(value->red, value->green, value->blue, 255);
-				if (OS::TryGetColourFromDialog(colour, platform.mainWindow))
+				if (OS::TryGetColourFromDialog(colour, platform.os.mainWindow))
 				{
 					value->red = colour.red;
 					value->green = colour.green;
@@ -1391,12 +1391,12 @@ namespace
 				if (mat)
 				{
 					WideFilePath sysName;
-					platform.installation.ConvertPingPathToSysPath(mat, sysName);
+					platform.os.installation.ConvertPingPathToSysPath(mat, sysName);
 
 					try
 					{
 						U8FilePath macroPath;
-						platform.installation.ConvertSysPathToMacroPath(sysName, macroPath, "#m");
+						platform.os.installation.ConvertSysPathToMacroPath(sysName, macroPath, "#m");
 						SecureFormat(value, len, "%s", macroPath.buf);
 					}
 					catch (IException& ex)
@@ -1586,7 +1586,7 @@ namespace
 			teb(_platform, *this, dirtNotifier, value, _len, true, *this)
 		{
 			U8FilePath expandedPath;
-			ExpandMacros(defaultValue, expandedPath, platform.installation);
+			ExpandMacros(defaultValue, expandedPath, platform.os.installation);
 
 			StripUntilFinalDirectory(expandedPath.buf);
 
@@ -1617,7 +1617,7 @@ namespace
 					validated = false;
 					return;
 				}
-				platform.installation.ConvertPingPathToSysPath(buffer, sysPath);
+				platform.os.installation.ConvertPingPathToSysPath(buffer, sysPath);
 				validated = OS::IsFileExistant(sysPath);
 			}
 			catch (IException&)
@@ -1680,7 +1680,7 @@ namespace
 		{
 			teb.Notify();
 			U8FilePath macroPath;
-			platform.installation.CompressPingPath(pingPath, macroPath);
+			platform.os.installation.CompressPingPath(pingPath, macroPath);
 			SecureFormat(value, len, "%s", macroPath.buf);
 			OnDetached(value);
 		}

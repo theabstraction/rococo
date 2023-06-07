@@ -129,7 +129,7 @@ namespace MHost
 				AddNativeCalls_MHostIEngine(args.ss, engine);
 				MHost::OS::AddNativeCalls_MHostOS(args.ss);
 				MHost::Graphics::AddNativeCalls_MHostGraphics(args.ss);
-				AddNativeCalls_MHostIDictionaryStream(args.ss, &platform.installation);
+				AddNativeCalls_MHostIDictionaryStream(args.ss, &platform.os.installation);
 
 				auto& mhostOS = args.ss.AddNativeNamespace("MHost.OS");
 				args.ss.AddNativeCall(mhostOS, ScriptContext::NativeLoadExpression, this, "LoadExpression (Sys.Type.IString name) -> (Sys.Reflection.IExpression s)", __FUNCTION__, __LINE__);
@@ -143,7 +143,7 @@ namespace MHost
 			ScriptContext(Platform& _platform, IEngineSupervisor* _engine, IPackage& _package, StringBuilder* _declarationBuilder) :
 				platform(_platform), engine(_engine), package(_package), declarationBuilder(_declarationBuilder)
 			{
-				privateSourceCache = CreateSourceCache(platform.installation);
+				privateSourceCache = CreateSourceCache(platform.os.installation);
 			}
 
 			IEventCallback<cstr>* onScriptCrash;

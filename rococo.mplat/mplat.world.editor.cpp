@@ -115,7 +115,7 @@ namespace ANON
 			{
 			case TOOLBAR_EVENT_MINIMIZE:
 				platform->graphics.renderer.SwitchToWindowMode();
-				Rococo::Windows::MinimizeApp(platform->mainWindow);
+				Rococo::Windows::MinimizeApp(platform->os.mainWindow);
 				break;
 			case TOOLBAR_EVENT_RESTORE:
 				if (platform->graphics.renderer.IsFullscreen())
@@ -133,7 +133,7 @@ namespace ANON
 					platform->graphics.renderer.SwitchToWindowMode();
 				}
 
-				Rococo::Windows::SendCloseEvent(platform->mainWindow);
+				Rococo::Windows::SendCloseEvent(platform->os.mainWindow);
 				break;
 			}
 		}
@@ -145,7 +145,7 @@ namespace ANON
 			{
 			case TOOLBAR_EVENT_MINIMIZE:
 				platform->graphics.renderer.SwitchToWindowMode();
-				Rococo::Windows::MinimizeApp(platform->mainWindow);
+				Rococo::Windows::MinimizeApp(platform->os.mainWindow);
 				break;
 			case TOOLBAR_EVENT_RESTORE:
 				if (platform->graphics.renderer.IsFullscreen())
@@ -163,7 +163,7 @@ namespace ANON
 					platform->graphics.renderer.SwitchToWindowMode();
 				}
 
-				Rococo::Windows::SendCloseEvent(platform->mainWindow);
+				Rococo::Windows::SendCloseEvent(platform->os.mainWindow);
 				break;
 			}
 		}

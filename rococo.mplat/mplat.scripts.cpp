@@ -216,10 +216,10 @@ static void NativeEnumerateFiles(NativeCallEnvironment& nce)
 
 	dispatchToSexyClosure.ss = &nce.ss;
 	dispatchToSexyClosure.callback = ac;
-	dispatchToSexyClosure.installation = &platform.installation;
+	dispatchToSexyClosure.installation = &platform.os.installation;
 
 	WideFilePath sysPath;
-	platform.installation.ConvertPingPathToSysPath((cstr)sc.pointer, sysPath);
+	platform.os.installation.ConvertPingPathToSysPath((cstr)sc.pointer, sysPath);
 
 	SafeFormat(dispatchToSexyClosure.sysRoot, Rococo::IO::MAX_PATHLEN, L"%s", sysPath.buf);
 	Rococo::OS::MakeContainerDirectory(dispatchToSexyClosure.sysRoot);
@@ -261,7 +261,7 @@ namespace Rococo
 				IDE::EScriptExceptionFlow GetScriptExceptionFlow(cstr source, cstr message) override
 				{
 					if (onScriptCrash) onScriptCrash->OnEvent(source);
-					platform.os.FireUnstable();
+					platform.os.io.FireUnstable();
 					return IDE::EScriptExceptionFlow_Retry;
 				}
 
@@ -318,13 +318,13 @@ namespace Rococo
 							(int32)128_kilobytes, 
 							*this, 
 							*this, 
-							platform.appControl,
+							platform.os.appControl,
 							trace,
 							declarationBuilder);
 					}
 					catch (IException&)
 					{
-						if (shutdownOnFail) platform.appControl.ShutdownApp();
+						if (shutdownOnFail) platform.os.appControl.ShutdownApp();
 						throw;
 					}
 				}

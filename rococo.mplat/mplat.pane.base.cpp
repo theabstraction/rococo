@@ -741,7 +741,7 @@ public:
 			platform.utilities.RunEnvironmentScript(*this, scriptFilename.c_str(), true, false, false, nullptr, &sb->Builder());
 
 			WideFilePath wPath;
-			platform.installation.ConvertPingPathToSysPath("!scripts/mplat/pane_declarations.sxy", wPath);
+			platform.os.installation.ConvertPingPathToSysPath("!scripts/mplat/pane_declarations.sxy", wPath);
 
 			try
 			{

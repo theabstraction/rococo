@@ -137,7 +137,7 @@ public:
 			SafeFormat(fullTitle, sizeof(fullTitle), "%s", platform->title);
 		}
 
-		SetWindowTextA(platform->mainWindow, fullTitle);
+		SetWindowTextA(platform->os.mainWindow, fullTitle);
 	}
 
 	bool GetLoadLocation(Windows::IWindow& parent, LoadDesc& ld) override
@@ -383,7 +383,7 @@ public:
 	{
 		if (!browser)
 		{
-			browser = CreateMPlatFileBrowser(platform->publisher, platform->installation, platform->graphics.gui, platform->keyboard, *this);
+			browser = CreateMPlatFileBrowser(platform->publisher, platform->os.installation, platform->graphics.gui, platform->keyboard, *this);
 		}
 
 		if (!browsingPane)
