@@ -114,23 +114,23 @@ namespace ANON
 			switch (code)
 			{
 			case TOOLBAR_EVENT_MINIMIZE:
-				platform->renderer.SwitchToWindowMode();
+				platform->graphics.renderer.SwitchToWindowMode();
 				Rococo::Windows::MinimizeApp(platform->mainWindow);
 				break;
 			case TOOLBAR_EVENT_RESTORE:
-				if (platform->renderer.IsFullscreen())
+				if (platform->graphics.renderer.IsFullscreen())
 				{
-					platform->renderer.SwitchToWindowMode();
+					platform->graphics.renderer.SwitchToWindowMode();
 				}
 				else
 				{
-					platform->renderer.SwitchToFullscreen();
+					platform->graphics.renderer.SwitchToFullscreen();
 				}
 				break;
 			case TOOLBAR_EVENT_EXIT:
-				if (platform->renderer.IsFullscreen())
+				if (platform->graphics.renderer.IsFullscreen())
 				{
-					platform->renderer.SwitchToWindowMode();
+					platform->graphics.renderer.SwitchToWindowMode();
 				}
 
 				Rococo::Windows::SendCloseEvent(platform->mainWindow);
@@ -144,23 +144,23 @@ namespace ANON
 			switch (id)
 			{
 			case TOOLBAR_EVENT_MINIMIZE:
-				platform->renderer.SwitchToWindowMode();
+				platform->graphics.renderer.SwitchToWindowMode();
 				Rococo::Windows::MinimizeApp(platform->mainWindow);
 				break;
 			case TOOLBAR_EVENT_RESTORE:
-				if (platform->renderer.IsFullscreen())
+				if (platform->graphics.renderer.IsFullscreen())
 				{
-					platform->renderer.SwitchToWindowMode();
+					platform->graphics.renderer.SwitchToWindowMode();
 				}
 				else
 				{
-					platform->renderer.SwitchToFullscreen();
+					platform->graphics.renderer.SwitchToFullscreen();
 				}
 				break;
 			case TOOLBAR_EVENT_EXIT:
-				if (platform->renderer.IsFullscreen())
+				if (platform->graphics.renderer.IsFullscreen())
 				{
-					platform->renderer.SwitchToWindowMode();
+					platform->graphics.renderer.SwitchToWindowMode();
 				}
 
 				Rococo::Windows::SendCloseEvent(platform->mainWindow);

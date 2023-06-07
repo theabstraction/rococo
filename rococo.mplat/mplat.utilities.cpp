@@ -73,7 +73,7 @@ public:
 	{
 		this->platform = &platform;
 		textTesselator = Graphics::CreateTextTesselator(platform);
-		hqFonts = Graphics::CreateHQFonts(platform.renderer.Gui().HQFontsResources());
+		hqFonts = Graphics::CreateHQFonts(platform.graphics.renderer.Gui().HQFontsResources());
 		platform.publisher.Subscribe(this, evUIInvoke);
 	}
 
@@ -383,17 +383,17 @@ public:
 	{
 		if (!browser)
 		{
-			browser = CreateMPlatFileBrowser(platform->publisher, platform->installation, platform->gui, platform->keyboard, *this);
+			browser = CreateMPlatFileBrowser(platform->publisher, platform->installation, platform->graphics.gui, platform->keyboard, *this);
 		}
 
 		if (!browsingPane)
 		{
-			browsingPane = platform->gui.BindPanelToScript(factory.GetPanePingPath());
+			browsingPane = platform->graphics.gui.BindPanelToScript(factory.GetPanePingPath());
 		}
 
 		browser->Engage(factory);
 
-		platform->gui.PushTop(browsingPane->Supervisor(), true);
+		platform->graphics.gui.PushTop(browsingPane->Supervisor(), true);
 	}
 
 	void OnFileSelect(const U32FilePath& path, bool doubleClick)
@@ -406,7 +406,7 @@ public:
 
 	void OnBrowserSelect()
 	{
-		auto* old = platform->gui.Pop();
+		auto* old = platform->graphics.gui.Pop();
 
 		// Assume the top is a file browser
 		if (browser->Select())
@@ -416,14 +416,14 @@ public:
 		}
 		else
 		{
-			platform->gui.PushTop(old, true);
+			platform->graphics.gui.PushTop(old, true);
 		}
 	}
 
 	void OnBrowserCancel()
 	{
 		// Assume the top is a file browser
-		platform->gui.Pop();
+		platform->graphics.gui.Pop();
 		browser = nullptr;
 		browsingPane = nullptr;
 	}
@@ -445,9 +445,9 @@ public:
 
 	void CloseContextMenu()
 	{
-		if (platform->gui.Top() == contextMenuPane->Supervisor())
+		if (platform->graphics.gui.Top() == contextMenuPane->Supervisor())
 		{
-			platform->gui.Pop();
+			platform->graphics.gui.Pop();
 		}
 		else
 		{
@@ -473,10 +473,10 @@ public:
 
 		if (!contextMenuPane)
 		{
-			contextMenuPane = platform->gui.BindPanelToScript("!scripts/panel.context-menu.sxy");
+			contextMenuPane = platform->graphics.gui.BindPanelToScript("!scripts/panel.context-menu.sxy");
 		}
 
-		platform->gui.PushTop(contextMenuPane->Supervisor(), true);
+		platform->graphics.gui.PushTop(contextMenuPane->Supervisor(), true);
 
 		return cm;
 	}

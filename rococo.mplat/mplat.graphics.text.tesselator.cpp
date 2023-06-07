@@ -34,7 +34,7 @@ namespace ANON
 
 		TextTesselator(Platform& _platform):
 			platform(_platform), 
-			font(_platform.renderer.Gui().FontMetrics())
+			font(_platform.graphics.renderer.Gui().FontMetrics())
 		{
 		}
 
@@ -135,8 +135,8 @@ namespace ANON
 
 		void SaveMesh(const fstring& meshName) override
 		{
-			platform.meshes.Clear();
-			platform.meshes.Begin(meshName);
+			platform.graphics.meshes.Clear();
+			platform.graphics.meshes.Begin(meshName);
 
 			MaterialVertexData mat = { 0 };
 
@@ -169,11 +169,11 @@ namespace ANON
 				topRight.a.material = topRight.b.material = topRight.c.material = mat;
 				bottomLeft.a.material = bottomLeft.b.material = bottomLeft.c.material = mat;
 
-				platform.meshes.AddTriangleEx(topRight);
-				platform.meshes.AddTriangleEx(bottomLeft);
+				platform.graphics.meshes.AddTriangleEx(topRight);
+				platform.graphics.meshes.AddTriangleEx(bottomLeft);
 			}
 
-			platform.meshes.End(false, false);
+			platform.graphics.meshes.End(false, false);
 
 			quads.clear();
 		}

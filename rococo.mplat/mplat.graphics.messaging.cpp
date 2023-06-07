@@ -11,7 +11,7 @@ namespace ANON
 
 		void Log(const fstring& message) override
 		{
-			platform->gui.LogMessage("%s", (cstr)message);
+			platform->graphics.gui.LogMessage("%s", (cstr)message);
 		}
 
 		void PostCreate(Platform& platform)  override

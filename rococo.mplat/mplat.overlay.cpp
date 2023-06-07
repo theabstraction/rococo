@@ -96,8 +96,8 @@ struct OverlayPane : public IPaneBuilderSupervisor, PaneDelegate, public IUIElem
 		txFocusPanel(Rococo::MPlatImpl::CreateScriptedPanel(_platform, "!scripts/panel.texture.sxy"))
 	{
 		current = tabbedPanel;
-		platform.gui.RegisterPopulator("texture_view", this);
-		platform.gui.RegisterPopulator("texture_cancel", &textureCancel);
+		platform.graphics.gui.RegisterPopulator("texture_view", this);
+		platform.graphics.gui.RegisterPopulator("texture_cancel", &textureCancel);
 		platform.publisher.Subscribe(this, stnId);
 		platform.publisher.Subscribe(this, matClickedId);
 		platform.publisher.Subscribe(this, texClickedId);
@@ -107,8 +107,8 @@ struct OverlayPane : public IPaneBuilderSupervisor, PaneDelegate, public IUIElem
 
 	~OverlayPane()
 	{
-		platform.gui.UnregisterPopulator(&textureCancel);
-		platform.gui.UnregisterPopulator(this);
+		platform.graphics.gui.UnregisterPopulator(&textureCancel);
+		platform.graphics.gui.UnregisterPopulator(this);
 		platform.publisher.Unsubscribe(this);
 	}
 
@@ -148,11 +148,11 @@ struct OverlayPane : public IPaneBuilderSupervisor, PaneDelegate, public IUIElem
 			auto& mc = As<VisitorItemClickedEvent>(ev);
 
 			AutoFree<IExpandingBuffer> buffer = CreateExpandingBuffer(64_kilobytes);
-			platform.meshes.SaveCSV(mc.key, *buffer);
+			platform.graphics.meshes.SaveCSV(mc.key, *buffer);
 			if (buffer->Length() > 0)
 			{
 				OS::SaveClipBoardText((cstr)buffer->GetData(), platform.mainWindow);
-				platform.gui.LogMessage("Copied %s CSV to clipboard", mc.key);
+				platform.graphics.gui.LogMessage("Copied %s CSV to clipboard", mc.key);
 			}
 			type = OverlayPane::Type::None;
 		}
@@ -165,7 +165,7 @@ struct OverlayPane : public IPaneBuilderSupervisor, PaneDelegate, public IUIElem
 				{
 					int index = atoi(name.c_str() + 6);
 					MaterialId id = (MaterialId)index;
-					cstr fullname = platform.renderer.Materials().GetMaterialTextureName(id);
+					cstr fullname = platform.graphics.renderer.Materials().GetMaterialTextureName(id);
 					if (fullname != nullptr)
 					{
 						WideFilePath sysPath;
@@ -228,7 +228,7 @@ struct OverlayPane : public IPaneBuilderSupervisor, PaneDelegate, public IUIElem
 			ID_TEXTURE id(index);
 
 			TextureDesc desc;
-			if (!platform.renderer.Textures().TryGetTextureDesc(desc, id))
+			if (!platform.graphics.renderer.Textures().TryGetTextureDesc(desc, id))
 			{
 				type = OverlayPane::Type::None;
 				return;

@@ -600,7 +600,7 @@ struct PaneContainer : public BasePane, virtual public IPaneContainer
 
 	Rococo::ISlider* AddSlider(int32 fontIndex, const fstring& text, const GuiRect& rect, float minValue, float maxValue)
 	{
-		auto* s = Rococo::MPlatImpl::AddSlider(platform.publisher, platform.renderer, *this, fontIndex, text, rect, minValue, maxValue);
+		auto* s = Rococo::MPlatImpl::AddSlider(platform.publisher, platform.graphics.renderer, *this, fontIndex, text, rect, minValue, maxValue);
 		return s;
 	}
 
@@ -810,7 +810,7 @@ class PaneFrame : public PaneContainer, public IFramePane, public IObserver
 public:
 	PaneFrame(Platform& platform) :
 		PaneContainer(platform),
-		publisher(platform.publisher), renderer(platform.renderer)
+		publisher(platform.publisher), renderer(platform.graphics.renderer)
 	{
 
 	}
@@ -841,7 +841,7 @@ public:
 		// Once the drag is over, the subscription to the event is revoked.
 		// Since the event is consumed, it is not passed on to the UI system after this function call
 
-		platform.renderer.Gui().SetSysCursor(cursor);
+		platform.graphics.renderer.Gui().SetSysCursor(cursor);
 
 		if (dragRightPos > 0)
 		{
@@ -902,7 +902,7 @@ public:
 			dragBottomPos = -1;
 			captionDragPoint = { -1,-1 };
 			platform.publisher.Unsubscribe(this);
-			platform.renderer.CaptureMouse(false);
+			platform.graphics.renderer.CaptureMouse(false);
 		}
 	}
 
@@ -915,7 +915,7 @@ public:
 	{
 		preDragSpan = Span(ClientRect());
 		platform.publisher.Subscribe(this, Rococo::Events::evUIMouseEvent);
-		platform.renderer.CaptureMouse(true);
+		platform.graphics.renderer.CaptureMouse(true);
 	}
 
 	void AppendEvent(const MouseEvent& me, const Vec2i& absTopLeft) override
@@ -928,12 +928,12 @@ public:
 			if (me.cursorPos.y <= farBottom && me.cursorPos.y > farBottom - 4)
 			{
 				cursor = EWindowCursor_BottomRightDrag;
-				platform.renderer.Gui().SetSysCursor(EWindowCursor_BottomRightDrag);
+				platform.graphics.renderer.Gui().SetSysCursor(EWindowCursor_BottomRightDrag);
 			}
 			else
 			{
 				cursor = EWindowCursor_HDrag;
-				platform.renderer.Gui().SetSysCursor(EWindowCursor_HDrag);
+				platform.graphics.renderer.Gui().SetSysCursor(EWindowCursor_HDrag);
 			}
 
 			if (me.HasFlag(MouseEvent::LDown))
@@ -952,7 +952,7 @@ public:
 		else if (me.cursorPos.y <= farBottom && me.cursorPos.y > farBottom - 4)
 		{
 			cursor = EWindowCursor_VDrag;
-			platform.renderer.Gui().SetSysCursor(EWindowCursor_VDrag);
+			platform.graphics.renderer.Gui().SetSysCursor(EWindowCursor_VDrag);
 
 			if (me.HasFlag(MouseEvent::LDown))
 			{

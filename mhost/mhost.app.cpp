@@ -62,12 +62,12 @@ namespace MHost
 
 		ID_CUBE_TEXTURE GetSkyboxCubeId() const override
 		{
-			return platform.scene.GetSkyboxCubeId();
+			return platform.graphics.scene.GetSkyboxCubeId();
 		}
 
 		void GetCamera(Matrix4x4& worldToScreen, Matrix4x4& worldToCamera, Matrix4x4& proj, Vec4& eye, Vec4& viewDir) override
 		{
-			return platform.scene.GetCamera(worldToScreen, worldToCamera, proj, eye, viewDir);
+			return platform.graphics.scene.GetCamera(worldToScreen, worldToCamera, proj, eye, viewDir);
 		}
 
 		RGBA GetClearColour() const override
@@ -77,7 +77,7 @@ namespace MHost
 
 		void OnGuiResize(Vec2i screenSpan) override
 		{
-			platform.scene.OnGuiResize(screenSpan);
+			platform.graphics.scene.OnGuiResize(screenSpan);
 		}
 
 		void OnCompile(IPublicScriptSystem& ss)
@@ -89,24 +89,24 @@ namespace MHost
 		{
 			IGui* gui = CreateGuiOnStack(guiBuffer, grc);
 			dispatcher->RouteGuiToScript(ss, gui, populator);
-			platform.gui.Render(grc);
+			platform.graphics.gui.Render(grc);
 
-			platform.GR_Custodian.Render(grc, platform.GR);
+			platform.graphics.GR_Custodian.Render(grc, platform.graphics.GR);
 		}
 
 		void RenderObjects(IRenderContext& rc, bool skinned)  override
 		{
-			platform.scene.RenderObjects(rc, skinned);
+			platform.graphics.scene.RenderObjects(rc, skinned);
 		}
 
 		const Light* GetLights(uint32& nCount) const override
 		{
-			return platform.scene.GetLights(nCount);
+			return platform.graphics.scene.GetLights(nCount);
 		}
 
 		void RenderShadowPass(const DepthRenderData& drd, IRenderContext& rc, bool skinned)  override
 		{
-			platform.scene.RenderShadowPass(drd, rc, skinned);
+			platform.graphics.scene.RenderShadowPass(drd, rc, skinned);
 		}
 	};
 
@@ -220,11 +220,11 @@ namespace MHost
 				}
 			} ec(platform.publisher, be);
 
-			platform.gui.PushTop(busyPanel->Supervisor(), true);
+			platform.graphics.gui.PushTop(busyPanel->Supervisor(), true);
 
 			EmptyScene emptyScene;
-			platform.renderer.Render(Rococo::Graphics::ENVIRONMENTAL_MAP_FIXED_CUBE, emptyScene);
-			platform.gui.Pop();
+			platform.graphics.renderer.Render(Rococo::Graphics::ENVIRONMENTAL_MAP_FIXED_CUBE, emptyScene);
+			platform.graphics.gui.Pop();
 		}
 
 		void SetRunningScriptContext(IPublicScriptSystem* ss)
@@ -239,7 +239,7 @@ namespace MHost
 				auto& be = As <Rococo::Events::BusyEvent>(ev);
 				if (be.isNowBusy)
 				{
-					if (platform.gui.Top() != busyPanel->Supervisor())
+					if (platform.graphics.gui.Top() != busyPanel->Supervisor())
 					{
 						OnBusy(be);
 					}
@@ -261,7 +261,7 @@ namespace MHost
 
 		boolean32 TryGetSpriteSpec(const fstring& resourceName, BitmapLocation& loc) override
 		{
-			return platform.renderer.Gui().SpriteBuilder().TryGetBitmapLocation(resourceName, loc);
+			return platform.graphics.renderer.Gui().SpriteBuilder().TryGetBitmapLocation(resourceName, loc);
 		}
 
 		void GetSpriteSpec(const fstring& resourceName, Rococo::Textures::BitmapLocation& loc) override
@@ -275,8 +275,8 @@ namespace MHost
 		App(Platform& _platform, IDirectAppControl& _control, const AppArgs& args) :
 			platform(_platform), control(_control), sceneManager(_platform)
 		{
-			busyPanel = platform.gui.BindPanelToScript("!scripts/panel.opening.sxy");
-			overlayPanel = platform.gui.CreateDebuggingOverlay();
+			busyPanel = platform.graphics.gui.BindPanelToScript("!scripts/panel.opening.sxy");
+			overlayPanel = platform.graphics.gui.CreateDebuggingOverlay();
 
 			platform.publisher.Subscribe(this, Rococo::Events::evBusy);
 
@@ -308,7 +308,7 @@ namespace MHost
 		{
 			U8FilePath pingPath;
 			platform.installation.ConvertSysPathToPingPath(args.sysPath, pingPath);	
-			platform.gui.LogMessage("File modified: %s", pingPath);
+			platform.graphics.gui.LogMessage("File modified: %s", pingPath);
 
 			auto ext = Rococo::Strings::GetFileExtension(pingPath);
 			if (!ext)
@@ -321,19 +321,19 @@ namespace MHost
 			}
 			else if (Eq(ext, ".sxy"))
 			{
-				platform.gui.LogMessage("Updating script file");
+				platform.graphics.gui.LogMessage("Updating script file");
 				platform.utilities.RefreshResource(pingPath);
 				queuedForExecute = true;
 			}
 			else if (Eq(ext, ".ps"))
 			{
-				platform.gui.LogMessage("Updating pixel shader");
-				platform.renderer.Shaders().UpdatePixelShader(pingPath);
+				platform.graphics.gui.LogMessage("Updating pixel shader");
+				platform.graphics.renderer.Shaders().UpdatePixelShader(pingPath);
 			}
 			else if (Eq(ext, ".vs"))
 			{
-				platform.gui.LogMessage("Updating vertex shader");
-				platform.renderer.Shaders().UpdateVertexShader(pingPath);
+				platform.graphics.gui.LogMessage("Updating vertex shader");
+				platform.graphics.renderer.Shaders().UpdateVertexShader(pingPath);
 			}
 		}
 
@@ -484,7 +484,7 @@ namespace MHost
 				}
 			}
 
-			platform.scene.AdvanceAnimations(Seconds{ dt });
+			platform.graphics.scene.AdvanceAnimations(Seconds{ dt });
 
 			while (platform.appControl.MainThreadQueue().ExecuteNext());
 
@@ -498,7 +498,7 @@ namespace MHost
 				Throw(0, "GuiPopulator undefined");
 			}
 			sceneManager.populator = populator;
-			platform.renderer.Render(Rococo::Graphics::ENVIRONMENTAL_MAP_FIXED_CUBE, sceneManager);
+			platform.graphics.renderer.Render(Rococo::Graphics::ENVIRONMENTAL_MAP_FIXED_CUBE, sceneManager);
 		}
 
 		void PollKeyState(KeyState& keyState) override
@@ -522,17 +522,17 @@ namespace MHost
 			{
 				while (IsOverlayActive() && control.TryGetNextMouseEvent(me))
 				{
-					platform.gui.AppendEvent(me);
+					platform.graphics.gui.AppendEvent(me);
 				}
 
 				return false;
 			}
 
-			if (platform.GR.IsVisible())
+			if (platform.graphics.GR.IsVisible())
 			{
-				while (platform.GR.IsVisible() && control.TryGetNextMouseEvent(me))
+				while (platform.graphics.GR.IsVisible() && control.TryGetNextMouseEvent(me))
 				{
-					platform.GR_Custodian.RouteMouseEvent(me, platform.GR);
+					platform.graphics.GR_Custodian.RouteMouseEvent(me, platform.graphics.GR);
 				}
 				return false;
 			}
@@ -556,18 +556,18 @@ namespace MHost
 
 		bool IsOverlayActive()
 		{
-			return platform.gui.Top() == overlayPanel->Supervisor();
+			return platform.graphics.gui.Top() == overlayPanel->Supervisor();
 		}
 
 		void ToggleOverlay()
 		{
 			if (!IsOverlayActive())
 			{
-				platform.gui.PushTop(overlayPanel->Supervisor(), true);
+				platform.graphics.gui.PushTop(overlayPanel->Supervisor(), true);
 			}
 			else
 			{
-				platform.gui.Pop();
+				platform.graphics.gui.Pop();
 			}
 		}
 
@@ -576,7 +576,7 @@ namespace MHost
 			using namespace Rococo::Gui;
 
 			platform.editor.SetVisibility(true);
-			platform.editor.Preview(platform.GR, GetTestTarget());
+			platform.editor.Preview(platform.graphics.GR, GetTestTarget());
 		}
 
 		void SetOverlayToggleKey(int32 vkeyCode) override
@@ -586,12 +586,12 @@ namespace MHost
 
 		boolean32 GetNextKeyboardEvent(MHostKeyboardEvent& k) override
 		{
-			if (platform.GR.IsVisible())
+			if (platform.graphics.GR.IsVisible())
 			{
 				KeyboardEvent keyEv;
-				while (platform.GR.IsVisible() && control.TryGetNextKeyboardEvent(keyEv))
+				while (platform.graphics.GR.IsVisible() && control.TryGetNextKeyboardEvent(keyEv))
 				{
-					platform.GR_Custodian.RouteKeyboardEvent(keyEv, platform.GR);
+					platform.graphics.GR_Custodian.RouteKeyboardEvent(keyEv, platform.graphics.GR);
 				}
 				return false;
 			}
@@ -601,7 +601,7 @@ namespace MHost
 			{
 				if (IsOverlayActive())
 				{
-					platform.gui.AppendEvent(key);
+					platform.graphics.gui.AppendEvent(key);
 
 					if (key.VKey == (uint16)overlayToggleKey)
 					{

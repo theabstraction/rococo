@@ -54,7 +54,7 @@ namespace
 
 		~TextEditorBox()
 		{
-			platform.gui.DetachKeyboardSink(this);
+			platform.graphics.gui.DetachKeyboardSink(this);
 		}
 
 		void Notify()
@@ -119,7 +119,7 @@ namespace
 				switch (key.VKey)
 				{
 				case IO::VKCode_ENTER:
-					platform.gui.DetachKeyboardSink(this);
+					platform.graphics.gui.DetachKeyboardSink(this);
 					validator.OnDetached(buffer);
 					return true;
 				case IO::VKCode_BACKSPACE:
@@ -162,7 +162,7 @@ namespace
 				{
 					if (c >= 32)
 					{
-						if (platform.gui.IsOverwriting())
+						if (platform.graphics.gui.IsOverwriting())
 						{
 							AddCharOverwrite(c);
 						}
@@ -183,14 +183,14 @@ namespace
 
 			if (clickedDown)
 			{
-				if (platform.gui.CurrentKeyboardSink() == this)
+				if (platform.graphics.gui.CurrentKeyboardSink() == this)
 				{
-					platform.gui.DetachKeyboardSink(this);
+					platform.graphics.gui.DetachKeyboardSink(this);
 					validator.OnDetached(buffer);
 				}
 				else
 				{
-					platform.gui.AttachKeyboardSink(this);
+					platform.graphics.gui.AttachKeyboardSink(this);
 				}
 			}
 		}
@@ -206,7 +206,7 @@ namespace
 			int x = rect.left + 4;
 			int y = Centre(rect).y;
 
-			if (platform.gui.CurrentKeyboardSink() == this)
+			if (platform.graphics.gui.CurrentKeyboardSink() == this)
 			{
 				Rococo::Graphics::DrawRectangle(rc, rect, RGBAb(64, 0, 0, 128), RGBAb(64, 0, 0, 255));
 				Rococo::Graphics::DrawBorderAround(rc, rect, { 1,1 }, RGBAb(255, 255, 255, 255), RGBAb(224, 224, 224, 255));
@@ -233,12 +233,12 @@ namespace
 
 			GuiRect clipRect = { x, rect.top, rect.right - 10, rect.bottom };
 
-			int pos = platform.gui.CurrentKeyboardSink() == this ? cursorPos : (defaultToEnd ? len : 0);
+			int pos = platform.graphics.gui.CurrentKeyboardSink() == this ? cursorPos : (defaultToEnd ? len : 0);
 
 			enum { TEXT_HEIGHT = 24 };
 			Rococo::Graphics::RenderVerticalCentredTextWithCallback(rc, pos, cb, buffer, colour, TEXT_HEIGHT, { x, Centre(rect).y }, clipRect);
 
-			if (platform.gui.CurrentKeyboardSink() == this)
+			if (platform.graphics.gui.CurrentKeyboardSink() == this)
 			{
 				if (cb.cursorRect.left == cb.cursorRect.right)
 				{
@@ -251,7 +251,7 @@ namespace
 				OS::ticks hz = OS::CpuHz();
 				uint8 alpha = ((512 * t) / hz) % 255;
 
-				if (platform.gui.IsOverwriting())
+				if (platform.graphics.gui.IsOverwriting())
 				{
 					Rococo::Graphics::DrawRectangle(rc, cb.cursorRect, RGBAb(255, 255, 255, alpha >> 1), RGBAb(255, 255, 255, alpha >> 1));
 				}
@@ -532,7 +532,7 @@ namespace
 
 		~BloodyBoolBinding()
 		{
-			platform.gui.DetachKeyboardSink(this);
+			platform.graphics.gui.DetachKeyboardSink(this);
 		}
 
 		cstr NotifyId() const override { return nullptr; }
@@ -546,7 +546,7 @@ namespace
 				switch (key.VKey)
 				{
 				case IO::VKCode_ENTER:
-					platform.gui.DetachKeyboardSink(this);
+					platform.graphics.gui.DetachKeyboardSink(this);
 					break;
 				case IO::VKCode_HOME:
 					*value = true;
@@ -582,7 +582,7 @@ namespace
 
 		virtual void Render(IGuiRenderContext& rc, const GuiRect& rect, RGBAb colour)
 		{
-			if (platform.gui.CurrentKeyboardSink() == this)
+			if (platform.graphics.gui.CurrentKeyboardSink() == this)
 			{
 				Rococo::Graphics::DrawRectangle(rc, rect, RGBAb(64, 0, 0, 128), RGBAb(64, 0, 0, 255));
 				Rococo::Graphics::DrawBorderAround(rc, rect, { 1,1 }, RGBAb(255, 255, 255, 255), RGBAb(224, 224, 224, 255));
@@ -614,13 +614,13 @@ namespace
 			if (clickedDown)
 			{
 				*value = !*value;
-				if (platform.gui.CurrentKeyboardSink() == this)
+				if (platform.graphics.gui.CurrentKeyboardSink() == this)
 				{
-					platform.gui.DetachKeyboardSink(this);
+					platform.graphics.gui.DetachKeyboardSink(this);
 				}
 				else
 				{
-					platform.gui.AttachKeyboardSink(this);
+					platform.graphics.gui.AttachKeyboardSink(this);
 				}
 
 				dirtNotifier.OnEvent(*this);
@@ -653,7 +653,7 @@ namespace
 
 		~BloodyEnumInt32Binding()
 		{
-			platform.gui.DetachKeyboardSink(this);
+			platform.graphics.gui.DetachKeyboardSink(this);
 		}
 
 		virtual void AddEnumConstant(cstr key, int32 value)
@@ -698,7 +698,7 @@ namespace
 			switch (key.VKey)
 			{
 			case IO::VKCode_ENTER:
-				platform.gui.DetachKeyboardSink(this);
+				platform.graphics.gui.DetachKeyboardSink(this);
 				break;
 			case IO::VKCode_HOME:
 				if (!orderedByName.empty())
@@ -888,7 +888,7 @@ namespace
 			GuiMetrics metrics;
 			rc.Renderer().GetGuiMetrics(metrics);
 
-			if (platform.gui.CurrentKeyboardSink() == this)
+			if (platform.graphics.gui.CurrentKeyboardSink() == this)
 			{
 				Rococo::Graphics::DrawRectangle(rc, rect, RGBAb(64, 0, 0, 128), RGBAb(64, 0, 0, 255));
 				Rococo::Graphics::DrawBorderAround(rc, rect, { 1,1 }, RGBAb(255, 255, 255, 255), RGBAb(224, 224, 224, 255));
@@ -943,13 +943,13 @@ namespace
 				if (pos.x > centre.x + 20) *value = GetRightValue(*value);
 				else if (pos.x < centre.x - 20) *value = GetLeftValue(*value);
 
-				if (platform.gui.CurrentKeyboardSink() == this)
+				if (platform.graphics.gui.CurrentKeyboardSink() == this)
 				{
-					platform.gui.DetachKeyboardSink(this);
+					platform.graphics.gui.DetachKeyboardSink(this);
 				}
 				else
 				{
-					platform.gui.AttachKeyboardSink(this);
+					platform.graphics.gui.AttachKeyboardSink(this);
 				}
 
 				dirtNotifier.OnEvent(*this);
@@ -1006,7 +1006,7 @@ namespace
 					return true;
 				}
 
-				if (buffer[0] == '-' && platform.gui.IsOverwriting())
+				if (buffer[0] == '-' && platform.graphics.gui.IsOverwriting())
 				{
 					return false;
 				}
@@ -1037,7 +1037,7 @@ namespace
 			tebRect = rect;
 			teb.Render(rc, tebRect, colour);
 
-			if (addHexView && platform.gui.CurrentKeyboardSink() != &teb)
+			if (addHexView && platform.graphics.gui.CurrentKeyboardSink() != &teb)
 			{
 				char hex[12];
 				SafeFormat(hex, 12, "0x%8.8X", *value);
@@ -1105,7 +1105,7 @@ namespace
 
 		~BloodyColour()
 		{
-			platform.gui.DetachKeyboardSink(this);
+			platform.graphics.gui.DetachKeyboardSink(this);
 		}
 
 		cstr NotifyId() const override { return nullptr; }
@@ -1273,7 +1273,7 @@ namespace
 		{
 			try
 			{
-				id = platform.renderer.Materials().GetMaterialId(value);
+				id = platform.graphics.renderer.Materials().GetMaterialId(value);
 			}
 			catch (IException&)
 			{
@@ -1305,7 +1305,7 @@ namespace
 		MaterialId GetRightValue(MaterialId v)
 		{
 			MaterialArrayMetrics metrics;
-			platform.renderer.Materials().GetMaterialArrayMetrics(metrics);
+			platform.graphics.renderer.Materials().GetMaterialArrayMetrics(metrics);
 			if (v < metrics.NumberOfElements - 1)
 			{
 				v += 1;
@@ -1322,7 +1322,7 @@ namespace
 
 			GuiRect editorRect{ rect.left + spinnerSpan, rect.top, rect.right - spinnerSpan, rect.bottom };
 
-			if (Eq("random", value) && platform.gui.CurrentKeyboardSink() != &teb)
+			if (Eq("random", value) && platform.graphics.gui.CurrentKeyboardSink() != &teb)
 			{
 				GuiRectf textRect{ (float)editorRect.left, (float)editorRect.top, (float)editorRect.right, (float)editorRect.bottom };
 				Rococo::Graphics::DrawText(rc, textRect, 0, to_fstring(value), 0, RGBAb(128, 0, 0, 255));
@@ -1387,7 +1387,7 @@ namespace
 					}
 				}
 				
-				auto mat = platform.renderer.Materials().GetMaterialTextureName(id);
+				auto mat = platform.graphics.renderer.Materials().GetMaterialTextureName(id);
 				if (mat)
 				{
 					WideFilePath sysName;
@@ -1655,7 +1655,7 @@ namespace
 			rc.Renderer().GetGuiMetrics(metrics);
 
 			Textures::BitmapLocation bml;
-			if (platform.renderer.Gui().SpriteBuilder().TryGetBitmapLocation(loadImage, bml))
+			if (platform.graphics.renderer.Gui().SpriteBuilder().TryGetBitmapLocation(loadImage, bml))
 			{
 				Rococo::Graphics::DrawSpriteCentred(buttonRect, bml, rc);
 			}

@@ -57,7 +57,7 @@ Rococo::IArchive* FactoryConstructRococoGetArchive(Rococo::Platform * platform)
 
 Rococo::Graphics::IRendererConfig* FactoryConstructRococoGraphicsRendererConfig(Rococo::Platform* platform)
 {
-	return &platform->rendererConfig;
+	return &platform->graphics.rendererConfig;
 }
 
 Rococo::Graphics::IMessaging* FactoryConstructRococoGraphicsMessaging(Rococo::Platform* platform)
@@ -82,12 +82,12 @@ Rococo::Graphics::IHQFonts* FactoryConstructRococoGraphicsHQFonts(Rococo::Platfo
 
 Rococo::Graphics::IRodTesselator* FactoryConstructRococoGraphicsRodTesselator(Rococo::Platform* platform)
 {
-	return Rococo::Graphics::CreateRodTesselator(platform->meshes);
+	return Rococo::Graphics::CreateRodTesselator(platform->graphics.meshes);
 }
 
 Rococo::Graphics::ILandscapeTesselator*  FactoryConstructRococoGraphicsLandscapeTesselator(Rococo::Platform *nceContext)
 {
-	return Rococo::Graphics::CreateLandscapeTesselator(nceContext->meshes);
+	return Rococo::Graphics::CreateLandscapeTesselator(nceContext->graphics.meshes);
 }
 
 Rococo::Graphics::IFieldTesselator* FactoryConstructRococoGraphicsFieldTesselator(Rococo::Graphics::IFieldTesselator* _context)
@@ -271,13 +271,13 @@ namespace Rococo
 					{
 						Audio::AddNativeCalls_RococoAudioIAudio(args.ss, &platform.audio);
 						Entities::AddNativeCalls_RococoEntitiesIRigBuilder(args.ss, &platform.rigs);
-						Graphics::AddNativeCalls_RococoGraphicsIMeshBuilder(args.ss, &platform.meshes);
-						Entities::AddNativeCalls_RococoEntitiesIInstances(args.ss, &platform.instances);
+						Graphics::AddNativeCalls_RococoGraphicsIMeshBuilder(args.ss, &platform.graphics.meshes);
+						Entities::AddNativeCalls_RococoEntitiesIInstances(args.ss, &platform.graphics.instances);
 						Entities::AddNativeCalls_RococoEntitiesIMobiles(args.ss, &platform.mobiles);
-						Graphics::AddNativeCalls_RococoGraphicsICamera(args.ss, &platform.camera);
-						Graphics::AddNativeCalls_RococoGraphicsISceneBuilder(args.ss, &platform.scene.Builder());
-						Graphics::AddNativeCalls_RococoGraphicsISpriteBuilder(args.ss, &platform.spriteBuilder);
-						Graphics::AddNativeCalls_RococoGraphicsISprites(args.ss, &platform.sprites);
+						Graphics::AddNativeCalls_RococoGraphicsICamera(args.ss, &platform.graphics.camera);
+						Graphics::AddNativeCalls_RococoGraphicsISceneBuilder(args.ss, &platform.graphics.scene.Builder());
+						Graphics::AddNativeCalls_RococoGraphicsISpriteBuilder(args.ss, &platform.graphics.spriteBuilder);
+						Graphics::AddNativeCalls_RococoGraphicsISprites(args.ss, &platform.graphics.sprites);
 						Graphics::AddNativeCalls_RococoGraphicsIRimTesselator(args.ss, &platform.tesselators.rim);
 						Graphics::AddNativeCalls_RococoGraphicsIFieldTesselator(args.ss, nullptr);
 						Graphics::AddNativeCalls_RococoGraphicsIQuadStackTesselator(args.ss, nullptr);

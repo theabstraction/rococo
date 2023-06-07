@@ -103,7 +103,7 @@ struct PlatformTabs: IObserver, IUIElement, public IMathsVenue
 
 	virtual void ShowVenue(IMathsVisitor& visitor)
 	{
-		platform.renderer.ShowWindowVenue(visitor);
+		platform.graphics.renderer.ShowWindowVenue(visitor);
 	}
 
 	void OnEvent(Event& ev) override
@@ -120,22 +120,22 @@ struct PlatformTabs: IObserver, IUIElement, public IMathsVenue
 		else if (Eq(pop.name, "overlay.renderer"))
 		{
 			pop.renderElement = this;
-			venue = platform.renderer.Venue();
+			venue = platform.graphics.renderer.Venue();
 		}
 		else if (Eq(pop.name, "overlay.camera"))
 		{
 			pop.renderElement = this;
-			venue = &platform.camera.Venue();
+			venue = &platform.graphics.camera.Venue();
 		}
 		else if (Eq(pop.name, "overlay.textures"))
 		{
 			pop.renderElement = this;
-			venue = platform.renderer.TextureVenue();
+			venue = platform.graphics.renderer.TextureVenue();
 		}
 		else if (Eq(pop.name, "overlay.meshes"))
 		{
 			pop.renderElement = this;
-			venue = platform.meshes.Venue();
+			venue = platform.graphics.meshes.Venue();
 		}
 		else if (Eq(pop.name, "overlay.os"))
 		{
@@ -381,10 +381,12 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	
 	Platform platform
 	{ 
-		*os, *installation, *appControl, mainWindow->Renderer(), mainWindow->Window(),* sprites,* rendererConfig,* messaging,
-		*sourceCache, *debuggerWindow, *publisher, *utilities, *gui, *keyboard, *config, *archive, *meshes,
-		*instances, *mobiles, *particles, *rigs, *spriteBuilder, *camera, *scene, tesselators, *mathsVisitor,
-		*audio, *ssFactory, title, *xbox360stick, *ims, *world, *ecs, *GR, *mplat_gcs, *editor
+		// Platform graphics
+		{ *rendererConfig, mainWindow->Renderer(), *sprites, *gui, *meshes, *instances, *spriteBuilder, *camera, *scene, *GR, *mplat_gcs },
+
+		*os, *installation, *appControl, mainWindow->Window(),* messaging,
+		*sourceCache, *debuggerWindow, *publisher, *utilities,  *keyboard, *config, *archive, *mobiles, *particles, *rigs, tesselators, *mathsVisitor,
+		*audio, *ssFactory, title, *xbox360stick, *ims, *world, *ecs, *editor
 	};
 
 	editor->SetPlatform(&platform);

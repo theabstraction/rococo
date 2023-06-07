@@ -31,7 +31,7 @@ struct PanelArrayBox : BasePane, IArrayBox, IObserver, IEventCallback<ScrollEven
 		vscroll(_platform.utilities.CreateScrollbar(true))
 	{
 		idFont = platform.utilities.GetHQFonts().GetSysFont(Graphics::HQFont::EditorFont);
-		fontHeight = lineHeight = platform.renderer.Gui().GetFontMetrics(idFont).height;
+		fontHeight = lineHeight = platform.graphics.renderer.Gui().GetFontMetrics(idFont).height;
 		populateArrayEventText = _populateArrayEventText;
 		evPopulate = platform.publisher.CreateEventIdFromVolatileString(populateArrayEventText);
 	}

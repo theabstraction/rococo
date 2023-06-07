@@ -873,8 +873,39 @@ namespace Rococo
 		};
 	}
 
+	struct PlatformGraphics
+	{
+		// Render config used to set up sampler states et al
+		Graphics::IRendererConfig& rendererConfig;	
+		
+		IRenderer& renderer;
+
+		Graphics::ISprites& sprites;
+
+		// GUI stack
+		IGUIStack& gui;	
+		
+		// Mesh builder object
+		Graphics::IMeshBuilderSupervisor& meshes;
+
+		// Entity instances
+		Entities::IInstancesSupervisor& instances;
+
+		Graphics::ISpriteBuilderSupervisor& spriteBuilder;
+
+		Graphics::ICameraSupervisor& camera;
+
+		Graphics::ISceneSupervisor& scene;
+
+		Rococo::Gui::IGuiRetained& GR;
+
+		Rococo::Gui::IMPlatGuiCustodianSupervisor& GR_Custodian;
+	};
+
 	struct Platform
 	{
+		PlatformGraphics graphics;
+
 		// Operating system functions
 		IOS& os;
 
@@ -884,14 +915,7 @@ namespace Rococo
 		// Execution control
 		OS::IAppControl& appControl;
 
-		IRenderer& renderer;
-
 		Windows::IWindow& mainWindow;
-
-		Graphics::ISprites& sprites;
-
-		// Render config used to set up sampler states et al
-		Graphics::IRendererConfig& rendererConfig;
 
 		// Messaging used to communicate to the player in text
 		Graphics::IMessaging& messaging;
@@ -908,32 +932,17 @@ namespace Rococo
 		// Platform utilities
 		IUtilities& utilities;
 
-		// GUI stack
-		IGUIStack& gui;
-
 		IKeyboardSupervisor& keyboard;
 
 		IConfigSupervisor& config;
 
 		IArchive& archive;
 
-		// Mesh builder object
-		Graphics::IMeshBuilderSupervisor& meshes;
-
-		// Entity instances
-		Entities::IInstancesSupervisor& instances;
-
 		Entities::IMobilesSupervisor& mobiles;
 
 		Entities::IParticleSystemSupervisor& particles;
 
 		Entities::IRigs& rigs;
-
-		Graphics::ISpriteBuilderSupervisor& spriteBuilder;
-
-		Graphics::ICameraSupervisor& camera;
-
-		Graphics::ISceneSupervisor& scene;
 
 		Tesselators& tesselators;
 
@@ -954,10 +963,6 @@ namespace Rococo
 
 		// (E)ntity(C)omponent(S)ystem
 		Rococo::Components::IRCObjectTable& ECS;
-
-		Rococo::Gui::IGuiRetained& GR;
-
-		Rococo::Gui::IMPlatGuiCustodianSupervisor& GR_Custodian;
 
 		Rococo::MPEditor::IMPEditor& editor;
 	};
