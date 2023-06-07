@@ -159,12 +159,12 @@ struct PlatformTabs: IObserver, IUIElement, public IMathsVenue
 
 	bool OnKeyboardEvent(const KeyboardEvent& key)  override
 	{
-		return platform.mathsVisitor.AppendKeyboardEvent(key);
+		return platform.misc.mathsVisitor.AppendKeyboardEvent(key);
 	}
 
 	void OnRawMouseEvent(const MouseEvent& me) override
 	{
-		platform.mathsVisitor.AppendMouseEvent(me);
+		platform.misc.mathsVisitor.AppendMouseEvent(me);
 	}
 
 	void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel)  override
@@ -174,7 +174,7 @@ struct PlatformTabs: IObserver, IUIElement, public IMathsVenue
 
 	void OnMouseLClick(Vec2i cursorPos, bool clickedDown) override
 	{
-		if (!clickedDown) platform.mathsVisitor.SelectAtPos(cursorPos);
+		if (!clickedDown) platform.misc.mathsVisitor.SelectAtPos(cursorPos);
 	}
 
 	void OnMouseRClick(Vec2i cursorPos, bool clickedDown)  override
@@ -184,9 +184,9 @@ struct PlatformTabs: IObserver, IUIElement, public IMathsVenue
 
 	void Render(IGuiRenderContext& rc, const GuiRect& absRect)  override
 	{
-		platform.mathsVisitor.Clear();
-		if (venue) venue->ShowVenue(platform.mathsVisitor);
-		platform.mathsVisitor.Render(rc, absRect, 4);
+		platform.misc.mathsVisitor.Clear();
+		if (venue) venue->ShowVenue(platform.misc.mathsVisitor);
+		platform.misc.mathsVisitor.Render(rc, absRect, 4);
 	}
 
 };
@@ -385,7 +385,7 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 		{ *rendererConfig, mainWindow->Renderer(), *sprites, *gui, *meshes, *instances, *spriteBuilder, *camera, *scene, *GR, *mplat_gcs },
 
 		// Platform os
-		{ *os, *installation, *appControl, mainWindow->Window(), title },
+		{ *os, *installation, *ims, *appControl, mainWindow->Window(), title },
 
 		// Platform scripting
 		{ *sourceCache, *debuggerWindow, *ssFactory },
@@ -407,7 +407,17 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 			*messaging, *publisher, *utilities
 		},
 
-		tesselators, *mathsVisitor, *ims, *editor
+		// Platform creator
+		{
+			*editor
+		},
+
+		// Platform miscellaneous interfaces
+		{
+			*mathsVisitor
+		},
+
+		tesselators
 	};
 
 	editor->SetPlatform(&platform);

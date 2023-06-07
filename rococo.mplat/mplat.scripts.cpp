@@ -152,7 +152,7 @@ Rococo::Graphics::IMeshBuilder* FactoryConstructRococoGraphicsMeshBuilder(Rococo
 
 Rococo::IInstallationManager* FactoryConstructRococoInstallation(Rococo::Platform* p)
 {
-	return &p->installationManager;
+	return &p->os.installationManager;
 }
 
 Rococo::Audio::IAudio* FactoryConstructRococoAudioGetAudio(Rococo::Audio::IAudio* a)

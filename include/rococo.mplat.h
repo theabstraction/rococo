@@ -910,6 +910,9 @@ namespace Rococo
 		// Content directory and raw binary file streaming
 		IInstallation& installation;
 
+		// Scriptable directory management
+		Rococo::IInstallationManager& installationManager;
+
 		// Execution control
 		OS::IAppControl& appControl;
 
@@ -969,6 +972,16 @@ namespace Rococo
 		IUtilities& utilities;
 	};
 
+	struct PlatformCreator
+	{
+		Rococo::MPEditor::IMPEditor& editor;
+	};
+
+	struct PlatformMisc
+	{	
+		IMathsVisitorSupervisor& mathsVisitor;
+	};
+
 	struct Platform
 	{
 		PlatformGraphics graphics;
@@ -978,14 +991,9 @@ namespace Rococo
 		PlatformWorld world;
 		PlatformData data;
 		PlatformPlumbing plumbing;
-
-		Tesselators& tesselators;
-
-		IMathsVisitorSupervisor& mathsVisitor;
-
-		Rococo::IInstallationManager& installationManager;
-
-		Rococo::MPEditor::IMPEditor& editor;
+		PlatformCreator creator;
+		PlatformMisc misc;
+		Tesselators& tesselators;		
 	};
 
 	namespace Events

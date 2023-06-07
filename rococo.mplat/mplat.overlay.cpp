@@ -50,7 +50,7 @@ struct OverlayPane : public IPaneBuilderSupervisor, PaneDelegate, public IUIElem
 		{
 			if (!clickedDown)
 			{
-				platform.mathsVisitor.CancelSelect();
+				platform.misc.mathsVisitor.CancelSelect();
 				overlay->type = OverlayPane::Type::None;
 			}
 		}
@@ -59,7 +59,7 @@ struct OverlayPane : public IPaneBuilderSupervisor, PaneDelegate, public IUIElem
 		{
 			if (!clickedDown)
 			{
-				platform.mathsVisitor.CancelSelect();
+				platform.misc.mathsVisitor.CancelSelect();
 				overlay->type = OverlayPane::Type::None;
 			}
 		}
