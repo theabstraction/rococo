@@ -393,7 +393,10 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 		// Plaform hardware
 		{ *keyboard, *audio, *xbox360stick },
 
-		*messaging, *publisher, *utilities, *config, *archive, *mobiles, *particles, *rigs, tesselators, *mathsVisitor, *ims, *world, *ecs, *editor
+		// Platform world
+		{ *mobiles, *particles, *rigs, *world, *ecs },
+
+		*messaging, *publisher, *utilities, *config, *archive, tesselators, *mathsVisitor, *ims, *editor
 	};
 
 	editor->SetPlatform(&platform);

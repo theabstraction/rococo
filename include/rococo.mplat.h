@@ -937,12 +937,27 @@ namespace Rococo
 		Rococo::Joysticks::IJoystick_XBOX360& xbox360joystick;
 	};
 
+	struct PlatformWorld
+	{
+		Entities::IMobilesSupervisor& mobiles;
+
+		Entities::IParticleSystemSupervisor& particles;
+
+		Entities::IRigs& rigs;	
+		
+		Rococo::IWorldBuilder& worldBuilder;
+
+		// (E)ntity(C)omponent(S)ystem
+		Rococo::Components::IRCObjectTable& ECS;
+	};
+
 	struct Platform
 	{
 		PlatformGraphics graphics;
 		PlatformOS os;
 		PlatformScripts scripts;
 		PlatformHardware hardware;
+		PlatformWorld world;
 
 		// Messaging used to communicate to the player in text
 		Graphics::IMessaging& messaging;
@@ -957,22 +972,12 @@ namespace Rococo
 
 		IArchive& archive;
 
-		Entities::IMobilesSupervisor& mobiles;
-
-		Entities::IParticleSystemSupervisor& particles;
-
-		Entities::IRigs& rigs;
-
 		Tesselators& tesselators;
 
 		IMathsVisitorSupervisor& mathsVisitor;
 
 		Rococo::IInstallationManager& installationManager;
 
-		Rococo::IWorldBuilder& worldBuilder;
-
-		// (E)ntity(C)omponent(S)ystem
-		Rococo::Components::IRCObjectTable& ECS;
 
 		Rococo::MPEditor::IMPEditor& editor;
 	};

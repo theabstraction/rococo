@@ -47,7 +47,7 @@ Rococo::Entities::IRigBuilder* FactoryConstructRococoEntitiesRigBuilder(Rococo::
 
 Rococo::IWorldBuilder* FactoryConstructRococoWorldBuilder(Rococo::Platform* platform)
 {
-	return &platform->worldBuilder;
+	return &platform->world.worldBuilder;
 }
 
 Rococo::IArchive* FactoryConstructRococoGetArchive(Rococo::Platform * platform)
@@ -137,7 +137,7 @@ Rococo::IPaneBuilder* FactoryConstructRococoPaneBuilder(Rococo::IPaneBuilder* pb
 
 Rococo::Entities::IParticleSystem* FactoryConstructRococoEntitiesParticleSystem(Rococo::Platform* platform)
 {
-	return &platform->particles;
+	return &platform->world.particles;
 }
 
 Rococo::Entities::IInstances* FactoryConstructRococoEntitiesInstances(Rococo::Entities::IInstances* ins)
@@ -270,10 +270,10 @@ namespace Rococo
 					if (addPlatform)
 					{
 						Audio::AddNativeCalls_RococoAudioIAudio(args.ss, &platform.hardware.audio);
-						Entities::AddNativeCalls_RococoEntitiesIRigBuilder(args.ss, &platform.rigs);
+						Entities::AddNativeCalls_RococoEntitiesIRigBuilder(args.ss, &platform.world.rigs);
 						Graphics::AddNativeCalls_RococoGraphicsIMeshBuilder(args.ss, &platform.graphics.meshes);
 						Entities::AddNativeCalls_RococoEntitiesIInstances(args.ss, &platform.graphics.instances);
-						Entities::AddNativeCalls_RococoEntitiesIMobiles(args.ss, &platform.mobiles);
+						Entities::AddNativeCalls_RococoEntitiesIMobiles(args.ss, &platform.world.mobiles);
 						Graphics::AddNativeCalls_RococoGraphicsICamera(args.ss, &platform.graphics.camera);
 						Graphics::AddNativeCalls_RococoGraphicsISceneBuilder(args.ss, &platform.graphics.scene.Builder());
 						Graphics::AddNativeCalls_RococoGraphicsISpriteBuilder(args.ss, &platform.graphics.spriteBuilder);
