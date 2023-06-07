@@ -36,7 +36,7 @@ namespace ANON
 			iAlignment |= Alignment_Top;
 		}
 
-		if (flags.HasSomeFlags(GRAlignment::Top))
+		if (flags.HasSomeFlags(GRAlignment::Bottom))
 		{
 			iAlignment |= Alignment_Bottom;
 		}
@@ -185,7 +185,7 @@ namespace ANON
 
 			RGBAb transparent(0, 0, 0, 0);
 
-			Rococo::Graphics::RenderHQText(clipRect, iAlignment, *rc, hqFontId, editText, transparent, &glyphCallback);
+			Rococo::Graphics::RenderHQText(clipRect, iAlignment, *rc, hqFontId, editText, transparent, spacing, &glyphCallback);
 
 			int32 dxShift = 0;
 
@@ -203,7 +203,7 @@ namespace ANON
 			glyphCallback.charPos = 0;
 			glyphCallback.caretStart = glyphCallback.caretEnd = { 0,0 };
 
-			Rococo::Graphics::RenderHQText(clipRect, iAlignment, *rc, hqFontId, editText, colour, &glyphCallback, dxShift);
+			Rococo::Graphics::RenderHQText(clipRect, iAlignment, *rc, hqFontId, editText, colour, spacing, &glyphCallback, dxShift);
 
 			if (glyphCallback.caretEnd.x <= glyphCallback.caretStart.x)
 			{
@@ -255,7 +255,7 @@ namespace ANON
 				break;
 			}
 	
-			Rococo::Graphics::RenderHQText(clipRect, iAlignment, *rc, hqFontId, text, colour);
+			Rococo::Graphics::RenderHQText(clipRect, iAlignment, *rc, hqFontId, text, colour, spacing);
 
 			if (lastScissorRect.IsNormalized() && IsRectClipped(lastScissorRect, clipRect))
 			{

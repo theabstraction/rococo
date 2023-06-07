@@ -537,7 +537,7 @@ namespace Rococo::Graphics
 		uint32 unicode;
 	};
 
-	RENDERER_API GuiRect RenderHQText(const GuiRect& clipRect, int32 alignment, IGuiRenderContext& grc, ID_FONT fontId, cstr text, RGBAb colour, IEventCallback<GlyphContext>* glyphCallback = nullptr, int dxShift = 0);
+	RENDERER_API GuiRect RenderHQText(const GuiRect& clipRect, int32 alignment, IGuiRenderContext& grc, ID_FONT fontId, cstr text, RGBAb colour, Vec2i spacing, IEventCallback<GlyphContext>* glyphCallback = nullptr, int dxShift = 0);
 	RENDERER_API Vec2 RenderHQText_LeftAligned_VCentre(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour);
 	RENDERER_API Vec2 RenderHQText_LeftAligned_VCentre_WithCaret(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour, int caretPos);
 	RENDERER_API Vec2 RenderHQParagraph(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour);

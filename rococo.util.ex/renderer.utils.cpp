@@ -938,7 +938,7 @@ namespace Rococo
 			}
 		}
 
-		RENDERER_API GuiRect RenderHQText(const GuiRect& clipRect, int32 alignment, IGuiRenderContext& grc, ID_FONT fontId, cstr text, RGBAb colour, IEventCallback<GlyphContext>* glyphCallback, int dxShift)
+		RENDERER_API GuiRect RenderHQText(const GuiRect& clipRect, int32 alignment, IGuiRenderContext& grc, ID_FONT fontId, cstr text, RGBAb colour, Vec2i spacing, IEventCallback<GlyphContext>* glyphCallback, int dxShift)
 		{
 			if (text == nullptr)
 			{
@@ -986,11 +986,11 @@ namespace Rococo
 
 			if (HasFlag(Alignment_Left, alignment) && !HasFlag(Alignment_Right, alignment))
 			{
-				job.startPos.x = (float)clipRect.left;
+				job.startPos.x = (float)clipRect.left + spacing.x;
 			}
 			else if (HasFlag(Alignment_Right, alignment) && !HasFlag(Alignment_Left, alignment))
 			{
-				job.startPos.x = (float)(clipRect.right - span.x);
+				job.startPos.x = (float)(clipRect.right - span.x - spacing.x);
 			}
 			else
 			{
@@ -999,11 +999,11 @@ namespace Rococo
 
 			if (HasFlag(Alignment_Top, alignment) && !HasFlag(Alignment_Bottom, alignment))
 			{
-				job.startPos.y = (float)clipRect.top;
+				job.startPos.y = (float)clipRect.top + span.y + spacing.y;
 			}
 			else if (HasFlag(Alignment_Bottom, alignment) && !HasFlag(Alignment_Top, alignment))
 			{
-				job.startPos.y = (float)(clipRect.bottom - span.y);
+				job.startPos.y = (float)(clipRect.bottom - spacing.y);
 			}
 			else
 			{

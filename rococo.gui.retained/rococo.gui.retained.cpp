@@ -8,6 +8,9 @@
 #include <unordered_set>
 #include <rococo.maths.h>
 
+#define ROCOCO_USE_SAFE_V_FORMAT
+#include <rococo.strings.h>
+
 using namespace Rococo;
 using namespace Rococo::Gui;
 
@@ -277,6 +280,23 @@ namespace ANON
 					g.DrawRectEdge(rect, colour, colour);
 				}
 			}
+
+			RenderDebugInfo(g);
+		}
+
+		void RenderDebugInfo(IGRRenderContext& g)
+		{
+			Vec2i pos = g.CursorHoverPoint();
+
+			GRFontId debugFontId = GRFontId::MENU_FONT;
+
+			GRAlignmentFlags alignment;
+			alignment.Add(GRAlignment::Bottom).Add(GRAlignment::Right);
+
+			char cursorLine[32];
+			Strings::SafeFormat(cursorLine, "%d %d", pos.x, pos.y);
+
+			g.DrawText(debugFontId, g.ScreenDimensions(), alignment, { 10, 10 }, to_fstring(cursorLine), RGBAb(255, 255, 255));
 		}
 
 		void MakeFirstToRender(IdWidget id) override
