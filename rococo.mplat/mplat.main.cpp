@@ -390,8 +390,10 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 		// Platform scripting
 		{ *sourceCache, *debuggerWindow, *ssFactory },
 
-		*messaging, *publisher, *utilities,  *keyboard, *config, *archive, *mobiles, *particles, *rigs, tesselators, *mathsVisitor,
-		*audio, *xbox360stick, *ims, *world, *ecs, *editor
+		// Plaform hardware
+		{ *keyboard, *audio, *xbox360stick },
+
+		*messaging, *publisher, *utilities, *config, *archive, *mobiles, *particles, *rigs, tesselators, *mathsVisitor, *ims, *world, *ecs, *editor
 	};
 
 	editor->SetPlatform(&platform);

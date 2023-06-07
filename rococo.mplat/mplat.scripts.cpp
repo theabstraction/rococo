@@ -269,7 +269,7 @@ namespace Rococo
 				{
 					if (addPlatform)
 					{
-						Audio::AddNativeCalls_RococoAudioIAudio(args.ss, &platform.audio);
+						Audio::AddNativeCalls_RococoAudioIAudio(args.ss, &platform.hardware.audio);
 						Entities::AddNativeCalls_RococoEntitiesIRigBuilder(args.ss, &platform.rigs);
 						Graphics::AddNativeCalls_RococoGraphicsIMeshBuilder(args.ss, &platform.graphics.meshes);
 						Entities::AddNativeCalls_RococoEntitiesIInstances(args.ss, &platform.graphics.instances);
@@ -286,7 +286,7 @@ namespace Rococo
 						Graphics::AddNativeCalls_RococoGraphicsIRendererConfig(args.ss, &platform);
 						Graphics::AddNativeCalls_RococoGraphicsIMessaging(args.ss, &platform);
 						Graphics::AddNativeCalls_RococoGraphicsILandscapeTesselator(args.ss, &platform);
-						AddNativeCalls_RococoIKeyboard(args.ss, &platform.keyboard);
+						AddNativeCalls_RococoIKeyboard(args.ss, &platform.hardware.keyboard);
 						Entities::AddNativeCalls_RococoEntitiesIParticleSystem(args.ss, &platform);
 						Graphics::AddNativeCalls_RococoGraphicsIHQFonts(args.ss, &platform);
 						Rococo::AddNativeCalls_RococoIInstallationManager(args.ss, &platform);

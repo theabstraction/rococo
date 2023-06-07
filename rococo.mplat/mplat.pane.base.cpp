@@ -606,7 +606,7 @@ struct PaneContainer : public BasePane, virtual public IPaneContainer
 
 	Rococo::ITabContainer* AddTabContainer(int32 tabHeight, int32 fontIndex, const GuiRect& rect)
 	{
-		auto* tabs = Rococo::MPlatImpl::AddTabContainer(platform.publisher, (IKeyboardSupervisor&) platform.keyboard, *this, tabHeight, fontIndex, rect);
+		auto* tabs = Rococo::MPlatImpl::AddTabContainer(platform.publisher, (IKeyboardSupervisor&) platform.hardware.keyboard, *this, tabHeight, fontIndex, rect);
 		return tabs;
 	}
 
@@ -634,7 +634,7 @@ struct PaneContainer : public BasePane, virtual public IPaneContainer
 
 	Rococo::IContextMenuPane* AddContextMenu(const fstring& key, const GuiRect& rect)
 	{
-		auto* menu = Rococo::MPlatImpl::AddContextMenuPane(platform.publisher, platform.keyboard, *this, key, rect, platform.utilities.GetContextMenu());
+		auto* menu = Rococo::MPlatImpl::AddContextMenuPane(platform.publisher, platform.hardware.keyboard, *this, key, rect, platform.utilities.GetContextMenu());
 		return menu;
 	}
 

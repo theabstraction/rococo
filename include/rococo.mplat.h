@@ -930,11 +930,19 @@ namespace Rococo
 		Rococo::Script::IScriptSystemFactory& ssFactory;
 	};
 
+	struct PlatformHardware
+	{
+		IKeyboardSupervisor& keyboard;
+		Audio::IAudio& audio;
+		Rococo::Joysticks::IJoystick_XBOX360& xbox360joystick;
+	};
+
 	struct Platform
 	{
 		PlatformGraphics graphics;
 		PlatformOS os;
 		PlatformScripts scripts;
+		PlatformHardware hardware;
 
 		// Messaging used to communicate to the player in text
 		Graphics::IMessaging& messaging;
@@ -944,8 +952,6 @@ namespace Rococo
 
 		// Platform utilities
 		IUtilities& utilities;
-
-		IKeyboardSupervisor& keyboard;
 
 		IConfigSupervisor& config;
 
@@ -960,10 +966,6 @@ namespace Rococo
 		Tesselators& tesselators;
 
 		IMathsVisitorSupervisor& mathsVisitor;
-
-		Audio::IAudio& audio;
-
-		Rococo::Joysticks::IJoystick_XBOX360& xbox360joystick;
 
 		Rococo::IInstallationManager& installationManager;
 

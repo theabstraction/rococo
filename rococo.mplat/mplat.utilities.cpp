@@ -383,7 +383,7 @@ public:
 	{
 		if (!browser)
 		{
-			browser = CreateMPlatFileBrowser(platform->publisher, platform->os.installation, platform->graphics.gui, platform->keyboard, *this);
+			browser = CreateMPlatFileBrowser(platform->publisher, platform->os.installation, platform->graphics.gui, platform->hardware.keyboard, *this);
 		}
 
 		if (!browsingPane)
