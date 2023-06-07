@@ -52,7 +52,7 @@ Rococo::IWorldBuilder* FactoryConstructRococoWorldBuilder(Rococo::Platform* plat
 
 Rococo::IArchive* FactoryConstructRococoGetArchive(Rococo::Platform * platform)
 {
-	return &platform->archive;
+	return &platform->data.archive;
 }
 
 Rococo::Graphics::IRendererConfig* FactoryConstructRococoGraphicsRendererConfig(Rococo::Platform* platform)
@@ -62,12 +62,12 @@ Rococo::Graphics::IRendererConfig* FactoryConstructRococoGraphicsRendererConfig(
 
 Rococo::Graphics::IMessaging* FactoryConstructRococoGraphicsMessaging(Rococo::Platform* platform)
 {
-	return &platform->messaging;
+	return &platform->plumbing.messaging;
 }
 
 Rococo::Graphics::ITextTesselator* FactoryConstructRococoGraphicsTextTesselator(Rococo::Platform* platform)
 {
-	return &platform->utilities.GetTextTesselator();
+	return &platform->plumbing.utilities.GetTextTesselator();
 }
 
 Rococo::Graphics::IQuadStackTesselator* FactoryConstructRococoGraphicsQuadStackTesselator(Rococo::Graphics::IQuadStackTesselator* _context)
@@ -77,7 +77,7 @@ Rococo::Graphics::IQuadStackTesselator* FactoryConstructRococoGraphicsQuadStackT
 
 Rococo::Graphics::IHQFonts* FactoryConstructRococoGraphicsHQFonts(Rococo::Platform* platform)
 {
-	return &platform->utilities.GetHQFonts();
+	return &platform->plumbing.utilities.GetHQFonts();
 }
 
 Rococo::Graphics::IRodTesselator* FactoryConstructRococoGraphicsRodTesselator(Rococo::Platform* platform)
@@ -290,7 +290,7 @@ namespace Rococo
 						Entities::AddNativeCalls_RococoEntitiesIParticleSystem(args.ss, &platform);
 						Graphics::AddNativeCalls_RococoGraphicsIHQFonts(args.ss, &platform);
 						Rococo::AddNativeCalls_RococoIInstallationManager(args.ss, &platform);
-						AddNativeCalls_RococoIConfig(args.ss, &platform.config);
+						AddNativeCalls_RococoIConfig(args.ss, &platform.data.config);
 						Rococo::AddNativeCalls_RococoIArchive(args.ss, &platform);
 						Rococo::AddNativeCalls_RococoIWorldBuilder(args.ss, &platform);
 

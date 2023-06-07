@@ -594,19 +594,19 @@ struct PaneContainer : public BasePane, virtual public IPaneContainer
 
 	Rococo::ILabelPane* AddLabel(int32 fontIndex, const fstring& text, const GuiRect& rect)
 	{
-		auto* label = Rococo::MPlatImpl::AddLabel(platform.publisher, *this, fontIndex, text, rect);
+		auto* label = Rococo::MPlatImpl::AddLabel(platform.plumbing.publisher, *this, fontIndex, text, rect);
 		return label;
 	}
 
 	Rococo::ISlider* AddSlider(int32 fontIndex, const fstring& text, const GuiRect& rect, float minValue, float maxValue)
 	{
-		auto* s = Rococo::MPlatImpl::AddSlider(platform.publisher, platform.graphics.renderer, *this, fontIndex, text, rect, minValue, maxValue);
+		auto* s = Rococo::MPlatImpl::AddSlider(platform.plumbing.publisher, platform.graphics.renderer, *this, fontIndex, text, rect, minValue, maxValue);
 		return s;
 	}
 
 	Rococo::ITabContainer* AddTabContainer(int32 tabHeight, int32 fontIndex, const GuiRect& rect)
 	{
-		auto* tabs = Rococo::MPlatImpl::AddTabContainer(platform.publisher, (IKeyboardSupervisor&) platform.hardware.keyboard, *this, tabHeight, fontIndex, rect);
+		auto* tabs = Rococo::MPlatImpl::AddTabContainer(platform.plumbing.publisher, (IKeyboardSupervisor&) platform.hardware.keyboard, *this, tabHeight, fontIndex, rect);
 		return tabs;
 	}
 
@@ -614,27 +614,27 @@ struct PaneContainer : public BasePane, virtual public IPaneContainer
 
 	Rococo::ITextOutputPane* AddTextOutput(int32 fontIndex, const fstring& eventKey, const GuiRect& rect)
 	{
-		auto* to = Rococo::MPlatImpl::AddTextOutput(platform.publisher, *this, fontIndex, eventKey, rect);
+		auto* to = Rococo::MPlatImpl::AddTextOutput(platform.plumbing.publisher, *this, fontIndex, eventKey, rect);
 		to->SetRect(rect);
 		return to;
 	}
 
 	Rococo::IRadioButton* AddRadioButton(int32 fontIndex, const fstring& text, const fstring& key, const fstring& value, const GuiRect& rect)
 	{
-		auto* radio = Rococo::MPlatImpl::AddRadioButton(platform.publisher, *this, fontIndex, text, key, value, rect);
+		auto* radio = Rococo::MPlatImpl::AddRadioButton(platform.plumbing.publisher, *this, fontIndex, text, key, value, rect);
 		return radio;
 	}
 
 	Rococo::IScroller* AddScroller(const fstring& key, const GuiRect& rect, boolean32 isVertical)
 	{
-		auto* scroller = Rococo::MPlatImpl::AddScroller(platform.publisher, *this, key, rect, isVertical);
+		auto* scroller = Rococo::MPlatImpl::AddScroller(platform.plumbing.publisher, *this, key, rect, isVertical);
 		scroller->SetRect(rect);
 		return scroller;
 	}
 
 	Rococo::IContextMenuPane* AddContextMenu(const fstring& key, const GuiRect& rect)
 	{
-		auto* menu = Rococo::MPlatImpl::AddContextMenuPane(platform.publisher, platform.hardware.keyboard, *this, key, rect, platform.utilities.GetContextMenu());
+		auto* menu = Rococo::MPlatImpl::AddContextMenuPane(platform.plumbing.publisher, platform.hardware.keyboard, *this, key, rect, platform.plumbing.utilities.GetContextMenu());
 		return menu;
 	}
 
@@ -646,17 +646,17 @@ struct PaneContainer : public BasePane, virtual public IPaneContainer
 
 	bool AppendEvent(const KeyboardEvent& ke, const Vec2i& focusPoint, const Vec2i& absTopLeft)
 	{
-		return AppendEventToChildren(platform.publisher, ke, focusPoint, absTopLeft, 0);
+		return AppendEventToChildren(platform.plumbing.publisher, ke, focusPoint, absTopLeft, 0);
 	}
 
 	void AppendEvent(const MouseEvent& me, const Vec2i& absTopLeft)
 	{
-		AppendEventToChildren(platform.publisher, me, absTopLeft, 0);
+		AppendEventToChildren(platform.plumbing.publisher, me, absTopLeft, 0);
 	}
 
 	void Render(IGuiRenderContext& grc, const Vec2i& topLeft, const Modality& modality) override
 	{
-		Populate(platform.publisher, grc, 0, topLeft);
+		Populate(platform.plumbing.publisher, grc, 0, topLeft);
 		RenderChildren(grc, topLeft, modality);
 	}
 };
@@ -673,12 +673,12 @@ public:
 		scriptFilename(_scriptFilename),
 		onCompile(_onCompile)
 	{
-		platform.publisher.Subscribe(this, evFileUpdated);
+		platform.plumbing.publisher.Subscribe(this, evFileUpdated);
 	}
 
 	~ScriptedPanel()
 	{
-		platform.publisher.Unsubscribe(this);
+		platform.plumbing.publisher.Unsubscribe(this);
 	}
 
 	void OnEvent(Event& ev) override
@@ -738,7 +738,7 @@ public:
 		if (!hasPublishedDeclarations)
 		{
 			AutoFree<IDynamicStringBuilder> sb = CreateDynamicStringBuilder(4096);
-			platform.utilities.RunEnvironmentScript(*this, scriptFilename.c_str(), true, false, false, nullptr, &sb->Builder());
+			platform.plumbing.utilities.RunEnvironmentScript(*this, scriptFilename.c_str(), true, false, false, nullptr, &sb->Builder());
 
 			WideFilePath wPath;
 			platform.os.installation.ConvertPingPathToSysPath("!scripts/mplat/pane_declarations.sxy", wPath);
@@ -755,7 +755,7 @@ public:
 		}
 		else
 		{
-			platform.utilities.RunEnvironmentScript(*this, scriptFilename.c_str(), true);
+			platform.plumbing.utilities.RunEnvironmentScript(*this, scriptFilename.c_str(), true);
 		}
 	}
 
@@ -810,14 +810,14 @@ class PaneFrame : public PaneContainer, public IFramePane, public IObserver
 public:
 	PaneFrame(Platform& platform) :
 		PaneContainer(platform),
-		publisher(platform.publisher), renderer(platform.graphics.renderer)
+		publisher(platform.plumbing.publisher), renderer(platform.graphics.renderer)
 	{
 
 	}
 
 	~PaneFrame()
 	{
-		platform.publisher.Unsubscribe(this);
+		platform.plumbing.publisher.Unsubscribe(this);
 	}
 
 	void Free() override
@@ -901,7 +901,7 @@ public:
 			dragRightPos = -1;
 			dragBottomPos = -1;
 			captionDragPoint = { -1,-1 };
-			platform.publisher.Unsubscribe(this);
+			platform.plumbing.publisher.Unsubscribe(this);
 			platform.graphics.renderer.CaptureMouse(false);
 		}
 	}
@@ -914,7 +914,7 @@ public:
 	void StartDrag()
 	{
 		preDragSpan = Span(ClientRect());
-		platform.publisher.Subscribe(this, Rococo::Events::evUIMouseEvent);
+		platform.plumbing.publisher.Subscribe(this, Rococo::Events::evUIMouseEvent);
 		platform.graphics.renderer.CaptureMouse(true);
 	}
 

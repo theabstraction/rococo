@@ -37,12 +37,12 @@ class EnumListPane : public BasePane, public IEnumListPane, public IEventCallbac
 public:
 	EnumListPane(Platform& _platform, int _fontIndex, cstr _populateId) :
 		fontIndex(_fontIndex), platform(_platform), populateId(_populateId),
-		evPopulate(platform.publisher.CreateEventIdFromVolatileString(_populateId)),
-		vscroll(platform.utilities.CreateScrollbar(true))
+		evPopulate(platform.plumbing.publisher.CreateEventIdFromVolatileString(_populateId)),
+		vscroll(platform.plumbing.utilities.CreateScrollbar(true))
 	{
 		char scrollPopulateText[256];
 		SafeFormat(scrollPopulateText, sizeof scrollPopulateText, "%s.vscroll.populate", _populateId);
-		evScrollPopulate = platform.publisher.CreateEventIdFromVolatileString(scrollPopulateText);
+		evScrollPopulate = platform.plumbing.publisher.CreateEventIdFromVolatileString(scrollPopulateText);
 	}
 
 	void Free() override
@@ -88,7 +88,7 @@ public:
 		{
 			TEventArgs<IEnumVector*> args;
 			args.value = nullptr;
-			platform.publisher.Publish(args, evPopulate);
+			platform.plumbing.publisher.Publish(args, evPopulate);
 			if (args.value)
 			{
 				args.value->SetValue(id, value);
@@ -105,7 +105,7 @@ public:
 	{
 		TEventArgs<IEnumVector*> args;
 		args.value = nullptr;
-		platform.publisher.Publish(args, evPopulate);
+		platform.plumbing.publisher.Publish(args, evPopulate);
 		if (args.value)
 		{
 			args.value->SetActiveIndex(id);
@@ -236,7 +236,7 @@ public:
 
 		TEventArgs<IEnumVector*> args;
 		args.value = nullptr;
-		platform.publisher.Publish(args, evPopulate);
+		platform.plumbing.publisher.Publish(args, evPopulate);
 
 		if (args.value == nullptr) return;
 
@@ -310,7 +310,7 @@ public:
 
 		TEventArgs<IEnumVector*> args;
 		args.value = nullptr;
-		platform.publisher.Publish(args, evPopulate);
+		platform.plumbing.publisher.Publish(args, evPopulate);
 
 		int32 pageSize = Height(absRect);
 

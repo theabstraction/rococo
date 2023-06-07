@@ -218,7 +218,7 @@ namespace MHost
 						}
 					}
 				}
-			} ec(platform.publisher, be);
+			} ec(platform.plumbing.publisher, be);
 
 			platform.graphics.gui.PushTop(busyPanel->Supervisor(), true);
 
@@ -278,7 +278,7 @@ namespace MHost
 			busyPanel = platform.graphics.gui.BindPanelToScript("!scripts/panel.opening.sxy");
 			overlayPanel = platform.graphics.gui.CreateDebuggingOverlay();
 
-			platform.publisher.Subscribe(this, Rococo::Events::evBusy);
+			platform.plumbing.publisher.Subscribe(this, Rococo::Events::evBusy);
 
 			this->mainScript = args.mainScript;
 
@@ -291,7 +291,7 @@ namespace MHost
 
 		~App()
 		{
-			platform.publisher.Unsubscribe(this);
+			platform.plumbing.publisher.Unsubscribe(this);
 		}
 
 		void Free() override
@@ -322,7 +322,7 @@ namespace MHost
 			else if (Eq(ext, ".sxy"))
 			{
 				platform.graphics.gui.LogMessage("Updating script file");
-				platform.utilities.RefreshResource(pingPath);
+				platform.plumbing.utilities.RefreshResource(pingPath);
 				queuedForExecute = true;
 			}
 			else if (Eq(ext, ".ps"))
@@ -370,7 +370,7 @@ namespace MHost
 
 				}
 			} onCompile;
-			platform.utilities.RunEnvironmentScript(onCompile, 0, scriptName, true, false);
+			platform.plumbing.utilities.RunEnvironmentScript(onCompile, 0, scriptName, true, false);
 		}
 
 		void CreateMHostDeclarations()
@@ -396,7 +396,7 @@ namespace MHost
 			NoEventArgs noEventArgs;
 
 			AutoFree<IDynamicStringBuilder> sb = CreateDynamicStringBuilder(4096);
-			platform.utilities.RunEnvironmentScript(noEventArgs, "!scripts/mplat/create_platform_declarations.sxy", true, false, false, nullptr, &sb->Builder());
+			platform.plumbing.utilities.RunEnvironmentScript(noEventArgs, "!scripts/mplat/create_platform_declarations.sxy", true, false, false, nullptr, &sb->Builder());
 
 			WideFilePath wPath;
 			platform.os.installation.ConvertPingPathToSysPath("!scripts/mplat/platform_declarations.sxy", wPath);
@@ -416,7 +416,7 @@ namespace MHost
 			NoEventArgs noEventArgs;
 
 			AutoFree<IDynamicStringBuilder> sb = CreateDynamicStringBuilder(4096);
-			platform.utilities.RunEnvironmentScript(noEventArgs, "!scripts/native/create_declarations.sxy", false, false, false, nullptr, &sb->Builder());
+			platform.plumbing.utilities.RunEnvironmentScript(noEventArgs, "!scripts/native/create_declarations.sxy", false, false, false, nullptr, &sb->Builder());
 
 			WideFilePath wPath;
 			platform.os.installation.ConvertPingPathToSysPath("!scripts/native/declarations.sxy", wPath);
@@ -468,7 +468,7 @@ namespace MHost
 			lastTick = now;
 
 			platform.os.installation.OS().EnumerateModifiedFiles(*this);
-			platform.publisher.Deliver();
+			platform.plumbing.publisher.Deliver();
 
 			if (!control.TryRouteSysMessages(sleepMS))
 			{

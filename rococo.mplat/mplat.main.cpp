@@ -92,12 +92,12 @@ struct PlatformTabs: IObserver, IUIElement, public IMathsVenue
 	PlatformTabs(Platform& _platform):
 		platform(_platform)
 	{
-		platform.publisher.Subscribe(this, evUIPopulate);
+		platform.plumbing.publisher.Subscribe(this, evUIPopulate);
 	}
 
 	~PlatformTabs()
 	{
-		platform.publisher.Unsubscribe(this);
+		platform.plumbing.publisher.Unsubscribe(this);
 	}
 
 
@@ -150,7 +150,7 @@ struct PlatformTabs: IObserver, IUIElement, public IMathsVenue
 		else if (Eq(pop.name, "overlay.performance"))
 		{
 			pop.renderElement = this;
-			venue = platform.utilities.Venue();
+			venue = platform.plumbing.utilities.Venue();
 		}
 		else
 		{
@@ -396,7 +396,18 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 		// Platform world
 		{ *mobiles, *particles, *rigs, *world, *ecs },
 
-		*messaging, *publisher, *utilities, *config, *archive, tesselators, *mathsVisitor, *ims, *editor
+		// Platform data
+		{
+			*config,
+			*archive,
+		},
+
+		// Platform plumbing
+		{
+			*messaging, *publisher, *utilities
+		},
+
+		tesselators, *mathsVisitor, *ims, *editor
 	};
 
 	editor->SetPlatform(&platform);

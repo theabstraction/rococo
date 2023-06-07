@@ -56,7 +56,7 @@ public:
 
 	~Utilities()
 	{
-		platform->publisher.Unsubscribe(this);
+		platform->plumbing.publisher.Unsubscribe(this);
 	}
 
 	Rococo::Graphics::IHQFonts& GetHQFonts()
@@ -74,7 +74,7 @@ public:
 		this->platform = &platform;
 		textTesselator = Graphics::CreateTextTesselator(platform);
 		hqFonts = Graphics::CreateHQFonts(platform.graphics.renderer.Gui().HQFontsResources());
-		platform.publisher.Subscribe(this, evUIInvoke);
+		platform.plumbing.publisher.Subscribe(this, evUIInvoke);
 	}
 
 	void ShowBusy(bool enable, cstr title, cstr messageFormat, ...)
@@ -86,7 +86,7 @@ public:
 		va_list args;
 		va_start(args, messageFormat);
 		SafeVFormat(busy.pingPath.buf, busy.pingPath.CAPACITY, messageFormat, args);
-		platform->publisher.Publish(busy, Rococo::Events::evBusy);
+		platform->plumbing.publisher.Publish(busy, Rococo::Events::evBusy);
 	}
 
 	void OnEvent(Event& ev) override
@@ -353,7 +353,7 @@ public:
 
 		platform->scripts.sourceCache.Release(pingPath);
 
-		platform->publisher.Publish(fileUpdated, evFileUpdated);
+		platform->plumbing.publisher.Publish(fileUpdated, evFileUpdated);
 	}
 
 	IVariableEditor* CreateVariableEditor(Windows::IWindow& window, const Vec2i& span, int32 labelWidth, cstr appQueryName, cstr defaultTab, cstr defaultTooltip, IVariableEditorEventHandler* eventHandler, const Vec2i* topLeft) override
@@ -383,7 +383,7 @@ public:
 	{
 		if (!browser)
 		{
-			browser = CreateMPlatFileBrowser(platform->publisher, platform->os.installation, platform->graphics.gui, platform->hardware.keyboard, *this);
+			browser = CreateMPlatFileBrowser(platform->plumbing.publisher, platform->os.installation, platform->graphics.gui, platform->hardware.keyboard, *this);
 		}
 
 		if (!browsingPane)
@@ -437,7 +437,7 @@ public:
 	{
 		if (!contextMenu)
 		{
-			contextMenu = MPlatImpl::CreateContextMenu(platform->publisher, *this);
+			contextMenu = MPlatImpl::CreateContextMenu(platform->plumbing.publisher, *this);
 		}
 
 		return *contextMenu;

@@ -951,14 +951,14 @@ namespace Rococo
 		Rococo::Components::IRCObjectTable& ECS;
 	};
 
-	struct Platform
+	struct PlatformData
 	{
-		PlatformGraphics graphics;
-		PlatformOS os;
-		PlatformScripts scripts;
-		PlatformHardware hardware;
-		PlatformWorld world;
+		IConfigSupervisor& config;
+		IArchive& archive;
+	};
 
+	struct PlatformPlumbing
+	{
 		// Messaging used to communicate to the player in text
 		Graphics::IMessaging& messaging;
 
@@ -967,17 +967,23 @@ namespace Rococo
 
 		// Platform utilities
 		IUtilities& utilities;
+	};
 
-		IConfigSupervisor& config;
-
-		IArchive& archive;
+	struct Platform
+	{
+		PlatformGraphics graphics;
+		PlatformOS os;
+		PlatformScripts scripts;
+		PlatformHardware hardware;
+		PlatformWorld world;
+		PlatformData data;
+		PlatformPlumbing plumbing;
 
 		Tesselators& tesselators;
 
 		IMathsVisitorSupervisor& mathsVisitor;
 
 		Rococo::IInstallationManager& installationManager;
-
 
 		Rococo::MPEditor::IMPEditor& editor;
 	};

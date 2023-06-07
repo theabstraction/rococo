@@ -1766,9 +1766,9 @@ namespace
 			} forLevelFilename;
 			forLevelFilename.prefix = root;
 			forLevelFilename.initialFilename = value;
-			forLevelFilename.publisher = &platform.publisher;
+			forLevelFilename.publisher = &platform.plumbing.publisher;
 			forLevelFilename.control = this;
-			platform.utilities.BrowseFiles(forLevelFilename);
+			platform.plumbing.utilities.BrowseFiles(forLevelFilename);
 		}
 
 		void Click(bool clickedDown, Vec2i pos) override
@@ -1847,7 +1847,7 @@ namespace
 		BloodyPropertySetEditor(Platform& _platform, IEventCallback<BloodyNotifyArgs>& _onDirty) :
 			platform(_platform),
 			onDirty(_onDirty),
-			vscroll(platform.utilities.CreateScrollbar(true))
+			vscroll(platform.plumbing.utilities.CreateScrollbar(true))
 		{
 		}
 
@@ -1877,7 +1877,7 @@ namespace
 
 		void AddButton(cstr name, cstr eventName) override
 		{
-			properties.push_back(new BloodyProperty(new BloodyEventButton(platform.publisher, name, eventName), ""));
+			properties.push_back(new BloodyProperty(new BloodyEventButton(platform.plumbing.publisher, name, eventName), ""));
 		}
 
 		void AddSpacer() override

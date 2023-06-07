@@ -28,17 +28,17 @@ struct PanelArrayBox : BasePane, IArrayBox, IObserver, IEventCallback<ScrollEven
 
 	PanelArrayBox(Platform& _platform, int _fontIndex, cstr _populateArrayEventText) :
 		platform(_platform),
-		vscroll(_platform.utilities.CreateScrollbar(true))
+		vscroll(_platform.plumbing.utilities.CreateScrollbar(true))
 	{
-		idFont = platform.utilities.GetHQFonts().GetSysFont(Graphics::HQFont::EditorFont);
+		idFont = platform.plumbing.utilities.GetHQFonts().GetSysFont(Graphics::HQFont::EditorFont);
 		fontHeight = lineHeight = platform.graphics.renderer.Gui().GetFontMetrics(idFont).height;
 		populateArrayEventText = _populateArrayEventText;
-		evPopulate = platform.publisher.CreateEventIdFromVolatileString(populateArrayEventText);
+		evPopulate = platform.plumbing.publisher.CreateEventIdFromVolatileString(populateArrayEventText);
 	}
 	
 	~PanelArrayBox()
 	{
-		platform.publisher.Unsubscribe(this);
+		platform.plumbing.publisher.Unsubscribe(this);
 	}
 
 	void OnEvent(ScrollEvent& ev) override
@@ -60,13 +60,13 @@ struct PanelArrayBox : BasePane, IArrayBox, IObserver, IEventCallback<ScrollEven
 	void SetItemSelectEvent(const fstring& eventText) override
 	{
 		itemSelectedEventText = eventText;
-		evItemSelected = platform.publisher.CreateEventIdFromVolatileString(eventText);
+		evItemSelected = platform.plumbing.publisher.CreateEventIdFromVolatileString(eventText);
 	}
 
 	void SetScrollToItemEvent(const fstring& eventText) override
 	{
-		evScrollToLine = platform.publisher.CreateEventIdFromVolatileString(eventText);
-		platform.publisher.Subscribe(this, evScrollToLine);
+		evScrollToLine = platform.plumbing.publisher.CreateEventIdFromVolatileString(eventText);
+		platform.plumbing.publisher.Subscribe(this, evScrollToLine);
 	}
 
 	void OnEvent(Event& ev)
@@ -169,7 +169,7 @@ struct PanelArrayBox : BasePane, IArrayBox, IObserver, IEventCallback<ScrollEven
 			T2EventArgs<IStringVector*,int32> args;
 			args.value1 = nullptr;
 			args.value2 = -1;
-			platform.publisher.Publish(args, evPopulate);
+			platform.plumbing.publisher.Publish(args, evPopulate);
 
 			if (args.value1 != nullptr)
 			{
@@ -180,7 +180,7 @@ struct PanelArrayBox : BasePane, IArrayBox, IObserver, IEventCallback<ScrollEven
 			{
 				TEventArgs<int> selectArgs;
 				selectArgs.value = activeIndex;
-				platform.publisher.Publish(selectArgs, evItemSelected);
+				platform.plumbing.publisher.Publish(selectArgs, evItemSelected);
 			}
 		}
 		else if (me.HasFlag(me.LDown) || me.HasFlag(me.RDown))
@@ -254,7 +254,7 @@ struct PanelArrayBox : BasePane, IArrayBox, IObserver, IEventCallback<ScrollEven
 
 		T2EventArgs<IStringVector*,int32> args;
 		args.value1 = nullptr;
-		platform.publisher.Publish(args, evPopulate);
+		platform.plumbing.publisher.Publish(args, evPopulate);
 
 		GuiMetrics metrics;
 		grc.Renderer().GetGuiMetrics(metrics);

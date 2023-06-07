@@ -98,18 +98,18 @@ struct OverlayPane : public IPaneBuilderSupervisor, PaneDelegate, public IUIElem
 		current = tabbedPanel;
 		platform.graphics.gui.RegisterPopulator("texture_view", this);
 		platform.graphics.gui.RegisterPopulator("texture_cancel", &textureCancel);
-		platform.publisher.Subscribe(this, stnId);
-		platform.publisher.Subscribe(this, matClickedId);
-		platform.publisher.Subscribe(this, texClickedId);
-		platform.publisher.Subscribe(this, meshClickedId);
-		platform.publisher.Subscribe(this, matDescClicked);
+		platform.plumbing.publisher.Subscribe(this, stnId);
+		platform.plumbing.publisher.Subscribe(this, matClickedId);
+		platform.plumbing.publisher.Subscribe(this, texClickedId);
+		platform.plumbing.publisher.Subscribe(this, meshClickedId);
+		platform.plumbing.publisher.Subscribe(this, matDescClicked);
 	}
 
 	~OverlayPane()
 	{
 		platform.graphics.gui.UnregisterPopulator(&textureCancel);
 		platform.graphics.gui.UnregisterPopulator(this);
-		platform.publisher.Unsubscribe(this);
+		platform.plumbing.publisher.Unsubscribe(this);
 	}
 
 	void OnEvent(Event& ev) override

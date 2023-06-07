@@ -150,7 +150,7 @@ namespace MHost
 
 			void Execute(cstr name, bool trace)
 			{
-				platform.utilities.RunEnvironmentScript(*this, name, true, true, trace, onScriptCrash, declarationBuilder);
+				platform.plumbing.utilities.RunEnvironmentScript(*this, name, true, true, trace, onScriptCrash, declarationBuilder);
 				engine->SetRunningScriptContext(nullptr);
 			}
 		} sc(platform, engine, package, declarationBuilder);
