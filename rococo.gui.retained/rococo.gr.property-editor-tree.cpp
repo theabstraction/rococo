@@ -419,7 +419,7 @@ namespace GRANON
 		}
 
 		// firstValidIndex and lastValidIndex are required to be valid. Iteration includes the final index
-		void AddFieldTable(PreviewData& data, int32 firstValidIndex, int32 lastValidIndex, IGRWidget& parent, int depth, int& accumulatedHeight)
+		void AddFieldTable(PreviewData& data, int32 firstValidIndex, int32 lastValidIndex, IGRWidget& parent, int depth)
 		{
 			auto& table = CreateTable(parent);
 			table.Widget().Panel().Set(GRAnchors::ExpandAll());
@@ -447,16 +447,14 @@ namespace GRANON
 			{
 				AddFieldToTable(table, data.fields[j], depth);
 			}
-
-			accumulatedHeight += table.Widget().Panel().Span().y;
 		}
 
-		void AddSubObject(PreviewField& subObjectField, IGRWidget& parent, int depth, int& accumulatedHeight)
+		void AddSubObject(PreviewField& subObjectField, IGRWidget& parent, int depth)
 		{
-			SyncUIToPreviewerRecursive(*subObjectField.value.primitive.pSubObject, parent, depth, accumulatedHeight);
+			SyncUIToPreviewerRecursive(*subObjectField.value.primitive.pSubObject, parent, depth);
 		}
 
-		void SyncUIToPreviewerRecursive(PreviewData& data, IGRWidget& parentContainer, int32 depth, int& accumulatedParentHeight)
+		void SyncUIToPreviewerRecursive(PreviewData& data, IGRWidget& parentContainer, int32 depth)
 		{
 			auto& collapser = CreateCollapser(parentContainer);
 			collapser.Widget().Panel().Set(GRAnchors::ExpandAll());
@@ -489,8 +487,6 @@ namespace GRANON
 			int32 firstSimpleFieldIndex = -1;
 			int32 nextSimpleFieldIndex = -1;
 
-			int32 accumulatedCollapserAreaHeight = 30;
-
 			for (int32 i = 0; i < (int32)data.fields.size(); ++i)
 			{
 				auto& f = data.fields[i];
@@ -511,23 +507,19 @@ namespace GRANON
 				{
 					if (firstSimpleFieldIndex >= 0)
 					{
-						AddFieldTable(data, firstSimpleFieldIndex, nextSimpleFieldIndex, list, depth, accumulatedCollapserAreaHeight);
+						AddFieldTable(data, firstSimpleFieldIndex, nextSimpleFieldIndex, list, depth);
 						firstSimpleFieldIndex = -1;
 						nextSimpleFieldIndex = -1;
 					}
 
-					AddSubObject(data.fields[i], list, depth + 1, accumulatedCollapserAreaHeight);
+					AddSubObject(data.fields[i], list, depth + 1);
 				}
 			}
 
 			if (firstSimpleFieldIndex >= 0)
 			{
-				AddFieldTable(data, firstSimpleFieldIndex, (int32)data.fields.size() - 1, list, depth, accumulatedCollapserAreaHeight);
+				AddFieldTable(data, firstSimpleFieldIndex, (int32)data.fields.size() - 1, list, depth);
 			}
-
-			collapser.Widget().Panel().Resize({ 0, accumulatedCollapserAreaHeight });
-
-			accumulatedParentHeight += accumulatedCollapserAreaHeight;
 		}
 
 		IGRWidgetViewport* viewport = nullptr;
@@ -544,8 +536,7 @@ namespace GRANON
 
 			auto* node = previewer.root;
 
-			int32 accumulatedHeight = 0;
-			if (node) SyncUIToPreviewerRecursive(*node, viewport->ClientArea(), 0, accumulatedHeight);
+			if (node) SyncUIToPreviewerRecursive(*node, viewport->ClientArea(), 0);
 
 			SetCollapserSizes();
 		}
