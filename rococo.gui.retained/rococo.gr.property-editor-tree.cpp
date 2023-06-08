@@ -310,7 +310,7 @@ namespace GRANON
 		void Layout(const GuiRect& panelDimensions) override
 		{
 			LayoutChildrenByAnchors(panel, panelDimensions);
-		//	SetCollapserSizes();
+			SetCollapserSizes();
 		}
 
 		EventRouting OnCursorClick(CursorEvent& ce) override
@@ -552,7 +552,7 @@ namespace GRANON
 
 		int ComputeAndAssignCollapserHeights(IGRWidgetCollapser& collapserParent)
 		{
-			int32 heightOfDescendants = 0;
+			int32 heightOfDescendants = 30;
 
 			auto* collapserChild = collapserParent.ClientArea().Panel().GetChild(0);
 
@@ -572,7 +572,7 @@ namespace GRANON
 				IGRWidgetCollapser* collapser = Cast<IGRWidgetCollapser>(child->Widget());
 				if (collapser)
 				{
-					heightOfDescendants += 30 + ComputeAndAssignCollapserHeights(*collapser);
+					heightOfDescendants += ComputeAndAssignCollapserHeights(*collapser);
 				}
 				else
 				{

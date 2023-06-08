@@ -63,7 +63,7 @@ struct TestPuppy : IReflectionTarget
 	void Visit(IReflectionVisitor& v) override
 	{
 		v.SetSection("Puppy");
-		ROCOCO_REFLECT(v, name);
+	//	ROCOCO_REFLECT(v, name);
 		ROCOCO_REFLECT(v, id);
 	}
 };

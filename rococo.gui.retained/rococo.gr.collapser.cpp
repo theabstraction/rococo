@@ -65,6 +65,10 @@ namespace GRANON
 			else
 			{
 				newClientSpan = { Width(panelDimensions), Height(panelDimensions) - TITLE_BAR_HEIGHT };
+				if (newClientSpan.y == 0)
+				{
+					Throw(0, "Bad collapser height!");
+				}
 				clientArea->Panel().SetCollapsed(false);
 			}
 
