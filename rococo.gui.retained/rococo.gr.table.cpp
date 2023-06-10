@@ -163,6 +163,7 @@ namespace GRANON
 
 		void Render(IGRRenderContext& g) override
 		{
+			// g.DrawRectEdge(panel.AbsRect(), RGBAb(255, 0, 0, 255), RGBAb(255, 0, 0, 255));
 		}
 
 		EventRouting OnChildEvent(WidgetEvent& widgetEvent, IGRWidget& sourceWidget)

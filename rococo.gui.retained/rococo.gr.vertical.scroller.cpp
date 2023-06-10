@@ -190,7 +190,7 @@ namespace ANON
 
 		GuiRect ComputeSliderRect() const
 		{
-			if (sliderHeight <= 0 || sliderHeight >= Height(sliderZone) - 3)
+			if (sliderHeight <= 0 || sliderHeight > Height(sliderZone) - 3)
 			{
 				return { 0,0,0,0 };
 			}
@@ -246,7 +246,7 @@ namespace ANON
 		void GetMetrics(ScrollerMetrics& m) const override
 		{
 			m.PixelPosition = sliderPosition;
-			m.PixelRange = clamp(Height(sliderZone) - sliderHeight, 0, (int32) MAX_SCROLL_INT);
+			m.PixelRange = clamp(sliderHeight - Height(sliderZone), 0, (int32) MAX_SCROLL_INT);
 		}
 
 		void SetSliderPosition(int position) override

@@ -41,16 +41,15 @@ namespace ANON
 			ScrollerMetrics m;
 			vscroller->Scroller().GetMetrics(m);
 
-			clientOffsetArea->Panel().Resize({ Width(panelDimensions) - scrollbarWidth, Height(panelDimensions) });
-			clientOffsetArea->Panel().SetParentOffset({ 0, - m.PixelPosition });
+			auto clientOffsetSpan = clientOffsetArea->Panel().Span();
+			clientOffsetArea->Panel().Resize({ Width(panelDimensions) - scrollbarWidth, max(1, m.PixelRange) });
+			clientOffsetArea->Panel().SetParentOffset({ 0, -m.PixelPosition });
 			clientOffsetArea->Panel().InvalidateLayout(false);
 			InvalidateLayoutForAllDescendants(clientOffsetArea->Panel());
 
 			vscroller->Widget().Panel().Resize({ scrollbarWidth, Height(panelDimensions) - 1 });
 			vscroller->Widget().Panel().SetParentOffset({ Width(panelDimensions) - scrollbarWidth, 0 });
 			vscroller->Widget().Panel().InvalidateLayout(false);
-
-			vscroller->Scroller().SetSliderHeight(128);
 		}
 
 		void OnScrollerNewPositionCalculated(int32 newPosition, IGRWidgetScroller& scroller) override
@@ -98,8 +97,7 @@ namespace ANON
 
 		void Render(IGRRenderContext& g) override
 		{
-			ScrollerMetrics metrics;
-			vscroller->Scroller().GetMetrics(metrics);
+			SyncScroller();
 			DrawPanelBackground(panel, g);
 		}
 
@@ -115,12 +113,45 @@ namespace ANON
 
 		Vec2i EvaluateMinimalSpan() const override
 		{
-			return { 0,0 };
+			return { 10,10 };
 		}
 
 		EQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
 			return Gui::QueryForParticularInterface<IGRWidgetViewport>(this, ppOutputArg, interfaceId);
+		}
+
+		int lastKnownDomainHeight = 0;
+
+		void SyncScroller()
+		{
+			int scrollerZoneHeight = panel.Span().y - 2;
+			if (scrollerZoneHeight <= 0)
+			{
+
+			}
+			else if (lastKnownDomainHeight < scrollerZoneHeight)
+			{
+				vscroller->Scroller().SetSliderHeight(0);
+			}
+			else
+			{
+				double buttonHeightRatio = (double)scrollerZoneHeight / (double)lastKnownDomainHeight;
+				int buttonHeight = (int)(double)(scrollerZoneHeight * buttonHeightRatio);
+				vscroller->Scroller().SetSliderHeight(buttonHeight);
+			}
+		}
+
+		void SetDomainHeight(int32 heightInPixels) override
+		{
+			if (lastKnownDomainHeight != heightInPixels)
+			{
+				lastKnownDomainHeight = heightInPixels;
+
+				SyncScroller();
+
+				clientOffsetArea->Panel().Resize({ ClientArea().Panel().Span().x, max(1, heightInPixels) });
+			}
 		}
 
 		IGRWidget& Widget() override

@@ -1,8 +1,12 @@
 #include <rococo.gui.retained.ex.h>
 #include <rococo.maths.i32.h>
 
+#define ROCOCO_USE_SAFE_V_FORMAT
+#include <rococo.strings.h>
+
 using namespace Rococo;
 using namespace Rococo::Gui;
+using namespace Rococo::Strings;
 
 namespace GRANON
 {
@@ -65,9 +69,9 @@ namespace GRANON
 			else
 			{
 				newClientSpan = { Width(panelDimensions), Height(panelDimensions) - TITLE_BAR_HEIGHT };
-				if (newClientSpan.y == 0)
+				if (newClientSpan.y < 0)
 				{
-					Throw(0, "Bad collapser height!");
+					newClientSpan.y = TITLE_BAR_HEIGHT;
 				}
 				clientArea->Panel().SetCollapsed(false);
 			}

@@ -89,6 +89,8 @@ namespace GRANON
 			RGBAb edge1Colour = panel.GetColour(isHovered ? ESchemeColourSurface::CONTAINER_TOP_LEFT_HOVERED : ESchemeColourSurface::CONTAINER_TOP_LEFT);
 			RGBAb edge2Colour = panel.GetColour(isHovered ? ESchemeColourSurface::CONTAINER_BOTTOM_RIGHT_HOVERED : ESchemeColourSurface::CONTAINER_BOTTOM_RIGHT);
 			g.DrawRectEdge(rect, edge1Colour, edge2Colour);
+
+			// g.DrawRectEdge(panel.AbsRect(), RGBAb(255, 0, 0, 255), RGBAb(255, 0, 0, 255));
 		}
 
 		EventRouting OnChildEvent(WidgetEvent& widgetEvent, IGRWidget& sourceWidget) override
@@ -98,7 +100,7 @@ namespace GRANON
 
 		Vec2i EvaluateMinimalSpan() const override
 		{
-			return { 0,0 };
+			return { 10,10 };
 		}
 
 		EQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override

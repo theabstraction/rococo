@@ -295,7 +295,6 @@ namespace GRANON
 	struct GRPropertyEditorTree: IGRWidgetPropertyEditorTree, IGRWidget
 	{
 		IGRPanel& panel;
-
 		Previewer previewer;
 
 		GRPropertyEditorTree(IGRPanel& owningPanel) : panel(owningPanel)
@@ -591,6 +590,7 @@ namespace GRANON
 			if (collapser)
 			{
 				int sumTotalHeight = ComputeAndAssignCollapserHeights(*collapser);
+				viewport->SetDomainHeight(sumTotalHeight);
 			}
 		}
 	};
@@ -609,15 +609,20 @@ namespace Rococo::Gui
 
 		struct GRPropertyEditorTreeFactory : IGRWidgetFactory
 		{
+			GRPropertyEditorTreeFactory()
+			{
+
+			}
+
 			IGRWidget& CreateWidget(IGRPanel& panel)
 			{
 				return *new GRANON::GRPropertyEditorTree(panel);
 			}
 		};
-		
-		static GRPropertyEditorTreeFactory editorFactory;
 
-		auto* tree = static_cast<GRANON::GRPropertyEditorTree*>(Cast<IGRWidgetPropertyEditorTree>(gr.AddWidget(parent.Panel(), editorFactory)));
+		static GRPropertyEditorTreeFactory factory;
+		
+		auto* tree = static_cast<GRANON::GRPropertyEditorTree*>(Cast<IGRWidgetPropertyEditorTree>(gr.AddWidget(parent.Panel(), factory)));
 		tree->Preview(target);
 		return *tree;
 	}

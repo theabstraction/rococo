@@ -757,6 +757,8 @@ namespace Rococo::Gui
 	enum GRErrorCode
 	{
 		None,
+		BadSpanHeight,
+		BadSpanWidth,
 		Generic,
 		InvalidArg,
 		RecursionLocked
@@ -805,8 +807,8 @@ namespace Rococo::Gui
 	ROCOCO_INTERFACE IGRWidgetViewport : IGRBase
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
+		virtual void SetDomainHeight(int32 heightInPixels) = 0;
 		virtual IGRWidget& Widget() = 0;
-
 		virtual IGRWidgetDivision& ClientArea() = 0;
 		virtual IGRWidgetVerticalScrollerWithButtons& VScroller() = 0;
 	};
@@ -861,6 +863,8 @@ namespace Rococo::Gui
 	// Factory functions for creating widgets. All call IGuiRetained::AddWidget(...) to add themselves to the GUI
 	ROCOCO_GUI_RETAINED_API IGRWidgetButton& CreateButton(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetDivision& CreateDivision(IGRWidget& parent);
+
+	// Create a property tree editor. The instance of IGRWidgetPropertyEditorTreeEvents& has to be valid of the lifespan of the widget, or mark the widget panel for deletion when events can no longer be handled
 	ROCOCO_GUI_RETAINED_API IGRWidgetPropertyEditorTree& CreatePropertyEditorTree(IGRWidget& parent, Rococo::Reflection::IReflectionTarget& target);
 	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalScroller& CreateVerticalScroller(IGRWidget& parent, IScrollerEvents& events);
 	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalScrollerWithButtons& CreateVerticalScrollerWithButtons(IGRWidget& parent, IScrollerEvents& events);

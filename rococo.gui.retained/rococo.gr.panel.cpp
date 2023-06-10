@@ -3,6 +3,11 @@
 #include <rococo.maths.i32.h>
 #include <rococo.maths.h>
 
+#define ROCOCO_USE_SAFE_V_FORMAT
+#include <rococo.strings.h>
+
+using namespace Rococo::Strings;
+
 namespace GRANON
 {
 	using namespace Rococo;
@@ -490,12 +495,16 @@ namespace Rococo::Gui
 
 		if (newSpan.x == 0 && !anchors.expandsHorizontally  && child.Root().GR().HasDebugFlag(GRDebugFlags::ThrowWhenPanelIsZeroArea))
 		{
-			OS::TripDebugger();
+			char message[256];
+			SafeFormat(message, "Panel %lld was not set to expand horizontally and its current width is zero, hence will remain zero width", child.Id());
+			child.Root().Custodian().RaiseError(GRErrorCode::BadSpanWidth, __FUNCTION__, message);
 		}
 
 		if (newSpan.y == 0 && !anchors.expandsVertically && child.Root().GR().HasDebugFlag(GRDebugFlags::ThrowWhenPanelIsZeroArea))
 		{
-			OS::TripDebugger();
+			char message[256];
+			SafeFormat(message, "Panel %lld was not set to expand vertically and its current height is zero, hence will remain zero height", child.Id());
+			child.Root().Custodian().RaiseError(GRErrorCode::BadSpanHeight, __FUNCTION__, message);
 		}
 
 		if (anchors.left)
@@ -576,9 +585,18 @@ namespace Rococo::Gui
 
 		child.SetParentOffset(newPos);
 
-		if (newSpan.x == 0 || newSpan.y == 0 && child.Root().GR().HasDebugFlag(GRDebugFlags::ThrowWhenPanelIsZeroArea))
+		if (newSpan.x == 0 && child.Root().GR().HasDebugFlag(GRDebugFlags::ThrowWhenPanelIsZeroArea))
 		{
-			Throw(0, "Zero area for widget %d, %d with id %lld", newSpan.x, newSpan.y, child.Id());
+			char message[256];
+			SafeFormat(message, "Panel %lld width was computed to be zero", child.Id());
+			child.Root().Custodian().RaiseError(GRErrorCode::BadSpanWidth, __FUNCTION__, message);
+		}
+
+		if (newSpan.y == 0 && child.Root().GR().HasDebugFlag(GRDebugFlags::ThrowWhenPanelIsZeroArea))
+		{
+			char message[256];
+			SafeFormat(message, "Panel %lld height was computed to be zero", child.Id());
+			child.Root().Custodian().RaiseError(GRErrorCode::BadSpanHeight, __FUNCTION__, message);
 		}
 
 		child.Resize(newSpan);
