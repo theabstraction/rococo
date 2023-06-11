@@ -769,23 +769,31 @@ namespace Rococo::Gui
 		// PixelPosition = 0 -> scroller is in the start position, with >= 0 -> scroller has moved that many pixels towards the end position
 		int32 PixelPosition; 
 
-		// the maximum pixel position
+		// the maximum pixel position, i.e the slider zone span - the slider span. Example: if the slider zone is 1024 pixels and the slider span is 24 pixels, the pixel range would be 1000.
 		int32 PixelRange; 
+
+		// The number of pixels between the extremes of the slider zone
+		int32 SliderZoneSpan;
 	};
 
 	struct IGRWidgetScroller;
 
-	ROCOCO_INTERFACE IScrollerEvents
+	struct GRSliderSpec
+	{
+		int32 sliderSpanInPixels;
+	};
+
+	ROCOCO_INTERFACE IGRScrollerEvents
 	{
 		virtual void OnScrollerNewPositionCalculated(int32 newPosition, IGRWidgetScroller& scroller) = 0;
+		virtual GRSliderSpec OnCalculateSliderRect(int32 scrollerSpan) = 0;
 	};
 
 	ROCOCO_INTERFACE IGRWidgetScroller : IGRBase
 	{
 		virtual IGRWidget& Widget() = 0;
-		virtual void GetMetrics(ScrollerMetrics& m) const = 0;
+		virtual ScrollerMetrics GetMetrics() const = 0;
 		virtual void SetSliderPosition(int32 topPixelDelta) = 0;
-		virtual void SetSliderHeight(int32 pixelHeight) = 0;
 	};
 
 	ROCOCO_INTERFACE IGRWidgetVerticalScroller : IGRWidgetScroller
@@ -866,8 +874,8 @@ namespace Rococo::Gui
 
 	// Create a property tree editor. The instance of IGRWidgetPropertyEditorTreeEvents& has to be valid of the lifespan of the widget, or mark the widget panel for deletion when events can no longer be handled
 	ROCOCO_GUI_RETAINED_API IGRWidgetPropertyEditorTree& CreatePropertyEditorTree(IGRWidget& parent, Rococo::Reflection::IReflectionTarget& target);
-	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalScroller& CreateVerticalScroller(IGRWidget& parent, IScrollerEvents& events);
-	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalScrollerWithButtons& CreateVerticalScrollerWithButtons(IGRWidget& parent, IScrollerEvents& events);
+	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalScroller& CreateVerticalScroller(IGRWidget& parent, IGRScrollerEvents& events);
+	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalScrollerWithButtons& CreateVerticalScrollerWithButtons(IGRWidget& parent, IGRScrollerEvents& events);
 
 	// Creates a viewport into a larger UI domain, providing horizontal and vertical scrollbars to navigate the domain
 	ROCOCO_GUI_RETAINED_API IGRWidgetViewport& CreateViewportWidget(IGRWidget& parent);

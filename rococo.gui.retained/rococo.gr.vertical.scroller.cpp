@@ -10,25 +10,20 @@ namespace ANON
 	struct GRVerticalScroller : IGRWidgetVerticalScroller, IGRWidget
 	{
 		IGRPanel& panel;
-		IScrollerEvents* events = nullptr; // this is always set to non-null in the factory function at the bottom of the file
+		IGRScrollerEvents& events;
 
 		GuiRect sliderZone{ 0,0,0,0 };
 
 		int32 sliderPosition = 0; // Number of pixels below the top of the slider bar that the slider is set at.
 		int32 sliderHeight = 10; // Number of pixels from the top to the bottom of the slider button
 
-		GRVerticalScroller(IGRPanel& owningPanel) : panel(owningPanel)
+		GRVerticalScroller(IGRPanel& owningPanel, IGRScrollerEvents& argEvents) : panel(owningPanel), events(argEvents)
 		{
 		}
 
 		void Free() override
 		{
 			delete this;
-		}
-
-		void SetEventHandler(IScrollerEvents& events)
-		{
-			this->events = &events;
 		}
 
 		void Layout(const GuiRect& panelDimensions) override
@@ -44,6 +39,9 @@ namespace ANON
 			sliderZone.right = panelDimensions.right - 1;
 			sliderZone.top = panelDimensions.top + 1;
 			sliderZone.bottom = panelDimensions.bottom - 1;
+
+			auto spec = events.OnCalculateSliderRect(Height(sliderZone));
+			sliderHeight = spec.sliderSpanInPixels;
 		}
 
 		enum class EClick
@@ -148,7 +146,7 @@ namespace ANON
 				clickDeltaPosition = ce.position.y - clickPosition;
 				if (clickDeltaPosition > 0 && oldPosition != clickDeltaPosition)
 				{
-					events->OnScrollerNewPositionCalculated(clickDeltaPosition, *this);
+					events.OnScrollerNewPositionCalculated(clickDeltaPosition, *this);
 				}
 			}
 			return EventRouting::Terminate;
@@ -161,30 +159,30 @@ namespace ANON
 
 		void RenderScrollerButton(IGRRenderContext& g, const GuiRect& rect, bool isUp)
 		{
-			bool isHovered = IsPointInRect(g.CursorHoverPoint(), rect);
+			bool isLit = IsPointInRect(g.CursorHoverPoint(), rect) || clickPosition >= 0;
 
-			RGBAb backColour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_BUTTON_BACKGROUND_HOVERED : ESchemeColourSurface::SCROLLER_BUTTON_BACKGROUND);
+			RGBAb backColour = panel.GetColour(isLit ? ESchemeColourSurface::SCROLLER_BUTTON_BACKGROUND_HOVERED : ESchemeColourSurface::SCROLLER_BUTTON_BACKGROUND);
 			g.DrawRect(rect, backColour);
 
 			GuiRect triangleRect = { rect.left + 2, rect.top + 2, rect.right - 2, rect.bottom - 2 };
 
-			RGBAb triangleColour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_TRIANGLE_HOVERED : ESchemeColourSurface::SCROLLER_TRIANGLE_NORMAL);
+			RGBAb triangleColour = panel.GetColour(isLit ? ESchemeColourSurface::SCROLLER_TRIANGLE_HOVERED : ESchemeColourSurface::SCROLLER_TRIANGLE_NORMAL);
 			g.DrawDirectionArrow(triangleRect, triangleColour, isUp ? 0.0_degrees : 180.0_degrees);
 
-			RGBAb edge1Colour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT_HOVERED : ESchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT);
-			RGBAb edge2Colour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT_HOVERED : ESchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT);
+			RGBAb edge1Colour = panel.GetColour(isLit ? ESchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT_HOVERED : ESchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT);
+			RGBAb edge2Colour = panel.GetColour(isLit ? ESchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT_HOVERED : ESchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT);
 			g.DrawRectEdge(rect, edge1Colour, edge2Colour);
 		}
 
 		void RenderScrollerSlider(IGRRenderContext& g, const GuiRect& rect)
 		{
-			bool isHovered = IsPointInRect(g.CursorHoverPoint(), rect);
+			bool isLit = IsPointInRect(g.CursorHoverPoint(), rect) || clickPosition >= 0;
 
-			RGBAb backColour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_SLIDER_BACKGROUND_HOVERED : ESchemeColourSurface::SCROLLER_SLIDER_BACKGROUND);
+			RGBAb backColour = panel.GetColour(isLit ? ESchemeColourSurface::SCROLLER_SLIDER_BACKGROUND_HOVERED : ESchemeColourSurface::SCROLLER_SLIDER_BACKGROUND);
 			g.DrawRect(rect, backColour);
 
-			RGBAb edge1Colour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_SLIDER_TOP_LEFT_HOVERED : ESchemeColourSurface::SCROLLER_SLIDER_TOP_LEFT);
-			RGBAb edge2Colour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_SLIDER_BOTTOM_RIGHT_HOVERED : ESchemeColourSurface::SCROLLER_SLIDER_BOTTOM_RIGHT);
+			RGBAb edge1Colour = panel.GetColour(isLit ? ESchemeColourSurface::SCROLLER_SLIDER_TOP_LEFT_HOVERED : ESchemeColourSurface::SCROLLER_SLIDER_TOP_LEFT);
+			RGBAb edge2Colour = panel.GetColour(isLit ? ESchemeColourSurface::SCROLLER_SLIDER_BOTTOM_RIGHT_HOVERED : ESchemeColourSurface::SCROLLER_SLIDER_BOTTOM_RIGHT);
 			g.DrawRectEdge(rect, edge1Colour, edge2Colour);
 		}
 
@@ -203,12 +201,12 @@ namespace ANON
 		void Render(IGRRenderContext& g) override
 		{
 			auto rect = panel.AbsRect();
-			bool isHovered = g.IsHovered(panel);	
-			RGBAb edge1Colour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_BAR_TOP_LEFT_HOVERED : ESchemeColourSurface::SCROLLER_BAR_TOP_LEFT);
-			RGBAb edge2Colour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_BAR_BOTTOM_RIGHT_HOVERED : ESchemeColourSurface::SCROLLER_BAR_BOTTOM_RIGHT);
+			bool isLit = g.IsHovered(panel) || clickPosition >= 0;
+			RGBAb edge1Colour = panel.GetColour(isLit ? ESchemeColourSurface::SCROLLER_BAR_TOP_LEFT_HOVERED : ESchemeColourSurface::SCROLLER_BAR_TOP_LEFT);
+			RGBAb edge2Colour = panel.GetColour(isLit ? ESchemeColourSurface::SCROLLER_BAR_BOTTOM_RIGHT_HOVERED : ESchemeColourSurface::SCROLLER_BAR_BOTTOM_RIGHT);
 			g.DrawRectEdge(rect, edge1Colour, edge2Colour);
 
-			if (isHovered)
+			if (isLit)
 			{
 				g.DrawRectEdge(sliderZone, edge1Colour, edge2Colour);
 			}
@@ -243,10 +241,13 @@ namespace ANON
 
 		enum { MAX_SCROLL_INT = 1 << 30 };
 
-		void GetMetrics(ScrollerMetrics& m) const override
+		ScrollerMetrics GetMetrics() const override
 		{
+			ScrollerMetrics m;
 			m.PixelPosition = sliderPosition;
-			m.PixelRange = clamp(sliderHeight - Height(sliderZone), 0, (int32) MAX_SCROLL_INT);
+			m.SliderZoneSpan = Height(sliderZone);
+			m.PixelRange = clamp(m.SliderZoneSpan - sliderHeight, 0, (int32) MAX_SCROLL_INT);
+			return m;
 		}
 
 		void SetSliderPosition(int position) override
@@ -257,16 +258,6 @@ namespace ANON
 				return;
 			}
 			this->sliderPosition = position;
-		}
-
-		void SetSliderHeight(int sliderHeight) override
-		{
-			if (sliderHeight < 0 || sliderHeight > MAX_SCROLL_INT)
-			{
-				panel.Root().Custodian().RaiseError(GRErrorCode::InvalidArg, __FUNCTION__, "Range was out of bounds");
-				return;
-			}
-			this->sliderHeight = sliderHeight;
 		}
 
 		EQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
@@ -280,13 +271,20 @@ namespace ANON
 		}
 	};
 
-	struct  : IGRWidgetFactory
+	struct VerticalScrollerFactory : IGRWidgetFactory
 	{
+		IGRScrollerEvents& events;
+
+		VerticalScrollerFactory(IGRScrollerEvents& argEvents): events(argEvents)
+		{
+
+		}
+
 		IGRWidget& CreateWidget(IGRPanel& panel)
 		{
-			return *new GRVerticalScroller(panel);
+			return *new GRVerticalScroller(panel, events);
 		}
-	} s_VerticalScrollerFactory;
+	};
 }
 
 namespace Rococo::Gui
@@ -296,12 +294,13 @@ namespace Rococo::Gui
 		return "IGRWidgetVerticalScroller";
 	}
 
-	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalScroller& CreateVerticalScroller(IGRWidget& parent, IScrollerEvents& events)
+	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalScroller& CreateVerticalScroller(IGRWidget& parent, IGRScrollerEvents& events)
 	{
+		ANON::VerticalScrollerFactory factory(events);
+
 		auto& gr = parent.Panel().Root().GR();
-		auto* scroller = Cast<IGRWidgetVerticalScroller>(gr.AddWidget(parent.Panel(), ANON::s_VerticalScrollerFactory));
+		auto* scroller = Cast<IGRWidgetVerticalScroller>(gr.AddWidget(parent.Panel(), factory));
 		auto* scrollerClass = static_cast<ANON::GRVerticalScroller*>(scroller);
-		scrollerClass->SetEventHandler(events);
 		return *scroller;
 	}
 }

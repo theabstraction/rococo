@@ -6,7 +6,7 @@ using namespace Rococo::Gui;
 
 namespace ANON
 {
-	struct GRViewportWidget : IGRWidgetViewport, IGRWidget, IScrollerEvents
+	struct GRViewportWidget : IGRWidgetViewport, IGRWidget, IGRScrollerEvents
 	{
 		IGRPanel& panel;
 		IGRWidgetDivision* clipArea = nullptr; // Represents the rectangle to the left of the scroller
@@ -38,8 +38,7 @@ namespace ANON
 			clipArea->Panel().SetParentOffset({ 0,0 });
 			clipArea->Panel().InvalidateLayout(false);
 
-			ScrollerMetrics m;
-			vscroller->Scroller().GetMetrics(m);
+			ScrollerMetrics m = vscroller->Scroller().GetMetrics();
 
 			auto clientOffsetSpan = clientOffsetArea->Panel().Span();
 			clientOffsetArea->Panel().Resize({ Width(panelDimensions) - scrollbarWidth, max(1, m.PixelRange) });
@@ -52,10 +51,29 @@ namespace ANON
 			vscroller->Widget().Panel().InvalidateLayout(false);
 		}
 
+
+		GRSliderSpec OnCalculateSliderRect(int32 scrollerSpan) override
+		{
+			double sliderSpanToScrollerSpan = scrollerSpan / (double)lastKnownDomainHeight;
+
+			GRSliderSpec spec;
+			spec.sliderSpanInPixels = (int) (sliderSpanToScrollerSpan * scrollerSpan);
+			return spec;
+		}
+
 		void OnScrollerNewPositionCalculated(int32 newPosition, IGRWidgetScroller& scroller) override
 		{
+			int parentOffset = 0;
+
+			ScrollerMetrics m = scroller.GetMetrics();
+			if (m.PixelRange > 0 && lastKnownDomainHeight > m.SliderZoneSpan)
+			{
+				double cursor = clamp((double)(m.PixelPosition + newPosition) / (double)m.PixelRange, 0.0, 1.0);
+				parentOffset = (int)(cursor * (lastKnownDomainHeight - m.SliderZoneSpan));
+			}
+
 			clipArea->Panel().InvalidateLayout(false);
-			clientOffsetArea->Panel().SetParentOffset({ 0, -newPosition });
+			clientOffsetArea->Panel().SetParentOffset({ 0, -parentOffset });
 			clientOffsetArea->Panel().InvalidateLayout(false);
 			InvalidateLayoutForAllDescendants(clientOffsetArea->Panel());
 		}
@@ -97,7 +115,6 @@ namespace ANON
 
 		void Render(IGRRenderContext& g) override
 		{
-			SyncScroller();
 			DrawPanelBackground(panel, g);
 		}
 
@@ -123,33 +140,11 @@ namespace ANON
 
 		int lastKnownDomainHeight = 0;
 
-		void SyncScroller()
-		{
-			int scrollerZoneHeight = panel.Span().y - 2;
-			if (scrollerZoneHeight <= 0)
-			{
-
-			}
-			else if (lastKnownDomainHeight < scrollerZoneHeight)
-			{
-				vscroller->Scroller().SetSliderHeight(0);
-			}
-			else
-			{
-				double buttonHeightRatio = (double)scrollerZoneHeight / (double)lastKnownDomainHeight;
-				int buttonHeight = (int)(double)(scrollerZoneHeight * buttonHeightRatio);
-				vscroller->Scroller().SetSliderHeight(buttonHeight);
-			}
-		}
-
 		void SetDomainHeight(int32 heightInPixels) override
 		{
 			if (lastKnownDomainHeight != heightInPixels)
 			{
 				lastKnownDomainHeight = heightInPixels;
-
-				SyncScroller();
-
 				clientOffsetArea->Panel().Resize({ ClientArea().Panel().Span().x, max(1, heightInPixels) });
 			}
 		}

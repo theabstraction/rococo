@@ -38,18 +38,18 @@ namespace ANON
 		IGRWidgetButton* topButton = nullptr;
 		IGRWidgetButton* bottomButton = nullptr;
 		IGRWidgetVerticalScroller* scroller = nullptr;
-		IScrollerEvents* events = nullptr; // Always is set to non-null by the factory function at the bottom of the file
+		IGRScrollerEvents& events;
 
 		ScrollerButtonRenderer upRenderer;
 		ScrollerButtonRenderer downRenderer;
 
-		GRVerticalScrollerWithButtons(IGRPanel& owningPanel) : panel(owningPanel)
+		GRVerticalScrollerWithButtons(IGRPanel& owningPanel, IGRScrollerEvents& argEvents) : panel(owningPanel), events(argEvents)
 		{
 			upRenderer.orientation = 0_degrees;
 			downRenderer.orientation = 180_degrees;
 		}
 
-		void PostConstruct(IScrollerEvents& events)
+		void PostConstruct()
 		{
 			topButton = &CreateButton(*this);
 			bottomButton = &CreateButton(*this);
@@ -162,13 +162,19 @@ namespace ANON
 		}
 	};
 
-	struct  : IGRWidgetFactory
+	struct VerticalScrollerWithButtonsFactory : IGRWidgetFactory
 	{
+		IGRScrollerEvents& events;
+		VerticalScrollerWithButtonsFactory(IGRScrollerEvents& argEvents): events(argEvents)
+		{
+
+		}
+
 		IGRWidget& CreateWidget(IGRPanel& panel)
 		{
-			return *new GRVerticalScrollerWithButtons(panel);
+			return *new GRVerticalScrollerWithButtons(panel, events);
 		}
-	} s_VerticalScrollerWithButtonsFactory;
+	};
 }
 
 namespace Rococo::Gui
@@ -178,12 +184,14 @@ namespace Rococo::Gui
 		return "IGRWidgetVerticalScrollerWithButtons";
 	}
 
-	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalScrollerWithButtons& CreateVerticalScrollerWithButtons(IGRWidget& parent, IScrollerEvents& events)
+	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalScrollerWithButtons& CreateVerticalScrollerWithButtons(IGRWidget& parent, IGRScrollerEvents& events)
 	{
+		ANON::VerticalScrollerWithButtonsFactory factory(events);
+
 		auto& gr = parent.Panel().Root().GR();
-		auto* scroller = Cast<IGRWidgetVerticalScrollerWithButtons>(gr.AddWidget(parent.Panel(), ANON::s_VerticalScrollerWithButtonsFactory));
+		auto* scroller = Cast<IGRWidgetVerticalScrollerWithButtons>(gr.AddWidget(parent.Panel(), factory));
 		auto* scrollerClass = static_cast<ANON::GRVerticalScrollerWithButtons*>(scroller);
-		scrollerClass->PostConstruct(events);
+		scrollerClass->PostConstruct();
 		return *scroller;
 	}
 }
