@@ -40,8 +40,9 @@ namespace ANON
 			clipArea->Panel().SetParentOffset({ 0,0 });
 			clipArea->Panel().InvalidateLayout(false);
 
-			auto clientOffsetSpan = clientOffsetArea->Panel().Span();
-			clientOffsetArea->Panel().Resize(clipSpan);
+			Vec2i clientOffsetSpan{ clipSpan.x, max(lastKnownDomainHeight, clipSpan.y) };
+
+			clientOffsetArea->Panel().Resize(clientOffsetSpan);
 			clientOffsetArea->Panel().SetParentOffset({ 0, 0 });
 			clientOffsetArea->Panel().InvalidateLayout(false);
 			InvalidateLayoutForAllDescendants(clientOffsetArea->Panel());
