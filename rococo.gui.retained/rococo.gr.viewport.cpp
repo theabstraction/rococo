@@ -34,15 +34,15 @@ namespace ANON
 		{
 			enum { scrollbarWidth = 16 };
 
-			clipArea->Panel().Resize({ Width(panelDimensions) - scrollbarWidth, Height(panelDimensions)});
+			Vec2i clipSpan { Width(panelDimensions) - scrollbarWidth, Height(panelDimensions) };
+
+			clipArea->Panel().Resize(clipSpan);
 			clipArea->Panel().SetParentOffset({ 0,0 });
 			clipArea->Panel().InvalidateLayout(false);
 
-			ScrollerMetrics m = vscroller->Scroller().GetMetrics();
-
 			auto clientOffsetSpan = clientOffsetArea->Panel().Span();
-			clientOffsetArea->Panel().Resize({ Width(panelDimensions) - scrollbarWidth, max(1, m.PixelRange) });
-			clientOffsetArea->Panel().SetParentOffset({ 0, -m.PixelPosition });
+			clientOffsetArea->Panel().Resize(clipSpan);
+			clientOffsetArea->Panel().SetParentOffset({ 0, 0 });
 			clientOffsetArea->Panel().InvalidateLayout(false);
 			InvalidateLayoutForAllDescendants(clientOffsetArea->Panel());
 

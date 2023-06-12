@@ -104,7 +104,7 @@ struct TestHouse : IReflectionTarget
 
 	TestHouse()
 	{
-		puppies.resize(20);
+		puppies.resize(30);
 	}
 
 	void Visit(IReflectionVisitor& v) override
