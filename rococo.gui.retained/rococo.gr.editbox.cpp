@@ -78,9 +78,16 @@ namespace GRANON
 		{
 		}
 
+		bool preppingSelect = false;
+
 		EventRouting OnCursorClick(CursorEvent& ce) override
 		{
-			if (ce.click.LeftButtonUp)
+			if (ce.click.LeftButtonDown)
+			{
+				preppingSelect = true;
+				return EventRouting::Terminate;
+			}
+			else if (ce.click.LeftButtonUp && preppingSelect)
 			{
 				if (panel.Root().GR().GetFocusId() == panel.Id())
 				{
@@ -108,7 +115,7 @@ namespace GRANON
 
 		void OnCursorLeave() override
 		{
-
+			preppingSelect = false;
 		}
 
 		IGRPanel& Panel() override
