@@ -15,6 +15,7 @@ namespace ANON
 
 		GRViewportWidget(IGRPanel& owningPanel) : panel(owningPanel)
 		{
+			owningPanel.SetMinimalSpan({ 10, 10 });
 		}
 
 		void PostConstruct()
@@ -127,11 +128,6 @@ namespace ANON
 		EventRouting OnKeyEvent(KeyEvent& keyEvent) override
 		{
 			return EventRouting::NextHandler;
-		}
-
-		Vec2i EvaluateMinimalSpan() const override
-		{
-			return { 10,10 };
 		}
 
 		EQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override

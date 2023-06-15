@@ -74,11 +74,6 @@ namespace GRANON
 			return EventRouting::NextHandler;
 		}
 
-		Vec2i EvaluateMinimalSpan() const override
-		{
-			return { 0,0 };
-		}
-
 		EQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
 			return QueryForParticularInterface<IGRWidgetDivision>(this, ppOutputArg, interfaceId);

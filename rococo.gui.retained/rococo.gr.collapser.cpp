@@ -124,11 +124,6 @@ namespace GRANON
 			return collapseButton->Widget().OnKeyEvent(keyEvent);
 		}
 
-		Vec2i EvaluateMinimalSpan() const override
-		{
-			return { 0,0 };
-		}
-
 		IGRWidget& Widget()
 		{
 			return *this;

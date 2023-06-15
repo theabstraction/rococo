@@ -23,6 +23,7 @@ namespace GRANON
 
 		GRSplitter(IGRPanel& _panel, int32 _draggerStartPos, bool _updateWithMouseMove) : panel(_panel), draggerStartPos(_draggerStartPos), updateWithMouseMove(_updateWithMouseMove)
 		{
+			_panel.SetMinimalSpan({ 320, 200 });
 			realDraggerStartPos = _draggerStartPos;
 		}
 
@@ -153,11 +154,6 @@ namespace GRANON
 		IGRPanel& Panel() override
 		{
 			return panel;
-		}
-
-		Vec2i EvaluateMinimalSpan() const override
-		{
-			return Vec2i{ 320, 200 };
 		}
 
 		IGRWidgetDivision& First() override

@@ -62,7 +62,7 @@ namespace GRANON
 			int32 index = 0;
 			while (auto* child = panel.GetChild(index++))
 			{
-				child->Resize(child->Widget().EvaluateMinimalSpan());
+				child->Resize(child->MinimalSpan());
 				child->InvalidateLayout(false);
 			}
 
@@ -122,7 +122,7 @@ namespace GRANON
 			int32 index = 0;
 			while (auto* child = panel.GetChild(index++))
 			{
-				auto newSpan = child->Widget().EvaluateMinimalSpan();
+				auto newSpan = child->MinimalSpan();
 				child->Resize(newSpan);
 				dx += newSpan.x + interChildPadding;
 			}
@@ -146,11 +146,6 @@ namespace GRANON
 		EventRouting OnKeyEvent(KeyEvent& keyEvent) override
 		{
 			return EventRouting::NextHandler;
-		}
-
-		Vec2i EvaluateMinimalSpan() const override
-		{
-			return { 0,0 };
 		}
 
 		EQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override

@@ -17,7 +17,7 @@ namespace GRANON
 
 		GRMainFrame(cstr _name, IGRPanel& _panel) : name(_name), panel(_panel)
 		{
-			
+			_panel.SetMinimalSpan({ 320, 200 });
 		}
 
 		void PostConstruct()
@@ -148,11 +148,6 @@ namespace GRANON
 			}
 
 			return *rhsTools;
-		}
-
-		Vec2i EvaluateMinimalSpan() const override
-		{			
-			return Vec2i{ 320, 200 };
 		}
 
 		IGRWidget& Widget() override

@@ -147,6 +147,7 @@ namespace GRANON
 
 		GRMenuBar(IGRPanel& owningPanel) : panel(owningPanel)
 		{
+			owningPanel.SetMinimalSpan({ 100, 24 });
 			if (owningPanel.Parent() == nullptr)
 			{
 				// We require a parent so that we can anchor to its dimensions
@@ -205,7 +206,7 @@ namespace GRANON
 
 		Vec2i ShrinkPanelToFitText(IGRWidgetButton& button, Vec2i& lastPos)
 		{
-			Vec2i minimalSpan = button.Widget().EvaluateMinimalSpan();
+			Vec2i minimalSpan = button.Widget().Panel().MinimalSpan();
 			Vec2i newSpan = { minimalSpan.x + 2 * BUTTON_X_PADDING,  panel.Span().y };
 			button.Widget().Panel().Resize(newSpan);
 			button.Widget().Panel().SetParentOffset(lastPos);
@@ -443,11 +444,6 @@ namespace GRANON
 		EventRouting OnKeyEvent(KeyEvent& keyEvent) override
 		{
 			return EventRouting::NextHandler;
-		}
-
-		Vec2i EvaluateMinimalSpan() const override
-		{
-			return Vec2i{ 100, 24 };
 		}
 
 		EQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override

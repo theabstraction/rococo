@@ -25,6 +25,7 @@ namespace GRANON
 		GRButton(IGRPanel& owningPanel) : panel(owningPanel)
 		{
 			alignment.Add(GRAlignment::HCentre).Add(GRAlignment::VCentre);
+			SyncMinimalSpan();
 		}
 
 		void Free() override
@@ -81,6 +82,7 @@ namespace GRANON
 						isRaised = false;
 					}
 
+					SyncMinimalSpan();
 					FireEvent(ce);
 				}
 				else if (clickCriterion == GRClickCriterion::OnDownThenUp)
@@ -89,7 +91,7 @@ namespace GRANON
 					{
 						isRaised = false;
 					}
-
+					SyncMinimalSpan();
 					panel.CaptureCursor();
 				}
 				return EventRouting::Terminate;
@@ -106,7 +108,7 @@ namespace GRANON
 					{
 						isRaised = true;
 					}
-
+					SyncMinimalSpan();
 					FireEvent(ce);
 				}
 				else if (clickCriterion == GRClickCriterion::OnDownThenUp)
@@ -119,7 +121,7 @@ namespace GRANON
 					{
 						isRaised = true;
 					}
-
+					SyncMinimalSpan();
 					FireEvent(ce);
 
 					if (panel.Root().CapturedPanelId() == panel.Id())
@@ -132,6 +134,7 @@ namespace GRANON
 					if (!isToggler)
 					{
 						isRaised = true;
+						SyncMinimalSpan();
 					}
 					else
 					{
@@ -230,6 +233,7 @@ namespace GRANON
 			this->pressedImagePath = imagePath ? imagePath : std::string();
 			raisedImage = panel.Root().Custodian().CreateImageMemento(this->raisedImagePath.c_str());
 			pressedImage = panel.Root().Custodian().CreateImageMemento(this->pressedImagePath.c_str());
+			SyncMinimalSpan();
 			return *this;
 		}
 
@@ -237,6 +241,7 @@ namespace GRANON
 		{
 			this->pressedImagePath = imagePath ? imagePath : std::string();
 			pressedImage = panel.Root().Custodian().CreateImageMemento(this->pressedImagePath.c_str());
+			SyncMinimalSpan();
 			return *this;
 		}
 
@@ -244,6 +249,7 @@ namespace GRANON
 		{
 			this->raisedImagePath = imagePath ? imagePath : std::string();
 			raisedImage = panel.Root().Custodian().CreateImageMemento(this->raisedImagePath.c_str());
+			SyncMinimalSpan();
 			return *this;
 		}
 
@@ -284,6 +290,7 @@ namespace GRANON
 		IGRWidgetButton& SetTitle(cstr title) override
 		{
 			this->title = title == nullptr ? std::string() : title;
+			SyncMinimalSpan();
 			return *this;
 		}
 
@@ -298,7 +305,7 @@ namespace GRANON
 			return title.size();
 		}
 
-		Vec2i EvaluateMinimalSpan() const override
+		Vec2i EvaluateMinimalSpan() const
 		{
 			const IImageMemento* image = isRaised ? raisedImage : pressedImage;
 			if (image)
@@ -311,6 +318,12 @@ namespace GRANON
 			}
 
 			return panel.Root().Custodian().EvaluateMinimalSpan(GRFontId::MENU_FONT, fstring{ title.c_str(), (int32) title.length() }) + Vec2i { 2, 2 };
+		}
+
+		void SyncMinimalSpan()
+		{
+			Vec2i minimalSpan = EvaluateMinimalSpan();
+			panel.SetMinimalSpan(minimalSpan);
 		}
 
 		bool isToggler = false;

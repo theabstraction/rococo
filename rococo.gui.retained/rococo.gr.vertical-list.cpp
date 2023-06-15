@@ -15,6 +15,7 @@ namespace GRANON
 			panel(owningPanel), 
 			enforcePositiveChildHeights(_enforcePositiveChildHeights)
 		{
+			owningPanel.SetMinimalSpan({ 10, 10 });
 		}
 
 		void Free() override
@@ -96,11 +97,6 @@ namespace GRANON
 		EventRouting OnChildEvent(WidgetEvent& widgetEvent, IGRWidget& sourceWidget) override
 		{
 			return EventRouting::NextHandler;
-		}
-
-		Vec2i EvaluateMinimalSpan() const override
-		{
-			return { 10,10 };
 		}
 
 		EQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override

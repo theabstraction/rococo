@@ -224,7 +224,7 @@ namespace ANON
 			auto& frame = gr.BindFrame(ID_EDITOR_FRAME);
 			auto& scheme = gr.Root().Scheme();
 			SetSchemeColours_ThemeGrey(scheme);
-			//BuildMenus(frame);
+			BuildMenus(frame);
 			BuildUpperRightToolbar(frame);
 
 			auto& framePanel = frame.Widget().Panel();

@@ -234,11 +234,6 @@ namespace ANON
 			return EventRouting::NextHandler;
 		}
 
-		Vec2i EvaluateMinimalSpan() const override
-		{
-			return { 0,0 };
-		}
-
 		enum { MAX_SCROLL_INT = 1 << 30 };
 
 		ScrollerMetrics GetMetrics() const override

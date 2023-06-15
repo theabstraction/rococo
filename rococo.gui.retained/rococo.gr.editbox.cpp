@@ -37,6 +37,7 @@ namespace GRANON
 		GREditBox(IGRPanel& owningPanel, IGREditFilter* _filter, int32 capacity) : panel(owningPanel), filter(_filter)
 		{
 			text.reserve(capacity);
+			owningPanel.SetMinimalSpan({ 10, 10 });
 		}
 
 		void Free() override
@@ -236,11 +237,6 @@ namespace GRANON
 		{
 			panel.Root().Custodian().TranslateToEditor(keyEvent, *this);
 			return EventRouting::NextHandler;
-		}
-
-		Vec2i EvaluateMinimalSpan() const override
-		{
-			return { 10,10 };
 		}
 
 		IGRWidgetEditBox& SetAlignment(GRAlignmentFlags alignment, Vec2i spacing) override

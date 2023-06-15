@@ -22,6 +22,7 @@ namespace GRANON
 		IGRWidget* widget = nullptr; // Should always be set immediately after construction
 		Vec2i parentOffset{ 0,0 };
 		Vec2i span { 0, 0};
+		Vec2i minimalSpan{ 0,0 };
 		std::vector<IGRPanelSupervisor*> children;
 		int64 uniqueId;
 		GuiRect absRect{ 0,0,0,0 };
@@ -64,6 +65,11 @@ namespace GRANON
 			root.QueueGarbageCollect();
 		}
 
+		Vec2i MinimalSpan() const override
+		{
+			return minimalSpan;
+		}
+
 		bool IsMarkedForDeletion() const override
 		{
 			return isMarkedForDeletion;
@@ -98,6 +104,11 @@ namespace GRANON
 		{
 			this->padding = padding;
 			return *this;
+		}
+
+		void SetMinimalSpan(Vec2i span) override
+		{
+			this->minimalSpan = span;
 		}
 
 		IGRPanel* GetChild(int32 index) override
