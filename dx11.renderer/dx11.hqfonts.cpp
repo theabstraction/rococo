@@ -21,7 +21,7 @@ namespace ANON
 		bool evaluateSpanOnly = false;
 		IDX11FontRenderer* renderer = nullptr;
 
-		HQTextBuilder(Fonts::IArrayFont& _font, GuiRectf _clipRect) :
+		HQTextBuilder(Fonts::IArrayFont& _font, const GuiRectf& _clipRect) :
 			font(_font),
 			metrics(_font.Metrics()),
 			span{ (float)metrics.imgWidth, (float)metrics.imgHeight },

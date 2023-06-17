@@ -35,16 +35,16 @@ namespace Rococo::Gui
 		uint16 Unknown : 9;
 	};
 
-	struct PanelEvent
+	struct GRPanelEvent
 	{
 		int64 panelId;
 		IGRPanel* panel;
 		GuiRect absRect;
 	};
 
-	ROCOCO_INTERFACE IPanelEventBuilder
+	ROCOCO_INTERFACE IGRPanelEventBuilder
 	{
-		virtual IPanelEventBuilder& operator += (const PanelEvent& ev) = 0;
+		virtual IGRPanelEventBuilder& operator += (const GRPanelEvent& ev) = 0;
 	};
 
 	struct IGREventHistory
@@ -163,7 +163,7 @@ namespace Rococo::Gui
 		virtual void DrawRectEdgeLast(const GuiRect& absRect, RGBAb colour1, RGBAb colour2) = 0;
 
 		virtual void DrawEditableText(GRFontId fontId, const GuiRect& clipRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, int32 caretPos, RGBAb colour) = 0;
-		virtual void DrawText(GRFontId fontId, const GuiRect& clipRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour) = 0;
+		virtual void DrawText(GRFontId fontId, const GuiRect& targetRect, const GuiRect& clipRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour) = 0;
 
 		// Causes all render operations to complete
 		virtual void Flush() = 0;
@@ -424,7 +424,7 @@ namespace Rococo::Gui
 		virtual void LayoutRecursive(Vec2i absoluteOrigin) = 0;
 		virtual void RenderRecursive(IGRRenderContext & g, const GuiRect& clipRect) = 0;
 		virtual EventRouting RouteCursorClickEvent(CursorEvent& ce, bool filterChildrenByParentRect) = 0;
-		virtual void BuildCursorMovementHistoryRecursive(CursorEvent& ce, IPanelEventBuilder& wb) = 0;
+		virtual void BuildCursorMovementHistoryRecursive(CursorEvent& ce, IGRPanelEventBuilder& wb) = 0;
 		virtual void SetWidget(IGRWidget& widget) = 0;
 		virtual void Free() = 0;
 	};

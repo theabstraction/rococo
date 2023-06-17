@@ -218,7 +218,7 @@ namespace GRANON
 			{
 				if (text.size() > 0)
 				{
-					g.DrawText(fontId, rect, alignment, spacing, { text.data(), (int32)text.size() - 1 }, panel.GetColour(isHovered ? ESchemeColourSurface::TEXT_HOVERED : ESchemeColourSurface::TEXT));
+					g.DrawText(fontId, rect, rect, alignment, spacing, { text.data(), (int32)text.size() - 1 }, panel.GetColour(isHovered ? ESchemeColourSurface::TEXT_HOVERED : ESchemeColourSurface::TEXT));
 				}
 			}
 			else

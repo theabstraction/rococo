@@ -230,7 +230,7 @@ namespace ANON
 			}
 		}
 
-		void DrawText(GRFontId fontId, const GuiRect& clipRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour) override
+		void DrawText(GRFontId fontId, const GuiRect& targetRect, const GuiRect& clipRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour) override
 		{
 			if (lastScissorRect.IsNormalized() && IsRectClipped(lastScissorRect, clipRect))
 			{

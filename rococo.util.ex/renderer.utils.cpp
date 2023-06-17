@@ -1235,17 +1235,24 @@ namespace Rococo
 
 		RENDERER_API void DrawBorderAround(IGuiRenderContext& grc, const GuiRect& rect, const Vec2i& width, RGBAb diag, RGBAb backdiag)
 		{
-			GuiRect topRect{ rect.left - width.x, rect.top, rect.right, rect.top + width.y };
-			DrawRectangle(grc, topRect, diag, diag);
+			if (diag.alpha != 0)
+			{
+				GuiRect topRect{ rect.left, rect.top - width.y, rect.right, rect.top };
+				DrawRectangle(grc, topRect, diag, diag);
 
-			GuiRect bottomRect{ rect.left - width.x, rect.bottom - width.y, rect.right, rect.bottom };
-			DrawRectangle(grc, bottomRect, backdiag, backdiag);
+				GuiRect rightRect{ rect.right, rect.top, rect.right + width.x, rect.bottom };
+				DrawRectangle(grc, rightRect, diag, diag);
+			}
 
-			GuiRect leftRect{ rect.left - width.x, rect.top, rect.left, rect.bottom };
-			DrawRectangle(grc, leftRect, backdiag, backdiag);
 
-			GuiRect rightRect{ rect.right - width.x, rect.top, rect.right, rect.bottom };
-			DrawRectangle(grc, rightRect, diag, diag);
+			if (backdiag.alpha != 0)
+			{
+				GuiRect bottomRect{ rect.left, rect.bottom, rect.right, rect.bottom + width.y};
+				DrawRectangle(grc, bottomRect, backdiag, backdiag);
+
+				GuiRect leftRect{ rect.left - width.x, rect.top, rect.left, rect.bottom };
+				DrawRectangle(grc, leftRect, backdiag, backdiag);
+			}
 		}
 
 		RENDERER_API Fonts::IDrawTextJob& CreateHorizontalCentredText(StackSpaceGraphics& ss, int fontIndex, cstr text, RGBAb colour)

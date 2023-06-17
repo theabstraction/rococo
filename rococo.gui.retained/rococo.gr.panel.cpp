@@ -420,7 +420,7 @@ namespace GRANON
 			return widget->OnCursorClick(ce);
 		}
 
-		void BuildCursorMovementHistoryRecursive(CursorEvent& ce, IPanelEventBuilder& eb) override
+		void BuildCursorMovementHistoryRecursive(CursorEvent& ce, IGRPanelEventBuilder& eb) override
 		{
 			if (!IsPointInRect(ce.position, absRect))
 			{

@@ -312,9 +312,10 @@ namespace GRANON
 			{
 				return image->Span() + Vec2i{2,2};
 			}
+
 			if (title.empty())
 			{
-				return { 8, 8 };
+				return Vec2i { 8, 8 } ;
 			}
 
 			return panel.Root().Custodian().EvaluateMinimalSpan(GRFontId::MENU_FONT, fstring{ title.c_str(), (int32) title.length() }) + Vec2i { 2, 2 };
@@ -433,8 +434,8 @@ namespace Rococo::Gui
 		ESchemeColourSurface topLeftEdge;
 		ESchemeColourSurface bottomRightEdge;
 
-		topLeftEdge = raised ? ESchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT : ESchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT_PRESSED;
-		bottomRightEdge = raised ? ESchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT : ESchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT_PRESSED;
+		topLeftEdge = raised || hovered ? ESchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT : ESchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT_PRESSED;
+		bottomRightEdge = raised || hovered ? ESchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT : ESchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT_PRESSED;
 
 		RGBAb colour1 = panel.GetColour(topLeftEdge);
 		RGBAb colour2 = panel.GetColour(bottomRightEdge);
@@ -446,22 +447,22 @@ namespace Rococo::Gui
 	{
 		if (text.length == 0) return;
 
-		GuiRect clipRect = panel.AbsRect();
-		clipRect.left += spacing.x;
-		clipRect.right -= spacing.x;
-		clipRect.top += spacing.y;
-		clipRect.bottom += spacing.y;
+		GuiRect targetRect = panel.AbsRect();
+		targetRect.left += spacing.x;
+		targetRect.right -= spacing.x;
+		targetRect.top += spacing.y;
+		targetRect.bottom -= spacing.y;
 
-		if (clipRect.left > clipRect.right)
+		if (targetRect.left > targetRect.right)
 		{
-			std::swap(clipRect.left, clipRect.right);
+			std::swap(targetRect.left, targetRect.right);
 		}
 
-		if (clipRect.bottom < clipRect.top)
+		if (targetRect.bottom < targetRect.top)
 		{
-			std::swap(clipRect.top, clipRect.bottom);
+			std::swap(targetRect.top, targetRect.bottom);
 		}
 
-		g.DrawText(GRFontId::MENU_FONT, clipRect, alignment, spacing, text, colour);
+		g.DrawText(GRFontId::MENU_FONT, targetRect, panel.AbsRect(), alignment, spacing, text, colour);
 	}
 }

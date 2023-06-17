@@ -19,7 +19,9 @@ namespace ANON
 		auto& menu = frame.MenuBar();
 		menu.Widget().Panel().
 			Set(ESchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(0, 0, 0, 0)).
-			Set(ESchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, RGBAb(0, 0, 0, 0));
+			Set(ESchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, RGBAb(0, 0, 0, 0)).
+			Set(ESchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT_PRESSED, RGBAb(192, 192, 192, 255)).
+			Set(ESchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT_PRESSED, RGBAb(128, 128, 128, 255));
 
 		auto fileMenu = menu.AddSubMenu(GRMenuItemId::Root(), GRMenuSubMenu("File"));
 		auto editMenu = menu.AddSubMenu(GRMenuItemId::Root(), GRMenuSubMenu("Edit"));

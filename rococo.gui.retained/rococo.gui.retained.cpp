@@ -296,7 +296,7 @@ namespace ANON
 			char cursorLine[32];
 			Strings::SafeFormat(cursorLine, "%d %d", pos.x, pos.y);
 
-			g.DrawText(debugFontId, g.ScreenDimensions(), alignment, { 10, 10 }, to_fstring(cursorLine), RGBAb(255, 255, 255));
+			g.DrawText(debugFontId, g.ScreenDimensions(), g.ScreenDimensions(), alignment, { 10, 10 }, to_fstring(cursorLine), RGBAb(255, 255, 255));
 		}
 
 		void MakeFirstToRender(IdWidget id) override
@@ -413,12 +413,12 @@ namespace ANON
 			captureId = -1;
 		}
 
-		typedef std::vector<PanelEvent> TPanelHistory;
+		typedef std::vector<GRPanelEvent> TPanelHistory;
 
 		TPanelHistory movementCallstack;
 		TPanelHistory previousMovementCallstack;
 
-		class PanelEventBuilder : public IPanelEventBuilder
+		class PanelEventBuilder : public IGRPanelEventBuilder
 		{
 			TPanelHistory& history;
 		public:
@@ -426,7 +426,7 @@ namespace ANON
 			{
 			}
 
-			IPanelEventBuilder& operator += (const PanelEvent& ev) override
+			IGRPanelEventBuilder& operator += (const GRPanelEvent& ev) override
 			{
 				history.push_back(ev);
 				return *this;
