@@ -176,78 +176,80 @@ namespace Rococo::Gui
 	enum class ESchemeColourSurface
 	{
 		BACKGROUND,
-		BUTTON_RAISED,
-		BUTTON_PRESSED,
-		BUTTON_RAISED_AND_HOVERED,
-		BUTTON_PRESSED_AND_HOVERED,
+		BUTTON,
 		BUTTON_EDGE_TOP_LEFT,
 		BUTTON_EDGE_BOTTOM_RIGHT,
-		BUTTON_EDGE_TOP_LEFT_PRESSED,
-		BUTTON_EDGE_BOTTOM_RIGHT_PRESSED,
 		BUTTON_TEXT,
-		MENU_BUTTON_RAISED,
-		MENU_BUTTON_PRESSED,
-		MENU_BUTTON_RAISED_AND_HOVERED,
-		MENU_BUTTON_PRESSED_AND_HOVERED,
+		MENU_BUTTON,
 		MENU_BUTTON_EDGE_TOP_LEFT,
 		MENU_BUTTON_EDGE_BOTTOM_RIGHT,
-		MENU_BUTTON_EDGE_TOP_LEFT_PRESSED,
-		MENU_BUTTON_EDGE_BOTTOM_RIGHT_PRESSED,
 		MENU_BUTTON_TEXT,
 		CONTAINER_BACKGROUND,
 		CONTAINER_TOP_LEFT,
 		CONTAINER_BOTTOM_RIGHT,
-		CONTAINER_BACKGROUND_HOVERED,
-		CONTAINER_TOP_LEFT_HOVERED,
-		CONTAINER_BOTTOM_RIGHT_HOVERED,
 		SCROLLER_BUTTON_BACKGROUND,
 		SCROLLER_BUTTON_TOP_LEFT,
 		SCROLLER_BUTTON_BOTTOM_RIGHT,
-		SCROLLER_BUTTON_BACKGROUND_HOVERED,
-		SCROLLER_BUTTON_TOP_LEFT_HOVERED,
-		SCROLLER_BUTTON_BOTTOM_RIGHT_HOVERED,
 		SCROLLER_BAR_BACKGROUND,
 		SCROLLER_BAR_TOP_LEFT,
 		SCROLLER_BAR_BOTTOM_RIGHT,
-		SCROLLER_BAR_BACKGROUND_HOVERED,
-		SCROLLER_BAR_TOP_LEFT_HOVERED,
-		SCROLLER_BAR_BOTTOM_RIGHT_HOVERED,
 		SCROLLER_SLIDER_BACKGROUND,
 		SCROLLER_SLIDER_TOP_LEFT,
 		SCROLLER_SLIDER_BOTTOM_RIGHT,
-		SCROLLER_SLIDER_BACKGROUND_HOVERED,
-		SCROLLER_SLIDER_TOP_LEFT_HOVERED,
-		SCROLLER_SLIDER_BOTTOM_RIGHT_HOVERED,
-		SCROLLER_TRIANGLE_HOVERED,
 		SCROLLER_TRIANGLE_NORMAL,
+		EDITOR,
 		TEXT,
-		TEXT_HOVERED,
+		FOCUS_RECTANGLE, // The rectangle surrounding a control to indicate focus, separate from the controls own focus settings
 		IMAGE_FOG, // Colour, typically with mid alpha values that fogs out an image when it is not activated
-		IMAGE_FOG_HOVERED, // Colour, typically with mid alpha values that fogs out an image when it is hovered but not activated
-		FOCUSED_EDITOR_HOVERED, // Background colour for an edit box when it focused and hovered
-		FOCUSED_EDITOR, // Background colour for an edit box when it focused
-		FOCUS_RECTANGLE, // Edge colour for the focused widget
-		EDIT_TEXT_HOVERED, // Text colour when editor box is focused and hovered
 		EDIT_TEXT, // Text colour when editor box is focused
 		SPLITTER_BACKGROUND,
-		SPLITTER_BACKGROUND_HOVERED,
 		SPLITTER_EDGE,
-		SPLITTER_EDGE_HILIGHTED
+		USER_DEFINED_START_INDEX = 7000 // Make this the last index, then users can cast a surface to this enum + delta of their choice
 	};
 
-	ROCOCO_INTERFACE IScheme
+	// GRRenderState -> int32 combination of state bits. Pass by value rather than constant reference
+	struct GRRenderState
 	{
-		virtual RGBAb GetColour(ESchemeColourSurface surface) const = 0;
-		virtual void SetColour(ESchemeColourSurface surface, RGBAb colour) = 0;
-		virtual bool TryGetColour(ESchemeColourSurface surface, RGBAb& colour) const = 0;
+		struct Bits
+		{
+			int32 pressed : 1;
+			int32 hovered : 1;
+			int32 focused : 1;
+		};
+
+		union Value
+		{
+			Bits bitValues;
+			int32 intValue;
+		} value;
+
+		GRRenderState(bool pressed, bool hovered, bool focused)
+		{
+			value.intValue = 0;
+			value.bitValues.focused = focused;
+			value.bitValues.hovered = hovered;
+			value.bitValues.pressed = pressed;
+		}
 	};
 
-	ROCOCO_INTERFACE ISchemeSupervisor : IScheme
+	inline GRRenderState GRRenderState_HoveredOnly() { return GRRenderState(false, true, false); }
+
+	// Passed to SetColour(...) methods to indicate that the scheme should automatically generate intensities for the various state combinations
+	inline GRRenderState GRGenerateIntensities() { return GRRenderState(false, false, false); }
+
+	ROCOCO_INTERFACE IGRScheme
+	{
+		virtual RGBAb GetColour(ESchemeColourSurface surface, GRRenderState state) const = 0;
+		virtual void SetColour(ESchemeColourSurface surface, RGBAb colour, GRRenderState state) = 0;
+		virtual bool TryGetColour(ESchemeColourSurface surface, RGBAb& colour, GRRenderState state) const = 0;
+	};
+
+	ROCOCO_INTERFACE IGRSchemeSupervisor : IGRScheme
 	{
 		virtual void Free() = 0;
 	};
 
-	ISchemeSupervisor* CreateScheme();
+	IGRSchemeSupervisor* CreateScheme();
 
 	enum WidgetEventType
 	{
@@ -290,7 +292,7 @@ namespace Rococo::Gui
 		virtual IGRCustodian& Custodian() = 0;
 
 		// The visual scheme of the panel system
-		virtual IScheme& Scheme() = 0;
+		virtual IGRScheme& Scheme() = 0;
 
 		// the Gui Retained object that houses the root
 		virtual IGuiRetained& GR() = 0;
@@ -346,13 +348,13 @@ namespace Rococo::Gui
 		virtual void ConfirmLayout() = 0;
 
 		// Enumerate the panel and its ancestors for a colour, if none found returns the second argument (which defaults to bright red).
-		virtual RGBAb GetColour(ESchemeColourSurface surface, RGBAb defaultColour = RGBAb(255,0,0,255)) const = 0;
+		virtual RGBAb GetColour(ESchemeColourSurface surface, GRRenderState state, RGBAb defaultColour = RGBAb(255,0,0,255)) const = 0;
 
 		// Enumerate the panel and its ancestors for a colour
-		virtual bool TryGetColour(ESchemeColourSurface surface, RGBAb& colour) const = 0;
+		virtual bool TryGetColour(ESchemeColourSurface surface, RGBAb& colour, GRRenderState state) const = 0;
 
 		// Creates a local visual scheme if one does not exist, then maps a colour to the local scheme.
-		virtual IGRPanel& Set(ESchemeColourSurface surface, RGBAb colour) = 0;
+		virtual IGRPanel& Set(ESchemeColourSurface surface, RGBAb colour, GRRenderState state) = 0;
 
 		virtual void MarkForDelete() = 0;
 		virtual bool IsMarkedForDeletion() const = 0;
@@ -909,7 +911,7 @@ namespace Rococo::Gui
 	// Creates an editor widget along with a filter. The filter has to be valid for the lifespan of the editor box
 	ROCOCO_GUI_RETAINED_API IGRWidgetEditBox& CreateEditBox(IGRWidget& parent, IGREditFilter* filter, int32 capacity = (int32) GRPaths::MAX_FULL_PATH_LENGTH);
 
-	ROCOCO_GUI_RETAINED_API void SetSchemeColours_ThemeGrey(IScheme& scheme);
+	ROCOCO_GUI_RETAINED_API void SetSchemeColours_ThemeGrey(IGRScheme& scheme);
 
 	// Get an editor filter for 32-bit floating point numbers. Valid for the lifespan of the executable
 	ROCOCO_GUI_RETAINED_API IGREditFilter& GetF32Filter();

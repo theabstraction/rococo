@@ -161,16 +161,18 @@ namespace ANON
 		{
 			bool isLit = IsPointInRect(g.CursorHoverPoint(), rect) || clickPosition >= 0;
 
-			RGBAb backColour = panel.GetColour(isLit ? ESchemeColourSurface::SCROLLER_BUTTON_BACKGROUND_HOVERED : ESchemeColourSurface::SCROLLER_BUTTON_BACKGROUND);
+			GRRenderState rs(clickPosition >= 0, IsPointInRect(g.CursorHoverPoint(), rect), false);
+
+			RGBAb backColour = panel.GetColour(ESchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, rs);
 			g.DrawRect(rect, backColour);
 
 			GuiRect triangleRect = { rect.left + 2, rect.top + 2, rect.right - 2, rect.bottom - 2 };
 
-			RGBAb triangleColour = panel.GetColour(isLit ? ESchemeColourSurface::SCROLLER_TRIANGLE_HOVERED : ESchemeColourSurface::SCROLLER_TRIANGLE_NORMAL);
+			RGBAb triangleColour = panel.GetColour(ESchemeColourSurface::SCROLLER_TRIANGLE_NORMAL, rs);
 			g.DrawDirectionArrow(triangleRect, triangleColour, isUp ? 0.0_degrees : 180.0_degrees);
 
-			RGBAb edge1Colour = panel.GetColour(isLit ? ESchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT_HOVERED : ESchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT);
-			RGBAb edge2Colour = panel.GetColour(isLit ? ESchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT_HOVERED : ESchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT);
+			RGBAb edge1Colour = panel.GetColour(ESchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT, rs);
+			RGBAb edge2Colour = panel.GetColour(ESchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT, rs);
 			g.DrawRectEdge(rect, edge1Colour, edge2Colour);
 		}
 
@@ -178,11 +180,13 @@ namespace ANON
 		{
 			bool isLit = IsPointInRect(g.CursorHoverPoint(), rect) || clickPosition >= 0;
 
-			RGBAb backColour = panel.GetColour(isLit ? ESchemeColourSurface::SCROLLER_SLIDER_BACKGROUND_HOVERED : ESchemeColourSurface::SCROLLER_SLIDER_BACKGROUND);
+			GRRenderState rs(clickPosition >= 0, IsPointInRect(g.CursorHoverPoint(), rect), false);
+
+			RGBAb backColour = panel.GetColour(ESchemeColourSurface::SCROLLER_SLIDER_BACKGROUND, rs);
 			g.DrawRect(rect, backColour);
 
-			RGBAb edge1Colour = panel.GetColour(isLit ? ESchemeColourSurface::SCROLLER_SLIDER_TOP_LEFT_HOVERED : ESchemeColourSurface::SCROLLER_SLIDER_TOP_LEFT);
-			RGBAb edge2Colour = panel.GetColour(isLit ? ESchemeColourSurface::SCROLLER_SLIDER_BOTTOM_RIGHT_HOVERED : ESchemeColourSurface::SCROLLER_SLIDER_BOTTOM_RIGHT);
+			RGBAb edge1Colour = panel.GetColour(ESchemeColourSurface::SCROLLER_SLIDER_TOP_LEFT, rs);
+			RGBAb edge2Colour = panel.GetColour(ESchemeColourSurface::SCROLLER_SLIDER_BOTTOM_RIGHT, rs);
 			g.DrawRectEdge(rect, edge1Colour, edge2Colour);
 		}
 
@@ -201,12 +205,14 @@ namespace ANON
 		void Render(IGRRenderContext& g) override
 		{
 			auto rect = panel.AbsRect();
-			bool isLit = g.IsHovered(panel) || clickPosition >= 0;
-			RGBAb edge1Colour = panel.GetColour(isLit ? ESchemeColourSurface::SCROLLER_BAR_TOP_LEFT_HOVERED : ESchemeColourSurface::SCROLLER_BAR_TOP_LEFT);
-			RGBAb edge2Colour = panel.GetColour(isLit ? ESchemeColourSurface::SCROLLER_BAR_BOTTOM_RIGHT_HOVERED : ESchemeColourSurface::SCROLLER_BAR_BOTTOM_RIGHT);
+
+			GRRenderState rs(clickPosition >= 0, g.IsHovered(panel), false);
+
+			RGBAb edge1Colour = panel.GetColour(ESchemeColourSurface::SCROLLER_BAR_TOP_LEFT, rs);
+			RGBAb edge2Colour = panel.GetColour(ESchemeColourSurface::SCROLLER_BAR_BOTTOM_RIGHT, rs);
 			g.DrawRectEdge(rect, edge1Colour, edge2Colour);
 
-			if (isLit)
+			if (rs.value.intValue != 0)
 			{
 				g.DrawRectEdge(sliderZone, edge1Colour, edge2Colour);
 			}

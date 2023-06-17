@@ -18,10 +18,8 @@ namespace ANON
 	{
 		auto& menu = frame.MenuBar();
 		menu.Widget().Panel().
-			Set(ESchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(0, 0, 0, 0)).
-			Set(ESchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, RGBAb(0, 0, 0, 0)).
-			Set(ESchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT_PRESSED, RGBAb(192, 192, 192, 255)).
-			Set(ESchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT_PRESSED, RGBAb(128, 128, 128, 255));
+			Set(ESchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(0, 0, 0, 0), GRGenerateIntensities()).
+			Set(ESchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, RGBAb(0, 0, 0, 0), GRGenerateIntensities());
 
 		auto fileMenu = menu.AddSubMenu(GRMenuItemId::Root(), GRMenuSubMenu("File"));
 		auto editMenu = menu.AddSubMenu(GRMenuItemId::Root(), GRMenuSubMenu("Edit"));
@@ -69,12 +67,10 @@ namespace ANON
 		menu.AddButton(helpMenu, { "Purchase License", { 0, nullptr } });
 
 		auto& titleBar = *frame.MenuBar().Widget().Panel().Parent();
-		titleBar.Set(ESchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(0, 0, 0, 255)).Set(ESchemeColourSurface::CONTAINER_BACKGROUND_HOVERED, RGBAb(8, 8, 8, 255));
-		titleBar.Set(ESchemeColourSurface::MENU_BUTTON_RAISED, RGBAb(0, 0, 0, 255)).Set(ESchemeColourSurface::MENU_BUTTON_PRESSED, RGBAb(8, 8, 8, 255));
-		titleBar.Set(ESchemeColourSurface::BUTTON_RAISED, RGBAb(0, 0, 0, 255)).Set(ESchemeColourSurface::BUTTON_PRESSED, RGBAb(24, 24, 24, 255));
-		titleBar.Set(ESchemeColourSurface::BUTTON_RAISED_AND_HOVERED, RGBAb(32, 32, 32, 255)).Set(ESchemeColourSurface::BUTTON_PRESSED_AND_HOVERED, RGBAb(48, 48, 48, 255));
-		titleBar.Set(ESchemeColourSurface::MENU_BUTTON_RAISED_AND_HOVERED, RGBAb(16, 16, 16, 255)).Set(ESchemeColourSurface::MENU_BUTTON_PRESSED_AND_HOVERED, RGBAb(32, 32, 32, 255));
-		titleBar.Set(ESchemeColourSurface::IMAGE_FOG_HOVERED, RGBAb(0, 0, 0, 64)).Set(ESchemeColourSurface::IMAGE_FOG, RGBAb(0, 0, 0, 128));
+		titleBar.Set(ESchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(0, 0, 0, 255), GRGenerateIntensities());
+		titleBar.Set(ESchemeColourSurface::MENU_BUTTON, RGBAb(0, 0, 0, 255), GRGenerateIntensities());
+		titleBar.Set(ESchemeColourSurface::BUTTON, RGBAb(0, 0, 0, 255), GRGenerateIntensities());
+		titleBar.Set(ESchemeColourSurface::IMAGE_FOG, RGBAb(0, 0, 0, 128), GRGenerateIntensities());
 	}
 
 	enum { TOOLBAR_EVENT_MINIMIZE = 40001, TOOLBAR_EVENT_RESTORE, TOOLBAR_EVENT_EXIT };
@@ -231,20 +227,18 @@ namespace ANON
 
 			auto& framePanel = frame.Widget().Panel();
 
-			framePanel.Set(ESchemeColourSurface::TEXT, RGBAb(224, 224, 224, 255)).Set(ESchemeColourSurface::TEXT_HOVERED, RGBAb(255, 255, 255, 255));
-			framePanel.Set(ESchemeColourSurface::EDIT_TEXT, RGBAb(224, 224, 224, 255)).Set(ESchemeColourSurface::EDIT_TEXT_HOVERED, RGBAb(255, 255, 255, 255));
-			framePanel.Set(ESchemeColourSurface::FOCUSED_EDITOR, RGBAb(0, 0, 0, 255));
-			framePanel.Set(ESchemeColourSurface::FOCUSED_EDITOR_HOVERED, RGBAb(16, 16, 16, 255));
-			framePanel.Set(ESchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(64, 64, 64, 255)).Set(ESchemeColourSurface::SCROLLER_BUTTON_BACKGROUND_HOVERED, RGBAb(96, 96, 96, 255));
-			framePanel.Set(ESchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT, RGBAb(192, 192, 192, 255)).Set(ESchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT_HOVERED, RGBAb(255, 255, 255, 255));
-			framePanel.Set(ESchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT, RGBAb(128, 128, 128, 255)).Set(ESchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT_HOVERED, RGBAb(192, 192, 192, 255));
-			framePanel.Set(ESchemeColourSurface::SCROLLER_BAR_BACKGROUND, RGBAb(64, 64, 64, 255)).Set(ESchemeColourSurface::SCROLLER_BAR_BACKGROUND_HOVERED, RGBAb(72, 72, 72, 255));
-			framePanel.Set(ESchemeColourSurface::SCROLLER_BAR_TOP_LEFT, RGBAb(128, 128, 128, 255)).Set(ESchemeColourSurface::SCROLLER_BAR_TOP_LEFT_HOVERED, RGBAb(136, 136, 136, 255));
-			framePanel.Set(ESchemeColourSurface::SCROLLER_BAR_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255)).Set(ESchemeColourSurface::SCROLLER_BAR_BOTTOM_RIGHT_HOVERED, RGBAb(160, 160, 160, 255));
-			framePanel.Set(ESchemeColourSurface::SCROLLER_SLIDER_BACKGROUND, RGBAb(64, 64, 64, 255)).Set(ESchemeColourSurface::SCROLLER_SLIDER_BACKGROUND_HOVERED, RGBAb(192, 192, 192, 255));
-			framePanel.Set(ESchemeColourSurface::SCROLLER_SLIDER_TOP_LEFT, RGBAb(128, 128, 128, 255)).Set(ESchemeColourSurface::SCROLLER_SLIDER_TOP_LEFT_HOVERED, RGBAb(255, 255, 255, 255));
-			framePanel.Set(ESchemeColourSurface::SCROLLER_SLIDER_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255)).Set(ESchemeColourSurface::SCROLLER_SLIDER_BOTTOM_RIGHT_HOVERED, RGBAb(224, 224, 224, 255));
-			framePanel.Set(ESchemeColourSurface::SCROLLER_TRIANGLE_NORMAL, RGBAb(128, 128, 128, 255)).Set(ESchemeColourSurface::SCROLLER_TRIANGLE_HOVERED, RGBAb(192, 192, 192, 255));
+			framePanel.Set(ESchemeColourSurface::TEXT, RGBAb(224, 224, 224, 255), GRGenerateIntensities());
+			framePanel.Set(ESchemeColourSurface::EDIT_TEXT, RGBAb(224, 224, 224, 255), GRGenerateIntensities());
+			framePanel.Set(ESchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(64, 64, 64, 255), GRGenerateIntensities());
+			framePanel.Set(ESchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT, RGBAb(192, 192, 192, 255), GRGenerateIntensities());
+			framePanel.Set(ESchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT, RGBAb(128, 128, 128, 255), GRGenerateIntensities());
+			framePanel.Set(ESchemeColourSurface::SCROLLER_BAR_BACKGROUND, RGBAb(64, 64, 64, 255), GRGenerateIntensities());
+			framePanel.Set(ESchemeColourSurface::SCROLLER_BAR_TOP_LEFT, RGBAb(128, 128, 128, 255), GRGenerateIntensities());
+			framePanel.Set(ESchemeColourSurface::SCROLLER_BAR_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255), GRGenerateIntensities());
+			framePanel.Set(ESchemeColourSurface::SCROLLER_SLIDER_BACKGROUND, RGBAb(64, 64, 64, 255), GRGenerateIntensities());
+			framePanel.Set(ESchemeColourSurface::SCROLLER_SLIDER_TOP_LEFT, RGBAb(128, 128, 128, 255), GRGenerateIntensities());
+			framePanel.Set(ESchemeColourSurface::SCROLLER_SLIDER_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255), GRGenerateIntensities());
+			framePanel.Set(ESchemeColourSurface::SCROLLER_TRIANGLE_NORMAL, RGBAb(128, 128, 128, 255), GRGenerateIntensities());
 
 			auto& custodian = gr.Root().Custodian();
 		}

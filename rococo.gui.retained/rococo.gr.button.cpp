@@ -195,6 +195,8 @@ namespace GRANON
 
 			IImageMemento* image = isRaised ? raisedImage : pressedImage;
 
+			GRRenderState rs(!isRaised, isHovered, false);
+
 			if (image)
 			{
 				imageRendered = image->Render(panel, alignment, spacing, g);
@@ -205,13 +207,13 @@ namespace GRANON
 					fogRect.right -= 1;
 					fogRect.top += 1;
 					fogRect.bottom -= 1;
-					g.DrawRect(fogRect, panel.GetColour(isHovered ? ESchemeColourSurface::IMAGE_FOG_HOVERED : ESchemeColourSurface::IMAGE_FOG, RGBAb(0, 0, 0, 128)));
+					g.DrawRect(fogRect, panel.GetColour(ESchemeColourSurface::IMAGE_FOG, rs, RGBAb(0, 0, 0, 128)));
 				}
 			}
 
 			if (!imageRendered)
 			{
-				RGBAb colour = panel.GetColour(ESchemeColourSurface::BUTTON_TEXT);
+				RGBAb colour = panel.GetColour(ESchemeColourSurface::BUTTON_TEXT, rs);
 				colour.alpha = isHovered ? colour.alpha : 3 * (colour.alpha / 4);
 				DrawButtonText(panel, alignment, spacing, { title.c_str(), (int32)title.size() }, colour, g);
 			}
@@ -389,27 +391,13 @@ namespace Rococo::Gui
 	{
 		bool hovered = g.IsHovered(panel);
 
-		ESchemeColourSurface surface;
-		if (hovered)
-		{
-			surface = raised ? ESchemeColourSurface::BUTTON_RAISED_AND_HOVERED : ESchemeColourSurface::BUTTON_PRESSED_AND_HOVERED;
-		}
-		else
-		{
-			surface = raised ? ESchemeColourSurface::BUTTON_RAISED : ESchemeColourSurface::BUTTON_PRESSED;
-		}
+		GRRenderState rs(!raised, hovered, false);
 
-		RGBAb colour = panel.GetColour(surface);
+		RGBAb colour = panel.GetColour(ESchemeColourSurface::BUTTON, rs);
 		g.DrawRect(panel.AbsRect(), colour);
 
-		ESchemeColourSurface topLeftEdge;
-		ESchemeColourSurface bottomRightEdge;
-
-		topLeftEdge = raised ? ESchemeColourSurface::BUTTON_EDGE_TOP_LEFT : ESchemeColourSurface::BUTTON_EDGE_TOP_LEFT_PRESSED;
-		bottomRightEdge = raised ? ESchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT : ESchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT_PRESSED;
-
-		RGBAb colour1 = panel.GetColour(topLeftEdge);
-		RGBAb colour2 = panel.GetColour(bottomRightEdge);
+		RGBAb colour1 = panel.GetColour(ESchemeColourSurface::BUTTON_EDGE_TOP_LEFT, rs);
+		RGBAb colour2 = panel.GetColour(ESchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT, rs);
 
 		g.DrawRectEdge(panel.AbsRect(), colour1, colour2);
 	}
@@ -418,28 +406,12 @@ namespace Rococo::Gui
 	{
 		bool hovered = g.IsHovered(panel);
 
-		ESchemeColourSurface surface;
-		if (hovered)
-		{
-			surface = raised ? ESchemeColourSurface::MENU_BUTTON_RAISED_AND_HOVERED : ESchemeColourSurface::MENU_BUTTON_PRESSED_AND_HOVERED;
-		}
-		else
-		{
-			surface = raised ? ESchemeColourSurface::MENU_BUTTON_RAISED : ESchemeColourSurface::MENU_BUTTON_PRESSED;
-		}
-
-		RGBAb colour = panel.GetColour(surface);
+		GRRenderState rs(!raised, hovered, false);
+		RGBAb colour = panel.GetColour(ESchemeColourSurface::MENU_BUTTON, rs);
 		g.DrawRect(panel.AbsRect(), colour);
 
-		ESchemeColourSurface topLeftEdge;
-		ESchemeColourSurface bottomRightEdge;
-
-		topLeftEdge = raised || hovered ? ESchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT : ESchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT_PRESSED;
-		bottomRightEdge = raised || hovered ? ESchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT : ESchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT_PRESSED;
-
-		RGBAb colour1 = panel.GetColour(topLeftEdge);
-		RGBAb colour2 = panel.GetColour(bottomRightEdge);
-
+		RGBAb colour1 = panel.GetColour(ESchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, rs);
+		RGBAb colour2 = panel.GetColour(ESchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT, rs);
 		g.DrawRectEdge(panel.AbsRect(), colour1, colour2);
 	}
 

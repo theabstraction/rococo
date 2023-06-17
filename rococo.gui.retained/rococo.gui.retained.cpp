@@ -32,7 +32,7 @@ namespace ANON
 	{
 		IGRCustodian& custodian;
 		GRConfig config;
-		AutoFree<ISchemeSupervisor> scheme = CreateScheme();
+		AutoFree<IGRSchemeSupervisor> scheme = CreateScheme();
 		std::unordered_map<int64, IGRPanel*> mapIdToPanel;
 		int queryDepth = 0;
 		bool queueGarbageCollect = false;
@@ -162,7 +162,7 @@ namespace ANON
 			frameDescriptors.erase(d, frameDescriptors.end());
 		}
 
-		IScheme& Scheme()
+		IGRScheme& Scheme()
 		{
 			return *scheme;
 		}
@@ -276,7 +276,7 @@ namespace ANON
 				GuiRect rect = widget->Panel().AbsRect();
 				if (rect.right > rect.left && rect.bottom > rect.top)
 				{
-					RGBAb colour = widget->Panel().GetColour(ESchemeColourSurface::FOCUS_RECTANGLE, RGBAb(255, 255, 255, 255));
+					RGBAb colour = widget->Panel().GetColour(ESchemeColourSurface::FOCUS_RECTANGLE, GRRenderState(false, false, true), RGBAb(255, 255, 255, 255));
 					g.DrawRectEdge(rect, colour, colour);
 				}
 			}

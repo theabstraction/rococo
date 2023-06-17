@@ -22,7 +22,9 @@ namespace ANON
 
 			bool isHovered = g.IsHovered(panel);
 
-			RGBAb triangleColour = panel.GetColour(isHovered ? ESchemeColourSurface::SCROLLER_TRIANGLE_HOVERED : ESchemeColourSurface::SCROLLER_TRIANGLE_NORMAL);
+			GRRenderState rs(false, isHovered, false);
+
+			RGBAb triangleColour = panel.GetColour(ESchemeColourSurface::SCROLLER_TRIANGLE_NORMAL, rs);
 			g.DrawDirectionArrow(triangleRect, triangleColour, orientation);
 		}
 
@@ -112,20 +114,16 @@ namespace ANON
 			return panel;
 		}
 
-		
 		void Render(IGRRenderContext& g) override
 		{
-			RGBAb backColour = panel.GetColour(ESchemeColourSurface::SCROLLER_BUTTON_BACKGROUND);
-			panel.Set(ESchemeColourSurface::BUTTON_RAISED, backColour);
+			RGBAb backColour = panel.GetColour(ESchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, GRGenerateIntensities());
+			panel.Set(ESchemeColourSurface::BUTTON, backColour, GRGenerateIntensities());
 
-			RGBAb backColourHi = panel.GetColour(ESchemeColourSurface::SCROLLER_BUTTON_BACKGROUND_HOVERED);
-			panel.Set(ESchemeColourSurface::BUTTON_RAISED_AND_HOVERED, backColourHi);
+			RGBAb tlEdgeColour = panel.GetColour(ESchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT, GRGenerateIntensities());
+			panel.Set(ESchemeColourSurface::BUTTON_EDGE_TOP_LEFT, tlEdgeColour, GRGenerateIntensities());
 
-			RGBAb tlEdgeColour = panel.GetColour(ESchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT);
-			panel.Set(ESchemeColourSurface::BUTTON_EDGE_TOP_LEFT, tlEdgeColour);
-
-			RGBAb brEdgeColour = panel.GetColour(ESchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT);
-			panel.Set(ESchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT, brEdgeColour);
+			RGBAb brEdgeColour = panel.GetColour(ESchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT, GRGenerateIntensities());
+			panel.Set(ESchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT, brEdgeColour, GRGenerateIntensities());
 		}
 
 		EventRouting OnChildEvent(WidgetEvent& widgetEvent, IGRWidget& sourceWidget) override

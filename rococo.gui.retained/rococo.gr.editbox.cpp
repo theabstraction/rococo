@@ -200,30 +200,29 @@ namespace GRANON
 		void Render(IGRRenderContext& g) override
 		{
 			auto rect = panel.AbsRect();
-			bool isHovered = g.IsHovered(panel);
-			bool isFocused = panel.Id() == panel.Root().GR().GetFocusId();
 
-			if (isFocused)
+			GRRenderState rs(false, g.IsHovered(panel), panel.Id() == panel.Root().GR().GetFocusId());
+
+			if (rs.value.bitValues.focused)
 			{
-				rect.left += 1;
-				rect.top += 1;
-				rect.right -= 1;
-				rect.bottom -= 1;
-				ESchemeColourSurface surface = isHovered ? ESchemeColourSurface::FOCUSED_EDITOR_HOVERED : ESchemeColourSurface::FOCUSED_EDITOR;
-				RGBAb defaultColour = isHovered ? RGBAb(255, 255, 255, 255) : RGBAb(225, 225, 225, 225);
-				g.DrawRect(rect, panel.GetColour(surface, defaultColour));
+				GuiRect innerRect = rect;
+				innerRect.left += 1;
+				innerRect.top += 1;
+				innerRect.right -= 1;
+				innerRect.bottom -= 1;
+				g.DrawRect(innerRect, panel.GetColour(ESchemeColourSurface::EDITOR, rs, RGBAb(225, 225, 225, 225)));
 			}
 
-			if (!isFocused)
+			if (!rs.value.bitValues.focused)
 			{
 				if (text.size() > 0)
 				{
-					g.DrawText(fontId, rect, rect, alignment, spacing, { text.data(), (int32)text.size() - 1 }, panel.GetColour(isHovered ? ESchemeColourSurface::TEXT_HOVERED : ESchemeColourSurface::TEXT));
+					g.DrawText(fontId, rect, rect, alignment, spacing, { text.data(), (int32)text.size() - 1 }, panel.GetColour(ESchemeColourSurface::TEXT, rs));
 				}
 			}
 			else
 			{
-				RGBAb textColour = panel.GetColour(isHovered ? ESchemeColourSurface::EDIT_TEXT_HOVERED : ESchemeColourSurface::EDIT_TEXT);
+				RGBAb textColour = panel.GetColour(ESchemeColourSurface::EDIT_TEXT, rs);
 				g.DrawEditableText(fontId, rect, alignment, spacing, { text.data(), (int32)text.size() - 1 }, caretPos, textColour);
 			}
 		}

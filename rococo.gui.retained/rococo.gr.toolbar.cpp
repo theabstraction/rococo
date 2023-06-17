@@ -106,12 +106,13 @@ namespace GRANON
 			auto rect = panel.AbsRect();
 
 			bool isHovered = g.IsHovered(panel);
+			GRRenderState rs(false, isHovered, false);
 
-			RGBAb backColour = panel.GetColour(isHovered ? ESchemeColourSurface::CONTAINER_BACKGROUND_HOVERED : ESchemeColourSurface::CONTAINER_BACKGROUND);
+			RGBAb backColour = panel.GetColour(ESchemeColourSurface::CONTAINER_BACKGROUND, rs);
 			g.DrawRect(rect, backColour);
 
-			RGBAb edge1Colour = panel.GetColour(isHovered ? ESchemeColourSurface::CONTAINER_TOP_LEFT_HOVERED : ESchemeColourSurface::CONTAINER_TOP_LEFT);
-			RGBAb edge2Colour = panel.GetColour(isHovered ? ESchemeColourSurface::CONTAINER_BOTTOM_RIGHT_HOVERED : ESchemeColourSurface::CONTAINER_BOTTOM_RIGHT);
+			RGBAb edge1Colour = panel.GetColour(ESchemeColourSurface::CONTAINER_TOP_LEFT, rs);
+			RGBAb edge2Colour = panel.GetColour(ESchemeColourSurface::CONTAINER_BOTTOM_RIGHT, rs);
 			g.DrawRectEdge(rect, edge1Colour, edge2Colour);
 		}
 

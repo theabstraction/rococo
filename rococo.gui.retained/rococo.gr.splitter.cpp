@@ -43,10 +43,13 @@ namespace GRANON
 			draggerRect.right = draggerRect.left + draggerThickness - 2;
 
 			bool isHovered = IsPointInRect(g.CursorHoverPoint(), draggerRect);
-			RGBAb colour = isHovered ? panel.GetColour(ESchemeColourSurface::SPLITTER_BACKGROUND_HOVERED, RGBAb(128, 128, 128, 255)) : panel.GetColour(ESchemeColourSurface::SPLITTER_BACKGROUND, RGBAb(64, 64, 64, 255));
+
+			GRRenderState rs(false, isHovered, false);
+
+			RGBAb colour = panel.GetColour(ESchemeColourSurface::SPLITTER_BACKGROUND, rs, RGBAb(64, 64, 64, 255));
 			g.DrawRect(draggerRect, colour);
 
-			RGBAb edgeColour = isHovered ? panel.GetColour(ESchemeColourSurface::SPLITTER_EDGE_HILIGHTED, RGBAb(255, 255, 255, 255)) : panel.GetColour(ESchemeColourSurface::SPLITTER_EDGE_HILIGHTED, RGBAb(64, 64, 64, 255));
+			RGBAb edgeColour = panel.GetColour(ESchemeColourSurface::SPLITTER_EDGE, rs, RGBAb(64, 64, 64, 255));
 			g.DrawRectEdge(draggerRect, edgeColour, edgeColour);
 
 			if (virtualDraggerStartPos >= 0)
@@ -58,7 +61,8 @@ namespace GRANON
 				virtualRect.left += virtualDraggerPos + 1;
 				virtualRect.right = virtualRect.left + draggerThickness - 2;
 
-				RGBAb litEdge = panel.GetColour(ESchemeColourSurface::SPLITTER_EDGE_HILIGHTED, RGBAb(255, 255, 255, 255));
+				GRRenderState litEdgeState(true, isHovered, false);
+				RGBAb litEdge = panel.GetColour(ESchemeColourSurface::SPLITTER_EDGE, litEdgeState, RGBAb(255, 255, 255, 255));
 				g.DrawRectEdgeLast(virtualRect, litEdge, litEdge);
 			}
 		}

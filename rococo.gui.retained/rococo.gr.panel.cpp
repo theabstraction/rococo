@@ -29,7 +29,7 @@ namespace GRANON
 		GRAnchors anchors = { 0 };
 		GRAnchorPadding padding = { 0 };
 		bool isMarkedForDeletion = false;
-		AutoFree<ISchemeSupervisor> scheme;
+		AutoFree<IGRSchemeSupervisor> scheme;
 		bool preventInvalidationFromChildren = false;
 		bool isCollapsed = false;
 
@@ -248,10 +248,10 @@ namespace GRANON
 			return* child;
 		}
 
-		RGBAb GetColour(ESchemeColourSurface surface, RGBAb defaultColour) const override
+		RGBAb GetColour(ESchemeColourSurface surface, GRRenderState rs, RGBAb defaultColour) const override
 		{
 			RGBAb result;
-			if (!TryGetColour(surface, result))
+			if (!TryGetColour(surface, result, rs))
 			{
 				return defaultColour;
 			}
@@ -263,31 +263,31 @@ namespace GRANON
 			this->isCollapsed = isCollapsed;
 		}
 
-		bool TryGetColour(ESchemeColourSurface surface, RGBAb& colour) const override
+		bool TryGetColour(ESchemeColourSurface surface, RGBAb& colour, GRRenderState rs) const override
 		{
-			if (scheme && scheme->TryGetColour(surface, colour))
+			if (scheme && scheme->TryGetColour(surface, colour, rs))
 			{
 				return true;
 			}
 
 			if (parent)
 			{
-				return parent->TryGetColour(surface, colour);
+				return parent->TryGetColour(surface, colour, rs);
 			}
 			else
 			{
-				return Root().Scheme().TryGetColour(surface, colour);
+				return Root().Scheme().TryGetColour(surface, colour, rs);
 			}
 		}
 
-		IGRPanel& Set(ESchemeColourSurface surface, RGBAb colour) override
+		IGRPanel& Set(ESchemeColourSurface surface, RGBAb colour, GRRenderState rs) override
 		{
 			if (!scheme)
 			{
 				scheme = CreateScheme();
 			}
 
-			scheme->SetColour(surface, colour);
+			scheme->SetColour(surface, colour, rs);
 			return *this;
 		}
 

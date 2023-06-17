@@ -434,8 +434,7 @@ namespace GRANON
 
 			table.Widget().Panel().Add(GRAnchors::ExpandAll());
 
-			table.Widget().Panel().Set(ESchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(48, 0, 0, 255));
-			table.Widget().Panel().Set(ESchemeColourSurface::CONTAINER_BACKGROUND_HOVERED, RGBAb(50, 0, 0, 255));
+			table.Widget().Panel().Set(ESchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(48, 0, 0, 255), GRRenderState(0, 0, 0));
 
 			for (int32 j = firstValidIndex; j <= lastValidIndex; j++)
 			{

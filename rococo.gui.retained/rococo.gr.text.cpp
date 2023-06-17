@@ -66,7 +66,8 @@ namespace GRANON
 			auto rect = panel.AbsRect();
 			bool isHovered = g.IsHovered(panel);
 
-			g.DrawText(fontId, rect, rect, alignment, spacing, { text.c_str(), (int32)text.length() }, panel.GetColour(isHovered ? ESchemeColourSurface::TEXT_HOVERED : ESchemeColourSurface::TEXT));
+			GRRenderState rs(false, isHovered, false);
+			g.DrawText(fontId, rect, rect, alignment, spacing, { text.c_str(), (int32)text.length() }, panel.GetColour(ESchemeColourSurface::TEXT, rs));
 		}
 
 		EventRouting OnChildEvent(WidgetEvent& widgetEvent, IGRWidget& sourceWidget)
