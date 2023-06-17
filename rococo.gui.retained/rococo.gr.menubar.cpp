@@ -309,7 +309,10 @@ namespace GRANON
 			// It should be safe to clear children here, because they are not yet within our callstack
 			static_cast<IGRPanelSupervisor&>(panel).ClearChildren();
 			ConstructWidgetsFromBranchRecursive(panel, *tree.root, 0, { 0,0 });
+		}
 
+		void LayoutItems()
+		{
 			int spanX = 0;
 
 			int index = 0;
@@ -335,6 +338,8 @@ namespace GRANON
 			{
 				ConstructWidgetsFromMenuTree();
 			}
+
+			LayoutItems();
 
 			isDirty = false;
 		}
