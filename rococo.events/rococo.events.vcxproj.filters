@@ -24,18 +24,12 @@
     <ClInclude Include="..\include\mplat.events.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="hv.events.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="hv.event.declarations.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="hv.events.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

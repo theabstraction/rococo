@@ -50,3 +50,6 @@ obj/
 bin/
 intermediate/
 out/
+*.rococo-events.h
+*.rococo-events.cpp
+
