@@ -364,6 +364,7 @@ namespace Rococo::Gui
 		virtual IGRWidget& Widget() = 0;
 		virtual IGRPanel& Resize(Vec2i span) = 0;
 		virtual IGRPanel& SetParentOffset(Vec2i offset) = 0;
+		// Returns the child with the given index. If the index does not map to a child it returns nullptr
 		virtual IGRPanel* GetChild(int32 index) = 0;
 		virtual Vec2i Span() const = 0;
 		virtual Vec2i ParentOffset() const = 0;
@@ -666,6 +667,14 @@ namespace Rococo::Gui
 		virtual IGRWidgetSplitter& SetDraggerMinMax(int32 minValue, int32 maxValue) = 0;
 	};
 
+	struct IGRWidgetCollapser;
+
+	ROCOCO_INTERFACE IGRWidgetCollapserEvents
+	{
+		virtual void OnCollapserExpanded(IGRWidgetCollapser &collapser) = 0;
+		virtual void OnCollapserInlined(IGRWidgetCollapser& collapser) = 0;
+	};
+
 	// A collapsable region with a client area and title area. The title area contains the collapse button. The client area will vanish when the collapse button is engaged
 	ROCOCO_INTERFACE IGRWidgetCollapser: IGRBase
 	{
@@ -675,6 +684,8 @@ namespace Rococo::Gui
 
 		// The area under the collapser's title bar. Will be of zero area if the collapse button is engaged
 		virtual IGRWidgetDivision& ClientArea() = 0;
+
+		virtual bool IsCollapsed() const = 0;
 
 		// The collapser button is on the left side, so it is recommended to right align any additions and give enough room for the collapser to work
 		virtual IGRWidgetDivision& TitleBar() = 0;
@@ -895,7 +906,8 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API IGRWidgetText& CreateText(IGRWidget& parent);
 
 	// Create a collapsable region with a client area and title area. The title area contains the collapse button. The client area will vanish when the collapse button is engaged
-	ROCOCO_GUI_RETAINED_API IGRWidgetCollapser& CreateCollapser(IGRWidget& parent);
+	// The events structure must be valid for the lifetime of the collapser
+	ROCOCO_GUI_RETAINED_API IGRWidgetCollapser& CreateCollapser(IGRWidget& parent, IGRWidgetCollapserEvents& eventHandler);
 	ROCOCO_GUI_RETAINED_API IGRWidgetSplitter& CreateLeftToRightSplitter(IGRWidget& parent, int32 splitStartPosition, bool updateWithMouseMove);
 	ROCOCO_GUI_RETAINED_API IGRWidgetTable& CreateTable(IGRWidget& parent);
 

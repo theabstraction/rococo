@@ -13,16 +13,17 @@ namespace GRANON
 	struct GRCollapser : IGRWidgetCollapser, IGRWidget
 	{
 		IGRPanel& panel;
+		IGRWidgetCollapserEvents& eventHandler;
 		IGRWidgetButton* collapseButton = nullptr;
 		IGRWidgetDivision* titleBar = nullptr;
 		IGRWidgetDivision* clientArea = nullptr;
 
-		GRCollapser(IGRPanel& owningPanel) : panel(owningPanel)
+		GRCollapser(IGRPanel& owningPanel, IGRWidgetCollapserEvents& _eventHandler) : panel(owningPanel), eventHandler(_eventHandler)
 		{
 			
 		}
 
-		bool IsCollapsed() const
+		bool IsCollapsed() const override
 		{
 			return collapseButton ? !collapseButton->GetButtonFlags().isRaised : false;
 		}
@@ -114,6 +115,15 @@ namespace GRANON
 			if (sourceWidget.Panel().Id() == collapseButton->Widget().Panel().Id())
 			{
 				panel.InvalidateLayout(true);
+				
+				if (IsCollapsed())
+				{
+					eventHandler.OnCollapserInlined(*this);
+				}
+				else
+				{
+					eventHandler.OnCollapserExpanded(*this);
+				}
 				return EventRouting::Terminate;
 			}
 			return EventRouting::NextHandler;
@@ -138,11 +148,18 @@ namespace GRANON
 
 	struct GRCollapserFactory : IGRWidgetFactory
 	{
+		IGRWidgetCollapserEvents& eventHandler;
+
+		GRCollapserFactory(IGRWidgetCollapserEvents& _eventHandler): eventHandler(_eventHandler)
+		{
+
+		}
+
 		IGRWidget& CreateWidget(IGRPanel& panel)
 		{
-			return *new GRCollapser(panel);
+			return *new GRCollapser(panel, eventHandler);
 		}
-	} s_CollapserFactory;
+	};
 }
 
 namespace Rococo::Gui
@@ -152,10 +169,12 @@ namespace Rococo::Gui
 		return "IGRWidgetCollapser";
 	}
 
-	ROCOCO_GUI_RETAINED_API IGRWidgetCollapser& CreateCollapser(IGRWidget& parent)
+	ROCOCO_GUI_RETAINED_API IGRWidgetCollapser& CreateCollapser(IGRWidget& parent, IGRWidgetCollapserEvents& eventHandler)
 	{
 		auto& gr = parent.Panel().Root().GR();
-		auto& collapser = static_cast<GRANON::GRCollapser&>(gr.AddWidget(parent.Panel(), GRANON::s_CollapserFactory));
+
+		GRANON::GRCollapserFactory factory(eventHandler);
+		auto& collapser = static_cast<GRANON::GRCollapser&>(gr.AddWidget(parent.Panel(), factory));
 		collapser.PostConstruct();
 		return collapser;
 	}

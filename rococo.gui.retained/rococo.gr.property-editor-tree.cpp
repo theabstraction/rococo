@@ -292,7 +292,7 @@ namespace GRANON
 		}
 	};
 
-	struct GRPropertyEditorTree: IGRWidgetPropertyEditorTree, IGRWidget
+	struct GRPropertyEditorTree: IGRWidgetPropertyEditorTree, IGRWidget, IGRWidgetCollapserEvents
 	{
 		IGRPanel& panel;
 		Previewer previewer;
@@ -308,8 +308,18 @@ namespace GRANON
 
 		void Layout(const GuiRect& panelDimensions) override
 		{
-			LayoutChildrenByAnchors(panel, panelDimensions);
 			SetCollapserSizes();
+			LayoutChildrenByAnchors(panel, panelDimensions);
+		}
+
+		void OnCollapserExpanded(IGRWidgetCollapser& collapser) override
+		{
+			panel.InvalidateLayout(false);
+		}
+
+		void OnCollapserInlined(IGRWidgetCollapser& collapser) override
+		{
+			panel.InvalidateLayout(false);
 		}
 
 		EventRouting OnCursorClick(CursorEvent& ce) override
@@ -449,7 +459,7 @@ namespace GRANON
 
 		void SyncUIToPreviewerRecursive(PreviewData& data, IGRWidget& parentContainer, int32 depth)
 		{
-			auto& collapser = CreateCollapser(parentContainer);
+			auto& collapser = CreateCollapser(parentContainer, *this);
 			collapser.Widget().Panel().Set(GRAnchors::ExpandAll());
 			collapser.Widget().Panel().Set(GRAnchorPadding{ 8 * depth, 0, 0 , 0 });
 			auto& titleDiv = collapser.TitleBar();
@@ -550,20 +560,23 @@ namespace GRANON
 			{
 				return 0;
 			}
-
-			for(int i = 0; auto* child = list->Panel().GetChild(i); i++)
+			
+			if (!collapserParent.IsCollapsed())
 			{
-				IGRWidgetCollapser* collapser = Cast<IGRWidgetCollapser>(child->Widget());
-				if (collapser)
+				for (int i = 0; auto * child = list->Panel().GetChild(i); i++)
 				{
-					heightOfDescendants += ComputeAndAssignCollapserHeights(*collapser);
-				}
-				else
-				{
-					IGRWidgetTable* table = Cast<IGRWidgetTable>(child->Widget());
-					if (table)
+					IGRWidgetCollapser* collapser = Cast<IGRWidgetCollapser>(child->Widget());
+					if (collapser)
 					{
-						heightOfDescendants += table->Widget().Panel().Span().y;
+						heightOfDescendants += ComputeAndAssignCollapserHeights(*collapser);
+					}
+					else
+					{
+						IGRWidgetTable* table = Cast<IGRWidgetTable>(child->Widget());
+						if (table)
+						{
+							heightOfDescendants += table->Widget().Panel().Span().y;
+						}
 					}
 				}
 			}
