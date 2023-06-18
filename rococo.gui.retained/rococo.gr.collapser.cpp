@@ -42,9 +42,9 @@ namespace GRANON
 			clientArea = &CreateDivision(*this);
 			titleBar = &CreateDivision(*this);
 			collapseButton = &CreateButton(*titleBar);
-			collapseButton->Widget().Panel().Resize({ 26,26 }).SetParentOffset({0,0});
-			collapseButton->SetRaisedImagePath("$(COLLAPSER_COLLAPSE)");
-			collapseButton->SetPressedImagePath("$(COLLAPSER_EXPAND)");
+			collapseButton->Widget().Panel().Resize({ 26,26 }).SetParentOffset({0,2});
+			collapseButton->SetRaisedImagePath("$(COLLAPSER_EXPAND)");
+			collapseButton->SetPressedImagePath("$(COLLAPSER_COLLAPSE)");
 			collapseButton->SetEventPolicy(GREventPolicy::NotifyAncestors);
 			collapseButton->MakeToggleButton();
 		}
