@@ -1839,6 +1839,7 @@ namespace Rococo::Script
 
 			sb << "</table></body></html>";
 
+			Rococo::OS::EnsureUserDocumentFolderExists(L"sexydoc");
 			Rococo::OS::SaveAsciiTextFile(OS::TargetDirectory_UserDocuments, L"sexydoc\\index.html", *sbc->Builder());
 
 			for (int i = 0; i < nsRoot.ChildCount(); ++i)

@@ -1913,7 +1913,7 @@ namespace Rococo
 							s.AppendFormat("%-79.79s", "");
 						}
 						s.AppendFormat("%-64.64s ", sf.moduleName);
-						s.AppendFormat("%4.4u:%016.16llX",sf.address.segment, sf.address.offset);
+						s.AppendFormat("%4.4u:%016.16llX", sf.address.segment, sf.address.offset);
 						s << "\n";
 					}
 				} formatter;
@@ -1929,6 +1929,61 @@ namespace Rococo
 			buffer.resize(128_kilobytes);
 			BuildExceptionString(buffer.data(), buffer.size(), ex, true);
 			CopyStringToClipboard(buffer.data());
+		}
+
+		ROCOCO_API void EnsureUserDocumentFolderExists(const wchar_t* subdirectory)
+		{
+			if (subdirectory == nullptr || *subdirectory == 0)
+			{
+				Throw(0, "%s: subdirectory argument was blank", __FUNCTION__);
+			}
+
+			if (StrStrW(subdirectory, L".") != nullptr)
+			{
+				Throw(0, "%s: subdirectory %ws contained an illegal character '.'", __FUNCTION__, subdirectory);
+			}
+
+			if (StrStrW(subdirectory, L"%") != nullptr)
+			{
+				Throw(0, "%s: subdirectory %ws contained an illegal character '%'", __FUNCTION__, subdirectory);
+			}
+
+			if (StrStrW(subdirectory, L"$") != nullptr)
+			{
+				Throw(0, "%s: subdirectory %ws contained an illegal character '$'", __FUNCTION__, subdirectory);
+			}
+
+			if (subdirectory[0] == L'\\')
+			{
+				Throw(0, "%s: subdirectory %ws must not begin with a slash character '\\'", __FUNCTION__, subdirectory);
+			}
+
+			PWSTR path;
+			HRESULT hr = SHGetKnownFolderPath(FOLDERID_Documents, 0, NULL, &path);
+			if (FAILED(hr) || path == nullptr)
+			{
+				Throw(hr, "Failed to identify user documents folder. Win32 issue?");
+			}
+
+			WCHAR* fullpath = (WCHAR*)alloca(sizeof(wchar_t) * (wcslen(path) + 2 + wcslen(subdirectory)));
+			wnsprintfW(fullpath, MAX_PATH, L"%s\\%s", path, subdirectory);
+
+			int len = wnsprintfW(fullpath, MAX_PATH, L"%s\\%s", path, subdirectory);
+			if (len >= MAX_PATH)
+			{
+				Throw(hr, "%s: path too long: %ws", __FUNCTION__, fullpath);
+			}
+
+			if (!CreateDirectoryW(fullpath, nullptr))
+			{
+				HRESULT hr = GetLastError();
+				if (hr == ERROR_ALREADY_EXISTS)
+				{
+					// We ensured the directory exists
+					return;
+				}
+				Throw(GetLastError(), "%s: could not create subdirectory %ws", __FUNCTION__, fullpath);
+			}
 		}
 
 		ROCOCO_API void SaveAsciiTextFile(TargetDirectory target, const wchar_t* filename, const fstring& text)
@@ -1951,8 +2006,12 @@ namespace Rococo
 						Throw(hr, "Failed to identify user documents folder. Win32 issue?");
 					}
 
-					WCHAR* fullpath = (WCHAR*)alloca(sizeof(wchar_t) * (wcslen(path) + 1 + text.length));
-					wnsprintfW(fullpath, MAX_PATH, L"%s\\%s", path, filename);
+					WCHAR* fullpath = (WCHAR*)alloca(sizeof(wchar_t) * (wcslen(path) + 2 + text.length));
+					int len = wnsprintfW(fullpath, MAX_PATH, L"%s\\%s", path, filename);
+					if (len >= MAX_PATH)
+					{
+						Throw(hr, "%s: Filename too long: %ws", __FUNCTION__, fullpath);
+					}
 					CoTaskMemFree(path);
 
 					hFile = CreateFileW(fullpath, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);

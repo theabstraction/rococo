@@ -47,12 +47,12 @@ all:
 	msbuild $(DIR_SEXY)STC\stccore\stccore.vcxproj                                    $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
 	msbuild $(DIR_SEXY)SS\sexy.script\sexy.script.vcxproj                             $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
 	msbuild $(DIR_SEXY)sexy.bennyhill\sexy.bennyhill.vcxproj                          $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
+	$(BENNY_HILL) $(DIR_SEXY)SS\sexy.nativelib.coroutines\ coroutines.sxh null
    	msbuild $(DIR_SEXY)SS\sexy.nativelib.maths\sexy.nativelib.maths.vcxproj           $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
 	msbuild $(DIR_SEXY)SS\sexy.nativelib.reflection\sexy.nativelib.reflection.vcxproj $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
 	msbuild $(DIR_SEXY)SS\sexy.nativelib.coroutines\sexy.nativelib.coroutines.vcxproj $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
 	msbuild $(DIR_SEXY)SS\sexy.script.test\sexy.script.test.vcxproj                   $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
 	msbuild $(DIR_SEXY)sexydotnethost\sexydotnethost.vcxproj                          $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
-	$(BENNY_HILL) $(DIR_SEXY)SS\sexy.nativelib.coroutines\ coroutines.sxh null
 
 clean: 
 	msbuild $(DIR_SEXY)Utilities\Utilities.vcxproj                                    $(MSBUILD_CLEAN) $(WITH_SOLUTION)

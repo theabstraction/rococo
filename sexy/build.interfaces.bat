@@ -1,8 +1,8 @@
 cd /D "%~dp0"
-if EXIST "Bin\x64Release\sexy.bennyhill.exe" (
+if EXIST "..\in\x64Release\sexy.bennyhill.exe" (
 echo "Building interfaces using Benny Hill..."
-Bin\x64Release\sexy.bennyhill.exe SS\sexy.nativelib.coroutines\ coroutines.sxh null
+bin\sexy.bennyhill.exe SS\sexy.nativelib.coroutines\ coroutines.sxh null
 ) else (
 echo "Building interfaces using Benny Hill (Debug)..."
-Bin\x64Debug\sexy.bennyhill.exe SS\sexy.nativelib.coroutines\ coroutines.sxh null
+bin\sexy.bennyhill.debug.exe SS\sexy.nativelib.coroutines\ coroutines.sxh null
 )
