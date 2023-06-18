@@ -49,3 +49,4 @@ GisephoneFonts/FontGenerator/obj/**
 obj/
 bin/
 intermediate/
+out/

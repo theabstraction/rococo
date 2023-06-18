@@ -1215,7 +1215,7 @@
 (function LoadExpression405  (Sys.Type.IString name) -> (Sys.Reflection.IExpression s) : (source "MHost::RunMHostEnvironmentScript::ScriptContext::OnEvent" 135))
 (alias LoadExpression405 MHost.OS.LoadExpression)
 
-(function AppendCTime406  (Sys.Type.IStringBuilder sb)->(Int32 nChars) : (source "C:\work\rococo\sexy\SS\sexy.script\sexy.script.cpp" 2181))
+(function AppendCTime406  (Sys.Type.IStringBuilder sb)->(Int32 nChars) : (source "C:\work\rococo\sexy\SS\sexy.script\sexy.script.cpp" 2182))
 (alias AppendCTime406 Sys.OS.AppendCTime)
 
 (function AddVec2iVec2i407 (Sys.Maths.Vec2i a)(Sys.Maths.Vec2i b)(Sys.Maths.Vec2i sum)-> : (source "C:\work\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i32.inl" 400))
@@ -1302,10 +1302,10 @@
 (function MakeSysSlashes434  (Sys.Type.IStringBuilder sb) -> : (source "C:\work\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1806))
 (alias MakeSysSlashes434 Sys.Native.MakeSysSlashes)
 
-(function ClockHz435  -> (Int64 hz) : (source "C:\work\rococo\sexy\SS\sexy.script\sexy.script.cpp" 2189))
+(function ClockHz435  -> (Int64 hz) : (source "C:\work\rococo\sexy\SS\sexy.script\sexy.script.cpp" 2190))
 (alias ClockHz435 Sys.OS.ClockHz)
 
-(function ClockTicks436  -> (Int64 tickCount) : (source "C:\work\rococo\sexy\SS\sexy.script\sexy.script.cpp" 2190))
+(function ClockTicks436  -> (Int64 tickCount) : (source "C:\work\rococo\sexy\SS\sexy.script\sexy.script.cpp" 2191))
 (alias ClockTicks436 Sys.OS.ClockTicks)
 
 (function _throw437  (Sys.Type.Pointer ex)-> : (source "Rococo::Script::CDefaultExceptionLogic::InstallThrowHandler" 471))

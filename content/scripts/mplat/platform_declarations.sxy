@@ -975,7 +975,7 @@
 (function IWorldBuilderNew325  (Pointer hObject)(Sys.SI.Metres span)(Sys.SI.Metres minSpan) ->  : (source "C:\work\rococo\rococo.mplat\mplat.sxh.inl" 11093))
 (alias IWorldBuilderNew325 Rococo.Native.IWorldBuilderNew)
 
-(function AppendCTime326  (Sys.Type.IStringBuilder sb)->(Int32 nChars) : (source "C:\work\rococo\sexy\SS\sexy.script\sexy.script.cpp" 2181))
+(function AppendCTime326  (Sys.Type.IStringBuilder sb)->(Int32 nChars) : (source "C:\work\rococo\sexy\SS\sexy.script\sexy.script.cpp" 2182))
 (alias AppendCTime326 Sys.OS.AppendCTime)
 
 (function AddVec2iVec2i327 (Sys.Maths.Vec2i a)(Sys.Maths.Vec2i b)(Sys.Maths.Vec2i sum)-> : (source "C:\work\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i32.inl" 400))
@@ -1068,10 +1068,10 @@
 (function MakeSysSlashes356  (Sys.Type.IStringBuilder sb) -> : (source "C:\work\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1806))
 (alias MakeSysSlashes356 Sys.Native.MakeSysSlashes)
 
-(function ClockHz357  -> (Int64 hz) : (source "C:\work\rococo\sexy\SS\sexy.script\sexy.script.cpp" 2189))
+(function ClockHz357  -> (Int64 hz) : (source "C:\work\rococo\sexy\SS\sexy.script\sexy.script.cpp" 2190))
 (alias ClockHz357 Sys.OS.ClockHz)
 
-(function ClockTicks358  -> (Int64 tickCount) : (source "C:\work\rococo\sexy\SS\sexy.script\sexy.script.cpp" 2190))
+(function ClockTicks358  -> (Int64 tickCount) : (source "C:\work\rococo\sexy\SS\sexy.script\sexy.script.cpp" 2191))
 (alias ClockTicks358 Sys.OS.ClockTicks)
 
 (function MaxOf359 (Int64 x)(Int64 y) -> (Int64 maxValue) : (source "C:\work\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i64.inl" 201))

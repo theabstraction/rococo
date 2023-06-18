@@ -98,6 +98,7 @@ namespace Rococo::OS
 		TargetDirectory_Root
 	};
 
+	ROCOCO_API void EnsureUserDocumentFolderExists(const wchar_t* subdirectory);
 	ROCOCO_API void SaveAsciiTextFile(TargetDirectory target, const wchar_t* filename, const fstring& text);
 
 	ROCOCO_API void FormatTime(ticks utcTime, char* buffer, size_t nBytes);
