@@ -229,12 +229,12 @@ namespace ANON
 
 			framePanel.Set(ESchemeColourSurface::TEXT, RGBAb(224, 224, 224, 255), GRGenerateIntensities());
 			framePanel.Set(ESchemeColourSurface::EDIT_TEXT, RGBAb(224, 224, 224, 255), GRGenerateIntensities());
-			framePanel.Set(ESchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(64, 64, 64, 255), GRGenerateIntensities());
-			framePanel.Set(ESchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT, RGBAb(192, 192, 192, 255), GRGenerateIntensities());
-			framePanel.Set(ESchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT, RGBAb(128, 128, 128, 255), GRGenerateIntensities());
-			framePanel.Set(ESchemeColourSurface::SCROLLER_BAR_BACKGROUND, RGBAb(64, 64, 64, 255), GRGenerateIntensities());
-			framePanel.Set(ESchemeColourSurface::SCROLLER_BAR_TOP_LEFT, RGBAb(128, 128, 128, 255), GRGenerateIntensities());
-			framePanel.Set(ESchemeColourSurface::SCROLLER_BAR_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255), GRGenerateIntensities());
+			framePanel.Set(ESchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(48, 48, 48, 255), GRGenerateIntensities());
+			framePanel.Set(ESchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT, RGBAb(128, 128, 128, 255), GRGenerateIntensities());
+			framePanel.Set(ESchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255), GRGenerateIntensities());
+			framePanel.Set(ESchemeColourSurface::SCROLLER_BAR_BACKGROUND, RGBAb(48, 48, 48, 255), GRGenerateIntensities());
+			framePanel.Set(ESchemeColourSurface::SCROLLER_BAR_TOP_LEFT, RGBAb(120, 120, 120, 255), GRGenerateIntensities());
+			framePanel.Set(ESchemeColourSurface::SCROLLER_BAR_BOTTOM_RIGHT, RGBAb(104, 104, 104, 255), GRGenerateIntensities());
 			framePanel.Set(ESchemeColourSurface::SCROLLER_SLIDER_BACKGROUND, RGBAb(64, 64, 64, 255), GRGenerateIntensities());
 			framePanel.Set(ESchemeColourSurface::SCROLLER_SLIDER_TOP_LEFT, RGBAb(128, 128, 128, 255), GRGenerateIntensities());
 			framePanel.Set(ESchemeColourSurface::SCROLLER_SLIDER_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255), GRGenerateIntensities());

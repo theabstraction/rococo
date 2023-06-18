@@ -144,9 +144,12 @@ namespace ANON
 			{
 				int32 oldPosition = clickDeltaPosition;
 				clickDeltaPosition = ce.position.y - clickPosition;
-				if (clickDeltaPosition > 0 && oldPosition != clickDeltaPosition)
+				if (clickDeltaPosition != 0)
 				{
-					events.OnScrollerNewPositionCalculated(clickDeltaPosition, *this);
+					if (oldPosition != clickDeltaPosition)
+					{
+						events.OnScrollerNewPositionCalculated(clickDeltaPosition, *this);
+					}
 				}
 			}
 			return EventRouting::Terminate;
@@ -206,7 +209,10 @@ namespace ANON
 		{
 			auto rect = panel.AbsRect();
 
-			GRRenderState rs(clickPosition >= 0, g.IsHovered(panel), false);
+			GRRenderState rs(false, g.IsHovered(panel), false);
+
+			RGBAb backColour = panel.GetColour(ESchemeColourSurface::SCROLLER_BAR_BACKGROUND, rs);
+			g.DrawRect(rect, backColour);
 
 			RGBAb edge1Colour = panel.GetColour(ESchemeColourSurface::SCROLLER_BAR_TOP_LEFT, rs);
 			RGBAb edge2Colour = panel.GetColour(ESchemeColourSurface::SCROLLER_BAR_BOTTOM_RIGHT, rs);

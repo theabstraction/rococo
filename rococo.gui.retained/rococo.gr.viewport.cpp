@@ -36,7 +36,6 @@ namespace ANON
 			enum { scrollbarWidth = 16 };
 
 			Vec2i clipSpan { Width(panelDimensions) - scrollbarWidth, Height(panelDimensions) };
-
 			clipArea->Panel().Resize(clipSpan);
 			clipArea->Panel().SetParentOffset({ 0,0 });
 			clipArea->Panel().InvalidateLayout(false);
@@ -48,8 +47,8 @@ namespace ANON
 			clientOffsetArea->Panel().InvalidateLayout(false);
 			InvalidateLayoutForAllDescendants(clientOffsetArea->Panel());
 
-			vscroller->Widget().Panel().Resize({ scrollbarWidth, Height(panelDimensions) - 1 });
-			vscroller->Widget().Panel().SetParentOffset({ Width(panelDimensions) - scrollbarWidth, 0 });
+			vscroller->Widget().Panel().Resize({ scrollbarWidth, Height(panelDimensions) - 2 });
+			vscroller->Widget().Panel().SetParentOffset({ Width(panelDimensions) - scrollbarWidth, 1 });
 			vscroller->Widget().Panel().InvalidateLayout(false);
 		}
 
