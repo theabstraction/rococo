@@ -315,11 +315,15 @@ namespace GRANON
 		void OnCollapserExpanded(IGRWidgetCollapser& collapser) override
 		{
 			panel.InvalidateLayout(false);
+			InvalidateLayoutForAllDescendants(panel);
+			SetCollapserSizes();
 		}
 
 		void OnCollapserInlined(IGRWidgetCollapser& collapser) override
 		{
 			panel.InvalidateLayout(false);
+			InvalidateLayoutForAllDescendants(panel);
+			SetCollapserSizes();
 		}
 
 		EventRouting OnCursorClick(CursorEvent& ce) override

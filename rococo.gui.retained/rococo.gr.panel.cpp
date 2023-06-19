@@ -396,6 +396,11 @@ namespace GRANON
 
 		EventRouting RouteCursorClickEvent(CursorEvent& ce, bool filterChildrenByParentRect) override
 		{
+			if (isCollapsed)
+			{
+				return EventRouting::NextHandler;
+			}
+
 			if (filterChildrenByParentRect && !IsPointInRect(ce.position, absRect))
 			{
 				return EventRouting::NextHandler;
@@ -615,6 +620,11 @@ namespace Rococo::Gui
 
 	ROCOCO_GUI_RETAINED_API void LayoutChildrenByAnchors(IGRPanel& parent, const GuiRect& parentDimensions)
 	{
+		if (parent.IsCollapsed())
+		{
+			return;
+		}
+
 		int index = 0;
 		while (auto* child = parent.GetChild(index++))
 		{
