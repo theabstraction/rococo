@@ -5,7 +5,6 @@
 #include <algorithm>
 #include <rococo.maths.i32.h>
 #include <unordered_map>
-#include <unordered_set>
 #include <rococo.maths.h>
 
 #define ROCOCO_USE_SAFE_V_FORMAT
@@ -221,11 +220,11 @@ namespace ANON
 			}
 		}
 
-		std::unordered_set<int64> invalidatedPanelSet;
+		int invalidatedPanelCount = 0;
 
 		void UpdateNextFrame(IGRPanel& panel)
 		{
-			invalidatedPanelSet.insert(panel.Id());
+			invalidatedPanelCount++;
 		}
 
 		void RenderGui(IGRRenderContext& g) override
@@ -238,34 +237,20 @@ namespace ANON
 
 			badSpanCountThisFrame = 0;
 
+			auto screenDimensions = g.ScreenDimensions();
+			Vec2i topLeft = { screenDimensions.left, screenDimensions.top };
+
+			if (lastLayedOutScreenDimensions != screenDimensions || invalidatedPanelCount > 0)
+			{
+				invalidatedPanelCount = 0;
+				lastLayedOutScreenDimensions = screenDimensions;
+				LayoutFrames();
+			}
+
+			RecursionGuard guard(*this);
+
 			for (auto& d : frameDescriptors)
 			{
-				auto screenDimensions = g.ScreenDimensions();
-				Vec2i topLeft = { screenDimensions.left, screenDimensions.top };
-
-				if (lastLayedOutScreenDimensions != screenDimensions || d.panel->RequiresLayout())
-				{
-					invalidatedPanelSet.clear(); // Layout frames will operate on all panels, so this set becomes superfluous in this case
-					lastLayedOutScreenDimensions = screenDimensions;
-					LayoutFrames();
-				}
-				else
-				{
-					while (!invalidatedPanelSet.empty())
-					{
-						auto i = invalidatedPanelSet.begin();
-						int64 panelId = *invalidatedPanelSet.begin();
-						auto* invalidatedWidget = FindWidget(panelId);
-						if (invalidatedWidget)
-						{
-							GuiRect absRect = invalidatedWidget->Panel().AbsRect();
-							static_cast<IGRPanelSupervisor&>(invalidatedWidget->Panel()).LayoutRecursive(TopLeft(absRect));
-						}
-						invalidatedPanelSet.erase(panelId);
-					}
-				}
-
-				RecursionGuard guard(*this);
 				d.panel->RenderRecursive(g, screenDimensions);
 				g.DisableScissors();
 			}

@@ -42,8 +42,17 @@ namespace ANON
 
 			Vec2i clientOffsetSpan{ clipSpan.x, max(lastKnownDomainHeight, clipSpan.y) };
 
+			int parentOffset = 0;
+
+			ScrollerMetrics m = vscroller->Scroller().GetMetrics();
+			if (m.PixelRange > 0)
+			{
+				double cursor = clamp((double)m.PixelPosition / (double)m.PixelRange, 0.0, 1.0);
+				parentOffset = (int)(cursor * (lastKnownDomainHeight - m.SliderZoneSpan));
+			}
+
 			clientOffsetArea->Panel().Resize(clientOffsetSpan);
-			clientOffsetArea->Panel().SetParentOffset({ 0, 0 });
+			clientOffsetArea->Panel().SetParentOffset({ 0, -parentOffset });
 			clientOffsetArea->Panel().InvalidateLayout(false);
 			InvalidateLayoutForAllDescendants(clientOffsetArea->Panel());
 
