@@ -233,8 +233,8 @@ namespace GRANON
 		{
 			this->raisedImagePath = imagePath ? imagePath : std::string();
 			this->pressedImagePath = imagePath ? imagePath : std::string();
-			raisedImage = panel.Root().Custodian().CreateImageMemento(this->raisedImagePath.c_str());
-			pressedImage = panel.Root().Custodian().CreateImageMemento(this->pressedImagePath.c_str());
+			raisedImage = panel.Root().Custodian().CreateImageMemento("raised button", this->raisedImagePath.c_str());
+			pressedImage = panel.Root().Custodian().CreateImageMemento("pressed button", this->pressedImagePath.c_str());
 			SyncMinimalSpan();
 			return *this;
 		}
@@ -242,7 +242,7 @@ namespace GRANON
 		IGRWidgetButton& SetPressedImagePath(cstr imagePath) override
 		{
 			this->pressedImagePath = imagePath ? imagePath : std::string();
-			pressedImage = panel.Root().Custodian().CreateImageMemento(this->pressedImagePath.c_str());
+			pressedImage = panel.Root().Custodian().CreateImageMemento("pressed button", this->pressedImagePath.c_str());
 			SyncMinimalSpan();
 			return *this;
 		}
@@ -250,7 +250,7 @@ namespace GRANON
 		IGRWidgetButton& SetRaisedImagePath(cstr imagePath) override
 		{
 			this->raisedImagePath = imagePath ? imagePath : std::string();
-			raisedImage = panel.Root().Custodian().CreateImageMemento(this->raisedImagePath.c_str());
+			raisedImage = panel.Root().Custodian().CreateImageMemento("raised button", this->raisedImagePath.c_str());
 			SyncMinimalSpan();
 			return *this;
 		}

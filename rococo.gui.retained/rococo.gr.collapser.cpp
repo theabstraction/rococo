@@ -10,8 +10,8 @@ using namespace Rococo::Strings;
 
 namespace GRANON
 {
-	static const char* defaultExpandPath = "$(COLLAPSER_EXPAND)";
-	static const char* defaultInlinePath = "$(COLLAPSER_COLLAPSE)";
+	static const char* const defaultExpandPath = "$(COLLAPSER_EXPAND)";
+	static const char* const defaultInlinePath = "$(COLLAPSER_COLLAPSE)";
 
 	struct GRCollapser : IGRWidgetCollapser, IGRWidget
 	{
@@ -43,6 +43,8 @@ namespace GRANON
 			{
 				collapserExpandPath = path;
 			}
+
+			collapseButton->SetRaisedImagePath(collapserExpandPath);
 		}
 
 		void SetCollapsedToInlineImagePath(cstr path) override
@@ -55,6 +57,8 @@ namespace GRANON
 			{
 				collapserInlinePath = path;
 			}
+
+			collapseButton->SetPressedImagePath(collapserInlinePath);
 		}
 
 		IGRWidgetDivision& ClientArea() override

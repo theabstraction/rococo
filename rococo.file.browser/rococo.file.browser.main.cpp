@@ -364,7 +364,7 @@ struct FileBrowser : public IFileBrowser
 
 	std::vector<FileDesc> files;
 
-	U32FilePath selectedFile = { 0 };
+	U32FilePath selectedFile;
 
 	OS::ticks lastClick;
 
@@ -396,7 +396,7 @@ struct FileBrowser : public IFileBrowser
 
 	void OnFolderClicked(const FolderDesc& fd)
 	{
-		selectedFile = { 0 };
+		selectedFile.buf[0] = 0;
 		api.directoryPopulator.SetCurrentDirectory(fd.subdir);
 		folders.clear(); // sanity - prevent invalidated folder tree from being used until next render
 		SyncDomain();

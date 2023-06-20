@@ -58,7 +58,7 @@ using namespace Rococo::VM;
 
 namespace
 {
-	WideFilePath defaultNativeSourcePath = { 0 };
+	WideFilePath defaultNativeSourcePath;
 
 	// Careful that we had enough buffer space
 	void AddSlashToDirectory(wchar_t* buffer)
@@ -94,7 +94,7 @@ namespace Rococo::Script
 	{
 		if (pathname == nullptr)
 		{
-			defaultNativeSourcePath = {0};
+			defaultNativeSourcePath.buf[0] = 0;
 			return;
 		}
 

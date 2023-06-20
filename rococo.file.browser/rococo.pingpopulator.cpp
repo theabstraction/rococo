@@ -14,7 +14,7 @@ using namespace Rococo::Strings;
 
 template<typename T> void ForEachSubPath(const FilePath<T>& dir, IEventCallback<FilePath<T>>& cb, size_t skipStartChars, T sep)
 {
-	FilePath<T> tempCharBuffer = { 0 };
+	FilePath<T> tempCharBuffer;
 
 	T* p = tempCharBuffer.buf;
 
@@ -103,11 +103,12 @@ struct PingPopulator : public IDirectoryPopulator
 	};
 	std::vector<FileInfo> subFiles;
 
-	U8FilePath requiredPrefix = { "!" };
+	U8FilePath requiredPrefix;
 
 	PingPopulator(IInstallation& _installation) :
 		installation(_installation)
 	{
+		Format(requiredPrefix, "!");
 		Format(currentDirectory, "!");
 		Populate();
 	}

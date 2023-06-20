@@ -213,7 +213,7 @@ namespace
       {
           if (textureArray.TextureCount() != 0)
           {
-              Throw(0, "Cannot add %s to the bitmap arrays - they have already been computed");
+              Throw(0, "Cannot add %s to the bitmap arrays - they have already been computed", name);
           }
           auto i = mapNameToLoc.find(name);
           if (i == mapNameToLoc.end())

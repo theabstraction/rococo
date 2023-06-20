@@ -10,6 +10,7 @@
 #include <vector>
 #include <rococo.vkeys.win32.h>
 #include <rococo.os.h>
+#include <rococo.hashtable.h>
 
 using namespace Rococo;
 using namespace Rococo::Gui;
@@ -321,8 +322,46 @@ namespace ANON
 				return false;
 			}
 
+			bool isLeftAligned = alignment.HasSomeFlags(GRAlignment::Left) && !alignment.HasSomeFlags(GRAlignment::Right);
+			bool isRightAligned = !alignment.HasSomeFlags(GRAlignment::Left) && alignment.HasSomeFlags(GRAlignment::Right);
+
+			int32 x = 0;
+
 			GuiRect rect = panel.AbsRect();
-			Graphics::DrawSprite(TopLeft(rect) + Vec2i { 1,1,}, sprite, *rc);
+
+			Vec2i ds = Quantize(sprite.pixelSpan);
+
+			if (isLeftAligned)
+			{
+				x = rect.left + spacing.x;
+			}
+			else if (isRightAligned)
+			{
+				x = rect.right - spacing.x - ds.x;
+			}
+			else
+			{
+				x = (rect.left + rect.right - ds.x) >> 1;
+			}
+
+			int y = 0;
+			bool isTopAligned = alignment.HasSomeFlags(GRAlignment::Top) && !alignment.HasSomeFlags(GRAlignment::Bottom);
+			bool isBottomAligned = !alignment.HasSomeFlags(GRAlignment::Top) && alignment.HasSomeFlags(GRAlignment::Bottom);
+
+			if (isTopAligned)
+			{
+				y = rect.top + spacing.y;
+			}
+			else if (isBottomAligned)
+			{
+				y = rect.bottom - spacing.x - ds.y;
+			}
+			else
+			{
+				y = (rect.top + rect.bottom - ds.y) >> 1;
+			}
+
+			Graphics::DrawSprite({ x, y }, sprite, *rc);
 
 			return true;
 		}
@@ -335,11 +374,11 @@ namespace ANON
 
 		ITextureArrayBuilder& sprites;
 
-		MPlatImageMemento(cstr imagePath, ITextureArrayBuilder& _sprites): sprites(_sprites)
+		MPlatImageMemento(cstr hint, cstr imagePath, ITextureArrayBuilder& _sprites): sprites(_sprites)
 		{
 			if (!sprites.TryGetBitmapLocation(imagePath, sprite))
 			{
-				Throw(0, "Could not find bitmap: %s", imagePath);
+				Throw(0, "%s (%s): Could not find bitmap: %s\nNote that the MPLAT gui custodian requires sprites to be pre-loaded, typically using the game script", __FUNCTION__, hint, imagePath);
 			}
 		}
 
@@ -359,6 +398,14 @@ namespace ANON
 		}
 	};
 
+	const stringmap<cstr> macroToPingPath =
+	{
+		{ "$(COLLAPSER_EXPAND)", "!textures/toolbars/3rd-party/www.aha-soft.com/Down.tiff" },
+		{ "$(COLLAPSER_COLLAPSE)", "!textures/toolbars/3rd-party/www.aha-soft.com/Forward.tiff" },
+		{ "$(COLLAPSER_ELEMENT_EXPAND)", "!textures/toolbars/expanded_state.tiff" },
+		{ "$(COLLAPSER_ELEMENT_INLINE)", "!textures/toolbars/inline_state.tiff" },
+	};
+
 	struct MPlatCustodian : IMPlatGuiCustodianSupervisor, IGRCustodian, IGREventHistory
 	{
 		MPlatGR_Renderer renderer;
@@ -374,23 +421,11 @@ namespace ANON
 			
 		}
 
-		IImageMemento* CreateImageMemento(cstr codedImagePath) override
+		IImageMemento* CreateImageMemento(cstr debugHint, cstr codedImagePath) override
 		{
-			cstr imagePath;
-			if (strstr(codedImagePath, "$(COLLAPSER_COLLAPSE)"))
-			{
-				imagePath = "!textures/toolbars/3rd-party/www.aha-soft.com/Forward.tiff";
-			}
-			else if (strstr(codedImagePath, "$(COLLAPSER_EXPAND)"))
-			{
-				imagePath = "!textures/toolbars/3rd-party/www.aha-soft.com/Down.tiff";
-			}
-			else
-			{
-				imagePath = codedImagePath;
-			}
-
-			return new MPlatImageMemento(imagePath, sysRenderer.Gui().SpriteBuilder());
+			auto i = macroToPingPath.find(codedImagePath);
+			cstr imagePath = i != macroToPingPath.end() ? imagePath = i->second : codedImagePath;
+			return new MPlatImageMemento(debugHint, imagePath, sysRenderer.Gui().SpriteBuilder());
 		}
 
 		Vec2i EvaluateMinimalSpan(GRFontId fontId, const fstring& text) const override

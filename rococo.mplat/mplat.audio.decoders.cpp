@@ -459,8 +459,8 @@ namespace
 		{
 			while (tc.IsRunning())
 			{
-				WideFilePath currentPath = { 0 };
-				WideFilePath nextPath = { 0 };
+				WideFilePath currentPath;
+				WideFilePath nextPath;
 
 				if (nextIndex > currentIndex)
 				{

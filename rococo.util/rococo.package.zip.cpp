@@ -261,7 +261,7 @@ namespace
 
 			for (uint32 i = 0; i < header.fileCount; ++i)
 			{
-				U8FilePath path = { 0 };
+				U8FilePath path;
 
 				size_t len_Path = ReadBuffer(readPointer, bufferLeft, path.buf, path.CAPACITY, '\t');
 				readPointer += len_Path;

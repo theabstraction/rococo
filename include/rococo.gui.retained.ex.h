@@ -42,7 +42,8 @@ namespace Rococo::Gui
 	ROCOCO_INTERFACE IGRCustodian
 	{
 		// The caller will grab the reference to the memento and is responsible for calling IImageMemento->Free() when the memento is no longer used.
-		virtual IImageMemento * CreateImageMemento(cstr imagePath) = 0;
+		// The debug hint may be used in error message to help narrow down the source of the error. The error message will typically display the imagePath
+		virtual IImageMemento * CreateImageMemento(cstr debugHint, cstr imagePath) = 0;
 
 		// Takes a platform interpreted key event and translates to an editor delta event
 		virtual void TranslateToEditor(const KeyEvent& keyEvent, IGREditorMicromanager& manager) = 0;

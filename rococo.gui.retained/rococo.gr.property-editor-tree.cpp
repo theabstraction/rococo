@@ -474,6 +474,9 @@ namespace GRANON
 				// We must look to the parent, i.e the container, to get the container name
 				cstr container = data.parent->instanceName;
 				SafeFormat(title, "%s[%s]", container, data.containerKey.c_str());
+
+				collapser.SetExpandClientAreaImagePath("$(COLLAPSER_ELEMENT_EXPAND)");
+				collapser.SetCollapsedToInlineImagePath("$(COLLAPSER_ELEMENT_INLINE)");
 			}
 			else
 			{

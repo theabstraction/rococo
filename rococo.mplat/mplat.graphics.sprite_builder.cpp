@@ -30,6 +30,9 @@ namespace
       void AddSprite(const fstring& resourceName)
       {
          auto* ext = GetFileExtension(resourceName);
+
+         if (ext == nullptr) Throw(0, "%s failed. [resourceName='%s'] had no extension", __FUNCTION__, resourceName.buffer);
+
          if (Eq(ext, ".tif") || Eq(ext, ".tiff") || Eq(ext, ".jpg") || Eq(ext, ".jpeg"))
          {
             if (names.find(resourceName.buffer) == names.end())
@@ -44,16 +47,32 @@ namespace
       {
          struct : IEventCallback<IO::FileItemData>
          {
-            Sprites* sprites;
+            Sprites* sprites = nullptr;
             U8FilePath containingDir;
 
             void OnEvent(IO::FileItemData& item) override
             {
-               U8FilePath contentRelativePath;
-               cstr sep = EndsWith(containingDir, "/") ? "" : "/";
-               cstr sep2 = item.containerRelRoot[0] == 0 || EndsWith(item.containerRelRoot, L"/") ? "" : "/";
-               Format(contentRelativePath, "%s%s%ls%s%ls", containingDir.buf, sep, item.containerRelRoot, sep2, item.itemRelContainer);
-               sprites->AddSprite(to_fstring(contentRelativePath));
+                if (item.isDirectory)
+                {
+                    return;
+                }
+
+                U8FilePath contentRelativePath;
+                cstr sep = EndsWith(containingDir, "/") ? "" : "/";
+                cstr sep2 = item.containerRelRoot[0] == 0 || EndsWith(item.containerRelRoot, L"\\") || EndsWith(item.containerRelRoot, L"/") ? "" : "/";
+                Format(contentRelativePath, "%s%s%ls%s%ls", containingDir.buf, sep, item.containerRelRoot, sep2, item.itemRelContainer);
+
+                OS::ToUnixPath(contentRelativePath.buf);
+
+                auto* ext = GetFileExtension(contentRelativePath);
+                if (ext == nullptr)
+                {
+                    // an unknown file type - which we ignore
+                }
+                else if (CompareI(ext, ".tiff") == 0 || CompareI(ext, ".tif") == 0 || CompareI(ext, ".jpg") == 0 || CompareI(ext, ".jpeg"))
+                {
+                    sprites->AddSprite(to_fstring(contentRelativePath));
+                }
             }
          } addSprite;
          addSprite.sprites = this;

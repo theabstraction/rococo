@@ -1522,7 +1522,7 @@ namespace
 					size_t nChars = info.FileNameLength >> 1;
 					if (nChars < _MAX_PATH - 1)
 					{
-						WideFilePath nullTerminatedFilename = { 0 };
+						WideFilePath nullTerminatedFilename;
 						for (DWORD i = 0; i < nChars; ++i)
 						{
 							nullTerminatedFilename.buf[i] = info.FileName[i];
@@ -2459,7 +2459,7 @@ namespace Rococo
 					item.fullPath = i.fullPath;
 					item.outContext = nullptr;
 					item.isDirectory = i.isDirectory;
-					item.containerRelRoot = L"!";
+					item.containerRelRoot = i.containerRelRoot;
 					item.itemRelContainer = i.itemRelContainer;
 					onFile->OnEvent(item);
 					i.outContext = item.outContext;

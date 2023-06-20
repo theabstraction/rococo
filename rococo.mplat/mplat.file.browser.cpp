@@ -287,8 +287,8 @@ struct FilenameEditor : IUIElement, public IKeyboardSink
 	IGUIStack& gui;
 	IKeyboardSupervisor& keyboard;
 
-	U32FilePath fullPath = { U"!" };
-	U8FilePath asciiRep = { "!" };
+	U32FilePath fullPath;
+	U8FilePath asciiRep;
 
 	bool editing = false;
 	int caretPos = 0;
@@ -296,7 +296,9 @@ struct FilenameEditor : IUIElement, public IKeyboardSink
 	FilenameEditor(IFileBrowser& _browser, IDirectoryPopulator& _populator, IGUIStack& _gui, IKeyboardSupervisor& _keyboard) :
 		browser(_browser), populator(_populator), gui(_gui), keyboard(_keyboard)
 	{
-
+		Format(asciiRep, "!");
+		fullPath.buf[0] = U'!';
+		fullPath.buf[1] = 0;
 	}
 
 	~FilenameEditor()

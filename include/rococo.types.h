@@ -189,6 +189,7 @@ namespace Rococo
 
 	template<class T> struct FilePath
 	{
+		FilePath() { buf[0] = 0; }
 		enum { CAPACITY = 260 };
 		T buf[CAPACITY];
 		constexpr operator const T* () const noexcept { return buf; }
