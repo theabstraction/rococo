@@ -687,6 +687,13 @@ namespace Rococo::Gui
 
 		virtual bool IsCollapsed() const = 0;
 
+		// If the argument is blank defaults to a default expansion icon macro
+		virtual void SetExpandClientAreaImagePath(cstr path) = 0;
+
+
+		// If the argument is blank defaults to a default inline icon macro
+		virtual void SetCollapsedToInlineImagePath(cstr path) = 0;
+
 		// The collapser button is on the left side, so it is recommended to right align any additions and give enough room for the collapser to work
 		virtual IGRWidgetDivision& TitleBar() = 0;
 	};

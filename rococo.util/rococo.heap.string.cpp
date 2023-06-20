@@ -43,7 +43,7 @@ namespace Rococo::Strings
 		stringAllocator = (a == nullptr) ? &defaultAllocator : a;
 	}
 
-	ROCOCO_API HString::HString(HString&& other)
+	ROCOCO_API HString::HString(HString&& other) noexcept
 	{
 		data = other.data;
 		other.data = &nullData;
@@ -73,6 +73,10 @@ namespace Rococo::Strings
 
 	ROCOCO_API HString::HString(const HString& s)
 	{
+		if (this == &s)
+		{
+			Throw(0, "Error. Client of HString tried to initialize a string with itself.");
+		}
 		data = s.data;
 		if (data->refCount > 0) data->refCount++;
 	}

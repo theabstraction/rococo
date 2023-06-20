@@ -10,6 +10,9 @@ using namespace Rococo::Strings;
 
 namespace GRANON
 {
+	static const char* defaultExpandPath = "$(COLLAPSER_EXPAND)";
+	static const char* defaultInlinePath = "$(COLLAPSER_COLLAPSE)";
+
 	struct GRCollapser : IGRWidgetCollapser, IGRWidget
 	{
 		IGRPanel& panel;
@@ -17,6 +20,8 @@ namespace GRANON
 		IGRWidgetButton* collapseButton = nullptr;
 		IGRWidgetDivision* titleBar = nullptr;
 		IGRWidgetDivision* clientArea = nullptr;
+		HString collapserExpandPath = defaultExpandPath;
+		HString collapserInlinePath = defaultInlinePath;
 
 		GRCollapser(IGRPanel& owningPanel, IGRWidgetCollapserEvents& _eventHandler) : panel(owningPanel), eventHandler(_eventHandler)
 		{
@@ -26,6 +31,30 @@ namespace GRANON
 		bool IsCollapsed() const override
 		{
 			return collapseButton ? !collapseButton->GetButtonFlags().isRaised : false;
+		}
+
+		void SetExpandClientAreaImagePath(cstr path) override
+		{
+			if (path == nullptr || *path == 0)
+			{
+				collapserExpandPath = defaultExpandPath;
+			}
+			else
+			{
+				collapserExpandPath = path;
+			}
+		}
+
+		void SetCollapsedToInlineImagePath(cstr path) override
+		{
+			if (path == nullptr || *path == 0)
+			{
+				collapserInlinePath = defaultInlinePath;
+			}
+			else
+			{
+				collapserInlinePath = path;
+			}
 		}
 
 		IGRWidgetDivision& ClientArea() override
@@ -44,8 +73,8 @@ namespace GRANON
 			titleBar = &CreateDivision(*this);
 			collapseButton = &CreateButton(*titleBar);
 			collapseButton->Widget().Panel().Resize({ 26,26 }).SetParentOffset({0,2});
-			collapseButton->SetRaisedImagePath("$(COLLAPSER_EXPAND)");
-			collapseButton->SetPressedImagePath("$(COLLAPSER_COLLAPSE)");
+			collapseButton->SetRaisedImagePath(collapserExpandPath);
+			collapseButton->SetPressedImagePath(collapserInlinePath);
 			collapseButton->SetEventPolicy(GREventPolicy::NotifyAncestors);
 			collapseButton->MakeToggleButton();
 		}

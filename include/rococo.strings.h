@@ -135,9 +135,9 @@ namespace Rococo::Strings
 		HStringData* data;
 	public:
 		ROCOCO_API HString();
-		ROCOCO_API HString(HString&& other);
-		ROCOCO_API HString(const HString& s);
+		ROCOCO_API HString(HString&& other) noexcept;
 		ROCOCO_API HString(cstr s);
+		ROCOCO_API HString(const HString& s);		
 		ROCOCO_API HString& operator = (const HString& s);
 		ROCOCO_API HString& operator = (cstr s);
 		ROCOCO_API ~HString();
