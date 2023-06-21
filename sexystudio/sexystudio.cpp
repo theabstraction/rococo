@@ -1960,7 +1960,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 		return linePointer - line.start + cursor.lineStartPosition;
 	}
 
-	U8FilePath lastAutoRebasePath= { 0 };
+	U8FilePath lastAutoRebasePath;
 
 	void Rebase(const wchar_t* fullPathToSXYfile)
 	{
@@ -2010,7 +2010,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 		}
 	}
 
-	WideFilePath fullPathCache = { 0 };
+	WideFilePath fullPathCache;
 
 	void UpdateAutoComplete(ISexyEditor& editor, const wchar_t* fullPath) override
 	{

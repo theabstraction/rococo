@@ -540,6 +540,13 @@ namespace GRANON
 
 			viewport = &CreateViewportWidget(*this);
 
+			auto& vp = viewport->ClientArea().Panel();
+			SetUniformColourForAllRenderStates(vp, ESchemeColourSurface::IMAGE_FOG, RGBAb(0, 0, 0, 0));
+			vp.Set(ESchemeColourSurface::IMAGE_FOG, RGBAb(192, 192, 192, 32), GRRenderState(0, 1, 0));
+			vp.Set(ESchemeColourSurface::IMAGE_FOG, RGBAb(192, 192, 192, 48), GRRenderState(0, 0, 1));
+			vp.Set(ESchemeColourSurface::IMAGE_FOG, RGBAb(192, 192, 192, 64), GRRenderState(0, 1, 1));
+
+
 			GRAnchors anchors = anchors.ExpandAll();
 
 			viewport->Widget().Panel().Set(anchors);

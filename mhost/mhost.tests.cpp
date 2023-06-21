@@ -109,13 +109,13 @@ struct TestHouse : IReflectionTarget
 
 	void Visit(IReflectionVisitor& v) override
 	{
-	//	v.SetSection("House");
-	//	ROCOCO_REFLECT(v, houseName);
-	//	ROCOCO_REFLECT(v, houseNumber);
-	//	ROCOCO_REFLECT(v, streetAddress);
-	//	ROCOCO_REFLECT(v, town);
-	//	ROCOCO_REFLECT(v, postcode);
-	//	ROCOCO_REFLECT(v, kennel)
+		v.SetSection("House");
+		ROCOCO_REFLECT(v, houseName);
+		ROCOCO_REFLECT(v, houseNumber);
+		ROCOCO_REFLECT(v, streetAddress);
+		ROCOCO_REFLECT(v, town);
+		ROCOCO_REFLECT(v, postcode);
+		ROCOCO_REFLECT(v, kennel)
 		Reflect(v, puppies, "puppies");
 	}
 } s_TestStruct;

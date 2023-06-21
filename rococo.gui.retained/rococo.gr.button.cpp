@@ -19,8 +19,8 @@ namespace GRANON
 
 		std::string raisedImagePath;
 		std::string pressedImagePath;
-		AutoFree<IImageMemento> raisedImage;
-		AutoFree<IImageMemento> pressedImage;
+		AutoFree<IGRImageMemento> raisedImage;
+		AutoFree<IGRImageMemento> pressedImage;
 
 		GRButton(IGRPanel& owningPanel) : panel(owningPanel)
 		{
@@ -113,16 +113,26 @@ namespace GRANON
 				}
 				else if (clickCriterion == GRClickCriterion::OnDownThenUp)
 				{
+					bool flipped = true;
+
 					if (isToggler)
 					{
 						isRaised = !isRaised;
 					}
-					else
+					else if (!isRaised)
 					{
 						isRaised = true;
 					}
-					SyncMinimalSpan();
-					FireEvent(ce);
+					else
+					{
+						flipped = false;
+					}
+
+					if (flipped)
+					{
+						SyncMinimalSpan();
+						FireEvent(ce);
+					}
 
 					if (panel.Root().CapturedPanelId() == panel.Id())
 					{
@@ -155,7 +165,10 @@ namespace GRANON
 
 		void OnCursorLeave() override
 		{
-
+			if (!isToggler && !isRaised)
+			{
+				isRaised = true;
+			}
 		}
 
 		EventRouting OnCursorMove(CursorEvent& ce) override
@@ -193,22 +206,20 @@ namespace GRANON
 
 			bool imageRendered = false;
 
-			IImageMemento* image = isRaised ? raisedImage : pressedImage;
+			IGRImageMemento* image = isRaised ? raisedImage : pressedImage;
 
 			GRRenderState rs(!isRaised, isHovered, false);
 
 			if (image)
 			{
 				imageRendered = image->Render(panel, alignment, spacing, g);
-				if (isRaised)
-				{
-					GuiRect fogRect = panel.AbsRect();
-					fogRect.left += 1;
-					fogRect.right -= 1;
-					fogRect.top += 1;
-					fogRect.bottom -= 1;
-					g.DrawRect(fogRect, panel.GetColour(ESchemeColourSurface::IMAGE_FOG, rs, RGBAb(0, 0, 0, 128)));
-				}
+
+				GuiRect fogRect = panel.AbsRect();
+				fogRect.left += 1;
+				fogRect.right -= 1;
+				fogRect.top += 1;
+				fogRect.bottom -= 1;
+				g.DrawRect(fogRect, panel.GetColour(ESchemeColourSurface::IMAGE_FOG, rs, RGBAb(0, 0, 0, 128)));
 			}
 
 			if (!imageRendered)
@@ -309,7 +320,7 @@ namespace GRANON
 
 		Vec2i EvaluateMinimalSpan() const
 		{
-			const IImageMemento* image = isRaised ? raisedImage : pressedImage;
+			const IGRImageMemento* image = isRaised ? raisedImage : pressedImage;
 			if (image)
 			{
 				return image->Span() + Vec2i{2,2};

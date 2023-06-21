@@ -244,6 +244,9 @@ namespace Rococo::Gui
 		virtual bool TryGetColour(ESchemeColourSurface surface, RGBAb& colour, GRRenderState state) const = 0;
 	};
 
+	ROCOCO_GUI_RETAINED_API void SetUniformColourForAllRenderStates(IGRScheme& scheme, ESchemeColourSurface surface, RGBAb colour);
+	ROCOCO_GUI_RETAINED_API void SetUniformColourForAllRenderStates(IGRPanel& panel, ESchemeColourSurface surface, RGBAb colour);
+
 	ROCOCO_INTERFACE IGRSchemeSupervisor : IGRScheme
 	{
 		virtual void Free() = 0;
@@ -509,7 +512,7 @@ namespace Rococo::Gui
 	};
 
 	// The platform independent view of the platform dependent image associated with some widget
-	ROCOCO_INTERFACE IImageMemento
+	ROCOCO_INTERFACE IGRImageMemento
 	{
 		virtual bool Render(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, IGRRenderContext& rc) = 0;
 		virtual Vec2i Span() const = 0;

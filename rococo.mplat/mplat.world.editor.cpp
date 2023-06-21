@@ -70,7 +70,6 @@ namespace ANON
 		titleBar.Set(ESchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(0, 0, 0, 255), GRGenerateIntensities());
 		titleBar.Set(ESchemeColourSurface::MENU_BUTTON, RGBAb(0, 0, 0, 255), GRGenerateIntensities());
 		titleBar.Set(ESchemeColourSurface::BUTTON, RGBAb(0, 0, 0, 255), GRGenerateIntensities());
-		titleBar.Set(ESchemeColourSurface::IMAGE_FOG, RGBAb(0, 0, 0, 128), GRGenerateIntensities());
 	}
 
 	enum { TOOLBAR_EVENT_MINIMIZE = 40001, TOOLBAR_EVENT_RESTORE, TOOLBAR_EVENT_EXIT };

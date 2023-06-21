@@ -78,7 +78,7 @@ namespace ANON
 			if (i != mapSurfaceToColour.end())
 			{
 				GRRenderStateMiniScheme::HoverAndFocus& hf = rs.value.bitValues.pressed ? i->second.pressed : i->second.notPressed;
-				GRRenderStateMiniScheme::MiniFocusScheme f = rs.value.bitValues.hovered ? hf.hovered : hf.notHovered;
+				GRRenderStateMiniScheme::MiniFocusScheme& f = rs.value.bitValues.hovered ? hf.hovered : hf.notHovered;
 				RGBAb& target = rs.value.bitValues.focused ? f.focusedColour : f.notFocusedColour;
 				target = colour;
 			}
@@ -143,7 +143,7 @@ namespace Rococo::Gui
 
 	ROCOCO_GUI_RETAINED_API void SetSchemeColours_ThemeGrey(IGRScheme& scheme)
 	{
-		scheme.SetColour(ESchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(64, 64, 64, 192), GRGenerateIntensities());
+		SetUniformColourForAllRenderStates(scheme, ESchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(64, 64, 64, 192));
 		scheme.SetColour(ESchemeColourSurface::CONTAINER_TOP_LEFT, RGBAb(64, 64, 64, 192), GRGenerateIntensities());
 		scheme.SetColour(ESchemeColourSurface::CONTAINER_BOTTOM_RIGHT, RGBAb(64, 64, 64, 192), GRGenerateIntensities());
 		scheme.SetColour(ESchemeColourSurface::BACKGROUND, RGBAb(64, 64, 64, 192), GRGenerateIntensities());
@@ -154,5 +154,42 @@ namespace Rococo::Gui
 		scheme.SetColour(ESchemeColourSurface::BUTTON_EDGE_TOP_LEFT, RGBAb(64, 64, 64, 255), GRGenerateIntensities());
 		scheme.SetColour(ESchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(64, 64, 64, 255), GRGenerateIntensities());
 		scheme.SetColour(ESchemeColourSurface::BUTTON_TEXT, RGBAb(255, 255, 255, 255), GRGenerateIntensities());
+
+		scheme.SetColour(ESchemeColourSurface::IMAGE_FOG, RGBAb(0, 0, 0, 0), GRGenerateIntensities());
+		scheme.SetColour(ESchemeColourSurface::IMAGE_FOG, RGBAb(0, 0, 0,   128), GRRenderState(0, 0, 0));
+		scheme.SetColour(ESchemeColourSurface::IMAGE_FOG, RGBAb(64, 64, 64, 64), GRRenderState(0, 0, 1));
+		scheme.SetColour(ESchemeColourSurface::IMAGE_FOG, RGBAb(0, 0, 0,    64), GRRenderState(0, 1, 0));
+		scheme.SetColour(ESchemeColourSurface::IMAGE_FOG, RGBAb(64, 64, 64, 32), GRRenderState(0, 1, 1));
+		scheme.SetColour(ESchemeColourSurface::IMAGE_FOG, RGBAb(64, 64, 64, 64), GRRenderState(0, 0, 1));
+	}
+
+	template<class T> void ForEachRenderState(T t)
+	{
+		t(GRRenderState(0, 0, 0));
+		t(GRRenderState(0, 0, 1));
+		t(GRRenderState(0, 1, 0));
+		t(GRRenderState(0, 1, 1));
+		t(GRRenderState(1, 0, 0));
+		t(GRRenderState(1, 0, 1));
+		t(GRRenderState(1, 1, 0));
+		t(GRRenderState(1, 1, 1));
+	}
+
+	ROCOCO_GUI_RETAINED_API void SetUniformColourForAllRenderStates(IGRScheme& scheme, ESchemeColourSurface surface, RGBAb colour)
+	{
+		ForEachRenderState([&scheme, surface, colour](GRRenderState rs)
+			{
+				scheme.SetColour(surface, colour, rs);
+			}
+		);
+	}
+
+	ROCOCO_GUI_RETAINED_API void SetUniformColourForAllRenderStates(IGRPanel& panel, ESchemeColourSurface surface, RGBAb colour)
+	{
+		ForEachRenderState([&panel, surface, colour](GRRenderState rs)
+			{
+				panel.Set(surface, colour, rs);
+			}
+		);
 	}
 }

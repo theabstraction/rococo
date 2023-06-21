@@ -367,7 +367,7 @@ namespace ANON
 		}
 	};
 
-	struct MPlatImageMemento : IImageMemento
+	struct MPlatImageMemento : IGRImageMemento
 	{
 		Vec2i span{ 8, 8 };
 		BitmapLocation sprite = BitmapLocation::None();
@@ -421,7 +421,7 @@ namespace ANON
 			
 		}
 
-		IImageMemento* CreateImageMemento(cstr debugHint, cstr codedImagePath) override
+		IGRImageMemento* CreateImageMemento(cstr debugHint, cstr codedImagePath) override
 		{
 			auto i = macroToPingPath.find(codedImagePath);
 			cstr imagePath = i != macroToPingPath.end() ? imagePath = i->second : codedImagePath;
