@@ -61,14 +61,71 @@ namespace ANON
 			vscroller->Widget().Panel().InvalidateLayout(false);
 		}
 
-
-		GRSliderSpec OnCalculateSliderRect(int32 scrollerSpan) override
+		GRSliderSpec OnCalculateSliderRect(int32 scrollerSpan, IGRWidgetScroller& scroller) override
 		{
 			double sliderSpanToScrollerSpan = scrollerSpan / (double)lastKnownDomainHeight;
 
 			GRSliderSpec spec;
 			spec.sliderSpanInPixels = (int) (sliderSpanToScrollerSpan * scrollerSpan);
 			return spec;
+		}
+
+		// Check the interface method IGRWidgetViewport::SetMovePageScale(...) for documentation on this variable
+		double pageDeltaScale = 0.75;
+
+		// Check the interface method IGRWidgetViewport::SetLineDeltaPixels(...) for documentation on this variable
+		int lineDeltaPixels = 10;
+
+		void SetLineDeltaPixels(int lineDeltaPixels) override
+		{
+			this->lineDeltaPixels = clamp(lineDeltaPixels, 1, 1000'000);
+		}
+
+		void SetMovePageScale(double scaleFactor) override
+		{
+			pageDeltaScale = clamp(scaleFactor, 0.0, 2.0);
+		}
+
+		void OnMoveLine(int delta, IGRWidgetScroller& scroller)
+		{
+			if (lineDeltaPixels == 0) return;
+
+			ScrollerMetrics m = scroller.GetMetrics();
+			if (m.PixelRange > 0 && lastKnownDomainHeight > m.SliderZoneSpan)
+			{
+				double scale = (lastKnownDomainHeight - m.SliderZoneSpan) / (double)m.PixelRange;
+
+				int32 deltaPixels = delta * lineDeltaPixels;
+
+				int newPosition = deltaPixels / scale;
+
+				if (newPosition == 0)
+				{
+					// Don't let the scaling completely eliminate the change, we must always have some scrolling
+					newPosition = (delta > 0) ? 1 : -1;
+				}
+
+				OnScrollerNewPositionCalculated(newPosition, scroller);
+
+				scroller.SetSliderPosition(clamp(newPosition + m.PixelPosition, 0, m.PixelRange));
+			}
+		}
+
+		void OnMovePage(int delta, IGRWidgetScroller& scroller) override
+		{
+			ScrollerMetrics m = scroller.GetMetrics();
+			if (m.PixelRange > 0 && lastKnownDomainHeight > m.SliderZoneSpan)
+			{
+				double scale = (lastKnownDomainHeight - m.SliderZoneSpan) / (double)m.PixelRange;
+
+				int32 deltaPixels = delta * clipArea->Panel().Span().y;
+
+				int newPosition = pageDeltaScale * deltaPixels / scale;
+
+				OnScrollerNewPositionCalculated(newPosition, scroller);
+
+				scroller.SetSliderPosition(clamp(newPosition + m.PixelPosition, 0, m.PixelRange));
+			}
 		}
 
 		void OnScrollerNewPositionCalculated(int32 newPosition, IGRWidgetScroller& scroller) override

@@ -508,10 +508,10 @@ namespace Rococo
 	// Represent a gui rectangle in floating point co-ordinates. top < bottom for most uses.
 	struct GuiRectf
 	{
-		float left;
-		float top;
-		float right;
-		float bottom;
+		float left = 0;
+		float top = 0;
+		float right = 0;
+		float bottom = 0;
 
 		GuiRectf() {}
 		GuiRectf(float _left, float _top, float _right, float _bottom) : left(_left), top(_top), right(_right), bottom(_bottom) {}
@@ -606,10 +606,10 @@ namespace Rococo
 
 	struct GuiRect
 	{
-		int32 left;
-		int32 top;
-		int32 right;
-		int32 bottom;
+		int32 left = 0;
+		int32 top = 0;
+		int32 right = 0;
+		int32 bottom = 0;
 
 		GuiRect() {}
 		GuiRect(int32 _left, int32 _top, int32 _right, int32 _bottom) : left(_left), top(_top), right(_right), bottom(_bottom) {}

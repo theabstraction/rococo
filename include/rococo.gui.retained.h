@@ -813,8 +813,10 @@ namespace Rococo::Gui
 
 	ROCOCO_INTERFACE IGRScrollerEvents
 	{
+		virtual GRSliderSpec OnCalculateSliderRect(int32 scrollerSpan, IGRWidgetScroller& scroller) = 0;
+		virtual void OnMoveLine(int delta, IGRWidgetScroller& scroller) = 0;
+		virtual void OnMovePage(int delta, IGRWidgetScroller& scroller) = 0;
 		virtual void OnScrollerNewPositionCalculated(int32 newPosition, IGRWidgetScroller& scroller) = 0;
-		virtual GRSliderSpec OnCalculateSliderRect(int32 scrollerSpan) = 0;
 	};
 
 	ROCOCO_INTERFACE IGRWidgetScroller : IGRBase
@@ -844,6 +846,21 @@ namespace Rococo::Gui
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
 		virtual void SetDomainHeight(int32 heightInPixels) = 0;
+
+		// scaleFactor good range is 0.5 to 1.0. 
+		// With 0, page by page scrolling is disabled. 
+		// With 1.0, page scrolling moves the scroll zone by the client height in pixels each invocation.
+		// With 0.5, page scrolling moves the scroll zone half the client height in pixels, and so forth.
+		// The scaling is clamped from 0 to 2.0. The default is 0.75
+		virtual void SetMovePageScale(double scaleFactor) = 0;
+
+		// Sets the number of pixels to scroll up or down when the vertical scroller buttons are clicked
+		// Defaults to 10. 
+		// At 0 line by line scrolling is disabled.
+		// 1,000,000 is the maximum delta.
+		// Values are clamped from 0 to the maximum
+		virtual void SetLineDeltaPixels(int lineDeltaPixels) = 0;
+
 		virtual IGRWidget& Widget() = 0;
 		virtual IGRWidgetDivision& ClientArea() = 0;
 		virtual IGRWidgetVerticalScrollerWithButtons& VScroller() = 0;

@@ -40,7 +40,7 @@ namespace ANON
 			sliderZone.top = panelDimensions.top + 1;
 			sliderZone.bottom = panelDimensions.bottom - 1;
 
-			auto spec = events.OnCalculateSliderRect(Height(sliderZone));
+			auto spec = events.OnCalculateSliderRect(Height(sliderZone), *this);
 			sliderHeight = spec.sliderSpanInPixels;
 		}
 
@@ -71,7 +71,7 @@ namespace ANON
 
 		void MovePage(int delta)
 		{
-			
+			events.OnMovePage(delta, *this);
 		}
 
 		void ActivateTarget(int y)

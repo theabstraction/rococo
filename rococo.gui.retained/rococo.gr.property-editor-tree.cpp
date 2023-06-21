@@ -540,6 +540,8 @@ namespace GRANON
 
 			viewport = &CreateViewportWidget(*this);
 
+			viewport->SetLineDeltaPixels(30);
+
 			auto& vp = viewport->ClientArea().Panel();
 			SetUniformColourForAllRenderStates(vp, ESchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(0, 0, 0, 0));
 			vp.Set(ESchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(192, 192, 192, 32), GRRenderState(0, 1, 0));
