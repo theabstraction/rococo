@@ -210,7 +210,7 @@ namespace GRANON
 				innerRect.top += 1;
 				innerRect.right -= 1;
 				innerRect.bottom -= 1;
-				g.DrawRect(innerRect, panel.GetColour(ESchemeColourSurface::EDITOR, rs, RGBAb(225, 225, 225, 225)));
+				g.DrawRect(innerRect, panel.GetColour(ESchemeColourSurface::EDITOR, rs, RGBAb(0, 0, 0, 225)));
 			}
 
 			if (!rs.value.bitValues.focused)

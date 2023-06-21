@@ -130,8 +130,10 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\include\rococo.gui.retained.h" />
     <ClInclude Include="..\include\rococo.strings.h" />
     <ClInclude Include="..\include\rococo.strings.reflection.h" />
+    <ClInclude Include="..\include\rococo.types.h" />
     <ClInclude Include="mhost.h" />
     <ClInclude Include="mhost.sxh.h" />
     <ClInclude Include="Resource.h" />

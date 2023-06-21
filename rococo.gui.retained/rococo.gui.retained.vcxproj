@@ -125,6 +125,7 @@
     <ClInclude Include="..\include\rococo.gui.retained.h" />
     <ClInclude Include="..\include\rococo.maths.h" />
     <ClInclude Include="..\include\rococo.maths.i32.h" />
+    <ClInclude Include="..\include\rococo.types.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />

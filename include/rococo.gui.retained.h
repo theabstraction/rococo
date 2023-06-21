@@ -179,6 +179,7 @@ namespace Rococo::Gui
 		BUTTON,
 		BUTTON_EDGE_TOP_LEFT,
 		BUTTON_EDGE_BOTTOM_RIGHT,
+		BUTTON_IMAGE_FOG, // Colour, typically with mid alpha values that fogs out an image when it is not activated
 		BUTTON_TEXT,
 		MENU_BUTTON,
 		MENU_BUTTON_EDGE_TOP_LEFT,
@@ -200,7 +201,6 @@ namespace Rococo::Gui
 		EDITOR,
 		TEXT,
 		FOCUS_RECTANGLE, // The rectangle surrounding a control to indicate focus, separate from the controls own focus settings
-		IMAGE_FOG, // Colour, typically with mid alpha values that fogs out an image when it is not activated
 		EDIT_TEXT, // Text colour when editor box is focused
 		SPLITTER_BACKGROUND,
 		SPLITTER_EDGE,

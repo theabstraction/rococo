@@ -476,10 +476,10 @@ namespace Rococo
 
 	struct RGBAb
 	{
-		uint8 red;
-		uint8 green;
-		uint8 blue;
-		uint8 alpha;
+		uint8 red = 0;
+		uint8 green = 0;
+		uint8 blue = 0;
+		uint8 alpha = 0;
 
 		RGBAb() {}
 		RGBAb(uint32 x) { RGBAb* pCol = (RGBAb*)&x; *this = *pCol; }

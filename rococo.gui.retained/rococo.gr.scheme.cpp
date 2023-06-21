@@ -155,12 +155,23 @@ namespace Rococo::Gui
 		scheme.SetColour(ESchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(64, 64, 64, 255), GRGenerateIntensities());
 		scheme.SetColour(ESchemeColourSurface::BUTTON_TEXT, RGBAb(255, 255, 255, 255), GRGenerateIntensities());
 
-		scheme.SetColour(ESchemeColourSurface::IMAGE_FOG, RGBAb(0, 0, 0, 0), GRGenerateIntensities());
-		scheme.SetColour(ESchemeColourSurface::IMAGE_FOG, RGBAb(0, 0, 0,   128), GRRenderState(0, 0, 0));
-		scheme.SetColour(ESchemeColourSurface::IMAGE_FOG, RGBAb(64, 64, 64, 64), GRRenderState(0, 0, 1));
-		scheme.SetColour(ESchemeColourSurface::IMAGE_FOG, RGBAb(0, 0, 0,    64), GRRenderState(0, 1, 0));
-		scheme.SetColour(ESchemeColourSurface::IMAGE_FOG, RGBAb(64, 64, 64, 32), GRRenderState(0, 1, 1));
-		scheme.SetColour(ESchemeColourSurface::IMAGE_FOG, RGBAb(64, 64, 64, 64), GRRenderState(0, 0, 1));
+		scheme.SetColour(ESchemeColourSurface::TEXT, RGBAb(224, 224, 224, 255), GRGenerateIntensities());
+		scheme.SetColour(ESchemeColourSurface::EDIT_TEXT, RGBAb(224, 224, 224, 255), GRGenerateIntensities());
+
+		scheme.SetColour(ESchemeColourSurface::TEXT, RGBAb(255, 255, 255, 255), GRRenderState(0, 1, 0));
+		scheme.SetColour(ESchemeColourSurface::TEXT, RGBAb(255, 255, 255, 255), GRRenderState(0, 1, 1));
+
+		scheme.SetColour(ESchemeColourSurface::EDIT_TEXT, RGBAb(224, 224, 224, 255), GRGenerateIntensities());
+
+		scheme.SetColour(ESchemeColourSurface::EDIT_TEXT, RGBAb(255, 255, 255, 255), GRRenderState(0, 1, 0));
+		scheme.SetColour(ESchemeColourSurface::EDIT_TEXT, RGBAb(255, 255, 255, 255), GRRenderState(0, 1, 1));
+
+		scheme.SetColour(ESchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(0, 0, 0, 0), GRGenerateIntensities());
+		scheme.SetColour(ESchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(0, 0, 0,   128), GRRenderState(0, 0, 0));
+		scheme.SetColour(ESchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(64, 64, 64, 64), GRRenderState(0, 0, 1));
+		scheme.SetColour(ESchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(0, 0, 0,    64), GRRenderState(0, 1, 0));
+		scheme.SetColour(ESchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(64, 64, 64, 32), GRRenderState(0, 1, 1));
+		scheme.SetColour(ESchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(64, 64, 64, 64), GRRenderState(0, 0, 1));
 	}
 
 	template<class T> void ForEachRenderState(T t)

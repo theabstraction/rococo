@@ -226,8 +226,6 @@ namespace ANON
 
 			auto& framePanel = frame.Widget().Panel();
 
-			framePanel.Set(ESchemeColourSurface::TEXT, RGBAb(224, 224, 224, 255), GRGenerateIntensities());
-			framePanel.Set(ESchemeColourSurface::EDIT_TEXT, RGBAb(224, 224, 224, 255), GRGenerateIntensities());
 			framePanel.Set(ESchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(48, 48, 48, 255), GRGenerateIntensities());
 			framePanel.Set(ESchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT, RGBAb(128, 128, 128, 255), GRGenerateIntensities());
 			framePanel.Set(ESchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255), GRGenerateIntensities());

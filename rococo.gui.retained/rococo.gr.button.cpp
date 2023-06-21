@@ -219,7 +219,7 @@ namespace GRANON
 				fogRect.right -= 1;
 				fogRect.top += 1;
 				fogRect.bottom -= 1;
-				g.DrawRect(fogRect, panel.GetColour(ESchemeColourSurface::IMAGE_FOG, rs, RGBAb(0, 0, 0, 128)));
+				g.DrawRect(fogRect, panel.GetColour(ESchemeColourSurface::BUTTON_IMAGE_FOG, rs, RGBAb(0, 0, 0, 128)));
 			}
 
 			if (!imageRendered)
