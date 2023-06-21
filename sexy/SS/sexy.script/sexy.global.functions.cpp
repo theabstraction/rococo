@@ -24,6 +24,7 @@
 #include <rococo.os.h>
 #include <rococo.sexy.api.h>
 #include <rococo.package.h>
+#include <rococo.debugging.h>
 
 #include <rococo.sexy.map.expert.h>
 
@@ -1764,6 +1765,32 @@ namespace Rococo
 
 	};
 
+	void LogStack(IException& ex, ILog& logger)
+	{
+		auto* sf = ex.StackFrames();
+		if (!sf) return;
+
+		using namespace Rococo::Debugging;
+
+		struct Formatter : public IStackFrameFormatter
+		{
+			ILog& logger;
+			Formatter(ILog& argLogger) : logger(argLogger)
+			{
+
+			}
+
+			void Format(const StackFrame& frame) override
+			{
+				char buf[1024];
+				SafeFormat(buf, "%64s - %s line %d", frame.functionName, frame.sourceFile, frame.lineNumber);
+				logger.Write(buf);
+			}
+		} sfFormatter(logger);
+
+		sf->FormatEachStackFrame(sfFormatter);
+	}
+
 	EXECUTERESULT ExecuteAndCatchIException(IVirtualMachine& vm, Rococo::Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger, bool trace)
 	{
 		try
@@ -1830,6 +1857,7 @@ namespace Rococo
 			debugger.SetCodeHilight(sourceFile, pex.Start(), pex.End(), pex.Message());
 			UpdateDebugger(ss, debugger, 0, true);
 			ss.PublicProgramObject().Log().Write(pex.Message());
+			LogStack(pex, ss.PublicProgramObject().Log());
 			if (s) Throw(*s, pex.Message());
 			else Throw(pex.ErrorCode(), "%s", pex.Message());
 			return EXECUTERESULT_THROWN;
@@ -1838,6 +1866,7 @@ namespace Rococo
 		{
 			UpdateDebugger(ss, debugger, 0, true);
 			ss.PublicProgramObject().Log().Write(ex.Message());
+			LogStack(ex, ss.PublicProgramObject().Log());
 			Throw(ex.ErrorCode(), "%s", ex.Message());
 			return EXECUTERESULT_THROWN;
 		}

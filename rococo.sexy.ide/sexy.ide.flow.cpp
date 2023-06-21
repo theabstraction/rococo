@@ -12,6 +12,8 @@
 #include <rococo.ide.h>
 #include <rococo.os.h>
 
+#include <rococo.debugging.h>
+
 using namespace Rococo;
 using namespace Rococo::Windows;
 using namespace Rococo::Windows::IDE;
@@ -205,6 +207,30 @@ namespace Rococo
 	{
 		namespace IDE
 		{
+			void LogStack(IException& ex, ILogger& logger)
+			{
+				auto* sf = ex.StackFrames();
+				if (!sf) return;
+
+				using namespace Rococo::Debugging;
+
+				struct Formatter: public IStackFrameFormatter
+				{
+					ILogger& logger;
+					Formatter(ILogger& argLogger) : logger(argLogger)
+					{
+
+					}
+
+					void Format(const StackFrame& frame) override
+					{
+						logger.Log("%64s - %s line %d", frame.functionName, frame.sourceFile, frame.lineNumber);
+					}
+				} sfFormatter(logger);
+
+				sf->FormatEachStackFrame(sfFormatter);
+			}
+
 			int32 ExecuteSexyScriptLoop(
 				ScriptPerformanceStats& stats,
 				size_t maxBytes,
@@ -268,6 +294,8 @@ namespace Rococo
 						debugger.Log("Caught exception during execution of %s", resourcePath);
 						LogParseException(ex, debugger);
 
+						//LogStack(ex, debugger);
+
 						switch (exceptionHandler.GetScriptExceptionFlow(ex.Name(), ex.Message()))
 						{
 						case EScriptExceptionFlow_Ignore:
@@ -289,8 +317,11 @@ namespace Rococo
 						}
 						else
 						{
-							debugger.Log("Exception thrown in script: %s", ex.Message());
+							debugger.Log("Exception thrown in script %s: %s", resourcePath, ex.Message());
 						}
+
+						//LogStack(ex, debugger);
+
 						switch (exceptionHandler.GetScriptExceptionFlow("--app--", ex.Message()))
 						{
 						case EScriptExceptionFlow_Ignore:
