@@ -27,7 +27,7 @@ namespace Rococo::Gui
 
 namespace ANON
 {
-	struct GuiRetained: IGuiRetainedSupervisor, IGRPanelRoot
+	struct GRSystem: IGRSystemSupervisor, IGRPanelRoot
 	{
 		IGRCustodian& custodian;
 		GRConfig config;
@@ -80,12 +80,12 @@ namespace ANON
 
 		TFrames frameDescriptors;
 
-		GuiRetained(GRConfig& _config, IGRCustodian& _custodian) : config(_config), custodian(_custodian)
+		GRSystem(GRConfig& _config, IGRCustodian& _custodian) : config(_config), custodian(_custodian)
 		{
 
 		}
 
-		virtual ~GuiRetained()
+		virtual ~GRSystem()
 		{
 			for (auto d : frameDescriptors)
 			{
@@ -183,9 +183,9 @@ namespace ANON
 
 		struct RecursionGuard
 		{
-			GuiRetained& This;
+			GRSystem& This;
 
-			RecursionGuard(GuiRetained& _This) : This(_This)
+			RecursionGuard(GRSystem& _This) : This(_This)
 			{
 				This.queryDepth++;
 			}
@@ -602,14 +602,14 @@ namespace Rococo
 
 namespace Rococo::Gui
 {
-	ROCOCO_GUI_RETAINED_API IGuiRetainedSupervisor* CreateGuiRetained(GRConfig& config, IGRCustodian& custodian)
+	ROCOCO_GUI_RETAINED_API IGRSystemSupervisor* CreateGRSystem(GRConfig& config, IGRCustodian& custodian)
 	{
-		return new ANON::GuiRetained(config, custodian);
+		return new ANON::GRSystem(config, custodian);
 	}
 
 	ROCOCO_GUI_RETAINED_API EGREventRouting RouteEventToHandler(IGRPanel& panel, GRWidgetEvent& ev)
 	{
-		auto& supervisor = static_cast<IGuiRetainedSupervisor&>(panel.Root().GR());
+		auto& supervisor = static_cast<IGRSystemSupervisor&>(panel.Root().GR());
 		return supervisor.OnGREvent(ev);
 	}
 

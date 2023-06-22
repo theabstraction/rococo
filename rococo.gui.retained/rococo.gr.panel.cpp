@@ -40,7 +40,7 @@ namespace GRANON
 
 		virtual ~GRPanel()
 		{
-			static_cast<IGuiRetainedSupervisor&>(root.GR()).NotifyPanelDeleted(uniqueId);
+			static_cast<IGRSystemSupervisor&>(root.GR()).NotifyPanelDeleted(uniqueId);
 			ClearChildren();
 		}
 

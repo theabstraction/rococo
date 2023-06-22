@@ -14,7 +14,7 @@ namespace Rococo::Gui
 	};
 
 	// Lifetime manager for a gui retained instance
-	ROCOCO_INTERFACE IGuiRetainedSupervisor : IGRSystem
+	ROCOCO_INTERFACE IGRSystemSupervisor : IGRSystem
 	{
 		// Assigns a new event handler, and returns the old one
 		virtual IGREventHandler* SetEventHandler(IGREventHandler* eventHandler) = 0;
@@ -24,7 +24,7 @@ namespace Rococo::Gui
 	};
 
 	// This is the key factory function that creates the Gui system. The custodian handles the platform dependent side of the GUI.
-	ROCOCO_GUI_RETAINED_API IGuiRetainedSupervisor* CreateGuiRetained(GRConfig& config, IGRCustodian& custodian);
+	ROCOCO_GUI_RETAINED_API IGRSystemSupervisor* CreateGRSystem(GRConfig& config, IGRCustodian& custodian);
 
 	// Implemented by an editor widget, IGRCustodian will map key events to the method calls here to adjust the content of an editor 
 	ROCOCO_INTERFACE IGREditorMicromanager

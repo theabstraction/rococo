@@ -96,9 +96,9 @@ namespace ANON
 		Platform* platform = nullptr;
 		bool isVisible = false;
 
-		MPlatEditor(IGuiRetained& _gr): gr(_gr)
+		MPlatEditor(IGRSystem& _gr): gr(_gr)
 		{
-			static_cast<IGuiRetainedSupervisor&>(gr).SetEventHandler(this);
+			static_cast<IGRSystemSupervisor&>(gr).SetEventHandler(this);
 		}
 
 		void SetPlatform(Platform* platform)
@@ -240,7 +240,7 @@ namespace ANON
 			auto& custodian = gr.Root().Custodian();
 		}
 
-		void Preview(IGuiRetained& gr, IReflectionTarget& target) override
+		void Preview(IGRSystem& gr, IReflectionTarget& target) override
 		{
 			auto* frame = gr.FindFrame(ID_EDITOR_FRAME);
 			if (!frame) Throw(0, "%s: Unexpected missing frame. gr.FindFrame(ID_EDITOR_FRAME) returned null", __FUNCTION__);

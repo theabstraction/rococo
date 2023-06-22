@@ -371,7 +371,7 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	Rococo::Gui::GRConfig grConfig;
 
 	AutoFree<Rococo::Gui::IMPlatGuiCustodianSupervisor> mplat_gcs = Rococo::Gui::CreateMPlatCustodian(*utilities, mainWindow->Renderer());
-	AutoFree<Rococo::Gui::IGuiRetainedSupervisor> GR = Rococo::Gui::CreateGuiRetained(grConfig, mplat_gcs->Custodian());
+	AutoFree<Rococo::Gui::IGRSystemSupervisor> GR = Rococo::Gui::CreateGRSystem(grConfig, mplat_gcs->Custodian());
 
 #ifdef _DEBUG
 	GR->SetDebugFlags((int) Rococo::Gui::EGRDebugFlags::ThrowWhenPanelIsZeroArea);
