@@ -38,6 +38,7 @@ namespace GRANON
 		{
 			text.reserve(capacity);
 			owningPanel.SetMinimalSpan({ 10, 10 });
+			owningPanel.Add(EGRPanelFlags::AcceptsFocus);
 		}
 
 		void Free() override

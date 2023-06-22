@@ -6,6 +6,7 @@
 #include <rococo.maths.i32.h>
 #include <unordered_map>
 #include <rococo.maths.h>
+#include <rococo.ui.h>
 
 #define ROCOCO_USE_SAFE_V_FORMAT
 #include <rococo.strings.h>
@@ -645,6 +646,43 @@ namespace ANON
 		GRRealtimeConfig& MutableConfig() override
 		{
 			return realtimeConfig;
+		}
+
+		void OnNavigate(EGRNavigationDirective directive)
+		{
+			auto* focusedWidget = FindWidget(focusId);
+			if (!focusedWidget)
+			{
+				return;
+			}
+
+			for(IGRPanel* panel = &focusedWidget->Panel(); panel != nullptr; panel = panel->Parent())
+			{
+				IGRNavigator* navigator = Cast<IGRNavigator>(panel->Widget());
+				if (navigator)
+				{
+					if (EGREventRouting::Terminate == navigator->OnNavigate(directive))
+					{
+						return;
+					}
+				}
+			}
+		}
+
+		void ApplyKeyGlobally(GRKeyEvent& keyEvent) override
+		{
+			switch (keyEvent.osKeyEvent.VKey)
+			{
+			case IO::VKCode_TAB:
+				if (keyEvent.osKeyEvent.IsUp())
+				{
+					if (focusId > 0)
+					{
+						OnNavigate(EGRNavigationDirective::Tab);
+					}
+				}
+				break;
+			}
 		}
 	};
 }

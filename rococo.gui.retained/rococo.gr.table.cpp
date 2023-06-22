@@ -29,7 +29,7 @@ namespace GRANON
 		int32 rowHeight;
 	};
 
-	struct GRTable : IGRWidgetTable, IGRWidget
+	struct GRTable : IGRWidgetTable, IGRWidget, IGRNavigator
 	{
 		IGRPanel& panel;
 
@@ -178,7 +178,121 @@ namespace GRANON
 
 		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
+			if (ppOutputArg) *ppOutputArg = nullptr;
+			if (!interfaceId || *interfaceId == 0) return EGRQueryInterfaceResult::INVALID_ID;
+
+			if (DoInterfaceNamesMatch(interfaceId, IGRWidgetTable::InterfaceId()))
+			{
+				if (ppOutputArg)
+				{
+					*ppOutputArg = static_cast<IGRWidgetTable*>(this);					
+				}
+
+				return EGRQueryInterfaceResult::SUCCESS;
+			}
+			else if (DoInterfaceNamesMatch(interfaceId, IGRNavigator::InterfaceId()))
+			{
+				if (ppOutputArg)
+				{
+					*ppOutputArg = static_cast<IGRNavigator*>(this);
+				}
+
+				return EGRQueryInterfaceResult::SUCCESS;
+			}
+
 			return Gui::QueryForParticularInterface<IGRWidgetTable>(this, ppOutputArg, interfaceId);
+		}
+
+		struct RowAndColumn
+		{
+			int row;
+			int column;
+
+			bool operator == (RowAndColumn other)
+			{
+				return row == other.row && column == other.column;
+			}
+		};
+
+		RowAndColumn FindRowAndColumnOfChild(IGRPanel& childlId)
+		{
+			int y = 0;
+			for (auto& row : rows)
+			{
+				int x = 0;
+				for (auto& cell : row.cellsInThisRow)
+				{
+					if (cell.div && IsCandidateDescendantOfParent(cell.div->Panel(), childlId))
+					{
+						return { y, x };
+					}
+					x++;
+				}
+				y++;
+			}
+
+			return { -1,-1 };
+		}
+
+		RowAndColumn GetNextCell(RowAndColumn cellId)
+		{
+			int32 nColumns = (int32)columnHeaders.size();
+			int32 nRows = (int32)rows.size();
+
+			if (nColumns == 0 || nRows == 0 || cellId.column < 0 || cellId.row < 0)
+			{
+				return { -1, -1 };
+			}
+
+			int nextColumn = cellId.column + 1;
+			int nextRow = cellId.row;
+
+			if (nextColumn >= columnHeaders.size())
+			{
+				nextColumn = 0;
+				nextRow++;
+			}
+
+			if (nextRow >= nRows)
+			{
+				nextRow = 0;
+			}
+
+			return { nextRow, nextColumn };
+		}
+
+		EGREventRouting OnNavigate(EGRNavigationDirective directive) override
+		{
+			auto focusId = panel.Root().GR().GetFocusId();
+			auto* child = panel.Root().GR().FindWidget(focusId);
+			if (!child)
+			{
+				return EGREventRouting::Terminate;
+			}
+
+			RowAndColumn cellId = FindRowAndColumnOfChild(child->Panel());
+
+			if (directive == EGRNavigationDirective::Tab)
+			{
+				for (RowAndColumn nextCellId = GetNextCell(cellId); nextCellId != cellId; nextCellId = GetNextCell(nextCellId))
+				{
+					if (nextCellId.column < 0)
+					{
+						break;
+					}
+
+					auto* div = rows[nextCellId.row].cellsInThisRow[nextCellId.column].div;
+					if (div)
+					{
+						if (TrySetDeepFocus(div->Panel()))
+						{
+							break;
+						}
+					}
+				}
+			}
+
+			return EGREventRouting::Terminate;
 		}
 
 		IGRWidget& Widget() override

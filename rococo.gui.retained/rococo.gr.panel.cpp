@@ -33,9 +33,28 @@ namespace GRANON
 		bool preventInvalidationFromChildren = false;
 		bool isCollapsed = false;
 
+		int64 flags = 0;
+
 		GRPanel(IGRPanelRoot& _root, IGRPanelSupervisor* _parent): root(_root), parent(_parent), uniqueId(nextId++)
 		{
 
+		}
+
+		IGRPanel& Add(EGRPanelFlags flag) override
+		{
+			flags |= (int64) flag;
+			return *this;
+		}
+
+		bool HasFlag(EGRPanelFlags flag) const override
+		{
+			return (flags & (int64)flag) != 0;
+		}
+
+		IGRPanel& Remove(EGRPanelFlags flag) override
+		{
+			flags &= ~(int64)flag;
+			return *this;
 		}
 
 		virtual ~GRPanel()
@@ -666,5 +685,45 @@ namespace Rococo::Gui
 			child->InvalidateLayout(false);
 			InvalidateLayoutForAllDescendants(*child);
 		}
+	}
+
+	ROCOCO_GUI_RETAINED_API cstr IGRNavigator::InterfaceId()
+	{
+		return "IGRNavigator";
+	}
+
+	// Enumerates all children and their descendants, and returns the one with the given id. If it is not found the function returns nullptr
+	ROCOCO_GUI_RETAINED_API bool IsCandidateDescendantOfParent(IGRPanel& parent, IGRPanel& candidate)
+	{
+		for (auto* ancestor = candidate.Parent(); ancestor != nullptr; ancestor = ancestor->Parent())
+		{
+			if (ancestor == &parent)
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	IGRPanel* TrySetDeepFocus(IGRPanel& panel)
+	{
+		if (panel.HasFlag(EGRPanelFlags::AcceptsFocus))
+		{
+			panel.Focus();
+			return &panel;
+		}
+
+		int32 index = 0;
+		while (auto* child = panel.GetChild(index++))
+		{
+			IGRPanel* candidate = TrySetDeepFocus(*child);
+			if (candidate)
+			{
+				return candidate;
+			}
+		}
+
+		return nullptr;
 	}
 }

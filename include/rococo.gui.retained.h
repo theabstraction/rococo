@@ -355,6 +355,13 @@ namespace Rococo::Gui
 		virtual bool IsReplacementForWidgetRendering(IGRPanel& panel) const = 0;
 	};
 
+	// Contains useful bit states for each panel in the retained gui
+	enum class EGRPanelFlags: int64
+	{
+		None = 0,
+		AcceptsFocus = 1
+	};
+
 	// Represents the underlying widget slot. This is a better mechanism than having a base widget, which imposes class derivation issues
 	ROCOCO_INTERFACE IGRPanel
 	{
@@ -401,6 +408,12 @@ namespace Rococo::Gui
 
 		// Overwrites the padding for an anchor
 		virtual IGRPanel& Set(GRAnchorPadding padding) = 0;
+
+		virtual IGRPanel& Add(EGRPanelFlags flag) = 0;
+
+		virtual bool HasFlag(EGRPanelFlags flag) const = 0;
+
+		virtual IGRPanel& Remove(EGRPanelFlags flag) = 0;
 
 		// Indicates that the layout needs to be recomputed. If the argument is true then the layout of the ancestors are also marked to be recomputed
 		virtual void InvalidateLayout(bool invalidateAncestors) = 0;
@@ -739,9 +752,24 @@ namespace Rococo::Gui
 		ThrowWhenPanelIsZeroArea = 1
 	};
 
+	enum class EGRNavigationDirective
+	{
+		None = 0,
+		Tab
+	};
+
+	ROCOCO_INTERFACE IGRNavigator : IGRBase
+	{
+		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
+		virtual EGREventRouting OnNavigate(EGRNavigationDirective directive) = 0;
+	};
+
 	// Highest level of the retained GUI manages frames, frame render order, event routing, visibility, building and rendering
 	ROCOCO_INTERFACE IGRSystem
 	{
+		// Apply a key to the system as a whole, this will occur if nothing consumed the key
+		virtual void ApplyKeyGlobally(GRKeyEvent& keyEvent) = 0;
+
 		// Associates a frame with an id and returns it. If it already exists, gets the existant one.
 		virtual IGRWidgetMainFrame& BindFrame(GRIdWidget id) = 0;
 
@@ -991,4 +1019,9 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API void InvalidateLayoutForAllDescendants(IGRPanel& panel);
 
 	ROCOCO_GUI_RETAINED_API EGREventRouting RouteEventToHandler(IGRPanel& panel, GRWidgetEvent& ev);
+
+	ROCOCO_GUI_RETAINED_API bool IsCandidateDescendantOfParent(IGRPanel& parent, IGRPanel& candidate);
+
+	// Recursively iterates through the panel and its children, will focus the first panel that has acceptsFocus flag set. Returns the new focus if successful, else nullptr
+	ROCOCO_GUI_RETAINED_API IGRPanel* TrySetDeepFocus(IGRPanel& panel);
 }

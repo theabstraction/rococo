@@ -452,6 +452,10 @@ namespace ANON
 		{
 			GRKeyEvent keyEvent{ *this, eventCount, key };
 			lastRoutingStatus = gr.RouteKeyEvent(keyEvent);
+			if (lastRoutingStatus == EGREventRouting::NextHandler)
+			{
+				gr.ApplyKeyGlobally(keyEvent);
+			}
 		}
 
 		EGRCursorIcon currentIcon = EGRCursorIcon::Arrow;
