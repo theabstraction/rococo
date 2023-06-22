@@ -1767,6 +1767,15 @@ namespace Rococo
 
 	void LogStack(IException& ex, ILog& logger)
 	{
+		char buf[16384];
+		Rococo::OS::BuildExceptionString(buf, sizeof buf, ex, true);
+
+		logger.Write(buf);
+
+		logger.Write("\n");
+
+		/*
+
 		auto* sf = ex.StackFrames();
 		if (!sf) return;
 
@@ -1789,6 +1798,7 @@ namespace Rococo
 		} sfFormatter(logger);
 
 		sf->FormatEachStackFrame(sfFormatter);
+		*/
 	}
 
 	EXECUTERESULT ExecuteAndCatchIException(IVirtualMachine& vm, Rococo::Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger, bool trace)
@@ -1856,7 +1866,7 @@ namespace Rococo
 			}
 			debugger.SetCodeHilight(sourceFile, pex.Start(), pex.End(), pex.Message());
 			UpdateDebugger(ss, debugger, 0, true);
-			ss.PublicProgramObject().Log().Write(pex.Message());
+			//ss.PublicProgramObject().Log().Write(pex.Message());
 			LogStack(pex, ss.PublicProgramObject().Log());
 			if (s) Throw(*s, pex.Message());
 			else Throw(pex.ErrorCode(), "%s", pex.Message());
@@ -1865,7 +1875,7 @@ namespace Rococo
 		catch (IException& ex)
 		{
 			UpdateDebugger(ss, debugger, 0, true);
-			ss.PublicProgramObject().Log().Write(ex.Message());
+			//ss.PublicProgramObject().Log().Write(ex.Message());
 			LogStack(ex, ss.PublicProgramObject().Log());
 			Throw(ex.ErrorCode(), "%s", ex.Message());
 			return EXECUTERESULT_THROWN;

@@ -167,7 +167,7 @@ namespace ANON
 
 		void ScrollIntoView(const GuiRect& rect)
 		{
-
+			Throw(0, "Not implemented");
 		}
 
 		void OnDeepChildFocusSet(int64 panelId) override

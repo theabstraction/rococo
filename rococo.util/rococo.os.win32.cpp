@@ -1903,16 +1903,16 @@ namespace Rococo
 					void Format(const Debugging::StackFrame& sf) override
 					{
 						auto& s = *sb;
-						s.AppendFormat("#%-2u %-32.32s ", sf.depth, sf.functionName);
+						s.AppendFormat("#%-2u %-48.48s ", sf.depth, sf.functionName);
 						if (*sf.sourceFile)
 						{
-							s.AppendFormat("Line #%4u of %-64.64s ", sf.lineNumber, sf.sourceFile);
+							s.AppendFormat("Line #%4u of %-64s ", sf.lineNumber, sf.sourceFile);
 						}
 						else
 						{
 							s.AppendFormat("%-79.79s", "");
 						}
-						s.AppendFormat("%-64.64s ", sf.moduleName);
+						s.AppendFormat("%-64s ", sf.moduleName);
 						s.AppendFormat("%4.4u:%016.16llX", sf.address.segment, sf.address.offset);
 						s << "\n";
 					}
