@@ -2902,6 +2902,28 @@ namespace Rococo::OS
 
 namespace Rococo::Windows
 {
+	ROCOCO_API int32 WheelDeltaToScrollLines(int32 wheelDelta, bool& scrollByPage)
+	{
+		unsigned long scrollLines = 1;
+		SystemParametersInfo(SPI_GETWHEELSCROLLLINES, 0, &scrollLines, 0);
+		if (scrollLines == WHEEL_PAGESCROLL)
+		{
+			scrollByPage = true;
+		}
+		else
+		{
+			scrollByPage = false;
+		}
+
+		if (wheelDelta != 0 && (wheelDelta % 120) == 0)
+		{
+			// Assume a windows stanard wheel, in which deltas are in units of 120
+			wheelDelta = wheelDelta / 120;
+		}
+
+		return wheelDelta * (int32) scrollLines;
+	}
+
 	ROCOCO_API void MinimizeApp(IWindow& window)
 	{
 		ShowWindow(window, SW_MINIMIZE);

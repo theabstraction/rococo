@@ -463,12 +463,13 @@ namespace ANON
 			history.clear();
 			if (me.buttonFlags != 0)
 			{
-				CursorEvent cursorEvent{ *this, me.cursorPos, eventCount, *(CursorClick*)&me.buttonFlags, ECursorIcon::Unspecified };
+				CursorEvent cursorEvent{ *this, me.cursorPos, eventCount, *(CursorClick*)&me.buttonFlags, ECursorIcon::Unspecified, (int)(int16) me.buttonData };
+				size_t nBytes = sizeof(CursorEvent);
 				lastRoutingStatus = gr.RouteCursorClickEvent(cursorEvent);
 			}
 			else
 			{
-				CursorEvent cursorEvent{ *this, me.cursorPos, eventCount, *(CursorClick*)&me.buttonFlags, ECursorIcon::Arrow };
+				CursorEvent cursorEvent{ *this, me.cursorPos, eventCount, *(CursorClick*)&me.buttonFlags, ECursorIcon::Arrow, 0 };
 				lastRoutingStatus = gr.RouteCursorMoveEvent(cursorEvent);
 
 				if (currentIcon != cursorEvent.nextIcon)

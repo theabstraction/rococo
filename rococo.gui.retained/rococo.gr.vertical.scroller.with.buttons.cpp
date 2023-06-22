@@ -134,13 +134,13 @@ namespace ANON
 			{
 				if (&sourceWidget == &topButton->Widget())
 				{
-					events.OnMoveLine(-1, *this->scroller);
+					events.OnScrollLines(-1, *this->scroller);
 					// The top button was clicked
 					return EventRouting::Terminate;
 				}
 				else if (&sourceWidget == &bottomButton->Widget())
 				{
-					events.OnMoveLine(1, *this->scroller);
+					events.OnScrollLines(1, *this->scroller);
 					// The bottom button was clicked
 					return EventRouting::Terminate;
 				}

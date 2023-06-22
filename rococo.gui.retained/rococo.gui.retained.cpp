@@ -349,6 +349,8 @@ namespace ANON
 
 		EventRouting RouteCursorClickEvent(CursorEvent& ev) override
 		{
+			size_t nBytes = sizeof(CursorEvent);
+
 			RecursionGuard guard(*this);
 
 			if (captureId >= 0)
@@ -573,6 +575,18 @@ namespace ANON
 		{
 			if (eventHandler) return eventHandler->OnGREvent(ev);
 			return EventRouting::Terminate;
+		}
+
+		GRRealtimeConfig realtimeConfig;
+
+		const GRRealtimeConfig& Config() const override
+		{
+			return realtimeConfig;
+		}
+
+		GRRealtimeConfig& MutableConfig() override
+		{
+			return realtimeConfig;
 		}
 	};
 }

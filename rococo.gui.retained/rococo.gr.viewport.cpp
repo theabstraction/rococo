@@ -86,7 +86,7 @@ namespace ANON
 			pageDeltaScale = clamp(scaleFactor, 0.0, 2.0);
 		}
 
-		void OnMoveLine(int delta, IGRWidgetScroller& scroller)
+		void OnScrollLines(int delta, IGRWidgetScroller& scroller)
 		{
 			if (lineDeltaPixels == 0) return;
 
@@ -97,7 +97,7 @@ namespace ANON
 
 				int32 deltaPixels = delta * lineDeltaPixels;
 
-				int newPosition = deltaPixels / scale;
+				int newPosition = (int)(deltaPixels / scale);
 
 				if (newPosition == 0)
 				{
@@ -111,7 +111,7 @@ namespace ANON
 			}
 		}
 
-		void OnMovePage(int delta, IGRWidgetScroller& scroller) override
+		void OnScrollPages(int delta, IGRWidgetScroller& scroller) override
 		{
 			ScrollerMetrics m = scroller.GetMetrics();
 			if (m.PixelRange > 0 && lastKnownDomainHeight > m.SliderZoneSpan)
@@ -120,7 +120,7 @@ namespace ANON
 
 				int32 deltaPixels = delta * clipArea->Panel().Span().y;
 
-				int newPosition = pageDeltaScale * deltaPixels / scale;
+				int newPosition = (int)(pageDeltaScale * deltaPixels / scale);
 
 				OnScrollerNewPositionCalculated(newPosition, scroller);
 

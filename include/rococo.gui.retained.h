@@ -31,8 +31,13 @@ namespace Rococo::Gui
 		uint16 RightButtonUp : 1;
 		uint16 MidButtonDown : 1;
 		uint16 MidButtonUp : 1;
-		uint16 MouseWheel : 1;
-		uint16 Unknown : 9;
+		uint16 xButton1Down : 1;
+		uint16 xButton1Up : 1;
+		uint16 xButton2Down : 1;
+		uint16 xButton2Up : 1;
+		uint16 MouseVWheel : 1; // Vertical wheel
+		uint16 MouseHWheel : 1; // Horizontal wheel
+		uint16 Unknown : 4;
 	};
 
 	struct GRPanelEvent
@@ -67,6 +72,7 @@ namespace Rococo::Gui
 		const int64 eventId;
 		const CursorClick click;
 		ECursorIcon nextIcon;
+		int32 wheelDelta;
 	};
 
 	struct KeyEvent
@@ -271,6 +277,12 @@ namespace Rococo::Gui
 	};
 
 	struct IGRCustodian;
+
+	struct GRRealtimeConfig
+	{
+		// Typically -1 is correct under Windows, 1 indicates to scroll in the opposite direction. The OS may independently allow the user to flip the scroll direction
+		int32 VerticalScrollerWheelScaling = -1;
+	};
 
 	ROCOCO_INTERFACE IGRPanelRoot
 	{
@@ -780,6 +792,12 @@ namespace Rococo::Gui
 		virtual EventRouting RouteKeyEvent(KeyEvent& keyEvent) = 0;
 
 		virtual void UpdateNextFrame(IGRPanel& panel) = 0;
+
+		// Get config
+		virtual const GRRealtimeConfig& Config() const = 0;
+
+		// Get a mutable version of the config, used to configure the config
+		virtual GRRealtimeConfig& MutableConfig() = 0;
 	};
 
 	enum GRErrorCode
@@ -814,8 +832,8 @@ namespace Rococo::Gui
 	ROCOCO_INTERFACE IGRScrollerEvents
 	{
 		virtual GRSliderSpec OnCalculateSliderRect(int32 scrollerSpan, IGRWidgetScroller& scroller) = 0;
-		virtual void OnMoveLine(int delta, IGRWidgetScroller& scroller) = 0;
-		virtual void OnMovePage(int delta, IGRWidgetScroller& scroller) = 0;
+		virtual void OnScrollLines(int delta, IGRWidgetScroller& scroller) = 0;
+		virtual void OnScrollPages(int delta, IGRWidgetScroller& scroller) = 0;
 		virtual void OnScrollerNewPositionCalculated(int32 newPosition, IGRWidgetScroller& scroller) = 0;
 	};
 

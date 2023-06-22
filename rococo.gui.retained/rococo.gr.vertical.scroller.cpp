@@ -2,6 +2,12 @@
 #include <rococo.maths.i32.h>
 #include <rococo.maths.h>
 
+namespace Rococo::Windows
+{
+	// Translates wheelDelta changes from the mouse wheel into MoveLine deltas, and emits a boolean true, if the deltas should be interpreted as page deltas
+	ROCOCO_API int32 WheelDeltaToScrollLines(int32 wheelDelta, bool& scrollByPage);
+}
+
 using namespace Rococo;
 using namespace Rococo::Gui;
 
@@ -71,7 +77,7 @@ namespace ANON
 
 		void MovePage(int delta)
 		{
-			events.OnMovePage(delta, *this);
+			events.OnScrollPages(delta, *this);
 		}
 
 		void ActivateTarget(int y)
@@ -133,6 +139,19 @@ namespace ANON
 					ActivateTarget(ce.position.y);
 				}
 				clickTarget = EClick::None;
+			}
+			else if (ce.click.MouseVWheel)
+			{
+				bool scrollByPage = false;
+				int32 delta = Rococo::Windows::WheelDeltaToScrollLines(ce.wheelDelta, OUT scrollByPage) * panel.Root().GR().Config().VerticalScrollerWheelScaling;
+				if (scrollByPage)
+				{
+					events.OnScrollPages(delta, *this);
+				}
+				else
+				{
+					events.OnScrollLines(delta, *this);
+				}
 			}
 
 			return EventRouting::Terminate;
