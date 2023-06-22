@@ -1,6 +1,8 @@
 #include <rococo.gui.retained.ex.h>
 #include <rococo.maths.i32.h>
 #include <rococo.maths.h>
+#include <rococo.ui.h>
+#include <rococo.vkeys.h>
 
 namespace Rococo::Windows
 {
@@ -262,7 +264,30 @@ namespace ANON
 
 		EGREventRouting OnKeyEvent(GRKeyEvent& keyEvent) override
 		{
-			return EGREventRouting::NextHandler;
+			switch (keyEvent.osKeyEvent.VKey)
+			{
+			case IO::VKCode_PGUP:
+				if (keyEvent.osKeyEvent.IsUp()) events.OnScrollPages(-1, *this);
+				break;
+			case IO::VKCode_PGDOWN:
+				if (keyEvent.osKeyEvent.IsUp()) events.OnScrollPages(1, *this);
+				break;
+			case IO::VKCode_UP:
+				if (keyEvent.osKeyEvent.IsUp()) events.OnScrollLines(-1, *this);
+				break;
+			case IO::VKCode_DOWN:
+				if (keyEvent.osKeyEvent.IsUp()) events.OnScrollLines(1, *this);
+				break;
+			case IO::VKCode_HOME:
+				if (keyEvent.osKeyEvent.IsUp()) events.OnScrollPages(-100, *this);
+				break;
+			case IO::VKCode_END:
+				if (keyEvent.osKeyEvent.IsUp()) events.OnScrollPages(100, *this);
+				break;
+			default:
+				return EGREventRouting::NextHandler;
+			}
+			return EGREventRouting::Terminate;
 		}
 
 		enum { MAX_SCROLL_INT = 1 << 30 };

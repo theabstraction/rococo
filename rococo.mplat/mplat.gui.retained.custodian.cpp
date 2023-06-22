@@ -8,7 +8,7 @@
 #include <rococo.textures.h>
 #include <rococo.os.h>
 #include <vector>
-#include <rococo.vkeys.win32.h>
+#include <rococo.vkeys.h>
 #include <rococo.os.h>
 #include <rococo.hashtable.h>
 

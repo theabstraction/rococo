@@ -442,6 +442,21 @@ namespace GRANON
 			}
 		}
 
+		void BuildWidgetCallstackRecursiveUnderPoint(Vec2i targetPoint, IGRPanelEventBuilder& wb) override
+		{
+			if (!IsPointInRect(targetPoint, absRect))
+			{
+				return;
+			}
+
+			wb += { uniqueId, this, absRect };
+
+			for (auto* child : children)
+			{
+				child->BuildWidgetCallstackRecursiveUnderPoint(targetPoint, wb);
+			}
+		}
+
 		IGRPanel& SetParentOffset(Vec2i offset) override
 		{
 			if (this->parentOffset != offset)

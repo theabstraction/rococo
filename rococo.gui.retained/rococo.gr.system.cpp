@@ -227,6 +227,8 @@ namespace ANON
 			invalidatedPanelCount++;
 		}
 
+		Vec2i lastRenderedCursorPosition{ -10000000, -10000000 };
+
 		void RenderGui(IGRRenderContext& g) override
 		{
 			if (queueGarbageCollect)
@@ -234,6 +236,8 @@ namespace ANON
 				GarbageCollect();
 				queueGarbageCollect = false;
 			}
+
+			lastRenderedCursorPosition = g.CursorHoverPoint();
 
 			badSpanCountThisFrame = 0;
 
@@ -405,6 +409,8 @@ namespace ANON
 		TPanelHistory movementCallstack;
 		TPanelHistory previousMovementCallstack;
 
+		TPanelHistory keypressCallstack;
+
 		class PanelEventBuilder : public IGRPanelEventBuilder
 		{
 			TPanelHistory& history;
@@ -497,6 +503,38 @@ namespace ANON
 			return true;
 		}
 
+		bool TryAppendWidgetsUnderCursorCallstack(TPanelHistory& callstack)
+		{
+			if (captureId >= 0)
+			{
+				auto* widget = FindWidget(captureId);
+				if (widget)
+				{
+					callstack.push_back({ captureId, &widget->Panel(), widget->Panel().AbsRect() });
+				}
+				else
+				{
+					captureId = -1;
+					return false;
+				}
+			}
+			else
+			{
+				PanelEventBuilder pb(callstack);
+
+				for (auto d = frameDescriptors.rbegin(); d != frameDescriptors.rend(); ++d)
+				{
+					d->panel->BuildWidgetCallstackRecursiveUnderPoint(lastRenderedCursorPosition, pb);
+					if (!callstack.empty())
+					{
+						break;
+					}
+				}
+			}
+
+			return true;
+		}
+
 		EGREventRouting RouteCursorMoveEvent(GRCursorEvent& ev) override
 		{
 			movementCallstack.clear();
@@ -529,13 +567,33 @@ namespace ANON
 			return result;
 		}
 
+		EGREventRouting RouteKeyEventToWindowsUnderCursor(GRKeyEvent& keyEvent)
+		{
+			keypressCallstack.clear();
+
+			if (!TryAppendWidgetsUnderCursorCallstack(keypressCallstack) || keypressCallstack.empty())
+			{
+				return EGREventRouting::Terminate;
+			}
+
+			for (auto i = keypressCallstack.rbegin(); i != keypressCallstack.rend(); ++i)
+			{
+				if (i->panel->Widget().OnKeyEvent(keyEvent) == EGREventRouting::Terminate)
+				{
+					return EGREventRouting::Terminate;
+				}
+			}
+
+			return EGREventRouting::NextHandler;
+		}
+
 		EGREventRouting RouteKeyEvent(GRKeyEvent& keyEvent) override
 		{
 			RecursionGuard guard(*this);
 
 			if (focusId < 0)
 			{
-				return EGREventRouting::Terminate;
+				return RouteKeyEventToWindowsUnderCursor(keyEvent);
 			}
 
 			auto* widget = FindWidget(focusId);

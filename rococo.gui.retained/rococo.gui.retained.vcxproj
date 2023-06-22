@@ -126,6 +126,7 @@
     <ClInclude Include="..\include\rococo.maths.h" />
     <ClInclude Include="..\include\rococo.maths.i32.h" />
     <ClInclude Include="..\include\rococo.types.h" />
+    <ClInclude Include="..\include\rococo.vkeys.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />
