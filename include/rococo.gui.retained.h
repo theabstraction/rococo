@@ -364,6 +364,18 @@ namespace Rococo::Gui
 		CycleTabsEndlessly = 2
 	};
 
+	// The base class from which queriable interfaces are derived. Used by QueryInterface methods herein
+	ROCOCO_INTERFACE IGRBase
+	{
+
+	};
+
+	ROCOCO_INTERFACE IGRFocusNotifier: IGRBase
+	{
+		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
+		virtual void OnDeepChildFocusSet(int64 panelId) = 0;
+	};
+
 	// Represents the underlying widget slot. This is a better mechanism than having a base widget, which imposes class derivation issues
 	ROCOCO_INTERFACE IGRPanel
 	{
@@ -461,12 +473,6 @@ namespace Rococo::Gui
 		virtual void BuildCursorMovementHistoryRecursive(GRCursorEvent& ce, IGRPanelEventBuilder& wb) = 0;
 		virtual void SetWidget(IGRWidget& widget) = 0;
 		virtual void Free() = 0;
-	};
-
-	// The base class from which queriable interfaces are derived. Used by QueryInterface methods herein
-	ROCOCO_INTERFACE IGRBase
-	{
-
 	};
 
 	enum class EGRQueryInterfaceResult

@@ -17,7 +17,7 @@ namespace GRANON
 
 	struct GRPanel: IGRPanelSupervisor
 	{
-		IGRPanelSupervisor* parent;
+		GRPanel* parent;
 		IGRPanelRoot& root;
 		IGRWidget* widget = nullptr; // Should always be set immediately after construction
 		Vec2i parentOffset{ 0,0 };
@@ -35,7 +35,7 @@ namespace GRANON
 
 		int64 flags = 0;
 
-		GRPanel(IGRPanelRoot& _root, IGRPanelSupervisor* _parent): root(_root), parent(_parent), uniqueId(nextId++)
+		GRPanel(IGRPanelRoot& _root, IGRPanelSupervisor* _parent): root(_root), parent(static_cast<GRPanel*>(_parent)), uniqueId(nextId++)
 		{
 
 		}
@@ -71,6 +71,15 @@ namespace GRANON
 		void Focus() override
 		{
 			Root().GR().SetFocus(Id());
+
+			for (auto* target = this->parent; target != nullptr; target = target->parent)
+			{
+				auto* focusNotifier = Cast<IGRFocusNotifier>(target->Widget());
+				if (focusNotifier)
+				{
+					focusNotifier->OnDeepChildFocusSet(Id());
+				}
+			}
 		}
 
 		bool IsCollapsed() const override
@@ -706,7 +715,7 @@ namespace Rococo::Gui
 		return false;
 	}
 
-	IGRPanel* TrySetDeepFocus(IGRPanel& panel)
+	ROCOCO_GUI_RETAINED_API IGRPanel* TrySetDeepFocus(IGRPanel& panel)
 	{
 		if (panel.HasFlag(EGRPanelFlags::AcceptsFocus))
 		{
@@ -725,5 +734,10 @@ namespace Rococo::Gui
 		}
 
 		return nullptr;
+	}
+
+	ROCOCO_GUI_RETAINED_API cstr IGRFocusNotifier::InterfaceId()
+	{
+		return "IGRFocusNotifier";
 	}
 }

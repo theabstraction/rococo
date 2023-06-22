@@ -6,7 +6,7 @@ using namespace Rococo::Gui;
 
 namespace ANON
 {
-	struct GRViewportWidget : IGRWidgetViewport, IGRWidget, IGRScrollerEvents
+	struct GRViewportWidget : IGRWidgetViewport, IGRWidget, IGRScrollerEvents, IGRFocusNotifier
 	{
 		IGRPanel& panel;
 		IGRWidgetDivision* clipArea = nullptr; // Represents the rectangle to the left of the scroller
@@ -165,6 +165,26 @@ namespace ANON
 
 		}
 
+		void ScrollIntoView(const GuiRect& rect)
+		{
+
+		}
+
+		void OnDeepChildFocusSet(int64 panelId) override
+		{
+			auto* w = panel.Root().GR().FindWidget(panelId);
+			if (!w)
+			{
+				return;
+			}
+
+			if (IsCandidateDescendantOfParent(clientOffsetArea->Panel(), w->Panel()))
+			{
+				auto rect = w->Panel().AbsRect();
+				ScrollIntoView(rect);
+			}
+		}
+
 		IGRPanel& Panel() override
 		{
 			return panel;
@@ -197,7 +217,29 @@ namespace ANON
 
 		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
-			return Gui::QueryForParticularInterface<IGRWidgetViewport>(this, ppOutputArg, interfaceId);
+			if (ppOutputArg) *ppOutputArg = nullptr;
+			if (!interfaceId || *interfaceId == 0) return EGRQueryInterfaceResult::INVALID_ID;
+
+			if (DoInterfaceNamesMatch(interfaceId, IGRWidgetViewport::InterfaceId()))
+			{
+				if (ppOutputArg)
+				{
+					*ppOutputArg = static_cast<IGRWidgetViewport*>(this);
+				}
+
+				return EGRQueryInterfaceResult::SUCCESS;
+			}
+			else if (DoInterfaceNamesMatch(interfaceId, IGRFocusNotifier::InterfaceId()))
+			{
+				if (ppOutputArg)
+				{
+					*ppOutputArg = static_cast<IGRFocusNotifier*>(this);
+				}
+
+				return EGRQueryInterfaceResult::SUCCESS;
+			}
+
+			return EGRQueryInterfaceResult::NOT_IMPLEMENTED;
 		}
 
 		int lastKnownDomainHeight = 0;
