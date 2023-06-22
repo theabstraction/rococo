@@ -860,15 +860,15 @@ namespace Rococo
 
 	namespace Gui
 	{
-		struct IGuiRetained;
+		struct IGRSystem;
 		struct IGRCustodian;
 
 		struct IMPlatGuiCustodianSupervisor
 		{
 			virtual IGRCustodian& Custodian() = 0;
-			virtual void Render(IGuiRenderContext& rc, IGuiRetained& gr) = 0;
-			virtual void RouteKeyboardEvent(const KeyboardEvent& key, IGuiRetained& gr) = 0;
-			virtual void RouteMouseEvent(const MouseEvent& me, IGuiRetained& gr) = 0;
+			virtual void Render(IGuiRenderContext& rc, IGRSystem& gr) = 0;
+			virtual void RouteKeyboardEvent(const KeyboardEvent& key, IGRSystem& gr) = 0;
+			virtual void RouteMouseEvent(const MouseEvent& me, IGRSystem& gr) = 0;
 			virtual void Free() = 0;
 		};
 	}
@@ -897,7 +897,7 @@ namespace Rococo
 
 		Graphics::ISceneSupervisor& scene;
 
-		Rococo::Gui::IGuiRetained& GR;
+		Rococo::Gui::IGRSystem& GR;
 
 		Rococo::Gui::IMPlatGuiCustodianSupervisor& GR_Custodian;
 	};

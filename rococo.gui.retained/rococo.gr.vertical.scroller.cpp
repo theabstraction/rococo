@@ -36,7 +36,7 @@ namespace ANON
 		{
 			if (panel.EnumerateChildren(nullptr) != 0)
 			{
-				panel.Root().Custodian().RaiseError(GRErrorCode::Generic, __FUNCTION__, "Vertical scrollbars should not have children");
+				panel.Root().Custodian().RaiseError(EGRErrorCode::Generic, __FUNCTION__, "Vertical scrollbars should not have children");
 			}
 
 			int32 width = Width(panelDimensions);
@@ -103,13 +103,13 @@ namespace ANON
 		int clickPosition = -1;
 		int clickDeltaPosition = 0;
 
-		void OnSliderSelected(CursorEvent& ce)
+		void OnSliderSelected(GRCursorEvent& ce)
 		{
 			clickPosition = ce.position.y;
 			panel.CaptureCursor();
 		}
 
-		EventRouting OnCursorClick(CursorEvent& ce) override
+		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
 		{
 			GuiRect sliderRect = ComputeSliderRect();
 
@@ -154,10 +154,10 @@ namespace ANON
 				}
 			}
 
-			return EventRouting::Terminate;
+			return EGREventRouting::Terminate;
 		}
 
-		EventRouting OnCursorMove(CursorEvent& ce) override
+		EGREventRouting OnCursorMove(GRCursorEvent& ce) override
 		{
 			if (clickPosition >= 0)
 			{
@@ -171,7 +171,7 @@ namespace ANON
 					}
 				}
 			}
-			return EventRouting::Terminate;
+			return EGREventRouting::Terminate;
 		}
 
 		IGRPanel& Panel() override
@@ -185,16 +185,16 @@ namespace ANON
 
 			GRRenderState rs(clickPosition >= 0, IsPointInRect(g.CursorHoverPoint(), rect), false);
 
-			RGBAb backColour = panel.GetColour(ESchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, rs);
+			RGBAb backColour = panel.GetColour(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, rs);
 			g.DrawRect(rect, backColour);
 
 			GuiRect triangleRect = { rect.left + 2, rect.top + 2, rect.right - 2, rect.bottom - 2 };
 
-			RGBAb triangleColour = panel.GetColour(ESchemeColourSurface::SCROLLER_TRIANGLE_NORMAL, rs);
+			RGBAb triangleColour = panel.GetColour(EGRSchemeColourSurface::SCROLLER_TRIANGLE_NORMAL, rs);
 			g.DrawDirectionArrow(triangleRect, triangleColour, isUp ? 0.0_degrees : 180.0_degrees);
 
-			RGBAb edge1Colour = panel.GetColour(ESchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT, rs);
-			RGBAb edge2Colour = panel.GetColour(ESchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT, rs);
+			RGBAb edge1Colour = panel.GetColour(EGRSchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT, rs);
+			RGBAb edge2Colour = panel.GetColour(EGRSchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT, rs);
 			g.DrawRectEdge(rect, edge1Colour, edge2Colour);
 		}
 
@@ -204,11 +204,11 @@ namespace ANON
 
 			GRRenderState rs(clickPosition >= 0, IsPointInRect(g.CursorHoverPoint(), rect), false);
 
-			RGBAb backColour = panel.GetColour(ESchemeColourSurface::SCROLLER_SLIDER_BACKGROUND, rs);
+			RGBAb backColour = panel.GetColour(EGRSchemeColourSurface::SCROLLER_SLIDER_BACKGROUND, rs);
 			g.DrawRect(rect, backColour);
 
-			RGBAb edge1Colour = panel.GetColour(ESchemeColourSurface::SCROLLER_SLIDER_TOP_LEFT, rs);
-			RGBAb edge2Colour = panel.GetColour(ESchemeColourSurface::SCROLLER_SLIDER_BOTTOM_RIGHT, rs);
+			RGBAb edge1Colour = panel.GetColour(EGRSchemeColourSurface::SCROLLER_SLIDER_TOP_LEFT, rs);
+			RGBAb edge2Colour = panel.GetColour(EGRSchemeColourSurface::SCROLLER_SLIDER_BOTTOM_RIGHT, rs);
 			g.DrawRectEdge(rect, edge1Colour, edge2Colour);
 		}
 
@@ -230,11 +230,11 @@ namespace ANON
 
 			GRRenderState rs(false, g.IsHovered(panel), false);
 
-			RGBAb backColour = panel.GetColour(ESchemeColourSurface::SCROLLER_BAR_BACKGROUND, rs);
+			RGBAb backColour = panel.GetColour(EGRSchemeColourSurface::SCROLLER_BAR_BACKGROUND, rs);
 			g.DrawRect(rect, backColour);
 
-			RGBAb edge1Colour = panel.GetColour(ESchemeColourSurface::SCROLLER_BAR_TOP_LEFT, rs);
-			RGBAb edge2Colour = panel.GetColour(ESchemeColourSurface::SCROLLER_BAR_BOTTOM_RIGHT, rs);
+			RGBAb edge1Colour = panel.GetColour(EGRSchemeColourSurface::SCROLLER_BAR_TOP_LEFT, rs);
+			RGBAb edge2Colour = panel.GetColour(EGRSchemeColourSurface::SCROLLER_BAR_BOTTOM_RIGHT, rs);
 			g.DrawRectEdge(rect, edge1Colour, edge2Colour);
 
 			if (rs.value.intValue != 0)
@@ -245,9 +245,9 @@ namespace ANON
 			RenderScrollerSlider(g, ComputeSliderRect());
 		}
 
-		EventRouting OnChildEvent(WidgetEvent& widgetEvent, IGRWidget& sourceWidget) override
+		EGREventRouting OnChildEvent(GRWidgetEvent& widgetEvent, IGRWidget& sourceWidget) override
 		{
-			return EventRouting::NextHandler;
+			return EGREventRouting::NextHandler;
 		}
 
 		void OnCursorEnter() override
@@ -260,16 +260,16 @@ namespace ANON
 			clickPosition = -1;
 		}
 
-		EventRouting OnKeyEvent(KeyEvent& keyEvent) override
+		EGREventRouting OnKeyEvent(GRKeyEvent& keyEvent) override
 		{
-			return EventRouting::NextHandler;
+			return EGREventRouting::NextHandler;
 		}
 
 		enum { MAX_SCROLL_INT = 1 << 30 };
 
-		ScrollerMetrics GetMetrics() const override
+		GRScrollerMetrics GetMetrics() const override
 		{
-			ScrollerMetrics m;
+			GRScrollerMetrics m;
 			m.PixelPosition = sliderPosition;
 			m.SliderZoneSpan = Height(sliderZone);
 			m.PixelRange = clamp(m.SliderZoneSpan - sliderHeight, 0, (int32) MAX_SCROLL_INT);
@@ -280,13 +280,13 @@ namespace ANON
 		{
 			if (position < 0 || position > MAX_SCROLL_INT)
 			{
-				panel.Root().Custodian().RaiseError(GRErrorCode::InvalidArg, __FUNCTION__, "Position was out of bounds");
+				panel.Root().Custodian().RaiseError(EGRErrorCode::InvalidArg, __FUNCTION__, "Position was out of bounds");
 				return;
 			}
 			this->sliderPosition = position;
 		}
 
-		EQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
+		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
 			return Gui::QueryForParticularInterface<IGRWidgetVerticalScroller>(this, ppOutputArg, interfaceId);
 		}

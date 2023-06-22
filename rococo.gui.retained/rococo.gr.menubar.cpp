@@ -151,7 +151,7 @@ namespace GRANON
 			if (owningPanel.Parent() == nullptr)
 			{
 				// We require a parent so that we can anchor to its dimensions
-				owningPanel.Root().Custodian().RaiseError(GRErrorCode::InvalidArg, __FUNCTION__, "Panel parent was null");
+				owningPanel.Root().Custodian().RaiseError(EGRErrorCode::InvalidArg, __FUNCTION__, "Panel parent was null");
 			}
 			auto rootId = 0;
 			tree.root = new MenuBranch(tree, rootId, nullptr);
@@ -162,7 +162,7 @@ namespace GRANON
 			auto* branch = tree.FindBranch(parentMenu);
 			if (!branch)
 			{
-				panel.Root().Custodian().RaiseError(GRErrorCode::InvalidArg, __FUNCTION__, "No sub menu found with matching id");
+				panel.Root().Custodian().RaiseError(EGRErrorCode::InvalidArg, __FUNCTION__, "No sub menu found with matching id");
 				return false;
 			}
 
@@ -185,7 +185,7 @@ namespace GRANON
 			auto* parent = tree.FindBranch(parentMenu);
 			if (!parent)
 			{
-				panel.Root().Custodian().RaiseError(GRErrorCode::InvalidArg, __FUNCTION__, "No sub menu found with matching id");
+				panel.Root().Custodian().RaiseError(EGRErrorCode::InvalidArg, __FUNCTION__, "No sub menu found with matching id");
 				return GRMenuItemId{ -1 };
 			}
 
@@ -217,15 +217,15 @@ namespace GRANON
 		Vec2i ConstructButtonFromMenuItem(MenuItem& item, Vec2i& lastPos)
 		{
 			GRAlignmentFlags alignment;
-			alignment.Add(GRAlignment::Left).Add(GRAlignment::VCentre);
+			alignment.Add(EGRAlignment::Left).Add(EGRAlignment::VCentre);
 
 			if (item.button != nullptr)
 			{
 				auto& button = CreateMenuButton(*this);
 				button.SetTitle(item.button->text.c_str());
 				button.SetMetaData({ item.button->iMetaData, item.button->text.c_str() });
-				button.SetEventPolicy(GREventPolicy::NotifyAncestors);
-				button.SetClickCriterion(GRClickCriterion::OnDownThenUp);
+				button.SetEventPolicy(EGREventPolicy::NotifyAncestors);
+				button.SetClickCriterion(EGRClickCriterion::OnDownThenUp);
 				button.SetAlignment(alignment, { BUTTON_X_PADDING,0});
 				return ShrinkPanelToFitText(button, lastPos);
 			}
@@ -234,8 +234,8 @@ namespace GRANON
 				auto& button = CreateMenuButton(*this, true);
 				button.SetTitle(item.branch->text.c_str());
 				button.SetMetaData({ item.branch->id.id, "<sub-menu-id>" });
-				button.SetEventPolicy(GREventPolicy::NotifyAncestors);
-				button.SetClickCriterion(GRClickCriterion::OnDownThenUp);
+				button.SetEventPolicy(EGREventPolicy::NotifyAncestors);
+				button.SetClickCriterion(EGRClickCriterion::OnDownThenUp);
 				button.SetAlignment(alignment, { BUTTON_X_PADDING,0 });
 				return ShrinkPanelToFitText(button, lastPos);
 			}
@@ -344,7 +344,7 @@ namespace GRANON
 			isDirty = false;
 		}
 
-		EventRouting OnCursorClick(CursorEvent& ce) override
+		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
 		{
 			if (tree.IsActive())
 			{
@@ -352,15 +352,15 @@ namespace GRANON
 				panel.InvalidateLayout(true);
 				isDirty = true;
 				panel.Root().ReleaseCursor();
-				return EventRouting::Terminate;
+				return EGREventRouting::Terminate;
 			}
 			else
 			{
-				return EventRouting::NextHandler;
+				return EGREventRouting::NextHandler;
 			}
 		}
 
-		EventRouting OnCursorMove(CursorEvent& ce) override
+		EGREventRouting OnCursorMove(GRCursorEvent& ce) override
 		{
 			if (tree.IsActive())
 			{
@@ -389,7 +389,7 @@ namespace GRANON
 					}
 				}
 			}
-			return EventRouting::NextHandler;
+			return EGREventRouting::NextHandler;
 		}
 
 		void OnCursorEnter() override
@@ -412,12 +412,12 @@ namespace GRANON
 			panel.SetClipChildren(!tree.IsActive());
 		}
 
-		EventRouting OnChildEvent(WidgetEvent& widgetEvent, IGRWidget& sourceWidget)
+		EGREventRouting OnChildEvent(GRWidgetEvent& widgetEvent, IGRWidget& sourceWidget)
 		{
-			if (widgetEvent.eventType == WidgetEventType::BUTTON_CLICK)
+			if (widgetEvent.eventType == EGRWidgetEventType::BUTTON_CLICK)
 			{
 				IGRWidgetButton* button = Cast<IGRWidgetButton>(sourceWidget);
-				if (!button) return EventRouting::NextHandler;
+				if (!button) return EGREventRouting::NextHandler;
 
 				auto flags = button->GetButtonFlags();
 				if (flags.forSubMenu)
@@ -431,7 +431,7 @@ namespace GRANON
 						isDirty = true;
 						if (tree.IsActive()) panel.CaptureCursor();
 					}
-					return EventRouting::Terminate;
+					return EGREventRouting::Terminate;
 				}
 				else
 				{
@@ -446,12 +446,12 @@ namespace GRANON
 			return RouteEventToHandler(panel, widgetEvent);
 		}
 
-		EventRouting OnKeyEvent(KeyEvent& keyEvent) override
+		EGREventRouting OnKeyEvent(GRKeyEvent& keyEvent) override
 		{
-			return EventRouting::NextHandler;
+			return EGREventRouting::NextHandler;
 		}
 
-		EQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
+		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
 			return Gui::QueryForParticularInterface<IGRWidgetMenuBar>(this, ppOutputArg, interfaceId);
 		}

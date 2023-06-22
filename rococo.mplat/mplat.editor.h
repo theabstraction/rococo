@@ -7,7 +7,7 @@ namespace Rococo
 
 namespace Rococo::Gui
 {
-	struct IGuiRetained;
+	struct IGRSystem;
 }
 
 namespace Rococo::Reflection
@@ -20,7 +20,7 @@ namespace Rococo::MPEditor
 	ROCOCO_INTERFACE IMPEditor
 	{
 		virtual bool IsVisible() const = 0;
-		virtual void Preview(Rococo::Gui::IGuiRetained& gr, Rococo::Reflection::IReflectionTarget& target) = 0;
+		virtual void Preview(Rococo::Gui::IGRSystem& gr, Rococo::Reflection::IReflectionTarget& target) = 0;
 		virtual void SetVisibility(bool isVisible) = 0;	
 	};
 
@@ -30,5 +30,5 @@ namespace Rococo::MPEditor
 		virtual void Free() = 0;
 	};
 
-	IMPEditorSupervisor* CreateMPlatEditor(Rococo::Gui::IGuiRetained& gr);
+	IMPEditorSupervisor* CreateMPlatEditor(Rococo::Gui::IGRSystem& gr);
 }

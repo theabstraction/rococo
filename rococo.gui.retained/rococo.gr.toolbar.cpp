@@ -10,7 +10,7 @@ namespace GRANON
 	struct GRToolbar : IGRWidgetToolbar, IGRWidget
 	{
 		IGRPanel& panel;
-		GRAlignment childAlignment = GRAlignment::Left;
+		EGRAlignment childAlignment = EGRAlignment::Left;
 		int32 interChildPadding = 4;
 		int32 borderPadding = 1;
 
@@ -66,7 +66,7 @@ namespace GRANON
 				child->InvalidateLayout(false);
 			}
 
-			if (childAlignment == GRAlignment::Left)
+			if (childAlignment == EGRAlignment::Left)
 			{
 				LayoutWithLeftAlignment(panelDimensions);
 			}
@@ -76,14 +76,14 @@ namespace GRANON
 			}
 		}
 
-		EventRouting OnCursorClick(CursorEvent& ce) override
+		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
 		{
-			return EventRouting::NextHandler;
+			return EGREventRouting::NextHandler;
 		}
 
-		EventRouting OnCursorMove(CursorEvent& ce) override
+		EGREventRouting OnCursorMove(GRCursorEvent& ce) override
 		{
-			return EventRouting::NextHandler;
+			return EGREventRouting::NextHandler;
 		}
 
 		void OnCursorEnter() override
@@ -108,11 +108,11 @@ namespace GRANON
 			bool isHovered = g.IsHovered(panel);
 			GRRenderState rs(false, isHovered, false);
 
-			RGBAb backColour = panel.GetColour(ESchemeColourSurface::CONTAINER_BACKGROUND, rs);
+			RGBAb backColour = panel.GetColour(EGRSchemeColourSurface::CONTAINER_BACKGROUND, rs);
 			g.DrawRect(rect, backColour);
 
-			RGBAb edge1Colour = panel.GetColour(ESchemeColourSurface::CONTAINER_TOP_LEFT, rs);
-			RGBAb edge2Colour = panel.GetColour(ESchemeColourSurface::CONTAINER_BOTTOM_RIGHT, rs);
+			RGBAb edge1Colour = panel.GetColour(EGRSchemeColourSurface::CONTAINER_TOP_LEFT, rs);
+			RGBAb edge2Colour = panel.GetColour(EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT, rs);
 			g.DrawRectEdge(rect, edge1Colour, edge2Colour);
 		}
 
@@ -132,24 +132,24 @@ namespace GRANON
 			return panel.Span();
 		}
 
-		void SetChildAlignment(GRAlignment alignment, int32 interChildPadding, int32 borderPadding) override
+		void SetChildAlignment(EGRAlignment alignment, int32 interChildPadding, int32 borderPadding) override
 		{
 			this->childAlignment = alignment;
 			this->interChildPadding = interChildPadding;
 			this->borderPadding = borderPadding;
 		}
 
-		EventRouting OnChildEvent(WidgetEvent& widgetEvent, IGRWidget& sourceWidget)
+		EGREventRouting OnChildEvent(GRWidgetEvent& widgetEvent, IGRWidget& sourceWidget)
 		{
-			return EventRouting::NextHandler;
+			return EGREventRouting::NextHandler;
 		}
 
-		EventRouting OnKeyEvent(KeyEvent& keyEvent) override
+		EGREventRouting OnKeyEvent(GRKeyEvent& keyEvent) override
 		{
-			return EventRouting::NextHandler;
+			return EGREventRouting::NextHandler;
 		}
 
-		EQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
+		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
 			return Gui::QueryForParticularInterface<IGRWidgetToolbar>(this, ppOutputArg, interfaceId);
 		}

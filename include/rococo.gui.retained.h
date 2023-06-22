@@ -20,10 +20,10 @@ namespace Rococo::Gui
 {
 	struct IGRPanel;
 	struct IGRWidget;
-	struct IGuiRetained;
+	struct IGRSystem;
 
 #pragma pack(push, 1)
-	struct CursorClick
+	struct GRCursorClick
 	{
 		uint16 LeftButtonDown : 1;
 		uint16 LeftButtonUp : 1;
@@ -57,7 +57,7 @@ namespace Rococo::Gui
 		virtual void RecordWidget(IGRWidget& widget) = 0;
 	};
 
-	enum class ECursorIcon
+	enum class EGRCursorIcon
 	{
 		Unspecified,
 		Invisible,
@@ -65,17 +65,17 @@ namespace Rococo::Gui
 		LeftAndRightDragger
 	};
 
-	struct CursorEvent
+	struct GRCursorEvent
 	{
 		IGREventHistory& history;
 		const Vec2i position;
 		const int64 eventId;
-		const CursorClick click;
-		ECursorIcon nextIcon;
+		const GRCursorClick click;
+		EGRCursorIcon nextIcon;
 		int32 wheelDelta;
 	};
 
-	struct KeyEvent
+	struct GRKeyEvent
 	{
 		IGREventHistory& history;
 		const int64 eventId;
@@ -83,12 +83,12 @@ namespace Rococo::Gui
 	};
 #pragma pack(pop)
 
-	struct IdWidget
+	struct GRIdWidget
 	{
 		cstr Name;
 	};
 
-	enum class EventRouting
+	enum class EGREventRouting
 	{
 		NextHandler,
 		Terminate
@@ -104,7 +104,7 @@ namespace Rococo::Gui
 		virtual void Free() = 0;
 	};
 
-	enum class GRAlignment : int32
+	enum class EGRAlignment : int32
 	{
 		None = 0,
 		Left = 1,
@@ -124,24 +124,24 @@ namespace Rococo::Gui
 	{
 		int32 alignmentFlags = 0;
 
-		GRAlignmentFlags& Add(GRAlignment alignment)
+		GRAlignmentFlags& Add(EGRAlignment alignment)
 		{
 			alignmentFlags |= (int32)alignment;
 			return *this;
 		}
 
-		GRAlignmentFlags& Remove(GRAlignment alignment)
+		GRAlignmentFlags& Remove(EGRAlignment alignment)
 		{
 			alignmentFlags &= ~(int32)alignment;
 			return *this;
 		}
 
-		bool HasAllFlags(GRAlignment alignment) const
+		bool HasAllFlags(EGRAlignment alignment) const
 		{
 			return (alignmentFlags & (int32)alignment) == (int32)alignment;
 		}
 
-		bool HasSomeFlags(GRAlignment alignment) const
+		bool HasSomeFlags(EGRAlignment alignment) const
 		{
 			return (alignmentFlags & (int32)alignment) != 0;
 		}
@@ -179,7 +179,7 @@ namespace Rococo::Gui
 		virtual bool TryGetScissorRect(GuiRect& scissorRect) const = 0;
 	};
 
-	enum class ESchemeColourSurface
+	enum class EGRSchemeColourSurface
 	{
 		BACKGROUND,
 		BUTTON,
@@ -245,31 +245,31 @@ namespace Rococo::Gui
 
 	ROCOCO_INTERFACE IGRScheme
 	{
-		virtual RGBAb GetColour(ESchemeColourSurface surface, GRRenderState state) const = 0;
-		virtual void SetColour(ESchemeColourSurface surface, RGBAb colour, GRRenderState state) = 0;
-		virtual bool TryGetColour(ESchemeColourSurface surface, RGBAb& colour, GRRenderState state) const = 0;
+		virtual RGBAb GetColour(EGRSchemeColourSurface surface, GRRenderState state) const = 0;
+		virtual void SetColour(EGRSchemeColourSurface surface, RGBAb colour, GRRenderState state) = 0;
+		virtual bool TryGetColour(EGRSchemeColourSurface surface, RGBAb& colour, GRRenderState state) const = 0;
 	};
 
-	ROCOCO_GUI_RETAINED_API void SetUniformColourForAllRenderStates(IGRScheme& scheme, ESchemeColourSurface surface, RGBAb colour);
-	ROCOCO_GUI_RETAINED_API void SetUniformColourForAllRenderStates(IGRPanel& panel, ESchemeColourSurface surface, RGBAb colour);
+	ROCOCO_GUI_RETAINED_API void SetUniformColourForAllRenderStates(IGRScheme& scheme, EGRSchemeColourSurface surface, RGBAb colour);
+	ROCOCO_GUI_RETAINED_API void SetUniformColourForAllRenderStates(IGRPanel& panel, EGRSchemeColourSurface surface, RGBAb colour);
 
 	ROCOCO_INTERFACE IGRSchemeSupervisor : IGRScheme
 	{
 		virtual void Free() = 0;
 	};
 
-	IGRSchemeSupervisor* CreateScheme();
+	IGRSchemeSupervisor* CreateGRScheme();
 
-	enum WidgetEventType
+	enum class EGRWidgetEventType
 	{
 		BUTTON_CLICK,
 		EDITOR_UPDATED, // Cast WidgetEvent to WidgetEvent_EditorUpdated
 		USER_DEFINED = 1024
 	};
 
-	struct WidgetEvent
+	struct GRWidgetEvent
 	{
-		WidgetEventType eventType; // What kind of event this is
+		EGRWidgetEventType eventType; // What kind of event this is
 		int64 panelId;			// Valid as long as the underlying widget that sent the event is not destroyed
 		int64 iMetaData;		// Valid as long as the underlying widget that sent the event is not destroyed, or its meta data changed
 		cstr sMetaData;			// Valid as long as the underlying widget that sent the event is not destroyed, or its meta data changed
@@ -310,7 +310,7 @@ namespace Rococo::Gui
 		virtual IGRScheme& Scheme() = 0;
 
 		// the Gui Retained object that houses the root
-		virtual IGuiRetained& GR() = 0;
+		virtual IGRSystem& GR() = 0;
 	};
 
 	struct [[nodiscard]] GRAnchors
@@ -363,18 +363,18 @@ namespace Rococo::Gui
 		virtual void ConfirmLayout() = 0;
 
 		// Enumerate the panel and its ancestors for a colour, if none found returns the second argument (which defaults to bright red).
-		virtual RGBAb GetColour(ESchemeColourSurface surface, GRRenderState state, RGBAb defaultColour = RGBAb(255,0,0,255)) const = 0;
+		virtual RGBAb GetColour(EGRSchemeColourSurface surface, GRRenderState state, RGBAb defaultColour = RGBAb(255,0,0,255)) const = 0;
 
 		// Enumerate the panel and its ancestors for a colour
-		virtual bool TryGetColour(ESchemeColourSurface surface, RGBAb& colour, GRRenderState state) const = 0;
+		virtual bool TryGetColour(EGRSchemeColourSurface surface, RGBAb& colour, GRRenderState state) const = 0;
 
 		// Creates a local visual scheme if one does not exist, then maps a colour to the local scheme.
-		virtual IGRPanel& Set(ESchemeColourSurface surface, RGBAb colour, GRRenderState state) = 0;
+		virtual IGRPanel& Set(EGRSchemeColourSurface surface, RGBAb colour, GRRenderState state) = 0;
 
 		virtual void MarkForDelete() = 0;
 		virtual bool IsMarkedForDeletion() const = 0;
 		virtual IGRPanel* Parent() = 0;
-		virtual EventRouting NotifyAncestors(WidgetEvent& widgetEvent, IGRWidget& widget) = 0;
+		virtual EGREventRouting NotifyAncestors(GRWidgetEvent& widgetEvent, IGRWidget& widget) = 0;
 		virtual void PreventInvalidationFromChildren() = 0;
 		virtual IGRWidget& Widget() = 0;
 		virtual IGRPanel& Resize(Vec2i span) = 0;
@@ -441,8 +441,8 @@ namespace Rococo::Gui
 		virtual void GarbageCollectRecursive() = 0;
 		virtual void LayoutRecursive(Vec2i absoluteOrigin) = 0;
 		virtual void RenderRecursive(IGRRenderContext & g, const GuiRect& clipRect) = 0;
-		virtual EventRouting RouteCursorClickEvent(CursorEvent& ce, bool filterChildrenByParentRect) = 0;
-		virtual void BuildCursorMovementHistoryRecursive(CursorEvent& ce, IGRPanelEventBuilder& wb) = 0;
+		virtual EGREventRouting RouteCursorClickEvent(GRCursorEvent& ce, bool filterChildrenByParentRect) = 0;
+		virtual void BuildCursorMovementHistoryRecursive(GRCursorEvent& ce, IGRPanelEventBuilder& wb) = 0;
 		virtual void SetWidget(IGRWidget& widget) = 0;
 		virtual void Free() = 0;
 	};
@@ -453,7 +453,7 @@ namespace Rococo::Gui
 
 	};
 
-	enum class EQueryInterfaceResult
+	enum class EGRQueryInterfaceResult
 	{
 		SUCCESS,
 		NOT_IMPLEMENTED,
@@ -462,14 +462,14 @@ namespace Rococo::Gui
 
 	ROCOCO_INTERFACE IGRWidget: IGRBase
 	{
-		virtual [[nodiscard]] EQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) = 0;
+		virtual [[nodiscard]] EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) = 0;
 		virtual void Layout(const GuiRect& parentDimensions) = 0;
-		virtual EventRouting OnChildEvent(WidgetEvent& widgetEvent, IGRWidget& sourceWidget) = 0;
-		virtual EventRouting OnCursorClick(CursorEvent& ce) = 0;
+		virtual EGREventRouting OnChildEvent(GRWidgetEvent& widgetEvent, IGRWidget& sourceWidget) = 0;
+		virtual EGREventRouting OnCursorClick(GRCursorEvent& ce) = 0;
 		virtual void OnCursorEnter() = 0;
 		virtual void OnCursorLeave() = 0;
-		virtual EventRouting OnCursorMove(CursorEvent& ce) = 0;
-		virtual EventRouting OnKeyEvent(KeyEvent& keyEvent) = 0;
+		virtual EGREventRouting OnCursorMove(GRCursorEvent& ce) = 0;
+		virtual EGREventRouting OnKeyEvent(GRKeyEvent& keyEvent) = 0;
 		virtual IGRPanel& Panel() = 0;
 
 		// Invoked by the IGRRetained render call
@@ -483,7 +483,7 @@ namespace Rococo::Gui
 	{
 		IGRBase* castBase = nullptr;
 		auto result = widget.QueryInterface(&castBase, interfaceId);
-		return result == EQueryInterfaceResult::SUCCESS ? static_cast<CAST_TO_THIS_CLASS*>(castBase) : nullptr;
+		return result == EGRQueryInterfaceResult::SUCCESS ? static_cast<CAST_TO_THIS_CLASS*>(castBase) : nullptr;
 	};
 
 	template<class CAST_TO_THIS_CLASS> inline CAST_TO_THIS_CLASS* Cast(IGRWidget& widget)
@@ -491,31 +491,31 @@ namespace Rococo::Gui
 		return Cast<CAST_TO_THIS_CLASS>(widget, CAST_TO_THIS_CLASS::InterfaceId());
 	};
 
-	enum GRClickCriterion
+	enum class EGRClickCriterion
 	{
 		OnDown, // Click event fires when the left button down event is routed to the button widget (THIS IS THE DEFAULT)
 		OnUp, // Click event when the left button up event is routed to the button widget
 		OnDownThenUp // Click event when the left button is down, the cursor remains in the button rectangle, and then the left button is released.
 	};
 
-	enum GREventPolicy
+	enum class EGREventPolicy
 	{
 		PublicEvent, // The widget notifies the GR custodian that an event has fired (THIS IS THE DEFAULT)
 		NotifyAncestors, // The widget notifies the chain of parents that an event has fired. If nothing terminates it, the root panel makes it a public event		
 	};
 
-	struct ControlMetaData
+	struct GRControlMetaData
 	{
 		int64 intData = 0;
 		cstr stringData = nullptr; // If nullptr is provided, the meta data is stored as an empty string and retrieved as an empty string
 
-		static ControlMetaData None()
+		static GRControlMetaData None()
 		{
 			return { 0,nullptr };
 		}
 	};
 
-	struct ButtonFlags
+	struct GRButtonFlags
 	{
 		uint32 isMenu : 1;
 		uint32 forSubMenu : 1;
@@ -547,10 +547,10 @@ namespace Rococo::Gui
 		virtual IGRWidget& Widget() = 0;
 
 		// Sets the rule by which events are fired
-		virtual IGRWidgetButton& SetClickCriterion(GRClickCriterion criterion) = 0;
+		virtual IGRWidgetButton& SetClickCriterion(EGRClickCriterion criterion) = 0;
 
 		// Set what happens when the button is fired
-		virtual IGRWidgetButton& SetEventPolicy(GREventPolicy policy) = 0;
+		virtual IGRWidgetButton& SetEventPolicy(EGREventPolicy policy) = 0;
 
 		// Sets the image icon path for the button in the raised and pressed state. It is up to the custodian to decide how to interpret the path as an image and how to render it
 		// The custodian decides if/when to prioritize the image over the title
@@ -565,7 +565,7 @@ namespace Rococo::Gui
 		virtual IGRWidgetButton& SetPressedImagePath(cstr imagePath) = 0;
 
 		// Sets user meta data for the button
-		virtual IGRWidgetButton& SetMetaData(const ControlMetaData& metaData) = 0;
+		virtual IGRWidgetButton& SetMetaData(const GRControlMetaData& metaData) = 0;
 
 		// Sets the display text for the button
 		virtual IGRWidgetButton& SetTitle(cstr text) = 0;
@@ -576,9 +576,9 @@ namespace Rococo::Gui
 		virtual IGRWidgetButton& SetAlignment(GRAlignmentFlags alignment, Vec2i spacing) = 0;
 
 		// Returns meta data set with SetMetaData. The pointers are valid until meta data is changed or the control is destroyed
-		virtual ControlMetaData GetMetaData() = 0;
+		virtual GRControlMetaData GetMetaData() = 0;
 
-		virtual ButtonFlags GetButtonFlags() const = 0;
+		virtual GRButtonFlags GetButtonFlags() const = 0;
 
 		virtual void MakeToggleButton() = 0;
 	};
@@ -586,7 +586,7 @@ namespace Rococo::Gui
 	struct GRMenuButtonItem
 	{
 		cstr text;
-		ControlMetaData metaData;
+		GRControlMetaData metaData;
 		int isEnabled: 1;
 	};
 
@@ -625,7 +625,7 @@ namespace Rococo::Gui
 		virtual IGRWidget& Widget() = 0;
 
 		// If not left, then alignment is right
-		virtual void SetChildAlignment(GRAlignment alignment, int32 interChildPadding = 4, int32 borderPadding = 1) = 0;
+		virtual void SetChildAlignment(EGRAlignment alignment, int32 interChildPadding = 4, int32 borderPadding = 1) = 0;
 
 		// Shrinks the children to their minimal size and resizes the control to fit in all children with specified padding, and returns the span
 		// This may cause the control and its children to invoke InvalidateLayout on the containing panels
@@ -732,35 +732,35 @@ namespace Rococo::Gui
 		virtual IGRWidgetDivision& ClientArea() = 0;
 	};
 
-	enum class GRDebugFlags
+	enum class EGRDebugFlags
 	{
 		None = 0,
 		ThrowWhenPanelIsZeroArea = 1
 	};
 
 	// Highest level of the retained GUI manages frames, frame render order, event routing, visibility, building and rendering
-	ROCOCO_INTERFACE IGuiRetained
+	ROCOCO_INTERFACE IGRSystem
 	{
 		// Associates a frame with an id and returns it. If it already exists, gets the existant one.
-		virtual IGRWidgetMainFrame& BindFrame(IdWidget id) = 0;
+		virtual IGRWidgetMainFrame& BindFrame(GRIdWidget id) = 0;
 
 		// Deletes the frame with the given id, invalidating all references to the frame and its panel and its layout
-		virtual void DeleteFrame(IdWidget id) = 0;
+		virtual void DeleteFrame(GRIdWidget id) = 0;
 
 		// Returns true if at least one GRDebugFlag is present
-		virtual bool HasDebugFlag(GRDebugFlags flag) const = 0;
+		virtual bool HasDebugFlag(EGRDebugFlags flag) const = 0;
 
 		// Combination of GRDebugFlags to overwrite the current flag state
 		virtual void SetDebugFlags(int grDebugFlags) = 0;
 
 		// Get a frame associated with an id. If none exist, null is returned
-		virtual IGRWidgetMainFrame* FindFrame(IdWidget id) = 0;
+		virtual IGRWidgetMainFrame* FindFrame(GRIdWidget id) = 0;
 
 		// Lower the frame so that it is the first to render.
-		virtual void MakeFirstToRender(IdWidget id) = 0;
+		virtual void MakeFirstToRender(GRIdWidget id) = 0;
 
 		// Raise the frame so that it is the final to render
-		virtual void MakeLastToRender(IdWidget id) = 0;	
+		virtual void MakeLastToRender(GRIdWidget id) = 0;	
 
 		// Free all panels marked for delete
 		virtual void GarbageCollect() = 0;
@@ -787,9 +787,9 @@ namespace Rococo::Gui
 		// Sets the keyboard focus to the id of a panel.
 		virtual void SetFocus(int64 id = -1);
 
-		virtual EventRouting RouteCursorClickEvent(CursorEvent& mouseEvent) = 0;
-		virtual EventRouting RouteCursorMoveEvent(CursorEvent& mouseEvent) = 0;
-		virtual EventRouting RouteKeyEvent(KeyEvent& keyEvent) = 0;
+		virtual EGREventRouting RouteCursorClickEvent(GRCursorEvent& mouseEvent) = 0;
+		virtual EGREventRouting RouteCursorMoveEvent(GRCursorEvent& mouseEvent) = 0;
+		virtual EGREventRouting RouteKeyEvent(GRKeyEvent& keyEvent) = 0;
 
 		virtual void UpdateNextFrame(IGRPanel& panel) = 0;
 
@@ -800,7 +800,7 @@ namespace Rococo::Gui
 		virtual GRRealtimeConfig& MutableConfig() = 0;
 	};
 
-	enum GRErrorCode
+	enum EGRErrorCode
 	{
 		None,
 		BadSpanHeight,
@@ -810,7 +810,7 @@ namespace Rococo::Gui
 		RecursionLocked
 	};
 
-	struct ScrollerMetrics
+	struct GRScrollerMetrics
 	{
 		// PixelPosition = 0 -> scroller is in the start position, with >= 0 -> scroller has moved that many pixels towards the end position
 		int32 PixelPosition; 
@@ -840,7 +840,7 @@ namespace Rococo::Gui
 	ROCOCO_INTERFACE IGRWidgetScroller : IGRBase
 	{
 		virtual IGRWidget& Widget() = 0;
-		virtual ScrollerMetrics GetMetrics() const = 0;
+		virtual GRScrollerMetrics GetMetrics() const = 0;
 		virtual void SetSliderPosition(int32 topPixelDelta) = 0;
 	};
 
@@ -900,7 +900,7 @@ namespace Rococo::Gui
 		virtual IGRWidgetEditBox& SetAlignment(GRAlignmentFlags alignment, Vec2i spacing) = 0;
 		virtual IGRWidgetEditBox& SetFont(GRFontId fontId) = 0;
 		virtual IGRWidgetEditBox& SetReadOnly(bool isReadOnly) = 0;
-		virtual IGRWidgetEditBox& SetMetaData(const ControlMetaData& metaData) = 0;
+		virtual IGRWidgetEditBox& SetMetaData(const GRControlMetaData& metaData) = 0;
 
 		// Assigns a string to internal storage, truncating if needs be. If null is passed it is treated as an empty string
 		virtual void SetText(cstr argText) = 0;
@@ -911,7 +911,7 @@ namespace Rococo::Gui
 
 	struct IGREditorMicromanager;
 
-	struct WidgetEvent_EditorUpdated : WidgetEvent
+	struct GRWidgetEvent_EditorUpdated : GRWidgetEvent
 	{
 		IGRWidgetEditBox* editor;
 		IGREditorMicromanager* manager;
@@ -925,7 +925,7 @@ namespace Rococo::Gui
 		int32 unused = 0;
 	};
 
-	enum class GRPaths: int32
+	enum class EGRPaths: int32
 	{
 		// This matches Windows and Unix MAX_PATH.
 		MAX_FULL_PATH_LENGTH = 260
@@ -966,7 +966,7 @@ namespace Rococo::Gui
 	};
 
 	// Creates an editor widget along with a filter. The filter has to be valid for the lifespan of the editor box
-	ROCOCO_GUI_RETAINED_API IGRWidgetEditBox& CreateEditBox(IGRWidget& parent, IGREditFilter* filter, int32 capacity = (int32) GRPaths::MAX_FULL_PATH_LENGTH);
+	ROCOCO_GUI_RETAINED_API IGRWidgetEditBox& CreateEditBox(IGRWidget& parent, IGREditFilter* filter, int32 capacity = (int32) EGRPaths::MAX_FULL_PATH_LENGTH);
 
 	ROCOCO_GUI_RETAINED_API void SetSchemeColours_ThemeGrey(IGRScheme& scheme);
 
@@ -989,5 +989,5 @@ namespace Rococo::Gui
 
 	ROCOCO_GUI_RETAINED_API void InvalidateLayoutForAllDescendants(IGRPanel& panel);
 
-	ROCOCO_GUI_RETAINED_API EventRouting RouteEventToHandler(IGRPanel& panel, WidgetEvent& ev);
+	ROCOCO_GUI_RETAINED_API EGREventRouting RouteEventToHandler(IGRPanel& panel, GRWidgetEvent& ev);
 }

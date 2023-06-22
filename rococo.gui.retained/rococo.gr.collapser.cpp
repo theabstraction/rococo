@@ -79,7 +79,7 @@ namespace GRANON
 			collapseButton->Widget().Panel().Resize({ 26,26 }).SetParentOffset({0,2});
 			collapseButton->SetRaisedImagePath(collapserExpandPath);
 			collapseButton->SetPressedImagePath(collapserInlinePath);
-			collapseButton->SetEventPolicy(GREventPolicy::NotifyAncestors);
+			collapseButton->SetEventPolicy(EGREventPolicy::NotifyAncestors);
 			collapseButton->MakeToggleButton();
 		}
 
@@ -114,14 +114,14 @@ namespace GRANON
 			clientArea->Panel().SetParentOffset({ 0, TITLE_BAR_HEIGHT });
 		}
 
-		EventRouting OnCursorClick(CursorEvent& ce) override
+		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
 		{
-			return EventRouting::NextHandler;
+			return EGREventRouting::NextHandler;
 		}
 
-		EventRouting OnCursorMove(CursorEvent& ce) override
+		EGREventRouting OnCursorMove(GRCursorEvent& ce) override
 		{
-			return EventRouting::NextHandler;
+			return EGREventRouting::NextHandler;
 		}
 
 		void OnCursorEnter() override
@@ -143,7 +143,7 @@ namespace GRANON
 		{
 		}
 
-		EventRouting OnChildEvent(WidgetEvent& widgetEvent, IGRWidget& sourceWidget)
+		EGREventRouting OnChildEvent(GRWidgetEvent& widgetEvent, IGRWidget& sourceWidget)
 		{
 			if (sourceWidget.Panel().Id() == collapseButton->Widget().Panel().Id())
 			{
@@ -157,12 +157,12 @@ namespace GRANON
 				{
 					eventHandler.OnCollapserExpanded(*this);
 				}
-				return EventRouting::Terminate;
+				return EGREventRouting::Terminate;
 			}
-			return EventRouting::NextHandler;
+			return EGREventRouting::NextHandler;
 		}
 
-		EventRouting OnKeyEvent(KeyEvent& keyEvent) override
+		EGREventRouting OnKeyEvent(GRKeyEvent& keyEvent) override
 		{
 			return collapseButton->Widget().OnKeyEvent(keyEvent);
 		}
@@ -172,7 +172,7 @@ namespace GRANON
 			return *this;
 		}
 
-		EQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
+		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
 			GRCollapser* instance = (GRCollapser*)this;
 			return Gui::QueryForParticularInterface<IGRWidgetCollapser, GRCollapser>(instance, ppOutputArg, interfaceId);

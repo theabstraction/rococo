@@ -10,8 +10,8 @@ namespace GRANON
 	struct GRButton : IGRWidgetButton, IGRWidget
 	{
 		IGRPanel& panel;
-		GRClickCriterion clickCriterion = GRClickCriterion::OnDown;
-		GREventPolicy eventPolicy = GREventPolicy::PublicEvent;
+		EGRClickCriterion clickCriterion = EGRClickCriterion::OnDown;
+		EGREventPolicy eventPolicy = EGREventPolicy::PublicEvent;
 
 		bool isRaised = true;
 		bool isMenu = false;
@@ -24,7 +24,7 @@ namespace GRANON
 
 		GRButton(IGRPanel& owningPanel) : panel(owningPanel)
 		{
-			alignment.Add(GRAlignment::HCentre).Add(GRAlignment::VCentre);
+			alignment.Add(EGRAlignment::HCentre).Add(EGRAlignment::VCentre);
 			SyncMinimalSpan();
 		}
 
@@ -38,9 +38,9 @@ namespace GRANON
 
 		}
 
-		ButtonFlags GetButtonFlags() const override
+		GRButtonFlags GetButtonFlags() const override
 		{
-			ButtonFlags flags;
+			GRButtonFlags flags;
 			flags.forSubMenu = forSubmenu;
 			flags.isEnabled = true;
 			flags.isMenu = isMenu;
@@ -48,18 +48,18 @@ namespace GRANON
 			return flags;
 		}
 
-		void FireEvent(CursorEvent& ce)
+		void FireEvent(GRCursorEvent& ce)
 		{
-			WidgetEvent widgetEvent{ WidgetEventType::BUTTON_CLICK, panel.Id(), iMetadata, sMetaData.c_str(), ce.position };
+			GRWidgetEvent widgetEvent{ EGRWidgetEventType::BUTTON_CLICK, panel.Id(), iMetadata, sMetaData.c_str(), ce.position };
 
-			if (eventPolicy == GREventPolicy::PublicEvent)
+			if (eventPolicy == EGREventPolicy::PublicEvent)
 			{		
 				RouteEventToHandler(panel, widgetEvent);
 			}
-			else if (eventPolicy == GREventPolicy::NotifyAncestors)
+			else if (eventPolicy == EGREventPolicy::NotifyAncestors)
 			{
-				EventRouting routing = panel.NotifyAncestors(widgetEvent, *this);
-				if (routing != EventRouting::Terminate)
+				EGREventRouting routing = panel.NotifyAncestors(widgetEvent, *this);
+				if (routing != EGREventRouting::Terminate)
 				{
 					// Nothing handled it
 					RouteEventToHandler(panel, widgetEvent);
@@ -67,11 +67,11 @@ namespace GRANON
 			}
 		}
 
-		EventRouting OnCursorClick(CursorEvent& ce) override
+		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
 		{
 			if (ce.click.LeftButtonDown)
 			{
-				if (clickCriterion == GRClickCriterion::OnDown)
+				if (clickCriterion == EGRClickCriterion::OnDown)
 				{
 					if (isToggler)
 					{
@@ -85,7 +85,7 @@ namespace GRANON
 					SyncMinimalSpan();
 					FireEvent(ce);
 				}
-				else if (clickCriterion == GRClickCriterion::OnDownThenUp)
+				else if (clickCriterion == EGRClickCriterion::OnDownThenUp)
 				{
 					if (!isToggler)
 					{
@@ -94,11 +94,11 @@ namespace GRANON
 					SyncMinimalSpan();
 					panel.CaptureCursor();
 				}
-				return EventRouting::Terminate;
+				return EGREventRouting::Terminate;
 			}
 			else if (ce.click.LeftButtonUp)
 			{
-				if (clickCriterion == GRClickCriterion::OnUp)
+				if (clickCriterion == EGRClickCriterion::OnUp)
 				{
 					if (isToggler)
 					{
@@ -111,7 +111,7 @@ namespace GRANON
 					SyncMinimalSpan();
 					FireEvent(ce);
 				}
-				else if (clickCriterion == GRClickCriterion::OnDownThenUp)
+				else if (clickCriterion == EGRClickCriterion::OnDownThenUp)
 				{
 					bool flipped = true;
 
@@ -139,7 +139,7 @@ namespace GRANON
 						panel.Root().ReleaseCursor();
 					}
 				}
-				else if (clickCriterion == GRClickCriterion::OnDown)
+				else if (clickCriterion == EGRClickCriterion::OnDown)
 				{
 					if (!isToggler)
 					{
@@ -152,10 +152,10 @@ namespace GRANON
 					}
 				}
 
-				return EventRouting::Terminate;
+				return EGREventRouting::Terminate;
 			}
 
-			return EventRouting::NextHandler;
+			return EGREventRouting::NextHandler;
 		}
 
 		void OnCursorEnter() override
@@ -171,19 +171,19 @@ namespace GRANON
 			}
 		}
 
-		EventRouting OnCursorMove(CursorEvent& ce) override
+		EGREventRouting OnCursorMove(GRCursorEvent& ce) override
 		{
 			if (!IsPointInRect(ce.position, panel.AbsRect()) && panel.Root().CapturedPanelId() == panel.Id())
 			{
 				// The cursor has been moved outside the button, so capture should be lost
 				panel.Root().ReleaseCursor();
 			}
-			return EventRouting::NextHandler;
+			return EGREventRouting::NextHandler;
 		}
 
-		EventRouting OnKeyEvent(KeyEvent& keyEvent) override
+		EGREventRouting OnKeyEvent(GRKeyEvent& keyEvent) override
 		{
-			return EventRouting::NextHandler;
+			return EGREventRouting::NextHandler;
 		}
 
 		IGRPanel& Panel() override
@@ -219,12 +219,12 @@ namespace GRANON
 				fogRect.right -= 1;
 				fogRect.top += 1;
 				fogRect.bottom -= 1;
-				g.DrawRect(fogRect, panel.GetColour(ESchemeColourSurface::BUTTON_IMAGE_FOG, rs, RGBAb(0, 0, 0, 128)));
+				g.DrawRect(fogRect, panel.GetColour(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, rs, RGBAb(0, 0, 0, 128)));
 			}
 
 			if (!imageRendered)
 			{
-				RGBAb colour = panel.GetColour(ESchemeColourSurface::BUTTON_TEXT, rs);
+				RGBAb colour = panel.GetColour(EGRSchemeColourSurface::BUTTON_TEXT, rs);
 				colour.alpha = isHovered ? colour.alpha : 3 * (colour.alpha / 4);
 				DrawButtonText(panel, alignment, spacing, { title.c_str(), (int32)title.size() }, colour, g);
 			}
@@ -266,13 +266,13 @@ namespace GRANON
 			return *this;
 		}
 
-		IGRWidgetButton& SetClickCriterion(GRClickCriterion criterion) override
+		IGRWidgetButton& SetClickCriterion(EGRClickCriterion criterion) override
 		{
 			this->clickCriterion = criterion;
 			return *this;
 		}
 
-		IGRWidgetButton& SetEventPolicy(GREventPolicy policy) override
+		IGRWidgetButton& SetEventPolicy(EGREventPolicy policy) override
 		{
 			this->eventPolicy = policy;
 			return *this;
@@ -281,21 +281,21 @@ namespace GRANON
 		int64 iMetadata = 0;
 		std::string sMetaData;
 
-		IGRWidgetButton& SetMetaData(const ControlMetaData& metaData) override
+		IGRWidgetButton& SetMetaData(const GRControlMetaData& metaData) override
 		{
 			iMetadata = metaData.intData;
 			sMetaData = metaData.stringData ? metaData.stringData : std::string();
 			return *this;
 		}
 
-		ControlMetaData GetMetaData() override
+		GRControlMetaData GetMetaData() override
 		{
-			return ControlMetaData { iMetadata, sMetaData.c_str() };
+			return GRControlMetaData { iMetadata, sMetaData.c_str() };
 		}
 
-		EventRouting OnChildEvent(WidgetEvent& widgetEvent, IGRWidget& sourceWidget)
+		EGREventRouting OnChildEvent(GRWidgetEvent& widgetEvent, IGRWidget& sourceWidget)
 		{
-			return EventRouting::NextHandler;
+			return EGREventRouting::NextHandler;
 		}
 
 		std::string title;
@@ -347,16 +347,16 @@ namespace GRANON
 			isToggler = true;
 		}
 
-		EQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
+		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
-			if (!interfaceId || *interfaceId == 0) return EQueryInterfaceResult::INVALID_ID;
+			if (!interfaceId || *interfaceId == 0) return EGRQueryInterfaceResult::INVALID_ID;
 			if (DoInterfaceNamesMatch(interfaceId, "IGRWidgetButton"))
 			{
 				if (ppOutputArg) *ppOutputArg = static_cast<IGRWidgetButton*>(this);
-				return EQueryInterfaceResult::SUCCESS;
+				return EGRQueryInterfaceResult::SUCCESS;
 			}
 
-			return EQueryInterfaceResult::NOT_IMPLEMENTED;
+			return EGRQueryInterfaceResult::NOT_IMPLEMENTED;
 		}
 
 		IGRWidget& Widget()
@@ -404,11 +404,11 @@ namespace Rococo::Gui
 
 		GRRenderState rs(!raised, hovered, false);
 
-		RGBAb colour = panel.GetColour(ESchemeColourSurface::BUTTON, rs);
+		RGBAb colour = panel.GetColour(EGRSchemeColourSurface::BUTTON, rs);
 		g.DrawRect(panel.AbsRect(), colour);
 
-		RGBAb colour1 = panel.GetColour(ESchemeColourSurface::BUTTON_EDGE_TOP_LEFT, rs);
-		RGBAb colour2 = panel.GetColour(ESchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT, rs);
+		RGBAb colour1 = panel.GetColour(EGRSchemeColourSurface::BUTTON_EDGE_TOP_LEFT, rs);
+		RGBAb colour2 = panel.GetColour(EGRSchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT, rs);
 
 		g.DrawRectEdge(panel.AbsRect(), colour1, colour2);
 	}
@@ -418,11 +418,11 @@ namespace Rococo::Gui
 		bool hovered = g.IsHovered(panel);
 
 		GRRenderState rs(!raised, hovered, false);
-		RGBAb colour = panel.GetColour(ESchemeColourSurface::MENU_BUTTON, rs);
+		RGBAb colour = panel.GetColour(EGRSchemeColourSurface::MENU_BUTTON, rs);
 		g.DrawRect(panel.AbsRect(), colour);
 
-		RGBAb colour1 = panel.GetColour(ESchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, rs);
-		RGBAb colour2 = panel.GetColour(ESchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT, rs);
+		RGBAb colour1 = panel.GetColour(EGRSchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, rs);
+		RGBAb colour2 = panel.GetColour(EGRSchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT, rs);
 		g.DrawRectEdge(panel.AbsRect(), colour1, colour2);
 	}
 

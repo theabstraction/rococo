@@ -31,7 +31,7 @@ namespace ANON
 	{
 		IGRCustodian& custodian;
 		GRConfig config;
-		AutoFree<IGRSchemeSupervisor> scheme = CreateScheme();
+		AutoFree<IGRSchemeSupervisor> scheme = CreateGRScheme();
 		std::unordered_map<int64, IGRPanel*> mapIdToPanel;
 		int queryDepth = 0;
 		bool queueGarbageCollect = false;
@@ -40,7 +40,7 @@ namespace ANON
 
 		int grDebugFlags = 0;
 
-		bool HasDebugFlag(GRDebugFlags flag) const override
+		bool HasDebugFlag(EGRDebugFlags flag) const override
 		{
 			return (grDebugFlags & (int) flag) != 0;
 		}
@@ -70,7 +70,7 @@ namespace ANON
 			IGRWidgetMainFrame* frame;
 			std::string id;
 
-			bool Eq(IdWidget other) const
+			bool Eq(GRIdWidget other) const
 			{
 				return other.Name && strcmp(other.Name, id.c_str()) == 0;
 			}
@@ -114,11 +114,11 @@ namespace ANON
 			delete this;
 		}
 
-		IGRWidgetMainFrame& BindFrame(IdWidget id) override
+		IGRWidgetMainFrame& BindFrame(GRIdWidget id) override
 		{
 			if (queryDepth > 0)
 			{
-				custodian.RaiseError(GRErrorCode::RecursionLocked, __FUNCTION__, "The GUI Retained API is locked for a recursive query. BindFrame cannot be executed here");
+				custodian.RaiseError(EGRErrorCode::RecursionLocked, __FUNCTION__, "The GUI Retained API is locked for a recursive query. BindFrame cannot be executed here");
 				IGRWidgetMainFrame* frame = nullptr;
 				return *frame;
 			}
@@ -144,11 +144,11 @@ namespace ANON
 			return *newFrame;
 		}
 
-		void DeleteFrame(IdWidget id) override
+		void DeleteFrame(GRIdWidget id) override
 		{
 			if (queryDepth > 0)
 			{
-				custodian.RaiseError(GRErrorCode::RecursionLocked, __FUNCTION__, "The GUI Retained API is locked for a recursive query. FrameDelete cannot be executed here");
+				custodian.RaiseError(EGRErrorCode::RecursionLocked, __FUNCTION__, "The GUI Retained API is locked for a recursive query. FrameDelete cannot be executed here");
 				return;
 			}
 
@@ -166,7 +166,7 @@ namespace ANON
 			return *scheme;
 		}
 
-		IGRWidgetMainFrame* FindFrame(IdWidget id) override
+		IGRWidgetMainFrame* FindFrame(GRIdWidget id) override
 		{
 			for (auto& d : frameDescriptors)
 			{
@@ -209,7 +209,7 @@ namespace ANON
 		{
 			if (queryDepth > 0)
 			{
-				custodian.RaiseError(GRErrorCode::RecursionLocked, __FUNCTION__, "The GUI Retained API is locked for a recursive query. GarbageCollect cannot be executed here");
+				custodian.RaiseError(EGRErrorCode::RecursionLocked, __FUNCTION__, "The GUI Retained API is locked for a recursive query. GarbageCollect cannot be executed here");
 				return;
 			}
 
@@ -261,7 +261,7 @@ namespace ANON
 				GuiRect rect = widget->Panel().AbsRect();
 				if (rect.right > rect.left && rect.bottom > rect.top)
 				{
-					RGBAb colour = widget->Panel().GetColour(ESchemeColourSurface::FOCUS_RECTANGLE, GRRenderState(false, false, true), RGBAb(255, 255, 255, 255));
+					RGBAb colour = widget->Panel().GetColour(EGRSchemeColourSurface::FOCUS_RECTANGLE, GRRenderState(false, false, true), RGBAb(255, 255, 255, 255));
 					g.DrawRectEdge(rect, colour, colour);
 				}
 			}
@@ -276,7 +276,7 @@ namespace ANON
 			GRFontId debugFontId = GRFontId::MENU_FONT;
 
 			GRAlignmentFlags alignment;
-			alignment.Add(GRAlignment::Bottom).Add(GRAlignment::Right);
+			alignment.Add(EGRAlignment::Bottom).Add(EGRAlignment::Right);
 
 			char cursorLine[32];
 			Strings::SafeFormat(cursorLine, "%d %d", pos.x, pos.y);
@@ -284,7 +284,7 @@ namespace ANON
 			g.DrawText(debugFontId, g.ScreenDimensions(), g.ScreenDimensions(), alignment, { 10, 10 }, to_fstring(cursorLine), RGBAb(255, 255, 255));
 		}
 
-		void MakeFirstToRender(IdWidget id) override
+		void MakeFirstToRender(GRIdWidget id) override
 		{
 			auto matchesId = [&id](const FrameDesc& desc)
 			{
@@ -299,7 +299,7 @@ namespace ANON
 			}
 		}
 
-		void MakeLastToRender(IdWidget id) override
+		void MakeLastToRender(GRIdWidget id) override
 		{
 			auto matchesId = [&id](const FrameDesc& desc)
 			{
@@ -330,7 +330,7 @@ namespace ANON
 			return widget;
 		}
 
-		IGuiRetained& GR()
+		IGRSystem& GR()
 		{
 			return *this;
 		}
@@ -347,9 +347,9 @@ namespace ANON
 			return isVisible && !frameDescriptors.empty();
 		}
 
-		EventRouting RouteCursorClickEvent(CursorEvent& ev) override
+		EGREventRouting RouteCursorClickEvent(GRCursorEvent& ev) override
 		{
-			size_t nBytes = sizeof(CursorEvent);
+			size_t nBytes = sizeof(GRCursorEvent);
 
 			RecursionGuard guard(*this);
 
@@ -359,13 +359,13 @@ namespace ANON
 				if (widget)
 				{
 					auto& panelSupervisor = static_cast<IGRPanelSupervisor&>(widget->Panel());
-					if (panelSupervisor.RouteCursorClickEvent(ev, false) == EventRouting::NextHandler)
+					if (panelSupervisor.RouteCursorClickEvent(ev, false) == EGREventRouting::NextHandler)
 					{
 						return widget->OnCursorClick(ev);
 					}
 					else
 					{
-						return EventRouting::Terminate;
+						return EGREventRouting::Terminate;
 					}
 				}
 			}
@@ -373,13 +373,13 @@ namespace ANON
 			for (auto d = frameDescriptors.rbegin(); d != frameDescriptors.rend(); ++d)
 			{
 				auto routing = d->panel->RouteCursorClickEvent(ev, true);
-				if (routing == EventRouting::Terminate)
+				if (routing == EGREventRouting::Terminate)
 				{
-					return EventRouting::Terminate;
+					return EGREventRouting::Terminate;
 				}
 			}
 
-			return EventRouting::NextHandler;
+			return EGREventRouting::NextHandler;
 		}
 
 		int64 captureId = -1;
@@ -465,7 +465,7 @@ namespace ANON
 			}
 		}
 
-		bool TryAppendWidgetsUnderCursorToMovementCallstack(TPanelHistory& callstack, CursorEvent& ev)
+		bool TryAppendWidgetsUnderCursorToMovementCallstack(TPanelHistory& callstack, GRCursorEvent& ev)
 		{
 			if (captureId >= 0)
 			{
@@ -497,24 +497,24 @@ namespace ANON
 			return true;
 		}
 
-		EventRouting RouteCursorMoveEvent(CursorEvent& ev) override
+		EGREventRouting RouteCursorMoveEvent(GRCursorEvent& ev) override
 		{
 			movementCallstack.clear();
 
 			if (!TryAppendWidgetsUnderCursorToMovementCallstack(movementCallstack, ev) || movementCallstack.empty())
 			{
-				return EventRouting::Terminate;
+				return EGREventRouting::Terminate;
 			}
 
-			EventRouting result = EventRouting::NextHandler;
+			EGREventRouting result = EGREventRouting::NextHandler;
 
 			RecursionGuard guard(*this);
 
 			for (auto i = movementCallstack.rbegin(); i != movementCallstack.rend(); ++i)
 			{
-				if (i->panel->Widget().OnCursorMove(ev) == EventRouting::Terminate)
+				if (i->panel->Widget().OnCursorMove(ev) == EGREventRouting::Terminate)
 				{
-					result = EventRouting::Terminate;
+					result = EGREventRouting::Terminate;
 				}
 			}
 
@@ -529,19 +529,19 @@ namespace ANON
 			return result;
 		}
 
-		EventRouting RouteKeyEvent(KeyEvent& keyEvent) override
+		EGREventRouting RouteKeyEvent(GRKeyEvent& keyEvent) override
 		{
 			RecursionGuard guard(*this);
 
 			if (focusId < 0)
 			{
-				return EventRouting::Terminate;
+				return EGREventRouting::Terminate;
 			}
 
 			auto* widget = FindWidget(focusId);
 			if (!widget)
 			{
-				return EventRouting::Terminate;
+				return EGREventRouting::Terminate;
 			}
 
 			return widget->OnKeyEvent(keyEvent);
@@ -571,10 +571,10 @@ namespace ANON
 			return oldEventHandler;
 		}
 
-		EventRouting OnGREvent(WidgetEvent& ev) override
+		EGREventRouting OnGREvent(GRWidgetEvent& ev) override
 		{
 			if (eventHandler) return eventHandler->OnGREvent(ev);
-			return EventRouting::Terminate;
+			return EGREventRouting::Terminate;
 		}
 
 		GRRealtimeConfig realtimeConfig;
@@ -607,7 +607,7 @@ namespace Rococo::Gui
 		return new ANON::GuiRetained(config, custodian);
 	}
 
-	ROCOCO_GUI_RETAINED_API EventRouting RouteEventToHandler(IGRPanel& panel, WidgetEvent& ev)
+	ROCOCO_GUI_RETAINED_API EGREventRouting RouteEventToHandler(IGRPanel& panel, GRWidgetEvent& ev)
 	{
 		auto& supervisor = static_cast<IGuiRetainedSupervisor&>(panel.Root().GR());
 		return supervisor.OnGREvent(ev);

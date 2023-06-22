@@ -22,22 +22,22 @@ namespace ANON
 	int32 GRAlignment_To_RococoAlignment(GRAlignmentFlags flags)
 	{
 		int32 iAlignment = 0;
-		if (flags.HasSomeFlags(GRAlignment::Left))
+		if (flags.HasSomeFlags(EGRAlignment::Left))
 		{
 			iAlignment |= Alignment_Left;
 		}
 
-		if (flags.HasSomeFlags(GRAlignment::Right))
+		if (flags.HasSomeFlags(EGRAlignment::Right))
 		{
 			iAlignment |= Alignment_Right;
 		}
 
-		if (flags.HasSomeFlags(GRAlignment::Top))
+		if (flags.HasSomeFlags(EGRAlignment::Top))
 		{
 			iAlignment |= Alignment_Top;
 		}
 
-		if (flags.HasSomeFlags(GRAlignment::Bottom))
+		if (flags.HasSomeFlags(EGRAlignment::Bottom))
 		{
 			iAlignment |= Alignment_Bottom;
 		}
@@ -143,7 +143,7 @@ namespace ANON
 			// If there is nothing to display, then render a space character, which will give the caret a rectangle to work with
 			fstring editText = text.length > 0 ? text : " "_fstring;
 
-			alignment.Remove(GRAlignment::Right).Add(GRAlignment::Left);
+			alignment.Remove(EGRAlignment::Right).Add(EGRAlignment::Left);
 			int32 iAlignment = GRAlignment_To_RococoAlignment(alignment);
 
 			ID_FONT hqFontId;
@@ -322,8 +322,8 @@ namespace ANON
 				return false;
 			}
 
-			bool isLeftAligned = alignment.HasSomeFlags(GRAlignment::Left) && !alignment.HasSomeFlags(GRAlignment::Right);
-			bool isRightAligned = !alignment.HasSomeFlags(GRAlignment::Left) && alignment.HasSomeFlags(GRAlignment::Right);
+			bool isLeftAligned = alignment.HasSomeFlags(EGRAlignment::Left) && !alignment.HasSomeFlags(EGRAlignment::Right);
+			bool isRightAligned = !alignment.HasSomeFlags(EGRAlignment::Left) && alignment.HasSomeFlags(EGRAlignment::Right);
 
 			int32 x = 0;
 
@@ -345,8 +345,8 @@ namespace ANON
 			}
 
 			int y = 0;
-			bool isTopAligned = alignment.HasSomeFlags(GRAlignment::Top) && !alignment.HasSomeFlags(GRAlignment::Bottom);
-			bool isBottomAligned = !alignment.HasSomeFlags(GRAlignment::Top) && alignment.HasSomeFlags(GRAlignment::Bottom);
+			bool isTopAligned = alignment.HasSomeFlags(EGRAlignment::Top) && !alignment.HasSomeFlags(EGRAlignment::Bottom);
+			bool isBottomAligned = !alignment.HasSomeFlags(EGRAlignment::Top) && alignment.HasSomeFlags(EGRAlignment::Bottom);
 
 			if (isTopAligned)
 			{
@@ -413,7 +413,7 @@ namespace ANON
 
 		// Debugging materials:
 		std::vector<IGRWidget*> history;
-		EventRouting lastRoutingStatus = EventRouting::Terminate;
+		EGREventRouting lastRoutingStatus = EGREventRouting::Terminate;
 		int64 eventCount = 0;
 
 		MPlatCustodian(IUtilities& utils, IRenderer& _sysRenderer): renderer(utils), sysRenderer(_sysRenderer)
@@ -448,28 +448,28 @@ namespace ANON
 			history.push_back(&widget);
 		}
 
-		void RouteKeyboardEvent(const KeyboardEvent& key, IGuiRetained& gr) override
+		void RouteKeyboardEvent(const KeyboardEvent& key, IGRSystem& gr) override
 		{
-			KeyEvent keyEvent{ *this, eventCount, key };
+			GRKeyEvent keyEvent{ *this, eventCount, key };
 			lastRoutingStatus = gr.RouteKeyEvent(keyEvent);
 		}
 
-		ECursorIcon currentIcon = ECursorIcon::Arrow;
+		EGRCursorIcon currentIcon = EGRCursorIcon::Arrow;
 
-		void RouteMouseEvent(const MouseEvent& me, IGuiRetained& gr) override
+		void RouteMouseEvent(const MouseEvent& me, IGRSystem& gr) override
 		{
-			static_assert(sizeof CursorClick == sizeof uint16);
+			static_assert(sizeof GRCursorClick == sizeof uint16);
 
 			history.clear();
 			if (me.buttonFlags != 0)
 			{
-				CursorEvent cursorEvent{ *this, me.cursorPos, eventCount, *(CursorClick*)&me.buttonFlags, ECursorIcon::Unspecified, (int)(int16) me.buttonData };
-				size_t nBytes = sizeof(CursorEvent);
+				GRCursorEvent cursorEvent{ *this, me.cursorPos, eventCount, *(GRCursorClick*)&me.buttonFlags, EGRCursorIcon::Unspecified, (int)(int16) me.buttonData };
+				size_t nBytes = sizeof(GRCursorEvent);
 				lastRoutingStatus = gr.RouteCursorClickEvent(cursorEvent);
 			}
 			else
 			{
-				CursorEvent cursorEvent{ *this, me.cursorPos, eventCount, *(CursorClick*)&me.buttonFlags, ECursorIcon::Arrow, 0 };
+				GRCursorEvent cursorEvent{ *this, me.cursorPos, eventCount, *(GRCursorClick*)&me.buttonFlags, EGRCursorIcon::Arrow, 0 };
 				lastRoutingStatus = gr.RouteCursorMoveEvent(cursorEvent);
 
 				if (currentIcon != cursorEvent.nextIcon)
@@ -478,10 +478,10 @@ namespace ANON
 
 					switch (currentIcon)
 					{
-					case ECursorIcon::Arrow:
+					case EGRCursorIcon::Arrow:
 						sysRenderer.Gui().SetSysCursor(EWindowCursor_Default);
 						break;
-					case ECursorIcon::LeftAndRightDragger:
+					case EGRCursorIcon::LeftAndRightDragger:
 						sysRenderer.Gui().SetSysCursor(EWindowCursor_HDrag);
 						break;
 					}
@@ -500,12 +500,12 @@ namespace ANON
 			delete this;
 		}
 
-		void RaiseError(GRErrorCode code, cstr function, cstr message)
+		void RaiseError(EGRErrorCode code, cstr function, cstr message)
 		{
 			Throw(0, "%s: %s", function, message);
 		}
 
-		void Render(IGuiRenderContext& rc, IGuiRetained& gr) override
+		void Render(IGuiRenderContext& rc, IGRSystem& gr) override
 		{
 			renderer.SetContext(&rc);
 			
@@ -521,7 +521,7 @@ namespace ANON
 
 		std::vector<char> copyAndPasteBuffer;
 
-		void TranslateToEditor(const KeyEvent& keyEvent, IGREditorMicromanager& manager) override
+		void TranslateToEditor(const GRKeyEvent& keyEvent, IGREditorMicromanager& manager) override
 		{
 			if (!keyEvent.osKeyEvent.IsUp())
 			{

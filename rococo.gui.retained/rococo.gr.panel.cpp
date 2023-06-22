@@ -181,18 +181,18 @@ namespace GRANON
 			return !isLayoutValid;
 		}
 
-		EventRouting NotifyAncestors(WidgetEvent& event, IGRWidget& sourceWidget) override
+		EGREventRouting NotifyAncestors(GRWidgetEvent& event, IGRWidget& sourceWidget) override
 		{
 			if (parent == nullptr)
 			{
-				return EventRouting::NextHandler;
+				return EGREventRouting::NextHandler;
 			}
 
 			auto& parentWidget = parent->Widget();
 
-			if (parentWidget.OnChildEvent(event, sourceWidget) == EventRouting::Terminate)
+			if (parentWidget.OnChildEvent(event, sourceWidget) == EGREventRouting::Terminate)
 			{
-				return EventRouting::Terminate;
+				return EGREventRouting::Terminate;
 			}
 
 			return parent->NotifyAncestors(event, sourceWidget);
@@ -248,7 +248,7 @@ namespace GRANON
 			return* child;
 		}
 
-		RGBAb GetColour(ESchemeColourSurface surface, GRRenderState rs, RGBAb defaultColour) const override
+		RGBAb GetColour(EGRSchemeColourSurface surface, GRRenderState rs, RGBAb defaultColour) const override
 		{
 			RGBAb result;
 			if (!TryGetColour(surface, result, rs))
@@ -263,7 +263,7 @@ namespace GRANON
 			this->isCollapsed = isCollapsed;
 		}
 
-		bool TryGetColour(ESchemeColourSurface surface, RGBAb& colour, GRRenderState rs) const override
+		bool TryGetColour(EGRSchemeColourSurface surface, RGBAb& colour, GRRenderState rs) const override
 		{
 			if (scheme && scheme->TryGetColour(surface, colour, rs))
 			{
@@ -280,11 +280,11 @@ namespace GRANON
 			}
 		}
 
-		IGRPanel& Set(ESchemeColourSurface surface, RGBAb colour, GRRenderState rs) override
+		IGRPanel& Set(EGRSchemeColourSurface surface, RGBAb colour, GRRenderState rs) override
 		{
 			if (!scheme)
 			{
-				scheme = CreateScheme();
+				scheme = CreateGRScheme();
 			}
 
 			scheme->SetColour(surface, colour, rs);
@@ -396,38 +396,38 @@ namespace GRANON
 			return root;
 		}
 
-		EventRouting RouteCursorClickEvent(CursorEvent& ce, bool filterChildrenByParentRect) override
+		EGREventRouting RouteCursorClickEvent(GRCursorEvent& ce, bool filterChildrenByParentRect) override
 		{
 			if (isCollapsed)
 			{
-				return EventRouting::NextHandler;
+				return EGREventRouting::NextHandler;
 			}
 
 			if (filterChildrenByParentRect && !IsPointInRect(ce.position, absRect))
 			{
-				return EventRouting::NextHandler;
+				return EGREventRouting::NextHandler;
 			}
 
 			ce.history.RecordWidget(*widget);
 
 			for (auto* child : children)
 			{
-				EventRouting routing = child->RouteCursorClickEvent(ce, filterChildrenByParentRect);
-				if (routing == EventRouting::Terminate)
+				EGREventRouting routing = child->RouteCursorClickEvent(ce, filterChildrenByParentRect);
+				if (routing == EGREventRouting::Terminate)
 				{
-					return EventRouting::Terminate;
+					return EGREventRouting::Terminate;
 				}
 			}
 
 			if (!widget || !IsPointInRect(ce.position, absRect))
 			{
-				return EventRouting::NextHandler;
+				return EGREventRouting::NextHandler;
 			}
 
 			return widget->OnCursorClick(ce);
 		}
 
-		void BuildCursorMovementHistoryRecursive(CursorEvent& ce, IGRPanelEventBuilder& eb) override
+		void BuildCursorMovementHistoryRecursive(GRCursorEvent& ce, IGRPanelEventBuilder& eb) override
 		{
 			if (!IsPointInRect(ce.position, absRect))
 			{
@@ -511,18 +511,18 @@ namespace Rococo::Gui
 		Vec2i newPos = child.ParentOffset();
 		Vec2i newSpan = child.Span();
 
-		if (newSpan.x == 0 && !anchors.expandsHorizontally  && child.Root().GR().HasDebugFlag(GRDebugFlags::ThrowWhenPanelIsZeroArea))
+		if (newSpan.x == 0 && !anchors.expandsHorizontally  && child.Root().GR().HasDebugFlag(EGRDebugFlags::ThrowWhenPanelIsZeroArea))
 		{
 			char message[256];
 			SafeFormat(message, "Panel %lld was not set to expand horizontally and its current width is zero, hence will remain zero width", child.Id());
-			child.Root().Custodian().RaiseError(GRErrorCode::BadSpanWidth, __FUNCTION__, message);
+			child.Root().Custodian().RaiseError(EGRErrorCode::BadSpanWidth, __FUNCTION__, message);
 		}
 
-		if (newSpan.y == 0 && !anchors.expandsVertically && child.Root().GR().HasDebugFlag(GRDebugFlags::ThrowWhenPanelIsZeroArea))
+		if (newSpan.y == 0 && !anchors.expandsVertically && child.Root().GR().HasDebugFlag(EGRDebugFlags::ThrowWhenPanelIsZeroArea))
 		{
 			char message[256];
 			SafeFormat(message, "Panel %lld was not set to expand vertically and its current height is zero, hence will remain zero height", child.Id());
-			child.Root().Custodian().RaiseError(GRErrorCode::BadSpanHeight, __FUNCTION__, message);
+			child.Root().Custodian().RaiseError(EGRErrorCode::BadSpanHeight, __FUNCTION__, message);
 		}
 
 		if (anchors.left)
@@ -603,18 +603,18 @@ namespace Rococo::Gui
 
 		child.SetParentOffset(newPos);
 
-		if (newSpan.x == 0 && child.Root().GR().HasDebugFlag(GRDebugFlags::ThrowWhenPanelIsZeroArea))
+		if (newSpan.x == 0 && child.Root().GR().HasDebugFlag(EGRDebugFlags::ThrowWhenPanelIsZeroArea))
 		{
 			char message[256];
 			SafeFormat(message, "Panel %lld width was computed to be zero", child.Id());
-			child.Root().Custodian().RaiseError(GRErrorCode::BadSpanWidth, __FUNCTION__, message);
+			child.Root().Custodian().RaiseError(EGRErrorCode::BadSpanWidth, __FUNCTION__, message);
 		}
 
-		if (newSpan.y == 0 && child.Root().GR().HasDebugFlag(GRDebugFlags::ThrowWhenPanelIsZeroArea))
+		if (newSpan.y == 0 && child.Root().GR().HasDebugFlag(EGRDebugFlags::ThrowWhenPanelIsZeroArea))
 		{
 			char message[256];
 			SafeFormat(message, "Panel %lld height was computed to be zero", child.Id());
-			child.Root().Custodian().RaiseError(GRErrorCode::BadSpanHeight, __FUNCTION__, message);
+			child.Root().Custodian().RaiseError(EGRErrorCode::BadSpanHeight, __FUNCTION__, message);
 		}
 
 		child.Resize(newSpan);

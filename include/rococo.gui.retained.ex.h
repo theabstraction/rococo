@@ -10,16 +10,16 @@ namespace Rococo::Gui
 
 	ROCOCO_INTERFACE IGREventHandler
 	{
-		virtual EventRouting OnGREvent(WidgetEvent & ev) = 0;
+		virtual EGREventRouting OnGREvent(GRWidgetEvent & ev) = 0;
 	};
 
 	// Lifetime manager for a gui retained instance
-	ROCOCO_INTERFACE IGuiRetainedSupervisor : IGuiRetained
+	ROCOCO_INTERFACE IGuiRetainedSupervisor : IGRSystem
 	{
 		// Assigns a new event handler, and returns the old one
 		virtual IGREventHandler* SetEventHandler(IGREventHandler* eventHandler) = 0;
 		virtual void NotifyPanelDeleted(int64 uniqueId) = 0;
-		virtual EventRouting OnGREvent(WidgetEvent& ev) = 0;
+		virtual EGREventRouting OnGREvent(GRWidgetEvent& ev) = 0;
 		virtual void Free() = 0;
 	};
 
@@ -46,12 +46,12 @@ namespace Rococo::Gui
 		virtual IGRImageMemento * CreateImageMemento(cstr debugHint, cstr imagePath) = 0;
 
 		// Takes a platform interpreted key event and translates to an editor delta event
-		virtual void TranslateToEditor(const KeyEvent& keyEvent, IGREditorMicromanager& manager) = 0;
+		virtual void TranslateToEditor(const GRKeyEvent& keyEvent, IGREditorMicromanager& manager) = 0;
 
 		// Given a font id and text string, uses the platform font definition to determine the minimam span containing it.
 		virtual Vec2i EvaluateMinimalSpan(GRFontId fontId, const fstring& text) const = 0;
 
-		virtual void RaiseError(GRErrorCode code, cstr function, cstr message) = 0;
+		virtual void RaiseError(EGRErrorCode code, cstr function, cstr message) = 0;
 	};
 
 	ROCOCO_INTERFACE IGRCustodianSupervisor : IGRCustodian
@@ -69,11 +69,11 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API [[nodiscard]] bool DoInterfaceNamesMatch(cstr a, cstr b);
 
 	// Query to see if the particular interface is part of the supplied instance. Will only compile if there is an elementary derivation of GR_TARGET_INTERFACE from GRBASED_CLASS.
-	template<typename GR_TARGET_INTERFACE, class GRBASED_CLASS> inline EQueryInterfaceResult QueryForParticularInterface(GRBASED_CLASS* instance, IGRBase** ppOutputArg, cstr interfaceId)
+	template<typename GR_TARGET_INTERFACE, class GRBASED_CLASS> inline EGRQueryInterfaceResult QueryForParticularInterface(GRBASED_CLASS* instance, IGRBase** ppOutputArg, cstr interfaceId)
 	{
 		if (ppOutputArg) *ppOutputArg = nullptr;
 
-		if (!interfaceId || *interfaceId == 0) return EQueryInterfaceResult::INVALID_ID;
+		if (!interfaceId || *interfaceId == 0) return EGRQueryInterfaceResult::INVALID_ID;
 
 		if (DoInterfaceNamesMatch(interfaceId, GR_TARGET_INTERFACE::InterfaceId()))
 		{
@@ -81,10 +81,10 @@ namespace Rococo::Gui
 			if (target)
 			{
 				if (ppOutputArg) *ppOutputArg = target;
-				return EQueryInterfaceResult::SUCCESS;
+				return EGRQueryInterfaceResult::SUCCESS;
 			}
 		}
 
-		return EQueryInterfaceResult::NOT_IMPLEMENTED;
+		return EGRQueryInterfaceResult::NOT_IMPLEMENTED;
 	}
 }

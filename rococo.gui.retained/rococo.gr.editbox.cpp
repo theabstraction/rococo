@@ -62,8 +62,8 @@ namespace GRANON
 
 			UpdateLock lock(this);
 
-			WidgetEvent_EditorUpdated we;
-			we.eventType = WidgetEventType::EDITOR_UPDATED;
+			GRWidgetEvent_EditorUpdated we;
+			we.eventType = EGRWidgetEventType::EDITOR_UPDATED;
 			we.iMetaData = iMetaData;
 			we.sMetaData = sMetaData.c_str();
 			we.panelId = panel.Id();	
@@ -81,12 +81,12 @@ namespace GRANON
 
 		bool preppingSelect = false;
 
-		EventRouting OnCursorClick(CursorEvent& ce) override
+		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
 		{
 			if (ce.click.LeftButtonDown)
 			{
 				preppingSelect = true;
-				return EventRouting::Terminate;
+				return EGREventRouting::Terminate;
 			}
 			else if (ce.click.LeftButtonUp && preppingSelect)
 			{
@@ -98,15 +98,15 @@ namespace GRANON
 				{
 					panel.Focus();
 				}
-				return EventRouting::Terminate;
+				return EGREventRouting::Terminate;
 			}
 
-			return EventRouting::NextHandler;
+			return EGREventRouting::NextHandler;
 		}
 
-		EventRouting OnCursorMove(CursorEvent& ce) override
+		EGREventRouting OnCursorMove(GRCursorEvent& ce) override
 		{
-			return EventRouting::NextHandler;
+			return EGREventRouting::NextHandler;
 		}
 
 		void OnCursorEnter() override
@@ -210,32 +210,32 @@ namespace GRANON
 				innerRect.top += 1;
 				innerRect.right -= 1;
 				innerRect.bottom -= 1;
-				g.DrawRect(innerRect, panel.GetColour(ESchemeColourSurface::EDITOR, rs, RGBAb(0, 0, 0, 225)));
+				g.DrawRect(innerRect, panel.GetColour(EGRSchemeColourSurface::EDITOR, rs, RGBAb(0, 0, 0, 225)));
 			}
 
 			if (!rs.value.bitValues.focused)
 			{
 				if (text.size() > 0)
 				{
-					g.DrawText(fontId, rect, rect, alignment, spacing, { text.data(), (int32)text.size() - 1 }, panel.GetColour(ESchemeColourSurface::TEXT, rs));
+					g.DrawText(fontId, rect, rect, alignment, spacing, { text.data(), (int32)text.size() - 1 }, panel.GetColour(EGRSchemeColourSurface::TEXT, rs));
 				}
 			}
 			else
 			{
-				RGBAb textColour = panel.GetColour(ESchemeColourSurface::EDIT_TEXT, rs);
+				RGBAb textColour = panel.GetColour(EGRSchemeColourSurface::EDIT_TEXT, rs);
 				g.DrawEditableText(fontId, rect, alignment, spacing, { text.data(), (int32)text.size() - 1 }, caretPos, textColour);
 			}
 		}
 
-		EventRouting OnChildEvent(WidgetEvent& widgetEvent, IGRWidget& sourceWidget)
+		EGREventRouting OnChildEvent(GRWidgetEvent& widgetEvent, IGRWidget& sourceWidget)
 		{
-			return EventRouting::NextHandler;
+			return EGREventRouting::NextHandler;
 		}
 
-		EventRouting OnKeyEvent(KeyEvent& keyEvent) override
+		EGREventRouting OnKeyEvent(GRKeyEvent& keyEvent) override
 		{
 			panel.Root().Custodian().TranslateToEditor(keyEvent, *this);
-			return EventRouting::NextHandler;
+			return EGREventRouting::NextHandler;
 		}
 
 		IGRWidgetEditBox& SetAlignment(GRAlignmentFlags alignment, Vec2i spacing) override
@@ -254,11 +254,11 @@ namespace GRANON
 		int64 iMetaData = 0;
 		std::string sMetaData;
 
-		IGRWidgetEditBox& SetMetaData(const ControlMetaData& metaData)
+		IGRWidgetEditBox& SetMetaData(const GRControlMetaData& metaData)
 		{
 			if (updateLock > 0)
 			{
-				panel.Root().Custodian().RaiseError(GRErrorCode::RecursionLocked, __FUNCTION__, "It is forbidden to set meta data of an edit box in the context of an update to the edit box");
+				panel.Root().Custodian().RaiseError(EGRErrorCode::RecursionLocked, __FUNCTION__, "It is forbidden to set meta data of an edit box in the context of an update to the edit box");
 				return *this;
 			}
 
@@ -309,7 +309,7 @@ namespace GRANON
 			return *this;
 		}
 
-		EQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
+		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
 			return Gui::QueryForParticularInterface<IGRWidgetEditBox>(this, ppOutputArg, interfaceId);
 		}
@@ -348,16 +348,16 @@ namespace Rococo::Gui
 	{
 		if (capacity <= 2)
 		{
-			parent.Panel().Root().Custodian().RaiseError(GRErrorCode::InvalidArg, __FUNCTION__, "Capacity should be >= 2");
+			parent.Panel().Root().Custodian().RaiseError(EGRErrorCode::InvalidArg, __FUNCTION__, "Capacity should be >= 2");
 		}
 		else
 		{
-			capacity = (int32) GRPaths::MAX_FULL_PATH_LENGTH;
+			capacity = (int32) EGRPaths::MAX_FULL_PATH_LENGTH;
 		}
 
 		if (capacity > 1024_megabytes)
 		{
-			parent.Panel().Root().Custodian().RaiseError(GRErrorCode::InvalidArg, __FUNCTION__, "Capacity should be <= 1 gigabyte");
+			parent.Panel().Root().Custodian().RaiseError(EGRErrorCode::InvalidArg, __FUNCTION__, "Capacity should be <= 1 gigabyte");
 			capacity = (int32) 1024_megabytes;
 		}
 

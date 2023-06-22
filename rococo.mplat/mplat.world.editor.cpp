@@ -18,8 +18,8 @@ namespace ANON
 	{
 		auto& menu = frame.MenuBar();
 		menu.Widget().Panel().
-			Set(ESchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(0, 0, 0, 0), GRGenerateIntensities()).
-			Set(ESchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, RGBAb(0, 0, 0, 0), GRGenerateIntensities());
+			Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(0, 0, 0, 0), GRGenerateIntensities()).
+			Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, RGBAb(0, 0, 0, 0), GRGenerateIntensities());
 
 		auto fileMenu = menu.AddSubMenu(GRMenuItemId::Root(), GRMenuSubMenu("File"));
 		auto editMenu = menu.AddSubMenu(GRMenuItemId::Root(), GRMenuSubMenu("Edit"));
@@ -67,9 +67,9 @@ namespace ANON
 		menu.AddButton(helpMenu, { "Purchase License", { 0, nullptr } });
 
 		auto& titleBar = *frame.MenuBar().Widget().Panel().Parent();
-		titleBar.Set(ESchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(0, 0, 0, 255), GRGenerateIntensities());
-		titleBar.Set(ESchemeColourSurface::MENU_BUTTON, RGBAb(0, 0, 0, 255), GRGenerateIntensities());
-		titleBar.Set(ESchemeColourSurface::BUTTON, RGBAb(0, 0, 0, 255), GRGenerateIntensities());
+		titleBar.Set(EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(0, 0, 0, 255), GRGenerateIntensities());
+		titleBar.Set(EGRSchemeColourSurface::MENU_BUTTON, RGBAb(0, 0, 0, 255), GRGenerateIntensities());
+		titleBar.Set(EGRSchemeColourSurface::BUTTON, RGBAb(0, 0, 0, 255), GRGenerateIntensities());
 	}
 
 	enum { TOOLBAR_EVENT_MINIMIZE = 40001, TOOLBAR_EVENT_RESTORE, TOOLBAR_EVENT_EXIT };
@@ -77,11 +77,11 @@ namespace ANON
 	void BuildUpperRightToolbar(IGRWidgetMainFrame& frame)
 	{
 		auto& tools = frame.TopRightHandSideTools();
-		tools.SetChildAlignment(GRAlignment::Right);
+		tools.SetChildAlignment(EGRAlignment::Right);
 		
-		auto& minimizer = CreateButton(tools.Widget()).SetTitle("Min").SetImagePath("!textures/toolbars/3rd-party/www.aha-soft.com/Down.tiff").SetClickCriterion(GRClickCriterion::OnDownThenUp).SetEventPolicy(GREventPolicy::PublicEvent);
-		auto& restorer = CreateButton(tools.Widget()).SetTitle("Max").SetImagePath("!textures/toolbars/3rd-party/www.aha-soft.com/Expand.tiff").SetClickCriterion(GRClickCriterion::OnDownThenUp).SetEventPolicy(GREventPolicy::PublicEvent);
-		auto& closer = CreateButton(tools.Widget()).SetTitle("Close").SetImagePath("!textures/toolbars/3rd-party/www.aha-soft.com/Close.tiff").SetClickCriterion(GRClickCriterion::OnDownThenUp).SetEventPolicy(GREventPolicy::PublicEvent);
+		auto& minimizer = CreateButton(tools.Widget()).SetTitle("Min").SetImagePath("!textures/toolbars/3rd-party/www.aha-soft.com/Down.tiff").SetClickCriterion(EGRClickCriterion::OnDownThenUp).SetEventPolicy(EGREventPolicy::PublicEvent);
+		auto& restorer = CreateButton(tools.Widget()).SetTitle("Max").SetImagePath("!textures/toolbars/3rd-party/www.aha-soft.com/Expand.tiff").SetClickCriterion(EGRClickCriterion::OnDownThenUp).SetEventPolicy(EGREventPolicy::PublicEvent);
+		auto& closer = CreateButton(tools.Widget()).SetTitle("Close").SetImagePath("!textures/toolbars/3rd-party/www.aha-soft.com/Close.tiff").SetClickCriterion(EGRClickCriterion::OnDownThenUp).SetEventPolicy(EGREventPolicy::PublicEvent);
 
 		minimizer.SetMetaData({ TOOLBAR_EVENT_MINIMIZE, "OnMinimize" });
 		restorer.SetMetaData({ TOOLBAR_EVENT_RESTORE, "OnMinimize" });
@@ -92,7 +92,7 @@ namespace ANON
 
 	struct MPlatEditor : IMPEditorSupervisor, IGREventHandler
 	{
-		IGuiRetained& gr;
+		IGRSystem& gr;
 		Platform* platform = nullptr;
 		bool isVisible = false;
 
@@ -135,7 +135,7 @@ namespace ANON
 			}
 		}
 
-		void OnButtonClick(WidgetEvent& buttonEvent)
+		void OnButtonClick(GRWidgetEvent& buttonEvent)
 		{
 			int64 id = buttonEvent.iMetaData;
 			switch (id)
@@ -165,15 +165,15 @@ namespace ANON
 			}
 		}
 
-		EventRouting OnGREvent(WidgetEvent& ev) override
+		EGREventRouting OnGREvent(GRWidgetEvent& ev) override
 		{
 			switch (ev.eventType)
 			{
-			case WidgetEventType::BUTTON_CLICK:
+			case EGRWidgetEventType::BUTTON_CLICK:
 				OnButtonClick(ev);
 				break;
 			}
-			return EventRouting::Terminate;
+			return EGREventRouting::Terminate;
 		}
 
 		void Free() override
@@ -214,7 +214,7 @@ namespace ANON
 			frame.ClientArea().Panel().Root().GR().GarbageCollect();
 		}
 
-		IdWidget ID_EDITOR_FRAME = { "MPlat-MainFrame" };
+		GRIdWidget ID_EDITOR_FRAME = { "MPlat-MainFrame" };
 
 		void InstantiateUI()
 		{
@@ -226,16 +226,16 @@ namespace ANON
 
 			auto& framePanel = frame.Widget().Panel();
 
-			framePanel.Set(ESchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(48, 48, 48, 255), GRGenerateIntensities());
-			framePanel.Set(ESchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT, RGBAb(128, 128, 128, 255), GRGenerateIntensities());
-			framePanel.Set(ESchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255), GRGenerateIntensities());
-			framePanel.Set(ESchemeColourSurface::SCROLLER_BAR_BACKGROUND, RGBAb(48, 48, 48, 255), GRGenerateIntensities());
-			framePanel.Set(ESchemeColourSurface::SCROLLER_BAR_TOP_LEFT, RGBAb(120, 120, 120, 255), GRGenerateIntensities());
-			framePanel.Set(ESchemeColourSurface::SCROLLER_BAR_BOTTOM_RIGHT, RGBAb(104, 104, 104, 255), GRGenerateIntensities());
-			framePanel.Set(ESchemeColourSurface::SCROLLER_SLIDER_BACKGROUND, RGBAb(64, 64, 64, 255), GRGenerateIntensities());
-			framePanel.Set(ESchemeColourSurface::SCROLLER_SLIDER_TOP_LEFT, RGBAb(128, 128, 128, 255), GRGenerateIntensities());
-			framePanel.Set(ESchemeColourSurface::SCROLLER_SLIDER_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255), GRGenerateIntensities());
-			framePanel.Set(ESchemeColourSurface::SCROLLER_TRIANGLE_NORMAL, RGBAb(128, 128, 128, 255), GRGenerateIntensities());
+			framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(48, 48, 48, 255), GRGenerateIntensities());
+			framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT, RGBAb(128, 128, 128, 255), GRGenerateIntensities());
+			framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255), GRGenerateIntensities());
+			framePanel.Set(EGRSchemeColourSurface::SCROLLER_BAR_BACKGROUND, RGBAb(48, 48, 48, 255), GRGenerateIntensities());
+			framePanel.Set(EGRSchemeColourSurface::SCROLLER_BAR_TOP_LEFT, RGBAb(120, 120, 120, 255), GRGenerateIntensities());
+			framePanel.Set(EGRSchemeColourSurface::SCROLLER_BAR_BOTTOM_RIGHT, RGBAb(104, 104, 104, 255), GRGenerateIntensities());
+			framePanel.Set(EGRSchemeColourSurface::SCROLLER_SLIDER_BACKGROUND, RGBAb(64, 64, 64, 255), GRGenerateIntensities());
+			framePanel.Set(EGRSchemeColourSurface::SCROLLER_SLIDER_TOP_LEFT, RGBAb(128, 128, 128, 255), GRGenerateIntensities());
+			framePanel.Set(EGRSchemeColourSurface::SCROLLER_SLIDER_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255), GRGenerateIntensities());
+			framePanel.Set(EGRSchemeColourSurface::SCROLLER_TRIANGLE_NORMAL, RGBAb(128, 128, 128, 255), GRGenerateIntensities());
 
 			auto& custodian = gr.Root().Custodian();
 		}
@@ -258,7 +258,7 @@ namespace ANON
 
 namespace Rococo::MPEditor
 {
-	IMPEditorSupervisor* CreateMPlatEditor(Rococo::Gui::IGuiRetained& gr)
+	IMPEditorSupervisor* CreateMPlatEditor(Rococo::Gui::IGRSystem& gr)
 	{
 		return new ANON::MPlatEditor(gr);
 	}

@@ -26,14 +26,14 @@ namespace ANON
 
 	struct Scheme : IGRSchemeSupervisor
 	{
-		std::unordered_map<ESchemeColourSurface, GRRenderStateMiniScheme> mapSurfaceToColour;
+		std::unordered_map<EGRSchemeColourSurface, GRRenderStateMiniScheme> mapSurfaceToColour;
 
 		void Free() override
 		{
 			delete this;
 		}
 
-		RGBAb GetColour(ESchemeColourSurface surface, GRRenderState rs) const override
+		RGBAb GetColour(EGRSchemeColourSurface surface, GRRenderState rs) const override
 		{
 			auto i = mapSurfaceToColour.find(surface);
 			if (i == mapSurfaceToColour.end())
@@ -72,7 +72,7 @@ namespace ANON
 			}
 		}
 
-		void SetColour(ESchemeColourSurface surface, RGBAb colour, GRRenderState rs) override
+		void SetColour(EGRSchemeColourSurface surface, RGBAb colour, GRRenderState rs) override
 		{
 			auto i = mapSurfaceToColour.find(surface);
 			if (i != mapSurfaceToColour.end())
@@ -118,7 +118,7 @@ namespace ANON
 			}
 		}
 
-		bool TryGetColour(ESchemeColourSurface surface, RGBAb& colour, GRRenderState rs) const override
+		bool TryGetColour(EGRSchemeColourSurface surface, RGBAb& colour, GRRenderState rs) const override
 		{
 			auto i = mapSurfaceToColour.find(surface);
 			if (i == mapSurfaceToColour.end())
@@ -136,42 +136,42 @@ namespace ANON
 
 namespace Rococo::Gui
 {
-	IGRSchemeSupervisor* CreateScheme()
+	IGRSchemeSupervisor* CreateGRScheme()
 	{
 		return new ANON::Scheme();
 	}
 
 	ROCOCO_GUI_RETAINED_API void SetSchemeColours_ThemeGrey(IGRScheme& scheme)
 	{
-		SetUniformColourForAllRenderStates(scheme, ESchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(64, 64, 64, 192));
-		scheme.SetColour(ESchemeColourSurface::CONTAINER_TOP_LEFT, RGBAb(64, 64, 64, 192), GRGenerateIntensities());
-		scheme.SetColour(ESchemeColourSurface::CONTAINER_BOTTOM_RIGHT, RGBAb(64, 64, 64, 192), GRGenerateIntensities());
-		scheme.SetColour(ESchemeColourSurface::BACKGROUND, RGBAb(64, 64, 64, 192), GRGenerateIntensities());
-		scheme.SetColour(ESchemeColourSurface::MENU_BUTTON, RGBAb(96, 96, 96, 255), GRGenerateIntensities());
-		scheme.SetColour(ESchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, RGBAb(64, 64, 64, 255), GRGenerateIntensities());
-		scheme.SetColour(ESchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(64, 64, 64, 255), GRGenerateIntensities());
-		scheme.SetColour(ESchemeColourSurface::BUTTON, RGBAb(96, 96, 96, 255), GRGenerateIntensities());
-		scheme.SetColour(ESchemeColourSurface::BUTTON_EDGE_TOP_LEFT, RGBAb(64, 64, 64, 255), GRGenerateIntensities());
-		scheme.SetColour(ESchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(64, 64, 64, 255), GRGenerateIntensities());
-		scheme.SetColour(ESchemeColourSurface::BUTTON_TEXT, RGBAb(255, 255, 255, 255), GRGenerateIntensities());
+		SetUniformColourForAllRenderStates(scheme, EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(64, 64, 64, 192));
+		scheme.SetColour(EGRSchemeColourSurface::CONTAINER_TOP_LEFT, RGBAb(64, 64, 64, 192), GRGenerateIntensities());
+		scheme.SetColour(EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT, RGBAb(64, 64, 64, 192), GRGenerateIntensities());
+		scheme.SetColour(EGRSchemeColourSurface::BACKGROUND, RGBAb(64, 64, 64, 192), GRGenerateIntensities());
+		scheme.SetColour(EGRSchemeColourSurface::MENU_BUTTON, RGBAb(96, 96, 96, 255), GRGenerateIntensities());
+		scheme.SetColour(EGRSchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, RGBAb(64, 64, 64, 255), GRGenerateIntensities());
+		scheme.SetColour(EGRSchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(64, 64, 64, 255), GRGenerateIntensities());
+		scheme.SetColour(EGRSchemeColourSurface::BUTTON, RGBAb(96, 96, 96, 255), GRGenerateIntensities());
+		scheme.SetColour(EGRSchemeColourSurface::BUTTON_EDGE_TOP_LEFT, RGBAb(64, 64, 64, 255), GRGenerateIntensities());
+		scheme.SetColour(EGRSchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(64, 64, 64, 255), GRGenerateIntensities());
+		scheme.SetColour(EGRSchemeColourSurface::BUTTON_TEXT, RGBAb(255, 255, 255, 255), GRGenerateIntensities());
 
-		scheme.SetColour(ESchemeColourSurface::TEXT, RGBAb(224, 224, 224, 255), GRGenerateIntensities());
-		scheme.SetColour(ESchemeColourSurface::EDIT_TEXT, RGBAb(224, 224, 224, 255), GRGenerateIntensities());
+		scheme.SetColour(EGRSchemeColourSurface::TEXT, RGBAb(224, 224, 224, 255), GRGenerateIntensities());
+		scheme.SetColour(EGRSchemeColourSurface::EDIT_TEXT, RGBAb(224, 224, 224, 255), GRGenerateIntensities());
 
-		scheme.SetColour(ESchemeColourSurface::TEXT, RGBAb(255, 255, 255, 255), GRRenderState(0, 1, 0));
-		scheme.SetColour(ESchemeColourSurface::TEXT, RGBAb(255, 255, 255, 255), GRRenderState(0, 1, 1));
+		scheme.SetColour(EGRSchemeColourSurface::TEXT, RGBAb(255, 255, 255, 255), GRRenderState(0, 1, 0));
+		scheme.SetColour(EGRSchemeColourSurface::TEXT, RGBAb(255, 255, 255, 255), GRRenderState(0, 1, 1));
 
-		scheme.SetColour(ESchemeColourSurface::EDIT_TEXT, RGBAb(224, 224, 224, 255), GRGenerateIntensities());
+		scheme.SetColour(EGRSchemeColourSurface::EDIT_TEXT, RGBAb(224, 224, 224, 255), GRGenerateIntensities());
 
-		scheme.SetColour(ESchemeColourSurface::EDIT_TEXT, RGBAb(255, 255, 255, 255), GRRenderState(0, 1, 0));
-		scheme.SetColour(ESchemeColourSurface::EDIT_TEXT, RGBAb(255, 255, 255, 255), GRRenderState(0, 1, 1));
+		scheme.SetColour(EGRSchemeColourSurface::EDIT_TEXT, RGBAb(255, 255, 255, 255), GRRenderState(0, 1, 0));
+		scheme.SetColour(EGRSchemeColourSurface::EDIT_TEXT, RGBAb(255, 255, 255, 255), GRRenderState(0, 1, 1));
 
-		scheme.SetColour(ESchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(0, 0, 0, 0), GRGenerateIntensities());
-		scheme.SetColour(ESchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(0, 0, 0,   128), GRRenderState(0, 0, 0));
-		scheme.SetColour(ESchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(64, 64, 64, 64), GRRenderState(0, 0, 1));
-		scheme.SetColour(ESchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(0, 0, 0,    64), GRRenderState(0, 1, 0));
-		scheme.SetColour(ESchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(64, 64, 64, 32), GRRenderState(0, 1, 1));
-		scheme.SetColour(ESchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(64, 64, 64, 64), GRRenderState(0, 0, 1));
+		scheme.SetColour(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(0, 0, 0, 0), GRGenerateIntensities());
+		scheme.SetColour(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(0, 0, 0,   128), GRRenderState(0, 0, 0));
+		scheme.SetColour(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(64, 64, 64, 64), GRRenderState(0, 0, 1));
+		scheme.SetColour(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(0, 0, 0,    64), GRRenderState(0, 1, 0));
+		scheme.SetColour(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(64, 64, 64, 32), GRRenderState(0, 1, 1));
+		scheme.SetColour(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(64, 64, 64, 64), GRRenderState(0, 0, 1));
 	}
 
 	template<class T> void ForEachRenderState(T t)
@@ -186,7 +186,7 @@ namespace Rococo::Gui
 		t(GRRenderState(1, 1, 1));
 	}
 
-	ROCOCO_GUI_RETAINED_API void SetUniformColourForAllRenderStates(IGRScheme& scheme, ESchemeColourSurface surface, RGBAb colour)
+	ROCOCO_GUI_RETAINED_API void SetUniformColourForAllRenderStates(IGRScheme& scheme, EGRSchemeColourSurface surface, RGBAb colour)
 	{
 		ForEachRenderState([&scheme, surface, colour](GRRenderState rs)
 			{
@@ -195,7 +195,7 @@ namespace Rococo::Gui
 		);
 	}
 
-	ROCOCO_GUI_RETAINED_API void SetUniformColourForAllRenderStates(IGRPanel& panel, ESchemeColourSurface surface, RGBAb colour)
+	ROCOCO_GUI_RETAINED_API void SetUniformColourForAllRenderStates(IGRPanel& panel, EGRSchemeColourSurface surface, RGBAb colour)
 	{
 		ForEachRenderState([&panel, surface, colour](GRRenderState rs)
 			{

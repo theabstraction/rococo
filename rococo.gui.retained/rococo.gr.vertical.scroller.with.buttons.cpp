@@ -24,7 +24,7 @@ namespace ANON
 
 			GRRenderState rs(false, isHovered, false);
 
-			RGBAb triangleColour = panel.GetColour(ESchemeColourSurface::SCROLLER_TRIANGLE_NORMAL, rs);
+			RGBAb triangleColour = panel.GetColour(EGRSchemeColourSurface::SCROLLER_TRIANGLE_NORMAL, rs);
 			g.DrawDirectionArrow(triangleRect, triangleColour, orientation);
 		}
 
@@ -58,9 +58,9 @@ namespace ANON
 			scroller = &CreateVerticalScroller(*this, events);
 
 			topButton->Widget().Panel().SetPanelRenderer(&upRenderer);
-			topButton->SetEventPolicy(GREventPolicy::NotifyAncestors);
+			topButton->SetEventPolicy(EGREventPolicy::NotifyAncestors);
 			bottomButton->Widget().Panel().SetPanelRenderer(&downRenderer);
-			bottomButton->SetEventPolicy(GREventPolicy::NotifyAncestors);
+			bottomButton->SetEventPolicy(EGREventPolicy::NotifyAncestors);
 		}
 
 		void Free() override
@@ -99,24 +99,24 @@ namespace ANON
 			scroller->Widget().Panel().InvalidateLayout(false);
 			bottomButton->Widget().Panel().InvalidateLayout(false);
 
-			RGBAb backColour = panel.GetColour(ESchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, GRGenerateIntensities());
-			panel.Set(ESchemeColourSurface::BUTTON, backColour, GRGenerateIntensities());
+			RGBAb backColour = panel.GetColour(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, GRGenerateIntensities());
+			panel.Set(EGRSchemeColourSurface::BUTTON, backColour, GRGenerateIntensities());
 
-			RGBAb tlEdgeColour = panel.GetColour(ESchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT, GRGenerateIntensities());
-			panel.Set(ESchemeColourSurface::BUTTON_EDGE_TOP_LEFT, tlEdgeColour, GRGenerateIntensities());
+			RGBAb tlEdgeColour = panel.GetColour(EGRSchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT, GRGenerateIntensities());
+			panel.Set(EGRSchemeColourSurface::BUTTON_EDGE_TOP_LEFT, tlEdgeColour, GRGenerateIntensities());
 
-			RGBAb brEdgeColour = panel.GetColour(ESchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT, GRGenerateIntensities());
-			panel.Set(ESchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT, brEdgeColour, GRGenerateIntensities());
+			RGBAb brEdgeColour = panel.GetColour(EGRSchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT, GRGenerateIntensities());
+			panel.Set(EGRSchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT, brEdgeColour, GRGenerateIntensities());
 		}
 
-		EventRouting OnCursorClick(CursorEvent& ce) override
+		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
 		{
-			return EventRouting::NextHandler;
+			return EGREventRouting::NextHandler;
 		}
 
-		EventRouting OnCursorMove(CursorEvent& ce) override
+		EGREventRouting OnCursorMove(GRCursorEvent& ce) override
 		{
-			return EventRouting::NextHandler;
+			return EGREventRouting::NextHandler;
 		}
 
 		IGRPanel& Panel() override
@@ -128,24 +128,24 @@ namespace ANON
 		{
 		}
 
-		EventRouting OnChildEvent(WidgetEvent& widgetEvent, IGRWidget& sourceWidget) override
+		EGREventRouting OnChildEvent(GRWidgetEvent& widgetEvent, IGRWidget& sourceWidget) override
 		{
-			if (widgetEvent.eventType == WidgetEventType::BUTTON_CLICK)
+			if (widgetEvent.eventType == EGRWidgetEventType::BUTTON_CLICK)
 			{
 				if (&sourceWidget == &topButton->Widget())
 				{
 					events.OnScrollLines(-1, *this->scroller);
 					// The top button was clicked
-					return EventRouting::Terminate;
+					return EGREventRouting::Terminate;
 				}
 				else if (&sourceWidget == &bottomButton->Widget())
 				{
 					events.OnScrollLines(1, *this->scroller);
 					// The bottom button was clicked
-					return EventRouting::Terminate;
+					return EGREventRouting::Terminate;
 				}
 			}
-			return EventRouting::NextHandler;
+			return EGREventRouting::NextHandler;
 		}
 
 		void OnCursorEnter() override
@@ -156,12 +156,12 @@ namespace ANON
 		{
 		}
 
-		EventRouting OnKeyEvent(KeyEvent& keyEvent) override
+		EGREventRouting OnKeyEvent(GRKeyEvent& keyEvent) override
 		{
-			return EventRouting::NextHandler;
+			return EGREventRouting::NextHandler;
 		}
 
-		EQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
+		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
 			return Gui::QueryForParticularInterface<IGRWidgetVerticalScrollerWithButtons>(this, ppOutputArg, interfaceId);
 		}

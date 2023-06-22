@@ -35,7 +35,7 @@ namespace GRANON
 				int dy = child->Span().y;
 				if (dy <= 0 && enforcePositiveChildHeights)
 				{
-					panel.Root().Custodian().RaiseError(GRErrorCode::Generic, __FUNCTION__, "Child of vertical list had zero height");
+					panel.Root().Custodian().RaiseError(EGRErrorCode::Generic, __FUNCTION__, "Child of vertical list had zero height");
 				}
 				child->Resize({Width(panelDimensions) - padding.left - padding.right, dy});
 				top += dy + padding.top + padding.bottom;
@@ -48,14 +48,14 @@ namespace GRANON
 			}
 		}
 
-		EventRouting OnCursorClick(CursorEvent& ce) override
+		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
 		{
-			return EventRouting::NextHandler;
+			return EGREventRouting::NextHandler;
 		}
 
-		EventRouting OnCursorMove(CursorEvent& ce) override
+		EGREventRouting OnCursorMove(GRCursorEvent& ce) override
 		{
-			return EventRouting::NextHandler;
+			return EGREventRouting::NextHandler;
 		}
 
 		void OnCursorEnter() override
@@ -68,9 +68,9 @@ namespace GRANON
 
 		}
 
-		EventRouting OnKeyEvent(KeyEvent& keyEvent) override
+		EGREventRouting OnKeyEvent(GRKeyEvent& keyEvent) override
 		{
-			return EventRouting::NextHandler;
+			return EGREventRouting::NextHandler;
 		}
 
 		IGRPanel& Panel() override
@@ -84,22 +84,22 @@ namespace GRANON
 
 			bool isHovered = g.IsHovered(panel);
 			GRRenderState rs(false, isHovered, false);
-			RGBAb backColour = panel.GetColour(ESchemeColourSurface::CONTAINER_BACKGROUND, rs);
+			RGBAb backColour = panel.GetColour(EGRSchemeColourSurface::CONTAINER_BACKGROUND, rs);
 			g.DrawRect(rect, backColour);
 
-			RGBAb edge1Colour = panel.GetColour(ESchemeColourSurface::CONTAINER_TOP_LEFT, rs);
-			RGBAb edge2Colour = panel.GetColour(ESchemeColourSurface::CONTAINER_BOTTOM_RIGHT, rs);
+			RGBAb edge1Colour = panel.GetColour(EGRSchemeColourSurface::CONTAINER_TOP_LEFT, rs);
+			RGBAb edge2Colour = panel.GetColour(EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT, rs);
 			g.DrawRectEdge(rect, edge1Colour, edge2Colour);
 
 			// g.DrawRectEdge(panel.AbsRect(), RGBAb(255, 0, 0, 255), RGBAb(255, 0, 0, 255));
 		}
 
-		EventRouting OnChildEvent(WidgetEvent& widgetEvent, IGRWidget& sourceWidget) override
+		EGREventRouting OnChildEvent(GRWidgetEvent& widgetEvent, IGRWidget& sourceWidget) override
 		{
-			return EventRouting::NextHandler;
+			return EGREventRouting::NextHandler;
 		}
 
-		EQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
+		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
 			return QueryForParticularInterface<IGRWidgetVerticalList>(this, ppOutputArg, interfaceId);
 		}

@@ -44,7 +44,7 @@ namespace ANON
 
 			int parentOffset = 0;
 
-			ScrollerMetrics m = vscroller->Scroller().GetMetrics();
+			GRScrollerMetrics m = vscroller->Scroller().GetMetrics();
 			if (m.PixelRange > 0)
 			{
 				double cursor = clamp((double)m.PixelPosition / (double)m.PixelRange, 0.0, 1.0);
@@ -90,7 +90,7 @@ namespace ANON
 		{
 			if (lineDeltaPixels == 0) return;
 
-			ScrollerMetrics m = scroller.GetMetrics();
+			GRScrollerMetrics m = scroller.GetMetrics();
 			if (m.PixelRange > 0 && lastKnownDomainHeight > m.SliderZoneSpan)
 			{
 				double scale = (lastKnownDomainHeight - m.SliderZoneSpan) / (double)m.PixelRange;
@@ -113,7 +113,7 @@ namespace ANON
 
 		void OnScrollPages(int delta, IGRWidgetScroller& scroller) override
 		{
-			ScrollerMetrics m = scroller.GetMetrics();
+			GRScrollerMetrics m = scroller.GetMetrics();
 			if (m.PixelRange > 0 && lastKnownDomainHeight > m.SliderZoneSpan)
 			{
 				double scale = (lastKnownDomainHeight - m.SliderZoneSpan) / (double)m.PixelRange;
@@ -132,7 +132,7 @@ namespace ANON
 		{
 			int parentOffset = 0;
 
-			ScrollerMetrics m = scroller.GetMetrics();
+			GRScrollerMetrics m = scroller.GetMetrics();
 			if (m.PixelRange > 0 && lastKnownDomainHeight > m.SliderZoneSpan)
 			{
 				double cursor = clamp((double)(m.PixelPosition + newPosition) / (double)m.PixelRange, 0.0, 1.0);
@@ -145,14 +145,14 @@ namespace ANON
 			InvalidateLayoutForAllDescendants(clientOffsetArea->Panel());
 		}
 
-		EventRouting OnCursorClick(CursorEvent& ce) override
+		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
 		{
-			return EventRouting::NextHandler;
+			return EGREventRouting::NextHandler;
 		}
 
-		EventRouting OnCursorMove(CursorEvent& ce) override
+		EGREventRouting OnCursorMove(GRCursorEvent& ce) override
 		{
-			return EventRouting::NextHandler;
+			return EGREventRouting::NextHandler;
 		}
 
 		void OnCursorEnter() override
@@ -185,17 +185,17 @@ namespace ANON
 			DrawPanelBackground(panel, g);
 		}
 
-		EventRouting OnChildEvent(WidgetEvent& widgetEvent, IGRWidget& sourceWidget) override
+		EGREventRouting OnChildEvent(GRWidgetEvent& widgetEvent, IGRWidget& sourceWidget) override
 		{
-			return EventRouting::NextHandler;
+			return EGREventRouting::NextHandler;
 		}
 
-		EventRouting OnKeyEvent(KeyEvent& keyEvent) override
+		EGREventRouting OnKeyEvent(GRKeyEvent& keyEvent) override
 		{
-			return EventRouting::NextHandler;
+			return EGREventRouting::NextHandler;
 		}
 
-		EQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
+		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
 			return Gui::QueryForParticularInterface<IGRWidgetViewport>(this, ppOutputArg, interfaceId);
 		}

@@ -326,14 +326,14 @@ namespace GRANON
 			SetCollapserSizes();
 		}
 
-		EventRouting OnCursorClick(CursorEvent& ce) override
+		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
 		{
-			return EventRouting::NextHandler;
+			return EGREventRouting::NextHandler;
 		}
 
-		EventRouting OnCursorMove(CursorEvent& ce) override
+		EGREventRouting OnCursorMove(GRCursorEvent& ce) override
 		{
-			return EventRouting::NextHandler;
+			return EGREventRouting::NextHandler;
 		}
 
 		void OnCursorEnter() override
@@ -357,17 +357,17 @@ namespace GRANON
 			bool isHovered = g.IsHovered(panel);
 		}
 
-		EventRouting OnChildEvent(WidgetEvent& widgetEvent, IGRWidget& sourceWidget)
+		EGREventRouting OnChildEvent(GRWidgetEvent& widgetEvent, IGRWidget& sourceWidget)
 		{
-			return EventRouting::NextHandler;
+			return EGREventRouting::NextHandler;
 		}
 
-		EventRouting OnKeyEvent(KeyEvent& keyEvent) override
+		EGREventRouting OnKeyEvent(GRKeyEvent& keyEvent) override
 		{
-			return EventRouting::NextHandler;
+			return EGREventRouting::NextHandler;
 		}
 
-		EQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
+		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
 			return QueryForParticularInterface<IGRWidgetPropertyEditorTree>(this, ppOutputArg, interfaceId);
 		}
@@ -383,7 +383,7 @@ namespace GRANON
 			auto* nameCell = table.GetCell(0, newRowIndex);
 
 			GRAlignmentFlags nameAlignment;
-			nameAlignment.Add(GRAlignment::VCentre).Add(GRAlignment::Left);
+			nameAlignment.Add(EGRAlignment::VCentre).Add(EGRAlignment::Left);
 			auto& nameText = CreateText(*nameCell).SetText(field.fieldName.c_str()).SetAlignment(nameAlignment, { 2,2 });
 			nameText.Widget().Panel().Add(GRAnchors::ExpandAll()).Set(GRAnchorPadding{ 4, 0, 0, 0 });
 
@@ -417,7 +417,7 @@ namespace GRANON
 			auto* valueCell = table.GetCell(1, newRowIndex);
 
 			GRAlignmentFlags valueAlignment;
-			valueAlignment.Add(GRAlignment::VCentre).Add(GRAlignment::Left);
+			valueAlignment.Add(EGRAlignment::VCentre).Add(EGRAlignment::Left);
 			auto& valueText = CreateEditBox(*valueCell, filter, capacity).SetAlignment(valueAlignment, { 2,2 });
 			valueText.Widget().Panel().Add(GRAnchors::ExpandAll()).Set(GRAnchorPadding{ 0, 0, 0, 0 });
 
@@ -448,7 +448,7 @@ namespace GRANON
 
 			table.Widget().Panel().Add(GRAnchors::ExpandAll());
 
-			table.Widget().Panel().Set(ESchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(48, 0, 0, 255), GRRenderState(0, 0, 0));
+			table.Widget().Panel().Set(EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(48, 0, 0, 255), GRRenderState(0, 0, 0));
 
 			for (int32 j = firstValidIndex; j <= lastValidIndex; j++)
 			{
@@ -487,7 +487,7 @@ namespace GRANON
 			titleDescription.Widget().Panel().Add(GRAnchors::ExpandHorizontally()).Add(GRAnchors::ExpandVertically()).Add(GRAnchors::LeftAndRight()).Add(GRAnchors::TopAndBottom()).Set(GRAnchorPadding{ 32, 0, 0, 0 });
 
 			GRAlignmentFlags rightCentered;
-			rightCentered.Add(GRAlignment::Left).Add(GRAlignment::VCentre);
+			rightCentered.Add(EGRAlignment::Left).Add(EGRAlignment::VCentre);
 
 			titleDescription.SetAlignment(rightCentered, { 0,0 });
 
@@ -543,10 +543,10 @@ namespace GRANON
 			viewport->SetLineDeltaPixels(30);
 
 			auto& vp = viewport->ClientArea().Panel();
-			SetUniformColourForAllRenderStates(vp, ESchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(0, 0, 0, 0));
-			vp.Set(ESchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(192, 192, 192, 32), GRRenderState(0, 1, 0));
-			vp.Set(ESchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(192, 192, 192, 48), GRRenderState(0, 0, 1));
-			vp.Set(ESchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(192, 192, 192, 64), GRRenderState(0, 1, 1));
+			SetUniformColourForAllRenderStates(vp, EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(0, 0, 0, 0));
+			vp.Set(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(192, 192, 192, 32), GRRenderState(0, 1, 0));
+			vp.Set(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(192, 192, 192, 48), GRRenderState(0, 0, 1));
+			vp.Set(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(192, 192, 192, 64), GRRenderState(0, 1, 1));
 
 			GRAnchors anchors = anchors.ExpandAll();
 

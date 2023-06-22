@@ -46,10 +46,10 @@ namespace GRANON
 
 			GRRenderState rs(false, isHovered, false);
 
-			RGBAb colour = panel.GetColour(ESchemeColourSurface::SPLITTER_BACKGROUND, rs, RGBAb(64, 64, 64, 255));
+			RGBAb colour = panel.GetColour(EGRSchemeColourSurface::SPLITTER_BACKGROUND, rs, RGBAb(64, 64, 64, 255));
 			g.DrawRect(draggerRect, colour);
 
-			RGBAb edgeColour = panel.GetColour(ESchemeColourSurface::SPLITTER_EDGE, rs, RGBAb(64, 64, 64, 255));
+			RGBAb edgeColour = panel.GetColour(EGRSchemeColourSurface::SPLITTER_EDGE, rs, RGBAb(64, 64, 64, 255));
 			g.DrawRectEdge(draggerRect, edgeColour, edgeColour);
 
 			if (virtualDraggerStartPos >= 0)
@@ -62,7 +62,7 @@ namespace GRANON
 				virtualRect.right = virtualRect.left + draggerThickness - 2;
 
 				GRRenderState litEdgeState(true, isHovered, false);
-				RGBAb litEdge = panel.GetColour(ESchemeColourSurface::SPLITTER_EDGE, litEdgeState, RGBAb(255, 255, 255, 255));
+				RGBAb litEdge = panel.GetColour(EGRSchemeColourSurface::SPLITTER_EDGE, litEdgeState, RGBAb(255, 255, 255, 255));
 				g.DrawRectEdgeLast(virtualRect, litEdge, litEdge);
 			}
 		}
@@ -84,7 +84,7 @@ namespace GRANON
 			LayoutHorizontal(screenDimensions);
 		}
 
-		EventRouting OnCursorClick(CursorEvent& ce) override
+		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
 		{
 			if (ce.click.LeftButtonUp)
 			{
@@ -102,7 +102,7 @@ namespace GRANON
 					draggerStartPos = realDraggerStartPos;
 				}
 
-				return EventRouting::Terminate;
+				return EGREventRouting::Terminate;
 			}
 			else if (ce.click.LeftButtonDown)
 			{
@@ -110,24 +110,24 @@ namespace GRANON
 				{
 					panel.Focus();
 					virtualDraggerStartPos = ce.position.x;
-					return EventRouting::Terminate;
+					return EGREventRouting::Terminate;
 				}
 			}
 
-			return EventRouting::NextHandler;
+			return EGREventRouting::NextHandler;
 		}
 
-		EventRouting OnChildEvent(WidgetEvent& widgetEvent, IGRWidget& sourceWidget) override
+		EGREventRouting OnChildEvent(GRWidgetEvent& widgetEvent, IGRWidget& sourceWidget) override
 		{
-			return EventRouting::NextHandler;
+			return EGREventRouting::NextHandler;
 		}
 
-		EventRouting OnCursorMove(CursorEvent& ce) override
+		EGREventRouting OnCursorMove(GRCursorEvent& ce) override
 		{
 			bool isDraggerHovered = IsPointInRect(ce.position, draggerRect);
 			if (isDraggerHovered)
 			{
-				ce.nextIcon = ECursorIcon::LeftAndRightDragger;
+				ce.nextIcon = EGRCursorIcon::LeftAndRightDragger;
 			}
 
 			if (updateWithMouseMove && virtualDraggerStartPos >= 0)
@@ -137,7 +137,7 @@ namespace GRANON
 				panel.InvalidateLayout(true);
 			}
 
-			return EventRouting::NextHandler;
+			return EGREventRouting::NextHandler;
 		}
 
 		void OnCursorEnter() override
@@ -150,9 +150,9 @@ namespace GRANON
 
 		}
 
-		EventRouting OnKeyEvent(KeyEvent& keyEvent) override
+		EGREventRouting OnKeyEvent(GRKeyEvent& keyEvent) override
 		{
-			return EventRouting::NextHandler;
+			return EGREventRouting::NextHandler;
 		}
 
 		IGRPanel& Panel() override
@@ -170,7 +170,7 @@ namespace GRANON
 			return *second;
 		}
 
-		EQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
+		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
 			return Gui::QueryForParticularInterface<IGRWidgetSplitter>(this, ppOutputArg, interfaceId);
 		}
