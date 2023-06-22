@@ -200,7 +200,7 @@ namespace GRANON
 				return EGRQueryInterfaceResult::SUCCESS;
 			}
 
-			return Gui::QueryForParticularInterface<IGRWidgetTable>(this, ppOutputArg, interfaceId);
+			return EGRQueryInterfaceResult::NOT_IMPLEMENTED;
 		}
 
 		struct RowAndColumn
@@ -234,7 +234,7 @@ namespace GRANON
 			return { -1,-1 };
 		}
 
-		RowAndColumn GetNextCell(RowAndColumn cellId)
+		RowAndColumn GetNextCell(RowAndColumn cellId, bool cycleToFirstRow)
 		{
 			int32 nColumns = (int32)columnHeaders.size();
 			int32 nRows = (int32)rows.size();
@@ -255,7 +255,14 @@ namespace GRANON
 
 			if (nextRow >= nRows)
 			{
-				nextRow = 0;
+				if (cycleToFirstRow)
+				{
+					nextRow = 0;
+				}
+				else
+				{
+					return { -1, -1 };
+				}
 			}
 
 			return { nextRow, nextColumn };
@@ -272,9 +279,11 @@ namespace GRANON
 
 			RowAndColumn cellId = FindRowAndColumnOfChild(child->Panel());
 
+			bool cycleToFirstRow = panel.HasFlag(EGRPanelFlags::CycleTabsEndlessly);
+
 			if (directive == EGRNavigationDirective::Tab)
 			{
-				for (RowAndColumn nextCellId = GetNextCell(cellId); nextCellId != cellId; nextCellId = GetNextCell(nextCellId))
+				for (RowAndColumn nextCellId = GetNextCell(cellId, cycleToFirstRow); nextCellId != cellId; nextCellId = GetNextCell(nextCellId, cycleToFirstRow))
 				{
 					if (nextCellId.column < 0)
 					{
@@ -286,13 +295,13 @@ namespace GRANON
 					{
 						if (TrySetDeepFocus(div->Panel()))
 						{
-							break;
+							return EGREventRouting::Terminate;
 						}
 					}
 				}
 			}
 
-			return EGREventRouting::Terminate;
+			return EGREventRouting::NextHandler;
 		}
 
 		IGRWidget& Widget() override

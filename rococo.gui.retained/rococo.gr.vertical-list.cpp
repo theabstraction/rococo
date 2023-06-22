@@ -6,7 +6,7 @@ using namespace Rococo::Gui;
 
 namespace GRANON
 {
-	struct GRVerticalList : IGRWidgetVerticalList
+	struct GRVerticalList : IGRWidgetVerticalList, IGRNavigator
 	{
 		IGRPanel& panel;
 		bool enforcePositiveChildHeights;
@@ -99,9 +99,71 @@ namespace GRANON
 			return EGREventRouting::NextHandler;
 		}
 
+		EGREventRouting OnTab()
+		{
+			auto focusId = panel.Root().GR().GetFocusId();
+			auto* focus = panel.Root().GR().FindWidget(focusId);
+			if (!focus)
+			{
+				return EGREventRouting::Terminate;
+			}
+
+			int32 childIndex = 0;
+			while (auto* child = panel.GetChild(childIndex++))
+			{
+				if (IsCandidateDescendantOfParent(*child, focus->Panel()))
+				{
+					auto* nextChild = panel.GetChild(childIndex++);
+					if (nextChild == nullptr && panel.HasFlag(EGRPanelFlags::CycleTabsEndlessly))
+					{
+						nextChild = panel.GetChild(0);
+					}
+					
+					if (nextChild && TrySetDeepFocus(*nextChild))
+					{
+						return EGREventRouting::Terminate;
+					}
+				}
+			}
+
+			return EGREventRouting::NextHandler;
+		}
+
+		EGREventRouting OnNavigate(EGRNavigationDirective directive) override
+		{
+			if (directive == EGRNavigationDirective::Tab)
+			{
+				return OnTab();
+			}
+
+			return EGREventRouting::NextHandler;
+		}
+
 		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
-			return QueryForParticularInterface<IGRWidgetVerticalList>(this, ppOutputArg, interfaceId);
+			if (ppOutputArg) *ppOutputArg = nullptr;
+			if (!interfaceId || *interfaceId == 0) return EGRQueryInterfaceResult::INVALID_ID;
+
+			if (DoInterfaceNamesMatch(interfaceId, IGRWidgetVerticalList::InterfaceId()))
+			{
+				if (ppOutputArg)
+				{
+					*ppOutputArg = static_cast<IGRWidgetVerticalList*>(this);
+				}
+
+				return EGRQueryInterfaceResult::SUCCESS;
+			}
+			else if (DoInterfaceNamesMatch(interfaceId, IGRNavigator::InterfaceId()))
+			{
+				if (ppOutputArg)
+				{
+					*ppOutputArg = static_cast<IGRNavigator*>(this);
+				}
+
+				return EGRQueryInterfaceResult::SUCCESS;
+			}
+
+			return EGRQueryInterfaceResult::NOT_IMPLEMENTED;
 		}
 	};
 

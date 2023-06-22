@@ -359,7 +359,9 @@ namespace Rococo::Gui
 	enum class EGRPanelFlags: int64
 	{
 		None = 0,
-		AcceptsFocus = 1
+		AcceptsFocus = 1,
+		// using tab to navigate a panel's children cycles through to the first if the final one is already focused
+		CycleTabsEndlessly = 2
 	};
 
 	// Represents the underlying widget slot. This is a better mechanism than having a base widget, which imposes class derivation issues
