@@ -48,7 +48,7 @@
     <ClCompile Include="rococo.gr.toolbar.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="rococo.gui.retained.cpp">
+    <ClCompile Include="rococo.gr.system.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="rococo.gr.text.cpp">

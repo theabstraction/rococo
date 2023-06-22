@@ -118,7 +118,7 @@
     <ClCompile Include="rococo.gr.vertical.scroller.with.buttons.cpp" />
     <ClCompile Include="rococo.gr.viewport.cpp" />
     <ClCompile Include="rococo.gr.button.cpp" />
-    <ClCompile Include="rococo.gui.retained.cpp" />
+    <ClCompile Include="rococo.gr.system.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\rococo.gui.retained.ex.h" />
