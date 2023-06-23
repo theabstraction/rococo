@@ -316,7 +316,7 @@
 	(this.spriteBuilder = spriteBuilder)
 	
 	(this.engine = (Engine))
-	(this.engine.SetEditorVisibility true)
+	(this.engine.SetEditorVisibility false)
 	
 	(this.coroutines = (Coroutines))
 	
@@ -416,7 +416,7 @@
 	(IRendererConfig rc (RendererConfig))
 	
 	(IAudio audio (GetAudio))
-//	(audio.SetMusic "!music/intro.mp3")
+	(audio.SetMusic "!music/intro.mp3")
 	
 	(SampleStateDef fontDef)
 	(fontDef.method = (#SampleMethodLinear))

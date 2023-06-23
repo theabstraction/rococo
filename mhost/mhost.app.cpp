@@ -575,8 +575,12 @@ namespace MHost
 		{
 			using namespace Rococo::Gui;
 
-			platform.creator.editor.SetVisibility(true);
-			platform.creator.editor.Preview(platform.graphics.GR, GetTestTarget());
+			platform.creator.editor.SetVisibility(isVisible);
+
+			if (isVisible)
+			{
+				platform.creator.editor.Preview(platform.graphics.GR, GetTestTarget());
+			}
 		}
 
 		void SetOverlayToggleKey(int32 vkeyCode) override
