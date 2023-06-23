@@ -167,7 +167,42 @@ namespace ANON
 
 		void ScrollIntoView(const GuiRect& rect)
 		{
-			Throw(0, "Not implemented");
+			auto clipRect = clipArea->Panel().AbsRect();
+
+			int32 dOffset = 0;
+			if (rect.bottom < clipArea->Panel().AbsRect().top)
+			{
+				dOffset = rect.bottom - clipArea->Panel().AbsRect().top;
+			}
+			else if (rect.top > clipArea->Panel().AbsRect().bottom)
+			{
+				if (Height(rect) < Height(clipRect))
+				{
+					dOffset = clipArea->Panel().AbsRect().top - rect.top;
+				}
+				else
+				{
+					dOffset = clipArea->Panel().AbsRect().bottom - rect.top - 30;
+				}
+			}
+			else
+			{
+				return;
+			}
+
+			int32 parentOffset = clientOffsetArea->Panel().ParentOffset().y + dOffset;
+
+			GRScrollerMetrics m = vscroller->Scroller().GetMetrics();
+			if (m.PixelRange > 0 && lastKnownDomainHeight > m.SliderZoneSpan)
+			{
+				double sliderPixelOffset = -(double) (m.PixelRange * parentOffset) / (double) (lastKnownDomainHeight - m.SliderZoneSpan);
+				vscroller->Scroller().SetSliderPosition(clamp((int32)sliderPixelOffset, 0, m.PixelRange));
+			}
+
+			clipArea->Panel().InvalidateLayout(false);
+			clientOffsetArea->Panel().SetParentOffset({ 0, parentOffset });
+			clientOffsetArea->Panel().InvalidateLayout(false);
+			InvalidateLayoutForAllDescendants(clientOffsetArea->Panel());
 		}
 
 		void OnDeepChildFocusSet(int64 panelId) override
