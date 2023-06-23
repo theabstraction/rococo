@@ -31,8 +31,8 @@ namespace
 		ISectors& Sectors() override { return sectors; }
 
 		WorldMap(Platform& platform, ISectors& _sectors) :
-			instances(platform.instances),
-			mobiles(platform.mobiles),
+			instances(platform.graphics.instances),
+			mobiles(platform.world.mobiles),
 			sectors(_sectors)
 		{
 

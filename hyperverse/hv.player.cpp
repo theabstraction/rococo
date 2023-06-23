@@ -67,7 +67,7 @@ namespace
    public:
       PlayerSupervisor(Platform& _platform)
       {
-          player.inventory = _platform.utilities.CreateInventoryArray(PLAYER_INVENTORY_SLOTS);
+          player.inventory = _platform.plumbing.utilities.CreateInventoryArray(PLAYER_INVENTORY_SLOTS);
       }
 
       ~PlayerSupervisor()

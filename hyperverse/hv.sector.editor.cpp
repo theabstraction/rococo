@@ -106,41 +106,41 @@ namespace
 		LogicEditor(Platform& _platform, ISectors& _sectors) : 
 			platform(_platform), sectors(_sectors)
 		{
-			logicPanel = platform.gui.BindPanelToScript("!scripts/hv/panel.logic.sxy");
-			tagsPanel = platform.gui.BindPanelToScript("!scripts/hv/panel.tags.sxy");
+			logicPanel = platform.graphics.gui.BindPanelToScript("!scripts/hv/panel.logic.sxy");
+			tagsPanel = platform.graphics.gui.BindPanelToScript("!scripts/hv/panel.tags.sxy");
 
-			ID_FONT idFont = platform.utilities.GetHQFonts().GetSysFont(Graphics::HQFont::EditorFont);
+			ID_FONT idFont = platform.plumbing.utilities.GetHQFonts().GetSysFont(Graphics::HQFont::EditorFont);
 			
-			FieldEditorContext fcActions { platform.publisher, platform.gui, platform.keyboard, *this, idFont };
+			FieldEditorContext fcActions { platform.plumbing.publisher, platform.graphics.gui, platform.hardware.keyboard, *this, idFont };
 			fieldEditor = CreateFieldEditor(fcActions);
 
-			FieldEditorContext fcTags { platform.publisher, platform.gui, platform.keyboard, tagEvents, idFont };
+			FieldEditorContext fcTags { platform.plumbing.publisher, platform.graphics.gui, platform.hardware.keyboard, tagEvents, idFont };
 			tagsEditor = CreateFieldEditor(fcTags);
 			triggerList.fieldEditor = fieldEditor;
 
 			tagEvents.editor = this;
 
-			platform.publisher.Subscribe(this, evEditSectorLogic);
-			platform.publisher.Subscribe(this, evEditSectorTags);
-			platform.publisher.Subscribe(this, evUIInvoke);
-			platform.publisher.Subscribe(this, evPopulateTriggers);
-			platform.publisher.Subscribe(this, evPopulateActions);
-			platform.publisher.Subscribe(this, evSelectAction);
-			platform.publisher.Subscribe(this, evSelectActionType);
-			platform.publisher.Subscribe(this, evPopulateActionType);
-			platform.publisher.Subscribe(this, evAddActionEnabler);
-			platform.publisher.Subscribe(this, evRemoveActionEnabler);
-			platform.publisher.Subscribe(this, evTagsPopulate);
-			platform.publisher.Subscribe(this, evSelectTag);
+			platform.plumbing.publisher.Subscribe(this, evEditSectorLogic);
+			platform.plumbing.publisher.Subscribe(this, evEditSectorTags);
+			platform.plumbing.publisher.Subscribe(this, evUIInvoke);
+			platform.plumbing.publisher.Subscribe(this, evPopulateTriggers);
+			platform.plumbing.publisher.Subscribe(this, evPopulateActions);
+			platform.plumbing.publisher.Subscribe(this, evSelectAction);
+			platform.plumbing.publisher.Subscribe(this, evSelectActionType);
+			platform.plumbing.publisher.Subscribe(this, evPopulateActionType);
+			platform.plumbing.publisher.Subscribe(this, evAddActionEnabler);
+			platform.plumbing.publisher.Subscribe(this, evRemoveActionEnabler);
+			platform.plumbing.publisher.Subscribe(this, evTagsPopulate);
+			platform.plumbing.publisher.Subscribe(this, evSelectTag);
 
-			platform.gui.RegisterPopulator(evActionArgsEditor.name, &fieldEditor->UIElement());
-			platform.gui.RegisterPopulator(evPopulateTag.name, &tagsEditor->UIElement());
+			platform.graphics.gui.RegisterPopulator(evActionArgsEditor.name, &fieldEditor->UIElement());
+			platform.graphics.gui.RegisterPopulator(evPopulateTag.name, &tagsEditor->UIElement());
 		}
 
 		~LogicEditor()
 		{
-			platform.publisher.Unsubscribe(this);
-			platform.gui.UnregisterPopulator(&fieldEditor->UIElement());
+			platform.plumbing.publisher.Unsubscribe(this);
+			platform.graphics.gui.UnregisterPopulator(&fieldEditor->UIElement());
 		}
 
 		void OnActiveIndexChanged(int32 index, const char* stringRepresentation) override
@@ -163,7 +163,7 @@ namespace
 			if (id != (size_t)-1)
 			{
 				sector = sectors.begin()[id];
-				platform.gui.PushTop(logicPanel->Supervisor(), true);
+				platform.graphics.gui.PushTop(logicPanel->Supervisor(), true);
 			}
 			else
 			{
@@ -180,7 +180,7 @@ namespace
 			if (id != (size_t)-1)
 			{
 				sector = sectors.begin()[id];
-				platform.gui.PushTop(tagsPanel->Supervisor(), true);
+				platform.graphics.gui.PushTop(tagsPanel->Supervisor(), true);
 			}
 			else
 			{
@@ -190,9 +190,9 @@ namespace
 
 		void CloseTags()
 		{
-			if (platform.gui.Top() == tagsPanel->Supervisor())
+			if (platform.graphics.gui.Top() == tagsPanel->Supervisor())
 			{
-				platform.gui.Pop();
+				platform.graphics.gui.Pop();
 			}
 			else
 			{
@@ -202,9 +202,9 @@ namespace
 
 		void CloseEditor()
 		{
-			if (platform.gui.Top() == logicPanel->Supervisor())
+			if (platform.graphics.gui.Top() == logicPanel->Supervisor())
 			{
-				platform.gui.Pop();
+				platform.graphics.gui.Pop();
 				sector = nullptr;
 				triggerList.sector = nullptr;
 				fieldEditor->Deactivate();
@@ -264,7 +264,7 @@ namespace
 
 						TEventArgs<int32> lineNumber;
 						lineNumber.value = activeActionIndex;
-						platform.publisher.Publish(lineNumber, evScrollToAction);
+						platform.plumbing.publisher.Publish(lineNumber, evScrollToAction);
 					}
 				}
 			}
@@ -288,7 +288,7 @@ namespace
 
 						TEventArgs<int32> lineNumber;
 						lineNumber.value = activeActionIndex;
-						platform.publisher.Publish(lineNumber, evScrollToAction);
+						platform.plumbing.publisher.Publish(lineNumber, evScrollToAction);
 					}
 				}
 			}
@@ -312,7 +312,7 @@ namespace
 						{
 							TEventArgs<int32> lineNumber;
 							lineNumber.value = (int32) i;
-							platform.publisher.Publish(lineNumber, evScrollToActionType);
+							platform.plumbing.publisher.Publish(lineNumber, evScrollToActionType);
 							ShowActionArgsInFieldEditor(a);
 							break;
 						}
@@ -400,7 +400,7 @@ namespace
 					if (tagIndex > 0) tagIndex--;
 					TEventArgs<int32> line;
 					line.value = tagIndex;
-					platform.publisher.Publish(line, evEditTagsScrollTo);
+					platform.plumbing.publisher.Publish(line, evEditTagsScrollTo);
 				}
 				else if (Eq(cmd.command, "editor.tags.lower"))
 				{
@@ -408,7 +408,7 @@ namespace
 					if (tagIndex >= sector->Tags().TagCount()) tagIndex--;
 					TEventArgs<int32> line;
 					line.value = tagIndex;
-					platform.publisher.Publish(line, evEditTagsScrollTo);
+					platform.plumbing.publisher.Publish(line, evEditTagsScrollTo);
 				}
 				else if (Eq(cmd.command, "editor.tags.add"))
 				{
@@ -420,7 +420,7 @@ namespace
 
 					TEventArgs<int32> lineZero;
 					lineZero.value = 0;
-					platform.publisher.Publish(lineZero, evEditTagsScrollTo);
+					platform.plumbing.publisher.Publish(lineZero, evEditTagsScrollTo);
 				}
 				else if (Eq(cmd.command, "editor.tags.remove"))
 				{
@@ -590,9 +590,9 @@ namespace
 
 		bool OnKeyboardEvent(const KeyboardEvent& k) override
 		{
-			Key key = platform.keyboard.GetKeyFromEvent(k);
+			Key key = platform.hardware.keyboard.GetKeyFromEvent(k);
 
-			auto* action = platform.keyboard.GetAction(key.KeyName);
+			auto* action = platform.hardware.keyboard.GetAction(key.KeyName);
 			if (action && Eq(action, "gui.editor.sector.delete"))
 			{
 				if (!key.isPressed)
@@ -644,7 +644,7 @@ namespace
 
 		void PopupSectorContext(Vec2i cursorPos, int sectorIndex)
 		{
-			auto& menu = platform.utilities.PopupContextMenu();
+			auto& menu = platform.plumbing.utilities.PopupContextMenu();
 			menu.Clear(0);
 			menu.AddString(0, "Logic..."_fstring, "edit.sector.logic"_fstring, ""_fstring);
 			menu.AddString(0, "Tags..."_fstring, "edit.sector.tags"_fstring, ""_fstring);

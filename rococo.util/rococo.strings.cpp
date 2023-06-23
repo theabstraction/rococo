@@ -594,6 +594,34 @@ namespace Rococo::Strings
 		Format(dest, L"%hs", src);
 	}
 
+	ROCOCO_UTIL_API void Assign(U32FilePath& dest, const char32_t* wideSrc)
+	{
+		if (wideSrc == nullptr) wideSrc = U"<null>";
+
+		auto* end = dest.buf + U32FilePath::CAPACITY;
+
+		char32_t* target = dest.buf;
+		for (const char32_t* src = wideSrc; *src != 0; ++src, ++target)
+		{
+			if (target == end)
+			{
+				goto error;
+			}
+
+			*target = *src;
+		}
+
+		if (target == end)
+		{
+			goto error;
+		}
+
+		*target = 0;
+		return;
+	error:
+		Throw(0, "Failed to assign UTF-32 string - truncation. UTF-32 is used internally for path directories. Since truncation of  paths is a security problem the function must throw an exception");
+	}
+
 	ROCOCO_UTIL_API size_t rlen(cstr s)
 	{
 		return strlen(s);

@@ -19,7 +19,6 @@
 	(instances.SetMaterialMacro "!textures/hv/materials/hi-rez/" )
 	(instances.LoadMaterialArray "#m/" 1024)
 	
-	(debug)
 	(IHQFonts fonts (HQFonts))
 	(fonts.Build (#HQFontEditorFont))
 	(fonts.SetFaceName "Courier New")

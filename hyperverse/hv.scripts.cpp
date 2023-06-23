@@ -99,7 +99,7 @@ namespace HV
 
 			void Execute(cstr name, bool trace)
 			{
-				e.platform.utilities.RunEnvironmentScript(*this, name, true, true, trace);
+				e.platform.plumbing.utilities.RunEnvironmentScript(*this, name, true, true, trace);
 			}
 		} sc(e);
 
@@ -107,7 +107,7 @@ namespace HV
 
 		if (releaseAfterUse)
 		{
-			e.platform.sourceCache.Release(name);
+			e.platform.scripts.sourceCache.Release(name);
 		}
 	}
 }

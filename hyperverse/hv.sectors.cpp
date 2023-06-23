@@ -46,12 +46,12 @@ namespace ANON
 		   tags(CreateTagsSupervisor(*this)),
 		   sectorVisibilityBuilder(CreateSectorVisibilityBuilder())
 	   {
-		   platform.publisher.Subscribe(this, evPopulateSectors);
+		   platform.plumbing.publisher.Subscribe(this, evPopulateSectors);
 	   }
 
 	   ~Sectors()
 	   {
-		   platform.publisher.Unsubscribe(this);
+		   platform.plumbing.publisher.Unsubscribe(this);
 		   Clear();
 	   }
 
@@ -116,17 +116,17 @@ namespace ANON
 
 		   MaterialId GetMaterialId(cstr name) override
 		   {
-			   return platform.renderer.Materials().GetMaterialId(name);
+			   return platform.graphics.renderer.Materials().GetMaterialId(name);
 		   }
 
 		   MaterialId GetRandomMaterialId(Rococo::Graphics::MaterialCategory cat) override
 		   {
-			   return platform.instances.GetRandomMaterialId(cat);
+			   return platform.graphics.instances.GetRandomMaterialId(cat);
 		   }
 
 		   void UpdateProgress(int id) override
 		   {
-			   platform.utilities.ShowBusy(true, "Loading level", "Created sector %u", id);
+			   platform.plumbing.utilities.ShowBusy(true, "Loading level", "Created sector %u", id);
 		   }
 
 		   void GenerateMeshes() override
@@ -135,7 +135,7 @@ namespace ANON
 			   {
 				   if (sector->IsDirty())
 				   {
-					   platform.utilities.ShowBusy(true, "Generating meshes", "Building sector %u", sector->Id());
+					   platform.plumbing.utilities.ShowBusy(true, "Generating meshes", "Building sector %u", sector->Id());
 					   sector->Rebuild();
 				   }
 			   }
@@ -197,10 +197,10 @@ namespace ANON
 		   catch (IException& ex)
 		   {
 			   s->Free();
-			   platform.utilities.ShowErrorBox(platform.mainWindow, ex, "Algorithmic error creating sector. Try something simpler");
+			   platform.plumbing.utilities.ShowErrorBox(platform.os.mainWindow, ex, "Algorithmic error creating sector. Try something simpler");
 
 #ifdef _DEBUG
-			   if (platform.utilities.QueryYesNo(platform.mainWindow, "Try again?"))
+			   if (platform.plumbing.utilities.QueryYesNo(platform.os.mainWindow, "Try again?"))
 			   {
 				   OS::TripDebugger();
 				   OS::PrintDebug("\n\n\n // Troublesome perimeter: \n");
@@ -253,7 +253,7 @@ namespace ANON
 		   return sectorBuilder;
 	   }
 
-	   U8FilePath populateScript = { 0 };
+	   U8FilePath populateScript;
 
 	   void BindProperties(IBloodyPropertySetEditor& editor) override
 	   {
@@ -268,8 +268,8 @@ namespace ANON
 			   try
 			   {
 				   WideFilePath sysPath;
-				   platform.installation.ConvertPingPathToSysPath(populateScript, sysPath);
-				   platform.installation.ConvertSysPathToMacroPath(sysPath, populateScript, "#objects");
+				   platform.os.installation.ConvertPingPathToSysPath(populateScript, sysPath);
+				   platform.os.installation.ConvertSysPathToMacroPath(sysPath, populateScript, "#objects");
 			   }
 			   catch (IException&)
 			   {
@@ -314,7 +314,7 @@ namespace ANON
 		   p.This = this;
 
 		   cstr thePopulateScript = *populateScript != 0 ? populateScript : "#objects/pop.default.sxy";
-		   platform.utilities.RunEnvironmentScript(p, thePopulateScript, true, false);
+		   platform.plumbing.utilities.RunEnvironmentScript(p, thePopulateScript, true, false);
 	   }
 
 	   size_t ForEverySectorVisibleBy(cr_m4x4 worldToScreen, cr_vec3 eye, cr_vec3 forward, IEventCallback<VisibleSector>& cb)

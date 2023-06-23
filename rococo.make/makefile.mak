@@ -73,10 +73,11 @@ all: $(CPP_MASTER) $(MPLAT_COMPONENTS_H) $(MPLAT_SXH_H) $(HV_SXH_H) $(MHOST_SXH_
 	msbuild $(DIR_GUI_RETAINED)rococo.gui.retained.vcxproj           $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
 	msbuild $(ROCOCO)dx11.renderer\dx11.renderer.vcxproj             $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
 	msbuild $(DIR_MPLAT)rococo.mplat.vcxproj                         $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
-	msbuild $(ROCOCO)rococo.util.ex\rococo.util.ex.vcxproj        $(MSBUILD_TERSE) $(MSBUILD_PARALLEL)
+	msbuild $(ROCOCO)rococo.util.ex\rococo.util.ex.vcxproj			 $(MSBUILD_TERSE) $(MSBUILD_PARALLEL)
 	msbuild $(DIR_MPLAT_DYN)rococo.mplat.dynamic.vcxproj             $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)	
 	msbuild $(DIR_MHOST)mhost.vcxproj                                $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
 	$(ROCOCO)packages\gen.mhost.package.bat
+	msbuild $(DIR_HV)hyperverse.vcxproj								 $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
 
 clean: 
 	msbuild $(DIR_SEXY)sexy.sln $(MS_BUILD_CLEAN)

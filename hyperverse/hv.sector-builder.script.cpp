@@ -6,6 +6,7 @@
 #include <rococo.hashtable.h>
 #include <rococo.clock.h>
 #include <rococo.sexy.api.h>
+#include <rococo.strings.h>
 
 using namespace HV;
 using namespace Rococo::Graphics;
@@ -17,13 +18,13 @@ private:
 	bool generateMesh = true;
 	ISectorBuildAPI& api;
 
-	std::string door_scriptName;
+	HString door_scriptName;
 	bool door_useScript = false;
 
-	std::string wall_scriptName;
+	HString wall_scriptName;
 	bool wall_useScript = false;
 
-	std::string floor_scriptName;
+	HString floor_scriptName;
 	bool floor_useScript = false;
 
 	stringmap<Material*> nameToMaterials;
@@ -204,19 +205,19 @@ public:
 	cstr GetTemplateFloorScript(bool& usesScript) const override
 	{
 		usesScript = floor_useScript;
-		return floor_scriptName.empty() ? "" : floor_scriptName.c_str();
+		return floor_scriptName.length() == 0 ? "" : floor_scriptName.c_str();
 	}
 
 	cstr GetTemplateDoorScript(bool& hasDoor) const override
 	{
 		hasDoor = door_useScript;
-		return door_scriptName.empty() ? "" : door_scriptName.c_str();
+		return door_scriptName.length() == 0 ? "" : door_scriptName.c_str();
 	}
 
 	cstr GetTemplateWallScript(bool& usesScript) const override
 	{
 		usesScript = wall_useScript;
-		return wall_scriptName.empty() ? "" : wall_scriptName.c_str();
+		return wall_scriptName.length() == 0 ? "" : wall_scriptName.c_str();
 	}
 };
 

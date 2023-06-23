@@ -47,7 +47,7 @@ namespace HV
 		}
 	};
 
-	// Route scene methods to the platform.scene object
+	// Route scene methods to the platform.graphics.scene object
 	// We intercept the gui events to resize application panels
 	class AppScene: public IScene
 	{
@@ -61,23 +61,23 @@ namespace HV
 			}
 			else
 			{
-				return e.platform.scene.GetClearColour();
+				return e.platform.graphics.scene.GetClearColour();
 			}
 		}
 
 		ID_CUBE_TEXTURE GetSkyboxCubeId() const override
 		{
-			return e.platform.scene.GetSkyboxCubeId();
+			return e.platform.graphics.scene.GetSkyboxCubeId();
 		}
 
 		const Light* GetLights(uint32& nLights) const override
 		{
-			return e.platform.scene.GetLights(nLights);
+			return e.platform.graphics.scene.GetLights(nLights);
 		}
 
 		void RenderShadowPass(const DepthRenderData& drd, IRenderContext& rc, bool skinned) override
 		{
-			return e.platform.scene.RenderShadowPass(drd, rc, skinned);
+			return e.platform.graphics.scene.RenderShadowPass(drd, rc, skinned);
 		}
 
 		void OnGuiResize(Vec2i screenSpan) override
@@ -91,18 +91,18 @@ namespace HV
 			g.Renderer().GetGuiMetrics(metrics);
 			if (metrics.screenSpan.y >= 256 && metrics.screenSpan.x >= 256)
 			{
-				e.platform.gui.Render(g);	
+				e.platform.graphics.gui.Render(g);
 			}
 		}
 
 		void GetCamera(Matrix4x4& wordlToScreen, Matrix4x4& world, Matrix4x4& proj, Vec4& eye, Vec4& viewDir) override
 		{
-			e.platform.scene.GetCamera(wordlToScreen, world, proj, eye, viewDir);
+			e.platform.graphics.scene.GetCamera(wordlToScreen, world, proj, eye, viewDir);
 		}
 
 		void RenderObjects(IRenderContext& rc, bool skinned)  override
 		{
-			e.platform.scene.RenderObjects(rc, skinned);
+			e.platform.graphics.scene.RenderObjects(rc, skinned);
 		}
 	public:
 		IGuiResizeEvent* resizeCallback = nullptr;
@@ -176,12 +176,12 @@ namespace HV
 						}
 					}
 				}
-			} ec(e.platform.publisher, be);
+			} ec(e.platform.plumbing.publisher, be);
 
-			e.platform.gui.PushTop(busyPanel->Supervisor(), true);
+			e.platform.graphics.gui.PushTop(busyPanel->Supervisor(), true);
 
-			platform.renderer.Render(Graphics::ENVIRONMENTAL_MAP_FIXED_CUBE, (IScene&) scene);
-			e.platform.gui.Pop();
+			platform.graphics.renderer.Render(Graphics::ENVIRONMENTAL_MAP_FIXED_CUBE, (IScene&) scene);
+			e.platform.graphics.gui.Pop();
 		}
 
 		void OnGuiResize(Vec2i screenSpan) override
@@ -200,7 +200,7 @@ namespace HV
 				auto& be = As <Rococo::Events::BusyEvent>(ev);
 				if (be.isNowBusy)
 				{
-					if (e.platform.gui.Top() != busyPanel->Supervisor())
+					if (e.platform.graphics.gui.Top() != busyPanel->Supervisor())
 					{
 						OnBusy(be);
 					}
@@ -213,7 +213,7 @@ namespace HV
 				{
 					if (!IsEditorActive())
 					{
-						e.platform.gui.PushTop(editorPanel->Supervisor(), true);
+						e.platform.graphics.gui.PushTop(editorPanel->Supervisor(), true);
 						mode->Deactivate();
 					}
 				}
@@ -221,7 +221,7 @@ namespace HV
 				{
 					if (IsEditorActive())
 					{
-						e.platform.gui.Pop();
+						e.platform.graphics.gui.Pop();
 						mode->Activate();
 					}
 				}
@@ -239,7 +239,7 @@ namespace HV
 			platform(_platform),
 			sectors(CreateSectors(_platform)),
 			players(CreatePlayerSupervisor(platform)),
-			object_manager(CreateObjectManager(platform.renderer)),
+			object_manager(CreateObjectManager(platform.graphics.renderer)),
 			fpsLogic(CreateFPSGameLogic(platform, *players, *sectors, *object_manager)),
 			editor(CreateEditor(platform, *players, *sectors, *fpsLogic)),
 			e{ _platform, *players, *editor, *sectors, *fpsLogic, *object_manager },
@@ -248,7 +248,7 @@ namespace HV
 		{
 			mode = fpsLogic;
 
-			Defaults::SetDefaults(e.platform.config);
+			Defaults::SetDefaults(e.platform.data.config);
 
 			RunEnvironmentScript(e, "!scripts/hv/config.sxy", true);
 			RunEnvironmentScript(e, "!scripts/hv/keys.sxy", true);
@@ -257,23 +257,23 @@ namespace HV
 			RunEnvironmentScript(e, "!scripts/hv/main.sxy", true);
 
 			NoExtraNativeLibs noExtraLibs;
-			e.platform.utilities.RunEnvironmentScript(noExtraLibs, "!scripts/samplers.sxy", true);
+			e.platform.plumbing.utilities.RunEnvironmentScript(noExtraLibs, "!scripts/samplers.sxy", true);
 
-			editorPanel = e.platform.gui.BindPanelToScript("!scripts/panel.editor.sxy");
-			fpsPanel = e.platform.gui.BindPanelToScript("!scripts/panel.fps.sxy", &fpsExtraLibs);
-			busyPanel = e.platform.gui.BindPanelToScript("!scripts/panel.opening.sxy");
-			colourPanel = e.platform.gui.BindPanelToScript("!scripts/panel.colour.sxy");
-			overlayPanel = e.platform.gui.CreateDebuggingOverlay();
+			editorPanel = e.platform.graphics.gui.BindPanelToScript("!scripts/panel.editor.sxy");
+			fpsPanel = e.platform.graphics.gui.BindPanelToScript("!scripts/panel.fps.sxy", &fpsExtraLibs);
+			busyPanel = e.platform.graphics.gui.BindPanelToScript("!scripts/panel.opening.sxy");
+			colourPanel = e.platform.graphics.gui.BindPanelToScript("!scripts/panel.colour.sxy");
+			overlayPanel = e.platform.graphics.gui.CreateDebuggingOverlay();
 
-			e.platform.gui.PushTop(fpsPanel->Supervisor(), true);
+			e.platform.graphics.gui.PushTop(fpsPanel->Supervisor(), true);
 
-			e.platform.publisher.Subscribe(this, HV::Events::evSetNextLevel);
-			e.platform.publisher.Subscribe(this, Rococo::Events::evBusy);
-			e.platform.publisher.Subscribe(this, Events::evEnableEditor);
+			e.platform.plumbing.publisher.Subscribe(this, HV::Events::evSetNextLevel);
+			e.platform.plumbing.publisher.Subscribe(this, Rococo::Events::evBusy);
+			e.platform.plumbing.publisher.Subscribe(this, Events::evEnableEditor);
 
 			scene.resizeCallback = this;
 
-			brain = CreateAIBrain(platform.publisher, e.sectors);
+			brain = CreateAIBrain(platform.plumbing.publisher, e.sectors);
 
 			int i = 0;
 
@@ -331,7 +331,7 @@ namespace HV
 
 		~App()
 		{
-			e.platform.publisher.Unsubscribe(this);
+			e.platform.plumbing.publisher.Unsubscribe(this);
 		}
 
 		void Free() override
@@ -343,12 +343,12 @@ namespace HV
 		{
 			HV::Events::OS::FileChangedEvent ev;
 			ev.args = &args;
-			e.platform.publisher.Publish(ev, HV::Events::OS::evFileChanged);
+			e.platform.plumbing.publisher.Publish(ev, HV::Events::OS::evFileChanged);
 
 			U8FilePath pingname;
-			e.platform.installation.ConvertSysPathToPingPath(args.sysPath, pingname);
+			e.platform.os.installation.ConvertSysPathToPingPath(args.sysPath, pingname);
 
-			platform.gui.LogMessage("File modified: %s", pingname.buf);
+			platform.graphics.gui.LogMessage("File modified: %s", pingname.buf);
 
 			auto ext = Rococo::Strings::GetFileExtension(pingname);
 			if (!ext)
@@ -357,54 +357,54 @@ namespace HV
 			}
 			else if (Eq(ext, ".sxy"))
 			{
-				e.platform.utilities.RefreshResource(pingname);
+				e.platform.plumbing.utilities.RefreshResource(pingname);
 
 				if (args.Matches("!scripts/hv/main.sxy"))
 				{
-					platform.gui.LogMessage("Running !scripts/hv/main.sxy");
+					platform.graphics.gui.LogMessage("Running !scripts/hv/main.sxy");
 					HV::RunEnvironmentScript(e, "!scripts/hv/main.sxy", true);
 				}
 
 				if (StartsWith(pingname, "!scripts/hv/sector/"))
 				{
-					platform.gui.LogMessage("Running sector script");
+					platform.graphics.gui.LogMessage("Running sector script");
 					sectors->OnSectorScriptChanged(args);
 				}
 			}
 			else if (Eq(ext, ".ps"))
 			{
-				platform.gui.LogMessage("Updating pixel shader");
-				e.platform.renderer.Shaders().UpdatePixelShader(pingname);
+				platform.graphics.gui.LogMessage("Updating pixel shader");
+				e.platform.graphics.renderer.Shaders().UpdatePixelShader(pingname);
 			}
 			else if (Eq(ext, ".vs"))
 			{
-				platform.gui.LogMessage("Updating vertex shader");
-				e.platform.renderer.Shaders().UpdateVertexShader(pingname);
+				platform.graphics.gui.LogMessage("Updating vertex shader");
+				e.platform.graphics.renderer.Shaders().UpdateVertexShader(pingname);
 			}
 		}
 
 		uint32 OnFrameUpdated(const IUltraClock& clock) override
 		{
 			GuiMetrics metrics;
-			e.platform.renderer.GetGuiMetrics(metrics);
+			e.platform.graphics.renderer.GetGuiMetrics(metrics);
 
-			e.platform.installation.OS().EnumerateModifiedFiles(*this);
-			e.platform.publisher.Deliver();
+			e.platform.os.installation.OS().EnumerateModifiedFiles(*this);
+			e.platform.plumbing.publisher.Deliver();
 
 			if (nextLevelName.length() > 0)
 			{
 				e.fpsMode.ClearCache();
 				RebaseSectors();
 				RunEnvironmentScript(e, nextLevelName.c_str());
-				e.platform.sourceCache.Release(nextLevelName.c_str());
+				e.platform.scripts.sourceCache.Release(nextLevelName.c_str());
 				nextLevelName = "";
 			}
 
 			mode->UpdateAI(clock);
 
-			e.platform.camera.Update(clock);
+			e.platform.graphics.camera.Update(clock);
 
-			e.platform.renderer.Render(Graphics::ENVIRONMENTAL_MAP_FIXED_CUBE, (IScene&) scene);
+			e.platform.graphics.renderer.Render(Graphics::ENVIRONMENTAL_MAP_FIXED_CUBE, (IScene&) scene);
 
 			if (IsEditorActive() || IsOverlayActive())
 			{
@@ -423,26 +423,26 @@ namespace HV
 
 		bool IsOverlayActive()
 		{
-			return e.platform.gui.Top() == overlayPanel->Supervisor();
+			return e.platform.graphics.gui.Top() == overlayPanel->Supervisor();
 		}
 
 		bool IsEditorActive()
 		{
-			return e.platform.gui.Top() == editorPanel->Supervisor();
+			return e.platform.graphics.gui.Top() == editorPanel->Supervisor();
 		}
 
 		void OnKeyboardEvent(const KeyboardEvent& keyboardEvent) override
 		{
-			if (!e.platform.gui.AppendEvent(keyboardEvent))
+			if (!e.platform.graphics.gui.AppendEvent(keyboardEvent))
 			{
-				Key key = e.platform.keyboard.GetKeyFromEvent(keyboardEvent);
-				auto* action = e.platform.keyboard.GetAction(key.KeyName);
+				Key key = e.platform.hardware.keyboard.GetKeyFromEvent(keyboardEvent);
+				auto* action = e.platform.hardware.keyboard.GetAction(key.KeyName);
 
 				if (IsOverlayActive())
 				{
 					if (action && Eq(action, "gui.overlay.toggle") && key.isPressed)
 					{
-						e.platform.gui.Pop();
+						e.platform.graphics.gui.Pop();
 						if (!IsEditorActive())  mode->Activate();
 					}
 				}
@@ -450,7 +450,7 @@ namespace HV
 				{
 					if (Eq(action, "gui.overlay.toggle") && key.isPressed)
 					{
-						e.platform.gui.PushTop(overlayPanel->Supervisor(), true);
+						e.platform.graphics.gui.PushTop(overlayPanel->Supervisor(), true);
 						mode->Deactivate();
 					}
 				}
@@ -459,14 +459,14 @@ namespace HV
 
 		void OnMouseEvent(const MouseEvent& me) override
 		{
-			e.platform.gui.AppendEvent(me);
+			e.platform.graphics.gui.AppendEvent(me);
 		}
 
 		void OnCreate() override
 		{
 			NoExtraNativeLibs noExtras;
-			e.platform.utilities.RunEnvironmentScript(noExtras, "!scripts/hv/app.created.sxy", true);
-		//	e.platform.gui.PushTop(colourPanel->Supervisor(), true);
+			e.platform.plumbing.utilities.RunEnvironmentScript(noExtras, "!scripts/hv/app.created.sxy", true);
+		//	e.platform.graphics.gui.PushTop(colourPanel->Supervisor(), true);
 		}
 	};
 }
@@ -476,11 +476,11 @@ namespace HV
 	IApp* CreateApp(Platform& p)
 	{
 		Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
-		p.installation.Macro("#walls", "!scripts/hv/sector/walls/");
-		p.installation.Macro("#floors", "!scripts/hv/sector/floors/");
-		p.installation.Macro("#corridor", "!scripts/hv/sector/corridor/");
-		p.installation.Macro("#objects", "!scripts/hv/sector/objects/");
-		p.installation.Macro("#icons", "!textures/hv/icons/");
+		p.os.installation.Macro("#walls", "!scripts/hv/sector/walls/");
+		p.os.installation.Macro("#floors", "!scripts/hv/sector/floors/");
+		p.os.installation.Macro("#corridor", "!scripts/hv/sector/corridor/");
+		p.os.installation.Macro("#objects", "!scripts/hv/sector/objects/");
+		p.os.installation.Macro("#icons", "!textures/hv/icons/");
 		return new HV::App(p);
 	}
 

@@ -287,6 +287,7 @@ namespace Rococo::Strings
 #endif
 	ROCOCO_API void Assign(U8FilePath& dest, const wchar_t* wideSrc);
 	ROCOCO_API void Assign(WideFilePath& dest, const char* src);
+	ROCOCO_API void Assign(U32FilePath& dest, const char32_t* wideSrc);
 
 	ROCOCO_API void ValidateFQNameIdentifier(cstr fqName);
 

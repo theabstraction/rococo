@@ -28,15 +28,15 @@ namespace
 	public:
 		TextureList(Platform& _platform) : platform(_platform)
 		{
-			platform.gui.RegisterPopulator("editor.tools.imagelist", this);
-			platform.publisher.Subscribe(this, evScrollChanged);
-			platform.publisher.Subscribe(this, evScrollGet);
+			platform.graphics.gui.RegisterPopulator("editor.tools.imagelist", this);
+			platform.plumbing.publisher.Subscribe(this, evScrollChanged);
+			platform.plumbing.publisher.Subscribe(this, evScrollGet);
 		}
 
 		~TextureList()
 		{
-			platform.publisher.Unsubscribe(this);
-			platform.gui.UnregisterPopulator(this);
+			platform.plumbing.publisher.Unsubscribe(this);
+			platform.graphics.gui.UnregisterPopulator(this);
 		}
 
 		void Free() override
@@ -46,7 +46,7 @@ namespace
 
 		int32 GetIndexOf(cstr name)
 		{
-			return (int32)platform.renderer.Materials().GetMaterialId(name);
+			return (int32)platform.graphics.renderer.Materials().GetMaterialId(name);
 		}
 
 		cstr GetNeighbour(cstr name, bool forward)
@@ -54,7 +54,7 @@ namespace
 			int32 i = GetIndexOf(name);
 
 			MaterialArrayMetrics mam;
-			platform.renderer.Materials().GetMaterialArrayMetrics(mam);
+			platform.graphics.renderer.Materials().GetMaterialArrayMetrics(mam);
 
 			if (forward) i++;
 			else i--;
@@ -62,7 +62,7 @@ namespace
 			if (i < 0) i = 0;
 			if (i >= mam.NumberOfElements) i = mam.NumberOfElements - 1;
 
-			return platform.renderer.Materials().GetMaterialTextureName((float)i);
+			return platform.graphics.renderer.Materials().GetMaterialTextureName((float)i);
 		}
 
 		void ScrollTo(cstr filename) override
@@ -84,7 +84,7 @@ namespace
 			se.rowSize = lastDy / 4;
 			se.logicalValue = scrollPosition;
 
-			platform.publisher.Publish(se, evScrollSet);
+			platform.plumbing.publisher.Publish(se, evScrollSet);
 		}
 
 		cstr GetSelectedTexture() const
@@ -97,7 +97,7 @@ namespace
 			RouteKeyboardEvent rk;
 			rk.ke = &key;
 			rk.consume = false;
-			platform.publisher.Publish(rk, evScrollSendKey);
+			platform.plumbing.publisher.Publish(rk, evScrollSendKey);
 			return rk.consume;
 		}
 
@@ -111,7 +111,7 @@ namespace
 			RouteMouseEvent rm;
 			rm.me = &me;
 			rm.absTopleft = absTopLeft;
-			platform.publisher.Publish(rm, evScrollSendMouse);
+			platform.plumbing.publisher.Publish(rm, evScrollSendMouse);
 		}
 
 		void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel)  override
@@ -145,7 +145,7 @@ namespace
 
 				HV::Events::ChangeDefaultTextureEvent ev;
 				ev.wallName = selectItem.target.c_str();
-				platform.publisher.Publish(ev, HV::Events::evChangeDefaultTextureId);
+				platform.plumbing.publisher.Publish(ev, HV::Events::evChangeDefaultTextureId);
 			}
 		}
 
@@ -200,7 +200,7 @@ namespace
 			lastPageSize = (int32)Height(absRect) - 2;
 
 			MaterialArrayMetrics metrics;
-			platform.renderer.Materials().GetMaterialArrayMetrics(metrics);
+			platform.graphics.renderer.Materials().GetMaterialArrayMetrics(metrics);
 
 			for (MaterialId i = 0; i < metrics.NumberOfElements; i = i + 1)
 			{
@@ -228,7 +228,7 @@ namespace
 					}
 
 					ImageCallbackArgs args;
-					args.filename = platform.renderer.Materials().GetMaterialTextureName(i);
+					args.filename = platform.graphics.renderer.Materials().GetMaterialTextureName(i);
 					args.target = GuiRectf{ x0, t, x1, b };
 					args.matid = i;
 					args.txUVbottom = h;
@@ -269,7 +269,7 @@ namespace
 				se.logicalPageSize = lastPageSize;
 				se.rowSize = lastDy / 4;
 				se.logicalValue = scrollPosition;
-				platform.publisher.Publish(se, evEditorToolsVScrollSet);
+				platform.plumbing.publisher.Publish(se, evEditorToolsVScrollSet);
 			}
 
 			lastRect = absRect;

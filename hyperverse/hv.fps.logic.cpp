@@ -98,7 +98,7 @@ public:
 
 		if (!idFont)
 		{
-			idFont = platform.utilities.GetHQFonts().GetSysFont(Graphics::HQFont::InfoFont);
+			idFont = platform.plumbing.utilities.GetHQFonts().GetSysFont(Graphics::HQFont::InfoFont);
 		}
 
 		if (!objectId) return;
@@ -427,7 +427,7 @@ public:
 
 			struct : IStringPopulator
 			{
-				U8FilePath pingPath = { 0 };
+				U8FilePath pingPath;
 
 				void Populate(cstr text)override
 				{
@@ -667,25 +667,25 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 		inventoryPopulator(*players.GetPlayer(0)->GetInventory(), objects, *this, eyeGlassPopulator)
 	{
 		fpsControl.speeds = Vec3{ 10.0f, 5.0f, 5.0f };
-		platform.scene.SetPopulator(this);
+		platform.graphics.scene.SetPopulator(this);
 
-		platform.gui.RegisterPopulator("fps", this);
-		platform.gui.RegisterPopulator("fps.information", &infoPopulator);
-		platform.gui.RegisterPopulator("fps.inventory", &inventoryPopulator);
-		platform.gui.RegisterPopulator("fps.eye_glass", &eyeGlassPopulator);
+		platform.graphics.gui.RegisterPopulator("fps", this);
+		platform.graphics.gui.RegisterPopulator("fps.information", &infoPopulator);
+		platform.graphics.gui.RegisterPopulator("fps.inventory", &inventoryPopulator);
+		platform.graphics.gui.RegisterPopulator("fps.eye_glass", &eyeGlassPopulator);
 
 	}
 
 	~FPSGameLogic()
 	{
-		platform.gui.UnregisterPopulator(this);
-		platform.scene.SetPopulator(nullptr);
+		platform.graphics.gui.UnregisterPopulator(this);
+		platform.graphics.scene.SetPopulator(nullptr);
 	}
 
 	void Activate()
 	{
 		isCursorActive = false;
-		platform.renderer.SetCursorVisibility(false);
+		platform.graphics.renderer.SetCursorVisibility(false);
 		fpsControl.Clear();
 
 		// Assume the editor has invalidates the tags, so flag to rebuild
@@ -695,7 +695,7 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 	void Deactivate()
 	{
 		isCursorActive = true;
-		platform.renderer.SetCursorVisibility(true);
+		platform.graphics.renderer.SetCursorVisibility(true);
 		fpsControl.Clear();
 	}
 
@@ -753,13 +753,13 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 		visibleSectorsThisTimestep.clear();
 
 		Vec3 eye;
-		platform.camera.GetPosition(eye);
+		platform.graphics.camera.GetPosition(eye);
 
 		Matrix4x4 world;
-		platform.camera.GetWorld(world);
+		platform.graphics.camera.GetWorld(world);
 
 		Matrix4x4 camera;
-		platform.camera.GetWorldAndProj(camera);
+		platform.graphics.camera.GetWorldAndProj(camera);
 
 		Vec3 dir{ -world.row2.x, -world.row2.y, -world.row2.z };
 
@@ -802,8 +802,8 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 			addToScene.OnEvent(VisibleSector{ *s.first });
 		}
 
-		platform.renderer.Particles().ClearPlasma();
-		platform.renderer.Particles().ClearFog();
+		platform.graphics.renderer.Particles().ClearPlasma();
+		platform.graphics.renderer.Particles().ClearFog();
 
 		struct :IEventCallback<const ID_ENTITY>
 		{
@@ -811,7 +811,7 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 
 			void OnEvent(const ID_ENTITY& id) override
 			{
-				platform->particles.GetParticles(id, platform->renderer);
+				platform->world.particles.GetParticles(id, platform->graphics.renderer);
 			}
 		} addParticles;
 
@@ -1305,7 +1305,7 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 		mm.fowardDelta *= Sq(player->DuckFactor());
 		mm.straffeDelta *= Sq(player->DuckFactor());
 
-		auto pe = platform.instances.ECS().GetBodyComponent(id);
+		auto pe = platform.graphics.instances.ECS().GetBodyComponent(id);
 		if (!pe)
 		{
 			Throw(0, "Expecting player entity");
@@ -1313,7 +1313,7 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 
 		Vec3 before = pe->Model().GetPosition();
 
-		platform.mobiles.TryMoveMobile(mm);
+		platform.world.mobiles.TryMoveMobile(mm);
 
 		Vec3 after = pe->Model().GetPosition();
 
@@ -1359,17 +1359,17 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 		Vec3 playerPosToLight= Vec3{ 0.2f, 0, player->Height() * player->DuckFactor() - 0.75f };
 
 		FPSAngles angles;
-		platform.mobiles.GetAngles(id, angles);
+		platform.world.mobiles.GetAngles(id, angles);
 
 		auto Rz = Matrix4x4::RotateRHAnticlockwiseZ(angles.heading);
 
 		Vec3 playerPosToLightWorld;
 		TransformPositions(&playerPosToLight, 1, Rz, &playerPosToLightWorld);
 
-		platform.camera.ElevateView(id, viewElevationDelta, playerPosToCamera);
+		platform.graphics.camera.ElevateView(id, viewElevationDelta, playerPosToCamera);
 
 		Matrix4x4 m;
-		platform.camera.GetWorld(m);
+		platform.graphics.camera.GetWorld(m);
 		Vec3 dir{ -m.row2.x, -m.row2.y, -m.row2.z };
 
 		LightSpec light;
@@ -1393,13 +1393,13 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 		lightBuilder.push_back(light);
 
 		Vec3 eye;
-		platform.camera.GetPosition(eye);
+		platform.graphics.camera.GetPosition(eye);
 
 		Matrix4x4 world;
-		platform.camera.GetWorld(world);
+		platform.graphics.camera.GetWorld(world);
 
 		Matrix4x4 camera;
-		platform.camera.GetWorldAndProj(camera);
+		platform.graphics.camera.GetWorldAndProj(camera);
 
 		struct : IEventCallback<VisibleSector>
 		{
@@ -1436,7 +1436,7 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 
 		std::sort(lightBuilder.begin(), lightBuilder.end(), byDistanceFromPlayer);
 
-		platform.scene.Builder().ClearLights();
+		platform.graphics.scene.Builder().ClearLights();
 
 		int32 targetIndex = 0;
 
@@ -1444,7 +1444,7 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 		{
 			if (IsLightVisible(lightBuilder[i]))
 			{
-				platform.scene.Builder().SetLight(lightBuilder[i], targetIndex++);
+				platform.graphics.scene.Builder().SetLight(lightBuilder[i], targetIndex++);
 			}
 		}
 
@@ -1473,15 +1473,15 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 
 	bool OnKeyboardEvent(const KeyboardEvent& k)
 	{
-		Key key = platform.keyboard.GetKeyFromEvent(k);
-		auto* action = platform.keyboard.GetAction(key.KeyName);
+		Key key = platform.hardware.keyboard.GetKeyFromEvent(k);
+		auto* action = platform.hardware.keyboard.GetAction(key.KeyName);
 		if (action)
 		{
 			if (!key.isPressed && Eq(action, "gui.editor.toggle"))
 			{
 				TEventArgs<bool> enable;
 				enable.value = true;
-				platform.publisher.Publish(enable, evEnableEditor);
+				platform.plumbing.publisher.Publish(enable, evEnableEditor);
 				return true;
 			}
 
@@ -1516,13 +1516,13 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 	void UseAnythingAtCrosshair()
 	{
 		Vec3 eye;
-		platform.camera.GetPosition(eye);
+		platform.graphics.camera.GetPosition(eye);
 
 		auto* s = GetFirstSectorContainingPoint((Vec2&) eye, sectors);
 		if (s != nullptr)
 		{
 			Matrix4x4 world;
-			platform.camera.GetWorld(world);
+			platform.graphics.camera.GetWorld(world);
 			Vec3 dir = world.GetWorldToCameraForwardDirection();
 			if (!s->UseAnythingAt(eye, dir, 1.5_metres))
 			{
@@ -1558,7 +1558,7 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 		if (!clickedDown)
 		{
 			isCursorActive = !isCursorActive;
-			platform.renderer.SetCursorVisibility(isCursorActive);
+			platform.graphics.renderer.SetCursorVisibility(isCursorActive);
 		}
 	}
 
@@ -1575,7 +1575,7 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 
 	void RenderXbox360Data(IGuiRenderContext& g)
 	{
-		ID_FONT idFont = platform.utilities.GetHQFonts().GetSysFont(Graphics::HQFont::TitleFont);
+		ID_FONT idFont = platform.plumbing.utilities.GetHQFonts().GetSysFont(Graphics::HQFont::TitleFont);
 		if (idFont)
 		{
 			GuiMetrics metrics;
@@ -1605,13 +1605,13 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 			renderLine.g = &g;
 
 			Joysticks::Joystick_XBOX360 x;
-			if (!platform.xbox360joystick.TryGet(0, x))
+			if (!platform.hardware.xbox360joystick.TryGet(0, x))
 			{
 				renderLine.OnEvent("Waiting for Xbox360 controller 0");
 			}
 			else
 			{
-				platform.xbox360joystick.EnumerateStateAsText(x, renderLine);
+				platform.hardware.xbox360joystick.EnumerateStateAsText(x, renderLine);
 			}
 		}
 	}
@@ -1620,7 +1620,7 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 	{
 		/* enable font loading in app.created.sxy to make this work */
 
-		ID_FONT idFont = platform.utilities.GetHQFonts().GetSysFont(Graphics::HQFont::TitleFont);
+		ID_FONT idFont = platform.plumbing.utilities.GetHQFonts().GetSysFont(Graphics::HQFont::TitleFont);
 		if (idFont)
 		{
 			GuiMetrics metrics;
@@ -1651,7 +1651,7 @@ struct FPSGameLogic : public IFPSGameModeSupervisor, public IUIElement, public I
 	{
 		if (sectors.begin() == sectors.end())
 		{
-			if (platform.gui.Count() == 1)
+			if (platform.graphics.gui.Count() == 1)
 			{
 				if (!overlayInventory)
 				{

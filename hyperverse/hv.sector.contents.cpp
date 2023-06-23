@@ -88,7 +88,7 @@ namespace
 		{
 			for (auto& c : components)
 			{
-				platform.instances.Delete(c.id);
+				platform.graphics.instances.Delete(c.id);
 			}
 
 			components.erase(std::remove(components.begin(), components.end(), componentName), components.end());
@@ -96,13 +96,13 @@ namespace
 
 		void AddComponent(cr_m4x4 model, cstr componentName, cstr meshName) override
 		{
-			auto id = platform.instances.AddBody(to_fstring(meshName), model, Vec3{ 1,1,1 }, ID_ENTITY::Invalid());;
+			auto id = platform.graphics.instances.AddBody(to_fstring(meshName), model, Vec3{ 1,1,1 }, ID_ENTITY::Invalid());;
 
 			for (auto& c : components)
 			{
 				if (Eq(componentName, c.name.c_str()) && Eq(meshName, c.meshName.c_str()))
 				{
-					platform.instances.Delete(c.id);
+					platform.graphics.instances.Delete(c.id);
 					c.id = id;
 					return;
 				}
@@ -122,7 +122,7 @@ namespace
 
 			ID_SYS_MESH meshId;
 			AABB bounds;
-			if (!platform.meshes.TryGetByName(meshName, meshId, bounds)) return ID_ENTITY::Invalid();
+			if (!platform.graphics.meshes.TryGetByName(meshName, meshId, bounds)) return ID_ENTITY::Invalid();
 
 			AABB worldBounds;
 			Matrix4x4 model;
@@ -133,7 +133,7 @@ namespace
 				return ID_ENTITY::Invalid();
 			}
 
-			auto id = platform.instances.AddBody(meshName, model, Vec3{ 1,1,1 }, ID_ENTITY::Invalid());
+			auto id = platform.graphics.instances.AddBody(meshName, model, Vec3{ 1,1,1 }, ID_ENTITY::Invalid());
 			scenery.push_back({ id,worldBounds });
 			return id;
 		}
@@ -151,11 +151,11 @@ namespace
 				const fstring prefix;
 				bool operator()(const ID_ENTITY id) const
 				{
-					auto body = platform.instances.ECS().GetBodyComponent(id);
+					auto body = platform.graphics.instances.ECS().GetBodyComponent(id);
 					if (body)
 					{
 						auto meshId = body->Mesh();
-						auto name = platform.meshes.GetName(meshId);
+						auto name = platform.graphics.meshes.GetName(meshId);
 						if (StartsWith(name, prefix))
 						{
 							return true;
@@ -180,7 +180,7 @@ namespace
 		{
 			for (auto s : scenery)
 			{
-				platform.instances.Delete(s.id);
+				platform.graphics.instances.Delete(s.id);
 			}
 
 			scenery.clear();
@@ -199,7 +199,7 @@ namespace
 				return ID_ENTITY::Invalid();
 			}
 
-			auto body = platform.instances.ECS().GetBodyComponent(centrePieceId);
+			auto body = platform.graphics.instances.ECS().GetBodyComponent(centrePieceId);
 			if (!body)
 			{
 				return ID_ENTITY::Invalid();
@@ -207,7 +207,7 @@ namespace
 
 			ID_SYS_MESH meshId;
 			AABB bounds;
-			if (!platform.meshes.TryGetByName(mesh, meshId, bounds)) return ID_ENTITY::Invalid();
+			if (!platform.graphics.meshes.TryGetByName(mesh, meshId, bounds)) return ID_ENTITY::Invalid();
 
 			candidates.clear();
 
@@ -298,7 +298,7 @@ namespace
 				std::sort(candidates.begin(), candidates.end(), sortByRangeFromCentrePiece);
 			}
 
-			auto id = platform.instances.AddBody(mesh, candidates[0].model, Vec3{ 1,1,1 }, ID_ENTITY::Invalid());
+			auto id = platform.graphics.instances.AddBody(mesh, candidates[0].model, Vec3{ 1,1,1 }, ID_ENTITY::Invalid());
 			scenery.push_back({ id,candidates[0].worldBounds });
 
 			return id;
@@ -340,13 +340,13 @@ namespace
 				{
 					i.levelSurfaces.clear();
 
-					auto body = platform.instances.ECS().GetBodyComponent(id);
+					auto body = platform.graphics.instances.ECS().GetBodyComponent(id);
 					if (body)
 					{
 						const Vec3 up{ 0, 0, 1 };
 						auto& model = body->Model();
 						size_t triangleCount = 0;
-						auto tris = platform.meshes.GetTriangles(body->Mesh(), triangleCount);
+						auto tris = platform.graphics.meshes.GetTriangles(body->Mesh(), triangleCount);
 
 						if (triangleCount > 1)
 						{
@@ -409,8 +409,8 @@ namespace
 			const float z0 = sector.Z0();
 			const float z1 = sector.Z1();
 
-			auto quadBody = platform.instances.ECS().GetBodyComponent(quadsEntityId);
-			auto item = platform.instances.ECS().GetBodyComponent(itemId);
+			auto quadBody = platform.graphics.instances.ECS().GetBodyComponent(quadsEntityId);
+			auto item = platform.graphics.instances.ECS().GetBodyComponent(itemId);
 			if (quadBody && item)
 			{
 				if (IsQuadRectangular(qModel) && qModel.a.x == qModel.b.x || qModel.a.y == qModel.b.y)
@@ -418,7 +418,7 @@ namespace
 					Quad qWorld;
 					TransformPositions(&qModel.a, 4, quadBody->Model(), &qWorld.a);
 
-					auto bounds = platform.meshes.Bounds(item->Mesh());
+					auto bounds = platform.graphics.meshes.Bounds(item->Mesh());
 					if (bounds.minXYZ.x < bounds.maxXYZ.x)
 					{
 						AABB2d minSquare;
@@ -590,7 +590,7 @@ namespace
 
 		void UpdateDoor(ID_ENTITY idDoor, const IUltraClock& clock)
 		{
-			auto door = platform.ECS.GetBodyComponent(idDoor);
+			auto door = platform.world.ECS.GetBodyComponent(idDoor);
 			if (!door) return;
 
 			doorElevation += doorDirection * clock.DT();
@@ -616,7 +616,7 @@ namespace
 
 		void UpdatePressurePad(ID_ENTITY idPressurePad, const IUltraClock& clock)
 		{
-			auto pad = platform.ECS.GetBodyComponent(idPressurePad);
+			auto pad = platform.world.ECS.GetBodyComponent(idPressurePad);
 			if (!pad) return;
 
 			padIntrusion += padDirection * clock.DT();
@@ -650,14 +650,14 @@ namespace
 
 		void UpdateLever(ID_ENTITY idLeverBase, ID_ENTITY idLever, const IUltraClock& clock)
 		{
-			auto base = platform.ECS.GetBodyComponent(idLeverBase);
+			auto base = platform.world.ECS.GetBodyComponent(idLeverBase);
 			if (!base) return;
 
-			auto lever = platform.ECS.GetBodyComponent(idLever);
+			auto lever = platform.world.ECS.GetBodyComponent(idLever);
 			if (!lever) return;
 
 			size_t nTriangles;
-			auto* tris = platform.meshes.GetTriangles(base->Mesh(), nTriangles);
+			auto* tris = platform.graphics.meshes.GetTriangles(base->Mesh(), nTriangles);
 			if (!tris) return;
 
 			auto& t = *tris;
@@ -711,12 +711,12 @@ namespace
 
 		bool TryClickButton(ID_ENTITY idButton, cr_vec3 probePoint, cr_vec3 probeDirection, Metres reach) override
 		{
-			auto button = platform.ECS.GetBodyComponent(idButton);
+			auto button = platform.world.ECS.GetBodyComponent(idButton);
 			auto idMesh = button->Mesh();
 			cr_m4x4 model = button->Model();
 
 			size_t nTriangles;
-			auto* triangles = platform.meshes.GetPhysicsHull(idMesh, nTriangles);
+			auto* triangles = platform.graphics.meshes.GetPhysicsHull(idMesh, nTriangles);
 			if (triangles)
 			{
 				for (size_t i = 0; i < nTriangles; ++i)

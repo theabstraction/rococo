@@ -167,14 +167,14 @@ namespace
 
 		bool OnKeyboardEvent(const KeyboardEvent& k) override
 		{
-			Key key = platform.keyboard.GetKeyFromEvent(k);
-			auto* action = platform.keyboard.GetAction(key.KeyName);
+			Key key = platform.hardware.keyboard.GetKeyFromEvent(k);
+			auto* action = platform.hardware.keyboard.GetAction(key.KeyName);
 
 			if (action && !key.isPressed && Eq(action, "gui.editor.toggle"))
 			{
 				TEventArgs<bool> disable;
 				disable.value = false;
-				platform.publisher.Publish(disable, HV::Events::evEnableEditor);
+				platform.plumbing.publisher.Publish(disable, HV::Events::evEnableEditor);
 				return true;
 			}
 			else
@@ -269,7 +269,7 @@ namespace
 				tbe.numberOfTabs = 1;
 				tbe.tabArray = globalTabs;
 
-				platform.publisher.Publish(tbe, HV::Events::evPopulateTabs);
+				platform.plumbing.publisher.Publish(tbe, HV::Events::evPopulateTabs);
 
 				target->GetProperties("Ambient", *ambienceEditor);
 			}
@@ -301,7 +301,7 @@ namespace
 			tbe.numberOfTabs = 6;
 			tbe.tabArray = sectorTabs;
 
-			platform.publisher.Publish(tbe, HV::Events::evPopulateTabs);
+			platform.plumbing.publisher.Publish(tbe, HV::Events::evPopulateTabs);
 
 			target->GetProperties("walls", *wallEditor);
 			target->GetProperties("floor", *floorEditor);
@@ -362,7 +362,7 @@ namespace
 
 				void GetRoot(U32FilePath& path) const override
 				{
-					path = { U"!scripts/hv/levels/" };
+					Assign(path, U"!scripts/hv/levels/");
 				}
 
 				cstr GetLastError() const override
@@ -414,8 +414,8 @@ namespace
 				}
 			} forLevelFilename;
 			forLevelFilename.editor = this;
-			forLevelFilename.publisher = &platform.publisher;
-			platform.utilities.BrowseFiles(forLevelFilename);
+			forLevelFilename.publisher = &platform.plumbing.publisher;
+			platform.plumbing.utilities.BrowseFiles(forLevelFilename);
 		}
 
 		void OnLoadLevelFileNameSelected(cstr pingPath)
@@ -437,7 +437,7 @@ namespace
 					SafeFormat(shortPingPath, IO::MAX_PATHLEN, "%s", pingPath);
 				}
 
-				platform.utilities.AddSubtitle(shortPingPath);
+				platform.plumbing.utilities.AddSubtitle(shortPingPath);
 			}
 			catch (IException& ex)
 			{
@@ -447,12 +447,12 @@ namespace
 				char errorBuffer[1024];
 				SafeFormat(errorBuffer, 1024, "Error loading level. %s %s", sysMessage, ex.Message());
 
-				platform.messaging.Log(to_fstring(errorBuffer));
+				platform.plumbing.messaging.Log(to_fstring(errorBuffer));
 
-				platform.utilities.ShowErrorBox(platform.mainWindow, ex, "Error loading level file");
+				platform.plumbing.utilities.ShowErrorBox(platform.os.mainWindow, ex, "Error loading level file");
 			}
 
-			platform.utilities.ShowBusy(false, "", "");
+			platform.plumbing.utilities.ShowBusy(false, "", "");
 		}
 
 		void OnEditorSave(cstr command)
@@ -476,7 +476,7 @@ namespace
 
 				void GetRoot(U32FilePath& path) const
 				{
-					path = { U"!scripts/hv/levels/" };
+					Assign(path, U"!scripts/hv/levels/");
 				}
 
 				cstr GetLastError() const
@@ -528,21 +528,21 @@ namespace
 				}
 			} forLevelFilename;
 			forLevelFilename.editor = this;
-			forLevelFilename.publisher = &platform.publisher;
-			platform.utilities.BrowseFiles(forLevelFilename);
+			forLevelFilename.publisher = &platform.plumbing.publisher;
+			platform.plumbing.utilities.BrowseFiles(forLevelFilename);
 		}
 
 		void OnSaveLevelFileNameSelected(cstr pingPath)
 		{
 			WideFilePath sysPath;
-			platform.installation.ConvertPingPathToSysPath(pingPath, sysPath);
+			platform.os.installation.ConvertPingPathToSysPath(pingPath, sysPath);
 
 			Save(sysPath);
 			SafeFormat(levelpath, Rococo::IO::MAX_PATHLEN, "%s", pingPath);
 
 			char shortPingName[256];
 			SafeFormat(shortPingName, 256, "%ls", sysPath.buf);
-			platform.utilities.AddSubtitle(shortPingName);
+			platform.plumbing.utilities.AddSubtitle(shortPingName);
 		}
 
 		void Load(cstr pingName)
@@ -550,7 +550,7 @@ namespace
 			HV::Events::SetNextLevelEvent setNextLevelEvent;
 			setNextLevelEvent.name = pingName;
 
-			platform.publisher.Publish(setNextLevelEvent, HV::Events::evSetNextLevel);
+			platform.plumbing.publisher.Publish(setNextLevelEvent, HV::Events::evSetNextLevel);
 		}
 
 		void Save(const wchar_t* filename)
@@ -581,11 +581,11 @@ namespace
 
 			try
 			{
-				platform.utilities.SaveBinary(filename, buffer0, sb.Length());
+				platform.plumbing.utilities.SaveBinary(filename, buffer0, sb.Length());
 			}
 			catch (IException& ex)
 			{
-				platform.utilities.ShowErrorBox(platform.mainWindow, ex, ex.Message());
+				platform.plumbing.utilities.ShowErrorBox(platform.os.mainWindow, ex, ex.Message());
 			};
 		}
 
@@ -606,27 +606,27 @@ namespace
 			players(_players),
 			map(CreateWorldMap(_platform, sectors)),
 			textureList(CreateTextureList(_platform)),
-			editMode_SectorBuilder(CreateSectorBuilder(_platform.publisher, *map)),
-			editMode_SectorEditor(CreateSectorEditor(_platform, *map, _platform.mainWindow)),
-			statusbar(CreateStatusBar(_platform.publisher)),
-			editModeHandler("editor.edit_mode", _platform.publisher, { "v", "s" }),
-			textureTargetHandler("editor.texture.target", _platform.publisher, { "w", "f", "c" }),
-			scrollLock("editor.texture.lock", _platform.publisher, { "U", "L" }),
-			transparency("editor.transparency", _platform.publisher, {"o", "t"})
+			editMode_SectorBuilder(CreateSectorBuilder(_platform.plumbing.publisher, *map)),
+			editMode_SectorEditor(CreateSectorEditor(_platform, *map, _platform.os.mainWindow)),
+			statusbar(CreateStatusBar(_platform.plumbing.publisher)),
+			editModeHandler("editor.edit_mode", _platform.plumbing.publisher, { "v", "s" }),
+			textureTargetHandler("editor.texture.target", _platform.plumbing.publisher, { "w", "f", "c" }),
+			scrollLock("editor.texture.lock", _platform.plumbing.publisher, { "U", "L" }),
+			transparency("editor.transparency", _platform.plumbing.publisher, {"o", "t"})
 		{
-			REGISTER_UI_EVENT_HANDLER(platform.gui, this, Editor, OnEditorNew, "editor.new", nullptr);
-			REGISTER_UI_EVENT_HANDLER(platform.gui, this, Editor, OnEditorLoad, "editor.load", nullptr);
-			REGISTER_UI_EVENT_HANDLER(platform.gui, this, Editor, OnEditorSave, "editor.save", nullptr);
+			REGISTER_UI_EVENT_HANDLER(platform.graphics.gui, this, Editor, OnEditorNew, "editor.new", nullptr);
+			REGISTER_UI_EVENT_HANDLER(platform.graphics.gui, this, Editor, OnEditorLoad, "editor.load", nullptr);
+			REGISTER_UI_EVENT_HANDLER(platform.graphics.gui, this, Editor, OnEditorSave, "editor.save", nullptr);
 
-			objectLayoutEditor = platform.utilities.CreateBloodyPropertySetEditor(*this);
-			wallEditor = platform.utilities.CreateBloodyPropertySetEditor(*this);
-			floorEditor = platform.utilities.CreateBloodyPropertySetEditor(*this);
-			ceilingEditor = platform.utilities.CreateBloodyPropertySetEditor(*this);
-			corridorEditor = platform.utilities.CreateBloodyPropertySetEditor(*this);
-			lightEditor = platform.utilities.CreateBloodyPropertySetEditor( *this);
-			ambienceEditor = platform.utilities.CreateBloodyPropertySetEditor(*this);
+			objectLayoutEditor = platform.plumbing.utilities.CreateBloodyPropertySetEditor(*this);
+			wallEditor = platform.plumbing.utilities.CreateBloodyPropertySetEditor(*this);
+			floorEditor = platform.plumbing.utilities.CreateBloodyPropertySetEditor(*this);
+			ceilingEditor = platform.plumbing.utilities.CreateBloodyPropertySetEditor(*this);
+			corridorEditor = platform.plumbing.utilities.CreateBloodyPropertySetEditor(*this);
+			lightEditor = platform.plumbing.utilities.CreateBloodyPropertySetEditor( *this);
+			ambienceEditor = platform.plumbing.utilities.CreateBloodyPropertySetEditor(*this);
 
-			platform.publisher.Subscribe(this, HV::Events::evChangeDefaultTextureId);
+			platform.plumbing.publisher.Subscribe(this, HV::Events::evChangeDefaultTextureId);
 
 			transparency.SetState(0);
 			editModeHandler.SetState(0);
@@ -635,32 +635,32 @@ namespace
 
 			textureTargetHandler.AddHandler(this);
 
-			platform.gui.RegisterPopulator("sector_editor", this);
+			platform.graphics.gui.RegisterPopulator("sector_editor", this);
 
 			editMode_SectorEditor->SetEditor(this);
 
-			platform.gui.RegisterPopulator("editor.tab.objects", &(*objectLayoutEditor));
-			platform.gui.RegisterPopulator("editor.tab.walls", &(*wallEditor));
-			platform.gui.RegisterPopulator("editor.tab.floor", &(*floorEditor));
-			platform.gui.RegisterPopulator("editor.tab.ceiling", &(*ceilingEditor));
-			platform.gui.RegisterPopulator("editor.tab.corridor", &(*corridorEditor));
-			platform.gui.RegisterPopulator("editor.tab.lights", &(*lightEditor));
-			platform.gui.RegisterPopulator("editor.tab.ambience", &(*ambienceEditor));
+			platform.graphics.gui.RegisterPopulator("editor.tab.objects", &(*objectLayoutEditor));
+			platform.graphics.gui.RegisterPopulator("editor.tab.walls", &(*wallEditor));
+			platform.graphics.gui.RegisterPopulator("editor.tab.floor", &(*floorEditor));
+			platform.graphics.gui.RegisterPopulator("editor.tab.ceiling", &(*ceilingEditor));
+			platform.graphics.gui.RegisterPopulator("editor.tab.corridor", &(*corridorEditor));
+			platform.graphics.gui.RegisterPopulator("editor.tab.lights", &(*lightEditor));
+			platform.graphics.gui.RegisterPopulator("editor.tab.ambience", &(*ambienceEditor));
 
 			sectors.BindProperties(*objectLayoutEditor);
 		}
 
 		~Editor()
 		{
-			platform.gui.UnregisterPopulator(&(*objectLayoutEditor));
-			platform.gui.UnregisterPopulator(&(*wallEditor));
-			platform.gui.UnregisterPopulator(&(*floorEditor));
-			platform.gui.UnregisterPopulator(&(*ceilingEditor));
-			platform.gui.UnregisterPopulator(&(*corridorEditor));
-			platform.gui.UnregisterPopulator(&(*lightEditor));
-			platform.gui.UnregisterPopulator(&(*ambienceEditor));
-			platform.gui.UnregisterPopulator(this);
-			platform.publisher.Unsubscribe(this);
+			platform.graphics.gui.UnregisterPopulator(&(*objectLayoutEditor));
+			platform.graphics.gui.UnregisterPopulator(&(*wallEditor));
+			platform.graphics.gui.UnregisterPopulator(&(*floorEditor));
+			platform.graphics.gui.UnregisterPopulator(&(*ceilingEditor));
+			platform.graphics.gui.UnregisterPopulator(&(*corridorEditor));
+			platform.graphics.gui.UnregisterPopulator(&(*lightEditor));
+			platform.graphics.gui.UnregisterPopulator(&(*ambienceEditor));
+			platform.graphics.gui.UnregisterPopulator(this);
+			platform.plumbing.publisher.Unsubscribe(this);
 
 			if (target) target->Assign(nullptr);
 			target = nullptr;

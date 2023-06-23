@@ -138,7 +138,7 @@ namespace HV::HVMaths
 
 	bool TryClickGraphicsMesh(ID_ENTITY idObject, cr_vec3 probePoint, cr_vec3 probeDirection, Metres reach, Platform& platform)
 	{
-		auto body = platform.instances.ECS().GetBodyComponent(idObject);
+		auto body = platform.graphics.instances.ECS().GetBodyComponent(idObject);
 		if (!body)
 		{
 			Throw(0, "Expecting body");
@@ -148,7 +148,7 @@ namespace HV::HVMaths
 		cr_m4x4 model = body->Model();
 
 		size_t nTriangles;
-		auto* triangles = platform.meshes.GetTriangles(idMesh, nTriangles);
+		auto* triangles = platform.graphics.meshes.GetTriangles(idMesh, nTriangles);
 		if (triangles)
 		{
 			for (size_t i = 0; i < nTriangles; ++i)

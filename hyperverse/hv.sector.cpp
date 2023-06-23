@@ -77,9 +77,9 @@ namespace
 	   // So use heap generated argument in nameToMaterial. Do not refactor pointer to Material as Material!
 	   stringmap<Material*> nameToMaterial;
 
-	   U8FilePath corridorScript = { 0 };
-	   U8FilePath wallScript = { 0 };
-	   U8FilePath floorScript = { 0 };
+	   U8FilePath corridorScript;
+	   U8FilePath wallScript;
+	   U8FilePath floorScript;
 
 	   bool scriptCorridor = false;
 	   bool scriptWalls = false;
@@ -170,7 +170,7 @@ namespace
 		   int32 groundId   = (int32) nameToMaterial.find(GraphicsEx::BodyComponentMatClass_Floor)->second->mvd.materialId;
 		   int32 ceilingId  = (int32) nameToMaterial.find(GraphicsEx::BodyComponentMatClass_Ceiling)->second->mvd.materialId;
 
-		   platform.renderer.Textures().CubeTextures().SyncCubeTexture(wallId, wallId, wallId, wallId, groundId, ceilingId);
+		   platform.graphics.renderer.Textures().CubeTextures().SyncCubeTexture(wallId, wallId, wallId, wallId, groundId, ceilingId);
 	   }
 
 	   const LightSpec* Lights(size_t& numberOfLights) const override
@@ -274,7 +274,7 @@ namespace
 			  auto wall = instances.ECS().GetBodyComponent(wallId);
 			  ID_SYS_MESH meshId;
 			  AABB bounds;
-			  platform.meshes.TryGetByName(name, meshId, bounds);
+			  platform.graphics.meshes.TryGetByName(name, meshId, bounds);
 			  wall->SetMesh(meshId);
 		  }
 	  }
@@ -460,7 +460,7 @@ namespace
 				  {
 					  if (*mb.second->persistentName == '!' || *mb.second->persistentName == '#')
 					  {
-						  mb.second->mvd.materialId = platform.instances.GetMaterialDirect(to_fstring(mb.second->persistentName));
+						  mb.second->mvd.materialId = platform.graphics.instances.GetMaterialDirect(to_fstring(mb.second->persistentName));
 						  continue;
 					  }
 				  }
@@ -468,7 +468,7 @@ namespace
 				  {
 				  }
 
-				  mb.second->mvd.materialId = platform.instances.GetRandomMaterialId(mb.second->category);
+				  mb.second->mvd.materialId = platform.graphics.instances.GetRandomMaterialId(mb.second->category);
 			  }
 
 			  InvokeSectorRebuild(false);
@@ -618,17 +618,17 @@ namespace
 				  }
 			  }
 
-			  std::string localName;
-			  std::string meshName;
+			  HString localName;
+			  HString meshName;
 
 			  void AddTriangle(const VertexTriangle& t) override
 			  {
-				  This->platform.meshes.AddTriangleEx(t);
+				  This->platform.graphics.meshes.AddTriangleEx(t);
 			  }
 
 			  void AddPhysicsHull(const Triangle& t) override
 			  {
-				  This->platform.meshes.AddPhysicsHull(t);
+				  This->platform.graphics.meshes.AddPhysicsHull(t);
 			  }
 
 			  void BuildComponent(const fstring& componentName) override
@@ -640,8 +640,8 @@ namespace
 
 				  this->meshName = fullMeshName;
 
-				  This->platform.meshes.Clear();
-				  This->platform.meshes.Begin(to_fstring(fullMeshName));
+				  This->platform.graphics.meshes.Clear();
+				  This->platform.graphics.meshes.Begin(to_fstring(fullMeshName));
 			  }
 
 			  void ClearComponents(const fstring& componentName) override
@@ -651,7 +651,7 @@ namespace
 
 			  void CompleteComponent(boolean32 preserveMesh)  override
 			  {
-				  This->platform.meshes.End(preserveMesh, false);
+				  This->platform.graphics.meshes.End(preserveMesh, false);
 				  This->contents->AddComponent(Matrix4x4::Identity(), localName.c_str(), meshName.c_str());
 			  }
 		  } scriptCallback(this);  
@@ -660,14 +660,14 @@ namespace
 		  {
 			  cstr theWallScript = *wallScript ? wallScript : DEFAULT_WALL_SCRIPT;
 			  scriptConfig->SetCurrentScript(theWallScript);
-			  platform.utilities.RunEnvironmentScript(scriptCallback, id, theWallScript, true, false, false);
+			  platform.plumbing.utilities.RunEnvironmentScript(scriptCallback, id, theWallScript, true, false, false);
 			  return true;
 		  }
 		  catch (IException& ex)
 		  {
 			  char title[256];
 			  SafeFormat(title, "sector %u: %s failed", id, wallScript);
-			  platform.utilities.ShowErrorBox(platform.mainWindow, ex, title);
+			  platform.plumbing.utilities.ShowErrorBox(platform.os.mainWindow, ex, title);
 			  return false;
 		  }
 	  }
@@ -681,8 +681,8 @@ namespace
 		  {
 			  Sector* This;
 			  float uvScale = 1.0f;
-			  std::string localName;
-			  std::string meshName;
+			  HString localName;
+			  HString meshName;
 
 			  ANON(Sector* _This) : This(_This)
 			  {
@@ -784,12 +784,12 @@ namespace
 
 			  void AddTriangle(const VertexTriangle& t) override
 			  {
-				  This->platform.meshes.AddTriangleEx(t);
+				  This->platform.graphics.meshes.AddTriangleEx(t);
 			  }
 
 			  void AddPhysicsHull(const Triangle& t) override
 			  {
-				  This->platform.meshes.AddPhysicsHull(t);
+				  This->platform.graphics.meshes.AddPhysicsHull(t);
 			  }
 
 			  void BuildComponent(const fstring& componentName) override
@@ -801,8 +801,8 @@ namespace
 
 				  this->meshName = fullMeshName;
 
-				  This->platform.meshes.Clear();
-				  This->platform.meshes.Begin(to_fstring(fullMeshName));
+				  This->platform.graphics.meshes.Clear();
+				  This->platform.graphics.meshes.Begin(to_fstring(fullMeshName));
 			  }
 
 			  void ClearComponents(const fstring& componentName) override
@@ -812,7 +812,7 @@ namespace
 
 			  void CompleteComponent(boolean32 preserveMesh) override
 			  {
-				  This->platform.meshes.End(preserveMesh, false);
+				  This->platform.graphics.meshes.End(preserveMesh, false);
 				  This->contents->AddComponent(Matrix4x4::Identity(), localName.c_str(), meshName.c_str());
 			  }
 
@@ -822,14 +822,14 @@ namespace
 		  {
 			  cstr theFloorScript = *floorScript ? floorScript : "#floors/square.mosaics.sxy";
 			  scriptConfig->SetCurrentScript(theFloorScript);
-			  platform.utilities.RunEnvironmentScript(scriptCallback, id, theFloorScript, true, false);
+			  platform.plumbing.utilities.RunEnvironmentScript(scriptCallback, id, theFloorScript, true, false);
 			  return true;
 		  }
 		  catch (IException& ex)
 		  {
 			  char title[256];
 			  SafeFormat(title, 256, "sector %u: %s failed", id, wallScript);
-			  platform.utilities.ShowErrorBox(platform.mainWindow, ex, title);
+			  platform.plumbing.utilities.ShowErrorBox(platform.os.mainWindow, ex, title);
 			  return false;
 		  }
 	  }
@@ -989,10 +989,10 @@ namespace
 		  mat->category = cat;
 		  memcpy(mat->persistentName, persistentName, IO::MAX_PATHLEN);
 		  mat->mvd.colour = RGBAb(0, 0, 0, 0);
-		  mat->mvd.materialId = platform.renderer.Materials().GetMaterialId(persistentName);
+		  mat->mvd.materialId = platform.graphics.renderer.Materials().GetMaterialId(persistentName);
 		  if (mat->mvd.materialId < 0)
 		  {
-			  mat->mvd.materialId = platform.instances.GetRandomMaterialId(cat);
+			  mat->mvd.materialId = platform.graphics.instances.GetRandomMaterialId(cat);
 			  mat->mvd.colour.red = rand() % 256;
 			  mat->mvd.colour.green = rand() % 256;
 			  mat->mvd.colour.blue = rand() % 256;
@@ -1013,7 +1013,7 @@ namespace
 	  }
    public:
       Sector(Platform& _platform, ISectors& _co_sectors) :
-         instances(_platform.instances),
+         instances(_platform.graphics.instances),
          id(nextSectorId++),
          platform(_platform),
          co_sectors(_co_sectors),
@@ -1277,7 +1277,7 @@ namespace
 		  {
 			  ID_SYS_MESH meshId;
 			  AABB bounds;
-			  platform.meshes.TryGetByName(name, meshId, bounds);
+			  platform.graphics.meshes.TryGetByName(name, meshId, bounds);
 			  auto floor = instances.ECS().GetBodyComponent(floorId);
 			  floor->SetMesh(meshId);
 		  }
@@ -1306,7 +1306,7 @@ namespace
 		 {
 			 ID_SYS_MESH meshId;
 			 AABB bounds;
-			 platform.meshes.TryGetByName(name, meshId, bounds);
+			 platform.graphics.meshes.TryGetByName(name, meshId, bounds);
 			 auto ceiling = instances.ECS().GetBodyComponent(ceilingId);
 			 ceiling->SetMesh(meshId);
 		 }
@@ -1416,9 +1416,9 @@ namespace
 
 		  ID_SYS_MESH id;
 		  AABB bounds;
-		  platform.meshes.TryGetByName(fullMeshName, id, bounds);
+		  platform.graphics.meshes.TryGetByName(fullMeshName, id, bounds);
 
-		  return platform.meshes.GetPhysicsHull(id, nTriangles);
+		  return platform.graphics.meshes.GetPhysicsHull(id, nTriangles);
 	  }
 
       void RunGenCorridorScript()
@@ -1426,8 +1426,8 @@ namespace
          struct : IEventCallback<ScriptCompileArgs>, public ICorridor, public ISectorComponents
          {
             Sector *This;
-			std::string localName;
-			std::string meshName;
+			HString localName;
+			HString meshName;
 
             void OnEvent(ScriptCompileArgs& args) override
             {
@@ -1450,7 +1450,7 @@ namespace
 
 			void AddTriangle(const VertexTriangle& t) override
 			{
-				This->platform.meshes.AddTriangleEx(t);
+				This->platform.graphics.meshes.AddTriangleEx(t);
 			}
 
 			void BuildComponent(const fstring& componentName) override
@@ -1462,13 +1462,13 @@ namespace
 
 				this->meshName = fullMeshName;
 
-				This->platform.meshes.Clear();
-				This->platform.meshes.Begin(to_fstring(fullMeshName));
+				This->platform.graphics.meshes.Clear();
+				This->platform.graphics.meshes.Begin(to_fstring(fullMeshName));
 			}
 
 			void AddPhysicsHull(const Triangle& t) override
 			{
-				This->platform.meshes.AddPhysicsHull(t);
+				This->platform.graphics.meshes.AddPhysicsHull(t);
 			}
 
 			void ClearComponents(const fstring& componentName) override
@@ -1478,7 +1478,7 @@ namespace
 
 			void CompleteComponent(boolean32 preserveMesh) override
 			{
-				This->platform.meshes.End(preserveMesh, false);
+				This->platform.graphics.meshes.End(preserveMesh, false);
 
 				Matrix4x4 model;
 				This->CorridorModelMatrix(model);
@@ -1499,13 +1499,13 @@ namespace
 
 		 try
 		 {	
-			 platform.utilities.RunEnvironmentScript(scriptCallback, id, genCorridor, true, false);
+			 platform.plumbing.utilities.RunEnvironmentScript(scriptCallback, id, genCorridor, true, false);
 		 }
 		 catch (IException& ex)
 		 {
 			 char title[256];
 			 SafeFormat(title, "sector %u: %s failed", id, genCorridor);
-			 platform.utilities.ShowErrorBox(platform.mainWindow, ex, title);
+			 platform.plumbing.utilities.ShowErrorBox(platform.os.mainWindow, ex, title);
 		 }
       }
 
@@ -2078,10 +2078,10 @@ namespace
 			  auto& id = i->second->mvd.materialId;
 			  if (id > 0)
 			  {
-				  MaterialCategory category = platform.instances.GetMaterialCateogry(id);
+				  MaterialCategory category = platform.graphics.instances.GetMaterialCateogry(id);
 				  if (category != i->second->category)
 				  {
-					  id = platform.instances.GetMaterialId(i->second->category, 0);
+					  id = platform.graphics.instances.GetMaterialId(i->second->category, 0);
 				  }
 			  }
 		  }
@@ -2105,8 +2105,8 @@ namespace
 		  {
 			  try
 			  {
-				  platform.installation.ConvertPingPathToSysPath(wallScript, sysPath);
-				  platform.installation.ConvertSysPathToMacroPath(sysPath, wallScript, "#walls");
+				  platform.os.installation.ConvertPingPathToSysPath(wallScript, sysPath);
+				  platform.os.installation.ConvertSysPathToMacroPath(sysPath, wallScript, "#walls");
 			  }
 			  catch (IException&)
 			  {
@@ -2141,7 +2141,7 @@ namespace
 		  cstr theCorridorScript = *corridorScript ? corridorScript : "!scripts/hv/sector/corridor/gen.door.sxy";
 
 		  WideFilePath u16CorridorScript;
-		  platform.installation.ConvertPingPathToSysPath(theCorridorScript, u16CorridorScript);
+		  platform.os.installation.ConvertPingPathToSysPath(theCorridorScript, u16CorridorScript);
 		  if (Eq(u16CorridorScript, args.sysPath) && IsCorridor() && scriptCorridor)
 		  {
 			  isDirty = true;
@@ -2151,17 +2151,17 @@ namespace
 		  }
 
 		  U8FilePath pingPath;
-		  platform.installation.ConvertSysPathToPingPath(args.sysPath, pingPath);
+		  platform.os.installation.ConvertSysPathToPingPath(args.sysPath, pingPath);
 
 		  cstr theWallScript = *wallScript ? wallScript : "#walls/stretch.bricks.sxy";
-		  if (platform.installation.DoPingsMatch(pingPath, theWallScript) && scriptWalls)
+		  if (platform.os.installation.DoPingsMatch(pingPath, theWallScript) && scriptWalls)
 		  {
 			  FinalizeGaps();
 			  Rebuild();
 		  }
 
 		  cstr theFloorScript = *floorScript ? floorScript : "#floors/square.mosaic.sxy";
-		  if (platform.installation.DoPingsMatch(pingPath, theFloorScript) && scriptFloor && !completeSquares.empty())
+		  if (platform.os.installation.DoPingsMatch(pingPath, theFloorScript) && scriptFloor && !completeSquares.empty())
 		  {
 			  isDirty = true;
 			  RunSectorGenFloorAndCeilingScript();
@@ -2228,7 +2228,7 @@ namespace
 		  {
 			  char bodyClass[16];
 			  SafeFormat(bodyClass, 16, "\"%s\"", (cstr) i.first);
-			  sb.AppendFormat("\n\t(sectors.SetTemplateMaterial %-12s (#MaterialCategory%s) 0x%8.8x \"%s\")", bodyClass, platform.utilities.ToShortString(i.second->category).buffer, *(int32*)&i.second->mvd.colour, i.second->persistentName);
+			  sb.AppendFormat("\n\t(sectors.SetTemplateMaterial %-12s (#MaterialCategory%s) 0x%8.8x \"%s\")", bodyClass, platform.plumbing.utilities.ToShortString(i.second->category).buffer, *(int32*)&i.second->mvd.colour, i.second->persistentName);
 		  }
 
 		  if (Is4PointRectangular())
@@ -2325,8 +2325,8 @@ namespace
 				  WideFilePath sysPath;
 				  if (*wallScript)
 				  {
-					  platform.installation.ConvertPingPathToSysPath(wallScript, sysPath);
-					  platform.installation.ConvertSysPathToMacroPath(sysPath, wallScript, "#walls");
+					  platform.os.installation.ConvertPingPathToSysPath(wallScript, sysPath);
+					  platform.os.installation.ConvertSysPathToMacroPath(sysPath, wallScript, "#walls");
 				  }
 				  editor.AddPingPath("wall script", wallScript.buf, IO::MAX_PATHLEN, "#walls/*.sxy", 90);
 			  }
@@ -2599,7 +2599,7 @@ namespace
 
 	  void OnTick(const IUltraClock& clock) override
 	  {
-		  ai->AdvanceInTime(platform.publisher, clock);
+		  ai->AdvanceInTime(platform.plumbing.publisher, clock);
 		  contents->OnTick(clock);
 	  }
 
