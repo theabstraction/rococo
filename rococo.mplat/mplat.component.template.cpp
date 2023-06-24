@@ -49,11 +49,8 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			return id;
 		}
 
-		int64 ReleaseRef() override
-		{
-			return --referenceCount;
-		}
-
+		int64 ReleaseRef() override;
+		
 		// Marks the component as deprecated and returns true if this is the first call that marked it so
 		bool Deprecate() override;
 
@@ -78,9 +75,33 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		size_t componentSize;
 		int enumLock = 0;
 
-		ComponentVariableTable(IComponentFactory<IComponentInterface>& factory) : componentFactory(factory), rows(1024), componentSize(factory.SizeOfConstructedObject())
+		IRCObjectTableSupervisor& objectTable;
+
+		ComponentVariableTable(IRCObjectTableSupervisor& refObjectTable, IComponentFactory<IComponentInterface>& factory) : 
+			objectTable(refObjectTable),
+			componentFactory(factory), rows(1024), componentSize(factory.SizeOfConstructedObject())
 		{
 			componentAllocator = CreateFreeListAllocator(componentSize + sizeof ComponentVariableLife);
+		}
+
+		void NotifyOfDeath(ROID id)
+		{
+			if (enumLock > 0)
+			{
+				// Cannot delete at this time, wait for the next garbage collection
+				deprecatedList.push_back(id);
+				return;
+			}
+			// A component has told us that it is deprecated and a reference to it was released and its reference count is now zero
+			auto it = rows.find(id);
+			if (it != rows.end())
+			{
+				auto& component = it->second;
+				
+				componentFactory.Destruct(component.interfacePointer);
+				componentAllocator->FreeBuffer(component.interfacePointer);
+				rows.erase(it);
+			}
 		}
 
 		Ref<IComponentInterface> AddNew(ROID id)
@@ -105,7 +126,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 				IComponentInterface* component = componentFactory.ConstructInPlace(pComponentMemory);
 				if (component == nullptr)
 				{
-					Throw(0, "%s: factory.ConstructInPlace returned null");
+					Throw(0, "%s: factory.ConstructInPlace returned null", __FUNCTION__);
 				}
 				i->second.interfacePointer = component;
 
@@ -125,7 +146,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		{
 			if (enumLock > 0)
 			{
-				return;
+				Throw(0, "%s: An attempt was made to collect garbage during an enumeration lock.", __FUNCTION__);
 			}
 
 			while (!deprecatedList.empty())
@@ -133,25 +154,8 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 				ROID id = deprecatedList.back();
 				deprecatedList.pop_back();
 
-				auto it = rows.find(id);
-				if (it != rows.end())
-				{
-					auto& component = it->second;
-					auto& life = GetLife(*component.interfacePointer);
-					if (life.isDeprecated && life.referenceCount <= 0)
-					{
-						componentFactory.Destruct(component.interfacePointer);
-						componentAllocator->FreeBuffer(component.interfacePointer);
-						rows.erase(it);
-					}
-					else
-					{
-						stubbornList.push_back(id);
-					}
-				}
+				NotifyOfDeath(id);
 			}
-
-			deprecatedList.swap(stubbornList);
 		}
 		
 		void Deprecate(ROID id)
@@ -245,13 +249,26 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		}
 	};
 
+	int64 ComponentVariableLife::ReleaseRef()
+	{
+		int64 rc = --referenceCount;
+		if (rc <= 0 && isDeprecated)
+		{
+			table.NotifyOfDeath(id);
+		}
+		return rc;
+	}
+
 	bool ComponentVariableLife::Deprecate()
 	{
 		if (!isDeprecated)
 		{
 			isDeprecated = true;
 
-			table.deprecatedList.push_back(id);
+			if (referenceCount == 0)
+			{
+				table.NotifyOfDeath(id);
+			}
 
 			return true;
 		}
@@ -264,15 +281,18 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 	struct AllComponentTables
 	{
 		int dummy;
+		IRCObjectTableSupervisor& objectTable;
 // #BEGIN_INSTANCED#
 		ComponentVariableTable componentVariableTable;
 // #END_INSTANCED#
 
-		AllComponentTables(ComponentFactories& factories):
+		AllComponentTables(IRCObjectTableSupervisor& refObjectTable, ComponentFactories& factories):
 			dummy(0)
+			,objectTable(refObjectTable)
 		// #BEGIN_INSTANCED#
-			,componentVariableTable(factories.componentVariableFactory)
+			,componentVariableTable(objectTable, factories.componentVariableFactory)
 		// #END_INSTANCED#
+
 		{
 		}
 // #BEGIN_INSTANCED#
@@ -328,7 +348,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		AllComponentTables components;
  
 		RCObjectTable(ComponentFactories& factories, uint64 maxTableSizeInBytes) :
-			components(factories)
+			components(*this, factories)
 		{
 			static_assert(sizeof ROID == sizeof uint64);
 
@@ -373,9 +393,20 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 // #END_INSTANCED#
 		void CollectGarbage() override
 		{
+			if (enumLock > 0)
+			{
+				Throw(0, "%s: Cannot collect garbage - the ECS is locked for enumeration.", __FUNCTION__);
+			}
 // #BEGIN_INSTANCED#
 			components.componentVariableTable.CollectGarbage();
 // #END_INSTANCED#
+
+			for (ROID id : deprecationList)
+			{
+				Deprecate(id);
+			}
+
+			deprecationList.clear();
 		}
 
 		bool Deprecate(ROID roid) override

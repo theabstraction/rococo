@@ -1,4 +1,4 @@
-// Generated at: May 09 2023 P UTC
+// Generated at: Jun 24 2023 P UTC
 // Based on the template file: C:\work\rococo\rococo.mplat\mplat.component.template.cpp
 #include <rococo.api.h>
 #include <rococo.allocators.h>
@@ -50,11 +50,8 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			return id;
 		}
 
-		int64 ReleaseRef() override
-		{
-			return --referenceCount;
-		}
-
+		int64 ReleaseRef() override;
+		
 		// Marks the component as deprecated and returns true if this is the first call that marked it so
 		bool Deprecate() override;
 
@@ -79,9 +76,33 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		size_t componentSize;
 		int enumLock = 0;
 
-		AnimationComponentTable(IComponentFactory<IAnimationComponent>& factory) : componentFactory(factory), rows(1024), componentSize(factory.SizeOfConstructedObject())
+		IRCObjectTableSupervisor& objectTable;
+
+		AnimationComponentTable(IRCObjectTableSupervisor& refObjectTable, IComponentFactory<IAnimationComponent>& factory) : 
+			objectTable(refObjectTable),
+			componentFactory(factory), rows(1024), componentSize(factory.SizeOfConstructedObject())
 		{
 			componentAllocator = CreateFreeListAllocator(componentSize + sizeof AnimationComponentLife);
+		}
+
+		void NotifyOfDeath(ROID id)
+		{
+			if (enumLock > 0)
+			{
+				// Cannot delete at this time, wait for the next garbage collection
+				deprecatedList.push_back(id);
+				return;
+			}
+			// A component has told us that it is deprecated and a reference to it was released and its reference count is now zero
+			auto it = rows.find(id);
+			if (it != rows.end())
+			{
+				auto& component = it->second;
+				
+				componentFactory.Destruct(component.interfacePointer);
+				componentAllocator->FreeBuffer(component.interfacePointer);
+				rows.erase(it);
+			}
 		}
 
 		Ref<IAnimationComponent> AddNew(ROID id)
@@ -106,7 +127,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 				IAnimationComponent* component = componentFactory.ConstructInPlace(pComponentMemory);
 				if (component == nullptr)
 				{
-					Throw(0, "%s: factory.ConstructInPlace returned null");
+					Throw(0, "%s: factory.ConstructInPlace returned null", __FUNCTION__);
 				}
 				i->second.interfacePointer = component;
 
@@ -126,7 +147,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		{
 			if (enumLock > 0)
 			{
-				return;
+				Throw(0, "%s: An attempt was made to collect garbage during an enumeration lock.", __FUNCTION__);
 			}
 
 			while (!deprecatedList.empty())
@@ -134,25 +155,8 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 				ROID id = deprecatedList.back();
 				deprecatedList.pop_back();
 
-				auto it = rows.find(id);
-				if (it != rows.end())
-				{
-					auto& component = it->second;
-					auto& life = GetLife(*component.interfacePointer);
-					if (life.isDeprecated && life.referenceCount <= 0)
-					{
-						componentFactory.Destruct(component.interfacePointer);
-						componentAllocator->FreeBuffer(component.interfacePointer);
-						rows.erase(it);
-					}
-					else
-					{
-						stubbornList.push_back(id);
-					}
-				}
+				NotifyOfDeath(id);
 			}
-
-			deprecatedList.swap(stubbornList);
 		}
 		
 		void Deprecate(ROID id)
@@ -246,13 +250,26 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		}
 	};
 
+	int64 AnimationComponentLife::ReleaseRef()
+	{
+		int64 rc = --referenceCount;
+		if (rc <= 0 && isDeprecated)
+		{
+			table.NotifyOfDeath(id);
+		}
+		return rc;
+	}
+
 	bool AnimationComponentLife::Deprecate()
 	{
 		if (!isDeprecated)
 		{
 			isDeprecated = true;
 
-			table.deprecatedList.push_back(id);
+			if (referenceCount == 0)
+			{
+				table.NotifyOfDeath(id);
+			}
 
 			return true;
 		}
@@ -292,11 +309,8 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			return id;
 		}
 
-		int64 ReleaseRef() override
-		{
-			return --referenceCount;
-		}
-
+		int64 ReleaseRef() override;
+		
 		// Marks the component as deprecated and returns true if this is the first call that marked it so
 		bool Deprecate() override;
 
@@ -321,9 +335,33 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		size_t componentSize;
 		int enumLock = 0;
 
-		BodyComponentTable(IComponentFactory<IBodyComponent>& factory) : componentFactory(factory), rows(1024), componentSize(factory.SizeOfConstructedObject())
+		IRCObjectTableSupervisor& objectTable;
+
+		BodyComponentTable(IRCObjectTableSupervisor& refObjectTable, IComponentFactory<IBodyComponent>& factory) : 
+			objectTable(refObjectTable),
+			componentFactory(factory), rows(1024), componentSize(factory.SizeOfConstructedObject())
 		{
 			componentAllocator = CreateFreeListAllocator(componentSize + sizeof BodyComponentLife);
+		}
+
+		void NotifyOfDeath(ROID id)
+		{
+			if (enumLock > 0)
+			{
+				// Cannot delete at this time, wait for the next garbage collection
+				deprecatedList.push_back(id);
+				return;
+			}
+			// A component has told us that it is deprecated and a reference to it was released and its reference count is now zero
+			auto it = rows.find(id);
+			if (it != rows.end())
+			{
+				auto& component = it->second;
+				
+				componentFactory.Destruct(component.interfacePointer);
+				componentAllocator->FreeBuffer(component.interfacePointer);
+				rows.erase(it);
+			}
 		}
 
 		Ref<IBodyComponent> AddNew(ROID id)
@@ -348,7 +386,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 				IBodyComponent* component = componentFactory.ConstructInPlace(pComponentMemory);
 				if (component == nullptr)
 				{
-					Throw(0, "%s: factory.ConstructInPlace returned null");
+					Throw(0, "%s: factory.ConstructInPlace returned null", __FUNCTION__);
 				}
 				i->second.interfacePointer = component;
 
@@ -368,7 +406,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		{
 			if (enumLock > 0)
 			{
-				return;
+				Throw(0, "%s: An attempt was made to collect garbage during an enumeration lock.", __FUNCTION__);
 			}
 
 			while (!deprecatedList.empty())
@@ -376,25 +414,8 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 				ROID id = deprecatedList.back();
 				deprecatedList.pop_back();
 
-				auto it = rows.find(id);
-				if (it != rows.end())
-				{
-					auto& component = it->second;
-					auto& life = GetLife(*component.interfacePointer);
-					if (life.isDeprecated && life.referenceCount <= 0)
-					{
-						componentFactory.Destruct(component.interfacePointer);
-						componentAllocator->FreeBuffer(component.interfacePointer);
-						rows.erase(it);
-					}
-					else
-					{
-						stubbornList.push_back(id);
-					}
-				}
+				NotifyOfDeath(id);
 			}
-
-			deprecatedList.swap(stubbornList);
 		}
 		
 		void Deprecate(ROID id)
@@ -488,13 +509,26 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		}
 	};
 
+	int64 BodyComponentLife::ReleaseRef()
+	{
+		int64 rc = --referenceCount;
+		if (rc <= 0 && isDeprecated)
+		{
+			table.NotifyOfDeath(id);
+		}
+		return rc;
+	}
+
 	bool BodyComponentLife::Deprecate()
 	{
 		if (!isDeprecated)
 		{
 			isDeprecated = true;
 
-			table.deprecatedList.push_back(id);
+			if (referenceCount == 0)
+			{
+				table.NotifyOfDeath(id);
+			}
 
 			return true;
 		}
@@ -534,11 +568,8 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			return id;
 		}
 
-		int64 ReleaseRef() override
-		{
-			return --referenceCount;
-		}
-
+		int64 ReleaseRef() override;
+		
 		// Marks the component as deprecated and returns true if this is the first call that marked it so
 		bool Deprecate() override;
 
@@ -563,9 +594,33 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		size_t componentSize;
 		int enumLock = 0;
 
-		SkeletonComponentTable(IComponentFactory<ISkeletonComponent>& factory) : componentFactory(factory), rows(1024), componentSize(factory.SizeOfConstructedObject())
+		IRCObjectTableSupervisor& objectTable;
+
+		SkeletonComponentTable(IRCObjectTableSupervisor& refObjectTable, IComponentFactory<ISkeletonComponent>& factory) : 
+			objectTable(refObjectTable),
+			componentFactory(factory), rows(1024), componentSize(factory.SizeOfConstructedObject())
 		{
 			componentAllocator = CreateFreeListAllocator(componentSize + sizeof SkeletonComponentLife);
+		}
+
+		void NotifyOfDeath(ROID id)
+		{
+			if (enumLock > 0)
+			{
+				// Cannot delete at this time, wait for the next garbage collection
+				deprecatedList.push_back(id);
+				return;
+			}
+			// A component has told us that it is deprecated and a reference to it was released and its reference count is now zero
+			auto it = rows.find(id);
+			if (it != rows.end())
+			{
+				auto& component = it->second;
+				
+				componentFactory.Destruct(component.interfacePointer);
+				componentAllocator->FreeBuffer(component.interfacePointer);
+				rows.erase(it);
+			}
 		}
 
 		Ref<ISkeletonComponent> AddNew(ROID id)
@@ -590,7 +645,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 				ISkeletonComponent* component = componentFactory.ConstructInPlace(pComponentMemory);
 				if (component == nullptr)
 				{
-					Throw(0, "%s: factory.ConstructInPlace returned null");
+					Throw(0, "%s: factory.ConstructInPlace returned null", __FUNCTION__);
 				}
 				i->second.interfacePointer = component;
 
@@ -610,7 +665,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		{
 			if (enumLock > 0)
 			{
-				return;
+				Throw(0, "%s: An attempt was made to collect garbage during an enumeration lock.", __FUNCTION__);
 			}
 
 			while (!deprecatedList.empty())
@@ -618,25 +673,8 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 				ROID id = deprecatedList.back();
 				deprecatedList.pop_back();
 
-				auto it = rows.find(id);
-				if (it != rows.end())
-				{
-					auto& component = it->second;
-					auto& life = GetLife(*component.interfacePointer);
-					if (life.isDeprecated && life.referenceCount <= 0)
-					{
-						componentFactory.Destruct(component.interfacePointer);
-						componentAllocator->FreeBuffer(component.interfacePointer);
-						rows.erase(it);
-					}
-					else
-					{
-						stubbornList.push_back(id);
-					}
-				}
+				NotifyOfDeath(id);
 			}
-
-			deprecatedList.swap(stubbornList);
 		}
 		
 		void Deprecate(ROID id)
@@ -730,13 +768,26 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		}
 	};
 
+	int64 SkeletonComponentLife::ReleaseRef()
+	{
+		int64 rc = --referenceCount;
+		if (rc <= 0 && isDeprecated)
+		{
+			table.NotifyOfDeath(id);
+		}
+		return rc;
+	}
+
 	bool SkeletonComponentLife::Deprecate()
 	{
 		if (!isDeprecated)
 		{
 			isDeprecated = true;
 
-			table.deprecatedList.push_back(id);
+			if (referenceCount == 0)
+			{
+				table.NotifyOfDeath(id);
+			}
 
 			return true;
 		}
@@ -776,11 +827,8 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			return id;
 		}
 
-		int64 ReleaseRef() override
-		{
-			return --referenceCount;
-		}
-
+		int64 ReleaseRef() override;
+		
 		// Marks the component as deprecated and returns true if this is the first call that marked it so
 		bool Deprecate() override;
 
@@ -805,9 +853,33 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		size_t componentSize;
 		int enumLock = 0;
 
-		ParticleSystemComponentTable(IComponentFactory<IParticleSystemComponent>& factory) : componentFactory(factory), rows(1024), componentSize(factory.SizeOfConstructedObject())
+		IRCObjectTableSupervisor& objectTable;
+
+		ParticleSystemComponentTable(IRCObjectTableSupervisor& refObjectTable, IComponentFactory<IParticleSystemComponent>& factory) : 
+			objectTable(refObjectTable),
+			componentFactory(factory), rows(1024), componentSize(factory.SizeOfConstructedObject())
 		{
 			componentAllocator = CreateFreeListAllocator(componentSize + sizeof ParticleSystemComponentLife);
+		}
+
+		void NotifyOfDeath(ROID id)
+		{
+			if (enumLock > 0)
+			{
+				// Cannot delete at this time, wait for the next garbage collection
+				deprecatedList.push_back(id);
+				return;
+			}
+			// A component has told us that it is deprecated and a reference to it was released and its reference count is now zero
+			auto it = rows.find(id);
+			if (it != rows.end())
+			{
+				auto& component = it->second;
+				
+				componentFactory.Destruct(component.interfacePointer);
+				componentAllocator->FreeBuffer(component.interfacePointer);
+				rows.erase(it);
+			}
 		}
 
 		Ref<IParticleSystemComponent> AddNew(ROID id)
@@ -832,7 +904,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 				IParticleSystemComponent* component = componentFactory.ConstructInPlace(pComponentMemory);
 				if (component == nullptr)
 				{
-					Throw(0, "%s: factory.ConstructInPlace returned null");
+					Throw(0, "%s: factory.ConstructInPlace returned null", __FUNCTION__);
 				}
 				i->second.interfacePointer = component;
 
@@ -852,7 +924,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		{
 			if (enumLock > 0)
 			{
-				return;
+				Throw(0, "%s: An attempt was made to collect garbage during an enumeration lock.", __FUNCTION__);
 			}
 
 			while (!deprecatedList.empty())
@@ -860,25 +932,8 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 				ROID id = deprecatedList.back();
 				deprecatedList.pop_back();
 
-				auto it = rows.find(id);
-				if (it != rows.end())
-				{
-					auto& component = it->second;
-					auto& life = GetLife(*component.interfacePointer);
-					if (life.isDeprecated && life.referenceCount <= 0)
-					{
-						componentFactory.Destruct(component.interfacePointer);
-						componentAllocator->FreeBuffer(component.interfacePointer);
-						rows.erase(it);
-					}
-					else
-					{
-						stubbornList.push_back(id);
-					}
-				}
+				NotifyOfDeath(id);
 			}
-
-			deprecatedList.swap(stubbornList);
 		}
 		
 		void Deprecate(ROID id)
@@ -972,13 +1027,26 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		}
 	};
 
+	int64 ParticleSystemComponentLife::ReleaseRef()
+	{
+		int64 rc = --referenceCount;
+		if (rc <= 0 && isDeprecated)
+		{
+			table.NotifyOfDeath(id);
+		}
+		return rc;
+	}
+
 	bool ParticleSystemComponentLife::Deprecate()
 	{
 		if (!isDeprecated)
 		{
 			isDeprecated = true;
 
-			table.deprecatedList.push_back(id);
+			if (referenceCount == 0)
+			{
+				table.NotifyOfDeath(id);
+			}
 
 			return true;
 		}
@@ -1018,11 +1086,8 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			return id;
 		}
 
-		int64 ReleaseRef() override
-		{
-			return --referenceCount;
-		}
-
+		int64 ReleaseRef() override;
+		
 		// Marks the component as deprecated and returns true if this is the first call that marked it so
 		bool Deprecate() override;
 
@@ -1047,9 +1112,33 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		size_t componentSize;
 		int enumLock = 0;
 
-		RigsComponentTable(IComponentFactory<IRigsComponent>& factory) : componentFactory(factory), rows(1024), componentSize(factory.SizeOfConstructedObject())
+		IRCObjectTableSupervisor& objectTable;
+
+		RigsComponentTable(IRCObjectTableSupervisor& refObjectTable, IComponentFactory<IRigsComponent>& factory) : 
+			objectTable(refObjectTable),
+			componentFactory(factory), rows(1024), componentSize(factory.SizeOfConstructedObject())
 		{
 			componentAllocator = CreateFreeListAllocator(componentSize + sizeof RigsComponentLife);
+		}
+
+		void NotifyOfDeath(ROID id)
+		{
+			if (enumLock > 0)
+			{
+				// Cannot delete at this time, wait for the next garbage collection
+				deprecatedList.push_back(id);
+				return;
+			}
+			// A component has told us that it is deprecated and a reference to it was released and its reference count is now zero
+			auto it = rows.find(id);
+			if (it != rows.end())
+			{
+				auto& component = it->second;
+				
+				componentFactory.Destruct(component.interfacePointer);
+				componentAllocator->FreeBuffer(component.interfacePointer);
+				rows.erase(it);
+			}
 		}
 
 		Ref<IRigsComponent> AddNew(ROID id)
@@ -1074,7 +1163,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 				IRigsComponent* component = componentFactory.ConstructInPlace(pComponentMemory);
 				if (component == nullptr)
 				{
-					Throw(0, "%s: factory.ConstructInPlace returned null");
+					Throw(0, "%s: factory.ConstructInPlace returned null", __FUNCTION__);
 				}
 				i->second.interfacePointer = component;
 
@@ -1094,7 +1183,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		{
 			if (enumLock > 0)
 			{
-				return;
+				Throw(0, "%s: An attempt was made to collect garbage during an enumeration lock.", __FUNCTION__);
 			}
 
 			while (!deprecatedList.empty())
@@ -1102,25 +1191,8 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 				ROID id = deprecatedList.back();
 				deprecatedList.pop_back();
 
-				auto it = rows.find(id);
-				if (it != rows.end())
-				{
-					auto& component = it->second;
-					auto& life = GetLife(*component.interfacePointer);
-					if (life.isDeprecated && life.referenceCount <= 0)
-					{
-						componentFactory.Destruct(component.interfacePointer);
-						componentAllocator->FreeBuffer(component.interfacePointer);
-						rows.erase(it);
-					}
-					else
-					{
-						stubbornList.push_back(id);
-					}
-				}
+				NotifyOfDeath(id);
 			}
-
-			deprecatedList.swap(stubbornList);
 		}
 		
 		void Deprecate(ROID id)
@@ -1214,13 +1286,26 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		}
 	};
 
+	int64 RigsComponentLife::ReleaseRef()
+	{
+		int64 rc = --referenceCount;
+		if (rc <= 0 && isDeprecated)
+		{
+			table.NotifyOfDeath(id);
+		}
+		return rc;
+	}
+
 	bool RigsComponentLife::Deprecate()
 	{
 		if (!isDeprecated)
 		{
 			isDeprecated = true;
 
-			table.deprecatedList.push_back(id);
+			if (referenceCount == 0)
+			{
+				table.NotifyOfDeath(id);
+			}
 
 			return true;
 		}
@@ -1232,20 +1317,23 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 	struct AllComponentTables
 	{
 		int dummy;
+		IRCObjectTableSupervisor& objectTable;
 		AnimationComponentTable animationComponentTable;
 		BodyComponentTable bodyComponentTable;
 		SkeletonComponentTable skeletonComponentTable;
 		ParticleSystemComponentTable particleSystemComponentTable;
 		RigsComponentTable rigsComponentTable;
 
-		AllComponentTables(ComponentFactories& factories):
+		AllComponentTables(IRCObjectTableSupervisor& refObjectTable, ComponentFactories& factories):
 			dummy(0)
-					,animationComponentTable(factories.animationComponentFactory)
-					,bodyComponentTable(factories.bodyComponentFactory)
-					,skeletonComponentTable(factories.skeletonComponentFactory)
-					,particleSystemComponentTable(factories.particleSystemComponentFactory)
-					,rigsComponentTable(factories.rigsComponentFactory)
-				{
+			,objectTable(refObjectTable)
+					,animationComponentTable(objectTable, factories.animationComponentFactory)
+					,bodyComponentTable(objectTable, factories.bodyComponentFactory)
+					,skeletonComponentTable(objectTable, factories.skeletonComponentFactory)
+					,particleSystemComponentTable(objectTable, factories.particleSystemComponentFactory)
+					,rigsComponentTable(objectTable, factories.rigsComponentFactory)
+		
+		{
 		}
 
 		Ref<IAnimationComponent> AddAnimationComponent(ROID id, ActiveComponents& ac)
@@ -1336,7 +1424,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		AllComponentTables components;
  
 		RCObjectTable(ComponentFactories& factories, uint64 maxTableSizeInBytes) :
-			components(factories)
+			components(*this, factories)
 		{
 			static_assert(sizeof ROID == sizeof uint64);
 
@@ -1431,11 +1519,22 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		}
 		void CollectGarbage() override
 		{
+			if (enumLock > 0)
+			{
+				Throw(0, "%s: Cannot collect garbage - the ECS is locked for enumeration.", __FUNCTION__);
+			}
 			components.animationComponentTable.CollectGarbage();
 			components.bodyComponentTable.CollectGarbage();
 			components.skeletonComponentTable.CollectGarbage();
 			components.particleSystemComponentTable.CollectGarbage();
 			components.rigsComponentTable.CollectGarbage();
+
+			for (ROID id : deprecationList)
+			{
+				Deprecate(id);
+			}
+
+			deprecationList.clear();
 		}
 
 		bool Deprecate(ROID roid) override

@@ -1,6 +1,6 @@
 #pragma once
 
-// Generated at: May 09 2023 20:04 UTC
+// Generated at: Jun 24 2023 18:30 UTC
 // Based on the template file: C:\work\rococo\rococo.mplat\mplat.component.template.h
 #include <rococo.types.h>
 #include <rococo.component.entities.h>
@@ -83,7 +83,7 @@ namespace Rococo::Components
         // While enumerating garbage collection is suspended and new items cannot be added.
         virtual void ForEachAnimationComponent(Rococo::Function<EFlowLogic(ROID id, IAnimationComponent& component)> functor) = 0;
 
-        // Attemp to get a reference to the component with a given ROID
+        // Attempt to get a reference to the component with a given ROID
         virtual Ref<IAnimationComponent> GetAnimationComponent(ROID id) = 0;
 
         // Populate an array of ROIDs and return the number appended. If roidOutput is null then the return value is the number of AnimationComponents in the table
@@ -102,7 +102,7 @@ namespace Rococo::Components
         // While enumerating garbage collection is suspended and new items cannot be added.
         virtual void ForEachBodyComponent(Rococo::Function<EFlowLogic(ROID id, IBodyComponent& component)> functor) = 0;
 
-        // Attemp to get a reference to the component with a given ROID
+        // Attempt to get a reference to the component with a given ROID
         virtual Ref<IBodyComponent> GetBodyComponent(ROID id) = 0;
 
         // Populate an array of ROIDs and return the number appended. If roidOutput is null then the return value is the number of BodyComponents in the table
@@ -121,7 +121,7 @@ namespace Rococo::Components
         // While enumerating garbage collection is suspended and new items cannot be added.
         virtual void ForEachSkeletonComponent(Rococo::Function<EFlowLogic(ROID id, ISkeletonComponent& component)> functor) = 0;
 
-        // Attemp to get a reference to the component with a given ROID
+        // Attempt to get a reference to the component with a given ROID
         virtual Ref<ISkeletonComponent> GetSkeletonComponent(ROID id) = 0;
 
         // Populate an array of ROIDs and return the number appended. If roidOutput is null then the return value is the number of SkeletonComponents in the table
@@ -140,7 +140,7 @@ namespace Rococo::Components
         // While enumerating garbage collection is suspended and new items cannot be added.
         virtual void ForEachParticleSystemComponent(Rococo::Function<EFlowLogic(ROID id, IParticleSystemComponent& component)> functor) = 0;
 
-        // Attemp to get a reference to the component with a given ROID
+        // Attempt to get a reference to the component with a given ROID
         virtual Ref<IParticleSystemComponent> GetParticleSystemComponent(ROID id) = 0;
 
         // Populate an array of ROIDs and return the number appended. If roidOutput is null then the return value is the number of ParticleSystemComponents in the table
@@ -159,7 +159,7 @@ namespace Rococo::Components
         // While enumerating garbage collection is suspended and new items cannot be added.
         virtual void ForEachRigsComponent(Rococo::Function<EFlowLogic(ROID id, IRigsComponent& component)> functor) = 0;
 
-        // Attemp to get a reference to the component with a given ROID
+        // Attempt to get a reference to the component with a given ROID
         virtual Ref<IRigsComponent> GetRigsComponent(ROID id) = 0;
 
         // Populate an array of ROIDs and return the number appended. If roidOutput is null then the return value is the number of RigsComponents in the table

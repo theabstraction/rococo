@@ -76,7 +76,7 @@ namespace Rococo::Components
         // While enumerating garbage collection is suspended and new items cannot be added.
         virtual void ForEachComponentVariable(Rococo::Function<EFlowLogic(ROID id, IComponentInterface& component)> functor) = 0;
 
-        // Attemp to get a reference to the component with a given ROID
+        // Attempt to get a reference to the component with a given ROID
         virtual Ref<IComponentInterface> GetComponentVariable(ROID id) = 0;
 
         // Populate an array of ROIDs and return the number appended. If roidOutput is null then the return value is the number of ComponentVariables in the table

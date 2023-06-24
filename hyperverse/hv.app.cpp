@@ -406,6 +406,8 @@ namespace HV
 
 			e.platform.graphics.renderer.Render(Graphics::ENVIRONMENTAL_MAP_FIXED_CUBE, (IScene&) scene);
 
+			e.platform.world.ECS.CollectGarbage();
+
 			if (IsEditorActive() || IsOverlayActive())
 			{
 				return 100;
