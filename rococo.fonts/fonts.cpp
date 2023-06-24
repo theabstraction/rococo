@@ -409,13 +409,13 @@ namespace
 				ddx0 = glyphClip.left - p.x;
 				p.x += ddx0;
 				dx -= ddx0;
-				t0.x += ddx0;
+				t0.x += ddx0 / scale;
 			}
 
 			if ((p.x + dx) > glyphClip.right)
 			{
 				ddx1 = p.x + dx - glyphClip.right;
-				dx -= ddx1;
+				dx -= ddx1 / scale;
 			}
 
 			if (p.y < glyphClip.top)
@@ -423,14 +423,14 @@ namespace
 				ddy0 = glyphClip.top - p.y;
 				p.y += ddy0;
 				dy -= ddy0;
-				t0.y += ddy0;
+				t0.y += ddy0 / scale;
 			}
 
 			if ((p.y + dy) > glyphClip.bottom)
 			{
 				ddy1 = (p.y + dy) - glyphClip.bottom;
 				dy -= ddy1;
-				t1.y -= ddy1;
+				t1.y -= ddy1 / scale;
 			}
 
 			Vec2 p1 = { p.x + dx, p.y + dy };

@@ -1457,11 +1457,12 @@ namespace
 				auto i = lastModifiedList.find(f);
 				if (i != lastModifiedList.end())
 				{
-					auto oneHalfSecond = Rococo::OS::CpuHz() / 2;
+					int64 timeoutInSeconds = 5;
+					auto timeout = Rococo::OS::CpuHz() * timeoutInSeconds;
 					auto dt = Rococo::OS::CpuTicks() - i->second;
-					if (dt < oneHalfSecond)
+					if (dt < timeout)
 					{
-						// We've reported a change to that file in the last half a second, so skip 
+						// We've reported a change recently, so skip 
 						continue;
 					}
 

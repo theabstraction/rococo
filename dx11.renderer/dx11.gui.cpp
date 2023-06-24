@@ -356,10 +356,7 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResourc
 
         if (clipRect != nullptr)
         {
-            qrect.left = (float)clipRect->left;
-            qrect.right = (float)clipRect->right;
-            qrect.top = (float)clipRect->top;
-            qrect.bottom = (float)clipRect->bottom;
+            qrect = Dequantize(*clipRect);
         }
         RouteDrawTextBasic(pos, job, *fonts, *pipeline, qrect);
 
@@ -378,10 +375,7 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResourc
 
         if (clipRect != nullptr)
         {
-            qrect.left = (float)clipRect->left;
-            qrect.right = (float)clipRect->right;
-            qrect.top = (float)clipRect->top;
-            qrect.bottom = (float)clipRect->bottom;
+            qrect = Dequantize(*clipRect);
         }
         RouteDrawTextBasic(pos, job, *fonts, *pipeline, qrect);
     }
@@ -392,13 +386,11 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResourc
         cursor.hotspotOffset = hotspotOffset;
     }
 
-
     void ShowVenue(IMathsVisitor& visitor) override
     {
         visitor.ShowString("Cursor bitmap", "Id: %d. {%d,%d}-{%d,%d}", cursor.sprite.textureIndex, cursor.sprite.txUV.left, cursor.sprite.txUV.top, cursor.sprite.txUV.right, cursor.sprite.txUV.bottom);
         visitor.ShowString("Cursor hotspot delta", "(%+d %+d)", cursor.hotspotOffset.x, cursor.hotspotOffset.y);
     }
-
 
     EWindowCursor cursorId = EWindowCursor_Default;
 

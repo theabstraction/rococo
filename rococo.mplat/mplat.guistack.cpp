@@ -280,7 +280,7 @@ public:
 		}
 	}
 
-	enum { MessageHeightPixels = 16 };
+	enum { MessageHeightPixels = 32 };
 
 	bool HasRoomForMessage(const GuiRect& logRect) const
 	{
@@ -307,7 +307,7 @@ public:
 		OS::ticks now = OS::CpuTicks();
 		OS::ticks dt = now - lastScrollCheck;
 
-		const int64 pixelsScrolledPerSecond = 24;
+		const int64 pixelsScrolledPerSecond = 60;
 		OS::ticks ticksPerScroll = OS::CpuHz() / pixelsScrolledPerSecond;
 
 		if (dt > ticksPerScroll)
@@ -321,7 +321,7 @@ public:
 
 		for (auto& m : scrollingMessages)
 		{
-			m.y--;
+			m.y -= 1;
 		}
 
 		if (!scrollingMessages.empty())
@@ -398,7 +398,7 @@ public:
 
 		for (auto& m : scrollingMessages)
 		{
-			Graphics::RenderVerticalCentredText(grc, m.message.text, RGBAb(255, 255, 255), 32, { 4,m.y }, &logRect);
+			Graphics::RenderVerticalCentredText(grc, m.message.text, RGBAb(255, 255, 255), MessageHeightPixels, { 4,m.y }, &logRect);
 		}
 
 		if (!messageLog.IsEmpty() && HasRoomForMessage(logRect))
