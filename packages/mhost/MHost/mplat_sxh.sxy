@@ -114,12 +114,12 @@
 )
 
 (interface Rococo.Audio.IAudio
-	(SetMusic (Sys.Type.IString musicFile) -> )
+	(SetMP3Music (Sys.Type.IString mp3musicPingPath) -> )
 )
 
 (class ProxyIAudio (implements Rococo.Audio.IAudio) (Pointer hObject) (attribute not-serialized))
 	(method ProxyIAudio.Construct (Pointer hObject): (this.hObject = hObject))
-	(method ProxyIAudio.SetMusic (Sys.Type.IString musicFile) ->  : (Rococo.Audio.Native.IAudioSetMusic this.hObject musicFile))
+	(method ProxyIAudio.SetMP3Music (Sys.Type.IString mp3musicPingPath) ->  : (Rococo.Audio.Native.IAudioSetMP3Music this.hObject mp3musicPingPath))
 
 (factory Rococo.Audio.GetAudio Rococo.Audio.IAudio  :
 	(Pointer pObject = (Rococo.Audio.Native.GetHandleForIAudio0 ))

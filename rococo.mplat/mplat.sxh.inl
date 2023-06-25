@@ -2045,21 +2045,21 @@ namespace
 	using namespace Rococo::Script;
 	using namespace Rococo::Compiler;
 
-	void NativeRococoAudioIAudioSetMusic(NativeCallEnvironment& _nce)
+	void NativeRococoAudioIAudioSetMP3Music(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		_offset += sizeof(IString*);
-		IString* _musicFile;
-		ReadInput(_musicFile, _sf, -_offset);
-		fstring musicFile { _musicFile->buffer, _musicFile->length };
+		IString* _mp3musicPingPath;
+		ReadInput(_mp3musicPingPath, _sf, -_offset);
+		fstring mp3musicPingPath { _mp3musicPingPath->buffer, _mp3musicPingPath->length };
 
 
 		Rococo::Audio::IAudio* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->SetMusic(musicFile);
+		_pObject->SetMP3Music(mp3musicPingPath);
 	}
 
 	void NativeGetHandleForRococoAudioGetAudio(NativeCallEnvironment& _nce)
@@ -2080,7 +2080,7 @@ namespace Rococo::Audio
 	{
 		const INamespace& ns = ss.AddNativeNamespace("Rococo.Audio.Native");
 		ss.AddNativeCall(ns, NativeGetHandleForRococoAudioGetAudio, _nceContext, ("GetHandleForIAudio0  -> (Pointer hObject)"), __FILE__, __LINE__);
-		ss.AddNativeCall(ns, NativeRococoAudioIAudioSetMusic, nullptr, ("IAudioSetMusic (Pointer hObject)(Sys.Type.IString musicFile) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoAudioIAudioSetMP3Music, nullptr, ("IAudioSetMP3Music (Pointer hObject)(Sys.Type.IString mp3musicPingPath) -> "), __FILE__, __LINE__);
 	}
 }
 // BennyHill generated Sexy native functions for Rococo::IEnumListPane 

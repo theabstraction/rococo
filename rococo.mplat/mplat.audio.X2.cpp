@@ -32,7 +32,7 @@ namespace
 		}
 	}
 
-	void SetWhiteNoise(I16StereoSample* samples, size_t capacity)
+	void SetWhiteNoise(StereoSample_INT16* samples, size_t capacity)
 	{
 		auto* end = samples + capacity;
 		for (auto* s = samples; s < end; ++s)
@@ -48,6 +48,11 @@ namespace
 		T* src;
 
 		AutoVoice(): src(nullptr)
+		{
+
+		}
+
+		AutoVoice(T* pSrc) : src(pSrc)
 		{
 
 		}
@@ -71,238 +76,129 @@ namespace
 		}
 	};
 
-	struct AudioPlayer : IAudioSupervisor, OS::IThreadJob
+	struct X2AudioVoice : IOSAudioVoiceSupervisor, IXAudio2VoiceCallback
 	{
-		AutoFree<OS::IThreadSupervisor> thread;
-
-		IInstallation& installation;
-		const AudioConfig config;
-
-		AutoRelease<IXAudio2> x2;
-		AutoVoice<IXAudio2MasteringVoice> masterVoice;
 		AutoVoice<IXAudio2SourceVoice> sourceVoice;
-		
-		AutoFree<IAudioDecoder> decoder;
+		IOSAudioVoiceCompletionHandler& completionHandler;
 
-		bool playMusic = false;
-
-		std::vector<I16StereoSample*> pcm_blocks;
-
-		volatile size_t currentIndex = 0;
-
-		enum { SAMPLES_PER_BLOCK = 4096, BEST_SAMPLE_RATE = 44100, PCM_BLOCK_COUNT = 4 };
-
-		struct StreamingVoiceCallback : public IXAudio2VoiceCallback
+		X2AudioVoice(IXAudio2& x2, const WAVEFORMATEX* format, IOSAudioVoiceCompletionHandler& refCompletionHandler): completionHandler(refCompletionHandler)
 		{
-			AudioPlayer& player;
-
-			STDMETHOD_(void, OnVoiceProcessingPassStart)(UINT32) override
-			{
-			};
-
-			STDMETHOD_(void, OnVoiceProcessingPassEnd)() override
-			{
-			};
-
-			STDMETHOD_(void, OnStreamEnd)() override
-			{
-			};
-
-			STDMETHOD_(void, OnBufferStart)(void*) override
-			{
-			};
-
-			STDMETHOD_(void, OnBufferEnd)(void*) override
-			{
-				player.QueueNextBuffer_OnAudioThread();
-			};
-
-			STDMETHOD_(void, OnLoopEnd)(void*) override
-			{
-			};
-
-			STDMETHOD_(void, OnVoiceError)(void*, HRESULT) override
-			{
-			};
-
-			StreamingVoiceCallback(AudioPlayer& refPlayer):
-				player(refPlayer)
-			{
-
-			}
-
-			virtual ~StreamingVoiceCallback()
-			{
-
-			}
-		} srcCallbacks;
-
-		void AudioThreadPopulate(I16StereoSample* samples, size_t capacity)
-		{
-			if (playMusic)
-			{
-				STREAM_STATE state;
-				decoder->GetOutput(samples, (uint32)capacity, OUT state);
-			}
+			HRESULT hr;
+			VALIDATE(hr = x2.CreateSourceVoice(&sourceVoice.src, (const WAVEFORMATEX*) format, 0, 2.0f, this));
 		}
 
-		AudioPlayer(IInstallation& ref_installation, const AudioConfig& cr_config) :
-			installation(ref_installation), config(cr_config), srcCallbacks(*this)
+		static X2AudioVoice* Create16bitStereo44100kHzVoice(IXAudio2& x2, IOSAudioVoiceCompletionHandler& completionHandler)
 		{
-			static_assert(sizeof(I16StereoSample) == 4);
-
-			HRESULT hr;
-			VALIDATE(hr = XAudio2Create(&x2, 0, XAUDIO2_DEFAULT_PROCESSOR));		
-			VALIDATE(hr = x2->CreateMasteringVoice(&masterVoice, 2, BEST_SAMPLE_RATE));
-
 			PCMWAVEFORMAT srcFormat;
 			srcFormat.wBitsPerSample = 16;
-			srcFormat.wf.nSamplesPerSec = BEST_SAMPLE_RATE;
+			srcFormat.wf.nSamplesPerSec = 44100;
 			srcFormat.wf.nChannels = 2;
-			srcFormat.wf.nBlockAlign = sizeof(I16StereoSample);
+			srcFormat.wf.nBlockAlign = sizeof(StereoSample_INT16);
 			srcFormat.wf.nAvgBytesPerSec = srcFormat.wf.nBlockAlign * srcFormat.wf.nSamplesPerSec;
 			srcFormat.wf.wFormatTag = WAVE_FORMAT_PCM;
 
-			VALIDATE(hr = x2->CreateSourceVoice(&sourceVoice, (const WAVEFORMATEX*) &srcFormat,0,2.0f,&srcCallbacks));
-
-			size_t nBytesPerBlock = SAMPLES_PER_BLOCK * sizeof(I16StereoSample);
-			pcm_blocks.resize(PCM_BLOCK_COUNT);
-			for (int i = 0; i < PCM_BLOCK_COUNT; ++i)
-			{
-				pcm_blocks[i] = (I16StereoSample*) _aligned_malloc(nBytesPerBlock, 64);
-				memset(pcm_blocks[i], 0, nBytesPerBlock);
-			}
-
-			thread = OS::CreateRococoThread(this, 0);
-			thread->Resume();
+			return new X2AudioVoice(x2, (const WAVEFORMATEX*)&srcFormat, completionHandler);
 		}
 
-		~AudioPlayer()
-		{
-			thread = nullptr;
-
-			for (int i = 0; i < PCM_BLOCK_COUNT; ++i)
-			{
-				_aligned_free(pcm_blocks[i]);
-			}
-		}
-
-		void SetMusic(const fstring& filename) override
-		{
-			if (filename.length == 0)
-			{
-				Throw(0, "%s blank filename", __FUNCTION__);
-			}
-
-			if (!EndsWith(filename, ".mp3"))
-			{
-				Throw(0, "%s(%s) filename must end with .mp3", __FUNCTION__, filename.buffer);
-			}
-
-			ValidateThread();
-
-			WideFilePath sysPath;
-			installation.ConvertPingPathToSysPath(filename, sysPath);
-
-			if (!decoder)
-			{
-				decoder = Audio::CreateAudioDecoder_MP3_to_Stereo_16bit_int(SAMPLES_PER_BLOCK);
-			}
-
-			decoder->StreamInputFile(sysPath);
-
-			playMusic = true;
-		}
-
-		void ValidateThread()
-		{
-			int err;
-			cstr msg = thread->GetErrorMessage(err);
-			if (msg)
-			{
-				Throw(err, "XAudio2: Thread error: %s.\n%s", msg, GetX2Err(err));
-			}
-		}
-
-		void Free() override
-		{
-			double dt_max = maxTicks / (double)OS::CpuHz();
-			double dt_min = minTicks / (double)OS::CpuHz();
-			delete this;
-		}
-
-		uint32 ProcessAudio_OnAudioThread(I16StereoSample* outputBuffer)
-		{
-			if (playMusic)
-			{
-				STREAM_STATE state;
-				return decoder->GetOutput(outputBuffer, SAMPLES_PER_BLOCK, OUT state);
-			}
-
-			return SAMPLES_PER_BLOCK;
-		}
-
-		OS::ticks maxTicks = 0;
-		OS::ticks minTicks = 0x7FFFFFFF0000FFFF;
-
-		void QueueNextBuffer_OnAudioThread()
+		void QueueSample(const uint8* buffer, uint32 nBytesInBuffer, uint32 beginAt, uint32 nSamplesToPlay) override
 		{
 			OS::ticks start = OS::CpuTicks();
 
 			XAUDIO2_BUFFER x2buffer = { 0 };
-			x2buffer.AudioBytes = (UINT32)(SAMPLES_PER_BLOCK * sizeof(I16StereoSample));
-			x2buffer.pAudioData = (const BYTE*)pcm_blocks[currentIndex];
+			x2buffer.AudioBytes = nBytesInBuffer;
+			x2buffer.pAudioData = buffer;
 			x2buffer.PlayBegin = 0;
-			x2buffer.PlayLength = ProcessAudio_OnAudioThread(pcm_blocks[currentIndex]);
-
-			currentIndex = (currentIndex + 1) % PCM_BLOCK_COUNT;
+			x2buffer.PlayLength = nSamplesToPlay;
 
 			HRESULT hr;
 			VALIDATE(hr = sourceVoice->SubmitSourceBuffer(&x2buffer));
-
-			OS::ticks dt = OS::CpuTicks() - start;
-
-			maxTicks = max(dt, maxTicks);
-			minTicks = min(dt, minTicks);
 		}
 
-		uint32 RunThread(OS::IThreadControl& tc) override
+		void StartPulling()
 		{
-			tc.SetRealTimePriority();
-
-			try
-			{
-				return RunThreadProtected(tc);
-			}
-			catch (IException&)
-			{
-				throw;
-			}
+			sourceVoice->Start();
 		}
 
-		uint32 RunThreadProtected(OS::IThreadControl& tc)
+		void Stop()
+		{
+			sourceVoice->Stop();
+		}
+
+		~X2AudioVoice()
+		{
+
+
+		}
+
+		void Free() override
+		{
+			delete this;
+		}
+
+		STDMETHOD_(void, OnVoiceProcessingPassStart)(uint32) override
+		{
+		};
+
+		STDMETHOD_(void, OnVoiceProcessingPassEnd)() override
+		{
+		};
+
+		STDMETHOD_(void, OnStreamEnd)() override
+		{
+		};
+
+		STDMETHOD_(void, OnBufferStart)(void*) override
+		{
+		};
+
+		STDMETHOD_(void, OnBufferEnd)(void*) override
+		{
+			completionHandler.OnSampleComplete(*this);
+		};
+
+		STDMETHOD_(void, OnLoopEnd)(void*) override
+		{
+		};
+
+		STDMETHOD_(void, OnVoiceError)(void*, HRESULT) override
+		{
+		};
+	};
+
+	struct X2Audio : IOSAudioAPISupervisor
+	{
+		AutoRelease<IXAudio2> x2;
+		AutoVoice<IXAudio2MasteringVoice> masterVoice;
+
+		X2Audio()
 		{
 			HRESULT hr;
+			VALIDATE(hr = XAudio2Create(&x2, 0, XAUDIO2_DEFAULT_PROCESSOR));
+			VALIDATE(hr = x2->CreateMasteringVoice(&masterVoice, 2, 44100));
+		}
 
-			VALIDATE(hr = sourceVoice->Start());
-			QueueNextBuffer_OnAudioThread();
+		void Free() override
+		{
+			delete this;
+		}
 
-			while (tc.IsRunning())
-			{
-				tc.SleepUntilAysncEvent(1000);
-			}
+		void TranslateErrorCode(int errCode, char* msg, size_t capacity) override
+		{
+			cstr err = GetX2Err(errCode);
+			CopyString(msg, capacity, err);
+		}
 
-			VALIDATE(hr = sourceVoice->Stop());
-
-			return 0;
+		IOSAudioVoiceSupervisor* Create16bitStereo44100kHzVoice(IOSAudioVoiceCompletionHandler& completionHandler) override
+		{
+			return X2AudioVoice::Create16bitStereo44100kHzVoice(*x2, completionHandler);
 		}
 	};
 }
 
 namespace Rococo::Audio
 {
-	IAudioSupervisor* CreateAudioSupervisor(IInstallation& installation, const AudioConfig& config)
+	IOSAudioAPISupervisor* CreateOSAudio()
 	{
-		return new AudioPlayer(installation, config);
+		return new X2Audio();
 	}
 }

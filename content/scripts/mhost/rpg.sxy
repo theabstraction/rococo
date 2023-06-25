@@ -416,7 +416,7 @@
 	(IRendererConfig rc (RendererConfig))
 	
 	(IAudio audio (GetAudio))
-	(audio.SetMusic "!music/intro.mp3")
+	(audio.SetMP3Music "!music/intro.mp3")
 	
 	(SampleStateDef fontDef)
 	(fontDef.method = (#SampleMethodLinear))

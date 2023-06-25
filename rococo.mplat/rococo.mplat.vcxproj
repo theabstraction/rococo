@@ -115,6 +115,7 @@
   <ItemGroup>
     <ClCompile Include="mplat.archive.cpp" />
     <ClCompile Include="mplat.audio.decoders.cpp" />
+    <ClCompile Include="mplat.audio.player.cpp" />
     <ClCompile Include="mplat.audio.X2.cpp" />
     <ClCompile Include="mplat.bloody.cpp" />
     <ClCompile Include="mplat.component.template.cpp">
