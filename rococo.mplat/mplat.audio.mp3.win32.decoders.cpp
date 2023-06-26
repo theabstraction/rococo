@@ -25,14 +25,14 @@ using namespace Rococo::Strings;
 
 namespace
 {
-	void WriteSilence(Audio::I16StereoSample* samples, const uint32 sampleCount)
+	void WriteSilence(Audio::StereoSample_INT16* samples, const uint32 sampleCount)
 	{
-		memset(samples, 0, sizeof(I16StereoSample) * sampleCount);
+		memset(samples, 0, sizeof(StereoSample_INT16) * sampleCount);
 	}
 
-	void CopyData(I16StereoSample* __restrict output, const LPBYTE __restrict input, uint32 nSamples)
+	void CopyData(StereoSample_INT16* __restrict output, const LPBYTE __restrict input, uint32 nSamples)
 	{
-		memcpy(output, input, nSamples * sizeof I16StereoSample);
+		memcpy(output, input, nSamples * sizeof StereoSample_INT16);
 	}
 
 	// https://docs.microsoft.com/en-us/windows/win32/medfound/uncompressed-audio-media-types
@@ -372,7 +372,7 @@ namespace
 			VALIDATE(hr = MFCreateMemoryBuffer(MAX_MP3_SIZE, &mp3Buffer));
 			VALIDATE(hr = MFCreateSample(&mp3Sample));
 			VALIDATE(hr = mp3Sample->AddBuffer(mp3Buffer));
-			VALIDATE(hr = MFCreateMemoryBuffer(outputSampleDelta * sizeof(I16StereoSample), &pcmBuffer));
+			VALIDATE(hr = MFCreateMemoryBuffer(outputSampleDelta * sizeof(StereoSample_INT16), &pcmBuffer));
 			VALIDATE(hr = MFCreateSample(&outputSample));
 			VALIDATE(hr = outputSample->AddBuffer(pcmBuffer));
 
@@ -499,7 +499,7 @@ namespace
 			return 0;
 		}
 
-		uint32 Write_MP3ToPCM_AudioThread(I16StereoSample* output, uint32 nSamples, STREAM_STATE& state)
+		uint32 Write_MP3ToPCM_AudioThread(StereoSample_INT16* output, uint32 nSamples, STREAM_STATE& state)
 		{
 			MFT_OUTPUT_DATA_BUFFER buffer;
 			buffer.dwStreamID = outputId;
@@ -527,7 +527,7 @@ namespace
 			DWORD maxLen, currentLen;
 			pcmBuffer->Lock(&pPCMData, &maxLen, &currentLen);
 
-			DWORD nSamplesToRead = currentLen / sizeof(I16StereoSample);
+			DWORD nSamplesToRead = currentLen / sizeof(StereoSample_INT16);
 
 			CopyData(output, pPCMData, min(nSamplesToRead, nSamples));
 
@@ -549,7 +549,7 @@ namespace
 			return nSamplesToRead;
 		}
 
-		uint32 GetOutput(I16StereoSample* output, uint32 nSamples, STREAM_STATE& state) override
+		uint32 GetOutput(StereoSample_INT16* output, uint32 nSamples, STREAM_STATE& state) override
 		{
 			struct AutoInc
 			{
@@ -577,6 +577,11 @@ namespace
 			}
 
 			// AutoInc => lock is now even
+		}
+
+		bool HasOutput() const override
+		{
+			return isStreaming;
 		}
 
 		void Free() override

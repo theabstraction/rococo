@@ -7,15 +7,46 @@ namespace Rococo::Audio
 		virtual void Free() = 0;
 	};
 
+	ROCOCO_INTERFACE IOSAudioVoice
+	{
+		virtual void QueueSample(const uint8* buffer, uint32 nBytesInBuffer, uint32 beginAt, uint32 nSamplesToPlay) = 0;
+		virtual void StartPulling() = 0;
+		virtual void Stop() = 0;
+	};
+
+	ROCOCO_INTERFACE IOSAudioVoiceCompletionHandler
+	{
+		virtual void OnSampleComplete(IOSAudioVoice& voice) = 0;
+	};
+
+	ROCOCO_INTERFACE IOSAudioVoiceSupervisor : IOSAudioVoice
+	{
+		virtual void Free() = 0;
+	};
+
+	ROCOCO_INTERFACE IOSAudioAPI
+	{
+		// Turn an audio API error code passed in audio exceptions into an error message. The buffer is filled up to the capacity, truncated and terminated will a nul character
+		virtual void TranslateErrorCode(int errCode, char* msg, size_t capacity) = 0;
+		virtual IOSAudioVoiceSupervisor* Create16bitStereo44100kHzVoice(IOSAudioVoiceCompletionHandler& completionHandler) = 0;
+	};
+
+	ROCOCO_INTERFACE IOSAudioAPISupervisor : IOSAudioAPI
+	{
+		virtual void Free() = 0;
+	};
+
+	IOSAudioAPISupervisor* CreateOSAudio();
+
 	struct AudioConfig
 	{
 		int unused;
 	};
 
-	IAudioSupervisor* CreateAudioSupervisor(IInstallation& installation, const AudioConfig& config);
+	IAudioSupervisor* CreateAudioSupervisor(IInstallation& installation, IOSAudioAPI& osAPI, const AudioConfig& config);
 
 #pragma pack(push,1)
-	struct I16StereoSample
+	struct StereoSample_INT16
 	{
 		int16 left;
 		int16 right;
@@ -24,7 +55,7 @@ namespace Rococo::Audio
 
 	struct PCMStereo
 	{
-		const I16StereoSample* samples;
+		const StereoSample_INT16* samples;
 		const uint32 sampleCount;
 	};
 
@@ -39,7 +70,8 @@ namespace Rococo::Audio
 	ROCOCO_INTERFACE IAudioDecoder
 	{
 		// Consumer periodically calls GetOutput, fills in the sample buffer and returns the number of samples written
-		virtual uint32 GetOutput(I16StereoSample* samples, uint32 nSamples, OUT STREAM_STATE& state) = 0;
+		virtual uint32 GetOutput(StereoSample_INT16* samples, uint32 nSamples, OUT STREAM_STATE& state) = 0;
+		virtual bool HasOutput() const = 0;
 		virtual void StreamInputFile(const wchar_t* sysPath) = 0;
 		virtual void Free() = 0;
 	};

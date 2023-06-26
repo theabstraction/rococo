@@ -320,7 +320,8 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	OutputDebugStringA("\n\n");
 
 	Audio::AudioConfig audio_config{};
-	AutoFree<Audio::IAudioSupervisor> audio = Audio::CreateAudioSupervisor(*installation, audio_config);
+	AutoFree<Audio::IOSAudioAPISupervisor> osAudio = Audio::CreateOSAudio();
+	AutoFree<Audio::IAudioSupervisor> audio = Audio::CreateAudioSupervisor(*installation, *osAudio, audio_config);
 	AutoFree<Rococo::Entities::IRigs> rigs = Rococo::Entities::CreateRigBuilder();
 	AutoFree<Graphics::IMeshBuilderSupervisor> meshes = Graphics::CreateMeshBuilder(mainWindow->Renderer());
 

@@ -120,7 +120,7 @@
 	(as.cpp Rococo.Audio.IAudio "mplat")
 	(context factory Rococo.Audio.IAudio)
 	(methods
-		(SetMusic (IString musicFile))
+		(SetMP3Music (IString mp3musicPingPath))
 	)
 
 	(factory Rococo.Audio.GetAudio)
