@@ -310,6 +310,32 @@ namespace
 		return true;
 	}
 
+	IMFTransform* CreateMP32TransformerWith1InputAnd1OutputStream()
+	{
+		HRESULT hr;
+
+		IMFTransform* transform = nullptr;
+
+		VALIDATE(hr = CoCreateInstance(
+			CLSID_CMP3DecMediaObject,
+			NULL,
+			CLSCTX_INPROC_SERVER,
+			IID_IMFTransform,
+			(LPVOID*)&transform
+		));
+
+		DWORD inputStreamCount, outputStreamCount;
+		VALIDATE(hr = transform->GetStreamCount(&inputStreamCount, &outputStreamCount));
+
+		if (inputStreamCount != 1 || outputStreamCount != 1)
+		{
+			transform->Release();
+			Throw(hr, "%s: IMFTransform->GetStreamCount() expected {1,1} result ", __FUNCTION__);
+		}
+
+		return transform;
+	}
+
 	struct AudioDecoder : IAudioDecoder, OS::IThreadJob
 	{
 		enum { MAX_MP3_SIZE = 100_megabytes };
@@ -340,25 +366,9 @@ namespace
 
 		AudioDecoder(uint32 outputSampleDelta)
 		{
-			HRESULT hr;
+			transform = CreateMP32TransformerWith1InputAnd1OutputStream();
 			
-			VALIDATE(hr = CoCreateInstance(
-				CLSID_CMP3DecMediaObject,
-				NULL,
-				CLSCTX_INPROC_SERVER,
-				IID_IMFTransform,
-				(LPVOID*) &transform
-			));
-
-			DWORD inputStreamCount, outputStreamCount;
-			VALIDATE(hr = transform->GetStreamCount(&inputStreamCount, &outputStreamCount));
-
-			if (inputStreamCount != 1 || outputStreamCount != 1)
-			{
-				Throw(hr, "%s: IMFTransform->GetStreamCount() expected {1,1} result ", __FUNCTION__);
-			}
-
-			hr = transform->GetStreamIDs(1, &inputId, 1, &outputId);
+			HRESULT hr = transform->GetStreamIDs(1, &inputId, 1, &outputId);
 			if (hr == E_NOTIMPL)
 			{
 				inputId = 0;
@@ -406,10 +416,10 @@ namespace
 			}
 
 			MFT_INPUT_STREAM_INFO inputInfo;
-			VALIDATE(hr = transform->GetInputStreamInfo(0, &inputInfo));
+			VALIDATE(hr = transform->GetInputStreamInfo(inputId, &inputInfo));
 
 			MFT_OUTPUT_STREAM_INFO outputInfo;
-			VALIDATE(hr = transform->GetOutputStreamInfo(0, &outputInfo));
+			VALIDATE(hr = transform->GetOutputStreamInfo(outputId, &outputInfo));
 
 			thread = OS::CreateRococoThread(this, 0);
 			thread->Resume();
@@ -589,6 +599,162 @@ namespace
 			delete this;
 		}
 	};
+
+	struct MP3Loader : IMP3LoaderSupervisor
+	{
+		IInstallation& installation;
+		AutoRelease<IMFTransform> transformer; 
+		AutoRelease<IMFMediaBuffer> mp3Buffer;
+		AutoRelease<IMFSample> mp3Sample;
+		AutoRelease<IMFSample> outputSample;
+		AutoRelease<IMFMediaBuffer> pcmBuffer;
+
+		DWORD inputId;
+		DWORD outputId;
+
+		int nChannels;
+
+		MP3Loader(IInstallation& refInstallation, int localChannels) : installation(refInstallation), nChannels(localChannels)
+		{
+			transformer = CreateMP32TransformerWith1InputAnd1OutputStream();
+
+			HRESULT hr;
+
+			enum { MAX_MP3_SIZE = 4_megabytes };
+			VALIDATE(hr = MFCreateMemoryBuffer(MAX_MP3_SIZE, &mp3Buffer));
+
+			hr = transformer->GetStreamIDs(1, &inputId, 1, &outputId);
+			if (hr == E_NOTIMPL)
+			{
+				inputId = 0;
+				outputId = 0;
+			}
+			else if FAILED(hr)
+			{
+				Throw(hr, "%s: transform->GetStreamIDs(1, &inputId, 1, &outputId);", __FUNCTION__);
+			}
+
+			VALIDATE(hr = MFCreateSample(&mp3Sample));
+			VALIDATE(hr = mp3Sample->AddBuffer(mp3Buffer));
+
+			AutoRelease<IMFMediaType> outputType;
+			CreatePCMAudioType(44100, 16, nChannels, &outputType);
+
+			AutoRelease<IMFMediaType> inputType;
+			CreateMP3AudioType(44100, nChannels, &inputType);
+
+			VALIDATE(hr = transformer->SetInputType(inputId, inputType, 0));
+
+			for (UINT typeIndex = 0; ; ++typeIndex)
+			{
+				AutoRelease<IMFMediaType> optType;
+				hr = transformer->GetOutputAvailableType(outputId, typeIndex, &optType);
+				if FAILED(hr)
+				{
+					Throw(hr, "%s: (MP3 to PCM) transform->GetOutputAvailableType(outputId, typeIndex, optType) failed", __FUNCTION__);
+				}
+
+				if (IsPCM_Stereo(*optType, 44100))
+				{
+					hr = transformer->SetOutputType(outputId, optType, 0);
+					if FAILED(hr)
+					{
+						Throw(hr, "%s: (MP3 to PCM) transform->SetOutputType(0, outputType, 0)", __FUNCTION__);
+					}
+
+					break;
+				}
+			}
+
+			MFT_INPUT_STREAM_INFO inputInfo;
+			VALIDATE(hr = transformer->GetInputStreamInfo(inputId, &inputInfo));
+
+			MFT_OUTPUT_STREAM_INFO outputInfo;
+			VALIDATE(hr = transformer->GetOutputStreamInfo(outputId, &outputInfo));
+
+			VALIDATE(hr = MFCreateMemoryBuffer(4410 * sizeof(int16) * nChannels, &pcmBuffer));
+			VALIDATE(hr = MFCreateSample(&outputSample));
+			VALIDATE(hr = outputSample->AddBuffer(pcmBuffer));
+		}
+
+		uint32 DecodeMP3(cstr pingPath, IPCMAudioBufferManager& audioBufferManager) override
+		{
+			WideFilePath sysPath;
+			installation.ConvertPingPathToSysPath(pingPath, OUT sysPath);
+
+			PopulateMediaBufferWithFileData(sysPath, *mp3Buffer);
+
+			DWORD length = 0;
+			mp3Buffer->GetCurrentLength(&length);
+
+			// Assume 11:1 compression ratio. Increase ratio to 12 to try to minimize resizing
+			DWORD approxDecompressedSize = (length * 12) & (0xFFFFFF00);
+
+			audioBufferManager.PCMBuffer().Resize(approxDecompressedSize);
+
+			HRESULT hr;
+			VALIDATE(hr = transformer->ProcessMessage(MFT_MESSAGE_COMMAND_FLUSH, 0));
+			VALIDATE(hr = transformer->ProcessInput(inputId, mp3Sample, 0));
+
+			audioBufferManager.Accept(AudioBufferDescriptor{ 16, 1 });
+			
+			auto& targetBuffer = audioBufferManager.PCMBuffer();
+			targetBuffer.Resize(approxDecompressedSize);
+
+			uint32 cursor = 0;
+
+			int32 resizeCount = 0;
+
+			while (true)
+			{
+				MFT_OUTPUT_DATA_BUFFER buffer;
+				buffer.dwStreamID = outputId;
+				buffer.pSample = outputSample;
+				buffer.dwStatus = 0;
+				buffer.pEvents = nullptr;
+
+				DWORD status;
+				HRESULT hr = transformer->ProcessOutput(0, 1, &buffer, &status);
+
+				if (buffer.pEvents)
+				{
+					buffer.pEvents->Release();
+					buffer.pEvents = nullptr;
+				}
+
+				if FAILED(hr)
+				{
+					break;
+				}
+
+				BYTE* pPCMData;
+				DWORD maxLen, currentLen;
+				pcmBuffer->Lock(&pPCMData, &maxLen, &currentLen);
+
+				uint32 targetWriteLength = cursor + currentLen;
+				if (targetWriteLength > targetBuffer.Length())
+				{
+					targetBuffer.Resize(targetWriteLength);
+					resizeCount++;
+				}
+
+				memcpy(targetBuffer.GetData() + cursor, pPCMData, currentLen);
+				cursor += currentLen;
+
+				pcmBuffer->Unlock();	
+			}
+
+			PCMAudioLoadingMetrics metrics{ resizeCount };
+			audioBufferManager.Finalize(metrics);
+
+			return cursor;
+		}
+
+		void Free() override
+		{
+			delete this;
+		}
+	};
 }
 
 namespace Rococo::Audio
@@ -596,5 +762,10 @@ namespace Rococo::Audio
 	IAudioDecoder* CreateAudioDecoder_MP3_to_Stereo_16bit_int(uint32 nSamplesInOutput)
 	{
 		return new AudioDecoder(nSamplesInOutput);
+	}
+
+	IMP3LoaderSupervisor* CreateMP3Loader(IInstallation& installation, int32 nChannels)
+	{
+		return new MP3Loader(installation, nChannels);
 	}
 }

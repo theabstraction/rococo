@@ -71,6 +71,9 @@ namespace Rococo::OS
 		virtual cstr GetErrorMessage(int& err) const = 0;
 	};
 
+	using IdThread = int64;
+	ROCOCO_API IdThread GetCurrentThreadIdentifier();
+
 	ROCOCO_API void WakeUp(IThreadControl& thread);
 
 	ROCOCO_INTERFACE ICriticalSection

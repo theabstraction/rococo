@@ -565,6 +565,11 @@ namespace Rococo::OS
 		thread.QueueAPC(ANON::WakeUp, nullptr);
 	}
 
+	ROCOCO_API IdThread GetCurrentThreadIdentifier()
+	{
+		return (IdThread) GetCurrentThreadId();
+	}
+
 	ROCOCO_API IThreadSupervisor* CreateRococoThread(IThreadJob* job, uint32 stacksize)
 	{
 		struct Supervisor;

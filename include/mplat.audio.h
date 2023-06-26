@@ -1,7 +1,51 @@
 #pragma once
 
+#include <rococo.types.h>
+#include <../rococo.mplat/mplat.sxh.h>
+
 namespace Rococo::Audio
 {
+	ROCOCO_INTERFACE IAudioSample
+	{
+		// The key or filename associated with this sample
+		virtual cstr Name() const = 0;
+	};
+
+	struct AudioBufferDescriptor
+	{
+		uint32 nChannels;
+		uint32 bitsPerChannel;
+	};
+
+	struct PCMAudioLoadingMetrics
+	{
+		int32 resizeCount;
+	};
+
+	ROCOCO_INTERFACE IPCMAudioBufferManager
+	{
+		// Requests that the audio buffer accepts the data of type specified in the descriptor
+		virtual bool Accept(const AudioBufferDescriptor & descriptor) = 0;
+		virtual IExpandingBuffer& PCMBuffer() = 0;
+		virtual void Finalize(const PCMAudioLoadingMetrics& metrics) = 0;
+	};
+
+	ROCOCO_INTERFACE IMP3LoaderSupervisor
+	{
+		// Loads the sample, fills in the decoded buffer via the audioBufferManager and returns the length of the buffer.
+		virtual uint32 DecodeMP3(cstr pingPath, IPCMAudioBufferManager& audioBufferManager) = 0;
+		virtual void Free() = 0;
+	};
+
+	IMP3LoaderSupervisor* CreateMP3Loader(IInstallation& installation, int32 nChannels);
+
+	ROCOCO_INTERFACE IAudioSampleSupervisor : IAudioSample
+	{
+		// cache is called in the sample database thread to load the sample asynchronously from the main thread
+		virtual void Cache(IMP3LoaderSupervisor & loader) = 0;
+		virtual void Free() = 0;
+	};
+
 	ROCOCO_INTERFACE IAudioSupervisor : public IAudio
 	{
 		virtual void Free() = 0;
@@ -75,6 +119,20 @@ namespace Rococo::Audio
 		virtual void StreamInputFile(const wchar_t* sysPath) = 0;
 		virtual void Free() = 0;
 	};
+
+	ROCOCO_INTERFACE IAudioStreamer
+	{
+		virtual void Start() = 0;
+		virtual void Stop() = 0;
+		virtual void StreamCurrentBlock() = 0;
+	};
+
+	ROCOCO_INTERFACE IAudioStreamerSupervisor : IAudioStreamer
+	{
+		virtual void Free() = 0;
+	};
+
+	IAudioStreamerSupervisor* CreateStereoStreamer(IOSAudioAPI& osAudio, IAudioDecoder& refDecoder);
 
 	IAudioDecoder* CreateAudioDecoder_MP3_to_Stereo_16bit_int(uint32 nSamplesInOutput);
 }
