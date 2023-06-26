@@ -11,6 +11,19 @@ namespace Rococo::Audio
 		virtual cstr Name() const = 0;
 	};
 
+	ROCOCO_INTERFACE IAudioSampleDatabase
+	{
+		// Bind a sample to the database by ping path. The returned reference is valid until the database is cleared with a call to IAudioSampleDatabase::Clear()
+		virtual IAudioSample & Bind(cstr pingPath) = 0;
+		virtual void Clear() = 0;
+	};
+
+	ROCOCO_INTERFACE IAudioSampleDatabaseSupervisor : IAudioSampleDatabase
+	{
+		virtual void Free() = 0;
+	};
+
+
 	struct AudioBufferDescriptor
 	{
 		uint32 nChannels;

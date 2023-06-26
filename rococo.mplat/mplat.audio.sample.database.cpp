@@ -61,18 +61,6 @@ namespace
 		}
 	};
 
-	ROCOCO_INTERFACE IAudioSampleDatabase
-	{
-		// Bind a sample to the database by ping path. The returned reference is valid until the database is cleared with a call to IAudioSampleDatabase::Clear()
-		virtual IAudioSample& Bind(cstr pingPath) = 0;
-		virtual void Clear() = 0;
-	};
-
-	ROCOCO_INTERFACE IAudioSampleDatabaseSupervisor : IAudioSampleDatabase
-	{
-		virtual void Free() = 0;
-	};
-
 	struct AudioSampleDatabase: IAudioSampleDatabaseSupervisor, OS::IThreadJob
 	{
 		IInstallation& installation;
@@ -195,5 +183,8 @@ namespace
 
 namespace Rococo::Audio
 {
-
+	IAudioSampleDatabaseSupervisor* CreateAudioSampleDatabase(IInstallation& installation, int nChannels)
+	{
+		return new AudioSampleDatabase(installation, nChannels);
+	}
 }
