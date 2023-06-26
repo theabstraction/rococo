@@ -30,8 +30,6 @@ namespace
 		std::vector<StereoSample_INT16*> pcm_blocks;
 		volatile size_t currentIndex = 0;
 
-		bool isPlaying = false;
-
 		enum { SAMPLES_PER_BLOCK = 4096, BEST_SAMPLE_RATE = 44100, PCM_BLOCK_COUNT = 4 };
 	public:
 		Stereo_Streamer(IOSAudioAPI& osAudio, IAudioDecoder& refDecoder): decoder(refDecoder)
@@ -79,11 +77,8 @@ namespace
 
 			currentIndex = (currentIndex + 1) % PCM_BLOCK_COUNT;
 
-			if (isPlaying)
-			{
-				STREAM_STATE state;
-				nSamples = decoder.GetOutput(sampleBuffer, SAMPLES_PER_BLOCK, OUT state);
-			}
+			STREAM_STATE state;
+			nSamples = decoder.GetOutput(sampleBuffer, SAMPLES_PER_BLOCK, OUT state);
 
 			stereoVoice->QueueSample((uint8*)sampleBuffer, SAMPLES_PER_BLOCK * sizeof(StereoSample_INT16), 0, nSamples);
 		}
@@ -101,7 +96,6 @@ namespace
 
 		AutoFree<OS::IThreadSupervisor> thread;
 		const AudioConfig config;
-		bool playMusic = false;
 
 		// Mp3 to Stereo 44.1kHz 16-bit per channel decoder
 		AutoFree<IAudioDecoder> mp3musicStereoDecoder;
@@ -155,29 +149,15 @@ namespace
 			WideFilePath sysPath;
 			installation.ConvertPingPathToSysPath(mp3pingPath, sysPath);
 			mp3musicStereoDecoder->StreamInputFile(sysPath);
-
-			playMusic = true;
 		}
 
 		uint32 RunThread(OS::IThreadControl& tc) override
 		{
 			tc.SetRealTimePriority();
 
-			try
-			{
-				return RunThreadProtected(tc);
-			}
-			catch (IException&)
-			{
-				throw;
-			}
-		}
-
-		uint32 RunThreadProtected(OS::IThreadControl& tc)
-		{
 			musicStreamer->Start();
 			musicStreamer->StreamCurrentBlock();
-		
+
 			while (tc.IsRunning())
 			{
 				tc.SleepUntilAysncEvent(1000);

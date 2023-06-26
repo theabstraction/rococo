@@ -579,6 +579,11 @@ namespace
 			// AutoInc => lock is now even
 		}
 
+		bool HasOutput() const override
+		{
+			return isStreaming;
+		}
+
 		void Free() override
 		{
 			delete this;

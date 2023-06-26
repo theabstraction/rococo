@@ -71,6 +71,7 @@ namespace Rococo::Audio
 	{
 		// Consumer periodically calls GetOutput, fills in the sample buffer and returns the number of samples written
 		virtual uint32 GetOutput(StereoSample_INT16* samples, uint32 nSamples, OUT STREAM_STATE& state) = 0;
+		virtual bool HasOutput() const = 0;
 		virtual void StreamInputFile(const wchar_t* sysPath) = 0;
 		virtual void Free() = 0;
 	};
