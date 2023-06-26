@@ -23,6 +23,7 @@ namespace Rococo::Audio
 		virtual void Free() = 0;
 	};
 
+	IAudioSampleDatabaseSupervisor* CreateAudioSampleDatabase(IInstallation& installation, int nChannels);
 
 	struct AudioBufferDescriptor
 	{

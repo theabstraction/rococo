@@ -39,6 +39,7 @@ namespace Rococo
    namespace Audio
    {
 	   struct IAudioSupervisor;
+	   struct IAudioSampleDatabase;
    }
 
    namespace MPEditor
@@ -937,6 +938,7 @@ namespace Rococo
 	{
 		IKeyboardSupervisor& keyboard;
 		Audio::IAudio& audio;
+		Audio::IAudioSampleDatabase& samples;
 		Rococo::Joysticks::IJoystick_XBOX360& xbox360joystick;
 	};
 
