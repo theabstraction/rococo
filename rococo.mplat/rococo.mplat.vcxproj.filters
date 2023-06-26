@@ -147,7 +147,7 @@
     <ClCompile Include="mplat.audio.X2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mplat.audio.decoders.cpp">
+    <ClCompile Include="mplat.audio.mp3.win32.decoders.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="mplat.graphics.landscapes.cpp">
