@@ -113,19 +113,6 @@
 	(construct ProxyIRigBuilder pObject)
 )
 
-(interface Rococo.Audio.IAudio
-	(SetMP3Music (Sys.Type.IString mp3musicPingPath) -> )
-)
-
-(class ProxyIAudio (implements Rococo.Audio.IAudio) (Pointer hObject) (attribute not-serialized))
-	(method ProxyIAudio.Construct (Pointer hObject): (this.hObject = hObject))
-	(method ProxyIAudio.SetMP3Music (Sys.Type.IString mp3musicPingPath) ->  : (Rococo.Audio.Native.IAudioSetMP3Music this.hObject mp3musicPingPath))
-
-(factory Rococo.Audio.GetAudio Rococo.Audio.IAudio  :
-	(Pointer pObject = (Rococo.Audio.Native.GetHandleForIAudio0 ))
-	(construct ProxyIAudio pObject)
-)
-
 (interface Rococo.IKeyboard
 	(ClearActions  -> )
 	(GetVKeyFromName (Sys.Type.IString name) -> (Int32 vkCode))

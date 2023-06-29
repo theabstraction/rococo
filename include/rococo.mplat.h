@@ -38,6 +38,7 @@ namespace Rococo
 
    namespace Audio
    {
+	   struct IAudio;
 	   struct IAudioSupervisor;
 	   struct IAudioSampleDatabase;
    }

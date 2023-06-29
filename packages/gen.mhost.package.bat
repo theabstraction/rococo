@@ -3,6 +3,7 @@ cd %~dp0
 cd ..
 
 copy content\scripts\mplat_sxh.sxy packages\mhost\MHost
+copy content\scripts\rococo.audio_sxh.sxy packages\mhost\MHost
 copy content\scripts\types.sxy packages\mhost\MHost
 
 IF EXIST "bin\rococo.packager.exe" (

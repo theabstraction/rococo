@@ -1,6 +1,6 @@
-#include <rococo.mplat.h>
+#include <rococo.audio.h>
 #include <rococo.strings.h>
-#include <mplat.audio.h>
+#include <rococo.audio.h>
 #include <vector>
 
 using namespace Rococo;
@@ -80,7 +80,7 @@ namespace
 
 namespace Rococo::Audio
 {
-	IAudioStreamerSupervisor* CreateStereoStreamer(IOSAudioAPI& osAudio, IAudioDecoder& refDecoder)
+	ROCOCO_AUDIO_API IAudioStreamerSupervisor* CreateStereoStreamer(IOSAudioAPI& osAudio, IAudioDecoder& refDecoder)
 	{
 		return new Stereo_Streamer(osAudio, refDecoder);
 	}

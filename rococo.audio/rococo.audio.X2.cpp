@@ -1,26 +1,22 @@
-#include <rococo.mplat.h>
-#include <vector>
-
+#include <rococo.audio.h>
+#include <rococo.os.h>
 #include <rococo.strings.h>
-#include <mplat.audio.h>
-#include <mplat.release.h>
+#include <rococo.xaudio2.h>
 
-#include <xaudio2.h>
-
-#define VALIDATE(x)\
-{ \
-	if FAILED(x) \
-		Throw(hr, "%s: %s", __FUNCTION__, #x); \
-}
+#include <vector>
 
 using namespace Rococo;
 using namespace Rococo::Audio;
 using namespace Rococo::Strings;
 
+namespace Rococo::Audio
+{
+	IAudio3DSupervisor* CreateX3D(float speedOfSoundInMetresPerSecond, IXAudio2MasteringVoice& master);
+}
 
 namespace
 {
-	cstr GetX2Err(int x2err)
+	cstr GetX2Err(HRESULT x2err)
 	{
 		switch (x2err)
 		{
@@ -42,40 +38,6 @@ namespace
 		}
 	}
 
-	template<class T>
-	struct AutoVoice
-	{
-		T* src;
-
-		AutoVoice(): src(nullptr)
-		{
-
-		}
-
-		AutoVoice(T* pSrc) : src(pSrc)
-		{
-
-		}
-
-		~AutoVoice()
-		{
-			if (src)
-			{
-				src->DestroyVoice();
-			}
-		}
-
-		T** operator& ()
-		{
-			return &src;
-		}
-
-		T* operator ->()
-		{
-			return src;
-		}
-	};
-
 	struct X2AudioVoice : IOSAudioVoiceSupervisor, IXAudio2VoiceCallback
 	{
 		AutoVoice<IXAudio2SourceVoice> sourceVoice;
@@ -84,7 +46,20 @@ namespace
 		X2AudioVoice(IXAudio2& x2, const WAVEFORMATEX* format, IOSAudioVoiceCompletionHandler& refCompletionHandler): completionHandler(refCompletionHandler)
 		{
 			HRESULT hr;
-			VALIDATE(hr = x2.CreateSourceVoice(&sourceVoice.src, (const WAVEFORMATEX*) format, 0, 2.0f, this));
+			VALIDATE(hr, hr = x2.CreateSourceVoice(&sourceVoice.src, (const WAVEFORMATEX*) format, 0, 2.0f, this));
+		}
+
+		static X2AudioVoice* Create16bitMono44100kHzVoice(IXAudio2& x2, IOSAudioVoiceCompletionHandler& completionHandler)
+		{
+			PCMWAVEFORMAT srcFormat;
+			srcFormat.wBitsPerSample = 16;
+			srcFormat.wf.nSamplesPerSec = 44100;
+			srcFormat.wf.nChannels = 1;
+			srcFormat.wf.nBlockAlign = sizeof(MonoSample_INT16);
+			srcFormat.wf.nAvgBytesPerSec = srcFormat.wf.nBlockAlign * srcFormat.wf.nSamplesPerSec;
+			srcFormat.wf.wFormatTag = WAVE_FORMAT_PCM;
+
+			return new X2AudioVoice(x2, (const WAVEFORMATEX*)&srcFormat, completionHandler);
 		}
 
 		static X2AudioVoice* Create16bitStereo44100kHzVoice(IXAudio2& x2, IOSAudioVoiceCompletionHandler& completionHandler)
@@ -111,7 +86,7 @@ namespace
 			x2buffer.PlayLength = nSamplesToPlay;
 
 			HRESULT hr;
-			VALIDATE(hr = sourceVoice->SubmitSourceBuffer(&x2buffer));
+			VALIDATE(hr, hr = sourceVoice->SubmitSourceBuffer(&x2buffer));
 		}
 
 		void StartPulling()
@@ -173,8 +148,8 @@ namespace
 		X2Audio()
 		{
 			HRESULT hr;
-			VALIDATE(hr = XAudio2Create(&x2, 0, XAUDIO2_DEFAULT_PROCESSOR));
-			VALIDATE(hr = x2->CreateMasteringVoice(&masterVoice, 2, 44100));
+			VALIDATE(hr, hr = XAudio2Create(&x2, 0, XAUDIO2_DEFAULT_PROCESSOR));
+			VALIDATE(hr, hr = x2->CreateMasteringVoice(&masterVoice, 2, 44100));
 		}
 
 		void Free() override
@@ -188,16 +163,26 @@ namespace
 			CopyString(msg, capacity, err);
 		}
 
+		IOSAudioVoiceSupervisor* Create16bitMono44100kHzVoice(IOSAudioVoiceCompletionHandler& completionHandler) override
+		{
+			return X2AudioVoice::Create16bitMono44100kHzVoice(*x2, completionHandler);
+		}
+
 		IOSAudioVoiceSupervisor* Create16bitStereo44100kHzVoice(IOSAudioVoiceCompletionHandler& completionHandler) override
 		{
 			return X2AudioVoice::Create16bitStereo44100kHzVoice(*x2, completionHandler);
+		}
+
+		IAudio3DSupervisor* Create3DAPI(float speedOfSoundInMetresPerSecond) override
+		{
+			return CreateX3D(speedOfSoundInMetresPerSecond, *masterVoice);
 		}
 	};
 }
 
 namespace Rococo::Audio
 {
-	IOSAudioAPISupervisor* CreateOSAudio()
+	ROCOCO_AUDIO_API IOSAudioAPISupervisor* CreateOSAudio()
 	{
 		return new X2Audio();
 	}

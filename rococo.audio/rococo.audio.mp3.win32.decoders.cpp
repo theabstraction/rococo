@@ -1,6 +1,6 @@
-#include <rococo.mplat.h>
-#include <mplat.audio.h>
-
+#include <rococo.audio.h>
+#include <rococo.os.h>
+#include <rococo.io.h>
 #include <initguid.h>
 #include <windows.h>
 #include <Wmcodecdsp.h>
@@ -9,7 +9,7 @@
 #include <mfapi.h>
 #include <mferror.h>
 
-#include <mplat.release.h>
+#include <rococo.release.h>
 #include <rococo.strings.h>
 
 using namespace Rococo;

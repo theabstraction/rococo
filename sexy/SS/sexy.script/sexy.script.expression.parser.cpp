@@ -1886,7 +1886,7 @@ namespace Rococo
 
 			if (st == NULL)
 			{
-				ThrowTokenNotFound(decl, typeExpr.String()->Buffer, source.Name(), ("type"));
+				ThrowTokenNotFound(decl, typeExpr.String()->Buffer, source.Name(), "module");
 			}
 
 			ValidateLocalDeclarationVariable(*st, idExpr);

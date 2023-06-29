@@ -1,4 +1,5 @@
 #include <rococo.mplat.h>
+#include <rococo.audio.h>
 #include "mplat.landscapes.h"
 #include <sexy.script.h>
 #include <sexy.vm.cpu.h>
@@ -269,7 +270,7 @@ namespace Rococo
 				{
 					if (addPlatform)
 					{
-						Audio::AddNativeCalls_RococoAudioIAudio(args.ss, &platform.hardware.audio);
+						Audio::DLL_AddNativeCalls_RococoAudioIAudio(args.ss, &platform.hardware.audio);
 						Entities::AddNativeCalls_RococoEntitiesIRigBuilder(args.ss, &platform.world.rigs);
 						Graphics::AddNativeCalls_RococoGraphicsIMeshBuilder(args.ss, &platform.graphics.meshes);
 						Entities::AddNativeCalls_RococoEntitiesIInstances(args.ss, &platform.graphics.instances);

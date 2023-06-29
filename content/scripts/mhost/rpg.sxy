@@ -194,7 +194,7 @@
 		(this.credits.BeginScroll)
 
 		(IAudio audio (GetAudio))
-		(audio.SetMusic "!music/credits.mp3")
+		(audio.SetMP3Music "!music/credits.mp3")
 	)
 	
 	(if (args.menuIndex == 4)

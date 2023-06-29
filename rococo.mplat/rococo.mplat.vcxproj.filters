@@ -144,12 +144,6 @@
     <ClCompile Include="mplat.entities.animation.debug.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mplat.audio.X2.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="mplat.audio.mp3.win32.decoders.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="mplat.graphics.landscapes.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -187,15 +181,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="mplat.world.editor.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="mplat.audio.player.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="mplat.audio.streamer.stereo.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="mplat.audio.sample.database.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -249,6 +234,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\rococo.task.queue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\rococo.xaudio2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

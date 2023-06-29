@@ -1,6 +1,7 @@
-#include <rococo.mplat.h>
+#include <rococo.audio.h>
+#include <rococo.io.h>
+#include <rococo.os.h>
 #include <rococo.strings.h>
-#include <mplat.audio.h>
 #include <rococo.hashtable.h>
 #include <vector>
 #include <list>
@@ -183,7 +184,7 @@ namespace
 
 namespace Rococo::Audio
 {
-	IAudioSampleDatabaseSupervisor* CreateAudioSampleDatabase(IInstallation& installation, int nChannels)
+	ROCOCO_AUDIO_API IAudioSampleDatabaseSupervisor* CreateAudioSampleDatabase(IInstallation& installation, int nChannels)
 	{
 		return new AudioSampleDatabase(installation, nChannels);
 	}

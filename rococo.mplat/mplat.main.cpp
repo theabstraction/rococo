@@ -14,22 +14,19 @@
 #include <sexy.script.h>
 #include "mplat.panel.base.h"
 #include <rococo.ide.h>
-#include <mplat.audio.h>
+#include <rococo.audio.h>
 #include <objbase.h>
 #include <rococo.stl.allocators.h>
 #include "mplat.components.h"
 #include <rococo.gui.retained.ex.h>
 #include "mplat.editor.h"
 
-//////////////////////// XAUDIO2 and Media Foundation stuff for audio decoding ////////////////////
-#pragma comment(lib, "wmcodecdspuuid.lib")
-#pragma comment(lib, "Mfuuid.lib")
-#pragma comment(lib, "Mfplat.lib")
-
 #ifdef _DEBUG
 # pragma comment(lib, "rococo.util.ex.debug.lib")
+# pragma comment(lib, "rococo.audio.debug.lib")
 #else
 # pragma comment(lib, "rococo.util.ex.lib")
+# pragma comment(lib, "rococo.audio.lib")
 #endif
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 

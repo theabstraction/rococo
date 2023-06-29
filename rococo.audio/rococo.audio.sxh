@@ -1,0 +1,13 @@
+(config $config.xc) 
+
+(interface 
+	(as.sxy Rococo.Audio.IAudio "../content/scripts/rococo.audio")
+	(as.cpp Rococo.Audio.IAudio "rococo.audio")
+	(context factory Rococo.Audio.IAudio)
+	(methods
+		(SetMP3Music (IString mp3musicPingPath))
+		(Play3DSound (IString mp3fxPingPath)(const Vec3 worldPosition)(Int32 priority)(Int32 forceLevel))
+	)
+
+	(factory Rococo.Audio.GetAudio)
+)

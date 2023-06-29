@@ -239,7 +239,7 @@ namespace Rococo { namespace Sex
 
 	void ThrowTokenNotFound(cr_sex s, cstr item, cstr repository, cstr type)
 	{
-		Throw(s, "%s '%s' not found in %s, type, item, repository", item, repository, type);
+		Throw(s, "%s '%s' not found in %s", item, repository, type);
 	}
 
 	INamespace& AssertGetNamespace(IProgramObject& object, cr_sex s, cstr fullName)

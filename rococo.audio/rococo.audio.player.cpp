@@ -1,9 +1,11 @@
-#include <rococo.mplat.h>
+#include <rococo.audio.h>
+#include <rococo.io.h>
+#include <rococo.os.h>
 #include <rococo.strings.h>
-#include <mplat.audio.h>
 
 using namespace Rococo;
 using namespace Rococo::Audio;
+using namespace Rococo::Strings;
 
 namespace
 {
@@ -21,6 +23,9 @@ namespace
 		AutoFree<IAudioStreamerSupervisor> musicStreamer;
 
 		OS::IdThread managementThreadId;
+
+		AutoFree<IAudio3DSupervisor> audio3D;
+		AutoFree<IConcert3DSupervisor> concert;
 	public:
 		AudioPlayer(IInstallation& refInstallation, IOSAudioAPI& ref_osAPI, const AudioConfig& refConfig): installation(refInstallation), osAPI(ref_osAPI), config(refConfig)
 		{
@@ -32,6 +37,9 @@ namespace
 			mp3musicStereoDecoder = Audio::CreateAudioDecoder_MP3_to_Stereo_16bit_int(SAMPLES_PER_BLOCK);
 
 			musicStreamer = CreateStereoStreamer(osAPI, *mp3musicStereoDecoder);
+
+			float speedOfSoundMetresPerSecond = 343.0f;
+			audio3D = osAPI.Create3DAPI(speedOfSoundMetresPerSecond);
 
 			thread = OS::CreateRococoThread(this, 0);
 			thread->Resume();
@@ -73,6 +81,11 @@ namespace
 			mp3musicStereoDecoder->StreamInputFile(sysPath);
 		}
 
+		void Play3DSound(const fstring& mp3fxPingPath, const Vec3& worldPosition, int32 priority, int32 forceLevel) override
+		{
+			
+		}
+
 		uint32 RunThread(OS::IThreadControl& tc) override
 		{
 			tc.SetRealTimePriority();
@@ -94,7 +107,7 @@ namespace
 
 namespace Rococo::Audio
 {
-	IAudioSupervisor* CreateAudioSupervisor(IInstallation& installation, IOSAudioAPI& osAPI, const AudioConfig& config)
+	ROCOCO_AUDIO_API IAudioSupervisor* CreateAudioSupervisor(IInstallation& installation, IOSAudioAPI& osAPI, const AudioConfig& config)
 	{
 		return new AudioPlayer(installation, osAPI, config);
 	}
