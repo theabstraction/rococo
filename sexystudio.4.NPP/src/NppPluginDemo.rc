@@ -14,8 +14,8 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_UK
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 4,0,0,0
- PRODUCTVERSION 4,0,0,0
+ FILEVERSION 4,3,0,0
+ PRODUCTVERSION 4,3,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -31,13 +31,13 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "CompanyName", "rococo.sexy"
-            VALUE "FileDescription", "Notepad++ Autocomplete DLL for the Sexy Scripting Language.This DLL and its source code are free and open source."
-            VALUE "FileVersion", "4.0"
+            VALUE "FileDescription", "Autocomplete DLL for the Sexy Scripting Language.This DLL and its source code are free and open source."
+            VALUE "FileVersion", "4.3.0.0"
             VALUE "InternalName", "NppPluginTemplate.dll"
-            VALUE "LegalCopyright", "Copyright 2021 Mark Anthony Taylor. Adapted from the Notepad++ plugin demo."
+            VALUE "LegalCopyright", "Copyright 2023 Mark Anthony Taylor. Adapted from the Notepad++ plugin demo."
             VALUE "OriginalFilename", "NppPluginTemplate.dll"
             VALUE "ProductName", "NppPluginTemplate"
-            VALUE "ProductVersion", "4.0"
+            VALUE "ProductVersion", "4.3.0.0"
         END
     END
     BLOCK "VarFileInfo"

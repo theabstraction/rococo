@@ -21,6 +21,9 @@
     <ClInclude Include="..\include\rococo.audio.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="rococo.audio.sxh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="rococo.audio.dllmain.cpp">
@@ -54,6 +57,9 @@
     </None>
     <None Include="config.xc">
       <Filter>Script Files</Filter>
+    </None>
+    <None Include="rococo.audio.sxh.inl">
+      <Filter>Source Files</Filter>
     </None>
   </ItemGroup>
 </Project>

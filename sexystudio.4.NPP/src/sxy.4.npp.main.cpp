@@ -15,12 +15,20 @@
 //along with this program; if not, write to the Free Software
 //Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-// Modifications to the original by Mark Anthony Taylor
+// Modifications to the original Copyright(c)2021-2023 by Mark Anthony Taylor. This DLL code, sexystudio.4.notepad++, is open source and free.
 
 #include <rococo.types.h>
 #include <rococo.strings.h>
 
-#include <rococo.libs.inl>
+#ifdef _WIN32
+# ifdef _DEBUG
+#  pragma comment(lib, "rococo.util.debug.lib")
+#  pragma comment(lib, "rococo.windows.debug.lib")
+# else
+#  pragma comment(lib, "rococo.util.lib")
+#  pragma comment(lib, "rococo.windows.lib")
+# endif
+#endif
 
 
 #include "PluginDefinition.h"

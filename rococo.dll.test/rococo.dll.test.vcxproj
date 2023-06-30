@@ -13,19 +13,19 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{2d73bf7b-18ae-4654-90ed-778297a1bf30}</ProjectGuid>
-    <RootNamespace>rococoaudio</RootNamespace>
+    <ProjectGuid>{ce2fb189-952a-4ebc-b3a4-fb52298f875b}</ProjectGuid>
+    <RootNamespace>rococodlltest</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -44,36 +44,26 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>$(ProjectDir)..\bin\</OutDir>
-    <IntDir>$(ProjectDir)..\temp\$(ProjectName)\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)temp\bin\</OutDir>
     <TargetName>$(ProjectName).debug</TargetName>
+    <IntDir>$(SolutionDir)temp\$(ProjectName)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>$(ProjectDir)..\bin\</OutDir>
-    <IntDir>$(ProjectDir)..\temp\$(ProjectName)\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)temp\bin\</OutDir>
+    <TargetName>$(ProjectName).debug</TargetName>
+    <IntDir>$(SolutionDir)temp\$(ProjectName)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;ROCOCOAUDIO_EXPORTS;_WINDOWS;_USRDLL;ROCOCO_AUDIO_API=__declspec(dllexport);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PrecompiledHeaderFile>
-      </PrecompiledHeaderFile>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\include\;$(ProjectDir)..\sexy\Common\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableUAC>false</EnableUAC>
-      <ImportLibrary>$(ProjectDir)..\lib\$(TargetName).lib</ImportLibrary>
-      <AdditionalLibraryDirectories>..\lib\</AdditionalLibraryDirectories>
     </Link>
-    <PreBuildEvent>
-      <Command>$(SolutionDir)bin\sexy.bennyhill.debug.exe $(ProjectDir) rococo.audio.sxh null</Command>
-    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -81,45 +71,18 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;ROCOCOAUDIO_EXPORTS;_WINDOWS;_USRDLL;ROCOCO_AUDIO_API=__declspec(dllexport);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PrecompiledHeaderFile>
-      </PrecompiledHeaderFile>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\include\;$(ProjectDir)..\sexy\Common\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableUAC>false</EnableUAC>
-      <ImportLibrary>$(ProjectDir)..\lib\$(ProjectName).lib</ImportLibrary>
-      <AdditionalLibraryDirectories>..\lib\</AdditionalLibraryDirectories>
     </Link>
-    <PreBuildEvent>
-      <Command>$(SolutionDir)bin\sexy.bennyhill.exe $(ProjectDir) rococo.audio.sxh null</Command>
-    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\rococo.audio.h" />
-    <ClInclude Include="rococo.audio.sxh.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="rococo.audio.3D-world.cpp" />
-    <ClCompile Include="rococo.audio.dllmain.cpp" />
-    <ClCompile Include="rococo.audio.mp3.win32.decoders.cpp" />
-    <ClCompile Include="rococo.audio.player.cpp" />
-    <ClCompile Include="rococo.audio.sample.database.cpp" />
-    <ClCompile Include="rococo.audio.streamer.stereo.cpp" />
-    <ClCompile Include="rococo.audio.X2.cpp" />
-    <ClCompile Include="rococo.audio.X3D.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="config.xc" />
-    <None Include="rococo.audio.sxh" />
-    <None Include="rococo.audio.sxh.inl" />
+    <ClCompile Include="rococo.dll.test.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

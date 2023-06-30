@@ -130,10 +130,28 @@ void pluginInit(HANDLE hModule)
         WideFilePath pathToDLL;
         GetDllPath(pathToDLL);
 
+        WideFilePath binDirectory = pathToDLL;
+        Rococo::OS::MakeContainerDirectory(binDirectory.buf);
+
+        WideFilePath oldDirectory;
+        GetDllDirectoryW(oldDirectory.CAPACITY, oldDirectory.buf);
+
+        SetDllDirectoryW(binDirectory);
+
         hFactoryModule = LoadLibraryW(pathToDLL);
+
+        SetDllDirectoryW(oldDirectory);
+
         if (hFactoryModule == nullptr)
         {
-            Throw(GetLastError(), "Could not load library: %ls", pathToDLL.buf);
+            if (OS::IsFileExistant(pathToDLL))
+            {
+                Throw(GetLastError(), "Could not load library: %ls", pathToDLL.buf);
+            }
+            else
+            {
+                Throw(GetLastError(), "Could not load library: %ls. File appears to not exist.", pathToDLL.buf);
+            }
         }
 
         FARPROC proc = GetProcAddress(hFactoryModule, "CreateSexyStudioFactory");
