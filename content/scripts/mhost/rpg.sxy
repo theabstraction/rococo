@@ -307,11 +307,11 @@
 
 (method GameBundle.Construct : 
 	(ISpriteBuilder spriteBuilder (SpriteBuilder))
+	(spriteBuilder.Clear)
 	(spriteBuilder.AddEachSpriteInDirectory "!textures/toolbars")
 	(spriteBuilder.AddEachSpriteInDirectory "!textures/faces/male")
 	(spriteBuilder.AddEachSpriteInDirectory "!textures/faces/female")
-	(spriteBuilder.AddSprite "!portraits/painting_1.jpg")
-	
+	(spriteBuilder.AddSprite "!portraits/painting_1.jpg")	
 	(spriteBuilder.LoadAllSprites)
 	(this.spriteBuilder = spriteBuilder)
 	
@@ -423,7 +423,7 @@
 	(fontDef.u = (#SampleFilterBorder))
 	(fontDef.v = (#SampleFilterBorder))
 	(fontDef.w = (#SampleFilterBorder))
-	(fontDef.borderColour =	0 0 0 0)
+	(fontDef.borderColour = 0 0 0 0)
 	(rc.SetSampler fontDef (#SampleIndexFonts))
 
 	(SampleStateDef hqFontDef)
