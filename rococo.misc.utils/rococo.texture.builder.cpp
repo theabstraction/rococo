@@ -551,7 +551,7 @@ namespace
       {
           if (textureArray.TextureCount() != 0)
           {
-              Throw(0, "Cannot add %s to the bitmap arrays - they have already been computed");
+              Throw(0, "Cannot add %llu textures to the bitmap arrays - they have already been computed", textureArray.TextureCount());
           }
 
          int32 width = EvaluateRequiredTextureSpan(minWidth, onUpdate);

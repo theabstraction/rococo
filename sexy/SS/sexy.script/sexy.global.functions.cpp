@@ -1529,6 +1529,11 @@ namespace Rococo
 		const Rococo::uint8* pc = nullptr;
 		const Rococo::Compiler::IFunction* f;
 
+		if (stackDepth == 0)
+		{
+			debugger.ClearSourceCode();
+		}
+
 		size_t fnOffset;
 		size_t pcOffset;
 		if (Rococo::Script::GetCallDescription(sf, pc, f, fnOffset, ss, stackDepth, pcOffset) && f)

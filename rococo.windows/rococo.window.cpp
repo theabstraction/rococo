@@ -606,14 +606,14 @@ namespace Rococo
 			case WM_ERASEBKGND:
 				OnEraseBackground(hWnd, (HDC)wParam);
 				return 0;
-         case WM_SETCURSOR:
-            return OnSetCursor(hWnd, wParam, lParam);
+			case WM_SETCURSOR:
+				return OnSetCursor(hWnd, wParam, lParam);
 			case WM_INPUT:
 				return OnInput(hWnd, wParam, lParam);
 			case WM_TIMER:
 				return OnTimer(hWnd, wParam, lParam);	
-         case WM_KEYDOWN:
-            return OnKeydown(hWnd, wParam, lParam);
+			case WM_KEYDOWN:
+				return OnKeydown(hWnd, wParam, lParam);
 			}
 			return DefWindowProc(hWnd, uMsg, wParam, lParam);
 		}

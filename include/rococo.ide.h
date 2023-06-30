@@ -51,6 +51,7 @@ namespace Rococo
 		virtual void AddDisassembly(RGBAb colour, cstr text, RGBAb bkColor = RGBAb(255,255,255), bool bringToView = false) = 0;
 		virtual void InitDisassembly(size_t codeId) = 0;
 		virtual void AddSourceCode(cstr name, cstr sourceCode) = 0;
+		virtual void ClearSourceCode() = 0;
 		virtual void Free() = 0;
 		[[nodiscard]] virtual Windows::IWindow& GetDebuggerWindowControl() = 0;
 		virtual void PopulateMemberView(Visitors::ITreePopulator& populator) = 0;

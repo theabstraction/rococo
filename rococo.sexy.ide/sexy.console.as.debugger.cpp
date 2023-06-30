@@ -175,12 +175,17 @@ struct ConsoleAsDebuggerWindow: public Rococo::IDebuggerWindow
 		SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED);
 	}
 
-	void ClearLog()
+	void ClearLog()override
 	{
 		
 	}
 
-	int Log(cstr format, ...)
+	void ClearSourceCode() override
+	{
+
+	}
+
+	int Log(cstr format, ...) override
 	{
 		HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 

@@ -161,7 +161,7 @@ namespace Rococo
 			ROCOCO_WINDOWS_API virtual LRESULT OnKeydown(HWND hWnd, WPARAM wParam, LPARAM lParam);
 			ROCOCO_WINDOWS_API virtual LRESULT OnMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 			ROCOCO_WINDOWS_API virtual LRESULT OnTimer(HWND hWnd, WPARAM wParam, LPARAM lParam);
-			ROCOCO_WINDOWS_API void OnClose(HWND hWnd);
+			ROCOCO_WINDOWS_API virtual void OnClose(HWND hWnd);
 			ROCOCO_WINDOWS_API LRESULT OnCommand(HWND hWnd, WPARAM wParam, LPARAM lParam);
 			ROCOCO_WINDOWS_API void OnEraseBackground(HWND hWnd, HDC dc);
 			ROCOCO_WINDOWS_API virtual void OnPaint(HWND hWnd, PAINTSTRUCT& ps, HDC hdc);

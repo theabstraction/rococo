@@ -70,19 +70,17 @@ MS_BUILD_CLEAN = -verbosity:minimal -t:Clean -p:Platform=x64 -p:Configuration=$(
 
 all: $(CPP_MASTER) $(MPLAT_COMPONENTS_H) $(MPLAT_SXH_H) $(HV_SXH_H) $(MHOST_SXH_H) $(EVENTS) $(SEXYSTUDIO) $(SEXY_CMD)
 	msbuild $(ROCOCO)rococo.util\rococo.util.vcxproj                 $(MSBUILD_TERSE) $(MSBUILD_PARALLEL)
+	msbuild $(ROCOCO)rococo.misc.utils\rococo.misc.utils.vcxproj  $(MSBUILD_TERSE) $(MSBUILD_PARALLEL)
 	msbuild $(DIR_GUI_RETAINED)rococo.gui.retained.vcxproj           $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
 	msbuild $(ROCOCO)dx11.renderer\dx11.renderer.vcxproj             $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
 	msbuild $(ROCOCO)rococo.fonts\fonts.vcxproj                      $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
 	msbuild $(DIR_MPLAT)rococo.mplat.vcxproj                         $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
 	msbuild $(ROCOCO)rococo.util.ex\rococo.util.ex.vcxproj			 $(MSBUILD_TERSE) $(MSBUILD_PARALLEL)
+	msbuild $(ROCOCO)rococo.sexy.ide\rococo.sexy.ide.vcxproj			$(MSBUILD_TERSE) $(MSBUILD_PARALLEL)
 	msbuild $(DIR_MPLAT_DYN)rococo.mplat.dynamic.vcxproj             $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)	
 	msbuild $(DIR_MHOST)mhost.vcxproj                                $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
 	$(ROCOCO)packages\gen.mhost.package.bat
 	msbuild $(DIR_HV)hyperverse.vcxproj								 $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
-	msbuild $(ROCOCO)sexystudio/sexystudio.vcxproj                           $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
-	msbuild $(ROCOCO)sexystudio.app/sexystudio.app.vcxproj                   $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
-	msbuild $(ROCOCO)sexystudio.test/sexystudio.test.vcxproj                 $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
-	msbuild $(ROCOCO)sexystudio.4.NPP/vs.proj/sexystudio.4.Notepad++.vcxproj $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
 
 clean: 
 	msbuild $(DIR_SEXY)sexy.sln $(MS_BUILD_CLEAN)

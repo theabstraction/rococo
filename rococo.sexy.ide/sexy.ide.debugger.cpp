@@ -226,11 +226,11 @@ namespace
 			}
 		}
 
-		virtual void OnItemSelected(int64 id, ITreeControlSupervisor& tree)
+		void OnItemSelected(int64 id, ITreeControlSupervisor& tree) override
 		{
 		}
 
-		virtual void ResetUI()
+		void ResetUI()
 		{
 			if (MessageBoxA(*dialog, "Do you wish to reset the IDE to tabs?", "Sexy Debugger IDE", MB_YESNO) == IDYES)
 			{
@@ -318,7 +318,7 @@ namespace
 			return false;
 		}
 
-		virtual void OnClose(HWND hWnd)
+		void OnClose(HWND hWnd)
 		{
 			Save();
 			ShowWindow(false, nullptr);
@@ -356,7 +356,7 @@ namespace
 			MoveWindow(*spatialManager, 0, 0, rect.right, rect.bottom, TRUE);
 		}
 
-		virtual void GetName(char name[256], IDEPANE_ID id)
+		void GetName(char name[256], IDEPANE_ID id) override
 		{
 			static std::unordered_map<IDEPANE_ID, cstr, IDEPANE_ID> idToName(
 				{
@@ -374,23 +374,23 @@ namespace
 			sb << idToName[id];
 		}
 
-		virtual IDEPANE_ID GetMigratingId()
+		IDEPANE_ID GetMigratingId() override
 		{
 			return migratingId;
 		}
 
-		virtual void SetMigratingId(IDEPANE_ID id)
+		void SetMigratingId(IDEPANE_ID id) override
 		{
 			migratingId = id;
 		}
 
-		virtual void NotifyMigration()
+		void NotifyMigration() override
 		{
 			spatialManager->NotifyMigration(migratingId);
 			migratingId = IDEPANE_ID::Invalid();
 		}
 
-		virtual IIDENode* ConstructPane(IDEPANE_ID id, IParentWindowSupervisor& parent)
+		IIDENode* ConstructPane(IDEPANE_ID id, IParentWindowSupervisor& parent) override
 		{
 			PostMessage(nullptr, WM_DEBUGGER_TABCHANGED, id.value, 0);
 
@@ -467,7 +467,7 @@ namespace
 			RGBAb background;
 		} hilight;
 
-		virtual void SetCodeHilight(cstr source, const Vec2i& start, const Vec2i& end, cstr message)
+		void SetCodeHilight(cstr source, const Vec2i& start, const Vec2i& end, cstr message) override
 		{
 			if (strcmp(message, "!") == 0)
 			{
@@ -486,7 +486,7 @@ namespace
 			return m;
 		}
 
-		void Free()
+		void Free() override
 		{
 			delete this;
 		}
@@ -499,12 +499,12 @@ namespace
 
 		std::vector<ColouredTextSegment> logSegments;
 
-		virtual void ClearLog()
+		void ClearLog() override
 		{
 			logSegments.clear();
 		}
 
-		virtual int Log(cstr format, ...)
+		int Log(cstr format, ...) override
 		{
 			char text[4096];
 			va_list args;
@@ -530,7 +530,7 @@ namespace
 			return len;
 		}
 
-		virtual void AddLogSection(RGBAb colour, cstr format, ...)
+		void AddLogSection(RGBAb colour, cstr format, ...) override
 		{
 			char text[4096];
 			va_list args;
@@ -551,7 +551,7 @@ namespace
 
 		size_t disassemblyId;
 
-		virtual void InitDisassembly(size_t id)
+		void InitDisassembly(size_t id) override
 		{
 			IIDETextWindow* report = static_cast<IIDETextWindow*>(spatialManager->FindPane(IDEPANE_ID(IDEPANE_ID_DISASSEMBLER)));
 			if (!report)
@@ -578,7 +578,7 @@ namespace
 			report->Editor().ResetContent();
 		}
 
-		virtual void AddDisassembly(RGBAb colour, cstr text, RGBAb bkColor, bool bringToView)
+		void AddDisassembly(RGBAb colour, cstr text, RGBAb bkColor, bool bringToView) override
 		{
 			IIDETextWindow* report = static_cast<IIDETextWindow*>(spatialManager->FindPane(IDEPANE_ID(IDEPANE_ID_DISASSEMBLER)));
 			if (report)
@@ -630,7 +630,7 @@ namespace
 			}
 		}
 
-		virtual Windows::IWindow& GetDebuggerWindowControl()
+		Windows::IWindow& GetDebuggerWindowControl() override
 		{
 			return *dialog;
 		}
@@ -640,7 +640,7 @@ namespace
 			return isVisible;
 		}
 
-		virtual void ShowWindow(bool show, IDebugControl* debugControl)
+		void ShowWindow(bool show, IDebugControl* debugControl) override
 		{
 			if (isVisible && !show)
 			{
@@ -655,7 +655,16 @@ namespace
 			this->debugControl = debugControl;
 		}
 
-		virtual void AddSourceCode(cstr name, cstr sourceCode)
+		void ClearSourceCode() override
+		{
+			IIDETextWindow* report = static_cast<IIDETextWindow*>(spatialManager->FindPane(IDEPANE_ID_SOURCE));
+			if (report)
+			{
+				report->Editor().ResetContent();
+			}
+		}
+
+		void AddSourceCode(cstr name, cstr sourceCode) override
 		{
 			IIDETextWindow* report = static_cast<IIDETextWindow*>(spatialManager->FindPane(IDEPANE_ID_SOURCE));
 			if (report)
@@ -722,7 +731,7 @@ namespace
 		}
 
 
-		virtual void PopulateCallStackView(IListPopulator& populator)
+		void PopulateCallStackView(IListPopulator& populator) override
 		{
 			IIDEReportWindow* report = static_cast<IIDEReportWindow*>(spatialManager->FindPane(IDEPANE_ID_CALLSTACK));
 			if (report)
@@ -744,7 +753,7 @@ namespace
 			}
 		}
 
-		virtual void PopulateRegisterView(IListPopulator& populator)
+		void PopulateRegisterView(IListPopulator& populator) override
 		{
 			IIDEReportWindow* report = static_cast<IIDEReportWindow*>(spatialManager->FindPane(IDEPANE_ID_REGISTER));
 			if (report)
@@ -763,7 +772,7 @@ namespace
 			}
 		}
 
-		virtual void OnSize(HWND hWnd, const Vec2i& span, RESIZE_TYPE type)
+		void OnSize(HWND hWnd, const Vec2i& span, RESIZE_TYPE type) override
 		{
 			if (type != RESIZE_TYPE_MINIMIZED)
 			{
@@ -771,17 +780,17 @@ namespace
 			}
 		}
 
-		virtual IParentWindowSupervisor& Window()
+		IParentWindowSupervisor& Window()
 		{
 			return *dialog;
 		}
 
-		virtual void Save()
+		void Save()
 		{
 			spatialManager->Save(logFont, IDE_FILE_VERSION);
 		}
 
-		virtual void Run(IDebuggerPopulator& populator, IDebugControl& debugControl)
+		void Run(IDebuggerPopulator& populator, IDebugControl& debugControl) override
 		{
 			ShowWindow(true, &debugControl);
 
