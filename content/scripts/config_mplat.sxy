@@ -28,6 +28,4 @@
 	// If  mainwindow.desktop.window.width or height are defined in the config, the main window span will only use the desktop window span as an upper limit. Uncomment the section here to manage the span yourself:
 	// (c.Int "mainwindow.desktop.window.width" 1280)
 	// (c.Int "mainwindow.desktop.window.height" 800)
-	
-	!
 )

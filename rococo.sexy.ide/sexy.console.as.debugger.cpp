@@ -1,24 +1,20 @@
+#ifdef _WIN32
+#include <rococo.os.win32.h>
+#include <wincon.h>
+#endif
+
+#include <rococo.os.h>
 #include <rococo.sexy.ide.h>
-
-#include <sexy.types.h>
-#include <sexy.compiler.public.h>
-#include <sexy.debug.types.h>
-
-#include <windows.h>
-#include <rococo.window.h>
 
 #define ROCOCO_USE_SAFE_V_FORMAT
 #include <rococo.strings.h>
 
-#include <rococo.io.h>
+#include <rococo.visitors.h>
 #include <rococo.ide.h>
-#include <rococo.os.h>
 
 using namespace Rococo;
 
-#ifdef WIN32
-#include <wincon.h>
-
+#ifdef _WIN32
 struct ConsoleColourController : Strings::IColourOutputControl
 {
 	HANDLE hConsole;
