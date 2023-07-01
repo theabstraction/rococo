@@ -205,7 +205,7 @@ struct ScriptContext : public IEventCallback<ScriptCompileArgs>, public Rococo::
 
 	IDE::EScriptExceptionFlow GetScriptExceptionFlow(cstr source, cstr message) override
 	{
-		return isRunning && isInteractive ? IDE::EScriptExceptionFlow_Retry : IDE::EScriptExceptionFlow_Terminate;
+		return isRunning && isInteractive ? IDE::EScriptExceptionFlow::Retry : IDE::EScriptExceptionFlow::Terminate;
 	}
 
 	void OnEvent(ScriptCompileArgs& ssArgs) override

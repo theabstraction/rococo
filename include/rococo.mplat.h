@@ -236,6 +236,7 @@ namespace Rococo
 	ROCOCO_INTERFACE IConfigSupervisor : public IConfig
 	{
 		virtual cstr GetText(cstr name) const = 0;
+		virtual bool TryGetInt(cstr name, int& value, int defaultValue) const = 0;
 		virtual void Free() = 0;
 	};
 
@@ -1034,6 +1035,11 @@ namespace Rococo
 {
 	struct ScriptPerformanceStats;
 
+	namespace Windows::IDE
+	{
+		enum class EScriptExceptionFlow;
+	}
+
 	namespace MPlatImpl
 	{
 		Rococo::IInstallationManagerSupervisor* CreateIMS(IInstallation& installation);
@@ -1041,6 +1047,7 @@ namespace Rococo
 		void RunBareScript(
 			ScriptPerformanceStats& stats,
 			IEventCallback<ScriptCompileArgs>& _onScriptEvent,
+			Windows::IDE::EScriptExceptionFlow flow,
 			const char* name,
 			int id,
 			Script::IScriptSystemFactory& ssf,
@@ -1051,7 +1058,9 @@ namespace Rococo
 		);
 
 		void RunMPlatConfigScript(OUT IConfig& config,
+			cstr scriptName,
 			Script::IScriptSystemFactory& ssf,
+			Windows::IDE::EScriptExceptionFlow flow,
 			IDebuggerWindow& debugger,
 			ISourceCache& sources,
 			OS::IAppControl& appControl,

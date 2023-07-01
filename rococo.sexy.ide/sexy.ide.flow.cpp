@@ -46,6 +46,11 @@ namespace
 		}
 	};
 
+	void ThrowScriptError(ParseException& ex)
+	{
+		Rococo::Throw(ex.ErrorCode(), "%s (%d,%d) to (%d,%d). %s:\r\n%s", ex.Name(), ex.Start().x, ex.Start().y, ex.End().x, ex.End().y, ex.Name(), ex.Message());
+	}
+
 	class PersistentScript : public IPersistentScript
 	{
 		ScriptLogger logger;
@@ -81,12 +86,12 @@ namespace
 
 					switch (_exceptionHandler.GetScriptExceptionFlow(ex.Name(), ex.Message()))
 					{
-					case EScriptExceptionFlow_Retry:
+					case EScriptExceptionFlow::Retry:
 						break;
 
-					case EScriptExceptionFlow_Ignore:
-					case EScriptExceptionFlow_Terminate:
-						Rococo::Throw(ex.ErrorCode(), "%s:\r\n%s", ex.Name(), ex.Message());
+					case EScriptExceptionFlow::Ignore:
+					case EScriptExceptionFlow::Terminate:
+						ThrowScriptError(ex);
 						return;
 					}
 				}
@@ -96,12 +101,12 @@ namespace
 
 					switch (_exceptionHandler.GetScriptExceptionFlow("--app--", ex.Message()))
 					{
-					case EScriptExceptionFlow_Ignore:
+					case EScriptExceptionFlow::Ignore:
 						return;
-					case EScriptExceptionFlow_Retry:
+					case EScriptExceptionFlow::Retry:
 						break;
 
-					case EScriptExceptionFlow_Terminate:
+					case EScriptExceptionFlow::Terminate:
 						Rococo::Throw(ex.ErrorCode(), "%s", ex.Message());
 						return;
 					}
@@ -130,12 +135,12 @@ namespace
 
 				switch (exceptionHandler.GetScriptExceptionFlow(ex.Name(), ex.Message()))
 				{
-				case EScriptExceptionFlow_Ignore:
+				case EScriptExceptionFlow::Ignore:
 					return;
-				case EScriptExceptionFlow_Retry:
+				case EScriptExceptionFlow::Retry:
 					break;
-				case EScriptExceptionFlow_Terminate:
-					Rococo::Throw(ex.ErrorCode(), "%s:\r\n%s", ex.Name(), ex.Message());
+				case EScriptExceptionFlow::Terminate:
+					ThrowScriptError(ex);
 					break;
 				}
 			}
@@ -145,11 +150,11 @@ namespace
 
 				switch (exceptionHandler.GetScriptExceptionFlow("--app--", ex.Message()))
 				{
-				case EScriptExceptionFlow_Ignore:
+				case EScriptExceptionFlow::Ignore:
 					return;
-				case EScriptExceptionFlow_Retry:
+				case EScriptExceptionFlow::Retry:
 					break;
-				case EScriptExceptionFlow_Terminate:
+				case EScriptExceptionFlow::Terminate:
 					Rococo::Throw(ex.ErrorCode(), "%s", ex.Message());
 					return;
 				}
@@ -171,12 +176,12 @@ namespace
 
 				switch (exceptionHandler.GetScriptExceptionFlow(ex.Name(), ex.Message()))
 				{
-				case EScriptExceptionFlow_Ignore:
+				case EScriptExceptionFlow::Ignore:
 					return;
-				case EScriptExceptionFlow_Retry:
+				case EScriptExceptionFlow::Retry:
 					break;
-				case EScriptExceptionFlow_Terminate:
-					Rococo::Throw(ex.ErrorCode(), "%s:\r\n%s", ex.Name(), ex.Message());
+				case EScriptExceptionFlow::Terminate:
+					ThrowScriptError(ex);
 					break;
 				}
 			}
@@ -186,11 +191,11 @@ namespace
 
 				switch (exceptionHandler.GetScriptExceptionFlow("--app--", ex.Message()))
 				{
-				case EScriptExceptionFlow_Ignore:
+				case EScriptExceptionFlow::Ignore:
 					return;
-				case EScriptExceptionFlow_Retry:
+				case EScriptExceptionFlow::Retry:
 					break;
-				case EScriptExceptionFlow_Terminate:
+				case EScriptExceptionFlow::Terminate:
 					Rococo::Throw(ex.ErrorCode(), "%s", ex.Message());
 					return;
 				}
@@ -273,10 +278,10 @@ namespace Rococo
 					{
 						switch (exceptionHandler.GetScriptExceptionFlow("SexyScriptSystem", logger.lastError))
 						{
-						case EScriptExceptionFlow_Ignore:
+						case EScriptExceptionFlow::Ignore:
 							return 0;
-						case EScriptExceptionFlow_Retry:
-						case EScriptExceptionFlow_Terminate:
+						case EScriptExceptionFlow::Retry:
+						case EScriptExceptionFlow::Terminate:
 							Throw(0, "Failed to create script system: %s", logger.lastError);
 						}
 					}
@@ -298,12 +303,12 @@ namespace Rococo
 
 						switch (exceptionHandler.GetScriptExceptionFlow(ex.Name(), ex.Message()))
 						{
-						case EScriptExceptionFlow_Ignore:
+						case EScriptExceptionFlow::Ignore:
 							return 0;
-						case EScriptExceptionFlow_Retry:
+						case EScriptExceptionFlow::Retry:
 							break;
-						case EScriptExceptionFlow_Terminate:
-							Throw(ex.ErrorCode(), "%s:\r\n%s", ex.Name(), ex.Message());
+						case EScriptExceptionFlow::Terminate:
+							ThrowScriptError(ex);
 							break;
 						}
 					}
@@ -324,11 +329,11 @@ namespace Rococo
 
 						switch (exceptionHandler.GetScriptExceptionFlow("--app--", ex.Message()))
 						{
-						case EScriptExceptionFlow_Ignore:
+						case EScriptExceptionFlow::Ignore:
 							return 0;
-						case EScriptExceptionFlow_Retry:
+						case EScriptExceptionFlow::Retry:
 							break;
-						case EScriptExceptionFlow_Terminate:
+						case EScriptExceptionFlow::Terminate:
 							Throw(ex.ErrorCode(), "%s", ex.Message());
 							return 0;
 						}

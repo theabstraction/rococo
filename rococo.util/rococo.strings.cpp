@@ -1288,3 +1288,53 @@ namespace Rococo
 		return a.length == b.length && Strings::StrCmpN(a.buffer, b.buffer, a.length) == 0;
 	}
 } // Rococo
+
+namespace Rococo::Strings::CLI
+{
+	ROCOCO_UTIL_API void GetCommandLineArgument(const fstring& prefix, cstr commandLine, char* buffer, size_t capacity, cstr defaultString)
+	{
+		cstr directive = strstr(commandLine, prefix);
+		if (directive == nullptr)
+		{
+			CopyString(buffer, capacity, defaultString);
+			return;
+		}
+
+		bool isQuoted = directive[prefix.length] == '\"';
+
+		Substring arg;
+		if (isQuoted)
+		{
+			arg.start = directive + prefix.length + 1;
+			cstr p = arg.start;
+			for (;;)
+			{
+				if (*p == 0 || *p == '\"')
+				{
+					arg.finish = p;
+					break;
+				}
+
+				p++;
+			}
+		}
+		else
+		{
+			arg.start = directive + prefix.length;
+			cstr p;
+			for (p = arg.start; !isblank(*p) && *p != 0; p++)
+			{
+			}
+			arg.finish = p + 1;
+		}
+
+		if (arg)
+		{
+			Rococo::Strings::CopyWithTruncate(arg, buffer, capacity);
+		}
+		else
+		{
+			CopyString(buffer, capacity, defaultString);
+		}
+	}
+}

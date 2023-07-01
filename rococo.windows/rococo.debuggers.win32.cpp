@@ -214,8 +214,17 @@ namespace Rococo
 			if (result == 0 || result == -1)
 			{
 				HRESULT hr = HRESULT_FROM_WIN32( GetLastError() );
-				if (hr != HRESULT_FROM_WIN32(NO_ERROR))
+				if (hr == HRESULT_FROM_WIN32(E_HANDLE))
 				{
+					char err[256];
+					SafeFormat(err, sizeof(err), "ShowExceptionDialog: error 0x%8.8x (App may require LoadLibraryA(\"Riched20.dll\"):\n%s", hr, ex.Message());
+
+					char file[256];
+					GetModuleFileNameA(nullptr, file, sizeof(file));
+					MessageBoxA(parent, err, file, MB_ICONERROR);
+				}
+				else if (hr != HRESULT_FROM_WIN32(NO_ERROR))
+				{					
 					char err[256];
 					SafeFormat(err, sizeof(err), "ShowExceptionDialog: error 0x%8.8x:\n%s", hr, ex.Message());
 

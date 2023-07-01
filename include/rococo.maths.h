@@ -361,6 +361,9 @@ namespace Rococo
 	inline bool operator == (Vec2 a, Vec2 b) { return a.x == b.x && a.y == b.y; }
 	inline bool operator != (Vec2 a, Vec2 b) { return !(a == b); }
 
+	inline Vec2i operator * (Vec2i a, int scalar) { return { a.x * scalar, a.y * scalar }; }
+	inline Vec2i operator * (int scalar, Vec2i a) { return { a.x * scalar, a.y * scalar }; }
+
 	/*
 
 	|i  j  k |

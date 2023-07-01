@@ -25,7 +25,7 @@ namespace Rococo
 
 		struct ExceptionDialogSpec
 		{
-			HINSTANCE dllInstance; // dll where the dialog template is defined
+			HINSTANCE dllInstance; // dll where the dialog template is defined. Ensure LoadLibraryA(TEXT("Riched20.dll")); is called if the dialog supports a rich editor box for the log view
 			int widths[5]; // column widths for the stackview
 			cstr dialogTemplate; // Typically (int) IDD_EXCEPTION_DIALOG from <rococo.win32.resources.h>
 			uint16 stackViewId; // Typically (int) IDC_STACKVIEW from <rococo.win32.resources.h>

@@ -11,7 +11,21 @@
 	
 (using Rococo)
 
+// This code is run without the visual debugger and error output will go to the console. 
+
 (function Main (Int32 id)->(Int32 exitCode):
 	(IConfig c (Config))
 	(c.Int "mplat.instances.entities.max" 1000)
+	
+	// When the main window is created, mainwindow.initial.x and mainwindow.initial.y give the delta from the top left of the window in the desktop workspace:
+	(c.Int "mainwindow.initial.x" 24)
+	(c.Int "mainwindow.initial.y" 24)
+	
+	// The main window will normally resize to the span of the desktop window less the span of the twice the border geometry - specified here:
+	(c.Int "mainwindow.desktop.border.width" 96)
+	(c.Int "mainwindow.desktop.border.height" 54)
+	
+	// If  mainwindow.desktop.window.width or height are defined in the config, the main window span will only use the desktop window span as an upper limit. Uncomment the section here to manage the span yourself:
+	// (c.Int "mainwindow.desktop.window.width" 1280)
+	// (c.Int "mainwindow.desktop.window.height" 800)
 )

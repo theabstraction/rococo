@@ -2,6 +2,7 @@
 #include <rococo.mplat.dynamic.inl>
 #include <sexy.lib.script.h>
 #include <sexy.lib.sexy-util.h>
+#include <rococo.strings.h>
 
 #include "resource.h"
 
@@ -33,6 +34,9 @@ namespace MHost
 
 int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine,_In_ int nShowCmd)
 {
+	char titleBuffer[128];
+	Rococo::Strings::CLI::GetCommandLineArgument("-title:"_fstring, lpCmdLine, titleBuffer, sizeof titleBuffer, "Rococo MHost");
+
 	struct : IDirectAppFactory
 	{
 		IDirectApp* CreateApp(Platform& e, IDirectAppControl& control) override
@@ -41,5 +45,5 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 		}
 	} factory;
 
-	return LoadPlatformDll_AndRun(hInstance, factory, "MPLAT - script host", MPLAT_LIB, nullptr, nullptr);
+	return LoadPlatformDll_AndRun(hInstance, factory, titleBuffer, MPLAT_LIB, nullptr, nullptr);
 }

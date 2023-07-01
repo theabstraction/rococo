@@ -119,6 +119,10 @@
     <ClInclude Include="..\include\rococo.variable.editor.h" />
     <ClInclude Include="..\include\rococo.visitors.h" />
     <ClInclude Include="..\include\rococo.window.h" />
+    <ClInclude Include="resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="rococo.windows.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

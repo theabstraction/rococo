@@ -20,6 +20,7 @@
 #include "mplat.components.h"
 #include <rococo.gui.retained.ex.h>
 #include "mplat.editor.h"
+#include "rococo.maths.h"
 
 #ifdef _DEBUG
 # pragma comment(lib, "rococo.util.ex.debug.lib")
@@ -275,12 +276,28 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	os->Monitor(installation->Content());
 
 	AutoFree<IDX11Logger> logger = CreateStandardOutputLogger();
+	
+	AutoFree<ISourceCache> sourceCache(CreateSourceCache(*installation));
+	Rococo::Memory::SetSexyAllocator(&sourceCache->Allocator());
+	Rococo::MPlatImpl::InitScriptSystem(*installation);
+	
+	AutoFree<Rococo::Script::IScriptSystemFactory> ssFactory = CreateScriptSystemFactory_1_5_0_0();
+	AutoFree<OS::IAppControlSupervisor> appControl(OS::CreateAppControl());
+	AutoFree<IDebuggerWindow> consoleDebugger = GetConsoleAsDebuggerWindow();
+
+	// We need config to control window settings, thus the HWND based debugger window will not be available at this time
+	RunMPlatConfigScript(*config, "!scripts/config_mplat.sxy", *ssFactory, EScriptExceptionFlow::Terminate, *consoleDebugger, *sourceCache, *appControl, nullptr);
 
 	FactorySpec factorySpec;
 	factorySpec.hResourceInstance = hInstance;
 	factorySpec.largeIcon = hLargeIcon;
 	factorySpec.smallIcon = hSmallIcon;
 	AutoFree<IDX11Factory> factory = CreateDX11Factory(*installation, *logger, factorySpec);
+
+	RECT workArea;
+	::SystemParametersInfo(SPI_GETWORKAREA, 0, &workArea, 0);
+
+	Vec2i workAreaSpan = { workArea.right - workArea.left, workArea.bottom - workArea.top };
 
 	WindowSpec ws;
 	ws.exStyle = 0;
@@ -289,27 +306,41 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	ws.hParentWnd = nullptr;
 	ws.messageSink = nullptr;
 	ws.minSpan = { 1024, 640 };
-	ws.X = CW_USEDEFAULT;
-	ws.Y = CW_USEDEFAULT;
-	ws.Width = 1152;
-	ws.Height = 700;
+
+	Vec2i initialDS;
+	config->TryGetInt("mainwindow.initial.x", initialDS.x, 24);
+	config->TryGetInt("mainwindow.initial.y", initialDS.y, 24);
+
+	// Clamp the x and y offsets so that our windows does not appear too far offscreen
+	initialDS.x = clamp(initialDS.x, 0, workAreaSpan.x - 128);
+	initialDS.y = clamp(initialDS.y, 0, workAreaSpan.y - 128);
+	ws.X = workArea.left + initialDS.x;
+	ws.Y = workArea.top + initialDS.y;
+
+	Vec2i desktopSpan = GetDesktopSpan();
+
+	Vec2i desktopBorder = { 96, 54 };
+	config->TryGetInt("mainwindow.desktop.border.width", desktopBorder.x, 96);
+	config->TryGetInt("mainwindow.desktop.border.height", desktopBorder.y, 54);
+
+	desktopBorder.x = clamp(desktopBorder.x, 0, 384);
+	desktopBorder.y = clamp(desktopBorder.y, 0, 216);
+	Vec2i windowSpan = desktopSpan - 2 * desktopBorder;
+
+	Vec2i resolvedSpan;
+	config->TryGetInt("mainwindow.desktop.window.width", resolvedSpan.x, windowSpan.x);
+	config->TryGetInt("mainwindow.desktop.window.height", resolvedSpan.y, windowSpan.y);
+	
+	ws.Width = clamp(resolvedSpan.x, 768, desktopSpan.x);
+	ws.Height = clamp(resolvedSpan.y, 432, desktopSpan.y);
 
 	AutoFree<IDX11GraphicsWindow> mainWindow = factory->CreateDX11Window(ws, true);
 	mainWindow->MakeRenderTarget();
 
 	SetWindowTextA(mainWindow->Window(), title);
 
-	AutoFree<ISourceCache> sourceCache(CreateSourceCache(*installation));
 	AutoFree<IDebuggerEventHandler> debuggerEventHandler(CreateDebuggerEventHandler(*installation, mainWindow->Window()));
-	AutoFree<OS::IAppControlSupervisor> appControl(OS::CreateAppControl());
 	AutoFree<IDebuggerWindow> debuggerWindow(CreateDebuggerWindow(mainWindow->Window(), debuggerEventHandler->GetMenuCallback(), *appControl));
-
-	Rococo::Memory::SetSexyAllocator(&sourceCache->Allocator());
-	Rococo::MPlatImpl::InitScriptSystem(*installation);
-
-	AutoFree<Rococo::Script::IScriptSystemFactory> ssFactory = CreateScriptSystemFactory_1_5_0_0();
-
-	RunMPlatConfigScript(*config, *ssFactory, *debuggerWindow, *sourceCache, *appControl, nullptr);
 
 	int32 maxEntities = config->GetInt("mplat.instances.entities.max"_fstring);
 	if (maxEntities <= 0) Throw(0, "Int32 \"mplat.instances.entities.max\" defined in '!scripts/config_mplat.sxy' was not positive");

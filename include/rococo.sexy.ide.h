@@ -16,11 +16,11 @@ namespace Rococo
 
 		namespace IDE
 		{
-			enum EScriptExceptionFlow
+			enum class EScriptExceptionFlow
 			{
-				EScriptExceptionFlow_Terminate,
-				EScriptExceptionFlow_Retry,
-				EScriptExceptionFlow_Ignore
+				Terminate,
+				Retry,
+				Ignore
 			};
 
 			ROCOCO_INTERFACE IScriptExceptionHandler

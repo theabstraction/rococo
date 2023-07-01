@@ -294,6 +294,12 @@ namespace Rococo::Strings
 	ROCOCO_API [[nodiscard]] uint32 FastHash(cstr text);
 
 	ROCOCO_API void SplitString(cstr text, size_t length, cstr seperators, IEventCallback<cstr>& onSubString);
+
+	namespace CLI
+	{
+		// Example, if prefix = '-title:' and a command line contains a substring -title:MHOST or -title:"MHOST" then string 'MHOST' will be copied to the buffer, otherwise the [defaultString] is used. Do not supply null for any argument
+		ROCOCO_API void GetCommandLineArgument(const fstring& prefix, cstr commandLine, char* buffer, size_t capacity, cstr defaultString);
+	}
 } // Rococo::Strings
 
 

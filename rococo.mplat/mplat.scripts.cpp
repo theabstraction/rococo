@@ -198,7 +198,7 @@ static void NativeEnumerateFiles(NativeCallEnvironment& nce)
 	{
 		IPublicScriptSystem* ss;
 		IInstallation* installation;
-		Rococo::Script::ArchetypeCallback callback;
+		Rococo::Script::ArchetypeCallback callback = { 0 };
 
 		wchar_t sysRoot[Rococo::IO::MAX_PATHLEN];
 
@@ -263,7 +263,7 @@ namespace Rococo
 				{
 					if (onScriptCrash) onScriptCrash->OnEvent(source);
 					platform.os.io.FireUnstable();
-					return IDE::EScriptExceptionFlow_Retry;
+					return IDE::EScriptExceptionFlow::Retry;
 				}
 
 				void OnEvent(ScriptCompileArgs& args) override
@@ -343,6 +343,7 @@ namespace Rococo
 		void RunBareScript(
 			ScriptPerformanceStats& stats,
 			IEventCallback<ScriptCompileArgs>& _onScriptEvent, 
+			IDE::EScriptExceptionFlow flow,
 			const char* name,
 			int id,
 			IScriptSystemFactory& ssf,
@@ -357,6 +358,7 @@ namespace Rococo
 				IEventCallback<ScriptCompileArgs>& onScriptEvent;
 				bool shutdownOnFail;
 				StringBuilder* declarationBuilder;
+				IDE::EScriptExceptionFlow flow;
 
 				void Free() override
 				{
@@ -365,7 +367,7 @@ namespace Rococo
 
 				IDE::EScriptExceptionFlow GetScriptExceptionFlow(cstr source, cstr message) override
 				{
-					return IDE::EScriptExceptionFlow_Retry;
+					return flow;
 				}
 
 				void OnEvent(ScriptCompileArgs& args) override
@@ -373,8 +375,8 @@ namespace Rococo
 					onScriptEvent.OnEvent(args);
 				}
 
-				ScriptContext(IEventCallback<ScriptCompileArgs>& _onScriptEvent) :
-					onScriptEvent(_onScriptEvent) {}
+				ScriptContext(IEventCallback<ScriptCompileArgs>& _onScriptEvent, IDE::EScriptExceptionFlow argFlow) :
+					onScriptEvent(_onScriptEvent), flow(argFlow) {}
 
 				void Execute(cstr name,
 					ScriptPerformanceStats stats,
@@ -401,21 +403,22 @@ namespace Rococo
 							false,
 							declarationBuilder);
 					}
-					catch (IException&)
+					catch (IException& ex)
 					{
-						throw;
+						Throw(ex.ErrorCode(), "%s: %s", name, ex.Message());
 					}
 				}
 
-			} sc(_onScriptEvent);
+			} sc(_onScriptEvent, flow);
 
 			sc.declarationBuilder = declarationBuilder;
 
 			sc.Execute(name, stats, id, ssf, debugger, sources, appControl);
 		}
 
-		void RunMPlatConfigScript(OUT IConfig& config,
+		void RunMPlatConfigScript(OUT IConfig& config, cstr scriptName,
 			Script::IScriptSystemFactory& ssf,
+			Windows::IDE::EScriptExceptionFlow flow,
 			IDebuggerWindow& debugger,
 			ISourceCache& sources,
 			OS::IAppControl& appControl,
@@ -435,7 +438,7 @@ namespace Rococo
 
 			ScriptPerformanceStats stats = { 0 };
 			RunBareScript(
-				stats, onCompile, "!scripts/config_mplat.sxy", 0,
+				stats, onCompile, flow, scriptName, 0,
 				ssf, debugger, sources, appControl, declarationBuilder
 			);
 		}

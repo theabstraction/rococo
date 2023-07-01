@@ -2962,4 +2962,14 @@ namespace Rococo::Windows
 	{
 		SendMessage(window, WM_CLOSE, 0, 0);
 	}
+
+	ROCOCO_API Vec2i GetDesktopSpan()
+	{
+		HWND hWnd = GetDesktopWindow();
+
+		RECT rect;
+		GetWindowRect(hWnd, &rect);
+
+		return { rect.right - rect.left, rect.bottom - rect.top };
+	}
 }

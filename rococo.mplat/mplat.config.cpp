@@ -8,15 +8,22 @@ namespace
 
    void ValidateKey(const fstring& name)
    {
-      Rococo::ValidateFQNameIdentifier(name);
+       try
+       {
+           Rococo::ValidateFQNameIdentifier(name);
+       }
+       catch (IException& ex)
+       {
+           Throw(ex.ErrorCode(), "Failed to validate config name: '%s'. %s", name.buffer, ex.Message());
+       }
    }
 
    struct Config : public IConfigSupervisor
    {
-      stringmap<int32> mapToInt;
-      stringmap<float> mapToFloat;
-      stringmap<boolean32> mapToBool;
-      stringmap<HString> mapToText;
+      mutable stringmap<int32> mapToInt;
+      mutable stringmap<float> mapToFloat;
+      mutable stringmap<boolean32> mapToBool;
+      mutable stringmap<HString> mapToText;
 
       void Int(const fstring& name, int32 value) override
       {
@@ -80,6 +87,23 @@ namespace
          {
             return "";
          }
+      }
+
+      bool TryGetInt(cstr name, int& value, int defaultValue) const override
+      {
+          auto i = mapToInt.find(name);
+          if (i != mapToInt.end())
+          {
+              value = i->second;
+              return true;
+          }
+          else
+          {
+              printf("Config element %s not found. Initializing to default value: %d", name, defaultValue);
+              value = defaultValue;
+              mapToInt[(cstr)name] = defaultValue;
+              return false;
+          }
       }
 
       void Free() override
