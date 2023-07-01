@@ -11,7 +11,7 @@
 	
 (using Rococo)
 
-// This code is run without the visual debugger and error output will go to the console. 
+// This code is run without the visual debugger and error output will go to the OutputDebugString handler. 
 
 (function Main (Int32 id)->(Int32 exitCode):
 	(IConfig c (Config))
