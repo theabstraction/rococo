@@ -205,6 +205,12 @@ namespace Rococo
 		void* pValue;
 	};
 
+	namespace Strings
+	{
+		struct IVarArgStringFormatter;
+		struct IColourOutputControl;
+	}
+
 	struct BoneAngles;
 
 	typedef WindowHandle WindowRef;

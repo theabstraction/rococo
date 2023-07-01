@@ -283,7 +283,24 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	
 	AutoFree<Rococo::Script::IScriptSystemFactory> ssFactory = CreateScriptSystemFactory_1_5_0_0();
 	AutoFree<OS::IAppControlSupervisor> appControl(OS::CreateAppControl());
-	AutoFree<IDebuggerWindow> consoleDebugger = GetConsoleAsDebuggerWindow();
+
+	struct OutputWindowFormatter : Strings::IVarArgStringFormatter, Strings::IColourOutputControl
+	{
+		int PrintFV(const char* format, va_list args) override
+		{
+			char buf[4096];
+			int length = SafeVFormat(buf, sizeof buf, format, args);
+			OutputDebugStringA(buf);
+			return length;
+		}
+
+		void SetOutputColour(RGBAb colour) override
+		{
+
+		}
+	} outputWindowFormatter;
+
+	AutoFree<IDebuggerWindow> consoleDebugger = GetConsoleAsDebuggerWindow(outputWindowFormatter, outputWindowFormatter);
 
 	// We need config to control window settings, thus the HWND based debugger window will not be available at this time
 	RunMPlatConfigScript(*config, "!scripts/config_mplat.sxy", *ssFactory, EScriptExceptionFlow::Terminate, *consoleDebugger, *sourceCache, *appControl, nullptr);

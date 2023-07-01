@@ -3,8 +3,6 @@
 #include <sexy.types.h>
 #include <sexy.compiler.public.h>
 #include <sexy.debug.types.h>
-#include <sexy.script.h>
-#include <Sexy.S-Parser.h>
 
 #include <windows.h>
 #include <rococo.window.h>
@@ -12,23 +10,91 @@
 #define ROCOCO_USE_SAFE_V_FORMAT
 #include <rococo.strings.h>
 
-#include <rococo.visitors.h>
-#include <commctrl.h>
-
-#include <vector>
-#include <algorithm>
-#include <unordered_map>
-
 #include <rococo.io.h>
 #include <rococo.ide.h>
 #include <rococo.os.h>
 
+using namespace Rococo;
+
+#ifdef WIN32
 #include <wincon.h>
 
-using namespace Rococo;
+struct ConsoleColourController : Strings::IColourOutputControl
+{
+	HANDLE hConsole;
+
+	ConsoleColourController(): hConsole(GetStdHandle(STD_OUTPUT_HANDLE))
+	{
+	}
+
+	void SetOutputColour(RGBAb colour) override
+	{
+		WORD attributes = 0;
+
+		if (colour.red >= 64)
+		{
+			attributes |= FOREGROUND_RED;
+		}
+
+		if (colour.green >= 64)
+		{
+			attributes |= FOREGROUND_GREEN;
+		}
+
+		if (colour.blue >= 64)
+		{
+			attributes |= FOREGROUND_BLUE;
+		}
+
+		if (colour.red >= 128 || colour.green >= 128 || colour.blue >= 128)
+		{
+			attributes |= FOREGROUND_INTENSITY;
+		}
+
+		SetConsoleTextAttribute(hConsole, attributes);
+	}
+};
+#else // Other OS's require specific implementation
+struct ConsoleColourController : Strings::IColourOutputControl
+{
+	ConsoleColourController()
+	{
+	}
+
+	void SetOutputColour(RGBAb colour) override
+	{
+	}
+};
+#endif
+
+#include <stdio.h>
+
+struct StdoutFormatter: Strings::IVarArgStringFormatter
+{
+	int PrintFV(const char* format, va_list args) override
+	{
+		return vprintf_s(format, args);
+	}
+};
 
 struct ConsoleAsDebuggerWindow: public Rococo::IDebuggerWindow
 {
+	Strings::IVarArgStringFormatter& formatter;
+	Strings::IColourOutputControl& colourControl;
+
+	ConsoleAsDebuggerWindow(Strings::IVarArgStringFormatter& refFormatter, Strings::IColourOutputControl& refColourControl): formatter(refFormatter), colourControl(refColourControl)
+	{
+
+	}
+
+	int PrintF(cstr format, ...)
+	{
+		va_list args;
+		va_start(args, format);
+
+		return formatter.PrintFV(format, args);
+	}
+
 	void AddDisassembly(RGBAb colour, cstr text, RGBAb bkColor = RGBAb(255, 255, 255), bool bringToView = false) override
 	{
 
@@ -78,10 +144,10 @@ struct ConsoleAsDebuggerWindow: public Rococo::IDebuggerWindow
 				for (cstr* p = values; *p != nullptr; p++)
 				{
 					cstr item = *p;
-					printf("%s\t", item);
+					console.PrintF("%s\t", item);
 				}
 
-				printf("\n");
+				console.PrintF("\n");
 			}
 
 			void ClearRows() override
@@ -95,17 +161,17 @@ struct ConsoleAsDebuggerWindow: public Rococo::IDebuggerWindow
 				for (cstr* p = columnNames; *p != nullptr; p++)
 				{
 					cstr item = *p;
-					nChars += printf("%s\t", item);
+					nChars += console.PrintF("%s\t", item);
 				}
 
-				printf("\n");
+				console.PrintF("\n");
 
 				for (int i = 0; i < nChars; ++i)
 				{
-					printf("-");
+					console.PrintF("-");
 				}
 
-				printf("\n");
+				console.PrintF("\n");
 			}
 
 			int NumberOfRows() const override
@@ -118,7 +184,13 @@ struct ConsoleAsDebuggerWindow: public Rococo::IDebuggerWindow
 
 			}
 
-		} consolePopulator;
+			ConsoleAsDebuggerWindow& console;
+
+			ANON(ConsoleAsDebuggerWindow& refConsole): console(refConsole)
+			{
+
+			}
+		} consolePopulator(*this);
 		populator.Populate(consolePopulator);
 	}
 
@@ -141,38 +213,14 @@ struct ConsoleAsDebuggerWindow: public Rococo::IDebuggerWindow
 
 	void AddLogSection(RGBAb colour, cstr format, ...) override
 	{
-		HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-
-		WORD attributes = 0;
-
-		if (colour.red >= 64)
-		{
-			attributes |= FOREGROUND_RED;
-		}
-
-		if (colour.green >= 64)
-		{
-			attributes |= FOREGROUND_GREEN;
-		}
-
-		if (colour.blue >= 64)
-		{
-			attributes |= FOREGROUND_BLUE;
-		}
-
-		if (colour.red >= 128 || colour.green >= 128 || colour.blue >= 128)
-		{
-			attributes |= FOREGROUND_INTENSITY;
-		}
-
-		SetConsoleTextAttribute(hConsole, attributes);
+		colourControl.SetOutputColour(colour);
 
 		va_list args;
 		va_start(args, format);
-		vprintf(format, args);
+		formatter.PrintFV(format, args);
 		va_end(args);
 
-		SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED);
+		colourControl.SetOutputColour(RGBAb(128,128,128));
 	}
 
 	void ClearLog()override
@@ -187,18 +235,16 @@ struct ConsoleAsDebuggerWindow: public Rococo::IDebuggerWindow
 
 	int Log(cstr format, ...) override
 	{
-		HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-
-		SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE | FOREGROUND_GREEN);
+		colourControl.SetOutputColour(RGBAb(0,128,128));
 
 		va_list args;
 		va_start(args, format);
-		int length = vprintf(format, args);
+		int length = formatter.PrintFV(format, args);
 		va_end(args);
 		
-		printf("\n");
+		PrintF("\n");
 
-		SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED);
+		colourControl.SetOutputColour(RGBAb(128, 128, 128));
 		
 		return length;
 	}
@@ -206,8 +252,20 @@ struct ConsoleAsDebuggerWindow: public Rococo::IDebuggerWindow
 
 namespace Rococo::Windows::IDE
 {
-	IDebuggerWindow* GetConsoleAsDebuggerWindow()
+	IDebuggerWindow* GetConsoleAsDebuggerWindow(Strings::IVarArgStringFormatter& formatter, Strings::IColourOutputControl& control)
 	{
-		return new ConsoleAsDebuggerWindow();
+		return new ConsoleAsDebuggerWindow(formatter, control);
+	}
+
+	Strings::IColourOutputControl& GetConsoleColourController()
+	{
+		static ConsoleColourController controller;
+		return controller;
+	}
+
+	Strings::IVarArgStringFormatter& GetStdoutFormatter()
+	{
+		static StdoutFormatter formatter;
+		return formatter;
 	}
 }

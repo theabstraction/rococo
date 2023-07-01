@@ -39,6 +39,14 @@ namespace Rococo::Strings
 #ifdef ROCOCO_USE_SAFE_V_FORMAT
 	ROCOCO_API int SafeVFormat(char* buffer, size_t capacity, const char* format, va_list args);
 	ROCOCO_API int SafeVFormat(wchar_t* buffer, size_t capacity, const wchar_t* format, va_list args);
+	ROCOCO_INTERFACE IVarArgStringFormatter
+	{
+		virtual int PrintFV(const char* format, va_list args) = 0;
+	};
+	ROCOCO_INTERFACE IColourOutputControl
+	{
+		virtual void SetOutputColour(RGBAb colour) = 0;
+	};
 # ifndef _WIN32
 	ROCOCO_API int sscanf_s(const char* buffer, const char* format, ...);
 # endif
