@@ -13,6 +13,7 @@
 #include <rococo.os.h>
 
 #include <rococo.debugging.h>
+#include <rococo.maths.i32.h>
 
 using namespace Rococo;
 using namespace Rococo::Windows;
@@ -51,6 +52,20 @@ namespace
 		Rococo::Throw(ex.ErrorCode(), "%s (%d,%d) to (%d,%d). %s:\r\n%s", ex.Name(), ex.Start().x, ex.Start().y, ex.End().x, ex.End().y, ex.Name(), ex.Message());
 	}
 
+	void InitDebugger(IDebuggerWindow& debugger, ParseException& ex)
+	{
+		debugger.ClearSourceCode();
+		auto* src = ex.Source();
+		if (src)
+		{
+			Vec2i start = ex.Start() - src->Tree().Source().Origin();
+			Vec2i end = ex.End() - src->Tree().Source().Origin() + Vec2i{1, 0};
+			debugger.SetCodeHilight(ex.Name(), start, end, ex.Message());
+			debugger.AddSourceCode(ex.Name(), src->Tree().Source().SourceStart());
+		}
+		LogParseException(ex, debugger);
+	}
+
 	class PersistentScript : public IPersistentScript
 	{
 		ScriptLogger logger;
@@ -82,7 +97,7 @@ namespace
 				}
 				catch (ParseException& ex)
 				{
-					LogParseException(ex, debugger);
+					InitDebugger(debugger, ex);
 
 					switch (_exceptionHandler.GetScriptExceptionFlow(ex.Name(), ex.Message()))
 					{
@@ -97,6 +112,7 @@ namespace
 				}
 				catch (IException& ex)
 				{
+					debugger.ClearSourceCode();
 					logger.debugger.Log("%s", ex.Message());
 
 					switch (_exceptionHandler.GetScriptExceptionFlow("--app--", ex.Message()))
@@ -131,7 +147,7 @@ namespace
 			}
 			catch (ParseException& ex)
 			{
-				LogParseException(ex, debugger);
+				InitDebugger(debugger, ex);
 
 				switch (exceptionHandler.GetScriptExceptionFlow(ex.Name(), ex.Message()))
 				{
@@ -146,6 +162,7 @@ namespace
 			}
 			catch (IException& ex)
 			{
+				debugger.ClearSourceCode();
 				logger.debugger.Log("%s", ex.Message());
 
 				switch (exceptionHandler.GetScriptExceptionFlow("--app--", ex.Message()))
@@ -172,7 +189,7 @@ namespace
 			}
 			catch (ParseException& ex)
 			{
-				LogParseException(ex, debugger);
+				InitDebugger(debugger, ex);
 
 				switch (exceptionHandler.GetScriptExceptionFlow(ex.Name(), ex.Message()))
 				{
@@ -187,6 +204,7 @@ namespace
 			}
 			catch (IException& ex)
 			{
+				debugger.ClearSourceCode();
 				logger.debugger.Log("Exection thrown: %s", ex.Message());
 
 				switch (exceptionHandler.GetScriptExceptionFlow("--app--", ex.Message()))
@@ -296,8 +314,8 @@ namespace Rococo
 					}
 					catch (ParseException& ex)
 					{
+						InitDebugger(debugger, ex);
 						debugger.Log("Caught exception during execution of %s", resourcePath);
-						LogParseException(ex, debugger);
 
 						//LogStack(ex, debugger);
 
@@ -314,6 +332,8 @@ namespace Rococo
 					}
 					catch (IException& ex)
 					{
+						debugger.ClearSourceCode();
+
 						if (ex.ErrorCode() != 0)
 						{
 							char errorMessage[256];

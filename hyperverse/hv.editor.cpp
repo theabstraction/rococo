@@ -189,7 +189,7 @@ namespace
 
 		void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel)  override
 		{
-			EditMode().OnMouseMove(cursorPos, delta, dWheel);
+			EditMode().OnMouseMove(cursorPos, delta, -dWheel);
 		}
 
 		void OnMouseLClick(Vec2i cursorPos, bool clickedDown)  override

@@ -114,7 +114,7 @@ namespace
           auto body = ecs.GetSkeletonComponent(idBody);
           if (!body)
           {
-              Throw(0, "The body for %s does not support a skeleton", (cstr) skeletonName);
+              body = ecs.AddSkeletonComponent(idBody);
           }
 
           body->SetSkeleton(skeletonName);
@@ -201,7 +201,7 @@ namespace
           }
       }
 
-      void GetPosition(ID_ENTITY id, Vec3& position) 
+      void GetPosition(ID_ENTITY id, Vec3& position)
       {
           auto body = ecs.GetBodyComponent(id);
           if (body)
@@ -214,12 +214,17 @@ namespace
           }
       }
 
+      void EnableAnimation(ID_ENTITY id) override
+      {
+          auto animationComponent = ecs.AddAnimationComponent(id);
+      }
+
       void AddAnimationFrame(ID_ENTITY id, const fstring& frameName, Seconds duration, boolean32 loop) override
       {
           auto animationComponent = ecs.GetAnimationComponent(id);
           if (!animationComponent)
           {
-              Throw(0, "%s no such entity with id %llu", __FUNCTION__, id.Value());
+              Throw(0, "%s: no animation component for ID_ENTITY [%d v%d]", __FUNCTION__, id.index, id.salt);
           }
 
           auto& animation = animationComponent->GetAnimation();

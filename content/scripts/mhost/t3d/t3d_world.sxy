@@ -472,6 +472,7 @@
 	
 //	(scene.AddDebugObject wormBodyId)
 
+	(instances.EnableAnimation wormBodyId)
 	(instances.AddAnimationFrame wormBodyId "worm-straight" 4 false)
 	(instances.AddAnimationFrame wormBodyId "worm-bent" 4 true)
 )

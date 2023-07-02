@@ -7774,6 +7774,20 @@ namespace
 		_offset += sizeof(entityId);
 		WriteOutput(entityId, _sf, -_offset);
 	}
+	void NativeRococoEntitiesIInstancesEnableAnimation(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		ID_ENTITY id;
+		_offset += sizeof(id);
+		ReadInput(id, _sf, -_offset);
+
+		Rococo::Entities::IInstances* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		_pObject->EnableAnimation(id);
+	}
 	void NativeRococoEntitiesIInstancesAddAnimationFrame(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
@@ -8070,6 +8084,7 @@ namespace Rococo::Entities
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesAddBody, nullptr, ("IInstancesAddBody (Pointer hObject)(Sys.Type.IString modelName)(Sys.Maths.Matrix4x4 model)(Sys.Maths.Vec3 scale)(Int64 parentId) -> (Int64 entityId)"), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesAddGhost, nullptr, ("IInstancesAddGhost (Pointer hObject)(Sys.Maths.Matrix4x4 model)(Int64 parentId) -> (Int64 entityId)"), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesAddSkeleton, nullptr, ("IInstancesAddSkeleton (Pointer hObject)(Sys.Type.IString skeleton)(Sys.Maths.Matrix4x4 model) -> (Int64 entityId)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesEnableAnimation, nullptr, ("IInstancesEnableAnimation (Pointer hObject)(Int64 id) -> "), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesAddAnimationFrame, nullptr, ("IInstancesAddAnimationFrame (Pointer hObject)(Int64 id)(Sys.Type.IString frameName)(Sys.SI.Seconds duration)(Bool loop) -> "), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesBindSkeletonToBody, nullptr, ("IInstancesBindSkeletonToBody (Pointer hObject)(Sys.Type.IString skeleton)(Int64 idBody) -> "), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeRococoEntitiesIInstancesCreateCubeTexture, nullptr, ("IInstancesCreateCubeTexture (Pointer hObject)(Sys.Type.IString folder)(Sys.Type.IString extension) -> (Int64 cubeId)"), __FILE__, __LINE__);

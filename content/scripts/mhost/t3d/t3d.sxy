@@ -162,7 +162,6 @@
 (class GameBundle (defines T3D.IBundle)
 	(ISpriteBuilder spriteBuilder)
 	(IEngine engine)
-	(ILegacySoundControl sound)
 	(IInputThread inputThread)
 	(ICoroutineControl coroutines)
 	(IWorld world)
@@ -173,7 +172,6 @@
 	(this.spriteBuilder = spriteBuilder)
 	
 	(this.engine = (Engine))
-	(this.sound = (Rococo.Audio.LegacySoundControl))
 	
 	(this.coroutines = (Coroutines))
 	
@@ -188,10 +186,6 @@
 
 (method GameBundle.Engine -> (IEngine engine):
 	(engine = this.engine)
-)
-
-(method GameBundle.Sound -> (ILegacySoundControl sound):
-	(sound = this.sound)
 )
 
 (method GameBundle.AddCoroutine -> (ICoroutine coroutine):

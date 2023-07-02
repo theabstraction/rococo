@@ -470,7 +470,7 @@ int mainProtected(int argc, char* argv[])
 	}
 	else
 	{
-		debuggerWindow = Windows::IDE::GetConsoleAsDebuggerWindow();
+		debuggerWindow = Windows::IDE::GetConsoleAsDebuggerWindow(Windows::IDE::GetStdoutFormatter(), Windows::IDE::GetConsoleColourController());
 	}
 
 	AutoFree<IScriptSystemFactory> ssFactory(CreateScriptSystemFactory_1_5_0_0());
