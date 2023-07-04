@@ -3,6 +3,7 @@
 (' #include 
 	"!scripts/mplat_types.sxy"
 	"!scripts/types.sxy"
+	"!scripts/audio_types.sxy"
 )
 
 (function Main (Int32 id)->(Int32 exitCode):

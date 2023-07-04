@@ -17,11 +17,23 @@ namespace
 		AudioBufferDescriptor descriptor = { 0,0 };
 		OS::IdThread managementThreadId = 0;
 
+		IdSample id;
+
 		AutoFree<IExpandingBuffer> sampleData;
 		uint32 sampleLength = 0;
 
-		AudioSample(cstr refName): name(refName), sampleData(CreateExpandingBuffer(0))
+		AudioSample(IdSample argId, cstr refName): name(refName), id(argId), sampleData(CreateExpandingBuffer(0))
 		{
+		}
+
+		IdSample Id() const override
+		{
+			return id;
+		}
+
+		bool IsLoaded() const override
+		{
+			return sampleLength > 0;
 		}
 
 		cstr Name() const override
@@ -68,6 +80,7 @@ namespace
 
 		stringmap<IAudioSampleSupervisor*> samples;
 		std::list<IAudioSampleSupervisor*> uncachedSamples;
+		std::vector<IAudioSampleSupervisor*> idToSample;
 
 		// Here we only use one thread for  loading samples, but we could add more and have them use the same synchronization section and run the same threadjob
 		// in which case the threads would each poll the uncachedSamples list and pop the front as needed
@@ -106,8 +119,11 @@ namespace
 			auto i = samples.find(expandedPingPath);
 			if (i == samples.end())
 			{
-				auto* s = new AudioSample(i->first);
-				i = samples.insert(expandedPingPath, s).first;
+				i = samples.insert(expandedPingPath, nullptr).first;
+				IdSample id(idToSample.size() + 1);
+				auto* s = new AudioSample(id, i->first);
+				i->second = s;
+				idToSample.push_back(s);
 
 				sync->Lock();
 				uncachedSamples.push_back(s);
@@ -115,6 +131,12 @@ namespace
 			}
 
 			return *i->second;
+		}
+
+		IAudioSample* Find(IdSample id) const
+		{
+			auto index = id.value - 1;
+			return index < idToSample.size() ? idToSample[index] : nullptr;
 		}
 
 		void StopAndClean()
@@ -148,9 +170,14 @@ namespace
 			delete this;
 		}
 
+		uint32 NumberOfChannels() const override
+		{
+			return nChannels;
+		}
+
 		uint32 RunThread(OS::IThreadControl& tc) override
 		{
-			AutoFree<IMP3LoaderSupervisor> loader(CreateMP3Loader(installation, nChannels));
+			AutoFree<IMP3LoaderSupervisor> loader(CreateSingleThreadedMP3Loader(installation, nChannels));
 
 			while (tc.IsRunning())
 			{
@@ -171,10 +198,13 @@ namespace
 					}
 					sync->Unlock();
 
-					sample->Cache(*loader);
+					if (sample)
+					{
+						sample->Cache(*loader);
+					}
 				} while (tc.IsRunning() && sample != nullptr);
 
-				tc.SleepUntilAysncEvent(1000);
+				tc.SleepUntilAysncEvent(200);
 			}
 
 			return 0;

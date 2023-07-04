@@ -20,39 +20,40 @@ namespace Rococo::Audio
 	{
 		IdInstrumentIndexType index = 0;
 		IdInstrumentSaltType salt = 0;
-		IdSample sample = 0;
+		IAudioSample* sample = nullptr;
 		int32 flags = 0; // Combination of Rococo::Audio::InstrumentFlag enumeration values
 		int priority = 0; // The higher the priority the more urgent to preserve the instrument
-		U8FilePath name; // Debugging hint, contains name or path 
 		float volume = 1.0f; // Amplitude
 		Vec3 dopplerVelocity = { 0,0,0 };
 		Vec3 worldPosition = { 0.0f, 0.0f, 0.0f };
 		
-		void Assign(cstr name, int priority)
+		void Assign(IAudioSample* sample, const AudioSource3D& source)
 		{
-			CopyString(this->name.buf, U8FilePath::CAPACITY, name);
+			this->sample = sample;
 			this->priority = priority;
 			this->flags = 0;
-			this->volume = 1.0f;
-			this->dopplerVelocity = { 0,0,0 };
-			this->worldPosition = { 0, 0, 0 };
+			this->volume = source.volume;
+			this->dopplerVelocity = source.dopplerVelocity;
+			this->worldPosition = source.position;
 		}
 	};
 
 	struct Concert3D : IConcert3DSupervisor, IConcertGoer
 	{
+		IAudioSampleDatabase& sampleDatabase;
 		Matrix4x4 worldToGoer;
 		uint32 maxVoices;
 		std::vector<IdInstrument> freeIds;
 		std::vector<InstrumentDescriptor> instruments;
 		IdInstrumentSaltType nextSalt = 1;
 
-		Concert3D(): worldToGoer(Matrix4x4::Identity()), maxVoices(255)
+		Concert3D(IAudioSampleDatabase& refSampleDatabase): 
+			sampleDatabase(refSampleDatabase),
+			worldToGoer(Matrix4x4::Identity()), maxVoices(255)
 		{
-			InitVectors();
-
-			freeIds.reserve(maxVoices);
 			instruments.resize(maxVoices);
+			freeIds.reserve(maxVoices);
+			InitVectors();		
 		}
 
 		void InitVectors()
@@ -64,7 +65,7 @@ namespace Rococo::Audio
 			{
 				i.index = counter++;
 				i.salt = nextSalt;
-				i.priority = 0x80000000;
+				i.priority = 0x00000000;
 				i.dopplerVelocity = Vec3{ 0,0,0 };
 			}
 
@@ -125,8 +126,20 @@ namespace Rococo::Audio
 			return i.salt == id.Salt() ? &i : nullptr;
 		}
 
-		IdInstrument AssignFreeInstrument(cstr name, int priority) override
+		IdInstrument AssignFreeInstrument(IdSample sampleId, const Rococo::Audio::AudioSource3D& source) override
 		{
+			IAudioSample* sample = sampleDatabase.Find(sampleId);
+
+			if (!sample)
+			{
+				Throw(0, "AssignFreeInstrument([sampleId=%lld], %d]). bad sampleId", sampleId.value, source.priority);
+			}
+
+			if (source.priority <= 0)
+			{
+				Throw(0, "AssignFreeInstrument([id=%lld], [priority=%d]). priority must be > 0", sampleId.value, source.priority);
+			}
+
 			if (freeIds.empty())
 			{
 				return IdInstrument::None();
@@ -138,7 +151,7 @@ namespace Rococo::Audio
 			auto& i = GetRef(id);
 			i.salt = id.Salt();
 
-			i.Assign(name, priority);
+			i.Assign(sample, source);
 
 			return id;
 		}
@@ -162,14 +175,26 @@ namespace Rococo::Audio
 			return id;
 		}
 
-		IdInstrument AssignInstrumentByPriority(cstr name, int priority) override
+		IdInstrument AssignInstrumentByPriority(IdSample sampleId, const Rococo::Audio::AudioSource3D& source) override
 		{
-			auto id = AssignFreeInstrument(name, priority);
+			IAudioSample* sample = sampleDatabase.Find(sampleId);
+
+			if (!sample)
+			{
+				Throw(0, "AssignInstrumentByPriority([sampleId=%lld], %d]). bad sampleId", sampleId.value, source.priority);
+			}
+
+			if (source.priority <= 0)
+			{
+				Throw(0, "AssignInstrumentByPriority([id=%lld], [priority=%d]). priority must be > 0", sampleId.value, source.priority);
+			}
+
+			auto id = AssignFreeInstrument(sampleId, source);
 			if (id) return id;
 
 			int leastPriority;
 			IdInstrument idLeastPriority = GetInstrumentWithLeastPriority(OUT leastPriority);
-			if (priority >= leastPriority)
+			if (source.priority >= leastPriority)
 			{
 				auto& i = GetRef(idLeastPriority);
 				i.salt++;
@@ -179,7 +204,7 @@ namespace Rococo::Audio
 					nextSalt = i.salt + 1;
 				}
 
-				i.Assign(name, priority);	
+				i.Assign(sample, source);
 
 				return IdInstrument(i.index, i.salt);
 			}
@@ -187,9 +212,21 @@ namespace Rococo::Audio
 			return IdInstrument::None();
 		}
 
-		IdInstrument AssignInstrumentAlways(cstr name, int priority)
+		IdInstrument AssignInstrumentAlways(IdSample sampleId, const Rococo::Audio::AudioSource3D& source)
 		{
-			IdInstrument id = AssignInstrumentByPriority(name, priority);
+			IAudioSample* sample = sampleDatabase.Find(sampleId);
+
+			if (!sample)
+			{
+				Throw(0, "AssignInstrumentAlways([sampleId=%lld], %d]). bad sampleId", sampleId.value, source.priority);
+			}
+
+			if (source.priority <= 0)
+			{
+				Throw(0, "AssignInstrumentAlways([id=%lld], [priority=%d]). priority must be > 0", sampleId.value, source.priority);
+			}
+
+			IdInstrument id = AssignInstrumentByPriority(sampleId, source);
 			if (id) return id;
 
 			int leastPriority;
@@ -203,7 +240,7 @@ namespace Rococo::Audio
 				nextSalt = i.salt + 1;
 			}
 
-			i.Assign(name, priority);
+			i.Assign(sample, source);
 
 			return IdInstrument(i.index, i.salt);
 		}
@@ -242,14 +279,14 @@ namespace Rococo::Audio
 		bool GetName(IdInstrument id, U8FilePath& name) override
 		{
 			auto* i = TryGetRef(id);
-			if (!i)
+			if (!i || !i->sample)
 			{
 				name.buf[0] = 0;
 				return false;
 			}
 			else
 			{
-				CopyString(name.buf, U8FilePath::CAPACITY, i->name);
+				CopyString(name.buf, U8FilePath::CAPACITY, i->sample->Name());
 				return true;
 			}
 		}
@@ -308,8 +345,10 @@ namespace Rococo::Audio
 			}
 		}
 
-		bool SetSample(IdInstrument id, IdSample sample) override
+		bool SetSample(IdInstrument id, IdSample sampleId) override
 		{
+			auto* sample = sampleDatabase.Find(sampleId);
+
 			auto* i = TryGetRef(id);
 			if (!i)
 			{
@@ -317,6 +356,7 @@ namespace Rococo::Audio
 			}
 			else
 			{
+				i->sample = sample;
 				return true;
 			}
 		}
@@ -331,6 +371,7 @@ namespace Rococo::Audio
 			}
 			else
 			{
+				i->volume = volume;
 				return true;
 			}
 		}
@@ -345,6 +386,7 @@ namespace Rococo::Audio
 			}
 			else
 			{
+				i->dopplerVelocity = velocity;
 				return true;
 			}
 		}
@@ -355,11 +397,12 @@ namespace Rococo::Audio
 			auto* i = TryGetRef(id);
 			if (!i)
 			{
-				i->worldPosition = position;
+				
 				return false;
 			}
 			else
 			{
+				i->worldPosition = position;
 				return true;
 			}
 		}
@@ -383,8 +426,12 @@ namespace Rococo::Audio
 
 namespace Rococo::Audio
 {
-	ROCOCO_AUDIO_API IConcert3DSupervisor* CreateConcert()
+	ROCOCO_AUDIO_API IConcert3DSupervisor* CreateConcert(IAudioSampleDatabase& database)
 	{
-		return new Concert3D();
+		if (database.NumberOfChannels() != 1)
+		{
+			Throw(0, "%s: database channel count must be 1, i.e a mono sample database", __FUNCTION__);
+		}
+		return new Concert3D(database);
 	}
 }

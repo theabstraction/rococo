@@ -25,7 +25,7 @@ using namespace Rococo::Strings;
 
 #define ROCOCO_UTIL_API __declspec(dllexport)
 
-namespace
+namespace StringsAnon
 {
 	class ExpandingBuffer : public IExpandingBuffer
 	{
@@ -1017,7 +1017,7 @@ namespace Rococo::Strings
 
 	ROCOCO_UTIL_API IDynamicStringBuilder* CreateDynamicStringBuilder(size_t initialCapacity)
 	{
-		return new DynamicStringBuilder(initialCapacity);
+		return new StringsAnon::DynamicStringBuilder(initialCapacity);
 	}
 } // Rococo
 
@@ -1280,7 +1280,7 @@ namespace Rococo
 
 	ROCOCO_UTIL_API IExpandingBuffer* CreateExpandingBuffer(size_t initialCapacity)
 	{
-		return new ExpandingBuffer(initialCapacity);
+		return new StringsAnon::ExpandingBuffer(initialCapacity);
 	}
 
 	ROCOCO_UTIL_API bool operator == (const fstring& a, const fstring& b)

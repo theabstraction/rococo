@@ -1,6 +1,55 @@
 #pragma once
 
 #include <rococo.types.h>
+#include <../rococo.audio/rococo.audio.types.h>
+
+namespace Rococo::Audio
+{
+	using IdInstrumentIndexType = uint8; // This gives up to 256 instruments.
+	using IdInstrumentSaltType = uint32;
+
+	ROCOCO_ID(IdSample, uint64, 0);
+
+#pragma pack(push,1)
+	class IdInstrument
+	{
+	private:
+		IdInstrumentIndexType index;
+		IdInstrumentSaltType salt;
+
+	public:
+		IdInstrument() : index(0), salt(0)
+		{
+
+		}
+
+		static IdInstrument None()
+		{
+			return IdInstrument();
+		}
+
+		explicit IdInstrument(IdInstrumentIndexType l_index, IdInstrumentSaltType l_salt) : index(l_index), salt(l_salt)
+		{
+		}
+
+		IdInstrumentIndexType Index() const
+		{
+			return index;
+		}
+
+		IdInstrumentSaltType Salt() const
+		{
+			return salt;
+		}
+
+		operator bool() const
+		{
+			return index > 0;
+		}
+};
+#pragma pack(pop)
+}
+
 #include "../rococo.audio/rococo.audio.sxh.h"
 
 #ifndef ROCOCO_AUDIO_API
@@ -16,14 +65,22 @@ namespace Rococo::Audio
 {
 	ROCOCO_INTERFACE IAudioSample
 	{
+		// The unique id that can be used to quickly lookup a sample from a sample database
+		virtual IdSample Id() const = 0;
+
 		// The key or filename associated with this sample
 		virtual cstr Name() const = 0;
+
+		// Atomic and thread safe operation that returns whether the sample is ready to be played
+		virtual bool IsLoaded() const = 0;
 	};
 
 	ROCOCO_INTERFACE IAudioSampleDatabase
 	{
 		// Bind a sample to the database by ping path. The returned reference is valid until the database is cleared with a call to IAudioSampleDatabase::Clear()
 		virtual IAudioSample & Bind(cstr pingPath) = 0;
+		virtual IAudioSample* Find(IdSample id) const = 0;
+		virtual uint32 NumberOfChannels() const = 0;
 		virtual void Clear() = 0;
 	};
 
@@ -60,7 +117,8 @@ namespace Rococo::Audio
 		virtual void Free() = 0;
 	};
 
-	ROCOCO_AUDIO_API IMP3LoaderSupervisor* CreateMP3Loader(IInstallation& installation, int32 nChannels);
+	// Creates an MP3 loader - optimized for a single thread access. Every loading thread should create its own instance
+	ROCOCO_AUDIO_API IMP3LoaderSupervisor* CreateSingleThreadedMP3Loader(IInstallation& installation, uint32 nChannels);
 
 	ROCOCO_INTERFACE IAudioSampleSupervisor : IAudioSample
 	{
@@ -191,62 +249,18 @@ namespace Rococo::Audio
 
 	};
 
-	using IdInstrumentIndexType = uint8; // This gives up to 256 instruments.
-	using IdInstrumentSaltType = uint32;
-
-#pragma pack(push,1)
-	class IdInstrument
-	{
-	private:
-		IdInstrumentIndexType index;
-		IdInstrumentSaltType salt;
-
-	public:
-		IdInstrument() : index(0), salt(0)
-		{
-
-		}
-
-		static IdInstrument None()
-		{
-			return IdInstrument();
-		}
-
-		explicit IdInstrument(IdInstrumentIndexType l_index, IdInstrumentSaltType l_salt) : index(l_index), salt(l_salt)
-		{
-		}
-
-		IdInstrumentIndexType Index() const
-		{
-			return index;
-		}
-
-		IdInstrumentSaltType Salt() const
-		{
-			return salt;
-		}
-
-		operator bool() const
-		{
-			return index > 0;
-		}
-	};
-#pragma pack(pop)
-
-	using IdSample = int64;
-
 	ROCOCO_INTERFACE IConcert3D
 	{
 		virtual IConcertGoer & Goer() = 0;
 
 		// Get the next free instrument. Can fail if nothing is free
-		virtual IdInstrument AssignFreeInstrument(cstr name, int priority) = 0;
+		virtual IdInstrument AssignFreeInstrument(IdSample sampleId, const Rococo::Audio::AudioSource3D& source) = 0;
 
 		// Claim an instrument. Invalidates some existing id and assigns a new id. Can fail if everything else has higher priority
-		virtual IdInstrument AssignInstrumentByPriority(cstr name, int priority) = 0;
+		virtual IdInstrument AssignInstrumentByPriority(IdSample sampleId, const Rococo::Audio::AudioSource3D& source) = 0;
 
 		// Forceably claim an instrument. Invalidates some existing id and assigns a new id. It will take over an instrument slot with the least priority, or the earliest slot if all priorities match
-		virtual IdInstrument AssignInstrumentAlways(cstr name, int priority) = 0;
+		virtual IdInstrument AssignInstrumentAlways(IdSample sampleId, const Rococo::Audio::AudioSource3D& sourcey) = 0;
 
 		// Frees the instrument slot when the current sample has completed
 		virtual bool FreeAtEnd(IdInstrument id) = 0;
@@ -290,7 +304,7 @@ namespace Rococo::Audio
 		virtual void Free() = 0;
 	};
 
-	ROCOCO_AUDIO_API IConcert3DSupervisor* CreateConcert();
+	ROCOCO_AUDIO_API IConcert3DSupervisor* CreateConcert(IAudioSampleDatabase& database);
 
 	ROCOCO_INTERFACE IAudioStreamer
 	{

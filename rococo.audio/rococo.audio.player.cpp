@@ -26,6 +26,7 @@ namespace
 
 		AutoFree<IAudio3DSupervisor> audio3D;
 		AutoFree<IConcert3DSupervisor> concert;
+		AutoFree<IAudioSampleDatabaseSupervisor> monoSamples;
 	public:
 		AudioPlayer(IInstallation& refInstallation, IOSAudioAPI& ref_osAPI, const AudioConfig& refConfig): installation(refInstallation), osAPI(ref_osAPI), config(refConfig)
 		{
@@ -40,6 +41,10 @@ namespace
 
 			float speedOfSoundMetresPerSecond = 343.0f;
 			audio3D = osAPI.Create3DAPI(speedOfSoundMetresPerSecond);
+
+			monoSamples = CreateAudioSampleDatabase(refInstallation, 1);
+			concert = CreateConcert(*monoSamples);
+			
 
 			thread = OS::CreateRococoThread(this, 0);
 			thread->Resume();
@@ -81,9 +86,15 @@ namespace
 			mp3musicStereoDecoder->StreamInputFile(sysPath);
 		}
 
-		void Play3DSound(const fstring& mp3fxPingPath, const Vec3& worldPosition, int32 priority, int32 forceLevel) override
+		IdSample Bind3DSample(const fstring& mp3fxPingPath) override
 		{
-			
+			auto& sample = monoSamples->Bind(mp3fxPingPath);
+			return sample.Id();
+		}
+
+		IdInstrument Play3DSound(IdSample id, const Rococo::Audio::AudioSource3D& source, int32 forceLevel) override
+		{
+			return concert->AssignInstrumentByPriority(id, source);
 		}
 
 		uint32 RunThread(OS::IThreadControl& tc) override

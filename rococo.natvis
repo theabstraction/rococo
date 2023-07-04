@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?> 
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
 	<Type Name="Rococo::Components::ROID">
-		<DisplayString>#{index}, salt {salt}</DisplayString>
+		<DisplayString>#{(unsigned int)index}v{(unsigned int)salt}</DisplayString>
 	</Type>
 	<Type Name="Rococo::Vec2i">
 		<DisplayString>{x},{y}</DisplayString>
@@ -23,5 +23,11 @@
 	</Type>
 	<Type Name="Rococo::GuiRectf">
 		<DisplayString>{left},{top},{right},{bottom}</DisplayString>
+	</Type>
+	<Type Name="Rococo::Audio::InstrumentDescriptor">
+		<DisplayString>Id {(unsigned int)index}v{(unsigned int)salt} {name.buf,s}. pri:{priority}, smp: {sample}, vol: {volume}, flg: {flags}</DisplayString>
+	</Type>
+	<Type Name="Rococo::Audio::IdInstrument">
+		<DisplayString>#{(unsigned int)index}v{(unsigned int)salt}</DisplayString>
 	</Type>
 </AutoVisualizer>

@@ -343,7 +343,7 @@ namespace ANON
 
 		const Vec2i& Origin() const override
 		{
-			static Vec2i origin{ 0,0 };
+			static Vec2i origin{ 1,1 };
 			return origin;
 		}
 

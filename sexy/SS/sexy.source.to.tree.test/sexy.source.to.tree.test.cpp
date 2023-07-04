@@ -151,7 +151,7 @@ void RunTest(ISParser& ss)
 	int64 now = GetTicks();
 	cstr filepath = ("\\Dev\\sexiest\\content\\models\\level 2\\architect354.model.sx");
 	
-	Auto<ISourceCode> source = ss.LoadSource(filepath, Vec2i{ 0,0 });
+	Auto<ISourceCode> source = ss.LoadSource(filepath, Vec2i{ 1,1 });
 
 	PrintDuration("loading ascii as unicode image", GetTicks() - now);
 	now = GetTicks();

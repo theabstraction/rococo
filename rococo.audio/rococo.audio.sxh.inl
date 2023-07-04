@@ -22,22 +22,10 @@ namespace
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->SetMP3Music(mp3musicPingPath);
 	}
-	void NativeRococoAudioIAudioPlay3DSound(NativeCallEnvironment& _nce)
+	void NativeRococoAudioIAudioBind3DSample(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		int32 forceLevel;
-		_offset += sizeof(forceLevel);
-		ReadInput(forceLevel, _sf, -_offset);
-
-		int32 priority;
-		_offset += sizeof(priority);
-		ReadInput(priority, _sf, -_offset);
-
-		Vec3* worldPosition;
-		_offset += sizeof(worldPosition);
-		ReadInput(worldPosition, _sf, -_offset);
-
 		_offset += sizeof(IString*);
 		IString* _mp3fxPingPath;
 		ReadInput(_mp3fxPingPath, _sf, -_offset);
@@ -48,7 +36,33 @@ namespace
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->Play3DSound(mp3fxPingPath, *worldPosition, priority, forceLevel);
+		Rococo::Audio::IdSample id = _pObject->Bind3DSample(mp3fxPingPath);
+		_offset += sizeof(id);
+		WriteOutput(id, _sf, -_offset);
+	}
+	void NativeRococoAudioIAudioPlay3DSound(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		int32 forceLevel;
+		_offset += sizeof(forceLevel);
+		ReadInput(forceLevel, _sf, -_offset);
+
+		Rococo::Audio::AudioSource3D* source;
+		_offset += sizeof(source);
+		ReadInput(source, _sf, -_offset);
+
+		Rococo::Audio::IdSample sampleId;
+		_offset += sizeof(sampleId);
+		ReadInput(sampleId, _sf, -_offset);
+
+		Rococo::Audio::IAudio* _pObject;
+		_offset += sizeof(_pObject);
+
+		ReadInput(_pObject, _sf, -_offset);
+		Rococo::Audio::IdInstrument id = _pObject->Play3DSound(sampleId, *source, forceLevel);
+		_offset += sizeof(id);
+		WriteOutput(id, _sf, -_offset);
 	}
 
 	void NativeGetHandleForRococoAudioGetAudio(NativeCallEnvironment& _nce)
@@ -70,6 +84,7 @@ namespace Rococo::Audio
 		const INamespace& ns = ss.AddNativeNamespace("Rococo.Audio.Native");
 		ss.AddNativeCall(ns, NativeGetHandleForRococoAudioGetAudio, _nceContext, ("GetHandleForIAudio0  -> (Pointer hObject)"), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeRococoAudioIAudioSetMP3Music, nullptr, ("IAudioSetMP3Music (Pointer hObject)(Sys.Type.IString mp3musicPingPath) -> "), __FILE__, __LINE__);
-		ss.AddNativeCall(ns, NativeRococoAudioIAudioPlay3DSound, nullptr, ("IAudioPlay3DSound (Pointer hObject)(Sys.Type.IString mp3fxPingPath)(Sys.Maths.Vec3 worldPosition)(Int32 priority)(Int32 forceLevel) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoAudioIAudioBind3DSample, nullptr, ("IAudioBind3DSample (Pointer hObject)(Sys.Type.IString mp3fxPingPath) -> (Int64 id)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoAudioIAudioPlay3DSound, nullptr, ("IAudioPlay3DSound (Pointer hObject)(Int64 sampleId)(Rococo.Audio.AudioSource3D source)(Int32 forceLevel) -> (Int64 id)"), __FILE__, __LINE__);
 	}
 }

@@ -21,3 +21,6 @@
 	(OnAsciiChar (Int32 asciiValue)->)
 	(OnSysKey (Bool isUp) (Int32 virtualKeyCode)->)
 )
+
+(namespace Rococo)
+(namespace Rococo.Audio)

@@ -6,7 +6,8 @@
 	(context factory Rococo.Audio.IAudio)
 	(methods
 		(SetMP3Music (IString mp3musicPingPath))
-		(Play3DSound (IString mp3fxPingPath)(const Vec3 worldPosition)(Int32 priority)(Int32 forceLevel))
+		(Bind3DSample (IString mp3fxPingPath)->(IdSample id))
+		(Play3DSound (IdSample sampleId)(const AudioSource3D source)(Int32 forceLevel)->(IdInstrument id))
 	)
 
 	(factory Rococo.Audio.GetAudio)

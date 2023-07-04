@@ -224,7 +224,7 @@ namespace
           auto animationComponent = ecs.GetAnimationComponent(id);
           if (!animationComponent)
           {
-              Throw(0, "%s: no animation component for ID_ENTITY [%d v%d]", __FUNCTION__, id.index, id.salt);
+              Throw(0, "%s: no animation component for ID_ENTITY [%d v%d]. Call (instances.EnableAnimation <bodyId>) after object creation", __FUNCTION__, id.index, id.salt);
           }
 
           auto& animation = animationComponent->GetAnimation();

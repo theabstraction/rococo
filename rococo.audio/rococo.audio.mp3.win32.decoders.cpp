@@ -12,6 +12,8 @@
 #include <rococo.release.h>
 #include <rococo.strings.h>
 
+#include <vector>
+
 using namespace Rococo;
 using namespace Rococo::Audio;
 using namespace Rococo::Strings;
@@ -240,7 +242,7 @@ namespace
 		buffer.Unlock();
 	}
 
-	bool IsPCM_Stereo(IMFMediaType& type, uint32 matchSampleRate)
+	bool IsPCMWithSpecifiedChannelCount(IMFMediaType& type, uint32 matchSampleRate, int channelCount)
 	{
 		// Set attributes on the type.
 		GUID majorType;
@@ -274,7 +276,7 @@ namespace
 			Throw(hr, "%s: type.GetUINT32(MF_MT_AUDIO_NUM_CHANNELS)", __FUNCTION__);
 		}
 
-		if (nChannels != 2)
+		if (nChannels != channelCount)
 		{
 			return false;
 		}
@@ -403,7 +405,7 @@ namespace
 					Throw(hr, "%s: (MP3 to PCM) transform->GetOutputAvailableType(outputId, typeIndex, optType) failed", __FUNCTION__);
 				}
 
-				if (IsPCM_Stereo(*optType, 44100))
+				if (IsPCMWithSpecifiedChannelCount(*optType, 44100, 2))
 				{
 					hr = transform->SetOutputType(outputId, optType, 0);
 					if FAILED(hr)
@@ -612,10 +614,13 @@ namespace
 		DWORD inputId;
 		DWORD outputId;
 
-		int nChannels;
+		uint32 nChannels;
 
-		MP3Loader(IInstallation& refInstallation, int localChannels) : installation(refInstallation), nChannels(localChannels)
+		std::vector<uint8> scratchBuffer;
+
+		MP3Loader(IInstallation& refInstallation, uint32 localChannels, uint32 reserveSeconds = 120) : installation(refInstallation), nChannels(localChannels)
 		{
+			scratchBuffer.reserve(44'100 * reserveSeconds * sizeof(int16) * nChannels);
 			transformer = CreateMP32TransformerWith1InputAnd1OutputStream();
 
 			HRESULT hr;
@@ -654,7 +659,7 @@ namespace
 					Throw(hr, "%s: (MP3 to PCM) transform->GetOutputAvailableType(outputId, typeIndex, optType) failed", __FUNCTION__);
 				}
 
-				if (IsPCM_Stereo(*optType, 44100))
+				if (IsPCMWithSpecifiedChannelCount(*optType, 44100, nChannels))
 				{
 					hr = transformer->SetOutputType(outputId, optType, 0);
 					if FAILED(hr)
@@ -679,6 +684,9 @@ namespace
 
 		uint32 DecodeMP3(cstr pingPath, IPCMAudioBufferManager& audioBufferManager) override
 		{
+			// Our algorithm expands the mp3 into a scratch buffer. This grows to accomodate the largest decoded MP3 put through the system
+			// The sample we extract copies the relevant portion of the scratch buffer - this way we ensure the minimum of memory fragmentation.
+
 			WideFilePath sysPath;
 			installation.ConvertPingPathToSysPath(pingPath, OUT sysPath);
 
@@ -690,17 +698,14 @@ namespace
 			// Assume 11:1 compression ratio. Increase ratio to 12 to try to minimize resizing
 			DWORD approxDecompressedSize = (length * 12) & (0xFFFFFF00);
 
-			audioBufferManager.PCMBuffer().Resize(approxDecompressedSize);
+			scratchBuffer.resize(approxDecompressedSize);
 
 			HRESULT hr;
 			VALIDATE(hr = transformer->ProcessMessage(MFT_MESSAGE_COMMAND_FLUSH, 0));
 			VALIDATE(hr = transformer->ProcessInput(inputId, mp3Sample, 0));
 
-			audioBufferManager.Accept(AudioBufferDescriptor{ 16, 1 });
+			audioBufferManager.Accept(AudioBufferDescriptor{ nChannels, 16 });
 			
-			auto& targetBuffer = audioBufferManager.PCMBuffer();
-			targetBuffer.Resize(approxDecompressedSize);
-
 			uint32 cursor = 0;
 
 			int32 resizeCount = 0;
@@ -732,13 +737,13 @@ namespace
 				pcmBuffer->Lock(&pPCMData, &maxLen, &currentLen);
 
 				uint32 targetWriteLength = cursor + currentLen;
-				if (targetWriteLength > targetBuffer.Length())
+				if (targetWriteLength > scratchBuffer.size())
 				{
-					targetBuffer.Resize(targetWriteLength);
+					scratchBuffer.resize(targetWriteLength);
 					resizeCount++;
 				}
 
-				memcpy(targetBuffer.GetData() + cursor, pPCMData, currentLen);
+				memcpy(scratchBuffer.data() + cursor, pPCMData, currentLen);
 				cursor += currentLen;
 
 				pcmBuffer->Unlock();	
@@ -746,6 +751,11 @@ namespace
 
 			PCMAudioLoadingMetrics metrics{ resizeCount };
 			audioBufferManager.Finalize(metrics);
+
+			auto& target = audioBufferManager.PCMBuffer();
+			target.Resize(cursor);
+
+			memcpy(target.GetData(), scratchBuffer.data(), cursor);
 
 			return cursor;
 		}
@@ -764,7 +774,7 @@ namespace Rococo::Audio
 		return new AudioDecoder(nSamplesInOutput);
 	}
 
-	IMP3LoaderSupervisor* CreateMP3Loader(IInstallation& installation, int32 nChannels)
+	IMP3LoaderSupervisor* CreateSingleThreadedMP3Loader(IInstallation& installation, uint32 nChannels)
 	{
 		return new MP3Loader(installation, nChannels);
 	}

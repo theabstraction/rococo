@@ -58,8 +58,8 @@ namespace
 		auto* src = ex.Source();
 		if (src)
 		{
-			Vec2i start = ex.Start() - src->Tree().Source().Origin();
-			Vec2i end = ex.End() - src->Tree().Source().Origin() + Vec2i{1, 0};
+			Vec2i start = ex.Start() - Vec2i { 1, 0};
+			Vec2i end = ex.End() - Vec2i { 1, 0};
 			debugger.SetCodeHilight(ex.Name(), start, end, ex.Message());
 			debugger.AddSourceCode(ex.Name(), src->Tree().Source().SourceStart());
 		}

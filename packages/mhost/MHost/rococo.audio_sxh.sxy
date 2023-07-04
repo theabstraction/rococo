@@ -1,12 +1,14 @@
 (interface Rococo.Audio.IAudio
 	(SetMP3Music (Sys.Type.IString mp3musicPingPath) -> )
-	(Play3DSound (Sys.Type.IString mp3fxPingPath)(Sys.Maths.Vec3 worldPosition)(Int32 priority)(Int32 forceLevel) -> )
+	(Bind3DSample (Sys.Type.IString mp3fxPingPath) -> (Int64 id))
+	(Play3DSound (Int64 sampleId)(Rococo.Audio.AudioSource3D source)(Int32 forceLevel) -> (Int64 id))
 )
 
 (class ProxyIAudio (implements Rococo.Audio.IAudio) (Pointer hObject) (attribute not-serialized))
 	(method ProxyIAudio.Construct (Pointer hObject): (this.hObject = hObject))
 	(method ProxyIAudio.SetMP3Music (Sys.Type.IString mp3musicPingPath) ->  : (Rococo.Audio.Native.IAudioSetMP3Music this.hObject mp3musicPingPath))
-	(method ProxyIAudio.Play3DSound (Sys.Type.IString mp3fxPingPath)(Sys.Maths.Vec3 worldPosition)(Int32 priority)(Int32 forceLevel) ->  : (Rococo.Audio.Native.IAudioPlay3DSound this.hObject mp3fxPingPath worldPosition priority forceLevel))
+	(method ProxyIAudio.Bind3DSample (Sys.Type.IString mp3fxPingPath) -> (Int64 id) : (Rococo.Audio.Native.IAudioBind3DSample this.hObject mp3fxPingPath -> id))
+	(method ProxyIAudio.Play3DSound (Int64 sampleId)(Rococo.Audio.AudioSource3D source)(Int32 forceLevel) -> (Int64 id) : (Rococo.Audio.Native.IAudioPlay3DSound this.hObject sampleId source forceLevel -> id))
 
 (factory Rococo.Audio.GetAudio Rococo.Audio.IAudio  :
 	(Pointer pObject = (Rococo.Audio.Native.GetHandleForIAudio0 ))
