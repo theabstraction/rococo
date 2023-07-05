@@ -30,4 +30,18 @@
 	<Type Name="Rococo::Audio::IdInstrument">
 		<DisplayString>#{(unsigned int)index}v{(unsigned int)salt}</DisplayString>
 	</Type>
+	<Type Name="Rococo::Compiler::InlineString">
+		<DisplayString>{{{length} chars. {buffer}. Type: {stub.Desc->TypeInfo}}</DisplayString>
+	</Type>
+	<Type Name="Rococo::Strings::Substring">
+		<DisplayString>{start,[finish-start]}</DisplayString>
+		<StringView>start,[finish-start]</StringView>
+	</Type>
+	<Type Name="Rococo::Strings::HString">
+		<DisplayString Condition="data->length == 0">empty</DisplayString>
+		<DisplayString>{data->currentBuffer,s}</DisplayString>
+	</Type>
+	<Type Name="Rococo::RGBAb">
+		<DisplayString>{{r: {(int)red} g: {(int)green} b: {(int)blue} a: {(int)alpha}}}</DisplayString>
+	</Type>
 </AutoVisualizer>

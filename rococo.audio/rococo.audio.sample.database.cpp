@@ -9,7 +9,7 @@
 using namespace Rococo;
 using namespace Rococo::Audio;
 
-namespace
+namespace AudioAnon
 {
 	struct AudioSample: IAudioSampleSupervisor, IPCMAudioBufferManager
 	{
@@ -20,7 +20,7 @@ namespace
 		IdSample id;
 
 		AutoFree<IExpandingBuffer> sampleData;
-		uint32 sampleLength = 0;
+		uint32 sampleLength = 0; // in bytes
 
 		AudioSample(IdSample argId, cstr refName): name(refName), id(argId), sampleData(CreateExpandingBuffer(0))
 		{
@@ -39,6 +39,32 @@ namespace
 		cstr Name() const override
 		{
 			return name;
+		}
+
+		uint32 ReadSamples(int16* outputBuffer, uint32 outputBufferSampleCapacity, uint32 startAtSampleIndex) override
+		{
+			uint32 numberOfMonoSamples = sampleLength >> 1;
+			if (numberOfMonoSamples <= startAtSampleIndex)
+			{
+				return 0;
+			}
+
+			const auto* byteData = sampleData->GetData();
+			const int16* monoReprentation = reinterpret_cast<const int16*>(byteData);
+
+			uint32 numberOfElementsInSection;
+
+			if (outputBufferSampleCapacity + startAtSampleIndex <= numberOfMonoSamples)
+			{
+				numberOfElementsInSection = outputBufferSampleCapacity;
+			}
+			else
+			{
+				numberOfElementsInSection = numberOfMonoSamples - startAtSampleIndex;
+			}
+
+			if (outputBuffer) memcpy(outputBuffer, monoReprentation + startAtSampleIndex, numberOfElementsInSection * sizeof int16);
+			return numberOfElementsInSection;
 		}
 
 		bool Accept(const AudioBufferDescriptor& descriptor) override
@@ -77,6 +103,7 @@ namespace
 	struct AudioSampleDatabase: IAudioSampleDatabaseSupervisor, OS::IThreadJob
 	{
 		IInstallation& installation;
+		IEventCallback<IAudioSample&>& onSampleLoaded;
 
 		stringmap<IAudioSampleSupervisor*> samples;
 		std::list<IAudioSampleSupervisor*> uncachedSamples;
@@ -92,7 +119,7 @@ namespace
 
 		int32 nChannels;
 
-		AudioSampleDatabase(IInstallation& refInstallation, int nChannels): installation(refInstallation)
+		AudioSampleDatabase(IInstallation& refInstallation, int nChannels, IEventCallback<IAudioSample&>& refOnSampleLoaded): installation(refInstallation), onSampleLoaded(refOnSampleLoaded)
 		{
 			this->nChannels = nChannels;
 
@@ -201,6 +228,7 @@ namespace
 					if (sample)
 					{
 						sample->Cache(*loader);
+						onSampleLoaded.OnEvent(*sample);
 					}
 				} while (tc.IsRunning() && sample != nullptr);
 
@@ -214,8 +242,8 @@ namespace
 
 namespace Rococo::Audio
 {
-	ROCOCO_AUDIO_API IAudioSampleDatabaseSupervisor* CreateAudioSampleDatabase(IInstallation& installation, int nChannels)
+	ROCOCO_AUDIO_API IAudioSampleDatabaseSupervisor* CreateAudioSampleDatabase(IInstallation& installation, int nChannels, IEventCallback<IAudioSample&>& onSampleLoaded)
 	{
-		return new AudioSampleDatabase(installation, nChannels);
+		return new AudioAnon::AudioSampleDatabase(installation, nChannels, onSampleLoaded);
 	}
 }

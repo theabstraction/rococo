@@ -14,7 +14,7 @@ namespace Rococo::Audio
 	IAudio3DSupervisor* CreateX3D(float speedOfSoundInMetresPerSecond, IXAudio2MasteringVoice& master);
 }
 
-namespace
+namespace AudioAnon
 {
 	cstr GetX2Err(HRESULT x2err)
 	{
@@ -40,16 +40,19 @@ namespace
 
 	struct X2AudioVoice : IOSAudioVoiceSupervisor, IXAudio2VoiceCallback
 	{
+		IAudioVoiceContext& context;
 		AutoVoice<IXAudio2SourceVoice> sourceVoice;
 		IOSAudioVoiceCompletionHandler& completionHandler;
 
-		X2AudioVoice(IXAudio2& x2, const WAVEFORMATEX* format, IOSAudioVoiceCompletionHandler& refCompletionHandler): completionHandler(refCompletionHandler)
+		X2AudioVoice(IXAudio2& x2, const WAVEFORMATEX* format, IOSAudioVoiceCompletionHandler& refCompletionHandler, IAudioVoiceContext& refContext):
+			context(refContext),
+			completionHandler(refCompletionHandler)
 		{
 			HRESULT hr;
 			VALIDATE(hr, hr = x2.CreateSourceVoice(&sourceVoice.src, (const WAVEFORMATEX*) format, 0, 2.0f, this));
 		}
 
-		static X2AudioVoice* Create16bitMono44100kHzVoice(IXAudio2& x2, IOSAudioVoiceCompletionHandler& completionHandler)
+		static X2AudioVoice* Create16bitMono44100kHzVoice(IXAudio2& x2, IOSAudioVoiceCompletionHandler& completionHandler, IAudioVoiceContext& context)
 		{
 			PCMWAVEFORMAT srcFormat;
 			srcFormat.wBitsPerSample = 16;
@@ -59,10 +62,10 @@ namespace
 			srcFormat.wf.nAvgBytesPerSec = srcFormat.wf.nBlockAlign * srcFormat.wf.nSamplesPerSec;
 			srcFormat.wf.wFormatTag = WAVE_FORMAT_PCM;
 
-			return new X2AudioVoice(x2, (const WAVEFORMATEX*)&srcFormat, completionHandler);
+			return new X2AudioVoice(x2, (const WAVEFORMATEX*)&srcFormat, completionHandler, context);
 		}
 
-		static X2AudioVoice* Create16bitStereo44100kHzVoice(IXAudio2& x2, IOSAudioVoiceCompletionHandler& completionHandler)
+		static X2AudioVoice* Create16bitStereo44100kHzVoice(IXAudio2& x2, IOSAudioVoiceCompletionHandler& completionHandler, IAudioVoiceContext& context)
 		{
 			PCMWAVEFORMAT srcFormat;
 			srcFormat.wBitsPerSample = 16;
@@ -72,7 +75,7 @@ namespace
 			srcFormat.wf.nAvgBytesPerSec = srcFormat.wf.nBlockAlign * srcFormat.wf.nSamplesPerSec;
 			srcFormat.wf.wFormatTag = WAVE_FORMAT_PCM;
 
-			return new X2AudioVoice(x2, (const WAVEFORMATEX*)&srcFormat, completionHandler);
+			return new X2AudioVoice(x2, (const WAVEFORMATEX*)&srcFormat, completionHandler, context);
 		}
 
 		void QueueSample(const uint8* buffer, uint32 nBytesInBuffer, uint32 beginAt, uint32 nSamplesToPlay) override
@@ -128,7 +131,7 @@ namespace
 
 		STDMETHOD_(void, OnBufferEnd)(void*) override
 		{
-			completionHandler.OnSampleComplete(*this);
+			completionHandler.OnSampleComplete(*this, context);
 		};
 
 		STDMETHOD_(void, OnLoopEnd)(void*) override
@@ -163,14 +166,14 @@ namespace
 			CopyString(msg, capacity, err);
 		}
 
-		IOSAudioVoiceSupervisor* Create16bitMono44100kHzVoice(IOSAudioVoiceCompletionHandler& completionHandler) override
+		IOSAudioVoiceSupervisor* Create16bitMono44100kHzVoice(IOSAudioVoiceCompletionHandler& completionHandler, IAudioVoiceContext& context) override
 		{
-			return X2AudioVoice::Create16bitMono44100kHzVoice(*x2, completionHandler);
+			return X2AudioVoice::Create16bitMono44100kHzVoice(*x2, completionHandler, context);
 		}
 
-		IOSAudioVoiceSupervisor* Create16bitStereo44100kHzVoice(IOSAudioVoiceCompletionHandler& completionHandler) override
+		IOSAudioVoiceSupervisor* Create16bitStereo44100kHzVoice(IOSAudioVoiceCompletionHandler& completionHandler, IAudioVoiceContext& context) override
 		{
-			return X2AudioVoice::Create16bitStereo44100kHzVoice(*x2, completionHandler);
+			return X2AudioVoice::Create16bitStereo44100kHzVoice(*x2, completionHandler, context);
 		}
 
 		IAudio3DSupervisor* Create3DAPI(float speedOfSoundInMetresPerSecond) override
@@ -184,6 +187,6 @@ namespace Rococo::Audio
 {
 	ROCOCO_AUDIO_API IOSAudioAPISupervisor* CreateOSAudio()
 	{
-		return new X2Audio();
+		return new AudioAnon::X2Audio();
 	}
 }

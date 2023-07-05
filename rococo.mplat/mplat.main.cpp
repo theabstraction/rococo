@@ -367,7 +367,6 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	Audio::AudioConfig audio_config{};
 	AutoFree<Audio::IOSAudioAPISupervisor> osAudio = Audio::CreateOSAudio();
 	AutoFree<Audio::IAudioSupervisor> audio = Audio::CreateAudioSupervisor(*installation, *osAudio, audio_config);
-	AutoFree<Audio::IAudioSampleDatabaseSupervisor> samples = Audio::CreateAudioSampleDatabase(*installation, 1);
 	AutoFree<Rococo::Entities::IRigs> rigs = Rococo::Entities::CreateRigBuilder();
 	AutoFree<Graphics::IMeshBuilderSupervisor> meshes = Graphics::CreateMeshBuilder(mainWindow->Renderer());
 
@@ -438,7 +437,7 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 		{ *sourceCache, *debuggerWindow, *ssFactory },
 
 		// Plaform hardware
-		{ *keyboard, *audio, *samples, *xbox360stick },
+		{ *keyboard, *audio, *xbox360stick },
 
 		// Platform world
 		{ *mobiles, *particles, *rigs, *world, *ecs },

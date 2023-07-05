@@ -6,8 +6,13 @@
 using namespace Rococo;
 using namespace Rococo::Audio;
 
-namespace
+namespace AudioAnon
 {
+	struct NullContext : IAudioVoiceContext
+	{
+
+	};
+
 	class Stereo_Streamer : public IAudioStreamerSupervisor, public IOSAudioVoiceCompletionHandler
 	{
 		IAudioDecoder& decoder;
@@ -17,6 +22,8 @@ namespace
 
 		std::vector<StereoSample_INT16*> pcm_blocks;
 		volatile size_t currentIndex = 0;
+
+		NullContext nowt;
 
 		enum { SAMPLES_PER_BLOCK = 4096, BEST_SAMPLE_RATE = 44100, PCM_BLOCK_COUNT = 4 };
 	public:
@@ -31,7 +38,7 @@ namespace
 			}
 
 			// Stereo 44.1kHz 16-bit per channel stereo voice
-			stereoVoice = osAudio.Create16bitStereo44100kHzVoice(*this);
+			stereoVoice = osAudio.Create16bitStereo44100kHzVoice(*this, nowt);
 		}
 
 		~Stereo_Streamer()
@@ -71,7 +78,7 @@ namespace
 			stereoVoice->QueueSample((uint8*)sampleBuffer, SAMPLES_PER_BLOCK * sizeof(StereoSample_INT16), 0, nSamples);
 		}
 
-		void OnSampleComplete(IOSAudioVoice& voice) override
+		void OnSampleComplete(IOSAudioVoice& voice, IAudioVoiceContext& context) override
 		{
 			StreamCurrentBlock();
 		}
@@ -82,6 +89,6 @@ namespace Rococo::Audio
 {
 	ROCOCO_AUDIO_API IAudioStreamerSupervisor* CreateStereoStreamer(IOSAudioAPI& osAudio, IAudioDecoder& refDecoder)
 	{
-		return new Stereo_Streamer(osAudio, refDecoder);
+		return new AudioAnon::Stereo_Streamer(osAudio, refDecoder);
 	}
 }

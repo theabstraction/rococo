@@ -1,6 +1,9 @@
 #include <rococo.audio.h>
 #include <rococo.strings.h>
 #include <rococo.maths.h>
+#include <rococo.os.h>
+#include <array>
+#include <atomic>
 #include <vector>
 
 using namespace Rococo;
@@ -14,20 +17,42 @@ namespace Rococo::Audio
 		None = 0,
 		FreeAtEnd = 0x1,
 		FreeIfSilent = 0x2,
+		Loop = 0x4,
 	};
 
-	struct InstrumentDescriptor
+	struct InstrumentDescriptor: IAudioVoiceContext
 	{
+		enum { SAMPLES_PER_BLOCK = 176 }; // This gives a block size of just under 4ms
+		enum { BEST_SAMPLE_RATE = 44100, PCM_BLOCK_COUNT = 4 };
+
 		IdInstrumentIndexType index = 0;
 		IdInstrumentSaltType salt = 0;
 		IAudioSample* sample = nullptr;
+		IOSAudioVoiceSupervisor* monoVoice = nullptr;
 		int32 flags = 0; // Combination of Rococo::Audio::InstrumentFlag enumeration values
 		int priority = 0; // The higher the priority the more urgent to preserve the instrument
 		float volume = 1.0f; // Amplitude
 		Vec3 dopplerVelocity = { 0,0,0 };
 		Vec3 worldPosition = { 0.0f, 0.0f, 0.0f };
+		uint32 cursor = 0;
+		std::atomic<uint32> playCount;
+		std::atomic<uint32> stopCount;
+		std::array<int16*, PCM_BLOCK_COUNT> pcm_blocks;
+		size_t currentIndex = 0;
+		bool isSampleQueued = false;
+		std::atomic<bool> waitingForLoad = false;
+
+		InstrumentDescriptor(): playCount(0), stopCount(0)
+		{
+			size_t nBytesPerBlock = SAMPLES_PER_BLOCK * sizeof(int16);
+			for (int i = 0; i < PCM_BLOCK_COUNT; ++i)
+			{
+				pcm_blocks[i] = (int16*)_aligned_malloc(nBytesPerBlock, 64);
+				memset(pcm_blocks[i], 0, nBytesPerBlock);
+			}
+		}
 		
-		void Assign(IAudioSample* sample, const AudioSource3D& source)
+		void Assign(IAudioSample* sample, const AudioSource3D& source, OS::IThreadControl& thread)
 		{
 			this->sample = sample;
 			this->priority = priority;
@@ -35,25 +60,137 @@ namespace Rococo::Audio
 			this->volume = source.volume;
 			this->dopplerVelocity = source.dopplerVelocity;
 			this->worldPosition = source.position;
+			this->isSampleQueued = false;
+			this->playCount = 0;
+			this->stopCount = 0;
+
+			this->waitingForLoad = !sample->IsLoaded();
+
+			if (!this->waitingForLoad)
+			{
+				SendPlayMessageOnThread(thread);
+			}
+		}
+
+		// this method is only invoked from the concert thread via APCs
+		void Play()
+		{
+			if (isSampleQueued)
+			{
+				// Already queued
+				return;
+			}
+
+			monoVoice->StartPulling();
+
+			StreamCurrentBlock();
+		}
+
+		void SendPlayMessageOnThread(OS::IThreadControl& thread)
+		{
+			struct Anon
+			{
+				static void OnPlayMessage(InstrumentDescriptor* instrument)
+				{
+					instrument->stopCount = 0;
+					instrument->Play();
+					instrument->playCount = 0;
+				}
+			};
+			thread.QueueAPC((OS::IThreadControl::FN_APC)Anon::OnPlayMessage, this);
+		}
+
+		void Stop()
+		{
+			this->stopCount++;
+			this->playCount = 0;
+		}
+
+		void StreamCurrentBlock()
+		{
+			isSampleQueued = false;
+
+			if (stopCount > 0)
+			{
+				monoVoice->Stop();
+				stopCount = 0;
+				return;
+			}
+
+			uint32 nSamples = SAMPLES_PER_BLOCK;
+
+			int16* sampleBuffer = pcm_blocks[currentIndex];
+
+			currentIndex = (currentIndex + 1) % PCM_BLOCK_COUNT;
+
+			auto* sampleThisTick = this->sample;
+			if (!sampleThisTick || !sampleThisTick->IsLoaded())
+			{
+				return;
+			}
+			else
+			{
+				waitingForLoad = false;
+
+				nSamples = sampleThisTick->ReadSamples(sampleBuffer, SAMPLES_PER_BLOCK, cursor);
+				cursor += nSamples;
+
+				if (nSamples == 0)
+				{
+					if (HasFlag(InstrumentFlag::Loop, flags))
+					{
+						nSamples = sampleThisTick->ReadSamples(sampleBuffer, SAMPLES_PER_BLOCK, cursor);
+						if (nSamples == 0)
+						{
+							return;
+						}
+					}
+					else
+					{
+						return;
+					}
+				}
+			}
+			
+			monoVoice->QueueSample((uint8*)sampleBuffer, SAMPLES_PER_BLOCK * sizeof(int16), 0, nSamples);
+			isSampleQueued = true;
 		}
 	};
 
-	struct Concert3D : IConcert3DSupervisor, IConcertGoer
+	// Private methods in this class indicate that they are run inside the concert thread
+	class Concert3D : public IConcert3DSupervisor, public IConcertGoer, private IOSAudioVoiceCompletionHandler, private OS::IThreadJob
 	{
+		enum { MAX_VOICES = 255 };
 		IAudioSampleDatabase& sampleDatabase;
+		IOSAudioAPI& audio;
 		Matrix4x4 worldToGoer;
-		uint32 maxVoices;
-		std::vector<IdInstrument> freeIds;
-		std::vector<InstrumentDescriptor> instruments;
-		IdInstrumentSaltType nextSalt = 1;
 
-		Concert3D(IAudioSampleDatabase& refSampleDatabase): 
+		std::vector<IdInstrument> freeIds;
+		std::array<InstrumentDescriptor, MAX_VOICES> instruments;
+		IdInstrumentSaltType nextSalt = 1;
+		AutoFree<OS::IThreadSupervisor> thread;
+		uint32 maxVoices;
+	public:
+		Concert3D(IAudioSampleDatabase& refSampleDatabase, IOSAudioAPI& refAudio): 
+			audio(refAudio),
 			sampleDatabase(refSampleDatabase),
-			worldToGoer(Matrix4x4::Identity()), maxVoices(255)
+			worldToGoer(Matrix4x4::Identity()),
+			maxVoices(MAX_VOICES)
 		{
-			instruments.resize(maxVoices);
-			freeIds.reserve(maxVoices);
+			freeIds.reserve(MAX_VOICES);
 			InitVectors();		
+
+			thread = OS::CreateRococoThread(this, 0);
+			thread->Resume();
+		}
+
+		virtual ~Concert3D()
+		{
+			for (auto& i : instruments)
+			{
+				Rococo::Free(i.monoVoice);
+				i.monoVoice = nullptr;
+			}
 		}
 
 		void InitVectors()
@@ -67,12 +204,15 @@ namespace Rococo::Audio
 				i.salt = nextSalt;
 				i.priority = 0x00000000;
 				i.dopplerVelocity = Vec3{ 0,0,0 };
+				if (!i.monoVoice) i.monoVoice = audio.Create16bitMono44100kHzVoice(*this, i);
 			}
 
-			for (auto i = instruments.rbegin(); i != instruments.rend(); i++)
+			for (auto i = instruments.begin(); i != instruments.end() && i->index <= maxVoices; i++)
 			{
 				freeIds.push_back(IdInstrument(i->index, i->salt));
 			}
+
+			std::reverse(freeIds.begin(), freeIds.end());
 		}
 
 		void SetMaxVoices(uint32 nVoices)
@@ -151,7 +291,7 @@ namespace Rococo::Audio
 			auto& i = GetRef(id);
 			i.salt = id.Salt();
 
-			i.Assign(sample, source);
+			i.Assign(sample, source, *thread);
 
 			return id;
 		}
@@ -204,7 +344,7 @@ namespace Rococo::Audio
 					nextSalt = i.salt + 1;
 				}
 
-				i.Assign(sample, source);
+				i.Assign(sample, source, *thread);
 
 				return IdInstrument(i.index, i.salt);
 			}
@@ -240,7 +380,7 @@ namespace Rococo::Audio
 				nextSalt = i.salt + 1;
 			}
 
-			i.Assign(sample, source);
+			i.Assign(sample, source, *thread);
 
 			return IdInstrument(i.index, i.salt);
 		}
@@ -315,6 +455,8 @@ namespace Rococo::Audio
 			}
 			else
 			{
+				i->stopCount = 0;
+				i->SendPlayMessageOnThread(*thread);
 				return true;
 			}
 		}
@@ -341,6 +483,7 @@ namespace Rococo::Audio
 			}
 			else
 			{
+				i->Stop();
 				return true;
 			}
 		}
@@ -421,17 +564,77 @@ namespace Rococo::Audio
 		{
 			delete this;
 		}
+
+	private:
+		void OnSampleComplete(IOSAudioVoice& voice, IAudioVoiceContext& context) override
+		{
+			auto& i = static_cast<InstrumentDescriptor&>(context);
+			i.StreamCurrentBlock();
+		}
+
+		void OnGrossChange()
+		{
+			for (auto& i : instruments)
+			{
+				if (i.playCount > 0)
+				{
+					i.playCount = 0;
+					i.Play();
+				}
+			}
+		}
+
+		void SendGrossChangeMessageToThread()
+		{
+			struct ANON
+			{
+				static void OnGrossChangeMessage(Concert3D* This)
+				{
+					This->OnGrossChange();
+				}
+			};
+			thread->QueueAPC((OS::IThreadControl::FN_APC)ANON::OnGrossChangeMessage, this);
+		}
+
+		void OnSampleLoaded(IAudioSample& sample) override
+		{
+			int nChanges = 0;
+			// Generally samples will not be reloaded too frequently, so the cost of enumerating all voices here should not be significant
+			for (auto& i : instruments)
+			{
+				if (i.sample == &sample && i.waitingForLoad)
+				{
+					nChanges++;
+					// We increment playCount to flag that we want to play the sample, but we do not do significant play logic here as we are in a thread foreign to our knowledge of the internals of this class
+					i.playCount++;
+				}
+			}
+
+			if (nChanges > 0) SendGrossChangeMessageToThread();
+		}
+
+		uint32 RunThread(OS::IThreadControl& tc) override
+		{
+			tc.SetRealTimePriority();
+
+			while (tc.IsRunning())
+			{
+				tc.SleepUntilAysncEvent(1000);
+			}
+
+			return 0;
+		}
 	};
 }
 
 namespace Rococo::Audio
 {
-	ROCOCO_AUDIO_API IConcert3DSupervisor* CreateConcert(IAudioSampleDatabase& database)
+	ROCOCO_AUDIO_API IConcert3DSupervisor* CreateConcert(IAudioSampleDatabase& database, IOSAudioAPI& audio)
 	{
 		if (database.NumberOfChannels() != 1)
 		{
 			Throw(0, "%s: database channel count must be 1, i.e a mono sample database", __FUNCTION__);
 		}
-		return new Concert3D(database);
+		return new Concert3D(database, audio);
 	}
 }

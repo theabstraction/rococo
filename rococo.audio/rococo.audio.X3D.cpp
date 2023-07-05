@@ -4,7 +4,7 @@
 using namespace Rococo;
 using namespace Rococo::Audio;
 
-namespace
+namespace AudioAnon
 {
 	union EmitterSoundMatrix
 	{
@@ -203,6 +203,6 @@ namespace Rococo::Audio
 {
 	ROCOCO_AUDIO_API IAudio3DSupervisor* CreateX3D(float speedOfSoundInMetresPerSecond, IXAudio2MasteringVoice& master)
 	{
-		return new Audio3DEngine(speedOfSoundInMetresPerSecond, master);
+		return new AudioAnon::Audio3DEngine(speedOfSoundInMetresPerSecond, master);
 	}
 }

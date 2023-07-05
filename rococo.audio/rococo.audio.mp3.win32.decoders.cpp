@@ -25,7 +25,7 @@ using namespace Rococo::Strings;
 		Throw(hr, "%s: %s", __FUNCTION__, #x); \
 }
 
-namespace
+namespace AudioAnon
 {
 	void WriteSilence(Audio::StereoSample_INT16* samples, const uint32 sampleCount)
 	{
@@ -771,11 +771,11 @@ namespace Rococo::Audio
 {
 	IAudioDecoder* CreateAudioDecoder_MP3_to_Stereo_16bit_int(uint32 nSamplesInOutput)
 	{
-		return new AudioDecoder(nSamplesInOutput);
+		return new AudioAnon::AudioDecoder(nSamplesInOutput);
 	}
 
 	IMP3LoaderSupervisor* CreateSingleThreadedMP3Loader(IInstallation& installation, uint32 nChannels)
 	{
-		return new MP3Loader(installation, nChannels);
+		return new AudioAnon::MP3Loader(installation, nChannels);
 	}
 }

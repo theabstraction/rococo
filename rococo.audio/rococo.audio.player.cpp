@@ -7,9 +7,9 @@ using namespace Rococo;
 using namespace Rococo::Audio;
 using namespace Rococo::Strings;
 
-namespace
+namespace AudioAnon
 {
-	class AudioPlayer: public IAudioSupervisor, OS::IThreadJob
+	class AudioPlayer: public IAudioSupervisor, OS::IThreadJob, IEventCallback<IAudioSample&>
 	{
 		IInstallation& installation;
 		IOSAudioAPI& osAPI;
@@ -42,10 +42,9 @@ namespace
 			float speedOfSoundMetresPerSecond = 343.0f;
 			audio3D = osAPI.Create3DAPI(speedOfSoundMetresPerSecond);
 
-			monoSamples = CreateAudioSampleDatabase(refInstallation, 1);
-			concert = CreateConcert(*monoSamples);
+			monoSamples = CreateAudioSampleDatabase(refInstallation, 1, *this);
+			concert = CreateConcert(*monoSamples, ref_osAPI);
 			
-
 			thread = OS::CreateRococoThread(this, 0);
 			thread->Resume();
 		}
@@ -58,6 +57,11 @@ namespace
 		void Free() override
 		{
 			delete this;
+		}
+
+		void OnEvent(IAudioSample& sampleLoaded) override
+		{
+			concert->OnSampleLoaded(sampleLoaded);
 		}
 
 		void SetMP3Music(const fstring& mp3pingPath)
@@ -94,7 +98,18 @@ namespace
 
 		IdInstrument Play3DSound(IdSample id, const Rococo::Audio::AudioSource3D& source, int32 forceLevel) override
 		{
-			return concert->AssignInstrumentByPriority(id, source);
+			if (forceLevel <= 0)
+			{
+				return concert->AssignFreeInstrument(id, source);
+			}
+			else if (forceLevel == 1)
+			{
+				return concert->AssignInstrumentByPriority(id, source);
+			}
+			else // > 1
+			{
+				return concert->AssignInstrumentAlways(id, source);
+			}
 		}
 
 		uint32 RunThread(OS::IThreadControl& tc) override
@@ -120,6 +135,6 @@ namespace Rococo::Audio
 {
 	ROCOCO_AUDIO_API IAudioSupervisor* CreateAudioSupervisor(IInstallation& installation, IOSAudioAPI& osAPI, const AudioConfig& config)
 	{
-		return new AudioPlayer(installation, osAPI, config);
+		return new AudioAnon::AudioPlayer(installation, osAPI, config);
 	}
 }

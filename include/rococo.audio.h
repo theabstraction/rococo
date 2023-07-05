@@ -73,6 +73,8 @@ namespace Rococo::Audio
 
 		// Atomic and thread safe operation that returns whether the sample is ready to be played
 		virtual bool IsLoaded() const = 0;
+
+		virtual uint32 ReadSamples(int16* outputBuffer, uint32 outputBufferSampleCapacity, uint32 startAtSampleIndex) = 0;
 	};
 
 	ROCOCO_INTERFACE IAudioSampleDatabase
@@ -89,7 +91,7 @@ namespace Rococo::Audio
 		virtual void Free() = 0;
 	};
 
-	ROCOCO_AUDIO_API IAudioSampleDatabaseSupervisor* CreateAudioSampleDatabase(IInstallation& installation, int nChannels);
+	ROCOCO_AUDIO_API IAudioSampleDatabaseSupervisor* CreateAudioSampleDatabase(IInstallation& installation, int nChannels, IEventCallback<IAudioSample&>& onSampleLoaded);
 
 	struct AudioBufferDescriptor
 	{
@@ -139,9 +141,14 @@ namespace Rococo::Audio
 		virtual void Stop() = 0;
 	};
 
+	ROCOCO_INTERFACE IAudioVoiceContext
+	{
+
+	};
+
 	ROCOCO_INTERFACE IOSAudioVoiceCompletionHandler
 	{
-		virtual void OnSampleComplete(IOSAudioVoice& voice) = 0;
+		virtual void OnSampleComplete(IOSAudioVoice& voice, IAudioVoiceContext& context) = 0;
 	};
 
 	ROCOCO_INTERFACE IOSAudioVoiceSupervisor : IOSAudioVoice
@@ -182,8 +189,8 @@ namespace Rococo::Audio
 	{
 		// Turn an audio API error code passed in audio exceptions into an error message. The buffer is filled up to the capacity, truncated and terminated will a nul character
 		virtual void TranslateErrorCode(int errCode, char* msg, size_t capacity) = 0;
-		virtual IOSAudioVoiceSupervisor* Create16bitMono44100kHzVoice(IOSAudioVoiceCompletionHandler& completionHandler) = 0;
-		virtual IOSAudioVoiceSupervisor* Create16bitStereo44100kHzVoice(IOSAudioVoiceCompletionHandler& completionHandler) = 0;
+		virtual IOSAudioVoiceSupervisor* Create16bitMono44100kHzVoice(IOSAudioVoiceCompletionHandler& completionHandler, IAudioVoiceContext& context) = 0;
+		virtual IOSAudioVoiceSupervisor* Create16bitStereo44100kHzVoice(IOSAudioVoiceCompletionHandler& completionHandler, IAudioVoiceContext& context) = 0;
 		virtual IAudio3DSupervisor* Create3DAPI(float speedOfSoundInMetresPerSecond) = 0;
 	};
 
@@ -294,17 +301,15 @@ namespace Rococo::Audio
 
 		// Sets the location of the source instrument in world space
 		virtual bool SetPosition(IdInstrument id, cr_vec3 position) = 0;
-
-		// Sets the maximum number of voices the concert can combine, 255 is a good enough for most purposes
-		virtual void SetMaxVoices(uint32 nVoices) = 0;
 	};
 
 	ROCOCO_INTERFACE IConcert3DSupervisor : IConcert3D
 	{
 		virtual void Free() = 0;
+		virtual void OnSampleLoaded(IAudioSample& sample) = 0;
 	};
 
-	ROCOCO_AUDIO_API IConcert3DSupervisor* CreateConcert(IAudioSampleDatabase& database);
+	ROCOCO_AUDIO_API IConcert3DSupervisor* CreateConcert(IAudioSampleDatabase& database, IOSAudioAPI& audio);
 
 	ROCOCO_INTERFACE IAudioStreamer
 	{
