@@ -92,6 +92,7 @@ namespace Rococo::Audio
 		// Bind a sample to the database by ping path. The returned reference is valid until the database is cleared with a call to IAudioSampleDatabase::Clear()
 		virtual IAudioSample & Bind(cstr pingPath) = 0;
 		virtual IAudioSample* Find(IdSample id) const = 0;
+		virtual cstr GetLastError(int& errorCode) const = 0;
 		virtual uint32 NumberOfChannels() const = 0;
 		virtual void Clear() = 0;
 	};
@@ -142,6 +143,7 @@ namespace Rococo::Audio
 	ROCOCO_INTERFACE IAudioSupervisor : public IAudio
 	{
 		virtual void Free() = 0;
+		virtual void ThrowOnThreadError() = 0;
 	};
 
 	ROCOCO_INTERFACE IOSAudioVoice
@@ -317,6 +319,7 @@ namespace Rococo::Audio
 	{
 		virtual void Free() = 0;
 		virtual void OnSampleLoaded(IAudioSample& sample) = 0;
+		virtual void ThrowOnThreadError() = 0;
 	};
 
 	ROCOCO_AUDIO_API IConcert3DSupervisor* CreateConcert(IAudioSampleDatabase& database, IOSAudioAPI& audio);

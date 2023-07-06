@@ -43,6 +43,7 @@ namespace AudioAnon
 		IAudioVoiceContext& context;
 		AutoVoice<IXAudio2SourceVoice> sourceVoice;
 		IOSAudioVoiceCompletionHandler& completionHandler;
+		HRESULT lastError = S_FALSE;
 
 		X2AudioVoice(IXAudio2& x2, const WAVEFORMATEX* format, IOSAudioVoiceCompletionHandler& refCompletionHandler, IAudioVoiceContext& refContext):
 			context(refContext),
@@ -138,8 +139,9 @@ namespace AudioAnon
 		{
 		};
 
-		STDMETHOD_(void, OnVoiceError)(void*, HRESULT) override
+		STDMETHOD_(void, OnVoiceError)(void*, HRESULT hr) override
 		{
+			lastError = hr;
 		};
 	};
 

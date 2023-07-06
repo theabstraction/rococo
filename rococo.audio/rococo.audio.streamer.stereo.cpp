@@ -33,7 +33,7 @@ namespace AudioAnon
 			pcm_blocks.resize(PCM_BLOCK_COUNT);
 			for (int i = 0; i < PCM_BLOCK_COUNT; ++i)
 			{
-				pcm_blocks[i] = (StereoSample_INT16*) AudioCacheLineAlignedAlloc(nBytesPerBlock);
+				pcm_blocks[i] = (StereoSample_INT16*) AudioAlignedAlloc(nBytesPerBlock, 64);
 				memset(pcm_blocks[i], 0, nBytesPerBlock);
 			}
 
@@ -45,7 +45,7 @@ namespace AudioAnon
 		{
 			for (int i = 0; i < PCM_BLOCK_COUNT; ++i)
 			{
-				AudioCacheLineAlignedFree(pcm_blocks[i]);
+				AudioAlignedFree(pcm_blocks[i]);
 			}
 		}
 

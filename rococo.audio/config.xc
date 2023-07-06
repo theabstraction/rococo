@@ -87,4 +87,5 @@
 	(Float32 volume)
 	(Vec3 position)
 	(Vec3 dopplerVelocity)
+	(Float32 msDelay)
 )

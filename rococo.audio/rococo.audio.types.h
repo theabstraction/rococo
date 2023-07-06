@@ -5,5 +5,6 @@ namespace Rococo { namespace Audio {
 		float volume;
 		Vec3 position;
 		Vec3 dopplerVelocity;
+		float msDelay;
 	};
 }}

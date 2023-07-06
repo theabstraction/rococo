@@ -41,11 +41,13 @@ namespace Rococo::Audio
 		size_t currentIndex = 0;
 		bool isSampleQueued = false;
 		std::atomic<bool> waitingForLoad = false;
+		Seconds delayRemaining = 0.0_seconds;
+		OS::ticks assignmentStart = 0;
 
-		InstrumentDescriptor(): playCount(0), stopCount(0)
+		InstrumentDescriptor() : playCount(0), stopCount(0)
 		{
 			size_t nBytesPerBlock = SAMPLES_PER_BLOCK * sizeof(int16);
-			for (auto* block : pcm_blocks)
+			for (auto& block : pcm_blocks)
 			{
 				block = (int16*) AudioAlignedAlloc(nBytesPerBlock, 64);
 				memset(block, 0, nBytesPerBlock);
@@ -71,8 +73,8 @@ namespace Rococo::Audio
 			this->isSampleQueued = false;
 			this->playCount = 0;
 			this->stopCount = 0;
-
 			this->waitingForLoad = !sample->IsLoaded();
+			this->assignmentStart = OS::CpuTicks();
 
 			if (!this->waitingForLoad)
 			{
@@ -198,6 +200,20 @@ namespace Rococo::Audio
 			{
 				Rococo::Free(i.monoVoice);
 				i.monoVoice = nullptr;
+			}
+		}
+
+		void ThrowOnThreadError() override
+		{
+			int32 dbErrorCode;
+			cstr dbError = sampleDatabase.GetLastError(dbErrorCode);
+			if (dbError) Throw(dbErrorCode, "The audio sample database thread crashed with exception:\n%s", dbError);
+
+			int32 concertErrorCode;
+			cstr concertError = thread->GetErrorMessage(concertErrorCode);
+			if (concertError)
+			{
+				Throw(concertErrorCode, "The Concert3D thread crashed with exception:\n%s", concertError);
 			}
 		}
 

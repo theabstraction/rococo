@@ -107,7 +107,7 @@ namespace
    public:
       BlockAllocator(size_t kilobytes, size_t _maxkilobytes): maxBytes(_maxkilobytes * 1024)
       {
-         hHeap = HeapCreate(HEAP_NO_SERIALIZE, kilobytes * 1024, maxBytes);
+         hHeap = HeapCreate(0, kilobytes * 1024, maxBytes);
          if (hHeap == nullptr) Throw(GetLastError(), "Error allocating heap");
       }
 

@@ -90,7 +90,7 @@ namespace Rococo::Audio
 
 	void AudioAlignedFree(void* buffer)
 	{
-		AudioFreeMemory(((void**)buffer)[-1]);
+		if (buffer) AudioFreeMemory(((void**)buffer)[-1]);
 	}
 }
 

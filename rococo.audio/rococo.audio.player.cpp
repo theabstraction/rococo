@@ -59,6 +59,11 @@ namespace AudioAnon
 			delete this;
 		}
 
+		void ThrowOnThreadError() override
+		{
+			concert->ThrowOnThreadError();
+		}
+
 		void OnEvent(IAudioSample& sampleLoaded) override
 		{
 			concert->OnSampleLoaded(sampleLoaded);

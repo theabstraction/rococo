@@ -135,6 +135,11 @@ namespace AudioAnon
 			StopAndClean();
 		}
 
+		cstr GetLastError(int& errorCode) const override
+		{
+			return thread->GetErrorMessage(errorCode);
+		}
+
 		IAudioSample& Bind(cstr pingPath)
 		{
 			WideFilePath sysPath;

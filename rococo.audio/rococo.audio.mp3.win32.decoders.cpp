@@ -453,7 +453,14 @@ namespace AudioAnon
 		
 		void StreamInputFileProtected(const wchar_t* sysPath)
 		{
-			PopulateMediaBufferWithFileData(sysPath, *mp3Buffer);
+			try
+			{
+				PopulateMediaBufferWithFileData(sysPath, *mp3Buffer);
+			}
+			catch (IException& ex)
+			{
+				Throw(ex.ErrorCode(), "%s:\n%ws: %s", __FUNCTION__, sysPath, ex.Message());
+			}
 
 			HRESULT hr;
 			VALIDATE(hr = transform->ProcessMessage(MFT_MESSAGE_COMMAND_FLUSH, 0));
@@ -690,7 +697,14 @@ namespace AudioAnon
 			WideFilePath sysPath;
 			installation.ConvertPingPathToSysPath(pingPath, OUT sysPath);
 
-			PopulateMediaBufferWithFileData(sysPath, *mp3Buffer);
+			try
+			{
+				PopulateMediaBufferWithFileData(sysPath, *mp3Buffer);
+			}
+			catch (IException& ex)
+			{
+				Throw(ex.ErrorCode(), "%s:\n%ws: %s", __FUNCTION__, sysPath, ex.Message());
+			}
 
 			DWORD length = 0;
 			mp3Buffer->GetCurrentLength(&length);

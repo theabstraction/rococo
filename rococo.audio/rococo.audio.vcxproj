@@ -105,6 +105,7 @@
   <ItemGroup>
     <ClInclude Include="..\include\rococo.audio.h" />
     <ClInclude Include="rococo.audio.sxh.h" />
+    <ClInclude Include="rococo.audio.types.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="rococo.audio.3D-world.cpp" />
