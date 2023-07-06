@@ -46,8 +46,8 @@ namespace Rococo { namespace VM { namespace OS
 	int64 TimerTicks();
 	int64 TimerHz();
 
-	void* AllocAlignedMemory(size_t nBytes, size_t alignment);
-	void FreeAlignedMemory(void* data, size_t nBytes);
+	void* AllocAlignedMemory(size_t nBytes, int32 alignment);
+	void FreeAlignedMemory(void* data);
 
 	bool RouteSysMessages();
 }}} // SVM::VM::OS

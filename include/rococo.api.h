@@ -176,6 +176,8 @@ namespace Rococo
 	{
 		ROCOCO_API [[nodiscard]] IAllocator& CheckedAllocator();
 		ROCOCO_API [[nodiscard]] IAllocatorSupervisor* CreateBlockAllocator(size_t kilobytes, size_t maxkilobytes);
+		ROCOCO_API void* AlignedAlloc(size_t nBytes, int32 alignment, void* allocatorFunction(size_t));
+		ROCOCO_API void AlignedFree(void* buffer, void deleteFunction(void*));
 	}
 }
 

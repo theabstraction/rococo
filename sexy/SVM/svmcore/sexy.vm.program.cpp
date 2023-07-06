@@ -75,7 +75,7 @@ namespace Anon
 
 		~ProgramMemory()
 		{
-			VM::OS::FreeAlignedMemory(memory, allocSize);
+			VM::OS::FreeAlignedMemory(memory);
 		}
 
 		virtual void AddRef()

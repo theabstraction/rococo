@@ -43,14 +43,14 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>$(SolutionDir)..\bin</OutDir>
+    <OutDir>$(SolutionDir)..\bin\</OutDir>
     <IntDir>$(SolutionDir)..\temp\$(ProjectName)\$(Platform)$(Configuration)\</IntDir>
     <TargetName>$(ProjectName).debug</TargetName>
     <TargetExt>.dll</TargetExt>
     <LibraryPath>$(SolutionDir)../lib/;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>$(SolutionDir)..\bin</OutDir>
+    <OutDir>$(SolutionDir)..\bin\</OutDir>
     <IntDir>$(SolutionDir)..\temp\$(ProjectName)\$(Platform)$(Configuration)\</IntDir>
     <TargetExt>.dll</TargetExt>
     <LibraryPath>$(SolutionDir)../lib/;$(LibraryPath)</LibraryPath>

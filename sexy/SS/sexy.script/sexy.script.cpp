@@ -811,7 +811,6 @@ namespace Rococo::Script
 		TReflectedPointers representations;
 
 		CScriptSystemClass* reflectionRoot;
-		TAllocationMap alignedAllocationMap;
 
 		ArrayCallbacks arrayCallbacks;
 		ListCallbacks listCallbacks;
@@ -1400,12 +1399,6 @@ namespace Rococo::Script
 
 		bool ValidateMemory() override
 		{
-			if (!alignedAllocationMap.empty())
-			{
-				Rococo::LogError(ProgramObject().Log(), ("Memory leak! %u elements found in the aligned allocation map"), alignedAllocationMap.size());
-				return false;
-			}
-
 			return true;
 		}
 
@@ -1427,58 +1420,12 @@ namespace Rococo::Script
 
 		void* AlignedMalloc(int32 alignment, int32 capacity) override
 		{
-			uint8* alignedData;
-
-			if (capacity <= 0 || alignment <= 0)
-			{
-				alignedData = NULL;
-			}
-			else
-			{
-				if (alignment != 1)
-				{
-					uint8* data = new uint8[capacity + alignment];
-
-					size_t tooManyBytes = (size_t)data & alignment;
-					if (tooManyBytes != 0)
-					{
-						size_t paddingBytes = alignment - tooManyBytes;
-						alignedData = data + paddingBytes;
-					}
-					else
-					{
-						alignedData = data;
-					}
-
-					alignedAllocationMap[alignedData] = data;
-				}
-				else
-				{
-					alignedData = new uint8[capacity];
-					alignedAllocationMap[alignedData] = alignedData;
-				}
-			}
-
-			return alignedData;
+			return Rococo::Memory::AlignedAlloc(capacity, alignment, Rococo::Memory::AllocateSexyMemory);
 		}
 
 		void AlignedFree(void* alignedData) override
 		{
-			if (alignedData == NULL) return;
-
-			auto i = alignedAllocationMap.find(alignedData);
-			if (i != alignedAllocationMap.end())
-			{
-				uint8* raw = (uint8*)i->second;
-				delete raw;
-
-				alignedAllocationMap.erase(i);
-			}
-			else
-			{
-				progObjProxy->Log().Write(("Sys.Native.FreeAligned(...) was passed a pointer that is not currently defined in the aligned heap"));
-				progObjProxy->VirtualMachine().Throw();
-			}
+			return Rococo::Memory::AlignedFree(alignedData, Rococo::Memory::FreeSexyUnknownMemory);
 		}
 
 		const void* GetMethodMap() override
@@ -2151,14 +2098,6 @@ namespace Rococo::Script
 			{
 				FreeDynamicClass(&k->second->Header);
 			}
-
-			for (auto i = alignedAllocationMap.begin(); i != alignedAllocationMap.end(); ++i)
-			{
-				uint8* buffer = (uint8*)i->second;
-				delete buffer;
-			}
-
-			alignedAllocationMap.clear();
 
 			for (auto i = nativeLibs.begin(); i != nativeLibs.end(); ++i)
 			{

@@ -76,21 +76,12 @@ namespace Rococo::Audio
 
 	void* AudioAlignedAlloc(size_t nBytes, int32 alignment)
 	{
-		void* p1; // original block
-		void** p2; // aligned block
-		int offset = alignment - 1 + sizeof(void*);
-		if ((p1 = (void*)AudioAllocWithNoThrow(nBytes + offset)) == NULL)
-		{
-			return nullptr;
-		}
-		p2 = (void**)(((size_t)(p1)+offset) & ~(alignment - 1));
-		p2[-1] = p1;
-		return p2;
+		return Rococo::Memory::AlignedAlloc(nBytes, alignment, AudioAllocWithNoThrow);
 	}
 
 	void AudioAlignedFree(void* buffer)
 	{
-		if (buffer) AudioFreeMemory(((void**)buffer)[-1]);
+		Rococo::Memory::AlignedFree(buffer, AudioFreeMemory);
 	}
 }
 
