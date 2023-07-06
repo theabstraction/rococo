@@ -226,6 +226,14 @@ namespace Rococo
 	}
 }
 
+int GetClampedInt(IConfigSupervisor& config, cstr name, int defaultValue, int minValue, int maxValue)
+{
+	int result = 0;
+	config.TryGetInt(name, result, defaultValue);
+	result = clamp(result, minValue, maxValue);
+	return result;
+}
+
 int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon, HICON hSmallIcon)
 {
 	using namespace Rococo::Components;
@@ -325,23 +333,19 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	ws.minSpan = { 1024, 640 };
 
 	Vec2i initialDS;
-	config->TryGetInt("mainwindow.initial.x", initialDS.x, 24);
-	config->TryGetInt("mainwindow.initial.y", initialDS.y, 24);
+	initialDS.x = GetClampedInt(*config, "mainwindow.initial.x", 24, 0, workAreaSpan.x - 128);
+	initialDS.y = GetClampedInt(*config, "mainwindow.initial.y", 24, 0, workAreaSpan.y - 128);
 
 	// Clamp the x and y offsets so that our windows does not appear too far offscreen
-	initialDS.x = clamp(initialDS.x, 0, workAreaSpan.x - 128);
-	initialDS.y = clamp(initialDS.y, 0, workAreaSpan.y - 128);
 	ws.X = workArea.left + initialDS.x;
 	ws.Y = workArea.top + initialDS.y;
 
 	Vec2i desktopSpan = GetDesktopSpan();
 
 	Vec2i desktopBorder = { 96, 54 };
-	config->TryGetInt("mainwindow.desktop.border.width", desktopBorder.x, 96);
-	config->TryGetInt("mainwindow.desktop.border.height", desktopBorder.y, 54);
+	desktopBorder.x = GetClampedInt(*config, "mainwindow.desktop.border.width", 96, 0, 384);
+	desktopBorder.y = GetClampedInt(*config, "mainwindow.desktop.border.height", 54, 0, 216);
 
-	desktopBorder.x = clamp(desktopBorder.x, 0, 384);
-	desktopBorder.y = clamp(desktopBorder.y, 0, 216);
 	Vec2i windowSpan = desktopSpan - 2 * desktopBorder;
 
 	Vec2i resolvedSpan;
@@ -364,9 +368,15 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 
 	OutputDebugStringA("\n\n");
 
+	int audioMemoryInitialKb = GetClampedInt(*config, "audio.memory.initial.kb", 16384, 1024, 1024 * 1024);
+
+	AutoFree<IAllocatorSupervisor> audioHeap(Memory::CreateBlockAllocator(audioMemoryInitialKb, 0));
+	Rococo::Audio::SetAudioAllocator(audioHeap);
+
 	Audio::AudioConfig audio_config{};
 	AutoFree<Audio::IOSAudioAPISupervisor> osAudio = Audio::CreateOSAudio();
 	AutoFree<Audio::IAudioSupervisor> audio = Audio::CreateAudioSupervisor(*installation, *osAudio, audio_config);
+
 	AutoFree<Rococo::Entities::IRigs> rigs = Rococo::Entities::CreateRigBuilder();
 	AutoFree<Graphics::IMeshBuilderSupervisor> meshes = Graphics::CreateMeshBuilder(mainWindow->Renderer());
 

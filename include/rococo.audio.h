@@ -63,6 +63,16 @@ namespace Rococo::Script
 
 namespace Rococo::Audio
 {
+	/****  Internal API, not for external code  ****/
+	void* AudioAlignedAlloc(size_t nBytes, int32 alignment);
+	void AudioAlignedFree(void* buffer);
+	/***********************************************/
+}
+
+namespace Rococo::Audio
+{
+	ROCOCO_AUDIO_API void SetAudioAllocator(IAllocator* allocator);
+
 	ROCOCO_INTERFACE IAudioSample
 	{
 		// The unique id that can be used to quickly lookup a sample from a sample database

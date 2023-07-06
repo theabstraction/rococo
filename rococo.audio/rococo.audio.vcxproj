@@ -109,6 +109,7 @@
   <ItemGroup>
     <ClCompile Include="rococo.audio.3D-world.cpp" />
     <ClCompile Include="rococo.audio.dllmain.cpp" />
+    <ClCompile Include="rococo.audio.memory.cpp" />
     <ClCompile Include="rococo.audio.mp3.win32.decoders.cpp" />
     <ClCompile Include="rococo.audio.player.cpp" />
     <ClCompile Include="rococo.audio.sample.database.cpp" />

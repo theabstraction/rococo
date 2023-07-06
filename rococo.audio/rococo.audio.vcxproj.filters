@@ -50,6 +50,9 @@
     <ClCompile Include="rococo.audio.X3D.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="rococo.audio.memory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="rococo.audio.sxh">

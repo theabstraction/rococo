@@ -45,10 +45,18 @@ namespace Rococo::Audio
 		InstrumentDescriptor(): playCount(0), stopCount(0)
 		{
 			size_t nBytesPerBlock = SAMPLES_PER_BLOCK * sizeof(int16);
-			for (int i = 0; i < PCM_BLOCK_COUNT; ++i)
+			for (auto* block : pcm_blocks)
 			{
-				pcm_blocks[i] = (int16*)_aligned_malloc(nBytesPerBlock, 64);
-				memset(pcm_blocks[i], 0, nBytesPerBlock);
+				block = (int16*) AudioAlignedAlloc(nBytesPerBlock, 64);
+				memset(block, 0, nBytesPerBlock);
+			}
+		}
+
+		virtual ~InstrumentDescriptor()
+		{
+			for (auto* block: pcm_blocks)
+			{
+				AudioAlignedFree(block);
 			}
 		}
 		
