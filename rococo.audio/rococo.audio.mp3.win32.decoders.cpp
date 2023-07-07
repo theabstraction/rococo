@@ -338,7 +338,7 @@ namespace AudioAnon
 
 	struct AudioDecoder : IAudioDecoder, OS::IThreadJob
 	{
-		enum { MAX_MP3_SIZE = 100_megabytes };
+		enum { MAX_MP3_SIZE = 128_megabytes };
 		IAudioInstallationSupervisor& installation;
 		AutoRelease<IMFMediaBuffer> mp3Buffer;
 		AutoRelease<IMFSample> mp3Sample;
