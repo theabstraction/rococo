@@ -828,7 +828,7 @@ namespace Anon
 		{ 
 			if (stack != NULL)
 			{
-				VM::OS::FreeAlignedMemory(stack, stackSize);
+				VM::OS::FreeAlignedMemory(stack);
 				stack = NULL;
 			}
 			
@@ -844,7 +844,7 @@ namespace Anon
 			const uint8* maxPtr = (const uint8*) MAX_STACK_POINTER;
 			if (false && stack + nBytes > maxPtr)
 			{
-				VM::OS::FreeAlignedMemory(stack, stackSize);
+				VM::OS::FreeAlignedMemory(stack);
             stack = NULL;
 				Rococo::Throw(0, ("The SexyVM stack end %p exceeded the maximum pointer value of %p"), stack, maxPtr);
 			}
@@ -2955,7 +2955,7 @@ namespace Anon
 		
 		uint8* pCpu = mem - GetCpuToVMOffset();
 
-		Rococo::VM::OS::FreeAlignedMemory(pCpu, Anon::GetCpuToVMOffset() + sizeof(Anon::CVirtualMachine));
+		Rococo::VM::OS::FreeAlignedMemory(pCpu);
 	}
 }
 

@@ -717,10 +717,12 @@ namespace Rococo
 			OS::ticks loadTime;
 		};
 		stringmap<Binding> sources;
+		// TODO -> allocator using the SourceCache allocator
 		AutoFree<IExpandingBuffer> fileBuffer;
+		// TODO -> allocator using the SourceCache allocator
 		AutoFree<IExpandingBuffer> unicodeBuffer;
 		IInstallation& installation;
-		AutoFree<IAllocatorSupervisor> allocator;
+		IAllocator& allocator;
 		Auto<ISParser> parser;
 
 		struct VisitorInfo
@@ -732,18 +734,18 @@ namespace Rococo
 		std::vector<VisitorInfo> visitorData;
 		std::vector<IPackage*> packages;
 	public:
-		SourceCache(IInstallation& _installation) :
+		SourceCache(IInstallation& _installation, IAllocator& _allocator) :
 			fileBuffer(CreateExpandingBuffer(64_kilobytes)),
 			unicodeBuffer(CreateExpandingBuffer(64_kilobytes)),
 			installation(_installation),
-			allocator(Rococo::Memory::CreateBlockAllocator(1024, 0)),
-			parser(Sexy_CreateSexParser_2_0(*allocator))
+			allocator(_allocator),
+			parser(Sexy_CreateSexParser_2_0(_allocator))
 		{
 		}
 
 		IAllocator& Allocator() override
 		{
-			return *allocator;
+			return allocator;
 		}
 
 		ISourceCache* GetInterface()
@@ -926,9 +928,9 @@ namespace Rococo
 		}
 	};
 
-	SCRIPTEXPORT_API ISourceCache* CreateSourceCache(IInstallation& installation)
+	SCRIPTEXPORT_API ISourceCache* CreateSourceCache(IInstallation& installation, IAllocator& allocator)
 	{
-		auto* cache = new SourceCache(installation);
+		auto* cache = new SourceCache(installation, allocator);
 		return cache->GetInterface();
 	}
 

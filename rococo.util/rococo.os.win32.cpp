@@ -2973,3 +2973,46 @@ namespace Rococo::Windows
 		return { rect.right - rect.left, rect.bottom - rect.top };
 	}
 }
+
+namespace Rococo::Strings::CLI
+{
+	ROCOCO_API int GetClampedCommandLineOption(const CommandLineOptionInt32& option)
+	{
+		const auto cmd = GetCommandLineA();
+		const auto fullArg = strstr(cmd, option.spec.prefix);
+
+		int value = option.defaultValue;
+
+		if (fullArg)
+		{
+			const auto rhs = fullArg + option.spec.prefix.length;
+			value = atoi(rhs);
+		}
+
+		return clamp(value, option.minValue, option.maxValue);
+	}
+
+	bool HasSwitch(const CommandLineOption& option)
+	{
+		const auto cmd = GetCommandLineA();
+		const auto fullArg = strstr(cmd, option.prefix);
+
+		if (!fullArg)
+		{
+			return false;
+		}
+
+		const char lastChar = fullArg[option.prefix.length];
+		switch(lastChar)
+		{
+		case 0:
+		case ' ':
+		case '\t':
+		case '\r':
+		case '\n':
+			return true;
+		default:
+			return false;
+		}
+	}
+}

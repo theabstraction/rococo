@@ -339,6 +339,11 @@ namespace Rococo::Memory
 		globalSexyAllocator->FreeData(buffer);
 	}
 
+	SEXYUTIL_API void FreeSexyUnknownMemory(void* buffer)
+	{
+		globalSexyAllocator->FreeData(buffer);
+	}
+
 	SEXYUTIL_API IAllocator& GetSexyAllocator()
 	{
 		return *globalSexyAllocator;

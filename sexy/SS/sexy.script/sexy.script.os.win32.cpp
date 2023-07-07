@@ -237,3 +237,46 @@ namespace Rococo {
 	}
 } // Rococo::OS
 
+_NODISCARD _Ret_notnull_ _Post_writable_byte_size_(nBytes) _VCRT_ALLOCATOR
+void* __CRTDECL operator new(std::size_t nBytes)
+{
+	return Rococo::Memory::GetSexyAllocator().Allocate(nBytes);
+}
+
+_Ret_maybenull_ _Success_(return != NULL) _Post_writable_byte_size_(nBytes) _VCRT_ALLOCATOR
+void* __CRTDECL operator new(size_t nBytes, ::std::nothrow_t const&) noexcept
+{
+	try
+	{
+		return Rococo::Memory::GetSexyAllocator().Allocate(nBytes);
+	}
+	catch (...)
+	{
+		return nullptr;
+	}
+}
+
+_NODISCARD _Ret_notnull_ _Post_writable_byte_size_(nBytes) _VCRT_ALLOCATOR
+void* __CRTDECL operator new[](size_t nBytes)
+{
+	return Rococo::Memory::GetSexyAllocator().Allocate(nBytes);
+}
+
+_NODISCARD _Ret_maybenull_ _Success_(return != NULL) _Post_writable_byte_size_(nBytes) _VCRT_ALLOCATOR
+void* __CRTDECL operator new[](size_t nBytes, ::std::nothrow_t const&) noexcept
+{
+	try
+	{
+		return Rococo::Memory::GetSexyAllocator().Allocate(nBytes);
+	}
+	catch (...)
+	{
+		return nullptr;
+	}
+}
+
+void operator delete(void* buffer) throw()
+{
+	Rococo::Memory::GetSexyAllocator().FreeData(buffer);
+}
+

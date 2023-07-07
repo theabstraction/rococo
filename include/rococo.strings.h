@@ -305,6 +305,30 @@ namespace Rococo::Strings
 
 	namespace CLI
 	{
+		struct CommandLineOption
+		{
+			fstring prefix;
+			fstring helpString;
+		};
+
+		struct CommandLineOptionInt32
+		{
+			CommandLineOption spec;
+
+			// The default value of the command line optin if the command is omitted
+			int32 defaultValue;
+
+			// The final minimum clamp value, applied to both the default value and overriden values supplied by the command line
+			int32 minValue;
+
+			// The final maximum clamp value, applied to both the default value and overriden values supplied by the command line
+			int32 maxValue;
+		};
+
+		ROCOCO_API int GetClampedCommandLineOption(const CommandLineOptionInt32& option);
+
+		ROCOCO_API bool HasSwitch(const CommandLineOption& option);
+
 		// Example, if prefix = '-title:' and a command line contains a substring -title:MHOST or -title:"MHOST" then string 'MHOST' will be copied to the buffer, otherwise the [defaultString] is used. Do not supply null for any argument
 		ROCOCO_API void GetCommandLineArgument(const fstring& prefix, cstr commandLine, char* buffer, size_t capacity, cstr defaultString);
 	}

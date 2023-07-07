@@ -46,6 +46,7 @@
 
 #include <rococo.api.h>
 #include <rococo.os.h>
+#include <rococo.stl.allocators.h>
 
 using namespace Rococo;
 using namespace Rococo::VM;
@@ -158,18 +159,13 @@ namespace Rococo { namespace VM { namespace OS
 		return hz.QuadPart;
 	}
 
-	void* AllocAlignedMemory(size_t nBytes, size_t alignment)
+	void* AllocAlignedMemory(size_t nBytes, int32 alignment)
 	{
-		// Can assume alignment is not going to be so large it will larger than the VirtualAlloc default
-		void* ptr = VirtualAlloc(NULL, nBytes, MEM_COMMIT, PAGE_READWRITE); 
-#ifdef _DEBUG
-      memset(ptr, 0xFE, nBytes);
-#endif
-      return ptr;
+		return Rococo::Memory::AlignedAlloc(nBytes, alignment, Rococo::Memory::AllocateSexyMemory);
 	}
 
-	void FreeAlignedMemory(void* data, size_t nBytes)
+	void FreeAlignedMemory(void* data)
 	{
-		VirtualFree(data, nBytes, MEM_RELEASE);
+		return Rococo::Memory::AlignedFree(data, Rococo::Memory::FreeSexyUnknownMemory);
 	}
 }}} // Rococo::VM::OS

@@ -11,6 +11,7 @@ namespace Rococo::Memory
 {
     SEXYUTIL_API void* AllocateSexyMemory(size_t nBytes);
     SEXYUTIL_API void FreeSexyMemory(void* pBuffer, size_t nBytes);
+    SEXYUTIL_API void FreeSexyUnknownMemory(void* pBuffer);
     SEXYUTIL_API IAllocator& GetSexyAllocator();
     SEXYUTIL_API void SetSexyAllocator(IAllocator* allocator);
     SEXYUTIL_API void ValidateNothingAllocated();

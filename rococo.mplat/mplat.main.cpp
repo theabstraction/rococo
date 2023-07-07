@@ -234,12 +234,62 @@ int GetClampedInt(IConfigSupervisor& config, cstr name, int defaultValue, int mi
 	return result;
 }
 
-int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon, HICON hSmallIcon)
+Rococo::Strings::CLI::CommandLineOption cmdOptionHelp =
 {
-	using namespace Rococo::Components;
+	"-?"_fstring,
+	"List command line options and their help strings. Command line options that end with a colon take an argument with no blankspace between the option and the argument."_fstring
+};
 
-	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
+Rococo::Strings::CLI::CommandLineOption cmdOptionTitle =
+{
+	"-title:"_fstring,
+	"Assigns a caption to the main window and other elements of the application"_fstring
+};
 
+Rococo::Strings::CLI::CommandLineOptionInt32 cmdOptionInt32_AllocScriptsInitial =
+{
+	{
+		"-alloc.script.initial:"_fstring,
+		"decimal int32 specifying the initial length of the script allocator in kilobytes"_fstring
+	},
+	16384, 0, 1048576
+};
+
+Rococo::Strings::CLI::CommandLineOptionInt32 cmdOptionInt32_AllocImagesInitial =
+{
+	{
+		"-alloc.images.initial:"_fstring,
+		"decimal int32 specifying the initial length of the image allocator in kilobytes"_fstring
+	},
+	16384, 0, 1048576
+};
+
+const Rococo::Strings::CLI::CommandLineOption* options[] =
+{
+	&cmdOptionHelp,
+	&cmdOptionTitle,
+	&cmdOptionInt32_AllocScriptsInitial.spec,
+	&cmdOptionInt32_AllocImagesInitial.spec
+};
+
+void ThrowWhenHelpInformationNeeded()
+{
+	if (Rococo::Strings::CLI::HasSwitch(cmdOptionHelp))
+	{
+		AutoFree<IDynamicStringBuilder> sb = Rococo::Strings::CreateDynamicStringBuilder(256);
+		for (auto* opt : options)
+		{
+			sb->Builder().AppendFormat("\tOption: %-24.24s %s\n", opt->prefix.buffer, opt->helpString.buffer);
+		}
+
+		fstring s = *sb->Builder();
+
+		Throw(0, "Command line options:\n%s", s.buffer);
+	}
+}
+
+HANDLE CreateInstanceLock()
+{
 	U8FilePath exeFile;
 	GetModuleFileNameA(nullptr, exeFile.buf, exeFile.CAPACITY);
 
@@ -250,6 +300,10 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	}
 
 	HANDLE hInstanceLock = CreateEventA(nullptr, TRUE, FALSE, eventName);
+	if (hInstanceLock == NULL)
+	{
+		Throw(GetLastError(), "Error creating event: %s", eventName.buf);
+	}
 
 	int err = GetLastError();
 	if (err == ERROR_ALREADY_EXISTS)
@@ -261,7 +315,100 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 			ShowMessageBox(Windows::NoParent(), "Application is already running", exeFile, MB_ICONEXCLAMATION);
 		}
 
-		return err;
+		SetLastError(err);
+		return nullptr;
+	}
+
+	return hInstanceLock;
+}
+
+struct OutputWindowFormatter : Strings::IVarArgStringFormatter, Strings::IColourOutputControl
+{
+	int PrintFV(const char* format, va_list args) override
+	{
+		char buf[4096];
+		int length = SafeVFormat(buf, sizeof buf, format, args);
+		OutputDebugStringA(buf);
+		return length;
+	}
+
+	void SetOutputColour(RGBAb colour) override
+	{
+
+	}
+};
+
+void GetMainWindowSpec(WindowSpec& ws, HINSTANCE hInstance, IConfigSupervisor& config)
+{
+	RECT workArea;
+	::SystemParametersInfo(SPI_GETWORKAREA, 0, &workArea, 0);
+
+	Vec2i workAreaSpan = { workArea.right - workArea.left, workArea.bottom - workArea.top };
+
+	ws.exStyle = 0;
+	ws.style = WS_OVERLAPPEDWINDOW;
+	ws.hInstance = hInstance;
+	ws.hParentWnd = nullptr;
+	ws.messageSink = nullptr;
+	ws.minSpan = { 1024, 640 };
+
+	Vec2i initialDS;
+	initialDS.x = GetClampedInt(config, "mainwindow.initial.x", 24, 0, workAreaSpan.x - 128);
+	initialDS.y = GetClampedInt(config, "mainwindow.initial.y", 24, 0, workAreaSpan.y - 128);
+
+	// Clamp the x and y offsets so that our windows does not appear too far offscreen
+	ws.X = workArea.left + initialDS.x;
+	ws.Y = workArea.top + initialDS.y;
+
+	Vec2i desktopSpan = GetDesktopSpan();
+
+	Vec2i desktopBorder = { 96, 54 };
+	desktopBorder.x = GetClampedInt(config, "mainwindow.desktop.border.width", 96, 0, 384);
+	desktopBorder.y = GetClampedInt(config, "mainwindow.desktop.border.height", 54, 0, 216);
+
+	Vec2i windowSpan = desktopSpan - 2 * desktopBorder;
+
+	Vec2i resolvedSpan;
+	config.TryGetInt("mainwindow.desktop.window.width", resolvedSpan.x, windowSpan.x);
+	config.TryGetInt("mainwindow.desktop.window.height", resolvedSpan.y, windowSpan.y);
+
+	ws.Width = clamp(resolvedSpan.x, 768, desktopSpan.x);
+	ws.Height = clamp(resolvedSpan.y, 432, desktopSpan.y);
+}
+
+int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon, HICON hSmallIcon)
+{
+	using namespace Rococo::Components;
+
+	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
+
+	HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
+	if FAILED(hr)
+	{
+		Throw(hr, "CoInitializeEx failed");
+	}
+
+	ThrowWhenHelpInformationNeeded();
+
+	int initialScriptAllocationKB = Rococo::Strings::CLI::GetClampedCommandLineOption(cmdOptionInt32_AllocScriptsInitial);
+		
+	// We set up allocators first, as subsystems below depend on it implicitly through global new and delete operators
+	// We cannot determine the paramenters by sexy script, since the script library depends on the allocators being set first, so use command line parameters
+	AutoFree<IAllocatorSupervisor> scriptAllocator = Memory::CreateBlockAllocator(initialScriptAllocationKB, 0);
+	Rococo::Memory::SetSexyAllocator(scriptAllocator);
+
+	int initialImageAllocationKB = Rococo::Strings::CLI::GetClampedCommandLineOption(cmdOptionInt32_AllocImagesInitial);
+	AutoFree<IAllocatorSupervisor> imageAllocator = Memory::CreateBlockAllocator(initialImageAllocationKB, 0);
+	Imaging::SetJpegAllocator(imageAllocator);
+	Imaging::SetTiffAllocator(imageAllocator);
+
+	U8FilePath exeFile;
+	GetModuleFileNameA(nullptr, exeFile.buf, exeFile.CAPACITY);
+
+	HANDLE hInstanceLock = CreateInstanceLock();
+	if (!hInstanceLock)
+	{
+		return GetLastError();
 	}
 
 	HandleManager autoInstanceLock(hInstanceLock);
@@ -272,10 +419,6 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 
 	InitRococoWindows(hInstance, hLargeIcon, hSmallIcon, &font, &font);
 
-	AutoFree<IAllocatorSupervisor> imageAllocator = Memory::CreateBlockAllocator(0, 0);
-	Imaging::SetJpegAllocator(imageAllocator);
-	Imaging::SetTiffAllocator(imageAllocator);
-
 	AutoFree<IOSSupervisor> os = GetOS();
 	AutoFree<IInstallationSupervisor> installation = CreateInstallation(L"content.indicator.txt", *os);
 	AutoFree<IConfigSupervisor> config = CreateConfig();
@@ -284,30 +427,14 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	os->Monitor(installation->Content());
 
 	AutoFree<IDX11Logger> logger = CreateStandardOutputLogger();
+	AutoFree<ISourceCache> sourceCache(CreateSourceCache(*installation, *scriptAllocator));
 	
-	AutoFree<ISourceCache> sourceCache(CreateSourceCache(*installation));
-	Rococo::Memory::SetSexyAllocator(&sourceCache->Allocator());
 	Rococo::MPlatImpl::InitScriptSystem(*installation);
 	
 	AutoFree<Rococo::Script::IScriptSystemFactory> ssFactory = CreateScriptSystemFactory_1_5_0_0();
 	AutoFree<OS::IAppControlSupervisor> appControl(OS::CreateAppControl());
 
-	struct OutputWindowFormatter : Strings::IVarArgStringFormatter, Strings::IColourOutputControl
-	{
-		int PrintFV(const char* format, va_list args) override
-		{
-			char buf[4096];
-			int length = SafeVFormat(buf, sizeof buf, format, args);
-			OutputDebugStringA(buf);
-			return length;
-		}
-
-		void SetOutputColour(RGBAb colour) override
-		{
-
-		}
-	} outputWindowFormatter;
-
+	OutputWindowFormatter outputWindowFormatter;
 	AutoFree<IDebuggerWindow> consoleDebugger = GetConsoleAsDebuggerWindow(outputWindowFormatter, outputWindowFormatter);
 
 	// We need config to control window settings, thus the HWND based debugger window will not be available at this time
@@ -319,42 +446,8 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	factorySpec.smallIcon = hSmallIcon;
 	AutoFree<IDX11Factory> factory = CreateDX11Factory(*installation, *logger, factorySpec);
 
-	RECT workArea;
-	::SystemParametersInfo(SPI_GETWORKAREA, 0, &workArea, 0);
-
-	Vec2i workAreaSpan = { workArea.right - workArea.left, workArea.bottom - workArea.top };
-
 	WindowSpec ws;
-	ws.exStyle = 0;
-	ws.style = WS_OVERLAPPEDWINDOW;
-	ws.hInstance = hInstance;
-	ws.hParentWnd = nullptr;
-	ws.messageSink = nullptr;
-	ws.minSpan = { 1024, 640 };
-
-	Vec2i initialDS;
-	initialDS.x = GetClampedInt(*config, "mainwindow.initial.x", 24, 0, workAreaSpan.x - 128);
-	initialDS.y = GetClampedInt(*config, "mainwindow.initial.y", 24, 0, workAreaSpan.y - 128);
-
-	// Clamp the x and y offsets so that our windows does not appear too far offscreen
-	ws.X = workArea.left + initialDS.x;
-	ws.Y = workArea.top + initialDS.y;
-
-	Vec2i desktopSpan = GetDesktopSpan();
-
-	Vec2i desktopBorder = { 96, 54 };
-	desktopBorder.x = GetClampedInt(*config, "mainwindow.desktop.border.width", 96, 0, 384);
-	desktopBorder.y = GetClampedInt(*config, "mainwindow.desktop.border.height", 54, 0, 216);
-
-	Vec2i windowSpan = desktopSpan - 2 * desktopBorder;
-
-	Vec2i resolvedSpan;
-	config->TryGetInt("mainwindow.desktop.window.width", resolvedSpan.x, windowSpan.x);
-	config->TryGetInt("mainwindow.desktop.window.height", resolvedSpan.y, windowSpan.y);
-	
-	ws.Width = clamp(resolvedSpan.x, 768, desktopSpan.x);
-	ws.Height = clamp(resolvedSpan.y, 432, desktopSpan.y);
-
+	GetMainWindowSpec(ws, hInstance, *config);
 	AutoFree<IDX11GraphicsWindow> mainWindow = factory->CreateDX11Window(ws, true);
 	mainWindow->MakeRenderTarget();
 
@@ -366,10 +459,8 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	int32 maxEntities = config->GetInt("mplat.instances.entities.max"_fstring);
 	if (maxEntities <= 0) Throw(0, "Int32 \"mplat.instances.entities.max\" defined in '!scripts/config_mplat.sxy' was not positive");
 
-	OutputDebugStringA("\n\n");
-
+	// The audio allocator must be assigned before any other audio API function or method is called
 	int audioMemoryInitialKb = GetClampedInt(*config, "audio.memory.initial.kb", 16384, 1024, 1024 * 1024);
-
 	AutoFree<IAllocatorSupervisor> audioHeap(Memory::CreateBlockAllocator(audioMemoryInitialKb, 0));
 	Rococo::Audio::SetAudioAllocator(audioHeap);
 
@@ -415,13 +506,9 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	Tesselators tesselators{ *rimTesselator, *rodTesselator };
 
 	AutoFree<Joysticks::IJoystick_XBOX360_Supervisor> xbox360stick = Joysticks::CreateJoystick_XBox360Proxy();
-
 	AutoFree<IInstallationManagerSupervisor> ims = Rococo::MPlatImpl::CreateIMS(*installation);
-
 	AutoFree<IArchiveSupervisor> archive = Rococo::CreateArchive();
-
 	AutoFree<IWorldSupervisor> world = Rococo::CreateWorld(*meshes, *instances);
-
 	AutoFree<Graphics::ISpritesSupervisor> sprites = Rococo::Graphics::CreateSpriteTable(mainWindow->Renderer());
 
 	Rococo::Gui::GRConfig grConfig;
@@ -484,6 +571,8 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 
 	PlatformTabs tabs(platform);
 
+	PerformSanityTests();
+
 	mainloop.Invoke(platform, hInstanceLock, *mainWindow);
 
 	return 0;
@@ -491,10 +580,6 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 
 int Main(HINSTANCE hInstance, IAppFactory& appFactory, cstr title, HICON hLargeIcon, HICON hSmallIcon)
 {
-	CoInitializeEx(NULL, COINIT_MULTITHREADED);
-
-	PerformSanityTests();
-
 	struct : public IMainloop
 	{
 		IAppFactory* appFactory;
@@ -517,10 +602,6 @@ int Main(HINSTANCE hInstance, IAppFactory& appFactory, cstr title, HICON hLargeI
 
 int Main(HINSTANCE hInstance, IDirectAppFactory& appFactory, cstr title, HICON hLargeIcon, HICON hSmallIcon)
 {
-	CoInitializeEx(NULL, COINIT_MULTITHREADED);
-
-	PerformSanityTests();
-
 	struct : public IMainloop
 	{
 		IDirectAppFactory* appFactory;

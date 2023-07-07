@@ -120,7 +120,7 @@ namespace
          HeapDestroy(hHeap);
       }
 
-	  virtual void* Allocate(size_t capacity)
+	  void* Allocate(size_t capacity) override
 	  {
 		  if (capacity > 0x7FFF8 && maxBytes != 0)
 		  {
@@ -132,13 +132,13 @@ namespace
 		  return ptr;
 	  }
 
-      virtual void FreeData(void* data)
+      void FreeData(void* data) override
       {
          freeCount++;
          if (data) HeapFree(hHeap, 0, data);
       }
 
-      virtual void* Reallocate(void* old, size_t capacity)
+      void* Reallocate(void* old, size_t capacity) override
       {
          if (old == nullptr)
          {
@@ -150,7 +150,7 @@ namespace
          return ptr;
       }
 
-      virtual void Free()
+      void Free() override
       {
          delete this;
       }
@@ -215,4 +215,23 @@ namespace Rococo::Memory
     {
         return new BlockAllocator(kilobytes, maxkilobytes);
     }
+
+    ROCOCO_API void* AlignedAlloc(size_t nBytes, int32 alignment, void* allocatorFunction(size_t))
+    {
+        void* p1; // original block
+        void** p2; // aligned block
+        int offset = alignment - 1 + sizeof(void*);
+        if ((p1 = (void*)allocatorFunction(nBytes + offset)) == NULL)
+        {
+            return nullptr;
+        }
+        p2 = (void**)(((size_t)(p1)+offset) & ~(alignment - 1));
+        p2[-1] = p1;
+        return p2;
+    };
+
+    ROCOCO_API void AlignedFree(void* buffer, void deleteFunction(void*))
+    {
+        if (buffer) deleteFunction(((void**)buffer)[-1]);
+    };
 }

@@ -98,7 +98,7 @@ namespace Anon
 			{
 				LeakArgs args{ p };
 				if (leakCallback) leakCallback->OnEvent(args);
-				_aligned_free(p);
+				Rococo::Memory::FreeSexyUnknownMemory(p);
 			}
 
 			size_t nFreed = objects.size();
@@ -108,14 +108,14 @@ namespace Anon
 
 		void* AllocateObject(size_t nBytes) override
 		{
-			auto* p = _aligned_malloc(nBytes, 8);
+			auto* p = AllocateSexyMemory(nBytes);
 			objects.insert((ObjectStub*)p);
 			return p;
 		}
 
 		void FreeObject(void* pMemory) override
 		{
-			_aligned_free(pMemory);
+			Rococo::Memory::FreeSexyUnknownMemory(pMemory);
 			objects.erase((ObjectStub*)pMemory);
 		}
 
