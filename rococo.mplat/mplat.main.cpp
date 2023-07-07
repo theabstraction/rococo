@@ -246,6 +246,19 @@ Rococo::Strings::CLI::CommandLineOption cmdOptionTitle =
 	"Assigns a caption to the main window and other elements of the application"_fstring
 };
 
+Rococo::Strings::CLI::CommandLineOption cmdOptionFontScale =
+{
+	"-font.scale"_fstring,
+	"If added on the command line, attempts to correct the font for 4k+ monitors"_fstring
+};
+
+Rococo::Strings::CLI::CommandLineOption cmdOptionFontFaceName =
+{
+	"-font.facename:"_fstring,
+	"Specified the main window LOGFONT face name. Defaults to consolas"_fstring
+};
+
+
 Rococo::Strings::CLI::CommandLineOptionInt32 cmdOptionInt32_AllocScriptsInitial =
 {
 	{
@@ -264,12 +277,24 @@ Rococo::Strings::CLI::CommandLineOptionInt32 cmdOptionInt32_AllocImagesInitial =
 	16384, 0, 1048576
 };
 
+Rococo::Strings::CLI::CommandLineOptionInt32 cmdOptionInt32_windowFontSize =
+{
+	{
+		"-font.size:"_fstring,
+		"decimal int32 specifying the initial font size for the windows LOGFONT struct. Clamped from 12 to 240. 24 is the default"_fstring
+	},
+	24, 12, 120
+};
+
 const Rococo::Strings::CLI::CommandLineOption* options[] =
 {
 	&cmdOptionHelp,
 	&cmdOptionTitle,
+	&cmdOptionFontScale,
+	&cmdOptionFontFaceName,
 	&cmdOptionInt32_AllocScriptsInitial.spec,
-	&cmdOptionInt32_AllocImagesInitial.spec
+	&cmdOptionInt32_AllocImagesInitial.spec,
+	&cmdOptionInt32_windowFontSize.spec
 };
 
 void ThrowWhenHelpInformationNeeded()
@@ -376,6 +401,26 @@ void GetMainWindowSpec(WindowSpec& ws, HINSTANCE hInstance, IConfigSupervisor& c
 	ws.Height = clamp(resolvedSpan.y, 432, desktopSpan.y);
 }
 
+void FormatMainWindowFont(LOGFONTA& font)
+{
+	Rococo::Strings::CLI::GetCommandLineArgument("font.facename:"_fstring, GetCommandLineA(), font.lfFaceName, sizeof font.lfFaceName, "Consolas");
+
+	Vec2i span = Rococo::Windows::GetDesktopSpan();
+
+	font.lfHeight = Rococo::Strings::CLI::GetClampedCommandLineOption(cmdOptionInt32_windowFontSize);
+
+	if (Rococo::Strings::CLI::HasSwitch(cmdOptionFontScale))
+	{
+		int32 multiplier = 1;
+		if (span.x > 1920)
+		{
+			multiplier = span.x / 1920;
+		}
+
+		font.lfHeight *= multiplier;
+	}
+}
+
 int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon, HICON hSmallIcon)
 {
 	using namespace Rococo::Components;
@@ -414,9 +459,7 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	HandleManager autoInstanceLock(hInstanceLock);
 
 	LOGFONTA font = { 0 };
-	SafeFormat(font.lfFaceName, "Consolas");
-	font.lfHeight = 24;
-
+	FormatMainWindowFont(font);
 	InitRococoWindows(hInstance, hLargeIcon, hSmallIcon, &font, &font);
 
 	AutoFree<IOSSupervisor> os = GetOS();

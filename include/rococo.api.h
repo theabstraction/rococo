@@ -67,6 +67,7 @@ namespace Rococo
 		// Requests a window to close using standard OS closing procedures
 		ROCOCO_API void SendCloseEvent(IWindow& window);
 
+		[[nodiscard]]
 		ROCOCO_API Vec2i GetDesktopSpan();
 	}
 
