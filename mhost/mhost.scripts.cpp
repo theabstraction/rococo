@@ -7,6 +7,7 @@
 #include <rococo.strings.h>
 #include <rococo.sexy.api.h>
 #include <rococo.package.h>
+#include <rococo.stl.allocators.h>
 
 using namespace Rococo;
 
@@ -143,7 +144,7 @@ namespace MHost
 			ScriptContext(Platform& _platform, IEngineSupervisor* _engine, IPackage& _package, StringBuilder* _declarationBuilder) :
 				platform(_platform), engine(_engine), package(_package), declarationBuilder(_declarationBuilder)
 			{
-				privateSourceCache = CreateSourceCache(platform.os.installation);
+				privateSourceCache = CreateSourceCache(platform.os.installation, Rococo::Memory::GetSexyAllocator());
 			}
 
 			IEventCallback<cstr>* onScriptCrash;
