@@ -4,6 +4,7 @@
 	"!scripts/mplat_types.sxy"
 	"!scripts/hv/hv.types.sxy"
 	"!scripts/types.sxy"
+	"!scripts/audio_types.sxy"
 )
 
 (namespace EntryPoint)

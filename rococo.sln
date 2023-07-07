@@ -206,6 +206,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.dll.test", "rococo.dll.test\rococo.dll.test.vcxproj", "{CE2FB189-952A-4EBC-B3A4-FB52298F875B}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.audio.test", "rococo.audio.test\rococo.audio.test.vcxproj", "{7790E53C-00BE-414D-B12D-EE4AA83D433C}"
+	ProjectSection(ProjectDependencies) = postProject
+		{2D73BF7B-18AE-4654-90ED-778297A1BF30} = {2D73BF7B-18AE-4654-90ED-778297A1BF30}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
