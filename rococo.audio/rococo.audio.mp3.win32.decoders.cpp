@@ -182,64 +182,62 @@ namespace AudioAnon
 		(*ppType)->AddRef();
 	}
 
-	void PopulateMediaBufferWithFileData(const wchar_t* sysPath, IMFMediaBuffer& buffer)
+	void PopulateMediaBufferWithFileData(IAudioInstallationSupervisor& installation, cstr utf8Path, IMFMediaBuffer& buffer)
 	{
-		DWORD maxLength;
-		HRESULT hr = buffer.GetMaxLength(&maxLength);
-		if (FAILED(hr) || maxLength < 1_megabytes)
+		struct OnLoad : ILoadEventsCallback
 		{
-			Throw(hr, "Error buffer.GetMaxLength(&maxLength) failed. Buffer must hold at least 1 MB");
-		}
+			IMFMediaBuffer& buffer;
+			DWORD maxLength = 0;
+			DWORD currentLength = 0;
+			BYTE* data = NULL;
+			int64 fileLength = -1;
+			bool isLocked = false;
 
-		HANDLE hFile = CreateFile(sysPath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-		if (hFile == INVALID_HANDLE_VALUE)
-		{
-			Throw(GetLastError(), "Error opening file");
-		}
-
-		struct AutoHandle
-		{
-			HANDLE hFile;
-			~AutoHandle()
+			OnLoad(IMFMediaBuffer& _buffer): buffer(_buffer)
 			{
-				CloseHandle(hFile);
+
 			}
-		};
 
-		AutoHandle autoFile{ hFile };
+			~OnLoad()
+			{
+				if (isLocked) buffer.Unlock();
+			}
 
-		LARGE_INTEGER len;
-		if (!GetFileSizeEx(hFile, &len))
+			void OnFileOpen(int64 fileLength) override
+			{
+				if (fileLength > (int64) 128_megabytes)
+				{
+					Throw(0, "The MP3 decoder has a limit of 128 megabytes");
+				}
+
+				this->fileLength = fileLength;
+
+				HRESULT hr;
+				VALIDATE(hr = buffer.SetCurrentLength((DWORD)fileLength));
+				VALIDATE(hr = buffer.Lock(&data, &maxLength, &currentLength));
+				isLocked = true;
+			}
+
+			void OnDataAvailable(ILoadEventReader& reader) override
+			{
+				uint32 bytesRead = 0;
+				reader.ReadData(data, currentLength, OUT bytesRead);
+				
+				if (bytesRead != currentLength)
+				{
+					Throw(0, "reader.ReadData(...) did not read the expected buffer size");
+				}
+			}
+		} cb(buffer);
+
+		try
 		{
-			Throw(GetLastError(), "Error computing file size\n");
+			installation.LoadResource(utf8Path, cb);
 		}
-
-		if (len.QuadPart > maxLength)
+		catch (IException& ex)
 		{
-			Throw(0, "File too large. Cap is %u MB", maxLength / 1_megabytes);
+			Throw(ex.ErrorCode(), "%s: error loading %s: %s", __FUNCTION__, utf8Path, ex.Message());
 		}
-
-		BYTE* data;
-		DWORD currentLength;
-		DWORD maxLength2;
-
-		VALIDATE(hr = buffer.SetCurrentLength((DWORD)len.QuadPart));
-		VALIDATE(hr = buffer.Lock(&data, &maxLength2, &currentLength));
-
-		DWORD bytesRead = 0;
-		if (!ReadFile(hFile, data, currentLength, &bytesRead, NULL))
-		{
-			buffer.Unlock();
-			Throw(GetLastError(), "ReadFile failed");
-		}
-
-		if (bytesRead != len.QuadPart)
-		{
-			buffer.Unlock();
-			Throw(0, "ReadFile did not read the expected buffer size");
-		}
-
-		buffer.Unlock();
 	}
 
 	bool IsPCMWithSpecifiedChannelCount(IMFMediaType& type, uint32 matchSampleRate, int channelCount)
@@ -341,7 +339,7 @@ namespace AudioAnon
 	struct AudioDecoder : IAudioDecoder, OS::IThreadJob
 	{
 		enum { MAX_MP3_SIZE = 100_megabytes };
-
+		IAudioInstallationSupervisor& installation;
 		AutoRelease<IMFMediaBuffer> mp3Buffer;
 		AutoRelease<IMFSample> mp3Sample;
 		AutoRelease<IMFSample> outputSample;
@@ -360,13 +358,13 @@ namespace AudioAnon
 
 		AutoFree<OS::IThreadSupervisor> thread;
 
-		WideFilePath nextMusicFile;
+		U8FilePath nextMusicFile;
 		volatile int64 currentIndex = 0;
 		volatile int64 nextIndex = 0;
 
 		volatile int64 blockLock = 0;
 
-		AudioDecoder(uint32 outputSampleDelta)
+		AudioDecoder(IAudioInstallationSupervisor& _installation, uint32 outputSampleDelta): installation(_installation)
 		{
 			transform = CreateMP32TransformerWith1InputAnd1OutputStream();
 			
@@ -427,39 +425,39 @@ namespace AudioAnon
 			thread->Resume();
 		}
 
-		void StreamInputFile(const wchar_t* sysPath) override
+		void StreamInputFile(cstr path) override
 		{
-			Format(nextMusicFile, L"%ls", sysPath);
+			Format(nextMusicFile, "%s", path);
 			nextIndex++;
 			
 			OS::WakeUp(*thread);
 		}
 
-		void StreamInputFile_DecoderThread(const wchar_t* sysPath)
+		void StreamInputFile_DecoderThread(cstr utf8Path)
 		{
 			try
 			{
 				OS::ticks start = OS::CpuTicks();
-				StreamInputFileProtected(sysPath);
+				StreamInputFileProtected(utf8Path);
 				OS::ticks duration = OS::CpuTicks() - start;
 				double dt = duration / (double)OS::CpuHz();
 				lastLoadCostMS =  1000.0 * dt;
 			}
 			catch (IException& ex)
 			{
-				Throw(ex.ErrorCode(), "AudioDecoder(MP3).StreamInputFile(%ls) failed:\n %s", sysPath, ex.Message());
+				Throw(ex.ErrorCode(), "AudioDecoder(MP3).StreamInputFile(%s) failed:\n %s", utf8Path, ex.Message());
 			}
 		}
 		
-		void StreamInputFileProtected(const wchar_t* sysPath)
+		void StreamInputFileProtected(cstr utf8Path)
 		{
 			try
 			{
-				PopulateMediaBufferWithFileData(sysPath, *mp3Buffer);
+				PopulateMediaBufferWithFileData(installation, utf8Path, *mp3Buffer);
 			}
 			catch (IException& ex)
 			{
-				Throw(ex.ErrorCode(), "%s:\n%ws: %s", __FUNCTION__, sysPath, ex.Message());
+				Throw(ex.ErrorCode(), "%s:\n%s: %s", __FUNCTION__, utf8Path, ex.Message());
 			}
 
 			HRESULT hr;
@@ -478,8 +476,8 @@ namespace AudioAnon
 		{
 			while (tc.IsRunning())
 			{
-				WideFilePath currentPath;
-				WideFilePath nextPath;
+				U8FilePath currentPath;
+				U8FilePath nextPath;
 
 				if (nextIndex > currentIndex)
 				{
@@ -611,7 +609,7 @@ namespace AudioAnon
 
 	struct MP3Loader : IMP3LoaderSupervisor
 	{
-		IInstallation& installation;
+		IAudioInstallationSupervisor& installation;
 		AutoRelease<IMFTransform> transformer; 
 		AutoRelease<IMFMediaBuffer> mp3Buffer;
 		AutoRelease<IMFSample> mp3Sample;
@@ -625,7 +623,7 @@ namespace AudioAnon
 
 		std::vector<uint8> scratchBuffer;
 
-		MP3Loader(IInstallation& refInstallation, uint32 localChannels, uint32 reserveSeconds = 120) : installation(refInstallation), nChannels(localChannels)
+		MP3Loader(IAudioInstallationSupervisor& _installation, uint32 localChannels, uint32 reserveSeconds = 120) : installation(_installation), nChannels(localChannels)
 		{
 			scratchBuffer.reserve(44'100 * reserveSeconds * sizeof(int16) * nChannels);
 			transformer = CreateMP32TransformerWith1InputAnd1OutputStream();
@@ -689,21 +687,18 @@ namespace AudioAnon
 			VALIDATE(hr = outputSample->AddBuffer(pcmBuffer));
 		}
 
-		uint32 DecodeMP3(cstr pingPath, IPCMAudioBufferManager& audioBufferManager) override
+		uint32 DecodeMP3(cstr utf8Path, IPCMAudioBufferManager& audioBufferManager) override
 		{
 			// Our algorithm expands the mp3 into a scratch buffer. This grows to accomodate the largest decoded MP3 put through the system
 			// The sample we extract copies the relevant portion of the scratch buffer - this way we ensure the minimum of memory fragmentation.
 
-			WideFilePath sysPath;
-			installation.ConvertPingPathToSysPath(pingPath, OUT sysPath);
-
 			try
 			{
-				PopulateMediaBufferWithFileData(sysPath, *mp3Buffer);
+				PopulateMediaBufferWithFileData(installation, utf8Path, *mp3Buffer);
 			}
 			catch (IException& ex)
 			{
-				Throw(ex.ErrorCode(), "%s:\n%ws: %s", __FUNCTION__, sysPath, ex.Message());
+				Throw(ex.ErrorCode(), "%s:\n%s: %s", __FUNCTION__, utf8Path, ex.Message());
 			}
 
 			DWORD length = 0;
@@ -783,12 +778,12 @@ namespace AudioAnon
 
 namespace Rococo::Audio
 {
-	IAudioDecoder* CreateAudioDecoder_MP3_to_Stereo_16bit_int(uint32 nSamplesInOutput)
+	IAudioDecoder* CreateAudioDecoder_MP3_to_Stereo_16bit_int(IAudioInstallationSupervisor& installation, uint32 nSamplesInOutput)
 	{
-		return new AudioAnon::AudioDecoder(nSamplesInOutput);
+		return new AudioAnon::AudioDecoder(installation, nSamplesInOutput);
 	}
 
-	IMP3LoaderSupervisor* CreateSingleThreadedMP3Loader(IInstallation& installation, uint32 nChannels)
+	IMP3LoaderSupervisor* CreateSingleThreadedMP3Loader(IAudioInstallationSupervisor& installation, uint32 nChannels)
 	{
 		return new AudioAnon::MP3Loader(installation, nChannels);
 	}

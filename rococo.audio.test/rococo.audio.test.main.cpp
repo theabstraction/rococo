@@ -129,9 +129,11 @@ int CALLBACK WinMain(HINSTANCE _hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 		AutoFree<IOSSupervisor> os = GetOS();
 		AutoFree<IInstallationSupervisor> installation = CreateInstallation(L"content.indicator.txt", *os);
 
+		AutoFree<Audio::IAudioInstallationSupervisor> audioInstallation = Audio::CreateAudioInstallation(*installation);
+
 		Audio::AudioConfig audio_config{};
 		AutoFree<Audio::IOSAudioAPISupervisor> osAudio = Audio::CreateOSAudio();
-		AutoFree<Audio::IAudioSupervisor> audio = Audio::CreateAudioSupervisor(*installation, *osAudio, audio_config);
+		AutoFree<Audio::IAudioSupervisor> audio = Audio::CreateAudioSupervisor(*audioInstallation, *osAudio, audio_config);
 
 		InitRococoWindows(_hInstance, LoadIcon(_hInstance, MAKEINTRESOURCE(IDI_ICON1)), LoadIcon(_hInstance, MAKEINTRESOURCE(IDI_ICON1)), nullptr, nullptr); // This must be called once, in WinMain or DllMain
 		AutoFree<MainWindowHandler> mainWindowHandler(MainWindowHandler::Create());

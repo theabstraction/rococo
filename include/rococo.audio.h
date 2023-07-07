@@ -3,6 +3,11 @@
 #include <rococo.types.h>
 #include <../rococo.audio/rococo.audio.types.h>
 
+namespace Rococo
+{
+	struct ILoadEventsCallback;
+}
+
 namespace Rococo::Audio
 {
 	using IdInstrumentIndexType = uint8; // This gives up to 256 instruments.
@@ -102,7 +107,21 @@ namespace Rococo::Audio
 		virtual void Free() = 0;
 	};
 
-	ROCOCO_AUDIO_API IAudioSampleDatabaseSupervisor* CreateAudioSampleDatabase(IInstallation& installation, int nChannels, IEventCallback<IAudioSample&>& onSampleLoaded);
+	ROCOCO_INTERFACE IAudioInstallationSupervisor
+	{
+		// Attempt to load a resource specified by [utf8Path]. Invokes the cb to first assign a file length, and second to provide a reader to the caller to extract file contents
+		// On error it will throw an exception
+		virtual void LoadResource(cstr utf8Path, ILoadEventsCallback& cb) = 0;
+
+		// Overwrites [normalizedPath] with a utf-8 interpretation of the [utf8Path] which uniquely identifies the resource.
+		// The purpose is to map many possible representations of a resource to one that serves as a key identifier in the system.
+		// Example \dogs\dog.txt and dogs/dog.txt may both map to C:\dogs\dog.txt, so C:\dogs\dog.txt would be the normalized path.
+		virtual void NormalizePath(cstr utf8Path, U8FilePath& normalizedPath) = 0;
+
+		virtual void Free() = 0;
+	};
+
+	ROCOCO_AUDIO_API IAudioSampleDatabaseSupervisor* CreateAudioSampleDatabase(IAudioInstallationSupervisor& installation, int nChannels, IEventCallback<IAudioSample&>& onSampleLoaded);
 
 	struct AudioBufferDescriptor
 	{
@@ -131,7 +150,7 @@ namespace Rococo::Audio
 	};
 
 	// Creates an MP3 loader - optimized for a single thread access. Every loading thread should create its own instance
-	ROCOCO_AUDIO_API IMP3LoaderSupervisor* CreateSingleThreadedMP3Loader(IInstallation& installation, uint32 nChannels);
+	ROCOCO_AUDIO_API IMP3LoaderSupervisor* CreateSingleThreadedMP3Loader(IAudioInstallationSupervisor& installation, uint32 nChannels);
 
 	ROCOCO_INTERFACE IAudioSampleSupervisor : IAudioSample
 	{
@@ -218,7 +237,9 @@ namespace Rococo::Audio
 		int unused;
 	};
 
-	ROCOCO_AUDIO_API IAudioSupervisor* CreateAudioSupervisor(IInstallation& installation, IOSAudioAPI& osAPI, const AudioConfig& config);
+	ROCOCO_AUDIO_API IAudioInstallationSupervisor* CreateAudioInstallation(IInstallation& installation);
+
+	ROCOCO_AUDIO_API IAudioSupervisor* CreateAudioSupervisor(IAudioInstallationSupervisor& installation, IOSAudioAPI& osAPI, const AudioConfig& config);
 
 #pragma pack(push,1)
 	struct StereoSample_INT16
@@ -252,7 +273,7 @@ namespace Rococo::Audio
 		// Consumer periodically calls GetOutput, fills in the sample buffer and returns the number of samples written
 		virtual uint32 GetOutput(StereoSample_INT16* samples, uint32 nSamples, OUT STREAM_STATE& state) = 0;
 		virtual bool HasOutput() const = 0;
-		virtual void StreamInputFile(const wchar_t* sysPath) = 0;
+		virtual void StreamInputFile(cstr utf8Path) = 0;
 		virtual void Free() = 0;
 	};
 
@@ -338,7 +359,7 @@ namespace Rococo::Audio
 
 	ROCOCO_AUDIO_API IAudioStreamerSupervisor* CreateStereoStreamer(IOSAudioAPI& osAudio, IAudioDecoder& refDecoder);
 
-	ROCOCO_AUDIO_API IAudioDecoder* CreateAudioDecoder_MP3_to_Stereo_16bit_int(uint32 nSamplesInOutput);
+	ROCOCO_AUDIO_API IAudioDecoder* CreateAudioDecoder_MP3_to_Stereo_16bit_int(IAudioInstallationSupervisor& installation, uint32 nSamplesInOutput);
 
 	ROCOCO_AUDIO_API void DLL_AddNativeCalls_RococoAudioIAudio(Rococo::Script::IPublicScriptSystem& ss, IAudio* nceContext);
 } // Rococo::Audio

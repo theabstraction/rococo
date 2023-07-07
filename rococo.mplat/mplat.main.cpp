@@ -509,7 +509,8 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 
 	Audio::AudioConfig audio_config{};
 	AutoFree<Audio::IOSAudioAPISupervisor> osAudio = Audio::CreateOSAudio();
-	AutoFree<Audio::IAudioSupervisor> audio = Audio::CreateAudioSupervisor(*installation, *osAudio, audio_config);
+	AutoFree<Audio::IAudioInstallationSupervisor> audioInstallation = Audio::CreateAudioInstallation(*installation);
+	AutoFree<Audio::IAudioSupervisor> audio = Audio::CreateAudioSupervisor(*audioInstallation, *osAudio, audio_config);
 
 	AutoFree<Rococo::Entities::IRigs> rigs = Rococo::Entities::CreateRigBuilder();
 	AutoFree<Graphics::IMeshBuilderSupervisor> meshes = Graphics::CreateMeshBuilder(mainWindow->Renderer());

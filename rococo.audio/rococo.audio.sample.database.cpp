@@ -102,7 +102,7 @@ namespace AudioAnon
 
 	struct AudioSampleDatabase: IAudioSampleDatabaseSupervisor, OS::IThreadJob
 	{
-		IInstallation& installation;
+		IAudioInstallationSupervisor& installation;
 		IEventCallback<IAudioSample&>& onSampleLoaded;
 
 		stringmap<IAudioSampleSupervisor*> samples;
@@ -119,7 +119,7 @@ namespace AudioAnon
 
 		int32 nChannels;
 
-		AudioSampleDatabase(IInstallation& refInstallation, int nChannels, IEventCallback<IAudioSample&>& refOnSampleLoaded): installation(refInstallation), onSampleLoaded(refOnSampleLoaded)
+		AudioSampleDatabase(IAudioInstallationSupervisor& _installation, int nChannels, IEventCallback<IAudioSample&>& refOnSampleLoaded): installation(_installation), onSampleLoaded(refOnSampleLoaded)
 		{
 			this->nChannels = nChannels;
 
@@ -142,11 +142,8 @@ namespace AudioAnon
 
 		IAudioSample& Bind(cstr pingPath)
 		{
-			WideFilePath sysPath;
-			installation.ConvertPingPathToSysPath(pingPath, sysPath);
-
 			U8FilePath expandedPingPath;
-			installation.ConvertSysPathToPingPath(sysPath, expandedPingPath);
+			installation.NormalizePath(pingPath, expandedPingPath);
 
 			auto i = samples.find(expandedPingPath);
 			if (i == samples.end())
@@ -247,7 +244,7 @@ namespace AudioAnon
 
 namespace Rococo::Audio
 {
-	ROCOCO_AUDIO_API IAudioSampleDatabaseSupervisor* CreateAudioSampleDatabase(IInstallation& installation, int nChannels, IEventCallback<IAudioSample&>& onSampleLoaded)
+	ROCOCO_AUDIO_API IAudioSampleDatabaseSupervisor* CreateAudioSampleDatabase(IAudioInstallationSupervisor& installation, int nChannels, IEventCallback<IAudioSample&>& onSampleLoaded)
 	{
 		return new AudioAnon::AudioSampleDatabase(installation, nChannels, onSampleLoaded);
 	}

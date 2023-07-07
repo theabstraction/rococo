@@ -11,7 +11,7 @@ namespace AudioAnon
 {
 	class AudioPlayer: public IAudioSupervisor, OS::IThreadJob, IEventCallback<IAudioSample&>
 	{
-		IInstallation& installation;
+		IAudioInstallationSupervisor& installation;
 		IOSAudioAPI& osAPI;
 
 		AutoFree<OS::IThreadSupervisor> thread;
@@ -28,21 +28,21 @@ namespace AudioAnon
 		AutoFree<IConcert3DSupervisor> concert;
 		AutoFree<IAudioSampleDatabaseSupervisor> monoSamples;
 	public:
-		AudioPlayer(IInstallation& refInstallation, IOSAudioAPI& ref_osAPI, const AudioConfig& refConfig): installation(refInstallation), osAPI(ref_osAPI), config(refConfig)
+		AudioPlayer(IAudioInstallationSupervisor& _installation, IOSAudioAPI& ref_osAPI, const AudioConfig& refConfig): installation(_installation), osAPI(ref_osAPI), config(refConfig)
 		{
 			static_assert(sizeof(StereoSample_INT16) == 4);
 
 			managementThreadId = OS::GetCurrentThreadIdentifier();
 
 			enum { SAMPLES_PER_BLOCK = 4096 };
-			mp3musicStereoDecoder = Audio::CreateAudioDecoder_MP3_to_Stereo_16bit_int(SAMPLES_PER_BLOCK);
+			mp3musicStereoDecoder = Audio::CreateAudioDecoder_MP3_to_Stereo_16bit_int(_installation, SAMPLES_PER_BLOCK);
 
 			musicStreamer = CreateStereoStreamer(osAPI, *mp3musicStereoDecoder);
 
 			float speedOfSoundMetresPerSecond = 343.0f;
 			audio3D = osAPI.Create3DAPI(speedOfSoundMetresPerSecond);
 
-			monoSamples = CreateAudioSampleDatabase(refInstallation, 1, *this);
+			monoSamples = CreateAudioSampleDatabase(_installation, 1, *this);
 			concert = CreateConcert(*monoSamples, ref_osAPI);
 			
 			thread = OS::CreateRococoThread(this, 0);
@@ -90,9 +90,7 @@ namespace AudioAnon
 				Throw(err, "%s: Thread error: %s.\n%s", __FUNCTION__, msg, osErr);
 			}
 
-			WideFilePath sysPath;
-			installation.ConvertPingPathToSysPath(mp3pingPath, sysPath);
-			mp3musicStereoDecoder->StreamInputFile(sysPath);
+			mp3musicStereoDecoder->StreamInputFile(mp3pingPath);
 		}
 
 		IdSample Bind3DSample(const fstring& mp3fxPingPath) override
@@ -134,11 +132,43 @@ namespace AudioAnon
 			return 0;
 		}
 	};
+
+	struct RococoAudioInstallation : IAudioInstallationSupervisor
+	{
+		IInstallation& installation;
+
+		RococoAudioInstallation(IInstallation& _installation): installation(_installation)
+		{
+
+		}
+
+		void NormalizePath(cstr pingPath, U8FilePath& expandedPingPath) override
+		{
+			WideFilePath sysPath;
+			installation.ConvertPingPathToSysPath(pingPath, sysPath);
+			installation.ConvertSysPathToPingPath(sysPath, expandedPingPath);
+		}
+
+		void LoadResource(cstr utf8Path, ILoadEventsCallback& onLoaded) override
+		{	
+			installation.LoadResource(utf8Path, onLoaded);
+		}
+
+		void Free() override
+		{
+			delete this;
+		}
+	};
 }
 
 namespace Rococo::Audio
 {
-	ROCOCO_AUDIO_API IAudioSupervisor* CreateAudioSupervisor(IInstallation& installation, IOSAudioAPI& osAPI, const AudioConfig& config)
+	ROCOCO_AUDIO_API IAudioInstallationSupervisor* CreateAudioInstallation(IInstallation& installation)
+	{
+		return new AudioAnon::RococoAudioInstallation(installation);
+	}
+
+	ROCOCO_AUDIO_API IAudioSupervisor* CreateAudioSupervisor(IAudioInstallationSupervisor& installation, IOSAudioAPI& osAPI, const AudioConfig& config)
 	{
 		return new AudioAnon::AudioPlayer(installation, osAPI, config);
 	}

@@ -204,7 +204,18 @@ namespace Rococo
 		uint64 peak;
 	};
 
-	ROCOCO_API MemoryUsage ProcessMemory();
+	ROCOCO_API MemoryUsage ProcessMemory();	
+
+	ROCOCO_INTERFACE ILoadEventReader
+	{
+		virtual void ReadData(void* buffer, uint32 capacity, uint32 & bytesRead) = 0;
+	};
+	
+	ROCOCO_INTERFACE ILoadEventsCallback
+	{
+		virtual void OnFileOpen(int64 fileLength) = 0;
+		virtual void OnDataAvailable(ILoadEventReader& reader) = 0;
+	};
 
 	ROCOCO_INTERFACE IOS
 	{
@@ -217,15 +228,19 @@ namespace Rococo
 		virtual void GetBinDirectoryAbsolute(WideFilePath& binDirectory) const = 0;
 		virtual bool IsFileExistant(const wchar_t* absPath) const = 0;
 		virtual void LoadAbsolute(const wchar_t* absPath, IExpandingBuffer& buffer, int64 maxFileLength) const = 0;
+		virtual void LoadAbsolute(const wchar_t* absPath, ILoadEventsCallback& cb) const = 0;
 		virtual size_t MaxPath() const = 0;
 		virtual void Monitor(const wchar_t* absPath) = 0;
 	};
+
+
 
 	ROCOCO_INTERFACE IInstallation
 	{
 		virtual bool TryExpandMacro(cstr macroPrefixPlusPath, U8FilePath & expandedPath) = 0;
 		virtual const wchar_t* Content() const = 0;
 		virtual void LoadResource(cstr pingPath, IExpandingBuffer& buffer, int64 maxFileLength) = 0;
+		virtual void LoadResource(cstr resourcePath, ILoadEventsCallback& cb) = 0;
 		virtual bool TryLoadResource(cstr pingPath, IExpandingBuffer& buffer, int64 maxFileLength) = 0;
 		virtual void ConvertPingPathToSysPath(cstr pingPath, WideFilePath& path) const = 0;
 		virtual void ConvertSysPathToMacroPath(const wchar_t* sysPath, U8FilePath& pingPath, cstr macro) const = 0;

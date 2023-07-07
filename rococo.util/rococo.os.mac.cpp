@@ -660,7 +660,26 @@ namespace
       const wchar_t* Content() const override
       {
 		  return contentDirectory;
-      }
+	  }
+
+	  void LoadResource(cstr resourcePath, ILoadEventsCallback& cb) override
+	  {
+		  if (resourcePath == nullptr || rlen(resourcePath) < 2) Throw(0, "OSX::LoadResource failed: <resourcePath> was blank");
+		  if (resourcePath[0] != '!') Throw(0, "OSX::LoadResource failed:\n%s\ndid not begin with ping '!' character", resourcePath);
+
+		  UTF8 u8content(contentDirectory);
+		  if (rlen(resourcePath) + rlen(u8content) >= _MAX_PATH)
+		  {
+			  Throw(0, "OSX::LoadResource failed: %ls%hs - filename was too long", contentDirectory.buf, resourcePath + 1);
+		  }
+
+		  if (strstr(resourcePath, "..") != nullptr)
+		  {
+			  Throw(0, "OSX::LoadResource failed: %hs - parent directory sequence '..' is forbidden", resourcePath);
+		  }
+
+		  Throw(0, "%s: Not implemented", __FUNCTION__);
+	  }
 
       void LoadResource(cstr resourcePath, IExpandingBuffer& buffer, int64 maxFileLength) override
       {

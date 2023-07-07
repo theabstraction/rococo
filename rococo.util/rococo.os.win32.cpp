@@ -1302,6 +1302,23 @@ namespace
 			return true;
 		}
 
+		void LoadResource(cstr pingPath, ILoadEventsCallback& cb) override
+		{
+			if (pingPath == nullptr || rlen(pingPath) < 2) Throw(E_INVALIDARG, "Win32OS::LoadResource failed: <resourcePath> was blank");
+
+			WideFilePath absPath;
+			if (pingPath[0] == '!' || pingPath[0] == '#')
+			{
+				ConvertPingPathToSysPath(pingPath, absPath);
+			}
+			else
+			{
+				Assign(absPath, pingPath);
+			}
+
+			os.LoadAbsolute(absPath, cb);
+		}
+
 		void LoadResource(cstr pingPath, IExpandingBuffer& buffer, int64 maxFileLength) override
 		{
 			if (pingPath == nullptr || rlen(pingPath) < 2) Throw(E_INVALIDARG, "Win32OS::LoadResource failed: <resourcePath> was blank");
@@ -1710,6 +1727,38 @@ namespace
 				offset += (ptrdiff_t)chunk;
 				bytesLeft -= (int64)chunk;
 			}
+		}
+
+		void LoadAbsolute(const wchar_t* absPath, ILoadEventsCallback& cb) const override
+		{
+			FileHandle hFile = CreateFileW(absPath, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
+			if (!hFile.IsValid()) Throw(HRESULT_FROM_WIN32(GetLastError()), "Win32OS::LoadResource failed: Error opening file %ls", absPath);
+
+			LARGE_INTEGER len;
+			GetFileSizeEx(hFile, &len);
+
+			cb.OnFileOpen(len.QuadPart);
+
+			struct Reader : ILoadEventReader
+			{
+				HANDLE hFile;
+				const wchar_t* absPath;
+
+				Reader(HANDLE _hFile, const wchar_t* _absPath) : hFile(_hFile), absPath(_absPath) {}
+
+				void ReadData(void* buffer, uint32 capacity, uint32& bytesRead) override
+				{
+					DWORD bytesReadAPI;
+					if (!ReadFile(hFile, buffer, capacity, &bytesReadAPI, nullptr))
+					{
+						Throw(HRESULT_FROM_WIN32(GetLastError()), "Error reading file <%s>", absPath);
+					}
+
+					bytesRead = bytesReadAPI;
+				}
+			} reader(hFile, absPath);
+
+			cb.OnDataAvailable(reader);
 		}
 
 		void GetBinDirectoryAbsolute(WideFilePath& directory) const override
