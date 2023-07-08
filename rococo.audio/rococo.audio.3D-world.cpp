@@ -22,7 +22,7 @@ namespace Rococo::Audio
 
 	struct InstrumentDescriptor: IAudioVoiceContext
 	{
-		enum { SAMPLES_PER_BLOCK = 176 }; // This gives a block size of just under 4ms
+		enum { SAMPLES_PER_BLOCK = 32 * 6 }; // This gives a block size of just over 5ms. It also creates blocks entirely aligned on 64-byte boundaries
 		enum { BEST_SAMPLE_RATE = 44100, PCM_BLOCK_COUNT = 4 };
 
 		IdInstrumentIndexType index = 0;
