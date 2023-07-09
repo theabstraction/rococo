@@ -1042,7 +1042,7 @@ private:
 				{
 					char fullName[256];
 					SafeFormat(fullName, fullSearchItem, searchTerm - fullSearchItem);
-					StringCat(fullName, name, (int32) strlen(name));
+					StringCat(fullName, name, (int32) sizeof fullName);
 					searchArrayResults.push_back({ fullName,&ns,&function });
 				}
 			}
