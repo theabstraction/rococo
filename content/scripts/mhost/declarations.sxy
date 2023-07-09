@@ -1029,7 +1029,7 @@
 (function IDictionaryStreamGetFloat32343  (Pointer hObject)(Sys.Type.IString name)(Float32 defaultValue) -> (Float32 value) : (source "C:\work\rococo\mhost\mhost.sxh.inl" 1348))
 (alias IDictionaryStreamGetFloat32343 MHost.Native.IDictionaryStreamGetFloat32)
 
-(function EnumerateFiles344  (Sys.Type.IString filter)(MPlat.OnFileName callback)-> : (source "Rococo::MPlatImpl::RunEnvironmentScriptImpl::ScriptContext::OnEvent" 299))
+(function EnumerateFiles344  (Sys.Type.IString filter)(MPlat.OnFileName callback)-> : (source "Rococo::MPlatImpl::RunEnvironmentScriptImpl::ScriptContext::OnEvent" 322))
 (alias EnumerateFiles344 MPlat.OS.EnumerateFiles)
 
 (function Seed345 (Int32 value) ->  : (source "C:\work\rococo\rococo.sexy.mathsex\mathsex.random.inl" 151))

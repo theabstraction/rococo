@@ -1,12 +1,3 @@
-(' #include
-	"!scripts/hv_sxh.sxy"
-	"!scripts/mplat_sxh.sxy"
-	"!scripts/mplat_types.sxy"
-	"!scripts/hv/hv.types.sxy"
-	"!scripts/types.sxy"
-	"!scripts/audio_types.sxy"
-)
-
 (namespace EntryPoint)
 	(alias Main EntryPoint.Main)
 	

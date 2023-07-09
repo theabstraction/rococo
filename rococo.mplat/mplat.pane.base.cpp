@@ -661,6 +661,14 @@ struct PaneContainer : public BasePane, virtual public IPaneContainer
 	}
 };
 
+const char* const s_includeArray[] =
+{
+	"!scripts/mplat_pane_sxh.sxy",
+	"!scripts/mplat_types.sxy",
+	"!scripts/types.sxy",
+	"!scripts/audio_types.sxy"
+};
+
 class ScriptedPanel : IEventCallback<ScriptCompileArgs>, IObserver, public IPaneBuilderSupervisor, public PaneContainer
 {
 	GuiRect lastRect{ 0, 0, 0, 0 };
@@ -734,11 +742,24 @@ public:
 	{
 		FreeAllChildren();
 
+		struct : IScriptEnumerator
+		{
+			size_t Count() const override
+			{
+				return sizeof s_includeArray / sizeof(char*);
+			}
+
+			cstr ResourceName(size_t index) const override
+			{
+				return s_includeArray[index];
+			}
+		} implicitIncludes;
+
 		static bool hasPublishedDeclarations = false;
 		if (!hasPublishedDeclarations)
 		{
 			AutoFree<IDynamicStringBuilder> sb = CreateDynamicStringBuilder(4096);
-			platform.plumbing.utilities.RunEnvironmentScript(*this, scriptFilename.c_str(), true, false, false, nullptr, &sb->Builder());
+			platform.plumbing.utilities.RunEnvironmentScript(implicitIncludes, *this, scriptFilename.c_str(), true, false, false, nullptr, &sb->Builder());
 
 			WideFilePath wPath;
 			platform.os.installation.ConvertPingPathToSysPath("!scripts/mplat/pane_declarations.sxy", wPath);
@@ -755,7 +776,7 @@ public:
 		}
 		else
 		{
-			platform.plumbing.utilities.RunEnvironmentScript(*this, scriptFilename.c_str(), true);
+			platform.plumbing.utilities.RunEnvironmentScript(implicitIncludes, *this, scriptFilename.c_str(), true);
 		}
 	}
 

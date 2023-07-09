@@ -76,7 +76,7 @@ namespace
 		AutoFree<Rococo::Script::IPublicScriptSystem> ss;
 		size_t maxBytes;
 	public:
-		PersistentScript(size_t _maxBytes, IScriptSystemFactory& factory, ISourceCache& _sources, IDebuggerWindow& _debugger, cstr resourcePath, int32 maxScriptSizeBytes, IEventCallback<ScriptCompileArgs>& onCompile, IScriptExceptionHandler& _exceptionHandler) :
+		PersistentScript(size_t _maxBytes, IScriptSystemFactory& factory, ISourceCache& _sources, IScriptEnumerator& implicitIncludes, IDebuggerWindow& _debugger, cstr resourcePath, int32 maxScriptSizeBytes, IEventCallback<ScriptCompileArgs>& onCompile, IScriptExceptionHandler& _exceptionHandler) :
 			logger(_debugger),
 			debugger(_debugger),
 			sources(_sources),
@@ -93,7 +93,7 @@ namespace
 						Rococo::Throw(0, "Failed to create script system -> probably an environment problem");
 					}
 					tree = sources.GetSource(resourcePath);
-					InitSexyScript(*tree, debugger, *ss, sources, onCompile, nullptr);
+					InitSexyScript(*tree, debugger, *ss, sources, implicitIncludes, onCompile, nullptr);
 					break;
 				}
 				catch (ParseException& ex)
@@ -260,6 +260,7 @@ namespace Rococo
 				size_t maxBytes,
 				IScriptSystemFactory& factory,
 				ISourceCache& sources,
+				IScriptEnumerator& implicitIncludes,
 				IDebuggerWindow& debugger,
 				cstr resourcePath, 
 				int32 param, 
@@ -310,7 +311,7 @@ namespace Rococo
 						Time::ticks start = Time::TickCount();
 						ISParserTree* tree = sources.GetSource(resourcePath);
 						stats.loadTime = Time::TickCount() - start;
-						int32 exitCode = ExecuteSexyScript(stats, *tree, debugger, ss, sources, param, onCompile, trace, declarationBuilder);
+						int32 exitCode = ExecuteSexyScript(stats, *tree, debugger, ss, sources, implicitIncludes, param, onCompile, trace, declarationBuilder);
 						return exitCode;
 					}
 					catch (ParseException& ex)
@@ -368,9 +369,9 @@ namespace Rococo
 				return 0;
 			}
 
-			IPersistentScript* CreatePersistentScript(size_t maxBytes, IScriptSystemFactory& factory, ISourceCache& sources, IDebuggerWindow& debugger, cstr resourcePath, int32 maxScriptSizeBytes, IEventCallback<ScriptCompileArgs>& onCompile, IScriptExceptionHandler& exceptionHandler)
+			IPersistentScript* CreatePersistentScript(size_t maxBytes, IScriptSystemFactory& factory, ISourceCache& sources, IScriptEnumerator& implicitIncludes, IDebuggerWindow& debugger, cstr resourcePath, int32 maxScriptSizeBytes, IEventCallback<ScriptCompileArgs>& onCompile, IScriptExceptionHandler& exceptionHandler)
 			{
-				return new PersistentScript(maxBytes, factory, sources, debugger, resourcePath, maxScriptSizeBytes, onCompile, exceptionHandler);
+				return new PersistentScript(maxBytes, factory, sources, implicitIncludes, debugger, resourcePath, maxScriptSizeBytes, onCompile, exceptionHandler);
 			}
 		}// IDE
 	}

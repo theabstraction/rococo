@@ -34,7 +34,7 @@ namespace Rococo
 {
 	namespace MPlatImpl
 	{
-		void RunEnvironmentScriptImpl(ScriptPerformanceStats& stats, Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail, bool trace, int32 id, IEventCallback<cstr>* onScriptCrash, StringBuilder* declarationBuilder);
+		void RunEnvironmentScriptImpl(ScriptPerformanceStats& stats, Platform& platform, IScriptEnumerator& implicitIncludes, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail, bool trace, int32 id, IEventCallback<cstr>* onScriptCrash, StringBuilder* declarationBuilder);
 	}
 }
 
@@ -318,16 +318,16 @@ public:
 		}
 	}
 
-	void RunEnvironmentScript(IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail, bool trace, IEventCallback<cstr>* onScriptCrash, StringBuilder* declarationBuilder)
+	void RunEnvironmentScript(IScriptEnumerator& implicitIncludes, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail, bool trace, IEventCallback<cstr>* onScriptCrash, StringBuilder* declarationBuilder)
 	{
-		RunEnvironmentScript(_onScriptEvent, 0, name, addPlatform, shutdownOnFail, trace, onScriptCrash, declarationBuilder);
+		RunEnvironmentScript(implicitIncludes, _onScriptEvent, 0, name, addPlatform, shutdownOnFail, trace, onScriptCrash, declarationBuilder);
 	}
 
-	void RunEnvironmentScript(IEventCallback<ScriptCompileArgs>& _onScriptEvent, int32 id, const char* name, bool addPlatform, bool shutdownOnFail, bool trace, IEventCallback<cstr>* onScriptCrash, StringBuilder* declarationBuilder) override
+	void RunEnvironmentScript(IScriptEnumerator& implicitIncludes, IEventCallback<ScriptCompileArgs>& _onScriptEvent, int32 id, const char* name, bool addPlatform, bool shutdownOnFail, bool trace, IEventCallback<cstr>* onScriptCrash, StringBuilder* declarationBuilder) override
 	{
 		ScriptPerformanceStats stats = { 0 };
 
-		Rococo::MPlatImpl::RunEnvironmentScriptImpl(stats, *platform, _onScriptEvent, name, addPlatform, shutdownOnFail, trace, id, onScriptCrash, declarationBuilder);
+		Rococo::MPlatImpl::RunEnvironmentScriptImpl(stats, *platform, implicitIncludes, _onScriptEvent, name, addPlatform, shutdownOnFail, trace, id, onScriptCrash, declarationBuilder);
 
 		auto i = nameToStats.find(name);
 		if (i == nameToStats.end())

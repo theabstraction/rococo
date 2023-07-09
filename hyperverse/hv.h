@@ -46,6 +46,8 @@ namespace HV
 {
 	ROCOCO_ID(ID_OBJECT, uint64, 0);
 
+	IScriptEnumerator& HVDefaultIncludes();
+
 	HV::ISectorLayout* GetSector(int32 index, ISectors& sectors);
 	HV::ISectorLayout* GetSectorById(int32 index, ISectors& sectors);
 	ISector* GetFirstSectorCrossingLine(Vec2 a, Vec2 b, ISectors& sectors);

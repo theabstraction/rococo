@@ -2,20 +2,13 @@
 (' #file.created Nov 10 2020 23 07 53)
 (' #file.origin "exported from blender 2.90.1 with sexy.py")
 
-(' #include
-	"!scripts/mplat_sxh.sxy"
-	"!scripts/mplat_types.sxy"
-	"!scripts/types.sxy"
-	"!scripts/audio_types.sxy"
-)
-
 (namespace EntryPoint)
 
 (using Rococo)
 (using Rococo.Graphics)
 
 (function Main (Int32 id) -> (Int32 exitCode):
-	(Rococo.MaterialVertexData mat)
+	(Rococo.MaterialVertexData mat) // undefined, which is why our skele material changed from execution to execution
 	(IMeshBuilder mb (MeshBuilder))
 	// Vertex format: (Vec3 position)(Vec3 normal)(Vec2 uv)(MaterialVertexData mat)
 	(mb.Begin "skellie.001")

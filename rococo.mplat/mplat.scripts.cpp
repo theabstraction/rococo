@@ -228,6 +228,28 @@ static void NativeEnumerateFiles(NativeCallEnvironment& nce)
 	Rococo::IO::ForEachFileInDirectory(sysPath, dispatchToSexyClosure, true);
 }
 
+const char* s_MplatImplicitIncludes[] =
+{
+	"!scripts/mplat_sxh.sxy",
+	"!scripts/mplat_pane_sxh.sxy",
+	"!scripts/mplat_types.sxy",
+	"!scripts/types.sxy",
+	"!scripts/audio_types.sxy"
+};
+
+struct MPlatImplicitIncludes : IScriptEnumerator
+{
+	size_t Count() const override
+	{
+		return sizeof s_MplatImplicitIncludes / sizeof(char*);
+	}
+
+	cstr ResourceName(size_t index) const override
+	{
+		return s_MplatImplicitIncludes[index];
+	}
+} s_MplatImplicitIncludeEnumerator;
+
 namespace Rococo
 {
 	using namespace Rococo::Windows;
@@ -244,15 +266,16 @@ namespace Rococo
 			Rococo::Script::SetDefaultNativeSourcePath(srcpath);
 		}
 
-		void RunEnvironmentScriptImpl(ScriptPerformanceStats& stats, Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail, bool trace, int id, IEventCallback<cstr>* onScriptCrash, StringBuilder* declarationBuilder)
+		void RunEnvironmentScriptImpl(ScriptPerformanceStats& stats, Platform& platform, IScriptEnumerator& implicitIncludes, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail, bool trace, int id, IEventCallback<cstr>* onScriptCrash, StringBuilder* declarationBuilder)
 		{
+			IScriptEnumerator& usedIncludes = implicitIncludes.Count() > 0 ? implicitIncludes : s_MplatImplicitIncludeEnumerator;
 			struct ScriptContext : public IEventCallback<ScriptCompileArgs>, public IDE::IScriptExceptionHandler
 			{
 				Platform& platform;
 				IEventCallback<ScriptCompileArgs>& onScriptEvent;
-				bool shutdownOnFail;
-				IEventCallback<cstr>* onScriptCrash;
-				StringBuilder* declarationBuilder;
+				bool shutdownOnFail = false;
+				IEventCallback<cstr>* onScriptCrash = nullptr;
+				StringBuilder* declarationBuilder = nullptr;
 
 				void Free() override
 				{
@@ -305,7 +328,7 @@ namespace Rococo
 				ScriptContext(Platform& _platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, IEventCallback<cstr>* _onScriptCrash) :
 					platform(_platform), onScriptEvent(_onScriptEvent), onScriptCrash(_onScriptCrash) {}
 
-				void Execute(cstr name, ScriptPerformanceStats& stats, bool trace, int32 id)
+				void Execute(cstr name, IScriptEnumerator& implicitIncludes, ScriptPerformanceStats& stats, bool trace, int32 id)
 				{
 					try
 					{
@@ -313,6 +336,7 @@ namespace Rococo
 							4096_kilobytes, 
 							platform.scripts.ssFactory,
 							platform.scripts.sourceCache,
+							implicitIncludes,
 							platform.scripts.debuggerWindow,
 							name, 
 							id,
@@ -337,7 +361,7 @@ namespace Rococo
 			sc.shutdownOnFail = shutdownOnFail;
 			sc.declarationBuilder = declarationBuilder;
 
-			sc.Execute(name, stats, trace, id);
+			sc.Execute(name, usedIncludes, stats, trace, id);
 		}
 
 		void RunBareScript(
@@ -349,6 +373,7 @@ namespace Rococo
 			IScriptSystemFactory& ssf,
 			IDebuggerWindow& debugger,
 			ISourceCache& sources,
+			IScriptEnumerator& implicitIncludes,
 			OS::IAppControl& appControl,
 			StringBuilder* declarationBuilder
 		)
@@ -384,6 +409,7 @@ namespace Rococo
 					IScriptSystemFactory& ssf, 
 					IDebuggerWindow& debugger, 
 					ISourceCache& sources,
+					IScriptEnumerator& implicitIncludes,
 					OS::IAppControl& appControl)
 				{
 					try
@@ -393,6 +419,7 @@ namespace Rococo
 							1024_kilobytes,
 							ssf,
 							sources,
+							implicitIncludes,
 							debugger,
 							name,
 							id,
@@ -413,7 +440,7 @@ namespace Rococo
 
 			sc.declarationBuilder = declarationBuilder;
 
-			sc.Execute(name, stats, id, ssf, debugger, sources, appControl);
+			sc.Execute(name, stats, id, ssf, debugger, sources, implicitIncludes, appControl);
 		}
 
 		void RunMPlatConfigScript(OUT IConfig& config, cstr scriptName,
@@ -436,10 +463,23 @@ namespace Rococo
 			} onCompile;
 			onCompile.config = &config;
 
+			struct : IScriptEnumerator
+			{
+				size_t Count() const override
+				{
+					return 0;
+				}
+
+				cstr ResourceName(size_t index) const override
+				{
+					return nullptr;
+				}
+			} noImplicits;
+
 			ScriptPerformanceStats stats = { 0 };
 			RunBareScript(
 				stats, onCompile, flow, scriptName, 0,
-				ssf, debugger, sources, appControl, declarationBuilder
+				ssf, debugger, sources, noImplicits, appControl, declarationBuilder
 			);
 		}
 	} // M

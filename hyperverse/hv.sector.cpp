@@ -31,6 +31,29 @@ namespace
 
    uint32 nextSectorId = 1;
 
+   cstr implicitIncludeArray[] =
+   {
+	   "!scripts/hv_sxh.sxy",
+	   "!scripts/hv/hv.types.sxy",
+	   "!scripts/mplat_sxh.sxy",
+	   "!scripts/mplat_types.sxy",
+	   "!scripts/types.sxy",
+	   "!scripts/audio_types.sxy"
+   };
+
+   struct : IScriptEnumerator
+   {
+	   size_t Count() const override
+	   {
+		   return sizeof implicitIncludeArray / sizeof(char*);
+	   }
+
+	   cstr ResourceName(size_t index) const override
+	   {
+		   return implicitIncludeArray[index];
+	   }
+   } hvDefaultIncludes;
+
    struct Sector : 
 	   public ISector,
 	   public ICorridor,
@@ -660,7 +683,7 @@ namespace
 		  {
 			  cstr theWallScript = *wallScript ? wallScript : DEFAULT_WALL_SCRIPT;
 			  scriptConfig->SetCurrentScript(theWallScript);
-			  platform.plumbing.utilities.RunEnvironmentScript(scriptCallback, id, theWallScript, true, false, false);
+			  platform.plumbing.utilities.RunEnvironmentScript(hvDefaultIncludes, scriptCallback, id, theWallScript, true, false, false);
 			  return true;
 		  }
 		  catch (IException& ex)
@@ -822,7 +845,7 @@ namespace
 		  {
 			  cstr theFloorScript = *floorScript ? floorScript : "#floors/square.mosaics.sxy";
 			  scriptConfig->SetCurrentScript(theFloorScript);
-			  platform.plumbing.utilities.RunEnvironmentScript(scriptCallback, id, theFloorScript, true, false);
+			  platform.plumbing.utilities.RunEnvironmentScript(hvDefaultIncludes, scriptCallback, id, theFloorScript, true, false);
 			  return true;
 		  }
 		  catch (IException& ex)
@@ -1499,7 +1522,7 @@ namespace
 
 		 try
 		 {	
-			 platform.plumbing.utilities.RunEnvironmentScript(scriptCallback, id, genCorridor, true, false);
+			 platform.plumbing.utilities.RunEnvironmentScript(hvDefaultIncludes, scriptCallback, id, genCorridor, true, false);
 		 }
 		 catch (IException& ex)
 		 {

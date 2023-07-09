@@ -234,7 +234,7 @@ struct ScriptContext : public IEventCallback<ScriptCompileArgs>, public Rococo::
 		Throw(0, "%s: Not implemented", __FUNCTION__);
 	}
 
-	int32 Execute(cstr pingPath, ScriptPerformanceStats& stats, int32 id, IScriptSystemFactory& ssFactory, IDebuggerWindow& debuggerWindow, ISourceCache& sourceCache)
+	int32 Execute(cstr pingPath, ScriptPerformanceStats& stats, int32 id, IScriptSystemFactory& ssFactory, IDebuggerWindow& debuggerWindow, ISourceCache& sourceCache, IScriptEnumerator& implicitIncludes)
 	{
 		try
 		{
@@ -242,6 +242,7 @@ struct ScriptContext : public IEventCallback<ScriptCompileArgs>, public Rococo::
 				4096_kilobytes,
 				ssFactory,
 				sourceCache,
+				implicitIncludes,
 				debuggerWindow,
 				pingPath,
 				id,
@@ -390,6 +391,19 @@ bool HasSwitch(cstr switches, ESwitch switchValue)
 	return false;
 }
 
+struct CmdIncludes : IScriptEnumerator
+{
+	size_t Count() const override
+	{
+		return 0;
+	}
+
+	cstr ResourceName(size_t index) const
+	{
+		Throw(0, "No resource defined for cmd");
+	}
+} s_CmdIncludes;
+
 int mainProtected(int argc, char* argv[])
 {
 	if (argc == 1)
@@ -491,7 +505,7 @@ int mainProtected(int argc, char* argv[])
 			{
 				count++;
 				ScriptPerformanceStats stats;
-				int32 exitCode = sc.Execute(result, stats, 0, *ssFactory, *debuggerWindow, *sourceCache);
+				int32 exitCode = sc.Execute(result, stats, 0, *ssFactory, *debuggerWindow, *sourceCache, s_CmdIncludes);
 				if (exitCode != 0)
 				{
 					printf("Script '%s' returned an error code.", result);

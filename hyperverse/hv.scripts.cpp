@@ -78,6 +78,36 @@ namespace HV
 #endif
 	}
 
+	IScriptEnumerator& HVDefaultIncludes()
+	{
+		static cstr implicitIncludeArray[] =
+		{
+			"!scripts/hv_sxh.sxy",
+			"!scripts/hv/hv.types.sxy",
+			"!scripts/mplat_sxh.sxy",
+			"!scripts/mplat_pane_sxh.sxy",
+			"!scripts/mplat_types.sxy",
+			"!scripts/types.sxy",
+			"!scripts/audio_types.sxy"
+		};
+
+		struct Defaults : IScriptEnumerator
+		{
+			size_t Count() const override
+			{
+				return sizeof implicitIncludeArray / sizeof(char*);
+			}
+
+			cstr ResourceName(size_t index) const override
+			{
+				return implicitIncludeArray[index];
+			}
+		};
+		
+		static Defaults implicitIncludes;
+		return implicitIncludes;
+	}
+
 	void RunEnvironmentScript(Cosmos& e, cstr name, bool releaseAfterUse, bool trace)
 	{
 		class ScriptContext : public IEventCallback<ScriptCompileArgs>
@@ -99,7 +129,7 @@ namespace HV
 
 			void Execute(cstr name, bool trace)
 			{
-				e.platform.plumbing.utilities.RunEnvironmentScript(*this, name, true, true, trace);
+				e.platform.plumbing.utilities.RunEnvironmentScript(HVDefaultIncludes(), *this, name, true, true, trace);
 			}
 		} sc(e);
 

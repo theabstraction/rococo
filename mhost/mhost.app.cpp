@@ -364,6 +364,18 @@ namespace MHost
 
 		void RunMPlatScript(const fstring& scriptName) override
 		{
+			struct : IScriptEnumerator
+			{
+				size_t Count() const override
+				{
+					return 0;
+				}
+
+				cstr ResourceName(size_t index) const override
+				{
+					return nullptr;
+				}
+			} useMplatDefaults;
 			struct CLOSURE : IEventCallback<ScriptCompileArgs>
 			{
 				void OnEvent(ScriptCompileArgs& args) override
@@ -371,7 +383,7 @@ namespace MHost
 
 				}
 			} onCompile;
-			platform.plumbing.utilities.RunEnvironmentScript(onCompile, 0, scriptName, true, false);
+			platform.plumbing.utilities.RunEnvironmentScript(useMplatDefaults, onCompile, 0, scriptName, true, false);
 		}
 
 		void CreateMHostDeclarations()
@@ -396,8 +408,21 @@ namespace MHost
 		{
 			NoEventArgs noEventArgs;
 
+			struct : IScriptEnumerator
+			{
+				size_t Count() const override
+				{
+					return 1; // ResourceName(1)="" flags that absolutely no defaults are permitted
+				}
+
+				cstr ResourceName(size_t index) const override
+				{
+					return "";
+				}
+			} noImplicitIncludes;
+
 			AutoFree<IDynamicStringBuilder> sb = CreateDynamicStringBuilder(4096);
-			platform.plumbing.utilities.RunEnvironmentScript(noEventArgs, "!scripts/mplat/create_platform_declarations.sxy", true, false, false, nullptr, &sb->Builder());
+			platform.plumbing.utilities.RunEnvironmentScript(noImplicitIncludes, noEventArgs, "!scripts/mplat/create_platform_declarations.sxy", true, false, false, nullptr, &sb->Builder());
 
 			WideFilePath wPath;
 			platform.os.installation.ConvertPingPathToSysPath("!scripts/mplat/platform_declarations.sxy", wPath);
@@ -415,9 +440,21 @@ namespace MHost
 		void CreateSysDeclarations()
 		{
 			NoEventArgs noEventArgs;
+			struct : IScriptEnumerator
+			{
+				size_t Count() const override
+				{
+					return 1; // ResourceName(1)="" flags that absolutely no defaults are permitted
+				}
+
+				cstr ResourceName(size_t index) const override
+				{
+					return "";
+				}
+			} noImplicitIncludes;
 
 			AutoFree<IDynamicStringBuilder> sb = CreateDynamicStringBuilder(4096);
-			platform.plumbing.utilities.RunEnvironmentScript(noEventArgs, "!scripts/native/create_declarations.sxy", false, false, false, nullptr, &sb->Builder());
+			platform.plumbing.utilities.RunEnvironmentScript(noImplicitIncludes, noEventArgs, "!scripts/native/create_declarations.sxy", false, false, false, nullptr, &sb->Builder());
 
 			WideFilePath wPath;
 			platform.os.installation.ConvertPingPathToSysPath("!scripts/native/declarations.sxy", wPath);

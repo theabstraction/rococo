@@ -1,12 +1,5 @@
 (' #file.type rococo)
 
-(' #include 
-	"!scripts/types.sxy"
-	"!scripts/mplat_sxh.sxy"
-	"!scripts/mplat_types.sxy"
-	"!scripts/audio_types.sxy"
-)
-
 (namespace EntryPoint)
 	(alias Main EntryPoint.Main)
 	

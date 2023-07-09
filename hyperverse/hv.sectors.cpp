@@ -314,7 +314,7 @@ namespace ANON
 		   p.This = this;
 
 		   cstr thePopulateScript = *populateScript != 0 ? populateScript : "#objects/pop.default.sxy";
-		   platform.plumbing.utilities.RunEnvironmentScript(p, thePopulateScript, true, false);
+		   platform.plumbing.utilities.RunEnvironmentScript(HVDefaultIncludes(), p, thePopulateScript, true, false);
 	   }
 
 	   size_t ForEverySectorVisibleBy(cr_m4x4 worldToScreen, cr_vec3 eye, cr_vec3 forward, IEventCallback<VisibleSector>& cb)

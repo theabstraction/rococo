@@ -112,6 +112,19 @@ namespace HV
 		{}
 	};
 
+	struct : IScriptEnumerator
+	{
+		size_t Count() const override
+		{
+			return 0;
+		}
+
+		cstr ResourceName(size_t index) const override
+		{
+			return nullptr;
+		}
+	} useMplatDefaultImplictIncludes;
+
 	class App : public IApp, public IEventCallback<FileModifiedArgs>,  public IObserver, public IGuiResizeEvent
 	{
 		// N.B make sure fields are in the correct order of construction
@@ -257,7 +270,7 @@ namespace HV
 			RunEnvironmentScript(e, "!scripts/hv/main.sxy", true);
 
 			NoExtraNativeLibs noExtraLibs;
-			e.platform.plumbing.utilities.RunEnvironmentScript(noExtraLibs, "!scripts/samplers.sxy", true);
+			e.platform.plumbing.utilities.RunEnvironmentScript(useMplatDefaultImplictIncludes, noExtraLibs, "!scripts/samplers.sxy", true);
 
 			editorPanel = e.platform.graphics.gui.BindPanelToScript("!scripts/panel.editor.sxy");
 			fpsPanel = e.platform.graphics.gui.BindPanelToScript("!scripts/panel.fps.sxy", &fpsExtraLibs);
@@ -467,7 +480,7 @@ namespace HV
 		void OnCreate() override
 		{
 			NoExtraNativeLibs noExtras;
-			e.platform.plumbing.utilities.RunEnvironmentScript(noExtras, "!scripts/hv/app.created.sxy", true);
+			e.platform.plumbing.utilities.RunEnvironmentScript(useMplatDefaultImplictIncludes, noExtras, "!scripts/hv/app.created.sxy", true);
 		//	e.platform.graphics.gui.PushTop(colourPanel->Supervisor(), true);
 		}
 	};

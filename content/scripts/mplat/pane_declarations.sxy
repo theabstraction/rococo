@@ -1116,7 +1116,7 @@
 (function IConfigGetInt372  (Pointer hObject)(Sys.Type.IString name) -> (Int32 value) : (source "C:\work\rococo\rococo.mplat\mplat.sxh.inl" 6847))
 (alias IConfigGetInt372 Rococo.Native.IConfigGetInt)
 
-(function EnumerateFiles373  (Sys.Type.IString filter)(MPlat.OnFileName callback)-> : (source "Rococo::MPlatImpl::RunEnvironmentScriptImpl::ScriptContext::OnEvent" 299))
+(function EnumerateFiles373  (Sys.Type.IString filter)(MPlat.OnFileName callback)-> : (source "Rococo::MPlatImpl::RunEnvironmentScriptImpl::ScriptContext::OnEvent" 322))
 (alias EnumerateFiles373 MPlat.OS.EnumerateFiles)
 
 (function IConfigGetFloat374  (Pointer hObject)(Sys.Type.IString name) -> (Float32 value) : (source "C:\work\rococo\rococo.mplat\mplat.sxh.inl" 6848))

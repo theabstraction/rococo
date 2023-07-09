@@ -151,7 +151,20 @@ namespace MHost
 
 			void Execute(cstr name, bool trace)
 			{
-				platform.plumbing.utilities.RunEnvironmentScript(*this, name, true, true, trace, onScriptCrash, declarationBuilder);
+				struct : IScriptEnumerator
+				{
+					size_t Count() const override
+					{
+						return 1; // ResourceName(1)="" flags that absolutely no defaults are permitted
+					}
+
+					cstr ResourceName(size_t index) const override
+					{
+						return "";
+					}
+				} noImplicitIncludes;
+
+				platform.plumbing.utilities.RunEnvironmentScript(noImplicitIncludes, *this, name, true, true, trace, onScriptCrash, declarationBuilder);
 				engine->SetRunningScriptContext(nullptr);
 			}
 		} sc(platform, engine, package, declarationBuilder);
