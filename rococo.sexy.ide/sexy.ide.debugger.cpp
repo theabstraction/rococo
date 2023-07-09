@@ -109,12 +109,12 @@ namespace
 		struct CallstackEventHandler : public IListViewEvents
 		{
 			TabbedDebuggerWindowHandler* This;
-			void OnDrawItem(DRAWITEMSTRUCT& dis) override
+			void OnDrawItem(DRAWITEMSTRUCT&) override
 			{
 
 			}
 
-			void OnMeasureItem(MEASUREITEMSTRUCT& mis) override
+			void OnMeasureItem(MEASUREITEMSTRUCT&) override
 			{
 
 			}
@@ -128,17 +128,17 @@ namespace
 		struct VariableEventHandler : public IListViewEvents
 		{
 			TabbedDebuggerWindowHandler* This;
-			void OnDrawItem(DRAWITEMSTRUCT& dis) override
+			void OnDrawItem(DRAWITEMSTRUCT&) override
 			{
 
 			}
 
-			void OnMeasureItem(MEASUREITEMSTRUCT& mis) override
+			void OnMeasureItem(MEASUREITEMSTRUCT&) override
 			{
 
 			}
 
-			void OnItemChanged(int index) override
+			void OnItemChanged(int) override
 			{
 				
 			}
@@ -147,17 +147,17 @@ namespace
 		struct RegisterEventHandler : public IListViewEvents
 		{
 			TabbedDebuggerWindowHandler* This;
-			void OnDrawItem(DRAWITEMSTRUCT& dis) override
+			void OnDrawItem(DRAWITEMSTRUCT&) override
 			{
 
 			}
 
-			void OnMeasureItem(MEASUREITEMSTRUCT& mis) override
+			void OnMeasureItem(MEASUREITEMSTRUCT&) override
 			{
 
 			}
 
-			void OnItemChanged(int index) override
+			void OnItemChanged(int) override
 			{
 
 			}
@@ -226,7 +226,7 @@ namespace
 			}
 		}
 
-		void OnItemSelected(int64 id, ITreeControlSupervisor& tree) override
+		void OnItemSelected(int64, ITreeControlSupervisor&) override
 		{
 		}
 
@@ -318,7 +318,7 @@ namespace
 			return false;
 		}
 
-		void OnClose(HWND hWnd)
+		void OnClose(HWND)
 		{
 			Save();
 			ShowWindow(false, nullptr);
@@ -536,6 +536,7 @@ namespace
 			va_list args;
 			va_start(args, format);
 			int len = SafeVFormat(text, 4094, format, args);
+			UNUSED(len);
 
 			logSegments.push_back({ colour, text });
 
@@ -672,7 +673,7 @@ namespace
 				HWND hEditor = report->Editor().EditorHandle();
 				SendMessageA(hEditor, WM_SETREDRAW, FALSE, 0);
 				report->Editor().ResetContent();
-				report->AddSegment(RGBAb(0, 0, 0), "Module: ", -1, RGBAb(192, 192, 192));
+				report->AddSegment(RGBAb(0, 0, 0), "Module: ", (size_t) -1LL, RGBAb(192, 192, 192));
 				report->AddSegment(RGBAb(0, 0, 0), name, rlen(name) + 1, RGBAb(192, 192, 192));
 				report->AddSegment(RGBAb(0, 0, 0), "\n", 2, RGBAb(192, 192, 192));
 				report->AddSegment(RGBAb(0, 0, 0), sourceCode, rlen(sourceCode) + 1, RGBAb(255, 255, 255));
@@ -772,7 +773,7 @@ namespace
 			}
 		}
 
-		void OnSize(HWND hWnd, const Vec2i& span, RESIZE_TYPE type) override
+		void OnSize(HWND, const Vec2i&, RESIZE_TYPE type) override
 		{
 			if (type != RESIZE_TYPE_MINIMIZED)
 			{

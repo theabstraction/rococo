@@ -384,8 +384,8 @@ namespace
 					auto i = maps.find(mapName);
 					if (i == maps.end())
 					{
-						MapImage* image = scriptSystem->CreateMapImage(keyType, valueType);
-						i = maps.insert(mapName, image).first;
+						MapImage* newImage = scriptSystem->CreateMapImage(keyType, valueType);
+						i = maps.insert(mapName, newImage).first;
 					}
 					else
 					{
@@ -443,8 +443,8 @@ namespace
 					auto i = arrays.find(arrayName);
 					if (i == arrays.end())
 					{
-						auto* image = scriptSystem->CreateArrayImage(elementType);
-						i = arrays.insert(arrayName, image).first;
+						auto* newImage = scriptSystem->CreateArrayImage(elementType);
+						i = arrays.insert(arrayName, newImage).first;
 					}
 					else
 					{
@@ -1044,6 +1044,8 @@ namespace
 
 		void AddTypeDerivative(int memberDepth, cstr type, cstr name, cstr sourceFile) override
 		{
+			UNUSED(memberDepth);
+
 			const Rococo::Compiler::IMember* member = GetBestMatchingMember(name);
 			
 			if (!member)
@@ -1089,6 +1091,8 @@ namespace
 			for (auto& i : objects)
 			{
 				cstr name = i.first;
+				UNUSED(name);
+
 				auto& object = i.second;
 
 				if (object.stub)
@@ -1120,6 +1124,8 @@ namespace
 			for (auto& i : objects)
 			{
 				cstr name = i.first;
+				UNUSED(name);
+
 				auto& object = i.second;
 
 				auto& concreteType = *object.stub->Desc->TypeInfo;
@@ -1143,6 +1149,7 @@ namespace
 
 		void AddMapDefinition(cstr refName, cstr keyType, cstr keyTypeSource, cstr valueType, cstr valueTypeSource, int32 length) override
 		{
+			UNUSED(length);
 			mapKeyType = &scriptSystem->GetTypeForSource(keyType, keyTypeSource);
 			mapValueType = &scriptSystem->GetTypeForSource(valueType, valueTypeSource);
 
@@ -1293,6 +1300,8 @@ namespace
 
 		void AddListDefinition(cstr refName, cstr valueType, cstr valueTypeSource, int32 length) override
 		{
+			UNUSED(length);
+
 			container.elements.clear();
 
 			elementType = &scriptSystem->GetTypeForSource(valueType, valueTypeSource);
@@ -1322,6 +1331,8 @@ namespace
 
 		void AppendNewListNode(int32 indexHint) override
 		{
+			UNUSED(indexHint);
+
 			uint8* elementPtr = scriptSystem->AppendListNode(*currentList);
 			SelectTarget(*currentList->ElementType, elementPtr);
 		}

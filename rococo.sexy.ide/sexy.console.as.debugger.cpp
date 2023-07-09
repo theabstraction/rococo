@@ -91,17 +91,17 @@ struct ConsoleAsDebuggerWindow: public Rococo::IDebuggerWindow
 		return formatter.PrintFV(format, args);
 	}
 
-	void AddDisassembly(RGBAb colour, cstr text, RGBAb bkColor = RGBAb(255, 255, 255), bool bringToView = false) override
+	void AddDisassembly(RGBAb, cstr, RGBAb, bool) override
 	{
 
 	}
 
-	void InitDisassembly(size_t codeId) override
+	void InitDisassembly(size_t) override
 	{
 
 	}
 
-	void AddSourceCode(cstr name, cstr sourceCode) override
+	void AddSourceCode(cstr, cstr) override
 	{
 
 	}
@@ -116,17 +116,17 @@ struct ConsoleAsDebuggerWindow: public Rococo::IDebuggerWindow
 		return Windows::NoParent();
 	}
 
-	void PopulateMemberView(Visitors::ITreePopulator& populator) override
+	void PopulateMemberView(Visitors::ITreePopulator&) override
 	{
 
 	}
 
-	void PopulateRegisterView(Visitors::IListPopulator& populator) override
+	void PopulateRegisterView(Visitors::IListPopulator&) override
 	{
 
 	}
 
-	void PopulateVariableView(Visitors::IListPopulator& populator) override
+	void PopulateVariableView(Visitors::IListPopulator&) override
 	{
 
 	}
@@ -153,6 +153,7 @@ struct ConsoleAsDebuggerWindow: public Rococo::IDebuggerWindow
 
 			void SetColumns(cstr columnNames[], int widths[]) override
 			{
+				UNUSED(widths);
 				int nChars = 0;
 				for (cstr* p = columnNames; *p != nullptr; p++)
 				{
@@ -175,7 +176,7 @@ struct ConsoleAsDebuggerWindow: public Rococo::IDebuggerWindow
 				return 100;
 			}
 
-			void DeleteRow(int rowIndex)override
+			void DeleteRow(int) override
 			{
 
 			}
@@ -190,17 +191,17 @@ struct ConsoleAsDebuggerWindow: public Rococo::IDebuggerWindow
 		populator.Populate(consolePopulator);
 	}
 
-	void Run(IDebuggerPopulator& populator, IDebugControl& control) override
+	void Run(IDebuggerPopulator&, IDebugControl&) override
 	{
 
 	}
 
-	void SetCodeHilight(cstr source, const Vec2i& start, const Vec2i& end, cstr message) override
+	void SetCodeHilight(cstr, const Vec2i&, const Vec2i&, cstr) override
 	{
 
 	}
 
-	void ShowWindow(bool show, IDebugControl* debugControl) override
+	void ShowWindow(bool, IDebugControl*) override
 	{
 		
 	}

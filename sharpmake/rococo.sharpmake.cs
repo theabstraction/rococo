@@ -211,9 +211,24 @@ namespace Rococo
         }
     }
 
+    [Sharpmake.Generate]
+    public class RococoSexyIDEProject : RococoProject
+    {
+        public RococoSexyIDEProject() : base("rococo.sexy.ide")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            conf.ProjectFileName = "[project.Name]_[target.DevEnv]_[target.Platform]";
+            conf.ProjectPath = @"[project.SharpmakeCsPath]\generated";
+            conf.Output = Configuration.OutputType.Lib;
+            StandardInit(conf, target);
+        }
+    }
+
     /*
-	msbuild $(ROCOCO)rococo.windows\rococo.windows.vcxproj        $(MSBUILD_TERSE) $(MSBUILD_PARALLEL)
-	msbuild $(ROCOCO)rococo.sexy.ide\rococo.sexy.ide.vcxproj      $(MSBUILD_TERSE) $(MSBUILD_PARALLEL)
 	msbuild $(ROCOCO)rococo.sexy.cmd\rococo.sexy.cmd.vcxproj      $(MSBUILD_TERSE) $(MSBUILD_PARALLEL)
 	msbuild $(ROCOCO)rococo.sexy.mathsex\rococo.sexy.mathsex.vcxproj $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
 	msbuild $(ROCOCO)rococo.fonts\fonts.vcxproj                      $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
@@ -248,6 +263,7 @@ namespace Rococo
 			conf.AddProject<RococoUtilExProject>(target);
 			conf.AddProject<RococoPackagerProject>(target);
             conf.AddProject<RococoWindowsProject>(target);
+            conf.AddProject<RococoSexyIDEProject>(target);
         }
     }
 
@@ -263,6 +279,7 @@ namespace Rococo
 			arguments.Generate<RococoPackagerProject>();
             arguments.Generate<RococoWindowsProject>();
             arguments.Generate<RococoSolution>();
+            arguments.Generate<RococoSexyIDEProject>();
         }
     }
 }

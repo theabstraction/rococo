@@ -33,7 +33,7 @@ namespace Rococo::Graphics
 			const DXGI_MODE_DESC& m = modes[i];
 			UINT Hz = (UINT)(m.RefreshRate.Numerator / (float)m.RefreshRate.Denominator);
 
-			if (lastSize.cx == m.Width && lastSize.cy == m.Height && lastHz == Hz)
+			if (lastSize.cx == (long) m.Width && lastSize.cy == (long) m.Height && lastHz == Hz)
 			{
 				continue; // skip duplicate modes
 			}
@@ -90,12 +90,12 @@ namespace Rococo::Graphics
 			Rococo::Free(dialogWindow);
 		}
 
-		virtual void OnClose(HWND hWnd)
+		void OnClose(HWND) override
 		{
 			modalHandler.TerminateDialog(IDCANCEL);
 		}
 
-		virtual void OnMenuCommand(HWND hWnd, DWORD id)
+		void OnMenuCommand(HWND, DWORD) override
 		{
 			modalHandler.TerminateDialog(IDOK);
 		}
@@ -220,12 +220,12 @@ namespace Rococo::Graphics
 			EnableWindow(*okButton, modeList->GetCurrentSelection() >= 0 ? TRUE : FALSE);
 		}
 
-		virtual void OnDrawItem(DRAWITEMSTRUCT& dis)
+		virtual void OnDrawItem(DRAWITEMSTRUCT&)
 		{
 
 		}
 
-		virtual void OnMeasureItem(MEASUREITEMSTRUCT& mis)
+		virtual void OnMeasureItem(MEASUREITEMSTRUCT&)
 		{
 
 		}
