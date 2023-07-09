@@ -180,7 +180,7 @@ namespace Rococo::DX11
 
 		enum { ID_FONT_OSFONT_OFFSET = 400 };
 
-		DX11HQFontFonts(IInstallation& installation, IDX11FontRenderer& _renderer, ID3D11Device& _device, ID3D11DeviceContext& dc) : renderer(_renderer), device(_device), activeDC(&dc)
+		DX11HQFontFonts(IO::IInstallation& installation, IDX11FontRenderer& _renderer, ID3D11Device& _device, ID3D11DeviceContext& dc) : renderer(_renderer), device(_device), activeDC(&dc)
 		{
 		}
 
@@ -341,7 +341,7 @@ namespace Rococo::DX11
 
 	};
 
-	IDX11HQFontResource* CreateDX11HQFonts(IInstallation& installation, IDX11FontRenderer& renderer, ID3D11Device& device, ID3D11DeviceContext& dc)
+	IDX11HQFontResource* CreateDX11HQFonts(IO::IInstallation& installation, IDX11FontRenderer& renderer, ID3D11Device& device, ID3D11DeviceContext& dc)
 	{
 		return new DX11HQFontFonts(installation, renderer, device, dc);
 	}

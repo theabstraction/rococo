@@ -302,7 +302,7 @@ namespace MHost
 
 		void OnEvent(cstr sourceOfCrash) override
 		{
-			platform.os.io.EnumerateModifiedFiles(*this);
+			platform.os.ios.EnumerateModifiedFiles(*this);
 		}
 
 		void OnEvent(FileModifiedArgs& args) override

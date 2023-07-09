@@ -90,8 +90,11 @@ namespace Rococo
 
 	struct IUltraClock;
 
-	struct IInstallation;
-	struct IOS;
+	namespace IO
+	{
+		struct IInstallation;
+		struct IOS;
+	}
 	
 	struct IBuffer;
 	struct KeyboardEvent;

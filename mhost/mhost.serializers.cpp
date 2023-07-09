@@ -106,13 +106,13 @@ namespace Anon
 
 	struct DictionaryStream : IDicionaryStreamSupervisor
 	{
-		IInstallation& installation;
+		IO::IInstallation& installation;
 		bool prohibitOverwrite = false;
 
 		stringmap<Variant> map;
 		std::vector<HString> keysByOriginalOrder;
 
-		DictionaryStream(IInstallation& _installation) : installation(_installation)
+		DictionaryStream(IO::IInstallation& _installation) : installation(_installation)
 		{
 
 		}
@@ -454,7 +454,7 @@ namespace Anon
 
 namespace MHost
 {
-	IDicionaryStreamSupervisor* CreateDictionaryStream(IInstallation& installation)
+	IDicionaryStreamSupervisor* CreateDictionaryStream(IO::IInstallation& installation)
 	{
 		return new Anon::DictionaryStream(installation);
 	}

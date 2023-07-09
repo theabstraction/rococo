@@ -82,7 +82,7 @@ namespace MHost
 		virtual void Free() = 0;
 	};
 
-	IDicionaryStreamSupervisor* CreateDictionaryStream(IInstallation& installation);
+	IDicionaryStreamSupervisor* CreateDictionaryStream(IO::IInstallation& installation);
 
 	// Returns the top left position, using alignment flags to interpret how the pos argument is interpreted
 	IGui* CreateGuiOnStack(char buffer[64], IGuiRenderContext& gc);

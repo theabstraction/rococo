@@ -20,7 +20,7 @@ struct AmbientData
 
 struct DX11Pipeline: IDX11Pipeline, IGui3D, IParticles
 {
-	IInstallation& installation;
+	IO::IInstallation& installation;
 	ID3D11Device& device;
 	ID3D11DeviceContext& dc;
 	IDX11Shaders& shaders;
@@ -120,7 +120,7 @@ struct DX11Pipeline: IDX11Pipeline, IGui3D, IParticles
 	enum { GUI3D_BUFFER_TRIANGLE_CAPACITY = 1024 };
 	enum { GUI3D_BUFFER_VERTEX_CAPACITY = 3 * GUI3D_BUFFER_TRIANGLE_CAPACITY };
 
-	DX11Pipeline(IInstallation& _installation, IRendererMetrics& metrics, IDX11ResourceLoader& resourceLoader,  IDX11Shaders& _shaders, IDX11TextureManager& _textures, IDX11Meshes& _meshes, IDX11Renderer& _renderer, IRenderContext& _rc, ID3D11Device& _device, ID3D11DeviceContext& _dc):
+	DX11Pipeline(IO::IInstallation& _installation, IRendererMetrics& metrics, IDX11ResourceLoader& resourceLoader,  IDX11Shaders& _shaders, IDX11TextureManager& _textures, IDX11Meshes& _meshes, IDX11Renderer& _renderer, IRenderContext& _rc, ID3D11Device& _device, ID3D11DeviceContext& _dc):
 		installation(_installation), device(_device), dc(_dc), shaders(_shaders), meshes(_meshes), textures(_textures), renderer(_renderer), rc(_rc)
 	{
 		objDepthState = DX11::CreateObjectDepthStencilState(device);
@@ -927,7 +927,7 @@ struct DX11Pipeline: IDX11Pipeline, IGui3D, IParticles
 
 namespace Rococo::DX11
 {
-	IDX11Pipeline* CreateDX11Pipeline(IInstallation& installation, IRendererMetrics& metrics, IDX11ResourceLoader& resourceLoader, IDX11Shaders& shaders, IDX11TextureManager& textures, IDX11Meshes& meshes, IDX11Renderer& renderer, IRenderContext& rc, ID3D11Device& device, ID3D11DeviceContext& dc)
+	IDX11Pipeline* CreateDX11Pipeline(IO::IInstallation& installation, IRendererMetrics& metrics, IDX11ResourceLoader& resourceLoader, IDX11Shaders& shaders, IDX11TextureManager& textures, IDX11Meshes& meshes, IDX11Renderer& renderer, IRenderContext& rc, ID3D11Device& device, ID3D11DeviceContext& dc)
 	{
 		return new DX11Pipeline(installation, metrics, resourceLoader, shaders, textures, meshes, renderer, rc, device, dc);
 	}

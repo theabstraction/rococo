@@ -196,7 +196,7 @@ struct ScriptContext : public IEventCallback<ScriptCompileArgs>, public Rococo::
 	int nArgs;
 	char** args;
 
-	IInstallation& installation;
+	IO::IInstallation& installation;
 
 	void Free() override
 	{
@@ -213,7 +213,7 @@ struct ScriptContext : public IEventCallback<ScriptCompileArgs>, public Rococo::
 		ssArgs.ss.SetCommandLine(nArgs, args);
 	}
 
-	ScriptContext(IInstallation& _installation, int argc, char** argv) :installation(_installation)
+	ScriptContext(IO::IInstallation& _installation, int argc, char** argv) :installation(_installation)
 	{
 		this->nArgs = argc;
 		this->args = argv;
@@ -438,18 +438,18 @@ int mainProtected(int argc, char* argv[])
 	GetNextCmdArgValue(argc, argv, 0, "installation=", installationPath);
 
 	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
-	AutoFree<IOSSupervisor> os = GetOS();
-	AutoFree<IInstallationSupervisor> installation;
+	AutoFree<IO::IOSSupervisor> os = IO::GetIOS();
+	AutoFree<IO::IInstallationSupervisor> installation;
 	
 	if (installationPath == nullptr)
 	{
-		installation = CreateInstallation(L"content.indicator.txt", *os);
+		installation = IO::CreateInstallation(L"content.indicator.txt", *os);
 	}
 	else
 	{
 		WideFilePath wInstallation;
 		Format(wInstallation, L"%hs", installationPath);
-		installation = CreateInstallationDirect(wInstallation, *os);
+		installation = IO::CreateInstallationDirect(wInstallation, *os);
 	}
 
 	ScriptContext sc(*installation, argc, argv);

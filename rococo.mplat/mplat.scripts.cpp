@@ -197,7 +197,7 @@ static void NativeEnumerateFiles(NativeCallEnvironment& nce)
 	struct : IEventCallback<IO::FileItemData>
 	{
 		IPublicScriptSystem* ss;
-		IInstallation* installation;
+		IO::IInstallation* installation;
 		Rococo::Script::ArchetypeCallback callback = { 0 };
 
 		wchar_t sysRoot[Rococo::IO::MAX_PATHLEN];
@@ -236,7 +236,7 @@ namespace Rococo
 	{
 		bool QueryYesNo(IWindow& ownerWindow, cstr message);
 
-		void InitScriptSystem(IInstallation& installation)
+		void InitScriptSystem(IO::IInstallation& installation)
 		{
 			WideFilePath srcpath;
 			Format(srcpath, L"%sscripts\\native\\", installation.Content());
@@ -262,7 +262,7 @@ namespace Rococo
 				IDE::EScriptExceptionFlow GetScriptExceptionFlow(cstr source, cstr message) override
 				{
 					if (onScriptCrash) onScriptCrash->OnEvent(source);
-					platform.os.io.FireUnstable();
+					platform.os.ios.FireUnstable();
 					return IDE::EScriptExceptionFlow::Retry;
 				}
 

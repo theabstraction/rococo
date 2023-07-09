@@ -9,12 +9,12 @@ using namespace Rococo::DX11;
 
 struct DX11Materials : IDX11Materials
 {
-	IInstallation& installation;
+	IO::IInstallation& installation;
 	stringmap<MaterialId> nameToMaterialId;
 	std::vector<HString> idToMaterialName;
 	AutoFree<IDX11TextureArray> materialArray;
 
-	DX11Materials(IInstallation& _installation, ID3D11Device& device, ID3D11DeviceContext& dc):
+	DX11Materials(IO::IInstallation& _installation, ID3D11Device& device, ID3D11DeviceContext& dc):
 		installation(_installation),
 		materialArray(CreateDX11TextureArray(device, dc))
 	{
@@ -152,7 +152,7 @@ struct DX11Materials : IDX11Materials
 
 namespace Rococo::DX11
 {
-	IDX11Materials* CreateMaterials(IInstallation& installation, ID3D11Device& device, ID3D11DeviceContext& dc)
+	IDX11Materials* CreateMaterials(IO::IInstallation& installation, ID3D11Device& device, ID3D11DeviceContext& dc)
 	{
 		return new DX11Materials(installation, device, dc);
 	}

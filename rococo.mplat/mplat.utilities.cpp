@@ -45,13 +45,13 @@ class Utilities :
 	public Browser::IBrowserFileChangeNotification,
 	public IContextMenuEvents
 {
-	IInstallation& installation;
+	IO::IInstallation& installation;
 	IRenderer& renderer;
 	AutoFree<Graphics::ITextTesselatorSupervisor> textTesselator;
 	Platform* platform = nullptr;
 	AutoFree<Graphics::IHQFontsSupervisor> hqFonts;
 public:
-	Utilities(IInstallation& _installation, IRenderer& _renderer) : installation(_installation), renderer(_renderer)
+	Utilities(IO::IInstallation& _installation, IRenderer& _renderer) : installation(_installation), renderer(_renderer)
 	{
 	}
 
@@ -492,7 +492,7 @@ namespace Rococo
 {
 	namespace MPlatImpl
 	{
-		IUtilitiesSupervisor* CreateUtilities(IInstallation& installation, IRenderer& renderer)
+		IUtilitiesSupervisor* CreateUtilities(IO::IInstallation& installation, IRenderer& renderer)
 		{
 			return new Utilities(installation, renderer);
 		}

@@ -137,7 +137,7 @@ namespace Rococo
          return parser.Texture();
       }
 
-      TextureLoader::TextureLoader(IInstallation& _installation, ID3D11Device& _device, ID3D11DeviceContext& _dc, IExpandingBuffer& _scratchBuffer):
+      TextureLoader::TextureLoader(IO::IInstallation& _installation, ID3D11Device& _device, ID3D11DeviceContext& _dc, IExpandingBuffer& _scratchBuffer):
          installation(_installation),
          device(_device), 
          dc(_dc),

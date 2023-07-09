@@ -3,7 +3,7 @@
 #include <rococo.types.h>
 #include <../rococo.audio/rococo.audio.types.h>
 
-namespace Rococo
+namespace Rococo::IO
 {
 	struct ILoadEventsCallback;
 }
@@ -111,7 +111,7 @@ namespace Rococo::Audio
 	{
 		// Attempt to load a resource specified by [utf8Path]. Invokes the cb to first assign a file length, and second to provide a reader to the caller to extract file contents
 		// On error it will throw an exception
-		virtual void LoadResource(cstr utf8Path, ILoadEventsCallback& cb) = 0;
+		virtual void LoadResource(cstr utf8Path, IO::ILoadEventsCallback& cb) = 0;
 
 		// Overwrites [normalizedPath] with a utf-8 interpretation of the [utf8Path] which uniquely identifies the resource.
 		// The purpose is to map many possible representations of a resource to one that serves as a key identifier in the system.
@@ -237,7 +237,7 @@ namespace Rococo::Audio
 		int unused;
 	};
 
-	ROCOCO_AUDIO_API IAudioInstallationSupervisor* CreateAudioInstallation(IInstallation& installation);
+	ROCOCO_AUDIO_API IAudioInstallationSupervisor* CreateAudioInstallation(IO::IInstallation& installation);
 
 	ROCOCO_AUDIO_API IAudioSupervisor* CreateAudioSupervisor(IAudioInstallationSupervisor& installation, IOSAudioAPI& osAPI, const AudioConfig& config);
 

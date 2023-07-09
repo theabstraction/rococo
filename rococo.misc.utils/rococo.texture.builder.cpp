@@ -641,7 +641,7 @@ namespace
 
 namespace Rococo::Graphics::Textures
 {
-    ROCOCO_API_EXPORT void StandardLoadFromCompressedTextureBuffer(cstr name, IEventCallback<CompressedTextureBuffer>& onLoad, IInstallation& installation, IExpandingBuffer& buffer)
+    ROCOCO_API_EXPORT void StandardLoadFromCompressedTextureBuffer(cstr name, IEventCallback<CompressedTextureBuffer>& onLoad, IO::IInstallation& installation, IExpandingBuffer& buffer)
     {
         COMPRESSED_TYPE type;
 

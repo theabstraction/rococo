@@ -42,7 +42,7 @@ namespace ANON
 
 namespace Rococo::Assets
 {
-	IAssetGenerator* CreateAssetGenerator_SexyContentFile(IInstallation& installation)
+	IAssetGenerator* CreateAssetGenerator_SexyContentFile(IO::IInstallation& installation)
 	{
 		return new ANON::AssetGenerator_SexyContentFile(installation);
 	}

@@ -1322,7 +1322,7 @@ namespace
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Rococo::IInstallation* nceContext = reinterpret_cast<Rococo::IInstallation*>(_nce.context);
+		Rococo::IO::IInstallation* nceContext = reinterpret_cast<Rococo::IO::IInstallation*>(_nce.context);
 		// Uses: MHost::IDictionaryStream* FactoryConstructMHostDictionaryStream(Rococo::IInstallation* _context);
 		MHost::IDictionaryStream* pObject = FactoryConstructMHostDictionaryStream(nceContext);
 		_offset += sizeof(IString*);
@@ -1332,7 +1332,7 @@ namespace
 
 namespace MHost
 {
-	void AddNativeCalls_MHostIDictionaryStream(Rococo::Script::IPublicScriptSystem& ss, Rococo::IInstallation* _nceContext)
+	void AddNativeCalls_MHostIDictionaryStream(Rococo::Script::IPublicScriptSystem& ss, Rococo::IO::IInstallation* _nceContext)
 	{
 		const INamespace& ns = ss.AddNativeNamespace("MHost.Native");
 		ss.AddNativeCall(ns, NativeGetHandleForMHostDictionaryStream, _nceContext, ("GetHandleForIDictionaryStream0  -> (Pointer hObject)"), __FILE__, __LINE__);

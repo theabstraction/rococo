@@ -35,7 +35,7 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 	AutoFree<IDX11Materials> materials;
 	TextureBind backBuffer;
 
-	DX11TextureManager(IInstallation& installation, ID3D11Device& _device, ID3D11DeviceContext& _dc):
+	DX11TextureManager(IO::IInstallation& installation, ID3D11Device& _device, ID3D11DeviceContext& _dc):
 		device(_device),
 		dc(_dc),
 		loadBuffer(CreateExpandingBuffer(256_kilobytes)),
@@ -230,7 +230,7 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 
 namespace Rococo::DX11
 {
-	IDX11TextureManager* CreateTextureManager(IInstallation& installation, ID3D11Device& device, ID3D11DeviceContext& dc)
+	IDX11TextureManager* CreateTextureManager(IO::IInstallation& installation, ID3D11Device& device, ID3D11DeviceContext& dc)
 	{
 		return new DX11TextureManager(installation, device, dc);
 	}

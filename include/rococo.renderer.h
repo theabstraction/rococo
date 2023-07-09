@@ -492,7 +492,7 @@ namespace Rococo::Graphics
 		virtual void ExpandViewportToEntireTexture(ID_TEXTURE depthId) = 0;
 		virtual void CaptureMouse(bool enable) = 0;
 		virtual ID_TEXTURE GetWindowDepthBufferId() const = 0;
-		virtual IInstallation& Installation() = 0;
+		virtual IO::IInstallation& Installation() = 0;
 		virtual void Render(Graphics::ENVIRONMENTAL_MAP EnvironmentalMap, IScene& scene) = 0;
 		virtual void SetCursorVisibility(bool isVisible) = 0;
 		virtual void SetSampler(uint32 index, Samplers::Filter, Samplers::AddressMode u, Samplers::AddressMode v, Samplers::AddressMode w, const RGBA& borderColour) = 0;

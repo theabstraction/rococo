@@ -21,7 +21,7 @@ namespace Rococo
 			IDXGIFactory& factory;
 
 			IFactoryResources& resources;
-			IInstallation& installation;
+			IO::IInstallation& installation;
 			IDX11Logger& logger;
 		};
 

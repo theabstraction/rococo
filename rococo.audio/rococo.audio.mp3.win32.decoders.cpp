@@ -16,6 +16,7 @@
 #include <vector>
 
 using namespace Rococo;
+using namespace Rococo::IO;
 using namespace Rococo::Audio;
 using namespace Rococo::Strings;
 
@@ -185,7 +186,7 @@ namespace AudioAnon
 
 	void PopulateMediaBufferWithFileData(IAudioInstallationSupervisor& installation, cstr utf8Path, IMFMediaBuffer& buffer)
 	{
-		struct OnLoad : ILoadEventsCallback
+		struct OnLoad : IO::ILoadEventsCallback
 		{
 			IMFMediaBuffer& buffer;
 			DWORD maxLength = 0;

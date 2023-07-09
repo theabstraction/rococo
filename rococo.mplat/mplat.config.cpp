@@ -123,12 +123,12 @@ namespace Rococo
 
 namespace Rococo::MPlatImpl
 {
-    Rococo::IInstallationManagerSupervisor* CreateIMS(IInstallation& installation)
+    Rococo::IInstallationManagerSupervisor* CreateIMS(IO::IInstallation& installation)
     {
         struct Anon : IInstallationManagerSupervisor
         {
-            IInstallation& installation;
-            Anon(IInstallation& _installation) : installation(_installation) {}
+            IO::IInstallation& installation;
+            Anon(IO::IInstallation& _installation) : installation(_installation) {}
 
             void Free() override
             {

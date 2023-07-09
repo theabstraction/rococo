@@ -4,6 +4,7 @@
 #include <rococo.strings.h>
 
 using namespace Rococo;
+using namespace Rococo::IO;
 using namespace Rococo::Audio;
 using namespace Rococo::Strings;
 

@@ -766,7 +766,7 @@ namespace Rococo
 
 	namespace MPlatImpl
 	{
-		IUtilitiesSupervisor* CreateUtilities(IInstallation& installation, IRenderer& renderer);
+		IUtilitiesSupervisor* CreateUtilities(IO::IInstallation& installation, IRenderer& renderer);
 	}
 
 	namespace Graphics
@@ -908,10 +908,10 @@ namespace Rococo
 	struct PlatformOS
 	{
 		// Operating system functions
-		IOS& io;
+		IO::IOS& ios;
 
 		// Content directory and raw binary file streaming
-		IInstallation& installation;
+		IO::IInstallation& installation;
 
 		// Scriptable directory management
 		Rococo::IInstallationManager& installationManager;
@@ -1025,7 +1025,7 @@ namespace Rococo
 		struct IBrowserFileChangeNotification;
 	}
 
-	IMPlatFileBrowser* CreateMPlatFileBrowser(Events::IPublisher& publisher, IInstallation& installation, IGUIStack& gui, IKeyboardSupervisor& keyboard, Browser::IBrowserFileChangeNotification& onChange);
+	IMPlatFileBrowser* CreateMPlatFileBrowser(Events::IPublisher& publisher, IO::IInstallation& installation, IGUIStack& gui, IKeyboardSupervisor& keyboard, Browser::IBrowserFileChangeNotification& onChange);
 
 	IInventoryArraySupervisor* CreateInventoryArray(int32 capacity);
 }
@@ -1041,7 +1041,7 @@ namespace Rococo
 
 	namespace MPlatImpl
 	{
-		Rococo::IInstallationManagerSupervisor* CreateIMS(IInstallation& installation);
+		Rococo::IInstallationManagerSupervisor* CreateIMS(IO::IInstallation& installation);
 
 		void RunBareScript(
 			ScriptPerformanceStats& stats,

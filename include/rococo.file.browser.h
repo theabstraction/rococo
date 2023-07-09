@@ -2,10 +2,13 @@
 
 #include <rococo.types.h>
 
-namespace Rococo
+namespace Rococo::IO
 {
 	struct IInstallation;
+}
 
+namespace Rococo
+{
 	namespace Browser
 	{
 		void DuplicateSubString(const U32FilePath& src, size_t start, size_t end, U32FilePath& dest);
@@ -98,6 +101,6 @@ namespace Rococo
 
 		IFileBrowser* CreateFileBrowser(FileBrowsingAPI& api, IBrowserFileChangeNotification& onSelChange);
 
-		IDirectoryPopulator* CreatePingPopulator(IInstallation& installation);
+		IDirectoryPopulator* CreatePingPopulator(IO::IInstallation& installation);
 	} // Browser
 } // Rococo

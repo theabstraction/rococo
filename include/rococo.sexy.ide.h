@@ -82,7 +82,7 @@ namespace Rococo
 			IDebuggerWindow* GetConsoleAsDebuggerWindow(Strings::IVarArgStringFormatter& formatter, Strings::IColourOutputControl& control);
 			Strings::IColourOutputControl& GetConsoleColourController();
 			Strings::IVarArgStringFormatter& GetStdoutFormatter();
-			IDebuggerEventHandler* CreateDebuggerEventHandler(IInstallation& installation, IWindow& hOwner);
+			IDebuggerEventHandler* CreateDebuggerEventHandler(IO::IInstallation& installation, IWindow& hOwner);
 			IDebuggerWindow* CreateDebuggerWindow(Windows::IWindow& parent, IEventCallback<MenuCommand>& menuCallback, OS::IAppControl& appControl);
 			IPersistentScript* CreatePersistentScript(size_t maxBytes, Rococo::Script::IScriptSystemFactory& factory, ISourceCache& sources, IDebuggerWindow& debugger, cstr resourcePath, int32 maxScriptSizeBytes, IEventCallback<ScriptCompileArgs>& onCompile, IScriptExceptionHandler& exceptionHandler);
 			int32 ExecuteSexyScriptLoop(ScriptPerformanceStats& stats, size_t maxBytes, IScriptSystemFactory& factory, ISourceCache& sources, IDebuggerWindow& debugger, cstr resourcePath, int32 param, int32 maxScriptSizeBytes, IEventCallback<ScriptCompileArgs>& onCompile, IScriptExceptionHandler& exceptionHandler, OS::IAppControl& appControl, bool trace, Strings::StringBuilder* declarationBuilder);

@@ -237,7 +237,7 @@ namespace
 		  {
 			  int32 txWidth;
 			  std::vector<HString> filenames;
-			  IInstallation* installation;
+              IO::IInstallation* installation;
 			  AutoFree<IExpandingBuffer> buffer = CreateExpandingBuffer(4_megabytes);
 			  Events::IPublisher* publisher;
 			  Instances* This;

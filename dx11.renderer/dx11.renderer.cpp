@@ -49,7 +49,7 @@ class DX11AppRenderer :
 	public IDX11ResourceLoader
 {
 private:
-	IInstallation& installation;
+	IO::IInstallation& installation;
 	ID3D11Device& device;
 	ID3D11DeviceContext& dc;
 	IDXGIFactory& factory;
@@ -300,7 +300,7 @@ public:
 		delete this;
 	}
 
-	IInstallation& Installation() override
+	IO::IInstallation& Installation() override
 	{
 		return installation;
 	}

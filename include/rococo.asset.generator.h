@@ -25,8 +25,8 @@ namespace Rococo::Assets
 	// Enables Sexy semantic:
 	// (reflect LoadAsset <SexyFileAsset-variable> <target-object>) 
 	// to serialize a target-object from the supplied asset loader
-	void LinkAssetLoader(IInstallation& installation, Rococo::Script::IPublicScriptSystem& ss);
+	void LinkAssetLoader(IO::IInstallation& installation, Rococo::Script::IPublicScriptSystem& ss);
 
 	// Create an asset file generator, the target being a file saved to a Sexy content directory
-	IAssetGenerator* CreateAssetGenerator_SexyContentFile(IInstallation& installation);
+	IAssetGenerator* CreateAssetGenerator_SexyContentFile(IO::IInstallation& installation);
 }

@@ -41,6 +41,7 @@
 #include <list>
 #include <rococo.time.h>
 
+using namespace Rococo::IO;
 using namespace Rococo::Strings;
 
 namespace Rococo
@@ -1740,9 +1741,9 @@ namespace
 	};
 }
 
-namespace Rococo
+namespace Rococo::IO
 {
-	ROCOCO_API IOSSupervisor* GetOS()
+	ROCOCO_API IOSSupervisor* GetIOS()
 	{
 		return new Win32OS();
 	}
@@ -1764,7 +1765,10 @@ namespace Rococo
 
 		return new Installation(os, contentDirectory);
 	}
+}
 
+namespace Rococo
+{
 	ROCOCO_API ThreadLock::ThreadLock()
 	{
 		static_assert(sizeof(CRITICAL_SECTION) <= sizeof(implementation), "ThreadLock too small. Increase opaque data");

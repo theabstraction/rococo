@@ -70,7 +70,7 @@ namespace Rococo
 			return ShowMessageBox(Windows::NullParent(), message, title, MB_ICONQUESTION | MB_YESNO) == IDYES;
 		}
 
-		void InitScriptSystem(IInstallation& installation);
+		void InitScriptSystem(IO::IInstallation& installation);
 	}
 }
 
@@ -462,8 +462,8 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	FormatMainWindowFont(font);
 	InitRococoWindows(hInstance, hLargeIcon, hSmallIcon, &font, &font);
 
-	AutoFree<IOSSupervisor> os = GetOS();
-	AutoFree<IInstallationSupervisor> installation = CreateInstallation(L"content.indicator.txt", *os);
+	AutoFree<IO::IOSSupervisor> os = IO::GetIOS();
+	AutoFree<IO::IInstallationSupervisor> installation = CreateInstallation(L"content.indicator.txt", *os);
 	AutoFree<IConfigSupervisor> config = CreateConfig();
 
 	AutoFree<Rococo::Events::IPublisherSupervisor> publisher(Events::CreatePublisher());

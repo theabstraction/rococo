@@ -1,10 +1,14 @@
 #ifndef ROCOCO_DX11_RENDERER_WIN32_H
 #define ROCOCO_DX11_RENDERER_WIN32_H
 
+namespace Rococo::IO
+{
+	struct IInstallation;
+}
+
 namespace Rococo
 {
 	struct IAppFactory;
-	struct IInstallation;
 	struct IApp;
 
 	namespace Graphics
@@ -19,7 +23,7 @@ namespace Rococo
 		struct IAppControl;
 	}
 
-	void CALLBACK RendererMain(HANDLE hInstanceLock, IInstallation& installation, IAppFactory& factory);
+	void CALLBACK RendererMain(HANDLE hInstanceLock, IO::IInstallation& installation, IAppFactory& factory);
 
 	ROCOCO_INTERFACE IDX11Window
 	{
@@ -115,7 +119,7 @@ namespace Rococo
 		int adapterIndex = 0;
 	};
 
-	IDX11Factory* CreateDX11Factory(IInstallation& installation, IDX11Logger& logger, const FactorySpec& spec);
+	IDX11Factory* CreateDX11Factory(IO::IInstallation& installation, IDX11Logger& logger, const FactorySpec& spec);
 	IDX11Logger* CreateStandardOutputLogger();
 }
 

@@ -23,7 +23,7 @@ namespace ANON
 	class DX11Factory : public IDX11Factory, public DX11::IFactoryResources
 	{
 		FactorySpec spec;
-		IInstallation& installation;
+		IO::IInstallation& installation;
 		IDX11Logger& logger;
 
 		AutoRelease<IDXGIAdapter> adapter;
@@ -58,7 +58,7 @@ namespace ANON
 
 		ATOM atom;
 	public:
-		DX11Factory(IInstallation& _installation, IDX11Logger& _logger, const FactorySpec& _spec) :
+		DX11Factory(IO::IInstallation& _installation, IDX11Logger& _logger, const FactorySpec& _spec) :
 			installation(_installation),
 			logger(_logger),
 			spec(_spec)
@@ -148,7 +148,7 @@ namespace Rococo
 {
 	using namespace Rococo::DX11;
 
-	IDX11Factory* CreateDX11Factory(IInstallation& installation, IDX11Logger& logger, const FactorySpec& spec)
+	IDX11Factory* CreateDX11Factory(IO::IInstallation& installation, IDX11Logger& logger, const FactorySpec& spec)
 	{
 		return new ANON::DX11Factory(installation, logger, spec);
 	}

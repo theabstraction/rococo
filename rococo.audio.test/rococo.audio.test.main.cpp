@@ -26,6 +26,7 @@
 #endif
 
 using namespace Rococo;
+using namespace Rococo::IO;
 
 struct PositionButton
 {
@@ -262,8 +263,8 @@ int CALLBACK WinMain(HINSTANCE _hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 		AutoFree<IAllocatorSupervisor> audioHeap(Memory::CreateBlockAllocator(16384, 0));
 		Rococo::Audio::SetAudioAllocator(audioHeap);
 
-		AutoFree<IOSSupervisor> os = GetOS();
-		AutoFree<IInstallationSupervisor> installation = CreateInstallation(L"content.indicator.txt", *os);
+		AutoFree<IOSSupervisor> ios = GetIOS();
+		AutoFree<IInstallationSupervisor> installation = CreateInstallation(L"content.indicator.txt", *ios);
 
 		AutoFree<Audio::IAudioInstallationSupervisor> audioInstallation = Audio::CreateAudioInstallation(*installation);
 

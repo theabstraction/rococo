@@ -82,6 +82,8 @@ namespace
 #define ROCOCO_USE_SAFE_V_FORMAT
 #include <rococo.strings.h>
 
+using namespace Rococo::IO;
+
 namespace Rococo::Script
 {
 	size_t GetAlignmentPadding(int alignment, int objectSize);

@@ -1,6 +1,39 @@
 #ifndef ROCOCO_IO_H
 #define ROCOCO_IO_H
 
+namespace Rococo
+{
+	ROCOCO_INTERFACE IBuffer
+	{
+		virtual uint8 * GetData() = 0;
+		virtual const uint8* GetData() const = 0;
+		virtual size_t Length() const = 0;
+	};
+
+	ROCOCO_INTERFACE IExpandingBuffer : public IBuffer
+	{
+		virtual void Resize(size_t length) = 0;
+		virtual void Free() = 0;
+	};
+
+	ROCOCO_API IExpandingBuffer* CreateExpandingBuffer(size_t initialCapacity);
+
+	struct SysUnstableArgs {};
+	struct FileModifiedArgs
+	{
+		const wchar_t* sysPath;
+		ROCOCO_API bool Matches(cstr pingPath) const;
+	};
+
+	struct MemoryUsage
+	{
+		uint64 current;
+		uint64 peak;
+	};
+
+	ROCOCO_API MemoryUsage ProcessMemory();
+}
+
 namespace Rococo::IO
 {
 	struct IUnicode16Writer;
@@ -172,51 +205,19 @@ namespace Rococo::IO
 	ROCOCO_API void ParseTableRows(IBinarySource& source, ITableRowBuilder& builder);
 	ROCOCO_API void ParseTableRows(cstr sourcePath, ITableRowBuilder& builder);
 	ROCOCO_API void ParseTableRows(const IInstallation& installation, cstr pingPath, ITableRowBuilder& builder);
-}
-
-namespace Rococo
-{
-	ROCOCO_INTERFACE IBuffer
-	{
-		virtual uint8 * GetData() = 0;
-		virtual const uint8* GetData() const = 0;
-		virtual size_t Length() const = 0;
-	};
-
-	ROCOCO_INTERFACE IExpandingBuffer : public IBuffer
-	{
-		virtual void Resize(size_t length) = 0;
-		virtual void Free() = 0;
-	};
-
-	ROCOCO_API IExpandingBuffer* CreateExpandingBuffer(size_t initialCapacity);
-
-	struct SysUnstableArgs {};
-	struct FileModifiedArgs
-	{
-		const wchar_t* sysPath;
-		ROCOCO_API bool Matches(cstr pingPath) const;
-	};
-
-	struct MemoryUsage
-	{
-		uint64 current;
-		uint64 peak;
-	};
-
-	ROCOCO_API MemoryUsage ProcessMemory();	
 
 	ROCOCO_INTERFACE ILoadEventReader
 	{
 		virtual void ReadData(void* buffer, uint32 capacity, uint32 & bytesRead) = 0;
 	};
-	
+
 	ROCOCO_INTERFACE ILoadEventsCallback
 	{
 		virtual void OnFileOpen(int64 fileLength) = 0;
 		virtual void OnDataAvailable(ILoadEventReader& reader) = 0;
 	};
 
+	// The (I)nput/(O)utput (S)ystem
 	ROCOCO_INTERFACE IOS
 	{
 		virtual void ConvertUnixPathToSysPath(const wchar_t* unixPath, WideFilePath & sysPath) const = 0;
@@ -232,8 +233,6 @@ namespace Rococo
 		virtual size_t MaxPath() const = 0;
 		virtual void Monitor(const wchar_t* absPath) = 0;
 	};
-
-
 
 	ROCOCO_INTERFACE IInstallation
 	{
@@ -261,33 +260,30 @@ namespace Rococo
 		virtual void Free() = 0;
 	};
 
-	ROCOCO_API IOSSupervisor* GetOS();
+	ROCOCO_API IOSSupervisor* GetIOS();
 
-	ROCOCO_API IInstallationSupervisor* CreateInstallation(const wchar_t* contentIndicatorName, IOS& os);
-	ROCOCO_API IInstallationSupervisor* CreateInstallationDirect(const wchar_t* contentDirectory, IOS& os);
+	ROCOCO_API IInstallationSupervisor* CreateInstallation(const wchar_t* contentIndicatorName, IOS& ios);
+	ROCOCO_API IInstallationSupervisor* CreateInstallationDirect(const wchar_t* contentDirectory, IOS& ios);
 
 	ROCOCO_API bool DoesModifiedFilenameMatchResourceName(cstr modifiedFilename, cstr resourceName);
 
-	namespace IO
+	enum { MAX_PATHLEN = 260 };
+	[[nodiscard]] constexpr char GetFileSeparator() noexcept
 	{
-		enum { MAX_PATHLEN = 260 };
-		[[nodiscard]] constexpr char GetFileSeparator() noexcept
-		{
 #ifdef _WIN32
-			return '\\';
+		return '\\';
 #else
-			return '/';
+		return '/';
 #endif
-		}
-		ROCOCO_API void EndDirectoryWithSlash(char* pathname, size_t capacity);
-		ROCOCO_API void EndDirectoryWithSlash(wchar_t* pathname, size_t capacity);
-#ifdef _WIN32 // Windows may have UNICODE16 characters in the username, so ascii insufficient to hold the user path
-		ROCOCO_API void GetUserPath(wchar_t* fullpath, size_t capacity, cstr shortname);
-#else
-		ROCOCO_API void GetUserPath(char* fullpath, size_t capacity, cstr shortname);
-#endif
-		ROCOCO_API void DeleteUserFile(cstr filename);
 	}
+	ROCOCO_API void EndDirectoryWithSlash(char* pathname, size_t capacity);
+	ROCOCO_API void EndDirectoryWithSlash(wchar_t* pathname, size_t capacity);
+#ifdef _WIN32 // Windows may have UNICODE16 characters in the username, so ascii insufficient to hold the user path
+	ROCOCO_API void GetUserPath(wchar_t* fullpath, size_t capacity, cstr shortname);
+#else
+	ROCOCO_API void GetUserPath(char* fullpath, size_t capacity, cstr shortname);
+#endif
+	ROCOCO_API void DeleteUserFile(cstr filename);
 }
 
 #endif

@@ -32,7 +32,7 @@ struct DX11PixelShader : public DX11Shader
 
 struct DX11Shaders : IDX11Shaders
 {
-	IInstallation& installation;
+	IO::IInstallation& installation;
 	ID3D11Device& device;
 	ID3D11DeviceContext& dc;
 
@@ -45,7 +45,7 @@ struct DX11Shaders : IDX11Shaders
 	stringmap<ID_PIXEL_SHADER> nameToPixelShader;
 	stringmap<ID_VERTEX_SHADER> nameToVertexShader;
 
-	DX11Shaders(IInstallation& _installation, ID3D11Device& _device, ID3D11DeviceContext& _dc) :
+	DX11Shaders(IO::IInstallation& _installation, ID3D11Device& _device, ID3D11DeviceContext& _dc) :
 		installation(_installation),
 		device(_device),
 		dc(_dc),
@@ -341,7 +341,7 @@ struct DX11Shaders : IDX11Shaders
 
 namespace Rococo::DX11
 {
-	IDX11Shaders* CreateShaderManager(IInstallation& installation, ID3D11Device& device, ID3D11DeviceContext& dc)
+	IDX11Shaders* CreateShaderManager(IO::IInstallation& installation, ID3D11Device& device, ID3D11DeviceContext& dc)
 	{
 		return new DX11Shaders(installation, device, dc);
 	}

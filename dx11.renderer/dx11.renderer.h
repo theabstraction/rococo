@@ -47,7 +47,7 @@ namespace Rococo::DX11
 	{
 		virtual IDX11Shaders& DX11Shaders() = 0;
 		virtual void LoadTextFile(cstr pingPath, Rococo::Function<void(const fstring& text)> callback) = 0;
-		virtual IInstallation& Installation() = 0;
+		virtual IO::IInstallation& Installation() = 0;
 	};
 
 	ROCOCO_INTERFACE IDX11TextureArray : public Textures::ITextureArray
@@ -78,7 +78,7 @@ namespace Rococo::DX11
 		virtual void RenderHQText(ID_FONT id, Fonts::IHQTextJob& job, IGuiRenderContext::EMode mode, ID3D11DeviceContext& dc, IShaders& shaders, const GuiRect& clipRect) = 0;
 	};
 
-	IDX11HQFontResource* CreateDX11HQFonts(IInstallation& installation, IDX11FontRenderer& renderer, ID3D11Device& device, ID3D11DeviceContext& dc);
+	IDX11HQFontResource* CreateDX11HQFonts(IO::IInstallation& installation, IDX11FontRenderer& renderer, ID3D11Device& device, ID3D11DeviceContext& dc);
 
 	ROCOCO_INTERFACE IDX11CubeTextures
 	{
@@ -151,7 +151,7 @@ namespace Rococo::DX11
 		virtual IDX11TextureArray& Textures() = 0;
 	};
 
-	IDX11Materials* CreateMaterials(IInstallation& installation, ID3D11Device& device, ID3D11DeviceContext& dc);
+	IDX11Materials* CreateMaterials(IO::IInstallation& installation, ID3D11Device& device, ID3D11DeviceContext& dc);
 
 	struct TextureDescState
 	{
@@ -167,13 +167,13 @@ namespace Rococo::DX11
 
 	class TextureLoader : public IDX11TextureLoader
 	{
-		IInstallation& installation;
+		IO::IInstallation& installation;
 		ID3D11Device& device;
 		ID3D11DeviceContext& dc;
 		IExpandingBuffer& scratchBuffer;
 
 	public:
-		TextureLoader(IInstallation& installation, ID3D11Device& device, ID3D11DeviceContext& _dc, IExpandingBuffer& _scratchBuffer);
+		TextureLoader(IO::IInstallation& installation, ID3D11Device& device, ID3D11DeviceContext& _dc, IExpandingBuffer& _scratchBuffer);
 		TextureBind LoadAlphaBitmap(cstr resourceName);
 		TextureBind LoadColourBitmap(cstr resourceName);
 		void LoadColourBitmapIntoAddress(cstr resourceName, IColourBitmapLoadEvent& onLoad);
@@ -197,7 +197,7 @@ namespace Rococo::DX11
 		virtual IDX11Materials& Materials() = 0;
 	};
 
-	IDX11TextureManager* CreateTextureManager(IInstallation& installation, ID3D11Device& device, ID3D11DeviceContext& dc);
+	IDX11TextureManager* CreateTextureManager(IO::IInstallation& installation, ID3D11Device& device, ID3D11DeviceContext& dc);
 
 	struct MeshBuffer
 	{
@@ -227,7 +227,7 @@ namespace Rococo::DX11
 		virtual void Free() = 0;
 	};
 
-	IDX11Shaders* CreateShaderManager(IInstallation& installation, ID3D11Device& device, ID3D11DeviceContext& dc);
+	IDX11Shaders* CreateShaderManager(IO::IInstallation& installation, ID3D11Device& device, ID3D11DeviceContext& dc);
 
 	ROCOCO_INTERFACE IDX11Pipeline
 	{
@@ -243,7 +243,7 @@ namespace Rococo::DX11
 		virtual IParticles& Particles() = 0;
 	};
 
-	IDX11Pipeline* CreateDX11Pipeline(IInstallation& installation, IRendererMetrics& metrics, IDX11ResourceLoader& resourceLoader, IDX11Shaders& shaders, IDX11TextureManager& textures, IDX11Meshes& meshes, IDX11Renderer& renderer, IRenderContext& rc, ID3D11Device& device, ID3D11DeviceContext& dc);
+	IDX11Pipeline* CreateDX11Pipeline(IO::IInstallation& installation, IRendererMetrics& metrics, IDX11ResourceLoader& resourceLoader, IDX11Shaders& shaders, IDX11TextureManager& textures, IDX11Meshes& meshes, IDX11Renderer& renderer, IRenderContext& rc, ID3D11Device& device, ID3D11DeviceContext& dc);
 
 	ROCOCO_INTERFACE IDX11WindowBacking
 	{

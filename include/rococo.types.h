@@ -115,7 +115,6 @@ namespace Rococo
 	struct FPSAngles;
 
 	struct IPackage;
-	struct IInstallation;
 
 	typedef const Vec2& cr_vec2;
 	typedef const Vec3& cr_vec3;
@@ -768,6 +767,11 @@ namespace Rococo
 	{
 		return ((int)flags & (int)flag) != 0;
 	}
+}
+
+namespace Rococo::IO
+{
+	struct IInstallation;
 }
 
 #endif

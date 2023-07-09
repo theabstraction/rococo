@@ -1546,7 +1546,7 @@ namespace
 		}
 	};
 
-	void ExpandMacros(cstr pingPath, U8FilePath& expandedPath, IInstallation& installation)
+	void ExpandMacros(cstr pingPath, U8FilePath& expandedPath, IO::IInstallation& installation)
 	{
 		WideFilePath sysPath;
 		installation.ConvertPingPathToSysPath(pingPath, sysPath);

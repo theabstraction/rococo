@@ -571,381 +571,381 @@ namespace Rococo
 
 namespace
 {
-   using namespace Rococo;
+	using namespace Rococo;
 
-   typedef FILE* HANDLE;
+	typedef FILE* HANDLE;
 
-   struct FileHandle
-   {
-      FILE* hFile;
+	struct FileHandle
+	{
+		FILE* hFile;
 
-      FileHandle(HANDLE _hFile) : hFile(_hFile)
-      {
-      }
+		FileHandle(HANDLE _hFile) : hFile(_hFile)
+		{
+		}
 
-      bool IsValid() const
-      {
-         return hFile != nullptr;
-      }
+		bool IsValid() const
+		{
+			return hFile != nullptr;
+		}
 
-      ~FileHandle()
-      {
-         if (IsValid()) fclose(hFile);
-      }
+		~FileHandle()
+		{
+			if (IsValid()) fclose(hFile);
+		}
 
-      operator HANDLE()
-      {
-         return hFile;
-      }
-   };
+		operator HANDLE()
+		{
+			return hFile;
+		}
+	};
 
-   void MakeContainerDirectory(wchar_t* filename)
-   {
-      int len = (int)wcslen(filename);
+	void MakeContainerDirectory(wchar_t* filename)
+	{
+		int len = (int)wcslen(filename);
 
-      for (int i = len - 2; i > 0; --i)
-      {
-         if (filename[i] == L'/')
-         {
-            filename[i + 1] = 0;
-            return;
-         }
-      }
-   }
+		for (int i = len - 2; i > 0; --i)
+		{
+			if (filename[i] == L'/')
+			{
+				filename[i + 1] = 0;
+				return;
+			}
+		}
+	}
 
-   void GetContentDirectory(const wchar_t* contentIndicatorName, WideFilePath& content, IOS& os)
-   {
+	void GetContentDirectory(const wchar_t* contentIndicatorName, WideFilePath& content, IOS& os)
+	{
 		WideFilePath container;
 		os.GetBinDirectoryAbsolute(container);
-		
+
 		MakeContainerDirectory(container.buf);
-		
+
 		WideFilePath indicatorFullPath;
 		Format(indicatorFullPath, L"%s%s", container.buf, contentIndicatorName);
 		if (!os.IsFileExistant(indicatorFullPath))
 		{
 			Throw(0, "Expecting content indicator %ls", indicatorFullPath.buf);
 		}
-		
+
 		Format(content, L"%lsinstallation/", container.buf);
-   }
+	}
 
-   class Installation : public IInstallationSupervisor
-   {
-      IOS& os;
-      WideFilePath contentDirectory;
-	  int32 len;
-	  stringmap<HString> macroToSubdir;
-   public:
-      Installation(const wchar_t* contentIndicatorName, IOS& _os) : os(_os)
-      {
-         GetContentDirectory(contentIndicatorName, contentDirectory, os);
-		 len = wcslen(contentDirectory.buf);
-      }
-	  
-	  virtual ~Installation()
-	  {
-	  }
-
-      void Free() override
-      {
-         delete this;
-      }
-
-      IOS& OS() override
-      {
-         return os;
-      }
-
-      const wchar_t* Content() const override
-      {
-		  return contentDirectory;
-	  }
-
-	  void LoadResource(cstr resourcePath, ILoadEventsCallback& cb) override
-	  {
-		  if (resourcePath == nullptr || rlen(resourcePath) < 2) Throw(0, "OSX::LoadResource failed: <resourcePath> was blank");
-		  if (resourcePath[0] != '!') Throw(0, "OSX::LoadResource failed:\n%s\ndid not begin with ping '!' character", resourcePath);
-
-		  UTF8 u8content(contentDirectory);
-		  if (rlen(resourcePath) + rlen(u8content) >= _MAX_PATH)
-		  {
-			  Throw(0, "OSX::LoadResource failed: %ls%hs - filename was too long", contentDirectory.buf, resourcePath + 1);
-		  }
-
-		  if (strstr(resourcePath, "..") != nullptr)
-		  {
-			  Throw(0, "OSX::LoadResource failed: %hs - parent directory sequence '..' is forbidden", resourcePath);
-		  }
-
-		  Throw(0, "%s: Not implemented", __FUNCTION__);
-	  }
-
-      void LoadResource(cstr resourcePath, IExpandingBuffer& buffer, int64 maxFileLength) override
-      {
-         if (resourcePath == nullptr || rlen(resourcePath) < 2) Throw(0, "OSX::LoadResource failed: <resourcePath> was blank");
-         if (resourcePath[0] != '!') Throw(0, "OSX::LoadResource failed:\n%s\ndid not begin with ping '!' character", resourcePath);
-
-		 UTF8 u8content(contentDirectory);
-         if (rlen(resourcePath) + rlen(u8content) >= _MAX_PATH)
-         {
-            Throw(0, "OSX::LoadResource failed: %ls%hs - filename was too long", contentDirectory.buf, resourcePath + 1);
-         }
-
-         if (strstr(resourcePath, "..") != nullptr)
-         {
-            Throw(0, "OSX::LoadResource failed: %hs - parent directory sequence '..' is forbidden", resourcePath);
-         }
-
-         WideFilePath absPath;
-         Format(absPath, L"%ls%hs", contentDirectory.buf, resourcePath + 1);
-         os.LoadAbsolute(absPath, buffer, maxFileLength);
-      }
-	  
-	  bool TryLoadResource(cstr resourcePath, IExpandingBuffer& buffer, int64 maxFileLength) override
-	  {
-          if (resourcePath == nullptr || rlen(resourcePath) < 2) Throw(0, "OSX::TryLoadResource failed: <resourcePath> was blank");
-          if (resourcePath[0] != '!') Throw(0, "OSX::TryLoadResource failed:\n%s\ndid not begin with ping '!' character", resourcePath);
-
- 		  UTF8 u8content(contentDirectory);
-          if (rlen(resourcePath) + rlen(u8content) >= _MAX_PATH)
-          {
-             Throw(0, "OSX::TryLoadResource failed: %ls%hs - filename was too long", contentDirectory.buf, resourcePath + 1);
-          }
-
-          if (strstr(resourcePath, "..") != nullptr)
-          {
-             Throw(0, "OSX::TryLoadResource failed: %hs - parent directory sequence '..' is forbidden", resourcePath);
-          }
-		  
-          WideFilePath absPath;
-          Format(absPath, L"%ls%hs", contentDirectory.buf, resourcePath + 1);
-		  
-		  if (!Rococo::OS::IsFileExistant(absPath))
-		  {
-			  return false;
-		  }
-					  
-          os.LoadAbsolute(absPath, buffer, maxFileLength);
-		  
-		  return true;
-	  }
-
-	  bool DoPingsMatch(cstr a, cstr b) const override
-	  {
-		  try
-		  {
-			  WideFilePath sysPathA;
-			  ConvertPingPathToSysPath(a, sysPathA);
-
-			  WideFilePath sysPathB;
-			  ConvertPingPathToSysPath(b, sysPathB);
-
-			  return Eq(sysPathA, sysPathB);
-		  }
-		  catch (IException&)
-		  {
-			  return false;
-		  }
-	  }
-
-	  cstr GetFirstSlash(cstr path) const
-	  {
-		  for (cstr p = path + 1; *p != 0; p++)
-		  {
-			  if (*p == '/')
-			  {
-				  return p;
-			  }
-		  }
-
-		  return nullptr;
-	  }
-
-	void ConvertPingPathToSysPath(cstr pingPath, WideFilePath& sysPath) const override
+	class Installation : public IInstallationSupervisor
 	{
-		if (pingPath == nullptr || *pingPath == 0)
+		IOS& os;
+		WideFilePath contentDirectory;
+		int32 len;
+		stringmap<HString> macroToSubdir;
+	public:
+		Installation(const wchar_t* contentIndicatorName, IOS& _os) : os(_os)
 		{
-			Throw(0, "Installation::ConvertPingPathToSysPath(...) Ping path was blank");
+			GetContentDirectory(contentIndicatorName, contentDirectory, os);
+			len = wcslen(contentDirectory.buf);
 		}
 
-		auto macroDir = "";
-		const char* subdir = nullptr;
-
-		if (*pingPath == '!')
+		virtual ~Installation()
 		{
-			subdir = pingPath + 1;
-
-			Format(sysPath, L"%ls%hs", contentDirectory.buf, subdir);
 		}
-		else if (*pingPath == '#')
+
+		void Free() override
 		{
-			auto slash = GetFirstSlash(pingPath + 1);
-			if (slash == nullptr)
+			delete this;
+		}
+
+		IOS& OS() override
+		{
+			return os;
+		}
+
+		const wchar_t* Content() const override
+		{
+			return contentDirectory;
+		}
+
+		void LoadResource(cstr resourcePath, ILoadEventsCallback& cb) override
+		{
+			if (resourcePath == nullptr || rlen(resourcePath) < 2) Throw(0, "OSX::LoadResource failed: <resourcePath> was blank");
+			if (resourcePath[0] != '!') Throw(0, "OSX::LoadResource failed:\n%s\ndid not begin with ping '!' character", resourcePath);
+
+			UTF8 u8content(contentDirectory);
+			if (rlen(resourcePath) + rlen(u8content) >= _MAX_PATH)
 			{
-				Throw(0, "Installation::ConvertPingPathToSysPath(\"%s\"): expecting forward slash character in pingPath", pingPath);
+				Throw(0, "OSX::LoadResource failed: %ls%hs - filename was too long", contentDirectory.buf, resourcePath + 1);
 			}
 
-			subdir = slash + 1;
+			if (strstr(resourcePath, "..") != nullptr)
+			{
+				Throw(0, "OSX::LoadResource failed: %hs - parent directory sequence '..' is forbidden", resourcePath);
+			}
 
-			char macro[IO::MAX_PATHLEN];
-			memcpy_s(macro, sizeof(macro), pingPath, slash - pingPath);
-			macro[slash - pingPath] = 0;
+			Throw(0, "%s: Not implemented", __FUNCTION__);
+		}
+
+		void LoadResource(cstr resourcePath, IExpandingBuffer& buffer, int64 maxFileLength) override
+		{
+			if (resourcePath == nullptr || rlen(resourcePath) < 2) Throw(0, "OSX::LoadResource failed: <resourcePath> was blank");
+			if (resourcePath[0] != '!') Throw(0, "OSX::LoadResource failed:\n%s\ndid not begin with ping '!' character", resourcePath);
+
+			UTF8 u8content(contentDirectory);
+			if (rlen(resourcePath) + rlen(u8content) >= _MAX_PATH)
+			{
+				Throw(0, "OSX::LoadResource failed: %ls%hs - filename was too long", contentDirectory.buf, resourcePath + 1);
+			}
+
+			if (strstr(resourcePath, "..") != nullptr)
+			{
+				Throw(0, "OSX::LoadResource failed: %hs - parent directory sequence '..' is forbidden", resourcePath);
+			}
+
+			WideFilePath absPath;
+			Format(absPath, L"%ls%hs", contentDirectory.buf, resourcePath + 1);
+			os.LoadAbsolute(absPath, buffer, maxFileLength);
+		}
+
+		bool TryLoadResource(cstr resourcePath, IExpandingBuffer& buffer, int64 maxFileLength) override
+		{
+			if (resourcePath == nullptr || rlen(resourcePath) < 2) Throw(0, "OSX::TryLoadResource failed: <resourcePath> was blank");
+			if (resourcePath[0] != '!') Throw(0, "OSX::TryLoadResource failed:\n%s\ndid not begin with ping '!' character", resourcePath);
+
+			UTF8 u8content(contentDirectory);
+			if (rlen(resourcePath) + rlen(u8content) >= _MAX_PATH)
+			{
+				Throw(0, "OSX::TryLoadResource failed: %ls%hs - filename was too long", contentDirectory.buf, resourcePath + 1);
+			}
+
+			if (strstr(resourcePath, "..") != nullptr)
+			{
+				Throw(0, "OSX::TryLoadResource failed: %hs - parent directory sequence '..' is forbidden", resourcePath);
+			}
+
+			WideFilePath absPath;
+			Format(absPath, L"%ls%hs", contentDirectory.buf, resourcePath + 1);
+
+			if (!Rococo::OS::IsFileExistant(absPath))
+			{
+				return false;
+			}
+
+			os.LoadAbsolute(absPath, buffer, maxFileLength);
+
+			return true;
+		}
+
+		bool DoPingsMatch(cstr a, cstr b) const override
+		{
+			try
+			{
+				WideFilePath sysPathA;
+				ConvertPingPathToSysPath(a, sysPathA);
+
+				WideFilePath sysPathB;
+				ConvertPingPathToSysPath(b, sysPathB);
+
+				return Eq(sysPathA, sysPathB);
+			}
+			catch (IException&)
+			{
+				return false;
+			}
+		}
+
+		cstr GetFirstSlash(cstr path) const
+		{
+			for (cstr p = path + 1; *p != 0; p++)
+			{
+				if (*p == '/')
+				{
+					return p;
+				}
+			}
+
+			return nullptr;
+		}
+
+		void ConvertPingPathToSysPath(cstr pingPath, WideFilePath& sysPath) const override
+		{
+			if (pingPath == nullptr || *pingPath == 0)
+			{
+				Throw(0, "Installation::ConvertPingPathToSysPath(...) Ping path was blank");
+			}
+
+			auto macroDir = "";
+			const char* subdir = nullptr;
+
+			if (*pingPath == '!')
+			{
+				subdir = pingPath + 1;
+
+				Format(sysPath, L"%ls%hs", contentDirectory.buf, subdir);
+			}
+			else if (*pingPath == '#')
+			{
+				auto slash = GetFirstSlash(pingPath + 1);
+				if (slash == nullptr)
+				{
+					Throw(0, "Installation::ConvertPingPathToSysPath(\"%s\"): expecting forward slash character in pingPath", pingPath);
+				}
+
+				subdir = slash + 1;
+
+				char macro[IO::MAX_PATHLEN];
+				memcpy_s(macro, sizeof(macro), pingPath, slash - pingPath);
+				macro[slash - pingPath] = 0;
+
+				auto i = macroToSubdir.find(macro);
+				if (i == macroToSubdir.end())
+				{
+					Throw(0, "Installation::ConvertPingPathToSysPath(\"%s\"): unknown macro: %s", macro, pingPath);
+				}
+
+				macroDir = i->second.c_str();
+
+				Format(sysPath, L"%ls%s%s", contentDirectory, macroDir + 1, subdir);
+			}
+			else
+			{
+				Throw(0, "Installation::ConvertPingPathToSysPath(\"%s\"): unknown prefix. Expecting ! or #", pingPath);
+			}
+
+			if (strstr(pingPath, "..") != nullptr)
+			{
+				Throw(0, "Installation::ConvertPingPathToSysPath(...) Illegal sequence in ping path: '..'");
+			}
+
+			OS::ToSysPath(sysPath.buf);
+		}
+
+		void ConvertSysPathToMacroPath(const wchar_t* sysPath, U8FilePath& pingPath, cstr macro) const override
+		{
+			U8FilePath fullPingPath;
+			ConvertSysPathToPingPath(sysPath, fullPingPath);
 
 			auto i = macroToSubdir.find(macro);
 			if (i == macroToSubdir.end())
 			{
-				Throw(0, "Installation::ConvertPingPathToSysPath(\"%s\"): unknown macro: %s", macro, pingPath);
+				Throw(0, "Installation::ConvertSysPathToMacroPath(...) No macro defined: %s", macro);
 			}
 
-			macroDir = i->second.c_str();
-
-			Format(sysPath, L"%ls%s%s", contentDirectory, macroDir + 1, subdir);
-		}
-		else
-		{
-			Throw(0, "Installation::ConvertPingPathToSysPath(\"%s\"): unknown prefix. Expecting ! or #", pingPath);
-		}
-
-		if (strstr(pingPath, "..") != nullptr)
-		{
-			Throw(0, "Installation::ConvertPingPathToSysPath(...) Illegal sequence in ping path: '..'");
-		}
-
-		OS::ToSysPath(sysPath.buf);
-	}
-
-	void ConvertSysPathToMacroPath(const wchar_t* sysPath, U8FilePath& pingPath, cstr macro) const override
-	{
-		U8FilePath fullPingPath;
-		ConvertSysPathToPingPath(sysPath, fullPingPath);
-
-		auto i = macroToSubdir.find(macro);
-		if (i == macroToSubdir.end())
-		{
-			Throw(0, "Installation::ConvertSysPathToMacroPath(...) No macro defined: %s", macro);
-		}
-
-		cstr expansion = i->second.c_str();
-		if (strstr(fullPingPath, expansion) == nullptr)
-		{
-			Throw(0, "Installation::ConvertSysPathToMacroPath(...\"%ls\", \"%s\") Path not prefixed by macro: %s", sysPath, macro, expansion);
-		}
-
-		Format(pingPath, "%hs/%hs", macro, fullPingPath.buf + i->second.length());
-	}
-
-	void ConvertSysPathToPingPath(const wchar_t* sysPath, U8FilePath& pingPath) const override
-	{
-		if (pingPath == nullptr || sysPath == nullptr) Throw(0, "ConvertSysPathToPingPath: Null argument");
-
-		int sysPathLen = (int) wcslen(sysPath);
-
-		size_t contentDirLength = wcslen(contentDirectory);
-
-		if (0 != wcsncmp(sysPath, contentDirectory, wcslen(contentDirectory)))
-		{
-			Throw(0, "ConvertSysPathToPingPath: '%ls' did not begin with the content folder %ls", sysPath, contentDirectory.buf);
-		}
-
-		if (wcsstr(sysPath, L"..") != nullptr)
-		{
-			Throw(0, "ConvertSysPathToPingPath: '%ls' - Illegal sequence in ping path: '..'", sysPath);
-		}
-
-		Format(pingPath, "!%ls", sysPath + contentDirLength);
-
-		OS::ToUnixPath(pingPath.buf);
-	}
-
-	  void Macro(cstr name, cstr pingFolder) override
-	  {
-		  if (name == nullptr || *name != '#')
-		  {
-			  Throw(0, "Installation::Macro(name, ...): [name] did not begin with a hash '#' character");
-		  }
-
-		  if (pingFolder == nullptr || *pingFolder != '!')
-		  {
-			  Throw(0, "Installation::Macro(..., pingFolder): [pingFolder] did not begin with a ping '!' character");
-		  }
-
-		  U8FilePath pingRoot;
-		  int len = Format(pingRoot, "%s", pingFolder);
-		  OS::ToUnixPath(pingRoot.buf);
-		  if (pingRoot[len - 1] != '/')
-		  {
-			  Throw(0, "Installation::Macro(..., pingFolder): %s did not end with slash '/' character");
-		  }
-
-		  auto i = macroToSubdir.find(name);
-		  if (i != macroToSubdir.end())
-		  {
-			  Throw(0, "Installation::Macro(\"%s\", ...) - macro already defined", name);
-		  }
-
-		  macroToSubdir[name] = pingFolder;
-	  }
-	  
-	  bool TryExpandMacro(cstr macroPrefixPlusPath, U8FilePath& expandedPath) override
-	  {
-		auto slash = GetFirstSlash(macroPrefixPlusPath + 1);
-		if (slash == nullptr)
-		{
-			Throw(0, "Installation::TryExpandMacro(\"%s\"): expecting forward slash character in pingPath", macroPrefixPlusPath);
-		}
-
-		cstr subdir = slash + 1;
-
-		U8FilePath macro;
-		memcpy_s(macro.buf, macro.CAPACITY, macroPrefixPlusPath, slash - macroPrefixPlusPath);
-		macro.buf[slash - macroPrefixPlusPath] = 0;
-
-		auto i = macroToSubdir.find(macro.buf);
-		if (i == macroToSubdir.end())
-		{
-			return false;
-		}
-
-		Format(expandedPath, "%s%s", i->second.c_str(), subdir);
-		return true;
-	  }
-	  
-	  void CompressPingPath(cstr pingPath, U8FilePath& buffer) const override
-	  {
-		  // Implementation here is not optimal, but its okay for now, as this method is only used during initialization
-		struct MacroToSubpath
-		{
-			HString macro;
-			HString subpath;
-
-			bool operator < (const MacroToSubpath& other) const
+			cstr expansion = i->second.c_str();
+			if (strstr(fullPingPath, expansion) == nullptr)
 			{
-				return other.macro.length() - other.subpath.length() > macro.length() - subpath.length();
+				Throw(0, "Installation::ConvertSysPathToMacroPath(...\"%ls\", \"%s\") Path not prefixed by macro: %s", sysPath, macro, expansion);
 			}
-		};
 
-		std::vector<MacroToSubpath> macros;
-		for (auto& i : macroToSubdir)
-		{
-			macros.push_back({ HString(i.first), i.second });
+			Format(pingPath, "%hs/%hs", macro, fullPingPath.buf + i->second.length());
 		}
 
-		std::sort(macros.begin(), macros.end()); // macros is now sorted in order of macro length
-
-		for (auto& m : macros)
+		void ConvertSysPathToPingPath(const wchar_t* sysPath, U8FilePath& pingPath) const override
 		{
-			if (StartsWith(pingPath, m.subpath))
+			if (pingPath == nullptr || sysPath == nullptr) Throw(0, "ConvertSysPathToPingPath: Null argument");
+
+			int sysPathLen = (int)wcslen(sysPath);
+
+			size_t contentDirLength = wcslen(contentDirectory);
+
+			if (0 != wcsncmp(sysPath, contentDirectory, wcslen(contentDirectory)))
 			{
-				Format(buffer, "%hs/%hs", m.macro.c_str(), pingPath + m.subpath.length());
-				return;
+				Throw(0, "ConvertSysPathToPingPath: '%ls' did not begin with the content folder %ls", sysPath, contentDirectory.buf);
 			}
+
+			if (wcsstr(sysPath, L"..") != nullptr)
+			{
+				Throw(0, "ConvertSysPathToPingPath: '%ls' - Illegal sequence in ping path: '..'", sysPath);
+			}
+
+			Format(pingPath, "!%ls", sysPath + contentDirLength);
+
+			OS::ToUnixPath(pingPath.buf);
 		}
 
-		Format(buffer, "%hs", pingPath);
-	  }
-   };
-   
+		void Macro(cstr name, cstr pingFolder) override
+		{
+			if (name == nullptr || *name != '#')
+			{
+				Throw(0, "Installation::Macro(name, ...): [name] did not begin with a hash '#' character");
+			}
+
+			if (pingFolder == nullptr || *pingFolder != '!')
+			{
+				Throw(0, "Installation::Macro(..., pingFolder): [pingFolder] did not begin with a ping '!' character");
+			}
+
+			U8FilePath pingRoot;
+			int len = Format(pingRoot, "%s", pingFolder);
+			OS::ToUnixPath(pingRoot.buf);
+			if (pingRoot[len - 1] != '/')
+			{
+				Throw(0, "Installation::Macro(..., pingFolder): %s did not end with slash '/' character");
+			}
+
+			auto i = macroToSubdir.find(name);
+			if (i != macroToSubdir.end())
+			{
+				Throw(0, "Installation::Macro(\"%s\", ...) - macro already defined", name);
+			}
+
+			macroToSubdir[name] = pingFolder;
+		}
+
+		bool TryExpandMacro(cstr macroPrefixPlusPath, U8FilePath& expandedPath) override
+		{
+			auto slash = GetFirstSlash(macroPrefixPlusPath + 1);
+			if (slash == nullptr)
+			{
+				Throw(0, "Installation::TryExpandMacro(\"%s\"): expecting forward slash character in pingPath", macroPrefixPlusPath);
+			}
+
+			cstr subdir = slash + 1;
+
+			U8FilePath macro;
+			memcpy_s(macro.buf, macro.CAPACITY, macroPrefixPlusPath, slash - macroPrefixPlusPath);
+			macro.buf[slash - macroPrefixPlusPath] = 0;
+
+			auto i = macroToSubdir.find(macro.buf);
+			if (i == macroToSubdir.end())
+			{
+				return false;
+			}
+
+			Format(expandedPath, "%s%s", i->second.c_str(), subdir);
+			return true;
+		}
+
+		void CompressPingPath(cstr pingPath, U8FilePath& buffer) const override
+		{
+			// Implementation here is not optimal, but its okay for now, as this method is only used during initialization
+			struct MacroToSubpath
+			{
+				HString macro;
+				HString subpath;
+
+				bool operator < (const MacroToSubpath& other) const
+				{
+					return other.macro.length() - other.subpath.length() > macro.length() - subpath.length();
+				}
+			};
+
+			std::vector<MacroToSubpath> macros;
+			for (auto& i : macroToSubdir)
+			{
+				macros.push_back({ HString(i.first), i.second });
+			}
+
+			std::sort(macros.begin(), macros.end()); // macros is now sorted in order of macro length
+
+			for (auto& m : macros)
+			{
+				if (StartsWith(pingPath, m.subpath))
+				{
+					Format(buffer, "%hs/%hs", m.macro.c_str(), pingPath + m.subpath.length());
+					return;
+				}
+			}
+
+			Format(buffer, "%hs", pingPath);
+		}
+	};
+
 	bool TryGetDllFileName(U8FilePath& filename)
 	{
 		Dl_info info;
@@ -955,145 +955,142 @@ namespace
 		return true;
 	}
 
-   class OSX : public IOSSupervisor
-   {
-      WideFilePath binDirectory;
-      IEventCallback<SysUnstableArgs>* onUnstable;
-   public:
-      OSX() : onUnstable(nullptr)
-	  {
-		U8FilePath u8Bin;
-		uint32 lcapacity = u8Bin.CAPACITY;
-		
-		if (!TryGetDllFileName(u8Bin))
+	class OSX : public IOSSupervisor
+	{
+		WideFilePath binDirectory;
+		IEventCallback<SysUnstableArgs>* onUnstable;
+	public:
+		OSX() : onUnstable(nullptr)
 		{
-			if (_NSGetExecutablePath(u8Bin.buf, &lcapacity) != 0)
+			U8FilePath u8Bin;
+			uint32 lcapacity = u8Bin.CAPACITY;
+
+			if (!TryGetDllFileName(u8Bin))
 			{
-				Throw(0, "dladdr and _NSGetExecutablePath failed");
+				if (_NSGetExecutablePath(u8Bin.buf, &lcapacity) != 0)
+				{
+					Throw(0, "dladdr and _NSGetExecutablePath failed");
+				}
+			}
+
+			Format(binDirectory, L"%s", u8Bin.buf);
+
+			MakeContainerDirectory(binDirectory.buf);
+		}
+
+		void Free() override
+		{
+			delete this;
+		}
+
+		void Monitor(const wchar_t* absPath) override
+		{
+			// Not supported on the Max. Develope on a PC, a proper computer, then copy and paste to your noddy MAC
+		}
+
+		void EnumerateModifiedFiles(IEventCallback<FileModifiedArgs>& cb) override
+		{
+		}
+
+		void FireUnstable() override
+		{
+			SysUnstableArgs unused;
+			if (onUnstable) onUnstable->OnEvent(unused);
+		}
+
+		void SetUnstableHandler(IEventCallback<SysUnstableArgs>* cb) override
+		{
+			onUnstable = cb;
+		}
+
+		bool IsFileExistant(const wchar_t* absPath) const override
+		{
+			return OS::IsFileExistant(absPath);
+		}
+
+		void ConvertUnixPathToSysPath(const wchar_t* unixPath, WideFilePath& sysPath) const override
+		{
+			Format(sysPath, L"%s", unixPath);
+		}
+
+		void LoadAbsolute(const wchar_t* absPath, IExpandingBuffer& buffer, int64 maxFileLength) const override
+		{
+			UTF8 u8AbsPath(absPath);
+			FileHandle hFile = fopen(u8AbsPath, "r");
+			if (!hFile.IsValid()) Throw(errno, "%s failed: Error opening file %ls", __FUNCTION__, absPath);
+
+			fseek(hFile, 0, SEEK_END);
+			long length = ftell(hFile);
+
+			if ((int64)length > maxFileLength)
+			{
+				Throw(0, "%s failed: File <%ls> was too large at over %lld bytes", __FUNCTION__, absPath, maxFileLength);
+			}
+
+			fseek(hFile, 0, SEEK_SET);
+
+			buffer.Resize((size_t)length);
+
+			int64 bytesLeft = (int64)length;
+			ptrdiff_t offset = 0;
+
+			uint8* data = (uint8*)buffer.GetData();
+
+			while (bytesLeft > 0)
+			{
+				uint64 chunk = (uint64)min(bytesLeft, 65536LL);
+				size_t nBytesRead = fread(data + offset, 1, chunk, hFile);
+
+				if (nBytesRead != chunk)
+				{
+					Throw(0, "%s: Error reading file <%ls>. Failed to read chunk", __FUNCTION__, absPath);
+				}
+
+				offset += (ptrdiff_t)chunk;
+				bytesLeft -= (int64)chunk;
 			}
 		}
-		
-		Format(binDirectory, L"%s", u8Bin.buf);
 
-		MakeContainerDirectory(binDirectory.buf);
-	 } 
+		void GetBinDirectoryAbsolute(WideFilePath& output) const override
+		{
+			output = this->binDirectory;
+		}
 
-      void Free() override
-      {
-         delete this;
-      }
-
-      void Monitor(const wchar_t* absPath) override
-      {
-		  // Not supported on the Max. Develope on a PC, a proper computer, then copy and paste to your noddy MAC
-      }
-
-      void EnumerateModifiedFiles(IEventCallback<FileModifiedArgs> &cb) override
-      {
-      }
-
-      void FireUnstable() override
-      {
-         SysUnstableArgs unused;
-         if (onUnstable) onUnstable->OnEvent(unused);
-      }
-
-      void SetUnstableHandler(IEventCallback<SysUnstableArgs>* cb) override
-      {
-         onUnstable = cb;
-      }
-
-      bool IsFileExistant(const wchar_t* absPath) const override
-      {
-         return OS::IsFileExistant(absPath);
-      }
-
-      void ConvertUnixPathToSysPath(const wchar_t* unixPath, WideFilePath& sysPath) const override
-      {
-         Format(sysPath, L"%s", unixPath);
-      }
-
-      void LoadAbsolute(const wchar_t* absPath, IExpandingBuffer& buffer, int64 maxFileLength) const override
-      {
-		 UTF8 u8AbsPath(absPath);
-         FileHandle hFile = fopen(u8AbsPath, "r");
-         if (!hFile.IsValid()) Throw(errno, "%s failed: Error opening file %ls", __FUNCTION__, absPath);
-
-         fseek(hFile, 0, SEEK_END);
-         long length = ftell(hFile);
-
-         if ((int64)length > maxFileLength)
-         {
-            Throw(0, "%s failed: File <%ls> was too large at over %lld bytes", __FUNCTION__, absPath, maxFileLength);
-         }
-
-         fseek(hFile, 0, SEEK_SET);
-
-         buffer.Resize((size_t)length);
-
-         int64 bytesLeft = (int64)length;
-         ptrdiff_t offset = 0;
-
-         uint8* data = (uint8*)buffer.GetData();
-
-         while (bytesLeft > 0)
-         {
-            uint64 chunk = (uint64)min(bytesLeft, 65536LL);
-            size_t nBytesRead = fread(data + offset, 1, chunk, hFile);
-
-            if (nBytesRead != chunk)
-            {
-               Throw(0, "%s: Error reading file <%ls>. Failed to read chunk", __FUNCTION__, absPath);
-            }
-
-            offset += (ptrdiff_t)chunk;
-            bytesLeft -= (int64)chunk;
-         }
-      }
-
-      void GetBinDirectoryAbsolute(WideFilePath& output) const override
-      {
-		  output = this->binDirectory;
-      }
-
-      size_t MaxPath() const override
-      {
-         return _MAX_PATH;
-      }
-   };
+		size_t MaxPath() const override
+		{
+			return _MAX_PATH;
+		}
+	};
 }
 
-namespace Rococo
+namespace Rococo::IO
 {
-   IInstallationSupervisor* CreateInstallation(const wchar_t* contentIndicatorName, IOS& os)
-   {
-      return new Installation(contentIndicatorName, os);
-   }
+	IOSSupervisor* GetIOS()
+	{
+		return new OSX();
+	}
+
+	IInstallationSupervisor* CreateInstallation(const wchar_t* contentIndicatorName, IOS& os)
+	{
+		return new Installation(contentIndicatorName, os);
+	}
 }
 
-namespace Rococo
+namespace Rococo::Windows
 {
-   IOSSupervisor* GetOS()
-   {
-      return new OSX();
-   }
+	IWindow& NoParent()
+	{
+		struct NullWindow : public IWindow
+		{
+			virtual operator ID_OSWINDOW() const
+			{
+				return ID_OSWINDOW::Invalid();
+			}
+		};
 
-   namespace Windows
-   {
-      IWindow& NoParent()
-      {
-         struct NullWindow : public IWindow
-         {
-            virtual operator ID_OSWINDOW() const
-            {
-               return ID_OSWINDOW::Invalid();
-            }
-         };
-
-         static NullWindow nullWindow;
-         return nullWindow;
-      }
-   }
+		static NullWindow nullWindow;
+		return nullWindow;
+	}
 }
 
 

@@ -829,10 +829,10 @@ namespace
 
 	struct DebuggerEventHandler : public IDebuggerEventHandler, public IEventCallback<MenuCommand>
 	{
-		IInstallation& installation;
+		IO::IInstallation& installation;
 		HWND hOwner;
 
-		DebuggerEventHandler(IInstallation& _installation, HWND _hOwner):
+		DebuggerEventHandler(IO::IInstallation& _installation, HWND _hOwner):
 			installation(_installation), hOwner(_hOwner)
 		{
 		}
@@ -895,7 +895,7 @@ namespace Rococo::Windows::IDE
 		return TabbedDebuggerWindowHandler::Create(parent, menuHandler, appControl);
     }
 
-	IDebuggerEventHandler* CreateDebuggerEventHandler(IInstallation& installation, IWindow& hOwner)
+	IDebuggerEventHandler* CreateDebuggerEventHandler(IO::IInstallation& installation, IWindow& hOwner)
 	{
 		return new DebuggerEventHandler(installation, hOwner);
 	}

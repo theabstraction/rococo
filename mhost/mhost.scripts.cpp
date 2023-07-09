@@ -18,7 +18,7 @@ namespace MHost
 		return _context;
 	}
 
-	MHost::IDictionaryStream* FactoryConstructMHostDictionaryStream(Rococo::IInstallation* installation)
+	MHost::IDictionaryStream* FactoryConstructMHostDictionaryStream(Rococo::IO::IInstallation* installation)
 	{
 		return CreateDictionaryStream(*installation);
 	}
