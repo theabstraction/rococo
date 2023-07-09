@@ -2,6 +2,7 @@
 #include "mplat.landscapes.h"
 #include <rococo.random.h>
 #include <rococo.octree.h>
+#include <rococo.time.h>
 
 #include <vector>
 
@@ -227,10 +228,10 @@ namespace
 			Set(cellsPerAxis, 0, NextRandomHeight(0.0f, maxAltitude));
 			Set(cellsPerAxis, cellsPerAxis, NextRandomHeight(0.0f, maxAltitude));
 
-			OS::ticks start = OS::CpuTicks();
+			Time::ticks start = Time::TickCount();
 			RecurseAndSubdivide(0, cellsPerAxis, 0, cellsPerAxis, maxAltitude * 0.5f);
-			OS::ticks duration = OS::CpuTicks() - start;
-			double dt = duration / (double) OS::CpuHz();
+			Time::ticks duration = Time::TickCount() - start;
+			double dt = duration / (double) Time::TickHz();
 			generateDuration = Seconds{ (float) dt };
 		}
 
@@ -283,7 +284,7 @@ namespace
 
 		void SetSeed(int64 seedNumber) override
 		{
-			this->seedNumber = seedNumber == 0 ? OS::CpuTicks() : seedNumber;
+			this->seedNumber = seedNumber == 0 ? Time::TickCount() : seedNumber;
 		}
 
 		void TranslateEachCell(const Vec3& delta) override

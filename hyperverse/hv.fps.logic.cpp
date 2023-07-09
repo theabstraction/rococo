@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <rococo.textures.h>
 #include <rococo.strings.h>
+#include <rococo.time.h>
 
 using namespace HV;
 using namespace HV::Events;
@@ -495,8 +496,8 @@ public:
 			GuiMetrics metrics;
 			g.Renderer().GetGuiMetrics(metrics);
 
-			int64 delta = Rococo::OS::CpuTicks() % Rococo::OS::CpuHz();
-			float t = delta / (float) Rococo::OS::CpuHz();
+			int64 delta = Rococo::Time::TickCount() % Rococo::Time::TickHz();
+			float t = delta / (float) Rococo::Time::TickHz();
 			float s = sinf(2.0f * 3.14159f * t);
 			Degrees sr{ unsheatheAngle + 1.0f * s };
 

@@ -31,6 +31,8 @@
 	principal credit screen and its principal readme file.
 */
 
+#include <rococo.time.h>
+
 namespace Rococo { namespace Script
 {
 	class CScript;
@@ -1683,9 +1685,9 @@ namespace Rococo { namespace Script
 
 		if (startCount == 0)
 		{
-			registers[5].int64Value = startCount = Rococo::OS::CpuTicks();
+			registers[5].int64Value = startCount = Rococo::Time::TickCount();
 
-			int64 hz = Rococo::OS::CpuHz();
+			int64 hz = Rococo::Time::TickHz();
 
 			int64 cyclesPerMillisecond = hz >> 10;
 			int64 cyclesWait = (waitTime * cyclesPerMillisecond) >> 10;
@@ -1694,7 +1696,7 @@ namespace Rococo { namespace Script
 		}
 		else
 		{
-			auto now = Rococo::OS::CpuTicks();
+			auto now = Rococo::Time::TickCount();
 			if (now >= waitTime)
 			{
 				vm.NotifyWaitEvent(0);

@@ -7,6 +7,7 @@
 #include "sexy.native.sys.type.h"
 #include "rococo.os.win32.h"
 #include "rococo.os.h"
+#include "rococo.time.h"
 #include "sexy.compiler.h"
 
 #include <unordered_map>
@@ -211,7 +212,7 @@ struct Coroutines : public Sys::ICoroutineControl
 
 	int64 Continue() override
 	{
-		int64 now = Rococo::OS::CpuTicks();
+		int64 now = Rococo::Time::TickCount();
 
 		Wakeup(now);
 

@@ -4,6 +4,7 @@
 #define ROCOCO_USE_SAFE_V_FORMAT
 #include <rococo.hashtable.h>
 #include <rococo.ringbuffer.h>
+#include <rococo.time.h>
 #include <rococo.ui.h>
 
 using namespace Rococo;
@@ -299,16 +300,16 @@ public:
 		return true;
 	}
 
-	OS::ticks lastScrollCheck = 0;
+	Time::ticks lastScrollCheck = 0;
 	int logAlpha = 0;
 
 	void ScrollMessages(const GuiRect& logRect)
 	{
-		OS::ticks now = OS::CpuTicks();
-		OS::ticks dt = now - lastScrollCheck;
+		Time::ticks now = Time::TickCount();
+		Time::ticks dt = now - lastScrollCheck;
 
 		const int64 pixelsScrolledPerSecond = 60;
-		OS::ticks ticksPerScroll = OS::CpuHz() / pixelsScrolledPerSecond;
+		Time::ticks ticksPerScroll = Time::TickHz() / pixelsScrolledPerSecond;
 
 		if (dt > ticksPerScroll)
 		{

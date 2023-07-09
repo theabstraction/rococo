@@ -1,6 +1,6 @@
 (config $config.xc)
 
 (functions Sys.Time "mathsex.time"
-	(CpuHz    -> (Int64 hz): Rococo::OS::CpuHz)
-	(CpuTicks -> (Int64 ticks): Rococo::OS::CpuTicks)
+	(TickHz    -> (Int64 hz): Rococo::Time::TickHz)
+	(TickCount -> (Int64 ticks): Rococo::Time::TickCount)
 )

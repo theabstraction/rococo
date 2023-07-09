@@ -25,6 +25,7 @@
 #include <rococo.sexy.api.h>
 #include <rococo.package.h>
 #include <rococo.debugging.h>
+#include <rococo.time.h>
 
 #include <rococo.sexy.map.expert.h>
 
@@ -714,7 +715,7 @@ namespace Rococo
 		{
 			ISParserTree* tree;
 			ISourceCode* code;
-			OS::ticks loadTime;
+			Time::ticks loadTime;
 		};
 		stringmap<Binding> sources;
 		// TODO -> allocator using the SourceCache allocator
@@ -776,7 +777,7 @@ namespace Rococo
 				for (auto i : sources)
 				{
 					VisitorInfo info;
-					OS::FormatTime(i.second.loadTime, info.time, sizeof info.time);
+					Time::FormatTime(i.second.loadTime, info.time, sizeof info.time);
 					info.fileLength = i.second.code->SourceLength();
 					Format(info.pingPath, "%s", (cstr) i.first);
 					visitorData.push_back(info);
@@ -870,7 +871,7 @@ namespace Rococo
 			// We have cached the source, so that if tree generation creates an exception, the source codes is still existant
 
 			ISParserTree* tree = parser->CreateTree(*src);
-			sources[pingName] = Binding{ tree, src, OS::UTCTime() };
+			sources[pingName] = Binding{ tree, src, Time::UTCTime() };
 
 			return tree;
 		}
@@ -2152,7 +2153,7 @@ namespace Rococo
 		using namespace Rococo::Script;
 		using namespace Rococo::Compiler;
 
-		OS::ticks start = OS::CpuTicks();
+		Time::ticks start = Time::TickCount();
 		InitSexyScript(mainModule, debugger, ss, sources, onCompile, declarationBuilder);
 
 		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace("EntryPoint");
@@ -2175,13 +2176,13 @@ namespace Rococo
 
 		vm.Push(param);
 
-		stats.compileTime = OS::CpuTicks() - start;
+		stats.compileTime = Time::TickCount() - start;
 
-		start = OS::CpuTicks();
+		start = Time::TickCount();
 
 		Execute(vm, ss, debugger, trace);
 
-		stats.executeTime = OS::CpuTicks() - start;
+		stats.executeTime = Time::TickCount() - start;
 
 		int exitCode = vm.PopInt32();
 

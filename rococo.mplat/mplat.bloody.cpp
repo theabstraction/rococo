@@ -3,6 +3,7 @@
 #include <rococo.ui.h>
 #include <rococo.textures.h>
 #include <rococo.hashtable.h>
+#include <rococo.time.h>
 #include <string>
 #include <algorithm>
 
@@ -247,8 +248,8 @@ namespace
 
 				cb.cursorRect.right = cb.cursorRect.left + 8;
 
-				OS::ticks t = OS::CpuTicks();
-				OS::ticks hz = OS::CpuHz();
+				Time::ticks t = Time::TickCount();
+				Time::ticks hz = Time::TickHz();
 				uint8 alpha = ((512 * t) / hz) % 255;
 
 				if (platform.graphics.gui.IsOverwriting())

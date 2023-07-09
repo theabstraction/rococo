@@ -612,7 +612,7 @@ namespace
 			door->SetModel(model);
 		}
 
-		OS::ticks lastPlayerOccupiedTime = 0;
+		Time::ticks lastPlayerOccupiedTime = 0;
 
 		void UpdatePressurePad(ID_ENTITY idPressurePad, const IUltraClock& clock)
 		{

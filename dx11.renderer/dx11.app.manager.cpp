@@ -9,6 +9,7 @@
 #include <rococo.app.h>
 #include <rococo.clock.h>
 #include <rococo.os.h>
+#include <rococo.time.h>
 
 namespace ANON
 {
@@ -16,22 +17,22 @@ namespace ANON
 
 	struct UltraClock : public IUltraClock
 	{
-		OS::ticks start;
-		OS::ticks frameStart;
-		OS::ticks frameDelta;
+		Time::ticks start;
+		Time::ticks frameStart;
+		Time::ticks frameDelta;
 		Seconds dt;
 
-		virtual OS::ticks FrameStart() const
+		virtual Time::ticks FrameStart() const
 		{
 			return frameStart;
 		}
 
-		virtual OS::ticks Start() const
+		virtual Time::ticks Start() const
 		{
 			return start;
 		}
 
-		virtual OS::ticks FrameDelta() const
+		virtual Time::ticks FrameDelta() const
 		{
 			return frameDelta;
 		}
@@ -70,16 +71,16 @@ namespace ANON
 	void MainLoop(HWND hWnd, HANDLE hInstanceLock, IApp& app, OS::IAppControl& appControl)
 	{
 		UltraClock uc;
-		OS::ticks lastTick = uc.start;
-		OS::ticks frameCost = 0;
+		Time::ticks lastTick = uc.start;
+		Time::ticks frameCost = 0;
 
-		float hz = (float)OS::CpuHz();
+		float hz = (float)Time::TickHz();
 
 		uint32 sleepMS = 5;
 		MSG msg = { 0 };
 		while (msg.message != WM_QUIT && appControl.IsRunning())
 		{
-			int64 msCost = frameCost / (OS::CpuHz() / 1000);
+			int64 msCost = frameCost / (Time::TickHz() / 1000);
 
 			int64 iSleepMS = sleepMS - msCost;
 
@@ -97,7 +98,7 @@ namespace ANON
 				return;
 			}
 
-			OS::ticks now = OS::CpuTicks();
+			Time::ticks now = Time::TickCount();
 
 			RECT rect;
 			GetClientRect(hWnd, &rect);
@@ -108,7 +109,7 @@ namespace ANON
 				continue;
 			}
 
-			uc.frameStart = OS::CpuTicks();
+			uc.frameStart = Time::TickCount();
 
 			uc.frameDelta = uc.frameStart - lastTick;
 
@@ -119,7 +120,7 @@ namespace ANON
 
 			sleepMS = app.OnFrameUpdated(uc);
 
-			frameCost = OS::CpuTicks() - now;
+			frameCost = Time::TickCount() - now;
 
 			lastTick = uc.frameStart;
 		}

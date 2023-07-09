@@ -11,6 +11,7 @@
 #include <rococo.vkeys.h>
 #include <rococo.os.h>
 #include <rococo.hashtable.h>
+#include <rococo.time.h>
 
 using namespace Rococo;
 using namespace Rococo::Gui;
@@ -212,10 +213,10 @@ namespace ANON
 				glyphCallback.caretEnd = glyphCallback.caretStart + Vec2i{ metrics.imgWidth, 0 };
 			}
 
-			auto ticks = Rococo::OS::CpuTicks();
-			auto dticks = ticks % Rococo::OS::CpuHz();
+			auto ticks = Rococo::Time::TickCount();
+			auto dticks = ticks % Rococo::Time::TickHz();
 
-			float dt = dticks / (float)Rococo::OS::CpuHz();
+			float dt = dticks / (float)Rococo::Time::TickHz();
 
 			RGBAb blinkColour = colour;
 			if (dt > 0.5f)

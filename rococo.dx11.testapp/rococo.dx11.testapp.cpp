@@ -235,7 +235,7 @@ void Main(HINSTANCE hInstance)
 
 	gui->SetScene(&scene);
 
-	auto start = Rococo::OS::CpuTicks();
+	auto start = Rococo::Time::TickCount();
 
 	MSG msg;
 	while (app.isRunning)
@@ -265,10 +265,10 @@ void Main(HINSTANCE hInstance)
 			DispatchMessageA(&msg);
 		}
 
-		Rococo::OS::ticks now = Rococo::OS::CpuTicks();
+		Rococo::Time::ticks now = Rococo::Time::TickCount();
 
 		enum { TIME_OUT_SECONDS = 120 };
-		if (now - start > Rococo::OS::CpuHz() * TIME_OUT_SECONDS)
+		if (now - start > Rococo::Time::TickHz() * TIME_OUT_SECONDS)
 		{
 			break;
 		}

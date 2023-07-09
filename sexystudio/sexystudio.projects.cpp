@@ -285,7 +285,7 @@ namespace Rococo::SexyStudio
 		U8FilePath packageShortName;
 		if (!TryGetShortPackageName(packageShortName, packageFolder))
 		{
-			Format(packageShortName, "-unknown-%llu", Rococo::OS::CpuTicks());
+			Format(packageShortName, "-unknown-%llu", Rococo::Time::TickCount());
 		}
 
 		AutoFree<IPackageSupervisor> package = OpenZipPackage(widePath, packageShortName);

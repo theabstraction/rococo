@@ -9,6 +9,7 @@
 #include <rococo.maths.h>
 #include <rococo.io.h>
 #include <rococo.os.h>
+#include <rococo.time.h>
 
 #include <rococo.hashtable.h>
 
@@ -60,7 +61,7 @@ private:
 
 	IDX11WindowBacking* currentWindowBacking = nullptr;
 
-	OS::ticks lastTick;
+	Time::ticks lastTick;
 
 	RAWMOUSE lastMouseEvent;
 	Vec2i screenSpan;
@@ -162,7 +163,7 @@ public:
 		shaders(CreateShaderManager(installation, device, dc)),
 		pipeline(CreateDX11Pipeline(installation, *this, *this, *shaders, *textureManager, *meshes, *this, *this, device, dc))
 	{
-		lastTick = OS::CpuTicks();
+		lastTick = Time::TickCount();
 	}
 
 	~DX11AppRenderer()
@@ -262,7 +263,7 @@ public:
 		visitor.ShowDecimal("Number of textures", (int64)textureManager->Size());
 		meshes->ShowVenue(visitor);
 
-		double hz = (double)OS::CpuHz();
+		double hz = (double)Time::TickHz();
 
 		double ticks_to_ms = 1000.0 / hz;
 
@@ -433,22 +434,22 @@ public:
 			return;
 		}
 
-		auto now = OS::CpuTicks();
+		auto now = Time::TickCount();
 		AIcost = now - lastTick;
 
 		GuiMetrics metrics;
 		GetGuiMetrics(metrics);
 		pipeline->Render(metrics, envMap, scene);
 
-		now = OS::CpuTicks();
+		now = Time::TickCount();
 
 		currentWindowBacking->Present();
 
-		presentCost = OS::CpuTicks() - now;
+		presentCost = Time::TickCount() - now;
 
 		DetachContext();
 
-		now = OS::CpuTicks();
+		now = Time::TickCount();
 		frameTime = now - lastTick;
 		lastTick = now;
 	}

@@ -612,11 +612,11 @@ void TimeSTDUNMAP()
 	};
 
 	Random::RandomMT rng;
-	rng.Seed((uint32)OS::CpuTicks());
+	rng.Seed((uint32)Time::TickCount());
 
 	int count = 0;
 
-	auto start = OS::CpuTicks();
+	auto start = Time::TickCount();
 
 	for (int i = 0; i < NumberOfIterations; ++i)
 	{
@@ -629,11 +629,11 @@ void TimeSTDUNMAP()
 		}
 	}
 
-	auto end = OS::CpuTicks();
+	auto end = Time::TickCount();
 
 	auto dt = end - start;
 
-	double DT = dt / (double)OS::CpuHz();
+	double DT = dt / (double)Time::TickHz();
 
 	if (count == 0) return;
 
@@ -657,11 +657,11 @@ void TimeStringMap()
 	};
 
 	Random::RandomMT rng;
-	rng.Seed((uint32)OS::CpuTicks());
+	rng.Seed((uint32)Time::TickCount());
 
 	int count = 0;
 
-	auto start = OS::CpuTicks();
+	auto start = Time::TickCount();
 
 	for (int i = 0; i < 3'000'000; ++i)
 	{
@@ -674,11 +674,11 @@ void TimeStringMap()
 		}
 	}
 
-	auto end = OS::CpuTicks();
+	auto end = Time::TickCount();
 
 	auto dt = end - start;
 
-	double DT = dt / (double)OS::CpuHz();
+	double DT = dt / (double)Time::TickHz();
 
 	if (count == 0) return;
 
@@ -889,7 +889,7 @@ void TestOctree()
 	occ2.minSpan = 0.01_metres;
 	IOctreeSupervisor* octree2 = CreateLooseOctree(occ2);
 
-	auto start = OS::CpuTicks();
+	auto start = Time::TickCount();
 	for (int i = 0; i < 100'000; ++i)
 	{
 		OctreeObject object;
@@ -899,22 +899,22 @@ void TestOctree()
 		object.span = Rococo::Random::NextFloat(rng, 0.01f, 10.0f);
 		octree2->Insert(object);
 	}
-	auto dt = OS::CpuTicks() - start;
+	auto dt = Time::TickCount() - start;
 
 	size_t pocketBytes, nodeBytes;
 	octree2->GetApproxMemoryUse(pocketBytes, nodeBytes);
 
 	printf("100,000 item memory cost: %llu\n", pocketBytes + nodeBytes);
 
-	printf("100,000 item insertion time into Octree: %f seconds\n", dt / (double)OS::CpuHz());
+	printf("100,000 item insertion time into Octree: %f seconds\n", dt / (double)Time::TickHz());
 
-	start = OS::CpuTicks();
+	start = Time::TickCount();
 	octree2->Clear();
-	dt = OS::CpuTicks() - start;
+	dt = Time::TickCount() - start;
 
-	printf("100,000 item clear time from Octree: %f seconds\n", dt / (double)OS::CpuHz());
+	printf("100,000 item clear time from Octree: %f seconds\n", dt / (double)Time::TickHz());
 
-	start = OS::CpuTicks();
+	start = Time::TickCount();
 	for (int i = 0; i < 100'000; ++i)
 	{
 		OctreeObject object;
@@ -924,26 +924,26 @@ void TestOctree()
 		object.span = Rococo::Random::NextFloat(rng, 0.01f, 10.0f);
 		octree2->Insert(object);
 	}
-	dt = OS::CpuTicks() - start;
+	dt = Time::TickCount() - start;
 
-	printf("100,000 item second insertion time into Octree: %f seconds\n", dt / (double)OS::CpuHz());
+	printf("100,000 item second insertion time into Octree: %f seconds\n", dt / (double)Time::TickHz());
 
 	octree2->GetApproxMemoryUse(pocketBytes, nodeBytes);
 
 	printf("100,000 item memory cost: %llu\n", pocketBytes + nodeBytes);
 
-	start = OS::CpuTicks();
+	start = Time::TickCount();
 	octree2->Clear();
-	dt = OS::CpuTicks() - start;
+	dt = Time::TickCount() - start;
 
-	printf("100,000 item second clear time from Octree: %f seconds\n", dt / (double)OS::CpuHz());
+	printf("100,000 item second clear time from Octree: %f seconds\n", dt / (double)Time::TickHz());
 
-	start = OS::CpuTicks();
+	start = Time::TickCount();
 	octree2->Free();
 
-	dt = OS::CpuTicks() - start;
+	dt = Time::TickCount() - start;
 
-	printf("100,000 item deletion time from Octree: %f seconds\n", dt / (double)OS::CpuHz());
+	printf("100,000 item deletion time from Octree: %f seconds\n", dt / (double)Time::TickHz());
 }
 
 #include <rococo.sxytype-inference.h>

@@ -4,6 +4,7 @@
 #include <rococo.maths.h>
 #include <new>
 #include <rococo.random.h>
+#include <rococo.time.h>
 
 namespace
 {
@@ -16,7 +17,7 @@ namespace Rococo::Random
 	RandomMT::RandomMT(uint32 seed)
 	{
 		static_assert(sizeof(RandomMT::OpaqueBlock) > sizeof(TRandomizer), "Insufficient data in opaque buffer");
-		TRandomizer* rng = new (block.opaque) TRandomizer(seed == 0 ? (uint32) OS::CpuTicks() : seed);
+		TRandomizer* rng = new (block.opaque) TRandomizer(seed == 0 ? (uint32) Time::TickCount() : seed);
 		auto dummy = (*rng)();
 	}
 
@@ -52,7 +53,7 @@ namespace Rococo::Random
 	{
 		if (value == 0)
 		{
-			value = (uint32)OS::CpuTicks();
+			value = (uint32)Time::TickCount();
 		}
 		rng.Seed(value);
 	}
@@ -84,7 +85,7 @@ namespace Rococo::Random
 	Shuffler::Shuffler(uint32 seed) :
 		impl(new ShufflerImpl())
 	{
-		if (seed == 0) seed = 0xFFFFFFFFL & OS::CpuTicks();
+		if (seed == 0) seed = 0xFFFFFFFFL & Time::TickCount();
 	}
 
 	Shuffler::~Shuffler()

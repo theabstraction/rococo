@@ -2,6 +2,7 @@
 #include <rococo.os.h>
 #include <rococo.strings.h>
 #include <rococo.xaudio2.h>
+#include <rococo.time.h>
 
 #include <vector>
 
@@ -81,7 +82,7 @@ namespace AudioAnon
 
 		void QueueSample(const uint8* buffer, uint32 nBytesInBuffer, uint32 beginAt, uint32 nSamplesToPlay) override
 		{
-			OS::ticks start = OS::CpuTicks();
+			Time::ticks start = Time::TickCount();
 
 			XAUDIO2_BUFFER x2buffer = { 0 };
 			x2buffer.AudioBytes = nBytesInBuffer;

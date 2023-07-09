@@ -170,7 +170,7 @@ void Main(HINSTANCE hInstance)
 	fonts->MakeBold();
 	fonts->Commit();
 
-	Rococo::OS::ticks start = Rococo::OS::CpuTicks();
+	Rococo::Time::ticks start = Rococo::Time::TickCount();
 
 	struct CLOSURE : IShaderViewGrabber
 	{
@@ -206,10 +206,10 @@ void Main(HINSTANCE hInstance)
 			DispatchMessageA(&msg);
 		}
 
-		Rococo::OS::ticks now = Rococo::OS::CpuTicks();
+		Rococo::Time::ticks now = Rococo::Time::TickCount();
 
 		enum { TIME_OUT_SECONDS = 120 };
-		if (now - start > Rococo::OS::CpuHz() * TIME_OUT_SECONDS)
+		if (now - start > Rococo::Time::TickHz() * TIME_OUT_SECONDS)
 		{
 			break;
 		}

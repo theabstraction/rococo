@@ -11,6 +11,7 @@
 
 #include <rococo.release.h>
 #include <rococo.strings.h>
+#include <rococo.time.h>
 
 #include <vector>
 
@@ -437,10 +438,10 @@ namespace AudioAnon
 		{
 			try
 			{
-				OS::ticks start = OS::CpuTicks();
+				Time::ticks start = Time::TickCount();
 				StreamInputFileProtected(utf8Path);
-				OS::ticks duration = OS::CpuTicks() - start;
-				double dt = duration / (double)OS::CpuHz();
+				Time::ticks duration = Time::TickCount() - start;
+				double dt = duration / (double)Time::TickHz();
 				lastLoadCostMS =  1000.0 * dt;
 			}
 			catch (IException& ex)

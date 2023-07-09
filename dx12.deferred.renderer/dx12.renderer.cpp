@@ -524,7 +524,7 @@ namespace ANON
 			visitor.ShowString("Screen Span", "%d x %d pixels", screenSpan.x, screenSpan.y);
 			visitor.ShowString("Last error", "%s", *lastError ? lastError : "- none -");
 
-			double hz = (double)OS::CpuHz();
+			double hz = (double)Time::TickHz();
 
 			double ticks_to_ms = 1000.0 / hz;
 

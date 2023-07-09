@@ -78,9 +78,9 @@ namespace Rococo
 
 	struct ScriptPerformanceStats
 	{
-		OS::ticks loadTime;
-		OS::ticks compileTime;
-		OS::ticks executeTime;
+		Time::ticks loadTime;
+		Time::ticks compileTime;
+		Time::ticks executeTime;
 	};
 
 	SCRIPTEXPORT_API void InitSexyScript(Rococo::Sex::ISParserTree& mainModule, IDebuggerWindow& debugger, Rococo::Script::IPublicScriptSystem& ss, ISourceCache& sources, IEventCallback<ScriptCompileArgs>& onCompile, Strings::StringBuilder* declarationBuilder);

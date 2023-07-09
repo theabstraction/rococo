@@ -14,6 +14,7 @@
 
 #include <rococo.debugging.h>
 #include <rococo.maths.i32.h>
+#include <rococo.time.h>
 
 using namespace Rococo;
 using namespace Rococo::Windows;
@@ -306,9 +307,9 @@ namespace Rococo
 
 					try
 					{
-						OS::ticks start = OS::CpuTicks();
+						Time::ticks start = Time::TickCount();
 						ISParserTree* tree = sources.GetSource(resourcePath);
-						stats.loadTime = OS::CpuTicks() - start;
+						stats.loadTime = Time::TickCount() - start;
 						int32 exitCode = ExecuteSexyScript(stats, *tree, debugger, ss, sources, param, onCompile, trace, declarationBuilder);
 						return exitCode;
 					}

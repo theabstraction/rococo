@@ -23,7 +23,7 @@ namespace
 		Win32PopupWindow window;
 		std::vector<char> buffer;
 
-		OS::ticks lastHoverTime = 0;
+		Time::ticks lastHoverTime = 0;
 
 		COLORREF bkColour = { 0 };
 		COLORREF txColour = { 0 };

@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
 	char deletepath[256] = { 0 };
 	SafeFormat(deletepath, 256, "%s:\\", argv[1]);
 
-	int64 ticks = Rococo::OS::CpuTicks();
+	int64 ticks = Rococo::Time::TickCount();
 	srand((int32) ticks);
 
 	int len = 3 + rand() % 4;

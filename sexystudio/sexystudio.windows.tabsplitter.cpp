@@ -123,7 +123,7 @@ namespace
 
 		int tabFocus = 0;
 		int lastHoverIndex = -1;
-		OS::ticks firstHoverTime = 0;
+		Time::ticks firstHoverTime = 0;
 
 		TabHeader(IWindow& parent, HFONT _hTabFont, COLORREF _tabBkColour, IPublisher& _publisher, Theme& _theme, COLORREF _tabPen, std::vector<TabData>& _tabs):
 			window(parent, *this), hTabFont(_hTabFont), tabBkColor(_tabBkColour), publisher(_publisher), theme(_theme), tabPen(_tabPen), tabs(_tabs)
@@ -349,7 +349,7 @@ namespace
 				if (lastHoverIndex != index)
 				{
 					lastHoverIndex = index;
-					firstHoverTime = Rococo::OS::CpuTicks();
+					firstHoverTime = Rococo::Time::TickCount();
 
 					TooltipArgs arg;
 					arg.text = tabs[index].tab->Tooltip();

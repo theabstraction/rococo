@@ -4,7 +4,7 @@ namespace
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		int64 hz = Rococo::OS::CpuHz();
+		int64 hz = Rococo::Time::TickHz();
 		_offset += sizeof(hz);
 		WriteOutput(hz, _sf, -_offset);
 	}
@@ -13,7 +13,7 @@ namespace
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		int64 ticks = Rococo::OS::CpuTicks();
+		int64 ticks = Rococo::Time::TickCount();
 		_offset += sizeof(ticks);
 		WriteOutput(ticks, _sf, -_offset);
 	}

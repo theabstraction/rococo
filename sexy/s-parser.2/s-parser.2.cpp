@@ -1,6 +1,7 @@
 #include <rococo.api.h>
 #include <rococo.os.h>
 #include <rococo.strings.h>
+#include <rococo.time.h>
 
 #define _CRT_SECURE_NO_WARNINGS
 
@@ -70,14 +71,14 @@ void TestGenerated()
 	Assign(u16filename, filename);
 	auto* s = sparser->LoadSource(u16filename, { 1,1 });
 
-	auto start = Rococo::OS::CpuTicks();
+	auto start = Rococo::Time::TickCount();
 
 	auto* tree = sparser->CreateTree(*s);
 
 	tree->Release();
 
-	auto now = Rococo::OS::CpuTicks();
-	double dt = (now - start) / (double)Rococo::OS::CpuHz();
+	auto now = Rococo::Time::TickCount();
+	double dt = (now - start) / (double)Rococo::Time::TickHz();
 	printf("SBlockAllocator performance:\n");
 	printf("Cpu cost of processing %llu kb: %.3f seconds\n", len / 1024, dt);
 	printf("Through put: %.0f MB/s\n\n", len / (1048576.0 * dt));

@@ -63,7 +63,7 @@ namespace ANON
 		classDef.hIconSm = LoadIconA(hResourceInstance, (const char*)IDI_ICON1);
 		classDef.hInstance = hResourceInstance;
 
-		SafeFormat(atomName, "Rococo-DX11-deferred-%llx", Rococo::OS::CpuTicks());
+		SafeFormat(atomName, "Rococo-DX11-deferred-%llx", Rococo::Time::TickCount());
 		classDef.lpszClassName = atomName;
 		classDef.lpszMenuName = NULL;
 		classDef.lpfnWndProc = DefWindowProcA;

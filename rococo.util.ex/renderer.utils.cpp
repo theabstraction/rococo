@@ -8,6 +8,7 @@
 #include <new>
 
 #include <rococo.maths.h>
+#include <rococo.time.h>
 
 #ifndef ROCOCO_UTILS_EX_API
 #error "ROCOCO_UTILS_EX_API undefined";
@@ -529,8 +530,8 @@ namespace Rococo
 		{
 			GuiRect iRect{ (int32)rect.left, (int32)rect.top, (int32)rect.right, (int32)rect.bottom };
 
-			auto t = OS::CpuTicks();
-			auto quarterSecond = OS::CpuHz() >> 2;
+			auto t = Time::TickCount();
+			auto quarterSecond = Time::TickHz() >> 2;
 
 			auto counter = t / quarterSecond;
 
@@ -1146,8 +1147,8 @@ namespace Rococo
 		{
 			if (text == nullptr || *text == 0) return { 0,0 };
 
-			auto t = OS::CpuTicks();
-			auto quarterSecond = OS::CpuHz() >> 2;
+			auto t = Time::TickCount();
+			auto quarterSecond = Time::TickHz() >> 2;
 
 			auto counter = t / quarterSecond;
 

@@ -354,9 +354,9 @@
 (method GameBundle.Run -> :
 	(Int64 frameIndex = 0)
 	(Int64 frameTime = 0)
-	(Int64 frameStart = Sys.OS.ClockTicks)
-	(Int64 cpuHz = Sys.OS.ClockHz)
-	(Int64 maxDt = (cpuHz / 10))
+	(Int64 frameStart = Sys.Time.TickCount)
+	(Int64 tickHz = Sys.Time.TickHz)
+	(Int64 maxDt = (tickHz / 10))
 	
 	(while this.engine.IsRunning
 		(Int64 frameEnd = Sys.OS.ClockTicks)

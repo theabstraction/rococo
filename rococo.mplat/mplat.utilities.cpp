@@ -12,6 +12,7 @@
 
 #include <rococo.file.browser.h>
 #include <rococo.sexy.api.h>
+#include <rococo.time.h>
 
 #include <algorithm>
 #include <string>
@@ -270,9 +271,9 @@ public:
 
 	struct PerformanceStats
 	{
-		OS::ticks totalLoadCost = 0;
-		OS::ticks totalCompileCost = 0;
-		OS::ticks totalExecuteCost = 0;
+		Time::ticks totalLoadCost = 0;
+		Time::ticks totalCompileCost = 0;
+		Time::ticks totalExecuteCost = 0;
 		int64 moduleCallCount = 0;
 	};
 
@@ -309,7 +310,7 @@ public:
 
 		for (auto i : nameAndStats)
 		{
-			float cyclesPerMs = OS::CpuHz() / 1000.0f;
+			float cyclesPerMs = Time::TickHz() / 1000.0f;
 			float loadCost = i.stats.totalLoadCost / cyclesPerMs;
 			float compileCost = i.stats.totalCompileCost / cyclesPerMs;
 			float executeCost = i.stats.totalExecuteCost / cyclesPerMs;

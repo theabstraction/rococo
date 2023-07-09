@@ -309,7 +309,7 @@ void NativeSysOSClockHz(NativeCallEnvironment& _nce)
 	Rococo::uint8* _sf = _nce.cpu.SF();
 	ptrdiff_t _offset = 2 * sizeof(size_t);
 
-	int64 value = Rococo::OS::CpuHz();
+	int64 value = Rococo::Time::TickHz();
 	_offset += sizeof(value);
 	WriteOutput(value, _sf, -_offset);
 }
@@ -319,7 +319,7 @@ void NativeSysOSClockTicks(NativeCallEnvironment& _nce)
 	Rococo::uint8* _sf = _nce.cpu.SF();
 	ptrdiff_t _offset = 2 * sizeof(size_t);
 
-	int64 value = Rococo::OS::CpuTicks();
+	int64 value = Rococo::Time::TickCount();
 	_offset += sizeof(value);
 	WriteOutput(value, _sf, -_offset);
 }

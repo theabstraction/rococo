@@ -2,6 +2,7 @@
 #include <rococo.os.win32.h>
 #include <rococo.window.h>
 #include <rococo.os.h>
+#include <rococo.time.h>
 
 #include <Processthreadsapi.h>
 #include <psapi.h>
@@ -84,9 +85,9 @@ struct OSVenue : public IMathsVenue
 		GetSystemTime(&sysTime);
 
 		visitor.ShowString("Time", "%.2d/%.2d/%.4d %.2d:%.2d:%.2d", sysTime.wDay, sysTime.wMonth, sysTime.wYear, sysTime.wHour, sysTime.wMinute, sysTime.wSecond);
-		visitor.ShowDecimal("CPU Time", OS::CpuTicks());
-		visitor.ShowDecimal("CPU Hz", OS::CpuHz());
-		visitor.ShowDecimal("UTC Ticks", OS::UTCTime());
+		visitor.ShowDecimal("CPU Time", Time::TickCount());
+		visitor.ShowDecimal("CPU Hz", Time::TickHz());
+		visitor.ShowDecimal("UTC Ticks", Time::UTCTime());
 
 		MEMORYSTATUSEX statex = { 0 };
 		statex.dwLength = sizeof(statex);

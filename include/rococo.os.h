@@ -103,8 +103,6 @@ namespace Rococo::OS
 
 	ROCOCO_API void EnsureUserDocumentFolderExists(const wchar_t* subdirectory);
 	ROCOCO_API void SaveAsciiTextFile(TargetDirectory target, const wchar_t* filename, const fstring& text);
-
-	ROCOCO_API void FormatTime(ticks utcTime, char* buffer, size_t nBytes);
 	ROCOCO_API bool StripLastSubpath(wchar_t* fullpath);
 	ROCOCO_API bool IsFileExistant(const wchar_t* path);
 	ROCOCO_API void Format_C_Error(int errorCode, char* buffer, size_t capacity);
@@ -154,9 +152,6 @@ namespace Rococo::OS
 	ROCOCO_API [[nodiscard]] bool IsDebugging();
 	ROCOCO_API void BreakOnThrow(BreakFlag flag);
 	ROCOCO_API void SetBreakPoints(int flags);
-	ROCOCO_API [[nodiscard]] ticks CpuTicks();
-	ROCOCO_API [[nodiscard]] ticks CpuHz();
-	ROCOCO_API [[nodiscard]] ticks UTCTime();
 	ROCOCO_API void FormatErrorMessage(char* message, size_t sizeofBuffer, int errorCode);
 	ROCOCO_API void BuildExceptionString(char* buffer, size_t capacity, IException& ex, bool appendStack);
 	ROCOCO_API cstr GetCommandLineText();

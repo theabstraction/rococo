@@ -1,6 +1,7 @@
 #include "dx11.renderer.h"
 #include "dx11helpers.inl"
 #include <rococo.os.h>
+#include <rococo.time.h>
 
 namespace Rococo
 {
@@ -101,12 +102,12 @@ namespace Rococo
 
 		  drd.worldToScreen = cameraToScreen * drd.worldToCamera;
 
-		  OS::ticks t = OS::CpuTicks();
-		  OS::ticks ticksPerSecond = OS::CpuHz();
+		  Time::ticks t = Time::TickCount();
+		  Time::ticks ticksPerSecond = Time::TickHz();
 
-		  OS::ticks oneMinute = ticksPerSecond * 60;
+		  Time::ticks oneMinute = ticksPerSecond * 60;
 
-		  OS::ticks secondOfMinute = t % oneMinute;
+		  Time::ticks secondOfMinute = t % oneMinute;
 
 		  drd.time = Seconds{ (secondOfMinute / (float)ticksPerSecond) * 0.9999f };
 

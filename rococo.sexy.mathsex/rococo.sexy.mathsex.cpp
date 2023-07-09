@@ -11,6 +11,7 @@
 
 #include <rococo.api.h>
 #include <rococo.os.h>
+#include <rococo.time.h>
 
 #include <random>
 #include <vector>
@@ -28,7 +29,7 @@ namespace Rococo
       {
          if (value == 0)
          {
-            value = OS::CpuTicks();
+            value = Time::TickCount();
          }
 
          uint32 a = (uint32)(0x00000000FFFFFFFF & value);

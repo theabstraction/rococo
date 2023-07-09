@@ -951,14 +951,14 @@ namespace
 		a.Append_BranchIf(CONDITION_IF_NOT_EQUAL, subtractPos - branchPos);
 		a.Append_Exit(REGISTER_D4);
 
-		int64 startTime = OS::CpuTicks();
+		int64 startTime = Time::TickCount();
 		RunProtected(a,vm,pm);
-		int64 endTime = OS::CpuTicks();
+		int64 endTime = Time::TickCount();
 
 		int64 dt = endTime - startTime;
 
 		double DT = (double) dt;
-		double DTHZ = (double) OS::CpuHz();
+		double DTHZ = (double) Time::TickHz();
 		double timespan = DT / DTHZ;
 
 		double ips = factor * 3.0 * 1000 * 1000.0 / timespan;

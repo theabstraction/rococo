@@ -2,6 +2,7 @@
 #include <rococo.strings.h>
 #include <rococo.maths.h>
 #include <rococo.os.h>
+#include <rococo.time.h>
 #include <array>
 #include <atomic>
 #include <vector>
@@ -42,7 +43,7 @@ namespace Rococo::Audio
 		bool isSampleQueued = false;
 		std::atomic<bool> waitingForLoad = false;
 		Seconds delayRemaining = 0.0_seconds;
-		OS::ticks assignmentStart = 0;
+		Time::ticks assignmentStart = 0;
 
 		InstrumentDescriptor() : playCount(0), stopCount(0)
 		{
@@ -74,7 +75,7 @@ namespace Rococo::Audio
 			this->playCount = 0;
 			this->stopCount = 0;
 			this->waitingForLoad = !sample->IsLoaded();
-			this->assignmentStart = OS::CpuTicks();
+			this->assignmentStart = Time::TickCount();
 
 			if (!this->waitingForLoad)
 			{

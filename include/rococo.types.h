@@ -711,6 +711,11 @@ namespace Rococo
 			BreakFlag_All = 0x7FFFFFFF
 		};
 
+		
+	}
+
+	namespace Time
+	{
 		typedef int64 ticks;
 	}
 

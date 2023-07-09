@@ -39,6 +39,7 @@
 
 #include <rococo.task.queue.h>
 #include <list>
+#include <rococo.time.h>
 
 using namespace Rococo::Strings;
 
@@ -811,10 +812,10 @@ namespace Rococo::OS
 	{
 		MSG msg;
 
-		ticks count = OS::CpuTicks();
-		ticks target = count + (OS::CpuHz() * milliseconds / 1000);
+		Time::ticks count = Time::TickCount();
+		Time::ticks target = count + (Time::TickHz() * milliseconds / 1000);
 
-		while (target < OS::CpuTicks())
+		while (target < Time::TickCount())
 		{
 			MsgWaitForMultipleObjects(0, nullptr, FALSE, 25, QS_ALLINPUT);
 
@@ -842,40 +843,6 @@ namespace Rococo::OS
 	ROCOCO_API int OpenForRead(void** fp, cstr name)
 	{
 		return fopen_s((FILE**)fp, name, "rb");
-	}
-
-	ROCOCO_API ticks CpuTicks()
-	{
-		LARGE_INTEGER ticks;
-		QueryPerformanceCounter(&ticks);
-		return ticks.QuadPart;
-	}
-
-	ROCOCO_API ticks CpuHz()
-	{
-		LARGE_INTEGER hz;
-		QueryPerformanceFrequency(&hz);
-		return hz.QuadPart;
-	}
-
-	ROCOCO_API ticks UTCTime()
-	{
-		FILETIME ft;
-		GetSystemTimeAsFileTime(&ft);
-		return *(ticks*)&ft;
-	}
-
-	ROCOCO_API void FormatTime(ticks utcTime, char* buffer, size_t nBytes)
-	{
-		SYSTEMTIME st;
-		char localDate[255], localTime[255];
-
-		FileTimeToLocalFileTime((FILETIME*)&utcTime, (FILETIME*)&utcTime);
-		FileTimeToSystemTime((FILETIME*)&utcTime, &st);
-
-		GetDateFormatA(LOCALE_USER_DEFAULT, DATE_SHORTDATE, &st, NULL, localDate, 255);
-		GetTimeFormatA(LOCALE_USER_DEFAULT, 0, &st, NULL, localTime, 255);
-		SafeFormat(buffer, nBytes, "%s %s", localTime, localDate);
 	}
 
 	ROCOCO_API void TripDebugger()
@@ -1430,7 +1397,7 @@ namespace
 
 		IEventCallback<SysUnstableArgs>* onUnstable;
 
-		std::unordered_map<std::wstring, Rococo::OS::ticks> lastModifiedList;
+		std::unordered_map<std::wstring, Rococo::Time::ticks> lastModifiedList;
 
 	public:
 		Win32OS() :
@@ -1480,19 +1447,19 @@ namespace
 				if (i != lastModifiedList.end())
 				{
 					int64 timeoutInSeconds = 5;
-					auto timeout = Rococo::OS::CpuHz() * timeoutInSeconds;
-					auto dt = Rococo::OS::CpuTicks() - i->second;
+					auto timeout = Rococo::Time::TickHz() * timeoutInSeconds;
+					auto dt = Rococo::Time::TickCount() - i->second;
 					if (dt < timeout)
 					{
 						// We've reported a change recently, so skip 
 						continue;
 					}
 
-					i->second = Rococo::OS::CpuTicks();
+					i->second = Rococo::Time::TickCount();
 				}
 				else
 				{
-					lastModifiedList[f] = Rococo::OS::CpuTicks();
+					lastModifiedList[f] = Rococo::Time::TickCount();
 				}
 
 				cb.OnEvent(FileModifiedArgs{ f.c_str() });
@@ -3065,3 +3032,40 @@ namespace Rococo::Strings::CLI
 		}
 	}
 }
+
+namespace Rococo::Time
+{
+	ROCOCO_API ticks TickCount()
+	{
+		LARGE_INTEGER ticks;
+		QueryPerformanceCounter(&ticks);
+		return ticks.QuadPart;
+	}
+
+	ROCOCO_API ticks TickHz()
+	{
+		LARGE_INTEGER hz;
+		QueryPerformanceFrequency(&hz);
+		return hz.QuadPart;
+	}
+
+	ROCOCO_API ticks UTCTime()
+	{
+		FILETIME ft;
+		GetSystemTimeAsFileTime(&ft);
+		return *(ticks*)&ft;
+	}
+
+	ROCOCO_API void FormatTime(ticks utcTime, char* buffer, size_t nBytes)
+	{
+		SYSTEMTIME st;
+		char localDate[255], localTime[255];
+
+		FileTimeToLocalFileTime((FILETIME*)&utcTime, (FILETIME*)&utcTime);
+		FileTimeToSystemTime((FILETIME*)&utcTime, &st);
+
+		GetDateFormatA(LOCALE_USER_DEFAULT, DATE_SHORTDATE, &st, NULL, localDate, 255);
+		GetTimeFormatA(LOCALE_USER_DEFAULT, 0, &st, NULL, localTime, 255);
+		SafeFormat(buffer, nBytes, "%s %s", localTime, localDate);
+	}
+} // Rococo::Time

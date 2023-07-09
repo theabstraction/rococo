@@ -17,6 +17,7 @@
 #include "..\rococo.mplat\mplat.editor.h"
 
 #include <rococo.task.queue.h>
+#include <rococo.time.h>
 
 using namespace Rococo;
 using namespace Rococo::Strings;
@@ -454,14 +455,14 @@ namespace MHost
 			}
 		}
 
-		Rococo::OS::ticks lastTick = 0;
+		Rococo::Time::ticks lastTick = 0;
 
 		Seconds YieldForSystemMessages(int32 sleepMS) override
 		{
-			auto now = Rococo::OS::CpuTicks();
+			auto now = Rococo::Time::TickCount();
 			auto DT = now - lastTick;
 
-			float dt = (float)DT / (float)Rococo::OS::CpuHz();
+			float dt = (float)DT / (float)Rococo::Time::TickHz();
 
 			dt = clamp(dt, 0.0f, 0.1f);
 

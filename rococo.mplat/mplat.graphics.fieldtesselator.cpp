@@ -1,4 +1,5 @@
 #include <rococo.mplat.h>
+#include <rococo.time.h>
 
 #include <vector>
 #include <random>
@@ -83,7 +84,7 @@ namespace
 			if (!isInit)
 			{
 				isInit = true;
-				rng.seed((uint32)OS::UTCTime());
+				rng.seed((uint32)Time::UTCTime());
 			}
 		}
 

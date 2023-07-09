@@ -5,6 +5,7 @@
 #include <rococo.maths.h>
 #include <rococo.io.h>
 #include <rococo.os.h>
+#include <rococo.time.h>
 
 using namespace Rococo;
 using namespace Rococo::Browser;
@@ -366,17 +367,17 @@ struct FileBrowser : public IFileBrowser
 
 	U32FilePath selectedFile;
 
-	OS::ticks lastClick;
+	Time::ticks lastClick;
 
 	void OnFileClicked(const FileDesc& fd)
 	{
-		OS::ticks now = OS::CpuTicks();
+		Time::ticks now = Time::TickCount();
 
 		bool doubleClick = false;
 
 		if (Eq(fd.filename, selectedFile))
 		{
-			OS::ticks oneQuarterSecond = OS::CpuHz() >> 2;
+			Time::ticks oneQuarterSecond = Time::TickHz() >> 2;
 			if (now - lastClick < oneQuarterSecond)
 			{
 				doubleClick = true;

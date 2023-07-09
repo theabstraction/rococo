@@ -13,6 +13,8 @@
 #include <rococo.audio.h>
 #include <objbase.h>
 
+#include <rococo.time.h>
+
 #ifdef _DEBUG
 #pragma comment(lib, "rococo.windows.debug.lib")
 #pragma comment(lib, "rococo.util.debug.lib")
@@ -232,7 +234,7 @@ namespace
 			PostQuitMessage(0);
 		}
 
-		void OnTick(OS::ticks start, OS::ticks frameStart, OS::ticks dt, OS::ticks tickHz)
+		void OnTick(Time::ticks start, Time::ticks frameStart, Time::ticks dt, Time::ticks tickHz)
 		{
 
 		}
@@ -274,9 +276,9 @@ int CALLBACK WinMain(HINSTANCE _hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 
 		bool isRunning = true;
 
-		OS::ticks frameStart = OS::CpuTicks();
-		OS::ticks start = frameStart;
-		OS::ticks period = OS::CpuHz() / 10;
+		Time::ticks frameStart = Time::TickCount();
+		Time::ticks start = frameStart;
+		Time::ticks period = Time::TickHz() / 10;
 
 		while (isRunning)
 		{
@@ -291,8 +293,8 @@ int CALLBACK WinMain(HINSTANCE _hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 					break;
 				}
 
-				mainWindowHandler->OnTick(start, frameStart, OS::CpuTicks() - frameStart, OS::CpuHz());
-				frameStart = OS::CpuTicks();
+				mainWindowHandler->OnTick(start, frameStart, Time::TickCount() - frameStart, Time::TickHz());
+				frameStart = Time::TickCount();
 
 				TranslateMessage(&msg);
 				DispatchMessage(&msg);

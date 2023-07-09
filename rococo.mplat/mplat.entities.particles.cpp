@@ -1,5 +1,6 @@
 #include <rococo.mplat.h>
 #include <rococo.maths.h>
+#include <rococo.time.h>
 #include <unordered_map>
 #include <random>
 
@@ -105,7 +106,7 @@ namespace ANON
 	{
 		if (value == 0)
 		{
-			value = OS::CpuTicks();
+			value = Time::TickCount();
 		}
 
 		uint32 a = (uint32)(0x00000000FFFFFFFF & value);
@@ -136,7 +137,7 @@ namespace ANON
 	struct Dust : public ICloud
 	{
 		Vec3 origin = { 0,0,0 };
-		OS::ticks lastTick = 0;
+		Time::ticks lastTick = 0;
 		RGBAb colour;
 		float velCountdown = 0;
 		Metres meanParticleSize;
@@ -238,13 +239,13 @@ namespace ANON
 		{
 			this->origin = origin;
 
-			OS::ticks now = OS::CpuTicks();
+			Time::ticks now = Time::TickCount();
 
 			auto delta = now - lastTick;
 
-			OS::ticks hz = OS::CpuHz();
+			Time::ticks hz = Time::TickHz();
 
-			OS::ticks tenMs = hz / 100;
+			Time::ticks tenMs = hz / 100;
 
 			if (delta > tenMs)
 			{
@@ -274,7 +275,7 @@ namespace ANON
 			ANON::SetSpectrum(this->spectra, spectra);
 		}
 
-		OS::ticks lastTick = 0;
+		Time::ticks lastTick = 0;
 
 		struct Fireball
 		{
@@ -408,13 +409,13 @@ namespace ANON
 		{
 			this->origin = origin;
 
-			OS::ticks now = OS::CpuTicks();
+			Time::ticks now = Time::TickCount();
 
 			auto delta = now - lastTick;
 
-			OS::ticks hz = OS::CpuHz();
+			Time::ticks hz = Time::TickHz();
 
-			OS::ticks tenMs = hz / 100;
+			Time::ticks tenMs = hz / 100;
 
 			if (delta > tenMs)
 			{

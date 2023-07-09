@@ -3,6 +3,7 @@
 #include "dx11helpers.inl"
 #include "dx11buffers.inl"
 #include <rococo.os.h>
+#include <rococo.time.h>
 #include <vector>
 #include <random>
 
@@ -699,11 +700,11 @@ struct DX11Pipeline: IDX11Pipeline, IGui3D, IParticles
 		}
 	}
 
-	OS::ticks objCost = 0;
+	Time::ticks objCost = 0;
 
 	void Render3DObjects(IScene& scene)
 	{
-		auto now = OS::CpuTicks();
+		auto now = Time::TickCount();
 
 		dc.RSSetState(objectRasterizering);
 		dc.OMSetDepthStencilState(objDepthState, 0);
@@ -729,7 +730,7 @@ struct DX11Pipeline: IDX11Pipeline, IGui3D, IParticles
 			RenderAmbient(shaders, rc, scene, lights[0]);
 		}
 
-		objCost = OS::CpuTicks() - now;
+		objCost = Time::TickCount() - now;
 	}
 
 	ID_TEXTURE lastTextureId;
@@ -838,7 +839,7 @@ struct DX11Pipeline: IDX11Pipeline, IGui3D, IParticles
 
 		if (IsGuiReady())
 		{
-			OS::ticks now = OS::CpuTicks();
+			Time::ticks now = Time::TickCount();
 
 			gui->RenderGui(scene, metrics, IsGuiReady());
 
@@ -851,7 +852,7 @@ struct DX11Pipeline: IDX11Pipeline, IGui3D, IParticles
 				gui->FlushLayer();
 			}
 
-			guiCost = OS::CpuTicks() - now;
+			guiCost = Time::TickCount() - now;
 		}
 	}
 

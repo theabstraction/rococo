@@ -71,6 +71,7 @@
 #include <rococo.package.h>
 #include <rococo.os.h>
 #include <rococo.strings.h>
+#include <rococo.time.h>
 
 #include <rococo.stl.allocators.h>
 
@@ -15844,7 +15845,7 @@ R"(
 	void RunTests()
 	{
 		int64 start, end, hz;
-		start = OS::CpuTicks();
+		start = Time::TickCount();
 
 		Memory::ValidateNothingAllocated();
 
@@ -15856,8 +15857,8 @@ R"(
 		RunPositiveFailures();
 		RunCollectionTests();
 	
-		end = OS::CpuTicks();
-		hz = OS::CpuHz();
+		end = Time::TickCount();
+		hz = Time::TickHz();
 
 		double dt = (double)(end - start) / (double)hz;
 		printf("\nAll tests completed in %.2f seconds\n", dt);
