@@ -76,6 +76,8 @@ struct CLogger : public ILog
 
 	void OnUnhandledException(int errorCode, cstr exceptionType, cstr message, void* exceptionInstance)
 	{
+		UNUSED(exceptionInstance);
+		UNUSED(errorCode);
 		ParseException ex(Vec2i{ 0,0 }, Vec2i{ 0,0 }, exceptionType, message, "", NULL);
 		exceptions.push_back(ex);
 	}
@@ -205,6 +207,8 @@ struct ScriptContext : public IEventCallback<ScriptCompileArgs>, public Rococo::
 
 	IDE::EScriptExceptionFlow GetScriptExceptionFlow(cstr source, cstr message) override
 	{
+		UNUSED(source);
+		UNUSED(message);
 		return isRunning && isInteractive ? IDE::EScriptExceptionFlow::Retry : IDE::EScriptExceptionFlow::Terminate;
 	}
 
@@ -400,6 +404,7 @@ struct CmdIncludes : IScriptEnumerator
 
 	cstr ResourceName(size_t index) const
 	{
+		UNUSED(index);
 		Throw(0, "No resource defined for cmd");
 	}
 } s_CmdIncludes;
@@ -554,6 +559,7 @@ int Run(IPublicScriptSystem& ss, cstr sourceCode, cstr targetFile)
 	Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 	IModule* srcModule = ss.AddTree(*tree);
+	UNUSED(srcModule);
 
 	auto& object = ss.PublicProgramObject();
 

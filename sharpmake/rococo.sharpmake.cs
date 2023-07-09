@@ -127,9 +127,8 @@ namespace Rococo
         {
             conf.ProjectFileName = "[project.Name]_[target.DevEnv]_[target.Platform]";
             conf.ProjectPath = @"[project.SharpmakeCsPath]\generated";
-			conf.Output = Configuration.OutputType.Dll;
+			conf.Output = Configuration.OutputType.Lib;
             StandardInit(conf, target);
-            conf.AddPublicDependency<RococoUtilsProject>(target);
         }
     }
 	
@@ -228,8 +227,47 @@ namespace Rococo
         }
     }
 
+    [Sharpmake.Generate]
+    public class RococoSexyCmdProject : RococoProject
+    {
+        public RococoSexyCmdProject() : base("rococo.sexy.cmd")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            conf.ProjectFileName = "[project.Name]_[target.DevEnv]_[target.Platform]";
+            conf.ProjectPath = @"[project.SharpmakeCsPath]\generated";
+            conf.Output = Configuration.OutputType.Exe;
+            StandardInit(conf, target);
+
+            conf.IncludePaths.Add(RococoSexyPath + @"STC\stccore\");
+            conf.AddPublicDependency<RococoUtilsProject>(target);
+        }
+    }
+
+    [Sharpmake.Generate]
+    public class RococoSexyMathSexProject : RococoProject
+    {
+        public RococoSexyMathSexProject() : base("rococo.sexy.mathsex")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            conf.ProjectFileName = "[project.Name]_[target.DevEnv]_[target.Platform]";
+            conf.ProjectPath = @"[project.SharpmakeCsPath]\generated";
+            conf.Output = Configuration.OutputType.Dll;
+            StandardInit(conf, target);
+
+            conf.AddPublicDependency<RococoMathsProject>(target);
+            conf.AddPublicDependency<RococoUtilsProject>(target);
+        }
+    }
+
     /*
-	msbuild $(ROCOCO)rococo.sexy.cmd\rococo.sexy.cmd.vcxproj      $(MSBUILD_TERSE) $(MSBUILD_PARALLEL)
 	msbuild $(ROCOCO)rococo.sexy.mathsex\rococo.sexy.mathsex.vcxproj $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
 	msbuild $(ROCOCO)rococo.fonts\fonts.vcxproj                      $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
 	msbuild $(ROCOCO)dx11.renderer\dx11.renderer.vcxproj             $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
@@ -264,6 +302,8 @@ namespace Rococo
 			conf.AddProject<RococoPackagerProject>(target);
             conf.AddProject<RococoWindowsProject>(target);
             conf.AddProject<RococoSexyIDEProject>(target);
+            conf.AddProject<RococoSexyCmdProject>(target);
+            conf.AddProject<RococoSexyMathSexProject>(target);
         }
     }
 
@@ -280,6 +320,8 @@ namespace Rococo
             arguments.Generate<RococoWindowsProject>();
             arguments.Generate<RococoSolution>();
             arguments.Generate<RococoSexyIDEProject>();
+            arguments.Generate<RococoSexyCmdProject>();
+            arguments.Generate<RococoSexyMathSexProject>();
         }
     }
 }

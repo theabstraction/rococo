@@ -46,10 +46,8 @@
 # pragma pack(push,1)
 #endif
 
-namespace Rococo { namespace Compiler
+namespace Rococo::Compiler
 {
-   using namespace Rococo::Compiler; // OSX g++ is especially dumb
-
 	struct ICodeBuilder;
 	struct IFunctionBuilder;
 	struct IModuleBuilder;
@@ -405,7 +403,7 @@ namespace Rococo { namespace Compiler
 	SEXYUTIL_API IInterfaceBuilder* GetInterface(IProgramObject& object, cstr fullyQualifiedName);
 	SEXYUTIL_API IStructureBuilder* MatchStructure(ILog& logger, cstr type, IModuleBuilder& module);
 	SEXYUTIL_API INamespaceBuilder* MatchNamespace(IModuleBuilder& module, cstr name);
-}} // Rococo::Compiler
+} // Rococo::Compiler
 
 # ifdef WIN32
 #  pragma pack(pop)
