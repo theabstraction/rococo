@@ -23,29 +23,7 @@
 #pragma comment(lib, "rococo.audio.lib")
 #endif
 
-
-namespace
-{
-	using namespace Rococo;
-
-	struct TestException : public IException
-	{
-		char msg[256];
-		int32 errorCode;
-
-		virtual cstr Message() const
-		{
-			return msg;
-		}
-
-		virtual int32 ErrorCode() const
-		{
-			return errorCode;
-		}
-
-		Debugging::IStackFrameEnumerator* StackFrames() override { return nullptr; }
-	};
-}
+using namespace Rococo;
 
 struct PositionButton
 {
@@ -110,7 +88,7 @@ namespace
 		Rococo::Audio::IAudio& audio;
 		IDialogSupervisor* window;
 
-		enum class Ids: size_t {COMPASS_ID_START = 8000, STATUS_BAR = 8500, ELEVATION_ID_START = 9000, SAMPLE_ID_START = 9500};
+		enum class Ids: ControlId {COMPASS_ID_START = 8000, STATUS_BAR = 8500, ELEVATION_ID_START = 9000, SAMPLE_ID_START = 9500};
 
 		char statusBuffer[256];
 		Vec3 soundPosition{ 0,0,0 };
@@ -201,38 +179,40 @@ namespace
 
 		void OnMenuCommand(HWND hWnd, DWORD id) override
 		{
-			size_t nCompassDirections = sizeof compassButtons / sizeof PositionButton;
-			size_t nElevations = sizeof elevationButtons / sizeof ElevationButton;
-			size_t nSamples = sizeof sampleButtons / sizeof SampleButton;
+			ControlId nCompassDirections = sizeof compassButtons / sizeof PositionButton;
+			ControlId nElevations = sizeof elevationButtons / sizeof ElevationButton;
+			ControlId nSamples = sizeof sampleButtons / sizeof SampleButton;
 
 			if (id == IDCANCEL)
 			{
 				PostQuitMessage(0);
 			}
-			else if (id >= (size_t) Ids::COMPASS_ID_START && id <= (size_t)Ids::COMPASS_ID_START + nCompassDirections)
+			else if (id >= (ControlId) Ids::COMPASS_ID_START && id <= (ControlId)Ids::COMPASS_ID_START + nCompassDirections)
 			{
-				size_t index = id - (size_t)Ids::COMPASS_ID_START;
+				ControlId index = id - (ControlId)Ids::COMPASS_ID_START;
 				auto& button = compassButtons[index];
 				soundPosition = button.soundPosition;
 				soundPosition.z = height;
 				Rococo::Strings::CopyString(bearing, sizeof bearing, button.name);
 			}
-			else if (id >= (size_t)Ids::ELEVATION_ID_START && id <= (size_t)Ids::ELEVATION_ID_START + nElevations)
+			else if (id >= (ControlId)Ids::ELEVATION_ID_START && id <= (ControlId)Ids::ELEVATION_ID_START + nElevations)
 			{
-				size_t index = id - (size_t)Ids::ELEVATION_ID_START;
+				ControlId index = id - (ControlId)Ids::ELEVATION_ID_START;
 				auto& button = elevationButtons[index];
 				height = soundPosition.z = button.height;
 				Rococo::Strings::CopyString(elevation, sizeof elevation, button.name);
 			}
-			else if (id >= (size_t)Ids::SAMPLE_ID_START && id <= (size_t)Ids::SAMPLE_ID_START + nSamples)
+			else if (id >= (ControlId)Ids::SAMPLE_ID_START && id <= (ControlId)Ids::SAMPLE_ID_START + nSamples)
 			{
-				size_t index = id - (size_t)Ids::SAMPLE_ID_START;
+				ControlId index = id - (ControlId)Ids::SAMPLE_ID_START;
 				auto& button = sampleButtons[index];
 				sampleId = audio.Bind3DSample(to_fstring(button.pingPath));
 				if (!sampleId)
 				{
 					SafeFormat(err, sizeof err, "Failed to bind %s", button.pingPath);
-
+				}
+				else
+				{
 					Audio::AudioSource3D source;
 					source.dopplerVelocity = { 0,0,0 };
 					source.position = soundPosition;
@@ -240,9 +220,6 @@ namespace
 					source.volume = 1.0f;
 					source.msDelay = 0;					
 					audio.Play3DSound(sampleId, source, 0);
-				}
-				else
-				{
 					*err = 0;
 				}
 			}
@@ -253,6 +230,11 @@ namespace
 		void OnClose(HWND hWnd) override
 		{
 			PostQuitMessage(0);
+		}
+
+		void OnTick(OS::ticks start, OS::ticks frameStart, OS::ticks dt, OS::ticks tickHz)
+		{
+
 		}
 	};
 }
@@ -290,19 +272,10 @@ int CALLBACK WinMain(HINSTANCE _hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 		InitRococoWindows(_hInstance, LoadIcon(_hInstance, MAKEINTRESOURCE(IDI_ICON1)), LoadIcon(_hInstance, MAKEINTRESOURCE(IDI_ICON1)), nullptr, nullptr); // This must be called once, in WinMain or DllMain
 		AutoFree<MainWindowHandler> mainWindowHandler(MainWindowHandler::Create(*audio));
 
-		auto jungleMP3 = audio->Bind3DSample("!sounds/jungle.mp3"_fstring);
-		if (!jungleMP3)
-		{
-			Throw(0, "Failed to bind jungle.mp3 to a sample index");
-		}
-
-		Rococo::Audio::AudioSource3D source = { 0 };
-		source.priority = 1;
-		source.volume = 1.0f;
-
 		bool isRunning = true;
 
-		OS::ticks start = OS::CpuTicks();
+		OS::ticks frameStart = OS::CpuTicks();
+		OS::ticks start = frameStart;
 		OS::ticks period = OS::CpuHz() / 10;
 
 		while (isRunning)
@@ -317,6 +290,10 @@ int CALLBACK WinMain(HINSTANCE _hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 					isRunning = false;
 					break;
 				}
+
+				mainWindowHandler->OnTick(start, frameStart, OS::CpuTicks() - frameStart, OS::CpuHz());
+				frameStart = OS::CpuTicks();
+
 				TranslateMessage(&msg);
 				DispatchMessage(&msg);
 			}
