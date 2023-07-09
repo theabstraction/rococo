@@ -301,6 +301,7 @@ namespace
 
 		void OnGlyph(int column, const GuiRectf* clipRect, const Glyph& g, float scale, float targetHeight, FontColour colour, bool isShadowed, GuiRectf& outputRect) override
 		{
+			UNUSED(column);
 			bool isVisible = true;
 			if (clipRect != nullptr)
 			{

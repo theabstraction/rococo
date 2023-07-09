@@ -204,8 +204,6 @@ namespace
 			Throw(0, "Expecting CSV item in %s, but the csv cursor was invalid at line %d", fullname, cursor.lineNumber);
 		}
 
-		char previousChar = ' ';
-
 		const char* tokenStart = cursor.start;
 		const char* p = cursor.start;
 		const char* end = cursor.end;
@@ -289,7 +287,7 @@ namespace
 		SetCSVToStart(buffer, nBytes, cursor);
 	}
 
-	CSVStream& CSVStream::operator >> (SkipItem& item)
+	CSVStream& CSVStream::operator >> (SkipItem&)
 	{
 		size_t len = cursor.Length() + 1;
 		char* token = (char*)alloca(len);

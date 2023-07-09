@@ -157,7 +157,7 @@ struct WindowsArrayFont : IArrayFontSupervisor
 			SafeFormat(logFont.lfFaceName, sizeof logFont.lfFaceName, "Courier New");
 		}
 
-		logFont.lfItalic = spec.italic;
+		logFont.lfItalic = (BYTE) spec.italic;
 		logFont.lfWeight = spec.weight;
 
 		if (!hMemDC)
@@ -209,6 +209,7 @@ struct WindowsArrayFont : IArrayFontSupervisor
 		grayscale.resize(width* metrics.height);
 
 		auto hOldBitmap = SelectObject(hMemDC, hBitmap);
+		UNUSED(hOldBitmap);
 
 		RECT rect = { 0, 0, width, metrics.height };
 
