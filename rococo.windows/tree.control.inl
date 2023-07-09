@@ -50,26 +50,29 @@ namespace
 			case WM_SIZE:
 				return OnSize(hWnd, wParam, lParam);
 			case WM_NOTIFY:
+			{
+				NMHDR* header = (NMHDR*)lParam;
+				if (header->code == TVN_SELCHANGED)
 				{
-					NMHDR* header = (NMHDR*)lParam;
-               if (header->code == TVN_SELCHANGED)
-               {
-                  LPNMTREEVIEW treeVieww = (LPNMTREEVIEW) header;
-                  auto& i = treeVieww->itemNew;
-                  eventHandler.OnItemSelected((int64)i.lParam, *this);
-               }
-					break;
+					LPNMTREEVIEW treeVieww = (LPNMTREEVIEW)header;
+					auto& i = treeVieww->itemNew;
+					eventHandler.OnItemSelected((int64)i.lParam, *this);
 				}
+				break;
+			}
 			case WM_ERASEBKGND:
 				return 0L;
 			}
 			return DefWindowProc(hWnd, uMsg, wParam, lParam);
 		}
 
-		LRESULT OnSize(HWND hWnd, WPARAM wParam, LPARAM lParam)
+		LRESULT OnSize(HWND, WPARAM wParam, LPARAM lParam)
 		{
 			DWORD width = LOWORD(lParam);
 			DWORD height = HIWORD(lParam);
+
+			UNUSED(width);
+			UNUSED(height);
 
 			switch (wParam)
 			{
@@ -90,8 +93,8 @@ namespace
 			containerConfig.style = WS_CHILD | WS_VISIBLE;
 			containerConfig.exStyle = 0;
 			containerConfig.hWndParent = parent;
-		
-         containerWindow = Windows::CreateChildWindow(containerConfig, this);
+
+			containerWindow = Windows::CreateChildWindow(containerConfig, this);
 
 			DWORD checkedStyle = 0;
 
@@ -105,7 +108,7 @@ namespace
 				checkedStyle = treeConfigCorrected.style;
 				treeConfigCorrected.style &= ~(DWORD)TVS_CHECKBOXES;
 			}
-		
+
 			if (treeConfig.windowName && treeConfig.windowName[0] != 0)
 			{
 				WindowConfig titleConfig;
@@ -129,10 +132,10 @@ namespace
 			StandardResizeControlWithTitleBar(*containerWindow, hTreeWindow, hTitle);
 		}
 
-      virtual void OnPretranslateMessage(MSG& msg)
-      {
+		void OnPretranslateMessage(MSG&) override
+		{
 
-      }
+		}
 	public:
 		static TreeControlSupervisor* Create(const WindowConfig& config, IWindow& parent, ControlId id, ITreeControlHandler& eventHandler)
 		{
@@ -148,7 +151,7 @@ namespace
 
 		~TreeControlSupervisor()
 		{
-         Rococo::Free(containerWindow);
+			Rococo::Free(containerWindow);
 		}
 
 		virtual IUITree& operator()()
@@ -195,8 +198,8 @@ namespace
 				Throw(0, "TreeView_SetItem failed: text length > INT_MAX");
 			}
 
-			z.itemex.cchTextMax = (int) len;
-			
+			z.itemex.cchTextMax = (int)len;
+
 			TREE_NODE_ID id = ToId(TreeView_InsertItem(hTreeWindow, &z));
 
 			TVITEMEX y = { 0 };
@@ -209,17 +212,17 @@ namespace
 			return id;
 		}
 
-      virtual void SetId(TREE_NODE_ID nodeId, int64 id)
-      {
-         TVITEMEX item = { 0 };
-         item.mask = TVIF_PARAM;
-         item.hItem = ToHTree(nodeId);
-         item.lParam = (int64) id;
-         if (!TreeView_SetItem(hTreeWindow, &item))
-         {
-            Throw(GetLastError(), "TreeView_SetItem (LPARAM) failed");
-         }
-      }
+		virtual void SetId(TREE_NODE_ID nodeId, int64 id)
+		{
+			TVITEMEX item = { 0 };
+			item.mask = TVIF_PARAM;
+			item.hItem = ToHTree(nodeId);
+			item.lParam = (int64)id;
+			if (!TreeView_SetItem(hTreeWindow, &item))
+			{
+				Throw(GetLastError(), "TreeView_SetItem (LPARAM) failed");
+			}
+		}
 
 		virtual TREE_NODE_ID AddRootItem(cstr text, CheckState state)
 		{
@@ -227,7 +230,7 @@ namespace
 			z.hInsertAfter = TVI_LAST;
 			z.itemex.mask = TVIF_STATE | TVIF_TEXT | TVIF_PARAM;
 			z.itemex.stateMask = TVIS_STATEIMAGEMASK;
-			z.itemex.pszText = (char*) text;
+			z.itemex.pszText = (char*)text;
 
 			size_t len = rlen(text);
 

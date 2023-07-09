@@ -58,9 +58,9 @@ namespace Rococo::Script
 
     struct NullResolver : public IKeyResolver
     {
-        virtual void Delete(MapNode* node, IScriptSystem& ss) {}
-        virtual MapNode* FindItem(VariantValue keySource, MapImage& m) { return NULL; }
-        virtual MapNode* InsertKey(VariantValue keySource, MapImage& m, IScriptSystem& ss) { return NULL; }
+        virtual void Delete(MapNode*, IScriptSystem&) {}
+        virtual MapNode* FindItem(VariantValue, MapImage&) { return NULL; }
+        virtual MapNode* InsertKey(VariantValue, MapImage&, IScriptSystem&) { return NULL; }
     };
 
     struct MapImage

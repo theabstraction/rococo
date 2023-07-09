@@ -370,13 +370,13 @@ namespace Rococo
 
 		IDialogSupervisor* CreateDialogWindow(const WindowConfig& config, IWindowHandler* modelessHandler)
 		{
-			DialogWindowImpl* w = DialogWindowImpl::Create(config, true, modelessHandler);
+			DialogWindowImpl* w = DialogWindowImpl::Create(config, modelessHandler);
 			return w;
 		}
 
 		IParentWindowSupervisor* CreateChildWindow(const WindowConfig& config, IWindowHandler* handler)
 		{
-			DialogWindowImpl* w = DialogWindowImpl::Create(config, true, handler);
+			DialogWindowImpl* w = DialogWindowImpl::Create(config, handler);
 			return w;
 		}
 
@@ -454,6 +454,7 @@ namespace Rococo
 
 		ITabControl* AddTabs(IWindow& parent, const GuiRect& rect, cstr name, ControlId id, ITabControlEvents& eventHandler, DWORD style, DWORD styleEx)
 		{
+			UNUSED(id);
 			WindowConfig childConfig;
 			Windows::SetChildWindowConfig(childConfig, rect, nullptr, name, style, styleEx);
 			TabControlSupervisor* t = TabControlSupervisor::Create(childConfig, parent, eventHandler);
@@ -485,6 +486,8 @@ namespace Rococo
 
 		IRichEditor* AddRichEditor(IWindow& parent, const GuiRect& rect, cstr name, ControlId id, IRichEditorEvents& eventHandler, DWORD style, DWORD styleEx)
 		{
+			UNUSED(id);
+
 			if (hRichEditor == nullptr)
 			{
 				hRichEditor = LoadLibraryA("Riched20.dll");
@@ -512,6 +515,7 @@ namespace Rococo
 
 		IComboBoxSupervisor* AddComboBox(IParentWindowSupervisor& parent, const GuiRect& rect, cstr name, ControlId id, DWORD style, DWORD containerStyle, DWORD containerStyleEx)
 		{
+			UNUSED(id);
 			WindowConfig config;
 			Windows::SetChildWindowConfig(config, rect, parent, name, style, 0);
 			ComboBoxSupervisor* w = ComboBoxSupervisor::Create(config, parent, nullptr, containerStyle, containerStyleEx);
@@ -520,6 +524,7 @@ namespace Rococo
 
 		ITrackBarSupervisor* AddTrackbar(IParentWindowSupervisor& parent, const GuiRect& rect, cstr name, ControlId id, DWORD style, DWORD styleEx, ITrackBarHandler& handler)
 		{
+			UNUSED(id);
 			WindowConfig config;
 			Windows::SetChildWindowConfig(config, rect, parent, name, style, styleEx);
 			TrackBarSupervisor* w = TrackBarSupervisor::Create(config, parent, handler);
@@ -633,11 +638,11 @@ namespace Rococo
 			backgroundColour = RGB(255, 255, 255);
 		}
 
-		ROCOCO_WINDOWS_API void StandardWindowHandler::OnPaint(HWND hWnd, PAINTSTRUCT& ps, HDC hdc) {}
-		ROCOCO_WINDOWS_API void StandardWindowHandler::OnSize(HWND hWnd, const Vec2i& span, RESIZE_TYPE type) {}
-		ROCOCO_WINDOWS_API void StandardWindowHandler::OnMenuCommand(HWND hWnd, DWORD id) {}
-		ROCOCO_WINDOWS_API void StandardWindowHandler::OnAcceleratorCommand(HWND hWnd, DWORD id) {}
-		ROCOCO_WINDOWS_API void StandardWindowHandler::OnClose(HWND hWnd) {}
+		ROCOCO_WINDOWS_API void StandardWindowHandler::OnPaint(HWND, PAINTSTRUCT&, HDC) { }
+		ROCOCO_WINDOWS_API void StandardWindowHandler::OnSize(HWND, const Vec2i& span, RESIZE_TYPE) { UNUSED(span); }
+		ROCOCO_WINDOWS_API void StandardWindowHandler::OnMenuCommand(HWND, DWORD id) { UNUSED(id); }
+		ROCOCO_WINDOWS_API void StandardWindowHandler::OnAcceleratorCommand(HWND, DWORD id) { UNUSED(id); }
+		ROCOCO_WINDOWS_API void StandardWindowHandler::OnClose(HWND) {}
 
 		COLORREF StandardWindowHandler::GetBackgroundColour() { return backgroundColour; }
 		ROCOCO_WINDOWS_API void StandardWindowHandler::SetBackgroundColour(COLORREF bkColour) { backgroundColour = bkColour; }
@@ -672,12 +677,12 @@ namespace Rococo
 			DeleteObject(br);
 		}
 
-		ROCOCO_WINDOWS_API void StandardWindowHandler::OnPretranslateMessage(MSG& msg)
+		ROCOCO_WINDOWS_API void StandardWindowHandler::OnPretranslateMessage(MSG&)
 		{
 
 		}
 
-		ROCOCO_WINDOWS_API void StandardWindowHandler::OnGetMinMaxInfo(HWND hWnd, MINMAXINFO& info)
+		ROCOCO_WINDOWS_API void StandardWindowHandler::OnGetMinMaxInfo(HWND, MINMAXINFO& info)
 		{
 			enum { DEFAULT_MIN_WIDTH = 800, DEFAULT_MIN_HEIGHT = 600 };
 

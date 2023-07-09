@@ -10,17 +10,17 @@ namespace
 		{
 		}
 
-		virtual LRESULT OnMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+		LRESULT OnMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) override
 		{
 			return DefWindowProc(hWnd, uMsg, wParam, lParam);
 		}
 
-      virtual void OnPretranslateMessage(MSG& msg)
+      void OnPretranslateMessage(MSG&) override
       {
 
       }
 	public:
-		static ButtonSupervisor* Create(const WindowConfig& config, IParentWindowSupervisor& parent)
+		static ButtonSupervisor* Create(const WindowConfig& config, IParentWindowSupervisor&)
 		{
 			ButtonSupervisor* p = new ButtonSupervisor();
 			p->hWnd = CreateWindowIndirect("BUTTON", config, nullptr);

@@ -48,13 +48,12 @@ namespace Rococo
             }
         }
 		
-		protected RococoProject()
+		protected RococoProject(string name)
 		{
-			AddTargets(new Target(
-                    Platform.win64,
-                    DevEnv.vs2022,
-                    Optimization.Debug | Optimization.Release
-            ));
+            base.Name = name;
+            SetSourcePath(name);
+
+            AddTargets(new Target(Platform.win64, DevEnv.vs2022, Optimization.Debug | Optimization.Release));
 		}
 		
 		protected void AddDefaults(Configuration conf, Target target)
@@ -102,10 +101,8 @@ namespace Rococo
     [Sharpmake.Generate]
     public class RococoUtilsProject : RococoProject
     {
-        public RococoUtilsProject()
+        public RococoUtilsProject(): base("rococo.util")
         {
-            Name = "rococo.util";
-            SetSourcePath("rococo.util");
         }
 
         [Configure()]
@@ -121,10 +118,8 @@ namespace Rococo
 	[Sharpmake.Generate]
     public class RococoMathsProject : RococoProject
     {
-        public RococoMathsProject()
+        public RococoMathsProject(): base("rococo.maths")
         {
-            Name = "rococo.maths";
-            SetSourcePath("rococo.maths");
         }
 
         [Configure()]
@@ -141,10 +136,8 @@ namespace Rococo
 	[Sharpmake.Generate]
     public class RococoUtilExProject : RococoProject
     {
-        public RococoUtilExProject()
+        public RococoUtilExProject(): base("rococo.util.ex")
         {
-            Name = "rococo.util.ex";
-            SetSourcePath("rococo.util.ex");
         }
 
         [Configure()]
@@ -163,10 +156,9 @@ namespace Rococo
 	[Sharpmake.Generate]
     public class RococoPackagerProject : RococoProject
     {
-        public RococoPackagerProject()
+        public RococoPackagerProject(): base("rococo.packager")
         {
-            Name = "rococo.packager";
-            SetSourcePath("rococo.packager");
+            SetSourcePath(Name);
         }
 
         [Configure()]
@@ -180,9 +172,46 @@ namespace Rococo
 			conf.AddPublicDependency<RococoUtilsProject>(target);
         }
     }
-	
-	/*
-	msbuild $(ROCOCO)rococo.misc.utils\rococo.misc.utils.vcxproj  $(MSBUILD_TERSE) $(MSBUILD_PARALLEL)
+
+    [Sharpmake.Generate]
+    public class RococoMiscUtilsProject : RococoProject
+    {
+        public RococoMiscUtilsProject() : base("rococo.misc.utils")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            conf.ProjectFileName = "[project.Name]_[target.DevEnv]_[target.Platform]";
+            conf.ProjectPath = @"[project.SharpmakeCsPath]\generated";
+            conf.Output = Configuration.OutputType.Dll;
+            StandardInit(conf, target);
+            conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.Defines.Add("ROCOCO_MISC_UTILS_API=__declspec(dllexport)");
+        }
+    }
+
+    [Sharpmake.Generate]
+    public class RococoWindowsProject : RococoProject
+    {
+        public RococoWindowsProject() : base("rococo.windows")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            conf.ProjectFileName = "[project.Name]_[target.DevEnv]_[target.Platform]";
+            conf.ProjectPath = @"[project.SharpmakeCsPath]\generated";
+            conf.Output = Configuration.OutputType.Dll;
+            StandardInit(conf, target);
+            conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.Defines.Add("ROCOCO_WINDOWS_API=__declspec(dllexport)");
+        }
+    }
+
+    /*
 	msbuild $(ROCOCO)rococo.windows\rococo.windows.vcxproj        $(MSBUILD_TERSE) $(MSBUILD_PARALLEL)
 	msbuild $(ROCOCO)rococo.sexy.ide\rococo.sexy.ide.vcxproj      $(MSBUILD_TERSE) $(MSBUILD_PARALLEL)
 	msbuild $(ROCOCO)rococo.sexy.cmd\rococo.sexy.cmd.vcxproj      $(MSBUILD_TERSE) $(MSBUILD_PARALLEL)
@@ -214,9 +243,11 @@ namespace Rococo
             conf.SolutionFileName = "[solution.Name]_[target.DevEnv]_[target.Platform]";
             conf.SolutionPath = @"[solution.SharpmakeCsPath]\generated";
             conf.AddProject<RococoUtilsProject>(target);
-			conf.AddProject<RococoMathsProject>(target);
+            conf.AddProject<RococoMiscUtilsProject>(target);
+            conf.AddProject<RococoMathsProject>(target);
 			conf.AddProject<RococoUtilExProject>(target);
 			conf.AddProject<RococoPackagerProject>(target);
+            conf.AddProject<RococoWindowsProject>(target);
         }
     }
 
@@ -226,9 +257,11 @@ namespace Rococo
         public static void SharpmakeMain(Sharpmake.Arguments arguments)
         {
             arguments.Generate<RococoUtilsProject>();
-			arguments.Generate<RococoMathsProject>();
+            arguments.Generate<RococoMiscUtilsProject>();
+            arguments.Generate<RococoMathsProject>();
 			arguments.Generate<RococoUtilExProject>();
 			arguments.Generate<RococoPackagerProject>();
+            arguments.Generate<RococoWindowsProject>();
             arguments.Generate<RococoSolution>();
         }
     }

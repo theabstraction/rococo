@@ -24,20 +24,20 @@ namespace
 		{
 			switch (uMsg)
 			{
-         case WM_RBUTTONUP:
-         {
-            POINT cursorPos;
-            GetCursorPos(&cursorPos);
+			case WM_RBUTTONUP:
+			{
+				POINT cursorPos;
+				GetCursorPos(&cursorPos);
 
-            POINT cursorPos2 = cursorPos;
-            ScreenToClient(hWndTabControl, &cursorPos2);
+				POINT cursorPos2 = cursorPos;
+				ScreenToClient(hWndTabControl, &cursorPos2);
 
-            TCHITTESTINFO info = { cursorPos2, 0 };
-            int index = TabCtrl_HitTest(hWndTabControl, &info);
+				TCHITTESTINFO info = { cursorPos2, 0 };
+				int index = TabCtrl_HitTest(hWndTabControl, &info);
 
-            eventHandler.OnTabRightClicked(index, cursorPos);
-            return 0L;
-         }
+				eventHandler.OnTabRightClicked(index, cursorPos);
+				return 0L;
+			}
 			case WM_SIZE:
 				return OnSize(hWnd, wParam, lParam);
 			case WM_NOTIFY:
@@ -48,23 +48,23 @@ namespace
 					eventHandler.OnSelectionChanged(GetCurrentSelection());
 					return 0L;
 				}
-            else if (header->code == NM_RCLICK)
-            {
-               POINT cursorPos;
-               GetCursorPos(&cursorPos);
+				else if (header->code == NM_RCLICK)
+				{
+					POINT cursorPos;
+					GetCursorPos(&cursorPos);
 
-               POINT cursorPos2 = cursorPos;
-               ScreenToClient(hWndTabControl, &cursorPos2);
+					POINT cursorPos2 = cursorPos;
+					ScreenToClient(hWndTabControl, &cursorPos2);
 
-               TCHITTESTINFO info = { cursorPos2, 0 };
-               int index = TabCtrl_HitTest(hWndTabControl, &info);
+					TCHITTESTINFO info = { cursorPos2, 0 };
+					int index = TabCtrl_HitTest(hWndTabControl, &info);
 
-               eventHandler.OnTabRightClicked(index, cursorPos);
-            }
+					eventHandler.OnTabRightClicked(index, cursorPos);
+				}
 				else if (header->code == TTN_GETDISPINFOA)
 				{
 					NMTTDISPINFOA* info = (NMTTDISPINFOA*)header;
-					
+
 					TC_ITEM item = { 0 };
 					item.dwState = TCIF_PARAM;
 					TabCtrl_GetItem(hWndTabControl, info->hdr.idFrom, &item);
@@ -73,11 +73,11 @@ namespace
 					info->lpszText = text;
 
 					auto i = tooltips.find((size_t)item.lParam);
-					
+
 					cstr src = i == tooltips.end() ? "" : i->second.c_str();
-               StackStringBuilder sb(text, sizeof(text));
+					StackStringBuilder sb(text, sizeof(text));
 					sb << src;
-					
+
 					info->hinst = nullptr;
 					return TRUE;
 				}
@@ -88,7 +88,7 @@ namespace
 			return DefWindowProc(hWnd, uMsg, wParam, lParam);
 		}
 
-		LRESULT OnSize(HWND hWnd, WPARAM wParam, LPARAM lParam)
+		LRESULT OnSize(HWND, WPARAM wParam, LPARAM lParam)
 		{
 			DWORD width = LOWORD(lParam);
 			DWORD height = HIWORD(lParam);
@@ -163,7 +163,7 @@ namespace
 			TC_ITEMA item = { 0 };
 			item.mask = TCIF_TEXT;
 			item.pszText = buffer;
-			item.cchTextMax = Rococo::min((DWORD) 1024, capacity);
+			item.cchTextMax = Rococo::min((DWORD)1024, capacity);
 			return TabCtrl_GetItem(hWndTabControl, index, &item) == TRUE;
 		}
 
@@ -194,13 +194,13 @@ namespace
 			Windows::SetChildWindowConfig(clientConfig, FromRECT(rect), hWndTabControl, "", WS_CHILD | WS_VISIBLE, 0 /* WS_EX_CLIENTEDGE */);
 			clientSpace = Windows::CreateChildWindow(clientConfig, &clientSpaceHandler);
 
- //        SetWindowSubclass(hWndTabControl, OnSubclassMessage, (UINT_PTR) this, 0);
+			//        SetWindowSubclass(hWndTabControl, OnSubclassMessage, (UINT_PTR) this, 0);
 		}
 
-      virtual void OnPretranslateMessage(MSG& msg)
-      {
+		void OnPretranslateMessage(MSG&) override
+		{
 
-      }
+		}
 	public:
 		static TabControlSupervisor* Create(const WindowConfig& config, IWindow& parent, ITabControlEvents& eventHandler)
 		{
@@ -216,8 +216,8 @@ namespace
 
 		~TabControlSupervisor()
 		{
-         Rococo::Free(clientSpace);
-         DestroyWindow(hWnd);
+			Rococo::Free(clientSpace);
+			DestroyWindow(hWnd);
 		}
 
 		virtual IParentWindowSupervisor& ClientSpace()

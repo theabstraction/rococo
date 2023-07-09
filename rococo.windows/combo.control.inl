@@ -28,7 +28,7 @@ namespace
 			return DefWindowProc(hWnd, uMsg, wParam, lParam);
 		}
 
-		LRESULT OnSize(HWND hWnd, WPARAM wParam, LPARAM lParam)
+		LRESULT OnSize(HWND, WPARAM wParam, LPARAM lParam)
 		{
 			DWORD width = LOWORD(lParam);
 			DWORD height = HIWORD(lParam);
@@ -66,6 +66,10 @@ namespace
 
 		void Construct(const WindowConfig& listConfig, IParentWindowSupervisor& parent, IItemRenderer* itemRenderer, DWORD containerStyle, DWORD containerStyleEx)
 		{
+			UNUSED(containerStyleEx);
+			UNUSED(containerStyle);
+			UNUSED(itemRenderer);
+
 			WindowConfig containerConfig = listConfig;
 			containerConfig.style = WS_CHILD | WS_VISIBLE;
 			containerConfig.exStyle = 0;
@@ -81,10 +85,10 @@ namespace
 			hWndComboBox = CreateWindowIndirect("COMBOBOX", configCorrected, nullptr);
 		}
 
-      virtual void OnPretranslateMessage(MSG& msg)
-      {
+		void OnPretranslateMessage(MSG&) override
+		{
 
-      }
+		}
 	public:
 		static ComboBoxSupervisor* Create(const WindowConfig& listConfig, IParentWindowSupervisor& parent, IItemRenderer* itemRenderer, DWORD containerStyle, DWORD containerStyleEx)
 		{
@@ -144,8 +148,8 @@ namespace
 				return false;
 			}
 
-         StackStringBuilder sb(buffer, capacity);
-         sb << stackbuffer;
+			StackStringBuilder sb(buffer, capacity);
+			sb << stackbuffer;
 
 			return true;
 		}

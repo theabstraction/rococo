@@ -630,7 +630,8 @@ struct CSV_Line_by_Line_SexyAssetParser: ICSVLineParser
 
 	void OnBadChar(Vec2i cursor, char c) override
 	{
-
+		UNUSED(cursor);
+		UNUSED(c);
 	}
 
 	void OnLine(const ICSVLine& line) override
@@ -703,6 +704,7 @@ namespace Rococo::IO
 
 			void OnBlankLine(Vec2i cursor)
 			{
+				UNUSED(cursor);
 				ResetBuilder();
 			}
 
@@ -738,6 +740,9 @@ namespace Rococo::IO
 
 			void Submit(int row, int column)
 			{
+				UNUSED(row);
+				UNUSED(column);
+
 				if (startRaw)
 				{
 					if (tokenIndex >= csv_tokens.size())

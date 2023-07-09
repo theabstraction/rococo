@@ -41,6 +41,9 @@ namespace
 			DWORD width = LOWORD(lParam);
 			DWORD height = HIWORD(lParam);
 
+			UNUSED(width);
+			UNUSED(height);
+
 			switch (wParam)
 			{
 			case SIZE_RESTORED:
@@ -54,14 +57,14 @@ namespace
 			return 0L;
 		}
 
-		BOOL OnDrawItem(HWND hWnd, WPARAM wParam, LPARAM lParam)
+		BOOL OnDrawItem(HWND, WPARAM, LPARAM lParam)
 		{
 			DRAWITEMSTRUCT& dis = *LPDRAWITEMSTRUCT(lParam);
 			itemRenderer.OnDrawItem(dis);
 			return TRUE;
 		}
 
-		BOOL OnMeasureItem(HWND hWnd, WPARAM wParam, LPARAM lParam)
+		BOOL OnMeasureItem(HWND, WPARAM, LPARAM lParam)
 		{
 			MEASUREITEMSTRUCT& mis = *LPMEASUREITEMSTRUCT(lParam);
 			itemRenderer.OnMeasureItem(mis);
@@ -71,7 +74,7 @@ namespace
 		int AddString(cstr data)
 		{
 			LRESULT index = SendMessage(hWndListBox, LB_ADDSTRING, 0, (LPARAM)data); // If data is not a string, we need owner draw and no LBS_HASSTRINGS, else we crash here.
-			return (int) index;
+			return (int)index;
 		}
 
 		void ResetContent()
@@ -99,14 +102,14 @@ namespace
 		{
 			LRESULT length = SendMessage(hWndListBox, LB_GETTEXTLEN, index, 0);
 			if (length == LB_ERR) return false;
-			char* buffer = (char*) _malloca(sizeof(char)* (length + 1));
+			char* buffer = (char*)_malloca(sizeof(char) * (length + 1));
 			if (LB_ERR == SendMessage(hWndListBox, LB_GETTEXT, index, (LPARAM)buffer))
 			{
 				return false;
 			}
 
-         StackStringBuilder sb(data, capacity);
-         sb << buffer;
+			StackStringBuilder sb(data, capacity);
+			sb << buffer;
 			return true;
 		}
 
@@ -147,10 +150,10 @@ namespace
 			StandardResizeControlWithTitleBar(hWnd, hWndListBox, hTitle);
 		}
 
-      virtual void OnPretranslateMessage(MSG& msg)
-      {
+		void OnPretranslateMessage(MSG&) override
+		{
 
-      }
+		}
 	public:
 		static ListBoxSupervisor* Create(const WindowConfig& listConfig, IParentWindowSupervisor& parent, IListItemHandler& itemRenderer, DWORD containerStyle, DWORD containerStyleEx)
 		{

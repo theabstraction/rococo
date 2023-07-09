@@ -41,6 +41,9 @@ namespace
 			DWORD width = LOWORD(lParam);
 			DWORD height = HIWORD(lParam);
 
+			UNUSED(height);
+			UNUSED(width);
+
 			switch (wParam)
 			{
 			case SIZE_RESTORED:
@@ -57,6 +60,7 @@ namespace
 		LRESULT OnNotify(HWND hWnd, WPARAM wParam, LPARAM lParam)
 		{
 			UINT_PTR id = wParam;
+			UNUSED(id);
 			auto* header = (NMHDR*)lParam;
 			if (header->code == LVN_ITEMCHANGED)
 			{
@@ -67,14 +71,14 @@ namespace
 			return DefWindowProc(hWnd, WM_NOTIFY, wParam, lParam);
 		}
 
-		BOOL OnDrawItem(HWND hWnd, WPARAM wParam, LPARAM lParam)
+		BOOL OnDrawItem(HWND, WPARAM, LPARAM lParam)
 		{
 			DRAWITEMSTRUCT& dis = *LPDRAWITEMSTRUCT(lParam);
 			eventHandler.OnDrawItem(dis);
 			return TRUE;
 		}
 
-		BOOL OnMeasureItem(HWND hWnd, WPARAM wParam, LPARAM lParam)
+		BOOL OnMeasureItem(HWND, WPARAM, LPARAM lParam)
 		{
 			MEASUREITEMSTRUCT& mis = *LPMEASUREITEMSTRUCT(lParam);
 			eventHandler.OnMeasureItem(mis);
@@ -87,6 +91,8 @@ namespace
 			{
 				customAtom = CreateCustomAtom();
 			}
+
+			UNUSED(eventHandler);
 
 			WindowConfig containerConfig = listConfig;
 			containerConfig.style = WS_CHILD | WS_VISIBLE | containerStyle;
@@ -117,10 +123,10 @@ namespace
 			StandardResizeControlWithTitleBar(hWnd, hWndListView, hTitle);
 		}
 
-      virtual void OnPretranslateMessage(MSG& msg)
-      {
+		void OnPretranslateMessage(MSG&) override
+		{
 
-      }
+		}
 	public:
 		static ListViewSupervisor* Create(const WindowConfig& listConfig, IWindow& parent, IListViewEvents& eventHandler, DWORD containerStyle)
 		{
@@ -131,7 +137,7 @@ namespace
 
 		~ListViewSupervisor()
 		{
-         DestroyWindow(hWnd);
+			DestroyWindow(hWnd);
 		}
 
 		virtual IUIList& UIList()
@@ -165,10 +171,10 @@ namespace
 			int k = 1;
 			for (cstr* value = values + k; *value != nullptr; ++value, ++k)
 			{
-				LVITEMA item = { 0 };
-				item.iSubItem = k;
-				item.pszText = (char*) *value;
-				SendMessage(hWndListView, LVM_SETITEMTEXT, index, (LPARAM)&item);
+				LVITEMA diddle = { 0 };
+				diddle.iSubItem = k;
+				diddle.pszText = (char*)*value;
+				SendMessage(hWndListView, LVM_SETITEMTEXT, index, (LPARAM)&diddle);
 			}
 		}
 
@@ -179,7 +185,7 @@ namespace
 
 		virtual int NumberOfRows() const
 		{
-			return (int) ListView_GetItemCount(hWndListView);
+			return (int)ListView_GetItemCount(hWndListView);
 		}
 
 		virtual void DeleteRow(int rowIndex)
@@ -197,7 +203,7 @@ namespace
 				LV_COLUMNA item;
 				item = { 0 };
 				item.mask = LVCF_TEXT | LVCF_WIDTH;
-				item.pszText = (char*) *col;
+				item.pszText = (char*)*col;
 				item.cx = widths[index];
 				if (-1 == ListView_InsertColumn(hWndListView, 10000, &item))
 				{

@@ -15,7 +15,7 @@ namespace
 
 	void NullDebugFunction(const char* p)
 	{
-
+		UNUSED(p);
 	}
 
 	bool FindNext(Substring& cursor, cr_substring document, const fstring& token)
@@ -161,6 +161,7 @@ namespace Rococo::Sexy
 	template<class T>
 	void TEnumerateFieldsOfClassDef(cr_substring className, cr_substring classDef, T& t)
 	{
+		UNUSED(className);
 		// classDef will be Name (<type1> <name1>)...(<typeN> <nameN>)
 
 		Substring type;

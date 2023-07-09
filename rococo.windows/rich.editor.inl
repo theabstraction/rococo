@@ -42,7 +42,7 @@ namespace
 			return DefWindowProc(hWnd, uMsg, wParam, lParam);
 		}
 
-		LRESULT OnSize(HWND hWnd, WPARAM wParam, LPARAM lParam)
+		LRESULT OnSize(HWND, WPARAM wParam, LPARAM lParam)
 		{
 			DWORD width = LOWORD(lParam);
 			DWORD height = HIWORD(lParam);
@@ -89,7 +89,7 @@ namespace
 				char segmentBuffer[SEGMENT_CAPACITY];
 
 				size_t delta = (len >= SEGMENT_CAPACITY) ? SEGMENT_CAPACITY - 1 : len;
-			
+
 				memcpy(segmentBuffer, source, delta);
 				segmentBuffer[delta] = 0;
 				source += delta;
@@ -109,6 +109,8 @@ namespace
 			DWORD_PTR dwRefData
 		)
 		{
+			UNUSED(uIdSubclass);
+
 			if (uMsg == WM_RBUTTONUP)
 			{
 				auto xPos = GET_X_LPARAM(lParam);
@@ -148,32 +150,32 @@ namespace
 
 		virtual int32 LineCount() const
 		{
-			return (int32) SendMessage(hWndEditor, EM_LINEFROMCHAR, -1, 0);
+			return (int32)SendMessage(hWndEditor, EM_LINEFROMCHAR, (WPARAM)-1, 0);
 		}
 
-      virtual int32 GetFirstVisibleLine() const
-      {
-         int32 y = (int32)SendMessage(hWndEditor, EM_GETFIRSTVISIBLELINE, 0, 0);
-         return y;
-      }
+		virtual int32 GetFirstVisibleLine() const
+		{
+			int32 y = (int32)SendMessage(hWndEditor, EM_GETFIRSTVISIBLELINE, 0, 0);
+			return y;
+		}
 
 		virtual void ScrollTo(int32 row)
 		{
-         int32 y = GetFirstVisibleLine();
-         SendMessage(hWndEditor, EM_LINESCROLL, 0, -y);
-         SendMessage(hWndEditor, EM_LINESCROLL, 0, row);
+			int32 y = GetFirstVisibleLine();
+			SendMessage(hWndEditor, EM_LINESCROLL, 0, -y);
+			SendMessage(hWndEditor, EM_LINESCROLL, 0, row);
 		}
 
-      ~RichEditor()
-      {
-         DestroyWindow(hWndEditor);
-         DestroyWindow(hWnd);
-      }
+		~RichEditor()
+		{
+			DestroyWindow(hWndEditor);
+			DestroyWindow(hWnd);
+		}
 
-      virtual void OnPretranslateMessage(MSG& msg)
-      {
+		void OnPretranslateMessage(MSG&) override
+		{
 
-      }
+		}
 	public:
 		static RichEditor* Create(const WindowConfig& editorConfig, IWindow& parent, IRichEditorEvents& eventHandler)
 		{
@@ -187,31 +189,33 @@ namespace
 			return p;
 		}
 
-      virtual void SetTooltip(cstr name, cstr text)
-      {
-         // Not implemented
-      }
+		virtual void SetTooltip(cstr name, cstr text)
+		{
+			UNUSED(name);
+			UNUSED(text);
+			// Not implemented
+		}
 
-      virtual void Hilight(const Vec2i& start, const Vec2i& end, RGBAb background, RGBAb foreground)
-      {
-         int startIndex = (int) SendMessage(hWndEditor, EM_LINEINDEX, start.y, 0) + start.x;
-         int endIndex = (int) SendMessage(hWndEditor, EM_LINEINDEX, end.y, 0) + end.x;
+		virtual void Hilight(const Vec2i& start, const Vec2i& end, RGBAb background, RGBAb foreground)
+		{
+			int startIndex = (int)SendMessage(hWndEditor, EM_LINEINDEX, start.y, 0) + start.x;
+			int endIndex = (int)SendMessage(hWndEditor, EM_LINEINDEX, end.y, 0) + end.x;
 
-         SendMessage(hWndEditor, EM_SETSEL, startIndex, endIndex);
+			SendMessage(hWndEditor, EM_SETSEL, startIndex, endIndex);
 
-         CHARFORMAT2W format;
-         ZeroMemory(&format, sizeof(format));
-         format.cbSize = sizeof(format);
-         format.dwMask = CFM_BOLD | CFM_COLOR | CFM_BACKCOLOR;
-         format.dwEffects = CFE_BOLD;
-         format.crTextColor = RGB(foreground.red, foreground.green, foreground.blue);
-         format.crBackColor = RGB(background.red, background.green, background.blue);  
+			CHARFORMAT2W format;
+			ZeroMemory(&format, sizeof(format));
+			format.cbSize = sizeof(format);
+			format.dwMask = CFM_BOLD | CFM_COLOR | CFM_BACKCOLOR;
+			format.dwEffects = CFE_BOLD;
+			format.crTextColor = RGB(foreground.red, foreground.green, foreground.blue);
+			format.crBackColor = RGB(background.red, background.green, background.blue);
 
-         SendMessage(hWndEditor, EM_SETCHARFORMAT, SCF_SELECTION, (LPARAM) &format);
+			SendMessage(hWndEditor, EM_SETCHARFORMAT, SCF_SELECTION, (LPARAM)&format);
 
-         SendMessage(hWndEditor, EM_SETSEL, endIndex, endIndex);
-         SendMessage(hWndEditor, EM_SCROLLCARET, 0, 0);
-      }
+			SendMessage(hWndEditor, EM_SETSEL, endIndex, endIndex);
+			SendMessage(hWndEditor, EM_SCROLLCARET, 0, 0);
+		}
 
 		virtual HWND EditorHandle() const
 		{
@@ -233,7 +237,7 @@ namespace
 			return hWndEditor;
 		}
 
-		virtual void Free()
+		void Free() override
 		{
 			delete this;
 		}

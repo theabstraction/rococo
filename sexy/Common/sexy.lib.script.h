@@ -33,8 +33,5 @@
 
 #pragma once
 
-#ifdef _DEBUG
-#   pragma comment(lib, "sexy.script.Debug.lib")
-#else
-#   pragma comment(lib, "sexy.script.Release.lib")
-#endif
+#pragma comment(lib, "sexy.script.lib")
+

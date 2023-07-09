@@ -210,6 +210,8 @@ struct AssetBuilder
 
 	void SaveInterfaceRefAndObject(cstr name, const IStructure& assetType, InterfacePointer pInterface)
 	{
+		UNUSED(name);
+
 		auto& interfaceType = assetType.GetInterface(0);
 
 		ObjectStub* stub = InterfaceToInstance(pInterface);
@@ -401,6 +403,10 @@ struct AssetBuilder
 
 	void SaveArrayRef(cr_sex s, cstr name, const IStructure& assetType, ArrayImage* arrayData)
 	{
+		UNUSED(s);
+		UNUSED(name);
+		UNUSED(assetType);
+
 		if (!arrayData)
 		{
 			sb.AppendFormat("<null>\n");
@@ -430,6 +436,10 @@ struct AssetBuilder
 
 	void SaveMapRef(cr_sex s, cstr name, const IStructure& assetType, MapImage* mapData)
 	{
+		UNUSED(s);
+		UNUSED(name);
+		UNUSED(assetType);
+
 		if (!mapData)
 		{
 			sb.AppendFormat("<null>\n");
@@ -459,6 +469,9 @@ struct AssetBuilder
 
 	void SaveListRef(cr_sex s, cstr name, const IStructure& assetType, ListImage* listData)
 	{
+		UNUSED(name);
+		UNUSED(s);
+		UNUSED(assetType);
 		if (!listData)
 		{
 			sb.AppendFormat("<null>\n");

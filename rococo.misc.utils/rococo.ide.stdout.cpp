@@ -12,154 +12,174 @@
 // Used on non-Win32 based platforms
 
 using namespace Rococo;
+using namespace Rococo::Strings;
 
 namespace
 {
-   struct StdoutDebugger : public IDebuggerWindow
-   {
-      void AddDisassembly(RGBAb colour, cstr text, RGBAb bkColor = RGBAb(255, 255, 255), bool bringToView = false) override
-      {
-         printf("%s\n", text);
-      }
+    struct StdoutDebugger : public IDebuggerWindow
+    {
+        virtual ~StdoutDebugger() {}
 
-      void InitDisassembly(size_t codeId) override
-      {
-         printf("Disassembly for id %llu\n", (unsigned long long) codeId);
-      }
+        void AddDisassembly(RGBAb colour, cstr text, RGBAb bkColor = RGBAb(255, 255, 255), bool bringToView = false) override
+        {
+            UNUSED(colour);
+            UNUSED(bkColor);
+            UNUSED(bringToView);
+            printf("%s\n", text);
+        }
 
-      void AddSourceCode(cstr name, cstr sourceCode) override
-      {
-         printf("Source: %s\n%s\n", name, sourceCode);
-      }
+        void InitDisassembly(size_t codeId) override
+        {
+            printf("Disassembly for id %llu\n", (unsigned long long) codeId);
+        }
 
-      void Free() override
-      {
-         delete this;
-      }
+        void AddSourceCode(cstr name, cstr sourceCode) override
+        {
+            printf("Source: %s\n%s\n", name, sourceCode);
+        }
 
-      Windows::IWindow& GetDebuggerWindowControl() override
-      {
-         return Windows::NoParent();
-      }
+        void Free() override
+        {
+            delete this;
+        }
 
-	  void PopulateMemberView(Visitors::ITreePopulator& populator) override
-	  {
+        Windows::IWindow& GetDebuggerWindowControl() override
+        {
+            return Windows::NoParent();
+        }
 
-	  }
+        void PopulateMemberView(Visitors::ITreePopulator&) override
+        {
 
-	  void PopulateVariableView(Visitors::IListPopulator& populator) override
-	  {
+        }
 
-	  }
+        void PopulateVariableView(Visitors::IListPopulator&) override
+        {
 
-	  void PopulateCallStackView(Visitors::IListPopulator& populator) override
-	  {
+        }
 
-	  }
+        void PopulateCallStackView(Visitors::IListPopulator&) override
+        {
 
-      void PopulateRegisterView(Visitors::IListPopulator& populator) override
-      {
-         using namespace Rococo::Visitors;
+        }
 
-         struct anon : IUIList
-         {
-            void AddRow(cstr values[]) override
+        void PopulateRegisterView(Visitors::IListPopulator& populator) override
+        {
+            using namespace Rococo::Visitors;
+
+            struct anon : IUIList
             {
-               cstr* value = values;
-               int count = 0;
-               while (*value != nullptr)
-               {
-                  if (count++ != 0)
-                  {
-                     printf("\t");
-                  }
+                void AddRow(cstr values[]) override
+                {
+                    cstr* value = values;
+                    int count = 0;
+                    while (*value != nullptr)
+                    {
+                        if (count++ != 0)
+                        {
+                            printf("\t");
+                        }
 
-                  printf("%s", *value);
+                        printf("%s", *value);
 
-                  value++;
-               }
+                        value++;
+                    }
 
-               printf("\n");
-            }
+                    printf("\n");
+                }
 
-            void ClearRows() override
-            {
+                void ClearRows() override
+                {
 
-            }
+                }
 
-            void SetColumns(cstr columnNames[], int widths[]) override
-            {
+                void SetColumns(cstr columnNames[], int widths[]) override
+                {
+                    UNUSED(columnNames);
+                    UNUSED(widths);
+                }
 
-            }
+                int NumberOfRows() const override
+                {
+                    return 0;
+                }
 
-            int NumberOfRows() const override
-            {
-               return 0;
-            }
+                void DeleteRow(int rowIndex) override
+                {
+                    UNUSED(rowIndex);
+                }
 
-            void DeleteRow(int rowIndex) override
-            {
+            } anonList;
+            populator.Populate(anonList);
+        }
 
-            }
+        void Run(IDebuggerPopulator& populator, IDebugControl& control) override
+        {
+            UNUSED(control);
+            populator.Populate(*this);
 
-         } anonList;
-         populator.Populate(anonList);
-      }
+            OS::UILoop(1000);
+        }
 
-      void Run(IDebuggerPopulator& populator, IDebugControl& control) override
-      {
-         populator.Populate(*this);
+        void SetCodeHilight(cstr source, const Vec2i& start, const Vec2i& end, cstr message) override
+        {
+            UNUSED(source);
+            printf("Code Highlight: %s (%d,%d) to (%d,%d)\n\t%s\n", source, start.x, start.y, end.x, end.y, message);
+        }
 
-         OS::UILoop(1000);
-      }
+        void ShowWindow(bool show, IDebugControl* debugControl) override
+        {
+            UNUSED(show);
+            UNUSED(debugControl);
+        }
 
-      void SetCodeHilight(cstr source, const Vec2i& start, const Vec2i& end, cstr message) override
-      {
-         printf("Code Highlight: %s (%d,%d) to (%d,%d)\n\t%s\n", source, start.x, start.y, end.x, end.y, message);
-      }
+        void AddLogSection(RGBAb colour, cstr format, ...) override
+        {
+            UNUSED(colour);
 
-      void ShowWindow(bool show, IDebugControl* debugControl) override
-      {
-         
-      }
+            char msg[4096];
 
-      void AddLogSection(RGBAb colour, cstr format, ...) override
-      {
-         char msg[4096];
+            va_list args;
+            va_start(args, format);
+            SafeVFormat(msg, sizeof(msg), format, args);
+            printf("%s\n", msg);
+        }
 
-         va_list args;
-         va_start(args, format);
-         SafeVFormat(msg, sizeof(msg), format, args);
-         printf("%s\n", msg);
-      }
+        void ClearLog() override
+        {
 
-      void ClearLog() override
-      {
+        }
 
-      }
+        int Log(cstr format, ...) override
+        {
+            char msg[4096];
 
-      int Log(cstr format, ...) override
-      {
-         char msg[4096];
+            va_list args;
+            va_start(args, format);
+            SafeVFormat(msg, sizeof(msg), format, args);
+            return printf("%s\n", msg);
+        }
 
-         va_list args;
-         va_start(args, format);
-         SafeVFormat(msg, sizeof(msg), format, args);
-         return printf("%s\n", msg);
-      }
-   };
+        void ClearSourceCode() override
+        {
+
+        }
+    };
 }
 
 namespace Rococo
 {
-	namespace Windows
-	{
-		namespace IDE
-		{
-			IDebuggerWindow* CreateDebuggerWindow(Windows::IWindow& parent, IEventCallback<MenuCommand>& menuHandler, OS::IAppControl& appControl)
-			{
-				return new StdoutDebugger();
-			}
-		}
-	}
+    namespace Windows
+    {
+        namespace IDE
+        {
+            IDebuggerWindow* CreateDebuggerWindow(Windows::IWindow& parent, IEventCallback<MenuCommand>& menuHandler, OS::IAppControl& appControl)
+            {
+                UNUSED(parent);
+                UNUSED(menuHandler);
+                UNUSED(appControl);
+                return new StdoutDebugger();
+            }
+        }
+    }
 }

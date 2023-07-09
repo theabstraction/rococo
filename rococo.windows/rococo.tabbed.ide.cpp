@@ -44,7 +44,7 @@ namespace
    {
       static const OUTPUT_TYPE& Convert(const INPUT_TYPE& value)
       {
-         return this_conversion_is_not_implemented();
+          
       }
    };
 
@@ -293,12 +293,13 @@ namespace
       {
       }
 
-      virtual void OnSize(HWND hWnd, const Vec2i& span, RESIZE_TYPE type)
+      virtual void OnSize(HWND, const Vec2i& span, RESIZE_TYPE)
       {
+          UNUSED(span);
          LayoutChildren();
       }
 
-      LRESULT OnSetCursor(HWND hWnd, WPARAM wParam, LPARAM lParam)
+      LRESULT OnSetCursor(HWND, WPARAM, LPARAM)
       {
          SetCursor(LoadCursor(nullptr, IDC_HAND));
          return TRUE;
@@ -360,7 +361,7 @@ namespace
       {
       }
 
-      virtual void OnSize(HWND hWnd, const Vec2i& span, RESIZE_TYPE type)
+      virtual void OnSize(HWND, const Vec2i&, RESIZE_TYPE)
       {
          LayoutChildren();
       }
@@ -479,7 +480,6 @@ namespace
 
          if (tabView == nullptr)
          {
-            GuiRect rect{ wrect.left, wrect.top, wrect.right, wrect.bottom };
 			DWORD style = TCS_BUTTONS;
             tabView = Windows::AddTabs(*window, rect, "Tabbed Control", 0x41000000, *this, style, 0);
          }
@@ -635,9 +635,9 @@ namespace
          }
       }
 
-      virtual void OnMenuCommand(HWND hWnd, DWORD id)
+      virtual void OnMenuCommand(HWND, DWORD controlId)
       {
-         switch (id)
+         switch (controlId)
          {
          case ELayout_Tabbed:
             layout = ELayout_Tabbed;
@@ -717,8 +717,10 @@ namespace
          else if (msg == WM_INITMENUPOPUP)
          {
             HMENU hMenu = (HMENU)wParam;
-            UINT pos = LOWORD(lParam);
+            UINT originPos = LOWORD(lParam);
             BOOL isWindowMenu = HIWORD(lParam);
+            UNUSED(isWindowMenu);
+            UNUSED(originPos);
 
             if (hMenu == *contextMenu)
             {
@@ -772,7 +774,7 @@ namespace
          return StandardWindowHandler::OnMessage(hWnd, msg, wParam, lParam);
       }
 
-      virtual void OnSize(HWND hWnd, const Vec2i& span, RESIZE_TYPE type)
+      virtual void OnSize(HWND, const Vec2i&, RESIZE_TYPE)
       {
          LayoutChildren();
       }
@@ -1212,7 +1214,7 @@ namespace
          }
       }
 
-      virtual void OnSize(HWND hWnd, const Vec2i& span, RESIZE_TYPE type)
+      virtual void OnSize(HWND, const Vec2i&, RESIZE_TYPE)
       {
          LayoutChildren();
       }
@@ -1288,7 +1290,7 @@ namespace
          treeClient = Windows::AddTree(*treeFrame, GuiRect(1, 1, 2, 2), "", 1008, *this, WS_CHILD | WS_VISIBLE | TVS_HASLINES | TVS_HASBUTTONS | TVS_LINESATROOT | WS_BORDER);
       }
 
-      virtual void OnSize(HWND hWnd, const Vec2i& span, RESIZE_TYPE type)
+      virtual void OnSize(HWND, const Vec2i& span, RESIZE_TYPE)
       {
          MoveWindow(*treeFrame, 0, 0, span.x, span.y, TRUE);
          MoveWindow(*treeClient, 0, 0, span.x, span.y, TRUE);
@@ -1328,19 +1330,18 @@ namespace
    private:
 	   IListViewEvents& eventHandler;
 
-	   void OnDrawItem(DRAWITEMSTRUCT& dis) override
+	   void OnDrawItem(DRAWITEMSTRUCT&) override
 	   {
 
 	   }
 
-	   void OnMeasureItem(MEASUREITEMSTRUCT& mis) override
+	   void OnMeasureItem(MEASUREITEMSTRUCT&) override
 	   {
 
 	   }
 
 	   void OnItemChanged(int index) override
 	   {
-		   HRESULT hr = 1282;
 		   eventHandler.OnItemChanged(index);
 	   }
 
@@ -1365,7 +1366,7 @@ namespace
 	   {
 	   }
 
-	   virtual void OnSize(HWND hWnd, const Vec2i& span, RESIZE_TYPE type)
+	   void OnSize(HWND, const Vec2i&, RESIZE_TYPE) override
 	   {
 		   LayoutChildren();
 	   }
@@ -1450,7 +1451,7 @@ namespace
 		  }
 	  }
 
-	  LRESULT OnCommand(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) override
+	  LRESULT OnCommand(HWND hWnd, UINT, WPARAM wParam, LPARAM lParam) override
 	  {
 		  return OnCommand(hWnd, wParam, lParam);
 	  }
@@ -1460,6 +1461,8 @@ namespace
 		  auto wNotifyCode = HIWORD(wParam); // notification code
 		  auto wID = LOWORD(wParam); // item, control, or accelerator identifier
 		  auto hwndCtl = (HWND)lParam;
+
+          UNUSED(hwndCtl);
 
 		  if (wNotifyCode == 0)
 		  {
@@ -1567,7 +1570,7 @@ namespace
 
       VariantValue id;
       Parse::TryParse(id, VARTYPE_Int32, GetAtomicArg(svid, 2).String()->Buffer);
-      if (GetAtomicArg(svid, 0) != "Version" || id.int32Value != versionId)
+      if (GetAtomicArg(svid, 0) != "Version" || id.int32Value != (int32) versionId)
       {
          ThrowSex(svid, "Expecting (Version int32 0x%x)", versionId);
       }
@@ -1634,34 +1637,34 @@ namespace
 
 namespace Rococo
 {
-   namespace Windows
-   {
-      namespace IDE
-      {
-         IIDETextWindow* CreateTextWindow(IWindow& parent)
-         {
-            return IDETextWindow::Create(parent);
-         }
+    namespace Windows
+    {
+        namespace IDE
+        {
+            IIDETextWindow* CreateTextWindow(IWindow& parent)
+            {
+                return IDETextWindow::Create(parent);
+            }
 
-         IIDETreeWindow* CreateTreeView(IWindow& parent, ITreeControlHandler* handler)
-         {
-            return IDETreeView::Create(parent, handler);
-         }
+            IIDETreeWindow* CreateTreeView(IWindow& parent, ITreeControlHandler* handler)
+            {
+                return IDETreeView::Create(parent, handler);
+            }
 
-         IIDEReportWindow* CreateReportView(IWindow& parent, IListViewEvents& eventHandler)
-         {
-            return IDEReportWindow::Create(parent, eventHandler);
-         }
+            IIDEReportWindow* CreateReportView(IWindow& parent, IListViewEvents& eventHandler)
+            {
+                return IDEReportWindow::Create(parent, eventHandler);
+            }
 
-         ISpatialManager* CreateSpatialManager(IWindow& parent, IPaneDatabase& database)
-         {
-            return IDESpatialManager::Create(parent, database, true);
-         }
+            ISpatialManager* CreateSpatialManager(IWindow& parent, IPaneDatabase& database)
+            {
+                return IDESpatialManager::Create(parent, database, true);
+            }
 
-         ISpatialManager* LoadSpatialManager(IWindow& parent, IPaneDatabase& database, const IDEPANE_ID* idArray, size_t nPanes, UINT versionId, LOGFONTA& logFont, cstr appName)
-         {
-            return _LoadSpatialManager(parent, logFont, database, idArray, nPanes, versionId, appName);
-         }
-      }
-   }
+            ISpatialManager* LoadSpatialManager(IWindow& parent, IPaneDatabase& database, const IDEPANE_ID* idArray, size_t nPanes, UINT versionId, LOGFONTA& logFont, cstr appName)
+            {
+                return _LoadSpatialManager(parent, logFont, database, idArray, nPanes, versionId, appName);
+            }
+        }
+    }
 }

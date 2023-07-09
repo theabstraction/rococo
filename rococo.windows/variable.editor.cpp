@@ -206,14 +206,15 @@ namespace
 			}
 		}
 
-		virtual void OnPretranslateMessage(MSG& msg)
+		void OnPretranslateMessage(MSG& msg) override
 		{
 			SendMessage(hwndTip, TTM_RELAYEVENT, 0, (LPARAM)&msg);
 		}
 
-		virtual void OnTabRightClicked(int index, const POINT& screenPos)
+		void OnTabRightClicked(int index, const POINT& screenPos) override
 		{
-
+			UNUSED(index);
+			UNUSED(screenPos);
 		}
 
 		void OpenFilenameEditor(VariableDesc& v)
@@ -244,11 +245,11 @@ namespace
 			SetCurrentDirectoryA(currentDirectory);
 		}
 
-		virtual void OnMenuCommand(HWND hWnd, DWORD id)
+		virtual void OnMenuCommand(HWND, DWORD id)
 		{
 			for (VariableDesc& v : variables)
 			{
-				if (v.SpecialButtonControl != nullptr && GetDlgCtrlID(*v.SpecialButtonControl) == id)
+				if (v.SpecialButtonControl != nullptr && GetDlgCtrlID(*v.SpecialButtonControl) == (int) id)
 				{
 					if (v.var.type == EVariantType_String)
 					{
@@ -264,7 +265,7 @@ namespace
 			}
 		}
 
-		LRESULT OnControlCommand(HWND hWnd, DWORD notificationCode, ControlId id, HWND hControlCode)
+		LRESULT OnControlCommand(HWND, DWORD notificationCode, ControlId id, HWND hControlCode)
 		{
 			switch (notificationCode)
 			{
@@ -313,12 +314,12 @@ namespace
 			return 0L;
 		}
 
-		void OnClose(HWND hWnd)
+		void OnClose(HWND)
 		{
 			dlg.TerminateDialog(IDCANCEL);
 		}
 
-		void OnSize(HWND hWnd, const Vec2i& span, RESIZE_TYPE type)
+		void OnSize(HWND, const Vec2i&, RESIZE_TYPE)
 		{
 			Resize();
 		}
@@ -355,7 +356,7 @@ namespace
 
 			if (defaultTab)
 			{
-				tabControl = Windows::AddTabs(*supervisor, GuiRect(1, 1, 1, 1), "", -1, *this, WS_CLIPSIBLINGS | TCS_TOOLTIPS, 0);
+				tabControl = Windows::AddTabs(*supervisor, GuiRect(1, 1, 1, 1), "", (ControlId) - 1, *this, WS_CLIPSIBLINGS | TCS_TOOLTIPS, 0);
 				tabControl->AddTab(defaultTab, defaultTooltip);
 			}
 			else
@@ -374,7 +375,7 @@ namespace
 
 			WindowConfig childConfig;
 			Windows::SetChildWindowConfig(childConfig, ClientArea(tabParent), tabParent, "", WS_VISIBLE | WS_CHILD, 0);
-			tab = tabParent.AddChild(childConfig, -1, this);
+			tab = tabParent.AddChild(childConfig, (ControlId) -1, this);
 			SetBackgroundColour(GetSysColor(COLOR_3DFACE));
 
 			GuiRect clientArea = ClientArea(*supervisor);
@@ -501,7 +502,7 @@ namespace
 			VariableDesc v = { 0 };
 			tabControl->GetTabName(tabControl->TabCount() - 1, v.tabName, VariableDesc::TAB_NAME_CAPACITY);
 
-			v.StaticControl = AddLabel(*tab, GetDefaultLabelRect(), variableName, -1, WS_VISIBLE | SS_RIGHT, 0);
+			v.StaticControl = AddLabel(*tab, GetDefaultLabelRect(), variableName, (ControlId) -1, WS_VISIBLE | SS_RIGHT, 0);
 			v.CheckBox = AddCheckBox(*tab, GetDefaultEditRect(), "", nextId++, BS_AUTOCHECKBOX | WS_VISIBLE, 0);
 
 			StackStringBuilder sb(v.name, v.NAME_CAPACITY);
@@ -528,7 +529,7 @@ namespace
 			char editor[256];
 			SecureFormat(editor, sizeof(editor), "Edit_%s", variableName);
 
-			v.StaticControl = AddLabel(*tab, GetDefaultLabelRect(), variableName, -1, WS_VISIBLE | SS_RIGHT, 0);
+			v.StaticControl = AddLabel(*tab, GetDefaultLabelRect(), variableName, (ControlId) -1, WS_VISIBLE | SS_RIGHT, 0);
 			v.EditControl = AddEditor(*tab, GetDefaultEditRect(), editor, nextId++, WS_VISIBLE, WS_EX_CLIENTEDGE);
 
 			AddToolTip(*v.StaticControl, variableDesc);
@@ -565,7 +566,7 @@ namespace
 
 			GuiRect buttonRect = GetDefaultEditRect();
 
-			v.StaticControl = AddLabel(*tab, GetDefaultLabelRect(), variableDesc, -1, WS_VISIBLE | SS_RIGHT, 0);
+			v.StaticControl = AddLabel(*tab, GetDefaultLabelRect(), variableDesc, (ControlId) -1, WS_VISIBLE | SS_RIGHT, 0);
 			v.SpecialButtonControl = Windows::AddPushButton(*tab, buttonRect, variableDesc, nextId++, WS_VISIBLE | BS_PUSHBUTTON, WS_EX_CLIENTEDGE);
 			AddToolTip(*v.StaticControl, variableDesc);
 
@@ -599,7 +600,7 @@ namespace
 			GuiRect comboRect = GetDefaultEditRect();
 			comboRect.bottom += 60;
 
-			v.StaticControl = AddLabel(*tab, GetDefaultLabelRect(), variableName, -1, WS_VISIBLE | SS_RIGHT, 0);
+			v.StaticControl = AddLabel(*tab, GetDefaultLabelRect(), variableName, (ControlId) -1, WS_VISIBLE | SS_RIGHT, 0);
 			v.ComboControl = AddComboBox(*tab, comboRect, editor, nextId++, WS_VISIBLE | CBS_SIMPLE | CBS_HASSTRINGS | CBS_DISABLENOSCROLL, 0, WS_EX_STATICEDGE);
 			AddToolTip(*v.StaticControl, variableDesc);
 
@@ -643,7 +644,7 @@ namespace
 			char editor[256];
 			SecureFormat(editor, sizeof(editor), "Edit_%s", variableName);
 
-			v.StaticControl = AddLabel(*tab, GetDefaultLabelRect(), variableName, -1, WS_VISIBLE | SS_RIGHT, 0);
+			v.StaticControl = AddLabel(*tab, GetDefaultLabelRect(), variableName, (ControlId) -1, WS_VISIBLE | SS_RIGHT, 0);
 			v.EditControl = AddEditor(*tab, GetDefaultEditRect(), editor, nextId++, WS_VISIBLE, WS_EX_CLIENTEDGE);
 			AddToolTip(*v.StaticControl, variableDesc);
 
@@ -679,7 +680,7 @@ namespace
 			GuiRect buttonRect = GetDefaultEditRect();
 			buttonRect.left = buttonRect.right - 36;
 
-			v.StaticControl = AddLabel(*tab, GetDefaultLabelRect(), variableName, -1, WS_VISIBLE | SS_RIGHT, 0);
+			v.StaticControl = AddLabel(*tab, GetDefaultLabelRect(), variableName, (ControlId) -1, WS_VISIBLE | SS_RIGHT, 0);
 			v.EditControl = AddEditor(*tab, editRect, editor, nextId++, WS_VISIBLE, WS_EX_CLIENTEDGE);
 			v.SpecialButtonControl = Windows::AddPushButton(*tab, buttonRect, "...", nextId++, WS_VISIBLE | BS_PUSHBUTTON, WS_EX_CLIENTEDGE);
 			AddToolTip(*v.StaticControl, variableDesc);
@@ -836,7 +837,7 @@ namespace
 			}
 		}
 
-		virtual int GetInteger(cstr variableName)
+		int GetInteger(cstr variableName) override
 		{
 			for (const VariableDesc& v : variables)
 			{
@@ -854,10 +855,9 @@ namespace
 			}
 
 			Throw(0, "VariableEditor::GetInteger('%s'). Item not found", variableName);
-			return 0;
 		}
 
-		virtual bool GetBoolean(cstr variableName)
+		bool GetBoolean(cstr variableName) override
 		{
 			for (const VariableDesc& v : variables)
 			{
@@ -875,7 +875,6 @@ namespace
 			}
 
 			Throw(0, "VariableEditor::GetInteger('%s'). Item not found", variableName);
-			return 0;
 		}
 
 		virtual void Free()

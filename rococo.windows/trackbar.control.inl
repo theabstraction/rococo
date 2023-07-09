@@ -16,8 +16,9 @@ namespace
 
 		void OnScroll(SCROLL_BAR_MESSAGE msg)
 		{
+			UNUSED(msg);
 			LRESULT pos = SendMessage(hWndBar, TBM_GETPOS, 0, 0);
-			handler.OnMove((int) pos);
+			handler.OnMove((int)pos);
 		}
 
 		virtual LRESULT OnMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -33,7 +34,7 @@ namespace
 			return DefWindowProc(hWnd, uMsg, wParam, lParam);
 		}
 
-		LRESULT OnSize(HWND hWnd, WPARAM wParam, LPARAM lParam)
+		LRESULT OnSize(HWND, WPARAM wParam, LPARAM lParam)
 		{
 			DWORD width = LOWORD(lParam);
 			DWORD height = HIWORD(lParam);
@@ -51,10 +52,10 @@ namespace
 			return 0L;
 		}
 
-      virtual void OnPretranslateMessage(MSG& msg)
-      {
+		void OnPretranslateMessage(MSG&) override
+		{
 
-      }
+		}
 	public:
 		static TrackBarSupervisor* Create(const WindowConfig& barConfig, IParentWindowSupervisor& parent, ITrackBarHandler& handler)
 		{

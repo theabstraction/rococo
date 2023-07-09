@@ -22,7 +22,7 @@ namespace
 			DeleteAll(children);
 		}
 
-      virtual void OnPretranslateMessage(MSG& msg)
+      virtual void OnPretranslateMessage(MSG&)
       {
 
       }
@@ -82,7 +82,7 @@ namespace
 			return control.OnExitModal();
 		}
 	public:
-		static DialogWindowImpl* DialogWindowImpl::Create(const WindowConfig& config, bool autoDestroy, IWindowHandler* modelessHandler = nullptr)
+		static DialogWindowImpl* Create(const WindowConfig& config, IWindowHandler* modelessHandler = nullptr)
 		{
 			if (customAtom == 0)
 			{

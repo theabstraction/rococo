@@ -19,10 +19,10 @@ namespace
 			DeleteAll(children);
 		}
 
-      virtual void OnPretranslateMessage(MSG& msg)
-      {
+		virtual void OnPretranslateMessage(MSG&)
+		{
 
-      }
+		}
 
 		virtual LRESULT OnMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		{
@@ -56,22 +56,22 @@ namespace
 
 		static ChildWindowImpl* Create(const WindowConfig& config, cstr childClassName)
 		{
-			ChildWindowImpl* p = new ChildWindowImpl(false);
+			ChildWindowImpl* p = new ChildWindowImpl(nullptr);
 			p->hWnd = CreateWindowIndirect(childClassName, config, nullptr);
 			return p;
 		}
 
-		virtual operator HWND () const
+		operator HWND () const override
 		{
 			return hWnd;
 		}
 
-		virtual void Free()
+		void Free() override
 		{
 			delete this;
 		}
 
-		virtual IWindowSupervisor* AddChild(const WindowConfig& _childConfig, cstr className, ControlId id)
+		IWindowSupervisor* AddChild(const WindowConfig& _childConfig, cstr className, ControlId id) override
 		{
 			WindowConfig childConfig = _childConfig;
 			childConfig.hWndParent = hWnd;
@@ -82,7 +82,7 @@ namespace
 			return p;
 		}
 
-		virtual IParentWindowSupervisor* AddChild(const WindowConfig& _childConfig, ControlId id, IWindowHandler* modelessHandler)
+		IParentWindowSupervisor* AddChild(const WindowConfig& _childConfig, ControlId id, IWindowHandler* modelessHandler) override
 		{
 			WindowConfig childConfig = _childConfig;
 			childConfig.hWndParent = hWnd;
