@@ -126,8 +126,8 @@ namespace Rococo::OS
 	ROCOCO_API size_t LoadAsciiTextFile(char* data, size_t capacity, const wchar_t* filename);
 	ROCOCO_API void LoadAsciiTextFile(IEventCallback<cstr>& callback, const wchar_t* filename);
 	ROCOCO_API void PollKeys(uint8 scanArray[256]);
-	ROCOCO_API void MakeContainerDirectory(char* filename);
-	ROCOCO_API void MakeContainerDirectory(wchar_t* filename);
+	ROCOCO_API bool MakeContainerDirectory(char* filename);
+	ROCOCO_API bool MakeContainerDirectory(wchar_t* filename);
 
 	class Lock
 	{

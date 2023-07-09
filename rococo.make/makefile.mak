@@ -82,6 +82,9 @@ all: $(CPP_MASTER) $(MPLAT_COMPONENTS_H) $(MPLAT_SXH_H) $(HV_SXH_H)  $(MHOST_SXH
 	msbuild $(DIR_MHOST)mhost.vcxproj                                $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
 	$(ROCOCO)packages\gen.mhost.package.bat
 	msbuild $(DIR_HV)hyperverse.vcxproj								 $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
+	msbuild $(ROCOCO)sexystudio/sexystudio.vcxproj                           $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
+	msbuild $(ROCOCO)sexystudio.app/sexystudio.app.vcxproj                   $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
+	msbuild $(ROCOCO)sexystudio.test/sexystudio.test.vcxproj                 $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
 
 clean: 
 	msbuild $(DIR_SEXY)sexy.sln $(MS_BUILD_CLEAN)

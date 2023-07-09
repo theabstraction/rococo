@@ -1487,8 +1487,8 @@ namespace ANON
 		ANON::SxyNamespace rootNS;
 		std::unordered_map<std::string, std::unique_ptr<File_SXY>> filenameToFile;
 
-		AutoFree<IOSSupervisor> os = GetOS();
-		AutoFree<IInstallationSupervisor> installation;
+		AutoFree<IO::IOSSupervisor> os = IO::GetIOS();
+		AutoFree<IO::IInstallationSupervisor> installation;
 
 		SolutionFile solutionFile;
 
@@ -1555,17 +1555,37 @@ namespace ANON
 			return rootNS;
 		}
 
+		void SearchContainersAndAddSexyVisFilesToDatabase(cstr projectFilePath)
+		{
+			WideFilePath wSexyVisPath;
+			WideFilePath wSexyVisDirectory;
+			Assign(wSexyVisDirectory, projectFilePath);
+			while (OS::MakeContainerDirectory(wSexyVisDirectory.buf))
+			{
+				WideFilePath wSexyVisPath;
+				Format(wSexyVisPath, L"%simplicits.vis.sxy", wSexyVisDirectory.buf);
+				if (OS::IsFileExistant(wSexyVisPath))
+				{
+					AutoRelease<ISourceCode> visSrc = sparser->LoadSource(wSexyVisPath, { 1,1 });
+					AutoRelease<ISParserTree>visTree = sparser->CreateTree(*visSrc);
+					BuildDatabaseFromProject(*this, visTree->Root(), projectFilePath, false);
+					break;
+				}
+			}
+		}
+
 		void FocusProject(cstr projectFilePath) override
 		{
+			this->Clear();
+
 			WideFilePath wPath;
 			Assign(wPath, projectFilePath);
 
-			AutoRelease<ISourceCode> src = sparser->LoadSource(wPath, { 1,1 });
-			AutoRelease<ISParserTree> tree;
+			SearchContainersAndAddSexyVisFilesToDatabase(projectFilePath);
 
-			tree = sparser->CreateTree(*src);
-			
-			BuildDatabaseFromProject(*this, tree->Root(), projectFilePath);
+			AutoRelease<ISourceCode> src = sparser->LoadSource(wPath, { 1,1 });
+			AutoRelease<ISParserTree> tree = sparser->CreateTree(*src);
+			BuildDatabaseFromProject(*this, tree->Root(), projectFilePath, true);
 		}
 
 		void ResolveRecursive(SxyNamespace& ns)
@@ -1720,11 +1740,11 @@ namespace ANON
 						file.errorMessage = ex.Message();
 					}
 				}
-			}
 
-			if (i->second->s_tree)
-			{
-				ParseTree(*i->second->s_tree, *i->second);
+				if (i->second->s_tree)
+				{
+					ParseTree(*i->second->s_tree, *i->second);
+				}
 			}
 		}
 

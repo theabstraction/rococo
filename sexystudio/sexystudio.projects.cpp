@@ -293,9 +293,8 @@ namespace Rococo::SexyStudio
 		PopulateDatabaseWithPackagesRecursive(*package, database, "");
 	}
 
-	void BuildDatabaseFromProject(ISexyDatabase& database, cr_sex sProjectRoot, cstr projectPath)
+	void BuildDatabaseFromProject(ISexyDatabase& database, cr_sex sProjectRoot, cstr projectPath, bool addNativeDeclarations)
 	{
-		database.Clear();
 		database.UpdateFile_SXY(projectPath);
 
 		cstr natives[] =
@@ -345,7 +344,7 @@ namespace Rococo::SexyStudio
 								database.UpdateFile_SXY(sysPath);
 
 								int priority;
-								cstr declarations = database.Solution().GetDeclarationPathForInclude(pingPath, priority);
+								cstr declarations = addNativeDeclarations ? database.Solution().GetDeclarationPathForInclude(pingPath, priority) : nullptr;
 								if (declarations)
 								{
 									if (priority < bestPriority)
@@ -380,7 +379,7 @@ namespace Rococo::SexyStudio
 									PopulateTreeWithPackages(sysPackagePath, database);
 
 									int priority;
-									cstr declarations = database.Solution().GetDeclarationPathForImport(packageName, priority);
+									cstr declarations = addNativeDeclarations ? database.Solution().GetDeclarationPathForImport(packageName, priority) : nullptr;
 									if (declarations)
 									{
 										if (priority < bestPriority)
@@ -397,7 +396,7 @@ namespace Rococo::SexyStudio
 			}
 		}
 
-		if (bestDeclarationsFile)
+		if (addNativeDeclarations && bestDeclarationsFile)
 		{
 			U8FilePath sysPath;
 			database.PingPathToSysPath(bestDeclarationsFile, sysPath);

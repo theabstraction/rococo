@@ -518,7 +518,7 @@ namespace Rococo::OS
 		ShellExecuteW(window, L"open", sysPath, nullptr, nullptr, SW_SHOW);
 	}
 
-	ROCOCO_API void MakeContainerDirectory(char* filename)
+	ROCOCO_API bool MakeContainerDirectory(char* filename)
 	{
 		int len = (int)rlen(filename);
 
@@ -527,12 +527,14 @@ namespace Rococo::OS
 			if (filename[i] == '\\')
 			{
 				filename[i + 1] = 0;
-				return;
+				return true;
 			}
 		}
+
+		return false;
 	}
 
-	ROCOCO_API void MakeContainerDirectory(wchar_t* filename)
+	ROCOCO_API bool MakeContainerDirectory(wchar_t* filename)
 	{
 		int len = (int)wcslen(filename);
 
@@ -541,9 +543,11 @@ namespace Rococo::OS
 			if (filename[i] == L'\\')
 			{
 				filename[i + 1] = 0;
-				return;
+				return true;
 			}
 		}
+
+		return false;
 	}
 
 	ROCOCO_API void ShellOpenDocument(cstr documentFilePath)

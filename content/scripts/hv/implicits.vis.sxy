@@ -1,0 +1,13 @@
+(' #file.type SexyStudio.Implicit)
+
+// This file is used by the SexyStudio library to identify the implicitly added sxy files to a sxy project. All files in this directory and subdirectors will be tagged with these implicit includes
+
+(' #include
+	"!scripts/hv_sxh.sxy",
+	"!scripts/hv/hv.types.sxy",
+	"!scripts/mplat_sxh.sxy",
+	"!scripts/mplat_pane_sxh.sxy",
+	"!scripts/mplat_types.sxy",
+	"!scripts/types.sxy",
+	"!scripts/audio_types.sxy"
+)

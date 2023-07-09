@@ -5,6 +5,7 @@
 
 #include <rococo.api.h>
 #include <rococo.events.h>
+#include <rococo.time.h>
 
 using namespace Rococo::Strings;
 
@@ -258,7 +259,7 @@ namespace Rococo::SexyStudio
 		virtual ISolution& Solution() = 0;
 	};
 
-	void BuildDatabaseFromProject(ISexyDatabase& database, cr_sex sProjectRoot, cstr projectPath);
+	void BuildDatabaseFromProject(ISexyDatabase& database, cr_sex sProjectRoot, cstr projectPath, bool addDeclarations);
 
 	typedef int64 ID_TREE_ITEM;
 
@@ -559,7 +560,7 @@ namespace Rococo::SexyStudio
 	struct TooltipArgs: Rococo::Events::EventArgs
 	{
 		cstr text;
-		OS::ticks hoverTime;
+		Time::ticks hoverTime;
 		bool useSingleLine;
 		RGBAb textColour;
 		RGBAb backColour;
