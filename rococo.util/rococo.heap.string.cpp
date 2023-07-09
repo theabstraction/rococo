@@ -218,6 +218,7 @@ namespace ANON
 
 		StringKey(cstr stackString, int unused) : invariantString(stackString)
 		{
+			UNUSED(unused);
 			hashCode = FastHash(stackString, strlen(stackString));
 		}
 

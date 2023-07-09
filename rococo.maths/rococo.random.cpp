@@ -19,6 +19,7 @@ namespace Rococo::Random
 		static_assert(sizeof(RandomMT::OpaqueBlock) > sizeof(TRandomizer), "Insufficient data in opaque buffer");
 		TRandomizer* rng = new (block.opaque) TRandomizer(seed == 0 ? (uint32) Time::TickCount() : seed);
 		auto dummy = (*rng)();
+		UNUSED(dummy);
 	}
 
 	RandomMT::~RandomMT()

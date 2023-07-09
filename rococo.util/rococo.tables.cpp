@@ -212,6 +212,7 @@ namespace Rococo::IO
 		for (int i = 0; i < numberOfColumns; i++)
 		{
 			cstr cppType = NextString(source);
+			UNUSED(cppType);
 		}
 
 		ValidateString(source, "Titles"_fstring);

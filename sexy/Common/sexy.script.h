@@ -135,8 +135,8 @@ namespace Rococo {
 			}
 		}
 #else
-		inline void ValidateOutputIndex(int index, const Compiler::IFunctionCode& code) {}
-		inline void ValidateInputIndex(int index, const Compiler::IFunctionCode& code) {}
+		inline void ValidateOutputIndex(int, const Compiler::IFunctionCode&)  {}
+		inline void ValidateInputIndex(int, const Compiler::IFunctionCode&) {}
 #endif
 
 		template<class T> void ReadInput(T& value, const uint8 *SF, ptrdiff_t offset)

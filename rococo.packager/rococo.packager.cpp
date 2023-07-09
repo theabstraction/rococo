@@ -96,13 +96,16 @@ struct Pack
 
         char dirInfo[128];
         int diCount = SecureFormat(dirInfo, "\nFiles:%u\n\n", fileCount);
+
+        UNUSED(diCount);
+
         Write(to_fstring(dirInfo));
 
         struct : IEventCallback<IO::FileItemData>
         {
-            IBinaryArchive* f;
+            IBinaryArchive* f = nullptr;
             uint64 len = 0;
-            size_t prefixLen;
+            size_t prefixLen = 0;
             void OnEvent(IO::FileItemData& file)
             {
                 auto* srcFile = file.fullPath;

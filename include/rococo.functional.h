@@ -47,9 +47,9 @@ namespace Rococo
 	template<typename RETURN_TYPE, typename ... ARGS>
 	struct IComissary
 	{
+		virtual ~IComissary<RETURN_TYPE, ARGS...>() = 0;
 		virtual RETURN_TYPE Invoke(ARGS&& ...args) const = 0;
 		virtual IComissary<RETURN_TYPE, ARGS...>* Clone() const = 0;
-
 		virtual void CopyTo(char* destination) const = 0;
 	};
 

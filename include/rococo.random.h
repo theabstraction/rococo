@@ -16,7 +16,7 @@ namespace Rococo::Random
 	float NextFloat(IRandom& rng, float minValue, float maxValue);
 	Vec3 NextNormalVector(IRandom& rng);
 
-	class RandomMT : public IRandom
+	class alignas(16) RandomMT : public IRandom
 	{
 	public:
 		RandomMT(uint32 seed = 0);

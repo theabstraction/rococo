@@ -61,8 +61,8 @@ namespace Rococo::IO
 
 	ROCOCO_API void ToU8(const U32FilePath& src, U8FilePath& dest);
 	ROCOCO_API void ToWide(const U32FilePath& src, WideFilePath& dest);
-	ROCOCO_API void PathFromAscii(cstr ascii_string, char separator, U32FilePath& path);
-	ROCOCO_API void PathFromWide(const wchar_t* wide_string, wchar_t separator, U32FilePath& path);
+	ROCOCO_API void PathFromAscii(cstr ascii_string, U32FilePath& path);
+	ROCOCO_API void PathFromWide(const wchar_t* wide_string, U32FilePath& path);
 	ROCOCO_API char DirectorySeparatorChar();
 	ROCOCO_API void UseBufferlessStdout();
 

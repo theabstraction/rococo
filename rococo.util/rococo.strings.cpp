@@ -391,7 +391,7 @@ namespace Rococo::Strings
 			}
 		};
 
-		if (s == nullptr) return -1;
+		if (s == nullptr) return (size_t) -1LL;
 		return ANON::jenkins_one_at_a_time_hash(s, StringLength(s));
 	}
 
@@ -697,7 +697,7 @@ namespace Rococo::Strings
 		return strncmp(a, b, len);
 	}
 
-	ROCOCO_UTIL_API void SplitString(const char* text, size_t length, cstr seperators, IEventCallback<cstr>& onSubString)
+	ROCOCO_UTIL_API void SplitString(const char* text, size_t length, IEventCallback<cstr>& onSubString)
 	{
 		if (length == 0) length = rlen(text);
 		size_t bytecount = sizeof(char) * (length + 1);
@@ -714,19 +714,20 @@ namespace Rococo::Strings
 		}
 	}
 
-	ROCOCO_UTIL_API size_t CountSubStrings(cstr text, size_t length, cstr seperators)
+	ROCOCO_UTIL_API size_t CountSubStrings(cstr text, size_t length)
 	{
 		struct : IEventCallback<cstr>
 		{
 			size_t count;
-			virtual void OnEvent(cstr text)
+			void OnEvent(cstr text) override
 			{
+				UNUSED(text);
 				count++;
 			}
 		} cb;
 
 		cb.count = 0;
-		SplitString(text, length, seperators, cb);
+		SplitString(text, length, cb);
 		return cb.count;
 	}
 
@@ -849,6 +850,7 @@ namespace Rococo::Strings
 	ROCOCO_UTIL_API StackStringBuilder::StackStringBuilder(char* _buffer, size_t _capacity, eOpenType type) :
 		buffer(_buffer), capacity(_capacity)
 	{
+		UNUSED(type);
 		size_t ulen = strlen(buffer);
 		if (ulen > 0x000000007FFFFFFF)
 		{

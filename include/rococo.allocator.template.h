@@ -29,6 +29,7 @@ namespace ANON
 		}
 		void deallocate(T* p, std::size_t n) noexcept
 		{
+			UNUSED(n);
 			moduleAllocator->FreeData(p); // If you get a complaint here, check the instructions at the start of the file
 		}
 

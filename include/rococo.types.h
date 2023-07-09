@@ -66,7 +66,7 @@ inline bool operator == (const DEFINED_ID_NAME& a, const DEFINED_ID_NAME& b) { r
 inline bool operator != (const DEFINED_ID_NAME& a, const DEFINED_ID_NAME& b) { return !(a == b); }                   \
 inline bool operator <  (const DEFINED_ID_NAME& a, const DEFINED_ID_NAME& b) { return a.value < b.value; }
 
-#define NOT_USED(x) (x);
+#define UNUSED(x) (x);
 
 namespace Rococo
 {

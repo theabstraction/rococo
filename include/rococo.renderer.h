@@ -525,7 +525,7 @@ namespace Rococo::Graphics
 	RENDERER_API Vec2i RenderTopLeftAlignedText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const Vec2i& topLeft);
 	RENDERER_API Vec2i RenderTopRightAlignedText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const Vec2i& topRight);
 	RENDERER_API Vec2i RenderRightAlignedText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const GuiRect& rect);
-	RENDERER_API void EvalTextSpan(IGuiRenderContext& g, const fstring& text, int32 fontIndex, int fontHeight, Vec2& pixelSpan);
+	RENDERER_API void EvalTextSpan(IGuiRenderContext& g, const fstring& text, int32 fontIndex, Vec2& pixelSpan);
 	RENDERER_API void DrawRectangle(IGuiRenderContext& grc, const GuiRect& grect, RGBAb diag, RGBAb backdiag);
 	RENDERER_API void DrawBorderAround(IGuiRenderContext& grc, const GuiRect& rect, const Vec2i& width, RGBAb diag, RGBAb backdiag);
 	RENDERER_API void DrawLine(IGuiRenderContext& grc, int pixelthickness, Vec2i start, Vec2i end, RGBAb colour);
@@ -550,8 +550,6 @@ namespace Rococo::Graphics
 	RENDERER_API Fonts::IDrawTextJob& CreateHorizontalCentredText(StackSpaceGraphics& ss, int fontIndex, cstr text, RGBAb _colour);
 	RENDERER_API Fonts::IDrawTextJob& CreateLeftAlignedText(StackSpaceGraphics& ss, const GuiRect& targetRect, int retzone, int hypzone, int fontHeight, int fontIndex, cstr text, RGBAb colour);
 	RENDERER_API float GetAspectRatio(const IRenderer& renderer);
-	RENDERER_API Vec2 PixelSpaceToScreenSpace(const Vec2i& v, IRenderer& renderer);
-
 	RENDERER_API void DrawClippedText(IGuiRenderContext& g, const Rococo::GuiRectf& rect, int32 alignmentFlags, const fstring& text, int32 fontIndex, RGBAb colour, const Rococo::GuiRectf& clipRect);
 	RENDERER_API void DrawTextWithCaret(IGuiRenderContext& g, const Rococo::GuiRectf& rect, int32 alignmentFlags, const fstring& text, int32 fontIndex, RGBAb colour, const Rococo::GuiRectf& clipRect, int32 caretPos);
 	RENDERER_API void DrawLeftAligned(IGuiRenderContext& g, const Rococo::GuiRectf& rect, const fstring& text, int32 fontIndex, int32 fontHeight, RGBAb colour, float32 softRightEdge, float32 hardRightEdge);

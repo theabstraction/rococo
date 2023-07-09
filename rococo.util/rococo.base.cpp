@@ -81,7 +81,7 @@ namespace Rococo
 		   *q = 0;
 	   }
 
-	   ROCOCO_API void PathFromAscii(cstr ascii_string, char separator, U32FilePath& path)
+	   ROCOCO_API void PathFromAscii(cstr ascii_string, U32FilePath& path)
 	   {
 		   char32_t* q = path.buf;
 		   const char* p = ascii_string;
@@ -98,7 +98,7 @@ namespace Rococo
 		   *q = 0;
 	   }
 
-	   ROCOCO_API void PathFromWide(const wchar_t* wide_string, wchar_t separator, U32FilePath& path)
+	   ROCOCO_API void PathFromWide(const wchar_t* wide_string, U32FilePath& path)
 	   {
 		   char32_t* q = path.buf;
 		   const wchar_t* p = wide_string;

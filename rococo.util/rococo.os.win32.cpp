@@ -224,8 +224,8 @@ namespace Rococo
 					hMap = CreateFileMappingA(hFile, NULL, PAGE_READONLY, 0, 0, NULL);
 					if (!hMap)
 					{
-						Throw(GetLastError(), "Error creating map of file: %ls\n", sysPath);
 						CloseHandle(hFile);
+						Throw(GetLastError(), "Error creating map of file: %ls\n", sysPath);						
 					}
 
 					pMem = MapViewOfFile(hMap, FILE_MAP_READ, 0, 0, 0);
@@ -565,7 +565,7 @@ namespace Rococo::OS
 		{
 			static void WakeUp(void* context)
 			{
-
+				UNUSED(context);
 			}
 		};
 		thread.QueueAPC(ANON::WakeUp, nullptr);
@@ -609,7 +609,7 @@ namespace Rococo::OS
 
 			static void WakeUp(ULONG_PTR data)
 			{
-
+				UNUSED(data);
 			}
 
 			void QueueAPC(FN_APC apc, void* context) override
@@ -1231,8 +1231,6 @@ namespace
 		{
 			if (pingPath == nullptr || sysPath == nullptr) Throw(0, "ConvertSysPathToPingPath: Null argument");
 
-			int sysPathLen = (int) wcslen(sysPath);
-
 			size_t contentDirLength = wcslen(contentDirectory);
 			
 			if (0 != _wcsnicmp(sysPath, contentDirectory, wcslen(contentDirectory)))
@@ -1422,7 +1420,13 @@ namespace
 			if (isRunning)
 			{
 				isRunning = false;
-				struct wake { static VOID CALLBACK me(ULONG_PTR param) {} };
+				struct wake 
+				{ 
+					static VOID CALLBACK me(ULONG_PTR param) 
+					{
+						UNUSED(param);
+					} 
+				};
 				QueueUserAPC(wake::me, HANDLE(hThread), 0);
 				WaitForSingleObject(HANDLE(hThread), 5000);
 				CloseHandle(HANDLE(hThread));
@@ -1467,7 +1471,8 @@ namespace
 					lastModifiedList[f] = Rococo::Time::TickCount();
 				}
 
-				cb.OnEvent(FileModifiedArgs{ f.c_str() });
+				FileModifiedArgs args{ f.c_str() };
+				cb.OnEvent(args);
 			}
 		}
 
@@ -1518,9 +1523,9 @@ namespace
 					if (nChars < _MAX_PATH - 1)
 					{
 						WideFilePath nullTerminatedFilename;
-						for (DWORD i = 0; i < nChars; ++i)
+						for (DWORD j = 0; j < nChars; ++j)
 						{
-							nullTerminatedFilename.buf[i] = info.FileName[i];
+							nullTerminatedFilename.buf[j] = info.FileName[j];
 						}
 						nullTerminatedFilename.buf[nChars] = 0;
 
@@ -1560,6 +1565,8 @@ namespace
 
 				static void WINAPI OnScan(DWORD dwErrorCode, DWORD dwNumberOfBytesTransfered, LPOVERLAPPED lpOverlapped)
 				{
+					UNUSED(dwErrorCode);
+					UNUSED(dwNumberOfBytesTransfered);
 					Context* This = (Context*)lpOverlapped->hEvent;
 					This->OnScan();
 				}
@@ -1859,6 +1866,8 @@ namespace Rococo
 			char line[4096];
 			SafeVFormat(line, sizeof(line), format, arglist);
 			OutputDebugStringA(line);
+#else
+			UNUSED(format);
 #endif
 		}
 
@@ -2006,13 +2015,13 @@ namespace Rococo
 
 			if (!CreateDirectoryW(fullpath, nullptr))
 			{
-				HRESULT hr = GetLastError();
+				hr = GetLastError();
 				if (hr == ERROR_ALREADY_EXISTS)
 				{
 					// We ensured the directory exists
 					return;
 				}
-				Throw(GetLastError(), "%s: could not create subdirectory %ws", __FUNCTION__, fullpath);
+				Throw(hr, "%s: could not create subdirectory %ws", __FUNCTION__, fullpath);
 			}
 		}
 
@@ -2106,7 +2115,10 @@ namespace Rococo
 
 			BOOL success = DeleteFileW(fullPath);
 			HRESULT hr = HRESULT_FROM_WIN32(GetLastError());
-			if (success) {}
+			if (!success) 
+			{
+				UNUSED(hr);
+			}
 		}
 
 		ROCOCO_API void SaveUserFile(cstr filename, cstr s)
@@ -2189,11 +2201,11 @@ namespace Rococo
 				IFACEMETHODIMP OnHelp(IFileDialog *) { return S_OK; };
 				IFACEMETHODIMP OnSelectionChange(IFileDialog *) { return S_OK; };
 				IFACEMETHODIMP OnShareViolation(IFileDialog *, IShellItem *, FDE_SHAREVIOLATION_RESPONSE *) { return S_OK; };
-				IFACEMETHODIMP OnTypeChange(IFileDialog *pfd) { return S_OK; };
+				IFACEMETHODIMP OnTypeChange(IFileDialog*) { return S_OK; };
 				IFACEMETHODIMP OnOverwrite(IFileDialog *, IShellItem *, FDE_OVERWRITE_RESPONSE *) { return S_OK; };
 
 				// IFileDialogControlEvents methods
-				IFACEMETHODIMP OnItemSelected(IFileDialogCustomize *pfdc, DWORD dwIDCtl, DWORD dwIDItem) { return S_OK; };
+				IFACEMETHODIMP OnItemSelected(IFileDialogCustomize*, DWORD, DWORD) { return S_OK; };
 				IFACEMETHODIMP OnButtonClicked(IFileDialogCustomize *, DWORD) { return S_OK; };
 				IFACEMETHODIMP OnCheckButtonToggled(IFileDialogCustomize *, DWORD, BOOL) { return S_OK; };
 				IFACEMETHODIMP OnControlActivating(IFileDialogCustomize *, DWORD) { return S_OK; };
@@ -2541,8 +2553,6 @@ namespace Rococo
 
 		ROCOCO_API void PopulateStackView(HWND hStackView, Rococo::IException& ex)
 		{
-			HANDLE hProcess = GetCurrentProcess();
-
 			struct StackFormatter : public Rococo::Debugging::IStackFrameFormatter
 			{
 				HWND hStackView;
@@ -2897,11 +2907,15 @@ namespace Rococo::OS
 	{
 		SecureFormat(textBuffer, lenBytes, "%s", defaultValue);
 
-		auto readValue = [textBuffer, lenBytes, section](HKEY hConfigRoot)
+		auto readValue = [textBuffer, lenBytes, section, organization, root](HKEY hConfigRoot)
 		{
 			DWORD dwType = REG_SZ;
 			DWORD sizeofBuffer = (DWORD)lenBytes;
 			LSTATUS status = RegGetValueA(hConfigRoot, NULL, section.sectionName, REG_SZ, &dwType, textBuffer, &sizeofBuffer);
+			if (status != ERROR_SUCCESS)
+			{
+				Throw(status, "%s: Cannot open or get registry value 'Software/%s/%s' section", __FUNCTION__, organization, root.rootName);
+			}
 		};
 
 		RunInConfig(root, organization, readValue);

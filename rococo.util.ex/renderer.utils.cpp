@@ -438,7 +438,7 @@ namespace Rococo
 {
 	namespace Graphics
 	{
-		ROCOCO_UTILS_EX_API void EvalTextSpan(IGuiRenderContext& g, const fstring& text, int32 fontIndex, int fontHeight, Vec2& pixelSpan)
+		ROCOCO_UTILS_EX_API void EvalTextSpan(IGuiRenderContext& g, const fstring& text, int32 fontIndex, Vec2& pixelSpan)
 		{
 			BasicTextJob job(fontIndex, text, 0xFFFFFFFF, (int)pixelSpan.y);
 			auto iSpan = g.EvalSpan({ 0,0 }, job);
@@ -1276,15 +1276,6 @@ namespace Rococo
 			renderer.GetGuiMetrics(metrics);
 			float aspectRatio = metrics.screenSpan.y / float(metrics.screenSpan.x);
 			return aspectRatio;
-		}
-
-		RENDERER_API Vec2 PixelSpaceToScreenSpace(const Vec2i& v, IRenderer& renderer)
-		{
-			GuiMetrics metrics;
-			renderer.GetGuiMetrics(metrics);
-
-			return{ (2.0f * (float)metrics.cursorPosition.x - metrics.screenSpan.x) / metrics.screenSpan.x,
-				-(2.0f * (float)metrics.cursorPosition.y - metrics.screenSpan.y) / metrics.screenSpan.y };
 		}
 	}
 }
