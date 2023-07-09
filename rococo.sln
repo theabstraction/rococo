@@ -51,6 +51,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		Directory.Build.props = Directory.Build.props
 		FutureGoals.txt = FutureGoals.txt
 		rococo.natvis = rococo.natvis
+		sharpmake\rococo.sharpmake.cs = sharpmake\rococo.sharpmake.cs
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.fonts", "rococo.fonts\fonts.vcxproj", "{31024025-C99F-45A4-A4EA-BCEB32794477}"

@@ -5,6 +5,7 @@
 
 using namespace Rococo;
 using namespace Rococo::Parse;
+using namespace Rococo::Strings;
 
 namespace Rococo::Strings
 {
@@ -611,7 +612,6 @@ namespace Rococo::Parse
 			int32 g;
 			if (TryGetDigit(OUT g, valueDigits[i]))
 			{
-				int32 oldx = x;
 				x += g * exponent;
 
 				if ((x & 0x80000000) != 0)
@@ -671,7 +671,6 @@ namespace Rococo::Parse
 			int32 g;
 			if (TryGetDigit(OUT g, valueDigits[i]))
 			{
-				int64 oldx = x;
 				x += ((int64)g) * exponent;
 
 				if ((x & 0x8000000000000000) != 0)

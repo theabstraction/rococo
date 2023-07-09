@@ -16,10 +16,10 @@ namespace Rococo
 	struct Quat;
 
 	ROCOCO_ID(ID_FONT, int32, -1);
-	ROCOCO_ID(ID_TEXTURE, size_t, -1)
-	ROCOCO_ID(ID_VERTEX_SHADER, size_t, -1)
-	ROCOCO_ID(ID_PIXEL_SHADER, size_t, -1)
-	ROCOCO_ID(ID_GEOMETRY_SHADER, size_t, -1)
+	ROCOCO_ID(ID_TEXTURE, size_t, (size_t) - 1LL)
+	ROCOCO_ID(ID_VERTEX_SHADER, size_t, (size_t)-1LL)
+	ROCOCO_ID(ID_PIXEL_SHADER, size_t, (size_t)-1LL)
+	ROCOCO_ID(ID_GEOMETRY_SHADER, size_t, (size_t)-1LL)
 	ROCOCO_ID(ID_CUBE_TEXTURE, size_t, 0);
 
 	struct Sphere
@@ -118,7 +118,7 @@ namespace Rococo
 	ROCOCO_ID(ID_MESH, int32, 0)
 
 	// ID_SYS_MESH are renderer defined indices that are generated when meshes are loaded into the renderer
-	ROCOCO_ID(ID_SYS_MESH, size_t, -1)
+	ROCOCO_ID(ID_SYS_MESH, size_t,(size_t) - 1LL)
 
 	ROCOCO_ID(ID_WIDGET, int32, 0);
 	ROCOCO_ID(ID_UI_EVENT_TYPE, int64, 0);

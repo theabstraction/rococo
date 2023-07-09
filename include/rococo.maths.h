@@ -582,12 +582,12 @@ namespace Rococo
 			// The points in the plane are the centres of the cube surfaces to which the plane refers
 			Plane planes[6];
 
-			struct
+			struct NamedPlanes
 			{
-				ParallelPlanes westEest;
+				ParallelPlanes westEast;
 				ParallelPlanes southNorth;
 				ParallelPlanes bottomTop;
-			};
+			} namedPlanes;
 
 			ParallelPlanes parallelPlanes[3];
 		} P;

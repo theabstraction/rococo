@@ -188,6 +188,7 @@ namespace Rococo
 {
 	inline Events::EventIdRef operator "" _event(cstr name, size_t len)
 	{
+		NOT_USED(len);
 		return Events::EventIdRef{ name, 0 };
 	}
 }

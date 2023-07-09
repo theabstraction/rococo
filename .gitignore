@@ -52,4 +52,4 @@ intermediate/
 out/
 *.rococo-events.h
 *.rococo-events.cpp
-
+sharpmake/generated/
