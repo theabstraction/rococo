@@ -38,7 +38,7 @@ namespace
 	   caretPos++;
    }
 
-   void DeleteCharAt(int pos, char* buffer, size_t capacity)
+   void DeleteCharAt(int pos, char* buffer, size_t)
    {
 	   char* dest = buffer + pos - 1;
 	   for (const char* p = buffer + pos; *p != 0; ++p)
@@ -73,7 +73,7 @@ namespace
 
 	   if (key.unicode >= 32 && key.unicode < 127)
 	   {
-		   char c = key.unicode;
+		   char c = (char) key.unicode;
 		   InsertCharAtPos(caretPos, buffer, capacity, c);
 		   return;
 	   }

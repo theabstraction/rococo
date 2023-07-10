@@ -274,11 +274,17 @@ namespace
 
 		void RaiseMountain(const Vec3& atPosition, Metres deltaHeight, Metres spread) override
 		{
+			UNUSED(atPosition);
+			UNUSED(deltaHeight);
+			UNUSED(spread);
 			Throw(0, "Not implemented");
 		}
 
 		void SetHeights(const Vec2i& p0, const Vec2i& p1, Metres height) override
 		{
+			UNUSED(p0);
+			UNUSED(p1);
+			UNUSED(height);
 			Throw(0, "Not implemented");
 		}
 

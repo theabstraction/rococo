@@ -44,12 +44,12 @@ public:
 		activateKey = key;
 	}
 
-	bool AppendEvent(const KeyboardEvent& me, const Vec2i& focusPoint, const Vec2i& absTopLeft) override
+	bool AppendEvent(const KeyboardEvent&, const Vec2i&, const Vec2i&) override
 	{
 		return false;
 	}
 
-	void AppendEvent(const MouseEvent& me, const Vec2i& absTopLeft) override
+	void AppendEvent(const MouseEvent& me, const Vec2i&) override
 	{
 		if (activateKey.empty())
 			return;

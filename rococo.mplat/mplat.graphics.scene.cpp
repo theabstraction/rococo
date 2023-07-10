@@ -144,7 +144,7 @@ namespace
 	  void AdvanceAnimations(Seconds dt) override
 	  {
 		  auto& poses = rigs.Poses();
-		  auto& skeles = rigs.Skeles();
+		  // auto& skeles = rigs.Skeles();
 
 		  for (auto id : dynamics)
 		  {
@@ -204,12 +204,12 @@ namespace
 		  dynamics.push_back(id);
 	  }
 
-	  void OnGuiResize(Vec2i span) override
+	  void OnGuiResize(Vec2i) override
 	  {
 
 	  }
 
-      void RenderGui(IGuiRenderContext& grc) override
+      void RenderGui(IGuiRenderContext&) override
       {
       }
 

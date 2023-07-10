@@ -30,6 +30,7 @@ struct PanelArrayBox : BasePane, IArrayBox, IObserver, IEventCallback<ScrollEven
 		platform(_platform),
 		vscroll(_platform.plumbing.utilities.CreateScrollbar(true))
 	{
+		UNUSED(_fontIndex);
 		idFont = platform.plumbing.utilities.GetHQFonts().GetSysFont(Graphics::HQFont::EditorFont);
 		fontHeight = lineHeight = platform.graphics.renderer.Gui().GetFontMetrics(idFont).height;
 		populateArrayEventText = _populateArrayEventText;
@@ -89,6 +90,8 @@ struct PanelArrayBox : BasePane, IArrayBox, IObserver, IEventCallback<ScrollEven
 
 	bool AppendEvent(const KeyboardEvent& ke, const Vec2i& focusPoint, const Vec2i& absTopLeft) override
 	{
+		UNUSED(absTopLeft);
+		UNUSED(focusPoint);
 		ScrollEvent se;
 		if (vscroll->AppendEvent(ke, se))
 		{

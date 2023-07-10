@@ -60,12 +60,12 @@ public:
 		padding = { paddingX, paddingY };
 	}
 
-	bool AppendEvent(const KeyboardEvent& me, const Vec2i& focusPoint, const Vec2i& absTopLeft) override
+	bool AppendEvent(const KeyboardEvent&, const Vec2i&, const Vec2i&) override
 	{
 		return false;
 	}
 
-	void AppendEvent(const MouseEvent& me, const Vec2i& absTopLeft) override
+	void AppendEvent(const MouseEvent& me, const Vec2i&) override
 	{
 		if (stateIndex == 0 && me.HasFlag(me.LUp) || me.HasFlag(me.RUp))
 		{

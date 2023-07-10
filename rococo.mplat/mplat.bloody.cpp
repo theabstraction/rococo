@@ -153,7 +153,7 @@ namespace
 					return true;
 				}
 
-				char c = (key.unicode > 0 && key.unicode < 128) ? key.unicode : 0;
+				char c = (char)( (key.unicode > 0 && key.unicode < 128) ? key.unicode : 0 );
 
 				if (!validator.IsLegal(c, cursorPos))
 				{
@@ -612,6 +612,7 @@ namespace
 
 		void Click(bool clickedDown, Vec2i pos) override
 		{
+			UNUSED(pos);
 			if (clickedDown)
 			{
 				*value = !*value;
@@ -678,7 +679,7 @@ namespace
 		{
 			if (!key.IsUp())
 			{
-				char c = (key.unicode > 0 && key.unicode < 128) ? key.unicode : 0;
+				char c = (char)((key.unicode > 0 && key.unicode < 128) ? key.unicode : 0);
 				if (c > 0)
 				{
 					OnAsciiCode(c);
@@ -960,8 +961,9 @@ namespace
 
 	struct PositiveIntegerValidator : public IValidator
 	{
-		bool IsLegal(char c, int ccursorPos) const override
+		bool IsLegal(char c, int charPos) const override
 		{
+			UNUSED(charPos);
 			return c >= '0' && c <= '9';
 		}
 
@@ -1165,7 +1167,7 @@ namespace
 
 		GuiRect buttonRect = { 0,0,0,0 };
 
-		virtual void Render(IGuiRenderContext& rc, const GuiRect& rect, RGBAb colour)
+		virtual void Render(IGuiRenderContext& rc, const GuiRect& rect, RGBAb)
 		{
 			ParseValue();
 
@@ -1267,6 +1269,8 @@ namespace
 
 		bool IsLegal(char c, int charPos) const override
 		{
+			UNUSED(c);
+			UNUSED(charPos);
 			return true;
 		}
 
@@ -1431,7 +1435,7 @@ namespace
 			return "Spacer";
 		}
 
-		virtual void Render(IGuiRenderContext& rc, const GuiRect& rect, RGBAb colour)
+		virtual void Render(IGuiRenderContext&, const GuiRect&, RGBAb)
 		{
 		}
 
@@ -1440,7 +1444,7 @@ namespace
 			return RGBAb(0, 0, 0, 0);
 		}
 
-		void Click(bool clickedDown, Vec2i pos) override
+		void Click(bool, Vec2i) override
 		{
 		}
 	};
@@ -1471,7 +1475,7 @@ namespace
 			return "EventButton";
 		}
 
-		virtual void Render(IGuiRenderContext& rc, const GuiRect& rect, RGBAb colour)
+		virtual void Render(IGuiRenderContext& rc, const GuiRect& rect, RGBAb)
 		{
 			GuiMetrics metrics;
 			rc.Renderer().GetGuiMetrics(metrics);
@@ -1497,7 +1501,7 @@ namespace
 			return RGBAb(0, 0, 0, 0);
 		}
 
-		void Click(bool clickedDown, Vec2i pos) override
+		void Click(bool clickedDown, Vec2i) override
 		{
 			if (!clickedDown)
 			{
@@ -1541,7 +1545,7 @@ namespace
 			return RGBAb(0, 0, 0, 0);
 		}
 
-		void Click(bool clickedDown, Vec2i pos) override
+		void Click(bool, Vec2i) override
 		{
 		}
 	};
@@ -1603,7 +1607,7 @@ namespace
 
 		cstr NotifyId() const override { return nullptr; }
 
-		bool IsLegal(char c, int cursorPos) const override
+		bool IsLegal(char, int) const override
 		{
 			return true;
 		}
@@ -1706,12 +1710,12 @@ namespace
 
 				void GetRoot(U32FilePath& path) const override
 				{
-					IO::PathFromAscii(prefix, '/',  path);
+					IO::PathFromAscii(prefix, path);
 				}
 
 				void GetInitialFilename(U32FilePath& path) const override
 				{
-					IO::PathFromAscii(initialFile, '/', path);
+					IO::PathFromAscii(initialFile, path);
 				}
 
 				cstr GetLastError() const override
@@ -1934,18 +1938,20 @@ namespace
 			Add(new BloodyProperty(new BloodyPingPathBinding(platform, *this, pingPath, len, defaultSubDir), name, width));
 		}
 
-		virtual bool OnKeyboardEvent(const KeyboardEvent& key)
+		virtual bool OnKeyboardEvent(const KeyboardEvent&)
 		{
 			return false;
 		}
 
-		virtual void OnRawMouseEvent(const MouseEvent& ev)
+		virtual void OnRawMouseEvent(const MouseEvent&)
 		{
 		}
 
 		virtual void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel)
 		{
-
+			UNUSED(cursorPos);
+			UNUSED(delta);
+			UNUSED(dWheel);
 		}
 
 		virtual void OnMouseLClick(Vec2i cursorPos, bool clickedDown)
@@ -1960,12 +1966,12 @@ namespace
 			}
 		}
 
-		virtual void OnMouseRClick(Vec2i cursorPos, bool clickedDown)
+		virtual void OnMouseRClick(Vec2i cursorPos, bool)
 		{
-
+			UNUSED(cursorPos);
 		}
 
-		virtual void OnEvent(Rococo::Events::ScrollEvent& se)
+		virtual void OnEvent(Rococo::Events::ScrollEvent&)
 		{
 
 		}

@@ -1,6 +1,7 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 using System.IO;
-
+using System.Collections.Generic;
 public struct ComponentDefinition
 {
     public string ComponentInterface;
@@ -69,9 +70,9 @@ public class ComponentCodeGenerator
 
     List<ComponentDefinition> defs = new List<ComponentDefinition>();
     
-    string fullHeaderSavePath = String.Empty;
-    string fullSourceSavePath = String.Empty;
-    string declarationIncludePath = String.Empty;
+    string fullHeaderSavePath = string.Empty;
+    string fullSourceSavePath = string.Empty;
+    string declarationIncludePath = string.Empty;
 
     StringBuilder headerBuilder = new StringBuilder(32768);
     StringBuilder sourceBuilder = new StringBuilder(32768);

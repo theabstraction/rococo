@@ -403,17 +403,11 @@ namespace ANON
 			float dh = 2.0f * radius / nRings;
 			auto dTheta = Degrees{ 360.0f / nDivs };
 
-			float yTop = radius;
 			float yBottom = -radius;
 
 			float y0 = yBottom + dh;
 
 			float V = 0;
-
-			float theta0 = 0;
-			float theta = 0;
-			float s0 = 0;
-			float c0 = 1.0f;
 
 			origin += direction * radius;
 
@@ -468,8 +462,6 @@ namespace ANON
 					Normalize(q.C)
 				};
 
-				float DR = R1;
-				float DH = dh;
 				float DV = dh / radius;
 
 				float uscale = sqrtf(1 - Sq(1 - DV));
@@ -709,9 +701,6 @@ namespace ANON
 
 			auto dPhi = Degrees{ 360.0f / nRings };
 
-			float cTheta0 = 1;
-			float sTheta0 = 0;
-
 			Degrees theta = { 0 };
 
 			Metres tubeRadius { outerRadius - innerRadius };
@@ -781,10 +770,10 @@ namespace ANON
 				Matrix4x4 T = Matrix4x4::Translate(DR);
 				Matrix4x4 RT = T * Rz;
 
-				for (size_t i = 0; i < nRings; ++i)
+				for (size_t j = 0; j < nRings; ++j)
 				{
-					TransformPosition(RT, ring[i].position, dstRing[i].position);
-					TransformDirection(RT, ring[i].normal, dstRing[i].normal);
+					TransformPosition(RT, ring[j].position, dstRing[j].position);
+					TransformDirection(RT, ring[j].normal, dstRing[j].normal);
 				}
 
 				float u = u0 + du;
@@ -801,6 +790,9 @@ namespace ANON
 
 		void AddHollowDisc(float yOuter, float yInner, float outerRadius, float interRadius, int32 nDivs, float V, float DV)
 		{
+			UNUSED(V);
+			UNUSED(DV);
+
 			auto dTheta = Degrees{ 360.0f / nDivs };
 			float theta = 0;
 			float theta0 = 0;
@@ -880,17 +872,9 @@ namespace ANON
 			float dh = 2.0f * outerRadius / nRings;
 			auto dTheta = Degrees{ 360.0f / nDivs };
 
-			float yTop = outerRadius;
 			float yBottom = -outerRadius;
-
 			float y0 = yBottom + dh;
-
 			float V = 0;
-
-			float theta0 = 0;
-			float theta = 0;
-			float s0 = 0;
-			float c0 = 1.0f;
 
 			float startDy = dh * (endRing - startRing + 2) * 0.5f;
 			origin += direction * startDy;
@@ -1401,24 +1385,24 @@ namespace Rococo::Graphics
 	{
 		struct NullMeshBuilder : IMeshBuilder
 		{
-			void AddMesh(const Matrix4x4& transform, const fstring& sourceName) override {}
-			void AddTriangleEx(const VertexTriangle& t) override {}
-			void AddTriangle(const ObjectVertex& a, const ObjectVertex& b, const ObjectVertex& c) override {}
-			void AddBoneWeights(const BoneWeights& a, const BoneWeights& b, const BoneWeights& c) override {}
-			void AddPhysicsHull(const Triangle& t) override {}
+			void AddMesh(const Matrix4x4&, const fstring&) override {}
+			void AddTriangleEx(const VertexTriangle&) override {}
+			void AddTriangle(const ObjectVertex&, const ObjectVertex&, const ObjectVertex&) override {}
+			void AddBoneWeights(const BoneWeights&, const BoneWeights&, const BoneWeights&) override {}
+			void AddPhysicsHull(const Triangle&) override {}
 
-			void Begin(const fstring& meshName) override 
+			void Begin(const fstring&) override 
 			{
 				Throw(0, "Isolated rod tesselators do not support exporting to the mesh builder");
 			}
 
-			void End(boolean32 preserveCopy, boolean32 invisible) override {}
+			void End(boolean32, boolean32) override {}
 			void Clear() override {}
-			void Delete(const fstring& fqName) override {}
-			void SetShadowCasting(const fstring& fqName, boolean32 isActive) override {}
-			void SetSpecialAmbientShader(const fstring& fqName, const fstring& vs, const fstring& ps, boolean32 alphaBlending) override {}
-			void SetSpecialSpotlightShader(const fstring& fqName, const fstring& vs, const fstring& ps, boolean32 alphaBlending) override {}
-			void Span(Vec3& span, const fstring& fqName) override {}
+			void Delete(const fstring&) override {}
+			void SetShadowCasting(const fstring&, boolean32) override {}
+			void SetSpecialAmbientShader(const fstring&, const fstring&, const fstring&, boolean32) override {}
+			void SetSpecialSpotlightShader(const fstring&, const fstring&, const fstring&, boolean32) override {}
+			void Span(Vec3&, const fstring&) override {}
 		};
 			
 		static NullMeshBuilder s_NullMeshBuilder;

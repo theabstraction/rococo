@@ -834,7 +834,7 @@ namespace
 
 namespace Rococo
 {
-	void AddNativeCalls_RococoIPane(Rococo::Script::IPublicScriptSystem& ss, Rococo::IPane* _nceContext)
+	void AddNativeCalls_RococoIPane(Rococo::Script::IPublicScriptSystem& ss, Rococo::IPane*)
 	{
 		const INamespace& ns = ss.AddNativeNamespace("Rococo.Native");
 		ss.AddNativeCall(ns, NativeRococoIPaneSetColourBk1, nullptr, ("IPaneSetColourBk1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
@@ -1174,7 +1174,7 @@ namespace
 
 namespace Rococo
 {
-	void AddNativeCalls_RococoIInventoryArray(Rococo::Script::IPublicScriptSystem& ss, Rococo::IInventoryArray* _nceContext)
+	void AddNativeCalls_RococoIInventoryArray(Rococo::Script::IPublicScriptSystem& ss, Rococo::IInventoryArray*)
 	{
 		const INamespace& ns = ss.AddNativeNamespace("Rococo.Native");
 		ss.AddNativeCall(ns, NativeRococoIInventoryArrayAddPaperDoll, nullptr, ("IInventoryArrayAddPaperDoll (Pointer hObject)(Sys.Maths.Recti rect)(Sys.Type.IString pingPathToImage) -> "), __FILE__, __LINE__);
@@ -1328,7 +1328,7 @@ namespace
 
 namespace Rococo
 {
-	void AddNativeCalls_RococoIContextMenu(Rococo::Script::IPublicScriptSystem& ss, Rococo::IContextMenu* _nceContext)
+	void AddNativeCalls_RococoIContextMenu(Rococo::Script::IPublicScriptSystem& ss, Rococo::IContextMenu*)
 	{
 		const INamespace& ns = ss.AddNativeNamespace("Rococo.Native");
 		ss.AddNativeCall(ns, NativeRococoIContextMenuAddString, nullptr, ("IContextMenuAddString (Pointer hObject)(Int32 branchId)(Sys.Type.IString displayName)(Sys.Type.IString eventName)(Sys.Type.IString shortcutKey) -> "), __FILE__, __LINE__);
@@ -2013,7 +2013,7 @@ namespace
 
 namespace Rococo
 {
-	void AddNativeCalls_RococoIContextMenuPane(Rococo::Script::IPublicScriptSystem& ss, Rococo::IContextMenuPane* _nceContext)
+	void AddNativeCalls_RococoIContextMenuPane(Rococo::Script::IPublicScriptSystem& ss, Rococo::IContextMenuPane*)
 	{
 		const INamespace& ns = ss.AddNativeNamespace("Rococo.Native");
 		ss.AddNativeCall(ns, NativeRococoIContextMenuPaneSetColourBk1, nullptr, ("IContextMenuPaneSetColourBk1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
@@ -2416,7 +2416,7 @@ namespace
 
 namespace Rococo
 {
-	void AddNativeCalls_RococoIEnumListPane(Rococo::Script::IPublicScriptSystem& ss, Rococo::IEnumListPane* _nceContext)
+	void AddNativeCalls_RococoIEnumListPane(Rococo::Script::IPublicScriptSystem& ss, Rococo::IEnumListPane*)
 	{
 		const INamespace& ns = ss.AddNativeNamespace("Rococo.Native");
 		ss.AddNativeCall(ns, NativeRococoIEnumListPaneSetColourBk1, nullptr, ("IEnumListPaneSetColourBk1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
@@ -2837,7 +2837,7 @@ namespace
 
 namespace Rococo
 {
-	void AddNativeCalls_RococoIArrayBox(Rococo::Script::IPublicScriptSystem& ss, Rococo::IArrayBox* _nceContext)
+	void AddNativeCalls_RococoIArrayBox(Rococo::Script::IPublicScriptSystem& ss, Rococo::IArrayBox*)
 	{
 		const INamespace& ns = ss.AddNativeNamespace("Rococo.Native");
 		ss.AddNativeCall(ns, NativeRococoIArrayBoxSetColourBk1, nullptr, ("IArrayBoxSetColourBk1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
@@ -3485,7 +3485,7 @@ namespace
 
 namespace Rococo
 {
-	void AddNativeCalls_RococoIPaneContainer(Rococo::Script::IPublicScriptSystem& ss, Rococo::IPaneContainer* _nceContext)
+	void AddNativeCalls_RococoIPaneContainer(Rococo::Script::IPublicScriptSystem& ss, Rococo::IPaneContainer*)
 	{
 		const INamespace& ns = ss.AddNativeNamespace("Rococo.Native");
 		ss.AddNativeCall(ns, NativeRococoIPaneContainerSetColourBk1, nullptr, ("IPaneContainerSetColourBk1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
@@ -3880,7 +3880,7 @@ namespace
 
 namespace Rococo
 {
-	void AddNativeCalls_RococoITabContainer(Rococo::Script::IPublicScriptSystem& ss, Rococo::ITabContainer* _nceContext)
+	void AddNativeCalls_RococoITabContainer(Rococo::Script::IPublicScriptSystem& ss, Rococo::ITabContainer*)
 	{
 		const INamespace& ns = ss.AddNativeNamespace("Rococo.Native");
 		ss.AddNativeCall(ns, NativeRococoITabContainerSetColourBk1, nullptr, ("ITabContainerSetColourBk1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
@@ -4626,7 +4626,7 @@ namespace
 
 namespace Rococo
 {
-	void AddNativeCalls_RococoIFramePane(Rococo::Script::IPublicScriptSystem& ss, Rococo::IFramePane* _nceContext)
+	void AddNativeCalls_RococoIFramePane(Rococo::Script::IPublicScriptSystem& ss, Rococo::IFramePane*)
 	{
 		const INamespace& ns = ss.AddNativeNamespace("Rococo.Native");
 		ss.AddNativeCall(ns, NativeRococoIFramePaneSetColourBk1, nullptr, ("IFramePaneSetColourBk1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
@@ -5011,7 +5011,7 @@ namespace
 
 namespace Rococo
 {
-	void AddNativeCalls_RococoIRadioButton(Rococo::Script::IPublicScriptSystem& ss, Rococo::IRadioButton* _nceContext)
+	void AddNativeCalls_RococoIRadioButton(Rococo::Script::IPublicScriptSystem& ss, Rococo::IRadioButton*)
 	{
 		const INamespace& ns = ss.AddNativeNamespace("Rococo.Native");
 		ss.AddNativeCall(ns, NativeRococoIRadioButtonSetColourBk1, nullptr, ("IRadioButtonSetColourBk1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
@@ -5404,7 +5404,7 @@ namespace
 
 namespace Rococo
 {
-	void AddNativeCalls_RococoILabelPane(Rococo::Script::IPublicScriptSystem& ss, Rococo::ILabelPane* _nceContext)
+	void AddNativeCalls_RococoILabelPane(Rococo::Script::IPublicScriptSystem& ss, Rococo::ILabelPane*)
 	{
 		const INamespace& ns = ss.AddNativeNamespace("Rococo.Native");
 		ss.AddNativeCall(ns, NativeRococoILabelPaneSetColourBk1, nullptr, ("ILabelPaneSetColourBk1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
@@ -5748,7 +5748,7 @@ namespace
 
 namespace Rococo
 {
-	void AddNativeCalls_RococoISlider(Rococo::Script::IPublicScriptSystem& ss, Rococo::ISlider* _nceContext)
+	void AddNativeCalls_RococoISlider(Rococo::Script::IPublicScriptSystem& ss, Rococo::ISlider*)
 	{
 		const INamespace& ns = ss.AddNativeNamespace("Rococo.Native");
 		ss.AddNativeCall(ns, NativeRococoISliderSetColourBk1, nullptr, ("ISliderSetColourBk1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
@@ -6090,7 +6090,7 @@ namespace
 
 namespace Rococo
 {
-	void AddNativeCalls_RococoIScroller(Rococo::Script::IPublicScriptSystem& ss, Rococo::IScroller* _nceContext)
+	void AddNativeCalls_RococoIScroller(Rococo::Script::IPublicScriptSystem& ss, Rococo::IScroller*)
 	{
 		const INamespace& ns = ss.AddNativeNamespace("Rococo.Native");
 		ss.AddNativeCall(ns, NativeRococoIScrollerSetColourBk1, nullptr, ("IScrollerSetColourBk1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);
@@ -6474,7 +6474,7 @@ namespace
 
 namespace Rococo
 {
-	void AddNativeCalls_RococoITextOutputPane(Rococo::Script::IPublicScriptSystem& ss, Rococo::ITextOutputPane* _nceContext)
+	void AddNativeCalls_RococoITextOutputPane(Rococo::Script::IPublicScriptSystem& ss, Rococo::ITextOutputPane*)
 	{
 		const INamespace& ns = ss.AddNativeNamespace("Rococo.Native");
 		ss.AddNativeCall(ns, NativeRococoITextOutputPaneSetColourBk1, nullptr, ("ITextOutputPaneSetColourBk1 (Pointer hObject)(Int32 normal)(Int32 hilight) -> "), __FILE__, __LINE__);

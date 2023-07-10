@@ -234,6 +234,8 @@ namespace ANON
 
 		void DrawText(GRFontId fontId, const GuiRect& targetRect, const GuiRect& clipRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour) override
 		{
+			UNUSED(targetRect);
+
 			if (lastScissorRect.IsNormalized() && IsRectClipped(lastScissorRect, clipRect))
 			{
 				if (!AreRectsOverlapped(lastScissorRect, clipRect))
@@ -469,7 +471,6 @@ namespace ANON
 			if (me.buttonFlags != 0)
 			{
 				GRCursorEvent cursorEvent{ *this, me.cursorPos, eventCount, *(GRCursorClick*)&me.buttonFlags, EGRCursorIcon::Unspecified, (int)(int16) me.buttonData };
-				size_t nBytes = sizeof(GRCursorEvent);
 				lastRoutingStatus = gr.RouteCursorClickEvent(cursorEvent);
 			}
 			else
@@ -505,7 +506,7 @@ namespace ANON
 			delete this;
 		}
 
-		void RaiseError(EGRErrorCode code, cstr function, cstr message)
+		void RaiseError(EGRErrorCode, cstr function, cstr message)
 		{
 			Throw(0, "%s: %s", function, message);
 		}

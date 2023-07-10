@@ -356,9 +356,9 @@ namespace
 
 		void SetNoColours(QuadVertices& q)
 		{
-			int32 r = 0;
-			int32 g = 0;
-			int32 b = 0;
+			uint8 r = 0;
+			uint8 g = 0;
+			uint8 b = 0;
 			q.colours.a = RGBAb(r, g, b, 255);
 			q.colours.b = RGBAb(r, g, b, 255);
 			q.colours.c = RGBAb(r, g, b, 255);
@@ -367,11 +367,11 @@ namespace
 
 		void RandomizeColours(QuadVertices& q)
 		{
-			int32 r = 64 + rand() % 192;
-			int32 g = r;
-			int32 b = r;
+			uint8 r = 64 + rand() % 192;
+			uint8 g = r;
+			uint8 b = r;
 
-			int32 blend = 192 + rand() % 64;
+			uint8 blend = 192 + rand() % 64;
 
 			q.colours.a = RGBAb(r, g, b, blend);
 			q.colours.b = RGBAb(r, g, b, blend);

@@ -127,7 +127,7 @@ public:
 
 	GuiRect lastAbsRect{ -1, -1, -1, -1 };
 
-	void AppendEvent(const MouseEvent& me, const Vec2i& absTopLeft) override
+	void AppendEvent(const MouseEvent& me, const Vec2i&) override
 	{
 		ScrollEvent se;
 		if (vscroll->AppendEvent(me, TopLeft(lastAbsRect), se))
@@ -168,7 +168,7 @@ public:
 		}
 	}
 
-	bool AppendEvent(const KeyboardEvent& ke, const Vec2i& focusPoint, const Vec2i& absTopLeft) override
+	bool AppendEvent(const KeyboardEvent& ke, const Vec2i&, const Vec2i&) override
 	{
 		ScrollEvent se;
 		if (vscroll->AppendEvent(ke, se))

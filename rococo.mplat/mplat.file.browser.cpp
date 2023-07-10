@@ -13,17 +13,17 @@ using namespace Rococo::Strings;
 
 struct FileBrowserStyle: public IFileBrowserStyle
 {
-	int32 RowHeight(BrowserComponent component) const override
+	int32 RowHeight(BrowserComponent) const override
 	{
 		return 34;
 	}
 
-	int32 HorizontalSpan(BrowserComponent component) const override
+	int32 HorizontalSpan(BrowserComponent) const override
 	{
 		return 23;
 	}
 
-	GuiRect BorderDeltas(BrowserComponent component) const
+	GuiRect BorderDeltas(BrowserComponent) const
 	{
 		return GuiRect{ 1, 1, 1, 1 };
 	}
@@ -200,7 +200,7 @@ struct FileBrowserRC : public IFileBrowserRenderContext
 		}
 	}
 
-	void DrawBorder(const GuiRect& rect, BrowserComponent component)
+	void DrawBorder(const GuiRect& rect, BrowserComponent)
 	{
 		RGBAb br(192, 192, 192, 0);
 		RGBAb tl(224, 224, 224, 0);
@@ -232,29 +232,33 @@ struct StatusBar : IUIElement
 
 	HString status;
 
-	bool OnKeyboardEvent(const KeyboardEvent& key) override
+	bool OnKeyboardEvent(const KeyboardEvent&) override
 	{
 		return false;
 	}
 
-	void OnRawMouseEvent(const MouseEvent& ev) override
+	void OnRawMouseEvent(const MouseEvent&) override
 	{
 
 	}
 
 	void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel) override
 	{
-
+		UNUSED(cursorPos);
+		UNUSED(delta);
+		UNUSED(dWheel);
 	}
 
 	void OnMouseLClick(Vec2i cursorPos, bool clickedDown) override
 	{
-
+		UNUSED(cursorPos);
+		UNUSED(clickedDown);
 	}
 
 	void OnMouseRClick(Vec2i cursorPos, bool clickedDown) override
 	{
-
+		UNUSED(cursorPos);
+		UNUSED(clickedDown);
 	}
 
 	void Render(IGuiRenderContext& gc, const GuiRect& absRect) override
@@ -325,18 +329,22 @@ struct FilenameEditor : IUIElement, public IKeyboardSink
 		return false;
 	}
 
-	void OnRawMouseEvent(const MouseEvent& ev) override
+	void OnRawMouseEvent(const MouseEvent&) override
 	{
 
 	}
 
 	void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel) override
 	{
-
+		UNUSED(cursorPos)
+		UNUSED(delta);
+		UNUSED(dWheel);
 	}
 
 	void OnMouseLClick(Vec2i cursorPos, bool clickedDown) override
 	{
+		UNUSED(cursorPos);
+
 		if (!clickedDown)
 		{
 			editing = !editing;
@@ -354,7 +362,8 @@ struct FilenameEditor : IUIElement, public IKeyboardSink
 
 	void OnMouseRClick(Vec2i cursorPos, bool clickedDown) override
 	{
-
+		UNUSED(cursorPos);
+		UNUSED(clickedDown);
 	}
 
 	void Render(IGuiRenderContext& gc, const GuiRect& absRect) override
@@ -465,7 +474,7 @@ struct MPlatFileBrowser: public IMPlatFileBrowser, public IObserver, public IUIE
 	bool Select() override
 	{
 		U32FilePath fullPath;
-		PathFromAscii(filenameEditor.asciiRep, '/', fullPath);
+		PathFromAscii(filenameEditor.asciiRep, fullPath);
 
 		if (rules->Select(fullPath))
 		{
@@ -499,17 +508,18 @@ struct MPlatFileBrowser: public IMPlatFileBrowser, public IObserver, public IUIE
 		delete this;
 	}
 
-	bool OnKeyboardEvent(const KeyboardEvent& key) override
+	bool OnKeyboardEvent(const KeyboardEvent&) override
 	{
 		return false;
 	}
 
-	void OnRawMouseEvent(const MouseEvent& ev)  override
+	void OnRawMouseEvent(const MouseEvent&)  override
 	{
 	}
 
 	void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel)  override
 	{
+		UNUSED(delta);
 		if (dWheel != 0)
 		{
 			browser->WheelAt(cursorPos, dWheel);
@@ -518,11 +528,15 @@ struct MPlatFileBrowser: public IMPlatFileBrowser, public IObserver, public IUIE
 
 	void OnMouseLClick(Vec2i cursorPos, bool clickedDown)  override
 	{
+		UNUSED(cursorPos);
+		UNUSED(clickedDown);
 		browser->ClickAt(cursorPos, clickedDown);
 	}
 
 	void OnMouseRClick(Vec2i cursorPos, bool clickedDown)  override
 	{
+		UNUSED(cursorPos);
+		UNUSED(clickedDown);
 		if (!clickedDown) browser->RaiseContextAt(cursorPos);
 	}
 

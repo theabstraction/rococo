@@ -165,7 +165,7 @@ struct PlatformTabs: IObserver, IUIElement, public IMathsVenue
 		platform.misc.mathsVisitor.AppendMouseEvent(me);
 	}
 
-	void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel)  override
+	void OnMouseMove(Vec2i, Vec2i, int)  override
 	{
 
 	}
@@ -175,7 +175,7 @@ struct PlatformTabs: IObserver, IUIElement, public IMathsVenue
 		if (!clickedDown) platform.misc.mathsVisitor.SelectAtPos(cursorPos);
 	}
 
-	void OnMouseRClick(Vec2i cursorPos, bool clickedDown)  override
+	void OnMouseRClick(Vec2i, bool)  override
 	{
 
 	}
@@ -357,7 +357,7 @@ struct OutputWindowFormatter : Strings::IVarArgStringFormatter, Strings::IColour
 		return length;
 	}
 
-	void SetOutputColour(RGBAb colour) override
+	void SetOutputColour(RGBAb) override
 	{
 
 	}

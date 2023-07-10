@@ -199,7 +199,7 @@ namespace
 			  char desc[256];
 			  renderer.Meshes().GetMeshDesc(desc, m.item.second->id);
 
-			  auto& b = m.item.second->bounds;
+		//	  auto& b = m.item.second->bounds;
 			  visitor.ShowSelectableString("overlay.select.mesh", (cstr) m.item.first, "%5llu %s", m.item.second->id.value, desc);
 		//	  visitor.ShowString(" -> bounds", "(%f, %f, %f) to (%f, %f, %f)", b.minXYZ.x, b.minXYZ.y, b.minXYZ.z, b.maxXYZ.x, b.maxXYZ.y, b.maxXYZ.z);
 		  }
@@ -297,9 +297,9 @@ namespace
 
 		  AABB boundingBox;
 
-		  for (auto& v : vertices)
+		  for (auto& vx : vertices)
 		  {
-			  boundingBox << v.position;
+			  boundingBox << vx.position;
 		  }
 
 		  ObjectVertex* backup = nullptr;

@@ -220,7 +220,7 @@ public:
 	}
 
 
-	void Render(IGuiRenderContext& grc, const GuiRect& absRect, const Modality& modality, RGBAb hilightColour, RGBAb baseColour, RGBAb hi_SliderCol, RGBAb sliderCol,  RGBAb hilightEdge, RGBAb baseEdge, IEventCallback<ScrollEvent>& populator, const EventIdRef& populationEventId)
+	void Render(IGuiRenderContext& grc, const GuiRect& absRect, const Modality& modality, RGBAb hilightColour, RGBAb baseColour, RGBAb hi_SliderCol, RGBAb sliderCol,  RGBAb hilightEdge, RGBAb baseEdge, IEventCallback<ScrollEvent>& populator, const EventIdRef&)
 	{
 		GuiMetrics metrics;
 		grc.Renderer().GetGuiMetrics(metrics);
@@ -417,7 +417,7 @@ public:
 		delete this;
 	}
 
-	bool AppendEvent(const KeyboardEvent& k, const Vec2i& focusPoint, const Vec2i& absTopLeft) override
+	bool AppendEvent(const KeyboardEvent& k, const Vec2i&, const Vec2i&) override
 	{
 		ScrollEvent updateStatus;
 		updateStatus.fromScrollbar = true;

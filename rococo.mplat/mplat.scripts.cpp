@@ -71,7 +71,7 @@ Rococo::Graphics::ITextTesselator* FactoryConstructRococoGraphicsTextTesselator(
 	return &platform->plumbing.utilities.GetTextTesselator();
 }
 
-Rococo::Graphics::IQuadStackTesselator* FactoryConstructRococoGraphicsQuadStackTesselator(Rococo::Graphics::IQuadStackTesselator* _context)
+Rococo::Graphics::IQuadStackTesselator* FactoryConstructRococoGraphicsQuadStackTesselator(Rococo::Graphics::IQuadStackTesselator*)
 {
 	return Rococo::Graphics::CreateQuadStackTesselator();
 }
@@ -91,7 +91,7 @@ Rococo::Graphics::ILandscapeTesselator*  FactoryConstructRococoGraphicsLandscape
 	return Rococo::Graphics::CreateLandscapeTesselator(nceContext->graphics.meshes);
 }
 
-Rococo::Graphics::IFieldTesselator* FactoryConstructRococoGraphicsFieldTesselator(Rococo::Graphics::IFieldTesselator* _context)
+Rococo::Graphics::IFieldTesselator* FactoryConstructRococoGraphicsFieldTesselator(Rococo::Graphics::IFieldTesselator*)
 {
 	return Rococo::Graphics::CreateFieldTesselator();
 }
@@ -176,8 +176,6 @@ inline ObjectStub* InterfaceToInstance(InterfacePointer i)
 static void NativeEnumerateFiles(NativeCallEnvironment& nce)
 {
 	auto& platform = *(Platform*)nce.context;
-
-	auto *sf = nce.cpu.SF();
 
 	InterfacePointer ipFilter;
 	ReadInput(0, ipFilter, nce);
@@ -282,9 +280,11 @@ namespace Rococo
 
 				}
 
-				IDE::EScriptExceptionFlow GetScriptExceptionFlow(cstr source, cstr message) override
+				IDE::EScriptExceptionFlow GetScriptExceptionFlow(cstr source, cstr msg) override
 				{
-					if (onScriptCrash) onScriptCrash->OnEvent(source);
+					char fmsg[256];
+					SafeFormat(fmsg, "%s: %s", source, msg);
+					if (onScriptCrash) onScriptCrash->OnEvent(fmsg);
 					platform.os.ios.FireUnstable();
 					return IDE::EScriptExceptionFlow::Retry;
 				}
@@ -392,6 +392,8 @@ namespace Rococo
 
 				IDE::EScriptExceptionFlow GetScriptExceptionFlow(cstr source, cstr message) override
 				{
+					UNUSED(source);
+					UNUSED(message);
 					return flow;
 				}
 
@@ -414,7 +416,6 @@ namespace Rococo
 				{
 					try
 					{
-						ScriptPerformanceStats stats;
 						IDE::ExecuteSexyScriptLoop(stats,
 							1024_kilobytes,
 							ssf,
@@ -470,7 +471,7 @@ namespace Rococo
 					return 0;
 				}
 
-				cstr ResourceName(size_t index) const override
+				cstr ResourceName(size_t) const override
 				{
 					return nullptr;
 				}

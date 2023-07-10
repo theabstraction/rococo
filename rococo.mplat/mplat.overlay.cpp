@@ -31,31 +31,22 @@ struct OverlayPane : public IPaneBuilderSupervisor, PaneDelegate, public IUIElem
 		{
 		}
 
-		bool OnKeyboardEvent(const KeyboardEvent& key) override
+		bool OnKeyboardEvent(const KeyboardEvent&) override
 		{
 			return false;
 		}
 
-		void OnRawMouseEvent(const MouseEvent& ev) override
+		void OnRawMouseEvent(const MouseEvent&) override
 		{
 
 		}
 
-		void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel) override
+		void OnMouseMove(Vec2i, Vec2i, int) override
 		{
 
 		}
 
-		void OnMouseLClick(Vec2i cursorPos, bool clickedDown) override
-		{
-			if (!clickedDown)
-			{
-				platform.misc.mathsVisitor.CancelSelect();
-				overlay->type = OverlayPane::Type::None;
-			}
-		}
-
-		void OnMouseRClick(Vec2i cursorPos, bool clickedDown) override
+		void OnMouseLClick(Vec2i, bool clickedDown) override
 		{
 			if (!clickedDown)
 			{
@@ -64,7 +55,16 @@ struct OverlayPane : public IPaneBuilderSupervisor, PaneDelegate, public IUIElem
 			}
 		}
 
-		virtual void Render(IGuiRenderContext& rc, const GuiRect& absRect) override
+		void OnMouseRClick(Vec2i, bool clickedDown) override
+		{
+			if (!clickedDown)
+			{
+				platform.misc.mathsVisitor.CancelSelect();
+				overlay->type = OverlayPane::Type::None;
+			}
+		}
+
+		void Render(IGuiRenderContext&, const GuiRect&) override
 		{
 
 		}
@@ -182,27 +182,27 @@ struct OverlayPane : public IPaneBuilderSupervisor, PaneDelegate, public IUIElem
 		delete this;
 	}
 
-	bool OnKeyboardEvent(const KeyboardEvent& key) override
+	bool OnKeyboardEvent(const KeyboardEvent&) override
 	{
 		return false;
 	}
 
-	void OnRawMouseEvent(const MouseEvent& ev) override
+	void OnRawMouseEvent(const MouseEvent&) override
 	{
 
 	}
 
-	void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel) override
+	void OnMouseMove(Vec2i, Vec2i, int) override
 	{
 
 	}
 
-	void OnMouseLClick(Vec2i cursorPos, bool clickedDown) override
+	void OnMouseLClick(Vec2i, bool) override
 	{
 
 	}
 
-	void OnMouseRClick(Vec2i cursorPos, bool clickedDown) override
+	void OnMouseRClick(Vec2i, bool) override
 	{
 
 	}
@@ -212,7 +212,6 @@ struct OverlayPane : public IPaneBuilderSupervisor, PaneDelegate, public IUIElem
 		if (type == OverlayPane::Type::Material && !name.empty())
 		{
 			cstr key = name.c_str();
-			auto* ext = Rococo::GetFileExtension(key);
 			if (StartsWith(key, "MatId "))
 			{
 				int index = atoi(key + 6);
@@ -312,7 +311,7 @@ struct OverlayPane : public IPaneBuilderSupervisor, PaneDelegate, public IUIElem
 		return current->Render(grc, topLeft, modality);
 	}
 
-	void SetBkImage(const fstring& name) override
+	void SetBkImage(const fstring&) override
 	{
 		Throw(0, "Not implemented");
 	}

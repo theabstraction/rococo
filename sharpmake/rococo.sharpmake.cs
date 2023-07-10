@@ -70,7 +70,7 @@ namespace Rococo
 			conf.IncludePaths.Add(RococoSexyPath + @"Common\");
 			conf.Options.Add(Sharpmake.Options.Vc.Compiler.CppLanguageStandard.CPP20);
             conf.Options.Add(Sharpmake.Options.Vc.Compiler.Exceptions.Enable);
-            conf.Options.Add(new Sharpmake.Options.Vc.Compiler.DisableSpecificWarnings("4458","4201","4324"));
+            conf.Options.Add(new Sharpmake.Options.Vc.Compiler.DisableSpecificWarnings("4458","4201","4324","4250"));
             conf.IntermediatePath = RococoTmpPath + @"[target.Name]\[project.Name]\";
             conf.TargetPath = RococoBinPath + @"[target.Platform]\[conf.Name]\";
         }
@@ -90,8 +90,9 @@ namespace Rococo
             SourceRootPath = RococoRootPath + subdir;
         }
 		
-		public void StandardInit(Configuration conf, Target target)
+		public void StandardInit(Configuration conf, Target target, Configuration.OutputType type)
 		{
+            conf.Output = type;
             conf.ProjectFileName = "[project.Name]_[target.DevEnv]_[target.Platform]";
             conf.ProjectPath = @"[project.SharpmakeCsPath]\generated";
 
@@ -193,6 +194,8 @@ namespace Rococo
             conf.ProjectFileName = "[project.Name].[target.DevEnv].[target.Framework]";
             conf.ProjectPath = @"[project.SharpmakeCsPath]\generated\";
             conf.TargetLibraryPath = RococoLibPath + @"[target.Platform]\[conf.Name]\";
+            conf.IntermediatePath = RococoTmpPath + @"[target.Name]\[project.Name]\";
+            conf.TargetPath = RococoBinPath + @"[target.Platform]\[conf.Name]\";
         }
     }
 
@@ -206,8 +209,7 @@ namespace Rococo
         [Configure()]
         public void ConfigureAll(Configuration conf, Target target)
         {
-			conf.Output = Configuration.OutputType.Dll;
-			StandardInit(conf, target);
+			StandardInit(conf, target, Configuration.OutputType.Dll);
         }
     }
 	
@@ -221,8 +223,7 @@ namespace Rococo
         [Configure()]
         public void ConfigureAll(Configuration conf, Target target)
         {
-			conf.Output = Configuration.OutputType.Lib;
-            StandardInit(conf, target);
+            StandardInit(conf, target, Configuration.OutputType.Lib);
         }
     }
 	
@@ -235,11 +236,10 @@ namespace Rococo
 
         [Configure()]
         public void ConfigureAll(Configuration conf, Target target)
-        {
-			conf.Output = Configuration.OutputType.Dll;
+        {    
+            StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.Defines.Add("ROCOCO_UTILS_EX_API=__declspec(dllexport)");
             conf.Defines.Add("RENDERER_API=__declspec(dllexport)");
-            StandardInit(conf, target);
             conf.AddPublicDependency<RococoUtilsProject>(target);
         }
     }
@@ -255,9 +255,7 @@ namespace Rococo
         [Configure()]
         public void ConfigureAll(Configuration conf, Target target)
         {
-			conf.Output = Configuration.OutputType.Exe;
-			StandardInit(conf, target);
-			
+			StandardInit(conf, target, Configuration.OutputType.Exe);
 			conf.AddPublicDependency<RococoUtilsProject>(target);
         }
     }
@@ -272,9 +270,9 @@ namespace Rococo
         [Configure()]
         public void ConfigureAll(Configuration conf, Target target)
         {
-            conf.Output = Configuration.OutputType.Dll;
-            StandardInit(conf, target);
+            StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.AddPublicDependency<RococoWindowsProject>(target);
             conf.Defines.Add("ROCOCO_MISC_UTILS_API=__declspec(dllexport)");
         }
     }
@@ -289,8 +287,7 @@ namespace Rococo
         [Configure()]
         public void ConfigureAll(Configuration conf, Target target)
         {
-            conf.Output = Configuration.OutputType.Dll;
-            StandardInit(conf, target);
+            StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.Defines.Add("ROCOCO_WINDOWS_API=__declspec(dllexport)");
         }
@@ -306,8 +303,7 @@ namespace Rococo
         [Configure()]
         public void ConfigureAll(Configuration conf, Target target)
         {
-            conf.Output = Configuration.OutputType.Lib;
-            StandardInit(conf, target);
+            StandardInit(conf, target, Configuration.OutputType.Lib);
         }
     }
 
@@ -321,9 +317,7 @@ namespace Rococo
         [Configure()]
         public void ConfigureAll(Configuration conf, Target target)
         {
-            conf.Output = Configuration.OutputType.Exe;
-            StandardInit(conf, target);
-
+            StandardInit(conf, target, Configuration.OutputType.Exe);
             conf.IncludePaths.Add(RococoSexyPath + @"STC\stccore\");
             conf.AddPublicDependency<RococoUtilsProject>(target);
         }
@@ -339,9 +333,7 @@ namespace Rococo
         [Configure()]
         public void ConfigureAll(Configuration conf, Target target)
         {
-            conf.Output = Configuration.OutputType.Dll;
-            StandardInit(conf, target);
-
+            StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.AddPublicDependency<RococoMathsProject>(target);
             conf.AddPublicDependency<RococoUtilsProject>(target);
         }
@@ -357,8 +349,7 @@ namespace Rococo
         [Configure()]
         public void ConfigureAll(Configuration conf, Target target)
         {
-            conf.Output = Configuration.OutputType.Lib;
-            StandardInit(conf, target);
+            StandardInit(conf, target, Configuration.OutputType.Lib);
         }
     }
 
@@ -372,8 +363,7 @@ namespace Rococo
         [Configure()]
         public void ConfigureAll(Configuration conf, Target target)
         {
-            conf.Output = Configuration.OutputType.Lib;
-            StandardInit(conf, target);
+            StandardInit(conf, target, Configuration.OutputType.Lib);
         }
     }
 
@@ -387,8 +377,7 @@ namespace Rococo
         [Configure()]
         public void ConfigureAll(Configuration conf, Target target)
         {
-            conf.Output = Configuration.OutputType.Lib;
-            StandardInit(conf, target);
+            StandardInit(conf, target, Configuration.OutputType.Lib);
         }
     }
 
@@ -402,8 +391,7 @@ namespace Rococo
         [Configure()]
         public void ConfigureAll(Configuration conf, Target target)
         {
-            conf.Output = Configuration.OutputType.Dll;
-            StandardInit(conf, target);
+            StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.Defines.Add("ROCOCO_GUI_RETAINED_API=__declspec(dllexport)");
             conf.AddPublicDependency<RococoUtilsProject>(target);
         }
@@ -419,11 +407,52 @@ namespace Rococo
         [Configure()]
         public override void ConfigureAll(Configuration conf, Target target)
         {
-            base.ConfigureAll(conf, target);
             conf.Output = Configuration.OutputType.DotNetConsoleApp;
+            base.ConfigureAll(conf, target);
             conf.TargetLibraryPath = RococoLibPath + @"[target.Platform]\[conf.Name]\";
         }
     }
+
+    [Sharpmake.Generate]
+    public class RococoMPlatProject : RococoProject
+    {
+        public RococoMPlatProject() : base("rococo.mplat")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Lib);
+
+            conf.SourceFilesBuildExcludeRegex.Add(@"mplat.component.template.cpp");
+            conf.SourceFilesBuildExcludeRegex.Add(@"mplat.test.app.cpp");
+        }
+    }
+
+    [Sharpmake.Generate]
+    public class RococoMPlatDynamicProject : RococoProject
+    {
+        public RococoMPlatDynamicProject() : base("rococo.mplat.dynamic")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Dll);
+        }
+    }
+
+    /*
+    msbuild $(DIR_MHOST) mhost.vcxproj                                $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
+	$(ROCOCO) packages\gen.mhost.package.bat
+    msbuild $(DIR_HV) hyperverse.vcxproj                              $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
+    msbuild $(ROCOCO) sexystudio/sexystudio.vcxproj                           $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
+    msbuild $(ROCOCO) sexystudio.app/sexystudio.app.vcxproj                   $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
+    msbuild $(ROCOCO) sexystudio.test/sexystudio.test.vcxproj                 $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTI
+    */
+
 
     [Sharpmake.Generate]
     public class RococoCSharpSolution : CSharpSolution
@@ -439,7 +468,8 @@ namespace Rococo
                 OutputType.Dll,
                 Blob.NoBlob,
                 BuildSystem.MSBuild,
-                DotNetFramework.net6_0));
+                DotNetFramework.net6_0)
+            );
         }
 
         [Configure()]
@@ -460,6 +490,8 @@ namespace Rococo
             conf.AddProject<RococoFontsProject>(target);
             conf.AddProject<RococoFileBrowserProject>(target);
             conf.AddProject<RococoGuiRetainedProject>(target);
+            conf.AddProject<RococoMPlatProject>(target);
+            conf.AddProject<RococoMPlatDynamicProject>(target);
         }
     }
     
@@ -483,6 +515,8 @@ namespace Rococo
             arguments.Generate<RococoFileBrowserProject>();
             arguments.Generate<RococoGuiRetainedProject>();
             arguments.Generate<RococoCPPMasterProject>();
+            arguments.Generate<RococoMPlatProject>();
+            arguments.Generate<RococoMPlatDynamicProject>();
         }
     }        
 }

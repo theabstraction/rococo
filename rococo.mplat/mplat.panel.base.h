@@ -100,6 +100,11 @@ namespace Rococo
 
 		struct PaneDelegate : public IPaneSupervisor
 		{
+			virtual ~PaneDelegate()
+			{
+
+			}
+
 			IPaneBuilderSupervisor* current;
 
 			void Free() override

@@ -318,7 +318,7 @@ boolean32 BasePane::IsNormalized()
 
 void BasePane::SetVisible(boolean32 visible)
 {
-	this->isVisible = isVisible;
+	this->isVisible = visible;
 }
 
 IPaneSupervisor* BasePane::operator[](int index)
@@ -420,7 +420,7 @@ void BasePane::Populate(IPublisher& publisher, IGuiRenderContext& grc, int32 sta
 	}
 }
 
-void BasePane::RenderBkImage(IGuiRenderContext& grc, const Vec2i& topLeft, const Modality& modality)
+void BasePane::RenderBkImage(IGuiRenderContext& grc, const Vec2i& topLeft, const Modality&)
 {
 	if (bkImageName.length() > 0)
 	{
@@ -470,7 +470,6 @@ void BasePane::RenderBackground(IGuiRenderContext& grc, const Vec2i& topLeft, co
 
 void BasePane::RenderChildren(IGuiRenderContext& grc, const Vec2i& topLeft, const Modality& modality)
 {
-	auto& currentRect = ClientRect();
 	if (IsVisible())
 	{
 		if (IsNormalized()) RenderBackground(grc, topLeft, modality);
@@ -901,16 +900,16 @@ public:
 
 			if (rect.right > parentRect.right)
 			{
-				int32 delta = rect.right - parentRect.right;
-				rect.left -= delta;
-				rect.right -= delta;
+				int32 delta2 = rect.right - parentRect.right;
+				rect.left -= delta2;
+				rect.right -= delta2;
 			}
 
 			if (rect.bottom > parentRect.bottom)
 			{
-				int32 delta = rect.bottom - parentRect.bottom;
-				rect.top -= delta;
-				rect.bottom -= delta;
+				int32 delta2 = rect.bottom - parentRect.bottom;
+				rect.top -= delta2;
+				rect.bottom -= delta2;
 			}
 
 			ClipRect(rect);
@@ -1073,8 +1072,6 @@ public:
 
 	void Render(IGuiRenderContext& grc, const Vec2i& topLeft, const Modality& modality) override
 	{
-		auto& controlRect = ClientRect();
-
 		GuiRect captionRect;
 		GetCaptionRect(captionRect);
 

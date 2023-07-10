@@ -352,8 +352,6 @@ public:
 
 		if (lastSpan.x == 0 || lastSpan.y == 0 || panels.empty()) return;
 
-		bool hiddenByModal = false;
-
 		Modality modality;
 		modality.isUnderModal = false;
 
@@ -393,8 +391,8 @@ public:
 
 		if (logAlpha)
 		{
-			Graphics::DrawRectangle(grc, logRect, RGBAb(0, 0, 0, logAlpha), RGBAb(64, 64, 64, logAlpha));
-			Graphics::DrawBorderAround(grc, Expand(logRect, 1), { 1,1 }, RGBAb(192, 192, 192, logAlpha), RGBAb(255, 255, 255, logAlpha));
+			Graphics::DrawRectangle(grc, logRect, RGBAb(0, 0, 0, (uint8) logAlpha), RGBAb(64, 64, 64, (uint8)logAlpha));
+			Graphics::DrawBorderAround(grc, Expand(logRect, 1), { 1,1 }, RGBAb(192, 192, 192, (uint8)logAlpha), RGBAb(255, 255, 255, (uint8)logAlpha));
 		}
 
 		for (auto& m : scrollingMessages)

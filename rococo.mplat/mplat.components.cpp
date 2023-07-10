@@ -216,8 +216,6 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		{
 			auto i = rows.find(id);
 			auto& c = i->second;
-			auto* pInterfaceBuffer = (uint8*)c.interfacePointer;
-
 			return i != rows.end() ? Ref<IAnimationComponent>(*c.interfacePointer, GetLife(*c.interfacePointer)) : Ref<IAnimationComponent>();
 		}
 
@@ -475,8 +473,6 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		{
 			auto i = rows.find(id);
 			auto& c = i->second;
-			auto* pInterfaceBuffer = (uint8*)c.interfacePointer;
-
 			return i != rows.end() ? Ref<IBodyComponent>(*c.interfacePointer, GetLife(*c.interfacePointer)) : Ref<IBodyComponent>();
 		}
 
@@ -734,8 +730,6 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		{
 			auto i = rows.find(id);
 			auto& c = i->second;
-			auto* pInterfaceBuffer = (uint8*)c.interfacePointer;
-
 			return i != rows.end() ? Ref<ISkeletonComponent>(*c.interfacePointer, GetLife(*c.interfacePointer)) : Ref<ISkeletonComponent>();
 		}
 
@@ -993,8 +987,6 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		{
 			auto i = rows.find(id);
 			auto& c = i->second;
-			auto* pInterfaceBuffer = (uint8*)c.interfacePointer;
-
 			return i != rows.end() ? Ref<IParticleSystemComponent>(*c.interfacePointer, GetLife(*c.interfacePointer)) : Ref<IParticleSystemComponent>();
 		}
 
@@ -1252,8 +1244,6 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		{
 			auto i = rows.find(id);
 			auto& c = i->second;
-			auto* pInterfaceBuffer = (uint8*)c.interfacePointer;
-
 			return i != rows.end() ? Ref<IRigsComponent>(*c.interfacePointer, GetLife(*c.interfacePointer)) : Ref<IRigsComponent>();
 		}
 
@@ -1401,7 +1391,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		}
 
 		ROID_SALT salt;			// Gives a version number of the object.
-		uint32 activeIdIndex = -1;	// Specifies which activeId slot references this object
+		uint32 activeIdIndex = (uint32) - 1;	// Specifies which activeId slot references this object
 		ActiveComponents ac;	// Specifies which components are active for this object
 
 		bool Exists() const
@@ -1573,7 +1563,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 					activeIds.pop_back();
 				}
 
-				object.activeIdIndex = -1;
+				object.activeIdIndex = (uint32) - 1;
 
 				ROID nextRoid;
 				nextRoid.index = roid.index;

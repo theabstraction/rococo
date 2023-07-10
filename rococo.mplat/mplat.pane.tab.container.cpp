@@ -112,7 +112,7 @@ public:
 		tabs.push_back(tab);
 	}
 
-	bool AppendEvent(const KeyboardEvent& k, const Vec2i& focusPoint, const Vec2i& absTopLeft) override
+	bool AppendEvent(const KeyboardEvent& k, const Vec2i&, const Vec2i&) override
 	{
 		Key key = keyboard.GetKeyFromEvent(k);
 		if (key.isPressed)
@@ -166,7 +166,7 @@ public:
 		return false;
 	}
 
-	void AppendEvent(const MouseEvent& me, const Vec2i& absTopLeft) override
+	void AppendEvent(const MouseEvent& me, const Vec2i&) override
 	{
 		if (tabs.empty()) return;
 
@@ -335,8 +335,6 @@ public:
 
 		GuiRect absRect = GuiRect{ 0, 0, Width(rect), Height(rect) } + topLeft;
 
-		int dy = tabHeight;
-
 		GuiRect controlRect{ absRect.left + 1, topLeft.y + 1, absRect.right - 2, topLeft.y + tabHeight };
 		Graphics::DrawRectangle(grc, controlRect, RGBAb(0, 0, 96, 255), RGBAb(0, 0, 128, 255));
 
@@ -344,8 +342,6 @@ public:
 		grc.Renderer().GetGuiMetrics(metrics);
 
 		int x = absRect.left;
-
-		int32 availableWidth = Width(absRect);
 
 		int32 tabButtonWidth = 20;
 
@@ -412,7 +408,7 @@ public:
 		}
 	}
 
-	void Render(IGuiRenderContext& grc, const Vec2i& topLeft, const Modality& modality) override
+	void Render(IGuiRenderContext& grc, const Vec2i& topLeft, const Modality&) override
 	{
 		RenderControls(grc, topLeft);
 

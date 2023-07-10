@@ -399,6 +399,7 @@ public:
 
 	void OnFileSelect(const U32FilePath& path, bool doubleClick)
 	{
+		UNUSED(path);
 		if (doubleClick)
 		{
 			OnBrowserSelect();
@@ -457,13 +458,13 @@ public:
 	}
 
 	/* IContextMenuEvent::OnItemSelected */
-	void OnItemSelected(IContextMenuSupervisor& cm) override
+	void OnItemSelected(IContextMenuSupervisor&) override
 	{
 		CloseContextMenu();
 	}
 
 	/* IContextMenuEvent::OnClickOutsideControls */
-	void OnClickOutsideControls(IContextMenuSupervisor& menu) override
+	void OnClickOutsideControls(IContextMenuSupervisor&) override
 	{
 		CloseContextMenu();
 	}

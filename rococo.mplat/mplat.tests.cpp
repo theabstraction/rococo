@@ -57,8 +57,6 @@ void TestMaths()
 	Vec3 eye2{ 13.0848932f, -2.31210995f, 1.64999998f };
 	Vec3 dir2{ 0.961057663f, -0.199900240f, -0.190809026f };
 	c = CollideLineAndTriangle(s, eye2, dir2);
-
-	auto time = c.t;
 }
 
 void PerformSanityTests()

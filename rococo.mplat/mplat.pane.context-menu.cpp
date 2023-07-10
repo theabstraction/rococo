@@ -239,7 +239,7 @@ public:
 		RenderBranch(gc, root, { menuRect.left, menuRect.top });
 	}
 
-	void AppendEvent(const KeyboardEvent& me)
+	void AppendEvent(const KeyboardEvent&)
 	{
 
 	}
@@ -374,7 +374,7 @@ class ContextMenuPane : public BasePane, public IContextMenuPane, public IObserv
 	HString popupKey; 
 	EventIdRef evCreatedPopup;
 
-	void OnEvent(Event& ev) override
+	void OnEvent(Event&) override
 	{
 	}
 public:
@@ -397,18 +397,18 @@ public:
 		delete this;
 	}
 
-	bool AppendEvent(const KeyboardEvent& k, const Vec2i& focusPoint, const Vec2i& absTopLeft) override
+	bool AppendEvent(const KeyboardEvent& k, const Vec2i&, const Vec2i&) override
 	{
 		menu.AppendEvent(k);
 		return true;
 	}
 
-	void AppendEvent(const MouseEvent& me, const Vec2i& absTopLeft) override
+	void AppendEvent(const MouseEvent& me, const Vec2i&) override
 	{
 		menu.AppendEvent(me);
 	}
 
-	void Render(IGuiRenderContext& grc, const Vec2i& topLeft, const Modality& modality) override
+	void Render(IGuiRenderContext& grc, const Vec2i&, const Modality&) override
 	{
 		menu.Render(grc);
 	}

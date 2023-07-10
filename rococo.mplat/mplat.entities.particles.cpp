@@ -46,6 +46,8 @@ namespace ANON
 
 	RGBAb InterpolateColour(const Spectra& spectra, float relativeLifeLeft, const SpectrumBand& left, const SpectrumBand& right)
 	{
+		UNUSED(spectra);
+
 		if (relativeLifeLeft <= left.relativeLifeTime)
 		{
 			return ToRGBAb(left.keyColour);
@@ -353,6 +355,7 @@ namespace ANON
 
 		void Cool(float dt)
 		{
+			UNUSED(dt);
 			for (auto& fb : fire)
 			{
 				float t = max(0.0f, 1.0f - (0.51f - fb.life) * 2.0f); // 0 to 1

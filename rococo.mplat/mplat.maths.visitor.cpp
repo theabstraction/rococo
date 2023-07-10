@@ -129,11 +129,11 @@ namespace
 
 		   for (size_t i = 1; i < nComponents; ++i)
 		   {
-			   DebugLine line;
-			   FillNameWithSpaces(line, len);
+			   DebugLine line2;
+			   FillNameWithSpaces(line2, len);
 
-			   SafeFormat(line.value, 128, "( %+12.4f    )", vector[i]);
-			   lines.push_back(line);
+			   SafeFormat(line2.value, 128, "( %+12.4f    )", vector[i]);
+			   lines.push_back(line2);
 		   }
 	   }
 
@@ -261,6 +261,7 @@ namespace
 
 	   void SelectAtPos(Vec2i pos) override
 	   {
+		   UNUSED(pos);
 		   queueMouseUp = true;
 	   }
 
@@ -310,11 +311,11 @@ namespace
 	   int32 knownHeight = 0;
 	   int32 pos = 0;
 
-	   size_t selectedLine = -1;
+	   size_t selectedLine = (size_t) - 1;
 
 	   void CancelSelect()
 	   {
-		   selectedLine = -1;
+		   selectedLine = (size_t) -1;
 	   }
 
 	   void RenderStringList(IGuiRenderContext& gc, const GuiRect& absRect, int padding)
@@ -324,8 +325,6 @@ namespace
 
 		   RGBAb keyColour(192, 192, 192);
 		   RGBAb valueColour(255, 255, 255);
-
-		   int fontIndex = 1;
 
 		   int32 keyMaxWidth = 0;
 

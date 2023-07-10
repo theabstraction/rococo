@@ -369,7 +369,7 @@ void AttachBonesAndRemoveFromMap_Recursive(stringmap<ScriptedBone>& bones, IBone
 		auto& bone = c->second;
 		if (Eq(bone.parent.c_str(), daddy.ShortName()))
 		{
-			auto* child = daddy.AttachBone(bone.parentOffset, bone.quat, bone.length, c->first);
+			daddy.AttachBone(bone.parentOffset, bone.quat, bone.length, c->first);
 			c = bones.erase(c);
 		}
 		else
@@ -583,7 +583,7 @@ struct RigBuilder : public IRigBuilder
 
 			if (bone.parent.size() == 0)
 			{
-				auto* child = s->root->AttachBone(bone.parentOffset, bone.quat, bone.length, c->first);
+				s->root->AttachBone(bone.parentOffset, bone.quat, bone.length, c->first);
 				c = bones.erase(c);
 			}
 			else

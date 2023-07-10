@@ -29,6 +29,7 @@ namespace
       Instances(IMeshBuilderSupervisor& _meshBuilder, IRenderer& _renderer, Events::IPublisher& _publisher, Components::IRCObjectTable& _ecs, size_t maxEntities) :
           meshBuilder(_meshBuilder), renderer(_renderer), publisher(_publisher), ecs(_ecs)
       {
+          UNUSED(maxEntities);
       }
 
       ~Instances()
@@ -351,6 +352,7 @@ namespace
 		  renderer.Materials().GetMaterialArrayMetrics(metrics);
 
 		  auto content = renderer.Installation().Content();
+          UNUSED(content);
 
 		  for (size_t i = 0; i < metrics.NumberOfElements; ++i)
 		  {
