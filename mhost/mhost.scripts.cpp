@@ -59,7 +59,7 @@ namespace MHost
 			int32 G = FloatToColourComponent(colour.green);
 			int32 B = FloatToColourComponent(colour.blue);
 			int32 A = FloatToColourComponent(colour.alpha);
-			return RGBAb(R, G, B, A);
+			return RGBAb((uint8) R, (uint8)G, (uint8)B, (uint8)A);
 		}
 	}
 }
@@ -93,9 +93,6 @@ namespace MHost
 
 			void LoadExpression(NativeCallEnvironment& _nce)
 			{
-				Rococo::uint8* _sf = _nce.cpu.SF();
-				ptrdiff_t _offset = 2 * sizeof(size_t);
-
 				InterfacePointer pStringInterface;
 				ReadInput(0, pStringInterface, _nce);
 
@@ -158,7 +155,7 @@ namespace MHost
 						return 1; // ResourceName(1)="" flags that absolutely no defaults are permitted
 					}
 
-					cstr ResourceName(size_t index) const override
+					cstr ResourceName(size_t) const override
 					{
 						return "";
 					}
@@ -208,10 +205,9 @@ namespace MHost
 			}
 
 			Throw(0, "Could not find %s in the script %s", structName, moduleName);
-			return nullptr;
 		}
 
-		void OnCompile(IPublicScriptSystem& ss)
+		void OnCompile(IPublicScriptSystem&)
 		{
 			guiSexyObject = nullptr;
 		}

@@ -571,7 +571,7 @@ namespace
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
-		_pObject->EvalTextSpan(text, fontIndex, fontHeight, *pixelSpan);
+		_pObject->EvalTextSpan(text, fontIndex, *pixelSpan);
 	}
 	void NativeMHostIGuiGetFontDescription(NativeCallEnvironment& _nce)
 	{
@@ -680,7 +680,7 @@ namespace
 
 namespace MHost
 {
-	void AddNativeCalls_MHostIGui(Rococo::Script::IPublicScriptSystem& ss, MHost::IGui* _nceContext)
+	void AddNativeCalls_MHostIGui(Rococo::Script::IPublicScriptSystem& ss, MHost::IGui*)
 	{
 		const INamespace& ns = ss.AddNativeNamespace("MHost.Native");
 		ss.AddNativeCall(ns, NativeMHostIGuiDrawTriangle, nullptr, ("IGuiDrawTriangle (Pointer hObject)(MPlat.GuiTriangle t) -> "), __FILE__, __LINE__);

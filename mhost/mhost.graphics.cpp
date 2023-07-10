@@ -295,9 +295,9 @@ struct Gui : public MHost::IGui
 		DrawQuad(right);
 	}
 
-	void EvalTextSpan(const fstring& text, int32 fontIndex, int fontHeight, Vec2& pixelSpan) override
+	void EvalTextSpan(const fstring& text, int32 fontIndex, Vec2& pixelSpan) override
 	{
-		Rococo::Graphics::EvalTextSpan(gc, text, fontIndex, fontHeight, pixelSpan);
+		Rococo::Graphics::EvalTextSpan(gc, text, fontIndex, pixelSpan);
 	}
 
 	void GetFontDescription(int32 fontIndex, Strings::IStringPopulator& familyName, MHost::Graphics::FontDesc& desc) override

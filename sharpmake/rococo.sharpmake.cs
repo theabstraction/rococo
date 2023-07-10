@@ -444,8 +444,21 @@ namespace Rococo
         }
     }
 
+    [Sharpmake.Generate]
+    public class RococoMHostProject : RococoProject
+    {
+        public RococoMHostProject() : base("mhost")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Exe);
+        }
+    }
+
     /*
-    msbuild $(DIR_MHOST) mhost.vcxproj                                $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
 	$(ROCOCO) packages\gen.mhost.package.bat
     msbuild $(DIR_HV) hyperverse.vcxproj                              $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
     msbuild $(ROCOCO) sexystudio/sexystudio.vcxproj                           $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
@@ -492,6 +505,7 @@ namespace Rococo
             conf.AddProject<RococoGuiRetainedProject>(target);
             conf.AddProject<RococoMPlatProject>(target);
             conf.AddProject<RococoMPlatDynamicProject>(target);
+            conf.AddProject<RococoMHostProject>(target);
         }
     }
     
@@ -517,6 +531,7 @@ namespace Rococo
             arguments.Generate<RococoCPPMasterProject>();
             arguments.Generate<RococoMPlatProject>();
             arguments.Generate<RococoMPlatDynamicProject>();
+            arguments.Generate<RococoMHostProject>();
         }
     }        
 }

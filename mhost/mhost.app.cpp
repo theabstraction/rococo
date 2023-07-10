@@ -129,11 +129,11 @@ namespace MHost
 			return RGBA{ 0.5f, 0.0f, 0.0f, 1.0f };
 		}
 
-		void OnGuiResize(Vec2i screenSpan) override
+		void OnGuiResize(Vec2i) override
 		{
 		}
 
-		void RenderGui(IGuiRenderContext& grc)  override
+		void RenderGui(IGuiRenderContext&)  override
 		{
 		}
 
@@ -142,16 +142,16 @@ namespace MHost
 			return ID_CUBE_TEXTURE::Invalid();
 		}
 
-		void RenderObjects(IRenderContext& rc, bool skinned)  override
+		void RenderObjects(IRenderContext&, bool)  override
 		{
 		}
 
-		const Light* GetLights(uint32& nCount) const override
+		const Light* GetLights(uint32&) const override
 		{
 			return nullptr;
 		}
 
-		void RenderShadowPass(const DepthRenderData& drd, IRenderContext& rc, bool skinned)  override
+		void RenderShadowPass(const DepthRenderData&, IRenderContext&, bool)  override
 		{
 
 		}
@@ -300,7 +300,7 @@ namespace MHost
 			delete this;
 		}
 
-		void OnEvent(cstr sourceOfCrash) override
+		void OnEvent(cstr) override
 		{
 			platform.os.ios.EnumerateModifiedFiles(*this);
 		}
@@ -356,7 +356,7 @@ namespace MHost
 
 		struct NoEventArgs : IEventCallback<ScriptCompileArgs>
 		{
-			void OnEvent(ScriptCompileArgs& args) override
+			void OnEvent(ScriptCompileArgs&) override
 			{
 
 			}
@@ -371,14 +371,14 @@ namespace MHost
 					return 0;
 				}
 
-				cstr ResourceName(size_t index) const override
+				cstr ResourceName(size_t) const override
 				{
 					return nullptr;
 				}
 			} useMplatDefaults;
 			struct CLOSURE : IEventCallback<ScriptCompileArgs>
 			{
-				void OnEvent(ScriptCompileArgs& args) override
+				void OnEvent(ScriptCompileArgs&) override
 				{
 
 				}
@@ -415,7 +415,7 @@ namespace MHost
 					return 1; // ResourceName(1)="" flags that absolutely no defaults are permitted
 				}
 
-				cstr ResourceName(size_t index) const override
+				cstr ResourceName(size_t) const override
 				{
 					return "";
 				}
@@ -447,7 +447,7 @@ namespace MHost
 					return 1; // ResourceName(1)="" flags that absolutely no defaults are permitted
 				}
 
-				cstr ResourceName(size_t index) const override
+				cstr ResourceName(size_t) const override
 				{
 					return "";
 				}
@@ -713,7 +713,7 @@ namespace MHost
 			}
 		} args;
 
-		Rococo::Strings::SplitString(cmdLine, 0, " \t", args);
+		Rococo::Strings::SplitString(cmdLine, 0, args);
 
 		AppArgs appArgs;
 		appArgs.mainScript = "!scripts/mhost/mhost_startup.sxy";
