@@ -5,8 +5,27 @@ using System.Collections.Generic;
 
 namespace Rococo
 {
-    public class RococoProject: Project
+    public class RococoProject : Project
     {
+        public void StandardInit(Configuration conf, Target target, Configuration.OutputType type)
+        {
+            conf.Output = type;
+            conf.ProjectFileName = "[project.Name]_[target.DevEnv]_[target.Platform]";
+            conf.ProjectPath = @"[project.SharpmakeCsPath]\generated";
+
+            AddDefaults(conf, target);
+
+            var excludedFileSuffixes = new List<string>();
+
+            if (target.Platform == Platform.win64)
+            {
+                excludedFileSuffixes.Add(@"mac");
+            }
+
+            conf.SourceFilesBuildExcludeRegex.Add(@"\.*(" + string.Join("|", excludedFileSuffixes.ToArray()) + @")\.cpp$");
+            conf.TargetLibraryPath = RococoLibPath + @"[target.Platform]\[conf.Name]\";
+        }
+
         public string RococoRootPath
         {
             get
@@ -44,12 +63,12 @@ namespace Rococo
         {
             get
             {
-                 return RococoRootPath + @"sexy\";
+                return RococoRootPath + @"sexy\";
             }
         }
-		
-		protected RococoProject(string name)
-		{
+
+        protected RococoProject(string name)
+        {
             base.Name = name;
             SetSourcePath(name);
 
@@ -65,48 +84,52 @@ namespace Rococo
         }
 
         protected void AddDefaults(Configuration conf, Target target)
-		{
-			conf.IncludePaths.Add(RococoRootPath + @"include\");
-			conf.IncludePaths.Add(RococoSexyPath + @"Common\");
-			conf.Options.Add(Sharpmake.Options.Vc.Compiler.CppLanguageStandard.CPP20);
+        {
+            conf.IncludePaths.Add(RococoRootPath + @"include\");
+            conf.IncludePaths.Add(RococoSexyPath + @"Common\");
+            conf.Options.Add(Sharpmake.Options.Vc.Compiler.CppLanguageStandard.CPP20);
             conf.Options.Add(Sharpmake.Options.Vc.Compiler.Exceptions.Enable);
-            conf.Options.Add(new Sharpmake.Options.Vc.Compiler.DisableSpecificWarnings("4458","4201","4324","4250"));
+            conf.Options.Add(new Sharpmake.Options.Vc.Compiler.DisableSpecificWarnings("4458", "4201", "4324", "4250"));
             conf.IntermediatePath = RococoTmpPath + @"[target.Name]\[project.Name]\";
             conf.TargetPath = RococoBinPath + @"[target.Platform]\[conf.Name]\";
         }
 
-        public void SetSourcePath(string subdir)
+        public virtual void SetSourcePath(string subdir)
         {
             if (subdir == null || subdir[0] == 0)
             {
                 throw new Exception("Blank subdir");
             }
 
-            if (subdir[0] == '/' || subdir[0] == '\\') 
+            if (subdir[0] == '/' || subdir[0] == '\\')
             {
                 throw new Exception("The subdirectory must not begin with a directory slash");
             }
 
             SourceRootPath = RococoRootPath + subdir;
         }
-		
-		public void StandardInit(Configuration conf, Target target, Configuration.OutputType type)
-		{
-            conf.Output = type;
-            conf.ProjectFileName = "[project.Name]_[target.DevEnv]_[target.Platform]";
-            conf.ProjectPath = @"[project.SharpmakeCsPath]\generated";
+    }
 
-            AddDefaults(conf, target);
-			
-			var excludedFileSuffixes = new List<string>();
-			
-			if (target.Platform == Platform.win64)
-			{
-				excludedFileSuffixes.Add(@"mac");
-			}
-			
-			conf.SourceFilesBuildExcludeRegex.Add(@"\.*(" + string.Join("|", excludedFileSuffixes.ToArray()) + @")\.cpp$");
-            conf.TargetLibraryPath = RococoLibPath + @"[target.Platform]\[conf.Name]\";
+    public class SexyProject : RococoProject
+    {
+        protected SexyProject(string name, string subdir) : base(subdir)
+        {
+            base.Name = name;
+        }
+
+        public override void SetSourcePath(string subdir)
+        {
+            if (subdir == null || subdir[0] == 0)
+            {
+                throw new Exception("Blank subdir");
+            }
+
+            if (subdir[0] == '/' || subdir[0] == '\\')
+            {
+                throw new Exception("The subdirectory must not begin with a directory slash");
+            }
+
+            SourceRootPath = RococoSexyPath + subdir;
         }
     }
 
@@ -179,8 +202,8 @@ namespace Rococo
                 Platform.win64,
                 DevEnv.vs2022,
                 Optimization.Debug | Optimization.Release,
-				OutputType.Dll,
-				Blob.NoBlob,
+                OutputType.Dll,
+                Blob.NoBlob,
                 BuildSystem.MSBuild,
                 DotNetFramework.net6_0)
             );
@@ -202,21 +225,21 @@ namespace Rococo
     [Sharpmake.Generate]
     public class RococoUtilsProject : RococoProject
     {
-        public RococoUtilsProject(): base("rococo.util")
+        public RococoUtilsProject() : base("rococo.util")
         {
         }
 
         [Configure()]
         public void ConfigureAll(Configuration conf, Target target)
         {
-			StandardInit(conf, target, Configuration.OutputType.Dll);
+            StandardInit(conf, target, Configuration.OutputType.Dll);
         }
     }
-	
-	[Sharpmake.Generate]
+
+    [Sharpmake.Generate]
     public class RococoMathsProject : RococoProject
     {
-        public RococoMathsProject(): base("rococo.maths")
+        public RococoMathsProject() : base("rococo.maths")
         {
         }
 
@@ -226,28 +249,28 @@ namespace Rococo
             StandardInit(conf, target, Configuration.OutputType.Lib);
         }
     }
-	
-	[Sharpmake.Generate]
+
+    [Sharpmake.Generate]
     public class RococoUtilExProject : RococoProject
     {
-        public RococoUtilExProject(): base("rococo.util.ex")
+        public RococoUtilExProject() : base("rococo.util.ex")
         {
         }
 
         [Configure()]
         public void ConfigureAll(Configuration conf, Target target)
-        {    
+        {
             StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.Defines.Add("ROCOCO_UTILS_EX_API=__declspec(dllexport)");
             conf.Defines.Add("RENDERER_API=__declspec(dllexport)");
             conf.AddPublicDependency<RococoUtilsProject>(target);
         }
     }
-	
-	[Sharpmake.Generate]
+
+    [Sharpmake.Generate]
     public class RococoPackagerProject : RococoProject
     {
-        public RococoPackagerProject(): base("rococo.packager")
+        public RococoPackagerProject() : base("rococo.packager")
         {
             SetSourcePath(Name);
         }
@@ -255,8 +278,8 @@ namespace Rococo
         [Configure()]
         public void ConfigureAll(Configuration conf, Target target)
         {
-			StandardInit(conf, target, Configuration.OutputType.Exe);
-			conf.AddPublicDependency<RococoUtilsProject>(target);
+            StandardInit(conf, target, Configuration.OutputType.Exe);
+            conf.AddPublicDependency<RococoUtilsProject>(target);
         }
     }
 
@@ -585,13 +608,71 @@ namespace Rococo
             conf.AddProject<RococoAudioTestProject>(target);
         }
     }
-    
+
+    [Sharpmake.Generate]
+    public class SexyUtilProject : SexyProject
+    {
+        public SexyUtilProject() : base("sexy.util", "Utilities")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Dll);
+            conf.Defines.Add("SEXYUTIL_API=__declspec(dllexport)");
+            conf.AddPublicDependency<RococoUtilsProject>(target);
+        }
+    }
+
+    [Sharpmake.Generate]
+    public class SexyVMProject : SexyProject
+    {
+        public SexyVMProject() : base("sexy.vm", "SVM/svmcore")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Lib);
+        }
+    }
+
+    [Sharpmake.Generate]
+    public class SexyCSharpSolution : CSharpSolution
+    {
+        public SexyCSharpSolution()
+        {
+            Name = "sexy.sharpmake";
+
+            AddTargets(new Target(
+                Platform.win64,
+                DevEnv.vs2022,
+                Optimization.Debug | Optimization.Release,
+                OutputType.Dll,
+                Blob.NoBlob,
+                BuildSystem.MSBuild,
+                DotNetFramework.net6_0)
+            );
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            conf.SolutionFileName = "sexy.all";
+            conf.SolutionPath = @"[solution.SharpmakeCsPath]\generated";
+            conf.AddProject<SexyUtilProject>(target);
+            conf.AddProject<SexyVMProject>(target);
+        }
+    }
+
     public static class Main
     {
         [Sharpmake.Main]
         public static void SharpmakeMain(Sharpmake.Arguments arguments)
-        {;
-            arguments.Generate<RococoCSharpSolution>(); 
+        {
+            arguments.Generate<RococoCSharpSolution>();
             arguments.Generate<RococoUtilsProject>();
             arguments.Generate<RococoMiscUtilsProject>();
             arguments.Generate<RococoMathsProject>();
@@ -614,6 +695,10 @@ namespace Rococo
             arguments.Generate<RococoSexyStudioTestProject>();
             arguments.Generate<RococoAudioProject>();
             arguments.Generate<RococoAudioTestProject>();
+
+            arguments.Generate<SexyCSharpSolution>();
+            arguments.Generate<SexyUtilProject>();
+            arguments.Generate<SexyVMProject>();
         }
-    }        
+    }
 }

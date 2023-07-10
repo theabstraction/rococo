@@ -130,7 +130,7 @@ namespace
 			AddInstruction(&i, 4);
 		}
 	public:
-		Assembler(ICore& _core): core(_core), nextWritePosition(-1) {}
+		Assembler(ICore& _core): core(_core), nextWritePosition((size_t) - 1) {}
 		~Assembler() {}
 
 		void Append_AddImmediate(DINDEX Dsource,  BITCOUNT bits, DINDEX Dtarget, const VariantValue& v) override
@@ -162,7 +162,7 @@ namespace
 			}
 			else
 			{
-				AddFourByteInstruction(Opcodes::AddImmediate, Dsource, bits, Dtarget);
+				AddFourByteInstruction(Opcodes::AddImmediate, Dsource, (uint8) bits, Dtarget);
 				switch(bits)
 				{
 				case BITCOUNT_32:
@@ -303,7 +303,7 @@ namespace
 			}
 			else
 			{
-				AddFourByteInstruction(Opcodes::AddImmediate, Dsource, bits, Dtarget);
+				AddFourByteInstruction(Opcodes::AddImmediate, Dsource, (uint8) bits, Dtarget);
 				switch(bits)
 				{
 				case BITCOUNT_32:
@@ -491,7 +491,7 @@ namespace
 			}
 			else
 			{
-				AddTwoByteInstruction(Opcodes::SetStackFrameImmediateFar, bitCount);
+				AddTwoByteInstruction(Opcodes::SetStackFrameImmediateFar, (uint8) bitCount);
 				AddArgument(offset);
 
 				switch(bitCount)
@@ -522,7 +522,7 @@ namespace
 			}
 			else
 			{
-				AddThreeByteInstruction(Opcodes::GetStackFrameValueFar, bitCount, Dtarget);
+				AddThreeByteInstruction(Opcodes::GetStackFrameValueFar, (uint8) bitCount, Dtarget);
 				AddArgument(offset);
 			}
 		}
@@ -596,7 +596,7 @@ namespace
 			{
 				ArgsSetSFValueFromSFValue args;
 				args.opcode = Opcodes::SetSFValueFromSFValueLong;
-				args.byteCount = bitCount / 8;
+				args.byteCount = (int8) (bitCount >> 3);
 				args.sfTargetOffset = trgOffset;
 				args.sfSourceOffset = srcOffset;
 
@@ -616,7 +616,7 @@ namespace
 			}
 			else
 			{
-				AddThreeByteInstruction(Opcodes::SetStackFrameValueFar, bitCount, Dsource);
+				AddThreeByteInstruction(Opcodes::SetStackFrameValueFar, (int8) bitCount, Dsource);
 				AddArgument(offset);
 			}
 		}
@@ -703,7 +703,7 @@ namespace
 			}
 			else
 			{
-				AddTwoByteInstruction(Opcodes::BranchIf, cse);
+				AddTwoByteInstruction(Opcodes::BranchIf, (uint8) cse);
 				AddArgument(PCoffset);
 				return;
 			}
@@ -713,7 +713,7 @@ namespace
 
 		void Append_SetIf(CONDITION cse, DINDEX Di, BITCOUNT bits) override
 		{
-			AddThreeByteInstruction(((int)bits) == 32 ? Opcodes::SetIf32 : Opcodes::SetIf64, cse, Di);
+			AddThreeByteInstruction(((int)bits) == 32 ? Opcodes::SetIf32 : Opcodes::SetIf64, (uint8) cse, Di);
 		}
 
 		void Append_SwapRegister(DINDEX a, DINDEX b) override
@@ -723,22 +723,22 @@ namespace
 
 		void Append_FloatAdd(DINDEX Da, DINDEX Db, FLOATSPEC spec) override
 		{
-			AddFourByteInstruction(spec == FLOATSPEC_SINGLE ? Opcodes::FloatAdd : Opcodes::DoubleAdd, Da, Db, spec);
+			AddFourByteInstruction(spec == FLOATSPEC_SINGLE ? Opcodes::FloatAdd : Opcodes::DoubleAdd, Da, Db, (uint8) spec);
 		}
 
 		void Append_FloatSubtract(DINDEX Da, DINDEX Db, FLOATSPEC spec) override
 		{
-			AddFourByteInstruction(spec == FLOATSPEC_SINGLE ? Opcodes::FloatSubtract : Opcodes::DoubleSubtract, Da, Db, spec);
+			AddFourByteInstruction(spec == FLOATSPEC_SINGLE ? Opcodes::FloatSubtract : Opcodes::DoubleSubtract, Da, Db, (uint8) spec);
 		}
 
 		void Append_FloatMultiply(DINDEX Da, DINDEX Db, FLOATSPEC spec) override
 		{
-			AddFourByteInstruction(spec == FLOATSPEC_SINGLE ? Opcodes::FloatMultiply : Opcodes::DoubleMultiply, Da, Db, spec);
+			AddFourByteInstruction(spec == FLOATSPEC_SINGLE ? Opcodes::FloatMultiply : Opcodes::DoubleMultiply, Da, Db, (uint8) spec);
 		}
 
 		void Append_FloatDivide(DINDEX Da, DINDEX Db, FLOATSPEC spec) override
 		{
-			AddFourByteInstruction(spec == FLOATSPEC_SINGLE ? Opcodes::FloatDivide : Opcodes::DoubleDivide, Da, Db, spec);
+			AddFourByteInstruction(spec == FLOATSPEC_SINGLE ? Opcodes::FloatDivide : Opcodes::DoubleDivide, Da, Db, (uint8) spec);
 		}
 
 		void Append_CallByRegister(DINDEX offsetRegister)  override
@@ -871,7 +871,7 @@ namespace
 			}
 			else
 			{
-				AddThreeByteInstruction(Opcodes::SetSFMemberByRefFromRegisterLong, Dsource, bitcount);
+				AddThreeByteInstruction(Opcodes::SetSFMemberByRefFromRegisterLong, Dsource, (uint8) bitcount);
 				AddArgument(sfOffset);
 				AddArgument(memberOffset);
 			}
@@ -940,13 +940,13 @@ namespace
 
 		void Append_GetGlobal(BITCOUNT bits, int32 offset) override
 		{
-			AddTwoByteInstruction(Opcodes::GetGlobal, bits);
+			AddTwoByteInstruction(Opcodes::GetGlobal, (uint8) bits);
 			AddArgument(offset);
 		}
 
 		void Append_SetGlobal(BITCOUNT bits, int32 offset) override
 		{
-			AddTwoByteInstruction(Opcodes::SetGlobal, bits);
+			AddTwoByteInstruction(Opcodes::SetGlobal, (uint8) bits);
 			AddArgument(offset);
 		}
 
@@ -966,7 +966,7 @@ namespace
 
 		void SetWriteModeToAppend() override
 		{
-			this->nextWritePosition = -1;
+			this->nextWritePosition = (size_t) -1;
 		}
 
 		const unsigned char* Program(OUT size_t& length) const override
@@ -988,7 +988,7 @@ namespace
 			if (position < program.size())
 			{
 				program.resize(position);
-				nextWritePosition = -1;
+				nextWritePosition = (size_t) -1;
 			}
 		}
 	};

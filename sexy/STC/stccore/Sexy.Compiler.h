@@ -31,6 +31,8 @@
 	principal credit screen and its principal readme file.
 */
 
+#pragma once
+
 #ifndef STC_H
 # define STC_H
 
@@ -405,8 +407,8 @@ namespace Rococo::Compiler
 	SEXYUTIL_API INamespaceBuilder* MatchNamespace(IModuleBuilder& module, cstr name);
 } // Rococo::Compiler
 
-# ifdef WIN32
+#ifdef _WIN32
 #  pragma pack(pop)
-# endif
+#endif
 
 #endif // STC_H

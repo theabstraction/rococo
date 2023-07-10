@@ -6,7 +6,7 @@
 #include <sexy.compiler.public.h>
 #include <sexy.debug.types.h>
 #include <sexy.vm.cpu.h>
-#include <sexy.compiler.h>
+#include "..\STC\stccore\Sexy.Compiler.h"
 
 namespace Rococo
 {

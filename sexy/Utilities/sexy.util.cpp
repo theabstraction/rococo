@@ -35,8 +35,11 @@
 #define ROCOCO_USE_SAFE_V_FORMAT
 #include "sexy.strings.h"
 #include "sexy.compiler.public.h"
-#include <sexy.compiler.h>
-#include <sexy.validators.h>
+
+#include "..\STC\stccore\sexy.validators.h"
+
+#include "..\STC\stccore\Sexy.Compiler.h"
+
 #include <float.h>
 #include <stdarg.h>
 
@@ -334,7 +337,7 @@ namespace Rococo::Memory
 		return globalSexyAllocator->Allocate(nBytes);
 	}
 
-	SEXYUTIL_API void FreeSexyMemory(void* buffer, size_t nBytes)
+	SEXYUTIL_API void FreeSexyMemory(void* buffer, size_t /* nBytes */)
 	{
 		globalSexyAllocator->FreeData(buffer);
 	}
@@ -395,13 +398,20 @@ namespace Rococo::Memory
 		}
 
 		allocatorInfo.ReportTracedAllocations(50, PrintFunctionData);
+#else
+		UNUSED(message);
+		UNUSED(function);
+		UNUSED(line);
 #endif
 	}
 
 	SEXYUTIL_API void RecordAllocations(size_t nBytes)
 	{
+
 #ifdef RECORD_ALLOCATION_HISTORY
 		allocatorInfo.traceSize = nBytes;
+#else	
+		UNUSED(nBytes);
 #endif
 	}
 }

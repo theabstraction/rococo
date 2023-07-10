@@ -49,21 +49,21 @@
 	      if (spec == NULL) 
 	      {
 		      printf("CoreSpec was NULL");
-		      SetLastError(E_POINTER);
+		      SetLastError((unsigned int)E_POINTER);
 		      return NULL;
 	      }
 
 	      if (spec->Version != Rococo::VM::CORE_LIB_VERSION)
 	      {
 		      printf("Invalid CoreSpec->Version");
-		      SetLastError(E_INVALIDARG);
+		      SetLastError((unsigned int)E_INVALIDARG);
 		      return NULL;
 	      }
 		
 	      if(spec->SizeOfStruct != sizeof(Rococo::VM::CoreSpec))
 	      {
 		      printf("Unexpected CoreSpec->SizeOfStruct value");
-		      SetLastError(E_INVALIDARG);
+		      SetLastError((unsigned int)E_INVALIDARG);
 		      return NULL;
 	      }
 

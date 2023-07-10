@@ -65,7 +65,7 @@ namespace
 		typedef std::unordered_map < ID_API_CALLBACK, ApiCallbackBinding, std::hash<ID_API_CALLBACK>, std::equal_to<ID_API_CALLBACK>, Memory::SexyAllocator<std::pair<const ID_API_CALLBACK, ApiCallbackBinding>>> TMapIdToCallback;
 		TMapIdToCallback callbacks;
 	public:
-		Core(const CoreSpec& spec):
+		Core(const CoreSpec&):
 			logger(NULL),nextId(1)
 		{
 

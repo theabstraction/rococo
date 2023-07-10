@@ -35,7 +35,7 @@
 #include <sexy.strings.h>
 #include <sexy.stdstrings.h>
 #include <sexy.compiler.public.h>
-#include <sexy.compiler.h>
+#include "..\STC\stccore\Sexy.Compiler.h"
 #include <sexy.debug.types.h>
 #include <sexy.vm.cpu.h>
 
@@ -336,7 +336,7 @@ namespace Rococo::Compiler
 					return s;
 				}
 
-				IInterfaceBuilder* interf = prefix.FindInterface(type);
+				interf = prefix.FindInterface(type);
 				if (interf != NULL)
 				{
 					return &interf->NullObjectType();

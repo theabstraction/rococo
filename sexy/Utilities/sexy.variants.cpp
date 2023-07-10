@@ -69,7 +69,7 @@ namespace Rococo
 			return VARTYPE_Bad;
 		}
 
-		bool TryCastBoolToInt(OUT VariantValue& result, VARTYPE type, cr_sex refExpr, bool value)
+		bool TryCastBoolToInt(OUT VariantValue& result, VARTYPE type, cr_sex /* refExpr */, bool value)
 		{
 			switch(type)
 			{
@@ -176,8 +176,6 @@ namespace Rococo
          default:
             return false;
 			}
-        
-			return false;
 		}
 	}
 }

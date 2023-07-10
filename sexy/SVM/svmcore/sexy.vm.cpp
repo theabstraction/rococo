@@ -306,7 +306,7 @@ namespace Anon
 			static_assert(BITCOUNT_POINTER == sizeof(size_t) * 8, "Bad BITCOUNT_POINTER");
 		}
 
-		IVirtualMachine* Clone(CPU& _cpu) override
+		IVirtualMachine* Clone(CPU&) override
 		{
 			/*
 			auto clone = new CVirtualMachine(core, _cpu);
@@ -329,7 +329,7 @@ namespace Anon
 			SetStackSize(0);
 		}
 
-		void OnStep(IDebugger& debugger) override
+		void OnStep(IDebugger&) override
 		{
 		}
 
@@ -842,10 +842,10 @@ namespace Anon
 			// N.B in 64-mode we need to convert parentSF to and from 32-bit uint32. This can only work if the maximum stack value is less than 32-bits
 			enum { MAX_STACK_POINTER = 0x20000000 };
 			const uint8* maxPtr = (const uint8*) MAX_STACK_POINTER;
-			if (false && stack + nBytes > maxPtr)
+			if constexpr (false && stack + nBytes > maxPtr)
 			{
 				VM::OS::FreeAlignedMemory(stack);
-            stack = NULL;
+				stack = NULL;
 				Rococo::Throw(0, ("The SexyVM stack end %p exceeded the maximum pointer value of %p"), stack, maxPtr);
 			}
 		}
@@ -1202,7 +1202,7 @@ namespace Anon
 
 		OPCODE_CALLBACK(SetSFMemberPtrFromD5)
 		{
-			const Ins* I = NextInstruction();
+			// const Ins* I = NextInstruction();
 
 			cpu.AdvancePC(1);
 			int32 SFOffset = *(int32*)cpu.PC();
@@ -1436,7 +1436,7 @@ namespace Anon
 
 		OPCODE_CALLBACK(DereferenceD4)
 		{
-			const Ins* I = NextInstruction();
+			// const Ins* I = NextInstruction();
 			cpu.D[REGISTER_D4].int64Value = *cpu.D[REGISTER_D4].int64PtrValue;
 			cpu.AdvancePC(1);	
 		}

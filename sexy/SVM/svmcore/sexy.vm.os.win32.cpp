@@ -141,8 +141,6 @@ namespace Rococo { namespace VM { namespace OS
 			OUT exceptionCode = SysToSVM(GetExceptionCode());
 			return EXECUTERESULT_SEH;
 		}
-
-      return fnCode(context);
 	}
 
 	int64 TimerTicks()

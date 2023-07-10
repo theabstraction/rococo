@@ -120,13 +120,13 @@ namespace
 		rep.ByteCount = 2;
 	}
 
-	void FormatYield(const Ins& I, OUT IDisassembler::Rep& rep)
+	void FormatYield(const Ins&, OUT IDisassembler::Rep& rep)
 	{
 		format(rep, (""));
 		rep.ByteCount = 1;
 	}
 
-	void FormatNoOperation(const Ins& I, OUT IDisassembler::Rep& rep)
+	void FormatNoOperation(const Ins&, OUT IDisassembler::Rep& rep)
 	{
 		format(rep, (""));
 		rep.ByteCount = 1;
@@ -513,7 +513,7 @@ namespace
 		format(rep, ("%d"), *offsetPtr);
 	}
 
-	void FormatReturn(const Ins& I, OUT IDisassembler::Rep& rep)
+	void FormatReturn(const Ins&, OUT IDisassembler::Rep& rep)
 	{
 		rep.ByteCount = 1;
 		format(rep, (""));
@@ -1035,7 +1035,7 @@ namespace
 		rep.ByteCount = 6;	
 	}
 
-	void FormatDebug(const Ins& I, OUT IDisassembler::Rep& rep)
+	void FormatDebug(const Ins&, OUT IDisassembler::Rep& rep)
 	{
 		format(rep, "");
 		rep.ByteCount = 1;	
@@ -1093,7 +1093,7 @@ namespace
 		rep.ByteCount = sizeof(Args);
 	}
 
-	void FormatDereferenceD4(const Ins& I, OUT IDisassembler::Rep& rep)
+	void FormatDereferenceD4(const Ins&, OUT IDisassembler::Rep& rep)
 	{
 		format(rep, (""));
 		rep.ByteCount = 1;
