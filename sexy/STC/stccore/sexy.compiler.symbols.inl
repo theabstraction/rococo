@@ -61,6 +61,7 @@ namespace
 
 		CSymbol(cstr _symbol, int _hashCode, ESymbol perm)
 		{
+			UNUSED(perm);
 			hashCode = _hashCode;			
 			symbol = CreateSexString(_symbol);
 			staticRefSymbol = symbol->Buffer;

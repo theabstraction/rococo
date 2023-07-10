@@ -133,6 +133,8 @@ namespace Anon
 	// D4 points to address that holds ObjectStub, i.e an ObjectStub**, and D5 points to Allocator binding
 	static void NewObject(VariantValue* registers, void* context)
 	{
+		UNUSED(context);
+
 		auto* binding = (AllocatorBinding*)registers[VM::REGISTER_D5].vPtrValue;
 		auto* type = binding->associatedStructure;
 		int allocSize = type->SizeOfStruct();
@@ -164,6 +166,8 @@ namespace Anon
 
 	static void IncrementRefCount(VariantValue* registers, void* context)
 	{
+		UNUSED(context);
+
 		uint8* rawInterface = registers[VM::REGISTER_D4].uint8PtrValue;
 		auto pInterface = (InterfacePointer)rawInterface;
 		IncRefCount(pInterface);
@@ -222,6 +226,8 @@ namespace Anon
 
 	void DecRefCountOnCircularReferences(ObjectStub* object, IAllocatorMap& map)
 	{
+		UNUSED(map);
+
 		if (object->Desc->TypeInfo->HasInterfaceMembers())
 		{
 
@@ -287,6 +293,7 @@ namespace Anon
 
 	void GetAllocSize(VariantValue* registers, void* context)
 	{
+		UNUSED(context);
 		uint8* pInterface = (uint8*)registers[VM::REGISTER_D7].vPtrValue;
 		VirtualTable** pTables = (VirtualTable**)pInterface;
 		auto offset = (*pTables)->OffsetToInstance;
@@ -403,6 +410,7 @@ namespace Anon
 
 		size_t FreeLeakedObjects(IEventCallback<LeakArgs>* leakCallback) override
 		{
+			UNUSED(leakCallback);
 			return 0;
 		}
 

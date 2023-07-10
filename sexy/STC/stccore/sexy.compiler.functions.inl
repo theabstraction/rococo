@@ -71,7 +71,7 @@ namespace Anon
 						resolvedGenericArg1Type = arg;
 						if (!genericArg2Type.empty())
 						{
-							IStructureBuilder* arg = Compiler::MatchStructure(log, genericArg2Type.c_str(), localMod);
+							arg = Compiler::MatchStructure(log, genericArg2Type.c_str(), localMod);
 							if (arg != NULL)
 							{
 								resolvedGenericArg2Type = arg;

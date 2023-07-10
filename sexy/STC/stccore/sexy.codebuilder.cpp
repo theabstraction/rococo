@@ -117,7 +117,7 @@ namespace Anon
 			userData(_userData),
 			allocSize(-1),
 			pcStart(0),
-			pcEnd(-1),
+			pcEnd((size_t) -1),
 			primaryOffset(_primaryOffset),
 			tempDepthOnRelease(-1),
 			canCaptureClosureData(arg.IsClosureInput())
@@ -133,7 +133,7 @@ namespace Anon
 			userData(_userData),
 			allocSize(_allocSize),
 			pcStart(_pcStart),
-			pcEnd(-1),
+			pcEnd((size_t) - 1),
 			primaryOffset(0),
 			location(_location),
 			tempDepthOnRelease(_tempDepthOnRelease),
@@ -320,8 +320,8 @@ namespace Anon
 		f(_f),
 		sectionIndex(0),
 		allocatedIndexLevel(-1),
-		functionStartPosition(-1),
-		functionEndPosition(-1),
+		functionStartPosition((size_t)-1),
+		functionEndPosition((size_t)-1),
 		nextOffset(0),
 		codeReferencesParentsSF(false),
 		mayUseParentsSF(_mayUseParentsSF),
@@ -398,7 +398,7 @@ namespace Anon
 
 		Variable *v = new Variable(Assembler().WritePosition(), NameString::From(name), type, sectionIndex, userData, -1, VARLOCATION_TEMP, false, restoreTempDepth);
 		int dx = AddVariableToVariables(v);
-		if (dx >= 0) Assembler().Append_PushRegister(saveTempDepth + 4, bits);
+		if (dx >= 0) Assembler().Append_PushRegister((VM::DINDEX) saveTempDepth + 4, bits);
 	}
 
 	void CodeBuilder::AddArgVariable(cstr desc, const IStructure& type, void* userData)
@@ -423,6 +423,7 @@ namespace Anon
 
 		Variable *v = new Variable(Assembler().WritePosition(), NameString::From(name), *argType, sectionIndex, userData, -1, VARLOCATION_TEMP, false);
 		int dx = AddVariableToVariables(v);
+		UNUSED(dx);
 	}
 
 	void CodeBuilder::AddArgVariable(cstr desc, const TypeString& typeName, void* userData)
@@ -753,7 +754,7 @@ namespace Anon
 				}
 
 				BITCOUNT bits = v->ResolvedType().SizeOfStruct() == 4 ? BITCOUNT_32 : BITCOUNT_64;
-				Assembler().Append_RestoreRegister(tempDepth + VM::REGISTER_D4, bits);
+				Assembler().Append_RestoreRegister((VM::DINDEX) tempDepth + VM::REGISTER_D4, bits);
 			}
 			else
 			{
@@ -1361,8 +1362,6 @@ namespace Anon
 			endOfTemps = finalVar->Offset() + finalVar->AllocSize();
 		}
 
-		int returnAddressOffset = (int) sizeof(size_t);
-
 		if (endOfTemps > 0)
 		{
 			Assembler().Append_StackAlloc(-endOfTemps);
@@ -1690,7 +1689,7 @@ namespace Anon
 				RestoreStackFrameFor(builder, refDef);
 
 				UseStackFrameFor(builder, targetDef);
-				assembler.Append_SetStackFrameValue(VM::REGISTER_D4, targetDef.SFOffset, BITCOUNT_POINTER);
+				assembler.Append_SetStackFrameValue(VM::REGISTER_D4, (VM::DINDEX) targetDef.SFOffset, BITCOUNT_POINTER);
 				RestoreStackFrameFor(builder, targetDef);
 			}
 		}
@@ -1955,8 +1954,6 @@ namespace Anon
 		}
 		else if (sourceDef.Usage == ARGUMENTUSAGE_BYREFERENCE && targetDef.Usage == ARGUMENTUSAGE_BYREFERENCE)
 		{
-			size_t nBytesSource = sourceDef.AllocSize;
-
 			if (targetDef.IsParentValue || sourceDef.IsParentValue)
 			{
 				AssignVariableToVariable_ByRefSlow(*this, sourceDef, targetDef, source, target);
@@ -2067,11 +2064,11 @@ namespace Anon
 			|| def.location == VARLOCATION_OUTPUT
 			|| def.Usage != ARGUMENTUSAGE_BYREFERENCE)
 		{
-			Assembler().Append_SetStackFrameValue(def.SFOffset + def.MemberOffset, VM::REGISTER_D4 + srcIndex, bitCount);
+			Assembler().Append_SetStackFrameValue(def.SFOffset + def.MemberOffset, VM::REGISTER_D4 + (VM::DINDEX)srcIndex, bitCount);
 		}
 		else
 		{
-			Assembler().Append_SetSFMemberByRefFromRegister(srcIndex + VM::REGISTER_D4, def.SFOffset, def.MemberOffset, bitCount);
+			Assembler().Append_SetSFMemberByRefFromRegister((VM::DINDEX) srcIndex + VM::REGISTER_D4, def.SFOffset, def.MemberOffset, bitCount);
 		}
 
 		RestoreStackFrameFor(*this, def);
@@ -2091,11 +2088,11 @@ namespace Anon
 
 		if (def.location == VARLOCATION_OUTPUT || def.Usage != ARGUMENTUSAGE_BYREFERENCE)
 		{
-			Assembler().Append_GetStackFrameAddress(VM::REGISTER_D4 + tempDepth, def.SFOffset + def.MemberOffset);
+			Assembler().Append_GetStackFrameAddress(VM::REGISTER_D4 + (VM::DINDEX) tempDepth, def.SFOffset + def.MemberOffset);
 		}
 		else
 		{
-			Assembler().Append_GetStackFrameMemberPtr(tempDepth + VM::REGISTER_D4, def.SFOffset, def.MemberOffset);
+			Assembler().Append_GetStackFrameMemberPtr((VM::DINDEX) tempDepth + VM::REGISTER_D4, def.SFOffset, def.MemberOffset);
 		}
 
 		RestoreStackFrameFor(*this, def);
@@ -2158,23 +2155,23 @@ namespace Anon
 			{
 				VariantValue v;
 				v.floatValue = 0;
-				Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4+a+2, v, BITCOUNT_32);
-				Assembler().Append_FloatSubtract(VM::REGISTER_D4+a+2, VM::REGISTER_D4+a, VM::FLOATSPEC_SINGLE);
+				Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4+ (VM::DINDEX)(a+2), v, BITCOUNT_32);
+				Assembler().Append_FloatSubtract(VM::REGISTER_D4+ (VM::DINDEX)a+ (VM::DINDEX)2, VM::REGISTER_D4+ (VM::DINDEX)a, VM::FLOATSPEC_SINGLE);
 			}
 			break;
 		case VARTYPE_Float64:
 			{
 				VariantValue v;
 				v.doubleValue = 0;
-				Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4+a+2, v, BITCOUNT_64);
-				Assembler().Append_FloatSubtract(VM::REGISTER_D4+a+2, VM::REGISTER_D4+a, VM::FLOATSPEC_DOUBLE);
+				Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4 + (VM::DINDEX)a + (VM::DINDEX) +2, v, BITCOUNT_64);
+				Assembler().Append_FloatSubtract(VM::REGISTER_D4+ (VM::DINDEX) a + (VM::DINDEX) 2, VM::REGISTER_D4+ (VM::DINDEX)a, VM::FLOATSPEC_DOUBLE);
 			}
 			break;
 		case VARTYPE_Int32:
-			Assembler().Append_IntNegate(VM::REGISTER_D4+a, BITCOUNT_32, VM::REGISTER_D4+a+1);
+			Assembler().Append_IntNegate(VM::REGISTER_D4+ (VM::DINDEX)a, BITCOUNT_32, VM::REGISTER_D4+ (VM::DINDEX)a+ (VM::DINDEX)1);
 			break;
 		case VARTYPE_Int64:
-			Assembler().Append_IntNegate(VM::REGISTER_D4+a, BITCOUNT_64, VM::REGISTER_D4+a+1);
+			Assembler().Append_IntNegate(VM::REGISTER_D4+ (VM::DINDEX)a, BITCOUNT_64, VM::REGISTER_D4+ (VM::DINDEX)a+ (VM::DINDEX)1);
 			break;
 		default:
 			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Unhandled type for Negate"));
@@ -2186,16 +2183,16 @@ namespace Anon
 		switch(type)
 		{
 		case VARTYPE_Float32:
-			Assembler().Append_FloatAdd(VM::REGISTER_D4+a,VM::REGISTER_D4+b, VM::FLOATSPEC_SINGLE);
+			Assembler().Append_FloatAdd(VM::REGISTER_D4+ (VM::DINDEX)a,VM::REGISTER_D4+ (VM::DINDEX)b, VM::FLOATSPEC_SINGLE);
 			break;
 		case VARTYPE_Float64:
-			Assembler().Append_FloatAdd(VM::REGISTER_D4+a,VM::REGISTER_D4+b, VM::FLOATSPEC_DOUBLE);
+			Assembler().Append_FloatAdd(VM::REGISTER_D4 + (VM::DINDEX)a,VM::REGISTER_D4 + (VM::DINDEX)b, VM::FLOATSPEC_DOUBLE);
 			break;
 		case VARTYPE_Int32:
-			Assembler().Append_IntAdd(VM::REGISTER_D4+a, BITCOUNT_32, VM::REGISTER_D4+b);
+			Assembler().Append_IntAdd(VM::REGISTER_D4 + (VM::DINDEX)a, BITCOUNT_32, VM::REGISTER_D4 + (VM::DINDEX)b);
 			break;
 		case VARTYPE_Int64:
-			Assembler().Append_IntAdd(VM::REGISTER_D4+a, BITCOUNT_64, VM::REGISTER_D4+b);
+			Assembler().Append_IntAdd(VM::REGISTER_D4 + (VM::DINDEX)a, BITCOUNT_64, VM::REGISTER_D4 + (VM::DINDEX)b);
 			break;
 		default:
 			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Unhandled type for BinaryOperatorAdd"));
@@ -2204,19 +2201,19 @@ namespace Anon
 
 	void CodeBuilder::BinaryOperatorSubtract(int a, int b, VARTYPE type)
 	{
-		switch(type)
+		switch (type)
 		{
 		case VARTYPE_Float32:
-			Assembler().Append_FloatSubtract(VM::REGISTER_D4+a,VM::REGISTER_D4+b, VM::FLOATSPEC_SINGLE);
+			Assembler().Append_FloatSubtract(VM::REGISTER_D4 + (VM::DINDEX)a, VM::REGISTER_D4 + (VM::DINDEX)b, VM::FLOATSPEC_SINGLE);
 			break;
 		case VARTYPE_Float64:
-			Assembler().Append_FloatSubtract(VM::REGISTER_D4+a,VM::REGISTER_D4+b, VM::FLOATSPEC_DOUBLE);
+			Assembler().Append_FloatSubtract(VM::REGISTER_D4 + (VM::DINDEX)a, VM::REGISTER_D4 + (VM::DINDEX)b, VM::FLOATSPEC_DOUBLE);
 			break;
 		case VARTYPE_Int32:
-			Assembler().Append_IntSubtract(VM::REGISTER_D4+a, BITCOUNT_32, VM::REGISTER_D4+b);
+			Assembler().Append_IntSubtract(VM::REGISTER_D4 + (VM::DINDEX)a, BITCOUNT_32, VM::REGISTER_D4 + (VM::DINDEX)b);
 			break;
 		case VARTYPE_Int64:
-			Assembler().Append_IntSubtract(VM::REGISTER_D4+a, BITCOUNT_64, VM::REGISTER_D4+b);
+			Assembler().Append_IntSubtract(VM::REGISTER_D4 + (VM::DINDEX)a, BITCOUNT_64, VM::REGISTER_D4 + (VM::DINDEX)b);
 			break;
 		default:
 			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Unhandled type for BinaryOperatorSubtract"));
@@ -2225,19 +2222,19 @@ namespace Anon
 
 	void CodeBuilder::BinaryOperatorMultiply(int a, int b, VARTYPE type)
 	{
-		switch(type)
+		switch (type)
 		{
 		case VARTYPE_Float32:
-			Assembler().Append_FloatMultiply(VM::REGISTER_D4+a,VM::REGISTER_D4+b, VM::FLOATSPEC_SINGLE);
+			Assembler().Append_FloatMultiply(VM::REGISTER_D4 + (VM::DINDEX)a, VM::REGISTER_D4 + (VM::DINDEX)b, VM::FLOATSPEC_SINGLE);
 			break;
 		case VARTYPE_Float64:
-			Assembler().Append_FloatMultiply(VM::REGISTER_D4+a,VM::REGISTER_D4+b, VM::FLOATSPEC_DOUBLE);
+			Assembler().Append_FloatMultiply(VM::REGISTER_D4 + (VM::DINDEX)a, VM::REGISTER_D4 + (VM::DINDEX)b, VM::FLOATSPEC_DOUBLE);
 			break;
 		case VARTYPE_Int32:
-			Assembler().Append_IntMultiply(VM::REGISTER_D4+a, BITCOUNT_32, VM::REGISTER_D4+b);
+			Assembler().Append_IntMultiply(VM::REGISTER_D4 + (VM::DINDEX)a, BITCOUNT_32, VM::REGISTER_D4 + (VM::DINDEX)b);
 			break;
 		case VARTYPE_Int64:
-			Assembler().Append_IntMultiply(VM::REGISTER_D4+a, BITCOUNT_64, VM::REGISTER_D4+b);
+			Assembler().Append_IntMultiply(VM::REGISTER_D4 + (VM::DINDEX)a, BITCOUNT_64, VM::REGISTER_D4 + (VM::DINDEX)b);
 			break;
 		default:
 			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Unhandled type for BinaryOperatorMultiply"));
@@ -2246,27 +2243,28 @@ namespace Anon
 
 	void CodeBuilder::BinaryOperatorDivide(int a, int b, VARTYPE type)
 	{
-		switch(type)
+		switch (type)
 		{
 		case VARTYPE_Float32:
-			Assembler().Append_FloatDivide(VM::REGISTER_D4+a,VM::REGISTER_D4+b, VM::FLOATSPEC_SINGLE);
+			Assembler().Append_FloatDivide(VM::REGISTER_D4 + (VM::DINDEX)a, VM::REGISTER_D4 + (VM::DINDEX)b, VM::FLOATSPEC_SINGLE);
 			break;
 		case VARTYPE_Float64:
-			Assembler().Append_FloatDivide(VM::REGISTER_D4+a,VM::REGISTER_D4+b, VM::FLOATSPEC_DOUBLE);
+			Assembler().Append_FloatDivide(VM::REGISTER_D4 + (VM::DINDEX)a, VM::REGISTER_D4 + (VM::DINDEX)b, VM::FLOATSPEC_DOUBLE);
 			break;
 		case VARTYPE_Int32:
-			Assembler().Append_IntDivide(VM::REGISTER_D4+a, BITCOUNT_32, VM::REGISTER_D4+b);
+			Assembler().Append_IntDivide(VM::REGISTER_D4 + (VM::DINDEX)a, BITCOUNT_32, VM::REGISTER_D4 + (VM::DINDEX)b);
 			break;
 		case VARTYPE_Int64:
-			Assembler().Append_IntDivide(VM::REGISTER_D4+a, BITCOUNT_64, VM::REGISTER_D4+b);
+			Assembler().Append_IntDivide(VM::REGISTER_D4 + (VM::DINDEX)a, BITCOUNT_64, VM::REGISTER_D4 + (VM::DINDEX)b);
 			break;
 		default:
 			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Unhandled type for BinaryOperatorMultiply"));
 		}
 	}
 
-	void AssignInterfaceToTemp(CodeBuilder& builder, const MemberDef& sourceDef, cstr source, int tempIndex, int memberOffsetCorrection)
+	void AssignInterfaceToTemp(CodeBuilder& builder, const MemberDef& sourceDef, cstr source, int tempIndex, int /* memberOffsetCorrection */)
 	{
+		UNUSED(source);
 		// Assumes sourceDef is an interface
 
 		// Scenarios -> 
@@ -2283,17 +2281,17 @@ namespace Anon
 		if (sourceDef.location == VARLOCATION_TEMP && sourceDef.Usage == ARGUMENTUSAGE_BYREFERENCE && sourceDef.IsContained)
 		{
 			// Assign from derefenced pointer to a deferenced pointer -> in this case a list node
-			builder.Assembler().Append_GetStackFrameMemberPtrAndDeref(VM::REGISTER_D4 + tempIndex, sourceDef.SFOffset, sourceDef.MemberOffset);
+			builder.Assembler().Append_GetStackFrameMemberPtrAndDeref(VM::REGISTER_D4 + (VM::DINDEX)tempIndex, sourceDef.SFOffset, sourceDef.MemberOffset);
 		}
 		else if (sourceDef.location != VARLOCATION_INPUT || sourceDef.Usage == ARGUMENTUSAGE_BYVALUE || !sourceDef.IsContained)
 		{
 			// Assign from a value
-			builder.Assembler().Append_GetStackFrameValue(sourceDef.SFOffset + sourceDef.MemberOffset, tempIndex + VM::REGISTER_D4, BITCOUNT_POINTER);
+			builder.Assembler().Append_GetStackFrameValue(sourceDef.SFOffset + sourceDef.MemberOffset, (VM::DINDEX)tempIndex + VM::REGISTER_D4, BITCOUNT_POINTER);
 		}
 		else
 		{
 			// Assign from derefenced pointer to a deferenced pointer
-			builder.Assembler().Append_GetStackFrameMemberPtrAndDeref(VM::REGISTER_D4 + tempIndex, sourceDef.SFOffset, sourceDef.MemberOffset);
+			builder.Assembler().Append_GetStackFrameMemberPtrAndDeref(VM::REGISTER_D4 + (VM::DINDEX)tempIndex, sourceDef.SFOffset, sourceDef.MemberOffset);
 		}
 
 		RestoreStackFrameFor(builder, sourceDef);
@@ -2329,27 +2327,27 @@ namespace Anon
 			{
 				if (def.IsContained)
 				{
-					Assembler().Append_GetStackFrameMember(VM::REGISTER_D4 + tempIndex, def.SFOffset, def.MemberOffset, BITCOUNT_POINTER);
+					Assembler().Append_GetStackFrameMember(VM::REGISTER_D4 + (VM::DINDEX)tempIndex, def.SFOffset, def.MemberOffset, BITCOUNT_POINTER);
 				}
 				else if (srcType->VarType() == VARTYPE_Array || srcType->VarType() == VARTYPE_Map || srcType->VarType() == VARTYPE_List)
 				{
-					Assembler().Append_GetStackFrameValue(def.SFOffset, VM::REGISTER_D4 + tempIndex, BITCOUNT_POINTER);
+					Assembler().Append_GetStackFrameValue(def.SFOffset, VM::REGISTER_D4 + (VM::DINDEX)tempIndex, BITCOUNT_POINTER);
 				}
 				else if (srcType->VarType() != VARTYPE_Derivative)
 				{		
 					BITCOUNT bits = GetBitCount(srcType->VarType());
 					// Pointer to primitive. Currently these only exist as a result of (foreach x # array ...) operations
-					Assembler().Append_GetStackFrameMember(VM::REGISTER_D4 + tempIndex, def.SFOffset, def.MemberOffset, bits);
+					Assembler().Append_GetStackFrameMember(VM::REGISTER_D4 + (VM::DINDEX)tempIndex, def.SFOffset, def.MemberOffset, bits);
 				}
 				else
 				{
-					Assembler().Append_GetStackFrameValue(def.SFOffset, VM::REGISTER_D4 + tempIndex, BITCOUNT_POINTER);
+					Assembler().Append_GetStackFrameValue(def.SFOffset, VM::REGISTER_D4 + (VM::DINDEX)tempIndex, BITCOUNT_POINTER);
 				}
 			}
 			else // def.Usage is by value
 			{
 				BITCOUNT bitCount = GetBitCountFromStruct(def);
-				Assembler().Append_GetStackFrameValue(def.SFOffset + def.MemberOffset, VM::REGISTER_D4 + tempIndex, bitCount);
+				Assembler().Append_GetStackFrameValue(def.SFOffset + def.MemberOffset, VM::REGISTER_D4 + (VM::DINDEX)tempIndex, bitCount);
 			}
 
 			RestoreStackFrameFor(*this, def);
@@ -2372,32 +2370,32 @@ namespace Anon
 		{
 			if (def.ResolvedType->InterfaceCount() || def.ResolvedType->VarType() == VARTYPE_Array)
 			{
-				Assembler().Append_GetStackFrameValue(def.SFOffset + def.MemberOffset + offset, VM::REGISTER_D4 + tempDepth, BITCOUNT_POINTER);
+				Assembler().Append_GetStackFrameValue(def.SFOffset + def.MemberOffset + offset, VM::REGISTER_D4 + (VM::DINDEX)tempDepth, BITCOUNT_POINTER);
 			}
 			else
 			{
-				Assembler().Append_GetStackFrameAddress(VM::REGISTER_D4 + tempDepth, def.SFOffset + def.MemberOffset + offset);
+				Assembler().Append_GetStackFrameAddress(VM::REGISTER_D4 + (VM::DINDEX)tempDepth, def.SFOffset + def.MemberOffset + offset);
 			}
 		}
 		else
 		{
 			if (!def.IsContained)
 			{
-				Assembler().Append_GetStackFrameValue(def.SFOffset, VM::REGISTER_D4 + tempDepth, BITCOUNT_POINTER);
-				Assembler().Append_IncrementPtr(VM::REGISTER_D4 + tempDepth, offset);
+				Assembler().Append_GetStackFrameValue(def.SFOffset, VM::REGISTER_D4 + (VM::DINDEX)tempDepth, BITCOUNT_POINTER);
+				Assembler().Append_IncrementPtr(VM::REGISTER_D4 + (VM::DINDEX)tempDepth, offset);
 			}
 			else
 			{
 				if (def.IsContained && def.ResolvedType->InterfaceCount() > 0)
 				{
-					Assembler().Append_GetStackFrameMemberPtrAndDeref(VM::REGISTER_D4 + tempDepth, def.SFOffset, def.MemberOffset);
+					Assembler().Append_GetStackFrameMemberPtrAndDeref(VM::REGISTER_D4 + (VM::DINDEX)tempDepth, def.SFOffset, def.MemberOffset);
 				}
 				else
 				{
-					Assembler().Append_GetStackFrameMemberPtr(VM::REGISTER_D4 + tempDepth, def.SFOffset, def.MemberOffset);
+					Assembler().Append_GetStackFrameMemberPtr(VM::REGISTER_D4 + (VM::DINDEX)tempDepth, def.SFOffset, def.MemberOffset);
 				}
 
-				Assembler().Append_IncrementPtr(VM::REGISTER_D4 + tempDepth, offset);
+				Assembler().Append_IncrementPtr(VM::REGISTER_D4 + (VM::DINDEX)tempDepth, offset);
 			}
 		}
 
@@ -2539,8 +2537,6 @@ namespace Anon
 
 			Assembler().SetWriteModeToAppend();
 			break;
-
-			attempts--;
 		}while(attempts > 0);
 
 		if (attempts == 0)
@@ -2642,8 +2638,7 @@ namespace Anon
 	void CodeBuilder::AppendDoWhile(ICompileSection& loopBody, ICompileSection& loopCriterion, CONDITION condition)
 	{
 		int branchBreakLengthGuess = 0;
-		int branchContinueLengthGuess = 0;
-		int branchToExitLengthGuess = 0;		
+		int branchContinueLengthGuess = 0;	
 		int branchToStartGuess = 0;
 
 		int attempts = 5;

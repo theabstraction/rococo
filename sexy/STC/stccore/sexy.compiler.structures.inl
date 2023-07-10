@@ -558,7 +558,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 					// The resolve attempts that fail will trigger a report to the log
 					for(auto i = unresolvedStructures.begin(); i != unresolvedStructures.end(); ++i)
 					{
-						Structure* s = *i;
+						s = *i;
 						TryResolve(object.Log(), *s, true, pSrcErr);
 					}
 
@@ -649,6 +649,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 					IStructureBuilder& type = *member.UnderlyingType();
 
 					cstr name = member.Name();					
+					UNUSED(name);
 
 					if (IsTypeInExpandList(type, expandedStructures))
 					{

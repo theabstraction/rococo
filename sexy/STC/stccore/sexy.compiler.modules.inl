@@ -61,7 +61,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 			closures.clear();
 		}
 
-		Module(IProgramObject& _object, cstr _name, void* hack):
+		Module(IProgramObject& _object, cstr _name, void* /* hack */) :
 			object(_object),
 			name(_name),
 			functions(true),

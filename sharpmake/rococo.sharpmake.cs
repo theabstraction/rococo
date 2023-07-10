@@ -640,6 +640,20 @@ namespace Rococo
     }
 
     [Sharpmake.Generate]
+    public class SexyCompilerProject : SexyProject
+    {
+        public SexyCompilerProject() : base("sexy.compiler", "STC/stccore")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Lib);
+        }
+    }
+
+    [Sharpmake.Generate]
     public class SexyCSharpSolution : CSharpSolution
     {
         public SexyCSharpSolution()
@@ -664,6 +678,7 @@ namespace Rococo
             conf.SolutionPath = @"[solution.SharpmakeCsPath]\generated";
             conf.AddProject<SexyUtilProject>(target);
             conf.AddProject<SexyVMProject>(target);
+            conf.AddProject<SexyCompilerProject>(target);
         }
     }
 
@@ -699,6 +714,7 @@ namespace Rococo
             arguments.Generate<SexyCSharpSolution>();
             arguments.Generate<SexyUtilProject>();
             arguments.Generate<SexyVMProject>();
+            arguments.Generate<SexyCompilerProject>();
         }
     }
 }
