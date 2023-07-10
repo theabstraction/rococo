@@ -149,9 +149,6 @@ struct PingPopulator : public IDirectoryPopulator
 
 	void SetCurrentDirectory(const U32FilePath& path) override
 	{
-		auto& dir = currentDirectory;
-		int depth = 0;
-
 		U8FilePath asciiPath;
 		ToU8(path, asciiPath);
 
@@ -182,11 +179,11 @@ struct PingPopulator : public IDirectoryPopulator
 	void ForEachSubPathFromCurrent(IEventCallback<U32FilePath>& cb) override
 	{
 		U32FilePath root;
-		PathFromAscii("!", '/', root);
+		PathFromAscii("!", root);
 		cb.OnEvent(root);
 
 		U32FilePath u32current;
-		PathFromAscii(currentDirectory, '/', u32current);
+		PathFromAscii(currentDirectory, u32current);
 
 		ForEachSubPath<char32_t>(u32current, cb, 1, '/');
 	}
@@ -214,7 +211,7 @@ struct PingPopulator : public IDirectoryPopulator
 						U8FilePath buf; // ascii should be fine, since we are in a subdir of a ping path
 						Format(buf, "%ls%ls", item.containerRelRoot, item.itemRelContainer);
 						U32FilePath itemPath;
-						PathFromAscii(buf, '/', itemPath);
+						PathFromAscii(buf, itemPath);
 						cb->OnFile(root, itemPath, nullptr, 0);
 					}
 				}
@@ -250,7 +247,7 @@ struct PingPopulator : public IDirectoryPopulator
 						char buf[260];
 						SafeFormat(buf, 260, "%ls%ls", item.containerRelRoot, item.itemRelContainer);
 						U32FilePath itemPath;
-						PathFromAscii(buf, '/', itemPath);
+						PathFromAscii(buf, itemPath);
 
 						IO::FileAttributes attr;
 						if (IO::TryGetFileAttributes(item.fullPath, attr))
@@ -289,6 +286,9 @@ struct PingPopulator : public IDirectoryPopulator
 
 			void OnFile(const U32FilePath& root, const U32FilePath& subpath, cstr timestamp, uint64 length) override
 			{
+				UNUSED(length);
+				UNUSED(timestamp);
+				UNUSED(root);
 				subDirectories->push_back(subpath);
 				AddPathSeparator(subDirectories->back(), '/');
 			}
@@ -297,7 +297,7 @@ struct PingPopulator : public IDirectoryPopulator
 		addToSubList.subDirectories = &subDirectories;
 
 		U32FilePath u32current;
-		PathFromAscii(currentDirectory, '/', u32current);
+		PathFromAscii(currentDirectory, u32current);
 
 		EnumerateSubfolders(u32current, addToSubList, false);
 
@@ -307,6 +307,8 @@ struct PingPopulator : public IDirectoryPopulator
 
 			void OnFile(const U32FilePath& root, const U32FilePath& subpath, cstr timestamp, uint64 length) override
 			{
+				UNUSED(root);
+
 				FileInfo info;
 				info.path = subpath;
 				SafeFormat(info.timestamp, sizeof(info.timestamp), "%s", timestamp);
@@ -327,7 +329,7 @@ struct PingPopulator : public IDirectoryPopulator
 	void GetFullPath(U32FilePath& fullPath, const U32FilePath& subdir) const
 	{
 		U32FilePath u32current;
-		PathFromAscii(currentDirectory, '/', u32current);
+		PathFromAscii(currentDirectory, u32current);
 
 		Merge(fullPath, u32current, subdir);
 	}
@@ -335,7 +337,7 @@ struct PingPopulator : public IDirectoryPopulator
 	void GetFullPathToFile(const U32FilePath& shortFileName, U32FilePath& fullPath) const
 	{
 		U32FilePath u32current;
-		PathFromAscii(currentDirectory, '/', u32current);
+		PathFromAscii(currentDirectory, u32current);
 
 		Merge(fullPath, u32current, shortFileName);
 	}
