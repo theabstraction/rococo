@@ -441,6 +441,7 @@ namespace Rococo
         public void ConfigureAll(Configuration conf, Target target)
         {
             StandardInit(conf, target, Configuration.OutputType.Dll);
+            conf.AddPublicDependency<RococoWindowsProject>(target);
         }
     }
 
@@ -458,14 +459,53 @@ namespace Rococo
         }
     }
 
-    /*
-	$(ROCOCO) packages\gen.mhost.package.bat
-    msbuild $(DIR_HV) hyperverse.vcxproj                              $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
-    msbuild $(ROCOCO) sexystudio/sexystudio.vcxproj                           $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
-    msbuild $(ROCOCO) sexystudio.app/sexystudio.app.vcxproj                   $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
-    msbuild $(ROCOCO) sexystudio.test/sexystudio.test.vcxproj                 $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTI
-    */
+    [Sharpmake.Generate]
+    public class RococoSexyStudioProject : RococoProject
+    {
+        public RococoSexyStudioProject() : base("sexystudio")
+        {
+        }
 
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Dll);
+            conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.AddPublicDependency<RococoWindowsProject>(target);
+        }
+    }
+
+    [Sharpmake.Generate]
+    public class RococoSexyStudioAppProject : RococoProject
+    {
+        public RococoSexyStudioAppProject() : base("sexystudio.app")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Exe);
+            conf.AddPublicDependency<RococoSexyStudioProject>(target);
+            conf.AddPublicDependency<RococoWindowsProject>(target);
+        }
+    }
+
+    [Sharpmake.Generate]
+    public class RococoSexyStudioTestProject : RococoProject
+    {
+        public RococoSexyStudioTestProject() : base("sexystudio.test")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Exe);
+            conf.AddPublicDependency<RococoSexyStudioProject>(target);
+            conf.AddPublicDependency<RococoWindowsProject>(target);
+        }
+    }
 
     [Sharpmake.Generate]
     public class RococoCSharpSolution : CSharpSolution
@@ -506,6 +546,9 @@ namespace Rococo
             conf.AddProject<RococoMPlatProject>(target);
             conf.AddProject<RococoMPlatDynamicProject>(target);
             conf.AddProject<RococoMHostProject>(target);
+            conf.AddProject<RococoSexyStudioProject>(target);
+            conf.AddProject<RococoSexyStudioAppProject>(target);
+            conf.AddProject<RococoSexyStudioTestProject>(target);
         }
     }
     
@@ -532,6 +575,9 @@ namespace Rococo
             arguments.Generate<RococoMPlatProject>();
             arguments.Generate<RococoMPlatDynamicProject>();
             arguments.Generate<RococoMHostProject>();
+            arguments.Generate<RococoSexyStudioProject>();
+            arguments.Generate<RococoSexyStudioAppProject>();
+            arguments.Generate<RococoSexyStudioTestProject>();
         }
     }        
 }

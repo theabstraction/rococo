@@ -227,7 +227,6 @@ namespace Anon
 			if (Eq(typeString, "B32")) return VARTYPE_Bool;
 			if (Eq(typeString, "STR")) return VARTYPE_Pointer;
 			Throw(src, "Cannot determine VARTYPE. Must be one of I32, I64, F32, F64, B32, STR");
-			return VARTYPE_Derivative;
 		}
 
 		void Add(VARTYPE type, cstr name, cstr value)

@@ -498,6 +498,7 @@ namespace
 				{
 					PAINTSTRUCT ps;
 					HDC dc = BeginPaint(window, &ps);
+					UNUSED(dc);
 					EndPaint(window, &ps);
 				}
 				else
@@ -531,7 +532,7 @@ namespace
 			header->Layout();
 		}
 
-		void AddLayoutModifier(ILayout* l) override
+		void AddLayoutModifier(ILayout*) override
 		{
 			Throw(0, "Not implemented");
 		}

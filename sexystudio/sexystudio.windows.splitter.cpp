@@ -92,7 +92,7 @@ namespace
 				InvalidateRect(window, NULL, TRUE);
 				break;
 			case WM_SETCURSOR:
-				SetCursor(LoadCursor(NULL, (LPCWSTR) IDC_SIZEWE));
+				SetCursor(LoadCursorA(NULL, IDC_SIZEWE));
 				return 0L;
 			}
 			return DefWindowProcA(window, msg, wParam, lParam);
@@ -102,7 +102,7 @@ namespace
 		{
 		}
 
-		void AddLayoutModifier(ILayout* l) override
+		void AddLayoutModifier(ILayout*) override
 		{
 			Throw(0, "%s: Not permitted", __FUNCTION__);
 		}
@@ -137,7 +137,7 @@ namespace
 	{
 		struct ANON
 		{
-			static BOOL MarkFound(HWND hChildWnd, LPARAM param)
+			static BOOL MarkFound(HWND, LPARAM param)
 			{
 				bool& found = *(bool*)param;
 				found = true;
@@ -225,6 +225,7 @@ namespace
 				{
 					PAINTSTRUCT ps;
 					HDC dc = BeginPaint(window, &ps);
+					UNUSED(dc);
 					EndPaint(window, &ps);
 				}
 				else

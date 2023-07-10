@@ -229,7 +229,7 @@ namespace
 			for (uint32 i = 0; i < nItems; ++i)
 			{
 				uint32 id = va_arg(args, uint32);
-				HBITMAP hBitmap = (HBITMAP) LoadImageW(hInstance, MAKEINTRESOURCE(id), IMAGE_BITMAP, 0, 0, 0);
+				HBITMAP hBitmap = (HBITMAP) LoadImageA(hInstance, MAKEINTRESOURCE(id), IMAGE_BITMAP, 0, 0, 0);
 				if (hBitmap == nullptr)
 				{
 					Throw(GetLastError(), "%s: LoadBitmap failed", __FUNCTION__);
@@ -241,7 +241,7 @@ namespace
 			va_end(args);
 
 			// Fail if not all of the images were added. 
-			if (ImageList_GetImageCount(hImages) != nItems)
+			if (ImageList_GetImageCount(hImages) != (int) nItems)
 			{
 				Throw(0, "%s: ImageList failed to add all bitmaps", __FUNCTION__);
 			}
@@ -252,7 +252,7 @@ namespace
 
 		void EnableExpansionIcons(bool enable) override
 		{
-			
+			UNUSED(enable);
 		}
 
 		void SetContext(ID_TREE_ITEM hItem, uint64 contextId) override
@@ -343,8 +343,8 @@ namespace
 					idChild = (ID_TREE_ITEM)SendMessage(hTreeWnd, TVM_GETNEXTITEM, TVGN_NEXT, idChild);
 					if (idChild != 0)
 					{
-						TreeItemInfo info{ idChild };
-						cb.OnEvent(info);
+						TreeItemInfo info2{ idChild };
+						cb.OnEvent(info2);
 					}
 					else
 					{

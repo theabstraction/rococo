@@ -54,6 +54,7 @@ R"<CODE>(
 	{
 		void OnField(cstr fieldName, cr_substring memberSearch) override
 		{
+			UNUSED(memberSearch);
 			printf("Field: %s\n", fieldName);
 		}
 
@@ -66,7 +67,8 @@ R"<CODE>(
 
 		void OnFieldType(cr_substring fieldName, cr_substring searchRoot) override
 		{
-
+			UNUSED(fieldName);
+			UNUSED(searchRoot);
 		}
 	} fieldEnumerator;
 
@@ -110,6 +112,7 @@ void TestDeduceVec2Fields2(ISexyDatabase& database)
 
 		void OnField(cstr fieldName, cr_substring memberSearch) override
 		{
+			UNUSED(memberSearch);
 			printf("Field: %s\n", fieldName);
 			fieldCount++;
 		}
@@ -125,7 +128,8 @@ void TestDeduceVec2Fields2(ISexyDatabase& database)
 
 		void OnFieldType(cr_substring fieldName, cr_substring searchRoot) override
 		{
-
+			UNUSED(fieldName);
+			UNUSED(searchRoot);
 		}
 	} fieldEnumerator;
 
@@ -172,6 +176,7 @@ void TestDeduceMatrix4x4Fields(ISexyDatabase& database)
 
 		void OnField(cstr fieldName, cr_substring memberSearch) override
 		{
+			UNUSED(memberSearch);
 			printf("Field: %s\n", fieldName);
 			fieldCount++;
 		}
@@ -186,7 +191,8 @@ void TestDeduceMatrix4x4Fields(ISexyDatabase& database)
 
 		void OnFieldType(cr_substring fieldName, cr_substring searchRoot) override
 		{
-
+			UNUSED(fieldName);
+			UNUSED(searchRoot);
 		}
 	} fieldEnumerator;
 
@@ -235,6 +241,7 @@ void TestHintVec2(ISexyDatabase& database)
 
 		void OnField(cstr fieldName, cr_substring memberSearch) override
 		{
+			UNUSED(memberSearch);
 			if (Eq(fieldName, "Sys.Maths.Vec2"))
 			{
 				found = true;
@@ -253,7 +260,8 @@ void TestHintVec2(ISexyDatabase& database)
 
 		void OnFieldType(cr_substring fieldName, cr_substring searchRoot) override
 		{
-
+			UNUSED(fieldName);
+			UNUSED(searchRoot);
 		}
 	} fieldEnumerator;
 
@@ -296,6 +304,7 @@ void TestDeduceMethods(ISexyDatabase& database)
 
 		void OnField(cstr fieldName, cr_substring memberSearch) override
 		{
+			UNUSED(memberSearch);
 			printf("Method: %s\n", fieldName);
 			fieldCount++;
 		}
@@ -310,7 +319,8 @@ void TestDeduceMethods(ISexyDatabase& database)
 
 		void OnFieldType(cr_substring fieldName, cr_substring searchRoot) override
 		{
-
+			UNUSED(fieldName);
+			UNUSED(searchRoot);
 		}
 	} fieldEnumerator;
 
@@ -359,6 +369,7 @@ void TestDeduceMethods2(ISexyDatabase& database)
 
 		void OnField(cstr fieldName, cr_substring memberSearch) override
 		{
+			UNUSED(memberSearch);
 			printf("Method: %s\n", fieldName);
 			fieldCount++;
 		}
@@ -373,7 +384,8 @@ void TestDeduceMethods2(ISexyDatabase& database)
 
 		void OnFieldType(cr_substring fieldName, cr_substring searchRoot) override
 		{
-
+			UNUSED(fieldName);
+			UNUSED(searchRoot);
 		}
 	} fieldEnumerator;
 
@@ -393,7 +405,7 @@ void TestDeduceMethods2(ISexyDatabase& database)
 	printf("*** End of %s ***\n", __FUNCTION__);
 }
 
-void TestLocalStruct(ISexyDatabase& database)
+void TestLocalStruct(ISexyDatabase&)
 {
 	cstr file =
 		R"<CODE>(
@@ -434,6 +446,7 @@ void TestLocalStruct(ISexyDatabase& database)
 
 		void OnField(cstr fieldName, cr_substring memberSearch) override
 		{
+			UNUSED(memberSearch);
 			printf("Method: %s\n", fieldName);
 
 			if (!StartsWith(fieldName, "maJig"))
@@ -454,7 +467,8 @@ void TestLocalStruct(ISexyDatabase& database)
 
 		void OnFieldType(cr_substring fieldName, cr_substring searchRoot) override
 		{
-
+			UNUSED(fieldName);
+			UNUSED(searchRoot);
 		}
 	} fieldEnumerator;
 
@@ -480,7 +494,7 @@ void TestLocalStruct(ISexyDatabase& database)
 	printf("*** End of %s ***\n", __FUNCTION__);
 }
 
-void TestLocalStruct2(ISexyDatabase& database)
+void TestLocalStruct2(ISexyDatabase&)
 {
 	cstr file =
 		R"<CODE>(
@@ -522,6 +536,7 @@ void TestLocalStruct2(ISexyDatabase& database)
 
 		void OnField(cstr fieldName, cr_substring memberSearch) override
 		{
+			UNUSED(memberSearch);
 			printf("Method: %s\n", fieldName);
 
 			if (!StartsWith(fieldName, "maJig"))
@@ -542,6 +557,7 @@ void TestLocalStruct2(ISexyDatabase& database)
 
 		void OnFieldType(cr_substring fieldType, cr_substring searchRoot) override
 		{
+			UNUSED(searchRoot);
 			if (!Eq(fieldType, "Vec3"))
 			{
 				char typeStr[128];
@@ -584,6 +600,8 @@ struct SexyStudioEventHandler : ISexyStudioEventHandler
 {
 	bool TryOpenEditor(cstr filename, int lineNumber) override
 	{
+		UNUSED(filename);
+		UNUSED(lineNumber);
 		return false;
 	}
 
@@ -608,7 +626,7 @@ void GetDllPath(WideFilePath& pathToDLL)
 	if (status == ERROR_SUCCESS)
 	{
 		enum { MAX_ROOT_LEN = 128 };
-		static_assert(MAX_ROOT_LEN < WideFilePath::CAPACITY);
+		static_assert((int) MAX_ROOT_LEN < (int) WideFilePath::CAPACITY);
 
 		DWORD type = REG_SZ;
 		DWORD len = MAX_ROOT_LEN * sizeof(wchar_t);
@@ -631,7 +649,7 @@ void GetDllPath(WideFilePath& pathToDLL)
 	}
 }
 
-void pluginInit(HANDLE hModule)
+void pluginInit(HANDLE /* hModule */)
 {
 	struct CLOSURE : Rococo::Windows::IWindow
 	{
@@ -1126,7 +1144,7 @@ void TestFullEditor_SearchFQType()
 }
 
 
-void MainProtected2(HMODULE hLib)
+void MainProtected2(HMODULE /* hLib */)
 {
 	pluginInit(NULL);
 	TestFullEditor_SearchFQType();
@@ -1153,24 +1171,27 @@ void MainProtected(HMODULE hLib)
 
 	cstr interfaceURL = "Rococo.SexyStudio.ISexyStudioFactory1";
 
-	AutoFree<ISexyStudioFactory1> factory;
-	int nErr = CreateSexyStudioFactory((void**)&factory, interfaceURL);
+	AutoFree<ISexyStudioFactory1> lfactory;
+	int nErr = CreateSexyStudioFactory((void**)&lfactory, interfaceURL);
 	if (nErr == 0)
 	{
 		struct ANON : ISexyStudioEventHandler
 		{
 			bool TryOpenEditor(cstr filename, int lineNumber) override
 			{
+				UNUSED(filename);
+				UNUSED(lineNumber);
 				return false;
 			}
 
 			EIDECloseResponse OnIDEClose(IWindow& topLevelParent) override
 			{
+				UNUSED(topLevelParent);
 				return EIDECloseResponse::Shutdown;
 			}
 		} eventHandler;
 
-		AutoFree<ISexyStudioInstance1> instance = factory->CreateSexyIDE(Rococo::Windows::NoParent(), eventHandler);
+		AutoFree<ISexyStudioInstance1> instance = lfactory->CreateSexyIDE(Rococo::Windows::NoParent(), eventHandler);
 
 		ISexyDatabase& database = instance->GetDatabase();
 

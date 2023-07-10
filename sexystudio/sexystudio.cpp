@@ -522,8 +522,6 @@ private:
 			if (base)
 			{
 				auto idBase = classTree->AppendItem(idInterface);
-
-				char desc[256];
 				SafeFormat(desc, "extends %s", base);
 				classTree->SetItemText(idBase, desc);
 				classTree->SetItemImage(idBase, (int)ClassImageIndex::EXTENDS);
@@ -532,7 +530,6 @@ private:
 			for (int j = 0; j < interf.AttributeCount(); ++j)
 			{
 				cstr attr = interf.GetAttribute(j);
-				char desc[256];
 				SafeFormat(desc, "attribute %s", attr);
 				auto idAttr = classTree->AppendItem(idInterface);
 				classTree->SetItemText(idAttr, desc);
@@ -556,12 +553,14 @@ private:
 
 	void AppendTypes(ISxyNamespace& ns, ID_TREE_ITEM idNSNode, ISexyDatabase& database)
 	{
+		UNUSED(database);
 		for (int i = 0; i < ns.TypeCount(); ++i)
 		{
 			auto& type = ns.GetType(i);
 			auto idType = classTree->AppendItem(idNSNode);
 			cstr publicName = type.PublicName();
 			auto* localType = type.LocalType();
+			UNUSED(publicName);
 
 			idToType[idType] = &type;
 
@@ -578,7 +577,6 @@ private:
 
 					auto field = localType->GetField(j);
 
-					char desc[256];
 					SafeFormat(desc, "%s %s", field.type, field.name);
 					classTree->SetItemText(idField, desc);
 					classTree->SetItemImage(idField, (int)ClassImageIndex::FIELD);
@@ -591,6 +589,7 @@ private:
 
 	void AppendArchetypes(ISxyNamespace& ns, ID_TREE_ITEM idNSNode, ISexyDatabase& database, bool appendSourceName)
 	{
+		UNUSED(database);
 		for (int i = 0; i < ns.ArchetypeCount(); ++i)
 		{
 			auto& archetype = ns.GetArchetype(i);
@@ -619,6 +618,7 @@ private:
 
 	void AppendFunctions(ISxyNamespace& ns, ID_TREE_ITEM idNSNode, ISexyDatabase& database, bool appendSourceName)
 	{
+		UNUSED(database);
 		for (int i = 0; i < ns.FunctionCount(); ++i)
 		{
 			auto& function = ns.GetFunction(i);
@@ -646,6 +646,7 @@ private:
 
 	void AppendFactories(ISxyNamespace& ns, ID_TREE_ITEM idNSNode, ISexyDatabase& database, bool appendSourceName)
 	{
+		UNUSED(database);
 		for (int i = 0; i < ns.FactoryCount(); ++i)
 		{
 			auto& factory = ns.GetFactory(i);
@@ -675,7 +676,6 @@ private:
 			for (int k = 0; k < factory.InputCount(); ++k)
 			{
 				auto idInputArg = classTree->AppendItem(idFactory);
-				char desc[256];
 				SafeFormat(desc, "%s %s", factory.InputType(k), factory.InputName(k));
 				classTree->SetItemText(idInputArg, desc);
 				classTree->SetItemImage(idInputArg, (int)ClassImageIndex::INPUT);
@@ -685,6 +685,7 @@ private:
 
 	void AppendEnumerations(ISxyNamespace& ns, ID_TREE_ITEM idNSNode, ISexyDatabase& database)
 	{
+		UNUSED(database);
 		if (ns.EnumCount() > 0)
 		{
 			auto idEnums = classTree->AppendItem(idNSNode);
@@ -711,6 +712,7 @@ private:
 
 	void AppendAliases(ISxyNamespace& ns, ID_TREE_ITEM idNSNode, ISexyDatabase& database)
 	{
+		UNUSED(database);
 		for (int i = 0; i < ns.AliasCount(); ++i)
 		{
 			cstr from = ns.GetNSAliasFrom(i);
@@ -839,7 +841,6 @@ private:
 	{
 		for (int i = 0; i < ns.SubspaceCount(); ++i)
 		{
-			auto& subspace = ns[i];
 			auto* name = ns[i].Name();
 			if (StartsWith(name, prefix))
 			{
@@ -1068,7 +1069,7 @@ private:
 		RefreshResultList();
 	}
 
-	void OnMouseMovedInSearchBar(Vec2i pos)
+	void OnMouseMovedInSearchBar(Vec2i)
 	{
 		if (GetFocus() == searchEditor->OSEditor())
 		{
@@ -1679,7 +1680,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 		}
 	}
 
-	void SetHintToFunctionArguments(Rococo::AutoComplete::ISexyEditor& editor, const ISXYFunction& f, bool appendCloseParenthesis = true)
+	void SetHintToFunctionArguments(Rococo::AutoComplete::ISexyEditor&, const ISXYFunction& f, bool appendCloseParenthesis = true)
 	{
 		StackStringBuilder sb(callTipArgs, sizeof callTipArgs);
 		
@@ -1776,6 +1777,10 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 
 	bool TryGetFieldTypeOfType(char* fieldType, cstr type, cr_substring fieldName, cr_substring doc)
 	{
+		UNUSED(fieldType);
+		UNUSED(type);
+		UNUSED(fieldName);
+		UNUSED(doc);
 		if (OS::IsDebugging()) OS::TripDebugger();
 		return false; // Not implemented
 	}
@@ -1822,12 +1827,13 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 
 			void OnField(cstr fieldName, cr_substring memberSearch) override
 			{
-
+				UNUSED(fieldName);
+				UNUSED(memberSearch);
 			}
 
 			void OnHintFound(cr_substring hint) override
 			{
-
+				UNUSED(hint);
 			}
 
 		} searchCallback;
@@ -1840,6 +1846,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 
 	Substring GetSubType(cr_substring type, cstr subMember, cr_substring candidateInDoc, cr_substring doc)
 	{		
+		UNUSED(subMember);
 		cstr nextDot = ForwardFind('.', candidateInDoc);
 		if (!nextDot)
 		{
@@ -2128,6 +2135,7 @@ HINSTANCE g_hDllInstance = nullptr;
 
 BOOL WINAPI DllMain(HINSTANCE hDLL, DWORD fdwReason, LPVOID lpReserved)
 {
+	UNUSED(lpReserved);
 	switch (fdwReason)
 	{
 	case DLL_PROCESS_ATTACH:

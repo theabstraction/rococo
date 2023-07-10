@@ -343,7 +343,7 @@ namespace Rococo::SexyStudio
 								database.PingPathToSysPath(pingPath, sysPath);
 								database.UpdateFile_SXY(sysPath);
 
-								int priority;
+								int priority = 0;
 								cstr declarations = addNativeDeclarations ? database.Solution().GetDeclarationPathForInclude(pingPath, priority) : nullptr;
 								if (declarations)
 								{
@@ -378,7 +378,7 @@ namespace Rococo::SexyStudio
 
 									PopulateTreeWithPackages(sysPackagePath, database);
 
-									int priority;
+									int priority = 0;
 									cstr declarations = addNativeDeclarations ? database.Solution().GetDeclarationPathForImport(packageName, priority) : nullptr;
 									if (declarations)
 									{

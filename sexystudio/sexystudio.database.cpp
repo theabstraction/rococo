@@ -117,6 +117,8 @@ namespace Rococo::SexyStudio
 
 	fstring ParseKeyword::operator()(cr_sex s, int index) const
 	{
+		UNUSED(s);
+		UNUSED(index);
 		return keyword;
 	}
 }
@@ -1526,7 +1528,7 @@ namespace ANON
 
 			try
 			{
-				AutoRelease<ISParserTree> tree = sparser->CreateTree(*src);
+				tree = sparser->CreateTree(*src);
 				solutionFile.ParseSolution(tree->Root());
 			}
 			catch (ParseException& ex)
@@ -1557,7 +1559,6 @@ namespace ANON
 
 		void SearchContainersAndAddSexyVisFilesToDatabase(cstr projectFilePath)
 		{
-			WideFilePath wSexyVisPath;
 			WideFilePath wSexyVisDirectory;
 			Assign(wSexyVisDirectory, projectFilePath);
 			while (OS::MakeContainerDirectory(wSexyVisDirectory.buf))
@@ -1774,8 +1775,6 @@ namespace ANON
 			char name[256];
 			StackStringBuilder nameBuilder(name, sizeof name);
 			AppendFullName(ns, nameBuilder);
-
-			int64 len = Length(prefix);
 
 			if (StartsWith(name, prefix))
 			{
@@ -2305,7 +2304,7 @@ namespace ANON
 			return InsertNamespaceRecursiveSANSEnd(nsIndex + 1, branch, src);
 		}
 
-		void InsertNamespaceUnique(cr_sex s, cstr ns, File_SXY& file)
+		void InsertNamespaceUnique(cr_sex s, cstr ns, File_SXY&)
 		{
 			InsertNamespaceRecursive(ns, rootNS, s);
 		}
@@ -2339,6 +2338,7 @@ namespace ANON
 
 		void InsertClass(cr_sex s, const fstring& className, File_SXY& file)
 		{
+			UNUSED(className);
 			for (int i = 2; i < s.NumberOfElements(); ++i)
 			{
 				cr_sex sArg = s[i];
@@ -2362,6 +2362,7 @@ namespace ANON
 
 		void InsertFactory(cr_sex s, const fstring& factoryName, const fstring& factoryInterface, File_SXY& file)
 		{
+			UNUSED(factoryInterface);
 			char* publicName = (char*)_alloca(factoryName.length + 1);
 			CopyFinalNameToBuffer(publicName, factoryName.length + 1, factoryName);
 			ISxyNamespace& ns = InsertNamespaceRecursiveSANSEnd(factoryName, rootNS, s);
@@ -2488,6 +2489,7 @@ namespace ANON
 				if (match_compound(sRoot[i], 2, keywordNamespace, ParseAtomic,
 					[this, &file](cr_sex s, const fstring& sKeyword, const fstring& nsText)
 					{
+						UNUSED(sKeyword);
 						InsertNamespaceUnique(s, nsText, file);
 					}
 				)) continue;
@@ -2496,6 +2498,7 @@ namespace ANON
 				if (match_compound(sRoot[i], MAX_METHODS_AND_ATTRIBUTES_PER_INTERFACE, keywordInterface, ParseAtomic,
 					[this, &file](cr_sex s, const fstring& sKeyword, const fstring& fqName)
 					{
+						UNUSED(sKeyword);
 						InsertInterface(s, fqName, file);
 					}
 				)) continue;
@@ -2504,6 +2507,7 @@ namespace ANON
 				if (match_compound(sRoot[i], MAX_FIELDS_PER_STRUCT, keywordStruct, ParseAtomic,
 					[this, &file](cr_sex s, const fstring& sKeyword, const fstring& structName)
 					{
+						UNUSED(sKeyword);
 						InsertStruct(s, structName, file);
 					}
 				)) continue;
@@ -2512,6 +2516,7 @@ namespace ANON
 				if (match_compound(sRoot[i], MAX_ARGS_PER_FUNCTION, keywordFunction, ParseAtomic,
 					[this, &file](cr_sex s, const fstring& sKeyword, const fstring& fnName)
 					{
+						UNUSED(sKeyword);
 						InsertFunction(s, fnName, file);
 					}
 				)) continue;
@@ -2520,6 +2525,7 @@ namespace ANON
 				if (match_compound(sRoot[i], MAX_ARGS_PER_MACRO, keywordMacro, ParseAtomic,
 					[this, &file](cr_sex s, const fstring& sKeyword, const fstring& macroName)
 					{
+						UNUSED(sKeyword);
 						InsertMacro(s, macroName, file);
 					}
 				)) continue;
@@ -2530,6 +2536,7 @@ namespace ANON
 				if (match_compound(sRoot[i], MAX_ARGS_PER_FACTORY, keywordFactory, ParseAtomic, ParseAtomic,
 					[this, &file](cr_sex s, const fstring& sKeyword, const fstring& factoryName, const fstring& factoryInterface)
 					{
+						UNUSED(sKeyword);
 						InsertFactory(s, factoryName, factoryInterface, file);
 					}
 				)) continue;
@@ -2539,6 +2546,7 @@ namespace ANON
 				if (match_compound(sRoot[i], MAX_ARGS_PER_ARCHETYPE, keywordArchetype, ParseAtomic,
 					[this, &file](cr_sex s, const fstring& sKeyword, const fstring& archetypeName)
 					{
+						UNUSED(sKeyword);
 						InsertArchetype(s, archetypeName, file);
 					}
 				)) continue;
@@ -2548,6 +2556,7 @@ namespace ANON
 				if (match_compound(sRoot[i], MAX_ARGS_PER_CLASS_DEFINITION, keywordClass, ParseAtomic,
 					[this, &file](cr_sex s, const fstring& sKeyword, const fstring& localClassName)
 					{
+						UNUSED(sKeyword);
 						InsertClass(s, localClassName, file);
 					}
 				)) continue;
@@ -2560,6 +2569,7 @@ namespace ANON
 				match_compound(sRoot[i], MAX_ALIAS_LEN, keywordAlias, ParseAtomic, ParseAtomic,
 					[this, &file](cr_sex s, const fstring& sKeyword, const fstring& aliasFrom, const fstring& aliasTo)
 					{
+						UNUSED(sKeyword);
 						InsertAlias(s, aliasFrom, aliasTo, file);
 					}
 				);

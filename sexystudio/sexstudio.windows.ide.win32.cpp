@@ -66,7 +66,6 @@ namespace
 					int tabWidth = 8;
 					int len = (int32) buffer.size() - 1;
 					DWORD dwExtent = GetTabbedTextExtentA(dc, buffer.data(), len, 1, &tabWidth);
-					uint32 height = HIWORD(dwExtent);
 					uint32 width = LOWORD(dwExtent);
 					ReleaseDC(window, dc);
 
@@ -311,7 +310,7 @@ namespace
 			}
 		}
 
-		void OnPaint(HDC dc) override
+		void OnPaint(HDC) override
 		{
 
 		}

@@ -19,7 +19,7 @@ cstr ErrorCaption = "SexyStudio Standalone App - error!";
 
 using namespace Rococo::SexyStudio;
 
-void MainProtected(HINSTANCE hInstance, HMODULE hLib)
+void MainProtected(HINSTANCE, HMODULE hLib)
 {
 	FARPROC proc = GetProcAddress(hLib, "CreateSexyStudioFactory");
 	if (proc == nullptr)
@@ -37,12 +37,12 @@ void MainProtected(HINSTANCE hInstance, HMODULE hLib)
 	{
 		struct ANON : ISexyStudioEventHandler
 		{
-			bool TryOpenEditor(cstr filename, int lineNumber) override
+			bool TryOpenEditor(cstr, int) override
 			{
 				return false;
 			}
 
-			EIDECloseResponse OnIDEClose(IWindow& topLevelParent) override
+			EIDECloseResponse OnIDEClose(IWindow&) override
 			{
 				return EIDECloseResponse::Shutdown;
 			}
@@ -63,7 +63,7 @@ void MainProtected(HINSTANCE hInstance, HMODULE hLib)
 	}
 }
 
-int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
+int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 {
 	// Assume that the DLL is in the same directory as the executable
 

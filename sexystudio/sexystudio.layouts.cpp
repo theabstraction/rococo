@@ -47,7 +47,7 @@ namespace Rococo::SexyStudio::Widgets
 		{
 			int pixelBorder = 0;
 
-			void Layout(IGuiWidget& widget, GuiRect& rect) override
+			void Layout(IGuiWidget&, GuiRect& rect) override
 			{
 				rect.left = pixelBorder;
 			}
@@ -98,7 +98,7 @@ namespace Rococo::SexyStudio::Widgets
 		{
 			int pixelBorder = 0;
 
-			void Layout(IGuiWidget& widget, GuiRect& rect) override
+			void Layout(IGuiWidget&, GuiRect& rect) override
 			{
 				rect.top = pixelBorder;
 			}
@@ -120,7 +120,7 @@ namespace Rococo::SexyStudio::Widgets
 		struct L : ILayout
 		{
 			int pixelHeight = 0;
-			void Layout(IGuiWidget& widget, GuiRect& rect) override
+			void Layout(IGuiWidget&, GuiRect& rect) override
 			{
 				if (rect.top < 0)
 				{
@@ -147,7 +147,7 @@ namespace Rococo::SexyStudio::Widgets
 		{
 			int pixels = 0;
 
-			void Layout(IGuiWidget& widget, GuiRect& rect) override
+			void Layout(IGuiWidget&, GuiRect& rect) override
 			{
 				rect.left = rect.right - pixels;
 			}
