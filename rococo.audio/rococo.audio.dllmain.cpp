@@ -5,13 +5,8 @@
 #include <sexy.vm.cpu.h>
 
 #ifdef _WIN32
-# ifdef _DEBUG
-#  pragma comment(lib, "rococo.util.debug.lib")
-#  pragma comment(lib, "rococo.maths.debug.lib")
-# else
 #  pragma comment(lib, "rococo.util.lib")
 #  pragma comment(lib, "rococo.maths.lib")
-# endif
 #endif
 
 //////////////////////// XAUDIO2 and Media Foundation stuff for audio decoding ////////////////////

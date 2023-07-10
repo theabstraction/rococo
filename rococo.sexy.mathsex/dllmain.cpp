@@ -2,13 +2,8 @@
 #include <rococo.types.h>
 #include <windows.h>
 
-#ifdef _DEBUG
-#pragma comment(lib, "rococo.maths.debug.lib")
-#pragma comment(lib, "rococo.util.debug.lib")
-#else
 #pragma comment(lib, "rococo.maths.lib")
 #pragma comment(lib, "rococo.util.lib")
-#endif
 
 BOOL APIENTRY DllMain( HMODULE hModule, DWORD  ul_reason_for_call,LPVOID lpReserved)
 {

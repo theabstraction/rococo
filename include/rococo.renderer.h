@@ -220,7 +220,6 @@ namespace Rococo::Graphics
 		virtual ID_TEXTURE CreateRenderTarget(cstr renderTargetName, int32 width, int32 height) = 0;
 		virtual void Free() = 0;
 		virtual ID_TEXTURE LoadAlphaTextureArray(cstr uniqueName, Vec2i span, int32 nElements, ITextureLoadEnumerator& enumerator) = 0;
-		virtual ID_TEXTURE LoadTexture(IBuffer& buffer, cstr uniqueName) = 0;
 		virtual ID_TEXTURE FindTexture(cstr name) const = 0;
 		virtual ICubeTextures& CubeTextures() = 0;
 		virtual void SetGenericTextureArray(ID_TEXTURE id) = 0;

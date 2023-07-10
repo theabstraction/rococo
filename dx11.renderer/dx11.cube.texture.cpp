@@ -175,7 +175,7 @@ namespace Rococo::DX11
 				D3D11_TEXTURE2D_DESC desc;
 				cubeTexture->GetDesc(&desc);
 
-				if (desc.Width != materialArray.Width())
+				if (desc.Width != (uint32) materialArray.Width())
 				{
 					cubeTexture = nullptr;
 					cubeTextureView = nullptr;

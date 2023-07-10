@@ -1,12 +1,13 @@
 #pragma once
 
+#include <rococo.api.h>
+
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 #include <Rococo.target.h>
 
 #define NOMINMAX
 #include <Windows.h>
 
-#include <rococo.api.h>
 #include <Rococo.window.h>
 #include <rococo.strings.h>
 #include <rococo.textures.h>
@@ -75,10 +76,10 @@ namespace Rococo::DX11
 	ROCOCO_INTERFACE IDX11HQFontResource : public IHQFontResource
 	{
 		virtual void Free() = 0;		
-		virtual void RenderHQText(ID_FONT id, Fonts::IHQTextJob& job, IGuiRenderContext::EMode mode, ID3D11DeviceContext& dc, IShaders& shaders, const GuiRect& clipRect) = 0;
+		virtual void RenderHQText(ID_FONT id, Fonts::IHQTextJob& job, IGuiRenderContext::EMode mode, ID3D11DeviceContext& dc, const GuiRect& clipRect) = 0;
 	};
 
-	IDX11HQFontResource* CreateDX11HQFonts(IO::IInstallation& installation, IDX11FontRenderer& renderer, ID3D11Device& device, ID3D11DeviceContext& dc);
+	IDX11HQFontResource* CreateDX11HQFonts(IDX11FontRenderer& renderer, ID3D11Device& device, ID3D11DeviceContext& dc);
 
 	ROCOCO_INTERFACE IDX11CubeTextures
 	{

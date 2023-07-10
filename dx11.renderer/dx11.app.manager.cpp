@@ -136,7 +136,7 @@ namespace ANON
 		{
 		}
 
-		void OnEvent(SysUnstableArgs& unstable)
+		void OnEvent(SysUnstableArgs&)
 		{
 			window.Renderer().SwitchToWindowMode();
 		}
@@ -223,7 +223,7 @@ namespace ANON
 			app = _factory.CreateApp(platform, *this);
 		}
 
-		void OnEvent(SysUnstableArgs& unstable) override
+		void OnEvent(SysUnstableArgs&) override
 		{
 			window.Renderer().SwitchToWindowMode();
 		}

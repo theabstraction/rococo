@@ -36,6 +36,9 @@ public:
 
     void DrawGlyph(cr_vec2 t0, cr_vec2 t1, cr_vec2 p0, cr_vec2 p1, Fonts::FontColour colour) override
     {
+        UNUSED(colour);
+        UNUSED(t0);
+        UNUSED(t1);
         ExpandZoneToContain(renderZone, p0);
         ExpandZoneToContain(renderZone, p1);
     }
@@ -116,7 +119,7 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResourc
 
         overlays = CreateOverlays();
 
-        hqFonts = CreateDX11HQFonts(loader.Installation(), FontRenderer(), device, dc);
+        hqFonts = CreateDX11HQFonts(FontRenderer(), device, dc);
 
         DX11::TextureBind fb = textures.Loader().LoadAlphaBitmap("!font1.tif");
         fontTexture = fb.texture;
@@ -177,6 +180,8 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResourc
 
     void DrawCustomTexturedMesh(const GuiRect& absRect, ID_TEXTURE id, cstr shaderName, const GuiVertex* vertices, size_t nCount) override
     {
+        UNUSED(absRect);
+
         if (nCount > GUI_BUFFER_VERTEX_CAPACITY) Throw(0, "%s - too many triangles. Max vertices: %d", __FUNCTION__, GUI_BUFFER_VERTEX_CAPACITY);
 
         FlushLayer();
@@ -439,7 +444,7 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResourc
         }
         else
         {
-            const wchar_t* sysId;
+            cstr sysId;
 
             switch (cursorId)
             {
@@ -460,7 +465,7 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResourc
                 sysId = IDC_ARROW;
             }
 
-            HCURSOR hCursor = LoadCursorW(nullptr, sysId);
+            HCURSOR hCursor = LoadCursorA(nullptr, sysId);
             SetCursor(hCursor);
         }
     }
@@ -488,7 +493,7 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResourc
 
     void RenderHQText(ID_FONT id, Fonts::IHQTextJob& job, IGuiRenderContext::EMode mode, const GuiRect& clipRect) override
     {
-        return hqFonts->RenderHQText(id, job, mode, dc, shaders, clipRect);
+        return hqFonts->RenderHQText(id, job, mode, dc, clipRect);
     }
 
     IHQFontResource& HQFontsResources() override

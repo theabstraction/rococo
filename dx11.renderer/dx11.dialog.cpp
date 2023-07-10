@@ -35,7 +35,7 @@ namespace
          Rococo::Free(dialogWindow);
       }
 
-      virtual void OnClose(HWND hWnd)
+      virtual void OnClose(HWND)
       {
          modalHandler.TerminateDialog(IDCANCEL);
       }
@@ -45,12 +45,12 @@ namespace
          KillTimer(hWnd, (UINT_PTR)dialogWindow);
       }
 
-      virtual void OnMenuCommand(HWND hWnd, DWORD id)
+      virtual void OnMenuCommand(HWND, DWORD id)
       {
          modalHandler.TerminateDialog(id);
       }
 
-      virtual LRESULT OnTimer(HWND hWnd, WPARAM wParam, LPARAM lParam)
+      virtual LRESULT OnTimer(HWND, WPARAM, LPARAM)
       {
          LARGE_INTEGER hz;
          QueryPerformanceFrequency(&hz);

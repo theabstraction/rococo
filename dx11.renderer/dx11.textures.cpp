@@ -163,7 +163,7 @@ namespace Rococo
          D3D11_SHADER_RESOURCE_VIEW_DESC desc;
          ZeroMemory(&desc, sizeof(desc));
 
-         desc.Texture2D.MipLevels = -1;
+         desc.Texture2D.MipLevels = (UINT) - 1;
          desc.Texture2D.MostDetailedMip = 0;
 
          desc.Format = DXGI_FORMAT_UNKNOWN;
@@ -209,7 +209,7 @@ namespace Rococo
 				  onLoad->OnLoad(data, span);
 			  }
 
-			  void OnAlphaImage(const Vec2i& span, const uint8* data) override
+			  void OnAlphaImage(const Vec2i&, const uint8*) override
 			  {
 				  Throw(0, "The image file was alpha. 32-bit colour image expected");
 			  }

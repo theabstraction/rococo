@@ -100,7 +100,7 @@ struct DX11Materials : IDX11Materials
 					This->materialArray->WriteSubImage(i, pixels, GuiRect{ 0, 0, txWidth, txWidth });
 				}
 
-				void OnAlphaImage(const Vec2i& span, const uint8* data) override
+				void OnAlphaImage(const Vec2i&, const uint8*) override
 				{
 					Throw(0, "Error loading texture %s. Only RGB and ARGB formats supported", name);
 				}

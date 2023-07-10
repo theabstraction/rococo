@@ -284,8 +284,24 @@ namespace Rococo
         }
     }
 
+    [Sharpmake.Generate]
+    public class RococoDX11RendererProject : RococoProject
+    {
+        public RococoDX11RendererProject() : base("dx11.renderer")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            conf.ProjectFileName = "[project.Name]_[target.DevEnv]_[target.Platform]";
+            conf.ProjectPath = @"[project.SharpmakeCsPath]\generated";
+            conf.Output = Configuration.OutputType.Lib;
+            StandardInit(conf, target);
+        }
+    }
+
     /*
-	msbuild $(ROCOCO)rococo.fonts\fonts.vcxproj                      $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
 	msbuild $(ROCOCO)dx11.renderer\dx11.renderer.vcxproj             $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
 	msbuild $(ROCOCO)rococo.file.browser\rococo.file.browser.vcxproj $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
 	msbuild $(DIR_GUI_RETAINED)rococo.gui.retained.vcxproj           $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
@@ -321,6 +337,7 @@ namespace Rococo
             conf.AddProject<RococoSexyCmdProject>(target);
             conf.AddProject<RococoSexyMathSexProject>(target);
             conf.AddProject<RococoFontsProject>(target);
+            conf.AddProject<RococoDX11RendererProject>(target);
         }
     }
 
@@ -340,6 +357,7 @@ namespace Rococo
             arguments.Generate<RococoSexyCmdProject>();
             arguments.Generate<RococoSexyMathSexProject>();
             arguments.Generate<RococoFontsProject>();
+            arguments.Generate<RococoDX11RendererProject>();
         }
     }
 }

@@ -125,25 +125,6 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 		}
 	}
 
-	ID_TEXTURE LoadTexture(IBuffer& buffer, cstr uniqueName) override
-	{
-		auto i = mapNameToTexture.find(uniqueName);
-		if (i != mapNameToTexture.end())
-		{
-			return i->second;
-		}
-
-		auto bind = textureLoader.LoadColourBitmap(uniqueName);
-		textures.push_back(bind);
-
-		auto id = ID_TEXTURE(textures.size());
-		mapNameToTexture.insert(uniqueName, id);
-
-		orderedTextureList.clear();
-
-		return id;
-	}
-
 	IDX11TextureLoader& Loader() override
 	{
 		return textureLoader;
@@ -197,7 +178,8 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 		{
 			for (auto& t : mapNameToTexture)
 			{
-				orderedTextureList.push_back({ t.second, t.first });
+				TextureItem item { t.second, (cstr) t.first };
+				orderedTextureList.push_back(item);
 			}
 
 			std::sort(orderedTextureList.begin(), orderedTextureList.end());

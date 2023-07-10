@@ -221,7 +221,7 @@ struct DX11TextureArray : public IDX11TextureArray
                 D3D11_SHADER_RESOURCE_VIEW_DESC desc;
                 ZeroMemory(&desc, sizeof(desc));
 
-                desc.Texture2DArray.MipLevels = -1;
+                desc.Texture2DArray.MipLevels = (UINT) -1;
                 desc.Texture2DArray.FirstArraySlice = 0;
                 desc.Texture2DArray.ArraySize = (UINT)count;
                 desc.Texture2DArray.MostDetailedMip = 0;
@@ -264,16 +264,16 @@ namespace Rococo::DX11
                 {
                     struct : Rococo::Imaging::IImageLoadEvents
                     {
-                        cstr filename;
-                        IDX11TextureArray* array;
-                        int32 index;
+                        cstr filename = nullptr;
+                        IDX11TextureArray* array = nullptr;
+                        int32 index = 0;
 
                         void OnError(const char* message) override
                         {
-                            Throw(0, "IRenderer.LoadAlphaTextureArray(...) - Error loading\n %s", filename);
+                            Throw(0, "IRenderer.LoadAlphaTextureArray(...) - Error loading %s\n %s", filename, message);
                         }
 
-                        void OnRGBAImage(const Vec2i& span, const RGBAb* data) override
+                        void OnRGBAImage(const Vec2i&, const RGBAb*) override
                         {
                             Throw(0, "IRenderer.LoadAlphaTextureArray(...) - Tiff was RGBA.\n %s", filename);
                         }

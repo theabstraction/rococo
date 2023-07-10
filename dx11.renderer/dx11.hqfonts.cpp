@@ -180,7 +180,7 @@ namespace Rococo::DX11
 
 		enum { ID_FONT_OSFONT_OFFSET = 400 };
 
-		DX11HQFontFonts(IO::IInstallation& installation, IDX11FontRenderer& _renderer, ID3D11Device& _device, ID3D11DeviceContext& dc) : renderer(_renderer), device(_device), activeDC(&dc)
+		DX11HQFontFonts(IDX11FontRenderer& _renderer, ID3D11Device& _device, ID3D11DeviceContext& dc) : renderer(_renderer), device(_device), activeDC(&dc)
 		{
 		}
 
@@ -245,6 +245,7 @@ namespace Rococo::DX11
 			auto& font = *osFont.arrayFont;
 
 			auto& metrics = font.Metrics();
+			UNUSED(metrics);
 
 			GuiRectf clipRect{ -1e37f, -1e37f, 1e37f, 1e37f };
 			ANON::HQTextBuilder builder(font, clipRect);
@@ -304,7 +305,7 @@ namespace Rococo::DX11
 			return osFonts[index].arrayFont->Metrics();
 		}
 
-		void RenderHQText(ID_FONT id, IHQTextJob& job, IGuiRenderContext::EMode mode, ID3D11DeviceContext& dc, IShaders& shaders, const GuiRect& clipRect) override
+		void RenderHQText(ID_FONT id, IHQTextJob& job, IGuiRenderContext::EMode mode, ID3D11DeviceContext& dc, const GuiRect& clipRect) override
 		{
 			int32 index = id.value - ID_FONT_OSFONT_OFFSET;
 			if (index < 0 || index >= (int32)osFonts.size())
@@ -314,8 +315,6 @@ namespace Rococo::DX11
 
 			auto& osFont = osFonts[index];
 			auto& font = *osFont.arrayFont;
-
-			auto& metrics = font.Metrics();
 
 			ANON::HQTextBuilder builder(font, Dequantize(clipRect));
 
@@ -341,8 +340,8 @@ namespace Rococo::DX11
 
 	};
 
-	IDX11HQFontResource* CreateDX11HQFonts(IO::IInstallation& installation, IDX11FontRenderer& renderer, ID3D11Device& device, ID3D11DeviceContext& dc)
+	IDX11HQFontResource* CreateDX11HQFonts(IDX11FontRenderer& renderer, ID3D11Device& device, ID3D11DeviceContext& dc)
 	{
-		return new DX11HQFontFonts(installation, renderer, device, dc);
+		return new DX11HQFontFonts(renderer, device, dc);
 	}
 }

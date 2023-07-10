@@ -12,12 +12,7 @@
 
 #include <rococo.random.h>
 
-#ifdef _DEBUG
-# pragma comment(lib, "rococo.maths.debug.lib")
-# pragma comment(lib, "rococo.util.debug.lib")
-# pragma comment(lib, "rococo.mplat.debug.lib")
-# pragma comment(lib, "rococo.misc.utils.debug.lib")
-#else
+#ifdef _WIN32
 # pragma comment(lib, "rococo.maths.lib")
 # pragma comment(lib, "rococo.util.lib")
 # pragma comment(lib, "rococo.mplat.lib")

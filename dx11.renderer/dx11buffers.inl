@@ -1,3 +1,5 @@
+#include <limits>
+
 namespace Rococo
 {
    namespace DX11

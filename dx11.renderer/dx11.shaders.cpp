@@ -164,8 +164,16 @@ struct DX11Shaders : IDX11Shaders
 		}
 		catch (_com_error& e)
 		{
-			const wchar_t* msg = e.ErrorMessage();
-			Throw(e.Error(), "device.CreateInputLayout failed for shader %s: %ls. %s\n", name, msg, (cstr)e.Description());
+			if constexpr ((sizeof TCHAR) == sizeof(wchar_t))
+			{
+				const wchar_t* msg = (const wchar_t*) e.ErrorMessage();
+				Throw(e.Error(), "device.CreateInputLayout failed for shader %s: %ls. %s\n", name, msg, (cstr)e.Description());
+			}
+			else
+			{
+				cstr msg = e.ErrorMessage();
+				Throw(e.Error(), "device.CreateInputLayout failed for shader %s: %s. %s\n", name, msg, (cstr)e.Description());
+			}
 		}
 
 		if FAILED(hr)

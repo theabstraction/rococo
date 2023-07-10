@@ -462,7 +462,7 @@ public:
 		}
 	}
 
-	void OnWindowResized(IDX11WindowBacking& window, Vec2i span) override
+	void OnWindowResized(IDX11WindowBacking&, Vec2i) override
 	{
 		ResizeBuffers();
 	}
