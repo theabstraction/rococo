@@ -34,8 +34,8 @@ namespace AudioAnon
 		auto* end = samples + capacity;
 		for (auto* s = samples; s < end; ++s)
 		{
-			s->left = rand();
-			s->right = rand();
+			s->left = 0x0000FFFF & rand();
+			s->right = 0x0000FFFF & rand();
 		}
 	}
 
@@ -82,12 +82,10 @@ namespace AudioAnon
 
 		void QueueSample(const uint8* buffer, uint32 nBytesInBuffer, uint32 beginAt, uint32 nSamplesToPlay) override
 		{
-			Time::ticks start = Time::TickCount();
-
 			XAUDIO2_BUFFER x2buffer = { 0 };
 			x2buffer.AudioBytes = nBytesInBuffer;
 			x2buffer.pAudioData = buffer;
-			x2buffer.PlayBegin = 0;
+			x2buffer.PlayBegin = beginAt;
 			x2buffer.PlayLength = nSamplesToPlay;
 
 			HRESULT hr;

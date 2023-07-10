@@ -501,6 +501,8 @@ namespace Rococo::Audio
 
 		bool Stop(IdInstrument id, bool andFree) override
 		{
+			UNUSED(andFree);
+
 			auto* i = TryGetRef(id);
 			if (!i)
 			{
@@ -591,7 +593,7 @@ namespace Rococo::Audio
 		}
 
 	private:
-		void OnSampleComplete(IOSAudioVoice& voice, IAudioVoiceContext& context) override
+		void OnSampleComplete(IOSAudioVoice&, IAudioVoiceContext& context) override
 		{
 			auto& i = static_cast<InstrumentDescriptor&>(context);
 			i.StreamCurrentBlock();

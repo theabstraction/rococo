@@ -89,7 +89,7 @@ namespace AudioAnon
 			sampleLength = loader.DecodeMP3(name, *this);
 		}
 
-		void Finalize(const PCMAudioLoadingMetrics& metrics) override
+		void Finalize(const PCMAudioLoadingMetrics&) override
 		{
 
 		}

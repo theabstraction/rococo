@@ -161,7 +161,7 @@ namespace
 			delete this;
 		}
 
-		void OnGetMinMaxInfo(HWND hWnd, MINMAXINFO& info) override
+		void OnGetMinMaxInfo(HWND, MINMAXINFO& info) override
 		{
 			info.ptMinTrackSize = { 800,600 };
 			info.ptMaxTrackSize = { 800,600 };
@@ -180,7 +180,7 @@ namespace
 			SetDlgItemTextA(*window, (ControlId)Ids::STATUS_BAR, statusBuffer);
 		}
 
-		void OnMenuCommand(HWND hWnd, DWORD id) override
+		void OnMenuCommand(HWND, DWORD id) override
 		{
 			ControlId nCompassDirections = sizeof compassButtons / sizeof PositionButton;
 			ControlId nElevations = sizeof elevationButtons / sizeof ElevationButton;
@@ -230,24 +230,19 @@ namespace
 			FormatStatus();
 		}
 
-		void OnClose(HWND hWnd) override
+		void OnClose(HWND) override
 		{
 			PostQuitMessage(0);
 		}
 
-		void OnTick(Time::ticks start, Time::ticks frameStart, Time::ticks dt, Time::ticks tickHz)
+		void OnTick(Time::ticks /* start */, Time::ticks /* frameStart */, Time::ticks /* dt */, Time::ticks /* tickHz */)
 		{
 
 		}
 	};
 }
 
-void Test(Rococo::Audio::IAudio& audio)
-{
-
-}
-
-int CALLBACK WinMain(HINSTANCE _hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+int CALLBACK WinMain(HINSTANCE _hInstance, HINSTANCE /* hPrevInstance */, LPSTR /* lpCmdLine */, int /* nCmdShow */)
 {
 	using namespace Rococo;
 	using namespace Rococo::Windows;
@@ -279,7 +274,6 @@ int CALLBACK WinMain(HINSTANCE _hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 
 		Time::ticks frameStart = Time::TickCount();
 		Time::ticks start = frameStart;
-		Time::ticks period = Time::TickHz() / 10;
 
 		while (isRunning)
 		{

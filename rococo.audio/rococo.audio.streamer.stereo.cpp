@@ -78,7 +78,7 @@ namespace AudioAnon
 			stereoVoice->QueueSample((uint8*)sampleBuffer, SAMPLES_PER_BLOCK * sizeof(StereoSample_INT16), 0, nSamples);
 		}
 
-		void OnSampleComplete(IOSAudioVoice& voice, IAudioVoiceContext& context) override
+		void OnSampleComplete(IOSAudioVoice&, IAudioVoiceContext&) override
 		{
 			StreamCurrentBlock();
 		}

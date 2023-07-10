@@ -276,7 +276,7 @@ namespace AudioAnon
 			Throw(hr, "%s: type.GetUINT32(MF_MT_AUDIO_NUM_CHANNELS)", __FUNCTION__);
 		}
 
-		if (nChannels != channelCount)
+		if (nChannels != (UINT32) channelCount)
 		{
 			return false;
 		}
@@ -540,8 +540,6 @@ namespace AudioAnon
 				buffer.pEvents->Release();
 			}
 
-			DWORD totalLength = 0;
-
 			BYTE* pPCMData;
 			DWORD maxLen, currentLen;
 			pcmBuffer->Lock(&pPCMData, &maxLen, &currentLen);
@@ -730,7 +728,7 @@ namespace AudioAnon
 				buffer.pEvents = nullptr;
 
 				DWORD status;
-				HRESULT hr = transformer->ProcessOutput(0, 1, &buffer, &status);
+				hr = transformer->ProcessOutput(0, 1, &buffer, &status);
 
 				if (buffer.pEvents)
 				{

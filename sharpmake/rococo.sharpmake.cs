@@ -508,6 +508,38 @@ namespace Rococo
     }
 
     [Sharpmake.Generate]
+    public class RococoAudioProject : RococoProject
+    {
+        public RococoAudioProject() : base("rococo.audio")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Dll);
+            conf.Defines.Add("ROCOCO_AUDIO_API=__declspec(dllexport)");
+            conf.AddPublicDependency<RococoUtilsProject>(target);
+        }
+    }
+
+    [Sharpmake.Generate]
+    public class RococoAudioTestProject : RococoProject
+    {
+        public RococoAudioTestProject() : base("rococo.audio.test")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Exe);
+            conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.AddPublicDependency<RococoAudioProject>(target);
+        }
+    }
+
+    [Sharpmake.Generate]
     public class RococoCSharpSolution : CSharpSolution
     {
         public RococoCSharpSolution()
@@ -549,6 +581,8 @@ namespace Rococo
             conf.AddProject<RococoSexyStudioProject>(target);
             conf.AddProject<RococoSexyStudioAppProject>(target);
             conf.AddProject<RococoSexyStudioTestProject>(target);
+            conf.AddProject<RococoAudioProject>(target);
+            conf.AddProject<RococoAudioTestProject>(target);
         }
     }
     
@@ -578,6 +612,8 @@ namespace Rococo
             arguments.Generate<RococoSexyStudioProject>();
             arguments.Generate<RococoSexyStudioAppProject>();
             arguments.Generate<RococoSexyStudioTestProject>();
+            arguments.Generate<RococoAudioProject>();
+            arguments.Generate<RococoAudioTestProject>();
         }
     }        
 }
