@@ -318,6 +318,25 @@ namespace Rococo
         }
     }
 
+    [Sharpmake.Generate]
+    public class RococoGuiRetainedProject : RococoProject
+    {
+        public RococoGuiRetainedProject() : base("rococo.gui.retained")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            conf.ProjectFileName = "[project.Name]_[target.DevEnv]_[target.Platform]";
+            conf.ProjectPath = @"[project.SharpmakeCsPath]\generated";
+            conf.Output = Configuration.OutputType.Dll;
+            StandardInit(conf, target);
+            conf.Defines.Add("ROCOCO_GUI_RETAINED_API=__declspec(dllexport)");
+            conf.AddPublicDependency<RococoUtilsProject>(target);
+        }
+    }
+
     /*
 	msbuild $(DIR_GUI_RETAINED)rococo.gui.retained.vcxproj           $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
 	msbuild $(ROCOCO)rococo.cpp_master\rococo.cpp_master.csproj $(MSBUILD_TERSE) $(MSBUILD_PARALLEL)
@@ -354,6 +373,7 @@ namespace Rococo
             conf.AddProject<RococoFontsProject>(target);
             conf.AddProject<RococoDX11RendererProject>(target);
             conf.AddProject<RococoFileBrowserProject>(target);
+            conf.AddProject<RococoGuiRetainedProject>(target);
         }
     }
 
@@ -375,6 +395,7 @@ namespace Rococo
             arguments.Generate<RococoFontsProject>();
             arguments.Generate<RococoDX11RendererProject>();
             arguments.Generate<RococoFileBrowserProject>();
-        }
+            arguments.Generate<RococoGuiRetainedProject>();
+        }        
     }
 }

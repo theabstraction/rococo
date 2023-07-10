@@ -78,11 +78,13 @@ namespace GRANON
 
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
 		{
+			UNUSED(ce);
 			return EGREventRouting::NextHandler;
 		}
 
 		EGREventRouting OnCursorMove(GRCursorEvent& ce) override
 		{
+			UNUSED(ce);
 			return EGREventRouting::NextHandler;
 		}
 
@@ -139,12 +141,12 @@ namespace GRANON
 			this->borderPadding = borderPadding;
 		}
 
-		EGREventRouting OnChildEvent(GRWidgetEvent& widgetEvent, IGRWidget& sourceWidget)
+		EGREventRouting OnChildEvent(GRWidgetEvent&, IGRWidget&)
 		{
 			return EGREventRouting::NextHandler;
 		}
 
-		EGREventRouting OnKeyEvent(GRKeyEvent& keyEvent) override
+		EGREventRouting OnKeyEvent(GRKeyEvent&) override
 		{
 			return EGREventRouting::NextHandler;
 		}

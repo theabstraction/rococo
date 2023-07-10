@@ -29,15 +29,18 @@ namespace GRANON
 
 		void Layout(const GuiRect& panelDimensions) override
 		{
+			UNUSED(panelDimensions);
 		}
 
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
 		{
+			UNUSED(ce);
 			return EGREventRouting::NextHandler;
 		}
 
 		EGREventRouting OnCursorMove(GRCursorEvent& ce) override
 		{
+			UNUSED(ce);
 			return EGREventRouting::NextHandler;
 		}
 
@@ -51,7 +54,7 @@ namespace GRANON
 
 		}
 
-		EGREventRouting OnKeyEvent(GRKeyEvent& keyEvent) override
+		EGREventRouting OnKeyEvent(GRKeyEvent&) override
 		{
 			return EGREventRouting::NextHandler;
 		}
@@ -70,7 +73,7 @@ namespace GRANON
 			g.DrawText(fontId, rect, rect, alignment, spacing, { text.c_str(), (int32)text.length() }, panel.GetColour(EGRSchemeColourSurface::TEXT, rs));
 		}
 
-		EGREventRouting OnChildEvent(GRWidgetEvent& widgetEvent, IGRWidget& sourceWidget)
+		EGREventRouting OnChildEvent(GRWidgetEvent&, IGRWidget&)
 		{
 			return EGREventRouting::NextHandler;
 		}

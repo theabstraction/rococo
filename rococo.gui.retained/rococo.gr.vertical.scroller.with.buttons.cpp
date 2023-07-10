@@ -11,9 +11,10 @@ namespace ANON
 	{
 		Degrees orientation;
 
-		void PreRender(IGRPanel& panel, const GuiRect& absRect, IGRRenderContext& g) override
+		void PreRender(IGRPanel& panel, const GuiRect& absRect, IGRRenderContext&) override
 		{
-
+			UNUSED(panel);
+			UNUSED(absRect);
 		}
 
 		void PostRender(IGRPanel& panel, const GuiRect& absRect, IGRRenderContext& g) override
@@ -28,7 +29,7 @@ namespace ANON
 			g.DrawDirectionArrow(triangleRect, triangleColour, orientation);
 		}
 
-		bool IsReplacementForWidgetRendering(IGRPanel& panel) const override
+		bool IsReplacementForWidgetRendering(IGRPanel&) const override
 		{
 			return false;
 		}
@@ -111,11 +112,13 @@ namespace ANON
 
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
 		{
+			UNUSED(ce);
 			return EGREventRouting::NextHandler;
 		}
 
 		EGREventRouting OnCursorMove(GRCursorEvent& ce) override
 		{
+			UNUSED(ce);
 			return EGREventRouting::NextHandler;
 		}
 
@@ -124,7 +127,7 @@ namespace ANON
 			return panel;
 		}
 
-		void Render(IGRRenderContext& g) override
+		void Render(IGRRenderContext&) override
 		{
 		}
 
@@ -156,7 +159,7 @@ namespace ANON
 		{
 		}
 
-		EGREventRouting OnKeyEvent(GRKeyEvent& keyEvent) override
+		EGREventRouting OnKeyEvent(GRKeyEvent&) override
 		{
 			return EGREventRouting::NextHandler;
 		}

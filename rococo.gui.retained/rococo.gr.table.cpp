@@ -138,11 +138,13 @@ namespace GRANON
 
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
 		{
+			UNUSED(ce);
 			return EGREventRouting::NextHandler;
 		}
 
 		EGREventRouting OnCursorMove(GRCursorEvent& ce) override
 		{
+			UNUSED(ce);
 			return EGREventRouting::NextHandler;
 		}
 
@@ -161,17 +163,17 @@ namespace GRANON
 			return panel;
 		}
 
-		void Render(IGRRenderContext& g) override
+		void Render(IGRRenderContext&) override
 		{
 			// g.DrawRectEdge(panel.AbsRect(), RGBAb(255, 0, 0, 255), RGBAb(255, 0, 0, 255));
 		}
 
-		EGREventRouting OnChildEvent(GRWidgetEvent& widgetEvent, IGRWidget& sourceWidget)
+		EGREventRouting OnChildEvent(GRWidgetEvent&, IGRWidget&)
 		{
 			return EGREventRouting::NextHandler;
 		}
 
-		EGREventRouting OnKeyEvent(GRKeyEvent& keyEvent) override
+		EGREventRouting OnKeyEvent(GRKeyEvent&) override
 		{
 			return EGREventRouting::NextHandler;
 		}

@@ -61,7 +61,7 @@ namespace ANON
 			vscroller->Widget().Panel().InvalidateLayout(false);
 		}
 
-		GRSliderSpec OnCalculateSliderRect(int32 scrollerSpan, IGRWidgetScroller& scroller) override
+		GRSliderSpec OnCalculateSliderRect(int32 scrollerSpan, IGRWidgetScroller&) override
 		{
 			double sliderSpanToScrollerSpan = scrollerSpan / (double)lastKnownDomainHeight;
 
@@ -147,11 +147,13 @@ namespace ANON
 
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
 		{
+			UNUSED(ce);
 			return EGREventRouting::NextHandler;
 		}
 
 		EGREventRouting OnCursorMove(GRCursorEvent& ce) override
 		{
+			UNUSED(ce);
 			return EGREventRouting::NextHandler;
 		}
 
@@ -240,12 +242,12 @@ namespace ANON
 			DrawPanelBackground(panel, g);
 		}
 
-		EGREventRouting OnChildEvent(GRWidgetEvent& widgetEvent, IGRWidget& sourceWidget) override
+		EGREventRouting OnChildEvent(GRWidgetEvent&, IGRWidget&) override
 		{
 			return EGREventRouting::NextHandler;
 		}
 
-		EGREventRouting OnKeyEvent(GRKeyEvent& keyEvent) override
+		EGREventRouting OnKeyEvent(GRKeyEvent&) override
 		{
 			return EGREventRouting::NextHandler;
 		}

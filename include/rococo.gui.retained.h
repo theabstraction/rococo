@@ -1,9 +1,7 @@
 #include <rococo.types.h>
 
-#ifdef ROCOCO_GUI_RETAINED_EXPORTS
-#define ROCOCO_GUI_RETAINED_API __declspec(dllexport) 
-#else
-#define  ROCOCO_GUI_RETAINED_API __declspec(dllimport) 
+#ifndef ROCOCO_GUI_RETAINED_API
+#define ROCOCO_GUI_RETAINED_API __declspec(dllimport) 
 #endif
 
 namespace Rococo

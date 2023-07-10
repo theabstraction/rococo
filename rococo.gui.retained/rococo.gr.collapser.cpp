@@ -116,11 +116,13 @@ namespace GRANON
 
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
 		{
+			UNUSED(ce);
 			return EGREventRouting::NextHandler;
 		}
 
 		EGREventRouting OnCursorMove(GRCursorEvent& ce) override
 		{
+			UNUSED(ce);
 			return EGREventRouting::NextHandler;
 		}
 
@@ -139,11 +141,11 @@ namespace GRANON
 			return panel;
 		}
 
-		void Render(IGRRenderContext& g) override
+		void Render(IGRRenderContext&) override
 		{
 		}
 
-		EGREventRouting OnChildEvent(GRWidgetEvent& widgetEvent, IGRWidget& sourceWidget)
+		EGREventRouting OnChildEvent(GRWidgetEvent&, IGRWidget& sourceWidget)
 		{
 			if (sourceWidget.Panel().Id() == collapseButton->Widget().Panel().Id())
 			{

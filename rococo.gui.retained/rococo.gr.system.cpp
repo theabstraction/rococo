@@ -62,6 +62,7 @@ namespace ANON
 
 		void IncBadSpanCountThisFrame(IGRPanel& origin) override
 		{
+			UNUSED(origin);
 			badSpanCountThisFrame++;
 		}
 
@@ -225,6 +226,7 @@ namespace ANON
 
 		void UpdateNextFrame(IGRPanel& panel)
 		{
+			UNUSED(panel);
 			invalidatedPanelCount++;
 		}
 
@@ -354,8 +356,6 @@ namespace ANON
 
 		EGREventRouting RouteCursorClickEvent(GRCursorEvent& ev) override
 		{
-			size_t nBytes = sizeof(GRCursorEvent);
-
 			RecursionGuard guard(*this);
 
 			if (captureId >= 0)

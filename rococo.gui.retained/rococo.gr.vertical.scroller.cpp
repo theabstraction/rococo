@@ -41,8 +41,6 @@ namespace ANON
 				panel.Root().Custodian().RaiseError(EGRErrorCode::Generic, __FUNCTION__, "Vertical scrollbars should not have children");
 			}
 
-			int32 width = Width(panelDimensions);
-
 			sliderZone.left = panelDimensions.left + 1;
 			sliderZone.right = panelDimensions.right - 1;
 			sliderZone.top = panelDimensions.top + 1;
@@ -184,7 +182,7 @@ namespace ANON
 		void RenderScrollerButton(IGRRenderContext& g, const GuiRect& rect, bool isUp)
 		{
 			bool isLit = IsPointInRect(g.CursorHoverPoint(), rect) || clickPosition >= 0;
-
+			UNUSED(isLit);
 			GRRenderState rs(clickPosition >= 0, IsPointInRect(g.CursorHoverPoint(), rect), false);
 
 			RGBAb backColour = panel.GetColour(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, rs);
@@ -203,6 +201,7 @@ namespace ANON
 		void RenderScrollerSlider(IGRRenderContext& g, const GuiRect& rect)
 		{
 			bool isLit = IsPointInRect(g.CursorHoverPoint(), rect) || clickPosition >= 0;
+			UNUSED(isLit);
 
 			GRRenderState rs(clickPosition >= 0, IsPointInRect(g.CursorHoverPoint(), rect), false);
 
@@ -247,7 +246,7 @@ namespace ANON
 			RenderScrollerSlider(g, ComputeSliderRect());
 		}
 
-		EGREventRouting OnChildEvent(GRWidgetEvent& widgetEvent, IGRWidget& sourceWidget) override
+		EGREventRouting OnChildEvent(GRWidgetEvent&, IGRWidget&) override
 		{
 			return EGREventRouting::NextHandler;
 		}
@@ -351,7 +350,6 @@ namespace Rococo::Gui
 
 		auto& gr = parent.Panel().Root().GR();
 		auto* scroller = Cast<IGRWidgetVerticalScroller>(gr.AddWidget(parent.Panel(), factory));
-		auto* scrollerClass = static_cast<ANON::GRVerticalScroller*>(scroller);
 		return *scroller;
 	}
 }

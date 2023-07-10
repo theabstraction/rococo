@@ -249,6 +249,8 @@ namespace GRANON
 
 		void ConstructWidgetsFromBranchRecursive(IGRPanel& origin, MenuBranch& branch, int depth, Vec2i startPos)
 		{
+			UNUSED(origin);
+
 			Vec2i lastPos = startPos;
 
 			Vec2i largestMinimalSpan {0, 0};
@@ -287,8 +289,8 @@ namespace GRANON
 			int32 activeBranchIndex = branch.GetFirstActiveBranchIndex();
 			if (activeBranchIndex >= 0)
 			{
-				IGRPanel* activeBranchChild = nullptr;
-				if (activeBranchChild = panel.GetChild(currentChildCount + activeBranchIndex))
+				IGRPanel* activeBranchChild;
+				if ((activeBranchChild = panel.GetChild(currentChildCount + activeBranchIndex)) != nullptr)
 				{
 					Vec2i branchPos;
 					if (depth == 0)
@@ -334,6 +336,8 @@ namespace GRANON
 
 		void Layout(const GuiRect& panelDimensions) override
 		{
+			UNUSED(panelDimensions);
+
 			if (isDirty)
 			{
 				ConstructWidgetsFromMenuTree();
@@ -346,6 +350,7 @@ namespace GRANON
 
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
 		{
+			UNUSED(ce);
 			if (tree.IsActive())
 			{
 				tree.Deactivate();
@@ -366,7 +371,7 @@ namespace GRANON
 			{
 				int index = 0;
 				IGRPanel* buttonPanel;
-				while (buttonPanel = panel.GetChild(index++))
+				while ((buttonPanel = panel.GetChild(index++)) != nullptr)
 				{
 					if (IsPointInRect(ce.position, buttonPanel->AbsRect()))
 					{
@@ -407,7 +412,7 @@ namespace GRANON
 			return panel;
 		}
 
-		void Render(IGRRenderContext& g) override
+		void Render(IGRRenderContext&) override
 		{
 			panel.SetClipChildren(!tree.IsActive());
 		}
@@ -446,7 +451,7 @@ namespace GRANON
 			return RouteEventToHandler(panel, widgetEvent);
 		}
 
-		EGREventRouting OnKeyEvent(GRKeyEvent& keyEvent) override
+		EGREventRouting OnKeyEvent(GRKeyEvent&) override
 		{
 			return EGREventRouting::NextHandler;
 		}

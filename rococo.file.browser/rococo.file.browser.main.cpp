@@ -212,7 +212,7 @@ struct FileBrowser : public IFileBrowser
 
 	void RaiseContextAt(Vec2i pos) override
 	{
-
+		UNUSED(pos);
 	}
 
 	int64 fileScrollDomain = 0;

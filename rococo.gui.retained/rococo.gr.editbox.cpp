@@ -78,6 +78,7 @@ namespace GRANON
 
 		void Layout(const GuiRect& panelDimensions) override
 		{
+			UNUSED(panelDimensions);
 		}
 
 		bool preppingSelect = false;
@@ -107,6 +108,7 @@ namespace GRANON
 
 		EGREventRouting OnCursorMove(GRCursorEvent& ce) override
 		{
+			UNUSED(ce);
 			return EGREventRouting::NextHandler;
 		}
 
@@ -228,7 +230,7 @@ namespace GRANON
 			}
 		}
 
-		EGREventRouting OnChildEvent(GRWidgetEvent& widgetEvent, IGRWidget& sourceWidget)
+		EGREventRouting OnChildEvent(GRWidgetEvent&, IGRWidget&)
 		{
 			return EGREventRouting::NextHandler;
 		}

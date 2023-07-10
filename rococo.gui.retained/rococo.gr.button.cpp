@@ -35,7 +35,7 @@ namespace GRANON
 
 		void Layout(const GuiRect& panelDimensions) override
 		{
-
+			UNUSED(panelDimensions);
 		}
 
 		GRButtonFlags GetButtonFlags() const override
@@ -181,7 +181,7 @@ namespace GRANON
 			return EGREventRouting::NextHandler;
 		}
 
-		EGREventRouting OnKeyEvent(GRKeyEvent& keyEvent) override
+		EGREventRouting OnKeyEvent(GRKeyEvent&) override
 		{
 			return EGREventRouting::NextHandler;
 		}
@@ -293,7 +293,7 @@ namespace GRANON
 			return GRControlMetaData { iMetadata, sMetaData.c_str() };
 		}
 
-		EGREventRouting OnChildEvent(GRWidgetEvent& widgetEvent, IGRWidget& sourceWidget)
+		EGREventRouting OnChildEvent(GRWidgetEvent&, IGRWidget&)
 		{
 			return EGREventRouting::NextHandler;
 		}
@@ -400,6 +400,8 @@ namespace Rococo::Gui
 
 	ROCOCO_GUI_RETAINED_API void DrawButton(IGRPanel& panel, bool focused, bool raised, IGRRenderContext& g)
 	{
+		UNUSED(focused);
+
 		bool hovered = g.IsHovered(panel);
 
 		GRRenderState rs(!raised, hovered, false);
@@ -415,6 +417,8 @@ namespace Rococo::Gui
 
 	ROCOCO_GUI_RETAINED_API void DrawMenuButton(IGRPanel& panel, bool focused, bool raised, IGRRenderContext& g)
 	{
+		UNUSED(focused);
+
 		bool hovered = g.IsHovered(panel);
 
 		GRRenderState rs(!raised, hovered, false);
