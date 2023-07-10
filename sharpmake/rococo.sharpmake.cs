@@ -53,10 +53,18 @@ namespace Rococo
             base.Name = name;
             SetSourcePath(name);
 
-            AddTargets(new Target(Platform.win64, DevEnv.vs2022, Optimization.Debug | Optimization.Release));
-		}
-		
-		protected void AddDefaults(Configuration conf, Target target)
+            AddTargets(new Target(
+                Platform.win64,
+                DevEnv.vs2022,
+                Optimization.Debug | Optimization.Release,
+                OutputType.Dll,
+                Blob.NoBlob,
+                BuildSystem.MSBuild,
+                DotNetFramework.net6_0)
+            );
+        }
+
+        protected void AddDefaults(Configuration conf, Target target)
 		{
 			conf.IncludePaths.Add(RococoRootPath + @"include\");
 			conf.IncludePaths.Add(RococoSexyPath + @"Common\");
@@ -84,7 +92,10 @@ namespace Rococo
 		
 		public void StandardInit(Configuration conf, Target target)
 		{
-			AddDefaults(conf, target);
+            conf.ProjectFileName = "[project.Name]_[target.DevEnv]_[target.Platform]";
+            conf.ProjectPath = @"[project.SharpmakeCsPath]\generated";
+
+            AddDefaults(conf, target);
 			
 			var excludedFileSuffixes = new List<string>();
 			
@@ -94,6 +105,93 @@ namespace Rococo
 			}
 			
 			conf.SourceFilesBuildExcludeRegex.Add(@"\.*(" + string.Join("|", excludedFileSuffixes.ToArray()) + @")\.cpp$");
+            conf.TargetLibraryPath = RococoLibPath + @"[target.Platform]\[conf.Name]\";
+        }
+    }
+
+    public class RococoCSharpProject : CSharpProject
+    {
+        public string RococoRootPath
+        {
+            get
+            {
+                return @"[project.SharpmakeCsPath]\..\";
+            }
+        }
+
+        public string RococoTmpPath
+        {
+            get
+            {
+                return @"[project.SharpmakeCsPath]\..\temp\sharpmake\";
+            }
+        }
+
+        public string RococoLibPath
+        {
+            get
+            {
+                return @"[project.SharpmakeCsPath]\..\lib\";
+            }
+        }
+
+
+        public string RococoBinPath
+        {
+            get
+            {
+                return @"[project.SharpmakeCsPath]\..\bin\";
+            }
+        }
+
+        public string RococoSexyPath
+        {
+            get
+            {
+                return RococoRootPath + @"sexy\";
+            }
+        }
+
+        public void SetSourcePath(string subdir)
+        {
+            if (subdir == null || subdir[0] == 0)
+            {
+                throw new Exception("Blank subdir");
+            }
+
+            if (subdir[0] == '/' || subdir[0] == '\\')
+            {
+                throw new Exception("The subdirectory must not begin with a directory slash");
+            }
+
+            SourceRootPath = RococoRootPath + subdir;
+        }
+
+        protected RococoCSharpProject(string name)
+        {
+            base.Name = name;
+            SetSourcePath(name);
+
+            RootPath = RococoRootPath;
+
+            AddTargets(new Target(
+                Platform.win64,
+                DevEnv.vs2022,
+                Optimization.Debug | Optimization.Release,
+				OutputType.Dll,
+				Blob.NoBlob,
+                BuildSystem.MSBuild,
+                DotNetFramework.net6_0)
+            );
+
+            // This Path will be used to get all SourceFiles in this Folder and all subFolders
+            SourceRootPath = @"[project.RootPath]\[project.Name]\";
+        }
+
+        public virtual void ConfigureAll(Configuration conf, Target target)
+        {
+            conf.ProjectFileName = "[project.Name].[target.DevEnv].[target.Framework]";
+            conf.ProjectPath = @"[project.SharpmakeCsPath]\generated\";
             conf.TargetLibraryPath = RococoLibPath + @"[target.Platform]\[conf.Name]\";
         }
     }
@@ -108,8 +206,6 @@ namespace Rococo
         [Configure()]
         public void ConfigureAll(Configuration conf, Target target)
         {
-            conf.ProjectFileName = "[project.Name]_[target.DevEnv]_[target.Platform]";
-            conf.ProjectPath = @"[project.SharpmakeCsPath]\generated";
 			conf.Output = Configuration.OutputType.Dll;
 			StandardInit(conf, target);
         }
@@ -125,8 +221,6 @@ namespace Rococo
         [Configure()]
         public void ConfigureAll(Configuration conf, Target target)
         {
-            conf.ProjectFileName = "[project.Name]_[target.DevEnv]_[target.Platform]";
-            conf.ProjectPath = @"[project.SharpmakeCsPath]\generated";
 			conf.Output = Configuration.OutputType.Lib;
             StandardInit(conf, target);
         }
@@ -142,8 +236,6 @@ namespace Rococo
         [Configure()]
         public void ConfigureAll(Configuration conf, Target target)
         {
-            conf.ProjectFileName = "[project.Name]_[target.DevEnv]_[target.Platform]";
-            conf.ProjectPath = @"[project.SharpmakeCsPath]\generated";
 			conf.Output = Configuration.OutputType.Dll;
             conf.Defines.Add("ROCOCO_UTILS_EX_API=__declspec(dllexport)");
             conf.Defines.Add("RENDERER_API=__declspec(dllexport)");
@@ -163,8 +255,6 @@ namespace Rococo
         [Configure()]
         public void ConfigureAll(Configuration conf, Target target)
         {
-            conf.ProjectFileName = "[project.Name]_[target.DevEnv]_[target.Platform]";
-            conf.ProjectPath = @"[project.SharpmakeCsPath]\generated";
 			conf.Output = Configuration.OutputType.Exe;
 			StandardInit(conf, target);
 			
@@ -182,8 +272,6 @@ namespace Rococo
         [Configure()]
         public void ConfigureAll(Configuration conf, Target target)
         {
-            conf.ProjectFileName = "[project.Name]_[target.DevEnv]_[target.Platform]";
-            conf.ProjectPath = @"[project.SharpmakeCsPath]\generated";
             conf.Output = Configuration.OutputType.Dll;
             StandardInit(conf, target);
             conf.AddPublicDependency<RococoUtilsProject>(target);
@@ -201,8 +289,6 @@ namespace Rococo
         [Configure()]
         public void ConfigureAll(Configuration conf, Target target)
         {
-            conf.ProjectFileName = "[project.Name]_[target.DevEnv]_[target.Platform]";
-            conf.ProjectPath = @"[project.SharpmakeCsPath]\generated";
             conf.Output = Configuration.OutputType.Dll;
             StandardInit(conf, target);
             conf.AddPublicDependency<RococoUtilsProject>(target);
@@ -220,8 +306,6 @@ namespace Rococo
         [Configure()]
         public void ConfigureAll(Configuration conf, Target target)
         {
-            conf.ProjectFileName = "[project.Name]_[target.DevEnv]_[target.Platform]";
-            conf.ProjectPath = @"[project.SharpmakeCsPath]\generated";
             conf.Output = Configuration.OutputType.Lib;
             StandardInit(conf, target);
         }
@@ -237,8 +321,6 @@ namespace Rococo
         [Configure()]
         public void ConfigureAll(Configuration conf, Target target)
         {
-            conf.ProjectFileName = "[project.Name]_[target.DevEnv]_[target.Platform]";
-            conf.ProjectPath = @"[project.SharpmakeCsPath]\generated";
             conf.Output = Configuration.OutputType.Exe;
             StandardInit(conf, target);
 
@@ -257,8 +339,6 @@ namespace Rococo
         [Configure()]
         public void ConfigureAll(Configuration conf, Target target)
         {
-            conf.ProjectFileName = "[project.Name]_[target.DevEnv]_[target.Platform]";
-            conf.ProjectPath = @"[project.SharpmakeCsPath]\generated";
             conf.Output = Configuration.OutputType.Dll;
             StandardInit(conf, target);
 
@@ -277,8 +357,6 @@ namespace Rococo
         [Configure()]
         public void ConfigureAll(Configuration conf, Target target)
         {
-            conf.ProjectFileName = "[project.Name]_[target.DevEnv]_[target.Platform]";
-            conf.ProjectPath = @"[project.SharpmakeCsPath]\generated";
             conf.Output = Configuration.OutputType.Lib;
             StandardInit(conf, target);
         }
@@ -294,8 +372,6 @@ namespace Rococo
         [Configure()]
         public void ConfigureAll(Configuration conf, Target target)
         {
-            conf.ProjectFileName = "[project.Name]_[target.DevEnv]_[target.Platform]";
-            conf.ProjectPath = @"[project.SharpmakeCsPath]\generated";
             conf.Output = Configuration.OutputType.Lib;
             StandardInit(conf, target);
         }
@@ -311,8 +387,6 @@ namespace Rococo
         [Configure()]
         public void ConfigureAll(Configuration conf, Target target)
         {
-            conf.ProjectFileName = "[project.Name]_[target.DevEnv]_[target.Platform]";
-            conf.ProjectPath = @"[project.SharpmakeCsPath]\generated";
             conf.Output = Configuration.OutputType.Lib;
             StandardInit(conf, target);
         }
@@ -328,8 +402,6 @@ namespace Rococo
         [Configure()]
         public void ConfigureAll(Configuration conf, Target target)
         {
-            conf.ProjectFileName = "[project.Name]_[target.DevEnv]_[target.Platform]";
-            conf.ProjectPath = @"[project.SharpmakeCsPath]\generated";
             conf.Output = Configuration.OutputType.Dll;
             StandardInit(conf, target);
             conf.Defines.Add("ROCOCO_GUI_RETAINED_API=__declspec(dllexport)");
@@ -337,58 +409,72 @@ namespace Rococo
         }
     }
 
-    /*
-	msbuild $(DIR_GUI_RETAINED)rococo.gui.retained.vcxproj           $(MSBUILD_TERSE) $(MSBUILD_PARALLEL) $(WITH_SOLUTION)
-	msbuild $(ROCOCO)rococo.cpp_master\rococo.cpp_master.csproj $(MSBUILD_TERSE) $(MSBUILD_PARALLEL)
-	*/
+    [Sharpmake.Generate]
+    public class RococoCPPMasterProject : RococoCSharpProject
+    {
+        public RococoCPPMasterProject() : base("rococo.cpp_master")
+        {
+        }
+
+        [Configure()]
+        public override void ConfigureAll(Configuration conf, Target target)
+        {
+            base.ConfigureAll(conf, target);
+            conf.Output = Configuration.OutputType.DotNetConsoleApp;
+            conf.TargetLibraryPath = RococoLibPath + @"[target.Platform]\[conf.Name]\";
+        }
+    }
 
     [Sharpmake.Generate]
-    public class RococoSolution : Sharpmake.Solution
+    public class RococoCSharpSolution : CSharpSolution
     {
-        public RococoSolution()
+        public RococoCSharpSolution()
         {
             Name = "rococo.sharpmake";
 
             AddTargets(new Target(
-                    Platform.win64,
-                    DevEnv.vs2022,
-                    Optimization.Debug | Optimization.Release
-            ));
+                Platform.win64,
+                DevEnv.vs2022,
+                Optimization.Debug | Optimization.Release,
+                OutputType.Dll,
+                Blob.NoBlob,
+                BuildSystem.MSBuild,
+                DotNetFramework.net6_0));
         }
 
         [Configure()]
         public void ConfigureAll(Configuration conf, Target target)
         {
-            conf.SolutionFileName = "[solution.Name]_[target.DevEnv]_[target.Platform]";
+            conf.SolutionFileName = "rococo.all";
             conf.SolutionPath = @"[solution.SharpmakeCsPath]\generated";
+            conf.AddProject<RococoCPPMasterProject>(target);
             conf.AddProject<RococoUtilsProject>(target);
             conf.AddProject<RococoMiscUtilsProject>(target);
             conf.AddProject<RococoMathsProject>(target);
-			conf.AddProject<RococoUtilExProject>(target);
-			conf.AddProject<RococoPackagerProject>(target);
+            conf.AddProject<RococoUtilExProject>(target);
+            conf.AddProject<RococoPackagerProject>(target);
             conf.AddProject<RococoWindowsProject>(target);
             conf.AddProject<RococoSexyIDEProject>(target);
             conf.AddProject<RococoSexyCmdProject>(target);
             conf.AddProject<RococoSexyMathSexProject>(target);
             conf.AddProject<RococoFontsProject>(target);
-            conf.AddProject<RococoDX11RendererProject>(target);
             conf.AddProject<RococoFileBrowserProject>(target);
             conf.AddProject<RococoGuiRetainedProject>(target);
         }
     }
-
+    
     public static class Main
     {
         [Sharpmake.Main]
         public static void SharpmakeMain(Sharpmake.Arguments arguments)
-        {
+        {;
+            arguments.Generate<RococoCSharpSolution>(); 
             arguments.Generate<RococoUtilsProject>();
             arguments.Generate<RococoMiscUtilsProject>();
             arguments.Generate<RococoMathsProject>();
-			arguments.Generate<RococoUtilExProject>();
-			arguments.Generate<RococoPackagerProject>();
+            arguments.Generate<RococoUtilExProject>();
+            arguments.Generate<RococoPackagerProject>();
             arguments.Generate<RococoWindowsProject>();
-            arguments.Generate<RococoSolution>();
             arguments.Generate<RococoSexyIDEProject>();
             arguments.Generate<RococoSexyCmdProject>();
             arguments.Generate<RococoSexyMathSexProject>();
@@ -396,6 +482,7 @@ namespace Rococo
             arguments.Generate<RococoDX11RendererProject>();
             arguments.Generate<RococoFileBrowserProject>();
             arguments.Generate<RococoGuiRetainedProject>();
-        }        
-    }
+            arguments.Generate<RococoCPPMasterProject>();
+        }
+    }        
 }

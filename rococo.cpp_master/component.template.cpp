@@ -1,8 +1,8 @@
 #include <rococo.api.h>
 #include <rococo.allocators.h>
 #include "rococo.component.entities.h"
-#include "components.h"
-#include "test.components.h"
+#include <..\rococo.components.test\sys\examples\components.h>
+#include <..\rococo.components.test\sys\examples\test.components.h>
 #include <list>
 #include <unordered_map>
 
