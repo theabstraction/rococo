@@ -469,6 +469,7 @@ namespace Rococo
             StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.AddPublicDependency<RococoMathsProject>(target);
             conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.AddPublicDependency<SexyBennyHillProject>(target);
         }
     }
 
@@ -560,7 +561,7 @@ namespace Rococo
 
             conf.SourceFilesBuildExcludeRegex.Add(@"mplat.component.template.cpp");
             conf.SourceFilesBuildExcludeRegex.Add(@"mplat.test.app.cpp");
-            conf.AddPublicDependency<RococoSexyIDEProject>(target);
+            conf.AddPublicDependency<SexyBennyHillProject>(target);
         }
     }
 
@@ -578,6 +579,7 @@ namespace Rococo
             conf.AddPublicDependency<RococoFontsProject>(target);
             conf.AddPublicDependency<RococoMathsProject>(target);
             conf.AddPublicDependency<RococoMiscUtilsProject>(target);
+            conf.AddPublicDependency<RococoSexyIDEProject>(target);
             conf.AddPublicDependency<RococoWindowsProject>(target);
             conf.AddPublicDependency<RococoFileBrowserProject>(target);
             conf.AddPublicDependency<RococoGuiRetainedProject>(target);
@@ -602,6 +604,7 @@ namespace Rococo
             conf.AddPublicDependency<RococoWindowsProject>(target);
             conf.AddPublicDependency<RococoUtilExProject>(target);
             conf.AddPublicDependency<RococoMathsProject>(target);
+            conf.AddPublicDependency<SexyBennyHillProject>(target);
             conf.Options.Add(Sharpmake.Options.Vc.Linker.SubSystem.Windows);
         }
     }
@@ -671,6 +674,7 @@ namespace Rococo
             conf.Defines.Add("ROCOCO_AUDIO_API=__declspec(dllexport)");
             conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.AddPublicDependency<RococoMathsProject>(target);
+            conf.AddPublicDependency<SexyBennyHillProject>(target);
         }
     }
 
@@ -709,6 +713,25 @@ namespace Rococo
     }
 
     [Sharpmake.Generate]
+    public class SexyBennyHillProject : SexyProject
+    {
+        public SexyBennyHillProject() : base("sexy.bennyhill", "sexy.bennyhill")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Dll);
+            conf.Defines.Add("SEXYUTIL_API=__declspec(dllexport)");
+            conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.AddPublicDependency<SexySParserProject>(target);
+            conf.AddPublicDependency<SexyUtilProject>(target);
+            conf.Options.Add(new Sharpmake.Options.Vc.Compiler.DisableSpecificWarnings("4100", "4189"));
+        }
+    }
+
+    [Sharpmake.Generate]
     public class SexyVMProject : SexyProject
     {
         public SexyVMProject() : base("sexy.vm", "SVM/svmcore")
@@ -738,9 +761,9 @@ namespace Rococo
     }
 
     [Sharpmake.Generate]
-    public class SexySexProject : SexyProject
+    public class SexySParserProject : SexyProject
     {
-        public SexySexProject() : base("sexy.s-parser", "SP/sexy.s-parser")
+        public SexySParserProject() : base("sexy.s-parser", "SP/sexy.s-parser")
         {
         }
 
@@ -831,7 +854,7 @@ namespace Rococo
             conf.AddPublicDependency<SexyUtilProject>(target);
             conf.AddPublicDependency<SexyCompilerProject>(target);
             conf.AddPublicDependency<SexyVMProject>(target);
-            conf.AddPublicDependency<SexySexProject>(target);
+            conf.AddPublicDependency<SexySParserProject>(target);
             conf.Options.Add(new Sharpmake.Options.Vc.Compiler.DisableSpecificWarnings("4100", "4189", "4244"));
             conf.Defines.Add("SCRIPTEXPORT_API=__declspec(dllexport)");
         }
@@ -962,11 +985,12 @@ namespace Rococo
             conf.AddProject<SexyVMProject>(target);
             conf.AddProject<SexyCompilerProject>(target);
             conf.AddProject<SexyScriptProject>(target);
-            conf.AddProject<SexySexProject>(target);
+            conf.AddProject<SexySParserProject>(target);
             conf.AddProject<SexyScriptTestProject>(target);
             conf.AddProject<SexyCoroutinesProject>(target);
             conf.AddProject<SexyReflectionProject>(target);
             conf.AddProject<SexyMathsProject>(target);
+            conf.AddProject<SexyBennyHillProject>(target);
         }
     }
 
@@ -997,11 +1021,12 @@ namespace Rococo
             conf.AddProject<SexyVMProject>(target);
             conf.AddProject<SexyCompilerProject>(target);
             conf.AddProject<SexyScriptProject>(target);
-            conf.AddProject<SexySexProject>(target);
+            conf.AddProject<SexySParserProject>(target);
             conf.AddProject<SexyScriptTestProject>(target);
             conf.AddProject<SexyCoroutinesProject>(target);
             conf.AddProject<SexyReflectionProject>(target);
             conf.AddProject<SexyMathsProject>(target);
+            conf.AddProject<SexyBennyHillProject>(target);
         }
     }
 
@@ -1044,11 +1069,12 @@ namespace Rococo
             arguments.Generate<SexyVMProject>();
             arguments.Generate<SexyCompilerProject>();
             arguments.Generate<SexyScriptProject>();
-            arguments.Generate<SexySexProject>();
+            arguments.Generate<SexySParserProject>();
             arguments.Generate<SexyScriptTestProject>();
             arguments.Generate<SexyCoroutinesProject>();
             arguments.Generate<SexyReflectionProject>();
             arguments.Generate<SexyMathsProject>();
+            arguments.Generate<SexyBennyHillProject>();
         }
     }
 }

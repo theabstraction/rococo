@@ -39,10 +39,6 @@
 #include <unordered_set>
 #include <vector>
 
-#include "sexy.lib.s-parser.h"
-#include "sexy.lib.util.h"
-#include "sexy.lib.sexy-util.h"
-
 #include <rococo.api.h>
 #include <rococo.os.h>
 #include <unordered_set>
@@ -326,14 +322,14 @@ void AppendNativeFunction(cr_sex functionDef, const ParseContext& pc, FileAppend
 		else
 		{
 			outputFile.Append("\t\tauto [");
-			for (int k = 0; k < nOutputs; k++)
+			for (int l = 0; l < nOutputs; l++)
 			{
-				if (k > 0)
+				if (l > 0)
 				{
-					outputFile.Append(", ", k);
+					outputFile.Append(", ", l);
 				}
 
-				outputFile.Append("output_%d", k);
+				outputFile.Append("output_%d", l);
 			}
 			outputFile.Append("] = ");
 		}
@@ -348,9 +344,9 @@ void AppendNativeFunction(cr_sex functionDef, const ParseContext& pc, FileAppend
 	int inputCount = 1;
 
 	// Append the input arguments to the method invocation
-	for (int i = 1; i < outputStart - 1; ++i)
+	for (int k = 1; k < outputStart - 1; ++k)
 	{
-		cr_sex s = functionDef[i];
+		cr_sex s = functionDef[k];
 
 		const ISExpression* stype = &s[0];
 		const ISExpression* svalue = &s[1];
@@ -573,13 +569,13 @@ void ParseEnum(cr_sex senumDef, ParseContext& pc)
 		Throw(sbasicType, "Expecting underlying type, such as Int32 or Int64");
 	}
 
-	auto i = pc.primitives.find(sbasicType.String()->Buffer);
-	if (i == pc.primitives.end())
+	auto foundType = pc.primitives.find(sbasicType.String()->Buffer);
+	if (foundType == pc.primitives.end())
 	{
 		Throw(sbasicType, "Cannot find primitive type in the config file");
 	}
 
-	ec.underlyingType.Set(i->second.cppType.c_str());
+	ec.underlyingType.Set(foundType->second.cppType.c_str());
 
 	for (int i = 2; i < senumDef.NumberOfElements(); ++i)
 	{
@@ -771,13 +767,13 @@ void ParseInterface(cr_sex interfaceDef, ParseContext& pc, std::vector<rstdstrin
 				ic.sexyBase = directive[3].String()->Buffer;
 				ValidateFQSexyInterface(directive[3]);
 
-				auto i = pc.interfaces.find(ic.sexyBase);
-				if (i == pc.interfaces.end())
+				auto inter = pc.interfaces.find(ic.sexyBase);
+				if (inter == pc.interfaces.end())
 				{
 					Throw(directive[3], "Base interface [%s] not found prior to the definition of the derived interface [%s]", ic.sexyBase, sinterfaceName.String()->Buffer);
 				}
 
-				for (auto* m : i->second->methodArray)
+				for (auto* m : inter->second->methodArray)
 				{
 					if (m != nullptr) methods.push_back(m);
 				}

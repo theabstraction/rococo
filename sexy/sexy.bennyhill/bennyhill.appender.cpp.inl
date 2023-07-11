@@ -255,9 +255,9 @@ namespace Rococo
 		{
 			FileAppender cppFileAppender(i.c_str());
 			AddPragmaOnce(cppFileAppender, i.c_str());
-			for (auto& i : pc.enums)
+			for (auto& e : pc.enums)
 			{
-				DeclareCppEnum(cppFileAppender, i.ec, *i.sdef, pc);
+				DeclareCppEnum(cppFileAppender, e.ec, *e.sdef, pc);
 			}
 		}
 
@@ -271,10 +271,10 @@ namespace Rococo
 			}
 		}
 
-		for (auto& i : enumFiles)
+		for (auto& e : enumFiles)
 		{
-			FileAppender cppFileAppender(i.c_str());
-			AddPragmaOnce(cppFileAppender, i.c_str());
+			FileAppender cppFileAppender(e.c_str());
+			AddPragmaOnce(cppFileAppender, e.c_str());
 			for (auto& i : pc.interfaces)
 			{
 				if (*i.second->ic.appendCppHeaderFile)
@@ -929,11 +929,11 @@ namespace Rococo
 		appender.Append(("}\n\n"));
 
 		NamespaceSplitter nsSplitter(ic.asCppInterface.SexyName());
-		cstr ns, shortName;
-		nsSplitter.SplitTail(ns, shortName);
+		cstr nsInterfaceSexyName, nsInterfaceShortName;
+		nsSplitter.SplitTail(nsInterfaceSexyName, nsInterfaceShortName);
 
 		CppType nsType;
-		nsType.Set(ns);
+		nsType.Set(nsInterfaceSexyName);
 
 		int depth = AppendNamespace(appender, ic.asCppInterface.SexyName());
 
@@ -966,9 +966,9 @@ namespace Rococo
 
 					appender.Append(("\t\tss.AddNativeCall(ns, NativeGetHandleFor%s, _nceContext, (\"GetHandleFor%s%d "), factoryType.CompressedName(), shortName, factoryIndex);
 
-					for (int i = 2; i < sfactoryDef.NumberOfElements(); i++)
+					for (int j = 2; j < sfactoryDef.NumberOfElements(); j++)
 					{
-						cr_sex arg = sfactoryDef.GetElement(i);
+						cr_sex arg = sfactoryDef.GetElement(j);
 						AppendInputPair(appender, arg, pc);
 					}
 

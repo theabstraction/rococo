@@ -449,9 +449,9 @@ namespace
 			cstr factoryName = StringFrom(sfactoryDef, 1);
 			ValidateFQSexyFunction(sfactoryDef, factoryName);
 
-			NamespaceSplitter splitter(factoryName);
+			NamespaceSplitter fsplitter(factoryName);
 			cstr head, tail;
-			if (!splitter.SplitHead(head, tail))
+			if (!fsplitter.SplitHead(head, tail))
 			{
 				Throw(sfactoryDef, ("The factory must be fully qualified. i.e Sys.Animals.GetTiger and not GetTiger"));
 			}
