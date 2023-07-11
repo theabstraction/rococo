@@ -16,17 +16,10 @@
 #include <sexy.lib.util.h>
 #include <sexy.lib.script.h>
 
-#ifdef _DEBUG
-# pragma comment(lib, "rococo.windows.debug.lib")
-# pragma comment(lib, "rococo.fonts.debug.lib")
-# pragma comment(lib, "rococo.mplat.debug.lib")
-# pragma comment(lib, "rococo.sexy.ide.debug.lib")
-#else
 # pragma comment(lib, "rococo.windows.lib")
 # pragma comment(lib, "rococo.fonts.lib")
 # pragma comment(lib, "rococo.mplat.lib")
 # pragma comment(lib, "rococo.sexy.ide.lib")
-#endif
 
 #pragma comment(lib, "dxgi.lib")
 

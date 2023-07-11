@@ -59,7 +59,7 @@ namespace Rococo::Script
 				m.rows.resize(currentRowCount * 2);
 			}
 
-			int32 currentRowCount = (int32)m.rows.size();
+			currentRowCount = (int32)m.rows.size();
 
 			for (MapNode* i = m.Head; i != NULL; i = i->Next)
 			{
@@ -878,11 +878,11 @@ namespace Rococo::Script
 
 	bool HasInterface(const IInterface& interface, const IStructure& classspec);
 
-	void CompileAsKeyToTemp(CCompileEnvironment& ce, cr_sex keyExpr, const MapDef& def, int tempIndex)
+	void CompileAsKeyToTemp(CCompileEnvironment& ce, cr_sex keyExpr, const MapDef& mapDef, int tempIndex)
 	{
 		auto& typeIStringInterface = ce.Object.Common().SysTypeIString();
 		auto& typeIString = typeIStringInterface.NullObjectType();
-		if (def.KeyType == typeIString)
+		if (mapDef.KeyType == typeIString)
 		{
 			if (TryCompileStringLiteralInputToTemp(ce, keyExpr, 4, typeIString)) // key ptr goes to D8
 			{
@@ -910,7 +910,7 @@ namespace Rococo::Script
 		}
 		else
 		{
-			VARTYPE keyVarType = def.KeyType.VarType();
+			VARTYPE keyVarType = mapDef.KeyType.VarType();
 			if (IsPrimitiveType(keyVarType))
 			{
 				if (IsAtomic(keyExpr))
@@ -1077,17 +1077,15 @@ namespace Rococo::Script
 
 	bool TryCompileAsMapCall(CCompileEnvironment& ce, cr_sex s, cstr mapName, cstr methodName)
 	{
-		if (AreEqual(methodName, ("Insert")))
+		if (AreEqual(methodName, "Insert"))
 		{
 			CompileAsMapInsert(ce, s, mapName);
 			return true;
 		}
 		else
 		{
-			Throw(s, ("Unknown list method. Known methods: Append, Prepend."));
+			Throw(s, "Unknown list method. Known methods: Append, Prepend.");
 		}
-
-		return false;
 	}
 
 	bool TryCompileAsMapNodeCall(CCompileEnvironment& ce, cr_sex s, cstr name, cstr methodName)
@@ -1099,10 +1097,8 @@ namespace Rococo::Script
 		}
 		else
 		{
-			Throw(s, ("Unknown node method. Known methods: Exists, Value, Pop"));
+			Throw(s, "Unknown node method. Known methods: Exists, Value, Pop");
 		}
-
-		return false;
 	}
 
 	void CompileGetMapElement(CCompileEnvironment& ce, cr_sex s, cstr instanceName, VARTYPE varType, const IStructure* structType)

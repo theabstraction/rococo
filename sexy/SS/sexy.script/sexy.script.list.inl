@@ -869,12 +869,7 @@ namespace Rococo::Script
 			else
 			{
 				// No constructor, so need to copy element
-
 				Throw(s, ("Construction not supported"));
-
-				CompileGetStructRef(ce, value, elementType, ("newArrayElement")); // The address of the value is in D7
-
-				ce.Builder.AssignVariableRefToTemp(instanceName, 0, 0); // node goes to D4
 			}
 		}
 		else
@@ -944,8 +939,6 @@ namespace Rococo::Script
 		{
 			Throw(s, ("Unknown list method. Known methods: Append, Prepend."));
 		}
-
-		return false;
 	}
 
 	bool TryCompileAsNodeCall(CCompileEnvironment& ce, cr_sex s, cstr instanceName, cstr methodName)
@@ -969,8 +962,6 @@ namespace Rococo::Script
 		{
 			Throw(s, ("Unknown node method. Known methods: Append, Prepend."));
 		}
-
-		return false;
 	}
 
 	void CompileAsListNodeDeclaration(CCompileEnvironment& ce, cstr nodeName, cr_sex source)

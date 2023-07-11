@@ -13,9 +13,7 @@
 #include <uxtheme.h>
 #pragma comment(lib, "uxtheme.lib")
 
-#ifdef _DEBUG
-# pragma comment(lib, "rococo.misc.utils.debug.lib")
-#else
+#ifdef _WIN32
 # pragma comment(lib, "rococo.misc.utils.lib")
 #endif
 

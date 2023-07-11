@@ -167,7 +167,6 @@ namespace Rococo
 			if (AreEqual(opStr, ("|"))) return ARITHMETIC_OP_BITWISE_OR;
 
 			Throw(s, ("Expecting arithmetic operator"));
-			return ARITHMETIC_OP_ADD;
 		}
 
 		void ComputeArithmeticLiteralVsLiteral(OUT VariantValue& result, cr_sex parent, const VariantValue& a, ARITHMETIC_OP op, const VariantValue& b, VARTYPE type)
@@ -711,12 +710,6 @@ namespace Rococo
 					}
 
 					return false;
-				}
-
-				if (s.NumberOfElements() == 1)
-				{
-					cr_sex onlyChild = s.GetElement(0);
-					return TryCompileAssignArchetype(ce, onlyChild, type, allowClosures);
 				}
 			}
 			else if (IsAtomic(s))

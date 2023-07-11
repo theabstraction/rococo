@@ -280,8 +280,6 @@ namespace Rococo
 
             return finalFunction;
          }
-
-         return NULL;
       }
 
       IInterfaceBuilder* GetInterfaceFQN(cr_sex baseExpr, CScript& script)

@@ -465,7 +465,7 @@ namespace
 		void LoadNamespaceAndRecurse(OUT size_t& count, cstr namespaceText, const PackageNamespaceToken& ns, SexyPackage& sp)
 		{
 			size_t fileCount = LoadFilesWhere(ns, sp,
-				[](const char* filename)
+				[](const char* /* filename */)
 				{
 					return true;
 				}
@@ -483,7 +483,7 @@ namespace
 				else
 				{
 					char subPrefix[NAMESPACE_MAX_LENGTH];
-					int len = SecureFormat(subPrefix, "%s.%s", namespaceText, subspace.token);
+					SecureFormat(subPrefix, "%s.%s", namespaceText, subspace.token);
 					LoadNamespaceAndRecurse(count, subPrefix, subspace, sp);
 				}
 			}

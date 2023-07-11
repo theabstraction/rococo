@@ -124,7 +124,6 @@ namespace Anon
 		}
 
 		Throw(0, "Bad hex value");
-		return -1;
 	}
 
 	char FromHexToChar(int32 high16, int32 low16)
@@ -245,6 +244,7 @@ namespace Anon
 
 		void AddAtomic(cstr begin, cstr end, ICompoundSExpression* parent) override
 		{
+			UNUSED(parent);
 			size_t diff = end - begin;
 			if (diff > (MAX_ATOMIC_TOKEN_SIZE - 1))
 			{
@@ -261,22 +261,29 @@ namespace Anon
 
 		void AddComment(cstr begin, cstr end) override
 		{
-
+			UNUSED(begin);
+			UNUSED(end);
 		}
 
 		ICompoundSExpression* AddCompound(cstr beginPoint, int depth, ICompoundSExpression* parent) override
 		{
+			UNUSED(beginPoint);
+			UNUSED(parent);
 			this->depth = depth;
 			return nullptr;
 		}
 
 		void FinishCompound(cstr beginPoint, cstr endPoint, int depth, ICompoundSExpression* compound) override
 		{
-
+			UNUSED(beginPoint);
+			UNUSED(endPoint);
+			UNUSED(depth);
+			UNUSED(compound);
 		}
 
 		cstr ParseString(cstr sStart, cstr sEnd, ICompoundSExpression* parent) override
 		{
+			UNUSED(parent);
 			struct : ITokenBuilder
 			{
 				char buffer[MAX_ATOMIC_TOKEN_SIZE];
@@ -424,7 +431,6 @@ namespace Anon
 			catch (IException& ex)
 			{
 				Throw((int)(sString - sExpression), "%s", ex.Message());
-				return sString;
 			}
 		}
 
@@ -673,6 +679,7 @@ namespace Anon
 
 		int GetIndexOf(cr_sex s) const override
 		{
+			UNUSED(s);
 			return -1;
 		}
 
@@ -714,8 +721,8 @@ namespace Anon
 
 		const ISExpression& GetElement(int index) const override
 		{
+			UNUSED(index);
 			Throw(0, "Atomic node has no elements");
-			return *this;
 		}
 
 		const ISExpression* Parent() const override
@@ -769,6 +776,7 @@ namespace Anon
 
 		int GetIndexOf(cr_sex s) const override
 		{
+			UNUSED(s);
 			return -1;
 		}
 
@@ -810,8 +818,8 @@ namespace Anon
 
 		const ISExpression& GetElement(int index) const override
 		{
+			UNUSED(index);
 			Throw(0, "String literal has no elements");
-			return *this;
 		}
 
 		const ISExpression* Parent() const override
@@ -868,6 +876,8 @@ namespace Anon
 
 		void SetOffsets(int32 startOffset, int32 endOffset) override
 		{
+			UNUSED(startOffset);
+			UNUSED(endOffset);
 		}
 
 		void SetArrayStart(ISExpression** pArray) override
@@ -877,6 +887,7 @@ namespace Anon
 
 		void AddSibling(ISExpressionLinkBuilder* sibling) override
 		{
+			UNUSED(sibling);
 			Throw(0, "Root cannnot have siblings");
 		}
 
@@ -1059,7 +1070,6 @@ namespace Anon
 		const sexstring String() const override
 		{
 			Rococo::Sex::Throw(*this, "Compound node has no string value");
-			return nullptr;
 		}
 
 		const ISParserTree& Tree() const override
@@ -1092,6 +1102,7 @@ namespace Anon
 
 		bool operator == (const char* token) const override
 		{
+			UNUSED(token);
 			return false;
 		}
 	};
@@ -1146,6 +1157,7 @@ namespace Anon
 
 		void AddAtomic(cstr begin, cstr end, ICompoundSExpression* parent) override
 		{
+			UNUSED(parent);
 			size_t nBytes = end - begin + 1;
 
 			if (nBytes >= maxStringSize)
@@ -1170,6 +1182,8 @@ namespace Anon
 
 		ICompoundSExpression* AddCompound(cstr beginPoint, int depth, ICompoundSExpression* parent) override
 		{
+			UNUSED(beginPoint);
+			UNUSED(parent);
 			enum { MAX_S_DEPTH = 128 };
 			if (depth > MAX_S_DEPTH)
 			{
@@ -1182,11 +1196,16 @@ namespace Anon
 
 		void FinishCompound(cstr beginPoint, cstr endPoint, int depth, ICompoundSExpression* compound) override
 		{
-
+			UNUSED(beginPoint);
+			UNUSED(endPoint);
+			UNUSED(depth);
+			UNUSED(compound);
+			UNUSED(beginPoint);
 		}
 
 		cstr ParseString(cstr sStart, cstr sEnd, ICompoundSExpression* parent) override
 		{
+			UNUSED(parent);
 			struct ANON : ITokenBuilder
 			{
 				size_t writeCount = 0;
@@ -1197,6 +1216,7 @@ namespace Anon
 
 				void AddChar(char c) override
 				{
+					UNUSED(c);
 					writeCount++;
 				}
 			} x;
@@ -1216,11 +1236,6 @@ namespace Anon
 		}
 
 	};
-
-	static void FreeAllocator(IAllocatorSupervisor *allocator)
-	{
-		if (allocator) allocator->Free();
-	}
 
 	// SBlockAllocator - an expression tree builder, the intent of which is to consolidate all allocations 
 	//    from the heap into a single allocation, and so massively reduce memory management costs.
@@ -1305,7 +1320,7 @@ namespace Anon
 
 			for (cstr c = nomansLand; c < endOfNoMandsLand; ++c)
 			{
-				if (*c != (char)0xFE)
+				if ((uint8) *c != (unsigned char)0xFE)
 				{
 					Throw(0, "SBlockAllocator overwrite detected");
 				}
@@ -1369,10 +1384,13 @@ namespace Anon
 		void AddComment(cstr begin, cstr end) override
 		{
 			size_t nBytes = end - begin + 1;
+			UNUSED(nBytes);
 		}
 
 		ICompoundSExpression* AddCompound(cstr beginPoint, int depth, ICompoundSExpression* parent) override
 		{
+			UNUSED(depth);
+			UNUSED(beginPoint);
 			auto* n = nextFreeCompoundSlot;
 			new (n) CompoundExpression();
 			n->parent = parent;
@@ -1383,6 +1401,7 @@ namespace Anon
 
 		void FinishCompound(cstr beginPoint, cstr endPoint, int depth, ICompoundSExpression* parent) override
 		{
+			UNUSED(depth);
 			parent->SetOffsets((int32)(beginPoint - sourceStart), (int32)(endPoint - sourceStart));
 		}
 
@@ -1497,9 +1516,9 @@ namespace Anon
 
 			SBlockAllocator sba(ce, allocator, sourceCode.SourceStart());
 			{
-				SParser parser(sourceCode.SourceStart(), sba);
-				parser.name = sourceCode.Name();
-				parser.Parse(sba.Root());
+				SParser parser2(sourceCode.SourceStart(), sba);
+				parser2.name = sourceCode.Name();
+				parser2.Parse(sba.Root());
 			}
 
 			auto* tree = sba.Detach();

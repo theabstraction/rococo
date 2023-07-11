@@ -32,7 +32,7 @@
 */
 
 #include "sexy.script.stdafx.h"
-#include "sexy.compiler.helpers.h"
+#include "..\STC\stccore\sexy.compiler.helpers.h"
 #include "sexy.s-parser.h"
 #include "sexy.vm.h"
 #include "sexy.vm.cpu.h"
@@ -92,7 +92,6 @@ namespace Rococo
 				break;
 			default:
 				Throw(s, ("Algorithmic error: unhandled bitcount in argument to function"));
-				return 0;
 			}
 		}
 
@@ -512,7 +511,6 @@ namespace Rococo
 
 					if (TryCompileFunctionCallAndReturnValue(ce, sourceValue, targetType, &varStruct, NULL))
 					{
-						TokenBuffer symbol;
 						if (targetType == VARTYPE_Derivative)
 						{
 							// If a function returns a derivative type then it returns a pointer to a derivative type
@@ -605,7 +603,6 @@ namespace Rococo
 				else if (TryCompileClosureDef(ce, sourceValue, *varStruct.Archetype(), ce.Builder.Owner().GetArgumentByName(targetVariable) == NULL))
 				{
 					ce.Builder.EnableClosures(targetVariable);
-					TokenBuffer symbol;
 					StringPrint(symbol, ("%s.bytecodeId = (closure ...)"), targetVariable);
 					ce.Builder.AddSymbol(symbol);
 
@@ -1081,8 +1078,7 @@ namespace Rococo
 				return ce.Object.Common().TypeFloat32();
 			 }
 		  }
-		  Throw(svalue, ("Cannot infer best variable type for atomic expression"));
-		  return *hintStruct;
+		  Throw(svalue, "Cannot infer best variable type for atomic expression");
 	   }
 
 	   // Infer a type for an expression
@@ -1097,8 +1093,7 @@ namespace Rococo
 		  case EXPRESSION_TYPE_STRING_LITERAL:
 			 return ce.Object.Common().SysTypeIString().NullObjectType();
 		  default:
-			 Throw(s, ("Cannot infer variable type from expression"));
-			 return *hintStruct;
+			 Throw(s, "Cannot infer variable type from expression");
 		  }
 	   }
 
@@ -2063,8 +2058,7 @@ namespace Rococo
 			 case EXPRESSION_TYPE_COMPOUND:
 				return CompileAsStructureAssignmentFromCompound(ce, varStruct, varName, rhs);
 			 default:
-				Throw(directive, ("Non-compound structure assignment is not yet implemented"));
-				return false;
+				Throw(directive, "Non-compound structure assignment is not yet implemented");
 			 }
 		  }
 		  else if (directive.NumberOfElements() == 5)

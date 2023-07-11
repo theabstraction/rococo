@@ -33,7 +33,7 @@
 
 #include <rococo.time.h>
 
-namespace Rococo { namespace Script
+namespace Rococo::Script
 {
 	class CScript;
 	class CScripts;
@@ -181,7 +181,7 @@ namespace Rococo { namespace Script
 		Throw(src, "The source file path must contain a / character to translate $ to a Sexy type name");
 	}
 
-	void AppendAlias(IModuleBuilder& module, cr_sex nsName, cr_sex nameExpr)
+	void AppendAlias(IModuleBuilder& module, cr_sex nsName, cr_sex localName)
 	{
 		cstr body, tail;
 
@@ -213,37 +213,38 @@ namespace Rococo { namespace Script
 
 		cstr publicFunctionName = tail;
 
-		cstr name = nameExpr.String()->Buffer;
+		cstr name = localName.String()->Buffer;
 
 		IFunctionBuilder* f = module.FindFunction(name);
 		if (f == NULL)
 		{
-			NamespaceSplitter splitter(name);
-
 			cstr nsBody, shortName;
-			if (splitter.SplitTail(nsBody, shortName))
+			NamespaceSplitter localNameSplitter(name);
+			if (localNameSplitter.SplitTail(nsBody, shortName))
 			{
 				INamespaceBuilder* nsSrc = MatchNamespace(module, nsBody);
 				if (nsSrc == NULL)
 				{
-					Throw(nameExpr, "Cannot resolve alias. Source name '%s' was not a reconigzed namespace", nsBody);
+					Throw(localName, "Cannot resolve alias. Source name '%s' was not a reconigzed namespace", nsBody);
 				}
 
 				IStructureBuilder* s = nsSrc->FindStructure(shortName);
 				if (s == NULL)
 				{
-					IFunctionBuilder* f = nsSrc->FindFunction(shortName);
+					f = nsSrc->FindFunction(shortName);
 					if (f == nullptr)
 					{
-						Throw(nameExpr, "Cannot find '%s' in %s", shortName, nsBody);
+						Throw(localName, "Cannot find '%s' in %s", shortName, nsBody);
 					}
 					else
 					{
 						ns.Alias(tail, *f);
 					}
 				}
-
-				ns.Alias(tail, *s);
+				else
+				{
+					ns.Alias(tail, *s);
+				}
 
 				return;
 			}
@@ -251,13 +252,13 @@ namespace Rococo { namespace Script
 			IStructureBuilder* s = module.FindStructure(name);
 			if (s == NULL)
 			{
-				Throw(nameExpr, "Cannot resolve alias. Local name '%s'was neither a structure or a function", name);
+				Throw(localName, "Cannot resolve alias. Local name '%s' was neither a structure or a function", name);
 			}
 			else
 			{
 				if (s->Prototype().IsClass)
 				{
-					Throw(nameExpr, "Aliasing a class is not allowed: '%s'", name);
+					Throw(localName, "Aliasing a class is not allowed: '%s'", name);
 				}
 				else
 				{
@@ -2410,10 +2411,10 @@ namespace Rococo { namespace Script
 
 	IFunctionBuilder& CScript::GetNullFunction(const IArchetype& archetype)
 	{
-		auto i = scripts.nullArchetypeFunctions.find(&archetype);
-		if (i != scripts.nullArchetypeFunctions.end())
+		auto a = scripts.nullArchetypeFunctions.find(&archetype);
+		if (a != scripts.nullArchetypeFunctions.end())
 		{
-			return *i->second;
+			return *a->second;
 		}
 
 		TokenBuffer nullFunctionName;
@@ -3572,11 +3573,11 @@ namespace Rococo { namespace Script
 					cr_sex methodNameExpr = GetAtomicArg(virtualMethodExpr, 0);
 					sexstring methodName = methodNameExpr.String();
 
-					if (AreEqual(methodName, ("attribute")))
+					if (AreEqual(methodName, "attribute"))
 					{
 						ValidateDefineAttribute(interf->Attributes(), virtualMethodExpr);
 					}
-					else if (AreEqual(methodName, ("extends")))
+					else if (AreEqual(methodName, "extends"))
 					{						
 					}
 					else
@@ -3585,18 +3586,18 @@ namespace Rococo { namespace Script
 					}
 				}
 			}
-			else if (AreEqual(elementName.String(), ("class")))
+			else if (AreEqual(elementName.String(), "class"))
 			{
-				for (int i = 1; i < e.NumberOfElements(); ++i)
+				for (int k = 1; k < e.NumberOfElements(); ++k)
 				{
-					cr_sex classDirective = e[i];
-					if (classDirective.NumberOfElements() > 1 && IsAtomic(classDirective[0]) && AreEqual(classDirective[0].String(), ("defines")))
+					cr_sex classDirective = e[k];
+					if (classDirective.NumberOfElements() > 1 && IsAtomic(classDirective[0]) && AreEqual(classDirective[0].String(), "defines"))
 					{	
 						auto classStruct = module.FindStructure(e[1].String()->Buffer);
 
 						if (classStruct->InterfaceCount() != 1)
 						{
-							Throw(e, ("Classes that define an interface may not implement more than one interface"));
+							Throw(e, "Classes that define an interface may not implement more than one interface");
 						}
 
 						cr_sex name = GetAtomicArg(classDirective, 1);
@@ -4202,19 +4203,19 @@ namespace Rococo { namespace Script
 					interfaceCount += CountClassElements(topLevelItem, ("implements"));
 					interfaceCount += CountClassElements(topLevelItem, ("defines"));
 
-					for (int i = 1; i < topLevelItem.NumberOfElements(); ++i)
+					for (int k = 1; k < topLevelItem.NumberOfElements(); ++k)
 					{
-						cr_sex sdefineInterface = topLevelItem[i];
+						cr_sex sdefineInterface = topLevelItem[k];
 						if (IsCompound(sdefineInterface) && IsAtomic(sdefineInterface[0]) && AreEqual(sdefineInterface[0].String(), ("defines")))
 						{
 							AddInterfacePrototype(sdefineInterface, true);
 						}
 					}
 
-					for (int i = 1; i < interfaceCount; i++)
+					for (int l = 1; l < interfaceCount; l++)
 					{
 						char vtableName[32];
-						SafeFormat(vtableName, 32, ("_vTable%d"), i);
+						SafeFormat(vtableName, 32, ("_vTable%d"), l);
 						s.AddMember(NameString::From(vtableName), TypeString::From(("Pointer")));
 					}
 				}
@@ -4566,4 +4567,4 @@ namespace Rococo { namespace Script
 	{
 		script.AddNodeDef(builder, name, elementType, s);
 	}
-}} // Rococo::Script
+}

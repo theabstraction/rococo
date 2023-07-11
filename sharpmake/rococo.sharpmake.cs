@@ -87,7 +87,7 @@ namespace Rococo
         {
             conf.IncludePaths.Add(RococoRootPath + @"include\");
             conf.IncludePaths.Add(RococoSexyPath + @"Common\");
-            conf.Options.Add(Sharpmake.Options.Vc.Compiler.CppLanguageStandard.CPP20);
+            conf.Options.Add(Sharpmake.Options.Vc.Compiler.CppLanguageStandard.CPP17); // Note, use CPP 17 rather than CPP 20, because on VC I had serious issues were internal compiler errors compiling sexy.script when C+ 20 is set
             conf.Options.Add(Sharpmake.Options.Vc.Compiler.Exceptions.Enable);
             conf.Options.Add(new Sharpmake.Options.Vc.Compiler.DisableSpecificWarnings("4458", "4201", "4324", "4250"));
             conf.IntermediatePath = RococoTmpPath + @"[target.Name]\[project.Name]\";
@@ -636,6 +636,7 @@ namespace Rococo
         public void ConfigureAll(Configuration conf, Target target)
         {
             StandardInit(conf, target, Configuration.OutputType.Lib);
+            conf.AddPublicDependency<RococoUtilsProject>(target);
         }
     }
 
@@ -650,6 +651,106 @@ namespace Rococo
         public void ConfigureAll(Configuration conf, Target target)
         {
             StandardInit(conf, target, Configuration.OutputType.Lib);
+        }
+    }
+
+    [Sharpmake.Generate]
+    public class SexySexProject : SexyProject
+    {
+        public SexySexProject() : base("sexy.s-parser", "SP/sexy.s-parser")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Lib);
+        }
+    }
+
+    [Sharpmake.Generate]
+    public class SexyScriptTestProject : SexyProject
+    {
+        public SexyScriptTestProject() : base("sexy.script.test", "SS/sexy.script.test")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Exe);
+            conf.AddPublicDependency<SexyScriptProject>(target);
+            conf.AddPublicDependency<SexyCompilerProject>(target);
+            conf.AddPublicDependency<SexyCoroutinesProject>(target);
+            conf.AddPublicDependency<SexyReflectionProject>(target);
+        }
+    }
+
+    [Sharpmake.Generate]
+    public class SexyCoroutinesProject : SexyProject
+    {
+        public SexyCoroutinesProject() : base("sexy.nativelib.coroutines", "SS/sexy.nativelib.coroutines")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Dll);
+            conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.AddPublicDependency<SexyUtilProject>(target);
+        }
+    }
+
+    [Sharpmake.Generate]
+    public class SexyReflectionProject : SexyProject
+    {
+        public SexyReflectionProject() : base("sexy.nativelib.reflection", "SS/sexy.nativelib.reflection")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Dll);
+            conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.AddPublicDependency<SexyUtilProject>(target);
+        }
+    }
+
+    [Sharpmake.Generate]
+    public class SexyMathsProject : SexyProject
+    {
+        public SexyMathsProject() : base("sexy.nativelib.maths", "SS/sexy.nativelib.maths")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Dll);
+            conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.AddPublicDependency<SexyUtilProject>(target);
+        }
+    }
+
+    [Sharpmake.Generate]
+    public class SexyScriptProject : SexyProject
+    {
+        public SexyScriptProject() : base("sexy.script", "SS/sexy.script")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Dll);
+            conf.AddPublicDependency<SexyUtilProject>(target);
+            conf.AddPublicDependency<SexyCompilerProject>(target);
+            conf.AddPublicDependency<SexyVMProject>(target);
+            conf.AddPublicDependency<SexySexProject>(target);
+            conf.Options.Add(new Sharpmake.Options.Vc.Compiler.DisableSpecificWarnings("4100", "4189", "4244"));
+            conf.Defines.Add("SCRIPTEXPORT_API=__declspec(dllexport)");
         }
     }
 
@@ -679,6 +780,12 @@ namespace Rococo
             conf.AddProject<SexyUtilProject>(target);
             conf.AddProject<SexyVMProject>(target);
             conf.AddProject<SexyCompilerProject>(target);
+            conf.AddProject<SexyScriptProject>(target);
+            conf.AddProject<SexySexProject>(target);
+            conf.AddProject<SexyScriptTestProject>(target);
+            conf.AddProject<SexyCoroutinesProject>(target);
+            conf.AddProject<SexyReflectionProject>(target);
+            conf.AddProject<SexyMathsProject>(target);
         }
     }
 
@@ -688,6 +795,8 @@ namespace Rococo
         public static void SharpmakeMain(Sharpmake.Arguments arguments)
         {
             arguments.Generate<RococoCSharpSolution>();
+            arguments.Generate<SexyCSharpSolution>();
+
             arguments.Generate<RococoUtilsProject>();
             arguments.Generate<RococoMiscUtilsProject>();
             arguments.Generate<RococoMathsProject>();
@@ -711,10 +820,15 @@ namespace Rococo
             arguments.Generate<RococoAudioProject>();
             arguments.Generate<RococoAudioTestProject>();
 
-            arguments.Generate<SexyCSharpSolution>();
             arguments.Generate<SexyUtilProject>();
             arguments.Generate<SexyVMProject>();
             arguments.Generate<SexyCompilerProject>();
+            arguments.Generate<SexyScriptProject>();
+            arguments.Generate<SexySexProject>();
+            arguments.Generate<SexyScriptTestProject>();
+            arguments.Generate<SexyCoroutinesProject>();
+            arguments.Generate<SexyReflectionProject>();
+            arguments.Generate<SexyMathsProject>();
         }
     }
 }

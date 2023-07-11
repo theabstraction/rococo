@@ -13,15 +13,9 @@
 #include <sexy.lib.sexy-util.h>
 
 #ifdef _WIN32
-# ifdef _DEBUG
-#  pragma comment(lib, "rococo.mplat.debug.lib")
-#  pragma comment(lib, "rococo.file.browser.debug.lib")
-#  pragma comment(lib, "dx11.renderer.debug.lib")
-# else
 #  pragma comment(lib, "rococo.file.browser.lib")
 #  pragma comment(lib, "rococo.mplat.lib")
 #  pragma comment(lib, "dx11.renderer.lib")
-# endif
 #endif
 
 #pragma comment(lib, "xinput.lib")

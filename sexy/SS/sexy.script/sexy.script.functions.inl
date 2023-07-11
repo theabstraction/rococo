@@ -153,10 +153,10 @@ namespace Rococo
 			}
 			else if (AreEqual(("0"), fname))
 			{
-				auto& f = GetNullFunction(ce.Script, archetype);
+				auto& nf = GetNullFunction(ce.Script, archetype);
 
 				CodeSection section;
-				f.Code().GetCodeSection(OUT section);
+				nf.Code().GetCodeSection(OUT section);
 
 				VariantValue fnRef;
 				fnRef.byteCodeIdValue = section.Id;
@@ -654,7 +654,7 @@ namespace Rococo
 			}
 		}
 
-		int GetOutputStackByteCount(const IArchetype& a, cr_sex s)
+		int GetOutputStackByteCount(const IArchetype& a, cr_sex sExpr)
 		{
 			int total = 0;
 			for (int i = 0; i < a.NumberOfOutputs(); i++)
@@ -779,9 +779,9 @@ namespace Rococo
 			}
 		}
 
-		int AllocFunctionOutput(CCompileEnvironment& ce, const IArchetype& callee, cr_sex s)
+		int AllocFunctionOutput(CCompileEnvironment& ce, const IArchetype& callee, cr_sex sExpr)
 		{
-			int outputStackAllocByteCount = GetOutputStackByteCount(callee, s);
+			int outputStackAllocByteCount = GetOutputStackByteCount(callee, sExpr);
 			if (outputStackAllocByteCount > 0)
 			{
 				int total = 0;
@@ -980,7 +980,6 @@ namespace Rococo
 							{
 								Throw(methodNameExpr, "%s attribute 'indexed' found, but the index function must take only one input", interf.Name());
 							}
-							return NULL;
 						}
 					}
 
@@ -1120,8 +1119,6 @@ namespace Rococo
 				else
 				{
 					Throw(s, "The property is not recognized for list types. Known properties for lists: Length");
-					outType = VARTYPE_Bad;
-					return false;
 				}
 			}
 			else if (instanceStruct == ce.Object.Common().TypeNode())
@@ -2060,8 +2057,6 @@ namespace Rococo
 
 				return &methodArch.GetArgument(0);
 			}
-
-			return NULL;
 		}
 
 		const IStructure* GuessType(CCompileEnvironment& ce, cr_sex arg)
@@ -2294,7 +2289,6 @@ namespace Rococo
 			if (ns == NULL)
 			{
 				Throw(s, "Could not find namespace: %s", body);
-				return false;
 			}
 
 			IFunctionBuilder* f = ns->FindFunction(tail);
@@ -2328,7 +2322,6 @@ namespace Rococo
 				else if (g != NULL)
 				{
 					Throw(s, "Ambiguity: '%s' could belong to %s or %s", fname, prefix.FullName()->Buffer, NS->FullName()->Buffer);
-					return false;
 				}
 			}
 
@@ -2370,8 +2363,6 @@ namespace Rococo
 					return TryCompileAsPlainFunctionCallWithPrefix(ce, fname, s);
 				}
 			}
-
-			return false;
 		}
 
 		bool TryCompileAsDerivativeFunctionCall(CCompileEnvironment& ce, cr_sex s)

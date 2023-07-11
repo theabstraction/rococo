@@ -474,6 +474,7 @@ namespace
 namespace Sys { namespace Maths { namespace F64 { 
 	void AddNativeCalls_SysMathsF64(Rococo::Script::IPublicScriptSystem& ss, void* nullContext = nullptr)
 	{
+		UNUSED(nullContext);
 		const INamespace& ns = ss.AddNativeNamespace(("Sys.Maths.F64"));
 		ss.AddNativeCall(ns, NativeSysMathsF64Clamp, nullptr, ("Clamp(Float64 x)(Float64 lower)(Float64 upper) -> (Float64 value)"), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeSysMathsF64Sin, nullptr, ("Sin(Float64 radians) -> (Float64 value)"), __FILE__, __LINE__);

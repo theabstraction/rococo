@@ -433,7 +433,7 @@ namespace Rococo
 	{
 		sexstring txt = s.String();
 
-		float value;
+		float value = 0;
 		if (!IsAtomic(s) || Parse::PARSERESULT_GOOD != Parse::TryParseFloat(value, txt->Buffer))
 		{
 			ThrowSex(s, "%s: Expecting atomic argument float", hint);
@@ -449,7 +449,7 @@ namespace Rococo
 
 	RGBAb GetColourValue(cr_sex s)
 	{
-		int32 value;
+		int32 value = 0;
 		if (!IsAtomic(s) || Parse::PARSERESULT_GOOD != Parse::TryParseHex(value, s.String()->Buffer))
 		{
 			ThrowSex(s, "Cannot parse hex colour value");
@@ -490,7 +490,7 @@ namespace Rococo
 	{
 		sexstring txt = s.String();
 
-		int32 value;
+		int32 value = 0;
 		if (!IsAtomic(s) || Parse::PARSERESULT_GOOD != Parse::TryParseDecimal(value, txt->Buffer))
 		{
 			ThrowSex(s, "%s: Expecting atomic argument int32", hint);
@@ -504,12 +504,12 @@ namespace Rococo
 		return value;
 	}
 
-	void ScanExpression(cr_sex s, cstr hint, cstr format, ...)
+	void ScanExpression(cr_sex sExpr, cstr hint, cstr format, ...)
 	{
 		va_list args;
 		va_start(args, format);
 
-		int nElements = s.NumberOfElements();
+		int nElements = sExpr.NumberOfElements();
 
 		int elementIndex = 0;
 		for (const char* p = format; *p != 0; ++p)
@@ -518,11 +518,11 @@ namespace Rococo
 			{
 				if (elementIndex >= nElements)
 				{
-					ThrowSex(s, "Too few elements in expression. Format is : %s", hint);
+					ThrowSex(sExpr, "Too few elements in expression. Format is : %s", hint);
 				}
 
 				const ISExpression** ppExpr = va_arg(args, const ISExpression**);
-				*ppExpr = &s[elementIndex++];
+				*ppExpr = &sExpr[elementIndex++];
 
 				cr_sex child = **ppExpr;
 
@@ -537,11 +537,11 @@ namespace Rococo
 			{
 				if (elementIndex >= nElements)
 				{
-					ThrowSex(s, "Too few elements in expression. Format is : %s", hint);
+					ThrowSex(sExpr, "Too few elements in expression. Format is : %s", hint);
 				}
 
 				const ISExpression** ppExpr = va_arg(args, const ISExpression**);
-				*ppExpr = &s[elementIndex++];
+				*ppExpr = &sExpr[elementIndex++];
 
 				cr_sex child = **ppExpr;
 
@@ -1121,7 +1121,7 @@ namespace Rococo
 
 				if (subInstance == nullptr)
 				{
-					auto node = tree->AddChild(parentId, "null reference", CheckState_NoCheckBox);
+					tree->AddChild(parentId, "null reference", CheckState_NoCheckBox);
 					return;
 				}
 					
@@ -1173,26 +1173,24 @@ namespace Rococo
 							SafeFormat(itemEx, "0x%llX - #%d", pInstance, i);
 							auto childNode = tree->AddChild(indexNode, itemEx, CheckState_NoCheckBox);
 
-							MemberEnumeratorPopulator subMember;
-
 							if (a.ElementType->InterfaceCount() != 0)
 							{
 								subMember.parentStruct = a.ElementType;
 							}
 
-							auto* subInstance = pInstance;
+							auto* subInstanceInner = pInstance;
 
 							if (IsNullType(*a.ElementType))
 							{
 								InterfacePointer pInterface = *(InterfacePointer*)pInstance;
-								subInstance = (const uint8*)pInterface;
+								subInstanceInner = (const uint8*)pInterface;
 							}
-							subMember.instance = subInstance;
+							subMember.instance = subInstanceInner;
 							subMember.parentId = childNode;
 							subMember.tree = tree;
 							subMember.depth = depth;
 
-							GetMembers(ss, *a.ElementType, item, subInstance, 0, subMember, recurseDepth);
+							GetMembers(ss, *a.ElementType, item, subInstanceInner, 0, subMember, recurseDepth);
 						}
 						pInstance += a.ElementLength;
 					}
@@ -1349,13 +1347,13 @@ namespace Rococo
 
 						char concreteInfo[256];
 						SafeFormat(concreteInfo, "%s", GetFriendlyName(*object->Desc->TypeInfo));
-						auto node = tree->AddChild(element, concreteInfo, CheckState_NoCheckBox);
+						tree->AddChild(element, concreteInfo, CheckState_NoCheckBox);
 					}
 					else
 					{
 						char concreteInfo[256];
 						SafeFormat(concreteInfo, "%s", GetFriendlyName(*array->ElementType));
-						auto node = tree->AddChild(element, concreteInfo, CheckState_NoCheckBox);
+						tree->AddChild(element, concreteInfo, CheckState_NoCheckBox);
 					}
 
 					if (i > 20) break;

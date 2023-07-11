@@ -34,7 +34,7 @@
 #include "sexy.script.stdafx.h"
 
 #include <rococo.strings.h>
-#include "sexy.compiler.helpers.h"
+#include "..\stc\stccore\sexy.compiler.helpers.h"
 #include "sexy.s-parser.h"
 
 #include <stdlib.h>
@@ -628,8 +628,8 @@ namespace Rococo::Script
 		TokenBuffer fullyQualifiedName;
 		StringPrint(fullyQualifiedName, ("%s.%s"), ns.FullName()->Buffer, publicName);
 
-		auto i = nativeCalls.find(fullyQualifiedName.Text);
-		if (i != nativeCalls.end())
+		auto fqn = nativeCalls.find(fullyQualifiedName.Text);
+		if (fqn != nativeCalls.end())
 		{
 			Throw(archetype, "%s: Duplicate native call name: %s", __func__, fullyQualifiedName.Text);
 		}
@@ -886,7 +886,8 @@ namespace Rococo::Script
 				}
 
 #ifdef _WIN32
-				bool useDebug = pip.useDebugLibs;
+				// bool useDebug = pip.useDebugLibs;
+				bool useDebug = false; // Disabled for now, as we are changing how DLLs are generated and where they are located (via sharpmake)
 #else
 				bool useDebug = false; // APPLE build script doesn't generate debug extension, so just use whatever files have been built
 #endif
