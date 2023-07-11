@@ -729,6 +729,7 @@ namespace MHost
 			{
 				// filename
 				appArgs.mainScript = arg;
+				break;
 			}
 		}
 

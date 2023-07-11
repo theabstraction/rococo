@@ -118,11 +118,7 @@ namespace MHost
 			void OnEvent(ScriptCompileArgs& args) override
 			{
 				args.ss.RegisterPackage(&package);
-#ifdef _DEBUG
-				args.ss.AddNativeLibrary("rococo.sexy.mathsex.debug");
-#else
 				args.ss.AddNativeLibrary("rococo.sexy.mathsex");
-#endif
 				AddNativeCalls_MHostIGui(args.ss, nullptr);
 				AddNativeCalls_MHostIEngine(args.ss, engine);
 				MHost::OS::AddNativeCalls_MHostOS(args.ss);

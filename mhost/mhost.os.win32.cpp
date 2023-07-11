@@ -24,12 +24,6 @@ namespace MHost
 	}
 }
 
-#ifdef _DEBUG
-# define MPLAT_LIB MPLAT_DEBUG
-#else
-# define MPLAT_LIB MPLAT_RELEASE
-#endif
-
 int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine,_In_ int nShowCmd)
 {
 	UNUSED(hPrevInstance);
@@ -46,5 +40,5 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 		}
 	} factory;
 
-	return LoadPlatformDll_AndRun(hInstance, factory, titleBuffer, MPLAT_LIB, nullptr, nullptr);
+	return LoadPlatformDll_AndRun(hInstance, factory, titleBuffer, MPLAT_DLL, nullptr, nullptr);
 }

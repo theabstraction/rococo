@@ -9,8 +9,7 @@ namespace Rococo
 {
 	using namespace Rococo::Windows;
 
-	const char* const MPLAT_RELEASE = "rococo.mplat.dynamic.dll";
-	const char* const MPLAT_DEBUG = "rococo.mplat.dynamic.debug.dll";
+	const char* const MPLAT_DLL = "rococo.mplat.dynamic.dll";
 
 	typedef int(*FN_M_Platorm_Dll_Win64_Main)(HINSTANCE hInstance, IAppFactory& factory, const char* appName, HICON hLarge, HICON hSmall);
 	typedef int(*FN_M_Platorm_Dll_Win64_MainDirect)(HINSTANCE hInstance, IDirectAppFactory& factory, const char* appName, HICON hLarge, HICON hSmall);
