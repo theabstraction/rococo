@@ -210,9 +210,14 @@ namespace GRANON
 			int row;
 			int column;
 
-			bool operator == (RowAndColumn other)
+			bool operator == (RowAndColumn other) const
 			{
 				return row == other.row && column == other.column;
+			}
+
+			bool operator !=  (RowAndColumn other) const
+			{
+				return !(*this == other);
 			}
 		};
 

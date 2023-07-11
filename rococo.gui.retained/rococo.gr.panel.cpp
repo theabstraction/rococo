@@ -26,7 +26,7 @@ namespace GRANON
 		std::vector<IGRPanelSupervisor*> children;
 		int64 uniqueId;
 		GuiRect absRect{ 0,0,0,0 };
-		GRAnchors anchors = { 0 };
+		GRAnchors anchors;
 		GRAnchorPadding padding = { 0 };
 		bool isMarkedForDeletion = false;
 		AutoFree<IGRSchemeSupervisor> scheme;

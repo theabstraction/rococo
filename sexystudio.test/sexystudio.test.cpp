@@ -1,5 +1,4 @@
 #include <rococo.os.win32.h>
-#include <rococo.libs.inl>
 #include <rococo.strings.h>
 #include <rococo.os.h>
 #include <rococo.sxytype-inference.h>

@@ -121,14 +121,14 @@ namespace Rococo { namespace Sex
 
 		if (text->Buffer[0] == '$')
 		{
-			if (text->Length > 1 && text->Buffer[1] != '.')
-			{
-				Throw(e, "Default namespace character detected, but expected it to be followed by a dot");
-			}
-			else
+			if (text->Length == 1)
 			{
 				// '$'
 				return;
+			}
+			else if (text->Length > 1 && text->Buffer[1] != '.')
+			{
+				Throw(e, "Default namespace character detected, but expected it to be followed by a dot");
 			}
 
 			startIndex = 2;

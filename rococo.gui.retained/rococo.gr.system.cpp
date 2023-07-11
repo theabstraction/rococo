@@ -709,6 +709,11 @@ namespace Rococo::Gui
 		return supervisor.OnGREvent(ev);
 	}
 
+	ROCOCO_GUI_RETAINED_API GRAnchors::GRAnchors()
+	{
+		left = top = right = bottom = expandsHorizontally = expandsVertically = 0;
+	}
+
 	ROCOCO_GUI_RETAINED_API [[nodiscard]] GRAnchors GRAnchors::Left()
 	{
 		GRAnchors a;

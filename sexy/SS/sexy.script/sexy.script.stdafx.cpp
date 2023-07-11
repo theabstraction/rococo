@@ -33,7 +33,3 @@
 
 #include "sexy.script.stdafx.h"
 
-#include "sexy.lib.s-parser.h"
-#include "sexy.lib.compiler.h"
-#include "sexy.lib.util.h"
-#include "sexy.lib.sexy-util.h"

@@ -6,7 +6,6 @@
 #include <sexy.types.h>
 #include <Sexy.S-Parser.h>
 
-#include <sexy.lib.s-parser.h>
 #include <rococo.os.h>
 
 namespace Anon

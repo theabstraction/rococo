@@ -1,12 +1,12 @@
 extern "C"
 {
-	#include "jinclude.h"
-	#include "jpeglib.h"
-	#include "jerror.h"
+	#include <jinclude.h>
+	#include <jpeglib.h>
+	#include <jerror.h>
 
 	#include <setjmp.h>
 
-	#include "jdatastream.h"
+	#include <jdatastream.h>
 }
 
 #include <rococo.types.h>
@@ -86,8 +86,6 @@ namespace
 
 		jpeg_start_compress(&cinfo, TRUE);
 
-		JSAMPARRAY imgData = (JSAMPARRAY)data;
-
 		for (unsigned int i = 0; i < height; ++i)
 		{
 			JSAMPROW row = (JSAMPROW)(data + i * width * 3);
@@ -103,7 +101,7 @@ namespace
 
 namespace Rococo { namespace Imaging
 {
-	bool CompressJPeg(const unsigned char* data, const Vec2i& span, cstr filename, int quality)
+	ROCOCO_JPEG_API bool CompressJPeg(const unsigned char* data, const Vec2i& span, cstr filename, int quality)
 	{
 		AutoFileHandle output(filename);
 		if (!*output) return false;

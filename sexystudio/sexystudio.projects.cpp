@@ -4,10 +4,6 @@
 #include <sexy.types.h>
 
 #include <rococo.auto-release.h>
-
-#include <sexy.lib.s-parser.h>
-#include <sexy.lib.util.h>
-
 #include <rococo.io.h>
 #include <rococo.os.h>
 

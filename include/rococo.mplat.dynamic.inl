@@ -3,7 +3,6 @@
 #include <rococo.os.win32.h>
 #include <rococo.mplat.h>
 #include <mplat.to.app.events.inl>
-#include <rococo.libs.inl>
 #include <rococo.window.h>
 
 namespace Rococo

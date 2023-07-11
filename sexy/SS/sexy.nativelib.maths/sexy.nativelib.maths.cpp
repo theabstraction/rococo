@@ -12,9 +12,6 @@
 #include "../STC/stccore/sexy.compiler.h"
 #include "sexy.strings.h"
 
-#include <sexy.lib.util.h>
-#include <sexy.lib.sexy-util.h>
-
 #ifdef char_IS_WIDE
 # ifndef UNICODE
 #  define UNICODE

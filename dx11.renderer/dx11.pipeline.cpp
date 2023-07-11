@@ -263,7 +263,7 @@ namespace Rococo::DX11
 			samplers[index] = nullptr;
 		}
 
-		auto* sampler = Rococo::DX11::GetSampler(device, index, filter, u, v, w, borderColour);
+		auto* sampler = Rococo::DX11::GetSampler(device, filter, u, v, w, borderColour);
 		samplers[index] = sampler;
 	}
 

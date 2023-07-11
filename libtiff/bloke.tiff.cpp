@@ -1,6 +1,9 @@
 #ifndef _WIN32
 # include <stddef.h>
 #else
+# ifndef ROCOCO_TIFF_API 
+#  define ROCOCO_TIFF_API __declspec(dllexport)
+# endif
 # include <malloc.h>
 #endif
 
@@ -14,12 +17,14 @@
 #define ROCOCO_USE_SAFE_V_FORMAT
 #include <rococo.strings.h>
 
-#include <tiffiop.h>
+#include "..\libtiff\libtiff\tiffiop.h"
 #include <vector>
 
 #ifndef _WIN32
 # include <errno.h>
 #endif
+
+#pragma comment(lib, "rococo.util.lib")
 
 namespace
 {
@@ -125,6 +130,9 @@ namespace
 
 		static tsize_t Write(thandle_t hThis, tdata_t buffer, tsize_t len)
 		{
+			UNUSED(hThis);
+			UNUSED(buffer);
+			UNUSED(len);
 			return 0;
 		}
 
@@ -150,6 +158,9 @@ namespace
 
 		static void UnmapFile(thandle_t hThis, tdata_t buffer, toff_t offset)
 		{
+			UNUSED(hThis);
+			UNUSED(buffer);
+			UNUSED(offset);
 		}
 
 		static int Close(thandle_t)
@@ -159,11 +170,13 @@ namespace
 
 		static void _OnError(thandle_t hThis, const char* module, const char* format, va_list args)
 		{
+			UNUSED(hThis);
 			_OnError(module, format, args);
 		}
 
 		static void _OnError(const char* module, const char* format, va_list args)
 		{
+			UNUSED(module);
 			SafeVFormat(errorBuffer, errorCapacity, format, args);
 		}
 
@@ -211,10 +224,10 @@ namespace
 			typedef void(*TIFFErrorHandlerExt)(thandle_t, const char*, const char*, va_list);
 		}
 
-		bool TryRead(char* errorBuffer, size_t errorCapacity, IImageLoadEvents& loadEvents)
+		bool TryRead(char* errorBufferArg, size_t errorCapacityArg, IImageLoadEvents& loadEvents)
 		{
-			ImageReader::errorBuffer = errorBuffer;
-			ImageReader::errorCapacity = errorCapacity;
+			ImageReader::errorBuffer = errorBufferArg;
+			ImageReader::errorCapacity = errorCapacityArg;
 
 			TIFFErrorHandler standardErrorHandler = TIFFSetErrorHandler(ImageReader::_OnError);
 			TIFFErrorHandlerExt standardErrorHandlerExt = TIFFSetErrorHandlerExt(ImageReader::_OnError);
@@ -337,31 +350,41 @@ namespace
 		{
 			ImageWriter* This = (ImageWriter*)hThis;
 			int result = fseek(This->f, offset, whence);
+			UNUSED(result);
 			long pos = ftell(This->f);
 			return pos;
 		}
 
-		static int MapFile(thandle_t hThis, tdata_t* pBuffer, toff_t* pOffset)
+		static int MapFile(thandle_t hThis, tdata_t* buffer, toff_t* offset)
 		{
+			UNUSED(hThis);
+			UNUSED(buffer);
+			UNUSED(offset);
 			return 0;
 		}
 
 		static void UnmapFile(thandle_t hThis, tdata_t buffer, toff_t offset)
 		{
+			UNUSED(hThis);
+			UNUSED(buffer);
+			UNUSED(offset);
 		}
 
 		static int Close(thandle_t hThis)
 		{
+			UNUSED(hThis);
 			return 0;
 		}
 
 		static void _OnError(thandle_t hThis, const char* module, const char* format, va_list args)
 		{
+			UNUSED(hThis);
 			_OnError(module, format, args);
 		}
 
 		static void _OnError(const char* module, const char* format, va_list args)
 		{
+			UNUSED(module);
 			SafeVFormat(errorBuffer, errorCapacity, format, args);
 		}
 
@@ -392,10 +415,10 @@ namespace
 			if (f) fclose(f);
 		}
 
-		bool Write(const uint8* grayscalePixels, int32 width, int32 height, char* errorBuffer, size_t errorCapacity)
+		bool Write(const uint8* grayscalePixels, int32 width, int32 height, char* errorBufferArg, size_t errorCapacityArg)
 		{
-			ImageWriter::errorBuffer = errorBuffer;
-			ImageWriter::errorCapacity = errorCapacity;
+			ImageWriter::errorBuffer = errorBufferArg;
+			ImageWriter::errorCapacity = errorCapacityArg;
 
 			TIFFErrorHandler standardErrorHandler = TIFFSetErrorHandler(ImageWriter::_OnError);
 			TIFFErrorHandlerExt standardErrorHandlerExt = TIFFSetErrorHandlerExt(ImageWriter::_OnError);
@@ -444,47 +467,44 @@ namespace
 	size_t ImageWriter::errorCapacity = 0;
 }
 
-namespace Rococo
+namespace Rococo::Imaging
 {
-	namespace Imaging
+	ROCOCO_TIFF_API bool DecompressTiff(IImageLoadEvents& loadEvents, const unsigned char* sourceBuffer, size_t dataLengthBytes)
 	{
-		bool DecompressTiff(IImageLoadEvents& loadEvents, const unsigned char* sourceBuffer, size_t dataLengthBytes)
+		ImageReader reader("Tiff-File", (const char*)sourceBuffer, (toff_t)dataLengthBytes);
+
+		char errMessage[1024];
+		errMessage[0] = 0;
+
+		bool isOk = reader.TryRead(errMessage, sizeof(errMessage), loadEvents);
+
+		if (!isOk)
 		{
-			ImageReader reader("Tiff-File", (const char*)sourceBuffer, (toff_t)dataLengthBytes);
+			loadEvents.OnError(errMessage);
+		}
 
-			char errMessage[1024];
-			errMessage[0] = 0;
+		return isOk;
+	}
 
-			bool isOk = reader.TryRead(errMessage, sizeof(errMessage), loadEvents);
+	ROCOCO_TIFF_API void SetTiffAllocator(IAllocator* _allocator)
+	{
+		tiffAllocator = _allocator;
+	}
 
-			if (!isOk)
+	ROCOCO_TIFF_API void SaveAsTiff(const uint8* grayScale, const Vec2i& span, const char* filename)
+	{
+		ImageWriter writer(filename);
+
+		char errorBuffer[1024] = "";
+		if (!writer.Write(grayScale, span.x, span.y, errorBuffer, sizeof(errorBuffer)))
+		{
+			if (*errorBuffer)
 			{
-				loadEvents.OnError(errMessage);
+				Throw(0, "Error writing %s: %s", filename, errorBuffer);
 			}
-
-			return isOk;
-		}
-
-		void SetTiffAllocator(IAllocator* _allocator)
-		{
-			tiffAllocator = _allocator;
-		}
-
-		void SaveAsTiff(const uint8* grayScale, const Vec2i& span, const char* filename)
-		{
-			ImageWriter writer(filename);
-
-			char errorBuffer[1024] = "";
-			if (!writer.Write(grayScale, span.x, span.y, errorBuffer, sizeof(errorBuffer)))
+			else
 			{
-				if (*errorBuffer)
-				{
-					Throw(0, "Error writing %s: %s", filename, errorBuffer);
-				}
-				else
-				{
-					Throw(0, "Error writing %s", filename);
-				}
+				Throw(0, "Error writing %s", filename);
 			}
 		}
 	}

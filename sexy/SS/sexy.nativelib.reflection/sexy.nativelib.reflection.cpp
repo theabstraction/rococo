@@ -12,9 +12,6 @@
 #include "sexy.vm.h"
 #include "sexy.vm.cpu.h"
 #include "sexy.script.h"
-
-#include "sexy.lib.util.h"
-#include "sexy.lib.sexy-util.h"
 #include "sexy.native.sys.type.h"
 
 #include "../STC/stccore/sexy.compiler.h"

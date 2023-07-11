@@ -313,12 +313,14 @@ namespace Rococo::Gui
 
 	struct [[nodiscard]] GRAnchors
 	{
-		uint32 left: 1 = 0;	// The widget sticks to the left side of the container
-		uint32 top : 1 = 0; // The widget sticks to the top side of the container
-		uint32 right : 1 = 0; // The widget sticks to the right side of the container
-		uint32 bottom : 1 = 0; // The widget sticks to the bottom side of the container
-		uint32 expandsHorizontally : 1 = 0; // If true then sticking to left or right of a container may expand or contract the span. Irrelevant if both left and right anchors are set.
-		uint32 expandsVertically : 1 = 0; // If true then sticking to the top of the bottom of a container may expand or contract the span. Irrelevant if both top and bottom anchors are set.
+		ROCOCO_GUI_RETAINED_API GRAnchors();
+
+		uint32 left: 1;	// The widget sticks to the left side of the container
+		uint32 top : 1; // The widget sticks to the top side of the container
+		uint32 right : 1; // The widget sticks to the right side of the container
+		uint32 bottom : 1; // The widget sticks to the bottom side of the container
+		uint32 expandsHorizontally : 1; // If true then sticking to left or right of a container may expand or contract the span. Irrelevant if both left and right anchors are set.
+		uint32 expandsVertically : 1; // If true then sticking to the top of the bottom of a container may expand or contract the span. Irrelevant if both top and bottom anchors are set.
 
 		ROCOCO_GUI_RETAINED_API static [[nodiscard]] GRAnchors Left();
 		ROCOCO_GUI_RETAINED_API static [[nodiscard]] GRAnchors LeftAndRight();

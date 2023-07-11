@@ -1,24 +1,13 @@
 // sexystudio.cpp : Defines the entry point for the application.
 // Copyright (c) 2021 Mark Anthony Taylor
 
-#include <rococo.libs.inl>
 #include "sexystudio.impl.h"
 #include "resource.h"
 #include "rococo.auto-release.h"
-#include "rococo.io.h"
-
+#include <rococo.io.h>
 #include <rococo.events.h>
 #include <rococo.strings.h>
-
 #include <uxtheme.h>
-#pragma comment(lib, "uxtheme.lib")
-
-#ifdef _WIN32
-# pragma comment(lib, "rococo.misc.utils.lib")
-#endif
-
-#pragma comment(lib, "ComCtl32.lib")
-
 #include <rococo.os.h>
 #include <shobjidl.h>
 #include <sexy.types.h>
@@ -35,6 +24,9 @@
 #include <rococo.auto-complete.h>
 #include <rococo.sxytype-inference.h>
 #include <rococo.auto-complete.h>
+
+#pragma comment(lib, "uxtheme.lib")
+#pragma comment(lib, "ComCtl32.lib")
 
 using namespace Rococo;
 using namespace Rococo::SexyStudio;

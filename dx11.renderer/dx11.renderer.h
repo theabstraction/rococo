@@ -121,7 +121,7 @@ namespace Rococo::DX11
 	void GetSkySampler(D3D11_SAMPLER_DESC& desc);
 	D3D11_TEXTURE_ADDRESS_MODE From(AddressMode mode);
 
-	ID3D11SamplerState* GetSampler(ID3D11Device& device, uint32 index, Filter filter, AddressMode u, AddressMode v, AddressMode w, const RGBA& borderColour);
+	ID3D11SamplerState* GetSampler(ID3D11Device& device, Filter filter, AddressMode u, AddressMode v, AddressMode w, const RGBA& borderColour);
 
 	void GetTextureDesc(TextureDesc& desc, ID3D11Texture2D& texture);
 	void ShowVenueForDevice(IMathsVisitor& visitor, ID3D11Device& device);

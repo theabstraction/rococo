@@ -16,8 +16,6 @@
 #include <limits>
 #include <vector>
 
-#include "sexy.lib.util.h"
-#include "sexy.lib.script.h"
 #include "sexy.vm.h"
 #include "sexy.vm.cpu.h"
 #include "sexy.script.h"
@@ -29,8 +27,6 @@
 
 #include <cstring>
 
-#include <sexy.lib.script.h>
-#include <rococo.libs.ide.h>
 #include <rococo.task.queue.h>
 
 using namespace Rococo;
@@ -250,7 +246,6 @@ struct ScriptContext : public IEventCallback<ScriptCompileArgs>, public Rococo::
 				debuggerWindow,
 				pingPath,
 				id,
-				(int32)128_kilobytes,
 				*this,
 				*this,
 				*this,

@@ -51,10 +51,10 @@ namespace GRANON
 		GRMenuItemId id;
 		std::string text;
 		std::vector<MenuItem> children;
-		uint32 isEnabled : 1 = 1;
-		uint32 isActive : 1 = 0;
+		uint32 isEnabled : 1;
+		uint32 isActive : 1;
 
-		MenuBranch(GRMenuTree& _tree, int64 _id, MenuBranch* _parent) : tree(_tree), id({ _id }), parent(_parent)
+		MenuBranch(GRMenuTree& _tree, int64 _id, MenuBranch* _parent) : tree(_tree), id({ _id }), parent(_parent), isEnabled(0), isActive(0)
 		{
 			_tree.mapIdToBranch[_id] = this;
 		}

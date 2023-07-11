@@ -58,9 +58,6 @@
 
 #include <limits>
 
-#include "sexy.lib.util.h"
-#include "sexy.lib.sexy-util.h"
-
 #include "sexy.vm.h"
 #include "sexy.vm.cpu.h"
 #include "sexy.script.h"
@@ -74,8 +71,6 @@
 #include <rococo.time.h>
 
 #include <rococo.stl.allocators.h>
-
-#include <sexy.lib.script.h>
 
 #define validate(_Expression) if (!(_Expression)) { ShowFailure(#_Expression, __FILE__, __LINE__); Abort(); }
 

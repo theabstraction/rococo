@@ -6,17 +6,6 @@
 #include <rococo.renderer.h>
 #include <rococo.os.win32.h>
 #include <rococo.mplat.h>
-#include <rococo.libs.inl>
-#include <sexy.lib.s-parser.h>
-#include <sexy.lib.util.h>
-#include <sexy.lib.script.h>
-#include <sexy.lib.sexy-util.h>
-
-#ifdef _WIN32
-#  pragma comment(lib, "rococo.file.browser.lib")
-#  pragma comment(lib, "rococo.mplat.lib")
-#  pragma comment(lib, "dx11.renderer.lib")
-#endif
 
 #pragma comment(lib, "xinput.lib")
 

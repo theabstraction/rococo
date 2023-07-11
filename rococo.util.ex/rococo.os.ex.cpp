@@ -3,8 +3,6 @@
 #include <rococo.functional.h>
 #include <vector>
 
-#include <sexy.lib.util.h>
-
 using namespace Rococo;
 
 namespace
