@@ -22,10 +22,7 @@
 #include "mplat.editor.h"
 #include "rococo.maths.h"
 
-#ifdef _DEBUG
-# pragma comment(lib, "rococo.util.ex.debug.lib")
-# pragma comment(lib, "rococo.audio.debug.lib")
-#else
+#ifdef _WIN32
 # pragma comment(lib, "rococo.util.ex.lib")
 # pragma comment(lib, "rococo.audio.lib")
 #endif

@@ -13,13 +13,7 @@
 #include <rococo.window.h>
 #include <rococo.renderer.h>
 
-#ifdef _WIN32
-# ifdef _DEBUG
-#  pragma comment(lib, "rococo.misc.utils.debug.lib")
-# else
-#  pragma comment(lib, "rococo.misc.utils.lib")
-# endif
-#endif
+#pragma comment(lib, "rococo.misc.utils.lib")
 
 namespace Rococo
 {

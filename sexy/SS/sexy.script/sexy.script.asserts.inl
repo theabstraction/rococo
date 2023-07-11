@@ -161,7 +161,7 @@ namespace Rococo { namespace Sex
 			}
 		}
 
-		if (STATE_EXPECTING_NEW_ITEM)
+		if (state == STATE_EXPECTING_NEW_ITEM)
 		{
 			Throw(e, "Expecting typename to terminate on an alphanumeric {A-Z or a-z or 0-9} at position[%d]", text->Length);
 		}
@@ -214,7 +214,7 @@ namespace Rococo { namespace Sex
 			}
 		}
 
-		if (STATE_EXPECTING_NEW_ITEM)
+		if (state == STATE_EXPECTING_NEW_ITEM)
 		{
 			Throw(e, "Expecting identifier to terminate on an alphanumeric {A-Z or a-z or 0-9} at position[%d]");
 		}

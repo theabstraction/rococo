@@ -34,7 +34,7 @@
 #include "sexy.script.stdafx.h"
 #include "sexy.compiler.public.h"
 #include "sexy.debug.types.h"
-#include "sexy.compiler.helpers.h"
+#include "..\STC\stccore\sexy.compiler.helpers.h"
 #include "sexy.s-parser.h"
 #include "sexy.vm.h"
 #include "sexy.vm.cpu.h"
@@ -343,7 +343,7 @@ namespace Rococo
 		   }
 	   }
 
-	   SCRIPTEXPORT_API const Rococo::Sex::ISExpression* GetSexSymbol(CPU& cpu, const uint8* pcAddress, Rococo::Script::IPublicScriptSystem& ss)
+	   SCRIPTEXPORT_API const Rococo::Sex::ISExpression* GetSexSymbol(CPU& cpu, const uint8*, Rococo::Script::IPublicScriptSystem& ss)
 	   {
 		   size_t pcOffset = cpu.PC() - cpu.ProgramStart;
 
@@ -357,10 +357,10 @@ namespace Rococo
 		   IPublicProgramObject& po = ss.PublicProgramObject();
 		   IVirtualMachine& vm = po.VirtualMachine();
 
-		   size_t functionLength = po.ProgramMemory().GetFunctionLength(section.Id);
+		   //size_t functionLength = po.ProgramMemory().GetFunctionLength(section.Id);
 		   size_t functionStartAddress = po.ProgramMemory().GetFunctionAddress(section.Id);
 
-		   const uint8* fstart = vm.Cpu().ProgramStart + functionStartAddress;
+		   //const uint8* fstart = vm.Cpu().ProgramStart + functionStartAddress;
 		   size_t fnOffset = pcOffset - po.ProgramMemory().GetFunctionAddress(section.Id);
 
 		   const Rococo::Sex::ISExpression* s = (const Rococo::Sex::ISExpression*) f->Code().GetSymbol(fnOffset).SourceExpression;
@@ -397,7 +397,7 @@ namespace Rococo
 
 	   SCRIPTEXPORT_API const Rococo::Compiler::IFunction* GetFunctionAtAddress(Rococo::Compiler::IPublicProgramObject& po, size_t pcOffset)
 	   {
-		   IVirtualMachine& vm = po.VirtualMachine();
+		   //IVirtualMachine& vm = po.VirtualMachine();
 		   IProgramMemory& mem = po.ProgramMemory();
 
 		   ID_BYTECODE runningId = mem.GetFunctionContaingAddress(pcOffset);
@@ -482,7 +482,7 @@ namespace Rococo
 		   size_t count = 3;
 	
 		   const IStructure* lastPseudo = NULL;
-		   cstr lastPseudoName;
+		   cstr lastPseudoName = nullptr;
 
 		   for(int i = 0; i < f->Code().GetLocalVariableSymbolCount(); ++i)
 		   {
@@ -492,8 +492,6 @@ namespace Rococo
 			   {
 				   continue;
 			   }
-
-			//   if (AreEqual(name, ("_arg"), 4)) continue;
 
 			   if (def.location == Rococo::Compiler::VARLOCATION_NONE)
 			   {
@@ -506,7 +504,7 @@ namespace Rococo
 
 			   if (count == index)
 			   {
-				   const void* pVariableData = SF + def.SFOffset;
+				   //const void* pVariableData = SF + def.SFOffset;
 				   if (def.Usage == Rococo::Compiler::ARGUMENTUSAGE_BYVALUE)
 				   {
 					   if (lastPseudo != NULL && lastPseudoName != NULL)
@@ -639,8 +637,8 @@ namespace Rococo
 		   size_t pcOffset;
 		   if (!GetCallDescription(sf, pc, f, fnOffset, ss, callDepth, pcOffset)) return;
 
-		   const Rococo::Compiler::IStructure* lastPseudo = NULL;
-		   cstr lastPseudoName;
+		   const Rococo::Compiler::IStructure* lastPseudo = nullptr;
+		   cstr lastPseudoName = nullptr;
 
 		   VariableDesc variable = { 0 };
 
@@ -657,7 +655,7 @@ namespace Rococo
 
 		   for (int i = 0; i < f->Code().GetLocalVariableSymbolCount(); ++i)
 		   {
-			   VariableDesc variable = { 0 };
+			   variable = { 0 };
 
 			   MemberDef def;
 			   cstr name;
@@ -696,10 +694,10 @@ namespace Rococo
 						   continue;
 					   }
 
-					   const auto& i = def.ResolvedType->GetInterface(0);
+					   const auto& refInterf = def.ResolvedType->GetInterface(0);
 
 					   *variable.Value = 0;
-					   for (const Rococo::Compiler::IInterface* interface = &i; interface != nullptr; interface = interface->Base())
+					   for (const Rococo::Compiler::IInterface* interface = &refInterf; interface != nullptr; interface = interface->Base())
 					   {
 						   if (AreEqual(interface->NullObjectType().Name(), "_Null_Sys_Type_IString"))
 						   {
@@ -889,7 +887,7 @@ namespace Rococo
 		   }
 	   }
 
-	   SCRIPTEXPORT_API const Rococo::uint8* GetInstance(const MemberDef& def, const IStructure* pseudoType, const Rococo::uint8* SF)
+	   SCRIPTEXPORT_API const Rococo::uint8* GetInstance(const MemberDef& def, const IStructure* /* pseudoType */, const Rococo::uint8* SF)
 	   {
 		   cstr structName = def.ResolvedType->Name();
 		   if (def.ResolvedType->InterfaceCount() != 0 || AreEqual(structName, "_MapNode") || AreEqual(structName, "_Node"))

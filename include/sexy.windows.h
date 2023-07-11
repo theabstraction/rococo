@@ -108,11 +108,7 @@ namespace Rococo
 }
 
 #ifdef IMPORT_SEXY_WINDOWS_LIB
-#  ifdef _DEBUG
-#    pragma comment(lib, "rococo.sexy.windows.debug.lib")
-#  else
-#    pragma comment(lib, "rococo.sexy.windows.lib")
-#  endif
+#  pragma comment(lib, "rococo.sexy.windows.lib")
 #endif
 
 #endif // SEXY_WINDOWS_H

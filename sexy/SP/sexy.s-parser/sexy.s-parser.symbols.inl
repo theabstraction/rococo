@@ -78,7 +78,7 @@ namespace ANON
 		TSymbolPtrs symbols;
 
 	public:
-		CHashedSymbols(size_t _sourceLength)
+		CHashedSymbols(size_t /* _sourceLength */)
 		{
 
 		}
@@ -103,8 +103,8 @@ namespace ANON
 			else
 			{
 				sexstring s = CreateSexString(start, length);
-				sexstring_key key(s->Buffer, s->Length);
-				symbols.insert(std::make_pair(key,s));
+				sexstring_key newKey(s->Buffer, s->Length);
+				symbols.insert(std::make_pair(newKey,s));
 				return s;
 			}
 		}
@@ -119,7 +119,7 @@ namespace ANON
 	public:
 		CSequentialSymbols(size_t _sourceLength)
 		{
-
+			UNUSED(_sourceLength);
 		}
 
 		~CSequentialSymbols() 

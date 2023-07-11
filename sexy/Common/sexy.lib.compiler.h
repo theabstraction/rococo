@@ -33,8 +33,6 @@
 
 #pragma once
 
-#ifdef _DEBUG
-#   pragma comment(lib, "sexy.compiler.Debug.lib")
-#else
-#   pragma comment(lib, "sexy.compiler.Release.lib")
+#ifdef _WIN32
+#   pragma comment(lib, "sexy.compiler.lib")
 #endif

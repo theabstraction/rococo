@@ -1,5 +1,5 @@
 #include "sexy.script.stdafx.h"
-#include <Sexy.Compiler.h>
+#include "..\STC\stccore\Sexy.Compiler.h"
 #include <sexy.vm.h>
 #include <sexy.vm.cpu.h>
 
@@ -50,7 +50,7 @@ namespace Rococo::Script
 			}
 
 			cstr fname = f->Name();
-
+			UNUSED(fname);
 			DeconstructLocalObjects(*f, pc, sf, ss, REF totalStackCorrection);
 
 			const uint8* catchAddress = GetHandlerFor(handlers, ss.ProgramObject(), pc);

@@ -1057,7 +1057,6 @@ namespace ANON_NS
 		errno_t err = getenv_s(&requiredLen, nullptr, 0, sc->pointer);
 		if (err != 0)
 		{
-			int32 length = 0;
 			WriteOutput(0, 0, e);
 			return;
 		}
@@ -1194,9 +1193,6 @@ namespace ANON_NS
 
 	void AppendCmdKeyAndValue(NativeCallEnvironment& _nce)
 	{
-		Rococo::uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
-
 		int32 argIndex;
 		ReadInput(0, argIndex, _nce);
 

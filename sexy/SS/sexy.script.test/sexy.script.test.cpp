@@ -65,7 +65,7 @@
 #include "sexy.vm.cpu.h"
 #include "sexy.script.h"
 #include "sexy.s-parser.h"
-#include "sexy.compiler.h"
+#include "..\STC\stccore\Sexy.Compiler.h"
 #include <rococo.api.h>
 #include <sexy.dispatch.inl>
 #include <rococo.package.h>
@@ -140,6 +140,8 @@ namespace
 
 		void OnUnhandledException(int errorCode, cstr exceptionType, cstr message, void* exceptionInstance) 
 		{
+			UNUSED(errorCode);
+			UNUSED(exceptionInstance);
 			ParseException ex(Vec2i{ 0,0 },Vec2i{ 0,0 }, exceptionType, message,"", NULL);
 			exceptions.push_back(ex);
 		}
@@ -305,10 +307,9 @@ namespace
 
 	void Test(const char* name, FN_TEST fnTest, bool addinCoroutines, bool addInIO)
 	{
-		Memory::RecordAllocations(-1);
+		Memory::RecordAllocations((size_t) - 1);
 		Memory::ValidateNothingAllocated();
 		{
-
 			printf("<<<<<< %s\r\n", name);
 
 			ProgramInitParameters pip;
@@ -375,6 +376,8 @@ namespace
 
 	void TestConstruction(IPublicScriptSystem& ss)
 	{
+		UNUSED(ss);
+
 		try
 		{
 			ProgramInitParameters pip;
@@ -533,6 +536,7 @@ namespace
 
 		ValidateExecution(vm.Execute(VM::ExecutionFlags(false, true)));
 		int32 result = vm.PopInt32();
+		UNUSED(result);
 	}
 
 	void TestAssignFloat32Literal(IPublicScriptSystem& ss)
@@ -790,6 +794,8 @@ namespace
 
 	   int32 id = vm.PopInt32();
 	   int32 exitCode = vm.PopInt32();
+	   UNUSED(exitCode);
+	   UNUSED(id);
    }
 
    void TestAssignDerivatives(IPublicScriptSystem& ss)
@@ -990,6 +996,7 @@ namespace
 		ss.PartialCompile();
 
 		IModule* mainModule = ss.AddTree(*mainTree);
+		UNUSED(mainModule);
 		ss.PartialCompile();
 
 		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace("EntryPoint");
@@ -1048,6 +1055,7 @@ namespace
 		ss.PartialCompile();
 
 		IModule* mainModule = ss.AddTree(*mainTree);
+		UNUSED(mainModule);
 		ss.PartialCompile();
 
 		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace("EntryPoint");
@@ -1095,9 +1103,11 @@ namespace
 		ss.BeginPartialCompilation(nullptr);
 
 		IModule* robotModule = ss.AddTree(*robotTree);
+		UNUSED(robotModule);
 		ss.PartialCompile();
 
 		IModule* mainModule = ss.AddTree(*mainTree);
+		UNUSED(mainModule);
 		ss.PartialCompile();
 
 		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace("EntryPoint");
@@ -2326,6 +2336,7 @@ R"(
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
 
 		const IModule& m = ss.PublicProgramObject().GetModule(0);
+		UNUSED(m);
 
 		vm.Push(100); // Allocate stack space for the int32 x
 		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
@@ -3457,7 +3468,7 @@ R"((namespace EntryPoint)
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
-
+		UNUSED(vm);
 		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace("EntryPoint");
 		const IInterface* i = ns->FindInterface("IPlayer");
 		validate(i != NULL);		
@@ -3504,7 +3515,8 @@ R"((namespace EntryPoint)
 		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 },"TestClassDefinition");
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
-		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());	
+		UNUSED(vm);
 
 		const IModule& m = ss.PublicProgramObject().GetModule(ss.GetIntrinsicModuleCount());
 		const IStructure* s = m.FindStructure("Player");
@@ -3547,7 +3559,8 @@ R"((namespace EntryPoint)
 
 		try
 		{
-			VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
+			VM::IVirtualMachine& vm = StandardTestInit(ss, tree());	
+			UNUSED(vm);
 			validate(false);
 		}
 		catch (ParseException& e)
@@ -3780,7 +3793,8 @@ R"((namespace EntryPoint)
 
 		try
 		{
-			VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
+			VM::IVirtualMachine& vm = StandardTestInit(ss, tree());	
+			UNUSED(vm);
 			validate(false);
 		}
 		catch (ParseException& e)
@@ -3803,7 +3817,8 @@ R"((namespace EntryPoint)
 
 		try
 		{
-			VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
+			VM::IVirtualMachine& vm = StandardTestInit(ss, tree());	
+			UNUSED(vm);
 			validate(false);
 		}
 		catch (ParseException& e)
@@ -3825,7 +3840,8 @@ R"((namespace EntryPoint)
 
 		try
 		{
-			VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
+			VM::IVirtualMachine& vm = StandardTestInit(ss, tree());	
+			UNUSED(vm);
 			validate(false);
 		}
 		catch (ParseException& e)
@@ -3848,6 +3864,7 @@ R"((namespace EntryPoint)
 		try
 		{
 			VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
+			UNUSED(vm);
 			validate(false);
 		}
 		catch (ParseException& e)
@@ -3870,6 +3887,7 @@ R"((namespace EntryPoint)
 		try
 		{
 			VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
+			UNUSED(vm);
 			validate(false);
 		}
 		catch (ParseException& e)
@@ -3892,6 +3910,7 @@ R"((namespace EntryPoint)
 		try
 		{
 			VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
+			UNUSED(vm);
 			validate(false);
 		}
 		catch (ParseException& e)
@@ -3914,6 +3933,7 @@ R"((namespace EntryPoint)
 		try
 		{
 			VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
+			UNUSED(vm);
 			validate(false);
 		}
 		catch (ParseException& e)
@@ -3936,6 +3956,7 @@ R"((namespace EntryPoint)
 		try
 		{
 			VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
+			UNUSED(vm);
 			validate(false);
 		}
 		catch (ParseException& e)
@@ -3957,7 +3978,8 @@ R"((namespace EntryPoint)
 
 		try
 		{
-			VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
+			VM::IVirtualMachine& vm = StandardTestInit(ss, tree());	
+			UNUSED(vm);
 			validate(false);
 		}
 		catch (ParseException& e)
@@ -4122,7 +4144,8 @@ R"((namespace EntryPoint)
 
 		struct ANON {	static void InvokeTest(NativeCallEnvironment& e)
 		{				
-				g_destructorTestInt = 1;
+			UNUSED(e);
+			g_destructorTestInt = 1;
 		}};
 
 		const INamespace& nsSys = ss.AddNativeNamespace("Sys");
@@ -4178,6 +4201,7 @@ R"((namespace EntryPoint)
 
 		struct ANON {	static void InvokeTest(NativeCallEnvironment& e)
 		{				
+			UNUSED(e);
 			g_destructorTestInt = 1;
 		}};
 
@@ -6405,8 +6429,9 @@ R"((namespace EntryPoint)
 
 		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
 	//	ValidateExecution(result);
-
+		UNUSED(result);
 		int x = vm.PopInt32();
+		UNUSED(x);
 //		validate(x > 11); 
 	}
 
@@ -7852,6 +7877,7 @@ R"((namespace EntryPoint)
 		vm.Push(0); // Allocate stack space for the int32 result
 
 		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		UNUSED(result);
 		ParseException ex;
 		validate(s_logger.TryGetNextException(ex));
 		validate(strstr(ex.Message(), "Expecting assignment") != nullptr);
@@ -7882,7 +7908,7 @@ R"((namespace EntryPoint)
 		vm.Push(0); // Allocate stack space for the int32 result
 
 		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
-
+		UNUSED(result);
 		ParseException ex;
 		if (!s_logger.TryGetNextException(ex))
 			validate(false);
@@ -7910,6 +7936,7 @@ R"((namespace EntryPoint)
 		try
 		{
 			VM::IVirtualMachine& vm = StandardTestInit(ss, tree());	
+			UNUSED(vm);
 			validate(false);	
 		}
 		catch(ParseException&)
@@ -7943,7 +7970,7 @@ R"((namespace EntryPoint)
 		vm.Push(0); // Allocate stack space for the int32 result
 
 		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
-
+		UNUSED(result);
 		ParseException ex;
 		if (!s_logger.TryGetNextException(ex))
 			validate(false);
@@ -9723,7 +9750,7 @@ R"((namespace EntryPoint)
 		vm.Push(0); // Allocate stack space for the int32 result
 
 		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
-
+		UNUSED(result);
 		ParseException ex;
 		if (!s_logger.TryGetNextException(ex))
 			validate(false);
@@ -10238,7 +10265,7 @@ R"((namespace EntryPoint)
 		vm.Push(0); // Allocate stack space for the int32 result
 
 		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
-
+		UNUSED(result);
 		ParseException ex;
 		if (!s_logger.TryGetNextException(ex))
 			validate(false);
@@ -10857,7 +10884,7 @@ R"((namespace EntryPoint)
 		vm.Push(0); // Allocate stack space for the int32 result
 
 		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
-
+		UNUSED(result);
 		ParseException ex;
 		if (!s_logger.TryGetNextException(ex))
 			validate(false);
@@ -12023,6 +12050,7 @@ R"((namespace EntryPoint)
 
 		int64 rem = vm.PopInt64();
 		int64 quot = vm.PopInt64();
+		UNUSED(quot);
 
 		validate(rem == 2);
 	}
@@ -12693,6 +12721,7 @@ R"((namespace EntryPoint)
 			VM::IVirtualMachine& vm = StandardTestInit(ss, tree());	
 			vm.Push(0); // Allocate stack space for the int32 result
 			EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+			UNUSED(result);
 			validate(false);
 		}
 		catch (ParseException&)
@@ -13375,6 +13404,7 @@ R"((namespace EntryPoint)
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
 
 		const IModule& m = ss.PublicProgramObject().GetModule(0);
+		UNUSED(m);
 
 		vm.Push(100); // Allocate stack space for the int32 x
 		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
@@ -14149,7 +14179,7 @@ R"(
 		validate(result == Rococo::EXECUTERESULT_TERMINATED);
 
 		int x1 = vm.PopInt32();
-		validate(x1 = 77);
+		validate(x1 == 77);
 	}
 
 	void TestBadClosureArg(IPublicScriptSystem& ss)
@@ -15867,6 +15897,9 @@ R"(
 
 int main(int argc, char* argv[])
 {
+	UNUSED(argc);
+	UNUSED(argv);
+
 	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
 //	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_None);
 

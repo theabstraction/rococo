@@ -34,7 +34,7 @@
 #include "sexy.script.stdafx.h"
 
 #include <rococo.strings.h>
-#include "sexy.compiler.helpers.h"
+#include "..\stc\stccore\sexy.compiler.helpers.h"
 #include "sexy.s-parser.h"
 
 #include <stdlib.h>
@@ -628,8 +628,8 @@ namespace Rococo::Script
 		TokenBuffer fullyQualifiedName;
 		StringPrint(fullyQualifiedName, ("%s.%s"), ns.FullName()->Buffer, publicName);
 
-		auto i = nativeCalls.find(fullyQualifiedName.Text);
-		if (i != nativeCalls.end())
+		auto fqn = nativeCalls.find(fullyQualifiedName.Text);
+		if (fqn != nativeCalls.end())
 		{
 			Throw(archetype, "%s: Duplicate native call name: %s", __func__, fullyQualifiedName.Text);
 		}

@@ -34,9 +34,5 @@
 #pragma once
 
 #ifdef _WIN32
-# ifdef _DEBUG
-#   pragma comment(lib, "sexy.vm.Debug.lib")
-# else
-#   pragma comment(lib, "sexy.vm.Release.lib")
-# endif
+#  pragma comment(lib, "sexy.vm.Release.lib")
 #endif

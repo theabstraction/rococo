@@ -323,7 +323,6 @@ namespace Rococo
                     cstr head, body;
                     if (splitter.SplitHead(head, body))
                     {
-                        MemberDef def;
                         if (ce.Builder.TryGetVariableByName(OUT def, head))
                         {
                             if (*def.ResolvedType == ce.StructArray())

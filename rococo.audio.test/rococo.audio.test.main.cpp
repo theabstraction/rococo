@@ -15,11 +15,7 @@
 
 #include <rococo.time.h>
 
-#ifdef _DEBUG
-#pragma comment(lib, "rococo.windows.debug.lib")
-#pragma comment(lib, "rococo.util.debug.lib")
-#pragma comment(lib, "rococo.audio.debug.lib")
-#else
+#ifdef _WIN32
 #pragma comment(lib, "rococo.windows.lib")
 #pragma comment(lib, "rococo.util.lib")
 #pragma comment(lib, "rococo.audio.lib")

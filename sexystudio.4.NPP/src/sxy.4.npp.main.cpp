@@ -21,13 +21,8 @@
 #include <rococo.strings.h>
 
 #ifdef _WIN32
-# ifdef _DEBUG
-#  pragma comment(lib, "rococo.util.debug.lib")
-#  pragma comment(lib, "rococo.windows.debug.lib")
-# else
 #  pragma comment(lib, "rococo.util.lib")
 #  pragma comment(lib, "rococo.windows.lib")
-# endif
 #endif
 
 

@@ -123,11 +123,11 @@ namespace Rococo
          CompileTryCatchFinally(ce, exNameExpr.String()->Buffer, body, handler, cleanup);
       }
 
-      bool HasInterface(const IInterface& interface, const IStructure& classspec)
+      bool HasInterface(const IInterface& interface, const IStructure& classSpec)
       {
-         for (int i = 0; i < classspec.InterfaceCount(); ++i)
+         for (int i = 0; i < classSpec.InterfaceCount(); ++i)
          {
-             for (auto* subInterface = &classspec.GetInterface(i); subInterface != nullptr; subInterface = subInterface->Base())
+             for (auto* subInterface = &classSpec.GetInterface(i); subInterface != nullptr; subInterface = subInterface->Base())
              {
                  if (subInterface == &interface)
                  {

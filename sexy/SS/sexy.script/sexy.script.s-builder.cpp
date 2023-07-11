@@ -89,10 +89,9 @@ namespace ANON
 		const ISExpression& GetElement(int index) const override
 		{
 			Throw(0, "Expression has no children");
-			return *this;
 		}
 
-		int GetIndexOf(cr_sex s) const override
+		int GetIndexOf(cr_sex) const override
 		{
 			return -1;
 		}
@@ -217,7 +216,7 @@ namespace ANON
 
 		bool operator == (const char* token) const override
 		{
-			return false;
+			return token && this->String()->Buffer != nullptr && Eq(token, this->String()->Buffer);
 		}
 
 		ISExpressionBuilder* AddChild() override
@@ -372,34 +371,29 @@ namespace ANON
 			return *this;
 		}
 
-		ISParserTree* CreateTree(ISourceCode& sourceCode) override
+		ISParserTree* CreateTree(ISourceCode&) override
 		{
 			Throw(0, "Not implemented on Expression Builder");
-			return nullptr;
 		}
 
-		ISourceCode* DuplicateSourceBuffer(cstr buffer, int segmentLength, const Vec2i& origin, const char* name) override
+		ISourceCode* DuplicateSourceBuffer(cstr, int, const Vec2i&, const char*) override
 		{
 			Throw(0, "Not implemented on Expression Builder");
-			return nullptr;
 		}
 
-		ISourceCode* ProxySourceBuffer(cstr bufferRef, int segmentLength, const Vec2i& origin, cstr nameRef) override
+		ISourceCode* ProxySourceBuffer(cstr, int, const Vec2i&, cstr) override
 		{
 			Throw(0, "Not implemented on Expression Builder");
-			return nullptr;
 		}
 
-		ISourceCode* LoadSource(const wchar_t* filename, const Vec2i& origin) override
+		ISourceCode* LoadSource(const wchar_t*, const Vec2i&) override
 		{
 			Throw(0, "Not implemented on Expression Builder");
-			return nullptr;
 		}
 
-		ISourceCode* LoadSource(const wchar_t* moduleName, const Vec2i& origin, const char* buffer, long len) override
+		ISourceCode* LoadSource(const wchar_t*, const Vec2i&, const char*, long) override
 		{
 			Throw(0, "Not implemented on Expression Builder");
-			return nullptr;
 		}
 	};
 

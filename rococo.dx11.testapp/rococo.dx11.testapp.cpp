@@ -17,15 +17,7 @@
 #include <sexy.lib.script.h>
 #include <rococo.auto-release.h>
 
-#ifdef _DEBUG
-# pragma comment(lib, "rococo.windows.debug.lib")
-# pragma comment(lib, "rococo.fonts.debug.lib")
-# pragma comment(lib, "rococo.mplat.debug.lib")
-# pragma comment(lib, "rococo.sexy.ide.debug.lib")
-# pragma comment(lib, "dx11.deferred.renderer.debug.lib")
-# pragma comment(lib, "rococo.DirectX.debug.lib")
-# pragma comment(lib, "rococo.misc.utils.debug.lib")
-#else
+#ifdef __WIN32
 # pragma comment(lib, "rococo.windows.lib")
 # pragma comment(lib, "rococo.fonts.lib")
 # pragma comment(lib, "rococo.mplat.lib")

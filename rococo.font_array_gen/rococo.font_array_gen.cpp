@@ -21,14 +21,7 @@ using namespace Rococo;
 using namespace Rococo::Windows;
 using namespace Rococo::Fonts;
 
-#ifdef _DEBUG
-# pragma comment(lib, "rococo.util.debug.lib")
-# pragma comment(lib, "rococo.windows.debug.lib")
-# pragma comment(lib, "rococo.tiff.debug.lib")
-# pragma comment(lib, "rococo.jpg.debug.lib")
-# pragma comment(lib, "rococo.zlib.debug.lib")
-# pragma comment(lib, "rococo.fonts.debug.lib")
-#else
+#ifdef _WIN32
 # pragma comment(lib, "rococo.util.lib")
 # pragma comment(lib, "rococo.windows.lib")
 # pragma comment(lib, "rococo.tiff.lib")

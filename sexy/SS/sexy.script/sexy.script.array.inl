@@ -263,7 +263,6 @@ namespace Rococo
 
 		   if (a->LockNumber > 0)
 		   {
-			   IScriptSystem& ss = *(IScriptSystem*)context;
 			   ss.ThrowFromNativeCode(ERANGE, "Array.ArrayPushInterface failed: the array was locked for enumeration");
 			   return;
 		   }

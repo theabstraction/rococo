@@ -53,7 +53,6 @@ namespace Rococo
             return a.doubleValue > b.doubleValue;
          default:
             Throw(src, ("Cannot compare two values, they are of unknown type"));
-            return false;
          }
       }
 
@@ -73,7 +72,6 @@ namespace Rococo
             return a.doubleValue < b.doubleValue;
          default:
             Throw(src, ("Cannot compare two values, they are of unknown type"));
-            return false;
          }
       }
 
@@ -82,7 +80,7 @@ namespace Rococo
          switch (type)
          {
          case VARTYPE_Derivative:
-            Throw(src, ("Cannot compare two derivative types, No 'greater than or equal to' operator defined"));
+            Throw(src, "Cannot compare two derivative types, No 'greater than or equal to' operator defined");
          case VARTYPE_Int32:
             return a.int32Value >= b.int32Value;
          case VARTYPE_Int64:
@@ -92,8 +90,7 @@ namespace Rococo
          case VARTYPE_Float64:
             return a.doubleValue >= b.doubleValue;
          default:
-            Throw(src, ("Cannot compare two values, they are of unknown type"));
-            return false;
+            Throw(src, "Cannot compare two values, they are of unknown type");
          }
       }
 
@@ -102,7 +99,7 @@ namespace Rococo
          switch (type)
          {
          case VARTYPE_Derivative:
-            Throw(src, ("Cannot compare two derivative types, No 'less than or equal to' operator defined"));
+            Throw(src, "Cannot compare two derivative types, No 'less than or equal to' operator defined");
          case VARTYPE_Int32:
             return a.int32Value <= b.int32Value;
          case VARTYPE_Int64:
@@ -112,8 +109,7 @@ namespace Rococo
          case VARTYPE_Float64:
             return a.doubleValue <= b.doubleValue;
          default:
-            Throw(src, ("Cannot compare two values, they are of unknown type"));
-            return false;
+            Throw(src, "Cannot compare two values, they are of unknown type");
          }
       }
 
@@ -122,7 +118,7 @@ namespace Rococo
          switch (type)
          {
          case VARTYPE_Derivative:
-            Throw(src, ("Cannot compare two derivative types, No 'not equal to' operator defined"));
+            Throw(src, "Cannot compare two derivative types, No 'not equal to' operator defined");
          case VARTYPE_Int32:
             return a.int32Value != b.int32Value;
          case VARTYPE_Int64:
@@ -132,8 +128,7 @@ namespace Rococo
          case VARTYPE_Float64:
             return a.doubleValue != b.doubleValue;
          default:
-            Throw(src, ("Cannot compare two values, they are of unknown type"));
-            return false;
+            Throw(src, "Cannot compare two values, they are of unknown type");
          }
       }
 
@@ -142,7 +137,7 @@ namespace Rococo
          switch (type)
          {
          case VARTYPE_Derivative:
-            Throw(src, ("Cannot compare two derivative types, No 'not equal to' operator defined"));
+            Throw(src, "Cannot compare two derivative types, No 'not equal to' operator defined");
          case VARTYPE_Int32:
             return a.int32Value == b.int32Value;
          case VARTYPE_Int64:
@@ -153,7 +148,6 @@ namespace Rococo
             return a.doubleValue == b.doubleValue;
          default:
             Throw(src, ("Cannot compare two values, they are of unknown type"));
-            return false;
          }
       }
    }
@@ -176,8 +170,7 @@ namespace Rococo
          case CONDITION_IF_NOT_EQUAL:			   return IsANotEqualToB(a, b, type, src);
          case CONDITION_IF_EQUAL:				   return IsAEqualToB(a, b, type, src);
          default:
-            Throw(src, ("Expecting binary boolean operator"));
-            return false;
+            Throw(src, "Expecting binary boolean operator");
          }
       }
 
@@ -228,8 +221,7 @@ namespace Rococo
          case LOGICAL_OP_XOR:		return (a != 0 && b == 0) || (a == 0 && b != 0);
 
          default:
-            Throw(src, ("Expecting binary boolean operator"));
-            return false;
+            Throw(src, "Expecting binary boolean operator");
          }
       }
 
@@ -1030,26 +1022,24 @@ namespace Rococo
       CONDITION GetBinaryComparisonOp(cr_sex opExpr, bool negate)
       {
          sexstring op = opExpr.String();
-         if (AreEqual(op, (">"))) return negate ? CONDITION_IF_LESS_OR_EQUAL : CONDITION_IF_GREATER_THAN;
-         if (AreEqual(op, ("<")))	return negate ? CONDITION_IF_GREATER_OR_EQUAL : CONDITION_IF_LESS_THAN;
-         if (AreEqual(op, (">="))) return negate ? CONDITION_IF_LESS_THAN : CONDITION_IF_GREATER_OR_EQUAL;
-         if (AreEqual(op, ("<="))) return negate ? CONDITION_IF_GREATER_THAN : CONDITION_IF_LESS_OR_EQUAL;
-         if (AreEqual(op, ("!="))) return negate ? CONDITION_IF_EQUAL : CONDITION_IF_NOT_EQUAL;
-         if (AreEqual(op, ("=="))) return negate ? CONDITION_IF_NOT_EQUAL : CONDITION_IF_EQUAL;
+         if (AreEqual(op, ">")) return negate ? CONDITION_IF_LESS_OR_EQUAL : CONDITION_IF_GREATER_THAN;
+         if (AreEqual(op, "<"))	return negate ? CONDITION_IF_GREATER_OR_EQUAL : CONDITION_IF_LESS_THAN;
+         if (AreEqual(op, ">=")) return negate ? CONDITION_IF_LESS_THAN : CONDITION_IF_GREATER_OR_EQUAL;
+         if (AreEqual(op, "<=")) return negate ? CONDITION_IF_GREATER_THAN : CONDITION_IF_LESS_OR_EQUAL;
+         if (AreEqual(op, "!=")) return negate ? CONDITION_IF_EQUAL : CONDITION_IF_NOT_EQUAL;
+         if (AreEqual(op, "==")) return negate ? CONDITION_IF_NOT_EQUAL : CONDITION_IF_EQUAL;
 
-         Throw(opExpr, ("Cannot interpret as a comparison operator"));
-         return CONDITION_IF_EQUAL;
+         Throw(opExpr, "Cannot interpret as a comparison operator");
       }
 
       LOGICAL_OP GetBinaryLogicalOp(cr_sex opExpr)
       {
          sexstring op = opExpr.String();
-         if (AreEqual(op, ("and"))) return LOGICAL_OP_AND;
-         if (AreEqual(op, ("or")))	return LOGICAL_OP_OR;
-         if (AreEqual(op, ("xor"))) return LOGICAL_OP_XOR;
+         if (AreEqual(op, "and")) return LOGICAL_OP_AND;
+         if (AreEqual(op, "or"))	return LOGICAL_OP_OR;
+         if (AreEqual(op, "xor")) return LOGICAL_OP_XOR;
 
-         Throw(opExpr, ("Cannot interpret as a binary logical operation"));
-         return LOGICAL_OP_AND;
+         Throw(opExpr, "Cannot interpret as a binary logical operation");
       }
 
       bool TryCompileBooleanExpression(CCompileEnvironment& ce, cr_sex s, bool expected, bool& negate)
@@ -1070,7 +1060,7 @@ namespace Rococo
 
                cr_sex notIndicator = s.GetElement(0);
                AssertAtomic(notIndicator);
-               if (AreEqual(notIndicator.String(), ("not")))
+               if (AreEqual(notIndicator.String(), "not"))
                {
                   cr_sex onlyChild = s.GetElement(1);
                   negate = !negate;
@@ -1080,7 +1070,7 @@ namespace Rococo
                {
                   if (expected)
                   {
-                     Throw(s, ("Expected 'not' symbol in first argument of a two element binary expression"));
+                     Throw(s, "Expected 'not' symbol in first argument of a two element binary expression");
                   }
                   return false;
                }
@@ -1115,7 +1105,7 @@ namespace Rococo
 
                   if (expected)
                   {
-                     Throw(s, ("Expected boolean expression, but could not see a binary predicate operator"));
+                     Throw(s, "Expected boolean expression, but could not see a binary predicate operator");
                   }
                   // No binary predicate operator
                   return false;

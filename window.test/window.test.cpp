@@ -3,10 +3,7 @@
 
 #include <rococo.types.h>
 
-#ifdef _DEBUG
-#pragma comment(lib, "rococo.windows.debug.lib")
-#pragma comment(lib, "rococo.util.debug.lib")
-#else
+#ifdef _WIN32
 #pragma comment(lib, "rococo.windows.lib")
 #pragma comment(lib, "rococo.util.lib")
 #endif

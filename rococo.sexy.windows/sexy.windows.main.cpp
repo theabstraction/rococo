@@ -1,11 +1,7 @@
 #include "sexy.windows.internal.h"
 
-#ifdef _DEBUG
-#pragma comment(lib, "sexy.script.Debug.lib")
-#pragma comment(lib, "rococo.sexy.ide.debug.lib")
-#pragma comment(lib, "rococo.windows.debug.lib")
-#else
-#pragma comment(lib, "sexy.script.Release.lib")
+#ifdef _WIN32
+#pragma comment(lib, "sexy.script.lib")
 #pragma comment(lib, "rococo.sexy.ide.lib")
 #pragma comment(lib, "rococo.windows.lib")
 #endif

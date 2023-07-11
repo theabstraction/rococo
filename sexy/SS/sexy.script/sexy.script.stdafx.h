@@ -50,7 +50,7 @@
 #define ROCOCO_USE_SAFE_V_FORMAT
 #include "sexy.strings.h"
 #include "sexy.stdstrings.h"
-#include "sexy.compiler.h"
+#include "..\STC\stccore\Sexy.Compiler.h"
 #include <rococo.hashtable.h>
 #include <vector>
 
