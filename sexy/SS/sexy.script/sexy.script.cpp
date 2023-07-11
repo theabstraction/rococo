@@ -886,7 +886,8 @@ namespace Rococo::Script
 				}
 
 #ifdef _WIN32
-				bool useDebug = pip.useDebugLibs;
+				// bool useDebug = pip.useDebugLibs;
+				bool useDebug = false; // Disabled for now, as we are changing how DLLs are generated and where they are located (via sharpmake)
 #else
 				bool useDebug = false; // APPLE build script doesn't generate debug extension, so just use whatever files have been built
 #endif

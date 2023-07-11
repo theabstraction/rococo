@@ -636,6 +636,7 @@ namespace Rococo
         public void ConfigureAll(Configuration conf, Target target)
         {
             StandardInit(conf, target, Configuration.OutputType.Lib);
+            conf.AddPublicDependency<RococoUtilsProject>(target);
         }
     }
 
@@ -680,6 +681,56 @@ namespace Rococo
             StandardInit(conf, target, Configuration.OutputType.Exe);
             conf.AddPublicDependency<SexyScriptProject>(target);
             conf.AddPublicDependency<SexyCompilerProject>(target);
+            conf.AddPublicDependency<SexyCoroutinesProject>(target);
+            conf.AddPublicDependency<SexyReflectionProject>(target);
+        }
+    }
+
+    [Sharpmake.Generate]
+    public class SexyCoroutinesProject : SexyProject
+    {
+        public SexyCoroutinesProject() : base("sexy.nativelib.coroutines", "SS/sexy.nativelib.coroutines")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Dll);
+            conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.AddPublicDependency<SexyUtilProject>(target);
+        }
+    }
+
+    [Sharpmake.Generate]
+    public class SexyReflectionProject : SexyProject
+    {
+        public SexyReflectionProject() : base("sexy.nativelib.reflection", "SS/sexy.nativelib.reflection")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Dll);
+            conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.AddPublicDependency<SexyUtilProject>(target);
+        }
+    }
+
+    [Sharpmake.Generate]
+    public class SexyMathsProject : SexyProject
+    {
+        public SexyMathsProject() : base("sexy.nativelib.maths", "SS/sexy.nativelib.maths")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Dll);
+            conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.AddPublicDependency<SexyUtilProject>(target);
         }
     }
 
@@ -732,6 +783,9 @@ namespace Rococo
             conf.AddProject<SexyScriptProject>(target);
             conf.AddProject<SexySexProject>(target);
             conf.AddProject<SexyScriptTestProject>(target);
+            conf.AddProject<SexyCoroutinesProject>(target);
+            conf.AddProject<SexyReflectionProject>(target);
+            conf.AddProject<SexyMathsProject>(target);
         }
     }
 
@@ -772,6 +826,9 @@ namespace Rococo
             arguments.Generate<SexyScriptProject>();
             arguments.Generate<SexySexProject>();
             arguments.Generate<SexyScriptTestProject>();
+            arguments.Generate<SexyCoroutinesProject>();
+            arguments.Generate<SexyReflectionProject>();
+            arguments.Generate<SexyMathsProject>();
         }
     }
 }

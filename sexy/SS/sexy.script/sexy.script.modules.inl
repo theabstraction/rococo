@@ -181,7 +181,7 @@ namespace Rococo::Script
 		Throw(src, "The source file path must contain a / character to translate $ to a Sexy type name");
 	}
 
-	void AppendAlias(IModuleBuilder& module, cr_sex nsName, cr_sex nameExpr)
+	void AppendAlias(IModuleBuilder& module, cr_sex nsName, cr_sex localName)
 	{
 		cstr body, tail;
 
@@ -213,18 +213,19 @@ namespace Rococo::Script
 
 		cstr publicFunctionName = tail;
 
-		cstr name = nameExpr.String()->Buffer;
+		cstr name = localName.String()->Buffer;
 
 		IFunctionBuilder* f = module.FindFunction(name);
 		if (f == NULL)
 		{
 			cstr nsBody, shortName;
-			if (splitter.SplitTail(nsBody, shortName))
+			NamespaceSplitter localNameSplitter(name);
+			if (localNameSplitter.SplitTail(nsBody, shortName))
 			{
 				INamespaceBuilder* nsSrc = MatchNamespace(module, nsBody);
 				if (nsSrc == NULL)
 				{
-					Throw(nameExpr, "Cannot resolve alias. Source name '%s' was not a reconigzed namespace", nsBody);
+					Throw(localName, "Cannot resolve alias. Source name '%s' was not a reconigzed namespace", nsBody);
 				}
 
 				IStructureBuilder* s = nsSrc->FindStructure(shortName);
@@ -233,15 +234,17 @@ namespace Rococo::Script
 					f = nsSrc->FindFunction(shortName);
 					if (f == nullptr)
 					{
-						Throw(nameExpr, "Cannot find '%s' in %s", shortName, nsBody);
+						Throw(localName, "Cannot find '%s' in %s", shortName, nsBody);
 					}
 					else
 					{
 						ns.Alias(tail, *f);
 					}
 				}
-
-				ns.Alias(tail, *s);
+				else
+				{
+					ns.Alias(tail, *s);
+				}
 
 				return;
 			}
@@ -249,13 +252,13 @@ namespace Rococo::Script
 			IStructureBuilder* s = module.FindStructure(name);
 			if (s == NULL)
 			{
-				Throw(nameExpr, "Cannot resolve alias. Local name '%s'was neither a structure or a function", name);
+				Throw(localName, "Cannot resolve alias. Local name '%s' was neither a structure or a function", name);
 			}
 			else
 			{
 				if (s->Prototype().IsClass)
 				{
-					Throw(nameExpr, "Aliasing a class is not allowed: '%s'", name);
+					Throw(localName, "Aliasing a class is not allowed: '%s'", name);
 				}
 				else
 				{

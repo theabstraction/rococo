@@ -36,8 +36,10 @@ using namespace Rococo::Sex;
 
 #ifdef _WIN32
 
-BOOLEAN WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved)
+BOOLEAN WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID reserved)
 {
+	UNUSED(reserved);
+
     BOOLEAN bSuccess = TRUE;
       
     switch (nReason)

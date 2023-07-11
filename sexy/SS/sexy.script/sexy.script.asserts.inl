@@ -125,6 +125,11 @@ namespace Rococo { namespace Sex
 			{
 				Throw(e, "Default namespace character detected, but expected it to be followed by a dot");
 			}
+			else
+			{
+				// '$'
+				return;
+			}
 
 			startIndex = 2;
 		}

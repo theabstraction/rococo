@@ -15880,9 +15880,6 @@ R"(
 		Memory::ValidateNothingAllocated();
 
 		TestMemoryIsGood();
-
-		TEST(TestMapValueStruct);
-
 		RunPositiveSuccesses();	
 		RunPositiveFailures();
 		RunCollectionTests();

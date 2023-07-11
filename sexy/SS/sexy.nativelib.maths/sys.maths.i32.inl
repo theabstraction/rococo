@@ -378,6 +378,7 @@ namespace
 namespace Sys { namespace Maths { namespace I32 { 
 	void AddNativeCalls_SysMathsI32(Rococo::Script::IPublicScriptSystem& ss, void* nullContext = nullptr)
 	{
+		UNUSED(nullContext);
 		const INamespace& ns = ss.AddNativeNamespace(("Sys.Maths.I32"));
 		ss.AddNativeCall(ns, NativeSysMathsI32Clamp, nullptr, ("Clamp(Int32 x)(Int32 lower)(Int32 upper) -> (Int32 value)"), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeSysMathsI32Abs, nullptr, ("Abs(Int32 x) -> (Int32 value)"), __FILE__, __LINE__);

@@ -8,7 +8,7 @@
 #include "rococo.os.win32.h"
 #include "rococo.os.h"
 #include "rococo.time.h"
-#include "sexy.compiler.h"
+#include "..\STC\\stccore\Sexy.Compiler.h"
 
 #include <unordered_map>
 #include <vector>
@@ -405,10 +405,10 @@ struct Coroutines : public Sys::ICoroutineControl
 			{
 				Throw(0, "Coroutine %s %lld tried to release itself during execution", i->second->ClassName(), id);
 			}
-			int64 id = i->second->id;
+			int64 specId = i->second->id;
 			object.DecrementRefCount(i->second->coroutine);
 			// Possibly a destructor invalidated the iterator, so grab again
-			auto i = specs.find(id);
+			i = specs.find(specId);
 			if (i != specs.end())
 			{
 				delete i->second;
@@ -428,9 +428,9 @@ struct Coroutines : public Sys::ICoroutineControl
 			matchesId.id = id;
 
 			auto erasePoint = std::remove_if(dormantCoSpecs.begin(), dormantCoSpecs.end(), matchesId);
-			for (auto i = erasePoint; i != dormantCoSpecs.end(); ++i)
+			for (auto j = erasePoint; j != dormantCoSpecs.end(); ++j)
 			{
-				delete *i;
+				delete *j;
 			}
 			dormantCoSpecs.erase(erasePoint, dormantCoSpecs.end());
 		}
@@ -459,8 +459,10 @@ struct Coroutines : public Sys::ICoroutineControl
 
 #ifdef _WIN32
 
-BOOLEAN WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved)
+BOOLEAN WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID reserved)
 {
+	UNUSED(reserved);
+
 	BOOLEAN bSuccess = TRUE;
 
 	switch (nReason)

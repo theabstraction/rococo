@@ -209,8 +209,6 @@ namespace
 
 	void NativeGetStructName(NativeCallEnvironment& e)
 	{
-		IScriptSystem& SS = (IScriptSystem&) e.ss;
-
 		IStructure* pStruct;
 		ReadInput(0, (void*&) pStruct, e);
 		
@@ -339,8 +337,6 @@ namespace
 
 	void NativeExpressionBuilderAddAtomic(NativeCallEnvironment& e)
 	{
-		IScriptSystem& SS = (IScriptSystem&) e.ss;
-
 		ISExpressionBuilder* pBuilder;
 		ReadInput(0, (void*&) pBuilder, e);
 
@@ -352,8 +348,6 @@ namespace
 
 	void NewExpressionBuilder(NativeCallEnvironment& e)
 	{
-		IScriptSystem& SS = (IScriptSystem&)e.ss;
-
 		InterfacePointer ipOrigin;
 		ReadInput(0, ipOrigin, e);
 
@@ -404,8 +398,6 @@ namespace
 
 	void NativeExpressionBuilderAddCopy(NativeCallEnvironment& e)
 	{
-		IScriptSystem& SS = (IScriptSystem&) e.ss;
-
 		ISExpressionBuilder* pBuilder;
 		ReadInput(0, (void*&) pBuilder, e);
 		
@@ -417,8 +409,6 @@ namespace
 
    void NativeExpressionBuilderAddCopyToString(NativeCallEnvironment& e)
    {
-      IScriptSystem& SS = (IScriptSystem&)e.ss;
-
       ISExpressionBuilder* pBuilder;
       ReadInput(0, (void*&)pBuilder, e);
 
@@ -430,8 +420,6 @@ namespace
 
 	void NativeExpressionBuilderSubstitute(NativeCallEnvironment& e)
 	{
-		IScriptSystem& SS = (IScriptSystem&) e.ss;
-
 		ISExpressionBuilder* pBuilder;
 		ReadInput(0, (void*&) pBuilder, e);
 		
