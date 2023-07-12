@@ -43,22 +43,22 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <TargetName>sexy.s-parser</TargetName>
-    <OutDir>..\..\generated\lib\win64\debug\</OutDir>
-    <IntDir>..\..\generated\temp\debug\sexy.s-parser\</IntDir>
+    <OutDir>..\..\gen\lib\win64\debug\</OutDir>
+    <IntDir>..\..\gen\temp\debug\sexy.s-parser\</IntDir>
     <TargetExt>.lib</TargetExt>
     <GenerateManifest>true</GenerateManifest>
     <LinkIncremental>false</LinkIncremental>
-    <OutputFile>..\..\generated\lib\win64\debug\sexy.s-parser.lib</OutputFile>
+    <OutputFile>..\..\gen\lib\win64\debug\sexy.s-parser.lib</OutputFile>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetName>sexy.s-parser</TargetName>
-    <OutDir>..\..\generated\lib\win64\release\</OutDir>
-    <IntDir>..\..\generated\temp\release\sexy.s-parser\</IntDir>
+    <OutDir>..\..\gen\lib\win64\release\</OutDir>
+    <IntDir>..\..\gen\temp\release\sexy.s-parser\</IntDir>
     <TargetExt>.lib</TargetExt>
     <GenerateManifest>true</GenerateManifest>
     <LinkIncremental>false</LinkIncremental>
-    <OutputFile>..\..\generated\lib\win64\release\sexy.s-parser.lib</OutputFile>
+    <OutputFile>..\..\gen\lib\win64\release\sexy.s-parser.lib</OutputFile>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -109,7 +109,7 @@
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>4201;4250;4324;4458</DisableSpecificWarnings>
       <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
-      <ProgramDatabaseFileName>..\..\generated\temp\debug\sexy.s-parser\sexy.s-parser_compiler.pdb</ProgramDatabaseFileName>
+      <ProgramDatabaseFileName>..\..\gen\temp\debug\sexy.s-parser\sexy.s-parser_compiler.pdb</ProgramDatabaseFileName>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -121,7 +121,7 @@
       <TargetMachine>MachineX64</TargetMachine>
       <SubSystem/>
       <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
-      <OutputFile>..\..\generated\lib\win64\debug\sexy.s-parser.lib</OutputFile>
+      <OutputFile>..\..\gen\lib\win64\debug\sexy.s-parser.lib</OutputFile>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -172,7 +172,7 @@
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>4201;4250;4324;4458</DisableSpecificWarnings>
       <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
-      <ProgramDatabaseFileName>..\..\generated\temp\release\sexy.s-parser\sexy.s-parser_compiler.pdb</ProgramDatabaseFileName>
+      <ProgramDatabaseFileName>..\..\gen\temp\release\sexy.s-parser\sexy.s-parser_compiler.pdb</ProgramDatabaseFileName>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -184,7 +184,7 @@
       <TargetMachine>MachineX64</TargetMachine>
       <SubSystem/>
       <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
-      <OutputFile>..\..\generated\lib\win64\release\sexy.s-parser.lib</OutputFile>
+      <OutputFile>..\..\gen\lib\win64\release\sexy.s-parser.lib</OutputFile>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>

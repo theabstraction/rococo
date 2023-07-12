@@ -6,7 +6,7 @@
 // sxy.types gives the location where custom types are generated from definitions found in this file. If the path is prefixed with $project$ then $project$ is replaced with the <project_root> given in the bennyhill command line
 // if the path is prefixed with $cpp$ then $cpp$ is replaced with the cpp.root as specified above
 // The first argument gives the sexy definition file, the second argument gives the types that are written into the cpp header
-(type.files $project$../content/scripts/types.sxy $cpp$rococo.script.types.h)
+(type.files $content$scripts/types.sxy $cpp$rococo.script.types.h)
 
 // First define the fundamental types. The format of the command is (primitive <name> <sexy-name> <cpp-name>), which maps <name> found in the sxh file to the <sexy-name> in the generated sxy file, and <cpp-name> in the c++ files
 // Arguments that are primitive are passed by value to the script system. If they are output arguments then the cpp side implements them as a return value for the first argument and ref values for the successive arguments.

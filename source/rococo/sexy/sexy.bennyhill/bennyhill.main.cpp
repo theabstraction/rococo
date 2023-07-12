@@ -661,7 +661,7 @@ void ParseEnum(cr_sex senumDef, ParseContext& pc)
 			if (!IsStringLiteral(ssexyFilename)) Throw(ssexyFilename, "Expecting string literal");
 			CopyString(ec.asSexyEnum, InterfaceContext::MAX_TOKEN_LEN, sinterfaceName.String()->Buffer);
 
-			SafeFormat(ec.appendSexyFile, "%s%s_sxh.sxy", pc.cppRootDirectory, ssexyFilename.String()->Buffer);
+			SafeFormat(ec.appendSexyFile, "%s%s_sxh.sxy", pc.contentRoot, ssexyFilename.String()->Buffer);
 			OS::ToSysPath(ec.appendSexyFile);
 		}
 		else if (scmd == "as.cpp")

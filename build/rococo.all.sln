@@ -14,7 +14,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.audio", "projects\ro
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.audio.test", "projects\rococo.audio.test_vs2022_win64.vcxproj", "{8ACD897A-1C2A-2255-2FC0-0840AB988262}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "rococo.cpp_master", "sharpmake\generated\rococo.cpp_master.vs2022.net6_0.csproj", "{B9B22F79-405D-997C-57E4-674E08CFFFBA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "rococo.cpp_master", "projects\rococo.cpp_master.vs2022.net6_0.csproj", "{6EBE6E4D-8BFB-156E-8A7C-E15AE9F39A5A}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.file.browser", "projects\rococo.file.browser_vs2022_win64.vcxproj", "{4AF371DC-5A8D-D066-6EB7-99D2EF577C63}"
 EndProject
@@ -104,10 +104,10 @@ Global
 		{8ACD897A-1C2A-2255-2FC0-0840AB988262}.Debug|x64.Build.0 = Debug|x64
 		{8ACD897A-1C2A-2255-2FC0-0840AB988262}.Release|x64.ActiveCfg = Release|x64
 		{8ACD897A-1C2A-2255-2FC0-0840AB988262}.Release|x64.Build.0 = Release|x64
-		{B9B22F79-405D-997C-57E4-674E08CFFFBA}.Debug|x64.ActiveCfg = Debug|x64
-		{B9B22F79-405D-997C-57E4-674E08CFFFBA}.Debug|x64.Build.0 = Debug|x64
-		{B9B22F79-405D-997C-57E4-674E08CFFFBA}.Release|x64.ActiveCfg = Release|x64
-		{B9B22F79-405D-997C-57E4-674E08CFFFBA}.Release|x64.Build.0 = Release|x64
+		{6EBE6E4D-8BFB-156E-8A7C-E15AE9F39A5A}.Debug|x64.ActiveCfg = Debug|x64
+		{6EBE6E4D-8BFB-156E-8A7C-E15AE9F39A5A}.Debug|x64.Build.0 = Debug|x64
+		{6EBE6E4D-8BFB-156E-8A7C-E15AE9F39A5A}.Release|x64.ActiveCfg = Release|x64
+		{6EBE6E4D-8BFB-156E-8A7C-E15AE9F39A5A}.Release|x64.Build.0 = Release|x64
 		{4AF371DC-5A8D-D066-6EB7-99D2EF577C63}.Debug|x64.ActiveCfg = Debug|x64
 		{4AF371DC-5A8D-D066-6EB7-99D2EF577C63}.Debug|x64.Build.0 = Debug|x64
 		{4AF371DC-5A8D-D066-6EB7-99D2EF577C63}.Release|x64.ActiveCfg = Release|x64

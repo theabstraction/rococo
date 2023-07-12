@@ -1,7 +1,7 @@
 (config $config.xc) 
 
 (enum Int32
-	(as.sxy Rococo.LayoutId "../content/scripts/mplat_pane")
+	(as.sxy Rococo.LayoutId "scripts/mplat_pane")
 	(as.cpp Rococo.ELayoutAlgorithm "mplat")
 	(
 		(None 0)
@@ -10,7 +10,7 @@
 )
 
 (interface 
-	(as.sxy Rococo.IPane "../content/scripts/mplat_pane")
+	(as.sxy Rococo.IPane "scripts/mplat_pane")
 	(as.cpp Rococo.IPane "mplat")
 	(context factory Rococo.IPane)
 	(methods
@@ -42,7 +42,7 @@
 )
 
 (interface 
-	(as.sxy Rococo.IInventoryArray "../content/scripts/mplat")
+	(as.sxy Rococo.IInventoryArray "scripts/mplat")
 	(as.cpp Rococo.IInventoryArray "mplat")
 	(context factory Rococo.IInventoryArray)
 	(methods
@@ -68,7 +68,7 @@
 )
 
 (interface 
-	(as.sxy Rococo.IContextMenu "../content/scripts/mplat_pane")
+	(as.sxy Rococo.IContextMenu "scripts/mplat_pane")
 	(as.cpp Rococo.IContextMenu "mplat")
 	(context factory Rococo.IContextMenu)
 	(methods
@@ -82,7 +82,7 @@
 )
 
 (interface 
-	(as.sxy Rococo.Entities.IRigBuilder "../content/scripts/mplat")
+	(as.sxy Rococo.Entities.IRigBuilder "scripts/mplat")
 	(as.cpp Rococo.Entities.IRigBuilder "mplat")
 	(context factory Rococo.Entities.IRigs)
 	(methods
@@ -107,7 +107,7 @@
 
 
 (interface 
-	(as.sxy Rococo.IContextMenuPane "../content/scripts/mplat_pane" Rococo.IPane)
+	(as.sxy Rococo.IContextMenuPane "scripts/mplat_pane" Rococo.IPane)
 	(as.cpp Rococo.IContextMenuPane "mplat" "virtual public Rococo.IPane")
 	(context factory Rococo.IContextMenuPane)
 	(methods
@@ -116,7 +116,7 @@
 )
 
 (interface 
-	(as.sxy Rococo.IEnumListPane "../content/scripts/mplat_pane" Rococo.IPane)
+	(as.sxy Rococo.IEnumListPane "scripts/mplat_pane" Rococo.IPane)
 	(as.cpp Rococo.IEnumListPane "mplat" "virtual public Rococo::IPane")
 	(context factory Rococo.IEnumListPane)
 	(methods
@@ -127,7 +127,7 @@
 )
 
 (interface 
-	(as.sxy Rococo.IArrayBox "../content/scripts/mplat_pane" Rococo.IPane)
+	(as.sxy Rococo.IArrayBox "scripts/mplat_pane" Rococo.IPane)
 	(as.cpp Rococo.IArrayBox "mplat" "virtual public Rococo::IPane")
 	(context factory Rococo.IArrayBox)
 	(methods
@@ -139,7 +139,7 @@
 )
 
 (interface 
-	(as.sxy Rococo.IPaneContainer "../content/scripts/mplat_pane" Rococo.IPane)
+	(as.sxy Rococo.IPaneContainer "scripts/mplat_pane" Rococo.IPane)
 	(as.cpp Rococo.IPaneContainer "mplat" "virtual public Rococo::IPane")
 	(context factory Rococo.IPaneContainer)
 	(methods
@@ -158,7 +158,7 @@
 )
 
 (interface 
-	(as.sxy Rococo.ITabContainer "../content/scripts/mplat_pane" Rococo.IPane)
+	(as.sxy Rococo.ITabContainer "scripts/mplat_pane" Rococo.IPane)
 	(as.cpp Rococo.ITabContainer "mplat" "virtual public Rococo::IPane")
 	(context factory Rococo.ITabContainer)
 	(methods
@@ -168,7 +168,7 @@
 )
 
 (interface 
-	(as.sxy Rococo.IFramePane "../content/scripts/mplat_pane" Rococo.IPaneContainer)
+	(as.sxy Rococo.IFramePane "scripts/mplat_pane" Rococo.IPaneContainer)
 	(as.cpp Rococo.IFramePane "mplat" "virtual public Rococo::IPaneContainer")
 	(context factory Rococo.IFramePane)
 	(methods
@@ -182,7 +182,7 @@
 )
 
 (interface 
-	(as.sxy Rococo.IRadioButton "../content/scripts/mplat_pane" Rococo.IPane)
+	(as.sxy Rococo.IRadioButton "scripts/mplat_pane" Rococo.IPane)
 	(as.cpp Rococo.IRadioButton "mplat" "virtual public Rococo::IPane")
 	(context factory Rococo.IRadioButton)
 	(methods
@@ -191,7 +191,7 @@
 )
 
 (interface 
-	(as.sxy Rococo.ILabelPane "../content/scripts/mplat_pane" Rococo.IPane)
+	(as.sxy Rococo.ILabelPane "scripts/mplat_pane" Rococo.IPane)
 	(as.cpp Rococo.ILabelPane "mplat"  "virtual public Rococo::IPane")
 	(context factory Rococo.ILabelPane)
 	(methods
@@ -201,7 +201,7 @@
 )
 
 (interface 
-	(as.sxy Rococo.ISlider "../content/scripts/mplat_pane" Rococo.IPane)
+	(as.sxy Rococo.ISlider "scripts/mplat_pane" Rococo.IPane)
 	(as.cpp Rococo.ISlider "mplat" "virtual public Rococo::IPane")
 	(context factory Rococo.ISlider)
 	(methods
@@ -209,7 +209,7 @@
 )
 
 (interface 
-	(as.sxy Rococo.IScroller "../content/scripts/mplat_pane" Rococo.IPane)
+	(as.sxy Rococo.IScroller "scripts/mplat_pane" Rococo.IPane)
 	(as.cpp Rococo.IScroller "mplat" "virtual public Rococo::IPane")
 	(context factory Rococo.IScroller)
 	(methods
@@ -217,7 +217,7 @@
 )
 
 (interface 
-	(as.sxy Rococo.ITextOutputPane "../content/scripts/mplat_pane" Rococo.IPane)
+	(as.sxy Rococo.ITextOutputPane "scripts/mplat_pane" Rococo.IPane)
 	(as.cpp Rococo.ITextOutputPane "mplat" "virtual public Rococo::IPane")
 	(context factory Rococo.ITextOutputPane)
 	(methods
@@ -227,7 +227,7 @@
 )
 
 (interface 
-	(as.sxy Rococo.IPaneBuilder "../content/scripts/mplat_pane")
+	(as.sxy Rococo.IPaneBuilder "scripts/mplat_pane")
 	(as.cpp Rococo.IPaneBuilder "mplat" "virtual public Rococo::IPane")
 	(context factory Rococo.IPaneBuilder)
 	(methods
@@ -237,7 +237,7 @@
 )
 
 (interface
-	(as.sxy Rococo.IKeyboard "../content/scripts/mplat")
+	(as.sxy Rococo.IKeyboard "scripts/mplat")
 	(as.cpp Rococo.IKeyboard "mplat")
 	(context factory Rococo.IKeyboard)
 	(methods
@@ -251,7 +251,7 @@
 )
 
 (interface 
-	(as.sxy Rococo.IConfig "../content/scripts/mplat_config")
+	(as.sxy Rococo.IConfig "scripts/mplat_config")
 	(as.cpp Rococo.IConfig "mplat")
 	(context factory Rococo.IConfig)
 	(methods
@@ -269,7 +269,7 @@
 )
 
 (interface 
-	(as.sxy Rococo.Graphics.ISpriteBuilder "../content/scripts/mplat")
+	(as.sxy Rococo.Graphics.ISpriteBuilder "scripts/mplat")
 	(as.cpp Rococo.Graphics.ISpriteBuilder "mplat")
 	(context factory Rococo.Graphics.ISpriteBuilder)
 	(methods
@@ -282,7 +282,7 @@
 )
 
 (interface 
-	(as.sxy Rococo.Graphics.ISprites "../content/scripts/mplat")
+	(as.sxy Rococo.Graphics.ISprites "scripts/mplat")
 	(as.cpp Rococo.Graphics.ISprites "mplat")
 	(context factory Rococo.Graphics.ISprites)
 	(methods
@@ -293,7 +293,7 @@
 )
 
 (interface
-	(as.sxy Rococo.Entities.IMobiles "../content/scripts/mplat")
+	(as.sxy Rococo.Entities.IMobiles "scripts/mplat")
 	(as.cpp Rococo.Entities.IMobiles "mplat")
 	(context factory Rococo.Entities.IMobiles)
 	(methods
@@ -305,7 +305,7 @@
 )
 
 (interface
-	(as.sxy Rococo.Entities.IParticleSystem "../content/scripts/mplat")
+	(as.sxy Rococo.Entities.IParticleSystem "scripts/mplat")
 	(as.cpp Rococo.Entities.IParticleSystem "mplat")
 	(context factory Rococo.Platform)
 	(methods
@@ -322,7 +322,7 @@
 )
 
 (enum Int32
-	(as.sxy Rococo.Graphics.OrientationFlags "../content/scripts/mplat")
+	(as.sxy Rococo.Graphics.OrientationFlags "scripts/mplat")
 	(as.cpp Rococo.Graphics.OrientationFlags "mplat")
 	(
 		(None 0)
@@ -333,7 +333,7 @@
 )
 
 (interface
-	(as.sxy Rococo.Graphics.ICamera "../content/scripts/mplat")
+	(as.sxy Rococo.Graphics.ICamera "scripts/mplat")
 	(as.cpp Rococo.Graphics.ICamera "mplat")
 	(context factory Rococo.Graphics.ICamera)
 	(methods
@@ -356,7 +356,7 @@
 )
 
 (interface
-	(as.sxy Rococo.Graphics.ISceneBuilder "../content/scripts/mplat")
+	(as.sxy Rococo.Graphics.ISceneBuilder "scripts/mplat")
 	(as.cpp Rococo.Graphics.ISceneBuilder "mplat")
 	(context factory Rococo.Graphics.ISceneBuilder)
 	(methods
@@ -372,7 +372,7 @@
 	(factory Rococo.Graphics.SceneBuilder)
 )
 
-(interface (as.sxy Rococo.Graphics.IMessaging "../content/scripts/mplat")
+(interface (as.sxy Rococo.Graphics.IMessaging "scripts/mplat")
 	(as.cpp Rococo.Graphics.IMessaging "mplat")
 	(context factory Rococo.Platform)
 	(methods
@@ -382,7 +382,7 @@
 )
 
 (enum Int32
-	(as.sxy Rococo.Graphics.MaterialCategory "../content/scripts/mplat")
+	(as.sxy Rococo.Graphics.MaterialCategory "scripts/mplat")
 	(as.cpp Rococo.Graphics.MaterialCategory "mplat")
 	(
 		(Rock 0)
@@ -394,7 +394,7 @@
 )
 
 (interface
-	(as.sxy Rococo.Entities.IInstances "../content/scripts/mplat")
+	(as.sxy Rococo.Entities.IInstances "scripts/mplat")
 	(as.cpp Rococo.Entities.IInstances "mplat")
 	(context factory Rococo.Entities.IInstances)
 	(methods
@@ -422,7 +422,7 @@
 )
 
 (interface
-	(as.sxy Rococo.Graphics.IMeshBuilder "../content/scripts/mplat")
+	(as.sxy Rococo.Graphics.IMeshBuilder "scripts/mplat")
 	(as.cpp Rococo.Graphics.IMeshBuilder "mplat")
 	(context factory Rococo.Graphics.IMeshBuilder)
 	(methods
@@ -444,7 +444,7 @@
 )
 
 (interface
-	(as.sxy Rococo.Graphics.IRimTesselator "../content/scripts/mplat")
+	(as.sxy Rococo.Graphics.IRimTesselator "scripts/mplat")
 	(as.cpp Rococo.Graphics.IRimTesselator "mplat")
 	(context factory Rococo.Graphics.IRimTesselator)
 	(methods
@@ -466,7 +466,7 @@
 	(factory Rococo.Graphics.RimTesselator)
 )
 
-(interface (as.sxy Rococo.Graphics.IFieldTesselator "../content/scripts/mplat")
+(interface (as.sxy Rococo.Graphics.IFieldTesselator "scripts/mplat")
 	(as.cpp Rococo.Graphics.IFieldTesselator "mplat")
 	(context factory Rococo.Graphics.IFieldTesselator)
 	(methods
@@ -490,7 +490,7 @@
 	(factory Rococo.Graphics.FieldTesselator)
 )
 
-(interface (as.sxy Rococo.Graphics.IQuadStackTesselator "../content/scripts/mplat")
+(interface (as.sxy Rococo.Graphics.IQuadStackTesselator "scripts/mplat")
 	(as.cpp Rococo.Graphics.IQuadStackTesselator "mplat")
 	(context factory Rococo.Graphics.IQuadStackTesselator)
 	(methods
@@ -523,7 +523,7 @@
 	(factory Rococo.Graphics.QuadStackTesselator)
 )
 
-(interface (as.sxy Rococo.Graphics.IRodTesselator "../content/scripts/mplat")
+(interface (as.sxy Rococo.Graphics.IRodTesselator "scripts/mplat")
 	(as.cpp Rococo.Graphics.IRodTesselator "mplat")
 	(context factory Rococo.Platform)
 	(methods
@@ -559,7 +559,7 @@
 	(factory Rococo.Graphics.RodTesselator)
 )
 
-(interface (as.sxy Rococo.Graphics.ILandscapeTesselator "../content/scripts/mplat")
+(interface (as.sxy Rococo.Graphics.ILandscapeTesselator "scripts/mplat")
 	(as.cpp Rococo.Graphics.ILandscapeTesselator "mplat")
 	(context factory Rococo.Platform)
 	(methods
@@ -576,7 +576,7 @@
 	(factory Rococo.Graphics.LandscapeTesselator)
 )
 
-(interface (as.sxy Rococo.Graphics.ITextTesselator "../content/scripts/mplat")
+(interface (as.sxy Rococo.Graphics.ITextTesselator "scripts/mplat")
 	(as.cpp Rococo.Graphics.ITextTesselator "mplat")
 	(context factory Rococo.Platform)
 	(methods
@@ -593,7 +593,7 @@
 )
 
 (enum Int32
-	(as.sxy Rococo.Graphics.HQFont "../content/scripts/mplat")
+	(as.sxy Rococo.Graphics.HQFont "scripts/mplat")
 	(as.cpp Rococo.Graphics.HQFont "mplat")
 	(
 		(DebuggerFont 0)
@@ -605,7 +605,7 @@
 	)
 )
 
-(interface (as.sxy Rococo.Graphics.IHQFonts "../content/scripts/mplat")
+(interface (as.sxy Rococo.Graphics.IHQFonts "scripts/mplat")
 	(as.cpp Rococo.Graphics.IHQFonts "mplat")
 	(context factory Rococo.Platform)
 	(methods
@@ -625,7 +625,7 @@
 )
 
 (enum Int32
-	(as.sxy Rococo.Graphics.SampleMethod "../content/scripts/mplat")
+	(as.sxy Rococo.Graphics.SampleMethod "scripts/mplat")
 	(as.cpp Rococo.Graphics.SampleMethod "mplat")
 	(
 		(Point 0)
@@ -634,7 +634,7 @@
 )
 
 (enum Int32
-	(as.sxy Rococo.Graphics.SampleFilter "../content/scripts/mplat")
+	(as.sxy Rococo.Graphics.SampleFilter "scripts/mplat")
 	(as.cpp Rococo.Graphics.SampleFilter "mplat")
 	(
 		(Border 0)
@@ -645,7 +645,7 @@
 )
 
 (enum Int32
-	(as.sxy Rococo.Graphics.SampleIndex "../content/scripts/mplat")
+	(as.sxy Rococo.Graphics.SampleIndex "scripts/mplat")
 	(as.cpp Rococo.Graphics.SampleIndex "mplat")
 	(
 		(Fonts  0)
@@ -658,7 +658,7 @@
 	)
 )
 
-(interface (as.sxy Rococo.Graphics.IRendererConfig "../content/scripts/mplat")
+(interface (as.sxy Rococo.Graphics.IRendererConfig "scripts/mplat")
 	(as.cpp Rococo.Graphics.IRendererConfig "mplat")
 	(context factory Rococo.Platform)
 	(methods
@@ -667,7 +667,7 @@
 	(factory Rococo.Graphics.RendererConfig)
 )
 
-(interface (as.sxy Rococo.IArchive "../content/scripts/mplat")
+(interface (as.sxy Rococo.IArchive "scripts/mplat")
 	(as.cpp Rococo.IArchive "mplat")
 	(context factory Rococo.Platform)
 	(methods
@@ -679,7 +679,7 @@
 	(factory Rococo.GetArchive)
 )
 
-(interface (as.sxy Rococo.IInstallation "../content/scripts/mplat")
+(interface (as.sxy Rococo.IInstallation "scripts/mplat")
 	(as.cpp Rococo.IInstallationManager "mplat")
 	(context factory Rococo.Platform)
 	(methods
@@ -688,7 +688,7 @@
 	(factory Rococo.Installation)
 )
 
-(interface (as.sxy Rococo.IWorldBuilder "../content/scripts/mplat")
+(interface (as.sxy Rococo.IWorldBuilder "scripts/mplat")
 	(as.cpp Rococo.IWorldBuilder "mplat")
 	(context factory Rococo.Platform)
 	(methods

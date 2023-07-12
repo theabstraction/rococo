@@ -43,22 +43,22 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <TargetName>lib-zip</TargetName>
-    <OutDir>..\..\generated\bin\win64\debug\</OutDir>
-    <IntDir>..\..\generated\temp\debug\lib-zip\</IntDir>
+    <OutDir>..\..\gen\bin\win64\debug\</OutDir>
+    <IntDir>..\..\gen\temp\debug\lib-zip\</IntDir>
     <TargetExt>.dll</TargetExt>
     <GenerateManifest>true</GenerateManifest>
     <LinkIncremental>false</LinkIncremental>
-    <OutputFile>..\..\generated\bin\win64\debug\lib-zip.dll</OutputFile>
+    <OutputFile>..\..\gen\bin\win64\debug\lib-zip.dll</OutputFile>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetName>lib-zip</TargetName>
-    <OutDir>..\..\generated\bin\win64\release\</OutDir>
-    <IntDir>..\..\generated\temp\release\lib-zip\</IntDir>
+    <OutDir>..\..\gen\bin\win64\release\</OutDir>
+    <IntDir>..\..\gen\temp\release\lib-zip\</IntDir>
     <TargetExt>.dll</TargetExt>
     <GenerateManifest>true</GenerateManifest>
     <LinkIncremental>false</LinkIncremental>
-    <OutputFile>..\..\generated\bin\win64\release\lib-zip.dll</OutputFile>
+    <OutputFile>..\..\gen\bin\win64\release\lib-zip.dll</OutputFile>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -109,15 +109,15 @@
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>4127;4131;4244;4324;4996</DisableSpecificWarnings>
       <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
-      <ProgramDatabaseFileName>..\..\generated\temp\debug\lib-zip\lib-zip_compiler.pdb</ProgramDatabaseFileName>
+      <ProgramDatabaseFileName>..\..\gen\temp\debug\lib-zip\lib-zip_compiler.pdb</ProgramDatabaseFileName>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <OutputFile>..\..\generated\bin\win64\debug\lib-zip.dll</OutputFile>
+      <OutputFile>..\..\gen\bin\win64\debug\lib-zip.dll</OutputFile>
       <ShowProgress>NotSet</ShowProgress>
-      <ProgramDatabaseFile>..\..\generated\bin\win64\debug\lib-zip.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>..\..\gen\bin\win64\debug\lib-zip.pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>
       <MapExports>false</MapExports>
       <SwapRunFromCD>false</SwapRunFromCD>
@@ -142,8 +142,8 @@
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
-      <MapFileName>..\..\generated\bin\win64\debug\lib-zip.map</MapFileName>
-      <ImportLibrary>..\..\generated\lib\win64\debug\lib-zip.lib</ImportLibrary>
+      <MapFileName>..\..\gen\bin\win64\debug\lib-zip.map</MapFileName>
+      <ImportLibrary>..\..\gen\lib\win64\debug\lib-zip.lib</ImportLibrary>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -194,15 +194,15 @@
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>4127;4131;4244;4324;4996</DisableSpecificWarnings>
       <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
-      <ProgramDatabaseFileName>..\..\generated\temp\release\lib-zip\lib-zip_compiler.pdb</ProgramDatabaseFileName>
+      <ProgramDatabaseFileName>..\..\gen\temp\release\lib-zip\lib-zip_compiler.pdb</ProgramDatabaseFileName>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <OutputFile>..\..\generated\bin\win64\release\lib-zip.dll</OutputFile>
+      <OutputFile>..\..\gen\bin\win64\release\lib-zip.dll</OutputFile>
       <ShowProgress>NotSet</ShowProgress>
-      <ProgramDatabaseFile>..\..\generated\bin\win64\release\lib-zip.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>..\..\gen\bin\win64\release\lib-zip.pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>
       <MapExports>false</MapExports>
       <SwapRunFromCD>false</SwapRunFromCD>
@@ -227,8 +227,8 @@
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
-      <MapFileName>..\..\generated\bin\win64\release\lib-zip.map</MapFileName>
-      <ImportLibrary>..\..\generated\lib\win64\release\lib-zip.lib</ImportLibrary>
+      <MapFileName>..\..\gen\bin\win64\release\lib-zip.map</MapFileName>
+      <ImportLibrary>..\..\gen\lib\win64\release\lib-zip.lib</ImportLibrary>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

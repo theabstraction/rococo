@@ -43,24 +43,24 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <TargetName>rococo.audio</TargetName>
-    <OutDir>..\..\generated\bin\win64\debug\</OutDir>
-    <IntDir>..\..\generated\temp\debug\rococo.audio\</IntDir>
+    <OutDir>..\..\gen\bin\win64\debug\</OutDir>
+    <IntDir>..\..\gen\temp\debug\rococo.audio\</IntDir>
     <TargetExt>.dll</TargetExt>
     <GenerateManifest>true</GenerateManifest>
     <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
     <LinkIncremental>false</LinkIncremental>
-    <OutputFile>..\..\generated\bin\win64\debug\rococo.audio.dll</OutputFile>
+    <OutputFile>..\..\gen\bin\win64\debug\rococo.audio.dll</OutputFile>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetName>rococo.audio</TargetName>
-    <OutDir>..\..\generated\bin\win64\release\</OutDir>
-    <IntDir>..\..\generated\temp\release\rococo.audio\</IntDir>
+    <OutDir>..\..\gen\bin\win64\release\</OutDir>
+    <IntDir>..\..\gen\temp\release\rococo.audio\</IntDir>
     <TargetExt>.dll</TargetExt>
     <GenerateManifest>true</GenerateManifest>
     <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
     <LinkIncremental>false</LinkIncremental>
-    <OutputFile>..\..\generated\bin\win64\release\rococo.audio.dll</OutputFile>
+    <OutputFile>..\..\gen\bin\win64\release\rococo.audio.dll</OutputFile>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -111,16 +111,16 @@
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>4201;4250;4324;4458</DisableSpecificWarnings>
       <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
-      <ProgramDatabaseFileName>..\..\generated\temp\debug\rococo.audio\rococo.audio_compiler.pdb</ProgramDatabaseFileName>
+      <ProgramDatabaseFileName>..\..\gen\temp\debug\rococo.audio\rococo.audio_compiler.pdb</ProgramDatabaseFileName>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <OutputFile>..\..\generated\bin\win64\debug\rococo.audio.dll</OutputFile>
+      <OutputFile>..\..\gen\bin\win64\debug\rococo.audio.dll</OutputFile>
       <ShowProgress>NotSet</ShowProgress>
-      <AdditionalLibraryDirectories>..\..\generated\lib\win64\debug</AdditionalLibraryDirectories>
-      <ProgramDatabaseFile>..\..\generated\bin\win64\debug\rococo.audio.pdb</ProgramDatabaseFile>
+      <AdditionalLibraryDirectories>..\..\gen\lib\win64\debug</AdditionalLibraryDirectories>
+      <ProgramDatabaseFile>..\..\gen\bin\win64\debug\rococo.audio.pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>
       <MapExports>false</MapExports>
       <SwapRunFromCD>false</SwapRunFromCD>
@@ -145,11 +145,11 @@
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
-      <MapFileName>..\..\generated\bin\win64\debug\rococo.audio.map</MapFileName>
-      <ImportLibrary>..\..\generated\lib\win64\debug\rococo.audio.lib</ImportLibrary>
+      <MapFileName>..\..\gen\bin\win64\debug\rococo.audio.map</MapFileName>
+      <ImportLibrary>..\..\gen\lib\win64\debug\rococo.audio.lib</ImportLibrary>
     </Link>
     <PreBuildEvent>
-      <Command>$(OutDir)sexy.bennyhill.exe ..\..\source\rococo\rococo.audio\ ..\..\content\ rococo.audio.sxh&#x0D;&#x0A;</Command>
+      <Command>NMAKE /NOLOGO /F "..\tools\rococo.sxh.mak" "BENNY_HILL=..\..\gen\bin\win64\Debug\sexy.bennyhill.exe" all SOURCE_ROOT=..\..\source\rococo\rococo.audio\ CONTENT_ROOT=..\..\content\ SXH_FILE=rococo.audio.sxh XC_FILE=config.xc&#x0D;&#x0A;</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -200,16 +200,16 @@
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>4201;4250;4324;4458</DisableSpecificWarnings>
       <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
-      <ProgramDatabaseFileName>..\..\generated\temp\release\rococo.audio\rococo.audio_compiler.pdb</ProgramDatabaseFileName>
+      <ProgramDatabaseFileName>..\..\gen\temp\release\rococo.audio\rococo.audio_compiler.pdb</ProgramDatabaseFileName>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <OutputFile>..\..\generated\bin\win64\release\rococo.audio.dll</OutputFile>
+      <OutputFile>..\..\gen\bin\win64\release\rococo.audio.dll</OutputFile>
       <ShowProgress>NotSet</ShowProgress>
-      <AdditionalLibraryDirectories>..\..\generated\lib\win64\release</AdditionalLibraryDirectories>
-      <ProgramDatabaseFile>..\..\generated\bin\win64\release\rococo.audio.pdb</ProgramDatabaseFile>
+      <AdditionalLibraryDirectories>..\..\gen\lib\win64\release</AdditionalLibraryDirectories>
+      <ProgramDatabaseFile>..\..\gen\bin\win64\release\rococo.audio.pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>
       <MapExports>false</MapExports>
       <SwapRunFromCD>false</SwapRunFromCD>
@@ -234,14 +234,16 @@
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
-      <MapFileName>..\..\generated\bin\win64\release\rococo.audio.map</MapFileName>
-      <ImportLibrary>..\..\generated\lib\win64\release\rococo.audio.lib</ImportLibrary>
+      <MapFileName>..\..\gen\bin\win64\release\rococo.audio.map</MapFileName>
+      <ImportLibrary>..\..\gen\lib\win64\release\rococo.audio.lib</ImportLibrary>
     </Link>
     <PreBuildEvent>
-      <Command>$(OutDir)sexy.bennyhill.exe ..\..\source\rococo\rococo.audio\ ..\..\content\ rococo.audio.sxh&#x0D;&#x0A;</Command>
+      <Command>NMAKE /NOLOGO /F "..\tools\rococo.sxh.mak" "BENNY_HILL=..\..\gen\bin\win64\Release\sexy.bennyhill.exe" all SOURCE_ROOT=..\..\source\rococo\rococo.audio\ CONTENT_ROOT=..\..\content\ SXH_FILE=rococo.audio.sxh XC_FILE=config.xc&#x0D;&#x0A;</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\source\rococo\rococo.audio\config.xc" />
+    <ClInclude Include="..\..\source\rococo\rococo.audio\rococo.audio.sxh" />
     <ClInclude Include="..\..\source\rococo\rococo.audio\rococo.audio.sxh.h" />
     <ClInclude Include="..\..\source\rococo\rococo.audio\rococo.audio.sxh.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.audio\rococo.audio.types.h" />

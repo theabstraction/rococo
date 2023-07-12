@@ -57,13 +57,14 @@
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.world.editor.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\config.xc" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.component.template.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.components.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.editor.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.landscapes.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.panel.base.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.sxh" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.sxh.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\rococo.script.types.h" />
   </ItemGroup>
 </Project>

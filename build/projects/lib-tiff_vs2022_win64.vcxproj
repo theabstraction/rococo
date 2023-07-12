@@ -43,22 +43,22 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <TargetName>lib-tiff</TargetName>
-    <OutDir>..\..\generated\bin\win64\debug\</OutDir>
-    <IntDir>..\..\generated\temp\debug\lib-tiff\</IntDir>
+    <OutDir>..\..\gen\bin\win64\debug\</OutDir>
+    <IntDir>..\..\gen\temp\debug\lib-tiff\</IntDir>
     <TargetExt>.dll</TargetExt>
     <GenerateManifest>true</GenerateManifest>
     <LinkIncremental>false</LinkIncremental>
-    <OutputFile>..\..\generated\bin\win64\debug\lib-tiff.dll</OutputFile>
+    <OutputFile>..\..\gen\bin\win64\debug\lib-tiff.dll</OutputFile>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetName>lib-tiff</TargetName>
-    <OutDir>..\..\generated\bin\win64\release\</OutDir>
-    <IntDir>..\..\generated\temp\release\lib-tiff\</IntDir>
+    <OutDir>..\..\gen\bin\win64\release\</OutDir>
+    <IntDir>..\..\gen\temp\release\lib-tiff\</IntDir>
     <TargetExt>.dll</TargetExt>
     <GenerateManifest>true</GenerateManifest>
     <LinkIncremental>false</LinkIncremental>
-    <OutputFile>..\..\generated\bin\win64\release\lib-tiff.dll</OutputFile>
+    <OutputFile>..\..\gen\bin\win64\release\lib-tiff.dll</OutputFile>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -109,16 +109,16 @@
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>4133;4244;4267;4311;4324;4334;4456;4457;4706;4996</DisableSpecificWarnings>
       <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
-      <ProgramDatabaseFileName>..\..\generated\temp\debug\lib-tiff\lib-tiff_compiler.pdb</ProgramDatabaseFileName>
+      <ProgramDatabaseFileName>..\..\gen\temp\debug\lib-tiff\lib-tiff_compiler.pdb</ProgramDatabaseFileName>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <OutputFile>..\..\generated\bin\win64\debug\lib-tiff.dll</OutputFile>
+      <OutputFile>..\..\gen\bin\win64\debug\lib-tiff.dll</OutputFile>
       <ShowProgress>NotSet</ShowProgress>
-      <AdditionalLibraryDirectories>..\..\generated\lib\win64\debug</AdditionalLibraryDirectories>
-      <ProgramDatabaseFile>..\..\generated\bin\win64\debug\lib-tiff.pdb</ProgramDatabaseFile>
+      <AdditionalLibraryDirectories>..\..\gen\lib\win64\debug</AdditionalLibraryDirectories>
+      <ProgramDatabaseFile>..\..\gen\bin\win64\debug\lib-tiff.pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>
       <MapExports>false</MapExports>
       <SwapRunFromCD>false</SwapRunFromCD>
@@ -143,8 +143,8 @@
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
-      <MapFileName>..\..\generated\bin\win64\debug\lib-tiff.map</MapFileName>
-      <ImportLibrary>..\..\generated\lib\win64\debug\lib-tiff.lib</ImportLibrary>
+      <MapFileName>..\..\gen\bin\win64\debug\lib-tiff.map</MapFileName>
+      <ImportLibrary>..\..\gen\lib\win64\debug\lib-tiff.lib</ImportLibrary>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -195,16 +195,16 @@
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>4133;4244;4267;4311;4324;4334;4456;4457;4706;4996</DisableSpecificWarnings>
       <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
-      <ProgramDatabaseFileName>..\..\generated\temp\release\lib-tiff\lib-tiff_compiler.pdb</ProgramDatabaseFileName>
+      <ProgramDatabaseFileName>..\..\gen\temp\release\lib-tiff\lib-tiff_compiler.pdb</ProgramDatabaseFileName>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <OutputFile>..\..\generated\bin\win64\release\lib-tiff.dll</OutputFile>
+      <OutputFile>..\..\gen\bin\win64\release\lib-tiff.dll</OutputFile>
       <ShowProgress>NotSet</ShowProgress>
-      <AdditionalLibraryDirectories>..\..\generated\lib\win64\release</AdditionalLibraryDirectories>
-      <ProgramDatabaseFile>..\..\generated\bin\win64\release\lib-tiff.pdb</ProgramDatabaseFile>
+      <AdditionalLibraryDirectories>..\..\gen\lib\win64\release</AdditionalLibraryDirectories>
+      <ProgramDatabaseFile>..\..\gen\bin\win64\release\lib-tiff.pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>
       <MapExports>false</MapExports>
       <SwapRunFromCD>false</SwapRunFromCD>
@@ -229,8 +229,8 @@
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
-      <MapFileName>..\..\generated\bin\win64\release\lib-tiff.map</MapFileName>
-      <ImportLibrary>..\..\generated\lib\win64\release\lib-tiff.lib</ImportLibrary>
+      <MapFileName>..\..\gen\bin\win64\release\lib-tiff.map</MapFileName>
+      <ImportLibrary>..\..\gen\lib\win64\release\lib-tiff.lib</ImportLibrary>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

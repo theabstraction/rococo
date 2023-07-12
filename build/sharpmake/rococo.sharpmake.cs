@@ -6,66 +6,89 @@ using System.Collections.Generic;
 
 namespace Rococo
 {
-    public class RococoBaseProject : Project
+    public static class Roots
     {
-        public string RococoRootPath
+        private static string rococoRootPath = null;
+        public static string RococoRootPath
         {
             get
             {
-                return Path.Combine(@"[project.SharpmakeCsPath]", @"..\..\");
+                if (rococoRootPath == null)
+                {
+                    rococoRootPath = Directory.GetCurrentDirectory();
+                }
+
+                string rococoPath = Directory.GetCurrentDirectory();
+                string rococoGuidFile = Path.Combine(rococoPath, "rococo.guid.txt");
+                string guid = File.ReadAllText(rococoGuidFile);
+                string officialGuid = "EAF1A643-486F-4019-A3D4-6712BFC9568D";
+                if (guid != officialGuid)
+                {
+                    throw new Exception("Working directory for this script must be the rococo root directory, that contains the rococo guid in rococo.guid.txt " + officialGuid);
+                }
+
+                return rococoRootPath;
             }
         }
 
-        public string RococoProjectPath
+        public static string RococoProjectPath
         {
             get
             {
-                return Path.Combine(RococoRootPath, @"build\project\");
+                return Path.Combine(Roots.RococoRootPath, @"build\projects\");
             }
         }
 
-        public string RococoContentPath
+        public static string RococoContentPath
         {
             get
             {
-                return Path.Combine(RococoRootPath, @"content\");
+                return Path.Combine(Roots.RococoRootPath, @"content\");
             }
         }
 
-        public string RococoSourcePath
+        public static string RococoSourcePath
         {
             get
             {
-                return Path.Combine(RococoRootPath, @"source\rococo\");
+                return Path.Combine(Roots.RococoRootPath, @"source\rococo\");
             }
         }
 
-        public string RococoTmpPath
+        public static string RococoToolsPath
         {
             get
             {
-                return Path.Combine(RococoRootPath, @"generated\temp\");
+                return Path.Combine(Roots.RococoRootPath, @"build\tools\");
             }
         }
 
-        public string RococoLibPath
+        public static string RococoTmpPath
         {
             get
             {
-                return Path.Combine(RococoRootPath, @"generated\lib\");
+                return Path.Combine(Roots.RococoRootPath, @"gen\temp\");
             }
         }
 
-
-        public string RococoBinPath
+        public static string RococoLibPath
         {
             get
             {
-                return Path.Combine(RococoRootPath, @"generated\bin\");
+                return Path.Combine(Roots.RococoRootPath, @"gen\lib\");
             }
         }
 
-        public string RococoSexyPath
+
+        public static string RococoBinPath
+        {
+            get
+            {
+                return Path.Combine(Roots.RococoRootPath, @"gen\bin\");
+            }
+        }
+
+        public static string RococoSexyPath
         {
             get
             {
@@ -73,7 +96,7 @@ namespace Rococo
             }
         }
 
-        public string RococoIncludePath
+        public static string RococoIncludePath
         {
             get
             {
@@ -81,17 +104,20 @@ namespace Rococo
             }
         }
 
-        public string ThirdPartyPath
+        public static string ThirdPartyPath
         {
             get
             {
-                return Path.Combine(RococoRootPath, @"source\3rd-Party\");
+                return Path.Combine(Roots.RococoRootPath, @"source\3rd-Party\");
             }
         }
+    }
 
+    public class RococoBaseProject : Project
+    {
         public void AddDefaultLibraries(Configuration config)
         {
-            config.TargetLibraryPath = Path.Combine(RococoLibPath, @"[target.Platform]\[conf.Name]\");
+            config.TargetLibraryPath = Path.Combine(Roots.RococoLibPath, @"[target.Platform]\[conf.Name]\");
         }
 
         public void Exclude(params string[] names)
@@ -99,6 +125,51 @@ namespace Rococo
             foreach (var name in names)
             {
                 SourceFilesExclude.Add(name);
+            }
+        }
+
+        public void AddSXHFileBuildStep(Configuration conf, string sxh, string xc, bool asPreBuildStep)
+        {
+            if (!sxh.EndsWith(".sxh"))
+            {
+                throw new Exception("Expecting file " + sxh + " to end with .sxh");
+            }
+
+            if (!xc.EndsWith(".xc"))
+            {
+                throw new Exception("Expecting config file " + xc + " to end with .xc");
+            }
+
+            if (asPreBuildStep)
+            {
+                string makeFilePath = Path.Combine(Roots.RococoToolsPath, @"rococo.sxh.mak");
+
+                string makeRelative = Util.PathGetRelative(Roots.RococoProjectPath, makeFilePath);
+                string contentRelative = Util.PathGetRelative(Roots.RococoProjectPath, Roots.RococoContentPath);
+                string srcRelative = Util.PathGetRelative(Roots.RococoProjectPath, SourceRootPath);
+
+                string binRelative = Util.PathGetRelative(Roots.RococoProjectPath, conf.TargetPath);
+
+                string makeFile = string.Format("NMAKE /NOLOGO /F \"{0}\" \"BENNY_HILL={1}\\sexy.bennyhill.exe\" all SOURCE_ROOT={2}\\ CONTENT_ROOT={3}\\ SXH_FILE={4} XC_FILE={5}", makeRelative, binRelative, srcRelative, contentRelative, sxh, xc);
+                conf.EventPreBuild.Add(makeFile);
+            }
+            else
+            {
+                string srcRelative = Util.PathGetRelative(Roots.RococoProjectPath, SourceRootPath);
+                string contentRelative = Util.PathGetRelative(Roots.RococoProjectPath, Roots.RococoContentPath);
+
+                string[] args = new[] { srcRelative, contentRelative, sxh };
+
+                var customStep = new Configuration.CustomFileBuildStep
+                {
+                    KeyInput = sxh,
+                    Output = sxh + ".inl",
+                    Description = "Generates C++ and SXY code from the " + sxh + " file",
+                    Executable = @"$(OutDir)sexy.bennyhill.exe",
+                    ExecutableArguments = string.Format("{0} {1} {2}", srcRelative, contentRelative, sxh)
+                };
+
+                conf.CustomFileBuildSteps.Add(customStep);
             }
         }
     }
@@ -110,7 +181,7 @@ namespace Rococo
         {
             conf.Output = type;
             conf.ProjectFileName = "[project.Name]_[target.DevEnv]_[target.Platform]";
-            conf.ProjectPath = Path.Combine(@"[project.SharpmakeCsPath]", @"..\projects");
+            conf.ProjectPath = Roots.RococoProjectPath;
 
             AddDefaults(conf, target, CCPVersion);
 
@@ -122,7 +193,7 @@ namespace Rococo
             }
 
             conf.SourceFilesBuildExcludeRegex.Add(@"\.*(" + string.Join("|", excludedFileSuffixes.ToArray()) + @")\.cpp$");
-            conf.TargetLibraryPath = Path.Combine(RococoLibPath, @"[target.Platform]\[conf.Name]\");
+            conf.TargetLibraryPath = Path.Combine(Roots.RococoLibPath, @"[target.Platform]\[conf.Name]\");
         }
 
         protected RococoProject(string name)
@@ -143,8 +214,8 @@ namespace Rococo
 
         protected void AddDefaults(Configuration conf, Target target, int CPPVersion = 17)
         {
-            conf.IncludePaths.Add(RococoIncludePath);
-            conf.IncludePaths.Add(Path.Combine(RococoSexyPath, @"Common\"));
+            conf.IncludePaths.Add(Roots.RococoIncludePath);
+            conf.IncludePaths.Add(Path.Combine(Roots.RococoSexyPath, @"Common\"));
 
             switch(CPPVersion)
             {
@@ -157,8 +228,8 @@ namespace Rococo
             } 
             conf.Options.Add(Sharpmake.Options.Vc.Compiler.Exceptions.Enable);
             conf.Options.Add(new Sharpmake.Options.Vc.Compiler.DisableSpecificWarnings("4458", "4201", "4324", "4250"));
-            conf.IntermediatePath = Path.Combine(RococoTmpPath, @"[target.Name]\[project.Name]\");
-            conf.TargetPath = Path.Combine(RococoBinPath, @"[target.Platform]\[conf.Name]\");
+            conf.IntermediatePath = Path.Combine(Roots.RococoTmpPath, @"[target.Name]\[project.Name]\");
+            conf.TargetPath = Path.Combine(Roots.RococoBinPath, @"[target.Platform]\[conf.Name]\");
         }
 
         public virtual void SetSourcePath(string subdir)
@@ -173,7 +244,7 @@ namespace Rococo
                 throw new Exception("The subdirectory must not begin with a directory slash");
             }
 
-            SourceRootPath = Path.Combine(RococoSourcePath, subdir);
+            SourceRootPath = Path.Combine(Roots.RococoSourcePath, subdir);
         }
     }
 
@@ -184,7 +255,7 @@ namespace Rococo
         {
             conf.Output = type;
             conf.ProjectFileName = "[project.Name]_[target.DevEnv]_[target.Platform]";
-            conf.ProjectPath = Path.Combine(@"[project.SharpmakeCsPath]", @"..\projects");
+            conf.ProjectPath = Roots.RococoProjectPath;
 
             AddDefaults(conf, target, CCPVersion);
 
@@ -196,7 +267,7 @@ namespace Rococo
             }
 
             conf.SourceFilesBuildExcludeRegex.Add(@"\.*(" + string.Join("|", excludedFileSuffixes.ToArray()) + @")\.cpp$");
-            conf.TargetLibraryPath = Path.Combine(RococoLibPath, @"[target.Platform]\[conf.Name]\");
+            conf.TargetLibraryPath = Path.Combine(Roots.RococoLibPath, @"[target.Platform]\[conf.Name]\");
         }
 
         protected ThirdPartyProject(string name, string subdir)
@@ -227,8 +298,8 @@ namespace Rococo
                     break;
             }
             conf.Options.Add(Sharpmake.Options.Vc.Compiler.Exceptions.Enable);
-            conf.IntermediatePath = Path.Combine(RococoTmpPath, @"[target.Name]\[project.Name]\");
-            conf.TargetPath = Path.Combine(RococoBinPath, @"[target.Platform]\[conf.Name]\");
+            conf.IntermediatePath = Path.Combine(Roots.RococoTmpPath, @"[target.Name]\[project.Name]\");
+            conf.TargetPath = Path.Combine(Roots.RococoBinPath, @"[target.Platform]\[conf.Name]\");
         }
 
         public virtual void SetSourcePath(string subdir)
@@ -243,7 +314,7 @@ namespace Rococo
                 throw new Exception("The subdirectory must not begin with a directory slash");
             }
 
-            SourceRootPath = Path.Combine(ThirdPartyPath, subdir);
+            SourceRootPath = Path.Combine(Roots.ThirdPartyPath, subdir);
         }
     }
 
@@ -266,77 +337,12 @@ namespace Rococo
                 throw new Exception("The subdirectory must not begin with a directory slash");
             }
 
-            SourceRootPath = System.IO.Path.Combine(RococoSexyPath, subdir);
+            SourceRootPath = System.IO.Path.Combine(Roots.RococoSexyPath, subdir);
         }
     }
 
     public class RococoCSharpProject : CSharpProject
     {
-        public string RococoRootPath
-        {
-            get
-            {
-                return Path.Combine(@"[project.SharpmakeCsPath]", @"..\..\");
-            }
-        }
-
-        public string RococoProjectPath
-        {
-            get
-            {
-                return Path.Combine(RococoRootPath, @"build\project\");
-            }
-        }
-
-        public string RococoSourcePath
-        {
-            get
-            {
-                return Path.Combine(RococoRootPath, @"source\rococo\");
-            }
-        }
-
-        public string RococoTmpPath
-        {
-            get
-            {
-                return Path.Combine(RococoRootPath, @"generated\temp\");
-            }
-        }
-
-        public string RococoLibPath
-        {
-            get
-            {
-                return Path.Combine(RococoRootPath, @"generated\lib\");
-            }
-        }
-
-
-        public string RococoBinPath
-        {
-            get
-            {
-                return Path.Combine(RococoRootPath, @"generated\bin\");
-            }
-        }
-
-        public string RococoSexyPath
-        {
-            get
-            {
-                return Path.Combine(RococoSourcePath, @"sexy\");
-            }
-        }
-
-        public string RococoIncludePath
-        {
-            get
-            {
-                return Path.Combine(RococoSourcePath, @"include\");
-            }
-        }
-
         public void SetSourcePath(string subdir)
         {
             if (subdir == null || subdir[0] == 0)
@@ -349,7 +355,7 @@ namespace Rococo
                 throw new Exception("The subdirectory must not begin with a directory slash");
             }
 
-            SourceRootPath = Path.Combine(RococoSourcePath, subdir);
+            SourceRootPath = Path.Combine(Roots.RococoSourcePath, subdir);
         }
 
         protected RococoCSharpProject(string name)
@@ -357,7 +363,7 @@ namespace Rococo
             base.Name = name;
             SetSourcePath(name);
 
-            RootPath = RococoRootPath;
+            RootPath = Roots.RococoRootPath;
 
             AddTargets(new Target(
                 Platform.win64,
@@ -370,16 +376,16 @@ namespace Rococo
             );
 
             // This Path will be used to get all SourceFiles in this Folder and all subFolders
-            SourceRootPath = Path.Combine(RococoSourcePath, Name);
+            SourceRootPath = Path.Combine(Roots.RococoSourcePath, Name);
         }
 
         public virtual void ConfigureAll(Configuration conf, Target target)
         {
             conf.ProjectFileName = "[project.Name].[target.DevEnv].[target.Framework]";
-            conf.ProjectPath = @"[project.SharpmakeCsPath]\generated\";
-            conf.TargetLibraryPath = Path.Combine(RococoLibPath, @"[target.Platform]\[conf.Name]\");
-            conf.IntermediatePath = Path.Combine(RococoTmpPath, @"[target.Name]\[project.Name]\");
-            conf.TargetPath = Path.Combine(RococoBinPath, @"[target.Platform]\[conf.Name]\");
+            conf.ProjectPath = Roots.RococoProjectPath;
+            conf.TargetLibraryPath = Path.Combine(Roots.RococoLibPath, @"[target.Platform]\[conf.Name]\");
+            conf.IntermediatePath = Path.Combine(Roots.RococoTmpPath, @"[target.Name]\[project.Name]\");
+            conf.TargetPath = Path.Combine(Roots.RococoBinPath, @"[target.Platform]\[conf.Name]\");
         }
     }
 
@@ -505,7 +511,7 @@ namespace Rococo
         public void ConfigureAll(Configuration conf, Target target)
         {
             StandardInit(conf, target, Configuration.OutputType.Exe);
-            conf.IncludePaths.Add(Path.Combine(RococoSexyPath, @"STC\stccore\"));
+            conf.IncludePaths.Add(Path.Combine(Roots.RococoSexyPath, @"STC\stccore\"));
             conf.AddPublicDependency<RococoSexyIDEProject>(target); 
             conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.AddPublicDependency<RococoWindowsProject>(target);
@@ -600,7 +606,7 @@ namespace Rococo
         {
             conf.Output = Configuration.OutputType.DotNetConsoleApp;
             base.ConfigureAll(conf, target);
-            conf.TargetLibraryPath = Path.Combine(RococoLibPath, @"[target.Platform]\[conf.Name]\");
+            conf.TargetLibraryPath = Path.Combine(Roots.RococoLibPath, @"[target.Platform]\[conf.Name]\");
         }
     }
 
@@ -609,6 +615,7 @@ namespace Rococo
     {
         public RococoMPlatProject() : base("rococo.mplat")
         {
+            SourceFiles.Add("mplat.sxh", "config.xc");
         }
 
         [Configure()]
@@ -619,6 +626,8 @@ namespace Rococo
             conf.SourceFilesBuildExcludeRegex.Add(@"mplat.component.template.cpp");
             conf.SourceFilesBuildExcludeRegex.Add(@"mplat.test.app.cpp");
             conf.AddPublicDependency<SexyBennyHillProject>(target);
+
+            AddSXHFileBuildStep(conf, "mplat.sxh", "config.xc", true);
         }
     }
 
@@ -722,6 +731,8 @@ namespace Rococo
     {
         public RococoAudioProject() : base("rococo.audio")
         {
+            base.SourceFiles.Add("rococo.audio.sxh");
+            base.SourceFiles.Add("config.xc");
         }
 
         [Configure()]
@@ -733,10 +744,7 @@ namespace Rococo
             conf.AddPublicDependency<RococoMathsProject>(target);
             conf.AddPublicDependency<SexyBennyHillProject>(target);
 
-            string srcRelative = Util.PathGetRelative(RococoProjectPath, base.SourceRootPath);
-            string contentRelative = Util.PathGetRelative(RococoProjectPath, RococoContentPath);
-
-            conf.EventPreBuild.Add("$(OutDir)sexy.bennyhill.exe " + srcRelative + @"\ " + contentRelative + @"\ rococo.audio.sxh");
+            AddSXHFileBuildStep(conf, "rococo.audio.sxh", "config.xc", true);
         }
     }
 
@@ -938,9 +946,9 @@ namespace Rococo
             conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.AddPublicDependency<LibJPegProject>(target);
             conf.AddPublicDependency<LibZipProject>(target);
-            conf.IncludePaths.Add(Path.Combine(ThirdPartyPath, @"libjpg\jpeg-6b\"));
-            conf.IncludePaths.Add(Path.Combine(ThirdPartyPath, @"zlib\"));
-            conf.IncludePaths.Add(RococoIncludePath);
+            conf.IncludePaths.Add(Path.Combine(Roots.ThirdPartyPath, @"libjpg\jpeg-6b\"));
+            conf.IncludePaths.Add(Path.Combine(Roots.ThirdPartyPath, @"zlib\"));
+            conf.IncludePaths.Add(Roots.RococoIncludePath);
             conf.Options.Add(new Sharpmake.Options.Vc.Compiler.DisableSpecificWarnings("4244", "4267", "4996", "4456", "4334", "4706", "4133", "4457", "4311", "4324"));
             AddDefaultLibraries(conf);
         }
@@ -961,7 +969,7 @@ namespace Rococo
         public void ConfigureAll(Configuration conf, Target target)
         {
             StandardInit(conf, target, Configuration.OutputType.Dll);
-            conf.IncludePaths.Add(RococoIncludePath);
+            conf.IncludePaths.Add(Roots.RococoIncludePath);
             conf.Options.Add(new Sharpmake.Options.Vc.Compiler.DisableSpecificWarnings("4131", "4324", "4244", "4127", "4996"));
             AddDefaultLibraries(conf);
             conf.Defines.Add("ZLIB_DLL");
@@ -983,9 +991,9 @@ namespace Rococo
         public void ConfigureAll(Configuration conf, Target target)
         {
             StandardInit(conf, target, Configuration.OutputType.Dll);
-            conf.IncludePaths.Add(Path.Combine(ThirdPartyPath, @"libjpg\jpeg-6b\"));
-            conf.IncludePaths.Add(RococoIncludePath);
-            conf.IncludePaths.Add(Path.Combine(ThirdPartyPath, @"zlib"));
+            conf.IncludePaths.Add(Path.Combine(Roots.ThirdPartyPath, @"libjpg\jpeg-6b\"));
+            conf.IncludePaths.Add(Roots.RococoIncludePath);
+            conf.IncludePaths.Add(Path.Combine(Roots.ThirdPartyPath, @"zlib"));
 
             conf.Defines.Add("ROCOCO_JPEG_API=__declspec(dllexport)");
 

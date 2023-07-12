@@ -12,6 +12,8 @@
     <ClCompile Include="..\..\source\rococo\rococo.audio\rococo.audio.X3D.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\source\rococo\rococo.audio\config.xc" />
+    <ClInclude Include="..\..\source\rococo\rococo.audio\rococo.audio.sxh" />
     <ClInclude Include="..\..\source\rococo\rococo.audio\rococo.audio.sxh.h" />
     <ClInclude Include="..\..\source\rococo\rococo.audio\rococo.audio.sxh.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.audio\rococo.audio.types.h" />

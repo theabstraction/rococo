@@ -939,7 +939,7 @@ namespace Rococo
 
 		appender.Append(("\tvoid AddNativeCalls_%s(Rococo::Script::IPublicScriptSystem& ss, %s* _nceContext)\n"), ic.asCppInterface.CompressedName(), ic.nceContext.FQName());
 		appender.Append(("\t{\n"));
-
+		appender.Append(("\t\tHIDE_COMPILER_WARNINGS(_nceContext);\n"));
 		if (methods != NULL)
 		{
 			appender.Append(("\t\tconst INamespace& ns = ss.AddNativeNamespace(\""));

@@ -17,8 +17,8 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\..\..\generated\bin\win64\debug</OutputPath>
-    <IntermediateOutputPath>..\..\..\generated\temp\debug\rococo.cpp_master</IntermediateOutputPath>
+    <OutputPath>..\..\gen\bin\win64\debug</OutputPath>
+    <IntermediateOutputPath>..\..\gen\temp\debug\rococo.cpp_master</IntermediateOutputPath>
     <DefineConstants>DEBUG;TRACE;WIN64</DefineConstants>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
@@ -28,23 +28,23 @@
     <DebugSymbols>false</DebugSymbols>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\..\..\generated\bin\win64\release</OutputPath>
-    <IntermediateOutputPath>..\..\..\generated\temp\release\rococo.cpp_master</IntermediateOutputPath>
+    <OutputPath>..\..\gen\bin\win64\release</OutputPath>
+    <IntermediateOutputPath>..\..\gen\temp\release\rococo.cpp_master</IntermediateOutputPath>
     <DefineConstants>TRACE;WIN64</DefineConstants>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
   <ItemGroup>
-    <Compile Include="..\..\..\source\rococo\rococo.cpp_master\rococo.cpp_master.component.cs">
+    <Compile Include="..\..\source\rococo\rococo.cpp_master\rococo.cpp_master.component.cs">
       <Link>rococo.cpp_master.component.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\source\rococo\rococo.cpp_master\rococo.cpp_master.main.cs">
+    <Compile Include="..\..\source\rococo\rococo.cpp_master\rococo.cpp_master.main.cs">
       <Link>rococo.cpp_master.main.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\..\source\rococo\rococo.cpp_master\test.xml">
+    <None Include="..\..\source\rococo\rococo.cpp_master\test.xml">
       <Link>Resources\test.xml</Link>
     </None>
   </ItemGroup>
