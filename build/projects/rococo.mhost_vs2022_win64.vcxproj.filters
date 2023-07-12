@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\..\source\rococo\rococo.mhost\mhost.app.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mhost\mhost.graphics.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mhost\mhost.os.win32.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mhost\mhost.scripts.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mhost\mhost.serializers.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mhost\mhost.tests.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\source\rococo\rococo.mhost\hv.script.types.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mhost\mhost.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mhost\mhost.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mhost\mhost.sxh.inl" />
+    <ClInclude Include="..\..\source\rococo\rococo.mhost\Resource.h" />
+  </ItemGroup>
+</Project>

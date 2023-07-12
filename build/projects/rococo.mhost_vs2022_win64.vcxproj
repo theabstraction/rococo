@@ -11,24 +11,24 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{9252DFB4-A082-9E10-1970-75F4FEAAE6FE}</ProjectGuid>
+    <ProjectGuid>{1E566F07-C198-A5FD-2BC9-284B6537D3A5}</ProjectGuid>
     <DefaultLanguage>en-US</DefaultLanguage>
-    <RootNamespace>rococo.mplat</RootNamespace>
-    <ProjectName>rococo.mplat</ProjectName>
+    <RootNamespace>rococo.mhost</RootNamespace>
+    <ProjectName>rococo.mhost</ProjectName>
   </PropertyGroup>
   <PropertyGroup Label="Globals">
     <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>false</WholeProgramOptimization>
     <PlatformToolset>v143</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>false</WholeProgramOptimization>
@@ -42,25 +42,23 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <TargetName>rococo.mplat</TargetName>
-    <OutDir>..\..\gen\lib\win64\debug\</OutDir>
-    <IntDir>..\..\gen\temp\debug\rococo.mplat\</IntDir>
-    <TargetExt>.lib</TargetExt>
+    <TargetName>rococo.mhost</TargetName>
+    <OutDir>..\..\gen\bin\win64\debug\</OutDir>
+    <IntDir>..\..\gen\temp\debug\rococo.mhost\</IntDir>
+    <TargetExt>.exe</TargetExt>
     <GenerateManifest>true</GenerateManifest>
-    <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
     <LinkIncremental>false</LinkIncremental>
-    <OutputFile>..\..\gen\lib\win64\debug\rococo.mplat.lib</OutputFile>
+    <OutputFile>..\..\gen\bin\win64\debug\rococo.mhost.exe</OutputFile>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <TargetName>rococo.mplat</TargetName>
-    <OutDir>..\..\gen\lib\win64\release\</OutDir>
-    <IntDir>..\..\gen\temp\release\rococo.mplat\</IntDir>
-    <TargetExt>.lib</TargetExt>
+    <TargetName>rococo.mhost</TargetName>
+    <OutDir>..\..\gen\bin\win64\release\</OutDir>
+    <IntDir>..\..\gen\temp\release\rococo.mhost\</IntDir>
+    <TargetExt>.exe</TargetExt>
     <GenerateManifest>true</GenerateManifest>
-    <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
     <LinkIncremental>false</LinkIncremental>
-    <OutputFile>..\..\gen\lib\win64\release\rococo.mplat.lib</OutputFile>
+    <OutputFile>..\..\gen\bin\win64\release\rococo.mhost.exe</OutputFile>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -68,7 +66,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN64;_DEBUG;_LIB;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN64;_DEBUG;_WINDOWS;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -111,30 +109,49 @@
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>4201;4250;4324;4458</DisableSpecificWarnings>
       <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
-      <ProgramDatabaseFileName>..\..\gen\temp\debug\rococo.mplat\rococo.mplat_compiler.pdb</ProgramDatabaseFileName>
+      <ProgramDatabaseFileName>..\..\gen\temp\debug\rococo.mhost\rococo.mhost_compiler.pdb</ProgramDatabaseFileName>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
+      <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+      <OutputFile>..\..\gen\bin\win64\debug\rococo.mhost.exe</OutputFile>
+      <ShowProgress>NotSet</ShowProgress>
+      <AdditionalLibraryDirectories>..\..\gen\lib\win64\debug</AdditionalLibraryDirectories>
+      <ProgramDatabaseFile>..\..\gen\bin\win64\debug\rococo.mhost.pdb</ProgramDatabaseFile>
+      <GenerateMapFile>true</GenerateMapFile>
+      <MapExports>false</MapExports>
+      <SwapRunFromCD>false</SwapRunFromCD>
+      <SwapRunFromNET>false</SwapRunFromNET>
+      <Driver>NotSet</Driver>
       <OptimizeReferences>false</OptimizeReferences>
-    </Link>
-    <Lib>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+      <ProfileGuidedDatabase>
+      </ProfileGuidedDatabase>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
+      <IgnoreEmbeddedIDL>false</IgnoreEmbeddedIDL>
+      <TypeLibraryResourceID>1</TypeLibraryResourceID>
+      <NoEntryPoint>false</NoEntryPoint>
+      <SetChecksum>false</SetChecksum>
+      <TurnOffAssemblyGeneration>false</TurnOffAssemblyGeneration>
       <TargetMachine>MachineX64</TargetMachine>
-      <SubSystem/>
-      <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
-      <OutputFile>..\..\gen\lib\win64\debug\rococo.mplat.lib</OutputFile>
-    </Lib>
-    <PreBuildEvent>
-      <Command>NMAKE /NOLOGO /F "..\tools\rococo.sxh.mak" "BENNY_HILL=..\..\gen\bin\win64\Debug\sexy.bennyhill.exe" all SOURCE_ROOT=..\..\source\rococo\rococo.mplat\ CONTENT_ROOT=..\..\content\ SXH_FILE=mplat.sxh XC_FILE=config.xc&#x0D;&#x0A;</Command>
-    </PreBuildEvent>
+      <Profile>false</Profile>
+      <CLRImageType>Default</CLRImageType>
+      <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
+      <AdditionalDependencies>rococo.maths.lib;rococo.util.ex.lib;rococo.util.lib;rococo.windows.lib;sexy.s-parser.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <LargeAddressAware>true</LargeAddressAware>
+      <MapFileName>..\..\gen\bin\win64\debug\rococo.mhost.map</MapFileName>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Full</Optimization>
-      <PreprocessorDefinitions>NDEBUG;WIN64;_LIB;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;WIN64;_WINDOWS;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -177,97 +194,57 @@
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>4201;4250;4324;4458</DisableSpecificWarnings>
       <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
-      <ProgramDatabaseFileName>..\..\gen\temp\release\rococo.mplat\rococo.mplat_compiler.pdb</ProgramDatabaseFileName>
+      <ProgramDatabaseFileName>..\..\gen\temp\release\rococo.mhost\rococo.mhost_compiler.pdb</ProgramDatabaseFileName>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
+      <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OutputFile>..\..\gen\bin\win64\release\rococo.mhost.exe</OutputFile>
+      <ShowProgress>NotSet</ShowProgress>
+      <AdditionalLibraryDirectories>..\..\gen\lib\win64\release</AdditionalLibraryDirectories>
+      <ProgramDatabaseFile>..\..\gen\bin\win64\release\rococo.mhost.pdb</ProgramDatabaseFile>
+      <GenerateMapFile>true</GenerateMapFile>
+      <MapExports>false</MapExports>
+      <SwapRunFromCD>false</SwapRunFromCD>
+      <SwapRunFromNET>false</SwapRunFromNET>
+      <Driver>NotSet</Driver>
       <OptimizeReferences>true</OptimizeReferences>
-    </Link>
-    <Lib>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <ProfileGuidedDatabase>
+      </ProfileGuidedDatabase>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
+      <IgnoreEmbeddedIDL>false</IgnoreEmbeddedIDL>
+      <TypeLibraryResourceID>1</TypeLibraryResourceID>
+      <NoEntryPoint>false</NoEntryPoint>
+      <SetChecksum>false</SetChecksum>
+      <TurnOffAssemblyGeneration>false</TurnOffAssemblyGeneration>
       <TargetMachine>MachineX64</TargetMachine>
-      <SubSystem/>
-      <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
-      <OutputFile>..\..\gen\lib\win64\release\rococo.mplat.lib</OutputFile>
-    </Lib>
-    <PreBuildEvent>
-      <Command>NMAKE /NOLOGO /F "..\tools\rococo.sxh.mak" "BENNY_HILL=..\..\gen\bin\win64\Release\sexy.bennyhill.exe" all SOURCE_ROOT=..\..\source\rococo\rococo.mplat\ CONTENT_ROOT=..\..\content\ SXH_FILE=mplat.sxh XC_FILE=config.xc&#x0D;&#x0A;</Command>
-    </PreBuildEvent>
+      <Profile>false</Profile>
+      <CLRImageType>Default</CLRImageType>
+      <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
+      <AdditionalDependencies>rococo.maths.lib;rococo.util.ex.lib;rococo.util.lib;rococo.windows.lib;sexy.s-parser.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <LargeAddressAware>true</LargeAddressAware>
+      <MapFileName>..\..\gen\bin\win64\release\rococo.mhost.map</MapFileName>
+    </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\config.xc" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.component.template.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.components.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.editor.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.landscapes.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.panel.base.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.sxh" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.sxh.inl" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\rococo.script.types.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mhost\hv.script.types.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mhost\mhost.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mhost\mhost.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mhost\mhost.sxh.inl" />
+    <ClInclude Include="..\..\source\rococo\rococo.mhost\Resource.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.archive.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.bloody.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.component.template.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.components.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.components.factories.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.config.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.entities.animation.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.entities.animation.debug.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.entities.instances.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.entities.mobiles.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.entities.particles.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.entities.rigs.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.file.browser.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.geometry.octree.loose.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.geometry.quadtree.loose.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.camera.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.fieldtesselator.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.landscapes.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.meshes.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.messaging.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.qs.tesselator.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.rod.tesselator.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.scene.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.sprites.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.sprite_builder.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.tess.rim.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.text.tesselator.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.gui.retained.custodian.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.guistack.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.hqfonts.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.inventory.array.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.joysticks.xbox360.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.keyboard.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.main.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.maths.visitor.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.os.win32.venue.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.overlay.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.pane.array-box.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.pane.base.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.pane.context-menu.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.pane.enumlist.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.pane.label.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.pane.radiobutton.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.pane.scrollbar.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.pane.slider.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.pane.tab.container.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.pane.textoutput.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.renderer.config.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.scripts.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.test.app.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.tests.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.utilities.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.world.builder.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.world.editor.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mhost\mhost.app.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mhost\mhost.graphics.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mhost\mhost.os.win32.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mhost\mhost.scripts.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mhost\mhost.serializers.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mhost\mhost.tests.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
@@ -277,6 +254,41 @@
       <Project>{AAA4E388-1FBD-AA0C-6B5C-0727A1455157}</Project>
       <Name>sexy.bennyhill</Name>
       <Private>true</Private>
+    </ProjectReference>
+    <ProjectReference Include="sexy.script_vs2022_win64.vcxproj">
+      <Project>{18F4E289-D814-2BE5-97CF-FC0D7748887B}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+    <ProjectReference Include="sexy.util_vs2022_win64.vcxproj">
+      <Project>{3E686747-BC5F-FFE1-B4A3-7E531F4122E2}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+    <ProjectReference Include="rococo.util_vs2022_win64.vcxproj">
+      <Project>{62184609-95D1-1E60-D8CD-3755550224A5}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+    <ProjectReference Include="rococo.windows_vs2022_win64.vcxproj">
+      <Project>{82217C37-348A-32E9-39E2-871C1E8CA026}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+    <ProjectReference Include="rococo.maths_vs2022_win64.vcxproj">
+      <Project>{83F901CE-6EC8-579F-89CA-76C364A01566}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+    <ProjectReference Include="sexy.s-parser_vs2022_win64.vcxproj">
+      <Project>{BACEFA6A-2AAC-DC56-B568-376B6F64FA56}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+    <ProjectReference Include="rococo.util.ex_vs2022_win64.vcxproj">
+      <Project>{FB785134-FBBF-3649-06A1-2B0C17033458}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
     </ProjectReference>
   </ItemGroup>
 </Project>

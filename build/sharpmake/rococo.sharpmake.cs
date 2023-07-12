@@ -624,6 +624,7 @@ namespace Rococo
             StandardInit(conf, target, Configuration.OutputType.Lib);
 
             conf.SourceFilesBuildExcludeRegex.Add(@"mplat.component.template.cpp");
+            conf.SourceFilesBuildExcludeRegex.Add(@"mplat.component.template.h");
             conf.SourceFilesBuildExcludeRegex.Add(@"mplat.test.app.cpp");
             conf.AddPublicDependency<SexyBennyHillProject>(target);
 
@@ -659,7 +660,7 @@ namespace Rococo
     [Sharpmake.Generate]
     public class RococoMHostProject : RococoProject
     {
-        public RococoMHostProject() : base("mhost")
+        public RococoMHostProject() : base("rococo.mhost")
         {
         }
 

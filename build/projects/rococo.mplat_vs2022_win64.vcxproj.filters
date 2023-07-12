@@ -65,6 +65,7 @@
     <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.panel.base.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.sxh" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.sxh.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\rococo.script.types.h" />
   </ItemGroup>
 </Project>

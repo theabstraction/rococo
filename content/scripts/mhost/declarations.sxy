@@ -39,7 +39,7 @@
 (function IRodTesselatorUseFaceNormals13  (Pointer hObject) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\mplat.sxh.inl" 10213))
 (alias IRodTesselatorUseFaceNormals13 Rococo.Graphics.Native.IRodTesselatorUseFaceNormals)
 
-(function IDictionaryStreamProhibitOverwrite14  (Pointer hObject) ->  : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 1352))
+(function IDictionaryStreamProhibitOverwrite14  (Pointer hObject) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 1352))
 (alias IDictionaryStreamProhibitOverwrite14 MHost.Native.IDictionaryStreamProhibitOverwrite)
 
 (function IMeshBuilderBegin15  (Pointer hObject)(Sys.Type.IString meshName) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\mplat.sxh.inl" 8420))
@@ -141,7 +141,7 @@
 (function IRigBuilderSetParentOfChild47  (Pointer hObject)(Sys.Type.IString parent)(Sys.Type.IString ofChild) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\mplat.sxh.inl" 1686))
 (alias IRigBuilderSetParentOfChild47 Rococo.Entities.Native.IRigBuilderSetParentOfChild)
 
-(function IDictionaryStreamAddBool48  (Pointer hObject)(Sys.Type.IString name)(Bool value) ->  : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 1339))
+(function IDictionaryStreamAddBool48  (Pointer hObject)(Sys.Type.IString name)(Bool value) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 1339))
 (alias IDictionaryStreamAddBool48 MHost.Native.IDictionaryStreamAddBool)
 
 (function MultiplyMatrix4x4fMatrix4x4f49 (Sys.Maths.Matrix4x4 a)(Sys.Maths.Matrix4x4 b)(Sys.Maths.Matrix4x4 product) ->  : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.vectors.inl" 429))
@@ -255,7 +255,7 @@
 (function IInstancesSetScale85  (Pointer hObject)(Int64 entityId)(Sys.Maths.Vec3 scale) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\mplat.sxh.inl" 8126))
 (alias IInstancesSetScale85 Rococo.Entities.Native.IInstancesSetScale)
 
-(function IDictionaryStreamAddI3286  (Pointer hObject)(Sys.Type.IString name)(Int32 value) ->  : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 1340))
+(function IDictionaryStreamAddI3286  (Pointer hObject)(Sys.Type.IString name)(Int32 value) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 1340))
 (alias IDictionaryStreamAddI3286 MHost.Native.IDictionaryStreamAddI32)
 
 (function IInstancesAddGhost87  (Pointer hObject)(Sys.Maths.Matrix4x4 model)(Int64 parentId) -> (Int64 entityId) : (source "C:\work\rococo\source\rococo\rococo.mplat\mplat.sxh.inl" 8111))
@@ -270,7 +270,7 @@
 (function IInstancesCreateCubeTexture90  (Pointer hObject)(Sys.Type.IString folder)(Sys.Type.IString extension) -> (Int64 cubeId) : (source "C:\work\rococo\source\rococo\rococo.mplat\mplat.sxh.inl" 8116))
 (alias IInstancesCreateCubeTexture90 Rococo.Entities.Native.IInstancesCreateCubeTexture)
 
-(function IGuiStretchSprite91  (Pointer hObject)(Sys.Maths.Rectf rect)(MPlat.BitmapLocation loc) ->  : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 694))
+(function IGuiStretchSprite91  (Pointer hObject)(Sys.Maths.Rectf rect)(MPlat.BitmapLocation loc) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 694))
 (alias IGuiStretchSprite91 MHost.Native.IGuiStretchSprite)
 
 (function IInstancesLoadMaterialArray92  (Pointer hObject)(Sys.Type.IString folder)(Int32 txWidth) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\mplat.sxh.inl" 8118))
@@ -354,7 +354,7 @@
 (function ICameraSetOrientation118  (Pointer hObject)(Sys.Maths.Quat orientation) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\mplat.sxh.inl" 7504))
 (alias ICameraSetOrientation118 Rococo.Graphics.Native.ICameraSetOrientation)
 
-(function IDictionaryStreamGetInt32119  (Pointer hObject)(Sys.Type.IString name)(Int32 defaultValue) -> (Int32 value) : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 1346))
+(function IDictionaryStreamGetInt32119  (Pointer hObject)(Sys.Type.IString name)(Int32 defaultValue) -> (Int32 value) : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 1346))
 (alias IDictionaryStreamGetInt32119 MHost.Native.IDictionaryStreamGetInt32)
 
 (function IRodTesselatorCloseLoop120  (Pointer hObject) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\mplat.sxh.inl" 10198))
@@ -459,7 +459,7 @@
 (function IRimTesselatorAddPoint153  (Pointer hObject)(Sys.Maths.Vec2 p) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\mplat.sxh.inl" 8694))
 (alias IRimTesselatorAddPoint153 Rococo.Graphics.Native.IRimTesselatorAddPoint)
 
-(function IEngineGetNextMouseDelta154  (Pointer hObject)(Sys.Maths.Vec2 delta) ->  : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 984))
+(function IEngineGetNextMouseDelta154  (Pointer hObject)(Sys.Maths.Vec2 delta) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 984))
 (alias IEngineGetNextMouseDelta154 MHost.Native.IEngineGetNextMouseDelta)
 
 (function Length155 (Sys.Maths.Vec3 a) -> (Float32 len) : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.vectors.inl" 431))
@@ -579,22 +579,22 @@
 (function IFieldTesselatorGetStackBondedBrick193  (Pointer hObject)(Int32 i)(Int32 j)(Rococo.QuadVertices q)(Sys.SI.Metres cementWidth) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\mplat.sxh.inl" 9098))
 (alias IFieldTesselatorGetStackBondedBrick193 Rococo.Graphics.Native.IFieldTesselatorGetStackBondedBrick)
 
-(function IEngineCursorPosition194  (Pointer hObject)(Sys.Maths.Vec2 cursorPosition) ->  : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 997))
+(function IEngineCursorPosition194  (Pointer hObject)(Sys.Maths.Vec2 cursorPosition) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 997))
 (alias IEngineCursorPosition194 MHost.Native.IEngineCursorPosition)
 
 (function IFieldTesselatorGetStretchBondedBrick195  (Pointer hObject)(Int32 i)(Int32 j)(Rococo.QuadVertices q)(Rococo.QuadVertices top)(Rococo.QuadVertices left)(Rococo.QuadVertices right)(Rococo.QuadVertices bottom)(Sys.SI.Metres cementWidth)(Sys.SI.Metres extrusionBase) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\mplat.sxh.inl" 9099))
 (alias IFieldTesselatorGetStretchBondedBrick195 Rococo.Graphics.Native.IFieldTesselatorGetStretchBondedBrick)
 
-(function IGuiDrawClippedText196  (Pointer hObject)(Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Int32 colour)(Sys.Maths.Rectf clipRect) ->  : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 695))
+(function IGuiDrawClippedText196  (Pointer hObject)(Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Int32 colour)(Sys.Maths.Rectf clipRect) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 695))
 (alias IGuiDrawClippedText196 MHost.Native.IGuiDrawClippedText)
 
 (function IFieldTesselatorGetBrickJoinRight197  (Pointer hObject)(Int32 i)(Int32 j)(Rococo.QuadVertices q)(Sys.SI.Metres cementWidth) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\mplat.sxh.inl" 9100))
 (alias IFieldTesselatorGetBrickJoinRight197 Rococo.Graphics.Native.IFieldTesselatorGetBrickJoinRight)
 
-(function IEngineGetSpriteSpec198  (Pointer hObject)(Sys.Type.IString resourceName)(MPlat.BitmapLocation loc) ->  : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 992))
+(function IEngineGetSpriteSpec198  (Pointer hObject)(Sys.Type.IString resourceName)(MPlat.BitmapLocation loc) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 992))
 (alias IEngineGetSpriteSpec198 MHost.Native.IEngineGetSpriteSpec)
 
-(function IGuiClearScissorRect199  (Pointer hObject) ->  : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 705))
+(function IGuiClearScissorRect199  (Pointer hObject) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 705))
 (alias IGuiClearScissorRect199 MHost.Native.IGuiClearScissorRect)
 
 (function IFieldTesselatorGetBrickBedTop200  (Pointer hObject)(Int32 row)(Rococo.QuadVertices q)(Sys.SI.Metres cementWidth) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\mplat.sxh.inl" 9101))
@@ -633,7 +633,7 @@
 (function IQuadStackTesselatorClear211  (Pointer hObject) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\mplat.sxh.inl" 9638))
 (alias IQuadStackTesselatorClear211 Rococo.Graphics.Native.IQuadStackTesselatorClear)
 
-(function IEngineReleaseMouse212  (Pointer hObject) ->  : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 996))
+(function IEngineReleaseMouse212  (Pointer hObject) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 996))
 (alias IEngineReleaseMouse212 MHost.Native.IEngineReleaseMouse)
 
 (function WriteInt32213  (Sys.IO.IWriter writer) (Int32 x)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1261))
@@ -642,7 +642,7 @@
 (function IQuadStackTesselatorClearOutput214  (Pointer hObject) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\mplat.sxh.inl" 9640))
 (alias IQuadStackTesselatorClearOutput214 Rococo.Graphics.Native.IQuadStackTesselatorClearOutput)
 
-(function IDictionaryStreamClear215  (Pointer hObject) ->  : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 1351))
+(function IDictionaryStreamClear215  (Pointer hObject) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 1351))
 (alias IDictionaryStreamClear215 MHost.Native.IDictionaryStreamClear)
 
 (function IQuadStackTesselatorCopyInputToOutput216  (Pointer hObject) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\mplat.sxh.inl" 9641))
@@ -660,7 +660,7 @@
 (function StringStartsWith220  (IString bigString)(IString prefix) -> (Bool isSo) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1753))
 (alias StringStartsWith220 Sys.Native.StringStartsWith)
 
-(function IGuiDrawTriangle221  (Pointer hObject)(MPlat.GuiTriangle t) ->  : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 686))
+(function IGuiDrawTriangle221  (Pointer hObject)(MPlat.GuiTriangle t) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 686))
 (alias IGuiDrawTriangle221 MHost.Native.IGuiDrawTriangle)
 
 (function IQuadStackTesselatorMoveOutputToInput222  (Pointer hObject) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\mplat.sxh.inl" 9645))
@@ -720,7 +720,7 @@
 (function Cosh240 (Float64 x) -> (Float64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 489))
 (alias Cosh240 Sys.Maths.F64.Cosh)
 
-(function IDictionaryStreamAddF32241  (Pointer hObject)(Sys.Type.IString name)(Float32 value) ->  : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 1342))
+(function IDictionaryStreamAddF32241  (Pointer hObject)(Sys.Type.IString name)(Float32 value) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 1342))
 (alias IDictionaryStreamAddF32241 MHost.Native.IDictionaryStreamAddF32)
 
 (function IQuadStackTesselatorTranslate242  (Pointer hObject)(Sys.Maths.Vec3 v) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\mplat.sxh.inl" 9660))
@@ -765,7 +765,7 @@
 (function IRodTesselatorClear255  (Pointer hObject) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\mplat.sxh.inl" 10196))
 (alias IRodTesselatorClear255 Rococo.Graphics.Native.IRodTesselatorClear)
 
-(function IDictionaryStreamGetInt64256  (Pointer hObject)(Sys.Type.IString name)(Int64 defaultValue) -> (Int64 value) : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 1347))
+(function IDictionaryStreamGetInt64256  (Pointer hObject)(Sys.Type.IString name)(Int64 defaultValue) -> (Int64 value) : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 1347))
 (alias IDictionaryStreamGetInt64256 MHost.Native.IDictionaryStreamGetInt64)
 
 (function FastStringBuilderAppendAsDecimal257  (Sys.Type.IStringBuilder sb) -> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1745))
@@ -777,7 +777,7 @@
 (function IRodTesselatorCopyToMeshBuilder259  (Pointer hObject)(Sys.Type.IString meshName)(Bool preserveMesh)(Bool invisible)(Bool castsShadows) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\mplat.sxh.inl" 10199))
 (alias IRodTesselatorCopyToMeshBuilder259 Rococo.Graphics.Native.IRodTesselatorCopyToMeshBuilder)
 
-(function IDictionaryStreamAddI64260  (Pointer hObject)(Sys.Type.IString name)(Int64 value) ->  : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 1341))
+(function IDictionaryStreamAddI64260  (Pointer hObject)(Sys.Type.IString name)(Int64 value) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 1341))
 (alias IDictionaryStreamAddI64260 MHost.Native.IDictionaryStreamAddI64)
 
 (function IRodTesselatorDestruct261  (Pointer hObject) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\mplat.sxh.inl" 10200))
@@ -792,10 +792,10 @@
 (function IRodTesselatorPopNextTriangle264  (Pointer hObject)(Rococo.VertexTriangle t) -> (Bool wasPopped) : (source "C:\work\rococo\source\rococo\rococo.mplat\mplat.sxh.inl" 10202))
 (alias IRodTesselatorPopNextTriangle264 Rococo.Graphics.Native.IRodTesselatorPopNextTriangle)
 
-(function IGuiDrawSprite265  (Pointer hObject)(Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(MPlat.BitmapLocation loc) ->  : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 693))
+(function IGuiDrawSprite265  (Pointer hObject)(Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(MPlat.BitmapLocation loc) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 693))
 (alias IGuiDrawSprite265 MHost.Native.IGuiDrawSprite)
 
-(function GetHandleForIEngine0266   -> (Pointer hObject) : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 982))
+(function GetHandleForIEngine0266   -> (Pointer hObject) : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 982))
 (alias GetHandleForIEngine0266 MHost.Native.GetHandleForIEngine0)
 
 (function IRodTesselatorRaiseBox267  (Pointer hObject)(Sys.SI.Metres length) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\mplat.sxh.inl" 10203))
@@ -843,7 +843,7 @@
 (function GetHandleForIHQFonts0281   -> (Pointer hObject) : (source "C:\work\rococo\source\rococo\rococo.mplat\mplat.sxh.inl" 10751))
 (alias GetHandleForIHQFonts0281 Rococo.Graphics.Native.GetHandleForIHQFonts0)
 
-(function IEnginePollKeyState282  (Pointer hObject)(MHost.OS.KeyState keys) ->  : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 983))
+(function IEnginePollKeyState282  (Pointer hObject)(MHost.OS.KeyState keys) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 983))
 (alias IEnginePollKeyState282 MHost.Native.IEnginePollKeyState)
 
 (function GetStruct283  (Pointer modulePtr) (Int32 index) -> (Sys.Reflection.IStructure structure) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 457))
@@ -864,7 +864,7 @@
 (function GetHandleForILandscapeTesselator0288   -> (Pointer hObject) : (source "C:\work\rococo\source\rococo\rococo.mplat\mplat.sxh.inl" 10394))
 (alias GetHandleForILandscapeTesselator0288 Rococo.Graphics.Native.GetHandleForILandscapeTesselator0)
 
-(function GetHandleForIDictionaryStream0289   -> (Pointer hObject) : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 1338))
+(function GetHandleForIDictionaryStream0289   -> (Pointer hObject) : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 1338))
 (alias GetHandleForIDictionaryStream0289 MHost.Native.GetHandleForIDictionaryStream0)
 
 (function ITextTesselatorTrySetFont290  (Pointer hObject)(Sys.Type.IString name)(Float32 dotSize) -> (Bool isSet) : (source "C:\work\rococo\source\rococo\rococo.mplat\mplat.sxh.inl" 10571))
@@ -888,7 +888,7 @@
 (function ILandscapeTesselatorClear296  (Pointer hObject) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\mplat.sxh.inl" 10396))
 (alias ILandscapeTesselatorClear296 Rococo.Graphics.Native.ILandscapeTesselatorClear)
 
-(function IEngineYieldForSystemMessages297  (Pointer hObject)(Int32 sleepMS) -> (Sys.SI.Seconds frameDT) : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 990))
+(function IEngineYieldForSystemMessages297  (Pointer hObject)(Int32 sleepMS) -> (Sys.SI.Seconds frameDT) : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 990))
 (alias IEngineYieldForSystemMessages297 MHost.Native.IEngineYieldForSystemMessages)
 
 (function Sin298 (Float64 radians) -> (Float64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 480))
@@ -918,7 +918,7 @@
 (function ILandscapeTesselatorSetSeed306  (Pointer hObject)(Int64 seedNumber) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\mplat.sxh.inl" 10402))
 (alias ILandscapeTesselatorSetSeed306 Rococo.Graphics.Native.ILandscapeTesselatorSetSeed)
 
-(function IGuiGetCursorPos307  (Pointer hObject)(Sys.Maths.Vec2 pos) ->  : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 702))
+(function IGuiGetCursorPos307  (Pointer hObject)(Sys.Maths.Vec2 pos) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 702))
 (alias IGuiGetCursorPos307 MHost.Native.IGuiGetCursorPos)
 
 (function ExpressionGetChild308  (Pointer sPtr) (Int32 index) ->  (Sys.Reflection.IExpression child) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 444))
@@ -930,7 +930,7 @@
 (function IKeyboardClearActions310  (Pointer hObject) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\mplat.sxh.inl" 6670))
 (alias IKeyboardClearActions310 Rococo.Native.IKeyboardClearActions)
 
-(function IDictionaryStreamAppendString311  (Pointer hObject)(Sys.Type.IString name)(Sys.Type.IString defaultString)(Sys.Type.IStringBuilder sb) ->  : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 1350))
+(function IDictionaryStreamAppendString311  (Pointer hObject)(Sys.Type.IString name)(Sys.Type.IString defaultString)(Sys.Type.IStringBuilder sb) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 1350))
 (alias IDictionaryStreamAppendString311 MHost.Native.IDictionaryStreamAppendString)
 
 (function IKeyboardGetVKeyFromName312  (Pointer hObject)(Sys.Type.IString name) -> (Int32 vkCode) : (source "C:\work\rococo\source\rococo\rococo.mplat\mplat.sxh.inl" 6671))
@@ -951,7 +951,7 @@
 (function FastStringBuilderAppendInt64317  (Sys.Type.IStringBuilder sb) (Int64 x) -> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1739))
 (alias FastStringBuilderAppendInt64317 Sys.Native.FastStringBuilderAppendInt64)
 
-(function IsKeyPressed318 (MHost.OS.KeyState keys)(Int32 vKeyCode) -> (Bool isPressed) : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 72))
+(function IsKeyPressed318 (MHost.OS.KeyState keys)(Int32 vKeyCode) -> (Bool isPressed) : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 72))
 (alias IsKeyPressed318 MHost.OS.IsKeyPressed)
 
 (function GetHandleForIParticleSystem0319   -> (Pointer hObject) : (source "C:\work\rococo\source\rococo\rococo.mplat\mplat.sxh.inl" 7257))
@@ -981,7 +981,7 @@
 (function IWorldBuilderGetTriangleAt327  (Pointer hObject)(Sys.Maths.Vec2 position)(Rococo.TriangleScan t) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\mplat.sxh.inl" 11099))
 (alias IWorldBuilderGetTriangleAt327 Rococo.Native.IWorldBuilderGetTriangleAt)
 
-(function IDictionaryStreamLoadFrom328  (Pointer hObject)(Sys.Type.IString pingPath) ->  : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 1353))
+(function IDictionaryStreamLoadFrom328  (Pointer hObject)(Sys.Type.IString pingPath) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 1353))
 (alias IDictionaryStreamLoadFrom328 MHost.Native.IDictionaryStreamLoadFrom)
 
 (function IHQFontsSetFaceName329  (Pointer hObject)(Sys.Type.IString name) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\mplat.sxh.inl" 10754))
@@ -1026,7 +1026,7 @@
 (function IConfigGetInt342  (Pointer hObject)(Sys.Type.IString name) -> (Int32 value) : (source "C:\work\rococo\source\rococo\rococo.mplat\mplat.sxh.inl" 6865))
 (alias IConfigGetInt342 Rococo.Native.IConfigGetInt)
 
-(function IDictionaryStreamGetFloat32343  (Pointer hObject)(Sys.Type.IString name)(Float32 defaultValue) -> (Float32 value) : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 1348))
+(function IDictionaryStreamGetFloat32343  (Pointer hObject)(Sys.Type.IString name)(Float32 defaultValue) -> (Float32 value) : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 1348))
 (alias IDictionaryStreamGetFloat32343 MHost.Native.IDictionaryStreamGetFloat32)
 
 (function EnumerateFiles344  (Sys.Type.IString filter)(MPlat.OnFileName callback)-> : (source "Rococo::MPlatImpl::RunEnvironmentScriptImpl::ScriptContext::OnEvent" 322))
@@ -1062,7 +1062,7 @@
 (function MaxValue354  -> (Float32 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" 711))
 (alias MaxValue354 Sys.Maths.F32.MaxValue)
 
-(function IGuiGetScreenSpan355  (Pointer hObject)(Sys.Maths.Vec2 span) ->  : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 701))
+(function IGuiGetScreenSpan355  (Pointer hObject)(Sys.Maths.Vec2 span) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 701))
 (alias IGuiGetScreenSpan355 MHost.Native.IGuiGetScreenSpan)
 
 (function IArchiveLoadVec3356  (Pointer hObject)(Sys.Type.IString key)(Sys.Maths.Vec3 targetVariable)(Float32 defaultX)(Float32 defaultY)(Float32 defaultZ) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\mplat.sxh.inl" 10938))
@@ -1089,25 +1089,25 @@
 (function RightShift363 (Int64 x)(Int64 bitCount) -> (Int64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i64.inl" 201))
 (alias RightShift363 Sys.Maths.I64.RightShift)
 
-(function IGuiDrawQuad364  (Pointer hObject)(MPlat.GuiQuad q) ->  : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 687))
+(function IGuiDrawQuad364  (Pointer hObject)(MPlat.GuiQuad q) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 687))
 (alias IGuiDrawQuad364 MHost.Native.IGuiDrawQuad)
 
-(function IGuiDrawBorder365  (Pointer hObject)(Sys.Maths.Rectf rect)(Float32 pxThickness)(Int32 tl)(Int32 tr)(Int32 bl)(Int32 br) ->  : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 688))
+(function IGuiDrawBorder365  (Pointer hObject)(Sys.Maths.Rectf rect)(Float32 pxThickness)(Int32 tl)(Int32 tr)(Int32 bl)(Int32 br) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 688))
 (alias IGuiDrawBorder365 MHost.Native.IGuiDrawBorder)
 
 (function PublishAPI366  -> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1734))
 (alias PublishAPI366 Sys.Native.PublishAPI)
 
-(function IGuiFillRect367  (Pointer hObject)(Sys.Maths.Rectf rect)(Int32 colour) ->  : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 689))
+(function IGuiFillRect367  (Pointer hObject)(Sys.Maths.Rectf rect)(Int32 colour) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 689))
 (alias IGuiFillRect367 MHost.Native.IGuiFillRect)
 
 (function WriteFloat32368  (Sys.IO.IWriter writer) (Float32 x)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1263))
 (alias WriteFloat32368 Sys.IO.Native.WriteFloat32)
 
-(function IGuiDrawColouredSprite369  (Pointer hObject)(Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(MPlat.BitmapLocation loc)(Float32 blendFactor)(Int32 colour) ->  : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 690))
+(function IGuiDrawColouredSprite369  (Pointer hObject)(Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(MPlat.BitmapLocation loc)(Float32 blendFactor)(Int32 colour) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 690))
 (alias IGuiDrawColouredSprite369 MHost.Native.IGuiDrawColouredSprite)
 
-(function IGuiDrawLeftAligned370  (Pointer hObject)(Sys.Maths.Rectf rect)(Sys.Type.IString text)(Int32 fontIndex)(Int32 fontHeight)(Int32 colour)(Float32 rightHardEdge)(Float32 rightSoftEdge) ->  : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 691))
+(function IGuiDrawLeftAligned370  (Pointer hObject)(Sys.Maths.Rectf rect)(Sys.Type.IString text)(Int32 fontIndex)(Int32 fontHeight)(Int32 colour)(Float32 rightHardEdge)(Float32 rightSoftEdge) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 691))
 (alias IGuiDrawLeftAligned370 MHost.Native.IGuiDrawLeftAligned)
 
 (function MakeTranslateMatrix371 (Sys.Maths.Vec3 ds)(Sys.Maths.Matrix4x4 t) ->  : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.vectors.inl" 440))
@@ -1119,10 +1119,10 @@
 (function LeftShift373 (Int64 x)(Int64 bitCount) -> (Int64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i64.inl" 200))
 (alias LeftShift373 Sys.Maths.I64.LeftShift)
 
-(function IGuiDrawScaledColouredSprite374  (Pointer hObject)(Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(MPlat.BitmapLocation loc)(Float32 blendFactor)(Int32 colour)(Float32 scaleFactor) ->  : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 692))
+(function IGuiDrawScaledColouredSprite374  (Pointer hObject)(Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(MPlat.BitmapLocation loc)(Float32 blendFactor)(Int32 colour)(Float32 scaleFactor) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 692))
 (alias IGuiDrawScaledColouredSprite374 MHost.Native.IGuiDrawScaledColouredSprite)
 
-(function IGuiDrawTextWithCaret375  (Pointer hObject)(Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Int32 colour)(Sys.Maths.Rectf clipRect)(Int32 caretPos) ->  : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 696))
+(function IGuiDrawTextWithCaret375  (Pointer hObject)(Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Int32 colour)(Sys.Maths.Rectf clipRect)(Int32 caretPos) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 696))
 (alias IGuiDrawTextWithCaret375 MHost.Native.IGuiDrawTextWithCaret)
 
 (function WriteAsSpecG376  (Sys.IO.IWriter writer)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1255))
@@ -1131,94 +1131,94 @@
 (function LogN377 (Float32 x) -> (Float32 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" 696))
 (alias LogN377 Sys.Maths.F32.LogN)
 
-(function IGuiDrawText378  (Pointer hObject)(Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Int32 colour) ->  : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 697))
+(function IGuiDrawText378  (Pointer hObject)(Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Int32 colour) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 697))
 (alias IGuiDrawText378 MHost.Native.IGuiDrawText)
 
-(function IGuiSetGuiShaders379  (Pointer hObject)(Sys.Type.IString pixelShaderFilename) ->  : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 703))
+(function IGuiSetGuiShaders379  (Pointer hObject)(Sys.Type.IString pixelShaderFilename) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 703))
 (alias IGuiSetGuiShaders379 MHost.Native.IGuiSetGuiShaders)
 
-(function IGuiEvalTextSpan380  (Pointer hObject)(Sys.Type.IString text)(Int32 fontIndex)(Int32 fontHeight)(Sys.Maths.Vec2 pixelSpan) ->  : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 698))
+(function IGuiEvalTextSpan380  (Pointer hObject)(Sys.Type.IString text)(Int32 fontIndex)(Int32 fontHeight)(Sys.Maths.Vec2 pixelSpan) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 698))
 (alias IGuiEvalTextSpan380 MHost.Native.IGuiEvalTextSpan)
 
-(function IGuiGetFontDescription381  (Pointer hObject)(Int32 fontIndex)(Sys.Type.IStringBuilder familyName)(MHost.Graphics.FontDesc fd) ->  : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 699))
+(function IGuiGetFontDescription381  (Pointer hObject)(Int32 fontIndex)(Sys.Type.IStringBuilder familyName)(MHost.Graphics.FontDesc fd) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 699))
 (alias IGuiGetFontDescription381 MHost.Native.IGuiGetFontDescription)
 
-(function IGuiGetNumberOfFonts382  (Pointer hObject) -> (Int32 numberOfFonts) : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 700))
+(function IGuiGetNumberOfFonts382  (Pointer hObject) -> (Int32 numberOfFonts) : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 700))
 (alias IGuiGetNumberOfFonts382 MHost.Native.IGuiGetNumberOfFonts)
 
 (function IsAlphaNumeric383  (Int32 c) -> (Bool isSo) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i32.inl" 406))
 (alias IsAlphaNumeric383 Sys.Type.IsAlphaNumeric)
 
-(function IGuiSetScissorRect384  (Pointer hObject)(Sys.Maths.Recti rect) ->  : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 704))
+(function IGuiSetScissorRect384  (Pointer hObject)(Sys.Maths.Recti rect) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 704))
 (alias IGuiSetScissorRect384 MHost.Native.IGuiSetScissorRect)
 
 (function HasFlags385 (Int32 flags)(Int32 flag) -> (Bool result) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i32.inl" 399))
 (alias HasFlags385 Sys.Maths.I32.HasFlags)
 
-(function IEngineGetNextMouseEvent386  (Pointer hObject)(MHost.OS.MouseEvent me) -> (Bool wasPopped) : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 985))
+(function IEngineGetNextMouseEvent386  (Pointer hObject)(MHost.OS.MouseEvent me) -> (Bool wasPopped) : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 985))
 (alias IEngineGetNextMouseEvent386 MHost.Native.IEngineGetNextMouseEvent)
 
 (function Cos387 (Float64 radians) -> (Float64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 481))
 (alias Cos387 Sys.Maths.F64.Cos)
 
-(function IEngineGetNextKeyboardEvent388  (Pointer hObject)(MHost.OS.KeyboardEvent ke) -> (Bool wasPopped) : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 986))
+(function IEngineGetNextKeyboardEvent388  (Pointer hObject)(MHost.OS.KeyboardEvent ke) -> (Bool wasPopped) : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 986))
 (alias IEngineGetNextKeyboardEvent388 MHost.Native.IEngineGetNextKeyboardEvent)
 
-(function IEngineRender389  (Pointer hObject)(MHost.GuiPopulator populator) ->  : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 987))
+(function IEngineRender389  (Pointer hObject)(MHost.GuiPopulator populator) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 987))
 (alias IEngineRender389 MHost.Native.IEngineRender)
 
-(function IEngineIsRunning390  (Pointer hObject) -> (Bool isRunning) : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 988))
+(function IEngineIsRunning390  (Pointer hObject) -> (Bool isRunning) : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 988))
 (alias IEngineIsRunning390 MHost.Native.IEngineIsRunning)
 
-(function IEngineShutdown391  (Pointer hObject) ->  : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 989))
+(function IEngineShutdown391  (Pointer hObject) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 989))
 (alias IEngineShutdown391 MHost.Native.IEngineShutdown)
 
 (function WriteIExpression392  (Sys.IO.IWriter writer) (Sys.Reflection.IExpression s)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1258))
 (alias WriteIExpression392 Sys.IO.Native.WriteIExpression)
 
-(function IEngineTryGetSpriteSpec393  (Pointer hObject)(Sys.Type.IString resourceName)(MPlat.BitmapLocation loc) -> (Bool isSuccessful) : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 991))
+(function IEngineTryGetSpriteSpec393  (Pointer hObject)(Sys.Type.IString resourceName)(MPlat.BitmapLocation loc) -> (Bool isSuccessful) : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 991))
 (alias IEngineTryGetSpriteSpec393 MHost.Native.IEngineTryGetSpriteSpec)
 
-(function IEngineRunMPlatScript394  (Pointer hObject)(Sys.Type.IString scriptName) ->  : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 993))
+(function IEngineRunMPlatScript394  (Pointer hObject)(Sys.Type.IString scriptName) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 993))
 (alias IEngineRunMPlatScript394 MHost.Native.IEngineRunMPlatScript)
 
 (function IsSignalNan395 (Float64 x) -> (Bool isNan) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 504))
 (alias IsSignalNan395 Sys.Maths.F64.IsSignalNan)
 
-(function IEngineSetNextScript396  (Pointer hObject)(Sys.Type.IString scriptName) ->  : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 994))
+(function IEngineSetNextScript396  (Pointer hObject)(Sys.Type.IString scriptName) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 994))
 (alias IEngineSetNextScript396 MHost.Native.IEngineSetNextScript)
 
-(function IEngineCaptureMouse397  (Pointer hObject) ->  : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 995))
+(function IEngineCaptureMouse397  (Pointer hObject) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 995))
 (alias IEngineCaptureMouse397 MHost.Native.IEngineCaptureMouse)
 
-(function IEngineSetOverlayToggleKey398  (Pointer hObject)(Int32 vkeyCode) ->  : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 998))
+(function IEngineSetOverlayToggleKey398  (Pointer hObject)(Int32 vkeyCode) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 998))
 (alias IEngineSetOverlayToggleKey398 MHost.Native.IEngineSetOverlayToggleKey)
 
 (function SubtractVec2fVec2f399 (Sys.Maths.Vec2 a)(Sys.Maths.Vec2 b)(Sys.Maths.Vec2 difference) ->  : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.vectors.inl" 422))
 (alias SubtractVec2fVec2f399 Sys.Geometry.F32.SubtractVec2fVec2f)
 
-(function IEngineSetEditorVisibility400  (Pointer hObject)(Bool isVisible) ->  : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 999))
+(function IEngineSetEditorVisibility400  (Pointer hObject)(Bool isVisible) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 999))
 (alias IEngineSetEditorVisibility400 MHost.Native.IEngineSetEditorVisibility)
 
-(function ToRGBAb401 (RGBA colourF32x4) -> (Int32 colourB8x4) : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 92))
+(function ToRGBAb401 (RGBA colourF32x4) -> (Int32 colourB8x4) : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 92))
 (alias ToRGBAb401 MHost.Graphics.ToRGBAb)
 
-(function FloatToColourComponent402 (Float32 c) -> (Int32 ic) : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 93))
+(function FloatToColourComponent402 (Float32 c) -> (Int32 ic) : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 93))
 (alias FloatToColourComponent402 MHost.Graphics.FloatToColourComponent)
 
-(function IDictionaryStreamAddF64403  (Pointer hObject)(Sys.Type.IString name)(Float64 value) ->  : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 1343))
+(function IDictionaryStreamAddF64403  (Pointer hObject)(Sys.Type.IString name)(Float64 value) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 1343))
 (alias IDictionaryStreamAddF64403 MHost.Native.IDictionaryStreamAddF64)
 
-(function IDictionaryStreamAddString404  (Pointer hObject)(Sys.Type.IString name)(Sys.Type.IString value) ->  : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 1344))
+(function IDictionaryStreamAddString404  (Pointer hObject)(Sys.Type.IString name)(Sys.Type.IString value) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 1344))
 (alias IDictionaryStreamAddString404 MHost.Native.IDictionaryStreamAddString)
 
-(function IDictionaryStreamGetBool405  (Pointer hObject)(Sys.Type.IString name)(Bool defaultValue) -> (Bool value) : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 1345))
+(function IDictionaryStreamGetBool405  (Pointer hObject)(Sys.Type.IString name)(Bool defaultValue) -> (Bool value) : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 1345))
 (alias IDictionaryStreamGetBool405 MHost.Native.IDictionaryStreamGetBool)
 
-(function IDictionaryStreamGetFloat64406  (Pointer hObject)(Sys.Type.IString name)(Float64 defaultValue) -> (Float64 value) : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 1349))
+(function IDictionaryStreamGetFloat64406  (Pointer hObject)(Sys.Type.IString name)(Float64 defaultValue) -> (Float64 value) : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 1349))
 (alias IDictionaryStreamGetFloat64406 MHost.Native.IDictionaryStreamGetFloat64)
 
-(function IDictionaryStreamSaveTo407  (Pointer hObject)(Sys.Type.IString pingPath) ->  : (source "C:\work\rococo\source\rococo\mhost\mhost.sxh.inl" 1354))
+(function IDictionaryStreamSaveTo407  (Pointer hObject)(Sys.Type.IString pingPath) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\mhost.sxh.inl" 1354))
 (alias IDictionaryStreamSaveTo407 MHost.Native.IDictionaryStreamSaveTo)
 
 (function LoadExpression408  (Sys.Type.IString name) -> (Sys.Reflection.IExpression s) : (source "MHost::RunMHostEnvironmentScript::ScriptContext::OnEvent" 129))
