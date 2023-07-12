@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\..\source\rococo\rococo.windows\rococo.debuggers.win32.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.windows\rococo.dxgi.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.windows\rococo.message.box.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.windows\rococo.tabbed.ide.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.windows\rococo.window.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.windows\variable.editor.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\source\rococo\rococo.windows\button.control.inl" />
+    <ClInclude Include="..\..\source\rococo\rococo.windows\child.inl" />
+    <ClInclude Include="..\..\source\rococo\rococo.windows\combo.control.inl" />
+    <ClInclude Include="..\..\source\rococo\rococo.windows\dialog.inl" />
+    <ClInclude Include="..\..\source\rococo\rococo.windows\listbox.inl" />
+    <ClInclude Include="..\..\source\rococo\rococo.windows\listview.inl" />
+    <ClInclude Include="..\..\source\rococo\rococo.windows\menu.inl" />
+    <ClInclude Include="..\..\source\rococo\rococo.windows\resource.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.windows\rich.editor.inl" />
+    <ClInclude Include="..\..\source\rococo\rococo.windows\tab.control.inl" />
+    <ClInclude Include="..\..\source\rococo\rococo.windows\trackbar.control.inl" />
+    <ClInclude Include="..\..\source\rococo\rococo.windows\tree.control.inl" />
+    <ClInclude Include="..\..\source\rococo\rococo.windows\wired.handler.inl" />
+  </ItemGroup>
+</Project>

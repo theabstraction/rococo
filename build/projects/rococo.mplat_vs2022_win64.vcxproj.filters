@@ -1,0 +1,69 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.archive.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.bloody.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.component.template.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.components.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.components.factories.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.config.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.entities.animation.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.entities.animation.debug.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.entities.instances.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.entities.mobiles.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.entities.particles.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.entities.rigs.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.file.browser.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.geometry.octree.loose.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.geometry.quadtree.loose.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.camera.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.fieldtesselator.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.landscapes.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.meshes.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.messaging.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.qs.tesselator.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.rod.tesselator.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.scene.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.sprites.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.sprite_builder.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.tess.rim.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.text.tesselator.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.gui.retained.custodian.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.guistack.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.hqfonts.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.inventory.array.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.joysticks.xbox360.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.keyboard.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.main.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.maths.visitor.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.os.win32.venue.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.overlay.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.pane.array-box.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.pane.base.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.pane.context-menu.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.pane.enumlist.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.pane.label.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.pane.radiobutton.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.pane.scrollbar.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.pane.slider.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.pane.tab.container.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.pane.textoutput.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.renderer.config.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.scripts.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.test.app.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.tests.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.utilities.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.world.builder.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.world.editor.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.component.template.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.components.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.editor.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.landscapes.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.panel.base.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.sxh.inl" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\rococo.script.types.h" />
+  </ItemGroup>
+</Project>

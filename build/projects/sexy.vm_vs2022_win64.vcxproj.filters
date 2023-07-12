@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\..\source\rococo\sexy\SVM\svmcore\sexy.vm.assembler.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy\SVM\svmcore\sexy.vm.core.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy\SVM\svmcore\sexy.vm.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy\SVM\svmcore\sexy.vm.disassembler.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy\SVM\svmcore\sexy.vm.main.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy\SVM\svmcore\sexy.vm.os.mac.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy\SVM\svmcore\sexy.vm.os.win32.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy\SVM\svmcore\sexy.vm.program.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy\SVM\svmcore\sexy.vm.stdafx.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy\SVM\svmcore\sexy.vm.symbols.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\source\rococo\sexy\SVM\svmcore\sexy.vm.os.h" />
+    <ClInclude Include="..\..\source\rococo\sexy\SVM\svmcore\sexy.vm.stdafx.h" />
+  </ItemGroup>
+</Project>

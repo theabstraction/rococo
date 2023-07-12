@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\..\source\rococo\rococo.audio\rococo.audio.3D-world.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.audio\rococo.audio.dllmain.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.audio\rococo.audio.memory.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.audio\rococo.audio.mp3.win32.decoders.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.audio\rococo.audio.player.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.audio\rococo.audio.sample.database.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.audio\rococo.audio.streamer.stereo.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.audio\rococo.audio.X2.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.audio\rococo.audio.X3D.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\source\rococo\rococo.audio\rococo.audio.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.audio\rococo.audio.sxh.inl" />
+    <ClInclude Include="..\..\source\rococo\rococo.audio\rococo.audio.types.h" />
+  </ItemGroup>
+</Project>

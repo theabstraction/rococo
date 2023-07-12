@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{72213DA5-5EC6-6670-9D5D-C616F940EE29}</ProjectGuid>
+    <DefaultLanguage>en-US</DefaultLanguage>
+    <RootNamespace>lib-tiff</RootNamespace>
+    <ProjectName>lib-tiff</ProjectName>
+  </PropertyGroup>
+  <PropertyGroup Label="Globals">
+    <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <TargetName>lib-tiff</TargetName>
+    <OutDir>..\..\generated\bin\win64\debug\</OutDir>
+    <IntDir>..\..\generated\temp\debug\lib-tiff\</IntDir>
+    <TargetExt>.dll</TargetExt>
+    <GenerateManifest>true</GenerateManifest>
+    <LinkIncremental>false</LinkIncremental>
+    <OutputFile>..\..\generated\bin\win64\debug\lib-tiff.dll</OutputFile>
+    <IgnoreImportLibrary>false</IgnoreImportLibrary>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <TargetName>lib-tiff</TargetName>
+    <OutDir>..\..\generated\bin\win64\release\</OutDir>
+    <IntDir>..\..\generated\temp\release\lib-tiff\</IntDir>
+    <TargetExt>.dll</TargetExt>
+    <GenerateManifest>true</GenerateManifest>
+    <LinkIncremental>false</LinkIncremental>
+    <OutputFile>..\..\generated\bin\win64\release\lib-tiff.dll</OutputFile>
+    <IgnoreImportLibrary>false</IgnoreImportLibrary>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level4</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN64;_DEBUG;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\source\3rd-party\libjpg\jpeg-6b;..\..\source\3rd-party\zlib;..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <TreatWarningAsError>false</TreatWarningAsError>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <UseUnicodeForAssemblerListing>false</UseUnicodeForAssemblerListing>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
+      <OmitFramePointers>false</OmitFramePointers>
+      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <UndefineAllPreprocessorDefinitions>false</UndefineAllPreprocessorDefinitions>
+      <IgnoreStandardIncludePath>false</IgnoreStandardIncludePath>
+      <PreprocessToFile>false</PreprocessToFile>
+      <PreprocessSuppressLineNumbers>false</PreprocessSuppressLineNumbers>
+      <PreprocessKeepComments>false</PreprocessKeepComments>
+      <StringPooling>true</StringPooling>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <SmallerTypeCheck>false</SmallerTypeCheck>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <StructMemberAlignment>Default</StructMemberAlignment>
+      <BufferSecurityCheck>true</BufferSecurityCheck>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+      <DisableLanguageExtensions>false</DisableLanguageExtensions>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <OpenMPSupport>false</OpenMPSupport>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <ExpandAttributedSource>false</ExpandAttributedSource>
+      <AssemblerOutput>NoListing</AssemblerOutput>
+      <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
+      <BrowseInformation>false</BrowseInformation>
+      <CallingConvention>Cdecl</CallingConvention>
+      <CompileAs>Default</CompileAs>
+      <DisableSpecificWarnings>4133;4244;4267;4311;4324;4334;4456;4457;4706;4996</DisableSpecificWarnings>
+      <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
+      <ProgramDatabaseFileName>..\..\generated\temp\debug\lib-tiff\lib-tiff_compiler.pdb</ProgramDatabaseFileName>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <OutputFile>..\..\generated\bin\win64\debug\lib-tiff.dll</OutputFile>
+      <ShowProgress>NotSet</ShowProgress>
+      <AdditionalLibraryDirectories>..\..\generated\lib\win64\debug</AdditionalLibraryDirectories>
+      <ProgramDatabaseFile>..\..\generated\bin\win64\debug\lib-tiff.pdb</ProgramDatabaseFile>
+      <GenerateMapFile>true</GenerateMapFile>
+      <MapExports>false</MapExports>
+      <SwapRunFromCD>false</SwapRunFromCD>
+      <SwapRunFromNET>false</SwapRunFromNET>
+      <Driver>NotSet</Driver>
+      <OptimizeReferences>false</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+      <ProfileGuidedDatabase>
+      </ProfileGuidedDatabase>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
+      <IgnoreEmbeddedIDL>false</IgnoreEmbeddedIDL>
+      <TypeLibraryResourceID>1</TypeLibraryResourceID>
+      <NoEntryPoint>false</NoEntryPoint>
+      <SetChecksum>false</SetChecksum>
+      <TurnOffAssemblyGeneration>false</TurnOffAssemblyGeneration>
+      <TargetMachine>MachineX64</TargetMachine>
+      <Profile>false</Profile>
+      <CLRImageType>Default</CLRImageType>
+      <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
+      <AdditionalDependencies>lib-jpg.lib;lib-zip.lib;rococo.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <LargeAddressAware>true</LargeAddressAware>
+      <MapFileName>..\..\generated\bin\win64\debug\lib-tiff.map</MapFileName>
+      <ImportLibrary>..\..\generated\lib\win64\debug\lib-tiff.lib</ImportLibrary>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level4</WarningLevel>
+      <Optimization>Full</Optimization>
+      <PreprocessorDefinitions>NDEBUG;WIN64;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\source\3rd-party\libjpg\jpeg-6b;..\..\source\3rd-party\zlib;..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <TreatWarningAsError>false</TreatWarningAsError>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <UseUnicodeForAssemblerListing>false</UseUnicodeForAssemblerListing>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>false</OmitFramePointers>
+      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <UndefineAllPreprocessorDefinitions>false</UndefineAllPreprocessorDefinitions>
+      <IgnoreStandardIncludePath>false</IgnoreStandardIncludePath>
+      <PreprocessToFile>false</PreprocessToFile>
+      <PreprocessSuppressLineNumbers>false</PreprocessSuppressLineNumbers>
+      <PreprocessKeepComments>false</PreprocessKeepComments>
+      <StringPooling>true</StringPooling>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <SmallerTypeCheck>false</SmallerTypeCheck>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <StructMemberAlignment>Default</StructMemberAlignment>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+      <DisableLanguageExtensions>false</DisableLanguageExtensions>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <OpenMPSupport>false</OpenMPSupport>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <ExpandAttributedSource>false</ExpandAttributedSource>
+      <AssemblerOutput>NoListing</AssemblerOutput>
+      <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
+      <BrowseInformation>false</BrowseInformation>
+      <CallingConvention>Cdecl</CallingConvention>
+      <CompileAs>Default</CompileAs>
+      <DisableSpecificWarnings>4133;4244;4267;4311;4324;4334;4456;4457;4706;4996</DisableSpecificWarnings>
+      <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
+      <ProgramDatabaseFileName>..\..\generated\temp\release\lib-tiff\lib-tiff_compiler.pdb</ProgramDatabaseFileName>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <OutputFile>..\..\generated\bin\win64\release\lib-tiff.dll</OutputFile>
+      <ShowProgress>NotSet</ShowProgress>
+      <AdditionalLibraryDirectories>..\..\generated\lib\win64\release</AdditionalLibraryDirectories>
+      <ProgramDatabaseFile>..\..\generated\bin\win64\release\lib-tiff.pdb</ProgramDatabaseFile>
+      <GenerateMapFile>true</GenerateMapFile>
+      <MapExports>false</MapExports>
+      <SwapRunFromCD>false</SwapRunFromCD>
+      <SwapRunFromNET>false</SwapRunFromNET>
+      <Driver>NotSet</Driver>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <ProfileGuidedDatabase>
+      </ProfileGuidedDatabase>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
+      <IgnoreEmbeddedIDL>false</IgnoreEmbeddedIDL>
+      <TypeLibraryResourceID>1</TypeLibraryResourceID>
+      <NoEntryPoint>false</NoEntryPoint>
+      <SetChecksum>false</SetChecksum>
+      <TurnOffAssemblyGeneration>false</TurnOffAssemblyGeneration>
+      <TargetMachine>MachineX64</TargetMachine>
+      <Profile>false</Profile>
+      <CLRImageType>Default</CLRImageType>
+      <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
+      <AdditionalDependencies>lib-jpg.lib;lib-zip.lib;rococo.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <LargeAddressAware>true</LargeAddressAware>
+      <MapFileName>..\..\generated\bin\win64\release\lib-tiff.map</MapFileName>
+      <ImportLibrary>..\..\generated\lib\win64\release\lib-tiff.lib</ImportLibrary>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\source\3rd-Party\libtiff\libtiff\t4.h" />
+    <ClInclude Include="..\..\source\3rd-Party\libtiff\libtiff\tiff.h" />
+    <ClInclude Include="..\..\source\3rd-Party\libtiff\libtiff\tiffconf.h" />
+    <ClInclude Include="..\..\source\3rd-Party\libtiff\libtiff\tiffconf.vc.h" />
+    <ClInclude Include="..\..\source\3rd-Party\libtiff\libtiff\tiffconf.wince.h" />
+    <ClInclude Include="..\..\source\3rd-Party\libtiff\libtiff\tiffio.h" />
+    <ClInclude Include="..\..\source\3rd-Party\libtiff\libtiff\tiffiop.h" />
+    <ClInclude Include="..\..\source\3rd-Party\libtiff\libtiff\tiffvers.h" />
+    <ClInclude Include="..\..\source\3rd-Party\libtiff\libtiff\tif_config.h" />
+    <ClInclude Include="..\..\source\3rd-Party\libtiff\libtiff\tif_config.vc.h" />
+    <ClInclude Include="..\..\source\3rd-Party\libtiff\libtiff\tif_config.wince.h" />
+    <ClInclude Include="..\..\source\3rd-Party\libtiff\libtiff\tif_dir.h" />
+    <ClInclude Include="..\..\source\3rd-Party\libtiff\libtiff\tif_fax3.h" />
+    <ClInclude Include="..\..\source\3rd-Party\libtiff\libtiff\tif_predict.h" />
+    <ClInclude Include="..\..\source\3rd-Party\libtiff\libtiff\uvcode.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\source\3rd-Party\libtiff\bloke.tiff.cpp" />
+    <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\lfind.c" />
+    <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_aux.c" />
+    <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_close.c" />
+    <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_codec.c" />
+    <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_color.c" />
+    <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_compress.c" />
+    <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_dir.c" />
+    <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_dirinfo.c" />
+    <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_dirread.c" />
+    <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_dirwrite.c" />
+    <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_dumpmode.c" />
+    <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_error.c" />
+    <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_extension.c" />
+    <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_fax3.c" />
+    <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_fax3sm.c" />
+    <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_flush.c" />
+    <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_getimage.c" />
+    <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_jbig.c" />
+    <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_jpeg.c" />
+    <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_jpeg_12.c" />
+    <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_luv.c" />
+    <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_lzma.c" />
+    <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_lzw.c" />
+    <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_next.c" />
+    <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_ojpeg.c" />
+    <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_open.c" />
+    <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_packbits.c" />
+    <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_pixarlog.c" />
+    <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_predict.c" />
+    <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_print.c" />
+    <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_read.c" />
+    <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_strip.c" />
+    <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_swab.c" />
+    <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_thunder.c" />
+    <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_tile.c" />
+    <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_version.c" />
+    <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_warning.c" />
+    <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_write.c" />
+    <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_zip.c" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+  <ItemGroup>
+    <ProjectReference Include="lib-jpg_vs2022_win64.vcxproj">
+      <Project>{4C709D18-84F3-F3B7-569B-69F9522D35A2}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+    <ProjectReference Include="rococo.util_vs2022_win64.vcxproj">
+      <Project>{62184609-95D1-1E60-D8CD-3755550224A5}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+    <ProjectReference Include="lib-zip_vs2022_win64.vcxproj">
+      <Project>{DDABE08C-7D58-A2C1-7491-D2BA854BC0C7}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

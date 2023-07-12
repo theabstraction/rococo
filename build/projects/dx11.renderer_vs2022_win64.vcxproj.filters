@@ -1,0 +1,40 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.app.manager.cpp" />
+    <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.cube.texture.cpp" />
+    <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.debug.draw.cpp" />
+    <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.depth.cpp" />
+    <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.device.cpp" />
+    <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.dialog.cpp" />
+    <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.factory.cpp" />
+    <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.gui.cpp" />
+    <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.hqfonts.cpp" />
+    <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.materials.cpp" />
+    <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.meshes.cpp" />
+    <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.objects.cpp" />
+    <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.overlays.cpp" />
+    <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.particles.cpp" />
+    <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.pipeline.cpp" />
+    <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.pipeline_drawcalls.cpp" />
+    <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.renderer.cpp" />
+    <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.samplers.cpp" />
+    <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.shaders.cpp" />
+    <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.swapchain.cpp" />
+    <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.texture.array.cpp" />
+    <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.texture.manager.cpp" />
+    <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.textures.cpp" />
+    <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.venues.cpp" />
+    <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.window.backing.cpp" />
+    <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.window.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\source\rococo\dx11.renderer\dx11.factory.h" />
+    <ClInclude Include="..\..\source\rococo\dx11.renderer\dx11.imports.inl" />
+    <ClInclude Include="..\..\source\rococo\dx11.renderer\dx11.pipeline.h" />
+    <ClInclude Include="..\..\source\rococo\dx11.renderer\dx11.renderer.h" />
+    <ClInclude Include="..\..\source\rococo\dx11.renderer\dx11buffers.inl" />
+    <ClInclude Include="..\..\source\rococo\dx11.renderer\dx11helpers.inl" />
+    <ClInclude Include="..\..\source\rococo\dx11.renderer\rococo.dx11.api.h" />
+  </ItemGroup>
+</Project>

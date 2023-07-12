@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.nativelib.reflection\sexy.nativelib.reflection.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.nativelib.reflection\sexy.nativelib.reflection.stdafx.h" />
+    <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" />
+  </ItemGroup>
+</Project>

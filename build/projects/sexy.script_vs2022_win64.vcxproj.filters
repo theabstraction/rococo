@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.exceptions.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.global.functions.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.packages.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.expression.parser.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.helpers.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.os.mac.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.os.win32.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.s-builder.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.stdafx.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.arithmetic.expression.parser.inl" />
+    <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.array.inl" />
+    <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.asserts.inl" />
+    <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.casts.inl" />
+    <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.closure.inl" />
+    <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.conditional.expression.parser.inl" />
+    <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.containers.inl" />
+    <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.exception.logic.inl" />
+    <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.exceptions.inl" />
+    <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.factory.inl" />
+    <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.functions.inl" />
+    <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.JIT.inl" />
+    <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.list.inl" />
+    <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.macro.inl" />
+    <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.map.inl" />
+    <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.matching.inl" />
+    <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.modules.inl" />
+    <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.predicates.expression.parser.inl" />
+    <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.stdafx.h" />
+    <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.stringbuilders.inl" />
+    <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.util.inl" />
+  </ItemGroup>
+</Project>

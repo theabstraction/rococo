@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\..\source\rococo\sexy\sexy.bennyhill\bennyhill.main.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy\sexy.bennyhill\bennyhill.os.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy\sexy.bennyhill\bennyhill.stdafx.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\source\rococo\sexy\sexy.bennyhill\api.generator\cpp\sys.string.inl">
+      <Filter>api.generator\cpp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\rococo\sexy\sexy.bennyhill\bennyhill.appender.cpp.inl" />
+    <ClInclude Include="..\..\source\rococo\sexy\sexy.bennyhill\bennyhill.appender.sexy.inl" />
+    <ClInclude Include="..\..\source\rococo\sexy\sexy.bennyhill\bennyhill.config.inl" />
+    <ClInclude Include="..\..\source\rococo\sexy\sexy.bennyhill\bennyhill.h" />
+    <ClInclude Include="..\..\source\rococo\sexy\sexy.bennyhill\bennyhill.stdafx.h" />
+    <ClInclude Include="..\..\source\rococo\sexy\sexy.bennyhill\bennyhill.validators.inl" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="api.generator">
+      <UniqueIdentifier>{e9a1ca02-896b-ebbd-1497-91c4224e8f6f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="api.generator\cpp">
+      <UniqueIdentifier>{09d74bc5-9f6b-68fb-48d2-98aec4fd15c4}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

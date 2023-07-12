@@ -5,8 +5,7 @@ Most of the libraries and modules are free and open source. You are not allowed 
 (SS/STC/SVM) as this would destroy the value of the language by creating competing standards. Look at what happened to LISP, LUA and Java. Not fun.
 Don't go there.
 
-Hyperverse is a private commercial development. You may study the source code to understand how to build games with MPlat and the Sexy language, but the 
-software is not free to use.
+Hyperverse is a private commercial development. The software is neither free nor open source.
 
 
 

@@ -1,0 +1,7 @@
+License status of source directories:
+
+source/rococo - open source and freeware
+
+source/3rd-party - refer to the liceneses of the third party products therein
+
+hyperverse - closed source and not free. Not for public distribution.

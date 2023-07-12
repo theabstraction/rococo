@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\..\source\rococo\rococo.misc.utils\rococo.asset.generator.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.misc.utils\rococo.CSVAssetParser.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.misc.utils\rococo.ide.stdout.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.misc.utils\rococo.member.builder.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.misc.utils\rococo.postbox.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.misc.utils\rococo.sexy.reflect.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.misc.utils\rococo.sprites.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.misc.utils\rococo.sxytype-inference.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.misc.utils\rococo.texture.builder.cpp" />
+  </ItemGroup>
+</Project>

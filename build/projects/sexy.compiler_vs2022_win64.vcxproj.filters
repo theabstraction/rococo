@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\..\source\rococo\sexy\STC\stccore\sexy.codebuilder.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy\STC\stccore\sexy.compiler.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy\STC\stccore\sexy.compiler.os.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy\STC\stccore\sexy.compiler.stdafx.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\source\rococo\sexy\STC\stccore\sexy.compiler.attributes.inl" />
+    <ClInclude Include="..\..\source\rococo\sexy\STC\stccore\sexy.compiler.functions.inl" />
+    <ClInclude Include="..\..\source\rococo\sexy\STC\stccore\Sexy.Compiler.h" />
+    <ClInclude Include="..\..\source\rococo\sexy\STC\stccore\sexy.compiler.helpers.h" />
+    <ClInclude Include="..\..\source\rococo\sexy\STC\stccore\sexy.compiler.inl" />
+    <ClInclude Include="..\..\source\rococo\sexy\STC\stccore\sexy.compiler.modules.inl" />
+    <ClInclude Include="..\..\source\rococo\sexy\STC\stccore\sexy.compiler.namespaces.inl" />
+    <ClInclude Include="..\..\source\rococo\sexy\STC\stccore\sexy.compiler.stdafx.h" />
+    <ClInclude Include="..\..\source\rococo\sexy\STC\stccore\sexy.compiler.structures.inl" />
+    <ClInclude Include="..\..\source\rococo\sexy\STC\stccore\sexy.compiler.symbols.inl" />
+    <ClInclude Include="..\..\source\rococo\sexy\STC\stccore\sexy.validators.h" />
+  </ItemGroup>
+</Project>

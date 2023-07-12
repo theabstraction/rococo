@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.nativelib.maths\sexy.nativelib.maths.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.nativelib.maths\sexy.nativelib.maths.stdafx.h" />
+    <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" />
+    <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" />
+    <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i32.inl" />
+    <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i64.inl" />
+  </ItemGroup>
+</Project>
