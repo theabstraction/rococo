@@ -1,0 +1,58 @@
+﻿<Project>
+  <PropertyGroup>
+    <BaseIntermediateOutputPath>C:\work\rococo\gen\temp\rococo.cpp_master</BaseIntermediateOutputPath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x64</Platform>
+    <PlatformTarget Condition=" '$(Platform)' == '' ">x64</PlatformTarget>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>rococo.cpp_master</RootNamespace>
+    <AssemblyName>rococo.cpp_master</AssemblyName>
+    <TargetFramework>net6.0</TargetFramework>
+    <FileAlignment>512</FileAlignment>
+    <EnableDefaultItems>false</EnableDefaultItems>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <StartupObject>CPPMasterApplication</StartupObject>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <PlatformTarget>x64</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\gen\bin\win64\debug</OutputPath>
+    <IntermediateOutputPath>..\..\gen\temp\debug\rococo.cpp_master</IntermediateOutputPath>
+    <BaseIntermediateOutputPath>..\..\gen\temp\rococo.cpp_master</BaseIntermediateOutputPath>
+    <DefineConstants>DEBUG;TRACE;WIN64</DefineConstants>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <PlatformTarget>x64</PlatformTarget>
+    <DebugSymbols>false</DebugSymbols>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\gen\bin\win64\release</OutputPath>
+    <IntermediateOutputPath>..\..\gen\temp\release\rococo.cpp_master</IntermediateOutputPath>
+    <BaseIntermediateOutputPath>..\..\gen\temp\rococo.cpp_master</BaseIntermediateOutputPath>
+    <DefineConstants>TRACE;WIN64</DefineConstants>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+  <ItemGroup>
+    <Compile Include="..\..\source\rococo\rococo.cpp_master\rococo.cpp_master.component.cs">
+      <Link>rococo.cpp_master.component.cs</Link>
+    </Compile>
+    <Compile Include="..\..\source\rococo\rococo.cpp_master\rococo.cpp_master.main.cs">
+      <Link>rococo.cpp_master.main.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\source\rococo\rococo.cpp_master\test.xml">
+      <Link>Resources\test.xml</Link>
+    </None>
+  </ItemGroup>
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+</Project>

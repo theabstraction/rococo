@@ -1,0 +1,1 @@
+Anything that cannot be easily built by sharpmake goes in here

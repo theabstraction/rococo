@@ -20,7 +20,6 @@
 #include <rococo.time.h>
 
 using namespace Rococo;
-using namespace Rococo::Strings;
 
 struct AppArgs
 {

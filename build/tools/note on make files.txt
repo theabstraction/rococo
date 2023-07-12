@@ -1,0 +1,3 @@
+At the time of writing NMAKE has the issue that it is not trivial to identify the home directory of the make file,
+we get around this by running some make files from batch files that first set the home directory to their container, then invoke the make
+system, guaranteeing that the home directory matches the container for the makefile.

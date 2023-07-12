@@ -13,5 +13,3 @@ $(SXH_INL): $(SXH_FILE_FULL_PATH) $(SXH_XC_FULL_PATH)
 # In normal mode of operation, all we want to do is to ensure the inl file is up to date
 all: $(SXH_INL)
 	
-
-

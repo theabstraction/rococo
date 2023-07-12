@@ -39,6 +39,11 @@ namespace Rococo
             }
         }
 
+        public static string GetRelativeToProject(string pathName)
+        {
+            return Util.PathGetRelative(Roots.RococoProjectPath, pathName);
+        }
+
         public static string RococoContentPath
         {
             get
@@ -144,19 +149,18 @@ namespace Rococo
             {
                 string makeFilePath = Path.Combine(Roots.RococoToolsPath, @"rococo.sxh.mak");
 
-                string makeRelative = Util.PathGetRelative(Roots.RococoProjectPath, makeFilePath);
-                string contentRelative = Util.PathGetRelative(Roots.RococoProjectPath, Roots.RococoContentPath);
-                string srcRelative = Util.PathGetRelative(Roots.RococoProjectPath, SourceRootPath);
-
-                string binRelative = Util.PathGetRelative(Roots.RococoProjectPath, conf.TargetPath);
+                string makeRelative = Roots.GetRelativeToProject(makeFilePath);
+                string contentRelative = Roots.GetRelativeToProject(Roots.RococoContentPath);
+                string srcRelative = Roots.GetRelativeToProject(SourceRootPath);
+                string binRelative = Roots.GetRelativeToProject(conf.TargetPath);
 
                 string makeFile = string.Format("NMAKE /NOLOGO /F \"{0}\" \"BENNY_HILL={1}\\sexy.bennyhill.exe\" all SOURCE_ROOT={2}\\ CONTENT_ROOT={3}\\ SXH_FILE={4} XC_FILE={5}", makeRelative, binRelative, srcRelative, contentRelative, sxh, xc);
                 conf.EventPreBuild.Add(makeFile);
             }
             else
             {
-                string srcRelative = Util.PathGetRelative(Roots.RococoProjectPath, SourceRootPath);
-                string contentRelative = Util.PathGetRelative(Roots.RococoProjectPath, Roots.RococoContentPath);
+                string srcRelative = Roots.GetRelativeToProject(SourceRootPath);
+                string contentRelative = Roots.GetRelativeToProject(Roots.RococoContentPath);
 
                 string[] args = new[] { srcRelative, contentRelative, sxh };
 
@@ -377,15 +381,17 @@ namespace Rococo
 
             // This Path will be used to get all SourceFiles in this Folder and all subFolders
             SourceRootPath = Path.Combine(Roots.RococoSourcePath, Name);
+            BaseIntermediateOutputPath = Path.Combine(Roots.RococoTmpPath, Name);
         }
 
         public virtual void ConfigureAll(Configuration conf, Target target)
         {
-            conf.ProjectFileName = "[project.Name].[target.DevEnv].[target.Framework]";
+            conf.ProjectFileName = "[project.Name]";
             conf.ProjectPath = Roots.RococoProjectPath;
             conf.TargetLibraryPath = Path.Combine(Roots.RococoLibPath, @"[target.Platform]\[conf.Name]\");
             conf.IntermediatePath = Path.Combine(Roots.RococoTmpPath, @"[target.Name]\[project.Name]\");
             conf.TargetPath = Path.Combine(Roots.RococoBinPath, @"[target.Platform]\[conf.Name]\");
+            conf.BaseIntermediateOutputPath = Path.Combine(Roots.RococoTmpPath, conf.ProjectFileName);
         }
     }
 
@@ -607,6 +613,7 @@ namespace Rococo
             conf.Output = Configuration.OutputType.DotNetConsoleApp;
             base.ConfigureAll(conf, target);
             conf.TargetLibraryPath = Path.Combine(Roots.RococoLibPath, @"[target.Platform]\[conf.Name]\");
+            // System.Diagnostics.Debugger.Break();
         }
     }
 
@@ -627,6 +634,11 @@ namespace Rococo
             conf.SourceFilesBuildExcludeRegex.Add(@"mplat.component.template.h");
             conf.SourceFilesBuildExcludeRegex.Add(@"mplat.test.app.cpp");
             conf.AddPublicDependency<SexyBennyHillProject>(target);
+            
+            string makeFilePath = Path.Combine(Roots.RococoToolsPath, "make-components.C++.bat");
+            string makeRelative = Roots.GetRelativeToProject(makeFilePath);
+
+            conf.EventPreBuild.Add(makeRelative);
 
             AddSXHFileBuildStep(conf, "mplat.sxh", "config.xc", true);
         }
@@ -673,6 +685,15 @@ namespace Rococo
             conf.AddPublicDependency<RococoMathsProject>(target);
             conf.AddPublicDependency<SexyBennyHillProject>(target);
             conf.Options.Add(Sharpmake.Options.Vc.Linker.SubSystem.Windows);
+            /*
+            string makeFilePath = Path.Combine(Roots.RococoToolsPath, "package.mak");
+            string makeRelative = Roots.GetRelativeToProject(makeFilePath);
+            string contentRelative = Roots.GetRelativeToProject(Roots.RococoContentPath);
+            string rococoRelative = Roots.GetRelativeToProject(Roots.RococoRootPath);
+            string makeCmd = string.Format("NMAKE /NOLOGO /F \"{0}\" all ROCOCO={1}\\ CONTENT={2}\\", makeRelative, rococoRelative, contentRelative);
+            
+            conf.EventPostBuild.Add(makeCmd);
+            */
         }
     }
 
@@ -746,6 +767,39 @@ namespace Rococo
             conf.AddPublicDependency<SexyBennyHillProject>(target);
 
             AddSXHFileBuildStep(conf, "rococo.audio.sxh", "config.xc", true);
+        }
+    }
+
+    [Sharpmake.Compile]
+    public class RococoBuildFinalProject : Project
+    {
+        public RococoBuildFinalProject()
+        {
+            AddTargets(new Target(
+               Platform.win64,
+               DevEnv.vs2022,
+               Optimization.Debug | Optimization.Release,
+               OutputType.Dll,
+               Blob.NoBlob,
+               BuildSystem.MSBuild,
+               DotNetFramework.net6_0)
+           );
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            conf.ProjectPath = @"..\..\build\hand-coded-projects\";
+            conf.ProjectFileName = "rococo.build.final";
+
+            conf.TargetPath = Path.Combine(Roots.RococoRootPath, @"..\..\build\projects\");
+            conf.TargetFileName = "rococo.build.final.vcxproj";
+
+            conf.Output = Configuration.OutputType.Utility;
+
+            conf.AddPublicDependency<RococoPackagerProject>(target);
+            conf.AddPublicDependency<RococoMHostProject>(target);
+            conf.AddPublicDependency<SexyBennyHillProject>(target);
         }
     }
 
@@ -1062,6 +1116,7 @@ namespace Rococo
             conf.AddProject<RococoSexyStudioTestProject>(target);
             conf.AddProject<RococoAudioProject>(target);
             conf.AddProject<RococoAudioTestProject>(target);
+            conf.AddProject<RococoBuildFinalProject>(target);
         }
     }
 
@@ -1148,6 +1203,7 @@ namespace Rococo
             arguments.Generate<RococoSexyStudioTestProject>();
             arguments.Generate<RococoAudioProject>();
             arguments.Generate<RococoAudioTestProject>();
+            arguments.Generate<RococoBuildFinalProject>();
         }
     }
 }
