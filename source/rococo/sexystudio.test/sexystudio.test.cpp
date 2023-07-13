@@ -15,11 +15,7 @@ using namespace Rococo::Strings;
 using namespace Rococo::SexyStudio;
 
 
-#ifdef _DEBUG
-static auto DLL_NAME = L"sexystudio.debug.dll";
-#else
-static auto DLL_NAME = L"sexystudio.dll";
-#endif
+auto DLL_NAME = L"sexystudio.dll";
 
 cstr ErrorCaption = "SexyStudio Standalone App - error!";
 
@@ -621,7 +617,7 @@ void GetDllPath(WideFilePath& pathToDLL)
 	*pathToDLL.buf = 0;
 
 	HKEY hSexy4Npp;
-	LSTATUS status = RegOpenKeyW(HKEY_CURRENT_USER, L"Software\\Rococo.Sexy\\SexyStudio", &hSexy4Npp);
+	LSTATUS status = RegOpenKeyW(HKEY_CURRENT_USER, L"Software\\Rococo - 19th Century Software\\SexyStudio", &hSexy4Npp);
 	if (status == ERROR_SUCCESS)
 	{
 		enum { MAX_ROOT_LEN = 128 };
@@ -640,11 +636,7 @@ void GetDllPath(WideFilePath& pathToDLL)
 
 	if (*pathToDLL.buf == 0)
 	{
-#ifdef _DEBUG
-		Format(pathToDLL, L"C:\\work\\rococo\\bin\\sexystudio.debug.dll");
-#else
-		Format(pathToDLL, L"C:\\work\\rococo\\bin\\sexystudio.dll");
-#endif
+		Format(pathToDLL, L"C:\\work\\rococo\\SexyStudioBin\\sexystudio.dll");
 	}
 }
 
