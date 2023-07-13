@@ -1005,6 +1005,23 @@ private:
 		}
 	}
 
+	void GetFullNamespaceName(char fullName[256], ISxyNamespace& ns)
+	{
+		char temp[256] = { 0 };	
+		cstr writeEnd = temp + 254;
+		char* writePos = (char*) writeEnd;
+
+		for (ISxyNamespace* n = &ns; n->GetParent() != nullptr; n = n->GetParent())
+		{
+			size_t len = strlen(n->Name());
+			writePos -= (len + 1);
+			*writePos = '.';
+			memcpy(writePos+1, n->Name(), len);			
+		}
+
+		CopyString(fullName, 256, writePos + 1);
+	}
+
 	void AppendToSearchTermsRecursive(ISxyNamespace& ns, cstr searchTerm, cstr fullSearchItem)
 	{
 		auto* dot = FindDot(searchTerm);
@@ -1015,16 +1032,37 @@ private:
 
 			for (int i = 0; i < ns.SubspaceCount(); ++i)
 			{
-				auto& subpsace = ns[i];
-				if (Eq(subpsace.Name(), subspaceName))
+				auto& subspace = ns[i];
+				if (Eq(subspace.Name(), subspaceName))
 				{
-					AppendToSearchTermsRecursive(subpsace, dot + 1, fullSearchItem);
+					AppendToSearchTermsRecursive(subspace, dot + 1, fullSearchItem);
 					return;
 				}
 			}
 		}
 		else
 		{
+			for (int i = 0; i < ns.SubspaceCount(); ++i)
+			{
+				auto& subspace = ns[i];
+				if (StartsWith(subspace.Name(), searchTerm))
+				{
+					char fullNameSpaceName[256];
+					GetFullNamespaceName(fullNameSpaceName, subspace);
+					searchArrayResults.push_back({ fullNameSpaceName,&subspace, nullptr });
+
+					if (*searchTerm)
+					{
+						for (int j = 0; j < subspace.SubspaceCount(); ++j)
+						{
+							auto& subspaceChild = subspace[j];
+							GetFullNamespaceName(fullNameSpaceName, subspaceChild);
+							searchArrayResults.push_back({ fullNameSpaceName,&subspaceChild, nullptr });
+						}
+					}
+				}
+			}
+
 			for (int j = 0; j < ns.FunctionCount(); ++j)
 			{
 				auto& function = ns.GetFunction(j);
@@ -1033,7 +1071,8 @@ private:
 				{
 					char fullName[256];
 					SafeFormat(fullName, fullSearchItem, searchTerm - fullSearchItem);
-					StringCat(fullName, name, (int32) sizeof fullName);
+					size_t delta = strlen(searchTerm);
+					StringCat(fullName, name + delta, (int32) sizeof fullName);
 					searchArrayResults.push_back({ fullName,&ns,&function });
 				}
 			}
