@@ -17,11 +17,6 @@ namespace Rococo
 		class IPublisher;
 	}
 
-	namespace Windows
-	{
-		struct IWindow;
-	}
-
 	namespace Sex
 	{
 		struct ISExpression;

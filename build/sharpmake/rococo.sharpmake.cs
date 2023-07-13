@@ -230,7 +230,8 @@ namespace Rococo
                     conf.Options.Add(Sharpmake.Options.Vc.Compiler.CppLanguageStandard.CPP20);
                     break;
             } 
-            conf.Options.Add(Sharpmake.Options.Vc.Compiler.Exceptions.Enable);
+            conf.Options.Add(Options.Vc.Compiler.Exceptions.Enable);
+            conf.Options.Add(Options.Vc.Compiler.Inline.Default);
             conf.Options.Add(new Sharpmake.Options.Vc.Compiler.DisableSpecificWarnings("4458", "4201", "4324", "4250"));
             conf.IntermediatePath = Path.Combine(Roots.RococoTmpPath, @"[target.Name]\[project.Name]\");
             conf.TargetPath = Path.Combine(Roots.RococoBinPath, @"[target.Platform]\[conf.Name]\");

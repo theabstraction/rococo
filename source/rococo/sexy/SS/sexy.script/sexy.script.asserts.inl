@@ -237,12 +237,12 @@ namespace Rococo { namespace Sex
 		}
 	}
 
-	void ThrowNamespaceConflict(cr_sex s, const INamespace& n1, const INamespace& n2, cstr type, cstr token)
+	[[noreturn]] void ThrowNamespaceConflict(cr_sex s, const INamespace& n1, const INamespace& n2, cstr type, cstr token)
 	{
 		Throw(s, "%s %s could belong to either %s or %s", type, token, n1.FullName()->Buffer, n2.FullName()->Buffer);
 	}
 
-	void ThrowTokenNotFound(cr_sex s, cstr item, cstr repository, cstr type)
+	[[noreturn]] void ThrowTokenNotFound(cr_sex s, cstr item, cstr repository, cstr type)
 	{
 		Throw(s, "%s '%s' not found in %s", item, repository, type);
 	}

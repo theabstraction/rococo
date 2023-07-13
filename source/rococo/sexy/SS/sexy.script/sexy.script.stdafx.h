@@ -82,8 +82,8 @@ namespace Rococo
         void ThrowTypeMismatch(cr_sex s, const IStructure& a, const IStructure& b, cstr extra);
 
         void AssertAtomicMatch(cr_sex s, cstr value);
-        void ThrowNamespaceConflict(cr_sex s, const INamespace& n1, const INamespace& n2, cstr type, cstr token);
-        void ThrowTokenNotFound(cr_sex s, cstr item, cstr repository, cstr type);
+        [[noreturn]] void ThrowNamespaceConflict(cr_sex s, const INamespace& n1, const INamespace& n2, cstr type, cstr token);
+        [[noreturn]] void ThrowTokenNotFound(cr_sex s, cstr item, cstr repository, cstr type);
         INamespace& AssertGetNamespace(IProgramObject& object, cr_sex s, cstr fullName);
     }
 

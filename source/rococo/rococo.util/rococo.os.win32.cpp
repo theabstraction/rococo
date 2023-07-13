@@ -550,8 +550,97 @@ namespace Rococo::OS
 		return false;
 	}
 
-	ROCOCO_API void ShellOpenDocument(cstr documentFilePath)
+	static const wchar_t* notePadPP = L"C:\\Program Files\\Notepad++\\notepad++.exe";
+
+	static std::vector<PROCESS_INFORMATION> processes;
+
+	void ClearProcesses()
 	{
+		for (auto& p : processes)
+		{
+			WaitForSingleObject(p.hProcess, INFINITE);
+			CloseHandle(p.hProcess);
+		}
+	}
+
+
+	// Not thread safe
+	bool SpawnChildProcessAsync(const wchar_t* executable, const wchar_t* commandLineArgs)
+	{
+		std::vector<wchar_t> commandLine;
+		commandLine.resize(32786);
+
+		SafeFormat(commandLine.data(), commandLine.size(), L"%s", commandLineArgs);
+
+		STARTUPINFOW info = { 0 };
+		info.cb = sizeof info;
+		PROCESS_INFORMATION pInfo = { 0 };
+		BOOL status = CreateProcessW(executable, commandLine.data(), NULL, NULL, FALSE, 0, NULL, NULL, &info, &pInfo);
+		if (status)
+		{
+			processes.push_back(pInfo);
+
+			if (processes.size() == 1)
+			{
+				atexit(ClearProcesses);
+			}
+		}
+
+		return status;
+	}
+
+	// Thread safe
+	void SpawnIndependentProcess(HWND hMsgSink, const wchar_t* executable, const wchar_t* commandLine)
+	{
+		auto result = (INT_PTR)ShellExecuteW(hMsgSink, L"open", executable, commandLine, NULL, SW_SHOW);
+		if (result < 32)
+		{
+			Throw(GetLastError(), "Error spawning [%s: '%s']", __FUNCTION__, executable, commandLine);
+		}
+	}
+
+	bool OpenNotepadPP(HWND hWndMessageSink, cstr documentFilePath, int lineNumber)
+	{
+		wchar_t commandLine[1024];
+		SafeFormat(commandLine, L"-n%d -titleAdd=\" (via Sexy Studio)\" \"%hs\"", lineNumber, documentFilePath);
+
+		try
+		{
+			SpawnIndependentProcess(hWndMessageSink, notePadPP, commandLine);
+			return true;
+		}
+		catch (IException&)
+		{
+			return false;
+		}
+	}
+
+	ROCOCO_API void ShellOpenDocument(Windows::IWindow& parent, cstr caption, cstr documentFilePath, int lineNumber)
+	{
+		WideFilePath wTarget;
+		Assign(wTarget, documentFilePath);
+
+		if (!IsFileExistant(wTarget))
+		{
+			char msg[320];
+			SafeFormat(msg, "File not found: %s", documentFilePath);
+
+			HWND hRoot = GetAncestor(parent, GA_ROOT);
+			MessageBoxA(hRoot, msg, caption, MB_ICONINFORMATION);
+			return;
+		}
+
+		if (lineNumber > 0)
+		{
+			if (IsFileExistant(notePadPP))
+			{
+				if (OpenNotepadPP(parent, documentFilePath, lineNumber))
+				{
+					return;
+				}
+			}
+		}
+
 		auto result = (INT_PTR) ShellExecuteA(NULL, "open", documentFilePath, NULL, NULL, SW_SHOW);
 		if (result < 32)
 		{
@@ -2921,7 +3010,7 @@ namespace Rococo::OS
 		{
 			DWORD dwType = REG_SZ;
 			DWORD sizeofBuffer = (DWORD)lenBytes;
-			LSTATUS status = RegGetValueA(hConfigRoot, NULL, section.sectionName, REG_SZ, &dwType, textBuffer, &sizeofBuffer);
+			LSTATUS status = RegGetValueA(hConfigRoot, NULL, section.sectionName, RRF_RT_REG_SZ, &dwType, textBuffer, &sizeofBuffer);
 			if (status != ERROR_SUCCESS)
 			{
 				Throw(status, "Cannot open or get registry value 'Software/%s/%s' section", organization, root.rootName);

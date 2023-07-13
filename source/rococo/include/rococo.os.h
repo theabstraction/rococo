@@ -146,7 +146,9 @@ namespace Rococo::OS
 	};
 
 	ROCOCO_API void SetCursorVisibility(bool isVisible, Rococo::Windows::IWindow& captureWindow);
-	ROCOCO_API void ShellOpenDocument(cstr path);
+
+	// Try opening a document at a given line number. If the number is negative, then use a generic handler, otherwise use the default text editor for the Rococo OS system
+	ROCOCO_API void ShellOpenDocument(Windows::IWindow& parent, cstr caption, cstr path, int lineNumber);
 	ROCOCO_API void TripDebugger();
 	ROCOCO_API void PrintDebug(const char* format, ...);	
 	ROCOCO_API [[nodiscard]] bool IsDebugging();

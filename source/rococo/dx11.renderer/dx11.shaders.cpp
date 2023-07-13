@@ -180,7 +180,6 @@ struct DX11Shaders : IDX11Shaders
 		{
 			delete shader;
 			Throw(hr, "device.CreateInputLayout failed with shader %s", name);
-			return ID_VERTEX_SHADER();
 		}
 
 		hr = device.CreateVertexShader(shaderCode, shaderLength, nullptr, &shader->vs);
@@ -188,7 +187,6 @@ struct DX11Shaders : IDX11Shaders
 		{
 			delete shader;
 			Throw(hr, "device.CreateVertexShader failed with shader %s", name);
-			return ID_VERTEX_SHADER::Invalid();
 		}
 
 		shader->name = name;
@@ -233,7 +231,6 @@ struct DX11Shaders : IDX11Shaders
 		{
 			delete shader;
 			Throw(hr, "device.CreatePixelShader failed with shader %s", name);
-			return ID_PIXEL_SHADER::Invalid();
 		}
 
 		shader->name = name;
@@ -271,7 +268,6 @@ struct DX11Shaders : IDX11Shaders
 		{
 			delete shader;
 			Throw(hr, "device.CreateGeometryShader failed with shader %s", pingPath);
-			return ID_GEOMETRY_SHADER::Invalid();
 		}
 
 		shader->name = pingPath;

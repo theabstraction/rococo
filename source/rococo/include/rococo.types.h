@@ -206,6 +206,11 @@ namespace Rococo
 		void* pValue;
 	};
 
+	namespace Windows
+	{
+		struct IWindow;
+	}
+
 	namespace Strings
 	{
 		struct IVarArgStringFormatter;

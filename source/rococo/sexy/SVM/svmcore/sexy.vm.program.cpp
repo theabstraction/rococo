@@ -139,7 +139,6 @@ namespace Anon
 			else
 			{
 				Throw(0, "No such function: ID_BYTECODE #%lld", id);
-				return 0;
 			}
 		}
 

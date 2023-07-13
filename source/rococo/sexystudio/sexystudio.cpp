@@ -60,6 +60,10 @@ void ValidateMemory()
 
 void OpenSexyFile(ISexyStudioEventHandler& evHandler, ISolution& solution, IWindow& mainWindow, cstr path, int lineNumber)
 {
+	char caption[256];
+	HWND hRoot = GetAncestor(mainWindow, GA_ROOT);
+	GetWindowTextA(hRoot ? hRoot : mainWindow, caption, sizeof caption);
+
 	try
 	{
 		auto packagePrefix = "[package]:"_fstring;
@@ -84,14 +88,14 @@ void OpenSexyFile(ISexyStudioEventHandler& evHandler, ISolution& solution, IWind
 
 			if (!evHandler.TryOpenEditor(packageFilepath, lineNumber))
 			{
-				Rococo::OS::ShellOpenDocument(packageFilepath);
+				Rococo::OS::ShellOpenDocument(mainWindow, caption, packageFilepath, lineNumber);
 			}
 		}
 		else
 		{
 			if (!evHandler.TryOpenEditor(path, lineNumber))
 			{
-				Rococo::OS::ShellOpenDocument(path);
+				Rococo::OS::ShellOpenDocument(mainWindow, caption, path, lineNumber);
 			}
 		}
 	}
@@ -107,7 +111,7 @@ private:
 	WidgetContext wc;
 	IIDEFrame& ideFrame;
 	ISexyDatabase& database;
-	AutoFree<ISourceTree> idToSourceeMap = CreateSourceTree();
+	AutoFree<ISourceTree> idToSourceMap = CreateSourceTree();
 	IGuiTree* fileBrowser = nullptr;
 	ITab* projectTab = nullptr;
 	U8FilePath contentPath;
@@ -126,7 +130,7 @@ private:
 
 		Rococo::OS::SetConfigVariable(contentPath, OS::ConfigSection{ "ContentPath" }, OS::ConfigRootName{ "SexyStudio" });
 
-		PopulateTreeWithSXYFiles(*fileBrowser, database, ideFrame, *idToSourceeMap);
+		PopulateTreeWithSXYFiles(*fileBrowser, database, ideFrame, *idToSourceMap);
 		ideFrame.SetProgress(100.0f, "Populated file browser");
 
 		database.Sort();
@@ -278,7 +282,7 @@ public:
 
 	void OnItemContextClick(IGuiTree& tree, ID_TREE_ITEM hItem, Vec2i pos) override
 	{
-		auto src = idToSourceeMap->Find(hItem);
+		auto src = idToSourceMap->Find(hItem);
 		if (!src.SourcePath)
 		{
 			return;
@@ -1643,7 +1647,13 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 	{
 		ide = CreateMainIDEFrame(context, topLevelWindow, evHandler);
 		Widgets::SetText(*ide, "Sexy Studio");
-		Widgets::SetSpan(*ide, 1024, 600);
+
+		Vec2i desktopSpan = Windows::GetDesktopSpan();
+		Vec2i initWindowSpan = { 1024, 600 };
+		if (desktopSpan.x > 2500) initWindowSpan.x = 2048;
+		if (desktopSpan.y >= 1440) initWindowSpan.y = 1024;
+
+		Widgets::SetSpan(*ide, initWindowSpan.x, initWindowSpan.y);
 
 		splitScreen = CreateSplitScreen(ide->Children());
 		Widgets::AnchorToParent(*splitScreen, 0, 0, 0, 0);
