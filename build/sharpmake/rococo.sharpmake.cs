@@ -381,7 +381,8 @@ namespace Rococo
 
             // This Path will be used to get all SourceFiles in this Folder and all subFolders
             SourceRootPath = Path.Combine(Roots.RococoSourcePath, Name);
-            BaseIntermediateOutputPath = Path.Combine(Roots.RococoTmpPath, Name);
+            string biop = Path.Combine(Roots.RococoTmpPath, "BaseInterOutPath");
+        //    BaseIntermediateOutputPath = Roots.GetRelativeToProject(Path.Combine(biop, Name));
         }
 
         public virtual void ConfigureAll(Configuration conf, Target target)
@@ -391,7 +392,6 @@ namespace Rococo
             conf.TargetLibraryPath = Path.Combine(Roots.RococoLibPath, @"[target.Platform]\[conf.Name]\");
             conf.IntermediatePath = Path.Combine(Roots.RococoTmpPath, @"[target.Name]\[project.Name]\");
             conf.TargetPath = Path.Combine(Roots.RococoBinPath, @"[target.Platform]\[conf.Name]\");
-            conf.BaseIntermediateOutputPath = Path.Combine(Roots.RococoTmpPath, conf.ProjectFileName);
         }
     }
 

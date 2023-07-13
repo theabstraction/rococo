@@ -1,8 +1,5 @@
 ﻿<Project>
   <PropertyGroup>
-    <BaseIntermediateOutputPath>C:\work\rococo\gen\temp\rococo.cpp_master</BaseIntermediateOutputPath>
-  </PropertyGroup>
-  <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x64</Platform>
     <PlatformTarget Condition=" '$(Platform)' == '' ">x64</PlatformTarget>
@@ -23,7 +20,6 @@
     <Optimize>false</Optimize>
     <OutputPath>..\..\gen\bin\win64\debug</OutputPath>
     <IntermediateOutputPath>..\..\gen\temp\debug\rococo.cpp_master</IntermediateOutputPath>
-    <BaseIntermediateOutputPath>..\..\gen\temp\rococo.cpp_master</BaseIntermediateOutputPath>
     <DefineConstants>DEBUG;TRACE;WIN64</DefineConstants>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
@@ -35,7 +31,6 @@
     <Optimize>true</Optimize>
     <OutputPath>..\..\gen\bin\win64\release</OutputPath>
     <IntermediateOutputPath>..\..\gen\temp\release\rococo.cpp_master</IntermediateOutputPath>
-    <BaseIntermediateOutputPath>..\..\gen\temp\rococo.cpp_master</BaseIntermediateOutputPath>
     <DefineConstants>TRACE;WIN64</DefineConstants>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>

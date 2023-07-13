@@ -1,3 +1,0 @@
--g -c -std=c++17 -stdlib=libc++ -mmacosx-version-min=10.8 -D_DEBUG=1
--I./../include/
--I../sexy/Common/
