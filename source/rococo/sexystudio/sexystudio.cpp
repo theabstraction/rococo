@@ -2184,7 +2184,9 @@ struct Factory: Rococo::SexyStudio::ISexyStudioFactory1
 
 	ISexyStudioInstance1* CreateSexyIDE(IWindow& topLevelParent, ISexyStudioEventHandler& eventHandler) override
 	{
-		return new SexyStudioIDE(topLevelParent, eventHandler);
+		ISexyStudioInstance1* ide = new SexyStudioIDE(topLevelParent, eventHandler);
+		ShowWindow(ide->GetIDEFrame(), SW_HIDE);
+		return ide;
 	}
 
 	void Free() override

@@ -760,11 +760,6 @@ namespace Rococo
         public void ConfigureAll(Configuration conf, Target target)
         {
             StandardInit(conf, target, Configuration.OutputType.Dll);
-            conf.AddPublicDependency<RococoSexyStudioProject>(target);
-            conf.AddPublicDependency<RococoWindowsProject>(target);
-            conf.AddPublicDependency<RococoMiscUtilsProject>(target);
-            conf.AddPublicDependency<RococoUtilsProject>(target);
-
             conf.Defines.Add("UNICODE");
             conf.Defines.Add("_ITERATOR_DEBUG_LEVEL=0");
         }
@@ -1030,7 +1025,7 @@ namespace Rococo
             conf.IncludePaths.Add(Path.Combine(Roots.ThirdPartyPath, @"libjpg\jpeg-6b\"));
             conf.IncludePaths.Add(Path.Combine(Roots.ThirdPartyPath, @"zlib\"));
             conf.IncludePaths.Add(Roots.RococoIncludePath);
-            conf.Options.Add(new Sharpmake.Options.Vc.Compiler.DisableSpecificWarnings("4244", "4267", "4996", "4456", "4334", "4706", "4133", "4457", "4311", "4324"));
+            conf.Options.Add(new Sharpmake.Options.Vc.Compiler.DisableSpecificWarnings("4100", "4244", "4267", "4996", "4456", "4334", "4706", "4133", "4457", "4311", "4324"));
             AddDefaultLibraries(conf);
         }
     }

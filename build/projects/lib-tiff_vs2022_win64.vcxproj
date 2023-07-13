@@ -107,7 +107,7 @@
       <BrowseInformation>false</BrowseInformation>
       <CallingConvention>Cdecl</CallingConvention>
       <CompileAs>Default</CompileAs>
-      <DisableSpecificWarnings>4133;4244;4267;4311;4324;4334;4456;4457;4706;4996</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4100;4133;4244;4267;4311;4324;4334;4456;4457;4706;4996</DisableSpecificWarnings>
       <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
       <ProgramDatabaseFileName>..\..\gen\temp\debug\lib-tiff\lib-tiff_compiler.pdb</ProgramDatabaseFileName>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -193,7 +193,7 @@
       <BrowseInformation>false</BrowseInformation>
       <CallingConvention>Cdecl</CallingConvention>
       <CompileAs>Default</CompileAs>
-      <DisableSpecificWarnings>4133;4244;4267;4311;4324;4334;4456;4457;4706;4996</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4100;4133;4244;4267;4311;4324;4334;4456;4457;4706;4996</DisableSpecificWarnings>
       <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
       <ProgramDatabaseFileName>..\..\gen\temp\release\lib-tiff\lib-tiff_compiler.pdb</ProgramDatabaseFileName>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>

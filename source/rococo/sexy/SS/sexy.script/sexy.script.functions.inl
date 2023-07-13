@@ -2260,8 +2260,6 @@ namespace Rococo
 			}
 
 			ThrowTokenNotFound(s, methodName, GetFriendlyName(*def.ResolvedType), "method");
-
-			return false; // No matching method in all the interfaces
 		}
 
 		bool TryCompileAsBuilderCall(CCompileEnvironment& ce, cr_sex s, cstr instanceName, cstr methodName)

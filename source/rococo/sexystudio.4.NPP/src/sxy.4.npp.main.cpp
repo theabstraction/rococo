@@ -18,13 +18,6 @@
 // Modifications to the original Copyright(c)2021-2023 by Mark Anthony Taylor. This DLL code, sexystudio.4.notepad++, is open source and free.
 
 #include <rococo.types.h>
-#include <rococo.strings.h>
-
-#ifdef _WIN32
-#  pragma comment(lib, "rococo.util.lib")
-#  pragma comment(lib, "rococo.windows.lib")
-#endif
-
 
 #include "PluginDefinition.h"
 
@@ -81,9 +74,9 @@ extern "C" __declspec(dllexport) const TCHAR * getName()
 	if (*name == 0)
 	{
 #ifdef _DEBUG
-		SafeFormat(name, sizeof name, L"SexyStudio for Notepad++ (Debug Build %hs)%hs", __TIMESTAMP__, errMsg);
+		swprintf_s(name, L"SexyStudio for Notepad++ (Debug Build %hs)%hs", __TIMESTAMP__, errMsg);
 #else
-		SafeFormat(name, sizeof name, L"SexyStudio for Notepad++ (Build %hs)%hs", __TIMESTAMP__, errMsg);
+		swprintf_s(name, L"SexyStudio for Notepad++ (Build %hs)%hs", __TIMESTAMP__, errMsg);
 #endif
 	}
 	return name;

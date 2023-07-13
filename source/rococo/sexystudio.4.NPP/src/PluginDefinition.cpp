@@ -59,7 +59,7 @@ void GetDllPath(WideFilePath& pathToDLL)
     *pathToDLL.buf = 0;
 
     HKEY hSexy4Npp;
-    LSTATUS status = RegOpenKeyW(HKEY_CURRENT_USER, L"Software\\Rococo.Sexy\\SexyStudio", &hSexy4Npp);
+    LSTATUS status = RegOpenKeyW(HKEY_CURRENT_USER, L"Software\\Rococo - 19th Century Software\\SexyStudio", &hSexy4Npp);
     if (status == ERROR_SUCCESS)
     {
         enum { MAX_ROOT_LEN = 128 };
@@ -78,7 +78,7 @@ void GetDllPath(WideFilePath& pathToDLL)
 
     if (*pathToDLL.buf == 0)
     {
-        Format(pathToDLL, L"C:\\work\\rococo\\RococoSexyBin\\sexystudio.dll");
+        swprintf_s(pathToDLL.buf, L"C:\\work\\rococo\\SexyStudioBin\\sexystudio.dll");
     }
 }
 
@@ -87,7 +87,7 @@ struct SexyStudioEventHandler: ISexyStudioEventHandler
     bool TryOpenEditor(cstr filename, int lineNumber) override
     {
         WideFilePath wPath;
-        Assign(wPath, filename);
+        swprintf_s(wPath.buf, wPath.CAPACITY, L"%hs", filename);
         if (SendMessage(nppData._nppHandle, NPPM_DOOPEN, 0, (LPARAM)wPath.buf))
         {
             SendMessage(nppData._scintillaMainHandle, SCI_GOTOLINE, lineNumber - 1, 0);
@@ -104,6 +104,84 @@ struct SexyStudioEventHandler: ISexyStudioEventHandler
 };
 
 static SexyStudioEventHandler static_SexyStudioEventHandler;
+
+#include <rococo.debugging.h>
+
+struct NppRococoException : public IException, public Debugging::IStackFrameEnumerator
+{
+    char msg[2048];
+    int32 errorCode;
+
+    cstr Message() const override
+    {
+        return msg;
+    }
+
+    int32 ErrorCode() const override
+    {
+        return errorCode;
+    }
+
+    IStackFrameEnumerator* StackFrames() override
+    {
+        return this;
+    }
+
+    void FormatEachStackFrame(Debugging::IStackFrameFormatter&) override
+    {
+    }
+};
+
+void NppThrow(int32 errorCode, cstr format, ...)
+{
+    va_list args;
+    va_start(args, format);
+
+    NppRococoException ex;
+
+    vsprintf_s(ex.msg, sizeof(ex.msg), format, args);
+
+    ex.errorCode = errorCode;
+
+    throw ex;
+}
+
+namespace Local // Copied from the Rococo UTIL lib, so that we dont have to manage the util dll in the notepad++ plugin folder
+{
+    bool MakeContainerDirectory(wchar_t* filename)
+    {
+        int len = (int)wcslen(filename);
+
+        for (int i = len - 2; i > 0; --i)
+        {
+            if (filename[i] == L'\\')
+            {
+                filename[i + 1] = 0;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    bool StartsWith(const wchar_t* bigString, const wchar_t* prefix)
+    {
+        return wcsncmp(bigString, prefix, wcslen(prefix)) == 0;
+    }
+
+    bool Eq(const wchar_t* a, const wchar_t* b)
+    {
+        return wcscmp(a, b) == 0;
+    }
+
+    bool EndsWith(const wchar_t* bigString, const wchar_t* suffix)
+    {
+        size_t len = wcslen(suffix);
+        size_t lenBig = wcslen(bigString);
+        const wchar_t* t = bigString + lenBig - len;
+        return Eq(suffix, t);
+    }
+}
 
 //
 // Initialize your plugin data here
@@ -128,7 +206,13 @@ void pluginInit(HANDLE hModule)
         GetDllPath(pathToDLL);
 
         WideFilePath binDirectory = pathToDLL;
-        Rococo::OS::MakeContainerDirectory(binDirectory.buf);
+        Local::MakeContainerDirectory(binDirectory.buf);
+
+        DWORD dflags = GetFileAttributesW(binDirectory);
+        if (dflags == INVALID_FILE_ATTRIBUTES)
+        {
+            NppThrow(GetLastError(), "Could not load library: %ls. Path %ls does not exist", pathToDLL.buf, binDirectory.buf);
+        }
 
         WideFilePath oldDirectory;
         GetDllDirectoryW(oldDirectory.CAPACITY, oldDirectory.buf);
@@ -141,20 +225,21 @@ void pluginInit(HANDLE hModule)
 
         if (hFactoryModule == nullptr)
         {
-            if (OS::IsFileExistant(pathToDLL))
+            DWORD flags = GetFileAttributesW(pathToDLL);
+            if (flags != INVALID_FILE_ATTRIBUTES)
             {
-                Throw(GetLastError(), "Could not load library: %ls", pathToDLL.buf);
+                NppThrow(GetLastError(), "Could not load library: %ls", pathToDLL.buf);
             }
             else
             {
-                Throw(GetLastError(), "Could not load library: %ls. File appears to not exist.", pathToDLL.buf);
+                NppThrow(GetLastError(), "Could not load library: %ls. File appears to not exist.", pathToDLL.buf);
             }
         }
 
         FARPROC proc = GetProcAddress(hFactoryModule, "CreateSexyStudioFactory");
         if (proc == nullptr)
         {
-            Throw(GetLastError(), "Could not find CreateSexyStudioFactory in %ls", pathToDLL.buf);
+            NppThrow(GetLastError(), "Could not find CreateSexyStudioFactory in %ls", pathToDLL.buf);
         }
 
         auto CreateSexyStudioFactory = (Rococo::SexyStudio::FN_CreateSexyStudioFactory)proc;
@@ -164,7 +249,7 @@ void pluginInit(HANDLE hModule)
         int nErr = CreateSexyStudioFactory((void**)&factory, interfaceURL);
         if FAILED(nErr)
         {
-            Throw(nErr, "CreateSexyStudioFactory with URL %s failed", interfaceURL);
+            NppThrow(nErr, "CreateSexyStudioFactory with URL %s failed", interfaceURL);
         }
 
         if (sexyIDE == nullptr)
@@ -182,7 +267,9 @@ void pluginInit(HANDLE hModule)
     }
     catch (IException& ex)
     {
-        Rococo::Windows::ShowErrorBox(topLevelWindow, ex, ErrorCaption);
+        char message[4096];
+        sprintf_s(message, "Code: %d, Err: %s", ex.ErrorCode(), ex.Message());
+        MessageBoxA(topLevelWindow.hWnd, message, "SexyStudio For Notepad++ Error", MB_ICONERROR);
     }
 }
 
@@ -279,7 +366,8 @@ void showSexyIDE()
 
 enum { USERLIST_SEXY_AUTOCOMPLETE = 0x07112021 };
 
-thread_local AutoFree<IDynamicStringBuilder> autocompleteStringBuilder = CreateDynamicStringBuilder(1024);
+thread_local char autocompleteStringBuilder[1024] = { 0 };
+thread_local int autoCompleteIndex = 0;
 
 class SexyEditor_Scintilla : public ISexyEditor, IAutoCompleteBuilder
 {
@@ -369,21 +457,26 @@ public:
 
     void AddItem(cstr item) override
     {
-        auto& sb = autocompleteStringBuilder->Builder();
-        if (sb.Length() > 0)
+        if (autoCompleteIndex > 0 && autoCompleteIndex < sizeof autocompleteStringBuilder - 1)
         {
-            sb.AppendChar(' ');
+            autocompleteStringBuilder[autoCompleteIndex++] = 0;
         }
 
-        sb.AppendFormat("%s", item);
+        int nCharsWritten = snprintf(autocompleteStringBuilder, sizeof autocompleteStringBuilder - 1 - autoCompleteIndex, "%s", item);
+
+        autoCompleteIndex += nCharsWritten;
+        if (autoCompleteIndex >= sizeof autocompleteStringBuilder)
+        {
+            autoCompleteIndex = sizeof autocompleteStringBuilder - 1;
+        }
     }
 
     void ShowAndClearItems() override
     {
-        auto& sb = autocompleteStringBuilder->Builder();
         SetAutoCompleteCancelWhenCaretMoved();
-        ShowAutoCompleteList(*sb);
-        sb.Clear();
+        ShowAutoCompleteList(autocompleteStringBuilder);
+        autocompleteStringBuilder[0] = 0;
+        autoCompleteIndex = 0;
     }
 };
 
@@ -411,7 +504,10 @@ void ValidateMemory()
 {
     if (!_CrtCheckMemory())
     {
-        Rococo::OS::TripDebugger();
+        if (IsDebuggerPresent())
+        {
+            __debugbreak();
+        }
     }
 }
 
@@ -423,11 +519,11 @@ void onCharAdded(HWND hScintilla, char c)
         WideFilePath filename;
         if (SendMessageA(nppData._nppHandle, NPPM_GETFILENAME, WideFilePath::CAPACITY, (LPARAM)filename.buf))
         {
-            if (EndsWith(filename, L".sxy"))
+            if (Local::EndsWith(filename, L".sxy"))
             {
                 SendMessageA(nppData._nppHandle, NPPM_GETFULLCURRENTPATH, WideFilePath::CAPACITY, (LPARAM)filename.buf);
             }
-            else if (StartsWith(filename, L"new"))
+            else if (Local::StartsWith(filename, L"new"))
             {
                 for (auto p = filename.buf; *p != 0; p++)
                 {
@@ -460,22 +556,16 @@ void helloDlg()
 {
     if (factory)
     {
-        AutoFree<IDynamicStringBuilder> dsb = CreateDynamicStringBuilder(1024);
-        auto& sb = dsb->Builder();
+        char intro[1024];
 
         auto* author = factory->GetMetaDataString(EMetaDataType::Author);
         auto* email = factory->GetMetaDataString(EMetaDataType::Email);
         auto* copyright = factory->GetMetaDataString(EMetaDataType::Copyright);
         auto* buildDate = factory->GetMetaDataString(EMetaDataType::BuildDate);
 
-        sb.AppendFormat("Written by %s (Email %s)\r\n", author, email);
-        sb.AppendFormat("%s\r\n", copyright);
-        sb.AppendFormat("Build: %s", buildDate);
+        sprintf_s(intro, "Written by %s (Email %s)\r\n%s\r\nBuild: %s", author, email, copyright, buildDate);
 
-        wchar_t fullDesc[1024];
-        SafeFormat(fullDesc, L"%hs", (cstr) *sb);
-
-        ::MessageBoxW(nppData._nppHandle, fullDesc, L"SexyStudio 4 Notepad++", MB_OK);
+        ::MessageBoxA(nppData._nppHandle, intro, "SexyStudio 4 Notepad++", MB_OK);
     }
     else
     {
