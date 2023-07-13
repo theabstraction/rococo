@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+#include <rococo.types.h>
 #include <stdio.h>
 #include <string>
 #include <windows.h>
@@ -204,7 +205,7 @@ HGLOBAL StaticDialog::makeRTLResource(int dialogID, DLGTEMPLATE **ppMyDlgTemplat
 
 std::wstring GetLastErrorAsString(DWORD errorCode)
 {
-	std::wstring errorMsg(_T(""));
+	std::wstring errorMsg;
 	// Get the error message, if any.
 	// If both error codes (passed error n GetLastError) are 0, then return empty
 	if (errorCode == 0)

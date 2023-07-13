@@ -78,11 +78,7 @@ void GetDllPath(WideFilePath& pathToDLL)
 
     if (*pathToDLL.buf == 0)
     {
-#ifdef _DEBUG
-        Format(pathToDLL, L"C:\\work\\rococo\\bin\\sexystudio.debug.dll");
-#else
-        Format(pathToDLL, L"C:\\work\\rococo\\bin\\sexystudio.dll");
-#endif
+        Format(pathToDLL, L"C:\\work\\rococo\\RococoSexyBin\\sexystudio.dll");
     }
 }
 
@@ -114,6 +110,7 @@ static SexyStudioEventHandler static_SexyStudioEventHandler;
 // It will be called while plugin loading   
 void pluginInit(HANDLE hModule)
 {
+    UNUSED(hModule);
     struct CLOSURE : Rococo::Windows::IWindow
     {
         HWND hWnd;
@@ -327,7 +324,7 @@ public:
     {
         size_t bufferLength = SendMessageA(hScintilla, SCI_GETCURLINE, 0, 0);
 
-        if (bufferLength == 0 || bufferLength >= (int64) line.MAX_LINE_LENGTH)
+        if (bufferLength == 0 || bufferLength >= (size_t) line.MAX_LINE_LENGTH)
         {
             return false;
         }
@@ -392,6 +389,7 @@ public:
 
 void onCalltipClicked(HWND hScintilla, int argValue)
 {
+    UNUSED(argValue);
     if (sexyIDE)
     {
         SexyEditor_Scintilla editor(hScintilla);
@@ -419,6 +417,7 @@ void ValidateMemory()
 
 void onCharAdded(HWND hScintilla, char c)
 {
+    UNUSED(c);
     if (sexyIDE)
     {
         WideFilePath filename;
@@ -454,7 +453,7 @@ void onCharAdded(HWND hScintilla, char c)
 
 void onModified(SCNotification& notifyCode)
 {
-
+    UNUSED(notifyCode);
 }
 
 void helloDlg()

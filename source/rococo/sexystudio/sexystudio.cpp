@@ -1194,7 +1194,7 @@ private:
 		}
 	}
 
-	char searchTerms[256];
+	char searchTerms[256] = { 0 };
 	IAsciiStringEditor* searchEditor = nullptr;
 	IFloatingListWidget* searchResults = nullptr;
 public:

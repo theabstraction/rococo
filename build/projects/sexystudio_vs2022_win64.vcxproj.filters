@@ -7,6 +7,7 @@
     <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.delegates.cpp" />
     <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.layouts.cpp" />
     <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.projects.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.rc" />
     <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.themes.cpp" />
     <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.widgets.cpp" />
     <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.windows.button.cpp" />

@@ -6,11 +6,7 @@
 using namespace Rococo;
 using namespace Rococo::Strings;
 
-#ifdef _DEBUG
-static auto DLL_NAME = L"sexystudio.debug.dll";
-#else
 static auto DLL_NAME = L"sexystudio.dll";
-#endif
 
 cstr ErrorCaption = "SexyStudio Standalone App - error!";
 

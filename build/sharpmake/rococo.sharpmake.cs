@@ -699,6 +699,7 @@ namespace Rococo
     {
         public RococoSexyStudioProject() : base("sexystudio")
         {
+            SourceFiles.Add("sexystudio.rc");
         }
 
         [Configure()]
@@ -708,6 +709,9 @@ namespace Rococo
             conf.AddPublicDependency<RococoMiscUtilsProject>(target);
             conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.AddPublicDependency<RococoWindowsProject>(target);
+            conf.AddPublicDependency<SexyScriptProject>(target);
+            conf.AddPublicDependency<SexySParserProject>(target);
+            conf.AddPublicDependency<SexyUtilProject>(target);
         }
     }
 
@@ -742,6 +746,27 @@ namespace Rococo
             conf.AddPublicDependency<RococoSexyStudioProject>(target);
             conf.AddPublicDependency<RococoWindowsProject>(target);
             conf.AddPublicDependency<RococoMiscUtilsProject>(target);
+        }
+    }
+
+    [Sharpmake.Generate]
+    public class RococoSexyStudio4NPPProject : RococoProject
+    {
+        public RococoSexyStudio4NPPProject() : base("sexystudio.4.NPP")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Dll);
+            conf.AddPublicDependency<RococoSexyStudioProject>(target);
+            conf.AddPublicDependency<RococoWindowsProject>(target);
+            conf.AddPublicDependency<RococoMiscUtilsProject>(target);
+            conf.AddPublicDependency<RococoUtilsProject>(target);
+
+            conf.Defines.Add("UNICODE");
+            conf.Defines.Add("_ITERATOR_DEBUG_LEVEL=0");
         }
     }
 
@@ -799,6 +824,8 @@ namespace Rococo
             conf.AddPrivateDependency<RococoPackagerProject>(target, DependencySetting.OnlyBuildOrder);
             conf.AddPrivateDependency<RococoMHostProject>(target, DependencySetting.OnlyBuildOrder);
             conf.AddPrivateDependency<SexyBennyHillProject>(target, DependencySetting.OnlyBuildOrder);
+			conf.AddPrivateDependency<RococoSexyStudioTestProject>(target, DependencySetting.OnlyBuildOrder);
+            conf.AddPrivateDependency<RococoSexyStudio4NPPProject>(target, DependencySetting.OnlyBuildOrder);
         }
     }
 
@@ -1147,7 +1174,8 @@ namespace Rococo
 				conf.AddProject<RococoSexyStudioProject>(target);
 				conf.AddProject<RococoSexyStudioAppProject>(target);
 				conf.AddProject<RococoSexyStudioTestProject>(target);
-				conf.AddProject<RococoAudioProject>(target);
+                conf.AddProject<RococoSexyStudio4NPPProject>(target);
+                conf.AddProject<RococoAudioProject>(target);
 				conf.AddProject<RococoAudioTestProject>(target);
 				conf.AddProject<RococoBuildFinalProject>(target);
 			}
@@ -1239,6 +1267,7 @@ namespace Rococo
             arguments.Generate<RococoAudioProject>();
             arguments.Generate<RococoAudioTestProject>();
             arguments.Generate<RococoBuildFinalProject>();
+            arguments.Generate<RococoSexyStudio4NPPProject>();
         }
     }
 }

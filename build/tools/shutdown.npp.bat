@@ -1,3 +1,4 @@
+@echo off
 :retry
 
 tasklist /fi "IMAGENAME eq Notepad++.exe" | findstr /C:"notepad++" 1>nul && ( 

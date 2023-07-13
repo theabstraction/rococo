@@ -131,6 +131,9 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 //
 extern "C" __declspec(dllexport) LRESULT messageProc(UINT msg, WPARAM wParam, LPARAM lParam)
 {
+	UNUSED(msg);
+	UNUSED(wParam);
+	UNUSED(lParam);
 	return TRUE;
 }
 

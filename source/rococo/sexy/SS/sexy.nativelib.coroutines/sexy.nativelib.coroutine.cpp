@@ -312,9 +312,9 @@ struct Coroutines : public Sys::ICoroutineControl
 			// Co-routine completed
 			Detach(spec);
 			break;
-		case EXECUTERESULT_THROWN:
-			Throw(0, "%s %lld threw an exception", spec.ClassName(), spec.id);
+		case EXECUTERESULT_THROWN:	
 			Detach(spec);
+			Throw(0, "%s %lld threw an exception", spec.ClassName(), spec.id);
 			break;
 		case EXECUTERESULT_SEH:
 			Detach(spec);

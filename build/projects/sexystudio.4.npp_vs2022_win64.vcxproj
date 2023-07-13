@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{F7133AFE-CB79-8FC4-9AD4-CAF8447193D2}</ProjectGuid>
+    <ProjectGuid>{50F2A5CB-0BA0-2FF7-5718-68566F7FCCB7}</ProjectGuid>
     <DefaultLanguage>en-US</DefaultLanguage>
-    <RootNamespace>sexystudio</RootNamespace>
-    <ProjectName>sexystudio</ProjectName>
+    <RootNamespace>sexystudio.4.NPP</RootNamespace>
+    <ProjectName>sexystudio.4.NPP</ProjectName>
   </PropertyGroup>
   <PropertyGroup Label="Globals">
     <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
@@ -42,23 +42,23 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <TargetName>sexystudio</TargetName>
+    <TargetName>sexystudio.4.npp</TargetName>
     <OutDir>..\..\gen\bin\win64\debug\</OutDir>
-    <IntDir>..\..\gen\temp\debug\sexystudio\</IntDir>
+    <IntDir>..\..\gen\temp\debug\sexystudio.4.npp\</IntDir>
     <TargetExt>.dll</TargetExt>
     <GenerateManifest>true</GenerateManifest>
     <LinkIncremental>false</LinkIncremental>
-    <OutputFile>..\..\gen\bin\win64\debug\sexystudio.dll</OutputFile>
+    <OutputFile>..\..\gen\bin\win64\debug\sexystudio.4.npp.dll</OutputFile>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <TargetName>sexystudio</TargetName>
+    <TargetName>sexystudio.4.npp</TargetName>
     <OutDir>..\..\gen\bin\win64\release\</OutDir>
-    <IntDir>..\..\gen\temp\release\sexystudio\</IntDir>
+    <IntDir>..\..\gen\temp\release\sexystudio.4.npp\</IntDir>
     <TargetExt>.dll</TargetExt>
     <GenerateManifest>true</GenerateManifest>
     <LinkIncremental>false</LinkIncremental>
-    <OutputFile>..\..\gen\bin\win64\release\sexystudio.dll</OutputFile>
+    <OutputFile>..\..\gen\bin\win64\release\sexystudio.4.npp.dll</OutputFile>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -66,7 +66,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN64;_DEBUG;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>UNICODE;WIN64;_DEBUG;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\source\3rd-party\libjpg\jpeg-6b;..\..\source\3rd-party\zlib;..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -109,16 +109,16 @@
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>4201;4250;4324;4458</DisableSpecificWarnings>
       <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
-      <ProgramDatabaseFileName>..\..\gen\temp\debug\sexystudio\sexystudio_compiler.pdb</ProgramDatabaseFileName>
+      <ProgramDatabaseFileName>..\..\gen\temp\debug\sexystudio.4.npp\sexystudio.4.npp_compiler.pdb</ProgramDatabaseFileName>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <OutputFile>..\..\gen\bin\win64\debug\sexystudio.dll</OutputFile>
+      <OutputFile>..\..\gen\bin\win64\debug\sexystudio.4.npp.dll</OutputFile>
       <ShowProgress>NotSet</ShowProgress>
       <AdditionalLibraryDirectories>..\..\gen\lib\win64\debug</AdditionalLibraryDirectories>
-      <ProgramDatabaseFile>..\..\gen\bin\win64\debug\sexystudio.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>..\..\gen\bin\win64\debug\sexystudio.4.npp.pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>
       <MapExports>false</MapExports>
       <SwapRunFromCD>false</SwapRunFromCD>
@@ -138,13 +138,13 @@
       <Profile>false</Profile>
       <CLRImageType>Default</CLRImageType>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.misc.utils.lib;rococo.util.lib;rococo.windows.lib;sexy.s-parser.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.misc.utils.lib;rococo.util.lib;rococo.windows.lib;sexy.script.lib;sexy.util.lib;sexystudio.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
-      <MapFileName>..\..\gen\bin\win64\debug\sexystudio.map</MapFileName>
-      <ImportLibrary>..\..\gen\lib\win64\debug\sexystudio.lib</ImportLibrary>
+      <MapFileName>..\..\gen\bin\win64\debug\sexystudio.4.npp.map</MapFileName>
+      <ImportLibrary>..\..\gen\lib\win64\debug\sexystudio.4.npp.lib</ImportLibrary>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -152,7 +152,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Full</Optimization>
-      <PreprocessorDefinitions>NDEBUG;WIN64;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;UNICODE;WIN64;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\source\3rd-party\libjpg\jpeg-6b;..\..\source\3rd-party\zlib;..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -195,16 +195,16 @@
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>4201;4250;4324;4458</DisableSpecificWarnings>
       <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
-      <ProgramDatabaseFileName>..\..\gen\temp\release\sexystudio\sexystudio_compiler.pdb</ProgramDatabaseFileName>
+      <ProgramDatabaseFileName>..\..\gen\temp\release\sexystudio.4.npp\sexystudio.4.npp_compiler.pdb</ProgramDatabaseFileName>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <OutputFile>..\..\gen\bin\win64\release\sexystudio.dll</OutputFile>
+      <OutputFile>..\..\gen\bin\win64\release\sexystudio.4.npp.dll</OutputFile>
       <ShowProgress>NotSet</ShowProgress>
       <AdditionalLibraryDirectories>..\..\gen\lib\win64\release</AdditionalLibraryDirectories>
-      <ProgramDatabaseFile>..\..\gen\bin\win64\release\sexystudio.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>..\..\gen\bin\win64\release\sexystudio.4.npp.pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>
       <MapExports>false</MapExports>
       <SwapRunFromCD>false</SwapRunFromCD>
@@ -224,39 +224,36 @@
       <Profile>false</Profile>
       <CLRImageType>Default</CLRImageType>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.misc.utils.lib;rococo.util.lib;rococo.windows.lib;sexy.s-parser.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.misc.utils.lib;rococo.util.lib;rococo.windows.lib;sexy.script.lib;sexy.util.lib;sexystudio.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
-      <MapFileName>..\..\gen\bin\win64\release\sexystudio.map</MapFileName>
-      <ImportLibrary>..\..\gen\lib\win64\release\sexystudio.lib</ImportLibrary>
+      <MapFileName>..\..\gen\bin\win64\release\sexystudio.4.npp.map</MapFileName>
+      <ImportLibrary>..\..\gen\lib\win64\release\sexystudio.4.npp.lib</ImportLibrary>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\source\rococo\sexystudio\resource.h" />
-    <ClInclude Include="..\..\source\rococo\sexystudio\sexystudio.api.h" />
-    <ClInclude Include="..\..\source\rococo\sexystudio\sexystudio.impl.h" />
+    <ClInclude Include="..\..\source\rococo\sexystudio.4.NPP\src\DockingFeature\Docking.h" />
+    <ClInclude Include="..\..\source\rococo\sexystudio.4.NPP\src\DockingFeature\DockingDlgInterface.h" />
+    <ClInclude Include="..\..\source\rococo\sexystudio.4.NPP\src\DockingFeature\dockingResource.h" />
+    <ClInclude Include="..\..\source\rococo\sexystudio.4.NPP\src\DockingFeature\GoToLineDlg.h" />
+    <ClInclude Include="..\..\source\rococo\sexystudio.4.NPP\src\DockingFeature\resource.h" />
+    <ClInclude Include="..\..\source\rococo\sexystudio.4.NPP\src\DockingFeature\StaticDialog.h" />
+    <ClInclude Include="..\..\source\rococo\sexystudio.4.NPP\src\DockingFeature\Window.h" />
+    <ClInclude Include="..\..\source\rococo\sexystudio.4.NPP\src\menuCmdID.h" />
+    <ClInclude Include="..\..\source\rococo\sexystudio.4.NPP\src\Notepad_plus_msgs.h" />
+    <ClInclude Include="..\..\source\rococo\sexystudio.4.NPP\src\PluginDefinition.h" />
+    <ClInclude Include="..\..\source\rococo\sexystudio.4.NPP\src\PluginInterface.h" />
+    <ClInclude Include="..\..\source\rococo\sexystudio.4.NPP\src\resource.h" />
+    <ClInclude Include="..\..\source\rococo\sexystudio.4.NPP\src\Scintilla.h" />
+    <ClInclude Include="..\..\source\rococo\sexystudio.4.NPP\src\Sci_Position.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\source\rococo\sexystudio\sexstudio.windows.ide.win32.cpp" />
-    <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.cpp" />
-    <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.database.cpp" />
-    <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.delegates.cpp" />
-    <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.layouts.cpp" />
-    <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.projects.cpp" />
-    <ResourceCompile Include="..\..\source\rococo\sexystudio\sexystudio.rc" />
-    <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.themes.cpp" />
-    <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.widgets.cpp" />
-    <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.windows.button.cpp" />
-    <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.windows.child.cpp" />
-    <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.windows.floating-list.cpp" />
-    <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.windows.main.cpp" />
-    <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.windows.splitter.cpp" />
-    <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.windows.tabsplitter.cpp" />
-    <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.windows.toolbar.cpp" />
-    <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.windows.tree.cpp" />
-    <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.windows.variables.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexystudio.4.NPP\src\DockingFeature\GoToLineDlg.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexystudio.4.NPP\src\DockingFeature\StaticDialog.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexystudio.4.NPP\src\PluginDefinition.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexystudio.4.NPP\src\sxy.4.npp.main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
@@ -297,13 +294,13 @@
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
     </ProjectReference>
-    <ProjectReference Include="sexy.s-parser_vs2022_win64.vcxproj">
-      <Project>{BACEFA6A-2AAC-DC56-B568-376B6F64FA56}</Project>
+    <ProjectReference Include="lib-zip_vs2022_win64.vcxproj">
+      <Project>{DDABE08C-7D58-A2C1-7491-D2BA854BC0C7}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
     </ProjectReference>
-    <ProjectReference Include="lib-zip_vs2022_win64.vcxproj">
-      <Project>{DDABE08C-7D58-A2C1-7491-D2BA854BC0C7}</Project>
+    <ProjectReference Include="sexystudio_vs2022_win64.vcxproj">
+      <Project>{F7133AFE-CB79-8FC4-9AD4-CAF8447193D2}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
     </ProjectReference>

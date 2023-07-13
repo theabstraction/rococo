@@ -2908,9 +2908,14 @@ namespace Rococo::OS
 		t(hKeyRoot);
 	}
 
-	ROCOCO_API void GetConfigVariable(char* textBuffer, size_t lenBytes, cstr defaultValue, ConfigSection section, ConfigRootName root, cstr organization)
+	ROCOCO_API void GetConfigVariable(char* textBuffer, size_t lenBytes, cstr defaultValue, ConfigSection section, ConfigRootName root, cstr organization, bool throwOnError)
 	{
 		SecureFormat(textBuffer, lenBytes, "%s", defaultValue);
+
+		if (organization == nullptr)
+		{
+			organization = "Rococo - 19th Century Software";
+		}
 
 		auto readValue = [textBuffer, lenBytes, section, organization, root](HKEY hConfigRoot)
 		{
@@ -2919,11 +2924,21 @@ namespace Rococo::OS
 			LSTATUS status = RegGetValueA(hConfigRoot, NULL, section.sectionName, REG_SZ, &dwType, textBuffer, &sizeofBuffer);
 			if (status != ERROR_SUCCESS)
 			{
-				Throw(status, "%s: Cannot open or get registry value 'Software/%s/%s' section", __FUNCTION__, organization, root.rootName);
+				Throw(status, "Cannot open or get registry value 'Software/%s/%s' section", organization, root.rootName);
 			}
 		};
 
-		RunInConfig(root, organization, readValue);
+		try
+		{
+			RunInConfig(root, organization, readValue);
+		}
+		catch (IException& ex)
+		{
+			if (throwOnError)
+			{
+				Throw(ex.ErrorCode(), "%s", ex.Message());
+			}
+		}
 	}
 
 	ROCOCO_API void SetConfigVariable(cstr value, ConfigSection section, ConfigRootName root, cstr organization)

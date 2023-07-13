@@ -23,7 +23,7 @@ namespace Rococo::OS
 	ROCOCO_API void CopyStringToClipboard(cstr text);
 
 	// Gets a null terminated OS config string with lenBytes capacity. If not found, fills with the defaultValue. If organization is null the library default name is chosen 
-	ROCOCO_API void GetConfigVariable(char* textBuffer, size_t lenBytes, cstr defaultValue, ConfigSection section, ConfigRootName rootName, cstr organization = nullptr);
+	ROCOCO_API void GetConfigVariable(char* textBuffer, size_t lenBytes, cstr defaultValue, ConfigSection section, ConfigRootName rootName, cstr organization = nullptr, bool throwOnError = false);
 
 	// Gets U8 file path from the OS config. If not found, fills with the defaultValue. If organization is null the library default name is chosen 
 	inline void GetConfigVariable(U8FilePath& path, cstr defaultValue, ConfigSection section, ConfigRootName rootName, cstr organization = nullptr)

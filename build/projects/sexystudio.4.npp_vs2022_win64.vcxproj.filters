@@ -1,0 +1,69 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\..\source\rococo\sexystudio.4.NPP\src\DockingFeature\GoToLineDlg.cpp">
+      <Filter>src\DockingFeature</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\rococo\sexystudio.4.NPP\src\DockingFeature\StaticDialog.cpp">
+      <Filter>src\DockingFeature</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\rococo\sexystudio.4.NPP\src\PluginDefinition.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\rococo\sexystudio.4.NPP\src\sxy.4.npp.main.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\source\rococo\sexystudio.4.NPP\src\DockingFeature\Docking.h">
+      <Filter>src\DockingFeature</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\rococo\sexystudio.4.NPP\src\DockingFeature\DockingDlgInterface.h">
+      <Filter>src\DockingFeature</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\rococo\sexystudio.4.NPP\src\DockingFeature\dockingResource.h">
+      <Filter>src\DockingFeature</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\rococo\sexystudio.4.NPP\src\DockingFeature\GoToLineDlg.h">
+      <Filter>src\DockingFeature</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\rococo\sexystudio.4.NPP\src\DockingFeature\resource.h">
+      <Filter>src\DockingFeature</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\rococo\sexystudio.4.NPP\src\DockingFeature\StaticDialog.h">
+      <Filter>src\DockingFeature</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\rococo\sexystudio.4.NPP\src\DockingFeature\Window.h">
+      <Filter>src\DockingFeature</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\rococo\sexystudio.4.NPP\src\menuCmdID.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\rococo\sexystudio.4.NPP\src\Notepad_plus_msgs.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\rococo\sexystudio.4.NPP\src\PluginDefinition.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\rococo\sexystudio.4.NPP\src\PluginInterface.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\rococo\sexystudio.4.NPP\src\resource.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\rococo\sexystudio.4.NPP\src\Scintilla.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\rococo\sexystudio.4.NPP\src\Sci_Position.h">
+      <Filter>src</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{c202d925-8342-8cab-fbac-54dfa101ad31}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\DockingFeature">
+      <UniqueIdentifier>{b77812a1-a72f-020d-c6c5-3670be07c97a}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
