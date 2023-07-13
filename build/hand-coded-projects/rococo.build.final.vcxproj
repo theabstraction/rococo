@@ -28,7 +28,7 @@
     <PlatformToolset>v143</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>Utility</ConfigurationType>
+    <ConfigurationType>Makefile</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>false</WholeProgramOptimization>
@@ -50,6 +50,8 @@
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
     <NMakeBuildCommandLine>nmake -nologo -f ..\..\source\rococo\rococo.build.final\makefile.mak all CONFIG=$(Configuration)</NMakeBuildCommandLine>
     <NMakeOutput>unused.txt</NMakeOutput>
+    <NMakeReBuildCommandLine>nmake -nologo -f ..\..\source\rococo\rococo.build.final\makefile.mak all CONFIG=$(Configuration)</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine>nmake -nologo -f ..\..\source\rococo\rococo.build.final\makefile.mak clean CONFIG=$(Configuration)</NMakeCleanCommandLine>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>..\..\gen\bin\win64\release\</OutDir>
@@ -58,6 +60,9 @@
     <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
     <LinkIncremental>false</LinkIncremental>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
+    <NMakeBuildCommandLine>nmake -nologo -f ..\..\source\rococo\rococo.build.final\makefile.mak all CONFIG=$(Configuration)</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>nmake -nologo -f ..\..\source\rococo\rococo.build.final\makefile.mak all CONFIG=$(Configuration)</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine>nmake -nologo -f ..\..\source\rococo\rococo.build.final\makefile.mak clean CONFIG=$(Configuration)</NMakeCleanCommandLine>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>

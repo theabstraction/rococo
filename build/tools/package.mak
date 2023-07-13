@@ -43,3 +43,6 @@ $(MHOST_PACKAGE_DIR)audio_types.sxy: $(SCRIPTS)audio_types.sxy
 # In normal mode of operation, all we want to do is to ensure the inl file is up to date
 all: $(MHOST) $(MHOST_PACKAGE_DIR)mplat_sxh.sxy $(MHOST_PACKAGE_DIR)mplat_types.sxy $(MHOST_PACKAGE_DIR)types.sxy $(MHOST_PACKAGE_DIR)rococo.audio_sxh.sxy $(MHOST_PACKAGE_DIR)audio_types.sxy 
     $(PACKAGER_PATH) $(PACKAGE_DIR)mhost $(CONTENT)packages\mhost_1000.sxyz
+
+clean:
+	
