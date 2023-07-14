@@ -215,8 +215,6 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		{
 			auto i = rows.find(id);
 			auto& c = i->second;
-			auto* pInterfaceBuffer = (uint8*)c.interfacePointer;
-
 			return i != rows.end() ? Ref<IComponentInterface>(*c.interfacePointer, GetLife(*c.interfacePointer)) : Ref<IComponentInterface>();
 		}
 
@@ -325,7 +323,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		}
 
 		ROID_SALT salt;			// Gives a version number of the object.
-		uint32 activeIdIndex = -1;	// Specifies which activeId slot references this object
+		uint32 activeIdIndex = (uint32) - 1;	// Specifies which activeId slot references this object
 		ActiveComponents ac;	// Specifies which components are active for this object
 
 		bool Exists() const
@@ -445,7 +443,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 					activeIds.pop_back();
 				}
 
-				object.activeIdIndex = -1;
+				object.activeIdIndex = (uint32) - 1;
 
 				ROID nextRoid;
 				nextRoid.index = roid.index;

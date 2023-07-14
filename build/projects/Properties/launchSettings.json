@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "rococo.cpp_master": {
+      "commandName": "Project",
+      "commandLineArgs": "rococo.mplat\\components.xml\r\n.\\",
+      "workingDirectory": "..\\..\\source\\rococo\\"
+    }
+  }
+}

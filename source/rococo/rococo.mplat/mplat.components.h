@@ -1,7 +1,7 @@
 #pragma once
 
-// Generated at: Jun 24 2023 18:30 UTC
-// Based on the template file: C:\work\rococo\rococo.mplat\mplat.component.template.h
+// Generated at: Jul 14 2023 06:56 UTC
+// Based on the template file: .\rococo.mplat\mplat.component.template.h
 #include <rococo.types.h>
 #include <rococo.component.entities.h>
 #include "mplat.components.decl.h"

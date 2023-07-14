@@ -44,6 +44,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="components.xml" />
+  </ItemGroup>
+  <ItemGroup>
     <None Include="..\..\source\rococo\rococo.cpp_master\test.xml">
       <Link>Resources\test.xml</Link>
     </None>
