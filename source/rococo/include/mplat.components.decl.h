@@ -1,5 +1,7 @@
 #pragma once
 
+#include <rococo.ecs.h>
+
 namespace Rococo::Entities
 {
     struct IAnimation;
@@ -48,61 +50,6 @@ namespace Rococo::Components
     {
         // Temporary reference, do not cache
         virtual Rococo::Entities::IAnimation& GetAnimation() = 0;
-    };
-
-    // Provide a lightweight implementation of an IComponentFactory<T> for use with components that are default constructed.
-    template<class INTERFACE, class CLASSNAME>
-    struct DefaultFactory : IComponentFactory<INTERFACE>
-    {
-        INTERFACE* ConstructInPlace(void* pMemory) override
-        {
-            return new (pMemory) CLASSNAME();
-        }
-
-        void Destruct(INTERFACE* pInstance) override
-        {
-            CLASSNAME* bc = static_cast<CLASSNAME*>(pInstance);
-            bc->~CLASSNAME();
-        }
-
-        size_t SizeOfConstructedObject() const override
-        {
-            return sizeof CLASSNAME;
-        }
-
-        void Free() override
-        {
-            delete this;
-        }
-    };
-
-    template<class INTERFACE, class CLASSNAME, class ARG>
-    struct FactoryWithOneArg : IComponentFactory<INTERFACE>
-    {
-        ARG& arg;
-
-        FactoryWithOneArg(ARG& _arg) : arg(_arg) {}
-
-        INTERFACE* ConstructInPlace(void* pMemory) override
-        {
-            return new (pMemory) CLASSNAME(arg);
-        }
-
-        void Destruct(INTERFACE* pInstance) override
-        {
-            CLASSNAME* bc = static_cast<CLASSNAME*>(pInstance);
-            bc->~CLASSNAME();
-        }
-
-        size_t SizeOfConstructedObject() const override
-        {
-            return sizeof CLASSNAME;
-        }
-
-        void Free() override
-        {
-            delete this;
-        }
     };
 
     IComponentFactory<IAnimationComponent>* CreateAnimationFactory();

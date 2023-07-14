@@ -27,16 +27,6 @@ namespace Rococo::Components
         bool hasRigsComponent : 1;
     };
 
-    ROCOCO_INTERFACE IROIDCallback
-    {
-        virtual EFlowLogic OnROID(ROID id) = 0;
-    };
-
-    template<class T> ROCOCO_INTERFACE IComponentCallback
-    {
-        virtual EFlowLogic OnComponent(ROID id, T& item) = 0;
-    };
-
     ROCOCO_INTERFACE IRCObjectTableBase
     {
         // Returns the number of ROIDS in use. 

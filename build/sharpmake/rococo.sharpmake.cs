@@ -200,10 +200,10 @@ namespace Rococo
             conf.TargetLibraryPath = Path.Combine(Roots.RococoLibPath, @"[target.Platform]\[conf.Name]\");
         }
 
-        protected RococoProject(string name)
+        protected RococoProject(string name, string subdir)
         {
             base.Name = name;
-            SetSourcePath(name);
+            SetSourcePath(subdir);
 
             AddTargets(new Target(
                 Platform.win64,
@@ -214,6 +214,10 @@ namespace Rococo
                 BuildSystem.MSBuild,
                 DotNetFramework.net6_0)
             );
+        }
+
+        protected RococoProject(string name): this(name, name)
+        {
         }
 
         protected void AddDefaults(Configuration conf, Target target, int CPPVersion = 17)
@@ -305,6 +309,7 @@ namespace Rococo
             conf.Options.Add(Sharpmake.Options.Vc.Compiler.Exceptions.Enable);
             conf.IntermediatePath = Path.Combine(Roots.RococoTmpPath, @"[target.Name]\[project.Name]\");
             conf.TargetPath = Path.Combine(Roots.RococoBinPath, @"[target.Platform]\[conf.Name]\");
+            conf.SolutionFolder = " - Third-Party Projects";
         }
 
         public virtual void SetSourcePath(string subdir)
@@ -404,6 +409,40 @@ namespace Rococo
         public void ConfigureAll(Configuration conf, Target target)
         {
             StandardInit(conf, target, Configuration.OutputType.Dll);
+        }
+    }
+
+    [Sharpmake.Generate]
+    public class RococoECSProject : RococoProject
+    {
+        public RococoECSProject() : base("rococo.ecs")
+        {
+            SourceFiles.Add(@"..\include\rococo.ecs.h");
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Dll);
+            conf.Defines.Add("ROCOCO_ECS_API=__declspec(dllexport)");
+            conf.SolutionFolder = "ECS";
+        }
+    }
+
+    [Sharpmake.Generate]
+    public class RococoComponentsConfigurationProject : RococoProject
+    {
+        public RococoComponentsConfigurationProject() : base("rococo.component.configuration", @"components\configuration")
+        {
+            SourceFiles.Add(@"..\include\rococo.ecs.h");
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Dll);
+            conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.SolutionFolder = "ECS";
         }
     }
 
@@ -713,6 +752,7 @@ namespace Rococo
             conf.AddPublicDependency<SexyScriptProject>(target);
             conf.AddPublicDependency<SexySParserProject>(target);
             conf.AddPublicDependency<SexyUtilProject>(target);
+            conf.SolutionFolder = " - SexyStudio";
         }
     }
 
@@ -730,6 +770,7 @@ namespace Rococo
             conf.AddPublicDependency<RococoSexyStudioProject>(target);
             conf.AddPublicDependency<RococoWindowsProject>(target);
             conf.Options.Add(Sharpmake.Options.Vc.Linker.SubSystem.Windows);
+            conf.SolutionFolder = " - SexyStudio";
         }
     }
 
@@ -747,6 +788,7 @@ namespace Rococo
             conf.AddPublicDependency<RococoSexyStudioProject>(target);
             conf.AddPublicDependency<RococoWindowsProject>(target);
             conf.AddPublicDependency<RococoMiscUtilsProject>(target);
+            conf.SolutionFolder = " - SexyStudio";
         }
     }
 
@@ -763,6 +805,7 @@ namespace Rococo
             StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.Defines.Add("UNICODE");
             conf.Defines.Add("_ITERATOR_DEBUG_LEVEL=0");
+            conf.SolutionFolder = " - SexyStudio";
         }
     }
 
@@ -856,6 +899,7 @@ namespace Rococo
             StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.Defines.Add("SEXYUTIL_API=__declspec(dllexport)");
             conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.SolutionFolder = " - Sexy";
         }
     }
 
@@ -875,6 +919,7 @@ namespace Rococo
             conf.AddPublicDependency<SexySParserProject>(target);
             conf.AddPublicDependency<SexyUtilProject>(target);
             conf.Options.Add(new Sharpmake.Options.Vc.Compiler.DisableSpecificWarnings("4100", "4189"));
+            conf.SolutionFolder = " - Sexy";
         }
     }
 
@@ -890,6 +935,7 @@ namespace Rococo
         {
             StandardInit(conf, target, Configuration.OutputType.Lib);
             conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.SolutionFolder = " - Sexy";
         }
     }
 
@@ -904,6 +950,7 @@ namespace Rococo
         public void ConfigureAll(Configuration conf, Target target)
         {
             StandardInit(conf, target, Configuration.OutputType.Lib);
+            conf.SolutionFolder = " - Sexy";
         }
     }
 
@@ -918,6 +965,7 @@ namespace Rococo
         public void ConfigureAll(Configuration conf, Target target)
         {
             StandardInit(conf, target, Configuration.OutputType.Lib);
+            conf.SolutionFolder = " - Sexy";
         }
     }
 
@@ -936,6 +984,7 @@ namespace Rococo
             conf.AddPublicDependency<SexyCompilerProject>(target);
             conf.AddPublicDependency<SexyCoroutinesProject>(target);
             conf.AddPublicDependency<SexyReflectionProject>(target);
+            conf.SolutionFolder = " - Sexy";
         }
     }
 
@@ -952,6 +1001,7 @@ namespace Rococo
             StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.AddPublicDependency<SexyUtilProject>(target);
+            conf.SolutionFolder = " - Sexy";
         }
     }
 
@@ -968,6 +1018,7 @@ namespace Rococo
             StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.AddPublicDependency<SexyUtilProject>(target);
+            conf.SolutionFolder = " - Sexy";
         }
     }
 
@@ -984,6 +1035,7 @@ namespace Rococo
             StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.AddPublicDependency<SexyUtilProject>(target);
+            conf.SolutionFolder = " - Sexy";
         }
     }
 
@@ -1004,6 +1056,7 @@ namespace Rococo
             conf.AddPublicDependency<SexySParserProject>(target);
             conf.Options.Add(new Sharpmake.Options.Vc.Compiler.DisableSpecificWarnings("4100", "4189", "4244"));
             conf.Defines.Add("SCRIPTEXPORT_API=__declspec(dllexport)");
+            conf.SolutionFolder = " - Sexy";
         }
     }
 
@@ -1114,67 +1167,69 @@ namespace Rococo
         {
             conf.SolutionFileName = "rococo.all";
             conf.SolutionPath = Path.Combine(base.SharpmakeCsPath, @"..\");
-			
-			if (conf.Platform == Platform.anycpu)
-			{
-				conf.AddProject<RococoCPPMasterProject>(target);
-			}
-			else
-			{
-				conf.AddProject<RococoUtilsProject>(target);
-				conf.AddProject<SexyUtilProject>(target);
-				conf.AddProject<SexyVMProject>(target);
-				conf.AddProject<SexyCompilerProject>(target);
-				conf.AddProject<SexyScriptProject>(target);
-				conf.AddProject<SexySParserProject>(target);
-				conf.AddProject<SexyScriptTestProject>(target);
-				conf.AddProject<SexyCoroutinesProject>(target);
-				conf.AddProject<SexyReflectionProject>(target);
-				conf.AddProject<SexyMathsProject>(target);
-				conf.AddProject<SexyBennyHillProject>(target);
-				
-				conf.AddProject<LibJPegProject>(target);
-				conf.AddProject<LibTiffProject>(target);
-				conf.AddProject<LibZipProject>(target);
-			
-				conf.AddProject<RococoUtilsProject>(target);
-				conf.AddProject<SexyUtilProject>(target);
-				conf.AddProject<SexyVMProject>(target);
-				conf.AddProject<SexyCompilerProject>(target);
-				conf.AddProject<SexyScriptProject>(target);
-				conf.AddProject<SexySParserProject>(target);
-				conf.AddProject<SexyScriptTestProject>(target);
-				conf.AddProject<SexyCoroutinesProject>(target);
-				conf.AddProject<SexyReflectionProject>(target);
-				conf.AddProject<SexyMathsProject>(target);
-				conf.AddProject<SexyBennyHillProject>(target);
-				
-				conf.AddProject<LibJPegProject>(target);
-				conf.AddProject<LibTiffProject>(target);
-				conf.AddProject<LibZipProject>(target);
 
-				conf.AddProject<RococoMiscUtilsProject>(target);
-				conf.AddProject<RococoMathsProject>(target);
-				conf.AddProject<RococoUtilExProject>(target);
-				conf.AddProject<RococoPackagerProject>(target);
-				conf.AddProject<RococoWindowsProject>(target);
-				conf.AddProject<RococoSexyIDEProject>(target);
-				conf.AddProject<RococoSexyCmdProject>(target);
-				conf.AddProject<RococoSexyMathSexProject>(target);
-				conf.AddProject<RococoFontsProject>(target);
-				conf.AddProject<RococoFileBrowserProject>(target);
-				conf.AddProject<RococoGuiRetainedProject>(target);
-				conf.AddProject<RococoMPlatProject>(target);
-				conf.AddProject<RococoMPlatDynamicProject>(target);
-				conf.AddProject<RococoMHostProject>(target);
-				conf.AddProject<RococoSexyStudioProject>(target);
-				conf.AddProject<RococoSexyStudioAppProject>(target);
-				conf.AddProject<RococoSexyStudioTestProject>(target);
+            if (conf.Platform == Platform.anycpu)
+            {
+                conf.AddProject<RococoCPPMasterProject>(target);
+            }
+            else
+            {
+                conf.AddProject<RococoUtilsProject>(target);
+                conf.AddProject<SexyUtilProject>(target);
+                conf.AddProject<SexyVMProject>(target);
+                conf.AddProject<SexyCompilerProject>(target);
+                conf.AddProject<SexyScriptProject>(target);
+                conf.AddProject<SexySParserProject>(target);
+                conf.AddProject<SexyScriptTestProject>(target);
+                conf.AddProject<SexyCoroutinesProject>(target);
+                conf.AddProject<SexyReflectionProject>(target);
+                conf.AddProject<SexyMathsProject>(target);
+                conf.AddProject<SexyBennyHillProject>(target);
+
+                conf.AddProject<LibJPegProject>(target);
+                conf.AddProject<LibTiffProject>(target);
+                conf.AddProject<LibZipProject>(target);
+
+                conf.AddProject<RococoUtilsProject>(target);
+                conf.AddProject<SexyUtilProject>(target);
+                conf.AddProject<SexyVMProject>(target);
+                conf.AddProject<SexyCompilerProject>(target);
+                conf.AddProject<SexyScriptProject>(target);
+                conf.AddProject<SexySParserProject>(target);
+                conf.AddProject<SexyScriptTestProject>(target);
+                conf.AddProject<SexyCoroutinesProject>(target);
+                conf.AddProject<SexyReflectionProject>(target);
+                conf.AddProject<SexyMathsProject>(target);
+                conf.AddProject<SexyBennyHillProject>(target);
+
+                conf.AddProject<LibJPegProject>(target);
+                conf.AddProject<LibTiffProject>(target);
+                conf.AddProject<LibZipProject>(target);
+
+                conf.AddProject<RococoMiscUtilsProject>(target);
+                conf.AddProject<RococoMathsProject>(target);
+                conf.AddProject<RococoUtilExProject>(target);
+                conf.AddProject<RococoPackagerProject>(target);
+                conf.AddProject<RococoWindowsProject>(target);
+                conf.AddProject<RococoSexyIDEProject>(target);
+                conf.AddProject<RococoSexyCmdProject>(target);
+                conf.AddProject<RococoSexyMathSexProject>(target);
+                conf.AddProject<RococoFontsProject>(target);
+                conf.AddProject<RococoFileBrowserProject>(target);
+                conf.AddProject<RococoGuiRetainedProject>(target);
+                conf.AddProject<RococoMPlatProject>(target);
+                conf.AddProject<RococoMPlatDynamicProject>(target);
+                conf.AddProject<RococoMHostProject>(target);
+                conf.AddProject<RococoSexyStudioProject>(target);
+                conf.AddProject<RococoSexyStudioAppProject>(target);
+                conf.AddProject<RococoSexyStudioTestProject>(target);
                 conf.AddProject<RococoSexyStudio4NPPProject>(target);
                 conf.AddProject<RococoAudioProject>(target);
-				conf.AddProject<RococoAudioTestProject>(target);
-				conf.AddProject<RococoBuildFinalProject>(target);
-			}
+                conf.AddProject<RococoAudioTestProject>(target);
+                conf.AddProject<RococoBuildFinalProject>(target);
+                conf.AddProject<RococoECSProject>(target);
+                conf.AddProject<RococoComponentsConfigurationProject>(target);
+            }
         }
     }
 
@@ -1264,6 +1319,9 @@ namespace Rococo
             arguments.Generate<RococoAudioTestProject>();
             arguments.Generate<RococoBuildFinalProject>();
             arguments.Generate<RococoSexyStudio4NPPProject>();
+
+            arguments.Generate<RococoECSProject>();
+            arguments.Generate<RococoComponentsConfigurationProject>();
         }
     }
 }

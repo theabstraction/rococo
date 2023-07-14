@@ -100,6 +100,11 @@ namespace Rococo::Components
 
 		}
 
+		IComponentLife& Life()
+		{
+			return *life;
+		}
+
 		Ref(Ref<INTERFACE>& src) noexcept
 		{
 			component = src.component;
@@ -173,6 +178,11 @@ namespace Rococo::Components
 			return *component;
 		}
 
+		INTERFACE& GetComponent()
+		{
+			return *component;
+		}
+
 		operator bool() const
 		{
 			return component != nullptr;
@@ -191,13 +201,9 @@ namespace Rococo::Components
 
 	struct IRCObjectTable;
 
-	template<class ICOMPONENT>
-	ROCOCO_INTERFACE IComponentFactory
+	ROCOCO_INTERFACE IROIDCallback
 	{
-		virtual ICOMPONENT * ConstructInPlace(void* pMemory) = 0;
-		virtual void Destruct(ICOMPONENT* pInstance) = 0;
-		virtual size_t SizeOfConstructedObject() const = 0;
-		virtual void Free() = 0;
+		virtual EFlowLogic OnROID(ROID id) = 0;
 	};
 }
 

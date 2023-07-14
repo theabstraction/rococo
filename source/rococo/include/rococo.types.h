@@ -136,6 +136,13 @@ namespace Rococo
 		constexpr operator cstr() const noexcept { return buffer; }
 	};
 
+	template<class TYPE>
+	struct SearchResult
+	{
+		TYPE value;
+		boolean32 wasFound;
+	};
+
 	template<class T>
 	struct Hash
 	{
@@ -156,6 +163,11 @@ namespace Rococo
 	inline constexpr lsize_t operator "" _megabytes(lsize_t mb)
 	{
 		return mb * 1024 * 1024;
+	}
+
+	inline constexpr lsize_t operator "" _gigabytes(lsize_t mb)
+	{
+		return mb * 1024ULL * 1024ULL * 1024ULL;
 	}
 
 	inline constexpr lsize_t operator "" _kilobytes(lsize_t kb)

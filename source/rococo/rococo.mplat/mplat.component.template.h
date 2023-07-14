@@ -19,11 +19,6 @@ namespace Rococo::Components
 // #END_INSTANCED#
     };
 
-    ROCOCO_INTERFACE IROIDCallback
-    {
-        virtual EFlowLogic OnROID(ROID id) = 0;
-    };
-
     template<class T> ROCOCO_INTERFACE IComponentCallback
     {
         virtual EFlowLogic OnComponent(ROID id, T& item) = 0;
