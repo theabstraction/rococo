@@ -198,7 +198,7 @@ namespace Rococo
 #include <rococo.functional.h>
 
 #define DECLARE_SINGLETON_METHODS(COMPONENT_API,COMPONENT)													\
-namespace Rococo::Components::API::For_##COMPONENT													        \
+namespace Rococo::Components::API::For##COMPONENT													        \
 {																									        \
 	COMPONENT_API Ref<COMPONENT> Add(ROID id);														        \
 	COMPONENT_API Ref<COMPONENT> Get(ROID id);														        \
@@ -207,7 +207,7 @@ namespace Rococo::Components::API::For_##COMPONENT													        \
 }
 
 #define DECLARE_SINGLETON_METHODS_WITH_LINK_ARG(COMPONENT_API,COMPONENT, LINK_ARG)							\
-namespace Rococo::Components::API::For_##COMPONENT													        \
+namespace Rococo::Components::API::For##COMPONENT													        \
 {																									        \
 	COMPONENT_API Ref<COMPONENT> Add(ROID id);														        \
 	COMPONENT_API Ref<COMPONENT> Get(ROID id);														        \

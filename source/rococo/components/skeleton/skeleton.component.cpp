@@ -58,20 +58,11 @@ namespace Rococo::Components
 	};
 
     static ISkeletons* s_Skeletons = nullptr;
-
-    IComponentFactory<ISkeletonComponent>* CreateSkeletonFactory()
-    {
-        if (s_Skeletons == nullptr)
-        {
-            Throw(0, "Skeletons have not been assigned. Ensure Rococo::Components::SkeletonComponent_Init(...) is called before other functions of the Skeleton component API");
-        }
-        return new FactoryWithOneArg<ISkeletonComponent, SkeletonComponent, ISkeletons>(*s_Skeletons);
-    }
 }
 
-namespace Rococo::Components
+namespace Rococo::Components::API::ForISkeletonComponent
 {
-    void SkeletonComponent_Init(ISkeletons& skeletons)
+    void AssignGlobalAttribute(ISkeletons& skeletons)
     {
         if (s_Skeletons != nullptr)
         {
@@ -81,5 +72,14 @@ namespace Rococo::Components
         {
             s_Skeletons = &skeletons;
         }
+    }
+
+    IComponentFactory<ISkeletonComponent>* CreateComponentFactory()
+    {
+        if (s_Skeletons == nullptr)
+        {
+            Throw(0, "Skeletons have not been assigned. Ensure Rococo::Components::SkeletonComponent_Init(...) is called before other functions of the Skeleton component API");
+        }
+        return new FactoryWithOneArg<ISkeletonComponent, SkeletonComponent, ISkeletons>(*s_Skeletons);
     }
 }

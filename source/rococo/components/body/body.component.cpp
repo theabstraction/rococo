@@ -7,7 +7,7 @@ namespace Rococo::Components
 	struct BodyComponent : IBodyComponent
 	{	
         ID_SYS_MESH mesh;
-        Matrix4x4 model;
+        Matrix4x4 model = Matrix4x4::Identity();
         ROID parent;
         Vec3 scale{ 1.0f, 1.0f, 1.0f };
 
@@ -52,8 +52,11 @@ namespace Rococo::Components
         }
 	};
 
-	IComponentFactory<IBodyComponent>* CreateBodyFactory()
-	{
-		return new DefaultFactory<IBodyComponent, BodyComponent>();
-	}
+    namespace API::ForIBodyComponent
+    {
+        IComponentFactory<IBodyComponent>* CreateComponentFactory()
+        {
+            return new DefaultFactory<IBodyComponent, BodyComponent>();
+        }
+    }
 }

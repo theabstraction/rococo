@@ -402,7 +402,12 @@ namespace Rococo::Components
 }
 
 // Stick this in your component .cpp file to declare a singleton component table referenced by Rococo::Components::SINGLETON
-#define DEFINE_FACTORY_SINGLETON(COMPONENT, FACTORY_INVOKE)						\
+#define DEFINE_FACTORY_SINGLETON(COMPONENT)										\
+namespace Rococo::Components::API::For##COMPONENT								\
+{																				\
+	IComponentFactory<COMPONENT>* CreateComponentFactory();						\
+}																				\
+																				\
 namespace Rococo::Components													\
 {																				\
 	template<>																	\
@@ -410,7 +415,7 @@ namespace Rococo::Components													\
 	{																			\
 		IComponentFactory<COMPONENT>* Create()									\
 		{																		\
-			return FACTORY_INVOKE();											\
+			return API::For##COMPONENT::CreateComponentFactory();				\
 		}																		\
 																				\
 		const char* Name() const												\
@@ -447,7 +452,7 @@ namespace Rococo::Components::API::For##COMPONENT													\
 }
 
 // Requires an alias to SINGLETON, typically retrieved from DEFINE_FACTORY_SINGLETON
-#define EXPORT_SINGLETON_METHODS_WITH_LINKARG(COMPONENT_API,COMPONENT, LINKARG)						\
+#define EXPORT_SINGLETON_METHODS_WITH_LINKARG(COMPONENT_API, COMPONENT, LINKARG)					\
 namespace Rococo::Components::API::For##COMPONENT													\
 {																									\
 	COMPONENT_API Ref<COMPONENT> Add(ROID id)														\
@@ -460,9 +465,12 @@ namespace Rococo::Components::API::For##COMPONENT													\
 		return SINGLETON::GetComponent(id);															\
 	}																								\
 																									\
+	void AssignGlobalAttribute(LINKARG& arg);														\
+																									\
 	COMPONENT_API void LinkToECS(IECS& ecs, LINKARG& arg)											\
 	{																								\
-		SINGLETON::GetTable().Link(&ecs, arg);														\
+		AssignGlobalAttribute(arg);														\
+		SINGLETON::GetTable().Link(&ecs);															\
 	}																								\
 																									\
 	COMPONENT_API void ForEach(Function<EFlowLogic(ROID roid, COMPONENT&)> functor)					\

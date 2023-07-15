@@ -21,8 +21,11 @@ namespace Rococo::Components
 		}
 	};
 
-	IComponentFactory<IAnimationComponent>* CreateAnimationFactory()
+	namespace API::ForIAnimationComponent
 	{
-		return new DefaultFactory<IAnimationComponent, AnimationComponent>();
+		IComponentFactory<IAnimationComponent>* CreateComponentFactory()
+		{
+			return new DefaultFactory<IAnimationComponent, AnimationComponent>();
+		}
 	}
 }

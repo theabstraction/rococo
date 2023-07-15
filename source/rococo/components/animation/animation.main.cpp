@@ -3,10 +3,5 @@
 #include <components/rococo.components.animation.h>
 #include <rococo.ecs.builder.inl>
 
-namespace Rococo::Components
-{
-	IComponentFactory<IAnimationComponent>* CreateAnimationFactory();
-}
-
-DEFINE_FACTORY_SINGLETON(IAnimationComponent, CreateAnimationFactory)
+DEFINE_FACTORY_SINGLETON(IAnimationComponent)
 EXPORT_SINGLETON_METHODS(ROCOCO_COMPONENTS_ANIMATION_API, IAnimationComponent)

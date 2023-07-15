@@ -23,7 +23,7 @@ namespace
 
       bool TryMoveMobile(const MoveMobileArgs& tmm) override
       {
-          auto mobile = API::For_ISkeletonComponent::Get(tmm.entityId);
+          auto mobile = API::ForISkeletonComponent::Get(tmm.entityId);
           if (mobile)
           {
               auto angles = mobile->FPSOrientation();
@@ -36,7 +36,7 @@ namespace
 
               mobile->SetFPSOrientation(angles);
 
-              auto body = API::For_IBodyComponent::Get(tmm.entityId);
+              auto body = API::ForIBodyComponent::Get(tmm.entityId);
 
               if (body)
               {
@@ -63,22 +63,22 @@ namespace
          
       void Link(ID_ENTITY id) override
       {
-          auto skeleton = API::For_ISkeletonComponent::Get(id);
+          auto skeleton = API::ForISkeletonComponent::Get(id);
           if (!skeleton)
           {
-              skeleton = API::For_ISkeletonComponent::Add(id);
+              skeleton = API::ForISkeletonComponent::Add(id);
           }
 
-          auto body = API::For_IBodyComponent::Get(id);
+          auto body = API::ForIBodyComponent::Get(id);
           if (!body)
           {
-              body = API::For_IBodyComponent::Add(id);
+              body = API::ForIBodyComponent::Add(id);
           }
       }
 
       void GetAngles(ID_ENTITY id, FPSAngles& angles) override
       {
-         auto skeleton = API::For_ISkeletonComponent::Get(id);
+         auto skeleton = API::ForISkeletonComponent::Get(id);
          if (!skeleton)
          {
             Throw(0, "No such entity");
@@ -89,7 +89,7 @@ namespace
 
       void SetAngles(ID_ENTITY id, const FPSAngles& angles) override
       {
-          auto skeleton = API::For_ISkeletonComponent::Get(id);
+          auto skeleton = API::ForISkeletonComponent::Get(id);
           if (!skeleton)
           {
               Throw(0, "No such entity");

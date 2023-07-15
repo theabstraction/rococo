@@ -3,37 +3,5 @@
 #include <components/rococo.components.body.h>
 #include <rococo.ecs.builder.inl>
 
-namespace Rococo::Components
-{
-	IComponentFactory<IBodyComponent>* CreateBodyFactory();
-}
-
-DEFINE_FACTORY_SINGLETON(IBodyComponent, CreateBodyFactory)
-
-namespace Rococo::Components
-{
-	ROCOCO_COMPONENTS_BODY_API Ref<IBodyComponent> AddBodyComponent(ROID id)
-	{
-		return SINGLETON::AddComponent(id);
-	}
-
-	ROCOCO_COMPONENTS_BODY_API void BodyComponent_LinkToECS(IECS& ecs)
-	{
-		SINGLETON::GetTable().Link(&ecs);
-	}
-
-	ROCOCO_COMPONENTS_BODY_API Ref<IBodyComponent> GetBodyComponent(ROID id)
-	{
-		return SINGLETON::GetComponent(id);
-	}
-
-	ROCOCO_COMPONENTS_BODY_API void ForEachBodyComponent(IComponentCallback<IBodyComponent>& cb)
-	{
-		return SINGLETON::GetTable().ForEachComponent(cb);
-	}
-
-	ROCOCO_COMPONENTS_BODY_API void ForEachBodyComponent(Rococo::Function<EFlowLogic(ROID roid, IBodyComponent& component)> functor)
-	{
-		return SINGLETON::GetTable().ForEachComponent(functor);
-	}
-}
+DEFINE_FACTORY_SINGLETON(IBodyComponent)
+EXPORT_SINGLETON_METHODS(ROCOCO_COMPONENTS_BODY_API, IBodyComponent);

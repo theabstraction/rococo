@@ -132,7 +132,7 @@ namespace
 				auto triangleIndex = f.Index();
 
 				ID_ENTITY id{ pocket.context };
-				auto body = API::For_IBodyComponent::Get(id);
+				auto body = API::ForIBodyComponent::Get(id);
 				if (body)
 				{
 					auto meshId = body->Mesh();
@@ -157,7 +157,7 @@ namespace
 		{
 			if (!quadtree) Throw(0, "%s: No quadtree, world not defined.", __FUNCTION__);
 
-			auto body = API::For_IBodyComponent::Get(id);
+			auto body = API::ForIBodyComponent::Get(id);
 			if (!body)
 			{
 				Throw(0, "%s: no entity found with id 0x%llX", __FUNCTION__, id.Value());

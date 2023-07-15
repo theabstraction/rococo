@@ -90,14 +90,14 @@ namespace Rococo::Entities
 {
 	void AddDebugBones(ID_ENTITY id, IRenderContext& rc, IRodTesselatorSupervisor& rod)
 	{
-		auto skeletonComponent = Components::API::For_ISkeletonComponent::Add(id);
+		auto skeletonComponent = Components::API::ForISkeletonComponent::Add(id);
 		auto skeleton = skeletonComponent ? skeletonComponent->Skeleton() : nullptr;
 		if (skeleton)
 		{
 			auto* root = skeleton->Root();
 			if (root)
 			{
-				auto body = API::For_IBodyComponent::Get(id);
+				auto body = API::ForIBodyComponent::Get(id);
 				if (body)
 				{
 					const Matrix4x4& m = body->Model();

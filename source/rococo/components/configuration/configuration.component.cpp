@@ -86,8 +86,11 @@ namespace Rococo::Components
 		}
 	};
 
-	IComponentFactory<IConfigurationComponent>* CreateConfigurationFactory()
+	namespace API::ForIConfigurationComponent
 	{
-		return new DefaultFactory<IConfigurationComponent, ConfigurationComponent>();
+		IComponentFactory<IConfigurationComponent>* CreateComponentFactory()
+		{
+			return new DefaultFactory<IConfigurationComponent, ConfigurationComponent>();
+		}
 	}
 }

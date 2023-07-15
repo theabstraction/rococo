@@ -59,7 +59,7 @@ namespace
 
           auto id = ecs.NewROID();
 
-          auto body = API::For_IBodyComponent::Add(id);
+          auto body = API::ForIBodyComponent::Add(id);
           body->SetModel(model);
           body->SetParent(parentId);
           body->SetMesh(meshId);
@@ -78,13 +78,13 @@ namespace
 
             auto id = ecs.NewROID();
 
-            auto body = API::For_IBodyComponent::Add(id);
+            auto body = API::ForIBodyComponent::Add(id);
             body->SetModel(model);
             body->SetParent(ID_ENTITY::Invalid());
             body->SetMesh(ID_SYS_MESH::Invalid());
             body->SetScale(Vec3{ 1.0f, 1.0f, 1.0f });
 
-            auto skeleton = API::For_ISkeletonComponent::Add(id);
+            auto skeleton = API::ForISkeletonComponent::Add(id);
             skeleton->SetSkeleton(skeletonName);
 
             return id;
@@ -114,10 +114,10 @@ namespace
               Throw(0, "%s: skeleton name was blank", __FUNCTION__);
           }
 
-          auto body = API::For_ISkeletonComponent::Get(idBody);
+          auto body = API::ForISkeletonComponent::Get(idBody);
           if (!body)
           {
-              body = API::For_ISkeletonComponent::Add(idBody);
+              body = API::ForISkeletonComponent::Add(idBody);
           }
 
           body->SetSkeleton(skeletonName);
@@ -130,7 +130,7 @@ namespace
 
       boolean32 TryGetModelToWorldMatrix(ID_ENTITY id, Matrix4x4& model) override
       {
-          auto body = API::For_IBodyComponent::Get(id);
+          auto body = API::ForIBodyComponent::Get(id);
           if (!body)
           {
               model = Matrix4x4::Identity();
@@ -145,7 +145,7 @@ namespace
 
       void ConcatenatePositionVectors(ID_ENTITY leafId, Vec3& position) override
       {
-          auto body = API::For_IBodyComponent::Get(leafId);
+          auto body = API::ForIBodyComponent::Get(leafId);
           if (!body)
           {
               Throw(0, "Missing entity");
@@ -161,7 +161,7 @@ namespace
 
       void ConcatenateModelMatrices(ID_ENTITY leafId, Matrix4x4& m) override
       {
-          auto body = API::For_IBodyComponent::Get(leafId);
+          auto body = API::ForIBodyComponent::Get(leafId);
           if (!body)
           {
               Throw(0, "Missing entity");
@@ -182,7 +182,7 @@ namespace
 
          int64 count = 0;
 
-         API::For_IBodyComponent::ForEach(
+         API::ForIBodyComponent::ForEach(
              [&count,&cb](Components::ROID roid, Components::IBodyComponent& body) 
              {
                  cb.OnEntity(count++, body, roid);
@@ -193,7 +193,7 @@ namespace
 
       void GetScale(ID_ENTITY id, Vec3& scale)
       {
-          auto body = API::For_IBodyComponent::Get(id);
+          auto body = API::ForIBodyComponent::Get(id);
           if (body)
           {
               scale = body->Scale();
@@ -206,7 +206,7 @@ namespace
 
       void GetPosition(ID_ENTITY id, Vec3& position)
       {
-          auto body = API::For_IBodyComponent::Get(id);
+          auto body = API::ForIBodyComponent::Get(id);
           if (body)
           {
               position = body->Model().GetPosition();
@@ -219,12 +219,12 @@ namespace
 
       void EnableAnimation(ID_ENTITY id) override
       {
-          auto animationComponent = API::For_IAnimationComponent::Add(id);
+          auto animationComponent = API::ForIAnimationComponent::Add(id);
       }
 
       void AddAnimationFrame(ID_ENTITY id, const fstring& frameName, Seconds duration, boolean32 loop) override
       {
-          auto animationComponent = API::For_IAnimationComponent::Get(id);
+          auto animationComponent = API::ForIAnimationComponent::Get(id);
           if (!animationComponent)
           {
               Throw(0, "%s: no animation component for ID_ENTITY [%d v%d]. Call (instances.EnableAnimation <bodyId>) after object creation", __FUNCTION__, id.index, id.salt);
@@ -429,7 +429,7 @@ namespace
 
       void SetScale(ID_ENTITY id, const Vec3& scale) override
       {
-          auto body = API::For_IBodyComponent::Get(id);
+          auto body = API::ForIBodyComponent::Get(id);
           if (body)
           {
               body->SetScale(scale);
