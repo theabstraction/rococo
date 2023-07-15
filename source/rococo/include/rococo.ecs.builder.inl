@@ -245,17 +245,17 @@ namespace Rococo::Components
 			enumLock--;
 		}
 
-		void ForEachComponent(Rococo::Function<EFlowLogic(ROID roid, IConfigurationComponent&)> functor)
+		void ForEachComponent(Rococo::Function<EFlowLogic(ROID roid, COMPONENT&)> functor)
 		{
 			enumLock++;
 			try
 			{
 				struct ANON : IComponentCallback<IComponentBase>
 				{
-					Rococo::Function<EFlowLogic(ROID roid, IConfigurationComponent&)>* functor = nullptr;
+					Rococo::Function<EFlowLogic(ROID roid, COMPONENT&)>* functor = nullptr;
 					EFlowLogic OnComponent(ROID id, IComponentBase& base) override
 					{
-						auto& component = reinterpret_cast<IConfigurationComponent&>(base);
+						auto& component = reinterpret_cast<COMPONENT&>(base);
 						return functor->Invoke(id, component);
 					}
 				} cb;
@@ -382,7 +382,7 @@ namespace Rococo::Components
 	};
 }
 
-// Stick this in your component main class to declare a singleton factor referenced by Rococo::Components::SINGLETON
+// Stick this in your component .cpp file to declare a singleton component table referenced by Rococo::Components::SINGLETON
 #define DEFINE_FACTORY_SINGLETON(COMPONENT, FACTORY_INVOKE)						\
 namespace Rococo::Components													\
 {																				\
@@ -396,8 +396,8 @@ namespace Rococo::Components													\
 																				\
 		const char* Name() const												\
 		{																		\
-			return "hi"; 														\
+			return #COMPONENT;													\
 		}																		\
 	};																			\
-	using SINGLETON = ComponentFactorySingleton<IConfigurationComponent>;		\
+	using SINGLETON = ComponentFactorySingleton<COMPONENT>;						\
 }														

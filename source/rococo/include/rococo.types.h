@@ -69,6 +69,12 @@ inline bool operator <  (const DEFINED_ID_NAME& a, const DEFINED_ID_NAME& b) { r
 #define UNUSED(x) (x);
 #define HIDE_COMPILER_WARNINGS(x) (x);
 
+namespace DirectX
+{
+	struct XMFLOAT4;
+	struct XMFLOAT4X4;
+}
+
 namespace Rococo
 {
 #ifdef _WIN32
@@ -658,6 +664,20 @@ namespace Rococo
 			return Vec3{ pos.x, pos.y, z };
 		}
 	};
+
+	struct alignas(4) Quat
+	{
+		Vec3 v;
+		float s;
+
+		Quat() : v{ 0,0,0 }, s(1.0f) {}
+		Quat(cr_vec3 _v, float _s) : v(_v), s(_s) {}
+
+		inline operator DirectX::XMFLOAT4* () { return reinterpret_cast<DirectX::XMFLOAT4*> (this); }
+		inline operator const DirectX::XMFLOAT4* () const { return reinterpret_cast<const DirectX::XMFLOAT4*> (this); }
+	};
+
+	typedef const Quat& cr_quat;
 
 	struct BoundingBox
 	{

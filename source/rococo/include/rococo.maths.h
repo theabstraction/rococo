@@ -36,19 +36,6 @@ namespace Rococo
 		inline operator Vec3& () { return *reinterpret_cast<Vec3*> (this); }
 	};
 
-	// Quaternion. Mainly used in algorithms that need to smoothly interpolate between orientations
-	struct alignas(4) Quat
-	{
-		Vec3 v;
-		float s;
-
-		Quat() : v{ 0,0,0 }, s(1.0f) {}
-		Quat(cr_vec3 _v, float _s) : v(_v), s(_s) {}
-
-		inline operator DirectX::XMFLOAT4* () { return reinterpret_cast<DirectX::XMFLOAT4*> (this); }
-		inline operator const DirectX::XMFLOAT4* () const { return reinterpret_cast<const DirectX::XMFLOAT4*> (this); }
-	};
-
 	void ComputeBoneQuatFromAngles(Quat& quat, const BoneAngles& angles);
 
 	template<class T>
@@ -85,8 +72,6 @@ namespace Rococo
 	LineClassify ClassifyPtAgainstPlane(Vec2 a, Vec2 b, Vec2 p);
 
 	bool IsClockwiseSequential(IRing<Vec2>& ring);
-
-	typedef const Quat& cr_quat;
 
 	Quat InterpolateRotations(cr_quat a, cr_quat b, float t);
 

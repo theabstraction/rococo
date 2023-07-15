@@ -435,7 +435,7 @@ namespace Rococo
     {
         public RococoComponentsConfigurationProject() : base("rococo.component.configuration", @"components\configuration")
         {
-            SourceFiles.Add(@"..\include\rococo.ecs.h");
+            SourceFiles.Add(@"..\..\include\rococo.ecs.h");
         }
 
         [Configure()]
@@ -444,6 +444,44 @@ namespace Rococo
             StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.AddPublicDependency<RococoECSProject>(target);
+            conf.SolutionFolder = "ECS";
+        }
+    }
+
+    [Sharpmake.Generate]
+    public class RococoComponentsAnimationProject : RococoProject
+    {
+        public RococoComponentsAnimationProject() : base("rococo.component.animation", @"components\animation")
+        {
+            SourceFiles.Add(@"..\..\include\rococo.ecs.h");
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Dll);
+            conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.AddPublicDependency<RococoECSProject>(target);
+            conf.AddPublicDependency<RococoMathsProject>(target);
+            conf.SolutionFolder = "ECS";
+        }
+    }
+
+    [Sharpmake.Generate]
+    public class RococoComponentsBodyProject : RococoProject
+    {
+        public RococoComponentsBodyProject() : base("rococo.component.body", @"components\body")
+        {
+            SourceFiles.Add(@"..\..\include\rococo.ecs.h");
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Dll);
+            conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.AddPublicDependency<RococoECSProject>(target);
+            conf.AddPublicDependency<RococoMathsProject>(target);
             conf.SolutionFolder = "ECS";
         }
     }
@@ -1231,6 +1269,8 @@ namespace Rococo
                 conf.AddProject<RococoBuildFinalProject>(target);
                 conf.AddProject<RococoECSProject>(target);
                 conf.AddProject<RococoComponentsConfigurationProject>(target);
+                conf.AddProject<RococoComponentsAnimationProject>(target);
+                conf.AddProject<RococoComponentsBodyProject>(target);
             }
         }
     }
@@ -1323,7 +1363,9 @@ namespace Rococo
             arguments.Generate<RococoSexyStudio4NPPProject>();
 
             arguments.Generate<RococoECSProject>();
+            arguments.Generate<RococoComponentsAnimationProject>();
             arguments.Generate<RococoComponentsConfigurationProject>();
+            arguments.Generate<RococoComponentsBodyProject>();
         }
     }
 }

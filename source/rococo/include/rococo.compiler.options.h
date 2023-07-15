@@ -15,7 +15,7 @@
 # endif
 #endif
 
-#define USE_VSTUDIO_SAL 1
+ // #define USE_VSTUDIO_SAL 1 // Enable to detect errors in formatted print statements such as SafeFormat(...)
 
 # define ROCOCO_INTERFACE struct ROCOCO_NO_VTABLE
 

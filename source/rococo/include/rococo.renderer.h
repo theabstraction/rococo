@@ -4,6 +4,7 @@
 #include <rococo.api.h>
 #include <rococo.maths.h>
 #include <rococo.io.h>
+#include <rococo.meshes.h>
 
 #ifndef RENDERER_API
 # define RENDERER_API ROCOCO_API_IMPORT

@@ -82,6 +82,8 @@ namespace Rococo::Components
     {
         INTERFACE* ConstructInPlace(void* pMemory) override
         {
+            // Requires #include <new>. 
+            // This was not added to the header as it adds thousands of lines to the compile unit for everything that includes this file
             return new (pMemory) CLASSNAME();
         }
 
