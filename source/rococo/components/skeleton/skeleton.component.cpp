@@ -4,6 +4,7 @@
 #include <rococo.maths.h>
 #include <rococo.strings.h>
 #include <rococo.animation.h>
+#include <rococo.ecs.builder.inl>
 #include <new>
 
 namespace Rococo::Components
@@ -83,3 +84,5 @@ namespace Rococo::Components::API::ForISkeletonComponent
         return new FactoryWithOneArg<ISkeletonComponent, SkeletonComponent, ISkeletons>(*s_Skeletons);
     }
 }
+
+DEFINE_AND_EXPORT_SINGLETON_METHODS_WITH_LINKARG(ROCOCO_COMPONENTS_SKELETON_API, ISkeletonComponent, Entities::ISkeletons)

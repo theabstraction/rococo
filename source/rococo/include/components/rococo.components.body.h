@@ -3,10 +3,6 @@
 #include <rococo.meshes.h>
 #include <rococo.functional.h>
 
-#ifndef ROCOCO_COMPONENTS_BODY_API
-# define ROCOCO_COMPONENTS_BODY_API ROCOCO_API_IMPORT
-#endif
-
 namespace Rococo::Components
 {
     ROCOCO_INTERFACE IEntity : IComponentBase
@@ -25,5 +21,9 @@ namespace Rococo::Components
         virtual void SetMesh(ID_SYS_MESH meshId) = 0;
     };
 }
+
+#ifndef ROCOCO_COMPONENTS_BODY_API
+# define ROCOCO_COMPONENTS_BODY_API ROCOCO_API_IMPORT
+#endif
 
 DECLARE_SINGLETON_METHODS(ROCOCO_COMPONENTS_BODY_API, IBodyComponent)

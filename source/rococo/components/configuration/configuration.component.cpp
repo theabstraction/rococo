@@ -2,6 +2,7 @@
 
 #include <components/rococo.components.configuration.h>
 #include <rococo.hashtable.h>
+#include <rococo.ecs.builder.inl>
 
 namespace Rococo::Components
 {
@@ -85,12 +86,6 @@ namespace Rococo::Components
 			}
 		}
 	};
-
-	namespace API::ForIConfigurationComponent
-	{
-		IComponentFactory<IConfigurationComponent>* CreateComponentFactory()
-		{
-			return new DefaultFactory<IConfigurationComponent, ConfigurationComponent>();
-		}
-	}
 }
+
+DEFINE_AND_EXPORT_SINGLETON_METHODS_WITH_DEFAULT_FACTORY(ROCOCO_COMPONENTS_CONFIG_API, IConfigurationComponent, ConfigurationComponent)

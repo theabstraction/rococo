@@ -141,7 +141,8 @@
       <AdditionalDependencies>rococo.ecs.lib;rococo.maths.lib;rococo.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\debug\rococo.component.skeleton.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\debug\rococo.component.skeleton.lib</ImportLibrary>
@@ -227,7 +228,8 @@
       <AdditionalDependencies>rococo.ecs.lib;rococo.maths.lib;rococo.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\release\rococo.component.skeleton.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\release\rococo.component.skeleton.lib</ImportLibrary>
@@ -238,7 +240,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\source\rococo\components\skeleton\skeleton.component.cpp" />
-    <ClCompile Include="..\..\source\rococo\components\skeleton\skeleton.main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

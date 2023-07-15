@@ -141,7 +141,8 @@
       <AdditionalDependencies>rococo.ecs.lib;rococo.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\debug\rococo.component.configuration.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\debug\rococo.component.configuration.lib</ImportLibrary>
@@ -227,7 +228,8 @@
       <AdditionalDependencies>rococo.ecs.lib;rococo.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\release\rococo.component.configuration.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\release\rococo.component.configuration.lib</ImportLibrary>
@@ -238,7 +240,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\source\rococo\components\configuration\configuration.component.cpp" />
-    <ClCompile Include="..\..\source\rococo\components\configuration\configuration.main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

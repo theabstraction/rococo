@@ -426,6 +426,31 @@ namespace Rococo::Components													\
 	using SINGLETON = ComponentFactorySingleton<COMPONENT>;						\
 }														
 
+// Stick this in your component .cpp file to declare a singleton component table referenced by Rococo::Components::SINGLETON
+#define DEFINE_FACTORY_SINGLETON_WITH_DEFAULT_FACTORY(COMPONENT,CLASSNAME)		\
+namespace Rococo::Components::API::For##COMPONENT								\
+{																				\
+	IComponentFactory<COMPONENT>* CreateComponentFactory();						\
+}																				\
+																				\
+namespace Rococo::Components													\
+{																				\
+	template<>																	\
+	struct FactoryBuilder<COMPONENT>											\
+	{																			\
+		IComponentFactory<COMPONENT>* Create()									\
+		{																		\
+			return new DefaultFactory<COMPONENT, CLASSNAME>();					\
+		}																		\
+																				\
+		const char* Name() const												\
+		{																		\
+			return #COMPONENT;													\
+		}																		\
+	};																			\
+	using SINGLETON = ComponentFactorySingleton<COMPONENT>;						\
+}
+
 // Requires an alias to SINGLETON, typically retrieved from DEFINE_FACTORY_SINGLETON
 #define EXPORT_SINGLETON_METHODS(COMPONENT_API,COMPONENT)											\
 namespace Rococo::Components::API::For##COMPONENT													\
@@ -478,3 +503,15 @@ namespace Rococo::Components::API::For##COMPONENT													\
 		SINGLETON::GetTable().ForEachComponent(functor);											\
 	}																								\
 }
+
+#define DEFINE_AND_EXPORT_SINGLETON_METHODS(COMPONENT_API, COMPONENT)								\
+DEFINE_FACTORY_SINGLETON(COMPONENT)																	\
+EXPORT_SINGLETON_METHODS(COMPONENT_API, COMPONENT)													\
+
+#define DEFINE_AND_EXPORT_SINGLETON_METHODS_WITH_DEFAULT_FACTORY(COMPONENT_API, COMPONENT, CLASSNAME)	\
+DEFINE_FACTORY_SINGLETON_WITH_DEFAULT_FACTORY(COMPONENT, CLASSNAME)										\
+EXPORT_SINGLETON_METHODS(COMPONENT_API, COMPONENT)														\
+
+#define DEFINE_AND_EXPORT_SINGLETON_METHODS_WITH_LINKARG(COMPONENT_API, COMPONENT, LINK_ARG)		\
+DEFINE_FACTORY_SINGLETON(COMPONENT)																	\
+EXPORT_SINGLETON_METHODS_WITH_LINKARG(COMPONENT_API, COMPONENT, LINK_ARG)							\

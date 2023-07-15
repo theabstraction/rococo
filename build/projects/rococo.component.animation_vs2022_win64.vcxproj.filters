@@ -3,7 +3,6 @@
   <ItemGroup>
     <ClCompile Include="..\..\source\rococo\components\animation\animation.component.cpp" />
     <ClCompile Include="..\..\source\rococo\components\animation\animation.cpp" />
-    <ClCompile Include="..\..\source\rococo\components\animation\animation.main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\include\rococo.ecs.h">

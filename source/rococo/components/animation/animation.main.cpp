@@ -3,5 +3,4 @@
 #include <components/rococo.components.animation.h>
 #include <rococo.ecs.builder.inl>
 
-DEFINE_FACTORY_SINGLETON(IAnimationComponent)
-EXPORT_SINGLETON_METHODS(ROCOCO_COMPONENTS_ANIMATION_API, IAnimationComponent)
+DEFINE_AND_EXPORT_SINGLETON_METHODS(ROCOCO_COMPONENTS_ANIMATION_API, IAnimationComponent)

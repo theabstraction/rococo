@@ -1,5 +1,7 @@
+#define ROCOCO_COMPONENTS_BODY_API __declspec(dllexport)
 #include <components/rococo.components.body.h>
 #include <rococo.maths.h>
+#include <rococo.ecs.builder.inl>
 #include <new>
 
 namespace Rococo::Components
@@ -51,12 +53,6 @@ namespace Rococo::Components
             mesh = id;
         }
 	};
-
-    namespace API::ForIBodyComponent
-    {
-        IComponentFactory<IBodyComponent>* CreateComponentFactory()
-        {
-            return new DefaultFactory<IBodyComponent, BodyComponent>();
-        }
-    }
 }
+
+DEFINE_AND_EXPORT_SINGLETON_METHODS_WITH_DEFAULT_FACTORY(ROCOCO_COMPONENTS_BODY_API, IBodyComponent, BodyComponent);

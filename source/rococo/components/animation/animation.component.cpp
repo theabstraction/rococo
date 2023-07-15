@@ -1,5 +1,7 @@
+#define ROCOCO_COMPONENTS_ANIMATION_API __declspec(dllexport)
 #include <components/rococo.components.animation.h>
 #include <rococo.animation.h>
+#include <rococo.ecs.builder.inl>
 #include <new>
 
 namespace Rococo::Components
@@ -29,3 +31,5 @@ namespace Rococo::Components
 		}
 	}
 }
+
+DEFINE_AND_EXPORT_SINGLETON_METHODS_WITH_DEFAULT_FACTORY(ROCOCO_COMPONENTS_ANIMATION_API, IAnimationComponent, AnimationComponent)
