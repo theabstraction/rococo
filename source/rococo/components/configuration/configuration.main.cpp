@@ -9,16 +9,4 @@ namespace Rococo::Components
 }
 
 DEFINE_FACTORY_SINGLETON(IConfigurationComponent, CreateConfigurationFactory)
-
-namespace Rococo::Components
-{
-	ROCOCO_COMPONENTS_CONFIG_API Ref<IConfigurationComponent> AddConfigurationComponent(ROID id)
-	{
-		return SINGLETON::AddComponent(id);
-	}
-
-	ROCOCO_COMPONENTS_CONFIG_API void ConfigurationComponent_LinkToECS(IECS* ecs)
-	{
-		SINGLETON::GetTable().Link(ecs);
-	}
-}
+EXPORT_SINGLETON_METHODS(ROCOCO_COMPONENTS_CONFIG_API, IConfigurationComponent)

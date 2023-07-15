@@ -420,3 +420,53 @@ namespace Rococo::Components													\
 	};																			\
 	using SINGLETON = ComponentFactorySingleton<COMPONENT>;						\
 }														
+
+// Requires an alias to SINGLETON, typically retrieved from DEFINE_FACTORY_SINGLETON
+#define EXPORT_SINGLETON_METHODS(COMPONENT_API,COMPONENT)											\
+namespace Rococo::Components::API::For##COMPONENT													\
+{																									\
+	COMPONENT_API Ref<COMPONENT> Add(ROID id)														\
+	{																								\
+		return SINGLETON::AddComponent(id);															\
+	}																								\
+																									\
+	COMPONENT_API Ref<COMPONENT> Get(ROID id)														\
+	{																								\
+		return SINGLETON::GetComponent(id);															\
+	}																								\
+																									\
+	COMPONENT_API void LinkToECS(IECS& ecs)															\
+	{																								\
+		SINGLETON::GetTable().Link(&ecs);															\
+	}																								\
+																									\
+	COMPONENT_API void ForEach(Function<EFlowLogic(ROID roid, COMPONENT&)> functor)					\
+	{																								\
+		SINGLETON::GetTable().ForEachComponent(functor);											\
+	}																								\
+}
+
+// Requires an alias to SINGLETON, typically retrieved from DEFINE_FACTORY_SINGLETON
+#define EXPORT_SINGLETON_METHODS_WITH_LINKARG(COMPONENT_API,COMPONENT, LINKARG)						\
+namespace Rococo::Components::API::For##COMPONENT													\
+{																									\
+	COMPONENT_API Ref<COMPONENT> Add(ROID id)														\
+	{																								\
+		return SINGLETON::AddComponent(id);															\
+	}																								\
+																									\
+	COMPONENT_API Ref<COMPONENT> Get(ROID id)														\
+	{																								\
+		return SINGLETON::GetComponent(id);															\
+	}																								\
+																									\
+	COMPONENT_API void LinkToECS(IECS& ecs, LINKARG& arg)											\
+	{																								\
+		SINGLETON::GetTable().Link(&ecs, arg);														\
+	}																								\
+																									\
+	COMPONENT_API void ForEach(Function<EFlowLogic(ROID roid, COMPONENT&)> functor)					\
+	{																								\
+		SINGLETON::GetTable().ForEachComponent(functor);											\
+	}																								\
+}

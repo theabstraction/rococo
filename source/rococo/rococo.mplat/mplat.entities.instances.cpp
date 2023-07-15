@@ -59,7 +59,7 @@ namespace
 
           auto id = ecs.NewROID();
 
-          auto body = AddBodyComponent(id);
+          auto body = API::For_IBodyComponent::Add(id);
           body->SetModel(model);
           body->SetParent(parentId);
           body->SetMesh(meshId);
@@ -78,13 +78,13 @@ namespace
 
             auto id = ecs.NewROID();
 
-            auto body = AddBodyComponent(id);
+            auto body = API::For_IBodyComponent::Add(id);
             body->SetModel(model);
             body->SetParent(ID_ENTITY::Invalid());
             body->SetMesh(ID_SYS_MESH::Invalid());
             body->SetScale(Vec3{ 1.0f, 1.0f, 1.0f });
 
-            auto skeleton = AddSkeletonComponent(id);
+            auto skeleton = API::For_ISkeletonComponent::Add(id);
             skeleton->SetSkeleton(skeletonName);
 
             return id;
@@ -114,10 +114,10 @@ namespace
               Throw(0, "%s: skeleton name was blank", __FUNCTION__);
           }
 
-          auto body = GetSkeletonComponent(idBody);
+          auto body = API::For_ISkeletonComponent::Get(idBody);
           if (!body)
           {
-              body = AddSkeletonComponent(idBody);
+              body = API::For_ISkeletonComponent::Add(idBody);
           }
 
           body->SetSkeleton(skeletonName);
@@ -130,7 +130,7 @@ namespace
 
       boolean32 TryGetModelToWorldMatrix(ID_ENTITY id, Matrix4x4& model) override
       {
-          auto body = GetBodyComponent(id);
+          auto body = API::For_IBodyComponent::Get(id);
           if (!body)
           {
               model = Matrix4x4::Identity();
@@ -145,7 +145,7 @@ namespace
 
       void ConcatenatePositionVectors(ID_ENTITY leafId, Vec3& position) override
       {
-          auto body = GetBodyComponent(leafId);
+          auto body = API::For_IBodyComponent::Get(leafId);
           if (!body)
           {
               Throw(0, "Missing entity");
@@ -161,7 +161,7 @@ namespace
 
       void ConcatenateModelMatrices(ID_ENTITY leafId, Matrix4x4& m) override
       {
-          auto body = GetBodyComponent(leafId);
+          auto body = API::For_IBodyComponent::Get(leafId);
           if (!body)
           {
               Throw(0, "Missing entity");
@@ -182,7 +182,7 @@ namespace
 
          int64 count = 0;
 
-         ForEachBodyComponent(
+         API::For_IBodyComponent::ForEach(
              [&count,&cb](Components::ROID roid, Components::IBodyComponent& body) 
              {
                  cb.OnEntity(count++, body, roid);
@@ -193,7 +193,7 @@ namespace
 
       void GetScale(ID_ENTITY id, Vec3& scale)
       {
-          auto body = GetBodyComponent(id);
+          auto body = API::For_IBodyComponent::Get(id);
           if (body)
           {
               scale = body->Scale();
@@ -206,7 +206,7 @@ namespace
 
       void GetPosition(ID_ENTITY id, Vec3& position)
       {
-          auto body = GetBodyComponent(id);
+          auto body = API::For_IBodyComponent::Get(id);
           if (body)
           {
               position = body->Model().GetPosition();
@@ -219,12 +219,12 @@ namespace
 
       void EnableAnimation(ID_ENTITY id) override
       {
-          auto animationComponent = AddAnimationComponent(id);
+          auto animationComponent = API::For_IAnimationComponent::Add(id);
       }
 
       void AddAnimationFrame(ID_ENTITY id, const fstring& frameName, Seconds duration, boolean32 loop) override
       {
-          auto animationComponent = GetAnimationComponent(id);
+          auto animationComponent = API::For_IAnimationComponent::Get(id);
           if (!animationComponent)
           {
               Throw(0, "%s: no animation component for ID_ENTITY [%d v%d]. Call (instances.EnableAnimation <bodyId>) after object creation", __FUNCTION__, id.index, id.salt);
@@ -429,7 +429,7 @@ namespace
 
       void SetScale(ID_ENTITY id, const Vec3& scale) override
       {
-          auto body = GetBodyComponent(id);
+          auto body = API::For_IBodyComponent::Get(id);
           if (body)
           {
               body->SetScale(scale);

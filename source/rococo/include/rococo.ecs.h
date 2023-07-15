@@ -194,3 +194,23 @@ namespace Rococo
 
 	ROCOCO_ECS_API IECSSupervisor* CreateECS(IECSErrorHandler& errorHandler, uint64 maxTableSizeInBytes = 2_gigabytes);
 }
+
+#include <rococo.functional.h>
+
+#define DECLARE_SINGLETON_METHODS(COMPONENT_API,COMPONENT)													\
+namespace Rococo::Components::API::For_##COMPONENT													        \
+{																									        \
+	COMPONENT_API Ref<COMPONENT> Add(ROID id);														        \
+	COMPONENT_API Ref<COMPONENT> Get(ROID id);														        \
+	COMPONENT_API void LinkToECS(IECS& ecs);														        \
+    COMPONENT_API void ForEach(Function<EFlowLogic(ROID roid, COMPONENT&)> functor);                        \
+}
+
+#define DECLARE_SINGLETON_METHODS_WITH_LINK_ARG(COMPONENT_API,COMPONENT, LINK_ARG)							\
+namespace Rococo::Components::API::For_##COMPONENT													        \
+{																									        \
+	COMPONENT_API Ref<COMPONENT> Add(ROID id);														        \
+	COMPONENT_API Ref<COMPONENT> Get(ROID id);														        \
+	COMPONENT_API void LinkToECS(IECS& ecs, LINK_ARG& arg);											        \
+    COMPONENT_API void ForEach(Function<EFlowLogic(ROID roid, COMPONENT&)> functor);                        \
+}

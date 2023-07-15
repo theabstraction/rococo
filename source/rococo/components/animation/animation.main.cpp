@@ -9,21 +9,4 @@ namespace Rococo::Components
 }
 
 DEFINE_FACTORY_SINGLETON(IAnimationComponent, CreateAnimationFactory)
-
-namespace Rococo::Components
-{
-	ROCOCO_COMPONENTS_ANIMATION_API Ref<IAnimationComponent> AddAnimationComponent(ROID id)
-	{
-		return SINGLETON::AddComponent(id);
-	}
-
-	ROCOCO_COMPONENTS_ANIMATION_API Ref<IAnimationComponent> GetAnimationComponent(ROID id)
-	{
-		return SINGLETON::GetComponent(id);
-	}
-
-	ROCOCO_COMPONENTS_ANIMATION_API void AnimationComponent_LinkToECS(IECS& ecs)
-	{
-		SINGLETON::GetTable().Link(&ecs);
-	}
-}
+EXPORT_SINGLETON_METHODS(ROCOCO_COMPONENTS_ANIMATION_API, IAnimationComponent)

@@ -9,7 +9,7 @@
 
 namespace Rococo::Components
 {
-    ROCOCO_INTERFACE IEntity: IComponentBase
+    ROCOCO_INTERFACE IEntity : IComponentBase
     {
         virtual cr_m4x4 Model() const = 0;
         virtual ROID Parent() const = 0;
@@ -24,10 +24,6 @@ namespace Rococo::Components
         virtual ID_SYS_MESH Mesh() const = 0;
         virtual void SetMesh(ID_SYS_MESH meshId) = 0;
     };
-
-	ROCOCO_COMPONENTS_BODY_API Ref<IBodyComponent> AddBodyComponent(ROID id);
-    ROCOCO_COMPONENTS_BODY_API void ForEachBodyComponent(IComponentCallback<IBodyComponent>& cb);
-    ROCOCO_COMPONENTS_BODY_API void ForEachBodyComponent(Rococo::Function<EFlowLogic(ROID roid, IBodyComponent& component)> functor);
-    ROCOCO_COMPONENTS_BODY_API Ref<IBodyComponent> GetBodyComponent(ROID id);
-	ROCOCO_COMPONENTS_BODY_API void BodyComponent_LinkToECS(IECS& ecs);
 }
+
+DECLARE_SINGLETON_METHODS(ROCOCO_COMPONENTS_BODY_API, IBodyComponent)

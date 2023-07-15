@@ -421,9 +421,9 @@ void FormatMainWindowFont(LOGFONTA& font)
 
 void LinkComponents(IECS& ecs, Platform& platform)
 {
-	AnimationComponent_LinkToECS(ecs);
-	BodyComponent_LinkToECS(ecs);
-	SkeletonComponent_LinkToECS(ecs, platform.world.rigs.Skeles());
+	API::For_IAnimationComponent::LinkToECS(ecs);
+	API::For_IAnimationComponent::LinkToECS(ecs);
+	API::For_ISkeletonComponent::LinkToECS(ecs, platform.world.rigs.Skeles());
 }
 
 int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon, HICON hSmallIcon)

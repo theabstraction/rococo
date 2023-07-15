@@ -150,8 +150,8 @@ namespace
 
 		  for (auto id : dynamics)
 		  {
-			  auto skeletonComponent = GetSkeletonComponent(id);
-			  auto animationComponent = GetAnimationComponent(id);
+			  auto skeletonComponent = API::For_ISkeletonComponent::Get(id);
+			  auto animationComponent = API::For_IAnimationComponent::Get(id);
 			  if (skeletonComponent && animationComponent)
 			  {
 				  auto* skele = skeletonComponent->Skeleton();
@@ -253,7 +253,7 @@ namespace
 
 		  for (auto i : statics)
 		  {
-			  auto body = GetBodyComponent(i);
+			  auto body = API::For_IBodyComponent::Get(i);
 			  if (!body)
 			  {
 				  Throw(0, "Scene: Unexpected missing entity with id #%lld", i.Value());
@@ -283,13 +283,13 @@ namespace
 
 		  for (auto i : dynamics)
 		  {
-			  auto body = GetBodyComponent(i);
+			  auto body = API::For_IBodyComponent::Get(i);
 			  if (!body)
 			  {
 				  Throw(0, "Scene: Unexpected missing entity with id #%lld", i.Value());
 			  }
 
-			  auto skeletonComponent = GetSkeletonComponent(i);
+			  auto skeletonComponent = API::For_ISkeletonComponent::Get(i);
 			 
 			  auto* skeleton = skeletonComponent ? skeletonComponent->Skeleton() : nullptr;
 

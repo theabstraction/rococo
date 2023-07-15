@@ -21,8 +21,6 @@ namespace Rococo::Components
         virtual void SetFPSOrientation(const FPSAngles& orientation) = 0;
         virtual const FPSAngles& FPSOrientation() const = 0;
     };
-
-    ROCOCO_COMPONENTS_SKELETON_API Ref<ISkeletonComponent> AddSkeletonComponent(ROID id);
-    ROCOCO_COMPONENTS_SKELETON_API Ref<ISkeletonComponent> GetSkeletonComponent(ROID id);
-    ROCOCO_COMPONENTS_SKELETON_API void SkeletonComponent_LinkToECS(IECS& ecs, Entities::ISkeletons& skeletons);
 }
+
+DECLARE_SINGLETON_METHODS_WITH_LINK_ARG(ROCOCO_COMPONENTS_SKELETON_API, ISkeletonComponent, Entities::ISkeletons)
