@@ -9,6 +9,9 @@
 #include <rococo.animation.types.h>
 
 #include <rococo.component.entities.h>
+#include <components/rococo.components.body.h>
+#include <components/rococo.components.skeleton.h>
+#include <components/rococo.components.animation.h>
 #include <mplat.components.decl.h>
 
 using namespace Rococo::Strings;
@@ -279,7 +282,7 @@ namespace Rococo
 
 		ROCOCO_INTERFACE IInstancesSupervisor : public IInstances
 		{
-		   virtual Rococo::Components::IRCObjectTable & ECS() = 0;
+		   virtual IECS& ECS() = 0;
 		   virtual void ForAll(IEntityCallback & cb) = 0;
 		   virtual void Free() = 0;
 		   virtual void ConcatenateModelMatrices(ID_ENTITY id, Matrix4x4& result) = 0;
@@ -405,7 +408,7 @@ namespace Rococo
 			virtual void Free() = 0;
 		};
 
-		IInstancesSupervisor* CreateInstanceBuilder(Graphics::IMeshBuilderSupervisor& meshes, IRenderer& renderer, Events::IPublisher& publisher, Components::IRCObjectTable& ecs, size_t maxEntities);
+		IInstancesSupervisor* CreateInstanceBuilder(Graphics::IMeshBuilderSupervisor& meshes, IRenderer& renderer, Events::IPublisher& publisher, IECS& ecs, size_t maxEntities);
 
 		ROCOCO_INTERFACE IParticleSystemSupervisor : IParticleSystem
 		{
@@ -919,7 +922,7 @@ namespace Rococo
 		Rococo::IWorldBuilder& worldBuilder;
 
 		// (E)ntity(C)omponent(S)ystem
-		Rococo::Components::IRCObjectTable& ECS;
+		Rococo::IECS& ECS;
 	};
 
 	struct PlatformData
@@ -1060,5 +1063,5 @@ namespace Rococo::Entities
 	/// <param name="rc">- the 3D render context to render to </param>
 	/// <param name="rod">- the rod tesselator object used to generate geometry</param>
 	/// <param name="rigs">- the set of poses used by the entity object</param>
-	void AddDebugBones(ID_ENTITY id, Rococo::Components::IRCObjectTable& ecs, IRenderContext& rc, Rococo::Graphics::IRodTesselatorSupervisor& rod);
+	void AddDebugBones(ID_ENTITY id, IRenderContext& rc, Rococo::Graphics::IRodTesselatorSupervisor& rod);
 }

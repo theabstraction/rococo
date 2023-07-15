@@ -138,13 +138,12 @@ namespace Rococo
 {
     using namespace Rococo::Components;
 
-    struct IECS;
-
     ROCOCO_INTERFACE IECS_ROID_LockedSection
     {
         virtual void OnLock(ROID roid, IECS& ecs) = 0;
     };
 
+    // The (E)ntity (C)omponent (S)ystem
 	ROCOCO_INTERFACE IECS
 	{
         // Returns the number of ROIDS in use. 

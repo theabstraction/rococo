@@ -17,8 +17,13 @@ namespace Rococo::Components
 		return SINGLETON::AddComponent(id);
 	}
 
-	ROCOCO_COMPONENTS_ANIMATION_API void AnimationComponent_LinkToECS(IECS* ecs)
+	ROCOCO_COMPONENTS_ANIMATION_API Ref<IAnimationComponent> GetAnimationComponent(ROID id)
 	{
-		SINGLETON::GetTable().Link(ecs);
+		return SINGLETON::GetComponent(id);
+	}
+
+	ROCOCO_COMPONENTS_ANIMATION_API void AnimationComponent_LinkToECS(IECS& ecs)
+	{
+		SINGLETON::GetTable().Link(&ecs);
 	}
 }

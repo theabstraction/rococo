@@ -6,7 +6,9 @@
 #include <rococo.hashtable.h>
 #include "mplat.components.h"
 #include <rococo.maths.h>
-
+#include <components/rococo.components.body.h>
+#include <components/rococo.components.animation.h>
+#include <components/rococo.components.skeleton.h>
 #include <vector>
 
 namespace
@@ -22,11 +24,11 @@ namespace
 	  Events::IPublisher& publisher;
 
       // ecs - The Entity Component System
-      Components::IRCObjectTable& ecs;
+      IECS& ecs;
 
       int32 enumerationDepth{ 0 };
 
-      Instances(IMeshBuilderSupervisor& _meshBuilder, IRenderer& _renderer, Events::IPublisher& _publisher, Components::IRCObjectTable& _ecs, size_t maxEntities) :
+      Instances(IMeshBuilderSupervisor& _meshBuilder, IRenderer& _renderer, Events::IPublisher& _publisher, IECS& _ecs, size_t maxEntities) :
           meshBuilder(_meshBuilder), renderer(_renderer), publisher(_publisher), ecs(_ecs)
       {
           UNUSED(maxEntities);
@@ -57,7 +59,7 @@ namespace
 
           auto id = ecs.NewROID();
 
-          auto body = ecs.AddBodyComponent(id);
+          auto body = AddBodyComponent(id);
           body->SetModel(model);
           body->SetParent(parentId);
           body->SetMesh(meshId);
@@ -76,13 +78,13 @@ namespace
 
             auto id = ecs.NewROID();
 
-            auto body = ecs.AddBodyComponent(id);
+            auto body = AddBodyComponent(id);
             body->SetModel(model);
             body->SetParent(ID_ENTITY::Invalid());
             body->SetMesh(ID_SYS_MESH::Invalid());
             body->SetScale(Vec3{ 1.0f, 1.0f, 1.0f });
 
-            auto skeleton = ecs.AddSkeletonComponent(id);
+            auto skeleton = AddSkeletonComponent(id);
             skeleton->SetSkeleton(skeletonName);
 
             return id;
@@ -112,10 +114,10 @@ namespace
               Throw(0, "%s: skeleton name was blank", __FUNCTION__);
           }
 
-          auto body = ecs.GetSkeletonComponent(idBody);
+          auto body = GetSkeletonComponent(idBody);
           if (!body)
           {
-              body = ecs.AddSkeletonComponent(idBody);
+              body = AddSkeletonComponent(idBody);
           }
 
           body->SetSkeleton(skeletonName);
@@ -128,7 +130,7 @@ namespace
 
       boolean32 TryGetModelToWorldMatrix(ID_ENTITY id, Matrix4x4& model) override
       {
-          auto body = ecs.GetBodyComponent(id);
+          auto body = GetBodyComponent(id);
           if (!body)
           {
               model = Matrix4x4::Identity();
@@ -143,7 +145,7 @@ namespace
 
       void ConcatenatePositionVectors(ID_ENTITY leafId, Vec3& position) override
       {
-          auto body = ecs.GetBodyComponent(leafId);
+          auto body = GetBodyComponent(leafId);
           if (!body)
           {
               Throw(0, "Missing entity");
@@ -159,7 +161,7 @@ namespace
 
       void ConcatenateModelMatrices(ID_ENTITY leafId, Matrix4x4& m) override
       {
-          auto body = ecs.GetBodyComponent(leafId);
+          auto body = GetBodyComponent(leafId);
           if (!body)
           {
               Throw(0, "Missing entity");
@@ -180,7 +182,7 @@ namespace
 
          int64 count = 0;
 
-         ecs.ForEachBodyComponent(
+         ForEachBodyComponent(
              [&count,&cb](Components::ROID roid, Components::IBodyComponent& body) 
              {
                  cb.OnEntity(count++, body, roid);
@@ -191,7 +193,7 @@ namespace
 
       void GetScale(ID_ENTITY id, Vec3& scale)
       {
-          auto body = ecs.GetBodyComponent(id);
+          auto body = GetBodyComponent(id);
           if (body)
           {
               scale = body->Scale();
@@ -204,7 +206,7 @@ namespace
 
       void GetPosition(ID_ENTITY id, Vec3& position)
       {
-          auto body = ecs.GetBodyComponent(id);
+          auto body = GetBodyComponent(id);
           if (body)
           {
               position = body->Model().GetPosition();
@@ -217,18 +219,18 @@ namespace
 
       void EnableAnimation(ID_ENTITY id) override
       {
-          auto animationComponent = ecs.AddAnimationComponent(id);
+          auto animationComponent = AddAnimationComponent(id);
       }
 
       void AddAnimationFrame(ID_ENTITY id, const fstring& frameName, Seconds duration, boolean32 loop) override
       {
-          auto animationComponent = ecs.GetAnimationComponent(id);
+          auto animationComponent = GetAnimationComponent(id);
           if (!animationComponent)
           {
               Throw(0, "%s: no animation component for ID_ENTITY [%d v%d]. Call (instances.EnableAnimation <bodyId>) after object creation", __FUNCTION__, id.index, id.salt);
           }
 
-          auto& animation = animationComponent->GetAnimation();
+          auto& animation = animationComponent->Core();
           animation.AddKeyFrame(frameName, duration, loop);
       }
 
@@ -427,7 +429,7 @@ namespace
 
       void SetScale(ID_ENTITY id, const Vec3& scale) override
       {
-          auto body = ecs.GetBodyComponent(id);
+          auto body = GetBodyComponent(id);
           if (body)
           {
               body->SetScale(scale);
@@ -440,7 +442,7 @@ namespace
           ecs.CollectGarbage();
       }
 
-      Rococo::Components::IRCObjectTable& ECS() override
+      Rococo::IECS& ECS() override
       {
           return ecs;
       }
@@ -456,7 +458,7 @@ namespace Rococo
 {
    namespace Entities
    {
-      IInstancesSupervisor* CreateInstanceBuilder(IMeshBuilderSupervisor& meshes, IRenderer& renderer, Events::IPublisher& publisher, Components::IRCObjectTable& ecs, size_t maxEntities)
+      IInstancesSupervisor* CreateInstanceBuilder(IMeshBuilderSupervisor& meshes, IRenderer& renderer, Events::IPublisher& publisher, IECS& ecs, size_t maxEntities)
       {
          return new Instances(meshes, renderer, publisher, ecs, maxEntities);
       }

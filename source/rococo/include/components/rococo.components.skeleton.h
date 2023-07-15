@@ -6,6 +6,11 @@
 # define ROCOCO_COMPONENTS_SKELETON_API ROCOCO_API_IMPORT
 #endif
 
+namespace Rococo::Entities
+{
+    struct ISkeletons;
+}
+
 namespace Rococo::Components
 {
     ROCOCO_INTERFACE ISkeletonComponent : IComponentBase
@@ -18,5 +23,6 @@ namespace Rococo::Components
     };
 
     ROCOCO_COMPONENTS_SKELETON_API Ref<ISkeletonComponent> AddSkeletonComponent(ROID id);
-    ROCOCO_COMPONENTS_SKELETON_API void SkeletonComponent_LinkToECS(IECS* ecs);
+    ROCOCO_COMPONENTS_SKELETON_API Ref<ISkeletonComponent> GetSkeletonComponent(ROID id);
+    ROCOCO_COMPONENTS_SKELETON_API void SkeletonComponent_LinkToECS(IECS& ecs, Entities::ISkeletons& skeletons);
 }

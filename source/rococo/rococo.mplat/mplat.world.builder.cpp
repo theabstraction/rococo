@@ -16,7 +16,7 @@ namespace
 	{
 		IMeshBuilderSupervisor& meshes;
 		IInstancesSupervisor& instances;
-		IRCObjectTable& ecs;
+		IECS& ecs;
 		AutoFree<IQuadtreeSupervisor> quadtree;
 
 		std::vector<TriangleScan> scanlist;
@@ -132,7 +132,7 @@ namespace
 				auto triangleIndex = f.Index();
 
 				ID_ENTITY id{ pocket.context };
-				auto body = ecs.GetBodyComponent(id);
+				auto body = GetBodyComponent(id);
 				if (body)
 				{
 					auto meshId = body->Mesh();
@@ -157,7 +157,7 @@ namespace
 		{
 			if (!quadtree) Throw(0, "%s: No quadtree, world not defined.", __FUNCTION__);
 
-			auto body = ecs.GetBodyComponent(id);
+			auto body = GetBodyComponent(id);
 			if (!body)
 			{
 				Throw(0, "%s: no entity found with id 0x%llX", __FUNCTION__, id.Value());

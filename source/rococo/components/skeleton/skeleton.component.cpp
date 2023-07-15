@@ -71,7 +71,7 @@ namespace Rococo::Components
 
 namespace Rococo::Components
 {
-    ROCOCO_COMPONENTS_SKELETON_API void SkeletonComponent_Init(ISkeletons& skeletons)
+    void SkeletonComponent_Init(ISkeletons& skeletons)
     {
         if (s_Skeletons != nullptr)
         {

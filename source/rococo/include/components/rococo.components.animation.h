@@ -18,5 +18,6 @@ namespace Rococo::Components
 	};
 
 	ROCOCO_COMPONENTS_ANIMATION_API Ref<IAnimationComponent> AddAnimationComponent(ROID id);
-	ROCOCO_COMPONENTS_ANIMATION_API void AnimationComponent_LinkToECS(IECS* ecs);
+	ROCOCO_COMPONENTS_ANIMATION_API Ref<IAnimationComponent> GetAnimationComponent(ROID id);
+	ROCOCO_COMPONENTS_ANIMATION_API void AnimationComponent_LinkToECS(IECS& ecs);
 }

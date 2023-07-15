@@ -17,8 +17,23 @@ namespace Rococo::Components
 		return SINGLETON::AddComponent(id);
 	}
 
-	ROCOCO_COMPONENTS_BODY_API void BodyComponent_LinkToECS(IECS* ecs)
+	ROCOCO_COMPONENTS_BODY_API void BodyComponent_LinkToECS(IECS& ecs)
 	{
-		SINGLETON::GetTable().Link(ecs);
+		SINGLETON::GetTable().Link(&ecs);
+	}
+
+	ROCOCO_COMPONENTS_BODY_API Ref<IBodyComponent> GetBodyComponent(ROID id)
+	{
+		return SINGLETON::GetComponent(id);
+	}
+
+	ROCOCO_COMPONENTS_BODY_API void ForEachBodyComponent(IComponentCallback<IBodyComponent>& cb)
+	{
+		return SINGLETON::GetTable().ForEachComponent(cb);
+	}
+
+	ROCOCO_COMPONENTS_BODY_API void ForEachBodyComponent(Rococo::Function<EFlowLogic(ROID roid, IBodyComponent& component)> functor)
+	{
+		return SINGLETON::GetTable().ForEachComponent(functor);
 	}
 }

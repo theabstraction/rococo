@@ -1,6 +1,7 @@
 #pragma once
 #include <rococo.ecs.h>
 #include <rococo.meshes.h>
+#include <rococo.functional.h>
 
 #ifndef ROCOCO_COMPONENTS_BODY_API
 # define ROCOCO_COMPONENTS_BODY_API ROCOCO_API_IMPORT
@@ -25,5 +26,8 @@ namespace Rococo::Components
     };
 
 	ROCOCO_COMPONENTS_BODY_API Ref<IBodyComponent> AddBodyComponent(ROID id);
-	ROCOCO_COMPONENTS_BODY_API void BodyComponent_LinkToECS(IECS* ecs);
+    ROCOCO_COMPONENTS_BODY_API void ForEachBodyComponent(IComponentCallback<IBodyComponent>& cb);
+    ROCOCO_COMPONENTS_BODY_API void ForEachBodyComponent(Rococo::Function<EFlowLogic(ROID roid, IBodyComponent& component)> functor);
+    ROCOCO_COMPONENTS_BODY_API Ref<IBodyComponent> GetBodyComponent(ROID id);
+	ROCOCO_COMPONENTS_BODY_API void BodyComponent_LinkToECS(IECS& ecs);
 }

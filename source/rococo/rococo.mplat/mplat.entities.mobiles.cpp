@@ -11,7 +11,7 @@ namespace
    struct Mobiles : public IMobilesSupervisor
    {
       IInstancesSupervisor& instances;
-      IRCObjectTable& ecs;
+      IECS& ecs;
 
       Mobiles(IInstancesSupervisor& _instances) : instances(_instances), ecs(instances.ECS())
       {
@@ -23,7 +23,7 @@ namespace
 
       bool TryMoveMobile(const MoveMobileArgs& tmm) override
       {
-          auto mobile = ecs.GetSkeletonComponent(tmm.entityId);
+          auto mobile = GetSkeletonComponent(tmm.entityId);
           if (mobile)
           {
               auto angles = mobile->FPSOrientation();
@@ -36,7 +36,7 @@ namespace
 
               mobile->SetFPSOrientation(angles);
 
-              auto body = ecs.GetBodyComponent(tmm.entityId);
+              auto body = GetBodyComponent(tmm.entityId);
 
               if (body)
               {
@@ -63,22 +63,22 @@ namespace
          
       void Link(ID_ENTITY id) override
       {
-          auto skeleton = ecs.GetSkeletonComponent(id);
+          auto skeleton = GetSkeletonComponent(id);
           if (!skeleton)
           {
-              skeleton = ecs.AddSkeletonComponent(id);
+              skeleton = AddSkeletonComponent(id);
           }
 
-          auto body = ecs.GetBodyComponent(id);
+          auto body = GetBodyComponent(id);
           if (!body)
           {
-              body = ecs.GetBodyComponent(id);
+              body = GetBodyComponent(id);
           }
       }
 
       void GetAngles(ID_ENTITY id, FPSAngles& angles) override
       {
-         auto skeleton = ecs.GetSkeletonComponent(id);
+         auto skeleton = GetSkeletonComponent(id);
          if (!skeleton)
          {
             Throw(0, "No such entity");
@@ -89,7 +89,7 @@ namespace
 
       void SetAngles(ID_ENTITY id, const FPSAngles& angles) override
       {
-          auto skeleton = ecs.GetSkeletonComponent(id);
+          auto skeleton = GetSkeletonComponent(id);
           if (!skeleton)
           {
               Throw(0, "No such entity");

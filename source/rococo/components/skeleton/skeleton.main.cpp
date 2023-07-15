@@ -6,6 +6,7 @@
 namespace Rococo::Components
 {
 	IComponentFactory<ISkeletonComponent>* CreateSkeletonFactory();
+	void SkeletonComponent_Init(Entities::ISkeletons& skeletons);
 }
 
 DEFINE_FACTORY_SINGLETON(ISkeletonComponent, CreateSkeletonFactory)
@@ -17,8 +18,14 @@ namespace Rococo::Components
 		return SINGLETON::AddComponent(id);
 	}
 
-	ROCOCO_COMPONENTS_SKELETON_API void SkeletonComponent_LinkToECS(IECS* ecs)
+	ROCOCO_COMPONENTS_SKELETON_API Ref<ISkeletonComponent> GetSkeletonComponent(ROID id)
 	{
-		SINGLETON::GetTable().Link(ecs);
+		return SINGLETON::GetComponent(id);
+	}
+
+	ROCOCO_COMPONENTS_SKELETON_API void SkeletonComponent_LinkToECS(IECS& ecs, Entities::ISkeletons& skeletons)
+	{
+		SkeletonComponent_Init(skeletons);
+		SINGLETON::GetTable().Link(&ecs);
 	}
 }

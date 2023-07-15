@@ -718,7 +718,7 @@ namespace Rococo
     {
         public RococoMPlatProject() : base("rococo.mplat")
         {
-            SourceFiles.Add("mplat.sxh", "config.xc");
+            SourceFiles.Add("mplat.sxh", "config.xc", @"..\include\rococo.mplat.h");
         }
 
         [Configure()]
@@ -762,6 +762,10 @@ namespace Rococo
             conf.AddPublicDependency<RococoUtilExProject>(target);
             conf.AddPublicDependency<RococoAudioProject>(target);
             conf.AddPublicDependency<RococoDX11RendererProject>(target);
+            conf.AddPublicDependency<RococoComponentsAnimationProject>(target);
+            conf.AddPublicDependency<RococoComponentsConfigurationProject>(target);
+            conf.AddPublicDependency<RococoComponentsBodyProject>(target);
+            conf.AddPublicDependency<RococoComponentsSkeletonProject>(target);
         }
     }
 
