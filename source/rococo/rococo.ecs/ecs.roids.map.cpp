@@ -94,7 +94,7 @@ namespace Rococo::Components
 			try
 			{
 				base = factory.Create(id);
-				insertion.second = base;
+				insertion.first->second = base;
 			}
 			catch (...)
 			{

@@ -431,6 +431,28 @@ namespace Rococo
     }
 
     [Sharpmake.Generate]
+    public class RococoECSTestProject : RococoProject
+    {
+        public RococoECSTestProject() : base("rococo.ecs.test")
+        {
+            SourceFiles.Add(@"..\include\rococo.ecs.h");
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Exe);
+            conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.AddPublicDependency<RococoComponentsAnimationProject>(target);
+            conf.AddPublicDependency<RococoComponentsBodyProject>(target);
+            conf.AddPublicDependency<RococoComponentsConfigurationProject>(target);
+            conf.AddPublicDependency<RococoComponentsSkeletonProject>(target);
+            conf.Defines.Add("ROCOCO_ECS_API=__declspec(dllexport)");
+            conf.SolutionFolder = "ECS";
+        }
+    }
+
+    [Sharpmake.Generate]
     public class RococoComponentsConfigurationProject : RococoProject
     {
         public RococoComponentsConfigurationProject() : base("rococo.component.configuration", @"components\configuration")
@@ -1295,6 +1317,7 @@ namespace Rococo
                 conf.AddProject<RococoComponentsAnimationProject>(target);
                 conf.AddProject<RococoComponentsBodyProject>(target);
                 conf.AddProject<RococoComponentsSkeletonProject>(target);
+                conf.AddProject<RococoECSTestProject>(target);
             }
         }
     }
@@ -1391,6 +1414,7 @@ namespace Rococo
             arguments.Generate<RococoComponentsConfigurationProject>();
             arguments.Generate<RococoComponentsBodyProject>();
             arguments.Generate<RococoComponentsSkeletonProject>();
+            arguments.Generate<RococoECSTestProject>();
         }
     }
 }

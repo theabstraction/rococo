@@ -4,6 +4,8 @@
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.archive.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.bloody.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.component.template.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.components.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.components.factories.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.config.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.entities.animation.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.entities.animation.debug.cpp" />

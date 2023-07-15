@@ -422,7 +422,7 @@ void FormatMainWindowFont(LOGFONTA& font)
 void LinkComponents(IECS& ecs, Platform& platform)
 {
 	API::ForIAnimationComponent::LinkToECS(ecs);
-	API::ForIAnimationComponent::LinkToECS(ecs);
+	API::ForIBodyComponent::LinkToECS(ecs);
 	API::ForISkeletonComponent::LinkToECS(ecs, platform.world.rigs.Skeles());
 }
 

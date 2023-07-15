@@ -5926,7 +5926,7 @@ R"((namespace EntryPoint)
 			"	(stdout.SetFormattingToDefault)\n"
 			"	(#build stdout \"&n&tG:\" SpecG smallNum)\n"
 			"   (#build stdout \"&n\")\n"
-			"   (IFileWriter testFile = (Sys.IO.WriteToFile \"\\work\\rococo\\generated\\temp\\console.test.txt\"))\n"
+			"   (IFileWriter testFile = (Sys.IO.WriteToFile \"..\\..\\gen\\temp\\console.test.txt\"))\n"
 			"   (#build testFile \"Hello World\")\n"
 			"   (Int64 pos = testFile.Position)\n"
 			"   (testFile.FlushWhenWritten)"
@@ -15914,5 +15914,6 @@ int main(int argc, char* argv[])
 		}
 		printf("\nUnhandled exception: %s\n", ex.Message());
 	}
+
 	return 0;
 }
