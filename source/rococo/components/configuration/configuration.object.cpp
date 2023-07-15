@@ -3,10 +3,8 @@
 #include <components/rococo.components.configuration.h>
 #include <rococo.hashtable.h>
 
-namespace Rococo::ECS
+namespace Rococo::Components
 {
-	using namespace Rococo::Components;
-
 	struct ConfigurationComponent : IConfigurationComponent
 	{
 		stringmap<int> mapInts;

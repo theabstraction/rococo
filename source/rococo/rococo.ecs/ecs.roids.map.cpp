@@ -86,7 +86,7 @@ namespace Rococo::Components
 			auto insertion = rows.insert(nullItem);
 			if (!insertion.second)
 			{
-				Throw(0, "%s(%s): a component with the given id 0x%8.8X already exists", __FUNCTION__, friendlyName, id.index);
+				Throw(0, "%s(%s): a component with the given id 0x%8.8X already exists", __FUNCTION__, friendlyName.c_str(), id.index);
 			}
 
 			IComponentBase* base = nullptr;
