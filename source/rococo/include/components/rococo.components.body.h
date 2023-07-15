@@ -8,7 +8,7 @@
 
 namespace Rococo::Components
 {
-    ROCOCO_INTERFACE IEntity
+    ROCOCO_INTERFACE IEntity: IComponentBase
     {
         virtual cr_m4x4 Model() const = 0;
         virtual ROID Parent() const = 0;

@@ -17,3 +17,10 @@ namespace Rococo
 	// ID_SYS_MESH are renderer defined indices that are generated when meshes are loaded into the renderer
 	ROCOCO_ID(ID_SYS_MESH, size_t,(size_t) - 1LL)
 }
+
+namespace Rococo::Entities
+{
+	struct IAnimation;
+	struct ISkeleton;
+	struct ISkeletons;
+}

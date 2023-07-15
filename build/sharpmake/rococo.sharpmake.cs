@@ -487,6 +487,25 @@ namespace Rococo
     }
 
     [Sharpmake.Generate]
+    public class RococoComponentsSkeletonProject : RococoProject
+    {
+        public RococoComponentsSkeletonProject() : base("rococo.component.skeleton", @"components\skeleton")
+        {
+            SourceFiles.Add(@"..\..\include\rococo.ecs.h");
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Dll);
+            conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.AddPublicDependency<RococoECSProject>(target);
+            conf.AddPublicDependency<RococoMathsProject>(target);
+            conf.SolutionFolder = "ECS";
+        }
+    }
+
+    [Sharpmake.Generate]
     public class RococoMathsProject : RococoProject
     {
         public RococoMathsProject() : base("rococo.maths")
@@ -1271,6 +1290,7 @@ namespace Rococo
                 conf.AddProject<RococoComponentsConfigurationProject>(target);
                 conf.AddProject<RococoComponentsAnimationProject>(target);
                 conf.AddProject<RococoComponentsBodyProject>(target);
+                conf.AddProject<RococoComponentsSkeletonProject>(target);
             }
         }
     }
@@ -1366,6 +1386,7 @@ namespace Rococo
             arguments.Generate<RococoComponentsAnimationProject>();
             arguments.Generate<RococoComponentsConfigurationProject>();
             arguments.Generate<RococoComponentsBodyProject>();
+            arguments.Generate<RococoComponentsSkeletonProject>();
         }
     }
 }

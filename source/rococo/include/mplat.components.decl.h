@@ -1,6 +1,7 @@
 #pragma once
 
 #include <rococo.ecs.h>
+#include <rococo.meshes.h>
 
 namespace Rococo::Entities
 {
