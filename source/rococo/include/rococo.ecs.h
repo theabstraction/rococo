@@ -17,10 +17,55 @@ namespace Rococo::Components
         virtual EFlowLogic OnComponent(ROID id, T& item) = 0;
     };
 
+    ROCOCO_INTERFACE IComponentBase
+    {
+
+    };
+
     ROCOCO_INTERFACE IComponentTable
     {
         virtual IECS & ECS() = 0;
     };
+
+    struct RoidEntry
+    {
+        ROID id;
+        IComponentBase* base;
+    };
+
+    template<class T>
+    struct TRoidEntry
+    {
+        ROID id;
+        T* component;
+    };
+
+    ROCOCO_INTERFACE IComponentBaseFactory
+    {
+        // Generates a new component for the given roid. If the method returns nullptr creation failed. The implementation may also throw an exception
+        virtual IComponentBase* Create(ROID roid) = 0;
+    };
+
+    ROCOCO_INTERFACE IRoidMap
+    {
+        virtual void Free() = 0;
+        virtual void Delete(ROID id, IEventCallback<IComponentBase*>& onDelete) = 0;
+        virtual IComponentBase* Find(ROID id) const = 0;
+        virtual void ForEachComponent(IComponentCallback<IComponentBase>& cb) = 0;
+
+        // Copy the first [nElementsInOutput] to the output buffer (if the buffer is not null). Returns the length of the map
+        // To copy everything call 'length' = ToVector(nullptr, 0) then allocate a buffer of that length and then call ToVector(nullptr, 'length')
+        virtual size_t ToVector(RoidEntry* roidOutput, size_t nElementsInOutput) = 0;
+
+        // Allocate mapping for a ROID, using the factory to create an associated component if successfully reserved. If the factory returns nullptr mapping is revoked.
+        // If the factory throws an exception mapping is revoked and the exception propagated to the caller.
+        // If the ROID already exists in the map an exception is thrown and the factory methods are not invoked
+        virtual void Insert(ROID id, IComponentBaseFactory& factory) = 0;
+    };
+
+    // Create a ROID vs IComponentBase* map. The map does not invoke interface deletion, this is task for the caller of the API
+    // The friendly name must not be null and specifies a help string emitted during exceptions
+    ROCOCO_ECS_API IRoidMap* CreateRoidMap(cstr friendlyName, size_t reserveRows);
 
     template<class ICOMPONENT>
     ROCOCO_INTERFACE IComponentFactory

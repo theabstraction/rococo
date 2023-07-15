@@ -424,6 +424,7 @@ namespace Rococo
         public void ConfigureAll(Configuration conf, Target target)
         {
             StandardInit(conf, target, Configuration.OutputType.Dll);
+            conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.Defines.Add("ROCOCO_ECS_API=__declspec(dllexport)");
             conf.SolutionFolder = "ECS";
         }
@@ -442,6 +443,7 @@ namespace Rococo
         {
             StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.AddPublicDependency<RococoECSProject>(target);
             conf.SolutionFolder = "ECS";
         }
     }

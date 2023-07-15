@@ -2,9 +2,13 @@
 <Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="..\..\source\rococo\rococo.ecs\ecs.main.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.ecs\ecs.roids.map.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\include\rococo.ecs.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\rococo\include\rococo.ecs.builder.inl">
       <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>

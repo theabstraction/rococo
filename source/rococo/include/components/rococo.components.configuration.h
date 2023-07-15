@@ -13,7 +13,7 @@ namespace Rococo::Components
 	};
 
 	// Designed for scripting, this component provides a designer the ability to store arbitrary data on a component without having to modify the C++
-	ROCOCO_INTERFACE IConfigurationComponent
+	ROCOCO_INTERFACE IConfigurationComponent: IComponentBase
 	{
 		virtual void Add(const fstring& key, int value) = 0;
 		virtual void Add(const fstring& key, float value) = 0;
