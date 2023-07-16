@@ -73,7 +73,7 @@ namespace Rococo::Components
 	};
 
 	template<class COMPONENT>
-	struct ComponentTable : IComponentTable
+	struct ComponentTable : IComponentTableSupervisor
 	{
 		using FACTORY = IComponentFactory<COMPONENT>;
 
@@ -211,11 +211,11 @@ namespace Rococo::Components
 			}
 		}
 
-		void Deprecate(ROID id)
+		void Deprecate(ROID id) override
 		{
 			struct ANON : IEventCallback<IComponentBase*>
 			{
-				ConfigurationComponents_Implementation* container = nullptr;
+				ComponentTable<COMPONENT>* container = nullptr;
 				void OnEvent(IComponentBase*& base)
 				{
 					auto* component = static_cast<COMPONENT*>(base);
@@ -296,12 +296,14 @@ namespace Rococo::Components
 	struct FactoryBuilder
 	{
 		IComponentFactory<COMPONENT>* Create() { static_assert(false); }
+
+		// Override this in your specialization and ensure the returned string and pointer are invariant for the lifetime of the ecs system and all its component DLLs.
 		cstr Name() const { static_assert(false); }
 	};
 
 
 	template<class COMPONENT>
-	class ComponentFactorySingleton
+	class ComponentTableSingleton
 	{
 	private:
 		inline static ComponentTable<COMPONENT>* table = nullptr;
@@ -402,116 +404,120 @@ namespace Rococo::Components
 }
 
 // Stick this in your component .cpp file to declare a singleton component table referenced by Rococo::Components::SINGLETON
-#define DEFINE_FACTORY_SINGLETON(COMPONENT)										\
+// Needs an implementtion of IComponentFactory<ICOMPONENT>* CreateComponentFactory() in the component's API namespace;
+// This is used when DefaultFactory<ICOMPONENT, IMPLEMENTATION> is inappropriate for creating object of type IMPLEMENTATION
+#define DEFINE_FACTORY_SINGLETON(ICOMPONENT)									\
 namespace Rococo::Components::API::For##COMPONENT								\
 {																				\
-	IComponentFactory<COMPONENT>* CreateComponentFactory();						\
+	IComponentFactory<ICOMPONENT>* CreateComponentFactory();					\
 }																				\
 																				\
 namespace Rococo::Components													\
 {																				\
 	template<>																	\
-	struct FactoryBuilder<COMPONENT>											\
+	struct FactoryBuilder<ICOMPONENT>											\
 	{																			\
-		IComponentFactory<COMPONENT>* Create()									\
+		IComponentFactory<ICOMPONENT>* Create()									\
 		{																		\
-			return API::For##COMPONENT::CreateComponentFactory();				\
+			return API::For##ICOMPONENT::CreateComponentFactory();				\
 		}																		\
 																				\
 		const char* Name() const												\
 		{																		\
-			return #COMPONENT;													\
+			return #ICOMPONENT;													\
 		}																		\
 	};																			\
-	using SINGLETON = ComponentFactorySingleton<COMPONENT>;						\
+	using SINGLETON = ComponentTableSingleton<ICOMPONENT>;						\
 }														
 
+// Assumes DefaultFactory<ICOMPONENT, IMPLEMENTATION> can create objects of type IMPLEMENTATION that implement ICOMPONENT
 // Stick this in your component .cpp file to declare a singleton component table referenced by Rococo::Components::SINGLETON
-#define DEFINE_FACTORY_SINGLETON_WITH_DEFAULT_FACTORY(COMPONENT,CLASSNAME)		\
-namespace Rococo::Components::API::For##COMPONENT								\
-{																				\
-	IComponentFactory<COMPONENT>* CreateComponentFactory();						\
-}																				\
-																				\
-namespace Rococo::Components													\
-{																				\
-	template<>																	\
-	struct FactoryBuilder<COMPONENT>											\
-	{																			\
-		IComponentFactory<COMPONENT>* Create()									\
-		{																		\
-			return new DefaultFactory<COMPONENT, CLASSNAME>();					\
-		}																		\
-																				\
-		const char* Name() const												\
-		{																		\
-			return #COMPONENT;													\
-		}																		\
-	};																			\
-	using SINGLETON = ComponentFactorySingleton<COMPONENT>;						\
+#define DEFINE_FACTORY_SINGLETON_WITH_DEFAULT_FACTORY(ICOMPONENT,IMPLEMENTATION)	\
+namespace Rococo::Components														\
+{																					\
+	template<>																		\
+	struct FactoryBuilder<ICOMPONENT>												\
+	{																				\
+		IComponentFactory<ICOMPONENT>* Create()										\
+		{																			\
+			return new DefaultFactory<ICOMPONENT, IMPLEMENTATION>();				\
+		}																			\
+																					\
+		const char* Name() const													\
+		{																			\
+			return #ICOMPONENT;														\
+		}																			\
+	};																				\
+	using SINGLETON = ComponentTableSingleton<ICOMPONENT>;							\
 }
 
 // Requires an alias to SINGLETON, typically retrieved from DEFINE_FACTORY_SINGLETON
-#define EXPORT_SINGLETON_METHODS(COMPONENT_API,COMPONENT)											\
-namespace Rococo::Components::API::For##COMPONENT													\
+#define EXPORT_SINGLETON_METHODS(COMPONENT_API,ICOMPONENT)											\
+namespace Rococo::Components::API::For##ICOMPONENT													\
 {																									\
-	COMPONENT_API Ref<COMPONENT> Add(ROID id)														\
+	COMPONENT_API Ref<ICOMPONENT> Add(ROID id)														\
 	{																								\
 		return SINGLETON::AddComponent(id);															\
 	}																								\
 																									\
-	COMPONENT_API Ref<COMPONENT> Get(ROID id)														\
+	COMPONENT_API Ref<ICOMPONENT> Get(ROID id)														\
 	{																								\
 		return SINGLETON::GetComponent(id);															\
 	}																								\
 																									\
-	COMPONENT_API void LinkToECS(IECS& ecs)															\
-	{																								\
-		SINGLETON::GetTable().Link(&ecs);															\
-	}																								\
-																									\
-	COMPONENT_API void ForEach(Function<EFlowLogic(ROID roid, COMPONENT&)> functor)					\
+	COMPONENT_API void ForEach(Function<EFlowLogic(ROID roid, ICOMPONENT&)> functor)				\
 	{																								\
 		SINGLETON::GetTable().ForEachComponent(functor);											\
 	}																								\
+}																									\
+namespace Rococo::Components::ECS																	\
+{																									\
+	COMPONENT_API void LINK_NAME(ICOMPONENT, Table)(IECS& ecs)										\
+	{																								\
+		SINGLETON::GetTable().Link(&ecs);															\
+	}																								\
 }
 
 // Requires an alias to SINGLETON, typically retrieved from DEFINE_FACTORY_SINGLETON
-#define EXPORT_SINGLETON_METHODS_WITH_LINKARG(COMPONENT_API, COMPONENT, LINKARG)					\
-namespace Rococo::Components::API::For##COMPONENT													\
+#define EXPORT_SINGLETON_METHODS_WITH_LINKARG(COMPONENT_API, ICOMPONENT, LINKARG)					\
+namespace Rococo::Components::API::For##ICOMPONENT													\
 {																									\
-	COMPONENT_API Ref<COMPONENT> Add(ROID id)														\
+	COMPONENT_API Ref<ICOMPONENT> Add(ROID id)														\
 	{																								\
 		return SINGLETON::AddComponent(id);															\
 	}																								\
 																									\
-	COMPONENT_API Ref<COMPONENT> Get(ROID id)														\
+	COMPONENT_API Ref<ICOMPONENT> Get(ROID id)														\
 	{																								\
 		return SINGLETON::GetComponent(id);															\
+	}																								\
+																									\
+																									\
+	COMPONENT_API void ForEach(Function<EFlowLogic(ROID roid, ICOMPONENT&)> functor)				\
+	{																								\
+		SINGLETON::GetTable().ForEachComponent(functor);											\
 	}																								\
 																									\
 	void AssignGlobalAttribute(LINKARG& arg);														\
+}																									\
 																									\
-	COMPONENT_API void LinkToECS(IECS& ecs, LINKARG& arg)											\
+namespace Rococo::Components::ECS																	\
+{																									\
+	COMPONENT_API void LINK_NAME(ICOMPONENT, Table)(IECS& ecs, LINKARG& arg)						\
 	{																								\
-		AssignGlobalAttribute(arg);														\
+		Rococo::Components::API::For##ICOMPONENT::AssignGlobalAttribute(arg);						\
 		SINGLETON::GetTable().Link(&ecs);															\
-	}																								\
-																									\
-	COMPONENT_API void ForEach(Function<EFlowLogic(ROID roid, COMPONENT&)> functor)					\
-	{																								\
-		SINGLETON::GetTable().ForEachComponent(functor);											\
 	}																								\
 }
 
-#define DEFINE_AND_EXPORT_SINGLETON_METHODS(COMPONENT_API, COMPONENT)								\
-DEFINE_FACTORY_SINGLETON(COMPONENT)																	\
-EXPORT_SINGLETON_METHODS(COMPONENT_API, COMPONENT)													\
+#define DEFINE_AND_EXPORT_SINGLETON_METHODS(COMPONENT_API, ICOMPONENT)										\
+DEFINE_FACTORY_SINGLETON(ICOMPONENT)																		\
+EXPORT_SINGLETON_METHODS(COMPONENT_API, ICOMPONENT)															
 
-#define DEFINE_AND_EXPORT_SINGLETON_METHODS_WITH_DEFAULT_FACTORY(COMPONENT_API, COMPONENT, CLASSNAME)	\
-DEFINE_FACTORY_SINGLETON_WITH_DEFAULT_FACTORY(COMPONENT, CLASSNAME)										\
-EXPORT_SINGLETON_METHODS(COMPONENT_API, COMPONENT)														\
+#define DEFINE_AND_EXPORT_SINGLETON_METHODS_WITH_LINKARG(COMPONENT_API, ICOMPONENT, LINK_ARG)				\
+DEFINE_FACTORY_SINGLETON(ICOMPONENT)																		\
+EXPORT_SINGLETON_METHODS_WITH_LINKARG(COMPONENT_API, ICOMPONENT, LINK_ARG)							
 
-#define DEFINE_AND_EXPORT_SINGLETON_METHODS_WITH_LINKARG(COMPONENT_API, COMPONENT, LINK_ARG)		\
-DEFINE_FACTORY_SINGLETON(COMPONENT)																	\
-EXPORT_SINGLETON_METHODS_WITH_LINKARG(COMPONENT_API, COMPONENT, LINK_ARG)							\
+#define DEFINE_AND_EXPORT_SINGLETON_METHODS_WITH_DEFAULT_FACTORY(COMPONENT_API, ICOMPONENT, IMPLEMENTATION)	\
+DEFINE_FACTORY_SINGLETON_WITH_DEFAULT_FACTORY(ICOMPONENT, IMPLEMENTATION)									\
+EXPORT_SINGLETON_METHODS(COMPONENT_API, ICOMPONENT)															

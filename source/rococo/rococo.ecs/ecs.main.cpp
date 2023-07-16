@@ -3,20 +3,31 @@
 
 namespace Rococo::ECS
 {
+	enum { CT_BITFIELD_ARRAY_SIZE = 1, CB_BITFIELD_ELEMENT_BITCOUNT = 64 };
+
+	struct Bitfield
+	{
+		uint64 bits;
+	};
+
+	static_assert(8 * sizeof Bitfield == CB_BITFIELD_ELEMENT_BITCOUNT);
+
 #pragma pack(push,4)
 	struct RCObject
 	{
-		enum { DEPRECATED };
-		RCObject() : salt(DEPRECATED)
+		RCObject()
 		{
+			salt.cycle = 0;
+			salt.isDeprecated = 1;
 		}
 
 		ROID_SALT salt;			// Gives a version number of the object.
 		uint32 activeIdIndex = (uint32)-1;	// Specifies which activeId slot references this object
+		Bitfield linkedComponents[CT_BITFIELD_ARRAY_SIZE] = { 0 };
 		
 		bool Exists() const
 		{
-			return salt != DEPRECATED;
+			return salt.isDeprecated;
 		}
 	};
 #pragma pack(pop)
@@ -30,12 +41,11 @@ namespace Rococo::ECS
 
 		uint32 maxTableEntries;
 		uint32 enumLock = 0;
+		uint64 newRoidCount = 0;
 
-		IECSErrorHandler& errorHandler;
-
-		std::vector<IComponentTable*> componentTables;
-
-		ECSImplementation(IECSErrorHandler& _errorHandler, uint64 maxTableSizeInBytes): errorHandler(_errorHandler)
+		std::vector<IComponentTableSupervisor*> componentTables;
+		
+		ECSImplementation(uint64 maxTableSizeInBytes)
 		{
 			static_assert(sizeof ROID == sizeof uint64);
 
@@ -50,7 +60,8 @@ namespace Rococo::ECS
 			{
 				ROID roid;
 				roid.index = i;
-				roid.salt = 1;
+				roid.salt.isDeprecated = 0;
+				roid.salt.cycle = 1;
 				freeIds.push_back(roid);
 			}
 
@@ -66,8 +77,7 @@ namespace Rococo::ECS
 		{
 			if (enumLock > 0)
 			{
-				errorHandler.OnError(__FUNCTION__, __LINE__, "Cannot collect garbage - the ECS is locked for enumeration", true, IECSErrorHandler::ECS_ErrorCause::GC_Locked_Enumeration);
-				return;
+				Throw(0, "%s: Cannot collect garbage - the ECS is locked for enumeration");
 			}
 
 			for (ROID id : deprecationList)
@@ -80,51 +90,84 @@ namespace Rococo::ECS
 
 		bool Deprecate(ROID roid) override
 		{
-			if (roid.index == 0 || roid.index >= maxTableEntries)
+			if (!IsActive(roid))
+			{
+				return false;
+			}
+			
+			RCObject& object = handleTable[roid.index];
+			ROID_SALT salt = object.salt;
+			if (salt.cycle != roid.salt.cycle || salt.isDeprecated)
 			{
 				return false;
 			}
 
-			RCObject& object = handleTable[roid.index];
-			if (object.salt == roid.salt)
+			if (enumLock > 0)
 			{
-				if (enumLock > 0)
-				{
-					// The caller is currently enumerating the roids, which means we cannot immediately delete the roid.
-					deprecationList.push_back(roid);
-					return false;
-				}
-
-				object.salt = RCObject::DEPRECATED;
-
-				if (activeIds.size() == 1)
-				{
-					activeIds.clear();
-				}
-				else
-				{
-					// Move the last activeId to the deleted position
-					ROID_TABLE_INDEX lastRoidIndex = activeIds.back();
-					handleTable[lastRoidIndex].activeIdIndex = object.activeIdIndex;
-					activeIds[object.activeIdIndex] = lastRoidIndex;
-
-					// And delete the last slot
-					activeIds.pop_back();
-				}
-
-				object.activeIdIndex = (uint32)-1;
-
-				ROID nextRoid;
-				nextRoid.index = roid.index;
-				nextRoid.salt = object.salt + 1;
-
-				nextRoid.salt = max(1U, nextRoid.salt);
-
-				freeIds.push_back(nextRoid);
-				return true;
+				// The caller is currently enumerating the roids, which means we cannot immediately delete the roid.
+				deprecationList.push_back(roid);
+				return false;
 			}
 
-			return false;
+			if (activeIds.size() == 1)
+			{
+				activeIds.clear();
+			}
+			else
+			{
+				// Move the last activeId to the deleted position
+				ROID_TABLE_INDEX lastRoidIndex = activeIds.back();
+				handleTable[lastRoidIndex].activeIdIndex = object.activeIdIndex;
+				activeIds[object.activeIdIndex] = lastRoidIndex;
+
+				// And delete the last slot
+				activeIds.pop_back();
+			}
+
+			NotifyComponentsOfDeprecation(roid, object.linkedComponents);
+
+			object.salt.isDeprecated = 1;
+			object.activeIdIndex = (uint32)-1;
+
+			ROID nextRoid;
+			nextRoid.index = roid.index;
+			nextRoid.salt.cycle = object.salt.cycle + 1;
+			nextRoid.salt.isDeprecated = false;
+
+			if (nextRoid.salt.cycle == 0)
+			{
+				Throw(0, "%s: roid salts exhausted for index %u. Requires a change of algorithm.", roid.index);
+			}
+
+			// TODO -> insert a freeid at a random position and swap with the last valid, this reduces likelihood that salts will be exhausted
+			freeIds.push_back(nextRoid);
+			return true;
+		}
+
+		void NotifyComponentsOfDeprecation(ROID roid, const Bitfield linkedComponentTables[CT_BITFIELD_ARRAY_SIZE])
+		{
+			const Bitfield* field = &linkedComponentTables[-1];
+
+			for (uint32 i = 0; i < componentTables.size(); i++)
+			{
+				uint32 bitIndex = i % CB_BITFIELD_ELEMENT_BITCOUNT;
+
+				if (bitIndex == 0)
+				{
+					field++;
+					if (field >= &linkedComponentTables[CT_BITFIELD_ARRAY_SIZE])
+					{
+						Throw(0, "%s: exhausted bitfields. Increase CT_BITFIELD_ARRAY_SIZE", __FUNCTION__);
+					}
+				}
+
+
+			}
+
+			for (auto table : componentTables)
+			{
+				table->Deprecate(roid);
+			}
 		}
 
 		void DeprecateAll() override
@@ -192,17 +235,27 @@ namespace Rococo::ECS
 			}
 
 			const RCObject& object = handleTable[id.index];
-			return (id.salt == object.salt);
+			return (id.salt.cycle == object.salt.cycle && !object.salt.isDeprecated);
 		}
 
-		void LinkComponentTable(IComponentTable& table) override
+		void LinkComponentTable(IComponentTableSupervisor& table) override
 		{
 			auto i = std::find(componentTables.begin(), componentTables.end(), &table);
 			if (i != componentTables.end())
 			{
-				errorHandler.OnError(__FUNCTION__, __LINE__, "Duplicate table reference provided", false, IECSErrorHandler::ECS_ErrorCause::LinkComponentTable_Duplicate);
-				return;
+				Throw(0, "%s: Duplicate table reference provided", __FUNCTION__);
 			}
+
+			if (newRoidCount > 0)
+			{
+				Throw(0, "%s: Unable to link component table. ROIDS have already been created.", __FUNCTION__);
+			}
+
+			if (componentTables.size() >= CT_BITFIELD_ARRAY_SIZE * 64)
+			{
+				Throw(0, "%s: Insufficient elements bitfield array", __FUNCTION__);
+			}
+
 			componentTables.push_back(&table);
 		}
 
@@ -213,10 +266,11 @@ namespace Rococo::ECS
 
 		[[nodiscard]] ROID NewROID() override
 		{
+			newRoidCount++;
+
 			if (freeIds.empty())
 			{
-				errorHandler.OnError(__FUNCTION__, __LINE__, "RCObjectTable is full", true, IECSErrorHandler::ECS_ErrorCause::OutOfRoids);
-				return ROID::Invalid();
+				Throw(0, "NewROID: Roids exhausted");
 			}
 
 			ROID newId = freeIds.back();
@@ -257,8 +311,8 @@ namespace Rococo::ECS
 
 namespace Rococo
 {
-	ROCOCO_ECS_API IECSSupervisor* CreateECS(IECSErrorHandler& errorHandler, uint64 maxTableSizeInBytes)
+	ROCOCO_ECS_API IECSSupervisor* CreateECS(uint64 maxTableSizeInBytes)
 	{
-		return new Rococo::ECS::ECSImplementation(errorHandler, maxTableSizeInBytes);
+		return new Rococo::ECS::ECSImplementation(maxTableSizeInBytes);
 	}
 }

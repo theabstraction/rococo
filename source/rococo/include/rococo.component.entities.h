@@ -5,8 +5,14 @@
 namespace Rococo::Components
 {
 	typedef uint32 ROID_TABLE_INDEX;
-	typedef uint32 ROID_SALT;
 
+	struct ROID_SALT
+	{
+		uint32 cycle : 31;
+		uint32 isDeprecated : 1;
+	};
+
+	static_assert(sizeof ROID_SALT == sizeof uint32);
 #pragma pack(push, 1)
 	// Rococo Object ID - a transient object identifier used in the Rococo::Components System.
 	struct ROID
@@ -22,12 +28,12 @@ namespace Rococo::Components
 			uint64 asUint64 = 0;
 		};
 
-		operator bool() const
+		inline operator bool() const
 		{
 			return asUint64 != 0;
 		}
 
-		auto Value() const
+		inline auto Value() const
 		{
 			return asUint64;
 		}
@@ -56,6 +62,8 @@ namespace Rococo::Components
 		{			
 		}
 	};
+
+	static_assert(sizeof ROID == sizeof uint64);
 #pragma pack(pop)
 
 	struct STDROID

@@ -235,7 +235,7 @@ namespace Rococo
 		SEXYUTIL_API NamespaceSplitter(cstr _src);
 		SEXYUTIL_API bool SplitTail(cstr& _body, cstr& _tail);
 		SEXYUTIL_API bool SplitHead(cstr& _head, cstr& _body);
-		FORCE_INLINE inline char* Raw() { return dottedName; }
+		FORCE_INLINE char* Raw() { return dottedName; }
 	};
 
 	namespace Sex

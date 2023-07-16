@@ -37,18 +37,6 @@ int main(int argc, char* argv[])
 	UNUSED(argc);
 	UNUSED(argv);
 
-	struct ECSErrorHandler : IECSErrorHandler
-	{
-		void OnError(cstr functionName, int lineNumber, cstr message, bool expectedToThrow, ECS_ErrorCause cause) override
-		{
-			UNUSED(cause);
-			UNUSED(expectedToThrow);
-			printf("Bad karma: %s #%d: %s\n", functionName, lineNumber, message);
-			Throw(0, "%s line %d: %s", functionName, lineNumber, message);
-		}
-	} ecsErrorHandler;
-
-
 	//Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
 	//	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_None);
 
@@ -56,8 +44,8 @@ int main(int argc, char* argv[])
 
 	try
 	{
-		AutoFree<IECSSupervisor> ecs = CreateECS(ecsErrorHandler, 32_megabytes);
-		API::ForIAnimationComponent::LinkToECS(*ecs);
+		AutoFree<IECSSupervisor> ecs = CreateECS(32_megabytes);
+		ECS::LinkToECS_IAnimationComponentTable(*ecs);
 		auto id = ecs->NewROID();
 		VALIDATE(id);
 
@@ -96,14 +84,31 @@ int main(int argc, char* argv[])
 		VALIDATE(b);
 		VALIDATE(a != b);
 
-		auto lambda = [](ROID roid, IAnimationComponent& anim)->EFlowLogic
+		int count = 0;
+		auto incCount = [&count](ROID roid, IAnimationComponent& anim)->EFlowLogic
 		{
 			UNUSED(anim);
 			VALIDATE(roid);
+			count++;
 			return EFlowLogic::CONTINUE;
 		};
 
-		API::ForIAnimationComponent::ForEach(lambda);
+		API::ForIAnimationComponent::ForEach(incCount);
+
+		VALIDATE(count == 2);
+		VALIDATE(ecs->ActiveRoidCount() == 2);
+		ecs->Deprecate(id2);
+		VALIDATE(b);
+		ecs->CollectGarbage();
+
+		// We have two outstanding references a and b, thus the ROID should not be garbage collected;
+		VALIDATE(ecs->ActiveRoidCount() == 1);
+		VALIDATE(ecs->IsActive(id));
+		VALIDATE(!ecs->IsActive(id2));
+		VALIDATE(a);
+		VALIDATE(b);
+		VALIDATE(!a.Life().IsDeprecated());
+		VALIDATE(b.Life().IsDeprecated());
 		
 		printf("All is well\n");
 		WaitASecond();

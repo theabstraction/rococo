@@ -421,9 +421,9 @@ void FormatMainWindowFont(LOGFONTA& font)
 
 void LinkComponents(IECS& ecs, Platform& platform)
 {
-	API::ForIAnimationComponent::LinkToECS(ecs);
-	API::ForIBodyComponent::LinkToECS(ecs);
-	API::ForISkeletonComponent::LinkToECS(ecs, platform.world.rigs.Skeles());
+	ECS::LinkToECS_IAnimationComponentTable(ecs);
+	ECS::LinkToECS_IBodyComponentTable(ecs);
+	ECS::LinkToECS_ISkeletonComponentTable(ecs, platform.world.rigs.Skeles());
 }
 
 int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon, HICON hSmallIcon)
@@ -523,17 +523,7 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	AutoFree<IComponentFactory<IParticleSystemComponent>> particleSystemFactory;
 	AutoFree<IComponentFactory<IRigsComponent>> rigsFactory;
 
-	struct ECSErrorHandler: IECSErrorHandler
-	{
-		void OnError(cstr functionName, int lineNumber, cstr message, bool expectedToThrow, ECS_ErrorCause cause) override
-		{
-			UNUSED(cause);
-			UNUSED(expectedToThrow);
-			Throw(0, "%s line %d: %s", functionName, lineNumber, message);
-		}
-	} ecsErrorHandler;
-
-	AutoFree<IECSSupervisor> ecs = CreateECS(ecsErrorHandler, 32_megabytes);
+	AutoFree<IECSSupervisor> ecs = CreateECS(32_megabytes);
 	AutoFree<Entities::IInstancesSupervisor> instances = Entities::CreateInstanceBuilder(*meshes, mainWindow->Renderer(), *publisher, *ecs, (size_t) maxEntities);
 	AutoFree<Entities::IMobilesSupervisor> mobiles = Entities::CreateMobilesSupervisor(*instances);
 	AutoFree<Graphics::ICameraSupervisor> camera = Graphics::CreateCamera(*instances, *mobiles, mainWindow->Renderer());

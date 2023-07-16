@@ -27,6 +27,11 @@ namespace Rococo::Components
         virtual IECS & ECS() = 0;
     };
 
+    ROCOCO_INTERFACE IComponentTableSupervisor: IComponentTable
+    {
+        virtual void Deprecate(ROID roid) = 0;
+    };
+
     struct RoidEntry
     {
         ROID id;
@@ -175,42 +180,37 @@ namespace Rococo
     ROCOCO_INTERFACE IECSSupervisor : IECS
     {
         // Add a reference to a given component table. The reference must be valid for the lifetime of the ECS system. The ECS system must therefore be destroyed before all linked tables
-        virtual void LinkComponentTable(IComponentTable& table) = 0;
+        virtual void LinkComponentTable(IComponentTableSupervisor& table) = 0;
 		virtual void Free() = 0;
 	};
 
-    // The consumer of the ECS system provides the implementation for the error handler. Typically it should throw an exception and emit the text data provided
-    ROCOCO_INTERFACE IECSErrorHandler
-    {
-        enum class ECS_ErrorCause
-        {
-            GC_Locked_Enumeration,
-            OutOfRoids,
-            LinkComponentTable_Duplicate
-        };
-
-        virtual void OnError(cstr functionName, int lineNumber, cstr message, bool expectedToThrow, ECS_ErrorCause cause) = 0;
-    };
-
-	ROCOCO_ECS_API IECSSupervisor* CreateECS(IECSErrorHandler& errorHandler, uint64 maxTableSizeInBytes = 2_gigabytes);
+	ROCOCO_ECS_API IECSSupervisor* CreateECS(uint64 maxTableSizeInBytes = 2_gigabytes);
 }
 
 #include <rococo.functional.h>
+
+#define LINK_NAME(y, z) LinkToECS_##y##z
 
 #define DECLARE_SINGLETON_METHODS(COMPONENT_API,COMPONENT)													\
 namespace Rococo::Components::API::For##COMPONENT													        \
 {																									        \
 	COMPONENT_API Ref<COMPONENT> Add(ROID id);														        \
 	COMPONENT_API Ref<COMPONENT> Get(ROID id);														        \
-	COMPONENT_API void LinkToECS(IECS& ecs);														        \
     COMPONENT_API void ForEach(Function<EFlowLogic(ROID roid, COMPONENT&)> functor);                        \
-}
+}                                                                                                           \
+namespace Rococo::Components::ECS			        														\
+{																									        \
+    COMPONENT_API void LINK_NAME(COMPONENT, Table)(IECS& ecs);                                              \
+}																								            
 
 #define DECLARE_SINGLETON_METHODS_WITH_LINK_ARG(COMPONENT_API,COMPONENT, LINK_ARG)							\
 namespace Rococo::Components::API::For##COMPONENT													        \
 {																									        \
 	COMPONENT_API Ref<COMPONENT> Add(ROID id);														        \
 	COMPONENT_API Ref<COMPONENT> Get(ROID id);														        \
-	COMPONENT_API void LinkToECS(IECS& ecs, LINK_ARG& arg);											        \
     COMPONENT_API void ForEach(Function<EFlowLogic(ROID roid, COMPONENT&)> functor);                        \
-}
+}                                                                                                           \
+namespace Rococo::Components::ECS			        														\
+{																									        \
+    COMPONENT_API void LINK_NAME(COMPONENT, Table)(IECS& ecs, LINK_ARG& arg);                               \
+}																								            

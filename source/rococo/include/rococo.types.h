@@ -590,7 +590,7 @@ namespace Rococo
 		FORCE_INLINE operator float() const { return value; }
 	};
 
-	FORCE_INLINE inline Kilograms operator "" _kg(long double value)
+	FORCE_INLINE Kilograms operator "" _kg(long double value)
 	{
 		return Kilograms{ (float)value };
 	}
@@ -715,7 +715,7 @@ namespace Rococo
 		[[nodiscard]] AABB RotateBounds(const Matrix4x4& Rz) const;
 	};
 
-	FORCE_INLINE  [[nodiscard]] inline const Vec2& Flatten(const Vec3& a)
+	FORCE_INLINE  [[nodiscard]] const Vec2& Flatten(const Vec3& a)
 	{
 		return *reinterpret_cast<const Vec2*>(&a);
 	}
