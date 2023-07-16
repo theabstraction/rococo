@@ -23,7 +23,7 @@ namespace Rococo
 	using TRemoveReference = typename RemoveReference<_Ty>::Type;
 
 	template <class _Ty>
-	[[nodiscard]] constexpr _Ty&& Forward(TRemoveReference<_Ty>& _Arg) noexcept
+	FORCE_INLINE  [[nodiscard]] constexpr _Ty&& Forward(TRemoveReference<_Ty>& _Arg) noexcept
 	{
 		// forward an lvalue as either an lvalue or an rvalue
 		return static_cast<_Ty&&>(_Arg);
@@ -56,20 +56,20 @@ namespace Rococo
 	template<typename FUNCTOR, typename RETURN_TYPE, typename ... ARGS>
 	struct ComissaryWithFunctor final : IComissary<RETURN_TYPE, ARGS...>
 	{
-		ComissaryWithFunctor(FUNCTOR f) : functor(f) {}
+		FORCE_INLINE ComissaryWithFunctor(FUNCTOR f) : functor(f) {}
 
-		RETURN_TYPE Invoke(ARGS&& ... args) const override
+		FORCE_INLINE RETURN_TYPE Invoke(ARGS&& ... args) const override
 		{
 			return functor(args...);
 		}
 
-		IComissary<RETURN_TYPE, ARGS...>* Clone() const override
+		FORCE_INLINE IComissary<RETURN_TYPE, ARGS...>* Clone() const override
 		{
 			ComissaryWithFunctor* clone = new ComissaryWithFunctor(*this);
 			return clone;
 		}
 
-		void CopyTo(char* pDestinationBuffer) const override
+		FORCE_INLINE void CopyTo(char* pDestinationBuffer) const override
 		{
 			new (pDestinationBuffer) ComissaryWithFunctor<FUNCTOR, RETURN_TYPE, ARGS...>(*this);
 		}
@@ -90,7 +90,7 @@ namespace Rococo
 
 		using IStackCommissary = IComissary<RETURN_TYPE, ARGS...>;
 
-		IStackCommissary& Implementation() const { return *(IStackCommissary*)(stackspace); }
+		FORCE_INLINE IStackCommissary& Implementation() const { return *(IStackCommissary*)(stackspace); }
 
 		StackComissary()
 		{
@@ -104,23 +104,23 @@ namespace Rococo
 			new (stackspace) ComissaryWithFunctor<FUNCTOR, RETURN_TYPE, ARGS...>(f);
 		}
 
-		const bool IsBound() const
+		FORCE_INLINE const bool IsBound() const
 		{
 			return *(void**)(stackspace) != nullptr;
 		}
 
-		RETURN_TYPE operator()(ARGS&&...args) const
+		FORCE_INLINE RETURN_TYPE operator()(ARGS&&...args) const
 		{
 			return Invoke(Forward<ARGS>(args)...);
 		}
 
-		RETURN_TYPE Invoke(ARGS&&...args) const
+		FORCE_INLINE RETURN_TYPE Invoke(ARGS&&...args) const
 		{
 			return InvokeElseThrow(Forward<ARGS>(args)...);
 		}
 
 		// If the function is bound then invoke it, else return the default value of the RETURN_TYPE
-		RETURN_TYPE InvokeElseDefault(ARGS&&...args) const
+		FORCE_INLINE RETURN_TYPE InvokeElseDefault(ARGS&&...args) const
 		{
 			return IsBound() ? Implementation().Invoke(Forward<ARGS>(args)...) : RETURN_TYPE();
 		}
@@ -138,7 +138,7 @@ namespace Rococo
 			} 
 		}
 
-		~StackComissary()
+		FORCE_INLINE ~StackComissary()
 		{
 			Implementation().~IStackCommissary();
 		}
@@ -182,11 +182,11 @@ namespace Rococo
 			}
 		}
 
-		ArbitraryFunction()
+		FORCE_INLINE ArbitraryFunction()
 		{
 		}
 
-		const bool IsBound() const
+		FORCE_INLINE const bool IsBound() const
 		{
 			return implementation != nullptr;
 		}
@@ -217,7 +217,7 @@ namespace Rococo
 			return *this;
 		}
 
-		ArbitraryFunction(ArbitraryFunction&& source)
+		FORCE_INLINE ArbitraryFunction(ArbitraryFunction&& source)
 		{
 			if (source.implementation == source.stackspace)
 			{
@@ -244,17 +244,17 @@ namespace Rococo
 			}
 		}
 
-		RETURN_TYPE operator()(ARGS&&...args) const
+		FORCE_INLINE RETURN_TYPE operator()(ARGS&&...args) const
 		{
 			return implementation->Invoke(Forward<ARGS>(args)...);
 		}
 
-		RETURN_TYPE Invoke(ARGS...args) const
+		FORCE_INLINE RETURN_TYPE Invoke(ARGS...args) const
 		{
 			return InvokeElseThrow(Forward<ARGS>(args)...);
 		}
 
-		RETURN_TYPE InvokeElseDefault(ARGS&&...args) const
+		FORCE_INLINE RETURN_TYPE InvokeElseDefault(ARGS&&...args) const
 		{
 			return implementation ? implementation->Invoke(Forward<ARGS>(args)...) : RETURN_TYPE();
 		}
@@ -271,7 +271,7 @@ namespace Rococo
 			}
 		}
 
-		~ArbitraryFunction()
+		FORCE_INLINE ~ArbitraryFunction()
 		{
 			if ((char*)(implementation) == stackspace)
 			{

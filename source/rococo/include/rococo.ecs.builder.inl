@@ -274,7 +274,7 @@ namespace Rococo::Components
 
 		Ref<COMPONENT> Find(ROID id)
 		{
-			auto* component = reinterpret_cast<COMPONENT*>(rows->Find(id));
+			auto* component = static_cast<COMPONENT*>(rows->Find(id));
 			return component ? Ref<COMPONENT>(*component, GetLife(*component)) : Ref<COMPONENT>();
 		}
 

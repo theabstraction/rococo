@@ -118,6 +118,21 @@ namespace Rococo
         }
     }
 
+    public static class Local
+    {
+        public static void SetOptimizations(Project.Configuration config, Sharpmake.Target target)
+        {
+            if (target.Optimization == Optimization.Debug)
+            {
+                config.Options.Add(Sharpmake.Options.Vc.Compiler.Inline.OnlyInline);
+            }
+            else
+            {
+                config.Options.Add(Sharpmake.Options.Vc.Compiler.Inline.AnySuitable);
+            }
+        }
+    }
+
     public class RococoBaseProject : Project
     {
         public void AddDefaultLibraries(Configuration config)
@@ -186,6 +201,7 @@ namespace Rococo
             conf.Output = type;
             conf.ProjectFileName = "[project.Name]_[target.DevEnv]_[target.Platform]";
             conf.ProjectPath = Roots.RococoProjectPath;
+            Local.SetOptimizations(conf, target);
 
             AddDefaults(conf, target, CCPVersion);
 
@@ -235,7 +251,7 @@ namespace Rococo
                     break;
             } 
             conf.Options.Add(Options.Vc.Compiler.Exceptions.Enable);
-            conf.Options.Add(Options.Vc.Compiler.Inline.Default);
+            conf.Options.Add(Options.Vc.Compiler.Inline.OnlyInline);
             conf.Options.Add(new Sharpmake.Options.Vc.Compiler.DisableSpecificWarnings("4458", "4201", "4324", "4250"));
             conf.IntermediatePath = Path.Combine(Roots.RococoTmpPath, @"[target.Name]\[project.Name]\");
             conf.TargetPath = Path.Combine(Roots.RococoBinPath, @"[target.Platform]\[conf.Name]\");
@@ -277,6 +293,8 @@ namespace Rococo
 
             conf.SourceFilesBuildExcludeRegex.Add(@"\.*(" + string.Join("|", excludedFileSuffixes.ToArray()) + @")\.cpp$");
             conf.TargetLibraryPath = Path.Combine(Roots.RococoLibPath, @"[target.Platform]\[conf.Name]\");
+
+            Local.SetOptimizations(conf, target);
         }
 
         protected ThirdPartyProject(string name, string subdir)

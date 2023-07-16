@@ -26,6 +26,13 @@
 #endif
 
 #ifdef _WIN32
-#pragma warning ( disable: 26812 )
+//#pragma warning ( disable: 26812 )
 #endif
+
+#ifdef _WIN32
+# define FORCE_INLINE __forceinline
+#else
+# define FORCE_INLINE
+#endif
+
 #endif // ROCOCO

@@ -40,7 +40,8 @@ namespace Rococo::Components
 		IComponentBase* Find(ROID id) const override
 		{
 			auto i = rows.find(id);
-			return i != rows.end() ? i->second : nullptr;
+			IComponentBase* base = i != rows.end() ? i->second : nullptr;
+			return base;
 		}
 
 		void ForEachComponent(IComponentCallback<IComponentBase>& cb) override
@@ -94,6 +95,10 @@ namespace Rococo::Components
 			try
 			{
 				base = factory.Create(id);
+				if (base == nullptr)
+				{
+					Throw(0, "%s(%s): factory returned a nullptr", __FUNCTION__, friendlyName.c_str());
+				}
 				insertion.first->second = base;
 			}
 			catch (...)

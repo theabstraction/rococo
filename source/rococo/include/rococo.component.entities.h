@@ -37,6 +37,11 @@ namespace Rococo::Components
 			return asUint64 == other.asUint64;
 		}
 
+		inline bool operator != (const ROID& other) const
+		{
+			return asUint64 != other.asUint64;
+		}
+
 		ROID(): asUint64(0)
 		{
 
@@ -86,26 +91,26 @@ namespace Rococo::Components
 		IComponentLife* life;
 		
 	public:
-		Ref(INTERFACE& refComponent, IComponentLife& refLife):
+		FORCE_INLINE Ref(INTERFACE& refComponent, IComponentLife& refLife):
 			component(&refComponent),
 			life(&refLife)
 		{
 			life->AddRef();
 		}
 
-		Ref():
+		FORCE_INLINE Ref():
 			component(nullptr),
 			life(nullptr)
 		{
 
 		}
 
-		IComponentLife& Life()
+		FORCE_INLINE IComponentLife& Life()
 		{
 			return *life;
 		}
 
-		Ref(Ref<INTERFACE>& src) noexcept
+		FORCE_INLINE Ref(Ref<INTERFACE>& src) noexcept
 		{
 			component = src.component;
 			life = src.life;
@@ -115,7 +120,7 @@ namespace Rococo::Components
 			}
 		}
 
-		Ref(Ref<INTERFACE>&& src) noexcept
+		FORCE_INLINE Ref(Ref<INTERFACE>&& src) noexcept
 		{
 			component = src.component;
 			life = src.life;
@@ -123,7 +128,7 @@ namespace Rococo::Components
 			src.life = nullptr;
 		}
 
-		Ref<INTERFACE>& operator = (Ref<INTERFACE>& src)
+		FORCE_INLINE Ref<INTERFACE>& operator = (Ref<INTERFACE>& src)
 		{
 			if (component == src.component)
 			{
@@ -146,15 +151,20 @@ namespace Rococo::Components
 			return *this;
 		}
 
-		void operator = (Ref<INTERFACE>&& src)
+		FORCE_INLINE void operator = (Ref<INTERFACE>&& src)
 		{
+			if (life)
+			{
+				life->ReleaseRef();
+			}
+
 			component = src.component;
 			life = src.life;
 			src.component = nullptr;
 			src.life = nullptr;
 		}
 
-		~Ref()
+		FORCE_INLINE ~Ref()
 		{
 			if (life)
 			{
@@ -162,38 +172,48 @@ namespace Rococo::Components
 			}
 		}
 
-		bool Deprecate()
+		FORCE_INLINE bool Deprecate()
 		{
 			if (!life) return false;
 			return life->Deprecate();
 		}
 
-		INTERFACE* operator -> ()
+		FORCE_INLINE INTERFACE* operator -> ()
 		{
 			return component;
 		}
 
-		INTERFACE& operator * ()
+		FORCE_INLINE INTERFACE& operator * ()
 		{
 			return *component;
 		}
 
-		INTERFACE& GetComponent()
+		FORCE_INLINE INTERFACE& GetComponent()
 		{
 			return *component;
 		}
 
-		operator bool() const
+		FORCE_INLINE operator bool() const
 		{
 			return component != nullptr;
 		}
 
-		int64 GetRefCount() const
+		FORCE_INLINE bool operator == (Ref<INTERFACE>& other) const
+		{
+			return component == other.component;
+		}
+
+		FORCE_INLINE bool operator != (Ref<INTERFACE>& other) const
+		{
+			return component != other.component;
+		}
+
+		FORCE_INLINE int64 GetRefCount() const
 		{
 			return life == nullptr ? 0 : life->GetRefCount();
 		}
 
-		ROID Roid() const
+		FORCE_INLINE ROID Roid() const
 		{
 			return life == nullptr ? ROID() : life->GetRoid();
 		}
