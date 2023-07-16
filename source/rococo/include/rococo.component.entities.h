@@ -22,6 +22,8 @@ namespace Rococo::Components
 			struct
 			{
 				ROID_SALT salt;
+
+				// unsigned index value
 				ROID_TABLE_INDEX index;
 			};
 
@@ -224,6 +226,16 @@ namespace Rococo::Components
 		FORCE_INLINE ROID Roid() const
 		{
 			return life == nullptr ? ROID() : life->GetRoid();
+		}
+
+		FORCE_INLINE void Release()
+		{
+			if (life)
+			{
+				life->ReleaseRef();
+				life = nullptr;
+				component = nullptr;
+			}
 		}
 	};
 

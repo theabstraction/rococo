@@ -4,6 +4,7 @@
 #include <vector>
 #include <rococo.allocators.h>
 #include <rococo.functional.h>
+#include <rococo.debugging.h>
 
 namespace Rococo::Components
 {
@@ -49,21 +50,21 @@ namespace Rococo::Components
 			return rc;
 		}
 
-		bool Deprecate()
+		bool Deprecate() override
 		{
 			if (!isDeprecated)
 			{
 				isDeprecated = true;
-
-				if (referenceCount == 0)
-				{
-					table.NotifyOfDeath(id);
-				}
-
+				table.Deprecate(id);
 				return true;
 			}
 
 			return false;
+		}
+
+		void DeprecateWithoutNotify()
+		{
+			isDeprecated = true;
 		}
 
 		bool IsDeprecated() const override
@@ -77,20 +78,41 @@ namespace Rococo::Components
 	{
 		using FACTORY = IComponentFactory<COMPONENT>;
 
-		IECS* ecs = nullptr;
+		IECSSupervisor* ecs = nullptr;
 		int enumLock = 0;
-
+		cstr friendlyName;
 		FACTORY& componentFactory;
 		AutoFree<IRoidMap> rows;
+		std::vector<COMPONENT*> deathRow;
+		std::vector<COMPONENT*> deathRowSurvivors;
 		std::vector<ROID> deprecatedList;
 		std::vector<ROID> stubbornList;
 		AutoFree<Memory::IFreeListAllocatorSupervisor> componentAllocator;
 		size_t componentSize;
+		uint32 tableIndex = (uint32) - 1;
 
-		ComponentTable(cstr friendlyName, FACTORY& _componentFactory) :
-			componentFactory(_componentFactory), rows(CreateRoidMap(friendlyName, 1024)), componentSize(_componentFactory.SizeOfConstructedObject())
+		ComponentTable(cstr _friendlyName, FACTORY& _componentFactory) :
+			friendlyName(_friendlyName),
+			componentFactory(_componentFactory),
+			rows(CreateRoidMap(_friendlyName, 1024)),
+			componentSize(_componentFactory.SizeOfConstructedObject())
 		{
 			componentAllocator = Memory::CreateFreeListAllocator(componentSize + sizeof ComponentLife<COMPONENT>);
+		}
+
+		void BindTableIndex(uint32 tableIndex)
+		{
+			if (this->tableIndex != (uint32)-1)
+			{
+				if (this->tableIndex != tableIndex)
+				{
+					Throw(0, "%s: error, an attempt was made to change the table index", __FUNCTION__);
+				}
+			}
+			else
+			{
+				this->tableIndex = tableIndex;
+			}
 		}
 
 		void NotifyOfDeath(ROID id)
@@ -111,7 +133,7 @@ namespace Rococo::Components
 				{
 					auto* component = static_cast<COMPONENT*>(base);
 					factory->Destruct(component);
-					allocator->FreeBuffer(component);
+					allocator->ReclaimBuffer(component);
 				}
 			} onDelete;
 			onDelete.factory = &componentFactory;
@@ -122,11 +144,45 @@ namespace Rococo::Components
 
 		virtual ~ComponentTable()
 		{
+			struct ANON : IComponentCallback<IComponentBase>
+			{
+				ComponentTable<COMPONENT>* This = nullptr;
+				EFlowLogic OnComponent(ROID, IComponentBase& base) override
+				{
+					This->componentAllocator->FreeBuffer(&base);
+					return EFlowLogic::CONTINUE;
+				}
+			} deleteIt;
+			deleteIt.This = this;
+			rows->ForEachComponent(deleteIt);
 
+			CollectGarbage();
+
+			if (deathRow.size() > 0)
+			{
+				Rococo::Debugging::Log("~ComponentTable<%s>: %llu on death row could not be deleted, assume their are own references.\n", friendlyName, deathRow.size());
+
+				for (auto* c : deathRow)
+				{
+					auto& life = GetLife(*c);
+					ROID id = life.id;
+					Rococo::Debugging::Log(" %s[%u, salt %u]%s", friendlyName, id.index, id.salt.cycle, id.salt.isDeprecated ? "" : "(deprecated)\n");
+				}
+			}
 		}
 
 		Ref<COMPONENT> AddNew(ROID id)
 		{
+			if (tableIndex == (uint32)-1)
+			{
+				Throw(0, "%s: TableIndex not set", friendlyName);
+			}
+
+			if (!ECS().IsActive(id))
+			{
+				return Ref<COMPONENT>();
+			}
+
 			if (enumLock > 0)
 			{
 				Throw(0, "%s failed: the components were locked for enumeration", __func__);
@@ -167,27 +223,32 @@ namespace Rococo::Components
 			baseFactory.container = this;
 
 			rows->Insert(id, baseFactory);
+
+			ECS().OnNotifyComponentAttachedToROID(id, tableIndex);
+
 			return Ref<COMPONENT>(*baseFactory.component, GetLife(*baseFactory.component));
 		}
 
-		IECS& ECS()
+		IECSSupervisor& ECS()
 		{
 			if (ecs == nullptr)
 			{
-				Throw(0, "%s: ECS was not linked at this time.", __FUNCTION__);
+				Throw(0, "%s: ECS was not linked at this time.", friendlyName);
 			}
 
 			return *ecs;
 		}
 
-		void Link(IECS* ecs)
+		void Link(IECSSupervisor* ecs)
 		{
 			if (ecs != nullptr && this->ecs != nullptr && ecs != this->ecs)
 			{
-				Throw(0, "%s: An attempt was made to link to a competing ECS system. ConfigurationComponents support only one ecs system.", __FUNCTION__);
+				Throw(0, "%s: An attempt was made to link to a competing ECS system. ConfigurationComponents support only one ecs system.", friendlyName);
 			}
 
 			this->ecs = ecs;
+
+			ecs->LinkComponentTable(*this);
 		}
 
 		IComponentTable& Table()
@@ -199,7 +260,7 @@ namespace Rococo::Components
 		{
 			if (enumLock > 0)
 			{
-				Throw(0, "%s: An attempt was made to collect garbage during an enumeration lock.", __FUNCTION__);
+				Throw(0, "%s: An attempt was made to collect garbage during an enumeration lock.", friendlyName);
 			}
 
 			while (!deprecatedList.empty())
@@ -209,9 +270,33 @@ namespace Rococo::Components
 
 				NotifyOfDeath(id);
 			}
+
+			deathRowSurvivors.clear();
+
+			for (auto* c : deathRow)
+			{
+				auto& life = GetLife(*c);
+				if (life.referenceCount == 0)
+				{
+					componentFactory.Destruct(c);
+					componentAllocator->ReclaimBuffer(c);
+				}
+				else
+				{
+					deathRowSurvivors.push_back(c);
+				}
+			}
+
+			deathRow.clear();
+			std::swap(deathRow, deathRowSurvivors);
 		}
 
-		void Deprecate(ROID id) override
+		void OnNotifyThatTheECSHasDeprecatedARoid(ROID id) override
+		{
+			DeprecateAndDoNotNotifyDependents(id);
+		}
+
+		void DeprecateAndDoNotNotifyDependents(ROID id)
 		{
 			struct ANON : IEventCallback<IComponentBase*>
 			{
@@ -220,13 +305,20 @@ namespace Rococo::Components
 				{
 					auto* component = static_cast<COMPONENT*>(base);
 					auto& life = container->GetLife(*component);
-					life.Deprecate();
+					life.DeprecateWithoutNotify();
+					container->deathRow.push_back(component);
 				}
 			} onDelete;
 
 			onDelete.container = this;
 
 			rows->Delete(id, onDelete);
+		}
+
+		void Deprecate(ROID id) override
+		{
+			DeprecateAndDoNotNotifyDependents(id);
+			ecs->OnNotifyAComponentHasDeprecatedARoid(id, tableIndex);
 		}
 
 		void ForEachComponent(IComponentCallback<COMPONENT>& cb)
@@ -274,8 +366,15 @@ namespace Rococo::Components
 
 		Ref<COMPONENT> Find(ROID id)
 		{
-			auto* component = static_cast<COMPONENT*>(rows->Find(id));
-			return component ? Ref<COMPONENT>(*component, GetLife(*component)) : Ref<COMPONENT>();
+			if (ECS().IsActive(id))
+			{
+				auto* component = static_cast<COMPONENT*>(rows->Find(id));
+				if (component)
+				{
+					return Ref<COMPONENT>(*component, GetLife(*component));
+				}
+			}
+			return Ref<COMPONENT>();
 		}
 
 		size_t GetConfigurationComponentIDs(TRoidEntry<COMPONENT>* roidOutput, size_t nElementsInOutput)
@@ -290,6 +389,11 @@ namespace Rococo::Components
 			uint8* objectBuffer = (uint8*)&i;
 			return *(ComponentLife<COMPONENT>*)(objectBuffer + componentSize);
 		}
+
+		Ref<COMPONENT> GetComponent(ROID id)
+		{
+			return table.Find(id);
+		}
 	};
 
 	template<class COMPONENT>
@@ -300,156 +404,34 @@ namespace Rococo::Components
 		// Override this in your specialization and ensure the returned string and pointer are invariant for the lifetime of the ecs system and all its component DLLs.
 		cstr Name() const { static_assert(false); }
 	};
-
-
-	template<class COMPONENT>
-	class ComponentTableSingleton
-	{
-	private:
-		inline static ComponentTable<COMPONENT>* table = nullptr;
-		inline static bool phoenixGuard = false;
-		inline static IComponentFactory<COMPONENT>* factory = nullptr;
-		inline static cstr friendlyName = nullptr;
-	public:
-		static void InitConfigurationComponents()
-		{
-			FactoryBuilder<COMPONENT> fb;
-
-			if (!table)
-			{
-				if (phoenixGuard)
-				{
-					return;
-				}
-
-				factory = fb.Create();
-
-				table = new ComponentTable<COMPONENT>(fb.Name(), *factory);
-				
-				struct ANON
-				{
-					static void FreeComponentsSingleton()
-					{
-						if (table)
-						{
-							delete table;
-							factory->Free();
-							factory = nullptr;
-							table = nullptr;
-							phoenixGuard = true;
-						}
-					}
-				};
-				atexit(ANON::FreeComponentsSingleton);
-			}
-			else
-			{
-				Throw(0, "%s: %s has already been initialized", __FUNCTION__, fb.Name());
-			}
-		}
-
-		static ComponentTable<COMPONENT>& GetTable()
-		{
-			if (!table)
-			{
-				InitConfigurationComponents();
-			}
-			return *table;
-		}
-
-		static Ref<COMPONENT> AddComponent(ROID id)
-		{
-			struct ANON : IECS_ROID_LockedSection
-			{
-				Ref<COMPONENT> newRef;
-
-				ANON()
-				{
-
-				}
-
-				void OnLock(ROID roid, IECS& ecs) override
-				{
-					UNUSED(ecs);
-					newRef = GetTable().AddNew(roid);
-				}
-			} locked_section;
-
-			GetTable().ECS().TryLockedOperation(id, locked_section);
-			return locked_section.newRef;
-		}
-
-		static Ref<COMPONENT> GetComponent(ROID id)
-		{
-			struct ANON : IECS_ROID_LockedSection
-			{
-				Ref<COMPONENT> foundRef;
-
-				ANON()
-				{
-
-				}
-
-				void OnLock(ROID roid, IECS& ecs) override
-				{
-					UNUSED(ecs);
-					foundRef = GetTable().Find(roid);
-				}
-			} locked_section;
-
-			GetTable().ECS().TryLockedOperation(id, locked_section);
-			return locked_section.foundRef;
-		}
-	};
 }
 
 // Stick this in your component .cpp file to declare a singleton component table referenced by Rococo::Components::SINGLETON
 // Needs an implementtion of IComponentFactory<ICOMPONENT>* CreateComponentFactory() in the component's API namespace;
 // This is used when DefaultFactory<ICOMPONENT, IMPLEMENTATION> is inappropriate for creating object of type IMPLEMENTATION
 #define DEFINE_FACTORY_SINGLETON(ICOMPONENT)									\
-namespace Rococo::Components::API::For##COMPONENT								\
+namespace Module::For##ICOMPONENT												\
 {																				\
+	using namespace Rococo::Components;											\
+	ComponentTable<ICOMPONENT>* theSingleton = 0;								\
 	IComponentFactory<ICOMPONENT>* CreateComponentFactory();					\
-}																				\
-																				\
-namespace Rococo::Components													\
-{																				\
-	template<>																	\
-	struct FactoryBuilder<ICOMPONENT>											\
-	{																			\
-		IComponentFactory<ICOMPONENT>* Create()									\
-		{																		\
-			return API::For##ICOMPONENT::CreateComponentFactory();				\
-		}																		\
-																				\
-		const char* Name() const												\
-		{																		\
-			return #ICOMPONENT;													\
-		}																		\
-	};																			\
-	using SINGLETON = ComponentTableSingleton<ICOMPONENT>;						\
-}														
-
+	IComponentFactory<ICOMPONENT>* theFactory = nullptr;						\
+}																				
+																																
 // Assumes DefaultFactory<ICOMPONENT, IMPLEMENTATION> can create objects of type IMPLEMENTATION that implement ICOMPONENT
-// Stick this in your component .cpp file to declare a singleton component table referenced by Rococo::Components::SINGLETON
-#define DEFINE_FACTORY_SINGLETON_WITH_DEFAULT_FACTORY(ICOMPONENT,IMPLEMENTATION)	\
-namespace Rococo::Components														\
-{																					\
-	template<>																		\
-	struct FactoryBuilder<ICOMPONENT>												\
-	{																				\
-		IComponentFactory<ICOMPONENT>* Create()										\
-		{																			\
-			return new DefaultFactory<ICOMPONENT, IMPLEMENTATION>();				\
-		}																			\
-																					\
-		const char* Name() const													\
-		{																			\
-			return #ICOMPONENT;														\
-		}																			\
-	};																				\
-	using SINGLETON = ComponentTableSingleton<ICOMPONENT>;							\
-}
+// Stick this in your component .cpp file to declare a singleton component table referenced by 'theSingleton'
+// If your compiler has trouble interpreting ICOMPONENT, ensure you have set out a using directive with the containing namespace ahead of the macro invocation
+#define DEFINE_FACTORY_SINGLETON_WITH_DEFAULT_FACTORY(ICOMPONENT,IMPLEMENTATION)						\
+namespace Module::For##ICOMPONENT																		\
+{																										\
+	using namespace Rococo::Components;																	\
+	ComponentTable<ICOMPONENT>* theSingleton = 0;														\
+	IComponentFactory<ICOMPONENT>* theFactory = nullptr;												\
+	IComponentFactory<ICOMPONENT>* CreateComponentFactory()												\
+	{																									\
+		return new DefaultFactory<ICOMPONENT, IMPLEMENTATION>();										\
+	}																									\
+}																										\
 
 // Requires an alias to SINGLETON, typically retrieved from DEFINE_FACTORY_SINGLETON
 #define EXPORT_SINGLETON_METHODS(COMPONENT_API,ICOMPONENT)											\
@@ -457,56 +439,74 @@ namespace Rococo::Components::API::For##ICOMPONENT													\
 {																									\
 	COMPONENT_API Ref<ICOMPONENT> Add(ROID id)														\
 	{																								\
-		return SINGLETON::AddComponent(id);															\
+		return Module::For##ICOMPONENT::theSingleton->AddNew(id);									\
 	}																								\
 																									\
 	COMPONENT_API Ref<ICOMPONENT> Get(ROID id)														\
 	{																								\
-		return SINGLETON::GetComponent(id);															\
+		return Module::For##ICOMPONENT::theSingleton->Find(id);										\
 	}																								\
 																									\
 	COMPONENT_API void ForEach(Function<EFlowLogic(ROID roid, ICOMPONENT&)> functor)				\
 	{																								\
-		SINGLETON::GetTable().ForEachComponent(functor);											\
+		Module::For##ICOMPONENT::theSingleton->ForEachComponent(functor);							\
 	}																								\
 }																									\
 namespace Rococo::Components::ECS																	\
 {																									\
-	COMPONENT_API void LINK_NAME(ICOMPONENT, Table)(IECS& ecs)										\
+	COMPONENT_API void LINK_NAME(ICOMPONENT, Table)(IECSSupervisor& ecs)							\
 	{																								\
-		SINGLETON::GetTable().Link(&ecs);															\
+		using namespace Module::For##ICOMPONENT;													\
+		if (theSingleton) return;																	\
+		theFactory =  CreateComponentFactory();														\
+		theSingleton = new ComponentTable<ICOMPONENT>(#ICOMPONENT, *theFactory);					\
+		Module::For##ICOMPONENT::theSingleton->Link(&ecs);											\
 	}																								\
 }
 
-// Requires an alias to SINGLETON, typically retrieved from DEFINE_FACTORY_SINGLETON
 #define EXPORT_SINGLETON_METHODS_WITH_LINKARG(COMPONENT_API, ICOMPONENT, LINKARG)					\
 namespace Rococo::Components::API::For##ICOMPONENT													\
 {																									\
 	COMPONENT_API Ref<ICOMPONENT> Add(ROID id)														\
 	{																								\
-		return SINGLETON::AddComponent(id);															\
+		return Module::For##ICOMPONENT::theSingleton->AddNew(id);									\
 	}																								\
 																									\
 	COMPONENT_API Ref<ICOMPONENT> Get(ROID id)														\
 	{																								\
-		return SINGLETON::GetComponent(id);															\
+		return Module::For##ICOMPONENT::theSingleton->Find(id);										\
 	}																								\
-																									\
 																									\
 	COMPONENT_API void ForEach(Function<EFlowLogic(ROID roid, ICOMPONENT&)> functor)				\
 	{																								\
-		SINGLETON::GetTable().ForEachComponent(functor);											\
+		Module::For##ICOMPONENT::theSingleton->ForEachComponent(functor);							\
 	}																								\
-																									\
-	void AssignGlobalAttribute(LINKARG& arg);														\
 }																									\
 																									\
 namespace Rococo::Components::ECS																	\
 {																									\
-	COMPONENT_API void LINK_NAME(ICOMPONENT, Table)(IECS& ecs, LINKARG& arg)						\
+	COMPONENT_API void LINK_NAME(ICOMPONENT, Table)(IECSSupervisor& ecs, LINKARG& args)				\
 	{																								\
-		Rococo::Components::API::For##ICOMPONENT::AssignGlobalAttribute(arg);						\
-		SINGLETON::GetTable().Link(&ecs);															\
+		using namespace Module::For##ICOMPONENT;													\
+		if (theSingleton) return;																	\
+		theFactory =  CreateComponentFactory(args);													\
+		theSingleton = new ComponentTable<ICOMPONENT>(#ICOMPONENT, *theFactory);					\
+		theSingleton->Link(&ecs);																	\
+	}																								\
+}
+
+#define SINGLETON_MANAGER(COMPONENT_API,ICOMPONENT)													\
+namespace Rococo::Components::ECS																	\
+{																									\
+	COMPONENT_API void ReleaseTablesFor##ICOMPONENT()												\
+	{																								\
+		if (Module::For##ICOMPONENT::theSingleton)													\
+		{																							\
+			delete Module::For##ICOMPONENT::theSingleton;											\
+			Module::For##ICOMPONENT::theSingleton = nullptr;										\
+			Module::For##ICOMPONENT::theFactory->Free();											\
+			Module::For##ICOMPONENT::theFactory = nullptr;											\
+		}																							\
 	}																								\
 }
 
@@ -516,8 +516,10 @@ EXPORT_SINGLETON_METHODS(COMPONENT_API, ICOMPONENT)
 
 #define DEFINE_AND_EXPORT_SINGLETON_METHODS_WITH_LINKARG(COMPONENT_API, ICOMPONENT, LINK_ARG)				\
 DEFINE_FACTORY_SINGLETON(ICOMPONENT)																		\
-EXPORT_SINGLETON_METHODS_WITH_LINKARG(COMPONENT_API, ICOMPONENT, LINK_ARG)							
+EXPORT_SINGLETON_METHODS_WITH_LINKARG(COMPONENT_API, ICOMPONENT, LINK_ARG)									\
+SINGLETON_MANAGER(COMPONENT_API, ICOMPONENT)
 
 #define DEFINE_AND_EXPORT_SINGLETON_METHODS_WITH_DEFAULT_FACTORY(COMPONENT_API, ICOMPONENT, IMPLEMENTATION)	\
 DEFINE_FACTORY_SINGLETON_WITH_DEFAULT_FACTORY(ICOMPONENT, IMPLEMENTATION)									\
-EXPORT_SINGLETON_METHODS(COMPONENT_API, ICOMPONENT)															
+EXPORT_SINGLETON_METHODS(COMPONENT_API, ICOMPONENT)															\
+SINGLETON_MANAGER(COMPONENT_API, ICOMPONENT)

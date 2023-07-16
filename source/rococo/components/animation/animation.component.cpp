@@ -2,7 +2,12 @@
 #include <components/rococo.components.animation.h>
 #include <rococo.animation.h>
 #include <rococo.ecs.builder.inl>
-#include <new>
+#include <rococo.allocators.inl>
+
+DeclareDefaultAllocator(Animation, g_allocator)
+Rococo::Memory::AllocatorMonitor<Animation> monitor;
+
+OVERRIDE_MODULE_ALLOCATORS_WITH_FUNCTOR(g_allocator)
 
 namespace Rococo::Components
 {

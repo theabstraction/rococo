@@ -50,6 +50,13 @@
 
 #include <rococo.api.h>
 
+#include <rococo.allocators.inl>
+
+DeclareDefaultAllocator(SexyUtils, g_allocator)
+Rococo::Memory::AllocatorMonitor<SexyUtils> monitor;
+
+OVERRIDE_MODULE_ALLOCATORS_WITH_FUNCTOR(g_allocator)
+
 namespace Rococo
 {
 	SEXYUTIL_API void LogError(ILog& log, cstr format, ...)

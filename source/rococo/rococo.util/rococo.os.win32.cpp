@@ -41,6 +41,13 @@
 #include <list>
 #include <rococo.time.h>
 
+#include <rococo.allocators.inl>
+
+DeclareDefaultAllocator(RococoUtils, g_allocator)
+Rococo::Memory::AllocatorMonitor<RococoUtils> monitor;
+
+OVERRIDE_MODULE_ALLOCATORS_WITH_FUNCTOR(g_allocator)
+
 using namespace Rococo::IO;
 using namespace Rococo::Strings;
 
@@ -3200,3 +3207,20 @@ namespace Rococo::Time
 		SafeFormat(buffer, nBytes, "%s %s", localTime, localDate);
 	}
 } // Rococo::Time
+
+namespace Rococo::Debugging
+{
+	ROCOCO_API int Log(cstr format, ...)
+	{
+		va_list args;
+		va_start(args, format);
+
+		char output[1024];
+		int len = Strings::SafeVFormat(output, sizeof output, format, args);
+		OutputDebugStringA(output);
+
+		vprintf_s(format, args);
+
+		return len;
+	}
+}

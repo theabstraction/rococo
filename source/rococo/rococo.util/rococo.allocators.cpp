@@ -172,6 +172,14 @@ namespace
 
         }
 
+        virtual ~FreeListAllocator()
+        {
+            for (auto* v : freeList)
+            {
+                FreeBuffer(v);
+            }
+        }
+
         void* AllocateBuffer() override
         {
             if (freeList.empty())
@@ -187,6 +195,11 @@ namespace
         }
 
         void FreeBuffer(void* buffer) override
+        {
+            delete[] buffer;
+        }
+
+        void ReclaimBuffer(void* buffer) override
         {
             if (buffer == nullptr) return;
             freeList.push_back(buffer);
@@ -234,4 +247,14 @@ namespace Rococo::Memory
     {
         if (buffer) deleteFunction(((void**)buffer)[-1]);
     };
+
+    ROCOCO_API void Log(const MemoryStats& stats, cstr name, cstr intro, int (*FN_LOG)(cstr format, ...))
+    {
+        FN_LOG("%s:  %s\n", name, intro);
+        FN_LOG(" Total allocation size: %llu\n", stats.totalAllocationSize);
+        FN_LOG(" Total allocations: %llu\n", stats.totalAllocations);
+        FN_LOG(" Total frees: %llu\n", stats.totalFrees);
+        FN_LOG(" Failed allocations: %llu\n", stats.failedAllocations);
+        FN_LOG(" Blank frees: %llu\n\n", stats.blankFrees);
+    }
 }

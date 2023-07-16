@@ -27,9 +27,11 @@ namespace Rococo::Components
         virtual IECS & ECS() = 0;
     };
 
-    ROCOCO_INTERFACE IComponentTableSupervisor: IComponentTable
+    ROCOCO_INTERFACE IComponentTableSupervisor : IComponentTable
     {
+        virtual void BindTableIndex(uint32 tableIndex) = 0;
         virtual void Deprecate(ROID roid) = 0;
+        virtual void OnNotifyThatTheECSHasDeprecatedARoid(ROID roid) = 0;
     };
 
     struct RoidEntry
@@ -154,6 +156,9 @@ namespace Rococo
         // Returns the number of ROIDS in use. 
         [[nodiscard]] virtual size_t ActiveRoidCount() const = 0;
 
+        // Returns the number of ROIDS available for use. 
+        [[nodiscard]] virtual size_t AvailableRoidCount() const = 0;
+
         // Called periodically to remove deprecated and unreferenced entities and components
         virtual void CollectGarbage() = 0;
 
@@ -180,11 +185,21 @@ namespace Rococo
     ROCOCO_INTERFACE IECSSupervisor : IECS
     {
         // Add a reference to a given component table. The reference must be valid for the lifetime of the ECS system. The ECS system must therefore be destroyed before all linked tables
+        // The [return] value is the [tableIndex] of the given table that is presented to the ECS in some component callbacks
         virtual void LinkComponentTable(IComponentTableSupervisor& table) = 0;
+
+        // Tells the ECS that a ROID has been deprecated by a table. The ECS will pass on the event to all observers, except the source of the deprecation.
+        virtual void OnNotifyAComponentHasDeprecatedARoid(ROID roid, uint32 sourceTableIndex) = 0;
+        virtual void OnNotifyComponentAttachedToROID(ROID roid, uint32 sourceTableIndex) = 0;
 		virtual void Free() = 0;
 	};
 
 	ROCOCO_ECS_API IECSSupervisor* CreateECS(uint64 maxTableSizeInBytes = 2_gigabytes);
+
+    ROCOCO_INTERFACE IComponentTableManagerBase
+    {
+        virtual void Free() = 0;
+    };
 }
 
 #include <rococo.functional.h>
@@ -200,7 +215,8 @@ namespace Rococo::Components::API::For##COMPONENT													        \
 }                                                                                                           \
 namespace Rococo::Components::ECS			        														\
 {																									        \
-    COMPONENT_API void LINK_NAME(COMPONENT, Table)(IECS& ecs);                                              \
+	COMPONENT_API void ReleaseTablesFor##COMPONENT();														\
+    COMPONENT_API void LINK_NAME(COMPONENT, Table)(IECSSupervisor& ecs);                                    \
 }																								            
 
 #define DECLARE_SINGLETON_METHODS_WITH_LINK_ARG(COMPONENT_API,COMPONENT, LINK_ARG)							\
@@ -212,5 +228,6 @@ namespace Rococo::Components::API::For##COMPONENT													        \
 }                                                                                                           \
 namespace Rococo::Components::ECS			        														\
 {																									        \
-    COMPONENT_API void LINK_NAME(COMPONENT, Table)(IECS& ecs, LINK_ARG& arg);                               \
+	COMPONENT_API void ReleaseTablesFor##COMPONENT();														\
+    COMPONENT_API void LINK_NAME(COMPONENT, Table)(IECSSupervisor& ecs, LINK_ARG& arg);                     \
 }																								            

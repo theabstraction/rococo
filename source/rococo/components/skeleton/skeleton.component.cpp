@@ -57,31 +57,14 @@ namespace Rococo::Components
             return fpsOrientation;
         }
 	};
-
-    static ISkeletons* s_Skeletons = nullptr;
 }
 
-namespace Rococo::Components::API::ForISkeletonComponent
+namespace Module::ForISkeletonComponent
 {
-    void AssignGlobalAttribute(ISkeletons& skeletons)
+    using namespace Rococo::Components;
+    IComponentFactory<ISkeletonComponent>* CreateComponentFactory(ISkeletons& skeletons)
     {
-        if (s_Skeletons != nullptr)
-        {
-            Throw(0, "%s: Skeletons already assigned", __FUNCTION__);
-        }
-        else
-        {
-            s_Skeletons = &skeletons;
-        }
-    }
-
-    IComponentFactory<ISkeletonComponent>* CreateComponentFactory()
-    {
-        if (s_Skeletons == nullptr)
-        {
-            Throw(0, "Skeletons have not been assigned. Ensure Rococo::Components::SkeletonComponent_Init(...) is called before other functions of the Skeleton component API");
-        }
-        return new FactoryWithOneArg<ISkeletonComponent, SkeletonComponent, ISkeletons>(*s_Skeletons);
+        return new FactoryWithOneArg<ISkeletonComponent, SkeletonComponent, ISkeletons>(skeletons);
     }
 }
 

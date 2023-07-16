@@ -1,16 +1,23 @@
 #include <rococo.ecs.h>
 #include <vector>
 
+#include <rococo.allocators.inl>
+
+DeclareDefaultAllocator(ECS, g_allocator)
+Rococo::Memory::AllocatorMonitor<ECS> monitor;
+
+OVERRIDE_MODULE_ALLOCATORS_WITH_FUNCTOR(g_allocator)
+
 namespace Rococo::ECS
 {
-	enum { CT_BITFIELD_ARRAY_SIZE = 1, CB_BITFIELD_ELEMENT_BITCOUNT = 64 };
+	enum { CT_BITFIELD_ARRAY_SIZE = 1, CT_BITFIELD_ELEMENT_BITCOUNT = 64 };
 
 	struct Bitfield
 	{
 		uint64 bits;
 	};
 
-	static_assert(8 * sizeof Bitfield == CB_BITFIELD_ELEMENT_BITCOUNT);
+	static_assert(8 * sizeof Bitfield == CT_BITFIELD_ELEMENT_BITCOUNT);
 
 #pragma pack(push,4)
 	struct RCObject
@@ -32,12 +39,48 @@ namespace Rococo::ECS
 	};
 #pragma pack(pop)
 
+	template<typename LAMBDA, typename TABLES>
+	void ForEachAssociatedTable(TABLES& componentTables, const Bitfield linkedComponentTables[CT_BITFIELD_ARRAY_SIZE], LAMBDA action)
+	{
+		if (componentTables.empty()) return;
+
+		const Bitfield* field = &linkedComponentTables[-1];
+		uint64 bit = 0ULL;
+
+		uint32 tableIndex = 0;
+		for (auto* table : componentTables)
+		{
+			if (!bit)
+			{
+				bit = 1ULL;
+
+				field++;
+				if (field >= &linkedComponentTables[CT_BITFIELD_ARRAY_SIZE])
+				{
+					Throw(0, "%s: exhausted bitfields. Increase CT_BITFIELD_ARRAY_SIZE to %u", __FUNCTION__, CT_BITFIELD_ARRAY_SIZE + 1);
+				}
+			}
+
+			if ((field->bits & bit) != 0)
+			{
+				action(tableIndex, *table);
+			}
+
+			bit = bit << 1;
+			tableIndex++;
+		}
+	}
+
 	struct ECSImplementation : IECSSupervisor
 	{
 		std::vector<RCObject> handleTable;
 		std::vector<ROID> freeIds;
 		std::vector<ROID_TABLE_INDEX> activeIds;
 		std::vector<ROID> deprecationList;
+
+		// When a roid is about to be deleted, it is appended to the stack, and removed from the stack after deletion.
+		// This way we can evaluate recursion issues where observers may react by trying to delete other stuff, including the roid itself
+		std::vector<ROID> outgoingRoidStack;
 
 		uint32 maxTableEntries;
 		uint32 enumLock = 0;
@@ -73,6 +116,11 @@ namespace Rococo::ECS
 			return activeIds.size();
 		}
 
+		[[nodiscard]] size_t AvailableRoidCount() const override
+		{
+			return freeIds.size();
+		}
+
 		void CollectGarbage() override
 		{
 			if (enumLock > 0)
@@ -89,6 +137,11 @@ namespace Rococo::ECS
 		}
 
 		bool Deprecate(ROID roid) override
+		{
+			return DeprecateWithNotify(roid, (uint32)-1);
+		}
+
+		bool DeprecateWithNotify(ROID roid, uint32 sourceTableIndex)
 		{
 			if (!IsActive(roid))
 			{
@@ -124,7 +177,7 @@ namespace Rococo::ECS
 				activeIds.pop_back();
 			}
 
-			NotifyComponentsOfDeprecation(roid, object.linkedComponents);
+			NotifyComponentsOfDeprecation(roid, object.linkedComponents, sourceTableIndex);
 
 			object.salt.isDeprecated = 1;
 			object.activeIdIndex = (uint32)-1;
@@ -144,30 +197,26 @@ namespace Rococo::ECS
 			return true;
 		}
 
-		void NotifyComponentsOfDeprecation(ROID roid, const Bitfield linkedComponentTables[CT_BITFIELD_ARRAY_SIZE])
+		void NotifyComponentsOfDeprecation(ROID roid, const Bitfield roidsLinkedComponentTables[CT_BITFIELD_ARRAY_SIZE], uint32 sourceTableIndex)
 		{
-			const Bitfield* field = &linkedComponentTables[-1];
-
-			for (uint32 i = 0; i < componentTables.size(); i++)
+			auto existingCopy = std::find(outgoingRoidStack.begin(), outgoingRoidStack.end(), roid);
+			if (existingCopy != outgoingRoidStack.end())
 			{
-				uint32 bitIndex = i % CB_BITFIELD_ELEMENT_BITCOUNT;
+				// We are already dealing with notifying everyone that the roid is being deprecated
+				return;
+			}
 
-				if (bitIndex == 0)
+			outgoingRoidStack.push_back(roid);
+			ForEachAssociatedTable(componentTables, roidsLinkedComponentTables,
+				[roid, sourceTableIndex](uint32 tableIndex, IComponentTableSupervisor& table)
 				{
-					field++;
-					if (field >= &linkedComponentTables[CT_BITFIELD_ARRAY_SIZE])
+					if (tableIndex != sourceTableIndex)
 					{
-						Throw(0, "%s: exhausted bitfields. Increase CT_BITFIELD_ARRAY_SIZE", __FUNCTION__);
+						table.OnNotifyThatTheECSHasDeprecatedARoid(roid);
 					}
 				}
-
-
-			}
-
-			for (auto table : componentTables)
-			{
-				table->Deprecate(roid);
-			}
+			);
+			outgoingRoidStack.pop_back();
 		}
 
 		void DeprecateAll() override
@@ -251,12 +300,16 @@ namespace Rococo::ECS
 				Throw(0, "%s: Unable to link component table. ROIDS have already been created.", __FUNCTION__);
 			}
 
-			if (componentTables.size() >= CT_BITFIELD_ARRAY_SIZE * 64)
+			if (componentTables.size() >= CT_BITFIELD_ARRAY_SIZE * CT_BITFIELD_ELEMENT_BITCOUNT)
 			{
-				Throw(0, "%s: Insufficient elements bitfield array", __FUNCTION__);
+				Throw(0, "%s: Insufficient elements in bitfield array", __FUNCTION__);
 			}
 
+			uint32 index = (uint32)componentTables.size();
+
 			componentTables.push_back(&table);
+
+			table.BindTableIndex(index);
 		}
 
 		[[nodiscard]] uint32 MaxTableEntries() const override
@@ -287,6 +340,41 @@ namespace Rococo::ECS
 
 		virtual ~ECSImplementation()
 		{
+		}
+
+		void OnNotifyAComponentHasDeprecatedARoid(ROID roid, uint32 sourceTableIndex) override
+		{
+			DeprecateWithNotify(roid, sourceTableIndex);
+		}
+
+		void OnNotifyComponentAttachedToROID(ROID roid, uint32 sourceTableIndex) override
+		{
+			if (sourceTableIndex >= componentTables.size())
+			{
+				Throw(0, "%s: Invalid [sourceTableIndex=%u]", __FUNCTION__, sourceTableIndex);
+			}
+
+			if (roid.index >= handleTable.size())
+			{
+				Throw(0, "%s: Invalid [id=%d]", __FUNCTION__, roid.index);
+			}
+
+			RCObject& object = handleTable[roid.index];
+			ROID_SALT salt = object.salt;
+			if (salt.cycle != roid.salt.cycle)
+			{
+				Throw(0, "%s: Invalid [id=%d]. (Bad salt value %u)", __FUNCTION__, roid.index, roid.salt.cycle);
+			}
+
+			uint32 bitmapArrayIndex = sourceTableIndex / CT_BITFIELD_ELEMENT_BITCOUNT;
+			if (bitmapArrayIndex >= CT_BITFIELD_ARRAY_SIZE)
+			{
+				Throw(0, "%s: Insufficient bits in RCObject bitfield. Increase CT_BITFIELD_ARRAY_SIZE to %u", __FUNCTION__, bitmapArrayIndex + 1);
+			}
+
+			auto& bf = object.linkedComponents[bitmapArrayIndex];
+			uint64 bit = 1ULL << sourceTableIndex % 64;
+			bf.bits |= bit;
 		}
 
 		bool TryLockedOperation(ROID roid, IECS_ROID_LockedSection& section) override

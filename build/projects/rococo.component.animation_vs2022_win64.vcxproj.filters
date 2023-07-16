@@ -14,4 +14,7 @@
       <UniqueIdentifier>{0feb36d4-ded9-b510-4a82-8ce6435f7e81}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\source\rococo\include\rococo.allocators.inl" />
+  </ItemGroup>
 </Project>

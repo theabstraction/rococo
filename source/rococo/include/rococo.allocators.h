@@ -32,11 +32,27 @@ namespace Rococo
 
 namespace Rococo::Memory
 {
+	struct MemoryStats
+	{
+		size_t totalAllocationSize = 0;
+		size_t totalAllocations = 0;
+		size_t totalFrees = 0;
+		size_t failedAllocations = 0;
+		size_t blankFrees = 0;
+	};
+
+	ROCOCO_API void Log(const MemoryStats& stats, cstr name, cstr intro, int (*FN_LOG)(cstr format, ...));
+
 	ROCOCO_INTERFACE IFreeListAllocator
 	{
 		// Returns a buffer with a byte size equal to the value supplied to the fast allocator factory.
 		virtual void* AllocateBuffer() = 0;
+
+		// Zap the buffer for good
 		virtual void FreeBuffer(void* buffer) = 0;
+
+		// Allows re-use of buffer for a later date, and if available provides almost instant re-allocation via AllocateBuffer
+		virtual void ReclaimBuffer(void* buffer) = 0;
 	};
 
 	ROCOCO_INTERFACE IFreeListAllocatorSupervisor : IFreeListAllocator

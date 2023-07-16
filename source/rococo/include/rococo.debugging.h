@@ -34,3 +34,9 @@ namespace Rococo
 		};
 	}
 }
+
+namespace Rococo::Debugging
+{
+	// Emit a log string to the log output. There may be a maximum length, if so, the output is truncated
+	ROCOCO_API int Log(cstr format, ...);
+}

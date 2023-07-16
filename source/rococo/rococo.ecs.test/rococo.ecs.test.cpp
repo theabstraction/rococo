@@ -38,13 +38,24 @@ int main(int argc, char* argv[])
 	UNUSED(argv);
 
 	//Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
-	//	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_None);
+	//Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_None);
 
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF | _CRTDBG_CHECK_ALWAYS_DF);
 
 	try
 	{
+		struct AutoComponentRelease
+		{
+			~AutoComponentRelease()
+			{
+				ECS::ReleaseTablesForIAnimationComponent();
+			}
+		} autoReleaser;
+
 		AutoFree<IECSSupervisor> ecs = CreateECS(32_megabytes);
+		size_t nSlots = ecs->AvailableRoidCount();
+		printf("Initialized ECS with %llu slots\n", nSlots);
+
 		ECS::LinkToECS_IAnimationComponentTable(*ecs);
 		auto id = ecs->NewROID();
 		VALIDATE(id);
@@ -67,6 +78,7 @@ int main(int argc, char* argv[])
 		VALIDATE(!b);
 		VALIDATE(!b.Roid());
 
+		/*
 		try
 		{
 			b = API::ForIAnimationComponent::Add(id);
@@ -76,6 +88,7 @@ int main(int argc, char* argv[])
 		{
 
 		}
+		*/
 
 		auto id2 = ecs->NewROID();
 		VALIDATE(id2);
@@ -97,6 +110,9 @@ int main(int argc, char* argv[])
 
 		VALIDATE(count == 2);
 		VALIDATE(ecs->ActiveRoidCount() == 2);
+
+		VALIDATE(nSlots - ecs->AvailableRoidCount() == 2);
+
 		ecs->Deprecate(id2);
 		VALIDATE(b);
 		ecs->CollectGarbage();
@@ -109,7 +125,28 @@ int main(int argc, char* argv[])
 		VALIDATE(b);
 		VALIDATE(!a.Life().IsDeprecated());
 		VALIDATE(b.Life().IsDeprecated());
-		
+		auto c = API::ForIAnimationComponent::Add(id2);
+		VALIDATE(!c);
+		a.Release();
+		VALIDATE(!a);
+		a = API::ForIAnimationComponent::Get(id);
+		VALIDATE(a);
+		a.Deprecate();
+		VALIDATE(a.Life().IsDeprecated());
+		VALIDATE(!ecs->IsActive(id));
+		a.Release();
+		VALIDATE(!a);
+		b.Release();
+		VALIDATE(!b);
+		VALIDATE(!c);
+
+		ecs->CollectGarbage();
+		VALIDATE(ecs->ActiveRoidCount() == 0);
+
+		size_t nSlotsNow = ecs->AvailableRoidCount();
+
+		VALIDATE(nSlotsNow == nSlots);
+
 		printf("All is well\n");
 		WaitASecond();
 		return 0;

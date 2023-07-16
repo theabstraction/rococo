@@ -237,6 +237,14 @@ namespace Rococo {
 	}
 } // Rococo::OS
 
+#define ROCOCO_MEMORY_MANAGEMENT
+#ifdef ROCOCO_MEMORY_MANAGEMENT
+#include <rococo.allocators.inl>
+DeclareDefaultAllocator(SexyUtils, g_allocator)
+Rococo::Memory::AllocatorMonitor<SexyUtils> monitor;
+
+OVERRIDE_MODULE_ALLOCATORS_WITH_FUNCTOR(g_allocator)
+#else
 _NODISCARD _Ret_notnull_ _Post_writable_byte_size_(nBytes) _VCRT_ALLOCATOR
 void* __CRTDECL operator new(std::size_t nBytes)
 {
@@ -279,4 +287,4 @@ void operator delete(void* buffer) throw()
 {
 	Rococo::Memory::GetSexyAllocator().FreeData(buffer);
 }
-
+#endif
