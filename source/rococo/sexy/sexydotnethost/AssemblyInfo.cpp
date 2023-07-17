@@ -16,7 +16,7 @@ using namespace System::Security::Permissions;
 [assembly:AssemblyConfigurationAttribute("")];
 [assembly:AssemblyCompanyAttribute("")];
 [assembly:AssemblyProductAttribute("SexyDotNetHost")];
-[assembly:AssemblyCopyrightAttribute("Copyright (c)  2011")];
+[assembly:AssemblyCopyrightAttribute("Copyright (c) 2011. Mark Anthony Taylor")];
 [assembly:AssemblyTrademarkAttribute("")];
 [assembly:AssemblyCultureAttribute("")];
 

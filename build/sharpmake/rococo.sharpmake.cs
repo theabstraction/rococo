@@ -125,6 +125,7 @@ namespace Rococo
             if (target.Optimization == Optimization.Debug)
             {
                 config.Options.Add(Sharpmake.Options.Vc.Compiler.Inline.OnlyInline);
+                //config.Options.Add(Sharpmake.Options.Vc.Compiler.Inline.OnlyInline);
             }
             else
             {
@@ -252,6 +253,14 @@ namespace Rococo
             } 
             conf.Options.Add(Options.Vc.Compiler.Exceptions.Enable);
             conf.Options.Add(Options.Vc.Compiler.Inline.OnlyInline);
+            if (target.Optimization == Optimization.Debug)
+            {
+                conf.Options.Add(Options.Vc.Compiler.RuntimeLibrary.MultiThreadedDebugDLL);
+            }
+            else
+            {
+                conf.Options.Add(Options.Vc.Compiler.RuntimeLibrary.MultiThreadedDLL);
+            }
             conf.Options.Add(new Sharpmake.Options.Vc.Compiler.DisableSpecificWarnings("4458", "4201", "4324", "4250"));
             conf.IntermediatePath = Path.Combine(Roots.RococoTmpPath, @"[target.Name]\[project.Name]\");
             conf.TargetPath = Path.Combine(Roots.RococoBinPath, @"[target.Platform]\[conf.Name]\");
@@ -824,7 +833,7 @@ namespace Rococo
             conf.AddPublicDependency<RococoUtilExProject>(target);
             conf.AddPublicDependency<RococoMathsProject>(target);
             conf.AddPublicDependency<SexyBennyHillProject>(target);
-            conf.Options.Add(Sharpmake.Options.Vc.Linker.SubSystem.Windows);
+            conf.Options.Add(Options.Vc.Linker.SubSystem.Windows);
             /*
             string makeFilePath = Path.Combine(Roots.RococoToolsPath, "package.mak");
             string makeRelative = Roots.GetRelativeToProject(makeFilePath);
@@ -1003,6 +1012,30 @@ namespace Rococo
             conf.Defines.Add("SEXYUTIL_API=__declspec(dllexport)");
             conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.SolutionFolder = " - Sexy";
+        }
+    }
+
+    [Sharpmake.Generate]
+    public class SexyDotNetProject : SexyProject
+    {
+        public SexyDotNetProject() : base("sexy.dotnet", "sexydotnethost")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.DotNetClassLibrary);
+            conf.SolutionFolder = " - Sexy";
+            conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.AddPublicDependency<SexyUtilProject>(target);
+            conf.AddPublicDependency<SexyVMProject>(target);
+            conf.AddPublicDependency<SexyCompilerProject>(target);
+            conf.AddPublicDependency<SexyScriptProject>(target);
+            conf.AddPublicDependency<SexySParserProject>(target);
+            conf.Options.Add(Options.Vc.General.CommonLanguageRuntimeSupport.ClrSupport);
+            conf.Options.Add(Options.Vc.Compiler.Exceptions.EnableWithSEH);
+            conf.Options.Add(Options.Vc.Compiler.RTTI.Enable);
         }
     }
 
@@ -1304,6 +1337,7 @@ namespace Rococo
                 conf.AddProject<SexyReflectionProject>(target);
                 conf.AddProject<SexyMathsProject>(target);
                 conf.AddProject<SexyBennyHillProject>(target);
+                conf.AddProject<SexyDotNetProject>(target);
 
                 conf.AddProject<LibJPegProject>(target);
                 conf.AddProject<LibTiffProject>(target);
@@ -1375,6 +1409,7 @@ namespace Rococo
             conf.AddProject<SexyReflectionProject>(target);
             conf.AddProject<SexyMathsProject>(target);
             conf.AddProject<SexyBennyHillProject>(target);
+            conf.AddProject<SexyDotNetProject>(target);
         }
     }
 
@@ -1433,6 +1468,7 @@ namespace Rococo
             arguments.Generate<RococoComponentsBodyProject>();
             arguments.Generate<RococoComponentsSkeletonProject>();
             arguments.Generate<RococoECSTestProject>();
+            arguments.Generate<SexyDotNetProject>();
         }
     }
 }

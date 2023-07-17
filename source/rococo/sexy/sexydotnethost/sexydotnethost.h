@@ -67,6 +67,7 @@ namespace
 
 		void OnUnhandledException(int errorCode, cstr exceptionType, cstr message, void* exceptionInstance) 
 		{
+			UNUSED(exceptionInstance);
 			char text[256];
 			SafeFormat(text, sizeof(text), "%s: code %d\nMessage: %s\n", exceptionType, errorCode, message);
 			Write(text);

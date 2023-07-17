@@ -2556,7 +2556,8 @@ extern "C" SCRIPTEXPORT_API Rococo::Script::IScriptSystemFactory* CreateScriptSy
 {
 	try
 	{
-		void* data = Memory::GetSexyAllocator().Allocate(sizeof(Anon::SSFactory));
+
+		void* data = Memory::AllocateSexyMemory(sizeof Anon::SSFactory);
 		auto* factory = new (data) Anon::SSFactory();
 		return factory;
 	}
@@ -2565,7 +2566,6 @@ extern "C" SCRIPTEXPORT_API Rococo::Script::IScriptSystemFactory* CreateScriptSy
 		char errLog[256];
         SafeFormat(errLog, 256, ("Sexy CreateScriptSystemFactory_1_5_0_0(...) returning NULL. Error: %d, %s."), ex.ErrorCode(), ex.Message());
 		Throw(ex.ErrorCode(), "%s", errLog);
-		return nullptr;
 	}
 }
 

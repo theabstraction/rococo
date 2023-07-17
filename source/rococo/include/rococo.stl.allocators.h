@@ -1,5 +1,7 @@
 #pragma once
 
+#include <rococo.compiler.options.h>
+
 #include <new> // bad_alloc, bad_array_new_length
 #include <string>
 
@@ -9,13 +11,41 @@
 
 namespace Rococo::Memory
 {
+#ifdef USE_STD_ALLOCATOR_FOR_SEXY
+    FORCE_INLINE void* AllocateSexyMemory(size_t nBytes)
+    {
+        return new char[nBytes];
+    }
+
+    FORCE_INLINE void FreeSexyMemory(void* pBuffer, size_t nBytes)
+    {
+        UNUSED(nBytes);
+        delete[](char*) pBuffer;
+    }
+
+    FORCE_INLINE void FreeSexyUnknownMemory(void* pBuffer)
+    {
+        delete[](char*) pBuffer;
+    }
+#else
     SEXYUTIL_API void* AllocateSexyMemory(size_t nBytes);
     SEXYUTIL_API void FreeSexyMemory(void* pBuffer, size_t nBytes);
     SEXYUTIL_API void FreeSexyUnknownMemory(void* pBuffer);
+#endif
     SEXYUTIL_API IAllocator& GetSexyAllocator();
     SEXYUTIL_API void SetSexyAllocator(IAllocator* allocator);
     SEXYUTIL_API void ValidateNothingAllocated();
+}
 
+#ifdef USE_STD_ALLOCATOR_FOR_SEXY
+namespace Rococo::Memory
+{
+    template<class T>
+    using SexyAllocator = std::allocator<T>;
+}
+#else
+namespace Rococo::Memory
+{
     template <class T>
     struct SexyAllocator
     {
@@ -58,10 +88,16 @@ namespace Rococo::Memory
         FreeSexyMemory(p, len);
     }
 }
+#endif
 
 namespace Rococo
 {
-    using rstdstring = std::basic_string<char, std::char_traits<char>, Memory::SexyAllocator<char>>;
+    //define rstdstring, rococo's std::string. In DLL mode sexyscript should be set to use std::string, so that the global allocators handle it
+    //while in static linking mode go through the sexy allocator.
+    
+
+    //using rstdstring = std::basic_string<char, std::char_traits<char>, Memory::SexyAllocator<char>>;
+    using rstdstring = std::string;
 
     namespace Memory
     {

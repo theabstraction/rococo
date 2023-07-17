@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\..\source\rococo\sexy\sexydotnethost\AssemblyInfo.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy\sexydotnethost\disassembler.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy\sexydotnethost\sexydotnethost.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy\sexydotnethost\Stdafx.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\source\rococo\sexy\sexydotnethost\char.to.unicode.conversions.h" />
+    <ClInclude Include="..\..\source\rococo\sexy\sexydotnethost\resource.h" />
+    <ClInclude Include="..\..\source\rococo\sexy\sexydotnethost\sexchar.to.unicode.conversions.h" />
+    <ClInclude Include="..\..\source\rococo\sexy\sexydotnethost\sexydotnethost.h" />
+    <ClInclude Include="..\..\source\rococo\sexy\sexydotnethost\Stdafx.h" />
+  </ItemGroup>
+</Project>

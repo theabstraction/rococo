@@ -341,6 +341,9 @@ namespace Rococo::Memory
 		globalSexyAllocator = allocator == nullptr ? &defaultAllocator : allocator;
 	}
 
+#ifdef USE_STD_ALLOCATOR_FOR_SEXY
+
+#else
 	SEXYUTIL_API void* AllocateSexyMemory(size_t nBytes)
 	{
 		return globalSexyAllocator->Allocate(nBytes);
@@ -355,6 +358,7 @@ namespace Rococo::Memory
 	{
 		globalSexyAllocator->FreeData(buffer);
 	}
+#endif
 
 	SEXYUTIL_API IAllocator& GetSexyAllocator()
 	{

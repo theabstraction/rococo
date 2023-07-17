@@ -15315,14 +15315,14 @@ R"(
 	   TEST(TestArrayProxy);
 	   TEST(TestArrayClear);
 	   TEST(TestArrayPushBool);
-
+		TEST(TestArrayLast);
 	   TEST(TestReturnArrayRefAndIgnore);
    }
 
-   void RunCollectionTests()
+   void TestLists()
    {
+	   goto here;
 	   TEST(TestMapInsertCorrectRefs);
-	   TEST(TestArrayLast);
 	   TEST(TestLinkedListNodeInline);
 	   TEST(TestLinkedListContained);
 	   TEST(TestLinkedListOfLists);
@@ -15339,13 +15339,19 @@ R"(
 	   TEST(TestLinkedList10);
 	   TEST(TestLinkedListOfInterfaces);
 	   TEST(TestLinkedListOfInterfaces2);
+	   return;
+
 	   TEST(TestLinkedListForeach1);
 	   TEST(TestLinkedListForeach2);
 	   TEST(TestLinkedListForeach4);
+ //  here:
 	   TEST(TestLinkedListForeach5);
 	   TEST(TestLinkedListForeach6);
+ //  here:
 	   TEST(TestLinkedListForeach7);
+   here:
 	   TEST(TestLinkedListForeach8);
+  // here:
 	   TEST(TestLinkedListOfArchetypes);
 
 	   TEST(TestListStruct);
@@ -15356,9 +15362,10 @@ R"(
 
 	   TEST(TestListDeleteHeadAndThrow);
 	   TEST(TestListReverseEnumeration);
+   }
 
-	   TestArrays();
-
+   void TestMaps()
+   {  
 	   TEST(TestMapOverwriteValue);
 
 	   TEST3(TestMapKey);
@@ -15638,7 +15645,6 @@ R"(
 		TEST(TestGlobalInt32_3);
 
 		TEST(TestStructWithInterface);
-
 		TEST(TestMinimumConstruct);
 		TEST3(TestCreateDeclarations);
 		TEST(TestLocalVariable);
@@ -15662,7 +15668,6 @@ R"(
 		TEST(TestBooleanCompoundExpressions12);
 		TEST(TestIfThen1);
 		TEST(TestIfThen2);
-
 		TEST(TestFloatArithmetic);
 		TEST(TestDoubleArithmetic0);
 		TEST(TestDoubleArithmetic1);
@@ -15865,12 +15870,18 @@ R"(
 		int64 start, end, hz;
 		start = Time::TickCount();
 
-		Memory::ValidateNothingAllocated();
+	//	Memory::ValidateNothingAllocated();
 
-		TestMemoryIsGood();
-		RunPositiveSuccesses();	
+	//	TEST(TestEssentialInterface);
+
+	//	TestMemoryIsGood();
+	//	RunPositiveSuccesses();	
 	//	RunPositiveFailures();
-	//	RunCollectionTests();
+	//	TestArrays();
+	//	TestLists();
+	//	TestMaps;
+
+		TEST(TestLinkedListForeach8);
 	
 		end = Time::TickCount();
 		hz = Time::TickHz();

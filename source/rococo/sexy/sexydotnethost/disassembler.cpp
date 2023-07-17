@@ -114,7 +114,8 @@ namespace SexyDotNet { namespace Host
 				
 				int lineNumber = assemblySegments->Count;
 				sourceFileSegments->default[IntPtr((Void*)(i + code))] = SourceFileSegment(lineNumber, IntPtr((Void*)code), sourceModule, FunctionRef(functionHandle,functionName));
-				int lineLength = GetAssemblyUnicodeAndUpdatePCOffset(IN code, REF i, IN disassembler, IN symbol.Text, OUT temp);									
+				int lineLength = GetAssemblyUnicodeAndUpdatePCOffset(IN code, REF i, IN disassembler, IN symbol.Text, OUT temp);	
+				UNUSED(lineLength);
 				assemblySegments->Add(gcnew String(temp));					
 			}	
 

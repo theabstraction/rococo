@@ -271,7 +271,7 @@ namespace Rococo::Memory
 		TWatch stackWatch;
 		size_t countWatched = 0;
 
-		enum {ALLOCATION_SIZE_WATCHED = 192};
+		enum {ALLOCATION_SIZE_WATCHED = 67};
 
 		void AddMetrics(size_t nBytes)
 		{
@@ -305,6 +305,16 @@ namespace Rococo::Memory
 				}
 			} byProduct; 
 
+			UNUSED(byProduct);
+
+			struct MetricSortByAllocSize
+			{
+				bool operator()(const Metric& a, const Metric& b) const
+				{
+					return a.allocSize < b.allocSize;
+				}
+			} byAllocSize;
+
 			std::vector<Metric> metricArray;
 			for (auto i : metrics)
 			{
@@ -315,7 +325,7 @@ namespace Rococo::Memory
 				metricArray.push_back(m);
 			}
 
-			std::sort(metricArray.begin(), metricArray.end(), byProduct);
+			std::sort(metricArray.begin(), metricArray.end(), byAllocSize);
 			
 			alloc_printf("Metrics:\n");
 
@@ -331,7 +341,7 @@ namespace Rococo::Memory
 			{
 				countWatched++;
 
-				enum { DEPTH = 5 };
+				enum { DEPTH = 7 };
 				
 				TrackingString ts;
 				auto address = Debugging::FormatStackFrame(ts.msg, sizeof ts.msg, DEPTH);
@@ -374,7 +384,7 @@ namespace Rococo::Memory
 			}
 
 			AddTrackingData(data, nBytes, false);
-		//	AddMetrics(nBytes);
+			AddMetrics(nBytes);
 
 			return data;
 		}
@@ -460,11 +470,14 @@ namespace Rococo::Memory
 
 			if (!leakMapSizeToCount.empty())
 			{
+				ShowMetrics();
+
 				allocator_printf(" Leaks detected: (%llu bytes)\n", stats.totalAllocationSize - totalFreed);
 				for (auto i : leakMapSizeToCount)
 				{
 					allocator_printf("%9llu bytes x %-9llu = %llu bytes\n", i.first, i.second, i.first * i.second);
 				}
+
 			}
 			else
 			{

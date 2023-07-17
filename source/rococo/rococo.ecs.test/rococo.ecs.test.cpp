@@ -3,6 +3,8 @@
 #include <components/rococo.components.animation.h>
 #include <rococo.ecs.h>
 #include <rococo.os.h>
+#include <vector>
+#include <rococo.time.h>
 
 #ifdef _WIN32
 #include <rococo.os.win32.h>
@@ -148,7 +150,38 @@ int main(int argc, char* argv[])
 		VALIDATE(nSlotsNow == nSlots);
 
 		printf("All is well\n");
-		WaitASecond();
+		//WaitASecond();
+
+		auto start =Time::TickCount();
+
+		std::vector<void*> ptrs;
+		for (int i = 0; i < 250'000; i++)		
+		{
+			if ((i % 50000) == 0)
+			{
+				printf("Allocating %d+\n", i);
+			}
+			void* buffer = malloc(192);
+			ptrs.push_back(buffer);
+		}
+
+		auto mid = Time::TickCount();
+
+		for (int i = 0; i < 250'000; i++)
+		{
+			if ((i % 50000) == 0)
+			{
+				printf("Freeing %d+\n", i);
+			}
+			free(ptrs[i]);
+		}
+
+		auto end = Time::TickCount();
+
+		printf("Allocation Time: %.0fns per 192 byte block\n", 1000'000'000.0f * (mid - start) / (250'000.0 * Time::TickHz()));
+		printf("      Free Time: %.0fns per 192 byte block\n", 1000'000'000.0f * (end - mid) / (250'000.0 * Time::TickHz()));
+		printf("Total Time: %.4fs\n", (end - start) / (double)Time::TickHz());
+
 		return 0;
 	}
 	catch (IException& ex)

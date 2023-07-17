@@ -452,6 +452,7 @@ namespace SexyDotNet { namespace Host
 
 		void OnMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const uint8* sfItem, int offset, int depth) override
 		{
+			UNUSED(offset);
 			if (depth > 5) return;
 
 			NativeVariableDesc desc;
@@ -493,6 +494,8 @@ namespace SexyDotNet { namespace Host
 
 		void OnListMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const ListImage* l, const uint8* sfItem, int offset, int recurseDepth)
 		{
+			UNUSED(offset);
+			UNUSED(ss);
 			if (recurseDepth > 5) return;
 
 			NativeVariableDesc desc;
@@ -546,6 +549,7 @@ namespace SexyDotNet { namespace Host
 
 		void OnArrayMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const ArrayImage* pArray, const uint8* sfItem, int offset, int depth) override
 		{
+			UNUSED(offset);
 			if (depth > 5) return;
 
 			NativeVariableDesc desc;
@@ -693,6 +697,8 @@ namespace SexyDotNet { namespace Host
 
 		void OnMapMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const MapImage* pMap, const uint8* sfItem, int offset, int depth) override
 		{
+			UNUSED(ss);
+			UNUSED(offset);
 			if (depth > 5) return;
 
 			NativeVariableDesc desc;
@@ -854,8 +860,6 @@ namespace SexyDotNet { namespace Host
 					}
 					else
 					{
-						size_t subMemberOffset = 0;
-
 						TVariableList nativeVars;
 						ListVariableDescBuilder builder(nativeVars, vk);
 						GetMembers(ss, s, sxchVariableName, pInstance, 0, builder, 0);
@@ -926,6 +930,7 @@ namespace SexyDotNet { namespace Host
 
 	void CStepCallback::OnStep(Rococo::VM::IDebugger& debugger)
 	{
+		UNUSED(debugger);
 		int stepIndex = nextStepIndex;
 
 		// Route messages will allow the UI to handle StepNext etc, which advances nextStepIndex

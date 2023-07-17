@@ -1575,10 +1575,12 @@ namespace Rococo::Script
 		cstr body, tail;
 		splitter.SplitTail(body, tail);
 
-		char* message = (char*) ss.AlignedMalloc(8, 256);
+		char message[256];
 		SafeFormat(message, 256, "%s.%s: null reference", i->Name(), tail);
 
-		auto* sc = ss.GetStringReflection(message);
+		cstr uniqueString = ss.GetPersistentString(message);
+
+		auto* sc = ss.GetStringReflection(uniqueString);
 		ss.ThrowFromNativeCode(0, sc->pointer);
 	}
 

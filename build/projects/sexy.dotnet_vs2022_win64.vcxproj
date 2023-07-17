@@ -11,28 +11,34 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{4AF371DC-5A8D-D066-6EB7-99D2EF577C63}</ProjectGuid>
+    <ProjectGuid>{57D4BCD1-9538-6011-5E1F-14631B8C6AA0}</ProjectGuid>
+    <TargetFramework>net6.0</TargetFramework>
+    <Keyword>ManagedCProj</Keyword>
     <DefaultLanguage>en-US</DefaultLanguage>
-    <RootNamespace>rococo.file.browser</RootNamespace>
-    <ProjectName>rococo.file.browser</ProjectName>
+    <RootNamespace>sexy.dotnet</RootNamespace>
+    <ProjectName>sexy.dotnet</ProjectName>
   </PropertyGroup>
   <PropertyGroup Label="Globals">
     <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
+    <CLRSupport>NetCore</CLRSupport>
     <WholeProgramOptimization>false</WholeProgramOptimization>
     <PlatformToolset>v143</PlatformToolset>
+    <CLRSupport>true</CLRSupport>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
+    <CLRSupport>NetCore</CLRSupport>
     <WholeProgramOptimization>false</WholeProgramOptimization>
     <PlatformToolset>v143</PlatformToolset>
+    <CLRSupport>true</CLRSupport>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -42,23 +48,23 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <TargetName>rococo.file.browser</TargetName>
-    <OutDir>..\..\gen\lib\win64\debug\</OutDir>
-    <IntDir>..\..\gen\temp\debug\rococo.file.browser\</IntDir>
-    <TargetExt>.lib</TargetExt>
+    <TargetName>sexy.dotnet</TargetName>
+    <OutDir>..\..\gen\bin\win64\debug\</OutDir>
+    <IntDir>..\..\gen\temp\debug\sexy.dotnet\</IntDir>
+    <TargetExt>.dll</TargetExt>
     <GenerateManifest>true</GenerateManifest>
     <LinkIncremental>false</LinkIncremental>
-    <OutputFile>..\..\gen\lib\win64\debug\rococo.file.browser.lib</OutputFile>
+    <OutputFile>..\..\gen\bin\win64\debug\sexy.dotnet.dll</OutputFile>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <TargetName>rococo.file.browser</TargetName>
-    <OutDir>..\..\gen\lib\win64\release\</OutDir>
-    <IntDir>..\..\gen\temp\release\rococo.file.browser\</IntDir>
-    <TargetExt>.lib</TargetExt>
+    <TargetName>sexy.dotnet</TargetName>
+    <OutDir>..\..\gen\bin\win64\release\</OutDir>
+    <IntDir>..\..\gen\temp\release\sexy.dotnet\</IntDir>
+    <TargetExt>.dll</TargetExt>
     <GenerateManifest>true</GenerateManifest>
     <LinkIncremental>false</LinkIncremental>
-    <OutputFile>..\..\gen\lib\win64\release\rococo.file.browser.lib</OutputFile>
+    <OutputFile>..\..\gen\bin\win64\release\sexy.dotnet.dll</OutputFile>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -66,7 +72,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN64;_DEBUG;_LIB;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN64;_DEBUG;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -85,7 +91,7 @@
       <PreprocessSuppressLineNumbers>false</PreprocessSuppressLineNumbers>
       <PreprocessKeepComments>false</PreprocessKeepComments>
       <StringPooling>true</StringPooling>
-      <ExceptionHandling>Sync</ExceptionHandling>
+      <ExceptionHandling>Async</ExceptionHandling>
       <SmallerTypeCheck>false</SmallerTypeCheck>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -98,7 +104,7 @@
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
       <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
-      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <OpenMPSupport>false</OpenMPSupport>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <ExpandAttributedSource>false</ExpandAttributedSource>
@@ -109,27 +115,49 @@
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>4201;4250;4324;4458</DisableSpecificWarnings>
       <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
-      <ProgramDatabaseFileName>..\..\gen\temp\debug\rococo.file.browser\rococo.file.browser_compiler.pdb</ProgramDatabaseFileName>
+      <ProgramDatabaseFileName>..\..\gen\temp\debug\sexy.dotnet\sexy.dotnet_compiler.pdb</ProgramDatabaseFileName>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+      <OutputFile>..\..\gen\bin\win64\debug\sexy.dotnet.dll</OutputFile>
+      <ShowProgress>NotSet</ShowProgress>
+      <AdditionalLibraryDirectories>..\..\gen\lib\win64\debug</AdditionalLibraryDirectories>
+      <ProgramDatabaseFile>..\..\gen\bin\win64\debug\sexy.dotnet.pdb</ProgramDatabaseFile>
+      <GenerateMapFile>true</GenerateMapFile>
+      <MapExports>false</MapExports>
+      <SwapRunFromCD>false</SwapRunFromCD>
+      <SwapRunFromNET>false</SwapRunFromNET>
+      <Driver>NotSet</Driver>
       <OptimizeReferences>false</OptimizeReferences>
-    </Link>
-    <Lib>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+      <ProfileGuidedDatabase>
+      </ProfileGuidedDatabase>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
+      <IgnoreEmbeddedIDL>false</IgnoreEmbeddedIDL>
+      <TypeLibraryResourceID>1</TypeLibraryResourceID>
+      <NoEntryPoint>false</NoEntryPoint>
+      <SetChecksum>false</SetChecksum>
+      <TurnOffAssemblyGeneration>false</TurnOffAssemblyGeneration>
       <TargetMachine>MachineX64</TargetMachine>
-      <SubSystem/>
-      <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
-      <OutputFile>..\..\gen\lib\win64\debug\rococo.file.browser.lib</OutputFile>
-    </Lib>
+      <Profile>false</Profile>
+      <CLRImageType>Default</CLRImageType>
+      <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
+      <AdditionalDependencies>rococo.util.lib;sexy.compiler.lib;sexy.s-parser.lib;sexy.script.lib;sexy.util.lib;sexy.vm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <LargeAddressAware>true</LargeAddressAware>
+      <MapFileName>..\..\gen\bin\win64\debug\sexy.dotnet.map</MapFileName>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Full</Optimization>
-      <PreprocessorDefinitions>NDEBUG;WIN64;_LIB;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;WIN64;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -148,7 +176,7 @@
       <PreprocessSuppressLineNumbers>false</PreprocessSuppressLineNumbers>
       <PreprocessKeepComments>false</PreprocessKeepComments>
       <StringPooling>true</StringPooling>
-      <ExceptionHandling>Sync</ExceptionHandling>
+      <ExceptionHandling>Async</ExceptionHandling>
       <SmallerTypeCheck>false</SmallerTypeCheck>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -161,7 +189,7 @@
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
       <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
-      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <OpenMPSupport>false</OpenMPSupport>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <ExpandAttributedSource>false</ExpandAttributedSource>
@@ -172,28 +200,89 @@
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>4201;4250;4324;4458</DisableSpecificWarnings>
       <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
-      <ProgramDatabaseFileName>..\..\gen\temp\release\rococo.file.browser\rococo.file.browser_compiler.pdb</ProgramDatabaseFileName>
+      <ProgramDatabaseFileName>..\..\gen\temp\release\sexy.dotnet\sexy.dotnet_compiler.pdb</ProgramDatabaseFileName>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OutputFile>..\..\gen\bin\win64\release\sexy.dotnet.dll</OutputFile>
+      <ShowProgress>NotSet</ShowProgress>
+      <AdditionalLibraryDirectories>..\..\gen\lib\win64\release</AdditionalLibraryDirectories>
+      <ProgramDatabaseFile>..\..\gen\bin\win64\release\sexy.dotnet.pdb</ProgramDatabaseFile>
+      <GenerateMapFile>true</GenerateMapFile>
+      <MapExports>false</MapExports>
+      <SwapRunFromCD>false</SwapRunFromCD>
+      <SwapRunFromNET>false</SwapRunFromNET>
+      <Driver>NotSet</Driver>
       <OptimizeReferences>true</OptimizeReferences>
-    </Link>
-    <Lib>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <ProfileGuidedDatabase>
+      </ProfileGuidedDatabase>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
+      <IgnoreEmbeddedIDL>false</IgnoreEmbeddedIDL>
+      <TypeLibraryResourceID>1</TypeLibraryResourceID>
+      <NoEntryPoint>false</NoEntryPoint>
+      <SetChecksum>false</SetChecksum>
+      <TurnOffAssemblyGeneration>false</TurnOffAssemblyGeneration>
       <TargetMachine>MachineX64</TargetMachine>
-      <SubSystem/>
-      <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
-      <OutputFile>..\..\gen\lib\win64\release\rococo.file.browser.lib</OutputFile>
-    </Lib>
+      <Profile>false</Profile>
+      <CLRImageType>Default</CLRImageType>
+      <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
+      <AdditionalDependencies>rococo.util.lib;sexy.compiler.lib;sexy.s-parser.lib;sexy.script.lib;sexy.util.lib;sexy.vm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <LargeAddressAware>true</LargeAddressAware>
+      <MapFileName>..\..\gen\bin\win64\release\sexy.dotnet.map</MapFileName>
+    </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\source\rococo\sexy\sexydotnethost\char.to.unicode.conversions.h" />
+    <ClInclude Include="..\..\source\rococo\sexy\sexydotnethost\resource.h" />
+    <ClInclude Include="..\..\source\rococo\sexy\sexydotnethost\sexchar.to.unicode.conversions.h" />
+    <ClInclude Include="..\..\source\rococo\sexy\sexydotnethost\sexydotnethost.h" />
+    <ClInclude Include="..\..\source\rococo\sexy\sexydotnethost\Stdafx.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\source\rococo\rococo.file.browser\rococo.file.browser.main.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.file.browser\rococo.pingpopulator.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy\sexydotnethost\AssemblyInfo.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy\sexydotnethost\disassembler.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy\sexydotnethost\sexydotnethost.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy\sexydotnethost\Stdafx.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+  <ItemGroup>
+    <ProjectReference Include="sexy.script_vs2022_win64.vcxproj">
+      <Project>{18F4E289-D814-2BE5-97CF-FC0D7748887B}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+    <ProjectReference Include="sexy.util_vs2022_win64.vcxproj">
+      <Project>{3E686747-BC5F-FFE1-B4A3-7E531F4122E2}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+    <ProjectReference Include="rococo.util_vs2022_win64.vcxproj">
+      <Project>{62184609-95D1-1E60-D8CD-3755550224A5}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+    <ProjectReference Include="sexy.compiler_vs2022_win64.vcxproj">
+      <Project>{87496FE8-0053-AED7-44D6-138174796DD1}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+    <ProjectReference Include="sexy.s-parser_vs2022_win64.vcxproj">
+      <Project>{BACEFA6A-2AAC-DC56-B568-376B6F64FA56}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+    <ProjectReference Include="sexy.vm_vs2022_win64.vcxproj">
+      <Project>{E5E0C1D4-7F40-03AB-2FC9-271443A2C6AA}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemGroup>
 </Project>
