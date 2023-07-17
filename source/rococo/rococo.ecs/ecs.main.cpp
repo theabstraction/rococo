@@ -3,7 +3,7 @@
 
 #include <rococo.allocators.inl>
 
-DeclareDefaultAllocator(ECS, g_allocator)
+DeclareAllocator(DefaultAllocator, ECS, g_allocator)
 Rococo::Memory::AllocatorMonitor<ECS> monitor;
 
 OVERRIDE_MODULE_ALLOCATORS_WITH_FUNCTOR(g_allocator)

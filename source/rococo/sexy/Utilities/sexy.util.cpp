@@ -52,8 +52,10 @@
 
 #include <rococo.allocators.inl>
 
-DeclareDefaultAllocator(SexyUtils, g_allocator)
-Rococo::Memory::AllocatorMonitor<SexyUtils> monitor;
+using namespace Rococo::Memory;
+
+DeclareAllocator(DefaultAllocator, SexyUtils, g_allocator)
+//Rococo::Memory::AllocatorMonitor<SexyUtils> monitor;
 
 OVERRIDE_MODULE_ALLOCATORS_WITH_FUNCTOR(g_allocator)
 

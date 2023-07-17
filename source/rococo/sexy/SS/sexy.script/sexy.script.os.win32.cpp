@@ -240,8 +240,8 @@ namespace Rococo {
 #define ROCOCO_MEMORY_MANAGEMENT
 #ifdef ROCOCO_MEMORY_MANAGEMENT
 #include <rococo.allocators.inl>
-DeclareDefaultAllocator(SexyUtils, g_allocator)
-Rococo::Memory::AllocatorMonitor<SexyUtils> monitor;
+DeclareAllocator(TrackingAllocator, SexyScript, g_allocator)
+Rococo::Memory::AllocatorMonitor<SexyScript> monitor;
 
 OVERRIDE_MODULE_ALLOCATORS_WITH_FUNCTOR(g_allocator)
 #else

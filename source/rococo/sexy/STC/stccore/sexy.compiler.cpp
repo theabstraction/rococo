@@ -549,7 +549,7 @@ namespace Anon
 		program->Release();
 		svmCore->Free();
 
-		delete common;
+		if (common) delete common;
 	}
 
 	void ProgramObject::Free()

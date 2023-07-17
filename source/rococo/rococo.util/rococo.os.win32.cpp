@@ -43,13 +43,13 @@
 
 #include <rococo.allocators.inl>
 
-DeclareDefaultAllocator(RococoUtils, g_allocator)
-Rococo::Memory::AllocatorMonitor<RococoUtils> monitor;
-
-OVERRIDE_MODULE_ALLOCATORS_WITH_FUNCTOR(g_allocator)
-
 using namespace Rococo::IO;
 using namespace Rococo::Strings;
+using namespace Rococo::Memory;
+
+DeclareAllocator(TrackingAllocator, RococoUtils, g_allocator)
+// AllocatorMonitor<RococoUtils> monitor;
+OVERRIDE_MODULE_ALLOCATORS_WITH_FUNCTOR(g_allocator)
 
 namespace Rococo
 {

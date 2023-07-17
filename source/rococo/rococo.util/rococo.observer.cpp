@@ -15,8 +15,6 @@ namespace
    using namespace Rococo;
    using namespace Rococo::Events;
 
-   std::unordered_map<size_t, cstr> knownEvents;
-
    struct EventIdMapHasher
    {
       size_t operator()(EventHash id) const

@@ -4,7 +4,9 @@
 #include <rococo.ecs.builder.inl>
 #include <rococo.allocators.inl>
 
-DeclareDefaultAllocator(Animation, g_allocator)
+using namespace Rococo::Memory;
+
+DeclareAllocator(TrackingAllocator, Animation, g_allocator);
 Rococo::Memory::AllocatorMonitor<Animation> monitor;
 
 OVERRIDE_MODULE_ALLOCATORS_WITH_FUNCTOR(g_allocator)
@@ -27,14 +29,6 @@ namespace Rococo::Components
 			return *animation;
 		}
 	};
-
-	namespace API::ForIAnimationComponent
-	{
-		IComponentFactory<IAnimationComponent>* CreateComponentFactory()
-		{
-			return new DefaultFactory<IAnimationComponent, AnimationComponent>();
-		}
-	}
 }
 
 DEFINE_AND_EXPORT_SINGLETON_METHODS_WITH_DEFAULT_FACTORY(ROCOCO_COMPONENTS_ANIMATION_API, IAnimationComponent, AnimationComponent)

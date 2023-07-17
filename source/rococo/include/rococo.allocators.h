@@ -32,16 +32,17 @@ namespace Rococo
 
 namespace Rococo::Memory
 {
-	struct MemoryStats
+	struct AllocatorMetrics
 	{
 		size_t totalAllocationSize = 0;
 		size_t totalAllocations = 0;
 		size_t totalFrees = 0;
 		size_t failedAllocations = 0;
 		size_t blankFrees = 0;
+		size_t usefulFrees = 0;
 	};
 
-	ROCOCO_API void Log(const MemoryStats& stats, cstr name, cstr intro, int (*FN_LOG)(cstr format, ...));
+	ROCOCO_API void Log(const AllocatorMetrics& stats, cstr name, cstr intro, int (*FN_LOG)(cstr format, ...));
 
 	ROCOCO_INTERFACE IFreeListAllocator
 	{
