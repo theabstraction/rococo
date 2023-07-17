@@ -93,16 +93,17 @@ namespace Rococo::Memory
 		}
 	};
 
+	struct TrackingAtom
+	{
+		size_t bufferLength = 0;
+		bool wasFreed = false;
+		int reuseCount = 0;
+	};
+
 	template<class T>
 	class TrackingAllocator
 	{
 	public:
-		struct TrackingAtom
-		{
-			size_t bufferLength = 0;
-			bool wasFreed = false;
-			int reuseCount = 0;
-		};
 		AllocatorMetrics stats;
 		std::unordered_map<size_t, TrackingAtom, hash_size_t, size_t_equal_to, std_Malloc_Allocator<std::pair<const size_t,TrackingAtom>>> tracking;
 

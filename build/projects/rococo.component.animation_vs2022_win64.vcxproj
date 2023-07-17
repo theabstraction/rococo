@@ -141,8 +141,7 @@
       <AdditionalDependencies>rococo.ecs.lib;rococo.maths.lib;rococo.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries>
-      </IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\debug\rococo.component.animation.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\debug\rococo.component.animation.lib</ImportLibrary>
@@ -228,8 +227,7 @@
       <AdditionalDependencies>rococo.ecs.lib;rococo.maths.lib;rococo.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries>
-      </IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\release\rococo.component.animation.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\release\rococo.component.animation.lib</ImportLibrary>
@@ -261,8 +259,5 @@
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\source\rococo\include\rococo.allocators.inl" />
   </ItemGroup>
 </Project>

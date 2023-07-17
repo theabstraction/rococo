@@ -144,12 +144,15 @@ namespace Rococo::Components
 
 		virtual ~ComponentTable()
 		{
+			ecs = nullptr;
+
 			struct ANON : IComponentCallback<IComponentBase>
 			{
 				ComponentTable<COMPONENT>* This = nullptr;
 				EFlowLogic OnComponent(ROID, IComponentBase& base) override
 				{
-					This->componentAllocator->FreeBuffer(&base);
+					auto* component = static_cast<COMPONENT*>(&base);
+					This->componentAllocator->FreeBuffer(component);
 					return EFlowLogic::CONTINUE;
 				}
 			} deleteIt;

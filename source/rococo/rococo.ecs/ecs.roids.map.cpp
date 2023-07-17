@@ -9,9 +9,9 @@ namespace Rococo::Components
 	struct RoidMap: IRoidMap
 	{
 		std::unordered_map<ROID, IComponentBase*, STDROID, STDROID> rows;
-		HString friendlyName;
+		const char* const friendlyName;
 
-		RoidMap(cstr _friendlyName, size_t reserveRows): friendlyName(_friendlyName)
+		RoidMap(const char* const _friendlyName, size_t reserveRows): friendlyName(_friendlyName)
 		{
 			rows.reserve(reserveRows);
 		}
@@ -87,7 +87,7 @@ namespace Rococo::Components
 			auto insertion = rows.insert(nullItem);
 			if (!insertion.second)
 			{
-				Throw(0, "%s(%s): a component with the given id 0x%8.8X already exists", __FUNCTION__, friendlyName.c_str(), id.index);
+				Throw(0, "%s(%s): a component with the given id 0x%8.8X already exists", __FUNCTION__, friendlyName, id.index);
 			}
 
 			IComponentBase* base = nullptr;
@@ -97,7 +97,7 @@ namespace Rococo::Components
 				base = factory.Create(id);
 				if (base == nullptr)
 				{
-					Throw(0, "%s(%s): factory returned a nullptr", __FUNCTION__, friendlyName.c_str());
+					Throw(0, "%s(%s): factory returned a nullptr", __FUNCTION__, friendlyName);
 				}
 				insertion.first->second = base;
 			}
@@ -114,7 +114,7 @@ namespace Rococo::Components
 		}
 	};
 
-	ROCOCO_ECS_API IRoidMap* CreateRoidMap(cstr friendlyName, size_t reserveRows)
+	ROCOCO_ECS_API IRoidMap* CreateRoidMap(const char* const friendlyName, size_t reserveRows)
 	{
 		return new RoidMap(friendlyName, reserveRows);
 	}

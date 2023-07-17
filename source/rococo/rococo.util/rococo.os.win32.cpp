@@ -48,7 +48,7 @@ using namespace Rococo::Strings;
 using namespace Rococo::Memory;
 
 DeclareAllocator(TrackingAllocator, RococoUtils, g_allocator)
-// AllocatorMonitor<RococoUtils> monitor;
+AllocatorMonitor<RococoUtils> monitor;
 OVERRIDE_MODULE_ALLOCATORS_WITH_FUNCTOR(g_allocator)
 
 namespace Rococo

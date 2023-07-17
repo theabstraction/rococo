@@ -124,7 +124,7 @@ namespace Rococo
         {
             if (target.Optimization == Optimization.Debug)
             {
-                config.Options.Add(Sharpmake.Options.Vc.Compiler.Inline.OnlyInline);
+                config.Options.Add(Sharpmake.Options.Vc.Compiler.Inline.Disable);
             }
             else
             {

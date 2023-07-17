@@ -1534,7 +1534,10 @@ namespace Rococo::Script
 
 		void FreeDynamicClass(ObjectStub* header)
 		{
-			delete[] (char*) header;
+			if (header)
+			{
+				delete[](char*) header;
+			}
 		}
 
 		mutable IStructure* expressStruct = nullptr;

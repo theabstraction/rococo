@@ -72,7 +72,7 @@ namespace Rococo::Components
 
     // Create a ROID vs IComponentBase* map. The map does not invoke interface deletion, this is task for the caller of the API
     // The friendly name must not be null and specifies a help string emitted during exceptions
-    ROCOCO_ECS_API IRoidMap* CreateRoidMap(cstr friendlyName, size_t reserveRows);
+    ROCOCO_ECS_API IRoidMap* CreateRoidMap(const char* const friendlyName, size_t reserveRows);
 
     template<class ICOMPONENT>
     ROCOCO_INTERFACE IComponentFactory
