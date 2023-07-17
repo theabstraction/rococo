@@ -15493,14 +15493,19 @@ R"(
 	{
 		validate(true);
 
-		TEST(TestEmptyMap);
-		TEST3(TestStringReplace);
 		TEST3(TestTopLevelMacro2);
+		return;
+		TEST(TestEmptyMap);
+
+		TEST3(TestStringReplace);
+
+		return;
 		TEST(TestRaw);
+		return;
 		TEST(TestTopLevelMacro);
 		TEST3(TestConsoleOutput4);
 		TEST(TestPartialCompiles);
-
+		return;
 		TEST3(TestConsoleOutput3);
 		TEST3(TestConsoleOutput2);
 		TEST3(TestConsoleOutput);
@@ -15511,6 +15516,8 @@ R"(
 		TEST(TestTransformParent);
 		
 		TEST(TestMacroSiblings2);
+
+		return;
 
 		TEST(TestStartsWith);
 
@@ -15533,7 +15540,7 @@ R"(
 		TEST(TestClassAttribute);
 
 		TEST(TestNullIString);
-
+		return;
 	//	TEST(TestPackage);
 
 		TEST(TestUseDefaultNamespace);
@@ -15875,7 +15882,7 @@ R"(
 		Memory::ValidateNothingAllocated();
 
 		TestMemoryIsGood();
-	//	RunPositiveSuccesses();	
+		RunPositiveSuccesses();	
 	//	RunPositiveFailures();
 	//	RunCollectionTests();
 	

@@ -249,19 +249,55 @@ namespace Rococo::Memory
 	public:
 		size_t totalFreed = 0;
 		AllocatorMetrics stats;
+
+		struct TrackingString
+		{
+			char msg[256];
+			int count;
+		};
 		std::unordered_map<size_t, TrackingAtom, hash_size_t, size_t_equal_to, std_Malloc_Allocator<std::pair<const size_t, TrackingAtom>>> tracking;
+
+		using TWatch = std::unordered_map<size_t, TrackingString, hash_size_t, size_t_equal_to, std_Malloc_Allocator<std::pair<const size_t, TrackingString>>>;
+		TWatch stackWatch;
+		size_t countWatched = 0;
+
+		enum {ALLOCATION_SIZE_WATCHED = 0};
 
 		void* ModuleAllocate(std::size_t nBytes)
 		{
+			using namespace Rococo::Debugging;
 			stats.totalAllocationSize += nBytes;
 			stats.totalAllocations++;
 
-			/*
-			if (nBytes == 104)
+			if (nBytes == ALLOCATION_SIZE_WATCHED)
 			{
-				OS::TripDebugger();
+				countWatched++;
+				/*
+
+				TrackingString ts;
+				StackFrame::Address address = FormatStackFrame(ts.msg, sizeof ts.msg, 4);
+				if (strstr(ts.msg, "DynamicCreateClass") != nullptr)
+				{
+					TrackingString helper;
+					FormatStackFrame(helper.msg, sizeof helper.msg, 5);
+					Rococo::Debugging::Log(" DynamicCreateClass -> %s\n", helper.msg);
+
+				}
+
+				ts.count = 1;
+				size_t key = address.offset;
+
+				auto i = stackWatch.find(key);
+				if (i == stackWatch.end())
+				{
+					stackWatch.insert(std::make_pair(key, ts));
+				}
+				else
+				{
+					i->second.count++;
+				}
+				*/
 			}
-			*/
 
 			auto* data = malloc(nBytes);
 			if (!data)
@@ -350,6 +386,17 @@ namespace Rococo::Memory
 			else
 			{
 				allocator_printf("No leaks detected. Keep up the good programming work!\n");
+			}
+
+			if (ALLOCATION_SIZE_WATCHED != 0)
+			{
+				allocator_printf("%llu byte allocation sizes are being watched. Total: %llu\n\n", ALLOCATION_SIZE_WATCHED, countWatched);
+
+				for (auto& i : stackWatch)
+				{
+					TrackingString& ts = i.second;
+					allocator_printf("%lld x %s\n", ts.count, ts.msg);
+				}
 			}
 
 			allocator_printf("\n\n");

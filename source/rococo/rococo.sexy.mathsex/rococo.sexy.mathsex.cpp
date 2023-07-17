@@ -295,18 +295,19 @@ extern "C"
          }
 
       private:
-         virtual void AddNativeCalls()
+         void AddNativeCalls() override
          {
             Sys::Geometry::F32::AddNativeCalls_SysGeometryF32(ss);
             Sys::Random::AddNativeCalls_SysRandom(ss);
 			Sys::Type::AddNativeCalls_SysType(ss);
          }
 
-         virtual void ClearResources()
-         {
-         }
+		 void ClearResources() override
+		 {
 
-         virtual void Release()
+		 }
+
+         void Release() override
          {
             delete this;
          }

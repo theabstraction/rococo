@@ -71,16 +71,17 @@ extern "C"
 			}
 
 		private:
-			virtual void AddNativeCalls()
+			void AddNativeCalls() override
 			{
 				AddReflectionCalls(ss);
 			}
 
-			virtual void ClearResources()
+			void ClearResources() override
 			{
+
 			}
 
-			virtual void Release() 
+			void Release() override
 			{
 				delete this;
 			}

@@ -436,7 +436,7 @@ namespace Anon
 
 		void InitCommon() override
 		{
-			common = new CommonStructures(*this);
+			if (!common) common = new CommonStructures(*this);
 		}
 
 		cstr RegisterSymbol(cstr text) override

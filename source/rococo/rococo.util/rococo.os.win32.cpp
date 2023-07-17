@@ -2728,7 +2728,7 @@ namespace Rococo
 
 	namespace Debugging
 	{
-		ROCOCO_API void FormatStackFrames(IStackFrameFormatter& formatter)
+		void FormatStackFrames_WithDepthTarget(IStackFrameFormatter& formatter, int depthTarget = -1)
 		{
 			CONTEXT context;
 			context.ContextFlags = CONTEXT_FULL;
@@ -2767,9 +2767,20 @@ namespace Rococo
 				{
 					continue; // Ignore first two stack frames -> they are our stack analysis functions!
 				}
-				
+
 				Rococo::Debugging::StackFrame sf;
 				sf.depth = depth++;
+
+				if (depthTarget > 0 && depth > depthTarget)
+				{
+					return;
+				}
+
+				if (depthTarget > 0 && depth != depthTarget)
+				{
+					continue;
+				}
+
 				sf.address.segment = frame.AddrPC.Segment;
 				sf.address.offset = frame.AddrPC.Offset;
 
@@ -2807,6 +2818,38 @@ namespace Rococo
 
 				formatter.Format(sf);
 			}
+		}
+
+		ROCOCO_API void FormatStackFrames(IStackFrameFormatter& formatter)
+		{
+			FormatStackFrames_WithDepthTarget(formatter, -1);
+		}
+
+		ROCOCO_API StackFrame::Address FormatStackFrame(char* buffer, size_t capacity, int depth)
+		{
+			if (buffer && capacity) *buffer = 0;
+
+			struct ANON : IStackFrameFormatter
+			{
+				char* writePos = nullptr;
+				size_t capacity = 0;
+				StackFrame::Address result = { 0 };
+
+				void Format(const StackFrame& sf) override
+				{
+					if (writePos != nullptr && capacity != 0)
+					{
+						SafeFormat(writePos, capacity, "%s: %s #%d", sf.functionName, sf.sourceFile, sf.lineNumber);
+					}
+					result = sf.address;
+				}
+			} formatter;
+			formatter.writePos = buffer;
+			formatter.capacity = capacity;
+
+			FormatStackFrames_WithDepthTarget(formatter, depth);
+
+			return formatter.result;
 		}
 	}
 }

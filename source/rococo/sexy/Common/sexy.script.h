@@ -499,7 +499,7 @@ namespace Rococo {
 		ROCOCO_INTERFACE INativeLib
 		{
 			virtual void AddNativeCalls() = 0;
-			virtual void ClearResources() = 0;
+			virtual void ClearResources() = 0; // Used by coroutines lib
 			virtual void Release() = 0;
 		};
 

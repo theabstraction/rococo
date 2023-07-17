@@ -713,7 +713,6 @@ namespace Rococo::Script
 		IStructureBuilder* nativeFloat64;
 		IStructureBuilder* nativeBool;
 		IStructureBuilder* nativePtr;
-		IStructureBuilder* nativeClassType;
 
 		int nativeCallIndex;
 
@@ -807,7 +806,7 @@ namespace Rococo::Script
 		TSymbols symbols;
 
 		typedef std::unordered_map<void*, CReflectedClass*, std::hash<void*>, std::equal_to<void*>, Memory::SexyAllocator<std::pair<void* const, CReflectedClass*>>> TReflectedPointers;
-		TReflectedPointers reflectedPointers;
+		TReflectedPointers reflectedReflectedClassInstances;
 		TReflectedPointers representations;
 
 		CScriptSystemClass* reflectionRoot;
@@ -1456,8 +1455,8 @@ namespace Rococo::Script
 
 		virtual CReflectedClass* GetReflectedClass(void* ptr) override
 		{
-			auto i = reflectedPointers.find(ptr);
-			return i != reflectedPointers.end() ? i->second : NULL;
+			auto i = reflectedReflectedClassInstances.find(ptr);
+			return i != reflectedReflectedClassInstances.end() ? i->second : NULL;
 		}
 
 		IStructure* GetClassFromModuleElseLog(IModuleBuilder& module, cstr className)
@@ -1486,7 +1485,7 @@ namespace Rococo::Script
 			}
 
 			CReflectedClass* instance = (CReflectedClass*)DynamicCreateClass(*s, 0);
-			reflectedPointers.insert(std::make_pair(context, instance));
+			reflectedReflectedClassInstances.insert(std::make_pair(context, instance));
 			instance->context = context;
 			return instance;
 		}
@@ -2089,6 +2088,14 @@ namespace Rococo::Script
 
 			reflectedStrings.clear();
 
+			for (auto i : reflectedReflectedClassInstances)
+			{
+				auto* instance = i.second;
+				FreeDynamicClass(&instance->header);
+			}
+
+			reflectedReflectedClassInstances.clear();
+
 			typeToMethodMap.clear();
 
 			for (auto j = sreflectMap.begin(); j != sreflectMap.end(); ++j)
@@ -2096,22 +2103,26 @@ namespace Rococo::Script
 				FreeDynamicClass(&j->second->Header);
 			}
 
+			sreflectMap.clear();
+
 			FreeDynamicClass(&reflectionRoot->header);
 
+			/* TODO delete this paragraph
 			for (auto k = sreflectMap.begin(); k != sreflectMap.end(); ++k)
 			{
 				FreeDynamicClass(&k->second->Header);
-			}
+			} */
 
 			for (auto i = nativeLibs.begin(); i != nativeLibs.end(); ++i)
 			{
 				INativeLib* lib = *i;
-				lib->ClearResources();
+				lib->ClearResources(); // Note that the lib here is still active, we just asked the lib to clear out session data, not to free itself, so nativeLibs is still valid
 			}
 
 			if (stringPool)
 			{
 				stringPool->Free();
+				stringPool = nullptr;
 			}
 		}
 
@@ -2367,6 +2378,9 @@ namespace Rococo::Script
 
 	CScriptSystem::~CScriptSystem()
 	{
+		Clear();
+		Clear();
+
 		for (auto& t : mapExpressionToTransform)
 		{
 			t.second.transform->Free();
@@ -2390,6 +2404,8 @@ namespace Rococo::Script
 			INativeLib* lib = *i;
 			lib->Release();
 		}
+
+		nativeLibs.clear();
 
 		delete scripts;
 
