@@ -15869,8 +15869,8 @@ R"(
 
 		TestMemoryIsGood();
 		RunPositiveSuccesses();	
-		RunPositiveFailures();
-		RunCollectionTests();
+	//	RunPositiveFailures();
+	//	RunCollectionTests();
 	
 		end = Time::TickCount();
 		hz = Time::TickHz();

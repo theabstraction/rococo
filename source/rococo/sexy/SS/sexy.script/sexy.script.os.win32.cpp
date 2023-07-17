@@ -46,6 +46,7 @@
 #include "sexy.compiler.public.h"
 #include "sexy.script.h"
 #include <memory>
+#include <algorithm>
 
 #define ROCOCO_USE_SAFE_V_FORMAT
 #include <rococo.strings.h>
@@ -264,10 +265,98 @@ namespace Rococo::Memory
 		std::unordered_map<size_t, BigTrackingAtom, hash_size_t, size_t_equal_to, std_Malloc_Allocator<std::pair<const size_t, BigTrackingAtom>>> tracking;
 
 		using TWatch = std::unordered_map<size_t, TrackingString, hash_size_t, size_t_equal_to, std_Malloc_Allocator<std::pair<const size_t, TrackingString>>>;
+		using TMetrics = std::unordered_map<size_t, size_t, hash_size_t, size_t_equal_to, std_Malloc_Allocator<std::pair<const size_t, size_t>>>;
+
+		TMetrics metrics;
 		TWatch stackWatch;
 		size_t countWatched = 0;
 
-		enum {ALLOCATION_SIZE_WATCHED = 0};
+		enum {ALLOCATION_SIZE_WATCHED = 192};
+
+		void AddMetrics(size_t nBytes)
+		{
+			auto i = metrics.find(nBytes);
+			if (i == metrics.end())
+			{
+				metrics.insert(std::make_pair(nBytes, 1));
+			}
+			else
+			{
+				i->second++;
+			}
+		}
+
+		void ShowMetrics()
+		{
+			auto* alloc_printf = Rococo::Debugging::Log;
+
+			struct Metric
+			{
+				size_t allocSize;
+				size_t allocCount;
+				size_t product;
+			};
+
+			struct MetricSort
+			{
+				bool operator()(const Metric& a, const Metric& b) const
+				{
+					return a.product < b.product;
+				}
+			} byProduct; 
+
+			std::vector<Metric> metricArray;
+			for (auto i : metrics)
+			{
+				Metric m;
+				m.allocSize = i.first;
+				m.allocCount = i.second;
+				m.product = m.allocSize * m.allocCount;
+				metricArray.push_back(m);
+			}
+
+			std::sort(metricArray.begin(), metricArray.end(), byProduct);
+			
+			alloc_printf("Metrics:\n");
+
+			for (auto& m : metricArray)
+			{
+				alloc_printf(" %8llu nBytes x %8llu = %8llu\n", m.allocSize, m.allocCount, m.product);
+			}
+		}
+
+		void AddProblemTracker(size_t nBytes)
+		{
+			if (nBytes == ALLOCATION_SIZE_WATCHED)
+			{
+				countWatched++;
+
+				enum { DEPTH = 5 };
+				
+				TrackingString ts;
+				auto address = Debugging::FormatStackFrame(ts.msg, sizeof ts.msg, DEPTH);
+				Rococo::Debugging::Log(" Problem -> %s\n", ts.msg);
+
+				/* if (strstr(ts.msg, "NastyBugString") != nullptr)
+				{
+					TrackingString helper;
+					FormatStackFrame(helper.msg, sizeof helper.msg, DEPTH + 1);
+					Rococo::Debugging::Log(" NastyBugString -> %s\n", helper.msg);
+
+				}
+				*/
+				
+				auto i = stackWatch.find(address.offset);
+				if (i == stackWatch.end())
+				{
+					stackWatch.insert(std::make_pair((const size_t) address.offset, ts));
+				}
+				else
+				{
+					i->second.count++;
+				}
+			}
+		}
 
 		void* ModuleAllocate(std::size_t nBytes)
 		{
@@ -275,34 +364,7 @@ namespace Rococo::Memory
 			stats.totalAllocationSize += nBytes;
 			stats.totalAllocations++;
 
-			if (nBytes == ALLOCATION_SIZE_WATCHED)
-			{
-				countWatched++;
-				/*
-				BitTrackingAtom ts;
-				ts.address = FormatStackFrame(ts.msg, sizeof ts.msg, 5);
-				/* if (strstr(ts.msg, "DynamicCreateClass") != nullptr)
-				{
-					TrackingString helper;
-					FormatStackFrame(helper.msg, sizeof helper.msg, 5);
-					Rococo::Debugging::Log(" DynamicCreateClass -> %s\n", helper.msg);
-
-				}
-
-				ts.count = 1;
-				size_t key = address.offset;
-
-				auto i = stackWatch.find(key);
-				if (i == stackWatch.end())
-				{
-					stackWatch.insert(std::make_pair(key, ts));
-				}
-				else
-				{
-					i->second.count++;
-				}
-				*/
-			}
+			AddProblemTracker(nBytes);
 
 			auto* data = malloc(nBytes);
 			if (!data)
@@ -311,19 +373,22 @@ namespace Rococo::Memory
 				Rococo::Throw(0, "%s(%s): Cannot allocate %llu bytes", __FUNCTION__, nBytes);
 			}
 
+			AddTrackingData(data, nBytes, false);
+		//	AddMetrics(nBytes);
+
 			return data;
 		}
 
-		void AddTrackingData(void* buffer, bool addPCAddresses)
+		void AddTrackingData(void* buffer, size_t nBytes, bool addPCAddresses)
 		{
 			enum { TRACK_DEPTH = 4};
 
-			StackFrame::Address address = addPCAddresses ? FormatStackFrame(nullptr, 0, TRACK_DEPTH) : { 0, 0 };
+			Debugging::StackFrame::Address address = addPCAddresses ? Debugging::FormatStackFrame(nullptr, 0, TRACK_DEPTH) : Debugging::StackFrame::Address { 0, 0 };
 
-			auto i = tracking.find((size_t)data);
+			auto i = tracking.find((size_t)buffer);
 			if (i == tracking.end())
 			{
-				tracking.insert(std::make_pair((const size_t)data, BigTrackingAtom{ nBytes, false, 0, address }));
+				tracking.insert(std::make_pair((const size_t)buffer, BigTrackingAtom{ nBytes, false, 0, address }));
 			}
 			else
 			{
@@ -403,7 +468,9 @@ namespace Rococo::Memory
 			}
 			else
 			{
-				allocator_printf("No leaks detected. Keep up the good programming work!\n");
+				allocator_printf("No leaks detected. Keep up the good programming work!\n\n");
+
+				ShowMetrics();
 			}
 
 			if constexpr (ALLOCATION_SIZE_WATCHED != 0)
