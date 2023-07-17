@@ -104,6 +104,7 @@ namespace Rococo::Memory
 	class TrackingAllocator
 	{
 	public:
+		size_t totalFreed = 0;
 		AllocatorMetrics stats;
 		std::unordered_map<size_t, TrackingAtom, hash_size_t, size_t_equal_to, std_Malloc_Allocator<std::pair<const size_t,TrackingAtom>>> tracking;
 
@@ -118,6 +119,10 @@ namespace Rococo::Memory
 				stats.failedAllocations++;
 				Rococo::Throw(0, "%s(%s): Cannot allocate %llu bytes", __FUNCTION__, nBytes);
 			}
+
+#ifdef _DEBUG
+			memset(data, 0xCD, nBytes);
+#endif
 
 			auto i = tracking.find((size_t) data);
 			if (i == tracking.end())
@@ -145,7 +150,15 @@ namespace Rococo::Memory
 				if (i != tracking.end())
 				{
 					TrackingAtom& atom = i->second;
-					atom.wasFreed = true;
+
+					if (!atom.wasFreed)
+					{
+#ifdef _DEBUG
+						memset(buffer, 0xDE, atom.bufferLength);
+#endif
+						totalFreed += atom.bufferLength;
+						atom.wasFreed = true;
+					}
 				}
 				else
 				{
@@ -188,12 +201,12 @@ namespace Rococo::Memory
 
 			if (!leakMapSizeToCount.empty())
 			{
-				allocator_printf(" Leaks detected:\n", leakMapSizeToCount.size());
+				allocator_printf(" Leaks detected: (%llu bytes)\n", stats.totalAllocationSize - totalFreed);
 			}
 
 			for(auto i: leakMapSizeToCount)
 			{
-				allocator_printf("%9llu bytes x %llu\n", i.first, i.second);
+				allocator_printf("%9llu bytes x %-9llu = %llu bytes\n", i.first, i.second, i.first * i.second);
 			}
 
 			allocator_printf("\n\n");
