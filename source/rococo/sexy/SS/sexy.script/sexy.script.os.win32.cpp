@@ -255,7 +255,13 @@ namespace Rococo::Memory
 			char msg[256];
 			int count;
 		};
-		std::unordered_map<size_t, TrackingAtom, hash_size_t, size_t_equal_to, std_Malloc_Allocator<std::pair<const size_t, TrackingAtom>>> tracking;
+
+		struct BigTrackingAtom : TrackingAtom
+		{
+			Debugging::StackFrame::Address address;
+		};
+
+		std::unordered_map<size_t, BigTrackingAtom, hash_size_t, size_t_equal_to, std_Malloc_Allocator<std::pair<const size_t, BigTrackingAtom>>> tracking;
 
 		using TWatch = std::unordered_map<size_t, TrackingString, hash_size_t, size_t_equal_to, std_Malloc_Allocator<std::pair<const size_t, TrackingString>>>;
 		TWatch stackWatch;
@@ -273,10 +279,9 @@ namespace Rococo::Memory
 			{
 				countWatched++;
 				/*
-
-				TrackingString ts;
-				StackFrame::Address address = FormatStackFrame(ts.msg, sizeof ts.msg, 4);
-				if (strstr(ts.msg, "DynamicCreateClass") != nullptr)
+				BitTrackingAtom ts;
+				ts.address = FormatStackFrame(ts.msg, sizeof ts.msg, 5);
+				/* if (strstr(ts.msg, "DynamicCreateClass") != nullptr)
 				{
 					TrackingString helper;
 					FormatStackFrame(helper.msg, sizeof helper.msg, 5);
@@ -306,20 +311,28 @@ namespace Rococo::Memory
 				Rococo::Throw(0, "%s(%s): Cannot allocate %llu bytes", __FUNCTION__, nBytes);
 			}
 
+			return data;
+		}
+
+		void AddTrackingData(void* buffer, bool addPCAddresses)
+		{
+			enum { TRACK_DEPTH = 4};
+
+			StackFrame::Address address = addPCAddresses ? FormatStackFrame(nullptr, 0, TRACK_DEPTH) : { 0, 0 };
+
 			auto i = tracking.find((size_t)data);
 			if (i == tracking.end())
 			{
-				tracking.insert(std::make_pair((const size_t)data, TrackingAtom{ nBytes, false, 0 }));
+				tracking.insert(std::make_pair((const size_t)data, BigTrackingAtom{ nBytes, false, 0, address }));
 			}
 			else
 			{
-				TrackingAtom& atom = i->second;
+				BigTrackingAtom& atom = i->second;
+				atom.address = address;
 				atom.bufferLength = nBytes;
 				atom.reuseCount++;
 				atom.wasFreed = false;
 			}
-
-			return data;
 		}
 
 		void ModuleFree(void* buffer)
@@ -363,7 +376,7 @@ namespace Rococo::Memory
 
 			for (auto i : tracking)
 			{
-				TrackingAtom& atom = i.second;
+				BigTrackingAtom& atom = i.second;
 				if (!atom.wasFreed)
 				{
 					std::pair<const size_t, size_t> newItem(atom.bufferLength, 1);
@@ -372,6 +385,11 @@ namespace Rococo::Memory
 					{
 						j.first->second++;
 					}
+
+					atom.address;
+					char buffer[256];
+					Debugging::FormatStackFrame(buffer, sizeof buffer, atom.address);
+					allocator_printf("Leak at %p:\n\t%s\n", i.first, buffer);
 				}
 			}
 
@@ -388,7 +406,7 @@ namespace Rococo::Memory
 				allocator_printf("No leaks detected. Keep up the good programming work!\n");
 			}
 
-			if (ALLOCATION_SIZE_WATCHED != 0)
+			if constexpr (ALLOCATION_SIZE_WATCHED != 0)
 			{
 				allocator_printf("%llu byte allocation sizes are being watched. Total: %llu\n\n", ALLOCATION_SIZE_WATCHED, countWatched);
 

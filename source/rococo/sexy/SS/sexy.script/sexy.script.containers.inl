@@ -67,6 +67,12 @@ namespace Rococo
 					}
 				}
 			}
+			else if (type.VarType() == VARTYPE_Array)
+			{
+				ArrayImage* a = *(ArrayImage**)(sf + offset);
+				DestroyElements(*a, ss);
+				ArrayDelete(a, ss);
+			}
 		}
 
 		void DeleteMembers(IScriptSystem& ss, const IStructure& type, uint8* pInstance)

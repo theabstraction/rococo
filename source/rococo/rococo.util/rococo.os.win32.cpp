@@ -2825,6 +2825,44 @@ namespace Rococo
 			FormatStackFrames_WithDepthTarget(formatter, -1);
 		}
 
+		ROCOCO_API void FormatStackFrame(char* buffer, size_t capacity, StackFrame::Address address)
+		{
+			if (capacity && buffer) *buffer = 0;
+			else return;
+
+			HANDLE hProcess = GetCurrentProcess();
+
+			SymInitialize(hProcess, NULL, TRUE);
+			SymSetOptions(SYMOPT_LOAD_LINES);
+
+			STACKFRAME64 frame = { 0 };
+			frame.AddrPC.Offset = address.offset;
+			frame.AddrPC.Segment = address.segment;
+			frame.AddrPC.Mode = AddrModeFlat;
+
+			char symbolBuffer[sizeof(IMAGEHLP_SYMBOL) + 255];
+			PIMAGEHLP_SYMBOL symbol = (PIMAGEHLP_SYMBOL)symbolBuffer;
+			symbol->SizeOfStruct = (sizeof IMAGEHLP_SYMBOL) + 255;
+			symbol->MaxNameLength = 254;
+
+			char functionName[256];
+			*functionName = 0;
+
+			if (SymGetSymFromAddr(hProcess, frame.AddrPC.Offset, NULL, symbol))
+			{
+				Strings::SafeFormat(functionName, symbol->Name, _TRUNCATE);
+			}
+
+			DWORD  offset = 0;
+			IMAGEHLP_LINE line;
+			line.SizeOfStruct = sizeof(IMAGEHLP_LINE);
+
+			if (SymGetLineFromAddr(hProcess, frame.AddrPC.Offset, &offset, &line))
+			{
+				SafeFormat(buffer, capacity, "%s: %s #%d", functionName, line.FileName, line.LineNumber);
+			}
+		}
+
 		ROCOCO_API StackFrame::Address FormatStackFrame(char* buffer, size_t capacity, int depth)
 		{
 			if (buffer && capacity) *buffer = 0;

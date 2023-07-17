@@ -33,6 +33,8 @@ namespace Rococo
 		// The function returns the address of the stack frame at the selected buffer depth, or zero on failure.
 		ROCOCO_API StackFrame::Address FormatStackFrame(char* buffer, size_t capacity, int depth);
 
+		ROCOCO_API void FormatStackFrame(char* buffer, size_t capacity, StackFrame::Address depth);
+
 		ROCOCO_INTERFACE IStackFrameEnumerator
 		{
 			virtual void FormatEachStackFrame(IStackFrameFormatter& formatter) = 0;

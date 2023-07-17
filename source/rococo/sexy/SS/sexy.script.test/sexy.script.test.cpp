@@ -15259,6 +15259,66 @@ R"(
 	   ValidateLogs();
    }
 
+
+   void TestArrays()
+   {
+	   TEST(TestArrayNull);
+	   TEST(TestArrayOfInterfacesBuilder);
+	   TEST(TestPushStructToArray);
+	   TEST(TestArrayInt32);
+	   TEST(TestArrayInt32Expand);
+	   TEST(TestArrayInt32_2);
+	   TEST(TestArrayInt32_3);
+	   TEST(TestArrayInt32_4);
+	   TEST(TestArrayInt32_5);
+	   TEST(TestArrayInt32_6);
+	   TEST(TestArrayInt32_7);
+	   TEST(TestArrayInt32_8);
+	   TEST(TestArrayInt32_9);
+	   TEST(TestArrayInt32Reassign);
+	   TEST(TestArrayInStructWithThis);
+	   TEST(TestArrayRef);
+	   TEST(TestReturnArrayRef);
+	   TEST(TestReturnArrayRefAndIgnore);
+	   TEST(TestArrayElementIsClass);
+	   TEST(TestArrayFloat64);
+	   TEST(TestArrayStruct);
+	   TEST(TestArrayStruct_2);
+	   TEST(TestArrayStruct_3);
+	   TEST(TestEmptyArrayOfInterfaces);
+	   TEST(TestArrayOfInterfacesBuilder);
+
+	   TEST(TestArrayStrongTyping);
+	   TEST(TestArrayStrongTyping2);
+	   TEST(TestArrayStrongTyping3);
+
+	   TEST(TestNestedArrayEnumeration);
+
+	   TEST(TestArrayPushViaClosure);
+	   TEST(TestArrayPushViaClosure2);
+	   TEST(TestArrayPushViaClosure3);
+	   TEST(TestConstructInArray);
+	   TEST(TestArrayForeachElementInArray);
+
+	   TEST(TestArrayForeachEachElementInArrayWithoutIndex);
+	   TEST(TestArrayElementDeconstruct);
+
+	   TEST(TestArrayElementDeconstructWhenThrown);
+	   TEST(TestArrayWithinArrayDeconstruct);
+	   TEST(TestArrayElementLockRef);
+	   TEST(TestArrayRefMember);
+	   TEST(TestArrayRefMember2);
+	   TEST(TestArrayWithEarlyReturn);
+	   TEST(TestArrayWithEarlyReturn2);
+	   TEST(TestArrayForeachWithinForEach);
+	   TEST(TestArrayForeachAndThrow);
+	   TEST(TestArrayProxy);
+	   TEST(TestArrayClear);
+	   TEST(TestArrayPushBool);
+
+	   TEST(TestReturnArrayRefAndIgnore);
+   }
+
    void RunCollectionTests()
    {
 	   TEST(TestMapInsertCorrectRefs);
@@ -15297,63 +15357,7 @@ R"(
 	   TEST(TestListDeleteHeadAndThrow);
 	   TEST(TestListReverseEnumeration);
 
-	   TEST(TestArrayNull);
-	   TEST(TestArrayOfInterfacesBuilder);
-	   TEST(TestPushStructToArray);
-	   TEST(TestArrayInt32);
-	   TEST(TestArrayInt32Expand);
-	   TEST(TestArrayInt32_2);
-	   TEST(TestArrayInt32_3);
-	   TEST(TestArrayInt32_4);
-	   TEST(TestArrayInt32_5);
-	   TEST(TestArrayInt32_6);
-	   TEST(TestArrayInt32_7);
-	   TEST(TestArrayInt32_8);
-	   TEST(TestArrayInt32_9);
-	   TEST(TestArrayInt32Reassign);
-	   TEST(TestArrayInStructWithThis);
-	   TEST(TestArrayRef);
-	   TEST(TestReturnArrayRef);
-	   TEST(TestReturnArrayRefAndIgnore);
-	   TEST(TestArrayElementIsClass);
-	   TEST(TestArrayFloat64);
-	   TEST(TestArrayStruct);
-	   TEST(TestArrayStruct_2);
-	   TEST(TestArrayStruct_3);
-	   TEST(TestEmptyArrayOfInterfaces);
-	   TEST(TestArrayOfInterfacesBuilder);
-
-	   TEST(TestArrayStrongTyping);
-	   TEST(TestArrayStrongTyping2);
-	   TEST(TestArrayStrongTyping3);
-
-	   TEST(TestNestedArrayEnumeration);
-
-	   TEST(TestArrayPushViaClosure);
-	   TEST(TestArrayPushViaClosure2);
-	   TEST(TestArrayPushViaClosure3);
-	   TEST(TestConstructInArray);
-	   TEST(TestArrayForeachElementInArray);
-	   TEST(TestArrayForeachEachElementInArrayWithoutIndex);
-	   TEST(TestArrayElementDeconstruct);
-	   TEST(TestArrayElementDeconstructWhenThrown);
-	   TEST(TestArrayWithinArrayDeconstruct);
-	   TEST(TestArrayElementLockRef);
-
-	   TEST(TestArrayRefMember);
-	   TEST(TestArrayRefMember2);
-	   TEST(TestArrayWithEarlyReturn);
-	   TEST(TestArrayWithEarlyReturn2);
-
-	   TEST(TestArrayForeachWithinForEach);
-
-	   TEST(TestArrayForeachAndThrow);
-	   TEST(TestArrayProxy);
-	   TEST(TestArrayClear);
-
-	   TEST(TestArrayPushBool);
-
-	   TEST(TestReturnArrayRefAndIgnore);
+	   TestArrays();
 
 	   TEST(TestMapOverwriteValue);
 
@@ -15494,18 +15498,13 @@ R"(
 		validate(true);
 
 		TEST3(TestTopLevelMacro2);
-		return;
 		TEST(TestEmptyMap);
-
 		TEST3(TestStringReplace);
 
-		return;
 		TEST(TestRaw);
-		return;
 		TEST(TestTopLevelMacro);
 		TEST3(TestConsoleOutput4);
 		TEST(TestPartialCompiles);
-		return;
 		TEST3(TestConsoleOutput3);
 		TEST3(TestConsoleOutput2);
 		TEST3(TestConsoleOutput);
@@ -15516,8 +15515,6 @@ R"(
 		TEST(TestTransformParent);
 		
 		TEST(TestMacroSiblings2);
-
-		return;
 
 		TEST(TestStartsWith);
 
@@ -15540,7 +15537,7 @@ R"(
 		TEST(TestClassAttribute);
 
 		TEST(TestNullIString);
-		return;
+
 	//	TEST(TestPackage);
 
 		TEST(TestUseDefaultNamespace);
@@ -15665,6 +15662,7 @@ R"(
 		TEST(TestBooleanCompoundExpressions12);
 		TEST(TestIfThen1);
 		TEST(TestIfThen2);
+
 		TEST(TestFloatArithmetic);
 		TEST(TestDoubleArithmetic0);
 		TEST(TestDoubleArithmetic1);
@@ -15759,42 +15757,30 @@ R"(
 		TEST(TestMemoString);
 		TEST(TestMemoString2);
 		TEST(TestStringConstant);
+
 		TEST(TestPrint);
 		TEST(TestPrintViaInstance);
 		TEST(TestNullString);
 
 		TEST(TestAssignDerivatives);
-
 		TEST(TestStringMember3);
-
 		TEST(TestClassInstance);
-
 		TEST(TestDestructor);
-
 		TEST(TestStringBuilder);
-
 		TEST(TestInlinedFactory);
-
 		TEST(TestDerivedInterfaces);
-
 		TEST(TestVirtualFromVirtual);
-
 		TEST(TestSizeOf);
 
 		// TEST(TestInstancing); // Disabled until we have total compilation. JIT requires a PC change
 
 		TEST(TestMemberwiseInit);
-
 		TEST(TestInternalDestructorsCalled);
-
 		TEST(TestTryFinallyWithoutThrow);
 		TEST(TestDeepCatch);
-
 		TEST(TestDynamicCast);
 		TEST(TestExceptionDestruct);
-
 		TEST(TestDerivedInterfaces2);
-
 		TEST(TestCatch);
 		TEST(TestCatchArg);
 
@@ -15854,7 +15840,7 @@ R"(
 	}
 
 	void RunPositiveFailures()
-	{
+	{	
 		TEST(TestThrowInConstructor);
 		TEST(TestMissingMethod);
 		TEST(TestDuplicateVariable);
@@ -15883,8 +15869,8 @@ R"(
 
 		TestMemoryIsGood();
 		RunPositiveSuccesses();	
-	//	RunPositiveFailures();
-	//	RunCollectionTests();
+		RunPositiveFailures();
+		RunCollectionTests();
 	
 		end = Time::TickCount();
 		hz = Time::TickHz();

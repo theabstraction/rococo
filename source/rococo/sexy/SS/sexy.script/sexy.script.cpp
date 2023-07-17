@@ -2379,14 +2379,6 @@ namespace Rococo::Script
 	CScriptSystem::~CScriptSystem()
 	{
 		Clear();
-		Clear();
-
-		for (auto& t : mapExpressionToTransform)
-		{
-			t.second.transform->Free();
-		}
-
-		mapExpressionToTransform.clear();
 
 		for (auto i = nativeCalls.begin(); i != nativeCalls.end(); ++i)
 		{

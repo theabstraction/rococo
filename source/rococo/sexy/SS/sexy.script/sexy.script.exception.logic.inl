@@ -195,7 +195,7 @@ namespace Rococo::Script
 			}
 			else if (type.VarType() == VARTYPE_Array)
 			{
-				ArrayImage* a = (ArrayImage*)instance;
+				ArrayImage* a = *(ArrayImage**)instance;
 				if (RequiresDestruction(*a->ElementType))
 				{
 					DestroyElements(*a, ss);
