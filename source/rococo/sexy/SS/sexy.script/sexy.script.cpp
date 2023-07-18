@@ -713,7 +713,6 @@ namespace Rococo::Script
 		IStructureBuilder* nativeFloat64;
 		IStructureBuilder* nativeBool;
 		IStructureBuilder* nativePtr;
-		IStructureBuilder* nativeClassType;
 
 		int nativeCallIndex;
 
@@ -807,7 +806,7 @@ namespace Rococo::Script
 		TSymbols symbols;
 
 		typedef std::unordered_map<void*, CReflectedClass*, std::hash<void*>, std::equal_to<void*>, Memory::SexyAllocator<std::pair<void* const, CReflectedClass*>>> TReflectedPointers;
-		TReflectedPointers reflectedPointers;
+		TReflectedPointers reflectedReflectedClassInstances;
 		TReflectedPointers representations;
 
 		CScriptSystemClass* reflectionRoot;
@@ -970,6 +969,7 @@ namespace Rococo::Script
 			listCallbacks.ListPrepend64 = core.RegisterCallback(OnInvokeListPrepend64, this, "ListPrepend64");
 			listCallbacks.ListPrependInterface = core.RegisterCallback(OnInvokeListPrependInterface, this, "ListPrependInterface");
 			listCallbacks.ListGetHead = core.RegisterCallback(OnInvokeListGetHead, this, "ListGetHead");
+			listCallbacks.ListGetHeadUnreferenced = core.RegisterCallback(OnInvokeListGetHeadUnreferenced, this, "ListGetHeadUnreferenced");
 			listCallbacks.ListGetTail = core.RegisterCallback(OnInvokeListGetTail, this, "ListGetTail");
 			listCallbacks.ListGetLength = core.RegisterCallback(OnInvokeListGetLength, this, "ListGetLength");
 			listCallbacks.NodeGet32 = core.RegisterCallback(OnInvokeNodeGet32, this, "NodeGet32");
@@ -1456,8 +1456,8 @@ namespace Rococo::Script
 
 		virtual CReflectedClass* GetReflectedClass(void* ptr) override
 		{
-			auto i = reflectedPointers.find(ptr);
-			return i != reflectedPointers.end() ? i->second : NULL;
+			auto i = reflectedReflectedClassInstances.find(ptr);
+			return i != reflectedReflectedClassInstances.end() ? i->second : NULL;
 		}
 
 		IStructure* GetClassFromModuleElseLog(IModuleBuilder& module, cstr className)
@@ -1486,7 +1486,7 @@ namespace Rococo::Script
 			}
 
 			CReflectedClass* instance = (CReflectedClass*)DynamicCreateClass(*s, 0);
-			reflectedPointers.insert(std::make_pair(context, instance));
+			reflectedReflectedClassInstances.insert(std::make_pair(context, instance));
 			instance->context = context;
 			return instance;
 		}
@@ -1534,7 +1534,10 @@ namespace Rococo::Script
 
 		void FreeDynamicClass(ObjectStub* header)
 		{
-			delete[] (char*) header;
+			if (header)
+			{
+				delete[](char*) header;
+			}
 		}
 
 		mutable IStructure* expressStruct = nullptr;
@@ -2086,6 +2089,14 @@ namespace Rococo::Script
 
 			reflectedStrings.clear();
 
+			for (auto i : reflectedReflectedClassInstances)
+			{
+				auto* instance = i.second;
+				FreeDynamicClass(&instance->header);
+			}
+
+			reflectedReflectedClassInstances.clear();
+
 			typeToMethodMap.clear();
 
 			for (auto j = sreflectMap.begin(); j != sreflectMap.end(); ++j)
@@ -2093,22 +2104,26 @@ namespace Rococo::Script
 				FreeDynamicClass(&j->second->Header);
 			}
 
+			sreflectMap.clear();
+
 			FreeDynamicClass(&reflectionRoot->header);
 
+			/* TODO delete this paragraph
 			for (auto k = sreflectMap.begin(); k != sreflectMap.end(); ++k)
 			{
 				FreeDynamicClass(&k->second->Header);
-			}
+			} */
 
 			for (auto i = nativeLibs.begin(); i != nativeLibs.end(); ++i)
 			{
 				INativeLib* lib = *i;
-				lib->ClearResources();
+				lib->ClearResources(); // Note that the lib here is still active, we just asked the lib to clear out session data, not to free itself, so nativeLibs is still valid
 			}
 
 			if (stringPool)
 			{
 				stringPool->Free();
+				stringPool = nullptr;
 			}
 		}
 
@@ -2364,12 +2379,7 @@ namespace Rococo::Script
 
 	CScriptSystem::~CScriptSystem()
 	{
-		for (auto& t : mapExpressionToTransform)
-		{
-			t.second.transform->Free();
-		}
-
-		mapExpressionToTransform.clear();
+		Clear();
 
 		for (auto i = nativeCalls.begin(); i != nativeCalls.end(); ++i)
 		{
@@ -2387,6 +2397,8 @@ namespace Rococo::Script
 			INativeLib* lib = *i;
 			lib->Release();
 		}
+
+		nativeLibs.clear();
 
 		delete scripts;
 
@@ -2545,7 +2557,8 @@ extern "C" SCRIPTEXPORT_API Rococo::Script::IScriptSystemFactory* CreateScriptSy
 {
 	try
 	{
-		void* data = Memory::GetSexyAllocator().Allocate(sizeof(Anon::SSFactory));
+
+		void* data = Memory::AllocateSexyMemory(sizeof Anon::SSFactory);
 		auto* factory = new (data) Anon::SSFactory();
 		return factory;
 	}
@@ -2554,7 +2567,6 @@ extern "C" SCRIPTEXPORT_API Rococo::Script::IScriptSystemFactory* CreateScriptSy
 		char errLog[256];
         SafeFormat(errLog, 256, ("Sexy CreateScriptSystemFactory_1_5_0_0(...) returning NULL. Error: %d, %s."), ex.ErrorCode(), ex.Message());
 		Throw(ex.ErrorCode(), "%s", errLog);
-		return nullptr;
 	}
 }
 

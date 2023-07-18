@@ -1,12 +1,15 @@
 (namespace EntryPoint)
- (alias Main EntryPoint.Main)
+	(alias Main EntryPoint.Main)
 
-(using Sys.Type)
+(function Pop (list Int32 a)-> :
+	(node n = a.Head)
+	(n.Pop)
+)
 
 (function Main -> (Int32 result):
-	(map IString Int32 a)
-	(a.Insert "Joe" 90)
-	(node n = (a "Joe"))
-	(IString key = n.Key)
-	(result = key.Length)
+	(list Int32 a)
+	(a.Append 6)
+	(node n = a.Head)
+	(Pop a)
+	(node q = a.Head) // throws
 )

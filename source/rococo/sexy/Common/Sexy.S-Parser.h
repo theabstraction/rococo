@@ -53,22 +53,22 @@ namespace Rococo { namespace Sex
 	struct ISParserTree;
 	struct ISourceCode;
 	
-	inline bool IsAtomic(cr_sex s)
+	FORCE_INLINE bool IsAtomic(cr_sex s)
 	{
 		return s.Type() == EXPRESSION_TYPE_ATOMIC;
 	}
 
-	inline bool IsStringLiteral(cr_sex s)
+	FORCE_INLINE bool IsStringLiteral(cr_sex s)
 	{
 		return s.Type() == EXPRESSION_TYPE_STRING_LITERAL;
 	}
 
-	inline bool IsCompound(cr_sex s)
+	FORCE_INLINE bool IsCompound(cr_sex s)
 	{
 		return s.Type() == EXPRESSION_TYPE_COMPOUND;
 	}
 
-	inline bool IsNull(cr_sex s)
+	FORCE_INLINE bool IsNull(cr_sex s)
 	{
 		return s.Type() == EXPRESSION_TYPE_NULL;
 	}
@@ -106,26 +106,26 @@ namespace Rococo { namespace Sex
 		T* instance;
 
 	public:
-		Auto(T* _instance = nullptr): instance(_instance) {}
-		~Auto() { if (instance) instance->Release(); }
-		Auto<T>& operator = (T* _instance)
+		FORCE_INLINE Auto(T* _instance = nullptr): instance(_instance) {}
+		FORCE_INLINE ~Auto() { if (instance) instance->Release(); }
+		FORCE_INLINE Auto<T>& operator = (T* _instance)
 		{
 			if (instance) instance->Release();
 			instance = _instance;
 			return *this;
 		}
 
-		T& operator()()
+		FORCE_INLINE T& operator()()
 		{
 			return *instance;
 		}
 
-		T* operator -> ()
+		FORCE_INLINE T* operator -> ()
 		{
 			return instance;
 		}
 
-		T& operator *()
+		FORCE_INLINE T& operator *()
 		{
 			return *instance;
 		}

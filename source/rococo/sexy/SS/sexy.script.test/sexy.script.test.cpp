@@ -72,7 +72,7 @@
 
 #include <rococo.stl.allocators.h>
 
-#define validate(_Expression) if (!(_Expression)) { ShowFailure(#_Expression, __FILE__, __LINE__); Abort(); }
+#define validate(_Expression) if (!(_Expression)) { ShowFailure(#_Expression, __FILE__, __LINE__); Throw(0, "Validation failure"); }
 
 #define TEST(test) Test(#test, test, false, false)
 #define TEST2(test) Test(#test, test, true, false)
@@ -336,12 +336,12 @@ namespace
 			catch (STCException& e)
 			{
 				WriteToStandardOutput("Error: %s\r\nSource: %s\r\n.Code %d", e.Message(), e.Source(), e.Code());
-				exit(e.Code());
+				throw;
 			}
 			catch (ParseException& e)
 			{
 				PrintParseException(e);
-				exit(-1);
+				throw;
 			}
 			catch (IException& ose)
 			{
@@ -355,12 +355,12 @@ namespace
 				{
 					WriteToStandardOutput("%s", ose.Message());
 				}
-				exit(-1);
+				throw;
 			}
 			catch (std::exception& stdex)
 			{
 				printf("std::exception: %s\r\n", stdex.what());
-				exit(-1);
+				throw;
 			}
 
 			printf("%s >>>>>>\r\n\r\n", name);
@@ -5926,7 +5926,7 @@ R"((namespace EntryPoint)
 			"	(stdout.SetFormattingToDefault)\n"
 			"	(#build stdout \"&n&tG:\" SpecG smallNum)\n"
 			"   (#build stdout \"&n\")\n"
-			"   (IFileWriter testFile = (Sys.IO.WriteToFile \"\\work\\rococo\\generated\\temp\\console.test.txt\"))\n"
+			"   (IFileWriter testFile = (Sys.IO.WriteToFile \"..\\..\\gen\\temp\\console.test.txt\"))\n"
 			"   (#build testFile \"Hello World\")\n"
 			"   (Int64 pos = testFile.Position)\n"
 			"   (testFile.FlushWhenWritten)"
@@ -9045,26 +9045,57 @@ R"((namespace EntryPoint)
 	void TestLinkedList11(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Type)"
+
+			"(struct Int32List (list Int32 elements))"
+
+			"(function Main -> (Int32 result):"
+			"	(Int32List stuff)"
+			"	(list Int32 a)"
+			"   (stuff.elements = a)"
+			"	(stuff.elements.Append 17)"
+			"	(stuff.elements.Prepend 34)"
+			"	(node tail = stuff.elements.Tail)"
+			"	(result = (result + tail.Value))"
+			"	(foreach n # stuff.elements (result = (result + n.Value)))"
+			"	(result = (result + stuff.elements.Length))"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, "TestLinkedList11");
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		validate(ss.ValidateMemory());
+
+		int x = vm.PopInt32();
+		validate(x == 70);
+	}
+
+	void TestLeakyLinkedList(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
 		"(namespace EntryPoint)"
 		" (alias Main EntryPoint.Main)"
   
 		"(using Sys.Type)"
 
-		"(struct Int32List (list Int32 elements))"
-
 		"(function Main -> (Int32 result):"
-		"	(Int32List stuff)"
 		"	(list Int32 a)"
-		"   (stuff.elements = a)"
-		"	(stuff.elements.Append 17)"
-		"	(stuff.elements.Prepend 34)"
-		"	(node tail = stuff.elements.Tail)"
-		"	(result = (result + tail.Value))"
-		"	(foreach n # stuff.elements (result = (result + n.Value)))"
-		"	(result = (result + stuff.elements.Length))"
+		"	(a.Append 17)"
+		"	(foreach n # a"
+		"		(result = 255)"
+		"	)"
 		")";
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 },"TestLinkedList11");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __func__);
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -9076,7 +9107,7 @@ R"((namespace EntryPoint)
 		validate(ss.ValidateMemory());
 
 		int x = vm.PopInt32();
-		validate(x == 70);
+		validate(x == 255);
 	}
 
 	void TestLinkedListOfArchetypes(IPublicScriptSystem& ss)
@@ -9555,8 +9586,6 @@ R"((namespace EntryPoint)
 			"	(list Int32 a)"
 
 			"	(a.Append 17)"
-			"	(a.Append 34)"
-			"	(a.Append 333)"
 
 			"	(foreach n # a"
 			"		(result = n.Value)"
@@ -15259,44 +15288,9 @@ R"(
 	   ValidateLogs();
    }
 
-   void RunCollectionTests()
+
+   void TestArrays()
    {
-	   TEST(TestMapInsertCorrectRefs);
-	   TEST(TestArrayLast);
-	   TEST(TestLinkedListNodeInline);
-	   TEST(TestLinkedListContained);
-	   TEST(TestLinkedListOfLists);
-	   TEST(TestLinkedListForeach3);
-	   TEST(TestLinkedList11);
-	   TEST(TestLinkedList);
-	   TEST(TestLinkedList2);
-	   TEST(TestLinkedList3);
-	   TEST(TestLinkedList4);
-	   TEST(TestLinkedList6);
-	   TEST(TestLinkedList7);
-	   TEST(TestLinkedList8);
-	   TEST(TestLinkedList9);
-	   TEST(TestLinkedList10);
-	   TEST(TestLinkedListOfInterfaces);
-	   TEST(TestLinkedListOfInterfaces2);
-	   TEST(TestLinkedListForeach1);
-	   TEST(TestLinkedListForeach2);
-	   TEST(TestLinkedListForeach4);
-	   TEST(TestLinkedListForeach5);
-	   TEST(TestLinkedListForeach6);
-	   TEST(TestLinkedListForeach7);
-	   TEST(TestLinkedListForeach8);
-	   TEST(TestLinkedListOfArchetypes);
-
-	   TEST(TestListStruct);
-	   TEST(TestListStruct2);
-	   TEST(TestListStruct3);
-
-	   TEST(TestListStrongTyping);
-
-	   TEST(TestListDeleteHeadAndThrow);
-	   TEST(TestListReverseEnumeration);
-
 	   TEST(TestArrayNull);
 	   TEST(TestArrayOfInterfacesBuilder);
 	   TEST(TestPushStructToArray);
@@ -15334,36 +15328,75 @@ R"(
 	   TEST(TestArrayPushViaClosure3);
 	   TEST(TestConstructInArray);
 	   TEST(TestArrayForeachElementInArray);
+
 	   TEST(TestArrayForeachEachElementInArrayWithoutIndex);
 	   TEST(TestArrayElementDeconstruct);
+
 	   TEST(TestArrayElementDeconstructWhenThrown);
 	   TEST(TestArrayWithinArrayDeconstruct);
 	   TEST(TestArrayElementLockRef);
-
 	   TEST(TestArrayRefMember);
 	   TEST(TestArrayRefMember2);
 	   TEST(TestArrayWithEarlyReturn);
 	   TEST(TestArrayWithEarlyReturn2);
-
 	   TEST(TestArrayForeachWithinForEach);
-
 	   TEST(TestArrayForeachAndThrow);
 	   TEST(TestArrayProxy);
 	   TEST(TestArrayClear);
-
 	   TEST(TestArrayPushBool);
-
+		TEST(TestArrayLast);
 	   TEST(TestReturnArrayRefAndIgnore);
+   }
 
+   void TestLists()
+   {
+	
+	   TEST(TestMapInsertCorrectRefs);
+	   TEST(TestLinkedListNodeInline);
+	   TEST(TestLinkedListContained);
+	   TEST(TestLinkedListOfLists);
+	   TEST(TestLinkedListForeach3);
+	   TEST(TestLinkedList11);
+	   TEST(TestLinkedList);
+	   TEST(TestLinkedList2);
+	   TEST(TestLinkedList3);
+	   TEST(TestLinkedList4);
+	   TEST(TestLinkedList6);
+	   TEST(TestLinkedList7);
+	   TEST(TestLinkedList8);
+	   TEST(TestLinkedList9);
+	   TEST(TestLinkedList10);
+	   
+	   TEST(TestLinkedListOfInterfaces);
+	   TEST(TestLinkedListOfInterfaces2);
+	   TEST(TestLinkedListForeach1);
+	   TEST(TestLinkedListForeach2);
+	   TEST(TestLinkedListForeach4);
+	   TEST(TestLinkedListForeach5);
+	   TEST(TestLinkedListForeach6);
+	   TEST(TestLinkedListForeach8);
+	   
+	   TEST(TestLinkedListOfArchetypes);
+	   TEST(TestListStruct);
+	   TEST(TestListStruct2);
+	   TEST(TestListStruct3);
+	   
+	   TEST(TestListStrongTyping);
+	   
+	   TEST(TestListDeleteHeadAndThrow);
+	   
+	   TEST(TestListReverseEnumeration);
+	   TEST(TestLinkedListForeach7);
+   }
+
+   void TestMaps()
+   {  
 	   TEST(TestMapOverwriteValue);
-
 	   TEST3(TestMapKey);
 	   TEST3(TestMapGetKey);
 	   TEST3(TestMapGetKey64);
-
 	   TEST3(TestMapStringInsertByVariable);
 	   TEST3(TestMapStringInsertByVariable2);
-
 	   TEST(TestEmptyMap);
 	   TEST(TestMap);
 	   TEST(TestMapStringToString);
@@ -15387,7 +15420,6 @@ R"(
 	   TEST(TestMapValueConstruct);
 	   TEST(TestMapForeach1);
 	   TEST(TestMapForeach2);
-
 	   TEST(TestMapInStruct);
 	   TEST(TestMapInMap);
 	   TEST(TestMapStrongTyping);
@@ -15493,14 +15525,14 @@ R"(
 	{
 		validate(true);
 
+		TEST3(TestTopLevelMacro2);
 		TEST(TestEmptyMap);
 		TEST3(TestStringReplace);
-		TEST3(TestTopLevelMacro2);
+
 		TEST(TestRaw);
 		TEST(TestTopLevelMacro);
 		TEST3(TestConsoleOutput4);
 		TEST(TestPartialCompiles);
-
 		TEST3(TestConsoleOutput3);
 		TEST3(TestConsoleOutput2);
 		TEST3(TestConsoleOutput);
@@ -15634,7 +15666,6 @@ R"(
 		TEST(TestGlobalInt32_3);
 
 		TEST(TestStructWithInterface);
-
 		TEST(TestMinimumConstruct);
 		TEST3(TestCreateDeclarations);
 		TEST(TestLocalVariable);
@@ -15752,42 +15783,30 @@ R"(
 		TEST(TestMemoString);
 		TEST(TestMemoString2);
 		TEST(TestStringConstant);
+
 		TEST(TestPrint);
 		TEST(TestPrintViaInstance);
 		TEST(TestNullString);
 
 		TEST(TestAssignDerivatives);
-
 		TEST(TestStringMember3);
-
 		TEST(TestClassInstance);
-
 		TEST(TestDestructor);
-
 		TEST(TestStringBuilder);
-
 		TEST(TestInlinedFactory);
-
 		TEST(TestDerivedInterfaces);
-
 		TEST(TestVirtualFromVirtual);
-
 		TEST(TestSizeOf);
 
 		// TEST(TestInstancing); // Disabled until we have total compilation. JIT requires a PC change
 
 		TEST(TestMemberwiseInit);
-
 		TEST(TestInternalDestructorsCalled);
-
 		TEST(TestTryFinallyWithoutThrow);
 		TEST(TestDeepCatch);
-
 		TEST(TestDynamicCast);
 		TEST(TestExceptionDestruct);
-
 		TEST(TestDerivedInterfaces2);
-
 		TEST(TestCatch);
 		TEST(TestCatchArg);
 
@@ -15847,7 +15866,7 @@ R"(
 	}
 
 	void RunPositiveFailures()
-	{
+	{	
 		TEST(TestThrowInConstructor);
 		TEST(TestMissingMethod);
 		TEST(TestDuplicateVariable);
@@ -15871,13 +15890,13 @@ R"(
 	{
 		int64 start, end, hz;
 		start = Time::TickCount();
-
 		Memory::ValidateNothingAllocated();
-
 		TestMemoryIsGood();
 		RunPositiveSuccesses();	
 		RunPositiveFailures();
-		RunCollectionTests();
+		TestArrays();
+		TestLists();
+		TestMaps();
 	
 		end = Time::TickCount();
 		hz = Time::TickHz();
@@ -15892,8 +15911,8 @@ int main(int argc, char* argv[])
 	UNUSED(argc);
 	UNUSED(argv);
 
-	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
-//	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_None);
+//	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
+	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_None);
 
 //	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF | _CRTDBG_CHECK_ALWAYS_DF);
 
@@ -15912,7 +15931,7 @@ int main(int argc, char* argv[])
 				printf("\nSystem Error: %d %s\n", ex.ErrorCode(), numericMessage);
 			}
 		}
-		printf("\nUnhandled exception: %s\n", ex.Message());
 	}
+
 	return 0;
 }

@@ -62,6 +62,12 @@ namespace
 			}
 
 			items.clear();
+
+			for (auto i = freeItems.begin(); i != freeItems.end(); ++i)
+			{
+				delete* i;
+			}
+
 			freeItems.clear();
 		}
 

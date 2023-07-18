@@ -5,8 +5,14 @@
 namespace Rococo::Components
 {
 	typedef uint32 ROID_TABLE_INDEX;
-	typedef uint32 ROID_SALT;
 
+	struct ROID_SALT
+	{
+		uint32 cycle : 31;
+		uint32 isDeprecated : 1;
+	};
+
+	static_assert(sizeof ROID_SALT == sizeof uint32);
 #pragma pack(push, 1)
 	// Rococo Object ID - a transient object identifier used in the Rococo::Components System.
 	struct ROID
@@ -16,18 +22,20 @@ namespace Rococo::Components
 			struct
 			{
 				ROID_SALT salt;
+
+				// unsigned index value
 				ROID_TABLE_INDEX index;
 			};
 
 			uint64 asUint64 = 0;
 		};
 
-		operator bool() const
+		inline operator bool() const
 		{
 			return asUint64 != 0;
 		}
 
-		auto Value() const
+		inline auto Value() const
 		{
 			return asUint64;
 		}
@@ -35,6 +43,11 @@ namespace Rococo::Components
 		inline bool operator == (const ROID& other) const
 		{
 			return asUint64 == other.asUint64;
+		}
+
+		inline bool operator != (const ROID& other) const
+		{
+			return asUint64 != other.asUint64;
 		}
 
 		ROID(): asUint64(0)
@@ -51,6 +64,8 @@ namespace Rococo::Components
 		{			
 		}
 	};
+
+	static_assert(sizeof ROID == sizeof uint64);
 #pragma pack(pop)
 
 	struct STDROID
@@ -86,21 +101,26 @@ namespace Rococo::Components
 		IComponentLife* life;
 		
 	public:
-		Ref(INTERFACE& refComponent, IComponentLife& refLife):
+		FORCE_INLINE Ref(INTERFACE& refComponent, IComponentLife& refLife):
 			component(&refComponent),
 			life(&refLife)
 		{
 			life->AddRef();
 		}
 
-		Ref():
+		FORCE_INLINE Ref():
 			component(nullptr),
 			life(nullptr)
 		{
 
 		}
 
-		Ref(Ref<INTERFACE>& src) noexcept
+		FORCE_INLINE IComponentLife& Life()
+		{
+			return *life;
+		}
+
+		FORCE_INLINE Ref(Ref<INTERFACE>& src) noexcept
 		{
 			component = src.component;
 			life = src.life;
@@ -110,7 +130,7 @@ namespace Rococo::Components
 			}
 		}
 
-		Ref(Ref<INTERFACE>&& src) noexcept
+		FORCE_INLINE Ref(Ref<INTERFACE>&& src) noexcept
 		{
 			component = src.component;
 			life = src.life;
@@ -118,7 +138,7 @@ namespace Rococo::Components
 			src.life = nullptr;
 		}
 
-		Ref<INTERFACE>& operator = (Ref<INTERFACE>& src)
+		FORCE_INLINE Ref<INTERFACE>& operator = (Ref<INTERFACE>& src)
 		{
 			if (component == src.component)
 			{
@@ -141,15 +161,20 @@ namespace Rococo::Components
 			return *this;
 		}
 
-		void operator = (Ref<INTERFACE>&& src)
+		FORCE_INLINE void operator = (Ref<INTERFACE>&& src)
 		{
+			if (life)
+			{
+				life->ReleaseRef();
+			}
+
 			component = src.component;
 			life = src.life;
 			src.component = nullptr;
 			src.life = nullptr;
 		}
 
-		~Ref()
+		FORCE_INLINE ~Ref()
 		{
 			if (life)
 			{
@@ -157,47 +182,68 @@ namespace Rococo::Components
 			}
 		}
 
-		bool Deprecate()
+		FORCE_INLINE bool Deprecate()
 		{
 			if (!life) return false;
 			return life->Deprecate();
 		}
 
-		INTERFACE* operator -> ()
+		FORCE_INLINE INTERFACE* operator -> ()
 		{
 			return component;
 		}
 
-		INTERFACE& operator * ()
+		FORCE_INLINE INTERFACE& operator * ()
 		{
 			return *component;
 		}
 
-		operator bool() const
+		FORCE_INLINE INTERFACE& GetComponent()
+		{
+			return *component;
+		}
+
+		FORCE_INLINE operator bool() const
 		{
 			return component != nullptr;
 		}
 
-		int64 GetRefCount() const
+		FORCE_INLINE bool operator == (Ref<INTERFACE>& other) const
+		{
+			return component == other.component;
+		}
+
+		FORCE_INLINE bool operator != (Ref<INTERFACE>& other) const
+		{
+			return component != other.component;
+		}
+
+		FORCE_INLINE int64 GetRefCount() const
 		{
 			return life == nullptr ? 0 : life->GetRefCount();
 		}
 
-		ROID Roid() const
+		FORCE_INLINE ROID Roid() const
 		{
 			return life == nullptr ? ROID() : life->GetRoid();
+		}
+
+		FORCE_INLINE void Release()
+		{
+			if (life)
+			{
+				life->ReleaseRef();
+				life = nullptr;
+				component = nullptr;
+			}
 		}
 	};
 
 	struct IRCObjectTable;
 
-	template<class ICOMPONENT>
-	ROCOCO_INTERFACE IComponentFactory
+	ROCOCO_INTERFACE IROIDCallback
 	{
-		virtual ICOMPONENT * ConstructInPlace(void* pMemory) = 0;
-		virtual void Destruct(ICOMPONENT* pInstance) = 0;
-		virtual size_t SizeOfConstructedObject() const = 0;
-		virtual void Free() = 0;
+		virtual EFlowLogic OnROID(ROID id) = 0;
 	};
 }
 

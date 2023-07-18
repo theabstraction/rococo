@@ -282,7 +282,7 @@ extern "C"
 			}
 
 		private:
-			virtual void AddNativeCalls()
+			void AddNativeCalls() override
 			{
 				Sys::Maths::F32::AddNativeCalls_SysMathsF32(ss);
 				Sys::Maths::F64::AddNativeCalls_SysMathsF64(ss);
@@ -290,11 +290,12 @@ extern "C"
 				Sys::Maths::I64::AddNativeCalls_SysMathsI64(ss);
 			}
 
-			virtual void ClearResources()
+			void ClearResources() override
 			{
+
 			}
 
-			virtual void Release()
+			void Release() override
 			{
 				delete this;
 			}

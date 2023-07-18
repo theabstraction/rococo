@@ -808,13 +808,6 @@ namespace Rococo
 		}
 	}
 
-	void swap(float& a, float& b)
-	{
-		float c = b;
-		b = a;
-		a = c;
-	}
-
 	bool TryGetIntersectionLineAndSphere(float& t0, float& t1, cr_vec3 start, cr_vec3 end, const Sphere& sphere)
 	{
 		// P(t) = start + (end - start).t for every point on the line containing start and end = a + (b-a).t

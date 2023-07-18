@@ -157,10 +157,8 @@ namespace
    };
 }
 
-namespace
+namespace  Rococo::Memory::ANON
 {
-    using namespace Rococo::Memory;
-
     struct FreeListAllocator :IFreeListAllocatorSupervisor
     {
         size_t elementSize;
@@ -170,6 +168,14 @@ namespace
         FreeListAllocator(size_t varElementSize) : elementSize(varElementSize)
         {
 
+        }
+
+        virtual ~FreeListAllocator()
+        {
+            for (auto* v : freeList)
+            {
+                FreeBuffer(v);
+            }
         }
 
         void* AllocateBuffer() override
@@ -188,6 +194,11 @@ namespace
 
         void FreeBuffer(void* buffer) override
         {
+            delete[] buffer;
+        }
+
+        void ReclaimBuffer(void* buffer) override
+        {
             if (buffer == nullptr) return;
             freeList.push_back(buffer);
         }
@@ -203,7 +214,7 @@ namespace Rococo::Memory
 {
     ROCOCO_API IFreeListAllocatorSupervisor* CreateFreeListAllocator(size_t elementSize)
     {
-        return new FreeListAllocator(elementSize);
+        return new ANON::FreeListAllocator(elementSize);
     }
 
     ROCOCO_API IAllocator& CheckedAllocator()
@@ -234,4 +245,15 @@ namespace Rococo::Memory
     {
         if (buffer) deleteFunction(((void**)buffer)[-1]);
     };
+
+    ROCOCO_API void Log(const AllocatorMetrics& stats, cstr name, cstr intro, int (*FN_LOG)(cstr format, ...))
+    {
+        FN_LOG("%s:  %s\n", name, intro);
+        FN_LOG(" Total allocation size: %llu bytes\n", stats.totalAllocationSize);
+        FN_LOG(" Total allocations: %llu\n", stats.totalAllocations);
+        FN_LOG(" Useful frees: %llu\n", stats.usefulFrees);
+        FN_LOG(" Total frees: %llu\n", stats.totalFrees);
+        FN_LOG(" Failed allocations: %llu\n", stats.failedAllocations);
+        FN_LOG(" Blank frees: %llu\n\n", stats.blankFrees);
+    }
 }

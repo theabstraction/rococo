@@ -57,6 +57,9 @@
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.world.editor.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\source\rococo\include\rococo.mplat.h">
+      <Filter>include</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\source\rococo\rococo.mplat\config.xc" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.component.template.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.components.h" />
@@ -67,5 +70,10 @@
     <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.sxh.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.sxh.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\rococo.script.types.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="include">
+      <UniqueIdentifier>{0feb36d4-ded9-b510-4a82-8ce6435f7e81}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
 </Project>

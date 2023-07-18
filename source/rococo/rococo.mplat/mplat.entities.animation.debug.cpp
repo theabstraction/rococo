@@ -88,16 +88,16 @@ namespace
 
 namespace Rococo::Entities
 {
-	void AddDebugBones(ID_ENTITY id, Rococo::Components::IRCObjectTable& ecs, IRenderContext& rc, IRodTesselatorSupervisor& rod)
+	void AddDebugBones(ID_ENTITY id, IRenderContext& rc, IRodTesselatorSupervisor& rod)
 	{
-		auto skeletonComponent = ecs.AddSkeletonComponent(id);
+		auto skeletonComponent = Components::API::ForISkeletonComponent::Add(id);
 		auto skeleton = skeletonComponent ? skeletonComponent->Skeleton() : nullptr;
 		if (skeleton)
 		{
 			auto* root = skeleton->Root();
 			if (root)
 			{
-				auto body = ecs.GetBodyComponent(id);
+				auto body = API::ForIBodyComponent::Get(id);
 				if (body)
 				{
 					const Matrix4x4& m = body->Model();

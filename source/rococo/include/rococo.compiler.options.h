@@ -15,7 +15,7 @@
 # endif
 #endif
 
-#define USE_VSTUDIO_SAL 1
+ // #define USE_VSTUDIO_SAL 1 // Enable to detect errors in formatted print statements such as SafeFormat(...)
 
 # define ROCOCO_INTERFACE struct ROCOCO_NO_VTABLE
 
@@ -26,6 +26,16 @@
 #endif
 
 #ifdef _WIN32
-#pragma warning ( disable: 26812 )
+//#pragma warning ( disable: 26812 )
 #endif
+
+#ifdef _WIN32
+# define FORCE_INLINE __forceinline
+#else
+# define FORCE_INLINE
+#endif
+
+// If defined will use std allocators rather than those for specific for sexy. Best used/defined when SexyScript is shipped in DLL modules
+#define USE_STD_ALLOCATOR_FOR_SEXY 
+
 #endif // ROCOCO

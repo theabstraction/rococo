@@ -143,6 +143,11 @@ namespace Anon
 
 		TMemory breakpoints;
 
+		static void WipeTable()
+		{
+			delete s_instructionTable;
+			s_instructionTable = nullptr;
+		}
 	public:
 		CVirtualMachine(ICore& _core, CPU& _cpu) :
 			core(_core), cpu(_cpu)
@@ -157,6 +162,7 @@ namespace Anon
 			for (uint32 i = 0; i < Opcodes::MAX_OPCODES; ++i)
 			{
 				s_instructionTable[i] = &CVirtualMachine::OnOpcodeBadInstruction;
+				atexit(WipeTable);
 			}
 
 			ActivateInstruction(AddQuick32);

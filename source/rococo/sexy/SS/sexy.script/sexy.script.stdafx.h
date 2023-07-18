@@ -530,6 +530,7 @@ namespace Rococo
             ID_API_CALLBACK ListPrependInterface;
             ID_API_CALLBACK ListGetTail;
             ID_API_CALLBACK ListGetHead;
+            ID_API_CALLBACK ListGetHeadUnreferenced;
             ID_API_CALLBACK ListGetLength;
             ID_API_CALLBACK NodeGet32;
             ID_API_CALLBACK NodeGet64;

@@ -302,7 +302,6 @@ namespace Rococo {
 
 		struct ListImage;
 
-#ifdef POINTERS_ARE_64_BIT
 		struct ListNode
 		{
 			ListImage* Container;
@@ -310,26 +309,16 @@ namespace Rococo {
 			ListNode* Previous;
 			ListNode* Next;
 			int32 RefCount;
-			int32 padding;
 			char Element[4]; // N.B this is 16-bit aligned to the instance pointer in 32-bit and 64-bit mode
 		};
-#else
-		struct ListNode
-		{
-			ListImage* Container;
-			const IStructure* ElementType;
-			ListNode* Previous;
-			ListNode* Next;
-			int32 RefCount;
-			char padding[12];
-			char Element[4]; // N.B this is 16-bit aligned to the instance pointer in 32-bit and 64-bit mode
-		};
-#endif
+
 #pragma pack(pop)
 		struct NodeRef
 		{
 			ListNode* NodePtr;
 		};
+
+		struct OrphanedNodeList;
 
 		struct ListImage
 		{
@@ -340,6 +329,7 @@ namespace Rococo {
 			ListNode* Head;
 			ListNode* Tail;
 			int32 ElementSize;
+			OrphanedNodeList* OrphanedNodeList;
 		};
 
 		struct MapImage;
@@ -499,7 +489,7 @@ namespace Rococo {
 		ROCOCO_INTERFACE INativeLib
 		{
 			virtual void AddNativeCalls() = 0;
-			virtual void ClearResources() = 0;
+			virtual void ClearResources() = 0; // Used by coroutines lib
 			virtual void Release() = 0;
 		};
 

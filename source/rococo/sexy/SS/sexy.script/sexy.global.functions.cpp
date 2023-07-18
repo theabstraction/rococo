@@ -886,8 +886,8 @@ namespace Rococo
 			{
 				if (installation.DoPingsMatch(i->first, resourceName))
 				{
-					i->second.code->Release();
-					if (i->second.tree)i->second.tree->Release();
+					i->second.tree->Release();
+					i->second.code->Release();					
 					sources.erase(i);
 					break;
 				}

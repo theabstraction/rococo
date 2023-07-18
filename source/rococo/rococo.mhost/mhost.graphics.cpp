@@ -2,8 +2,6 @@
 #include <rococo.renderer.h>
 #include <rococo.textures.h>
 #include <rococo.fonts.h>
-#include <limits>
-#include <new>
 
 using namespace MHost;
 using namespace Rococo;
@@ -83,12 +81,12 @@ struct Gui : public MHost::IGui
 
 		if (HasFlag(alignmentFlags, MHost::AlignmentFlags::Flip))
 		{
-			std::swap(txUV.top, txUV.bottom);
+			swap(txUV.top, txUV.bottom);
 		}
 
 		if (HasFlag(alignmentFlags, MHost::AlignmentFlags::Mirror))
 		{
-			std::swap(txUV.left, txUV.right);
+			swap(txUV.left, txUV.right);
 		}
 
 		Vec2 topLeftPos = GetTopLeftPos(pixelPos, span, alignmentFlags);
@@ -119,12 +117,12 @@ struct Gui : public MHost::IGui
 
 		if (HasFlag(alignmentFlags, MHost::AlignmentFlags::Flip))
 		{
-			std::swap(txUV.top, txUV.bottom);
+			swap(txUV.top, txUV.bottom);
 		}
 
 		if (HasFlag(alignmentFlags, MHost::AlignmentFlags::Mirror))
 		{
-			std::swap(txUV.left, txUV.right);
+			swap(txUV.left, txUV.right);
 		}
 
 		span *= scaleFactor;
@@ -324,6 +322,8 @@ struct Gui : public MHost::IGui
 		gc.ClearScissorRect();
 	}
 };
+
+#include <new>
 
 namespace MHost
 {

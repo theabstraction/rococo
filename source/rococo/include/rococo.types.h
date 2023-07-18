@@ -52,22 +52,28 @@ typedef __int64 ptrdiff_t;
 # endif
 
 // The following could be done with a template, but that results in bloated error messages, and our ids are ubiquitous
-#define ROCOCO_ID(DEFINED_ID_NAME,TYPE,INVALID_VALUE)										      \
-struct DEFINED_ID_NAME																		            \
-{																							                  \
-	DEFINED_ID_NAME() : value(INVALID_VALUE) {}												      \
-	explicit DEFINED_ID_NAME(TYPE _value) : value(_value) {}								      \
-	TYPE value;																				               \
-    [[nodiscard]] static DEFINED_ID_NAME Invalid() noexcept { return DEFINED_ID_NAME(); }							   \
-	size_t operator() (const DEFINED_ID_NAME& obj) const { return size_t(obj.value); }	\
-    operator bool () const noexcept { return value != INVALID_VALUE; }                           \
-};																							                  \
-inline bool operator == (const DEFINED_ID_NAME& a, const DEFINED_ID_NAME& b) { return a.value == b.value; }				\
-inline bool operator != (const DEFINED_ID_NAME& a, const DEFINED_ID_NAME& b) { return !(a == b); }                   \
+#define ROCOCO_ID(DEFINED_ID_NAME,TYPE,INVALID_VALUE)															\
+struct DEFINED_ID_NAME																							\
+{																												\
+	FORCE_INLINE DEFINED_ID_NAME() : value(INVALID_VALUE) {}												    \
+	FORCE_INLINE explicit DEFINED_ID_NAME(TYPE _value) : value(_value) {}										\
+	TYPE value;																									\
+    FORCE_INLINE [[nodiscard]] static DEFINED_ID_NAME Invalid() noexcept { return DEFINED_ID_NAME(); }			\
+	FORCE_INLINE size_t operator() (const DEFINED_ID_NAME& obj) const { return size_t(obj.value); }				\
+    FORCE_INLINE operator bool () const noexcept { return value != INVALID_VALUE; }								\
+};																												\
+inline bool operator == (const DEFINED_ID_NAME& a, const DEFINED_ID_NAME& b) { return a.value == b.value; }		\
+inline bool operator != (const DEFINED_ID_NAME& a, const DEFINED_ID_NAME& b) { return !(a == b); }              \
 inline bool operator <  (const DEFINED_ID_NAME& a, const DEFINED_ID_NAME& b) { return a.value < b.value; }
 
 #define UNUSED(x) (x);
 #define HIDE_COMPILER_WARNINGS(x) (x);
+
+namespace DirectX
+{
+	struct XMFLOAT4;
+	struct XMFLOAT4X4;
+}
 
 namespace Rococo
 {
@@ -133,7 +139,14 @@ namespace Rococo
 		cstr buffer;
 		int32 length;
 
-		constexpr operator cstr() const noexcept { return buffer; }
+		FORCE_INLINE constexpr operator cstr() const noexcept { return buffer; }
+	};
+
+	template<class TYPE>
+	struct SearchResult
+	{
+		TYPE value;
+		boolean32 wasFound;
 	};
 
 	template<class T>
@@ -153,12 +166,17 @@ namespace Rococo
 	typedef unsigned long long lsize_t;
 #endif
 
-	inline constexpr lsize_t operator "" _megabytes(lsize_t mb)
+	FORCE_INLINE constexpr lsize_t operator "" _megabytes(lsize_t mb)
 	{
 		return mb * 1024 * 1024;
 	}
 
-	inline constexpr lsize_t operator "" _kilobytes(lsize_t kb)
+	FORCE_INLINE constexpr lsize_t operator "" _gigabytes(lsize_t mb)
+	{
+		return mb * 1024ULL * 1024ULL * 1024ULL;
+	}
+
+	FORCE_INLINE constexpr lsize_t operator "" _kilobytes(lsize_t kb)
 	{
 		return kb * 1024;
 	}
@@ -193,7 +211,7 @@ namespace Rococo
 		FilePath() { buf[0] = 0; }
 		enum { CAPACITY = 260 };
 		T buf[CAPACITY];
-		constexpr operator const T* () const noexcept { return buf; }
+		FORCE_INLINE constexpr operator const T* () const noexcept { return buf; }
 	};
 
 	typedef FilePath<char32_t> U32FilePath;
@@ -221,7 +239,7 @@ namespace Rococo
 
 	typedef WindowHandle WindowRef;
 
-	inline constexpr fstring operator"" _fstring (cstr msg, size_t length) noexcept
+	FORCE_INLINE constexpr fstring operator"" _fstring (cstr msg, size_t length) noexcept
 	{
 		return fstring{ msg, (int32)length };
 	}
@@ -244,15 +262,15 @@ namespace Rococo
 			cstr start;
 			cstr finish;
 
-			cstr begin() const { return start; }
-			cstr end() const { return finish; }
+			FORCE_INLINE cstr begin() const { return start; }
+			FORCE_INLINE cstr end() const { return finish; }
 
-			bool empty() const { return finish <= start; }
+			FORCE_INLINE bool empty() const { return finish <= start; }
 
-			operator bool() const { return !empty(); }
-			int64 Length() const { return finish - start; }
+			FORCE_INLINE operator bool() const { return !empty(); }
+			FORCE_INLINE int64 Length() const { return finish - start; }
 
-			static Substring Null() { return { nullptr,nullptr }; }
+			FORCE_INLINE static Substring Null() { return { nullptr,nullptr }; }
 		};
 
 		ROCOCO_API Substring ToSubstring(cstr text);
@@ -314,12 +332,12 @@ namespace Rococo
 	{
 		ILock& lock;
 	public:
-		Sync(ILock& _lock) : lock(_lock)
+		FORCE_INLINE Sync(ILock& _lock) : lock(_lock)
 		{
 			lock.Lock();
 		}
 
-		~Sync()
+		FORCE_INLINE ~Sync()
 		{
 			lock.Unlock();
 		}
@@ -366,8 +384,8 @@ namespace Rococo
 	private:
 		int32& counter;
 	public:
-		RecursionGuard(int32& _counter) : counter(_counter) { counter++; }
-		~RecursionGuard() { counter--; }
+		FORCE_INLINE RecursionGuard(int32& _counter) : counter(_counter) { counter++; }
+		FORCE_INLINE ~RecursionGuard() { counter--; }
 	};
 
 #if USE_VSTUDIO_SAL
@@ -403,14 +421,14 @@ namespace Rococo
 	private:
 		mutable T* t;
 	public:
-		AutoFree(T* _t = nullptr) : t(_t) {}
-		AutoFree(AutoFree<T>&& src)
+		FORCE_INLINE AutoFree(T* _t = nullptr) : t(_t) {}
+		FORCE_INLINE AutoFree(AutoFree<T>&& src)
 		{
 			t = src.t;
 			src.t = nullptr;
 		}
 
-		AutoFree<T>& operator = (T* src)
+		FORCE_INLINE AutoFree<T>& operator = (T* src)
 		{
 			if (t != nullptr && t != src)
 			{
@@ -420,7 +438,7 @@ namespace Rococo
 			return *this;
 		};
 
-		AutoFree<T>& operator = (const AutoFree<T>& src)
+		FORCE_INLINE AutoFree<T>& operator = (const AutoFree<T>& src)
 		{
 			Rococo::Free(t);
 			t = src.t;
@@ -428,33 +446,33 @@ namespace Rococo
 			return *this;
 		}
 
-		AutoFree<T>& operator = (const AutoFree<T>&& src)
+		FORCE_INLINE AutoFree<T>& operator = (const AutoFree<T>&& src)
 		{
 			Rococo::Free(t);
 			t = src.t;
 			src.t = nullptr;
 		}
 
-		~AutoFree()
+		FORCE_INLINE ~AutoFree()
 		{
 			Rococo::Free(t);
 		}
 
 		// Release our hold on the pointer, but does not free it. Then returns it
-		T* Release()
+		FORCE_INLINE T* Release()
 		{
 			T* output = t;
 			t = nullptr;
 			return output;
 		}
 
-		operator T* () { return t; }
-		T* operator -> () { return t; }
-		T& operator * () { return *t; }
-		operator const T* () const { return t; }
-		const T* operator -> () const { return t; }
-		const T& operator * () const { return *t; }
-		operator bool () const { return t != nullptr; }
+		FORCE_INLINE operator T* () { return t; }
+		FORCE_INLINE T* operator -> () { return t; }
+		FORCE_INLINE T& operator * () { return *t; }
+		FORCE_INLINE operator const T* () const { return t; }
+		FORCE_INLINE const T* operator -> () const { return t; }
+		FORCE_INLINE const T& operator * () const { return *t; }
+		FORCE_INLINE operator bool () const { return t != nullptr; }
 	};
 
 	template<class T> ROCOCO_INTERFACE IEnumerator
@@ -494,8 +512,8 @@ namespace Rococo
 		uint8 alpha = 0;
 
 		RGBAb() {}
-		RGBAb(uint32 x) { RGBAb* pCol = (RGBAb*)&x; *this = *pCol; }
-		RGBAb(uint8 _red, uint8 _green, uint8 _blue, uint8 _alpha = 255) : red(_red), green(_green), blue(_blue), alpha(_alpha) {}
+		FORCE_INLINE RGBAb(uint32 x) { RGBAb* pCol = (RGBAb*)&x; *this = *pCol; }
+		FORCE_INLINE RGBAb(uint8 _red, uint8 _green, uint8 _blue, uint8 _alpha = 255) : red(_red), green(_green), blue(_blue), alpha(_alpha) {}
 	};
 
 	struct RGBA
@@ -505,7 +523,7 @@ namespace Rococo
 		float blue;
 		float alpha;
 
-		RGBA(float _r = 1.0f, float _g = 0.0f, float _b = 0.0f, float _a = 1.0f) : red(_r), green(_g), blue(_b), alpha(_a) {}
+		FORCE_INLINE RGBA(float _r = 1.0f, float _g = 0.0f, float _b = 0.0f, float _a = 1.0f) : red(_r), green(_g), blue(_b), alpha(_a) {}
 	};
 
 	template<class T> ROCOCO_INTERFACE IVectorEnumerator
@@ -526,8 +544,8 @@ namespace Rococo
 		float bottom = 0;
 
 		GuiRectf() {}
-		GuiRectf(float _left, float _top, float _right, float _bottom) : left(_left), top(_top), right(_right), bottom(_bottom) {}
-		bool IsNormalized() const { return right > left && bottom > top; }
+		FORCE_INLINE GuiRectf(float _left, float _top, float _right, float _bottom) : left(_left), top(_top), right(_right), bottom(_bottom) {}
+		FORCE_INLINE bool IsNormalized() const { return right > left && bottom > top; }
 	};
 
 	struct AABB2d
@@ -546,22 +564,22 @@ namespace Rococo
 		AABB2d& operator << (cr_vec2 p);
 	};
 
-	template<class T> [[nodiscard]] inline T max(T a, T b)
+	template<class T> [[nodiscard]] FORCE_INLINE T max(T a, T b)
 	{
 		return a > b ? a : b;
 	}
 
-	template<class T> [[nodiscard]] inline T min(T a, T b)
+	template<class T> [[nodiscard]] FORCE_INLINE T min(T a, T b)
 	{
 		return a < b ? a : b;
 	}
 
-	template<class T> [[nodiscard]] inline T clamp(T a, T lowestBound, T highestBound)
+	template<class T> [[nodiscard]] FORCE_INLINE T clamp(T a, T lowestBound, T highestBound)
 	{
 		return min(highestBound, max(lowestBound, a));
 	}
 
-	template<class T> [[nodiscard]] inline T Sq(T a)
+	template<class T> [[nodiscard]] FORCE_INLINE T Sq(T a)
 	{
 		return a * a;
 	}
@@ -569,10 +587,10 @@ namespace Rococo
 	struct Kilograms
 	{
 		float value;
-		operator float() const { return value; }
+		FORCE_INLINE operator float() const { return value; }
 	};
 
-	inline Kilograms operator "" _kg(long double value)
+	FORCE_INLINE Kilograms operator "" _kg(long double value)
 	{
 		return Kilograms{ (float)value };
 	}
@@ -580,16 +598,16 @@ namespace Rococo
 	struct Metres
 	{
 		float value;
-		operator float() const { return value; }
+		FORCE_INLINE operator float() const { return value; }
 	};
 
-	inline Metres operator "" _metres(long double value)
+	FORCE_INLINE Metres operator "" _metres(long double value)
 	{
 		return Metres{ (float)value };
 	}
 
 
-	inline Metres operator "" _metres(unsigned long long value)
+	FORCE_INLINE Metres operator "" _metres(unsigned long long value)
 	{
 		return Metres{ (float)value };
 	}
@@ -597,10 +615,10 @@ namespace Rococo
 	struct Seconds
 	{
 		float value;
-		operator float() const { return value; }
+		FORCE_INLINE operator float() const { return value; }
 	};
 
-	inline Seconds operator "" _seconds(long double value)
+	FORCE_INLINE Seconds operator "" _seconds(long double value)
 	{
 		return Seconds{ (float)value };
 	}
@@ -608,10 +626,10 @@ namespace Rococo
 	struct MetresPerSecond
 	{
 		float value;
-		operator float() const { return value; }
+		FORCE_INLINE operator float() const { return value; }
 	};
 
-	inline MetresPerSecond operator "" _mps(long double value)
+	FORCE_INLINE MetresPerSecond operator "" _mps(long double value)
 	{
 		return MetresPerSecond{ (float)value };
 	}
@@ -624,9 +642,9 @@ namespace Rococo
 		int32 bottom = 0;
 
 		GuiRect() {}
-		GuiRect(int32 _left, int32 _top, int32 _right, int32 _bottom) : left(_left), top(_top), right(_right), bottom(_bottom) {}
+		FORCE_INLINE GuiRect(int32 _left, int32 _top, int32 _right, int32 _bottom) : left(_left), top(_top), right(_right), bottom(_bottom) {}
 
-		bool IsNormalized() const { return right > left && bottom > top; }
+		FORCE_INLINE bool IsNormalized() const { return right > left && bottom > top; }
 	};
 
 	struct Vec2
@@ -641,11 +659,25 @@ namespace Rococo
 		float y;
 		float z;
 
-		static Vec3 FromVec2(const Vec2& pos, float z)
+		FORCE_INLINE static Vec3 FromVec2(const Vec2& pos, float z)
 		{
 			return Vec3{ pos.x, pos.y, z };
 		}
 	};
+
+	struct alignas(4) Quat
+	{
+		Vec3 v;
+		float s;
+
+		Quat() : v{ 0,0,0 }, s(1.0f) {}
+		Quat(cr_vec3 _v, float _s) : v(_v), s(_s) {}
+
+		FORCE_INLINE operator DirectX::XMFLOAT4* () { return reinterpret_cast<DirectX::XMFLOAT4*> (this); }
+		FORCE_INLINE operator const DirectX::XMFLOAT4* () const { return reinterpret_cast<const DirectX::XMFLOAT4*> (this); }
+	};
+
+	typedef const Quat& cr_quat;
 
 	struct BoundingBox
 	{
@@ -660,7 +692,7 @@ namespace Rococo
 		Layer bottom;
 		Layer top;
 
-		const Vec3* First() const { return &bottom.nw; }
+		FORCE_INLINE const Vec3* First() const { return &bottom.nw; }
 	};
 
 	/* Axis-Aligned Bounding Box */
@@ -683,7 +715,7 @@ namespace Rococo
 		[[nodiscard]] AABB RotateBounds(const Matrix4x4& Rz) const;
 	};
 
-	[[nodiscard]] inline const Vec2& Flatten(const Vec3& a)
+	FORCE_INLINE  [[nodiscard]] const Vec2& Flatten(const Vec3& a)
 	{
 		return *reinterpret_cast<const Vec2*>(&a);
 	}
@@ -716,8 +748,6 @@ namespace Rococo
 			BreakFlag_IllFormed_SExpression = 8,
 			BreakFlag_All = 0x7FFFFFFF
 		};
-
-		
 	}
 
 	namespace Time

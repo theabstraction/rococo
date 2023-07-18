@@ -274,9 +274,6 @@ namespace Rococo
 			{
 				ScriptLogger logger(debugger);
 
-				Auto<ISourceCode> src;
-				Auto<ISParserTree> tree;
-
 				while (appControl.IsRunning())
 				{
 					logger.lastError[0] = 0;
@@ -309,7 +306,7 @@ namespace Rococo
 					try
 					{
 						Time::ticks start = Time::TickCount();
-						tree = sources.GetSource(resourcePath);
+						auto* tree = sources.GetSource(resourcePath);
 						stats.loadTime = Time::TickCount() - start;
 						int32 exitCode = ExecuteSexyScript(stats, *tree, debugger, ss, sources, implicitIncludes, param, onCompile, trace, declarationBuilder);
 						return exitCode;

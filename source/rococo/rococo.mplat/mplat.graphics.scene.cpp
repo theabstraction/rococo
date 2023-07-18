@@ -1,6 +1,7 @@
 #include <rococo.mplat.h>
 #include <rococo.animation.h>
-
+#include <components/rococo.components.animation.h>
+#include <components/rococo.components.skeleton.h>
 #include <vector>
 #include <algorithm>
 
@@ -12,13 +13,14 @@ namespace
    using namespace Rococo;
    using namespace Rococo::Entities;
    using namespace Rococo::Graphics;
+   using namespace Rococo::Components;
 
    typedef std::vector<VertexTriangle> TTriangles;
 
    class Scene : public ISceneSupervisor, public ISceneBuilderSupervisor
    {
       IInstancesSupervisor& instances;
-	  Rococo::Components::IRCObjectTable& ecs;
+	  IECS& ecs;
       std::vector<ID_ENTITY> entities;
 	  std::vector<ID_ENTITY> debugEntities;
 	  std::vector<ID_ENTITY> dynamics;
@@ -148,8 +150,8 @@ namespace
 
 		  for (auto id : dynamics)
 		  {
-			  auto skeletonComponent = ecs.GetSkeletonComponent(id);
-			  auto animationComponent = ecs.GetAnimationComponent(id);
+			  auto skeletonComponent = API::ForISkeletonComponent::Get(id);
+			  auto animationComponent = API::ForIAnimationComponent::Get(id);
 			  if (skeletonComponent && animationComponent)
 			  {
 				  auto* skele = skeletonComponent->Skeleton();
@@ -161,7 +163,7 @@ namespace
 						  poses,
 						  dt
 					  };
-					  animationComponent->GetAnimation().Advance(args);
+					  animationComponent->Core().Advance(args);
 				  }
 			  }
 		  }
@@ -251,7 +253,7 @@ namespace
 
 		  for (auto i : statics)
 		  {
-			  auto body = instances.ECS().GetBodyComponent(i);
+			  auto body = API::ForIBodyComponent::Get(i);
 			  if (!body)
 			  {
 				  Throw(0, "Scene: Unexpected missing entity with id #%lld", i.Value());
@@ -276,18 +278,18 @@ namespace
 
 		  for (auto i : debugEntities)
 		  {
-			  AddDebugBones(i, instances.ECS(), r, *debugTesselator);
+			  AddDebugBones(i, r, *debugTesselator);
 		  }
 
 		  for (auto i : dynamics)
 		  {
-			  auto body = instances.ECS().GetBodyComponent(i);
+			  auto body = API::ForIBodyComponent::Get(i);
 			  if (!body)
 			  {
 				  Throw(0, "Scene: Unexpected missing entity with id #%lld", i.Value());
 			  }
 
-			  auto skeletonComponent = instances.ECS().GetSkeletonComponent(i);
+			  auto skeletonComponent = API::ForISkeletonComponent::Get(i);
 			 
 			  auto* skeleton = skeletonComponent ? skeletonComponent->Skeleton() : nullptr;
 

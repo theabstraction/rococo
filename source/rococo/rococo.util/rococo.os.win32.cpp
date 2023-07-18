@@ -41,8 +41,15 @@
 #include <list>
 #include <rococo.time.h>
 
+#include <rococo.allocators.inl>
+
 using namespace Rococo::IO;
 using namespace Rococo::Strings;
+using namespace Rococo::Memory;
+
+DeclareAllocator(TrackingAllocator, RococoUtils, g_allocator)
+//AllocatorMonitor<RococoUtils> monitor;
+OVERRIDE_MODULE_ALLOCATORS_WITH_FUNCTOR(g_allocator)
 
 namespace Rococo
 {
@@ -2721,7 +2728,7 @@ namespace Rococo
 
 	namespace Debugging
 	{
-		ROCOCO_API void FormatStackFrames(IStackFrameFormatter& formatter)
+		void FormatStackFrames_WithDepthTarget(IStackFrameFormatter& formatter, int depthTarget = -1)
 		{
 			CONTEXT context;
 			context.ContextFlags = CONTEXT_FULL;
@@ -2760,9 +2767,20 @@ namespace Rococo
 				{
 					continue; // Ignore first two stack frames -> they are our stack analysis functions!
 				}
-				
+
 				Rococo::Debugging::StackFrame sf;
 				sf.depth = depth++;
+
+				if (depthTarget > 0 && depth > depthTarget)
+				{
+					return;
+				}
+
+				if (depthTarget > 0 && depth != depthTarget)
+				{
+					continue;
+				}
+
 				sf.address.segment = frame.AddrPC.Segment;
 				sf.address.offset = frame.AddrPC.Offset;
 
@@ -2800,6 +2818,76 @@ namespace Rococo
 
 				formatter.Format(sf);
 			}
+		}
+
+		ROCOCO_API void FormatStackFrames(IStackFrameFormatter& formatter)
+		{
+			FormatStackFrames_WithDepthTarget(formatter, -1);
+		}
+
+		ROCOCO_API void FormatStackFrame(char* buffer, size_t capacity, StackFrame::Address address)
+		{
+			if (capacity && buffer) *buffer = 0;
+			else return;
+
+			HANDLE hProcess = GetCurrentProcess();
+
+			SymInitialize(hProcess, NULL, TRUE);
+			SymSetOptions(SYMOPT_LOAD_LINES);
+
+			STACKFRAME64 frame = { 0 };
+			frame.AddrPC.Offset = address.offset;
+			frame.AddrPC.Segment = address.segment;
+			frame.AddrPC.Mode = AddrModeFlat;
+
+			char symbolBuffer[sizeof(IMAGEHLP_SYMBOL) + 255];
+			PIMAGEHLP_SYMBOL symbol = (PIMAGEHLP_SYMBOL)symbolBuffer;
+			symbol->SizeOfStruct = (sizeof IMAGEHLP_SYMBOL) + 255;
+			symbol->MaxNameLength = 254;
+
+			char functionName[256];
+			*functionName = 0;
+
+			if (SymGetSymFromAddr(hProcess, frame.AddrPC.Offset, NULL, symbol))
+			{
+				Strings::SafeFormat(functionName, symbol->Name, _TRUNCATE);
+			}
+
+			DWORD  offset = 0;
+			IMAGEHLP_LINE line;
+			line.SizeOfStruct = sizeof(IMAGEHLP_LINE);
+
+			if (SymGetLineFromAddr(hProcess, frame.AddrPC.Offset, &offset, &line))
+			{
+				SafeFormat(buffer, capacity, "%s: %s #%d", functionName, line.FileName, line.LineNumber);
+			}
+		}
+
+		ROCOCO_API StackFrame::Address FormatStackFrame(char* buffer, size_t capacity, int depth)
+		{
+			if (buffer && capacity) *buffer = 0;
+
+			struct ANON : IStackFrameFormatter
+			{
+				char* writePos = nullptr;
+				size_t capacity = 0;
+				StackFrame::Address result = { 0 };
+
+				void Format(const StackFrame& sf) override
+				{
+					if (writePos != nullptr && capacity != 0)
+					{
+						SafeFormat(writePos, capacity, "%s: %s #%d", sf.functionName, sf.sourceFile, sf.lineNumber);
+					}
+					result = sf.address;
+				}
+			} formatter;
+			formatter.writePos = buffer;
+			formatter.capacity = capacity;
+
+			FormatStackFrames_WithDepthTarget(formatter, depth);
+
+			return formatter.result;
 		}
 	}
 }
@@ -3200,3 +3288,20 @@ namespace Rococo::Time
 		SafeFormat(buffer, nBytes, "%s %s", localTime, localDate);
 	}
 } // Rococo::Time
+
+namespace Rococo::Debugging
+{
+	ROCOCO_API int Log(cstr format, ...)
+	{
+		va_list args;
+		va_start(args, format);
+
+		char output[1024];
+		int len = Strings::SafeVFormat(output, sizeof output, format, args);
+		OutputDebugStringA(output);
+
+		vprintf_s(format, args);
+
+		return len;
+	}
+}

@@ -239,7 +239,15 @@ namespace Rococo { namespace Compiler { namespace Impl
 			}
 
 			Structure* s = new Structure(name, prototype, *this, type, definition);
-			structures.Register(s->Name(), *s);
+			try
+			{
+				structures.Register(s->Name(), *s);
+			}
+			catch (...)
+			{
+				delete s;
+				throw;
+			}
 			return *s;
 		}
 

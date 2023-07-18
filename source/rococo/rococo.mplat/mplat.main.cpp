@@ -21,6 +21,7 @@
 #include <rococo.gui.retained.ex.h>
 #include "mplat.editor.h"
 #include "rococo.maths.h"
+#include "rococo.ecs.h"
 
 #ifdef _WIN32
 # pragma comment(lib, "rococo.util.ex.lib")
@@ -418,6 +419,23 @@ void FormatMainWindowFont(LOGFONTA& font)
 	}
 }
 
+struct ComponentAutoRelease
+{
+	~ComponentAutoRelease()
+	{
+		ECS::ReleaseTablesForIAnimationComponent();
+		ECS::ReleaseTablesForIBodyComponent();
+		ECS::ReleaseTablesForISkeletonComponent();
+	}
+};
+
+void LinkComponents(IECSSupervisor& ecs, Platform& platform)
+{
+	ECS::LinkToECS_IAnimationComponentTable(ecs);
+	ECS::LinkToECS_IBodyComponentTable(ecs);
+	ECS::LinkToECS_ISkeletonComponentTable(ecs, platform.world.rigs.Skeles());
+}
+
 int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon, HICON hSmallIcon)
 {
 	using namespace Rococo::Components;
@@ -512,23 +530,11 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	AutoFree<Rococo::Entities::IRigs> rigs = Rococo::Entities::CreateRigBuilder();
 	AutoFree<Graphics::IMeshBuilderSupervisor> meshes = Graphics::CreateMeshBuilder(mainWindow->Renderer());
 
-	AutoFree<IComponentFactory<IAnimationComponent>> animationFactory = CreateAnimationFactory();
-	AutoFree<IComponentFactory<IBodyComponent>> bodyFactory = CreateBodyFactory();
-	AutoFree<IComponentFactory<ISkeletonComponent>> skeletonFactory = CreateSkeletonFactory(rigs->Skeles());
-	AutoFree<IComponentFactory<IParticleSystemComponent>> particleSystemFactory = CreateParticleSystemFactory();
-	AutoFree<IComponentFactory<IRigsComponent>> rigsFactory = CreateRigsFactory();
+	AutoFree<IComponentFactory<IParticleSystemComponent>> particleSystemFactory;
+	AutoFree<IComponentFactory<IRigsComponent>> rigsFactory;
 
-	ComponentFactories factories
-	{
-		*animationFactory,
-		*bodyFactory,
-		*skeletonFactory,
-		*particleSystemFactory,
-		*rigsFactory
-	};
-
-	AutoFree<IRCObjectTableSupervisor> ecs = Factories::Create_RCO_EntityComponentSystem(factories);
-
+	ComponentAutoRelease componentReleaser; // Ensure this is created before the ecs system, as component tables must remain valid for the lifetime of the ECS - the ECS references them
+	AutoFree<IECSSupervisor> ecs = CreateECS(32_megabytes);
 	AutoFree<Entities::IInstancesSupervisor> instances = Entities::CreateInstanceBuilder(*meshes, mainWindow->Renderer(), *publisher, *ecs, (size_t) maxEntities);
 	AutoFree<Entities::IMobilesSupervisor> mobiles = Entities::CreateMobilesSupervisor(*instances);
 	AutoFree<Graphics::ICameraSupervisor> camera = Graphics::CreateCamera(*instances, *mobiles, mainWindow->Renderer());
@@ -562,7 +568,7 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 #endif
 
 	AutoFree<Rococo::MPEditor::IMPEditorSupervisor> editor = Rococo::MPEditor::CreateMPlatEditor(*GR);
-	
+
 	Platform platform
 	{ 
 		// Platform graphics
@@ -603,6 +609,8 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 
 		tesselators
 	};
+
+	LinkComponents(*ecs, platform);
 
 	editor->SetPlatform(&platform);
 

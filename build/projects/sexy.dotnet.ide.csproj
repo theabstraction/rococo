@@ -1,0 +1,233 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x64</Platform>
+    <PlatformTarget Condition=" '$(Platform)' == '' ">x64</PlatformTarget>
+    <ProjectGuid>{24D4E793-57DA-71A5-0D09-61D8698279C0}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>sexy.dotnet.ide</RootNamespace>
+    <AssemblyName>sexy.dotnet.ide</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>SexyDotNet.Program</StartupObject>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <PlatformTarget>x64</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\gen\bin\win64\debug</OutputPath>
+    <IntermediateOutputPath>..\..\gen\temp\debug\sexy.dotnet.ide</IntermediateOutputPath>
+    <DefineConstants>DEBUG;TRACE;WIN64</DefineConstants>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <PlatformTarget>x64</PlatformTarget>
+    <DebugSymbols>false</DebugSymbols>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\gen\bin\win64\release</OutputPath>
+    <IntermediateOutputPath>..\..\gen\temp\release\sexy.dotnet.ide</IntermediateOutputPath>
+    <DefineConstants>TRACE;WIN64</DefineConstants>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="PresentationCore">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="PresentationFramework">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Xaml">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Xml">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="WindowsBase">
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\source\rococo\sexy\sexy.dotnet.ide\App.xaml.cs">
+      <DependentUpon>App.xaml</DependentUpon>
+      <Link>App.xaml.cs</Link>
+    </Compile>
+    <Compile Include="..\..\source\rococo\sexy\sexy.dotnet.ide\AssemblerPopulator.cs">
+      <Link>AssemblerPopulator.cs</Link>
+    </Compile>
+    <Compile Include="..\..\source\rococo\sexy\sexy.dotnet.ide\AssemblerView.xaml.cs">
+      <DependentUpon>AssemblerView.xaml</DependentUpon>
+      <Link>AssemblerView.xaml.cs</Link>
+    </Compile>
+    <Compile Include="..\..\source\rococo\sexy\sexy.dotnet.ide\CallStackViewPopulator.cs">
+      <Link>CallStackViewPopulator.cs</Link>
+    </Compile>
+    <Compile Include="..\..\source\rococo\sexy\sexy.dotnet.ide\CompileWindow.xaml.cs">
+      <DependentUpon>CompileWindow.xaml</DependentUpon>
+      <Link>CompileWindow.xaml.cs</Link>
+    </Compile>
+    <Compile Include="..\..\source\rococo\sexy\sexy.dotnet.ide\Controller.cs">
+      <Link>Controller.cs</Link>
+    </Compile>
+    <Compile Include="..\..\source\rococo\sexy\sexy.dotnet.ide\ExceptionWindow.xaml.cs">
+      <DependentUpon>ExceptionWindow.xaml</DependentUpon>
+      <Link>ExceptionWindow.xaml.cs</Link>
+    </Compile>
+    <Compile Include="..\..\source\rococo\sexy\sexy.dotnet.ide\MainWindow.xaml.cs">
+      <DependentUpon>MainWindow.xaml</DependentUpon>
+      <Link>MainWindow.xaml.cs</Link>
+    </Compile>
+    <Compile Include="..\..\source\rococo\sexy\sexy.dotnet.ide\OutputWindow.xaml.cs">
+      <DependentUpon>OutputWindow.xaml</DependentUpon>
+      <Link>OutputWindow.xaml.cs</Link>
+    </Compile>
+    <Compile Include="..\..\source\rococo\sexy\sexy.dotnet.ide\Project.cs">
+      <Link>Project.cs</Link>
+    </Compile>
+    <Compile Include="..\..\source\rococo\sexy\sexy.dotnet.ide\ProjectViewPopulator.cs">
+      <Link>ProjectViewPopulator.cs</Link>
+    </Compile>
+    <Compile Include="..\..\source\rococo\sexy\sexy.dotnet.ide\Properties\AssemblyInfo.cs">
+      <Link>Properties\AssemblyInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\..\source\rococo\sexy\sexy.dotnet.ide\Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+      <Link>Properties\Resources.Designer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\source\rococo\sexy\sexy.dotnet.ide\Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <Link>Properties\Settings.Designer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\source\rococo\sexy\sexy.dotnet.ide\Settings.cs">
+      <Link>Settings.cs</Link>
+    </Compile>
+    <Compile Include="..\..\source\rococo\sexy\sexy.dotnet.ide\SexView.xaml.cs">
+      <DependentUpon>SexView.xaml</DependentUpon>
+      <Link>SexView.xaml.cs</Link>
+    </Compile>
+    <Compile Include="..\..\source\rococo\sexy\sexy.dotnet.ide\SourceViewPopulator.cs">
+      <Link>SourceViewPopulator.cs</Link>
+    </Compile>
+    <Compile Include="..\..\source\rococo\sexy\sexy.dotnet.ide\StackFrameViewPopulator.cs">
+      <Link>StackFrameViewPopulator.cs</Link>
+    </Compile>
+    <Compile Include="..\..\source\rococo\sexy\sexy.dotnet.ide\ThirdParty.cs">
+      <Link>ThirdParty.cs</Link>
+    </Compile>
+    <Compile Include="..\..\source\rococo\sexy\sexy.dotnet.ide\VMInfo.cs">
+      <Link>VMInfo.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\source\rococo\sexy\sexy.dotnet.ide\Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+      <Link>Properties\Settings.settings</Link>
+    </None>
+    <None Include="..\..\source\rococo\sexy\sexy.dotnet.ide\app.config">
+      <Link>Resources\app.config</Link>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ApplicationDefinition Include="..\..\source\rococo\sexy\sexy.dotnet.ide\App.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+      <Link>App.xaml</Link>
+    </ApplicationDefinition>
+    <Page Include="..\..\source\rococo\sexy\sexy.dotnet.ide\AssemblerView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+      <Link>AssemblerView.xaml</Link>
+    </Page>
+    <Page Include="..\..\source\rococo\sexy\sexy.dotnet.ide\CompileWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+      <Link>CompileWindow.xaml</Link>
+    </Page>
+    <Page Include="..\..\source\rococo\sexy\sexy.dotnet.ide\ExceptionWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+      <Link>ExceptionWindow.xaml</Link>
+    </Page>
+    <Page Include="..\..\source\rococo\sexy\sexy.dotnet.ide\MainWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+      <Link>MainWindow.xaml</Link>
+    </Page>
+    <Page Include="..\..\source\rococo\sexy\sexy.dotnet.ide\OutputWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+      <Link>OutputWindow.xaml</Link>
+    </Page>
+    <Page Include="..\..\source\rococo\sexy\sexy.dotnet.ide\SexView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+      <Link>SexView.xaml</Link>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\source\rococo\sexy\sexy.dotnet.ide\Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+      <Link>Properties\Resources.resx</Link>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="sexy.dotnet.cli_vs2022_win64.vcxproj">
+      <Project>{f72558fa-6dfc-201d-2727-7cb0641e265a}</Project>
+      <Name>sexy.dotnet.cli</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.8">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4.8 %28x86 and x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="sex.png" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>copy $(SolutionDir)..\source\rococo\sexy\sexy.dotnet.ide\Images\ $(OutputDir)
+
+</PostBuildEvent>
+  </PropertyGroup>
+</Project>

@@ -340,9 +340,13 @@ namespace Anon
 	{
 		assembler->Free();
 
-		for(auto i = expiredVariables.begin(); i != expiredVariables.end(); ++i)
+		for (auto v: variables)
 		{
-			Variable* v = *i;
+			delete v;
+		}
+
+		for(auto v : expiredVariables)
+		{
 			delete v;
 		}
 	}

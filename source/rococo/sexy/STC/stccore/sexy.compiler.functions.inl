@@ -33,6 +33,7 @@
 
 namespace Anon
 {
+	// This is one of the most intense classes for the compiler to allocate. Improving this will speed things up
 	class FunctionArgument: public IArgumentBuilder
 	{
 	private:

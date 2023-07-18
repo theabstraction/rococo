@@ -99,7 +99,7 @@ namespace Rococo
 	{
 		enum { MAX_TOKEN_CHARS = 256 };
 		char Text[MAX_TOKEN_CHARS];
-		operator const char* () { return Text; }
+		FORCE_INLINE operator const char* () { return Text; }
 	};
 
 #pragma pack(push,1)
@@ -235,7 +235,7 @@ namespace Rococo
 		SEXYUTIL_API NamespaceSplitter(cstr _src);
 		SEXYUTIL_API bool SplitTail(cstr& _body, cstr& _tail);
 		SEXYUTIL_API bool SplitHead(cstr& _head, cstr& _body);
-		inline char* Raw() { return dottedName; }
+		FORCE_INLINE char* Raw() { return dottedName; }
 	};
 
 	namespace Sex
@@ -274,7 +274,7 @@ namespace Rococo
 
 		typedef const ISExpression& cr_sex;
 
-		inline bool operator != (const ISExpression& s, const char* token)
+		FORCE_INLINE bool operator != (const ISExpression& s, const char* token)
 		{
 			return !(s == token);
 		}
