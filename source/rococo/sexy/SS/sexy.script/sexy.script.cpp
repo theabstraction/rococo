@@ -969,6 +969,7 @@ namespace Rococo::Script
 			listCallbacks.ListPrepend64 = core.RegisterCallback(OnInvokeListPrepend64, this, "ListPrepend64");
 			listCallbacks.ListPrependInterface = core.RegisterCallback(OnInvokeListPrependInterface, this, "ListPrependInterface");
 			listCallbacks.ListGetHead = core.RegisterCallback(OnInvokeListGetHead, this, "ListGetHead");
+			listCallbacks.ListGetHeadUnreferenced = core.RegisterCallback(OnInvokeListGetHeadUnreferenced, this, "ListGetHeadUnreferenced");
 			listCallbacks.ListGetTail = core.RegisterCallback(OnInvokeListGetTail, this, "ListGetTail");
 			listCallbacks.ListGetLength = core.RegisterCallback(OnInvokeListGetLength, this, "ListGetLength");
 			listCallbacks.NodeGet32 = core.RegisterCallback(OnInvokeNodeGet32, this, "NodeGet32");

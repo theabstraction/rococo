@@ -209,8 +209,8 @@ namespace Rococo::Script
 			}
 			else if (type.VarType() == VARTYPE_List)
 			{
-				ListImage* l = (ListImage*)instance;
-				ListClear(*l, ss);
+				ListImage* l = *(ListImage**)instance;
+				ListRelease(l, ss);
 			}
 			else if (type.VarType() == VARTYPE_Map)
 			{

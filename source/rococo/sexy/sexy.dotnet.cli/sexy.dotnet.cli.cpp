@@ -820,57 +820,57 @@ namespace SexyDotNet { namespace Host
 			{
 				const Rococo::uint8* pInstance = GetInstance(def, pseudoType, SF);
 				if (pInstance != NULL)
-				{
-					if (s.VarType() == VARTYPE_Map)
 					{
-						auto* m = (MapImage*)pInstance;
-						char buffer[32];
-						SafeFormat(buffer, "%d", m->NumberOfElements);
-						vars->Add(VariableDesc(def.SFOffset, gcnew String("NumberOfElements"), gcnew String("Int32"), gcnew String(buffer), VariableKind::Local, IntPtr((void*)m)));
-
-						SafeFormat(buffer, "%ld", m->refCount);
-						vars->Add(VariableDesc(def.SFOffset, gcnew String("Reference Count"), gcnew String("Int64"), gcnew String(buffer), VariableKind::Local, IntPtr((void*)m)));
-
-						SafeFormat(buffer, "%s", GetFriendlyName(*m->KeyType));
-						vars->Add(VariableDesc(def.SFOffset, gcnew String("KeyType"), gcnew String("IStructure"), gcnew String(buffer), VariableKind::Local, IntPtr((void*)m->KeyType)));
-
-						SafeFormat(buffer, "%s", GetFriendlyName(*m->ValueType));
-						vars->Add(VariableDesc(def.SFOffset, gcnew String("ValueType"), gcnew String("IStructure"), gcnew String(buffer), VariableKind::Local, IntPtr((void*)m->ValueType)));
-					}
-					else if (s.VarType() == VARTYPE_List)
-					{
-						auto* l = (ListImage*) pInstance;
-
-						char buffer[32];
-
-						SafeFormat(buffer, "%lld", l->refCount);
-						vars->Add(VariableDesc(def.SFOffset, gcnew String("Reference Count"), gcnew String("Int64"), gcnew String(buffer), VariableKind::Local, IntPtr((void*)&l->refCount)));
-
-						SafeFormat(buffer, "%d", l->NumberOfElements);
-						vars->Add(VariableDesc(def.SFOffset, gcnew String("NumberOfElements"), gcnew String("Int32"), gcnew String(buffer), VariableKind::Local, IntPtr((void*)&l->NumberOfElements)));
-
-						SafeFormat(buffer, "%s", GetFriendlyName(*l->ElementType));
-						vars->Add(VariableDesc(def.SFOffset, gcnew String("ElementType"), gcnew String("IStructure"), gcnew String(buffer), VariableKind::Local, IntPtr((void*)&l->ElementType)));
-
-						SafeFormat(buffer, "0x%p", l->Head);
-						vars->Add(VariableDesc(def.SFOffset, gcnew String("Head"), gcnew String("Pointer"), gcnew String(buffer), VariableKind::Local, IntPtr((void*)&l->Head)));
-
-						SafeFormat(buffer, "0x%p", l->Tail);
-						vars->Add(VariableDesc(def.SFOffset, gcnew String("Tail"), gcnew String("Pointer"), gcnew String(buffer), VariableKind::Local, IntPtr((void*)&l->Tail)));
-					}
-					else
-					{
-						TVariableList nativeVars;
-						ListVariableDescBuilder builder(nativeVars, vk);
-						GetMembers(ss, s, sxchVariableName, pInstance, 0, builder, 0);
-
-						for (auto i = nativeVars.begin(); i != nativeVars.end(); ++i)
+						if (s.VarType() == VARTYPE_Map)
 						{
-							const NativeVariableDesc& desc = *i;
-							vars->Add(VariableDesc(def.SFOffset, gcnew String(desc.Name), gcnew String(desc.Type), gcnew String(desc.Value), desc.Location, IntPtr((void*)desc.Address)));
+							auto* m = (MapImage*)pInstance;
+							char buffer[32];
+							SafeFormat(buffer, "%d", m->NumberOfElements);
+							vars->Add(VariableDesc(def.SFOffset, gcnew String("NumberOfElements"), gcnew String("Int32"), gcnew String(buffer), VariableKind::Local, IntPtr((void*)m)));
+
+							SafeFormat(buffer, "%ld", m->refCount);
+							vars->Add(VariableDesc(def.SFOffset, gcnew String("Reference Count"), gcnew String("Int64"), gcnew String(buffer), VariableKind::Local, IntPtr((void*)m)));
+
+							SafeFormat(buffer, "%s", GetFriendlyName(*m->KeyType));
+							vars->Add(VariableDesc(def.SFOffset, gcnew String("KeyType"), gcnew String("IStructure"), gcnew String(buffer), VariableKind::Local, IntPtr((void*)m->KeyType)));
+
+							SafeFormat(buffer, "%s", GetFriendlyName(*m->ValueType));
+							vars->Add(VariableDesc(def.SFOffset, gcnew String("ValueType"), gcnew String("IStructure"), gcnew String(buffer), VariableKind::Local, IntPtr((void*)m->ValueType)));
+						}
+						else if (s.VarType() == VARTYPE_List)
+						{
+							auto* l = (ListImage*)pInstance;
+
+							char buffer[32];
+
+							SafeFormat(buffer, "%lld", l->refCount);
+							vars->Add(VariableDesc(def.SFOffset, gcnew String("Reference Count"), gcnew String("Int64"), gcnew String(buffer), VariableKind::Local, IntPtr((void*)&l->refCount)));
+
+							SafeFormat(buffer, "%d", l->NumberOfElements);
+							vars->Add(VariableDesc(def.SFOffset, gcnew String("NumberOfElements"), gcnew String("Int32"), gcnew String(buffer), VariableKind::Local, IntPtr((void*)&l->NumberOfElements)));
+
+							SafeFormat(buffer, "%s", GetFriendlyName(*l->ElementType));
+							vars->Add(VariableDesc(def.SFOffset, gcnew String("ElementType"), gcnew String("IStructure"), gcnew String(buffer), VariableKind::Local, IntPtr((void*)&l->ElementType)));
+
+							SafeFormat(buffer, "0x%p", l->Head);
+							vars->Add(VariableDesc(def.SFOffset, gcnew String("Head"), gcnew String("Pointer"), gcnew String(buffer), VariableKind::Local, IntPtr((void*)&l->Head)));
+
+							SafeFormat(buffer, "0x%p", l->Tail);
+							vars->Add(VariableDesc(def.SFOffset, gcnew String("Tail"), gcnew String("Pointer"), gcnew String(buffer), VariableKind::Local, IntPtr((void*)&l->Tail)));
+						}
+						else
+						{
+							TVariableList nativeVars;
+							ListVariableDescBuilder builder(nativeVars, vk);
+							GetMembers(ss, s, sxchVariableName, pInstance, 0, builder, 0);
+
+							for (auto i = nativeVars.begin(); i != nativeVars.end(); ++i)
+							{
+								const NativeVariableDesc& desc = *i;
+								vars->Add(VariableDesc(def.SFOffset, gcnew String(desc.Name), gcnew String(desc.Type), gcnew String(desc.Value), desc.Location, IntPtr((void*)desc.Address)));
+							}
 						}
 					}
-				}
 			}
 		}
 

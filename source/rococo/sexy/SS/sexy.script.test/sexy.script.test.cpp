@@ -72,7 +72,7 @@
 
 #include <rococo.stl.allocators.h>
 
-#define validate(_Expression) if (!(_Expression)) { ShowFailure(#_Expression, __FILE__, __LINE__); Abort(); }
+#define validate(_Expression) if (!(_Expression)) { ShowFailure(#_Expression, __FILE__, __LINE__); Throw(0, "Validation failure"); }
 
 #define TEST(test) Test(#test, test, false, false)
 #define TEST2(test) Test(#test, test, true, false)
@@ -336,12 +336,12 @@ namespace
 			catch (STCException& e)
 			{
 				WriteToStandardOutput("Error: %s\r\nSource: %s\r\n.Code %d", e.Message(), e.Source(), e.Code());
-				exit(e.Code());
+				throw;
 			}
 			catch (ParseException& e)
 			{
 				PrintParseException(e);
-				exit(-1);
+				throw;
 			}
 			catch (IException& ose)
 			{
@@ -355,12 +355,12 @@ namespace
 				{
 					WriteToStandardOutput("%s", ose.Message());
 				}
-				exit(-1);
+				throw;
 			}
 			catch (std::exception& stdex)
 			{
 				printf("std::exception: %s\r\n", stdex.what());
-				exit(-1);
+				throw;
 			}
 
 			printf("%s >>>>>>\r\n\r\n", name);
@@ -9045,26 +9045,57 @@ R"((namespace EntryPoint)
 	void TestLinkedList11(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Type)"
+
+			"(struct Int32List (list Int32 elements))"
+
+			"(function Main -> (Int32 result):"
+			"	(Int32List stuff)"
+			"	(list Int32 a)"
+			"   (stuff.elements = a)"
+			"	(stuff.elements.Append 17)"
+			"	(stuff.elements.Prepend 34)"
+			"	(node tail = stuff.elements.Tail)"
+			"	(result = (result + tail.Value))"
+			"	(foreach n # stuff.elements (result = (result + n.Value)))"
+			"	(result = (result + stuff.elements.Length))"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, "TestLinkedList11");
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		validate(ss.ValidateMemory());
+
+		int x = vm.PopInt32();
+		validate(x == 70);
+	}
+
+	void TestLeakyLinkedList(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
 		"(namespace EntryPoint)"
 		" (alias Main EntryPoint.Main)"
   
 		"(using Sys.Type)"
 
-		"(struct Int32List (list Int32 elements))"
-
 		"(function Main -> (Int32 result):"
-		"	(Int32List stuff)"
 		"	(list Int32 a)"
-		"   (stuff.elements = a)"
-		"	(stuff.elements.Append 17)"
-		"	(stuff.elements.Prepend 34)"
-		"	(node tail = stuff.elements.Tail)"
-		"	(result = (result + tail.Value))"
-		"	(foreach n # stuff.elements (result = (result + n.Value)))"
-		"	(result = (result + stuff.elements.Length))"
+		"	(a.Append 17)"
+		"	(foreach n # a"
+		"		(result = 255)"
+		"	)"
 		")";
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 },"TestLinkedList11");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __func__);
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -9076,7 +9107,7 @@ R"((namespace EntryPoint)
 		validate(ss.ValidateMemory());
 
 		int x = vm.PopInt32();
-		validate(x == 70);
+		validate(x == 255);
 	}
 
 	void TestLinkedListOfArchetypes(IPublicScriptSystem& ss)
@@ -9555,8 +9586,6 @@ R"((namespace EntryPoint)
 			"	(list Int32 a)"
 
 			"	(a.Append 17)"
-			"	(a.Append 34)"
-			"	(a.Append 333)"
 
 			"	(foreach n # a"
 			"		(result = n.Value)"
@@ -15321,7 +15350,7 @@ R"(
 
    void TestLists()
    {
-	   goto here;
+	
 	   TEST(TestMapInsertCorrectRefs);
 	   TEST(TestLinkedListNodeInline);
 	   TEST(TestLinkedListContained);
@@ -15337,44 +15366,37 @@ R"(
 	   TEST(TestLinkedList8);
 	   TEST(TestLinkedList9);
 	   TEST(TestLinkedList10);
+	   
 	   TEST(TestLinkedListOfInterfaces);
 	   TEST(TestLinkedListOfInterfaces2);
-	   return;
-
 	   TEST(TestLinkedListForeach1);
 	   TEST(TestLinkedListForeach2);
 	   TEST(TestLinkedListForeach4);
- //  here:
 	   TEST(TestLinkedListForeach5);
 	   TEST(TestLinkedListForeach6);
- //  here:
-	   TEST(TestLinkedListForeach7);
-   here:
 	   TEST(TestLinkedListForeach8);
-  // here:
+	   
 	   TEST(TestLinkedListOfArchetypes);
-
 	   TEST(TestListStruct);
 	   TEST(TestListStruct2);
 	   TEST(TestListStruct3);
-
+	   
 	   TEST(TestListStrongTyping);
-
+	   
 	   TEST(TestListDeleteHeadAndThrow);
+	   
 	   TEST(TestListReverseEnumeration);
+	   TEST(TestLinkedListForeach7);
    }
 
    void TestMaps()
    {  
 	   TEST(TestMapOverwriteValue);
-
 	   TEST3(TestMapKey);
 	   TEST3(TestMapGetKey);
 	   TEST3(TestMapGetKey64);
-
 	   TEST3(TestMapStringInsertByVariable);
 	   TEST3(TestMapStringInsertByVariable2);
-
 	   TEST(TestEmptyMap);
 	   TEST(TestMap);
 	   TEST(TestMapStringToString);
@@ -15398,7 +15420,6 @@ R"(
 	   TEST(TestMapValueConstruct);
 	   TEST(TestMapForeach1);
 	   TEST(TestMapForeach2);
-
 	   TEST(TestMapInStruct);
 	   TEST(TestMapInMap);
 	   TEST(TestMapStrongTyping);
@@ -15869,19 +15890,13 @@ R"(
 	{
 		int64 start, end, hz;
 		start = Time::TickCount();
-
-	//	Memory::ValidateNothingAllocated();
-
-	//	TEST(TestEssentialInterface);
-
-	//	TestMemoryIsGood();
-	//	RunPositiveSuccesses();	
-	//	RunPositiveFailures();
-	//	TestArrays();
-	//	TestLists();
-	//	TestMaps;
-
-		TEST(TestLinkedListForeach8);
+		Memory::ValidateNothingAllocated();
+		TestMemoryIsGood();
+		RunPositiveSuccesses();	
+		RunPositiveFailures();
+		TestArrays();
+		TestLists();
+		TestMaps();
 	
 		end = Time::TickCount();
 		hz = Time::TickHz();
@@ -15916,7 +15931,6 @@ int main(int argc, char* argv[])
 				printf("\nSystem Error: %d %s\n", ex.ErrorCode(), numericMessage);
 			}
 		}
-		printf("\nUnhandled exception: %s\n", ex.Message());
 	}
 
 	return 0;

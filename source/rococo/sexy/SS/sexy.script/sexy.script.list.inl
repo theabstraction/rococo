@@ -33,6 +33,11 @@
 
 namespace Rococo::Script
 {
+	struct OrphanedNodeList
+	{
+		std::vector<ListNode*> items;
+	};
+
 	ListNode* CreateNewNode(ListImage* l, IScriptSystem& ss)
 	{
 		ListNode* n = (ListNode*)ss.AlignedMalloc(16, sizeof(ListNode) + l->ElementSize - 4);
@@ -75,6 +80,7 @@ namespace Rococo::Script
 		l->NumberOfElements = 0;
 		l->Head = NULL;
 		l->Tail = NULL;
+		l->OrphanedNodeList = NULL;
 
 		return l;
 	}
@@ -200,7 +206,20 @@ namespace Rococo::Script
 		{
 			ListNode* next = n->Next;
 			n->Next = n->Previous = NULL;
-			ReleaseNode(n, ss);
+			if (n->RefCount > 1)
+			{
+				ReleaseNode(n, ss);
+			}
+			else
+			{
+				// We need to maintain a reference to the nodes, as they can be referenced during enumeration, which does not increase the ref count.
+				if (l.OrphanedNodeList == NULL)
+				{
+					l.OrphanedNodeList = new OrphanedNodeList();
+				}
+				n->Container = nullptr;
+				l.OrphanedNodeList->items.push_back(n);
+			}
 			n = next;
 		}
 
@@ -220,6 +239,15 @@ namespace Rococo::Script
 		if (l->refCount <= 0)
 		{
 			ListClear(*l, ss);
+			if (l->OrphanedNodeList)
+			{
+				// The list is out of scope, which means all orphaned nodes have to be out of scope, so time to release them
+				for (auto* orphan : l->OrphanedNodeList->items)
+				{
+					ReleaseNode(orphan, ss);
+				}
+				delete l->OrphanedNodeList;
+			}
 			ss.AlignedFree(l);
 		}
 	}
@@ -532,6 +560,12 @@ namespace Rococo::Script
 		ListNode* n = (ListNode*)registers[VM::REGISTER_D7].vPtrValue;
 		ListImage* l = n->Container;
 
+		if (n == NULL)
+		{
+			ss.ThrowFromNativeCode(-1, ("Node.Pop failed, as the node was null"));
+			return;
+		}
+
 		if (l == NULL)
 		{
 			ss.ThrowFromNativeCode(-1, ("Node.Pop failed, as the node was not in a list"));
@@ -557,7 +591,20 @@ namespace Rococo::Script
 		n->Next = NULL;
 		n->Container = NULL;
 
-		int refCount = ReleaseNode(n, ss);
+		if (n->RefCount != 1)
+		{
+			int refCount = ReleaseNode(n, ss);
+			UNUSED(refCount);
+		}
+		else
+		{
+			if (l->OrphanedNodeList == NULL)
+			{
+				l->OrphanedNodeList = new OrphanedNodeList();
+			}
+			
+			l->OrphanedNodeList->items.push_back(n);
+		}
 	}
 
 	VM_CALLBACK(NodeEnumNext)
@@ -600,6 +647,20 @@ namespace Rococo::Script
 		}
 
 		AddRef(l->Head);
+
+		registers[VM::REGISTER_D7].vPtrValue = l->Head;
+	}
+
+	VM_CALLBACK(ListGetHeadUnreferenced)
+	{
+		IScriptSystem& ss = *(IScriptSystem*)context;
+		ListImage* l = (ListImage*)registers[VM::REGISTER_D7].vPtrValue;
+
+		if (!l || !l->Head)
+		{
+			ss.ThrowFromNativeCode(-1, "ListGetHead: The list was empty");
+			return;
+		}
 
 		registers[VM::REGISTER_D7].vPtrValue = l->Head;
 	}
@@ -913,7 +974,7 @@ namespace Rococo::Script
 		AssertNotTooFewElements(s, 1);
 		AssertNotTooManyElements(s, 1);
 
-		ce.Builder.AssignVariableRefToTemp(instanceName, Rococo::ROOT_TEMPDEPTH, 0); // node goes to D6
+		ce.Builder.AssignVariableRefToTemp(instanceName, Rococo::ROOT_TEMPDEPTH, 0); // node goes to D7
 
 		AppendInvoke(ce, GetListCallbacks(ce).NodePop, s);
 	}
@@ -1138,16 +1199,27 @@ namespace Rococo::Script
 		ce.Builder.Assembler().Append_Test(VM::REGISTER_D7, BITCOUNT_32);
 
 		AddSymbol(ce.Builder, "if (list.length > 0) skip next two branches");
+		size_t firstIterationJumpPos = ce.Builder.Assembler().WritePosition();
 		ce.Builder.Assembler().Append_BranchIf(CONDITION_IF_NOT_EQUAL, sizeof(ArgsBranchIf) + 3 * (sizeof(int32) + 1)); // takes us just beyond the next two branch statements
 		size_t bailoutPos = ce.Builder.Assembler().WritePosition();
 		AddSymbol(ce.Builder, "branch to abort point");
 		ce.Builder.Assembler().Append_Branch(0); // if Eq, means counter = 0, and we branch here to the end
+
 		size_t rearBreakPos = ce.Builder.Assembler().WritePosition();
 		AddSymbol(ce.Builder, "branch to break point");
 		ce.Builder.Assembler().Append_Branch(0); // if Eq, means counter = 0, and we we branch here to the end, this is where (break) is directed
+
 		AddSymbol(ce.Builder, "branch to continue point");
 		size_t continueRearPos = ce.Builder.Assembler().WritePosition(); // this is where (continue) is directed
 		ce.Builder.Assembler().Append_Branch(0);
+
+
+		size_t firstIterationJumpLength = ce.Builder.Assembler().WritePosition() - firstIterationJumpPos;
+		//if (firstIterationJumpLength != sizeof(ArgsBranchIf) + 3 * (sizeof(int32) + 1)) Throw(0, "Unexpected %llu vs % llu", firstIterationJumpLength, sizeof(ArgsBranchIf) + 3 * (sizeof(int32) + 1));
+		ce.Builder.Assembler().SetWriteModeToOverwrite(firstIterationJumpPos);
+		ce.Builder.Assembler().Append_BranchIf(CONDITION_IF_NOT_EQUAL, (int)firstIterationJumpLength); // takes us just beyond the next two branch statements
+		ce.Builder.Assembler().SetWriteModeToAppend();
+
 		///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 		AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 5, Rococo::ROOT_TEMPDEPTH + 5, BITCOUNT_POINTER); // D12 to be used as node pointer
@@ -1173,7 +1245,7 @@ namespace Rococo::Script
 
 		ptrdiff_t startLoop = ce.Builder.Assembler().WritePosition();
 
-		AssignTempToVariableRef(ce, 8, refName); // refref now gives us the head node
+		AssignTempToVariableRef(ce, 8, refName); // refName now gives us the head node
 
 		if (indexName != NULL)
 		{
@@ -1205,9 +1277,20 @@ namespace Rococo::Script
 
 		ptrdiff_t endLoop = ce.Builder.Assembler().WritePosition();
 		ce.Builder.Assembler().Append_BranchIf(Rococo::CONDITION_IF_NOT_EQUAL, (int32)(startLoop - endLoop));
-
+		size_t branchToEverythingElsePos = ce.Builder.Assembler().WritePosition();
+		ce.Builder.Assembler().Append_Branch(0);
 		size_t breakPos = ce.Builder.Assembler().WritePosition();
-		ce.Builder.PopLastVariables(indexName != NULL ? 4 : 2, true); // Release the D10-D12 and the ref. We need to release the ref manually to stop the refcount decrement
+		// We broke, which meant we never enumerated to the final position, so the last thing referenced has an outstanding reference count
+		ce.Builder.AssignVariableRefToTemp(refName, Rococo::ROOT_TEMPDEPTH);
+		AppendInvoke(ce, GetListCallbacks(ce).NodeReleaseRef, s); // release the ref to the node
+
+		size_t popEverythingElsePos = ce.Builder.Assembler().WritePosition();
+		size_t everythingElseDelta = popEverythingElsePos - branchToEverythingElsePos;
+		ce.Builder.Assembler().SetWriteModeToOverwrite(branchToEverythingElsePos);
+		ce.Builder.Assembler().Append_Branch((int)everythingElseDelta);
+		ce.Builder.Assembler().SetWriteModeToAppend();
+
+		ce.Builder.PopLastVariables(indexName != NULL ? 4 : 2, true); // Release the D10,D11,D12 and the ref or just D12 and the ref
 		size_t exitPos = ce.Builder.Assembler().WritePosition();
 		size_t bailoutToExit = exitPos - bailoutPos;
 		ce.Builder.Assembler().SetWriteModeToOverwrite(bailoutPos);

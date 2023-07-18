@@ -271,7 +271,7 @@ namespace Rococo::Memory
 		TWatch stackWatch;
 		size_t countWatched = 0;
 
-		enum {ALLOCATION_SIZE_WATCHED = 67};
+		enum {ALLOCATION_SIZE_WATCHED = 79};
 
 		void AddMetrics(size_t nBytes)
 		{
@@ -341,7 +341,7 @@ namespace Rococo::Memory
 			{
 				countWatched++;
 
-				enum { DEPTH = 7 };
+				enum { DEPTH = 8 };
 				
 				TrackingString ts;
 				auto address = Debugging::FormatStackFrame(ts.msg, sizeof ts.msg, DEPTH);
@@ -464,13 +464,13 @@ namespace Rococo::Memory
 					atom.address;
 					char buffer[256];
 					Debugging::FormatStackFrame(buffer, sizeof buffer, atom.address);
-					allocator_printf("Leak at %p:\n\t%s\n", i.first, buffer);
+				//	allocator_printf("Leak at %p:\n\t%s\n", i.first, buffer);
 				}
 			}
 
 			if (!leakMapSizeToCount.empty())
 			{
-				ShowMetrics();
+			//	ShowMetrics();
 
 				allocator_printf(" Leaks detected: (%llu bytes)\n", stats.totalAllocationSize - totalFreed);
 				for (auto i : leakMapSizeToCount)
@@ -483,7 +483,7 @@ namespace Rococo::Memory
 			{
 				allocator_printf("No leaks detected. Keep up the good programming work!\n\n");
 
-				ShowMetrics();
+			//	ShowMetrics();
 			}
 
 			if constexpr (ALLOCATION_SIZE_WATCHED != 0)

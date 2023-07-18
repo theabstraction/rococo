@@ -2,7 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:SexyDotNet"
-        Title="SexyDotNet IDE" Height="600" Width="800" MinWidth="480" MinHeight="320" Icon="/sex.png">
+        Title="SexyDotNet IDE" Height="1000" Width="1900" MinWidth="480" MinHeight="320" Icon="/sex.png">
     <Window.CommandBindings>
         <CommandBinding Command="local:SexyCommands.StepInto" Executed="OnStepInto"/>
         <CommandBinding Command="local:SexyCommands.StepOver" Executed="OnStepOver"/>
@@ -43,13 +43,13 @@
         </Menu>
         <Grid Grid.Column="1" Grid.ColumnSpan="4">
             <Grid.RowDefinitions>
-                <RowDefinition Height="240" MinHeight="50"/>
+                <RowDefinition Height="440" MinHeight="50"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
             <Grid Margin="0,21,0,0">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="360" MinWidth="10"/>
+                    <ColumnDefinition Width="600" MinWidth="10"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <GridSplitter Name="gridSplitterSrcVsAssembly" VerticalAlignment="Stretch" HorizontalAlignment="Left" Margin="0,0,0,0" Grid.Column="1" Width="5"  ResizeDirection="Columns" Background="#E6C0C0C0" />
@@ -64,7 +64,7 @@
             <GridSplitter Name="splitterSrcVsState" HorizontalAlignment="Stretch" VerticalAlignment="Top" Grid.Row="1" Height="3" ResizeDirection="Rows" Grid.ColumnSpan="2" Background="#E6C0C0C0" />
             <Grid Name="gridState" Grid.Row="1">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="200" MinWidth="10"/>
+                    <ColumnDefinition Width="400" MinWidth="10"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
