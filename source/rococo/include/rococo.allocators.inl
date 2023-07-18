@@ -254,6 +254,30 @@ namespace Rococo::Memory
 			Rococo::Memory::Log(stats, name, intro, Rococo::Debugging::Log);
 		}
 	};
+
+	template<class T>
+	class MallocAllocator
+	{
+	public:
+		void* ModuleAllocate(std::size_t nBytes)
+		{
+			auto* data = malloc(nBytes);
+			if (!data)
+			{
+				Rococo::Throw(0, "%s(%s): Cannot allocate %llu bytes", __FUNCTION__, nBytes);
+			}
+			return data;
+		}
+
+		void ModuleFree(void* buffer)
+		{
+			free(buffer);
+		}
+
+		void Log(cstr name, cstr intro)
+		{
+		}
+	};
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////

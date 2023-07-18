@@ -504,8 +504,10 @@ namespace Rococo::Memory
 	};
 }
 
-DeclareAllocator(ScriptTrackingAllocator, SexyScript, g_allocator)
-Rococo::Memory::AllocatorMonitor<SexyScript> monitor;
+DeclareAllocator(MallocAllocator, SexyScript, g_allocator)  // The MallocAllocator is so far the fastest Sexy Allocator, improving release mode sexy.script.test execution by 2-3% above that of the DefaultAllocator
+//DeclareAllocator(DefaultAllocator, SexyScript, g_allocator) // DefaultAllocator uses the same memory allocator at the MallocAllocator, but it adds in some metrics reported when the allocator monitor destructs
+//DeclareAllocator(ScriptTrackingAllocator, SexyScript, g_allocator) // The ScriptTrackingAllocator is the slowest allocator, and requires tweaking, but allows you to get a stack trace of problematic allocations.
+Rococo::Memory::AllocatorMonitor<SexyScript> monitor; // When the progam terminates this object is cleared up and triggers the allocator log
 
 OVERRIDE_MODULE_ALLOCATORS_WITH_FUNCTOR(g_allocator)
 #else
