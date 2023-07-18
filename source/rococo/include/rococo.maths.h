@@ -36,6 +36,13 @@ namespace Rococo
 		inline operator Vec3& () { return *reinterpret_cast<Vec3*> (this); }
 	};
 
+	inline void swap(float& a, float& b)
+	{
+		float temp = a;
+		a = b;
+		b = temp;
+	}
+
 	void ComputeBoneQuatFromAngles(Quat& quat, const BoneAngles& angles);
 
 	template<class T>

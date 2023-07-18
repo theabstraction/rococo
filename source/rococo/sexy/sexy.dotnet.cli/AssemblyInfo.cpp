@@ -11,11 +11,11 @@ using namespace System::Security::Permissions;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 //
-[assembly:AssemblyTitleAttribute("SexyDotNetHost")];
+[assembly:AssemblyTitleAttribute("sexy.dotnet.ide")];
 [assembly:AssemblyDescriptionAttribute("")];
 [assembly:AssemblyConfigurationAttribute("")];
 [assembly:AssemblyCompanyAttribute("")];
-[assembly:AssemblyProductAttribute("SexyDotNetHost")];
+[assembly:AssemblyProductAttribute("sexy.dotnet.ide")];
 [assembly:AssemblyCopyrightAttribute("Copyright (c) 2011. Mark Anthony Taylor")];
 [assembly:AssemblyTrademarkAttribute("")];
 [assembly:AssemblyCultureAttribute("")];

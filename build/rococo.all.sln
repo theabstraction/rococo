@@ -51,8 +51,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.component.configurat
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.component.skeleton", "projects\rococo.component.skeleton_vs2022_win64.vcxproj", "{9EA8CD64-39CD-7C3C-6703-D8D9C64F4AF4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "rococo.cpp_master", "projects\rococo.cpp_master.csproj", "{9FF1D8CE-FD06-BFA1-6206-18AB1EFD359B}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.ecs", "projects\rococo.ecs_vs2022_win64.vcxproj", "{989FB988-E5BF-6FBF-5327-5B4B4E904985}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.ecs.test", "projects\rococo.ecs.test_vs2022_win64.vcxproj", "{655F0391-9556-4508-01A2-0F76DC3F67FC}"
@@ -91,12 +89,14 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sexy.bennyhill", "projects\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sexy.compiler", "projects\sexy.compiler_vs2022_win64.vcxproj", "{87496FE8-0053-AED7-44D6-138174796DD1}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sexy.dotnet", "projects\sexy.dotnet_vs2022_win64.vcxproj", "{57D4BCD1-9538-6011-5E1F-14631B8C6AA0}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sexy.dotnet.cli", "projects\sexy.dotnet.cli_vs2022_win64.vcxproj", "{F72558FA-6DFC-201D-2727-7CB0641E265A}"
 	ProjectSection(ProjectDependencies) = postProject
 		{18F4E289-D814-2BE5-97CF-FC0D7748887B} = {18F4E289-D814-2BE5-97CF-FC0D7748887B}
 		{3E686747-BC5F-FFE1-B4A3-7E531F4122E2} = {3E686747-BC5F-FFE1-B4A3-7E531F4122E2}
 		{62184609-95D1-1E60-D8CD-3755550224A5} = {62184609-95D1-1E60-D8CD-3755550224A5}
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "sexy.dotnet.ide", "projects\sexy.dotnet.ide.csproj", "{24D4E793-57DA-71A5-0D09-61D8698279C0}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sexy.nativelib.coroutines", "projects\sexy.nativelib.coroutines_vs2022_win64.vcxproj", "{5F88A533-1761-8D6A-810A-34878A10B2CE}"
 EndProject
@@ -196,12 +196,6 @@ Global
 		{9EA8CD64-39CD-7C3C-6703-D8D9C64F4AF4}.Any CPU-Release|All Platforms.ActiveCfg = Release|x64
 		{9EA8CD64-39CD-7C3C-6703-D8D9C64F4AF4}.x64-Release|All Platforms.ActiveCfg = Release|x64
 		{9EA8CD64-39CD-7C3C-6703-D8D9C64F4AF4}.x64-Release|All Platforms.Build.0 = Release|x64
-		{9FF1D8CE-FD06-BFA1-6206-18AB1EFD359B}.Any CPU-Debug|All Platforms.ActiveCfg = Debug|Any CPU
-		{9FF1D8CE-FD06-BFA1-6206-18AB1EFD359B}.Any CPU-Debug|All Platforms.Build.0 = Debug|Any CPU
-		{9FF1D8CE-FD06-BFA1-6206-18AB1EFD359B}.x64-Debug|All Platforms.ActiveCfg = Debug|Any CPU
-		{9FF1D8CE-FD06-BFA1-6206-18AB1EFD359B}.Any CPU-Release|All Platforms.ActiveCfg = Release|Any CPU
-		{9FF1D8CE-FD06-BFA1-6206-18AB1EFD359B}.Any CPU-Release|All Platforms.Build.0 = Release|Any CPU
-		{9FF1D8CE-FD06-BFA1-6206-18AB1EFD359B}.x64-Release|All Platforms.ActiveCfg = Release|Any CPU
 		{989FB988-E5BF-6FBF-5327-5B4B4E904985}.Any CPU-Debug|All Platforms.ActiveCfg = Debug|x64
 		{989FB988-E5BF-6FBF-5327-5B4B4E904985}.x64-Debug|All Platforms.ActiveCfg = Debug|x64
 		{989FB988-E5BF-6FBF-5327-5B4B4E904985}.x64-Debug|All Platforms.Build.0 = Debug|x64
@@ -316,12 +310,18 @@ Global
 		{87496FE8-0053-AED7-44D6-138174796DD1}.Any CPU-Release|All Platforms.ActiveCfg = Release|x64
 		{87496FE8-0053-AED7-44D6-138174796DD1}.x64-Release|All Platforms.ActiveCfg = Release|x64
 		{87496FE8-0053-AED7-44D6-138174796DD1}.x64-Release|All Platforms.Build.0 = Release|x64
-		{57D4BCD1-9538-6011-5E1F-14631B8C6AA0}.Any CPU-Debug|All Platforms.ActiveCfg = Debug|x64
-		{57D4BCD1-9538-6011-5E1F-14631B8C6AA0}.x64-Debug|All Platforms.ActiveCfg = Debug|x64
-		{57D4BCD1-9538-6011-5E1F-14631B8C6AA0}.x64-Debug|All Platforms.Build.0 = Debug|x64
-		{57D4BCD1-9538-6011-5E1F-14631B8C6AA0}.Any CPU-Release|All Platforms.ActiveCfg = Release|x64
-		{57D4BCD1-9538-6011-5E1F-14631B8C6AA0}.x64-Release|All Platforms.ActiveCfg = Release|x64
-		{57D4BCD1-9538-6011-5E1F-14631B8C6AA0}.x64-Release|All Platforms.Build.0 = Release|x64
+		{F72558FA-6DFC-201D-2727-7CB0641E265A}.Any CPU-Debug|All Platforms.ActiveCfg = Debug|x64
+		{F72558FA-6DFC-201D-2727-7CB0641E265A}.x64-Debug|All Platforms.ActiveCfg = Debug|x64
+		{F72558FA-6DFC-201D-2727-7CB0641E265A}.x64-Debug|All Platforms.Build.0 = Debug|x64
+		{F72558FA-6DFC-201D-2727-7CB0641E265A}.Any CPU-Release|All Platforms.ActiveCfg = Release|x64
+		{F72558FA-6DFC-201D-2727-7CB0641E265A}.x64-Release|All Platforms.ActiveCfg = Release|x64
+		{F72558FA-6DFC-201D-2727-7CB0641E265A}.x64-Release|All Platforms.Build.0 = Release|x64
+		{24D4E793-57DA-71A5-0D09-61D8698279C0}.Any CPU-Debug|All Platforms.ActiveCfg = Debug|x64
+		{24D4E793-57DA-71A5-0D09-61D8698279C0}.x64-Debug|All Platforms.ActiveCfg = Debug|x64
+		{24D4E793-57DA-71A5-0D09-61D8698279C0}.x64-Debug|All Platforms.Build.0 = Debug|x64
+		{24D4E793-57DA-71A5-0D09-61D8698279C0}.Any CPU-Release|All Platforms.ActiveCfg = Release|x64
+		{24D4E793-57DA-71A5-0D09-61D8698279C0}.x64-Release|All Platforms.ActiveCfg = Release|x64
+		{24D4E793-57DA-71A5-0D09-61D8698279C0}.x64-Release|All Platforms.Build.0 = Release|x64
 		{5F88A533-1761-8D6A-810A-34878A10B2CE}.Any CPU-Debug|All Platforms.ActiveCfg = Debug|x64
 		{5F88A533-1761-8D6A-810A-34878A10B2CE}.x64-Debug|All Platforms.ActiveCfg = Debug|x64
 		{5F88A533-1761-8D6A-810A-34878A10B2CE}.x64-Debug|All Platforms.Build.0 = Debug|x64
@@ -410,7 +410,8 @@ Global
 		{655F0391-9556-4508-01A2-0F76DC3F67FC} = {CA3EF6C8-5EFF-3A98-2441-126A241C4CFA}
 		{AAA4E388-1FBD-AA0C-6B5C-0727A1455157} = {DFC8C8D8-A7B1-B36A-23C7-EE166D2913AD}
 		{87496FE8-0053-AED7-44D6-138174796DD1} = {DFC8C8D8-A7B1-B36A-23C7-EE166D2913AD}
-		{57D4BCD1-9538-6011-5E1F-14631B8C6AA0} = {DFC8C8D8-A7B1-B36A-23C7-EE166D2913AD}
+		{F72558FA-6DFC-201D-2727-7CB0641E265A} = {DFC8C8D8-A7B1-B36A-23C7-EE166D2913AD}
+		{24D4E793-57DA-71A5-0D09-61D8698279C0} = {DFC8C8D8-A7B1-B36A-23C7-EE166D2913AD}
 		{5F88A533-1761-8D6A-810A-34878A10B2CE} = {DFC8C8D8-A7B1-B36A-23C7-EE166D2913AD}
 		{0658F615-B00D-6603-813E-6094A2007F2D} = {DFC8C8D8-A7B1-B36A-23C7-EE166D2913AD}
 		{6DA9A544-1948-6CBD-1121-04FEBF4AD588} = {DFC8C8D8-A7B1-B36A-23C7-EE166D2913AD}

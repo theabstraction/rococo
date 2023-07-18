@@ -13,7 +13,7 @@
 
 #include "sexy.vm.h"
 #include "sexy.vm.cpu.h"
-#include "sexydotnethost.h"
+#include "sexy.dotnet.cli.h"
 
 #include <rococo.sexy.map.expert.h>
 
