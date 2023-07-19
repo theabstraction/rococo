@@ -35,6 +35,30 @@ namespace Rococo::Memory
     SEXYUTIL_API void ValidateNothingAllocated();
 }
 
+#define DEFINE_SEXY_ALLOCATORS_FOR_CLASS                    \
+void* operator new(size_t nBytes)                           \
+{                                                           \
+    return Rococo::Memory::AllocateSexyMemory(nBytes);      \
+}                                                           \
+                                                            \
+void operator delete(void* buffer)                          \
+{                                                           \
+    Rococo::Memory::FreeSexyUnknownMemory(buffer);          \
+}
+
+#define DEFINE_SEXY_ALLOCATORS_OUTSIDE_OF_CLASS(CLASS_NAME) \
+void* CLASS_NAME::operator new(size_t nBytes)               \
+{                                                           \
+    return Rococo::Memory::AllocateSexyMemory(nBytes);      \
+}                                                           \
+                                                            \
+void CLASS_NAME::operator delete(void* buffer)              \
+{                                                           \
+    Rococo::Memory::FreeSexyUnknownMemory(buffer);          \
+}
+
+
+
 #ifdef USE_STD_ALLOCATOR_FOR_SEXY
 #include <memory>
 namespace Rococo::Memory

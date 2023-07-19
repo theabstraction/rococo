@@ -1,4 +1,5 @@
 #include "sexy.script.stdafx.h"
+#include <rococo.sexy.map.expert.h>
 
 using namespace Rococo::Memory;
 
@@ -79,3 +80,9 @@ void operator delete(void* buffer) throw()
 #else // IS_SCRIPT_DLL = 0
 // No specific module allocation, rely on the statically linked DLL or EXE to global new and delete operations
 #endif // IS_SCRIPT_DLL = 0
+
+namespace Rococo::Script
+{
+	DEFINE_SEXY_ALLOCATORS_OUTSIDE_OF_CLASS(ArrayImage);
+	DEFINE_SEXY_ALLOCATORS_OUTSIDE_OF_CLASS(CStringConstant);
+}

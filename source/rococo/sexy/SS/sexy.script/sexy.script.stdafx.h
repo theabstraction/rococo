@@ -309,6 +309,10 @@ namespace Rococo
         public:
             CScript(ISParserTree& _tree, IProgramObject& _programObject, CScripts& _scripts);
             GlobalValue* GetGlobalValue(cstr name);
+
+            void* operator new(size_t nBytes);
+            void operator delete(void* buffer);
+
             void EnumerateGlobals(IGlobalEnumerator& cb);
             const ArrayDef* GetElementTypeForArrayVariable(ICodeBuilder& builder, cstr arrayName);
             const ListDef* GetListDef(ICodeBuilder& builder, cstr listName);

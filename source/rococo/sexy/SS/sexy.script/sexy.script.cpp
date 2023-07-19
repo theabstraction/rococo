@@ -390,6 +390,8 @@ namespace Rococo::Script
 
 	struct NativeFunction
 	{
+		DEFINE_SEXY_ALLOCATORS_FOR_CLASS
+
 		NativeCallEnvironment e;
 		FN_NATIVE_CALL NativeCallback;
 		rstdstring Archetype;

@@ -130,6 +130,8 @@ namespace ANON
 
 		}
 
+		DEFINE_SEXY_ALLOCATORS_FOR_CLASS
+
 		void Free() override
 		{
 			delete this;
@@ -145,7 +147,7 @@ namespace ANON
 					{
 					case EXPRESSION_TYPE_ATOMIC:
 					case EXPRESSION_TYPE_STRING_LITERAL:
-						delete[](char*)child.s;
+						Rococo::Memory::FreeSexyUnknownMemory((char*)child.s);
 						break;
 					default:
 						child.s->Free();
@@ -262,7 +264,7 @@ namespace ANON
 		template<class Leaf> void AddLeaf(cstr text)
 		{
 			size_t len = strlen(text);
-			char* buffer = new char[sizeof(Leaf) + strlen(text) + ((8 - (len % 0x7LL)) % 0x7LL)];
+			char* buffer = (char*) Rococo::Memory::AllocateSexyMemory(sizeof(Leaf) + strlen(text) + ((8 - (len % 0x7LL)) % 0x7LL));
 			auto* leaf = new (buffer) Leaf();
 			leaf->parent = this;
 			leaf->text.Length = (int32)len;

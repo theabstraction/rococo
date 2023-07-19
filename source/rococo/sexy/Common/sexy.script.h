@@ -287,10 +287,16 @@ namespace Rococo {
 			int32 length;
 			cstr pointer;
 			void* srcExpression;
+
+			void* operator new(size_t nBytes);
+			void operator delete(void* buffer);
 		};
 
 		struct ArrayImage
 		{
+			void* operator new(size_t nBytes);
+			void operator delete(void* buffer);
+
 			void* Start;
 			int32 NumberOfElements;
 			int32 ElementCapacity;

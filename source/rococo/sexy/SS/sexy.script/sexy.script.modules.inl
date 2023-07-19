@@ -1854,6 +1854,8 @@ namespace Rococo::Script
 			}
 		}
 
+		DEFINE_SEXY_ALLOCATORS_FOR_CLASS
+
 		void Clear()
 		{
 			addedSpecialStructures = false;
@@ -2484,6 +2486,8 @@ namespace Rococo::Script
    {
       tree.AddRef();
    }
+
+   DEFINE_SEXY_ALLOCATORS_OUTSIDE_OF_CLASS(CScript);
 
    GlobalValue* CScript::GetGlobalValue(cstr name)
    {

@@ -35,6 +35,8 @@ namespace Rococo::Script
 {
 	struct OrphanedNodeList
 	{
+		DEFINE_SEXY_ALLOCATORS_FOR_CLASS
+
 		TSexyVector<ListNode*> items;
 	};
 
