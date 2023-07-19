@@ -266,6 +266,9 @@ namespace Rococo {
 			void* context;
 			FN_RAW_NATIVE_REFLECTION_CALL fnCall;
 			ID_API_CALLBACK callbackId = 0;
+
+			void* operator new(size_t nBytes);
+			void operator delete(void* buffer);
 		};
 
 		template<class CONTEXT>

@@ -34,6 +34,11 @@ using namespace Rococo::Memory;
 // else - Route allocations through the SexyAllocator interface
 # else
 
+// If defined will use std allocators rather than those for specific for sexy. Best used/defined when SexyScript is shipped in DLL modules
+#ifdef USE_STD_ALLOCATOR_FOR_SEXY 
+# error "Undefine USE_STD_ALLOCATOR_FOR_SEXY -> otherwise this code results in infintie recrusion"
+#endif
+
 _NODISCARD _Ret_notnull_ _Post_writable_byte_size_(nBytes) _VCRT_ALLOCATOR
 void* __CRTDECL operator new(std::size_t nBytes)
 {
@@ -85,4 +90,5 @@ namespace Rococo::Script
 {
 	DEFINE_SEXY_ALLOCATORS_OUTSIDE_OF_CLASS(ArrayImage);
 	DEFINE_SEXY_ALLOCATORS_OUTSIDE_OF_CLASS(CStringConstant);
+	DEFINE_SEXY_ALLOCATORS_OUTSIDE_OF_CLASS(RawReflectionBinding);
 }

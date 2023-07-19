@@ -54,7 +54,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 	{
 	private:
 		typedef TSexyVector<FunctionAlias> TFunctions;
-		typedef stringmap<IFunctionBuilder*> TFunctionsByName;
+		typedef TSexyStringMap<IFunctionBuilder*> TFunctionsByName;
 		TFunctions functions;
 		TFunctionsByName functionsByName;
 		bool managesLifetime;
@@ -535,7 +535,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 	class AttributeContainer: public IAttributes
 	{		
 	private:
-		typedef stringmap<const void*> TMapKeyToAttr;
+		typedef TSexyStringMap<const void*> TMapKeyToAttr;
 		TMapKeyToAttr attributeMap;
 
 		typedef TSexyVector<std::pair<cstr,const void*>> TAttrVector;
@@ -641,11 +641,11 @@ namespace Rococo { namespace Compiler { namespace Impl
 		virtual void SetInline(IFunctionBuilder* f, IStructureBuilder* s) { inlineConstructor = f; inlineClass = s; }
 	};
 
-	typedef stringmap<Structure*> TResolvedStructures;
+	typedef TSexyStringMap<Structure*> TResolvedStructures;
 	typedef TSexyVector<CStructIdentityAlias> TStructures;
-	typedef stringmap<Interface*> TInterfaces;
+	typedef TSexyStringMap<Interface*> TInterfaces;
 	typedef TSexyVector<IInterfaceBuilder*> TInterfaceEnum;
-	typedef stringmap<Factory*> TFactories;
+	typedef TSexyStringMap<Factory*> TFactories;
 
 	class Macro: public IMacroBuilder
 	{
@@ -681,8 +681,8 @@ namespace Rococo { namespace Compiler { namespace Impl
 		sexstring fullname;
 
 		typedef TSexyVector<Namespace*> TChildren;
-		typedef stringmap<Namespace*> TMapNameToNS;
-		typedef stringmap<Macro*> TMapNameToMacro;
+		typedef TSexyStringMap<Namespace*> TMapNameToNS;
+		typedef TSexyStringMap<Macro*> TMapNameToMacro;
 
 		TChildren children;
 		TMapNameToNS nameToChildren;

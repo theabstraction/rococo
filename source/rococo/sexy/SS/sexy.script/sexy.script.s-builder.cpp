@@ -405,6 +405,8 @@ namespace ANON
 
 		Auto<RootExpression> root;
 
+		DEFINE_SEXY_ALLOCATORS_FOR_CLASS;
+
 		ExpressionTransform(cr_sex _originator) :
 			originator(_originator),
 			root(new RootExpression(_originator))

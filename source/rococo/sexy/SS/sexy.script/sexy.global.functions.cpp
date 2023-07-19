@@ -719,7 +719,7 @@ namespace Rococo
 			ISourceCode* code;
 			Time::ticks loadTime;
 		};
-		stringmap<Binding> sources;
+		TSexyStringMap<Binding> sources;
 		// TODO -> allocator using the SourceCache allocator
 		AutoFree<IExpandingBuffer> fileBuffer;
 		// TODO -> allocator using the SourceCache allocator

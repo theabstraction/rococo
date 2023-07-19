@@ -8,7 +8,7 @@
 
 namespace Rococo
 {
-	using rstdstring = std::string;
+	using rstdstring = std::basic_string<char, std::char_traits<char>, Rococo::Memory::SexyAllocator<char>>;
 	using stdstring = rstdstring;
 }
 

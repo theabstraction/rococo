@@ -307,9 +307,11 @@ namespace
 	struct Packager: ISexyPackagerSupervisor
 	{
 		IScriptSystem& ss;
-		stringmap<SexyPackage> packages;
+		TSexyStringMap<SexyPackage> packages;
 
 		Packager(IScriptSystem& _ss) : ss(_ss) {}
+
+		DEFINE_SEXY_ALLOCATORS_FOR_CLASS;
 
 		bool RegisterNamespacesInPackage(IPackage* package) override
 		{

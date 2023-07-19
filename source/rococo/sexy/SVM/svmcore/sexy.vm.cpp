@@ -145,7 +145,7 @@ namespace Anon
 
 		static void WipeTable()
 		{
-			delete s_instructionTable;
+			Rococo::Memory::FreeSexyPointers<FN_VM>(s_instructionTable);
 			s_instructionTable = nullptr;
 		}
 	public:
@@ -156,12 +156,16 @@ namespace Anon
 
 			stepCallback = this;
 
-			if (s_instructionTable != NULL) return;
-
-			s_instructionTable = new FN_VM[Opcodes::MAX_OPCODES];
-			for (uint32 i = 0; i < Opcodes::MAX_OPCODES; ++i)
+			if (s_instructionTable == NULL)
 			{
-				s_instructionTable[i] = &CVirtualMachine::OnOpcodeBadInstruction;
+				size_t sizeofFNVM = sizeof FN_VM;
+				size_t ptrsPerMethodPointer = sizeofFNVM / sizeof(void*);
+				s_instructionTable = Rococo::Memory::AllocateSexyPointers<FN_VM>(Opcodes::MAX_OPCODES * ptrsPerMethodPointer);
+				for (uint32 i = 0; i < Opcodes::MAX_OPCODES; ++i)
+				{
+					s_instructionTable[i] = &CVirtualMachine::OnOpcodeBadInstruction;
+				}
+
 				atexit(WipeTable);
 			}
 
@@ -2973,6 +2977,8 @@ namespace Rococo { namespace VM
 
 		uint8* mem = (uint8*) Rococo::VM::OS::AllocAlignedMemory(Anon::GetCpuToVMOffset() + sizeof(Anon::CVirtualMachine), CACHE_LINE_ALIGN);
 		CPU* cpu = new (mem) CPU();
-		return new (mem + Anon::GetCpuToVMOffset()) Anon::CVirtualMachine(core, *cpu);
+		uint8* vmMemory = mem + Anon::GetCpuToVMOffset();
+		auto* vm = new (vmMemory) Anon::CVirtualMachine(core, *cpu);
+		return vm;
 	}
 }} // Rococo::VM

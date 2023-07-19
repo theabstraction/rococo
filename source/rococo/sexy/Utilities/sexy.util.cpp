@@ -122,7 +122,8 @@ namespace Rococo::Memory
 #else
 	SEXYUTIL_API void* AllocateSexyMemory(size_t nBytes)
 	{
-		return globalSexyAllocator->Allocate(nBytes);
+		void *buffer = globalSexyAllocator->Allocate(nBytes);
+		return buffer;
 	}
 
 	SEXYUTIL_API void FreeSexyMemory(void* buffer, size_t /* nBytes */)

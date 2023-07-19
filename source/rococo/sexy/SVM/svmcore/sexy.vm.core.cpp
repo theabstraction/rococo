@@ -72,6 +72,8 @@ namespace
 
 		}
 
+		DEFINE_SEXY_ALLOCATORS_FOR_CLASS;
+
 		IVirtualMachine* CreateVirtualMachine() override
 		{
 			IVirtualMachine* vm = Rococo::VM::CreateVirtualMachine(*this);

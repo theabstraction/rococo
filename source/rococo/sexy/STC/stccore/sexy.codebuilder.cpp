@@ -229,6 +229,8 @@ namespace Anon
 		CodeBuilder(IFunctionBuilder& _f, bool _mayUseParentsSF);
 		~CodeBuilder(void);
 
+		DEFINE_SEXY_ALLOCATORS_FOR_CLASS;
+
 		Rococo::VM::IAssembler& Assembler() { return *assembler; }
 
 		IModuleBuilder& Module() { return f.Module(); }

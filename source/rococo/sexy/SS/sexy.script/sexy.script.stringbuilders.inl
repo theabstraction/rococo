@@ -54,18 +54,20 @@ namespace
 			clear();
 		}
 
+		DEFINE_SEXY_ALLOCATORS_FOR_CLASS;
+
 		void clear()
 		{
 			for(auto i = items.begin(); i != items.end(); ++i)
 			{
-				delete *i;
+				Rococo::Memory::FreeSexyUnknownMemory(*i);
 			}
 
 			items.clear();
 
 			for (auto i = freeItems.begin(); i != freeItems.end(); ++i)
 			{
-				delete* i;
+				Rococo::Memory::FreeSexyUnknownMemory(*i);
 			}
 
 			freeItems.clear();
@@ -77,7 +79,7 @@ namespace
 
 			if (freeItems.empty())
 			{
-				item = new T();
+				item = (T*) Rococo::Memory::AllocateSexyMemory(sizeof T);
 			}
 			else
 			{
@@ -155,18 +157,24 @@ namespace
 	{
 		FastStringBuilder header;
 		char rawData[64];
+
+		DEFINE_SEXY_ALLOCATORS_FOR_CLASS;
 	};
 
 	struct FastStringBuilder_260
 	{
 		FastStringBuilder header;
 		char rawData[260];
+
+		DEFINE_SEXY_ALLOCATORS_FOR_CLASS;
 	};
 
 	struct FastStringBuilder_1024
 	{
 		FastStringBuilder header;
 		char rawData[1024];
+
+		DEFINE_SEXY_ALLOCATORS_FOR_CLASS;
 	};
 #pragma pack(pop)
 
@@ -216,6 +224,8 @@ namespace
 			binding.memoryAllocator = &nullAllocator;
 			binding.standardDestruct = false;
 		}
+
+		DEFINE_SEXY_ALLOCATORS_FOR_CLASS;
 
 		const IStructure* typeFastStringBuilder;
 

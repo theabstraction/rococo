@@ -82,12 +82,12 @@ namespace Rococo
 		};
 	};
 
-	template<class VALUE>
+	template<class VALUE, class ALLOCATOR_ = std::allocator<std::pair<const FastStringKey, VALUE>>>
 	class stringmap
 	{
 	private:
 		typedef FastStringKey TString;
-		typedef std::unordered_map<TString, VALUE, TString::Hash> TMap;
+		typedef std::unordered_map<TString, VALUE, TString::Hash, std::equal_to<TString>, ALLOCATOR_> TMap;
 		TMap map;
 
 	public:

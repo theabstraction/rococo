@@ -344,7 +344,9 @@ namespace Anon
 			spec.Version = CORE_LIB_VERSION;
 			svmCore = CreateSVMCore(&spec);
 			program = svmCore->CreateProgramMemory(pip.MaxProgramBytes);
+			_CrtCheckMemory();
 			virtualMachine = svmCore->CreateVirtualMachine();
+			_CrtCheckMemory();
 			rootNS = new Namespace(*this);
 			intrinsics = Module::CreateIntrinsics(*this, ("!Intrinsics!"));
 
@@ -360,6 +362,8 @@ namespace Anon
 			callbackIds.IdReleaseRef = svmCore->RegisterCallback(Anon::DecrementRefCount, (IAllocatorMap*) this, "--ref");
 			callbackIds.IdGetAllocSize = svmCore->RegisterCallback(GetAllocSize, nullptr, "sizeof");
 		}
+
+		DEFINE_SEXY_ALLOCATORS_FOR_CLASS;
 
 		void DecrementRefCount(InterfacePointer pInterface) override
 		{

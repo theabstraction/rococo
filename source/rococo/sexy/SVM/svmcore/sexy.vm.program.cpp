@@ -78,6 +78,8 @@ namespace Anon
 			VM::OS::FreeAlignedMemory(memory);
 		}
 
+		DEFINE_SEXY_ALLOCATORS_FOR_CLASS;
+
 		virtual void AddRef()
 		{
 			refCount++;

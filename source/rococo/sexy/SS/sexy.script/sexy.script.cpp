@@ -119,7 +119,7 @@ namespace Rococo
 
 	namespace Script
 	{
-		typedef stringmap<cstr> TMapMethodToMember;
+		typedef TSexyStringMap<cstr> TMapMethodToMember;
 	}
 
 	namespace Compiler
@@ -479,7 +479,7 @@ namespace Rococo::Script
 		}
 	}
 
-	void InstallRawReflections(stringmap<RawReflectionBinding*>& rawReflections, Rococo::VM::ICore& core)
+	void InstallRawReflections(TSexyStringMap<RawReflectionBinding*>& rawReflections, Rococo::VM::ICore& core)
 	{
 		struct ANON
 		{
@@ -2254,7 +2254,7 @@ namespace Rococo::Script
 			}
 		}
 
-		stringmap<RawReflectionBinding*> rawReflectionBindings;
+		TSexyStringMap<RawReflectionBinding*> rawReflectionBindings;
 
 		void AddRawNativeReflectionCall(cstr functionId, FN_RAW_NATIVE_REFLECTION_CALL fnCall, void* context) override
 		{

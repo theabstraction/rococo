@@ -39,6 +39,8 @@
 #include <memory.h>
 #include <stdarg.h>
 
+#include <rococo.stl.allocators.h>
+
 using namespace Rococo;
 using namespace Rococo::VM;
 using namespace Rococo::Strings;
@@ -1251,6 +1253,8 @@ namespace
 		ICore& core;
 
 	public:
+		DEFINE_SEXY_ALLOCATORS_FOR_CLASS;
+
 		Disassembler(ICore& _core): core(_core)
 		{	
 			if (s_formatters[0].Formatter == NULL)

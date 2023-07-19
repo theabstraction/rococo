@@ -111,8 +111,10 @@ namespace ANON_NS
 
 		char envBuffer[32768];
 
+		DEFINE_SEXY_ALLOCATORS_FOR_CLASS;
+
 		IOSystem(IScriptSystem& l_ss) : ss(l_ss)
-		{
+		{			
 			const IStructure& fileWriterClass = GetFileWriterType();
 			if (fileWriterClass.SizeOfStruct() != sizeof ANON_NS::FileWriterInstance)
 			{

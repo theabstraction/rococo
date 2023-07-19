@@ -133,6 +133,8 @@ namespace
 		Assembler(ICore& _core): core(_core), nextWritePosition((size_t) - 1) {}
 		~Assembler() {}
 
+		DEFINE_SEXY_ALLOCATORS_FOR_CLASS;
+
 		void Append_AddImmediate(DINDEX Dsource,  BITCOUNT bits, DINDEX Dtarget, const VariantValue& v) override
 		{
 			if (Dsource == Dtarget && bits == BITCOUNT_32 && IsToInt8Lossless(v.int32Value))

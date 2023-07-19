@@ -33,7 +33,7 @@ namespace Rococo::Memory
     }
 
     template<class T>
-    void FreeSexyPointers(T** buffer)
+    void FreeSexyPointers(T* buffer)
     {
         delete[] buffer;
     }
@@ -49,7 +49,7 @@ namespace Rococo::Memory
     }
 
     template<class T>
-    void FreeSexyPointers(T** buffer)
+    void FreeSexyPointers(T* buffer)
     {
         FreeSexyUnknownMemory(buffer);
     }

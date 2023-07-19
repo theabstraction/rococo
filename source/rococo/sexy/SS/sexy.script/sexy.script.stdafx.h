@@ -97,7 +97,7 @@ namespace Rococo
 
         struct IScriptSystem;
 
-        typedef stringmap<cstr> TMapMethodToMember;
+        typedef TSexyStringMap<cstr> TMapMethodToMember;
 
         class CScript;
 
@@ -160,7 +160,7 @@ namespace Rococo
             const ISExpression* FnDef;
             IFunctionBuilder* Fn;
         };
-        typedef stringmap<CBindFnDefToExpression> TFunctionDefinitions;
+        typedef TSexyStringMap<CBindFnDefToExpression> TFunctionDefinitions;
 
         struct CBindStructDefToExpression
         {
@@ -257,7 +257,7 @@ namespace Rococo
         typedef TSexyHashMap<BuilderAndNameKey, NodeDef, hashBuilderAndNameKey> TMapNameToNodeDef;
         typedef TSexyHashMap<BuilderAndNameKey, MapDef, hashBuilderAndNameKey> TMapNameToMapDef;
         typedef TSexyHashMap<BuilderAndNameKey, MapNodeDef, hashBuilderAndNameKey> TMapNameToMapNodeDef;
-        typedef stringmap<GlobalValue> TGlobalVariables;
+        typedef TSexyStringMap<GlobalValue> TGlobalVariables;
 
         struct TransformData
         {
