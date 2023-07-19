@@ -10,14 +10,13 @@
 #include "rococo.time.h"
 #include "..\STC\\stccore\Sexy.Compiler.h"
 
-#include <unordered_map>
+#include <sexy.unordered_map.h>
 #include <vector>
 #include <algorithm>
 
 #include <rococo.api.h>
-
 #include <sexy.vm.cpu.h>
-#include <rococo.stl.allocators.h>
+
 
 using namespace Rococo;
 using namespace Rococo::Script;
@@ -94,13 +93,13 @@ struct CoSpec: public ILock
 	}
 };
 
-typedef std::unordered_map<int64, CoSpec*> SpecMap;
+typedef TSexyHashMap<int64, CoSpec*> SpecMap;
 
 // A pool of virtual memory for use as stack memory by coroutines
 struct StackPool
 {
 	std::vector<uint8*, Memory::SexyAllocator<uint8*>> freePointers;
-	std::unordered_map<uint8*, uint32, std::hash<uint8*>, std::equal_to<uint8*>, Memory::SexyAllocator<std::pair<uint8* const, uint32>>> allocatedPointers;
+	TSexyHashMap<uint8*, uint32, std::hash<uint8*>, std::equal_to<uint8*>> allocatedPointers;
 
 	enum { StackSize = 8192 };
 

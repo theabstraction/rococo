@@ -8,11 +8,8 @@
 
 namespace Rococo
 {
-#ifdef char_IS_WIDE
-	typedef std::wstring stdstring;
-#else
-	typedef rstdstring stdstring;
-#endif
+	using rstdstring = std::string;
+	using stdstring = rstdstring;
 }
 
 #endif // SEXY_STDSTRINGS_H

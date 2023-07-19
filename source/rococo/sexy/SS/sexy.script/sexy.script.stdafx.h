@@ -50,6 +50,7 @@
 #define ROCOCO_USE_SAFE_V_FORMAT
 #include "sexy.strings.h"
 #include "sexy.stdstrings.h"
+#include <sexy.unordered_map.h>
 #include "..\STC\stccore\Sexy.Compiler.h"
 #include <rococo.hashtable.h>
 #include <vector>
@@ -251,18 +252,18 @@ namespace Rococo
         };
 
 
-        typedef std::unordered_map<BuilderAndNameKey, ArrayDef, hashBuilderAndNameKey, std::equal_to<BuilderAndNameKey>, Memory::SexyAllocator<std::pair<const BuilderAndNameKey, ArrayDef>>> TMapNameToArrayDef;
-        typedef std::unordered_map<BuilderAndNameKey, ListDef, hashBuilderAndNameKey, std::equal_to<BuilderAndNameKey>, Memory::SexyAllocator<std::pair<const BuilderAndNameKey, ListDef>>> TMapNameToListDef;
-        typedef std::unordered_map<BuilderAndNameKey, NodeDef, hashBuilderAndNameKey, std::equal_to<BuilderAndNameKey>, Memory::SexyAllocator<std::pair<const BuilderAndNameKey, NodeDef>>> TMapNameToNodeDef;
-        typedef std::unordered_map<BuilderAndNameKey, MapDef, hashBuilderAndNameKey, std::equal_to<BuilderAndNameKey>, Memory::SexyAllocator<std::pair<const BuilderAndNameKey, MapDef>>> TMapNameToMapDef;
-        typedef std::unordered_map<BuilderAndNameKey, MapNodeDef, hashBuilderAndNameKey, std::equal_to<BuilderAndNameKey>, Memory::SexyAllocator<std::pair<const BuilderAndNameKey, MapNodeDef>>> TMapNameToMapNodeDef;
+        typedef TSexyHashMap<BuilderAndNameKey, ArrayDef, hashBuilderAndNameKey> TMapNameToArrayDef;
+        typedef TSexyHashMap<BuilderAndNameKey, ListDef, hashBuilderAndNameKey> TMapNameToListDef;
+        typedef TSexyHashMap<BuilderAndNameKey, NodeDef, hashBuilderAndNameKey> TMapNameToNodeDef;
+        typedef TSexyHashMap<BuilderAndNameKey, MapDef, hashBuilderAndNameKey> TMapNameToMapDef;
+        typedef TSexyHashMap<BuilderAndNameKey, MapNodeDef, hashBuilderAndNameKey> TMapNameToMapNodeDef;
         typedef stringmap<GlobalValue> TGlobalVariables;
 
         struct TransformData
         {
             IExpressionTransform* transform;
         };
-        typedef std::unordered_map<const ISExpression*, TransformData, std::hash<const ISExpression*>, std::equal_to<const ISExpression*>, Memory::SexyAllocator<std::pair<const ISExpression* const, TransformData>>> TTransformMap;
+        typedef TSexyHashMap<const ISExpression*, TransformData> TTransformMap;
         typedef std::vector<const ISExpression*, Memory::SexyAllocator<const ISExpression*>> TExceptionBlocks;
 
         struct CBindNSExpressionToModule
@@ -403,7 +404,7 @@ namespace Rococo
             IFunctionBuilder& GetNullFunction(const IArchetype& archetype);
         };
 
-        typedef std::unordered_map<void*, void*, std::hash<void*>, std::equal_to<void*>, Memory::SexyAllocator<std::pair<void* const, void*>>> TAllocationMap;
+        typedef TSexyHashMap<void*, void*> TAllocationMap;
 
         void GetAtomicValue(CCompileEnvironment& ce, cr_sex parent, cstr id, VARTYPE type);
         void AppendDeconstructTailVariables(CCompileEnvironment& ce, cr_sex sequence, bool expire, int tailCount);

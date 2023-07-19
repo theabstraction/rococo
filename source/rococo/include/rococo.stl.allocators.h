@@ -1,9 +1,7 @@
 #pragma once
 
 #include <rococo.compiler.options.h>
-
 #include <new> // bad_alloc, bad_array_new_length
-#include <string>
 
 #ifndef SEXYUTIL_API
 # define SEXYUTIL_API ROCOCO_API_IMPORT
@@ -38,6 +36,7 @@ namespace Rococo::Memory
 }
 
 #ifdef USE_STD_ALLOCATOR_FOR_SEXY
+#include <memory>
 namespace Rococo::Memory
 {
     template<class T>
@@ -95,10 +94,6 @@ namespace Rococo
     //define rstdstring, rococo's std::string. In DLL mode sexyscript should be set to use std::string, so that the global allocators handle it
     //while in static linking mode go through the sexy allocator.
     
-
-    //using rstdstring = std::basic_string<char, std::char_traits<char>, Memory::SexyAllocator<char>>;
-    using rstdstring = std::string;
-
     namespace Memory
     {
         // This will give some debugging info for outstanding allocations - providing the sexy default allocator is active

@@ -32,9 +32,9 @@
 */
 
 #include "sexy.vm.stdafx.h"
-#include <unordered_map>
-#include <string>
-#include <rococo.stl.allocators.h>
+
+#include <sexy.stdstrings.h>
+#include <sexy.unordered_map.h>
 
 using namespace Rococo;
 using namespace Rococo::VM;

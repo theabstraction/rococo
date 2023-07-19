@@ -40,9 +40,11 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <algorithm>
-#include <unordered_map>
-#include <list>
+
 #include <sexy.stdstrings.h>
+#include <sexy.unordered_map.h>
+#include <list>
+
 
 #include <rococo.api.h>
 #include <rococo.sexy.api.h>
@@ -126,7 +128,7 @@ namespace Rococo
 		SEXYUTIL_API IStructureBuilder* MatchStructure(ILog& logger, cstr type, IModuleBuilder& module);
 	}
 
-	typedef std::unordered_map<stdstring, ISParserTree*, std::hash<stdstring>, std::equal_to<stdstring>, Memory::SexyAllocator<std::pair<const stdstring, ISParserTree*>>> TMapNameToSTree;
+	using TMapNameToSTree = TSexyHashMapByStdString<ISParserTree*>;
 }
 
 #ifdef _WIN32
@@ -416,7 +418,7 @@ namespace Rococo::Script
 		WriteOutput(0, nullLen, e);
 	}
 
-	typedef std::unordered_map<stdstring, NativeFunction*, std::hash<stdstring>, std::equal_to<stdstring>, Memory::SexyAllocator<std::pair<const stdstring, NativeFunction*>>> TMapFQNToNativeCall;
+	typedef TSexyHashMapByStdString<NativeFunction*> TMapFQNToNativeCall;
 	typedef std::list<INativeLib*, Memory::SexyAllocator<INativeLib*>> TNativeLibs;
 
 	void CALLTYPE_C RouteToNative(VariantValue* registers, void* context)
@@ -727,7 +729,7 @@ namespace Rococo::Script
 
 		TMapMethodToMember methodMap;
 
-		typedef std::unordered_map<const Sex::ISExpression*, Script::CClassExpression*, std::hash<const Sex::ISExpression*>, std::equal_to<const Sex::ISExpression*>, Memory::SexyAllocator<std::pair<const Sex::ISExpression* const, Script::CClassExpression*>>> TSReflectMap;
+		typedef TSexyHashMap<const Sex::ISExpression*, Script::CClassExpression*> TSReflectMap;
 		TSReflectMap sreflectMap;
 
 		struct CharSequence
@@ -799,13 +801,13 @@ namespace Rococo::Script
 			}
 		}
 
-		typedef std::unordered_map<cstr, CStringConstant*, std::hash<cstr>, std::equal_to<cstr>, Memory::SexyAllocator<std::pair<cstr const, CStringConstant*>>> TReflectedStrings;
+		typedef TSexyHashMap<cstr, CStringConstant*> TReflectedStrings;
 		TReflectedStrings reflectedStrings;
 
-		typedef std::unordered_map<const void*, stdstring, std::hash<const void*>, std::equal_to<const void*>, Memory::SexyAllocator<std::pair<const void* const, stdstring>>> TSymbols;
+		typedef TSexyHashMap<const void*, stdstring> TSymbols;
 		TSymbols symbols;
 
-		typedef std::unordered_map<void*, CReflectedClass*, std::hash<void*>, std::equal_to<void*>, Memory::SexyAllocator<std::pair<void* const, CReflectedClass*>>> TReflectedPointers;
+		typedef TSexyHashMap<void*, CReflectedClass*> TReflectedPointers;
 		TReflectedPointers reflectedReflectedClassInstances;
 		TReflectedPointers representations;
 
@@ -1236,8 +1238,8 @@ namespace Rococo::Script
 			return persistentStrings.back().buffer.data();
 		}
 
-		typedef std::unordered_map<rstdstring, MethodInfo, std::hash<rstdstring>, std::equal_to<rstdstring>, Memory::SexyAllocator<std::pair<const rstdstring, MethodInfo >>> TMapNameToMethod;
-		typedef std::unordered_map<const Rococo::Compiler::IStructure*, TMapNameToMethod, std::hash<const Rococo::Compiler::IStructure*>, std::equal_to<const Rococo::Compiler::IStructure*>, Memory::SexyAllocator<std::pair<const Rococo::Compiler::IStructure* const, TMapNameToMethod>>> TMapTypeToMethodMap;
+		typedef TSexyHashMapByStdString<MethodInfo> TMapNameToMethod;
+		typedef TSexyHashMap<const Rococo::Compiler::IStructure*, TMapNameToMethod> TMapTypeToMethodMap;
 		TMapTypeToMethodMap typeToMethodMap;
 
 		TMapTypeToMethodMap::iterator CacheAllMethods(const Rococo::Compiler::IStructure& concreteClassType)

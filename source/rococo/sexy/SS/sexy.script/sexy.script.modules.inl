@@ -1825,7 +1825,7 @@ namespace Rococo::Script
 	{
 		friend CScript;
 	private:
-		typedef std::unordered_map<ISParserTree*,CScript*,std::hash<ISParserTree*>, std::equal_to<ISParserTree*>, Memory::SexyAllocator<std::pair<ISParserTree* const, CScript*>>>  TMapTreeToScript;
+		typedef TSexyHashMap<ISParserTree*,CScript*>  TMapTreeToScript;
 		TMapTreeToScript scriptMap;
 		typedef std::vector<std::pair<ISParserTree*,CScript*>, Memory::SexyAllocator<std::pair<ISParserTree*, CScript*>>> TScriptVector;
 		TScriptVector scripts;
@@ -1836,7 +1836,7 @@ namespace Rococo::Script
 		CDefaultExceptionLogic exceptionLogic;
 		IScriptSystem& system;
 		int globalBaseIndex;
-		std::unordered_map<const IArchetype*, IFunctionBuilder*, std::hash<const IArchetype*>, std::equal_to<const IArchetype*>, Memory::SexyAllocator<std::pair<const IArchetype* const, IFunctionBuilder* >>> nullArchetypeFunctions;
+		TSexyHashMap<const IArchetype*, IFunctionBuilder*> nullArchetypeFunctions;
 
 		bool canInlineString;		
 	public:

@@ -74,7 +74,7 @@ namespace ANON
 	class CHashedSymbols
 	{
 	private:
-		typedef std::unordered_map<sexstring_key,sexstring,hash_sexstring_key,std::equal_to<sexstring_key>, Memory::SexyAllocator<std::pair<const sexstring_key, sexstring>>> TSymbolPtrs;
+		using TSymbolPtrs = Rococo::TSexyHashMap<sexstring_key,sexstring,hash_sexstring_key,std::equal_to<sexstring_key>>;
 		TSymbolPtrs symbols;
 
 	public:
