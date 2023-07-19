@@ -45,7 +45,7 @@ namespace Rococo::Memory
     template<class T>
     T* AllocateSexyPointers(size_t numberOfPointers)
     {
-        return AllocateSexyMemory(sizeof(T*) * numberOfPointers;
+        return (T*) AllocateSexyMemory(sizeof(T*) * numberOfPointers);
     }
 
     template<class T>

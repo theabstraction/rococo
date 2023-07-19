@@ -35,7 +35,4 @@
 # define FORCE_INLINE
 #endif
 
-// If defined will use std allocators rather than those for specific for sexy. Best used/defined when SexyScript is shipped in DLL modules
-#define USE_STD_ALLOCATOR_FOR_SEXY 
-
 #endif // ROCOCO

@@ -4,7 +4,7 @@
 using namespace Rococo::Memory;
 
 //#define ADD_LEAK_TRACKING
-#define ROCOCO_MEMORY_MANAGEMENT // If defined we use the latest RococoUtils allocators for memory management, otherwise fallback on ISexyAllocator based management for global new and delete operators
+// #define ROCOCO_MEMORY_MANAGEMENT // If defined we use the latest RococoUtils allocators for memory management, otherwise fallback on ISexyAllocator based management for global new and delete operators
 
 #if IS_SCRIPT_DLL
 # ifdef ROCOCO_MEMORY_MANAGEMENT
@@ -74,7 +74,7 @@ void* __CRTDECL operator new[](size_t nBytes, ::std::nothrow_t const&) noexcept
 
 void operator delete(void* buffer) throw()
 {
-	Rococo::Memory::FreeSexyMemory(buffer);
+	Rococo::Memory::FreeSexyUnknownMemory(buffer);
 }
 # endif // SEXY_SCRIPT_MANAGEMENT_IS_VIA_SEXY_ALLOCATOR
 #else // IS_SCRIPT_DLL = 0
