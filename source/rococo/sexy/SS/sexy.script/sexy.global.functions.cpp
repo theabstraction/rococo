@@ -803,7 +803,8 @@ namespace Rococo
 		 
 		void Free() override
 		{
-			delete this;
+			this->~SourceCache();
+			allocator.FreeData(this);
 		}
 
 		ISParserTree* GetSource(cstr pingName) override
@@ -933,7 +934,8 @@ namespace Rococo
 
 	SCRIPTEXPORT_API ISourceCache* CreateSourceCache(IInstallation& installation, IAllocator& allocator)
 	{
-		auto* cache = new SourceCache(installation, allocator);
+		void* buffer = allocator.Allocate(sizeof SourceCache);
+		auto* cache = new (buffer) SourceCache(installation, allocator);
 		return cache->GetInterface();
 	}
 
