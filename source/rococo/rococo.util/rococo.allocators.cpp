@@ -253,7 +253,54 @@ namespace Rococo::Memory
         FN_LOG(" Total allocations: %llu\n", stats.totalAllocations);
         FN_LOG(" Useful frees: %llu\n", stats.usefulFrees);
         FN_LOG(" Total frees: %llu\n", stats.totalFrees);
-        FN_LOG(" Failed allocations: %llu\n", stats.failedAllocations);
         FN_LOG(" Blank frees: %llu\n\n", stats.blankFrees);
     }
-}
+
+    AllocatorFunctions defaultAllocatorFunctions{ 0 };
+
+    void* DefaultMallocWithBadAllocException(size_t nBytes)
+    {
+        void* buffer = malloc(nBytes);
+        if (buffer != nullptr)
+        {
+            return buffer;
+        }
+        
+        throw std::bad_alloc();
+    }
+
+    ROCOCO_API bool SetDefaultAllocators(AllocatorFunctions allocatorFunctions)
+    {
+        if (defaultAllocatorFunctions.Allocate != nullptr)
+        {
+            return false; // Allocator have already been initialized
+        }
+
+        defaultAllocatorFunctions = allocatorFunctions;
+        return true;
+    }
+
+    ROCOCO_API AllocatorFunctions GetDefaultAllocators()
+    {
+        if (defaultAllocatorFunctions.Allocate == nullptr)
+        {
+            defaultAllocatorFunctions.Allocate = DefaultMallocWithBadAllocException;
+            defaultAllocatorFunctions.Free = free;
+            defaultAllocatorFunctions.Name = "Rococo::Utils defaults(malloc++/free)";
+        }
+
+        return defaultAllocatorFunctions;
+    }
+
+    AllocatorLogFlags logFlags = { 0 };
+
+    ROCOCO_API void SetAllocatorLogFlags(AllocatorLogFlags flags)
+    {
+        logFlags = flags;
+    }
+
+    ROCOCO_API AllocatorLogFlags GetAllocatorLogFlags()
+    {
+        return logFlags;
+    }
+} // Rococo::Memory

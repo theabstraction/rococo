@@ -226,6 +226,8 @@ void Package(const PackageArgs& args)
     }
 }
 
+#include <rococo.allocators.h>
+
 int main(int argc, char* argv[])
 {
     if (argc != 3)
@@ -233,6 +235,14 @@ int main(int argc, char* argv[])
         PrintUsage();
         return 0;
     }
+
+    using namespace Rococo::Memory;
+
+    AllocatorLogFlags flags;
+    flags.LogDetailedMetrics = false;
+    flags.LogLeaks = false;
+    flags.LogOnModuleExit = false;
+    Rococo::Memory::SetAllocatorLogFlags(flags);
 
     PackageArgs args;
     args.source_directory = argv[1];

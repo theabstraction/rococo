@@ -15906,10 +15906,19 @@ R"(
 	}
 }
 
+#include <rococo.allocators.h>
+using namespace Rococo::Memory;
+
 int main(int argc, char* argv[])
 {
 	UNUSED(argc);
 	UNUSED(argv);
+
+	AllocatorLogFlags flags;
+	flags.LogDetailedMetrics = false;
+	flags.LogLeaks = true;
+	flags.LogOnModuleExit = true;
+	SetAllocatorLogFlags(flags);
 
 //	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
 	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_None);

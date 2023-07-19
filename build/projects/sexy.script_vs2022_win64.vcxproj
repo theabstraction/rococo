@@ -141,7 +141,8 @@
       <AdditionalDependencies>rococo.util.lib;sexy.compiler.lib;sexy.s-parser.lib;sexy.util.lib;sexy.vm.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\debug\sexy.script.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\debug\sexy.script.lib</ImportLibrary>
@@ -227,7 +228,8 @@
       <AdditionalDependencies>rococo.util.lib;sexy.compiler.lib;sexy.s-parser.lib;sexy.util.lib;sexy.vm.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\release\sexy.script.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\release\sexy.script.lib</ImportLibrary>
@@ -260,6 +262,7 @@
     <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.exceptions.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.global.functions.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.packages.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.allocators.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.expression.parser.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.helpers.cpp" />

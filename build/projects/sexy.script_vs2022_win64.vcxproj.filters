@@ -12,6 +12,7 @@
     <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.s-builder.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.stdafx.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.allocators.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.arithmetic.expression.parser.inl" />

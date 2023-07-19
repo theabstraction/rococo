@@ -1064,6 +1064,9 @@ void EndWithSlash(char* buffer, size_t capacity)
 	buffer[len+1] = 0;
 }
 
+#include <rococo.allocators.h>
+using namespace Rococo::Memory;
+
 int main(int argc, char* argv[])
 {
 	if (argc != 4)
@@ -1071,6 +1074,12 @@ int main(int argc, char* argv[])
 		PrintUsage();
 		return -1;
 	}
+
+	AllocatorLogFlags flags;
+	flags.LogDetailedMetrics = false;
+	flags.LogLeaks = true;
+	flags.LogOnModuleExit = true;
+	SetAllocatorLogFlags(flags);
 
 	const char* projectRoot = argv[1];
 	const char* contentRoot = argv[2];

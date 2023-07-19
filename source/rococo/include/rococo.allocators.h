@@ -32,12 +32,16 @@ namespace Rococo
 
 namespace Rococo::Memory
 {
+	ROCOCO_API [[nodiscard]] IAllocator& CheckedAllocator();
+	ROCOCO_API [[nodiscard]] IAllocatorSupervisor* CreateBlockAllocator(size_t kilobytes, size_t maxkilobytes);
+	ROCOCO_API void* AlignedAlloc(size_t nBytes, int32 alignment, void* allocatorFunction(size_t));
+	ROCOCO_API void AlignedFree(void* buffer, void deleteFunction(void*));
+
 	struct AllocatorMetrics
 	{
 		size_t totalAllocationSize = 0;
 		size_t totalAllocations = 0;
 		size_t totalFrees = 0;
-		size_t failedAllocations = 0;
 		size_t blankFrees = 0;
 		size_t usefulFrees = 0;
 	};
@@ -113,6 +117,39 @@ namespace Rococo::Memory
 			return activeAllocs.size();
 		}
 	};
+
+	struct AllocatorFunctions
+	{
+		// Allocator function, that throws std::bad_alloc on an error, else returns a buffer of the required size
+		typedef void* (*FN_ALLOCATE_MEMORY)(size_t nBytes);
+
+		// Frees memory allocated with AllocatorFunctions::Allocate
+		typedef void (*FN_FREE_MEMORY)(void* buffer);
+
+		// Allocator function, that throws std::bad_alloc on an error, else returns a buffer of the required size
+		FN_ALLOCATE_MEMORY Allocate;
+
+		// Frees memory allocated with AllocatorFunctions::Allocate
+		FN_FREE_MEMORY Free;
+		const char* Name;
+	};
+
+	struct AllocatorLogFlags
+	{
+		// If not set, nothing is logged when a module exits. Generally set when some tool does not need to worry about its memory consumption
+		bool LogOnModuleExit : 1;
+
+		// If set provides some info about what was allocated
+		bool LogDetailedMetrics : 1;
+
+		// If set enumerates the allocations that were not freed at the point of module termination
+		bool LogLeaks : 1;
+	};
+
+	ROCOCO_API bool SetDefaultAllocators(AllocatorFunctions allocatorFunctions);
+	ROCOCO_API AllocatorFunctions GetDefaultAllocators();
+	ROCOCO_API void SetAllocatorLogFlags(AllocatorLogFlags flags);
+	ROCOCO_API AllocatorLogFlags GetAllocatorLogFlags();
 }
 
 #endif

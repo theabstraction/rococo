@@ -1,6 +1,7 @@
 // mhost.os.win32.cpp : Defines the entry point for the application in Windows.
 #include <rococo.mplat.dynamic.inl>
 #include <rococo.strings.h>
+#include <rococo.allocators.h>
 
 #include "resource.h"
 
@@ -31,6 +32,14 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 
 	char titleBuffer[128];
 	Rococo::Strings::CLI::GetCommandLineArgument("-title:"_fstring, lpCmdLine, titleBuffer, sizeof titleBuffer, "Rococo MHost");
+
+	using namespace Rococo::Memory;
+	
+	AllocatorLogFlags flags;
+	flags.LogDetailedMetrics = true;
+	flags.LogLeaks = true;
+	flags.LogOnModuleExit = true;
+	Rococo::Memory::SetAllocatorLogFlags(flags);
 
 	struct : IDirectAppFactory
 	{

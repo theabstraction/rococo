@@ -1,55 +1,32 @@
+#pragma once
+
 #include <rococo.allocators.h>
 #include <rococo.debugging.h>
 #include <unordered_map>
 #include <new>
 
-template <class T>
-class std_Malloc_Allocator
-{
-public:
-	using value_type = T;
-
-public:
-	std_Malloc_Allocator() {}
-	std_Malloc_Allocator(const std_Malloc_Allocator&) = default;
-	std_Malloc_Allocator& operator=(const std_Malloc_Allocator&) = delete;
-
-	template <class U>
-	std_Malloc_Allocator(const std_Malloc_Allocator<U>) noexcept {}
-
-	template <class _Up> struct rebind { using other = std_Malloc_Allocator<_Up>; };
-
-	T* allocate(std::size_t nElements)
-	{
-		return reinterpret_cast<T*> (malloc(nElements * sizeof(T)));
-	}
-	void deallocate(T* p, std::size_t n) noexcept
-	{
-		UNUSED(n);
-		free(p); // If you get a complaint here, check the instructions at the start of the file
-	}
-
-	template <class T1, class U>
-	friend bool operator==(const std_Malloc_Allocator<T1>& x, const std_Malloc_Allocator<U>& y) noexcept;
-
-	template <class U> friend class std_Malloc_Allocator;
-};
-
-
-template <class T, class U>
-inline bool	operator==(const std_Malloc_Allocator<T>& x, const std_Malloc_Allocator<U>& y) noexcept
-{
-	return true;
-}
-
-template <class T, class U>
-inline bool operator!=(const std_Malloc_Allocator<T>& x, const std_Malloc_Allocator<U>& y) noexcept
-{
-	return !(x == y);
-}
-
 namespace Rococo::Memory
 {
+	static void* FirstTimeAllocator(size_t nBytes);
+	static void FirstTimeDeallocator(void* buffer);
+
+	static AllocatorFunctions moduleAllocatorFunctions = { FirstTimeAllocator, FirstTimeDeallocator };
+	static AllocatorLogFlags moduleLogFlags;
+
+	static void* FirstTimeAllocator(size_t nBytes)
+	{
+		moduleLogFlags = Rococo::Memory::GetAllocatorLogFlags();
+		moduleAllocatorFunctions = Rococo::Memory::GetDefaultAllocators();
+		return moduleAllocatorFunctions.Allocate(nBytes);
+	}
+
+	static void FirstTimeDeallocator(void* buffer)
+	{
+		moduleLogFlags = Rococo::Memory::GetAllocatorLogFlags();
+		moduleAllocatorFunctions = Rococo::Memory::GetDefaultAllocators();
+		return moduleAllocatorFunctions.Free(buffer);
+	}
+
 	struct voids_equal_to 
 	{
 		[[nodiscard]] constexpr bool operator()(const void* a, const void* b) const
@@ -74,6 +51,7 @@ namespace Rococo::Memory
 		}
 	};
 
+	// The default allocator monitor, invokes the global allocator log if GetAllocatorLogFlags().Metrics_On_Module_Exit evaluates to true
 	template<class T>
 	class AllocatorMonitor
 	{
@@ -87,9 +65,12 @@ namespace Rococo::Memory
 
 		~AllocatorMonitor()
 		{
-			T t;
-			auto& g = t.GetDefaultAllocator();
-			g.Log(t.Name(), "Monitor destruction. Memory stats");
+			if (GetAllocatorLogFlags().LogOnModuleExit)
+			{
+				T t;
+				auto& g = t.GetDefaultAllocator();
+				g.Log(t.Name(), "Monitor destruction. Memory stats");
+			}
 		}
 	};
 
@@ -100,25 +81,66 @@ namespace Rococo::Memory
 		int reuseCount = 0;
 	};
 
+	// Uses the rococo libraries' default allocator found in Rococo::Utils.
+	template <class T>
+	class RococoUtilsAllocator
+	{
+	public:
+		using value_type = T;
+		
+	public:
+		RococoUtilsAllocator() {}
+		RococoUtilsAllocator(const RococoUtilsAllocator&) = default;
+		RococoUtilsAllocator& operator=(const RococoUtilsAllocator&) = delete;
+
+		template <class U>
+		RococoUtilsAllocator(const RococoUtilsAllocator<U>) noexcept {}
+
+		template <class _Up> struct rebind { using other = RococoUtilsAllocator<_Up>; };
+
+		T* allocate(std::size_t nElements)
+		{
+			return reinterpret_cast<T*> (moduleAllocatorFunctions.Allocate(nElements * sizeof(T)));
+		}
+		void deallocate(T* p, std::size_t n) noexcept
+		{
+			UNUSED(n);
+			moduleAllocatorFunctions.Free(p); // If you get a complaint here, check the instructions at the start of the file
+		}
+
+		template <class T1, class U>
+		friend bool operator==(const RococoUtilsAllocator<T1>& x, const RococoUtilsAllocator<U>& y) noexcept;
+
+		template <class U> friend class RococoUtilsAllocator;
+	};
+
+	template <class T, class U>
+	inline bool	operator==(const RococoUtilsAllocator<T>& x, const RococoUtilsAllocator<U>& y) noexcept
+	{
+		return true;
+	}
+
+	template <class T, class U>
+	inline bool operator!=(const RococoUtilsAllocator<T>& x, const RococoUtilsAllocator<U>& y) noexcept
+	{
+		return !(x == y);
+	}
+
+	// Used to track leaks, bad deallocs and consolidate the costs of allocations
 	template<class T>
 	class TrackingAllocator
 	{
 	public:
 		size_t totalFreed = 0;
 		AllocatorMetrics stats;
-		std::unordered_map<size_t, TrackingAtom, hash_size_t, size_t_equal_to, std_Malloc_Allocator<std::pair<const size_t,TrackingAtom>>> tracking;
+		std::unordered_map<size_t, TrackingAtom, hash_size_t, size_t_equal_to, RococoUtilsAllocator<std::pair<const size_t,TrackingAtom>>> tracking;
 
 		void* ModuleAllocate(std::size_t nBytes)
 		{
 			stats.totalAllocationSize += nBytes;
 			stats.totalAllocations++;
 
-			auto* data = malloc(nBytes);
-			if (!data)
-			{
-				stats.failedAllocations++;
-				Rococo::Throw(0, "%s(%s): Cannot allocate %llu bytes", __FUNCTION__, nBytes);
-			}
+			auto* data = moduleAllocatorFunctions.Allocate(nBytes);
 
 #ifdef _DEBUG
 			memset(data, 0xCD, nBytes);
@@ -167,7 +189,7 @@ namespace Rococo::Memory
 				}
 
 				stats.usefulFrees++;
-				free(buffer);
+				moduleAllocatorFunctions.Free(buffer);
 			}
 			else
 			{
@@ -178,41 +200,73 @@ namespace Rococo::Memory
 		void Log(cstr name, cstr intro)
 		{
 			auto* allocator_printf = Rococo::Debugging::Log;
-			Rococo::Memory::Log(stats, name, intro, allocator_printf);
 
-			allocator_printf(" Tracking Metrics\n");
-			allocator_printf("  count: %llu\n", tracking.size());
-
-			std::unordered_map<size_t, size_t, hash_size_t, size_t_equal_to, std_Malloc_Allocator<std::pair<const size_t, size_t>>> leakMapSizeToCount;
-
-			for (auto i : tracking)
+			if (GetAllocatorLogFlags().LogDetailedMetrics)
 			{
-				TrackingAtom& atom = i.second;
-				if (!atom.wasFreed)
+				Rococo::Memory::Log(stats, name, intro, allocator_printf);
+
+				allocator_printf(" Tracking Metrics\n");
+				allocator_printf("  count: %llu\n", tracking.size());
+			}
+
+			if (GetAllocatorLogFlags().LogLeaks || OS::IsDebugging())
+			{
+				std::unordered_map<size_t, size_t, hash_size_t, size_t_equal_to, RococoUtilsAllocator<std::pair<const size_t, size_t>>> leakMapSizeToCount;
+
+				for (auto i : tracking)
 				{
-					std::pair<const size_t, size_t> newItem(atom.bufferLength, 1);
-					auto j = leakMapSizeToCount.insert(newItem);
-					if (!j.second)
+					TrackingAtom& atom = i.second;
+					if (!atom.wasFreed)
 					{
-						j.first->second++;
+						std::pair<const size_t, size_t> newItem(atom.bufferLength, 1);
+						auto j = leakMapSizeToCount.insert(newItem);
+						if (!j.second)
+						{
+							j.first->second++;
+						}
 					}
 				}
-			}
 
-			if (!leakMapSizeToCount.empty())
-			{
-				allocator_printf(" Leaks detected: (%llu bytes)\n", stats.totalAllocationSize - totalFreed);
-			}
+				if (!leakMapSizeToCount.empty())
+				{
+					allocator_printf(" Leaks detected: (%llu bytes)\n", stats.totalAllocationSize - totalFreed);
+				}
 
-			for(auto i: leakMapSizeToCount)
-			{
-				allocator_printf("%9llu bytes x %-9llu = %llu bytes\n", i.first, i.second, i.first * i.second);
-			}
+				for (auto i : leakMapSizeToCount)
+				{
+					allocator_printf("%9llu bytes x %-9llu = %llu bytes\n", i.first, i.second, i.first * i.second);
+				}
 
-			allocator_printf("\n\n");
+				allocator_printf("\n\n");
+
+				if (!leakMapSizeToCount.empty())
+				{
+					OS::TripDebugger();
+				}
+			}
 		}
 
 		using TDefaultMonitor = AllocatorMonitor<T>;
+	};
+
+	// Similar to the default allocator, but it does not monitor any allocation metrics. It is ~ 1-2% faster than the DefaultAllocator
+	template<class T>
+	class FastAllocator
+	{
+	public:
+		void* ModuleAllocate(std::size_t nBytes)
+		{
+			return moduleAllocatorFunctions.Allocate(nBytes);
+		}
+
+		void ModuleFree(void* buffer)
+		{
+			moduleAllocatorFunctions.Free(buffer);
+		}
+
+		void Log(cstr name, cstr intro)
+		{
+		}
 	};
 
 	template<class T>
@@ -221,27 +275,21 @@ namespace Rococo::Memory
 	public:
 		AllocatorMetrics stats;
 
-		void* ModuleAllocate(std::size_t nBytes)
+		inline void* ModuleAllocate(std::size_t nBytes)
 		{
 			stats.totalAllocationSize += nBytes;
 			stats.totalAllocations++;
 
-			auto* data = malloc(nBytes);
-			if (!data)
-			{
-				stats.failedAllocations++;
-				Rococo::Throw(0, "%s(%s): Cannot allocate %llu bytes", __FUNCTION__, nBytes);
-			}
-			return data;
+			return moduleAllocatorFunctions.Allocate(nBytes);
 		}
 
-		void ModuleFree(void* buffer)
+		inline void ModuleFree(void* buffer)
 		{
 			stats.totalFrees++;
 			if (buffer)
 			{
 				stats.usefulFrees++;
-				free(buffer);
+				moduleAllocatorFunctions.Free(buffer);
 			}
 			else
 			{
@@ -251,7 +299,10 @@ namespace Rococo::Memory
 
 		void Log(cstr name, cstr intro)
 		{
-			Rococo::Memory::Log(stats, name, intro, Rococo::Debugging::Log);
+			if (Memory::GetAllocatorLogFlags().LogDetailedMetrics)
+			{
+				Rococo::Memory::Log(stats, name, intro, Rococo::Debugging::Log);
+			}
 		}
 	};
 
@@ -264,7 +315,7 @@ namespace Rococo::Memory
 			auto* data = malloc(nBytes);
 			if (!data)
 			{
-				Rococo::Throw(0, "%s(%s): Cannot allocate %llu bytes", __FUNCTION__, nBytes);
+				throw std::bad_alloc();
 			}
 			return data;
 		}

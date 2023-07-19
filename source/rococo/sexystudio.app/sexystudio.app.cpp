@@ -60,8 +60,16 @@ void MainProtected(HINSTANCE, HMODULE hLib)
 	}
 }
 
+#include <rococo.allocators.h>
+using namespace Rococo::Memory;
+
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 {
+	AllocatorLogFlags flags;
+	flags.LogDetailedMetrics = false;
+	flags.LogLeaks = false;
+	flags.LogOnModuleExit = false;
+	SetAllocatorLogFlags(flags);
 	// Assume that the DLL is in the same directory as the executable
 
 	WideFilePath directory;

@@ -276,8 +276,17 @@ struct ScriptContext : public IEventCallback<ScriptCompileArgs>, public Rococo::
 
 int mainProtected(int argc, char* argv[]);
 
+#include <rococo.allocators.h>
+
 int main(int argc, char* argv[])
 {
+	using namespace Rococo::Memory;
+	AllocatorLogFlags flags;
+	flags.LogDetailedMetrics = false;
+	flags.LogLeaks = false;
+	flags.LogOnModuleExit = false;
+	SetAllocatorLogFlags(flags);
+
 	try
 	{
 		return mainProtected(argc, argv);

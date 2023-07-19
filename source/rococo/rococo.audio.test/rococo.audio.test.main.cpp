@@ -238,10 +238,19 @@ namespace
 	};
 }
 
+#include <rococo.allocators.h>
+
 int CALLBACK WinMain(HINSTANCE _hInstance, HINSTANCE /* hPrevInstance */, LPSTR /* lpCmdLine */, int /* nCmdShow */)
 {
 	using namespace Rococo;
+	using namespace Rococo::Memory;
 	using namespace Rococo::Windows;
+
+	AllocatorLogFlags flags;
+	flags.LogDetailedMetrics = true;
+	flags.LogLeaks = true;
+	flags.LogOnModuleExit = true;
+	SetAllocatorLogFlags(flags);
 
 	try
 	{
@@ -250,9 +259,6 @@ int CALLBACK WinMain(HINSTANCE _hInstance, HINSTANCE /* hPrevInstance */, LPSTR 
 		{
 			Throw(hr, "CoInitializeEx failed");
 		}
-
-		AutoFree<IAllocatorSupervisor> audioHeap(Memory::CreateBlockAllocator(16384, 0));
-		Rococo::Audio::SetAudioAllocator(audioHeap);
 
 		AutoFree<IOSSupervisor> ios = GetIOS();
 		AutoFree<IInstallationSupervisor> installation = CreateInstallation(L"content.indicator.txt", *ios);

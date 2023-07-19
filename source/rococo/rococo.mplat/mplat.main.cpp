@@ -517,11 +517,6 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	int32 maxEntities = config->GetInt("mplat.instances.entities.max"_fstring);
 	if (maxEntities <= 0) Throw(0, "Int32 \"mplat.instances.entities.max\" defined in '!scripts/config_mplat.sxy' was not positive");
 
-	// The audio allocator must be assigned before any other audio API function or method is called
-	int audioMemoryInitialKb = GetClampedInt(*config, "audio.memory.initial.kb", 16384, 1024, 1024 * 1024);
-	AutoFree<IAllocatorSupervisor> audioHeap(Memory::CreateBlockAllocator(audioMemoryInitialKb, 0));
-	Rococo::Audio::SetAudioAllocator(audioHeap);
-
 	Audio::AudioConfig audio_config{};
 	AutoFree<Audio::IOSAudioAPISupervisor> osAudio = Audio::CreateOSAudio();
 	AutoFree<Audio::IAudioInstallationSupervisor> audioInstallation = Audio::CreateAudioInstallation(*installation);
