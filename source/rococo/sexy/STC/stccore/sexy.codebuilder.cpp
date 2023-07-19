@@ -38,7 +38,7 @@
 #include "sexy.strings.h"
 #include "sexy.stdstrings.h"
 
-#include <list>
+#include <sexy.list.h>
 
 using namespace Rococo;
 using namespace Rococo::Compiler;
@@ -125,6 +125,16 @@ namespace Anon
 			location = arg.Direction() == ARGDIRECTION_INPUT ? VARLOCATION_INPUT : VARLOCATION_OUTPUT;
 		}
 
+		void* operator new(size_t nBytes)
+		{
+			return Rococo::Memory::AllocateSexyMemory(nBytes);
+		}
+
+		void operator delete(void* buffer)
+		{
+			return Rococo::Memory::FreeSexyUnknownMemory(buffer);
+		}
+
 		Variable(size_t _pcStart, const NameString& name, const IStructure& resolvedType, int32 _sectionIndex, void* _userData, int _allocSize, VARLOCATION _location, bool asRef = false, int _tempDepthOnRelease = -1):
 			name(name.c_str()),
 			usage(asRef ? ARGUMENTUSAGE_BYREFERENCE : ARGUMENTUSAGE_BYVALUE),
@@ -169,9 +179,7 @@ namespace Anon
 	typedef TSexyHashMap<size_t,StackRecoveryData, std::hash<size_t>, std::equal_to<size_t>> TMapCodeOffsetToStackCorrection;
 	typedef TSexyVector<int> TInstancePositions;
 	typedef TSexyVector<int> TSectionStack;
-
-	typedef std::unordered_map<size_t,SymbolValue, std::hash<size_t>, std::equal_to<size_t>, Memory::SexyAllocator<std::pair<const size_t, SymbolValue>>> TPCSymbols;
-
+	typedef TSexyHashMap<size_t,SymbolValue> TPCSymbols;
 	typedef TSexyVector<const IStructure*> TTypeVector;
 
 	class CodeBuilder: public ICodeBuilder

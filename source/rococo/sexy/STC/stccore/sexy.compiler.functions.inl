@@ -133,6 +133,16 @@ namespace Anon
 
 		}
 
+		void* operator new(size_t nBytes)
+		{
+			return Rococo::Memory::AllocateSexyMemory(nBytes);
+		}
+
+		void operator delete(void* buffer)
+		{
+			return Rococo::Memory::FreeSexyUnknownMemory(buffer);
+		}
+
 		void MakeClosureInput()
 		{
 			isClosureInput = true;
@@ -214,6 +224,16 @@ namespace Anon
 			}
 
 		   builder->Free();
+		}
+
+		void* operator new(size_t nBytes)
+		{
+			return Rococo::Memory::AllocateSexyMemory(nBytes);
+		}
+
+		void operator delete(void* buffer)
+		{
+			return Rococo::Memory::FreeSexyUnknownMemory(buffer);
 		}
 
 		const int32 GetExtraPopBytes() const

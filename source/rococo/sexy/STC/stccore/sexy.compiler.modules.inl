@@ -83,6 +83,8 @@ namespace Rococo { namespace Compiler { namespace Impl
 			ClearClosures();
 		}
 
+		DEFINE_SEXY_ALLOCATORS_FOR_CLASS;
+
 		const INamespace* DefaultNamespace() const override
 		{
 			if (defaultNamespace == nullptr)

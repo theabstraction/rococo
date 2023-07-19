@@ -151,14 +151,14 @@ namespace ANON
 		{
 			maxAlloc = 4 * _sourceLength + 16;
 			 // figure worst case is single character atomics, each seperated by a space, giving filelength/2 atomic symbols. each takes 8 bytes of aligned data to store. Add 16 for good measure
-			heap = new char[maxAlloc];
+			heap = (char*) Rococo::Memory::AllocateSexyMemory(maxAlloc);
 			heapEnd = heap + maxAlloc - 8; // leave a safe zone
 			writePos = heap;
 		}
 
 		~CPrivateHeapSymbols() 
 		{
-			delete[] heap;
+			Rococo::Memory::FreeSexyUnknownMemory(heap);
 		}
 
 		const sexstring AddSymbol(cstr start, int32 length)

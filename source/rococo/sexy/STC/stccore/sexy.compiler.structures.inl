@@ -54,10 +54,10 @@ namespace Rococo { namespace Compiler { namespace Impl
 		{
 			for(int i = 0; i <= (int) interfaces.size(); ++i)
 			{
-				delete[] virtualTables[i];
+				FreeSexyUnknownMemory(virtualTables[i]);
 			}
 
-			delete[] virtualTables;
+			FreeSexyPointers(virtualTables);
 		}
 	}
 
@@ -570,7 +570,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		return true;
 	}
 
-	typedef std::unordered_map<IStructureBuilder*,int, std::hash<IStructureBuilder*>, std::equal_to<IStructureBuilder*>, Memory::SexyAllocator<std::pair<IStructureBuilder* const, int>>> TStructureSet;
+	typedef TSexyHashMap<IStructureBuilder*,int> TStructureSet;
 
 	void AddDependency(TStructureSet& x, IStructureBuilder& y)
 	{
@@ -741,7 +741,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 			cstr className = name.c_str();
 
 			TokenBuffer destrName;
-         SafeFormat(destrName.Text, TokenBuffer::MAX_TOKEN_CHARS, ("%s.Destruct"), className);
+            SafeFormat(destrName.Text, TokenBuffer::MAX_TOKEN_CHARS, ("%s.Destruct"), className);
 			const IFunction* destructor = module.FindFunction(destrName);
 
 			IProgramObject& object = (IProgramObject&) module.Object();
@@ -761,7 +761,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 
 	ID_BYTECODE* CreateIntrinsicVirtualTable(const IStructure& s, ID_BYTECODE destructorId)
 	{
-		ID_BYTECODE* intrinsicTable = new ID_BYTECODE[3];
+		ID_BYTECODE* intrinsicTable = (ID_BYTECODE*) AllocateSexyMemory(sizeof ID_BYTECODE * 3);
 		intrinsicTable[0] = 0; 
 		intrinsicTable[1] = destructorId;
 		intrinsicTable[2] = (ID_BYTECODE) &s;
@@ -780,7 +780,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 	{
 		if (virtualTables == NULL)
 		{
-			virtualTables = new ID_BYTECODE*[InterfaceCount() + 1];
+			virtualTables = AllocateSexyPointers<ID_BYTECODE*>(InterfaceCount() + 1);
 			for (int i = 0; i <= InterfaceCount(); ++i) virtualTables[i] = NULL;
 		}
 
@@ -793,7 +793,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 			else
 			{
 				const IInterface& interf = GetInterface(interfaceIndex - 1);
-				virtualTables[interfaceIndex] = new ID_BYTECODE[interf.MethodCount() + 1];
+				virtualTables[interfaceIndex] = (ID_BYTECODE*) AllocateSexyMemory(sizeof ID_BYTECODE * (interf.MethodCount() + 1));
 
 				const int offset = ObjectStub::BYTECOUNT_INSTANCE_TO_INTERFACE0 + sizeof(VirtualTable*) * (interfaceIndex - 1);
 				virtualTables[interfaceIndex][0] = (ptrdiff_t)-offset;

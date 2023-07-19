@@ -37,14 +37,12 @@
 #include "sexy.vm.cpu.h"
 #include "sexy.compiler.helpers.h"
 
-#define ROCOCO_USE_SAFE_V_FORMAT
 #include <rococo.hashtable.h>
 #include "sexy.strings.h"
 #include "sexy.stdstrings.h"
 
-#include <list>
-#include <unordered_set>
-
+#include <sexy.list.h>
+#include <sexy.unordered_set.h>
 #include <rococo.api.h>
 
 #include <rococo.allocators.h> // Provides _alliged_maloc
@@ -53,6 +51,7 @@ using namespace Rococo;
 using namespace Rococo::Compiler;
 using namespace Rococo::VM;
 using namespace Rococo::Memory;
+using namespace Rococo::Strings;
 
 namespace Rococo { namespace Compiler {
 	ICodeBuilder* CreateBuilder(IFunctionBuilder& f, bool mayUseParentsSF);
@@ -85,7 +84,7 @@ namespace Anon
 
 	struct DefaultScriptObjectAllocator : IScriptObjectAllocator
 	{
-		std::unordered_set<ObjectStub*,std::hash<ObjectStub*>, std::equal_to<ObjectStub*>, Memory::SexyAllocator<ObjectStub*>> objects;
+		TSexyHashSet<ObjectStub*> objects;
 
 		~DefaultScriptObjectAllocator()
 		{
@@ -606,7 +605,7 @@ namespace Rococo
 			va_start(args, format);
 
 			char message[256];
-			SafeVFormat(message, 256, format, args);
+			Rococo::Strings::SafeVFormat(message, 256, format, args);
 			STCException e(code, source, message);
 			Throw(e);
 		}
@@ -752,4 +751,9 @@ namespace Rococo
 		CopyString(message, MAX_MSG_LEN, _msg);
 		CopyString(source, MAX_MSG_LEN, _source);
 	}
+}
+
+namespace Rococo::Compiler
+{
+	DEFINE_SEXY_ALLOCATORS_OUTSIDE_OF_CLASS(AllocatorBinding);
 }

@@ -40,6 +40,8 @@
 # define SEXYCOMPILER_API __declspec(dllimport)
 #endif
 
+#include <rococo.stl.allocators.h>
+
 namespace Rococo
 {
 	namespace Compiler 
@@ -76,6 +78,8 @@ namespace Rococo
 
 		public:
 			CommonStructures(IProgramObject& obj);
+
+			DEFINE_SEXY_ALLOCATORS_FOR_CLASS;
 
 			INamespaceBuilder& Root() { return *root; }
 			INamespaceBuilder& Sys() { return *sys; } 

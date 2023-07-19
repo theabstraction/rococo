@@ -25,10 +25,34 @@ namespace Rococo::Memory
     {
         delete[](char*) pBuffer;
     }
+
+    template<class T>
+    T* AllocateSexyPointers(size_t numberOfPointers)
+    {
+        return new T[numberOfPointers];
+    }
+
+    template<class T>
+    void FreeSexyPointers(T** buffer)
+    {
+        delete[] buffer;
+    }
 #else
     SEXYUTIL_API void* AllocateSexyMemory(size_t nBytes);
     SEXYUTIL_API void FreeSexyMemory(void* pBuffer, size_t nBytes);
     SEXYUTIL_API void FreeSexyUnknownMemory(void* pBuffer);
+
+    template<class T>
+    T* AllocateSexyPointers(size_t numberOfPointers)
+    {
+        return AllocateSexyMemory(sizeof(T*) * numberOfPointers;
+    }
+
+    template<class T>
+    void FreeSexyPointers(T** buffer)
+    {
+        FreeSexyUnknownMemory(buffer);
+    }
 #endif
     SEXYUTIL_API IAllocator& GetSexyAllocator();
     SEXYUTIL_API void SetSexyAllocator(IAllocator* allocator);
@@ -55,8 +79,6 @@ void CLASS_NAME::operator delete(void* buffer)              \
 {                                                           \
     Rococo::Memory::FreeSexyUnknownMemory(buffer);          \
 }
-
-
 
 #ifdef USE_STD_ALLOCATOR_FOR_SEXY
 #include <memory>

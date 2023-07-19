@@ -139,7 +139,7 @@ namespace Anon
 
 		IStepCallback* stepCallback;
 
-		std::vector<uint8, Memory::SexyAllocator<uint8>> globalData;
+		TSexyVector<uint8> globalData;
 
 		TMemory breakpoints;
 

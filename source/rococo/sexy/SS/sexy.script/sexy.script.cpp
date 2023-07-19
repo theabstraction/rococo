@@ -43,7 +43,7 @@
 
 #include <sexy.stdstrings.h>
 #include <sexy.unordered_map.h>
-#include <list>
+#include <sexy.list.h>
 
 
 #include <rococo.api.h>
@@ -421,7 +421,7 @@ namespace Rococo::Script
 	}
 
 	typedef TSexyHashMapByStdString<NativeFunction*> TMapFQNToNativeCall;
-	typedef std::list<INativeLib*, Memory::SexyAllocator<INativeLib*>> TNativeLibs;
+	typedef TSexyList<INativeLib*> TNativeLibs;
 
 	void CALLTYPE_C RouteToNative(VariantValue* registers, void* context)
 	{

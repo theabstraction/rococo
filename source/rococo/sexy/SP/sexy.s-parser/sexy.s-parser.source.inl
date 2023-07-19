@@ -35,6 +35,7 @@ namespace Anon
 {
 	using namespace Rococo;
 	using namespace Rococo::Sex;
+	using namespace Rococo::Memory;
 
 	class CSourceCodeCopy final: public ISourceCode
 	{
@@ -52,14 +53,14 @@ namespace Anon
          origin(_origin),
 			name(_name)
 		{
-			buffer = new char[_segmentLength + 1];
+			buffer = (char*) AllocateSexyMemory(_segmentLength + 1);
 			memcpy(buffer, _buffer, segmentLength * sizeof(char));
 			buffer[_segmentLength] = 0;
 		}
 
 		~CSourceCodeCopy()
 		{
-			delete buffer;
+			FreeSexyUnknownMemory(buffer);
 		}
 
 		virtual const Vec2i& Origin() const		{	return origin; }

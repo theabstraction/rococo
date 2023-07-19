@@ -140,6 +140,16 @@ namespace Rococo { namespace Compiler { namespace Impl
 			SetStructs(argNameArray, stArray, archArray, _genericArg1Array, numberOfOutputs, numberOfInputs);
 		}
 
+		void* operator new(size_t nBytes)
+		{
+			return Rococo::Memory::AllocateSexyMemory(nBytes);
+		}
+
+		void operator delete(void* buffer)
+		{
+			return Rococo::Memory::FreeSexyUnknownMemory(buffer);
+		}
+
 		virtual const void* Definition() const { return definition; }
 
 		virtual const bool IsVirtualMethod() const
@@ -166,10 +176,11 @@ namespace Rococo { namespace Compiler { namespace Impl
 			}
 			else
 			{
-				structureArray = new const IStructure*[numberOfOutputs+numberOfInputs];
-				archetypeArray = new const IArchetype*[numberOfOutputs+numberOfInputs];
-				argNameArray = new cstr[numberOfOutputs+numberOfInputs];
-				genericArg1Array = new const IStructure*[numberOfOutputs+numberOfInputs];
+				structureArray = AllocateSexyPointers<const IStructure*>(numberOfOutputs + numberOfInputs);
+				archetypeArray = AllocateSexyPointers<const IArchetype*>(numberOfOutputs + numberOfInputs);
+				argNameArray = AllocateSexyPointers<cstr>(numberOfOutputs+numberOfInputs);
+				genericArg1Array = AllocateSexyPointers<const IStructure*>(numberOfOutputs+numberOfInputs);
+
 				for(int32 i = 0; i < numberOfOutputs + numberOfInputs; ++i)
 				{
 					structureArray[i] = stArray[i];
@@ -182,10 +193,10 @@ namespace Rococo { namespace Compiler { namespace Impl
 
 		~Archetype()
 		{
-			delete[] structureArray;
-			delete[] archetypeArray;
-			delete[] argNameArray;
-			delete[] genericArg1Array;
+			FreeSexyPointers(structureArray);
+			FreeSexyPointers(archetypeArray);
+			FreeSexyPointers(argNameArray);
+			FreeSexyPointers(genericArg1Array);
 		}
 
 		virtual cstr Name() const								{ return publicName.c_str(); }
@@ -283,7 +294,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 	class StructRegistry
 	{
 	private:
-		typedef std::unordered_map<stdstring, size_t, std::hash<stdstring>, std::equal_to<stdstring>, Memory::SexyAllocator<std::pair<const stdstring, size_t>>> TMapNameToIndex;
+		typedef TSexyHashMapByStdString<size_t> TMapNameToIndex;
 		typedef TSexyVector<StructAlias> TStructures;
 		TStructures structures;
 		TMapNameToIndex structureMap;
@@ -453,6 +464,16 @@ namespace Rococo { namespace Compiler { namespace Impl
 		Structure(cstr _name, const StructurePrototype& _prototype, IModuleBuilder& _module, VARTYPE type, const void* _definition);
 		~Structure();
 
+		void* operator new(size_t nBytes)
+		{
+			return Rococo::Memory::AllocateSexyMemory(nBytes);
+		}
+
+		void operator delete(void* buffer)
+		{
+			return Rococo::Memory::FreeSexyUnknownMemory(buffer);
+		}
+
         void Free() override { delete this; }
 
 		void AddAttribute(Rococo::Sex::cr_sex sourceDef, bool isCustom) override;
@@ -496,7 +517,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		Rococo::Sex::cr_sex GetAttributeDef(int32 index, bool& isCustom) const override;
 	};
 
-	typedef std::list<Structure*,Memory::SexyAllocator<Structure*>> TStructureList;
+	typedef TSexyList<Structure*> TStructureList;
 
 	class CStructIdentityAlias: public IStructAliasBuilder
 	{
@@ -542,11 +563,21 @@ namespace Rococo { namespace Compiler { namespace Impl
 	public:
 		Interface(cstr _name, const int _methodCount, IStructureBuilder& _nullObjectType, Interface* _base);
 		~Interface();
+
+		void* operator new(size_t nBytes)
+		{
+			return Rococo::Memory::AllocateSexyMemory(nBytes);
+		}
+
+		void operator delete(void* buffer)
+		{
+			return Rococo::Memory::FreeSexyUnknownMemory(buffer);
+		}
 		
-      virtual void Free()
-      {
-         delete this;
-      }
+        virtual void Free()
+        {
+            delete this;
+        }
 		//IInterface
 		virtual const IInterface* Base() const  { return base; }
 		virtual const IAttributes& Attributes() const { return attributes; }
@@ -589,6 +620,16 @@ namespace Rococo { namespace Compiler { namespace Impl
 				inlineConstructor(NULL), inlineClass(NULL)
 		{}
 
+		void* operator new(size_t nBytes)
+		{
+			return Rococo::Memory::AllocateSexyMemory(nBytes);
+		}
+
+		void operator delete(void* buffer)
+		{
+			return Rococo::Memory::FreeSexyUnknownMemory(buffer);
+		}
+
 		virtual cstr Name() const {	return name.c_str();	}
 		virtual const IFunction& Constructor() const	{	return constructor;	}
 		virtual IFunctionBuilder& Constructor()			{	return constructor;	}
@@ -610,6 +651,16 @@ namespace Rococo { namespace Compiler { namespace Impl
 	{
 	public:
 		Macro(cstr _name, void* _expression, INamespace& _ns, IFunctionBuilder& _f): name(_name), expression(_expression), ns(_ns), f(_f) {}
+
+		void* operator new(size_t nBytes)
+		{
+			return Rococo::Memory::AllocateSexyMemory(nBytes);
+		}
+
+		void operator delete(void* buffer)
+		{
+			return Rococo::Memory::FreeSexyUnknownMemory(buffer);
+		}
 
 		virtual cstr Name() const { return name; }
 		virtual const void* Expression() const { return expression; }
@@ -652,6 +703,16 @@ namespace Rococo { namespace Compiler { namespace Impl
 		Namespace(IProgramObject& _object);
 		Namespace(IProgramObject& _object, cstr _name, Namespace* _parent);
 		~Namespace();
+
+		void* operator new(size_t nBytes)
+		{
+			return Rococo::Memory::AllocateSexyMemory(nBytes);
+		}
+
+		void operator delete(void* buffer)
+		{
+			return Rococo::Memory::FreeSexyUnknownMemory(buffer);
+		}
 
 		FunctionRegistry& Functions();
 		StructRegistry& Structures();

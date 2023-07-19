@@ -7,6 +7,7 @@
 #include <vector>
 #include <rococo.api.h>
 #include <rococo.os.h>
+#include <sexy.vector.h>
 
 #define validate(_Expression) if (!(_Expression)) { ShowFailure(#_Expression, __FILE__, __LINE__); Abort(); }
 
@@ -1064,7 +1065,7 @@ namespace
 		CPU cpu = vm.Cpu();
 		validate(cpu.PC() == cpu.ProgramStart + funcPos);
 	
-		typedef std::vector<StackTraceItem> TStackItems;
+		typedef TSexyVector<StackTraceItem> TStackItems;
 
 		struct ANON {	static void OnStackTrace(void* context, const StackTraceItem& item)
 		{

@@ -38,11 +38,15 @@
 
 #include "sexy.types.h"
 
+#define ROCOCO_USE_SAFE_V_FORMAT
+#include <rococo.strings.h>
+
 #include <algorithm>
 #include <string>
+#include <sexy.stdstrings.h>
 #include <sexy.vector.h>
 #include <sexy.unordered_map.h>
-#include <unordered_set>
+#include <sexy.unordered_set.h>
 #include <stdarg.h>
 
 #define COMPILER_LIB

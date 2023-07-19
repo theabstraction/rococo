@@ -527,6 +527,9 @@ namespace Rococo {
 
 		struct AllocatorBinding
 		{
+			void* operator new(size_t nBytes);
+			void operator delete(void* buffer);
+
 			IScriptObjectAllocator* memoryAllocator;
 			const IStructure* associatedStructure;
 			bool standardDestruct = true;
