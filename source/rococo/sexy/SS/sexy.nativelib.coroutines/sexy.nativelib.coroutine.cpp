@@ -11,7 +11,8 @@
 #include "..\STC\\stccore\Sexy.Compiler.h"
 
 #include <sexy.unordered_map.h>
-#include <vector>
+#include <sexy.vector.h>
+
 #include <algorithm>
 
 #include <rococo.api.h>
@@ -98,7 +99,7 @@ typedef TSexyHashMap<int64, CoSpec*> SpecMap;
 // A pool of virtual memory for use as stack memory by coroutines
 struct StackPool
 {
-	std::vector<uint8*, Memory::SexyAllocator<uint8*>> freePointers;
+	TSexyVector<uint8*> freePointers;
 	TSexyHashMap<uint8*, uint32, std::hash<uint8*>, std::equal_to<uint8*>> allocatedPointers;
 
 	enum { StackSize = 8192 };
@@ -145,7 +146,7 @@ struct Coroutines : public Sys::ICoroutineControl
 	StackPool stacks;
 	int64 nextWakeTime = Constants::nextYear;
 
-	std::vector<CoSpec*,Memory::SexyAllocator<CoSpec*>> dormantCoSpecs;
+	TSexyVector<CoSpec*> dormantCoSpecs;
 
 	Coroutines(IScriptSystem& _ss) :
 		ss(_ss), object(ss.ProgramObject()), vm(object.VirtualMachine())

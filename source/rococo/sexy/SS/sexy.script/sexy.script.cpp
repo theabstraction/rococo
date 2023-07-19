@@ -36,7 +36,7 @@
 #include <rococo.strings.h>
 #include "..\stc\stccore\sexy.compiler.helpers.h"
 #include "sexy.s-parser.h"
-
+#include <sexy.vector.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <algorithm>
@@ -734,10 +734,10 @@ namespace Rococo::Script
 
 		struct CharSequence
 		{
-			std::vector<char, Memory::SexyAllocator<char>> buffer;
+			TSexyVector<char> buffer;
 		};
 
-		std::vector<CharSequence, Memory::SexyAllocator<CharSequence>> persistentStrings;
+		TSexyVector<CharSequence> persistentStrings;
 
 		AutoFree<ISexyPackagerSupervisor> packager;
 
@@ -778,7 +778,7 @@ namespace Rococo::Script
 			return *ioSystem;
 		}
 
-		std::vector<HString> commandLineArgs;
+		TSexyVector<HString> commandLineArgs;
 
 		void SetCommandLine(int argc, char* argv[]) override
 		{
@@ -2295,7 +2295,7 @@ namespace Rococo::Script
 		}
 		
 		enum { MAX_NATIVE_SRC_LEN = 32768 };
-		std::vector<char, Memory::SexyAllocator<char>> sourceBuffer;
+		TSexyVector<char> sourceBuffer;
 
 		void AddCommonSource(const char *sexySourceFile) override
 		{

@@ -37,5 +37,6 @@
     <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.stringbuilders.inl" />
     <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.util.inl" />
     <ClInclude Include="..\..\source\rococo\include\sexy.unordered_map.h" />
+    <ClInclude Include="..\..\source\rococo\include\sexy.vector.h" />
   </ItemGroup>
 </Project>

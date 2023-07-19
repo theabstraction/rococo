@@ -1,7 +1,7 @@
 #include "sexy.script.stdafx.h"
 #include <rococo.package.h>
 #include <rococo.hashtable.h>
-#include <vector>
+#include <sexy.vector.h>
 #include <sexy.s-parser.h>
 
 using namespace Rococo;
@@ -75,8 +75,8 @@ namespace
 	struct PackageNamespaceToken
 	{
 		char token[PACKAGE_TOKEN_CAPACITY];
-		std::vector<PackageNamespaceToken, Memory::SexyAllocator<PackageNamespaceToken>> subspaces;
-		std::vector<PackedFile, Memory::SexyAllocator<PackedFile>> files;
+		TSexyVector<PackageNamespaceToken> subspaces;
+		TSexyVector<PackedFile> files;
 
 		PackageNamespaceToken(const char* text, int32 nSubspaces)
 		{

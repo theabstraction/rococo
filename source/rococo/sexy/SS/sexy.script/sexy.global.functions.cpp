@@ -18,7 +18,7 @@
 #include <algorithm>
 
 #include <string>
-#include <vector>
+#include <sexy.vector.h>
 
 #include <rococo.ide.h>
 #include <rococo.os.h>
@@ -734,8 +734,8 @@ namespace Rococo
 			size_t fileLength;
 			char time[64];
 		};
-		std::vector<VisitorInfo> visitorData;
-		std::vector<IPackage*> packages;
+		TSexyVector<VisitorInfo> visitorData;
+		TSexyVector<IPackage*> packages;
 	public:
 		SourceCache(IInstallation& _installation, IAllocator& _allocator) :
 			fileBuffer(CreateExpandingBuffer(64_kilobytes)),

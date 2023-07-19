@@ -44,7 +44,7 @@ namespace
 	class TFastAllocator
 	{
 	private:
-		typedef std::vector<T*> TItems;
+		typedef TSexyVector<T*> TItems;
 		TItems items;
 		TItems freeItems;
 
@@ -219,9 +219,9 @@ namespace
 
 		const IStructure* typeFastStringBuilder;
 
-		std::vector<FastStringBuilder_64*, Memory::SexyAllocator<FastStringBuilder_64*>> freeList_64; // For tokens and such. Could be smaller, but then dwarfed by the FastStringBuilder object
-		std::vector<FastStringBuilder_260*, Memory::SexyAllocator<FastStringBuilder_260*>> freeList_260; // For file paths and whatever
-		std::vector<FastStringBuilder_1024*, Memory::SexyAllocator<FastStringBuilder_1024*>> freeList_1024; // Paragraphs
+		TSexyVector<FastStringBuilder_64*> freeList_64; // For tokens and such. Could be smaller, but then dwarfed by the FastStringBuilder object
+		TSexyVector<FastStringBuilder_260*> freeList_260; // For file paths and whatever
+		TSexyVector<FastStringBuilder_1024*> freeList_1024; // Paragraphs
 		TSexyHashMap<char*,uint32> allocList;
 
 		void SetStringBuilderType(const IStructure* typeFastStringBuilder) override

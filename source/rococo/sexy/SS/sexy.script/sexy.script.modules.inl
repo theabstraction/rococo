@@ -1827,7 +1827,8 @@ namespace Rococo::Script
 	private:
 		typedef TSexyHashMap<ISParserTree*,CScript*>  TMapTreeToScript;
 		TMapTreeToScript scriptMap;
-		typedef std::vector<std::pair<ISParserTree*,CScript*>, Memory::SexyAllocator<std::pair<ISParserTree*, CScript*>>> TScriptVector;
+
+		typedef TSexyVector<std::pair<ISParserTree*,CScript*>> TScriptVector;
 		TScriptVector scripts;
 
 		IProgramObject& programObject;

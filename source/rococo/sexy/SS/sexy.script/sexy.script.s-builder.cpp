@@ -34,7 +34,7 @@
 #include "sexy.script.stdafx.h"
 #include "sexy.s-parser.h"
 
-#include <vector>
+#include <sexy.vector.h>
 
 using namespace Rococo;
 using namespace Rococo::Sex;
@@ -122,7 +122,7 @@ namespace ANON
 
 	struct ExpressionBuilder: public ISExpressionBuilder
 	{
-		std::vector<ChildElement, Memory::SexyAllocator<ChildElement>> children;
+		TSexyVector<ChildElement> children;
 		ExpressionBuilder* parent;
 
 		ExpressionBuilder(ExpressionBuilder* _parent): parent(_parent)

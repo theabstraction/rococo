@@ -53,7 +53,7 @@
 #include <sexy.unordered_map.h>
 #include "..\STC\stccore\Sexy.Compiler.h"
 #include <rococo.hashtable.h>
-#include <vector>
+#include <sexy.vector.h>
 
 namespace Rococo
 {
@@ -167,7 +167,7 @@ namespace Rococo
             const ISExpression* StructDef;
             IStructureBuilder* Struct;
         };
-        typedef std::vector<CBindStructDefToExpression, Memory::SexyAllocator<CBindStructDefToExpression>> TStructureDefinitions;
+        typedef TSexyVector<CBindStructDefToExpression> TStructureDefinitions;
 
         struct CClosureDef
         {
@@ -176,7 +176,7 @@ namespace Rococo
             CClosureDef(cr_sex closureExpr, IFunctionBuilder& closure) : ClosureExpr(&closureExpr), Closure(&closure) {}
         };
 
-        typedef std::vector<CClosureDef, Memory::SexyAllocator<CClosureDef>> TClosures;
+        typedef TSexyVector<CClosureDef> TClosures;
 
         struct CNullDef
         {
@@ -186,9 +186,9 @@ namespace Rococo
             INamespaceBuilder* NS;
         };
 
-        typedef std::vector<CNullDef, Memory::SexyAllocator<CNullDef>> TNullObjectDefs;
-        typedef std::vector<CStringConstant*, Memory::SexyAllocator<CStringConstant*>> TStringConstants;
-        typedef std::vector<IMacroBuilder*, Memory::SexyAllocator<IMacroBuilder*>> TMacros;
+        typedef TSexyVector<CNullDef> TNullObjectDefs;
+        typedef TSexyVector<CStringConstant*> TStringConstants;
+        typedef TSexyVector<IMacroBuilder*> TMacros;
 
         struct BuilderAndNameKey
         {
@@ -264,7 +264,7 @@ namespace Rococo
             IExpressionTransform* transform;
         };
         typedef TSexyHashMap<const ISExpression*, TransformData> TTransformMap;
-        typedef std::vector<const ISExpression*, Memory::SexyAllocator<const ISExpression*>> TExceptionBlocks;
+        typedef TSexyVector<const ISExpression*> TExceptionBlocks;
 
         struct CBindNSExpressionToModule
         {
@@ -279,7 +279,7 @@ namespace Rococo
             return a.E->String()->Length < b.E->String()->Length;
         }
 
-        typedef std::vector<CBindNSExpressionToModule, Memory::SexyAllocator<CBindNSExpressionToModule>> TNamespaceDefinitions;
+        typedef TSexyVector<CBindNSExpressionToModule> TNamespaceDefinitions;
 
         class CScript
         {

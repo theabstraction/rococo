@@ -236,6 +236,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\source\rococo\include\sexy.vector.h" />
     <ClInclude Include="..\..\source\rococo\include\sexy.unordered_map.h" />
     <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.arithmetic.expression.parser.inl" />
     <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.array.inl" />

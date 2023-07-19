@@ -35,7 +35,7 @@ namespace Rococo::Script
 {
 	struct OrphanedNodeList
 	{
-		std::vector<ListNode*> items;
+		TSexyVector<ListNode*> items;
 	};
 
 	ListNode* CreateNewNode(ListImage* l, IScriptSystem& ss)

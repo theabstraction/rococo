@@ -3,7 +3,7 @@
 #include <sexy.vm.h>
 #include <sexy.vm.cpu.h>
 
-#include <vector>
+#include <sexy.vector.h>
 
 using namespace Rococo::VM;
 
@@ -17,7 +17,7 @@ namespace Rococo::Script
 		size_t HandlerOffset;
 	};
 
-	typedef std::vector<ExceptionHandler, Memory::SexyAllocator<ExceptionHandler>> TExceptionHandlers;
+	typedef TSexyVector<ExceptionHandler> TExceptionHandlers;
 
 	IFunctionBuilder* GetFunctionForAddress(const uint8* pc, IProgramObject& programObject);
 
