@@ -15,5 +15,6 @@
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\sexy\SVM\svmcore\sexy.vm.os.h" />
     <ClInclude Include="..\..\source\rococo\sexy\SVM\svmcore\sexy.vm.stdafx.h" />
+    <ClInclude Include="..\..\source\rococo\sexy\Common\sexy.vm.h" />
   </ItemGroup>
 </Project>

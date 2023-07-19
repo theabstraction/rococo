@@ -117,7 +117,7 @@ namespace Anon
 	}
 
 	class CVirtualMachine final
-		: public IVirtualMachine, public IStepCallback
+		: public IVirtualMachine
 	{
 	private:	
 		CPU& cpu;
@@ -152,6 +152,7 @@ namespace Anon
 		CVirtualMachine(ICore& _core, CPU& _cpu) :
 			core(_core), cpu(_cpu)
 		{
+			static_assert(sizeof FN_VM == sizeof (void*), "The member pointer size is greater than sizeof pointer, => VM has multiple inheritance. This may slow execution of the Virtual Machine");
 			SetStackSize(64 * 1024);
 
 			stepCallback = this;

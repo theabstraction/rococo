@@ -119,7 +119,7 @@
     </Link>
     <Lib>
       <TargetMachine>MachineX64</TargetMachine>
-      <SubSystem/>
+      <SubSystem />
       <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
       <OutputFile>..\..\gen\lib\win64\debug\sexy.vm.lib</OutputFile>
     </Lib>
@@ -182,12 +182,13 @@
     </Link>
     <Lib>
       <TargetMachine>MachineX64</TargetMachine>
-      <SubSystem/>
+      <SubSystem />
       <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
       <OutputFile>..\..\gen\lib\win64\release\sexy.vm.lib</OutputFile>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\source\rococo\sexy\Common\sexy.vm.h" />
     <ClInclude Include="..\..\source\rococo\sexy\SVM\svmcore\sexy.vm.os.h" />
     <ClInclude Include="..\..\source\rococo\sexy\SVM\svmcore\sexy.vm.stdafx.h" />
   </ItemGroup>

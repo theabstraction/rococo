@@ -142,7 +142,7 @@ namespace Rococo { namespace VM
 		virtual void StepNext() = 0;
 	};
 
-	ROCOCO_INTERFACE IDebugger
+	ROCOCO_INTERFACE IDebugger: IStepCallback
 	{		
 		virtual void ClearBreakpoint(size_t offset) = 0;
 		
