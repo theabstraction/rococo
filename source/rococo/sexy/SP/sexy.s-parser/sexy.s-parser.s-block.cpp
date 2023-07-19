@@ -1745,7 +1745,7 @@ namespace Rococo
 				printf("compound count: %llu\n", (uint64) ce.branchCount);
 			}
 
-			AutoFree<IAllocatorSupervisor> allocator(Rococo::Memory::CreateBlockAllocator(16, 0));
+			AutoFree<IAllocatorSupervisor> allocator(Rococo::Memory::CreateBlockAllocator(16, 0, "s-block-parser"));
 
 			Anon::SBlockAllocator sba(ce, *allocator, sExpression);
 			Anon::SParser parser(sExpression, sba);

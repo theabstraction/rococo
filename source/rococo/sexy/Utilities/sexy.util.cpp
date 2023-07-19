@@ -94,6 +94,16 @@ namespace Rococo::Memory
 {
 	struct SexyDefaultAllocator: IAllocator
 	{
+		std::vector<FN_AllocatorReleaseFunction> atReleaseQueue;
+
+		~SexyDefaultAllocator()
+		{
+			for (auto fn : atReleaseQueue)
+			{
+				fn();
+			}
+		}
+
 		[[nodiscard]] void* Allocate(size_t capacity) override
 		{
 			return malloc(capacity);
@@ -107,6 +117,20 @@ namespace Rococo::Memory
 		void* Reallocate(void* ptr, size_t capacity) override
 		{
 			return realloc(ptr, capacity);
+		}
+
+		void AtRelease(FN_AllocatorReleaseFunction exitFunction)
+		{
+			auto i = std::find(atReleaseQueue.begin(), atReleaseQueue.end(), exitFunction);
+			if (i != atReleaseQueue.end())
+			{
+				atReleaseQueue.push_back(exitFunction);
+			}
+		}
+
+		size_t EvaluateHeapSize() override
+		{
+			return 0;
 		}
 	} defaultAllocator;
 

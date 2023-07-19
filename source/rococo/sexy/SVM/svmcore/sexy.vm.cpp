@@ -166,7 +166,7 @@ namespace Anon
 					s_instructionTable[i] = &CVirtualMachine::OnOpcodeBadInstruction;
 				}
 
-				atexit(WipeTable);
+				GetSexyAllocator().AtRelease(WipeTable);
 			}
 
 			ActivateInstruction(AddQuick32);

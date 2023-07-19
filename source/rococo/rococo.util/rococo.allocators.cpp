@@ -56,6 +56,10 @@ namespace
 } // anon
 #endif
 
+#include <vector>
+#include <algorithm>
+#include <rococo.allocator.template.h>
+
 namespace
 {
    using namespace Rococo;
@@ -66,27 +70,35 @@ namespace
       uint32 allocCount{ 0 };
       uint32 freeCount{ 0 };
       uint32 reallocCount{ 0 };
+
+      std::vector<FN_AllocatorReleaseFunction, AllocatorWithMalloc<FN_AllocatorReleaseFunction>> atReleaseQueue;
+
    public:
       ~CheckedAllocator()
       {
          char text[1024];
          SafeFormat(text, sizeof(text), "\nCheckedAllocator: Allocs: %u, Frees: %u, Reallocs: %u\n\n", allocCount, freeCount, reallocCount);
          OutputDebugStringA(text);
+
+         for (auto fn : atReleaseQueue)
+         {
+             fn();
+         }
       }
 
-      virtual void* Allocate(size_t capacity)
+      void* Allocate(size_t capacity) override
       {
          allocCount++;
          return malloc(capacity);
       }
 
-      virtual void FreeData(void* data)
+      void FreeData(void* data) override
       {
          freeCount++;
          free(data);
       }
 
-      virtual void* Reallocate(void* ptr, size_t capacity)
+      void* Reallocate(void* ptr, size_t capacity) override
       {
          if (ptr == nullptr)
          {
@@ -94,6 +106,20 @@ namespace
          }
          reallocCount++;
          return realloc(ptr, capacity);
+      }
+
+      void AtRelease(FN_AllocatorReleaseFunction fn) override
+      {
+          auto i = std::find(atReleaseQueue.begin(), atReleaseQueue.end(), fn);
+          if (i != atReleaseQueue.end())
+          {
+              atReleaseQueue.push_back(fn);
+          }
+      }
+
+      size_t EvaluateHeapSize()
+      {
+          return 0;
       }
    } s_CheckedAllocator;
 
@@ -104,8 +130,11 @@ namespace
       uint32 freeCount{ 0 };
       uint32 reallocCount{ 0 };
 	  size_t maxBytes;
+      const char* const name;
+
+      std::vector<FN_AllocatorReleaseFunction, AllocatorWithMalloc<FN_AllocatorReleaseFunction>> atReleaseQueue;
    public:
-      BlockAllocator(size_t kilobytes, size_t _maxkilobytes): maxBytes(_maxkilobytes * 1024)
+      BlockAllocator(size_t kilobytes, size_t _maxkilobytes, const char* const _name): maxBytes(_maxkilobytes * 1024), name(_name)
       {
          hHeap = HeapCreate(0, kilobytes * 1024, maxBytes);
          if (hHeap == nullptr) Throw(GetLastError(), "Error allocating heap");
@@ -113,11 +142,24 @@ namespace
 
       ~BlockAllocator()
       {
-         char text[1024];
-         SafeFormat(text, sizeof(text), "\nBlockAllocator(%p) Allocs: %u, Frees: %u, Reallocs: %u\n\n", hHeap, allocCount, freeCount, reallocCount);
-         OutputDebugStringA(text);
+          for (auto fn : atReleaseQueue)
+          {
+              fn();
+          }
+         
+          size_t totalAllocation = EvaluateHeapSize();
 
-         HeapDestroy(hHeap);
+          char text[1024];
+          SafeFormat(text, sizeof(text), "\nBlockAllocator(%s) Allocs: %u, Frees: %u, Reallocs: %u. Heap size: %llu MB\n", name, allocCount, freeCount, reallocCount, totalAllocation / 1_megabytes);
+          OutputDebugStringA(text);
+
+          if (allocCount > freeCount)
+          {
+              SafeFormat(text, sizeof(text), "Memory leaked. %llu allocations were not freed\n\n", allocCount - freeCount);
+              OutputDebugStringA(text);
+          }
+
+          HeapDestroy(hHeap);
       }
 
 	  void* Allocate(size_t capacity) override
@@ -132,10 +174,22 @@ namespace
 		  return ptr;
 	  }
 
+      void AtRelease(FN_AllocatorReleaseFunction fn) override
+      {
+          auto i = std::find(atReleaseQueue.begin(), atReleaseQueue.end(), fn);
+          if (i == atReleaseQueue.end())
+          {
+              atReleaseQueue.push_back(fn);
+          }
+      }
+
       void FreeData(void* data) override
       {
-         freeCount++;
-         if (data) HeapFree(hHeap, 0, data);
+          if (data)
+          {
+              freeCount++;
+              if (data) HeapFree(hHeap, 0, data);
+          }
       }
 
       void* Reallocate(void* old, size_t capacity) override
@@ -153,6 +207,20 @@ namespace
       void Free() override
       {
          delete this;
+      }
+
+      size_t EvaluateHeapSize() override
+      {
+          PROCESS_HEAP_ENTRY entry;
+          entry = { 0 };
+
+          size_t totalAllocation = 0;
+          while (HeapWalk(hHeap, &entry))
+          {
+              totalAllocation += (entry.cbData + entry.cbOverhead);
+          }
+
+          return totalAllocation;
       }
    };
 }
@@ -222,9 +290,9 @@ namespace Rococo::Memory
         return s_CheckedAllocator;
     }
 
-    ROCOCO_API IAllocatorSupervisor* CreateBlockAllocator(size_t kilobytes, size_t maxkilobytes)
+    ROCOCO_API IAllocatorSupervisor* CreateBlockAllocator(size_t kilobytes, size_t maxkilobytes, const char* const name)
     {
-        return new BlockAllocator(kilobytes, maxkilobytes);
+        return new BlockAllocator(kilobytes, maxkilobytes, name);
     }
 
     ROCOCO_API void* AlignedAlloc(size_t nBytes, int32 alignment, void* allocatorFunction(size_t))

@@ -722,9 +722,16 @@ namespace Rococo
 
 	ROCOCO_INTERFACE IAllocator
 	{
-	   [[nodiscard]] virtual void* Allocate(size_t capacity) = 0;
-	   virtual void FreeData(void* data) = 0;
-	   virtual void* Reallocate(void* ptr, size_t capacity) = 0;
+		typedef void (*FN_AllocatorReleaseFunction)();
+		[[nodiscard]] virtual void* Allocate(size_t capacity) = 0;
+		virtual void FreeData(void* data) = 0;
+		virtual void* Reallocate(void* ptr, size_t capacity) = 0;
+
+		// Add a function to be invoked when the allocator is about to be destructed
+		virtual void AtRelease(FN_AllocatorReleaseFunction fn) = 0;
+
+		// Returns the number of bytes in the allocator heap, or 0 if not known
+		virtual size_t EvaluateHeapSize() = 0;
 	};
 
 	ROCOCO_INTERFACE IAllocatorSupervisor : public IAllocator

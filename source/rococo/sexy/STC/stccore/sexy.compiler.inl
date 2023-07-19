@@ -159,10 +159,10 @@ namespace Rococo { namespace Compiler { namespace Impl
 
 		void SetStructs(const cstr* _argNameArray, const IStructure** stArray, const IArchetype** archArray, const IStructure** _genericArg1Array, int32 numberOfOutputs, int32 numberOfInputs)
 		{
-			delete[] structureArray;
-			delete[] archetypeArray;
-			delete[] argNameArray;
-			delete[] genericArg1Array;
+			FreeSexyPointers(structureArray);
+			FreeSexyPointers(archetypeArray);
+			FreeSexyPointers(argNameArray);
+			FreeSexyPointers(genericArg1Array);
 
 			this->numberOfOutputs = numberOfOutputs;
 			this->numberOfInputs = numberOfInputs;

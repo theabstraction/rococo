@@ -15,5 +15,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\rococo.util\xxhash.hpp" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.allocator.template.h" />
   </ItemGroup>
 </Project>

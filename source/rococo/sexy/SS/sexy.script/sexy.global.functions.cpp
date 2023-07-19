@@ -101,7 +101,7 @@ namespace Rococo
 namespace Rococo::Memory
 {
 	[[nodiscard]] IAllocator& CheckedAllocator();
-	[[nodiscard]] IAllocatorSupervisor* CreateBlockAllocator(size_t kilobytes, size_t maxkilobytes);
+	[[nodiscard]] IAllocatorSupervisor* CreateBlockAllocator(size_t kilobytes, size_t maxkilobytes, const char* const name);
 }
 
 namespace

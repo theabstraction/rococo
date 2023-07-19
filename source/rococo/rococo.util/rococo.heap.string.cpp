@@ -17,8 +17,17 @@ namespace Rococo::Strings
 
 	static HStringData nullData{ "", 0, 0 };
 
-	struct DefaulAllocator: public IAllocator
+	struct DefaultAllocator: public IAllocator
 	{
+		~DefaultAllocator()
+		{			
+		}
+
+		void AtRelease(void(*FN_AllocatorRelease)()) override
+		{
+			atexit(FN_AllocatorRelease);
+		}
+
 		void* Allocate(size_t capacity) override
 		{
 			return malloc(capacity);
@@ -33,9 +42,14 @@ namespace Rococo::Strings
 		{
 			return realloc(ptr, capacity);
 		}
+
+		size_t EvaluateHeapSize()
+		{
+			return 0;
+		}
 	};
 
-	static DefaulAllocator defaultAllocator;
+	static DefaultAllocator defaultAllocator;
 	static IAllocator* stringAllocator = &defaultAllocator;
 
 	ROCOCO_API void SetStringAllocator(IAllocator* a)
@@ -189,6 +203,7 @@ namespace ANON
 	IAllocator* moduleAllocator = &defaultAllocator;
 }
 
+#define _MODULE_ALLOCATOR_AVAILABLE
 #include <rococo.allocator.template.h>
 
 namespace ANON

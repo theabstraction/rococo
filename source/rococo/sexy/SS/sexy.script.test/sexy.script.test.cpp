@@ -15893,6 +15893,9 @@ int main(int argc, char* argv[])
 	flags.LogOnModuleExit = true;
 	SetAllocatorLogFlags(flags);
 
+	AutoFree<IAllocatorSupervisor> sexyAllocator = CreateBlockAllocator(5120, 0, "script-test");
+	SetSexyAllocator(sexyAllocator);
+
 //	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
 	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_None);
 
@@ -15901,6 +15904,12 @@ int main(int argc, char* argv[])
 	try
 	{
 		RunTests();
+
+		size_t heapSize = sexyAllocator->EvaluateHeapSize();
+		if (heapSize)
+		{
+			printf("Estimated memory consumption: %llu KB\n", heapSize / 1_kilobytes);
+		}
 	}
 	catch (IException& ex)
 	{

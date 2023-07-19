@@ -498,7 +498,7 @@ int mainProtected(int argc, char* argv[])
 
 	AutoFree<IScriptSystemFactory> ssFactory(CreateScriptSystemFactory_1_5_0_0());
 
-	AutoFree<IAllocatorSupervisor> allocator = Rococo::Memory::CreateBlockAllocator(16384, 0);
+	AutoFree<IAllocatorSupervisor> allocator = Rococo::Memory::CreateBlockAllocator(16384, 0, "sexy-cmd");
 	AutoFree<ISourceCache> sourceCache(CreateSourceCache(*installation, *allocator));
 
 	WideFilePath nativeSourcePath;
