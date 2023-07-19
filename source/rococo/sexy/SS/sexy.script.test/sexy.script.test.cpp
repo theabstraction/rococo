@@ -302,8 +302,6 @@ namespace
 
 	void Test(const char* name, FN_TEST fnTest, bool addinCoroutines, bool addInIO)
 	{
-		Memory::RecordAllocations((size_t) - 1);
-		Memory::ValidateNothingAllocated();
 		{
 			printf("<<<<<< %s\r\n", name);
 
@@ -365,8 +363,6 @@ namespace
 
 			printf("%s >>>>>>\r\n\r\n", name);
 		}
-		MARK_MEMORY(name);
-		Memory::ValidateNothingAllocated();
 	}
 
 	void TestConstruction(IPublicScriptSystem& ss)
@@ -15499,28 +15495,6 @@ R"(
 	   TEST(TestLimitsFloat64);
    }
 
-   void TestMemoryIsGood()
-   {
-	   ProgramInitParameters pip;
-	   pip.addCoroutineLib = false;
-	   pip.useDebugLibs = false;
-	   pip.MaxProgramBytes = 32768;
-
-#ifdef _DEBUG
-	   pip.useDebugLibs = true;
-#endif
-
-
-	   Memory::ValidateNothingAllocated();
-
-	   {
-		   CScriptSystemProxy ssp(pip, s_logger);
-	   }
-
-	   Memory::ValidateNothingAllocated();
-   }
-
-
 	void RunPositiveSuccesses()
 	{
 		validate(true);
@@ -15890,8 +15864,7 @@ R"(
 	{
 		int64 start, end, hz;
 		start = Time::TickCount();
-		Memory::ValidateNothingAllocated();
-		TestMemoryIsGood();
+
 		RunPositiveSuccesses();	
 		RunPositiveFailures();
 		TestArrays();

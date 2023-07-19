@@ -33,6 +33,7 @@
 
 // dllmain.cpp : Defines the entry point for the DLL application.
 #include "sexy.vm.stdafx.h"
+#include <stdio.h>
 
 #ifdef _WIN32
 #include <WinError.h>

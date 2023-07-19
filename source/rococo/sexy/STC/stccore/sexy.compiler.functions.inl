@@ -194,7 +194,7 @@ namespace Anon
 		const IStructure* type;
 		int popBytes = 0;
 
-		typedef std::vector<FunctionArgument*, Memory::SexyAllocator<FunctionArgument*>> TFunctionArgs;
+		typedef TSexyVector<FunctionArgument*> TFunctionArgs;
 		TFunctionArgs args;
 	public:
 		Function(const FunctionPrototype& fp, IModuleBuilder& _module, IFunctionBuilder* _parent, bool _mayUseParentSF, const void* _definition, int _popBytes):

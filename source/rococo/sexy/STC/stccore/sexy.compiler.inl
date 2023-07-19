@@ -53,7 +53,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 	class FunctionRegistry: public IFunctionEnumeratorBuilder
 	{
 	private:
-		typedef std::vector<FunctionAlias, Memory::SexyAllocator<FunctionAlias>> TFunctions;
+		typedef TSexyVector<FunctionAlias> TFunctions;
 		typedef stringmap<IFunctionBuilder*> TFunctionsByName;
 		TFunctions functions;
 		TFunctionsByName functionsByName;
@@ -199,7 +199,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 	class ArchetypeRegistry
 	{
 	private:
-		typedef std::vector<Archetype*, Memory::SexyAllocator<Archetype*>> TDeclarations;
+		typedef TSexyVector<Archetype*> TDeclarations;
 		TDeclarations declarations;
 
 	public:
@@ -284,7 +284,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 	{
 	private:
 		typedef std::unordered_map<stdstring, size_t, std::hash<stdstring>, std::equal_to<stdstring>, Memory::SexyAllocator<std::pair<const stdstring, size_t>>> TMapNameToIndex;
-		typedef std::vector<StructAlias, Memory::SexyAllocator<StructAlias>> TStructures;
+		typedef TSexyVector<StructAlias> TStructures;
 		TStructures structures;
 		TMapNameToIndex structureMap;
 		bool managesLifetime;
@@ -420,7 +420,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		void SetSize(size_t size) { sizeOfMember = (int32) size; }
 	};
 
-	typedef std::vector<StructureMember, Memory::SexyAllocator<StructureMember>> TStructureMembers;
+	typedef TSexyVector<StructureMember> TStructureMembers;
 
 	struct StructureAttribute
 	{
@@ -439,9 +439,9 @@ namespace Rococo { namespace Compiler { namespace Impl
 		bool isSealed;
 		mutable int sizeOfStruct;
 		VARTYPE type;
-		typedef std::vector<stdstring, Memory::SexyAllocator<stdstring>> TInterfaceNames;
-		typedef std::vector<IInterfaceBuilder*, Memory::SexyAllocator<IInterfaceBuilder*>> TInterfaces;
-		std::vector<StructureAttribute, Memory::SexyAllocator<StructureAttribute>> attributes;
+		typedef TSexyVector<stdstring> TInterfaceNames;
+		typedef TSexyVector<IInterfaceBuilder*> TInterfaces;
+		TSexyVector<StructureAttribute> attributes;
 		TInterfaceNames interfaceNames;
 		TInterfaces interfaces;
 		mutable ID_BYTECODE destructorId;
@@ -517,7 +517,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		typedef stringmap<const void*> TMapKeyToAttr;
 		TMapKeyToAttr attributeMap;
 
-		typedef std::vector<std::pair<cstr,const void*>, Memory::SexyAllocator<std::pair<cstr, const void*>>> TAttrVector;
+		typedef TSexyVector<std::pair<cstr,const void*>> TAttrVector;
 		TAttrVector attributes;
 	public:
 		virtual bool AddAttribute(cstr name, const void* value);
@@ -601,9 +601,9 @@ namespace Rococo { namespace Compiler { namespace Impl
 	};
 
 	typedef stringmap<Structure*> TResolvedStructures;
-	typedef std::vector<CStructIdentityAlias, Memory::SexyAllocator<CStructIdentityAlias>> TStructures;
+	typedef TSexyVector<CStructIdentityAlias> TStructures;
 	typedef stringmap<Interface*> TInterfaces;
-	typedef std::vector<IInterfaceBuilder*, Memory::SexyAllocator<IInterfaceBuilder*>> TInterfaceEnum;
+	typedef TSexyVector<IInterfaceBuilder*> TInterfaceEnum;
 	typedef stringmap<Factory*> TFactories;
 
 	class Macro: public IMacroBuilder
@@ -629,7 +629,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		sexstring name;
 		sexstring fullname;
 
-		typedef std::vector<Namespace*, Memory::SexyAllocator<Namespace*>> TChildren;
+		typedef TSexyVector<Namespace*> TChildren;
 		typedef stringmap<Namespace*> TMapNameToNS;
 		typedef stringmap<Macro*> TMapNameToMacro;
 

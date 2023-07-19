@@ -35,6 +35,7 @@
 
 #include <sexy.stdstrings.h>
 #include <sexy.unordered_map.h>
+#include <sexy.vector.h>
 
 using namespace Rococo;
 using namespace Rococo::VM;
@@ -46,7 +47,7 @@ namespace
 	private:
 		rstdstring sourceName;
 		
-		typedef std::vector<size_t,Memory::SexyAllocator<size_t>> TOffsets;
+		typedef TSexyVector<size_t> TOffsets;
 		TOffsets rowOffsets;
 
 	public:
@@ -92,7 +93,7 @@ namespace
 		typedef std::unordered_map<size_t,VM::FileData, std::hash<size_t>, std::equal_to<size_t>, Memory::SexyAllocator<std::pair<const size_t, VM::FileData>>> TOffsetToSymbol;
 		TOffsetToSymbol symbolMap;
 
-		typedef std::vector<SourceImage*, Memory::SexyAllocator<SourceImage*>> TImages;
+		typedef TSexyVector<SourceImage*> TImages;
 		TImages images;
 		
 	public:

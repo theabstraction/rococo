@@ -304,7 +304,7 @@ namespace Anon
 	class ProgramObject : public IProgramObject, private IAllocatorMap
 	{
 	private:
-		typedef std::vector<Module*, Memory::SexyAllocator<Module*>> TModules;
+		typedef TSexyVector<Module*> TModules;
 		TModules modules; // The set of all modules, except the intrinsics
 		Namespace* rootNS;
 		Module* intrinsics;
@@ -315,10 +315,10 @@ namespace Anon
 		TSymbols symbols;
 		CommonStructures* common;
 
-		std::vector<IStructure*, Memory::SexyAllocator<IStructure*>> systemStructures;
+		TSexyVector<IStructure*> systemStructures;
 
 		DefaultScriptObjectAllocator defaultAllocator;
-		std::unordered_map<const IStructure*, AllocatorBinding*, std::hash<const IStructure*>, std::equal_to<const IStructure*>, Memory::SexyAllocator<std::pair<const IStructure* const, AllocatorBinding*>>> allocators;
+		TSexyHashMap<const IStructure*, AllocatorBinding*> allocators;
 
 		CallbackIds callbackIds;
 	public:

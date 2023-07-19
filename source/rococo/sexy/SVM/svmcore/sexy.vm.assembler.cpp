@@ -34,14 +34,14 @@
 #include "sexy.vm.stdafx.h"
 #include "sexy.vm.cpu.h"
 
-#include <rococo.stl.allocators.h>
+#include <sexy.vector.h>
 
 using namespace Rococo;
 using namespace Rococo::VM;
 
 namespace
 {
-	typedef std::vector<unsigned char, Memory::SexyAllocator<unsigned char>> TMemory;
+	typedef TSexyVector<unsigned char> TMemory;
 
 	bool IsToInt8Lossless(int32 value)
 	{

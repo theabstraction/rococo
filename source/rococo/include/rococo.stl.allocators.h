@@ -32,7 +32,6 @@ namespace Rococo::Memory
 #endif
     SEXYUTIL_API IAllocator& GetSexyAllocator();
     SEXYUTIL_API void SetSexyAllocator(IAllocator* allocator);
-    SEXYUTIL_API void ValidateNothingAllocated();
 }
 
 #define DEFINE_SEXY_ALLOCATORS_FOR_CLASS                    \
@@ -112,21 +111,3 @@ namespace Rococo::Memory
     }
 }
 #endif
-
-namespace Rococo
-{
-    //define rstdstring, rococo's std::string. In DLL mode sexyscript should be set to use std::string, so that the global allocators handle it
-    //while in static linking mode go through the sexy allocator.
-    
-    namespace Memory
-    {
-        // This will give some debugging info for outstanding allocations - providing the sexy default allocator is active
-        // RecordAllocations(size_t) can be used to report more detailed info on outstanding allocations of a particular size
-        SEXYUTIL_API void MarkMemory(cstr msg, cstr function, int line);
-
-        // This will record callstacks for objects allocated with a given size - providing the sexy default allocator is active
-        SEXYUTIL_API void RecordAllocations(size_t nBytes);
-    }
-}
-
-#define MARK_MEMORY(msg) Rococo::Memory::MarkMemory(msg, __func__, __LINE__);

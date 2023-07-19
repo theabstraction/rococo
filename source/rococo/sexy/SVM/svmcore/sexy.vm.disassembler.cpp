@@ -36,7 +36,7 @@
 
 #define ROCOCO_USE_SAFE_V_FORMAT
 #include <rococo.strings.h>
-
+#include <memory.h>
 #include <stdarg.h>
 
 using namespace Rococo;

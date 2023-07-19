@@ -113,7 +113,7 @@ namespace ANON
 	class CSequentialSymbols
 	{
 	private:
-		typedef std::vector<sexstring, Memory::SexyAllocator<sexstring>> TSymbolPtrs;
+		typedef TSexyVector<sexstring> TSymbolPtrs;
 		TSymbolPtrs symbols;
 
 	public:

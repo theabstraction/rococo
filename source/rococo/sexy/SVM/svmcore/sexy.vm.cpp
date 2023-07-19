@@ -39,7 +39,7 @@
 #include <rococo.api.h>
 
 #include <rococo.allocators.h> // provides _aligned_malloc
-#include <rococo.stl.allocators.h>
+#include <sexy.vector.h>
 
 #include <rococo.strings.h>
 #include <rococo.os.h>
@@ -98,7 +98,7 @@ namespace Anon
 		uint32 reserved;
 	};
 
-	typedef std::vector<unsigned char, Memory::SexyAllocator<unsigned char>> TMemory;
+	typedef TSexyVector<unsigned char> TMemory;
 
 	bool IsOpcodeCall(Opcodes::OPCODE opcode)
 	{

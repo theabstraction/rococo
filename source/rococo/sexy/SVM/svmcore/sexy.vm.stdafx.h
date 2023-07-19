@@ -44,8 +44,6 @@
 
 #include "sexy.types.h"
 
-#include <vector>
-#include <unordered_map>
 #include <stdarg.h>
 
 #define SVM_CORE_MODULE
