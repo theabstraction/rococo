@@ -941,6 +941,12 @@ namespace Rococo
 		   return ns->FindStructure(stTail);
 	   }
 
+	   SCRIPTEXPORT_API void AddNativeCallSecurity(IPublicScriptSystem& ss, cstr nativeNamespace, cstr permittedPingPath)
+	   {
+		   auto& ns = ss.AddNativeNamespace(nativeNamespace);
+		   ss.AddNativeCallSecurity(ns, permittedPingPath);
+	   }
+
 	   const ISExpression* GetSourceExpression(IPublicProgramObject& po, const IFunction& f, size_t pcOffset)
 	   {
 		   CodeSection section;

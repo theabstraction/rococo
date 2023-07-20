@@ -118,6 +118,7 @@ namespace MHost
 			void OnEvent(ScriptCompileArgs& args) override
 			{
 				args.ss.RegisterPackage(&package);
+				AddNativeCallSecurity(args.ss, "Rococo.Audio.Native", "Package[mhost]@MHost/rococo.audio_sxh.sxy");
 				args.ss.AddNativeLibrary("rococo.sexy.mathsex");
 				AddNativeCalls_MHostIGui(args.ss, nullptr);
 				AddNativeCalls_MHostIEngine(args.ss, engine);

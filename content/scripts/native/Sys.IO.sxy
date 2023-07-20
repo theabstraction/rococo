@@ -203,6 +203,12 @@
 	(Sys.IO.Native.SetFilePosition this position)
 )
 
+(function CloseWriter (Sys.IO.IWriter writer)-> :
+	(Sys.IO.Native.CloseWriter writer)
+)
+
+(alias CloseWriter Sys.IO.CloseWriter)
+
 (using Sys.Reflection)
 
 (function BuildPrintStatement (IExpression in)(IExpressionBuilder out)-> :

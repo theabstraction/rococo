@@ -291,6 +291,8 @@ namespace Rococo
 
 				void OnEvent(ScriptCompileArgs& args) override
 				{
+					onScriptEvent.OnEvent(args);
+
 					if (addPlatform)
 					{
 						Audio::DLL_AddNativeCalls_RococoAudioIAudio(args.ss, &platform.hardware.audio);
@@ -321,8 +323,6 @@ namespace Rococo
 						const INamespace& ns = args.ss.AddNativeNamespace("MPlat.OS");
 						args.ss.AddNativeCall(ns, NativeEnumerateFiles, &platform, "EnumerateFiles (Sys.Type.IString filter)(MPlat.OnFileName callback)->", __FUNCTION__, __LINE__);
 					}
-
-					onScriptEvent.OnEvent(args);
 				}
 
 				ScriptContext(Platform& _platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, IEventCallback<cstr>* _onScriptCrash) :

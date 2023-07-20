@@ -10,34 +10,6 @@
 	(Data -> (Pointer data))
 )
 
-(class AlignedHeap
-	(implements IBuffer)
-	(Int32 capacity)
-	(Pointer data)
-)
-
-(method AlignedHeap.Capacity -> (Int32 capacity):
-	(capacity = this.capacity)
-)
-
-(method AlignedHeap.Data -> (Pointer data):
-	(data = this.data)
-)
-
-(function ValidateNativePointer (Pointer x) -> :
-	(if (x == 0) (Sys.Throw -1 "Null reference exception"))
-)
-
-(method AlignedHeap.Construct (Int32 capacity) (Int32 alignment):
-	(this.capacity = capacity)
-	(Sys.Native.AlignedMalloc capacity alignment -> this.data)
-	(ValidateNativePointer this.data)
-)
-
-(method AlignedHeap.Destruct -> :
-	(Sys.Native.AlignedFree this.data)
-)
-
 (class NativeException
 	(implements IException)
 	(Int32 errorCode)
@@ -82,11 +54,11 @@
 )
 
 (method MemoImpl.Destruct -> :
-    (Sys.Native.FreeMemoString (this.buffer))
+    (Sys.Strings.Native.FreeMemoString (this.buffer))
 )
 
 (method MemoImpl.Construct (IString s) -> :
-	(Sys.Native.CreateMemoString s.Buffer s.Length -> this.buffer this.length)	
+	(Sys.Strings.Native.CreateMemoString s.Buffer s.Length -> this.buffer this.length)	
 )
 
 (interface Sys.Type.Formatters.AsDecimal (Null -> ))
@@ -118,19 +90,19 @@
 )
 
 (function NewTokenBuilder -> (IStringBuilder sb):
-	(Sys.Native.NewStringBuilder 64 -> sb)
+	(Sys.Strings.Native.NewStringBuilder 64 -> sb)
 )
 
 (function NewPathBuilder -> (IStringBuilder sb):
-	(Sys.Native.NewStringBuilder 260 -> sb)
+	(Sys.Strings.Native.NewStringBuilder 260 -> sb)
 )
 
 (function NewParagraphBuilder -> (IStringBuilder sb):
-	(Sys.Native.NewStringBuilder 1024 -> sb)
+	(Sys.Strings.Native.NewStringBuilder 1024 -> sb)
 )
 
 (function NewStringBuilder (Int32 capacity) -> (IStringBuilder sb):
-	(Sys.Native.NewStringBuilder capacity -> sb)
+	(Sys.Strings.Native.NewStringBuilder capacity -> sb)
 )
 
 (alias NewTokenBuilder     Sys.Type.NewTokenBuilder)
@@ -139,63 +111,63 @@
 (alias NewStringBuilder    Sys.Type.NewStringBuilder)
 
 (method FastStringBuilder.Destruct -> :
-	(Sys.Native.DestructStringBuilder this)
+	(Sys.Strings.Native.DestructStringBuilder this)
 )
 
 (method FastStringBuilder.AppendIString  (IString s) -> :
-	(Sys.Native.FastStringBuilderAppendIString this s.Buffer s.Length)
+	(Sys.Strings.Native.FastStringBuilderAppendIString this s.Buffer s.Length)
 )
 
 (method FastStringBuilder.AppendIStringBuilder  (IStringBuilder s) -> :
-	(Sys.Native.FastStringBuilderAppendIString this s.Buffer s.Length)
+	(Sys.Strings.Native.FastStringBuilderAppendIString this s.Buffer s.Length)
 )
 
 (method FastStringBuilder.AppendChar  (Int32 asciiValue) -> :
-	(Sys.Native.FastStringBuilderAppendChar this asciiValue)
+	(Sys.Strings.Native.FastStringBuilderAppendChar this asciiValue)
 )
 
 (method FastStringBuilder.AppendInt32  (Int32 x) -> :
-	(Sys.Native.FastStringBuilderAppendInt32 this x)
+	(Sys.Strings.Native.FastStringBuilderAppendInt32 this x)
 )
 
 (method FastStringBuilder.AppendInt64  (Int64 x) -> :
-	(Sys.Native.FastStringBuilderAppendInt64 this x)
+	(Sys.Strings.Native.FastStringBuilderAppendInt64 this x)
 )
 
 (method FastStringBuilder.AppendFloat32  (Float32 x) -> :
-	(Sys.Native.FastStringBuilderAppendFloat32 this x)
+	(Sys.Strings.Native.FastStringBuilderAppendFloat32 this x)
 )
 
 (method FastStringBuilder.AppendFloat64  (Float64 x) -> :
-	(Sys.Native.FastStringBuilderAppendFloat64 this x)
+	(Sys.Strings.Native.FastStringBuilderAppendFloat64 this x)
 )
 
 (method FastStringBuilder.AppendBool  (Bool x) -> :
-	(Sys.Native.FastStringBuilderAppendBool this x)
+	(Sys.Strings.Native.FastStringBuilderAppendBool this x)
 )
 
 (method FastStringBuilder.AppendPointer (Pointer x) -> :
-	(Sys.Native.FastStringBuilderAppendPointer this x)
+	(Sys.Strings.Native.FastStringBuilderAppendPointer this x)
 )
 
 (method FastStringBuilder.AppendAsDecimal (Sys.Type.Formatters.AsDecimal x) -> :
-	(Sys.Native.FastStringBuilderAppendAsDecimal this)
+	(Sys.Strings.Native.FastStringBuilderAppendAsDecimal this)
 )
 
 (method FastStringBuilder.AppendAsHex (Sys.Type.Formatters.AsHex x) -> :
-	(Sys.Native.FastStringBuilderAppendAsHex this)
+	(Sys.Strings.Native.FastStringBuilderAppendAsHex this)
 )
 
 (method FastStringBuilder.AppendAsSpecE (Sys.Type.Formatters.AsSpecE null) -> :
-	(Sys.Native.FastStringBuilderAppendAsSpec this 1)
+	(Sys.Strings.Native.FastStringBuilderAppendAsSpec this 1)
 )
 
 (method FastStringBuilder.AppendAsSpecF (Sys.Type.Formatters.AsSpecF null) -> :
-	(Sys.Native.FastStringBuilderAppendAsSpec this 2)
+	(Sys.Strings.Native.FastStringBuilderAppendAsSpec this 2)
 )
 
 (method FastStringBuilder.AppendAsSpecG (Sys.Type.Formatters.AsSpecG null) -> :
-	(Sys.Native.FastStringBuilderAppendAsSpec this 3)
+	(Sys.Strings.Native.FastStringBuilderAppendAsSpec this 3)
 )
 
 (method FastStringBuilder.AppendAsNewLine (Sys.Type.Formatters.AsNewLine null) -> :
@@ -203,15 +175,15 @@
 )
 
 (method FastStringBuilder.SetLength (Int32 length) -> :
-	(Sys.Native.FastStringBuilderSetLength this length)
+	(Sys.Strings.Native.FastStringBuilderSetLength this length)
 )
 
 (method FastStringBuilder.SetFormat (Sys.Type.Int32 precision) (Sys.Type.Int32 width) (Sys.Type.Bool isZeroPrefixed) (Sys.Type.Bool isRightAligned) -> :
-	(Sys.Native.FastStringBuilderSetFormat this precision width isZeroPrefixed isRightAligned)
+	(Sys.Strings.Native.FastStringBuilderSetFormat this precision width isZeroPrefixed isRightAligned)
 )
 
 (method FastStringBuilder.Clear -> :
-	(Sys.Native.FastStringBuilderClear this)	
+	(Sys.Strings.Native.FastStringBuilderClear this)	
 )
 
 (method FastStringBuilder.Buffer -> (Sys.Type.Pointer buffer):
@@ -223,64 +195,64 @@
 )
 
 (method FastStringBuilder.AppendSubstring (IString s) (Int32 startPos) (Int32 numberOfChars) -> :
-	(Sys.Native.FastStringBuilderAppendSubstring this s.Buffer s.Length startPos numberOfChars)
+	(Sys.Strings.Native.FastStringBuilderAppendSubstring this s.Buffer s.Length startPos numberOfChars)
 )
 
 (method FastStringBuilder.Replace (Int32 startPosition) (IString from)(IString to)-> :
-	(Sys.Native.FastStringBuilderReplace this startPosition from to)
+	(Sys.Strings.Native.FastStringBuilderReplace this startPosition from to)
 )
 
 (method FastStringBuilder.ToUpper (Int32 start) (Int32 end) -> :
-	(Sys.Native.FastStringBuilderSetCase this start end true)
+	(Sys.Strings.Native.FastStringBuilderSetCase this start end true)
 )
 
 (method FastStringBuilder.ToLower (Int32 start) (Int32 end) -> :
-	(Sys.Native.FastStringBuilderSetCase this start end false)
+	(Sys.Strings.Native.FastStringBuilderSetCase this start end false)
 )
 
 (method FastStringBuilder.ThrowIfAppendWouldTruncate -> :
-	(Sys.Native.FastStringBuilderThrowIfAppendWouldTruncate this)
+	(Sys.Strings.Native.FastStringBuilderThrowIfAppendWouldTruncate this)
 )
 
 (function StringEndsWith (IString bigString) (IString suffix) -> (Bool isSo):
-	(Sys.Native.StringEndsWith bigString suffix -> isSo)
+	(Sys.Strings.Native.StringEndsWith bigString suffix -> isSo)
 )
 
 (function StringStartsWith (IString bigString) (IString prefix) -> (Bool isSo):
-	(Sys.Native.StringStartsWith bigString prefix -> isSo)
+	(Sys.Strings.Native.StringStartsWith bigString prefix -> isSo)
 )
 
 (function StringCompare (IString s) (IString t) -> (Int32 diff):
-	(Sys.Native.StringCompare s.Buffer t.Buffer -> diff)
+	(Sys.Strings.Native.StringCompare s.Buffer t.Buffer -> diff)
 )
 
 (function StringCompareI (IString s) (IString t) -> (Int32 diff):
-	(Sys.Native.StringCompareI s.Buffer t.Buffer -> diff)
+	(Sys.Strings.Native.StringCompareI s.Buffer t.Buffer -> diff)
 )
 
 (function ExactMatch (IString s) (IString t) -> (Bool match):
 	(Int32 diff)
-	(Sys.Native.StringCompare s.Buffer t.Buffer -> diff)
+	(Sys.Strings.Native.StringCompare s.Buffer t.Buffer -> diff)
 	(if (diff == 0) (match = true) else (match = false))
 )
 
 (function FindLeft (IString container) (Int32 startPos) (IString substring) -> (Int32 position):
-	(Sys.Native.StringFindLeft container.Buffer container.Length startPos substring.Buffer substring.Length false -> position)
+	(Sys.Strings.Native.StringFindLeft container.Buffer container.Length startPos substring.Buffer substring.Length false -> position)
 )
 
 (function FindRight (IString container) (Int32 rightPos) (IString substring) -> (Int32 position):
-	(Sys.Native.StringFindRight container.Buffer container.Length rightPos substring.Buffer substring.Length false -> position)
+	(Sys.Strings.Native.StringFindRight container.Buffer container.Length rightPos substring.Buffer substring.Length false -> position)
 )
 
 (function FindLeftI (IString container) (Int32 startPos) (IString substring) -> (Int32 position):
-	(Sys.Native.StringFindLeft container.Buffer container.Length startPos substring.Buffer substring.Length true -> position)
+	(Sys.Strings.Native.StringFindLeft container.Buffer container.Length startPos substring.Buffer substring.Length true -> position)
 )
 
 (function FindRightI (IString container) (Int32 rightPos) (IString substring) -> (Int32 position):
-	(Sys.Native.StringFindRight container.Buffer container.Length rightPos substring.Buffer substring.Length true -> position)
+	(Sys.Strings.Native.StringFindRight container.Buffer container.Length rightPos substring.Buffer substring.Length true -> position)
 )
 
-(function MakeSysSlashes (IStringBuilder sb) -> : (Sys.Native.MakeSysSlashes sb))
+(function MakeSysSlashes (IStringBuilder sb) -> : (Sys.Strings.Native.MakeSysSlashes sb))
 (alias MakeSysSlashes Sys.Type.Strings.MakeSysSlashes)
 
 (archetype Sys.Type.Strings.ForEachSubstring (IStringBuilder sb) (Int32 index) ->)
@@ -362,10 +334,6 @@
 )
 
 (alias Preserve Sys.Type.Strings.Preserve)
-
-(factory Sys.Type.AllocAligned IBuffer (Int32 capacity) (Int32 alignment):
-	(construct AlignedHeap capacity alignment)
-)
 
 (function NullString -> (IString nullString):
 )

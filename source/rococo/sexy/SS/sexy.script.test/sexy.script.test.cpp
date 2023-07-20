@@ -300,6 +300,14 @@ namespace
 		disassembler->Free();
 	}
 
+	void Secure(IPublicScriptSystem& ss)
+	{
+		Rococo::Script::AddNativeCallSecurity(ss, "Sys.Native", "!scripts/native/Sys.Type.sxy");
+		Rococo::Script::AddNativeCallSecurity(ss, "Sys.Reflection.Native", "!scripts/native/Sys.Reflection.sxy");
+		Rococo::Script::AddNativeCallSecurity(ss, "Sys.IO.Native", "!scripts/native/Sys.IO.sxy");
+		Rococo::Script::AddNativeCallSecurity(ss, "Sys.Strings.Native", "!scripts/native/Sys.Type.Strings.sxy");
+	}
+
 	void Test(const char* name, FN_TEST fnTest, bool addinCoroutines, bool addInIO)
 	{
 		{
@@ -320,7 +328,7 @@ namespace
 
 			auto& ss = ssp();
 			if (!IsPointerValid(&ss)) exit(-1);
-
+			Secure(ss);
 			try
 			{
 				fnTest(ss);
@@ -5933,7 +5941,7 @@ R"((namespace EntryPoint)
 			"   (testFile.WriteSubstring \"Enjoy\" 2 2)\n"
 			"   (Int64 endPos = testFile.Length)\n"
 			"   (result = (Sys.Maths.I64.ToInt32 endPos))"
-			"   (Sys.IO.Native.CloseWriter testFile)\n"
+			"   (Sys.IO.CloseWriter testFile)\n"
 			")"
 			;
 
@@ -14855,13 +14863,14 @@ R"(
 		   "			(result = message.uMsg)"
 		   "		)"
 		   "	)"
-		   "    (Sys.Native.DispatchMessage handler)"
+		   "    (Sys.Example.Native.DispatchMessage handler)"
 		   ")";
 
 	   Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
 	   Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
-	   auto& ns = ss.AddNativeNamespace("Sys.Native");
+	   AddNativeCallSecurity(ss, "Sys.Example.Native", __FUNCTION__);
+	   auto& ns = ss.AddNativeNamespace("Sys.Example.Native");
 
 	   struct MessageDispatcher
 	   {
@@ -15005,7 +15014,7 @@ R"(
 		   "(using Sys.Maths)\n"
 
 		   "(function Main -> (Int32 result): \n"
-		   "	(Sys.Native.PublishAPI)\n"
+		   "	(Sys.PublishAPI)\n"
 		   ")\n"
 		   "(alias Main EntryPoint.Main) \n";
 
@@ -15499,27 +15508,32 @@ R"(
 	{
 		validate(true);
 
-		TEST3(TestTopLevelMacro2);
-		TEST(TestEmptyMap);
-		TEST3(TestStringReplace);
+		TEST(TestMemberwiseInit);
+		TEST(TestInternalDestructorsCalled);
+		TEST(TestTryFinallyWithoutThrow);
+		TEST(TestDeepCatch);
+		TEST(TestDynamicCast);
+		TEST(TestExceptionDestruct);
+		TEST(TestDerivedInterfaces2);
+		TEST(TestCatch);
+		TEST(TestCatchArg);
 
-		TEST(TestRaw);
-		TEST(TestTopLevelMacro);
-		TEST3(TestConsoleOutput4);
-		TEST(TestPartialCompiles);
-		TEST3(TestConsoleOutput3);
-		TEST3(TestConsoleOutput2);
-		TEST3(TestConsoleOutput);
+		TEST(TestStructWithInterface);
 
-		TEST(TestMacroSiblings3Throws);
-		TEST(TestMacroSiblings);
-		TEST(TestIndexOf);
-		TEST(TestTransformParent);
+		TEST(TestThrowFromCatch);
+
+		TEST(TestCatchInstanceArg);
+		TEST(TestTryWithoutThrow);
+
+		TEST(TestReturnInterfaceEx);
+
+		TEST(TestSearchSubstring);
+		TEST(TestRightSearchSubstring);
+		TEST(TestAppendSubstring);
+		TEST(TestStringbuilderTruncate);
+
+		TEST(TestEssentialInterface);
 		
-		TEST(TestMacroSiblings2);
-
-		TEST(TestStartsWith);
-
 		TEST(TestOperatorOverload3);
 		TEST(TestStaticCast1);
 		TEST(TestCreateNamespace);
@@ -15539,6 +15553,7 @@ R"(
 		TEST(TestClassAttribute);
 
 		TEST(TestNullIString);
+		TEST(TestTopLevelMacro);
 
 	//	TEST(TestPackage);
 
@@ -15586,6 +15601,14 @@ R"(
 		TEST(TestBadClosureArg3);
 		TEST(TestBadClosureArg2);
 
+		TEST(TestIndexOf);
+		TEST(TestTransformParent);
+
+		TEST(TestMacroSiblings2);
+
+		TEST(TestStartsWith);
+
+
 		TEST(TestMemberwiseInit);
 
 		TEST(TestCPPCallback);
@@ -15593,6 +15616,8 @@ R"(
 		TEST(TestMethodFromClosure);
 
 		TEST(TestCPPCallback);
+
+		TEST(TestEmptyMap);
 
 		TEST(TestDeltaOperators);
 		TEST(TestDeltaOperators2);
@@ -15641,7 +15666,7 @@ R"(
 
 		TEST(TestStructWithInterface);
 		TEST(TestMinimumConstruct);
-		TEST3(TestCreateDeclarations);
+
 		TEST(TestLocalVariable);
 		TEST(TestBooleanLiteralVsLiteralMatches);
 		TEST(TestBooleanMismatch);
@@ -15837,6 +15862,20 @@ R"(
 		TEST(TestReflectionGetChild_BadIndex);
 		TEST(TestStringBuilderLength1);
 		TEST(TestAddNativeReflectionCall);
+
+		TEST(TestRaw);
+		TEST3(TestConsoleOutput4);
+		TEST(TestPartialCompiles);
+		TEST3(TestConsoleOutput3);
+		TEST3(TestConsoleOutput2);
+		TEST3(TestConsoleOutput);
+
+		TEST(TestMacroSiblings3Throws);
+		TEST(TestMacroSiblings);
+
+		TEST3(TestTopLevelMacro2);
+		TEST3(TestStringReplace);
+		TEST3(TestCreateDeclarations);
 	}
 
 	void RunPositiveFailures()
@@ -15864,6 +15903,8 @@ R"(
 	{
 		int64 start, end, hz;
 		start = Time::TickCount();
+
+		TEST3(TestTopLevelMacro2);
 
 		RunPositiveSuccesses();	
 		RunPositiveFailures();
@@ -15896,8 +15937,8 @@ int main(int argc, char* argv[])
 	AutoFree<IAllocatorSupervisor> sexyAllocator = CreateBlockAllocator(5120, 0, "script-test");
 	SetSexyAllocator(sexyAllocator);
 
-//	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
-	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_None);
+	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
+//	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_None);
 
 //	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF | _CRTDBG_CHECK_ALWAYS_DF);
 

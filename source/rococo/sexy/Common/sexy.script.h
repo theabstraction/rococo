@@ -343,10 +343,14 @@ namespace Rococo {
 
 		struct MapImage;
 
+		struct NativeCallSecurity;
+		
 		ROCOCO_INTERFACE IPublicScriptSystem : public IFreeable
 		{
 			virtual void AddCommonSource(const char* dynamicLinkLibOfNativeCalls) = 0;
 			virtual void AddNativeCall(const Compiler::INamespace& ns, FN_NATIVE_CALL callback, void* context, cstr archetype, cstr sourceFile, int lineNumber, bool checkName = true, int popBytes = 0) = 0; // Example: AddNativeCall(ns, ANON::CpuHz, NULL, "CpuHz -> (Int64 hz)");
+			virtual void AddNativeCallSecurity(const Compiler::INamespace& ns, const NativeCallSecurity& security) = 0;
+			virtual void AddNativeCallSecurity(const Compiler::INamespace& ns, cstr permittedPingPath) = 0;
 			virtual const Compiler::INamespace& AddNativeNamespace(cstr name) = 0;
 			virtual void AddNativeLibrary(const char *sexyLibraryFile) = 0;
 
@@ -536,6 +540,7 @@ namespace Rococo {
 		SCRIPTEXPORT_API cstr GetInstanceVarName(cstr name, const Rococo::Compiler::IStructure* pseudoType);
 		SCRIPTEXPORT_API bool FindVariableByName(Rococo::Compiler::MemberDef& def, const Rococo::Compiler::IStructure*& pseudoType, const Rococo::uint8*& SF, IPublicScriptSystem& ss, cstr searchName, size_t callOffset);
 		SCRIPTEXPORT_API const Rococo::Compiler::IStructure* FindStructure(IPublicScriptSystem& ss, cstr fullyQualifiedName);
+		SCRIPTEXPORT_API void AddNativeCallSecurity(IPublicScriptSystem& ss, cstr nativeNamespace, cstr permittedPingPath);
 }}
 
 namespace Rococo {

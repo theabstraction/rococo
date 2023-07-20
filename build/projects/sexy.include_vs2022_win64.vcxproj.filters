@@ -13,5 +13,6 @@
     <ClInclude Include="..\..\source\rococo\sexy\Common\sexy.types.h" />
     <ClInclude Include="..\..\source\rococo\sexy\Common\sexy.vm.cpu.h" />
     <ClInclude Include="..\..\source\rococo\sexy\Common\sexy.vm.h" />
+    <ClInclude Include="..\..\source\rococo\sexy\Common\sexy.security.h" />
   </ItemGroup>
 </Project>

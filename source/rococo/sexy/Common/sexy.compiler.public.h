@@ -49,6 +49,11 @@ namespace Rococo { namespace VM
 	struct IProgramMemory;
 }} // Rococo::VM
 
+namespace Rococo::Script
+{
+	struct NativeSecurityHandler;
+}
+
 namespace Rococo {
 	namespace Compiler
 	{
@@ -288,6 +293,7 @@ namespace Rococo {
 			virtual const bool IsVirtualMethod() const = 0;
 			virtual const IStructure* GetGenericArg1(int index) const = 0;
 			virtual const void* Definition() const = 0;
+			virtual const Rococo::Script::NativeSecurityHandler* Security() const = 0;
 		};
 
 		ROCOCO_INTERFACE IArgument
